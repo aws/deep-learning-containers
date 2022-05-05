@@ -1,0 +1,9 @@
+expat
+libfribidi-dev
+git
+gzip
+libc6
+libsasl2-2
+openssl
+python2.7
+python3.6

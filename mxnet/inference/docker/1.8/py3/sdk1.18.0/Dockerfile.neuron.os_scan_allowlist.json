@@ -71,6 +71,10 @@
                                 "Deferred"
                             ],
                             [
+                                "jammy",
+                                "Deferred"
+                            ],
+                            [
                                 "precise",
                                 "Ignored (end of ESM support, was deferred)"
                             ],
@@ -102,81 +106,16 @@
             "uri": "http://people.ubuntu.com/~ubuntu-security/cve/CVE-2016-1585"
         }
     ],
-    "cyrus-sasl2": [
+    "e2fsprogs": [
         {
             "attributes": [
                 {
                     "key": "package_version",
-                    "value": "2.1.27~101-g0780600+dfsg-3ubuntu2.3"
+                    "value": "1.44.1-1ubuntu1.3"
                 },
                 {
                     "key": "package_name",
-                    "value": "cyrus-sasl2"
-                },
-                {
-                    "key": "CVSS2_VECTOR",
-                    "value": "AV:N/AC:L/Au:S/C:P/I:P/A:P"
-                },
-                {
-                    "key": "CVSS2_SCORE",
-                    "value": "6.5"
-                }
-            ],
-            "description": "In Cyrus SASL 2.1.17 through 2.1.27 before 2.1.28, plugins/sql.c does not escape the password for a SQL INSERT or UPDATE statement.",
-            "name": "CVE-2022-24407",
-            "scraped_data": [
-                {
-                    "notes": [],
-                    "status_table": {
-                        "packages": [
-                            "cyrus-sasl2",
-                            "Launchpad",
-                            "Ubuntu",
-                            "Debian"
-                        ],
-                        "release_states": [
-                            [
-                                "bionic",
-                                "Released (2.1.27~101-g0780600+dfsg-3ubuntu2.4)"
-                            ],
-                            [
-                                "focal",
-                                "Released (2.1.27+dfsg-2ubuntu0.1)"
-                            ],
-                            [
-                                "impish",
-                                "Released (2.1.27+dfsg-2.1ubuntu0.1)"
-                            ],
-                            [
-                                "trusty",
-                                "Released (2.1.25.dfsg1-17ubuntu0.1~esm2)"
-                            ],
-                            [
-                                "upstream",
-                                "Released (2.1.28)"
-                            ],
-                            [
-                                "xenial",
-                                "Released (2.1.26.dfsg1-14ubuntu0.2+esm1)"
-                            ]
-                        ]
-                    }
-                }
-            ],
-            "severity": "HIGH",
-            "uri": "http://people.ubuntu.com/~ubuntu-security/cve/CVE-2022-24407"
-        }
-    ],
-    "expat": [
-        {
-            "attributes": [
-                {
-                    "key": "package_version",
-                    "value": "2.2.5-3ubuntu0.2"
-                },
-                {
-                    "key": "package_name",
-                    "value": "expat"
+                    "value": "e2fsprogs"
                 },
                 {
                     "key": "CVSS2_VECTOR",
@@ -187,16 +126,16 @@
                     "value": "6.8"
                 }
             ],
-            "description": "In doProlog in xmlparse.c in Expat (aka libexpat) before 2.4.3, an integer overflow exists for m_groupSize.",
-            "name": "CVE-2021-46143",
+            "description": "An out-of-bounds read/write vulnerability was found in e2fsprogs 1.46.5. This issue leads to a segmentation fault and possibly arbitrary code execution via a specially crafted filesystem.",
+            "name": "CVE-2022-1304",
             "scraped_data": [
                 {
                     "notes": [
-                        "paraview uses system expat\nxotcl uses system expat\npoco uses system expat\ngdcm uses system expat\naudacity uses system expat\nsimgear uses system expat\ncoin3 uses system expat as of 4.0.0~CMake~6f54f1602475+ds1-1\nsitecopy uses system expat since 1:0.16.0-1 (dapper!)"
+                        "as of 2022-04-22, doesn't appear to be an upstream fix"
                     ],
                     "status_table": {
                         "packages": [
-                            "expat",
+                            "e2fsprogs",
                             "Launchpad",
                             "Ubuntu",
                             "Debian"
@@ -204,23 +143,23 @@
                         "release_states": [
                             [
                                 "bionic",
-                                "Released (2.2.5-3ubuntu0.4)"
+                                "Deferred (2022-04-22)"
                             ],
                             [
                                 "focal",
-                                "Released (2.2.9-1ubuntu0.2)"
-                            ],
-                            [
-                                "hirsute",
-                                "Ignored (reached end-of-life)"
+                                "Deferred (2022-04-22)"
                             ],
                             [
                                 "impish",
-                                "Released (2.4.1-2ubuntu0.1)"
+                                "Deferred (2022-04-22)"
+                            ],
+                            [
+                                "jammy",
+                                "Deferred (2022-04-22)"
                             ],
                             [
                                 "trusty",
-                                "Released (2.1.0-4ubuntu1.4+esm4)"
+                                "Deferred (2022-04-22)"
                             ],
                             [
                                 "upstream",
@@ -228,883 +167,14 @@
                             ],
                             [
                                 "xenial",
-                                "Released (2.1.0-7ubuntu0.16.04.5+esm2)"
+                                "Deferred (2022-04-22)"
                             ]
                         ]
                     }
                 }
             ],
             "severity": "MEDIUM",
-            "uri": "http://people.ubuntu.com/~ubuntu-security/cve/CVE-2021-46143"
-        },
-        {
-            "attributes": [
-                {
-                    "key": "package_version",
-                    "value": "2.2.5-3ubuntu0.2"
-                },
-                {
-                    "key": "package_name",
-                    "value": "expat"
-                },
-                {
-                    "key": "CVSS2_VECTOR",
-                    "value": "AV:N/AC:L/Au:N/C:P/I:P/A:P"
-                },
-                {
-                    "key": "CVSS2_SCORE",
-                    "value": "7.5"
-                }
-            ],
-            "description": "addBinding in xmlparse.c in Expat (aka libexpat) before 2.4.3 has an integer overflow.",
-            "name": "CVE-2022-22822",
-            "scraped_data": [
-                {
-                    "notes": [
-                        "paraview uses system expat\nxotcl uses system expat\npoco uses system expat\ngdcm uses system expat\naudacity uses system expat\nsimgear uses system expat\ncoin3 uses system expat as of 4.0.0~CMake~6f54f1602475+ds1-1\nsitecopy uses system expat since 1:0.16.0-1 (dapper!)"
-                    ],
-                    "status_table": {
-                        "packages": [
-                            "expat",
-                            "Launchpad",
-                            "Ubuntu",
-                            "Debian"
-                        ],
-                        "release_states": [
-                            [
-                                "bionic",
-                                "Released (2.2.5-3ubuntu0.4)"
-                            ],
-                            [
-                                "focal",
-                                "Released (2.2.9-1ubuntu0.2)"
-                            ],
-                            [
-                                "hirsute",
-                                "Ignored (reached end-of-life)"
-                            ],
-                            [
-                                "impish",
-                                "Released (2.4.1-2ubuntu0.1)"
-                            ],
-                            [
-                                "trusty",
-                                "Released (2.1.0-4ubuntu1.4+esm4)"
-                            ],
-                            [
-                                "upstream",
-                                "Needs triage"
-                            ],
-                            [
-                                "xenial",
-                                "Released (2.1.0-7ubuntu0.16.04.5+esm2)"
-                            ]
-                        ]
-                    }
-                }
-            ],
-            "severity": "MEDIUM",
-            "uri": "http://people.ubuntu.com/~ubuntu-security/cve/CVE-2022-22822"
-        },
-        {
-            "attributes": [
-                {
-                    "key": "package_version",
-                    "value": "2.2.5-3ubuntu0.2"
-                },
-                {
-                    "key": "package_name",
-                    "value": "expat"
-                },
-                {
-                    "key": "CVSS2_VECTOR",
-                    "value": "AV:N/AC:L/Au:N/C:P/I:P/A:P"
-                },
-                {
-                    "key": "CVSS2_SCORE",
-                    "value": "7.5"
-                }
-            ],
-            "description": "build_model in xmlparse.c in Expat (aka libexpat) before 2.4.3 has an integer overflow.",
-            "name": "CVE-2022-22823",
-            "scraped_data": [
-                {
-                    "notes": [
-                        "paraview uses system expat\nxotcl uses system expat\npoco uses system expat\ngdcm uses system expat\naudacity uses system expat\nsimgear uses system expat\ncoin3 uses system expat as of 4.0.0~CMake~6f54f1602475+ds1-1\nsitecopy uses system expat since 1:0.16.0-1 (dapper!)"
-                    ],
-                    "status_table": {
-                        "packages": [
-                            "expat",
-                            "Launchpad",
-                            "Ubuntu",
-                            "Debian"
-                        ],
-                        "release_states": [
-                            [
-                                "bionic",
-                                "Released (2.2.5-3ubuntu0.4)"
-                            ],
-                            [
-                                "focal",
-                                "Released (2.2.9-1ubuntu0.2)"
-                            ],
-                            [
-                                "hirsute",
-                                "Ignored (reached end-of-life)"
-                            ],
-                            [
-                                "impish",
-                                "Released (2.4.1-2ubuntu0.1)"
-                            ],
-                            [
-                                "trusty",
-                                "Released (2.1.0-4ubuntu1.4+esm4)"
-                            ],
-                            [
-                                "upstream",
-                                "Needs triage"
-                            ],
-                            [
-                                "xenial",
-                                "Released (2.1.0-7ubuntu0.16.04.5+esm2)"
-                            ]
-                        ]
-                    }
-                }
-            ],
-            "severity": "MEDIUM",
-            "uri": "http://people.ubuntu.com/~ubuntu-security/cve/CVE-2022-22823"
-        },
-        {
-            "attributes": [
-                {
-                    "key": "package_version",
-                    "value": "2.2.5-3ubuntu0.2"
-                },
-                {
-                    "key": "package_name",
-                    "value": "expat"
-                },
-                {
-                    "key": "CVSS2_VECTOR",
-                    "value": "AV:N/AC:L/Au:N/C:P/I:P/A:P"
-                },
-                {
-                    "key": "CVSS2_SCORE",
-                    "value": "7.5"
-                }
-            ],
-            "description": "defineAttribute in xmlparse.c in Expat (aka libexpat) before 2.4.3 has an integer overflow.",
-            "name": "CVE-2022-22824",
-            "scraped_data": [
-                {
-                    "notes": [
-                        "paraview uses system expat\nxotcl uses system expat\npoco uses system expat\ngdcm uses system expat\naudacity uses system expat\nsimgear uses system expat\ncoin3 uses system expat as of 4.0.0~CMake~6f54f1602475+ds1-1\nsitecopy uses system expat since 1:0.16.0-1 (dapper!)"
-                    ],
-                    "status_table": {
-                        "packages": [
-                            "expat",
-                            "Launchpad",
-                            "Ubuntu",
-                            "Debian"
-                        ],
-                        "release_states": [
-                            [
-                                "bionic",
-                                "Released (2.2.5-3ubuntu0.4)"
-                            ],
-                            [
-                                "focal",
-                                "Released (2.2.9-1ubuntu0.2)"
-                            ],
-                            [
-                                "hirsute",
-                                "Ignored (reached end-of-life)"
-                            ],
-                            [
-                                "impish",
-                                "Released (2.4.1-2ubuntu0.1)"
-                            ],
-                            [
-                                "trusty",
-                                "Released (2.1.0-4ubuntu1.4+esm4)"
-                            ],
-                            [
-                                "upstream",
-                                "Needs triage"
-                            ],
-                            [
-                                "xenial",
-                                "Released (2.1.0-7ubuntu0.16.04.5+esm2)"
-                            ]
-                        ]
-                    }
-                }
-            ],
-            "severity": "MEDIUM",
-            "uri": "http://people.ubuntu.com/~ubuntu-security/cve/CVE-2022-22824"
-        },
-        {
-            "attributes": [
-                {
-                    "key": "package_version",
-                    "value": "2.2.5-3ubuntu0.2"
-                },
-                {
-                    "key": "package_name",
-                    "value": "expat"
-                },
-                {
-                    "key": "CVSS2_VECTOR",
-                    "value": "AV:N/AC:M/Au:N/C:P/I:P/A:P"
-                },
-                {
-                    "key": "CVSS2_SCORE",
-                    "value": "6.8"
-                }
-            ],
-            "description": "lookup in xmlparse.c in Expat (aka libexpat) before 2.4.3 has an integer overflow.",
-            "name": "CVE-2022-22825",
-            "scraped_data": [
-                {
-                    "notes": [
-                        "paraview uses system expat\nxotcl uses system expat\npoco uses system expat\ngdcm uses system expat\naudacity uses system expat\nsimgear uses system expat\ncoin3 uses system expat as of 4.0.0~CMake~6f54f1602475+ds1-1\nsitecopy uses system expat since 1:0.16.0-1 (dapper!)"
-                    ],
-                    "status_table": {
-                        "packages": [
-                            "expat",
-                            "Launchpad",
-                            "Ubuntu",
-                            "Debian"
-                        ],
-                        "release_states": [
-                            [
-                                "bionic",
-                                "Released (2.2.5-3ubuntu0.4)"
-                            ],
-                            [
-                                "focal",
-                                "Released (2.2.9-1ubuntu0.2)"
-                            ],
-                            [
-                                "hirsute",
-                                "Ignored (reached end-of-life)"
-                            ],
-                            [
-                                "impish",
-                                "Released (2.4.1-2ubuntu0.1)"
-                            ],
-                            [
-                                "trusty",
-                                "Released (2.1.0-4ubuntu1.4+esm4)"
-                            ],
-                            [
-                                "upstream",
-                                "Needs triage"
-                            ],
-                            [
-                                "xenial",
-                                "Released (2.1.0-7ubuntu0.16.04.5+esm2)"
-                            ]
-                        ]
-                    }
-                }
-            ],
-            "severity": "MEDIUM",
-            "uri": "http://people.ubuntu.com/~ubuntu-security/cve/CVE-2022-22825"
-        },
-        {
-            "attributes": [
-                {
-                    "key": "package_version",
-                    "value": "2.2.5-3ubuntu0.2"
-                },
-                {
-                    "key": "package_name",
-                    "value": "expat"
-                },
-                {
-                    "key": "CVSS2_VECTOR",
-                    "value": "AV:N/AC:M/Au:N/C:P/I:P/A:P"
-                },
-                {
-                    "key": "CVSS2_SCORE",
-                    "value": "6.8"
-                }
-            ],
-            "description": "nextScaffoldPart in xmlparse.c in Expat (aka libexpat) before 2.4.3 has an integer overflow.",
-            "name": "CVE-2022-22826",
-            "scraped_data": [
-                {
-                    "notes": [
-                        "paraview uses system expat\nxotcl uses system expat\npoco uses system expat\ngdcm uses system expat\naudacity uses system expat\nsimgear uses system expat\ncoin3 uses system expat as of 4.0.0~CMake~6f54f1602475+ds1-1\nsitecopy uses system expat since 1:0.16.0-1 (dapper!)"
-                    ],
-                    "status_table": {
-                        "packages": [
-                            "expat",
-                            "Launchpad",
-                            "Ubuntu",
-                            "Debian"
-                        ],
-                        "release_states": [
-                            [
-                                "bionic",
-                                "Released (2.2.5-3ubuntu0.4)"
-                            ],
-                            [
-                                "focal",
-                                "Released (2.2.9-1ubuntu0.2)"
-                            ],
-                            [
-                                "hirsute",
-                                "Ignored (reached end-of-life)"
-                            ],
-                            [
-                                "impish",
-                                "Released (2.4.1-2ubuntu0.1)"
-                            ],
-                            [
-                                "trusty",
-                                "Released (2.1.0-4ubuntu1.4+esm4)"
-                            ],
-                            [
-                                "upstream",
-                                "Needs triage"
-                            ],
-                            [
-                                "xenial",
-                                "Released (2.1.0-7ubuntu0.16.04.5+esm2)"
-                            ]
-                        ]
-                    }
-                }
-            ],
-            "severity": "MEDIUM",
-            "uri": "http://people.ubuntu.com/~ubuntu-security/cve/CVE-2022-22826"
-        },
-        {
-            "attributes": [
-                {
-                    "key": "package_version",
-                    "value": "2.2.5-3ubuntu0.2"
-                },
-                {
-                    "key": "package_name",
-                    "value": "expat"
-                },
-                {
-                    "key": "CVSS2_VECTOR",
-                    "value": "AV:N/AC:M/Au:N/C:P/I:P/A:P"
-                },
-                {
-                    "key": "CVSS2_SCORE",
-                    "value": "6.8"
-                }
-            ],
-            "description": "storeAtts in xmlparse.c in Expat (aka libexpat) before 2.4.3 has an integer overflow.",
-            "name": "CVE-2022-22827",
-            "scraped_data": [
-                {
-                    "notes": [
-                        "paraview uses system expat\nxotcl uses system expat\npoco uses system expat\ngdcm uses system expat\naudacity uses system expat\nsimgear uses system expat\ncoin3 uses system expat as of 4.0.0~CMake~6f54f1602475+ds1-1\nsitecopy uses system expat since 1:0.16.0-1 (dapper!)"
-                    ],
-                    "status_table": {
-                        "packages": [
-                            "expat",
-                            "Launchpad",
-                            "Ubuntu",
-                            "Debian"
-                        ],
-                        "release_states": [
-                            [
-                                "bionic",
-                                "Released (2.2.5-3ubuntu0.4)"
-                            ],
-                            [
-                                "focal",
-                                "Released (2.2.9-1ubuntu0.2)"
-                            ],
-                            [
-                                "hirsute",
-                                "Ignored (reached end-of-life)"
-                            ],
-                            [
-                                "impish",
-                                "Released (2.4.1-2ubuntu0.1)"
-                            ],
-                            [
-                                "trusty",
-                                "Released (2.1.0-4ubuntu1.4+esm4)"
-                            ],
-                            [
-                                "upstream",
-                                "Needs triage"
-                            ],
-                            [
-                                "xenial",
-                                "Released (2.1.0-7ubuntu0.16.04.5+esm2)"
-                            ]
-                        ]
-                    }
-                }
-            ],
-            "severity": "MEDIUM",
-            "uri": "http://people.ubuntu.com/~ubuntu-security/cve/CVE-2022-22827"
-        },
-        {
-            "attributes": [
-                {
-                    "key": "package_version",
-                    "value": "2.2.5-3ubuntu0.2"
-                },
-                {
-                    "key": "package_name",
-                    "value": "expat"
-                },
-                {
-                    "key": "CVSS2_VECTOR",
-                    "value": "AV:N/AC:L/Au:N/C:P/I:P/A:P"
-                },
-                {
-                    "key": "CVSS2_SCORE",
-                    "value": "7.5"
-                }
-            ],
-            "description": "Expat (aka libexpat) before 2.4.4 has a signed integer overflow in XML_GetBuffer, for configurations with a nonzero XML_CONTEXT_BYTES.",
-            "name": "CVE-2022-23852",
-            "scraped_data": [
-                {
-                    "notes": [
-                        "paraview uses system expat\nxotcl uses system expat\npoco uses system expat\ngdcm uses system expat\naudacity uses system expat\nsimgear uses system expat\ncoin3 uses system expat as of 4.0.0~CMake~6f54f1602475+ds1-1\nsitecopy uses system expat since 1:0.16.0-1 (dapper!)"
-                    ],
-                    "status_table": {
-                        "packages": [
-                            "expat",
-                            "Launchpad",
-                            "Ubuntu",
-                            "Debian"
-                        ],
-                        "release_states": [
-                            [
-                                "bionic",
-                                "Released (2.2.5-3ubuntu0.4)"
-                            ],
-                            [
-                                "focal",
-                                "Released (2.2.9-1ubuntu0.2)"
-                            ],
-                            [
-                                "impish",
-                                "Released (2.4.1-2ubuntu0.1)"
-                            ],
-                            [
-                                "trusty",
-                                "Released (2.1.0-4ubuntu1.4+esm4)"
-                            ],
-                            [
-                                "upstream",
-                                "Needs triage"
-                            ],
-                            [
-                                "xenial",
-                                "Released (2.1.0-7ubuntu0.16.04.5+esm2)"
-                            ]
-                        ]
-                    }
-                }
-            ],
-            "severity": "MEDIUM",
-            "uri": "http://people.ubuntu.com/~ubuntu-security/cve/CVE-2022-23852"
-        },
-        {
-            "attributes": [
-                {
-                    "key": "package_version",
-                    "value": "2.2.5-3ubuntu0.2"
-                },
-                {
-                    "key": "package_name",
-                    "value": "expat"
-                },
-                {
-                    "key": "CVSS2_VECTOR",
-                    "value": "AV:N/AC:L/Au:N/C:P/I:P/A:P"
-                },
-                {
-                    "key": "CVSS2_SCORE",
-                    "value": "7.5"
-                }
-            ],
-            "description": "Expat (aka libexpat) before 2.4.4 has an integer overflow in the doProlog function.",
-            "name": "CVE-2022-23990",
-            "scraped_data": [
-                {
-                    "notes": [
-                        "paraview uses system expat\nxotcl uses system expat\npoco uses system expat\ngdcm uses system expat\naudacity uses system expat\nsimgear uses system expat\ncoin3 uses system expat as of 4.0.0~CMake~6f54f1602475+ds1-1\nsitecopy uses system expat since 1:0.16.0-1 (dapper!)"
-                    ],
-                    "status_table": {
-                        "packages": [
-                            "expat",
-                            "Launchpad",
-                            "Ubuntu",
-                            "Debian"
-                        ],
-                        "release_states": [
-                            [
-                                "bionic",
-                                "Released (2.2.5-3ubuntu0.4)"
-                            ],
-                            [
-                                "focal",
-                                "Released (2.2.9-1ubuntu0.2)"
-                            ],
-                            [
-                                "impish",
-                                "Released (2.4.1-2ubuntu0.1)"
-                            ],
-                            [
-                                "trusty",
-                                "Released (2.1.0-4ubuntu1.4+esm4)"
-                            ],
-                            [
-                                "upstream",
-                                "Needs triage"
-                            ],
-                            [
-                                "xenial",
-                                "Released (2.1.0-7ubuntu0.16.04.5+esm2)"
-                            ]
-                        ]
-                    }
-                }
-            ],
-            "severity": "MEDIUM",
-            "uri": "http://people.ubuntu.com/~ubuntu-security/cve/CVE-2022-23990"
-        },
-        {
-            "attributes": [
-                {
-                    "key": "package_version",
-                    "value": "2.2.5-3ubuntu0.2"
-                },
-                {
-                    "key": "package_name",
-                    "value": "expat"
-                },
-                {
-                    "key": "CVSS2_VECTOR",
-                    "value": "AV:N/AC:L/Au:N/C:P/I:P/A:P"
-                },
-                {
-                    "key": "CVSS2_SCORE",
-                    "value": "7.5"
-                }
-            ],
-            "description": "xmltok_impl.c in Expat (aka libexpat) before 2.4.5 lacks certain validation of encoding, such as checks for whether a UTF-8 character is valid in a certain context.",
-            "name": "CVE-2022-25235",
-            "scraped_data": [
-                {
-                    "notes": [
-                        "paraview uses system expat\nxotcl uses system expat\npoco uses system expat\ngdcm uses system expat\naudacity uses system expat\nsimgear uses system expat\ncoin3 uses system expat as of 4.0.0~CMake~6f54f1602475+ds1-1\nsitecopy uses system expat since 1:0.16.0-1 (dapper!)"
-                    ],
-                    "status_table": {
-                        "packages": [
-                            "expat",
-                            "Launchpad",
-                            "Ubuntu",
-                            "Debian"
-                        ],
-                        "release_states": [
-                            [
-                                "bionic",
-                                "Released (2.2.5-3ubuntu0.4)"
-                            ],
-                            [
-                                "focal",
-                                "Released (2.2.9-1ubuntu0.2)"
-                            ],
-                            [
-                                "impish",
-                                "Released (2.4.1-2ubuntu0.1)"
-                            ],
-                            [
-                                "trusty",
-                                "Released (2.1.0-4ubuntu1.4+esm4)"
-                            ],
-                            [
-                                "upstream",
-                                "Needs triage"
-                            ],
-                            [
-                                "xenial",
-                                "Released (2.1.0-7ubuntu0.16.04.5+esm2)"
-                            ]
-                        ]
-                    }
-                }
-            ],
-            "severity": "HIGH",
-            "uri": "http://people.ubuntu.com/~ubuntu-security/cve/CVE-2022-25235"
-        },
-        {
-            "attributes": [
-                {
-                    "key": "package_version",
-                    "value": "2.2.5-3ubuntu0.2"
-                },
-                {
-                    "key": "package_name",
-                    "value": "expat"
-                },
-                {
-                    "key": "CVSS2_VECTOR",
-                    "value": "AV:N/AC:L/Au:N/C:P/I:P/A:P"
-                },
-                {
-                    "key": "CVSS2_SCORE",
-                    "value": "7.5"
-                }
-            ],
-            "description": "xmlparse.c in Expat (aka libexpat) before 2.4.5 allows attackers to insert namespace-separator characters into namespace URIs.",
-            "name": "CVE-2022-25236",
-            "scraped_data": [
-                {
-                    "notes": [
-                        "paraview uses system expat\nxotcl uses system expat\npoco uses system expat\ngdcm uses system expat\naudacity uses system expat\nsimgear uses system expat\ncoin3 uses system expat as of 4.0.0~CMake~6f54f1602475+ds1-1\nsitecopy uses system expat since 1:0.16.0-1 (dapper!)"
-                    ],
-                    "status_table": {
-                        "packages": [
-                            "expat",
-                            "Launchpad",
-                            "Ubuntu",
-                            "Debian"
-                        ],
-                        "release_states": [
-                            [
-                                "bionic",
-                                "Released (2.2.5-3ubuntu0.4)"
-                            ],
-                            [
-                                "focal",
-                                "Released (2.2.9-1ubuntu0.2)"
-                            ],
-                            [
-                                "impish",
-                                "Released (2.4.1-2ubuntu0.1)"
-                            ],
-                            [
-                                "trusty",
-                                "Released (2.1.0-4ubuntu1.4+esm4)"
-                            ],
-                            [
-                                "upstream",
-                                "Needs triage"
-                            ],
-                            [
-                                "xenial",
-                                "Released (2.1.0-7ubuntu0.16.04.5+esm2)"
-                            ]
-                        ]
-                    }
-                }
-            ],
-            "severity": "HIGH",
-            "uri": "http://people.ubuntu.com/~ubuntu-security/cve/CVE-2022-25236"
-        },
-        {
-            "attributes": [
-                {
-                    "key": "package_version",
-                    "value": "2.2.5-3ubuntu0.2"
-                },
-                {
-                    "key": "package_name",
-                    "value": "expat"
-                },
-                {
-                    "key": "CVSS2_VECTOR",
-                    "value": "AV:N/AC:M/Au:N/C:N/I:N/A:P"
-                },
-                {
-                    "key": "CVSS2_SCORE",
-                    "value": "4.3"
-                }
-            ],
-            "description": "In Expat (aka libexpat) before 2.4.5, an attacker can trigger stack exhaustion in build_model via a large nesting depth in the DTD element.",
-            "name": "CVE-2022-25313",
-            "scraped_data": [
-                {
-                    "notes": [
-                        "paraview uses system expat\nxotcl uses system expat\npoco uses system expat\ngdcm uses system expat\naudacity uses system expat\nsimgear uses system expat\ncoin3 uses system expat as of 4.0.0~CMake~6f54f1602475+ds1-1\nsitecopy uses system expat since 1:0.16.0-1 (dapper!)"
-                    ],
-                    "status_table": {
-                        "packages": [
-                            "expat",
-                            "Launchpad",
-                            "Ubuntu",
-                            "Debian"
-                        ],
-                        "release_states": [
-                            [
-                                "bionic",
-                                "Released (2.2.5-3ubuntu0.7)"
-                            ],
-                            [
-                                "focal",
-                                "Released (2.2.9-1ubuntu0.4)"
-                            ],
-                            [
-                                "impish",
-                                "Released (2.4.1-2ubuntu0.3)"
-                            ],
-                            [
-                                "trusty",
-                                "Released (2.1.0-4ubuntu1.4+esm6)"
-                            ],
-                            [
-                                "upstream",
-                                "Needs triage"
-                            ],
-                            [
-                                "xenial",
-                                "Released (2.1.0-7ubuntu0.16.04.5+esm5)"
-                            ]
-                        ]
-                    }
-                }
-            ],
-            "severity": "MEDIUM",
-            "uri": "http://people.ubuntu.com/~ubuntu-security/cve/CVE-2022-25313"
-        },
-        {
-            "attributes": [
-                {
-                    "key": "package_version",
-                    "value": "2.2.5-3ubuntu0.2"
-                },
-                {
-                    "key": "package_name",
-                    "value": "expat"
-                },
-                {
-                    "key": "CVSS2_VECTOR",
-                    "value": "AV:N/AC:L/Au:N/C:N/I:N/A:P"
-                },
-                {
-                    "key": "CVSS2_SCORE",
-                    "value": "5"
-                }
-            ],
-            "description": "In Expat (aka libexpat) before 2.4.5, there is an integer overflow in copyString.",
-            "name": "CVE-2022-25314",
-            "scraped_data": [
-                {
-                    "notes": [
-                        "paraview uses system expat\nxotcl uses system expat\npoco uses system expat\ngdcm uses system expat\naudacity uses system expat\nsimgear uses system expat\ncoin3 uses system expat as of 4.0.0~CMake~6f54f1602475+ds1-1\nsitecopy uses system expat since 1:0.16.0-1 (dapper!)"
-                    ],
-                    "status_table": {
-                        "packages": [
-                            "expat",
-                            "Launchpad",
-                            "Ubuntu",
-                            "Debian"
-                        ],
-                        "release_states": [
-                            [
-                                "bionic",
-                                "Released (2.2.5-3ubuntu0.7)"
-                            ],
-                            [
-                                "focal",
-                                "Released (2.2.9-1ubuntu0.4)"
-                            ],
-                            [
-                                "impish",
-                                "Released (2.4.1-2ubuntu0.3)"
-                            ],
-                            [
-                                "trusty",
-                                "Not vulnerable"
-                            ],
-                            [
-                                "upstream",
-                                "Needs triage"
-                            ],
-                            [
-                                "xenial",
-                                "Not vulnerable"
-                            ]
-                        ]
-                    }
-                }
-            ],
-            "severity": "MEDIUM",
-            "uri": "http://people.ubuntu.com/~ubuntu-security/cve/CVE-2022-25314"
-        },
-        {
-            "attributes": [
-                {
-                    "key": "package_version",
-                    "value": "2.2.5-3ubuntu0.2"
-                },
-                {
-                    "key": "package_name",
-                    "value": "expat"
-                },
-                {
-                    "key": "CVSS2_VECTOR",
-                    "value": "AV:N/AC:L/Au:N/C:P/I:P/A:P"
-                },
-                {
-                    "key": "CVSS2_SCORE",
-                    "value": "7.5"
-                }
-            ],
-            "description": "In Expat (aka libexpat) before 2.4.5, there is an integer overflow in storeRawNames.",
-            "name": "CVE-2022-25315",
-            "scraped_data": [
-                {
-                    "notes": [
-                        "paraview uses system expat\nxotcl uses system expat\npoco uses system expat\ngdcm uses system expat\naudacity uses system expat\nsimgear uses system expat\ncoin3 uses system expat as of 4.0.0~CMake~6f54f1602475+ds1-1\nsitecopy uses system expat since 1:0.16.0-1 (dapper!)"
-                    ],
-                    "status_table": {
-                        "packages": [
-                            "expat",
-                            "Launchpad",
-                            "Ubuntu",
-                            "Debian"
-                        ],
-                        "release_states": [
-                            [
-                                "bionic",
-                                "Released (2.2.5-3ubuntu0.7)"
-                            ],
-                            [
-                                "focal",
-                                "Released (2.2.9-1ubuntu0.4)"
-                            ],
-                            [
-                                "impish",
-                                "Released (2.4.1-2ubuntu0.3)"
-                            ],
-                            [
-                                "trusty",
-                                "Released (2.1.0-4ubuntu1.4+esm6)"
-                            ],
-                            [
-                                "upstream",
-                                "Needs triage"
-                            ],
-                            [
-                                "xenial",
-                                "Released (2.1.0-7ubuntu0.16.04.5+esm5)"
-                            ]
-                        ]
-                    }
-                }
-            ],
-            "severity": "MEDIUM",
-            "uri": "http://people.ubuntu.com/~ubuntu-security/cve/CVE-2022-25315"
+            "uri": "http://people.ubuntu.com/~ubuntu-security/cve/CVE-2022-1304"
         }
     ],
     "ffmpeg": [
@@ -1155,6 +225,10 @@
                             [
                                 "impish",
                                 "Not vulnerable (7:4.4-6ubuntu5)"
+                            ],
+                            [
+                                "jammy",
+                                "Not vulnerable (7:4.4.1-3ubuntu2)"
                             ],
                             [
                                 "trusty",
@@ -1224,6 +298,10 @@
                                 "Not vulnerable (7:4.4-6ubuntu5)"
                             ],
                             [
+                                "jammy",
+                                "Not vulnerable (7:4.4.1-3ubuntu2)"
+                            ],
+                            [
                                 "trusty",
                                 "Does not exist"
                             ],
@@ -1290,6 +368,10 @@
                             ],
                             [
                                 "impish",
+                                "Not vulnerable (7:4.3.1-4ubuntu1)"
+                            ],
+                            [
+                                "jammy",
                                 "Not vulnerable (7:4.3.1-4ubuntu1)"
                             ],
                             [
@@ -1364,6 +446,10 @@
                                 "Released (7:4.4-6ubuntu5)"
                             ],
                             [
+                                "jammy",
+                                "Not vulnerable"
+                            ],
+                            [
                                 "trusty",
                                 "Does not exist"
                             ],
@@ -1431,6 +517,10 @@
                                 "Not vulnerable (7:4.4-6ubuntu5)"
                             ],
                             [
+                                "jammy",
+                                "Not vulnerable (7:4.4.1-3ubuntu2)"
+                            ],
+                            [
                                 "trusty",
                                 "Does not exist"
                             ],
@@ -1496,6 +586,10 @@
                             [
                                 "impish",
                                 "Not vulnerable (7:4.4-6ubuntu5)"
+                            ],
+                            [
+                                "jammy",
+                                "Not vulnerable (7:4.4.1-3ubuntu2)"
                             ],
                             [
                                 "trusty",
@@ -1569,6 +663,10 @@
                                 "Needed"
                             ],
                             [
+                                "jammy",
+                                "Not vulnerable (7:4.4.1-3ubuntu2)"
+                            ],
+                            [
                                 "trusty",
                                 "Does not exist"
                             ],
@@ -1638,6 +736,10 @@
                             [
                                 "impish",
                                 "Not vulnerable (7:4.4-6ubuntu5)"
+                            ],
+                            [
+                                "jammy",
+                                "Not vulnerable (7:4.4.1-3ubuntu2)"
                             ],
                             [
                                 "trusty",
@@ -1711,6 +813,10 @@
                                 "Not vulnerable (7:4.4-6ubuntu5)"
                             ],
                             [
+                                "jammy",
+                                "Not vulnerable (7:4.4.1-3ubuntu2)"
+                            ],
+                            [
                                 "trusty",
                                 "Does not exist"
                             ],
@@ -1780,6 +886,10 @@
                             [
                                 "impish",
                                 "Needed"
+                            ],
+                            [
+                                "jammy",
+                                "Not vulnerable (7:4.4.1-3ubuntu2)"
                             ],
                             [
                                 "trusty",
@@ -1853,6 +963,10 @@
                                 "Not vulnerable (7:4.4-6ubuntu5)"
                             ],
                             [
+                                "jammy",
+                                "Not vulnerable (7:4.4.1-3ubuntu2)"
+                            ],
+                            [
                                 "trusty",
                                 "Does not exist"
                             ],
@@ -1922,6 +1036,10 @@
                             [
                                 "impish",
                                 "Needed"
+                            ],
+                            [
+                                "jammy",
+                                "Not vulnerable (7:4.4.1-3ubuntu2)"
                             ],
                             [
                                 "trusty",
@@ -1995,6 +1113,10 @@
                                 "Not vulnerable (7:4.4-6ubuntu5)"
                             ],
                             [
+                                "jammy",
+                                "Not vulnerable (7:4.4.1-3ubuntu2)"
+                            ],
+                            [
                                 "trusty",
                                 "Does not exist"
                             ],
@@ -2064,6 +1186,10 @@
                             [
                                 "impish",
                                 "Not vulnerable (7:4.4-6ubuntu5)"
+                            ],
+                            [
+                                "jammy",
+                                "Not vulnerable (7:4.4.1-3ubuntu2)"
                             ],
                             [
                                 "trusty",
@@ -2137,6 +1263,10 @@
                                 "Not vulnerable (7:4.4-6ubuntu5)"
                             ],
                             [
+                                "jammy",
+                                "Not vulnerable (7:4.4.1-3ubuntu2)"
+                            ],
+                            [
                                 "trusty",
                                 "Does not exist"
                             ],
@@ -2206,6 +1336,10 @@
                             [
                                 "impish",
                                 "Not vulnerable (7:4.4-6ubuntu5)"
+                            ],
+                            [
+                                "jammy",
+                                "Not vulnerable (7:4.4.1-3ubuntu2)"
                             ],
                             [
                                 "trusty",
@@ -2279,6 +1413,10 @@
                                 "Not vulnerable (7:4.4-6ubuntu5)"
                             ],
                             [
+                                "jammy",
+                                "Not vulnerable (7:4.4.1-3ubuntu2)"
+                            ],
+                            [
                                 "trusty",
                                 "Does not exist"
                             ],
@@ -2348,6 +1486,10 @@
                             [
                                 "impish",
                                 "Not vulnerable (7:4.4-6ubuntu5)"
+                            ],
+                            [
+                                "jammy",
+                                "Not vulnerable (7:4.4.1-3ubuntu2)"
                             ],
                             [
                                 "trusty",
@@ -2421,6 +1563,10 @@
                                 "Not vulnerable (7:4.4-6ubuntu5)"
                             ],
                             [
+                                "jammy",
+                                "Not vulnerable (7:4.4.1-3ubuntu2)"
+                            ],
+                            [
                                 "trusty",
                                 "Does not exist"
                             ],
@@ -2490,6 +1636,10 @@
                             [
                                 "impish",
                                 "Needed"
+                            ],
+                            [
+                                "jammy",
+                                "Not vulnerable (7:4.4.1-3ubuntu2)"
                             ],
                             [
                                 "trusty",
@@ -2563,6 +1713,10 @@
                                 "Not vulnerable (7:4.4-6ubuntu5)"
                             ],
                             [
+                                "jammy",
+                                "Not vulnerable (7:4.4.1-3ubuntu2)"
+                            ],
+                            [
                                 "trusty",
                                 "Does not exist"
                             ],
@@ -2632,6 +1786,10 @@
                             [
                                 "impish",
                                 "Not vulnerable (7:4.4-6ubuntu5)"
+                            ],
+                            [
+                                "jammy",
+                                "Not vulnerable (7:4.4.1-3ubuntu2)"
                             ],
                             [
                                 "trusty",
@@ -2705,6 +1863,10 @@
                                 "Needed"
                             ],
                             [
+                                "jammy",
+                                "Not vulnerable (7:4.4.1-3ubuntu2)"
+                            ],
+                            [
                                 "trusty",
                                 "Does not exist"
                             ],
@@ -2774,6 +1936,10 @@
                             [
                                 "impish",
                                 "Not vulnerable (7:4.4-6ubuntu5)"
+                            ],
+                            [
+                                "jammy",
+                                "Not vulnerable (7:4.4.1-3ubuntu2)"
                             ],
                             [
                                 "trusty",
@@ -2847,6 +2013,10 @@
                                 "Not vulnerable (7:4.4-6ubuntu5)"
                             ],
                             [
+                                "jammy",
+                                "Not vulnerable (7:4.4.1-3ubuntu2)"
+                            ],
+                            [
                                 "trusty",
                                 "Does not exist"
                             ],
@@ -2916,6 +2086,10 @@
                             [
                                 "impish",
                                 "Not vulnerable (7:4.4-6ubuntu5)"
+                            ],
+                            [
+                                "jammy",
+                                "Not vulnerable (7:4.4.1-3ubuntu2)"
                             ],
                             [
                                 "trusty",
@@ -2989,6 +2163,10 @@
                                 "Not vulnerable (7:4.4-6ubuntu5)"
                             ],
                             [
+                                "jammy",
+                                "Not vulnerable (7:4.4.1-3ubuntu2)"
+                            ],
+                            [
                                 "trusty",
                                 "Does not exist"
                             ],
@@ -3058,6 +2236,10 @@
                             [
                                 "impish",
                                 "Not vulnerable (7:4.4-6ubuntu5)"
+                            ],
+                            [
+                                "jammy",
+                                "Not vulnerable (7:4.4.1-3ubuntu2)"
                             ],
                             [
                                 "trusty",
@@ -3131,6 +2313,10 @@
                                 "Not vulnerable (7:4.4-6ubuntu5)"
                             ],
                             [
+                                "jammy",
+                                "Not vulnerable (7:4.4.1-3ubuntu2)"
+                            ],
+                            [
                                 "trusty",
                                 "Does not exist"
                             ],
@@ -3200,6 +2386,10 @@
                             [
                                 "impish",
                                 "Not vulnerable (7:4.4-6ubuntu5)"
+                            ],
+                            [
+                                "jammy",
+                                "Not vulnerable (7:4.4.1-3ubuntu2)"
                             ],
                             [
                                 "trusty",
@@ -3273,6 +2463,10 @@
                                 "Not vulnerable (7:4.4-6ubuntu5)"
                             ],
                             [
+                                "jammy",
+                                "Not vulnerable (7:4.4.1-3ubuntu2)"
+                            ],
+                            [
                                 "trusty",
                                 "Does not exist"
                             ],
@@ -3342,6 +2536,10 @@
                             [
                                 "impish",
                                 "Not vulnerable (7:4.4-6ubuntu5)"
+                            ],
+                            [
+                                "jammy",
+                                "Not vulnerable (7:4.4.1-3ubuntu2)"
                             ],
                             [
                                 "trusty",
@@ -3415,6 +2613,10 @@
                                 "Not vulnerable (7:4.4-6ubuntu5)"
                             ],
                             [
+                                "jammy",
+                                "Not vulnerable (7:4.4.1-3ubuntu2)"
+                            ],
+                            [
                                 "trusty",
                                 "Does not exist"
                             ],
@@ -3484,6 +2686,10 @@
                             [
                                 "impish",
                                 "Not vulnerable (7:4.4-6ubuntu5)"
+                            ],
+                            [
+                                "jammy",
+                                "Not vulnerable (7:4.4.1-3ubuntu2)"
                             ],
                             [
                                 "precise",
@@ -3557,6 +2763,10 @@
                                 "Not vulnerable (7:4.4-6ubuntu5)"
                             ],
                             [
+                                "jammy",
+                                "Not vulnerable (7:4.4.1-3ubuntu2)"
+                            ],
+                            [
                                 "trusty",
                                 "Does not exist"
                             ],
@@ -3622,6 +2832,10 @@
                             [
                                 "impish",
                                 "Needed"
+                            ],
+                            [
+                                "jammy",
+                                "Not vulnerable (7:4.4.1-3ubuntu2)"
                             ],
                             [
                                 "trusty",
@@ -3691,6 +2905,10 @@
                                 "Needed"
                             ],
                             [
+                                "jammy",
+                                "Not vulnerable (7:4.4.1-3ubuntu2)"
+                            ],
+                            [
                                 "trusty",
                                 "Does not exist"
                             ],
@@ -3758,6 +2976,10 @@
                                 "Needed"
                             ],
                             [
+                                "jammy",
+                                "Not vulnerable (7:4.4.1-3ubuntu2)"
+                            ],
+                            [
                                 "trusty",
                                 "Does not exist"
                             ],
@@ -3777,26 +2999,34 @@
             "uri": "http://people.ubuntu.com/~ubuntu-security/cve/CVE-2021-38291"
         }
     ],
-    "fribidi": [
+    "freetype": [
         {
             "attributes": [
                 {
                     "key": "package_version",
-                    "value": "0.19.7-2"
+                    "value": "2.8.1-2ubuntu2.1"
                 },
                 {
                     "key": "package_name",
-                    "value": "fribidi"
+                    "value": "freetype"
+                },
+                {
+                    "key": "CVSS2_VECTOR",
+                    "value": "AV:N/AC:L/Au:N/C:P/I:P/A:P"
+                },
+                {
+                    "key": "CVSS2_SCORE",
+                    "value": "7.5"
                 }
             ],
-            "description": "fribidi: Stack based buffer overflow",
-            "name": "CVE-2022-25308",
+            "description": "FreeType commit 1e2eb65048f75c64b68708efed6ce904c31f3b2f was discovered to contain a heap buffer overflow via the function sfnt_init_face.",
+            "name": "CVE-2022-27404",
             "scraped_data": [
                 {
                     "notes": [],
                     "status_table": {
                         "packages": [
-                            "fribidi",
+                            "freetype",
                             "Launchpad",
                             "Ubuntu",
                             "Debian"
@@ -3804,148 +3034,38 @@
                         "release_states": [
                             [
                                 "bionic",
-                                "Released (0.19.7-2ubuntu0.1)"
+                                "Needed"
                             ],
                             [
                                 "focal",
-                                "Released (1.0.8-2ubuntu0.1)"
+                                "Needed"
                             ],
                             [
                                 "impish",
-                                "Released (1.0.8-2ubuntu2.1)"
+                                "Needed"
+                            ],
+                            [
+                                "jammy",
+                                "Needed"
                             ],
                             [
                                 "trusty",
-                                "Needs triage"
+                                "Not vulnerable (code-not-present)"
                             ],
                             [
                                 "upstream",
-                                "Needs triage"
+                                "Released (2.11.1+dfsg-2)"
                             ],
                             [
                                 "xenial",
-                                "Needs triage"
+                                "Not vulnerable (code-not-present)"
                             ]
                         ]
                     }
                 }
             ],
             "severity": "MEDIUM",
-            "uri": "http://people.ubuntu.com/~ubuntu-security/cve/CVE-2022-25308"
-        },
-        {
-            "attributes": [
-                {
-                    "key": "package_version",
-                    "value": "0.19.7-2"
-                },
-                {
-                    "key": "package_name",
-                    "value": "fribidi"
-                }
-            ],
-            "description": "fribidi: Heap-buffer-overflow in fribidi_cap_rtl_to_unicode",
-            "name": "CVE-2022-25309",
-            "scraped_data": [
-                {
-                    "notes": [
-                        "For bionic affected function is in charset/fribidi-char-sets-cap-rtl.c"
-                    ],
-                    "status_table": {
-                        "packages": [
-                            "fribidi",
-                            "Launchpad",
-                            "Ubuntu",
-                            "Debian"
-                        ],
-                        "release_states": [
-                            [
-                                "bionic",
-                                "Released (0.19.7-2ubuntu0.1)"
-                            ],
-                            [
-                                "focal",
-                                "Released (1.0.8-2ubuntu0.1)"
-                            ],
-                            [
-                                "impish",
-                                "Released (1.0.8-2ubuntu2.1)"
-                            ],
-                            [
-                                "trusty",
-                                "Needs triage"
-                            ],
-                            [
-                                "upstream",
-                                "Needs triage"
-                            ],
-                            [
-                                "xenial",
-                                "Needs triage"
-                            ]
-                        ]
-                    }
-                }
-            ],
-            "severity": "MEDIUM",
-            "uri": "http://people.ubuntu.com/~ubuntu-security/cve/CVE-2022-25309"
-        },
-        {
-            "attributes": [
-                {
-                    "key": "package_version",
-                    "value": "0.19.7-2"
-                },
-                {
-                    "key": "package_name",
-                    "value": "fribidi"
-                }
-            ],
-            "description": "fribidi: SEGV in fribidi_remove_bidi_marks",
-            "name": "CVE-2022-25310",
-            "scraped_data": [
-                {
-                    "notes": [
-                        "For bionic affected function is in fribidi-deprecated.c"
-                    ],
-                    "status_table": {
-                        "packages": [
-                            "fribidi",
-                            "Launchpad",
-                            "Ubuntu",
-                            "Debian"
-                        ],
-                        "release_states": [
-                            [
-                                "bionic",
-                                "Released (0.19.7-2ubuntu0.1)"
-                            ],
-                            [
-                                "focal",
-                                "Released (1.0.8-2ubuntu0.1)"
-                            ],
-                            [
-                                "impish",
-                                "Released (1.0.8-2ubuntu2.1)"
-                            ],
-                            [
-                                "trusty",
-                                "Needs triage"
-                            ],
-                            [
-                                "upstream",
-                                "Needs triage"
-                            ],
-                            [
-                                "xenial",
-                                "Needs triage"
-                            ]
-                        ]
-                    }
-                }
-            ],
-            "severity": "MEDIUM",
-            "uri": "http://people.ubuntu.com/~ubuntu-security/cve/CVE-2022-25310"
+            "uri": "http://people.ubuntu.com/~ubuntu-security/cve/CVE-2022-27404"
         }
     ],
     "gcc-7": [
@@ -4022,6 +3142,10 @@
                             [
                                 "hirsute",
                                 "Ignored (reached end-of-life)"
+                            ],
+                            [
+                                "jammy",
+                                "Does not exist"
                             ]
                         ]
                     }
@@ -4105,6 +3229,10 @@
                             [
                                 "hirsute",
                                 "Ignored (reached end-of-life)"
+                            ],
+                            [
+                                "jammy",
+                                "Does not exist"
                             ]
                         ]
                     }
@@ -4188,6 +3316,10 @@
                             [
                                 "xenial",
                                 "Deferred"
+                            ],
+                            [
+                                "jammy",
+                                "Deferred"
                             ]
                         ]
                     }
@@ -4256,6 +3388,10 @@
                             ],
                             [
                                 "impish",
+                                "Not vulnerable (2.4.2+dfsg-2)"
+                            ],
+                            [
+                                "jammy",
                                 "Not vulnerable (2.4.2+dfsg-2)"
                             ],
                             [
@@ -4334,6 +3470,10 @@
                                 "Not vulnerable"
                             ],
                             [
+                                "jammy",
+                                "Not vulnerable"
+                            ],
+                            [
                                 "trusty",
                                 "Needed"
                             ],
@@ -4378,7 +3518,7 @@
             "scraped_data": [
                 {
                     "notes": [
-                        "as of 2022-03-14, proposed fix not commited upstream"
+                        "as of 2022-04-19, proposed fix not commited upstream"
                     ],
                     "status_table": {
                         "packages": [
@@ -4390,11 +3530,11 @@
                         "release_states": [
                             [
                                 "bionic",
-                                "Deferred (2022-03-14)"
+                                "Deferred (2022-04-19)"
                             ],
                             [
                                 "focal",
-                                "Deferred (2022-03-14)"
+                                "Deferred (2022-04-19)"
                             ],
                             [
                                 "hirsute",
@@ -4402,7 +3542,11 @@
                             ],
                             [
                                 "impish",
-                                "Deferred (2022-03-14)"
+                                "Deferred (2022-04-19)"
+                            ],
+                            [
+                                "jammy",
+                                "Deferred (2022-04-19)"
                             ],
                             [
                                 "trusty",
@@ -4414,7 +3558,7 @@
                             ],
                             [
                                 "xenial",
-                                "Deferred (2022-03-14)"
+                                "Deferred (2022-04-19)"
                             ]
                         ]
                     }
@@ -4422,173 +3566,6 @@
             ],
             "severity": "MEDIUM",
             "uri": "http://people.ubuntu.com/~ubuntu-security/cve/CVE-2021-44648"
-        }
-    ],
-    "git": [
-        {
-            "attributes": [
-                {
-                    "key": "package_version",
-                    "value": "1:2.17.1-1ubuntu0.9"
-                },
-                {
-                    "key": "package_name",
-                    "value": "git"
-                }
-            ],
-            "description": "On multi-user machines, Git users might find themselves unexpectedly in a Git worktree, e.g. when there is a scratch space (`/scratch/`) intended for all users and another user created a repository in `/scratch/.git`.  Merely having a Git-aware prompt that runs `git status` (or `git diff`) and navigating to a directory which is supposedly not a Git worktree, or opening such a directory in an editor or IDE such as VS Code or Atom, will potentially run commands defined by that other user via `/scratch/.git/config`.",
-            "name": "CVE-2022-24765",
-            "scraped_data": [
-                {
-                    "notes": [],
-                    "status_table": {
-                        "packages": [
-                            "git",
-                            "Launchpad",
-                            "Ubuntu",
-                            "Debian"
-                        ],
-                        "release_states": [
-                            [
-                                "bionic",
-                                "Released (1:2.17.1-1ubuntu0.10)"
-                            ],
-                            [
-                                "focal",
-                                "Released (1:2.25.1-1ubuntu3.3)"
-                            ],
-                            [
-                                "impish",
-                                "Released (1:2.32.0-1ubuntu1.1)"
-                            ],
-                            [
-                                "upstream",
-                                "Needs triage"
-                            ],
-                            [
-                                "xenial",
-                                "Needs triage"
-                            ]
-                        ]
-                    }
-                }
-            ],
-            "severity": "MEDIUM",
-            "uri": "http://people.ubuntu.com/~ubuntu-security/cve/CVE-2022-24765"
-        }
-    ],
-    "glibc": [
-        {
-            "attributes": [
-                {
-                    "key": "package_version",
-                    "value": "2.27-3ubuntu1.4"
-                },
-                {
-                    "key": "package_name",
-                    "value": "glibc"
-                }
-            ],
-            "description": "Off-by-one buffer overflow/underflow in glibc's getcwd()",
-            "name": "CVE-2021-3999",
-            "scraped_data": [
-                {
-                    "notes": [],
-                    "status_table": {
-                        "packages": [
-                            "glibc",
-                            "Launchpad",
-                            "Ubuntu",
-                            "Debian"
-                        ],
-                        "release_states": [
-                            [
-                                "bionic",
-                                "Released (2.27-3ubuntu1.5)"
-                            ],
-                            [
-                                "focal",
-                                "Released (2.31-0ubuntu9.7)"
-                            ],
-                            [
-                                "hirsute",
-                                "Ignored (reached end-of-life)"
-                            ],
-                            [
-                                "impish",
-                                "Released (2.34-0ubuntu3.2)"
-                            ],
-                            [
-                                "upstream",
-                                "Needs triage"
-                            ],
-                            [
-                                "xenial",
-                                "Released (2.23-0ubuntu11.3+esm1)"
-                            ]
-                        ]
-                    }
-                }
-            ],
-            "severity": "MEDIUM",
-            "uri": "http://people.ubuntu.com/~ubuntu-security/cve/CVE-2021-3999"
-        }
-    ],
-    "gzip": [
-        {
-            "attributes": [
-                {
-                    "key": "package_version",
-                    "value": "1.6-5ubuntu1.1"
-                },
-                {
-                    "key": "package_name",
-                    "value": "gzip"
-                }
-            ],
-            "description": "arbitrary file overwrite with crafted file names",
-            "name": "CVE-2022-1271",
-            "scraped_data": [
-                {
-                    "notes": [],
-                    "status_table": {
-                        "packages": [
-                            "gzip",
-                            "Launchpad",
-                            "Ubuntu",
-                            "Debian"
-                        ],
-                        "release_states": [
-                            [
-                                "bionic",
-                                "Released (1.6-5ubuntu1.2)"
-                            ],
-                            [
-                                "focal",
-                                "Released (1.10-0ubuntu4.1)"
-                            ],
-                            [
-                                "impish",
-                                "Released (1.10-4ubuntu1.1)"
-                            ],
-                            [
-                                "trusty",
-                                "Released (1.6-3ubuntu1+esm1)"
-                            ],
-                            [
-                                "upstream",
-                                "Needs triage"
-                            ],
-                            [
-                                "xenial",
-                                "Released (1.6-4ubuntu1+esm1)"
-                            ]
-                        ]
-                    }
-                }
-            ],
-            "severity": "MEDIUM",
-            "uri": "http://people.ubuntu.com/~ubuntu-security/cve/CVE-2022-1271"
         }
     ],
     "hdf5": [
@@ -4658,6 +3635,10 @@
                             ],
                             [
                                 "impish",
+                                "Not vulnerable (1.10.4+repack-4)"
+                            ],
+                            [
+                                "jammy",
                                 "Not vulnerable (1.10.4+repack-4)"
                             ],
                             [
@@ -4756,6 +3737,10 @@
                                 "Not vulnerable (1.10.4+repack-1)"
                             ],
                             [
+                                "jammy",
+                                "Not vulnerable (1.10.4+repack-1)"
+                            ],
+                            [
                                 "precise",
                                 "Does not exist"
                             ],
@@ -4848,6 +3833,10 @@
                             ],
                             [
                                 "impish",
+                                "Needed"
+                            ],
+                            [
+                                "jammy",
                                 "Needed"
                             ],
                             [
@@ -4946,6 +3935,10 @@
                                 "Not vulnerable (1.10.4+repack-1)"
                             ],
                             [
+                                "jammy",
+                                "Not vulnerable (1.10.4+repack-1)"
+                            ],
+                            [
                                 "precise",
                                 "Does not exist"
                             ],
@@ -5041,6 +4034,10 @@
                                 "Not vulnerable (1.10.4+repack-1)"
                             ],
                             [
+                                "jammy",
+                                "Not vulnerable (1.10.4+repack-1)"
+                            ],
+                            [
                                 "precise",
                                 "Does not exist"
                             ],
@@ -5117,6 +4114,10 @@
                             ],
                             [
                                 "impish",
+                                "Not vulnerable"
+                            ],
+                            [
+                                "jammy",
                                 "Not vulnerable"
                             ],
                             [
@@ -5197,6 +4198,10 @@
                                 "Not vulnerable"
                             ],
                             [
+                                "jammy",
+                                "Not vulnerable"
+                            ],
+                            [
                                 "precise",
                                 "Does not exist"
                             ],
@@ -5272,6 +4277,10 @@
                                 "Not vulnerable"
                             ],
                             [
+                                "jammy",
+                                "Not vulnerable"
+                            ],
+                            [
                                 "precise",
                                 "Does not exist"
                             ],
@@ -5344,6 +4353,10 @@
                             ],
                             [
                                 "impish",
+                                "Not vulnerable"
+                            ],
+                            [
+                                "jammy",
                                 "Not vulnerable"
                             ],
                             [
@@ -5434,6 +4447,10 @@
                                 "Needed"
                             ],
                             [
+                                "jammy",
+                                "Needed"
+                            ],
+                            [
                                 "precise",
                                 "Does not exist"
                             ],
@@ -5518,6 +4535,10 @@
                             ],
                             [
                                 "impish",
+                                "Needed"
+                            ],
+                            [
+                                "jammy",
                                 "Needed"
                             ],
                             [
@@ -5608,6 +4629,10 @@
                                 "Needed"
                             ],
                             [
+                                "jammy",
+                                "Needed"
+                            ],
+                            [
                                 "precise",
                                 "Does not exist"
                             ],
@@ -5692,6 +4717,10 @@
                             ],
                             [
                                 "impish",
+                                "Needed"
+                            ],
+                            [
+                                "jammy",
                                 "Needed"
                             ],
                             [
@@ -5782,6 +4811,10 @@
                                 "Needed"
                             ],
                             [
+                                "jammy",
+                                "Needed"
+                            ],
+                            [
                                 "precise",
                                 "Does not exist"
                             ],
@@ -5866,6 +4899,10 @@
                             ],
                             [
                                 "impish",
+                                "Needed"
+                            ],
+                            [
+                                "jammy",
                                 "Needed"
                             ],
                             [
@@ -5956,6 +4993,10 @@
                                 "Needed"
                             ],
                             [
+                                "jammy",
+                                "Needed"
+                            ],
+                            [
                                 "precise",
                                 "Does not exist"
                             ],
@@ -6040,6 +5081,10 @@
                             ],
                             [
                                 "impish",
+                                "Needed"
+                            ],
+                            [
+                                "jammy",
                                 "Needed"
                             ],
                             [
@@ -6130,6 +5175,10 @@
                                 "Needed"
                             ],
                             [
+                                "jammy",
+                                "Needed"
+                            ],
+                            [
                                 "precise",
                                 "Does not exist"
                             ],
@@ -6217,6 +5266,10 @@
                                 "Needed"
                             ],
                             [
+                                "jammy",
+                                "Needed"
+                            ],
+                            [
                                 "precise",
                                 "Does not exist"
                             ],
@@ -6296,6 +5349,10 @@
                                 "Deferred"
                             ],
                             [
+                                "jammy",
+                                "Deferred"
+                            ],
+                            [
                                 "precise",
                                 "Does not exist"
                             ],
@@ -6370,6 +5427,10 @@
                             ],
                             [
                                 "impish",
+                                "Not vulnerable (8:6.9.11.60+dfsg-1ubuntu1)"
+                            ],
+                            [
+                                "jammy",
                                 "Not vulnerable (8:6.9.11.60+dfsg-1ubuntu1)"
                             ],
                             [
@@ -6462,6 +5523,10 @@
                                 "Not vulnerable (1.17-10)"
                             ],
                             [
+                                "jammy",
+                                "Not vulnerable (1.17-10)"
+                            ],
+                            [
                                 "precise",
                                 "Ignored (end of ESM support, was needs-triage)"
                             ],
@@ -6530,6 +5595,10 @@
                             ],
                             [
                                 "impish",
+                                "Not vulnerable (1.18.3-6)"
+                            ],
+                            [
+                                "jammy",
                                 "Not vulnerable (1.18.3-6)"
                             ],
                             [
@@ -6619,6 +5688,10 @@
                             ],
                             [
                                 "impish",
+                                "Released (1.76.0-1)"
+                            ],
+                            [
+                                "jammy",
                                 "Released (1.76.0-1)"
                             ],
                             [
@@ -6713,6 +5786,10 @@
                                 "Released (1.76.0-1)"
                             ],
                             [
+                                "jammy",
+                                "Released (1.76.0-1)"
+                            ],
+                            [
                                 "precise",
                                 "Does not exist"
                             ],
@@ -6785,6 +5862,10 @@
                             ],
                             [
                                 "impish",
+                                "Needed"
+                            ],
+                            [
+                                "jammy",
                                 "Needed"
                             ],
                             [
@@ -6863,6 +5944,10 @@
                                 "Needed"
                             ],
                             [
+                                "jammy",
+                                "Needed"
+                            ],
+                            [
                                 "precise",
                                 "Does not exist"
                             ],
@@ -6938,6 +6023,10 @@
                                 "Needed"
                             ],
                             [
+                                "jammy",
+                                "Needed"
+                            ],
+                            [
                                 "precise",
                                 "Does not exist"
                             ],
@@ -7010,6 +6099,10 @@
                             ],
                             [
                                 "impish",
+                                "Needed"
+                            ],
+                            [
+                                "jammy",
                                 "Needed"
                             ],
                             [
@@ -7106,6 +6199,10 @@
                                 "Not vulnerable (0.3.9-1)"
                             ],
                             [
+                                "jammy",
+                                "Not vulnerable (0.3.9-1)"
+                            ],
+                            [
                                 "precise",
                                 "Does not exist"
                             ],
@@ -7189,6 +6286,10 @@
                                 "Not vulnerable"
                             ],
                             [
+                                "jammy",
+                                "Not vulnerable"
+                            ],
+                            [
                                 "precise",
                                 "Does not exist"
                             ],
@@ -7210,18 +6311,342 @@
             ],
             "severity": "MEDIUM",
             "uri": "http://people.ubuntu.com/~ubuntu-security/cve/CVE-2018-20861"
-        }
-    ],
-    "openssl": [
+        },
         {
             "attributes": [
                 {
                     "key": "package_version",
-                    "value": "1.1.1-1ubuntu2.1~18.04.14"
+                    "value": "0.3.6-1"
                 },
                 {
                     "key": "package_name",
-                    "value": "openssl"
+                    "value": "libopenmpt"
+                },
+                {
+                    "key": "CVSS2_VECTOR",
+                    "value": "AV:N/AC:M/Au:N/C:N/I:N/A:P"
+                },
+                {
+                    "key": "CVSS2_SCORE",
+                    "value": "4.3"
+                }
+            ],
+            "description": "J2B in libopenmpt before 0.4.2 allows an assertion failure during file parsing with debug STLs.",
+            "name": "CVE-2019-14383",
+            "scraped_data": [
+                {
+                    "notes": [],
+                    "status_table": {
+                        "packages": [
+                            "libopenmpt",
+                            "Launchpad",
+                            "Ubuntu",
+                            "Debian"
+                        ],
+                        "release_states": [
+                            [
+                                "bionic",
+                                "Needed"
+                            ],
+                            [
+                                "disco",
+                                "Not vulnerable"
+                            ],
+                            [
+                                "eoan",
+                                "Not vulnerable"
+                            ],
+                            [
+                                "focal",
+                                "Not vulnerable"
+                            ],
+                            [
+                                "groovy",
+                                "Not vulnerable"
+                            ],
+                            [
+                                "hirsute",
+                                "Not vulnerable"
+                            ],
+                            [
+                                "impish",
+                                "Not vulnerable"
+                            ],
+                            [
+                                "jammy",
+                                "Not vulnerable"
+                            ],
+                            [
+                                "precise",
+                                "Does not exist"
+                            ],
+                            [
+                                "trusty",
+                                "Does not exist"
+                            ],
+                            [
+                                "upstream",
+                                "Needs triage"
+                            ],
+                            [
+                                "xenial",
+                                "Does not exist"
+                            ]
+                        ]
+                    }
+                }
+            ],
+            "severity": "MEDIUM",
+            "uri": "http://people.ubuntu.com/~ubuntu-security/cve/CVE-2019-14383"
+        },
+        {
+            "attributes": [
+                {
+                    "key": "package_version",
+                    "value": "0.3.6-1"
+                },
+                {
+                    "key": "package_name",
+                    "value": "libopenmpt"
+                },
+                {
+                    "key": "CVSS2_VECTOR",
+                    "value": "AV:N/AC:L/Au:N/C:P/I:P/A:P"
+                },
+                {
+                    "key": "CVSS2_SCORE",
+                    "value": "7.5"
+                }
+            ],
+            "description": "In libopenmpt before 0.3.19 and 0.4.x before 0.4.9, ModPlug_InstrumentName and ModPlug_SampleName in libopenmpt_modplug.c do not restrict the lengths of libmodplug output-buffer strings in the C API, leading to a buffer overflow.",
+            "name": "CVE-2019-17113",
+            "scraped_data": [
+                {
+                    "notes": [],
+                    "status_table": {
+                        "packages": [
+                            "libopenmpt",
+                            "Launchpad",
+                            "Ubuntu",
+                            "Debian"
+                        ],
+                        "release_states": [
+                            [
+                                "bionic",
+                                "Needed"
+                            ],
+                            [
+                                "disco",
+                                "Ignored (reached end-of-life)"
+                            ],
+                            [
+                                "eoan",
+                                "Ignored (reached end-of-life)"
+                            ],
+                            [
+                                "focal",
+                                "Needed"
+                            ],
+                            [
+                                "groovy",
+                                "Ignored (reached end-of-life)"
+                            ],
+                            [
+                                "hirsute",
+                                "Ignored (reached end-of-life)"
+                            ],
+                            [
+                                "impish",
+                                "Needed"
+                            ],
+                            [
+                                "jammy",
+                                "Needed"
+                            ],
+                            [
+                                "precise",
+                                "Does not exist"
+                            ],
+                            [
+                                "trusty",
+                                "Does not exist"
+                            ],
+                            [
+                                "upstream",
+                                "Released (0.3.19, 0.4.9-1)"
+                            ],
+                            [
+                                "xenial",
+                                "Does not exist"
+                            ]
+                        ]
+                    }
+                }
+            ],
+            "severity": "MEDIUM",
+            "uri": "http://people.ubuntu.com/~ubuntu-security/cve/CVE-2019-17113"
+        }
+    ],
+    "mysql-5.7": [
+        {
+            "attributes": [
+                {
+                    "key": "package_version",
+                    "value": "5.7.38-0ubuntu0.18.04.1"
+                },
+                {
+                    "key": "package_name",
+                    "value": "mysql-5.7"
+                },
+                {
+                    "key": "CVSS2_VECTOR",
+                    "value": "AV:N/AC:M/Au:N/C:N/I:N/A:P"
+                },
+                {
+                    "key": "CVSS2_SCORE",
+                    "value": "4.3"
+                }
+            ],
+            "description": "Duktape v2.99.99 was discovered to contain a SEGV vulnerability via the component duk_push_tval in duktape/duk_api_stack.c.",
+            "name": "CVE-2021-46322",
+            "scraped_data": [
+                {
+                    "notes": [
+                        "since 5.5 is no longer upstream supported and so far we cannot\npatch it, marking it as ignored."
+                    ],
+                    "status_table": {
+                        "packages": [
+                            "mysql-5.7",
+                            "Launchpad",
+                            "Ubuntu",
+                            "Debian"
+                        ],
+                        "release_states": [
+                            [
+                                "bionic",
+                                "Deferred"
+                            ],
+                            [
+                                "focal",
+                                "Does not exist"
+                            ],
+                            [
+                                "hirsute",
+                                "Does not exist"
+                            ],
+                            [
+                                "impish",
+                                "Does not exist"
+                            ],
+                            [
+                                "jammy",
+                                "Does not exist"
+                            ],
+                            [
+                                "trusty",
+                                "Does not exist"
+                            ],
+                            [
+                                "upstream",
+                                "Needs triage"
+                            ],
+                            [
+                                "xenial",
+                                "Deferred"
+                            ]
+                        ]
+                    }
+                }
+            ],
+            "severity": "MEDIUM",
+            "uri": "http://people.ubuntu.com/~ubuntu-security/cve/CVE-2021-46322"
+        }
+    ],
+    "netcdf": [
+        {
+            "attributes": [
+                {
+                    "key": "package_version",
+                    "value": "1:4.6.0-2build1"
+                },
+                {
+                    "key": "package_name",
+                    "value": "netcdf"
+                },
+                {
+                    "key": "CVSS2_VECTOR",
+                    "value": "AV:N/AC:M/Au:N/C:N/I:N/A:P"
+                },
+                {
+                    "key": "CVSS2_SCORE",
+                    "value": "4.3"
+                }
+            ],
+            "description": "An issue was discovered in libezxml.a in ezXML 0.8.6. The function ezxml_parse_str() performs incorrect memory handling while parsing crafted XML files (out-of-bounds read after a certain strcspn failure).",
+            "name": "CVE-2021-31348",
+            "scraped_data": [
+                {
+                    "notes": [],
+                    "status_table": {
+                        "packages": [
+                            "netcdf",
+                            "Launchpad",
+                            "Ubuntu",
+                            "Debian"
+                        ],
+                        "release_states": [
+                            [
+                                "bionic",
+                                "Needed"
+                            ],
+                            [
+                                "focal",
+                                "Needed"
+                            ],
+                            [
+                                "groovy",
+                                "Ignored (reached end-of-life)"
+                            ],
+                            [
+                                "hirsute",
+                                "Ignored (reached end-of-life)"
+                            ],
+                            [
+                                "impish",
+                                "Needed"
+                            ],
+                            [
+                                "jammy",
+                                "Needed"
+                            ],
+                            [
+                                "trusty",
+                                "Needs triage"
+                            ],
+                            [
+                                "upstream",
+                                "Needs triage"
+                            ],
+                            [
+                                "xenial",
+                                "Ignored (out of standard support)"
+                            ]
+                        ]
+                    }
+                }
+            ],
+            "severity": "MEDIUM",
+            "uri": "http://people.ubuntu.com/~ubuntu-security/cve/CVE-2021-31348"
+        },
+        {
+            "attributes": [
+                {
+                    "key": "package_version",
+                    "value": "1:4.6.0-2build1"
+                },
+                {
+                    "key": "package_name",
+                    "value": "netcdf"
                 },
                 {
                     "key": "CVSS2_VECTOR",
@@ -7232,8 +6657,1135 @@
                     "value": "5"
                 }
             ],
-            "description": "The BN_mod_sqrt() function, which computes a modular square root, contains a bug that can cause it to loop forever for non-prime moduli. Internally this function is used when parsing certificates that contain elliptic curve public keys in compressed form or explicit elliptic curve parameters with a base point encoded in compressed form. It is possible to trigger the infinite loop by crafting a certificate that has invalid explicit curve parameters. Since certificate parsing happens prior to verification of the certificate signature, any process that parses an externally supplied certificate may thus be subject to a denial of service attack. The infinite loop can also be reached when parsing crafted private keys as they can contain explicit elliptic curve parameters. Thus vulnerable situations include: - TLS clients consuming server certificates - TLS servers consuming client certificates - Hosting providers taking certificates or private keys from customers - Certificate authorities parsing certification requests from subscribers - Anything else which parses ASN.1 elliptic curve parameters Also any other applications that use the BN_mod_sqrt() where the attacker can control the parameter values are vulnerable to this DoS issue. In the OpenSSL 1.0.2 version the public key is not parsed during initial parsing of the certificate which makes it slightly harder to trigger the infinite loop. However any operation which requires the public key from the certificate will trigger the infinite loop. In particular the attacker can use a self-signed certificate to trigger the loop during verification of the certificate signature. This issue affects OpenSSL versions 1.0.2, 1.1.1 and 3.0. It was addressed in the releases of 1.1.1n and 3.0.2 on the 15th March 2022. Fixed in OpenSSL 3.0.2 (Affected 3.0.0,3.0.1). Fixed in OpenSSL 1.1.1n (Affected 1.1.1-1.1.1m). Fixed in OpenSSL 1.0.2zd (Affected 1.0.2-1.0.2zc).",
-            "name": "CVE-2022-0778",
+            "description": "An issue was discovered in libezxml.a in ezXML 0.8.6. The function ezxml_decode() performs incorrect memory handling while parsing crafted XML files, leading to a heap-based buffer overflow.",
+            "name": "CVE-2021-31598",
+            "scraped_data": [
+                {
+                    "notes": [],
+                    "status_table": {
+                        "packages": [
+                            "netcdf",
+                            "Launchpad",
+                            "Ubuntu",
+                            "Debian"
+                        ],
+                        "release_states": [
+                            [
+                                "bionic",
+                                "Needed"
+                            ],
+                            [
+                                "focal",
+                                "Needed"
+                            ],
+                            [
+                                "groovy",
+                                "Ignored (reached end-of-life)"
+                            ],
+                            [
+                                "hirsute",
+                                "Ignored (reached end-of-life)"
+                            ],
+                            [
+                                "impish",
+                                "Needed"
+                            ],
+                            [
+                                "jammy",
+                                "Needed"
+                            ],
+                            [
+                                "trusty",
+                                "Needs triage"
+                            ],
+                            [
+                                "upstream",
+                                "Needs triage"
+                            ],
+                            [
+                                "xenial",
+                                "Ignored (out of standard support)"
+                            ]
+                        ]
+                    }
+                }
+            ],
+            "severity": "MEDIUM",
+            "uri": "http://people.ubuntu.com/~ubuntu-security/cve/CVE-2021-31598"
+        }
+    ],
+    "nghttp2": [
+        {
+            "attributes": [
+                {
+                    "key": "package_version",
+                    "value": "1.30.0-1ubuntu1"
+                },
+                {
+                    "key": "package_name",
+                    "value": "nghttp2"
+                },
+                {
+                    "key": "CVSS2_VECTOR",
+                    "value": "AV:N/AC:L/Au:N/C:N/I:N/A:C"
+                },
+                {
+                    "key": "CVSS2_SCORE",
+                    "value": "7.8"
+                }
+            ],
+            "description": "Some HTTP/2 implementations are vulnerable to window size manipulation and stream prioritization manipulation, potentially leading to a denial of service. The attacker requests a large amount of data from a specified resource over multiple streams. They manipulate window size and stream priority to force the server to queue the data in 1-byte chunks. Depending on how efficiently this data is queued, this can consume excess CPU, memory, or both.",
+            "name": "CVE-2019-9511",
+            "scraped_data": [
+                {
+                    "notes": [
+                        "nginx added http2 support in 1.9.5\nnghttp2: nghttpd and nghttp are affected, libnghttp2 is not"
+                    ],
+                    "status_table": {
+                        "packages": [
+                            "nghttp2",
+                            "Launchpad",
+                            "Ubuntu",
+                            "Debian"
+                        ],
+                        "release_states": [
+                            [
+                                "bionic",
+                                "Needed"
+                            ],
+                            [
+                                "cosmic",
+                                "Ignored (reached end-of-life)"
+                            ],
+                            [
+                                "disco",
+                                "Ignored (reached end-of-life)"
+                            ],
+                            [
+                                "eoan",
+                                "Not vulnerable (1.39.2-1)"
+                            ],
+                            [
+                                "focal",
+                                "Not vulnerable (1.39.2-1)"
+                            ],
+                            [
+                                "groovy",
+                                "Not vulnerable (1.39.2-1)"
+                            ],
+                            [
+                                "hirsute",
+                                "Not vulnerable (1.39.2-1)"
+                            ],
+                            [
+                                "impish",
+                                "Not vulnerable (1.39.2-1)"
+                            ],
+                            [
+                                "jammy",
+                                "Not vulnerable (1.39.2-1)"
+                            ],
+                            [
+                                "precise",
+                                "Does not exist"
+                            ],
+                            [
+                                "trusty",
+                                "Does not exist"
+                            ],
+                            [
+                                "upstream",
+                                "Released (1.39.2)"
+                            ],
+                            [
+                                "xenial",
+                                "Ignored (end of standard support, was needed)"
+                            ]
+                        ]
+                    }
+                }
+            ],
+            "severity": "MEDIUM",
+            "uri": "http://people.ubuntu.com/~ubuntu-security/cve/CVE-2019-9511"
+        },
+        {
+            "attributes": [
+                {
+                    "key": "package_version",
+                    "value": "1.30.0-1ubuntu1"
+                },
+                {
+                    "key": "package_name",
+                    "value": "nghttp2"
+                },
+                {
+                    "key": "CVSS2_VECTOR",
+                    "value": "AV:N/AC:L/Au:N/C:N/I:N/A:C"
+                },
+                {
+                    "key": "CVSS2_SCORE",
+                    "value": "7.8"
+                }
+            ],
+            "description": "Some HTTP/2 implementations are vulnerable to resource loops, potentially leading to a denial of service. The attacker creates multiple request streams and continually shuffles the priority of the streams in a way that causes substantial churn to the priority tree. This can consume excess CPU.",
+            "name": "CVE-2019-9513",
+            "scraped_data": [
+                {
+                    "notes": [
+                        "nginx added http2 support in 1.9.5\nnghttp2: nghttpd and nghttp are affected, libnghttp2 is not"
+                    ],
+                    "status_table": {
+                        "packages": [
+                            "nghttp2",
+                            "Launchpad",
+                            "Ubuntu",
+                            "Debian"
+                        ],
+                        "release_states": [
+                            [
+                                "bionic",
+                                "Needed"
+                            ],
+                            [
+                                "cosmic",
+                                "Ignored (reached end-of-life)"
+                            ],
+                            [
+                                "disco",
+                                "Ignored (reached end-of-life)"
+                            ],
+                            [
+                                "eoan",
+                                "Not vulnerable (1.39.2-1)"
+                            ],
+                            [
+                                "focal",
+                                "Not vulnerable (1.39.2-1)"
+                            ],
+                            [
+                                "groovy",
+                                "Not vulnerable (1.39.2-1)"
+                            ],
+                            [
+                                "hirsute",
+                                "Not vulnerable (1.39.2-1)"
+                            ],
+                            [
+                                "impish",
+                                "Not vulnerable (1.39.2-1)"
+                            ],
+                            [
+                                "jammy",
+                                "Not vulnerable (1.39.2-1)"
+                            ],
+                            [
+                                "precise",
+                                "Does not exist"
+                            ],
+                            [
+                                "trusty",
+                                "Does not exist"
+                            ],
+                            [
+                                "upstream",
+                                "Released (1.39.2)"
+                            ],
+                            [
+                                "xenial",
+                                "Ignored (end of standard support, was needed)"
+                            ]
+                        ]
+                    }
+                }
+            ],
+            "severity": "MEDIUM",
+            "uri": "http://people.ubuntu.com/~ubuntu-security/cve/CVE-2019-9513"
+        }
+    ],
+    "opencv": [
+        {
+            "attributes": [
+                {
+                    "key": "package_version",
+                    "value": "3.2.0+dfsg-4ubuntu0.1"
+                },
+                {
+                    "key": "package_name",
+                    "value": "opencv"
+                },
+                {
+                    "key": "CVSS2_VECTOR",
+                    "value": "AV:N/AC:L/Au:N/C:N/I:N/A:P"
+                },
+                {
+                    "key": "CVSS2_SCORE",
+                    "value": "5"
+                }
+            ],
+            "description": "In OpenCV 3.3.1, a heap-based buffer over-read exists in the function cv::HdrDecoder::checkSignature in modules/imgcodecs/src/grfmt_hdr.cpp.",
+            "name": "CVE-2017-18009",
+            "scraped_data": [
+                {
+                    "notes": [],
+                    "status_table": {
+                        "packages": [
+                            "opencv",
+                            "Launchpad",
+                            "Ubuntu",
+                            "Debian"
+                        ],
+                        "release_states": [
+                            [
+                                "artful",
+                                "Ignored (reached end-of-life)"
+                            ],
+                            [
+                                "bionic",
+                                "Needed"
+                            ],
+                            [
+                                "cosmic",
+                                "Ignored (reached end-of-life)"
+                            ],
+                            [
+                                "disco",
+                                "Ignored (reached end-of-life)"
+                            ],
+                            [
+                                "eoan",
+                                "Ignored (reached end-of-life)"
+                            ],
+                            [
+                                "focal",
+                                "Not vulnerable (4.1.2+dfsg-4ubuntu3)"
+                            ],
+                            [
+                                "groovy",
+                                "Not vulnerable (4.1.2+dfsg-4ubuntu3)"
+                            ],
+                            [
+                                "hirsute",
+                                "Not vulnerable (4.1.2+dfsg-4ubuntu3)"
+                            ],
+                            [
+                                "impish",
+                                "Not vulnerable (4.1.2+dfsg-4ubuntu3)"
+                            ],
+                            [
+                                "jammy",
+                                "Not vulnerable (4.1.2+dfsg-4ubuntu3)"
+                            ],
+                            [
+                                "precise",
+                                "Does not exist"
+                            ],
+                            [
+                                "trusty",
+                                "Not vulnerable (code not present)"
+                            ],
+                            [
+                                "upstream",
+                                "Released (3.4.1, 3.4.4+dfsg-1~exp1)"
+                            ],
+                            [
+                                "xenial",
+                                "Not vulnerable (code not present)"
+                            ],
+                            [
+                                "zesty",
+                                "Ignored (reached end-of-life)"
+                            ]
+                        ]
+                    }
+                }
+            ],
+            "severity": "MEDIUM",
+            "uri": "http://people.ubuntu.com/~ubuntu-security/cve/CVE-2017-18009"
+        },
+        {
+            "attributes": [
+                {
+                    "key": "package_version",
+                    "value": "3.2.0+dfsg-4ubuntu0.1"
+                },
+                {
+                    "key": "package_name",
+                    "value": "opencv"
+                },
+                {
+                    "key": "CVSS2_VECTOR",
+                    "value": "AV:N/AC:L/Au:N/C:P/I:N/A:P"
+                },
+                {
+                    "key": "CVSS2_SCORE",
+                    "value": "6.4"
+                }
+            ],
+            "description": "An issue was discovered in OpenCV before 3.4.7 and 4.x before 4.1.1. There is an out of bounds read in the function cv::predictOrdered<cv::HaarEvaluator> in modules/objdetect/src/cascadedetect.hpp, which leads to denial of service.",
+            "name": "CVE-2019-14491",
+            "scraped_data": [
+                {
+                    "notes": [],
+                    "status_table": {
+                        "packages": [
+                            "opencv",
+                            "Launchpad",
+                            "Ubuntu",
+                            "Debian"
+                        ],
+                        "release_states": [
+                            [
+                                "bionic",
+                                "Needed"
+                            ],
+                            [
+                                "disco",
+                                "Ignored (reached end-of-life)"
+                            ],
+                            [
+                                "eoan",
+                                "Ignored (reached end-of-life)"
+                            ],
+                            [
+                                "focal",
+                                "Not vulnerable (4.1.2+dfsg-4ubuntu3)"
+                            ],
+                            [
+                                "groovy",
+                                "Not vulnerable (4.1.2+dfsg-4ubuntu3)"
+                            ],
+                            [
+                                "hirsute",
+                                "Not vulnerable (4.1.2+dfsg-4ubuntu3)"
+                            ],
+                            [
+                                "impish",
+                                "Not vulnerable (4.1.2+dfsg-4ubuntu3)"
+                            ],
+                            [
+                                "jammy",
+                                "Not vulnerable (4.1.2+dfsg-4ubuntu3)"
+                            ],
+                            [
+                                "precise",
+                                "Does not exist"
+                            ],
+                            [
+                                "trusty",
+                                "Needed"
+                            ],
+                            [
+                                "upstream",
+                                "Needs triage"
+                            ],
+                            [
+                                "xenial",
+                                "Ignored (end of standard support, was needed)"
+                            ]
+                        ]
+                    }
+                }
+            ],
+            "severity": "MEDIUM",
+            "uri": "http://people.ubuntu.com/~ubuntu-security/cve/CVE-2019-14491"
+        },
+        {
+            "attributes": [
+                {
+                    "key": "package_version",
+                    "value": "3.2.0+dfsg-4ubuntu0.1"
+                },
+                {
+                    "key": "package_name",
+                    "value": "opencv"
+                },
+                {
+                    "key": "CVSS2_VECTOR",
+                    "value": "AV:N/AC:L/Au:N/C:N/I:N/A:P"
+                },
+                {
+                    "key": "CVSS2_SCORE",
+                    "value": "5"
+                }
+            ],
+            "description": "An issue was discovered in OpenCV before 3.4.7 and 4.x before 4.1.1. There is an out of bounds read/write in the function HaarEvaluator::OptFeature::calc in modules/objdetect/src/cascadedetect.hpp, which leads to denial of service.",
+            "name": "CVE-2019-14492",
+            "scraped_data": [
+                {
+                    "notes": [],
+                    "status_table": {
+                        "packages": [
+                            "opencv",
+                            "Launchpad",
+                            "Ubuntu",
+                            "Debian"
+                        ],
+                        "release_states": [
+                            [
+                                "bionic",
+                                "Needed"
+                            ],
+                            [
+                                "disco",
+                                "Ignored (reached end-of-life)"
+                            ],
+                            [
+                                "eoan",
+                                "Ignored (reached end-of-life)"
+                            ],
+                            [
+                                "focal",
+                                "Not vulnerable (4.1.2+dfsg-4ubuntu3)"
+                            ],
+                            [
+                                "groovy",
+                                "Not vulnerable (4.1.2+dfsg-4ubuntu3)"
+                            ],
+                            [
+                                "hirsute",
+                                "Not vulnerable (4.1.2+dfsg-4ubuntu3)"
+                            ],
+                            [
+                                "impish",
+                                "Not vulnerable (4.1.2+dfsg-4ubuntu3)"
+                            ],
+                            [
+                                "jammy",
+                                "Not vulnerable (4.1.2+dfsg-4ubuntu3)"
+                            ],
+                            [
+                                "precise",
+                                "Does not exist"
+                            ],
+                            [
+                                "trusty",
+                                "Needed"
+                            ],
+                            [
+                                "upstream",
+                                "Needs triage"
+                            ],
+                            [
+                                "xenial",
+                                "Ignored (end of standard support, was needed)"
+                            ]
+                        ]
+                    }
+                }
+            ],
+            "severity": "MEDIUM",
+            "uri": "http://people.ubuntu.com/~ubuntu-security/cve/CVE-2019-14492"
+        },
+        {
+            "attributes": [
+                {
+                    "key": "package_version",
+                    "value": "3.2.0+dfsg-4ubuntu0.1"
+                },
+                {
+                    "key": "package_name",
+                    "value": "opencv"
+                },
+                {
+                    "key": "CVSS2_VECTOR",
+                    "value": "AV:N/AC:M/Au:N/C:N/I:N/A:P"
+                },
+                {
+                    "key": "CVSS2_SCORE",
+                    "value": "4.3"
+                }
+            ],
+            "description": "An issue was discovered in OpenCV 4.1.0. There is a divide-by-zero error in cv::HOGDescriptor::getDescriptorSize in modules/objdetect/src/hog.cpp.",
+            "name": "CVE-2019-15939",
+            "scraped_data": [
+                {
+                    "notes": [],
+                    "status_table": {
+                        "packages": [
+                            "opencv",
+                            "Launchpad",
+                            "Ubuntu",
+                            "Debian"
+                        ],
+                        "release_states": [
+                            [
+                                "bionic",
+                                "Needed"
+                            ],
+                            [
+                                "disco",
+                                "Ignored (reached end-of-life)"
+                            ],
+                            [
+                                "eoan",
+                                "Ignored (reached end-of-life)"
+                            ],
+                            [
+                                "focal",
+                                "Not vulnerable (4.1.2+dfsg-4ubuntu3)"
+                            ],
+                            [
+                                "groovy",
+                                "Not vulnerable (4.1.2+dfsg-4ubuntu3)"
+                            ],
+                            [
+                                "hirsute",
+                                "Not vulnerable (4.1.2+dfsg-4ubuntu3)"
+                            ],
+                            [
+                                "impish",
+                                "Not vulnerable (4.1.2+dfsg-4ubuntu3)"
+                            ],
+                            [
+                                "jammy",
+                                "Not vulnerable (4.1.2+dfsg-4ubuntu3)"
+                            ],
+                            [
+                                "precise",
+                                "Does not exist"
+                            ],
+                            [
+                                "trusty",
+                                "Not vulnerable (code not present)"
+                            ],
+                            [
+                                "upstream",
+                                "Needs triage"
+                            ],
+                            [
+                                "xenial",
+                                "Not vulnerable (code not present)"
+                            ]
+                        ]
+                    }
+                }
+            ],
+            "severity": "MEDIUM",
+            "uri": "http://people.ubuntu.com/~ubuntu-security/cve/CVE-2019-15939"
+        },
+        {
+            "attributes": [
+                {
+                    "key": "package_version",
+                    "value": "3.2.0+dfsg-4ubuntu0.1"
+                },
+                {
+                    "key": "package_name",
+                    "value": "opencv"
+                },
+                {
+                    "key": "CVSS2_VECTOR",
+                    "value": "AV:N/AC:L/Au:N/C:P/I:N/A:N"
+                },
+                {
+                    "key": "CVSS2_SCORE",
+                    "value": "5"
+                }
+            ],
+            "description": "OpenCV 4.1.1 has an out-of-bounds read in hal_baseline::v_load in core/hal/intrin_sse.hpp when called from computeSSDMeanNorm in modules/video/src/dis_flow.cpp.",
+            "name": "CVE-2019-16249",
+            "scraped_data": [
+                {
+                    "notes": [],
+                    "status_table": {
+                        "packages": [
+                            "opencv",
+                            "Launchpad",
+                            "Ubuntu",
+                            "Debian"
+                        ],
+                        "release_states": [
+                            [
+                                "bionic",
+                                "Needed"
+                            ],
+                            [
+                                "disco",
+                                "Ignored (reached end-of-life)"
+                            ],
+                            [
+                                "eoan",
+                                "Ignored (reached end-of-life)"
+                            ],
+                            [
+                                "focal",
+                                "Needed"
+                            ],
+                            [
+                                "groovy",
+                                "Ignored (reached end-of-life)"
+                            ],
+                            [
+                                "hirsute",
+                                "Ignored (reached end-of-life)"
+                            ],
+                            [
+                                "impish",
+                                "Needed"
+                            ],
+                            [
+                                "jammy",
+                                "Needed"
+                            ],
+                            [
+                                "precise",
+                                "Does not exist"
+                            ],
+                            [
+                                "trusty",
+                                "Not vulnerable (code not present)"
+                            ],
+                            [
+                                "upstream",
+                                "Needs triage"
+                            ],
+                            [
+                                "xenial",
+                                "Not vulnerable (code not present)"
+                            ]
+                        ]
+                    }
+                }
+            ],
+            "severity": "MEDIUM",
+            "uri": "http://people.ubuntu.com/~ubuntu-security/cve/CVE-2019-16249"
+        },
+        {
+            "attributes": [
+                {
+                    "key": "package_version",
+                    "value": "3.2.0+dfsg-4ubuntu0.1"
+                },
+                {
+                    "key": "package_name",
+                    "value": "opencv"
+                },
+                {
+                    "key": "CVSS2_VECTOR",
+                    "value": "AV:L/AC:L/Au:N/C:P/I:P/A:P"
+                },
+                {
+                    "key": "CVSS2_SCORE",
+                    "value": "4.6"
+                }
+            ],
+            "description": "In opencv calls that use libpng, there is a possible out of bounds write due to a missing bounds check. This could lead to local escalation of privilege with no additional execution privileges required. User interaction is not required for exploitation. Product: AndroidVersions: Android-10Android ID: A-110986616",
+            "name": "CVE-2019-9423",
+            "scraped_data": [
+                {
+                    "notes": [
+                        "no details as of 2020-03-09"
+                    ],
+                    "status_table": {
+                        "packages": [
+                            "opencv",
+                            "Launchpad",
+                            "Ubuntu",
+                            "Debian"
+                        ],
+                        "release_states": [
+                            [
+                                "bionic",
+                                "Deferred (2020-03-09)"
+                            ],
+                            [
+                                "disco",
+                                "Ignored (reached end-of-life)"
+                            ],
+                            [
+                                "eoan",
+                                "Ignored (reached end-of-life)"
+                            ],
+                            [
+                                "focal",
+                                "Deferred (2020-03-09)"
+                            ],
+                            [
+                                "groovy",
+                                "Ignored (reached end-of-life)"
+                            ],
+                            [
+                                "hirsute",
+                                "Ignored (reached end-of-life)"
+                            ],
+                            [
+                                "impish",
+                                "Deferred (2020-03-09)"
+                            ],
+                            [
+                                "jammy",
+                                "Deferred (2020-03-09)"
+                            ],
+                            [
+                                "precise",
+                                "Does not exist"
+                            ],
+                            [
+                                "trusty",
+                                "Deferred (2020-03-09)"
+                            ],
+                            [
+                                "upstream",
+                                "Needs triage"
+                            ],
+                            [
+                                "xenial",
+                                "Ignored (end of standard support, was deferred [2020-03-09])"
+                            ]
+                        ]
+                    }
+                }
+            ],
+            "severity": "MEDIUM",
+            "uri": "http://people.ubuntu.com/~ubuntu-security/cve/CVE-2019-9423"
+        }
+    ],
+    "openjpeg2": [
+        {
+            "attributes": [
+                {
+                    "key": "package_version",
+                    "value": "2.3.0-2build0.18.04.1"
+                },
+                {
+                    "key": "package_name",
+                    "value": "openjpeg2"
+                },
+                {
+                    "key": "CVSS2_VECTOR",
+                    "value": "AV:N/AC:M/Au:N/C:P/I:P/A:P"
+                },
+                {
+                    "key": "CVSS2_SCORE",
+                    "value": "6.8"
+                }
+            ],
+            "description": "OpenJPEG before 2.3.1 has a heap buffer overflow in color_apply_icc_profile in bin/common/color.c.",
+            "name": "CVE-2018-21010",
+            "scraped_data": [
+                {
+                    "notes": [],
+                    "status_table": {
+                        "packages": [
+                            "openjpeg2",
+                            "Launchpad",
+                            "Ubuntu",
+                            "Debian"
+                        ],
+                        "release_states": [
+                            [
+                                "bionic",
+                                "Needed"
+                            ],
+                            [
+                                "disco",
+                                "Ignored (reached end-of-life)"
+                            ],
+                            [
+                                "eoan",
+                                "Ignored (reached end-of-life)"
+                            ],
+                            [
+                                "focal",
+                                "Not vulnerable (2.3.1-1)"
+                            ],
+                            [
+                                "groovy",
+                                "Not vulnerable (2.3.1-1)"
+                            ],
+                            [
+                                "hirsute",
+                                "Not vulnerable (2.3.1-1)"
+                            ],
+                            [
+                                "impish",
+                                "Not vulnerable (2.3.1-1)"
+                            ],
+                            [
+                                "jammy",
+                                "Not vulnerable (2.3.1-1)"
+                            ],
+                            [
+                                "precise",
+                                "Does not exist"
+                            ],
+                            [
+                                "trusty",
+                                "Does not exist"
+                            ],
+                            [
+                                "upstream",
+                                "Needs triage"
+                            ],
+                            [
+                                "xenial",
+                                "Released (2.1.2-1.1+deb9u5build0.16.04.1)"
+                            ]
+                        ]
+                    }
+                }
+            ],
+            "severity": "MEDIUM",
+            "uri": "http://people.ubuntu.com/~ubuntu-security/cve/CVE-2018-21010"
+        },
+        {
+            "attributes": [
+                {
+                    "key": "package_version",
+                    "value": "2.3.0-2build0.18.04.1"
+                },
+                {
+                    "key": "package_name",
+                    "value": "openjpeg2"
+                },
+                {
+                    "key": "CVSS2_VECTOR",
+                    "value": "AV:N/AC:M/Au:N/C:P/I:P/A:P"
+                },
+                {
+                    "key": "CVSS2_SCORE",
+                    "value": "6.8"
+                }
+            ],
+            "description": "A heap-buffer overflow was found in the way openjpeg2 handled certain PNG format files. An attacker could use this flaw to cause an application crash or in some cases execute arbitrary code with the permission of the user running such an application.",
+            "name": "CVE-2020-27814",
+            "scraped_data": [
+                {
+                    "notes": [
+                        "check bug to see if there are more commits before fixing"
+                    ],
+                    "status_table": {
+                        "packages": [
+                            "openjpeg2",
+                            "Launchpad",
+                            "Ubuntu",
+                            "Debian"
+                        ],
+                        "release_states": [
+                            [
+                                "bionic",
+                                "Needed"
+                            ],
+                            [
+                                "focal",
+                                "Released (2.3.1-1ubuntu4.20.04.1)"
+                            ],
+                            [
+                                "groovy",
+                                "Released (2.3.1-1ubuntu4.20.10.1)"
+                            ],
+                            [
+                                "hirsute",
+                                "Released (2.3.1-1ubuntu5)"
+                            ],
+                            [
+                                "impish",
+                                "Released (2.3.1-1ubuntu5)"
+                            ],
+                            [
+                                "jammy",
+                                "Released (2.3.1-1ubuntu5)"
+                            ],
+                            [
+                                "precise",
+                                "Does not exist"
+                            ],
+                            [
+                                "trusty",
+                                "Does not exist"
+                            ],
+                            [
+                                "upstream",
+                                "Needs triage"
+                            ],
+                            [
+                                "xenial",
+                                "Released (2.1.2-1.1+deb9u6build0.16.04.1)"
+                            ]
+                        ]
+                    }
+                }
+            ],
+            "severity": "MEDIUM",
+            "uri": "http://people.ubuntu.com/~ubuntu-security/cve/CVE-2020-27814"
+        },
+        {
+            "attributes": [
+                {
+                    "key": "package_version",
+                    "value": "2.3.0-2build0.18.04.1"
+                },
+                {
+                    "key": "package_name",
+                    "value": "openjpeg2"
+                },
+                {
+                    "key": "CVSS2_VECTOR",
+                    "value": "AV:N/AC:M/Au:N/C:N/I:N/A:P"
+                },
+                {
+                    "key": "CVSS2_SCORE",
+                    "value": "4.3"
+                }
+            ],
+            "description": "There's a flaw in src/lib/openjp2/pi.c of openjpeg in versions prior to 2.4.0. If an attacker is able to provide untrusted input to openjpeg's conversion/encoding functionality, they could cause an out-of-bounds read. The highest impact of this flaw is to application availability.",
+            "name": "CVE-2020-27845",
+            "scraped_data": [
+                {
+                    "notes": [],
+                    "status_table": {
+                        "packages": [
+                            "openjpeg2",
+                            "Launchpad",
+                            "Ubuntu",
+                            "Debian"
+                        ],
+                        "release_states": [
+                            [
+                                "bionic",
+                                "Needed"
+                            ],
+                            [
+                                "focal",
+                                "Released (2.3.1-1ubuntu4.20.04.1)"
+                            ],
+                            [
+                                "groovy",
+                                "Released (2.3.1-1ubuntu4.20.10.1)"
+                            ],
+                            [
+                                "hirsute",
+                                "Released (2.3.1-1ubuntu5)"
+                            ],
+                            [
+                                "impish",
+                                "Released (2.3.1-1ubuntu5)"
+                            ],
+                            [
+                                "jammy",
+                                "Released (2.3.1-1ubuntu5)"
+                            ],
+                            [
+                                "precise",
+                                "Does not exist"
+                            ],
+                            [
+                                "trusty",
+                                "Does not exist"
+                            ],
+                            [
+                                "upstream",
+                                "Needs triage"
+                            ],
+                            [
+                                "xenial",
+                                "Released (2.1.2-1.1+deb9u6build0.16.04.1)"
+                            ]
+                        ]
+                    }
+                }
+            ],
+            "severity": "MEDIUM",
+            "uri": "http://people.ubuntu.com/~ubuntu-security/cve/CVE-2020-27845"
+        },
+        {
+            "attributes": [
+                {
+                    "key": "package_version",
+                    "value": "2.3.0-2build0.18.04.1"
+                },
+                {
+                    "key": "package_name",
+                    "value": "openjpeg2"
+                },
+                {
+                    "key": "CVSS2_VECTOR",
+                    "value": "AV:N/AC:M/Au:N/C:P/I:P/A:P"
+                },
+                {
+                    "key": "CVSS2_SCORE",
+                    "value": "6.8"
+                }
+            ],
+            "description": "opj_t1_clbl_decode_processor in openjp2/t1.c in OpenJPEG 2.3.1 through 2020-01-28 has a heap-based buffer overflow in the qmfbid==1 case, a different issue than CVE-2020-6851.",
+            "name": "CVE-2020-8112",
+            "scraped_data": [
+                {
+                    "notes": [],
+                    "status_table": {
+                        "packages": [
+                            "openjpeg2",
+                            "Launchpad",
+                            "Ubuntu",
+                            "Debian"
+                        ],
+                        "release_states": [
+                            [
+                                "bionic",
+                                "Needed"
+                            ],
+                            [
+                                "eoan",
+                                "Ignored (reached end-of-life)"
+                            ],
+                            [
+                                "focal",
+                                "Released (2.3.1-1ubuntu4)"
+                            ],
+                            [
+                                "groovy",
+                                "Released (2.3.1-1ubuntu4)"
+                            ],
+                            [
+                                "hirsute",
+                                "Released (2.3.1-1ubuntu4)"
+                            ],
+                            [
+                                "impish",
+                                "Released (2.3.1-1ubuntu4)"
+                            ],
+                            [
+                                "jammy",
+                                "Released (2.3.1-1ubuntu4)"
+                            ],
+                            [
+                                "precise",
+                                "Does not exist"
+                            ],
+                            [
+                                "trusty",
+                                "Does not exist"
+                            ],
+                            [
+                                "upstream",
+                                "Needs triage"
+                            ],
+                            [
+                                "xenial",
+                                "Released (2.1.2-1.1+deb9u5build0.16.04.1)"
+                            ]
+                        ]
+                    }
+                }
+            ],
+            "severity": "MEDIUM",
+            "uri": "http://people.ubuntu.com/~ubuntu-security/cve/CVE-2020-8112"
+        }
+    ],
+    "openssl": [
+        {
+            "attributes": [
+                {
+                    "key": "package_version",
+                    "value": "1.1.1-1ubuntu2.1~18.04.17"
+                },
+                {
+                    "key": "package_name",
+                    "value": "openssl"
+                }
+            ],
+            "description": "The c_rehash script allows command injection",
+            "name": "CVE-2022-1292",
             "scraped_data": [
                 {
                     "notes": [],
@@ -7247,58 +7799,230 @@
                         "release_states": [
                             [
                                 "bionic",
-                                "Released (1.1.1-1ubuntu2.1~18.04.15)"
+                                "Released (1.1.1-1ubuntu2.1~18.04.17)"
                             ],
                             [
                                 "focal",
-                                "Released (1.1.1f-1ubuntu2.12)"
+                                "Released (1.1.1f-1ubuntu2.13)"
                             ],
                             [
                                 "impish",
-                                "Released (1.1.1l-1ubuntu1.2)"
+                                "Released (1.1.1l-1ubuntu1.3)"
+                            ],
+                            [
+                                "jammy",
+                                "Released (3.0.2-0ubuntu1.1)"
                             ],
                             [
                                 "trusty",
-                                "Released (1.0.1f-1ubuntu2.27+esm5)"
+                                "Needs triage"
                             ],
                             [
                                 "upstream",
-                                "Released (1.1.1n,3.0.2)"
+                                "Released (1.1.1o,3.0.3)"
                             ],
                             [
                                 "xenial",
-                                "Released (1.0.2g-1ubuntu4.20+esm2)"
+                                "Needs triage"
                             ]
                         ]
                     }
                 }
             ],
-            "severity": "HIGH",
-            "uri": "http://people.ubuntu.com/~ubuntu-security/cve/CVE-2022-0778"
+            "severity": "MEDIUM",
+            "uri": "http://people.ubuntu.com/~ubuntu-security/cve/CVE-2022-1292"
         }
     ],
-    "python2.7": [
+    "perl": [
         {
             "attributes": [
                 {
                     "key": "package_version",
-                    "value": "2.7.17-1~18.04ubuntu1.6"
+                    "value": "5.26.1-6ubuntu0.5"
                 },
                 {
                     "key": "package_name",
-                    "value": "python2.7"
+                    "value": "perl"
+                },
+                {
+                    "key": "CVSS2_VECTOR",
+                    "value": "AV:N/AC:M/Au:N/C:P/I:P/A:P"
+                },
+                {
+                    "key": "CVSS2_SCORE",
+                    "value": "6.8"
                 }
             ],
-            "description": "In Python (aka CPython) through 3.10.4, the mailcap module does not add escape characters into commands discovered in the system mailcap file. This may allow attackers to inject shell commands into applications that call mailcap.findmatch with untrusted input (if they lack validation of user-provided filenames or arguments).",
-            "name": "CVE-2015-20107",
+            "description": "CPAN 2.28 allows Signature Verification Bypass.",
+            "name": "CVE-2020-16156",
             "scraped_data": [
                 {
                     "notes": [
-                        "no patch availabe as of 2022-04-14. Seems like\nthe mailcap module has no active maintainer."
+                        "Fix is in cpanpm 2.29"
                     ],
                     "status_table": {
                         "packages": [
-                            "python2.7",
+                            "perl",
+                            "Launchpad",
+                            "Ubuntu",
+                            "Debian"
+                        ],
+                        "release_states": [
+                            [
+                                "bionic",
+                                "Needed"
+                            ],
+                            [
+                                "focal",
+                                "Needed"
+                            ],
+                            [
+                                "hirsute",
+                                "Ignored (reached end-of-life)"
+                            ],
+                            [
+                                "impish",
+                                "Needed"
+                            ],
+                            [
+                                "jammy",
+                                "Needed"
+                            ],
+                            [
+                                "trusty",
+                                "Needed"
+                            ],
+                            [
+                                "upstream",
+                                "Needed"
+                            ],
+                            [
+                                "xenial",
+                                "Needed"
+                            ]
+                        ]
+                    }
+                }
+            ],
+            "severity": "MEDIUM",
+            "uri": "http://people.ubuntu.com/~ubuntu-security/cve/CVE-2020-16156"
+        }
+    ],
+    "sqlite3": [
+        {
+            "attributes": [
+                {
+                    "key": "package_version",
+                    "value": "3.22.0-1ubuntu0.4"
+                },
+                {
+                    "key": "package_name",
+                    "value": "sqlite3"
+                },
+                {
+                    "key": "CVSS2_VECTOR",
+                    "value": "AV:N/AC:M/Au:N/C:P/I:N/A:P"
+                },
+                {
+                    "key": "CVSS2_SCORE",
+                    "value": "5.8"
+                }
+            ],
+            "description": "An out-of-bounds read was addressed with improved bounds checking. This issue is fixed in iOS 13.5 and iPadOS 13.5, macOS Catalina 10.15.5, tvOS 13.4.5, watchOS 6.2.5, iTunes 12.10.7 for Windows, iCloud for Windows 11.2, iCloud for Windows 7.19. A malicious application may cause a denial of service or potentially disclose memory contents.",
+            "name": "CVE-2020-9794",
+            "scraped_data": [
+                {
+                    "notes": [
+                        "This may be an Apple-specific CVE, as of 2021-02-08, no details\nare available as to what the upstream fix is."
+                    ],
+                    "status_table": {
+                        "packages": [
+                            "sqlite3",
+                            "Launchpad",
+                            "Ubuntu",
+                            "Debian"
+                        ],
+                        "release_states": [
+                            [
+                                "bionic",
+                                "Deferred"
+                            ],
+                            [
+                                "eoan",
+                                "Ignored (reached end-of-life)"
+                            ],
+                            [
+                                "focal",
+                                "Deferred"
+                            ],
+                            [
+                                "groovy",
+                                "Ignored (reached end-of-life)"
+                            ],
+                            [
+                                "hirsute",
+                                "Ignored (reached end-of-life)"
+                            ],
+                            [
+                                "impish",
+                                "Deferred"
+                            ],
+                            [
+                                "jammy",
+                                "Deferred"
+                            ],
+                            [
+                                "precise",
+                                "Ignored (end of ESM support, was needs-triage)"
+                            ],
+                            [
+                                "trusty",
+                                "Deferred"
+                            ],
+                            [
+                                "upstream",
+                                "Needs triage"
+                            ],
+                            [
+                                "xenial",
+                                "Deferred"
+                            ]
+                        ]
+                    }
+                }
+            ],
+            "severity": "MEDIUM",
+            "uri": "http://people.ubuntu.com/~ubuntu-security/cve/CVE-2020-9794"
+        }
+    ],
+    "tiff": [
+        {
+            "attributes": [
+                {
+                    "key": "package_version",
+                    "value": "4.0.9-5ubuntu0.4"
+                },
+                {
+                    "key": "package_name",
+                    "value": "tiff"
+                },
+                {
+                    "key": "CVSS2_VECTOR",
+                    "value": "AV:N/AC:M/Au:N/C:N/I:N/A:P"
+                },
+                {
+                    "key": "CVSS2_SCORE",
+                    "value": "4.3"
+                }
+            ],
+            "description": "Reachable Assertion in tiffcp in libtiff 4.3.0 allows attackers to cause a denial-of-service via a crafted tiff file. For users that compile libtiff from sources, the fix is available with commit 5e180045.",
+            "name": "CVE-2022-0865",
+            "scraped_data": [
+                {
+                    "notes": [],
+                    "status_table": {
+                        "packages": [
+                            "tiff",
                             "Launchpad",
                             "Ubuntu",
                             "Debian"
@@ -7317,47 +8041,55 @@
                                 "Needed"
                             ],
                             [
-                                "trusty",
+                                "jammy",
                                 "Needed"
+                            ],
+                            [
+                                "trusty",
+                                "Needs triage"
                             ],
                             [
                                 "upstream",
-                                "Needed"
+                                "Released (4.3.0-5)"
                             ],
                             [
                                 "xenial",
-                                "Needed"
+                                "Needs triage"
                             ]
                         ]
                     }
                 }
             ],
-            "severity": "HIGH",
-            "uri": "http://people.ubuntu.com/~ubuntu-security/cve/CVE-2015-20107"
-        }
-    ],
-    "python3.6": [
+            "severity": "MEDIUM",
+            "uri": "http://people.ubuntu.com/~ubuntu-security/cve/CVE-2022-0865"
+        },
         {
             "attributes": [
                 {
                     "key": "package_version",
-                    "value": "3.6.9-1~18.04ubuntu1.6"
+                    "value": "4.0.9-5ubuntu0.4"
                 },
                 {
                     "key": "package_name",
-                    "value": "python3.6"
+                    "value": "tiff"
+                },
+                {
+                    "key": "CVSS2_VECTOR",
+                    "value": "AV:N/AC:M/Au:N/C:P/I:N/A:P"
+                },
+                {
+                    "key": "CVSS2_SCORE",
+                    "value": "5.8"
                 }
             ],
-            "description": "In Python (aka CPython) through 3.10.4, the mailcap module does not add escape characters into commands discovered in the system mailcap file. This may allow attackers to inject shell commands into applications that call mailcap.findmatch with untrusted input (if they lack validation of user-provided filenames or arguments).",
-            "name": "CVE-2015-20107",
+            "description": "A heap buffer overflow in ExtractImageSection function in tiffcrop.c in libtiff library Version 4.3.0 allows attacker to trigger unsafe or out of bounds memory access via crafted TIFF image file which could result into application crash, potential information disclosure or any other context-dependent impact",
+            "name": "CVE-2022-0891",
             "scraped_data": [
                 {
-                    "notes": [
-                        "no patch availabe as of 2022-04-14. Seems like\nthe mailcap module has no active maintainer."
-                    ],
+                    "notes": [],
                     "status_table": {
                         "packages": [
-                            "python3.6",
+                            "tiff",
                             "Launchpad",
                             "Ubuntu",
                             "Debian"
@@ -7369,30 +8101,34 @@
                             ],
                             [
                                 "focal",
-                                "Does not exist"
-                            ],
-                            [
-                                "impish",
-                                "Does not exist"
-                            ],
-                            [
-                                "trusty",
-                                "Does not exist"
-                            ],
-                            [
-                                "upstream",
                                 "Needed"
                             ],
                             [
+                                "impish",
+                                "Needed"
+                            ],
+                            [
+                                "jammy",
+                                "Needs triage"
+                            ],
+                            [
+                                "trusty",
+                                "Needs triage"
+                            ],
+                            [
+                                "upstream",
+                                "Needs triage"
+                            ],
+                            [
                                 "xenial",
-                                "Does not exist"
+                                "Needs triage"
                             ]
                         ]
                     }
                 }
             ],
-            "severity": "HIGH",
-            "uri": "http://people.ubuntu.com/~ubuntu-security/cve/CVE-2015-20107"
+            "severity": "MEDIUM",
+            "uri": "http://people.ubuntu.com/~ubuntu-security/cve/CVE-2022-0891"
         }
     ]
 }
