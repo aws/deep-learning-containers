@@ -7772,67 +7772,6 @@
             "uri": "http://people.ubuntu.com/~ubuntu-security/cve/CVE-2020-8112"
         }
     ],
-    "openssl": [
-        {
-            "attributes": [
-                {
-                    "key": "package_version",
-                    "value": "1.1.1-1ubuntu2.1~18.04.17"
-                },
-                {
-                    "key": "package_name",
-                    "value": "openssl"
-                }
-            ],
-            "description": "The c_rehash script allows command injection",
-            "name": "CVE-2022-1292",
-            "scraped_data": [
-                {
-                    "notes": [],
-                    "status_table": {
-                        "packages": [
-                            "openssl",
-                            "Launchpad",
-                            "Ubuntu",
-                            "Debian"
-                        ],
-                        "release_states": [
-                            [
-                                "bionic",
-                                "Released (1.1.1-1ubuntu2.1~18.04.17)"
-                            ],
-                            [
-                                "focal",
-                                "Released (1.1.1f-1ubuntu2.13)"
-                            ],
-                            [
-                                "impish",
-                                "Released (1.1.1l-1ubuntu1.3)"
-                            ],
-                            [
-                                "jammy",
-                                "Released (3.0.2-0ubuntu1.1)"
-                            ],
-                            [
-                                "trusty",
-                                "Needs triage"
-                            ],
-                            [
-                                "upstream",
-                                "Released (1.1.1o,3.0.3)"
-                            ],
-                            [
-                                "xenial",
-                                "Needs triage"
-                            ]
-                        ]
-                    }
-                }
-            ],
-            "severity": "MEDIUM",
-            "uri": "http://people.ubuntu.com/~ubuntu-security/cve/CVE-2022-1292"
-        }
-    ],
     "perl": [
         {
             "attributes": [
@@ -7913,7 +7852,7 @@
             "attributes": [
                 {
                     "key": "package_version",
-                    "value": "3.22.0-1ubuntu0.4"
+                    "value": "3.22.0-1ubuntu0.5"
                 },
                 {
                     "key": "package_name",
@@ -8129,6 +8068,77 @@
             ],
             "severity": "MEDIUM",
             "uri": "http://people.ubuntu.com/~ubuntu-security/cve/CVE-2022-0891"
+        }
+    ],
+    "unzip": [
+        {
+            "attributes": [
+                {
+                    "key": "package_version",
+                    "value": "6.0-21ubuntu1.1"
+                },
+                {
+                    "key": "package_name",
+                    "value": "unzip"
+                },
+                {
+                    "key": "CVSS2_VECTOR",
+                    "value": "AV:N/AC:M/Au:N/C:P/I:P/A:P"
+                },
+                {
+                    "key": "CVSS2_SCORE",
+                    "value": "6.8"
+                }
+            ],
+            "description": "A flaw was found in Unzip. The vulnerability occurs during the conversion of a wide string to a local string that leads to a heap of out-of-bound write. This flaw allows an attacker to input a specially crafted zip file, leading to a crash or code execution.",
+            "name": "CVE-2022-0529",
+            "scraped_data": [
+                {
+                    "notes": [
+                        "main bug is private, no details available as of 2022-04-19"
+                    ],
+                    "status_table": {
+                        "packages": [
+                            "unzip",
+                            "Launchpad",
+                            "Ubuntu",
+                            "Debian"
+                        ],
+                        "release_states": [
+                            [
+                                "bionic",
+                                "Deferred (2022-04-19)"
+                            ],
+                            [
+                                "focal",
+                                "Deferred (2022-04-19)"
+                            ],
+                            [
+                                "impish",
+                                "Deferred (2022-04-19)"
+                            ],
+                            [
+                                "jammy",
+                                "Deferred (2022-04-19)"
+                            ],
+                            [
+                                "trusty",
+                                "Deferred (2022-04-19)"
+                            ],
+                            [
+                                "upstream",
+                                "Needs triage"
+                            ],
+                            [
+                                "xenial",
+                                "Needs triage"
+                            ]
+                        ]
+                    }
+                }
+            ],
+            "severity": "MEDIUM",
+            "uri": "http://people.ubuntu.com/~ubuntu-security/cve/CVE-2022-0529"
         }
     ]
 }
