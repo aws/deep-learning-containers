@@ -102,8 +102,7 @@ RUN ${PIP} install --no-cache-dir \
 
 # pip install statements have been separated out into multiple sequentially executed statements to
 # resolve package dependencies during installation.
-RUN ${PIP} install "tensorflow_serving_api==2.5.3" --no-deps --extra-index-url https://pip.repos.neuron.amazonaws.com \
- && ${PIP} install neuron-cc --extra-index-url https://pip.repos.neuron.amazonaws.com \
+RUN ${PIP} install neuron-cc --extra-index-url https://pip.repos.neuron.amazonaws.com \
  && ${PIP} install "tensorflow-neuron==2.5.3.*" --extra-index-url https://pip.repos.neuron.amazonaws.com
 
 COPY ./sagemaker /sagemaker
