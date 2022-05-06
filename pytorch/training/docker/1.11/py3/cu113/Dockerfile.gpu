@@ -5,7 +5,7 @@ ARG MAMBA_VERSION=4.12.0-0
 
 # PyTorch Binaries
 ARG PT_E3_TRAINING_URL=https://aws-pytorch-cicd-v3-binaries.s3.us-west-2.amazonaws.com/r1.11.0_v3_e3/20220322-194812/272547162a367c4aaafe8f7e1d9d35d39441c6f3/gpu/torch-1.11.0%2Bcu113-cp38-cp38-linux_x86_64.whl
-ARG PT_SM_TRAINING_URL=https://aws-pytorch-cicd-v3-binaries.s3.us-west-2.amazonaws.com/r1.11.0_v3_sm/20220404-193901/15c50b561b1a638dacc59db932cab0fcb8d60d10/gpu/torch-1.11.0%2Bcu113-cp38-cp38-linux_x86_64.whl
+ARG PT_SM_TRAINING_URL=https://aws-pytorch-cicd-v3-binaries-build.s3.us-west-2.amazonaws.com/r1.11.0_v3_sm/20220505-231940/251ccb0097ab90dc0e1ce847ecf8204d22847361/gpu/torch-1.11.0%2Bcu113-cp38-cp38-linux_x86_64.whl
 ARG PT_TORCHVISION_URL=https://download.pytorch.org/whl/cu113/torchvision-0.12.0%2Bcu113-cp38-cp38-linux_x86_64.whl
 ARG PT_TORCHAUDIO_URL=https://download.pytorch.org/whl/cu113/torchaudio-0.11.0%2Bcu113-cp38-cp38-linux_x86_64.whl
 ARG PT_TORCHDATA_URL=https://aws-pytorch-cicd-v3-binaries.s3.us-west-2.amazonaws.com/r1.11.0_v3_e3/aws-torchdata/torchdata-0.4.0-cp38-cp38-linux_x86_64.whl
@@ -15,7 +15,7 @@ ARG PT_S3_WHL_GPU=https://aws-s3-plugin.s3.us-west-2.amazonaws.com/binaries/0.0.
 ARG SMD_DATA_PARALLEL_URL=https://smdataparallel.s3.amazonaws.com/binary/pytorch/1.11.0/cu113/2022-04-14/smdistributed_dataparallel-1.4.1-cp38-cp38-linux_x86_64.whl
 ARG SMD_MODEL_PARALLEL_URL=https://sagemaker-distributed-model-parallel.s3.us-west-2.amazonaws.com/pytorch-1.11.0/build-artifacts/2022-04-20-17-05/smdistributed_modelparallel-1.9.0-cp38-cp38-linux_x86_64.whl
 
-FROM nvidia/cuda:11.3.1-base-ubuntu20.04 AS common
+FROM pytorch/pytorch:1.11.0-cuda11.3-cudnn8-devel AS common
 
 LABEL maintainer="Amazon AI"
 LABEL dlc_major_version="2"
@@ -64,11 +64,11 @@ ENV DLC_CONTAINER_TYPE=training
 ## This code snippet has been taken from the NVIDIA forums https://forums.developer.nvidia.com/t/notice-cuda-linux-repository-key-rotation/212771
 ## to ensure that the builds do not fail
 ## The solution is inspired from https://github.com/NVIDIA/nvidia-docker/issues/1631#issuecomment-1113105899
-RUN rm /etc/apt/sources.list.d/cuda*.list && \
-    apt-key del 7fa2af80 && \
-    apt-get update && apt-get install -y --no-install-recommends wget && \
-    wget https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2004/x86_64/cuda-keyring_1.0-1_all.deb && \
-    dpkg -i cuda-keyring_1.0-1_all.deb
+# RUN rm /etc/apt/sources.list.d/cuda*.list && \
+#     apt-key del 7fa2af80 && \
+#     apt-get update && apt-get install -y --no-install-recommends wget && \
+#     wget https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2004/x86_64/cuda-keyring_1.0-1_all.deb && \
+#     dpkg -i cuda-keyring_1.0-1_all.deb
 
 RUN apt-get update \
  # TODO: Remove systemd upgrade once it is updated in base image
