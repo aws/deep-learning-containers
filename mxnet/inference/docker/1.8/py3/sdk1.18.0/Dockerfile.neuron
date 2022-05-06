@@ -14,7 +14,7 @@ LABEL com.amazonaws.sagemaker.capabilities.multi-models=true
 ARG MMS_VERSION=1.1.8
 ARG PYTHON=python3
 ARG PIP=pip3
-ARG PYTHON_VERSION=3.7.13
+ARG PYTHON_VERSION=3.7.10
 
 ENV DEBIAN_FRONTEND=noninteractive
 
