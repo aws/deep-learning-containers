@@ -10,7 +10,7 @@ LABEL com.amazonaws.sagemaker.capabilities.accept-bind-to-port=true
 ARG PYTHON=python3.7
 ARG PYTHON_PIP=python3-pip
 ARG PIP=pip3
-ARG PYTHON_VERSION=3.7.10
+ARG PYTHON_VERSION=3.7.13
 ARG TFS_SHORT_VERSION=2.5
 ARG TFS_URL=https://aws-ei-tensorflow-binaries.s3-us-west-2.amazonaws.com/serving/r2.5_aws/20210514-062547/cpu/py37/tensorflow_model_server
 

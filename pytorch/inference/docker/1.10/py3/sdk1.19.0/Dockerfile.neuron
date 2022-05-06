@@ -6,7 +6,7 @@ LABEL maintainer="Amazon AI"
 LABEL com.amazonaws.sagemaker.capabilities.accept-bind-to-port=true
 
 ARG PYTHON=python3.7
-ARG PYTHON_VERSION=3.7.10
+ARG PYTHON_VERSION=3.7.13
 ARG TS_VERSION=0.5.2
 ARG MAMBA_VERSION=4.12.0-0
 
