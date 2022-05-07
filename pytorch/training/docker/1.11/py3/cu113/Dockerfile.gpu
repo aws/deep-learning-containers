@@ -113,7 +113,7 @@ RUN mkdir /tmp/efa-ofi-nccl \
  && cd aws-ofi-nccl \
  && ./autogen.sh \
  && ./configure --with-libfabric=/opt/amazon/efa \
-#   --with-mpi=/opt/amazon/openmpi \
+  --with-mpi=/opt/amazon/openmpi \
   --with-cuda=/usr/local/cuda \
   --with-nccl=/usr/local --prefix=/usr/local \
  && make \
