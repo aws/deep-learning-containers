@@ -6753,7 +6753,7 @@
             "attributes": [
                 {
                     "key": "package_version",
-                    "value": "1.0.2g-1ubuntu4.18"
+                    "value": "1.0.2g-1ubuntu4.20"
                 },
                 {
                     "key": "package_name",
@@ -6820,7 +6820,7 @@
             "attributes": [
                 {
                     "key": "package_version",
-                    "value": "1.0.2g-1ubuntu4.20"
+                    "value": "1.0.2g-1ubuntu4.18"
                 },
                 {
                     "key": "package_name",
@@ -7258,6 +7258,79 @@
                 },
                 {
                     "key": "CVSS2_VECTOR",
+                    "value": "AV:N/AC:L/Au:S/C:N/I:N/A:P"
+                },
+                {
+                    "key": "CVSS2_SCORE",
+                    "value": "4"
+                }
+            ],
+            "description": "There's a flaw in urllib's AbstractBasicAuthHandler class. An attacker who controls a malicious HTTP server that an HTTP client (such as web browser) connects to, could trigger a Regular Expression Denial of Service (ReDOS) during an authentication request with a specially crafted payload that is sent by the server to the client. The greatest threat that this flaw poses is to application availability.",
+            "name": "CVE-2021-3733",
+            "scraped_data": [
+                {
+                    "notes": [
+                        "code affected in hirsute and devel is already patched, so both releases\nin python3.9 are not affected."
+                    ],
+                    "status_table": {
+                        "packages": [
+                            "python3.5",
+                            "Launchpad",
+                            "Ubuntu",
+                            "Debian"
+                        ],
+                        "release_states": [
+                            [
+                                "bionic",
+                                "Does not exist"
+                            ],
+                            [
+                                "focal",
+                                "Does not exist"
+                            ],
+                            [
+                                "hirsute",
+                                "Does not exist"
+                            ],
+                            [
+                                "impish",
+                                "Does not exist"
+                            ],
+                            [
+                                "jammy",
+                                "Does not exist"
+                            ],
+                            [
+                                "trusty",
+                                "Needed"
+                            ],
+                            [
+                                "upstream",
+                                "Needs triage"
+                            ],
+                            [
+                                "xenial",
+                                "Released (3.5.2-2ubuntu0~16.04.13+esm1)"
+                            ]
+                        ]
+                    }
+                }
+            ],
+            "severity": "MEDIUM",
+            "uri": "http://people.ubuntu.com/~ubuntu-security/cve/CVE-2021-3733"
+        },
+        {
+            "attributes": [
+                {
+                    "key": "package_version",
+                    "value": "3.5.2-2ubuntu0~16.04.13"
+                },
+                {
+                    "key": "package_name",
+                    "value": "python3.5"
+                },
+                {
+                    "key": "CVSS2_VECTOR",
                     "value": "AV:N/AC:M/Au:N/C:N/I:N/A:C"
                 },
                 {
@@ -7381,75 +7454,6 @@
             ],
             "severity": "MEDIUM",
             "uri": "http://people.ubuntu.com/~ubuntu-security/cve/CVE-2021-4189"
-        },
-        {
-            "attributes": [
-                {
-                    "key": "package_version",
-                    "value": "3.5.2-2ubuntu0~16.04.13"
-                },
-                {
-                    "key": "package_name",
-                    "value": "python3.5"
-                },
-                {
-                    "key": "CVSS2_VECTOR",
-                    "value": "AV:N/AC:L/Au:N/C:N/I:P/A:N"
-                },
-                {
-                    "key": "CVSS2_SCORE",
-                    "value": "5"
-                }
-            ],
-            "description": "A flaw was found in Python, specifically within the urllib.parse module. This module helps break Uniform Resource Locator (URL) strings into components. The issue involves how the urlparse method does not sanitize input and allows characters like '\\r' and '\\n' in the URL path. This flaw allows an attacker to input a crafted URL, leading to injection attacks. This flaw affects Python versions prior to 3.10.0b1, 3.9.5, 3.8.11, 3.7.11 and 3.6.14.",
-            "name": "CVE-2022-0391",
-            "scraped_data": [
-                {
-                    "notes": [
-                        "for python2.7 code affected, urlsplit is in Lib/urlparse.py.\naccording with Debian, the fix for python3.5 causes regressions."
-                    ],
-                    "status_table": {
-                        "packages": [
-                            "python3.5",
-                            "Launchpad",
-                            "Ubuntu",
-                            "Debian"
-                        ],
-                        "release_states": [
-                            [
-                                "bionic",
-                                "Does not exist"
-                            ],
-                            [
-                                "focal",
-                                "Does not exist"
-                            ],
-                            [
-                                "impish",
-                                "Does not exist"
-                            ],
-                            [
-                                "jammy",
-                                "Does not exist"
-                            ],
-                            [
-                                "trusty",
-                                "Needs triage"
-                            ],
-                            [
-                                "upstream",
-                                "Needs triage"
-                            ],
-                            [
-                                "xenial",
-                                "Released (3.5.2-2ubuntu0~16.04.13+esm2)"
-                            ]
-                        ]
-                    }
-                }
-            ],
-            "severity": "MEDIUM",
-            "uri": "http://people.ubuntu.com/~ubuntu-security/cve/CVE-2022-0391"
         }
     ],
     "systemd": [
