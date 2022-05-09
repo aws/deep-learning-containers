@@ -34,6 +34,14 @@ RUN pip install --no-cache-dir \
     # bokeh 2.3.3 is the latest compatible version for typing-extensions 3.7.4.3
     "bokeh==2.3.3"
 
+RUN \
+    rm /etc/apt/sources.list.d/cuda*.list && \
+    rm /etc/apt/sources.list.d/nvidia-ml.list && \
+    apt-key del 7fa2af80 && \
+    apt-get update && apt-get install -y --no-install-recommends wget && \
+    wget https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2004/x86_64/cuda-keyring_1.0-1_all.deb && \
+    dpkg -i cuda-keyring_1.0-1_all.deb
+
 RUN apt-get update \
  # TODO: Remove upgrade statements once packages are updated in base image
  && apt-get -y upgrade --only-upgrade systemd openssl \
