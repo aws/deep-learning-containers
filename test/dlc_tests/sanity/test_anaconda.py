@@ -1,13 +1,16 @@
 import pytest
 from invoke.context import Context
 from test import test_utils
-
+from packaging.version import Version
 
 @pytest.mark.usefixtures("sagemaker")
 @pytest.mark.model("N/A")
 @pytest.mark.integration("anaconda_removal")
 def test_repo_anaconda_not_present(image):
     """Test to see if all packages installed in the image do not come from repo.anaconda.com"""
+    framework, framework_version = test_utils.get_framework_and_version_from_tag(image)
+    if framework == "pytorch" and Version(framework_version) < Version("1.11.0"):
+        pytest.skip("Skipping for pytorch versions < 1.11")
     try:
         ctx = Context()
         container_name = test_utils.get_container_name("anaconda", image)
