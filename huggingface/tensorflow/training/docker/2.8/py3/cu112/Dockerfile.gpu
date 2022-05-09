@@ -12,19 +12,30 @@ ARG TRANSFORMERS_VERSION
 ARG DATASETS_VERSION
 ARG PYTHON=python3
 
+## NVIDIA updated and rotated the signing keys used by apt, dnf/yum, and zypper package managers beginning April 27, 2022
+## This code snippet has been taken from the NVIDIA forums https://forums.developer.nvidia.com/t/notice-cuda-linux-repository-key-rotation/212771
+## to ensure that the builds do not fail
+## The solution is inspired from https://github.com/NVIDIA/nvidia-docker/issues/1631#issuecomment-1113105899
+RUN rm /etc/apt/sources.list.d/cuda.list \
+ && rm /etc/apt/sources.list.d/nvidia-ml.list \
+ && apt-key del 7fa2af80 \
+ && apt-get update && apt-get install -y --no-install-recommends wget \
+ && wget https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2004/x86_64/cuda-keyring_1.0-1_all.deb \
+ && dpkg -i cuda-keyring_1.0-1_all.deb
+
 # install Hugging Face libraries and its dependencies
 RUN pip install --no-cache-dir \
     transformers[sklearn,sentencepiece,audio,vision]==${TRANSFORMERS_VERSION} \
     datasets==${DATASETS_VERSION} \
     tensorflow-addons==0.16.1 \
-    psutil 
+    psutil
 
 
 RUN apt-get update \
  # TODO: Remove upgrade statements once packages are updated in base image
  && apt-get -y upgrade --only-upgrade systemd openssl cryptsetup\
  && apt install -y git-lfs \
- && apt-get clean \  
+ && apt-get clean \
  && rm -rf /var/lib/apt/lists/*
 
 RUN HOME_DIR=/root \
