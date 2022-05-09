@@ -358,6 +358,8 @@ RUN wget https://sourceforge.net/projects/boost/files/boost/1.73.0/boost_1_73_0.
    && rm -rf boost_1_73_0 \
    && cd /usr/include/boost
 
+ENV LD_LIBRARY_PATH="/usr/local/lib/${PYTHON}/site-packages/smdistributed/dataparallel/lib:$LD_LIBRARY_PATH"
+
 # remove tmp files
 RUN rm -rf /tmp/*
 
