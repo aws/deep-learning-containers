@@ -2410,7 +2410,7 @@
             "attributes": [
                 {
                     "key": "package_version",
-                    "value": "2.23-0ubuntu11.3"
+                    "value": "2.23-0ubuntu11.2"
                 },
                 {
                     "key": "package_name",
@@ -2469,7 +2469,7 @@
             "attributes": [
                 {
                     "key": "package_version",
-                    "value": "2.23-0ubuntu11.2"
+                    "value": "2.23-0ubuntu11.3"
                 },
                 {
                     "key": "package_name",
@@ -6753,7 +6753,7 @@
             "attributes": [
                 {
                     "key": "package_version",
-                    "value": "1.0.2g-1ubuntu4.20"
+                    "value": "1.0.2g-1ubuntu4.18"
                 },
                 {
                     "key": "package_name",
@@ -6820,7 +6820,7 @@
             "attributes": [
                 {
                     "key": "package_version",
-                    "value": "1.0.2g-1ubuntu4.18"
+                    "value": "1.0.2g-1ubuntu4.20"
                 },
                 {
                     "key": "package_name",
@@ -7401,23 +7401,13 @@
                 {
                     "key": "package_name",
                     "value": "python3.5"
-                },
-                {
-                    "key": "CVSS2_VECTOR",
-                    "value": "AV:N/AC:L/Au:N/C:N/I:P/A:N"
-                },
-                {
-                    "key": "CVSS2_SCORE",
-                    "value": "5"
                 }
             ],
-            "description": "A flaw was found in Python, specifically within the urllib.parse module. This module helps break Uniform Resource Locator (URL) strings into components. The issue involves how the urlparse method does not sanitize input and allows characters like '\\r' and '\\n' in the URL path. This flaw allows an attacker to input a crafted URL, leading to injection attacks. This flaw affects Python versions prior to 3.10.0b1, 3.9.5, 3.8.11, 3.7.11 and 3.6.14.",
-            "name": "CVE-2022-0391",
+            "description": "[ftplib should not use the host from the PASV response]",
+            "name": "CVE-2021-4189",
             "scraped_data": [
                 {
-                    "notes": [
-                        "for python2.7 code affected, urlsplit is in Lib/urlparse.py.\naccording with Debian, the fix for python3.5 causes regressions."
-                    ],
+                    "notes": [],
                     "status_table": {
                         "packages": [
                             "python3.5",
@@ -7435,6 +7425,10 @@
                                 "Does not exist"
                             ],
                             [
+                                "hirsute",
+                                "Does not exist"
+                            ],
+                            [
                                 "impish",
                                 "Does not exist"
                             ],
@@ -7444,11 +7438,11 @@
                             ],
                             [
                                 "trusty",
-                                "Needs triage"
+                                "Needed"
                             ],
                             [
                                 "upstream",
-                                "Needs triage"
+                                "Needed"
                             ],
                             [
                                 "xenial",
@@ -7459,7 +7453,7 @@
                 }
             ],
             "severity": "MEDIUM",
-            "uri": "http://people.ubuntu.com/~ubuntu-security/cve/CVE-2022-0391"
+            "uri": "http://people.ubuntu.com/~ubuntu-security/cve/CVE-2021-4189"
         }
     ],
     "systemd": [
