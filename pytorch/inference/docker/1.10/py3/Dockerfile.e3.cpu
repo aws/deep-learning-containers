@@ -13,7 +13,6 @@ ARG PT_TORCHVISION_URL=https://framework-binaries.s3.us-west-2.amazonaws.com/pyt
 ENV LANG C.UTF-8
 ENV LD_LIBRARY_PATH /opt/conda/lib/:$LD_LIBRARY_PATH
 ENV PATH /opt/conda/bin:$PATH
-ENV SAGEMAKER_SERVING_MODULE sagemaker_pytorch_serving_container.serving:main
 ENV TEMP=/home/model-server/tmp
 # Set MKL_THREADING_LAYER=GNU to prevent issues between torch and numpy/mkl
 ENV MKL_THREADING_LAYER=GNU
@@ -116,7 +115,7 @@ RUN pip uninstall -y torch \
 RUN conda install -y -c conda-forge "pyyaml>=5.4,<5.5"
 RUN pip install \
     boto3 \
-    "Pillow>=9.0.0" \ 
+    "Pillow>=9.0.0" \
     "awscli<2"
 
 # torchserve-nightly==2022.3.23.post2 replace torchserve==${TS_VERSION}
@@ -124,7 +123,7 @@ RUN pip install \
 RUN pip uninstall -y model-archiver multi-model-server \
  && pip install captum \
  && pip install torchserve-nightly==2022.3.23.post2 \
- && pip install torch-model-archiver==${TS_VERSION} 
+ && pip install torch-model-archiver==${TS_VERSION}
 
 RUN cd tmp/ \
  && rm -rf tmp*
