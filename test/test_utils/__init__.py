@@ -157,6 +157,7 @@ def get_dockerfile_path_for_image(image_uri):
     device_type = get_processor_from_image_uri(image_uri)
     cuda_version = get_cuda_version_from_tag(image_uri)
     synapseai_version = get_synapseai_version_from_tag(image_uri)
+    neuron_sdk_version = get_neuron_sdk_version_from_tag(image_uri)
 
     dockerfile_name = get_expected_dockerfile_filename(device_type, image_uri)
 
@@ -166,7 +167,7 @@ def get_dockerfile_path_for_image(image_uri):
         if "example" not in path
     ]
 
-    if device_type in ["gpu", "hpu"]:
+    if device_type in ["gpu", "hpu", "neuron"]:
         if len(dockerfiles_list) > 1:
             if device_type == "gpu" and not cuda_version:
                 raise LookupError(
@@ -180,12 +181,21 @@ def get_dockerfile_path_for_image(image_uri):
                     f"uniquely identify the right dockerfile:\n"
                     f"{dockerfiles_list}"
                 )
+            if device_type == "neuron" and not neuron_sdk_version:
+                raise LookupError(
+                    f"dockerfiles_list has more than one result, and needs neuron_sdk_version to be in image_uri to "
+                    f"uniquely identify the right dockerfile:\n"
+                    f"{dockerfiles_list}"
+                )
         for dockerfile_path in dockerfiles_list:
             if cuda_version:
                 if cuda_version in dockerfile_path:
                     return dockerfile_path
             elif synapseai_version:
                 if synapseai_version in dockerfile_path:
+                    return dockerfile_path
+            elif neuron_sdk_version:
+                if neuron_sdk_version in dockerfile_path:
                     return dockerfile_path
         raise LookupError(f"Failed to find a dockerfile path for {cuda_version} in:\n{dockerfiles_list}")
 
@@ -1156,6 +1166,43 @@ NEURON_VERSION_MANIFEST = {
             "1.8.0": "1.8.0.2.1.5.0",
         },
     },
+    "1.18.0": {
+        "pytorch": {
+            "1.5.1": "1.5.1.2.2.0.0",
+            "1.7.1": "1.7.1.2.2.0.0",
+            "1.8.1": "1.8.1.2.2.0.0",
+            "1.9.1": "1.9.1.2.2.0.0",
+            "1.10.2": "1.10.1.2.2.0.0",
+        },
+        "tensorflow": {
+            "2.5.3": "2.5.3.2.2.0.0",
+            "2.6.3": "2.6.3.2.2.0.0",
+            "2.7.1": "2.7.1.2.2.0.0",
+            "1.15.5": "1.15.5.2.2.0.0",
+        },
+        "mxnet": {
+            "1.8.0": "1.8.0.2.2.2.0",
+        },
+    },
+    "1.19.0": {
+        "pytorch": {
+            "1.7.1": "1.7.1.2.3.0.0",
+            "1.8.1": "1.8.1.2.3.0.0",
+            "1.9.1": "1.9.1.2.3.0.0",
+            "1.10.2": "1.10.2.2.3.0.0",
+            "1.11.0": "1.11.0.2.3.0.0",
+        },
+        "tensorflow": {
+            "2.5.3": "2.5.3.2.3.0.0",
+            "2.6.3": "2.6.3.2.3.0.0",
+            "2.7.1": "2.7.1.2.3.0.0",
+            "2.8.0": "2.8.0.2.3.0.0",
+            "1.15.5": "1.15.5.2.3.0.0",
+        },
+        "mxnet": {
+            "1.8.0": "1.8.0.2.2.2.0",
+        },
+    },
 }
 
 
@@ -1487,3 +1534,14 @@ def execute_env_variables_test(image_uri, env_vars_to_test, container_name_prefi
         assert actual_val == expected_val, \
             f"Environment variable {var} is expected to be {expected_val}. {assertion_error_sentence}."
     stop_and_remove_container(container_name, ctx)
+
+
+def is_image_available_locally(image_uri):
+    """
+    Check if the image exists locally.
+
+    :param image_uri: str, image that needs to be checked
+    :return: bool, True if image exists locally, otherwise false
+    """
+    run_output = run(f"docker inspect {image_uri}", hide=True, warn=True)
+    return run_output.ok

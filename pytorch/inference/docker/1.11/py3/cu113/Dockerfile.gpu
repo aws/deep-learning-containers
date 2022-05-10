@@ -1,8 +1,8 @@
 ARG PYTHON=python3
-ARG PYTHON_VERSION=3.8.12
+ARG PYTHON_VERSION=3.8.13
 
 # PyTorch Binaries
-ARG PT_E3_INFERENCE_URL=https://aws-pytorch-cicd-v3-binaries.s3.us-west-2.amazonaws.com/r1.11.0_v3_e3/20220322-194812/272547162a367c4aaafe8f7e1d9d35d39441c6f3/gpu/torch-1.11.0%2Bcu113-cp38-cp38-linux_x86_64.whl
+ARG PT_INFERENCE_URL=https://aws-pytorch-cicd-v3-binaries.s3.us-west-2.amazonaws.com/r1.11.0_v3_e3/20220322-194812/272547162a367c4aaafe8f7e1d9d35d39441c6f3/gpu/torch-1.11.0%2Bcu113-cp38-cp38-linux_x86_64.whl
 ARG PT_TORCHVISION_URL=https://download.pytorch.org/whl/cu113/torchvision-0.12.0%2Bcu113-cp38-cp38-linux_x86_64.whl
 ARG PT_TORCHAUDIO_URL=https://download.pytorch.org/whl/cu113/torchaudio-0.11.0%2Bcu113-cp38-cp38-linux_x86_64.whl
 ARG PT_TORCHDATA_URL=https://aws-pytorch-cicd-v3-binaries.s3.us-west-2.amazonaws.com/r1.11.0_v3_e3/aws-torchdata/torchdata-0.4.0-cp38-cp38-linux_x86_64.whl
@@ -19,21 +19,21 @@ ARG PT_TORCHDATA_URL=https://aws-pytorch-cicd-v3-binaries.s3.us-west-2.amazonaws
 FROM nvidia/cuda:11.3.1-base-ubuntu20.04 AS e3
 
 LABEL maintainer="Amazon AI"
-LABEL dlc_major_version="1"
+LABEL dlc_major_version="2"
 
 ARG PYTHON
 ARG PYTHON_VERSION
 ARG MAMBA_VERSION=4.12.0-0
 
 # PyTorch Binaries
-ARG PT_E3_INFERENCE_URL
+ARG PT_INFERENCE_URL
 ARG PT_TORCHVISION_URL
 ARG PT_TORCHAUDIO_URL
 ARG PT_TORCHDATA_URL
 
 ARG CUBLAS_VERSION=11.5.1.109
 ARG OMPI_VERSION=4.1.1
-ARG TS_VERSION=0.5.2
+ARG TS_VERSION=0.5.3
 
 ARG DEBIAN_FRONTEND=noninteractive
 
@@ -50,6 +50,17 @@ ENV NVML_VERSION=11.3.58
 # Set MKL_THREADING_LAYER=GNU to prevent issues between torch and numpy/mkl
 ENV MKL_THREADING_LAYER=GNU
 ENV DLC_CONTAINER_TYPE=inference
+
+## NVIDIA updated and rotated the signing keys used by apt, dnf/yum, and zypper package managers beginning April 27, 2022
+## This code snippet has been taken from the NVIDIA forums https://forums.developer.nvidia.com/t/notice-cuda-linux-repository-key-rotation/212771
+## to ensure that the builds do not fail
+## The solution is inspired from https://github.com/NVIDIA/nvidia-docker/issues/1631#issuecomment-1113105899
+RUN rm /etc/apt/sources.list.d/cuda.list && \
+    rm /etc/apt/sources.list.d/nvidia-ml.list && \
+    apt-key del 7fa2af80 && \
+    apt-get update && apt-get install -y --no-install-recommends wget && \
+    wget https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2004/x86_64/cuda-keyring_1.0-1_all.deb && \
+    dpkg -i cuda-keyring_1.0-1_all.deb
 
 RUN apt-get update \
 # TODO: Remove systemd upgrade once it is updated in base image
@@ -192,14 +203,16 @@ RUN pip install --no-cache-dir -U \
     "Pillow>=9.0.0" \
     "pyyaml>=5.4,<5.5" \
  && pip uninstall -y torch torchvision torchaudio torchdata \
- && pip install --no-cache-dir -U ${PT_E3_INFERENCE_URL} ${PT_TORCHVISION_URL} ${PT_TORCHAUDIO_URL} ${PT_TORCHDATA_URL}
+ && pip install --no-cache-dir -U ${PT_INFERENCE_URL} ${PT_TORCHVISION_URL} ${PT_TORCHAUDIO_URL} ${PT_TORCHDATA_URL}
 
+# TODO: revert torchserve-nightly back to torchserve once a compatible stable version is released
 RUN pip uninstall -y model-archiver multi-model-server \
  && pip install captum \
- && pip install torchserve==${TS_VERSION} \
+#  && pip install torchserve==${TS_VERSION} \
+ && pip install torchserve-nightly==2022.3.23.post2 \
  && pip install torch-model-archiver==${TS_VERSION}
 
- WORKDIR /
+WORKDIR /
 
 RUN cd tmp/ \
  && rm -rf tmp*
