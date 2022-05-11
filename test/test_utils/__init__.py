@@ -836,17 +836,18 @@ def parse_canary_images(framework, region):
     customer_type_tag = f"-{customer_type}" if customer_type else ""
 
     version_regex = {
-        "tensorflow": rf"tf(-sagemaker)?{customer_type_tag}-(\d+.\d+)",
-        "mxnet": rf"mx(-sagemaker)?{customer_type_tag}-(\d+.\d+)",
-        "pytorch": rf"pt(-sagemaker)?{customer_type_tag}-(\d+.\d+)",
-        "huggingface_pytorch": r"hf-\S*pt(-sagemaker)?-(\d+.\d+)",
-        "huggingface_tensorflow": r"hf-\S*tf(-sagemaker)?-(\d+.\d+)",
-        "autogluon": r"ag(-sagemaker)?-(\d+.\d+)",
+        "tensorflow": rf"tf(-sagemaker)?{customer_type_tag}-(\d+.\d+)\S*(py\d+)",
+        "mxnet": rf"mx(-sagemaker)?{customer_type_tag}-(\d+.\d+)\S*(py\d+)",
+        "pytorch": rf"pt(-sagemaker)?{customer_type_tag}-(\d+.\d+)\S*(py\d+)",
+        "huggingface_pytorch": r"hf-\S*pt(-sagemaker)?-(\d+.\d+)\S*(py\d+)",
+        "huggingface_tensorflow": r"hf-\S*tf(-sagemaker)?-(\d+.\d+)\S*(py\d+)",
+        "autogluon": r"ag(-sagemaker)?-(\d+.\d+)\S*(py\d+)",
     }
 
     repo = git.Repo(os.getcwd(), search_parent_directories=True)
 
     versions_counter = {}
+    pre_populated_py3_version = {}
 
     for tag in repo.tags:
         tag_str = str(tag)
@@ -862,6 +863,9 @@ def parse_canary_images(framework, region):
                 versions_counter[version]["tr"] = True
             elif "inf" in tag_str:
                 versions_counter[version]["inf"] = True
+            
+            if match.group(3):
+                pre_populated_py3_version[version] = match.group(3)
 
     versions = []
     for v, inf_train in versions_counter.items():
@@ -876,7 +880,13 @@ def parse_canary_images(framework, region):
     framework_versions = versions if len(versions) < 4 else versions[:3]
     dlc_images = []
     for fw_version in framework_versions:
-        py3_version = get_canary_default_tag_py3_version(framework, fw_version)
+        if fw_version in pre_populated_py3_version:
+            py3_version = pre_populated_py3_version[fw_version]
+        else:
+            ## Keeping it here for legacy releases. Based on the new implementation
+            ## the tags always have py3 version appended to it and hence the 
+            ## get_canary_default_tag_py3_version might not be required. 
+            py3_version = get_canary_default_tag_py3_version(framework, fw_version)
 
         images = {
             "tensorflow": [
