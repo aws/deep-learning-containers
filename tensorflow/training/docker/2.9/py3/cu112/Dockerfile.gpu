@@ -36,7 +36,7 @@ ARG BRANCH_OFI=1.2.0-aws
 
 ARG CUDA=11.2
 ARG CUDA_DASH=11-2
-ARG CUDNN=8.1.0.77-1
+ARG CUDNN=8.2.4.15-1
 
 ARG NCCL_VERSION=2.10.3
 
@@ -55,7 +55,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends --allow-unauthe
    libcusparse-dev-${CUDA_DASH} \
    curl \
    emacs \
-   libcudnn8=${CUDNN}+cuda11.2 \
+   libcudnn8=${CUDNN}+cuda11.4 \
    libgomp1 \
    libfreetype6-dev \
    libhdf5-serial-dev \
