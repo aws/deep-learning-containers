@@ -174,12 +174,14 @@ RUN conda install -c pytorch magma-cuda113==2.5.2 \
 WORKDIR /root
 
 # Uninstall torch and torchvision before installing the custom versions from an S3 bucket
+# Install urllib3>=1.25.9 to satisfy awscli/boto3/botocore requirements while fixing for CVE-2020-26137
 RUN pip install --no-cache-dir -U \
     opencv-python==4.5.2.54 \
     numpy==1.22.2 \
     ipython==8.0.1 \
     "pyyaml>=5.4,<5.5" \
     "awscli<2" \
+    "urllib3>=1.25.9" \
     boto3 \
     packaging \
     psutil \
