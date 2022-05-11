@@ -16,6 +16,7 @@ ARG PT_TORCHAUDIO_URL=https://download.pytorch.org/whl/torchaudio-0.9.1-cp38-cp3
 ARG OPEN_MPI_VERSION=4.0.1
 ARG TS_VERSION=0.4.2
 ARG CUBLAS_VERSION=11.3.0.106
+ARG MAMBA_VERSION=4.12.0-0
 
 ARG DEBIAN_FRONTEND=noninteractive
 # See http://bugs.python.org/issue19846
@@ -112,16 +113,13 @@ RUN apt-get update \
  && rm -rf /var/lib/apt/lists/* \
  && apt-get clean
 
-RUN curl -L -o ~/miniconda.sh https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh \
- && chmod +x ~/miniconda.sh \
- && ~/miniconda.sh -b -p /opt/conda \
- && rm ~/miniconda.sh \
+RUN curl -L -o ~/mambaforge.sh https://github.com/conda-forge/miniforge/releases/download/${MAMBA_VERSION}/Mambaforge-${MAMBA_VERSION}-Linux-x86_64.sh \
+ && chmod +x ~/mambaforge.sh \
+ && ~/mambaforge.sh -b -p /opt/conda \
+ && rm ~/mambaforge.sh \
  && /opt/conda/bin/conda update conda \
  && /opt/conda/bin/conda install -c conda-forge \
     python=$PYTHON_VERSION \
- && /opt/conda/bin/conda install -y \
-    # conda 4.10.0 requires ruamel_yaml to be installed. Currently pinned at latest.
-    ruamel_yaml==0.15.100 \
     cython \
     ipython \
     mkl-include \
@@ -129,14 +127,15 @@ RUN curl -L -o ~/miniconda.sh https://repo.continuum.io/miniconda/Miniconda3-lat
     parso \
     scipy \
     typing \
+    # Below 2 are included in miniconda base, but not mamba so need to install
+    conda-content-trust \
+    charset-normalizer \
  && /opt/conda/bin/conda clean -ya
 
-RUN conda install -c \
-    pytorch magma-cuda111 \
- && conda install -c \
-    conda-forge \
+RUN conda install -c pytorch \
+    magma-cuda111 \
+ && conda install -c conda-forge \
     opencv \
- && conda install -y \
     scikit-learn \
     pandas \
     h5py \
