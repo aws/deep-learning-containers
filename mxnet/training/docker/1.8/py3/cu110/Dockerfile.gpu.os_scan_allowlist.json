@@ -866,6 +866,67 @@
             ],
             "severity": "MEDIUM",
             "uri": "http://people.ubuntu.com/~ubuntu-security/cve/CVE-2022-27774"
+        },
+        {
+            "attributes": [
+                {
+                    "key": "package_version",
+                    "value": "7.47.0-1ubuntu2.19"
+                },
+                {
+                    "key": "package_name",
+                    "value": "curl"
+                }
+            ],
+            "description": "[libcurl would reuse a previously created connection even when a TLS or SSH related option had been changed that should have prohibited reuse.]",
+            "name": "CVE-2022-27782",
+            "scraped_data": [
+                {
+                    "notes": [
+                        "Affects curl versions 7.16.1 up to and including 7.83.0"
+                    ],
+                    "status_table": {
+                        "packages": [
+                            "curl",
+                            "Launchpad",
+                            "Ubuntu",
+                            "Debian"
+                        ],
+                        "release_states": [
+                            [
+                                "bionic",
+                                "Released (7.58.0-2ubuntu3.18)"
+                            ],
+                            [
+                                "focal",
+                                "Released (7.68.0-1ubuntu2.11)"
+                            ],
+                            [
+                                "impish",
+                                "Released (7.74.0-1.3ubuntu2.2)"
+                            ],
+                            [
+                                "jammy",
+                                "Released (7.81.0-1ubuntu1.2)"
+                            ],
+                            [
+                                "trusty",
+                                "Needed"
+                            ],
+                            [
+                                "upstream",
+                                "Needs triage"
+                            ],
+                            [
+                                "xenial",
+                                "Needed"
+                            ]
+                        ]
+                    }
+                }
+            ],
+            "severity": "MEDIUM",
+            "uri": "http://people.ubuntu.com/~ubuntu-security/cve/CVE-2022-27782"
         }
     ],
     "cyrus-sasl2": [
@@ -2410,7 +2471,7 @@
             "attributes": [
                 {
                     "key": "package_version",
-                    "value": "2.23-0ubuntu11.3"
+                    "value": "2.23-0ubuntu11.2"
                 },
                 {
                     "key": "package_name",
@@ -2469,7 +2530,7 @@
             "attributes": [
                 {
                     "key": "package_version",
-                    "value": "2.23-0ubuntu11.2"
+                    "value": "2.23-0ubuntu11.3"
                 },
                 {
                     "key": "package_name",
@@ -2841,6 +2902,79 @@
             ],
             "severity": "MEDIUM",
             "uri": "http://people.ubuntu.com/~ubuntu-security/cve/CVE-2018-20217"
+        },
+        {
+            "attributes": [
+                {
+                    "key": "package_version",
+                    "value": "1.13.2+dfsg-5ubuntu2.2"
+                },
+                {
+                    "key": "package_name",
+                    "value": "krb5"
+                },
+                {
+                    "key": "CVSS2_VECTOR",
+                    "value": "AV:N/AC:L/Au:S/C:N/I:N/A:P"
+                },
+                {
+                    "key": "CVSS2_SCORE",
+                    "value": "4"
+                }
+            ],
+            "description": "The Key Distribution Center (KDC) in MIT Kerberos 5 (aka krb5) before 1.18.5 and 1.19.x before 1.19.3 has a NULL pointer dereference in kdc/do_tgs_req.c via a FAST inner body that lacks a server field.",
+            "name": "CVE-2021-37750",
+            "scraped_data": [
+                {
+                    "notes": [
+                        "this vulnerability was introduced by commit 39548a5, as\nestablished by upstream. Prior to this commit, an error\nwould occur instead of the null deference. In the patch\nnotes, the CVE is described as affecting releases 1.14\nand later only (meaning that xenial and trusty are not\naffected by this)."
+                    ],
+                    "status_table": {
+                        "packages": [
+                            "krb5",
+                            "Launchpad",
+                            "Ubuntu",
+                            "Debian"
+                        ],
+                        "release_states": [
+                            [
+                                "bionic",
+                                "Needed"
+                            ],
+                            [
+                                "focal",
+                                "Needed"
+                            ],
+                            [
+                                "hirsute",
+                                "Ignored (reached end-of-life)"
+                            ],
+                            [
+                                "impish",
+                                "Needed"
+                            ],
+                            [
+                                "jammy",
+                                "Not vulnerable (1.19.2-2)"
+                            ],
+                            [
+                                "trusty",
+                                "Not vulnerable (code not present)"
+                            ],
+                            [
+                                "upstream",
+                                "Released (1.19.3, 1.18.3-7)"
+                            ],
+                            [
+                                "xenial",
+                                "Not vulnerable (code not present)"
+                            ]
+                        ]
+                    }
+                }
+            ],
+            "severity": "MEDIUM",
+            "uri": "http://people.ubuntu.com/~ubuntu-security/cve/CVE-2021-37750"
         }
     ],
     "libgcrypt20": [
@@ -7381,138 +7515,6 @@
             ],
             "severity": "MEDIUM",
             "uri": "http://people.ubuntu.com/~ubuntu-security/cve/CVE-2021-31879"
-        }
-    ],
-    "xz-utils": [
-        {
-            "attributes": [
-                {
-                    "key": "package_version",
-                    "value": "5.1.1alpha+20120614-2ubuntu2"
-                },
-                {
-                    "key": "package_name",
-                    "value": "xz-utils"
-                }
-            ],
-            "description": "arbitrary file overwrite with crafted file names",
-            "name": "CVE-2022-1271",
-            "scraped_data": [
-                {
-                    "notes": [],
-                    "status_table": {
-                        "packages": [
-                            "xz-utils",
-                            "Launchpad",
-                            "Ubuntu",
-                            "Debian"
-                        ],
-                        "release_states": [
-                            [
-                                "bionic",
-                                "Released (5.2.2-1.3ubuntu0.1)"
-                            ],
-                            [
-                                "focal",
-                                "Released (5.2.4-1ubuntu1.1)"
-                            ],
-                            [
-                                "impish",
-                                "Released (5.2.5-2ubuntu0.1)"
-                            ],
-                            [
-                                "jammy",
-                                "Released (5.2.5-2ubuntu1)"
-                            ],
-                            [
-                                "trusty",
-                                "Released (5.1.1alpha+20120614-2ubuntu2.14.04.1+esm1)"
-                            ],
-                            [
-                                "upstream",
-                                "Needs triage"
-                            ],
-                            [
-                                "xenial",
-                                "Released (5.1.1alpha+20120614-2ubuntu2.16.04.1+esm1)"
-                            ]
-                        ]
-                    }
-                }
-            ],
-            "severity": "MEDIUM",
-            "uri": "http://people.ubuntu.com/~ubuntu-security/cve/CVE-2022-1271"
-        }
-    ],
-    "zlib": [
-        {
-            "attributes": [
-                {
-                    "key": "package_version",
-                    "value": "1:1.2.8.dfsg-2ubuntu4.3"
-                },
-                {
-                    "key": "package_name",
-                    "value": "zlib"
-                },
-                {
-                    "key": "CVSS2_VECTOR",
-                    "value": "AV:N/AC:L/Au:N/C:N/I:N/A:P"
-                },
-                {
-                    "key": "CVSS2_SCORE",
-                    "value": "5"
-                }
-            ],
-            "description": "zlib before 1.2.12 allows memory corruption when deflating (i.e., when compressing) if the input has many distant matches.",
-            "name": "CVE-2018-25032",
-            "scraped_data": [
-                {
-                    "notes": [
-                        "since 3.1.3-7, rsync builds with the system zlib"
-                    ],
-                    "status_table": {
-                        "packages": [
-                            "zlib",
-                            "Launchpad",
-                            "Ubuntu",
-                            "Debian"
-                        ],
-                        "release_states": [
-                            [
-                                "bionic",
-                                "Released (1:1.2.11.dfsg-0ubuntu2.1)"
-                            ],
-                            [
-                                "focal",
-                                "Released (1:1.2.11.dfsg-2ubuntu1.3)"
-                            ],
-                            [
-                                "impish",
-                                "Released (1:1.2.11.dfsg-2ubuntu7.1)"
-                            ],
-                            [
-                                "jammy",
-                                "Released (1:1.2.11.dfsg-2ubuntu9)"
-                            ],
-                            [
-                                "trusty",
-                                "Released (1:1.2.8.dfsg-1ubuntu1.1+esm1)"
-                            ],
-                            [
-                                "upstream",
-                                "Released (1.2.12)"
-                            ],
-                            [
-                                "xenial",
-                                "Released (1:1.2.8.dfsg-2ubuntu4.3+esm1)"
-                            ]
-                        ]
-                    }
-                }
-            ],
-            "severity": "MEDIUM",
-            "uri": "http://people.ubuntu.com/~ubuntu-security/cve/CVE-2018-25032"
         }
     ]
 }
