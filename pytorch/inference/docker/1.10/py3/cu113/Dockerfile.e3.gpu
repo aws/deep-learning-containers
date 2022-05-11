@@ -130,7 +130,7 @@ RUN curl -L -o ~/mambaforge.sh https://github.com/conda-forge/miniforge/releases
     charset-normalizer \
  && /opt/conda/bin/conda clean -ya
 
-RUN conda install -c pytorch 
+RUN conda install -c pytorch \
     magma-cuda113 \
  && conda install -c conda-forge \
     opencv \
