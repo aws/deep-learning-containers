@@ -32,15 +32,6 @@ ENV TORCH_CUDA_ARCH_LIST="3.7 5.0 7.0+PTX 8.0"
 ENV MKL_THREADING_LAYER=GNU
 ENV DLC_CONTAINER_TYPE=inference
 
-# Added to fix this problem: https://developer.nvidia.com/blog/updating-the-cuda-linux-gpg-repository-key/
-RUN \
-  rm /etc/apt/sources.list.d/cuda*.list && \
-  rm /etc/apt/sources.list.d/nvidia-ml.list && \
-  apt-key del 7fa2af80 && \
-  apt-get update && apt-get install -y --no-install-recommends wget && \
-  wget https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2004/x86_64/cuda-keyring_1.0-1_all.deb && \
-  dpkg -i cuda-keyring_1.0-1_all.deb
-
 RUN apt-get update \
     # TODO: Remove systemd upgrade once it is updated in base image
     && apt-get -y upgrade --only-upgrade systemd \
