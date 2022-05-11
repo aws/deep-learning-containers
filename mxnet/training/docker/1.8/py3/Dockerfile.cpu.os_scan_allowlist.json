@@ -2794,7 +2794,9 @@
             "name": "CVE-2021-37750",
             "scraped_data": [
                 {
-                    "notes": [],
+                    "notes": [
+                        "this vulnerability was introduced by commit 39548a5, as\nestablished by upstream. Prior to this commit, an error\nwould occur instead of the null deference. In the patch\nnotes, the CVE is described as affecting releases 1.14\nand later only (meaning that xenial and trusty are not\naffected by this)."
+                    ],
                     "status_table": {
                         "packages": [
                             "krb5",
@@ -2825,7 +2827,7 @@
                             ],
                             [
                                 "trusty",
-                                "Needed"
+                                "Not vulnerable (code not present)"
                             ],
                             [
                                 "upstream",
@@ -2833,7 +2835,7 @@
                             ],
                             [
                                 "xenial",
-                                "Needed"
+                                "Not vulnerable (code not present)"
                             ]
                         ]
                     }
