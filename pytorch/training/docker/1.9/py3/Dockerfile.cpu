@@ -7,6 +7,7 @@ ARG PYTHON=python3
 # Add arguments to achieve the version, python and url
 ARG PYTHON_VERSION=3.8.10
 ARG OPEN_MPI_VERSION=4.0.1
+ARG MAMBA_VERSION=4.12.0-0
 
 # The smdebug pipeline relies for following format to perform string replace and trigger DLC pipeline for validating
 # the nightly builds. Therefore, while updating the smdebug version, please ensure that the format is not disturbed.
@@ -98,26 +99,25 @@ RUN rm -rf /root/.ssh/ && \
  && printf "Host *\n StrictHostKeyChecking no\n" >> /root/.ssh/config
 
 
-RUN curl -L -o ~/miniconda.sh https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh \
- && chmod +x ~/miniconda.sh \
- && ~/miniconda.sh -b -p /opt/conda \
- && rm ~/miniconda.sh \
+RUN curl -L -o ~/mambaforge.sh https://github.com/conda-forge/miniforge/releases/download/${MAMBA_VERSION}/Mambaforge-${MAMBA_VERSION}-Linux-x86_64.sh \
+ && chmod +x ~/mambaforge.sh \
+ && ~/mambaforge.sh -b -p /opt/conda \
+ && rm ~/mambaforge.sh \
  && /opt/conda/bin/conda update conda \
  && /opt/conda/bin/conda install -c conda-forge \
     python=$PYTHON_VERSION \
- && /opt/conda/bin/conda install -y -c anaconda \
-    # conda 4.10.0 requires ruamel_yaml to be installed. Currently pinned at latest.
-    ruamel_yaml==0.15.100 \
     mkl \
     mkl-include \
     cython \
     typing \
     "pyopenssl>=17.5.0" \
- && conda install -y \
     scikit-learn \
     pandas \
     h5py \
     requests \
+    # Below 2 are included in miniconda base, but not mamba so need to install
+    conda-content-trust \
+    charset-normalizer \
  && conda install -c dglteam -y dgl=0.6.1 \
  && /opt/conda/bin/conda clean -ya \
  && conda clean -ya
