@@ -11,7 +11,6 @@ ARG OPEN_MPI_PATH=/opt/amazon/openmpi
 ARG EFA_PATH=/opt/amazon/efa
 
 ARG CUDA_HOME=/usr/local/cuda
-ARG CONDA_PREFIX=/opt/conda
 ARG METIS=metis-5.1.0
 ARG RMM_VERSION=0.15.0
 ARG MAMBA_VERSION=4.12.0-0
