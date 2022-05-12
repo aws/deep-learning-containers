@@ -57,7 +57,6 @@ RUN curl -L -o ~/mambaforge.sh https://github.com/conda-forge/miniforge/releases
  && /opt/conda/bin/conda update conda \
  && /opt/conda/bin/conda install -c conda-forge \
     python=$PYTHON_VERSION \
-    ruamel_yaml==0.15.100 \
     cython \
     "mkl-include==2021.4.0" \
     "mkl==2021.4.0" \
