@@ -30,18 +30,44 @@ DEFAULT_REGION = "us-west-2"
 # Constant to represent region where p3dn tests can be run
 P3DN_REGION = "us-east-1"
 
-UBUNTU_18_BASE_DLAMI_US_WEST_2 = "ami-0150e36b3f936a26e"
-UBUNTU_18_BASE_DLAMI_US_EAST_1 = "ami-044971d381e6a1109"
-AML2_GPU_DLAMI_US_WEST_2 = "ami-071cb1e434903a577"
-AML2_GPU_DLAMI_US_EAST_1 = "ami-044264d246686b043"
-AML2_CPU_ARM64_US_WEST_2 = "ami-0bccd90b9db95e2e5"
-UL18_CPU_ARM64_US_WEST_2 = "ami-00bccef9d47441ac9"
-UL18_BENCHMARK_CPU_ARM64_US_WEST_2 = "ami-0ababa2deb802b069"
-AML2_CPU_ARM64_US_EAST_1 = "ami-01c47f32b27ed7fa0"
+def get_ami_id_boto3(region_name, ami_name_pattern):
+    """
+    For a given region and ami name pattern, return the latest ami-id
+    """
+    ami_list = boto3.client("ec2", region_name=region_name).describe_images(
+        Filters=[
+            {
+                "Name": "name",
+                "Values": [ami_name_pattern],
+            },
+        ],
+        Owners=[
+            'amazon',
+        ],
+    )
+    ami = sorted(ami_list["Images"], key=lambda x: x["CreationDate"], reverse=True)[0]
+    return ami['ImageId']
+
+def get_ami_id_ssm(region_name, parameter_path):
+    """
+    For a given region and parameter path, return the latest ami-id
+    """
+    ami = boto3.client("ssm", region_name=region_name).get_parameter(Name=parameter_path)
+    ami_id = eval(ami['Parameter']['Value'])['image_id']
+    return ami_id
+
+UBUNTU_18_BASE_DLAMI_US_WEST_2 = get_ami_id_boto3(region_name="us-west-2", ami_name_pattern="Deep Learning AMI GPU CUDA 11.1.1 (Ubuntu 18.04) ????????")
+UBUNTU_18_BASE_DLAMI_US_EAST_1 = get_ami_id_boto3(region_name="us-east-1", ami_name_pattern="Deep Learning AMI GPU CUDA 11.1.1 (Ubuntu 18.04) ????????")
+AML2_GPU_DLAMI_US_WEST_2 = get_ami_id_boto3(region_name="us-west-2", ami_name_pattern="Deep Learning AMI GPU CUDA 11.1.1 (Amazon Linux 2) ????????")
+AML2_GPU_DLAMI_US_EAST_1 = get_ami_id_boto3(region_name="us-east-1", ami_name_pattern="Deep Learning AMI GPU CUDA 11.1.1 (Amazon Linux 2) ????????")
+AML2_CPU_ARM64_US_WEST_2 = get_ami_id_boto3(region_name="us-west-2", ami_name_pattern="Deep Learning Base AMI (Amazon Linux 2) Version ??.?")
+UL18_CPU_ARM64_US_WEST_2 = get_ami_id_boto3(region_name="us-west-2", ami_name_pattern="Deep Learning Base AMI (Ubuntu 18.04) Version ??.?")
+UL18_BENCHMARK_CPU_ARM64_US_WEST_2 = get_ami_id_boto3(region_name="us-west-2", ami_name_pattern="Deep Learning AMI Graviton GPU TensorFlow 2.7.0 (Ubuntu 20.04) ????????")
+AML2_CPU_ARM64_US_EAST_1 = get_ami_id_boto3(region_name="us-east-1", ami_name_pattern="Deep Learning Base AMI (Amazon Linux 2) Version ??.?")
 PT_GPU_PY3_BENCHMARK_IMAGENET_AMI_US_EAST_1 = "ami-0673bb31cc62485dd"
 PT_GPU_PY3_BENCHMARK_IMAGENET_AMI_US_WEST_2 = "ami-02d9a47bc61a31d43"
 # Since latest driver is not in public DLAMI yet, using a custom one
-NEURON_UBUNTU_18_BASE_DLAMI_US_WEST_2 = "ami-078c2404eecfbe916"
+NEURON_UBUNTU_18_BASE_DLAMI_US_WEST_2 = get_ami_id_boto3(region_name="us-west-2", ami_name_pattern="Deep Learning Base AMI (Ubuntu 18.04) Version ??.?")
 # Habana Base v1.3 ami
 UBUNTU_18_HPU_DLAMI_US_WEST_2 = "ami-0ef18b1906e7010fb"
 UBUNTU_18_HPU_DLAMI_US_EAST_1 = "ami-040ef14d634e727a2"
@@ -58,12 +84,12 @@ UL_AMI_LIST = [
 ]
 
 # ECS images are maintained here: https://docs.aws.amazon.com/AmazonECS/latest/developerguide/ecs-optimized_AMI.html
-ECS_AML2_GPU_USWEST2 = "ami-052237b2eee880dc6"
-ECS_AML2_CPU_USWEST2 = "ami-0794df61693647a62"
-ECS_AML2_NEURON_USWEST2 = "ami-0c7321fe2b2340dd5"
-ECS_AML2_GRAVITON_CPU_USWEST2 = "ami-0fb32cf53e5ab7686"
-NEURON_AL2_DLAMI = "ami-03c4cdc89eca4dbcb"
-HPU_AL2_DLAMI = "ami-052f4f716a7c7bad7"
+ECS_AML2_GPU_USWEST2 = get_ami_id_ssm(region_name="us-west-2", parameter_path='/aws/service/ecs/optimized-ami/amazon-linux-2/gpu/recommended')
+ECS_AML2_CPU_USWEST2 = get_ami_id_ssm(region_name="us-west-2", parameter_path='/aws/service/ecs/optimized-ami/amazon-linux-2/recommended')
+ECS_AML2_NEURON_USWEST2 = get_ami_id_ssm(region_name="us-west-2", parameter_path='/aws/service/ecs/optimized-ami/amazon-linux-2/inf/recommended')
+ECS_AML2_GRAVITON_CPU_USWEST2 = get_ami_id_ssm(region_name="us-west-2", parameter_path='/aws/service/ecs/optimized-ami/amazon-linux-2/arm64/recommended')
+NEURON_AL2_DLAMI = get_ami_id_boto3(region_name="us-west-2", ami_name_pattern="Deep Learning AMI (Amazon Linux 2) Version ??.?")
+HPU_AL2_DLAMI = get_ami_id_boto3(region_name="us-west-2", ami_name_pattern="Deep Learning AMI Habana TensorFlow 2.5.0 SynapseAI 0.15.4 (Amazon Linux 2) ????????")
 
 # S3 bucket for TensorFlow models
 TENSORFLOW_MODELS_BUCKET = "s3://tensoflow-trained-models"
