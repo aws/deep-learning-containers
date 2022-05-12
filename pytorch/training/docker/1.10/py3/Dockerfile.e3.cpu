@@ -125,12 +125,14 @@ RUN rm -rf /opt/conda/lib/libtinfo.so.6
 # custom versions from an S3 bucket. This will need to be removed in the future
 RUN pip install --upgrade pip --trusted-host pypi.org --trusted-host files.pythonhosted.org \
  && ln -s /opt/conda/bin/pip /usr/local/bin/pip3 \
+# Install urllib3>=1.25.9 to satisfy awscli/boto3/botocore requirements while fixing for CVE-2020-26137
  && pip install --no-cache-dir -U \
     "pyyaml>=5.4,<5.5" \
     numpy==1.22.2 \
     ipython==8.0.1 \
     opencv-python==4.5.2.54 \
     "awscli<2" \
+    "urllib3>=1.25.9" \
     boto3 \
     scipy \
     click \
