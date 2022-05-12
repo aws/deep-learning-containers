@@ -852,6 +852,8 @@ def parse_canary_images(framework, region):
     for tag in repo.tags:
         tag_str = str(tag)
         match = re.search(version_regex[framework], tag_str)
+        ## The tags not have -py3 will not pass th condition below
+        ## This eliminates all the old and testing tags that we are not monitoring.
         if match:
             version = match.group(2)
             if not versions_counter.get(version):
@@ -864,8 +866,7 @@ def parse_canary_images(framework, region):
             elif "inf" in tag_str:
                 versions_counter[version]["inf"] = True
             
-            if match.group(3):
-                pre_populated_py3_version[version] = match.group(3)
+            pre_populated_py3_version[version] = match.group(3)
 
     versions = []
     for v, inf_train in versions_counter.items():
