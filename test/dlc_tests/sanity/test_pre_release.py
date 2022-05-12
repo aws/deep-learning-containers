@@ -568,10 +568,6 @@ def test_dataclasses_check(image):
 
 @pytest.mark.usefixtures("sagemaker")
 @pytest.mark.model("N/A")
-@pytest.mark.skipif(
-    is_canary_context(),
-    reason="Skip tests on canary as the requirements do not change on released containers."
-)
 def test_pip_check(image):
     """
     Ensure there are no broken requirements on the containers by running "pip check"
