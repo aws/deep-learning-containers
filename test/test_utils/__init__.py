@@ -793,37 +793,6 @@ def get_dlc_images():
     raise RuntimeError(f"Cannot find any images for in {test_images}")
 
 
-def get_canary_default_tag_py3_version(framework, version):
-    """
-    Currently, only TF2.2 images and above have major/minor python version in their canary tag. Creating this function
-    to conditionally choose a python version based on framework version ranges. If we move up to py38, for example,
-    this is the place to make the conditional change.
-
-    :param framework: tensorflow1, tensorflow2, mxnet, pytorch
-    :param version: fw major.minor version, i.e. 2.2
-    :return: default tag python version
-    """
-    if framework == "tensorflow" or framework == "huggingface_tensorflow":
-        if Version("2.2") <= Version(version) < Version("2.6"):
-            return "py37"
-        if Version("2.6") <= Version(version) < Version("2.8"):
-            return "py38"
-        if Version(version) >= Version("2.8"):
-            return"py39"
-
-    if framework == "mxnet":
-        if Version(version) == Version("1.8"):
-            return "py37"
-        if Version(version) >= Version("1.9"):
-            return "py38"
-
-    if framework == "pytorch" or framework == "huggingface_pytorch":
-        if Version(version) >= Version("1.9"):
-            return "py38"
-
-    return "py3"
-
-
 def parse_canary_images(framework, region):
     """
     Return which canary images to run canary tests on for a given framework and AWS region
@@ -836,18 +805,18 @@ def parse_canary_images(framework, region):
     customer_type_tag = f"-{customer_type}" if customer_type else ""
 
     version_regex = {
-        "tensorflow": rf"tf(-sagemaker)?{customer_type_tag}-(\d+.\d+)\S*(py\d+)",
-        "mxnet": rf"mx(-sagemaker)?{customer_type_tag}-(\d+.\d+)\S*(py\d+)",
-        "pytorch": rf"pt(-sagemaker)?{customer_type_tag}-(\d+.\d+)\S*(py\d+)",
-        "huggingface_pytorch": r"hf-\S*pt(-sagemaker)?-(\d+.\d+)\S*(py\d+)",
-        "huggingface_tensorflow": r"hf-\S*tf(-sagemaker)?-(\d+.\d+)\S*(py\d+)",
-        "autogluon": r"ag(-sagemaker)?-(\d+.\d+)\S*(py\d+)",
+        "tensorflow": rf"tf(-sagemaker)?{customer_type_tag}-(\d+.\d+)\S*(-py\d+)",
+        "mxnet": rf"mx(-sagemaker)?{customer_type_tag}-(\d+.\d+)\S*(-py\d+)",
+        "pytorch": rf"pt(-sagemaker)?{customer_type_tag}-(\d+.\d+)\S*(-py\d+)",
+        "huggingface_pytorch": r"hf-\S*pt(-sagemaker)?-(\d+.\d+)\S*(-py\d+)",
+        "huggingface_tensorflow": r"hf-\S*tf(-sagemaker)?-(\d+.\d+)\S*(-py\d+)",
+        "autogluon": r"ag(-sagemaker)?-(\d+.\d+)\S*(-py\d+)",
     }
 
     repo = git.Repo(os.getcwd(), search_parent_directories=True)
 
     versions_counter = {}
-    pre_populated_py3_version = {}
+    pre_populated_py_version = {}
 
     for tag in repo.tags:
         tag_str = str(tag)
@@ -866,9 +835,10 @@ def parse_canary_images(framework, region):
             elif "inf" in tag_str:
                 versions_counter[version]["inf"] = True
             
-            if version not in pre_populated_py3_version:
-                pre_populated_py3_version[version] = set()
-            pre_populated_py3_version[version].add(match.group(3))
+            if version not in pre_populated_py_version:
+                pre_populated_py_version[version] = set()
+            py_version_with_hyphen_appended = match.group(3)
+            pre_populated_py_version[version].add(py_version_with_hyphen_appended[1:])
 
     versions = []
     for v, inf_train in versions_counter.items():
@@ -883,50 +853,43 @@ def parse_canary_images(framework, region):
     framework_versions = versions if len(versions) < 4 else versions[:3]
     dlc_images = []
     for fw_version in framework_versions:
-        if fw_version in pre_populated_py3_version:
-            py3_versions = pre_populated_py3_version[fw_version]
-        else:
-            ## Keeping it here for legacy releases. Based on the new implementation
-            ## the tags always have py3 version appended to it and hence the 
-            ## get_canary_default_tag_py3_version might not be required. 
-            py3_versions = [get_canary_default_tag_py3_version(framework, fw_version)]
-        
-        for py3_version in py3_versions:
+        py_versions = pre_populated_py_version[fw_version]
+        for py_version in py_versions:
             images = {
                 "tensorflow": [
-                    f"{registry}.dkr.ecr.{region}.amazonaws.com/tensorflow-training:{fw_version}-gpu-{py3_version}",
-                    f"{registry}.dkr.ecr.{region}.amazonaws.com/tensorflow-training:{fw_version}-cpu-{py3_version}",
+                    f"{registry}.dkr.ecr.{region}.amazonaws.com/tensorflow-training:{fw_version}-gpu-{py_version}",
+                    f"{registry}.dkr.ecr.{region}.amazonaws.com/tensorflow-training:{fw_version}-cpu-{py_version}",
                     f"{registry}.dkr.ecr.{region}.amazonaws.com/tensorflow-inference:{fw_version}-gpu",
                     f"{registry}.dkr.ecr.{region}.amazonaws.com/tensorflow-inference:{fw_version}-cpu",
                 ],
                 "mxnet": [
-                    f"{registry}.dkr.ecr.{region}.amazonaws.com/mxnet-training:{fw_version}-gpu-{py3_version}",
-                    f"{registry}.dkr.ecr.{region}.amazonaws.com/mxnet-training:{fw_version}-cpu-{py3_version}",
-                    f"{registry}.dkr.ecr.{region}.amazonaws.com/mxnet-inference:{fw_version}-gpu-{py3_version}",
-                    f"{registry}.dkr.ecr.{region}.amazonaws.com/mxnet-inference:{fw_version}-cpu-{py3_version}",
+                    f"{registry}.dkr.ecr.{region}.amazonaws.com/mxnet-training:{fw_version}-gpu-{py_version}",
+                    f"{registry}.dkr.ecr.{region}.amazonaws.com/mxnet-training:{fw_version}-cpu-{py_version}",
+                    f"{registry}.dkr.ecr.{region}.amazonaws.com/mxnet-inference:{fw_version}-gpu-{py_version}",
+                    f"{registry}.dkr.ecr.{region}.amazonaws.com/mxnet-inference:{fw_version}-cpu-{py_version}",
                 ],
                 "pytorch": [
-                    f"{registry}.dkr.ecr.{region}.amazonaws.com/pytorch-training:{fw_version}-gpu-{py3_version}",
-                    f"{registry}.dkr.ecr.{region}.amazonaws.com/pytorch-training:{fw_version}-cpu-{py3_version}",
-                    f"{registry}.dkr.ecr.{region}.amazonaws.com/pytorch-inference:{fw_version}-gpu-{py3_version}",
-                    f"{registry}.dkr.ecr.{region}.amazonaws.com/pytorch-inference:{fw_version}-cpu-{py3_version}",
+                    f"{registry}.dkr.ecr.{region}.amazonaws.com/pytorch-training:{fw_version}-gpu-{py_version}",
+                    f"{registry}.dkr.ecr.{region}.amazonaws.com/pytorch-training:{fw_version}-cpu-{py_version}",
+                    f"{registry}.dkr.ecr.{region}.amazonaws.com/pytorch-inference:{fw_version}-gpu-{py_version}",
+                    f"{registry}.dkr.ecr.{region}.amazonaws.com/pytorch-inference:{fw_version}-cpu-{py_version}",
                 ],
                 # TODO: uncomment once cpu training and inference images become available
                 "huggingface_pytorch": [
-                    f"{registry}.dkr.ecr.{region}.amazonaws.com/huggingface-pytorch-training:{fw_version}-gpu-{py3_version}",
-                    # f"{registry}.dkr.ecr.{region}.amazonaws.com/huggingface-pytorch-training:{fw_version}-cpu-{py3_version}",
-                    f"{registry}.dkr.ecr.{region}.amazonaws.com/huggingface-pytorch-inference:{fw_version}-gpu-{py3_version}",
-                    f"{registry}.dkr.ecr.{region}.amazonaws.com/huggingface-pytorch-inference:{fw_version}-cpu-{py3_version}",
+                    f"{registry}.dkr.ecr.{region}.amazonaws.com/huggingface-pytorch-training:{fw_version}-gpu-{py_version}",
+                    # f"{registry}.dkr.ecr.{region}.amazonaws.com/huggingface-pytorch-training:{fw_version}-cpu-{py_version}",
+                    f"{registry}.dkr.ecr.{region}.amazonaws.com/huggingface-pytorch-inference:{fw_version}-gpu-{py_version}",
+                    f"{registry}.dkr.ecr.{region}.amazonaws.com/huggingface-pytorch-inference:{fw_version}-cpu-{py_version}",
                 ],
                 "huggingface_tensorflow": [
-                    f"{registry}.dkr.ecr.{region}.amazonaws.com/huggingface-tensorflow-training:{fw_version}-gpu-{py3_version}",
-                    # f"{registry}.dkr.ecr.{region}.amazonaws.com/huggingface-tensorflow-training:{fw_version}-cpu-{py3_version}",
-                    f"{registry}.dkr.ecr.{region}.amazonaws.com/huggingface-tensorflow-inference:{fw_version}-gpu-{py3_version}",
-                    f"{registry}.dkr.ecr.{region}.amazonaws.com/huggingface-tensorflow-inference:{fw_version}-cpu-{py3_version}",
+                    f"{registry}.dkr.ecr.{region}.amazonaws.com/huggingface-tensorflow-training:{fw_version}-gpu-{py_version}",
+                    # f"{registry}.dkr.ecr.{region}.amazonaws.com/huggingface-tensorflow-training:{fw_version}-cpu-{py_version}",
+                    f"{registry}.dkr.ecr.{region}.amazonaws.com/huggingface-tensorflow-inference:{fw_version}-gpu-{py_version}",
+                    f"{registry}.dkr.ecr.{region}.amazonaws.com/huggingface-tensorflow-inference:{fw_version}-cpu-{py_version}",
                 ],
                 "autogluon": [
-                    f"{registry}.dkr.ecr.{region}.amazonaws.com/autogluon-training:{fw_version}-gpu-{py3_version}",
-                    f"{registry}.dkr.ecr.{region}.amazonaws.com/autogluon-training:{fw_version}-cpu-{py3_version}",
+                    f"{registry}.dkr.ecr.{region}.amazonaws.com/autogluon-training:{fw_version}-gpu-{py_version}",
+                    f"{registry}.dkr.ecr.{region}.amazonaws.com/autogluon-training:{fw_version}-cpu-{py_version}",
                 ],
             }
             # E3 Images have an additional "e3" tag to distinguish them from the regular "sagemaker" tag
