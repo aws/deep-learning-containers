@@ -11,7 +11,7 @@ ARG OPEN_MPI_PATH=/opt/amazon/openmpi
 ARG EFA_PATH=/opt/amazon/efa
 
 ARG CUDA_HOME=/usr/local/cuda
-ARG CONDA_PREFIX=/opt/conda
+ARG MAMBA_VERSION=4.12.0-0
 
 # This arg required to stop docker build waiting for region configuration while installing tz data from ubuntu 20
 ARG DEBIAN_FRONTEND=noninteractive
@@ -45,7 +45,6 @@ ENV DLC_CONTAINER_TYPE=training
 ARG PT_TRAINING_URL=https://pytorch-ei-binaries.s3.us-west-2.amazonaws.com/r1.10.2_inference/20220211-013556/528b6ca3747ec951396383f2a70d1354283ad29f/gpu/torch-1.10.2%2Bcu113-cp38-cp38-manylinux1_x86_64.whl
 ARG PT_TORCHVISION_URL=https://framework-binaries.s3.us-west-2.amazonaws.com/pytorch/1.10.2/torchvision-0.11.3-cp38-cp38-linux_x86_64.whl
 ARG PT_S3_WHL_GPU=https://aws-s3-plugin.s3.us-west-2.amazonaws.com/binaries/0.0.1/1c3e69e/awsio-0.0.1-cp38-cp38-manylinux1_x86_64.whl
-
 
 ## NVIDIA updated and rotated the signing keys used by apt, dnf/yum, and zypper package managers beginning April 27, 2022
 ## This code snippet has been taken from the NVIDIA forums https://forums.developer.nvidia.com/t/notice-cuda-linux-repository-key-rotation/212771
@@ -134,25 +133,24 @@ ENV PATH="$OPEN_MPI_PATH/bin:$PATH"
 ENV LD_LIBRARY_PATH=$OPEN_MPI_PATH/lib/:$EFA_PATH/lib/:$LD_LIBRARY_PATH
 
 RUN ompi_info --parsable --all | grep mpi_built_with_cuda_support:value \
- && curl -L -o ~/miniconda.sh https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh \
- && chmod +x ~/miniconda.sh \
- && ~/miniconda.sh -b -p ${CONDA_PREFIX} \
- && rm ~/miniconda.sh \
- && ${CONDA_PREFIX}/bin/conda install -c conda-forge \
+ && curl -L -o ~/mambaforge.sh https://github.com/conda-forge/miniforge/releases/download/${MAMBA_VERSION}/Mambaforge-${MAMBA_VERSION}-Linux-x86_64.sh \
+ && chmod +x ~/mambaforge.sh \
+ && ~/mambaforge.sh -b -p /opt/conda \
+ && rm ~/mambaforge.sh \
+ && /opt/conda/bin/conda install -c conda-forge \
     python=$PYTHON_VERSION \
- && ${CONDA_PREFIX}/bin/conda install -y \
-    # conda 4.10.0 requires ruamel_yaml to be installed. Currently pinned at latest.
-    ruamel_yaml==0.15.100 \
- && ${CONDA_PREFIX}/bin/conda install -y -c anaconda \
     mkl \
     mkl-include \
     cython \
     typing \
     future \
     "pyopenssl>=17.5.0" \
+    # Below 2 are included in miniconda base, but not mamba so need to install
+    conda-content-trust \
+    charset-normalizer \
  # TODO: add dgl back once the ecs test for dgl gpu get fixed
 #  && conda install -y -c dglteam dgl-cuda11.3=0.7.2 \
- && ${CONDA_PREFIX}/bin/conda clean -ya
+ && /opt/conda/bin/conda clean -ya
 
 # Conda installs links for libtinfo.so.6 and libtinfo.so.6.2 both
 # Which causes "/opt/conda/lib/libtinfo.so.6: no version information available" warning
@@ -160,12 +158,12 @@ RUN ompi_info --parsable --all | grep mpi_built_with_cuda_support:value \
 # once conda fixes the issue
 RUN rm -rf /opt/conda/lib/libtinfo.so.6
 
-RUN ${CONDA_PREFIX}/bin/conda config --set ssl_verify False \
+RUN /opt/conda/bin/conda config --set ssl_verify False \
  && pip install --upgrade pip --trusted-host pypi.org --trusted-host files.pythonhosted.org \
- && ln -s ${CONDA_PREFIX}/bin/pip /usr/local/bin/pip3
+ && ln -s /opt/conda/bin/pip /usr/local/bin/pip3
 
 RUN conda install -c pytorch magma-cuda113==2.5.2 \
- && conda install -y \
+ && conda install -y -c conda-forge \
     h5py \
     requests \
     libgcc \
