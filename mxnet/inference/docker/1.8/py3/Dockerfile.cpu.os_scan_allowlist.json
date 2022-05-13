@@ -6992,7 +6992,9 @@
             "name": "CVE-2021-4166",
             "scraped_data": [
                 {
-                    "notes": [],
+                    "notes": [
+                        "code in bionic and earlier does not include file src/arglist.c,\nwhich is the patched file. However, the patched code, as seen in\ncommit 4ad62155a10, seems to be instead present in src/buffer.c\nfor the previously mentioned group of releases."
+                    ],
                     "status_table": {
                         "packages": [
                             "vim",
@@ -7019,19 +7021,19 @@
                             ],
                             [
                                 "jammy",
-                                "Needed"
+                                "Not vulnerable (2:8.2.3995-1ubuntu2)"
                             ],
                             [
                                 "trusty",
-                                "Needs triage"
+                                "Needed"
                             ],
                             [
                                 "upstream",
-                                "Needs triage"
+                                "Released (8.2.3884)"
                             ],
                             [
                                 "xenial",
-                                "Needs triage"
+                                "Needed"
                             ]
                         ]
                     }
