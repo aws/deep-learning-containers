@@ -934,7 +934,8 @@ def parse_canary_images(framework, region):
                 dlc_images += [f"{img}-e3" for img in images[framework]]
             else:
                 dlc_images += images[framework]
-
+    
+    dlc_images.sort()
     return " ".join(dlc_images)
 
 
