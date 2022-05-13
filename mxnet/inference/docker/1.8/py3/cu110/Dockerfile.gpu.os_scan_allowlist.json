@@ -2471,7 +2471,7 @@
             "attributes": [
                 {
                     "key": "package_version",
-                    "value": "2.23-0ubuntu11.3"
+                    "value": "2.23-0ubuntu11.2"
                 },
                 {
                     "key": "package_name",
@@ -2530,7 +2530,7 @@
             "attributes": [
                 {
                     "key": "package_version",
-                    "value": "2.23-0ubuntu11.2"
+                    "value": "2.23-0ubuntu11.3"
                 },
                 {
                     "key": "package_name",
@@ -6668,7 +6668,7 @@
             "attributes": [
                 {
                     "key": "package_version",
-                    "value": "1.0.2g-1ubuntu4.20"
+                    "value": "1.0.2g-1ubuntu4.18"
                 },
                 {
                     "key": "package_name",
@@ -6741,7 +6741,7 @@
             "attributes": [
                 {
                     "key": "package_version",
-                    "value": "1.0.2g-1ubuntu4.18"
+                    "value": "1.0.2g-1ubuntu4.20"
                 },
                 {
                     "key": "package_name",
@@ -7319,19 +7319,19 @@
                 },
                 {
                     "key": "CVSS2_VECTOR",
-                    "value": "AV:N/AC:L/Au:S/C:N/I:N/A:P"
+                    "value": "AV:N/AC:M/Au:N/C:N/I:N/A:C"
                 },
                 {
                     "key": "CVSS2_SCORE",
-                    "value": "4"
+                    "value": "7.1"
                 }
             ],
-            "description": "There's a flaw in urllib's AbstractBasicAuthHandler class. An attacker who controls a malicious HTTP server that an HTTP client (such as web browser) connects to, could trigger a Regular Expression Denial of Service (ReDOS) during an authentication request with a specially crafted payload that is sent by the server to the client. The greatest threat that this flaw poses is to application availability.",
-            "name": "CVE-2021-3733",
+            "description": "A flaw was found in python. An improperly handled HTTP response in the HTTP client code of python may allow a remote attacker, who controls the HTTP server, to make the client script enter an infinite loop, consuming CPU time. The highest threat from this vulnerability is to system availability.",
+            "name": "CVE-2021-3737",
             "scraped_data": [
                 {
                     "notes": [
-                        "code affected in hirsute and devel is already patched, so both releases\nin python3.9 are not affected."
+                        "impish/devel is not affected, code supposed affected was patched already."
                     ],
                     "status_table": {
                         "packages": [
@@ -7378,7 +7378,7 @@
                 }
             ],
             "severity": "MEDIUM",
-            "uri": "http://people.ubuntu.com/~ubuntu-security/cve/CVE-2021-3733"
+            "uri": "http://people.ubuntu.com/~ubuntu-security/cve/CVE-2021-3737"
         },
         {
             "attributes": [
