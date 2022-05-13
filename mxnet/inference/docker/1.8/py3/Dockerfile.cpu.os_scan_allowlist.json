@@ -6981,6 +6981,148 @@
                 },
                 {
                     "key": "CVSS2_VECTOR",
+                    "value": "AV:N/AC:M/Au:N/C:P/I:N/A:P"
+                },
+                {
+                    "key": "CVSS2_SCORE",
+                    "value": "5.8"
+                }
+            ],
+            "description": "vim is vulnerable to Out-of-bounds Read",
+            "name": "CVE-2021-4166",
+            "scraped_data": [
+                {
+                    "notes": [],
+                    "status_table": {
+                        "packages": [
+                            "vim",
+                            "Launchpad",
+                            "Ubuntu",
+                            "Debian"
+                        ],
+                        "release_states": [
+                            [
+                                "bionic",
+                                "Needed"
+                            ],
+                            [
+                                "focal",
+                                "Needed"
+                            ],
+                            [
+                                "hirsute",
+                                "Ignored (reached end-of-life)"
+                            ],
+                            [
+                                "impish",
+                                "Needed"
+                            ],
+                            [
+                                "jammy",
+                                "Needed"
+                            ],
+                            [
+                                "trusty",
+                                "Needs triage"
+                            ],
+                            [
+                                "upstream",
+                                "Needs triage"
+                            ],
+                            [
+                                "xenial",
+                                "Needs triage"
+                            ]
+                        ]
+                    }
+                }
+            ],
+            "severity": "MEDIUM",
+            "uri": "http://people.ubuntu.com/~ubuntu-security/cve/CVE-2021-4166"
+        },
+        {
+            "attributes": [
+                {
+                    "key": "package_version",
+                    "value": "2:7.4.1689-3ubuntu1.5"
+                },
+                {
+                    "key": "package_name",
+                    "value": "vim"
+                },
+                {
+                    "key": "CVSS2_VECTOR",
+                    "value": "AV:N/AC:M/Au:N/C:P/I:P/A:P"
+                },
+                {
+                    "key": "CVSS2_SCORE",
+                    "value": "6.8"
+                }
+            ],
+            "description": "vim is vulnerable to Use After Free",
+            "name": "CVE-2021-4192",
+            "scraped_data": [
+                {
+                    "notes": [],
+                    "status_table": {
+                        "packages": [
+                            "vim",
+                            "Launchpad",
+                            "Ubuntu",
+                            "Debian"
+                        ],
+                        "release_states": [
+                            [
+                                "bionic",
+                                "Needed"
+                            ],
+                            [
+                                "focal",
+                                "Needed"
+                            ],
+                            [
+                                "hirsute",
+                                "Ignored (reached end-of-life)"
+                            ],
+                            [
+                                "impish",
+                                "Needed"
+                            ],
+                            [
+                                "jammy",
+                                "Not vulnerable (2:8.2.3995-1ubuntu2)"
+                            ],
+                            [
+                                "trusty",
+                                "Needed"
+                            ],
+                            [
+                                "upstream",
+                                "Released (8.2.3949)"
+                            ],
+                            [
+                                "xenial",
+                                "Needed"
+                            ]
+                        ]
+                    }
+                }
+            ],
+            "severity": "MEDIUM",
+            "uri": "http://people.ubuntu.com/~ubuntu-security/cve/CVE-2021-4192"
+        },
+        {
+            "attributes": [
+                {
+                    "key": "package_version",
+                    "value": "2:7.4.1689-3ubuntu1.5"
+                },
+                {
+                    "key": "package_name",
+                    "value": "vim"
+                },
+                {
+                    "key": "CVSS2_VECTOR",
                     "value": "AV:L/AC:L/Au:N/C:P/I:P/A:P"
                 },
                 {
@@ -7313,77 +7455,6 @@
             ],
             "severity": "MEDIUM",
             "uri": "http://people.ubuntu.com/~ubuntu-security/cve/CVE-2022-1271"
-        }
-    ],
-    "zlib": [
-        {
-            "attributes": [
-                {
-                    "key": "package_version",
-                    "value": "1:1.2.8.dfsg-2ubuntu4.3"
-                },
-                {
-                    "key": "package_name",
-                    "value": "zlib"
-                },
-                {
-                    "key": "CVSS2_VECTOR",
-                    "value": "AV:N/AC:L/Au:N/C:N/I:N/A:P"
-                },
-                {
-                    "key": "CVSS2_SCORE",
-                    "value": "5"
-                }
-            ],
-            "description": "zlib before 1.2.12 allows memory corruption when deflating (i.e., when compressing) if the input has many distant matches.",
-            "name": "CVE-2018-25032",
-            "scraped_data": [
-                {
-                    "notes": [
-                        "since 3.1.3-7, rsync builds with the system zlib"
-                    ],
-                    "status_table": {
-                        "packages": [
-                            "zlib",
-                            "Launchpad",
-                            "Ubuntu",
-                            "Debian"
-                        ],
-                        "release_states": [
-                            [
-                                "bionic",
-                                "Released (1:1.2.11.dfsg-0ubuntu2.1)"
-                            ],
-                            [
-                                "focal",
-                                "Released (1:1.2.11.dfsg-2ubuntu1.3)"
-                            ],
-                            [
-                                "impish",
-                                "Released (1:1.2.11.dfsg-2ubuntu7.1)"
-                            ],
-                            [
-                                "jammy",
-                                "Released (1:1.2.11.dfsg-2ubuntu9)"
-                            ],
-                            [
-                                "trusty",
-                                "Released (1:1.2.8.dfsg-1ubuntu1.1+esm1)"
-                            ],
-                            [
-                                "upstream",
-                                "Released (1.2.12)"
-                            ],
-                            [
-                                "xenial",
-                                "Released (1:1.2.8.dfsg-2ubuntu4.3+esm1)"
-                            ]
-                        ]
-                    }
-                }
-            ],
-            "severity": "MEDIUM",
-            "uri": "http://people.ubuntu.com/~ubuntu-security/cve/CVE-2018-25032"
         }
     ]
 }
