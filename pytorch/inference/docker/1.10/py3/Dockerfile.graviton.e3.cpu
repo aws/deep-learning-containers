@@ -149,6 +149,9 @@ RUN HOME_DIR=/root \
  && cp ${HOME_DIR}/oss_compliance/build_from_source_packages/BUILD_FROM_SOURCE_PACKAGES_LICENCES_AARCH64_IMAGES ${HOME_DIR} \
  && rm -rf ${HOME_DIR}/oss_compliance*
 
+# Security patching
+RUN pip install --no-cache-dir -U 'Pillow>=9.0.1,<9.1.0'
+
 RUN curl https://aws-dlc-licenses.s3.amazonaws.com/pytorch-1.10/license.txt -o /license.txt
 
 EXPOSE 8080 8081
