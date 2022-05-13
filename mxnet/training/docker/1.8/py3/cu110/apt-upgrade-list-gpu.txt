@@ -1,1 +1,3 @@
 libc6
+wget
+xz-utils
