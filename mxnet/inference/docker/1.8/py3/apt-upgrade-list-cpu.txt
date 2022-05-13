@@ -1,1 +1,2 @@
 libc6
+zlib
