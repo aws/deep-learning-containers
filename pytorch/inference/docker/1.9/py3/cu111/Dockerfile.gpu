@@ -14,7 +14,7 @@ ARG PT_TORCHVISION_URL=https://aws-pytorch-cicd-v3-binaries.s3.us-west-2.amazona
 ARG PT_TORCHAUDIO_URL=https://download.pytorch.org/whl/torchaudio-0.9.1-cp38-cp38-linux_x86_64.whl
 
 ARG OPEN_MPI_VERSION=4.0.1
-ARG TS_VERSION=0.4.2
+ARG TS_VERSION=0.5.3
 ARG CUBLAS_VERSION=11.3.0.106
 ARG MAMBA_VERSION=4.12.0-0
 
@@ -146,7 +146,7 @@ RUN conda install -c pytorch \
  && ln -s /opt/conda/bin/pip /usr/local/bin/pip3 \
  && pip install packaging==20.4 \
     enum-compat==0.0.3 \
-    numpy==1.20.3 \
+    numpy=>1.22.2 \
     "cryptography>=3.3.2"
 
 # Conda installs links for libtinfo.so.6 and libtinfo.so.6.2 both
@@ -165,7 +165,7 @@ RUN pip uninstall -y torch \
 
 RUN conda install -y -c conda-forge "pyyaml>=5.4,<5.5"
 RUN pip install \
-    "Pillow>=8.3.2,<8.4" \
+    "Pillow>=9.0.1" \
     "awscli<2"
 
 RUN pip install --no-cache-dir "sagemaker-pytorch-inference>=2"

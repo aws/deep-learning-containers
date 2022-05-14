@@ -137,7 +137,7 @@ RUN curl -L -o ~/mambaforge.sh https://github.com/conda-forge/miniforge/releases
  && rm ~/mambaforge.sh \
  && /opt/conda/bin/conda install -c conda-forge \
     python=$PYTHON_VERSION \
-    numpy \
+    "numpy>=1.22.2" \
     ipython \
     mkl \
     mkl-include \
@@ -197,12 +197,14 @@ RUN pip install --no-cache-dir -U \
     "awscli<2" \
     smdebug==${SMDEBUG_VERSION} \
     smclarify \
+    # Sagemaker 2.89.0 requires this attrs version but 21.4.0 is installed
+    "attrs==20.3.0" \ 
     "sagemaker>=2,<3" \
     sagemaker-experiments==0.* \
     sagemaker-pytorch-training \
     "pyyaml>=5.4,<5.5" \
     psutil \
-    "Pillow>=8.3.2,<8.4" \
+    "Pillow>=9.0.1" \
     scipy \
     pybind11 \
     click \
