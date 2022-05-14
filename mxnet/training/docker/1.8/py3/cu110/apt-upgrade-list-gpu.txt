@@ -1,4 +1,3 @@
 libc6
 vim
 wget
-xz-utils
