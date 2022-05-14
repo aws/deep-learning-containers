@@ -1,5 +1,6 @@
 ---
 pip_packages:
+  - absl-py
   - apex
   - autogluon
   - autogluon-contrib-nlp
@@ -12,24 +13,51 @@ pip_packages:
   - autogluon.vision
   - awscli
   - awsio
+  - bokeh
   - boto3
   - botocore
+  - bs4
   - catboost
+  - cffi
+  - cloudpickle
+  - cython
   - datasets
   - dgl
   - fastai
+  - filelock
+  - gin-config
   - gluoncv
+  - habana-tensorflow
+  - habana-horovod
   - h5py
   - horovod
+  - imageio
+  - imgaug
   - lightgbm
+  - lvis
+  - mkl
+  - mkl-include
+  - mpi4py
   - multi-model-server
+  - munch
   - mxnet
   - mxnet-model-server
+  - neuron-cc
+  - ninja
+  - numba
   - numpy
+  - opencv
   - opencv-python
+  - packaging
   - pandas
   - pillow
+  - plotly
+  - protobuf
+  - pybind11
   - pytorch
+  - PyYAML
+  - py-cpuinfo
+  - regex
   - requests
   - s3fs
   - s3transfer
@@ -40,6 +68,8 @@ pip_packages:
   - sagemaker-mxnet-training
   - sagemaker-pytorch-inference
   - sagemaker-pytorch-training
+  - sagemaker-studio-analytics-extension
+  - sagemaker-studio-sparkmagic-lib
   - sagemaker-tensorflow
   - sagemaker-tensorflow-inference
   - sagemaker-tensorflow-training
@@ -47,74 +77,59 @@ pip_packages:
   - scikit-learn
   - scipy
   - seaborn
+  - sentencepiece
+  - setuptools
+  - shap
   - smclarify
   - smdebug
   - smdebug-rulesconfig
   - smdistributed-dataparallel
   - smdistributed-modelparallel
   - spacy
+  - sparkmagic
+  - tensorboard
+  - tensorboard-plugin-neuron
   - tensorflow
+  - tensorflow-estimator
   - tensorflow-addons
+  - tensorflow-datasets
   - tensorflow-gpu
+  - tensorflow-hub
   - tensorflow-library
+  - tensorflow-metadata
+  - tensorflow-neuron
   - tensorflow-serving-api
   - tensorflow-serving-api-gpu
+  - tf-slim
   - tokenizers
   - torch
   - torchaudio
+  - torchdata
   - torchnet
   - torchserve
-  - torch-model-archiver
   - torchvision
+  - torch-model-archiver
+  - torch-neuron
   - transformers
-  - xgboost
-  - habana-tensorflow
-  - habana-horovod
-  - py-cpuinfo
-  - tensorflow-datasets
-  - tensorflow-metadata
-  - tf-slim
-  - cython
-  - imgaug
-  - cloudpickle
-  - munch
-  - h5py
-  - wrapt
-  - bs4
-  - tensorflow-hub
-  - PyYAML
-  - boto3
-  - filelock
-  - sentencepiece
-  - packaging
-  - lvis
-  - gin-config
-  - mpi4py
-  - absl-py
-  - protobuf
-  - regex
-  - cffi
   - typing-extensions
-  - setuptools
-  - ninja
-  - mkl
-  - mkl-include
-  - pybind11
+  - wrapt
+  - xgboost
 apt_packages:
+  - aws-neuron-tools
   - cuda-command-line-tools
   - cuda-cufft
   - cuda-curand
   - cuda-cusolver
   - cuda-cuparse
   - emacs
+  - habanalabs-thunk
+  - habanalabs-firmware-tools
+  - habanalabs-graph
   - libcublas
   - libcudnn
+  - libcudnn8
   - libgcc
   - libnccl
   - libnccl-dev
   - libstdc++
   - libgcc
-  - emacs
-  - habanalabs-thunk
-  - habanalabs-firmware-tools
-  - habanalabs-graph
