@@ -2471,7 +2471,7 @@
             "attributes": [
                 {
                     "key": "package_version",
-                    "value": "2.23-0ubuntu11.3"
+                    "value": "2.23-0ubuntu11.2"
                 },
                 {
                     "key": "package_name",
@@ -2530,7 +2530,7 @@
             "attributes": [
                 {
                     "key": "package_version",
-                    "value": "2.23-0ubuntu11.2"
+                    "value": "2.23-0ubuntu11.3"
                 },
                 {
                     "key": "package_name",
@@ -6677,6 +6677,77 @@
                     "value": "6.8"
                 }
             ],
+            "description": "vim is vulnerable to Heap-based Buffer Overflow",
+            "name": "CVE-2021-3778",
+            "scraped_data": [
+                {
+                    "notes": [],
+                    "status_table": {
+                        "packages": [
+                            "vim",
+                            "Launchpad",
+                            "Ubuntu",
+                            "Debian"
+                        ],
+                        "release_states": [
+                            [
+                                "bionic",
+                                "Released (2:8.0.1453-1ubuntu1.6)"
+                            ],
+                            [
+                                "focal",
+                                "Released (2:8.1.2269-1ubuntu5.3)"
+                            ],
+                            [
+                                "hirsute",
+                                "Released (2:8.2.2434-1ubuntu1.1)"
+                            ],
+                            [
+                                "impish",
+                                "Released (2:8.2.2434-3ubuntu2)"
+                            ],
+                            [
+                                "jammy",
+                                "Released (2:8.2.2434-3ubuntu2)"
+                            ],
+                            [
+                                "trusty",
+                                "Released (2:7.4.052-1ubuntu3.1+esm3)"
+                            ],
+                            [
+                                "upstream",
+                                "Released (v8.2.3409)"
+                            ],
+                            [
+                                "xenial",
+                                "Released (2:7.4.1689-3ubuntu1.5+esm2)"
+                            ]
+                        ]
+                    }
+                }
+            ],
+            "severity": "MEDIUM",
+            "uri": "http://people.ubuntu.com/~ubuntu-security/cve/CVE-2021-3778"
+        },
+        {
+            "attributes": [
+                {
+                    "key": "package_version",
+                    "value": "2:7.4.1689-3ubuntu1.5"
+                },
+                {
+                    "key": "package_name",
+                    "value": "vim"
+                },
+                {
+                    "key": "CVSS2_VECTOR",
+                    "value": "AV:N/AC:M/Au:N/C:P/I:P/A:P"
+                },
+                {
+                    "key": "CVSS2_SCORE",
+                    "value": "6.8"
+                }
+            ],
             "description": "vim is vulnerable to Use After Free",
             "name": "CVE-2021-3796",
             "scraped_data": [
@@ -6728,77 +6799,6 @@
             ],
             "severity": "MEDIUM",
             "uri": "http://people.ubuntu.com/~ubuntu-security/cve/CVE-2021-3796"
-        },
-        {
-            "attributes": [
-                {
-                    "key": "package_version",
-                    "value": "2:7.4.1689-3ubuntu1.5"
-                },
-                {
-                    "key": "package_name",
-                    "value": "vim"
-                },
-                {
-                    "key": "CVSS2_VECTOR",
-                    "value": "AV:L/AC:L/Au:N/C:P/I:P/A:P"
-                },
-                {
-                    "key": "CVSS2_SCORE",
-                    "value": "4.6"
-                }
-            ],
-            "description": "vim is vulnerable to Use of Uninitialized Variable",
-            "name": "CVE-2021-3928",
-            "scraped_data": [
-                {
-                    "notes": [],
-                    "status_table": {
-                        "packages": [
-                            "vim",
-                            "Launchpad",
-                            "Ubuntu",
-                            "Debian"
-                        ],
-                        "release_states": [
-                            [
-                                "bionic",
-                                "Released (2:8.0.1453-1ubuntu1.7)"
-                            ],
-                            [
-                                "focal",
-                                "Released (2:8.1.2269-1ubuntu5.4)"
-                            ],
-                            [
-                                "hirsute",
-                                "Released (2:8.2.2434-1ubuntu1.2)"
-                            ],
-                            [
-                                "impish",
-                                "Released (2:8.2.2434-3ubuntu3.1)"
-                            ],
-                            [
-                                "jammy",
-                                "Released (2:8.2.3565-1ubuntu2)"
-                            ],
-                            [
-                                "trusty",
-                                "Released (2:7.4.052-1ubuntu3.1+esm4)"
-                            ],
-                            [
-                                "upstream",
-                                "Released (v8.2.3582)"
-                            ],
-                            [
-                                "xenial",
-                                "Released (2:7.4.1689-3ubuntu1.5+esm3)"
-                            ]
-                        ]
-                    }
-                }
-            ],
-            "severity": "MEDIUM",
-            "uri": "http://people.ubuntu.com/~ubuntu-security/cve/CVE-2021-3928"
         },
         {
             "attributes": [
@@ -6958,18 +6958,20 @@
                 },
                 {
                     "key": "CVSS2_VECTOR",
-                    "value": "AV:N/AC:M/Au:N/C:P/I:P/A:P"
+                    "value": "AV:N/AC:M/Au:N/C:P/I:N/A:P"
                 },
                 {
                     "key": "CVSS2_SCORE",
-                    "value": "6.8"
+                    "value": "5.8"
                 }
             ],
-            "description": "vim is vulnerable to Use After Free",
-            "name": "CVE-2021-4069",
+            "description": "vim is vulnerable to Out-of-bounds Read",
+            "name": "CVE-2021-4166",
             "scraped_data": [
                 {
-                    "notes": [],
+                    "notes": [
+                        "code in bionic and earlier does not include file src/arglist.c,\nwhich is the patched file. However, the patched code, as seen in\ncommit 4ad62155a10, seems to be instead present in src/buffer.c\nfor the previously mentioned group of releases."
+                    ],
                     "status_table": {
                         "packages": [
                             "vim",
@@ -6980,11 +6982,11 @@
                         "release_states": [
                             [
                                 "bionic",
-                                "Released (2:8.0.1453-1ubuntu1.8)"
+                                "Needed"
                             ],
                             [
                                 "focal",
-                                "Released (2:8.1.2269-1ubuntu5.6)"
+                                "Needed"
                             ],
                             [
                                 "hirsute",
@@ -6992,11 +6994,11 @@
                             ],
                             [
                                 "impish",
-                                "Released (2:8.2.2434-3ubuntu3.2)"
+                                "Needed"
                             ],
                             [
                                 "jammy",
-                                "Needed"
+                                "Not vulnerable (2:8.2.3995-1ubuntu2)"
                             ],
                             [
                                 "trusty",
@@ -7004,7 +7006,7 @@
                             ],
                             [
                                 "upstream",
-                                "Released (v8.2.3761)"
+                                "Released (8.2.3884)"
                             ],
                             [
                                 "xenial",
@@ -7015,7 +7017,7 @@
                 }
             ],
             "severity": "MEDIUM",
-            "uri": "http://people.ubuntu.com/~ubuntu-security/cve/CVE-2021-4069"
+            "uri": "http://people.ubuntu.com/~ubuntu-security/cve/CVE-2021-4166"
         },
         {
             "attributes": [
