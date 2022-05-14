@@ -6464,7 +6464,7 @@
                             ],
                             [
                                 "jammy",
-                                "Needs triage"
+                                "Needed"
                             ],
                             [
                                 "trusty",
@@ -6472,11 +6472,11 @@
                             ],
                             [
                                 "upstream",
-                                "Needs triage"
+                                "Released (8.2.4217)"
                             ],
                             [
                                 "xenial",
-                                "Needs triage"
+                                "Needed"
                             ]
                         ]
                     }
@@ -6508,7 +6508,9 @@
             "name": "CVE-2022-0408",
             "scraped_data": [
                 {
-                    "notes": [],
+                    "notes": [
+                        "in bionic and earlier, vulnerable function is in src/spell.c\ninstead of in src/spellsuggest.c."
+                    ],
                     "status_table": {
                         "packages": [
                             "vim",
@@ -6519,31 +6521,31 @@
                         "release_states": [
                             [
                                 "bionic",
-                                "Needs triage"
+                                "Needed"
                             ],
                             [
                                 "focal",
-                                "Needs triage"
+                                "Needed"
                             ],
                             [
                                 "impish",
-                                "Needs triage"
+                                "Needed"
                             ],
                             [
                                 "jammy",
-                                "Needs triage"
+                                "Needed"
                             ],
                             [
                                 "trusty",
-                                "Needs triage"
+                                "Needed"
                             ],
                             [
                                 "upstream",
-                                "Needs triage"
+                                "Released (8.2.4247)"
                             ],
                             [
                                 "xenial",
-                                "Needs triage"
+                                "Needed"
                             ]
                         ]
                     }
