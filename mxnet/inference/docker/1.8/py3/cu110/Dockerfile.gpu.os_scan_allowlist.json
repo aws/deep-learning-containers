@@ -6814,7 +6814,7 @@
             "attributes": [
                 {
                     "key": "package_version",
-                    "value": "1.0.2g-1ubuntu4.18"
+                    "value": "1.0.2g-1ubuntu4.20"
                 },
                 {
                     "key": "package_name",
@@ -6881,7 +6881,7 @@
             "attributes": [
                 {
                     "key": "package_version",
-                    "value": "1.0.2g-1ubuntu4.20"
+                    "value": "1.0.2g-1ubuntu4.18"
                 },
                 {
                     "key": "package_name",
@@ -7316,6 +7316,79 @@
                 {
                     "key": "package_name",
                     "value": "python3.5"
+                },
+                {
+                    "key": "CVSS2_VECTOR",
+                    "value": "AV:N/AC:M/Au:N/C:N/I:N/A:C"
+                },
+                {
+                    "key": "CVSS2_SCORE",
+                    "value": "7.1"
+                }
+            ],
+            "description": "A flaw was found in python. An improperly handled HTTP response in the HTTP client code of python may allow a remote attacker, who controls the HTTP server, to make the client script enter an infinite loop, consuming CPU time. The highest threat from this vulnerability is to system availability.",
+            "name": "CVE-2021-3737",
+            "scraped_data": [
+                {
+                    "notes": [
+                        "impish/devel is not affected, code supposed affected was patched already."
+                    ],
+                    "status_table": {
+                        "packages": [
+                            "python3.5",
+                            "Launchpad",
+                            "Ubuntu",
+                            "Debian"
+                        ],
+                        "release_states": [
+                            [
+                                "bionic",
+                                "Does not exist"
+                            ],
+                            [
+                                "focal",
+                                "Does not exist"
+                            ],
+                            [
+                                "hirsute",
+                                "Does not exist"
+                            ],
+                            [
+                                "impish",
+                                "Does not exist"
+                            ],
+                            [
+                                "jammy",
+                                "Does not exist"
+                            ],
+                            [
+                                "trusty",
+                                "Needed"
+                            ],
+                            [
+                                "upstream",
+                                "Needs triage"
+                            ],
+                            [
+                                "xenial",
+                                "Released (3.5.2-2ubuntu0~16.04.13+esm1)"
+                            ]
+                        ]
+                    }
+                }
+            ],
+            "severity": "MEDIUM",
+            "uri": "http://people.ubuntu.com/~ubuntu-security/cve/CVE-2021-3737"
+        },
+        {
+            "attributes": [
+                {
+                    "key": "package_version",
+                    "value": "3.5.2-2ubuntu0~16.04.13"
+                },
+                {
+                    "key": "package_name",
+                    "value": "python3.5"
                 }
             ],
             "description": "[ftplib should not use the host from the PASV response]",
@@ -7369,75 +7442,6 @@
             ],
             "severity": "MEDIUM",
             "uri": "http://people.ubuntu.com/~ubuntu-security/cve/CVE-2021-4189"
-        },
-        {
-            "attributes": [
-                {
-                    "key": "package_version",
-                    "value": "3.5.2-2ubuntu0~16.04.13"
-                },
-                {
-                    "key": "package_name",
-                    "value": "python3.5"
-                },
-                {
-                    "key": "CVSS2_VECTOR",
-                    "value": "AV:N/AC:L/Au:N/C:N/I:P/A:N"
-                },
-                {
-                    "key": "CVSS2_SCORE",
-                    "value": "5"
-                }
-            ],
-            "description": "A flaw was found in Python, specifically within the urllib.parse module. This module helps break Uniform Resource Locator (URL) strings into components. The issue involves how the urlparse method does not sanitize input and allows characters like '\\r' and '\\n' in the URL path. This flaw allows an attacker to input a crafted URL, leading to injection attacks. This flaw affects Python versions prior to 3.10.0b1, 3.9.5, 3.8.11, 3.7.11 and 3.6.14.",
-            "name": "CVE-2022-0391",
-            "scraped_data": [
-                {
-                    "notes": [
-                        "for python2.7 code affected, urlsplit is in Lib/urlparse.py.\naccording with Debian, the fix for python3.5 causes regressions."
-                    ],
-                    "status_table": {
-                        "packages": [
-                            "python3.5",
-                            "Launchpad",
-                            "Ubuntu",
-                            "Debian"
-                        ],
-                        "release_states": [
-                            [
-                                "bionic",
-                                "Does not exist"
-                            ],
-                            [
-                                "focal",
-                                "Does not exist"
-                            ],
-                            [
-                                "impish",
-                                "Does not exist"
-                            ],
-                            [
-                                "jammy",
-                                "Does not exist"
-                            ],
-                            [
-                                "trusty",
-                                "Needs triage"
-                            ],
-                            [
-                                "upstream",
-                                "Needs triage"
-                            ],
-                            [
-                                "xenial",
-                                "Released (3.5.2-2ubuntu0~16.04.13+esm2)"
-                            ]
-                        ]
-                    }
-                }
-            ],
-            "severity": "MEDIUM",
-            "uri": "http://people.ubuntu.com/~ubuntu-security/cve/CVE-2022-0391"
         }
     ],
     "systemd": [
