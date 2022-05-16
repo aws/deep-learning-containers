@@ -404,7 +404,7 @@ def _run_dependency_check_test(image, ec2_connection):
     allow_openssl_cve_2022_1292_fw_versions = {
         "pytorch": {
             "1.10": ["gpu"],
-            "1.11": ["gpu, cpu"],
+            "1.11": ["gpu", "cpu"],
         },
     }
 
