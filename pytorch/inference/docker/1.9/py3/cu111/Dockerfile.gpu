@@ -146,7 +146,7 @@ RUN conda install -c pytorch \
  && ln -s /opt/conda/bin/pip /usr/local/bin/pip3 \
  && pip install packaging==20.4 \
     enum-compat==0.0.3 \
-    numpy=>1.22.2 \
+    "numpy=>1.22.2" \
     "cryptography>=3.3.2"
 
 # Conda installs links for libtinfo.so.6 and libtinfo.so.6.2 both
