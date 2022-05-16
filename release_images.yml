@@ -28,7 +28,7 @@ release_images:
     arch_type: "x86"
     customer_type: "e3"
     training:
-      device_types: [ "cpu", "gpu" ]
+      device_types: [ "gpu" ]
       python_versions: [ "py38" ]
       cuda_version: "cu113"
       os_version: "ubuntu20.04"
