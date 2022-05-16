@@ -5301,6 +5301,75 @@
             "uri": "http://people.ubuntu.com/~ubuntu-security/cve/CVE-2021-33910"
         }
     ],
+    "tiff": [
+        {
+            "attributes": [
+                {
+                    "key": "package_version",
+                    "value": "4.0.6-1ubuntu0.8"
+                },
+                {
+                    "key": "package_name",
+                    "value": "tiff"
+                },
+                {
+                    "key": "CVSS2_VECTOR",
+                    "value": "AV:N/AC:M/Au:N/C:P/I:N/A:P"
+                },
+                {
+                    "key": "CVSS2_SCORE",
+                    "value": "5.8"
+                }
+            ],
+            "description": "A heap buffer overflow in ExtractImageSection function in tiffcrop.c in libtiff library Version 4.3.0 allows attacker to trigger unsafe or out of bounds memory access via crafted TIFF image file which could result into application crash, potential information disclosure or any other context-dependent impact",
+            "name": "CVE-2022-0891",
+            "scraped_data": [
+                {
+                    "notes": [],
+                    "status_table": {
+                        "packages": [
+                            "tiff",
+                            "Launchpad",
+                            "Ubuntu",
+                            "Debian"
+                        ],
+                        "release_states": [
+                            [
+                                "bionic",
+                                "Released (4.0.9-5ubuntu0.5)"
+                            ],
+                            [
+                                "focal",
+                                "Released (4.1.0+git191117-2ubuntu0.20.04.3)"
+                            ],
+                            [
+                                "impish",
+                                "Released (4.3.0-1ubuntu0.1)"
+                            ],
+                            [
+                                "jammy",
+                                "Released (4.3.0-6)"
+                            ],
+                            [
+                                "trusty",
+                                "Released (4.0.3-7ubuntu0.11+esm1)"
+                            ],
+                            [
+                                "upstream",
+                                "Needs triage"
+                            ],
+                            [
+                                "xenial",
+                                "Released (4.0.6-1ubuntu0.8+esm1)"
+                            ]
+                        ]
+                    }
+                }
+            ],
+            "severity": "MEDIUM",
+            "uri": "http://people.ubuntu.com/~ubuntu-security/cve/CVE-2022-0891"
+        }
+    ],
     "vim": [
         {
             "attributes": [
