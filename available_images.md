@@ -213,10 +213,10 @@ Neuron Inference Containers
 
 |Framework                                  |Job Type   |Python Version Options |Example URL                                                                                                |
 |-------------------------------------------|-----------|-----------------------|-----------------------------------------------------------------------------------------------------------|
-|PyTorch 1.10.1 with Neuron Inference        |inference 	|3.7 (py37) 	        |763104351884.dkr.ecr.us-east-1.amazonaws.com/pytorch-inference-neuron:1.10.1-neuron-py37-sdk1.17.1-ubuntu18.04        |
-|TensorFlow 1.15.5 with Neuron Inference    |inference 	|3.7 (py37) 	        |763104351884.dkr.ecr.us-east-1.amazonaws.com/tensorflow-inference-neuron:1.15.5-neuron-py37-sdk1.17.1-ubuntu18.04    |
-|Tensorflow 2.5.2 with Neuron Inference     |inference 	|3.7 (py37) 	        |763104351884.dkr.ecr.us-east-1.amazonaws.com/tensorflow-inference-neuron:2.5.2-neuron-py37-sdk1.17.1-ubuntu18.04     |
-|MXNet 1.8.0 with Neuron Inference          |inference 	|3.7 (py37) 	        |763104351884.dkr.ecr.us-east-1.amazonaws.com/mxnet-inference-neuron:1.8.0-neuron-py37-sdk1.17.1-ubuntu18.04          |
+|PyTorch 1.10.2 with Neuron Inference        |inference 	|3.7 (py37) 	        |763104351884.dkr.ecr.us-west-2.amazonaws.com/pytorch-inference-neuron:1.10.2-neuron-py37-sdk1.19.0-ubuntu18.04        |
+|TensorFlow 1.15.5 with Neuron Inference    |inference 	|3.7 (py37) 	        |763104351884.dkr.ecr.us-west-2.amazonaws.com/tensorflow-inference-neuron:1.15.5-neuron-py37-sdk1.19.0-ubuntu18.04   |
+|Tensorflow 2.5.3 with Neuron Inference     |inference 	|3.7 (py37) 	        |763104351884.dkr.ecr.us-west-2.amazonaws.com/tensorflow-inference-neuron:2.5.3-neuron-py37-sdk1.19.0-ubuntu18.04     |
+|MXNet 1.8.0 with Neuron Inference          |inference 	|3.7 (py37) 	        |763104351884.dkr.ecr.us-west-2.amazonaws.com/mxnet-inference-neuron:1.8.0-neuron-py37-sdk1.18.0-ubuntu18.04          |
 
 Prior E3 Framework Container Versions
 ==============
@@ -376,10 +376,10 @@ Prior Neuron Inference Container Versions
 ==============
 | Framework 			                    |Job Type 	 |Python Version Options    |Example URL 			                                                                                    |
 |-------------------------------------------|------------|--------------------------|-----------------------------------------------------------------------------------------------------------|
-|PyTorch 1.9.1 with Neuron Inference        |inference 	|3.7 (py37) 	        |763104351884.dkr.ecr.us-east-1.amazonaws.com/pytorch-inference-neuron:1.9.1-neuron-py37-sdk1.16.1-ubuntu18.04        |
-|TensorFlow 1.15.5 with Neuron Inference    |inference 	|3.7 (py37) 	        |763104351884.dkr.ecr.us-east-1.amazonaws.com/tensorflow-inference-neuron:1.15.5-neuron-py37-sdk1.16.1-ubuntu18.04    |
-|Tensorflow 2.5.1 with Neuron Inference     |inference 	|3.7 (py37) 	        |763104351884.dkr.ecr.us-east-1.amazonaws.com/tensorflow-inference-neuron:2.5.1-neuron-py37-sdk1.16.1-ubuntu18.04     |
-|MXNet 1.8.0 with Neuron Inference          |inference 	|3.7 (py37) 	        |763104351884.dkr.ecr.us-east-1.amazonaws.com/mxnet-inference-neuron:1.8.0-neuron-py37-sdk1.16.1-ubuntu18.04          |
+|PyTorch 1.10.1 with Neuron Inference        |inference 	|3.7 (py37) 	        |763104351884.dkr.ecr.us-east-1.amazonaws.com/pytorch-inference-neuron:1.10.1-neuron-py37-sdk1.17.1-ubuntu18.04        |
+|TensorFlow 1.15.5 with Neuron Inference    |inference 	|3.7 (py37) 	        |763104351884.dkr.ecr.us-east-1.amazonaws.com/tensorflow-inference-neuron:1.15.5-neuron-py37-sdk1.17.1-ubuntu18.04    |
+|Tensorflow 2.5.2 with Neuron Inference     |inference 	|3.7 (py37) 	        |763104351884.dkr.ecr.us-east-1.amazonaws.com/tensorflow-inference-neuron:2.5.2-neuron-py37-sdk1.17.1-ubuntu18.04     |
+|MXNet 1.8.0 with Neuron Inference          |inference 	|3.7 (py37) 	        |763104351884.dkr.ecr.us-east-1.amazonaws.com/mxnet-inference-neuron:1.8.0-neuron-py37-sdk1.17.1-ubuntu18.04          |
 
 
 Prior Habana Training Container Versions
