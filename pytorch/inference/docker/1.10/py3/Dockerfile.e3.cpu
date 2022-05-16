@@ -113,17 +113,19 @@ RUN pip uninstall -y torch \
  && pip install --no-deps --no-cache-dir -U $PT_TORCHVISION_URL
 
 RUN conda install -y -c conda-forge "pyyaml>=5.4,<5.5"
+# Install urllib3>=1.25.9 to satisfy awscli/boto3/botocore requirements while fixing for CVE-2020-26137
 RUN pip install \
     boto3 \
-    "Pillow>=9.0.0" \ 
-    "awscli<2"
+    "Pillow>=9.0.0" \
+    "awscli<2" \
+    "urllib3>=1.25.9"
 
 # torchserve-nightly==2022.3.23.post2 replace torchserve==${TS_VERSION}
 # only in PT1.10 for hotfix
 RUN pip uninstall -y model-archiver multi-model-server \
  && pip install captum \
  && pip install torchserve-nightly==2022.3.23.post2 \
- && pip install torch-model-archiver==${TS_VERSION} 
+ && pip install torch-model-archiver==${TS_VERSION}
 
 RUN cd tmp/ \
  && rm -rf tmp*
