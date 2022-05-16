@@ -317,7 +317,7 @@ LABEL dlc_major_version="1"
 # sagemaker-specific environment variable
 ENV SAGEMAKER_TRAINING_MODULE sagemaker_tensorflow_container.training:main
 
-ARG TF_URL=https://framework-binaries.s3.us-west-2.amazonaws.com/tensorflow/temp/r2.9/gpu/2022-04-22-03-48/tensorflow_gpu-2.9.0rc0-cp39-cp39-manylinux_2_17_x86_64.manylinux2014_x86_64.whl
+ARG TF_URL=https://loki-framework-binaries.s3.us-west-2.amazonaws.com/tensorflow/temp/r2.9/gpu/2022-05-16-22-18/tensorflow_gpu-2.9.0rc2-cp39-cp39-manylinux_2_17_x86_64.manylinux2014_x86_64.whl
 
 RUN ${PIP} install --no-cache-dir -U \
    ${TF_URL} \
