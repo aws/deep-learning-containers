@@ -945,7 +945,7 @@ def parse_canary_images(framework, region):
             # Only get graviton images for graviton build systems
             if customer_type == "e3":
                 dlc_images += [f"{img}-e3" for img in images[framework]]
-            elif os.getenv("ARCH_TYPE") == "graviton"
+            elif os.getenv("ARCH_TYPE") == "graviton":
                 dlc_images += graviton_images[framework]
             else:
                 dlc_images += images[framework]
