@@ -151,7 +151,8 @@ def image_builder(buildspec):
         elif "inference" in image_repo_uri:
             job_type = "inference"
         else:
-            raise RuntimeError(f"Cannot find inference or training job typ ein {image_repo_uri}")
+            raise RuntimeError(f"Cannot find inference or training job type in {image_repo_uri}. "
+                               f"This is required to set job_type label.")
         labels[f"com.amazonaws.sagemaker.dlc.job_type.{job_type}"] = "true"
 
         # Add contributor if it is defined in buildspec
