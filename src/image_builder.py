@@ -160,7 +160,7 @@ def image_builder(buildspec):
         # Add contributor if it is defined in buildspec
         contributor = BUILDSPEC.get('contributor')
         if contributor:
-            labels[f"com.amazonaws.sagemaker.dlc.contributor.{str(contributor)}"] = "true"
+            labels[f"com.amazonaws.dlc.{cx_type}.contributor.{str(contributor)}"] = "true"
 
         """
         Override parameters from parent in child.
