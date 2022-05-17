@@ -140,14 +140,24 @@ def image_builder(buildspec):
             labels.update(image_config.get("labels"))
 
         # Adding standard labels to all images
-        labels[f"com.amazonaws.sagemaker.dlc.framework.{str(BUILDSPEC['framework'])}"] = True
-        labels[f"com.amazonaws.sagemaker.dlc.framework_version.{str(BUILDSPEC['version']).replace('.', '-')}"] = True
-        labels[f"com.amazonaws.sagemaker.dlc.device_type.{str(image_config['device_type'])}"] = True
+        labels[f"com.amazonaws.sagemaker.dlc.framework.{str(BUILDSPEC['framework'])}"] = "true"
+        labels[f"com.amazonaws.sagemaker.dlc.framework_version.{str(BUILDSPEC['version']).replace('.', '-')}"] = "true"
+        labels[f"com.amazonaws.sagemaker.dlc.device_type.{str(image_config['device_type'])}"] = "true"
         # python version label will look like py_version.py36, for example
-        labels[f"com.amazonaws.sagemaker.dlc.py_version.{image_config['tag_python_version']}"] = True
+        labels[f"com.amazonaws.sagemaker.dlc.py_version.{image_config['tag_python_version']}"] = "true"
+        # job_type will be either inference or training, based on the repo URI
+        if "training" in image_repo_uri:
+            job_type = "training"
+        elif "inference" in image_repo_uri:
+            job_type = "inference"
+        else:
+            raise RuntimeError(f"Cannot find inference or training job typ ein {image_repo_uri}")
+        labels[f"com.amazonaws.sagemaker.dlc.job_type.{job_type}"] = "true"
+
+        # Add contributor if it is defined in buildspec
         contributor = BUILDSPEC.get('contributor')
         if contributor:
-            labels[f"com.amazonaws.sagemaker.dlc.contributor.{str(contributor)}"] = True
+            labels[f"com.amazonaws.sagemaker.dlc.contributor.{str(contributor)}"] = "true"
 
         """
         Override parameters from parent in child.
