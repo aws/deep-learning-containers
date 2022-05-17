@@ -151,10 +151,10 @@ RUN curl -L -o ~/mambaforge.sh https://github.com/conda-forge/miniforge/releases
  && conda install -y -c dglteam dgl-cuda11.1=0.6.1 \
  && /opt/conda/bin/conda clean -ya
 
-RUN sudo ln -s /usr/local/lib/libmkl_intel_lp64.so /usr/local/lib/libmkl_intel_lp64.so.1 \
- && sudo ln -s /usr/local/lib/libmkl_intel_thread.so /usr/local/lib/libmkl_intel_thread.so.1 \
- && sudo ln -s /usr/local/lib/libmkl_core.so /usr/local/lib/libmkl_core.so.1 \
- && sudo ln -s /usr/local/lib/libmkl_rt.so /usr/local/lib/libmkl_rt.so.1 \
+RUN ln -s /usr/local/lib/libmkl_intel_lp64.so /usr/local/lib/libmkl_intel_lp64.so.1 \
+ && ln -s /usr/local/lib/libmkl_intel_thread.so /usr/local/lib/libmkl_intel_thread.so.1 \
+ && ln -s /usr/local/lib/libmkl_core.so /usr/local/lib/libmkl_core.so.1 \
+ && ln -s /usr/local/lib/libmkl_rt.so /usr/local/lib/libmkl_rt.so.1 \
  && ldconfig
 
 # Conda installs links for libtinfo.so.6 and libtinfo.so.6.2 both
