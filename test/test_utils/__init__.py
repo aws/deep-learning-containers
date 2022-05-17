@@ -833,6 +833,19 @@ def parse_canary_images(framework, region):
     """
     customer_type = get_customer_type()
     customer_type_tag = f"-{customer_type}" if customer_type else ""
+    
+    # initialize graviton variables
+    use_graviton = False
+
+    # seperating framework from regex match pattern for graviton as it is ARCH_TYPE instead of FRAMEWORK
+    regex_pattern = framework
+
+    # Setting whether Graviton Arch is used
+    # NOTE: If Graviton arch is used with a framework, not in the list below, the match search will "KeyError".
+    if os.getenv("ARCH_TYPE") == "graviton":
+        use_graviton = True
+        graviton_tag = "-graviton"
+        regex_pattern = "graviton_"+framework
 
     version_regex = {
         "tensorflow": rf"tf(-sagemaker)?{customer_type_tag}-(\d+.\d+)",
@@ -841,8 +854,11 @@ def parse_canary_images(framework, region):
         "huggingface_pytorch": r"hf-\S*pt(-sagemaker)?-(\d+.\d+)",
         "huggingface_tensorflow": r"hf-\S*tf(-sagemaker)?-(\d+.\d+)",
         "autogluon": r"ag(-sagemaker)?-(\d+.\d+)\S*-(py\d+)",
+        "graviton_tensorflow": rf"tf-graviton(-sagemaker)?{customer_type_tag}-(\d+.\d+)\S*-(py\d+)",
+        "graviton_pytorch": rf"pt-graviton(-sagemaker)?{customer_type_tag}-(\d+.\d+)\S*-(py\d+)",
     }
-
+    
+    # Get tags from repo releases
     repo = git.Repo(os.getcwd(), search_parent_directories=True)
 
     versions_counter = {}
@@ -850,7 +866,7 @@ def parse_canary_images(framework, region):
 
     for tag in repo.tags:
         tag_str = str(tag)
-        match = re.search(version_regex[framework], tag_str)
+        match = re.search(version_regex[regex_pattern], tag_str)
         ## The tags not have -py3 will not pass th condition below
         ## This eliminates all the old and testing tags that we are not monitoring.
         if match:
@@ -864,7 +880,7 @@ def parse_canary_images(framework, region):
                 versions_counter[version]["tr"] = True
             elif "inf" in tag_str:
                 versions_counter[version]["inf"] = True
-            
+
             try:
                 python_version_extracted_through_regex = match.group(3)
                 if python_version_extracted_through_regex:
@@ -877,7 +893,7 @@ def parse_canary_images(framework, region):
     versions = []
     for v, inf_train in versions_counter.items():
         # Earlier versions of huggingface did not have inference
-        if (inf_train["inf"] and inf_train["tr"]) or framework.startswith("huggingface"):
+        if (inf_train["inf"] and inf_train["tr"]) or framework.startswith("huggingface") or use_graviton:
             versions.append(v)
 
     # Sort ascending to descending, use lambda to ensure 2.2 < 2.15, for instance
@@ -938,11 +954,13 @@ def parse_canary_images(framework, region):
                     f"{registry}.dkr.ecr.{region}.amazonaws.com/pytorch-inference-graviton:{fw_version}-cpu-{py_version}",
                 ],
             }
-            # E3 Images have an additional "e3" tag to distinguish them from the regular "sagemaker" tag
+
             # Only get graviton images for graviton build systems
-            if os.getenv("ARCH_TYPE") == "graviton":
-                dlc_images += graviton_images[framework]
-            elif customer_type == "e3":
+            if use_graviton:
+                images = graviton_images
+
+            # E3 Images have an additional "e3" tag to distinguish them from the regular "sagemaker" tag
+            if customer_type == "e3":
                 dlc_images += [f"{img}-e3" for img in images[framework]]
             else:
                 dlc_images += images[framework]
