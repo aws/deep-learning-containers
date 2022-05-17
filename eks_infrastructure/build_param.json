@@ -1,5 +1,5 @@
 {
-    "operation": "create",
+    "operation": "upgrade_nodegroup",
     "contexts":[
         "PR",
         "MAINLINE"

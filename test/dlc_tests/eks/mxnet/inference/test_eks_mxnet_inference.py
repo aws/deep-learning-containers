@@ -56,8 +56,6 @@ def test_eks_mxnet_squeezenet_inference(mxnet_inference):
     __test_eks_mxnet_squeezenet_inference(mxnet_inference)
 
 
-# TODO: Enable after adding EKS infrastructure to support graviton
-@pytest.mark.skip(reason="EKS graviton tests require further development")
 @pytest.mark.model("squeezenet")
 def test_eks_mxnet_squeezenet_inference_graviton(mxnet_inference_graviton):
     __test_eks_mxnet_squeezenet_inference(mxnet_inference_graviton)
