@@ -1548,3 +1548,17 @@ def is_image_available_locally(image_uri):
     """
     run_output = run(f"docker inspect {image_uri}", hide=True, warn=True)
     return run_output.ok
+
+
+def get_contributor_from_image_uri(image_uri):
+    """
+    Return contributor name if it is present in the image URI
+
+    @param image_uri: ECR image uri
+    @return: contributor name, or ""
+    """
+    if "huggingface" in image_uri:
+        return "huggingface"
+    if "habana" in image_uri:
+        return "habana"
+    return ""

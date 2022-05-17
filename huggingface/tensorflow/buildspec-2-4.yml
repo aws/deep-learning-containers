@@ -4,6 +4,7 @@ base_framework: &BASE_FRAMEWORK tensorflow
 framework: &FRAMEWORK !join [ "huggingface_", *BASE_FRAMEWORK]
 version: &VERSION 2.4.3
 short_version: &SHORT_VERSION 2.4
+contributor: huggingface
 
 repository_info:
   training_repository: &TRAINING_REPOSITORY

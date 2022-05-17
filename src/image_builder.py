@@ -139,6 +139,16 @@ def image_builder(buildspec):
         if "labels" in image_config:
             labels.update(image_config.get("labels"))
 
+        # Adding standard labels to all images
+        labels[f"com.amazonaws.sagemaker.dlc.framework.{str(BUILDSPEC['framework'])}"] = True
+        labels[f"com.amazonaws.sagemaker.dlc.framework_version.{str(BUILDSPEC['version']).replace('.', '-')}"] = True
+        labels[f"com.amazonaws.sagemaker.dlc.device_type.{str(image_config['device_type'])}"] = True
+        # python version label will look like py_version.py36, for example
+        labels[f"com.amazonaws.sagemaker.dlc.py_version.{image_config['tag_python_version']}"] = True
+        contributor = BUILDSPEC.get('contributor')
+        if contributor:
+            labels[f"com.amazonaws.sagemaker.dlc.contributor.{str(contributor)}"] = True
+
         """
         Override parameters from parent in child.
         """
