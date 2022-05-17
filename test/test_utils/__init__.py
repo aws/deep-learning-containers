@@ -934,19 +934,16 @@ def parse_canary_images(framework, region):
                 "tensorflow": [
                     f"{registry}.dkr.ecr.{region}.amazonaws.com/tensorflow-inference-graviton:{fw_version}-cpu-{py_version}",
                 ],
-                "mxnet": [
-                    f"{registry}.dkr.ecr.{region}.amazonaws.com/mxnet-inference-graviton:{fw_version}-cpu-{py_version}",
-                ],
                 "pytorch": [
                     f"{registry}.dkr.ecr.{region}.amazonaws.com/pytorch-inference-graviton:{fw_version}-cpu-{py_version}",
                 ],
             }
             # E3 Images have an additional "e3" tag to distinguish them from the regular "sagemaker" tag
             # Only get graviton images for graviton build systems
-            if customer_type == "e3":
-                dlc_images += [f"{img}-e3" for img in images[framework]]
-            elif os.getenv("ARCH_TYPE") == "graviton":
+            if os.getenv("ARCH_TYPE") == "graviton":
                 dlc_images += graviton_images[framework]
+            elif customer_type == "e3":
+                dlc_images += [f"{img}-e3" for img in images[framework]]
             else:
                 dlc_images += images[framework]
     
