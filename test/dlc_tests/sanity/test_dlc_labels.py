@@ -35,6 +35,8 @@ def test_dlc_major_version_label(image, region):
 def test_dlc_standard_labels(image, region):
     customer_type_label_prefix = "e3" if test_utils.is_e3_image(image) else "sagemaker"
     framework, fw_version = test_utils.get_framework_and_version_from_tag(image)
+    framework = framework.replace('_', '-')
+    fw_version = fw_version.replace('.', '-')
     device_type = test_utils.get_processor_from_image_uri(image)
     python_version = test_utils.get_python_version_from_image_uri(image)
     job_type = test_utils.get_job_type_from_image(image)
@@ -43,10 +45,10 @@ def test_dlc_standard_labels(image, region):
 
     expected_labels = [
         f"com.amazonaws.dlc.{customer_type_label_prefix}.framework.{framework}",
-        f"com.amazonaws.dlc.{customer_type_label_prefix}.framework_version.{fw_version}",
-        f"com.amazonaws.dlc.{customer_type_label_prefix}.device_type.{device_type}",
-        f"com.amazonaws.dlc.{customer_type_label_prefix}.py_version.{python_version}",
-        f"com.amazonaws.dlc.{customer_type_label_prefix}.job_type.{job_type}",
+        f"com.amazonaws.dlc.{customer_type_label_prefix}.framework-version.{fw_version}",
+        f"com.amazonaws.dlc.{customer_type_label_prefix}.device-type.{device_type}",
+        f"com.amazonaws.dlc.{customer_type_label_prefix}.py-version.{python_version}",
+        f"com.amazonaws.dlc.{customer_type_label_prefix}.job-type.{job_type}",
     ]
 
     if contributor:
