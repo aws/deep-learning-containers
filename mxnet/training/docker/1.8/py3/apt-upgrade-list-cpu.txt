@@ -1,1 +1,4 @@
 libc6
+wget
+xz-utils
+zlib
