@@ -172,10 +172,8 @@ def test_tf_serving_version_cpu(tensorflow_inference):
     output = run_cmd_on_container(
         container_name, ctx, "tensorflow_model_server --version", executable="bash"
     )
-    assert (
-        re.match(rf"TensorFlow Model Server: {tag_framework_version}(\D+)?", output.stdout),
+    assert re.match(rf"TensorFlow ModelServer: {tag_framework_version}(\D+)?", output.stdout), \
         f"Cannot find model server version {tag_framework_version} in {output.stdout}"
-    )
 
     stop_and_remove_container(container_name, ctx)
 
@@ -320,10 +318,8 @@ def test_framework_and_cuda_version_gpu(gpu, ec2_connection):
     if re.fullmatch(r"(pr-|beta-|nightly-)?tensorflow-inference(-eia|-graviton)?", image_repo_name):
         cmd = f"tensorflow_model_server --version"
         output = ec2.execute_ec2_training_test(ec2_connection, image, cmd, executable="bash")
-        assert (
-            re.match(rf"TensorFlow Model Server: {tag_framework_version}(\D+)?", output.stdout),
+        assert re.match(rf"TensorFlow ModelServer: {tag_framework_version}(\D+)?", output.stdout), \
             f"Cannot find model server version {tag_framework_version} in {output.stdout}"
-        )
     else:
         # Framework name may include huggingface
         if tested_framework.startswith('huggingface_'):
@@ -381,12 +377,12 @@ def _run_dependency_check_test(image, ec2_connection):
 
     processor = get_processor_from_image_uri(image)
 
-    # Whitelist CVE #CVE-2021-3711 for DLCs where openssl is installed using apt-get
     framework, _ = get_framework_and_version_from_tag(image)
     short_fw_version = re.search(r"(\d+\.\d+)", image).group(1)
 
+    # Allowlist CVE #CVE-2021-3711 for DLCs where openssl is installed using apt-get
     # Check that these versions have been matched on https://ubuntu.com/security/CVE-2021-3711 before adding
-    allow_openssl_cve_fw_versions = {
+    allow_openssl_cve_2021_3711_fw_versions = {
         "tensorflow": {
             "1.15": ["cpu", "gpu", "neuron"],
             "2.3": ["cpu", "gpu"],
@@ -404,8 +400,19 @@ def _run_dependency_check_test(image, ec2_connection):
         "autogluon": {"0.3": ["cpu", "gpu"], "0.4": ["cpu", "gpu"]},
     }
 
-    if processor in allow_openssl_cve_fw_versions.get(framework, {}).get(short_fw_version, []):
+    # Allowlist CVE #CVE-2022-1292 for DLCs where openssl is installed using apt-get
+    # Check that these versions have been matched on https://ubuntu.com/security/CVE-2022-1292 before adding
+    allow_openssl_cve_2022_1292_fw_versions = {
+        "pytorch": {
+            "1.10": ["gpu"],
+            "1.11": ["gpu", "cpu"],
+        },
+    }
+
+    if processor in allow_openssl_cve_2021_3711_fw_versions.get(framework, {}).get(short_fw_version, []):
         allowed_vulnerabilities.add("CVE-2021-3711")
+    if processor in allow_openssl_cve_2022_1292_fw_versions.get(framework, {}).get(short_fw_version, []):
+        allowed_vulnerabilities.add("CVE-2022-1292")
 
     container_name = f"dep_check_{processor}"
     report_addon = get_container_name("depcheck-report", image)
@@ -506,6 +513,7 @@ def test_dependency_check_gpu(gpu, ec2_connection, gpu_only):
 def test_dependency_check_eia(eia, ec2_connection):
     _run_dependency_check_test(eia, ec2_connection)
 
+
 @pytest.mark.model("N/A")
 @pytest.mark.canary("Run dependency tests regularly on production images")
 @pytest.mark.parametrize("ec2_instance_type", ["dl1.24xlarge"], indirect=True)
@@ -572,7 +580,6 @@ def test_dataclasses_check(image):
 
 @pytest.mark.usefixtures("sagemaker")
 @pytest.mark.model("N/A")
-@pytest.mark.canary("Run pip check test regularly on production images")
 def test_pip_check(image):
     """
     Ensure there are no broken requirements on the containers by running "pip check"

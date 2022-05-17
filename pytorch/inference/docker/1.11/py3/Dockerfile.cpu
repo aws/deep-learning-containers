@@ -1,8 +1,9 @@
 ARG PYTHON=python3
-ARG PYTHON_VERSION=3.8.12
+ARG PYTHON_VERSION=3.8.13
+ARG MAMBA_VERSION=4.12.0-0
 
 # PyTorch Binaries
-ARG PT_E3_INFERENCE_URL=https://aws-pytorch-cicd-v3-binaries.s3.us-west-2.amazonaws.com/r1.11.0_v3_e3/20220316-044906/9a915205c493de013250347af38ad1083854bc09/cpu/torch-1.11.0%2Bcpu-cp38-cp38-linux_x86_64.whl
+ARG PT_INFERENCE_URL=https://aws-pytorch-cicd-v3-binaries.s3.us-west-2.amazonaws.com/r1.11.0_v3_e3/20220316-044906/9a915205c493de013250347af38ad1083854bc09/cpu/torch-1.11.0%2Bcpu-cp38-cp38-linux_x86_64.whl
 ARG PT_TORCHVISION_URL=https://download.pytorch.org/whl/cpu/torchvision-0.12.0%2Bcpu-cp38-cp38-linux_x86_64.whl
 ARG PT_TORCHAUDIO_URL=https://download.pytorch.org/whl/cpu/torchaudio-0.11.0%2Bcpu-cp38-cp38-linux_x86_64.whl
 ARG PT_TORCHDATA_URL=https://aws-pytorch-cicd-v3-binaries.s3.us-west-2.amazonaws.com/r1.11.0_v3_e3/aws-torchdata/torchdata-0.4.0-cp38-cp38-linux_x86_64.whl
@@ -24,14 +25,15 @@ LABEL dlc_major_version="1"
 ARG PYTHON
 ARG PYTHON_VERSION
 ARG OPEN_MPI_VERSION=4.0.1
+ARG MAMBA_VERSION
 
 # PyTorch Binaries
-ARG PT_E3_INFERENCE_URL
+ARG PT_INFERENCE_URL
 ARG PT_TORCHVISION_URL
 ARG PT_TORCHAUDIO_URL
 ARG PT_TORCHDATA_URL
 
-ARG TS_VERSION=0.5.2
+ARG TS_VERSION=0.5.3
 
 ENV LANG=C.UTF-8
 ENV LD_LIBRARY_PATH="${LD_LIBRARY_PATH}:/opt/conda/lib"
@@ -103,26 +105,25 @@ ENV PATH="$PATH:/home/.openmpi/bin"
 ENV LD_LIBRARY_PATH="$LD_LIBRARY_PATH:/home/.openmpi/lib/"
 RUN ompi_info --parsable --all | grep mpi_built_with_cuda_support:value
 
-RUN curl -L -o ~/miniconda.sh https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh \
- && chmod +x ~/miniconda.sh \
- && ~/miniconda.sh -b -p /opt/conda \
- && rm ~/miniconda.sh \
+
+RUN curl -L -o ~/mambaforge.sh https://github.com/conda-forge/miniforge/releases/download/${MAMBA_VERSION}/Mambaforge-${MAMBA_VERSION}-Linux-x86_64.sh \
+ && chmod +x ~/mambaforge.sh \
+ && ~/mambaforge.sh -b -p /opt/conda \
+ && rm ~/mambaforge.sh \
  && /opt/conda/bin/conda update conda \
  && /opt/conda/bin/conda install -c conda-forge \
     python=$PYTHON_VERSION \
- && /opt/conda/bin/conda install -y -c anaconda \
-    # conda 4.10.0 requires ruamel_yaml to be installed. Currently pinned at latest.
     cython \
     mkl \
     mkl-include \
     parso \
-    ruamel_yaml==0.15.100 \
     typing \
- && conda install -y \
     h5py \
     requests \
- && /opt/conda/bin/conda clean -ya \
- && conda clean -ya
+    # Below 2 are included in miniconda base, but not mamba so need to install
+    conda-content-trust \
+    charset-normalizer \
+ && /opt/conda/bin/conda clean -ya
 
 # Conda installs links for libtinfo.so.6 and libtinfo.so.6.2 both
 # Which causes "/opt/conda/lib/libtinfo.so.6: no version information available" warning
@@ -146,11 +147,13 @@ RUN pip install --upgrade pip --trusted-host pypi.org --trusted-host files.pytho
     "pyyaml>=5.4,<5.5" \
     scipy \
  && pip uninstall -y torch torchvision torchaudio torchdata \
- && pip install --no-cache-dir -U ${PT_E3_INFERENCE_URL} ${PT_TORCHVISION_URL} ${PT_TORCHAUDIO_URL} ${PT_TORCHDATA_URL}
+ && pip install --no-cache-dir -U ${PT_INFERENCE_URL} ${PT_TORCHVISION_URL} ${PT_TORCHAUDIO_URL} ${PT_TORCHDATA_URL}
 
+# TODO: revert torchserve-nightly back to torchserve once a compatible stable version is released
 RUN pip uninstall -y model-archiver multi-model-server \
  && pip install captum \
- && pip install torchserve==${TS_VERSION} \
+#  && pip install torchserve==${TS_VERSION} \
+ && pip install torchserve-nightly==2022.3.23.post2 \
  && pip install torch-model-archiver==${TS_VERSION}
 
 RUN useradd -m model-server \
@@ -209,7 +212,7 @@ ARG PYTHON
 ENV SAGEMAKER_SERVING_MODULE sagemaker_pytorch_serving_container.serving:main
 
 # Install scikit-learn and pandas
-RUN conda install -y \
+RUN conda install -y -c conda-forge \
     scikit-learn \
     pandas
 
