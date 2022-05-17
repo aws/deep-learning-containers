@@ -139,12 +139,14 @@ def image_builder(buildspec):
         if "labels" in image_config:
             labels.update(image_config.get("labels"))
 
+        cx_type = utils.get_label_prefix_customer_type(image_tag)
+
         # Adding standard labels to all images
-        labels[f"com.amazonaws.sagemaker.dlc.framework.{str(BUILDSPEC['framework'])}"] = "true"
-        labels[f"com.amazonaws.sagemaker.dlc.framework_version.{str(BUILDSPEC['version']).replace('.', '-')}"] = "true"
-        labels[f"com.amazonaws.sagemaker.dlc.device_type.{str(image_config['device_type'])}"] = "true"
+        labels[f"com.amazonaws.dlc.{cx_type}.framework.{str(BUILDSPEC['framework'])}"] = "true"
+        labels[f"com.amazonaws.dlc.{cx_type}.framework_version.{str(BUILDSPEC['version']).replace('.', '-')}"] = "true"
+        labels[f"com.amazonaws.dlc.{cx_type}.device_type.{str(image_config['device_type'])}"] = "true"
         # python version label will look like py_version.py36, for example
-        labels[f"com.amazonaws.sagemaker.dlc.py_version.{image_config['tag_python_version']}"] = "true"
+        labels[f"com.amazonaws.dlc.{cx_type}.py_version.{image_config['tag_python_version']}"] = "true"
         # job_type will be either inference or training, based on the repo URI
         if "training" in image_repo_uri:
             job_type = "training"
@@ -153,7 +155,7 @@ def image_builder(buildspec):
         else:
             raise RuntimeError(f"Cannot find inference or training job type in {image_repo_uri}. "
                                f"This is required to set job_type label.")
-        labels[f"com.amazonaws.sagemaker.dlc.job_type.{job_type}"] = "true"
+        labels[f"com.amazonaws.dlc.{cx_type}.job_type.{job_type}"] = "true"
 
         # Add contributor if it is defined in buildspec
         contributor = BUILDSPEC.get('contributor')

@@ -33,21 +33,24 @@ def test_dlc_major_version_label(image, region):
 @pytest.mark.integration("dlc_labels")
 @pytest.mark.model("N/A")
 def test_dlc_standard_labels(image, region):
+    customer_type_label_prefix = "e3" if test_utils.is_e3_image(image) else "sagemaker"
     framework, fw_version = test_utils.get_framework_and_version_from_tag(image)
     device_type = test_utils.get_processor_from_image_uri(image)
     python_version = test_utils.get_python_version_from_image_uri(image)
+    job_type = test_utils.get_job_type_from_image(image)
 
     contributor = test_utils.get_contributor_from_image_uri(image)
 
     expected_labels = [
-        f"com.amazonaws.sagemaker.dlc.framework.{framework}",
-        f"com.amazonaws.sagemaker.dlc.framework_version.{fw_version}",
-        f"com.amazonaws.sagemaker.dlc.device_type.{device_type}",
-        f"com.amazonaws.sagemaker.dlc.py_version.{python_version}"
+        f"com.amazonaws.dlc.{customer_type_label_prefix}.framework.{framework}",
+        f"com.amazonaws.dlc.{customer_type_label_prefix}.framework_version.{fw_version}",
+        f"com.amazonaws.dlc.{customer_type_label_prefix}.device_type.{device_type}",
+        f"com.amazonaws.dlc.{customer_type_label_prefix}.py_version.{python_version}",
+        f"com.amazonaws.dlc.{customer_type_label_prefix}.job_type.{job_type}",
     ]
 
     if contributor:
-        expected_labels.append(f"com.amazonaws.sagemaker.dlc.contributor.{contributor}")
+        expected_labels.append(f"com.amazonaws.dlc.{customer_type_label_prefix}.contributor.{contributor}")
 
     actual_labels = _get_labels_from_ecr(image, region)
 
