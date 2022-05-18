@@ -5524,8 +5524,8 @@
                     "value": "6.8"
                 }
             ],
-            "description": "vim is vulnerable to Use After Free",
-            "name": "CVE-2021-3796",
+            "description": "vim is vulnerable to Heap-based Buffer Overflow",
+            "name": "CVE-2021-3778",
             "scraped_data": [
                 {
                     "notes": [],
@@ -5563,7 +5563,7 @@
                             ],
                             [
                                 "upstream",
-                                "Released (v8.2.3428)"
+                                "Released (v8.2.3409)"
                             ],
                             [
                                 "xenial",
@@ -5574,7 +5574,7 @@
                 }
             ],
             "severity": "MEDIUM",
-            "uri": "http://people.ubuntu.com/~ubuntu-security/cve/CVE-2021-3796"
+            "uri": "http://people.ubuntu.com/~ubuntu-security/cve/CVE-2021-3778"
         },
         {
             "attributes": [
