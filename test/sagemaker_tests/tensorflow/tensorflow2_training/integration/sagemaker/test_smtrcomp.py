@@ -14,6 +14,7 @@ from __future__ import absolute_import
 
 import pytest
 from unittest import mock
+import os
 
 import boto3, sagemaker
 from sagemaker.tensorflow import TensorFlow

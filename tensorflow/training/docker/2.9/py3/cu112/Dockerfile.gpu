@@ -315,10 +315,8 @@ RUN ${PIP} install --no-cache-dir -U \
    ${TF_URL} \
    tensorflow-io==0.24.0 \
     tensorflow-datasets==4.5.2 \
-    tf-models-nightly \
-    # ToDo: Switch to tf-models-official==2.9.0 when released
-    tensorflow-text==v2.9.0-rc1
-    # ToDo: Switch to tensorflow-text==2.9.0 when released
+    tf-models-nightly==2.9.0 \
+    tensorflow-text==2.9.0
 
 # Install Horovod, temporarily using CUDA stubs
 RUN ldconfig /usr/local/cuda-11.2/targets/x86_64-linux/lib/stubs \
