@@ -5,6 +5,7 @@ framework: &FRAMEWORK !join [ "huggingface_", *BASE_FRAMEWORK]
 version: &VERSION 1.6.0
 short_version: &SHORT_VERSION 1.6
 contributor: huggingface
+arch_type: x86
 
 repository_info:
   training_repository: &TRAINING_REPOSITORY

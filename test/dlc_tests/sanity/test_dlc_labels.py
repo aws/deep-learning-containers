@@ -41,6 +41,9 @@ def test_dlc_standard_labels(image, region):
     python_version = test_utils.get_python_version_from_image_uri(image)
     job_type = test_utils.get_job_type_from_image(image)
 
+    # TODO: Add x86 env variable to check explicitly for x86, instead of assuming that everything not graviton is x86
+    arch_type = "graviton" if test_utils.is_graviton_architecture() else "x86"
+
     contributor = test_utils.get_contributor_from_image_uri(image)
 
     expected_labels = [
@@ -49,6 +52,7 @@ def test_dlc_standard_labels(image, region):
         f"com.amazonaws.dlc.{customer_type_label_prefix}.device-type.{device_type}",
         f"com.amazonaws.dlc.{customer_type_label_prefix}.py-version.{python_version}",
         f"com.amazonaws.dlc.{customer_type_label_prefix}.job-type.{job_type}",
+        f"com.amazonaws.dlc.{customer_type_label_prefix}.arch-type.{arch_type}",
     ]
 
     if contributor:

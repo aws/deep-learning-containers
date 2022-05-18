@@ -3,6 +3,7 @@
   framework: &FRAMEWORK tensorflow
   version: &VERSION 2.7.0
   short_version: &SHORT_VERSION 2.7
+  arch_type: graviton
 
   repository_info:
     inference_repository: &INFERENCE_REPOSITORY

@@ -4,6 +4,7 @@
   version: &VERSION 1.9.0
   os_version: &OS_VERSION ubuntu18.04
   short_version: &SHORT_VERSION 1.9
+  arch_type: graviton
 
   repository_info:
     inference_repository: &INFERENCE_REPOSITORY

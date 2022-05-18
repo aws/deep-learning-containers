@@ -35,6 +35,7 @@ from config import parse_dlc_developer_configs, is_build_enabled
 FORMATTER = OutputFormatter(constants.PADDING)
 build_context = os.getenv("BUILD_CONTEXT")
 
+
 def _find_image_object(images_list, image_name):
     """
     Find and return an image object from images_list with a name that matches image_name
@@ -145,6 +146,7 @@ def image_builder(buildspec):
         labels[f"com.amazonaws.dlc.{cx_type}.framework.{str(BUILDSPEC['framework']).replace('_', '-')}"] = "true"
         labels[f"com.amazonaws.dlc.{cx_type}.framework-version.{str(BUILDSPEC['version']).replace('.', '-')}"] = "true"
         labels[f"com.amazonaws.dlc.{cx_type}.device-type.{str(image_config['device_type'])}"] = "true"
+        labels[f"com.amazonaws.dlc.{cx_type}.arch-type.{str(BUILDSPEC['arch_type'])}"] = "true"
         # python version label will look like py_version.py36, for example
         labels[f"com.amazonaws.dlc.{cx_type}.py-version.{image_config['tag_python_version']}"] = "true"
         # job_type will be either inference or training, based on the repo URI

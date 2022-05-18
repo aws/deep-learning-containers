@@ -3,6 +3,7 @@ region: &REGION <set-$REGION-in-environment>
 framework: &FRAMEWORK autogluon
 version: &VERSION 0.4.0
 short_version: &SHORT_VERSION 0.4
+arch_type: x86
 
 repository_info:
   training_repository: &TRAINING_REPOSITORY
