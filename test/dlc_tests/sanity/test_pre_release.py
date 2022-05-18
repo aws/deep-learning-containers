@@ -406,6 +406,9 @@ def _run_dependency_check_test(image, ec2_connection):
             "1.10": ["gpu"],
             "1.11": ["gpu", "cpu"],
         },
+        "tensorflow": {
+            "2.8": ["cpu", "gpu"],
+        }
     }
 
     if processor in allow_openssl_cve_2021_3711_fw_versions.get(framework, {}).get(short_fw_version, []):
