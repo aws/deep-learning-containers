@@ -391,6 +391,7 @@ def _run_dependency_check_test(image, ec2_connection):
             "2.6": ["cpu", "gpu"],
             "2.7": ["cpu", "gpu", "hpu"],
             "2.8": ["cpu", "gpu", "hpu"],
+            "2.9": ["cpu", "gpu"]
         },
         "mxnet": {"1.8": ["neuron"], "1.9": ["cpu", "gpu"]},
         "pytorch": {"1.8": ["cpu", "gpu"], "1.10": ["cpu", "hpu"], "1.11": ["cpu", "gpu"]},
@@ -401,7 +402,15 @@ def _run_dependency_check_test(image, ec2_connection):
 
     # Allowlist CVE #CVE-2022-1292 for DLCs where openssl is installed using apt-get
     # Check that these versions have been matched on https://ubuntu.com/security/CVE-2022-1292 before adding
-    allow_openssl_cve_2022_1292_fw_versions = {"pytorch": {"1.10": ["gpu"]}}
+    allow_openssl_cve_2022_1292_fw_versions = {
+        "pytorch": {
+            "1.10": ["gpu"],
+            "1.11": ["gpu", "cpu"],
+        },
+        "tensorflow": {
+            "2.9": ["cpu", "gpu"]
+        }
+    }
 
     if processor in allow_openssl_cve_2021_3711_fw_versions.get(framework, {}).get(short_fw_version, []):
         allowed_vulnerabilities.add("CVE-2021-3711")
