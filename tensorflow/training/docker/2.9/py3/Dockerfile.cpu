@@ -230,9 +230,7 @@ ARG TF_URL=https://framework-binaries.s3.us-west-2.amazonaws.com/tensorflow/r2.9
 RUN ${PIP} install --no-cache-dir -U \
     ${TF_URL} \
     tensorflow-io==0.24.0 \
-    tensorflow-datasets==4.5.2 \
-    tf-models-official==2.9.0 \
-    tensorflow-text==2.9.0
+    tensorflow-datasets==4.5.2
 
 # Install Horovod with TensorFlow
 RUN HOROVOD_WITH_MPI=1 \
@@ -246,8 +244,7 @@ RUN $PYTHON -m pip install --no-cache-dir -U \
     "plotly>=5.1,<6" \
     "seaborn>=0.11,<1" \
     "numba<0.54" \
-    "shap>=0.39,<1" \
-    gin-config
+    "shap>=0.39,<1"
 
 RUN $PYTHON -m pip install --no-cache-dir -U \
     "sagemaker>=2,<3" \
