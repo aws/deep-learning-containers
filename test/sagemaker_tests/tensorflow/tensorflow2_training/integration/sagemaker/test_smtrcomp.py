@@ -280,7 +280,7 @@ class TestMLWorkFlow:
                                    'batch-size': 1024,
                                    # This makes the training job exporting model during training.
                                    # Stale model garbage collection will also be performed.
-                                   'export-model-during-training': True
+                                   'export-model-during-training': True,
                                     TrainingCompilerConfig.HP_ENABLE_COMPILER : True,
                                },
                                )
