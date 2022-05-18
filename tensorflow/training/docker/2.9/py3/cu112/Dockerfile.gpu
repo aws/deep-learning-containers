@@ -314,7 +314,9 @@ ENV SAGEMAKER_TRAINING_MODULE sagemaker_tensorflow_container.training:main
 RUN ${PIP} install --no-cache-dir -U \
    ${TF_URL} \
    tensorflow-io==0.24.0 \
-   tensorflow-datasets==4.5.2
+    tensorflow-datasets==4.5.2 \
+    tf-models-official==2.9.0 \
+    tensorflow-text==2.9.0
 
 # Install Horovod, temporarily using CUDA stubs
 RUN ldconfig /usr/local/cuda-11.2/targets/x86_64-linux/lib/stubs \
@@ -337,7 +339,8 @@ RUN $PYTHON -m pip install --no-cache-dir -U \
     "plotly>=5.1,<6" \
     "seaborn>=0.11,<1" \
     "numba<0.54" \
-    "shap>=0.39,<1"
+    "shap>=0.39,<1" \
+    gin-config
 
 # install smdebug directly the specific branch
 ARG SMDEBUG_TAG=1.0.17
