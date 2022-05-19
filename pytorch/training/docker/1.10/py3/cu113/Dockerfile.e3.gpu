@@ -211,7 +211,7 @@ RUN mv $OPEN_MPI_PATH/bin/mpirun $OPEN_MPI_PATH/bin/mpirun.real \
  && echo "hwloc_base_binding_policy = none" >> $OPEN_MPI_PATH/etc/openmpi-mca-params.conf \
  && echo "rmaps_base_mapping_policy = slot" >> $OPEN_MPI_PATH/etc/openmpi-mca-params.conf \
  && echo NCCL_DEBUG=INFO >> /etc/nccl.conf \
- && echo NCCL_SOCKET_IFNAME=^docker0 >> /etc/nccl.conf
+ && echo NCCL_SOCKET_IFNAME=^docker0,lo >> /etc/nccl.conf
 
 # Install AWS OFI NCCL plug-in
 RUN apt-get update && apt-get install -y autoconf
