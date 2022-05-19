@@ -1289,21 +1289,6 @@ def get_synapseai_version_from_tag(image_uri):
     return synapseai_version
 
 
-def get_synapseai_version_from_tag(image_uri):
-    """
-    Return the synapseai version from the image tag.
-    :param image_uri: ECR image URI
-    :return: synapseai version
-    """
-    synapseai_version = None
-
-    synapseai_str = ["synapseai", "hpu"]
-    if all(keyword in image_uri for keyword in synapseai_str):
-        synapseai_version = re.search(r"synapseai(\d+(\.\d+){2})", image_uri).groups()[0]
-
-    return synapseai_version
-
-
 def get_job_type_from_image(image_uri):
     """
     Return the Job type from the image tag.

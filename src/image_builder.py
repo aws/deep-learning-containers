@@ -50,22 +50,6 @@ def _find_image_object(images_list, image_name):
             break
     return ret_image_object
 
-
-def is_private_artifact_label_required(artifact_uri, image_repo_uri):
-    """
-    Determine whether labels for private artifacts should be skipped on a particular image type
-
-    :param artifact_uri: str Build artifact URI
-    :param image_repo_uri: str Image ECR repo URI
-    :return: bool True if label should be skipped, else False
-    """
-    if re.fullmatch(r"\bs3:\/\/sagemaker-python-sdk-\d+\/dist\/sagemaker.tar.gz\b", artifact_uri):
-        return False
-    if re.fullmatch(r"\bs3:\/\/sagemaker-python-sdk-\d+\/boto3\/(boto3|botocore|awscli).tar.gz\b", artifact_uri):
-        return False
-    return not ("s3://" in artifact_uri.lower() and any(keyword in image_repo_uri.lower() for keyword in ["trcomp"]))
-
-
 # TODO: Abstract away to ImageBuilder class
 def image_builder(buildspec):
 
