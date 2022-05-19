@@ -20,6 +20,8 @@ import boto3, sagemaker
 from sagemaker.tensorflow import TensorFlow
 from sagemaker.training_compiler.config import TrainingCompilerConfig
 
+from ...integration.utils import processor, py_version, unique_name_from_base  # noqa: F401
+
 
 
 resource_path = os.path.join(os.path.dirname(__file__), '..', '..', 'resources')
@@ -63,9 +65,14 @@ def mnist_distributed_dataset(sagemaker_session):
     return inputs
 
 
+@pytest.fixture(autouse=True)
+def smtrcomp_only(framework_version, request):
+    request.applymarker(pytest.mark.gpu_only)
+    short_version = float(".".join(framework_version.split('.')[:2]))
+    request.applymarker(pytest.mark.skipif(short_version<2.9, "Training Compiler support was added with TF 2.9"))
 
-@pytest.mark.xfail
-@pytest.mark.gpu_only
+
+
 @pytest.mark.integration("trcomp")
 class TestDistributedTraining:
     
@@ -206,7 +213,7 @@ class TestDistributedTraining:
         estimator.fit(job_name=unique_name_from_base("test-TF-trcomp-DT-SMMP-horovod"))
 
 
-@pytest.mark.gpu_only
+
 @pytest.mark.integration("trcomp")
 class TestMLWorkFlow:
 
@@ -221,7 +228,6 @@ class TestMLWorkFlow:
         return 1
 
 
-    @pytest.mark.xfail
     @pytest.mark.skip(reason="skip the test temporarily due to timeout issue")
     @pytest.mark.integration("smdebug")
     def test_smdebugger(self, sagemaker_session, ecr_image, framework_version, instance_type, instance_count, tmpdir, mnist_dataset):
