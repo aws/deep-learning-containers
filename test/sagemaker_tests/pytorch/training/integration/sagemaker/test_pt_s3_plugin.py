@@ -55,8 +55,7 @@ def test_pt_s3_plugin_sm_gpu(framework_version, ecr_image, sagemaker_regions):
             'source_dir': resnet18_path,
             'instance_count': 1,
             'instance_type': MULTI_GPU_INSTANCE,
-            'framework_version': framework_version,
-            'debugger_hook_config': False,
+            'framework_version': framework_version
         }
 
         job_name = utils.unique_name_from_base('test-pytorch-s3-plugin-gpu')
