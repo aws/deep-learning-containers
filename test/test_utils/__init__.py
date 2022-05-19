@@ -19,7 +19,7 @@ from packaging.version import LegacyVersion, Version, parse
 from packaging.specifiers import SpecifierSet
 from retrying import retry
 
-from src import config
+# from src import config
 
 LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.INFO)
@@ -838,14 +838,14 @@ def parse_canary_images(framework, region):
     use_graviton = False
 
     # seperating framework from regex match pattern for graviton as it is ARCH_TYPE instead of FRAMEWORK
-    regex_pattern = framework
+    canary_type = framework
 
     # Setting whether Graviton Arch is used
     # NOTE: If Graviton arch is used with a framework, not in the list below, the match search will "KeyError".
     if os.getenv("ARCH_TYPE") == "graviton":
         use_graviton = True
         graviton_tag = "-graviton"
-        regex_pattern = "graviton_"+framework
+        canary_type = "graviton_"+framework
 
     version_regex = {
         "tensorflow": rf"tf(-sagemaker)?{customer_type_tag}-(\d+.\d+)",
@@ -856,8 +856,9 @@ def parse_canary_images(framework, region):
         "autogluon": r"ag(-sagemaker)?-(\d+.\d+)\S*-(py\d+)",
         "graviton_tensorflow": rf"tf-graviton(-sagemaker)?{customer_type_tag}-(\d+.\d+)\S*-(py\d+)",
         "graviton_pytorch": rf"pt-graviton(-sagemaker)?{customer_type_tag}-(\d+.\d+)\S*-(py\d+)",
+        "graviton_mxnet": rf"mx-graviton(-sagemaker)?{customer_type_tag}-(\d+.\d+)\S*-(py\d+)",
     }
-    
+
     # Get tags from repo releases
     repo = git.Repo(os.getcwd(), search_parent_directories=True)
 
@@ -866,13 +867,14 @@ def parse_canary_images(framework, region):
 
     for tag in repo.tags:
         tag_str = str(tag)
-        match = re.search(version_regex[regex_pattern], tag_str)
+        match = re.search(version_regex[canary_type], tag_str)
         ## The tags not have -py3 will not pass th condition below
         ## This eliminates all the old and testing tags that we are not monitoring.
         if match:
             version = match.group(2)
             if not versions_counter.get(version):
                 versions_counter[version] = {"tr": False, "inf": False}
+
             if "tr" not in tag_str and "inf" not in tag_str:
                 versions_counter[version]["tr"] = True
                 versions_counter[version]["inf"] = True
@@ -892,7 +894,7 @@ def parse_canary_images(framework, region):
 
     versions = []
     for v, inf_train in versions_counter.items():
-        # Earlier versions of huggingface did not have inference
+        # Earlier versions of huggingface did not have inference, Graviton is only inference
         if (inf_train["inf"] and inf_train["tr"]) or framework.startswith("huggingface") or use_graviton:
             versions.append(v)
 
@@ -906,7 +908,7 @@ def parse_canary_images(framework, region):
         if fw_version in pre_populated_py_version:
             py_versions = pre_populated_py_version[fw_version]
         else:
-            py_versions = [get_canary_default_tag_py3_version(framework, fw_version)]
+            py_versions = [get_canary_default_tag_py3_version(canary_type, fw_version)]
         for py_version in py_versions:
             images = {
                 "tensorflow": [
@@ -944,27 +946,20 @@ def parse_canary_images(framework, region):
                     f"{registry}.dkr.ecr.{region}.amazonaws.com/autogluon-training:{fw_version}-gpu-{py_version}",
                     f"{registry}.dkr.ecr.{region}.amazonaws.com/autogluon-training:{fw_version}-cpu-{py_version}",
                 ],
-            }
-            # Graviton machines are completely different ARCH (ARM) and should only pull graviton images
-            graviton_images = {
-                "tensorflow": [
+                "graviton_tensorflow": [
                     f"{registry}.dkr.ecr.{region}.amazonaws.com/tensorflow-inference-graviton:{fw_version}-cpu-{py_version}",
                 ],
-                "pytorch": [
+                "graviton_pytorch": [
                     f"{registry}.dkr.ecr.{region}.amazonaws.com/pytorch-inference-graviton:{fw_version}-cpu-{py_version}",
                 ],
             }
 
-            # Only get graviton images for graviton build systems
-            if use_graviton:
-                images = graviton_images
-
             # E3 Images have an additional "e3" tag to distinguish them from the regular "sagemaker" tag
             if customer_type == "e3":
-                dlc_images += [f"{img}-e3" for img in images[framework]]
+                dlc_images += [f"{img}-e3" for img in images[canary_type]]
             else:
-                dlc_images += images[framework]
-    
+                dlc_images += images[canary_type]
+
     dlc_images.sort()
     return " ".join(dlc_images)
 
