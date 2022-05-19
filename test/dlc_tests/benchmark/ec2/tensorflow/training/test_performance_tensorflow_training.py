@@ -151,7 +151,7 @@ def threshold_avg_calculated_from_all_steps(connection, log_location):
     step_count_of_last_line = 0
     for line in lines:
         splitted_arr = line.split()
-        if len(splitted_arr) >= 3 and splitted_arr[1] == "images/sec:":
+        if len(splitted_arr) > 3 and splitted_arr[1] == "images/sec:":
             lines_with_images_sec += 1
             throughput_sum += float(splitted_arr[2])
             step_count_of_last_line = int(splitted_arr[0])
