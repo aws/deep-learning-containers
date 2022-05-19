@@ -183,7 +183,7 @@ def test_pytorch_nccl_version(
 @pytest.mark.integration("mpi")
 @pytest.mark.model("resnet18")
 @pytest.mark.parametrize("ec2_instance_type", PT_EC2_GPU_INSTANCE_TYPE, indirect=True)
-def test_pytorch_mpi_gpu(pytorch_training, ec2_connection, gpu_only, py3_only, ec2_instance_type):
+def test_pytorch_mpi_gpu(pytorch_training, ec2_connection, gpu_only, py3_only, ec2_instance_type, pt111_and_above_only):
     """
     Tests mpi backend
     """
@@ -197,7 +197,7 @@ def test_pytorch_mpi_gpu(pytorch_training, ec2_connection, gpu_only, py3_only, e
 @pytest.mark.integration("mpi")
 @pytest.mark.model("resnet18")
 @pytest.mark.parametrize("ec2_instance_type", PT_EC2_CPU_INSTANCE_TYPE, indirect=True)
-def test_pytorch_mpi_cpu(pytorch_training, ec2_connection, cpu_only, py3_only, ec2_instance_type):
+def test_pytorch_mpi_cpu(pytorch_training, ec2_connection, cpu_only, py3_only, ec2_instance_type, pt111_and_above_only):
     """
     Tests mpi backend
     """

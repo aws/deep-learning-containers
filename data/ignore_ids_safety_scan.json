@@ -563,7 +563,8 @@
                 "44850": "tf ignore for neuron",
                 "44849": "tf ignore for neuron",
                 "44846": "tf ignore for neuron",
-                "44872": "tf ignore for neuron"
+                "44872": "tf ignore for neuron",
+                "44463":"for shipping Torchserve 0.5.2 - the last available version"
             }
         }
     },
