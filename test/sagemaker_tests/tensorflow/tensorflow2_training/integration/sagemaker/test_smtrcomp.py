@@ -212,12 +212,12 @@ class TestMLWorkFlow:
 
 
     @pytest.fixture()
-    def instance_type():
+    def instance_type(self):
         return 'ml.p3.2xlarge'
 
 
     @pytest.fixture()
-    def instance_count():
+    def instance_count(self):
         return 1
 
 
