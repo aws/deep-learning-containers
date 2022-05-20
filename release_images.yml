@@ -1,29 +1,16 @@
 ---
 release_images:
-# Check .release_images_template.yml for reference
+# Check .release_images_template.yml for reference 
   1:
-    framework: "tensorflow"
-    version: "2.9.0"
-    customer_type: "e3"
+    framework: "huggingface_pytorch"
+    version: "1.10.2"
     arch_type: "x86"
-    training:
-      device_types: ["cpu", "gpu"]
-      python_versions: ["py39"]
+    hf_transformers: "4.17.0"
+    inference:
+      device_types: [ "cpu", "gpu" ]
+      python_versions: [ "py38" ]
       os_version: "ubuntu20.04"
-      cuda_version: "cu112"
-      example: False
-      disable_sm_tag: False
-      force_release: False
-  2:
-    framework: "tensorflow"
-    version: "2.9.0"
-    customer_type: "e3"
-    arch_type: "x86"
-    training:
-      device_types: ["gpu"]
-      python_versions: ["py39"]
-      os_version: "ubuntu20.04"
-      cuda_version: "cu112"
-      example: True
-      disable_sm_tag: False
-      force_release: False
+      cuda_version: "cu113"
+      example: False        
+      disable_sm_tag: False 
+      force_release: False 
