@@ -15,6 +15,7 @@ from __future__ import absolute_import
 import pytest
 from unittest import mock
 import os
+from six.moves.urllib.parse import urlparse
 
 import boto3, sagemaker
 from sagemaker.tensorflow import TensorFlow
@@ -66,10 +67,11 @@ def mnist_distributed_dataset(sagemaker_session):
 
 
 @pytest.fixture(autouse=True)
-def smtrcomp_only(framework_version, request):
+def smtrcomp_only(framework_version, ecr_image, request):
     request.applymarker(pytest.mark.gpu_only)
     short_version = float(".".join(framework_version.split('.')[:2]))
     request.applymarker(pytest.mark.skipif(short_version<2.9, "Training Compiler support was added with TF 2.9"))
+    request.applymarker(pytest.mark.skipif('gpu' not in ecr_image, "Training Compiler is only available for GPUs"))
 
 
 
