@@ -44,4 +44,4 @@ test_sm_profiler.py @aws/dlc-smdebug-reviewers
 dgl_tests/ @aws/dlc-dgl-reviewers
 
 # Any PR with a file with "trcomp" in it will be assigned to the SM Training Compiler team
-*trcomp* @aws/sagemaker-training-compiler
+*trcomp* @aws/dlc-trcomp-reviewers

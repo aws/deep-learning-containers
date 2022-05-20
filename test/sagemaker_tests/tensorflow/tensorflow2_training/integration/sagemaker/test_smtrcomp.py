@@ -29,6 +29,12 @@ resource_path = os.path.join(os.path.dirname(__file__), '..', '..', 'resources')
 
 
 
+def _assert_training_compiler_invoked(captured):
+    logs = captured.out + captured.err
+    assert 'XLA is active' in logs
+    assert 'Found configuration for Training Compiler' in logs
+
+
 def _assert_file_exists_in_s3(region, s3_url):
     parsed_url = urlparse(s3_url)
     s3 = boto3.resource('s3', region_name=region)
@@ -68,10 +74,11 @@ def mnist_distributed_dataset(sagemaker_session):
 
 @pytest.fixture(autouse=True)
 def smtrcomp_only(framework_version, ecr_image, request):
-    request.applymarker(pytest.mark.gpu_only)
     short_version = float(".".join(framework_version.split('.')[:2]))
-    request.applymarker(pytest.mark.skipif(short_version<2.9, "Training Compiler support was added with TF 2.9"))
-    request.applymarker(pytest.mark.skipif('gpu' not in ecr_image, "Training Compiler is only available for GPUs"))
+    if short_version<2.9:
+        pytest.skip('Training Compiler support was added with TF 2.9')
+    if 'gpu' not in ecr_image:
+        pytest.skip('Training Compiler is only available for GPUs')
 
 
 
@@ -89,7 +96,7 @@ class TestDistributedTraining:
         return 2
 
 
-    def test_native(self, sagemaker_session, ecr_image, framework_version, instance_type, instance_count, tmpdir, mnist_dataset):
+    def test_native(self, sagemaker_session, ecr_image, framework_version, instance_type, instance_count, tmpdir, mnist_dataset, capsys):
         script = os.path.join(resource_path, 'mnist', 'mnist.py')
         estimator = TensorFlow(entry_point=script,
                                role='SageMakerRole',
@@ -104,10 +111,12 @@ class TestDistributedTraining:
                                )
         estimator.fit(mnist_dataset, job_name=unique_name_from_base('test-TF-trcomp-DT'))
         _assert_model_exported_to_s3(estimator)
+        captured = capsys.readouterr()
+        _assert_training_compiler_invoked(captured)
 
 
     @pytest.mark.integration("parameter server")
-    def test_parameter_server(self, sagemaker_session, ecr_image, framework_version, instance_type, instance_count, tmpdir, mnist_distributed_dataset):
+    def test_parameter_server(self, sagemaker_session, ecr_image, framework_version, instance_type, instance_count, tmpdir, mnist_distributed_dataset, capsys):
         script = os.path.join(resource_path, 'mnist', 'mnist_custom.py')
         estimator = TensorFlow(entry_point=script,
                                role='SageMakerRole',
@@ -123,10 +132,12 @@ class TestDistributedTraining:
                                )
         estimator.fit(mnist_distributed_dataset, job_name=unique_name_from_base('test-TF-trcomp-DT-PS'))
         _assert_checkpoints_exported_to_s3(estimator, 10)
+        captured = capsys.readouterr()
+        _assert_training_compiler_invoked(captured)
 
 
     @pytest.mark.integration("horovod")
-    def test_horovod(self, sagemaker_session, ecr_image, framework_version, instance_type, instance_count, tmpdir):
+    def test_horovod(self, sagemaker_session, ecr_image, framework_version, instance_type, instance_count, tmpdir, capsys):
         script = os.path.join(resource_path, 'mnist', 'horovod_mnist.py')
         estimator = TensorFlow(entry_point=script,
                                role='SageMakerRole',
@@ -144,10 +155,12 @@ class TestDistributedTraining:
                                )
         estimator.fit(job_name=unique_name_from_base("test-TF-trcomp-DT-horovod"))
         _assert_model_exported_to_s3(estimator)
+        captured = capsys.readouterr()
+        _assert_training_compiler_invoked(captured)
 
 
     @pytest.mark.integration("smdataparallel")
-    def test_smdp(self, sagemaker_session, ecr_image, framework_version, instance_type, instance_count, tmpdir):
+    def test_smdp(self, sagemaker_session, ecr_image, framework_version, instance_type, instance_count, tmpdir, capsys):
         script = os.path.join(resource_path, 'mnist', 'smdataparallel_mnist.py')
         estimator = TensorFlow(entry_point=script,
                                role='SageMakerRole',
@@ -162,10 +175,12 @@ class TestDistributedTraining:
                                distribution={"smdistributed": {"dataparallel": {"enabled": True}}},
                                )
         estimator.fit(job_name=unique_name_from_base("test-TF-trcomp-DT-SMDP"))
+        captured = capsys.readouterr()
+        _assert_training_compiler_invoked(captured)
 
 
     @pytest.mark.integration("smmodelparallel")
-    def test_smmp(self, sagemaker_session, ecr_image, framework_version, efa_instance_type, instance_count, tmpdir):
+    def test_smmp(self, sagemaker_session, ecr_image, framework_version, efa_instance_type, instance_count, tmpdir, capsys):
         path = os.path.join(resource_path, 'smmodelparallel')
         estimator = TensorFlow(source_dir=path,
                                entry_point='tf2_conv.py',
@@ -187,11 +202,13 @@ class TestDistributedTraining:
                              },
                             )
         estimator.fit(job_name=unique_name_from_base("test-TF-trcomp-DT-SMMP"))
+        captured = capsys.readouterr()
+        _assert_training_compiler_invoked(captured)
 
 
     @pytest.mark.integration("horovod")
     @pytest.mark.integration("smmodelparallel")
-    def test_smmp_with_horovod(self, sagemaker_session, ecr_image, framework_version, efa_instance_type, instance_count, tmpdir):
+    def test_smmp_with_horovod(self, sagemaker_session, ecr_image, framework_version, efa_instance_type, instance_count, tmpdir, capsys):
         path = os.path.join(resource_path, 'smmodelparallel')
         estimator = TensorFlow(source_dir=path,
                                entry_point='smmodelparallel_hvd2_conv_multinode.py',
@@ -213,6 +230,8 @@ class TestDistributedTraining:
                              },                              
                             )
         estimator.fit(job_name=unique_name_from_base("test-TF-trcomp-DT-SMMP-horovod"))
+        captured = capsys.readouterr()
+        _assert_training_compiler_invoked(captured)
 
 
 
@@ -232,7 +251,7 @@ class TestMLWorkFlow:
 
     @pytest.mark.skip(reason="skip the test temporarily due to timeout issue")
     @pytest.mark.integration("smdebug")
-    def test_smdebugger(self, sagemaker_session, ecr_image, framework_version, instance_type, instance_count, tmpdir, mnist_dataset):
+    def test_smdebugger(self, sagemaker_session, ecr_image, framework_version, instance_type, instance_count, tmpdir, mnist_dataset, capsys):
         script = os.path.join(resource_path, 'mnist', 'mnist_smdebug.py')
         estimator = TensorFlow(entry_point=script,
                                role='SageMakerRole',
@@ -248,9 +267,11 @@ class TestMLWorkFlow:
                             )
         estimator.fit(mnist_dataset, job_name=unique_name_from_base('test-TF-trcomp-debug'))
         _assert_model_exported_to_s3(estimator)
+        captured = capsys.readouterr()
+        _assert_training_compiler_invoked(captured)
 
 
-    def test_training(self, sagemaker_session, ecr_image, framework_version, instance_type, instance_count, tmpdir):
+    def test_training(self, sagemaker_session, ecr_image, framework_version, instance_type, instance_count, tmpdir, capsys):
         script = os.path.join(resource_path, 'mnist', 'mnist.py')
         estimator = TensorFlow(entry_point=script,
                                role='SageMakerRole',
@@ -265,10 +286,12 @@ class TestMLWorkFlow:
                                )
         estimator.fit(mnist_dataset, job_name=unique_name_from_base('test-TF-trcomp'))
         _assert_model_exported_to_s3(estimator)
+        captured = capsys.readouterr()
+        _assert_training_compiler_invoked(captured)
 
 
     @pytest.mark.integration("s3 plugin")
-    def test_s3_plugin(self, sagemaker_session, ecr_image, framework_version, instance_type, instance_count, tmpdir, mnist_distributed_dataset):
+    def test_s3_plugin(self, sagemaker_session, ecr_image, framework_version, instance_type, instance_count, tmpdir, mnist_distributed_dataset, capsys):
         script = os.path.join(resource_path, 'mnist', 'mnist_custom.py')
         estimator = TensorFlow(entry_point=script,
                                role='SageMakerRole',
@@ -295,29 +318,31 @@ class TestMLWorkFlow:
                                )
         estimator.fit(mnist_distributed_dataset, job_name=unique_name_from_base('test-TF-trcomp-s3'))
         _assert_checkpoints_exported_to_s3(estimator, 10)
+        captured = capsys.readouterr()
+        _assert_training_compiler_invoked(captured)
 
 
     @pytest.mark.xfail
     @pytest.mark.integration("hpo")
-    def test_hyperparameter_tuner(self, sagemaker_session, ecr_image, framework_version, instance_type, instance_count, tmpdir):
+    def test_hyperparameter_tuner(self, sagemaker_session, ecr_image, framework_version, instance_type, instance_count, tmpdir, capsys):
         raise NotImplementedError()
 
 
     @pytest.mark.xfail
     @pytest.mark.integration("spot")
-    def test_spot_training(self, sagemaker_session, ecr_image, framework_version, instance_type, instance_count, tmpdir):
+    def test_spot_training(self, sagemaker_session, ecr_image, framework_version, instance_type, instance_count, tmpdir, capsys):
         raise NotImplementedError()
 
 
     @pytest.mark.xfail
     @pytest.mark.integration("neo")
-    def test_inference_compiler_neo(self, sagemaker_session, ecr_image, framework_version, instance_type, instance_count, tmpdir):
+    def test_inference_compiler_neo(self, sagemaker_session, ecr_image, framework_version, instance_type, instance_count, tmpdir, capsys):
         raise NotImplementedError()
 
 
     @pytest.mark.xfail
     @pytest.mark.integration("serving")
-    def test_serving(self, sagemaker_session, ecr_image, framework_version, instance_type, instance_count, tmpdir):
+    def test_serving(self, sagemaker_session, ecr_image, framework_version, instance_type, instance_count, tmpdir, capsys):
         raise NotImplementedError()
 
 
