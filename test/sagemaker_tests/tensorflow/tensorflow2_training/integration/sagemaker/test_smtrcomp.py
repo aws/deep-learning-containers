@@ -49,7 +49,7 @@ def _assert_model_exported_to_s3(estimator):
 
 def _assert_checkpoints_exported_to_s3(estimator, checkpoint_number):
     region = estimator.sagemaker_session.boto_region_name
-    model_dir = estimator.model_data
+    model_dir = estimator.model_dir
     _assert_file_exists_in_s3(region, os.path.join(model_dir, 'checkpoint'))
     _assert_file_exists_in_s3(region,
                            os.path.join(model_dir, 'model.ckpt-{}.index'.format(checkpoint_number)))
@@ -160,12 +160,12 @@ class TestDistributedTraining:
 
 
     @pytest.mark.integration("smdataparallel")
-    def test_smdp(self, sagemaker_session, ecr_image, framework_version, instance_type, instance_count, tmpdir, capsys):
+    def test_smdp(self, sagemaker_session, ecr_image, framework_version, instance_count, tmpdir, capsys):
         script = os.path.join(resource_path, 'mnist', 'smdataparallel_mnist.py')
         estimator = TensorFlow(entry_point=script,
                                role='SageMakerRole',
-                               instance_type=instance_type,
-                               instance_count=instance_count,
+                               instance_type='ml.p3.16xlarge',
+                               instance_count=,
                                sagemaker_session=sagemaker_session,
                                image_uri=ecr_image,
                                framework_version=framework_version,
@@ -179,6 +179,7 @@ class TestDistributedTraining:
         _assert_training_compiler_invoked(captured)
 
 
+    @pytest.mark.skip(reason='SMMP is only supported on CUDA 11 on TensorFlow version between v2.3.1(inclusive) and v2.7.0(exclusive)')
     @pytest.mark.integration("smmodelparallel")
     def test_smmp(self, sagemaker_session, ecr_image, framework_version, efa_instance_type, instance_count, tmpdir, capsys):
         path = os.path.join(resource_path, 'smmodelparallel')
@@ -206,6 +207,7 @@ class TestDistributedTraining:
         _assert_training_compiler_invoked(captured)
 
 
+    @pytest.mark.skip(reason='SMMP is only supported on CUDA 11 on TensorFlow version between v2.3.1(inclusive) and v2.7.0(exclusive)')
     @pytest.mark.integration("horovod")
     @pytest.mark.integration("smmodelparallel")
     def test_smmp_with_horovod(self, sagemaker_session, ecr_image, framework_version, efa_instance_type, instance_count, tmpdir, capsys):
@@ -271,7 +273,7 @@ class TestMLWorkFlow:
         _assert_training_compiler_invoked(captured)
 
 
-    def test_training(self, sagemaker_session, ecr_image, framework_version, instance_type, instance_count, tmpdir, capsys):
+    def test_training(self, sagemaker_session, ecr_image, framework_version, instance_type, instance_count, tmpdir, mnist_dataset, capsys):
         script = os.path.join(resource_path, 'mnist', 'mnist.py')
         estimator = TensorFlow(entry_point=script,
                                role='SageMakerRole',
@@ -328,21 +330,49 @@ class TestMLWorkFlow:
         raise NotImplementedError()
 
 
-    @pytest.mark.xfail
-    @pytest.mark.integration("spot")
-    def test_spot_training(self, sagemaker_session, ecr_image, framework_version, instance_type, instance_count, tmpdir, capsys):
-        raise NotImplementedError()
-
-
-    @pytest.mark.xfail
-    @pytest.mark.integration("neo")
-    def test_inference_compiler_neo(self, sagemaker_session, ecr_image, framework_version, instance_type, instance_count, tmpdir, capsys):
-        raise NotImplementedError()
-
-
-    @pytest.mark.xfail
     @pytest.mark.integration("serving")
     def test_serving(self, sagemaker_session, ecr_image, framework_version, instance_type, instance_count, tmpdir, capsys):
-        raise NotImplementedError()
+        script = os.path.join(resource_path, 'mnist', 'mnist.py')
+        estimator = TensorFlow(entry_point=script,
+                               role='SageMakerRole',
+                               instance_type=instance_type,
+                               instance_count=instance_count,
+                               sagemaker_session=sagemaker_session,
+                               image_uri=ecr_image,
+                               framework_version=framework_version,
+                               hyperparameters={
+                                    TrainingCompilerConfig.HP_ENABLE_COMPILER : True,
+                               },
+                               )
+        estimator.fit(mnist_dataset, job_name=unique_name_from_base('test-TF-trcomp-serving'))
+        _assert_model_exported_to_s3(estimator)
+        captured = capsys.readouterr()
+        _assert_training_compiler_invoked(captured)
+        predictor = estimator.deploy(initial_instance_count=1, instance_type=instance_type)
 
+
+    @pytest.mark.integration("neo")
+    def test_inference_compiler_neo(self, sagemaker_session, ecr_image, framework_version, instance_type, instance_count, tmpdir, capsys):
+        script = os.path.join(resource_path, 'mnist', 'mnist.py')
+        estimator = TensorFlow(entry_point=script,
+                               role='SageMakerRole',
+                               instance_type=instance_type,
+                               instance_count=instance_count,
+                               sagemaker_session=sagemaker_session,
+                               image_uri=ecr_image,
+                               framework_version=framework_version,
+                               hyperparameters={
+                                    TrainingCompilerConfig.HP_ENABLE_COMPILER : True,
+                               },
+                               )
+        estimator.fit(mnist_dataset, job_name=unique_name_from_base('test-TF-trcomp-serving'))
+        _assert_model_exported_to_s3(estimator)
+        captured = capsys.readouterr()
+        _assert_training_compiler_invoked(captured)
+        s3_prefix = estimator.model_data.replace('output/model.tar.gz', '')
+        compiled_model = estimator.compile_model(target_instance_family='ml_p3',
+                                                input_shape={'data':[1, 28, 28]},
+                                                output_path=s3_prefix,
+                                                framework='keras',
+                                                )
 
