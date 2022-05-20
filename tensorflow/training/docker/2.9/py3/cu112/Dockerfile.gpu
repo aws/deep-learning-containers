@@ -315,7 +315,7 @@ ENV SAGEMAKER_TRAINING_MODULE sagemaker_tensorflow_container.training:main
 RUN ${PIP} install --no-cache-dir -U \
     tf-models-official==2.9.1
 
-RUN ${PIP} uninstall tensorflow tensorflow-gpu
+RUN ${PIP} uninstall tensorflow tensorflow-gpu \
  && ${PIP} install --no-cache-dir -U \
     ${TF_URL} \
     tensorflow-io==0.24.0 \
