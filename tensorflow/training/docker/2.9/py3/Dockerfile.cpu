@@ -231,8 +231,8 @@ ARG TF_URL=https://framework-binaries.s3.us-west-2.amazonaws.com/tensorflow/r2.9
 RUN ${PIP} install --no-cache-dir -U \
     tf-models-official==2.9.1
 
-RUN ${PIP} uninstall tensorflow tensorflow-gpu \
- && ${PIP} install --no-cache-dir -U \
+RUN ${PIP} uninstall -y tensorflow tensorflow-gpu \
+  ; ${PIP} install --no-cache-dir -U \
     ${TF_URL} \
     tensorflow-io==0.24.0 \
     tensorflow-datasets==4.5.2
