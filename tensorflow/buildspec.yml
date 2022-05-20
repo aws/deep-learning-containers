@@ -93,7 +93,7 @@ images:
   BuildTensorflowSageMakerGpuPy39Cu112TrainingDockerImage:
     <<: *TRAINING_REPOSITORY
     build: &TENSORFLOW_GPU_TRAINING_PY3 false
-    image_size_baseline: &IMAGE_SIZE_BASELINE 10000
+    image_size_baseline: &IMAGE_SIZE_BASELINE 11000
     device_type: &DEVICE_TYPE gpu
     python_version: &DOCKER_PYTHON_VERSION py3
     tag_python_version: &TAG_PYTHON_VERSION py39
@@ -110,7 +110,7 @@ images:
   BuildTensorflowSageMakerCpuPy39TrainingDockerImage:
     <<: *TRAINING_REPOSITORY
     build: &TENSORFLOW_CPU_TRAINING_PY3 false
-    image_size_baseline: &IMAGE_SIZE_BASELINE 3700
+    image_size_baseline: &IMAGE_SIZE_BASELINE 4400
     device_type: &DEVICE_TYPE cpu
     python_version: &DOCKER_PYTHON_VERSION py3
     tag_python_version: &TAG_PYTHON_VERSION py39
