@@ -6,11 +6,11 @@ release_images:
     version: "1.10.2"
     arch_type: "x86"
     hf_transformers: "4.17.0"
-    inference:
-      device_types: [ "cpu", "gpu" ]
+    training:
+      device_types: [ "gpu" ]
       python_versions: [ "py38" ]
       os_version: "ubuntu20.04"
       cuda_version: "cu113"
-      example: False        
+      example: False    
       disable_sm_tag: False 
       force_release: False 
