@@ -33,7 +33,7 @@ ARG PT_TORCHDATA_URL
 
 ARG CUBLAS_VERSION=11.5.1.109
 ARG OMPI_VERSION=4.1.1
-ARG TS_VERSION=0.5.3
+ARG TS_VERSION=0.6.0
 
 ARG DEBIAN_FRONTEND=noninteractive
 
@@ -197,8 +197,7 @@ RUN pip install --no-cache-dir -U \
 # TODO: revert torchserve-nightly back to torchserve once a compatible stable version is released
 RUN pip uninstall -y model-archiver multi-model-server \
  && pip install captum \
-#  && pip install torchserve==${TS_VERSION} \
- && pip install torchserve-nightly==2022.3.23.post2 \
+ && pip install torchserve==${TS_VERSION} \
  && pip install torch-model-archiver==${TS_VERSION}
 
 WORKDIR /
