@@ -165,7 +165,7 @@ class TestDistributedTraining:
         estimator = TensorFlow(entry_point=script,
                                role='SageMakerRole',
                                instance_type='ml.p3.16xlarge',
-                               instance_count=,
+                               instance_count=instance_count,
                                sagemaker_session=sagemaker_session,
                                image_uri=ecr_image,
                                framework_version=framework_version,
