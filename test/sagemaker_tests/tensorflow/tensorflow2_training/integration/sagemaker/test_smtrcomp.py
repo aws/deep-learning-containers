@@ -331,7 +331,7 @@ class TestMLWorkFlow:
 
 
     @pytest.mark.integration("serving")
-    def test_serving(self, sagemaker_session, ecr_image, framework_version, instance_type, instance_count, tmpdir, capsys):
+    def test_serving(self, sagemaker_session, ecr_image, framework_version, instance_type, instance_count, tmpdir, capsys, mnist_dataset):
         script = os.path.join(resource_path, 'mnist', 'mnist.py')
         estimator = TensorFlow(entry_point=script,
                                role='SageMakerRole',
@@ -352,7 +352,7 @@ class TestMLWorkFlow:
 
 
     @pytest.mark.integration("neo")
-    def test_inference_compiler_neo(self, sagemaker_session, ecr_image, framework_version, instance_type, instance_count, tmpdir, capsys):
+    def test_inference_compiler_neo(self, sagemaker_session, ecr_image, framework_version, instance_type, instance_count, tmpdir, capsys, mnist_dataset):
         script = os.path.join(resource_path, 'mnist', 'mnist.py')
         estimator = TensorFlow(entry_point=script,
                                role='SageMakerRole',
