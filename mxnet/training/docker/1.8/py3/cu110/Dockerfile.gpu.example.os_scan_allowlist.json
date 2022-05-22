@@ -1,0 +1,73 @@
+{
+    "glibc": [
+        {
+            "name": "CVE-2021-38604",
+            "description": "In librt in the GNU C Library (aka glibc) through 2.34, sysdeps/unix/sysv/linux/mq_notify.c mishandles certain NOTIFY_REMOVED data, leading to a NULL pointer dereference. NOTE: this vulnerability was introduced as a side effect of the CVE-2021-33574 fix.",
+            "uri": "http://people.ubuntu.com/~ubuntu-security/cve/CVE-2021-38604",
+            "severity": "MEDIUM",
+            "attributes": [
+                {
+                    "key": "package_version",
+                    "value": "2.23-0ubuntu11.3"
+                },
+                {
+                    "key": "package_name",
+                    "value": "glibc"
+                },
+                {
+                    "key": "CVSS2_VECTOR",
+                    "value": "AV:N/AC:L/Au:N/C:N/I:N/A:P"
+                },
+                {
+                    "key": "CVSS2_SCORE",
+                    "value": "5"
+                }
+            ],
+            "scraped_data": [
+                {
+                    "status_table": {
+                        "packages": [
+                            "glibc",
+                            "Launchpad",
+                            "Ubuntu",
+                            "Debian"
+                        ],
+                        "release_states": [
+                            [
+                                "Upstream",
+                                "Pending (2.35)"
+                            ],
+                            [
+                                "Ubuntu 21.10 (Impish Indri)",
+                                "Not vulnerable (2.34-0ubuntu3)"
+                            ],
+                            [
+                                "Ubuntu 20.04 LTS (Focal Fossa)",
+                                "Needed"
+                            ],
+                            [
+                                "Ubuntu 18.04 LTS (Bionic Beaver)",
+                                "Needed"
+                            ],
+                            [
+                                "Ubuntu 16.04 ESM (Xenial Xerus)",
+                                "Needed"
+                            ],
+                            [
+                                "Ubuntu 14.04 ESM (Trusty Tahr)",
+                                "Does not exist"
+                            ],
+                            [
+                                "Patches:",
+                                "Upstream: Upstream:"
+                            ]
+                        ]
+                    },
+                    "notes": [
+                        "21.04 and earlier are not affected due to the fix for\nCVE-2021-33574 having not been introduced yet."
+                    ]
+                }
+            ]
+        }
+    ]
+}
