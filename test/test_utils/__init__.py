@@ -844,7 +844,6 @@ def parse_canary_images(framework, region):
     # NOTE: If Graviton arch is used with a framework, not in the list below, the match search will "KeyError".
     if os.getenv("ARCH_TYPE") == "graviton":
         use_graviton = True
-        graviton_tag = "-graviton"
         canary_type = "graviton_"+framework
 
     version_regex = {
@@ -952,6 +951,7 @@ def parse_canary_images(framework, region):
                 "graviton_pytorch": [
                     f"{registry}.dkr.ecr.{region}.amazonaws.com/pytorch-inference-graviton:{fw_version}-cpu-{py_version}",
                 ],
+                # TODO: create graviton_mxnet DLC and add to dictionary 
             }
 
             # E3 Images have an additional "e3" tag to distinguish them from the regular "sagemaker" tag
