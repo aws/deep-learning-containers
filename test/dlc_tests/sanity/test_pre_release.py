@@ -467,42 +467,26 @@ def _run_dependency_check_test(image, ec2_connection):
 
 @pytest.mark.usefixtures("sagemaker", "huggingface")
 @pytest.mark.model("N/A")
-@pytest.mark.canary("Run dependency tests regularly on production images")
 @pytest.mark.parametrize("ec2_instance_type", ["c5.4xlarge"], indirect=True)
-@pytest.mark.skipif(
-    is_canary_context(),
-    reason="Skipping the test on canaries.",
-)
 def test_dependency_check_cpu(cpu, ec2_connection, cpu_only, x86_compatible_only):
     _run_dependency_check_test(cpu, ec2_connection)
 
 
 @pytest.mark.usefixtures("sagemaker", "huggingface")
 @pytest.mark.model("N/A")
-@pytest.mark.canary("Run dependency tests regularly on production images")
 @pytest.mark.parametrize("ec2_instance_type", ["p3.2xlarge"], indirect=True)
-@pytest.mark.skipif(
-    is_canary_context(),
-    reason="Skipping the test on canaries.",
-)
 def test_dependency_check_gpu(gpu, ec2_connection, gpu_only):
     _run_dependency_check_test(gpu, ec2_connection)
 
 
 @pytest.mark.usefixtures("sagemaker")
 @pytest.mark.model("N/A")
-@pytest.mark.canary("Run dependency tests regularly on production images")
 @pytest.mark.parametrize("ec2_instance_type", ["c5.4xlarge"], indirect=True)
-@pytest.mark.skipif(
-    is_canary_context(),
-    reason="Skipping the test on canaries.",
-)
 def test_dependency_check_eia(eia, ec2_connection):
     _run_dependency_check_test(eia, ec2_connection)
 
 
 @pytest.mark.model("N/A")
-@pytest.mark.canary("Run dependency tests regularly on production images")
 @pytest.mark.parametrize("ec2_instance_type", ["dl1.24xlarge"], indirect=True)
 @pytest.mark.parametrize("ec2_instance_ami", [UBUNTU_18_HPU_DLAMI_US_WEST_2], indirect=True)
 def test_dependency_check_hpu(hpu, ec2_connection):
@@ -511,25 +495,15 @@ def test_dependency_check_hpu(hpu, ec2_connection):
 
 @pytest.mark.usefixtures("sagemaker", "huggingface")
 @pytest.mark.model("N/A")
-@pytest.mark.canary("Run dependency tests regularly on production images")
 @pytest.mark.parametrize("ec2_instance_type", ["inf1.xlarge"], indirect=True)
-@pytest.mark.skipif(
-    is_canary_context(),
-    reason="Skipping the test on canaries.",
-)
 def test_dependency_check_neuron(neuron, ec2_connection):
     _run_dependency_check_test(neuron, ec2_connection)
 
 
 @pytest.mark.usefixtures("sagemaker")
 @pytest.mark.model("N/A")
-@pytest.mark.canary("Run dependency tests regularly on production images")
 @pytest.mark.parametrize("ec2_instance_type", ["c6g.4xlarge"], indirect=True)
 @pytest.mark.parametrize("ec2_instance_ami", [UL18_CPU_ARM64_US_WEST_2], indirect=True)
-@pytest.mark.skipif(
-    is_canary_context(),
-    reason="Skipping the test on canaries.",
-)
 def test_dependency_check_graviton_cpu(cpu, ec2_connection, graviton_compatible_only):
     _run_dependency_check_test(cpu, ec2_connection)
 
