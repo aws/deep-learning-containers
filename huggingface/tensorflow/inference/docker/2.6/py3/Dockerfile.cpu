@@ -57,8 +57,8 @@ RUN curl -L -o ~/mambaforge.sh https://github.com/conda-forge/miniforge/releases
  && /opt/conda/bin/conda install -c conda-forge \
     python=$PYTHON_VERSION \
     cython==0.29.21 \
-    mkl-include==2019.4 \
-    mkl==2019.4 \
+    "mkl-include==2021.4.0" \
+    "mkl==2021.4.0" \
     botocore \
     # Below 2 are included in miniconda base, but not mamba so need to install
     conda-content-trust \
