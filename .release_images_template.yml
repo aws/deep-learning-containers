@@ -715,3 +715,84 @@ release_images:
       # to images being published.
       force_release: False   # [Default: False] Set to True to force images to be published even if the same image
       # has already been published. Re-released image will have minor version incremented by 1.
+  48:
+    framework: "pytorch"
+    version: "1.10.2"
+    arch_type: "x86"
+    customer_type: "e3"
+    training:
+      device_types: [ "cpu", "gpu" ]
+      python_versions: [ "py38" ]
+      cuda_version: "cu113"
+      os_version: "ubuntu20.04"
+      example: False
+      disable_sm_tag: False
+      force_release: False
+    inference:
+      device_types: [ "cpu", "gpu" ]
+      python_versions: [ "py38" ]
+      cuda_version: "cu113"
+      os_version: "ubuntu20.04"
+      example: False
+      disable_sm_tag: False
+      force_release: False
+  49:
+    framework: "pytorch"
+    version: "1.10.2"
+    arch_type: "x86"
+    customer_type: "e3"
+    training:
+      device_types: [ "gpu" ]
+      python_versions: [ "py38" ]
+      cuda_version: "cu113"
+      os_version: "ubuntu20.04"
+      example: True
+      disable_sm_tag: False
+      force_release: False
+  50:
+    framework: "pytorch"
+    version: "1.10.2"
+    arch_type: "x86"
+    customer_type: "sagemaker"
+    training:
+      device_types: [ "cpu", "gpu" ]
+      python_versions: [ "py38" ]
+      cuda_version: "cu113"
+      os_version: "ubuntu20.04"
+      example: False
+      disable_sm_tag: False
+      force_release: False
+    inference:
+      device_types: [ "cpu", "gpu" ]
+      python_versions: [ "py38" ]
+      cuda_version: "cu113"
+      os_version: "ubuntu20.04"
+      example: False
+      disable_sm_tag: False
+      force_release: False
+  51:
+    framework: "tensorflow"
+    version: "2.9.0"
+    customer_type: "e3"
+    arch_type: "x86"
+    training:
+      device_types: ["cpu", "gpu"]
+      python_versions: ["py39"]
+      os_version: "ubuntu20.04"
+      cuda_version: "cu112"
+      example: False
+      disable_sm_tag: False
+      force_release: False
+  52:
+    framework: "tensorflow"
+    version: "2.9.0"
+    customer_type: "e3"
+    arch_type: "x86"
+    training:
+      device_types: ["gpu"]
+      python_versions: ["py39"]
+      os_version: "ubuntu20.04"
+      cuda_version: "cu112"
+      example: True
+      disable_sm_tag: False
+      force_release: False
