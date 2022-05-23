@@ -13,11 +13,10 @@
 from __future__ import absolute_import
 
 import pytest
-from unittest import mock
 import os
 from six.moves.urllib.parse import urlparse
 
-import boto3, sagemaker
+import boto3
 from sagemaker.tensorflow import TensorFlow
 from sagemaker.training_compiler.config import TrainingCompilerConfig
 
@@ -152,6 +151,9 @@ class TestDistributedTraining:
                                     TensorFlow.MPI_CUSTOM_MPI_OPTIONS: "-verbose -x orte_base_help_aggregate=0",
                                     TensorFlow.MPI_NUM_PROCESSES_PER_HOST: 1,
                                },
+                               environment={
+                                    'HOROVOD_ENABLE_XLA_OPS': '1',
+                               }
                                )
         estimator.fit(job_name=unique_name_from_base("test-TF-trcomp-DT-horovod"))
         _assert_model_exported_to_s3(estimator)
@@ -349,6 +351,7 @@ class TestMLWorkFlow:
         captured = capsys.readouterr()
         _assert_training_compiler_invoked(captured)
         predictor = estimator.deploy(initial_instance_count=1, instance_type=instance_type)
+        predictor.delete_predictor()
 
 
     @pytest.mark.integration("neo")
@@ -370,9 +373,10 @@ class TestMLWorkFlow:
         captured = capsys.readouterr()
         _assert_training_compiler_invoked(captured)
         s3_prefix = estimator.model_data.replace('output/model.tar.gz', '')
-        compiled_model = estimator.compile_model(target_instance_family='ml_p3',
-                                                input_shape={'data':[1, 28, 28]},
-                                                output_path=s3_prefix,
-                                                framework='keras',
-                                                )
+        estimator.compile_model(target_instance_family='ml_p3',
+                                input_shape={'data':[1, 28, 28]},
+                                output_path=s3_prefix,
+                                framework='keras',
+                                framework_version='2.2.4',
+                                )
 
