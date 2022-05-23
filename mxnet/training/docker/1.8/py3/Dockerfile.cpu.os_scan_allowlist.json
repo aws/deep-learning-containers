@@ -7183,20 +7183,18 @@
                 },
                 {
                     "key": "CVSS2_VECTOR",
-                    "value": "AV:N/AC:L/Au:N/C:P/I:P/A:P"
+                    "value": "AV:N/AC:M/Au:N/C:P/I:P/A:P"
                 },
                 {
                     "key": "CVSS2_SCORE",
-                    "value": "7.5"
+                    "value": "6.8"
                 }
             ],
-            "description": "Use after free in utf_ptr2char in GitHub repository vim/vim prior to 8.2.4646.",
-            "name": "CVE-2022-1154",
+            "description": "Use after free in append_command in GitHub repository vim/vim prior to 8.2.4895. This vulnerability is capable of crashing software, Bypass Protection Mechanism, Modify Memory, and possible remote execution",
+            "name": "CVE-2022-1616",
             "scraped_data": [
                 {
-                    "notes": [
-                        "in bionic and earlier, vulnerable function is in file src/regexp.c\ninstead of file src/regexp_bt.c."
-                    ],
+                    "notes": [],
                     "status_table": {
                         "packages": [
                             "vim",
@@ -7227,7 +7225,7 @@
                             ],
                             [
                                 "upstream",
-                                "Released (8.2.4646)"
+                                "Released (8.2.4895)"
                             ],
                             [
                                 "xenial",
@@ -7238,7 +7236,7 @@
                 }
             ],
             "severity": "MEDIUM",
-            "uri": "http://people.ubuntu.com/~ubuntu-security/cve/CVE-2022-1154"
+            "uri": "http://people.ubuntu.com/~ubuntu-security/cve/CVE-2022-1616"
         },
         {
             "attributes": [
