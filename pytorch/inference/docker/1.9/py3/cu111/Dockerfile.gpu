@@ -14,7 +14,7 @@ ARG PT_TORCHVISION_URL=https://aws-pytorch-cicd-v3-binaries.s3.us-west-2.amazona
 ARG PT_TORCHAUDIO_URL=https://download.pytorch.org/whl/torchaudio-0.9.1-cp38-cp38-linux_x86_64.whl
 
 ARG OPEN_MPI_VERSION=4.0.1
-ARG TS_VERSION=0.4.1
+ARG TS_VERSION=0.5.3
 ARG CUBLAS_VERSION=11.3.0.106
 ARG MAMBA_VERSION=4.12.0-0
 

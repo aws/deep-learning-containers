@@ -93,6 +93,10 @@ def test_smdataparallel_mnist_script_mode_multigpu(ecr_image, sagemaker_regions,
     """
     validate_or_skip_smdataparallel(ecr_image)
 
+    _, image_framework_version = get_framework_and_version_from_tag(ecr_image)
+    if Version("1.9") == Version(image_framework_version):
+        pytest.skip("Test is not supported on PyTorch 1.9")
+
     instance_type = "ml.p3.16xlarge"
     distribution = {"smdistributed": {"dataparallel": {"enabled": True}}}
     with timeout(minutes=DEFAULT_TIMEOUT):
@@ -148,6 +152,10 @@ def test_smmodelparallel_smdataparallel_mnist(instance_types, ecr_image, sagemak
     This test has been added for SM DataParallelism and ModelParallelism tests for re:invent.
     TODO: Consider reworking these tests after re:Invent releases are done
     """
+    _, image_framework_version = get_framework_and_version_from_tag(ecr_image)
+    if Version("1.9") == Version(image_framework_version):
+        pytest.skip("Test is not supported on PyTorch 1.9")
+        
     can_run_modelparallel = can_run_smmodelparallel(ecr_image)
     can_run_dataparallel = can_run_smdataparallel(ecr_image)
     if can_run_dataparallel and can_run_modelparallel:
