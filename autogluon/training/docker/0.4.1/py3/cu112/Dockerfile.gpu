@@ -26,6 +26,14 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
     SAGEMAKER_TRAINING_MODULE=sagemaker_mxnet_container.training:main \
     LD_LIBRARY_PATH=/opt/conda/envs/rapids/lib:/usr/local/lib:$LD_LIBRARY_PATH \
     PATH=/opt/conda/envs/rapids/bin:/usr/local/bin:$PATH
+# FIXME: figure out what is really in the container  LD_LIBRARY_PATH=/usr/local/cuda/compat/:/usr/local/cuda/lib64/:/opt/conda/envs/rapids/lib:/usr/local/lib:$LD_LIBRARY_PATH \
+
+# GPG issue: https://github.com/apache/incubator-mxnet/issues/6787
+RUN apt-key del 7fa2af80 \
+ && apt-key adv --fetch-keys https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2004/x86_64/3bf863cc.pub \
+ && apt-key adv --fetch-keys https://developer.download.nvidia.com/compute/machine-learning/repos/ubuntu2004/x86_64/7fa2af80.pub
+
+# FIXME: pip uninstall -y mxnet-cu112 && pip install mxnet_cu102  - rapids containers have wrong cuda active
 
 RUN apt-get update \
  && apt-get -y upgrade \
