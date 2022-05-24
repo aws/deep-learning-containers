@@ -91,7 +91,7 @@ RUN ln -s ${CONDA_PREFIX}/lib/libmkl_intel_lp64.so ${CONDA_PREFIX}/lib/libmkl_in
  && ln -s ${CONDA_PREFIX}/lib/libmkl_gnu_thread.so ${CONDA_PREFIX}/lib/libmkl_gnu_thread.so.1
 
 # Install Horovod
-ENV HOROVOD_VERSION=0.21.3
+ENV HOROVOD_VERSION=0.24.3
 RUN pip uninstall -y horovod \
  && ldconfig /usr/local/cuda-11.3/targets/x86_64-linux/lib/stubs \
  && HOROVOD_GPU_ALLREDUCE=NCCL HOROVOD_CUDA_HOME=/usr/local/cuda-11.3 HOROVOD_WITH_PYTORCH=1 pip install --no-cache-dir horovod==${HOROVOD_VERSION} \
