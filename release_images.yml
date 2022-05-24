@@ -56,3 +56,58 @@ release_images:
       example: False
       disable_sm_tag: False
       force_release: False
+  4:
+    framework: "tensorflow"
+    version: "2.8.0"
+    arch_type: "x86"
+    customer_type: "e3"
+    training:
+      device_types: [ "cpu", "gpu" ]
+      python_versions: [ "py39" ]
+      cuda_version: "cu112"
+      os_version: "ubuntu20.04"
+      example: False
+      disable_sm_tag: False
+      force_release: False
+    inference:
+      device_types: [ "cpu", "gpu" ]
+      python_versions: [ "py39" ]
+      cuda_version: "cu112"
+      os_version: "ubuntu20.04"
+      example: False
+      disable_sm_tag: False
+      force_release: False
+  5:
+    framework: "tensorflow"
+    version: "2.8.0"
+    arch_type: "x86"
+    customer_type: "e3"
+    training:
+      device_types: [ "gpu" ]
+      python_versions: [ "py39" ]
+      cuda_version: "cu112"
+      os_version: "ubuntu20.04"
+      example: True
+      disable_sm_tag: False
+      force_release: False
+  6:
+    framework: "tensorflow"
+    version: "2.8.0"
+    arch_type: "x86"
+    customer_type: "sagemaker"
+    training:
+      device_types: [ "cpu", "gpu" ]
+      python_versions: [ "py39" ]
+      cuda_version: "cu112"
+      os_version: "ubuntu20.04"
+      example: False
+      disable_sm_tag: False
+      force_release: False
+    inference:
+      device_types: [ "cpu", "gpu" ]
+      python_versions: [ "py39" ]
+      cuda_version: "cu112"
+      os_version: "ubuntu20.04"
+      example: False
+      disable_sm_tag: False
+      force_release: False
