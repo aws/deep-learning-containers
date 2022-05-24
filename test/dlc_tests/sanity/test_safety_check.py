@@ -16,7 +16,6 @@ from test.test_utils import (
     is_dlc_cicd_context,
     is_canary_context,
     is_mainline_context,
-    is_time_for_canary_safety_scan,
     is_safety_test_context,
 )
 
@@ -585,6 +584,8 @@ IGNORE_SAFETY_IDS = {
                 "44849",
                 "44846",
                 "44872",
+                # for shipping Torchserve 0.5.2 - the last available version
+                "44463",
             ]
         },
     },
