@@ -8,7 +8,8 @@ ARG PYTHON_VERSION=3.8.12
 ARG PT_INFERENCE_URL=https://pytorch-ei-binaries.s3.us-west-2.amazonaws.com/r1.10.0_inference/20211117-055259/7af6f8360b1e31f4bad44bdec916cf15efc9b8a5/graviton/torch-1.10.0%2Bcpu-cp38-cp38-manylinux2014_aarch64.whl
 ARG ARMCL_BRANCH=v21.05
 ARG OPEN_MPI_VERSION=4.0.1
-ARG TS_VERSION=0.5.2
+ARG TS_VERSION=0.3.1
+ARG MAMBA_VERSION=4.12.0-0
 ENV LANG C.UTF-8
 ENV LD_LIBRARY_PATH /opt/conda/lib/:$LD_LIBRARY_PATH
 ENV PATH /opt/conda/bin:$PATH
@@ -45,22 +46,25 @@ RUN keytool -importkeystore -srckeystore /etc/ssl/certs/java/cacerts -destkeysto
     mv /etc/ssl/certs/java/cacerts.jks /etc/ssl/certs/java/cacerts; \
     /var/lib/dpkg/info/ca-certificates-java.postinst configure;
 
-RUN curl -L -o ~/miniconda.sh https://repo.anaconda.com/miniconda/Miniconda3-py38_4.10.3-Linux-aarch64.sh \
- && chmod +x ~/miniconda.sh \
- && ~/miniconda.sh -b -p /opt/conda \
- && rm ~/miniconda.sh
+RUN curl -L -o ~/mambaforge.sh https://github.com/conda-forge/miniforge/releases/download/${MAMBA_VERSION}/Mambaforge-${MAMBA_VERSION}-Linux-aarch64.sh \
+ && chmod +x ~/mambaforge.sh \
+ && ~/mambaforge.sh -b -p /opt/conda \
+ && rm ~/mambaforge.sh 
 
 RUN /opt/conda/bin/conda update conda
 
 RUN /opt/conda/bin/conda install -c conda-forge python=$PYTHON_VERSION
 
-RUN /opt/conda/bin/conda install -y \
+RUN /opt/conda/bin/conda install -c conda-forge -y \
     ruamel_yaml \
     cython \
     ipython \
     numpy \
     parso \
-    scipy
+    scipy \
+    # Below 2 are included in miniconda base, but not mamba so need to install
+    conda-content-trust \
+    charset-normalizer
 
 RUN /opt/conda/bin/conda clean -ya
 
@@ -86,10 +90,8 @@ ENV PATH="$PATH:/home/.openmpi/bin"
 ENV LD_LIBRARY_PATH="$LD_LIBRARY_PATH:/home/.openmpi/lib/"
 RUN ompi_info --parsable --all | grep mpi_built_with_cuda_support:value
 
-RUN conda install -c \
-    conda-forge \
+RUN conda install -c conda-forge -y \
     opencv \
- && conda install -y \
     scikit-learn \
     pandas \
     requests \
@@ -103,7 +105,7 @@ RUN conda install -c \
 # install torch and torchvision from the PyTorch website
 RUN pip uninstall -y torch \
  && pip install --no-cache-dir -U $PT_INFERENCE_URL
-RUN pip install torchvision
+RUN pip install torchvision==0.11.1
 
 ## compile and install ArmCL
 RUN git clone https://github.com/Arm-software/ComputeLibrary.git \
@@ -116,7 +118,7 @@ RUN git clone https://github.com/Arm-software/ComputeLibrary.git \
 ENV LD_LIBRARY_PATH="$LD_LIBRARY_PATH:/opt/armClArtifact/"
 
 RUN conda install -y -c conda-forge "pyyaml>=5.4,<5.5"
-RUN pip install pillow==8.3.2 "awscli<2"
+RUN pip install "Pillow>=9.0.1,<9.1.0" "awscli<2"
 
 RUN pip uninstall -y model-archiver multi-model-server \
  && pip install captum \
@@ -130,12 +132,12 @@ RUN useradd -m model-server \
  && mkdir -p /home/model-server/tmp /opt/ml/model \
  && chown -R model-server /home/model-server /opt/ml/model
 
-COPY torchserve-e3-entrypoint.py /usr/local/bin/dockerd-entrypoint.py
-COPY config.properties /home/model-server/config.properties
+COPY deep-learning-containers/pytorch/inference/docker/build_artifacts/torchserve-e3-entrypoint.py /usr/local/bin/dockerd-entrypoint.py
+COPY deep-learning-containers/pytorch/inference/docker/build_artifacts/config.properties /home/model-server/config.properties
 
 RUN chmod +x /usr/local/bin/dockerd-entrypoint.py
 
-COPY deep_learning_container.py /usr/local/bin/deep_learning_container.py
+COPY deep-learning-containers/src/deep_learning_container.py /usr/local/bin/deep_learning_container.py
 
 RUN chmod +x /usr/local/bin/deep_learning_container.py
 
