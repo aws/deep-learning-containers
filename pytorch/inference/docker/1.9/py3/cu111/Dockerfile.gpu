@@ -168,7 +168,7 @@ RUN pip install \
     "Pillow>=9.0.1" \
     "awscli<2"
 
-RUN pip install --no-cache-dir "sagemaker-pytorch-inference>=2"
+RUN pip install --no-cache-dir "sagemaker-pytorch-inference==2.0.9"
 
 RUN pip uninstall -y model-archiver multi-model-server \
  && pip install captum \
