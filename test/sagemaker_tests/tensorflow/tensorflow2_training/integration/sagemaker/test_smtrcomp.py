@@ -135,7 +135,7 @@ class TestDistributedTraining:
         _assert_training_compiler_invoked(captured)
 
 
-    @pytest.xfail('Trcomp behavior with Horovod is undefined')
+    @pytest.mark.xfail('Trcomp behavior with Horovod is undefined')
     @pytest.mark.integration("horovod")
     def test_horovod(self, sagemaker_session, ecr_image, framework_version, instance_type, instance_count, tmpdir, capsys):
         script = os.path.join(resource_path, 'mnist', 'horovod_mnist.py')
@@ -162,7 +162,7 @@ class TestDistributedTraining:
         _assert_training_compiler_invoked(captured)
 
 
-    @pytest.xfail('Trcomp behavior with SMDP is undefined')
+    @pytest.mark.xfail('Trcomp behavior with SMDP is undefined')
     @pytest.mark.integration("smdataparallel")
     def test_smdp(self, sagemaker_session, ecr_image, framework_version, instance_count, tmpdir, capsys):
         script = os.path.join(resource_path, 'mnist', 'smdataparallel_mnist.py')
