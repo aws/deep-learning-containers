@@ -7,6 +7,7 @@ ARG PYTHON=python3
 ARG PYTHON_VERSION=3.8.10
 ARG OPEN_MPI_VERSION=4.0.1
 ARG TS_VERSION=0.5.2
+ARG MAMBA_VERSION=4.12.0-0
 ARG PT_INFERENCE_URL=https://pytorch-ei-binaries.s3.us-west-2.amazonaws.com/r1.10.2_inference/20220211-013556/528b6ca3747ec951396383f2a70d1354283ad29f/cpu/torch-1.10.2%2Bcpu-cp38-cp38-manylinux1_x86_64.whl
 ARG PT_TORCHVISION_URL=https://framework-binaries.s3.us-west-2.amazonaws.com/pytorch/1.10.2/torchvision-0.11.3%2Bcpu-cp38-cp38-linux_x86_64.whl
 
@@ -51,22 +52,23 @@ RUN keytool -importkeystore -srckeystore /etc/ssl/certs/java/cacerts -destkeysto
     mv /etc/ssl/certs/java/cacerts.jks /etc/ssl/certs/java/cacerts; \
     /var/lib/dpkg/info/ca-certificates-java.postinst configure;
 
-RUN curl -L -o ~/miniconda.sh https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh \
- && chmod +x ~/miniconda.sh \
- && ~/miniconda.sh -b -p /opt/conda \
- && rm ~/miniconda.sh \
+RUN curl -L -o ~/mambaforge.sh https://github.com/conda-forge/miniforge/releases/download/${MAMBA_VERSION}/Mambaforge-${MAMBA_VERSION}-Linux-x86_64.sh \
+ && chmod +x ~/mambaforge.sh \
+ && ~/mambaforge.sh -b -p /opt/conda \
+ && rm ~/mambaforge.sh \
  && /opt/conda/bin/conda update conda \
  && /opt/conda/bin/conda install -c conda-forge \
     python=$PYTHON_VERSION \
- && /opt/conda/bin/conda install -y \
-    # conda 4.10.0 requires ruamel_yaml to be installed. Currently pinned at latest.
-    ruamel_yaml==0.15.100 \
+ && /opt/conda/bin/conda install -c conda-forge -y \
     cython \
     mkl-include \
     mkl \
     parso \
     scipy \
     typing \
+    # Below 2 are included in miniconda base, but not mamba so need to install
+    conda-content-trust \
+    charset-normalizer \
  && /opt/conda/bin/conda clean -ya
 
 # Conda installs links for libtinfo.so.6 and libtinfo.so.6.2 both
@@ -91,10 +93,8 @@ ENV PATH="$PATH:/home/.openmpi/bin"
 ENV LD_LIBRARY_PATH="$LD_LIBRARY_PATH:/home/.openmpi/lib/"
 RUN ompi_info --parsable --all | grep mpi_built_with_cuda_support:value
 
-RUN conda install -c \
-    conda-forge \
+RUN conda install -c conda-forge \
     opencv \
- && conda install -y \
     h5py \
     requests \
  && conda clean -ya \
@@ -113,17 +113,19 @@ RUN pip uninstall -y torch \
  && pip install --no-deps --no-cache-dir -U $PT_TORCHVISION_URL
 
 RUN conda install -y -c conda-forge "pyyaml>=5.4,<5.5"
+# Install urllib3>=1.25.9 to satisfy awscli/boto3/botocore requirements while fixing for CVE-2020-26137
 RUN pip install \
     boto3 \
-    "Pillow>=9.0.0" \ 
-    "awscli<2"
+    "Pillow>=9.0.0" \
+    "awscli<2" \
+    "urllib3>=1.25.9"
 
 # torchserve-nightly==2022.3.23.post2 replace torchserve==${TS_VERSION}
 # only in PT1.10 for hotfix
 RUN pip uninstall -y model-archiver multi-model-server \
  && pip install captum \
  && pip install torchserve-nightly==2022.3.23.post2 \
- && pip install torch-model-archiver==${TS_VERSION} 
+ && pip install torch-model-archiver==${TS_VERSION}
 
 RUN cd tmp/ \
  && rm -rf tmp*

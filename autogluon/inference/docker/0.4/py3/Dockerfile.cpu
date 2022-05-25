@@ -30,7 +30,7 @@ RUN pip --no-cache-dir install --upgrade --trusted-host pypi.org --trusted-host 
 
 # Security patching
 RUN pip install --no-cache-dir -U 'ray>=1.10,<1.11' \
- && pip install --no-cache-dir -U 'pytorch_lightning>=1.5.10,<1.7.0' \
+ && pip install --no-cache-dir -U 'pytorch_lightning>=1.5.10,<1.6.0' \
  && pip install --no-cache-dir -U 'Pillow>=9.0.1,<9.1.0'
 
 RUN curl -o /license-autogluon.txt https://autogluon.s3.us-west-2.amazonaws.com/licenses/THIRD-PARTY-LICENSES.txt
