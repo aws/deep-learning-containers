@@ -6759,8 +6759,8 @@
                     "value": "6.8"
                 }
             ],
-            "description": "vim is vulnerable to Use After Free",
-            "name": "CVE-2021-3796",
+            "description": "vim is vulnerable to Heap-based Buffer Overflow",
+            "name": "CVE-2021-3778",
             "scraped_data": [
                 {
                     "notes": [],
@@ -6798,7 +6798,7 @@
                             ],
                             [
                                 "upstream",
-                                "Released (v8.2.3428)"
+                                "Released (v8.2.3409)"
                             ],
                             [
                                 "xenial",
@@ -6809,7 +6809,7 @@
                 }
             ],
             "severity": "MEDIUM",
-            "uri": "http://people.ubuntu.com/~ubuntu-security/cve/CVE-2021-3796"
+            "uri": "http://people.ubuntu.com/~ubuntu-security/cve/CVE-2021-3778"
         },
         {
             "attributes": [
@@ -6902,11 +6902,11 @@
                 }
             ],
             "description": "vim is vulnerable to Heap-based Buffer Overflow",
-            "name": "CVE-2021-3984",
+            "name": "CVE-2021-4019",
             "scraped_data": [
                 {
                     "notes": [
-                        "for bionic and earlier, the vulnerable function in src/cindent.c\nis in src/misc1.c."
+                        "in focal and earlier vulnerable function from src/help.c\nis in src/ex_cmds.c."
                     ],
                     "status_table": {
                         "packages": [
@@ -6942,7 +6942,7 @@
                             ],
                             [
                                 "upstream",
-                                "Released (v8.2.3625)"
+                                "Released (v8.2.3669)"
                             ],
                             [
                                 "xenial",
@@ -6953,7 +6953,7 @@
                 }
             ],
             "severity": "MEDIUM",
-            "uri": "http://people.ubuntu.com/~ubuntu-security/cve/CVE-2021-3984"
+            "uri": "http://people.ubuntu.com/~ubuntu-security/cve/CVE-2021-4019"
         },
         {
             "attributes": [
@@ -7025,73 +7025,6 @@
             ],
             "severity": "MEDIUM",
             "uri": "http://people.ubuntu.com/~ubuntu-security/cve/CVE-2021-4192"
-        },
-        {
-            "attributes": [
-                {
-                    "key": "package_version",
-                    "value": "2:7.4.1689-3ubuntu1.5"
-                },
-                {
-                    "key": "package_name",
-                    "value": "vim"
-                },
-                {
-                    "key": "CVSS2_VECTOR",
-                    "value": "AV:N/AC:M/Au:N/C:P/I:P/A:P"
-                },
-                {
-                    "key": "CVSS2_SCORE",
-                    "value": "6.8"
-                }
-            ],
-            "description": "Heap-based Buffer Overflow in GitHub repository vim/vim prior to 8.2.",
-            "name": "CVE-2022-0261",
-            "scraped_data": [
-                {
-                    "notes": [],
-                    "status_table": {
-                        "packages": [
-                            "vim",
-                            "Launchpad",
-                            "Ubuntu",
-                            "Debian"
-                        ],
-                        "release_states": [
-                            [
-                                "bionic",
-                                "Needed"
-                            ],
-                            [
-                                "focal",
-                                "Needed"
-                            ],
-                            [
-                                "impish",
-                                "Needed"
-                            ],
-                            [
-                                "jammy",
-                                "Needed"
-                            ],
-                            [
-                                "trusty",
-                                "Needed"
-                            ],
-                            [
-                                "upstream",
-                                "Released (8.2.4120)"
-                            ],
-                            [
-                                "xenial",
-                                "Released (2:7.4.1689-3ubuntu1.5+esm4)"
-                            ]
-                        ]
-                    }
-                }
-            ],
-            "severity": "MEDIUM",
-            "uri": "http://people.ubuntu.com/~ubuntu-security/cve/CVE-2022-0261"
         },
         {
             "attributes": [
@@ -7241,75 +7174,6 @@
                 },
                 {
                     "key": "CVSS2_VECTOR",
-                    "value": "AV:N/AC:L/Au:N/C:P/I:P/A:P"
-                },
-                {
-                    "key": "CVSS2_SCORE",
-                    "value": "7.5"
-                }
-            ],
-            "description": "Use after free in utf_ptr2char in GitHub repository vim/vim prior to 8.2.4646.",
-            "name": "CVE-2022-1154",
-            "scraped_data": [
-                {
-                    "notes": [
-                        "in bionic and earlier, vulnerable function is in file src/regexp.c\ninstead of file src/regexp_bt.c."
-                    ],
-                    "status_table": {
-                        "packages": [
-                            "vim",
-                            "Launchpad",
-                            "Ubuntu",
-                            "Debian"
-                        ],
-                        "release_states": [
-                            [
-                                "bionic",
-                                "Needed"
-                            ],
-                            [
-                                "focal",
-                                "Needed"
-                            ],
-                            [
-                                "impish",
-                                "Needed"
-                            ],
-                            [
-                                "jammy",
-                                "Needed"
-                            ],
-                            [
-                                "trusty",
-                                "Needed"
-                            ],
-                            [
-                                "upstream",
-                                "Released (8.2.4646)"
-                            ],
-                            [
-                                "xenial",
-                                "Released (2:7.4.1689-3ubuntu1.5+esm4)"
-                            ]
-                        ]
-                    }
-                }
-            ],
-            "severity": "MEDIUM",
-            "uri": "http://people.ubuntu.com/~ubuntu-security/cve/CVE-2022-1154"
-        },
-        {
-            "attributes": [
-                {
-                    "key": "package_version",
-                    "value": "2:7.4.1689-3ubuntu1.5"
-                },
-                {
-                    "key": "package_name",
-                    "value": "vim"
-                },
-                {
-                    "key": "CVSS2_VECTOR",
                     "value": "AV:N/AC:M/Au:N/C:P/I:P/A:P"
                 },
                 {
@@ -7317,8 +7181,8 @@
                     "value": "6.8"
                 }
             ],
-            "description": "Heap-based Buffer Overflow in function cmdline_erase_chars in GitHub repository vim/vim prior to 8.2.4899. This vulnerabilities are capable of crashing software, modify memory, and possible remote execution",
-            "name": "CVE-2022-1619",
+            "description": "Out-of-bounds Read in GitHub repository vim/vim prior to 8.2.",
+            "name": "CVE-2022-0368",
             "scraped_data": [
                 {
                     "notes": [],
@@ -7352,7 +7216,7 @@
                             ],
                             [
                                 "upstream",
-                                "Released (8.2.4899)"
+                                "Released (8.2.4217)"
                             ],
                             [
                                 "xenial",
@@ -7363,7 +7227,7 @@
                 }
             ],
             "severity": "MEDIUM",
-            "uri": "http://people.ubuntu.com/~ubuntu-security/cve/CVE-2022-1619"
+            "uri": "http://people.ubuntu.com/~ubuntu-security/cve/CVE-2022-0368"
         },
         {
             "attributes": [
@@ -7384,12 +7248,12 @@
                     "value": "6.8"
                 }
             ],
-            "description": "Heap buffer overflow in vim_strncpy find_word in GitHub repository vim/vim prior to 8.2.4919. This vulnerability is capable of crashing software, Bypass Protection Mechanism, Modify Memory, and possible remote execution",
-            "name": "CVE-2022-1621",
+            "description": "Heap-based Buffer Overflow in GitHub repository vim/vim prior to 8.2.",
+            "name": "CVE-2022-0572",
             "scraped_data": [
                 {
                     "notes": [
-                        "for xenial and earlier, patched file should be src/spell.c\ninstead of src/spellfile.c."
+                        "for bionic and earlier, vulnerable code can be found in file\nsrc/ex_cmds.c instead of src/indent.c (does not exist in bionic\nand earlier)."
                     ],
                     "status_table": {
                         "packages": [
@@ -7421,7 +7285,7 @@
                             ],
                             [
                                 "upstream",
-                                "Released (8.2.4919)"
+                                "Released (8.2.4359)"
                             ],
                             [
                                 "xenial",
@@ -7432,7 +7296,145 @@
                 }
             ],
             "severity": "MEDIUM",
-            "uri": "http://people.ubuntu.com/~ubuntu-security/cve/CVE-2022-1621"
+            "uri": "http://people.ubuntu.com/~ubuntu-security/cve/CVE-2022-0572"
+        },
+        {
+            "attributes": [
+                {
+                    "key": "package_version",
+                    "value": "2:7.4.1689-3ubuntu1.5"
+                },
+                {
+                    "key": "package_name",
+                    "value": "vim"
+                },
+                {
+                    "key": "CVSS2_VECTOR",
+                    "value": "AV:N/AC:M/Au:N/C:P/I:P/A:P"
+                },
+                {
+                    "key": "CVSS2_SCORE",
+                    "value": "6.8"
+                }
+            ],
+            "description": "Use of Out-of-range Pointer Offset in GitHub repository vim/vim prior to 8.2.4418.",
+            "name": "CVE-2022-0685",
+            "scraped_data": [
+                {
+                    "notes": [
+                        "for bionic and earlier, the vulnerable function is found in file\nsrc/misc1.c instead of src/filepath.c."
+                    ],
+                    "status_table": {
+                        "packages": [
+                            "vim",
+                            "Launchpad",
+                            "Ubuntu",
+                            "Debian"
+                        ],
+                        "release_states": [
+                            [
+                                "bionic",
+                                "Needed"
+                            ],
+                            [
+                                "focal",
+                                "Needed"
+                            ],
+                            [
+                                "impish",
+                                "Needed"
+                            ],
+                            [
+                                "jammy",
+                                "Needed"
+                            ],
+                            [
+                                "trusty",
+                                "Needed"
+                            ],
+                            [
+                                "upstream",
+                                "Released (8.2.4418)"
+                            ],
+                            [
+                                "xenial",
+                                "Needed"
+                            ]
+                        ]
+                    }
+                }
+            ],
+            "severity": "MEDIUM",
+            "uri": "http://people.ubuntu.com/~ubuntu-security/cve/CVE-2022-0685"
+        },
+        {
+            "attributes": [
+                {
+                    "key": "package_version",
+                    "value": "2:7.4.1689-3ubuntu1.5"
+                },
+                {
+                    "key": "package_name",
+                    "value": "vim"
+                },
+                {
+                    "key": "CVSS2_VECTOR",
+                    "value": "AV:L/AC:L/Au:N/C:P/I:P/A:P"
+                },
+                {
+                    "key": "CVSS2_SCORE",
+                    "value": "4.6"
+                }
+            ],
+            "description": "Heap-based Buffer Overflow occurs in vim in GitHub repository vim/vim prior to 8.2.4563.",
+            "name": "CVE-2022-0943",
+            "scraped_data": [
+                {
+                    "notes": [
+                        "in bionic and earlier, vulnerable code can be found in src/spell.c\ninstead of src/spellsuggest.c."
+                    ],
+                    "status_table": {
+                        "packages": [
+                            "vim",
+                            "Launchpad",
+                            "Ubuntu",
+                            "Debian"
+                        ],
+                        "release_states": [
+                            [
+                                "bionic",
+                                "Needed"
+                            ],
+                            [
+                                "focal",
+                                "Needed"
+                            ],
+                            [
+                                "impish",
+                                "Needed"
+                            ],
+                            [
+                                "jammy",
+                                "Needed"
+                            ],
+                            [
+                                "trusty",
+                                "Needed"
+                            ],
+                            [
+                                "upstream",
+                                "Released (8.2.4563)"
+                            ],
+                            [
+                                "xenial",
+                                "Needed"
+                            ]
+                        ]
+                    }
+                }
+            ],
+            "severity": "MEDIUM",
+            "uri": "http://people.ubuntu.com/~ubuntu-security/cve/CVE-2022-0943"
         }
     ]
 }
