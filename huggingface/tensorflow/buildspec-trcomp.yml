@@ -28,12 +28,3 @@ images:
                  *CUDA_VERSION, '-', *OS_VERSION ]
     docker_file: !join [ docker/, *SHORT_VERSION, /, *DOCKER_PYTHON_VERSION, /,
                          *CUDA_VERSION, /Dockerfile.trcomp., *DEVICE_TYPE ]
-    download_artifacts:
-      tensorflow_whl:
-        type: s3
-        URI: s3://framework-binaries/tensorflow/trcomp/r2.6_aws/gpu/2022-03-20-05-33/tensorflow_gpu-2.6.3-cp38-cp38-manylinux_2_12_x86_64.manylinux2010_x86_64.whl
-        VAR_IN_DOCKERFILE: TF_URL
-      sagemaker_pysdk_whl:
-        type: s3
-        URI: s3://sagemaker-python-sdk-524001406597/dist/sagemaker.tar.gz 
-        VAR_IN_DOCKERFILE: SAGEMAKER_BINARY
