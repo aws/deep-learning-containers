@@ -369,7 +369,7 @@ def get_apt_package_name(ecr_package_name):
     :param ecr_package_name: str, name of the package in ecr scans
     :param apt_package_name: str, name of the package in apt
     """
-    name_mapper = {"cyrus-sasl2": "libsasl2-2", "glibc": "libc6", "libopenmpt": "libopenmpt-dev"}
+    name_mapper = {"cyrus-sasl2": "libsasl2-2", "glibc": "libc6", "libopenmpt": "libopenmpt-dev", "fribidi": "libfribidi-dev", }
     return name_mapper.get(ecr_package_name, ecr_package_name)
 
 
