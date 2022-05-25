@@ -171,7 +171,7 @@ def test_smmodelparallel_mnist_multigpu_singlenode(ecr_image, instance_type, sag
     Tests pt gpt2 command via script mode
     """
     _, image_framework_version = get_framework_and_version_from_tag(ecr_image)
-    if Version("1.9") == Version(image_framework_version):
+    if Version("1.9") <= Version(image_framework_version) < Version("1.10"):
         pytest.skip("Test is not supported on PyTorch 1.9")
 
     instance_type = "ml.p3.16xlarge"

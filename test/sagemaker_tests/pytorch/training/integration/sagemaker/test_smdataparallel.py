@@ -94,7 +94,7 @@ def test_smdataparallel_mnist_script_mode_multigpu(ecr_image, sagemaker_regions,
     validate_or_skip_smdataparallel(ecr_image)
 
     _, image_framework_version = get_framework_and_version_from_tag(ecr_image)
-    if Version("1.9") == Version(image_framework_version):
+    if Version("1.9") <= Version(image_framework_version) < Version("1.10"):
         pytest.skip("Test is not supported on PyTorch 1.9")
 
     instance_type = "ml.p3.16xlarge"
@@ -153,7 +153,7 @@ def test_smmodelparallel_smdataparallel_mnist(instance_types, ecr_image, sagemak
     TODO: Consider reworking these tests after re:Invent releases are done
     """
     _, image_framework_version = get_framework_and_version_from_tag(ecr_image)
-    if Version("1.9") == Version(image_framework_version):
+    if Version("1.9") <= Version(image_framework_version) < Version("1.10"):
         pytest.skip("Test is not supported on PyTorch 1.9")
         
     can_run_modelparallel = can_run_smmodelparallel(ecr_image)
