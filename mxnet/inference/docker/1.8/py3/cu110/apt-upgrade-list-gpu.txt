@@ -1,5 +1,4 @@
 libc6
-python2.7
 python3.5
 sqlite3
 vim
