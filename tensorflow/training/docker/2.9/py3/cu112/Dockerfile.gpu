@@ -312,6 +312,7 @@ ARG TF_URL=https://framework-binaries.s3.us-west-2.amazonaws.com/tensorflow/r2.9
 ENV SAGEMAKER_TRAINING_MODULE sagemaker_tensorflow_container.training:main
 
 # https://github.com/tensorflow/models/issues/9267
+# tf-models does not respect existing installations of TF and always installs open source TF
 RUN ${PIP} install --no-cache-dir -U \
     tf-models-official==2.9.1
 

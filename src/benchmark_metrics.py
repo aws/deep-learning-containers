@@ -86,7 +86,9 @@ TRCOMP_THRESHOLD = {
         '2.9': {                    # framework version
             'resnet101': {          # model name
                 'p3.2xlarge': {     # instance
-                    224: 2500       # batch size : threshold
+                    1: {            # Num nodes
+                        224: 2500   # batch size : threshold
+                    }
                 }
             }   
         }
