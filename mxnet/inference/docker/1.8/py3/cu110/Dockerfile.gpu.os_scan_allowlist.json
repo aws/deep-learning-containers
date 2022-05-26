@@ -1022,9 +1022,7 @@
             "name": "CVE-2022-1304",
             "scraped_data": [
                 {
-                    "notes": [
-                        "as of 2022-04-22, doesn't appear to be an upstream fix"
-                    ],
+                    "notes": [],
                     "status_table": {
                         "packages": [
                             "e2fsprogs",
@@ -1035,23 +1033,23 @@
                         "release_states": [
                             [
                                 "bionic",
-                                "Deferred (2022-04-22)"
+                                "Needed"
                             ],
                             [
                                 "focal",
-                                "Deferred (2022-04-22)"
+                                "Needed"
                             ],
                             [
                                 "impish",
-                                "Deferred (2022-04-22)"
+                                "Needed"
                             ],
                             [
                                 "jammy",
-                                "Deferred (2022-04-22)"
+                                "Needed"
                             ],
                             [
                                 "trusty",
-                                "Deferred (2022-04-22)"
+                                "Needed"
                             ],
                             [
                                 "upstream",
@@ -1059,7 +1057,7 @@
                             ],
                             [
                                 "xenial",
-                                "Deferred (2022-04-22)"
+                                "Needed"
                             ]
                         ]
                     }
@@ -2282,7 +2280,7 @@
             "scraped_data": [
                 {
                     "notes": [
-                        "as of 2022-04-19, proposed fix not commited upstream"
+                        "as of 2022-05-26, proposed fix not commited upstream"
                     ],
                     "status_table": {
                         "packages": [
@@ -2294,11 +2292,11 @@
                         "release_states": [
                             [
                                 "bionic",
-                                "Deferred (2022-04-19)"
+                                "Deferred (2022-05-26)"
                             ],
                             [
                                 "focal",
-                                "Deferred (2022-04-19)"
+                                "Deferred (2022-05-26)"
                             ],
                             [
                                 "hirsute",
@@ -2306,11 +2304,11 @@
                             ],
                             [
                                 "impish",
-                                "Deferred (2022-04-19)"
+                                "Deferred (2022-05-26)"
                             ],
                             [
                                 "jammy",
-                                "Deferred (2022-04-19)"
+                                "Deferred (2022-05-26)"
                             ],
                             [
                                 "trusty",
@@ -2322,7 +2320,7 @@
                             ],
                             [
                                 "xenial",
-                                "Deferred (2022-04-19)"
+                                "Deferred (2022-05-26)"
                             ]
                         ]
                     }
@@ -2471,7 +2469,7 @@
             "attributes": [
                 {
                     "key": "package_version",
-                    "value": "2.23-0ubuntu11.2"
+                    "value": "2.23-0ubuntu11.3"
                 },
                 {
                     "key": "package_name",
@@ -2530,7 +2528,7 @@
             "attributes": [
                 {
                     "key": "package_version",
-                    "value": "2.23-0ubuntu11.3"
+                    "value": "2.23-0ubuntu11.2"
                 },
                 {
                     "key": "package_name",
@@ -7015,7 +7013,7 @@
             "attributes": [
                 {
                     "key": "package_version",
-                    "value": "1.0.2g-1ubuntu4.18"
+                    "value": "1.0.2g-1ubuntu4.20"
                 },
                 {
                     "key": "package_name",
@@ -7082,7 +7080,7 @@
             "attributes": [
                 {
                     "key": "package_version",
-                    "value": "1.0.2g-1ubuntu4.20"
+                    "value": "1.0.2g-1ubuntu4.18"
                 },
                 {
                     "key": "package_name",
