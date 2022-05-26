@@ -135,7 +135,7 @@ class TestDistributedTraining:
         _assert_training_compiler_invoked(captured)
 
 
-    @pytest.mark.xfail('Trcomp behavior with Horovod is undefined')
+    @pytest.mark.xfail(reason="Trcomp behavior with Horovod is undefined")
     @pytest.mark.integration("horovod")
     def test_horovod(self, sagemaker_session, ecr_image, framework_version, instance_type, instance_count, tmpdir, capsys):
         script = os.path.join(resource_path, 'mnist', 'horovod_mnist.py')
@@ -162,7 +162,7 @@ class TestDistributedTraining:
         _assert_training_compiler_invoked(captured)
 
 
-    @pytest.mark.xfail('Trcomp behavior with SMDP is undefined')
+    @pytest.mark.xfail(reason="Trcomp behavior with SMDP is undefined")
     @pytest.mark.integration("smdataparallel")
     def test_smdp(self, sagemaker_session, ecr_image, framework_version, instance_count, tmpdir, capsys):
         script = os.path.join(resource_path, 'mnist', 'smdataparallel_mnist.py')
@@ -183,7 +183,7 @@ class TestDistributedTraining:
         _assert_training_compiler_invoked(captured)
 
 
-    @pytest.mark.xfail('SMMP is only supported on CUDA 11 on TensorFlow version between v2.3.1(inclusive) and v2.7.0(exclusive)')
+    @pytest.mark.xfail(reason="SMMP is only supported on CUDA 11 on TensorFlow version between v2.3.1(inclusive) and v2.7.0(exclusive)")
     @pytest.mark.integration("smmodelparallel")
     def test_smmp(self, sagemaker_session, ecr_image, framework_version, efa_instance_type, instance_count, tmpdir, capsys):
         path = os.path.join(resource_path, 'smmodelparallel')
@@ -328,13 +328,13 @@ class TestMLWorkFlow:
         _assert_training_compiler_invoked(captured)
 
 
-    @pytest.mark.xfail('SM Training Compiler team yet to implement this integration test')
+    @pytest.mark.xfail(reason="SM Training Compiler team yet to implement this integration test")
     @pytest.mark.integration("hpo")
     def test_hyperparameter_tuner(self, sagemaker_session, ecr_image, framework_version, instance_type, instance_count, tmpdir, capsys):
         raise NotImplementedError()
 
 
-    @pytest.mark.xfail('TF 2.9 for inference has not been released yet')
+    @pytest.mark.xfail(reason="TF 2.9 for inference has not been released yet")
     @pytest.mark.integration("serving")
     def test_serving(self, sagemaker_session, ecr_image, framework_version, instance_type, instance_count, tmpdir, capsys, mnist_dataset):
         script = os.path.join(resource_path, 'mnist', 'mnist.py')
@@ -357,7 +357,7 @@ class TestMLWorkFlow:
         predictor.delete_predictor()
 
 
-    @pytest.mark.xfail("SM Neo does not currently support TF > 2.4")
+    @pytest.mark.xfail(reason="SM Neo does not currently support TF > 2.4")
     @pytest.mark.integration("neo")
     def test_inference_compiler_neo(self, sagemaker_session, ecr_image, framework_version, instance_type, instance_count, tmpdir, capsys, mnist_dataset):
         script = os.path.join(resource_path, 'mnist', 'mnist.py')
