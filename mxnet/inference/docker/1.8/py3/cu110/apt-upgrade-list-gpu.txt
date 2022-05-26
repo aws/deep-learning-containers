@@ -1,4 +1,7 @@
 libc6
+p11-kit
+perl
+python2.7
 python3.5
 sqlite3
 vim
