@@ -5967,73 +5967,6 @@
             "attributes": [
                 {
                     "key": "package_version",
-                    "value": "1.0.2g-1ubuntu4.20"
-                },
-                {
-                    "key": "package_name",
-                    "value": "openssl"
-                },
-                {
-                    "key": "CVSS2_VECTOR",
-                    "value": "AV:N/AC:L/Au:N/C:N/I:N/A:P"
-                },
-                {
-                    "key": "CVSS2_SCORE",
-                    "value": "5"
-                }
-            ],
-            "description": "The BN_mod_sqrt() function, which computes a modular square root, contains a bug that can cause it to loop forever for non-prime moduli. Internally this function is used when parsing certificates that contain elliptic curve public keys in compressed form or explicit elliptic curve parameters with a base point encoded in compressed form. It is possible to trigger the infinite loop by crafting a certificate that has invalid explicit curve parameters. Since certificate parsing happens prior to verification of the certificate signature, any process that parses an externally supplied certificate may thus be subject to a denial of service attack. The infinite loop can also be reached when parsing crafted private keys as they can contain explicit elliptic curve parameters. Thus vulnerable situations include: - TLS clients consuming server certificates - TLS servers consuming client certificates - Hosting providers taking certificates or private keys from customers - Certificate authorities parsing certification requests from subscribers - Anything else which parses ASN.1 elliptic curve parameters Also any other applications that use the BN_mod_sqrt() where the attacker can control the parameter values are vulnerable to this DoS issue. In the OpenSSL 1.0.2 version the public key is not parsed during initial parsing of the certificate which makes it slightly harder to trigger the infinite loop. However any operation which requires the public key from the certificate will trigger the infinite loop. In particular the attacker can use a self-signed certificate to trigger the loop during verification of the certificate signature. This issue affects OpenSSL versions 1.0.2, 1.1.1 and 3.0. It was addressed in the releases of 1.1.1n and 3.0.2 on the 15th March 2022. Fixed in OpenSSL 3.0.2 (Affected 3.0.0,3.0.1). Fixed in OpenSSL 1.1.1n (Affected 1.1.1-1.1.1m). Fixed in OpenSSL 1.0.2zd (Affected 1.0.2-1.0.2zc).",
-            "name": "CVE-2022-0778",
-            "scraped_data": [
-                {
-                    "notes": [],
-                    "status_table": {
-                        "packages": [
-                            "openssl",
-                            "Launchpad",
-                            "Ubuntu",
-                            "Debian"
-                        ],
-                        "release_states": [
-                            [
-                                "bionic",
-                                "Released (1.1.1-1ubuntu2.1~18.04.15)"
-                            ],
-                            [
-                                "focal",
-                                "Released (1.1.1f-1ubuntu2.12)"
-                            ],
-                            [
-                                "impish",
-                                "Released (1.1.1l-1ubuntu1.2)"
-                            ],
-                            [
-                                "jammy",
-                                "Released (3.0.2-0ubuntu1)"
-                            ],
-                            [
-                                "trusty",
-                                "Released (1.0.1f-1ubuntu2.27+esm5)"
-                            ],
-                            [
-                                "upstream",
-                                "Released (1.1.1n,3.0.2)"
-                            ],
-                            [
-                                "xenial",
-                                "Released (1.0.2g-1ubuntu4.20+esm2)"
-                            ]
-                        ]
-                    }
-                }
-            ],
-            "severity": "HIGH",
-            "uri": "http://people.ubuntu.com/~ubuntu-security/cve/CVE-2022-0778"
-        },
-        {
-            "attributes": [
-                {
-                    "key": "package_version",
                     "value": "1.0.2g-1ubuntu4.18"
                 },
                 {
@@ -6102,6 +6035,73 @@
                 {
                     "key": "package_version",
                     "value": "1.0.2g-1ubuntu4.20"
+                },
+                {
+                    "key": "package_name",
+                    "value": "openssl"
+                },
+                {
+                    "key": "CVSS2_VECTOR",
+                    "value": "AV:N/AC:L/Au:N/C:N/I:N/A:P"
+                },
+                {
+                    "key": "CVSS2_SCORE",
+                    "value": "5"
+                }
+            ],
+            "description": "The BN_mod_sqrt() function, which computes a modular square root, contains a bug that can cause it to loop forever for non-prime moduli. Internally this function is used when parsing certificates that contain elliptic curve public keys in compressed form or explicit elliptic curve parameters with a base point encoded in compressed form. It is possible to trigger the infinite loop by crafting a certificate that has invalid explicit curve parameters. Since certificate parsing happens prior to verification of the certificate signature, any process that parses an externally supplied certificate may thus be subject to a denial of service attack. The infinite loop can also be reached when parsing crafted private keys as they can contain explicit elliptic curve parameters. Thus vulnerable situations include: - TLS clients consuming server certificates - TLS servers consuming client certificates - Hosting providers taking certificates or private keys from customers - Certificate authorities parsing certification requests from subscribers - Anything else which parses ASN.1 elliptic curve parameters Also any other applications that use the BN_mod_sqrt() where the attacker can control the parameter values are vulnerable to this DoS issue. In the OpenSSL 1.0.2 version the public key is not parsed during initial parsing of the certificate which makes it slightly harder to trigger the infinite loop. However any operation which requires the public key from the certificate will trigger the infinite loop. In particular the attacker can use a self-signed certificate to trigger the loop during verification of the certificate signature. This issue affects OpenSSL versions 1.0.2, 1.1.1 and 3.0. It was addressed in the releases of 1.1.1n and 3.0.2 on the 15th March 2022. Fixed in OpenSSL 3.0.2 (Affected 3.0.0,3.0.1). Fixed in OpenSSL 1.1.1n (Affected 1.1.1-1.1.1m). Fixed in OpenSSL 1.0.2zd (Affected 1.0.2-1.0.2zc).",
+            "name": "CVE-2022-0778",
+            "scraped_data": [
+                {
+                    "notes": [],
+                    "status_table": {
+                        "packages": [
+                            "openssl",
+                            "Launchpad",
+                            "Ubuntu",
+                            "Debian"
+                        ],
+                        "release_states": [
+                            [
+                                "bionic",
+                                "Released (1.1.1-1ubuntu2.1~18.04.15)"
+                            ],
+                            [
+                                "focal",
+                                "Released (1.1.1f-1ubuntu2.12)"
+                            ],
+                            [
+                                "impish",
+                                "Released (1.1.1l-1ubuntu1.2)"
+                            ],
+                            [
+                                "jammy",
+                                "Released (3.0.2-0ubuntu1)"
+                            ],
+                            [
+                                "trusty",
+                                "Released (1.0.1f-1ubuntu2.27+esm5)"
+                            ],
+                            [
+                                "upstream",
+                                "Released (1.1.1n,3.0.2)"
+                            ],
+                            [
+                                "xenial",
+                                "Released (1.0.2g-1ubuntu4.20+esm2)"
+                            ]
+                        ]
+                    }
+                }
+            ],
+            "severity": "HIGH",
+            "uri": "http://people.ubuntu.com/~ubuntu-security/cve/CVE-2022-0778"
+        },
+        {
+            "attributes": [
+                {
+                    "key": "package_version",
+                    "value": "1.0.2g-1ubuntu4.18"
                 },
                 {
                     "key": "package_name",
@@ -6168,7 +6168,7 @@
             "attributes": [
                 {
                     "key": "package_version",
-                    "value": "1.0.2g-1ubuntu4.18"
+                    "value": "1.0.2g-1ubuntu4.20"
                 },
                 {
                     "key": "package_name",
@@ -7192,15 +7192,15 @@
                 },
                 {
                     "key": "CVSS2_VECTOR",
-                    "value": "AV:N/AC:M/Au:N/C:P/I:P/A:P"
+                    "value": "AV:L/AC:L/Au:N/C:P/I:P/A:P"
                 },
                 {
                     "key": "CVSS2_SCORE",
-                    "value": "6.8"
+                    "value": "4.6"
                 }
             ],
-            "description": "vim is vulnerable to Use After Free",
-            "name": "CVE-2021-4069",
+            "description": "Access of Memory Location Before Start of Buffer in GitHub repository vim/vim prior to 8.2.",
+            "name": "CVE-2022-0351",
             "scraped_data": [
                 {
                     "notes": [],
@@ -7214,19 +7214,15 @@
                         "release_states": [
                             [
                                 "bionic",
-                                "Released (2:8.0.1453-1ubuntu1.8)"
+                                "Needed"
                             ],
                             [
                                 "focal",
-                                "Released (2:8.1.2269-1ubuntu5.6)"
-                            ],
-                            [
-                                "hirsute",
-                                "Ignored (reached end-of-life)"
+                                "Needed"
                             ],
                             [
                                 "impish",
-                                "Released (2:8.2.2434-3ubuntu3.2)"
+                                "Needed"
                             ],
                             [
                                 "jammy",
@@ -7238,18 +7234,18 @@
                             ],
                             [
                                 "upstream",
-                                "Released (v8.2.3761)"
+                                "Released (8.2.4206)"
                             ],
                             [
                                 "xenial",
-                                "Released (2:7.4.1689-3ubuntu1.5+esm4)"
+                                "Needed"
                             ]
                         ]
                     }
                 }
             ],
             "severity": "MEDIUM",
-            "uri": "http://people.ubuntu.com/~ubuntu-security/cve/CVE-2021-4069"
+            "uri": "http://people.ubuntu.com/~ubuntu-security/cve/CVE-2022-0351"
         },
         {
             "attributes": [
@@ -7337,11 +7333,13 @@
                     "value": "6.8"
                 }
             ],
-            "description": "Use of Out-of-range Pointer Offset in GitHub repository vim/vim prior to 8.2.",
-            "name": "CVE-2022-0554",
+            "description": "Heap-based Buffer Overflow in GitHub repository vim/vim prior to 8.2.",
+            "name": "CVE-2022-0572",
             "scraped_data": [
                 {
-                    "notes": [],
+                    "notes": [
+                        "for bionic and earlier, vulnerable code can be found in file\nsrc/ex_cmds.c instead of src/indent.c (does not exist in bionic\nand earlier)."
+                    ],
                     "status_table": {
                         "packages": [
                             "vim",
@@ -7372,7 +7370,7 @@
                             ],
                             [
                                 "upstream",
-                                "Released (8.2.4327)"
+                                "Released (8.2.4359)"
                             ],
                             [
                                 "xenial",
@@ -7383,7 +7381,7 @@
                 }
             ],
             "severity": "MEDIUM",
-            "uri": "http://people.ubuntu.com/~ubuntu-security/cve/CVE-2022-0554"
+            "uri": "http://people.ubuntu.com/~ubuntu-security/cve/CVE-2022-0572"
         },
         {
             "attributes": [
@@ -7397,18 +7395,20 @@
                 },
                 {
                     "key": "CVSS2_VECTOR",
-                    "value": "AV:N/AC:M/Au:N/C:P/I:P/A:P"
+                    "value": "AV:N/AC:L/Au:N/C:P/I:P/A:P"
                 },
                 {
                     "key": "CVSS2_SCORE",
-                    "value": "6.8"
+                    "value": "7.5"
                 }
             ],
-            "description": "Use after free in append_command in GitHub repository vim/vim prior to 8.2.4895. This vulnerability is capable of crashing software, Bypass Protection Mechanism, Modify Memory, and possible remote execution",
-            "name": "CVE-2022-1616",
+            "description": "Use after free in utf_ptr2char in GitHub repository vim/vim prior to 8.2.4646.",
+            "name": "CVE-2022-1154",
             "scraped_data": [
                 {
-                    "notes": [],
+                    "notes": [
+                        "in bionic and earlier, vulnerable function is in file src/regexp.c\ninstead of file src/regexp_bt.c."
+                    ],
                     "status_table": {
                         "packages": [
                             "vim",
@@ -7439,18 +7439,18 @@
                             ],
                             [
                                 "upstream",
-                                "Released (8.2.4895)"
+                                "Released (8.2.4646)"
                             ],
                             [
                                 "xenial",
-                                "Needed"
+                                "Released (2:7.4.1689-3ubuntu1.5+esm4)"
                             ]
                         ]
                     }
                 }
             ],
             "severity": "MEDIUM",
-            "uri": "http://people.ubuntu.com/~ubuntu-security/cve/CVE-2022-1616"
+            "uri": "http://people.ubuntu.com/~ubuntu-security/cve/CVE-2022-1154"
         }
     ]
 }
