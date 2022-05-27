@@ -6,7 +6,7 @@ from enum import Enum
 
 import toml
 
-from utils import get_codebuild_project_name, get_root_folder_path
+from codebuild_environment import get_codebuild_project_name, get_cloned_folder_path
 
 LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.DEBUG)
@@ -15,12 +15,12 @@ LOGGER.addHandler(logging.StreamHandler(sys.stderr))
 
 
 def get_dlc_developer_config_path():
-    dev_config_parent_dir = get_root_folder_path()
+    dev_config_parent_dir = get_cloned_folder_path()
     return os.path.join(dev_config_parent_dir, "dlc_developer_config.toml")
 
 
 def get_dlc_build_version_override_config_path():
-    build_override_parent_dir = get_root_folder_path()
+    build_override_parent_dir = get_cloned_folder_path()
     return os.path.join(build_override_parent_dir, "dlc_build_version_override_config.toml")
 
 

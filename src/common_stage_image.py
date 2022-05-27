@@ -13,9 +13,10 @@ ANY KIND, either express or implied. See the License for the specific
 language governing permissions and limitations under the License.
 """
 
-from image import DockerImage
+from codebuild_environment import get_cloned_folder_path
 from context import Context
-from utils import generate_safety_report_for_image, get_root_folder_path
+from image import DockerImage
+from utils import generate_safety_report_for_image
 
 import os
 
@@ -23,17 +24,17 @@ import os
 class CommonStageImage(DockerImage):
     """
     This class is especially designed to handle the build process for CommonStageImages.
-    All the functionality - either safety scan report, ecr scan report, etc. - that is especially 
+    All the functionality - either safety scan report, ecr scan report, etc. - that is especially
     required to run the miscellaneous_dockerfiles/Dockerfile.common should go into this file. As of now,
-    this class takes care of generating a safety report from a pre_push_image and then uses this 
-    safety report for creating a context for Dockerfile.common 
+    this class takes care of generating a safety report from a pre_push_image and then uses this
+    safety report for creating a context for Dockerfile.common
     """
 
     def update_pre_build_configuration(self):
         """
         Conducts all the pre-build configurations from the parent class and then conducts
         Safety Scan on the images generated in previous stage builds. The safety scan generates
-        the safety_report which is then copied into the image. 
+        the safety_report which is then copied into the image.
         """
         # Call the update_pre_build_configuration steps from the parent class
         super(CommonStageImage, self).update_pre_build_configuration()
@@ -43,7 +44,7 @@ class CommonStageImage(DockerImage):
         image_name = self.name
         tarfile_name_for_context = f"{processed_image_uri}-{image_name}"
         storage_file_path = os.path.join(
-            os.sep, get_root_folder_path(), "src", f"{tarfile_name_for_context}_safety_report.json"
+            os.sep, get_cloned_folder_path(), "src", f"{tarfile_name_for_context}_safety_report.json"
         )
         generate_safety_report_for_image(
             pre_push_stage_image_uri, image_info=self.info, storage_file_path=storage_file_path
@@ -59,11 +60,11 @@ class CommonStageImage(DockerImage):
             "safety_report": {"source": safety_report_path, "target": "safety_report.json"},
             "dockerfile": {
                 "source": os.path.join(
-                    os.sep, get_root_folder_path(), "miscellaneous_dockerfiles", "Dockerfile.common"
+                    os.sep, get_cloned_folder_path(), "miscellaneous_dockerfiles", "Dockerfile.common"
                 ),
                 "target": "Dockerfile",
             },
         }
 
-        artifact_root = os.path.join(os.sep, get_root_folder_path(), "src")
+        artifact_root = os.path.join(os.sep, get_cloned_folder_path(), "src")
         return Context(artifacts, context_path=f"build/{tarfile_name}.tar.gz", artifact_root=artifact_root)

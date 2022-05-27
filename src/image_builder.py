@@ -24,16 +24,18 @@ import utils
 import boto3
 import itertools
 
+from codebuild_environment import get_codebuild_project_name, get_cloned_folder_path
+from config import parse_dlc_developer_configs, is_build_enabled
 from context import Context
 from metrics import Metrics
 from image import DockerImage
 from common_stage_image import CommonStageImage
 from buildspec import Buildspec
 from output import OutputFormatter
-from config import parse_dlc_developer_configs, is_build_enabled
 
 FORMATTER = OutputFormatter(constants.PADDING)
 build_context = os.getenv("BUILD_CONTEXT")
+
 
 def _find_image_object(images_list, image_name):
     """
@@ -159,7 +161,7 @@ def image_builder(buildspec):
             "labels": labels,
             "extra_build_args": extra_build_args
         }
-        
+
         # Create pre_push stage docker object
         pre_push_stage_image_object = DockerImage(
             info=info,
@@ -213,7 +215,7 @@ def image_builder(buildspec):
 
     FORMATTER.banner("Test Env")
     # Set environment variables to be consumed by test jobs
-    test_trigger_job = utils.get_codebuild_project_name()
+    test_trigger_job = get_codebuild_project_name()
     # Tests should only run on images that were pushed to the repository
     if not is_build_enabled():
         # Ensure we have images populated if do_build is false, so that tests can proceed if needed
@@ -223,8 +225,8 @@ def image_builder(buildspec):
 
     utils.set_test_env(
         images_to_test,
-        use_latest_additional_tag=True, 
-        BUILD_CONTEXT=os.getenv("BUILD_CONTEXT"), 
+        use_latest_additional_tag=True,
+        BUILD_CONTEXT=os.getenv("BUILD_CONTEXT"),
         TEST_TRIGGER=test_trigger_job
     )
 
@@ -232,13 +234,13 @@ def image_builder(buildspec):
 def process_images(pre_push_image_list, pre_push_image_type="Pre-push"):
     """
     Handles all the tasks related to a particular type of Pre Push images. It takes in the list of
-    pre push images and then builds it. After the pre-push images have been built, it extracts the 
+    pre push images and then builds it. After the pre-push images have been built, it extracts the
     corresponding common stage images for the pre-push images and builds those common stage images.
-    After the common stage images have been built, it finds outs the docker images that need to be 
+    After the common stage images have been built, it finds outs the docker images that need to be
     pushed and pushes them accordingly.
 
     Note that the common stage images should always be built after the pre-push images of a
-    particular kind. This is because the Common stage images use are built on respective 
+    particular kind. This is because the Common stage images use are built on respective
     Standard and Example images.
 
     :param pre_push_image_list: list[DockerImage], list of pre-push images
@@ -268,8 +270,8 @@ def process_images(pre_push_image_list, pre_push_image_type="Pre-push"):
 
 def generate_common_stage_image_object(pre_push_stage_image_object, image_tag):
     """
-    Creates a common stage image object for a pre_push stage image. If for a pre_push stage image we create a common 
-    stage image, then we do not push the pre_push stage image to the repository. Instead, we just push its common stage 
+    Creates a common stage image object for a pre_push stage image. If for a pre_push stage image we create a common
+    stage image, then we do not push the pre_push stage image to the repository. Instead, we just push its common stage
     image to the repository. Therefore, inside the function pre_push_stage_image_object is made NON-PUSHABLE.
 
     :param pre_push_stage_image_object: DockerImage, an object of class DockerImage
@@ -281,7 +283,7 @@ def generate_common_stage_image_object(pre_push_stage_image_object, image_tag):
     )
     common_stage_image_object = CommonStageImage(
         info=common_stage_info,
-        dockerfile=os.path.join(os.sep, utils.get_root_folder_path(), "miscellaneous_dockerfiles", "Dockerfile.common"),
+        dockerfile=os.path.join(os.sep, get_cloned_folder_path(), "miscellaneous_dockerfiles", "Dockerfile.common"),
         repository=pre_push_stage_image_object.repository,
         tag=append_tag(image_tag, "multistage-common"),
         to_build=pre_push_stage_image_object.to_build,
@@ -375,7 +377,7 @@ def upload_metrics(images, BUILDSPEC, is_any_build_failed, is_any_build_failed_s
 
 def build_images(images, make_dummy_boto_client=False):
     """
-    Takes a list of images and executes their build process concurrently. 
+    Takes a list of images and executes their build process concurrently.
 
     :param images: list[DockerImage]
     :param make_dummy_boto_client: bool, specifies if a dummy client should be declared or not.
@@ -409,7 +411,7 @@ def get_dummy_boto_client():
 
 def push_images(images):
     """
-    Takes a list of images and PUSHES them to ECR concurrently. 
+    Takes a list of images and PUSHES them to ECR concurrently.
 
     :param images: list[DockerImage]
     """

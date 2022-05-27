@@ -20,24 +20,17 @@ import sys
 import boto3
 import constants
 
-from config import is_build_enabled
-from invoke.context import Context
 from botocore.exceptions import ClientError
+from invoke.context import Context
+
+from codebuild_environment import get_cloned_folder_path, get_user_and_repo_name
+from config import is_build_enabled
 from safety_report_generator import SafetyReportGenerator
 
 LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.DEBUG)
 LOGGER.addHandler(logging.StreamHandler(sys.stdout))
 LOGGER.addHandler(logging.StreamHandler(sys.stderr))
-
-
-def get_codebuild_build_arn():
-    """
-    Get env variable CODEBUILD_BUILD_ARN
-
-    @return: value or empty string if not set
-    """
-    return os.getenv("CODEBUILD_BUILD_ARN", "")
 
 
 class JobParameters:
@@ -129,8 +122,7 @@ def get_pr_modified_files(pr_number):
     from dlc.github_handler import GitHubHandler
 
     # Example: "https://github.com/aws/deep-learning-containers.git"
-    repo_url = os.getenv("CODEBUILD_SOURCE_REPO_URL")
-    _, user, repo_name = repo_url.rstrip(".git").rsplit("/", 2)
+    user, repo_name = get_user_and_repo_name()
 
     github_handler = GitHubHandler(user, repo_name)
     files = github_handler.get_pr_files_changed(pr_number)
@@ -506,31 +498,6 @@ def set_test_env(images, use_latest_additional_tag=False, images_env="DLC_IMAGES
     write_to_json_file(constants.TEST_ENV_PATH, test_envs)
 
 
-def get_codebuild_project_name():
-    # Default value for codebuild project name is "local_test" when run outside of CodeBuild
-    return os.getenv("CODEBUILD_BUILD_ID", "local_test").split(":")[0]
-
-
-def get_root_folder_path():
-    """
-    Extract the root folder path for the repository.
-
-    :return: str
-    """
-    root_dir_pattern = re.compile(r"^(\S+deep-learning-containers)")
-    pwd = os.getcwd()
-    codebuild_src_dir_env = os.getenv("CODEBUILD_SRC_DIR")
-
-    # Ensure we are inside some directory called "deep-learning-containers
-    try:
-        if not codebuild_src_dir_env:
-            codebuild_src_dir_env = root_dir_pattern.match(pwd).group(1)
-    except AttributeError as e:
-        raise RuntimeError(f"Unable to find DLC root directory in path {pwd}, and no CODEBUILD_SRC_DIR set") from e
-
-    return codebuild_src_dir_env
-
-
 def get_safety_ignore_dict(image_uri, framework, python_version, job_type):
     """
     Get a dict of known safety check issue IDs to ignore, if specified in file ../data/ignore_ids_safety_scan.json.
@@ -549,8 +516,7 @@ def get_safety_ignore_dict(image_uri, framework, python_version, job_type):
     if "habana" in image_uri:
         framework = f"habana_{framework}"
 
-    ignore_safety_ids = {}
-    ignore_data_file = os.path.join(os.sep, get_root_folder_path(), "data", "ignore_ids_safety_scan.json")
+    ignore_data_file = os.path.join(os.sep, get_cloned_folder_path(), "data", "ignore_ids_safety_scan.json")
     with open(ignore_data_file) as f:
         ignore_safety_ids = json.load(f)
 

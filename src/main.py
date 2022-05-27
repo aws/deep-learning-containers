@@ -1,12 +1,12 @@
 import argparse
 import os
-import re
 
 import utils
 import constants
 
-from image_builder import image_builder
+from codebuild_environment import get_codebuild_project_name
 from config import parse_dlc_developer_configs, get_buildspec_override
+from image_builder import image_builder
 
 
 def main():
@@ -42,7 +42,7 @@ def main():
     # Skip tensorflow-1 PR jobs, as there are no longer patch releases being added for TF1
     # Purposefully not including this in developer config to make this difficult to enable
     # TODO: Remove when we remove these jobs completely
-    build_name = utils.get_codebuild_project_name()
+    build_name = get_codebuild_project_name()
     if build_context == "PR" and build_name == "dlc-pr-tensorflow-1":
         return
 
