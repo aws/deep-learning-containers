@@ -49,6 +49,9 @@ images:
     docker_file: !join [ docker/, *SHORT_VERSION, /, *DOCKER_PYTHON_VERSION, /Dockerfile., *DEVICE_TYPE ]
     context:
       <<: *TRAINING_CONTEXT
+      apt-upgrade-list:
+        source: !join [ docker/, *SHORT_VERSION, /, *DOCKER_PYTHON_VERSION, /apt-upgrade-list-, *DEVICE_TYPE, .txt]
+        target: apt-upgrade-list.txt
   BuildMXNetGPUTrainPy3DockerImage:
     <<: *TRAINING_REPOSITORY
     build: &MXNET_GPU_TRAINING_PY3 false
@@ -62,6 +65,9 @@ images:
     docker_file: !join [ docker/, *SHORT_VERSION, /, *DOCKER_PYTHON_VERSION, /, *CUDA_VERSION, /Dockerfile., *DEVICE_TYPE ]
     context:
       <<: *TRAINING_CONTEXT
+      apt-upgrade-list:
+        source: !join [ docker/, *SHORT_VERSION, /, *DOCKER_PYTHON_VERSION, /, *CUDA_VERSION, /apt-upgrade-list-, *DEVICE_TYPE, .txt]
+        target: apt-upgrade-list.txt
   BuildMXNetCPUInferencePy3DockerImage:
     <<: *INFERENCE_REPOSITORY
     build: &MXNET_CPU_INFERENCE_PY3 false
@@ -74,6 +80,9 @@ images:
     docker_file: !join [ docker/, *SHORT_VERSION, /, *DOCKER_PYTHON_VERSION, /Dockerfile., *DEVICE_TYPE ]
     context:
       <<: *INFERENCE_CONTEXT
+      apt-upgrade-list:
+        source: !join [ docker/, *SHORT_VERSION, /, *DOCKER_PYTHON_VERSION, /apt-upgrade-list-, *DEVICE_TYPE, .txt]
+        target: apt-upgrade-list.txt
   BuildMXNetGPUInferencePy3DockerImage:
     << : *INFERENCE_REPOSITORY
     build: &MXNET_GPU_INFERENCE_PY3 false
@@ -87,6 +96,9 @@ images:
     docker_file: !join [ docker/, *SHORT_VERSION, /, *DOCKER_PYTHON_VERSION, /, *CUDA_VERSION, /Dockerfile., *DEVICE_TYPE ]
     context:
       <<: *INFERENCE_CONTEXT
+      apt-upgrade-list:
+        source: !join [ docker/, *SHORT_VERSION, /, *DOCKER_PYTHON_VERSION, /, *CUDA_VERSION, /apt-upgrade-list-, *DEVICE_TYPE, .txt]
+        target: apt-upgrade-list.txt
   BuildMXNetExampleGPUTrainPy3DockerImage:
     <<: *TRAINING_REPOSITORY
     build: &MXNET_GPU_TRAINING_PY3 false
