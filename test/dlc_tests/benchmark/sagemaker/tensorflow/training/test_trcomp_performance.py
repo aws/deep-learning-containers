@@ -101,7 +101,7 @@ class TestImageClassification:
 
     @pytest.mark.model("resnet101")
     def test_resnet101_at_fp16(self, instance_type, num_gpus, total_n_gpus, instance_count, distribution_strategy, caching, tensorflow_training, sagemaker_session, capsys, framework_version):
-        epochs = int(200*total_n_gpus)
+        epochs = int(100*total_n_gpus)
         batches = np.array([224])*total_n_gpus
         for batch in np.array(batches, dtype=int):
             train_steps = int(10240*epochs/batch)
@@ -143,7 +143,7 @@ class TestImageClassification:
                                 debugger_hook_config=None,
                                 disable_profiler=True,
                                 max_run=60*60*1, # Timeout in 1 hours
-                                base_job_name='tf29-trcomp-resnet101',
+                                base_job_name=f"tf{framework_version.replace('.','')}-trcomp-bench-resnet101",
                                 role="SageMakerRole",
                             )
             estimator.fit(inputs='s3://collection-of-ml-datasets/Imagenet/TFRecords/validation', logs=True, wait=True)
@@ -151,13 +151,13 @@ class TestImageClassification:
             captured = capsys.readouterr()
             logs = captured.out + captured.err
             match = re.search('Billable seconds: ([1-9]*)', logs)
-            billable = match.group(1)
+            billable = float(match.group(1))
 
             threshold = TRCOMP_THRESHOLD['tensorflow']['2.9']['resnet101'][instance_type][instance_count][batch]
             result = (
                 f"tensorflow-trcomp {framework_version} resnet101 fp16 XLA "
-                f"imagenet {instance_count} Billable: {billable} secs threshold: {threshold} secs"
+                f"imagenet {instance_type} {instance_count} {batch} Billable: {billable} secs threshold: {threshold} secs"
             )
             LOGGER.info(result)
-            assert billable<=threshold, result
+            assert billable<=threshold, ' '.join(estimator.latest_training_job.name, result)
 
