@@ -37,7 +37,6 @@ def _test_sm_trained_model(sagemaker_session, ecr_image, instance_type, framewor
     versions_map = {
         # container version -> autogluon version
         '0.3.2': '0.3.1',
-        '0.4.1': '0.4.0',  # FIXME: remove me later
     }
     ag_framework_version = versions_map.get(framework_version, framework_version)
     model_data = sagemaker_session.upload_data(path=os.path.join(model_dir, f'model_{ag_framework_version}.tar.gz'), key_prefix='sagemaker-autogluon-serving-trained-model/models')

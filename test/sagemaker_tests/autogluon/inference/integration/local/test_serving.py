@@ -34,7 +34,6 @@ def _predictor(image, framework_version, sagemaker_local_session, instance_type)
     versions_map = {
         # container version -> autogluon version
         '0.3.2': '0.3.1',
-        '0.4.1': '0.4.0',  # FIXME: remove me later
     }
     ag_framework_version = versions_map.get(framework_version, framework_version)
     model = MXNetModel(
