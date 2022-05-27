@@ -70,6 +70,7 @@ class JobParameters:
             and JobParameters.py_versions == constants.ALL
         )
 
+
 def download_s3_file(bucket_name, filepath, local_file_name):
     """
 
@@ -86,6 +87,7 @@ def download_s3_file(bucket_name, filepath, local_file_name):
         LOGGER.error("Error: Cannot read file from s3 bucket.")
         LOGGER.error("Exception: {}".format(e))
         raise
+
 
 def download_file(remote_url: str, link_type: str):
     """
@@ -518,9 +520,15 @@ def get_root_folder_path():
     root_dir_pattern = re.compile(r"^(\S+deep-learning-containers)")
     pwd = os.getcwd()
     codebuild_src_dir_env = os.getenv("CODEBUILD_SRC_DIR")
-    root_folder_path = codebuild_src_dir_env if codebuild_src_dir_env else root_dir_pattern.match(pwd).group(1)
 
-    return root_folder_path
+    # Ensure we are inside some directory called "deep-learning-containers
+    try:
+        if not codebuild_src_dir_env:
+            codebuild_src_dir_env = root_dir_pattern.match(pwd).group(1)
+    except AttributeError as e:
+        raise RuntimeError(f"Unable to find DLC root directory in path {pwd}, and no CODEBUILD_SRC_DIR set") from e
+
+    return codebuild_src_dir_env
 
 
 def get_safety_ignore_dict(image_uri, framework, python_version, job_type):
@@ -537,7 +545,7 @@ def get_safety_ignore_dict(image_uri, framework, python_version, job_type):
         job_type = (
             "inference-eia" if "eia" in image_uri else "inference-neuron" if "neuron" in image_uri else "inference"
         )
-    
+
     if "habana" in image_uri:
         framework = f"habana_{framework}"
 
@@ -551,7 +559,7 @@ def get_safety_ignore_dict(image_uri, framework, python_version, job_type):
 
 def generate_safety_report_for_image(image_uri, image_info, storage_file_path=None):
     """
-    Genereate safety scan reports for an image and store it at the location specified 
+    Generate safety scan reports for an image and store it at the location specified
 
     :param image_uri: str, consists of f"{image_repo}:{image_tag}"
     :param image_info: dict, should consist of 3 keys - "framework", "python_version" and "image_type".

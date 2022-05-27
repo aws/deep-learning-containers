@@ -1,0 +1,31 @@
+# Assign the path to the required buildspec file from the deep-learning-containers folder
+dlc-pr-autogluon = ""
+dlc-pr-mxnet = ""
+dlc-pr-pytorch = ""
+dlc-pr-tensorflow-1 = ""
+dlc-pr-tensorflow-2 = ""
+
+dlc-pr-huggingface-pytorch = ""
+dlc-pr-huggingface-tensorflow = ""
+
+dlc-pr-pytorch-habana = ""
+dlc-pr-tensorflow-2-habana = ""
+
+dlc-pr-mxnet-neuron = ""
+dlc-pr-pytorch-neuron = ""
+dlc-pr-tensorflow-1-neuron = ""
+dlc-pr-tensorflow-2-neuron = ""
+dlc-pr-huggingface-pytorch-neuron = ""
+dlc-pr-huggingface-tensorflow-neuron = ""
+
+dlc-pr-huggingface-pytorch-trcomp = ""
+dlc-pr-huggingface-tensorflow-2-trcomp = ""
+
+dlc-pr-mxnet-graviton = ""
+dlc-pr-pytorch-graviton = ""
+dlc-pr-tensorflow-2-graviton = ""
+
+dlc-pr-mxnet-eia = ""
+dlc-pr-pytorch-eia = ""
+dlc-pr-tensorflow-1-eia = ""
+dlc-pr-tensorflow-2-eia = ""
