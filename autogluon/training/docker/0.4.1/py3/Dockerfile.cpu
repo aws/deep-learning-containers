@@ -25,6 +25,7 @@ ARG TORCH_VISION_VER=0.11.3+cpu
 RUN pip install --no-cache-dir -U --trusted-host pypi.org --trusted-host files.pythonhosted.org pip \
  && pip install --no-cache-dir -U setuptools==59.5.0 wheel \
  && pip install --no-cache-dir -U \
+    numpy numba \
     torch==${TORCH_VER} torchvision==${TORCH_VISION_VER} -f https://download.pytorch.org/whl/cpu/torch_stable.html \
     autogluon==${AUTOGLUON_VERSION} \
     sagemaker-mxnet-training

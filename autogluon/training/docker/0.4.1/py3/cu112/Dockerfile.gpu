@@ -27,6 +27,7 @@ ARG AUTOGLUON_VERSION=0.4.1
 
 RUN pip install --no-cache-dir -U --trusted-host pypi.org --trusted-host files.pythonhosted.org pip \
  && pip install --no-cache-dir -U setuptools==59.5.0 wheel \
+ && pip install --no-cache-dir -U numba \
  && pip install --no-cache-dir -U autogluon==${AUTOGLUON_VERSION} \
  && pip install --no-cache-dir -U sagemaker-mxnet-training
 
