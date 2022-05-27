@@ -84,6 +84,16 @@ def framework_version(tensorflow_training):
     return version
 
 
+@pytest.fixture(autouse=True)
+def smtrcomp_only(framework_version, tensorflow_training, request):
+    short_version = float(".".join(framework_version.split('.')[:2]))
+    if short_version<2.9:
+        pytest.skip('Training Compiler support was added with TF 2.9')
+    if 'gpu' not in tensorflow_training:
+        pytest.skip('Training Compiler is only available for GPUs')
+
+
+
 def pytest_generate_tests(metafunc):
     if "instance_type" in metafunc.fixturenames:
         metafunc.parametrize("instance_type, instance_count", [
@@ -150,14 +160,16 @@ class TestImageClassification:
             
             captured = capsys.readouterr()
             logs = captured.out + captured.err
-            match = re.search('Billable seconds: ([1-9]*)', logs)
-            billable = float(match.group(1))
+            match = re.search('Billable seconds: ([0-9]*)', logs)
+            billable = int(match.group(1))
 
             threshold = TRCOMP_THRESHOLD['tensorflow']['2.9']['resnet101'][instance_type][instance_count][batch]
             result = (
                 f"tensorflow-trcomp {framework_version} resnet101 fp16 XLA "
-                f"imagenet {instance_type} {instance_count} {batch} Billable: {billable} secs threshold: {threshold} secs"
+                f"imagenet {instance_type} {instance_count} {batch} Billable: {billable} secs threshold: {threshold} secs "
+                f"{estimator.latest_training_job.name}"
             )
             LOGGER.info(result)
-            assert billable<=threshold, ' '.join(estimator.latest_training_job.name, result)
+            assert billable>=1000, 'False Positive '+result
+            assert billable<=threshold, result
 

@@ -500,6 +500,11 @@ def tf25_and_above_only():
 
 
 @pytest.fixture(scope="session")
+def tf29_and_above_only():
+    pass
+
+
+@pytest.fixture(scope="session")
 def tf21_and_above_only():
     pass
 
@@ -545,6 +550,9 @@ def framework_version_within_limit(metafunc_obj, image):
     image_framework_name, _ = get_framework_and_version_from_tag(image)
     if image_framework_name == "tensorflow":
         tf2_requirement_failed = "tf2_only" in metafunc_obj.fixturenames and not is_tf_version("2", image)
+        tf29_requirement_failed = "tf29_and_above_only" in metafunc_obj.fixturenames and is_below_framework_version(
+            "2.9", image, "tensorflow"
+        )
         tf25_requirement_failed = "tf25_and_above_only" in metafunc_obj.fixturenames and is_below_framework_version(
             "2.5", image, "tensorflow"
         )
