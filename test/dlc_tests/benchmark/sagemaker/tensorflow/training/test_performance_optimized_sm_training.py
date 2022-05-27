@@ -16,6 +16,7 @@ from test.test_utils import (
 )
 
 
+@pytest.mark.skip("Skipped in favor of Training Compiler tests")
 @pytest.mark.usefixtures("sagemaker_only")
 @pytest.mark.flaky(reruns=3)
 @pytest.mark.integration("imagenet dataset")
@@ -52,6 +53,7 @@ def test_optimized_tensorflow_sagemaker_training_performance_multinode(tensorflo
     '''
 
 
+@pytest.mark.skip("Skipped in favor of Training Compiler tests")
 @pytest.mark.usefixtures("sagemaker_only")
 @pytest.mark.integration("imagenet dataset")
 @pytest.mark.model("resnet50")
