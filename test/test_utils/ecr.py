@@ -118,7 +118,11 @@ def get_ecr_image_scan_results(ecr_client, image_uri, minimum_vulnerability="HIG
     :return: list<dict> Scan results
     """
     repository, tag = get_repository_and_tag_from_image_uri(image_uri)
-    scan_info = ecr_client.describe_image_scan_findings(repositoryName=repository, imageId={"imageTag": tag})
+    scan_info = ecr_client.describe_image_scan_findings(
+        repositoryName=repository, 
+        imageId={"imageTag": tag},
+        maxResults=1000
+    )
     scan_findings = [
         finding
         for finding in scan_info["imageScanFindings"]["findings"]

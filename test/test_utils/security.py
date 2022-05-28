@@ -7,7 +7,8 @@ from invoke import run, Context
 from time import sleep, time
 from enum import IntEnum
 from test import test_utils
-from test.test_utils import ecr as ecr_utils
+from test.test_utils import ecr as ecr_utils, get_framework_and_version_from_tag, is_covered_by_e3_sm_split, is_e3_image
+from packaging.version import Version
 
 
 class ECRScanFailureException(Exception):
@@ -309,6 +310,11 @@ def run_upgrade_on_image_and_push(image, new_image_uri):
     docker_run_cmd = f"docker run -id --entrypoint='/bin/bash' {image}"
     container_id = ctx.run(f"{docker_run_cmd}", hide=True).stdout.strip()
     apt_command = "apt-get update && apt-get upgrade"
+    nvidia_gpg_command = "apt-key adv --fetch-keys https://developer.download.nvidia.com/compute/cuda/repos/ubuntu1804/x86_64/3bf863cc.pub &&"\
+                         "apt-key adv --fetch-keys https://developer.download.nvidia.com/compute/machine-learning/repos/ubuntu1804/x86_64/7fa2af80.pub"
+    framework, version = get_framework_and_version_from_tag(image_uri=image)
+    if framework == "pytorch" and Version(version) == Version("1.11"):
+        apt_command = f"{nvidia_gpg_command} && {apt_command}"
     docker_exec_cmd = f"docker exec -i {container_id}"
     attempt_count = 0
     apt_ran_successfully_flag = False
@@ -474,6 +480,11 @@ def conduct_failure_routine(
     if vulnerabilities_fixable_by_upgrade:
         fixable_list = vulnerabilities_fixable_by_upgrade.vulnerability_list
     apt_upgrade_list_filename = f"apt-upgrade-list-{test_utils.get_processor_from_image_uri(image)}.txt"
+    if is_covered_by_e3_sm_split(image):
+        if is_e3_image:
+            ## For e3 images, the apt-upgrade-list files look like apt-upgrade-list-gpu-e3.txt
+            ## For all other images, it looks like apt-upgrade-list-gpu.txt
+            apt_upgrade_list_filename = apt_upgrade_list_filename.replace(".txt", "-e3.txt")
     s3_filename_for_apt_upgrade_list = s3_filename_for_allowlist.replace("allowlist.json", apt_upgrade_list_filename)
     original_filepath_for_apt_upgrade_list = os.path.join(
         os.path.dirname(original_filepath_for_allowlist), apt_upgrade_list_filename

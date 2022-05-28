@@ -31,7 +31,10 @@ from test.test_utils.security import (
 )
 from src.config import is_ecr_scan_allowlist_feature_enabled
 
-ALLOWLIST_FEATURE_ENABLED_IMAGES = {"mxnet": SpecifierSet(">=1.8.0,<1.9.0")}
+ALLOWLIST_FEATURE_ENABLED_IMAGES = {
+    "mxnet": SpecifierSet(">=1.8.0,<1.9.0"),
+    "pytorch": SpecifierSet(">=1.11.0"),
+}
 
 
 @pytest.mark.usefixtures("sagemaker")

@@ -104,6 +104,15 @@ RUN apt-get update \
  && rm -rf /var/lib/apt/lists/* \
  && apt-get clean
 
+ ## This section is for allowing the automatic updates of vulnerable packages.
+COPY apt-upgrade-list.txt /tmp/apt-upgrade-list.txt
+RUN apt-get update \
+&& apt-get install --only-upgrade $(cat /tmp/apt-upgrade-list.txt) \
+&& rm -rf /tmp/apt-upgrade-list.txt
+
+## TODO : Remove this as soon as this build is over ##
+COPY apt-upgrade-list.txt /apt-upgrade-list.txt
+
 # Install aws-sdk-cpp s3;transfer modules for torchdata
 RUN git clone --recurse-submodules https://github.com/aws/aws-sdk-cpp \
  && cd aws-sdk-cpp/ \
