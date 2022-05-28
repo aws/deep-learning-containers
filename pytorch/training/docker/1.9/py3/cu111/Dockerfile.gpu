@@ -209,6 +209,7 @@ RUN pip install --no-cache-dir -U \
     cmake==3.18.2.post1 \
     torchnet \
     "cryptography>3.2" \
+    "numpy>=1.22.2" \
  && pip uninstall -y torch \
  && pip install --no-cache-dir -U ${PT_TRAINING_URL} \
  && pip uninstall -y torchvision \
