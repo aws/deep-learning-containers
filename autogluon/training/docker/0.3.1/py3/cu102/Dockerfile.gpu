@@ -12,7 +12,7 @@ LABEL dlc_major_version="1"
 
 ARG CUDA_VER
 
-ARG OPENSSL_VERSION=1.1.1l
+ARG OPENSSL_VERSION=1.1.1o
 ARG AUTOGLUON_VERSION=0.3.1
 
 ARG MXNET_VER=1.7.*
@@ -25,7 +25,18 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
     MXNET_CUDNN_LIB_CHECKING=0 \
     SAGEMAKER_TRAINING_MODULE=sagemaker_mxnet_container.training:main \
     LD_LIBRARY_PATH=/opt/conda/envs/rapids/lib:/usr/local/lib:$LD_LIBRARY_PATH \
-    PATH=/opt/conda/envs/rapids/bin:/usr/local/bin:$PATH 
+    PATH=/opt/conda/envs/rapids/bin:/usr/local/bin:$PATH
+
+## NVIDIA updated and rotated the signing keys used by apt, dnf/yum, and zypper package managers beginning April 27, 2022
+## This code snippet has been taken from the NVIDIA forums https://forums.developer.nvidia.com/t/notice-cuda-linux-repository-key-rotation/212771
+## to ensure that the builds do not fail
+## The solution is inspired from https://github.com/NVIDIA/nvidia-docker/issues/1631#issuecomment-1113105899
+RUN rm /etc/apt/sources.list.d/cuda.list && \
+    rm /etc/apt/sources.list.d/nvidia-ml.list && \
+    apt-key del 7fa2af80 && \
+    apt-get update && apt-get install -y --no-install-recommends wget && \
+    wget https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2004/x86_64/cuda-keyring_1.0-1_all.deb && \
+    dpkg -i cuda-keyring_1.0-1_all.deb
 
 RUN apt-get update \
  && apt-get -y upgrade \
@@ -95,7 +106,7 @@ RUN source activate rapids \
     pyppeteer \
     traitlets \
     websockets \
-    widgetsnbextension 
+    widgetsnbextension
 
 # Catboost 0.26 updates version of scala 2.11 for security reasons
 # https://github.com/catboost/catboost/issues/1632

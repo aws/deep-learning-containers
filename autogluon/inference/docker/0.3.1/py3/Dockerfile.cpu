@@ -11,7 +11,7 @@ LABEL maintainer="Amazon AI"
 LABEL dlc_major_version="1"
 
 ARG PYTHON_VERSION=3.7.10
-ARG OPENSSL_VERSION=1.1.1l
+ARG OPENSSL_VERSION=1.1.1o
 
 RUN apt-get update \
  && apt-get -y upgrade \

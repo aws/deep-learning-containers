@@ -4,7 +4,7 @@ FROM ${FROM_IMAGE}
 LABEL maintainer="Amazon AI"
 LABEL dlc_major_version="1"
 
-ARG OPENSSL_VERSION=1.1.1l
+ARG OPENSSL_VERSION=1.1.1o
 ARG PYTHON_VERSION=3.7.10
 ARG PYTHON=python3
 ARG MXNET_VER=1.7.*
@@ -109,7 +109,7 @@ RUN pip install --no-cache-dir -U \
     mxnet==${MXNET_VER} \
     autogluon==${AUTOGLUON_VERSION} \
     sagemaker-mxnet-training \
- && pip uninstall -y \ 
+ && pip uninstall -y \
     datashader \
     ipykernel \
     ipython \
@@ -135,7 +135,7 @@ RUN pip install --no-cache-dir -U \
     pyppeteer \
     traitlets \
     websockets \
-    widgetsnbextension 
+    widgetsnbextension
 
 # Catboost 0.26 updates version of scala 2.11 for security reasons
 # https://github.com/catboost/catboost/issues/1632
