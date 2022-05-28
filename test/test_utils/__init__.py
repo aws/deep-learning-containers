@@ -205,8 +205,16 @@ def get_dockerfile_path_for_image(image_uri):
 
 
 def get_expected_dockerfile_filename(device_type, image_uri):
-    if is_covered_by_e3_sm_split(image_uri) and is_e3_sm_in_same_dockerfile(image_uri):
-        return f"Dockerfile.{device_type}"
+    if is_covered_by_e3_sm_split(image_uri):
+        if is_e3_sm_in_same_dockerfile(image_uri):
+            return f"Dockerfile.{device_type}"
+        elif is_e3_image(image_uri):
+            return f"Dockerfile.e3.{device_type}"
+        else:
+            return f"Dockerfile.sagemaker.{device_type}"
+    
+    ## TODO: Keeping here for backward compatibility, should be removed in future when the 
+    ## functions is_covered_by_e3_sm_split and is_e3_sm_in_same_dockerfile are made exhaustive
     if is_e3_image(image_uri):
         return f"Dockerfile.e3.{device_type}"
     if is_sagemaker_image(image_uri):

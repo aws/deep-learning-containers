@@ -7,7 +7,13 @@ from invoke import run, Context
 from time import sleep, time
 from enum import IntEnum
 from test import test_utils
-from test.test_utils import ecr as ecr_utils, get_framework_and_version_from_tag, is_covered_by_e3_sm_split, is_e3_image
+from test.test_utils import (
+    ecr as ecr_utils,
+    get_framework_and_version_from_tag,
+    is_covered_by_e3_sm_split,
+    is_e3_image,
+    is_e3_sm_in_same_dockerfile,
+)
 from packaging.version import Version
 
 
@@ -256,6 +262,12 @@ def get_ecr_vulnerability_package_version(vulnerability):
 def get_ecr_scan_allowlist_path(image_uri):
     dockerfile_location = test_utils.get_dockerfile_path_for_image(image_uri)
     image_scan_allowlist_path = dockerfile_location + ".os_scan_allowlist.json"
+    if test_utils.is_covered_by_e3_sm_split(image_uri) and test_utils.is_e3_sm_in_same_dockerfile(image_uri):
+        if test_utils.is_e3_image(image_uri):
+            image_scan_allowlist_path = image_scan_allowlist_path.replace("Dockerfile", "Dockerfile.e3")
+        else:
+            image_scan_allowlist_path = image_scan_allowlist_path.replace("Dockerfile", "Dockerfile.sagemaker")
+
     # Each example image (tied to CUDA version/OS version/other variants) can have its own list of vulnerabilities,
     # which means that we cannot have just a single allowlist for all example images for any framework version.
     if "example" in image_uri:
@@ -310,8 +322,10 @@ def run_upgrade_on_image_and_push(image, new_image_uri):
     docker_run_cmd = f"docker run -id --entrypoint='/bin/bash' {image}"
     container_id = ctx.run(f"{docker_run_cmd}", hide=True).stdout.strip()
     apt_command = "apt-get update && apt-get upgrade"
-    nvidia_gpg_command = "apt-key adv --fetch-keys https://developer.download.nvidia.com/compute/cuda/repos/ubuntu1804/x86_64/3bf863cc.pub &&"\
-                         "apt-key adv --fetch-keys https://developer.download.nvidia.com/compute/machine-learning/repos/ubuntu1804/x86_64/7fa2af80.pub"
+    nvidia_gpg_command = (
+        "apt-key adv --fetch-keys https://developer.download.nvidia.com/compute/cuda/repos/ubuntu1804/x86_64/3bf863cc.pub &&"
+        "apt-key adv --fetch-keys https://developer.download.nvidia.com/compute/machine-learning/repos/ubuntu1804/x86_64/7fa2af80.pub"
+    )
     framework, version = get_framework_and_version_from_tag(image_uri=image)
     if framework == "pytorch" and Version(version) == Version("1.11"):
         apt_command = f"{nvidia_gpg_command} && {apt_command}"
@@ -375,7 +389,12 @@ def get_apt_package_name(ecr_package_name):
     :param ecr_package_name: str, name of the package in ecr scans
     :param apt_package_name: str, name of the package in apt
     """
-    name_mapper = {"cyrus-sasl2": "libsasl2-2", "glibc": "libc6", "libopenmpt": "libopenmpt-dev", "fribidi": "libfribidi-dev", }
+    name_mapper = {
+        "cyrus-sasl2": "libsasl2-2",
+        "glibc": "libc6",
+        "libopenmpt": "libopenmpt-dev",
+        "fribidi": "libfribidi-dev",
+    }
     return name_mapper.get(ecr_package_name, ecr_package_name)
 
 
@@ -449,6 +468,24 @@ def get_vulnerabilites_fixable_by_upgrade(
     return vulnerabilities_fixable_by_upgrade
 
 
+def get_apt_upgrade_list_name(image_uri):
+    image_processor = test_utils.get_processor_from_image_uri(image_uri)
+    apt_upgrade_list_filename = f"apt-upgrade-list-{image_processor}.txt"
+    if test_utils.is_covered_by_e3_sm_split(image_uri):
+        ## For e3 images, the apt-upgrade-list files look like apt-upgrade-list-e3-gpu.txt
+        ## For sagemaker images, the apt-upgrade-list files look like apt-upgrade-list-sagemaker-gpu.txt
+        ## For all other images, it looks like apt-upgrade-list-gpu.txt
+        if test_utils.is_e3_image(image_uri):
+            apt_upgrade_list_filename = apt_upgrade_list_filename.replace(
+                "{image_processor}.txt", "e3-{image_processor}.txt"
+            )
+        else:
+            apt_upgrade_list_filename = apt_upgrade_list_filename.replace(
+                "{image_processor}.txt", "sagemaker-{image_processor}.txt"
+            )
+    return apt_upgrade_list_filename
+
+
 def conduct_failure_routine(
     image, image_allowlist, ecr_image_vulnerability_list, upgraded_image_vulnerability_list, s3_bucket_for_storage
 ):
@@ -479,12 +516,7 @@ def conduct_failure_routine(
     fixable_list = {}
     if vulnerabilities_fixable_by_upgrade:
         fixable_list = vulnerabilities_fixable_by_upgrade.vulnerability_list
-    apt_upgrade_list_filename = f"apt-upgrade-list-{test_utils.get_processor_from_image_uri(image)}.txt"
-    if is_covered_by_e3_sm_split(image):
-        if is_e3_image:
-            ## For e3 images, the apt-upgrade-list files look like apt-upgrade-list-gpu-e3.txt
-            ## For all other images, it looks like apt-upgrade-list-gpu.txt
-            apt_upgrade_list_filename = apt_upgrade_list_filename.replace(".txt", "-e3.txt")
+    apt_upgrade_list_filename = get_apt_upgrade_list_name(image)
     s3_filename_for_apt_upgrade_list = s3_filename_for_allowlist.replace("allowlist.json", apt_upgrade_list_filename)
     original_filepath_for_apt_upgrade_list = os.path.join(
         os.path.dirname(original_filepath_for_allowlist), apt_upgrade_list_filename
