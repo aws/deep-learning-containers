@@ -407,7 +407,6 @@ def _run_dependency_check_test(image, ec2_connection):
             "1.11": ["gpu", "cpu"],
         },
         "tensorflow": {
-            "2.5": ["cpu", "gpu"],
             "2.8": ["cpu", "gpu"],
             "2.9": ["cpu", "gpu"],
         }
