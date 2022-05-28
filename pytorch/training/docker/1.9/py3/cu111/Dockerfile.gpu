@@ -210,6 +210,7 @@ RUN pip install --no-cache-dir -U \
     torchnet \
     "cryptography>3.2" \
     "numpy>=1.22.2" \
+    "attrs==20.3.0" \
  && pip uninstall -y torch \
  && pip install --no-cache-dir -U ${PT_TRAINING_URL} \
  && pip uninstall -y torchvision \
