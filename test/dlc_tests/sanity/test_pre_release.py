@@ -411,7 +411,7 @@ def _run_dependency_check_test(image, ec2_connection):
             "2.9": ["cpu", "gpu"],
         },
         "mxnet": {"1.9": ["cpu", "gpu"]},
-        "autogluon": {"0.3": ["cpu", "gpu"]},
+        "autogluon": {"0.3": ["cpu", "gpu"], "0.4": ["cpu", "gpu"]},
     }
 
     if processor in allow_openssl_cve_2021_3711_fw_versions.get(framework, {}).get(short_fw_version, []):
