@@ -30,7 +30,7 @@ images:
   BuildHabanaPytorchPy38SypAI130TrainingDockerImage:
     <<: *TRAINING_REPOSITORY
     build: &PYTORCH_HPU_TRAINING_PY3 false
-    image_size_baseline: &IMAGE_SIZE_BASELINE 8000
+    image_size_baseline: &IMAGE_SIZE_BASELINE 9000
     device_type: &DEVICE_TYPE hpu
     python_version: &DOCKER_PYTHON_VERSION py3
     tag_python_version: &TAG_PYTHON_VERSION py38
@@ -45,7 +45,7 @@ images:
   BuildHabanaPytorchExamplePy38SypAI130TrainingDockerImage:
     <<: *TRAINING_REPOSITORY
     build: &PYTORCH_HPU_TRAINING_PY3 false
-    image_size_baseline: &IMAGE_SIZE_BASELINE 8200
+    image_size_baseline: &IMAGE_SIZE_BASELINE 9200
     base_image_name: BuildHabanaPytorchPy38SypAI130TrainingDockerImage
     device_type: &DEVICE_TYPE hpu
     python_version: &DOCKER_PYTHON_VERSION py3
