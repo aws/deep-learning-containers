@@ -30,10 +30,10 @@ DEFAULT_REGION = "us-west-2"
 # Constant to represent region where p3dn tests can be run
 P3DN_REGION = "us-east-1"
 
-UBUNTU_18_BASE_DLAMI_US_WEST_2 = "ami-0150e36b3f936a26e"
-UBUNTU_18_BASE_DLAMI_US_EAST_1 = "ami-044971d381e6a1109"
-AML2_GPU_DLAMI_US_WEST_2 = "ami-071cb1e434903a577"
-AML2_GPU_DLAMI_US_EAST_1 = "ami-044264d246686b043"
+UBUNTU_18_BASE_DLAMI_US_WEST_2 = "ami-075ff764302e6e088"
+UBUNTU_18_BASE_DLAMI_US_EAST_1 = "ami-05837ea3e41f3fde3"
+AML2_GPU_DLAMI_US_WEST_2 = "ami-01bde2929eb37f6ae"
+AML2_GPU_DLAMI_US_EAST_1 = "ami-082ef5337e086ab05"
 AML2_CPU_ARM64_US_WEST_2 = "ami-0bccd90b9db95e2e5"
 UL18_CPU_ARM64_US_WEST_2 = "ami-00bccef9d47441ac9"
 UL18_BENCHMARK_CPU_ARM64_US_WEST_2 = "ami-0ababa2deb802b069"
@@ -833,7 +833,7 @@ def parse_canary_images(framework, region):
     """
     customer_type = get_customer_type()
     customer_type_tag = f"-{customer_type}" if customer_type else ""
-    
+
     # initialize graviton variables
     use_graviton = False
 
@@ -951,7 +951,7 @@ def parse_canary_images(framework, region):
                 "graviton_pytorch": [
                     f"{registry}.dkr.ecr.{region}.amazonaws.com/pytorch-inference-graviton:{fw_version}-cpu-{py_version}",
                 ],
-                # TODO: create graviton_mxnet DLC and add to dictionary 
+                # TODO: create graviton_mxnet DLC and add to dictionary
             }
 
             # E3 Images have an additional "e3" tag to distinguish them from the regular "sagemaker" tag
@@ -1476,7 +1476,7 @@ def uniquify_list_of_dict(list_of_dict):
     """
     Takes list_of_dict as an input and returns a list of dict such that each dict is only present
     once in the returned list. Runs an operation that is similar to list(set(input_list)). However,
-    for list_of_dict, it is not possible to run the operation directly. 
+    for list_of_dict, it is not possible to run the operation directly.
 
     :param list_of_dict: List(dict)
     :return: List(dict)
