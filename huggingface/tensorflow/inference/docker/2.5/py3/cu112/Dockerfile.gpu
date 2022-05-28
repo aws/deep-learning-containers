@@ -35,6 +35,8 @@ RUN apt-get update \
     libssl1.1 \
     openssl \
     openjdk-8-jdk-headless \
+    # Putting a cap in versions number to avoid potential issues with a new major version
+    "urllib3>=1.25.10,<1.26.0" \
     vim \
     wget \
     curl \
