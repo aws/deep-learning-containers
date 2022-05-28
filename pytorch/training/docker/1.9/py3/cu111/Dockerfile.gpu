@@ -196,7 +196,7 @@ RUN pip install --no-cache-dir -U \
     "awscli<2" \
     smdebug==${SMDEBUG_VERSION} \
     smclarify \
-    "sagemaker>=2,<3" \
+    "sagemaker==2.75.1" \
     sagemaker-experiments==0.* \
     sagemaker-pytorch-training \
     "pyyaml>=5.4,<5.5" \
@@ -325,10 +325,6 @@ ENV LD_LIBRARY_PATH="/opt/conda/lib/python${PYTHON_SHORT_VERSION}/site-packages/
 # Install PT S3 plugin
 RUN pip install --no-cache-dir -U ${PT_S3_WHL_GPU}
 RUN mkdir -p /etc/pki/tls/certs && cp /etc/ssl/certs/ca-certificates.crt /etc/pki/tls/certs/ca-bundle.crt
-
-## Install attrs to support sagemaker 2.92.1
-RUN pip uninstall -y attrs \
-&& pip install "attrs==20.3.0"
 
 WORKDIR /
 
