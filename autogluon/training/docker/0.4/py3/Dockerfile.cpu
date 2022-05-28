@@ -109,7 +109,7 @@ RUN pip install --no-cache-dir -U \
     mxnet==${MXNET_VER} \
     autogluon==${AUTOGLUON_VERSION} \
     sagemaker-mxnet-training \
- && pip uninstall -y \ 
+ && pip uninstall -y \
     datashader \
     ipykernel \
     ipython \
@@ -142,7 +142,8 @@ RUN pip install --no-cache-dir -U \
 # Security patching
 RUN pip install --no-cache-dir -U 'ray>=1.10,<1.11' \
  && pip install --no-cache-dir -U 'pytorch_lightning>=1.5.10,<1.6.0' \
- && pip install --no-cache-dir -U 'Pillow>=9.0.1,<9.1.0'
+ && pip install --no-cache-dir -U 'Pillow>=9.0.1,<9.1.0' \
+ && pip install --no-cache-dir -U "protobuf>=3.20,<3.21"
 
 
 # Allow OpenSSH to talk to containers without asking for confirmation
