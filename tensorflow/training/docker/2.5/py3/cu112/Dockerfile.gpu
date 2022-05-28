@@ -217,13 +217,13 @@ RUN ${PIP} install --no-cache-dir -U \
    scipy==1.7.0 \
    scikit-learn==0.24.2 \
    pandas==1.2.5 \
-   "Pillow>=8.3,<8.4" \
+   "Pillow>=9.0.1,<10" \
    python-dateutil==2.8.1 \
    "pyYAML>=5.4,<5.5" \
    requests==2.25.1 \
    "awscli<2" \
    mpi4py==3.0.3 \
-   "sagemaker>=2,<3" \
+   "sagemaker==2.75.1" \
    sagemaker-experiments==0.* \
    "sagemaker-tensorflow>=2.5,<2.6" \
    "sagemaker-tensorflow-training>=20" \
@@ -246,6 +246,13 @@ RUN pip install --no-cache-dir -U \
     "seaborn>=0.11,<1" \
     "numba<0.54" \
     "shap>=0.39,<1"
+
+RUN pip install --no-cache-dir -U \
+    "PyHive<1" \
+    "sparkmagic<1" \
+    "sagemaker-studio-sparkmagic-lib<1" \
+    "sagemaker-studio-analytics-extension<1" \
+ && /usr/local/bin/jupyter-kernelspec remove -f python3
 
 ARG METIS=metis-5.1.0
 ARG RMM_VERSION=0.15.0
