@@ -1,30 +1,38 @@
 # Assign the path to the required buildspec file from the deep-learning-containers folder
+
+# Standard Framework DLC buildspecs
 dlc-pr-autogluon = ""
 dlc-pr-mxnet = ""
 dlc-pr-pytorch = ""
 dlc-pr-tensorflow-1 = ""
 dlc-pr-tensorflow-2 = ""
 
+# Hugging Face DLC buildspecs
 dlc-pr-huggingface-pytorch = ""
 dlc-pr-huggingface-tensorflow = ""
+dlc-pr-huggingface-pytorch-neuron = ""
+dlc-pr-huggingface-tensorflow-neuron = ""
 
+# Habana DLC buildspecs
 dlc-pr-pytorch-habana = ""
 dlc-pr-tensorflow-2-habana = ""
 
+# Neuron DLC buildspecs
 dlc-pr-mxnet-neuron = ""
 dlc-pr-pytorch-neuron = ""
 dlc-pr-tensorflow-1-neuron = ""
 dlc-pr-tensorflow-2-neuron = ""
-dlc-pr-huggingface-pytorch-neuron = ""
-dlc-pr-huggingface-tensorflow-neuron = ""
 
+# Training Compiler DLC buildspecs
 dlc-pr-huggingface-pytorch-trcomp = ""
 dlc-pr-huggingface-tensorflow-2-trcomp = ""
 
+# Graviton DLC buildspecs
 dlc-pr-mxnet-graviton = ""
 dlc-pr-pytorch-graviton = ""
 dlc-pr-tensorflow-2-graviton = ""
 
+# EIA DLC buildspecs
 dlc-pr-mxnet-eia = ""
 dlc-pr-pytorch-eia = ""
 dlc-pr-tensorflow-1-eia = ""
