@@ -4,7 +4,6 @@ framework: &FRAMEWORK autogluon
 version: &VERSION 0.4.0
 short_version: &SHORT_VERSION 0.4
 
-
 repository_info:
   training_repository: &TRAINING_REPOSITORY
     image_type: &TRAINING_IMAGE_TYPE training
