@@ -33,7 +33,8 @@ RUN apt-get update \
  && apt-get install -y --no-install-recommends --allow-unauthenticated --allow-downgrades\
     ca-certificates \
     cuda-command-line-tools-11-2 \
-    cuda-nvrtc-11-2 \
+    # Need version 11-1 to properly install libnvinfer7 later.
+    cuda-nvrtc-11-1 \
     cuda-nvrtc-dev-11-2 \
     cuda-cudart-dev-11-2 \
     libcufft-dev-11-2 \
@@ -86,10 +87,14 @@ RUN ${PIP} --no-cache-dir install --upgrade \
 # We don't install libnvinfer-dev since we don't need to build against TensorRT
 # cuda-x.x is CUDA version 10.2, 11.0, or 11.1 (for 11.2)
 # https://docs.nvidia.com/deeplearning/tensorrt/archives/tensorrt-722/install-guide/index.html
-RUN apt-get update \
- && apt-get install -y --no-install-recommends --allow-unauthenticated  \
-    libnvinfer7=${TF_TENSORRT_VERSION}-1+cuda11.1 \
-    libnvinfer-plugin7=${TF_TENSORRT_VERSION}-1+cuda11.1 \
+# https://forums.developer.nvidia.com/t/notice-cuda-linux-repository-key-rotation/212771
+# Nvidia is no longer updating the machine-learning repo.
+# Need to manually pull and install necessary debs to continue using these versions.
+RUN wget https://developer.download.nvidia.com/compute/machine-learning/repos/ubuntu1804/x86_64/libnvinfer7_${TF_TENSORRT_VERSION}-1+cuda11.1_amd64.deb \
+ && dpkg -i libnvinfer7_${TF_TENSORRT_VERSION}-1+cuda11.1_amd64.deb \
+ && wget https://developer.download.nvidia.com/compute/machine-learning/repos/ubuntu1804/x86_64/libnvinfer-plugin7_${TF_TENSORRT_VERSION}-1+cuda11.1_amd64.deb \
+ && dpkg -i libnvinfer-plugin7_${TF_TENSORRT_VERSION}-1+cuda11.1_amd64.deb \
+ && rm libnvinfer-plugin7_${TF_TENSORRT_VERSION}-1+cuda11.1_amd64.deb libnvinfer7_${TF_TENSORRT_VERSION}-1+cuda11.1_amd64.deb \
  && rm -rf /var/lib/apt/lists/*
 
 # Some TF tools expect a "python" binary
