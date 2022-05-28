@@ -49,7 +49,7 @@ RUN wget -qO - https://apt.repos.neuron.amazonaws.com/GPG-PUB-KEY-AMAZON-AWS-NEU
 
 RUN apt-get update \
  && apt-get install -y \
-    aws-neuron-tools \
+    aws-neuron-tools=2.0.623.0 \
  && rm -rf /var/lib/apt/lists/* \
  && rm -rf /tmp/tmp* \
  && apt-get clean
@@ -103,10 +103,11 @@ RUN pip install --no-cache-dir -U \
     "pyYAML>=5.4,<5.5" \
     "pillow>=8.3" \
     "awscli<2" \
+    protobuf==3.19.4 \
     boto3
 
-RUN pip install neuron-cc[tensorflow] --extra-index-url https://pip.repos.neuron.amazonaws.com \
- && pip install "torch-neuron>=1.10.1,<1.10.2" --extra-index-url https://pip.repos.neuron.amazonaws.com \
+RUN pip install neuron-cc[tensorflow]==1.9.1.0 --extra-index-url https://pip.repos.neuron.amazonaws.com \
+ && pip install "torch-neuron==1.10.1.2.1.7.0" --extra-index-url https://pip.repos.neuron.amazonaws.com \
  && pip install torchserve==$TS_VERSION \
  && pip install --no-deps --no-cache-dir -U torchvision==0.11.2 \
  # Install TF 1.15.5 to override neuron-cc[tensorflow]'s installation of tensorflow==1.15.0
