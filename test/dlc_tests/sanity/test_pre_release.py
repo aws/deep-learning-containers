@@ -165,9 +165,6 @@ def test_tf_serving_version_cpu(tensorflow_inference):
     _, tag_framework_version = get_framework_and_version_from_tag(
         image)
 
-    if Version(tag_framework_version) == Version("2.7"):
-        pytest.skip("Skipping the test as TF2.7.1 Inference DLC is already available in production")
-
     ctx = Context()
     container_name = get_container_name("tf-serving-version", image)
     start_container(container_name, image, ctx)
@@ -313,9 +310,6 @@ def test_framework_and_cuda_version_gpu(gpu, ec2_connection):
     image = gpu
     tested_framework, tag_framework_version = get_framework_and_version_from_tag(
         image)
-
-    if Version(tag_framework_version) == Version("2.7"):
-        pytest.skip("Skipping the test as TF2.7.1 Inference DLC is already available in production")
 
     image_repo_name, _ = get_repository_and_tag_from_image_uri(image)
     # Framework Version Check #
