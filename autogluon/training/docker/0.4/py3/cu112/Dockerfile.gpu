@@ -72,7 +72,6 @@ RUN source activate rapids \
  && pip install --no-cache-dir -U 'ray>=1.10,<1.11' \
  && pip install --no-cache-dir -U 'pytorch_lightning>=1.5.10,<1.6.0' \
  && pip install --no-cache-dir -U 'Pillow>=9.0.1,<9.1.0' \
- && pip install --no-cache-dir -U "protobuf>=3.20,<3.21" \
  && pip uninstall -y \
     datashader \
     ipykernel \
