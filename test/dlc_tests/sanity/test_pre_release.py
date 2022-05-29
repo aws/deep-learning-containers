@@ -411,6 +411,7 @@ def _run_dependency_check_test(image, ec2_connection):
             "2.9": ["cpu", "gpu"],
             "2.7": ["cpu"]
         },
+        "mxnet": {"1.9": ["cpu", "gpu"]},
         "autogluon": {"0.3": ["cpu", "gpu"], "0.4": ["cpu", "gpu"]},
     }
 
