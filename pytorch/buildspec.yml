@@ -60,7 +60,7 @@ images:
     context:
       <<: *TRAINING_CONTEXT
       apt-upgrade-list:
-        source: !join [ docker/, *SHORT_VERSION, /, *DOCKER_PYTHON_VERSION, /apt-upgrade-list-, *DEVICE_TYPE, -e3.txt]
+        source: !join [ docker/, *SHORT_VERSION, /, *DOCKER_PYTHON_VERSION, /apt-upgrade-list-, "e3-", *DEVICE_TYPE, .txt]
         target: apt-upgrade-list.txt
   BuildE3GPUPTTrainPy3DockerImage:
     <<: *TRAINING_REPOSITORY
@@ -79,7 +79,7 @@ images:
     context:
       <<: *TRAINING_CONTEXT
       apt-upgrade-list:
-        source: !join [ docker/, *SHORT_VERSION, /, *DOCKER_PYTHON_VERSION, /, *CUDA_VERSION, /apt-upgrade-list-, *DEVICE_TYPE, -e3.txt]
+        source: !join [ docker/, *SHORT_VERSION, /, *DOCKER_PYTHON_VERSION, /, *CUDA_VERSION, /apt-upgrade-list-, "e3-", *DEVICE_TYPE, .txt]
         target: apt-upgrade-list.txt
   BuildSageMakerCPUPTTrainPy3DockerImage:
     <<: *TRAINING_REPOSITORY
@@ -96,7 +96,7 @@ images:
     context:
       <<: *TRAINING_CONTEXT
       apt-upgrade-list:
-        source: !join [ docker/, *SHORT_VERSION, /, *DOCKER_PYTHON_VERSION, /apt-upgrade-list-, *DEVICE_TYPE, .txt]
+        source: !join [ docker/, *SHORT_VERSION, /, *DOCKER_PYTHON_VERSION, /apt-upgrade-list-, "sagemaker-", *DEVICE_TYPE, .txt]
         target: apt-upgrade-list.txt
   BuildSageMakerGPUPTTrainPy3DockerImage:
     <<: *TRAINING_REPOSITORY
@@ -115,7 +115,7 @@ images:
     context:
       <<: *TRAINING_CONTEXT
       apt-upgrade-list:
-        source: !join [ docker/, *SHORT_VERSION, /, *DOCKER_PYTHON_VERSION, /, *CUDA_VERSION, /apt-upgrade-list-, *DEVICE_TYPE, .txt]
+        source: !join [ docker/, *SHORT_VERSION, /, *DOCKER_PYTHON_VERSION, /, *CUDA_VERSION, /apt-upgrade-list-, "sagemaker-", *DEVICE_TYPE, .txt]
         target: apt-upgrade-list.txt
   BuildPyTorchExampleGPUTrainPy3DockerImage:
     <<: *TRAINING_REPOSITORY
