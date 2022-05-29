@@ -231,7 +231,8 @@ RUN pip install --no-cache-dir -U \
     "packaging==21.2" \
     "pyarrow==6.0.0" \
     "pyinstrument==4.0.4" \
-    "pyparsing==2.4.7"
+    "pyparsing==2.4.7" \
+    "protobuf>=3.20,<3.21"
 
 # install metis
 RUN rm /etc/apt/sources.list.d/* \
