@@ -1,4 +1,5 @@
 from packaging.version import Version
+from packaging.specifiers import SpecifierSet
 
 import pytest
 
@@ -113,12 +114,13 @@ def test_emacs(image):
 )
 def test_sagemaker_studio_analytics_extension(training, package_name):
     framework, framework_version = test_utils.get_framework_and_version_from_tag(training)
-    utility_package_minimum_framework_version = {"pytorch": "1.7", "tensorflow": "2.4"}
-    utility_package_maximum_framework_version = {"pytorch": "1.8", "tensorflow": "2.6"}
-    
-    if framework not in utility_package_minimum_framework_version or Version(framework_version) < Version(
-        utility_package_minimum_framework_version[framework]) or Version(framework_version) > Version(
-        utility_package_maximum_framework_version[framework]
+    utility_package_framework_version_limit = {
+        "pytorch": SpecifierSet(">=1.7,<1.9"), "tensorflow": SpecifierSet(">=2.4,<2.7,!=2.5.*")
+    }
+
+    if (
+        framework not in utility_package_framework_version_limit
+        or Version(framework_version) not in utility_package_framework_version_limit[framework]
     ):
         pytest.skip(f"sagemaker_studio_analytics_extension is not installed in {framework} {framework_version} DLCs")
 

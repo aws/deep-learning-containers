@@ -185,13 +185,6 @@ RUN pip install --no-cache-dir -U \
     "numba<0.54" \
     "shap>=0.39,<1"
 
-RUN pip install --no-cache-dir -U \
-    "PyHive<1" \
-    "sparkmagic<1" \
-   "sagemaker-studio-sparkmagic-lib<1" \
-   "sagemaker-studio-analytics-extension<1" \
- && /usr/local/bin/jupyter-kernelspec remove -f python3
-
 ADD https://raw.githubusercontent.com/aws/deep-learning-containers/master/src/deep_learning_container.py /usr/local/bin/deep_learning_container.py
 
 RUN chmod +x /usr/local/bin/deep_learning_container.py

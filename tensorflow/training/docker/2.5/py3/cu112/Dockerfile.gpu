@@ -247,13 +247,6 @@ RUN pip install --no-cache-dir -U \
     "numba<0.54" \
     "shap>=0.39,<1"
 
-RUN pip install --no-cache-dir -U \
-    "PyHive<1" \
-    "sparkmagic<1" \
-    "sagemaker-studio-sparkmagic-lib<1" \
-    "sagemaker-studio-analytics-extension<1" \
- && /usr/local/bin/jupyter-kernelspec remove -f python3
-
 ARG METIS=metis-5.1.0
 ARG RMM_VERSION=0.15.0
 
