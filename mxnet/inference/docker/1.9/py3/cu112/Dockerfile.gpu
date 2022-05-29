@@ -73,7 +73,7 @@ RUN pip install --upgrade pip --trusted-host pypi.org --trusted-host files.pytho
     "numpy<1.20" \
     onnx==1.8.1 \
     # Protobuf above this version appears to result protobuf errors.
-    protobuf==3.20.1 \
+    protobuf==3.20.1
 
 # This is here to make our installed version of OpenCV work.
 # https://stackoverflow.com/questions/29274638/opencv-libdc1394-error-failed-to-initialize-libdc1394
