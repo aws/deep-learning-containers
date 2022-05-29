@@ -196,6 +196,12 @@ def host_setup_for_tensorflow_inference(serving_folder_path, framework_version, 
                 f" 'tensorflow-serving-api<={framework_version}' "
             ), hide=True
         )
+        if framework_version == "2.7.0":
+            ec2_connection.run(
+            (
+                f"{python_invoker} -m pip install --user -qq -U 'protobuf>=3.20,<3.21'"
+            ), hide=True
+        )
     if os.path.exists(f"{serving_folder_path}"):
         ec2_connection.run(f"rm -rf {serving_folder_path}")
     if str(framework_version).startswith(TENSORFLOW1_VERSION):
