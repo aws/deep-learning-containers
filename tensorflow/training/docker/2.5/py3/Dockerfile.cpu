@@ -162,6 +162,8 @@ RUN ${PIP} install --no-cache-dir -U \
     sagemaker-experiments==0.* \
     "sagemaker-tensorflow>=2.5,<2.6" \
     "sagemaker-tensorflow-training>=20" \
+    # Protobuf above this version appears to result in errors in tests.
+    protobuf==3.20.1 \
 
     # Let's install TensorFlow separately in the end to avoid
     # the library version to be overwritten
