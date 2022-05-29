@@ -140,7 +140,8 @@ RUN ompi_info --parsable --all | grep mpi_built_with_cuda_support:value \
     # conda 4.10.0 requires ruamel_yaml to be installed. Currently pinned at latest.
     ruamel_yaml==0.15.100 \
  && ${CONDA_PREFIX}/bin/conda install -y -c anaconda \
-    numpy>=1.22.2 \
+    # numpy>=1.22.2 \
+    numpy \
     ipython \
     mkl \
     mkl-include \
@@ -209,7 +210,7 @@ RUN pip install --no-cache-dir -U \
     cmake==3.18.2.post1 \
     torchnet \
     "cryptography>3.2" \
-    "numpy>=1.22.2" \
+    # "numpy>=1.22.2" \
  && pip uninstall -y torch \
  && pip install --no-cache-dir -U ${PT_TRAINING_URL} \
  && pip uninstall -y torchvision \
