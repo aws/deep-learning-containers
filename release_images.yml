@@ -3,12 +3,12 @@ release_images:
 # Check .release_images_template.yml for reference
   1:
     framework: "autogluon"
-    version: "0.4.0"
+    version: "0.3.2"
     arch_type: "x86"
     training:
       device_types: [ "cpu", "gpu" ]
       python_versions: [ "py38" ]
-      os_version: "ubuntu20.04"
+      os_version: "ubuntu18.04"
       cuda_version: "cu112"
       example: False        # [Default: False] Set to True to denote that this image is an Example image
       disable_sm_tag: False # [Default: False] Set to True to prevent SageMaker Abbreviated Tags from being attached
