@@ -68,10 +68,20 @@ RUN apt-get update \
     cuda-nvrtc-dev-11-2 \
     cuda-command-line-tools-11-2 \
     # from sources.list.d/nvidia-ml.list
-    libnccl2=${NCCL_VERSION} \
-    libnccl-dev=${NCCL_VERSION} \    
+    # Until the version of these is bumped, these will be manually installed. See below.
+    # libnccl2=${NCCL_VERSION} \
+    # libnccl-dev=${NCCL_VERSION} \
  && apt-get clean \
  && rm -rf /var/lib/apt/lists/*
+
+# from sources.list.d/nvidia-ml.list which was recently deprecated.
+# https://forums.developer.nvidia.com/t/notice-cuda-linux-repository-key-rotation/212771/10
+# For now, we will manually pull and install packages.
+RUN wget https://developer.download.nvidia.com/compute/machine-learning/repos/ubuntu2004/x86_64/libnccl2_${NCCL_VERSION}_amd64.deb \
+&& dpkg -i libnccl2_${NCCL_VERSION}_amd64.deb \
+&& wget https://developer.download.nvidia.com/compute/machine-learning/repos/ubuntu2004/x86_64/libnccl-dev_${NCCL_VERSION}_amd64.deb \
+&& dpkg -i libnccl-dev_${NCCL_VERSION}_amd64.deb \
+&& rm libnccl2_${NCCL_VERSION}_amd64.deb libnccl-dev_${NCCL_VERSION}_amd64.deb
 
 # install Python
 RUN apt-get update \
@@ -117,6 +127,8 @@ WORKDIR /
 
 RUN pip install --upgrade pip --trusted-host pypi.org --trusted-host files.pythonhosted.org \
  && pip install --no-cache --upgrade \
+    # Protobuf above this version appears to result in horovod build failures.
+    protobuf==3.20.1 \
     h5py==2.10.0 \
     onnx==1.8.1 \
     "numpy<1.20" \
