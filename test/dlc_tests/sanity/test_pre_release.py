@@ -408,11 +408,13 @@ def _run_dependency_check_test(image, ec2_connection):
         },
         "tensorflow": {
             "2.5": ["cpu", "gpu"],
+            "1.15": ["neuron"],
+            "2.5": ["neuron"],
             "2.8": ["cpu", "gpu"],
             "2.9": ["cpu", "gpu"],
             "2.7": ["cpu"]
         },
-        "mxnet": {"1.9": ["cpu", "gpu"]},
+        "mxnet": {"1.8": ["neuron"], "1.9": ["cpu", "gpu"]},
         "autogluon": {"0.3": ["cpu", "gpu"], "0.4": ["cpu", "gpu"]},
     }
 
