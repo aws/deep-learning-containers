@@ -27,7 +27,7 @@ context:
       target: deep_learning_container.py
 
 images:
-  BuildHabanaPytorchPy37SypAI120TrainingDockerImage:
+  BuildHabanaPytorchPy38SypAI120TrainingDockerImage:
     <<: *TRAINING_REPOSITORY
     build: &PYTORCH_HPU_TRAINING_PY3 false
     image_size_baseline: &IMAGE_SIZE_BASELINE 8000
@@ -42,11 +42,11 @@ images:
       /Dockerfile., *DEVICE_TYPE ]
     context:
       <<: *TRAINING_CONTEXT
-  BuildHabanaPytorchExamplePy37SypAI120TrainingDockerImage:
+  BuildHabanaPytorchExamplePy38SypAI120TrainingDockerImage:
     <<: *TRAINING_REPOSITORY
     build: &PYTORCH_HPU_TRAINING_PY3 false
     image_size_baseline: &IMAGE_SIZE_BASELINE 8200
-    base_image_name: BuildHabanaPytorchPy37SypAI120TrainingDockerImage
+    base_image_name: BuildHabanaPytorchPy38SypAI120TrainingDockerImage
     device_type: &DEVICE_TYPE hpu
     python_version: &DOCKER_PYTHON_VERSION py3
     tag_python_version: &TAG_PYTHON_VERSION py38
