@@ -6,6 +6,7 @@ from test import test_utils
 @pytest.mark.usefixtures("sagemaker")
 @pytest.mark.model("N/A")
 @pytest.mark.integration("anaconda_removal")
+@pytest.mark.skip(reason="Temporarily skip test for emergency")
 def test_repo_anaconda_not_present(image):
     """Test to see if all packages installed in the image do not come from repo.anaconda.com"""
     try:
