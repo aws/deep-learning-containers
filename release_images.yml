@@ -87,7 +87,7 @@ release_images:
     inference:
       device_types: [ "neuron" ]
       python_versions: [ "py37" ]
-      sdk_version: "1.17.1"
+      neuron_sdk_version: "sdk1.17.1"
       os_version: "ubuntu18.04"
       example: False
       disable_sm_tag: True
@@ -99,7 +99,7 @@ release_images:
     inference:
       device_types: [ "neuron" ]
       python_versions: [ "py37" ]
-      sdk_version: "1.17.1"
+      neuron_sdk_version: "sdk1.17.1"
       os_version: "ubuntu18.04"
       example: False
       disable_sm_tag: True
@@ -111,7 +111,7 @@ release_images:
     inference:
       device_types: [ "neuron" ]
       python_versions: [ "py37" ]
-      sdk_version: "1.17.1"
+      neuron_sdk_version: "sdk1.17.1"
       os_version: "ubuntu18.04"
       example: False
       disable_sm_tag: True
@@ -123,7 +123,7 @@ release_images:
     inference:
       device_types: [ "neuron" ]
       python_versions: [ "py37" ]
-      sdk_version: "1.17.1"
+      neuron_sdk_version: "sdk1.17.1"
       os_version: "ubuntu18.04"
       example: False
       disable_sm_tag: True
