@@ -205,10 +205,11 @@ def host_setup_for_tensorflow_inference(
             hide=True,
         )
     else:
+        # Installing protobuf at 3.20.* to fix errors in using latest protobuf
         ec2_connection.run(
             (
                 f"{python_invoker} -m pip install --user -qq -U 'tensorflow<={framework_version}' "
-                f" 'tensorflow-serving-api<={framework_version}' "
+                f" 'tensorflow-serving-api<={framework_version}' 'protobuf>=3.20,<3.21'"
             ),
             hide=True,
         )
