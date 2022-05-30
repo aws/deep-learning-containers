@@ -2646,7 +2646,7 @@
             "attributes": [
                 {
                     "key": "package_version",
-                    "value": "2.23-0ubuntu11.2"
+                    "value": "2.23-0ubuntu11.3"
                 },
                 {
                     "key": "package_name",
@@ -2705,7 +2705,7 @@
             "attributes": [
                 {
                     "key": "package_version",
-                    "value": "2.23-0ubuntu11.3"
+                    "value": "2.23-0ubuntu11.2"
                 },
                 {
                     "key": "package_name",
@@ -5878,79 +5878,6 @@
             "attributes": [
                 {
                     "key": "package_version",
-                    "value": "1.0.2g-1ubuntu4.20"
-                },
-                {
-                    "key": "package_name",
-                    "value": "openssl"
-                },
-                {
-                    "key": "CVSS2_VECTOR",
-                    "value": "AV:N/AC:M/Au:N/C:P/I:N/A:P"
-                },
-                {
-                    "key": "CVSS2_SCORE",
-                    "value": "5.8"
-                }
-            ],
-            "description": "ASN.1 strings are represented internally within OpenSSL as an ASN1_STRING structure which contains a buffer holding the string data and a field holding the buffer length. This contrasts with normal C strings which are repesented as a buffer for the string data which is terminated with a NUL (0) byte. Although not a strict requirement, ASN.1 strings that are parsed using OpenSSL's own \"d2i\" functions (and other similar parsing functions) as well as any string whose value has been set with the ASN1_STRING_set() function will additionally NUL terminate the byte array in the ASN1_STRING structure. However, it is possible for applications to directly construct valid ASN1_STRING structures which do not NUL terminate the byte array by directly setting the \"data\" and \"length\" fields in the ASN1_STRING array. This can also happen by using the ASN1_STRING_set0() function. Numerous OpenSSL functions that print ASN.1 data have been found to assume that the ASN1_STRING byte array will be NUL terminated, even though this is not guaranteed for strings that have been directly constructed. Where an application requests an ASN.1 structure to be printed, and where that ASN.1 structure contains ASN1_STRINGs that have been directly constructed by the application without NUL terminating the \"data\" field, then a read buffer overrun can occur. The same thing can also occur during name constraints processing of certificates (for example if a certificate has been directly constructed by the application instead of loading it via the OpenSSL parsing functions, and the certificate contains non NUL terminated ASN1_STRING structures). It can also occur in the X509_get1_email(), X509_REQ_get1_email() and X509_get1_ocsp() functions. If a malicious actor can cause an application to directly construct an ASN1_STRING and then process it through one of the affected OpenSSL functions then this issue could be hit. This might result in a crash (causing a Denial of Service attack). It could also result in the disclosure of private memory contents (such as private keys, or sensitive plaintext). Fixed in OpenSSL 1.1.1l (Affected 1.1.1-1.1.1k). Fixed in OpenSSL 1.0.2za (Affected 1.0.2-1.0.2y).",
-            "name": "CVE-2021-3712",
-            "scraped_data": [
-                {
-                    "notes": [
-                        "in 1.0.2, this bug is in X509_CERT_AUX_print()\nlist of commits below is incomplete"
-                    ],
-                    "status_table": {
-                        "packages": [
-                            "openssl",
-                            "Launchpad",
-                            "Ubuntu",
-                            "Debian"
-                        ],
-                        "release_states": [
-                            [
-                                "bionic",
-                                "Released (1.1.1-1ubuntu2.1~18.04.13)"
-                            ],
-                            [
-                                "focal",
-                                "Released (1.1.1f-1ubuntu2.8)"
-                            ],
-                            [
-                                "hirsute",
-                                "Released (1.1.1j-1ubuntu3.5)"
-                            ],
-                            [
-                                "impish",
-                                "Released (1.1.1l-1ubuntu1)"
-                            ],
-                            [
-                                "jammy",
-                                "Released (1.1.1l-1ubuntu1)"
-                            ],
-                            [
-                                "trusty",
-                                "Released (1.0.1f-1ubuntu2.27+esm4)"
-                            ],
-                            [
-                                "upstream",
-                                "Needs triage"
-                            ],
-                            [
-                                "xenial",
-                                "Released (1.0.2g-1ubuntu4.20+esm1)"
-                            ]
-                        ]
-                    }
-                }
-            ],
-            "severity": "MEDIUM",
-            "uri": "http://people.ubuntu.com/~ubuntu-security/cve/CVE-2021-3712"
-        },
-        {
-            "attributes": [
-                {
-                    "key": "package_version",
                     "value": "1.0.2g-1ubuntu4.18"
                 },
                 {
@@ -6025,6 +5952,79 @@
                 {
                     "key": "package_version",
                     "value": "1.0.2g-1ubuntu4.20"
+                },
+                {
+                    "key": "package_name",
+                    "value": "openssl"
+                },
+                {
+                    "key": "CVSS2_VECTOR",
+                    "value": "AV:N/AC:M/Au:N/C:P/I:N/A:P"
+                },
+                {
+                    "key": "CVSS2_SCORE",
+                    "value": "5.8"
+                }
+            ],
+            "description": "ASN.1 strings are represented internally within OpenSSL as an ASN1_STRING structure which contains a buffer holding the string data and a field holding the buffer length. This contrasts with normal C strings which are repesented as a buffer for the string data which is terminated with a NUL (0) byte. Although not a strict requirement, ASN.1 strings that are parsed using OpenSSL's own \"d2i\" functions (and other similar parsing functions) as well as any string whose value has been set with the ASN1_STRING_set() function will additionally NUL terminate the byte array in the ASN1_STRING structure. However, it is possible for applications to directly construct valid ASN1_STRING structures which do not NUL terminate the byte array by directly setting the \"data\" and \"length\" fields in the ASN1_STRING array. This can also happen by using the ASN1_STRING_set0() function. Numerous OpenSSL functions that print ASN.1 data have been found to assume that the ASN1_STRING byte array will be NUL terminated, even though this is not guaranteed for strings that have been directly constructed. Where an application requests an ASN.1 structure to be printed, and where that ASN.1 structure contains ASN1_STRINGs that have been directly constructed by the application without NUL terminating the \"data\" field, then a read buffer overrun can occur. The same thing can also occur during name constraints processing of certificates (for example if a certificate has been directly constructed by the application instead of loading it via the OpenSSL parsing functions, and the certificate contains non NUL terminated ASN1_STRING structures). It can also occur in the X509_get1_email(), X509_REQ_get1_email() and X509_get1_ocsp() functions. If a malicious actor can cause an application to directly construct an ASN1_STRING and then process it through one of the affected OpenSSL functions then this issue could be hit. This might result in a crash (causing a Denial of Service attack). It could also result in the disclosure of private memory contents (such as private keys, or sensitive plaintext). Fixed in OpenSSL 1.1.1l (Affected 1.1.1-1.1.1k). Fixed in OpenSSL 1.0.2za (Affected 1.0.2-1.0.2y).",
+            "name": "CVE-2021-3712",
+            "scraped_data": [
+                {
+                    "notes": [
+                        "in 1.0.2, this bug is in X509_CERT_AUX_print()\nlist of commits below is incomplete"
+                    ],
+                    "status_table": {
+                        "packages": [
+                            "openssl",
+                            "Launchpad",
+                            "Ubuntu",
+                            "Debian"
+                        ],
+                        "release_states": [
+                            [
+                                "bionic",
+                                "Released (1.1.1-1ubuntu2.1~18.04.13)"
+                            ],
+                            [
+                                "focal",
+                                "Released (1.1.1f-1ubuntu2.8)"
+                            ],
+                            [
+                                "hirsute",
+                                "Released (1.1.1j-1ubuntu3.5)"
+                            ],
+                            [
+                                "impish",
+                                "Released (1.1.1l-1ubuntu1)"
+                            ],
+                            [
+                                "jammy",
+                                "Released (1.1.1l-1ubuntu1)"
+                            ],
+                            [
+                                "trusty",
+                                "Released (1.0.1f-1ubuntu2.27+esm4)"
+                            ],
+                            [
+                                "upstream",
+                                "Needs triage"
+                            ],
+                            [
+                                "xenial",
+                                "Released (1.0.2g-1ubuntu4.20+esm1)"
+                            ]
+                        ]
+                    }
+                }
+            ],
+            "severity": "MEDIUM",
+            "uri": "http://people.ubuntu.com/~ubuntu-security/cve/CVE-2021-3712"
+        },
+        {
+            "attributes": [
+                {
+                    "key": "package_version",
+                    "value": "1.0.2g-1ubuntu4.18"
                 },
                 {
                     "key": "package_name",
@@ -6091,7 +6091,7 @@
             "attributes": [
                 {
                     "key": "package_version",
-                    "value": "1.0.2g-1ubuntu4.18"
+                    "value": "1.0.2g-1ubuntu4.20"
                 },
                 {
                     "key": "package_name",
@@ -7256,8 +7256,8 @@
                     "value": "6.8"
                 }
             ],
-            "description": "vim is vulnerable to Heap-based Buffer Overflow",
-            "name": "CVE-2021-3778",
+            "description": "Heap-based Buffer Overflow in GitHub repository vim/vim prior to 8.2.",
+            "name": "CVE-2022-0261",
             "scraped_data": [
                 {
                     "notes": [],
@@ -7271,42 +7271,38 @@
                         "release_states": [
                             [
                                 "bionic",
-                                "Released (2:8.0.1453-1ubuntu1.6)"
+                                "Needed"
                             ],
                             [
                                 "focal",
-                                "Released (2:8.1.2269-1ubuntu5.3)"
-                            ],
-                            [
-                                "hirsute",
-                                "Released (2:8.2.2434-1ubuntu1.1)"
+                                "Needed"
                             ],
                             [
                                 "impish",
-                                "Released (2:8.2.2434-3ubuntu2)"
+                                "Needed"
                             ],
                             [
                                 "jammy",
-                                "Released (2:8.2.2434-3ubuntu2)"
+                                "Needed"
                             ],
                             [
                                 "trusty",
-                                "Released (2:7.4.052-1ubuntu3.1+esm3)"
+                                "Needed"
                             ],
                             [
                                 "upstream",
-                                "Released (v8.2.3409)"
+                                "Released (8.2.4120)"
                             ],
                             [
                                 "xenial",
-                                "Released (2:7.4.1689-3ubuntu1.5+esm2)"
+                                "Released (2:7.4.1689-3ubuntu1.5+esm4)"
                             ]
                         ]
                     }
                 }
             ],
             "severity": "MEDIUM",
-            "uri": "http://people.ubuntu.com/~ubuntu-security/cve/CVE-2021-3778"
+            "uri": "http://people.ubuntu.com/~ubuntu-security/cve/CVE-2022-0261"
         },
         {
             "attributes": [
@@ -7320,19 +7316,19 @@
                 },
                 {
                     "key": "CVSS2_VECTOR",
-                    "value": "AV:N/AC:M/Au:N/C:P/I:P/A:P"
+                    "value": "AV:N/AC:L/Au:N/C:P/I:P/A:P"
                 },
                 {
                     "key": "CVSS2_SCORE",
-                    "value": "6.8"
+                    "value": "7.5"
                 }
             ],
-            "description": "vim is vulnerable to Heap-based Buffer Overflow",
-            "name": "CVE-2021-4019",
+            "description": "Heap-based Buffer Overflow in vim/vim prior to 8.2.",
+            "name": "CVE-2022-0318",
             "scraped_data": [
                 {
                     "notes": [
-                        "in focal and earlier vulnerable function from src/help.c\nis in src/ex_cmds.c."
+                        "the patch for CVE-2022-0318 causes one of the utf8 tests to\nstart failing, which in turn causes build failures as well.\nCommit fc6ccebea66 addresses this issue and updates the test."
                     ],
                     "status_table": {
                         "packages": [
@@ -7344,19 +7340,15 @@
                         "release_states": [
                             [
                                 "bionic",
-                                "Released (2:8.0.1453-1ubuntu1.8)"
+                                "Needed"
                             ],
                             [
                                 "focal",
-                                "Released (2:8.1.2269-1ubuntu5.6)"
-                            ],
-                            [
-                                "hirsute",
-                                "Ignored (reached end-of-life)"
+                                "Needed"
                             ],
                             [
                                 "impish",
-                                "Released (2:8.2.2434-3ubuntu3.2)"
+                                "Needed"
                             ],
                             [
                                 "jammy",
@@ -7368,7 +7360,7 @@
                             ],
                             [
                                 "upstream",
-                                "Released (v8.2.3669)"
+                                "Released (8.2.4151)"
                             ],
                             [
                                 "xenial",
@@ -7379,7 +7371,7 @@
                 }
             ],
             "severity": "MEDIUM",
-            "uri": "http://people.ubuntu.com/~ubuntu-security/cve/CVE-2021-4019"
+            "uri": "http://people.ubuntu.com/~ubuntu-security/cve/CVE-2022-0318"
         },
         {
             "attributes": [
@@ -7393,18 +7385,20 @@
                 },
                 {
                     "key": "CVSS2_VECTOR",
-                    "value": "AV:L/AC:L/Au:N/C:P/I:P/A:P"
+                    "value": "AV:N/AC:L/Au:N/C:P/I:P/A:P"
                 },
                 {
                     "key": "CVSS2_SCORE",
-                    "value": "4.6"
+                    "value": "7.5"
                 }
             ],
-            "description": "Access of Memory Location Before Start of Buffer in GitHub repository vim/vim prior to 8.2.",
-            "name": "CVE-2022-0351",
+            "description": "Use after free in utf_ptr2char in GitHub repository vim/vim prior to 8.2.4646.",
+            "name": "CVE-2022-1154",
             "scraped_data": [
                 {
-                    "notes": [],
+                    "notes": [
+                        "in bionic and earlier, vulnerable function is in file src/regexp.c\ninstead of file src/regexp_bt.c."
+                    ],
                     "status_table": {
                         "packages": [
                             "vim",
@@ -7435,18 +7429,18 @@
                             ],
                             [
                                 "upstream",
-                                "Released (8.2.4206)"
+                                "Released (8.2.4646)"
                             ],
                             [
                                 "xenial",
-                                "Needed"
+                                "Released (2:7.4.1689-3ubuntu1.5+esm4)"
                             ]
                         ]
                     }
                 }
             ],
             "severity": "MEDIUM",
-            "uri": "http://people.ubuntu.com/~ubuntu-security/cve/CVE-2022-0351"
+            "uri": "http://people.ubuntu.com/~ubuntu-security/cve/CVE-2022-1154"
         }
     ]
 }
