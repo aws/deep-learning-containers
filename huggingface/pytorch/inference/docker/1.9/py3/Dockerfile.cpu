@@ -43,6 +43,7 @@ RUN apt-get update \
     emacs \
     unzip \
     git \
+    libopenblas-dev \
  && apt-get clean \
  && rm -rf /var/lib/apt/lists/*
 
