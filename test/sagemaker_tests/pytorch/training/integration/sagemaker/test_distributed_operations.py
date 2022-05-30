@@ -170,6 +170,9 @@ def test_smmodelparallel_mnist_multigpu_singlenode(ecr_image, instance_type, sag
     """
     Tests pt gpt2 command via script mode
     """
+    framework, framework_version = get_framework_and_version_from_tag(ecr_image)
+    if framework == "pytorch" and Version(framework_version) == Version("1.9"):
+        pytest.skip("Skipping the test for PT1.9")
     instance_type = "ml.p3.16xlarge"
     hyperparameters = {'training_dir': '/opt/ml/input/data/train','max_steps': 100,
                        'seed': 12345, 'fp16': 1, 'lr': 2.e-4, 'lr_decay_iters': 125000,
