@@ -31,6 +31,8 @@ ENV MODEL_NAME=model
 # Fix for the interactive mode during an install in step 21
 ENV DEBIAN_FRONTEND=noninteractive
 
+ENV NVIDIA_REQUIRE_CUDA="cuda>=11.2 brand=tesla,driver>=418,driver<419 brand=tesla,driver>=440,driver<441 driver>=450"
+
 # allow unauthenticated and allow downgrades for special libcublas library
 RUN apt-get update \
  # TODO: Remove systemd upgrade once it is updated in base image
