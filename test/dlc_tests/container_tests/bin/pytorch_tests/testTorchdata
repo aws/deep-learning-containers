@@ -6,7 +6,7 @@ HOME_DIR=/test
 BIN_DIR=${HOME_DIR}/bin
 LOG_DIR=${HOME_DIR}/logs
 
-TORCHDATA_DEV_BRANCH="pt1.11.0-dlc-torchdata"
+TORCHDATA_DEV_BRANCH="main"
 TORCHDATA_DEV_REPO="https://github.com/pytorch/data.git"
 TORCHDATA_TEST_SCRIPT="data/test/test_remote_io.py"
 
