@@ -10,8 +10,11 @@ ARG PYTHON=python3.8
 # Add arguments to achieve the version, python and url
 ARG PYTHON_VERSION=3.8.2
 
+# Starting sagemaker v2.92.0, the requirement of importlib-metadata was restricted from >=1.4.0 to >=1.4.0,<2.0
+# However, the markdown package (dependency of tensorboard package) requires importlib-metadata to be >=4.4.
+# Issue: https://github.com/aws/sagemaker-python-sdk/pull/3138
 RUN $PYTHON -m pip install --no-cache-dir -U \
-    "sagemaker>=2,<3" \
+    "sagemaker>=2,<2.92.0" \
     sagemaker-experiments==0.* \
     "sagemaker-tensorflow>=2.7,<2.8" \
     "sagemaker-tensorflow-training>=20" \
