@@ -7257,12 +7257,10 @@
                 }
             ],
             "description": "vim is vulnerable to Heap-based Buffer Overflow",
-            "name": "CVE-2021-3984",
+            "name": "CVE-2021-3778",
             "scraped_data": [
                 {
-                    "notes": [
-                        "for bionic and earlier, the vulnerable function in src/cindent.c\nis in src/misc1.c."
-                    ],
+                    "notes": [],
                     "status_table": {
                         "packages": [
                             "vim",
@@ -7273,42 +7271,42 @@
                         "release_states": [
                             [
                                 "bionic",
-                                "Released (2:8.0.1453-1ubuntu1.8)"
+                                "Released (2:8.0.1453-1ubuntu1.6)"
                             ],
                             [
                                 "focal",
-                                "Released (2:8.1.2269-1ubuntu5.6)"
+                                "Released (2:8.1.2269-1ubuntu5.3)"
                             ],
                             [
                                 "hirsute",
-                                "Ignored (reached end-of-life)"
+                                "Released (2:8.2.2434-1ubuntu1.1)"
                             ],
                             [
                                 "impish",
-                                "Released (2:8.2.2434-3ubuntu3.2)"
+                                "Released (2:8.2.2434-3ubuntu2)"
                             ],
                             [
                                 "jammy",
-                                "Needed"
+                                "Released (2:8.2.2434-3ubuntu2)"
                             ],
                             [
                                 "trusty",
-                                "Needed"
+                                "Released (2:7.4.052-1ubuntu3.1+esm3)"
                             ],
                             [
                                 "upstream",
-                                "Released (v8.2.3625)"
+                                "Released (v8.2.3409)"
                             ],
                             [
                                 "xenial",
-                                "Released (2:7.4.1689-3ubuntu1.5+esm4)"
+                                "Released (2:7.4.1689-3ubuntu1.5+esm2)"
                             ]
                         ]
                     }
                 }
             ],
             "severity": "MEDIUM",
-            "uri": "http://people.ubuntu.com/~ubuntu-security/cve/CVE-2021-3984"
+            "uri": "http://people.ubuntu.com/~ubuntu-security/cve/CVE-2021-3778"
         },
         {
             "attributes": [
@@ -7329,8 +7327,8 @@
                     "value": "6.8"
                 }
             ],
-            "description": "Heap-based Buffer Overflow in GitHub repository vim/vim prior to 8.2.",
-            "name": "CVE-2022-0361",
+            "description": "vim is vulnerable to Heap-based Buffer Overflow",
+            "name": "CVE-2021-3927",
             "scraped_data": [
                 {
                     "notes": [],
@@ -7344,38 +7342,42 @@
                         "release_states": [
                             [
                                 "bionic",
-                                "Needed"
+                                "Released (2:8.0.1453-1ubuntu1.7)"
                             ],
                             [
                                 "focal",
-                                "Needed"
+                                "Released (2:8.1.2269-1ubuntu5.4)"
+                            ],
+                            [
+                                "hirsute",
+                                "Released (2:8.2.2434-1ubuntu1.2)"
                             ],
                             [
                                 "impish",
-                                "Needed"
+                                "Released (2:8.2.2434-3ubuntu3.1)"
                             ],
                             [
                                 "jammy",
-                                "Needed"
+                                "Released (2:8.2.3565-1ubuntu2)"
                             ],
                             [
                                 "trusty",
-                                "Needed"
+                                "Released (2:7.4.052-1ubuntu3.1+esm4)"
                             ],
                             [
                                 "upstream",
-                                "Released (8.2.4215)"
+                                "Released (v8.2.3581)"
                             ],
                             [
                                 "xenial",
-                                "Needed"
+                                "Released (2:7.4.1689-3ubuntu1.5+esm3)"
                             ]
                         ]
                     }
                 }
             ],
             "severity": "MEDIUM",
-            "uri": "http://people.ubuntu.com/~ubuntu-security/cve/CVE-2022-0361"
+            "uri": "http://people.ubuntu.com/~ubuntu-security/cve/CVE-2021-3927"
         },
         {
             "attributes": [
