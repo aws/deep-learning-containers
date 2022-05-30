@@ -164,11 +164,11 @@ RUN ${PIP} install --no-cache-dir -U \
     "sagemaker-tensorflow-training>=20" \
     # Protobuf above this version appears to result in errors in tests.
     protobuf==3.20.1 \
-
     # Let's install TensorFlow separately in the end to avoid
     # the library version to be overwritten
  && ${PIP} install --no-cache-dir -U \
     ${TF_URL} \
+    tensorflow-datasets==4.5.2 \
     h5py==3.1.0 \
     "absl-py>=0.9,<0.11" \
     psutil==5.7.2 \
