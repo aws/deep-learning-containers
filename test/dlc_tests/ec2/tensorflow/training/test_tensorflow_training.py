@@ -211,6 +211,7 @@ def run_data_service_test(ec2_connection, ec2_instance_ami, tensorflow_training,
     python_invoker = get_python_invoker(ec2_instance_ami)
     _, tensorflow_version = test_utils.get_framework_and_version_from_tag(tensorflow_training)
     ec2_connection.run(f"{python_invoker} -m pip install --upgrade pip")
+    ec2_connection.run(f"{python_invoker} -m pip install 'protobuf>=3.20,<3.21'")
     ec2_connection.run(f"{python_invoker} -m pip install tensorflow=={tensorflow_version}")
     container_test_local_dir = os.path.join("$HOME", "container_tests")
     ec2_connection.run(f"cd {container_test_local_dir}/bin && screen -d -m {python_invoker} start_dataservice.py")
