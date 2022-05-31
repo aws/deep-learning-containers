@@ -1060,7 +1060,7 @@
             "attributes": [
                 {
                     "key": "package_version",
-                    "value": "1.18.4ubuntu1.6"
+                    "value": "1.18.4ubuntu1.7"
                 },
                 {
                     "key": "package_name",
@@ -1119,7 +1119,7 @@
             "attributes": [
                 {
                     "key": "package_version",
-                    "value": "1.18.4ubuntu1.7"
+                    "value": "1.18.4ubuntu1.6"
                 },
                 {
                     "key": "package_name",
@@ -2646,7 +2646,7 @@
             "attributes": [
                 {
                     "key": "package_version",
-                    "value": "2.23-0ubuntu11.3"
+                    "value": "2.23-0ubuntu11.2"
                 },
                 {
                     "key": "package_name",
@@ -2705,7 +2705,7 @@
             "attributes": [
                 {
                     "key": "package_version",
-                    "value": "2.23-0ubuntu11.2"
+                    "value": "2.23-0ubuntu11.3"
                 },
                 {
                     "key": "package_name",
@@ -7249,19 +7249,19 @@
                 },
                 {
                     "key": "CVSS2_VECTOR",
-                    "value": "AV:N/AC:M/Au:N/C:P/I:N/A:P"
+                    "value": "AV:N/AC:M/Au:N/C:P/I:P/A:P"
                 },
                 {
                     "key": "CVSS2_SCORE",
-                    "value": "5.8"
+                    "value": "6.8"
                 }
             ],
-            "description": "vim is vulnerable to Out-of-bounds Read",
-            "name": "CVE-2021-4166",
+            "description": "vim is vulnerable to Heap-based Buffer Overflow",
+            "name": "CVE-2022-0213",
             "scraped_data": [
                 {
                     "notes": [
-                        "code in bionic and earlier does not include file src/arglist.c,\nwhich is the patched file. However, the patched code, as seen in\ncommit 4ad62155a10, seems to be instead present in src/buffer.c\nfor the previously mentioned group of releases."
+                        "in bionic and earlier vulnerable code is in src/screen.c\ninstead of src/drawscreen.c"
                     ],
                     "status_table": {
                         "packages": [
@@ -7280,16 +7280,12 @@
                                 "Needed"
                             ],
                             [
-                                "hirsute",
-                                "Ignored (reached end-of-life)"
-                            ],
-                            [
                                 "impish",
                                 "Needed"
                             ],
                             [
                                 "jammy",
-                                "Not vulnerable (2:8.2.3995-1ubuntu2)"
+                                "Needed"
                             ],
                             [
                                 "trusty",
@@ -7297,7 +7293,7 @@
                             ],
                             [
                                 "upstream",
-                                "Released (8.2.3884)"
+                                "Released (8.2.4074)"
                             ],
                             [
                                 "xenial",
@@ -7308,7 +7304,7 @@
                 }
             ],
             "severity": "MEDIUM",
-            "uri": "http://people.ubuntu.com/~ubuntu-security/cve/CVE-2021-4166"
+            "uri": "http://people.ubuntu.com/~ubuntu-security/cve/CVE-2022-0213"
         },
         {
             "attributes": [
@@ -7329,8 +7325,8 @@
                     "value": "6.8"
                 }
             ],
-            "description": "Heap-based Buffer Overflow in function cmdline_erase_chars in GitHub repository vim/vim prior to 8.2.4899. This vulnerabilities are capable of crashing software, modify memory, and possible remote execution",
-            "name": "CVE-2022-1619",
+            "description": "Heap-based Buffer Overflow in GitHub repository vim/vim prior to 8.2.",
+            "name": "CVE-2022-0261",
             "scraped_data": [
                 {
                     "notes": [],
@@ -7364,18 +7360,18 @@
                             ],
                             [
                                 "upstream",
-                                "Released (8.2.4899)"
+                                "Released (8.2.4120)"
                             ],
                             [
                                 "xenial",
-                                "Needed"
+                                "Released (2:7.4.1689-3ubuntu1.5+esm4)"
                             ]
                         ]
                     }
                 }
             ],
             "severity": "MEDIUM",
-            "uri": "http://people.ubuntu.com/~ubuntu-security/cve/CVE-2022-1619"
+            "uri": "http://people.ubuntu.com/~ubuntu-security/cve/CVE-2022-0261"
         },
         {
             "attributes": [
@@ -7389,20 +7385,18 @@
                 },
                 {
                     "key": "CVSS2_VECTOR",
-                    "value": "AV:N/AC:M/Au:N/C:P/I:P/A:P"
+                    "value": "AV:N/AC:M/Au:N/C:P/I:N/A:N"
                 },
                 {
                     "key": "CVSS2_SCORE",
-                    "value": "6.8"
+                    "value": "4.3"
                 }
             ],
-            "description": "Heap buffer overflow in vim_strncpy find_word in GitHub repository vim/vim prior to 8.2.4919. This vulnerability is capable of crashing software, Bypass Protection Mechanism, Modify Memory, and possible remote execution",
-            "name": "CVE-2022-1621",
+            "description": "Out-of-bounds Read in vim/vim prior to 8.2.",
+            "name": "CVE-2022-0319",
             "scraped_data": [
                 {
-                    "notes": [
-                        "for xenial and earlier, patched file should be src/spell.c\ninstead of src/spellfile.c."
-                    ],
+                    "notes": [],
                     "status_table": {
                         "packages": [
                             "vim",
@@ -7433,7 +7427,7 @@
                             ],
                             [
                                 "upstream",
-                                "Released (8.2.4919)"
+                                "Released (8.2.4154)"
                             ],
                             [
                                 "xenial",
@@ -7444,7 +7438,7 @@
                 }
             ],
             "severity": "MEDIUM",
-            "uri": "http://people.ubuntu.com/~ubuntu-security/cve/CVE-2022-1621"
+            "uri": "http://people.ubuntu.com/~ubuntu-security/cve/CVE-2022-0319"
         }
     ]
 }
