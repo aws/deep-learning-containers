@@ -109,7 +109,7 @@ RUN pip install --no-cache-dir -U \
     mxnet==${MXNET_VER} \
     autogluon==${AUTOGLUON_VERSION} \
     sagemaker-mxnet-training \
- && pip uninstall -y \ 
+ && pip uninstall -y \
     datashader \
     ipykernel \
     ipython \
