@@ -6,7 +6,7 @@ HOME_DIR=/test
 BIN_DIR=${HOME_DIR}/bin
 LOG_DIR=${HOME_DIR}/logs
 
-TORCHAUDIO_BRANCH="v0.11.0"
+TORCHAUDIO_BRANCH="v$(pip freeze | grep torchaudio | cut -d '=' -f3)"
 TORCHAUDIO_REPO="https://github.com/pytorch/audio.git"
 TORCHAUDIO_TEST_SCRIPT="audio/test/integration_tests/tacotron2_pipeline_test.py"
 
