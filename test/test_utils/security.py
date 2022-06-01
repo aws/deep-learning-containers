@@ -477,11 +477,11 @@ def get_apt_upgrade_list_name(image_uri):
         ## For all other images, it looks like apt-upgrade-list-gpu.txt
         if test_utils.is_e3_image(image_uri):
             apt_upgrade_list_filename = apt_upgrade_list_filename.replace(
-                "{image_processor}.txt", "e3-{image_processor}.txt"
+                f"{image_processor}.txt", f"e3-{image_processor}.txt"
             )
         else:
             apt_upgrade_list_filename = apt_upgrade_list_filename.replace(
-                "{image_processor}.txt", "sagemaker-{image_processor}.txt"
+                f"{image_processor}.txt", f"sagemaker-{image_processor}.txt"
             )
     return apt_upgrade_list_filename
 
