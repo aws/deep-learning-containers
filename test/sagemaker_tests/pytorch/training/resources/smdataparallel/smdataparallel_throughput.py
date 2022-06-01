@@ -17,7 +17,6 @@ import torch
 from packaging.version import Version
 TORCH_VERSION = torch.__version__
 pre_ptbackend = Version(TORCH_VERSION) < Version("1.10")
-pre_ptbackend = False
 
 if pre_ptbackend:
     script = 'smdataparallel_throughput_pre_ptbackend.py'
