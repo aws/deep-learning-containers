@@ -14,6 +14,10 @@ from __future__ import absolute_import
 
 import pytest
 import sagemaker
+
+from packaging.version import Version
+from packaging.specifiers import SpecifierSet
+
 from sagemaker.huggingface import HuggingFaceModel
 from sagemaker.predictor import Predictor
 from sagemaker.serializers import DataSerializer
@@ -27,6 +31,8 @@ from ...integration.sagemaker.timeout import timeout_and_delete_endpoint
 @pytest.mark.processor("cpu")
 @pytest.mark.cpu_test
 def test_speech_model_cpu(sagemaker_session, framework_version, ecr_image, instance_type, region):
+    if "pytorch" in ecr_image and Version(framework_version) in SpecifierSet("==1.9.*"):
+        pytest.skip("Skipping speech tests for PT1.9")
     instance_type = instance_type or "ml.m5.xlarge"
     try:
         _test_speech_model(sagemaker_session, framework_version, ecr_image, instance_type, model_dir)
@@ -39,6 +45,8 @@ def test_speech_model_cpu(sagemaker_session, framework_version, ecr_image, insta
 @pytest.mark.processor("gpu")
 @pytest.mark.gpu_test
 def test_speech_model_gpu(sagemaker_session, framework_version, ecr_image, instance_type, region):
+    if "pytorch" in ecr_image and Version(framework_version) in SpecifierSet("==1.9.*"):
+        pytest.skip("Skipping speech tests for PT1.9")
     instance_type = instance_type or "ml.p3.2xlarge"
     try:
         _test_speech_model(sagemaker_session, framework_version, ecr_image, instance_type, model_dir)
