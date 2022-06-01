@@ -6,7 +6,7 @@ pytest==5.3.5
 pytest-rerunfailures==9.0
 pytest-timeout
 pytest-json-report
-pytest-xdist==1.31.0
+pytest-xdist==2.5.0
 sagemaker>=2,<3
 xmltodict
 boto3
