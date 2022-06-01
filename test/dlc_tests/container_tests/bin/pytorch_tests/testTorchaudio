@@ -1,7 +1,5 @@
 #!/bin/bash
 
-set -e
-
 HOME_DIR=/test
 BIN_DIR=${HOME_DIR}/bin
 LOG_DIR=${HOME_DIR}/logs
@@ -12,6 +10,13 @@ TORCHAUDIO_TEST_SCRIPT="audio/test/integration_tests/tacotron2_pipeline_test.py"
 
 echo "Fetch Torchaudio integration test script."
 git clone --recursive -b ${TORCHAUDIO_BRANCH} ${TORCHAUDIO_REPO}
+
+if [ $? -ne 0 ]; then
+    echo "$TORCHAUDIO_BRANCH doesn't exist in torchaudio repo. Cloning main branch."
+    git clone --recursive -b main ${TORCHAUDIO_REPO}
+fi
+
+set -e
 
 echo "Installing pre-requisites."
 pip install pytest
