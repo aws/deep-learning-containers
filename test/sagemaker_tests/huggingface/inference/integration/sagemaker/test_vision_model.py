@@ -23,50 +23,50 @@ from sagemaker.predictor import Predictor
 from sagemaker.serializers import DataSerializer
 from sagemaker.deserializers import JSONDeserializer
 
-from ...integration import model_dir, dump_logs_from_cloudwatch, audio_sample_file_path
+from ...integration import model_dir, dump_logs_from_cloudwatch, image_sample_file_path
 from ...integration.sagemaker.timeout import timeout_and_delete_endpoint
 
 
-@pytest.mark.model("wav2vec2")
+@pytest.mark.model("vit")
 @pytest.mark.processor("cpu")
 @pytest.mark.cpu_test
-def test_speech_model_cpu(sagemaker_session, framework_version, ecr_image, instance_type, region):
+def test_vision_model_cpu(sagemaker_session, framework_version, ecr_image, instance_type, region):
     if "pytorch" in ecr_image and Version(framework_version) in SpecifierSet("==1.9.*"):
-        pytest.skip("Skipping speech tests for PT1.9")
+        pytest.skip("Skipping vision tests for PT1.9")
+    if "tensorflow" in ecr_image and Version(framework_version) in SpecifierSet("==2.5.*"):
+        pytest.skip("Skipping vision tests for TF2.5")
     instance_type = instance_type or "ml.m5.xlarge"
     try:
-        _test_speech_model(sagemaker_session, framework_version, ecr_image, instance_type, model_dir)
+        _test_vision_model(sagemaker_session, framework_version, ecr_image, instance_type, model_dir)
     except Exception as e:
         dump_logs_from_cloudwatch(e, region)
         raise
 
 
-@pytest.mark.model("wav2vec2")
+@pytest.mark.model("vit")
 @pytest.mark.processor("gpu")
 @pytest.mark.gpu_test
-def test_speech_model_gpu(sagemaker_session, framework_version, ecr_image, instance_type, region):
+def test_vision_model_gpu(sagemaker_session, framework_version, ecr_image, instance_type, region):
     if "pytorch" in ecr_image and Version(framework_version) in SpecifierSet("==1.9.*"):
-        pytest.skip("Skipping speech tests for PT1.9")
+        pytest.skip("Skipping vision tests for PT1.9")
+    if "tensorflow" in ecr_image and Version(framework_version) in SpecifierSet("==2.5.*"):
+        pytest.skip("Skipping vision tests for TF2.5")
     instance_type = instance_type or "ml.p3.2xlarge"
     try:
-        _test_speech_model(sagemaker_session, framework_version, ecr_image, instance_type, model_dir)
+        _test_vision_model(sagemaker_session, framework_version, ecr_image, instance_type, model_dir)
     except Exception as e:
         dump_logs_from_cloudwatch(e, region)
         raise
 
 
-def _test_speech_model(
+def _test_vision_model(
     sagemaker_session, framework_version, ecr_image, instance_type, model_dir, accelerator_type=None
 ):
-    endpoint_name = sagemaker.utils.unique_name_from_base("sagemaker-huggingface-serving-speech-model")
-
-    if "tensorflow" in ecr_image:
-        # Zero-code deployments are currently not supported for TensorFlow
-        return True
+    endpoint_name = sagemaker.utils.unique_name_from_base("sagemaker-huggingface-serving-vision-model")
 
     env = {
-        "HF_MODEL_ID": "hf-internal-testing/tiny-random-wav2vec2",
-        "HF_TASK": "automatic-speech-recognition",
+        "HF_MODEL_ID": "hf-internal-testing/tiny-random-vit",
+        "HF_TASK": "image-classification",
     }
 
     hf_model = HuggingFaceModel(
@@ -84,9 +84,9 @@ def _test_speech_model(
             endpoint_name=endpoint_name,
         )
 
-        predictor.serializer = DataSerializer(content_type="audio/wave")
+        predictor.serializer = DataSerializer(content_type="image/png")
         predictor.deserializer = JSONDeserializer()
 
-        output = predictor.predict(audio_sample_file_path)
+        output = predictor.predict(image_sample_file_path)
 
-        assert "text" in output
+        assert "score" in output[0]
