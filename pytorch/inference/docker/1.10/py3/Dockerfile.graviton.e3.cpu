@@ -51,8 +51,6 @@ RUN curl -L -o ~/mambaforge.sh https://github.com/conda-forge/miniforge/releases
  && ~/mambaforge.sh -b -p /opt/conda \
  && rm ~/mambaforge.sh
 
-# RUN /opt/conda/bin/conda update conda
-
 RUN /opt/conda/bin/conda install -c conda-forge python=$PYTHON_VERSION
 
 RUN /opt/conda/bin/conda install -c conda-forge -y \
@@ -65,6 +63,9 @@ RUN /opt/conda/bin/conda install -c conda-forge -y \
     # Below 2 are included in miniconda base, but not mamba so need to install
     conda-content-trust \
     charset-normalizer
+
+# Moving after installs as this attempts to install conda 4.13 which is not compatible with mamba==0.22.1 and causes the build to fail.
+RUN /opt/conda/bin/conda update -y conda
 
 RUN /opt/conda/bin/conda clean -ya
 
