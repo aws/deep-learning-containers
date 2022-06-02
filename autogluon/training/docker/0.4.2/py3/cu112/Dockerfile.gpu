@@ -6,17 +6,6 @@ FROM 763104351884.dkr.ecr.us-west-2.amazonaws.com/mxnet-training:1.9.0-gpu-py38-
 ENV MXNET_CUDNN_LIB_CHECKING=0 \
     MXNET_CUDNN_AUTOTUNE_DEFAULT=0
 
-## NVIDIA updated and rotated the signing keys used by apt, dnf/yum, and zypper package managers beginning April 27, 2022
-## This code snippet has been taken from the NVIDIA forums https://forums.developer.nvidia.com/t/notice-cuda-linux-repository-key-rotation/212771
-## to ensure that the builds do not fail
-## The solution is inspired from https://github.com/NVIDIA/nvidia-docker/issues/1631#issuecomment-1113105899
-RUN rm /etc/apt/sources.list.d/cuda.list \
- && rm /etc/apt/sources.list.d/nvidia-ml.list \
- && apt-key del 7fa2af80 \
- && apt-get update && apt-get install -y --no-install-recommends wget \
- && wget https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2004/x86_64/cuda-keyring_1.0-1_all.deb \
- && dpkg -i cuda-keyring_1.0-1_all.deb
-
 RUN apt-get update \
  && apt-get -y upgrade \
  && apt-get install -y --no-install-recommends \
@@ -29,13 +18,16 @@ RUN apt-get update \
  && rm -rf /var/lib/apt/lists/* \
  && rm -rf /tmp/*
 
-ARG AUTOGLUON_VERSION=0.4.1
+ARG AUTOGLUON_VERSION=0.4.2
 
 RUN pip install --no-cache-dir -U --trusted-host pypi.org --trusted-host files.pythonhosted.org pip \
  && pip install --no-cache-dir -U setuptools==59.5.0 wheel \
  && pip install --no-cache-dir -U numba \
  && pip install --no-cache-dir -U autogluon==${AUTOGLUON_VERSION} \
  && pip install --no-cache-dir -U sagemaker-mxnet-training
+
+# Resolving sagemaker 2.92.1 conflict
+RUN pip install --no-cache-dir 'importlib-metadata<2.0,>=1.4.0' markdown
 
 RUN HOME_DIR=/root \
  && curl -o ${HOME_DIR}/oss_compliance.zip https://aws-dlinfra-utilities.s3.amazonaws.com/oss_compliance.zip \
