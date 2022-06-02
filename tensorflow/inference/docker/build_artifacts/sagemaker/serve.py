@@ -67,6 +67,20 @@ class ServiceManager(object):
         self._gunicorn_timeout_seconds = int(
             os.environ.get("SAGEMAKER_GUNICORN_TIMEOUT_SECONDS", 30)
         )
+        self._nginx_proxy_read_timeout_seconds = int(
+            os.environ.get("SAGEMAKER_NGINX_PROXY_READ_TIMEOUT_SECONDS", 60))
+
+        # Nginx proxy read timeout should not be less than the GUnicorn timeout. If it is, this
+        # can result in upstream time out errors.
+        if self._gunicorn_timeout_seconds > self._nginx_proxy_read_timeout_seconds:
+            log.info(
+                "GUnicorn timeout was higher than Nginx proxy read timeout."
+                " Setting Nginx proxy read timeout from {} seconds to {} seconds"
+                " to match GUnicorn timeout.".format(
+                    self._nginx_proxy_read_timeout_seconds, self._gunicorn_timeout_seconds
+                )
+            )
+            self._nginx_proxy_read_timeout_seconds = self._gunicorn_timeout_seconds
 
         if os.environ.get("OMP_NUM_THREADS") is None:
             os.environ["OMP_NUM_THREADS"] = "1"
@@ -270,6 +284,7 @@ class ServiceManager(object):
             "FORWARD_INVOCATION_REQUESTS": GUNICORN_INVOCATIONS
             if self._use_gunicorn
             else JS_INVOCATIONS,
+            "PROXY_READ_TIMEOUT": str(self._nginx_proxy_read_timeout_seconds),
         }
 
         config = pattern.sub(lambda x: template_values[x.group(1)], template)

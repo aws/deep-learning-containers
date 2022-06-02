@@ -40,3 +40,6 @@
       docker_file: !join [ docker/, *SHORT_VERSION, /, *DOCKER_PYTHON_VERSION, /, *NEURON_SDK_VERSION, /Dockerfile., neuron ]
       context:
         <<: *INFERENCE_CONTEXT
+        apt-upgrade-list:
+          source: !join [ docker/, *SHORT_VERSION, /, *DOCKER_PYTHON_VERSION, /, *NEURON_SDK_VERSION, /apt-upgrade-list-, *DEVICE_TYPE, .txt]
+          target: apt-upgrade-list.txt
