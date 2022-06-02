@@ -69,7 +69,6 @@ RUN apt-get update \
     libssl1.1 \
     libxext6 \
     libxrender-dev \
-    mkl \
     openjdk-11-jdk \
     openssl \
     vim \
@@ -164,7 +163,8 @@ RUN pip uninstall -y torch \
  && pip uninstall -y torchvision \
  && pip install --no-deps --no-cache-dir -U $PT_TORCHVISION_URL \
  && pip uninstall -y torchaudio \
- && pip install --no-deps --no-cache-dir -U $PT_TORCHAUDIO_URL
+ && pip install --no-deps --no-cache-dir -U $PT_TORCHAUDIO_URL \
+ && pip install mkl
 
 RUN conda install -y -c conda-forge "pyyaml>=5.4,<5.5"
 RUN pip install \
