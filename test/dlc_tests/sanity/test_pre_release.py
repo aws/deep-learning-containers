@@ -403,15 +403,15 @@ def _run_dependency_check_test(image, ec2_connection):
     # Check that these versions have been matched on https://ubuntu.com/security/CVE-2022-1292 before adding
     allow_openssl_cve_2022_1292_fw_versions = {
         "pytorch": {
-            "1.10": ["gpu", "cpu"],
+            "1.10": ["gpu", "cpu", "hpu"],
             "1.11": ["gpu", "cpu"],
         },
         "tensorflow": {
             "1.15": ["neuron"],
             "2.5": ["neuron"],
+            "2.7": ["cpu", "gpu", "hpu"],
             "2.8": ["cpu", "gpu"],
-            "2.9": ["cpu", "gpu"],
-            "2.7": ["cpu", "gpu"]
+            "2.9": ["cpu", "gpu"]
         },
         "mxnet": {"1.8": ["neuron"], "1.9": ["cpu", "gpu"]},
         "autogluon": {"0.3": ["cpu", "gpu"], "0.4": ["cpu", "gpu"]},
