@@ -44,8 +44,6 @@ ENV PATH /opt/conda/bin:$PATH
 ENV TEMP=/home/model-server/tmp
 ENV TORCH_CUDA_ARCH_LIST="3.7 5.0 7.0+PTX 8.0"
 
-ENV NVIDIA_REQUIRE_CUDA "cuda>=11.3 brand=tesla,driver>=418,driver<419 brand=tesla,driver>=440,driver<441 driver>=450"
-
 ENV NCCL_VERSION=2.10.3
 ENV NVML_VERSION=11.3.58
 
