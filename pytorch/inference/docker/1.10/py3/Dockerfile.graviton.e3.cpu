@@ -51,7 +51,7 @@ RUN curl -L -o ~/mambaforge.sh https://github.com/conda-forge/miniforge/releases
  && ~/mambaforge.sh -b -p /opt/conda \
  && rm ~/mambaforge.sh
 
-RUN /opt/conda/bin/conda update conda
+# RUN /opt/conda/bin/conda update conda
 
 RUN /opt/conda/bin/conda install -c conda-forge python=$PYTHON_VERSION
 
