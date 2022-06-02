@@ -69,6 +69,7 @@ RUN apt-get update \
     libssl1.1 \
     libxext6 \
     libxrender-dev \
+    mkl \
     openjdk-11-jdk \
     openssl \
     vim \
