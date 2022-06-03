@@ -66,7 +66,6 @@ def _assert_prediction(predictor):
 
 
 @pytest.mark.integration("ag_local")
-@pytest.mark.processor("cpu")
 @pytest.mark.model("autogluon")
 def test_serve_json(docker_image, framework_version, sagemaker_local_session, instance_type):
     with _predictor(docker_image, framework_version, sagemaker_local_session, instance_type) as predictor:
