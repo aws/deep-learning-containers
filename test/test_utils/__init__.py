@@ -1249,6 +1249,34 @@ def get_neuron_framework_and_version_from_tag(image_uri):
     return tested_framework, neuron_tag_framework_version
 
 
+def get_transformers_version_from_image_uri(image_uri):
+    """
+    Utility function to get the HuggingFace transformers version from an image uri
+
+    @param image_uri: ECR image uri
+    @return: HuggingFace transformers version, or ""
+    """
+    transformers_regex = re.compile(r"transformers(\d+.\d+.\d+)")
+    transformers_in_img_uri = transformers_regex.search(image_uri)
+    if transformers_in_img_uri:
+        return transformers_regex.group(1)
+    return ""
+
+
+def get_os_version_from_image_uri(image_uri):
+    """
+    Currently only ship ubuntu versions
+
+    @param image_uri: ECR image URI
+    @return: OS version, or ""
+    """
+    os_version_regex = re.compile(r"ubuntu\d+.\d+")
+    os_version_in_img_uri = os_version_regex.search(image_uri)
+    if os_version_in_img_uri:
+        return os_version_in_img_uri.group()
+    return ""
+
+
 def get_framework_from_image_uri(image_uri):
     return (
         "huggingface_tensorflow"

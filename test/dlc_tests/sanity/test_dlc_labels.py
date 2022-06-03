@@ -29,7 +29,8 @@ def test_dlc_major_version_label(image, region):
     test_utils.LOGGER.info(f"{image} has 'dlc_major_version' = {major_version}")
 
 
-@pytest.mark.usefixtures("sagemaker")
+# TODO: Apply to all images when labels are decided upon
+@pytest.mark.usefixtures("sagemaker_only")
 @pytest.mark.integration("dlc_labels")
 @pytest.mark.model("N/A")
 def test_dlc_standard_labels(image, region):
@@ -40,6 +41,8 @@ def test_dlc_standard_labels(image, region):
     device_type = test_utils.get_processor_from_image_uri(image)
     python_version = test_utils.get_python_version_from_image_uri(image)
     job_type = test_utils.get_job_type_from_image(image)
+    transformers_version = test_utils.get_transformers_version_from_image_uri(image).replace('.', '-')
+    os_version = test_utils.get_os_version_from_image_uri(image).replace('.', '-')
 
     # TODO: Add x86 env variable to check explicitly for x86, instead of assuming that everything not graviton is x86
     arch_type = "graviton" if test_utils.is_graviton_architecture() else "x86"
@@ -47,22 +50,42 @@ def test_dlc_standard_labels(image, region):
     contributor = test_utils.get_contributor_from_image_uri(image)
 
     expected_labels = [
-        f"com.amazonaws.dlc.{customer_type_label_prefix}.framework.{framework}",
-        f"com.amazonaws.dlc.{customer_type_label_prefix}.framework-version.{fw_version}",
-        f"com.amazonaws.dlc.{customer_type_label_prefix}.device-type.{device_type}",
-        f"com.amazonaws.dlc.{customer_type_label_prefix}.py-version.{python_version}",
-        f"com.amazonaws.dlc.{customer_type_label_prefix}.job-type.{job_type}",
-        f"com.amazonaws.dlc.{customer_type_label_prefix}.arch-type.{arch_type}",
+        f"com.amazonaws.ml.engines.{customer_type_label_prefix}.dlc.framework.{framework}.{fw_version}",
+        f"com.amazonaws.ml.engines.{customer_type_label_prefix}.dlc.device.{device_type}",
+        f"com.amazonaws.ml.engines.{customer_type_label_prefix}.dlc.python.{python_version}",
+        f"com.amazonaws.ml.engines.{customer_type_label_prefix}.dlc.job.{job_type}",
+        f"com.amazonaws.ml.engines.{customer_type_label_prefix}.dlc.arch.{arch_type}",
+        f"com.amazonaws.ml.engines.{customer_type_label_prefix}.dlc.os.{os_version}",
     ]
 
     if contributor:
-        expected_labels.append(f"com.amazonaws.dlc.{customer_type_label_prefix}.contributor.{contributor}")
+        expected_labels.append(f"com.amazonaws.ml.engines.{customer_type_label_prefix}.dlc.contributor.{contributor}")
+    if transformers_version:
+        expected_labels.append(
+            f"com.amazonaws.ml.engines.{customer_type_label_prefix}.dlc.lib.transformers.{transformers_version}"
+        )
 
     actual_labels = _get_labels_from_ecr(image, region)
 
     for label in expected_labels:
         assert label in actual_labels, \
             f"Label {label} is expected in image {image}, but cannot be found. All labels on image: {actual_labels}"
+
+
+@pytest.mark.usefixtures("sagemaker_only")
+@pytest.mark.integration("dlc_labels")
+@pytest.mark.model("N/A")
+def test_max_10_sagemaker_labels(image, region):
+    actual_labels = _get_labels_from_ecr(image, region)
+
+    standard_labels = []
+    for label in actual_labels:
+        if label.startswith("com.amazonaws.ml.engines.sagemaker"):
+            standard_labels.append(label)
+
+    standard_label_count = len(standard_labels)
+    assert standard_label_count <= 10, f"Max of 10 labels are supported. " \
+                                       f"Currently there are {standard_label_count}: {standard_labels}"
 
 
 @pytest.mark.usefixtures("sagemaker")
