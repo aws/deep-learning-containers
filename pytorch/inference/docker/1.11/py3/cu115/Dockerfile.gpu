@@ -165,10 +165,10 @@ RUN curl -L -o ~/mambaforge.sh https://github.com/conda-forge/miniforge/releases
     # Below 2 are included in miniconda base, but not mamba so need to install
     conda-content-trust \
     charset-normalizer \
- && /opt/conda/bin/conda install -c pytorch magma-cuda115=2.6.1 \
- # Moving after installs as this attempts to install conda 4.13 which is not compatible with mamba==0.22.1 and causes the build to fail.
-RUN /opt/conda/bin/conda update -y conda
-RUN /opt/conda/bin/conda clean -ya
+ && /opt/conda/bin/conda install -c pytorch magma-cuda115=2.6.1 
+# Moving after installs as this attempts to install conda 4.13 which is not compatible with mamba==0.22.1 and causes the build to fail.
+RUN /opt/conda/bin/conda update -y conda \
+   && /opt/conda/bin/conda clean -ya
 
 # Conda installs links for libtinfo.so.6 and libtinfo.so.6.2 both
 # Which causes "/opt/conda/lib/libtinfo.so.6: no version information available" warning
