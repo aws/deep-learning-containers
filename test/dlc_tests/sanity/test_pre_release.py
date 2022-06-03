@@ -219,7 +219,11 @@ def test_framework_version_cpu(image):
         assert tag_framework_version in output.stdout.strip()
     else:
         if tested_framework == "autogluon.core":
-            version_to_check = "0.3.1" if tag_framework_version == "0.3.2" else tag_framework_version
+            versions_map = {
+                # container version -> autogluon version
+                '0.3.2': '0.3.1',
+            }
+            version_to_check = versions_map.get(tag_framework_version, tag_framework_version)
             assert output.stdout.strip().startswith(version_to_check)
         # Habana v1.2 binary does not follow the X.Y.Z+cpu naming convention
         elif "habana" not in image_repo_name:
