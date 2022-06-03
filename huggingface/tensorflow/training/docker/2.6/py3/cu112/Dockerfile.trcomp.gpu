@@ -50,7 +50,7 @@ RUN apt-get update \
 # Install TensorFlow
 RUN pip uninstall -y tensorflow-gpu \
  && pip install --no-deps --no-cache-dir -U --force-reinstall ${TF_URL} \
- && pip install -U numpy==1.21
+ && pip install -U numpy<1.22
 
 # Install Horovod
 RUN ldconfig /usr/local/cuda-11.2/targets/x86_64-linux/lib/stubs \
