@@ -93,3 +93,27 @@ release_images:
       example: False
       disable_sm_tag: False
       force_release: False
+  8:
+    framework: "pytorch"
+    version: "1.9.1"
+    arch_type: "x86"
+    training:
+      device_types: [ "cpu","gpu" ]
+      python_versions: [ "py38" ]
+      os_version: "ubuntu20.04"
+      cuda_version: "cu111"
+      example: False
+      disable_sm_tag: False
+      force_release: False
+  9:
+    framework: "pytorch"
+    version: "1.9.1"
+    arch_type: "x86"
+    training:
+      device_types: ["gpu"]
+      python_versions: [ "py38" ]
+      os_version: "ubuntu20.04"
+      cuda_version: "cu111"
+      example: True
+      disable_sm_tag: False
+      force_release: False
