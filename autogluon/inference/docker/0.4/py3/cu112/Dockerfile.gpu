@@ -16,6 +16,7 @@ RUN apt-get update \
 
 ARG AUTOGLUON_VERSION=0.4.2
 
+# Pinning setuptools because it's breaking pip
 RUN pip install --no-cache-dir -U --trusted-host pypi.org --trusted-host files.pythonhosted.org pip \
  && pip install --no-cache-dir -U setuptools==59.5.0 wheel \
  && pip uninstall -y dataclasses \
