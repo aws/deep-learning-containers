@@ -6,6 +6,9 @@ FROM 763104351884.dkr.ecr.us-west-2.amazonaws.com/mxnet-training:1.9.0-gpu-py38-
 ENV MXNET_CUDNN_LIB_CHECKING=0 \
     MXNET_CUDNN_AUTOTUNE_DEFAULT=0
 
+LABEL maintainer="Amazon AI"
+LABEL dlc_major_version="1"
+
 RUN apt-get update \
  && apt-get -y upgrade \
  && apt-get install -y --no-install-recommends \

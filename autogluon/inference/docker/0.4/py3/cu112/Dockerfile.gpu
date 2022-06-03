@@ -2,6 +2,9 @@ ARG PYTHON_VERSION=3.8.10
 
 FROM 763104351884.dkr.ecr.us-west-2.amazonaws.com/mxnet-inference:1.9.0-gpu-py38-cu112-ubuntu20.04-sagemaker
 
+LABEL maintainer="Amazon AI"
+LABEL dlc_major_version="1"
+
 ENV MXNET_CUDNN_LIB_CHECKING=0 \
     MXNET_CUDNN_AUTOTUNE_DEFAULT=0
 
