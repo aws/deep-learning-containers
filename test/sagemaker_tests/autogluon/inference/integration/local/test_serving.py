@@ -31,7 +31,11 @@ def _predictor(image, framework_version, sagemaker_local_session, instance_type)
     model_dir = os.path.join(RESOURCE_PATH, 'model')
     source_dir = os.path.join(RESOURCE_PATH, 'scripts')
 
-    ag_framework_version = '0.3.1' if framework_version == '0.3.2' else framework_version
+    versions_map = {
+        # container version -> autogluon version
+        '0.3.2': '0.3.1',
+    }
+    ag_framework_version = versions_map.get(framework_version, framework_version)
     model = MXNetModel(
         model_data=f"file://{model_dir}/model_{ag_framework_version}.tar.gz",
         role=ROLE,
@@ -62,7 +66,6 @@ def _assert_prediction(predictor):
 
 
 @pytest.mark.integration("ag_local")
-@pytest.mark.processor("cpu")
 @pytest.mark.model("autogluon")
 def test_serve_json(docker_image, framework_version, sagemaker_local_session, instance_type):
     with _predictor(docker_image, framework_version, sagemaker_local_session, instance_type) as predictor:
