@@ -29,7 +29,7 @@ from .. import RESOURCE_PATH
 
 
 @contextmanager
-def _test_sm_trained_model(sagemaker_session, ecr_image, instance_type, framework_version, autogluon_container_to_version_mapping):
+def _test_sm_trained_model(sagemaker_session, ecr_image, instance_type, framework_version):
     model_dir = os.path.join(RESOURCE_PATH, 'model')
     source_dir = os.path.join(RESOURCE_PATH, 'scripts')
 
