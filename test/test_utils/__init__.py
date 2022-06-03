@@ -34,17 +34,9 @@ def get_ami_id_boto3(region_name, ami_name_pattern):
     For a given region and ami name pattern, return the latest ami-id
     """
     ami_list = boto3.client("ec2", region_name=region_name).describe_images(
-        Filters=[
-            {
-                "Name": "name",
-                "Values": [ami_name_pattern],
-            },
-        ],
-        Owners=[
-            'amazon',
-        ],
+        Filters=[{"Name": "name", "Values": [ami_name_pattern]}], Owners=['amazon']
     )
-    ami = sorted(ami_list["Images"], key=lambda x: x["CreationDate"], reverse=True)[0]
+    ami = max(ami_list["Images"], key=lambda x: x["CreationDate"])
     return ami['ImageId']
 
     
