@@ -67,7 +67,7 @@ RUN wget -qO - https://apt.repos.neuron.amazonaws.com/GPG-PUB-KEY-AMAZON-AWS-NEU
 
 RUN apt-get update \
   && apt-get install -y \
-    aws-neuron-tools \
+    aws-neuron-tools=2.0.623.0 \
   && rm -rf /var/lib/apt/lists/* \
   && rm -rf /tmp/tmp* \
   && apt-get clean
@@ -101,12 +101,13 @@ RUN ${PIP} install --no-cache-dir \
     keras-mxnet==2.2.4.1 \
     numpy==1.17.4 \
     onnx==1.7.0 \
+    protobuf==3.19.4 \
     sagemaker-mxnet-inference
 
-RUN ${PIP} install neuron-cc[tensorflow] --extra-index-url https://pip.repos.neuron.amazonaws.com \
+RUN ${PIP} install neuron-cc[tensorflow]==1.9.1.0 --extra-index-url https://pip.repos.neuron.amazonaws.com \
  && ${PIP} install --no-cache-dir -U \
     https://aws-mx-pypi.s3-us-west-2.amazonaws.com/1.8.0/aws_mx-1.8.0-py2.py3-none-manylinux2014_x86_64.whl \
- && ${PIP} install mx-neuron --extra-index-url https://pip.repos.neuron.amazonaws.com \
+ && ${PIP} install mx-neuron==1.8.0.2.1.5.0 --extra-index-url https://pip.repos.neuron.amazonaws.com \
  # Install TF 1.15.5 to override neuron-cc[tensorflow]'s installation of tensorflow==1.15.0
  && pip install -U tensorflow==1.15.5
 

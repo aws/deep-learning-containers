@@ -28,7 +28,6 @@ from test.test_utils import (
     run_cmd_on_container,
     start_container,
     stop_and_remove_container,
-    is_time_for_canary_safety_scan,
     get_repository_local_path,
     get_repository_and_tag_from_image_uri,
     get_python_version_from_image_uri,
@@ -220,7 +219,11 @@ def test_framework_version_cpu(image):
         assert tag_framework_version in output.stdout.strip()
     else:
         if tested_framework == "autogluon.core":
-            version_to_check = "0.3.1" if tag_framework_version == "0.3.2" else tag_framework_version
+            versions_map = {
+                # container version -> autogluon version
+                '0.3.2': '0.3.1',
+            }
+            version_to_check = versions_map.get(tag_framework_version, tag_framework_version)
             assert output.stdout.strip().startswith(version_to_check)
         # Habana v1.2 binary does not follow the X.Y.Z+cpu naming convention
         elif "habana" not in image_repo_name:
@@ -404,12 +407,19 @@ def _run_dependency_check_test(image, ec2_connection):
     # Check that these versions have been matched on https://ubuntu.com/security/CVE-2022-1292 before adding
     allow_openssl_cve_2022_1292_fw_versions = {
         "pytorch": {
-            "1.10": ["gpu"],
+            "1.10": ["gpu", "cpu", "hpu"],
             "1.11": ["gpu", "cpu"],
         },
         "tensorflow": {
+            "1.15": ["neuron"],
+            "2.5": ["neuron"],
+            "2.6": ["cpu", "gpu"],
+            "2.7": ["cpu", "gpu", "hpu"],
+            "2.8": ["cpu", "gpu"],
             "2.9": ["cpu", "gpu"]
-        }
+        },
+        "mxnet": {"1.8": ["neuron"], "1.9": ["cpu", "gpu"]},
+        "autogluon": {"0.3": ["cpu", "gpu"], "0.4": ["cpu", "gpu"]},
     }
 
     if processor in allow_openssl_cve_2021_3711_fw_versions.get(framework, {}).get(short_fw_version, []):
@@ -483,42 +493,26 @@ def _run_dependency_check_test(image, ec2_connection):
 
 @pytest.mark.usefixtures("sagemaker", "huggingface")
 @pytest.mark.model("N/A")
-@pytest.mark.canary("Run dependency tests regularly on production images")
 @pytest.mark.parametrize("ec2_instance_type", ["c5.4xlarge"], indirect=True)
-@pytest.mark.skipif(
-    (is_canary_context() and not is_time_for_canary_safety_scan()),
-    reason="Executing test in canaries pipeline during only a limited period of time.",
-)
 def test_dependency_check_cpu(cpu, ec2_connection, cpu_only, x86_compatible_only):
     _run_dependency_check_test(cpu, ec2_connection)
 
 
 @pytest.mark.usefixtures("sagemaker", "huggingface")
 @pytest.mark.model("N/A")
-@pytest.mark.canary("Run dependency tests regularly on production images")
 @pytest.mark.parametrize("ec2_instance_type", ["p3.2xlarge"], indirect=True)
-@pytest.mark.skipif(
-    (is_canary_context() and not is_time_for_canary_safety_scan()),
-    reason="Executing test in canaries pipeline during only a limited period of time.",
-)
 def test_dependency_check_gpu(gpu, ec2_connection, gpu_only):
     _run_dependency_check_test(gpu, ec2_connection)
 
 
 @pytest.mark.usefixtures("sagemaker")
 @pytest.mark.model("N/A")
-@pytest.mark.canary("Run dependency tests regularly on production images")
 @pytest.mark.parametrize("ec2_instance_type", ["c5.4xlarge"], indirect=True)
-@pytest.mark.skipif(
-    (is_canary_context() and not is_time_for_canary_safety_scan()),
-    reason="Executing test in canaries pipeline during only a limited period of time.",
-)
 def test_dependency_check_eia(eia, ec2_connection):
     _run_dependency_check_test(eia, ec2_connection)
 
 
 @pytest.mark.model("N/A")
-@pytest.mark.canary("Run dependency tests regularly on production images")
 @pytest.mark.parametrize("ec2_instance_type", ["dl1.24xlarge"], indirect=True)
 @pytest.mark.parametrize("ec2_instance_ami", [UBUNTU_18_HPU_DLAMI_US_WEST_2], indirect=True)
 def test_dependency_check_hpu(hpu, ec2_connection):
@@ -527,25 +521,15 @@ def test_dependency_check_hpu(hpu, ec2_connection):
 
 @pytest.mark.usefixtures("sagemaker", "huggingface")
 @pytest.mark.model("N/A")
-@pytest.mark.canary("Run dependency tests regularly on production images")
 @pytest.mark.parametrize("ec2_instance_type", ["inf1.xlarge"], indirect=True)
-@pytest.mark.skipif(
-    (is_canary_context() and not is_time_for_canary_safety_scan()),
-    reason="Executing test in canaries pipeline during only a limited period of time.",
-)
 def test_dependency_check_neuron(neuron, ec2_connection):
     _run_dependency_check_test(neuron, ec2_connection)
 
 
 @pytest.mark.usefixtures("sagemaker")
 @pytest.mark.model("N/A")
-@pytest.mark.canary("Run dependency tests regularly on production images")
 @pytest.mark.parametrize("ec2_instance_type", ["c6g.4xlarge"], indirect=True)
 @pytest.mark.parametrize("ec2_instance_ami", [UL18_CPU_ARM64_US_WEST_2], indirect=True)
-@pytest.mark.skipif(
-    (is_canary_context() and not is_time_for_canary_safety_scan()),
-    reason="Executing test in canaries pipeline during only a limited period of time.",
-)
 def test_dependency_check_graviton_cpu(cpu, ec2_connection, graviton_compatible_only):
     _run_dependency_check_test(cpu, ec2_connection)
 

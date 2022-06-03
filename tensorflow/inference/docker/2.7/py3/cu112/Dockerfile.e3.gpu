@@ -11,6 +11,7 @@ ARG PYTHON_VERSION=3.8.9
 ARG TFS_SHORT_VERSION=2.7
 ARG TFS_URL=https://framework-binaries.s3.us-west-2.amazonaws.com/tensorflow_serving/r2.7_aws/gpu/tensorflow_model_server
 
+ENV NVIDIA_REQUIRE_CUDA="cuda>=11.2 brand=tesla,driver>=418,driver<419 brand=tesla,driver>=440,driver<441 driver>=450"
 ENV NCCL_VERSION=2.8.4-1+cuda11.2
 ENV CUDNN_VERSION=8.1.0.77-1+cuda11.2
 
