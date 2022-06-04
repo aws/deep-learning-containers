@@ -6225,7 +6225,7 @@
             "attributes": [
                 {
                     "key": "package_version",
-                    "value": "1.0.2g-1ubuntu4.20"
+                    "value": "1.0.2g-1ubuntu4.18"
                 },
                 {
                     "key": "package_name",
@@ -6292,7 +6292,7 @@
             "attributes": [
                 {
                     "key": "package_version",
-                    "value": "1.0.2g-1ubuntu4.18"
+                    "value": "1.0.2g-1ubuntu4.20"
                 },
                 {
                     "key": "package_name",
@@ -7323,13 +7323,11 @@
                     "value": "6.8"
                 }
             ],
-            "description": "vim is vulnerable to Heap-based Buffer Overflow",
-            "name": "CVE-2022-0213",
+            "description": "Use of Out-of-range Pointer Offset in GitHub repository vim/vim prior to 8.2.",
+            "name": "CVE-2022-0554",
             "scraped_data": [
                 {
-                    "notes": [
-                        "in bionic and earlier vulnerable code is in src/screen.c\ninstead of src/drawscreen.c"
-                    ],
+                    "notes": [],
                     "status_table": {
                         "packages": [
                             "vim",
@@ -7360,18 +7358,18 @@
                             ],
                             [
                                 "upstream",
-                                "Released (8.2.4074)"
+                                "Released (8.2.4327)"
                             ],
                             [
                                 "xenial",
-                                "Released (2:7.4.1689-3ubuntu1.5+esm5)"
+                                "Needed"
                             ]
                         ]
                     }
                 }
             ],
             "severity": "MEDIUM",
-            "uri": "http://people.ubuntu.com/~ubuntu-security/cve/CVE-2022-0213"
+            "uri": "http://people.ubuntu.com/~ubuntu-security/cve/CVE-2022-0554"
         },
         {
             "attributes": [
@@ -7385,20 +7383,18 @@
                 },
                 {
                     "key": "CVSS2_VECTOR",
-                    "value": "AV:N/AC:L/Au:N/C:P/I:P/A:P"
+                    "value": "AV:N/AC:L/Au:N/C:N/I:N/A:P"
                 },
                 {
                     "key": "CVSS2_SCORE",
-                    "value": "7.5"
+                    "value": "5"
                 }
             ],
-            "description": "Use after free in utf_ptr2char in GitHub repository vim/vim prior to 8.2.4646.",
-            "name": "CVE-2022-1154",
+            "description": "NULL Pointer Dereference in function vim_regexec_string at regexp.c:2729 in GitHub repository vim/vim prior to 8.2.4901. NULL Pointer Dereference in function vim_regexec_string at regexp.c:2729 allows attackers to cause a denial of service (application crash) via a crafted input.",
+            "name": "CVE-2022-1620",
             "scraped_data": [
                 {
-                    "notes": [
-                        "in bionic and earlier, vulnerable function is in file src/regexp.c\ninstead of file src/regexp_bt.c."
-                    ],
+                    "notes": [],
                     "status_table": {
                         "packages": [
                             "vim",
@@ -7429,18 +7425,18 @@
                             ],
                             [
                                 "upstream",
-                                "Released (8.2.4646)"
+                                "Released (8.2.4901)"
                             ],
                             [
                                 "xenial",
-                                "Released (2:7.4.1689-3ubuntu1.5+esm4)"
+                                "Needed"
                             ]
                         ]
                     }
                 }
             ],
             "severity": "MEDIUM",
-            "uri": "http://people.ubuntu.com/~ubuntu-security/cve/CVE-2022-1154"
+            "uri": "http://people.ubuntu.com/~ubuntu-security/cve/CVE-2022-1620"
         }
     ]
 }
