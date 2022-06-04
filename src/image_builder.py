@@ -170,25 +170,25 @@ def image_builder(buildspec):
         if cx_type == "sagemaker":
             # Adding standard labels to all images
             labels[
-                f"com.amazonaws.ml.engines.sagemaker.dlc.{cx_type}.framework.{label_framework}.{label_framework_version}"
+                f"com.amazonaws.ml.engines.{cx_type}.dlc.framework.{label_framework}.{label_framework_version}"
             ] = "true"
             labels[
-                f"com.amazonaws.ml.engines.sagemaker.dlc.{cx_type}.device.{label_device_type}"
+                f"com.amazonaws.ml.engines.{cx_type}.dlc.device.{label_device_type}"
             ] = "true"
-            labels[f"com.amazonaws.ml.engines.sagemaker.dlc.{cx_type}.arch.{label_arch}"] = "true"
+            labels[f"com.amazonaws.ml.engines.{cx_type}.dlc.arch.{label_arch}"] = "true"
             # python version label will look like py_version.py36, for example
             labels[
-                f"com.amazonaws.ml.engines.sagemaker.dlc.{cx_type}.python.{label_python_version}"
+                f"com.amazonaws.ml.engines.{cx_type}.dlc.python.{label_python_version}"
             ] = "true"
-            labels[f"com.amazonaws.ml.engines.sagemaker.dlc.{cx_type}.os.{label_os_version}"] = "true"
+            labels[f"com.amazonaws.ml.engines.{cx_type}.dlc.os.{label_os_version}"] = "true"
 
-            labels[f"com.amazonaws.ml.engines.sagemaker.dlc.{cx_type}.job.{label_job_type}"] = "true"
+            labels[f"com.amazonaws.ml.engines.{cx_type}.dlc.job.{label_job_type}"] = "true"
 
             if label_contributor:
-                labels[f"com.amazonaws.ml.engines.sagemaker.dlc.{cx_type}.contributor.{label_contributor}"] = "true"
+                labels[f"com.amazonaws.ml.engines.{cx_type}.dlc.contributor.{label_contributor}"] = "true"
             if transformers_version:
                 labels[
-                    f"com.amazonaws.ml.engines.sagemaker.dlc.{cx_type}.lib.transformers.{label_transformers_version}"
+                    f"com.amazonaws.ml.engines.{cx_type}.dlc.lib.transformers.{label_transformers_version}"
                 ] = "true"
 
         """
