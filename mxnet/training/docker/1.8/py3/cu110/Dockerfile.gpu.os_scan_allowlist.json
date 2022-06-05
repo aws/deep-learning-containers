@@ -1060,7 +1060,7 @@
             "attributes": [
                 {
                     "key": "package_version",
-                    "value": "1.18.4ubuntu1.7"
+                    "value": "1.18.4ubuntu1.6"
                 },
                 {
                     "key": "package_name",
@@ -1119,7 +1119,7 @@
             "attributes": [
                 {
                     "key": "package_version",
-                    "value": "1.18.4ubuntu1.6"
+                    "value": "1.18.4ubuntu1.7"
                 },
                 {
                     "key": "package_name",
@@ -2646,7 +2646,7 @@
             "attributes": [
                 {
                     "key": "package_version",
-                    "value": "2.23-0ubuntu11.2"
+                    "value": "2.23-0ubuntu11.3"
                 },
                 {
                     "key": "package_name",
@@ -2705,7 +2705,7 @@
             "attributes": [
                 {
                     "key": "package_version",
-                    "value": "2.23-0ubuntu11.3"
+                    "value": "2.23-0ubuntu11.2"
                 },
                 {
                     "key": "package_name",
@@ -5945,7 +5945,7 @@
             "attributes": [
                 {
                     "key": "package_version",
-                    "value": "1.0.2g-1ubuntu4.20"
+                    "value": "1.0.2g-1ubuntu4.18"
                 },
                 {
                     "key": "package_name",
@@ -6018,7 +6018,7 @@
             "attributes": [
                 {
                     "key": "package_version",
-                    "value": "1.0.2g-1ubuntu4.18"
+                    "value": "1.0.2g-1ubuntu4.20"
                 },
                 {
                     "key": "package_name",
@@ -6225,7 +6225,7 @@
             "attributes": [
                 {
                     "key": "package_version",
-                    "value": "1.0.2g-1ubuntu4.20"
+                    "value": "1.0.2g-1ubuntu4.18"
                 },
                 {
                     "key": "package_name",
@@ -6292,7 +6292,7 @@
             "attributes": [
                 {
                     "key": "package_version",
-                    "value": "1.0.2g-1ubuntu4.18"
+                    "value": "1.0.2g-1ubuntu4.20"
                 },
                 {
                     "key": "package_name",
@@ -7323,11 +7323,13 @@
                     "value": "6.8"
                 }
             ],
-            "description": "vim is vulnerable to Use After Free",
-            "name": "CVE-2021-4069",
+            "description": "vim is vulnerable to Heap-based Buffer Overflow",
+            "name": "CVE-2021-3984",
             "scraped_data": [
                 {
-                    "notes": [],
+                    "notes": [
+                        "for bionic and earlier, the vulnerable function in src/cindent.c\nis in src/misc1.c."
+                    ],
                     "status_table": {
                         "packages": [
                             "vim",
@@ -7362,7 +7364,7 @@
                             ],
                             [
                                 "upstream",
-                                "Released (v8.2.3761)"
+                                "Released (v8.2.3625)"
                             ],
                             [
                                 "xenial",
@@ -7373,7 +7375,7 @@
                 }
             ],
             "severity": "MEDIUM",
-            "uri": "http://people.ubuntu.com/~ubuntu-security/cve/CVE-2021-4069"
+            "uri": "http://people.ubuntu.com/~ubuntu-security/cve/CVE-2021-3984"
         },
         {
             "attributes": [
@@ -7394,11 +7396,13 @@
                     "value": "6.8"
                 }
             ],
-            "description": "Heap-based Buffer Overflow in GitHub repository vim/vim prior to 8.2.",
-            "name": "CVE-2022-0359",
+            "description": "vim is vulnerable to Heap-based Buffer Overflow",
+            "name": "CVE-2022-0213",
             "scraped_data": [
                 {
-                    "notes": [],
+                    "notes": [
+                        "in bionic and earlier vulnerable code is in src/screen.c\ninstead of src/drawscreen.c"
+                    ],
                     "status_table": {
                         "packages": [
                             "vim",
@@ -7429,7 +7433,7 @@
                             ],
                             [
                                 "upstream",
-                                "Released (8.2.4214)"
+                                "Released (8.2.4074)"
                             ],
                             [
                                 "xenial",
@@ -7440,7 +7444,7 @@
                 }
             ],
             "severity": "MEDIUM",
-            "uri": "http://people.ubuntu.com/~ubuntu-security/cve/CVE-2022-0359"
+            "uri": "http://people.ubuntu.com/~ubuntu-security/cve/CVE-2022-0213"
         }
     ]
 }
