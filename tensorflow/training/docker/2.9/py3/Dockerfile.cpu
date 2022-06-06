@@ -156,8 +156,6 @@ RUN chmod +x /usr/local/bin/deep_learning_container.py
 
 RUN curl https://aws-dlc-licenses.s3.amazonaws.com/tensorflow-${TF_VERSION}/license.txt -o /license.txt
 
-ARG TF_URL=https://framework-binaries.s3.us-west-2.amazonaws.com/tensorflow/r2.9_aws/cpu/2022-05-23-23-00/tensorflow_cpu-2.9.1-cp39-cp39-manylinux_2_17_x86_64.manylinux2014_x86_64.whl
-
 ##############################################################################
 #  _____ _____   ___                              ____           _
 # | ____|___ /  |_ _|_ __ ___   __ _  __ _  ___  |  _ \ ___  ___(_)_ __   ___
@@ -168,6 +166,8 @@ ARG TF_URL=https://framework-binaries.s3.us-west-2.amazonaws.com/tensorflow/r2.9
 ##############################################################################
 
 FROM common AS e3
+
+ARG TF_URL=https://framework-binaries.s3.us-west-2.amazonaws.com/tensorflow/r2.9_aws/cpu/2022-05-23-23-00/tensorflow_cpu-2.9.1-cp39-cp39-manylinux_2_17_x86_64.manylinux2014_x86_64.whl
 
 RUN ${PIP} install --no-cache-dir -U \
     ${TF_URL} \
@@ -225,6 +225,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && apt-get install -y -qq libsasl2-dev libsasl2-modules \
     && apt-get install -y -qq krb5-user \
 && rm -rf /var/lib/apt/lists/*
+
+ARG TF_URL=https://framework-binaries.s3.us-west-2.amazonaws.com/tensorflow/r2.9_aws/cpu/2022-05-23-23-00/tensorflow_cpu-2.9.1-cp39-cp39-manylinux_2_17_x86_64.manylinux2014_x86_64.whl
 
 # https://github.com/tensorflow/models/issues/9267
 # tf-models does not respect existing installations of TF and always installs open source TF
