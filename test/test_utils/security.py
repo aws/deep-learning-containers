@@ -309,6 +309,25 @@ def get_new_image_uri_for_uploading_upgraded_image_to_ecr(image):
     return new_image_uri
 
 
+def attach_gpg_key_rotation_fix_if_applicable(image, apt_command):
+    """
+    Checks if a released image is affected by GPG key rotation issue. This function
+    will soon become redundant when new PT1.11 e3 images are released.
+    
+    :param image: str
+    :param apt_command: str, the apt update and upgrade command
+    :return: str, the apt_command prepended with nvidia_gpg_command fix for applicable containers
+    """
+    nvidia_gpg_command = (
+        "apt-key adv --fetch-keys https://developer.download.nvidia.com/compute/cuda/repos/ubuntu1804/x86_64/3bf863cc.pub &&"
+        "apt-key adv --fetch-keys https://developer.download.nvidia.com/compute/machine-learning/repos/ubuntu1804/x86_64/7fa2af80.pub"
+    )
+    framework, version = get_framework_and_version_from_tag(image_uri=image)
+    if framework == "pytorch" and Version(version) == Version("1.11") and is_e3_image(image_uri=image):
+        return f"{nvidia_gpg_command} && {apt_command}"
+    return apt_command
+
+
 def run_upgrade_on_image_and_push(image, new_image_uri):
     """
     Creates a container for the image being tested. Runs apt update and upgrade on the container
@@ -322,13 +341,7 @@ def run_upgrade_on_image_and_push(image, new_image_uri):
     docker_run_cmd = f"docker run -id --entrypoint='/bin/bash' {image}"
     container_id = ctx.run(f"{docker_run_cmd}", hide=True).stdout.strip()
     apt_command = "apt-get update && apt-get upgrade -y"
-    # nvidia_gpg_command = (
-    #     "apt-key adv --fetch-keys https://developer.download.nvidia.com/compute/cuda/repos/ubuntu1804/x86_64/3bf863cc.pub &&"
-    #     "apt-key adv --fetch-keys https://developer.download.nvidia.com/compute/machine-learning/repos/ubuntu1804/x86_64/7fa2af80.pub"
-    # )
-    # framework, version = get_framework_and_version_from_tag(image_uri=image)
-    # if framework == "pytorch" and Version(version) == Version("1.11"):
-    #     apt_command = f"{nvidia_gpg_command} && {apt_command}"
+    apt_command = attach_gpg_key_rotation_fix_if_applicable(image, apt_command)
     docker_exec_cmd = f"docker exec -i {container_id}"
     attempt_count = 0
     apt_ran_successfully_flag = False
