@@ -1,1 +1,1 @@
-sm-gpu
+sm
