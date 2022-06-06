@@ -254,9 +254,9 @@ RUN $PYTHON -m pip install --no-cache-dir -U \
     "shap>=0.39,<1"
 
 RUN $PYTHON -m pip install --no-cache-dir -U \
-    "sagemaker>=2,<3" \
+    "sagemaker>=2.93.0,<3" \
     sagemaker-experiments==0.* \
-    "sagemaker-tensorflow-training>=20" \
+    "sagemaker-tensorflow-training>=20.3.1" \
     "sagemaker-studio-analytics-extension==0.0.2" \
     "sparkmagic<1" \
     "sagemaker-studio-sparkmagic-lib<1" \
