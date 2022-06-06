@@ -1610,8 +1610,47 @@ def get_contributor_from_image_uri(image_uri):
     @param image_uri: ECR image uri
     @return: contributor name, or ""
     """
-    if "huggingface" in image_uri:
-        return "huggingface"
-    if "habana" in image_uri:
-        return "habana"
+    # Key value pair of contributor_identifier_in_iamge_uri: contributor_name
+    contributors = {
+        "huggingface": "huggingface",
+        "habana": "habana"
+    }
+    for contributor_identifier_in_image_uri, contributor_name in contributors.items():
+        if contributor_identifier_in_image_uri in image_uri:
+            return contributor_name
     return ""
+
+
+def get_labels_from_ecr_image(image_uri, region):
+    """
+    Get ecr image labels from ECR
+
+    @param image_uri: ECR image URI to get labels from
+    @param region: AWS region
+    @return: list of labels attached to ECR image URI
+    """
+    ecr_client = boto3.client("ecr", region_name=region)
+
+    image_repository, image_tag = get_repository_and_tag_from_image_uri(image_uri)
+    # Using "acceptedMediaTypes" on the batch_get_image request allows the returned image information to
+    # provide the ECR Image Manifest in the specific format that we need, so that the image LABELS can be found
+    # on the manifest. The default format does not return the image LABELs.
+    response = ecr_client.batch_get_image(
+        repositoryName=image_repository,
+        imageIds=[{"imageTag": image_tag}],
+        acceptedMediaTypes=["application/vnd.docker.distribution.manifest.v1+json"],
+    )
+    if not response.get("images"):
+        raise KeyError(
+            f"Failed to get images through ecr_client.batch_get_image response for image {image_repository}:{image_tag}"
+        )
+    elif not response["images"][0].get("imageManifest"):
+        raise KeyError(f"imageManifest not found in ecr_client.batch_get_image response:\n{response['images']}")
+
+    manifest_str = response["images"][0]["imageManifest"]
+    # manifest_str is a json-format string
+    manifest = json.loads(manifest_str)
+    image_metadata = json.loads(manifest["history"][0]["v1Compatibility"])
+    labels = image_metadata["config"]["Labels"]
+
+    return labels

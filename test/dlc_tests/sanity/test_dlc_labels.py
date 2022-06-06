@@ -1,8 +1,6 @@
-import json
 import os
 import re
 
-import boto3
 import pytest
 
 from test import test_utils
@@ -21,7 +19,7 @@ def test_dlc_major_version_label(image, region):
     :param region: <str> region where ECR repository holding the image resides
     :return:
     """
-    labels = _get_labels_from_ecr(image, region)
+    labels = test_utils.get_labels_from_ecr_image(image, region)
     major_version = labels.get("dlc_major_version", None)
 
     assert major_version, f"{image} has no LABEL named 'dlc_major_version'. Please insert label."
@@ -29,7 +27,6 @@ def test_dlc_major_version_label(image, region):
     test_utils.LOGGER.info(f"{image} has 'dlc_major_version' = {major_version}")
 
 
-# TODO: Apply to all images when labels are decided upon
 @pytest.mark.usefixtures("sagemaker")
 @pytest.mark.integration("dlc_labels")
 @pytest.mark.model("N/A")
@@ -73,18 +70,33 @@ def test_dlc_standard_labels(image, region):
             f"com.amazonaws.ml.engines.{customer_type_label_prefix}.dlc.lib.transformers.{transformers_version}"
         )
 
-    actual_labels = _get_labels_from_ecr(image, region)
+    actual_labels = test_utils.get_labels_from_ecr_image(image, region)
+
+    missing_labels = []
 
     for label in expected_labels:
-        assert label in actual_labels, \
-            f"Label {label} is expected in image {image}, but cannot be found. All labels on image: {actual_labels}"
+        if label not in actual_labels:
+            missing_labels.append(label)
+
+    # TODO: Remove this when e3 labels are added. For now, ensure they are not added.
+    if customer_type_label_prefix == "e3":
+        assert set(missing_labels) == set(expected_labels), \
+            f"E3 labels are not supported yet, and should not be added to containers. " \
+            f"{set(expected_labels) - set(missing_labels)} should not be present."
+    else:
+        assert not missing_labels, \
+            f"Labels {missing_labels} are expected in image {image}, but cannot be found. " \
+            f"All labels on image: {actual_labels}"
 
 
 @pytest.mark.usefixtures("sagemaker")
 @pytest.mark.integration("dlc_labels")
 @pytest.mark.model("N/A")
-def test_max_10_sagemaker_labels(image, region):
-    actual_labels = _get_labels_from_ecr(image, region)
+def test_max_sagemaker_labels(image, region):
+    # Max ml engines sagemaker labels allowed:
+    max_labels = 10
+
+    actual_labels = test_utils.get_labels_from_ecr_image(image, region)
 
     standard_labels = []
     for label in actual_labels:
@@ -92,8 +104,8 @@ def test_max_10_sagemaker_labels(image, region):
             standard_labels.append(label)
 
     standard_label_count = len(standard_labels)
-    assert standard_label_count <= 10, f"Max of 10 labels are supported. " \
-                                       f"Currently there are {standard_label_count}: {standard_labels}"
+    assert standard_label_count <= max_labels, f"Max of 10 labels are supported. " \
+                                               f"Currently there are {standard_label_count}: {standard_labels}"
 
 
 @pytest.mark.usefixtures("sagemaker")
@@ -221,31 +233,3 @@ class DLCMajorVersionLabelNotFound(Exception):
 
 class DLCPythonVersionNotFound(Exception):
     pass
-
-
-def _get_labels_from_ecr(image_uri, region):
-    ecr_client = boto3.client("ecr", region_name=region)
-
-    image_repository, image_tag = test_utils.get_repository_and_tag_from_image_uri(image_uri)
-    # Using "acceptedMediaTypes" on the batch_get_image request allows the returned image information to
-    # provide the ECR Image Manifest in the specific format that we need, so that the image LABELS can be found
-    # on the manifest. The default format does not return the image LABELs.
-    response = ecr_client.batch_get_image(
-        repositoryName=image_repository,
-        imageIds=[{"imageTag": image_tag}],
-        acceptedMediaTypes=["application/vnd.docker.distribution.manifest.v1+json"],
-    )
-    if not response.get("images"):
-        raise KeyError(
-            f"Failed to get images through ecr_client.batch_get_image response for image {image_repository}:{image_tag}"
-        )
-    elif not response["images"][0].get("imageManifest"):
-        raise KeyError(f"imageManifest not found in ecr_client.batch_get_image response:\n{response['images']}")
-
-    manifest_str = response["images"][0]["imageManifest"]
-    # manifest_str is a json-format string
-    manifest = json.loads(manifest_str)
-    image_metadata = json.loads(manifest["history"][0]["v1Compatibility"])
-    labels = image_metadata["config"]["Labels"]
-
-    return labels
