@@ -30,11 +30,16 @@ def test_dlc_major_version_label(image, region):
 
 
 # TODO: Apply to all images when labels are decided upon
-@pytest.mark.usefixtures("sagemaker_only")
+@pytest.mark.usefixtures("sagemaker")
 @pytest.mark.integration("dlc_labels")
 @pytest.mark.model("N/A")
 def test_dlc_standard_labels(image, region):
     customer_type_label_prefix = "e3" if test_utils.is_e3_image(image) else "sagemaker"
+    
+    # TODO: Remove skip condition when labels are added for e3 images
+    if customer_type_label_prefix == "e3":
+        pytest.skip("Labels are not currently added to e3 images")
+    
     framework, fw_version = test_utils.get_framework_and_version_from_tag(image)
     framework = framework.replace('_', '-')
     fw_version = fw_version.replace('.', '-')
@@ -75,7 +80,7 @@ def test_dlc_standard_labels(image, region):
             f"Label {label} is expected in image {image}, but cannot be found. All labels on image: {actual_labels}"
 
 
-@pytest.mark.usefixtures("sagemaker_only")
+@pytest.mark.usefixtures("sagemaker")
 @pytest.mark.integration("dlc_labels")
 @pytest.mark.model("N/A")
 def test_max_10_sagemaker_labels(image, region):
