@@ -33,10 +33,6 @@ def test_dlc_major_version_label(image, region):
 def test_dlc_standard_labels(image, region):
     customer_type_label_prefix = "e3" if test_utils.is_e3_image(image) else "sagemaker"
     
-    # TODO: Remove skip condition when labels are added for e3 images
-    if customer_type_label_prefix == "e3":
-        pytest.skip("Labels are not currently added to e3 images")
-    
     framework, fw_version = test_utils.get_framework_and_version_from_tag(image)
     framework = framework.replace('_', '-')
     fw_version = fw_version.replace('.', '-')
