@@ -29,11 +29,20 @@ LOGGER.addHandler(logging.StreamHandler(sys.stderr))
 DEFAULT_REGION = "us-west-2"
 # Constant to represent region where p3dn tests can be run
 P3DN_REGION = "us-east-1"
+def get_ami_id_boto3(region_name, ami_name_pattern):
+    """
+    For a given region and ami name pattern, return the latest ami-id
+    """
+    ami_list = boto3.client("ec2", region_name=region_name).describe_images(
+        Filters=[{"Name": "name", "Values": [ami_name_pattern]}], Owners=['amazon']
+    )
+    ami = max(ami_list["Images"], key=lambda x: x["CreationDate"])
+    return ami['ImageId']
 
-UBUNTU_18_BASE_DLAMI_US_WEST_2 = "ami-075ff764302e6e088"
-UBUNTU_18_BASE_DLAMI_US_EAST_1 = "ami-05837ea3e41f3fde3"
-AML2_GPU_DLAMI_US_WEST_2 = "ami-01bde2929eb37f6ae"
-AML2_GPU_DLAMI_US_EAST_1 = "ami-082ef5337e086ab05"
+UBUNTU_18_BASE_DLAMI_US_WEST_2 = get_ami_id_boto3(region_name="us-west-2", ami_name_pattern="Deep Learning AMI GPU CUDA 11.1.1 (Ubuntu 18.04) ????????")
+UBUNTU_18_BASE_DLAMI_US_EAST_1 = "ami-044971d381e6a1109"
+AML2_GPU_DLAMI_US_WEST_2 = "ami-071cb1e434903a577"
+AML2_GPU_DLAMI_US_EAST_1 = "ami-044264d246686b043"
 AML2_CPU_ARM64_US_WEST_2 = "ami-0bccd90b9db95e2e5"
 UL18_CPU_ARM64_US_WEST_2 = "ami-00bccef9d47441ac9"
 UL18_BENCHMARK_CPU_ARM64_US_WEST_2 = "ami-0ababa2deb802b069"
