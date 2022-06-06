@@ -152,15 +152,16 @@ AutoGluon Training Containers
 
 | Framework       | AutoGluon Version | Job Type | CPU/GPU | Python Version Options | Example URL                                                                                      |
 |-----------------|-------------------|----------|---------|------------------------|--------------------------------------------------------------------------------------------------|
-| AutoGluon 0.4.0 | 0.4.0             | training | GPU     | 3.8 (py38)             | 763104351884.dkr.ecr.us-east-1.amazonaws.com/autogluon-training:0.4.0-gpu-py38-cu112-ubuntu20.04 |
-| AutoGluon 0.4.0 | 0.4.0             | training | CPU     | 3.8 (py38)             | 763104351884.dkr.ecr.us-east-1.amazonaws.com/autogluon-training:0.4.0-cpu-py38-ubuntu20.04       |
+| AutoGluon 0.4.2 | 0.4.2             | training | GPU     | 3.8 (py38)             | 763104351884.dkr.ecr.us-east-1.amazonaws.com/autogluon-training:0.4.2-gpu-py38-cu112-ubuntu20.04 |
+| AutoGluon 0.4.2 | 0.4.2             | training | CPU     | 3.8 (py38)             | 763104351884.dkr.ecr.us-east-1.amazonaws.com/autogluon-training:0.4.2-cpu-py38-ubuntu20.04       |
 
 AutoGluon Inference Containers
 ===============================
 
-| Framework       | AutoGluon Version | Job Type  | CPU/GPU | Python Version Options | Example URL                                                                                 |
-|-----------------|-------------------|-----------|---------|------------------------|---------------------------------------------------------------------------------------------|
-| AutoGluon 0.4.0 | 0.4.0             | inference | CPU     | 3.8 (py38)             | 763104351884.dkr.ecr.us-east-1.amazonaws.com/autogluon-inference:0.4.0-cpu-py38-ubuntu20.04 |
+| Framework       | AutoGluon Version | Job Type  | CPU/GPU | Python Version Options | Example URL                                                                                       |
+|-----------------|-------------------|-----------|---------|------------------------|---------------------------------------------------------------------------------------------------|
+| AutoGluon 0.4.2 | 0.4.2             | inference | GPU     | 3.8 (py38)             | 763104351884.dkr.ecr.us-east-1.amazonaws.com/autogluon-inference:0.4.2-gpu-py38-cu112-ubuntu20.04 |
+| AutoGluon 0.4.2 | 0.4.2             | inference | CPU     | 3.8 (py38)             | 763104351884.dkr.ecr.us-east-1.amazonaws.com/autogluon-inference:0.4.2-cpu-py38-ubuntu20.04       |
 
 HuggingFace Training Containers
 ===============================
@@ -355,6 +356,9 @@ Prior AutoGluon Container Versions
 
 | Framework       | AutoGluon Version | Job Type  | CPU/GPU | Python Version Options  | Example URL                                                                                      |
 |-----------------|-------------------|-----------|---------|-------------------------|--------------------------------------------------------------------------------------------------|
+| AutoGluon 0.4.0 | 0.4.0             | training  | GPU     | 3.8 (py38)              | 763104351884.dkr.ecr.us-east-1.amazonaws.com/autogluon-training:0.4.0-gpu-py38-cu112-ubuntu20.04 |
+| AutoGluon 0.4.0 | 0.4.0             | training  | CPU     | 3.8 (py38)              | 763104351884.dkr.ecr.us-east-1.amazonaws.com/autogluon-training:0.4.0-cpu-py38-ubuntu20.04       |
+| AutoGluon 0.4.0 | 0.4.0             | inference | CPU     | 3.8 (py38)              | 763104351884.dkr.ecr.us-east-1.amazonaws.com/autogluon-inference:0.4.0-cpu-py38-ubuntu20.04      |
 | AutoGluon 0.3.2 | 0.3.1             | training  | GPU     | 3.8 (py38)              | 763104351884.dkr.ecr.us-east-1.amazonaws.com/autogluon-training:0.3.2-gpu-py38-cu112-ubuntu18.04 |
 | AutoGluon 0.3.2 | 0.3.1             | training  | CPU     | 3.8 (py38)              | 763104351884.dkr.ecr.us-east-1.amazonaws.com/autogluon-training:0.3.2-cpu-py38-ubuntu18.04       |
 | AutoGluon 0.3.2 | 0.3.1             | inference | CPU     | 3.8 (py38)              | 763104351884.dkr.ecr.us-east-1.amazonaws.com/autogluon-inference:0.3.2-cpu-py38-ubuntu20.04      |
