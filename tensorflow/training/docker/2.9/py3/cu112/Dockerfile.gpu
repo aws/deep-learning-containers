@@ -1,7 +1,10 @@
-FROM nvidia/cuda:11.2.1-base-ubuntu20.04
+FROM nvidia/cuda:11.2.2-base-ubuntu20.04 AS common
 
 LABEL maintainer="Amazon AI"
 LABEL dlc_major_version="1"
+
+# TensorFlow major.minor version 
+ENV TF_VERSION=2.9
 
 # prevent stopping by user interaction
 ENV DEBIAN_FRONTEND noninteractive
@@ -21,22 +24,26 @@ ENV KMP_BLOCKTIME=1
 ENV KMP_SETTINGS=0
 ENV RDMAV_FORK_SAFE=1
 
-ARG PYTHON=python3.8
-ARG PYTHON_PIP=python3-pip
+ARG PYTHON=python3.9
 ARG PIP=pip3
-ARG PYTHON_VERSION=3.8.2
+ARG PYTHON_VERSION=3.9.10
+
 ARG OPEN_MPI_PATH=/opt/amazon/openmpi
 ARG EFA_PATH=/opt/amazon/efa
 ARG EFA_VERSION=1.12.1
 ARG OMPI_VERSION=4.1.1
 ARG BRANCH_OFI=1.1.3-aws
 
-ARG TF_URL=https://framework-binaries.s3.us-west-2.amazonaws.com/tensorflow/smdebugger/r2.7_aws/gpu/2022-02-04-00-14/tensorflow_gpu-2.7.1-cp38-cp38-manylinux_2_12_x86_64.manylinux2010_x86_64.whl
-
 ARG CUDA=11.2
 ARG CUDA_DASH=11-2
-ARG CUDNN=8.1.0.77-1
-ARG NCCL_VERSION=2.8.4
+ARG CUDNN=8.2.4.15-1
+
+ARG NCCL_VERSION=2.10.3
+
+# To be passed to e3 and sagemaker stages
+ENV PYTHON=${PYTHON}
+ENV PYTHON_VERSION=${PYTHON_VERSION}
+ENV PIP=${PIP}
 
 RUN apt-get update && apt-get install -y --no-install-recommends --allow-unauthenticated --allow-downgrades  --allow-change-held-packages \
    ca-certificates \
@@ -48,8 +55,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends --allow-unauthe
    libcusparse-dev-${CUDA_DASH} \
    curl \
    emacs \
-   libcudnn8=${CUDNN}+cuda${CUDA} \
-   # TensorFlow doesn't require libnccl anymore but Open MPI still depends on it
+   libcudnn8=${CUDNN}+cuda11.4 \
    libgomp1 \
    libfreetype6-dev \
    libhdf5-serial-dev \
@@ -69,8 +75,6 @@ RUN apt-get update && apt-get install -y --no-install-recommends --allow-unauthe
    openssh-client \
    openssh-server \
    zlib1g-dev \
-   # remove libsasl2-2 after Nvidia docker upstream fix CVE-2022-24407
-   libsasl2-2 \
    # Install dependent library for OpenCV
    libgtk2.0-dev \
    jq \
@@ -168,6 +172,7 @@ RUN apt-get update \
    ffmpeg \
    libsm6 \
    libxext6 \
+   # remove libsasl2-2 after Nvidia docker upstream fix CVE-2022-24407
    && rm -rf /var/lib/apt/lists/* \
    && apt-get clean
 
@@ -177,7 +182,9 @@ RUN wget https://www.python.org/ftp/python/$PYTHON_VERSION/Python-$PYTHON_VERSIO
    && ./configure --enable-shared \
    && make -j $(nproc) \
    && make install \
-   && rm -rf ../Python-$PYTHON_VERSION*
+   && rm -rf ../Python-$PYTHON_VERSION* \
+   # Starting from Python39, a xxx.pem file will be generated under /tmp folder during installation. Remove it to complete cleanup after installation from python source.
+   && rm /tmp/*.pem
 
 RUN ${PIP} --no-cache-dir install --upgrade \
    pip \
@@ -192,24 +199,18 @@ RUN ln -s $(which ${PYTHON}) /usr/local/bin/python \
 RUN ${PIP} install --no-cache-dir -U \
    pybind11 \
    cmake==3.18.2.post1 \
-   scipy==1.7.0 \
-   "Pillow>=9.0,<10.0" \
+   scipy==1.8.0 \
+   "Pillow>=9.0.0<9.1.0" \
    python-dateutil==2.8.1 \
    "pyYAML>=5.4,<5.5" \
-   requests \
+   requests==2.27.1 \
    "awscli<2" \
-   mpi4py==3.0.3 \
-   # Let's install TensorFlow separately in the end to avoid
-   # the library version to be overwritten
- && ${PIP} install --no-cache-dir -U \
-   ${TF_URL} \
-   tensorflow-io==0.23.1 \
-   tensorflow-datasets==4.5.2 \
-   h5py==3.1.0 \
+   mpi4py==3.1.3 \
+   h5py==3.6.0 \
    "absl-py>=0.9,<0.11" \
    "opencv-python>=4.3,<5" \
    "werkzeug>=2.0.2,<3" \
-   'protobuf>=3.20,<3.21'
+   "urllib3>1.26.0<1.27.0"
 
 # Install AWS OFI NCCL plug-in
 RUN apt-get update && apt-get install -y autoconf
@@ -226,13 +227,13 @@ RUN mkdir /tmp/efa-ofi-nccl \
   && make install \
   && rm -rf /tmp/efa-ofi-nccl
 
+# Upgrade libsasl2-2 for fixing cyrus-sasl2 related CVE
+RUN apt-get install -y --only-upgrade libsasl2-2
+
 RUN apt-get update && apt-get -y install  protobuf-compiler
 
-# Install Horovod, temporarily using CUDA stubs
-RUN ldconfig /usr/local/cuda-11.2/targets/x86_64-linux/lib/stubs \
- && HOROVOD_GPU_ALLREDUCE=NCCL HOROVOD_WITH_TENSORFLOW=1 HOROVOD_WITHOUT_MXNET=1 HOROVOD_WITHOUT_PYTORCH=1 \
- ${PIP} install --no-cache-dir horovod==0.23.0 \
- && ldconfig
+# Upgrade libsasl2-2 for fixing cyrus-sasl2 related CVE
+RUN apt-get install -y --only-upgrade libsasl2-2
 
 # Allow OpenSSH to talk to containers without asking for confirmation
 RUN cat /etc/ssh/ssh_config | grep -v StrictHostKeyChecking > /etc/ssh/ssh_config.new \
@@ -242,11 +243,34 @@ RUN cat /etc/ssh/ssh_config | grep -v StrictHostKeyChecking > /etc/ssh/ssh_confi
 # Add NGC vars
 ENV TF_AUTOTUNE_THRESHOLD=2
 
-ENV LD_LIBRARY_PATH="/usr/local/lib/python3.8/site-packages/smdistributed/dataparallel/lib:$LD_LIBRARY_PATH"
-
 ADD https://raw.githubusercontent.com/aws/deep-learning-containers/master/src/deep_learning_container.py /usr/local/bin/deep_learning_container.py
 
 RUN chmod +x /usr/local/bin/deep_learning_container.py
+
+RUN curl https://aws-dlc-licenses.s3.amazonaws.com/tensorflow-${TF_VERSION}/license.txt -o /license.txt
+
+##############################################################################
+#  _____ _____   ___                              ____           _
+# | ____|___ /  |_ _|_ __ ___   __ _  __ _  ___  |  _ \ ___  ___(_)_ __   ___
+# |  _|   |_ \   | || '_ ` _ \ / _` |/ _` |/ _ \ | |_) / _ \/ __| | '_ \ / _ \
+# | |___ ___) |  | || | | | | | (_| | (_| |  __/ |  _ <  __/ (__| | |_) |  __/
+# |_____|____/  |___|_| |_| |_|\__,_|\__, |\___| |_| \_\___|\___|_| .__/ \___|
+#                                    |___/                        |_|
+##############################################################################
+
+FROM common AS e3
+
+ARG TF_URL=https://framework-binaries.s3.us-west-2.amazonaws.com/tensorflow/r2.9_aws/gpu/2022-05-23-23-14/tensorflow_gpu-2.9.1-cp39-cp39-manylinux_2_17_x86_64.manylinux2014_x86_64.whl
+
+RUN ${PIP} install --no-cache-dir -U \
+   ${TF_URL} \
+   tensorflow-io==0.24.0 \
+   tensorflow-datasets==4.5.2
+
+# Install Horovod, temporarily using CUDA stubs
+RUN ldconfig /usr/local/cuda-11.2/targets/x86_64-linux/lib/stubs \
+ && HOROVOD_GPU_ALLREDUCE=NCCL HOROVOD_WITH_TENSORFLOW=1 ${PIP} install --no-cache-dir horovod==0.24.2 \
+ && ldconfig
 
 RUN HOME_DIR=/root \
    && curl -o ${HOME_DIR}/oss_compliance.zip https://aws-dlinfra-utilities.s3.amazonaws.com/oss_compliance.zip \
@@ -257,6 +281,7 @@ RUN HOME_DIR=/root \
    && ${HOME_DIR}/oss_compliance/generate_oss_compliance.sh ${HOME_DIR} ${PYTHON} \
    && rm -rf ${HOME_DIR}/oss_compliance*
 
-RUN curl https://aws-dlc-licenses.s3.amazonaws.com/tensorflow-2.7/license.txt -o /license.txt
+# remove tmp files
+RUN rm -rf /tmp/*
 
 CMD ["/bin/bash"]

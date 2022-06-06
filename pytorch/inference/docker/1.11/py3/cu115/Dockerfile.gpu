@@ -23,7 +23,7 @@ LABEL dlc_major_version="1"
 
 ARG PYTHON
 ARG PYTHON_VERSION
-ARG MAMBA_VERSION=4.12.0-0
+ARG MAMBA_VERSION=4.12.0-2
 
 # PyTorch Binaries
 ARG PT_INFERENCE_URL
@@ -33,7 +33,7 @@ ARG PT_TORCHDATA_URL
 
 ARG CUBLAS_VERSION=11.7.4.6
 ARG OMPI_VERSION=4.1.1
-ARG TS_VERSION=0.5.3
+ARG TS_VERSION=0.6.0
 
 ARG DEBIAN_FRONTEND=noninteractive
 
@@ -150,7 +150,6 @@ RUN curl -L -o ~/mambaforge.sh https://github.com/conda-forge/miniforge/releases
  && chmod +x ~/mambaforge.sh \
  && ~/mambaforge.sh -b -p /opt/conda \
  && rm ~/mambaforge.sh \
- && /opt/conda/bin/conda update conda \
  && /opt/conda/bin/conda install -c conda-forge \
     python=$PYTHON_VERSION \
     cython \
@@ -165,8 +164,13 @@ RUN curl -L -o ~/mambaforge.sh https://github.com/conda-forge/miniforge/releases
     # Below 2 are included in miniconda base, but not mamba so need to install
     conda-content-trust \
     charset-normalizer \
- && /opt/conda/bin/conda install -c pytorch magma-cuda115=2.6.1 \
- && /opt/conda/bin/conda clean -ya
+ && /opt/conda/bin/conda install -c pytorch magma-cuda115=2.6.1 
+# Upstream conda looks to have moved to 4.13 which is incompatible with mamba 0.22.1 and will fail the conda-forge installs.
+# having "conda update conda" before the "conda -c conda-forge" commands will automatically update conda to 4.13.
+# Moving conda update conda" after the "conda -c conda-forge" commands keep conda at 4.12 but will update other packages using
+# the current conda 4.12
+RUN /opt/conda/bin/conda update -y conda \
+   && /opt/conda/bin/conda clean -ya
 
 # Conda installs links for libtinfo.so.6 and libtinfo.so.6.2 both
 # Which causes "/opt/conda/lib/libtinfo.so.6: no version information available" warning
@@ -198,8 +202,7 @@ RUN pip install --no-cache-dir -U \
 # TODO: revert torchserve-nightly back to torchserve once a compatible stable version is released
 RUN pip uninstall -y model-archiver multi-model-server \
  && pip install captum \
-#  && pip install torchserve==${TS_VERSION} \
- && pip install torchserve-nightly==2022.3.23.post2 \
+ && pip install torchserve==${TS_VERSION} \
  && pip install torch-model-archiver==${TS_VERSION}
 
 WORKDIR /

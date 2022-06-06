@@ -29,23 +29,14 @@ LOGGER.addHandler(logging.StreamHandler(sys.stderr))
 DEFAULT_REGION = "us-west-2"
 # Constant to represent region where p3dn tests can be run
 P3DN_REGION = "us-east-1"
-
 def get_ami_id_boto3(region_name, ami_name_pattern):
     """
     For a given region and ami name pattern, return the latest ami-id
     """
     ami_list = boto3.client("ec2", region_name=region_name).describe_images(
-        Filters=[
-            {
-                "Name": "name",
-                "Values": [ami_name_pattern],
-            },
-        ],
-        Owners=[
-            'amazon',
-        ],
+        Filters=[{"Name": "name", "Values": [ami_name_pattern]}], Owners=['amazon']
     )
-    ami = sorted(ami_list["Images"], key=lambda x: x["CreationDate"], reverse=True)[0]
+    ami = max(ami_list["Images"], key=lambda x: x["CreationDate"])
     return ami['ImageId']
 
 def get_ami_id_ssm(region_name, parameter_path):
@@ -859,6 +850,18 @@ def parse_canary_images(framework, region):
     """
     customer_type = get_customer_type()
     customer_type_tag = f"-{customer_type}" if customer_type else ""
+    
+    # initialize graviton variables
+    use_graviton = False
+
+    # seperating framework from regex match pattern for graviton as it is ARCH_TYPE instead of FRAMEWORK
+    canary_type = framework
+
+    # Setting whether Graviton Arch is used
+    # NOTE: If Graviton arch is used with a framework, not in the list below, the match search will "KeyError".
+    if os.getenv("ARCH_TYPE") == "graviton":
+        use_graviton = True
+        canary_type = "graviton_"+framework
 
     version_regex = {
         "tensorflow": rf"tf(-sagemaker)?{customer_type_tag}-(\d+.\d+)",
@@ -867,8 +870,12 @@ def parse_canary_images(framework, region):
         "huggingface_pytorch": r"hf-\S*pt(-sagemaker)?-(\d+.\d+)",
         "huggingface_tensorflow": r"hf-\S*tf(-sagemaker)?-(\d+.\d+)",
         "autogluon": r"ag(-sagemaker)?-(\d+.\d+)\S*-(py\d+)",
+        "graviton_tensorflow": rf"tf-graviton(-sagemaker)?{customer_type_tag}-(\d+.\d+)\S*-(py\d+)",
+        "graviton_pytorch": rf"pt-graviton(-sagemaker)?{customer_type_tag}-(\d+.\d+)\S*-(py\d+)",
+        "graviton_mxnet": rf"mx-graviton(-sagemaker)?{customer_type_tag}-(\d+.\d+)\S*-(py\d+)",
     }
 
+    # Get tags from repo releases
     repo = git.Repo(os.getcwd(), search_parent_directories=True)
 
     versions_counter = {}
@@ -876,13 +883,14 @@ def parse_canary_images(framework, region):
 
     for tag in repo.tags:
         tag_str = str(tag)
-        match = re.search(version_regex[framework], tag_str)
+        match = re.search(version_regex[canary_type], tag_str)
         ## The tags not have -py3 will not pass th condition below
         ## This eliminates all the old and testing tags that we are not monitoring.
         if match:
             version = match.group(2)
             if not versions_counter.get(version):
                 versions_counter[version] = {"tr": False, "inf": False}
+
             if "tr" not in tag_str and "inf" not in tag_str:
                 versions_counter[version]["tr"] = True
                 versions_counter[version]["inf"] = True
@@ -890,7 +898,7 @@ def parse_canary_images(framework, region):
                 versions_counter[version]["tr"] = True
             elif "inf" in tag_str:
                 versions_counter[version]["inf"] = True
-            
+
             try:
                 python_version_extracted_through_regex = match.group(3)
                 if python_version_extracted_through_regex:
@@ -902,8 +910,8 @@ def parse_canary_images(framework, region):
 
     versions = []
     for v, inf_train in versions_counter.items():
-        # Earlier versions of huggingface did not have inference
-        if (inf_train["inf"] and inf_train["tr"]) or framework.startswith("huggingface"):
+        # Earlier versions of huggingface did not have inference, Graviton is only inference
+        if (inf_train["inf"] and inf_train["tr"]) or framework.startswith("huggingface") or use_graviton:
             versions.append(v)
 
     # Sort ascending to descending, use lambda to ensure 2.2 < 2.15, for instance
@@ -916,7 +924,7 @@ def parse_canary_images(framework, region):
         if fw_version in pre_populated_py_version:
             py_versions = pre_populated_py_version[fw_version]
         else:
-            py_versions = [get_canary_default_tag_py3_version(framework, fw_version)]
+            py_versions = [get_canary_default_tag_py3_version(canary_type, fw_version)]
         for py_version in py_versions:
             images = {
                 "tensorflow": [
@@ -954,13 +962,21 @@ def parse_canary_images(framework, region):
                     f"{registry}.dkr.ecr.{region}.amazonaws.com/autogluon-training:{fw_version}-gpu-{py_version}",
                     f"{registry}.dkr.ecr.{region}.amazonaws.com/autogluon-training:{fw_version}-cpu-{py_version}",
                 ],
+                "graviton_tensorflow": [
+                    f"{registry}.dkr.ecr.{region}.amazonaws.com/tensorflow-inference-graviton:{fw_version}-cpu-{py_version}",
+                ],
+                "graviton_pytorch": [
+                    f"{registry}.dkr.ecr.{region}.amazonaws.com/pytorch-inference-graviton:{fw_version}-cpu-{py_version}",
+                ],
+                # TODO: create graviton_mxnet DLC and add to dictionary 
             }
+
             # E3 Images have an additional "e3" tag to distinguish them from the regular "sagemaker" tag
             if customer_type == "e3":
-                dlc_images += [f"{img}-e3" for img in images[framework]]
+                dlc_images += [f"{img}-e3" for img in images[canary_type]]
             else:
-                dlc_images += images[framework]
-    
+                dlc_images += images[canary_type]
+
     dlc_images.sort()
     return " ".join(dlc_images)
 
