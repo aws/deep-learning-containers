@@ -319,11 +319,16 @@ def attach_gpg_key_rotation_fix_if_applicable(image, apt_command):
     :return: str, the apt_command prepended with nvidia_gpg_command fix for applicable containers
     """
     nvidia_gpg_command = (
-        "apt-key adv --fetch-keys https://developer.download.nvidia.com/compute/cuda/repos/ubuntu1804/x86_64/3bf863cc.pub &&"
-        "apt-key adv --fetch-keys https://developer.download.nvidia.com/compute/machine-learning/repos/ubuntu1804/x86_64/7fa2af80.pub"
+        "apt-key adv --fetch-keys https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2004/x86_64/3bf863cc.pub &&"
+        "apt-key adv --fetch-keys https://developer.download.nvidia.com/compute/machine-learning/repos/ubuntu2004/x86_64/7fa2af80.pub"
     )
     framework, version = get_framework_and_version_from_tag(image_uri=image)
-    if framework == "pytorch" and Version(version) == Version("1.11") and is_e3_image(image_uri=image):
+    if (
+        framework == "pytorch"
+        and Version(version) == Version("1.11")
+        and is_e3_image(image_uri=image)
+        and "gpu" in image
+    ):
         return f"{nvidia_gpg_command} && {apt_command}"
     return apt_command
 
