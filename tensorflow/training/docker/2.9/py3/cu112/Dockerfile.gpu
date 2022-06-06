@@ -250,6 +250,8 @@ RUN chmod +x /usr/local/bin/deep_learning_container.py
 
 RUN curl https://aws-dlc-licenses.s3.amazonaws.com/tensorflow-${TF_VERSION}/license.txt -o /license.txt
 
+ARG TF_URL=https://framework-binaries.s3.us-west-2.amazonaws.com/tensorflow/r2.9_aws/gpu/2022-06-06-22-28/tensorflow_gpu-2.9.1-cp39-cp39-manylinux_2_17_x86_64.manylinux2014_x86_64.whl
+
 ##############################################################################
 #  _____ _____   ___                              ____           _
 # | ____|___ /  |_ _|_ __ ___   __ _  __ _  ___  |  _ \ ___  ___(_)_ __   ___
@@ -260,8 +262,6 @@ RUN curl https://aws-dlc-licenses.s3.amazonaws.com/tensorflow-${TF_VERSION}/lice
 ##############################################################################
 
 FROM common AS e3
-
-ARG TF_URL=https://framework-binaries.s3.us-west-2.amazonaws.com/tensorflow/r2.9_aws/gpu/2022-05-23-23-14/tensorflow_gpu-2.9.1-cp39-cp39-manylinux_2_17_x86_64.manylinux2014_x86_64.whl
 
 RUN ${PIP} install --no-cache-dir -U \
    ${TF_URL} \
@@ -306,8 +306,6 @@ FROM common AS sagemaker
 
 LABEL maintainer="Amazon AI"
 LABEL dlc_major_version="1"
-
-ARG TF_URL=https://framework-binaries.s3.us-west-2.amazonaws.com/tensorflow/r2.9_aws/gpu/2022-05-23-23-14/tensorflow_gpu-2.9.1-cp39-cp39-manylinux_2_17_x86_64.manylinux2014_x86_64.whl
 
 # sagemaker-specific environment variable
 ENV SAGEMAKER_TRAINING_MODULE sagemaker_tensorflow_container.training:main
