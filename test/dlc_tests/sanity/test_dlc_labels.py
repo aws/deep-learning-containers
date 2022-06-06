@@ -104,7 +104,7 @@ def test_max_sagemaker_labels(image, region):
             standard_labels.append(label)
 
     standard_label_count = len(standard_labels)
-    assert standard_label_count <= max_labels, f"Max of 10 labels are supported. " \
+    assert standard_label_count <= max_labels, f"Max of {max_labels} labels are supported. " \
                                                f"Currently there are {standard_label_count}: {standard_labels}"
 
 
