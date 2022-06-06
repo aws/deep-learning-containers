@@ -1060,7 +1060,7 @@
             "attributes": [
                 {
                     "key": "package_version",
-                    "value": "1.18.4ubuntu1.7"
+                    "value": "1.18.4ubuntu1.6"
                 },
                 {
                     "key": "package_name",
@@ -1119,7 +1119,7 @@
             "attributes": [
                 {
                     "key": "package_version",
-                    "value": "1.18.4ubuntu1.6"
+                    "value": "1.18.4ubuntu1.7"
                 },
                 {
                     "key": "package_name",
@@ -2646,7 +2646,7 @@
             "attributes": [
                 {
                     "key": "package_version",
-                    "value": "2.23-0ubuntu11.3"
+                    "value": "2.23-0ubuntu11.2"
                 },
                 {
                     "key": "package_name",
@@ -2705,7 +2705,7 @@
             "attributes": [
                 {
                     "key": "package_version",
-                    "value": "2.23-0ubuntu11.2"
+                    "value": "2.23-0ubuntu11.3"
                 },
                 {
                     "key": "package_name",
@@ -5945,7 +5945,7 @@
             "attributes": [
                 {
                     "key": "package_version",
-                    "value": "1.0.2g-1ubuntu4.18"
+                    "value": "1.0.2g-1ubuntu4.20"
                 },
                 {
                     "key": "package_name",
@@ -6018,7 +6018,7 @@
             "attributes": [
                 {
                     "key": "package_version",
-                    "value": "1.0.2g-1ubuntu4.20"
+                    "value": "1.0.2g-1ubuntu4.18"
                 },
                 {
                     "key": "package_name",
@@ -6225,7 +6225,7 @@
             "attributes": [
                 {
                     "key": "package_version",
-                    "value": "1.0.2g-1ubuntu4.20"
+                    "value": "1.0.2g-1ubuntu4.18"
                 },
                 {
                     "key": "package_name",
@@ -6292,7 +6292,7 @@
             "attributes": [
                 {
                     "key": "package_version",
-                    "value": "1.0.2g-1ubuntu4.18"
+                    "value": "1.0.2g-1ubuntu4.20"
                 },
                 {
                     "key": "package_name",
@@ -7313,18 +7313,10 @@
                 {
                     "key": "package_name",
                     "value": "vim"
-                },
-                {
-                    "key": "CVSS2_VECTOR",
-                    "value": "AV:N/AC:M/Au:N/C:P/I:P/A:P"
-                },
-                {
-                    "key": "CVSS2_SCORE",
-                    "value": "6.8"
                 }
             ],
             "description": "Heap-based Buffer Overflow in GitHub repository vim/vim prior to 8.2.",
-            "name": "CVE-2022-0261",
+            "name": "CVE-2022-1942",
             "scraped_data": [
                 {
                     "notes": [],
@@ -7358,18 +7350,18 @@
                             ],
                             [
                                 "upstream",
-                                "Released (8.2.4120)"
+                                "Needs triage"
                             ],
                             [
                                 "xenial",
-                                "Released (2:7.4.1689-3ubuntu1.5+esm4)"
+                                "Needed"
                             ]
                         ]
                     }
                 }
             ],
             "severity": "MEDIUM",
-            "uri": "http://people.ubuntu.com/~ubuntu-security/cve/CVE-2022-0261"
+            "uri": "http://people.ubuntu.com/~ubuntu-security/cve/CVE-2022-1942"
         },
         {
             "attributes": [
@@ -7380,18 +7372,10 @@
                 {
                     "key": "package_name",
                     "value": "vim"
-                },
-                {
-                    "key": "CVSS2_VECTOR",
-                    "value": "AV:L/AC:L/Au:N/C:P/I:P/A:P"
-                },
-                {
-                    "key": "CVSS2_SCORE",
-                    "value": "4.6"
                 }
             ],
-            "description": "Access of Memory Location Before Start of Buffer in GitHub repository vim/vim prior to 8.2.",
-            "name": "CVE-2022-0351",
+            "description": "Use After Free in GitHub repository vim/vim prior to 8.2.",
+            "name": "CVE-2022-1968",
             "scraped_data": [
                 {
                     "notes": [],
@@ -7425,18 +7409,18 @@
                             ],
                             [
                                 "upstream",
-                                "Released (8.2.4206)"
+                                "Needs triage"
                             ],
                             [
                                 "xenial",
-                                "Released (2:7.4.1689-3ubuntu1.5+esm5)"
+                                "Needed"
                             ]
                         ]
                     }
                 }
             ],
             "severity": "MEDIUM",
-            "uri": "http://people.ubuntu.com/~ubuntu-security/cve/CVE-2022-0351"
+            "uri": "http://people.ubuntu.com/~ubuntu-security/cve/CVE-2022-1968"
         }
     ]
 }
