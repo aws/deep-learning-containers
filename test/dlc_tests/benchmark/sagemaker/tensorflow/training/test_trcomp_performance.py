@@ -1,5 +1,7 @@
 import pytest, re
 import numpy as np
+from packaging.specifiers import SpecifierSet
+from packaging.version import Version
 
 import boto3, sagemaker
 from sagemaker.tensorflow import TensorFlow
@@ -86,9 +88,8 @@ def framework_version(tensorflow_training):
 
 @pytest.fixture(autouse=True)
 def smtrcomp_only(framework_version, tensorflow_training, request):
-    short_version = float(".".join(framework_version.split('.')[:2]))
-    if short_version<2.9:
-        pytest.skip('Training Compiler support was added with TF 2.9.0')
+    if Version(framework_version) in SpecifierSet(">=2.9.1"):
+        pytest.skip('Training Compiler support was added with TF 2.9.1')
     if 'gpu' not in tensorflow_training:
         pytest.skip('Training Compiler is only available for GPUs')
 
