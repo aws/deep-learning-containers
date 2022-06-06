@@ -39,6 +39,9 @@ def test_dlc_standard_labels(image, region):
     framework = framework.replace('_', '-')
     fw_version = fw_version.replace('.', '-')
     device_type = test_utils.get_processor_from_image_uri(image)
+    if device_type == "gpu":
+        cuda_verison = test_utils.get_cuda_version_from_tag(image)
+        device_type = f"{device_type}.{cuda_verison}"
     python_version = test_utils.get_python_version_from_image_uri(image)
     job_type = test_utils.get_job_type_from_image(image)
     transformers_version = test_utils.get_transformers_version_from_image_uri(image).replace('.', '-')
