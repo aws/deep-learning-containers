@@ -2,6 +2,7 @@
   region: &REGION <set-$REGION-in-environment>
   framework: &FRAMEWORK pytorch
   version: &VERSION 1.5.1
+  arch_type: x86
 
   repository_info:
     inference_repository: &INFERENCE_REPOSITORY
