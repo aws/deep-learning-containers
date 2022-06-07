@@ -100,7 +100,7 @@ def test_pytorch_inference_torchaudio_gpu(pytorch_inference, ec2_connection, gpu
 @pytest.mark.parametrize("ec2_instance_type", PT_EC2_CPU_INSTANCE_TYPE, indirect=True)
 def test_pytorch_inference_torchaudio_cpu(pytorch_inference, ec2_connection, cpu_only):
     _, image_framework_version = get_framework_and_version_from_tag(pytorch_inference)
-    if Version(image_framework_version) not in SpecifierSet("!=1.9.x,!=1.10.*"):
+    if Version(image_framework_version) not in SpecifierSet("!=1.9.*,!=1.10.*"):
         pytest.skip("torchaudio is not supported in PT 1.9 and 1.10")
     execute_ec2_inference_test(ec2_connection, pytorch_inference, PT_TORCHAUDIO_CMD)
 
