@@ -164,7 +164,8 @@ class TestImageClassification:
             match = re.search('Billable seconds: ([0-9]*)', logs)
             billable = int(match.group(1))
 
-            threshold = TRCOMP_THRESHOLD['tensorflow']['2.9']['resnet101'][instance_type][instance_count][batch]
+            short_version = '.'.join(framework_version.split('.')[:2])
+            threshold = TRCOMP_THRESHOLD['tensorflow'][short_version]['resnet101'][instance_type][instance_count][batch]
             result = (
                 f"tensorflow-trcomp {framework_version} resnet101 fp16 XLA "
                 f"imagenet {instance_type} {instance_count} {batch} Billable: {billable} secs threshold: {threshold} secs "
