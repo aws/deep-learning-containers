@@ -35,6 +35,7 @@ from config import parse_dlc_developer_configs, is_build_enabled
 FORMATTER = OutputFormatter(constants.PADDING)
 build_context = os.getenv("BUILD_CONTEXT")
 
+
 def _find_image_object(images_list, image_name):
     """
     Find and return an image object from images_list with a name that matches image_name
@@ -60,7 +61,9 @@ def image_builder(buildspec):
 
     if "huggingface" in str(BUILDSPEC["framework"]) or "autogluon" in str(BUILDSPEC["framework"]):
         os.system("echo login into public ECR")
-        os.system("aws ecr get-login-password --region us-west-2 | docker login --username AWS --password-stdin 763104351884.dkr.ecr.us-west-2.amazonaws.com")
+        os.system(
+            "aws ecr get-login-password --region us-west-2 | docker login --username AWS --password-stdin 763104351884.dkr.ecr.us-west-2.amazonaws.com"
+        )
 
     for image_name, image_config in BUILDSPEC["images"].items():
         ARTIFACTS = deepcopy(BUILDSPEC["context"]) if BUILDSPEC.get("context") else {}
@@ -76,11 +79,7 @@ def image_builder(buildspec):
         if image_config.get("context") is not None:
             ARTIFACTS.update(image_config["context"])
 
-        image_tag = (
-            tag_image_with_pr_number(image_config["tag"])
-            if build_context == "PR"
-            else image_config["tag"]
-        )
+        image_tag = tag_image_with_pr_number(image_config["tag"]) if build_context == "PR" else image_config["tag"]
         if enable_datetime_tag or build_context != "PR":
             image_tag = tag_image_with_datetime(image_tag)
         image_repo_uri = (
@@ -104,20 +103,24 @@ def image_builder(buildspec):
                 except ValueError:
                     FORMATTER.print(f"Artifact download failed: {uri} of type {type}.")
 
-                ARTIFACTS.update({
-                    f"{artifact_name}": {
-                        "source": f"{os.path.join(os.sep, os.path.abspath(os.getcwd()), file_name)}",
-                        "target": file_name
+                ARTIFACTS.update(
+                    {
+                        f"{artifact_name}": {
+                            "source": f"{os.path.join(os.sep, os.path.abspath(os.getcwd()), file_name)}",
+                            "target": file_name,
+                        }
                     }
-                })
+                )
 
                 extra_build_args[var] = file_name
                 labels[var] = file_name
                 labels[f"{var}_URI"] = uri
 
+        transformers_version = image_config.get("transformers_version")
+
         if str(BUILDSPEC["framework"]).startswith("huggingface"):
-            if "transformers_version" in image_config:
-                extra_build_args["TRANSFORMERS_VERSION"] = image_config.get("transformers_version")
+            if transformers_version:
+                extra_build_args["TRANSFORMERS_VERSION"] = transformers_version
             else:
                 raise KeyError(f"HuggingFace buildspec.yml must contain 'transformers_version' field for each image")
             if "datasets_version" in image_config:
@@ -139,6 +142,55 @@ def image_builder(buildspec):
         if "labels" in image_config:
             labels.update(image_config.get("labels"))
 
+        cx_type = utils.get_label_prefix_customer_type(image_tag)
+
+        # Define label variables
+        label_framework = str(BUILDSPEC['framework']).replace('_', '-')
+        label_framework_version = str(BUILDSPEC['version']).replace('.', '-')
+        label_device_type = str(image_config['device_type'])
+        if label_device_type == "gpu":
+            label_device_type = f"{label_device_type}.{str(image_config['cuda_version'])}"
+        label_arch = str(BUILDSPEC['arch_type'])
+        label_python_version = str(image_config['tag_python_version'])
+        label_os_version = str(image_config.get('os_version')).replace('.', '-')
+        label_contributor = str(BUILDSPEC.get('contributor'))
+        label_transformers_version = str(transformers_version).replace('.', '-')
+
+        # job_type will be either inference or training, based on the repo URI
+        if "training" in image_repo_uri:
+            label_job_type = "training"
+        elif "inference" in image_repo_uri:
+            label_job_type = "inference"
+        else:
+            raise RuntimeError(
+                f"Cannot find inference or training job type in {image_repo_uri}. "
+                f"This is required to set job_type label."
+            )
+
+        if cx_type == "sagemaker":
+            # Adding standard labels to all images
+            labels[
+                f"com.amazonaws.ml.engines.{cx_type}.dlc.framework.{label_framework}.{label_framework_version}"
+            ] = "true"
+            labels[
+                f"com.amazonaws.ml.engines.{cx_type}.dlc.device.{label_device_type}"
+            ] = "true"
+            labels[f"com.amazonaws.ml.engines.{cx_type}.dlc.arch.{label_arch}"] = "true"
+            # python version label will look like py_version.py36, for example
+            labels[
+                f"com.amazonaws.ml.engines.{cx_type}.dlc.python.{label_python_version}"
+            ] = "true"
+            labels[f"com.amazonaws.ml.engines.{cx_type}.dlc.os.{label_os_version}"] = "true"
+
+            labels[f"com.amazonaws.ml.engines.{cx_type}.dlc.job.{label_job_type}"] = "true"
+
+            if label_contributor:
+                labels[f"com.amazonaws.ml.engines.{cx_type}.dlc.contributor.{label_contributor}"] = "true"
+            if transformers_version:
+                labels[
+                    f"com.amazonaws.ml.engines.{cx_type}.dlc.lib.transformers.{label_transformers_version}"
+                ] = "true"
+
         """
         Override parameters from parent in child.
         """
@@ -157,9 +209,9 @@ def image_builder(buildspec):
             "base_image_uri": base_image_uri,
             "enable_test_promotion": image_config.get("enable_test_promotion", True),
             "labels": labels,
-            "extra_build_args": extra_build_args
+            "extra_build_args": extra_build_args,
         }
-        
+
         # Create pre_push stage docker object
         pre_push_stage_image_object = DockerImage(
             info=info,
@@ -170,7 +222,7 @@ def image_builder(buildspec):
             stage=constants.PRE_PUSH_STAGE,
             context=context,
             additional_tags=[image_tag],
-            target=image_config.get("target")
+            target=image_config.get("target"),
         )
 
         ##### Create Common stage docker object #####
@@ -223,22 +275,22 @@ def image_builder(buildspec):
 
     utils.set_test_env(
         images_to_test,
-        use_latest_additional_tag=True, 
-        BUILD_CONTEXT=os.getenv("BUILD_CONTEXT"), 
-        TEST_TRIGGER=test_trigger_job
+        use_latest_additional_tag=True,
+        BUILD_CONTEXT=os.getenv("BUILD_CONTEXT"),
+        TEST_TRIGGER=test_trigger_job,
     )
 
 
 def process_images(pre_push_image_list, pre_push_image_type="Pre-push"):
     """
     Handles all the tasks related to a particular type of Pre Push images. It takes in the list of
-    pre push images and then builds it. After the pre-push images have been built, it extracts the 
+    pre push images and then builds it. After the pre-push images have been built, it extracts the
     corresponding common stage images for the pre-push images and builds those common stage images.
-    After the common stage images have been built, it finds outs the docker images that need to be 
+    After the common stage images have been built, it finds outs the docker images that need to be
     pushed and pushes them accordingly.
 
     Note that the common stage images should always be built after the pre-push images of a
-    particular kind. This is because the Common stage images use are built on respective 
+    particular kind. This is because the Common stage images use are built on respective
     Standard and Example images.
 
     :param pre_push_image_list: list[DockerImage], list of pre-push images
@@ -258,7 +310,7 @@ def process_images(pre_push_image_list, pre_push_image_type="Pre-push"):
 
     FORMATTER.banner(f"{pre_push_image_type} Push Images")
     all_images = pre_push_image_list + common_stage_image_list
-    images_to_push =  [image for image in all_images if image.to_push and image.to_build]
+    images_to_push = [image for image in all_images if image.to_push and image.to_build]
     push_images(images_to_push)
 
     FORMATTER.banner(f"{pre_push_image_type} Retagging")
@@ -268,8 +320,8 @@ def process_images(pre_push_image_list, pre_push_image_type="Pre-push"):
 
 def generate_common_stage_image_object(pre_push_stage_image_object, image_tag):
     """
-    Creates a common stage image object for a pre_push stage image. If for a pre_push stage image we create a common 
-    stage image, then we do not push the pre_push stage image to the repository. Instead, we just push its common stage 
+    Creates a common stage image object for a pre_push stage image. If for a pre_push stage image we create a common
+    stage image, then we do not push the pre_push stage image to the repository. Instead, we just push its common stage
     image to the repository. Therefore, inside the function pre_push_stage_image_object is made NON-PUSHABLE.
 
     :param pre_push_stage_image_object: DockerImage, an object of class DockerImage
@@ -277,7 +329,9 @@ def generate_common_stage_image_object(pre_push_stage_image_object, image_tag):
     """
     common_stage_info = deepcopy(pre_push_stage_image_object.info)
     common_stage_info["extra_build_args"].update(
-        {"PRE_PUSH_IMAGE": pre_push_stage_image_object.ecr_url,}
+        {
+            "PRE_PUSH_IMAGE": pre_push_stage_image_object.ecr_url,
+        }
     )
     common_stage_image_object = CommonStageImage(
         info=common_stage_info,
@@ -356,7 +410,9 @@ def upload_metrics(images, BUILDSPEC, is_any_build_failed, is_any_build_failed_s
     :param is_any_build_failed_size_limit: bool
     """
     metrics = Metrics(
-        context=constants.BUILD_CONTEXT, region=BUILDSPEC["region"], namespace=constants.METRICS_NAMESPACE,
+        context=constants.BUILD_CONTEXT,
+        region=BUILDSPEC["region"],
+        namespace=constants.METRICS_NAMESPACE,
     )
     for image in images:
         try:
@@ -375,7 +431,7 @@ def upload_metrics(images, BUILDSPEC, is_any_build_failed, is_any_build_failed_s
 
 def build_images(images, make_dummy_boto_client=False):
     """
-    Takes a list of images and executes their build process concurrently. 
+    Takes a list of images and executes their build process concurrently.
 
     :param images: list[DockerImage]
     :param make_dummy_boto_client: bool, specifies if a dummy client should be declared or not.
@@ -409,7 +465,7 @@ def get_dummy_boto_client():
 
 def push_images(images):
     """
-    Takes a list of images and PUSHES them to ECR concurrently. 
+    Takes a list of images and PUSHES them to ECR concurrently.
 
     :param images: list[DockerImage]
     """
@@ -457,11 +513,7 @@ def modify_repository_name_for_context(image_repo_uri, build_context):
     repo_uri_values = image_repo_uri.split("/")
     repo_name = repo_uri_values[-1]
     if build_context == "MAINLINE":
-        repo_uri_values[-1] = repo_name.replace(
-            constants.PR_REPO_PREFIX, constants.MAINLINE_REPO_PREFIX
-        )
+        repo_uri_values[-1] = repo_name.replace(constants.PR_REPO_PREFIX, constants.MAINLINE_REPO_PREFIX)
     elif build_context == "NIGHTLY":
-        repo_uri_values[-1] = repo_name.replace(
-            constants.PR_REPO_PREFIX, constants.NIGHTLY_REPO_PREFIX
-        )
+        repo_uri_values[-1] = repo_name.replace(constants.PR_REPO_PREFIX, constants.NIGHTLY_REPO_PREFIX)
     return "/".join(repo_uri_values)
