@@ -1,3 +1,4 @@
+gdk-pixbuf
 libc6
 vim
 wget
