@@ -1294,7 +1294,7 @@ def get_transformers_version_from_image_uri(image_uri):
     transformers_regex = re.compile(r"transformers(\d+.\d+.\d+)")
     transformers_in_img_uri = transformers_regex.search(image_uri)
     if transformers_in_img_uri:
-        return transformers_regex.group(1)
+        return transformers_in_img_uri.group(1)
     return ""
 
 
