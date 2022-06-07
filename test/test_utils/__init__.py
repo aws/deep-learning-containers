@@ -1620,7 +1620,7 @@ def get_contributor_from_image_uri(image_uri):
     @param image_uri: ECR image uri
     @return: contributor name, or ""
     """
-    # Key value pair of contributor_identifier_in_iamge_uri: contributor_name
+    # Key value pair of contributor_identifier_in_image_uri: contributor_name
     contributors = {
         "huggingface": "huggingface",
         "habana": "habana"
