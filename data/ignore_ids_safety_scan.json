@@ -410,7 +410,6 @@
             "py2": {
             },
             "py3": {
-                "44463":"for shipping Torchserve 0.5.2 - the last available version"
             }
         },
         "inference-eia": {
