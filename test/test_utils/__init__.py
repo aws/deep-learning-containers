@@ -1322,6 +1322,34 @@ def get_neuron_framework_and_version_from_tag(image_uri):
     return tested_framework, neuron_tag_framework_version
 
 
+def get_transformers_version_from_image_uri(image_uri):
+    """
+    Utility function to get the HuggingFace transformers version from an image uri
+
+    @param image_uri: ECR image uri
+    @return: HuggingFace transformers version, or ""
+    """
+    transformers_regex = re.compile(r"transformers(\d+.\d+.\d+)")
+    transformers_in_img_uri = transformers_regex.search(image_uri)
+    if transformers_in_img_uri:
+        return transformers_in_img_uri.group(1)
+    return ""
+
+
+def get_os_version_from_image_uri(image_uri):
+    """
+    Currently only ship ubuntu versions
+
+    @param image_uri: ECR image URI
+    @return: OS version, or ""
+    """
+    os_version_regex = re.compile(r"ubuntu\d+.\d+")
+    os_version_in_img_uri = os_version_regex.search(image_uri)
+    if os_version_in_img_uri:
+        return os_version_in_img_uri.group()
+    return ""
+
+
 def get_framework_from_image_uri(image_uri):
     return (
         "huggingface_tensorflow"
@@ -1621,3 +1649,56 @@ def is_image_available_locally(image_uri):
     """
     run_output = run(f"docker inspect {image_uri}", hide=True, warn=True)
     return run_output.ok
+
+
+def get_contributor_from_image_uri(image_uri):
+    """
+    Return contributor name if it is present in the image URI
+
+    @param image_uri: ECR image uri
+    @return: contributor name, or ""
+    """
+    # Key value pair of contributor_identifier_in_image_uri: contributor_name
+    contributors = {
+        "huggingface": "huggingface",
+        "habana": "habana"
+    }
+    for contributor_identifier_in_image_uri, contributor_name in contributors.items():
+        if contributor_identifier_in_image_uri in image_uri:
+            return contributor_name
+    return ""
+
+
+def get_labels_from_ecr_image(image_uri, region):
+    """
+    Get ecr image labels from ECR
+
+    @param image_uri: ECR image URI to get labels from
+    @param region: AWS region
+    @return: list of labels attached to ECR image URI
+    """
+    ecr_client = boto3.client("ecr", region_name=region)
+
+    image_repository, image_tag = get_repository_and_tag_from_image_uri(image_uri)
+    # Using "acceptedMediaTypes" on the batch_get_image request allows the returned image information to
+    # provide the ECR Image Manifest in the specific format that we need, so that the image LABELS can be found
+    # on the manifest. The default format does not return the image LABELs.
+    response = ecr_client.batch_get_image(
+        repositoryName=image_repository,
+        imageIds=[{"imageTag": image_tag}],
+        acceptedMediaTypes=["application/vnd.docker.distribution.manifest.v1+json"],
+    )
+    if not response.get("images"):
+        raise KeyError(
+            f"Failed to get images through ecr_client.batch_get_image response for image {image_repository}:{image_tag}"
+        )
+    elif not response["images"][0].get("imageManifest"):
+        raise KeyError(f"imageManifest not found in ecr_client.batch_get_image response:\n{response['images']}")
+
+    manifest_str = response["images"][0]["imageManifest"]
+    # manifest_str is a json-format string
+    manifest = json.loads(manifest_str)
+    image_metadata = json.loads(manifest["history"][0]["v1Compatibility"])
+    labels = image_metadata["config"]["Labels"]
+
+    return labels
