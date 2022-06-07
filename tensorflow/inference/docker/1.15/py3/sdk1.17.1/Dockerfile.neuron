@@ -103,8 +103,8 @@ RUN wget -qO - https://apt.repos.neuron.amazonaws.com/GPG-PUB-KEY-AMAZON-AWS-NEU
 RUN apt-get update
 
 RUN apt-get install -y \
-    tensorflow-model-server-neuron=1.15.* \
-    aws-neuron-tools
+    tensorflow-model-server-neuron=1.15.0.2.1.13.0 \
+    aws-neuron-tools=2.0.623.0
 
 RUN ${PIP} --no-cache-dir install --upgrade \
     pip \
@@ -130,9 +130,10 @@ RUN ${PIP} install --no-cache-dir -U \
 # pip install statements have been separated out into multiple sequentially executed statements to
 # resolve package dependencies during installation.
 RUN ${PIP} install tensorflow_serving_api==1.15 --no-deps --extra-index-url https://pip.repos.neuron.amazonaws.com \
- && ${PIP} install "tensorboard-neuron>=1.15,<1.16" --extra-index-url https://pip.repos.neuron.amazonaws.com \
- && ${PIP} install neuron-cc --extra-index-url https://pip.repos.neuron.amazonaws.com \
- && ${PIP} install "tensorflow-neuron>=1.15.5,<1.15.6" --extra-index-url https://pip.repos.neuron.amazonaws.com
+ && ${PIP} install "tensorboard-neuron==1.15.0.1.2.6.0" --extra-index-url https://pip.repos.neuron.amazonaws.com \
+ && ${PIP} install neuron-cc==1.9.1.0 --extra-index-url https://pip.repos.neuron.amazonaws.com \
+ && ${PIP} install "tensorboard-plugin-neuron==2.2.0.0" --extra-index-url https://pip.repos.neuron.amazonaws.com \
+ && ${PIP} install "tensorflow-neuron==1.15.5.2.1.13.0" --extra-index-url https://pip.repos.neuron.amazonaws.com
 
 
 COPY ./sagemaker /sagemaker
