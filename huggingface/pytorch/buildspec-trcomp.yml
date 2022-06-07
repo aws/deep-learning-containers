@@ -4,6 +4,8 @@ base_framework: &BASE_FRAMEWORK pytorch
 framework: &FRAMEWORK !join [ "huggingface_", *BASE_FRAMEWORK, "_trcomp"]
 version: &VERSION 1.10.2
 short_version: &SHORT_VERSION "1.10"
+contributor: huggingface
+arch_type: x86
 
 repository_info:
   training_repository: &TRAINING_REPOSITORY
