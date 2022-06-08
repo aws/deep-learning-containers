@@ -53,7 +53,7 @@ IGNORE_SAFETY_IDS = {
                 "42815",
                 "42772",
                 "42814",
-                # Can't upgrade TF Estimator to >=2.9.0 on TF<2.9 DLCs
+                # tensorflow-estimator and tensorflow versions must match. For all TF versions below TF 2.9.0, we cannot upgrade tf-estimator to 2.9.0
                 "48551",
             ],
         },
