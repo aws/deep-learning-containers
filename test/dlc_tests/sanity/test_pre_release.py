@@ -608,6 +608,13 @@ def test_pip_check(image):
         )
         allowed_exception_list.append(allowed_autogluon_exception)
 
+    # TF2.9 sagemaker containers introduce tf-models-official which has a known bug where in it does not respect the
+    # existing TF installation. https://github.com/tensorflow/models/issues/9267. This package in turn brings in
+    # tensorflow-text. Skip checking these two packages as this is an upstream issue.
+    if framework == "tensorflow" and Version(framework_version) in SpecifierSet(">=2.9.1"):
+        allowed_tf29_exception = re.compile(rf"^(tf-models-official 2.9.1|tensorflow-text 2.9.0) requires tensorflow, which is not installed.")
+        allowed_exception_list.append(allowed_tf29_exception)
+
     # Add null entrypoint to ensure command exits immediately
     output = ctx.run(
         f"docker run --entrypoint='' {image} pip check", hide=True, warn=True)
