@@ -340,6 +340,7 @@ class TestMLWorkFlow:
 
 
     @pytest.mark.xfail(reason="SM Training Compiler team yet to implement this integration test")
+    @pytest.mark.model('N/A')
     @pytest.mark.integration("hpo")
     def test_hyperparameter_tuner(self, sagemaker_session, ecr_image, framework_version, instance_type, instance_count, tmpdir, capsys):
         raise NotImplementedError()
