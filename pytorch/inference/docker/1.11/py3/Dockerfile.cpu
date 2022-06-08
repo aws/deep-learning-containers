@@ -1,6 +1,6 @@
 ARG PYTHON=python3
 ARG PYTHON_VERSION=3.8.13
-ARG MAMBA_VERSION=4.12.0-0
+ARG MAMBA_VERSION=4.12.0-2
 
 # PyTorch Binaries
 ARG PT_INFERENCE_URL=https://aws-pytorch-cicd-v3-binaries.s3.us-west-2.amazonaws.com/r1.11.0_v3_e3/20220316-044906/9a915205c493de013250347af38ad1083854bc09/cpu/torch-1.11.0%2Bcpu-cp38-cp38-linux_x86_64.whl
@@ -110,7 +110,6 @@ RUN curl -L -o ~/mambaforge.sh https://github.com/conda-forge/miniforge/releases
  && chmod +x ~/mambaforge.sh \
  && ~/mambaforge.sh -b -p /opt/conda \
  && rm ~/mambaforge.sh \
- && /opt/conda/bin/conda update conda \
  && /opt/conda/bin/conda install -c conda-forge \
     python=$PYTHON_VERSION \
     cython \
@@ -122,8 +121,13 @@ RUN curl -L -o ~/mambaforge.sh https://github.com/conda-forge/miniforge/releases
     requests \
     # Below 2 are included in miniconda base, but not mamba so need to install
     conda-content-trust \
-    charset-normalizer \
- && /opt/conda/bin/conda clean -ya
+    charset-normalizer
+# Upstream conda looks to have moved to 4.13 which is incompatible with mamba 0.22.1 and will fail the conda-forge installs.
+# having "conda update conda" before the "conda -c conda-forge" commands will automatically update conda to 4.13.
+# Moving conda update conda" after the "conda -c conda-forge" commands keep conda at 4.12 but will update other packages using
+# the current conda 4.12
+RUN /opt/conda/bin/conda update -y conda \
+   && /opt/conda/bin/conda clean -ya
 
 # Conda installs links for libtinfo.so.6 and libtinfo.so.6.2 both
 # Which causes "/opt/conda/lib/libtinfo.so.6: no version information available" warning
