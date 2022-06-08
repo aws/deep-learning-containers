@@ -82,6 +82,7 @@ def smtrcomp_only(framework_version, ecr_image, request):
 
 
 
+@pytest.mark.multinode(2)
 @pytest.mark.integration("trcomp")
 class TestDistributedTraining:
     
@@ -96,6 +97,7 @@ class TestDistributedTraining:
         return 2
 
 
+    @pytest.mark.model('toy')
     def test_native(self, sagemaker_session, ecr_image, framework_version, instance_type, instance_count, tmpdir, mnist_dataset, capsys):
         script = os.path.join(resource_path, 'mnist', 'mnist.py')
         estimator = TensorFlow(entry_point=script,
@@ -115,6 +117,7 @@ class TestDistributedTraining:
         _assert_training_compiler_invoked(captured)
 
 
+    @pytest.mark.model('LeNet')
     @pytest.mark.integration("parameter server")
     def test_parameter_server(self, sagemaker_session, ecr_image, framework_version, instance_type, instance_count, tmpdir, mnist_distributed_dataset, capsys):
         script = os.path.join(resource_path, 'mnist', 'mnist_custom.py')
@@ -137,6 +140,7 @@ class TestDistributedTraining:
 
 
     @pytest.mark.xfail(reason="Trcomp behavior with Horovod is undefined")
+    @pytest.mark.model('toy')
     @pytest.mark.integration("horovod")
     def test_horovod(self, sagemaker_session, ecr_image, framework_version, instance_type, instance_count, tmpdir, capsys):
         script = os.path.join(resource_path, 'mnist', 'horovod_mnist.py')
@@ -164,6 +168,7 @@ class TestDistributedTraining:
 
 
     @pytest.mark.xfail(reason="Trcomp behavior with SMDP is undefined")
+    @pytest.mark.model('toy')
     @pytest.mark.integration("smdataparallel")
     def test_smdp(self, sagemaker_session, ecr_image, framework_version, instance_count, tmpdir, capsys):
         script = os.path.join(resource_path, 'mnist', 'smdataparallel_mnist.py')
@@ -185,6 +190,7 @@ class TestDistributedTraining:
 
 
     @pytest.mark.xfail(reason="SMMP is only supported on CUDA 11 on TensorFlow version between v2.3.1(inclusive) and v2.7.0(exclusive)")
+    @pytest.mark.model('toy')
     @pytest.mark.integration("smmodelparallel")
     def test_smmp(self, sagemaker_session, ecr_image, framework_version, efa_instance_type, instance_count, tmpdir, capsys):
         path = os.path.join(resource_path, 'smmodelparallel')
@@ -213,6 +219,7 @@ class TestDistributedTraining:
 
 
     @pytest.mark.xfail(reason='SMMP is only supported on CUDA 11 on TensorFlow version between v2.3.1(inclusive) and v2.7.0(exclusive)')
+    @pytest.mark.model('toy')
     @pytest.mark.integration("horovod")
     @pytest.mark.integration("smmodelparallel")
     def test_smmp_with_horovod(self, sagemaker_session, ecr_image, framework_version, efa_instance_type, instance_count, tmpdir, capsys):
@@ -257,6 +264,7 @@ class TestMLWorkFlow:
 
 
     @pytest.mark.skip(reason="skip the test temporarily due to timeout issue")
+    @pytest.mark.model('toy')
     @pytest.mark.integration("smdebug")
     def test_smdebugger(self, sagemaker_session, ecr_image, framework_version, instance_type, instance_count, tmpdir, mnist_dataset, capsys):
         script = os.path.join(resource_path, 'mnist', 'mnist_smdebug.py')
@@ -278,6 +286,7 @@ class TestMLWorkFlow:
         _assert_training_compiler_invoked(captured)
 
 
+    @pytest.mark.model('toy')
     def test_training(self, sagemaker_session, ecr_image, framework_version, instance_type, instance_count, tmpdir, mnist_dataset, capsys):
         script = os.path.join(resource_path, 'mnist', 'mnist.py')
         estimator = TensorFlow(entry_point=script,
@@ -297,6 +306,7 @@ class TestMLWorkFlow:
         _assert_training_compiler_invoked(captured)
 
 
+    @pytest.mark.model('LeNet')
     @pytest.mark.integration("s3 plugin")
     def test_s3_plugin(self, sagemaker_session, ecr_image, framework_version, instance_type, instance_count, tmpdir, mnist_distributed_dataset, capsys):
         script = os.path.join(resource_path, 'mnist', 'mnist_custom.py')
@@ -336,6 +346,7 @@ class TestMLWorkFlow:
 
 
     @pytest.mark.xfail(reason="TF 2.9 for inference has not been released yet")
+    @pytest.mark.model('toy')
     @pytest.mark.integration("serving")
     def test_serving(self, sagemaker_session, ecr_image, framework_version, instance_type, instance_count, tmpdir, capsys, mnist_dataset):
         script = os.path.join(resource_path, 'mnist', 'mnist.py')
@@ -359,6 +370,7 @@ class TestMLWorkFlow:
 
 
     @pytest.mark.xfail(reason="SM Neo does not currently support TF > 2.4")
+    @pytest.mark.model('toy')
     @pytest.mark.integration("neo")
     def test_inference_compiler_neo(self, sagemaker_session, ecr_image, framework_version, instance_type, instance_count, tmpdir, capsys, mnist_dataset):
         script = os.path.join(resource_path, 'mnist', 'mnist.py')
