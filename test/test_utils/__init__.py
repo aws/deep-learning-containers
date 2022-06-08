@@ -29,8 +29,18 @@ LOGGER.addHandler(logging.StreamHandler(sys.stderr))
 DEFAULT_REGION = "us-west-2"
 # Constant to represent region where p3dn tests can be run
 P3DN_REGION = "us-east-1"
+def get_ami_id_boto3(region_name, ami_name_pattern):
+    """
+    For a given region and ami name pattern, return the latest ami-id
+    """
+    ami_list = boto3.client("ec2", region_name=region_name).describe_images(
+        Filters=[{"Name": "name", "Values": [ami_name_pattern]}], Owners=['amazon']
+    )
+    ami = max(ami_list["Images"], key=lambda x: x["CreationDate"])
+    return ami['ImageId']
 
-UBUNTU_18_BASE_DLAMI_US_WEST_2 = "ami-0150e36b3f936a26e"
+    
+UBUNTU_18_BASE_DLAMI_US_WEST_2 = get_ami_id_boto3(region_name="us-west-2", ami_name_pattern="Deep Learning AMI GPU CUDA 11.1.1 (Ubuntu 18.04) ????????")
 UBUNTU_18_BASE_DLAMI_US_EAST_1 = "ami-044971d381e6a1109"
 AML2_GPU_DLAMI_US_WEST_2 = "ami-071cb1e434903a577"
 AML2_GPU_DLAMI_US_EAST_1 = "ami-044264d246686b043"
@@ -833,6 +843,18 @@ def parse_canary_images(framework, region):
     """
     customer_type = get_customer_type()
     customer_type_tag = f"-{customer_type}" if customer_type else ""
+    
+    # initialize graviton variables
+    use_graviton = False
+
+    # seperating framework from regex match pattern for graviton as it is ARCH_TYPE instead of FRAMEWORK
+    canary_type = framework
+
+    # Setting whether Graviton Arch is used
+    # NOTE: If Graviton arch is used with a framework, not in the list below, the match search will "KeyError".
+    if os.getenv("ARCH_TYPE") == "graviton":
+        use_graviton = True
+        canary_type = "graviton_"+framework
 
     version_regex = {
         "tensorflow": rf"tf(-sagemaker)?{customer_type_tag}-(\d+.\d+)",
@@ -841,8 +863,12 @@ def parse_canary_images(framework, region):
         "huggingface_pytorch": r"hf-\S*pt(-sagemaker)?-(\d+.\d+)",
         "huggingface_tensorflow": r"hf-\S*tf(-sagemaker)?-(\d+.\d+)",
         "autogluon": r"ag(-sagemaker)?-(\d+.\d+)\S*-(py\d+)",
+        "graviton_tensorflow": rf"tf-graviton(-sagemaker)?{customer_type_tag}-(\d+.\d+)\S*-(py\d+)",
+        "graviton_pytorch": rf"pt-graviton(-sagemaker)?{customer_type_tag}-(\d+.\d+)\S*-(py\d+)",
+        "graviton_mxnet": rf"mx-graviton(-sagemaker)?{customer_type_tag}-(\d+.\d+)\S*-(py\d+)",
     }
 
+    # Get tags from repo releases
     repo = git.Repo(os.getcwd(), search_parent_directories=True)
 
     versions_counter = {}
@@ -850,13 +876,14 @@ def parse_canary_images(framework, region):
 
     for tag in repo.tags:
         tag_str = str(tag)
-        match = re.search(version_regex[framework], tag_str)
+        match = re.search(version_regex[canary_type], tag_str)
         ## The tags not have -py3 will not pass th condition below
         ## This eliminates all the old and testing tags that we are not monitoring.
         if match:
             version = match.group(2)
             if not versions_counter.get(version):
                 versions_counter[version] = {"tr": False, "inf": False}
+
             if "tr" not in tag_str and "inf" not in tag_str:
                 versions_counter[version]["tr"] = True
                 versions_counter[version]["inf"] = True
@@ -864,7 +891,7 @@ def parse_canary_images(framework, region):
                 versions_counter[version]["tr"] = True
             elif "inf" in tag_str:
                 versions_counter[version]["inf"] = True
-            
+
             try:
                 python_version_extracted_through_regex = match.group(3)
                 if python_version_extracted_through_regex:
@@ -876,8 +903,8 @@ def parse_canary_images(framework, region):
 
     versions = []
     for v, inf_train in versions_counter.items():
-        # Earlier versions of huggingface did not have inference
-        if (inf_train["inf"] and inf_train["tr"]) or framework.startswith("huggingface"):
+        # Earlier versions of huggingface did not have inference, Graviton is only inference
+        if (inf_train["inf"] and inf_train["tr"]) or framework.startswith("huggingface") or use_graviton:
             versions.append(v)
 
     # Sort ascending to descending, use lambda to ensure 2.2 < 2.15, for instance
@@ -890,7 +917,7 @@ def parse_canary_images(framework, region):
         if fw_version in pre_populated_py_version:
             py_versions = pre_populated_py_version[fw_version]
         else:
-            py_versions = [get_canary_default_tag_py3_version(framework, fw_version)]
+            py_versions = [get_canary_default_tag_py3_version(canary_type, fw_version)]
         for py_version in py_versions:
             images = {
                 "tensorflow": [
@@ -928,13 +955,21 @@ def parse_canary_images(framework, region):
                     f"{registry}.dkr.ecr.{region}.amazonaws.com/autogluon-training:{fw_version}-gpu-{py_version}",
                     f"{registry}.dkr.ecr.{region}.amazonaws.com/autogluon-training:{fw_version}-cpu-{py_version}",
                 ],
+                "graviton_tensorflow": [
+                    f"{registry}.dkr.ecr.{region}.amazonaws.com/tensorflow-inference-graviton:{fw_version}-cpu-{py_version}",
+                ],
+                "graviton_pytorch": [
+                    f"{registry}.dkr.ecr.{region}.amazonaws.com/pytorch-inference-graviton:{fw_version}-cpu-{py_version}",
+                ],
+                # TODO: create graviton_mxnet DLC and add to dictionary 
             }
+
             # E3 Images have an additional "e3" tag to distinguish them from the regular "sagemaker" tag
             if customer_type == "e3":
-                dlc_images += [f"{img}-e3" for img in images[framework]]
+                dlc_images += [f"{img}-e3" for img in images[canary_type]]
             else:
-                dlc_images += images[framework]
-    
+                dlc_images += images[canary_type]
+
     dlc_images.sort()
     return " ".join(dlc_images)
 
@@ -1249,6 +1284,34 @@ def get_neuron_framework_and_version_from_tag(image_uri):
     return tested_framework, neuron_tag_framework_version
 
 
+def get_transformers_version_from_image_uri(image_uri):
+    """
+    Utility function to get the HuggingFace transformers version from an image uri
+
+    @param image_uri: ECR image uri
+    @return: HuggingFace transformers version, or ""
+    """
+    transformers_regex = re.compile(r"transformers(\d+.\d+.\d+)")
+    transformers_in_img_uri = transformers_regex.search(image_uri)
+    if transformers_in_img_uri:
+        return transformers_in_img_uri.group(1)
+    return ""
+
+
+def get_os_version_from_image_uri(image_uri):
+    """
+    Currently only ship ubuntu versions
+
+    @param image_uri: ECR image URI
+    @return: OS version, or ""
+    """
+    os_version_regex = re.compile(r"ubuntu\d+.\d+")
+    os_version_in_img_uri = os_version_regex.search(image_uri)
+    if os_version_in_img_uri:
+        return os_version_in_img_uri.group()
+    return ""
+
+
 def get_framework_from_image_uri(image_uri):
     return (
         "huggingface_tensorflow"
@@ -1548,3 +1611,56 @@ def is_image_available_locally(image_uri):
     """
     run_output = run(f"docker inspect {image_uri}", hide=True, warn=True)
     return run_output.ok
+
+
+def get_contributor_from_image_uri(image_uri):
+    """
+    Return contributor name if it is present in the image URI
+
+    @param image_uri: ECR image uri
+    @return: contributor name, or ""
+    """
+    # Key value pair of contributor_identifier_in_image_uri: contributor_name
+    contributors = {
+        "huggingface": "huggingface",
+        "habana": "habana"
+    }
+    for contributor_identifier_in_image_uri, contributor_name in contributors.items():
+        if contributor_identifier_in_image_uri in image_uri:
+            return contributor_name
+    return ""
+
+
+def get_labels_from_ecr_image(image_uri, region):
+    """
+    Get ecr image labels from ECR
+
+    @param image_uri: ECR image URI to get labels from
+    @param region: AWS region
+    @return: list of labels attached to ECR image URI
+    """
+    ecr_client = boto3.client("ecr", region_name=region)
+
+    image_repository, image_tag = get_repository_and_tag_from_image_uri(image_uri)
+    # Using "acceptedMediaTypes" on the batch_get_image request allows the returned image information to
+    # provide the ECR Image Manifest in the specific format that we need, so that the image LABELS can be found
+    # on the manifest. The default format does not return the image LABELs.
+    response = ecr_client.batch_get_image(
+        repositoryName=image_repository,
+        imageIds=[{"imageTag": image_tag}],
+        acceptedMediaTypes=["application/vnd.docker.distribution.manifest.v1+json"],
+    )
+    if not response.get("images"):
+        raise KeyError(
+            f"Failed to get images through ecr_client.batch_get_image response for image {image_repository}:{image_tag}"
+        )
+    elif not response["images"][0].get("imageManifest"):
+        raise KeyError(f"imageManifest not found in ecr_client.batch_get_image response:\n{response['images']}")
+
+    manifest_str = response["images"][0]["imageManifest"]
+    # manifest_str is a json-format string
+    manifest = json.loads(manifest_str)
+    image_metadata = json.loads(manifest["history"][0]["v1Compatibility"])
+    labels = image_metadata["config"]["Labels"]
+
+    return labels

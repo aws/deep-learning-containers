@@ -147,7 +147,8 @@ RUN ${PIP} install --no-cache-dir -U \
     "opencv-python>=4.3,<5" \
     "werkzeug>=2.0.2,<3" \
     psutil==5.7.2 \
-    "urllib3>1.26.0<1.27.0"
+    "urllib3>1.26.0<1.27.0" \
+    protobuf==3.19.4
 
 ADD https://raw.githubusercontent.com/aws/deep-learning-containers/master/src/deep_learning_container.py /usr/local/bin/deep_learning_container.py
 
@@ -166,7 +167,7 @@ RUN curl https://aws-dlc-licenses.s3.amazonaws.com/tensorflow-${TF_VERSION}/lice
 
 FROM common AS e3
 
-ARG TF_URL=https://framework-binaries.s3.us-west-2.amazonaws.com/tensorflow/r2.9_aws/cpu/2022-05-17-20-04/tensorflow_cpu-2.9.0-cp39-cp39-manylinux_2_17_x86_64.manylinux2014_x86_64.whl
+ARG TF_URL=https://framework-binaries.s3.us-west-2.amazonaws.com/tensorflow/r2.9_aws/cpu/2022-05-23-23-00/tensorflow_cpu-2.9.1-cp39-cp39-manylinux_2_17_x86_64.manylinux2014_x86_64.whl
 
 RUN ${PIP} install --no-cache-dir -U \
     ${TF_URL} \
@@ -190,5 +191,104 @@ RUN HOME_DIR=/root \
 
 # remove tmp files
 RUN rm -rf /tmp/*
+
+CMD ["/bin/bash"]
+
+#################################################################
+#  ____                   __  __       _
+# / ___|  __ _  __ _  ___|  \/  | __ _| | _____ _ __
+# \___ \ / _` |/ _` |/ _ \ |\/| |/ _` | |/ / _ \ '__|
+#  ___) | (_| | (_| |  __/ |  | | (_| |   <  __/ |
+# |____/ \__,_|\__, |\___|_|  |_|\__,_|_|\_\___|_|
+#              |___/
+#  ___                              ____           _
+# |_ _|_ __ ___   __ _  __ _  ___  |  _ \ ___  ___(_)_ __   ___
+#  | || '_ ` _ \ / _` |/ _` |/ _ \ | |_) / _ \/ __| | '_ \ / _ \
+#  | || | | | | | (_| | (_| |  __/ |  _ <  __/ (__| | |_) |  __/
+# |___|_| |_| |_|\__,_|\__, |\___| |_| \_\___|\___|_| .__/ \___|
+#                      |___/                        |_|
+#################################################################
+
+FROM common AS sagemaker
+
+LABEL maintainer="Amazon AI"
+LABEL dlc_major_version="1"
+
+# sagemaker-specific environment variable
+ENV SAGEMAKER_TRAINING_MODULE sagemaker_tensorflow_container.training:main
+
+# dependencies for opencv
+# these dependencies are not needed for gpu image
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    libgtk2.0-dev \
+    && apt-get install -y -qq libkrb5-dev \
+    && apt-get install -y -qq libsasl2-dev libsasl2-modules \
+    && apt-get install -y -qq krb5-user \
+&& rm -rf /var/lib/apt/lists/*
+
+ARG TF_URL=https://framework-binaries.s3.us-west-2.amazonaws.com/tensorflow/r2.9_aws/cpu/2022-05-23-23-00/tensorflow_cpu-2.9.1-cp39-cp39-manylinux_2_17_x86_64.manylinux2014_x86_64.whl
+
+# https://github.com/tensorflow/models/issues/9267
+# tf-models does not respect existing installations of TF and always installs open source TF
+RUN ${PIP} install --no-cache-dir -U \
+    tf-models-official==2.9.1
+
+RUN ${PIP} uninstall -y tensorflow tensorflow-gpu \
+  ; ${PIP} install --no-cache-dir -U \
+    ${TF_URL} \
+    tensorflow-io==0.24.0 \
+    tensorflow-datasets==4.5.2
+
+# Install Horovod with TensorFlow
+RUN HOROVOD_WITH_MPI=1 \
+   && HOROVOD_WITH_TENSORFLOW=1 HOROVOD_WITHOUT_MXNET=1 HOROVOD_WITHOUT_PYTORCH=1 \
+   && ${PIP} install --no-cache-dir horovod==0.24.2
+
+RUN $PYTHON -m pip install --no-cache-dir -U \
+    "bokeh>=2.3,<3" \
+    "imageio>=2.9,<3" \
+    "opencv-python>=4.3,<5" \
+    "plotly>=5.1,<6" \
+    "seaborn>=0.11,<1" \
+    "numba<0.54" \
+    "shap>=0.39,<1"
+
+RUN $PYTHON -m pip install --no-cache-dir -U \
+    "sagemaker>=2.93.0,<3" \
+    sagemaker-experiments==0.* \
+    "sagemaker-tensorflow-training>=20.3.1" \
+    "sagemaker-studio-analytics-extension==0.0.2" \
+    "sparkmagic<1" \
+    "sagemaker-studio-sparkmagic-lib<1" \
+    smclarify
+
+
+# install smdebug directly the specific branch
+ARG SMDEBUG_TAG=1.0.17
+RUN git clone https://github.com/awslabs/sagemaker-debugger.git \
+    && cd sagemaker-debugger \
+    && git checkout tags/$SMDEBUG_TAG -b $SMDEBUG_TAG \
+    && $PYTHON setup.py install && cd .. && rm -rf sagemaker-debugger
+
+# install sagemaker-tensorflow from source
+ARG SAGEMAKER_TENSORFLOW_TAG=v1.15.0
+RUN apt update && apt install -y libcurl4-openssl-dev
+RUN git clone -b tf-2 https://github.com/aws/sagemaker-tensorflow-extensions.git \
+    && cd sagemaker-tensorflow-extensions \
+    && git checkout tags/$SAGEMAKER_TENSORFLOW_TAG -b $SAGEMAKER_TENSORFLOW_TAG \
+    && $PYTHON -m pip install . \
+    && cd .. && rm -rf sagemaker-tensorflow-extensions
+    
+# remove tmp files
+RUN rm -rf /tmp/*
+
+RUN HOME_DIR=/root \
+   && curl -o ${HOME_DIR}/oss_compliance.zip https://aws-dlinfra-utilities.s3.amazonaws.com/oss_compliance.zip \
+   && unzip ${HOME_DIR}/oss_compliance.zip -d ${HOME_DIR}/ \
+   && cp ${HOME_DIR}/oss_compliance/test/testOSSCompliance /usr/local/bin/testOSSCompliance \
+   && chmod +x /usr/local/bin/testOSSCompliance \
+   && chmod +x ${HOME_DIR}/oss_compliance/generate_oss_compliance.sh \
+   && ${HOME_DIR}/oss_compliance/generate_oss_compliance.sh ${HOME_DIR} ${PYTHON} \
+   && rm -rf ${HOME_DIR}/oss_compliance*
 
 CMD ["/bin/bash"]

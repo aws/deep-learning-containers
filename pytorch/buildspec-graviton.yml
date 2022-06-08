@@ -4,6 +4,7 @@ framework: &FRAMEWORK pytorch
 version: &VERSION 1.10.0
 os_version: &OS_VERSION ubuntu20.04
 short_version: &SHORT_VERSION "1.10"
+arch_type: graviton
 
 repository_info:
   inference_repository: &INFERENCE_REPOSITORY
