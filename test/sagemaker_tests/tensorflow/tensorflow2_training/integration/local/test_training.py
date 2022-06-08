@@ -32,6 +32,8 @@ def py_full_version(py_version):  # noqa: F811
         return '3.7'
     elif py_version == '38':
         return '3.8'
+    elif py_version == '39':
+        return '3.9'
     else:
         return '3.6'
 

@@ -29,8 +29,18 @@ LOGGER.addHandler(logging.StreamHandler(sys.stderr))
 DEFAULT_REGION = "us-west-2"
 # Constant to represent region where p3dn tests can be run
 P3DN_REGION = "us-east-1"
+def get_ami_id_boto3(region_name, ami_name_pattern):
+    """
+    For a given region and ami name pattern, return the latest ami-id
+    """
+    ami_list = boto3.client("ec2", region_name=region_name).describe_images(
+        Filters=[{"Name": "name", "Values": [ami_name_pattern]}], Owners=['amazon']
+    )
+    ami = max(ami_list["Images"], key=lambda x: x["CreationDate"])
+    return ami['ImageId']
 
-UBUNTU_18_BASE_DLAMI_US_WEST_2 = "ami-0150e36b3f936a26e"
+    
+UBUNTU_18_BASE_DLAMI_US_WEST_2 = get_ami_id_boto3(region_name="us-west-2", ami_name_pattern="Deep Learning AMI GPU CUDA 11.1.1 (Ubuntu 18.04) ????????")
 UBUNTU_18_BASE_DLAMI_US_EAST_1 = "ami-044971d381e6a1109"
 AML2_GPU_DLAMI_US_WEST_2 = "ami-071cb1e434903a577"
 AML2_GPU_DLAMI_US_EAST_1 = "ami-044264d246686b043"
@@ -157,6 +167,7 @@ def get_dockerfile_path_for_image(image_uri):
     device_type = get_processor_from_image_uri(image_uri)
     cuda_version = get_cuda_version_from_tag(image_uri)
     synapseai_version = get_synapseai_version_from_tag(image_uri)
+    neuron_sdk_version = get_neuron_sdk_version_from_tag(image_uri)
 
     dockerfile_name = get_expected_dockerfile_filename(device_type, image_uri)
 
@@ -166,7 +177,7 @@ def get_dockerfile_path_for_image(image_uri):
         if "example" not in path
     ]
 
-    if device_type in ["gpu", "hpu"]:
+    if device_type in ["gpu", "hpu", "neuron"]:
         if len(dockerfiles_list) > 1:
             if device_type == "gpu" and not cuda_version:
                 raise LookupError(
@@ -180,12 +191,21 @@ def get_dockerfile_path_for_image(image_uri):
                     f"uniquely identify the right dockerfile:\n"
                     f"{dockerfiles_list}"
                 )
+            if device_type == "neuron" and not neuron_sdk_version:
+                raise LookupError(
+                    f"dockerfiles_list has more than one result, and needs neuron_sdk_version to be in image_uri to "
+                    f"uniquely identify the right dockerfile:\n"
+                    f"{dockerfiles_list}"
+                )
         for dockerfile_path in dockerfiles_list:
             if cuda_version:
                 if cuda_version in dockerfile_path:
                     return dockerfile_path
             elif synapseai_version:
                 if synapseai_version in dockerfile_path:
+                    return dockerfile_path
+            elif neuron_sdk_version:
+                if neuron_sdk_version in dockerfile_path:
                     return dockerfile_path
         raise LookupError(f"Failed to find a dockerfile path for {cuda_version} in:\n{dockerfiles_list}")
 
@@ -788,7 +808,6 @@ def get_canary_default_tag_py3_version(framework, version):
     Currently, only TF2.2 images and above have major/minor python version in their canary tag. Creating this function
     to conditionally choose a python version based on framework version ranges. If we move up to py38, for example,
     this is the place to make the conditional change.
-
     :param framework: tensorflow1, tensorflow2, mxnet, pytorch
     :param version: fw major.minor version, i.e. 2.2
     :return: default tag python version
@@ -824,6 +843,18 @@ def parse_canary_images(framework, region):
     """
     customer_type = get_customer_type()
     customer_type_tag = f"-{customer_type}" if customer_type else ""
+    
+    # initialize graviton variables
+    use_graviton = False
+
+    # seperating framework from regex match pattern for graviton as it is ARCH_TYPE instead of FRAMEWORK
+    canary_type = framework
+
+    # Setting whether Graviton Arch is used
+    # NOTE: If Graviton arch is used with a framework, not in the list below, the match search will "KeyError".
+    if os.getenv("ARCH_TYPE") == "graviton":
+        use_graviton = True
+        canary_type = "graviton_"+framework
 
     version_regex = {
         "tensorflow": rf"tf(-sagemaker)?{customer_type_tag}-(\d+.\d+)",
@@ -831,20 +862,28 @@ def parse_canary_images(framework, region):
         "pytorch": rf"pt(-sagemaker)?{customer_type_tag}-(\d+.\d+)",
         "huggingface_pytorch": r"hf-\S*pt(-sagemaker)?-(\d+.\d+)",
         "huggingface_tensorflow": r"hf-\S*tf(-sagemaker)?-(\d+.\d+)",
-        "autogluon": r"ag(-sagemaker)?-(\d+.\d+)",
+        "autogluon": r"ag(-sagemaker)?-(\d+.\d+)\S*-(py\d+)",
+        "graviton_tensorflow": rf"tf-graviton(-sagemaker)?{customer_type_tag}-(\d+.\d+)\S*-(py\d+)",
+        "graviton_pytorch": rf"pt-graviton(-sagemaker)?{customer_type_tag}-(\d+.\d+)\S*-(py\d+)",
+        "graviton_mxnet": rf"mx-graviton(-sagemaker)?{customer_type_tag}-(\d+.\d+)\S*-(py\d+)",
     }
 
+    # Get tags from repo releases
     repo = git.Repo(os.getcwd(), search_parent_directories=True)
 
     versions_counter = {}
+    pre_populated_py_version = {}
 
     for tag in repo.tags:
         tag_str = str(tag)
-        match = re.search(version_regex[framework], tag_str)
+        match = re.search(version_regex[canary_type], tag_str)
+        ## The tags not have -py3 will not pass th condition below
+        ## This eliminates all the old and testing tags that we are not monitoring.
         if match:
             version = match.group(2)
             if not versions_counter.get(version):
                 versions_counter[version] = {"tr": False, "inf": False}
+
             if "tr" not in tag_str and "inf" not in tag_str:
                 versions_counter[version]["tr"] = True
                 versions_counter[version]["inf"] = True
@@ -853,10 +892,19 @@ def parse_canary_images(framework, region):
             elif "inf" in tag_str:
                 versions_counter[version]["inf"] = True
 
+            try:
+                python_version_extracted_through_regex = match.group(3)
+                if python_version_extracted_through_regex:
+                    if version not in pre_populated_py_version:
+                        pre_populated_py_version[version] = set()
+                    pre_populated_py_version[version].add(python_version_extracted_through_regex)
+            except IndexError:
+                LOGGER.info(f"For Framework: {framework} we do not use regex to fetch python version")
+
     versions = []
     for v, inf_train in versions_counter.items():
-        # Earlier versions of huggingface did not have inference
-        if (inf_train["inf"] and inf_train["tr"]) or framework.startswith("huggingface"):
+        # Earlier versions of huggingface did not have inference, Graviton is only inference
+        if (inf_train["inf"] and inf_train["tr"]) or framework.startswith("huggingface") or use_graviton:
             versions.append(v)
 
     # Sort ascending to descending, use lambda to ensure 2.2 < 2.15, for instance
@@ -866,51 +914,63 @@ def parse_canary_images(framework, region):
     framework_versions = versions if len(versions) < 4 else versions[:3]
     dlc_images = []
     for fw_version in framework_versions:
-        py3_version = get_canary_default_tag_py3_version(framework, fw_version)
-
-        images = {
-            "tensorflow": [
-                f"{registry}.dkr.ecr.{region}.amazonaws.com/tensorflow-training:{fw_version}-gpu-{py3_version}",
-                f"{registry}.dkr.ecr.{region}.amazonaws.com/tensorflow-training:{fw_version}-cpu-{py3_version}",
-                f"{registry}.dkr.ecr.{region}.amazonaws.com/tensorflow-inference:{fw_version}-gpu",
-                f"{registry}.dkr.ecr.{region}.amazonaws.com/tensorflow-inference:{fw_version}-cpu",
-            ],
-            "mxnet": [
-                f"{registry}.dkr.ecr.{region}.amazonaws.com/mxnet-training:{fw_version}-gpu-{py3_version}",
-                f"{registry}.dkr.ecr.{region}.amazonaws.com/mxnet-training:{fw_version}-cpu-{py3_version}",
-                f"{registry}.dkr.ecr.{region}.amazonaws.com/mxnet-inference:{fw_version}-gpu-{py3_version}",
-                f"{registry}.dkr.ecr.{region}.amazonaws.com/mxnet-inference:{fw_version}-cpu-{py3_version}",
-            ],
-            "pytorch": [
-                f"{registry}.dkr.ecr.{region}.amazonaws.com/pytorch-training:{fw_version}-gpu-{py3_version}",
-                f"{registry}.dkr.ecr.{region}.amazonaws.com/pytorch-training:{fw_version}-cpu-{py3_version}",
-                f"{registry}.dkr.ecr.{region}.amazonaws.com/pytorch-inference:{fw_version}-gpu-{py3_version}",
-                f"{registry}.dkr.ecr.{region}.amazonaws.com/pytorch-inference:{fw_version}-cpu-{py3_version}",
-            ],
-            # TODO: uncomment once cpu training and inference images become available
-            "huggingface_pytorch": [
-                f"{registry}.dkr.ecr.{region}.amazonaws.com/huggingface-pytorch-training:{fw_version}-gpu-{py3_version}",
-                # f"{registry}.dkr.ecr.{region}.amazonaws.com/huggingface-pytorch-training:{fw_version}-cpu-{py3_version}",
-                f"{registry}.dkr.ecr.{region}.amazonaws.com/huggingface-pytorch-inference:{fw_version}-gpu-{py3_version}",
-                f"{registry}.dkr.ecr.{region}.amazonaws.com/huggingface-pytorch-inference:{fw_version}-cpu-{py3_version}",
-            ],
-            "huggingface_tensorflow": [
-                f"{registry}.dkr.ecr.{region}.amazonaws.com/huggingface-tensorflow-training:{fw_version}-gpu-{py3_version}",
-                # f"{registry}.dkr.ecr.{region}.amazonaws.com/huggingface-tensorflow-training:{fw_version}-cpu-{py3_version}",
-                f"{registry}.dkr.ecr.{region}.amazonaws.com/huggingface-tensorflow-inference:{fw_version}-gpu-{py3_version}",
-                f"{registry}.dkr.ecr.{region}.amazonaws.com/huggingface-tensorflow-inference:{fw_version}-cpu-{py3_version}",
-            ],
-            "autogluon": [
-                f"{registry}.dkr.ecr.{region}.amazonaws.com/autogluon-training:{fw_version}-gpu-{py3_version}",
-                f"{registry}.dkr.ecr.{region}.amazonaws.com/autogluon-training:{fw_version}-cpu-{py3_version}",
-            ],
-        }
-        # E3 Images have an additional "e3" tag to distinguish them from the regular "sagemaker" tag
-        if customer_type == "e3":
-            dlc_images += [f"{img}-e3" for img in images[framework]]
+        if fw_version in pre_populated_py_version:
+            py_versions = pre_populated_py_version[fw_version]
         else:
-            dlc_images += images[framework]
+            py_versions = [get_canary_default_tag_py3_version(canary_type, fw_version)]
+        for py_version in py_versions:
+            images = {
+                "tensorflow": [
+                    f"{registry}.dkr.ecr.{region}.amazonaws.com/tensorflow-training:{fw_version}-gpu-{py_version}",
+                    f"{registry}.dkr.ecr.{region}.amazonaws.com/tensorflow-training:{fw_version}-cpu-{py_version}",
+                    f"{registry}.dkr.ecr.{region}.amazonaws.com/tensorflow-inference:{fw_version}-gpu",
+                    f"{registry}.dkr.ecr.{region}.amazonaws.com/tensorflow-inference:{fw_version}-cpu",
+                ],
+                "mxnet": [
+                    f"{registry}.dkr.ecr.{region}.amazonaws.com/mxnet-training:{fw_version}-gpu-{py_version}",
+                    f"{registry}.dkr.ecr.{region}.amazonaws.com/mxnet-training:{fw_version}-cpu-{py_version}",
+                    f"{registry}.dkr.ecr.{region}.amazonaws.com/mxnet-inference:{fw_version}-gpu-{py_version}",
+                    f"{registry}.dkr.ecr.{region}.amazonaws.com/mxnet-inference:{fw_version}-cpu-{py_version}",
+                ],
+                "pytorch": [
+                    f"{registry}.dkr.ecr.{region}.amazonaws.com/pytorch-training:{fw_version}-gpu-{py_version}",
+                    f"{registry}.dkr.ecr.{region}.amazonaws.com/pytorch-training:{fw_version}-cpu-{py_version}",
+                    f"{registry}.dkr.ecr.{region}.amazonaws.com/pytorch-inference:{fw_version}-gpu-{py_version}",
+                    f"{registry}.dkr.ecr.{region}.amazonaws.com/pytorch-inference:{fw_version}-cpu-{py_version}",
+                ],
+                # TODO: uncomment once cpu training and inference images become available
+                "huggingface_pytorch": [
+                    f"{registry}.dkr.ecr.{region}.amazonaws.com/huggingface-pytorch-training:{fw_version}-gpu-{py_version}",
+                    # f"{registry}.dkr.ecr.{region}.amazonaws.com/huggingface-pytorch-training:{fw_version}-cpu-{py_version}",
+                    f"{registry}.dkr.ecr.{region}.amazonaws.com/huggingface-pytorch-inference:{fw_version}-gpu-{py_version}",
+                    f"{registry}.dkr.ecr.{region}.amazonaws.com/huggingface-pytorch-inference:{fw_version}-cpu-{py_version}",
+                ],
+                "huggingface_tensorflow": [
+                    f"{registry}.dkr.ecr.{region}.amazonaws.com/huggingface-tensorflow-training:{fw_version}-gpu-{py_version}",
+                    # f"{registry}.dkr.ecr.{region}.amazonaws.com/huggingface-tensorflow-training:{fw_version}-cpu-{py_version}",
+                    f"{registry}.dkr.ecr.{region}.amazonaws.com/huggingface-tensorflow-inference:{fw_version}-gpu-{py_version}",
+                    f"{registry}.dkr.ecr.{region}.amazonaws.com/huggingface-tensorflow-inference:{fw_version}-cpu-{py_version}",
+                ],
+                "autogluon": [
+                    f"{registry}.dkr.ecr.{region}.amazonaws.com/autogluon-training:{fw_version}-gpu-{py_version}",
+                    f"{registry}.dkr.ecr.{region}.amazonaws.com/autogluon-training:{fw_version}-cpu-{py_version}",
+                ],
+                "graviton_tensorflow": [
+                    f"{registry}.dkr.ecr.{region}.amazonaws.com/tensorflow-inference-graviton:{fw_version}-cpu-{py_version}",
+                ],
+                "graviton_pytorch": [
+                    f"{registry}.dkr.ecr.{region}.amazonaws.com/pytorch-inference-graviton:{fw_version}-cpu-{py_version}",
+                ],
+                # TODO: create graviton_mxnet DLC and add to dictionary 
+            }
 
+            # E3 Images have an additional "e3" tag to distinguish them from the regular "sagemaker" tag
+            if customer_type == "e3":
+                dlc_images += [f"{img}-e3" for img in images[canary_type]]
+            else:
+                dlc_images += images[canary_type]
+
+    dlc_images.sort()
     return " ".join(dlc_images)
 
 
@@ -1144,6 +1204,43 @@ NEURON_VERSION_MANIFEST = {
             "1.8.0": "1.8.0.2.1.5.0",
         },
     },
+    "1.18.0": {
+        "pytorch": {
+            "1.5.1": "1.5.1.2.2.0.0",
+            "1.7.1": "1.7.1.2.2.0.0",
+            "1.8.1": "1.8.1.2.2.0.0",
+            "1.9.1": "1.9.1.2.2.0.0",
+            "1.10.2": "1.10.1.2.2.0.0",
+        },
+        "tensorflow": {
+            "2.5.3": "2.5.3.2.2.0.0",
+            "2.6.3": "2.6.3.2.2.0.0",
+            "2.7.1": "2.7.1.2.2.0.0",
+            "1.15.5": "1.15.5.2.2.0.0",
+        },
+        "mxnet": {
+            "1.8.0": "1.8.0.2.2.2.0",
+        },
+    },
+    "1.19.0": {
+        "pytorch": {
+            "1.7.1": "1.7.1.2.3.0.0",
+            "1.8.1": "1.8.1.2.3.0.0",
+            "1.9.1": "1.9.1.2.3.0.0",
+            "1.10.2": "1.10.2.2.3.0.0",
+            "1.11.0": "1.11.0.2.3.0.0",
+        },
+        "tensorflow": {
+            "2.5.3": "2.5.3.2.3.0.0",
+            "2.6.3": "2.6.3.2.3.0.0",
+            "2.7.1": "2.7.1.2.3.0.0",
+            "2.8.0": "2.8.0.2.3.0.0",
+            "1.15.5": "1.15.5.2.3.0.0",
+        },
+        "mxnet": {
+            "1.8.0": "1.8.0.2.2.2.0",
+        },
+    },
 }
 
 
@@ -1185,6 +1282,34 @@ def get_neuron_framework_and_version_from_tag(image_uri):
     neuron_tag_framework_version = neuron_framework_versions.get(tag_framework_version)
 
     return tested_framework, neuron_tag_framework_version
+
+
+def get_transformers_version_from_image_uri(image_uri):
+    """
+    Utility function to get the HuggingFace transformers version from an image uri
+
+    @param image_uri: ECR image uri
+    @return: HuggingFace transformers version, or ""
+    """
+    transformers_regex = re.compile(r"transformers(\d+.\d+.\d+)")
+    transformers_in_img_uri = transformers_regex.search(image_uri)
+    if transformers_in_img_uri:
+        return transformers_in_img_uri.group(1)
+    return ""
+
+
+def get_os_version_from_image_uri(image_uri):
+    """
+    Currently only ship ubuntu versions
+
+    @param image_uri: ECR image URI
+    @return: OS version, or ""
+    """
+    os_version_regex = re.compile(r"ubuntu\d+.\d+")
+    os_version_in_img_uri = os_version_regex.search(image_uri)
+    if os_version_in_img_uri:
+        return os_version_in_img_uri.group()
+    return ""
 
 
 def get_framework_from_image_uri(image_uri):
@@ -1475,3 +1600,67 @@ def execute_env_variables_test(image_uri, env_vars_to_test, container_name_prefi
         assert actual_val == expected_val, \
             f"Environment variable {var} is expected to be {expected_val}. {assertion_error_sentence}."
     stop_and_remove_container(container_name, ctx)
+
+
+def is_image_available_locally(image_uri):
+    """
+    Check if the image exists locally.
+
+    :param image_uri: str, image that needs to be checked
+    :return: bool, True if image exists locally, otherwise false
+    """
+    run_output = run(f"docker inspect {image_uri}", hide=True, warn=True)
+    return run_output.ok
+
+
+def get_contributor_from_image_uri(image_uri):
+    """
+    Return contributor name if it is present in the image URI
+
+    @param image_uri: ECR image uri
+    @return: contributor name, or ""
+    """
+    # Key value pair of contributor_identifier_in_image_uri: contributor_name
+    contributors = {
+        "huggingface": "huggingface",
+        "habana": "habana"
+    }
+    for contributor_identifier_in_image_uri, contributor_name in contributors.items():
+        if contributor_identifier_in_image_uri in image_uri:
+            return contributor_name
+    return ""
+
+
+def get_labels_from_ecr_image(image_uri, region):
+    """
+    Get ecr image labels from ECR
+
+    @param image_uri: ECR image URI to get labels from
+    @param region: AWS region
+    @return: list of labels attached to ECR image URI
+    """
+    ecr_client = boto3.client("ecr", region_name=region)
+
+    image_repository, image_tag = get_repository_and_tag_from_image_uri(image_uri)
+    # Using "acceptedMediaTypes" on the batch_get_image request allows the returned image information to
+    # provide the ECR Image Manifest in the specific format that we need, so that the image LABELS can be found
+    # on the manifest. The default format does not return the image LABELs.
+    response = ecr_client.batch_get_image(
+        repositoryName=image_repository,
+        imageIds=[{"imageTag": image_tag}],
+        acceptedMediaTypes=["application/vnd.docker.distribution.manifest.v1+json"],
+    )
+    if not response.get("images"):
+        raise KeyError(
+            f"Failed to get images through ecr_client.batch_get_image response for image {image_repository}:{image_tag}"
+        )
+    elif not response["images"][0].get("imageManifest"):
+        raise KeyError(f"imageManifest not found in ecr_client.batch_get_image response:\n{response['images']}")
+
+    manifest_str = response["images"][0]["imageManifest"]
+    # manifest_str is a json-format string
+    manifest = json.loads(manifest_str)
+    image_metadata = json.loads(manifest["history"][0]["v1Compatibility"])
+    labels = image_metadata["config"]["Labels"]
+
+    return labels
