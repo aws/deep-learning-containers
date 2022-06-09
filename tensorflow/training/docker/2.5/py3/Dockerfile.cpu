@@ -26,7 +26,6 @@ ARG PYTHON=python3.7
 ARG PYTHON_PIP=python3-pip
 ARG PIP=pip3
 ARG PYTHON_VERSION=3.7.10
-ARG OPENSSL_VERSION=1.1.1l
 
 ARG TF_URL=https://aws-tensorflow-binaries.s3.us-west-2.amazonaws.com/tensorflow/r2.5_aws/20220607_224137/cpu/py37/tensorflow_cpu-2.5.3-cp37-cp37m-manylinux2010_x86_64.whl
 
@@ -118,22 +117,6 @@ RUN ${PIP} --no-cache-dir install --upgrade \
     pip \
     setuptools
 
-RUN wget -c https://www.openssl.org/source/openssl-${OPENSSL_VERSION}.tar.gz \
- && apt remove -y --purge openssl \
- && rm -rf /usr/include/openssl \
- && apt-get update \
- && apt-get install -y \
-    ca-certificates \
- && tar -xzvf openssl-${OPENSSL_VERSION}.tar.gz \
- && cd openssl-${OPENSSL_VERSION} \
- && ./config && make && make test \
- && make install \
- && ldconfig \
- && cd .. && rm -rf openssl-*
-
-# when we remove previous openssl, the ca-certificates pkgs and its symlinks gets deleted
-# causing sslcertverificationerror the below steps are to fix that
-RUN ln -s /etc/ssl/certs/*.* /usr/local/ssl/certs/
 
 # Some TF tools expect a "python" binary
 RUN ln -s $(which ${PYTHON}) /usr/local/bin/python \
