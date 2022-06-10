@@ -147,7 +147,10 @@ def image_builder(buildspec):
 
         # Define label variables
         label_framework = str(BUILDSPEC['framework']).replace('_', '-')
-        label_framework_version = str(BUILDSPEC['version']).replace('.', '-')
+        if image_config.get("framework_version"):
+            label_framework_version = str(image_config['framework_version']).replace('.', '-')
+        else:
+            label_framework_version = str(BUILDSPEC['version']).replace('.', '-')
         label_device_type = str(image_config['device_type'])
         if label_device_type == "gpu":
             label_device_type = f"{label_device_type}.{str(image_config['cuda_version'])}"
