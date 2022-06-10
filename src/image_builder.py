@@ -146,7 +146,10 @@ def image_builder(buildspec):
 
         # Define label variables
         label_framework = str(BUILDSPEC['framework']).replace('_', '-')
-        label_framework_version = str(BUILDSPEC['version']).replace('.', '-')
+        if image_config.get("framework_version"):
+            label_framework_version = str(image_config['framework_version'])
+        else:
+            label_framework_version = str(BUILDSPEC['version']).replace('.', '-')
         label_device_type = str(image_config['device_type'])
         if label_device_type == "gpu":
             label_device_type = f"{label_device_type}.{str(image_config['cuda_version'])}"
@@ -170,6 +173,7 @@ def image_builder(buildspec):
         if cx_type == "sagemaker":
             # Adding standard labels to all images
             labels[
+
                 f"com.amazonaws.ml.engines.{cx_type}.dlc.framework.{label_framework}.{label_framework_version}"
             ] = "true"
             labels[
