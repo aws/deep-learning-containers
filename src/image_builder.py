@@ -173,7 +173,6 @@ def image_builder(buildspec):
         if cx_type == "sagemaker":
             # Adding standard labels to all images
             labels[
-
                 f"com.amazonaws.ml.engines.{cx_type}.dlc.framework.{label_framework}.{label_framework_version}"
             ] = "true"
             labels[
