@@ -51,6 +51,7 @@ def _find_image_object(images_list, image_name):
             break
     return ret_image_object
 
+
 # TODO: Abstract away to ImageBuilder class
 def image_builder(buildspec):
 
@@ -116,9 +117,8 @@ def image_builder(buildspec):
                 labels[var] = file_name
                 labels[f"{var}_URI"] = uri
 
-
         transformers_version = image_config.get("transformers_version")
-  
+
         if str(BUILDSPEC["framework"]).startswith("huggingface") or str(BUILDSPEC["framework"]).endswith("trcomp"):
             if transformers_version:
                 extra_build_args["TRANSFORMERS_VERSION"] = transformers_version

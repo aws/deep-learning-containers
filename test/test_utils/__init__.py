@@ -408,6 +408,7 @@ def is_time_for_invoking_ecr_scan_failure_routine_lambda():
     current_utc_time = time.gmtime()
     return current_utc_time.tm_hour == 16 and (0 < current_utc_time.tm_min < 20)
 
+
 def _get_remote_override_flags():
     try:
         s3_client = boto3.client("s3")
@@ -931,6 +932,7 @@ def parse_canary_images(framework, region):
 
     registry = PUBLIC_DLC_REGISTRY
     framework_versions = versions if len(versions) < 4 else versions[:3]
+    dlc_images = []
     for fw_version in framework_versions:
         if fw_version in pre_populated_py_version:
             py_versions = pre_populated_py_version[fw_version]

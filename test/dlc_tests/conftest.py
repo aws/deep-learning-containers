@@ -686,7 +686,7 @@ def generate_unique_values_for_fixtures(metafunc_obj, images_to_parametrize, val
                 for index, image in enumerate(images_to_parametrize):
 
                     # Tag fixtures with EC2 instance types if env variable is present
-                    allowed_processors = ("gpu", "cpu", "eia", "neuron", "hpu", "graviton")
+                    allowed_processors = ("gpu", "cpu", "eia", "neuron", "hpu")
                     instance_tag = ""
                     for processor in allowed_processors:
                         if processor in image:
@@ -723,11 +723,14 @@ def lookup_condition(lookup, image):
     # Extract ecr repo name from the image and check if it exactly matches the lookup (fixture name)
     repo_name = get_ecr_repo_name(image)
 
-    job_type = ("training", "inference",)
-    device_type = ("cpu", "gpu", "eia", "neuron", "hpu", "graviton")
+    job_types = (
+        "training",
+        "inference",
+    )
+    device_types = ("cpu", "gpu", "eia", "neuron", "hpu", "graviton")
 
     if not repo_name.endswith(lookup):
-        if (lookup in job_type or lookup in device_type) and lookup in image:
+        if (lookup in job_types or lookup in device_types) and lookup in image:
             return True
         # Pytest does not allow usage of fixtures, specially dynamically loaded fixtures into pytest.mark.parametrize
         # See https://github.com/pytest-dev/pytest/issues/349.
@@ -760,8 +763,8 @@ def pytest_generate_tests(metafunc):
                 if lookup_condition(lookup, image):
                     is_example_lookup = "example_only" in metafunc.fixturenames and "example" in image
                     is_huggingface_lookup = (
-                            ("huggingface_only" in metafunc.fixturenames or "huggingface" in metafunc.fixturenames)
-                            and "huggingface" in image
+                        ("huggingface_only" in metafunc.fixturenames or "huggingface" in metafunc.fixturenames)
+                        and "huggingface" in image
                     )
                     is_trcomp_lookup = "trcomp" in image and all(
                         fixture_name not in metafunc.fixturenames

@@ -42,6 +42,7 @@ call_model_fn_once_script = os.path.join(resources_path, 'call_model_fn_once.py'
 ROLE = 'dummy/unused-role'
 DEFAULT_TIMEOUT = 40
 
+
 def get_framework_from_image_uri(image_uri):
     return (
         "huggingface_tensorflow_trcomp" 
