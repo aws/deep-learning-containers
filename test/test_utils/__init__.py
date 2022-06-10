@@ -40,7 +40,7 @@ def get_ami_id_boto3(region_name, ami_name_pattern):
     return ami['ImageId']
 
     
-UBUNTU_18_BASE_DLAMI_US_WEST_2 = get_ami_id_boto3(region_name="us-west-2", ami_name_pattern="Deep Learning AMI GPU CUDA 11.1.1 (Ubuntu 18.04) ????????")
+UBUNTU_18_BASE_DLAMI_US_WEST_2 = "ami-0150e36b3f936a26e"
 UBUNTU_18_BASE_DLAMI_US_EAST_1 = "ami-044971d381e6a1109"
 AML2_GPU_DLAMI_US_WEST_2 = "ami-071cb1e434903a577"
 AML2_GPU_DLAMI_US_EAST_1 = "ami-044264d246686b043"
