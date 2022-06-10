@@ -78,6 +78,23 @@ PYTORCH_INFERENCE_GPU_THRESHOLD = {
     }
 }
 
+# Threshold for TRCOMP benchmarks
+# Metric: SM Billable secs
+# Unit: secs
+TRCOMP_THRESHOLD = {
+    'tensorflow': {                 # framework
+        '2.9': {                    # framework version
+            'resnet101': {          # model name
+                'ml.p3.2xlarge': {  # instance
+                    1: {            # Num nodes
+                        224: 2500   # batch size : threshold
+                    }
+                }
+            }   
+        }
+    }
+}
+
 
 def get_threshold_for_image(framework_version, lookup_table):
     """
