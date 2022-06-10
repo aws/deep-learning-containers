@@ -5,9 +5,10 @@ LABEL maintainer="Amazon AI"
 LABEL com.amazonaws.sagemaker.capabilities.accept-bind-to-port=true
 LABEL dlc_major_version="1"
 
-ARG MMS_VERSION=1.1.2
+ARG MMS_VERSION=1.1.8
 ARG PYTHON=python3
-ARG PYTHON_VERSION=3.6.13
+ARG PYTHON_VERSION=3.8.0
+ARG PIP=pip3
 ARG HEALTH_CHECK_VERSION=1.7.0
 ARG OPENSSL_VERSION=1.1.1k
 
@@ -23,7 +24,15 @@ RUN apt-get update \
     vim \
     wget \
     unzip \
-    zlib1g-dev \
+    zlib1g-dev \    
+    libreadline-gplv2-dev \
+    libncursesw5-dev \
+    libssl-dev \
+    libsqlite3-dev \
+    tk-dev \
+    libgdbm-dev \
+    libc6-dev \
+    libbz2-dev \
  && apt-get clean \
  && rm -rf /var/lib/apt/lists/*
 
@@ -41,20 +50,8 @@ RUN wget https://www.python.org/ftp/python/$PYTHON_VERSION/Python-$PYTHON_VERSIO
  && ./configure \
  && make \
  && make install \
- && apt-get update \
- && apt-get install -y --no-install-recommends \
-    libreadline-gplv2-dev \
-    libncursesw5-dev \
-    libssl-dev \
-    libsqlite3-dev \
-    tk-dev \
-    libgdbm-dev \
-    libc6-dev \
-    libbz2-dev \
- && make \
- && make install \
  && rm -rf ../Python-$PYTHON_VERSION* \
- && ln -s /usr/local/bin/pip3 /usr/bin/pip \
+ && ln -s /usr/local/bin/${PIP} /usr/bin/pip \
  && ln -s $(which ${PYTHON}) /usr/local/bin/python
 
 WORKDIR /
@@ -64,45 +61,22 @@ RUN wget https://amazonei-tools.s3.amazonaws.com/v${HEALTH_CHECK_VERSION}/ei_too
  && rm -rf /opt/ei_tools_${HEALTH_CHECK_VERSION}.tar.gz \
  && chmod a+x /opt/ei_tools/bin/health_check
 
-RUN pip install --upgrade pip
+RUN ${PIP} install --upgrade pip
 
-RUN pip install --no-cache-dir --upgrade \
+RUN ${PIP} install --no-cache-dir --upgrade \
     pip \
     setuptools
 
-RUN pip install --no-cache-dir \
+RUN ${PIP} install --no-cache-dir \
     mxnet==1.7.0.post2 \
     https://amazonei-apachemxnet.s3.amazonaws.com/eimx-1.0-py2.py3-none-manylinux1_x86_64.whl \
     multi-model-server==$MMS_VERSION \
     keras-mxnet==2.2.4.3 \
-    numpy==1.19.1 \
+    numpy==1.22.4 \
     onnx==1.8.1 \
     "sagemaker-mxnet-inference<2" \
     "awscli<2" \
-    boto3
-
-# Install openssl-1.1.1* to override default openssl-1.0.2g
-RUN wget https://www.openssl.org/source/openssl-${OPENSSL_VERSION}.tar.gz \
- && apt-get remove --purge -y openssl \
- && rm -rf /usr/include/openssl \
- && apt-get update \
- && apt-get install -y \
-    ca-certificates \
-    openjdk-8-jdk-headless \
- && tar -xzvf openssl-${OPENSSL_VERSION}.tar.gz \
- && cd openssl-${OPENSSL_VERSION} \
- && ./config \
- && make \
- && make test \
- && make install \
- && cd ../ \
- && rm -rf openssl-* \
- && apt-get clean \
- && rm -rf /var/lib/apt/lists/*
-
-# Purging default openssl in above command also prevents the new installation of openssl
-# from finding certificates at the pre-existing path. This env variable fixes the issue.
-ENV SSL_CERT_DIR=/etc/ssl/certs
+    boto3==1.24.4
 
 # This is here to make our installed version of OpenCV work.
 # https://stackoverflow.com/questions/29274638/opencv-libdc1394-error-failed-to-initialize-libdc1394
