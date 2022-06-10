@@ -41,6 +41,8 @@ RUN apt-get update \
     openssh-client \
     openssh-server \
     ca-certificates \
+    libssl1.1 \
+    openssl \
     curl \
     emacs \
     git \
