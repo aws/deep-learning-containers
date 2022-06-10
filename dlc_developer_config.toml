@@ -48,3 +48,4 @@ sagemaker_local_tests = true
 sagemaker_remote_tests = "standard"
 
 use_scheduler = false
+
