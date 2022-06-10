@@ -417,6 +417,7 @@ def _run_dependency_check_test(image, ec2_connection):
             "2.9": ["cpu", "gpu"]
         },
         "mxnet": {"1.8": ["neuron"], "1.9": ["cpu", "gpu"]},
+        "huggingface_tensorflow": {"2.6": ["gpu"]},
         "autogluon": {"0.3": ["cpu", "gpu"], "0.4": ["cpu", "gpu"]},
     }
 
@@ -605,6 +606,13 @@ def test_pip_check(image):
             rf"autogluon-(vision|mxnet) 0.3.1 has requirement Pillow<8.4.0,>=8.3.0, but you have pillow \d+(\.\d+)*"
         )
         allowed_exception_list.append(allowed_autogluon_exception)
+
+    # TF2.9 sagemaker containers introduce tf-models-official which has a known bug where in it does not respect the
+    # existing TF installation. https://github.com/tensorflow/models/issues/9267. This package in turn brings in
+    # tensorflow-text. Skip checking these two packages as this is an upstream issue.
+    if framework == "tensorflow" and Version(framework_version) in SpecifierSet(">=2.9.1"):
+        allowed_tf29_exception = re.compile(rf"^(tf-models-official 2.9.1|tensorflow-text 2.9.0) requires tensorflow, which is not installed.")
+        allowed_exception_list.append(allowed_tf29_exception)
 
     # Add null entrypoint to ensure command exits immediately
     output = ctx.run(
