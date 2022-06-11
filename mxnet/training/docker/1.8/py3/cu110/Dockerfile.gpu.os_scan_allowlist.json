@@ -2603,7 +2603,7 @@
             "attributes": [
                 {
                     "key": "package_version",
-                    "value": "2.23-0ubuntu11.3"
+                    "value": "2.23-0ubuntu11.2"
                 },
                 {
                     "key": "package_name",
@@ -2662,7 +2662,7 @@
             "attributes": [
                 {
                     "key": "package_version",
-                    "value": "2.23-0ubuntu11.2"
+                    "value": "2.23-0ubuntu11.3"
                 },
                 {
                     "key": "package_name",
@@ -5902,7 +5902,7 @@
             "attributes": [
                 {
                     "key": "package_version",
-                    "value": "1.0.2g-1ubuntu4.20"
+                    "value": "1.0.2g-1ubuntu4.18"
                 },
                 {
                     "key": "package_name",
@@ -5975,7 +5975,7 @@
             "attributes": [
                 {
                     "key": "package_version",
-                    "value": "1.0.2g-1ubuntu4.18"
+                    "value": "1.0.2g-1ubuntu4.20"
                 },
                 {
                     "key": "package_name",
@@ -6182,7 +6182,7 @@
             "attributes": [
                 {
                     "key": "package_version",
-                    "value": "1.0.2g-1ubuntu4.20"
+                    "value": "1.0.2g-1ubuntu4.18"
                 },
                 {
                     "key": "package_name",
@@ -6249,7 +6249,7 @@
             "attributes": [
                 {
                     "key": "package_version",
-                    "value": "1.0.2g-1ubuntu4.18"
+                    "value": "1.0.2g-1ubuntu4.20"
                 },
                 {
                     "key": "package_name",
@@ -7351,8 +7351,8 @@
                     "value": "6.8"
                 }
             ],
-            "description": "vim is vulnerable to Use After Free",
-            "name": "CVE-2021-4192",
+            "description": "Out-of-bounds Read in GitHub repository vim/vim prior to 8.2.",
+            "name": "CVE-2022-0368",
             "scraped_data": [
                 {
                     "notes": [],
@@ -7373,16 +7373,12 @@
                                 "Needed"
                             ],
                             [
-                                "hirsute",
-                                "Ignored (reached end-of-life)"
-                            ],
-                            [
                                 "impish",
                                 "Needed"
                             ],
                             [
                                 "jammy",
-                                "Not vulnerable (2:8.2.3995-1ubuntu2)"
+                                "Needed"
                             ],
                             [
                                 "trusty",
@@ -7390,18 +7386,18 @@
                             ],
                             [
                                 "upstream",
-                                "Released (8.2.3949)"
+                                "Released (8.2.4217)"
                             ],
                             [
                                 "xenial",
-                                "Released (2:7.4.1689-3ubuntu1.5+esm4)"
+                                "Released (2:7.4.1689-3ubuntu1.5+esm5)"
                             ]
                         ]
                     }
                 }
             ],
             "severity": "MEDIUM",
-            "uri": "http://people.ubuntu.com/~ubuntu-security/cve/CVE-2021-4192"
+            "uri": "http://people.ubuntu.com/~ubuntu-security/cve/CVE-2022-0368"
         },
         {
             "attributes": [
@@ -7423,7 +7419,7 @@
                 }
             ],
             "description": "Heap-based Buffer Overflow in GitHub repository vim/vim prior to 8.2.",
-            "name": "CVE-2022-0359",
+            "name": "CVE-2022-1942",
             "scraped_data": [
                 {
                     "notes": [],
@@ -7457,18 +7453,18 @@
                             ],
                             [
                                 "upstream",
-                                "Released (8.2.4214)"
+                                "Needs triage"
                             ],
                             [
                                 "xenial",
-                                "Released (2:7.4.1689-3ubuntu1.5+esm5)"
+                                "Needed"
                             ]
                         ]
                     }
                 }
             ],
             "severity": "MEDIUM",
-            "uri": "http://people.ubuntu.com/~ubuntu-security/cve/CVE-2022-0359"
+            "uri": "http://people.ubuntu.com/~ubuntu-security/cve/CVE-2022-1942"
         }
     ]
 }
