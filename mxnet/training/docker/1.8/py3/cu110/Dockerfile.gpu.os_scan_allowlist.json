@@ -1076,7 +1076,7 @@
             "attributes": [
                 {
                     "key": "package_version",
-                    "value": "1.18.4ubuntu1.7"
+                    "value": "1.18.4ubuntu1.6"
                 },
                 {
                     "key": "package_name",
@@ -1143,7 +1143,7 @@
             "attributes": [
                 {
                     "key": "package_version",
-                    "value": "1.18.4ubuntu1.6"
+                    "value": "1.18.4ubuntu1.7"
                 },
                 {
                     "key": "package_name",
@@ -5902,7 +5902,7 @@
             "attributes": [
                 {
                     "key": "package_version",
-                    "value": "1.0.2g-1ubuntu4.18"
+                    "value": "1.0.2g-1ubuntu4.20"
                 },
                 {
                     "key": "package_name",
@@ -5975,7 +5975,7 @@
             "attributes": [
                 {
                     "key": "package_version",
-                    "value": "1.0.2g-1ubuntu4.20"
+                    "value": "1.0.2g-1ubuntu4.18"
                 },
                 {
                     "key": "package_name",
@@ -7344,19 +7344,19 @@
                 },
                 {
                     "key": "CVSS2_VECTOR",
-                    "value": "AV:N/AC:M/Au:N/C:P/I:P/A:P"
+                    "value": "AV:N/AC:M/Au:N/C:N/I:N/A:P"
                 },
                 {
                     "key": "CVSS2_SCORE",
-                    "value": "6.8"
+                    "value": "4.3"
                 }
             ],
-            "description": "vim is vulnerable to Heap-based Buffer Overflow",
-            "name": "CVE-2022-0213",
+            "description": "Heap-based Buffer Overflow in GitHub repository vim/vim prior to 8.2.4436.",
+            "name": "CVE-2022-0714",
             "scraped_data": [
                 {
                     "notes": [
-                        "in bionic and earlier vulnerable code is in src/screen.c\ninstead of src/drawscreen.c"
+                        "in bionic and earlier, vulnerable code can be found in src/edit.c\ninstead of src/indent.c."
                     ],
                     "status_table": {
                         "packages": [
@@ -7388,18 +7388,18 @@
                             ],
                             [
                                 "upstream",
-                                "Released (8.2.4074)"
+                                "Released (CVE-2022-0714)"
                             ],
                             [
                                 "xenial",
-                                "Released (2:7.4.1689-3ubuntu1.5+esm5)"
+                                "Released (2:7.4.1689-3ubuntu1.5+esm6)"
                             ]
                         ]
                     }
                 }
             ],
             "severity": "MEDIUM",
-            "uri": "http://people.ubuntu.com/~ubuntu-security/cve/CVE-2022-0213"
+            "uri": "http://people.ubuntu.com/~ubuntu-security/cve/CVE-2022-0714"
         },
         {
             "attributes": [
@@ -7420,8 +7420,8 @@
                     "value": "6.8"
                 }
             ],
-            "description": "Out-of-bounds Read in GitHub repository vim/vim prior to 8.2.",
-            "name": "CVE-2022-0368",
+            "description": "Heap-based Buffer Overflow in GitHub repository vim/vim prior to 8.2.",
+            "name": "CVE-2022-1942",
             "scraped_data": [
                 {
                     "notes": [],
@@ -7455,18 +7455,18 @@
                             ],
                             [
                                 "upstream",
-                                "Released (8.2.4217)"
+                                "Needs triage"
                             ],
                             [
                                 "xenial",
-                                "Released (2:7.4.1689-3ubuntu1.5+esm5)"
+                                "Needed"
                             ]
                         ]
                     }
                 }
             ],
             "severity": "MEDIUM",
-            "uri": "http://people.ubuntu.com/~ubuntu-security/cve/CVE-2022-0368"
+            "uri": "http://people.ubuntu.com/~ubuntu-security/cve/CVE-2022-1942"
         }
     ]
 }
