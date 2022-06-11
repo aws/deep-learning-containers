@@ -5902,7 +5902,7 @@
             "attributes": [
                 {
                     "key": "package_version",
-                    "value": "1.0.2g-1ubuntu4.18"
+                    "value": "1.0.2g-1ubuntu4.20"
                 },
                 {
                     "key": "package_name",
@@ -5975,7 +5975,7 @@
             "attributes": [
                 {
                     "key": "package_version",
-                    "value": "1.0.2g-1ubuntu4.20"
+                    "value": "1.0.2g-1ubuntu4.18"
                 },
                 {
                     "key": "package_name",
@@ -6182,7 +6182,7 @@
             "attributes": [
                 {
                     "key": "package_version",
-                    "value": "1.0.2g-1ubuntu4.20"
+                    "value": "1.0.2g-1ubuntu4.18"
                 },
                 {
                     "key": "package_name",
@@ -6249,7 +6249,7 @@
             "attributes": [
                 {
                     "key": "package_version",
-                    "value": "1.0.2g-1ubuntu4.18"
+                    "value": "1.0.2g-1ubuntu4.20"
                 },
                 {
                     "key": "package_name",
@@ -7351,8 +7351,8 @@
                     "value": "6.8"
                 }
             ],
-            "description": "Heap-based Buffer Overflow in function cmdline_erase_chars in GitHub repository vim/vim prior to 8.2.4899. This vulnerabilities are capable of crashing software, modify memory, and possible remote execution",
-            "name": "CVE-2022-1619",
+            "description": "Heap-based Buffer Overflow in GitHub repository vim/vim prior to 8.2.",
+            "name": "CVE-2022-0361",
             "scraped_data": [
                 {
                     "notes": [],
@@ -7386,18 +7386,18 @@
                             ],
                             [
                                 "upstream",
-                                "Released (8.2.4899)"
+                                "Released (8.2.4215)"
                             ],
                             [
                                 "xenial",
-                                "Released (2:7.4.1689-3ubuntu1.5+esm6)"
+                                "Released (2:7.4.1689-3ubuntu1.5+esm5)"
                             ]
                         ]
                     }
                 }
             ],
             "severity": "MEDIUM",
-            "uri": "http://people.ubuntu.com/~ubuntu-security/cve/CVE-2022-1619"
+            "uri": "http://people.ubuntu.com/~ubuntu-security/cve/CVE-2022-0361"
         },
         {
             "attributes": [
@@ -7418,11 +7418,13 @@
                     "value": "6.8"
                 }
             ],
-            "description": "Heap-based Buffer Overflow in GitHub repository vim/vim prior to 8.2.",
-            "name": "CVE-2022-1942",
+            "description": "Stack-based Buffer Overflow in GitHub repository vim/vim prior to 8.2.",
+            "name": "CVE-2022-0408",
             "scraped_data": [
                 {
-                    "notes": [],
+                    "notes": [
+                        "in bionic and earlier, vulnerable function is in src/spell.c\ninstead of in src/spellsuggest.c."
+                    ],
                     "status_table": {
                         "packages": [
                             "vim",
@@ -7453,18 +7455,18 @@
                             ],
                             [
                                 "upstream",
-                                "Needs triage"
+                                "Released (8.2.4247)"
                             ],
                             [
                                 "xenial",
-                                "Needed"
+                                "Released (2:7.4.1689-3ubuntu1.5+esm5)"
                             ]
                         ]
                     }
                 }
             ],
             "severity": "MEDIUM",
-            "uri": "http://people.ubuntu.com/~ubuntu-security/cve/CVE-2022-1942"
+            "uri": "http://people.ubuntu.com/~ubuntu-security/cve/CVE-2022-0408"
         }
     ]
 }
