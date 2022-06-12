@@ -1076,7 +1076,7 @@
             "attributes": [
                 {
                     "key": "package_version",
-                    "value": "1.18.4ubuntu1.7"
+                    "value": "1.18.4ubuntu1.6"
                 },
                 {
                     "key": "package_name",
@@ -1143,7 +1143,7 @@
             "attributes": [
                 {
                     "key": "package_version",
-                    "value": "1.18.4ubuntu1.6"
+                    "value": "1.18.4ubuntu1.7"
                 },
                 {
                     "key": "package_name",
@@ -5902,7 +5902,7 @@
             "attributes": [
                 {
                     "key": "package_version",
-                    "value": "1.0.2g-1ubuntu4.18"
+                    "value": "1.0.2g-1ubuntu4.20"
                 },
                 {
                     "key": "package_name",
@@ -5975,7 +5975,7 @@
             "attributes": [
                 {
                     "key": "package_version",
-                    "value": "1.0.2g-1ubuntu4.20"
+                    "value": "1.0.2g-1ubuntu4.18"
                 },
                 {
                     "key": "package_name",
@@ -6182,7 +6182,7 @@
             "attributes": [
                 {
                     "key": "package_version",
-                    "value": "1.0.2g-1ubuntu4.20"
+                    "value": "1.0.2g-1ubuntu4.18"
                 },
                 {
                     "key": "package_name",
@@ -6249,7 +6249,7 @@
             "attributes": [
                 {
                     "key": "package_version",
-                    "value": "1.0.2g-1ubuntu4.18"
+                    "value": "1.0.2g-1ubuntu4.20"
                 },
                 {
                     "key": "package_name",
@@ -7352,11 +7352,11 @@
                 }
             ],
             "description": "vim is vulnerable to Heap-based Buffer Overflow",
-            "name": "CVE-2022-0213",
+            "name": "CVE-2021-3984",
             "scraped_data": [
                 {
                     "notes": [
-                        "in bionic and earlier vulnerable code is in src/screen.c\ninstead of src/drawscreen.c"
+                        "for bionic and earlier, the vulnerable function in src/cindent.c\nis in src/misc1.c."
                     ],
                     "status_table": {
                         "packages": [
@@ -7368,15 +7368,19 @@
                         "release_states": [
                             [
                                 "bionic",
-                                "Needed"
+                                "Released (2:8.0.1453-1ubuntu1.8)"
                             ],
                             [
                                 "focal",
-                                "Needed"
+                                "Released (2:8.1.2269-1ubuntu5.6)"
+                            ],
+                            [
+                                "hirsute",
+                                "Ignored (reached end-of-life)"
                             ],
                             [
                                 "impish",
-                                "Needed"
+                                "Released (2:8.2.2434-3ubuntu3.2)"
                             ],
                             [
                                 "jammy",
@@ -7388,18 +7392,18 @@
                             ],
                             [
                                 "upstream",
-                                "Released (8.2.4074)"
+                                "Released (v8.2.3625)"
                             ],
                             [
                                 "xenial",
-                                "Released (2:7.4.1689-3ubuntu1.5+esm5)"
+                                "Released (2:7.4.1689-3ubuntu1.5+esm4)"
                             ]
                         ]
                     }
                 }
             ],
             "severity": "MEDIUM",
-            "uri": "http://people.ubuntu.com/~ubuntu-security/cve/CVE-2022-0213"
+            "uri": "http://people.ubuntu.com/~ubuntu-security/cve/CVE-2021-3984"
         },
         {
             "attributes": [
@@ -7413,19 +7417,19 @@
                 },
                 {
                     "key": "CVSS2_VECTOR",
-                    "value": "AV:L/AC:L/Au:N/C:P/I:P/A:P"
+                    "value": "AV:N/AC:M/Au:N/C:P/I:P/A:P"
                 },
                 {
                     "key": "CVSS2_SCORE",
-                    "value": "4.6"
+                    "value": "6.8"
                 }
             ],
-            "description": "Heap-based Buffer Overflow occurs in vim in GitHub repository vim/vim prior to 8.2.4563.",
-            "name": "CVE-2022-0943",
+            "description": "Use of Out-of-range Pointer Offset in GitHub repository vim/vim prior to 8.2.4418.",
+            "name": "CVE-2022-0685",
             "scraped_data": [
                 {
                     "notes": [
-                        "in bionic and earlier, vulnerable code can be found in src/spell.c\ninstead of src/spellsuggest.c."
+                        "for bionic and earlier, the vulnerable function is found in file\nsrc/misc1.c instead of src/filepath.c."
                     ],
                     "status_table": {
                         "packages": [
@@ -7457,7 +7461,7 @@
                             ],
                             [
                                 "upstream",
-                                "Released (8.2.4563)"
+                                "Released (8.2.4418)"
                             ],
                             [
                                 "xenial",
@@ -7468,7 +7472,7 @@
                 }
             ],
             "severity": "MEDIUM",
-            "uri": "http://people.ubuntu.com/~ubuntu-security/cve/CVE-2022-0943"
+            "uri": "http://people.ubuntu.com/~ubuntu-security/cve/CVE-2022-0685"
         }
     ]
 }
