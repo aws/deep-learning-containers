@@ -2603,7 +2603,7 @@
             "attributes": [
                 {
                     "key": "package_version",
-                    "value": "2.23-0ubuntu11.2"
+                    "value": "2.23-0ubuntu11.3"
                 },
                 {
                     "key": "package_name",
@@ -2662,7 +2662,7 @@
             "attributes": [
                 {
                     "key": "package_version",
-                    "value": "2.23-0ubuntu11.3"
+                    "value": "2.23-0ubuntu11.2"
                 },
                 {
                     "key": "package_name",
@@ -5902,7 +5902,7 @@
             "attributes": [
                 {
                     "key": "package_version",
-                    "value": "1.0.2g-1ubuntu4.18"
+                    "value": "1.0.2g-1ubuntu4.20"
                 },
                 {
                     "key": "package_name",
@@ -5975,7 +5975,7 @@
             "attributes": [
                 {
                     "key": "package_version",
-                    "value": "1.0.2g-1ubuntu4.20"
+                    "value": "1.0.2g-1ubuntu4.18"
                 },
                 {
                     "key": "package_name",
@@ -7344,84 +7344,15 @@
                 },
                 {
                     "key": "CVSS2_VECTOR",
-                    "value": "AV:N/AC:L/Au:N/C:P/I:P/A:P"
+                    "value": "AV:L/AC:L/Au:N/C:P/I:P/A:P"
                 },
                 {
                     "key": "CVSS2_SCORE",
-                    "value": "7.5"
+                    "value": "4.6"
                 }
             ],
-            "description": "Heap-based Buffer Overflow in vim/vim prior to 8.2.",
-            "name": "CVE-2022-0318",
-            "scraped_data": [
-                {
-                    "notes": [
-                        "the patch for CVE-2022-0318 causes one of the utf8 tests to\nstart failing, which in turn causes build failures as well.\nCommit fc6ccebea66 addresses this issue and updates the test."
-                    ],
-                    "status_table": {
-                        "packages": [
-                            "vim",
-                            "Launchpad",
-                            "Ubuntu",
-                            "Debian"
-                        ],
-                        "release_states": [
-                            [
-                                "bionic",
-                                "Needed"
-                            ],
-                            [
-                                "focal",
-                                "Needed"
-                            ],
-                            [
-                                "impish",
-                                "Needed"
-                            ],
-                            [
-                                "jammy",
-                                "Needed"
-                            ],
-                            [
-                                "trusty",
-                                "Needed"
-                            ],
-                            [
-                                "upstream",
-                                "Released (8.2.4151)"
-                            ],
-                            [
-                                "xenial",
-                                "Released (2:7.4.1689-3ubuntu1.5+esm4)"
-                            ]
-                        ]
-                    }
-                }
-            ],
-            "severity": "MEDIUM",
-            "uri": "http://people.ubuntu.com/~ubuntu-security/cve/CVE-2022-0318"
-        },
-        {
-            "attributes": [
-                {
-                    "key": "package_version",
-                    "value": "2:7.4.1689-3ubuntu1.5"
-                },
-                {
-                    "key": "package_name",
-                    "value": "vim"
-                },
-                {
-                    "key": "CVSS2_VECTOR",
-                    "value": "AV:N/AC:M/Au:N/C:P/I:P/A:P"
-                },
-                {
-                    "key": "CVSS2_SCORE",
-                    "value": "6.8"
-                }
-            ],
-            "description": "Heap-based Buffer Overflow in GitHub repository vim/vim prior to 8.2.",
-            "name": "CVE-2022-0361",
+            "description": "Access of Memory Location Before Start of Buffer in GitHub repository vim/vim prior to 8.2.",
+            "name": "CVE-2022-0351",
             "scraped_data": [
                 {
                     "notes": [],
@@ -7455,7 +7386,7 @@
                             ],
                             [
                                 "upstream",
-                                "Released (8.2.4215)"
+                                "Released (8.2.4206)"
                             ],
                             [
                                 "xenial",
@@ -7466,7 +7397,76 @@
                 }
             ],
             "severity": "MEDIUM",
-            "uri": "http://people.ubuntu.com/~ubuntu-security/cve/CVE-2022-0361"
+            "uri": "http://people.ubuntu.com/~ubuntu-security/cve/CVE-2022-0351"
+        },
+        {
+            "attributes": [
+                {
+                    "key": "package_version",
+                    "value": "2:7.4.1689-3ubuntu1.5"
+                },
+                {
+                    "key": "package_name",
+                    "value": "vim"
+                },
+                {
+                    "key": "CVSS2_VECTOR",
+                    "value": "AV:L/AC:L/Au:N/C:P/I:P/A:P"
+                },
+                {
+                    "key": "CVSS2_SCORE",
+                    "value": "4.6"
+                }
+            ],
+            "description": "Heap-based Buffer Overflow occurs in vim in GitHub repository vim/vim prior to 8.2.4563.",
+            "name": "CVE-2022-0943",
+            "scraped_data": [
+                {
+                    "notes": [
+                        "in bionic and earlier, vulnerable code can be found in src/spell.c\ninstead of src/spellsuggest.c."
+                    ],
+                    "status_table": {
+                        "packages": [
+                            "vim",
+                            "Launchpad",
+                            "Ubuntu",
+                            "Debian"
+                        ],
+                        "release_states": [
+                            [
+                                "bionic",
+                                "Needed"
+                            ],
+                            [
+                                "focal",
+                                "Needed"
+                            ],
+                            [
+                                "impish",
+                                "Needed"
+                            ],
+                            [
+                                "jammy",
+                                "Needed"
+                            ],
+                            [
+                                "trusty",
+                                "Needed"
+                            ],
+                            [
+                                "upstream",
+                                "Released (8.2.4563)"
+                            ],
+                            [
+                                "xenial",
+                                "Released (2:7.4.1689-3ubuntu1.5+esm6)"
+                            ]
+                        ]
+                    }
+                }
+            ],
+            "severity": "MEDIUM",
+            "uri": "http://people.ubuntu.com/~ubuntu-security/cve/CVE-2022-0943"
         }
     ]
 }
