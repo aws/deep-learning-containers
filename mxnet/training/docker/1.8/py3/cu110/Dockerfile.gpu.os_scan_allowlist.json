@@ -1076,7 +1076,7 @@
             "attributes": [
                 {
                     "key": "package_version",
-                    "value": "1.18.4ubuntu1.7"
+                    "value": "1.18.4ubuntu1.6"
                 },
                 {
                     "key": "package_name",
@@ -1143,7 +1143,7 @@
             "attributes": [
                 {
                     "key": "package_version",
-                    "value": "1.18.4ubuntu1.6"
+                    "value": "1.18.4ubuntu1.7"
                 },
                 {
                     "key": "package_name",
@@ -7344,15 +7344,15 @@
                 },
                 {
                     "key": "CVSS2_VECTOR",
-                    "value": "AV:N/AC:M/Au:N/C:P/I:P/A:P"
+                    "value": "AV:N/AC:M/Au:N/C:P/I:N/A:N"
                 },
                 {
                     "key": "CVSS2_SCORE",
-                    "value": "6.8"
+                    "value": "4.3"
                 }
             ],
-            "description": "vim is vulnerable to Heap-based Buffer Overflow",
-            "name": "CVE-2021-3927",
+            "description": "Out-of-bounds Read in vim/vim prior to 8.2.",
+            "name": "CVE-2022-0319",
             "scraped_data": [
                 {
                     "notes": [],
@@ -7366,42 +7366,38 @@
                         "release_states": [
                             [
                                 "bionic",
-                                "Released (2:8.0.1453-1ubuntu1.7)"
+                                "Needed"
                             ],
                             [
                                 "focal",
-                                "Released (2:8.1.2269-1ubuntu5.4)"
-                            ],
-                            [
-                                "hirsute",
-                                "Released (2:8.2.2434-1ubuntu1.2)"
+                                "Needed"
                             ],
                             [
                                 "impish",
-                                "Released (2:8.2.2434-3ubuntu3.1)"
+                                "Needed"
                             ],
                             [
                                 "jammy",
-                                "Released (2:8.2.3565-1ubuntu2)"
+                                "Needed"
                             ],
                             [
                                 "trusty",
-                                "Released (2:7.4.052-1ubuntu3.1+esm4)"
+                                "Needed"
                             ],
                             [
                                 "upstream",
-                                "Released (v8.2.3581)"
+                                "Released (8.2.4154)"
                             ],
                             [
                                 "xenial",
-                                "Released (2:7.4.1689-3ubuntu1.5+esm3)"
+                                "Released (2:7.4.1689-3ubuntu1.5+esm5)"
                             ]
                         ]
                     }
                 }
             ],
             "severity": "MEDIUM",
-            "uri": "http://people.ubuntu.com/~ubuntu-security/cve/CVE-2021-3927"
+            "uri": "http://people.ubuntu.com/~ubuntu-security/cve/CVE-2022-0319"
         },
         {
             "attributes": [
@@ -7415,15 +7411,15 @@
                 },
                 {
                     "key": "CVSS2_VECTOR",
-                    "value": "AV:N/AC:M/Au:N/C:P/I:P/A:P"
+                    "value": "AV:L/AC:L/Au:N/C:P/I:P/A:P"
                 },
                 {
                     "key": "CVSS2_SCORE",
-                    "value": "6.8"
+                    "value": "4.6"
                 }
             ],
-            "description": "Heap-based Buffer Overflow in function cmdline_erase_chars in GitHub repository vim/vim prior to 8.2.4899. This vulnerabilities are capable of crashing software, modify memory, and possible remote execution",
-            "name": "CVE-2022-1619",
+            "description": "Access of Memory Location Before Start of Buffer in GitHub repository vim/vim prior to 8.2.",
+            "name": "CVE-2022-0351",
             "scraped_data": [
                 {
                     "notes": [],
@@ -7457,18 +7453,18 @@
                             ],
                             [
                                 "upstream",
-                                "Released (8.2.4899)"
+                                "Released (8.2.4206)"
                             ],
                             [
                                 "xenial",
-                                "Released (2:7.4.1689-3ubuntu1.5+esm6)"
+                                "Released (2:7.4.1689-3ubuntu1.5+esm5)"
                             ]
                         ]
                     }
                 }
             ],
             "severity": "MEDIUM",
-            "uri": "http://people.ubuntu.com/~ubuntu-security/cve/CVE-2022-1619"
+            "uri": "http://people.ubuntu.com/~ubuntu-security/cve/CVE-2022-0351"
         }
     ]
 }
