@@ -24,7 +24,7 @@
   images:
     BuildEIAMXNetInferencePy3DockerImage:
       <<: *INFERENCE_REPOSITORY
-      build: &MXNET_CPU_INFERENCE_PY3 false
+      build: &MXNET_EIA_INFERENCE_PY3 false
       image_size_baseline: 5000
       device_type: &DEVICE_TYPE cpu
       python_version: &DOCKER_PYTHON_VERSION py3
