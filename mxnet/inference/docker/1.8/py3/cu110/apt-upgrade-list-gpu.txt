@@ -1,5 +1,7 @@
+gcc-5
+gcc-defaults
+gccgo-6
 libc6
-p11-kit
 perl
 python3.5
 sqlite3
