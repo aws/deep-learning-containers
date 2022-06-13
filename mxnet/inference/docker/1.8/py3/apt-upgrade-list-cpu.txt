@@ -1,3 +1,6 @@
+gcc-5
+gcc-defaults
+gccgo-6
 libc6
 vim
 wget
