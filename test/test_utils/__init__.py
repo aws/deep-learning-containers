@@ -249,7 +249,7 @@ def get_ecr_repo_name(image_uri):
 def is_tf_version(required_version, image_uri):
     """
     Validate that image_uri has framework version equal to required_version
-    Relaying on current convention to include TF version into an image tag for all
+    Relying on current convention to include TF version into an image tag for all
     TF based frameworks
 
     :param required_version: str Framework version which is required from the image_uri
@@ -264,7 +264,7 @@ def is_tf_version(required_version, image_uri):
 def is_tf_based_framework(name):
     """
     Checks whether framework is TF based.
-    Relaying on current convention to include "tensorflow" into TF based names
+    Relying on current convention to include "tensorflow" into TF based names
     E.g. "huggingface-tensorflow" or "huggingface-tensorflow-trcomp"
     """
     return "tensorflow" in name
