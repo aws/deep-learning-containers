@@ -1076,7 +1076,7 @@
             "attributes": [
                 {
                     "key": "package_version",
-                    "value": "1.18.4ubuntu1.6"
+                    "value": "1.18.4ubuntu1.7"
                 },
                 {
                     "key": "package_name",
@@ -1143,7 +1143,7 @@
             "attributes": [
                 {
                     "key": "package_version",
-                    "value": "1.18.4ubuntu1.7"
+                    "value": "1.18.4ubuntu1.6"
                 },
                 {
                     "key": "package_name",
@@ -7351,11 +7351,13 @@
                     "value": "6.8"
                 }
             ],
-            "description": "vim is vulnerable to Use After Free",
-            "name": "CVE-2021-4069",
+            "description": "vim is vulnerable to Heap-based Buffer Overflow",
+            "name": "CVE-2021-4019",
             "scraped_data": [
                 {
-                    "notes": [],
+                    "notes": [
+                        "in focal and earlier vulnerable function from src/help.c\nis in src/ex_cmds.c."
+                    ],
                     "status_table": {
                         "packages": [
                             "vim",
@@ -7390,7 +7392,7 @@
                             ],
                             [
                                 "upstream",
-                                "Released (v8.2.3761)"
+                                "Released (v8.2.3669)"
                             ],
                             [
                                 "xenial",
@@ -7401,7 +7403,7 @@
                 }
             ],
             "severity": "MEDIUM",
-            "uri": "http://people.ubuntu.com/~ubuntu-security/cve/CVE-2021-4069"
+            "uri": "http://people.ubuntu.com/~ubuntu-security/cve/CVE-2021-4019"
         },
         {
             "attributes": [
@@ -7412,10 +7414,18 @@
                 {
                     "key": "package_name",
                     "value": "vim"
+                },
+                {
+                    "key": "CVSS2_VECTOR",
+                    "value": "AV:N/AC:M/Au:N/C:P/I:P/A:P"
+                },
+                {
+                    "key": "CVSS2_SCORE",
+                    "value": "6.8"
                 }
             ],
-            "description": "Use After Free in GitHub repository vim/vim prior to 8.2.",
-            "name": "CVE-2022-1968",
+            "description": "Use of Out-of-range Pointer Offset in GitHub repository vim/vim prior to 8.2.",
+            "name": "CVE-2022-0554",
             "scraped_data": [
                 {
                     "notes": [],
@@ -7449,18 +7459,18 @@
                             ],
                             [
                                 "upstream",
-                                "Needs triage"
+                                "Released (8.2.4327)"
                             ],
                             [
                                 "xenial",
-                                "Needed"
+                                "Released (2:7.4.1689-3ubuntu1.5+esm6)"
                             ]
                         ]
                     }
                 }
             ],
             "severity": "MEDIUM",
-            "uri": "http://people.ubuntu.com/~ubuntu-security/cve/CVE-2022-1968"
+            "uri": "http://people.ubuntu.com/~ubuntu-security/cve/CVE-2022-0554"
         }
     ]
 }
