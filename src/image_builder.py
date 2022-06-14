@@ -16,6 +16,7 @@ language governing permissions and limitations under the License.
 import concurrent.futures
 import datetime
 import os
+import re
 
 from copy import deepcopy
 
@@ -59,7 +60,7 @@ def image_builder(buildspec):
     PRE_PUSH_STAGE_IMAGES = []
     COMMON_STAGE_IMAGES = []
 
-    if "huggingface" in str(BUILDSPEC["framework"]) or "autogluon" in str(BUILDSPEC["framework"]):
+    if "huggingface" in str(BUILDSPEC["framework"]) or "autogluon" in str(BUILDSPEC["framework"]) or "trcomp" in str(BUILDSPEC["framework"]):
         os.system("echo login into public ECR")
         os.system(
             "aws ecr get-login-password --region us-west-2 | docker login --username AWS --password-stdin 763104351884.dkr.ecr.us-west-2.amazonaws.com"
@@ -118,7 +119,7 @@ def image_builder(buildspec):
 
         transformers_version = image_config.get("transformers_version")
 
-        if str(BUILDSPEC["framework"]).startswith("huggingface"):
+        if str(BUILDSPEC["framework"]).startswith("huggingface") or str(BUILDSPEC["framework"]).endswith("trcomp"):
             if transformers_version:
                 extra_build_args["TRANSFORMERS_VERSION"] = transformers_version
             else:
