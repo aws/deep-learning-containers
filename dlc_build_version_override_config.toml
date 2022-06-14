@@ -1,4 +1,8 @@
 # Assign the path to the required buildspec file from the deep-learning-containers folder
+# For example:
+# dlc-pr-tensorflow = "tensorflow/buildspec-2-8.yml"
+# dlc-pr-huggingface-pytorch = "huggingface/pytorch/buildspec-1-9.yml"
+# Setting the buildspec file path to "" allows the image builder to choose the default buildspec file.
 
 # Standard Framework DLC buildspecs
 dlc-pr-autogluon = ""
