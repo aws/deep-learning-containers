@@ -32,3 +32,24 @@ release_images:
       example: True
       disable_sm_tag: False  # [Default: False] This option is not used by Example images
       force_release: False
+  3:
+    framework: "huggingface_tensorflow"
+    version: "2.6.3"
+    arch_type: "x86"
+    hf_transformers: "4.17.0"
+    training:
+        device_types: ["gpu"]
+        python_versions: ["py38"]
+        os_version: "ubuntu20.04"
+        cuda_version: "cu112"
+        example: false
+        disable_sm_tag: false
+        force_release: false
+    inference:
+        device_types: ["cpu", "gpu"]
+        python_versions: ["py38"]
+        os_version: "ubuntu20.04"
+        cuda_version: "cu112"
+        example: false
+        disable_sm_tag: false
+        force_release: false
