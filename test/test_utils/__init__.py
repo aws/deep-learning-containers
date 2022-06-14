@@ -141,7 +141,11 @@ def get_dockerfile_path_for_image(image_uri):
 
     framework, framework_version = get_framework_and_version_from_tag(image_uri)
 
-    if "huggingface" in framework:
+    if "trcomp" in framework:
+        # Replace the trcomp string as it is extracted from ECR repo name
+        framework = framework.replace("_trcomp", "")
+        framework_path = framework.replace("_", os.path.sep)
+    elif "huggingface" in framework:
         framework_path = framework.replace("_", os.path.sep)
     elif "habana" in image_uri:
         framework_path = os.path.join("habana", framework)
@@ -219,6 +223,8 @@ def get_expected_dockerfile_filename(device_type, image_uri):
         return f"Dockerfile.e3.{device_type}"
     if is_sagemaker_image(image_uri):
         return f"Dockerfile.sagemaker.{device_type}"
+    if is_trcomp_image(image_uri):
+        return f"Dockerfile.trcomp.{device_type}"
     return f"Dockerfile.{device_type}"
 
 
@@ -243,6 +249,8 @@ def get_ecr_repo_name(image_uri):
 def is_tf_version(required_version, image_uri):
     """
     Validate that image_uri has framework version equal to required_version
+    Relying on current convention to include TF version into an image tag for all
+    TF based frameworks
 
     :param required_version: str Framework version which is required from the image_uri
     :param image_uri: str ECR Image URI for the image to be validated
@@ -250,8 +258,16 @@ def is_tf_version(required_version, image_uri):
     """
     image_framework_name, image_framework_version = get_framework_and_version_from_tag(image_uri)
     required_version_specifier_set = SpecifierSet(f"=={required_version}.*")
-    return image_framework_name == "tensorflow" and image_framework_version in required_version_specifier_set
+    return is_tf_based_framework(image_framework_name) and image_framework_version in required_version_specifier_set
 
+
+def is_tf_based_framework(name):
+    """
+    Checks whether framework is TF based.
+    Relying on current convention to include "tensorflow" into TF based names
+    E.g. "huggingface-tensorflow" or "huggingface-tensorflow-trcomp"
+    """
+    return "tensorflow" in name
 
 def is_below_framework_version(version_upper_bound, image_uri, framework):
     """
@@ -370,6 +386,10 @@ def is_e3_image(image_uri):
 
 def is_sagemaker_image(image_uri):
     return "-sagemaker" in image_uri
+
+
+def is_trcomp_image(image_uri):
+    return "-trcomp" in image_uri
 
 
 def is_time_for_canary_safety_scan():
@@ -818,7 +838,7 @@ def get_canary_default_tag_py3_version(framework, version):
         if Version("2.6") <= Version(version) < Version("2.8"):
             return "py38"
         if Version(version) >= Version("2.8"):
-            return"py39"
+            return "py39"
 
     if framework == "mxnet":
         if Version(version) == Version("1.8"):
@@ -1090,6 +1110,8 @@ def get_framework_and_version_from_tag(image_uri):
     """
     tested_framework = get_framework_from_image_uri(image_uri)
     allowed_frameworks = (
+        "huggingface_tensorflow_trcomp",
+        "huggingface_pytorch_trcomp",
         "huggingface_tensorflow",
         "huggingface_pytorch",
         "tensorflow",
@@ -1314,10 +1336,14 @@ def get_os_version_from_image_uri(image_uri):
 
 def get_framework_from_image_uri(image_uri):
     return (
-        "huggingface_tensorflow"
+        "huggingface_tensorflow_trcomp" 
+        if "huggingface-tensorflow-trcomp" in image_uri 
+        else "huggingface_tensorflow"
         if "huggingface-tensorflow" in image_uri
-        else "huggingface_pytorch"
-        if "huggingface-pytorch" in image_uri
+        else "huggingface_pytorch_trcomp" 
+        if "huggingface-pytorch-trcomp" in image_uri 
+        else "huggingface_pytorch" 
+        if "huggingface-pytorch" in image_uri 
         else "mxnet"
         if "mxnet" in image_uri
         else "pytorch"
