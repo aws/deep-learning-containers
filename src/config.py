@@ -19,15 +19,25 @@ def get_dlc_developer_config_path():
     return os.path.join(dev_config_parent_dir, "dlc_developer_config.toml")
 
 
+def get_dlc_build_version_override_config_path():
+    build_override_parent_dir = get_cloned_folder_path()
+    return os.path.join(build_override_parent_dir, "dlc_build_version_override_config.toml")
+
+
 def parse_dlc_developer_configs(section, option, tomlfile=get_dlc_developer_config_path()):
     data = toml.load(tomlfile)
 
     return data.get(section, {}).get(option)
 
 
+def parse_dlc_build_version_override_configs(option, tomlfile=get_dlc_build_version_override_config_path()):
+    data = toml.load(tomlfile)
+    return data.get(option)
+
+
 def get_buildspec_override():
     build_project_name = get_codebuild_project_name()
-    return parse_dlc_developer_configs("buildspec_override", build_project_name)
+    return parse_dlc_build_version_override_configs(build_project_name)
 
 
 def is_benchmark_mode_enabled():
