@@ -28,6 +28,7 @@ def main():
     neuron_dedicated = os.getenv("NEURON_DEDICATED", "false").lower() == "true"
     graviton_dedicated = os.getenv("GRAVITON_DEDICATED", "false").lower() == "true"
     habana_dedicated = os.getenv("HABANA_DEDICATED", "false").lower() == "true"
+    trcomp_dedicated = os.getenv("HUGGINFACE_TRCOMP_DEDICATED", "false").lower() == "true"
 
     # Get config value options
     frameworks_to_skip = parse_dlc_developer_configs("build", "skip_frameworks")
@@ -35,6 +36,8 @@ def main():
     neuron_build_mode = parse_dlc_developer_configs("dev", "neuron_mode")
     graviton_build_mode = parse_dlc_developer_configs("dev", "graviton_mode")
     habana_build_mode = parse_dlc_developer_configs("dev", "habana_mode")
+    trcomp_build_mode = parse_dlc_developer_configs("dev", "trcomp_mode")
+
 
     # Write empty dict to JSON file, so subsequent buildspec steps do not fail in case we skip this build
     utils.write_to_json_file(constants.TEST_TYPE_IMAGES_PATH, {})
@@ -54,10 +57,12 @@ def main():
         and not neuron_dedicated
         and not graviton_dedicated
         and not habana_dedicated
+        and not trcomp_dedicated
         and not ei_build_mode
         and not neuron_build_mode
         and not graviton_build_mode
         and not habana_build_mode
+        and not trcomp_build_mode
         and args.framework not in frameworks_to_skip
     )
     # An EI dedicated builder will work if in EI mode and its framework not been disabled
@@ -72,6 +77,13 @@ def main():
     # A HABANA dedicated builder will work if in HABANA mode and its framework has not been disabled
     habana_builder_enabled = habana_dedicated and habana_build_mode and args.framework not in frameworks_to_skip
 
+    # A TRCOMP dedicated builder will work if in TRCOMP mode and its framework has not been disabled.
+    trcomp_builder_enabled = (
+        trcomp_dedicated
+        and trcomp_build_mode
+        and args.framework not in frameworks_to_skip
+    )
+
     # A builder will always work if it is in non-PR context
     if (
         general_builder_enabled
@@ -79,6 +91,7 @@ def main():
         or neuron_builder_enabled
         or graviton_builder_enabled
         or habana_builder_enabled
+        or trcomp_builder_enabled
         or build_context != "PR"
     ):
         utils.build_setup(
