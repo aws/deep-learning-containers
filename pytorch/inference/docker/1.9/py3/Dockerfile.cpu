@@ -102,9 +102,9 @@ RUN conda install -c \
     scikit-learn \
     pandas \
     h5py \
-    requests \
- && conda clean -ya \
- && pip install --upgrade pip --trusted-host pypi.org --trusted-host files.pythonhosted.org \
+    requests
+
+RUN pip install --upgrade pip --trusted-host pypi.org --trusted-host files.pythonhosted.org \
  && ln -s /opt/conda/bin/pip /usr/local/bin/pip3 \
  && pip install packaging==20.4 \
     enum-compat==0.0.3 \
