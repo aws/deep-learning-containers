@@ -141,8 +141,8 @@ RUN conda install -c \
     scikit-learn \
     pandas \
     h5py \
-    requests \
- && conda clean -ya
+    requests
+# && conda clean -ya
  
 RUN /opt/conda/bin/conda config --set ssl_verify False
 
