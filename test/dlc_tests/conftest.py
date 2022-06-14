@@ -602,7 +602,7 @@ def framework_version_within_limit(metafunc_obj, image):
 def pytest_configure(config):
     # register canary marker
     config.addinivalue_line("markers", "canary(message): mark test to run as a part of canary tests.")
-    config.addinivalue_line("markers", "quick_check(message): mark test to run as a part of quick check tests.")
+    config.addinivalue_line("markers", "quick_checks(message): mark test to run as a part of quick check tests.")
     config.addinivalue_line("markers", "integration(ml_integration): mark what the test is testing.")
     config.addinivalue_line("markers", "model(model_name): name of the model being tested")
     config.addinivalue_line("markers", "multinode(num_instances): number of instances the test is run on, if not 1")
