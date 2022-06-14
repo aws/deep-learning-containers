@@ -152,7 +152,8 @@ def _run_instance_role_disabled(image_uri, ec2_client, ec2_instance, ec2_connect
         ec2_connection.run(f"{docker_cmd} run {env_vars} --name {container_name} -id {image_uri} {inference_command}")
         time.sleep(5)
     else:
-        framework_to_import = framework.replace("huggingface_", "")
+        # Replace the huggingface and trcomp string as it is extracted from ECR repo name
+        framework_to_import = framework.replace("huggingface_", "").replace("_trcomp", "")
         framework_to_import = "torch" if framework_to_import == "pytorch" else framework_to_import
         ec2_connection.run(f"{docker_cmd} run --name {container_name} -id {image_uri} bash")
         output = ec2_connection.run(
