@@ -20,24 +20,17 @@ import sys
 import boto3
 import constants
 
-from config import is_build_enabled
-from invoke.context import Context
 from botocore.exceptions import ClientError
+from invoke.context import Context
+
+from codebuild_environment import get_cloned_folder_path, get_user_and_repo_name
+from config import is_build_enabled
 from safety_report_generator import SafetyReportGenerator
 
 LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.DEBUG)
 LOGGER.addHandler(logging.StreamHandler(sys.stdout))
 LOGGER.addHandler(logging.StreamHandler(sys.stderr))
-
-
-def get_codebuild_build_arn():
-    """
-    Get env variable CODEBUILD_BUILD_ARN
-
-    @return: value or empty string if not set
-    """
-    return os.getenv("CODEBUILD_BUILD_ARN", "")
 
 
 class JobParameters:
@@ -70,6 +63,7 @@ class JobParameters:
             and JobParameters.py_versions == constants.ALL
         )
 
+
 def download_s3_file(bucket_name, filepath, local_file_name):
     """
 
@@ -86,6 +80,7 @@ def download_s3_file(bucket_name, filepath, local_file_name):
         LOGGER.error("Error: Cannot read file from s3 bucket.")
         LOGGER.error("Exception: {}".format(e))
         raise
+
 
 def download_file(remote_url: str, link_type: str):
     """
@@ -127,8 +122,7 @@ def get_pr_modified_files(pr_number):
     from dlc.github_handler import GitHubHandler
 
     # Example: "https://github.com/aws/deep-learning-containers.git"
-    repo_url = os.getenv("CODEBUILD_SOURCE_REPO_URL")
-    _, user, repo_name = repo_url.rstrip(".git").rsplit("/", 2)
+    user, repo_name = get_user_and_repo_name()
 
     github_handler = GitHubHandler(user, repo_name)
     files = github_handler.get_pr_files_changed(pr_number)
@@ -504,25 +498,6 @@ def set_test_env(images, use_latest_additional_tag=False, images_env="DLC_IMAGES
     write_to_json_file(constants.TEST_ENV_PATH, test_envs)
 
 
-def get_codebuild_project_name():
-    # Default value for codebuild project name is "local_test" when run outside of CodeBuild
-    return os.getenv("CODEBUILD_BUILD_ID", "local_test").split(":")[0]
-
-
-def get_root_folder_path():
-    """
-    Extract the root folder path for the repository.
-
-    :return: str
-    """
-    root_dir_pattern = re.compile(r"^(\S+deep-learning-containers)")
-    pwd = os.getcwd()
-    codebuild_src_dir_env = os.getenv("CODEBUILD_SRC_DIR")
-    root_folder_path = codebuild_src_dir_env if codebuild_src_dir_env else root_dir_pattern.match(pwd).group(1)
-
-    return root_folder_path
-
-
 def get_safety_ignore_dict(image_uri, framework, python_version, job_type):
     """
     Get a dict of known safety check issue IDs to ignore, if specified in file ../data/ignore_ids_safety_scan.json.
@@ -537,12 +512,11 @@ def get_safety_ignore_dict(image_uri, framework, python_version, job_type):
         job_type = (
             "inference-eia" if "eia" in image_uri else "inference-neuron" if "neuron" in image_uri else "inference"
         )
-    
+
     if "habana" in image_uri:
         framework = f"habana_{framework}"
 
-    ignore_safety_ids = {}
-    ignore_data_file = os.path.join(os.sep, get_root_folder_path(), "data", "ignore_ids_safety_scan.json")
+    ignore_data_file = os.path.join(os.sep, get_cloned_folder_path(), "data", "ignore_ids_safety_scan.json")
     with open(ignore_data_file) as f:
         ignore_safety_ids = json.load(f)
 
@@ -551,7 +525,7 @@ def get_safety_ignore_dict(image_uri, framework, python_version, job_type):
 
 def generate_safety_report_for_image(image_uri, image_info, storage_file_path=None):
     """
-    Genereate safety scan reports for an image and store it at the location specified 
+    Generate safety scan reports for an image and store it at the location specified
 
     :param image_uri: str, consists of f"{image_repo}:{image_tag}"
     :param image_info: dict, should consist of 3 keys - "framework", "python_version" and "image_type".
