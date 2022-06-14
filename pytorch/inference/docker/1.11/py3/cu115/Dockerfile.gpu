@@ -192,7 +192,7 @@ RUN pip install --no-cache-dir -U \
     enum-compat==0.0.3 \
     ipython==8.1.0 \
     numpy==1.22.2 \
-    opencv-python==4.5.5.62 \
+    "opencv-python>=4.0.0,<4.6.0" \
     packaging \
     "Pillow>=9.0.0" \
     "pyyaml>=5.4,<5.5" \
