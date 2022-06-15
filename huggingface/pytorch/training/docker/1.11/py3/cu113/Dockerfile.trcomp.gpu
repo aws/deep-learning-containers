@@ -12,11 +12,11 @@ ARG TRANSFORMERS_VERSION=4.19.2
 ARG DATASETS_VERSION=1.18.4
 ARG PYTHON=python3
 
-ARG PT_BUCKET=https://sm-training-comp-pytorch-binaries.s3.us-west-2.amazonaws.com/bab6b2ba-721b-4a3f-8e87-e6af518f0030/20220520-003919/4a36ea1aa4744e618edbd2edc531d10b0e65dfc7
+ARG PT_BUCKET=https://sm-training-comp-pytorch-binaries.s3.us-west-2.amazonaws.com/617bcafe-7da3-4700-a4ba-6707a11c6630/20220526-213653/9ad1460a3411c47cc696c97b52d11dd3984fd2b1
 ARG PT_URL=${PT_BUCKET}/torch-1.11.0%2Bcu113-cp38-cp38-linux_x86_64.whl
 ARG PT_XLA_URL=${PT_BUCKET}/torch_xla-1.11.0-cp38-cp38-linux_x86_64.whl
 ARG TORCHVISION_URL=${PT_BUCKET}/torchvision-0.12.0a0%2B9b5a3fe-cp38-cp38-linux_x86_64.whl
-ARG TORCHAUDIO_URL=${PT_BUCKET}/torchaudio-0.11.0%2B820b383-cp38-cp38-linux_x86_64.whl
+ARG TORCHAUDIO_URL=${PT_BUCKET}/torchaudio-0.11.0%2B6297e97-cp38-cp38-linux_x86_64.whl
 ARG HF_TRANSFORMERS_URL=https://sm-training-comp-pytorch-binaries.s3.us-west-2.amazonaws.com/d590055d-bfc4-439e-8199-2b51a9f46beb/20220521-013053/5906ed2b65214eddbb7ee27f08dbe1cad3ed1921/transformers-4.19.2-py3-none-any.whl
 
 
@@ -44,7 +44,7 @@ RUN apt-get update \
  && apt-get clean \  
  && rm -rf /var/lib/apt/lists/*
 
-RUN pip install -U "numpy<1.22"
+# RUN pip install numpy --upgrade
 
 # Install PyTorch
 RUN pip uninstall -y torch \
@@ -83,6 +83,9 @@ RUN pip install --no-cache-dir \
     rouge-score \
     soundfile \
     sentence-transformers
+
+# Numpy version gets downgraded and becomes incompatible with PyTorch wheel in the above conda command.
+RUN pip install numpy --upgrade 
 
 # Fix library links
 RUN ln -s ${CONDA_PREFIX}/lib/libmkl_intel_lp64.so ${CONDA_PREFIX}/lib/libmkl_intel_lp64.so.1 \
