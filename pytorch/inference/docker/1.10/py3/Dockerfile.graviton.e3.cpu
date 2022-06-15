@@ -8,8 +8,8 @@ ARG PYTHON_VERSION=3.8.12
 ARG PT_INFERENCE_URL=https://pytorch-ei-binaries.s3.us-west-2.amazonaws.com/r1.10.0_inference/20211117-055259/7af6f8360b1e31f4bad44bdec916cf15efc9b8a5/graviton/torch-1.10.0%2Bcpu-cp38-cp38-manylinux2014_aarch64.whl
 ARG ARMCL_BRANCH=v21.05
 ARG OPEN_MPI_VERSION=4.0.1
-ARG TS_VERSION=0.5.2
-ARG MAMBA_VERSION=4.12.0-0
+ARG TS_VERSION=0.5.3
+ARG MAMBA_VERSION=4.12.0-2
 ENV LANG C.UTF-8
 ENV LD_LIBRARY_PATH /opt/conda/lib/:$LD_LIBRARY_PATH
 ENV PATH /opt/conda/bin:$PATH
@@ -51,8 +51,6 @@ RUN curl -L -o ~/mambaforge.sh https://github.com/conda-forge/miniforge/releases
  && ~/mambaforge.sh -b -p /opt/conda \
  && rm ~/mambaforge.sh
 
-RUN /opt/conda/bin/conda update conda
-
 RUN /opt/conda/bin/conda install -c conda-forge python=$PYTHON_VERSION
 
 RUN /opt/conda/bin/conda install -c conda-forge -y \
@@ -65,6 +63,12 @@ RUN /opt/conda/bin/conda install -c conda-forge -y \
     # Below 2 are included in miniconda base, but not mamba so need to install
     conda-content-trust \
     charset-normalizer
+
+# Upstream conda looks to have moved to 4.13 which is incompatible with mamba 0.22.1 and will fail the conda-forge installs.
+# having "conda update conda" before the "conda -c conda-forge" commands will automatically update conda to 4.13.
+# Moving conda update conda" after the "conda -c conda-forge" commands keep conda at 4.12 but will update other packages using
+# the current conda 4.12
+RUN /opt/conda/bin/conda update -y conda
 
 RUN /opt/conda/bin/conda clean -ya
 

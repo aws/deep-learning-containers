@@ -171,8 +171,10 @@ def test_tf_serving_version_cpu(tensorflow_inference):
     output = run_cmd_on_container(
         container_name, ctx, "tensorflow_model_server --version", executable="bash"
     )
-    assert re.match(rf"TensorFlow ModelServer: {tag_framework_version}(\D+)?", output.stdout), \
+    assert (
+        re.match(rf"TensorFlow Model Server: {tag_framework_version}(\D+)?", output.stdout),
         f"Cannot find model server version {tag_framework_version} in {output.stdout}"
+    )
 
     stop_and_remove_container(container_name, ctx)
 
@@ -219,7 +221,11 @@ def test_framework_version_cpu(image):
         assert tag_framework_version in output.stdout.strip()
     else:
         if tested_framework == "autogluon.core":
-            version_to_check = "0.3.1" if tag_framework_version == "0.3.2" else tag_framework_version
+            versions_map = {
+                # container version -> autogluon version
+                '0.3.2': '0.3.1',
+            }
+            version_to_check = versions_map.get(tag_framework_version, tag_framework_version)
             assert output.stdout.strip().startswith(version_to_check)
         # Habana v1.2 binary does not follow the X.Y.Z+cpu naming convention
         elif "habana" not in image_repo_name:
@@ -317,12 +323,16 @@ def test_framework_and_cuda_version_gpu(gpu, ec2_connection):
     if re.fullmatch(r"(pr-|beta-|nightly-)?tensorflow-inference(-eia|-graviton)?", image_repo_name):
         cmd = f"tensorflow_model_server --version"
         output = ec2.execute_ec2_training_test(ec2_connection, image, cmd, executable="bash")
-        assert re.match(rf"TensorFlow ModelServer: {tag_framework_version}(\D+)?", output.stdout), \
+        assert (
+            re.match(rf"TensorFlow Model Server: {tag_framework_version}(\D+)?", output.stdout),
             f"Cannot find model server version {tag_framework_version} in {output.stdout}"
+        )
     else:
         # Framework name may include huggingface
         if tested_framework.startswith('huggingface_'):
             tested_framework = tested_framework[len("huggingface_"):]
+            # Replace the trcomp string as it is extracted from ECR repo name
+            tested_framework = tested_framework.replace("_trcomp", "")
         # Module name is "torch"
         if tested_framework == "pytorch":
             tested_framework = "torch"
@@ -396,6 +406,7 @@ def _run_dependency_check_test(image, ec2_connection):
         "pytorch": {"1.8": ["cpu", "gpu"], "1.10": ["cpu", "hpu"], "1.11": ["cpu", "gpu"]},
         "huggingface_pytorch": {"1.8": ["cpu", "gpu"], "1.9": ["cpu", "gpu"]},
         "huggingface_tensorflow": {"2.4": ["cpu", "gpu"], "2.5": ["cpu", "gpu"], "2.6": ["cpu", "gpu"]},
+        "huggingface_tensorflow_trcomp": {"2.6": ["gpu"]},
         "autogluon": {"0.3": ["cpu", "gpu"], "0.4": ["cpu", "gpu"]},
     }
 
@@ -403,13 +414,20 @@ def _run_dependency_check_test(image, ec2_connection):
     # Check that these versions have been matched on https://ubuntu.com/security/CVE-2022-1292 before adding
     allow_openssl_cve_2022_1292_fw_versions = {
         "pytorch": {
-            "1.10": ["gpu", "cpu"],
+            "1.10": ["gpu", "cpu", "hpu"],
             "1.11": ["gpu", "cpu"],
         },
         "tensorflow": {
+            "1.15": ["neuron"],
+            "2.5": ["cpu", "gpu", "neuron"],
+            "2.6": ["cpu", "gpu"],
+            "2.7": ["cpu", "gpu", "hpu"],
             "2.8": ["cpu", "gpu"],
-            "2.9": ["cpu", "gpu"],
-        }
+            "2.9": ["cpu", "gpu"]
+        },
+        "mxnet": {"1.8": ["neuron"], "1.9": ["cpu", "gpu"]},
+        "huggingface_tensorflow": {"2.6": ["gpu"]},
+        "autogluon": {"0.3": ["cpu", "gpu"], "0.4": ["cpu", "gpu"]},
     }
 
     if processor in allow_openssl_cve_2021_3711_fw_versions.get(framework, {}).get(short_fw_version, []):
@@ -588,7 +606,9 @@ def test_pip_check(image):
 
     framework, framework_version = get_framework_and_version_from_tag(image)
     # The v0.21 version of tensorflow-io has a bug fixed in v0.23 https://github.com/tensorflow/io/releases/tag/v0.23.0
-    if framework == "tensorflow" or framework == "huggingface_tensorflow" and Version(framework_version) in SpecifierSet(">=2.6.3,<2.7"):
+    
+    tf263_io21_issue_framework_list = ["tensorflow", "huggingface_tensorflow", "huggingface_tensorflow_trcomp"]
+    if framework in tf263_io21_issue_framework_list or Version(framework_version) in SpecifierSet(">=2.6.3,<2.7"):
         allowed_tf263_exception = re.compile(rf"^tensorflow-io 0.21.0 requires tensorflow, which is not installed.$")
         allowed_exception_list.append(allowed_tf263_exception)
 
@@ -597,6 +617,13 @@ def test_pip_check(image):
             rf"autogluon-(vision|mxnet) 0.3.1 has requirement Pillow<8.4.0,>=8.3.0, but you have pillow \d+(\.\d+)*"
         )
         allowed_exception_list.append(allowed_autogluon_exception)
+
+    # TF2.9 sagemaker containers introduce tf-models-official which has a known bug where in it does not respect the
+    # existing TF installation. https://github.com/tensorflow/models/issues/9267. This package in turn brings in
+    # tensorflow-text. Skip checking these two packages as this is an upstream issue.
+    if framework == "tensorflow" and Version(framework_version) in SpecifierSet(">=2.9.1"):
+        allowed_tf29_exception = re.compile(rf"^(tf-models-official 2.9.1|tensorflow-text 2.9.0) requires tensorflow, which is not installed.")
+        allowed_exception_list.append(allowed_tf29_exception)
 
     # Add null entrypoint to ensure command exits immediately
     output = ctx.run(
@@ -639,6 +666,7 @@ def test_cuda_paths(gpu):
     ).group(1)
 
     # replacing '_' by '/' to handle huggingface_<framework> case
+    framework = framework.replace("_trcomp", "")
     framework_path = framework.replace("_", "/")
     framework_version_path = os.path.join(
         dlc_path, framework_path, job_type, "docker", framework_version)
@@ -655,6 +683,8 @@ def test_cuda_paths(gpu):
     buildspec = "buildspec.yml"
     if is_tf_version("1", image):
         buildspec = "buildspec-tf1.yml"
+    if "trcomp" in image:
+        buildspec = "buildspec-trcomp.yml"
 
     image_tag_in_buildspec = False
     dockerfile_spec_abs_path = None

@@ -1,9 +1,10 @@
 account_id: &ACCOUNT_ID <set-$ACCOUNT_ID-in-environment>
 region: &REGION <set-$REGION-in-environment>
 framework: &FRAMEWORK pytorch
-version: &VERSION 1.9.1
+version: &VERSION 1.7.1
 os_version: &OS_VERSION ubuntu18.04
-short_version: &SHORT_VERSION 1.9
+short_version: &SHORT_VERSION 1.7
+arch_type: x86
 
 repository_info:
   inference_repository: &INFERENCE_REPOSITORY
@@ -14,15 +15,12 @@ repository_info:
 
 context:
   inference_context: &INFERENCE_CONTEXT
-    neuron-monitor:
-      source: docker/build_artifacts/neuron-monitor.sh
-      target: neuron-monitor.sh
+    neuron-start:
+      source: docker/build_artifacts/neuron-start.sh
+      target: neuron-start.sh
     neuron-entrypoint:
       source: docker/build_artifacts/neuron-entrypoint.py
       target: neuron-entrypoint.py
-    torchserve-neuron:
-      source: docker/build_artifacts/torchserve-neuron.sh
-      target: torchserve-neuron.sh
     config:
       source: docker/build_artifacts/config.properties
       target: config.properties
@@ -34,9 +32,8 @@ images:
     image_size_baseline: 10000
     device_type: &DEVICE_TYPE neuron
     python_version: &DOCKER_PYTHON_VERSION py3
-    tag_python_version: &TAG_PYTHON_VERSION py37
-    neuron_sdk_version: &NEURON_SDK_VERSION sdk1.16.1
-    tag: !join [ *VERSION, "-", *DEVICE_TYPE, "-", *TAG_PYTHON_VERSION, "-", *NEURON_SDK_VERSION, "-", *OS_VERSION ]
-    docker_file: !join [ docker/, *SHORT_VERSION, /, *DOCKER_PYTHON_VERSION, /, *NEURON_SDK_VERSION, /Dockerfile., neuron ]
+    tag_python_version: &TAG_PYTHON_VERSION py36
+    tag: !join [ *VERSION, "-", *DEVICE_TYPE, "-", *TAG_PYTHON_VERSION, "-", *OS_VERSION ]
+    docker_file: !join [ docker/, *SHORT_VERSION, /, *DOCKER_PYTHON_VERSION, /Dockerfile., neuron ]
     context:
       <<: *INFERENCE_CONTEXT

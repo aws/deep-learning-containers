@@ -6,6 +6,7 @@ from test import test_utils
 @pytest.mark.usefixtures("sagemaker")
 @pytest.mark.model("N/A")
 @pytest.mark.integration("anaconda_removal")
+@pytest.mark.skip(reason="Temporarily skip test for emergency")
 def test_repo_anaconda_not_present(image):
     """Test to see if all packages installed in the image do not come from repo.anaconda.com"""
     try:
@@ -14,7 +15,7 @@ def test_repo_anaconda_not_present(image):
         test_utils.start_container(container_name, image, ctx)
 
         # First check to see if image has conda installed, if not, skip test since no packages installed from conda present
-        conda_present = test_utils.run_cmd_on_container(container_name, ctx, "find . -name conda").stdout.strip()
+        conda_present = test_utils.run_cmd_on_container(container_name, ctx, "find . -name conda -not -path \"**/.github/*\"").stdout.strip()
         if not conda_present:
             pytest.skip(f"Image {image} does not have conda installed, skipping test.")
 

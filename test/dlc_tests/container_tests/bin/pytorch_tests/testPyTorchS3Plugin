@@ -228,6 +228,8 @@ def run_test():
 
 if __name__ == '__main__':
     try:
+        import torch.multiprocessing as mp
+        mp.set_start_method('spawn')
         sys.exit(run_test())
     except KeyboardInterrupt:
         pass
