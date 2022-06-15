@@ -29,18 +29,8 @@ LOGGER.addHandler(logging.StreamHandler(sys.stderr))
 DEFAULT_REGION = "us-west-2"
 # Constant to represent region where p3dn tests can be run
 P3DN_REGION = "us-east-1"
-def get_ami_id_boto3(region_name, ami_name_pattern):
-    """
-    For a given region and ami name pattern, return the latest ami-id
-    """
-    ami_list = boto3.client("ec2", region_name=region_name).describe_images(
-        Filters=[{"Name": "name", "Values": [ami_name_pattern]}], Owners=['amazon']
-    )
-    ami = max(ami_list["Images"], key=lambda x: x["CreationDate"])
-    return ami['ImageId']
 
-
-UBUNTU_18_BASE_DLAMI_US_WEST_2 = get_ami_id_boto3(region_name="us-west-2", ami_name_pattern="Deep Learning AMI GPU CUDA 11.1.1 (Ubuntu 18.04) ????????")
+UBUNTU_18_BASE_DLAMI_US_WEST_2 = "ami-0150e36b3f936a26e"
 UBUNTU_18_BASE_DLAMI_US_EAST_1 = "ami-044971d381e6a1109"
 AML2_GPU_DLAMI_US_WEST_2 = "ami-071cb1e434903a577"
 AML2_GPU_DLAMI_US_EAST_1 = "ami-044264d246686b043"
@@ -53,8 +43,8 @@ PT_GPU_PY3_BENCHMARK_IMAGENET_AMI_US_WEST_2 = "ami-02d9a47bc61a31d43"
 # Since latest driver is not in public DLAMI yet, using a custom one
 NEURON_UBUNTU_18_BASE_DLAMI_US_WEST_2 = "ami-078c2404eecfbe916"
 # Habana Base v1.3 ami
-UBUNTU_18_HPU_DLAMI_US_WEST_2 = "ami-0ef18b1906e7010fb"
-UBUNTU_18_HPU_DLAMI_US_EAST_1 = "ami-040ef14d634e727a2"
+UBUNTU_18_HPU_DLAMI_US_WEST_2 = "ami-08e564663ef2e761c"
+UBUNTU_18_HPU_DLAMI_US_EAST_1 = "ami-06a0a1e2c90bfc1c8"
 UL_AMI_LIST = [
     UBUNTU_18_BASE_DLAMI_US_EAST_1,
     UBUNTU_18_BASE_DLAMI_US_WEST_2,
@@ -141,11 +131,7 @@ def get_dockerfile_path_for_image(image_uri):
 
     framework, framework_version = get_framework_and_version_from_tag(image_uri)
 
-    if "trcomp" in framework:
-        # Replace the trcomp string as it is extracted from ECR repo name
-        framework = framework.replace("_trcomp", "")
-        framework_path = framework.replace("_", os.path.sep)
-    elif "huggingface" in framework:
+    if "huggingface" in framework:
         framework_path = framework.replace("_", os.path.sep)
     elif "habana" in image_uri:
         framework_path = os.path.join("habana", framework)
@@ -223,8 +209,6 @@ def get_expected_dockerfile_filename(device_type, image_uri):
         return f"Dockerfile.e3.{device_type}"
     if is_sagemaker_image(image_uri):
         return f"Dockerfile.sagemaker.{device_type}"
-    if is_trcomp_image(image_uri):
-        return f"Dockerfile.trcomp.{device_type}"
     return f"Dockerfile.{device_type}"
 
 
@@ -249,8 +233,6 @@ def get_ecr_repo_name(image_uri):
 def is_tf_version(required_version, image_uri):
     """
     Validate that image_uri has framework version equal to required_version
-    Relying on current convention to include TF version into an image tag for all
-    TF based frameworks
 
     :param required_version: str Framework version which is required from the image_uri
     :param image_uri: str ECR Image URI for the image to be validated
@@ -258,16 +240,8 @@ def is_tf_version(required_version, image_uri):
     """
     image_framework_name, image_framework_version = get_framework_and_version_from_tag(image_uri)
     required_version_specifier_set = SpecifierSet(f"=={required_version}.*")
-    return is_tf_based_framework(image_framework_name) and image_framework_version in required_version_specifier_set
+    return image_framework_name == "tensorflow" and image_framework_version in required_version_specifier_set
 
-
-def is_tf_based_framework(name):
-    """
-    Checks whether framework is TF based.
-    Relying on current convention to include "tensorflow" into TF based names
-    E.g. "huggingface-tensorflow" or "huggingface-tensorflow-trcomp"
-    """
-    return "tensorflow" in name
 
 def is_below_framework_version(version_upper_bound, image_uri, framework):
     """
@@ -386,10 +360,6 @@ def is_e3_image(image_uri):
 
 def is_sagemaker_image(image_uri):
     return "-sagemaker" in image_uri
-
-
-def is_trcomp_image(image_uri):
-    return "-trcomp" in image_uri
 
 
 def is_time_for_canary_safety_scan():
@@ -838,7 +808,7 @@ def get_canary_default_tag_py3_version(framework, version):
         if Version("2.6") <= Version(version) < Version("2.8"):
             return "py38"
         if Version(version) >= Version("2.8"):
-            return "py39"
+            return"py39"
 
     if framework == "mxnet":
         if Version(version) == Version("1.8"):
@@ -863,7 +833,7 @@ def parse_canary_images(framework, region):
     """
     customer_type = get_customer_type()
     customer_type_tag = f"-{customer_type}" if customer_type else ""
-
+    
     # initialize graviton variables
     use_graviton = False
 
@@ -981,7 +951,7 @@ def parse_canary_images(framework, region):
                 "graviton_pytorch": [
                     f"{registry}.dkr.ecr.{region}.amazonaws.com/pytorch-inference-graviton:{fw_version}-cpu-{py_version}",
                 ],
-                # TODO: create graviton_mxnet DLC and add to dictionary
+                # TODO: create graviton_mxnet DLC and add to dictionary 
             }
 
             # E3 Images have an additional "e3" tag to distinguish them from the regular "sagemaker" tag
@@ -1110,8 +1080,6 @@ def get_framework_and_version_from_tag(image_uri):
     """
     tested_framework = get_framework_from_image_uri(image_uri)
     allowed_frameworks = (
-        "huggingface_tensorflow_trcomp",
-        "huggingface_pytorch_trcomp",
         "huggingface_tensorflow",
         "huggingface_pytorch",
         "tensorflow",
@@ -1306,44 +1274,12 @@ def get_neuron_framework_and_version_from_tag(image_uri):
     return tested_framework, neuron_tag_framework_version
 
 
-def get_transformers_version_from_image_uri(image_uri):
-    """
-    Utility function to get the HuggingFace transformers version from an image uri
-
-    @param image_uri: ECR image uri
-    @return: HuggingFace transformers version, or ""
-    """
-    transformers_regex = re.compile(r"transformers(\d+.\d+.\d+)")
-    transformers_in_img_uri = transformers_regex.search(image_uri)
-    if transformers_in_img_uri:
-        return transformers_in_img_uri.group(1)
-    return ""
-
-
-def get_os_version_from_image_uri(image_uri):
-    """
-    Currently only ship ubuntu versions
-
-    @param image_uri: ECR image URI
-    @return: OS version, or ""
-    """
-    os_version_regex = re.compile(r"ubuntu\d+.\d+")
-    os_version_in_img_uri = os_version_regex.search(image_uri)
-    if os_version_in_img_uri:
-        return os_version_in_img_uri.group()
-    return ""
-
-
 def get_framework_from_image_uri(image_uri):
     return (
-        "huggingface_tensorflow_trcomp" 
-        if "huggingface-tensorflow-trcomp" in image_uri 
-        else "huggingface_tensorflow"
+        "huggingface_tensorflow"
         if "huggingface-tensorflow" in image_uri
-        else "huggingface_pytorch_trcomp" 
-        if "huggingface-pytorch-trcomp" in image_uri 
-        else "huggingface_pytorch" 
-        if "huggingface-pytorch" in image_uri 
+        else "huggingface_pytorch"
+        if "huggingface-pytorch" in image_uri
         else "mxnet"
         if "mxnet" in image_uri
         else "pytorch"
@@ -1540,7 +1476,7 @@ def uniquify_list_of_dict(list_of_dict):
     """
     Takes list_of_dict as an input and returns a list of dict such that each dict is only present
     once in the returned list. Runs an operation that is similar to list(set(input_list)). However,
-    for list_of_dict, it is not possible to run the operation directly.
+    for list_of_dict, it is not possible to run the operation directly. 
 
     :param list_of_dict: List(dict)
     :return: List(dict)
@@ -1637,56 +1573,3 @@ def is_image_available_locally(image_uri):
     """
     run_output = run(f"docker inspect {image_uri}", hide=True, warn=True)
     return run_output.ok
-
-
-def get_contributor_from_image_uri(image_uri):
-    """
-    Return contributor name if it is present in the image URI
-
-    @param image_uri: ECR image uri
-    @return: contributor name, or ""
-    """
-    # Key value pair of contributor_identifier_in_image_uri: contributor_name
-    contributors = {
-        "huggingface": "huggingface",
-        "habana": "habana"
-    }
-    for contributor_identifier_in_image_uri, contributor_name in contributors.items():
-        if contributor_identifier_in_image_uri in image_uri:
-            return contributor_name
-    return ""
-
-
-def get_labels_from_ecr_image(image_uri, region):
-    """
-    Get ecr image labels from ECR
-
-    @param image_uri: ECR image URI to get labels from
-    @param region: AWS region
-    @return: list of labels attached to ECR image URI
-    """
-    ecr_client = boto3.client("ecr", region_name=region)
-
-    image_repository, image_tag = get_repository_and_tag_from_image_uri(image_uri)
-    # Using "acceptedMediaTypes" on the batch_get_image request allows the returned image information to
-    # provide the ECR Image Manifest in the specific format that we need, so that the image LABELS can be found
-    # on the manifest. The default format does not return the image LABELs.
-    response = ecr_client.batch_get_image(
-        repositoryName=image_repository,
-        imageIds=[{"imageTag": image_tag}],
-        acceptedMediaTypes=["application/vnd.docker.distribution.manifest.v1+json"],
-    )
-    if not response.get("images"):
-        raise KeyError(
-            f"Failed to get images through ecr_client.batch_get_image response for image {image_repository}:{image_tag}"
-        )
-    elif not response["images"][0].get("imageManifest"):
-        raise KeyError(f"imageManifest not found in ecr_client.batch_get_image response:\n{response['images']}")
-
-    manifest_str = response["images"][0]["imageManifest"]
-    # manifest_str is a json-format string
-    manifest = json.loads(manifest_str)
-    image_metadata = json.loads(manifest["history"][0]["v1Compatibility"])
-    labels = image_metadata["config"]["Labels"]
-
-    return labels
