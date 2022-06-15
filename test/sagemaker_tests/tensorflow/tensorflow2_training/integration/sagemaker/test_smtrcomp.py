@@ -75,7 +75,7 @@ def mnist_distributed_dataset(sagemaker_session):
 
 @pytest.fixture(autouse=True)
 def smtrcomp_only(framework_version, ecr_image, request):
-    if Version(framework_version) in SpecifierSet(">=2.9.1"):
+    if Version(framework_version) in SpecifierSet("<2.9.1"):
         pytest.skip('Training Compiler support was added with TF 2.9.1')
     if 'gpu' not in ecr_image:
         pytest.skip('Training Compiler is only available for GPUs')
