@@ -10,5 +10,6 @@ phases:
         fi
   build:
     commands:
+      - export PYTHONPATH=$PYTHONPATH:$(pwd)/src
       - publish_dlc_images --release-spec $(pwd)/release_images.yml
       - generate_release_information
