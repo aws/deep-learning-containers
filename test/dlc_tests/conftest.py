@@ -124,17 +124,6 @@ def num_nodes(request):
 def ec2_key_name(request):
     return request.param
 
-@pytest.fixture(scope="function")
-def ec2_key_file_name(request):
-    return request.param
-
-@pytest.fixture(scope="function")
-def ec2_user_name(request):
-    return request.param
-
-@pytest.fixture(scope="function")
-def ec2_public_ip(request):
-    return request.param
 
 @pytest.fixture(scope="function")
 def ec2_key_file_name(request):
@@ -613,7 +602,7 @@ def framework_version_within_limit(metafunc_obj, image):
 def pytest_configure(config):
     # register canary marker
     config.addinivalue_line("markers", "canary(message): mark test to run as a part of canary tests.")
-    config.addinivalue_line("markers", "quick_check(message): mark test to run as a part of quick check tests.")
+    config.addinivalue_line("markers", "quick_checks(message): mark test to run as a part of quick check tests.")
     config.addinivalue_line("markers", "integration(ml_integration): mark what the test is testing.")
     config.addinivalue_line("markers", "model(model_name): name of the model being tested")
     config.addinivalue_line("markers", "multinode(num_instances): number of instances the test is run on, if not 1")
@@ -731,14 +720,17 @@ def lookup_condition(lookup, image):
     """
     Return true if the ECR repo name ends with the lookup or lookup contains job type or device type part of the image uri.
     """
-    #Extract ecr repo name from the image and check if it exactly matches the lookup (fixture name)
-    repo_name = image.split("/")[-1].split(":")[0]
+    # Extract ecr repo name from the image and check if it exactly matches the lookup (fixture name)
+    repo_name = get_ecr_repo_name(image)
 
-    job_type = ("training", "inference",)
-    device_type = ("cpu", "gpu", "eia", "neuron", "hpu")
+    job_types = (
+        "training",
+        "inference",
+    )
+    device_types = ("cpu", "gpu", "eia", "neuron", "hpu", "graviton")
 
     if not repo_name.endswith(lookup):
-        if (lookup in job_type or lookup in device_type) and lookup in image:
+        if (lookup in job_types or lookup in device_types) and lookup in image:
             return True
         # Pytest does not allow usage of fixtures, specially dynamically loaded fixtures into pytest.mark.parametrize
         # See https://github.com/pytest-dev/pytest/issues/349.
@@ -771,8 +763,8 @@ def pytest_generate_tests(metafunc):
                 if lookup_condition(lookup, image):
                     is_example_lookup = "example_only" in metafunc.fixturenames and "example" in image
                     is_huggingface_lookup = (
-                            ("huggingface_only" in metafunc.fixturenames or "huggingface" in metafunc.fixturenames)
-                            and "huggingface" in image
+                        ("huggingface_only" in metafunc.fixturenames or "huggingface" in metafunc.fixturenames)
+                        and "huggingface" in image
                     )
                     is_trcomp_lookup = "trcomp" in image and all(
                         fixture_name not in metafunc.fixturenames

@@ -17,9 +17,6 @@ def test_binary_visibility(image: str):
     fail if an 'https://' link is still private
     """
 
-    if "trcomp" in image:
-        pytest.skip("Training Compiler DLC uses private binaries. Skipping the test")
-
     ctx = Context()
     labels = json.loads(ctx.run("docker inspect --format='{{json .Config.Labels}}' " + image).stdout.strip())
 

@@ -1,12 +1,12 @@
 import argparse
 import os
-import re
 
 import utils
 import constants
 
+from codebuild_environment import get_codebuild_project_name
+from config import parse_dlc_developer_configs, get_buildspec_override
 from image_builder import image_builder
-from config import parse_dlc_developer_configs
 
 
 def main():
@@ -38,18 +38,15 @@ def main():
     habana_build_mode = parse_dlc_developer_configs("dev", "habana_mode")
     trcomp_build_mode = parse_dlc_developer_configs("dev", "trcomp_mode")
 
-
     # Write empty dict to JSON file, so subsequent buildspec steps do not fail in case we skip this build
     utils.write_to_json_file(constants.TEST_TYPE_IMAGES_PATH, {})
 
     # Skip tensorflow-1 PR jobs, as there are no longer patch releases being added for TF1
     # Purposefully not including this in developer config to make this difficult to enable
     # TODO: Remove when we remove these jobs completely
-    build_arn = utils.get_codebuild_build_arn()
-    if build_context == "PR":
-        tf_1_build_regex = re.compile(r"dlc-pr-tensorflow-1:")
-        if tf_1_build_regex.search(build_arn):
-            return
+    build_name = get_codebuild_project_name()
+    if build_context == "PR" and build_name == "dlc-pr-tensorflow-1":
+        return
 
     # A general will work if in non-EI, non-NEURON and non-GRAVITON mode and its framework not been disabled
     general_builder_enabled = (
@@ -77,35 +74,25 @@ def main():
     # A HABANA dedicated builder will work if in HABANA mode and its framework has not been disabled
     habana_builder_enabled = habana_dedicated and habana_build_mode and args.framework not in frameworks_to_skip
 
-    # A HABANA dedicated builder will work if in HABANA mode and its framework has not been disabled
-    habana_builder_enabled = (
-        habana_dedicated
-        and habana_build_mode
-        and args.framework not in frameworks_to_skip
-    )
-
     # A TRCOMP dedicated builder will work if in TRCOMP mode and its framework has not been disabled.
-    trcomp_builder_enabled = (
-        trcomp_dedicated
-        and trcomp_build_mode
-        and args.framework not in frameworks_to_skip
-    )
+    trcomp_builder_enabled = trcomp_dedicated and trcomp_build_mode and args.framework not in frameworks_to_skip
 
-    utils.write_to_json_file(constants.TEST_TYPE_IMAGES_PATH, {})
+    buildspec_file = get_buildspec_override() or args.buildspec
+
     # A builder will always work if it is in non-PR context
     if (
-      general_builder_enabled
-      or ei_builder_enabled
-      or neuron_builder_enabled
-      or graviton_builder_enabled
-      or habana_builder_enabled
-      or trcomp_builder_enabled
-      or build_context != "PR"
+        general_builder_enabled
+        or ei_builder_enabled
+        or neuron_builder_enabled
+        or graviton_builder_enabled
+        or habana_builder_enabled
+        or trcomp_builder_enabled
+        or build_context != "PR"
     ):
         utils.build_setup(
             args.framework, device_types=device_types, image_types=image_types, py_versions=py_versions,
         )
-        image_builder(args.buildspec)
+        image_builder(buildspec_file)
 
 
 if __name__ == "__main__":
