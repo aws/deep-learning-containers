@@ -426,7 +426,7 @@ def _run_dependency_check_test(image, ec2_connection):
             "2.9": ["cpu", "gpu"]
         },
         "mxnet": {"1.8": ["neuron"], "1.9": ["cpu", "gpu"]},
-        "huggingface_tensorflow": {"2.6": ["gpu"]},
+        "huggingface_tensorflow": {"2.5": ["gpu"], "2.6": ["gpu"]},
         "autogluon": {"0.3": ["cpu", "gpu"], "0.4": ["cpu", "gpu"]},
     }
 
