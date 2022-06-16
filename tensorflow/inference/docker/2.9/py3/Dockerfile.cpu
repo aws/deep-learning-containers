@@ -46,6 +46,7 @@ RUN apt-get update \
     libbz2-dev \
     liblzma-dev \
     libffi-dev \
+    libgomp1 \
     build-essential \
     zlib1g-dev \
     openssl \
