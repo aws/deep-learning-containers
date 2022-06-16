@@ -88,7 +88,8 @@ RUN ${PIP} install --no-cache-dir \
 
 # Some TF tools expect a "python" binary
 RUN ln -s $(which ${PYTHON}) /usr/local/bin/python \
- && ln -s $(which ${PIP}) /usr/bin/pip
+ && ln -s $(which ${PIP}) /usr/bin/pip \
+ && ln -s /usr/lib/gcc/x86_64-linux-gnu/9/libgomp.so /usr/local/lib/libiomp5.so
 
 
 RUN curl $TFS_URL -o /usr/bin/tensorflow_model_server \
