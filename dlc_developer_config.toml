@@ -83,8 +83,8 @@ dlc-pr-tensorflow-1-neuron = ""
 dlc-pr-tensorflow-2-neuron = ""
 
 # Training Compiler DLC buildspecs
-dlc-pr-huggingface-pytorch-trcomp = "huggingface/pytorch/buildspec-trcomp-1-9.yml"
-dlc-pr-huggingface-tensorflow-2-trcomp = ""
+dlc-pr-huggingface-pytorch-trcomp = ""
+dlc-pr-huggingface-tensorflow-2-trcomp = "huggingface/tensorflow/buildspec-trcomp.yml"
 
 # Graviton DLC buildspecs
 dlc-pr-mxnet-graviton = ""
