@@ -2,7 +2,7 @@
 # refer to the above page to pull latest Tensorflow image
 
 # docker image region us-west-2
-FROM tf2.8_sm:latest
+FROM 763104351884.dkr.ecr.us-west-2.amazonaws.com/tensorflow-training:2.8.0-gpu-py39-cu112-ubuntu20.04-sagemaker
 
 LABEL maintainer="Amazon AI"
 LABEL dlc_major_version="1"
@@ -13,12 +13,7 @@ ARG DATASETS_VERSION=1.18.4
 ARG PYTHON=python3
 
 # Install  Sagemaker PythonSDK
-ARG SAGEMAKER_BINARY="./sagemaker.tar.gz"
-
-COPY ${SAGEMAKER_BINARY} .
-
-RUN pip install --no-cache-dir ${SAGEMAKER_BINARY} \
- && rm -rf ${SAGEMAKER_BINARY}
+RUN pip install --no-cache-dir sagemaker
 
 # install Hugging Face libraries and its dependencies
 RUN pip install --no-cache-dir \
