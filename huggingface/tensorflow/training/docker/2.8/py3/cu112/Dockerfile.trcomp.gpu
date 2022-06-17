@@ -40,8 +40,7 @@ RUN apt-get update \
 # Install TensorFlow
 ARG TF_URL="https://framework-binaries.s3.us-west-2.amazonaws.com/tensorflow/hopper/r2.8_aws/gpu/2022-04-20-19-24/tensorflow_gpu-2.8.0-cp39-cp39-manylinux_2_12_x86_64.manylinux2010_x86_64.manylinux_2_17_x86_64.manylinux2014_x86_64.whl"
 RUN pip uninstall -y tensorflow-gpu \
- && pip install --no-deps --no-cache-dir -U --force-reinstall ${TF_URL} \
- && rm -rf ${TF_URL}
+ && pip install --no-deps --no-cache-dir -U --force-reinstall ${TF_URL}
 
 # Install Horovod
 RUN ldconfig /usr/local/cuda-11.2/targets/x86_64-linux/lib/stubs \
