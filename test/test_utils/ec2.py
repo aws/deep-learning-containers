@@ -621,7 +621,7 @@ def execute_ec2_training_test(
                 required_log_ending,
                 loop_time= 4 * 3600,
                 s3_uri_for_saving_permanent_logs=s3_uri_permanent_logs,
-                hang_detection_window=10,
+                hang_detection_window=15,
             )
             return
         else:
