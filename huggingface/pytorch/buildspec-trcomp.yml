@@ -6,7 +6,6 @@ version: &VERSION 1.11.0
 short_version: &SHORT_VERSION "1.11"
 contributor: huggingface
 arch_type: x86
->>>>>>> Dockerfile
 
 repository_info:
   training_repository: &TRAINING_REPOSITORY

@@ -25,7 +25,6 @@ benchmark_mode = false
 # available frameworks - ["autogluon", "huggingface_tensorflow", "huggingface_pytorch", "tensorflow", "mxnet", "pytorch"]
 skip_frameworks = ["autogluon", "huggingface_tensorflow", "huggingface_pytorch", "tensorflow", "huggingface_tensorflow_trcomp", "mxnet", "pytorch"]
 
->>>>>>> PT_trcomp 1.11
 # Set to false in order to remove datetime tag on PR builds
 datetime_tag = true
 # Note: Need to build the images at least once with datetime_tag = false
