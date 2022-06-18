@@ -95,8 +95,8 @@ E3 Framework Containers (EC2, ECS, and EKS support only)
 | PyTorch 1.11.0   |inference	|No			|GPU 		| 3.8 (py38)			| 763104351884.dkr.ecr.us-east-1.amazonaws.com/pytorch-inference:1.11.0-gpu-py38-cu115-ubuntu20.04-e3	   |
 | TensorFlow 2.9.1 |training	|Yes			|CPU 		| 3.9 (py39)			| 763104351884.dkr.ecr.us-east-1.amazonaws.com/tensorflow-training:2.9.1-cpu-py39-ubuntu20.04-e3		       |
 | TensorFlow 2.9.1 |training	|Yes			|GPU 		| 3.9 (py39)			| 763104351884.dkr.ecr.us-east-1.amazonaws.com/tensorflow-training:2.9.1-gpu-py39-cu112-ubuntu20.04-e3	  |
-| TensorFlow 2.9.1 |inference	|Yes			|CPU 		| 3.9 (py39)			| 763104351884.dkr.ecr.us-east-1.amazonaws.com/tensorflow-inference:2.9.1-cpu-py39-ubuntu20.04-e3		      |
-| TensorFlow 2.9.1 |inference	|Yes			|GPU 		| 3.9 (py39)			| 763104351884.dkr.ecr.us-east-1.amazonaws.com/tensorflow-inference:2.9.1-gpu-py39-cu112-ubuntu20.04-e3	 |
+| TensorFlow 2.9.0 |inference	|Yes			|CPU 		| 3.9 (py39)			| 763104351884.dkr.ecr.us-east-1.amazonaws.com/tensorflow-inference:2.9.0-cpu-py39-ubuntu20.04-e3		      |
+| TensorFlow 2.9.0 |inference	|Yes			|GPU 		| 3.9 (py39)			| 763104351884.dkr.ecr.us-east-1.amazonaws.com/tensorflow-inference:2.9.0-gpu-py39-cu112-ubuntu20.04-e3	 |
 | MXNet 1.9.0      |training	|Yes			|CPU 		| 3.8 (py38)			| 763104351884.dkr.ecr.us-east-1.amazonaws.com/mxnet-training:1.9.0-cpu-py38-ubuntu20.04-e3		            |
 | MXNet 1.9.0      |training	|Yes			|GPU 		| 3.8 (py38)			| 763104351884.dkr.ecr.us-east-1.amazonaws.com/mxnet-training:1.9.0-gpu-py38-cu112-ubuntu20.04-e3	       |
 | MXNet 1.9.0      |inference	|No			|CPU 		| 3.8 (py38)			| 763104351884.dkr.ecr.us-east-1.amazonaws.com/mxnet-inference:1.9.0-cpu-py38-ubuntu20.04-e3             |
