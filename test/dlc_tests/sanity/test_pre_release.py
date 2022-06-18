@@ -686,7 +686,7 @@ def test_cuda_paths(gpu):
     image_tag_in_buildspec = False
     dockerfile_spec_abs_path = None
     # Try versioned buildspec first, if it exists
-    buildspec_path = os.path.join(dlc_path, framework_path, f"{buildspec}-{framework_short_version.replace('.', '-'}.yml")
+    buildspec_path = os.path.join(dlc_path, framework_path, f"{buildspec}-{framework_short_version.replace('.', '-')}.yml")
     if not os.path.exists(buildspec_path):
         buildspec_path = os.path.join(dlc_path, framework_path, f"{buildspec}.yml")
     buildspec_def = Buildspec()
