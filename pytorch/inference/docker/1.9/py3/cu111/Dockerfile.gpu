@@ -132,12 +132,10 @@ RUN curl -L -o ~/miniconda.sh https://repo.continuum.io/miniconda/Miniconda3-lat
  && /opt/conda/bin/conda clean -ya \
  && /opt/conda/bin/conda update conda 
 
-RUN conda install -c \
-    pytorch magma-cuda111 \
- && conda install -c \
+RUN conda install -c pytorch magma-cuda111
+RUN conda install -y -c \
     conda-forge \
     opencv \
- && conda install -y \
     scikit-learn \
     pandas \
     h5py \
