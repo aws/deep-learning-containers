@@ -95,8 +95,8 @@ ENV PATH="$PATH:/home/.openmpi/bin"
 ENV LD_LIBRARY_PATH="$LD_LIBRARY_PATH:/home/.openmpi/lib/"
 RUN ompi_info --parsable --all | grep mpi_built_with_cuda_support:value
 
-RUN conda install -c \
-    conda-forge -y -c \
+RUN conda install -y -c \
+    conda-forge \
     opencv \
     scikit-learn \
     pandas \
