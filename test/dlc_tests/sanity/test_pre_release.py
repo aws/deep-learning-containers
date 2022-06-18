@@ -676,15 +676,18 @@ def test_cuda_paths(gpu):
         short_python_version = python_version[:3]
 
     # Check buildspec for cuda version
-    buildspec = "buildspec.yml"
+    buildspec = "buildspec"
     if is_tf_version("1", image):
-        buildspec = "buildspec-tf1.yml"
+        buildspec = "buildspec-tf1"
     if "trcomp" in image:
-        buildspec = "buildspec-trcomp.yml"
+        buildspec = "buildspec-trcomp"
 
     image_tag_in_buildspec = False
     dockerfile_spec_abs_path = None
-    buildspec_path = os.path.join(dlc_path, framework_path, buildspec)
+    # Try versioned buildspec first, if it exists
+    buildspec_path = os.path.join(dlc_path, framework_path, f"{buildspec}-{framework_short_version.replace('.', '-'}.yml")
+    if not os.path.exists(buildspec_path):
+        buildspec_path = os.path.join(dlc_path, framework_path, f"{buildspec}.yml")
     buildspec_def = Buildspec()
     buildspec_def.load(buildspec_path)
 
