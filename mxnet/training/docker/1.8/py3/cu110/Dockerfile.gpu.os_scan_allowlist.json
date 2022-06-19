@@ -1092,7 +1092,7 @@
             "attributes": [
                 {
                     "key": "package_version",
-                    "value": "1.18.4ubuntu1.6"
+                    "value": "1.18.4ubuntu1.7"
                 },
                 {
                     "key": "package_name",
@@ -1159,7 +1159,7 @@
             "attributes": [
                 {
                     "key": "package_version",
-                    "value": "1.18.4ubuntu1.7"
+                    "value": "1.18.4ubuntu1.6"
                 },
                 {
                     "key": "package_name",
@@ -5657,7 +5657,7 @@
             "attributes": [
                 {
                     "key": "package_version",
-                    "value": "1.0.2g-1ubuntu4.20"
+                    "value": "1.0.2g-1ubuntu4.18"
                 },
                 {
                     "key": "package_name",
@@ -5730,7 +5730,7 @@
             "attributes": [
                 {
                     "key": "package_version",
-                    "value": "1.0.2g-1ubuntu4.18"
+                    "value": "1.0.2g-1ubuntu4.20"
                 },
                 {
                     "key": "package_name",
@@ -5937,7 +5937,7 @@
             "attributes": [
                 {
                     "key": "package_version",
-                    "value": "1.0.2g-1ubuntu4.20"
+                    "value": "1.0.2g-1ubuntu4.18"
                 },
                 {
                     "key": "package_name",
@@ -6004,7 +6004,7 @@
             "attributes": [
                 {
                     "key": "package_version",
-                    "value": "1.0.2g-1ubuntu4.18"
+                    "value": "1.0.2g-1ubuntu4.20"
                 },
                 {
                     "key": "package_name",
@@ -7177,8 +7177,8 @@
                     "value": "6.8"
                 }
             ],
-            "description": "Heap-based Buffer Overflow in GitHub repository vim/vim prior to 8.2.",
-            "name": "CVE-2022-0359",
+            "description": "vim is vulnerable to Use After Free",
+            "name": "CVE-2021-4192",
             "scraped_data": [
                 {
                     "notes": [],
@@ -7199,12 +7199,16 @@
                                 "Needed"
                             ],
                             [
+                                "hirsute",
+                                "Ignored (reached end-of-life)"
+                            ],
+                            [
                                 "impish",
                                 "Needed"
                             ],
                             [
                                 "jammy",
-                                "Needed"
+                                "Not vulnerable (2:8.2.3995-1ubuntu2)"
                             ],
                             [
                                 "trusty",
@@ -7212,18 +7216,18 @@
                             ],
                             [
                                 "upstream",
-                                "Released (8.2.4214)"
+                                "Released (8.2.3949)"
                             ],
                             [
                                 "xenial",
-                                "Released (2:7.4.1689-3ubuntu1.5+esm5)"
+                                "Released (2:7.4.1689-3ubuntu1.5+esm4)"
                             ]
                         ]
                     }
                 }
             ],
             "severity": "MEDIUM",
-            "uri": "http://people.ubuntu.com/~ubuntu-security/cve/CVE-2022-0359"
+            "uri": "http://people.ubuntu.com/~ubuntu-security/cve/CVE-2021-4192"
         },
         {
             "attributes": [
@@ -7237,86 +7241,19 @@
                 },
                 {
                     "key": "CVSS2_VECTOR",
-                    "value": "AV:N/AC:M/Au:N/C:P/I:P/A:P"
+                    "value": "AV:N/AC:L/Au:N/C:P/I:P/A:P"
                 },
                 {
                     "key": "CVSS2_SCORE",
-                    "value": "6.8"
+                    "value": "7.5"
                 }
             ],
-            "description": "Use After Free in GitHub repository vim/vim prior to 8.2.",
-            "name": "CVE-2022-0413",
-            "scraped_data": [
-                {
-                    "notes": [],
-                    "status_table": {
-                        "packages": [
-                            "vim",
-                            "Launchpad",
-                            "Ubuntu",
-                            "Debian"
-                        ],
-                        "release_states": [
-                            [
-                                "bionic",
-                                "Needed"
-                            ],
-                            [
-                                "focal",
-                                "Needed"
-                            ],
-                            [
-                                "impish",
-                                "Needed"
-                            ],
-                            [
-                                "jammy",
-                                "Needed"
-                            ],
-                            [
-                                "trusty",
-                                "Needed"
-                            ],
-                            [
-                                "upstream",
-                                "Released (8.2.4253)"
-                            ],
-                            [
-                                "xenial",
-                                "Needed"
-                            ]
-                        ]
-                    }
-                }
-            ],
-            "severity": "MEDIUM",
-            "uri": "http://people.ubuntu.com/~ubuntu-security/cve/CVE-2022-0413"
-        },
-        {
-            "attributes": [
-                {
-                    "key": "package_version",
-                    "value": "2:7.4.1689-3ubuntu1.5"
-                },
-                {
-                    "key": "package_name",
-                    "value": "vim"
-                },
-                {
-                    "key": "CVSS2_VECTOR",
-                    "value": "AV:N/AC:M/Au:N/C:P/I:P/A:P"
-                },
-                {
-                    "key": "CVSS2_SCORE",
-                    "value": "6.8"
-                }
-            ],
-            "description": "Use of Out-of-range Pointer Offset in GitHub repository vim/vim prior to 8.2.4418.",
-            "name": "CVE-2022-0685",
+            "description": "Heap-based Buffer Overflow in vim/vim prior to 8.2.",
+            "name": "CVE-2022-0318",
             "scraped_data": [
                 {
                     "notes": [
-                        "for bionic and earlier, the vulnerable function is found in file\nsrc/misc1.c instead of src/filepath.c."
+                        "the patch for CVE-2022-0318 causes one of the utf8 tests to\nstart failing, which in turn causes build failures as well.\nCommit fc6ccebea66 addresses this issue and updates the test."
                     ],
                     "status_table": {
                         "packages": [
@@ -7348,18 +7285,18 @@
                             ],
                             [
                                 "upstream",
-                                "Released (8.2.4418)"
+                                "Released (8.2.4151)"
                             ],
                             [
                                 "xenial",
-                                "Released (2:7.4.1689-3ubuntu1.5+esm6)"
+                                "Released (2:7.4.1689-3ubuntu1.5+esm4)"
                             ]
                         ]
                     }
                 }
             ],
             "severity": "MEDIUM",
-            "uri": "http://people.ubuntu.com/~ubuntu-security/cve/CVE-2022-0685"
+            "uri": "http://people.ubuntu.com/~ubuntu-security/cve/CVE-2022-0318"
         },
         {
             "attributes": [
@@ -7373,15 +7310,15 @@
                 },
                 {
                     "key": "CVSS2_VECTOR",
-                    "value": "AV:N/AC:M/Au:N/C:P/I:P/A:P"
+                    "value": "AV:N/AC:M/Au:N/C:P/I:N/A:N"
                 },
                 {
                     "key": "CVSS2_SCORE",
-                    "value": "6.8"
+                    "value": "4.3"
                 }
             ],
-            "description": "Out-of-bounds Read in GitHub repository vim/vim prior to 8.2.",
-            "name": "CVE-2022-1851",
+            "description": "Out-of-bounds Read in vim/vim prior to 8.2.",
+            "name": "CVE-2022-0319",
             "scraped_data": [
                 {
                     "notes": [],
@@ -7415,18 +7352,85 @@
                             ],
                             [
                                 "upstream",
-                                "Released (8.2.5013)"
+                                "Released (8.2.4154)"
                             ],
                             [
                                 "xenial",
-                                "Needed"
+                                "Released (2:7.4.1689-3ubuntu1.5+esm5)"
                             ]
                         ]
                     }
                 }
             ],
             "severity": "MEDIUM",
-            "uri": "http://people.ubuntu.com/~ubuntu-security/cve/CVE-2022-1851"
+            "uri": "http://people.ubuntu.com/~ubuntu-security/cve/CVE-2022-0319"
+        },
+        {
+            "attributes": [
+                {
+                    "key": "package_version",
+                    "value": "2:7.4.1689-3ubuntu1.5"
+                },
+                {
+                    "key": "package_name",
+                    "value": "vim"
+                },
+                {
+                    "key": "CVSS2_VECTOR",
+                    "value": "AV:N/AC:M/Au:N/C:P/I:P/A:P"
+                },
+                {
+                    "key": "CVSS2_SCORE",
+                    "value": "6.8"
+                }
+            ],
+            "description": "Use after free in append_command in GitHub repository vim/vim prior to 8.2.4895. This vulnerability is capable of crashing software, Bypass Protection Mechanism, Modify Memory, and possible remote execution",
+            "name": "CVE-2022-1616",
+            "scraped_data": [
+                {
+                    "notes": [],
+                    "status_table": {
+                        "packages": [
+                            "vim",
+                            "Launchpad",
+                            "Ubuntu",
+                            "Debian"
+                        ],
+                        "release_states": [
+                            [
+                                "bionic",
+                                "Needed"
+                            ],
+                            [
+                                "focal",
+                                "Needed"
+                            ],
+                            [
+                                "impish",
+                                "Needed"
+                            ],
+                            [
+                                "jammy",
+                                "Needed"
+                            ],
+                            [
+                                "trusty",
+                                "Needed"
+                            ],
+                            [
+                                "upstream",
+                                "Released (8.2.4895)"
+                            ],
+                            [
+                                "xenial",
+                                "Released (2:7.4.1689-3ubuntu1.5+esm6)"
+                            ]
+                        ]
+                    }
+                }
+            ],
+            "severity": "MEDIUM",
+            "uri": "http://people.ubuntu.com/~ubuntu-security/cve/CVE-2022-1616"
         }
     ]
 }
