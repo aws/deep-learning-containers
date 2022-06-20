@@ -28,7 +28,7 @@ RUN pip install --no-cache-dir \
     datasets==${DATASETS_VERSION} \
     tensorflow-addons==0.12.0 \
     psutil \
-    "typing-extensions==3.7.4.3" \
+    "typing-extensions==3.7.4.3"
 
 RUN apt-get update \
  # TODO: Remove upgrade statements once packages are updated in base image
