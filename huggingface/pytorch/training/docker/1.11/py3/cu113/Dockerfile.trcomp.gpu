@@ -7,7 +7,7 @@ FROM 763104351884.dkr.ecr.us-west-2.amazonaws.com/pytorch-training:1.11-gpu-py38
 LABEL maintainer="Amazon AI"
 LABEL dlc_major_version="1"
 
-# version args
+# Version args - overwritten by args specified in buildspec
 ARG TRANSFORMERS_VERSION=4.19.2
 ARG DATASETS_VERSION=1.18.4
 ARG PYTHON=python3
