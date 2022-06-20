@@ -31,6 +31,7 @@ from test.test_utils import (
     get_repository_local_path,
     get_repository_and_tag_from_image_uri,
     get_python_version_from_image_uri,
+    get_job_type_from_image,
     is_tf_version,
     get_processor_from_image_uri,
     execute_env_variables_test,
@@ -165,8 +166,12 @@ def test_tf_serving_version_cpu(tensorflow_inference):
     _, tag_framework_version = get_framework_and_version_from_tag(
         image)
 
-    if Version(tag_framework_version) == Version("2.6.3"):
-        pytest.skip("Skipping this test for TF 2.6.3 inference as the v2.6.3 version is already on production")
+    image_repo_name, _ = get_repository_and_tag_from_image_uri(image)
+    image_job_type = get_job_type_from_image(image)
+
+    if "tensorflow-inference" == image_repo_name and "inference" in image_job_type: 
+        if Version(tag_framework_version) == Version("2.6.3"):
+            pytest.skip("Skipping this test for TF 2.6.3 inference as the v2.6.3 version is already on production")
 
     ctx = Context()
     container_name = get_container_name("tf-serving-version", image)
@@ -319,9 +324,11 @@ def test_framework_and_cuda_version_gpu(gpu, ec2_connection):
         image)
 
     image_repo_name, _ = get_repository_and_tag_from_image_uri(image)
+    image_job_type = get_job_type_from_image(image)
 
-    if "inference" in image_repo_name and Version(tag_framework_version) == Version("2.6.3"):
-        pytest.skip("Skipping this test for TF 2.6.3 inference as the v2.6.3 version is already on production")
+    if "tensorflow-inference" == image_repo_name and "inference" in image_job_type: 
+        if Version(tag_framework_version) == Version("2.6.3"):
+            pytest.skip("Skipping this test for TF 2.6.3 inference as the v2.6.3 version is already on production")
 
     # Framework Version Check #
     # For tf inference containers, check TF model server version
