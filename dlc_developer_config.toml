@@ -15,7 +15,7 @@ graviton_mode = false
 habana_mode = false
 # Please only set it to True if you are preparing a TRCOMP related PR
 # Do remember to revert it back to False before merging any PR (including TRCOMP dedicated PR)
-trcomp_mode = true
+trcomp_mode = false
 # Please only set it to True if you are preparing a Benchmark related PR
 # Do remember to revert it back to False before merging any PR (including Benchmark dedicated PR)
 benchmark_mode = false
@@ -41,14 +41,14 @@ ec2_tests = true
 
 ### SM specific tests
 ### Off by default
-sagemaker_local_tests = true
+sagemaker_local_tests = false
 
 # SM remote test valid values:
 # "off" --> do not trigger sagemaker remote tests (default)
 # "standard" --> run standard sagemaker remote tests from test/sagemaker_tests
 # "rc" --> run release_candidate_integration tests
 # "efa" --> run efa sagemaker tests
-sagemaker_remote_tests = "standard"
+sagemaker_remote_tests = "off"
 
 use_scheduler = false
 
@@ -83,7 +83,7 @@ dlc-pr-tensorflow-1-neuron = ""
 dlc-pr-tensorflow-2-neuron = ""
 
 # Training Compiler DLC buildspecs
-dlc-pr-huggingface-pytorch-trcomp = "huggingface/pytorch/buildspec-trcomp-1-9.yml"
+dlc-pr-huggingface-pytorch-trcomp = ""
 dlc-pr-huggingface-tensorflow-2-trcomp = ""
 
 # Graviton DLC buildspecs
