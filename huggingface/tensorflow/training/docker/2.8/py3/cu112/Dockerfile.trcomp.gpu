@@ -7,7 +7,7 @@ FROM 763104351884.dkr.ecr.us-west-2.amazonaws.com/tensorflow-training:2.8.0-gpu-
 LABEL maintainer="Amazon AI"
 LABEL dlc_major_version="1"
 
-# version args
+# Version args can be overwritten by buildspec args
 ARG TRANSFORMERS_VERSION=4.18.0
 ARG DATASETS_VERSION=1.18.4
 ARG PYTHON=python3
