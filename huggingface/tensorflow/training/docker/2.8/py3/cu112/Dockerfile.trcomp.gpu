@@ -17,7 +17,7 @@ RUN pip install --no-cache-dir sagemaker
 
 # install Hugging Face libraries and its dependencies
 RUN pip install --no-cache-dir \
-    transformers[sklearn,sentencepiece]==${TRANSFORMERS_VERSION} \
+    transformers[sklearn,sentencepiece,audio,vision]==${TRANSFORMERS_VERSION} \
     datasets==${DATASETS_VERSION} \
     tensorflow-addons==0.16.1 \
     psutil \
