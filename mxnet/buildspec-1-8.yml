@@ -3,6 +3,7 @@ region: &REGION <set-$REGION-in-environment>
 framework: &FRAMEWORK mxnet
 version: &VERSION 1.8.0
 short_version: &SHORT_VERSION 1.8
+arch_type: x86
 
 repository_info:
   training_repository: &TRAINING_REPOSITORY

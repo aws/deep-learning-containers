@@ -142,7 +142,8 @@ RUN ${PIP} install --no-cache-dir -U \
     "absl-py>=0.9,<0.11" \
     "opencv-python>=4.3,<5" \
     "werkzeug>=2.0.2,<3" \
-    psutil==5.7.2
+    psutil==5.7.2 \
+   'protobuf>=3.20,<3.21'
 
 # Install Horovod with TensorFlow
 RUN HOROVOD_WITH_MPI=1 \

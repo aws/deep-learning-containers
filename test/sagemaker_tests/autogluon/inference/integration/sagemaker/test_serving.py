@@ -34,7 +34,11 @@ def _test_sm_trained_model(sagemaker_session, ecr_image, instance_type, framewor
     source_dir = os.path.join(RESOURCE_PATH, 'scripts')
 
     endpoint_name = sagemaker.utils.unique_name_from_base("sagemaker-autogluon-serving-trained-model")
-    ag_framework_version = '0.3.1' if framework_version == '0.3.2' else framework_version
+    versions_map = {
+        # container version -> autogluon version
+        '0.3.2': '0.3.1',
+    }
+    ag_framework_version = versions_map.get(framework_version, framework_version)
     model_data = sagemaker_session.upload_data(path=os.path.join(model_dir, f'model_{ag_framework_version}.tar.gz'), key_prefix='sagemaker-autogluon-serving-trained-model/models')
 
     model = MXNetModel(
@@ -44,7 +48,7 @@ def _test_sm_trained_model(sagemaker_session, ecr_image, instance_type, framewor
         sagemaker_session=sagemaker_session,
         source_dir=source_dir,
         entry_point="tabular_serve.py",
-        framework_version="1.8.0"
+        framework_version="1.9.0"
     )
 
     with timeout_and_delete_endpoint(endpoint_name, sagemaker_session, minutes=30):
@@ -65,9 +69,7 @@ def _test_sm_trained_model(sagemaker_session, ecr_image, instance_type, framewor
 
 
 @pytest.mark.integration("smexperiments")
-@pytest.mark.processor("cpu")
 @pytest.mark.model("autogluon")
-@pytest.mark.cpu_test
 def test_sm_trained_model_cpu(sagemaker_session, framework_version, ecr_image, instance_type):
     instance_type = instance_type or "ml.m5.xlarge"
     try:
