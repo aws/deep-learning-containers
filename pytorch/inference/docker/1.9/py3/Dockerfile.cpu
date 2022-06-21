@@ -101,7 +101,8 @@ RUN conda install -y -c \
     scikit-learn \
     pandas \
     h5py \
-    requests
+    requests \
+ && conda clean -ya
 
 RUN pip install --upgrade pip --trusted-host pypi.org --trusted-host files.pythonhosted.org \
  && ln -s /opt/conda/bin/pip /usr/local/bin/pip3 \
