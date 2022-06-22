@@ -165,6 +165,11 @@ def test_tf_serving_version_cpu(tensorflow_inference):
     _, tag_framework_version = get_framework_and_version_from_tag(
         image)
 
+    image_repo_name, _ = get_repository_and_tag_from_image_uri(image)
+
+    if re.fullmatch(r"(pr-|beta-|nightly-)?tensorflow-inference", image_repo_name) and Version(tag_framework_version) == Version("2.6.3"):
+        pytest.skip("Skipping this test for TF 2.6.3 inference as the v2.6.3 version is already on production")
+
     ctx = Context()
     container_name = get_container_name("tf-serving-version", image)
     start_container(container_name, image, ctx)
@@ -236,7 +241,7 @@ def test_framework_version_cpu(image):
         else:
             if "neuron" in image:
                 assert tag_framework_version in output.stdout.strip()
-            if all(_string in image for _string in ["pytorch", "habana", "synapseai1.3.0"]):
+            if all(_string in image for _string in ["pytorch", "habana", "synapseai1.4.1"]):
                 # Habana Pytorch version looks like 1.10.0a0+gitb488e78 for SynapseAI1.3 PT1.10.1 images
                 pt_fw_version_pattern = r"(\d+(\.\d+){1,2}(-rc\d)?)((a0\+git\w{7}))"
                 pt_fw_version_match = re.fullmatch(pt_fw_version_pattern, output.stdout.strip())
@@ -316,6 +321,10 @@ def test_framework_and_cuda_version_gpu(gpu, ec2_connection):
         image)
 
     image_repo_name, _ = get_repository_and_tag_from_image_uri(image)
+
+    if re.fullmatch(r"(pr-|beta-|nightly-)?tensorflow-inference", image_repo_name) and Version(tag_framework_version) == Version("2.6.3"):
+        pytest.skip("Skipping this test for TF 2.6.3 inference as the v2.6.3 version is already on production")
+
     # Framework Version Check #
     # For tf inference containers, check TF model server version
     if re.fullmatch(r"(pr-|beta-|nightly-)?tensorflow-inference(-eia|-graviton)?", image_repo_name):
@@ -418,12 +427,13 @@ def _run_dependency_check_test(image, ec2_connection):
             "2.5": ["cpu", "gpu", "neuron"],
             "2.6": ["cpu", "gpu"],
             "2.7": ["cpu", "gpu", "hpu"],
-            "2.8": ["cpu", "gpu"],
-            "2.9": ["cpu", "gpu"]
+            "2.8": ["cpu", "gpu", "hpu"],
+            "2.9": ["cpu", "gpu"],
         },
         "mxnet": {"1.8": ["neuron"], "1.9": ["cpu", "gpu"]},
         "huggingface_tensorflow": {"2.5": ["gpu"], "2.6": ["gpu"]},
         "autogluon": {"0.3": ["cpu", "gpu"], "0.4": ["cpu", "gpu"]},
+        "huggingface_pytorch_trcomp": {"1.9": ["gpu"]},
     }
 
     if processor in allow_openssl_cve_2021_3711_fw_versions.get(framework, {}).get(short_fw_version, []):
@@ -602,7 +612,7 @@ def test_pip_check(image):
 
     framework, framework_version = get_framework_and_version_from_tag(image)
     # The v0.21 version of tensorflow-io has a bug fixed in v0.23 https://github.com/tensorflow/io/releases/tag/v0.23.0
-    
+
     tf263_io21_issue_framework_list = ["tensorflow", "huggingface_tensorflow", "huggingface_tensorflow_trcomp"]
     if framework in tf263_io21_issue_framework_list or Version(framework_version) in SpecifierSet(">=2.6.3,<2.7"):
         allowed_tf263_exception = re.compile(rf"^tensorflow-io 0.21.0 requires tensorflow, which is not installed.$")
@@ -676,15 +686,18 @@ def test_cuda_paths(gpu):
         short_python_version = python_version[:3]
 
     # Check buildspec for cuda version
-    buildspec = "buildspec.yml"
+    buildspec = "buildspec"
     if is_tf_version("1", image):
-        buildspec = "buildspec-tf1.yml"
+        buildspec = "buildspec-tf1"
     if "trcomp" in image:
-        buildspec = "buildspec-trcomp.yml"
+        buildspec = "buildspec-trcomp"
 
     image_tag_in_buildspec = False
     dockerfile_spec_abs_path = None
-    buildspec_path = os.path.join(dlc_path, framework_path, buildspec)
+    # Try versioned buildspec first, if it exists
+    buildspec_path = os.path.join(dlc_path, framework_path, f"{buildspec}-{framework_short_version.replace('.', '-')}.yml")
+    if not os.path.exists(buildspec_path):
+        buildspec_path = os.path.join(dlc_path, framework_path, f"{buildspec}.yml")
     buildspec_def = Buildspec()
     buildspec_def.load(buildspec_path)
 
