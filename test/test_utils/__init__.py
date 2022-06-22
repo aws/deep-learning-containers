@@ -60,8 +60,8 @@ PT_GPU_PY3_BENCHMARK_IMAGENET_AMI_US_WEST_2 = "ami-02d9a47bc61a31d43"
 # Since latest driver is not in public DLAMI yet, using a custom one
 NEURON_UBUNTU_18_BASE_DLAMI_US_WEST_2 = get_ami_id_boto3(region_name="us-west-2", ami_name_pattern="Deep Learning Base AMI (Ubuntu 18.04) Version ??.?")
 # Habana Base v1.3 ami
-UBUNTU_18_HPU_DLAMI_US_WEST_2 = "ami-0ef18b1906e7010fb"
-UBUNTU_18_HPU_DLAMI_US_EAST_1 = "ami-040ef14d634e727a2"
+UBUNTU_18_HPU_DLAMI_US_WEST_2 = "ami-08e564663ef2e761c"
+UBUNTU_18_HPU_DLAMI_US_EAST_1 = "ami-06a0a1e2c90bfc1c8"
 UL_AMI_LIST = [
     UBUNTU_18_BASE_DLAMI_US_EAST_1,
     UBUNTU_18_BASE_DLAMI_US_WEST_2,
@@ -870,7 +870,7 @@ def parse_canary_images(framework, region):
     """
     customer_type = get_customer_type()
     customer_type_tag = f"-{customer_type}" if customer_type else ""
-
+    
     # initialize graviton variables
     use_graviton = False
 
@@ -988,7 +988,7 @@ def parse_canary_images(framework, region):
                 "graviton_pytorch": [
                     f"{registry}.dkr.ecr.{region}.amazonaws.com/pytorch-inference-graviton:{fw_version}-cpu-{py_version}",
                 ],
-                # TODO: create graviton_mxnet DLC and add to dictionary
+                # TODO: create graviton_mxnet DLC and add to dictionary 
             }
 
             # E3 Images have an additional "e3" tag to distinguish them from the regular "sagemaker" tag
@@ -1547,7 +1547,7 @@ def uniquify_list_of_dict(list_of_dict):
     """
     Takes list_of_dict as an input and returns a list of dict such that each dict is only present
     once in the returned list. Runs an operation that is similar to list(set(input_list)). However,
-    for list_of_dict, it is not possible to run the operation directly.
+    for list_of_dict, it is not possible to run the operation directly. 
 
     :param list_of_dict: List(dict)
     :return: List(dict)
@@ -1644,7 +1644,7 @@ def is_image_available_locally(image_uri):
     """
     run_output = run(f"docker inspect {image_uri}", hide=True, warn=True)
     return run_output.ok
-
+    
 
 def get_contributor_from_image_uri(image_uri):
     """
