@@ -14,7 +14,7 @@ ARG MMS_VERSION=1.1.8
 ARG PYTHON=python3
 ARG PYTHON_VERSION=3.9.10
 ARG OPEN_MPI_VERSION=4.0.1
-ARG MAMBA_VERSION=4.12.0-0
+ARG MAMBA_VERSION=4.12.0-2
 # HF ARGS
 ARG TF_URL=https://framework-binaries.s3.us-west-2.amazonaws.com/tensorflow/r2.8_aws/cpu/2022-02-07-21-14/tensorflow_cpu-2.8.0-cp39-cp39-manylinux_2_12_x86_64.manylinux2010_x86_64.whl
 ARG TRANSFORMERS_VERSION
@@ -93,6 +93,12 @@ RUN /opt/conda/bin/conda update -y conda \
 # Removing link for libtinfo.so.6. This change is needed only for ubuntu 20.04-conda, and can be reverted
 # once conda fixes the issue: https://github.com/conda/conda/issues/9680
 RUN rm -rf /opt/conda/lib/libtinfo.so.6
+
+RUN pip install --upgrade pip --trusted-host pypi.org --trusted-host files.pythonhosted.org \
+ && ln -s /opt/conda/bin/pip /usr/local/bin/pip3 \
+ && pip install packaging==20.4 \
+    enum-compat==0.0.3 \
+    "cryptography>3.2"
 
 WORKDIR /
 
