@@ -47,27 +47,6 @@ RUN apt-get install -y  git
 RUN apt-get install -y  libsndfile1-dev
 RUN apt-get install -y  ffmpeg
 
-RUN curl -L -o ~/mambaforge.sh https://github.com/conda-forge/miniforge/releases/download/${MAMBA_VERSION}/Mambaforge-${MAMBA_VERSION}-Linux-x86_64.sh \
- && chmod +x ~/mambaforge.sh \
- && ~/mambaforge.sh -b -p /opt/conda \
- && rm ~/mambaforge.sh \
- && /opt/conda/bin/conda update conda \
- && /opt/conda/bin/conda install -c conda-forge \
-    python=$PYTHON_VERSION \
-    cython \
-    mkl-include \
-    mkl \
-    botocore \
-    # Below 2 are included in miniconda base, but not mamba so need to install
-    conda-content-trust \
-    charset-normalizer \
- && /opt/conda/bin/conda clean -ya
-
-RUN pip install --upgrade pip --trusted-host pypi.org --trusted-host files.pythonhosted.org \
- && ln -s /opt/conda/bin/pip /usr/local/bin/pip3 \
- && pip install packaging==20.4 \
-    enum-compat==0.0.3 \
-    "cryptography>3.2"
 
 RUN wget https://www.open-mpi.org/software/ompi/v4.0/downloads/openmpi-$OPEN_MPI_VERSION.tar.gz \
  && gunzip -c openmpi-$OPEN_MPI_VERSION.tar.gz | tar xf - \
@@ -84,6 +63,36 @@ RUN wget https://www.open-mpi.org/software/ompi/v4.0/downloads/openmpi-$OPEN_MPI
 ENV PATH="$PATH:/home/.openmpi/bin"
 ENV LD_LIBRARY_PATH="$LD_LIBRARY_PATH:/home/.openmpi/lib/"
 RUN ompi_info --parsable --all | grep mpi_built_with_cuda_support:value
+
+RUN curl -L -o ~/mambaforge.sh https://github.com/conda-forge/miniforge/releases/download/${MAMBA_VERSION}/Mambaforge-${MAMBA_VERSION}-Linux-x86_64.sh \
+ && chmod +x ~/mambaforge.sh \
+ && ~/mambaforge.sh -b -p /opt/conda \
+ && rm ~/mambaforge.sh \
+ && /opt/conda/bin/conda install -c conda-forge \
+    python=$PYTHON_VERSION \
+    cython \
+    mkl \
+    mkl-include \
+    botocore \
+    parso \
+    typing \
+    h5py \
+    requests \
+    # Below 2 are included in miniconda base, but not mamba so need to install
+    conda-content-trust \
+    charset-normalizer
+# Upstream conda looks to have moved to 4.13 which is incompatible with mamba 0.22.1 and will fail the conda-forge installs.
+# having "conda update conda" before the "conda -c conda-forge" commands will automatically update conda to 4.13.
+# Moving conda update conda" after the "conda -c conda-forge" commands keep conda at 4.12 but will update other packages using
+# the current conda 4.12
+RUN /opt/conda/bin/conda update -y conda \
+   && /opt/conda/bin/conda clean -ya
+
+# Conda installs links for libtinfo.so.6 and libtinfo.so.6.2 both
+# Which causes "/opt/conda/lib/libtinfo.so.6: no version information available" warning
+# Removing link for libtinfo.so.6. This change is needed only for ubuntu 20.04-conda, and can be reverted
+# once conda fixes the issue: https://github.com/conda/conda/issues/9680
+RUN rm -rf /opt/conda/lib/libtinfo.so.6
 
 WORKDIR /
 
