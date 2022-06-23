@@ -1,8 +1,8 @@
 ARG PYTHON=python3
-ARG PYTHON_VERSION=3.8.12
+ARG PYTHON_VERSION=3.8.13
 
 # PyTorch Binaries
-ARG PT_E3_INFERENCE_URL=https://aws-pytorch-cicd-v3-binaries.s3.us-west-2.amazonaws.com/r1.11.0_v3_e3/20220316-044906/9a915205c493de013250347af38ad1083854bc09/gpu/torch-1.11.0%2Bcu115-cp38-cp38-linux_x86_64.whl
+ARG PT_INFERENCE_URL=https://aws-pytorch-cicd-v3-binaries.s3.us-west-2.amazonaws.com/r1.11.0_v3_e3/20220316-044906/9a915205c493de013250347af38ad1083854bc09/gpu/torch-1.11.0%2Bcu115-cp38-cp38-linux_x86_64.whl
 ARG PT_TORCHVISION_URL=https://download.pytorch.org/whl/cu115/torchvision-0.12.0%2Bcu115-cp38-cp38-linux_x86_64.whl
 ARG PT_TORCHAUDIO_URL=https://download.pytorch.org/whl/cu115/torchaudio-0.11.0%2Bcu115-cp38-cp38-linux_x86_64.whl
 ARG PT_TORCHDATA_URL=https://aws-pytorch-cicd-v3-binaries.s3.us-west-2.amazonaws.com/r1.11.0_v3_e3/aws-torchdata/torchdata-0.4.0-cp38-cp38-linux_x86_64.whl
@@ -23,17 +23,17 @@ LABEL dlc_major_version="1"
 
 ARG PYTHON
 ARG PYTHON_VERSION
-ARG MAMBA_VERSION=4.12.0-0
+ARG MAMBA_VERSION=4.12.0-2
 
 # PyTorch Binaries
-ARG PT_E3_INFERENCE_URL
+ARG PT_INFERENCE_URL
 ARG PT_TORCHVISION_URL
 ARG PT_TORCHAUDIO_URL
 ARG PT_TORCHDATA_URL
 
 ARG CUBLAS_VERSION=11.7.4.6
 ARG OMPI_VERSION=4.1.1
-ARG TS_VERSION=0.5.2
+ARG TS_VERSION=0.6.0
 
 ARG DEBIAN_FRONTEND=noninteractive
 
@@ -50,6 +50,7 @@ ENV NVML_VERSION=11.5.50
 # Set MKL_THREADING_LAYER=GNU to prevent issues between torch and numpy/mkl
 ENV MKL_THREADING_LAYER=GNU
 ENV DLC_CONTAINER_TYPE=inference
+
 
 RUN apt-get update \
 # TODO: Remove systemd upgrade once it is updated in base image
@@ -149,7 +150,6 @@ RUN curl -L -o ~/mambaforge.sh https://github.com/conda-forge/miniforge/releases
  && chmod +x ~/mambaforge.sh \
  && ~/mambaforge.sh -b -p /opt/conda \
  && rm ~/mambaforge.sh \
- && /opt/conda/bin/conda update conda \
  && /opt/conda/bin/conda install -c conda-forge \
     python=$PYTHON_VERSION \
     cython \
@@ -164,8 +164,13 @@ RUN curl -L -o ~/mambaforge.sh https://github.com/conda-forge/miniforge/releases
     # Below 2 are included in miniconda base, but not mamba so need to install
     conda-content-trust \
     charset-normalizer \
- && /opt/conda/bin/conda install -c pytorch magma-cuda115=2.6.1 \
- && /opt/conda/bin/conda clean -ya
+ && /opt/conda/bin/conda install -c pytorch magma-cuda115=2.6.1 
+# Upstream conda looks to have moved to 4.13 which is incompatible with mamba 0.22.1 and will fail the conda-forge installs.
+# having "conda update conda" before the "conda -c conda-forge" commands will automatically update conda to 4.13.
+# Moving conda update conda" after the "conda -c conda-forge" commands keep conda at 4.12 but will update other packages using
+# the current conda 4.12
+RUN /opt/conda/bin/conda update -y conda \
+   && /opt/conda/bin/conda clean -ya
 
 # Conda installs links for libtinfo.so.6 and libtinfo.so.6.2 both
 # Which causes "/opt/conda/lib/libtinfo.so.6: no version information available" warning
@@ -192,14 +197,15 @@ RUN pip install --no-cache-dir -U \
     "Pillow>=9.0.0" \
     "pyyaml>=5.4,<5.5" \
  && pip uninstall -y torch torchvision torchaudio torchdata \
- && pip install --no-cache-dir -U ${PT_E3_INFERENCE_URL} ${PT_TORCHVISION_URL} ${PT_TORCHAUDIO_URL} ${PT_TORCHDATA_URL}
+ && pip install --no-cache-dir -U ${PT_INFERENCE_URL} ${PT_TORCHVISION_URL} ${PT_TORCHAUDIO_URL} ${PT_TORCHDATA_URL}
 
+# TODO: revert torchserve-nightly back to torchserve once a compatible stable version is released
 RUN pip uninstall -y model-archiver multi-model-server \
  && pip install captum \
  && pip install torchserve==${TS_VERSION} \
  && pip install torch-model-archiver==${TS_VERSION}
 
- WORKDIR /
+WORKDIR /
 
 RUN cd tmp/ \
  && rm -rf tmp*

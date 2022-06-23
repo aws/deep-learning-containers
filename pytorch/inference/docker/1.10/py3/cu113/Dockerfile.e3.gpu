@@ -13,6 +13,7 @@ ARG PT_TORCHVISION_URL=https://framework-binaries.s3.us-west-2.amazonaws.com/pyt
 ARG OPEN_MPI_VERSION=4.0.1
 ARG TS_VERSION=0.5.2
 ARG CUBLAS_VERSION=11.5.1.109
+ARG MAMBA_VERSION=4.12.0-0
 
 ARG DEBIAN_FRONTEND=noninteractive
 
@@ -110,30 +111,29 @@ RUN apt-get update \
  && rm -rf /var/lib/apt/lists/* \
  && apt-get clean
 
-RUN curl -L -o ~/miniconda.sh https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh \
- && chmod +x ~/miniconda.sh \
- && ~/miniconda.sh -b -p /opt/conda \
- && rm ~/miniconda.sh \
+RUN curl -L -o ~/mambaforge.sh https://github.com/conda-forge/miniforge/releases/download/${MAMBA_VERSION}/Mambaforge-${MAMBA_VERSION}-Linux-x86_64.sh \
+ && chmod +x ~/mambaforge.sh \
+ && ~/mambaforge.sh -b -p /opt/conda \
+ && rm ~/mambaforge.sh \
  && /opt/conda/bin/conda update conda \
  && /opt/conda/bin/conda install -c conda-forge \
     python=$PYTHON_VERSION \
- && /opt/conda/bin/conda install -y \
-    # conda 4.10.0 requires ruamel_yaml to be installed. Currently pinned at latest.
-    ruamel_yaml==0.15.100 \
+ && /opt/conda/bin/conda install -c conda-forge -y \
     cython \
     mkl-include \
     mkl \
     parso \
     scipy \
     typing \
+    # Below 2 are included in miniconda base, but not mamba so need to install
+    conda-content-trust \
+    charset-normalizer \
  && /opt/conda/bin/conda clean -ya
 
-RUN conda install -c \
-    pytorch magma-cuda113 \
- && conda install -c \
-    conda-forge \
+RUN conda install -c pytorch \
+    magma-cuda113 \
+ && conda install -c conda-forge \
     opencv \
- && conda install -y \
     h5py \
     requests \
  && conda clean -ya \
@@ -159,17 +159,19 @@ RUN pip uninstall -y torch \
  && pip install --no-deps --no-cache-dir -U $PT_TORCHVISION_URL
 
 RUN conda install -y -c conda-forge "pyyaml>=5.4,<5.5"
+# Install urllib3>=1.25.9 to satisfy awscli/boto3/botocore requirements while fixing for CVE-2020-26137
 RUN pip install \
     boto3 \
     "Pillow>=9.0.0" \
-    "awscli<2"
+    "awscli<2" \
+    "urllib3>=1.25.9"
 
 # torchserve-nightly==2022.3.23.post2 replace torchserve==${TS_VERSION}
 # only in PT1.10 for hotfix
 RUN pip uninstall -y model-archiver multi-model-server \
  && pip install captum \
  && pip install torchserve-nightly==2022.3.23.post2 \
- && pip install torch-model-archiver==${TS_VERSION} 
+ && pip install torch-model-archiver==${TS_VERSION}
 
 RUN cd tmp/ \
  && rm -rf tmp*

@@ -83,7 +83,7 @@ ENV PATH="/opt/bin/:/opt/aws/neuron/bin:${PATH}"
 # Install Neuron PyTorch
 # including neuron-cc to be able to compile
 RUN pip install \
-    torch-neuron==$TORCH_NEURON_VERSION \
+    torch-neuron$TORCH_NEURON_VERSION \
    #  not installed since we assume model is already compiled
    #  neuron-cc[tensorflow] \
     --extra-index-url=https://pip.repos.neuron.amazonaws.com

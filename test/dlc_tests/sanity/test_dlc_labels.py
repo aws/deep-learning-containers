@@ -1,8 +1,6 @@
-import json
 import os
 import re
 
-import boto3
 import pytest
 
 from test import test_utils
@@ -21,33 +19,89 @@ def test_dlc_major_version_label(image, region):
     :param region: <str> region where ECR repository holding the image resides
     :return:
     """
-    ecr_client = boto3.client("ecr", region_name=region)
-
-    image_repository, image_tag = test_utils.get_repository_and_tag_from_image_uri(image)
-    # Using "acceptedMediaTypes" on the batch_get_image request allows the returned image information to
-    # provide the ECR Image Manifest in the specific format that we need, so that the image LABELS can be found
-    # on the manifest. The default format does not return the image LABELs.
-    response = ecr_client.batch_get_image(
-        repositoryName=image_repository,
-        imageIds=[{"imageTag": image_tag}],
-        acceptedMediaTypes=["application/vnd.docker.distribution.manifest.v1+json"],
-    )
-    if not response.get("images"):
-        raise KeyError(
-            f"Failed to get images through ecr_client.batch_get_image response for image {image_repository}:{image_tag}"
-        )
-    elif not response["images"][0].get("imageManifest"):
-        raise KeyError(f"imageManifest not found in ecr_client.batch_get_image response:\n{response['images']}")
-
-    manifest_str = response["images"][0]["imageManifest"]
-    # manifest_str is a json-format string
-    manifest = json.loads(manifest_str)
-    image_metadata = json.loads(manifest["history"][0]["v1Compatibility"])
-    major_version = image_metadata["config"]["Labels"].get("dlc_major_version", None)
+    labels = test_utils.get_labels_from_ecr_image(image, region)
+    major_version = labels.get("dlc_major_version", None)
 
     assert major_version, f"{image} has no LABEL named 'dlc_major_version'. Please insert label."
 
     test_utils.LOGGER.info(f"{image} has 'dlc_major_version' = {major_version}")
+
+
+@pytest.mark.usefixtures("sagemaker")
+@pytest.mark.integration("dlc_labels")
+@pytest.mark.model("N/A")
+def test_dlc_standard_labels(image, region):
+    customer_type_label_prefix = "e3" if test_utils.is_e3_image(image) else "sagemaker"
+    
+    framework, fw_version = test_utils.get_framework_and_version_from_tag(image)
+    framework = framework.replace('_', '-')
+    fw_version = fw_version.replace('.', '-')
+    device_type = test_utils.get_processor_from_image_uri(image)
+    if device_type == "gpu":
+        cuda_verison = test_utils.get_cuda_version_from_tag(image)
+        device_type = f"{device_type}.{cuda_verison}"
+    python_version = test_utils.get_python_version_from_image_uri(image)
+    job_type = test_utils.get_job_type_from_image(image)
+    transformers_version = test_utils.get_transformers_version_from_image_uri(image).replace('.', '-')
+    os_version = test_utils.get_os_version_from_image_uri(image).replace('.', '-')
+
+    # TODO: Add x86 env variable to check explicitly for x86, instead of assuming that everything not graviton is x86
+    arch_type = "graviton" if test_utils.is_graviton_architecture() else "x86"
+
+    contributor = test_utils.get_contributor_from_image_uri(image)
+
+    expected_labels = [
+        f"com.amazonaws.ml.engines.{customer_type_label_prefix}.dlc.framework.{framework}.{fw_version}",
+        f"com.amazonaws.ml.engines.{customer_type_label_prefix}.dlc.device.{device_type}",
+        f"com.amazonaws.ml.engines.{customer_type_label_prefix}.dlc.python.{python_version}",
+        f"com.amazonaws.ml.engines.{customer_type_label_prefix}.dlc.job.{job_type}",
+        f"com.amazonaws.ml.engines.{customer_type_label_prefix}.dlc.arch.{arch_type}",
+        f"com.amazonaws.ml.engines.{customer_type_label_prefix}.dlc.os.{os_version}",
+    ]
+
+    if contributor:
+        expected_labels.append(f"com.amazonaws.ml.engines.{customer_type_label_prefix}.dlc.contributor.{contributor}")
+    if transformers_version:
+        expected_labels.append(
+            f"com.amazonaws.ml.engines.{customer_type_label_prefix}.dlc.lib.transformers.{transformers_version}"
+        )
+
+    actual_labels = test_utils.get_labels_from_ecr_image(image, region)
+
+    missing_labels = []
+
+    for label in expected_labels:
+        if label not in actual_labels:
+            missing_labels.append(label)
+
+    # TODO: Remove this when e3 labels are added. For now, ensure they are not added.
+    if customer_type_label_prefix == "e3":
+        assert set(missing_labels) == set(expected_labels), \
+            f"E3 labels are not supported yet, and should not be added to containers. " \
+            f"{set(expected_labels) - set(missing_labels)} should not be present."
+    else:
+        assert not missing_labels, \
+            f"Labels {missing_labels} are expected in image {image}, but cannot be found. " \
+            f"All labels on image: {actual_labels}"
+
+
+@pytest.mark.usefixtures("sagemaker")
+@pytest.mark.integration("dlc_labels")
+@pytest.mark.model("N/A")
+def test_max_sagemaker_labels(image, region):
+    # Max ml engines sagemaker labels allowed:
+    max_labels = 10
+
+    actual_labels = test_utils.get_labels_from_ecr_image(image, region)
+
+    standard_labels = []
+    for label in actual_labels:
+        if label.startswith("com.amazonaws.ml.engines.sagemaker"):
+            standard_labels.append(label)
+
+    standard_label_count = len(standard_labels)
+    assert standard_label_count <= max_labels, f"Max of {max_labels} labels are supported. " \
+                                               f"Currently there are {standard_label_count}: {standard_labels}"
 
 
 @pytest.mark.usefixtures("sagemaker")

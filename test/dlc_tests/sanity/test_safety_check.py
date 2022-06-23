@@ -16,7 +16,6 @@ from test.test_utils import (
     is_dlc_cicd_context,
     is_canary_context,
     is_mainline_context,
-    is_time_for_canary_safety_scan,
     is_safety_test_context,
 )
 
@@ -54,6 +53,8 @@ IGNORE_SAFETY_IDS = {
                 "42815",
                 "42772",
                 "42814",
+                # tensorflow-estimator and tensorflow versions must match. For all TF versions below TF 2.9.0, we cannot upgrade tf-estimator to 2.9.0
+                "48551",
             ],
         },
         "inference": {
@@ -585,6 +586,8 @@ IGNORE_SAFETY_IDS = {
                 "44849",
                 "44846",
                 "44872",
+                # for shipping Torchserve 0.5.2 - the last available version
+                "44463",
             ]
         },
     },

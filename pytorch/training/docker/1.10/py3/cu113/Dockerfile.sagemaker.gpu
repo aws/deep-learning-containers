@@ -9,7 +9,6 @@ LABEL dlc_major_version="1"
 ARG PYTHON=python3
 ARG PYTHON_VERSION=3.8.10
 ARG PYTHON_SHORT_VERSION=3.8
-ARG CONDA_PREFIX=/opt/conda
 ARG METIS=metis-5.1.0
 ARG RMM_VERSION=0.15.0
 
@@ -24,7 +23,7 @@ ARG PT_TRAINING_URL=https://aws-pytorch-cicd-v3-binaries.s3.us-west-2.amazonaws.
 ARG SMD_MODEL_PARALLEL_URL=https://sagemaker-distributed-model-parallel.s3.us-west-2.amazonaws.com/pytorch-1.10.0/build-artifacts/2022-04-14-03-58/smdistributed_modelparallel-1.8.1-cp38-cp38-linux_x86_64.whl
 ARG SMDATAPARALLEL_BINARY=https://smdataparallel.s3.amazonaws.com/binary/pytorch/1.10.2/cu113/2022-02-18/smdistributed_dataparallel-1.4.0-cp38-cp38-linux_x86_64.whl
 # Install scikit-learn and pandas
-RUN conda install -y \
+RUN conda install -y -c conda-forge \
     scikit-learn \
     pandas
 
@@ -35,11 +34,11 @@ RUN wget https://sourceforge.net/projects/boost/files/boost/1.73.0/boost_1_73_0.
   && tar -xzf boost_1_73_0.tar.gz \
   && cd boost_1_73_0 \
   && ./bootstrap.sh \
-  && ./b2 threading=multi --prefix=${CONDA_PREFIX} -j 64 cxxflags=-fPIC cflags=-fPIC install || true \
+  && ./b2 threading=multi --prefix=/opt/conda -j 64 cxxflags=-fPIC cflags=-fPIC install || true \
   && cd .. \
   && rm -rf boost_1_73_0.tar.gz \
   && rm -rf boost_1_73_0 \
-  && cd ${CONDA_PREFIX}/include/boost
+  && cd /opt/conda/include/boost
 
 WORKDIR /opt/pytorch
 

@@ -38,4 +38,5 @@ def test_canary_images_pullable(region):
     for image in images.split(" "):
         ctx.run(f"docker pull -q {image}")
         LOGGER.info(f"Canary image {image} is available")
-        ctx.run(f"docker rmi -f {image}")
+        # Do not remove the pulled images as it may interfere with the functioning of the other
+        # tests that need the image to be present on the build machine.
