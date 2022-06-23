@@ -108,14 +108,6 @@ release_images:
     framework: "tensorflow"
     version: "2.6.3"
     arch_type: "x86"
-    training:
-      device_types: [ "cpu", "gpu" ]
-      python_versions: [ "py38" ]
-      os_version: "ubuntu20.04"
-      cuda_version: "cu112"
-      example: False
-      disable_sm_tag: False
-      force_release: False
     inference:
       device_types: [ "cpu", "gpu" ]
       python_versions: [ "py38" ]
