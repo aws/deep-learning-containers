@@ -28,7 +28,6 @@ from test.test_utils import (
     run_cmd_on_container,
     start_container,
     stop_and_remove_container,
-    is_time_for_canary_safety_scan,
     get_repository_local_path,
     get_repository_and_tag_from_image_uri,
     get_python_version_from_image_uri,
@@ -166,6 +165,11 @@ def test_tf_serving_version_cpu(tensorflow_inference):
     _, tag_framework_version = get_framework_and_version_from_tag(
         image)
 
+    image_repo_name, _ = get_repository_and_tag_from_image_uri(image)
+
+    if re.fullmatch(r"(pr-|beta-|nightly-)?tensorflow-inference", image_repo_name) and Version(tag_framework_version) == Version("2.6.3"):
+        pytest.skip("Skipping this test for TF 2.6.3 inference as the v2.6.3 version is already on production")
+
     ctx = Context()
     container_name = get_container_name("tf-serving-version", image)
     start_container(container_name, image, ctx)
@@ -220,7 +224,11 @@ def test_framework_version_cpu(image):
         assert tag_framework_version in output.stdout.strip()
     else:
         if tested_framework == "autogluon.core":
-            version_to_check = "0.3.1" if tag_framework_version == "0.3.2" else tag_framework_version
+            versions_map = {
+                # container version -> autogluon version
+                '0.3.2': '0.3.1',
+            }
+            version_to_check = versions_map.get(tag_framework_version, tag_framework_version)
             assert output.stdout.strip().startswith(version_to_check)
         # Habana v1.2 binary does not follow the X.Y.Z+cpu naming convention
         elif "habana" not in image_repo_name:
@@ -233,7 +241,7 @@ def test_framework_version_cpu(image):
         else:
             if "neuron" in image:
                 assert tag_framework_version in output.stdout.strip()
-            if all(_string in image for _string in ["pytorch", "habana", "synapseai1.3.0"]):
+            if all(_string in image for _string in ["pytorch", "habana", "synapseai1.4.1"]):
                 # Habana Pytorch version looks like 1.10.0a0+gitb488e78 for SynapseAI1.3 PT1.10.1 images
                 pt_fw_version_pattern = r"(\d+(\.\d+){1,2}(-rc\d)?)((a0\+git\w{7}))"
                 pt_fw_version_match = re.fullmatch(pt_fw_version_pattern, output.stdout.strip())
@@ -313,6 +321,10 @@ def test_framework_and_cuda_version_gpu(gpu, ec2_connection):
         image)
 
     image_repo_name, _ = get_repository_and_tag_from_image_uri(image)
+
+    if re.fullmatch(r"(pr-|beta-|nightly-)?tensorflow-inference", image_repo_name) and Version(tag_framework_version) == Version("2.6.3"):
+        pytest.skip("Skipping this test for TF 2.6.3 inference as the v2.6.3 version is already on production")
+
     # Framework Version Check #
     # For tf inference containers, check TF model server version
     if re.fullmatch(r"(pr-|beta-|nightly-)?tensorflow-inference(-eia|-graviton)?", image_repo_name):
@@ -324,6 +336,8 @@ def test_framework_and_cuda_version_gpu(gpu, ec2_connection):
         # Framework name may include huggingface
         if tested_framework.startswith('huggingface_'):
             tested_framework = tested_framework[len("huggingface_"):]
+            # Replace the trcomp string as it is extracted from ECR repo name
+            tested_framework = tested_framework.replace("_trcomp", "")
         # Module name is "torch"
         if tested_framework == "pytorch":
             tested_framework = "torch"
@@ -391,17 +405,36 @@ def _run_dependency_check_test(image, ec2_connection):
             "2.6": ["cpu", "gpu"],
             "2.7": ["cpu", "gpu", "hpu"],
             "2.8": ["cpu", "gpu", "hpu"],
+            "2.9": ["cpu", "gpu"]
         },
         "mxnet": {"1.8": ["neuron"], "1.9": ["cpu", "gpu"]},
         "pytorch": {"1.8": ["cpu", "gpu"], "1.10": ["cpu", "hpu"], "1.11": ["cpu", "gpu"]},
         "huggingface_pytorch": {"1.8": ["cpu", "gpu"], "1.9": ["cpu", "gpu"]},
         "huggingface_tensorflow": {"2.4": ["cpu", "gpu"], "2.5": ["cpu", "gpu"], "2.6": ["cpu", "gpu"]},
+        "huggingface_tensorflow_trcomp": {"2.6": ["gpu"]},
         "autogluon": {"0.3": ["cpu", "gpu"], "0.4": ["cpu", "gpu"]},
     }
 
     # Allowlist CVE #CVE-2022-1292 for DLCs where openssl is installed using apt-get
     # Check that these versions have been matched on https://ubuntu.com/security/CVE-2022-1292 before adding
-    allow_openssl_cve_2022_1292_fw_versions = {"pytorch": {"1.10": ["gpu"]}}
+    allow_openssl_cve_2022_1292_fw_versions = {
+        "pytorch": {
+            "1.10": ["gpu", "cpu", "hpu"],
+            "1.11": ["gpu", "cpu"],
+        },
+        "tensorflow": {
+            "1.15": ["neuron"],
+            "2.5": ["cpu", "gpu", "neuron"],
+            "2.6": ["cpu", "gpu"],
+            "2.7": ["cpu", "gpu", "hpu"],
+            "2.8": ["cpu", "gpu", "hpu"],
+            "2.9": ["cpu", "gpu"],
+        },
+        "mxnet": {"1.8": ["neuron"], "1.9": ["cpu", "gpu"]},
+        "huggingface_tensorflow": {"2.5": ["gpu"], "2.6": ["gpu"]},
+        "autogluon": {"0.3": ["cpu", "gpu"], "0.4": ["cpu", "gpu"]},
+        "huggingface_pytorch_trcomp": {"1.9": ["gpu"]},
+    }
 
     if processor in allow_openssl_cve_2021_3711_fw_versions.get(framework, {}).get(short_fw_version, []):
         allowed_vulnerabilities.add("CVE-2021-3711")
@@ -474,42 +507,26 @@ def _run_dependency_check_test(image, ec2_connection):
 
 @pytest.mark.usefixtures("sagemaker", "huggingface")
 @pytest.mark.model("N/A")
-@pytest.mark.canary("Run dependency tests regularly on production images")
 @pytest.mark.parametrize("ec2_instance_type", ["c5.4xlarge"], indirect=True)
-@pytest.mark.skipif(
-    (is_canary_context() and not is_time_for_canary_safety_scan()),
-    reason="Executing test in canaries pipeline during only a limited period of time.",
-)
 def test_dependency_check_cpu(cpu, ec2_connection, cpu_only, x86_compatible_only):
     _run_dependency_check_test(cpu, ec2_connection)
 
 
 @pytest.mark.usefixtures("sagemaker", "huggingface")
 @pytest.mark.model("N/A")
-@pytest.mark.canary("Run dependency tests regularly on production images")
 @pytest.mark.parametrize("ec2_instance_type", ["p3.2xlarge"], indirect=True)
-@pytest.mark.skipif(
-    (is_canary_context() and not is_time_for_canary_safety_scan()),
-    reason="Executing test in canaries pipeline during only a limited period of time.",
-)
 def test_dependency_check_gpu(gpu, ec2_connection, gpu_only):
     _run_dependency_check_test(gpu, ec2_connection)
 
 
 @pytest.mark.usefixtures("sagemaker")
 @pytest.mark.model("N/A")
-@pytest.mark.canary("Run dependency tests regularly on production images")
 @pytest.mark.parametrize("ec2_instance_type", ["c5.4xlarge"], indirect=True)
-@pytest.mark.skipif(
-    (is_canary_context() and not is_time_for_canary_safety_scan()),
-    reason="Executing test in canaries pipeline during only a limited period of time.",
-)
 def test_dependency_check_eia(eia, ec2_connection):
     _run_dependency_check_test(eia, ec2_connection)
 
 
 @pytest.mark.model("N/A")
-@pytest.mark.canary("Run dependency tests regularly on production images")
 @pytest.mark.parametrize("ec2_instance_type", ["dl1.24xlarge"], indirect=True)
 @pytest.mark.parametrize("ec2_instance_ami", [UBUNTU_18_HPU_DLAMI_US_WEST_2], indirect=True)
 def test_dependency_check_hpu(hpu, ec2_connection):
@@ -518,25 +535,15 @@ def test_dependency_check_hpu(hpu, ec2_connection):
 
 @pytest.mark.usefixtures("sagemaker", "huggingface")
 @pytest.mark.model("N/A")
-@pytest.mark.canary("Run dependency tests regularly on production images")
 @pytest.mark.parametrize("ec2_instance_type", ["inf1.xlarge"], indirect=True)
-@pytest.mark.skipif(
-    (is_canary_context() and not is_time_for_canary_safety_scan()),
-    reason="Executing test in canaries pipeline during only a limited period of time.",
-)
 def test_dependency_check_neuron(neuron, ec2_connection):
     _run_dependency_check_test(neuron, ec2_connection)
 
 
 @pytest.mark.usefixtures("sagemaker")
 @pytest.mark.model("N/A")
-@pytest.mark.canary("Run dependency tests regularly on production images")
 @pytest.mark.parametrize("ec2_instance_type", ["c6g.4xlarge"], indirect=True)
 @pytest.mark.parametrize("ec2_instance_ami", [UL18_CPU_ARM64_US_WEST_2], indirect=True)
-@pytest.mark.skipif(
-    (is_canary_context() and not is_time_for_canary_safety_scan()),
-    reason="Executing test in canaries pipeline during only a limited period of time.",
-)
 def test_dependency_check_graviton_cpu(cpu, ec2_connection, graviton_compatible_only):
     _run_dependency_check_test(cpu, ec2_connection)
 
@@ -605,7 +612,9 @@ def test_pip_check(image):
 
     framework, framework_version = get_framework_and_version_from_tag(image)
     # The v0.21 version of tensorflow-io has a bug fixed in v0.23 https://github.com/tensorflow/io/releases/tag/v0.23.0
-    if framework == "tensorflow" or framework == "huggingface_tensorflow" and Version(framework_version) in SpecifierSet(">=2.6.3,<2.7"):
+
+    tf263_io21_issue_framework_list = ["tensorflow", "huggingface_tensorflow", "huggingface_tensorflow_trcomp"]
+    if framework in tf263_io21_issue_framework_list or Version(framework_version) in SpecifierSet(">=2.6.3,<2.7"):
         allowed_tf263_exception = re.compile(rf"^tensorflow-io 0.21.0 requires tensorflow, which is not installed.$")
         allowed_exception_list.append(allowed_tf263_exception)
 
@@ -614,6 +623,13 @@ def test_pip_check(image):
             rf"autogluon-(vision|mxnet) 0.3.1 has requirement Pillow<8.4.0,>=8.3.0, but you have pillow \d+(\.\d+)*"
         )
         allowed_exception_list.append(allowed_autogluon_exception)
+
+    # TF2.9 sagemaker containers introduce tf-models-official which has a known bug where in it does not respect the
+    # existing TF installation. https://github.com/tensorflow/models/issues/9267. This package in turn brings in
+    # tensorflow-text. Skip checking these two packages as this is an upstream issue.
+    if framework == "tensorflow" and Version(framework_version) in SpecifierSet(">=2.9.1"):
+        allowed_tf29_exception = re.compile(rf"^(tf-models-official 2.9.1|tensorflow-text 2.9.0) requires tensorflow, which is not installed.")
+        allowed_exception_list.append(allowed_tf29_exception)
 
     # Add null entrypoint to ensure command exits immediately
     output = ctx.run(
@@ -656,6 +672,7 @@ def test_cuda_paths(gpu):
     ).group(1)
 
     # replacing '_' by '/' to handle huggingface_<framework> case
+    framework = framework.replace("_trcomp", "")
     framework_path = framework.replace("_", "/")
     framework_version_path = os.path.join(
         dlc_path, framework_path, job_type, "docker", framework_version)
@@ -669,13 +686,18 @@ def test_cuda_paths(gpu):
         short_python_version = python_version[:3]
 
     # Check buildspec for cuda version
-    buildspec = "buildspec.yml"
+    buildspec = "buildspec"
     if is_tf_version("1", image):
-        buildspec = "buildspec-tf1.yml"
+        buildspec = "buildspec-tf1"
+    if "trcomp" in image:
+        buildspec = "buildspec-trcomp"
 
     image_tag_in_buildspec = False
     dockerfile_spec_abs_path = None
-    buildspec_path = os.path.join(dlc_path, framework_path, buildspec)
+    # Try versioned buildspec first, if it exists
+    buildspec_path = os.path.join(dlc_path, framework_path, f"{buildspec}-{framework_short_version.replace('.', '-')}.yml")
+    if not os.path.exists(buildspec_path):
+        buildspec_path = os.path.join(dlc_path, framework_path, f"{buildspec}.yml")
     buildspec_def = Buildspec()
     buildspec_def.load(buildspec_path)
 
