@@ -33,6 +33,8 @@ from ...integration.sagemaker.timeout import timeout_and_delete_endpoint
 def test_vision_model_cpu(sagemaker_session, framework_version, ecr_image, instance_type, region):
     if "pytorch" in ecr_image and Version(framework_version) in SpecifierSet("==1.9.*"):
         pytest.skip("Skipping vision tests for PT1.9")
+    if "tensorflow" in ecr_image and Version(framework_version) in SpecifierSet("==2.5.*"):
+        pytest.skip("Skipping vision tests for TF2.5")
     instance_type = instance_type or "ml.m5.xlarge"
     try:
         _test_vision_model(sagemaker_session, framework_version, ecr_image, instance_type, model_dir)
@@ -47,6 +49,8 @@ def test_vision_model_cpu(sagemaker_session, framework_version, ecr_image, insta
 def test_vision_model_gpu(sagemaker_session, framework_version, ecr_image, instance_type, region):
     if "pytorch" in ecr_image and Version(framework_version) in SpecifierSet("==1.9.*"):
         pytest.skip("Skipping vision tests for PT1.9")
+    if "tensorflow" in ecr_image and Version(framework_version) in SpecifierSet("==2.5.*"):
+        pytest.skip("Skipping vision tests for TF2.5")
     instance_type = instance_type or "ml.p3.2xlarge"
     try:
         _test_vision_model(sagemaker_session, framework_version, ecr_image, instance_type, model_dir)
