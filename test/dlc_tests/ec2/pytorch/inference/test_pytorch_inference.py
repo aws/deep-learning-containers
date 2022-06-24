@@ -32,6 +32,7 @@ PT_TORCHAUDIO_CMD = os.path.join(CONTAINER_TESTS_PREFIX, "pytorch_tests", "testT
 PT_TORCHDATA_CMD = os.path.join(CONTAINER_TESTS_PREFIX, "pytorch_tests", "testTorchdata")
 
 
+@pytest.mark.usefixtures("sagemaker")
 @pytest.mark.model("resnet")
 @pytest.mark.parametrize("ec2_instance_ami", [test_utils.NEURON_UBUNTU_18_BASE_DLAMI_US_WEST_2], indirect=True)
 @pytest.mark.parametrize("ec2_instance_type", PT_EC2_NEURON_INSTANCE_TYPE, indirect=True)
@@ -39,6 +40,7 @@ def test_ec2_pytorch_inference_neuron(pytorch_inference_neuron, ec2_connection, 
     ec2_pytorch_inference(pytorch_inference_neuron, "neuron", ec2_connection, region)
 
 
+@pytest.mark.usefixtures("sagemaker")
 @pytest.mark.model("densenet")
 @pytest.mark.parametrize("ec2_instance_type", PT_EC2_GPU_INSTANCE_TYPE, indirect=True)
 def test_ec2_pytorch_inference_gpu(pytorch_inference, ec2_connection, region, gpu_only, ec2_instance_type):
@@ -53,6 +55,7 @@ def test_ec2_pytorch_inference_cpu(pytorch_inference, ec2_connection, region, cp
     ec2_pytorch_inference(pytorch_inference, "cpu", ec2_connection, region)
 
 
+@pytest.mark.usefixtures("sagemaker")
 @pytest.mark.model("densenet")
 @pytest.mark.parametrize("ec2_instance_type", PT_EC2_GRAVITON_INSTANCE_TYPE, indirect=True)
 @pytest.mark.parametrize("ec2_instance_ami", [test_utils.AML2_CPU_ARM64_US_WEST_2], indirect=True)
@@ -60,6 +63,7 @@ def test_ec2_pytorch_inference_graviton_cpu(pytorch_inference_graviton, ec2_conn
     ec2_pytorch_inference(pytorch_inference_graviton, "graviton", ec2_connection, region)
 
 
+@pytest.mark.usefixtures("sagemaker")
 @pytest.mark.integration("elastic_inference")
 @pytest.mark.model("resnet")
 @pytest.mark.parametrize("ec2_instance_type", PT_EC2_CPU_INSTANCE_TYPE, indirect=True)
@@ -68,6 +72,7 @@ def test_ec2_pytorch_inference_eia_cpu(pytorch_inference_eia, ec2_connection, re
     ec2_pytorch_inference(pytorch_inference_eia, "eia", ec2_connection, region)
 
 
+@pytest.mark.usefixtures("sagemaker")
 @pytest.mark.integration("elastic_inference")
 @pytest.mark.model("resnet")
 @pytest.mark.parametrize("ec2_instance_type", PT_EC2_GPU_EIA_INSTANCE_TYPE, indirect=True)
@@ -76,28 +81,31 @@ def test_ec2_pytorch_inference_eia_gpu(pytorch_inference_eia, ec2_connection, re
     ec2_pytorch_inference(pytorch_inference_eia, "eia", ec2_connection, region)
 
 
+@pytest.mark.usefixtures("sagemaker")
 @pytest.mark.integration("pt_torchaudio_gpu")
 @pytest.mark.model("N/A")
 @pytest.mark.parametrize("ec2_instance_type", PT_EC2_GPU_INSTANCE_TYPE, indirect=True)
 def test_pytorch_inference_torchaudio_gpu(pytorch_inference, ec2_connection, gpu_only, ec2_instance_type):
     _, image_framework_version = get_framework_and_version_from_tag(pytorch_inference)
-    if Version(image_framework_version) not in SpecifierSet(">=1.9,!=1.10.*"):
-        pytest.skip("torchaudio is installed in PT 1.9 and above, except PT 1.10.*")
+    if Version(image_framework_version) not in SpecifierSet("!=1.9.*,!=1.10.*"):
+        pytest.skip("torchaudio is not supported in PT 1.9 and 1.10")
     if test_utils.is_image_incompatible_with_instance_type(pytorch_inference, ec2_instance_type):
         pytest.skip(f"Image {pytorch_inference} is incompatible with instance type {ec2_instance_type}")
     execute_ec2_inference_test(ec2_connection, pytorch_inference, PT_TORCHAUDIO_CMD)
 
 
+@pytest.mark.usefixtures("sagemaker")
 @pytest.mark.integration("pt_torchaudio_cpu")
 @pytest.mark.model("N/A")
 @pytest.mark.parametrize("ec2_instance_type", PT_EC2_CPU_INSTANCE_TYPE, indirect=True)
 def test_pytorch_inference_torchaudio_cpu(pytorch_inference, ec2_connection, cpu_only):
     _, image_framework_version = get_framework_and_version_from_tag(pytorch_inference)
-    if Version(image_framework_version) not in SpecifierSet(">=1.9,!=1.10.*"):
-        pytest.skip("torchaudio is installed in PT 1.9 and above, except PT 1.10.*")
+    if Version(image_framework_version) not in SpecifierSet("!=1.9.*,!=1.10.*"):
+        pytest.skip("torchaudio is not supported in PT 1.9 and 1.10")
     execute_ec2_inference_test(ec2_connection, pytorch_inference, PT_TORCHAUDIO_CMD)
 
 
+@pytest.mark.usefixtures("sagemaker")
 @pytest.mark.integration("pt_torchdata_gpu")
 @pytest.mark.model("N/A")
 @pytest.mark.parametrize("ec2_instance_type", PT_EC2_GPU_INSTANCE_TYPE, indirect=True)
@@ -110,6 +118,7 @@ def test_pytorch_inference_torchdata_gpu(
     execute_ec2_inference_test(ec2_connection, pytorch_inference, PT_TORCHDATA_CMD)
 
 
+@pytest.mark.usefixtures("sagemaker")
 @pytest.mark.integration("pt_torchdata_cpu")
 @pytest.mark.model("N/A")
 @pytest.mark.parametrize("ec2_instance_type", PT_EC2_CPU_INSTANCE_TYPE, indirect=True)
