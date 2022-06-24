@@ -213,6 +213,7 @@ def test_smmodelparallel_mnist_multigpu_singlenode(ecr_image, instance_type, sag
                             "fp16": True,
                             "auto_partition": False,
                             "default_partition": 0,
+                            "prescaled_batch": True,
                         },
                     }
                 },
@@ -257,6 +258,10 @@ def test_smmodelparallel_mnist_multigpu_multinode(ecr_image, instance_type, sage
                             "optimize": "speed",
                             "pipeline": "interleaved",
                             "ddp": True,
+                            "fp16": True,
+                            "auto_partition": False,
+                            "default_partition": 0,
+                            "prescaled_batch": True,
                         },
                     }
                 },
@@ -302,6 +307,10 @@ def test_smmodelparallel_mnist_multigpu_multinode_efa(ecr_image, efa_instance_ty
                             "optimize": "speed",
                             "pipeline": "interleaved",
                             "ddp": True,
+                            "fp16": True,
+                            "auto_partition": False,
+                            "default_partition": 0,
+                            "prescaled_batch": True,
                         },
                     }
                 },
