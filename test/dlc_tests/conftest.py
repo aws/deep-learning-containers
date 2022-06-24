@@ -72,6 +72,8 @@ FRAMEWORK_FIXTURES = (
     "huggingface_tensorflow_inference",
     "huggingface_pytorch_inference",
     "huggingface_mxnet_inference",
+    "huggingface_tensorflow_trcomp_training",
+    "huggingface_pytorch_trcomp_training",
     # Autogluon
     "autogluon_training",
     # Processor fixtures
@@ -425,6 +427,11 @@ def non_huggingface_only():
 
 
 @pytest.fixture(scope="session")
+def training_compiler_only():
+    pass
+
+
+@pytest.fixture(scope="session")
 def non_autogluon_only():
     pass
 
@@ -543,19 +550,19 @@ def framework_version_within_limit(metafunc_obj, image):
     :return: True if all validation succeeds, else False
     """
     image_framework_name, _ = get_framework_and_version_from_tag(image)
-    if image_framework_name == "tensorflow":
+    if image_framework_name in ("tensorflow", "huggingface_tensorflow_trcomp"):
         tf2_requirement_failed = "tf2_only" in metafunc_obj.fixturenames and not is_tf_version("2", image)
         tf25_requirement_failed = "tf25_and_above_only" in metafunc_obj.fixturenames and is_below_framework_version(
-            "2.5", image, "tensorflow"
+            "2.5", image, image_framework_name
         )
         tf24_requirement_failed = "tf24_and_above_only" in metafunc_obj.fixturenames and is_below_framework_version(
-            "2.4", image, "tensorflow"
+            "2.4", image, image_framework_name
         )
         tf23_requirement_failed = "tf23_and_above_only" in metafunc_obj.fixturenames and is_below_framework_version(
-            "2.3", image, "tensorflow"
+            "2.3", image, image_framework_name
         )
         tf21_requirement_failed = "tf21_and_above_only" in metafunc_obj.fixturenames and is_below_framework_version(
-            "2.1", image, "tensorflow"
+            "2.1", image, image_framework_name
         )
         if (
             tf2_requirement_failed
@@ -571,21 +578,21 @@ def framework_version_within_limit(metafunc_obj, image):
         )
         if mx18_requirement_failed:
             return False
-    if image_framework_name == "pytorch":
+    if image_framework_name in ("pytorch", "huggingface_pytorch_trcomp"):
         pt111_requirement_failed = "pt111_and_above_only" in metafunc_obj.fixturenames and is_below_framework_version(
-            "1.11", image, "pytorch"
+            "1.11", image, image_framework_name
         )
         pt17_requirement_failed = "pt17_and_above_only" in metafunc_obj.fixturenames and is_below_framework_version(
-            "1.7", image, "pytorch"
+            "1.7", image, image_framework_name
         )
         pt16_requirement_failed = "pt16_and_above_only" in metafunc_obj.fixturenames and is_below_framework_version(
-            "1.6", image, "pytorch"
+            "1.6", image, image_framework_name
         )
         pt15_requirement_failed = "pt15_and_above_only" in metafunc_obj.fixturenames and is_below_framework_version(
-            "1.5", image, "pytorch"
+            "1.5", image, image_framework_name
         )
         pt14_requirement_failed = "pt14_and_above_only" in metafunc_obj.fixturenames and is_below_framework_version(
-            "1.4", image, "pytorch"
+            "1.4", image, image_framework_name
         )
         if pt111_requirement_failed or pt17_requirement_failed or pt16_requirement_failed or pt15_requirement_failed or pt14_requirement_failed:
             return False
@@ -595,7 +602,7 @@ def framework_version_within_limit(metafunc_obj, image):
 def pytest_configure(config):
     # register canary marker
     config.addinivalue_line("markers", "canary(message): mark test to run as a part of canary tests.")
-    config.addinivalue_line("markers", "quick_check(message): mark test to run as a part of quick check tests.")
+    config.addinivalue_line("markers", "quick_checks(message): mark test to run as a part of quick check tests.")
     config.addinivalue_line("markers", "integration(ml_integration): mark what the test is testing.")
     config.addinivalue_line("markers", "model(model_name): name of the model being tested")
     config.addinivalue_line("markers", "multinode(num_instances): number of instances the test is run on, if not 1")
@@ -666,6 +673,8 @@ def generate_unique_values_for_fixtures(metafunc_obj, images_to_parametrize, val
         "pytorch": "pt",
         "huggingface_pytorch": "hf-pt",
         "huggingface_tensorflow": "hf-tf",
+        "huggingface_pytorch_trcomp": "hf-pt-trc",
+        "huggingface_tensorflow_trcomp": "hf-tf-trc",
         "autogluon": "ag",
     }
     fixtures_parametrized = {}
@@ -723,6 +732,15 @@ def lookup_condition(lookup, image):
     if not repo_name.endswith(lookup):
         if (lookup in job_types or lookup in device_types) and lookup in image:
             return True
+        # Pytest does not allow usage of fixtures, specially dynamically loaded fixtures into pytest.mark.parametrize
+        # See https://github.com/pytest-dev/pytest/issues/349.
+        # Hence, explicitly setting the below fixtues to allow trcomp images to run on E3 test
+        elif "huggingface-pytorch-trcomp-training" in repo_name:
+            if lookup == "pytorch-training":
+                return True
+        elif "huggingface-tensorflow-trcomp-training" in repo_name:
+            if lookup == "tensorflow-training":
+                return True
         else:
             return False
     else:
@@ -745,8 +763,13 @@ def pytest_generate_tests(metafunc):
                 if lookup_condition(lookup, image):
                     is_example_lookup = "example_only" in metafunc.fixturenames and "example" in image
                     is_huggingface_lookup = (
-                        "huggingface_only" in metafunc.fixturenames or "huggingface" in metafunc.fixturenames
-                    ) and "huggingface" in image
+                        ("huggingface_only" in metafunc.fixturenames or "huggingface" in metafunc.fixturenames)
+                        and "huggingface" in image
+                    )
+                    is_trcomp_lookup = "trcomp" in image and all(
+                        fixture_name not in metafunc.fixturenames
+                        for fixture_name in ["example_only"]
+                    )
                     is_standard_lookup = all(
                         fixture_name not in metafunc.fixturenames
                         for fixture_name in ["example_only", "huggingface_only"]
@@ -768,7 +791,9 @@ def pytest_generate_tests(metafunc):
                         continue
                     if "x86_compatible_only" in metafunc.fixturenames and "graviton" in image:
                         continue
-                    if is_example_lookup or is_huggingface_lookup or is_standard_lookup:
+                    if "training_compiler_only" in metafunc.fixturenames and not ("trcomp" in image):
+                        continue
+                    if is_example_lookup or is_huggingface_lookup or is_standard_lookup or is_trcomp_lookup:
                         if "cpu_only" in metafunc.fixturenames and "cpu" in image and "eia" not in image:
                             images_to_parametrize.append(image)
                         elif "gpu_only" in metafunc.fixturenames and "gpu" in image:

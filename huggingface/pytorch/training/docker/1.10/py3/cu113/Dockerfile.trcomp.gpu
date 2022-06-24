@@ -1,0 +1,96 @@
+# https://github.com/aws/deep-learning-containers/blob/master/available_images.md 
+# refer to the above page to pull latest Pytorch image
+
+# docker image region us-west-2
+FROM 763104351884.dkr.ecr.us-west-2.amazonaws.com/pytorch-training:1.10.2-gpu-py38-cu113-ubuntu20.04-sagemaker
+
+LABEL maintainer="Amazon AI"
+LABEL dlc_major_version="1"
+
+# version args
+ARG TRANSFORMERS_VERSION
+ARG DATASETS_VERSION
+ARG PYTHON=python3
+
+# artifacts URL
+ARG PT_BUCKET=https://sm-training-comp-pytorch-binaries.s3.us-west-2.amazonaws.com/cd4b3932-8a23-4d21-95d7-c14e1351bef5/20220401-191238/4187a5ac613030093caa36c7d5ea95c3b9bb9b98
+ARG PT_URL=${PT_BUCKET}/torch-1.10.2%2Bcu113-cp38-cp38-linux_x86_64.whl
+ARG PT_XLA_URL=${PT_BUCKET}/torch_xla-1.10.0-cp38-cp38-linux_x86_64.whl
+ARG TORCHVISION_URL=${PT_BUCKET}/torchvision-0.11.0a0%2B05eae32-cp38-cp38-linux_x86_64.whl
+ARG TORCHAUDIO_URL=${PT_BUCKET}/torchaudio-0.10.1%2B6f539cf-cp38-cp38-linux_x86_64.whl
+ARG HF_TRANSFORMERS_URL=https://sm-training-comp-pytorch-binaries.s3.us-west-2.amazonaws.com/092f939a-23a9-4625-a74c-95e793816647/20220331-061338/6da962c22532524d43f33610e34a53fa998c5c8e/transformers-4.17.0-py3-none-any.whl
+
+# Install Sagemaker PythonSDK
+RUN pip install --no-cache-dir sagemaker
+
+# install Hugging Face libraries and its dependencies
+RUN pip install -U --no-cache-dir \ 
+    transformers[sklearn,sentencepiece]==${TRANSFORMERS_VERSION} \ 
+    datasets==${DATASETS_VERSION}
+
+RUN apt-get update \
+ # TODO: Remove upgrade statements once packages are updated in base image
+ && apt-get -y upgrade --only-upgrade systemd openssl cryptsetup \
+ && apt install -y git-lfs \
+ && apt install -y libomp5 \
+ && apt-get clean \  
+ && rm -rf /var/lib/apt/lists/*
+
+RUN pip install -U "numpy<1.22"
+
+# Install PyTorch
+RUN pip uninstall -y torch \
+ && pip install --no-deps --no-cache-dir -U --force-reinstall ${PT_URL}
+
+# Install PyTorch XLA
+RUN pip uninstall -y torch_xla \
+ && pip install --no-deps --no-cache-dir -U --force-reinstall ${PT_XLA_URL}
+
+# Install TorchVision
+RUN pip uninstall -y torchvision \
+ && pip install --no-deps --no-cache-dir -U --force-reinstall ${TORCHVISION_URL}
+
+# Install TorchAudio
+RUN pip uninstall -y torchaudio \
+ && pip install --no-deps --no-cache-dir -U --force-reinstall ${TORCHAUDIO_URL}
+
+# Install Tranformers
+RUN pip uninstall -y transformers \
+ && pip install --no-deps --no-cache-dir --force-reinstall -U ${HF_TRANSFORMERS_URL}
+
+ARG CONDA_PREFIX=/opt/conda
+
+# Install common training dependencies
+RUN ${CONDA_PREFIX}/bin/conda install -y -c conda-forge librosa
+RUN pip install --no-cache-dir \
+    sacrebleu \
+    fugashi \
+    ipadic \
+    nltk \
+    rouge-score \
+    soundfile \
+    sentence-transformers
+
+# Fix library links
+RUN ln -s ${CONDA_PREFIX}/lib/libmkl_intel_lp64.so ${CONDA_PREFIX}/lib/libmkl_intel_lp64.so.1 \
+ && ln -s ${CONDA_PREFIX}/lib/libmkl_intel_thread.so ${CONDA_PREFIX}/lib/libmkl_intel_thread.so.1 \
+ && ln -s ${CONDA_PREFIX}/lib/libmkl_core.so ${CONDA_PREFIX}/lib/libmkl_core.so.1 \
+ && ln -s ${CONDA_PREFIX}/lib/libmkl_gnu_thread.so ${CONDA_PREFIX}/lib/libmkl_gnu_thread.so.1
+
+# Install Horovod
+ENV HOROVOD_VERSION=0.21.3
+RUN pip uninstall -y horovod \
+ && ldconfig /usr/local/cuda-11.3/targets/x86_64-linux/lib/stubs \
+ && HOROVOD_GPU_ALLREDUCE=NCCL HOROVOD_CUDA_HOME=/usr/local/cuda-11.3 HOROVOD_WITH_PYTORCH=1 pip install --no-cache-dir horovod==${HOROVOD_VERSION} \
+ && ldconfig
+
+RUN HOME_DIR=/root \
+ && curl -o ${HOME_DIR}/oss_compliance.zip https://aws-dlinfra-utilities.s3.amazonaws.com/oss_compliance.zip \
+ && unzip ${HOME_DIR}/oss_compliance.zip -d ${HOME_DIR}/ \
+ && cp ${HOME_DIR}/oss_compliance/test/testOSSCompliance /usr/local/bin/testOSSCompliance \
+ && chmod +x /usr/local/bin/testOSSCompliance \
+ && chmod +x ${HOME_DIR}/oss_compliance/generate_oss_compliance.sh \
+ && ${HOME_DIR}/oss_compliance/generate_oss_compliance.sh ${HOME_DIR} ${PYTHON} \
+ && rm -rf ${HOME_DIR}/oss_compliance*
+
+
