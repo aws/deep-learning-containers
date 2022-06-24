@@ -194,7 +194,7 @@ release_images:
   14:
     framework: "tensorflow"
     version: "2.7.1"
-    customer_type: "sagemaker"
+    customer_type: "e3"
     arch_type: "x86"
     training:
       device_types: ["gpu"]
