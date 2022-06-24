@@ -165,3 +165,43 @@ release_images:
       example: True
       disable_sm_tag: True  # [Default: False] This option is not used by Example images
       force_release: False
+  12:
+    framework: "tensorflow"
+    version: "2.7.1"
+    customer_type: "e3"
+    arch_type: "x86"
+    training:
+      device_types: ["cpu", "gpu"]
+      python_versions: ["py38"]
+      os_version: "ubuntu20.04"
+      cuda_version: "cu112"
+      example: False
+      disable_sm_tag: False
+      force_release: False
+  13:
+    framework: "tensorflow"
+    version: "2.7.1"
+    customer_type: "sagemaker"
+    arch_type: "x86"
+    training:
+      device_types: ["cpu", "gpu"]
+      python_versions: ["py38"]
+      os_version: "ubuntu20.04"
+      cuda_version: "cu112"
+      example: False
+      disable_sm_tag: False
+      force_release: False
+  14:
+    framework: "tensorflow"
+    version: "2.7.1"
+    customer_type: "sagemaker"
+    arch_type: "x86"
+    training:
+      device_types: ["gpu"]
+      python_versions: ["py38"]
+      os_version: "ubuntu20.04"
+      cuda_version: "cu112"
+      example: True
+      disable_sm_tag: False
+      force_release: False
+  
