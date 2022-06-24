@@ -210,6 +210,9 @@ def test_smmodelparallel_mnist_multigpu_singlenode(ecr_image, instance_type, sag
                             "optimize": "speed",
                             "pipeline": "interleaved",
                             "ddp": True,
+                            "fp16": True,
+                            "auto_partition": False,
+                            "default_partition": 0,
                         },
                     }
                 },
