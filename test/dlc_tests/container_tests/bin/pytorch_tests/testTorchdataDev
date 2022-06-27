@@ -6,12 +6,12 @@ HOME_DIR=/test
 BIN_DIR=${HOME_DIR}/bin
 LOG_DIR=${HOME_DIR}/logs
 
-TORCHDATA_BRANCH="main"
-TORCHDATA_REPO="https://github.com/pytorch/data.git"
+TORCHDATA_DEV_BRANCH="pt1.11.0-dlc-torchdata"
+TORCHDATA_DEV_REPO="https://github.com/ydaiming/data.git"
 TORCHDATA_TEST_SCRIPT="data/test/test_remote_io.py"
 
 echo "Fetch Torchdata S3 IO test script."
-git clone --recursive -b ${TORCHDATA_BRANCH} ${TORCHDATA_REPO}
+git clone --recursive -b ${TORCHDATA_DEV_BRANCH} ${TORCHDATA_DEV_REPO}
 
 echo "Installing pre-requisites."
 pip install expecttest
