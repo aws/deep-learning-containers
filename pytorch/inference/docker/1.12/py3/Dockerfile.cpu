@@ -134,7 +134,7 @@ RUN pip install --upgrade pip --trusted-host pypi.org --trusted-host files.pytho
     enum-compat==0.0.3 \
     ipython==8.1.0 \
     numpy==1.22.2 \
-    opencv-python==4.5.5.62 \
+    opencv-python \
     packaging \
     "Pillow>=9.0.0" \
     "pyyaml>=5.4,<5.5" \
@@ -171,7 +171,7 @@ RUN HOME_DIR=/root \
  && rm -rf ${HOME_DIR}/oss_compliance* \
  && rm -rf /tmp/tmp*
 
-RUN curl -o /license.txt  https://aws-dlc-licenses.s3.amazonaws.com/pytorch-1.11/license.txt
+RUN curl -o /license.txt  https://aws-dlc-licenses.s3.amazonaws.com/pytorch-1.12/license.txt
 
 EXPOSE 8080 8081
 ENTRYPOINT ["python", "/usr/local/bin/dockerd-entrypoint.py"]
