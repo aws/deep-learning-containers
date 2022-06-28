@@ -1,4 +1,4 @@
-FROM vault.habana.ai/gaudi-docker/1.4.1/ubuntu20.04/habanalabs/tensorflow-installer-tf-cpu-2.8.0:latest
+FROM vault.habana.ai/gaudi-docker/1.5.0/ubuntu20.04/habanalabs/tensorflow-installer-tf-cpu-2.9.1:latest
 
 LABEL maintainer="Amazon AI"
 LABEL dlc_major_version="1"
@@ -26,7 +26,7 @@ ARG PYTHON=python3.8
 ARG PYTHON_PIP=python3-pip
 ARG PIP=pip3.8
 
-ARG TF_URL=https://framework-binaries.s3.us-west-2.amazonaws.com/habana/1.4.0/tensorflow_cpu-2.8.0-cp38-cp38-manylinux2010_x86_64.whl
+ARG TF_URL=https://framework-binaries.s3.us-west-2.amazonaws.com/habana/1.5.0/tensorflow_cpu-2.9.1-cp38-cp38-manylinux2014_x86_64.manylinux_2_17_x86_64.whl
 
 
 RUN apt-get update \

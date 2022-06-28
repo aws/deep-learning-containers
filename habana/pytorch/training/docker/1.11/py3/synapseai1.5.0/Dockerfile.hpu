@@ -1,4 +1,4 @@
-FROM vault.habana.ai/gaudi-docker/1.4.1/ubuntu20.04/habanalabs/pytorch-installer-1.10.2:latest
+FROM vault.habana.ai/gaudi-docker/1.5.0/ubuntu20.04/habanalabs/pytorch-installer-1.11.0:latest
 
 LABEL maintainer="Amazon AI"
 LABEL dlc_major_version="1"
@@ -8,7 +8,7 @@ ARG PYTHON=python3.8
 ARG PYTHON_PIP=python3-pip
 ARG PIP=pip3.8
 
-ENV PT_VERSION=1.10
+ENV PT_VERSION=1.11
 
 RUN apt-get update \
  && apt-get install -y --no-install-recommends \
@@ -33,7 +33,7 @@ RUN apt-get update \
  && apt-get clean
 
 
-ARG PT_TRAINING_URL=https://framework-binaries.s3.us-west-2.amazonaws.com/habana/1.4.1/torch-1.10.0a0%2Bgitfe03f8c-cp38-cp38-linux_x86_64.whl
+ARG PT_TRAINING_URL=https://framework-binaries.s3.us-west-2.amazonaws.com/habana/1.5.0/torch-1.11.0a0%2Bgita4c10ee-cp38-cp38-linux_x86_64.whl
 
 RUN pip --no-cache-dir install --upgrade \
     pip \

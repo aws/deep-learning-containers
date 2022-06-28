@@ -420,7 +420,7 @@ def _run_dependency_check_test(image, ec2_connection):
     allow_openssl_cve_2022_1292_fw_versions = {
         "pytorch": {
             "1.10": ["gpu", "cpu", "hpu"],
-            "1.11": ["gpu", "cpu"],
+            "1.11": ["gpu", "cpu", "hpu"],
         },
         "tensorflow": {
             "1.15": ["neuron"],
@@ -428,7 +428,7 @@ def _run_dependency_check_test(image, ec2_connection):
             "2.6": ["cpu", "gpu"],
             "2.7": ["cpu", "gpu", "hpu"],
             "2.8": ["cpu", "gpu", "hpu"],
-            "2.9": ["cpu", "gpu"],
+            "2.9": ["cpu", "gpu", "hpu"],
         },
         "mxnet": {"1.8": ["neuron"], "1.9": ["cpu", "gpu"]},
         "huggingface_tensorflow": {"2.5": ["gpu"], "2.6": ["gpu"]},
