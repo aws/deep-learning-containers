@@ -80,7 +80,7 @@ RUN curl -L -o ~/mambaforge.sh https://github.com/conda-forge/miniforge/releases
  && /opt/conda/bin/conda clean -ya
 
 RUN conda install -c conda-forge \
-    opencv \
+    opencv>=4.6.0 \
     scikit-learn \
     pandas \
     h5py \
@@ -145,9 +145,5 @@ RUN curl https://aws-dlc-licenses.s3.amazonaws.com/pytorch-1.10/license.txt -o /
 
 EXPOSE 8080 8081
 
-
-
 ENTRYPOINT ["python", "/usr/local/bin/dockerd-entrypoint.py"]
 CMD ["/usr/local/bin/entrypoint.sh"]
-
-
