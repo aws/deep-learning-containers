@@ -95,7 +95,7 @@ ENV LD_LIBRARY_PATH="$LD_LIBRARY_PATH:/home/.openmpi/lib/"
 RUN ompi_info --parsable --all | grep mpi_built_with_cuda_support:value
 
 RUN conda install -c conda-forge -y \
-    opencv>=4.6.0 \
+    opencv \
     scikit-learn \
     pandas \
     requests \
@@ -122,7 +122,7 @@ RUN git clone https://github.com/Arm-software/ComputeLibrary.git \
 ENV LD_LIBRARY_PATH="$LD_LIBRARY_PATH:/opt/armClArtifact/"
 
 RUN conda install -y -c conda-forge "pyyaml>=5.4,<5.5"
-RUN pip install "Pillow>=9.0.1,<9.1.0" "awscli<2"
+RUN pip install "opencv-python>=4.6,<5" "Pillow>=9.0.1,<9.1.0" "awscli<2"
 
 RUN pip uninstall -y model-archiver multi-model-server \
  && pip install captum \
