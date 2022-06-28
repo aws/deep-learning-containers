@@ -11,7 +11,7 @@ TORCHDATA_DEV_REPO="https://github.com/ydaiming/data.git"
 TORCHDATA_TEST_SCRIPT="data/test/test_remote_io.py"
 
 echo "Fetch Torchdata S3 IO test script."
-git clone --recursive -b ${TORCHDATA_DEV_BRANCH} ${TORCHDATA_DEV_REPO}
+git clone -b ${TORCHDATA_DEV_BRANCH} ${TORCHDATA_DEV_REPO}
 
 echo "Installing pre-requisites."
 pip install expecttest
