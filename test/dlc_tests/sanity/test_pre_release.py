@@ -443,7 +443,6 @@ def _run_dependency_check_test(image, ec2_connection):
         "huggingface_pytorch_trcomp": {"1.9": ["gpu"]},
     }
 
-
     if processor in allow_openssl_cve_2021_3711_fw_versions.get(framework, {}).get(short_fw_version, []):
         allowed_vulnerabilities.add("CVE-2021-3711")
     if processor in allow_openssl_cve_2022_1292_fw_versions.get(framework, {}).get(short_fw_version, []):
