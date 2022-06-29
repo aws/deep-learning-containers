@@ -541,3 +541,4 @@ RUN HOME_DIR=/root \
 
 ENTRYPOINT ["bash", "-m", "start_with_right_hostname.sh"]
 CMD ["/bin/bash"]
+
