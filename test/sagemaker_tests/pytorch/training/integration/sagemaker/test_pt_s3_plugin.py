@@ -16,6 +16,7 @@ import os
 
 import boto3
 import pytest
+from sagemaker.instance_group import InstanceGroup
 from sagemaker.pytorch import PyTorch
 from sagemaker import utils
 from packaging.version import Version
@@ -61,6 +62,26 @@ def test_pt_s3_plugin_sm_gpu(framework_version, ecr_image, sagemaker_regions):
         job_name = utils.unique_name_from_base('test-pytorch-s3-plugin-gpu')
         invoke_pytorch_estimator(ecr_image, sagemaker_regions, estimator_parameter, job_name=job_name)
 
+@pytest.mark.processor("gpu")
+@pytest.mark.integration("pt_s3_plugin_gpu")
+@pytest.mark.model("resnet18")
+@pytest.mark.skip_cpu
+@pytest.mark.skip_py2_containers
+def test_hc_pt_s3_plugin_sm_gpu(framework_version, ecr_image, sagemaker_regions):
+    validate_or_skip_s3_plugin(ecr_image)
+    training_group = InstanceGroup('train_group', MULTI_GPU_INSTANCE, 1)
+    with timeout(minutes=DEFAULT_TIMEOUT):
+        estimator_parameter = {
+            'entry_point': 'main.py',
+            'role': 'SageMakerRole',
+            'source_dir': resnet18_path,
+            'instance_groups': [training_group],
+            'framework_version': framework_version
+        }
+
+        job_name = utils.unique_name_from_base("test-pytorch-hc-s3-plugin-gpu")
+        invoke_pytorch_estimator(ecr_image, sagemaker_regions, estimator_parameter, job_name=job_name)
+
 @pytest.mark.processor("cpu")
 @pytest.mark.integration("pt_s3_plugin_cpu")
 @pytest.mark.model("resnet18")
@@ -78,4 +99,23 @@ def test_pt_s3_plugin_sm_cpu(framework_version, ecr_image, sagemaker_regions):
             'framework_version': framework_version
         }
         job_name = utils.unique_name_from_base('test-pytorch-s3-plugin-cpu')
+        invoke_pytorch_estimator(ecr_image, sagemaker_regions, estimator_parameter, job_name=job_name)
+
+@pytest.mark.processor("cpu")
+@pytest.mark.integration("pt_s3_plugin_cpu")
+@pytest.mark.model("resnet18")
+@pytest.mark.skip_gpu
+@pytest.mark.skip_py2_containers
+def test_hc_pt_s3_plugin_sm_cpu(framework_version, ecr_image, sagemaker_regions):
+    validate_or_skip_s3_plugin(ecr_image)
+    training_group = InstanceGroup("train_group", CPU_INSTANCE, 1)
+    with timeout(minutes=DEFAULT_TIMEOUT):
+        estimator_parameter = {
+            'entry_point': 'main.py',
+            'role': 'SageMakerRole',
+            'source_dir': resnet18_path,
+            'instance_groups': [training_group],
+            'framework_version': framework_version
+        }
+        job_name = utils.unique_name_from_base("test-pytorch-hc-s3-plugin-cpu")
         invoke_pytorch_estimator(ecr_image, sagemaker_regions, estimator_parameter, job_name=job_name)
