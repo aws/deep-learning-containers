@@ -45,7 +45,7 @@ context:
       source: ../../src/deep_learning_container.py
       target: deep_learning_container.py
 
-# images:
+images:
 #   BuildE3CPUPTTrainPy3DockerImage:
 #     <<: *TRAINING_REPOSITORY
 #     build: &PYTORCH_CPU_TRAINING_PY3 false
