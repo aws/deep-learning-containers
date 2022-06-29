@@ -442,10 +442,20 @@ def _run_dependency_check_test(image, ec2_connection):
         "huggingface_pytorch_trcomp": {"1.9": ["gpu"]},
     }
 
+    # Allowlist CVE #CVE-2022-2068 for DLCs where openssl is installed using apt-get
+    # Check that these versions have been matched on https://ubuntu.com/security/CVE-2022-2068 before adding
+    allow_openssl_cve_2022_2068_fw_versions = {
+        "pytorch": {
+            "1.12": ["gpu", "cpu"],
+        },
+    }
+
     if processor in allow_openssl_cve_2021_3711_fw_versions.get(framework, {}).get(short_fw_version, []):
         allowed_vulnerabilities.add("CVE-2021-3711")
     if processor in allow_openssl_cve_2022_1292_fw_versions.get(framework, {}).get(short_fw_version, []):
         allowed_vulnerabilities.add("CVE-2022-1292")
+    if processor in allow_openssl_cve_2022_2068_fw_versions.get(framework, {}).get(short_fw_version, []):
+        allowed_vulnerabilities.add("CVE-2022-2068")
 
     container_name = f"dep_check_{processor}"
     report_addon = get_container_name("depcheck-report", image)
