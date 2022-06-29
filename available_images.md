@@ -187,7 +187,7 @@ HuggingFace Neuron Inference Containers
 
 |Framework                                  |Job Type   |Python Version Options |Example URL                                                                                                |
 |-------------------------------------------|-----------|-----------------------|-----------------------------------------------------------------------------------------------------------|
-|PyTorch 1.9.1 with Neuron Inference and HuggingFace transformers |inference 	|3.7 (py37) 	        |763104351884.dkr.ecr.us-east-1.amazonaws.com/huggingface-pytorch-inference-neuron:1.9.1-transformers4.12.3-neuron-py37-sdk1.17.1-ubuntu18.04        |
+|PyTorch 1.10.2 with Neuron Inference and HuggingFace transformers |inference 	|3.7 (py37) 	        |763104351884.dkr.ecr.us-east-1.amazonaws.com/huggingface-pytorch-inference-neuron:1.10.2-transformers4.20.1-neuron-py37-sdk1.19.1-ubuntu18.04        |
 
 SageMaker Training Compiler Containers
 ===============================
@@ -404,3 +404,10 @@ Prior SageMaker Training Compiler Container Versions
 |-----------------------------------------------|-----------|-----------|-----------------------|---------------------------------------------------------------------------------------------------|
 |PyTorch 1.9.0 with HuggingFace transformers and SageMaker Training Compiler    |training	|GPU 		| 3.8 (py38)			|763104351884.dkr.ecr.us-east-1.amazonaws.com/huggingface-pytorch-trcomp-training:1.9.0-transformers4.11.0-gpu-py38-cu111-ubuntu20.04      |
 |TensorFlow 2.5.1 with HuggingFace transformers and SageMaker Training Compiler |training	|GPU 		| 3.7 (py37)			|763104351884.dkr.ecr.us-east-1.amazonaws.com/huggingface-tensorflow-trcomp-training:2.5.1-transformers4.11.0-gpu-py37-cu112-ubuntu18.04 	|
+
+Prior HuggingFace Neuron Inference Containers
+===============================
+
+|Framework                                  |Job Type   |Python Version Options |Example URL                                                                                                |
+|-------------------------------------------|-----------|-----------------------|-----------------------------------------------------------------------------------------------------------|
+|PyTorch 1.9.1 with Neuron Inference and HuggingFace transformers |inference 	|3.7 (py37) 	        |763104351884.dkr.ecr.us-east-1.amazonaws.com/huggingface-pytorch-inference-neuron:1.9.1-transformers4.12.3-neuron-py37-sdk1.17.1-ubuntu18.04        |
