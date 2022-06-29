@@ -32,7 +32,7 @@ RUN apt-get update \
     libxext6 \
     libxrender-dev \
     openjdk-11-jdk \
-    openssl \
+    openssl=3.0.4 \
     scons \
     vim \
     wget \
