@@ -9,6 +9,7 @@ from test.test_utils import is_pr_context, PR_ONLY_REASON
 @pytest.mark.usefixtures("sagemaker")
 @pytest.mark.skipif(not is_pr_context(), reason=PR_ONLY_REASON)
 @pytest.mark.model("N/A")
+@pytest.mark.xfail(reason="temporarily disable this test as this is expected to fail till heterocluster support is GA")
 def test_binary_visibility(image: str):
     """
     Test to check if the binary built with image is public/private. Assumes that URIs beginning with 's3://' are private.

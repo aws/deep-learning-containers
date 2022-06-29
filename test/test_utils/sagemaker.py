@@ -1,4 +1,5 @@
 import datetime
+from multiprocessing import context
 import os
 import subprocess
 import random
@@ -59,6 +60,20 @@ def assign_sagemaker_local_job_instance_type(image):
     elif "trcomp" in image:
         return "p3.2xlarge"
     return "p3.8xlarge" if "gpu" in image else "c5.18xlarge"
+
+# TODO: Remove once the feature is GA
+def get_pysdk_s3_uri():
+    hc_support_binary = "sagemaker-2.96.1.dev0.tar.gz"
+    hc_support_uri = f"s3://sagemaker-python-sdk-822456244522/dist/{hc_support_binary}"
+    return hc_support_binary, hc_support_uri
+
+
+# TODO: Remove once the feature is GA
+def set_sagemaker_model(context):
+    sagemaker_model_file = "sagemaker-2017-07-24.normal.json"
+    sagemaker_model_uri = f"s3://heterocluster/{sagemaker_model_file}"
+    context.run(f"aws s3 cp {sagemaker_model_uri} .", warn=True)
+    context.run(f"aws configure add-model --service-model file://{sagemaker_model_file} --service-name sagemaker")
 
 
 def launch_sagemaker_local_ec2_instance(image, ami_id, ec2_key_name, region):
@@ -131,7 +146,17 @@ def generate_sagemaker_pytest_cmd(image, sagemaker_test_type):
         else "cpu"
     )
     py_version = re.search(r"py\d+", tag).group()
-    sm_local_py_version = "37" if py_version == "py37" else "38" if py_version == "py38" else "2" if py_version == "py27" else "3"
+    sm_local_py_version = (
+        "37"
+        if py_version == "py37"
+        else "38"
+        if py_version == "py38"
+        else "39"
+        if py_version == "py39"
+        else "2"
+        if py_version == "py27"
+        else "3"
+    )
     if framework == "tensorflow" and job_type == "inference":
         # Tf Inference tests have an additional sub directory with test
         integration_path = os.path.join("test", "integration", sagemaker_test_type)
@@ -219,6 +244,9 @@ def install_sm_local_dependencies(framework, job_type, image, ec2_conn, ec2_inst
     if framework == "pytorch":
         # The following distutils package conflict with test dependencies
         ec2_conn.run("sudo apt-get remove python3-scipy python3-yaml -y")
+    # TODO: Remove once the feature is GA
+    pysdk_s3_name, pysdk_s3_uri = get_pysdk_s3_uri()
+    ec2_conn.run(f"aws s3 cp {pysdk_s3_uri} .", warn=True)
     ec2_conn.run(f"sudo {python_invoker} -m pip install -r requirements.txt ", warn=True)
 
 
@@ -303,6 +331,7 @@ def execute_local_tests(image, pytest_cache_params):
         ec2_conn.run(f"tar -xzf {sm_tests_tar_name}")
         kill_background_processes_and_run_apt_get_update(ec2_conn)
         with ec2_conn.cd(path):
+            set_sagemaker_model(ec2_conn)
             install_sm_local_dependencies(framework, job_type, image, ec2_conn, ec2_ami_id)
             pytest_cache_util.download_pytest_cache_from_s3_to_ec2(ec2_conn, path, **pytest_cache_params)
             # Workaround for mxnet cpu training images as test distributed
@@ -356,6 +385,10 @@ def execute_sagemaker_remote_tests(process_index, image, global_pytest_cache, py
     with context.cd(path):
         context.run(f"virtualenv {tag}")
         with context.prefix(f"source {tag}/bin/activate"):
+            # TODO: Remove once the feature is GA
+            set_sagemaker_model(context)
+            pysdk_s3_name, pysdk_s3_uri = get_pysdk_s3_uri()
+            context.run(f"aws s3 cp {pysdk_s3_uri} .", warn=True)
             context.run("pip install -r requirements.txt", warn=True)
             pytest_cache_util.download_pytest_cache_from_s3_to_local(path, **pytest_cache_params, custom_cache_directory=str(process_index))
             # adding -o cache_dir with a custom directory name
