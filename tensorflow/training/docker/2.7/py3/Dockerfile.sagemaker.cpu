@@ -28,14 +28,33 @@ RUN $PYTHON -m pip install --no-cache-dir -U \
     "numba<0.54" \
     "shap>=0.39,<1"
 
+# Install SageMaker PySDK
+ARG SM_PYSDK_BINARY
+COPY ${SM_PYSDK_BINARY} .
+RUN pip uninstall -y sagemaker \
+  &&  pip install --no-cache-dir -U --force-reinstall  ${SM_PYSDK_BINARY} \
+  && rm -rf ${SM_PYSDK_BINARY}
+
+# Install Tensorflow Toolkit
+ARG TF_TOOOLKIT_BINARY
+COPY ${TF_TOOOLKIT_BINARY} .
+RUN pip uninstall -y sagemaker-tensorflow-training \
+  && pip install --no-cache-dir -U --force-reinstall ${TF_TOOOLKIT_BINARY} \
+  && rm -rf {TF_TOOOLKIT_BINARY}
+
+# Install SageMaker
+ARG SM_TOOLKIT_BINARY
+COPY ${SM_TOOLKIT_BINARY} .
+RUN pip uninstall -y sagemaker-training \
+  && pip install --no-cache-dir -U --force-reinstall ${SM_TOOLKIT_BINARY} \
+  && rm -rf ${SM_TOOLKIT_BINARY}
+
 # Starting sagemaker v2.92.0, the requirement of importlib-metadata was restricted from >=1.4.0 to >=1.4.0,<2.0
 # However, the markdown package (dependency of tensorboard package) requires importlib-metadata to be >=4.4.
 # Issue: https://github.com/aws/sagemaker-python-sdk/pull/3138
 RUN $PYTHON -m pip install --no-cache-dir -U \
-    "sagemaker>=2,<2.92.0" \
     sagemaker-experiments==0.* \
     "sagemaker-tensorflow>=2.7,<2.8" \
-    "sagemaker-tensorflow-training>=20" \ 
     smclarify 
 
 RUN $PYTHON -m pip install --no-cache-dir -U \
