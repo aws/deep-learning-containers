@@ -11,6 +11,7 @@ LABEL dlc_major_version="1"
 ARG TRANSFORMERS_VERSION
 ARG DATASETS_VERSION
 ARG PYTHON=python3
+ARG MAMBA_VERSION=4.12.0-0
 
 # artifacts URL
 ARG PT_BUCKET=https://sm-training-comp-pytorch-binaries.s3.us-west-2.amazonaws.com/cd4b3932-8a23-4d21-95d7-c14e1351bef5/20220401-191238/4187a5ac613030093caa36c7d5ea95c3b9bb9b98
@@ -58,10 +59,12 @@ RUN pip uninstall -y torchaudio \
 RUN pip uninstall -y transformers \
  && pip install --no-deps --no-cache-dir --force-reinstall -U ${HF_TRANSFORMERS_URL}
 
-ARG CONDA_PREFIX=/opt/conda
-
 # Install common training dependencies
-RUN ${CONDA_PREFIX}/bin/conda install -y -c conda-forge librosa
+RUN curl -L -o ~/mambaforge.sh https://github.com/conda-forge/miniforge/releases/download/${MAMBA_VERSION}/Mambaforge-${MAMBA_VERSION}-Linux-x86_64.sh \
+ && rm ~/mambaforge.sh \
+ && /opt/conda/bin/conda update conda \
+ && /opt/conda/bin/conda install -c conda-forge \
+ && /opt/conda/bin/conda install -y -c conda-forge librosa
 RUN pip install --no-cache-dir \
     sacrebleu \
     fugashi \
@@ -72,10 +75,10 @@ RUN pip install --no-cache-dir \
     sentence-transformers
 
 # Fix library links
-RUN ln -s ${CONDA_PREFIX}/lib/libmkl_intel_lp64.so ${CONDA_PREFIX}/lib/libmkl_intel_lp64.so.1 \
- && ln -s ${CONDA_PREFIX}/lib/libmkl_intel_thread.so ${CONDA_PREFIX}/lib/libmkl_intel_thread.so.1 \
- && ln -s ${CONDA_PREFIX}/lib/libmkl_core.so ${CONDA_PREFIX}/lib/libmkl_core.so.1 \
- && ln -s ${CONDA_PREFIX}/lib/libmkl_gnu_thread.so ${CONDA_PREFIX}/lib/libmkl_gnu_thread.so.1
+RUN ln -s /opt/conda/lib/libmkl_intel_lp64.so /opt/conda/lib/libmkl_intel_lp64.so.1 \
+ && ln -s /opt/conda/lib/libmkl_intel_thread.so /opt/conda/lib/libmkl_intel_thread.so.1 \
+ && ln -s /opt/conda/lib/libmkl_core.so /opt/conda/lib/libmkl_core.so.1 \
+ && ln -s /opt/conda/lib/libmkl_gnu_thread.so /opt/conda/lib/libmkl_gnu_thread.so.1
 
 # Install Horovod
 ENV HOROVOD_VERSION=0.21.3
