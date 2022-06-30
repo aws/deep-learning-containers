@@ -48,6 +48,7 @@ class ServiceManager(object):
         self._nginx_http_port = os.environ.get("SAGEMAKER_BIND_TO_PORT", "8080")
         self._nginx_loglevel = os.environ.get("SAGEMAKER_TFS_NGINX_LOGLEVEL", "error")
         self._tfs_default_model_name = os.environ.get("SAGEMAKER_TFS_DEFAULT_MODEL_NAME", "None")
+        self._tfs_default_model_version = os.environ.get("SAGEMAKER_TFS_DEFAULT_MODEL_VERSION", "None")
         self._sagemaker_port_range = os.environ.get("SAGEMAKER_SAFE_PORT_RANGE", None)
         self._gunicorn_workers = os.environ.get("SAGEMAKER_GUNICORN_WORKERS", 1)
         self._gunicorn_threads = os.environ.get("SAGEMAKER_GUNICORN_THREADS", 1)
@@ -159,6 +160,14 @@ class ServiceManager(object):
                 log.info("using default model name: {}".format(self._tfs_default_model_name))
             else:
                 log.info("no default model detected")
+
+        if self._tfs_default_model_version == "None":
+            default_model_version = tfs_utils.find_model_versions(models[0])[0]
+            if default_model_version:
+                self._tfs_default_model_version = default_model_version
+                log.info("using default model version: {}".format(self._tfs_default_model_version))
+            else:
+                log.info("no default model version detected")
 
         # config (may) include duplicate 'config' keys, so we can't just dump a dict
         config = "model_config_list: {\n"
@@ -278,6 +287,7 @@ class ServiceManager(object):
             "TFS_VERSION": self._tfs_version,
             "TFS_UPSTREAM": self._create_nginx_tfs_upstream(),
             "TFS_DEFAULT_MODEL_NAME": self._tfs_default_model_name,
+            "TFS_DEFAULT_MODEL_VERSION": self._tfs_default_model_version,
             "NGINX_HTTP_PORT": self._nginx_http_port,
             "NGINX_LOG_LEVEL": self._nginx_loglevel,
             "FORWARD_PING_REQUESTS": GUNICORN_PING if self._use_gunicorn else JS_PING,
@@ -322,6 +332,7 @@ class ServiceManager(object):
         self._log_version("gunicorn --version", "gunicorn version info:")
         env = os.environ.copy()
         env["TFS_DEFAULT_MODEL_NAME"] = self._tfs_default_model_name
+        env["TFS_DEFAULT_MODEL_VERSION"] = self._tfs_default_model_version
         p = subprocess.Popen(self._gunicorn_command.split(), env=env)
         log.info("started gunicorn (pid: %d)", p.pid)
         self._gunicorn = p

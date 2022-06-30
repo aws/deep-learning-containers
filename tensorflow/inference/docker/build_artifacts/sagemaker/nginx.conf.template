@@ -16,6 +16,7 @@ http {
   default_type application/json;
   access_log /dev/stdout combined;
   js_import tensorflowServing.js;
+  js_set $model_info_header tensorflowServing.model_info_header;
 
   proxy_read_timeout %PROXY_READ_TIMEOUT%;  
 
@@ -35,6 +36,8 @@ http {
 
     set $tfs_version %TFS_VERSION%;
     set $default_tfs_model %TFS_DEFAULT_MODEL_NAME%;
+    set $default_tfs_model_version %TFS_DEFAULT_MODEL_VERSION%;
+    add_header tensorflowModelInfo $model_info_header;
 
     location /tfs {
         rewrite ^/tfs/(.*) /$1  break;

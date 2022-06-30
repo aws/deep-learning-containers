@@ -233,7 +233,20 @@ function csv_request(r) {
     tfs_json_request(r, builder.join(''))
 }
 
+function model_info_header(r) {
+    var attributes = parse_custom_attributes(r)
+    var model_version = 'DEFAULT'
+    var my_header = ''
+
+    model_version = r.variables.default_tfs_model_version
+    if ('tfs-model-version' in attributes) {
+            model_version = attributes['tfs-model-version']
+    }
+    my_header = '{ "modelId":"' + attributes['tfs-model-name'] + '","version":"' + model_version + '"}'
+    return my_header
+}
+
 export default {invocations, ping, ping_without_model, return_error,
     tfs_json_request, make_tfs_uri, parse_custom_attributes,
     json_request, is_tfs_json, is_json_lines, generic_json_request,
-    json_lines_request, csv_request};
+    json_lines_request, csv_request, model_info_header};
