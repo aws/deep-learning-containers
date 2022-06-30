@@ -1,4 +1,4 @@
-FROM nvidia/cuda:11.2.1-base-ubuntu20.04
+FROM ubuntu:18.04
 
 LABEL maintainer="Amazon AI"
 LABEL dlc_major_version="1"
@@ -8,12 +8,12 @@ LABEL dlc_major_version="1"
 LABEL com.amazonaws.sagemaker.capabilities.accept-bind-to-port=true
 
 ARG MMS_VERSION=1.1.8
-ARG PYTHON=python3
-ARG PYTHON_VERSION=3.8.10
-ARG OPEN_MPI_VERSION=4.0.1
+ARG PYTHON=python3.7
+ARG PYTHON_VERSION=3.7.10
 ARG MAMBA_VERSION=4.12.0-2
+# Pin torch neuron version to sdk1.19.1
+ARG TORCH_NEURON_VERSION=">=1.10.2,<1.10.3"
 # HF ARGS
-ARG TF_URL=https://framework-binaries.s3.us-west-2.amazonaws.com/tensorflow/r2.6_aws/gpu/2022-02-26-23-00/tensorflow_gpu-2.6.3-cp38-cp38-manylinux2010_x86_64.whl
 ARG TRANSFORMERS_VERSION
 
 ENV PYTHONDONTWRITEBYTECODE=1 \
@@ -28,12 +28,9 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
 ENV PATH /opt/conda/bin:$PATH
 
 RUN apt-get update \
- # TODO: Remove upgrade statements once packages are updated in base image
- && apt-get -y upgrade --only-upgrade systemd openssl cryptsetup \
  && apt-get install -y --no-install-recommends \
     ca-certificates \
     build-essential \
-    libssl1.1 \
     openssl \
     openjdk-8-jdk-headless \
     vim \
@@ -42,9 +39,8 @@ RUN apt-get update \
     emacs \
     unzip \
     git \
-    libnuma1 \
-    libsndfile1-dev \
-    ffmpeg \
+    gnupg2 \
+    wget \
  && apt-get clean \
  && rm -rf /var/lib/apt/lists/*
 
@@ -54,39 +50,52 @@ RUN curl -L -o ~/mambaforge.sh https://github.com/conda-forge/miniforge/releases
  && rm ~/mambaforge.sh \
  && /opt/conda/bin/conda install -c conda-forge \
     python=$PYTHON_VERSION \
-    cython==0.29.21 \
+    cython \
+    mkl \
+    mkl-include \
     botocore \
-    "mkl-include==2021.4.0" \
-    "mkl==2021.4.0" \
     # Below 2 are included in miniconda base, but not mamba so need to install
     conda-content-trust \
-    charset-normalizer 
+    charset-normalizer
 # Upstream conda looks to have moved to 4.13 which is incompatible with mamba 0.22.1 and will fail the conda-forge installs.
 # having "conda update conda" before the "conda -c conda-forge" commands will automatically update conda to 4.13.
 # Moving conda update conda" after the "conda -c conda-forge" commands keep conda at 4.12 but will update other packages using
 # the current conda 4.12
 RUN /opt/conda/bin/conda update -y conda \
- && /opt/conda/bin/conda clean -ya
+   && /opt/conda/bin/conda clean -ya
+
+
+
+RUN echo "deb https://apt.repos.neuron.amazonaws.com bionic main" > /etc/apt/sources.list.d/neuron.list
+RUN wget -qO - https://apt.repos.neuron.amazonaws.com/GPG-PUB-KEY-AMAZON-AWS-NEURON.PUB | apt-key add -
+
+# Installing Neuron Tools
+RUN apt-get update \
+ && apt-get install -y \
+      aws-neuron-tools \
+ && rm -rf /var/lib/apt/lists/* \
+ && rm -rf /tmp/tmp* \
+ && apt-get clean
+
+# Sets up Path for Neuron tools
+ENV PATH="/opt/bin/:/opt/aws/neuron/bin:${PATH}"
+
+# Install Neuron PyTorch
+# including neuron-cc to be able to compile
+RUN pip install \
+    torch-neuron$TORCH_NEURON_VERSION \
+   #  not installed since we assume model is already compiled
+   #  neuron-cc[tensorflow] \
+    --extra-index-url=https://pip.repos.neuron.amazonaws.com
+
 
 RUN pip install --upgrade pip --trusted-host pypi.org --trusted-host files.pythonhosted.org \
  && ln -s /opt/conda/bin/pip /usr/local/bin/pip3 \
  && pip install packaging==20.4 \
     enum-compat==0.0.3 \
-    # Putting a cap in versions number to avoid potential issues with a new major version
-    "urllib3>=1.25.9" \
-    "cryptography>3.2"
+    # pyOpenSSL requires cryptography>=2.3, but all versions <3.3 have vulnerabilities
+    "cryptography>=3.3.2"
 
-RUN wget https://www.open-mpi.org/software/ompi/v4.0/downloads/openmpi-$OPEN_MPI_VERSION.tar.gz \
- && gunzip -c openmpi-$OPEN_MPI_VERSION.tar.gz | tar xf - \
- && cd openmpi-$OPEN_MPI_VERSION \
- && ./configure --prefix=/home/.openmpi \
- && make all install \
- && cd .. \
- && rm openmpi-$OPEN_MPI_VERSION.tar.gz \
- && rm -rf openmpi-$OPEN_MPI_VERSION
-
-ENV PATH="$PATH:/home/.openmpi/bin"
-ENV LD_LIBRARY_PATH="$LD_LIBRARY_PATH:/home/.openmpi/lib/"
 
 WORKDIR /
 
@@ -98,10 +107,12 @@ RUN useradd -m model-server \
  && mkdir -p /home/model-server/tmp \
  && chown -R model-server /home/model-server
 
-COPY mms-entrypoint.py /usr/local/bin/dockerd-entrypoint.py
+COPY neuron-entrypoint.py /usr/local/bin/dockerd-entrypoint.py
+COPY neuron-monitor.sh /usr/local/bin/neuron-monitor.sh
 COPY config.properties /etc/sagemaker-mms.properties
 
-RUN chmod +x /usr/local/bin/dockerd-entrypoint.py
+RUN chmod +x /usr/local/bin/dockerd-entrypoint.py \
+ && chmod +x /usr/local/bin/neuron-monitor.sh
 
 ADD https://raw.githubusercontent.com/aws/deep-learning-containers/master/src/deep_learning_container.py /usr/local/bin/deep_learning_container.py
 
@@ -111,19 +122,12 @@ RUN chmod +x /usr/local/bin/deep_learning_container.py
 # Hugging Face specific section #
 #################################
 
-RUN curl https://aws-dlc-licenses.s3.amazonaws.com/tensorflow-2.6/license.txt -o /license.txt
-
-# Install TF Binary
-RUN pip install --no-cache-dir -U $TF_URL
-
-# We need TF_FORCE_GPU_ALLOW_GROWTH=true to prevent TF from overusing GPU memory when loading models
-ENV TF_FORCE_GPU_ALLOW_GROWTH=true
+RUN curl https://aws-dlc-licenses.s3.amazonaws.com/pytorch-1.10/license.txt -o /license.txt
 
 # install Hugging Face libraries and its dependencies
 RUN pip install --no-cache-dir \
-   transformers[sentencepiece,audio,vision]==${TRANSFORMERS_VERSION} \
+	transformers[sentencepiece]==${TRANSFORMERS_VERSION} \
 	protobuf==3.12.0 \
-   "numpy==1.19.5" \
 	"sagemaker-huggingface-inference-toolkit<3"
 
 RUN HOME_DIR=/root \
