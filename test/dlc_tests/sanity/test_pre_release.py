@@ -387,6 +387,7 @@ def _run_dependency_check_test(image, ec2_connection):
         "CVE-2016-2177",
         "CVE-2016-6303",
         "CVE-2016-2182",
+        "CVE-2022-2068",
     }
 
     processor = get_processor_from_image_uri(image)
@@ -408,7 +409,12 @@ def _run_dependency_check_test(image, ec2_connection):
             "2.9": ["cpu", "gpu"]
         },
         "mxnet": {"1.8": ["neuron"], "1.9": ["cpu", "gpu"]},
-        "pytorch": {"1.8": ["cpu", "gpu"], "1.10": ["cpu", "hpu"], "1.11": ["cpu", "gpu"]},
+        "pytorch": {
+            "1.8": ["cpu", "gpu"], 
+            "1.10": ["cpu", "hpu"], 
+            "1.11": ["cpu", "gpu"],
+            "1.12": ["cpu", "gpu"]
+        },
         "huggingface_pytorch": {"1.8": ["cpu", "gpu"], "1.9": ["cpu", "gpu"]},
         "huggingface_tensorflow": {"2.4": ["cpu", "gpu"], "2.5": ["cpu", "gpu"], "2.6": ["cpu", "gpu"]},
         "huggingface_tensorflow_trcomp": {"2.6": ["gpu"]},
@@ -421,6 +427,7 @@ def _run_dependency_check_test(image, ec2_connection):
         "pytorch": {
             "1.10": ["gpu", "cpu", "hpu"],
             "1.11": ["gpu", "cpu"],
+            "1.12": ["gpu", "cpu"],
         },
         "tensorflow": {
             "1.15": ["neuron"],
