@@ -42,7 +42,7 @@ RUN apt-get update \
     zlib1g-dev \
     libcap-dev \
     gpg-agent \
-    libattr1 \ 
+    libattr1=2.4.32 \ 
  && rm -rf /var/lib/apt/lists/* \
  && rm -rf /tmp/tmp* \
  && apt-get clean
