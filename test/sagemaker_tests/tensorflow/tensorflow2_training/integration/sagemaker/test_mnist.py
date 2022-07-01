@@ -94,7 +94,7 @@ def _test_mnist_hc_function(ecr_image, sagemaker_session, instance_groups, frame
     inputs = estimator.sagemaker_session.upload_data(
         path=os.path.join(resource_path, 'mnist', 'data'),
         key_prefix='scriptmode/mnist')
-    estimator.fit(inputs, job_name=unique_name_from_base('test-sagemaker-hc-mnist'))
+    estimator.fit(inputs, job_name=unique_name_from_base('test-hc-sagemaker-mnist'))
     _assert_s3_file_exists(sagemaker_session.boto_region_name, estimator.model_data)
 
 @pytest.mark.skipif(is_pr_context(), reason=SKIP_PR_REASON)
@@ -176,7 +176,7 @@ def _test_hc_distributed_mnist_ps_function(ecr_image, sagemaker_session, instanc
     inputs = estimator.sagemaker_session.upload_data(
         path=os.path.join(resource_path, 'mnist', 'data-distributed'),
         key_prefix='scriptmode/mnist-distributed')
-    estimator.fit(inputs, job_name=unique_name_from_base('test-tf-sm-hc-distributed-mnist'))
+    estimator.fit(inputs, job_name=unique_name_from_base('test-tf-hc-sm-distributed-mnist'))
     _assert_checkpoint_exists(sagemaker_session.boto_region_name, estimator.model_dir, 0)
 
 @pytest.mark.model("mnist")
@@ -286,7 +286,7 @@ def _test_hc_s3_plugin_function(ecr_image, sagemaker_session, instance_group, fr
     inputs = estimator.sagemaker_session.upload_data(
         path=os.path.join(resource_path, 'mnist', 'data-distributed'),
         key_prefix='scriptmode/mnist-distributed')
-    estimator.fit(inputs,job_name=unique_name_from_base('test-tf-sm-hc-s3-mnist'))
+    estimator.fit(inputs,job_name=unique_name_from_base('test-tf-hc-sm-s3-mnist'))
     print("=========== Model data location ===============")
     print(estimator.model_data)
     print("=========== Model dir           ===============")

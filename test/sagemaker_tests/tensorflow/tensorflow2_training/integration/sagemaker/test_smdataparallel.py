@@ -134,9 +134,9 @@ def _test_smdataparallel_mnist_function(
 @pytest.mark.model("mnist")
 @pytest.mark.skip_py2_containers
 @pytest.mark.efa()
-def test_hc_smdataparallel_mnist(ecr_image, sagemaker_regions, py_version, tmpdir):
-    instance_type = "ml.p3.16xlarge"
-    training_group = InstanceGroup("train_group", instance_type, 2)
+@pytest.mark.parametrize('instance_types', ["ml.p3.16xlarge", "ml.p4d.24xlarge"])
+def test_hc_smdataparallel_mnist(ecr_image, sagemaker_regions, instance_types, py_version, tmpdir):
+    training_group = InstanceGroup("train_group", instance_types, 2)
     invoke_sm_helper_function(ecr_image,
                               sagemaker_regions,
                               _test_hc_smdataparallel_mnist_function,
@@ -159,7 +159,7 @@ def _test_hc_smdataparallel_mnist_function(
                            sagemaker_session=sagemaker_session,
                            distribution=distribution)
 
-    estimator.fit(job_name=unique_name_from_base('test-tf-smdataparallel-multi'))
+    estimator.fit(job_name=unique_name_from_base('test-tf-hc-smdataparallel-multi'))
 
 @pytest.mark.processor("gpu")
 @pytest.mark.skip_cpu

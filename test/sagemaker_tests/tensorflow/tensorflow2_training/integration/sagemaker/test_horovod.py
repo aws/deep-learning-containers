@@ -99,7 +99,7 @@ def _test_hc_distributed_training_horovod_function(ecr_image, sagemaker_session,
         sagemaker_session=sagemaker_session,
     )
 
-    estimator.fit(job_name=unique_name_from_base("test-tf-horovod"))
+    estimator.fit(job_name=unique_name_from_base("test-tf-hc-horovod"))
 
     model_data_source = sagemaker.local.data.get_data_source_instance(estimator.model_data, sagemaker_session)
 

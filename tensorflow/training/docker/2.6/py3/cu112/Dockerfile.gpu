@@ -243,11 +243,30 @@ RUN $PYTHON -m pip install --no-cache-dir \
    ${TF_URL} \
    tensorflow-datasets==4.5.2
 
+# Install SageMaker PySDK
+ARG SM_PYSDK_BINARY
+COPY ${SM_PYSDK_BINARY} .
+RUN pip uninstall -y sagemaker \
+  &&  pip install --no-cache-dir  ${SM_PYSDK_BINARY} \
+  && rm -rf ${SM_PYSDK_BINARY}
+
+# Install Tensorflow Toolkit
+ARG TF_TOOOLKIT_BINARY
+COPY ${TF_TOOOLKIT_BINARY} .
+RUN pip uninstall -y sagemaker-tensorflow-training \
+  && pip install --no-cache-dir ${TF_TOOOLKIT_BINARY} \
+  && rm -rf {TF_TOOOLKIT_BINARY}
+
+# Install SageMaker
+ARG SM_TOOLKIT_BINARY
+COPY ${SM_TOOLKIT_BINARY} .
+RUN pip uninstall -y sagemaker-training \
+  && pip install --no-cache-dir ${SM_TOOLKIT_BINARY} \
+  && rm -rf ${SM_TOOLKIT_BINARY}
+
 RUN $PYTHON -m pip install --no-cache-dir \
-   "sagemaker==2.70.0" \
    sagemaker-experiments==0.* \
    "sagemaker-tensorflow>=2.6,<2.7" \
-   "sagemaker-tensorflow-training>=20" \
    "sagemaker-studio-sparkmagic-lib<1" \
    "sagemaker-studio-analytics-extension<1" \
    smdebug==${SMDEBUG_VERSION} \
