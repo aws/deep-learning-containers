@@ -190,7 +190,7 @@ WORKDIR /root
 
 # Uninstall torch and torchvision before installing the custom versions from an S3 bucket
 RUN pip install --no-cache-dir -U \
-    opencv-python==4.5.2.54 \
+    "opencv-python>=4.6,<5" \
     "botocore>1.0,<2.0" \
     "boto3>1.0,<2.0" \
     "awscli<2" \
@@ -219,7 +219,7 @@ RUN pip install --no-cache-dir -U \
 RUN pip install --no-cache-dir -U \
     "bokeh>=2.3,<3" \
     "imageio==2.10.3" \
-    "opencv-python>=4.3,<5" \
+    "opencv-python>=4.6,<5" \
     "plotly==5.3.1" \
     "seaborn>=0.11,<1" \
     "numba==0.53.1" \

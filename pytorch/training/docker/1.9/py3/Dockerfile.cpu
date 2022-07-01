@@ -136,7 +136,7 @@ RUN pip install --upgrade pip --trusted-host pypi.org --trusted-host files.pytho
     "pyyaml>=5.4,<5.5" \
     numpy==1.22.2 \
     ipython==8.0.1 \
-    opencv-python==4.5.2.54 \
+    "opencv-python>=4.6,<5" \
     "botocore>1.0,<2.0" \
     "boto3>1.0,<2.0" \
     "awscli<2" \
@@ -161,7 +161,7 @@ RUN pip install --upgrade pip --trusted-host pypi.org --trusted-host files.pytho
 RUN pip install --no-cache-dir -U \
     "bokeh>=2.3,<3" \
     "imageio>=2.9,<3" \
-    "opencv-python>=4.3,<5" \
+    "opencv-python>=4.6,<5"" \
     "plotly>=5.1,<6" \
     "seaborn>=0.11,<1" \
     "numba<0.54" \
