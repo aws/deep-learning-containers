@@ -182,8 +182,13 @@ def _test_hc_distributed_mnist_ps_function(ecr_image, sagemaker_session, instanc
 @pytest.mark.model("mnist")
 @pytest.mark.multinode(2)
 @pytest.mark.integration("parameter server")
-def test_distributed_mnist_custom_ps(sagemaker_session, ecr_image, instance_type, framework_version):
+def test_distributed_mnist_custom_ps(ecr_image, sagemaker_regions, instance_type, framework_version):
     print('ecr image used for training', ecr_image)
+    invoke_sm_helper_function(ecr_image, sagemaker_regions, _test_distributed_mnist_custom_ps,
+                              instance_type, framework_version)
+
+
+def _test_distributed_mnist_custom_ps(ecr_image, sagemaker_session, instance_type, framework_version):
     resource_path = os.path.join(os.path.dirname(__file__), '..', '..', 'resources')
     script = os.path.join(resource_path, 'mnist', 'mnist_custom.py')
     estimator = TensorFlow(entry_point=script,

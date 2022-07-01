@@ -29,6 +29,7 @@ from test_utils import (
     SAGEMAKER_REMOTE_TEST_TYPE,
     UBUNTU_HOME_DIR,
     DEFAULT_REGION,
+    SM_LOCAL_EC2_REGION
 )
 from test_utils.pytest_cache import PytestCache
 
@@ -295,7 +296,8 @@ def execute_local_tests(image, pytest_cache_params):
     """
     account_id = os.getenv("ACCOUNT_ID", boto3.client("sts").get_caller_identity()["Account"])
     pytest_cache_util = PytestCache(boto3.client("s3"), account_id)
-    ec2_client = boto3.client("ec2", config=Config(retries={"max_attempts": 10}), region_name=DEFAULT_REGION)
+    ec2_region = SM_LOCAL_EC2_REGION
+    ec2_client = boto3.client("ec2", config=Config(retries={"max_attempts": 10}), region_name=ec2_region)
     pytest_command, path, tag, job_type = generate_sagemaker_pytest_cmd(image, SAGEMAKER_LOCAL_TEST_TYPE)
     pytest_command += " --last-failed --last-failed-no-failures all "
     print(pytest_command)
@@ -303,7 +305,7 @@ def execute_local_tests(image, pytest_cache_params):
     random.seed(f"{datetime.datetime.now().strftime('%Y%m%d%H%M%S%f')}")
     ec2_key_name = f"{job_type}_{tag}_sagemaker_{random.randint(1, 1000)}"
     region = os.getenv("AWS_REGION", DEFAULT_REGION)
-    ec2_ami_id = UBUNTU_18_BASE_DLAMI_US_EAST_1 if region == "us-east-1" else UBUNTU_18_BASE_DLAMI_US_WEST_2
+    ec2_ami_id = UBUNTU_18_BASE_DLAMI_US_EAST_1 if ec2_region == "us-east-1" else UBUNTU_18_BASE_DLAMI_US_WEST_2
     sm_tests_tar_name = "sagemaker_tests.tar.gz"
     ec2_test_report_path = os.path.join(UBUNTU_HOME_DIR, "test", f"{job_type}_{tag}_sm_local.xml")
     instance_id = ""
@@ -315,9 +317,9 @@ def execute_local_tests(image, pytest_cache_params):
             image,
             ec2_ami_id,
             ec2_key_name,
-            region
+            ec2_region
         )
-        ec2_conn = ec2_utils.get_ec2_fabric_connection(instance_id, key_file, region)
+        ec2_conn = ec2_utils.get_ec2_fabric_connection(instance_id, key_file, ec2_region)
         ec2_conn.put(sm_tests_tar_name, f"{UBUNTU_HOME_DIR}")
         ec2_conn.run(f"$(aws ecr get-login --no-include-email --region {region})")
         try:
@@ -344,7 +346,7 @@ def execute_local_tests(image, pytest_cache_params):
                 finally:
                     print(f"Downloading Test reports for image: {image}")
                     ec2_conn.close()
-                    ec2_conn_new = ec2_utils.get_ec2_fabric_connection(instance_id, key_file, region)
+                    ec2_conn_new = ec2_utils.get_ec2_fabric_connection(instance_id, key_file, ec2_region)
                     ec2_conn_new.get(ec2_test_report_path,
                                      os.path.join("test", f"{job_type}_{tag}_sm_local.xml"))
                     output = subprocess.check_output(f"cat test/{job_type}_{tag}_sm_local.xml", shell=True,
@@ -360,7 +362,7 @@ def execute_local_tests(image, pytest_cache_params):
         with ec2_conn.cd(path):
             pytest_cache_util.upload_pytest_cache_from_ec2_to_s3(ec2_conn, path, **pytest_cache_params)
         print(f"Terminating Instances for image: {image}")
-        ec2_utils.terminate_instance(instance_id, region)
+        ec2_utils.terminate_instance(instance_id, ec2_region)
         print(f"Destroying ssh Key_pair for image: {image}")
         destroy_ssh_keypair(ec2_client, ec2_key_name)
         # return None here to prevent errors from multiprocessing.map(). Without this it returns some object by default

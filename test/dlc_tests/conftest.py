@@ -145,6 +145,11 @@ def region():
     return os.getenv("AWS_REGION", DEFAULT_REGION)
 
 
+@pytest.fixture(scope='session')
+def n_virginia_region():
+    return "us-east-1"
+
+
 @pytest.fixture(scope="session")
 def docker_client(region):
     test_utils.run_subprocess_cmd(

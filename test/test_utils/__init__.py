@@ -27,6 +27,8 @@ LOGGER.addHandler(logging.StreamHandler(sys.stderr))
 
 # Constant to represent default region for boto3 commands
 DEFAULT_REGION = "us-west-2"
+# Constant to represent N Virginia region
+SM_LOCAL_EC2_REGION = "us-east-1"
 # Constant to represent region where p3dn tests can be run
 P3DN_REGION = "us-east-1"
 def get_ami_id_boto3(region_name, ami_name_pattern):
@@ -41,7 +43,7 @@ def get_ami_id_boto3(region_name, ami_name_pattern):
 
 
 UBUNTU_18_BASE_DLAMI_US_WEST_2 = get_ami_id_boto3(region_name="us-west-2", ami_name_pattern="Deep Learning AMI GPU CUDA 11.1.1 (Ubuntu 18.04) ????????")
-UBUNTU_18_BASE_DLAMI_US_EAST_1 = "ami-044971d381e6a1109"
+UBUNTU_18_BASE_DLAMI_US_EAST_1 = get_ami_id_boto3(region_name="us-east-1", ami_name_pattern="Deep Learning AMI GPU CUDA 11.1.1 (Ubuntu 18.04) ????????")
 AML2_GPU_DLAMI_US_WEST_2 = "ami-071cb1e434903a577"
 AML2_GPU_DLAMI_US_EAST_1 = "ami-044264d246686b043"
 AML2_CPU_ARM64_US_WEST_2 = "ami-0bccd90b9db95e2e5"

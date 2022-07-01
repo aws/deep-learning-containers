@@ -34,12 +34,30 @@ RUN pip install --upgrade pip --trusted-host pypi.org --trusted-host files.pytho
  && pip install --no-cache-dir -U \
     # smdebug==${SMDEBUG_VERSION} \
     smclarify \
-    "sagemaker>=2,<3" \
+    "protobuf==3.19.4" \
     sagemaker-experiments==0.* \
-    "sagemaker-pytorch-training<3" \
  && pip uninstall -y torch \
  && pip install --no-cache-dir -U ${PT_TRAINING_URL}
 
+ARG SM_PYSDK_BINARY
+COPY ${SM_PYSDK_BINARY} .
+RUN pip uninstall -y sagemaker \
+  &&  pip install --no-cache-dir -U --force-reinstall  ${SM_PYSDK_BINARY} \
+  && rm -rf ${SM_PYSDK_BINARY}
+
+# Install Pytorch Toolkit
+ARG PT_TOOOLKIT_BINARY
+COPY ${PT_TOOOLKIT_BINARY} .
+RUN pip uninstall -y sagemaker-pytorch-training \
+  && pip install --no-cache-dir -U --force-reinstall ${PT_TOOOLKIT_BINARY} \
+  && rm -rf {PT_TOOOLKIT_BINARY}
+
+# Install SageMaker
+ARG SM_TOOLKIT_BINARY
+COPY ${SM_TOOLKIT_BINARY} .
+RUN pip uninstall -y sagemaker-training \
+  && pip install --no-cache-dir -U --force-reinstall ${SM_TOOLKIT_BINARY} \
+  && rm -rf ${SM_TOOLKIT_BINARY}
 # Install smdebug from souce
 RUN cd /tmp \
   && git clone -b ${SMDEBUG_VERSION} https://github.com/awslabs/sagemaker-debugger \
@@ -52,7 +70,7 @@ RUN cd /tmp \
 RUN pip install --no-cache-dir -U \
     "bokeh>=2.3,<3" \
     "imageio>=2.9,<3" \
-    "opencv-python>=4.3,<5" \
+    "opencv-python>=4.6,<5" \
     "plotly>=5.1,<6" \
     "seaborn>=0.11,<1" \
     "numba<0.54" \
