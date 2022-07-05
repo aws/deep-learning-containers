@@ -1510,6 +1510,35 @@ def get_python_version_from_image_uri(image_uri):
     python_version = python_version_search.group()
     return "py36" if python_version == "py3" else python_version
 
+def construct_framework_version(dlc_path, framework_path, buildspec, framework_version):
+    """
+    Construct a relative path to the buildspec yaml file by iterative checking on the existence of
+    a specific version file for the framework being tested. Possible options include:
+    [buildspec-[Major]-[Minor]-[Patch].yml, buildspec-[Major]-[Minor].yml, buildspec-[Major].yml, buildspec.yml]
+    :param dlc_path: path to the DLC test folder
+    :param framework_path: Framework folder name
+    :param buildspec: buildspec file name
+    :param framework_version: default (long) framework version name
+    """
+    if framework_version:
+        # pattern matches for example 0.3.2 or 22.3
+        pattern = r"^(\d+)?(\.\d+)?(\*|\.\d+)$"
+        matched = re.search(pattern, framework_version)
+        if matched:
+            version = ""
+            versions = []
+            for match in matched.groups():
+                if match:
+                    version = f'{version}{match.replace(".","-")}'
+                    versions.append(version)
+
+            # skip search with only major version number
+            for v in reversed(versions):
+                buildspec_path = os.path.join(dlc_path, framework_path, f"{buildspec}-{v}.yml")
+                if os.path.exists(buildspec_path):
+                    return buildspec_path
+
+    return os.path.join(dlc_path, framework_path, f"{buildspec}.yml")
 
 def get_container_name(prefix, image_uri):
     """
