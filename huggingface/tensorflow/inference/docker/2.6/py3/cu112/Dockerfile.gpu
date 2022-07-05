@@ -126,7 +126,7 @@ RUN pip install --no-cache-dir \
 	protobuf==3.12.0 \
    "numpy==1.19.5" \
 	"sagemaker-huggingface-inference-toolkit<3" \
-   rdflib
+   rdflib==6.1.1
 
 RUN HOME_DIR=/root \
  && curl -o ${HOME_DIR}/oss_compliance.zip https://aws-dlinfra-utilities.s3.amazonaws.com/oss_compliance.zip \
