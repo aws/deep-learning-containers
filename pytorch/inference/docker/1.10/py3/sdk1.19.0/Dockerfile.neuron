@@ -41,8 +41,7 @@ RUN apt-get update \
     unzip \
     zlib1g-dev \
     libcap-dev \
-    gpg-agent \
-    libattr1=2.4.32 \ 
+    gpg-agent \ 
  && rm -rf /var/lib/apt/lists/* \
  && rm -rf /tmp/tmp* \
  && apt-get clean
@@ -132,6 +131,11 @@ ADD https://raw.githubusercontent.com/aws/deep-learning-containers/master/src/de
 RUN chmod +x /usr/local/bin/deep_learning_container.py
 
 RUN pip install --no-cache-dir "sagemaker-pytorch-inference==2.0.8"
+
+# To fix this error: cp: relocation error: /lib/x86_64-linux-gnu/libacl.so.1: symbol getxattr version ATTR_1.0 not defined in file libattr.so.1 with link time reference
+# See: https://www.linuxquestions.org/questions/debian-26/sid-users-lsymbol-getxattr-version-sid-attr_1-0-not-defined-in-file-libattr-so-1-a-511570/
+RUN wget http://ftp.us.debian.org/debian/pool/main/a/attr/libattr1_2.4.47-2_amd64.deb \
+ && dpkg -i libattr1_2.4.47-2_amd64.deb
 
 RUN HOME_DIR=/root \
  && curl -o ${HOME_DIR}/oss_compliance.zip https://aws-dlinfra-utilities.s3.amazonaws.com/oss_compliance.zip \
