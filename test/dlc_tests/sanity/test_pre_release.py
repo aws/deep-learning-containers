@@ -241,7 +241,7 @@ def test_framework_version_cpu(image):
         else:
             if "neuron" in image:
                 assert tag_framework_version in output.stdout.strip()
-            if all(_string in image for _string in ["pytorch", "habana", "synapseai1.3.0"]):
+            if all(_string in image for _string in ["pytorch", "habana", "synapseai1.4.1"]):
                 # Habana Pytorch version looks like 1.10.0a0+gitb488e78 for SynapseAI1.3 PT1.10.1 images
                 pt_fw_version_pattern = r"(\d+(\.\d+){1,2}(-rc\d)?)((a0\+git\w{7}))"
                 pt_fw_version_match = re.fullmatch(pt_fw_version_pattern, output.stdout.strip())
@@ -387,6 +387,7 @@ def _run_dependency_check_test(image, ec2_connection):
         "CVE-2016-2177",
         "CVE-2016-6303",
         "CVE-2016-2182",
+        "CVE-2022-2068",
     }
 
     processor = get_processor_from_image_uri(image)
@@ -408,7 +409,12 @@ def _run_dependency_check_test(image, ec2_connection):
             "2.9": ["cpu", "gpu"]
         },
         "mxnet": {"1.8": ["neuron"], "1.9": ["cpu", "gpu"]},
-        "pytorch": {"1.8": ["cpu", "gpu"], "1.10": ["cpu", "hpu"], "1.11": ["cpu", "gpu"]},
+        "pytorch": {
+            "1.8": ["cpu", "gpu"], 
+            "1.10": ["cpu", "hpu"], 
+            "1.11": ["cpu", "gpu"],
+            "1.12": ["cpu", "gpu"]
+        },
         "huggingface_pytorch": {"1.8": ["cpu", "gpu"], "1.9": ["cpu", "gpu"]},
         "huggingface_tensorflow": {"2.4": ["cpu", "gpu"], "2.5": ["cpu", "gpu"], "2.6": ["cpu", "gpu"]},
         "huggingface_tensorflow_trcomp": {"2.6": ["gpu"]},
@@ -421,14 +427,15 @@ def _run_dependency_check_test(image, ec2_connection):
         "pytorch": {
             "1.10": ["gpu", "cpu", "hpu"],
             "1.11": ["gpu", "cpu"],
+            "1.12": ["gpu", "cpu"],
         },
         "tensorflow": {
             "1.15": ["neuron"],
             "2.5": ["cpu", "gpu", "neuron"],
             "2.6": ["cpu", "gpu"],
             "2.7": ["cpu", "gpu", "hpu"],
-            "2.8": ["cpu", "gpu"],
-            "2.9": ["cpu", "gpu"]
+            "2.8": ["cpu", "gpu", "hpu"],
+            "2.9": ["cpu", "gpu"],
         },
         "mxnet": {"1.8": ["neuron"], "1.9": ["cpu", "gpu"]},
         "huggingface_tensorflow": {"2.5": ["gpu"], "2.6": ["gpu"]},
@@ -612,7 +619,7 @@ def test_pip_check(image):
 
     framework, framework_version = get_framework_and_version_from_tag(image)
     # The v0.21 version of tensorflow-io has a bug fixed in v0.23 https://github.com/tensorflow/io/releases/tag/v0.23.0
-    
+
     tf263_io21_issue_framework_list = ["tensorflow", "huggingface_tensorflow", "huggingface_tensorflow_trcomp"]
     if framework in tf263_io21_issue_framework_list or Version(framework_version) in SpecifierSet(">=2.6.3,<2.7"):
         allowed_tf263_exception = re.compile(rf"^tensorflow-io 0.21.0 requires tensorflow, which is not installed.$")
