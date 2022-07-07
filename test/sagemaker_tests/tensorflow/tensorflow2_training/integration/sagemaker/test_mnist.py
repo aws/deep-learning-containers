@@ -17,7 +17,6 @@ import re
 import boto3
 import pytest
 from packaging.specifiers import SpecifierSet
-from sagemaker.instance_group import InstanceGroup
 from sagemaker.tensorflow import TensorFlow
 from sagemaker.tuner import HyperparameterTuner, IntegerParameter
 from six.moves.urllib.parse import urlparse
@@ -73,6 +72,7 @@ def _test_mnist_function(ecr_image, sagemaker_session, instance_type, framework_
 @pytest.mark.deploy_test
 @pytest.mark.skip_gpu
 def test_hc_mnist(ecr_image, sagemaker_regions, instance_type, framework_version):
+    from sagemaker.instance_group import InstanceGroup
     instance_type = instance_type or 'ml.c5.xlarge'
     training_group = InstanceGroup("train_group", instance_type, 1)
     invoke_sm_helper_function(ecr_image, sagemaker_regions, _test_mnist_hc_function,
@@ -155,6 +155,7 @@ def _test_distributed_mnist_ps_function(ecr_image, sagemaker_session, instance_t
 @pytest.mark.integration("parameter server")
 @pytest.mark.skip_cpu
 def test_hc_distributed_mnist_ps(ecr_image, sagemaker_regions, instance_type, framework_version):
+    from sagemaker.instance_group import InstanceGroup
     validate_or_skip_test(ecr_image=ecr_image)
     print('ecr image used for training', ecr_image)
     instance_type = instance_type or 'ml.p2.xlarge'
@@ -253,6 +254,7 @@ def _test_s3_plugin_function(ecr_image, sagemaker_session, instance_type, framew
 @pytest.mark.integration("s3 plugin")
 @pytest.mark.skip_gpu
 def test_hc_s3_plugin(ecr_image, sagemaker_regions, instance_type, framework_version):
+    from sagemaker.instance_group import InstanceGroup
     instance_type = instance_type or 'ml.c4.xlarge'
     training_group = InstanceGroup("train_group", instance_type, 1)
     invoke_sm_helper_function(ecr_image, sagemaker_regions, _test_hc_s3_plugin_function,
