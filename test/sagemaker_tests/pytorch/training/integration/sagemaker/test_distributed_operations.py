@@ -18,7 +18,6 @@ import boto3
 import pytest
 import sagemaker
 from sagemaker import utils
-from sagemaker.instance_group import InstanceGroup
 from sagemaker.pytorch import PyTorch
 from sagemaker import Session
 from six.moves.urllib.parse import urlparse
@@ -165,6 +164,7 @@ def test_mnist_gpu(framework_version, ecr_image, sagemaker_regions, dist_gpu_bac
 @pytest.mark.skip_cpu
 @pytest.mark.skip_py2_containers
 def test_hc_mnist_gpu(framework_version, ecr_image, sagemaker_regions, dist_gpu_backend):
+    from sagemaker.instance_group import InstanceGroup
     with timeout(minutes=DEFAULT_TIMEOUT):
         instance_type = MULTI_GPU_INSTANCE
         instance_count = 2
@@ -302,6 +302,7 @@ def test_hc_smmodelparallel_mnist_multigpu_multinode(ecr_image, instance_type, s
     """
     Tests pt mnist command via script mode
     """
+    from sagemaker.instance_group import InstanceGroup
     instance_type = "ml.p3.16xlarge"
     validate_or_skip_smmodelparallel(ecr_image)
     instance_count = 2

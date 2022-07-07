@@ -15,7 +15,6 @@ from __future__ import absolute_import
 import pytest
 import os
 from sagemaker import utils
-from sagemaker.instance_group import InstanceGroup
 from sagemaker.pytorch import PyTorch
 
 from packaging.version import Version
@@ -151,6 +150,7 @@ def test_hc_smdataparallel_mnist(ecr_image, sagemaker_regions, instance_types, t
     """
     Tests smddprun command via Estimator API distribution parameter
     """
+    from sagemaker.instance_group import InstanceGroup
     with timeout(minutes=DEFAULT_TIMEOUT):
         validate_or_skip_smdataparallel_efa(ecr_image)
         instance_count = 2
