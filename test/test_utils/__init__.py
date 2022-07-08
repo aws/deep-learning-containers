@@ -1522,7 +1522,7 @@ def construct_buildspec_path(dlc_path, framework_path, buildspec, framework_vers
     """
     if framework_version:
         # pattern matches for example 0.3.2 or 22.3
-        pattern = r"^(\d+)?(\.\d+)?(\*|\.\d+)$"
+        pattern = r"^(\d+)?(\.\d+)?(\.\d+)$"
         matched = re.search(pattern, framework_version)
         if matched:
             version = ""
