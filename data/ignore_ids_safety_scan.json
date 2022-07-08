@@ -684,8 +684,8 @@
                 "44715": "[DISPUTED] While correct that validation is missing, an error can only occur due to an exhaustion of memory. If the user can exhaust memory, they are already privileged. Further, it should be practically impossible to construct an attack which can target the memory exhaustion to occur at exactly this place.",
                 "43581": "pytorch-lightning stable release (1.6.0) is not available",
                 "43752": "pytorch-lightning stable release (1.6.0) is not available",
-                "48597": "This is a false-positive. The pillow dependency is patched inside the container.",
-                "48619": "This is a false-positive. The pillow dependency is patched inside the container."
+                "48597": "This is a false-positive. The pillow dependency (9.0.1) is patched inside the container.",
+                "48619": "This is a false-positive. The pillow dependency (9.0.1) is patched inside the container."
             }
         },
         "inference": {
@@ -695,8 +695,8 @@
                 "44715": "[DISPUTED] While correct that validation is missing, an error can only occur due to an exhaustion of memory. If the user can exhaust memory, they are already privileged. Further, it should be practically impossible to construct an attack which can target the memory exhaustion to occur at exactly this place.",
                 "43581": "pytorch-lightning stable release (1.6.0) is not available",
                 "43752": "pytorch-lightning stable release (1.6.0) is not available",
-                "48597": "This is a false-positive. The pillow dependency is patched inside the container.",
-                "48619": "This is a false-positive. The pillow dependency is patched inside the container."
+                "48597": "This is a false-positive. The pillow dependency (9.0.1) is patched inside the container.",
+                "48619": "This is a false-positive. The pillow dependency (9.0.1) is patched inside the container."
             }
         }
     }
