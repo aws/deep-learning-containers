@@ -849,8 +849,8 @@ def pytest_generate_tests(metafunc):
 
                 # iterate through image candidates and select images with labels that match all nightly fixture labels
                 for image_candidate in images_to_parametrize:
-                    if all([are_image_labels_matched(image, nightly_labels) for _, nightly_labels in func_nightly_fixtures.items()]):
-                        nightly_images_to_parametrize.append(image)
+                    if all([are_image_labels_matched(image_candidate, nightly_labels) for _, nightly_labels in func_nightly_fixtures.items()]):
+                        nightly_images_to_parametrize.append(image_candidate)
                 images_to_parametrize = nightly_images_to_parametrize
             
             # Parametrize tests that spin up an ecs cluster or tests that spin up an EC2 instance with a unique name
