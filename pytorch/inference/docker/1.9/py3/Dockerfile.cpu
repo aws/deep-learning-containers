@@ -97,7 +97,7 @@ RUN ompi_info --parsable --all | grep mpi_built_with_cuda_support:value
 
 RUN conda install -y -c \
     conda-forge \
-    opencv \
+    opencv=4.5.5.64 \
     scikit-learn \
     pandas \
     h5py \
