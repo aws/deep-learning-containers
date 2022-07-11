@@ -441,6 +441,7 @@ def _run_dependency_check_test(image, ec2_connection):
         "huggingface_tensorflow": {"2.5": ["gpu"], "2.6": ["gpu"]},
         "autogluon": {"0.3": ["cpu", "gpu"], "0.4": ["cpu", "gpu"]},
         "huggingface_pytorch_trcomp": {"1.9": ["gpu"]},
+        "huggingface_tensorflow_trcomp": {"2.6": ["gpu"]},
     }
 
     if processor in allow_openssl_cve_2021_3711_fw_versions.get(framework, {}).get(short_fw_version, []):
@@ -899,3 +900,17 @@ def test_mxnet_training_sm_env_variables(mxnet_training):
         env_vars_to_test=env_vars,
         container_name_prefix=container_name_prefix
     )
+
+
+@pytest.mark.usefixtures("sagemaker_only")
+@pytest.mark.model("N/A")
+def test_block_releases(training):
+    fw, fw_version = get_framework_and_version_from_tag(training)
+    fw_version_obj = Version(fw_version)
+    major_minor_version = f"{fw_version_obj.major}.{fw_version_obj.minor}"
+    blocked_releases = {
+        "tensorflow": ["2.6", "2.7", "2.8", "2.9"],
+        "pytorch": ["1.10", "1.11"]
+    }
+    if major_minor_version in blocked_releases.get(fw, []):
+        raise RuntimeError(f"Pipelines are currently blocked for {fw} {major_minor_version}")
