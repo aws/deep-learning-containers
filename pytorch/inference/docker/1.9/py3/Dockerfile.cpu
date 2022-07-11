@@ -97,7 +97,6 @@ RUN ompi_info --parsable --all | grep mpi_built_with_cuda_support:value
 
 RUN conda install -y -c \
     conda-forge \
-    opencv=4.5.5.64 \
     scikit-learn \
     pandas \
     h5py \
@@ -108,6 +107,7 @@ RUN pip install --upgrade pip --trusted-host pypi.org --trusted-host files.pytho
  && ln -s /opt/conda/bin/pip /usr/local/bin/pip3 \
  && pip install packaging==20.4 \
     enum-compat==0.0.3 \
+    opencv-python==4.5.5.64 \
     "numpy>=1.22.2" \
     "cryptography>=3.3.2"
 
