@@ -387,6 +387,7 @@ def _run_dependency_check_test(image, ec2_connection):
         "CVE-2016-2177",
         "CVE-2016-6303",
         "CVE-2016-2182",
+        "CVE-2022-2068",
     }
 
     processor = get_processor_from_image_uri(image)
