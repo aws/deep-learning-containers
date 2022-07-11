@@ -104,8 +104,7 @@ RUN conda install -c conda-forge \
     enum-compat==0.0.3 \
     numpy==1.22.2 \
     ipython==8.0.1 \
-    "cryptography>=3.3.2" \
-    "opencv-python>=4.6,<5"
+    "cryptography>=3.3.2"
 
 # Uninstall and re-install torch and torchvision from the PyTorch website
 RUN pip uninstall -y torch \
