@@ -672,7 +672,7 @@ def test_cuda_paths(gpu):
     # Get cuda, framework version, python version through regex
     cuda_version = re.search(r"-(cu\d+)-", image).group(1)
     
-    framework_short_version = re.match(r"(\d+.\d+)", framework_version).group(1)
+    framework_short_version = re.match(r"(\d+\.\d+)", framework_version).group(1)
 
     python_version = re.search(r"(py\d+)", image).group(1)
     short_python_version = None

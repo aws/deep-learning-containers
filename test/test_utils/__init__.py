@@ -1522,23 +1522,28 @@ def construct_buildspec_path(dlc_path, framework_path, buildspec, framework_vers
     """
     if framework_version:
         # pattern matches for example 0.3.2 or 22.3
-        pattern = r"^(\d+)?(\.\d+)?(\.\d+)$"
+        pattern = r"^(\d+)(\.\d+)?(\.\d+)?$"
         matched = re.search(pattern, framework_version)
         if matched:
-            version = ""
-            versions = []
+            constructed_version = ""
+            versions_to_search = []
             for match in matched.groups():
                 if match:
-                    version = f'{version}{match.replace(".","-")}'
-                    versions.append(version)
+                    constructed_version = f'{constructed_version}{match.replace(".","-")}'
+                    versions_to_search.append(constructed_version)
 
-            # skip search with only major version number
-            for v in reversed(versions):
-                buildspec_path = os.path.join(dlc_path, framework_path, f"{buildspec}-{v}.yml")
+            for version in reversed(versions_to_search):
+                buildspec_path = os.path.join(dlc_path, framework_path, f"{buildspec}-{version}.yml")
                 if os.path.exists(buildspec_path):
                     return buildspec_path
+        else:
+            raise ValueError(f"Framework version {framework_version} was not matched.")
 
-    return os.path.join(dlc_path, framework_path, f"{buildspec}.yml")
+    buildspec_path = os.path.join(dlc_path, framework_path, f"{buildspec}.yml")
+    if not os.path.exists(buildspec_path):
+        raise ValueError('Could not construct a valid buildspec path.')
+
+    return buildspec_path
 
 def get_container_name(prefix, image_uri):
     """
