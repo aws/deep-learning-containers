@@ -147,8 +147,7 @@ RUN conda install -c pytorch \
     enum-compat==0.0.3 \
     numpy==1.22.2 \
     ipython==8.0.1 \
-    "cryptography>=3.3.2" \
-    "opencv-python>=4.6,<5"
+    "cryptography>=3.3.2"
 
 # Conda installs links for libtinfo.so.6 and libtinfo.so.6.2 both
 # Which causes "/opt/conda/lib/libtinfo.so.6: no version information available" warning
