@@ -39,22 +39,29 @@ def get_ami_id_boto3(region_name, ami_name_pattern):
     ami = max(ami_list["Images"], key=lambda x: x["CreationDate"])
     return ami['ImageId']
 
+def get_ami_id_ssm(region_name, parameter_path):
+    """
+    For a given region and parameter path, return the latest ami-id
+    """
+    ami = boto3.client("ssm", region_name=region_name).get_parameter(Name=parameter_path)
+    ami_id = eval(ami['Parameter']['Value'])['image_id']
+    return ami_id
 
 UBUNTU_18_BASE_DLAMI_US_WEST_2 = get_ami_id_boto3(region_name="us-west-2", ami_name_pattern="Deep Learning AMI GPU CUDA 11.1.1 (Ubuntu 18.04) ????????")
-UBUNTU_18_BASE_DLAMI_US_EAST_1 = "ami-044971d381e6a1109"
-AML2_GPU_DLAMI_US_WEST_2 = "ami-071cb1e434903a577"
-AML2_GPU_DLAMI_US_EAST_1 = "ami-044264d246686b043"
-AML2_CPU_ARM64_US_WEST_2 = "ami-0bccd90b9db95e2e5"
-UL18_CPU_ARM64_US_WEST_2 = "ami-00bccef9d47441ac9"
-UL18_BENCHMARK_CPU_ARM64_US_WEST_2 = "ami-0ababa2deb802b069"
-AML2_CPU_ARM64_US_EAST_1 = "ami-01c47f32b27ed7fa0"
+UBUNTU_18_BASE_DLAMI_US_EAST_1 = get_ami_id_boto3(region_name="us-east-1", ami_name_pattern="Deep Learning AMI GPU CUDA 11.1.1 (Ubuntu 18.04) ????????")
+AML2_GPU_DLAMI_US_WEST_2 = get_ami_id_boto3(region_name="us-west-2", ami_name_pattern="Deep Learning AMI GPU CUDA 11.1.1 (Amazon Linux 2) ????????")
+AML2_GPU_DLAMI_US_EAST_1 = get_ami_id_boto3(region_name="us-east-1", ami_name_pattern="Deep Learning AMI GPU CUDA 11.1.1 (Amazon Linux 2) ????????")
+# We use the following DLAMI for MXNet and TensorFlow tests as well, but this is ok since we use custom DLC Graviton containers on top. We just need an ARM base DLAMI.
+UL18_CPU_ARM64_US_WEST_2 = get_ami_id_boto3(region_name="us-west-2", ami_name_pattern="Deep Learning AMI Graviton GPU PyTorch 1.10.0 (Ubuntu 20.04) ????????")
+UL18_BENCHMARK_CPU_ARM64_US_WEST_2 = get_ami_id_boto3(region_name="us-west-2", ami_name_pattern="Deep Learning AMI Graviton GPU TensorFlow 2.7.0 (Ubuntu 20.04) ????????")
+AML2_CPU_ARM64_US_EAST_1 = get_ami_id_boto3(region_name="us-east-1", ami_name_pattern="Deep Learning Base AMI (Amazon Linux 2) Version ??.?")
 PT_GPU_PY3_BENCHMARK_IMAGENET_AMI_US_EAST_1 = "ami-0673bb31cc62485dd"
 PT_GPU_PY3_BENCHMARK_IMAGENET_AMI_US_WEST_2 = "ami-02d9a47bc61a31d43"
 # Since latest driver is not in public DLAMI yet, using a custom one
-NEURON_UBUNTU_18_BASE_DLAMI_US_WEST_2 = "ami-078c2404eecfbe916"
+NEURON_UBUNTU_18_BASE_DLAMI_US_WEST_2 = get_ami_id_boto3(region_name="us-west-2", ami_name_pattern="Deep Learning Base AMI (Ubuntu 18.04) Version ??.?")
 # Habana Base v1.3 ami
-UBUNTU_18_HPU_DLAMI_US_WEST_2 = "ami-0ef18b1906e7010fb"
-UBUNTU_18_HPU_DLAMI_US_EAST_1 = "ami-040ef14d634e727a2"
+UBUNTU_18_HPU_DLAMI_US_WEST_2 = "ami-08e564663ef2e761c"
+UBUNTU_18_HPU_DLAMI_US_EAST_1 = "ami-06a0a1e2c90bfc1c8"
 UL_AMI_LIST = [
     UBUNTU_18_BASE_DLAMI_US_EAST_1,
     UBUNTU_18_BASE_DLAMI_US_WEST_2,
@@ -68,12 +75,12 @@ UL_AMI_LIST = [
 ]
 
 # ECS images are maintained here: https://docs.aws.amazon.com/AmazonECS/latest/developerguide/ecs-optimized_AMI.html
-ECS_AML2_GPU_USWEST2 = "ami-052237b2eee880dc6"
-ECS_AML2_CPU_USWEST2 = "ami-0794df61693647a62"
-ECS_AML2_NEURON_USWEST2 = "ami-0c7321fe2b2340dd5"
-ECS_AML2_GRAVITON_CPU_USWEST2 = "ami-0fb32cf53e5ab7686"
-NEURON_AL2_DLAMI = "ami-03c4cdc89eca4dbcb"
-HPU_AL2_DLAMI = "ami-052f4f716a7c7bad7"
+ECS_AML2_GPU_USWEST2 = get_ami_id_ssm(region_name="us-west-2", parameter_path='/aws/service/ecs/optimized-ami/amazon-linux-2/gpu/recommended')
+ECS_AML2_CPU_USWEST2 = get_ami_id_ssm(region_name="us-west-2", parameter_path='/aws/service/ecs/optimized-ami/amazon-linux-2/recommended')
+ECS_AML2_NEURON_USWEST2 = get_ami_id_ssm(region_name="us-west-2", parameter_path='/aws/service/ecs/optimized-ami/amazon-linux-2/inf/recommended')
+ECS_AML2_GRAVITON_CPU_USWEST2 = get_ami_id_ssm(region_name="us-west-2", parameter_path='/aws/service/ecs/optimized-ami/amazon-linux-2/arm64/recommended')
+NEURON_AL2_DLAMI = get_ami_id_boto3(region_name="us-west-2", ami_name_pattern="Deep Learning AMI (Amazon Linux 2) Version ??.?")
+HPU_AL2_DLAMI = get_ami_id_boto3(region_name="us-west-2", ami_name_pattern="Deep Learning AMI Habana TensorFlow 2.5.0 SynapseAI 0.15.4 (Amazon Linux 2) ????????")
 
 # S3 bucket for TensorFlow models
 TENSORFLOW_MODELS_BUCKET = "s3://tensoflow-trained-models"
@@ -863,7 +870,7 @@ def parse_canary_images(framework, region):
     """
     customer_type = get_customer_type()
     customer_type_tag = f"-{customer_type}" if customer_type else ""
-
+    
     # initialize graviton variables
     use_graviton = False
 
@@ -981,7 +988,7 @@ def parse_canary_images(framework, region):
                 "graviton_pytorch": [
                     f"{registry}.dkr.ecr.{region}.amazonaws.com/pytorch-inference-graviton:{fw_version}-cpu-{py_version}",
                 ],
-                # TODO: create graviton_mxnet DLC and add to dictionary
+                # TODO: create graviton_mxnet DLC and add to dictionary 
             }
 
             # E3 Images have an additional "e3" tag to distinguish them from the regular "sagemaker" tag
@@ -1245,6 +1252,25 @@ NEURON_VERSION_MANIFEST = {
         },
     },
     "1.19.0": {
+        "pytorch": {
+            "1.7.1": "1.7.1.2.3.0.0",
+            "1.8.1": "1.8.1.2.3.0.0",
+            "1.9.1": "1.9.1.2.3.0.0",
+            "1.10.2": "1.10.2.2.3.0.0",
+            "1.11.0": "1.11.0.2.3.0.0",
+        },
+        "tensorflow": {
+            "2.5.3": "2.5.3.2.3.0.0",
+            "2.6.3": "2.6.3.2.3.0.0",
+            "2.7.1": "2.7.1.2.3.0.0",
+            "2.8.0": "2.8.0.2.3.0.0",
+            "1.15.5": "1.15.5.2.3.0.0",
+        },
+        "mxnet": {
+            "1.8.0": "1.8.0.2.2.2.0",
+        },
+    },
+    "1.19.1": {
         "pytorch": {
             "1.7.1": "1.7.1.2.3.0.0",
             "1.8.1": "1.8.1.2.3.0.0",
@@ -1540,7 +1566,7 @@ def uniquify_list_of_dict(list_of_dict):
     """
     Takes list_of_dict as an input and returns a list of dict such that each dict is only present
     once in the returned list. Runs an operation that is similar to list(set(input_list)). However,
-    for list_of_dict, it is not possible to run the operation directly.
+    for list_of_dict, it is not possible to run the operation directly. 
 
     :param list_of_dict: List(dict)
     :return: List(dict)
@@ -1637,7 +1663,7 @@ def is_image_available_locally(image_uri):
     """
     run_output = run(f"docker inspect {image_uri}", hide=True, warn=True)
     return run_output.ok
-
+    
 
 def get_contributor_from_image_uri(image_uri):
     """
