@@ -31,6 +31,7 @@ from test.test_utils import (
     get_repository_local_path,
     get_repository_and_tag_from_image_uri,
     get_python_version_from_image_uri,
+    construct_buildspec_path,
     is_tf_version,
     get_processor_from_image_uri,
     execute_env_variables_test,
@@ -671,7 +672,9 @@ def test_cuda_paths(gpu):
 
     # Get cuda, framework version, python version through regex
     cuda_version = re.search(r"-(cu\d+)-", image).group(1)
-    framework_short_version = None
+    
+    framework_short_version = re.match(r"(\d+\.\d+)", framework_version).group(1)
+
     python_version = re.search(r"(py\d+)", image).group(1)
     short_python_version = None
     image_tag = re.search(
@@ -684,11 +687,11 @@ def test_cuda_paths(gpu):
     framework_path = framework.replace("_", "/")
     framework_version_path = os.path.join(
         dlc_path, framework_path, job_type, "docker", framework_version)
+
     if not os.path.exists(framework_version_path):
-        framework_short_version = re.match(
-            r"(\d+.\d+)", framework_version).group(1)
         framework_version_path = os.path.join(
             dlc_path, framework_path, job_type, "docker", framework_short_version)
+
     if not os.path.exists(os.path.join(framework_version_path, python_version)):
         # Use the pyX version as opposed to the pyXY version if pyXY path does not exist
         short_python_version = python_version[:3]
@@ -702,10 +705,8 @@ def test_cuda_paths(gpu):
 
     image_tag_in_buildspec = False
     dockerfile_spec_abs_path = None
-    # Try versioned buildspec first, if it exists
-    buildspec_path = os.path.join(dlc_path, framework_path, f"{buildspec}-{framework_short_version.replace('.', '-')}.yml")
-    if not os.path.exists(buildspec_path):
-        buildspec_path = os.path.join(dlc_path, framework_path, f"{buildspec}.yml")
+    
+    buildspec_path = construct_buildspec_path(dlc_path, framework_path, buildspec, framework_version)
     buildspec_def = Buildspec()
     buildspec_def.load(buildspec_path)
 
@@ -738,7 +739,6 @@ def test_cuda_paths(gpu):
 
     assert os.path.exists(
         dockerfile_spec_abs_path), f"Cannot find dockerfile for {image} in {dockerfile_spec_abs_path}"
-
 
 def _assert_artifact_free(output, stray_artifacts):
     """
