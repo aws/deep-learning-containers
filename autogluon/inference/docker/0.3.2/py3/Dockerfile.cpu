@@ -36,7 +36,7 @@ RUN pip --no-cache-dir install --upgrade --trusted-host pypi.org --trusted-host 
 # Dask security patching
 RUN pip install --no-cache-dir -U catboost==0.26.1 \
  && pip install --no-cache-dir -U "dask>2021.09.1" "distributed>2021.09.1" \
- && pip install --no-cache-dir -U 'Pillow>=9.0.0,<9.1.0'
+ && pip install --no-cache-dir -U 'Pillow>=9.0.1,<9.1.0'
 
 EXPOSE 8080 8081
 ENTRYPOINT ["python", "/usr/local/bin/dockerd-entrypoint.py"]
