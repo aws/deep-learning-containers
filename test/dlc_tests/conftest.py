@@ -94,12 +94,30 @@ FRAMEWORK_FIXTURES = (
     "inference",
 )
 
-# Immutable constant dictionary for nightly specific image fixtures
-# Each fixture must have a set of labels
+# Nightly image fixture dictionary, maps a nightly fixture to set of possible image label(s)
 NIGHTLY_FIXTURES = {
     "feature_smdebug_present": {"aws_framework_installed", "smdebug_installed"},
     "feature_smddp_present": {"aws_framework_installed", "smddp_installed"},
+    "feature_smmp_present": {"smmp_installed"},
+    "feature_aws_framework_present": {"aws_framework_installed"}
 }
+
+# Nightly fixtures
+@pytest.fixture(scope="session")
+def feature_smdebug_present():
+    pass
+
+@pytest.fixture(scope="session")
+def feature_smddp_present():
+    pass
+
+@pytest.fixture(scope="session")
+def feature_smmp_present():
+    pass
+
+@pytest.fixture(scope="session")
+def feature_aws_framework_present():
+    pass
 
 # Ignore container_tests collection, as they will be called separately from test functions
 collect_ignore = [os.path.join("container_tests")]
@@ -552,25 +570,6 @@ def pt15_and_above_only():
 def pt14_and_above_only():
     pass
 
-"""
-Nightly Fixture Functions starts
-"""
-@pytest.fixture(scope="session")
-def feature_smdebug_present():
-    pass
-
-@pytest.fixture(scope="session")
-def feature_smdebug_present():
-    pass
-
-@pytest.fixture(scope="session")
-def feature_smddp_present():
-    pass
-
-"""
-Nightly Fixture Functions ends
-"""
-
 def framework_version_within_limit(metafunc_obj, image):
     """
     Test all pytest fixtures for TensorFlow version limits, and return True if all requirements are satisfied
@@ -783,7 +782,7 @@ def pytest_generate_tests(metafunc):
     # Don't parametrize if there are no images to parametrize
     if not images:
         return
-        
+
     # Parametrize framework specific tests
     for fixture in FRAMEWORK_FIXTURES:
         if fixture in metafunc.fixturenames:
