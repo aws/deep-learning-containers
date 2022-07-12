@@ -74,6 +74,8 @@ IGNORE_SAFETY_IDS = {
                 "44716",
                 "44717",
                 "43453",
+                # tensorflow-estimator and tensorflow versions must match. For all TF versions below TF 2.9.0, we cannot upgrade tf-estimator to 2.9.0
+                "48551",
             ],
         },
         "inference-eia": {
@@ -703,7 +705,7 @@ def test_safety(image):
         hide=True,
     )
     try:
-        run(f"{docker_exec_cmd} pip install safety yolk3k ", hide=True)
+        run(f"{docker_exec_cmd} pip install 'safety<2.0.0' yolk3k ", hide=True)
         json_str_safety_result = safety_check.run_safety_check_on_container(docker_exec_cmd)
         safety_result = json.loads(json_str_safety_result)
         for vulnerability in safety_result:
