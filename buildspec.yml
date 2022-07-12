@@ -16,9 +16,7 @@ phases:
       - python src/send_status.py --status 2
   build:
     commands:
-      - echo Build started on `date`
-      - echo Building the Docker image...
-      - python src/main.py --buildspec $FRAMEWORK_BUILDSPEC_FILE --framework $FRAMEWORK
+      - exit 1
   post_build:
     commands:
       - echo Build step finished on `date`
