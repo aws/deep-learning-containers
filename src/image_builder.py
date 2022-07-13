@@ -16,6 +16,7 @@ language governing permissions and limitations under the License.
 import concurrent.futures
 import datetime
 import os
+import re
 
 from copy import deepcopy
 
@@ -24,13 +25,14 @@ import utils
 import boto3
 import itertools
 
+from codebuild_environment import get_codebuild_project_name, get_cloned_folder_path
+from config import parse_dlc_developer_configs, is_build_enabled
 from context import Context
 from metrics import Metrics
 from image import DockerImage
 from common_stage_image import CommonStageImage
 from buildspec import Buildspec
 from output import OutputFormatter
-from config import parse_dlc_developer_configs, is_build_enabled
 
 FORMATTER = OutputFormatter(constants.PADDING)
 build_context = os.getenv("BUILD_CONTEXT")
@@ -59,7 +61,7 @@ def image_builder(buildspec):
     PRE_PUSH_STAGE_IMAGES = []
     COMMON_STAGE_IMAGES = []
 
-    if "huggingface" in str(BUILDSPEC["framework"]) or "autogluon" in str(BUILDSPEC["framework"]):
+    if "huggingface" in str(BUILDSPEC["framework"]) or "autogluon" in str(BUILDSPEC["framework"]) or "trcomp" in str(BUILDSPEC["framework"]):
         os.system("echo login into public ECR")
         os.system(
             "aws ecr get-login-password --region us-west-2 | docker login --username AWS --password-stdin 763104351884.dkr.ecr.us-west-2.amazonaws.com"
@@ -118,7 +120,7 @@ def image_builder(buildspec):
 
         transformers_version = image_config.get("transformers_version")
 
-        if str(BUILDSPEC["framework"]).startswith("huggingface"):
+        if str(BUILDSPEC["framework"]).startswith("huggingface") or str(BUILDSPEC["framework"]).endswith("trcomp"):
             if transformers_version:
                 extra_build_args["TRANSFORMERS_VERSION"] = transformers_version
             else:
@@ -146,7 +148,10 @@ def image_builder(buildspec):
 
         # Define label variables
         label_framework = str(BUILDSPEC['framework']).replace('_', '-')
-        label_framework_version = str(BUILDSPEC['version']).replace('.', '-')
+        if image_config.get("framework_version"):
+            label_framework_version = str(image_config['framework_version']).replace('.', '-')
+        else:
+            label_framework_version = str(BUILDSPEC['version']).replace('.', '-')
         label_device_type = str(image_config['device_type'])
         if label_device_type == "gpu":
             label_device_type = f"{label_device_type}.{str(image_config['cuda_version'])}"
@@ -265,7 +270,7 @@ def image_builder(buildspec):
 
     FORMATTER.banner("Test Env")
     # Set environment variables to be consumed by test jobs
-    test_trigger_job = utils.get_codebuild_project_name()
+    test_trigger_job = get_codebuild_project_name()
     # Tests should only run on images that were pushed to the repository
     if not is_build_enabled():
         # Ensure we have images populated if do_build is false, so that tests can proceed if needed
@@ -328,14 +333,10 @@ def generate_common_stage_image_object(pre_push_stage_image_object, image_tag):
     :return: CommonStageImage, an object of class CommonStageImage. CommonStageImage inherits DockerImage.
     """
     common_stage_info = deepcopy(pre_push_stage_image_object.info)
-    common_stage_info["extra_build_args"].update(
-        {
-            "PRE_PUSH_IMAGE": pre_push_stage_image_object.ecr_url,
-        }
-    )
+    common_stage_info["extra_build_args"].update({"PRE_PUSH_IMAGE": pre_push_stage_image_object.ecr_url})
     common_stage_image_object = CommonStageImage(
         info=common_stage_info,
-        dockerfile=os.path.join(os.sep, utils.get_root_folder_path(), "miscellaneous_dockerfiles", "Dockerfile.common"),
+        dockerfile=os.path.join(os.sep, get_cloned_folder_path(), "miscellaneous_dockerfiles", "Dockerfile.common"),
         repository=pre_push_stage_image_object.repository,
         tag=append_tag(image_tag, "multistage-common"),
         to_build=pre_push_stage_image_object.to_build,
@@ -410,9 +411,7 @@ def upload_metrics(images, BUILDSPEC, is_any_build_failed, is_any_build_failed_s
     :param is_any_build_failed_size_limit: bool
     """
     metrics = Metrics(
-        context=constants.BUILD_CONTEXT,
-        region=BUILDSPEC["region"],
-        namespace=constants.METRICS_NAMESPACE,
+        context=constants.BUILD_CONTEXT, region=BUILDSPEC["region"], namespace=constants.METRICS_NAMESPACE
     )
     for image in images:
         try:
