@@ -125,9 +125,7 @@ def test_predict_instance_jsonlines_input_error():
     y = make_request(json.dumps(x))
     assert (
         "error" in y
-        and y["error"]
-        == "Failed to process element: 0 of 'instances' list. Error: Invalid argument:"
-        + ' JSON Value: "][" Type: String is not of expected type: float'
+        and y['error'].endswith('JSON Value: "][" Type: String is not of expected type: float')
     )
 
 @pytest.mark.flaky(reruns=5, reruns_delay=25)
