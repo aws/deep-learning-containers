@@ -550,19 +550,19 @@ def framework_version_within_limit(metafunc_obj, image):
     :return: True if all validation succeeds, else False
     """
     image_framework_name, _ = get_framework_and_version_from_tag(image)
-    if image_framework_name == "tensorflow":
+    if image_framework_name in ("tensorflow", "huggingface_tensorflow_trcomp"):
         tf2_requirement_failed = "tf2_only" in metafunc_obj.fixturenames and not is_tf_version("2", image)
         tf25_requirement_failed = "tf25_and_above_only" in metafunc_obj.fixturenames and is_below_framework_version(
-            "2.5", image, "tensorflow"
+            "2.5", image, image_framework_name
         )
         tf24_requirement_failed = "tf24_and_above_only" in metafunc_obj.fixturenames and is_below_framework_version(
-            "2.4", image, "tensorflow"
+            "2.4", image, image_framework_name
         )
         tf23_requirement_failed = "tf23_and_above_only" in metafunc_obj.fixturenames and is_below_framework_version(
-            "2.3", image, "tensorflow"
+            "2.3", image, image_framework_name
         )
         tf21_requirement_failed = "tf21_and_above_only" in metafunc_obj.fixturenames and is_below_framework_version(
-            "2.1", image, "tensorflow"
+            "2.1", image, image_framework_name
         )
         if (
             tf2_requirement_failed
@@ -578,21 +578,21 @@ def framework_version_within_limit(metafunc_obj, image):
         )
         if mx18_requirement_failed:
             return False
-    if image_framework_name == "pytorch":
+    if image_framework_name in ("pytorch", "huggingface_pytorch_trcomp"):
         pt111_requirement_failed = "pt111_and_above_only" in metafunc_obj.fixturenames and is_below_framework_version(
-            "1.11", image, "pytorch"
+            "1.11", image, image_framework_name
         )
         pt17_requirement_failed = "pt17_and_above_only" in metafunc_obj.fixturenames and is_below_framework_version(
-            "1.7", image, "pytorch"
+            "1.7", image, image_framework_name
         )
         pt16_requirement_failed = "pt16_and_above_only" in metafunc_obj.fixturenames and is_below_framework_version(
-            "1.6", image, "pytorch"
+            "1.6", image, image_framework_name
         )
         pt15_requirement_failed = "pt15_and_above_only" in metafunc_obj.fixturenames and is_below_framework_version(
-            "1.5", image, "pytorch"
+            "1.5", image, image_framework_name
         )
         pt14_requirement_failed = "pt14_and_above_only" in metafunc_obj.fixturenames and is_below_framework_version(
-            "1.4", image, "pytorch"
+            "1.4", image, image_framework_name
         )
         if pt111_requirement_failed or pt17_requirement_failed or pt16_requirement_failed or pt15_requirement_failed or pt14_requirement_failed:
             return False
@@ -602,7 +602,7 @@ def framework_version_within_limit(metafunc_obj, image):
 def pytest_configure(config):
     # register canary marker
     config.addinivalue_line("markers", "canary(message): mark test to run as a part of canary tests.")
-    config.addinivalue_line("markers", "quick_check(message): mark test to run as a part of quick check tests.")
+    config.addinivalue_line("markers", "quick_checks(message): mark test to run as a part of quick check tests.")
     config.addinivalue_line("markers", "integration(ml_integration): mark what the test is testing.")
     config.addinivalue_line("markers", "model(model_name): name of the model being tested")
     config.addinivalue_line("markers", "multinode(num_instances): number of instances the test is run on, if not 1")

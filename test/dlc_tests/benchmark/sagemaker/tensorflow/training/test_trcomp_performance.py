@@ -88,7 +88,7 @@ def framework_version(tensorflow_training):
 
 @pytest.fixture(autouse=True)
 def smtrcomp_only(framework_version, tensorflow_training, request):
-    if Version(framework_version) in SpecifierSet(">=2.9.1"):
+    if Version(framework_version) in SpecifierSet("<2.9.1"):
         pytest.skip('Training Compiler support was added with TF 2.9.1')
     if 'gpu' not in tensorflow_training:
         pytest.skip('Training Compiler is only available for GPUs')
