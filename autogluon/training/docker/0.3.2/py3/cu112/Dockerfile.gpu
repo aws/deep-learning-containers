@@ -72,7 +72,7 @@ RUN source activate rapids \
  && pip install --no-cache-dir -U cupy-cuda$(echo ${CUDA_VER} | sed 's/\.//')==9.* \
  && pip install --no-cache-dir -U catboost==0.26.1 \
  && pip install --no-cache-dir -U 'numpy>=1.21,<1.22' \
- && pip install --no-cache-dir -U 'Pillow>=9.0.0,<9.1.0' \
+ && pip install --no-cache-dir -U 'Pillow>=9.0.1,<9.1.0' \
  && pip uninstall -y \
     datashader \
     ipykernel \

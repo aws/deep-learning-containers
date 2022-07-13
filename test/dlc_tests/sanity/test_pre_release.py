@@ -31,6 +31,7 @@ from test.test_utils import (
     get_repository_local_path,
     get_repository_and_tag_from_image_uri,
     get_python_version_from_image_uri,
+    construct_buildspec_path,
     is_tf_version,
     get_processor_from_image_uri,
     execute_env_variables_test,
@@ -387,6 +388,7 @@ def _run_dependency_check_test(image, ec2_connection):
         "CVE-2016-2177",
         "CVE-2016-6303",
         "CVE-2016-2182",
+        "CVE-2022-2068",
     }
 
     processor = get_processor_from_image_uri(image)
@@ -408,7 +410,12 @@ def _run_dependency_check_test(image, ec2_connection):
             "2.9": ["cpu", "gpu"]
         },
         "mxnet": {"1.8": ["neuron"], "1.9": ["cpu", "gpu"]},
-        "pytorch": {"1.8": ["cpu", "gpu"], "1.10": ["cpu", "hpu"], "1.11": ["cpu", "gpu"]},
+        "pytorch": {
+            "1.8": ["cpu", "gpu"], 
+            "1.10": ["cpu", "hpu"], 
+            "1.11": ["cpu", "gpu"],
+            "1.12": ["cpu", "gpu"]
+        },
         "huggingface_pytorch": {"1.8": ["cpu", "gpu"], "1.9": ["cpu", "gpu"]},
         "huggingface_tensorflow": {"2.4": ["cpu", "gpu"], "2.5": ["cpu", "gpu"], "2.6": ["cpu", "gpu"]},
         "huggingface_tensorflow_trcomp": {"2.6": ["gpu"]},
@@ -421,6 +428,7 @@ def _run_dependency_check_test(image, ec2_connection):
         "pytorch": {
             "1.10": ["gpu", "cpu", "hpu"],
             "1.11": ["gpu", "cpu"],
+            "1.12": ["gpu", "cpu"],
         },
         "tensorflow": {
             "1.15": ["neuron"],
@@ -434,6 +442,7 @@ def _run_dependency_check_test(image, ec2_connection):
         "huggingface_tensorflow": {"2.5": ["gpu"], "2.6": ["gpu"]},
         "autogluon": {"0.3": ["cpu", "gpu"], "0.4": ["cpu", "gpu"]},
         "huggingface_pytorch_trcomp": {"1.9": ["gpu"]},
+        "huggingface_tensorflow_trcomp": {"2.6": ["gpu"]},
     }
 
     if processor in allow_openssl_cve_2021_3711_fw_versions.get(framework, {}).get(short_fw_version, []):
@@ -663,7 +672,9 @@ def test_cuda_paths(gpu):
 
     # Get cuda, framework version, python version through regex
     cuda_version = re.search(r"-(cu\d+)-", image).group(1)
-    framework_short_version = None
+    
+    framework_short_version = re.match(r"(\d+\.\d+)", framework_version).group(1)
+
     python_version = re.search(r"(py\d+)", image).group(1)
     short_python_version = None
     image_tag = re.search(
@@ -676,11 +687,11 @@ def test_cuda_paths(gpu):
     framework_path = framework.replace("_", "/")
     framework_version_path = os.path.join(
         dlc_path, framework_path, job_type, "docker", framework_version)
+
     if not os.path.exists(framework_version_path):
-        framework_short_version = re.match(
-            r"(\d+.\d+)", framework_version).group(1)
         framework_version_path = os.path.join(
             dlc_path, framework_path, job_type, "docker", framework_short_version)
+
     if not os.path.exists(os.path.join(framework_version_path, python_version)):
         # Use the pyX version as opposed to the pyXY version if pyXY path does not exist
         short_python_version = python_version[:3]
@@ -694,10 +705,8 @@ def test_cuda_paths(gpu):
 
     image_tag_in_buildspec = False
     dockerfile_spec_abs_path = None
-    # Try versioned buildspec first, if it exists
-    buildspec_path = os.path.join(dlc_path, framework_path, f"{buildspec}-{framework_short_version.replace('.', '-')}.yml")
-    if not os.path.exists(buildspec_path):
-        buildspec_path = os.path.join(dlc_path, framework_path, f"{buildspec}.yml")
+    
+    buildspec_path = construct_buildspec_path(dlc_path, framework_path, buildspec, framework_version)
     buildspec_def = Buildspec()
     buildspec_def.load(buildspec_path)
 
@@ -730,7 +739,6 @@ def test_cuda_paths(gpu):
 
     assert os.path.exists(
         dockerfile_spec_abs_path), f"Cannot find dockerfile for {image} in {dockerfile_spec_abs_path}"
-
 
 def _assert_artifact_free(output, stray_artifacts):
     """
@@ -892,3 +900,17 @@ def test_mxnet_training_sm_env_variables(mxnet_training):
         env_vars_to_test=env_vars,
         container_name_prefix=container_name_prefix
     )
+
+
+@pytest.mark.usefixtures("sagemaker_only")
+@pytest.mark.model("N/A")
+def test_block_releases(training):
+    fw, fw_version = get_framework_and_version_from_tag(training)
+    fw_version_obj = Version(fw_version)
+    major_minor_version = f"{fw_version_obj.major}.{fw_version_obj.minor}"
+    blocked_releases = {
+        "tensorflow": ["2.6", "2.7", "2.8", "2.9"],
+        "pytorch": ["1.10", "1.11"]
+    }
+    if major_minor_version in blocked_releases.get(fw, []):
+        raise RuntimeError(f"Pipelines are currently blocked for {fw} {major_minor_version}")
