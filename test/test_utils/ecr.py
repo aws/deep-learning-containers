@@ -117,17 +117,36 @@ def get_ecr_image_scan_results(ecr_client, image_uri, minimum_vulnerability="HIG
     :param minimum_vulnerability: str representing minimum vulnerability level to report in results
     :return: list<dict> Scan results
     """
+    scan_info_findings = []
     repository, tag = get_repository_and_tag_from_image_uri(image_uri)
     scan_info = ecr_client.describe_image_scan_findings(
         repositoryName=repository, 
         imageId={"imageTag": tag},
-        maxResults=1000
+        maxResults=100
     )
-    scan_findings = [
-        finding
-        for finding in scan_info["imageScanFindings"]["findings"]
-        if CVESeverity[finding["severity"]] >= CVESeverity[minimum_vulnerability]
-    ]
+    nextToken = scan_info["nextToken"]
+    scan_info_findings.append(scan_info["imageScanFindings"]["findings"])
+
+    while nextToken:
+        scan_info = ecr_client.describe_image_scan_findings(
+            repositoryName=repository,
+            imageId={"imageTag": tag},
+            maxResults=100,
+            nextToken=nextToken
+        )
+        scan_info_findings.append(scan_info["imageScanFindings"]["findings"])
+        nextToken = None
+        if "nextToken" in scan_info:
+            nextToken = scan_info["nextToken"]
+    
+    scan_findings = []
+    for scan_info_finding in scan_info_findings:
+        scan_findings += [
+            finding
+            for finding in scan_info_finding
+            if CVESeverity[finding["severity"]] >= CVESeverity[minimum_vulnerability]
+        ]
+    
     return scan_findings
 
 
