@@ -9,7 +9,6 @@ LABEL dlc_major_version="1"
 ARG PYTHON=python3
 ARG PYTHON_VERSION=3.8.10
 ARG PYTHON_SHORT_VERSION=3.8
-ARG METIS=metis-5.1.0
 ARG RMM_VERSION=0.15.0
 
 # The smdebug pipeline relies for following format to perform string replace and trigger DLC pipeline for validating
@@ -74,20 +73,6 @@ RUN pip install --no-cache-dir -U \
     "shap>=0.39,<1" \
  && pip uninstall -y torch \
  && pip install --no-cache-dir -U ${PT_TRAINING_URL}
-
-# install metis
-RUN rm /etc/apt/sources.list.d/*
-RUN wget -nv http://glaros.dtc.umn.edu/gkhome/fetch/sw/metis/${METIS}.tar.gz
-RUN gunzip -f ${METIS}.tar.gz
-RUN tar -xvf ${METIS}.tar
-RUN cd ${METIS} && apt-get update \
-  && make config shared=1 \
-  && make install \
-  && cd .. \
-  && rm -rf ${METIS}.tar* \
-  && rm -rf ${METIS} \
-  && rm -rf /var/lib/apt/lists/* \
-  && apt-get clean
 
 # Install RAPIDSMemoryManager.
 # Requires cmake>=3.14.
