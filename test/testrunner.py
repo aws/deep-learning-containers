@@ -320,30 +320,6 @@ def main():
         report_infer = os.path.join(os.getcwd(), "test", f"{test_type}_infer.xml")
         report_multinode_train = os.path.join(os.getcwd(), "test", f"eks_multinode_train.xml")
 
-        # TODO: This is a temporary patch to pass pr quick checks for HC support and should be reverted
-        if specific_test_type in ("sanity", "quick_checks"):
-            context = Context()
-            pysdk_name = "sagemaker-2.96.1.dev0.tar.gz"
-            pysdk_uri = f"s3://sagemaker-python-sdk-822456244522/dist/{pysdk_name}"
-            download_folder_location_tf2 = os.path.join(
-                os.getcwd(), "test", "sagemaker_tests", "tensorflow", "tensorflow2_training"
-            )
-            download_folder_location_pt = os.path.join(
-                os.getcwd(), "test", "sagemaker_tests", "pytorch", "training"
-            )
-            context.run(f"aws s3 cp {pysdk_uri} {download_folder_location_tf2}")
-            context.run(f"aws s3 cp {pysdk_uri} {download_folder_location_pt}")
-
-            downloaded_file_path_tf2 = os.path.join(download_folder_location_tf2, pysdk_name)
-            downloaded_file_path_pt = os.path.join(download_folder_location_pt, pysdk_name)
-
-            if os.path.exists(downloaded_file_path_tf2):
-                LOGGER.info(f"Full path of sagemaker.tar.gz: {os.path.abspath(downloaded_file_path_tf2)}")
-            elif os.path.exists(downloaded_file_path_pt):
-                LOGGER.info(f"Full path of sagemaker.tar.gz: {os.path.abspath(downloaded_file_path_pt)}")
-            else:
-                LOGGER.warning(f"{downloaded_file_path_tf2} or {downloaded_file_path_pt} not found. This could break coverage doc test.")
-
         # PyTest must be run in this directory to avoid conflicting w/ sagemaker_tests conftests
         os.chdir(os.path.join("test", "dlc_tests"))
 

@@ -3,7 +3,6 @@ import re
 import time
 
 from random import Random
-import test.test_utils.ecr as ecr_utils
 
 import pytest
 
@@ -22,32 +21,21 @@ from test.test_utils import (
     get_cuda_version_from_tag,
 )
 
-@pytest.fixture
-def n_virginia_ecr_image(tensorflow_training, n_virginia_region):
-    """
-    It uploads image to n_virginia region and return image uri
-    """
-    image_repo_uri, image_tag = tensorflow_training.split(":")
-    _, image_repo_name = image_repo_uri.split("/")
-    target_image_repo_name = f"{image_repo_name}"
-    n_virginia_ecr_image = ecr_utils.reupload_image_to_test_ecr(tensorflow_training, target_image_repo_name, n_virginia_region)
-    return n_virginia_ecr_image
-
 
 @pytest.mark.usefixtures("sagemaker_only")
 @pytest.mark.flaky(reruns=3)
 @pytest.mark.integration("imagenet dataset")
 @pytest.mark.multinode(4)
 @pytest.mark.model("resnet50")
-def test_tensorflow_sagemaker_training_performance_multinode(n_virginia_ecr_image, n_virginia_region):
-    run_sm_perf_test(n_virginia_ecr_image, 4, n_virginia_region)
+def test_tensorflow_sagemaker_training_performance_multinode(tensorflow_training, region):
+    run_sm_perf_test(tensorflow_training, 4, region)
 
 
 @pytest.mark.usefixtures("sagemaker_only")
 @pytest.mark.integration("imagenet dataset")
 @pytest.mark.model("resnet50")
-def test_tensorflow_sagemaker_training_performance_singlenode(n_virginia_ecr_image, n_virginia_region):
-    run_sm_perf_test(n_virginia_ecr_image, 1, n_virginia_region)
+def test_tensorflow_sagemaker_training_performance_singlenode(tensorflow_training, region):
+    run_sm_perf_test(tensorflow_training, 1, region)
 
 
 def run_sm_perf_test(image_uri, num_nodes, region):

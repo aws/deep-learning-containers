@@ -1,5 +1,4 @@
 import datetime
-from multiprocessing import context
 import os
 import subprocess
 import random
@@ -29,7 +28,6 @@ from test_utils import (
     SAGEMAKER_REMOTE_TEST_TYPE,
     UBUNTU_HOME_DIR,
     DEFAULT_REGION,
-    SM_LOCAL_EC2_REGION
 )
 from test_utils.pytest_cache import PytestCache
 
@@ -61,20 +59,6 @@ def assign_sagemaker_local_job_instance_type(image):
     elif "trcomp" in image:
         return "p3.2xlarge"
     return "p3.8xlarge" if "gpu" in image else "c5.18xlarge"
-
-# TODO: Remove once the feature is GA
-def get_pysdk_s3_uri():
-    hc_support_binary = "sagemaker-2.96.1.dev0.tar.gz"
-    hc_support_uri = f"s3://sagemaker-python-sdk-822456244522/dist/{hc_support_binary}"
-    return hc_support_binary, hc_support_uri
-
-
-# TODO: Remove once the feature is GA
-def set_sagemaker_model(context):
-    sagemaker_model_file = "sagemaker-2017-07-24.normal.json"
-    sagemaker_model_uri = f"s3://heterocluster/{sagemaker_model_file}"
-    context.run(f"aws s3 cp {sagemaker_model_uri} .", warn=True)
-    context.run(f"aws configure add-model --service-model file://{sagemaker_model_file} --service-name sagemaker")
 
 
 def launch_sagemaker_local_ec2_instance(image, ami_id, ec2_key_name, region):
@@ -245,9 +229,6 @@ def install_sm_local_dependencies(framework, job_type, image, ec2_conn, ec2_inst
     if framework == "pytorch":
         # The following distutils package conflict with test dependencies
         ec2_conn.run("sudo apt-get remove python3-scipy python3-yaml -y")
-    # TODO: Remove once the feature is GA
-    pysdk_s3_name, pysdk_s3_uri = get_pysdk_s3_uri()
-    ec2_conn.run(f"aws s3 cp {pysdk_s3_uri} .", warn=True)
     ec2_conn.run(f"sudo {python_invoker} -m pip install -r requirements.txt ", warn=True)
 
 
@@ -296,8 +277,7 @@ def execute_local_tests(image, pytest_cache_params):
     """
     account_id = os.getenv("ACCOUNT_ID", boto3.client("sts").get_caller_identity()["Account"])
     pytest_cache_util = PytestCache(boto3.client("s3"), account_id)
-    ec2_region = SM_LOCAL_EC2_REGION
-    ec2_client = boto3.client("ec2", config=Config(retries={"max_attempts": 10}), region_name=ec2_region)
+    ec2_client = boto3.client("ec2", config=Config(retries={"max_attempts": 10}), region_name=DEFAULT_REGION)
     pytest_command, path, tag, job_type = generate_sagemaker_pytest_cmd(image, SAGEMAKER_LOCAL_TEST_TYPE)
     pytest_command += " --last-failed --last-failed-no-failures all "
     print(pytest_command)
@@ -305,7 +285,7 @@ def execute_local_tests(image, pytest_cache_params):
     random.seed(f"{datetime.datetime.now().strftime('%Y%m%d%H%M%S%f')}")
     ec2_key_name = f"{job_type}_{tag}_sagemaker_{random.randint(1, 1000)}"
     region = os.getenv("AWS_REGION", DEFAULT_REGION)
-    ec2_ami_id = UBUNTU_18_BASE_DLAMI_US_EAST_1 if ec2_region == "us-east-1" else UBUNTU_18_BASE_DLAMI_US_WEST_2
+    ec2_ami_id = UBUNTU_18_BASE_DLAMI_US_EAST_1 if region == "us-east-1" else UBUNTU_18_BASE_DLAMI_US_WEST_2
     sm_tests_tar_name = "sagemaker_tests.tar.gz"
     ec2_test_report_path = os.path.join(UBUNTU_HOME_DIR, "test", f"{job_type}_{tag}_sm_local.xml")
     instance_id = ""
@@ -317,9 +297,9 @@ def execute_local_tests(image, pytest_cache_params):
             image,
             ec2_ami_id,
             ec2_key_name,
-            ec2_region
+            region
         )
-        ec2_conn = ec2_utils.get_ec2_fabric_connection(instance_id, key_file, ec2_region)
+        ec2_conn = ec2_utils.get_ec2_fabric_connection(instance_id, key_file, region)
         ec2_conn.put(sm_tests_tar_name, f"{UBUNTU_HOME_DIR}")
         ec2_conn.run(f"$(aws ecr get-login --no-include-email --region {region})")
         try:
@@ -333,7 +313,6 @@ def execute_local_tests(image, pytest_cache_params):
         ec2_conn.run(f"tar -xzf {sm_tests_tar_name}")
         kill_background_processes_and_run_apt_get_update(ec2_conn)
         with ec2_conn.cd(path):
-            set_sagemaker_model(ec2_conn)
             install_sm_local_dependencies(framework, job_type, image, ec2_conn, ec2_ami_id)
             pytest_cache_util.download_pytest_cache_from_s3_to_ec2(ec2_conn, path, **pytest_cache_params)
             # Workaround for mxnet cpu training images as test distributed
@@ -346,7 +325,7 @@ def execute_local_tests(image, pytest_cache_params):
                 finally:
                     print(f"Downloading Test reports for image: {image}")
                     ec2_conn.close()
-                    ec2_conn_new = ec2_utils.get_ec2_fabric_connection(instance_id, key_file, ec2_region)
+                    ec2_conn_new = ec2_utils.get_ec2_fabric_connection(instance_id, key_file, region)
                     ec2_conn_new.get(ec2_test_report_path,
                                      os.path.join("test", f"{job_type}_{tag}_sm_local.xml"))
                     output = subprocess.check_output(f"cat test/{job_type}_{tag}_sm_local.xml", shell=True,
@@ -362,7 +341,7 @@ def execute_local_tests(image, pytest_cache_params):
         with ec2_conn.cd(path):
             pytest_cache_util.upload_pytest_cache_from_ec2_to_s3(ec2_conn, path, **pytest_cache_params)
         print(f"Terminating Instances for image: {image}")
-        ec2_utils.terminate_instance(instance_id, ec2_region)
+        ec2_utils.terminate_instance(instance_id, region)
         print(f"Destroying ssh Key_pair for image: {image}")
         destroy_ssh_keypair(ec2_client, ec2_key_name)
         # return None here to prevent errors from multiprocessing.map(). Without this it returns some object by default
@@ -387,10 +366,6 @@ def execute_sagemaker_remote_tests(process_index, image, global_pytest_cache, py
     with context.cd(path):
         context.run(f"virtualenv {tag}")
         with context.prefix(f"source {tag}/bin/activate"):
-            # TODO: Remove once the feature is GA
-            set_sagemaker_model(context)
-            pysdk_s3_name, pysdk_s3_uri = get_pysdk_s3_uri()
-            context.run(f"aws s3 cp {pysdk_s3_uri} .", warn=True)
             context.run("pip install -r requirements.txt", warn=True)
             pytest_cache_util.download_pytest_cache_from_s3_to_local(path, **pytest_cache_params, custom_cache_directory=str(process_index))
             # adding -o cache_dir with a custom directory name

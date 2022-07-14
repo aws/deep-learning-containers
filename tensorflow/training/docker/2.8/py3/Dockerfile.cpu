@@ -144,7 +144,7 @@ RUN ${PIP} install --no-cache-dir -U \
  && ${PIP} install --no-cache-dir -U \
     h5py==3.1.0 \
     "absl-py>=0.9,<0.11" \
-    "opencv-python>=4.3,<5" \
+    "opencv-python>=4.6,<5" \
     "werkzeug>=2.0.2,<3" \
     psutil==5.7.2 \
    "urllib3>1.26.0<1.27.0"
@@ -240,40 +240,21 @@ RUN HOROVOD_WITH_MPI=1 \
 RUN $PYTHON -m pip install --no-cache-dir -U \
     "bokeh>=2.3,<3" \
     "imageio>=2.9,<3" \
-    "opencv-python>=4.3,<5" \
+    "opencv-python>=4.6,<5" \
     "plotly>=5.1,<6" \
     "seaborn>=0.11,<1" \
     "numba<0.54" \
-    "shap>=0.39,<1" \
-    "protobuf==3.19.4"
-
-# Install SageMaker PySDK
-ARG SM_PYSDK_BINARY
-COPY ${SM_PYSDK_BINARY} .
-RUN pip uninstall -y sagemaker \
-  &&  pip install --no-cache-dir -U --force-reinstall  ${SM_PYSDK_BINARY} \
-  && rm -rf ${SM_PYSDK_BINARY}
-
-# Install Tensorflow Toolkit
-ARG TF_TOOOLKIT_BINARY
-COPY ${TF_TOOOLKIT_BINARY} .
-RUN pip uninstall -y sagemaker-tensorflow-training \
-  && pip install --no-cache-dir -U --force-reinstall ${TF_TOOOLKIT_BINARY} \
-  && rm -rf {TF_TOOOLKIT_BINARY}
-
-# Install SageMaker
-ARG SM_TOOLKIT_BINARY
-COPY ${SM_TOOLKIT_BINARY} .
-RUN pip uninstall -y sagemaker-training \
-  && pip install --no-cache-dir -U --force-reinstall ${SM_TOOLKIT_BINARY} \
-  && rm -rf ${SM_TOOLKIT_BINARY}
+    "shap>=0.39,<1"
 
 RUN $PYTHON -m pip install --no-cache-dir -U \
+    "sagemaker>=2,<3" \
     sagemaker-experiments==0.* \
+    "sagemaker-tensorflow-training>=20" \
     "sagemaker-studio-analytics-extension==0.0.2" \
     "sparkmagic<1" \
     "sagemaker-studio-sparkmagic-lib<1" \
     smclarify
+
 
 # install smdebug directly the specific branch
 ARG SMDEBUG_TAG=1.0.14

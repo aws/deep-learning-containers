@@ -2,7 +2,7 @@
 # refer to the above page to pull latest Pytorch image
 
 # docker image region us-west-2
-FROM 763104351884.dkr.ecr.us-west-2.amazonaws.com/pytorch-training:1.9.0-gpu-py38-cu111-ubuntu20.04
+FROM 763104351884.dkr.ecr.us-west-2.amazonaws.com/pytorch-training:1.9-gpu-py38-cu111-ubuntu20.04-v1
 
 LABEL maintainer="Amazon AI"
 LABEL dlc_major_version="1"
@@ -17,8 +17,18 @@ ARG SAGEMAKER_BINARY
 
 COPY ${SAGEMAKER_BINARY} .
 
-RUN pip install --no-cache-dir ${SAGEMAKER_BINARY} \
- && rm -rf ${SAGEMAKER_BINARY}
+# Install Sagemaker PythonSDK
+RUN pip install --no-cache-dir sagemaker
+
+
+# Artifact URLs
+ARG ARTIFACT_BUCKET=https://sm-training-comp-pytorch-binaries.s3.us-west-2.amazonaws.com
+ARG PT_PREFIX=8e3374f1-7fd0-4909-acc0-7d00f2ba52b5/20220120-035850/f8595cb4308f6cf9856beebb39e6bed5ddd38f6a
+ARG PT_URL=${ARTIFACT_BUCKET}/${PT_PREFIX}/torch-1.9.0-cp38-cp38-linux_x86_64.whl
+ARG PT_XLA_URL=${ARTIFACT_BUCKET}/${PT_PREFIX}/torch_xla-1.10%2Bf8595cb-cp38-cp38-linux_x86_64.whl
+ARG TORCHVISION_URL=${ARTIFACT_BUCKET}/${PT_PREFIX}/torchvision-0.10.0a0%2B6e72416-cp38-cp38-linux_x86_64.whl
+ARG HF_PREFIX=v4.11.0_aws/20211111-201203/e5c0ba2158ef44f1a15f2d58dc5f0e17e4678242
+ARG HF_TRANSFORMERS_URL=${ARTIFACT_BUCKET}/${HF_PREFIX}/transformers-4.11.0-py3-none-any.whl
 
 # install Hugging Face libraries and its dependencies
 RUN pip install -U --no-cache-dir \ 
@@ -28,7 +38,8 @@ RUN pip install -U --no-cache-dir \
 	"Pillow>=8.3.2" \
     "bokeh>=2.4.2" \
     "numpy>=1.22.0" \
-    "ipython>=7.31.1"
+    "ipython>=7.31.1" \
+    "opencv-python>=4.6,<5"
 	
 RUN apt-get update \
  # TODO: Remove upgrade statements once packages are updated in base image
@@ -39,36 +50,24 @@ RUN apt-get update \
  && rm -rf /var/lib/apt/lists/*
 
 # Install PyTorch
-ARG PT_URL
-COPY ${PT_URL} .
 
 RUN pip uninstall -y torch\
- && pip install --no-deps --no-cache-dir -U --force-reinstall ${PT_URL} \
- && rm -rf ${PT_URL}
+ && pip install --no-deps --no-cache-dir -U --force-reinstall ${PT_URL}
 
 # Install PyTorch XLA
-ARG PT_XLA_URL
-COPY ${PT_XLA_URL} .
 
 RUN pip uninstall -y torch_xla \
- && pip install --no-deps --no-cache-dir -U --force-reinstall ${PT_XLA_URL} \
- && rm -rf ${PT_XLA_URL}
+ && pip install --no-deps --no-cache-dir -U --force-reinstall ${PT_XLA_URL}
 
 # Install TorchVision
-ARG TORCHVISION_URL
-COPY ${TORCHVISION_URL} .
 
 RUN pip uninstall -y torchvision \
- && pip install --no-deps --no-cache-dir -U --force-reinstall ${TORCHVISION_URL} \
- && rm -rf ${TORCHVISION_URL}
+ && pip install --no-deps --no-cache-dir -U --force-reinstall ${TORCHVISION_URL}
 
 # Install Tranformers
-ARG HF_TRANSFORMERS_URL
-COPY ${HF_TRANSFORMERS_URL} .
 
 RUN pip uninstall -y transformers \
- && pip install --no-deps --no-cache-dir --force-reinstall -U ${HF_TRANSFORMERS_URL} \
- && rm -rf ${HF_TRANSFORMERS_URL}
+ && pip install --no-deps --no-cache-dir --force-reinstall -U ${HF_TRANSFORMERS_URL}
 
 # Fix library links
 ARG CONDA_PREFIX=/opt/conda

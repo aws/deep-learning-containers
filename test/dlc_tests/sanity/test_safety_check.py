@@ -74,6 +74,8 @@ IGNORE_SAFETY_IDS = {
                 "44716",
                 "44717",
                 "43453",
+                # tensorflow-estimator and tensorflow versions must match. For all TF versions below TF 2.9.0, we cannot upgrade tf-estimator to 2.9.0
+                "48551",
             ],
         },
         "inference-eia": {

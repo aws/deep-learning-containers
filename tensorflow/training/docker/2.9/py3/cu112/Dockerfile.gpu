@@ -328,29 +328,10 @@ RUN ldconfig /usr/local/cuda-11.2/targets/x86_64-linux/lib/stubs \
  && HOROVOD_GPU_ALLREDUCE=NCCL HOROVOD_WITH_TENSORFLOW=1 ${PIP} install --no-cache-dir horovod==0.24.2 \
  && ldconfig
 
-# Install SageMaker PySDK
-ARG SM_PYSDK_BINARY
-COPY ${SM_PYSDK_BINARY} .
-RUN pip uninstall -y sagemaker \
-  &&  pip install --no-cache-dir -U --force-reinstall  ${SM_PYSDK_BINARY} \
-  && rm -rf ${SM_PYSDK_BINARY}
-
-# Install Tensorflow Toolkit
-ARG TF_TOOOLKIT_BINARY
-COPY ${TF_TOOOLKIT_BINARY} .
-RUN pip uninstall -y sagemaker-tensorflow-training \
-  && pip install --no-cache-dir -U --force-reinstall ${TF_TOOOLKIT_BINARY} \
-  && rm -rf {TF_TOOOLKIT_BINARY}
-
-# Install SageMaker
-ARG SM_TOOLKIT_BINARY
-COPY ${SM_TOOLKIT_BINARY} .
-RUN pip uninstall -y sagemaker-training \
-  && pip install --no-cache-dir -U --force-reinstall ${SM_TOOLKIT_BINARY} \
-  && rm -rf ${SM_TOOLKIT_BINARY}
-
 RUN $PYTHON -m pip install --no-cache-dir -U \
+    "sagemaker>=2.93.0,<3" \
     sagemaker-experiments==0.* \
+    "sagemaker-tensorflow-training>=20.3.1" \
     "sparkmagic<1" \
     "sagemaker-studio-sparkmagic-lib<1" \
     "sagemaker-studio-analytics-extension==0.0.2" \
