@@ -51,8 +51,8 @@ UBUNTU_18_BASE_DLAMI_US_WEST_2 = get_ami_id_boto3(region_name="us-west-2", ami_n
 UBUNTU_18_BASE_DLAMI_US_EAST_1 = get_ami_id_boto3(region_name="us-east-1", ami_name_pattern="Deep Learning AMI GPU CUDA 11.1.1 (Ubuntu 18.04) ????????")
 AML2_GPU_DLAMI_US_WEST_2 = get_ami_id_boto3(region_name="us-west-2", ami_name_pattern="Deep Learning AMI GPU CUDA 11.1.1 (Amazon Linux 2) ????????")
 AML2_GPU_DLAMI_US_EAST_1 = get_ami_id_boto3(region_name="us-east-1", ami_name_pattern="Deep Learning AMI GPU CUDA 11.1.1 (Amazon Linux 2) ????????")
-AML2_CPU_ARM64_US_WEST_2 = get_ami_id_boto3(region_name="us-west-2", ami_name_pattern="Deep Learning Base AMI (Amazon Linux 2) Version ??.?")
-UL18_CPU_ARM64_US_WEST_2 = get_ami_id_boto3(region_name="us-west-2", ami_name_pattern="Deep Learning Base AMI (Ubuntu 18.04) Version ??.?")
+# We use the following DLAMI for MXNet and TensorFlow tests as well, but this is ok since we use custom DLC Graviton containers on top. We just need an ARM base DLAMI.
+UL18_CPU_ARM64_US_WEST_2 = get_ami_id_boto3(region_name="us-west-2", ami_name_pattern="Deep Learning AMI Graviton GPU PyTorch 1.10.0 (Ubuntu 20.04) ????????")
 UL18_BENCHMARK_CPU_ARM64_US_WEST_2 = get_ami_id_boto3(region_name="us-west-2", ami_name_pattern="Deep Learning AMI Graviton GPU TensorFlow 2.7.0 (Ubuntu 20.04) ????????")
 AML2_CPU_ARM64_US_EAST_1 = get_ami_id_boto3(region_name="us-east-1", ami_name_pattern="Deep Learning Base AMI (Amazon Linux 2) Version ??.?")
 PT_GPU_PY3_BENCHMARK_IMAGENET_AMI_US_EAST_1 = "ami-0673bb31cc62485dd"
@@ -1510,6 +1510,40 @@ def get_python_version_from_image_uri(image_uri):
     python_version = python_version_search.group()
     return "py36" if python_version == "py3" else python_version
 
+def construct_buildspec_path(dlc_path, framework_path, buildspec, framework_version):
+    """
+    Construct a relative path to the buildspec yaml file by iterative checking on the existence of
+    a specific version file for the framework being tested. Possible options include:
+    [buildspec-[Major]-[Minor]-[Patch].yml, buildspec-[Major]-[Minor].yml, buildspec-[Major].yml, buildspec.yml]
+    :param dlc_path: path to the DLC test folder
+    :param framework_path: Framework folder name
+    :param buildspec: buildspec file name
+    :param framework_version: default (long) framework version name
+    """
+    if framework_version:
+        # pattern matches for example 0.3.2 or 22.3
+        pattern = r"^(\d+)(\.\d+)?(\.\d+)?$"
+        matched = re.search(pattern, framework_version)
+        if matched:
+            constructed_version = ""
+            versions_to_search = []
+            for match in matched.groups():
+                if match:
+                    constructed_version = f'{constructed_version}{match.replace(".","-")}'
+                    versions_to_search.append(constructed_version)
+
+            for version in reversed(versions_to_search):
+                buildspec_path = os.path.join(dlc_path, framework_path, f"{buildspec}-{version}.yml")
+                if os.path.exists(buildspec_path):
+                    return buildspec_path
+        else:
+            raise ValueError(f"Framework version {framework_version} was not matched.")
+
+    buildspec_path = os.path.join(dlc_path, framework_path, f"{buildspec}.yml")
+    if not os.path.exists(buildspec_path):
+        raise ValueError('Could not construct a valid buildspec path.')
+
+    return buildspec_path
 
 def get_container_name(prefix, image_uri):
     """
