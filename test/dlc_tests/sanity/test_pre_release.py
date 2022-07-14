@@ -241,7 +241,7 @@ def test_framework_version_cpu(image):
         else:
             if "neuron" in image:
                 assert tag_framework_version in output.stdout.strip()
-            if (all(_string in image for _string in ["pytorch", "habana", "synapseai1.4.1"])
+            if (all(_string in image for _string in ["pytorch", "habana"])
                and any(_string in image for _string in 
                ["synapseai1.3.0", "synapseai1.4.1", "synapseai1.5.0"])):
                 # Habana Pytorch version looks like 1.10.0a0+gitb488e78 for SynapseAI1.3 PT1.10.1 images
