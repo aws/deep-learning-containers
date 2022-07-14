@@ -267,7 +267,6 @@ def is_tf_version(required_version, image_uri):
     required_version_specifier_set = SpecifierSet(f"=={required_version}.*")
     return is_tf_based_framework(image_framework_name) and image_framework_version in required_version_specifier_set
 
-
 def is_tf_based_framework(name):
     """
     Checks whether framework is TF based.

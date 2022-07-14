@@ -384,6 +384,7 @@ def _run_dependency_check_test(image, ec2_connection):
     # Record any whitelisted medium/low severity CVEs; I.E. allowed_vulnerabilities = {CVE-1000-5555, CVE-9999-9999}
     allowed_vulnerabilities = {
         # Those vulnerabilities are fixed. Current openssl version is 1.1.1g. These are false positive
+        # CVE-2022-2068: https://ubuntu.com/security/CVE-2022-2068
         "CVE-2016-2109",
         "CVE-2016-2177",
         "CVE-2016-6303",
@@ -900,17 +901,3 @@ def test_mxnet_training_sm_env_variables(mxnet_training):
         env_vars_to_test=env_vars,
         container_name_prefix=container_name_prefix
     )
-
-
-@pytest.mark.usefixtures("sagemaker_only")
-@pytest.mark.model("N/A")
-def test_block_releases(training):
-    fw, fw_version = get_framework_and_version_from_tag(training)
-    fw_version_obj = Version(fw_version)
-    major_minor_version = f"{fw_version_obj.major}.{fw_version_obj.minor}"
-    blocked_releases = {
-        "tensorflow": ["2.6", "2.7", "2.8", "2.9"],
-        "pytorch": ["1.10", "1.11"]
-    }
-    if major_minor_version in blocked_releases.get(fw, []):
-        raise RuntimeError(f"Pipelines are currently blocked for {fw} {major_minor_version}")
