@@ -91,7 +91,7 @@ def _test_distributed_training_smdataparallel_script_mode_function(
 
     estimator.fit(job_name=unique_name_from_base('test-tf-smdataparallel'))
 
-
+@pytest.mark.usefixtures("feature_smdp_present")
 @pytest.mark.processor("gpu")
 @pytest.mark.skip_cpu
 @pytest.mark.multinode(2)
@@ -126,7 +126,7 @@ def _test_smdataparallel_mnist_function(
 
     estimator.fit(job_name=unique_name_from_base('test-tf-smdataparallel-multi'))
 
-
+@pytest.mark.usefixtures("feature_smdp_present")
 @pytest.mark.processor("gpu")
 @pytest.mark.skip_cpu
 @pytest.mark.multinode(2)

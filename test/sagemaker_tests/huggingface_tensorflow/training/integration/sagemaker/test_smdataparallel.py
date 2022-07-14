@@ -33,7 +33,7 @@ hyperparameters = {
     "model_name": "distilbert-base-uncased",
 }
 
-
+@pytest.mark.usefixtures("feature_smdp_present")
 @pytest.mark.integration("hf_smdp")
 @pytest.mark.model("hf_distilbert")
 @pytest.mark.processor("gpu")
@@ -49,7 +49,7 @@ def test_hf_smdp(ecr_image, sagemaker_regions, instance_type, framework_version,
     invoke_sm_helper_function(ecr_image, sagemaker_regions, _test_hf_smdp_function,
                                  instance_type, framework_version, py_version, tmpdir, 1)
 
-
+@pytest.mark.usefixtures("feature_smdp_present")
 @pytest.mark.processor("gpu")
 @pytest.mark.skip_cpu
 @pytest.mark.multinode(2)
@@ -67,7 +67,7 @@ def test_hf_smdp_multi(ecr_image, sagemaker_regions, instance_type, tmpdir, fram
     invoke_sm_helper_function(ecr_image, sagemaker_regions, _test_hf_smdp_function,
                                  instance_type, framework_version, py_version, tmpdir, 2)
 
-
+@pytest.mark.usefixtures("feature_smdp_present")
 def _test_hf_smdp_function(ecr_image, sagemaker_session, instance_type, framework_version, py_version, tmpdir,
                            instance_count):
     _, image_framework_version = get_framework_and_version_from_tag(ecr_image)

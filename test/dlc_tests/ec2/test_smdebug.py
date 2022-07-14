@@ -15,7 +15,7 @@ SMPROFILER_SCRIPT = os.path.join(CONTAINER_TESTS_PREFIX, "testSmprofiler")
 SMDEBUG_EC2_GPU_INSTANCE_TYPE = get_ec2_instance_type(default="p3.8xlarge", processor="gpu")
 SMDEBUG_EC2_CPU_INSTANCE_TYPE = get_ec2_instance_type(default="c4.8xlarge", processor="cpu")
 
-
+@pytest.mark.usefixtures("feature_smdebug_present")
 @pytest.mark.usefixtures("sagemaker_only")
 @pytest.mark.integration("smdebug")
 @pytest.mark.model("mnist")
@@ -68,7 +68,7 @@ def test_smprofiler_gpu(
         timeout=smdebug_test_timeout,
     )
 
-
+@pytest.mark.usefixtures("feature_smdebug_present")
 @pytest.mark.usefixtures("sagemaker_only")
 @pytest.mark.flaky(reruns=0)
 @pytest.mark.integration("smdebug")

@@ -64,6 +64,7 @@ def get_transformers_version(ecr_image):
         raise LookupError("HF transformers version not found in image URI")
 
 
+@pytest.mark.usefixtures("feature_smmp_present")
 @pytest.mark.processor("gpu")
 @pytest.mark.integration("smmp")
 @pytest.mark.model("hf_qa_smmp")
@@ -74,6 +75,7 @@ def test_smmp_gpu(ecr_image, sagemaker_regions, instance_type, framework_version
     invoke_sm_helper_function(ecr_image, sagemaker_regions, _test_smmp_gpu_function, py_version, 1)
 
 
+@pytest.mark.usefixtures("feature_smmp_present")
 @pytest.mark.processor("gpu")
 @pytest.mark.integration("smmp")
 @pytest.mark.model("hf_qa_smmp_multi")

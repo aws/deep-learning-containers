@@ -38,7 +38,6 @@ from test.test_utils import (
     UBUNTU_HOME_DIR,
 )
 from test.test_utils.imageutils import (
-    get_image_labels,
     are_image_labels_matched
 )
 from test.test_utils.test_reporting import TestReportGenerator
@@ -97,7 +96,7 @@ FRAMEWORK_FIXTURES = (
 # Nightly image fixture dictionary, maps a nightly fixture to set of possible image label(s)
 NIGHTLY_FIXTURES = {
     "feature_smdebug_present": {"aws_framework_installed", "smdebug_installed"},
-    "feature_smddp_present": {"aws_framework_installed", "smddp_installed"},
+    "feature_smdp_present": {"aws_framework_installed", "smddp_installed"},
     "feature_smmp_present": {"smmp_installed"},
     "feature_aws_framework_present": {"aws_framework_installed"}
 }
@@ -108,7 +107,7 @@ def feature_smdebug_present():
     pass
 
 @pytest.fixture(scope="session")
-def feature_smddp_present():
+def feature_smdp_present():
     pass
 
 @pytest.fixture(scope="session")
