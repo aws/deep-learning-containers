@@ -424,13 +424,18 @@ def main():
         metrics_utils.send_test_duration_metrics(start_time)
 
     elif specific_test_type == "sagemaker-local":
-        for image in dlc_images:
-            if image in ["habana","neuron","huggingface-tensorflow-training"]:
-                LOGGER.info(f"Skipping sagemaker tests because Habana is not yet supported on SM. Images: {dlc_images}")
-                # Creating an empty file for because codebuild job fails without it
-                report = os.path.join(os.getcwd(), "test", f"{test_type}.xml")
-                sm_utils.generate_empty_report(report, test_type, "skipped-image")
-                return
+        sm_local_to_skip = {
+            "habana": "Skipping SM tests because SM does not yet support Habana",
+            "neuron": "Skipping - there are no local mode tests for Neuron",
+            "huggingface-tensorflow-training": "Skipping - there are no local mode tests for HF TF training"
+        }
+
+        for skip_condition, reason in sm_local_to_skip.items():
+            LOGGER.info(f"{reason}. Images: {dlc_images}")
+            # Creating an empty file for because codebuild job fails without it
+            report = os.path.join(os.getcwd(), "test", f"{test_type}.xml")
+            sm_utils.generate_empty_report(report, test_type, skip_condition)
+            return
 
         testing_image_list = [
             image
