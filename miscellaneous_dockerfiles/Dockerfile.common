@@ -3,5 +3,14 @@ ARG PRE_PUSH_IMAGE=""
 
 FROM $PRE_PUSH_IMAGE
 
+RUN HOME_DIR=/root \
+ && curl -o ${HOME_DIR}/oss_compliance.zip https://aws-dlinfra-utilities.s3.amazonaws.com/oss_compliance.zip \
+ && unzip ${HOME_DIR}/oss_compliance.zip -d ${HOME_DIR}/ \
+ && cp ${HOME_DIR}/oss_compliance/test/testOSSCompliance /usr/local/bin/testOSSCompliance \
+ && chmod +x /usr/local/bin/testOSSCompliance \
+ && chmod +x ${HOME_DIR}/oss_compliance/generate_oss_compliance.sh \
+ && ${HOME_DIR}/oss_compliance/generate_oss_compliance.sh ${HOME_DIR} python \
+ && rm -rf ${HOME_DIR}/oss_compliance*
+
 # Copy safety report generated from PRE_PUSH_IMAGE to docker image
 COPY safety_report.json /opt/aws/dlc/info/safety_report.json
