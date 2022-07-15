@@ -79,7 +79,7 @@ def invoke_pytorch_estimator(
                 pytorch.fit(inputs=inputs, job_name=job_name)
                 return pytorch, sagemaker_session
 
-            except sagemaker.exceptions. as e:
+            except sagemaker.exceptions.UnexpectedStatusException as e:
                 if "CapacityError" in str(e):
                     time.sleep(retry_delay)
                     continue
