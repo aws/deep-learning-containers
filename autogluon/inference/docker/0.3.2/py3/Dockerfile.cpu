@@ -39,7 +39,7 @@ RUN pip install --no-cache-dir -U catboost==0.26.1 \
  && pip install --no-cache-dir -U 'Pillow>=9.0.1,<9.1.0'
 
 
-RUN HOME_DIR=/root \
+RUN HOME_DIR=/root
 RUN curl -o ${HOME_DIR}/oss_compliance.zip https://aws-dlinfra-utilities.s3.amazonaws.com/oss_compliance.zip
 RUN unzip ${HOME_DIR}/oss_compliance.zip -d ${HOME_DIR}/
 RUN cp ${HOME_DIR}/oss_compliance/test/testOSSCompliance /usr/local/bin/testOSSCompliance
