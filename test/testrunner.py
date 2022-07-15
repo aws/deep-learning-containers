@@ -429,13 +429,14 @@ def main():
             "neuron": "Skipping - there are no local mode tests for Neuron",
             "huggingface-tensorflow-training": "Skipping - there are no local mode tests for HF TF training"
         }
-
+        
         for skip_condition, reason in sm_local_to_skip.items():
-            LOGGER.info(f"{reason}. Images: {dlc_images}")
-            # Creating an empty file for because codebuild job fails without it
-            report = os.path.join(os.getcwd(), "test", f"{test_type}.xml")
-            sm_utils.generate_empty_report(report, test_type, skip_condition)
-            return
+            if skip_condition in dlc_images:
+                LOGGER.info(f"{reason}. Images: {dlc_images}")
+                # Creating an empty file for because codebuild job fails without it
+                report = os.path.join(os.getcwd(), "test", f"{test_type}.xml")
+                sm_utils.generate_empty_report(report, test_type, skip_condition)
+                return
 
         testing_image_list = [
             image
