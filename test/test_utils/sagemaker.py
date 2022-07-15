@@ -328,8 +328,7 @@ def execute_local_tests(image, pytest_cache_params):
                 print(f"Downloading Test reports for image: {image}")
                 ec2_conn.get(ec2_test_report_path, os.path.join("test", f"{job_type}_{tag}_sm_local.xml"))
     except:
-        print(f"Error {sys.exc_info()[0]} occurred")
-        print("Exiting after clean up")
+        print(f"Exception {sys.exc_info()[0]} occurred")
     finally:
         if ec2_conn:
             with ec2_conn.cd(path):
