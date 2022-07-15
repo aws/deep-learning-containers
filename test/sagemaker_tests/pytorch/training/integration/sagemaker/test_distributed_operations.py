@@ -18,6 +18,7 @@ import boto3
 import pytest
 import sagemaker
 from sagemaker import utils
+from sagemaker.instance_group import InstanceGroup
 from sagemaker.pytorch import PyTorch
 from sagemaker import Session
 from six.moves.urllib.parse import urlparse
@@ -158,6 +159,30 @@ def test_mnist_gpu(framework_version, ecr_image, sagemaker_regions, dist_gpu_bac
         job_name=utils.unique_name_from_base('test-pt-mnist-gpu')
         invoke_pytorch_estimator(ecr_image, sagemaker_regions, estimator_parameter, upload_s3_data_args=upload_s3_data_args, job_name=job_name)
 
+@pytest.mark.processor("gpu")
+@pytest.mark.model("mnist")
+@pytest.mark.multinode(2)
+@pytest.mark.skip_cpu
+@pytest.mark.skip_py2_containers
+def test_hc_mnist_gpu(framework_version, ecr_image, sagemaker_regions, dist_gpu_backend):
+    with timeout(minutes=DEFAULT_TIMEOUT):
+        instance_type = MULTI_GPU_INSTANCE
+        instance_count = 2
+        training_group_1 = InstanceGroup("train_group_1", instance_type, instance_count)
+        training_group_2 = InstanceGroup("train_group_2", instance_type, instance_count)
+        estimator_parameter = {
+            'entry_point': mnist_script,
+            'role': 'SageMakerRole',
+            'instance_groups': [training_group_1, training_group_2],
+            'framework_version': framework_version,
+            'hyperparameters': {'backend': dist_gpu_backend},
+        }
+        upload_s3_data_args = {
+        'path': os.path.join(data_dir, 'training'),
+        'key_prefix': 'pytorch/mnist'
+        }
+        job_name = utils.unique_name_from_base('test-pt-hc-mnist-gpu')
+        invoke_pytorch_estimator(ecr_image, sagemaker_regions, estimator_parameter, upload_s3_data_args=upload_s3_data_args, job_name=job_name)
 
 
 @pytest.mark.integration("smmodelparallel")
@@ -269,6 +294,52 @@ def test_smmodelparallel_mnist_multigpu_multinode(ecr_image, instance_type, sage
             },
         }
         job_name=utils.unique_name_from_base('test-pt-smdmp-multinode')
+        invoke_pytorch_estimator(ecr_image, sagemaker_regions, estimator_parameter, job_name=job_name)
+
+@pytest.mark.integration("smmodelparallel")
+@pytest.mark.model("mnist")
+@pytest.mark.processor("gpu")
+@pytest.mark.multinode(2)
+@pytest.mark.skip_cpu
+@pytest.mark.skip_py2_containers
+@pytest.mark.parametrize("test_script, num_processes", [("smmodelparallel_pt_mnist.py", 8)])
+def test_hc_smmodelparallel_mnist_multigpu_multinode(ecr_image, instance_type, sagemaker_regions, test_script, num_processes):
+    """
+    Tests pt mnist command via script mode
+    """
+    instance_type = "ml.p3.16xlarge"
+    validate_or_skip_smmodelparallel(ecr_image)
+    instance_count = 2
+    training_group = InstanceGroup("train_group", instance_type, instance_count)
+    with timeout(minutes=DEFAULT_TIMEOUT):
+        estimator_parameter = {
+            'entry_point': test_script,
+            'role': 'SageMakerRole',
+            'source_dir': mnist_path,
+            'instance_groups': [training_group],
+            'hyperparameters': {"assert-losses": 1, "amp": 1, "ddp": 1, "data-dir": "data/training", "epochs": 5},
+            'distribution': {
+                "smdistributed": {
+                    "modelparallel": {
+                        "enabled": True,
+                        "parameters": {
+                            "partitions": 2,
+                            "microbatches": 4,
+                            "optimize": "speed",
+                            "pipeline": "interleaved",
+                            "ddp": True,
+                        },
+                    }
+                },
+                "mpi": {
+                    "enabled": True,
+                    "processes_per_host": num_processes,
+                    "custom_mpi_options": "-verbose --mca orte_base_help_aggregate 0 -x SMDEBUG_LOG_LEVEL=error -x OMPI_MCA_btl_vader_single_copy_mechanism=none ",
+                },
+                "instance_groups": [training_group],
+            },
+        }
+        job_name=utils.unique_name_from_base('test-pt-hc-smdmp-multinode')
         invoke_pytorch_estimator(ecr_image, sagemaker_regions, estimator_parameter, job_name=job_name)
 
 @pytest.mark.integration("smmodelparallel")

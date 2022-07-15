@@ -244,7 +244,7 @@ RUN $PYTHON -m pip install --no-cache-dir \
    tensorflow-datasets==4.5.2
 
 RUN $PYTHON -m pip install --no-cache-dir \
-   "sagemaker==2.70.0" \
+   "sagemaker>=2,<3" \
    sagemaker-experiments==0.* \
    "sagemaker-tensorflow>=2.6,<2.7" \
    "sagemaker-tensorflow-training>=20" \
