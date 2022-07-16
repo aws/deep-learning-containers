@@ -11,6 +11,7 @@ LABEL maintainer="Amazon AI"
 LABEL dlc_major_version="1"
 
 ARG PYTHON_VERSION=3.8.10
+ARG PYTHON=python3
 
 RUN apt-get update \
  && apt-get -y upgrade \
