@@ -14,6 +14,7 @@ from __future__ import absolute_import
 
 import pytest
 from sagemaker import utils
+from sagemaker.instance_group import InstanceGroup
 from sagemaker.pytorch import PyTorch
 
 from ...integration import training_dir, mnist_script, DEFAULT_TIMEOUT
@@ -66,3 +67,52 @@ def _test_mnist_distributed(ecr_image, sagemaker_session, framework_version, ins
         )
         training_input = pytorch.sagemaker_session.upload_data(path=training_dir, key_prefix='pytorch/mnist')
         pytorch.fit({'training': training_input}, job_name=utils.unique_name_from_base('test-pt-mnist-distributed'))
+
+
+@pytest.mark.processor("cpu")
+@pytest.mark.model("mnist")
+@pytest.mark.multinode(2)
+@pytest.mark.integration("smexperiments")
+@pytest.mark.skip_gpu
+def test_hc_mnist_distributed_cpu(framework_version, ecr_image, sagemaker_regions, instance_type, dist_cpu_backend):
+    instance_type = instance_type or 'ml.c4.xlarge'
+    training_group = InstanceGroup("train_group", instance_type, 2)
+    function_args = {
+            'framework_version': framework_version,
+            'instance_groups': [training_group],
+            'dist_backend': dist_cpu_backend
+        }
+
+    invoke_pytorch_helper_function(ecr_image, sagemaker_regions, _test_hc_mnist_distributed, function_args)
+
+
+@pytest.mark.processor("gpu")
+@pytest.mark.model("mnist")
+@pytest.mark.multinode(2)
+@pytest.mark.integration("smexperiments")
+@pytest.mark.skip_cpu
+def test_hc_mnist_distributed_gpu(framework_version, ecr_image, sagemaker_regions, instance_type, dist_gpu_backend):
+    instance_type = instance_type or 'ml.p2.xlarge'
+    training_group = InstanceGroup("train_group", instance_type, 2)
+    function_args = {
+            'framework_version': framework_version,
+            'instance_groups': [training_group],
+            'dist_backend': dist_gpu_backend
+        }
+
+    invoke_pytorch_helper_function(ecr_image, sagemaker_regions, _test_hc_mnist_distributed, function_args)
+
+
+def _test_hc_mnist_distributed(ecr_image, sagemaker_session, framework_version, instance_groups, dist_backend):
+    with timeout(minutes=DEFAULT_TIMEOUT):
+        pytorch = PyTorch(
+            entry_point=mnist_script,
+            role='SageMakerRole',
+            instance_groups=instance_groups,
+            sagemaker_session=sagemaker_session,
+            image_uri=ecr_image,
+            framework_version=framework_version,
+            hyperparameters={'backend': dist_backend, 'epochs': 1},
+        )
+        training_input = pytorch.sagemaker_session.upload_data(path=training_dir, key_prefix='pytorch/mnist')
+        pytorch.fit({'training': training_input}, job_name=utils.unique_name_from_base('test-pt-hc-mnist-distributed'))
