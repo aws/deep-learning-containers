@@ -10,7 +10,7 @@ USE_NEW=$(python -c "import dgl; dgl_versions = dgl.__version__.split('.'); prin
 git clone -b ${DGL_RELEASE_TAG} https://github.com/dmlc/dgl.git ${HOME_DIR}/artifacts/dgl
 
 if [ ${USE_NEW} -eq 1 ]; then
-  ${BIN_DIR}/dgl_tests/testDGLHelperNEW python pytorch || exit 1
+  ${BIN_DIR}/dgl_tests/testDGLHelperNew python pytorch || exit 1
 else
   ${BIN_DIR}/dgl_tests/testDGLHelper python pytorch || exit 1
 fi
