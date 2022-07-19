@@ -249,7 +249,7 @@ def test_framework_version_cpu(image):
                 pt_fw_version_pattern = r"(\d+(\.\d+){1,2}(-rc\d)?)((a0\+git\w{7}))"
                 pt_fw_version_match = re.fullmatch(pt_fw_version_pattern, output.stdout.strip())
                 # This is desired for PT1.10.1 images
-                assert tag_framework_version == pt_fw_version_match.group(1)
+                assert tag_framework_version.rsplit('.', 1)[0] == pt_fw_version_match.group(1).rsplit('.', 1)[0]
             else:
                 assert tag_framework_version == output.stdout.strip()
     stop_and_remove_container(container_name, ctx)
