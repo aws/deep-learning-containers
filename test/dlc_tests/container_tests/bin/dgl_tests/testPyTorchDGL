@@ -4,16 +4,15 @@ HOME_DIR=/test
 BIN_DIR=${HOME_DIR}/bin
 LOG_DIR=${HOME_DIR}/logs
 
-OLD_DGL_VERSION=0.4.x
-NEW_DGL_VERSION=0.7.x
-
 DGL_RELEASE_TAG=$(python -c "import dgl; dgl_versions = dgl.__version__.split('.'); print(f'{dgl_versions[0]}.{dgl_versions[1]}.x')")
+USE_NEW=$(python -c "import dgl; dgl_versions = dgl.__version__.split('.'); print(1 if int(dgl_versions[1]) >= 9 else 0)")
 
-if [[ ${DGL_RELEASE_TAG} == ${OLD_DGL_VERSION} ]]; then
-    git clone -b ${OLD_DGL_VERSION} https://github.com/dmlc/dgl.git ${HOME_DIR}/artifacts/dgl 
+git clone -b ${DGL_RELEASE_TAG} https://github.com/dmlc/dgl.git ${HOME_DIR}/artifacts/dgl
+
+if [ ${USE_NEW} -eq 1 ]; then
+  ${BIN_DIR}/dgl_tests/testDGLHelperNEW python pytorch || exit 1
 else
-  git clone -b ${NEW_DGL_VERSION} https://github.com/dmlc/dgl.git ${HOME_DIR}/artifacts/dgl
-fi 
-${BIN_DIR}/dgl_tests/testDGLHelper python pytorch || exit 1
+  ${BIN_DIR}/dgl_tests/testDGLHelper python pytorch || exit 1
+fi
 
 exit 0
