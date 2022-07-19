@@ -33,6 +33,8 @@ def test_telemetry_bad_instance_role_disabled_cpu(cpu, ec2_client, ec2_instance,
 @pytest.mark.parametrize("ec2_instance_type", ["c6g.4xlarge"], indirect=True)
 @pytest.mark.parametrize("ec2_instance_ami", [test_utils.UL18_CPU_ARM64_US_WEST_2], indirect=True)
 def test_telemetry_bad_instance_role_disabled_graviton_cpu(cpu, ec2_client, ec2_instance, ec2_connection, graviton_compatible_only):
+    ec2_connection.run(f"sudo apt-get update -y")
+    ec2_connection.run(f"sudo apt-get install -y net-tools")
     _run_instance_role_disabled(cpu, ec2_client, ec2_instance, ec2_connection)
 
 
@@ -141,8 +143,6 @@ def _run_instance_role_disabled(image_uri, ec2_client, ec2_instance, ec2_connect
         ec2_client.remove_tags(Resources=[ec2_instance_id], Tags=[{"Key": expected_tag_key}])
 
     # Disable access to EC2 instance metadata
-    ec2_connection.run(f"sudo apt-get update -y")
-    ec2_connection.run(f"sudo apt-get install -y net-tools")
     ec2_connection.run(f"sudo route add -host 169.254.169.254 reject")
 
     if "tensorflow" in framework and job_type == "inference":
