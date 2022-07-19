@@ -36,6 +36,8 @@ RUN apt-get update \
  && apt-get clean \  
  && rm -rf /var/lib/apt/lists/*
 
+RUN pip install -U "numpy==1.22.4"
+
 # Install PyTorch
 RUN pip uninstall -y torch \
  && pip install --no-deps --no-cache-dir -U --force-reinstall ${PT_URL}
