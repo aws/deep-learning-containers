@@ -32,7 +32,7 @@ RUN $PYTHON -m pip install --no-cache-dir -U \
 # However, the markdown package (dependency of tensorboard package) requires importlib-metadata to be >=4.4.
 # Issue: https://github.com/aws/sagemaker-python-sdk/pull/3138
 RUN $PYTHON -m pip install --no-cache-dir -U \
-    "sagemaker>=2,<2.92.0" \
+    "sagemaker>=2,<3" \
     sagemaker-experiments==0.* \
     "sagemaker-tensorflow>=2.7,<2.8" \
     "sagemaker-tensorflow-training>=20" \ 
