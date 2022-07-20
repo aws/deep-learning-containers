@@ -207,7 +207,7 @@ def test_smmodelparallel_mnist_multigpu_singlenode(ecr_image, instance_type, sag
                        'num_layers': 12, 'num_heads': 12, 'n_gpus': 8, 'train_batch_size': 32,
                        'microbatches': 1, 'tensor_parallel_degree': 4, 'pipeline_parallel_degree': 2,
                        'activation_checkpointing': 1, 'activation_strategy': "group_2",
-                       'manual_partition': 1, smp_version: smp_version,
+                       'manual_partition': 1, 'smp_version': smp_version,
                        }
     train = sagemaker.session.s3_input(
         "s3://gpt2-data/train_synthetic_small/",
