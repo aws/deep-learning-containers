@@ -112,7 +112,7 @@ images:
   BuildTensorflowSageMakerCpuPy39TrainingDockerImage:
     <<: *TRAINING_REPOSITORY
     build: &TENSORFLOW_CPU_TRAINING_PY3 false
-    image_size_baseline: &IMAGE_SIZE_BASELINE 4400
+    image_size_baseline: &IMAGE_SIZE_BASELINE 7500
     device_type: &DEVICE_TYPE cpu
     python_version: &DOCKER_PYTHON_VERSION py3
     tag_python_version: &TAG_PYTHON_VERSION py39
