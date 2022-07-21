@@ -28,8 +28,8 @@ from .... import invoke_pytorch_helper_function
 
 
 DGL_DATA_PATH = os.path.join(resources_path, "dgl-gcn")
-DGL_LT_09x_SCRIPT_PATH = os.path.join(DGL_DATA_PATH, "gcn_dgl_lt_09x.py")
-DGL_SCRIPT_PATH = os.path.join(DGL_DATA_PATH, "gcn.py")
+DGL_LT_09x_SCRIPT_PATH = os.path.join(DGL_DATA_PATH, "train_dgl_lt_09x.py")
+DGL_SCRIPT_PATH = os.path.join(DGL_DATA_PATH, "train.py")
 
 
 @pytest.mark.integration("dgl")
