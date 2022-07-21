@@ -409,13 +409,13 @@ def _run_dependency_check_test(image, ec2_connection):
             "2.6": ["cpu", "gpu"],
             "2.7": ["cpu", "gpu", "hpu"],
             "2.8": ["cpu", "gpu", "hpu"],
-            "2.9": ["cpu", "gpu"]
+            "2.9": ["cpu", "gpu", "hpu"]
         },
         "mxnet": {"1.8": ["neuron"], "1.9": ["cpu", "gpu"]},
         "pytorch": {
             "1.8": ["cpu", "gpu"], 
             "1.10": ["cpu", "hpu"], 
-            "1.11": ["cpu", "gpu"],
+            "1.11": ["cpu", "gpu", "hpu"],
             "1.12": ["cpu", "gpu"]
         },
         "huggingface_pytorch": {"1.8": ["cpu", "gpu"], "1.9": ["cpu", "gpu"]},
