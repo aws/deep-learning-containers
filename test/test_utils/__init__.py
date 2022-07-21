@@ -1383,8 +1383,7 @@ def get_framework_from_image_uri(image_uri):
 
 def is_trcomp_image(image_uri):
     framework = get_framework_from_image_uri(image_uri)
-    return framework == "huggingface_tensorflow_trcomp" or framework == "huggingface_pytorch_trcomp"
-
+    return "trcomp" in framework
 
 def get_all_the_tags_of_an_image_from_ecr(ecr_client, image_uri):
     """
