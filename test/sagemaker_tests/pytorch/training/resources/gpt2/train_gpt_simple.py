@@ -977,7 +977,7 @@ def main():
             torch.set_default_dtype(torch.float16)
         with smp.tensor_parallelism(enabled=smp.tp_size() > 1, attention_in_fp32=args.attention_in_fp32 > 0):
             with smp.delay_param_initialization(
-                enabled=(smp.tp_size() > 1 and args.match_weights < 1 and args.delayed_param > 0)
+                enabled=(smp.tp_size() > 1 and args.delayed_param > 0)
             ):
                 model = AutoModelForCausalLM.from_config(model_config)
     else:
@@ -1090,7 +1090,7 @@ def main():
             dynamic_loss_scale=True,
             use_smp=True,
             dynamic_loss_args={"scale_window": 1000, "min_scale": 1, "delayed_shift": 2},
-            params_have_main_grad=args.fp32_grad_accumulation > 0,
+            params_have_main_grad=False,
             shard_optimizer_state=args.shard_optimizer_state > 0,
         )
 
