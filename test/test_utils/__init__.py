@@ -1393,6 +1393,9 @@ def get_framework_from_image_uri(image_uri):
         else None
     )
 
+def is_trcomp_image(image_uri):
+    framework = get_framework_from_image_uri(image_uri)
+    return "trcomp" in framework
 
 def get_all_the_tags_of_an_image_from_ecr(ecr_client, image_uri):
     """
