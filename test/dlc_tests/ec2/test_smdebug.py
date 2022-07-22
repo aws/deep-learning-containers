@@ -42,6 +42,7 @@ def test_smdebug_gpu(training, ec2_connection, region, ec2_instance_type, gpu_on
     )
 
 
+@pytest.mark.usefixtures("feature_smdebug_present")
 @pytest.mark.usefixtures("sagemaker_only")
 @pytest.mark.integration("smprofiler")
 @pytest.mark.model("mnist")
@@ -68,6 +69,7 @@ def test_smprofiler_gpu(
         timeout=smdebug_test_timeout,
     )
 
+
 @pytest.mark.usefixtures("feature_smdebug_present")
 @pytest.mark.usefixtures("sagemaker_only")
 @pytest.mark.flaky(reruns=0)
@@ -78,6 +80,7 @@ def test_smdebug_cpu(training, ec2_connection, region, ec2_instance_type, cpu_on
     run_smdebug_test(training, ec2_connection, region, ec2_instance_type)
 
 
+@pytest.mark.usefixtures("feature_smdebug_present")
 @pytest.mark.usefixtures("sagemaker_only")
 @pytest.mark.flaky(reruns=0)
 @pytest.mark.integration("smdebug")

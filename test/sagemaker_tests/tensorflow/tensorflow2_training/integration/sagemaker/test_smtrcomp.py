@@ -263,6 +263,7 @@ class TestMLWorkFlow:
         return 1
 
 
+    @pytest.mark.usefixtures("feature_smdebug_present")
     @pytest.mark.skip(reason="skip the test temporarily due to timeout issue")
     @pytest.mark.model('toy')
     @pytest.mark.integration("smdebug")

@@ -93,7 +93,7 @@ FRAMEWORK_FIXTURES = (
     "inference",
 )
 
-# Nightly image fixture dictionary, maps a nightly fixture to set of possible image label(s)
+# Nightly image fixture dictionary, maps nightly fixtures to set of image labels
 NIGHTLY_FIXTURES = {
     "feature_smdebug_present": {"aws_framework_installed", "smdebug_installed"},
     "feature_smdp_present": {"aws_framework_installed", "smddp_installed"},
@@ -781,7 +781,6 @@ def pytest_generate_tests(metafunc):
     # Don't parametrize if there are no images to parametrize
     if not images:
         return
-
     # Parametrize framework specific tests
     for fixture in FRAMEWORK_FIXTURES:
         if fixture in metafunc.fixturenames:
@@ -841,10 +840,8 @@ def pytest_generate_tests(metafunc):
 
             if is_nightly_context():
                 nightly_images_to_parametrize = []
-
                 # filter the nightly fixtures in the current functional context
                 func_nightly_fixtures = {key: value for (key,value) in NIGHTLY_FIXTURES.items() if key in metafunc.fixturenames}
-
                 # iterate through image candidates and select images with labels that match all nightly fixture labels
                 for image_candidate in images_to_parametrize:
                     if all([are_image_labels_matched(image_candidate, nightly_labels) for _, nightly_labels in func_nightly_fixtures.items()]):

@@ -95,6 +95,6 @@ def are_image_labels_matched(image_uri, labels):
         return False
     image_labels = image_label_collection.keys()
     for label in labels:
-        if label not in image_labels or image_labels[label] != "True":
+        if label not in image_labels or image_label_collection[label] != "true":
             return False
     return True
