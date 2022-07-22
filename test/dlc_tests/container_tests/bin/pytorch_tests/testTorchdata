@@ -28,5 +28,4 @@ else
     exit 1
 fi
 
-echo "Torchdata S3 IO tests succeeded!"
 exit 0
