@@ -28,7 +28,8 @@ from .... import invoke_pytorch_helper_function
 
 
 DGL_DATA_PATH = os.path.join(resources_path, "dgl-gcn")
-DGL_SCRIPT_PATH = os.path.join(DGL_DATA_PATH, "gcn.py")
+DGL_LT_09x_SCRIPT_PATH = os.path.join(DGL_DATA_PATH, "train_dgl_lt_09x.py")
+DGL_SCRIPT_PATH = os.path.join(DGL_DATA_PATH, "train.py")
 
 
 @pytest.mark.integration("dgl")
@@ -69,8 +70,25 @@ def test_dgl_gcn_training_gpu(ecr_image, sagemaker_regions, instance_type):
     function_args = {
         "instance_type": instance_type,
     }
-    invoke_pytorch_helper_function(ecr_image, sagemaker_regions, _test_dgl_training, function_args)
 
+    if Version(image_framework_version) in SpecifierSet(">=1.12.*"):
+        invoke_pytorch_helper_function(ecr_image, sagemaker_regions, _test_dgl_training, function_args)
+    else:
+        invoke_pytorch_helper_function(ecr_image, sagemaker_regions, _test_dgl_LT_09x_training, function_args)
+
+
+def _test_dgl_LT_09x_training(ecr_image, sagemaker_session, instance_type):
+    dgl = PyTorch(
+        entry_point=DGL_LT_09x_SCRIPT_PATH,
+        role="SageMakerRole",
+        instance_count=1,
+        instance_type=instance_type,
+        sagemaker_session=sagemaker_session,
+        image_uri=ecr_image,
+    )
+    with timeout(minutes=DEFAULT_TIMEOUT):
+        job_name = utils.unique_name_from_base("test-pytorch-dgl-image")
+        dgl.fit(job_name=job_name)
 
 def _test_dgl_training(ecr_image, sagemaker_session, instance_type):
     dgl = PyTorch(
