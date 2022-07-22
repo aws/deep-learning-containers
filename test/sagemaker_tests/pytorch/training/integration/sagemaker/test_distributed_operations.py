@@ -217,6 +217,19 @@ def test_smmodelparallel_mnist_multigpu_singlenode(ecr_image, instance_type, sag
     )
     inputs = {"train": train, "test": train}
     validate_or_skip_smmodelparallel(ecr_image)
+    mp_params = {
+        "partitions": 2,
+        "tensor_parallel_degree": 4,
+        "microbatches": 1,
+        "optimize": "speed",
+        "pipeline": "interleaved",
+        "ddp": True,
+        "auto_partition": False,
+        "default_partition": 0,
+        "prescaled_batch": True,
+    }
+    if smp_version >= 110:
+        mp_params["fp16"] = True
     with timeout(minutes=DEFAULT_TIMEOUT):
         estimator_parameter = {
             'entry_point': test_script,
@@ -229,17 +242,7 @@ def test_smmodelparallel_mnist_multigpu_singlenode(ecr_image, instance_type, sag
                 "smdistributed": {
                     "modelparallel": {
                         "enabled": True,
-                        "parameters": {
-                            "partitions": 2,
-                            "tensor_parallel_degree": 4,
-                            "microbatches": 1,
-                            "optimize": "speed",
-                            "pipeline": "interleaved",
-                            "ddp": True,
-                            "auto_partition": False,
-                            "default_partition": 0,
-                            "prescaled_batch": True,
-                        },
+                        "parameters": mp_params,
                     }
                 },
                 "mpi": {
