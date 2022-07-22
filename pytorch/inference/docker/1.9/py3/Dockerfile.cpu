@@ -108,6 +108,7 @@ RUN pip install --upgrade pip --trusted-host pypi.org --trusted-host files.pytho
  && pip install packaging==20.4 \
     enum-compat==0.0.3 \
     opencv-python==4.5.5.64 \
+    boto3 \
     "numpy>=1.22.2" \
     "cryptography>=3.3.2"
 
