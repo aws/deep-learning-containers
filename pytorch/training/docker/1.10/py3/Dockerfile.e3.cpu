@@ -130,7 +130,7 @@ RUN pip install --upgrade pip --trusted-host pypi.org --trusted-host files.pytho
     "pyyaml>=5.4,<5.5" \
     numpy==1.22.2 \
     ipython==8.0.1 \
-    opencv-python==4.5.2.54 \
+    "opencv-python>=4.6,<5" \
     "awscli<2" \
     "urllib3>=1.25.9" \
     boto3 \
