@@ -261,14 +261,6 @@ release_images:
       example: False
       disable_sm_tag: False
       force_release: False
-    inference:
-      device_types: [ "cpu", "gpu" ]
-      python_versions: [ "py38" ]
-      cuda_version: "cu113"
-      os_version: "ubuntu20.04"
-      example: False
-      disable_sm_tag: False
-      force_release: False
   18:
     framework: "pytorch"
     version: "1.10.2"
@@ -288,14 +280,6 @@ release_images:
     arch_type: "x86"
     customer_type: "sagemaker"
     training:
-      device_types: [ "cpu", "gpu" ]
-      python_versions: [ "py38" ]
-      cuda_version: "cu113"
-      os_version: "ubuntu20.04"
-      example: False
-      disable_sm_tag: False
-      force_release: False
-    inference:
       device_types: [ "cpu", "gpu" ]
       python_versions: [ "py38" ]
       cuda_version: "cu113"
