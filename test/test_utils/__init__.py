@@ -59,9 +59,21 @@ PT_GPU_PY3_BENCHMARK_IMAGENET_AMI_US_EAST_1 = "ami-0673bb31cc62485dd"
 PT_GPU_PY3_BENCHMARK_IMAGENET_AMI_US_WEST_2 = "ami-02d9a47bc61a31d43"
 # Since latest driver is not in public DLAMI yet, using a custom one
 NEURON_UBUNTU_18_BASE_DLAMI_US_WEST_2 = get_ami_id_boto3(region_name="us-west-2", ami_name_pattern="Deep Learning Base AMI (Ubuntu 18.04) Version ??.?")
+# Habana Base v0.15.4 ami
+# UBUNTU_18_HPU_DLAMI_US_WEST_2 = "ami-0f051d0c1a667a106"
+# UBUNTU_18_HPU_DLAMI_US_EAST_1 = "ami-04c47cb3d4fdaa874"
+# Habana Base v1.2 ami
+# UBUNTU_18_HPU_DLAMI_US_WEST_2 = "ami-047fd74c001116366"
+# UBUNTU_18_HPU_DLAMI_US_EAST_1 = "ami-04c47cb3d4fdaa874"
 # Habana Base v1.3 ami
-UBUNTU_18_HPU_DLAMI_US_WEST_2 = "ami-08e564663ef2e761c"
-UBUNTU_18_HPU_DLAMI_US_EAST_1 = "ami-06a0a1e2c90bfc1c8"
+# UBUNTU_18_HPU_DLAMI_US_WEST_2 = "ami-0ef18b1906e7010fb" 
+# UBUNTU_18_HPU_DLAMI_US_EAST_1 = "ami-040ef14d634e727a2"
+# Habana Base v1.4.1 ami
+# UBUNTU_18_HPU_DLAMI_US_WEST_2 = "ami-08e564663ef2e761c"
+# UBUNTU_18_HPU_DLAMI_US_EAST_1 = "ami-06a0a1e2c90bfc1c8"
+# Habana Base v1.5 ami
+UBUNTU_18_HPU_DLAMI_US_WEST_2 = "ami-06bb08c4a3c5ba3bb"
+UBUNTU_18_HPU_DLAMI_US_EAST_1 = "ami-009bbfadb94835957"
 UL_AMI_LIST = [
     UBUNTU_18_BASE_DLAMI_US_EAST_1,
     UBUNTU_18_BASE_DLAMI_US_WEST_2,
@@ -1381,6 +1393,9 @@ def get_framework_from_image_uri(image_uri):
         else None
     )
 
+def is_trcomp_image(image_uri):
+    framework = get_framework_from_image_uri(image_uri)
+    return "trcomp" in framework
 
 def get_all_the_tags_of_an_image_from_ecr(ecr_client, image_uri):
     """
