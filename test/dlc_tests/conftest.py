@@ -96,7 +96,7 @@ FRAMEWORK_FIXTURES = (
 # Nightly image fixture dictionary, maps nightly fixtures to set of image labels
 NIGHTLY_FIXTURES = {
     "feature_smdebug_present": {"aws_framework_installed", "smdebug_installed"},
-    "feature_smdp_present": {"aws_framework_installed", "smddp_installed"},
+    "feature_smddp_present": {"aws_framework_installed", "smddp_installed"},
     "feature_smmp_present": {"smmp_installed"},
     "feature_aws_framework_present": {"aws_framework_installed"}
 }
@@ -107,7 +107,7 @@ def feature_smdebug_present():
     pass
 
 @pytest.fixture(scope="session")
-def feature_smdp_present():
+def feature_smddp_present():
     pass
 
 @pytest.fixture(scope="session")
@@ -569,6 +569,7 @@ def pt15_and_above_only():
 def pt14_and_above_only():
     pass
 
+
 def framework_version_within_limit(metafunc_obj, image):
     """
     Test all pytest fixtures for TensorFlow version limits, and return True if all requirements are satisfied
@@ -781,6 +782,7 @@ def pytest_generate_tests(metafunc):
     # Don't parametrize if there are no images to parametrize
     if not images:
         return
+        
     # Parametrize framework specific tests
     for fixture in FRAMEWORK_FIXTURES:
         if fixture in metafunc.fixturenames:

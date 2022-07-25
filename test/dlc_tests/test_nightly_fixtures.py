@@ -16,14 +16,14 @@ def test_training_case_2(training):
     pass
 
 # use case 3:
-@pytest.mark.usefixtures("feature_smdp_present")
+@pytest.mark.usefixtures("feature_smddp_present")
 @pytest.mark.usefixtures("sagemaker")
 def test_training_case_3(inference):
     print(f"\nSingle nightly fixture SMDDP with INFERENCE image fixture")
     pass
 
 # use case 4:
-@pytest.mark.usefixtures("feature_smdp_present")
+@pytest.mark.usefixtures("feature_smddp_present")
 @pytest.mark.usefixtures("sagemaker")
 def test_training_case_4(training):
     print(f"\nSingle nightly fixture SMDDP with TRAINING image fixture")
@@ -31,7 +31,7 @@ def test_training_case_4(training):
 
 # use case 5
 @pytest.mark.usefixtures("feature_smdebug_present")
-@pytest.mark.usefixtures("feature_smdp_present")
+@pytest.mark.usefixtures("feature_smddp_present")
 @pytest.mark.usefixtures("sagemaker")
 def test_training_case_5(inference):
     print(f"\nMultiple nightly fixtures SMDEBUG and SMDDP with INFERENCE image fixture")
@@ -39,7 +39,7 @@ def test_training_case_5(inference):
 
 # use case 6
 @pytest.mark.usefixtures("feature_smdebug_present")
-@pytest.mark.usefixtures("feature_smdp_present")
+@pytest.mark.usefixtures("feature_smddp_present")
 @pytest.mark.usefixtures("sagemaker")
 def test_training_case_6(training):
     print(f"\nMultiple nightly fixtures SMDEBUG and SMDDP with TRAINING image fixture")
