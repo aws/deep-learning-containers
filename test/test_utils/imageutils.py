@@ -2,6 +2,7 @@ import re
 import boto3
 import json
 
+
 def get_image_account_id(image_uri):
     """
     Find the account ID where the image is located
@@ -10,14 +11,17 @@ def get_image_account_id(image_uri):
     """
     return image_uri.split(".")[0]
 
+
 def get_image_repository_name(image_uri):
     repository_uri, _ = image_uri.split(":")
     _, repository = repository_uri.split("/")
     return repository
 
+
 def get_image_tag_name(image_uri):
     _, tag = image_uri.split(":")
     return tag
+
 
 def get_image_region(image_uri):
     """
@@ -29,6 +33,7 @@ def get_image_region(image_uri):
     region_search = re.search(region_pattern, image_uri)
     assert region_search, f"{image_uri} must have region that matches {region_pattern}"
     return region_search.group()
+
 
 def get_image_labels(image_uri, client=None):
     """
@@ -46,6 +51,7 @@ def get_image_labels(image_uri, client=None):
 
     labels = get_image_labels_with_manifest(client, repo, tag, account_id=account_id)
     return labels
+
 
 def get_image_labels_with_manifest(client, repository, tag, account_id=None, manifest_kwargs=None):
     """
@@ -72,6 +78,7 @@ def get_image_labels_with_manifest(client, repository, tag, account_id=None, man
     labels = metadata["config"]["Labels"]
     return labels
 
+
 def get_image_manifest(repository, tag, client, **kwargs):
     """
     Helper function to get an image manifest from ECR.
@@ -89,12 +96,12 @@ def get_image_manifest(repository, tag, client, **kwargs):
         raise KeyError(f"imageManifest not found in ecr_client.batch_get_image response:\n{response['images']}")
     return response["images"][0]["imageManifest"]
 
+
 def are_image_labels_matched(image_uri, labels):
     image_label_collection = get_image_labels(image_uri)
     if not image_label_collection:
         return False
-    image_labels = image_label_collection.keys()
     for label in labels:
-        if label not in image_labels or image_label_collection[label] != "true":
+        if label not in image_label_collection or image_label_collection[label].lower() != "true":
             return False
     return True

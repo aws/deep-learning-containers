@@ -75,6 +75,7 @@ def get_transformers_version(ecr_image):
     else:
         raise LookupError("HF transformers version not found in image URI")
 
+
 @pytest.mark.integration("smdataparallel")
 @pytest.mark.model("hf_qa_smdp")
 @pytest.mark.processor("gpu")

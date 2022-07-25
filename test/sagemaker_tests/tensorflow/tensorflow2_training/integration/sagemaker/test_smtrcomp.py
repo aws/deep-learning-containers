@@ -166,7 +166,8 @@ class TestDistributedTraining:
         captured = capsys.readouterr()
         _assert_training_compiler_invoked(captured)
 
-    @pytest.mark.usefixtures("feature_smdp_present")
+
+    @pytest.mark.usefixtures("feature_smddp_present")
     @pytest.mark.xfail(reason="Trcomp behavior with SMDP is undefined")
     @pytest.mark.model('toy')
     @pytest.mark.integration("smdataparallel")
@@ -187,6 +188,7 @@ class TestDistributedTraining:
         estimator.fit(job_name=unique_name_from_base("test-TF-trcomp-DT-SMDP"))
         captured = capsys.readouterr()
         _assert_training_compiler_invoked(captured)
+
 
     @pytest.mark.usefixtures("feature_smmp_present")
     @pytest.mark.xfail(reason="SMMP is only supported on CUDA 11 on TensorFlow version between v2.3.1(inclusive) and v2.7.0(exclusive)")
@@ -216,6 +218,7 @@ class TestDistributedTraining:
         estimator.fit(job_name=unique_name_from_base("test-TF-trcomp-DT-SMMP"))
         captured = capsys.readouterr()
         _assert_training_compiler_invoked(captured)
+
 
     @pytest.mark.usefixtures("feature_smmp_present")
     @pytest.mark.xfail(reason='SMMP is only supported on CUDA 11 on TensorFlow version between v2.3.1(inclusive) and v2.7.0(exclusive)')

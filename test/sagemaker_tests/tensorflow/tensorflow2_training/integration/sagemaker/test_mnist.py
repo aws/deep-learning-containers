@@ -365,7 +365,7 @@ def _test_smdebug_function(ecr_image, sagemaker_session, instance_type, framewor
     _assert_s3_file_exists(sagemaker_session.boto_region_name, estimator.model_data)
 
 
-@pytest.mark.usefixtures("feature_smdp_present")
+@pytest.mark.usefixtures("feature_smddp_present")
 @pytest.mark.usefixtures("feature_smmp_present")
 @pytest.mark.integration("smdataparallel_smmodelparallel")
 @pytest.mark.processor("gpu")
