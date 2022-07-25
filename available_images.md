@@ -145,10 +145,10 @@ Habana Training Containers
 
 | Framework         |Job Type	|Device Type 	|Python Version Options	| SynapseAI Version |Example URL																								 |
 |-------------------|-----------|---------------|-----------------------|-------------------|------------------------------------------------------------------------------------------------------------|
+|TensorFlow 2.9.1   |training   |HPU            | 3.8 (py38)            |1.5.0              |763104351884.dkr.ecr.us-west-2.amazonaws.com/tensorflow-training-habana:2.9.1-hpu-py38-synapseai1.5.0-ubuntu20.04 |
+|PyTorch 1.11.0     |training   |HPU            | 3.8 (py38)            |1.5.0              |763104351884.dkr.ecr.us-west-2.amazonaws.com/pytorch-training-habana:1.11.0-hpu-py38-synapseai1.5.0-ubuntu20.04 |
 |TensorFlow 2.8.0   |training   |HPU            | 3.8 (py38)            |1.4.1              |763104351884.dkr.ecr.us-west-2.amazonaws.com/tensorflow-training-habana:2.8.0-hpu-py38-synapseai1.4.1-ubuntu20.04 |
 |PyTorch 1.10.2     |training   |HPU            | 3.8 (py38)            |1.4.1              |763104351884.dkr.ecr.us-west-2.amazonaws.com/pytorch-training-habana:1.10.2-hpu-py38-synapseai1.4.1-ubuntu20.04 |
-|TensorFlow 2.8.0   |training   |HPU            | 3.8 (py38)            |1.3.0              |763104351884.dkr.ecr.us-west-2.amazonaws.com/tensorflow-training-habana:2.8.0-hpu-py38-synapseai1.3.0-ubuntu20.04 |
-|PyTorch 1.10.1     |training   |HPU            | 3.8 (py38)            |1.3.0              |763104351884.dkr.ecr.us-west-2.amazonaws.com/pytorch-training-habana:1.10.1-hpu-py38-synapseai1.3.0-ubuntu20.04 |
 
 
 AutoGluon Training Containers
@@ -406,6 +406,8 @@ Prior Habana Training Container Versions
 
 | Framework         |Job Type	|Device Type 	|Python Version Options	| SynapseAI Version |Example URL																								 |
 |-------------------|-----------|---------------|-----------------------|-------------------|------------------------------------------------------------------------------------------------------------|
+|PyTorch 1.10.1     |training   |HPU            | 3.8 (py38)            |1.3.0              |763104351884.dkr.ecr.us-west-2.amazonaws.com/pytorch-training-habana:1.10.1-hpu-py38-synapseai1.3.0-ubuntu20.04 |
+|TensorFlow 2.8.0   |training   |HPU            | 3.8 (py38)            |1.3.0              |763104351884.dkr.ecr.us-west-2.amazonaws.com/tensorflow-training-habana:2.8.0-hpu-py38-synapseai1.3.0-ubuntu20.04 |
 |PyTorch 1.10.0     |training   |HPU            | 3.8 (py38)            |1.2.0              |763104351884.dkr.ecr.us-east-1.amazonaws.com/pytorch-training-habana:1.10.0-hpu-py38-synapseai1.2.0-ubuntu20.04            |
 |TensorFlow 2.7.0   |training   |HPU            | 3.8 (py38)            |1.2.0              |763104351884.dkr.ecr.us-east-1.amazonaws.com/tensorflow-training-habana:2.7.0-hpu-py38-synapseai1.2.0-ubuntu20.04         |
 |PyTorch 1.7.1      |training   |HPU            | 3.7 (py37)            |0.15.4             |763104351884.dkr.ecr.us-east-1.amazonaws.com/pytorch-training-habana:1.7.1-hpu-py37-synapseai0.15.4-ubuntu18.04            |
