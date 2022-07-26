@@ -7,6 +7,7 @@ FROM 763104351884.dkr.ecr.us-west-2.amazonaws.com/pytorch-training:1.10.2-gpu-py
 LABEL maintainer="Amazon AI"
 LABEL dlc_major_version="1"
 
+
 # version args
 ARG TRANSFORMERS_VERSION
 ARG DATASETS_VERSION
