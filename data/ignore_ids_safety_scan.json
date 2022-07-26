@@ -667,6 +667,13 @@
         }
     },
 
+    "huggingface_pytorch_trcomp": {
+        "training": {
+            "py3": {
+                "48547":"Latest version of rdflib is being installed"}
+        }
+    },
+
     "habana_tensorflow": {
         "training": {
             "_comment":"py2 does not exist",
