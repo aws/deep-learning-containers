@@ -123,9 +123,13 @@ collect_ignore = [os.path.join("container_tests")]
 
 
 def pytest_addoption(parser):
+    images = []
     default_images = test_utils.get_dlc_images()
+    if default_images:
+        images = default_images.split(" ")
+
     parser.addoption(
-        "--images", default=default_images.split(" "), nargs="+", help="Specify image(s) to run",
+        "--images", default=images, nargs="+", help="Specify image(s) to run",
     )
     parser.addoption(
         "--canary", action="store_true", default=False, help="Run canary tests",
@@ -779,9 +783,20 @@ def lookup_condition(lookup, image):
 def pytest_generate_tests(metafunc):
     images = metafunc.config.getoption("--images")
 
+    if not is_nightly_context() and "test_training_case_" in metafunc.function.__name__:
+        # retrieving images only for nightly fixture tests
+        # store current build context
+        current_build_context = os.getenv("BUILD_CONTEXT")
+        os.environ["BUILD_CONTEXT"] = "NIGHTLY"
+        images = test_utils.get_dlc_images().split(" ")
+
+        # restore current build context
+        os.environ["BUILD_CONTEXT"] = current_build_context
+
     # Don't parametrize if there are no images to parametrize
     if not images:
         return
+
         
     # Parametrize framework specific tests
     for fixture in FRAMEWORK_FIXTURES:
@@ -840,7 +855,7 @@ def pytest_generate_tests(metafunc):
             if images_to_parametrize and "py3_only" in metafunc.fixturenames:
                 images_to_parametrize = [py3_image for py3_image in images_to_parametrize if "py2" not in py3_image]
 
-            if is_nightly_context():
+            if is_nightly_context() or "test_training_case_" in metafunc.function.__name__:
                 nightly_images_to_parametrize = []
                 # filter the nightly fixtures in the current functional context
                 func_nightly_fixtures = {key: value for (key,value) in NIGHTLY_FIXTURES.items() if key in metafunc.fixturenames}
@@ -849,6 +864,7 @@ def pytest_generate_tests(metafunc):
                     if all([are_image_labels_matched(image_candidate, nightly_labels) for _, nightly_labels in func_nightly_fixtures.items()]):
                         nightly_images_to_parametrize.append(image_candidate)
                 images_to_parametrize = nightly_images_to_parametrize
+            
             
             # Parametrize tests that spin up an ecs cluster or tests that spin up an EC2 instance with a unique name
             values_to_generate_for_fixture = {
