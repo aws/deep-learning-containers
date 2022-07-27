@@ -418,7 +418,7 @@ def _run_dependency_check_test(image, ec2_connection):
             "1.11": ["cpu", "gpu", "hpu"],
             "1.12": ["cpu", "gpu"]
         },
-        "huggingface_pytorch": {"1.8": ["cpu", "gpu"], "1.9": ["cpu", "gpu"]},
+        "huggingface_pytorch": {"1.8": ["cpu", "gpu"], "1.9": ["cpu", "gpu"], "1.11": ["cpu", "gpu"]},
         "huggingface_tensorflow": {"2.4": ["cpu", "gpu"], "2.5": ["cpu", "gpu"], "2.6": ["cpu", "gpu"]},
         "huggingface_tensorflow_trcomp": {"2.6": ["gpu"]},
         "autogluon": {"0.3": ["cpu", "gpu"], "0.4": ["cpu", "gpu"]},
@@ -443,6 +443,7 @@ def _run_dependency_check_test(image, ec2_connection):
         "mxnet": {"1.8": ["neuron"], "1.9": ["cpu", "gpu"]},
         "huggingface_tensorflow": {"2.5": ["gpu"], "2.6": ["gpu"]},
         "autogluon": {"0.3": ["cpu", "gpu"], "0.4": ["cpu", "gpu"]},
+        "huggingface_pytorch": {"1.11": ["cpu", "gpu"]},
         "huggingface_pytorch_trcomp": {"1.9": ["gpu"]},
         "huggingface_tensorflow_trcomp": {"2.6": ["gpu"]},
     }
