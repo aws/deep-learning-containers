@@ -202,17 +202,6 @@ SageMaker Training Compiler Containers
 |TensorFlow 2.6.3 with HuggingFace transformers and SageMaker Training Compiler |training	|GPU 		| 3.8 (py38)			|763104351884.dkr.ecr.us-east-1.amazonaws.com/huggingface-tensorflow-trcomp-training:2.6.3-transformers4.17.0-gpu-py38-cu112-ubuntu20.04 	|
 
 
-Elastic Inference Containers
-============================
-
-| Framework 			                      |Job Type 	 |Horovod Options 	  |CPU/GPU 	   |Python Version Options     |Example URL 			                                                                           |
-|---------------------------------------------|--------------|--------------------|------------|---------------------------|---------------------------------------------------------------------------------------------------|
-|TensorFlow 2.3.0 with Elastic Inference 	  |inference     |No 			      |CPU 		   |3.7 (py37) 	               |763104351884.dkr.ecr.us-east-1.amazonaws.com/tensorflow-inference-eia:2.3.0-cpu-py37-ubuntu18.04   |
-|TensorFlow 1.15.0 with Elastic Inference     |inference 	 |No                  |CPU         |2.7 (py27), 3.6 (py36) 	   |763104351884.dkr.ecr.us-east-1.amazonaws.com/tensorflow-inference-eia:1.15.0-cpu-py36-ubuntu18.04  |
-|MXNet 1.7.0 with Elastic Inference           |inference     |No 			      |CPU 		   |3.6 (py36) 	               |763104351884.dkr.ecr.us-east-1.amazonaws.com/mxnet-inference-eia:1.7.0-cpu-py36-ubuntu16.04        |
-|PyTorch 1.5.1 with Elastic Inference 		  |inference 	 |No 			      |CPU 		   |3.6 (py36) 			       |763104351884.dkr.ecr.us-east-1.amazonaws.com/pytorch-inference-eia:1.5.1-cpu-py36-ubuntu16.04      |
-
-
 Neuron Inference Containers
 ============================
 
