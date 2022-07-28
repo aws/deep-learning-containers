@@ -85,7 +85,7 @@ def get_minimum_sev_threshold_level(image):
 @pytest.mark.model("N/A")
 @pytest.mark.canary("Run ECR Scan test regularly on production images")
 @pytest.mark.integration("check OS dependencies")
-def test_ecr_scan(image, ecr_client, sts_client, region):
+def test_ecr_basic_scan(image, ecr_client, sts_client, region):
     """
     Run ECR Scan Tool on an image being tested, and raise Error if vulnerabilities found
     1. Start Scan.
@@ -193,3 +193,10 @@ def test_ecr_scan(image, ecr_client, sts_client, region):
             pytest.skip("Skipping the test failure on the canary.")
         else:
             raise RuntimeError(display_message)
+
+
+@pytest.mark.usefixtures("sagemaker")
+@pytest.mark.model("N/A")
+@pytest.mark.integration("ECR Enhanced Scans on Images")
+def test_ecr_enhanced_scan(image, ecr_client, sts_client, region):
+    LOGGER.info(f"Running test_ecr_enhanced_scan for image {image}")
