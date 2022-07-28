@@ -79,7 +79,7 @@ images:
   BuildSageMakerCPUPTTrainPy3DockerImage:
     <<: *TRAINING_REPOSITORY
     build: &PYTORCH_CPU_TRAINING_PY3 false
-    image_size_baseline: 5000
+    image_size_baseline: 6000
     # base_image_name: BuildE3CPUPTTrainPy3DockerImage
     device_type: &DEVICE_TYPE cpu
     python_version: &DOCKER_PYTHON_VERSION py3
