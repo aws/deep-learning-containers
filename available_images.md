@@ -53,8 +53,7 @@ previously, insert the region in the repository URL following this
 example:
 
 
-
-     763104351884.dkr.ecr.<region>.amazonaws.com/tensorflow-training:1.15.2-cpu-py27-ubuntu18.04
+     763104351884.dkr.ecr.<region>.amazonaws.com/tensorflow-training:2.9.1-gpu-py39-cu112-ubuntu20.04-e3
 
 **Important**
 
@@ -290,14 +289,3 @@ Prior Neuron Inference Container Versions
 | Framework 			                    |Job Type 	 |Python Version Options    |Example URL 			                                                                                    |
 |-------------------------------------------|------------|--------------------------|-----------------------------------------------------------------------------------------------------------|
 |PyTorch 1.10.1 with Neuron Inference        |inference 	|3.7 (py37) 	        |763104351884.dkr.ecr.us-east-1.amazonaws.com/pytorch-inference-neuron:1.10.1-neuron-py37-sdk1.17.1-ubuntu18.04        |
-
-
-Prior Habana Training Container Versions
-===============================
-
-| Framework         |Job Type	|Device Type 	|Python Version Options	| SynapseAI Version |Example URL																								 |
-|-------------------|-----------|---------------|-----------------------|-------------------|------------------------------------------------------------------------------------------------------------|
-|PyTorch 1.10.1     |training   |HPU            | 3.8 (py38)            |1.3.0              |763104351884.dkr.ecr.us-west-2.amazonaws.com/pytorch-training-habana:1.10.1-hpu-py38-synapseai1.3.0-ubuntu20.04 |
-|TensorFlow 2.8.0   |training   |HPU            | 3.8 (py38)            |1.3.0              |763104351884.dkr.ecr.us-west-2.amazonaws.com/tensorflow-training-habana:2.8.0-hpu-py38-synapseai1.3.0-ubuntu20.04 |
-|PyTorch 1.10.0     |training   |HPU            | 3.8 (py38)            |1.2.0              |763104351884.dkr.ecr.us-east-1.amazonaws.com/pytorch-training-habana:1.10.0-hpu-py38-synapseai1.2.0-ubuntu20.04            |
-|TensorFlow 2.7.0   |training   |HPU            | 3.8 (py38)            |1.2.0              |763104351884.dkr.ecr.us-east-1.amazonaws.com/tensorflow-training-habana:2.7.0-hpu-py38-synapseai1.2.0-ubuntu20.04         |
