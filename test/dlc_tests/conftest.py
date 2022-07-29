@@ -38,7 +38,8 @@ from test.test_utils import (
     UBUNTU_HOME_DIR,
 )
 from test.test_utils.imageutils import (
-    are_image_labels_matched
+    are_image_labels_matched,
+    are_valid_fixture_labels_present
 )
 from test.test_utils.test_reporting import TestReportGenerator
 
@@ -95,9 +96,9 @@ FRAMEWORK_FIXTURES = (
 
 # Nightly image fixture dictionary, maps nightly fixtures to set of image labels
 NIGHTLY_FIXTURES = {
-    "feature_smdebug_present": {"aws_framework_installed", "smdebug_installed"},
-    "feature_smddp_present": {"aws_framework_installed", "smddp_installed"},
-    "feature_smmp_present": {"smmp_installed"},
+    "feature_smdebug_present": {"aws_framework_installed", "aws_smdebug_installed"},
+    "feature_smddp_present": {"aws_framework_installed", "aws_smddp_installed"},
+    "feature_smmp_present": {"aws_smmp_installed"},
     "feature_aws_framework_present": {"aws_framework_installed"}
 }
 
@@ -123,11 +124,8 @@ collect_ignore = [os.path.join("container_tests")]
 
 
 def pytest_addoption(parser):
-    images = []
     default_images = test_utils.get_dlc_images()
-    if default_images:
-        images = default_images.split(" ")
-
+    images = default_images.split(" ") if default_images else []
     parser.addoption(
         "--images", default=images, nargs="+", help="Specify image(s) to run",
     )
@@ -783,16 +781,6 @@ def lookup_condition(lookup, image):
 def pytest_generate_tests(metafunc):
     images = metafunc.config.getoption("--images")
 
-    if not is_nightly_context() and "test_training_case_" in metafunc.function.__name__:
-        # retrieving images only for nightly fixture tests
-        # store current build context
-        current_build_context = os.getenv("BUILD_CONTEXT")
-        os.environ["BUILD_CONTEXT"] = "NIGHTLY"
-        images = test_utils.get_dlc_images().split(" ")
-
-        # restore current build context
-        os.environ["BUILD_CONTEXT"] = current_build_context
-
     # Don't parametrize if there are no images to parametrize
     if not images:
         return
@@ -855,14 +843,20 @@ def pytest_generate_tests(metafunc):
             if images_to_parametrize and "py3_only" in metafunc.fixturenames:
                 images_to_parametrize = [py3_image for py3_image in images_to_parametrize if "py2" not in py3_image]
 
-            if is_nightly_context() or "test_training_case_" in metafunc.function.__name__:
+            if is_nightly_context():
                 nightly_images_to_parametrize = []
                 # filter the nightly fixtures in the current functional context
                 func_nightly_fixtures = {key: value for (key,value) in NIGHTLY_FIXTURES.items() if key in metafunc.fixturenames}
                 # iterate through image candidates and select images with labels that match all nightly fixture labels
                 for image_candidate in images_to_parametrize:
-                    if all([are_image_labels_matched(image_candidate, nightly_labels) for _, nightly_labels in func_nightly_fixtures.items()]):
+                    if all([are_valid_fixture_labels_present(image_candidate, nightly_labels) for _, nightly_labels in func_nightly_fixtures.items()]):
                         nightly_images_to_parametrize.append(image_candidate)
+                """
+                print(f"Function: {metafunc.function.__name__}")
+                print(f"Nightly Fixture Labels: {func_nightly_fixtures}")
+                print(f"Number of images to parametrize: {len(images_to_parametrize)}")
+                print(f"Number of nightly images to parametrize: {len(nightly_images_to_parametrize)}\n")
+                """
                 images_to_parametrize = nightly_images_to_parametrize
             
             

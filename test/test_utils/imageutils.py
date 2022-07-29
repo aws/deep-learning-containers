@@ -97,6 +97,25 @@ def get_image_manifest(repository, tag, client, **kwargs):
     return response["images"][0]["imageManifest"]
 
 
+def are_valid_fixture_labels_present(image_uri, labels):
+    """
+    Returns False if a fixture label in the given image has value other than true
+    Otherwise returns True
+    Example: 
+    Expected fixture labels: [a,b,c]
+    image labels: [] -> True
+    image labels: [a=true] -> True # assumes [b=true, c=true]
+    image labels: [a=true, b=false, c=true] -> False
+    image labels: [a=true, b=true, c=true] -> True
+    image labels: [a=false] -> False
+    """
+    image_labels = get_image_labels(image_uri)
+    if image_labels:
+        for label in labels:
+            if image_labels.get(label, "True").lower() != "true":
+                return False
+    return True
+
 def are_image_labels_matched(image_uri, labels):
     image_label_collection = get_image_labels(image_uri)
     if not image_label_collection:
