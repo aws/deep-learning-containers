@@ -97,6 +97,20 @@ def get_ecr_image_scan_status(ecr_client, image_uri):
     return image_info["imageScanStatus"]["status"], image_info["imageScanStatus"].get("description", "NO DESCRIPTION")
 
 
+def get_ecr_image_enhanced_scan_status(ecr_client, image_uri):
+    """
+    Get status of an ECR Enhanced image scan.
+    :param ecr_client: boto3 client for ECR
+    :param image_uri: image URI for image to be checked
+    :return: tuple<str, str> Scan Status, Status Description
+    """
+    repository, tag = get_repository_and_tag_from_image_uri(image_uri)
+    scan_info = ecr_client.describe_image_scan_findings(
+        repositoryName=repository, imageId={"imageTag": tag}, maxResults=1
+    )
+    return scan_info["imageScanStatus"]["status"], scan_info["imageScanStatus"]["description"]
+
+
 def get_ecr_image_scan_severity_count(ecr_client, image_uri):
     """
     Get ECR image scan findings

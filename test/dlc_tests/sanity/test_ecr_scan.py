@@ -32,6 +32,7 @@ from test.test_utils.security import (
     run_scan,
     fetch_other_vulnerability_lists,
     get_new_image_uri_using_current_uri_and_new_repo,
+    wait_for_enhanced_scans_to_complete
 )
 from src.config import is_ecr_scan_allowlist_feature_enabled
 
@@ -252,10 +253,12 @@ def test_ecr_enhanced_scan(image, ecr_client, sts_client, region):
     ecr_utils.reupload_image_to_test_ecr(
         new_uri, ECR_ENHANCED_SCANNING_REPO_NAME, ECR_ENHANCED_REPO_REGION, pull_image=False
     )
-    ## Add a wait timer till the scan is pending
+    ecr_client_for_enhanced_scanning_repo=boto3.client('ecr',region_name=ECR_ENHANCED_REPO_REGION)
+
+    wait_for_enhanced_scans_to_complete(ecr_client_for_enhanced_scanning_repo, new_uri)
 
     ## Add the logic to fetch all the results - paging
-    scan_results = ecr_utils.get_all_ecr_enhanced_scan_findings(ecr_client=boto3.client('ecr',region_name=ECR_ENHANCED_REPO_REGION), image_uri=new_uri)
+    scan_results = ecr_utils.get_all_ecr_enhanced_scan_findings(ecr_client=ecr_client_for_enhanced_scanning_repo, image_uri=new_uri)
     with open("enhanced_results.json", "w") as f:
         json.dump(scan_results, f, default=ecr_utils.ecr_json_serializer, indent=4)
 

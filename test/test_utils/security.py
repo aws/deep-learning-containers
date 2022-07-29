@@ -557,6 +557,24 @@ def run_scan(ecr_client, image):
         raise TimeoutError(f"ECR Scan is still in {scan_status} state. Exiting.")
 
 
+def wait_for_enhanced_scans_to_complete(ecr_client, image):
+    """
+    We are activating Continuous Enhanced scans. The images will go through `SCAN_ON_PUSH` when they are uploaded for the 
+    first time. During that time, their state will be shown as `PENDING`. From next time onwards, their status will show 
+    itself as `ACTIVE`.
+    """
+    scan_status = None
+    scan_status_description = ""
+    start_time = time()
+    while (time() - start_time) <= 600:
+        ## TODO: Might have to add try except here ##
+        scan_status, scan_status_description = ecr_utils.get_ecr_image_enhanced_scan_status(ecr_client, image)
+        if scan_status == "ACTIVE":
+            break
+        sleep(1)
+    if scan_status != "ACTIVE":
+        raise TimeoutError(f"ECR Scan is still in {scan_status} state with description: {scan_status_description}. Exiting.")
+
 def fetch_other_vulnerability_lists(image, ecr_client, minimum_sev_threshold):
     """
     For a given image it fetches all the other vulnerability lists except the vulnerability list formed by the
