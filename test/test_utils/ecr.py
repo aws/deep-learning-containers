@@ -165,7 +165,7 @@ def delete_file(file_path):
     subprocess.check_output(f"rm -rf {file_path}", shell=True, executable="/bin/bash")
 
 
-def reupload_image_to_test_ecr(source_image_uri, target_image_repo_name, target_region):
+def reupload_image_to_test_ecr(source_image_uri, target_image_repo_name, target_region, pull_image=True):
     """
     Helper function to reupload an image owned by a another/same account to an ECR repo in this account to given region, so that
     this account can freely run tests without permission issues.
@@ -200,11 +200,12 @@ def reupload_image_to_test_ecr(source_image_uri, target_image_repo_name, target_
 
     # using ctx.run throws error on codebuild "OSError: reading from stdin while output is captured".
     # Also it throws more errors related to awscli if in_stream=False flag is added to ctx.run which needs more deep dive
-    subprocess.check_output(
-        f"cat {ECR_PASSWORD_FILE_PATH} | docker login -u {username} --password-stdin https://{image_account_id}.dkr.ecr.{image_region}.amazonaws.com && docker pull {source_image_uri}",
-        shell=True,
-        executable="/bin/bash",
-    )
+    if pull_image:
+        subprocess.check_output(
+            f"cat {ECR_PASSWORD_FILE_PATH} | docker login -u {username} --password-stdin https://{image_account_id}.dkr.ecr.{image_region}.amazonaws.com && docker pull {source_image_uri}",
+            shell=True,
+            executable="/bin/bash",
+        )
     subprocess.check_output(f"docker tag {source_image_uri} {target_image_uri}", shell=True, executable="/bin/bash")
     delete_file(ECR_PASSWORD_FILE_PATH)
     username, password = get_ecr_login_boto3(target_ecr_client, target_account_id, target_region)

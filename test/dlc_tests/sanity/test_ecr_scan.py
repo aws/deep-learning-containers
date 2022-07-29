@@ -18,7 +18,9 @@ from test.test_utils import (
     get_all_the_tags_of_an_image_from_ecr,
     is_image_available_locally,
     login_to_ecr_registry,
-    get_region_from_image_uri
+    get_region_from_image_uri,
+    ECR_ENHANCED_SCANNING_REPO_NAME,
+    ECR_ENHANCED_REPO_REGION,
 )
 from test.test_utils import ecr as ecr_utils
 from test.test_utils.security import (
@@ -28,6 +30,7 @@ from test.test_utils.security import (
     process_failure_routine_summary_and_store_data_in_s3,
     run_scan,
     fetch_other_vulnerability_lists,
+    get_new_image_uri_using_current_uri_and_new_repo,
 )
 from src.config import is_ecr_scan_allowlist_feature_enabled
 
@@ -64,7 +67,7 @@ def is_image_covered_by_allowlist_feature(image):
     image_framework, image_version = get_framework_and_version_from_tag(image)
     if image_framework not in ALLOWLIST_FEATURE_ENABLED_IMAGES or any(substring in image for substring in ["example"]):
         return False
-    if Version(image_version)in ALLOWLIST_FEATURE_ENABLED_IMAGES[image_framework]:
+    if Version(image_version) in ALLOWLIST_FEATURE_ENABLED_IMAGES[image_framework]:
         return True
     return False
 
@@ -79,6 +82,36 @@ def get_minimum_sev_threshold_level(image):
     if is_image_covered_by_allowlist_feature(image):
         return "MEDIUM"
     return "HIGH"
+
+
+def conduct_preprocessing(image, ecr_client, sts_client, region):
+    test_account_id = sts_client.get_caller_identity().get("Account")
+    image_account_id = get_account_id_from_image_uri(image)
+    image_region = get_region_from_image_uri(image)
+    image_repo_name, original_image_tag = get_repository_and_tag_from_image_uri(image)
+    additional_image_tags = get_all_the_tags_of_an_image_from_ecr(ecr_client, image)
+
+    if not is_image_available_locally(image):
+        LOGGER.info(f"Image {image} not available locally!! Pulling the image...")
+        login_to_ecr_registry(Context(), image_account_id, image_region)
+        run(f"docker pull {image}")
+        if not is_image_available_locally(image):
+            raise RuntimeError("Image shown as not available even after pulling")
+
+    for additional_tag in additional_image_tags:
+        image_uri_with_new_tag = image.replace(original_image_tag, additional_tag)
+        run(f"docker tag {image} {image_uri_with_new_tag}", hide=True)
+
+    if image_account_id != test_account_id:
+        original_image = image
+        target_image_repo_name = f"beta-{image_repo_name}"
+        for additional_tag in additional_image_tags:
+            image_uri_with_new_tag = original_image.replace(original_image_tag, additional_tag)
+            new_image_uri = ecr_utils.reupload_image_to_test_ecr(image_uri_with_new_tag, target_image_repo_name, region)
+            if image_uri_with_new_tag == original_image:
+                image = new_image_uri
+
+    return image
 
 
 @pytest.mark.usefixtures("sagemaker")
@@ -142,7 +175,7 @@ def test_ecr_basic_scan(image, ecr_client, sts_client, region):
     if not is_image_covered_by_allowlist_feature(image):
         if is_canary_context():
             pytest.skip("Skipping the test on the canary.")
-        
+
         common_ecr_scan_allowlist = ScanVulnerabilityList(minimum_severity=CVESeverity[minimum_sev_threshold])
         common_ecr_scan_allowlist_path = os.path.join(
             os.sep, get_repository_local_path(), "data", "common-ecr-scan-allowlist.json"
@@ -181,12 +214,18 @@ def test_ecr_basic_scan(image, ecr_client, sts_client, region):
             s3_filename_for_fixable_list,
             s3_filename_for_non_fixable_list,
         ) = process_failure_routine_summary_and_store_data_in_s3(failure_routine_summary, s3_bucket_name)
-        prepend_message = "Found new vulnerabilities in image." if newly_found_vulnerabilities else "Allowlist is outdated."
-        display_message = prepend_message + " " + (
-            f"""Found {len(failure_routine_summary["fixable_vulnerabilities"])} fixable vulnerabilites """
-            f"""and {len(failure_routine_summary["non_fixable_vulnerabilities"])} non fixable vulnerabilites. """
-            f"""Refer to files s3://{s3_bucket_name}/{s3_filename_for_fixable_list}, s3://{s3_bucket_name}/{s3_filename_for_non_fixable_list}, """
-            f"""s3://{s3_bucket_name}/{failure_routine_summary["s3_filename_for_current_image_ecr_scan_list"]} and s3://{s3_bucket_name}/{failure_routine_summary["s3_filename_for_allowlist"]}."""
+        prepend_message = (
+            "Found new vulnerabilities in image." if newly_found_vulnerabilities else "Allowlist is outdated."
+        )
+        display_message = (
+            prepend_message
+            + " "
+            + (
+                f"""Found {len(failure_routine_summary["fixable_vulnerabilities"])} fixable vulnerabilites """
+                f"""and {len(failure_routine_summary["non_fixable_vulnerabilities"])} non fixable vulnerabilites. """
+                f"""Refer to files s3://{s3_bucket_name}/{s3_filename_for_fixable_list}, s3://{s3_bucket_name}/{s3_filename_for_non_fixable_list}, """
+                f"""s3://{s3_bucket_name}/{failure_routine_summary["s3_filename_for_current_image_ecr_scan_list"]} and s3://{s3_bucket_name}/{failure_routine_summary["s3_filename_for_allowlist"]}."""
+            )
         )
         if is_canary_context():
             LOGGER.error(display_message)
@@ -200,3 +239,15 @@ def test_ecr_basic_scan(image, ecr_client, sts_client, region):
 @pytest.mark.integration("ECR Enhanced Scans on Images")
 def test_ecr_enhanced_scan(image, ecr_client, sts_client, region):
     LOGGER.info(f"Running test_ecr_enhanced_scan for image {image}")
+    image = conduct_preprocessing(image, ecr_client, sts_client, region)
+    new_uri = get_new_image_uri_using_current_uri_and_new_repo(
+        image,
+        new_repository_name=ECR_ENHANCED_SCANNING_REPO_NAME,
+        new_repository_region=ECR_ENHANCED_REPO_REGION,
+        append_tag="ENHSCAN",
+    )
+    ecr_utils.reupload_image_to_test_ecr(
+        new_uri, ECR_ENHANCED_SCANNING_REPO_NAME, ECR_ENHANCED_REPO_REGION, pull_image=False
+    )
+    LOGGER.info(f"New URI found {new_uri}")
+    LOGGER.info(f"Completed processing for {image}")

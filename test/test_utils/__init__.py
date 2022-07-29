@@ -134,6 +134,9 @@ UPGRADE_ECR_REPO_NAME = "upgraded-image-ecr-scan-repo"
 ECR_SCAN_HELPER_BUCKET = f"""ecr-scan-helper-{boto3.client("sts", region_name=DEFAULT_REGION).get_caller_identity().get("Account")}"""
 ECR_SCAN_FAILURE_ROUTINE_LAMBDA = "ecr-scan-failure-routine-lambda"
 
+ECR_ENHANCED_SCANNING_REPO_NAME = "ecr-enhanced-scanning-dlc-repo"
+ECR_ENHANCED_REPO_REGION = "us-west-1"
+
 class MissingPythonVersionException(Exception):
     """
     When the Python Version is missing from an image_uri where it is expected to exist
