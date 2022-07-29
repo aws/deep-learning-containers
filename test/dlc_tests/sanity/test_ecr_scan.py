@@ -1,5 +1,6 @@
 import json
 import os
+import boto3
 
 import pytest
 
@@ -240,14 +241,24 @@ def test_ecr_basic_scan(image, ecr_client, sts_client, region):
 def test_ecr_enhanced_scan(image, ecr_client, sts_client, region):
     LOGGER.info(f"Running test_ecr_enhanced_scan for image {image}")
     image = conduct_preprocessing(image, ecr_client, sts_client, region)
+
     new_uri = get_new_image_uri_using_current_uri_and_new_repo(
         image,
         new_repository_name=ECR_ENHANCED_SCANNING_REPO_NAME,
         new_repository_region=ECR_ENHANCED_REPO_REGION,
         append_tag="ENHSCAN",
     )
+
     ecr_utils.reupload_image_to_test_ecr(
         new_uri, ECR_ENHANCED_SCANNING_REPO_NAME, ECR_ENHANCED_REPO_REGION, pull_image=False
     )
+    ## Add a wait timer till the scan is pending
+
+    ## Add the logic to fetch all the results - paging
+    scan_results = ecr_utils.get_all_ecr_enhanced_scan_findings(ecr_client=boto3.client('ecr',region_name=ECR_ENHANCED_REPO_REGION), image_uri=new_uri)
+    with open("enhanced_results.json", "w") as f:
+        json.dump(scan_results, f, default=ecr_utils.ecr_json_serializer, indent=4)
+
     LOGGER.info(f"New URI found {new_uri}")
     LOGGER.info(f"Completed processing for {image}")
+    LOGGER.info(json.dumps(scan_results, default=ecr_utils.ecr_json_serializer))
