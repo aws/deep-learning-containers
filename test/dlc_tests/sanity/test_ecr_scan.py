@@ -262,3 +262,4 @@ def test_ecr_enhanced_scan(image, ecr_client, sts_client, region):
     LOGGER.info(f"New URI found {new_uri}")
     LOGGER.info(f"Completed processing for {image}")
     LOGGER.info(json.dumps(scan_results, default=ecr_utils.ecr_json_serializer))
+    LOGGER.info(f"Len of scanned results {len(scan_results)}")

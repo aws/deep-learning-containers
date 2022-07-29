@@ -110,6 +110,37 @@ def get_ecr_image_scan_severity_count(ecr_client, image_uri):
     return severity_counts
 
 
+def get_all_ecr_image_scan_results_using_pagination(ecr_client, image_uri, scan_info_finding_key="enhancedFindings"):
+    """
+    Get list of All vulnerabilities from ECR image scan results using pagination
+    :param ecr_client: boto3 ecr client
+    :param image_uri: str, image uri
+    :return: list<dict> Scan results
+    """
+    scan_info_findings = []
+    repository, tag = get_repository_and_tag_from_image_uri(image_uri)
+    scan_info = ecr_client.describe_image_scan_findings(
+        repositoryName=repository, imageId={"imageTag": tag}, maxResults=100
+    )
+
+    scan_info_findings.append(scan_info["imageScanFindings"][scan_info_finding_key])
+
+    nextToken = None
+    if "nextToken" in scan_info:
+        nextToken = scan_info["nextToken"]
+
+    while nextToken:
+        scan_info = ecr_client.describe_image_scan_findings(
+            repositoryName=repository, imageId={"imageTag": tag}, maxResults=100, nextToken=nextToken
+        )
+        scan_info_findings.append(scan_info["imageScanFindings"][scan_info_finding_key])
+        nextToken = None
+        if "nextToken" in scan_info:
+            nextToken = scan_info["nextToken"]
+
+    return scan_info_findings
+
+
 def get_ecr_image_scan_results(ecr_client, image_uri, minimum_vulnerability="HIGH"):
     """
     Get list of vulnerabilities from ECR image scan results
@@ -129,21 +160,27 @@ def get_ecr_image_scan_results(ecr_client, image_uri, minimum_vulnerability="HIG
 
 
 def get_all_ecr_enhanced_scan_findings(ecr_client, image_uri):
-    repository, tag = get_repository_and_tag_from_image_uri(image_uri)
-    scan_info = ecr_client.describe_image_scan_findings(repositoryName=repository, imageId={"imageTag": tag})
-    scan_findings = [
-        finding
-        for finding in scan_info["imageScanFindings"]["enhancedFindings"]
-    ]
+    """
+    Get list of all vulnerabilities from ECR ENHANCED image scan results
+    :param ecr_client:
+    :param image_uri:
+    :return: list<dict> Scan results
+    """
+    scan_info_findings = get_all_ecr_image_scan_results_using_pagination(
+        ecr_client, image_uri, scan_info_finding_key="enhancedFindings"
+    )
+    scan_findings = []
+    for scan_info_finding in scan_info_findings:
+        scan_findings += [finding for finding in scan_info_finding]
+
     return scan_findings
 
 
 def ecr_json_serializer(obj):
     """JSON serializer for objects not serializable by default json code"""
-
     if isinstance(obj, (datetime, date)):
         return obj.isoformat()
-    raise TypeError ("Type %s not serializable" % type(obj))
+    raise TypeError("Type %s not serializable" % type(obj))
 
 
 def ecr_repo_exists(ecr_client, repo_name, account_id=None):
