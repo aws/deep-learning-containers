@@ -345,6 +345,7 @@ RUN $PYTHON -m pip install --no-cache-dir -U \
     "seaborn>=0.11,<1" \
     "numba<0.54" \
     "shap>=0.39,<1"
+    "immutabledict"
 
 # install smdebug directly the specific branch
 ARG SMDEBUG_TAG=1.0.17
