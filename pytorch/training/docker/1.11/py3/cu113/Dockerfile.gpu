@@ -228,7 +228,7 @@ RUN curl -o /license.txt  https://aws-dlc-licenses.s3.amazonaws.com/pytorch-1.11
 #                                    |___/                        |_|
 ##############################################################################
 
-FROM common AS e3
+FROM common AS ec2
 
 ARG PYTHON
 ARG PYTHON_VERSION

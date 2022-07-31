@@ -7,7 +7,7 @@
 #                                    |___/                        |_|
 ##############################################################################
 
-FROM nvidia/cuda:11.2.1-base-ubuntu20.04 AS e3
+FROM nvidia/cuda:11.2.1-base-ubuntu20.04 AS ec2
 
 LABEL maintainer="Amazon AI"
 LABEL dlc_major_version="1"
@@ -180,7 +180,7 @@ CMD ["/usr/bin/tf_serving_entrypoint.sh"]
 #                      |___/                        |_|
 #################################################################
 
-FROM e3 AS sagemaker
+FROM ec2 AS sagemaker
 
 LABEL maintainer="Amazon AI"
 LABEL dlc_major_version="1"

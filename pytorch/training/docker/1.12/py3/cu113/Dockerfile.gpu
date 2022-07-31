@@ -4,7 +4,7 @@ ARG PYTHON_SHORT_VERSION=3.8
 ARG MAMBA_VERSION=4.12.0-2
 
 # PyTorch Binaries
-ARG PT_E3_TRAINING_URL=https://download.pytorch.org/whl/test/cu113/torch-1.12.0%2Bcu113-cp38-cp38-linux_x86_64.whl
+ARG PT_EC2_TRAINING_URL=https://download.pytorch.org/whl/test/cu113/torch-1.12.0%2Bcu113-cp38-cp38-linux_x86_64.whl
 ARG PT_SM_TRAINING_URL=https://aws-pytorch-unified-cicd-binaries.s3.us-west-2.amazonaws.com/r1.12.0_sm/20220714-012958/9f169f548f4b1eca6631c07d48bbe73a59e300ca/torch-1.12.0%2Bcu113-cp38-cp38-linux_x86_64.whl
 ARG PT_TORCHVISION_URL=https://download.pytorch.org/whl/cu113/torchvision-0.13.0%2Bcu113-cp38-cp38-linux_x86_64.whl
 ARG PT_TORCHAUDIO_URL=https://download.pytorch.org/whl/cu113/torchaudio-0.12.0%2Bcu113-cp38-cp38-linux_x86_64.whl
@@ -215,14 +215,14 @@ RUN curl -o /license.txt  https://aws-dlc-licenses.s3.amazonaws.com/pytorch-1.12
 #                                    |___/                        |_|
 ##############################################################################
 
-FROM common AS e3
+FROM common AS ec2
 
 ARG PYTHON
 ARG PYTHON_VERSION
 ARG PYTHON_SHORT_VERSION
 
 # PyTorch Binaries
-ARG PT_E3_TRAINING_URL
+ARG PT_EC2_TRAINING_URL
 ARG PT_TORCHVISION_URL
 ARG PT_TORCHAUDIO_URL
 ARG PT_TORCHDATA_URL
@@ -230,7 +230,7 @@ ARG PT_S3_WHL_GPU
 
 # Install AWS-PyTorch and other torch packages
 RUN pip uninstall -y torch torchvision torchaudio torchdata \
- && pip install --no-cache-dir -U ${PT_E3_TRAINING_URL} ${PT_TORCHVISION_URL} ${PT_TORCHAUDIO_URL} ${PT_TORCHDATA_URL} torchnet
+ && pip install --no-cache-dir -U ${PT_EC2_TRAINING_URL} ${PT_TORCHVISION_URL} ${PT_TORCHAUDIO_URL} ${PT_TORCHDATA_URL} torchnet
 
 # Install Nvidia Apex
 ## Pin apex commit requested by sm-model-parallel team

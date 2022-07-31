@@ -16,7 +16,7 @@ ARG PT_TORCHDATA_URL=https://download.pytorch.org/whl/test/torchdata-0.4.0-cp38-
 #                                    |___/                        |_|
 ##############################################################################
 
-FROM nvidia/cuda:11.3.1-base-ubuntu20.04 AS e3
+FROM nvidia/cuda:11.3.1-base-ubuntu20.04 AS ec2
 
 LABEL maintainer="Amazon AI"
 LABEL dlc_major_version="2"
@@ -216,7 +216,7 @@ RUN useradd -m model-server \
  && mkdir -p /home/model-server/tmp /opt/ml/model \
  && chown -R model-server /home/model-server /opt/ml/model
 
-COPY torchserve-e3-entrypoint.py /usr/local/bin/dockerd-entrypoint.py
+COPY torchserve-ec2-entrypoint.py /usr/local/bin/dockerd-entrypoint.py
 COPY config.properties /home/model-server
 
 RUN chmod +x /usr/local/bin/dockerd-entrypoint.py
@@ -255,7 +255,7 @@ CMD ["torchserve", "--start", "--ts-config", "/home/model-server/config.properti
 #                      |___/                        |_|
 #################################################################
 
-FROM e3 AS sagemaker
+FROM ec2 AS sagemaker
 
 LABEL maintainer="Amazon AI"
 LABEL dlc_major_version="1"
