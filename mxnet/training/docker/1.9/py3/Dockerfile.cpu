@@ -7,7 +7,7 @@
 #                                    |___/                        |_|
 ##############################################################################
 
-FROM ubuntu:20.04 AS e3
+FROM ubuntu:20.04 AS ec2
 
 LABEL maintainer="Amazon AI"
 LABEL dlc_major_version="1"
@@ -172,7 +172,7 @@ CMD ["/bin/bash"]
 #                      |___/                        |_|
 #################################################################
 
-FROM e3 AS sagemaker
+FROM ec2 AS sagemaker
 
 LABEL maintainer="Amazon AI"
 LABEL dlc_major_version="1"

@@ -8,7 +8,7 @@
 ##############################################################################
 
 # Note: We need to install NCCL, cuDNN, and CUDA libraries since we are using base container.
-FROM nvidia/cuda:11.2.2-base-ubuntu20.04 AS e3
+FROM nvidia/cuda:11.2.2-base-ubuntu20.04 AS ec2
 
 LABEL maintainer="Amazon AI"
 LABEL dlc_major_version="1"
@@ -213,7 +213,7 @@ CMD ["/bin/bash"]
 #                      |___/                        |_|
 #################################################################
 
-FROM e3 AS sagemaker
+FROM ec2 AS sagemaker
 
 LABEL maintainer="Amazon AI"
 LABEL dlc_major_version="1"

@@ -7,7 +7,7 @@
 #                                    |___/                        |_|
 ##############################################################################
 
-FROM nvidia/cuda:11.2.2-cudnn8-runtime-ubuntu20.04 AS e3
+FROM nvidia/cuda:11.2.2-cudnn8-runtime-ubuntu20.04 AS ec2
 
 LABEL maintainer="Amazon AI"
 LABEL dlc_major_version="1"
@@ -85,7 +85,7 @@ RUN useradd -m model-server \
  && mkdir -p /home/model-server/tmp \
  && chown -R model-server /home/model-server
 
-COPY mms-e3-entrypoint.py /usr/local/bin/dockerd-entrypoint.py
+COPY mms-ec2-entrypoint.py /usr/local/bin/dockerd-entrypoint.py
 COPY config.properties /home/model-server
 
 RUN chmod +x /usr/local/bin/dockerd-entrypoint.py
@@ -124,7 +124,7 @@ CMD ["multi-model-server", "--start", "--mms-config", "/home/model-server/config
 #                      |___/                        |_|
 #################################################################
 
-FROM e3 AS sagemaker
+FROM ec2 AS sagemaker
 
 LABEL maintainer="Amazon AI"
 LABEL dlc_major_version="1"
