@@ -843,21 +843,21 @@ def pytest_generate_tests(metafunc):
             if images_to_parametrize and "py3_only" in metafunc.fixturenames:
                 images_to_parametrize = [py3_image for py3_image in images_to_parametrize if "py2" not in py3_image]
 
-            if is_nightly_context():
-                nightly_images_to_parametrize = []
-                # filter the nightly fixtures in the current functional context
-                func_nightly_fixtures = {key: value for (key,value) in NIGHTLY_FIXTURES.items() if key in metafunc.fixturenames}
-                # iterate through image candidates and select images with labels that match all nightly fixture labels
-                for image_candidate in images_to_parametrize:
-                    if all([are_valid_fixture_labels_present(image_candidate, nightly_labels) for _, nightly_labels in func_nightly_fixtures.items()]):
-                        nightly_images_to_parametrize.append(image_candidate)
-                """
-                print(f"Function: {metafunc.function.__name__}")
-                print(f"Nightly Fixture Labels: {func_nightly_fixtures}")
-                print(f"Number of images to parametrize: {len(images_to_parametrize)}")
-                print(f"Number of nightly images to parametrize: {len(nightly_images_to_parametrize)}\n")
-                """
-                images_to_parametrize = nightly_images_to_parametrize
+            #if is_nightly_context():
+            nightly_images_to_parametrize = []
+            # filter the nightly fixtures in the current functional context
+            func_nightly_fixtures = {key: value for (key,value) in NIGHTLY_FIXTURES.items() if key in metafunc.fixturenames}
+            # iterate through image candidates and select images with labels that match all nightly fixture labels
+            for image_candidate in images_to_parametrize:
+                if all([are_valid_fixture_labels_present(image_candidate, nightly_labels) for _, nightly_labels in func_nightly_fixtures.items()]):
+                    nightly_images_to_parametrize.append(image_candidate)
+            """
+            print(f"Function: {metafunc.function.__name__}")
+            print(f"Nightly Fixture Labels: {func_nightly_fixtures}")
+            print(f"Number of images to parametrize: {len(images_to_parametrize)}")
+            print(f"Number of nightly images to parametrize: {len(nightly_images_to_parametrize)}\n")
+            """
+            images_to_parametrize = nightly_images_to_parametrize
             
             
             # Parametrize tests that spin up an ecs cluster or tests that spin up an EC2 instance with a unique name
