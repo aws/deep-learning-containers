@@ -249,12 +249,13 @@ def test_ecr_enhanced_scan(image, ecr_client, sts_client, region):
         new_repository_region=ECR_ENHANCED_REPO_REGION,
         append_tag="ENHSCAN",
     )
-
+    
+    run(f"docker tag {image} {new_uri}", hide=True)
     ecr_utils.reupload_image_to_test_ecr(
         new_uri, ECR_ENHANCED_SCANNING_REPO_NAME, ECR_ENHANCED_REPO_REGION, pull_image=False
     )
-    ecr_client_for_enhanced_scanning_repo=boto3.client('ecr',region_name=ECR_ENHANCED_REPO_REGION)
 
+    ecr_client_for_enhanced_scanning_repo=boto3.client('ecr',region_name=ECR_ENHANCED_REPO_REGION)
     wait_for_enhanced_scans_to_complete(ecr_client_for_enhanced_scanning_repo, new_uri)
 
     ## Add the logic to fetch all the results - paging
