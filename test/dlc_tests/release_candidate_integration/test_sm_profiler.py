@@ -21,6 +21,7 @@ from test.test_utils import (
 )
 
 
+@pytest.mark.usefixtures("feature_smdebug_present")
 @pytest.mark.usefixtures("sagemaker_only", "huggingface")
 @pytest.mark.integration("smprofiler")
 @pytest.mark.model("N/A")
@@ -65,6 +66,7 @@ def test_sm_profiler_pt(pytorch_training):
     run_sm_profiler_tests(pytorch_training, profiler_tests_dir, "test_profiler_pytorch.py", processor)
 
 
+@pytest.mark.usefixtures("feature_smdebug_present")
 @pytest.mark.usefixtures("sagemaker_only", "huggingface")
 @pytest.mark.integration("smprofiler")
 @pytest.mark.model("N/A")
