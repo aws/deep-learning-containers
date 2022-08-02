@@ -41,7 +41,7 @@ context:
       target: deep_learning_container.py
 
 images:
-  Buildec2MXNetCPUTrainPy3DockerImage:
+  BuildEC2MXNetCPUTrainPy3DockerImage:
     <<: *TRAINING_REPOSITORY
     build: &MXNET_CPU_TRAINING_PY3 false
     image_size_baseline: 3000
@@ -54,7 +54,7 @@ images:
     target: ec2
     context:
       <<: *TRAINING_CONTEXT
-  Buildec2MXNetGPUTrainPy3DockerImage:
+  BuildEC2MXNetGPUTrainPy3DockerImage:
     <<: *TRAINING_REPOSITORY
     build: &MXNET_GPU_TRAINING_PY3 false
     image_size_baseline: 7159
@@ -95,7 +95,7 @@ images:
     target: sagemaker
     context:
       <<: *TRAINING_CONTEXT
-  Buildec2MXNetCPUInferencePy3DockerImage:
+  BuildEC2MXNetCPUInferencePy3DockerImage:
     <<: *INFERENCE_REPOSITORY
     build: &MXNET_CPU_INFERENCE_PY3 false
     image_size_baseline: 2202
@@ -108,7 +108,7 @@ images:
     target: ec2
     context:
       <<: *INFERENCE_CONTEXT
-  Buildec2MXNetGPUInferencePy3DockerImage:
+  BuildEC2MXNetGPUInferencePy3DockerImage:
     << : *INFERENCE_REPOSITORY
     build: &MXNET_GPU_INFERENCE_PY3 false
     image_size_baseline: 6758
@@ -153,7 +153,7 @@ images:
     <<: *TRAINING_REPOSITORY
     build: &MXNET_GPU_TRAINING_PY3 false
     image_size_baseline: 7324
-    base_image_name: Buildec2MXNetGPUTrainPy3DockerImage
+    base_image_name: BuildEC2MXNetGPUTrainPy3DockerImage
     device_type: &DEVICE_TYPE gpu
     python_version: &DOCKER_PYTHON_VERSION py3
     tag_python_version: &TAG_PYTHON_VERSION py38

@@ -26,7 +26,7 @@ context:
       target: config.properties
 
 images:
-  Buildec2PytorchGravitonCPUInferencePy3DockerImage:
+  BuildEC2PytorchGravitonCPUInferencePy3DockerImage:
     <<: *INFERENCE_REPOSITORY
     build: &PYTORCH_CPU_INFERENCE_PY3 false
     image_size_baseline: 10000
