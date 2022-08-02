@@ -349,6 +349,7 @@ ENV SAGEMAKER_TRAINING_MODULE=sagemaker_pytorch_container.training:main
 # SMD model parallel and data parallel binaries
 ARG SMD_DATA_PARALLEL_URL
 ARG SMD_MODEL_PARALLEL_URL
+ARG ZERO_2D_URL
 
 # PyTorch Binaries
 ARG PT_SM_TRAINING_URL
