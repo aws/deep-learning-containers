@@ -24,6 +24,7 @@ from test.test_utils import (
     is_below_framework_version,
     is_ec2_image,
     is_sagemaker_image,
+    is_nightly_context,
     DEFAULT_REGION,
     P3DN_REGION,
     UBUNTU_18_BASE_DLAMI_US_EAST_1,
@@ -35,6 +36,10 @@ from test.test_utils import (
     are_efa_tests_disabled,
     get_ecr_repo_name,
     UBUNTU_HOME_DIR,
+)
+from test.test_utils.imageutils import (
+    are_image_labels_matched,
+    are_valid_fixture_labels_present
 )
 from test.test_utils.test_reporting import TestReportGenerator
 
@@ -89,14 +94,40 @@ FRAMEWORK_FIXTURES = (
     "inference",
 )
 
+# Nightly image fixture dictionary, maps nightly fixtures to set of image labels
+NIGHTLY_FIXTURES = {
+    "feature_smdebug_present": {"aws_framework_installed", "aws_smdebug_installed"},
+    "feature_smddp_present": {"aws_framework_installed", "aws_smddp_installed"},
+    "feature_smmp_present": {"aws_smmp_installed"},
+    "feature_aws_framework_present": {"aws_framework_installed"}
+}
+
+# Nightly fixtures
+@pytest.fixture(scope="session")
+def feature_smdebug_present():
+    pass
+
+@pytest.fixture(scope="session")
+def feature_smddp_present():
+    pass
+
+@pytest.fixture(scope="session")
+def feature_smmp_present():
+    pass
+
+@pytest.fixture(scope="session")
+def feature_aws_framework_present():
+    pass
+
 # Ignore container_tests collection, as they will be called separately from test functions
 collect_ignore = [os.path.join("container_tests")]
 
 
 def pytest_addoption(parser):
     default_images = test_utils.get_dlc_images()
+    images = default_images.split(" ") if default_images else []
     parser.addoption(
-        "--images", default=default_images.split(" "), nargs="+", help="Specify image(s) to run",
+        "--images", default=images, nargs="+", help="Specify image(s) to run",
     )
     parser.addoption(
         "--canary", action="store_true", default=False, help="Run canary tests",
@@ -754,6 +785,7 @@ def pytest_generate_tests(metafunc):
     if not images:
         return
 
+        
     # Parametrize framework specific tests
     for fixture in FRAMEWORK_FIXTURES:
         if fixture in metafunc.fixturenames:
@@ -811,6 +843,17 @@ def pytest_generate_tests(metafunc):
             if images_to_parametrize and "py3_only" in metafunc.fixturenames:
                 images_to_parametrize = [py3_image for py3_image in images_to_parametrize if "py2" not in py3_image]
 
+            if is_nightly_context():
+                nightly_images_to_parametrize = []
+                # filter the nightly fixtures in the current functional context
+                func_nightly_fixtures = {key: value for (key,value) in NIGHTLY_FIXTURES.items() if key in metafunc.fixturenames}
+                # iterate through image candidates and select images with labels that match all nightly fixture labels
+                for image_candidate in images_to_parametrize:
+                    if all([are_valid_fixture_labels_present(image_candidate, nightly_labels) for _, nightly_labels in func_nightly_fixtures.items()]):
+                        nightly_images_to_parametrize.append(image_candidate)
+                images_to_parametrize = nightly_images_to_parametrize
+            
+            
             # Parametrize tests that spin up an ecs cluster or tests that spin up an EC2 instance with a unique name
             values_to_generate_for_fixture = {
                 "ecs_container_instance": "ecs_cluster_name",
@@ -849,3 +892,4 @@ def disable_test(request):
 
     if test_utils.is_test_disabled(test_name, build_name, version):
         pytest.skip(f"Skipping {test_name} test because it has been disabled.")
+
