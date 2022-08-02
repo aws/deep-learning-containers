@@ -26,7 +26,7 @@ from test.test_utils import (
 from test.test_utils import ecr as ecr_utils
 from test.test_utils.security import (
     CVESeverity,
-    ScanVulnerabilityList,
+    ECRBasicScanVulnerabilityList,
     conduct_failure_routine,
     process_failure_routine_summary_and_store_data_in_s3,
     run_scan,
@@ -169,7 +169,7 @@ def test_ecr_basic_scan(image, ecr_client, sts_client, region):
     run_scan(ecr_client, image)
     scan_results = ecr_utils.get_ecr_image_scan_results(ecr_client, image, minimum_vulnerability=minimum_sev_threshold)
     scan_results = ecr_utils.populate_ecr_scan_with_web_scraper_results(image, scan_results)
-    ecr_image_vulnerability_list = ScanVulnerabilityList(minimum_severity=CVESeverity[minimum_sev_threshold])
+    ecr_image_vulnerability_list = ECRBasicScanVulnerabilityList(minimum_severity=CVESeverity[minimum_sev_threshold])
     ecr_image_vulnerability_list.construct_allowlist_from_ecr_scan_result(scan_results)
 
     remaining_vulnerabilities = ecr_image_vulnerability_list
@@ -178,7 +178,7 @@ def test_ecr_basic_scan(image, ecr_client, sts_client, region):
         if is_canary_context():
             pytest.skip("Skipping the test on the canary.")
 
-        common_ecr_scan_allowlist = ScanVulnerabilityList(minimum_severity=CVESeverity[minimum_sev_threshold])
+        common_ecr_scan_allowlist = ECRBasicScanVulnerabilityList(minimum_severity=CVESeverity[minimum_sev_threshold])
         common_ecr_scan_allowlist_path = os.path.join(
             os.sep, get_repository_local_path(), "data", "common-ecr-scan-allowlist.json"
         )
@@ -249,7 +249,7 @@ def test_ecr_enhanced_scan(image, ecr_client, sts_client, region):
         new_repository_region=ECR_ENHANCED_REPO_REGION,
         append_tag="ENHSCAN",
     )
-    
+
     run(f"docker tag {image} {new_uri}", hide=True)
     ecr_utils.reupload_image_to_test_ecr(
         new_uri, ECR_ENHANCED_SCANNING_REPO_NAME, ECR_ENHANCED_REPO_REGION, pull_image=False
@@ -258,7 +258,6 @@ def test_ecr_enhanced_scan(image, ecr_client, sts_client, region):
     ecr_client_for_enhanced_scanning_repo=boto3.client('ecr',region_name=ECR_ENHANCED_REPO_REGION)
     wait_for_enhanced_scans_to_complete(ecr_client_for_enhanced_scanning_repo, new_uri)
 
-    ## Add the logic to fetch all the results - paging
     scan_results = ecr_utils.get_all_ecr_enhanced_scan_findings(ecr_client=ecr_client_for_enhanced_scanning_repo, image_uri=new_uri)
     with open("enhanced_results.json", "w") as f:
         json.dump(scan_results, f, default=ecr_utils.ecr_json_serializer, indent=4)
