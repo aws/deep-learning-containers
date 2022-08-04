@@ -402,7 +402,8 @@
             "py3": {
                 "42772":"for shipping bokeh<=2.3.3 - the last available version for py3.6",
                 "42814":"for shipping bokeh<=2.3.3 - the last available version for py3.6",
-                "42815":"for shipping bokeh<=2.3.3 - the last available version for py3.6"
+                "42815":"for shipping bokeh<=2.3.3 - the last available version for py3.6",
+                "48298":"check PR2145 introduction"
             }
         },
         "inference": {

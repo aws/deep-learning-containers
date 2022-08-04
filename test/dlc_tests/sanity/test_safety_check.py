@@ -430,6 +430,8 @@ IGNORE_SAFETY_IDS = {
                 "42772",
                 "42814",
                 "42815",
+                # check PR2145 introduction
+                "48298",
             ],
         },
         "inference": {
