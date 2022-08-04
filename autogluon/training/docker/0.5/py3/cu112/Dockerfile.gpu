@@ -21,12 +21,19 @@ RUN apt-get update \
  && rm -rf /var/lib/apt/lists/* \
  && rm -rf /tmp/*
 
-ARG AUTOGLUON_VERSION=0.4.3
+ARG AUTOGLUON_VERSION=0.5.2
+ARG TORCH_VER=1.12
+ARG TORCH_VISION_VER=0.13
+ARG TORCH_TEXT_VER=0.13
 
-# Pinning setuptools because it's breaking pip
+# NOTE: fixing protobuf + sagemaker-training to compatible versions
+# NOTE: reinstalling horovod with pytorch support because it is available in the container
+
 RUN pip install --no-cache-dir -U --trusted-host pypi.org --trusted-host files.pythonhosted.org pip \
- && pip install --no-cache-dir -U setuptools==59.5.0 wheel \
- && pip install --no-cache-dir -U numba \
+ && pip install --no-cache-dir -U setuptools wheel \
+ && pip install --no-cache-dir -U numpy numba sagemaker-training==4.2.0 protobuf==3.18.1 \
+ && pip install --no-cache-dir -U torch==${TORCH_VER} torchvision==${TORCH_VISION_VER} torchtext==${TORCH_TEXT_VER} --extra-index-url https://download.pytorch.org/whl/cu113 \
+ && pip uninstall -y horovod && HOROVOD_WITH_PYTORCH=1 pip install --no-cache-dir horovod==0.24.3 \
  && pip install --no-cache-dir -U autogluon==${AUTOGLUON_VERSION} \
  && pip install --no-cache-dir -U sagemaker-mxnet-training
 
