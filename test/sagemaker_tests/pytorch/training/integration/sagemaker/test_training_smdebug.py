@@ -21,6 +21,8 @@ from ...integration import training_dir, smdebug_mnist_script, DEFAULT_TIMEOUT
 from ...integration.sagemaker.timeout import timeout
 from . import invoke_pytorch_estimator
 
+
+@pytest.mark.usefixtures("feature_smdebug_present")
 @pytest.mark.integration("smdebug")
 @pytest.mark.model("mnist")
 @pytest.mark.skip_py2_containers
