@@ -27,6 +27,7 @@ from test.test_utils import ecr as ecr_utils
 from test.test_utils.security import (
     CVESeverity,
     ECRBasicScanVulnerabilityList,
+    ECREnhancedScanVulnerabilityList,
     conduct_failure_routine,
     process_failure_routine_summary_and_store_data_in_s3,
     run_scan,
@@ -259,8 +260,15 @@ def test_ecr_enhanced_scan(image, ecr_client, sts_client, region):
     wait_for_enhanced_scans_to_complete(ecr_client_for_enhanced_scanning_repo, new_uri)
 
     scan_results = ecr_utils.get_all_ecr_enhanced_scan_findings(ecr_client=ecr_client_for_enhanced_scanning_repo, image_uri=new_uri)
+    scan_results = json.loads(json.dumps(scan_results, default=ecr_utils.ecr_json_serializer)) 
     with open("enhanced_results.json", "w") as f:
-        json.dump(scan_results, f, default=ecr_utils.ecr_json_serializer, indent=4)
+        json.dump(scan_results, f, indent=4)
+    
+    minimum_sev_threshold = get_minimum_sev_threshold_level(image)
+    ecr_image_vulnerability_list = ECREnhancedScanVulnerabilityList(minimum_severity=CVESeverity[minimum_sev_threshold])
+    ecr_image_vulnerability_list.construct_allowlist_from_ecr_scan_result(scan_results)
+    with open("converted_vulnerability_list.json", "w") as f:
+        json.dump(ecr_image_vulnerability_list.vulnerability_list, f, indent=4)
 
     LOGGER.info(f"New URI found {new_uri}")
     LOGGER.info(f"Completed processing for {image}")

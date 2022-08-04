@@ -179,6 +179,18 @@ class ScanVulnerabilityList:
 
 
 class ECRBasicScanVulnerabilityList(ScanVulnerabilityList):
+    def get_ecr_vulnerability_package_name(self, vulnerability):
+        """
+        Get Package Name from a vulnerability JSON object
+        :param vulnerability: dict JSON object consisting of information about the vulnerability in the format
+        presented by the ECR Scan Tool
+        :return: str package name
+        """
+        for attribute in vulnerability["attributes"]:
+            if attribute["key"] == "package_name":
+                return attribute["value"]
+        return None
+        
     def construct_allowlist_from_file(self, file_path):
         """
         Read JSON file and prepare the object with all allowed vulnerabilities
@@ -233,6 +245,73 @@ class ECRBasicScanVulnerabilityList(ScanVulnerabilityList):
                 return True
         return False
 
+class ECREnhancedScanVulnerabilityList(ScanVulnerabilityList):
+    def get_ecr_vulnerability_package_name(self, vulnerability):
+        """
+        Get Package Name from a vulnerability JSON object
+        :param vulnerability: dict JSON object consisting of information about the vulnerability in the format
+        presented by the ECR Scan Tool
+        :return: str package name
+        """
+        print(vulnerability)
+        package_name_list = []
+        for vulnerable_package_details in vulnerability["packageVulnerabilityDetails"]["vulnerablePackages"]:
+            package_name_list.append(vulnerable_package_details["name"])
+        return package_name_list[0]
+    
+    def construct_allowlist_from_file(self, file_path):
+        """
+        Read JSON file and prepare the object with all allowed vulnerabilities
+
+        :param file_path: Path to the allow-list JSON file.
+        :return: dict self.vulnerability_list
+        """
+        with open(file_path, "r") as f:
+            file_allowlist = json.load(f)
+        for package_name, package_vulnerability_list in file_allowlist.items():
+            for vulnerability in package_vulnerability_list:
+                if CVESeverity[vulnerability["severity"]] >= self.minimum_severity:
+                    if package_name not in self.vulnerability_list:
+                        self.vulnerability_list[package_name] = []
+                    self.vulnerability_list[package_name].append(vulnerability)
+        return self.vulnerability_list
+    
+    def construct_allowlist_from_ecr_scan_result(self, vulnerability_list):
+        """
+        Read a vulnerability list and construct the vulnerability_list
+
+        :param vulnerability_list: list ECR Scan Result results
+        :return: dict self.vulnerability_list
+        """
+        for vulnerability in vulnerability_list:
+            package_name = self.get_ecr_vulnerability_package_name(vulnerability)
+            if package_name not in self.vulnerability_list:
+                self.vulnerability_list[package_name] = []
+            if CVESeverity[vulnerability["severity"]] >= self.minimum_severity:
+                self.vulnerability_list[package_name].append(vulnerability)
+        return self.vulnerability_list
+
+    def are_vulnerabilities_equivalent(self, vulnerability_1, vulnerability_2):
+        """
+        Check if two vulnerability JSON objects are equivalent
+
+        :param vulnerability_1: dict JSON object consisting of information about the vulnerability in the format
+                                presented by the ECR Scan Tool
+        :param vulnerability_2: dict JSON object consisting of information about the vulnerability in the format
+                                presented by the ECR Scan Tool
+        :return: bool True if the two input objects are equivalent, False otherwise
+        """
+        if (vulnerability_1["name"], vulnerability_1["severity"]) == (vulnerability_2["name"], vulnerability_2["severity"]):
+            # Do not compare package_version, because this may have been obtained at the time the CVE was first observed
+            # on the ECR Scan, which would result in unrelated version updates causing a mismatch while the CVE still
+            # applies on both vulnerabilities.
+            if all(
+                attribute in vulnerability_2["attributes"]
+                for attribute in vulnerability_1["attributes"]
+                if not attribute["key"] == "package_version"
+            ):
+                return True
+        return False
 
 def get_ecr_vulnerability_package_version(vulnerability):
     """
