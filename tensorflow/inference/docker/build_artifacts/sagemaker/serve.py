@@ -309,12 +309,12 @@ class ServiceManager(object):
         return False
 
     def _get_number_of_gpu_on_host(self):
-        try:
-            n = len(subprocess.check_output(['nvidia-smi','-L']).decode('utf-8').strip().split('\n'))
-        except:
-            n = 0
+        nvidia_smi_exist = os.path.exists("/usr/bin/nvidia-smi")
+        if nvidia_smi_exist:
+            return len(subprocess.check_output(['nvidia-smi', '-L'])
+                       .decode('utf-8').strip().split('\n'))
+        return 0
 
-        return n
 
     def _calculate_per_process_gpu_memory_fraction(self):
         return round((1 - self._tfs_gpu_margin) / float(self._tfs_instance_count), 4)
