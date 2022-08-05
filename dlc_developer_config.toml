@@ -48,7 +48,7 @@ sagemaker_local_tests = true
 # "standard" --> run standard sagemaker remote tests from test/sagemaker_tests
 # "rc" --> run release_candidate_integration tests
 # "efa" --> run efa sagemaker tests
-sagemaker_remote_tests = "standard"
+sagemaker_remote_tests = "efa"
 
 use_scheduler = false
 
@@ -62,7 +62,7 @@ use_scheduler = false
 # Standard Framework DLC buildspecs
 dlc-pr-autogluon = ""
 dlc-pr-mxnet = ""
-dlc-pr-pytorch = "pytorch/buildspec-1-11.yml"
+dlc-pr-pytorch = "pytorch/buildspec.yml"
 dlc-pr-tensorflow-1 = ""
 dlc-pr-tensorflow-2 = ""
 
