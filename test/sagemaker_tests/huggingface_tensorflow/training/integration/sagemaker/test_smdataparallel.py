@@ -29,7 +29,7 @@ BERT_PATH = os.path.join(RESOURCE_PATH, "scripts")
 # hyperparameters, which are passed into the training job
 hyperparameters = {
     "max_steps": 10,
-    "train_batch_size": 16,
+    "train_batch_size": 8,
     "model_name": "distilbert-base-uncased",
 }
 
