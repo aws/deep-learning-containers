@@ -429,7 +429,8 @@ class ServiceManager(object):
         )
         log.info("tensorflow serving command: {}".format(cmd))
 
-        num_gpus = self._get_number_of_gpu_on_host()
+        # num_gpus = self._get_number_of_gpu_on_host()
+        num_gpus = 2
         if num_gpus > 1:
             # utilizing multi-gpu
             worker_env = os.environ.copy()
