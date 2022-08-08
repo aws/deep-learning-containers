@@ -45,14 +45,6 @@ def can_run_pytorchddp(ecr_image):
 def test_pytorchddp_throughput_gpu(framework_version, ecr_image, sagemaker_regions, instance_types, tmpdir):
     with timeout(minutes=DEFAULT_TIMEOUT):
         validate_or_skip_pytorchddp(ecr_image)
-        hyperparameters = {
-            "size": 64,
-            "num_tensors": 20,
-            "iterations": 100,
-            "warmup": 10,
-            "bucket_size": 25,
-            "info": "PT-{}-N{}".format(instance_types, 2)
-        }
         distribution = {'pytorchddp': {'enabled': True}}
         estimator_parameter = {
             'entry_point': 'pytorchddp_throughput_mnist.py',
@@ -61,7 +53,6 @@ def test_pytorchddp_throughput_gpu(framework_version, ecr_image, sagemaker_regio
             'instance_type': instance_types,
             'source_dir': mnist_path,
             'framework_version': framework_version,
-            'hyperparameters': hyperparameters,
             'distribution': distribution
         }
 

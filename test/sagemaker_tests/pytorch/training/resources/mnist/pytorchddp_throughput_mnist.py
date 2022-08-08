@@ -139,31 +139,27 @@ def main():
                         default=os.getenv('LOCAL_RANK', -1),
                         metavar='S',
                         help='random seed (default: 1)')
-    parser.add_argument(
-        '--log-interval',
-        type=int,
-        default=10,
-        metavar='N',
-        help='how many batches to wait before logging training status')
+    parser.add_argument('--log-interval',
+                        type=int,
+                        default=10,
+                        metavar='N',
+                        help='how many batches to wait before logging training status')
     parser.add_argument('--save-model',
                         action='store_true',
                         default=False,
                         help='For Saving the current Model')
-    parser.add_argument(
-        '--verbose',
-        action='store_true',
-        default=False,
-        help='For displaying smdistributed.dataparallel-specific logs')
-    parser.add_argument(
-        '--data_loader_workers',
-        type=int,
-        default=0,
-        help='For displaying smdistributed.dataparallel-specific logs')
+    parser.add_argument('--verbose',
+                        action='store_true',
+                        default=False,
+                        help='For displaying smdistributed.dataparallel-specific logs')
+    parser.add_argument('--data_loader_workers',
+                        type=int,
+                        default=0,
+                        help='For displaying smdistributed.dataparallel-specific logs')
     parser.add_argument('--data-path',
                         type=str,
                         default='/tmp/data',
-                        help='Path for downloading '
-                        'the MNIST dataset')
+                        help='Path for downloading the MNIST dataset')
 
     args = parser.parse_args()
     args.world_size = int(os.environ['WORLD_SIZE'])
