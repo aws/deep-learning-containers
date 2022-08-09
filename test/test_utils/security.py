@@ -402,10 +402,11 @@ class ECREnhancedScanVulnerabilityList(ScanVulnerabilityList):
                 allowlist_format_vulnerability_object = AllowListFormatVulnerability(**ecr_format_vulnerability)
                 vulnerable_package_object = VulnerablePackageDetails(**vulnerable_package)
                 allowlist_format_vulnerability_object.set_package_details_and_name(vulnerable_package_object)
+                if CVESeverity[allowlist_format_vulnerability_object.cvss_v3_severity]  < self.minimum_severity:
+                    continue
                 if allowlist_format_vulnerability_object.package_name not in self.vulnerability_list:
                     self.vulnerability_list[allowlist_format_vulnerability_object.package_name] = []
-                if CVESeverity[allowlist_format_vulnerability_object.cvss_v3_severity]  >= self.minimum_severity:
-                    self.vulnerability_list[allowlist_format_vulnerability_object.package_name].append(json.loads(json.dumps(allowlist_format_vulnerability_object, cls=EnhancedJSONEncoder)))
+                self.vulnerability_list[allowlist_format_vulnerability_object.package_name].append(json.loads(json.dumps(allowlist_format_vulnerability_object, cls=EnhancedJSONEncoder)))
         return self.vulnerability_list
 
     def are_vulnerabilities_equivalent(self, vulnerability_1, vulnerability_2):
