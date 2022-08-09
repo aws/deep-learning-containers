@@ -42,6 +42,7 @@ def can_run_pytorchddp(ecr_image):
 @pytest.mark.parametrize('instance_types', ["ml.p4d.24xlarge"])
 @pytest.mark.skip_cpu
 @pytest.mark.skip_py2_containers
+@pytest.mark.efa()
 def test_pytorchddp_throughput_gpu(framework_version, ecr_image, sagemaker_regions, instance_types, tmpdir):
     with timeout(minutes=DEFAULT_TIMEOUT):
         validate_or_skip_pytorchddp(ecr_image)
