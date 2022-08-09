@@ -242,12 +242,14 @@ def test_framework_version_cpu(image):
         else:
             if "neuron" in image:
                 assert tag_framework_version in output.stdout.strip()
-            if all(_string in image for _string in ["pytorch", "habana", "synapseai1.4.1"]):
+            if (all(_string in image for _string in ["pytorch", "habana"])
+               and any(_string in image for _string in 
+               ["synapseai1.3.0", "synapseai1.4.1", "synapseai1.5.0"])):
                 # Habana Pytorch version looks like 1.10.0a0+gitb488e78 for SynapseAI1.3 PT1.10.1 images
                 pt_fw_version_pattern = r"(\d+(\.\d+){1,2}(-rc\d)?)((a0\+git\w{7}))"
                 pt_fw_version_match = re.fullmatch(pt_fw_version_pattern, output.stdout.strip())
                 # This is desired for PT1.10.1 images
-                assert pt_fw_version_match.group(1) == "1.10.0"
+                assert tag_framework_version.rsplit('.', 1)[0] == pt_fw_version_match.group(1).rsplit('.', 1)[0]
             else:
                 assert tag_framework_version == output.stdout.strip()
     stop_and_remove_container(container_name, ctx)
@@ -407,19 +409,23 @@ def _run_dependency_check_test(image, ec2_connection):
             "2.6": ["cpu", "gpu"],
             "2.7": ["cpu", "gpu", "hpu"],
             "2.8": ["cpu", "gpu", "hpu"],
-            "2.9": ["cpu", "gpu"]
+            "2.9": ["cpu", "gpu", "hpu"]
         },
         "mxnet": {"1.8": ["neuron"], "1.9": ["cpu", "gpu"]},
         "pytorch": {
             "1.8": ["cpu", "gpu"], 
             "1.10": ["cpu", "hpu"], 
-            "1.11": ["cpu", "gpu"],
+            "1.11": ["cpu", "gpu", "hpu"],
             "1.12": ["cpu", "gpu"]
         },
         "huggingface_pytorch": {"1.8": ["cpu", "gpu"], "1.9": ["cpu", "gpu"]},
         "huggingface_tensorflow": {"2.4": ["cpu", "gpu"], "2.5": ["cpu", "gpu"], "2.6": ["cpu", "gpu"]},
         "huggingface_tensorflow_trcomp": {"2.6": ["gpu"]},
-        "autogluon": {"0.3": ["cpu", "gpu"], "0.4": ["cpu", "gpu"]},
+        "autogluon": {
+            "0.3": ["cpu", "gpu"],
+            "0.4": ["cpu", "gpu"],
+            "0.5": ["cpu", "gpu"]
+        },
     }
 
     # Allowlist CVE #CVE-2022-1292 for DLCs where openssl is installed using apt-get
@@ -427,7 +433,7 @@ def _run_dependency_check_test(image, ec2_connection):
     allow_openssl_cve_2022_1292_fw_versions = {
         "pytorch": {
             "1.10": ["gpu", "cpu", "hpu"],
-            "1.11": ["gpu", "cpu"],
+            "1.11": ["gpu", "cpu", "hpu"],
             "1.12": ["gpu", "cpu"],
         },
         "tensorflow": {
@@ -436,11 +442,15 @@ def _run_dependency_check_test(image, ec2_connection):
             "2.6": ["cpu", "gpu"],
             "2.7": ["cpu", "gpu", "hpu"],
             "2.8": ["cpu", "gpu", "hpu"],
-            "2.9": ["cpu", "gpu"],
+            "2.9": ["cpu", "gpu", "hpu"],
         },
         "mxnet": {"1.8": ["neuron"], "1.9": ["cpu", "gpu"]},
         "huggingface_tensorflow": {"2.5": ["gpu"], "2.6": ["gpu"]},
-        "autogluon": {"0.3": ["cpu", "gpu"], "0.4": ["cpu", "gpu"]},
+        "autogluon": {
+            "0.3": ["cpu", "gpu"],
+            "0.4": ["cpu", "gpu"],
+            "0.5": ["cpu", "gpu"]
+        },
         "huggingface_pytorch_trcomp": {"1.9": ["gpu"]},
         "huggingface_tensorflow_trcomp": {"2.6": ["gpu"]},
     }
@@ -900,17 +910,3 @@ def test_mxnet_training_sm_env_variables(mxnet_training):
         env_vars_to_test=env_vars,
         container_name_prefix=container_name_prefix
     )
-
-
-@pytest.mark.usefixtures("sagemaker_only")
-@pytest.mark.model("N/A")
-def test_block_releases(training):
-    fw, fw_version = get_framework_and_version_from_tag(training)
-    fw_version_obj = Version(fw_version)
-    major_minor_version = f"{fw_version_obj.major}.{fw_version_obj.minor}"
-    blocked_releases = {
-        "tensorflow": ["2.6", "2.7", "2.8", "2.9"],
-        "pytorch": ["1.10", "1.11"]
-    }
-    if major_minor_version in blocked_releases.get(fw, []):
-        raise RuntimeError(f"Pipelines are currently blocked for {fw} {major_minor_version}")
