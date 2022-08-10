@@ -59,12 +59,17 @@ use_scheduler = false
 # dlc-pr-huggingface-pytorch = "huggingface/pytorch/buildspec-1-9.yml"
 # Setting the buildspec file path to "" allows the image builder to choose the default buildspec file.
 
-# Standard Framework DLC buildspecs
-dlc-pr-autogluon = ""
+# E3 Framework DLC buildspecs
 dlc-pr-mxnet = ""
 dlc-pr-pytorch = ""
 dlc-pr-tensorflow-1 = ""
 dlc-pr-tensorflow-2 = ""
+
+# SageMaker Framework DLC buildspecs
+dlc-pr-autogluon = ""
+dlc-pr-sagemaker-mxnet = "tensorflow/buildspec-sagemaker.yml"
+dlc-pr-sagemaker-pytorch = "mxnet/buildspec-sagemaker.yml"
+dlc-pr-sagemaker-tensorflow-2 = "pytorch/buildspec-sagemaker.yml"
 
 # Hugging Face DLC buildspecs
 dlc-pr-huggingface-pytorch = ""
