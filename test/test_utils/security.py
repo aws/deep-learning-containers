@@ -62,15 +62,15 @@ class AllowListFormatVulnerability:
         self.package_name = None
         self.package_details = None
         self.remediation = remediation
-        self.cvss_v3_score = self.get_cvss_score(packageVulnerabilityDetails,score_version="3.1")
-        self.cvss_v30_score = self.get_cvss_score(packageVulnerabilityDetails,score_version="3.0")
-        self.cvss_v2_score = self.get_cvss_score(packageVulnerabilityDetails,score_version="2.0")
-        self.cvss_v3_severity = self.get_cvss_v3_severity(self.cvss_v3_score)
         self.source_url = packageVulnerabilityDetails["sourceUrl"]
         self.source = packageVulnerabilityDetails["source"]
         self.severity = severity
         self.status = status
         self.title = title
+        self.cvss_v3_score = self.get_cvss_score(packageVulnerabilityDetails,score_version="3.1")
+        self.cvss_v30_score = self.get_cvss_score(packageVulnerabilityDetails,score_version="3.0")
+        self.cvss_v2_score = self.get_cvss_score(packageVulnerabilityDetails,score_version="2.0")
+        self.cvss_v3_severity = self.get_cvss_v3_severity(self.cvss_v3_score)
     
     def get_cvss_score(self, packageVulnerabilityDetails: dict, score_version: str = "3.1"):
         for cvss_score in packageVulnerabilityDetails["cvss"]:
@@ -88,8 +88,7 @@ class AllowListFormatVulnerability:
             return "MEDIUM"
         elif cvss_v3_score >= 0.1:
             return "LOW"
-        return None
-    
+        return "UNDEFINED" #Used to represent None Severity as well
 
     def set_package_details_and_name(self, package_details: VulnerablePackageDetails):
         self.package_details = package_details
@@ -400,7 +399,7 @@ class ECREnhancedScanVulnerabilityList(ScanVulnerabilityList):
                 allowlist_format_vulnerability_object = AllowListFormatVulnerability(**ecr_format_vulnerability)
                 vulnerable_package_object = VulnerablePackageDetails(**vulnerable_package)
                 allowlist_format_vulnerability_object.set_package_details_and_name(vulnerable_package_object)
-                if CVESeverity[allowlist_format_vulnerability_object.cvss_v3_severity]  < self.minimum_severity:
+                if CVESeverity[allowlist_format_vulnerability_object.cvss_v3_severity] < self.minimum_severity:
                     continue
                 if allowlist_format_vulnerability_object.package_name not in self.vulnerability_list:
                     self.vulnerability_list[allowlist_format_vulnerability_object.package_name] = []

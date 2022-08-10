@@ -267,10 +267,7 @@ def test_ecr_enhanced_scan(image, ecr_client, sts_client, region):
     minimum_sev_threshold = get_minimum_sev_threshold_level(image)
     ecr_image_vulnerability_list = ECREnhancedScanVulnerabilityList(minimum_severity=CVESeverity[minimum_sev_threshold])
     ecr_image_vulnerability_list.construct_allowlist_from_ecr_scan_result(scan_results)
-    with open("converted_vulnerability_list.json", "w") as f:
-        json.dump(ecr_image_vulnerability_list.vulnerability_list, f, indent=4)
-
+    
     LOGGER.info(f"New URI found {new_uri}")
     LOGGER.info(f"Completed processing for {image}")
-    LOGGER.info(json.dumps(scan_results, default=ecr_utils.ecr_json_serializer))
     LOGGER.info(f"Len of scanned results {len(scan_results)}")
