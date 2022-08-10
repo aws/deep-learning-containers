@@ -1,0 +1,174 @@
+{
+    "package1": [
+        {
+            "cvss_v2_score": 0.0,
+            "cvss_v30_score": 0.0,
+            "cvss_v3_score": 7.7,
+            "cvss_v3_severity": "HIGH",
+            "description": "temp-description",
+            "name": "CVE-123",
+            "package_details": {
+                "file_path": "usr/lib",
+                "name": "package1",
+                "package_manager": "PYTHONPKG",
+                "release": null,
+                "version": "1.2"
+            },
+            "package_name": "package1",
+            "remediation": {
+                "recommendation": {
+                    "text": "None Provided"
+                }
+            },
+            "severity": "HIGH",
+            "source": "SNYK",
+            "source_url": "https://temp-url",
+            "status": "ACTIVE",
+            "title": "CVE-123 - package1",
+            "vulnerability_id": "CVE-123"
+        }
+    ],
+    "package2": [
+        {
+            "cvss_v2_score": 0.0,
+            "cvss_v30_score": 0.0,
+            "cvss_v3_score": 9.1,
+            "cvss_v3_severity": "CRITICAL",
+            "description": "temp-description",
+            "name": "CVE-456",
+            "package_details": {
+                "file_path": "usr/lib",
+                "name": "package2",
+                "package_manager": "PYTHONPKG",
+                "release": null,
+                "version": "1.2"
+            },
+            "package_name": "package2",
+            "remediation": {
+                "recommendation": {
+                    "text": "None Provided"
+                }
+            },
+            "severity": "CRITICAL",
+            "source": "SNYK",
+            "source_url": "https://temp-url",
+            "status": "ACTIVE",
+            "title": "CVE-456 - package2/package4",
+            "vulnerability_id": "CVE-456"
+        }
+    ],
+    "package3": [
+        {
+            "cvss_v2_score": 0.0,
+            "cvss_v30_score": 0.0,
+            "cvss_v3_score": 5.1,
+            "cvss_v3_severity": "MEDIUM",
+            "description": "temp-description",
+            "name": "CVE-789",
+            "package_details": {
+                "file_path": "usr/lib",
+                "name": "package3",
+                "package_manager": "PYTHONPKG",
+                "release": null,
+                "version": "1.2"
+            },
+            "package_name": "package3",
+            "remediation": {
+                "recommendation": {
+                    "text": "None Provided"
+                }
+            },
+            "severity": "MEDIUM",
+            "source": "SNYK",
+            "source_url": "https://temp-url",
+            "status": "ACTIVE",
+            "title": "CVE-789 - package3",
+            "vulnerability_id": "CVE-789"
+        }
+    ],
+    "package4": [
+        {
+            "cvss_v2_score": 0.0,
+            "cvss_v30_score": 0.0,
+            "cvss_v3_score": 9.1,
+            "cvss_v3_severity": "CRITICAL",
+            "description": "temp-description",
+            "name": "CVE-456",
+            "package_details": {
+                "file_path": "usr/lib",
+                "name": "package4",
+                "package_manager": "PYTHONPKG",
+                "release": null,
+                "version": "1.2"
+            },
+            "package_name": "package4",
+            "remediation": {
+                "recommendation": {
+                    "text": "None Provided"
+                }
+            },
+            "severity": "CRITICAL",
+            "source": "SNYK",
+            "source_url": "https://temp-url",
+            "status": "ACTIVE",
+            "title": "CVE-456 - package2/package4",
+            "vulnerability_id": "CVE-456"
+        },
+        {
+            "cvss_v2_score": 0.0,
+            "cvss_v30_score": 0.0,
+            "cvss_v3_score": 9.1,
+            "cvss_v3_severity": "CRITICAL",
+            "description": "temp-description",
+            "name": "CVE-4561",
+            "package_details": {
+                "file_path": "usr/lib",
+                "name": "package4",
+                "package_manager": "PYTHONPKG",
+                "release": null,
+                "version": "1.2"
+            },
+            "package_name": "package4",
+            "remediation": {
+                "recommendation": {
+                    "text": "None Provided"
+                }
+            },
+            "severity": "CRITICAL",
+            "source": "SNYK",
+            "source_url": "https://temp-url",
+            "status": "ACTIVE",
+            "title": "CVE-4561 - package4",
+            "vulnerability_id": "CVE-4561"
+        }
+    ],
+    "package6": [
+        {
+            "cvss_v2_score": 0.0,
+            "cvss_v30_score": 0.0,
+            "cvss_v3_score": 9.4,
+            "cvss_v3_severity": "CRITICAL",
+            "description": "temp-description",
+            "name": "CVE-A234",
+            "package_details": {
+                "file_path": "usr/lib",
+                "name": "package6",
+                "package_manager": "PYTHONPKG",
+                "release": null,
+                "version": "1.235"
+            },
+            "package_name": "package6",
+            "remediation": {
+                "recommendation": {
+                    "text": "None Provided"
+                }
+            },
+            "severity": "CRITICAL",
+            "source": "SNYK",
+            "source_url": "https://temp-url",
+            "status": "ACTIVE",
+            "title": "CVE-A234 - package6",
+            "vulnerability_id": "CVE-A234"
+        }
+    ]
+}

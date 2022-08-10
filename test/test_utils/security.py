@@ -368,12 +368,8 @@ class ECREnhancedScanVulnerabilityList(ScanVulnerabilityList):
         """
         with open(file_path, "r") as f:
             file_allowlist = json.load(f)
-        for package_name, package_vulnerability_list in file_allowlist.items():
-            for vulnerability in package_vulnerability_list:
-                if CVESeverity[vulnerability["severity"]] >= self.minimum_severity:
-                    if package_name not in self.vulnerability_list:
-                        self.vulnerability_list[package_name] = []
-                    self.vulnerability_list[package_name].append(vulnerability)
+        for _, package_vulnerability_list in file_allowlist.items():
+            self.construct_allowlist_from_allowlist_formatted_vulnerabilities(package_vulnerability_list)
         return self.vulnerability_list
 
     def construct_allowlist_from_allowlist_formatted_vulnerabilities(self, allowlist_formatted_vulnerability_list):
@@ -385,10 +381,11 @@ class ECREnhancedScanVulnerabilityList(ScanVulnerabilityList):
         """
         for vulnerability in allowlist_formatted_vulnerability_list:
             package_name = self.get_vulnerability_package_name_from_allowlist_formatted_vulnerability(vulnerability)
+            if CVESeverity[vulnerability["cvss_v3_severity"]] < self.minimum_severity:
+                continue
             if package_name not in self.vulnerability_list:
                 self.vulnerability_list[package_name] = []
-            if CVESeverity[vulnerability["cvss_v3_severity"]] >= self.minimum_severity:
-                self.vulnerability_list[package_name].append(vulnerability)
+            self.vulnerability_list[package_name].append(vulnerability)
         return self.vulnerability_list
     
     def construct_allowlist_from_ecr_scan_result(self, ecr_format_vulnerability_list):
