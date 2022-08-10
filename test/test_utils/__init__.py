@@ -1614,6 +1614,7 @@ def run_cmd_on_container(container_name, context, cmd, executable="bash", warn=F
         f"docker exec --user root {container_name} {executable} -c '{cmd}'", hide=True, warn=warn, timeout=60
     )
 
+
 def uniquify_list_of_dict(list_of_dict):
     """
     Takes list_of_dict as an input and returns a list of dict such that each dict is only present
@@ -1627,6 +1628,20 @@ def uniquify_list_of_dict(list_of_dict):
     unique_list_of_string = list(set(list_of_string))
     list_of_dict_to_return = [json.loads(str_element) for str_element in unique_list_of_string]
     return list_of_dict_to_return
+
+
+def check_if_two_dictionaries_are_equal(dict1, dict2, ignore_keys=[]):
+    """
+    Compares if 2 dictionaries are equal or not. 
+
+    :param dict1: dict
+    :param dict2: dict
+    :param ignore_keys: list[str], keys that are ignored while comparison
+    """
+    dict1_filtered = {k:v for k,v in dict1.items() if k not in ignore_keys}
+    dict2_filtered = {k:v for k,v in dict2.items() if k not in ignore_keys}
+    return dict1_filtered == dict2_filtered
+
 
 def get_tensorflow_model_base_path(image_uri):
     """

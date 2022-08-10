@@ -308,7 +308,7 @@ class ECRBasicScanVulnerabilityList(ScanVulnerabilityList):
         :return: dict self.vulnerability_list
         """
         for vulnerability in allowlist_formatted_vulnerability_list:
-            package_name = self.get_ecr_vulnerability_package_name(vulnerability)
+            package_name = self.get_vulnerability_package_name_from_allowlist_formatted_vulnerability(vulnerability)
             if package_name not in self.vulnerability_list:
                 self.vulnerability_list[package_name] = []
             if CVESeverity[vulnerability["severity"]] >= self.minimum_severity:
@@ -348,6 +348,7 @@ class ECRBasicScanVulnerabilityList(ScanVulnerabilityList):
                 return True
         return False
 
+
 class ECREnhancedScanVulnerabilityList(ScanVulnerabilityList):
     def get_vulnerability_package_name_from_allowlist_formatted_vulnerability(self, vulnerability):
         """
@@ -383,7 +384,7 @@ class ECREnhancedScanVulnerabilityList(ScanVulnerabilityList):
         :return: dict self.vulnerability_list
         """
         for vulnerability in allowlist_formatted_vulnerability_list:
-            package_name = self.get_ecr_vulnerability_package_name(vulnerability)
+            package_name = self.get_vulnerability_package_name_from_allowlist_formatted_vulnerability(vulnerability)
             if package_name not in self.vulnerability_list:
                 self.vulnerability_list[package_name] = []
             if CVESeverity[vulnerability["cvss_v3_severity"]] >= self.minimum_severity:
@@ -419,17 +420,12 @@ class ECREnhancedScanVulnerabilityList(ScanVulnerabilityList):
                                 presented by the ECR Scan Tool
         :return: bool True if the two input objects are equivalent, False otherwise
         """
-        if (vulnerability_1["name"], vulnerability_1["severity"]) == (vulnerability_2["name"], vulnerability_2["severity"]):
-            # Do not compare package_version, because this may have been obtained at the time the CVE was first observed
-            # on the ECR Scan, which would result in unrelated version updates causing a mismatch while the CVE still
-            # applies on both vulnerabilities.
-            if all(
-                attribute in vulnerability_2["attributes"]
-                for attribute in vulnerability_1["attributes"]
-                if not attribute["key"] == "package_version"
-            ):
-                return True
+        ## Ignore version key in package_details as it might represent the version of the package existing in the image
+        ## and might differ from  image to image, even when the vulnerability is same
+        if test_utils.check_if_two_dictionaries_are_equal(vulnerability_1["package_details"], vulnerability_2["package_details"], ignore_keys=["version"]):
+            return test_utils.check_if_two_dictionaries_are_equal(vulnerability_1, vulnerability_2, ignore_keys=["package_details"])
         return False
+
 
 def get_ecr_vulnerability_package_version(vulnerability):
     """
