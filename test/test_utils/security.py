@@ -218,7 +218,7 @@ class ScanVulnerabilityList:
             if len(self.vulnerability_list[package_name]) != len(other.vulnerability_list[package_name]):
                 return False
             for v1, v2 in zip(
-                sorted(self.vulnerability_list[package_name]), sorted(other.vulnerability_list[package_name])
+                self.get_sorted_vulnerability_list()[package_name], other.get_sorted_vulnerability_list()[package_name]
             ):
                 if not self.are_vulnerabilities_equivalent(v1, v2):
                     return False
