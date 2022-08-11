@@ -7,6 +7,7 @@ import pytest
 from invoke import run, Context
 from packaging.version import Version
 from packaging.specifiers import SpecifierSet
+from test import test_utils
 
 from test.test_utils import (
     LOGGER,
@@ -33,7 +34,8 @@ from test.test_utils.security import (
     run_scan,
     fetch_other_vulnerability_lists,
     get_new_image_uri_using_current_uri_and_new_repo,
-    wait_for_enhanced_scans_to_complete
+    wait_for_enhanced_scans_to_complete,
+    get_ecr_scan_allowlist_path
 )
 from src.config import is_ecr_scan_allowlist_feature_enabled
 
@@ -261,13 +263,26 @@ def test_ecr_enhanced_scan(image, ecr_client, sts_client, region):
 
     scan_results = ecr_utils.get_all_ecr_enhanced_scan_findings(ecr_client=ecr_client_for_enhanced_scanning_repo, image_uri=new_uri)
     scan_results = json.loads(json.dumps(scan_results, default=ecr_utils.ecr_json_serializer)) 
-    with open("enhanced_results.json", "w") as f:
-        json.dump(scan_results, f, indent=4)
     
     minimum_sev_threshold = get_minimum_sev_threshold_level(image)
     ecr_image_vulnerability_list = ECREnhancedScanVulnerabilityList(minimum_severity=CVESeverity[minimum_sev_threshold])
     ecr_image_vulnerability_list.construct_allowlist_from_ecr_scan_result(scan_results)
+
+    remaining_vulnerabilities = ecr_image_vulnerability_list
     
+    image_scan_allowlist_path = get_ecr_scan_allowlist_path(image)
+    image_scan_allowlist = ECREnhancedScanVulnerabilityList(minimum_severity=CVESeverity[minimum_sev_threshold])
+    if os.path.exists(image_scan_allowlist_path):
+        image_scan_allowlist.construct_allowlist_from_file(image_scan_allowlist_path)
+    
+    remaining_vulnerabilities = remaining_vulnerabilities - image_scan_allowlist
+
+    if remaining_vulnerabilities:
+        assert not remaining_vulnerabilities.vulnerability_list, (
+            f"The following vulnerabilities need to be fixed on {image}:\n"
+            f"{json.dumps(remaining_vulnerabilities.vulnerability_list, indent=4)}"
+        )
+
     LOGGER.info(f"New URI found {new_uri}")
     LOGGER.info(f"Completed processing for {image}")
     LOGGER.info(f"Len of scanned results {len(scan_results)}")

@@ -241,6 +241,16 @@ def get_dockerfile_path_for_image(image_uri):
 
 
 def get_expected_dockerfile_filename(device_type, image_uri):
+    if is_covered_by_e3_sm_split(image_uri):
+        if is_e3_sm_in_same_dockerfile(image_uri):
+            return f"Dockerfile.{device_type}"
+        elif is_e3_image(image_uri):
+            return f"Dockerfile.e3.{device_type}"
+        else:
+            return f"Dockerfile.sagemaker.{device_type}"
+
+    ## TODO: Keeping here for backward compatibility, should be removed in future when the 
+    ## functions is_covered_by_e3_sm_split and is_e3_sm_in_same_dockerfile are made exhaustive
     if is_e3_image(image_uri):
         return f"Dockerfile.e3.{device_type}"
     if is_sagemaker_image(image_uri):
@@ -400,6 +410,24 @@ def is_benchmark_dev_context():
 def is_rc_test_context():
     sm_remote_tests_val = config.get_sagemaker_remote_tests_config_value()
     return sm_remote_tests_val == config.AllowedSMRemoteConfigValues.RC.value
+
+
+def is_covered_by_e3_sm_split(image_uri):
+    e3_sm_split_images = {
+        "pytorch": SpecifierSet(">=1.10.0"),
+        "tensorflow": SpecifierSet(">=2.7.0"),
+    }
+    framework, version = get_framework_and_version_from_tag(image_uri)
+    return framework in e3_sm_split_images and Version(version) in e3_sm_split_images[framework]
+
+
+def is_e3_sm_in_same_dockerfile(image_uri):
+    same_sm_e3_dockerfile_record = {
+        "pytorch": SpecifierSet(">=1.11.0"),
+        "tensorflow": SpecifierSet(">=2.8.0"),
+    }
+    framework, version = get_framework_and_version_from_tag(image_uri)
+    return framework in same_sm_e3_dockerfile_record and Version(version) in same_sm_e3_dockerfile_record[framework]
 
 
 def is_e3_image(image_uri):
@@ -1626,6 +1654,7 @@ def uniquify_list_of_dict(list_of_dict):
     """
     list_of_string = [json.dumps(dict_element, sort_keys=True) for dict_element in list_of_dict]
     unique_list_of_string = list(set(list_of_string))
+    unique_list_of_string.sort() 
     list_of_dict_to_return = [json.loads(str_element) for str_element in unique_list_of_string]
     return list_of_dict_to_return
 

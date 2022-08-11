@@ -404,6 +404,7 @@ class ECREnhancedScanVulnerabilityList(ScanVulnerabilityList):
                 if allowlist_format_vulnerability_object.package_name not in self.vulnerability_list:
                     self.vulnerability_list[allowlist_format_vulnerability_object.package_name] = []
                 self.vulnerability_list[allowlist_format_vulnerability_object.package_name].append(json.loads(json.dumps(allowlist_format_vulnerability_object, cls=EnhancedJSONEncoder)))
+        self.vulnerability_list = self.get_sorted_vulnerability_list()
         return self.vulnerability_list
 
     def are_vulnerabilities_equivalent(self, vulnerability_1, vulnerability_2):
@@ -440,6 +441,12 @@ def get_ecr_vulnerability_package_version(vulnerability):
 def get_ecr_scan_allowlist_path(image_uri):
     dockerfile_location = test_utils.get_dockerfile_path_for_image(image_uri)
     image_scan_allowlist_path = dockerfile_location + ".os_scan_allowlist.json"
+    if test_utils.is_covered_by_e3_sm_split(image_uri) and test_utils.is_e3_sm_in_same_dockerfile(image_uri):
+        if test_utils.is_e3_image(image_uri):
+            image_scan_allowlist_path = image_scan_allowlist_path.replace("Dockerfile", "Dockerfile.e3")
+        else:
+            image_scan_allowlist_path = image_scan_allowlist_path.replace("Dockerfile", "Dockerfile.sagemaker")
+    
     # Each example image (tied to CUDA version/OS version/other variants) can have its own list of vulnerabilities,
     # which means that we cannot have just a single allowlist for all example images for any framework version.
     if "example" in image_uri:
