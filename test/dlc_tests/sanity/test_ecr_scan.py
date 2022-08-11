@@ -36,7 +36,7 @@ from test.test_utils.security import (
     fetch_other_vulnerability_lists,
     get_new_image_uri_using_current_uri_and_new_repo,
     wait_for_enhanced_scans_to_complete,
-    get_ecr_scan_allowlist_path
+    get_ecr_scan_allowlist_path,
 )
 from src.config import is_ecr_scan_allowlist_feature_enabled
 
@@ -244,6 +244,20 @@ def test_ecr_basic_scan(image, ecr_client, sts_client, region):
 @pytest.mark.model("N/A")
 @pytest.mark.integration("ECR Enhanced Scans on Images")
 def test_ecr_enhanced_scan(image, ecr_client, sts_client, region):
+    """
+    Run ECR Enhanced Scan Tool on an image being tested, and raise Error if vulnerabilities found
+    1. Upload image to the ECR Enhanced Scanning Testing Repo.
+    2. Wait for the scans to complete - takes approx 10 minutes for big images. Once the scan is complete, 
+        the scan status changes to ACTIVE
+    3. If the status does not turn to ACTIVE, raise a TimeOut Error
+    4. Read the ecr_scan_results and remove the allowlisted vulnerabilities from it
+    5. In case any vulnerability is remaining after removal, raise an error
+
+    :param image: str Image URI for image to be tested
+    :param ecr_client: boto3 Client for ECR
+    :param sts_client: boto3 Client for STS
+    :param region: str Name of region where test is executed
+    """
     LOGGER.info(f"Running test_ecr_enhanced_scan for image {image}")
     image = conduct_preprocessing(image, ecr_client, sts_client, region)
 
@@ -259,12 +273,14 @@ def test_ecr_enhanced_scan(image, ecr_client, sts_client, region):
         new_uri, ECR_ENHANCED_SCANNING_REPO_NAME, ECR_ENHANCED_REPO_REGION, pull_image=False
     )
 
-    ecr_client_for_enhanced_scanning_repo=boto3.client('ecr',region_name=ECR_ENHANCED_REPO_REGION)
+    ecr_client_for_enhanced_scanning_repo = boto3.client("ecr", region_name=ECR_ENHANCED_REPO_REGION)
     wait_for_enhanced_scans_to_complete(ecr_client_for_enhanced_scanning_repo, new_uri)
 
-    scan_results = ecr_utils.get_all_ecr_enhanced_scan_findings(ecr_client=ecr_client_for_enhanced_scanning_repo, image_uri=new_uri)
-    scan_results = json.loads(json.dumps(scan_results, default=ecr_utils.ecr_json_serializer)) 
-    
+    scan_results = ecr_utils.get_all_ecr_enhanced_scan_findings(
+        ecr_client=ecr_client_for_enhanced_scanning_repo, image_uri=new_uri
+    )
+    scan_results = json.loads(json.dumps(scan_results, default=ecr_utils.ecr_json_serializer))
+
     minimum_sev_threshold = get_minimum_sev_threshold_level(image)
     ecr_image_vulnerability_list = ECREnhancedScanVulnerabilityList(minimum_severity=CVESeverity[minimum_sev_threshold])
     ecr_image_vulnerability_list.construct_allowlist_from_ecr_scan_result(scan_results)
@@ -272,7 +288,7 @@ def test_ecr_enhanced_scan(image, ecr_client, sts_client, region):
     remaining_vulnerabilities = ecr_image_vulnerability_list
 
     image_scan_allowlist = ECREnhancedScanVulnerabilityList(minimum_severity=CVESeverity[minimum_sev_threshold])
-    
+
     try:
         image_scan_allowlist_path = get_ecr_scan_allowlist_path(image)
         if os.path.exists(image_scan_allowlist_path):
@@ -280,7 +296,7 @@ def test_ecr_enhanced_scan(image, ecr_client, sts_client, region):
     except:
         LOGGER.info(f"[AllowlistPathNotFound] Image scan allowlist path not found for {image}")
         traceback.print_exc()
-    
+
     remaining_vulnerabilities = remaining_vulnerabilities - image_scan_allowlist
 
     if remaining_vulnerabilities:
