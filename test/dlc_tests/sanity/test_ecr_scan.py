@@ -3,6 +3,7 @@ import os
 import boto3
 
 import pytest
+import traceback
 
 from invoke import run, Context
 from packaging.version import Version
@@ -269,11 +270,16 @@ def test_ecr_enhanced_scan(image, ecr_client, sts_client, region):
     ecr_image_vulnerability_list.construct_allowlist_from_ecr_scan_result(scan_results)
 
     remaining_vulnerabilities = ecr_image_vulnerability_list
-    
-    image_scan_allowlist_path = get_ecr_scan_allowlist_path(image)
+
     image_scan_allowlist = ECREnhancedScanVulnerabilityList(minimum_severity=CVESeverity[minimum_sev_threshold])
-    if os.path.exists(image_scan_allowlist_path):
-        image_scan_allowlist.construct_allowlist_from_file(image_scan_allowlist_path)
+    
+    try:
+        image_scan_allowlist_path = get_ecr_scan_allowlist_path(image)
+        if os.path.exists(image_scan_allowlist_path):
+            image_scan_allowlist.construct_allowlist_from_file(image_scan_allowlist_path)
+    except:
+        LOGGER.info(f"[AllowlistPathNotFound] Image scan allowlist path not found for {image}")
+        traceback.print_exc()
     
     remaining_vulnerabilities = remaining_vulnerabilities - image_scan_allowlist
 
@@ -282,7 +288,3 @@ def test_ecr_enhanced_scan(image, ecr_client, sts_client, region):
             f"The following vulnerabilities need to be fixed on {image}:\n"
             f"{json.dumps(remaining_vulnerabilities.vulnerability_list, indent=4)}"
         )
-
-    LOGGER.info(f"New URI found {new_uri}")
-    LOGGER.info(f"Completed processing for {image}")
-    LOGGER.info(f"Len of scanned results {len(scan_results)}")
