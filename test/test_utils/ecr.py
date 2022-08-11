@@ -191,7 +191,10 @@ def get_all_ecr_enhanced_scan_findings(ecr_client, image_uri):
 
 
 def ecr_json_serializer(obj):
-    """JSON serializer for objects not serializable by default json code"""
+    """
+    The ECR Enhanced Scan results have datetime objects that cannot be directly dumped as JSON. 
+    This JSON serializer helps serializing results obtained from ECR Scan results.
+    """
     if isinstance(obj, (datetime, date)):
         return obj.isoformat()
     raise TypeError("Type %s not serializable" % type(obj))
