@@ -246,6 +246,7 @@ def reupload_image_to_test_ecr(source_image_uri, target_image_repo_name, target_
     :param source_image_uri: str Image URI for image to be tested
     :param target_image_repo_name: str Target image ECR repo name
     :param target_region: str Region where test is being run
+    :param pull_image: bool, specifies if the source_image needs to be pulled before reuploading
     :return: str New image URI for re-uploaded image
     """
     ECR_PASSWORD_FILE_PATH = os.path.join("/tmp", f"{get_unique_name_from_tag(source_image_uri)}.txt")
