@@ -1661,14 +1661,15 @@ def uniquify_list_of_dict(list_of_dict):
 
 def check_if_two_dictionaries_are_equal(dict1, dict2, ignore_keys=[]):
     """
-    Compares if 2 dictionaries are equal or not. 
+    Compares if 2 dictionaries are equal or not. The ignore_keys argument is used to provide
+    a list of keys that are ignored while comparing the dictionaires.
 
     :param dict1: dict
     :param dict2: dict
     :param ignore_keys: list[str], keys that are ignored while comparison
     """
-    dict1_filtered = {k:v for k,v in dict1.items() if k not in ignore_keys}
-    dict2_filtered = {k:v for k,v in dict2.items() if k not in ignore_keys}
+    dict1_filtered = {k: v for k, v in dict1.items() if k not in ignore_keys}
+    dict2_filtered = {k: v for k, v in dict2.items() if k not in ignore_keys}
     return dict1_filtered == dict2_filtered
 
 
