@@ -9,7 +9,7 @@ from invoke import run, Context
 from time import sleep, time
 from enum import IntEnum
 from test import test_utils
-from test.test_utils import ecr as ecr_utils
+from test.test_utils import LOGGER, ecr as ecr_utils
 from dataclasses import dataclass
 from typing import Any
 
@@ -18,6 +18,7 @@ class EnhancedJSONEncoder(json.JSONEncoder):
     """
     EnhancedJSONEncoder is required to dump dataclass objects as JSON.
     """
+
     def default(self, o):
         if dataclasses.is_dataclass(o):
             return dataclasses.asdict(o)
@@ -30,6 +31,7 @@ class VulnerablePackageDetails:
     VulnerablePackageDetails dataclass is used to represent the "package_details" for 
     a single vulnerability in Allowlist format.
     """
+
     file_path: str
     name: str
     package_manager: str
@@ -61,6 +63,7 @@ class AllowListFormatVulnerability:
     other words, vulnerabilities from the ecr format are are directly deserialized into vulnerabilities in Allowlist
     format using AllowlistFormatVulnerability dataclass.
     """
+
     description: str
     vulnerability_id: str
     name: str
@@ -304,6 +307,7 @@ class ECRBasicScanVulnerabilityList(ScanVulnerabilityList):
     """
     A child class of ScanVulnerabilityList that is specifically made to deal with ECR Basic Scans.
     """
+
     def get_vulnerability_package_name_from_allowlist_formatted_vulnerability(self, vulnerability):
         """
         Get Package Name from a vulnerability JSON object. 
@@ -392,6 +396,7 @@ class ECREnhancedScanVulnerabilityList(ScanVulnerabilityList):
     """
     A child class of ScanVulnerabilityList that is specifically made to deal with ECR Enhanced Scans.
     """
+
     def get_vulnerability_package_name_from_allowlist_formatted_vulnerability(self, vulnerability):
         """
         Get Package Name from a vulnerability JSON object
@@ -798,7 +803,7 @@ def run_scan(ecr_client, image):
 
 def wait_for_enhanced_scans_to_complete(ecr_client, image):
     """
-    For Continuous Enhanced scansm, the images will go through `SCAN_ON_PUSH` when they are uploaded for the 
+    For Continuous Enhanced scans, the images will go through `SCAN_ON_PUSH` when they are uploaded for the 
     first time. During that time, their state will be shown as `PENDING`. From next time onwards, their status will show 
     itself as `ACTIVE`.
 
@@ -809,8 +814,13 @@ def wait_for_enhanced_scans_to_complete(ecr_client, image):
     scan_status_description = ""
     start_time = time()
     while (time() - start_time) <= 600:
-        ## TODO: Might have to add try except here ##
-        scan_status, scan_status_description = ecr_utils.get_ecr_image_enhanced_scan_status(ecr_client, image)
+        try:
+            scan_status, scan_status_description = ecr_utils.get_ecr_image_enhanced_scan_status(ecr_client, image)
+        except ecr_client.exceptions.ScanNotFoundException as e:
+            LOGGER.info(e.response)
+            LOGGER.info(
+                "It takes sometime for the newly uploaded image to show its scan status, hence the error handling"
+            )
         if scan_status == "ACTIVE":
             break
         sleep(1)
