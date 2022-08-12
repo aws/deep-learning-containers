@@ -594,12 +594,13 @@ def execute_ec2_training_test(
     ipc = '--ipc=host' if "hpu" in ecr_uri and "pytorch" in ecr_uri else ""
     hpu_env_vars = f'-e GIT_BRANCH={synapseai_version}' if "hpu" in ecr_uri else ""
     habana_container_test_repo = '-v ${HOME}/gaudi-test-suite:/gaudi-test-suite' if "hpu" in ecr_uri else ""
+    neuron_device = '--device=/dev/neuron0' if "neuron" in ecr_uri else ""
     bin_bash_cmd = "--entrypoint /bin/bash " if bin_bash_entrypoint else ""
     connection.run(
         f"{docker_cmd} run --name {container_name} "
         f"{container_runtime} {ompi_mca_btl} {cap_add} {hpu_env_vars} "
         f"{ipc} {network}-v {container_test_local_dir}:{os.path.join(os.sep, 'test')} "
-        f"{habana_container_test_repo} {shm_setting} -itd {bin_bash_cmd}{ecr_uri}",
+        f"{habana_container_test_repo} {shm_setting} {neuron_device} -itd {bin_bash_cmd}{ecr_uri}",
         hide=True,
     )
 
@@ -632,6 +633,12 @@ def execute_ec2_training_test(
             except:
                 LOGGER.info(f"Could not upload the logs")
             return run_output
+
+    #Hack not sure why but see the following. since not using latest driver yet in the AMI, doing this for now
+    # [  214.939271] Neuron Driver Started with Version:2.x.381.0-b70a76a18efb5e89ffed987461e9a1009d8b6f1e
+    # [  214.939619] neuron-driver 0000:00:1e.0: BAR 4: can't reserve [mem 0x1000000000-0x17ffffffff 64bit pref]
+    if "neuron" in ecr_uri:
+        connection.run(f"sudo modprobe -r neuron  && sudo modprobe -i neuron")
 
     return connection.run(
         f"{docker_cmd} exec --user root {container_name} {executable} -c '{test_cmd}'",

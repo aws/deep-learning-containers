@@ -29,6 +29,8 @@ LOGGER.addHandler(logging.StreamHandler(sys.stderr))
 DEFAULT_REGION = "us-west-2"
 # Constant to represent region where p3dn tests can be run
 P3DN_REGION = "us-east-1"
+# Constant to represent region where TRN1 tests can be run
+TRN1_REGION = "us-east-1"
 def get_ami_id_boto3(region_name, ami_name_pattern):
     """
     For a given region and ami name pattern, return the latest ami-id
@@ -59,6 +61,8 @@ PT_GPU_PY3_BENCHMARK_IMAGENET_AMI_US_EAST_1 = "ami-0673bb31cc62485dd"
 PT_GPU_PY3_BENCHMARK_IMAGENET_AMI_US_WEST_2 = "ami-02d9a47bc61a31d43"
 # Since latest driver is not in public DLAMI yet, using a custom one
 NEURON_UBUNTU_18_BASE_DLAMI_US_WEST_2 = get_ami_id_boto3(region_name="us-west-2", ami_name_pattern="Deep Learning Base AMI (Ubuntu 18.04) Version ??.?")
+# Since NEURON TRN1 is not released yet use a custom AMI
+NEURON_TRN1_AMI_US_EAST_1 = "ami-0722e824fd5887c43"
 # Habana Base v1.3 ami
 UBUNTU_18_HPU_DLAMI_US_WEST_2 = "ami-08e564663ef2e761c"
 UBUNTU_18_HPU_DLAMI_US_EAST_1 = "ami-06a0a1e2c90bfc1c8"
@@ -1275,6 +1279,11 @@ NEURON_VERSION_MANIFEST = {
         },
         "mxnet": {
             "1.8.0": "1.8.0.2.2.2.0",
+        },
+    },
+    "2.1.1": {
+        "pytorch": {
+            "1.10.2": "1.10.2.2.3.0.0",
         },
     },
     "1.19.1": {
