@@ -136,8 +136,8 @@ def get_all_ecr_image_scan_results_using_pagination(ecr_client, image_uri, scan_
     scan_info = ecr_client.describe_image_scan_findings(
         repositoryName=repository, imageId={"imageTag": tag}, maxResults=100
     )
-
-    scan_info_findings.append(scan_info["imageScanFindings"][scan_info_finding_key])
+    if scan_info_finding_key in scan_info["imageScanFindings"]:
+        scan_info_findings.append(scan_info["imageScanFindings"][scan_info_finding_key])
 
     nextToken = None
     if "nextToken" in scan_info:
