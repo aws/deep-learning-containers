@@ -496,7 +496,7 @@ RUN  wget -nv https://github.com/rapidsai/rmm/archive/v${RMM_VERSION}.tar.gz \
  && rm -rf v${RMM_VERSION}.tar* \
  && rm -rf rmm-${RMM_VERSION}
 
-# Install ZeRO-2D binary
+# Install ZeRO-2D Binary
 RUN pip install --no-cache-dir -U ${ZERO_2D_URL}
 
 # Install SM Distributed Modelparallel binary
