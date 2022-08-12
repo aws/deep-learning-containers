@@ -57,6 +57,9 @@ images:
     tag: !join [ *VERSION, "-", *DEVICE_TYPE, "-", *TAG_PYTHON_VERSION, "-", *OS_VERSION, "-sagemaker-lite" ]
     docker_file: !join [ docker/, *SHORT_VERSION, /, *DOCKER_PYTHON_VERSION, /Dockerfile.smlite., *DEVICE_TYPE ]
     target: sagemaker
+    labels:
+      aws_framework_installed: false
+      aws_smdebug_installed: false
     context:
       <<: *TRAINING_CONTEXT
   BuildSageMakerGPUPTTrainPy3DockerImage:
@@ -72,6 +75,11 @@ images:
     docker_file: !join [ docker/, *SHORT_VERSION, /, *DOCKER_PYTHON_VERSION, /, *CUDA_VERSION, /Dockerfile.smlite.,
                          *DEVICE_TYPE ]
     target: sagemaker
+    labels:
+      aws_framework_installed: false
+      aws_smdebug_installed: false
+      feature_smddp_present: false
+      feature_smmp_present: false
     context:
       <<: *TRAINING_CONTEXT
   BuildSageMakerCPUPTInferencePy3DockerImage:
@@ -83,8 +91,10 @@ images:
     tag_python_version: &TAG_PYTHON_VERSION py38
     os_version: &OS_VERSION ubuntu20.04
     tag: !join [ *VERSION, "-", *DEVICE_TYPE, "-", *TAG_PYTHON_VERSION, "-", *OS_VERSION, "-sagemaker-lite" ]
-    docker_file: !join [ docker/, *SHORT_VERSION, /, *DOCKER_PYTHON_VERSION, /Dockerfile.smlite., *DEVICE_TYPE ]
+    docker_file: !join [ docker/, *SHORT_VERSION, /, *DOCKER_PYTHON_VERSION, /Dockerfile.sagemaker.lite., *DEVICE_TYPE ]
     target: sagemaker
+    labels:
+      aws_framework_installed: false
     context:
       <<: *INFERENCE_CONTEXT
   BuildSageMakerGPUPTInferencePy3DockerImage:
@@ -97,8 +107,10 @@ images:
     cuda_version: &CUDA_VERSION cu113
     os_version: &OS_VERSION ubuntu20.04
     tag: !join [ *VERSION, "-", *DEVICE_TYPE, "-", *TAG_PYTHON_VERSION, "-", *CUDA_VERSION, "-", *OS_VERSION, "-sagemaker-lite" ]
-    docker_file: !join [ docker/, *SHORT_VERSION, /, *DOCKER_PYTHON_VERSION, /, *CUDA_VERSION, /Dockerfile.smlite.,
-                         *DEVICE_TYPE ]
+    docker_file: !join [ docker/, *SHORT_VERSION, /, *DOCKER_PYTHON_VERSION, /, *CUDA_VERSION,
+                         /Dockerfile.sagemaker.lite., *DEVICE_TYPE ]
     target: sagemaker
+    labels:
+      aws_framework_installed: false
     context:
       <<: *INFERENCE_CONTEXT
