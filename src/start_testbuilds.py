@@ -12,6 +12,7 @@ distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF
 ANY KIND, either express or implied. See the License for the specific
 language governing permissions and limitations under the License.
 """
+import argparse
 import json
 import logging
 import os
@@ -29,7 +30,7 @@ LOGGER.addHandler(logging.StreamHandler(sys.stdout))
 LOGGER.addHandler(logging.StreamHandler(sys.stderr))
 
 
-def run_test_job(commit, codebuild_project, images_str=""):
+def run_test_job(commit, codebuild_project, buildspec_file, images_str=""):
     test_env_file = constants.TEST_ENV_PATH
     if not os.path.exists(test_env_file):
         raise FileNotFoundError(
@@ -42,10 +43,14 @@ def run_test_job(commit, codebuild_project, images_str=""):
 
     pr_num = os.getenv("PR_NUMBER")
     LOGGER.debug(f"pr_num {pr_num}")
+
+    buildspec_file = config.get_buildspec_override() or buildspec_file
+    LOGGER.debug(f"buildspec_file {buildspec_file}")
     env_overrides.extend(
         [
             {"name": "DLC_IMAGES", "value": images_str, "type": "PLAINTEXT"},
             {"name": "PR_NUMBER", "value": pr_num, "type": "PLAINTEXT"},
+            {"name": "FRAMEWORK_BUILDSPEC_FILE", "value": buildspec_file, "type": "PLAINTEXT"},
             # USE_SCHEDULER is passed as an env variable here because it is more convenient to set this in
             # dlc_developer_config, compared to having another config file under dlc/tests/.
             {
@@ -124,6 +129,10 @@ def is_test_job_implemented_for_framework(images_str, test_type):
 
 
 def main():
+    parser = argparse.ArgumentParser(description="Program to build docker images")
+    parser.add_argument("--buildspec", type=str)
+    args = parser.parse_args()
+
     build_context = os.getenv("BUILD_CONTEXT")
     if build_context != "PR":
         LOGGER.info(f"Not triggering test jobs from boto3, as BUILD_CONTEXT is {build_context}")

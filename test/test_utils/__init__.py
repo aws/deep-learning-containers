@@ -66,7 +66,7 @@ NEURON_UBUNTU_18_BASE_DLAMI_US_WEST_2 = get_ami_id_boto3(region_name="us-west-2"
 # UBUNTU_18_HPU_DLAMI_US_WEST_2 = "ami-047fd74c001116366"
 # UBUNTU_18_HPU_DLAMI_US_EAST_1 = "ami-04c47cb3d4fdaa874"
 # Habana Base v1.3 ami
-# UBUNTU_18_HPU_DLAMI_US_WEST_2 = "ami-0ef18b1906e7010fb" 
+# UBUNTU_18_HPU_DLAMI_US_WEST_2 = "ami-0ef18b1906e7010fb"
 # UBUNTU_18_HPU_DLAMI_US_EAST_1 = "ami-040ef14d634e727a2"
 # Habana Base v1.4.1 ami
 # UBUNTU_18_HPU_DLAMI_US_WEST_2 = "ami-08e564663ef2e761c"
@@ -249,6 +249,10 @@ def get_expected_dockerfile_filename(device_type, image_uri):
 
 def get_customer_type():
     return os.getenv("CUSTOMER_TYPE")
+
+
+def get_buildspec_file_path_from_env():
+    return os.getenv("FRAMEWORK_BUILDSPEC_FILE")
 
 
 def get_python_invoker(ami_id):
@@ -882,7 +886,7 @@ def parse_canary_images(framework, region):
     """
     customer_type = get_customer_type()
     customer_type_tag = f"-{customer_type}" if customer_type else ""
-    
+
     # initialize graviton variables
     use_graviton = False
 
@@ -1000,7 +1004,7 @@ def parse_canary_images(framework, region):
                 "graviton_pytorch": [
                     f"{registry}.dkr.ecr.{region}.amazonaws.com/pytorch-inference-graviton:{fw_version}-cpu-{py_version}",
                 ],
-                # TODO: create graviton_mxnet DLC and add to dictionary 
+                # TODO: create graviton_mxnet DLC and add to dictionary
             }
 
             # E3 Images have an additional "e3" tag to distinguish them from the regular "sagemaker" tag
@@ -1374,14 +1378,14 @@ def get_os_version_from_image_uri(image_uri):
 
 def get_framework_from_image_uri(image_uri):
     return (
-        "huggingface_tensorflow_trcomp" 
-        if "huggingface-tensorflow-trcomp" in image_uri 
+        "huggingface_tensorflow_trcomp"
+        if "huggingface-tensorflow-trcomp" in image_uri
         else "huggingface_tensorflow"
         if "huggingface-tensorflow" in image_uri
-        else "huggingface_pytorch_trcomp" 
-        if "huggingface-pytorch-trcomp" in image_uri 
-        else "huggingface_pytorch" 
-        if "huggingface-pytorch" in image_uri 
+        else "huggingface_pytorch_trcomp"
+        if "huggingface-pytorch-trcomp" in image_uri
+        else "huggingface_pytorch"
+        if "huggingface-pytorch" in image_uri
         else "mxnet"
         if "mxnet" in image_uri
         else "pytorch"
@@ -1525,6 +1529,7 @@ def get_python_version_from_image_uri(image_uri):
     python_version = python_version_search.group()
     return "py36" if python_version == "py3" else python_version
 
+
 def construct_buildspec_path(dlc_path, framework_path, buildspec, framework_version):
     """
     Construct a relative path to the buildspec yaml file by iterative checking on the existence of
@@ -1535,6 +1540,16 @@ def construct_buildspec_path(dlc_path, framework_path, buildspec, framework_vers
     :param buildspec: buildspec file name
     :param framework_version: default (long) framework version name
     """
+    if get_buildspec_file_path_from_env():
+        env_buildspec_file = get_buildspec_file_path_from_env()
+        buildspec_path = os.path.join(dlc_path, env_buildspec_file)
+        if not os.path.exists(buildspec_path):
+            raise FileNotFoundError(
+                f"Could not find {buildspec_path} even though buildspec file should be {env_buildspec_file}"
+            )
+        return buildspec_path
+    else:
+        LOGGER.warning(f"Could not find buildspec file path from environment variable")
     if framework_version:
         # pattern matches for example 0.3.2 or 22.3
         pattern = r"^(\d+)(\.\d+)?(\.\d+)?$"
@@ -1615,7 +1630,7 @@ def uniquify_list_of_dict(list_of_dict):
     """
     Takes list_of_dict as an input and returns a list of dict such that each dict is only present
     once in the returned list. Runs an operation that is similar to list(set(input_list)). However,
-    for list_of_dict, it is not possible to run the operation directly. 
+    for list_of_dict, it is not possible to run the operation directly.
 
     :param list_of_dict: List(dict)
     :return: List(dict)
@@ -1712,7 +1727,7 @@ def is_image_available_locally(image_uri):
     """
     run_output = run(f"docker inspect {image_uri}", hide=True, warn=True)
     return run_output.ok
-    
+
 
 def get_contributor_from_image_uri(image_uri):
     """

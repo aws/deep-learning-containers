@@ -67,9 +67,9 @@ dlc-pr-tensorflow-2 = ""
 
 # SageMaker Framework DLC buildspecs
 dlc-pr-autogluon = ""
-dlc-pr-sagemaker-mxnet = "tensorflow/buildspec-sagemaker.yml"
-dlc-pr-sagemaker-pytorch = "mxnet/buildspec-sagemaker.yml"
-dlc-pr-sagemaker-tensorflow-2 = "pytorch/buildspec-sagemaker.yml"
+dlc-pr-sagemaker-mxnet = ""
+dlc-pr-sagemaker-pytorch = ""
+dlc-pr-sagemaker-tensorflow-2 = ""
 
 # Hugging Face DLC buildspecs
 dlc-pr-huggingface-pytorch = ""
