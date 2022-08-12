@@ -823,7 +823,7 @@ def wait_for_enhanced_scans_to_complete(ecr_client, image):
             )
         if scan_status == "ACTIVE":
             break
-        sleep(1)
+        sleep(1 * 60)
     if scan_status != "ACTIVE":
         raise TimeoutError(
             f"ECR Scan is still in {scan_status} state with description: {scan_status_description}. Exiting."
