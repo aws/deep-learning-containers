@@ -52,7 +52,7 @@ sagemaker_remote_tests = "off"
 
 # Run CI tests for nightly images
 # Off by default
-nightly_pr_test_mode = false
+nightly_pr_test_mode = true
 
 use_scheduler = false
 
@@ -66,7 +66,7 @@ use_scheduler = false
 # Standard Framework DLC buildspecs
 dlc-pr-autogluon = ""
 dlc-pr-mxnet = ""
-dlc-pr-pytorch = ""
+dlc-pr-pytorch = "pytorch/buildspec-sm-lite-1-13.yml"
 dlc-pr-tensorflow-1 = ""
 dlc-pr-tensorflow-2 = ""
 
