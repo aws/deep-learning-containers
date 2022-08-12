@@ -156,7 +156,7 @@ def main():
             if "graviton" in images_str and test_type == "sanity":
                 pr_test_job += "-graviton"
             if is_test_job_enabled(test_type) and is_test_job_implemented_for_framework(images_str, test_type):
-                run_test_job(commit, pr_test_job, images_str)
+                run_test_job(commit, pr_test_job, args.buildspec, images_str)
 
             # Trigger sagemaker local test jobs when there are changes in sagemaker_tests
             # sagemaker local test is not supported in benchmark dev mode
@@ -166,7 +166,7 @@ def main():
                 and config.is_sm_local_test_enabled()
             ):
                 test_job = f"dlc-pr-{test_type}-local-test"
-                run_test_job(commit, test_job, images_str)
+                run_test_job(commit, test_job, args.buildspec, images_str)
 
 
 if __name__ == "__main__":
