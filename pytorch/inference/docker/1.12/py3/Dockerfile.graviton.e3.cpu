@@ -10,8 +10,8 @@ ARG PT_XLA_INFERENCE_URL=https://aws-pytorch-unified-cicd-binaries.s3.us-west-2.
 ARG PT_TORCHDATA_URL=https://aws-pytorch-unified-cicd-binaries.s3.us-west-2.amazonaws.com/r1.12.0_graviton/torchdata-0.4.1%2B983e87a-py3-none-any.whl
 ARG PT_TORCHTEXT_URL=https://aws-pytorch-unified-cicd-binaries.s3.us-west-2.amazonaws.com/r1.12.0_graviton/torchtext-0.13.1a0%2B330201f-cp38-cp38-linux_aarch64.whl
 ARG ARMCL_BRANCH=v22.05
-ARG OPEN_MPI_VERSION=4.0.1
-ARG TS_VERSION=0.5.3
+ARG OPEN_MPI_VERSION=4.1.4
+ARG TS_VERSION=0.6.0
 ARG MAMBA_VERSION=4.12.0-2
 ENV LANG C.UTF-8
 ENV LD_LIBRARY_PATH /opt/conda/lib/:$LD_LIBRARY_PATH
@@ -27,6 +27,10 @@ RUN apt-get update \
     cmake \
     curl \
     emacs \
+    # adding GCC 10 for graviton compile support
+    gfortran-10 \
+    g++-10 \
+    gcc-10 \
     git \
     jq \
     libgl1-mesa-glx \
@@ -43,6 +47,11 @@ RUN apt-get update \
     zlib1g-dev \
  && rm -rf /var/lib/apt/lists/* \
  && apt-get clean
+
+# Set default gcc, python and pip versions
+RUN update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-10 1 && \
+    update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-10 1 && \
+    update-alternatives --install /usr/bin/gfortran gfortran /usr/bin/gfortran-10 1
 
 # https://github.com/docker-library/openjdk/issues/261 https://github.com/docker-library/openjdk/pull/263/files
 RUN keytool -importkeystore -srckeystore /etc/ssl/certs/java/cacerts -destkeystore /etc/ssl/certs/java/cacerts.jks -deststoretype JKS -srcstorepass changeit -deststorepass changeit -noprompt; \
@@ -81,7 +90,7 @@ RUN /opt/conda/bin/conda clean -ya
 # once conda fixes the issue https://github.com/conda/conda/issues/9680
 RUN rm -rf /opt/conda/lib/libtinfo.so.6
 
-RUN wget https://www.open-mpi.org/software/ompi/v4.0/downloads/openmpi-$OPEN_MPI_VERSION.tar.gz \
+RUN wget https://www.open-mpi.org/software/ompi/v4.1/downloads/openmpi-$OPEN_MPI_VERSION.tar.gz \
  && gunzip -c openmpi-$OPEN_MPI_VERSION.tar.gz | tar xf - \
  && cd openmpi-$OPEN_MPI_VERSION \
  && ./configure --prefix=/home/.openmpi \
@@ -110,7 +119,7 @@ RUN conda install -c conda-forge -y \
 
 # install torch and torchvision from the PyTorch website
 RUN pip uninstall -y torch \
- && pip install --no-cache-dir -U ${PT_INFERENCE_URL} ${PT_XLA_INFERENCE_URL} ${PT_TORCHDATA_URL} ${PT_TORCHTEXT_URL}
+ && pip install --no-cache-dir -U $PT_INFERENCE_URL $PT_XLA_INFERENCE_URL $PT_TORCHDATA_URL $PT_TORCHTEXT_URL
 RUN pip install "torchvision>=0.13,<0.14"
 
 ## compile and install ArmCL
