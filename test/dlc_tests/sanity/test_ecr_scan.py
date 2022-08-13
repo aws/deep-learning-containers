@@ -1,5 +1,6 @@
 import json
 import os
+from time import sleep
 import boto3
 
 import pytest
@@ -275,6 +276,7 @@ def test_ecr_enhanced_scan(image, ecr_client, sts_client, region):
 
     ecr_client_for_enhanced_scanning_repo = boto3.client("ecr", region_name=ECR_ENHANCED_REPO_REGION)
     wait_for_enhanced_scans_to_complete(ecr_client_for_enhanced_scanning_repo, new_uri)
+    sleep(1 * 60)
 
     scan_results = ecr_utils.get_all_ecr_enhanced_scan_findings(
         ecr_client=ecr_client_for_enhanced_scanning_repo, image_uri=new_uri
@@ -285,7 +287,7 @@ def test_ecr_enhanced_scan(image, ecr_client, sts_client, region):
     ecr_image_vulnerability_list = ECREnhancedScanVulnerabilityList(minimum_severity=CVESeverity[minimum_sev_threshold])
     ecr_image_vulnerability_list.construct_allowlist_from_ecr_scan_result(scan_results)
 
-    LOGGER.info(f"ecr_image_vulnerability_list formed {ecr_image_vulnerability_list}")
+    LOGGER.info(f"ecr_image_vulnerability_list formed {ecr_image_vulnerability_list.vulnerability_list}")
 
     remaining_vulnerabilities = ecr_image_vulnerability_list
 
