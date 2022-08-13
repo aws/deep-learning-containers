@@ -227,7 +227,7 @@ def test_smmodelparallel_gpt2_multigpu_singlenode(ecr_image, instance_type, sage
         "auto_partition": False,
         "default_partition": 0,
         "prescaled_batch": True,
-        "shard_optimizer_state": 1,
+        "shard_optimizer_state": True,
     }
     if smp_version >= 110:
         mp_params["fp16"] = True
@@ -275,7 +275,7 @@ def test_smmodelparallel_gpt2_sdp_multigpu_singlenode(ecr_image, instance_type, 
                        'seed': 12345, 'fp16': 1, 'lr': 2.e-4, 'lr_decay_iters': 125000,
                        'min_lr': 0.00001, 'lr-decay-style': 'linear', 'warmup': 0.01,
                        'logging_freq': 1, 'max_context_width': 1024, 'hidden_width': 768,
-                       'num_layers': 12, 'num_heads': 12, 'n_gpus': 8, 'train_batch_size': 16,
+                       'num_layers': 12, 'num_heads': 12, 'n_gpus': 8, 'train_batch_size': 4,
                        'microbatches': 1, 'tensor_parallel_degree': 1, 'pipeline_parallel_degree': 1,
                        
                        'activation_checkpointing': 1, 'activation_strategy': "group_2",
