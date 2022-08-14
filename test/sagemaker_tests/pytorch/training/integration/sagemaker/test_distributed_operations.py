@@ -399,7 +399,7 @@ def test_smmodelparallel_mnist_multigpu_multinode_efa(ecr_image, efa_instance_ty
 @pytest.mark.skip_cpu
 @pytest.mark.skip_py2_containers
 @pytest.mark.parametrize("test_script, num_processes", [("train_gpt_simple.py", 8)])
-def test_smmodelparallel_gpt2_sdp_multinode_efa(ecr_image, instance_type, sagemaker_regions, test_script, num_processes):
+def test_smmodelparallel_gpt2_sdp_multinode_efa(ecr_image, efa_instance_type, sagemaker_regions, test_script, num_processes):
     """
     Tests pt gpt2 command via script mode
     """
