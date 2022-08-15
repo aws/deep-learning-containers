@@ -1,20 +1,27 @@
-FROM arm64v8/ubuntu:20.04
+FROM ubuntu:20.04
 
 LABEL maintainer="Amazon AI"
 LABEL dlc_major_version="1"
 
 ARG PYTHON=python3
-ARG PYTHON_VERSION=3.8.12
-ARG PT_INFERENCE_URL=https://pytorch-ei-binaries.s3.us-west-2.amazonaws.com/r1.10.0_inference/20211117-055259/7af6f8360b1e31f4bad44bdec916cf15efc9b8a5/graviton/torch-1.10.0%2Bcpu-cp38-cp38-manylinux2014_aarch64.whl
-ARG ARMCL_BRANCH=v21.05
+ARG PYTHON_VERSION=3.8.10
 ARG OPEN_MPI_VERSION=4.0.1
-ARG TS_VERSION=0.5.3
-ARG MAMBA_VERSION=4.12.0-2
+ARG TS_VERSION=0.5.2
+ARG MAMBA_VERSION=4.12.0-0
+ARG PT_INFERENCE_URL=https://pytorch-ei-binaries.s3.us-west-2.amazonaws.com/r1.10.2_inference/20220211-013556/528b6ca3747ec951396383f2a70d1354283ad29f/cpu/torch-1.10.2%2Bcpu-cp38-cp38-manylinux1_x86_64.whl
+ARG PT_TORCHVISION_URL=https://framework-binaries.s3.us-west-2.amazonaws.com/pytorch/1.10.2/torchvision-0.11.3%2Bcpu-cp38-cp38-linux_x86_64.whl
+
 ENV LANG C.UTF-8
 ENV LD_LIBRARY_PATH /opt/conda/lib/:$LD_LIBRARY_PATH
 ENV PATH /opt/conda/bin:$PATH
 ENV TEMP=/home/model-server/tmp
+# Set MKL_THREADING_LAYER=GNU to prevent issues between torch and numpy/mkl
+ENV MKL_THREADING_LAYER=GNU
+ENV DLC_CONTAINER_TYPE=inference
+
 RUN apt-get update \
+# TODO: Remove systemd upgrade once it is updated in base image
+ && apt-get -y upgrade --only-upgrade systemd \
  && apt-get install -y --no-install-recommends software-properties-common \
  && add-apt-repository ppa:openjdk-r/ppa \
  && apt-get update \
@@ -33,7 +40,6 @@ RUN apt-get update \
     libxrender-dev \
     openjdk-11-jdk \
     openssl \
-    scons \
     vim \
     wget \
     unzip \
@@ -46,36 +52,29 @@ RUN keytool -importkeystore -srckeystore /etc/ssl/certs/java/cacerts -destkeysto
     mv /etc/ssl/certs/java/cacerts.jks /etc/ssl/certs/java/cacerts; \
     /var/lib/dpkg/info/ca-certificates-java.postinst configure;
 
-RUN curl -L -o ~/mambaforge.sh https://github.com/conda-forge/miniforge/releases/download/${MAMBA_VERSION}/Mambaforge-${MAMBA_VERSION}-Linux-aarch64.sh \
+RUN curl -L -o ~/mambaforge.sh https://github.com/conda-forge/miniforge/releases/download/${MAMBA_VERSION}/Mambaforge-${MAMBA_VERSION}-Linux-x86_64.sh \
  && chmod +x ~/mambaforge.sh \
  && ~/mambaforge.sh -b -p /opt/conda \
- && rm ~/mambaforge.sh
-
-RUN /opt/conda/bin/conda install -c conda-forge python=$PYTHON_VERSION
-
-RUN /opt/conda/bin/conda install -c conda-forge -y \
-    ruamel_yaml \
+ && rm ~/mambaforge.sh \
+ && /opt/conda/bin/conda update conda \
+ && /opt/conda/bin/conda install -c conda-forge \
+    python=$PYTHON_VERSION \
+ && /opt/conda/bin/conda install -c conda-forge -y \
     cython \
-    ipython \
-    numpy \
+    mkl-include \
+    mkl \
     parso \
     scipy \
+    typing \
     # Below 2 are included in miniconda base, but not mamba so need to install
     conda-content-trust \
-    charset-normalizer
-
-# Upstream conda looks to have moved to 4.13 which is incompatible with mamba 0.22.1 and will fail the conda-forge installs.
-# having "conda update conda" before the "conda -c conda-forge" commands will automatically update conda to 4.13.
-# Moving conda update conda" after the "conda -c conda-forge" commands keep conda at 4.12 but will update other packages using
-# the current conda 4.12
-RUN /opt/conda/bin/conda update -y conda
-
-RUN /opt/conda/bin/conda clean -ya
+    charset-normalizer \
+ && /opt/conda/bin/conda clean -ya
 
 # Conda installs links for libtinfo.so.6 and libtinfo.so.6.2 both
 # Which causes "/opt/conda/lib/libtinfo.so.6: no version information available" warning
 # Removing link for libtinfo.so.6. This change is needed only for ubuntu 20.04-conda, and can be reverted
-# once conda fixes the issue https://github.com/conda/conda/issues/9680
+# once conda fixes the issue: https://github.com/conda/conda/issues/9680
 RUN rm -rf /opt/conda/lib/libtinfo.so.6
 
 RUN wget https://www.open-mpi.org/software/ompi/v4.0/downloads/openmpi-$OPEN_MPI_VERSION.tar.gz \
@@ -94,39 +93,39 @@ ENV PATH="$PATH:/home/.openmpi/bin"
 ENV LD_LIBRARY_PATH="$LD_LIBRARY_PATH:/home/.openmpi/lib/"
 RUN ompi_info --parsable --all | grep mpi_built_with_cuda_support:value
 
-RUN conda install -c conda-forge -y \
-    scikit-learn \
-    pandas \
+RUN conda install -c conda-forge \
+    opencv \
+    h5py \
     requests \
  && conda clean -ya \
  && pip install --upgrade pip --trusted-host pypi.org --trusted-host files.pythonhosted.org \
  && ln -s /opt/conda/bin/pip /usr/local/bin/pip3 \
  && pip install packaging==20.4 \
     enum-compat==0.0.3 \
+    numpy==1.22.2 \
+    ipython==8.0.1 \
     "cryptography>=3.3.2"
 
-# install torch and torchvision from the PyTorch website
+# Uninstall and re-install torch and torchvision from the PyTorch website
 RUN pip uninstall -y torch \
- && pip install --no-cache-dir -U $PT_INFERENCE_URL
-RUN pip install "torchvision>=0.11,<0.12"
-
-## compile and install ArmCL
-RUN git clone https://github.com/Arm-software/ComputeLibrary.git \
- && cd ComputeLibrary \
- && git checkout $ARMCL_BRANCH \
- && scons Werror=0 -j8 debug=0 neon=1 opencl=0 os=linux arch=arm64-v8a build=native \
- && mkdir /opt/armClArtifact \
- && cp build/libarm* /opt/armClArtifact \
- && cd .. && rm -rf ComputeLibrary
-ENV LD_LIBRARY_PATH="$LD_LIBRARY_PATH:/opt/armClArtifact/"
+ && pip install --no-cache-dir -U $PT_INFERENCE_URL \
+ && pip uninstall -y torchvision \
+ && pip install --no-deps --no-cache-dir -U $PT_TORCHVISION_URL
 
 RUN conda install -y -c conda-forge "pyyaml>=5.4,<5.5"
-RUN pip install "opencv-python>=4.6,<5" "Pillow>=9.0.1,<9.1.0" "awscli<2"
+# Install urllib3>=1.25.9 to satisfy awscli/boto3/botocore requirements while fixing for CVE-2020-26137
+RUN pip install \
+    boto3 \
+    "Pillow>=9.0.0" \
+    "awscli<2" \
+    "urllib3>=1.25.9"
 
+# torchserve-nightly==2022.3.23.post2 replace torchserve==${TS_VERSION}
+# only in PT1.10 for hotfix
 RUN pip uninstall -y model-archiver multi-model-server \
  && pip install captum \
- && pip install torchserve==$TS_VERSION \
- && pip install torch-model-archiver==$TS_VERSION
+ && pip install torchserve-nightly==2022.3.23.post2 \
+ && pip install torch-model-archiver==${TS_VERSION}
 
 RUN cd tmp/ \
  && rm -rf tmp*
@@ -135,8 +134,8 @@ RUN useradd -m model-server \
  && mkdir -p /home/model-server/tmp /opt/ml/model \
  && chown -R model-server /home/model-server /opt/ml/model
 
-COPY torchserve-e3-entrypoint.py /usr/local/bin/dockerd-entrypoint.py
-COPY config.properties /home/model-server/config.properties
+COPY torchserve-ec2-entrypoint.py /usr/local/bin/dockerd-entrypoint.py
+COPY config.properties /home/model-server
 
 RUN chmod +x /usr/local/bin/dockerd-entrypoint.py
 
@@ -151,11 +150,10 @@ RUN HOME_DIR=/root \
  && chmod +x /usr/local/bin/testOSSCompliance \
  && chmod +x ${HOME_DIR}/oss_compliance/generate_oss_compliance.sh \
  && ${HOME_DIR}/oss_compliance/generate_oss_compliance.sh ${HOME_DIR} ${PYTHON} \
- && cp ${HOME_DIR}/oss_compliance/build_from_source_packages/BUILD_FROM_SOURCE_PACKAGES_LICENCES_AARCH64_IMAGES ${HOME_DIR} \
  && rm -rf ${HOME_DIR}/oss_compliance*
 
-RUN curl https://aws-dlc-licenses.s3.amazonaws.com/pytorch-1.10/license.txt -o /license.txt
+RUN curl -o /license.txt  https://aws-dlc-licenses.s3.amazonaws.com/pytorch-1.10/license.txt
 
 EXPOSE 8080 8081
 ENTRYPOINT ["python", "/usr/local/bin/dockerd-entrypoint.py"]
-CMD ["torchserve", "--start", "--ts-config", "/home/model-server/config.properties"]
+CMD ["torchserve", "--start", "--ts-config", "/home/model-server/config.properties", "--model-store", "/home/model-server/"]
