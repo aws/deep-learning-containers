@@ -554,10 +554,10 @@ def get_label_prefix_customer_type(image_tag):
     Return customer type from image tag, to be used as label prefix
 
     @param image_tag: image tag
-    @return: e3 or sagemaker
+    @return: ec2 or sagemaker
     """
-    if "-e3" in image_tag:
-        return "e3"
+    if "-ec2" in image_tag:
+        return "ec2"
 
-    # Older images are not tagged with e3 or sagemaker. Assuming that lack of e3 tag implies sagemaker.
+    # Older images are not tagged with ec2 or sagemaker. Assuming that lack of ec2 tag implies sagemaker.
     return "sagemaker"

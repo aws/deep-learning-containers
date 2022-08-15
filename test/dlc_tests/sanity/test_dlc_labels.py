@@ -31,7 +31,7 @@ def test_dlc_major_version_label(image, region):
 @pytest.mark.integration("dlc_labels")
 @pytest.mark.model("N/A")
 def test_dlc_standard_labels(image, region):
-    customer_type_label_prefix = "e3" if test_utils.is_e3_image(image) else "sagemaker"
+    customer_type_label_prefix = "ec2" if test_utils.is_ec2_image(image) else "sagemaker"
 
     framework, fw_version = test_utils.get_framework_and_version_from_tag(image)
     framework = framework.replace('_', '-')
@@ -74,10 +74,10 @@ def test_dlc_standard_labels(image, region):
         if label not in actual_labels:
             missing_labels.append(label)
 
-    # TODO: Remove this when e3 labels are added. For now, ensure they are not added.
-    if customer_type_label_prefix == "e3":
+    # TODO: Remove this when ec2 labels are added. For now, ensure they are not added.
+    if customer_type_label_prefix == "ec2":
         assert set(missing_labels) == set(expected_labels), \
-            f"E3 labels are not supported yet, and should not be added to containers. " \
+            f"EC2 labels are not supported yet, and should not be added to containers. " \
             f"{set(expected_labels) - set(missing_labels)} should not be present."
     else:
         assert not missing_labels, \

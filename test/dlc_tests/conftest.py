@@ -22,7 +22,7 @@ from test.test_utils import (
     get_job_type_from_image,
     is_tf_version,
     is_below_framework_version,
-    is_e3_image,
+    is_ec2_image,
     is_sagemaker_image,
     is_nightly_context,
     DEFAULT_REGION,
@@ -770,7 +770,7 @@ def lookup_condition(lookup, image):
             return True
         # Pytest does not allow usage of fixtures, specially dynamically loaded fixtures into pytest.mark.parametrize
         # See https://github.com/pytest-dev/pytest/issues/349.
-        # Hence, explicitly setting the below fixtues to allow trcomp images to run on E3 test
+        # Hence, explicitly setting the below fixtues to allow trcomp images to run on EC2 test
         elif "huggingface-pytorch-trcomp-training" in repo_name:
             if lookup == "pytorch-training":
                 return True
@@ -811,8 +811,8 @@ def pytest_generate_tests(metafunc):
                         fixture_name not in metafunc.fixturenames
                         for fixture_name in ["example_only", "huggingface_only"]
                     ) and all(keyword not in image for keyword in ["example", "huggingface"])
-                    if "sagemaker_only" in metafunc.fixturenames and is_e3_image(image):
-                        LOGGER.info(f"Not running E3 image {image} on sagemaker_only test")
+                    if "sagemaker_only" in metafunc.fixturenames and is_ec2_image(image):
+                        LOGGER.info(f"Not running EC2 image {image} on sagemaker_only test")
                         continue
                     if is_sagemaker_image(image):
                         if "sagemaker_only" not in metafunc.fixturenames and "sagemaker" not in metafunc.fixturenames:
