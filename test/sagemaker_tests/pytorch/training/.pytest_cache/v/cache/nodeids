@@ -1,0 +1,4 @@
+[
+  "integration/sagemaker/test_pytorchddp.py::test_pytorchddp_throughput_gpu[ml.p4d.24xlarge]",
+  "integration/sagemaker/test_pytorchddp.py::test_pytorchddp_throughput_cpu[c5.4xlarge]"
+]

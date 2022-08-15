@@ -65,7 +65,7 @@ def test_pytorchddp_throughput_gpu(framework_version, ecr_image, sagemaker_regio
 @pytest.mark.model("N/A")
 @pytest.mark.multinode(2)
 @pytest.mark.integration("pytorchddp")
-@pytest.mark.parametrize('instance_types', ["c5.4xlarge"])
+@pytest.mark.parametrize('instance_types', ["ml.c5.4xlarge"])
 @pytest.mark.skip_gpu
 @pytest.mark.skip_py2_containers
 def test_pytorchddp_throughput_cpu(framework_version, ecr_image, sagemaker_regions, instance_types, tmpdir):
