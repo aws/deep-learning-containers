@@ -59,7 +59,7 @@ use_scheduler = false
 # dlc-pr-huggingface-pytorch = "huggingface/pytorch/buildspec-1-9.yml"
 # Setting the buildspec file path to "" allows the image builder to choose the default buildspec file.
 
-# E3 Framework DLC buildspecs
+# EC2 Framework DLC buildspecs
 dlc-pr-mxnet = ""
 dlc-pr-pytorch = ""
 dlc-pr-tensorflow-1 = ""
