@@ -29,7 +29,7 @@ ARG PYTHON_VERSION=3.9.10
 
 ARG PIP=pip3
 
-# To be passed to e3 and sagemaker stages
+# To be passed to ec2 and sagemaker stages
 ENV PYTHON=${PYTHON}
 ENV PYTHON_VERSION=${PYTHON_VERSION}
 ENV PIP=${PIP}
@@ -165,7 +165,7 @@ RUN curl https://aws-dlc-licenses.s3.amazonaws.com/tensorflow-${TF_VERSION}/lice
 #                                    |___/                        |_|
 ##############################################################################
 
-FROM common AS e3
+FROM common AS ec2
 
 ARG TF_URL=https://framework-binaries.s3.us-west-2.amazonaws.com/tensorflow/r2.10_aws/cpu/2022-08-11-23-20/tensorflow_cpu-2.10.0rc0-cp39-cp39-manylinux_2_17_x86_64.manylinux2014_x86_64.whl
 
