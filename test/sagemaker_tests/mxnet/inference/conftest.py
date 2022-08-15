@@ -83,6 +83,12 @@ def pytest_generate_tests(metafunc):
         metafunc.parametrize('processor', processor_params, scope='session')
 
 
+# Nightly fixtures
+@pytest.fixture(scope="session")
+def feature_aws_framework_present():
+    pass
+
+
 @pytest.fixture(scope='session')
 def docker_base_name(request):
     return request.config.getoption('--docker-base-name')
@@ -254,7 +260,7 @@ def skip_test_successfully_executed_before(request):
     "cache/lastfailed" contains information about failed tests only. We're running SM tests in separate threads for each image.
     So when we retry SM tests, successfully executed tests executed again because pytest doesn't have that info in /.cache.
     But the flag "--last-failed-no-failures all" requires pytest to execute all the available tests.
-    The only sign that a test passed last time - lastfailed file exists and the test name isn't in that file.  
+    The only sign that a test passed last time - lastfailed file exists and the test name isn't in that file.
     The method checks whether lastfailed file exists and the test name is not in it.
     """
     test_name = request.node.name
