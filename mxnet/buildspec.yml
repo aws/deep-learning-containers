@@ -30,9 +30,6 @@ context:
     config:
       source: docker/artifacts/config.properties
       target: config.properties
-    entrypoint:
-      source: docker/artifacts/mms-entrypoint.py
-      target:  mms-entrypoint.py
     ec2-entrypoint:
       source: docker/artifacts/mms-entrypoint.py
       target: mms-ec2-entrypoint.py
