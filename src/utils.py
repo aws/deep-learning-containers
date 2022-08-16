@@ -363,7 +363,7 @@ def pr_build_setup(pr_number, framework):
     )
 
 
-def build_setup(framework, device_types=None, image_types=None, py_versions=None):
+def build_setup(framework, device_types=[], image_types=[], py_versions=[]):
     """
     Setup the appropriate environment variables depending on whether this is a PR build
     or a dev build
@@ -394,16 +394,15 @@ def build_setup(framework, device_types=None, image_types=None, py_versions=None
             pr_number = int(pr_number)
         device_types, image_types, py_versions = pr_build_setup(pr_number, framework)
 
-    if device_types != constants.ALL:
-        to_build["device_types"] = constants.DEVICE_TYPES.intersection(
-            set(device_types)
-        )
-    if image_types != constants.ALL:
+    if device_types:
+        to_build["device_types"] = constants.DEVICE_TYPES.intersection(set(device_types))
+
+    if image_types:
         to_build["image_types"] = constants.IMAGE_TYPES.intersection(set(image_types))
-    if py_versions != constants.ALL:
-        to_build["py_versions"] = constants.PYTHON_VERSIONS.intersection(
-            set(py_versions)
-        )
+
+    if py_versions:
+        to_build["py_versions"] = constants.PYTHON_VERSIONS.intersection(set(py_versions))
+        
     for device_type in to_build["device_types"]:
         for image_type in to_build["image_types"]:
             for py_version in to_build["py_versions"]:

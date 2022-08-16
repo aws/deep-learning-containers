@@ -54,8 +54,15 @@ def _find_image_object(images_list, image_name):
 
 
 # TODO: Abstract away to ImageBuilder class
-def image_builder(buildspec):
-
+def image_builder(buildspec, image_types=[], device_types=[]):
+    """
+    Builds images in buildspec with specified image and device types
+    If no image type is specified, then all images are considered 
+    If no device type is specified, then all images are considered 
+    :param buildspec: buidspec define different images
+    :param image_types: <list> list of image types
+    :param device_types: <list> list of image device type
+    """
     BUILDSPEC = Buildspec()
     BUILDSPEC.load(buildspec)
     PRE_PUSH_STAGE_IMAGES = []
@@ -68,6 +75,14 @@ def image_builder(buildspec):
         )
 
     for image_name, image_config in BUILDSPEC["images"].items():
+        # filter by image type if type is specified
+        if image_types and not image_config["image_type"] in image_types:
+            continue
+
+        # filter by device type if type is specified
+        if device_types and not image_config["device_type"] in device_types:
+            continue
+
         ARTIFACTS = deepcopy(BUILDSPEC["context"]) if BUILDSPEC.get("context") else {}
 
         extra_build_args = {}
@@ -138,7 +153,7 @@ def image_builder(buildspec):
                 }
             }
         )
-
+        
         context = Context(ARTIFACTS, f"build/{image_name}.tar.gz", image_config["root"])
 
         if "labels" in image_config:
