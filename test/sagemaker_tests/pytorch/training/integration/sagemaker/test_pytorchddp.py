@@ -59,29 +59,3 @@ def test_pytorchddp_throughput_gpu(framework_version, ecr_image, sagemaker_regio
 
         job_name=utils.unique_name_from_base('test-pytorchddp-throughput-gpu')
         invoke_pytorch_estimator(ecr_image, sagemaker_regions, estimator_parameter, job_name=job_name)
-
-
-@pytest.mark.processor("cpu")
-@pytest.mark.model("N/A")
-@pytest.mark.multinode(2)
-@pytest.mark.integration("pytorchddp")
-@pytest.mark.parametrize('instance_types', ["ml.c5.4xlarge"])
-@pytest.mark.skip_gpu
-@pytest.mark.skip_py2_containers
-def test_pytorchddp_throughput_cpu(framework_version, ecr_image, sagemaker_regions, instance_types, tmpdir):
-    with timeout(minutes=DEFAULT_TIMEOUT):
-        validate_or_skip_pytorchddp(ecr_image)
-        distribution = {'pytorchddp': {'enabled': True}}
-        estimator_parameter = {
-            'entry_point': 'pytorchddp_throughput_mnist.py',
-            'role': 'SageMakerRole',
-            'instance_count': 2,
-            'instance_type': instance_types,
-            'source_dir': mnist_path,
-            'framework_version': framework_version,
-            'distribution': distribution
-        }
-
-        job_name=utils.unique_name_from_base('test-pytorchddp-throughput-cpu')
-        invoke_pytorch_estimator(ecr_image, sagemaker_regions, estimator_parameter, job_name=job_name)
-
