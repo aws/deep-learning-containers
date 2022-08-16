@@ -193,13 +193,13 @@ def host_setup_for_tensorflow_inference(
     if is_graviton:
         # TF training binary is used that is compatible for graviton instance type
         TF_URL = "https://aws-dlc-graviton-training-binaries.s3.us-west-2.amazonaws.com/tensorflow/2.6.0/tensorflow-2.6.0-cp38-cp38-linux_aarch64.whl"
-        ec2_connection.run((f"{python_invoker} -m pip install --no-cache-dir -U {TF_URL}"), hide=True)
-        ec2_connection.run(
-            (
-                f"{python_invoker} -m pip install --no-dependencies --no-cache-dir tensorflow-serving-api=={framework_version}"
-            ),
-            hide=True,
-        )
+        # ec2_connection.run((f"{python_invoker} -m pip install --no-cache-dir -U {TF_URL}"), hide=True)
+        # ec2_connection.run(
+        #     (
+        #         f"{python_invoker} -m pip install --no-dependencies --no-cache-dir tensorflow-serving-api=={framework_version}"
+        #     ),
+        #     hide=True,
+        # )
     else:
         ec2_connection.run(
             (
