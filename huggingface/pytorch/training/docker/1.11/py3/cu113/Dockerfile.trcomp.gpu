@@ -8,7 +8,7 @@ LABEL maintainer="Amazon AI"
 LABEL dlc_major_version="1"
 
 # Version args - overwritten by args specified in buildspec
-ARG TRANSFORMERS_VERSION=4.19.2
+ARG TRANSFORMERS_VERSION=4.21.1
 ARG DATASETS_VERSION=1.18.4
 ARG PYTHON=python3
 
@@ -17,7 +17,7 @@ ARG PT_URL=${PT_BUCKET}/torch-1.11.0%2Bcu113-cp38-cp38-linux_x86_64.whl
 ARG PT_XLA_URL=${PT_BUCKET}/torch_xla-1.11.0-cp38-cp38-linux_x86_64.whl
 ARG TORCHVISION_URL=${PT_BUCKET}/torchvision-0.12.0a0%2B9b5a3fe-cp38-cp38-linux_x86_64.whl
 ARG TORCHAUDIO_URL=${PT_BUCKET}/torchaudio-0.11.0%2B6297e97-cp38-cp38-linux_x86_64.whl
-ARG HF_TRANSFORMERS_URL=https://sm-training-comp-pytorch-binaries.s3.us-west-2.amazonaws.com/d590055d-bfc4-439e-8199-2b51a9f46beb/20220521-013053/5906ed2b65214eddbb7ee27f08dbe1cad3ed1921/transformers-4.19.2-py3-none-any.whl
+ARG HF_TRANSFORMERS_URL=s3://sm-training-comp-pytorch-binaries/3464575b-920a-48e6-b964-4d4c5fe2acae/20220816-021125/7780d990d11d9552e913cae06c7315fa8545648b/transformers-4.21.1-py3-none-any.whl
 
 
 
@@ -65,7 +65,7 @@ RUN pip uninstall -y torchaudio \
  && pip install --no-deps --no-cache-dir -U --force-reinstall ${TORCHAUDIO_URL} \
  && rm -rf ${TORCHAUDIO_URL}
 
-# Install Tranformers
+# Install Transformers
 RUN pip uninstall -y transformers \
  && pip install --no-deps --no-cache-dir --force-reinstall -U ${HF_TRANSFORMERS_URL} \
  && rm -rf ${HF_TRANSFORMERS_URL}
