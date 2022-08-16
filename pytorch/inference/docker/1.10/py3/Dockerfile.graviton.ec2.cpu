@@ -95,7 +95,6 @@ ENV LD_LIBRARY_PATH="$LD_LIBRARY_PATH:/home/.openmpi/lib/"
 RUN ompi_info --parsable --all | grep mpi_built_with_cuda_support:value
 
 RUN conda install -c conda-forge -y \
-    opencv \
     scikit-learn \
     pandas \
     requests \
@@ -122,7 +121,7 @@ RUN git clone https://github.com/Arm-software/ComputeLibrary.git \
 ENV LD_LIBRARY_PATH="$LD_LIBRARY_PATH:/opt/armClArtifact/"
 
 RUN conda install -y -c conda-forge "pyyaml>=5.4,<5.5"
-RUN pip install opencv-python "Pillow>=9.0.1,<9.1.0" "awscli<2"
+RUN pip install "opencv-python>=4.6,<5" "Pillow>=9.0.1,<9.1.0" "awscli<2"
 
 RUN pip uninstall -y model-archiver multi-model-server \
  && pip install captum \
@@ -136,7 +135,7 @@ RUN useradd -m model-server \
  && mkdir -p /home/model-server/tmp /opt/ml/model \
  && chown -R model-server /home/model-server /opt/ml/model
 
-COPY torchserve-e3-entrypoint.py /usr/local/bin/dockerd-entrypoint.py
+COPY torchserve-ec2-entrypoint.py /usr/local/bin/dockerd-entrypoint.py
 COPY config.properties /home/model-server/config.properties
 
 RUN chmod +x /usr/local/bin/dockerd-entrypoint.py

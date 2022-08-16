@@ -22,7 +22,7 @@ from test_utils import (
     is_pr_context,
     is_benchmark_dev_context,
     is_rc_test_context,
-    is_e3_image,
+    is_ec2_image,
     destroy_ssh_keypair,
     setup_sm_benchmark_tf_train_env,
     setup_sm_benchmark_mx_train_env,
@@ -415,7 +415,7 @@ def main():
             sm_remote_images = [
                 image
                 for image in standard_images_list
-                if not (("tensorflow-inference" in image and "py2" in image) or is_e3_image(image))
+                if not (("tensorflow-inference" in image and "py2" in image) or is_ec2_image(image))
             ]
             run_sagemaker_remote_tests(sm_remote_images, pytest_cache_params)
             if standard_images_list and not sm_remote_images:
@@ -424,22 +424,24 @@ def main():
         metrics_utils.send_test_duration_metrics(start_time)
 
     elif specific_test_type == "sagemaker-local":
-        if "neuron" in dlc_images:
-            LOGGER.info(f"Skipping sagemaker tests because Neuron is not yet supported on SM. Images: {dlc_images}")
-            # Creating an empty file for because codebuild job fails without it
-            report = os.path.join(os.getcwd(), "test", f"{test_type}.xml")
-            sm_utils.generate_empty_report(report, test_type, "neuron")
-            return
-        if "habana" in dlc_images:
-            LOGGER.info(f"Skipping sagemaker tests because Habana is not yet supported on SM. Images: {dlc_images}")
-            # Creating an empty file for because codebuild job fails without it
-            report = os.path.join(os.getcwd(), "test", f"{test_type}.xml")
-            sm_utils.generate_empty_report(report, test_type, "habana")
-            return
+        sm_local_to_skip = {
+            "habana": "Skipping SM tests because SM does not yet support Habana",
+            "neuron": "Skipping - there are no local mode tests for Neuron",
+            "huggingface-tensorflow-training": "Skipping - there are no local mode tests for HF TF training"
+        }
+        
+        for skip_condition, reason in sm_local_to_skip.items():
+            if skip_condition in dlc_images:
+                LOGGER.info(f"{reason}. Images: {dlc_images}")
+                # Creating an empty file for because codebuild job fails without it
+                report = os.path.join(os.getcwd(), "test", f"{test_type}.xml")
+                sm_utils.generate_empty_report(report, test_type, skip_condition)
+                return
+
         testing_image_list = [
             image
             for image in standard_images_list
-            if not (("tensorflow-inference" in image and "py2" in image) or ("eia" in image) or (is_e3_image(image)))
+            if not (("tensorflow-inference" in image and "py2" in image) or ("eia" in image) or (is_ec2_image(image)))
         ]
         run_sagemaker_local_tests(testing_image_list, pytest_cache_params)
         # for EIA Images
