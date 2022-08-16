@@ -56,10 +56,11 @@ def _find_image_object(images_list, image_name):
 # TODO: Abstract away to ImageBuilder class
 def image_builder(buildspec, image_types=[], device_types=[]):
     """
-    Builds images in buildspec with specified image and device types
-    If no image type is specified, then all images are considered 
-    If no device type is specified, then all images are considered 
-    :param buildspec: buidspec define different images
+    Builds images using build specification with specified image and device types
+    and export them to ECR image repository
+    An empty image types array indicates all image types.
+    Similarly, an empty device types array indicates all device types 
+    :param buildspec: buid specification defining images to be build 
     :param image_types: <list> list of image types
     :param device_types: <list> list of image device type
     """
@@ -95,10 +96,19 @@ def image_builder(buildspec, image_types=[], device_types=[]):
 
         if image_config.get("context") is not None:
             ARTIFACTS.update(image_config["context"])
-
+        
         image_tag = tag_image_with_pr_number(image_config["tag"]) if build_context == "PR" else image_config["tag"]
+        
+        # In nightly context, add image tag with date
+        additional_image_tags = []
+        if build_context == "NIGHTLY":
+            additional_image_tags.append(tag_image_with_date(image_tag))
+
         if enable_datetime_tag or build_context != "PR":
             image_tag = tag_image_with_datetime(image_tag)
+
+        additional_image_tags.append(image_tag)
+        
         image_repo_uri = (
             image_config["repository"]
             if build_context == "PR"
@@ -241,7 +251,7 @@ def image_builder(buildspec, image_types=[], device_types=[]):
             to_build=image_config["build"],
             stage=constants.PRE_PUSH_STAGE,
             context=context,
-            additional_tags=[image_tag],
+            additional_tags=additional_image_tags,
             target=image_config.get("target"),
         )
 
@@ -280,25 +290,26 @@ def image_builder(buildspec, image_types=[], device_types=[]):
     # From all images, filter the images that were supposed to be built and upload their metrics
     BUILT_IMAGES = [image for image in ALL_IMAGES if image.to_build]
 
-    FORMATTER.banner("Upload Metrics")
-    upload_metrics(BUILT_IMAGES, BUILDSPEC, is_any_build_failed, is_any_build_failed_size_limit)
+    if BUILT_IMAGES:
+        FORMATTER.banner("Upload Metrics")
+        upload_metrics(BUILT_IMAGES, BUILDSPEC, is_any_build_failed, is_any_build_failed_size_limit)
 
-    FORMATTER.banner("Test Env")
     # Set environment variables to be consumed by test jobs
     test_trigger_job = get_codebuild_project_name()
     # Tests should only run on images that were pushed to the repository
+    images_to_test = IMAGES_TO_PUSH
     if not is_build_enabled():
         # Ensure we have images populated if do_build is false, so that tests can proceed if needed
         images_to_test = [image for image in ALL_IMAGES if image.to_push]
-    else:
-        images_to_test = IMAGES_TO_PUSH
 
-    utils.set_test_env(
-        images_to_test,
-        use_latest_additional_tag=True,
-        BUILD_CONTEXT=os.getenv("BUILD_CONTEXT"),
-        TEST_TRIGGER=test_trigger_job,
-    )
+    if images_to_test:
+        FORMATTER.banner("Test Env")
+        utils.set_test_env(
+            images_to_test,
+            use_latest_additional_tag=True,
+            BUILD_CONTEXT=os.getenv("BUILD_CONTEXT"),
+            TEST_TRIGGER=test_trigger_job,
+        )
 
 
 def process_images(pre_push_image_list, pre_push_image_type="Pre-push"):
@@ -356,7 +367,7 @@ def generate_common_stage_image_object(pre_push_stage_image_object, image_tag):
         tag=append_tag(image_tag, "multistage-common"),
         to_build=pre_push_stage_image_object.to_build,
         stage=constants.COMMON_STAGE,
-        additional_tags=[image_tag],
+        additional_tags=pre_push_stage_image_object.additional_tags,
     )
     pre_push_stage_image_object.to_push = False
     pre_push_stage_image_object.corresponding_common_stage_image = common_stage_image_object
@@ -506,6 +517,11 @@ def retag_and_push_images(images):
 def tag_image_with_pr_number(image_tag):
     pr_number = os.getenv("PR_NUMBER")
     return f"{image_tag}-pr-{pr_number}"
+
+
+def tag_image_with_date(image_tag):
+    date_suffix = datetime.datetime.now().strftime("%Y-%m-%d")
+    return f"{image_tag}-{date_suffix}"
 
 
 def tag_image_with_datetime(image_tag):
