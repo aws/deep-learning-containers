@@ -107,7 +107,7 @@ class TestSingleNodeSingleGPU:
                 py_version=py_version,
                 max_retry_attempts=15,
             )
-            estimator.fit(job_name=sagemaker.utils.unique_name_from_base('hf-pt-trcomp-single-node-single-gpu-default'), logs=True)
+            estimator.fit(job_name=sagemaker.utils.unique_name_from_base('hf-pt-trcomp-SNSG-default'), logs=True)
         captured = capsys.readouterr()
         logs = captured.out+captured.err
         assert "Found configuration for Training Compiler" in logs
@@ -149,7 +149,7 @@ class TestSingleNodeSingleGPU:
                 py_version=py_version,
                 max_retry_attempts=15,
             )
-            estimator.fit(job_name=sagemaker.utils.unique_name_from_base('hf-pt-trcomp-single-node-single-gpu-enabled'), logs=True)
+            estimator.fit(job_name=sagemaker.utils.unique_name_from_base('hf-pt-trcomp-SNSG-enabled'), logs=True)
         captured = capsys.readouterr()
         logs = captured.out+captured.err
         assert "Found configuration for Training Compiler" in logs
@@ -191,7 +191,7 @@ class TestSingleNodeSingleGPU:
                 py_version=py_version,
                 max_retry_attempts=15,
             )
-            estimator.fit(job_name=sagemaker.utils.unique_name_from_base('hf-pt-trcomp-single-node-single-gpu-debug'), logs=True)
+            estimator.fit(job_name=sagemaker.utils.unique_name_from_base('hf-pt-trcomp-SNSG-debug'), logs=True)
 
         captured = capsys.readouterr()
         logs = captured.out+captured.err
@@ -216,7 +216,7 @@ class TestSingleNodeSingleGPU:
 @mock.patch('sagemaker.huggingface.TrainingCompilerConfig.validate', return_value=None)
 class TestSingleNodeMultiGPU:
     '''
-    All Single Node Single GPU tests go here.
+    All Single Node Multi GPU tests go here.
     '''
     @pytest.mark.model("bert-large")
     def test_trcomp_default(self, patched, ecr_image, sagemaker_session, tmpdir, py_version, capsys):
@@ -234,6 +234,9 @@ class TestSingleNodeMultiGPU:
             if Version(transformers_version) < Version("4.6")
             else "./examples/pytorch/question-answering"
         )
+
+        num_gpus_per_instance = 8
+        hyperparameters["max_steps"] = (3 * num_gpus_per_instance * instance_count)
         
         with timeout(minutes=DEFAULT_TIMEOUT):
             estimator = HuggingFace(
@@ -251,7 +254,7 @@ class TestSingleNodeMultiGPU:
                 py_version=py_version,
                 max_retry_attempts=15,
             )
-            estimator.fit(job_name=sagemaker.utils.unique_name_from_base('hf-pt-trcomp-single-node-multi-gpu-default'), logs=True)
+            estimator.fit(job_name=sagemaker.utils.unique_name_from_base('hf-pt-trcomp-SNMG-default'), logs=True)
         captured = capsys.readouterr()
         logs = captured.out+captured.err
         assert "Found configuration for Training Compiler" in logs
@@ -275,7 +278,10 @@ class TestSingleNodeMultiGPU:
             if Version(transformers_version) < Version("4.6")
             else "./examples/pytorch/question-answering"
         )
-        
+
+        num_gpus_per_instance = 8
+        hyperparameters["max_steps"] = (3 * num_gpus_per_instance * instance_count)
+
         with timeout(minutes=DEFAULT_TIMEOUT):
             estimator = HuggingFace(
                 compiler_config=TrainingCompilerConfig(enabled=True),
@@ -293,7 +299,7 @@ class TestSingleNodeMultiGPU:
                 py_version=py_version,
                 max_retry_attempts=15,
             )
-            estimator.fit(job_name=sagemaker.utils.unique_name_from_base('hf-pt-trcomp-single-node-multi-gpu-enabled'), logs=True)
+            estimator.fit(job_name=sagemaker.utils.unique_name_from_base('hf-pt-trcomp-SNMG-enabled'), logs=True)
         captured = capsys.readouterr()
         logs = captured.out+captured.err
         assert "Found configuration for Training Compiler" in logs
@@ -317,6 +323,9 @@ class TestSingleNodeMultiGPU:
             if Version(transformers_version) < Version("4.6")
             else "./examples/pytorch/question-answering"
         )
+
+        num_gpus_per_instance = 8
+        hyperparameters["max_steps"] = (3 * num_gpus_per_instance * instance_count)
         
         with timeout(minutes=DEFAULT_TIMEOUT):
             estimator = HuggingFace(
@@ -335,7 +344,7 @@ class TestSingleNodeMultiGPU:
                 py_version=py_version,
                 max_retry_attempts=15,
             )
-            estimator.fit(job_name=sagemaker.utils.unique_name_from_base('hf-pt-trcomp-single-node-multi-gpu-debug'), logs=True)
+            estimator.fit(job_name=sagemaker.utils.unique_name_from_base('hf-pt-trcomp-SNMG-debug'), logs=True)
 
         captured = capsys.readouterr()
         logs = captured.out+captured.err
@@ -360,9 +369,9 @@ class TestSingleNodeMultiGPU:
 @mock.patch('sagemaker.huggingface.TrainingCompilerConfig.validate', return_value=None)
 class TestMultiNodeMultiGPU:
     '''
-    All Single Node Single GPU tests go here.
+    All Multi Node Multi GPU tests go here.
     '''
-    @pytest.mark.model("bert-base-uncased")
+    @pytest.mark.model("bert-large")
     def test_trcomp_default(self, patched, ecr_image, sagemaker_session, tmpdir, py_version, capsys):
         '''
         Tests the default configuration of SM trcomp
@@ -370,7 +379,7 @@ class TestMultiNodeMultiGPU:
         transformers_version = get_transformers_version(ecr_image)
         git_config = {'repo': 'https://github.com/huggingface/transformers.git', 'branch': 'v'+transformers_version}
 
-        instance_count = 4
+        instance_count = 2
         instance_type = "ml.p4d.24xlarge"
         
         source_dir = (
@@ -378,6 +387,9 @@ class TestMultiNodeMultiGPU:
             if Version(transformers_version) < Version("4.6")
             else "./examples/pytorch/question-answering"
         )
+
+        num_gpus_per_instance = 8
+        hyperparameters["max_steps"] = (3 * num_gpus_per_instance * instance_count)
         
         with timeout(minutes=DEFAULT_TIMEOUT):
             estimator = HuggingFace(
@@ -394,106 +406,14 @@ class TestMultiNodeMultiGPU:
                 hyperparameters=hyperparameters,
                 py_version=py_version,
                 max_retry_attempts=15,
+                sagemaker_pytorch_xla_multi_worker_enabled = True
             )
-            estimator.fit(job_name=sagemaker.utils.unique_name_from_base('hf-pt-trcomp-multi-node-multi-gpu-default'), logs=True)
+            estimator.fit(job_name=sagemaker.utils.unique_name_from_base('hf-pt-trcomp-MNMG-default'), logs=True)
         captured = capsys.readouterr()
         logs = captured.out+captured.err
         assert "Found configuration for Training Compiler" in logs
         assert "Configuring SM Training Compiler" in logs
         assert "device: xla" in logs
 
-
-    @pytest.mark.model("bert-base-uncased")
-    def test_trcomp_enabled(self, patched, ecr_image, sagemaker_session, tmpdir, py_version, capsys):
-        '''
-        Tests the explicit enabled configuration of SM trcomp
-        '''
-        transformers_version = get_transformers_version(ecr_image)
-        git_config = {'repo': 'https://github.com/huggingface/transformers.git', 'branch': 'v'+transformers_version}
-
-        instance_count = 4
-        instance_type = "ml.p4d.24xlarge"
-        
-        source_dir = (
-            "./examples/question-answering"
-            if Version(transformers_version) < Version("4.6")
-            else "./examples/pytorch/question-answering"
-        )
-        
-        with timeout(minutes=DEFAULT_TIMEOUT):
-            estimator = HuggingFace(
-                compiler_config=TrainingCompilerConfig(enabled=True),
-                entry_point='run_qa.py',
-                source_dir=source_dir,
-                git_config=git_config,
-                metric_definitions=metric_definitions,
-                role='SageMakerRole',
-                image_uri=ecr_image,
-                instance_count=instance_count,
-                instance_type=instance_type,
-                sagemaker_session=sagemaker_session,
-                hyperparameters=hyperparameters,
-                environment={'GPU_NUM_DEVICES':'8'},
-                py_version=py_version,
-                max_retry_attempts=15,
-            )
-            estimator.fit(job_name=sagemaker.utils.unique_name_from_base('hf-pt-trcomp-multi-node-multi-gpu-enabled'), logs=True)
-        captured = capsys.readouterr()
-        logs = captured.out+captured.err
-        assert "Found configuration for Training Compiler" in logs
-        assert "Configuring SM Training Compiler" in logs
-        assert "device: xla" in logs
-
-
-    @pytest.mark.model("bert-base-uncased")
-    def test_trcomp_debug(self, patched, ecr_image, sagemaker_session, tmpdir, py_version, capsys):
-        '''
-        Tests the debug mode configuration of SM trcomp
-        '''
-        transformers_version = get_transformers_version(ecr_image)
-        git_config = {'repo': 'https://github.com/huggingface/transformers.git', 'branch': 'v'+transformers_version}
-
-        instance_count = 4
-        instance_type = "ml.p4d.24xlarge"
-        
-        source_dir = (
-            "./examples/question-answering"
-            if Version(transformers_version) < Version("4.6")
-            else "./examples/pytorch/question-answering"
-        )
-        
-        with timeout(minutes=DEFAULT_TIMEOUT):
-            estimator = HuggingFace(
-                compiler_config=TrainingCompilerConfig(debug=True),
-                entry_point='run_qa.py',
-                source_dir=source_dir,
-                git_config=git_config,
-                metric_definitions=metric_definitions,
-                role='SageMakerRole',
-                image_uri=ecr_image,
-                instance_count=instance_count,
-                instance_type=instance_type,
-                sagemaker_session=sagemaker_session,
-                hyperparameters=hyperparameters,
-                environment={'GPU_NUM_DEVICES':'8'},
-                py_version=py_version,
-                max_retry_attempts=15,
-            )
-            estimator.fit(job_name=sagemaker.utils.unique_name_from_base('hf-pt-trcomp-multi-node-multi-gpu-debug'), logs=True)
-
-        captured = capsys.readouterr()
-        logs = captured.out+captured.err
-        assert "Found configuration for Training Compiler" in logs
-        assert "Training Compiler set to debug mode" in logs
-        assert "Configuring SM Training Compiler" in logs
-        assert "device: xla" in logs
-
-        debug_artifact_path=estimator.model_data.replace('model.tar.gz','output.tar.gz')
-        debug_artifact=os.path.join(tmpdir, 'output.tar.gz')
-        subprocess.check_output(['aws', 's3', 'cp', debug_artifact_path, debug_artifact])
-        with tarfile.open(debug_artifact, 'r:gz') as tarball:
-            tarball.extractall(path=tmpdir)
-        xla_metrics_file = os.path.join(tmpdir, 'compiler', 'XLA_METRICS_FILE.txt')
-        assert os.path.exists(xla_metrics_file)
 
 
