@@ -22,7 +22,7 @@ from test_utils import (
     is_pr_context,
     is_benchmark_dev_context,
     is_rc_test_context,
-    is_e3_image,
+    is_ec2_image,
     destroy_ssh_keypair,
     setup_sm_benchmark_tf_train_env,
     setup_sm_benchmark_mx_train_env,
@@ -415,7 +415,7 @@ def main():
             sm_remote_images = [
                 image
                 for image in standard_images_list
-                if not (("tensorflow-inference" in image and "py2" in image) or is_e3_image(image))
+                if not (("tensorflow-inference" in image and "py2" in image) or is_ec2_image(image))
             ]
             run_sagemaker_remote_tests(sm_remote_images, pytest_cache_params)
             if standard_images_list and not sm_remote_images:
@@ -441,7 +441,7 @@ def main():
         testing_image_list = [
             image
             for image in standard_images_list
-            if not (("tensorflow-inference" in image and "py2" in image) or ("eia" in image) or (is_e3_image(image)))
+            if not (("tensorflow-inference" in image and "py2" in image) or ("eia" in image) or (is_ec2_image(image)))
         ]
         run_sagemaker_local_tests(testing_image_list, pytest_cache_params)
         # for EIA Images

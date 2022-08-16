@@ -6,12 +6,13 @@ HOME_DIR=/test
 BIN_DIR=${HOME_DIR}/bin
 LOG_DIR=${HOME_DIR}/logs
 
-TORCHDATA_BRANCH="main"
+TORCHDATA_BRANCH_DEFAULT="main"
 TORCHDATA_REPO="https://github.com/pytorch/data.git"
 TORCHDATA_TEST_SCRIPT="data/test/test_remote_io.py"
 
 echo "Fetch Torchdata S3 IO test script."
-git clone -b ${TORCHDATA_BRANCH} ${TORCHDATA_REPO}
+TORCHDATA_RELEASE_TAG=$(python -c "import torchdata; torchdata_versions = torchdata.__version__.split('.'); print(f'release/{torchdata_versions[0]}.{torchdata_versions[1]}')")
+git clone -b ${TORCHDATA_RELEASE_TAG} ${TORCHDATA_REPO} || git clone -b ${TORCHDATA_BRANCH_DEFAULT} ${TORCHDATA_REPO}
 
 echo "Installing pre-requisites."
 pip install expecttest
@@ -27,5 +28,4 @@ else
     exit 1
 fi
 
-echo "Torchdata S3 IO tests succeeded!"
 exit 0

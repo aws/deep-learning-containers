@@ -15,6 +15,7 @@ import torch.nn as nn
 import torch.utils.data
 import transformers
 from data_pipeline import create_pretraining_dataloader
+from fp16 import FP16_Module, FP16_Optimizer, load_fp16_optimizer, save_fp16_optimizer
 from learning_rates import AnnealingLR
 from memory_tracker import memory_status, memory_status_cpu
 from smdistributed.modelparallel.torch.nn import FusedLayerNorm as LayerNorm
@@ -96,8 +97,11 @@ def train_step(model, optimizer, input_ids, attention_mask, args):
         loss = output["loss"]
     else:
         loss = model(input_ids=input_ids, attention_mask=attention_mask, labels=input_ids)["loss"]
-
-    model.backward(loss)
+        
+    if args.fp16 and args.smp_version < 110:
+        optimizer.backward(loss, update_master_grads=False)
+    else:
+        model.backward(loss)
 
     if args.logits_output:
         return output
@@ -127,6 +131,7 @@ def save(
     seq_length=1024,
     batch_idx=0,
 ):
+    save_fn = save_fp16_optimizer
     save_dict = {
         "cli_args": args.__dict__,
         "num_params": num_params,
@@ -150,8 +155,15 @@ def save(
                 if translate_to_hf
                 else model_state_dict
             )
-
-    if partial:
+    if args.smp_version < 110:
+        if not partial and args.skip_full_optimizer:
+            print("Skipping saving the final optimizer state")
+        else:
+            if args.shard_optimizer_state == 0 or partial:
+                save_dict["optimizer"] = save_fn(args, model, optimizer, partial=partial)
+            else:
+                print("Saving the full optimizer state does not work with shard_optimizer_state > 0! Skipping...")
+    elif partial:
         save_dict["optimizer"] = optimizer.save_optimizer_backcompat(gather_if_shard=args.gather_if_shard)
     else:
         if args.skip_full_optimizer:
@@ -230,14 +242,24 @@ def load_model_and_optimizer(
             lr_scheduler.load_state_dict(checkpoint["lr_scheduler"])
 
     if load_optimizer:
+        def opt_load_hook(mod, opt):
+            load_fn = load_fp16_optimizer
         checkpoint = (
             checkpoint if args.gather_if_shard > 0 or smp.rdp_rank() == 0 else opt_checkpoint
         )
-        
-        if not partial and args.skip_full_optimizer:
+        if args.smp_version < 110:
+            if not partial and args.skip_full_optimizer:
+                print(
+                    "Skipping loading the final optimizer state, and reloading master_params from model_params"
+                )
+                opt.reload_model_params()
+            else:
+                load_fn(args, mod, opt, checkpoint, partial=partial)
+            model.register_post_step_hook(opt_load_hook)
+        elif not partial and args.skip_full_optimizer:
             print("Skipping loading the final optimizer state, and reloading master_params from model_params for fp16")
             if args.fp16:
-                model.register_post_step_hook(opt.reload_model_params) 
+                model.register_post_step_hook(opt.reload_model_params)
         else:
             optimizer.load_optimizer_backcompat(checkpoint["optimizer"], args.gather_if_shard)
 
@@ -476,7 +498,10 @@ def train(
 
             step_start = time.time()
 
-            optimizer.zero_grad(set_to_none=True)
+            if args.smp_version < 110:
+                optimizer.zero_grad(set_grads_to_None=True)
+            else:
+                optimizer.zero_grad(set_to_none=True)
 
             if args.logits_output:
                 train_output = train_step(model, optimizer, input_ids, attention_mask, args)
@@ -504,6 +529,8 @@ def train(
                 torch.cuda.empty_cache()
 
             if args.fp16:
+                if args.smp_version < 110:
+                    optimizer.update_master_grads()
                 optimizer.clip_master_grads(args.grad_clip)
                 
             optimizer.step()
@@ -790,6 +817,9 @@ def parse_args():
     parser.add_argument(
         "--enable_memory_profiling", type=int, default=0, help="Enable memory profile"
     )
+    parser.add_argument(
+        "--smp_version", type=int, default=110, help="Enable memory profile"
+    )
 
     # learning rate
     lr_grp = parser.add_argument_group(
@@ -860,18 +890,23 @@ def main():
         "checkpoint_attentions": False if args.activation_checkpointing else True,
         "shard_optimizer_state": args.shard_optimizer_state > 0,
         "prescaled_batch": args.prescaled_batch > 0,
-        "fp16": args.fp16 > 0,
         "offload_activations": args.offload_activations > 0,
-        "delayed_parameter_initialization": args.delayed_param > 0,
         "optimize": args.optimize,
-        "placement_strategy": args.placement_strategy,
-        "activation_loading_horizon": args.activation_loading_horizon,
-        "skip_tracing": args.skip_tracing > 0,
         "auto_partition": False if args.manual_partition else True,
         "default_partition": 0,
         "static_mode": args.static_mode > 0,
         "fast_mode": args.fast_mode > 0,
     }
+
+    if args.smp_version < 110:
+        smp_config["fp16_params"] = args.fp16 > 0
+    else:
+        smp_config["fp16"] = args.fp16 > 0
+        smp_config["delayed_parameter_initialization"] = args.delayed_param > 0
+        smp_config["placement_strategy"] = args.placement_strategy
+        smp_config["activation_loading_horizon"] = args.activation_loading_horizon
+        smp_config["skip_tracing"] = args.skip_tracing > 0
+
     if args.active_microbatches is not None:
         smp_config["active_microbatches"] = args.active_microbatches
 
@@ -936,15 +971,29 @@ def main():
 
     if args.enable_memory_profiling > 0:
         memory_status_cpu(msg="before model creation")
-    with smp.model_creation(
-        tensor_parallelism=smp.tp_size() > 1,
-        attention_in_fp32=args.attention_in_fp32 > 0,
-        query_key_layer_scaling=args.query_key_layer_scaling > 0,
-        fused_softmax=args.fused_softmax > 0,
-        fused_bias_gelu=args.fused_bias_gelu > 0,
-        dtype=torch.float16 if args.fp16 else torch.get_default_dtype(),
-        ):
-            model = AutoModelForCausalLM.from_config(model_config)
+    
+    if args.smp_version < 110:
+        if args.fp16:
+            torch.set_default_dtype(torch.float16)
+        with smp.tensor_parallelism(enabled=smp.tp_size() > 1, attention_in_fp32=args.attention_in_fp32 > 0):
+            with smp.delay_param_initialization(
+                enabled=(smp.tp_size() > 1 and args.delayed_param > 0)
+            ):
+                model = AutoModelForCausalLM.from_config(model_config)
+    else:
+        with smp.model_creation(
+            tensor_parallelism=smp.tp_size() > 1,
+            attention_in_fp32=args.attention_in_fp32 > 0,
+            query_key_layer_scaling=args.query_key_layer_scaling > 0,
+            fused_softmax=args.fused_softmax > 0,
+            fused_bias_gelu=args.fused_bias_gelu > 0,
+            dtype=torch.float16 if args.fp16 else torch.get_default_dtype(),
+            ):
+                model = AutoModelForCausalLM.from_config(model_config)
+
+    if args.smp_version < 110 and args.fp16:
+        model = FP16_Module(model)
+
     if args.enable_memory_profiling > 0:
         memory_status_cpu(msg="after model creation")
 
@@ -965,17 +1014,25 @@ def main():
     # to be partitioned across different ranks. For the rest of the script,
     # the returned DistributedModel object should be used in place of
     # the model provided for DistributedModel class instantiation.
+    if args.smp_version < 110 and args.fp16:
+        torch.set_default_dtype(torch.float16)
     if args.enable_memory_profiling > 0:
         memory_status_cpu(msg="before dist model creation")
     model = smp.DistributedModel(model, trace_device="gpu")
     if args.enable_memory_profiling > 0:
         memory_status_cpu(msg="after dist model creation")
 
-    m = model.get_module()
-    if smp.tp_size() > 1:
-        transformer_layers = m.transformer.seq_layers
+    if args.smp_version < 110:
+        if smp.tp_size() > 1:
+            transformer_layers = model.module.module.module.transformer.seq_layers
+        else:
+            transformer_layers = model.module.module.module.transformer.h
     else:
-        transformer_layers = m.transformer.h
+        m = model.get_module()
+        if smp.tp_size() > 1:
+            transformer_layers = m.transformer.seq_layers
+        else:
+            transformer_layers = m.transformer.h
 
     if args.manual_partition:
         print(f"Manual partition enabled")
@@ -1000,8 +1057,13 @@ def main():
 
         for i, c in enumerate(transformer_layers.children()):
             smp.set_partition(c, assignments[i])
-
-    iter_model = m
+    if args.smp_version < 110:
+        iter_model = model
+        # Build parameter groups (weight decay and non-decay).
+        while isinstance(iter_model, (DistributedDataParallel, FP16_Module)):
+            iter_model = iter_model.module
+    else:
+        iter_model = m
     param_groups = get_param_groups_by_weight_decay(iter_model)
 
     if args.use_adamw > 0:
@@ -1020,12 +1082,27 @@ def main():
             kwargs["strategy"] = args.activation_strategy
         smp.set_activation_checkpointing(transformer_layers, **kwargs)
 
-    optimizer = smp.DistributedOptimizer(
-        optimizer, 
-        static_loss_scale=None, 
-        dynamic_loss_scale=True,
-        dynamic_loss_args={"scale_window": 1000, "min_scale": 1, "delayed_shift": 2},
+    if args.smp_version < 110:
+        optimizer = FP16_Optimizer(
+            model,
+            optimizer,
+            static_loss_scale=None,
+            dynamic_loss_scale=True,
+            use_smp=True,
+            dynamic_loss_args={"scale_window": 1000, "min_scale": 1, "delayed_shift": 2},
+            params_have_main_grad=False,
+            shard_optimizer_state=args.shard_optimizer_state > 0,
         )
+
+        optimizer = smp.DistributedOptimizer(optimizer)
+        model.register_post_step_hook(lambda model, optimizer: optimizer.init_master_params())
+    else:
+        optimizer = smp.DistributedOptimizer(
+            optimizer, 
+            static_loss_scale=None, 
+            dynamic_loss_scale=True,
+            dynamic_loss_args={"scale_window": 1000, "min_scale": 1, "delayed_shift": 2},
+            )
     lr_scheduler = get_learning_rate_scheduler(optimizer, args)
 
     if args.enable_memory_profiling > 0:
