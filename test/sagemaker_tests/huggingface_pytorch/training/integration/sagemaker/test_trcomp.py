@@ -390,6 +390,7 @@ class TestMultiNodeMultiGPU:
 
         num_gpus_per_instance = 8
         hyperparameters["max_steps"] = (3 * num_gpus_per_instance * instance_count)
+        hyperparameters["sagemaker_pytorch_xla_multi_worker_enabled"] = True
         
         with timeout(minutes=DEFAULT_TIMEOUT):
             estimator = HuggingFace(
@@ -406,7 +407,6 @@ class TestMultiNodeMultiGPU:
                 hyperparameters=hyperparameters,
                 py_version=py_version,
                 max_retry_attempts=15,
-                sagemaker_pytorch_xla_multi_worker_enabled = True
             )
             estimator.fit(job_name=sagemaker.utils.unique_name_from_base('hf-pt-trcomp-MNMG-default'), logs=True)
         captured = capsys.readouterr()
