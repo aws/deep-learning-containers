@@ -430,6 +430,14 @@ IGNORE_SAFETY_IDS = {
                 "42772",
                 "42814",
                 "42815",
+                # for releasing PT1.12 safety check tools might report a vulnerability for the package commonmarker, 
+                # which is a dependency of deepspeed. 
+                # This package is only used to build the documentation pages of deepspeed 
+                # and won’t be used in the package that gets installed into the DLC. 
+                # This security issue can be safely ignored 
+                # and an attempt to upgrade deepspeed version to 
+                # remediate it might have an inadvertent negative impact on the DLC components functionality.
+                "48298",
             ],
         },
         "inference": {
