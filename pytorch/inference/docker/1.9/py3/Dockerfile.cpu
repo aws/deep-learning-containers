@@ -126,7 +126,7 @@ RUN pip install \
     "awscli<2" \
     "urllib3>=1.26.5"
 
-RUN pip install --no-cache-dir "sagemaker-pytorch-inference==2.0.6"
+RUN pip install --no-cache-dir "sagemaker-pytorch-inference==2.0.8"
 
 RUN pip uninstall -y model-archiver multi-model-server \
  && pip install captum \
