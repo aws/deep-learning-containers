@@ -190,7 +190,7 @@ def host_setup_for_tensorflow_inference(
     serving_folder_path, framework_version, ec2_connection, is_neuron, is_graviton, model_name, python_invoker
 ):
     # Installing protobuf at 3.20.* to fix errors in using latest protobuf
-    ec2_connection.run(f"sudo apt-get install -y python3-pip")
+    ec2_connection.run(f"sudo apt-get update && sudo apt-get install -y python3-pip")
     ec2_connection.run((f"{python_invoker} -m pip install --user -qq -U 'protobuf>=3.20,<3.21'"), hide=True)
 
     # Tensorflow 1.x doesn't have package with version 1.15.2 so use only 1.15
