@@ -23,6 +23,9 @@
       deep_learning_container:
         source: ../../src/deep_learning_container.py
         target: deep_learning_container.py
+      sagemaker_package_name:
+        source: docker/build_artifacts/sagemaker
+        target: sagemaker
   images:
     BuildEC2TensorflowCPUInferencePy3DockerImage:
       <<: *INFERENCE_REPOSITORY
