@@ -12,14 +12,14 @@ ARG TRANSFORMERS_VERSION=4.21.1
 ARG DATASETS_VERSION=1.18.4
 ARG PYTHON=python3
 
-ARG PT_BUCKET=https://sm-training-comp-pytorch-binaries.s3.us-west-2.amazonaws.com/29b21494-ce07-47c8-aa96-0e8a66ad0935/20220817-193153/b67fb574061699bfcd0a3a5de184af27f5d153dd
+ARG PT_BUCKET=https://sm-training-comp-pytorch-binaries.s3.us-west-2.amazonaws.com
 ARG PT_BINARY_PATH=${PT_BUCKET}/29b21494-ce07-47c8-aa96-0e8a66ad0935/20220817-193153/b67fb574061699bfcd0a3a5de184af27f5d153dd
 ARG PT_URL=${PT_BINARY_PATH}/torch-1.11.0%2Bcu113-cp38-cp38-linux_x86_64.whl
 ARG PT_XLA_URL=${PT_BINARY_PATH}/torch_xla-1.11.0-cp38-cp38-linux_x86_64.whl
 ARG TORCHVISION_URL=${PT_BINARY_PATH}/torchvision-0.12.0a0%2B9b5a3fe-cp38-cp38-linux_x86_64.whl
 ARG TORCHAUDIO_URL=${PT_BINARY_PATH}/torchaudio-0.11.0%2B6297e97-cp38-cp38-linux_x86_64.whl
 ARG HF_BINARY_PATH=${PT_BUCKET}/3464575b-920a-48e6-b964-4d4c5fe2acae/20220816-021125/7780d990d11d9552e913cae06c7315fa8545648b
-ARG HF_TRANSFORMERS_URL=${PT_BINARY_PATH}/transformers-${TRANSFORMERS_VERSION}-py3-none-any.whl
+ARG HF_TRANSFORMERS_URL=${HF_BINARY_PATH}/transformers-${TRANSFORMERS_VERSION}-py3-none-any.whl
 
 
 # Install Sagemaker PythonSDK
