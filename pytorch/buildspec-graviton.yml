@@ -18,6 +18,9 @@ context:
     torchserve-ec2-entrypoint:
       source: docker/build_artifacts/torchserve-ec2-entrypoint.py
       target: torchserve-ec2-entrypoint.py
+    torchserve-entrypoint:
+      source: docker/build_artifacts/torchserve-entrypoint.py
+      target: torchserve-entrypoint.py
     deep_learning_container:
       source: ../../src/deep_learning_container.py
       target: deep_learning_container.py
