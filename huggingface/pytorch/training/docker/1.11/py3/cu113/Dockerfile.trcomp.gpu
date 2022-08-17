@@ -12,7 +12,7 @@ ARG TRANSFORMERS_VERSION=4.21.1
 ARG DATASETS_VERSION=1.18.4
 ARG PYTHON=python3
 
-ARG PT_BUCKET=https://sm-training-comp-pytorch-binaries.s3.us-west-2.amazonaws.com/b461901e-1322-487a-9cde-ccd5cc9f8df4/20220719-013225/1a764963991b1c5f41e25468b77499eefde9efcc
+ARG PT_BUCKET=https://sm-training-comp-pytorch-binaries.s3.us-west-2.amazonaws.com/29b21494-ce07-47c8-aa96-0e8a66ad0935/20220817-193153/b67fb574061699bfcd0a3a5de184af27f5d153dd
 ARG PT_URL=${PT_BUCKET}/torch-1.11.0%2Bcu113-cp38-cp38-linux_x86_64.whl
 ARG PT_XLA_URL=${PT_BUCKET}/torch_xla-1.11.0-cp38-cp38-linux_x86_64.whl
 ARG TORCHVISION_URL=${PT_BUCKET}/torchvision-0.12.0a0%2B9b5a3fe-cp38-cp38-linux_x86_64.whl
