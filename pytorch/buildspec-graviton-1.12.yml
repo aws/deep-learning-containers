@@ -1,9 +1,9 @@
 account_id: &ACCOUNT_ID <set-$ACCOUNT_ID-in-environment>
 region: &REGION <set-$REGION-in-environment>
 framework: &FRAMEWORK pytorch
-version: &VERSION 1.10.0
+version: &VERSION 1.12.1
 os_version: &OS_VERSION ubuntu20.04
-short_version: &SHORT_VERSION "1.10"
+short_version: &SHORT_VERSION "1.12"
 arch_type: graviton
 
 repository_info:
@@ -26,7 +26,7 @@ context:
       target: config.properties
     sagemaker_package_name:
         source: docker/build_artifacts/sagemaker
-        target: sagemaker
+        target: sagemaker    
 
 images:
   BuildEC2PytorchGravitonCPUInferencePy3DockerImage:
