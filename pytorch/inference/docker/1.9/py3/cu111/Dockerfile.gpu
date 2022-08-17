@@ -172,7 +172,7 @@ RUN pip install \
     "urllib3>=1.26.5" \
     mkl
 
-RUN pip install --no-cache-dir "sagemaker-pytorch-inference==2.0.8"
+RUN pip install --no-cache-dir "sagemaker-pytorch-inference>=2"
 
 RUN pip uninstall -y model-archiver multi-model-server \
  && pip install captum \
