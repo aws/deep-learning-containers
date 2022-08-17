@@ -238,8 +238,8 @@ def get_dockerfile_path_for_image(image_uri):
 
 
 def get_expected_dockerfile_filename(device_type, image_uri):
-    if is_e3_image(image_uri):
-        return f"Dockerfile.e3.{device_type}"
+    if is_ec2_image(image_uri):
+        return f"Dockerfile.ec2.{device_type}"
     if is_sagemaker_image(image_uri):
         return f"Dockerfile.sagemaker.{device_type}"
     if is_trcomp_image(image_uri):
@@ -399,8 +399,8 @@ def is_rc_test_context():
     return sm_remote_tests_val == config.AllowedSMRemoteConfigValues.RC.value
 
 
-def is_e3_image(image_uri):
-    return "-e3" in image_uri
+def is_ec2_image(image_uri):
+    return "-ec2" in image_uri
 
 
 def is_sagemaker_image(image_uri):
@@ -1003,7 +1003,7 @@ def parse_canary_images(framework, region):
                 # TODO: create graviton_mxnet DLC and add to dictionary 
             }
 
-            # E3 Images have an additional "e3" tag to distinguish them from the regular "sagemaker" tag
+            # ec2 Images have an additional "ec2" tag to distinguish them from the regular "sagemaker" tag
             if customer_type == "e3":
                 dlc_images += [f"{img}-e3" for img in images[canary_type]]
             else:

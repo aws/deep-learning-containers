@@ -92,7 +92,7 @@ You can pin your version by adding the version tag to your URL as follows:
 
      763104351884.dkr.ecr.us-east-1.amazonaws.com/tensorflow-training:2.4.1-cpu-py37-ubuntu18.04-v1.0
 
-E3 Framework Containers (EC2, ECS, and EKS support only)
+EC2 Framework Containers (Tested on EC2, ECS, and EKS only)
 ============================
 
 | Framework        |Job Type	|Horovod Options|CPU/GPU 	|Python Version Options	| Example URL																						                                                                      |
@@ -111,7 +111,7 @@ E3 Framework Containers (EC2, ECS, and EKS support only)
 | MXNet 1.9.0      |inference	|No			|GPU 		| 3.8 (py38)			| 763104351884.dkr.ecr.us-east-1.amazonaws.com/mxnet-inference:1.9.0-gpu-py38-cu112-ubuntu20.04-e3	      |
 
 
-E3 Framework Graviton Containers (EC2, ECS, and EKS support only)
+EC2 Framework Graviton Containers (EC2, ECS, and EKS support only)
 ============================
 
 | Framework         |Job Type	|Horovod Options|CPU/GPU 	|Python Version Options	|Example URL																						|
@@ -164,16 +164,16 @@ AutoGluon Training Containers
 
 | Framework       | AutoGluon Version | Job Type | CPU/GPU | Python Version Options | Example URL                                                                                      |
 |-----------------|-------------------|----------|---------|------------------------|--------------------------------------------------------------------------------------------------|
-| AutoGluon 0.4.2 | 0.4.2             | training | GPU     | 3.8 (py38)             | 763104351884.dkr.ecr.us-east-1.amazonaws.com/autogluon-training:0.4.2-gpu-py38-cu112-ubuntu20.04 |
-| AutoGluon 0.4.2 | 0.4.2             | training | CPU     | 3.8 (py38)             | 763104351884.dkr.ecr.us-east-1.amazonaws.com/autogluon-training:0.4.2-cpu-py38-ubuntu20.04       |
+| AutoGluon 0.5.2 | 0.5.2             | training | GPU     | 3.8 (py38)             | 763104351884.dkr.ecr.us-east-1.amazonaws.com/autogluon-training:0.5.2-gpu-py38-cu112-ubuntu20.04 |
+| AutoGluon 0.5.2 | 0.5.2             | training | CPU     | 3.8 (py38)             | 763104351884.dkr.ecr.us-east-1.amazonaws.com/autogluon-training:0.5.2-cpu-py38-ubuntu20.04       |
 
 AutoGluon Inference Containers
 ===============================
 
 | Framework       | AutoGluon Version | Job Type  | CPU/GPU | Python Version Options | Example URL                                                                                       |
 |-----------------|-------------------|-----------|---------|------------------------|---------------------------------------------------------------------------------------------------|
-| AutoGluon 0.4.2 | 0.4.2             | inference | GPU     | 3.8 (py38)             | 763104351884.dkr.ecr.us-east-1.amazonaws.com/autogluon-inference:0.4.2-gpu-py38-cu112-ubuntu20.04 |
-| AutoGluon 0.4.2 | 0.4.2             | inference | CPU     | 3.8 (py38)             | 763104351884.dkr.ecr.us-east-1.amazonaws.com/autogluon-inference:0.4.2-cpu-py38-ubuntu20.04       |
+| AutoGluon 0.5.2 | 0.5.2             | inference | GPU     | 3.8 (py38)             | 763104351884.dkr.ecr.us-east-1.amazonaws.com/autogluon-inference:0.5.2-gpu-py38-cu112-ubuntu20.04 |
+| AutoGluon 0.5.2 | 0.5.2             | inference | CPU     | 3.8 (py38)             | 763104351884.dkr.ecr.us-east-1.amazonaws.com/autogluon-inference:0.5.2-cpu-py38-ubuntu20.04       |
 
 HuggingFace Training Containers
 ===============================
@@ -219,7 +219,7 @@ Neuron Inference Containers
 |PyTorch 1.10.2 with Neuron Inference        |inference 	|3.7 (py37) 	        |763104351884.dkr.ecr.us-west-2.amazonaws.com/pytorch-inference-neuron:1.10.2-neuron-py37-sdk1.19.0-ubuntu18.04        |
 |MXNet 1.8.0 with Neuron Inference          |inference 	|3.7 (py37) 	        |763104351884.dkr.ecr.us-west-2.amazonaws.com/mxnet-inference-neuron:1.8.0-neuron-py37-sdk1.18.0-ubuntu18.04          |
 
-Prior E3 Framework Container Versions
+Prior EC2 Framework Container Versions
 ==============
 | Framework 			                      |Job Type 			   |Horovod Options 			     |CPU/GPU 	  |Python Version Options 			      |Example URL 			                                                                               |
 |---------------------------------------------|------------------------|---------------------------------|------------|---------------------------------------|----------------------------------------------------------------------------------------------------|
@@ -272,14 +272,21 @@ Prior General Framework Container Versions
 |TensorFlow 2.6.0   |inference	|Yes			|GPU 		| 3.8 (py38)			|763104351884.dkr.ecr.us-east-1.amazonaws.com/tensorflow-inference:2.6.0-gpu-py38-cu112-ubuntu20.04	|
 
 
-Prior AutoGluon Container Versions
+Prior AutoGluon Training Containers
 ===============================
 
-| Framework       | AutoGluon Version | Job Type  | CPU/GPU | Python Version Options  | Example URL                                                                                      |
-|-----------------|-------------------|-----------|---------|-------------------------|--------------------------------------------------------------------------------------------------|
-| AutoGluon 0.3.2 | 0.3.1             | training  | GPU     | 3.8 (py38)              | 763104351884.dkr.ecr.us-east-1.amazonaws.com/autogluon-training:0.3.2-gpu-py38-cu112-ubuntu18.04 |
-| AutoGluon 0.3.2 | 0.3.1             | training  | CPU     | 3.8 (py38)              | 763104351884.dkr.ecr.us-east-1.amazonaws.com/autogluon-training:0.3.2-cpu-py38-ubuntu18.04       |
-| AutoGluon 0.3.2 | 0.3.1             | inference | CPU     | 3.8 (py38)              | 763104351884.dkr.ecr.us-east-1.amazonaws.com/autogluon-inference:0.3.2-cpu-py38-ubuntu20.04      |
+| Framework       | AutoGluon Version | Job Type | CPU/GPU | Python Version Options | Example URL                                                                                      |
+|-----------------|-------------------|----------|---------|------------------------|--------------------------------------------------------------------------------------------------|
+| AutoGluon 0.4.3 | 0.4.3             | training | GPU     | 3.8 (py38)             | 763104351884.dkr.ecr.us-east-1.amazonaws.com/autogluon-training:0.4.3-gpu-py38-cu112-ubuntu20.04 |
+| AutoGluon 0.4.3 | 0.4.3             | training | CPU     | 3.8 (py38)             | 763104351884.dkr.ecr.us-east-1.amazonaws.com/autogluon-training:0.4.3-cpu-py38-ubuntu20.04       |
+
+Prior AutoGluon Inference Containers
+===============================
+
+| Framework       | AutoGluon Version | Job Type  | CPU/GPU | Python Version Options | Example URL                                                                                       |
+|-----------------|-------------------|-----------|---------|------------------------|---------------------------------------------------------------------------------------------------|
+| AutoGluon 0.4.3 | 0.4.3             | inference | GPU     | 3.8 (py38)             | 763104351884.dkr.ecr.us-east-1.amazonaws.com/autogluon-inference:0.4.3-gpu-py38-cu112-ubuntu20.04 |
+| AutoGluon 0.4.3 | 0.4.3             | inference | CPU     | 3.8 (py38)             | 763104351884.dkr.ecr.us-east-1.amazonaws.com/autogluon-inference:0.4.3-cpu-py38-ubuntu20.04       |
 
 
 Prior Neuron Inference Container Versions
