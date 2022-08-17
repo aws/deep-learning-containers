@@ -2,7 +2,8 @@ botocore>1.0,<2.0
 boto3>1.0,<2.0
 awscli<2
 protobuf>=3.20,<3.21
-sagemaker>=2,<3
+#Pin sagemaker version to 2.102.0 as the latest version has an issue, should revert it when the issue has gone
+sagemaker==2.102.0
 smdebug>=1
 coverage==4.5.3
 docker-compose==1.25.4
