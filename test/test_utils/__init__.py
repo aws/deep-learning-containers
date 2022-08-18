@@ -1540,8 +1540,8 @@ def construct_buildspec_path(dlc_path, framework_path, buildspec, framework_vers
     :param buildspec: buildspec file name
     :param framework_version: default (long) framework version name
     """
-    if get_buildspec_file_path_from_env():
-        env_buildspec_file = get_buildspec_file_path_from_env()
+    env_buildspec_file = get_buildspec_file_path_from_env()
+    if env_buildspec_file:
         buildspec_path = os.path.join(dlc_path, env_buildspec_file)
         if not os.path.exists(buildspec_path):
             raise FileNotFoundError(
@@ -1574,6 +1574,7 @@ def construct_buildspec_path(dlc_path, framework_path, buildspec, framework_vers
         raise ValueError('Could not construct a valid buildspec path.')
 
     return buildspec_path
+
 
 def get_container_name(prefix, image_uri):
     """
