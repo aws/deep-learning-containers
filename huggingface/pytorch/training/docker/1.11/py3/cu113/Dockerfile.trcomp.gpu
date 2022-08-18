@@ -71,6 +71,15 @@ RUN pip uninstall -y transformers \
  && pip install --no-deps --no-cache-dir --force-reinstall -U ${HF_TRANSFORMERS_URL} \
  && rm -rf ${HF_TRANSFORMERS_URL}
 
+# Install SageMaker Training Toolkit
+RUN pip uninstall -y sagemaker-training \
+ && pip install --no-deps --no-cache-dir -U --force-reinstall "sagemaker-training>=4.2.6"
+
+# Install SageMaker PyTorch Training Toolkit
+RUN pip uninstall -y sagemaker-pytorch-training \
+ && pip install --no-deps --no-cache-dir -U --force-reinstall "sagemaker-pytorch-training>=2.6.1,<3"
+
+
 ARG CONDA_PREFIX=/opt/conda
 
 # Install common training dependencies
