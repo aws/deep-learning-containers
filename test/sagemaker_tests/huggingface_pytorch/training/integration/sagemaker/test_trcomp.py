@@ -382,7 +382,8 @@ class TestMultiNodeMultiGPU:
             else "./examples/pytorch/question-answering"
         )
 
-        hyperparameters["max_steps"] = 3 * num_gpus_per_instance * instance_count
+        total_gpus = num_gpus_per_instance * instance_count
+        hyperparameters["max_steps"] = 3 * total_gpus
 
         # This is temporary workaround until distribution = {'pytorch_xla': 'enabled': True} is supported by SM SDK.
         hyperparameters["sagemaker_pytorch_xla_multi_worker_enabled"] = True
@@ -415,3 +416,4 @@ class TestMultiNodeMultiGPU:
         assert "Invoking PT-XLA Runner" in logs
         assert "distributed training through PT-XLA Runtime" in logs
         assert "torch_xla.distributed.xla_spawn" in logs
+        assert f"nranks {total_gpus}" in logs
