@@ -196,7 +196,7 @@ def host_setup_for_tensorflow_inference(
     # pip not finding the version. the internal repo only has a custom Tensorflow 2.6 which is not compatible with TF 2.9+
     # and this was the recommended action by the Graviton team.
     if is_graviton:
-        ec2_connection.run((f"{python_invoker} -m pip install --no-cache-dir -U tensorflow-cpu-aws<={framework_version}"), hide=True)
+        ec2_connection.run((f"{python_invoker} -m pip install --no-cache-dir -U tensorflow-cpu-aws"), hide=True)
         ec2_connection.run(
             (
                 f"{python_invoker} -m pip install --no-dependencies --no-cache-dir tensorflow-serving-api=={framework_version}"
