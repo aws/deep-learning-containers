@@ -39,8 +39,8 @@ build_context = os.getenv("BUILD_CONTEXT")
 
 def is_nightly_build_context():
     """
-    Returns True if image builder is running in a nightly context or nightly PR test mode
-    return: <Boolean> True or False
+    Returns True if image builder is running in a nightly context or nightly PR test mode. Otherwise returns False
+    :return: <bool> True or False
     """
     return True if build_context == "NIGHTLY" or os.getenv("NIGHTLY_PR_TEST_MODE", "false").lower() == "true" else False
 
