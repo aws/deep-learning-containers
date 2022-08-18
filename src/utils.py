@@ -561,3 +561,7 @@ def get_label_prefix_customer_type(image_tag):
 
     # Older images are not tagged with ec2 or sagemaker. Assuming that lack of ec2 tag implies sagemaker.
     return "sagemaker"
+
+
+def get_buildspec_file_path_from_env():
+    return os.getenv("FRAMEWORK_BUILDSPEC_FILE")

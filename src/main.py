@@ -11,7 +11,7 @@ from image_builder import image_builder
 
 def main():
     parser = argparse.ArgumentParser(description="Program to build docker images")
-    parser.add_argument("--buildspec", type=str)
+    parser.add_argument("--buildspec", type=str, default=utils.get_buildspec_file_path_from_env())
     parser.add_argument("--framework", type=str)
     parser.add_argument("--device_types", type=str, default=constants.ALL)
     parser.add_argument("--image_types", type=str, default=constants.ALL)

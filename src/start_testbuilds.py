@@ -23,6 +23,8 @@ import boto3
 import constants
 import config
 
+from utils import get_buildspec_file_path_from_env
+
 
 LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.DEBUG)
@@ -130,7 +132,7 @@ def is_test_job_implemented_for_framework(images_str, test_type):
 
 def main():
     parser = argparse.ArgumentParser(description="Program to build docker images")
-    parser.add_argument("--buildspec", type=str)
+    parser.add_argument("--buildspec", type=str, default=get_buildspec_file_path_from_env())
     args = parser.parse_args()
 
     build_context = os.getenv("BUILD_CONTEXT")
