@@ -283,13 +283,12 @@ class TestMultiNodeMultiGPU:
     @pytest.mark.parametrize(
         "instance_type instance_count",
         [
-            ("ml.p3.16xlarge", 1),
+            ("ml.p3.16xlarge", 2),
             ("ml.p4d.24xlarge", 2),
         ],
     )
-
     @pytest.mark.model("bert-large")
-    def test_trcomp_default(self, patched, ecr_image, sagemaker_session, tmpdir, py_version, capsys):
+    def test_trcomp_default(self, patched, ecr_image, sagemaker_session, tmpdir, py_version, capsys, instance_type, instance_count):
         '''
         Tests the default configuration of SM trcomp
         '''
@@ -328,6 +327,6 @@ class TestMultiNodeMultiGPU:
         assert "Found configuration for Training Compiler" in logs
         assert "Configuring SM Training Compiler" in logs
         assert "device: xla" in logs
-
+        raise NotImplementedError('Yet to add assertions for correct toolkit invocation.')
 
 
