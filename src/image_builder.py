@@ -37,6 +37,12 @@ from output import OutputFormatter
 FORMATTER = OutputFormatter(constants.PADDING)
 build_context = os.getenv("BUILD_CONTEXT")
 
+def is_nightly_build_context():
+    """
+    Returns True if image builder is running in a nightly context or nightly PR test mode
+    return: <Boolean> True or False
+    """
+    return True if build_context == "NIGHTLY" or os.getenv("NIGHTLY_PR_TEST_MODE", "false").lower() == "true" else False
 
 def _find_image_object(images_list, image_name):
     """
@@ -99,9 +105,8 @@ def image_builder(buildspec, image_types=[], device_types=[]):
         
         image_tag = tag_image_with_pr_number(image_config["tag"]) if build_context == "PR" else image_config["tag"]
         
-        # In nightly context, add image tag with date
         additional_image_tags = []
-        if build_context == "NIGHTLY":
+        if is_nightly_build_context():
             additional_image_tags.append(tag_image_with_date(image_tag))
 
         if enable_datetime_tag or build_context != "PR":
