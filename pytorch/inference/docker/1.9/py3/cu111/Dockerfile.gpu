@@ -14,7 +14,7 @@ ARG PT_TORCHVISION_URL=https://aws-pytorch-cicd-v3-binaries.s3.us-west-2.amazona
 ARG PT_TORCHAUDIO_URL=https://pytorch-ei-binaries.s3.us-west-2.amazonaws.com/r1.9.1_inference/gpu/torchaudio-0.9.1%2Bcu111-cp38-cp38-linux_x86_64.whl
 
 ARG OPEN_MPI_VERSION=4.0.1
-ARG TS_VERSION=0.5.3
+ARG TS_VERSION=0.6.0
 ARG CUBLAS_VERSION=11.3.0.106
 
 ARG DEBIAN_FRONTEND=noninteractive
@@ -172,7 +172,7 @@ RUN pip install \
     "urllib3>=1.26.5" \
     mkl
 
-RUN pip install --no-cache-dir "sagemaker-pytorch-inference==2.0.8"
+RUN pip install --no-cache-dir "sagemaker-pytorch-inference>=2"
 
 RUN pip uninstall -y model-archiver multi-model-server \
  && pip install captum \
