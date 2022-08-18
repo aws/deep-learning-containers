@@ -40,7 +40,7 @@ hyperparameters = {
     "num_train_epochs": 1,
     "max_seq_length": 384,
     "max_steps": 3,
-    "max_eval_samples": 100,
+    "max_eval_samples": 10,
     "pad_to_max_length": True,
     "doc_stride": 128,
     "output_dir": "/opt/ml/model",
