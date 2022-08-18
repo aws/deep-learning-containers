@@ -383,6 +383,8 @@ class TestMultiNodeMultiGPU:
         )
 
         hyperparameters["max_steps"] = 3 * num_gpus_per_instance * instance_count
+
+        # This is temporary workaround until distribution = {'pytorch_xla': 'enabled': True} is supported by SM SDK.
         hyperparameters["sagemaker_pytorch_xla_multi_worker_enabled"] = True
 
         with timeout(minutes=DEFAULT_TIMEOUT):
