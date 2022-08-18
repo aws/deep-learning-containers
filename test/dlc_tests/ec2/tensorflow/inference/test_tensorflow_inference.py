@@ -192,29 +192,24 @@ def host_setup_for_tensorflow_inference(
     # Install PIP so we can test
     ec2_connection.run((f"sudo apt-get update && sudo apt-get install -y python3-pip"), hide=True)
 
-    # As of Tensorflow 2.7 the pypi package matching the framework version of the image will work. This includes
-    # Graviton images
-    ec2_connection.run(
-        (
-            f"{python_invoker} -m pip install --user -qq -U 'tensorflow<={framework_version}' "
-            f" 'tensorflow-serving-api<={framework_version}' 'protobuf>=3.20,<3.21'"
-        ), hide=True
-    )
-    # if is_graviton:
-    #     ec2_connection.run((f"{python_invoker} -m pip install --no-cache-dir -U tensorflow<={framework_version}"), hide=True)
-    #     ec2_connection.run(
-    #         (
-    #             f"{python_invoker} -m pip install --no-dependencies --no-cache-dir tensorflow-serving-api=={framework_version}"
-    #         ),
-    #         hide=True,
-    #     )
-    # else:
-    #     ec2_connection.run(
-    #         (
-    #             f"{python_invoker} -m pip install --user -qq -U 'tensorflow<={framework_version}' "
-    #             f" 'tensorflow-serving-api<={framework_version}' 'protobuf>=3.20,<3.21'"
-    #         ), hide=True
-    #     )
+    # Per graviton team, need to install tensorflow from pypi with no version pinning. attempting a pin will result is
+    # pip not finding the version. the internal repo only has a custom Tensorflow 2.6 which is not compatible with TF 2.9+
+    # and this was the recommended action by the Graviton team.
+    if is_graviton:
+        ec2_connection.run((f"{python_invoker} -m pip install --no-cache-dir -U tensorflow"), hide=True)
+        ec2_connection.run(
+            (
+                f"{python_invoker} -m pip install --no-dependencies --no-cache-dir tensorflow-serving-api=={framework_version}"
+            ),
+            hide=True,
+        )
+    else:
+        ec2_connection.run(
+            (
+                f"{python_invoker} -m pip install --user -qq -U 'tensorflow<={framework_version}' "
+                f" 'tensorflow-serving-api<={framework_version}' 'protobuf>=3.20,<3.21'"
+            ), hide=True
+        )
     if os.path.exists(f"{serving_folder_path}"):
         ec2_connection.run(f"rm -rf {serving_folder_path}")
     if str(framework_version).startswith(TENSORFLOW1_VERSION):
