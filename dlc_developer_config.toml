@@ -51,7 +51,7 @@ sagemaker_local_tests = true
 sagemaker_remote_tests = "standard"
 
 # Run CI tests for nightly images
-# Off by default
+# false by default
 nightly_pr_test_mode = true
 
 use_scheduler = false
