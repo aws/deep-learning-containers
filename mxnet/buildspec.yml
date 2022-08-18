@@ -79,7 +79,7 @@ images:
     context:
       <<: *INFERENCE_CONTEXT
   BuildEC2MXNetGPUInferencePy3DockerImage:
-    << : *INFERENCE_REPOSITORY
+    <<: *INFERENCE_REPOSITORY
     build: &MXNET_GPU_INFERENCE_PY3 false
     image_size_baseline: 6758
     device_type: &DEVICE_TYPE gpu
