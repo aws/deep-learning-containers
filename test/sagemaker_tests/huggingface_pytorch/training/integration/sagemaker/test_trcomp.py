@@ -410,4 +410,6 @@ class TestMultiNodeMultiGPU:
         assert "Found configuration for Training Compiler" in logs
         assert "Configuring SM Training Compiler" in logs
         assert "device: xla" in logs
-        raise NotImplementedError("Yet to add assertions for correct toolkit invocation.")
+        assert "Invoking PT-XLA Runner" in logs
+        assert "distributed training through PT-XLA Runtime" in logs
+        assert "torch_xla.distributed.xla_spawn" in logs
