@@ -262,6 +262,12 @@ class TestSingleNodeSingleGPU:
         assert os.path.exists(xla_metrics_file)
 
 
+@pytest.mark.parametrize(
+    "instance_type instance_count",
+    [
+        ("ml.p3.16xlarge", 1),
+    ],
+)
 @pytest.mark.integration("sagmaker-training-compiler")
 @pytest.mark.processor("gpu")
 @pytest.mark.skip_py2_containers
@@ -274,12 +280,6 @@ class TestSingleNodeMultiGPU:
     """
 
     @pytest.mark.model("bert-large")
-    @pytest.mark.parametrize(
-        "instance_type instance_count",
-        [
-            ("ml.p3.16xlarge", 1),
-        ],
-    )
     def test_trcomp_default(
         self,
         patched,
@@ -336,6 +336,13 @@ class TestSingleNodeMultiGPU:
         assert "device: xla" in logs
 
 
+@pytest.mark.parametrize(
+    "instance_type instance_count",
+    [
+        ("ml.p3.16xlarge", 2),
+        ("ml.p4d.24xlarge", 2),
+    ],
+)
 @pytest.mark.integration("sagmaker-training-compiler")
 @pytest.mark.processor("gpu")
 @pytest.mark.skip_py2_containers
@@ -348,13 +355,6 @@ class TestMultiNodeMultiGPU:
     """
 
     @pytest.mark.model("bert-large")
-    @pytest.mark.parametrize(
-        "instance_type instance_count",
-        [
-            ("ml.p3.16xlarge", 2),
-            ("ml.p4d.24xlarge", 2),
-        ],
-    )
     def test_trcomp_default(
         self,
         patched,
