@@ -1,0 +1,61 @@
+{
+    "python3.8": [
+        {
+            "name": "CVE-2015-20107",
+            "description": "In Python (aka CPython) through 3.10.4, the mailcap module does not add escape characters into commands discovered in the system mailcap file. This may allow attackers to inject shell commands into applications that call mailcap.findmatch with untrusted input (if they lack validation of user-provided filenames or arguments).",
+            "uri": "http://people.ubuntu.com/~ubuntu-security/cve/CVE-2015-20107",
+            "severity": "HIGH",
+            "attributes": [
+                {
+                    "key": "package_version",
+                    "value": "3.8.10-0ubuntu1~20.04.4"
+                },
+                {
+                    "key": "package_name",
+                    "value": "python3.8"
+                }
+            ],
+            "scraped_data": [
+                {
+                    "status_table": {
+                        "packages": [
+                            "python3.8",
+                            "Launchpad",
+                            "Ubuntu",
+                            "Debian"
+                        ],
+                        "release_states": [
+                            [
+                                "bionic",
+                                "Deferred (2022-04-14)"
+                            ],
+                            [
+                                "focal",
+                                "Deferred (2022-04-14)"
+                            ],
+                            [
+                                "impish",
+                                "Does not exist"
+                            ],
+                            [
+                                "trusty",
+                                "Does not exist"
+                            ],
+                            [
+                                "upstream",
+                                "Needed"
+                            ],
+                            [
+                                "xenial",
+                                "Does not exist"
+                            ]
+                    ]
+                    },
+                    "notes": [
+                        "patch was proposed in cpython Lib/mailcap.py but not merged yet."
+                    ]
+                }
+            ]
+        }
+    ]
+}

@@ -605,7 +605,7 @@ def execute_ec2_training_test(
 
     if "habana" in ecr_uri:
         execution_command = f"{docker_cmd} exec --user root {container_name} {executable} -c '{test_cmd}'"
-        required_log_ending = "INFO: Exiting the script with code 0 PASS"
+        required_log_ending = "Kudos!! Habana tests executed successfully"
         framework = "tensorflow" if "tensorflow" in ecr_uri else "pytorch" if "pytorch" in ecr_uri else None
         test_type = "ec2"
         account_id_prefix = os.getenv("ACCOUNT_ID", boto3.client("sts").get_caller_identity()["Account"])[:3]
@@ -619,8 +619,9 @@ def execute_ec2_training_test(
                 execution_command,
                 timeout,
                 required_log_ending,
+                loop_time= 4 * 3600,
                 s3_uri_for_saving_permanent_logs=s3_uri_permanent_logs,
-                hang_detection_window=10,
+                hang_detection_window=15,
             )
             return
         else:

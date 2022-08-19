@@ -60,8 +60,6 @@ def test_eks_tensorflow_half_plus_two_inference(tensorflow_inference):
     __test_eks_tensorflow_half_plus_two_inference(tensorflow_inference)
 
 
-# TODO: Enable after adding EKS infrastructure to support graviton
-@pytest.mark.skip(reason="EKS graviton tests require further development")
 @pytest.mark.model("half_plus_two")
 def test_eks_tensorflow_half_plus_two_inference_graviton(tensorflow_inference_graviton):
     __test_eks_tensorflow_half_plus_two_inference(tensorflow_inference_graviton)
@@ -117,8 +115,6 @@ def test_eks_tensorflow_albert(tensorflow_inference):
     __test_eks_tensorflow_albert(tensorflow_inference)
 
 
-# TODO: Enable after adding EKS infrastructure to support graviton
-@pytest.mark.skip(reason="EKS graviton tests require further development")
 @pytest.mark.model("albert")
 def test_eks_tensorflow_albert_graviton(tensorflow_inference_graviton):
     __test_eks_tensorflow_albert(tensorflow_inference_graviton)

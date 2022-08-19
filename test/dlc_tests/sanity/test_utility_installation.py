@@ -1,4 +1,5 @@
 from packaging.version import Version
+from packaging.specifiers import SpecifierSet
 
 import pytest
 
@@ -45,6 +46,7 @@ def test_utility_packages_using_import(training):
     test_utils.start_container(container_name, training, ctx)
 
     framework, framework_version = test_utils.get_framework_and_version_from_tag(training)
+    framework = framework.replace("_trcomp", "")
     utility_package_minimum_framework_version = {
         "mxnet": "1.8",
         "pytorch": "1.7",
@@ -105,22 +107,6 @@ def test_emacs(image):
     test_utils.run_cmd_on_container(container_name, ctx, "emacs -version")
 
 
-@pytest.mark.usefixtures("sagemaker")
-@pytest.mark.model("N/A")
-@pytest.mark.integration("tomcat")
-@pytest.mark.canary("Ensure we don't install apache tomcat")
-def test_apache_tomcat(image):
-    """
-    Temporary canary test
-    """
-    ctx = Context()
-    container_name = test_utils.get_container_name("tomcat", image)
-    test_utils.start_container(container_name, image, ctx)
-    tomcat_output = test_utils.run_cmd_on_container(container_name, ctx, "find / -name *tomcat*").stdout.strip()
-    if tomcat_output:
-        raise RuntimeError(f"Found tomcat installation in {image}. See output: {tomcat_output}")
-
-
 @pytest.mark.usefixtures("sagemaker_only")
 @pytest.mark.model("N/A")
 @pytest.mark.integration("sagemaker_studio_analytics_extension")
@@ -129,12 +115,13 @@ def test_apache_tomcat(image):
 )
 def test_sagemaker_studio_analytics_extension(training, package_name):
     framework, framework_version = test_utils.get_framework_and_version_from_tag(training)
-    utility_package_minimum_framework_version = {"pytorch": "1.7", "tensorflow": "2.4"}
-    utility_package_maximum_framework_version = {"pytorch": "1.8", "tensorflow": "2.6"}
-    
-    if framework not in utility_package_minimum_framework_version or Version(framework_version) < Version(
-        utility_package_minimum_framework_version[framework]) or Version(framework_version) > Version(
-        utility_package_maximum_framework_version[framework]
+    utility_package_framework_version_limit = {
+        "pytorch": SpecifierSet(">=1.7,<1.9"), "tensorflow": SpecifierSet(">=2.4,<2.7,!=2.5.*")
+    }
+
+    if (
+        framework not in utility_package_framework_version_limit
+        or Version(framework_version) not in utility_package_framework_version_limit[framework]
     ):
         pytest.skip(f"sagemaker_studio_analytics_extension is not installed in {framework} {framework_version} DLCs")
 

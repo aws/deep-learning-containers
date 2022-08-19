@@ -53,8 +53,10 @@ def assign_sagemaker_remote_job_instance_type(image):
 
 def assign_sagemaker_local_job_instance_type(image):
     if "tensorflow" in image and "inference" in image and "gpu" in image:
-        return "p2.xlarge"
+        return "g4dn.xlarge"
     elif "autogluon" in image and "gpu" in image:
+        return "p3.2xlarge"
+    elif "trcomp" in image:
         return "p3.2xlarge"
     return "p3.8xlarge" if "gpu" in image else "c5.18xlarge"
 
@@ -111,6 +113,7 @@ def generate_sagemaker_pytest_cmd(image, sagemaker_test_type):
     framework, framework_version = get_framework_and_version_from_tag(image)
     framework_major_version = framework_version.split(".")[0]
     job_type = get_job_type_from_image(image)
+    framework = framework.replace("_trcomp", "")
     path = os.path.join("test", "sagemaker_tests", framework, job_type)
     aws_id_arg = "--aws-id"
     docker_base_arg = "--docker-base-name"
@@ -128,7 +131,17 @@ def generate_sagemaker_pytest_cmd(image, sagemaker_test_type):
         else "cpu"
     )
     py_version = re.search(r"py\d+", tag).group()
-    sm_local_py_version = "37" if py_version == "py37" else "38" if py_version == "py38" else "2" if py_version == "py27" else "3"
+    sm_local_py_version = (
+        "37"
+        if py_version == "py37"
+        else "38"
+        if py_version == "py38"
+        else "39"
+        if py_version == "py39"
+        else "2"
+        if py_version == "py27"
+        else "3"
+    )
     if framework == "tensorflow" and job_type == "inference":
         # Tf Inference tests have an additional sub directory with test
         integration_path = os.path.join("test", "integration", sagemaker_test_type)
@@ -187,6 +200,8 @@ def generate_sagemaker_pytest_cmd(image, sagemaker_test_type):
         path = os.path.join(os.path.dirname(path), f"{framework}{framework_major_version}_training")
     if "huggingface" in framework and job_type == "inference":
         path = os.path.join("test", "sagemaker_tests", "huggingface", "inference")
+    if "trcomp" in framework:
+        path = os.path.join("test", "sagemaker_tests", framework.replace("-trcomp", ""), f"{job_type}")
 
     return (
         remote_pytest_cmd if sagemaker_test_type == SAGEMAKER_REMOTE_TEST_TYPE else local_pytest_cmd,
@@ -322,13 +337,19 @@ def execute_local_tests(image, pytest_cache_params):
                 ec2_conn.run(pytest_command)
                 print(f"Downloading Test reports for image: {image}")
                 ec2_conn.get(ec2_test_report_path, os.path.join("test", f"{job_type}_{tag}_sm_local.xml"))
+    except:
+        print(f"Exception {sys.exc_info()[0]} occurred")
     finally:
-        with ec2_conn.cd(path):
-            pytest_cache_util.upload_pytest_cache_from_ec2_to_s3(ec2_conn, path, **pytest_cache_params)
-        print(f"Terminating Instances for image: {image}")
-        ec2_utils.terminate_instance(instance_id, region)
-        print(f"Destroying ssh Key_pair for image: {image}")
-        destroy_ssh_keypair(ec2_client, ec2_key_name)
+        if ec2_conn:
+            with ec2_conn.cd(path):
+                pytest_cache_util.upload_pytest_cache_from_ec2_to_s3(ec2_conn, path, **pytest_cache_params)
+        if instance_id:
+            print(f"Terminating Instances for image: {image}")
+            ec2_utils.terminate_instance(instance_id, region)
+            
+        if ec2_client and ec2_key_name:
+            print(f"Destroying ssh Key_pair for image: {image}")
+            destroy_ssh_keypair(ec2_client, ec2_key_name)
         # return None here to prevent errors from multiprocessing.map(). Without this it returns some object by default
         # which is causing "cannot pickle '_thread.lock' object" error
         return None

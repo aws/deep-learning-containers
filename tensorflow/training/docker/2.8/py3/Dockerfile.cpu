@@ -29,7 +29,7 @@ ARG PYTHON_VERSION=3.9.10
 
 ARG PIP=pip3
 
-# To be passed to e3 and sagemaker stages
+# To be passed to ec2 and sagemaker stages
 ENV PYTHON=${PYTHON}
 ENV PYTHON_VERSION=${PYTHON_VERSION}
 ENV PIP=${PIP}
@@ -144,7 +144,7 @@ RUN ${PIP} install --no-cache-dir -U \
  && ${PIP} install --no-cache-dir -U \
     h5py==3.1.0 \
     "absl-py>=0.9,<0.11" \
-    "opencv-python>=4.3,<5" \
+    "opencv-python>=4.6,<5" \
     "werkzeug>=2.0.2,<3" \
     psutil==5.7.2 \
    "urllib3>1.26.0<1.27.0"
@@ -155,16 +155,22 @@ RUN chmod +x /usr/local/bin/deep_learning_container.py
 
 RUN curl https://aws-dlc-licenses.s3.amazonaws.com/tensorflow-${TF_VERSION}/license.txt -o /license.txt
 
-##############################################################################
-#  _____ _____   ___                              ____           _
-# | ____|___ /  |_ _|_ __ ___   __ _  __ _  ___  |  _ \ ___  ___(_)_ __   ___
-# |  _|   |_ \   | || '_ ` _ \ / _` |/ _` |/ _ \ | |_) / _ \/ __| | '_ \ / _ \
-# | |___ ___) |  | || | | | | | (_| | (_| |  __/ |  _ <  __/ (__| | |_) |  __/
-# |_____|____/  |___|_| |_| |_|\__,_|\__, |\___| |_| \_\___|\___|_| .__/ \___|
-#                                    |___/                        |_|
-##############################################################################
+########################################################
+#  _____ ____ ____    ___
+# | ____/ ___|___ \  |_ _|_ __ ___   __ _  __ _  ___
+# |  _|| |     __) |  | || '_ ` _ \ / _` |/ _` |/ _ \
+# | |__| |___ / __/   | || | | | | | (_| | (_| |  __/
+# |_____\____|_____| |___|_| |_| |_|\__,_|\__, |\___|
+#                                         |___/
+#  ____           _
+# |  _ \ ___  ___(_)_ __   ___ 
+# | |_) / _ \/ __| | '_ \ / _ \
+# |  _ <  __/ (__| | |_) |  __/
+# |_| \_\___|\___|_| .__/ \___|
+#                  |_|
+########################################################
 
-FROM common AS e3
+FROM common AS ec2
 
 ARG TF_URL=https://framework-binaries.s3.us-west-2.amazonaws.com/tensorflow/r2.8_aws/cpu/2022-02-07-21-14/tensorflow_cpu-2.8.0-cp39-cp39-manylinux_2_12_x86_64.manylinux2010_x86_64.whl
 
@@ -240,7 +246,7 @@ RUN HOROVOD_WITH_MPI=1 \
 RUN $PYTHON -m pip install --no-cache-dir -U \
     "bokeh>=2.3,<3" \
     "imageio>=2.9,<3" \
-    "opencv-python>=4.3,<5" \
+    "opencv-python>=4.6,<5" \
     "plotly>=5.1,<6" \
     "seaborn>=0.11,<1" \
     "numba<0.54" \

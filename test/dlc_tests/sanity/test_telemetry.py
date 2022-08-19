@@ -31,8 +31,10 @@ def test_telemetry_bad_instance_role_disabled_cpu(cpu, ec2_client, ec2_instance,
 @pytest.mark.processor("cpu")
 @pytest.mark.integration("telemetry")
 @pytest.mark.parametrize("ec2_instance_type", ["c6g.4xlarge"], indirect=True)
-@pytest.mark.parametrize("ec2_instance_ami", [test_utils.AML2_CPU_ARM64_US_WEST_2], indirect=True)
+@pytest.mark.parametrize("ec2_instance_ami", [test_utils.UL18_CPU_ARM64_US_WEST_2], indirect=True)
 def test_telemetry_bad_instance_role_disabled_graviton_cpu(cpu, ec2_client, ec2_instance, ec2_connection, graviton_compatible_only):
+    ec2_connection.run(f"sudo apt-get update -y")
+    ec2_connection.run(f"sudo apt-get install -y net-tools")
     _run_instance_role_disabled(cpu, ec2_client, ec2_instance, ec2_connection)
 
 
@@ -69,7 +71,7 @@ def test_telemetry_instance_tag_success_cpu(cpu, ec2_client, ec2_instance, ec2_c
 @pytest.mark.processor("cpu")
 @pytest.mark.integration("telemetry")
 @pytest.mark.parametrize("ec2_instance_type", ["c6g.4xlarge"], indirect=True)
-@pytest.mark.parametrize("ec2_instance_ami", [test_utils.AML2_CPU_ARM64_US_WEST_2], indirect=True)
+@pytest.mark.parametrize("ec2_instance_ami", [test_utils.UL18_CPU_ARM64_US_WEST_2], indirect=True)
 def test_telemetry_instance_tag_success_graviton_cpu(cpu, ec2_client, ec2_instance, ec2_connection, graviton_compatible_only):
     _run_tag_success(cpu, ec2_client, ec2_instance, ec2_connection)
 
@@ -82,6 +84,40 @@ def test_telemetry_instance_tag_success_graviton_cpu(cpu, ec2_client, ec2_instan
 @pytest.mark.skip("Feature doesn't exist on Neuron DLCs")
 def test_telemetry_instance_tag_success_neuron(neuron, ec2_client, ec2_instance, ec2_connection, non_huggingface_only, non_autogluon_only):
     _run_tag_success(neuron, ec2_client, ec2_instance, ec2_connection)
+
+
+@pytest.mark.usefixtures("sagemaker")
+@pytest.mark.model("N/A")
+def test_pytorch_training_job_type_env_var(pytorch_training):
+    _, image_framework_version = test_utils.get_framework_and_version_from_tag(pytorch_training)
+    if Version(image_framework_version) < Version("1.10"):
+        pytest.skip("This env variable was added after PT 1.10 release. Skipping test.")
+    env_vars = {
+        "DLC_CONTAINER_TYPE": "training"
+    }
+    container_name_prefix = "pt_train_job_type_env_var"
+    test_utils.execute_env_variables_test(
+        image_uri=pytorch_training,
+        env_vars_to_test=env_vars,
+        container_name_prefix=container_name_prefix
+    )
+
+
+@pytest.mark.usefixtures("sagemaker")
+@pytest.mark.model("N/A")
+def test_pytorch_inference_job_type_env_var(pytorch_inference):
+    _, image_framework_version = test_utils.get_framework_and_version_from_tag(pytorch_inference)
+    if Version(image_framework_version) < Version("1.10"):
+        pytest.skip("This env variable was added after PT 1.10 release. Skipping test.")
+    env_vars = {
+        "DLC_CONTAINER_TYPE": "inference"
+    }
+    container_name_prefix = "pt_inference_job_type_env_var"
+    test_utils.execute_env_variables_test(
+        image_uri=pytorch_inference,
+        env_vars_to_test=env_vars,
+        container_name_prefix=container_name_prefix
+    )
 
 
 def _run_instance_role_disabled(image_uri, ec2_client, ec2_instance, ec2_connection):
@@ -118,7 +154,8 @@ def _run_instance_role_disabled(image_uri, ec2_client, ec2_instance, ec2_connect
         ec2_connection.run(f"{docker_cmd} run {env_vars} --name {container_name} -id {image_uri} {inference_command}")
         time.sleep(5)
     else:
-        framework_to_import = framework.replace("huggingface_", "")
+        # Replace the huggingface and trcomp string as it is extracted from ECR repo name
+        framework_to_import = framework.replace("huggingface_", "").replace("_trcomp", "")
         framework_to_import = "torch" if framework_to_import == "pytorch" else framework_to_import
         ec2_connection.run(f"{docker_cmd} run --name {container_name} -id {image_uri} bash")
         output = ec2_connection.run(

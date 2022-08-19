@@ -39,7 +39,7 @@ def test_sm_trained_model_cpu(sagemaker_session, framework_version, ecr_image, i
 @pytest.mark.processor("gpu")
 @pytest.mark.gpu_test
 def test_sm_trained_model_gpu(sagemaker_session, framework_version, ecr_image, instance_type, region):
-    instance_type = instance_type or "ml.p2.xlarge"
+    instance_type = instance_type or "ml.p3.2xlarge"
     try:
         _test_sm_trained_model(sagemaker_session, framework_version, ecr_image, instance_type, model_dir)
     except Exception as e:

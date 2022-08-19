@@ -22,12 +22,15 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 RUN $PYTHON -m pip install --no-cache-dir -U \
     "bokeh>=2.3,<3" \
     "imageio>=2.9,<3" \
-    "opencv-python>=4.3,<5" \
+    "opencv-python>=4.6,<5" \
     "plotly>=5.1,<6" \
     "seaborn>=0.11,<1" \
     "numba<0.54" \
     "shap>=0.39,<1"
 
+# Starting sagemaker v2.92.0, the requirement of importlib-metadata was restricted from >=1.4.0 to >=1.4.0,<2.0
+# However, the markdown package (dependency of tensorboard package) requires importlib-metadata to be >=4.4.
+# Issue: https://github.com/aws/sagemaker-python-sdk/pull/3138
 RUN $PYTHON -m pip install --no-cache-dir -U \
     "sagemaker>=2,<3" \
     sagemaker-experiments==0.* \
