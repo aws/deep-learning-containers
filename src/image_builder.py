@@ -143,6 +143,9 @@ def image_builder(buildspec):
 
         if "labels" in image_config:
             labels.update(image_config.get("labels"))
+            for label, value in labels.items():
+                if isinstance(value, bool):
+                    labels[label] = str(value)
 
         cx_type = utils.get_label_prefix_customer_type(image_tag)
 

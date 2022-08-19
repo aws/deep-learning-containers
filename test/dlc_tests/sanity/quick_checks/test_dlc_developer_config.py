@@ -1,6 +1,5 @@
 import pytest
 
-
 from src import config
 
 
@@ -32,6 +31,7 @@ def test_developer_configuration():
     assert config.parse_dlc_developer_configs("test", "ecs_tests") is True
     assert config.parse_dlc_developer_configs("test", "eks_tests") is True
     assert config.parse_dlc_developer_configs("test", "ec2_tests") is True
+    assert config.parse_dlc_developer_configs("test", "nightly_pr_test_mode") is False
     assert config.parse_dlc_developer_configs("test", "use_scheduler") is False
     assert config.parse_dlc_developer_configs("test", "safety_check_test") is False
     assert config.parse_dlc_developer_configs("test", "ecr_scan_allowlist_feature") is False
@@ -52,6 +52,7 @@ def test_developer_config_wrappers_defaults():
     assert config.is_ecs_test_enabled() is True
     assert config.is_eks_test_enabled() is True
     assert config.is_ec2_test_enabled() is True
+    assert config.is_nightly_pr_test_mode_enabled() is False
     assert config.is_scheduler_enabled() is False
     assert config.is_safety_check_test_enabled() is False
     assert config.is_ecr_scan_allowlist_feature_enabled() is False
