@@ -58,12 +58,12 @@ use_scheduler = false
 # dlc-pr-tensorflow = "tensorflow/buildspec-2-8.yml"
 # dlc-pr-huggingface-pytorch = "huggingface/pytorch/buildspec-1-9.yml"
 # Setting the buildspec file path to "" allows the image builder to choose the default buildspec file.
-dlc-pr-pytorch = "buildspec/pytorch-1-11.yml"
+
 
 # Standard Framework DLC buildspecs
 dlc-pr-autogluon = ""
 dlc-pr-mxnet = ""
-dlc-pr-pytorch = ""
+dlc-pr-pytorch = "buildspec/pytorch-1-11.yml"
 dlc-pr-tensorflow-1 = ""
 dlc-pr-tensorflow-2 = ""
 
