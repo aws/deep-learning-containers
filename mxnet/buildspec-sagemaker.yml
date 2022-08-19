@@ -41,7 +41,7 @@ context:
       target: deep_learning_container.py
 
 images:
-  BuildSMMXNetCPUTrainPy3DockerImage:
+  BuildSageMakerCPUMXTrainPy3DockerImage:
     <<: *TRAINING_REPOSITORY
     build: &MXNET_CPU_TRAINING_PY3 false
     image_size_baseline: 3000
@@ -54,7 +54,7 @@ images:
     target: sagemaker
     context:
       <<: *TRAINING_CONTEXT
-  BuildSMMXNetGPUTrainPy3DockerImage:
+  BuildSageMakerGPUMXTrainPy3DockerImage:
     <<: *TRAINING_REPOSITORY
     build: &MXNET_GPU_TRAINING_PY3 false
     image_size_baseline: 7159
@@ -68,7 +68,7 @@ images:
     target: sagemaker
     context:
       <<: *TRAINING_CONTEXT
-  BuildSMMXNetCPUInferencePy3DockerImage:
+  BuildSageMakerCPUMSInferencePy3DockerImage:
     <<: *INFERENCE_REPOSITORY
     build: &MXNET_CPU_INFERENCE_PY3 false
     image_size_baseline: 2202
@@ -81,7 +81,7 @@ images:
     target: sagemaker
     context:
       <<: *INFERENCE_CONTEXT
-  BuildSMMXNetGPUInferencePy3DockerImage:
+  BuildSageMakerGPUMXInferencePy3DockerImage:
     <<: *INFERENCE_REPOSITORY
     build: &MXNET_GPU_INFERENCE_PY3 false
     image_size_baseline: 6758
