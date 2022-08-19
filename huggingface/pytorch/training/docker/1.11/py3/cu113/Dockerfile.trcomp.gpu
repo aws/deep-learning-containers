@@ -13,7 +13,7 @@ ARG DATASETS_VERSION=1.18.4
 ARG PYTHON=python3
 
 ARG PT_BUCKET=https://sm-training-comp-pytorch-binaries.s3.us-west-2.amazonaws.com
-ARG PT_BINARY_PATH=${PT_BUCKET}/29b21494-ce07-47c8-aa96-0e8a66ad0935/20220817-193153/b67fb574061699bfcd0a3a5de184af27f5d153dd
+ARG PT_BINARY_PATH=${PT_BUCKET}/bdd09cad-152b-42bd-993c-16e49d7af027/20220819-180620/54da28ad4c33c2f259969f74364149ecc58672e0
 ARG PT_URL=${PT_BINARY_PATH}/torch-1.11.0%2Bcu113-cp38-cp38-linux_x86_64.whl
 ARG PT_XLA_URL=${PT_BINARY_PATH}/torch_xla-1.11.0-cp38-cp38-linux_x86_64.whl
 ARG TORCHVISION_URL=${PT_BINARY_PATH}/torchvision-0.12.0a0%2B9b5a3fe-cp38-cp38-linux_x86_64.whl
@@ -88,9 +88,7 @@ RUN pip install --no-cache-dir \
     sentence-transformers
 
 # Numpy version gets downgraded and becomes incompatible with PyTorch wheel in the above conda command.
-RUN pip install --no-cache-dir -U llvmlite --ignore-installed \
- && pip install --no-cache-dir -U numba \
- && pip install -U numpy
+RUN pip install -U numpy==1.22.2
 
 # Fix library links
 RUN ln -s ${CONDA_PREFIX}/lib/libmkl_intel_lp64.so ${CONDA_PREFIX}/lib/libmkl_intel_lp64.so.1 \
