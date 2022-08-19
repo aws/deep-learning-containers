@@ -16,6 +16,7 @@ ARG PT_TORCHAUDIO_URL=https://pytorch-ei-binaries.s3.us-west-2.amazonaws.com/r1.
 ARG OPEN_MPI_VERSION=4.0.1
 ARG TS_VERSION=0.6.0
 ARG CUBLAS_VERSION=11.3.0.106
+ARG MAMBA_VERSION=4.12.0-2
 
 ARG DEBIAN_FRONTEND=noninteractive
 # ENV NVIDIA_REQUIRE_CUDA "cuda>=11.1 brand=tesla,driver>=418,driver<419 brand=tesla,driver>=440,driver<441 driver>=450"
@@ -113,10 +114,10 @@ RUN apt-get update \
  && rm -rf /var/lib/apt/lists/* \
  && apt-get clean
 
-RUN curl -L -o ~/miniconda.sh https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh \
- && chmod +x ~/miniconda.sh \
- && ~/miniconda.sh -b -p /opt/conda \
- && rm ~/miniconda.sh \
+RUN curl -L -o ~/mambaforge.sh https://github.com/conda-forge/miniforge/releases/download/${MAMBA_VERSION}/Mambaforge-${MAMBA_VERSION}-Linux-x86_64.sh \
+ && chmod +x ~/mambaforge.sh \
+ && ~/mambaforge.sh -b -p /opt/conda \
+ && rm ~/mambaforge.sh \
  && /opt/conda/bin/conda install -c conda-forge \
     python=$PYTHON_VERSION \
  && /opt/conda/bin/conda install -y \
