@@ -308,6 +308,14 @@ class ServiceManager(object):
 
         return False
 
+    def _get_number_of_gpu_on_host(self):
+        nvidia_smi_exist = os.path.exists("/usr/bin/nvidia-smi")
+        if nvidia_smi_exist:
+            return len(subprocess.check_output(['nvidia-smi', '-L'])
+                       .decode('utf-8').strip().split('\n'))
+        return 0
+
+
     def _calculate_per_process_gpu_memory_fraction(self):
         return round((1 - self._tfs_gpu_margin) / float(self._tfs_instance_count), 4)
 
@@ -420,8 +428,19 @@ class ServiceManager(object):
             tfs_gpu_memory_fraction=self._calculate_per_process_gpu_memory_fraction(),
         )
         log.info("tensorflow serving command: {}".format(cmd))
-        p = subprocess.Popen(cmd.split())
-        log.info("started tensorflow serving (pid: %d)", p.pid)
+
+        num_gpus = self._get_number_of_gpu_on_host()
+        if num_gpus > 1:
+            # utilizing multi-gpu
+            worker_env = os.environ.copy()
+            worker_env["CUDA_VISIBLE_DEVICES"] = str(instance_id%num_gpus)
+            p = subprocess.Popen(cmd.split(), env=worker_env)
+            log.info("started tensorflow serving (pid: {}) on GPU: {}".format(p.pid, instance_id%num_gpus))
+        else:
+            # cpu and single gpu
+            p = subprocess.Popen(cmd.split())
+            log.info("started tensorflow serving (pid: {})".format(p.pid))
+
         return p
 
     def _monitor(self):
