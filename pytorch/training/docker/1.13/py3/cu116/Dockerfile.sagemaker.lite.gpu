@@ -230,7 +230,7 @@ RUN pip uninstall -y torch torchvision torchaudio torchdata
 
 # TODO: Install PyTorch and other Torch packages here
 
-RUN /opt/conda/bin/conda install -c conda-forge \
+RUN /opt/conda/bin/conda install -c pytorch-nightly \
     pytorch=1.13.* \
     torchvision \
     torchaudio \
@@ -345,7 +345,7 @@ ENV SAGEMAKER_TRAINING_MODULE=sagemaker_pytorch_container.training:main
 RUN pip uninstall -y torch torchvision torchaudio torchdata
 
 # TODO: Install PyTorch and other Torch packages here
-RUN /opt/conda/bin/conda install -c conda-forge \
+RUN /opt/conda/bin/conda install -c pytorch-nightly \
     torch \
     torchvision \
     torchaudio \

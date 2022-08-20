@@ -168,7 +168,6 @@ def image_builder(buildspec, image_types=[], device_types=[]):
                 }
             }
         )
-        
         context = Context(ARTIFACTS, f"build/{image_name}.tar.gz", image_config["root"])
 
         if "labels" in image_config:
