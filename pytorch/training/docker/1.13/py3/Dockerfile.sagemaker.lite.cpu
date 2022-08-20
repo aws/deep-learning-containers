@@ -2,13 +2,7 @@ ARG PYTHON=python3
 ARG PYTHON_VERSION=3.8.13
 ARG MAMBA_VERSION=4.12.0-2
 
-# PyTorch Binaries
-ARG PT_E3_TRAINING_URL=https://aws-pytorch-unified-cicd-binaries.s3.us-west-2.amazonaws.com/r1.12.0_e3/20220714-051536/64a46e47aea7de3d99f75c5b4feba6d66c80af8b/torch-1.12.0%2Bcpu-cp38-cp38-linux_x86_64.whl
-ARG PT_SM_TRAINING_URL=https://aws-pytorch-unified-cicd-binaries.s3.us-west-2.amazonaws.com/r1.12.0_sm/20220713-224008/9f169f548f4b1eca6631c07d48bbe73a59e300ca/torch-1.12.0%2Bcpu-cp38-cp38-linux_x86_64.whl
-ARG PT_TORCHVISION_URL=https://download.pytorch.org/whl/cpu/torchvision-0.13.0%2Bcpu-cp38-cp38-linux_x86_64.whl
-ARG PT_TORCHAUDIO_URL=https://download.pytorch.org/whl/cpu/torchaudio-0.12.0%2Bcpu-cp38-cp38-linux_x86_64.whl
-ARG PT_TORCHDATA_URL=https://download.pytorch.org/whl/test/torchdata-0.4.0-cp38-cp38-linux_x86_64.whl
-ARG PT_S3_WHL=https://aws-s3-plugin.s3.us-west-2.amazonaws.com/binaries/0.0.1/1c3e69e/awsio-0.0.1-cp38-cp38-manylinux1_x86_64.whl
+# TODO: Declare S3 URLs for PyTorch and other packages here
 
 FROM ubuntu:20.04 AS common
 
@@ -148,50 +142,47 @@ RUN pip install --upgrade pip --trusted-host pypi.org --trusted-host files.pytho
     "pyyaml>=5.4,<5.5" \
     scipy
 
-COPY deep_learning_container.py /usr/local/bin/deep_learning_container.py
+# TODO: Install deep_learning_container.py here
 
-RUN chmod +x /usr/local/bin/deep_learning_container.py
+# TODO: Install PyTorch license here
 
-RUN curl -o /license.txt  https://aws-dlc-licenses.s3.amazonaws.com/pytorch-1.12/license.txt
+########################################################
+#  _____ ____ ____    ___
+# | ____/ ___|___ \  |_ _|_ __ ___   __ _  __ _  ___
+# |  _|| |     __) |  | || '_ ` _ \ / _` |/ _` |/ _ \
+# | |__| |___ / __/   | || | | | | | (_| | (_| |  __/
+# |_____\____|_____| |___|_| |_| |_|\__,_|\__, |\___|
+#                                         |___/
+#  ____           _
+# |  _ \ ___  ___(_)_ __   ___ 
+# | |_) / _ \/ __| | '_ \ / _ \
+# |  _ <  __/ (__| | |_) |  __/
+# |_| \_\___|\___|_| .__/ \___|
+#                  |_|
+########################################################
 
-##############################################################################
-#  _____ _____   ___                              ____           _
-# | ____|___ /  |_ _|_ __ ___   __ _  __ _  ___  |  _ \ ___  ___(_)_ __   ___
-# |  _|   |_ \   | || '_ ` _ \ / _` |/ _` |/ _ \ | |_) / _ \/ __| | '_ \ / _ \
-# | |___ ___) |  | || | | | | | (_| | (_| |  __/ |  _ <  __/ (__| | |_) |  __/
-# |_____|____/  |___|_| |_| |_|\__,_|\__, |\___| |_| \_\___|\___|_| .__/ \___|
-#                                    |___/                        |_|
-##############################################################################
-
-FROM common AS e3
+FROM common AS ec2
 
 ARG PYTHON
 
-# PyTorch Binaries
-ARG PT_E3_TRAINING_URL
-ARG PT_TORCHVISION_URL
-ARG PT_TORCHAUDIO_URL
-ARG PT_TORCHDATA_URL
-ARG PT_S3_WHL
+# TODO: Redeclare ARGs for PyTorch and other Torch packages here
 
-# Install AWS-PyTorch and other torch packages
-RUN pip uninstall -y torch torchvision torchaudio torchdata \
- && pip install --no-cache-dir -U ${PT_E3_TRAINING_URL} ${PT_TORCHVISION_URL} ${PT_TORCHAUDIO_URL} ${PT_TORCHDATA_URL}
+# uninstall if already present
+RUN pip uninstall -y torch torchvision torchaudio torchdata
 
-# Install PT S3 plugin
-RUN pip install -U ${PT_S3_WHL}
+# TODO: Install AWS-PyTorch and other torch packages here
+
+RUN /opt/conda/bin/conda install -c conda-forge \
+    pytorch=1.13.* \
+    torchvision \
+    torchaudio \
+    torchdata
+
+# TODO: Install PyTorch S3 plugin here
+
 RUN mkdir -p /etc/pki/tls/certs && cp /etc/ssl/certs/ca-certificates.crt /etc/pki/tls/certs/ca-bundle.crt
 
-RUN HOME_DIR=/root \
- && curl -o ${HOME_DIR}/oss_compliance.zip https://aws-dlinfra-utilities.s3.amazonaws.com/oss_compliance.zip \
- && unzip ${HOME_DIR}/oss_compliance.zip -d ${HOME_DIR}/ \
- && cp ${HOME_DIR}/oss_compliance/test/testOSSCompliance /usr/local/bin/testOSSCompliance \
- && chmod +x /usr/local/bin/testOSSCompliance \
- && chmod +x ${HOME_DIR}/oss_compliance/generate_oss_compliance.sh \
- && ${HOME_DIR}/oss_compliance/generate_oss_compliance.sh ${HOME_DIR} ${PYTHON} \
- && rm -rf ${HOME_DIR}/oss_compliance* \
- && rm -rf /tmp/tmp*
-
+# TODO: Install oss compliance here
 # Starts framework
 CMD ["/bin/bash"]
 
@@ -214,24 +205,28 @@ FROM common AS sagemaker
 
 LABEL maintainer="Amazon AI"
 LABEL dlc_major_version="1"
-LABEL aws_smdebug_presence="false"
 
 ARG PYTHON
 
+# TODO: Install SMDEBUG VERSION here
+
 ENV SAGEMAKER_TRAINING_MODULE=sagemaker_pytorch_container.training:main
 
-ARG PT_SM_TRAINING_URL
-ARG PT_TORCHVISION_URL
-ARG PT_TORCHAUDIO_URL
-ARG PT_TORCHDATA_URL
-ARG PT_S3_WHL
+# TODO: Redeclare ARGs for PyTorch and other Torch packages here
 
-# Install AWS-PyTorch and other torch packages
-RUN pip uninstall -y torch torchvision torchaudio torchdata \
- && pip install --no-cache-dir -U ${PT_SM_TRAINING_URL} ${PT_TORCHVISION_URL} ${PT_TORCHAUDIO_URL} ${PT_TORCHDATA_URL}
+# uninstall if already present
+RUN pip uninstall -y torch torchvision torchaudio torchdata
 
-# Install PT S3 plugin
-RUN pip install -U ${PT_S3_WHL}
+# TODO: Install AWS-PyTorch and other torch packages here
+
+RUN /opt/conda/bin/conda install -c conda-forge \
+    torch \
+    torchvision \
+    torchaudio \
+    torchdata
+
+# TODO: Install PyTorch S3 plugin here
+
 RUN mkdir -p /etc/pki/tls/certs && cp /etc/ssl/certs/ca-certificates.crt /etc/pki/tls/certs/ca-bundle.crt
 
 WORKDIR /
@@ -247,6 +242,7 @@ RUN conda install -y -c conda-forge \
     scikit-learn \
     pandas
 
+# TODO: Install SMDEBUG from source here
 # Install extra packages
 # numba 0.54 only works with numpy>=1.20. See https://github.com/numba/numba/issues/7339
 RUN pip install --no-cache-dir -U \
@@ -258,5 +254,6 @@ RUN pip install --no-cache-dir -U \
     "numba<0.54" \
     "shap>=0.39,<1"
 
+# TODO: Install oss compliance here
 ENTRYPOINT ["bash", "-m", "start_with_right_hostname.sh"]
 CMD ["/bin/bash"]

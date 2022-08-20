@@ -53,6 +53,9 @@ images:
     tag: !join [ *VERSION, "-", *DEVICE_TYPE, "-", *TAG_PYTHON_VERSION, "-", *OS_VERSION, "-sagemaker" ]
     docker_file: !join [ docker/, *SHORT_VERSION, /, *DOCKER_PYTHON_VERSION, /Dockerfile.sagemaker., *DOCKER_FILE_VERSION, ".", *DEVICE_TYPE ]
     target: sagemaker
+    labels:
+      aws_framework_installed: false
+      aws_smdebug_installed: false
     context:
       <<: *TRAINING_CONTEXT
   # Build Sagemaker GPU Training Image
@@ -68,6 +71,11 @@ images:
     tag: !join [ *VERSION, "-", *DEVICE_TYPE, "-", *TAG_PYTHON_VERSION, "-", *CUDA_VERSION, "-", *OS_VERSION, "-sagemaker" ]
     docker_file: !join [ docker/, *SHORT_VERSION, /, *DOCKER_PYTHON_VERSION, /, *CUDA_VERSION, /Dockerfile.sagemaker., *DOCKER_FILE_VERSION, ".", *DEVICE_TYPE ]
     target: sagemaker
+    labels:
+      aws_framework_installed: false
+      aws_smdebug_installed: false
+      aws_smddp_installed: false
+      aws_smmp_installed: false
     context:
       <<: *TRAINING_CONTEXT
   # Build Sagemaker CPU Inference Image
@@ -82,6 +90,8 @@ images:
     tag: !join [ *VERSION, "-", *DEVICE_TYPE, "-", *TAG_PYTHON_VERSION, "-", *OS_VERSION, "-sagemaker" ]
     docker_file: !join [ docker/, *SHORT_VERSION, /, *DOCKER_PYTHON_VERSION, /Dockerfile.sagemaker., *DOCKER_FILE_VERSION, ".", *DEVICE_TYPE ]
     target: sagemaker
+    labels:
+      aws_framework_installed: false
     context:
       <<: *INFERENCE_CONTEXT
   # Build Sagemaker GPU Inference Image
@@ -97,5 +107,7 @@ images:
     tag: !join [ *VERSION, "-", *DEVICE_TYPE, "-", *TAG_PYTHON_VERSION, "-", *CUDA_VERSION, "-", *OS_VERSION, "-sagemaker" ]
     docker_file: !join [ docker/, *SHORT_VERSION, /, *DOCKER_PYTHON_VERSION, /, *CUDA_VERSION, /Dockerfile.sagemaker.lite, *DOCKER_FILE_VERSION, ".", *DEVICE_TYPE ]
     target: sagemaker
+    labels:
+      aws_framework_installed: false
     context:
       <<: *INFERENCE_CONTEXT

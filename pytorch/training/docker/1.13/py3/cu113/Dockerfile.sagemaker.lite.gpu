@@ -3,22 +3,16 @@ ARG PYTHON_VERSION=3.8.13
 ARG PYTHON_SHORT_VERSION=3.8
 ARG MAMBA_VERSION=4.12.0-2
 
-# PyTorch Binaries
-ARG PT_E3_TRAINING_URL=https://download.pytorch.org/whl/test/cu113/torch-1.12.0%2Bcu113-cp38-cp38-linux_x86_64.whl
-ARG PT_SM_TRAINING_URL=https://aws-pytorch-unified-cicd-binaries.s3.us-west-2.amazonaws.com/r1.12.0_sm/20220714-012958/9f169f548f4b1eca6631c07d48bbe73a59e300ca/torch-1.12.0%2Bcu113-cp38-cp38-linux_x86_64.whl
-ARG PT_TORCHVISION_URL=https://download.pytorch.org/whl/cu113/torchvision-0.13.0%2Bcu113-cp38-cp38-linux_x86_64.whl
-ARG PT_TORCHAUDIO_URL=https://download.pytorch.org/whl/cu113/torchaudio-0.12.0%2Bcu113-cp38-cp38-linux_x86_64.whl
-ARG PT_TORCHDATA_URL=https://download.pytorch.org/whl/test/torchdata-0.4.0-cp38-cp38-linux_x86_64.whl
-ARG PT_S3_WHL_GPU=https://aws-s3-plugin.s3.us-west-2.amazonaws.com/binaries/0.0.1/1c3e69e/awsio-0.0.1-cp38-cp38-manylinux1_x86_64.whl
+# TODO: Declare S3 URLs for PyTorch and other packages here
 
+# TODO: Declare SMD_DATA_PARALLEL_URL and SMD_MODEL_PARALLEL_URL urls here
+
+# TODO: Declare ZERO_2D_URL url here
 
 FROM nvidia/cuda:11.3.1-base-ubuntu20.04 AS common
 
 LABEL maintainer="Amazon AI"
 LABEL dlc_major_version="2"
-LABEL aws_smdp_installed="false"
-LABEL aws_smmp_installed="false"
-LABEL aws_smdebug_installed="false"
 
 ARG PYTHON
 ARG PYTHON_VERSION
@@ -200,37 +194,47 @@ RUN pip install --no-cache-dir -U \
     "pyyaml>=5.4,<5.5" \
     scipy
 
-COPY deep_learning_container.py /usr/local/bin/deep_learning_container.py
 
-RUN chmod +x /usr/local/bin/deep_learning_container.py
+# TODO: Install deep_learning_container.py here
 
-RUN curl -o /license.txt  https://aws-dlc-licenses.s3.amazonaws.com/pytorch-1.12/license.txt
+# TODO: Install PyTorch license here
 
-##############################################################################
-#  _____ _____   ___                              ____           _
-# | ____|___ /  |_ _|_ __ ___   __ _  __ _  ___  |  _ \ ___  ___(_)_ __   ___
-# |  _|   |_ \   | || '_ ` _ \ / _` |/ _` |/ _ \ | |_) / _ \/ __| | '_ \ / _ \
-# | |___ ___) |  | || | | | | | (_| | (_| |  __/ |  _ <  __/ (__| | |_) |  __/
-# |_____|____/  |___|_| |_| |_|\__,_|\__, |\___| |_| \_\___|\___|_| .__/ \___|
-#                                    |___/                        |_|
-##############################################################################
 
-FROM common AS e3
+########################################################
+#  _____ ____ ____    ___
+# | ____/ ___|___ \  |_ _|_ __ ___   __ _  __ _  ___
+# |  _|| |     __) |  | || '_ ` _ \ / _` |/ _` |/ _ \
+# | |__| |___ / __/   | || | | | | | (_| | (_| |  __/
+# |_____\____|_____| |___|_| |_| |_|\__,_|\__, |\___|
+#                                         |___/
+#  ____           _
+# |  _ \ ___  ___(_)_ __   ___ 
+# | |_) / _ \/ __| | '_ \ / _ \
+# |  _ <  __/ (__| | |_) |  __/
+# |_| \_\___|\___|_| .__/ \___|
+#                  |_|
+########################################################
+
+
+FROM common AS ec2
 
 ARG PYTHON
 ARG PYTHON_VERSION
 ARG PYTHON_SHORT_VERSION
 
-# PyTorch Binaries
-ARG PT_E3_TRAINING_URL
-ARG PT_TORCHVISION_URL
-ARG PT_TORCHAUDIO_URL
-ARG PT_TORCHDATA_URL
-ARG PT_S3_WHL_GPU
+# TODO: Redeclare ARGs for PyTorch and other Torch packages here
 
-# Install AWS-PyTorch and other torch packages
-RUN pip uninstall -y torch torchvision torchaudio torchdata \
- && pip install --no-cache-dir -U ${PT_E3_TRAINING_URL} ${PT_TORCHVISION_URL} ${PT_TORCHAUDIO_URL} ${PT_TORCHDATA_URL} torchnet
+# uninstall if already present
+RUN pip uninstall -y torch torchvision torchaudio torchdata
+
+# TODO: Install PyTorch and other Torch packages here
+RUN /opt/conda/bin/conda install -c conda-forge \
+    pytorch=1.13.* \
+    torchvision \
+    torchaudio \
+    torchdata
+
+# TODO: Install Nvidia Apex
 
 # Configure Open MPI and configure NCCL parameters
 RUN mv $OPEN_MPI_PATH/bin/mpirun $OPEN_MPI_PATH/bin/mpirun.real \
@@ -292,6 +296,8 @@ RUN mkdir -p /etc/pki/tls/certs && cp /etc/ssl/certs/ca-certificates.crt /etc/pk
 
 WORKDIR /
 
+# TODO: Install oss compliance here
+
 # Starts framework
 CMD ["/bin/bash"]
 
@@ -321,22 +327,28 @@ ARG PYTHON_SHORT_VERSION
 
 ARG RMM_VERSION=0.15.0
 
+# TODO: Declare SMDEBUG_VERSION version here
+
 ENV SAGEMAKER_TRAINING_MODULE=sagemaker_pytorch_container.training:main
 
-# SMD model parallel and data parallel binaries
-ARG SMD_DATA_PARALLEL_URL
-ARG SMD_MODEL_PARALLEL_URL
+# TODO: Declare SM_DATA_PARALLEL_URL url here
+# TODO: Declare SM_MODEL_PARALLEL_URL url here
 
-# PyTorch Binaries
-ARG PT_SM_TRAINING_URL
-ARG PT_TORCHVISION_URL
-ARG PT_TORCHAUDIO_URL
-ARG PT_TORCHDATA_URL
-ARG PT_S3_WHL_GPU
+# TODO: Declare ZERO_2D_URL url here
 
-# Install AWS-PyTorch and other torch packages
-RUN pip uninstall -y torch torchvision torchaudio torchdata \
- && pip install --no-cache-dir -U ${PT_SM_TRAINING_URL} ${PT_TORCHVISION_URL} ${PT_TORCHAUDIO_URL} ${PT_TORCHDATA_URL} torchnet
+# TODO: Redeclare ARGs for PyTorch and other Torch packages here
+
+# uninstall if already present
+RUN pip uninstall -y torch torchvision torchaudio torchdata
+
+# TODO: Install PyTorch and other Torch packages here
+RUN /opt/conda/bin/conda install -c conda-forge \
+    torch \
+    torchvision \
+    torchaudio \
+    torchdata
+
+# TODO: Install Nvidia Apex here
 
 # Configure Open MPI and configure NCCL parameters
 RUN mv $OPEN_MPI_PATH/bin/mpirun $OPEN_MPI_PATH/bin/mpirun.real \
@@ -424,7 +436,9 @@ COPY start_with_right_hostname.sh /usr/local/bin/start_with_right_hostname.sh
 
 RUN chmod +x /usr/local/bin/start_with_right_hostname.sh
 
-WORKDIR /
+WORKDIR /root
+
+# TODO: Install stable SMDEBUG releases from source here
 
 # Install extra packages
 # numba 0.54 only works with numpy>=1.20. See https://github.com/numba/numba/issues/7339
@@ -446,6 +460,18 @@ RUN  wget -nv https://github.com/rapidsai/rmm/archive/v${RMM_VERSION}.tar.gz \
  && cd .. \
  && rm -rf v${RMM_VERSION}.tar* \
  && rm -rf rmm-${RMM_VERSION}
+
+# TODO: Install zeR0-2D Binary here
+
+# TODO: Install SM Distributed Model Parallel binary here
+
+# TODO: Install SM Distributed Data Parallel binary here
+
+# TODO: Update LD_LIBRARY_PATH for SM Distributed Data Parallel
+
+WORKDIR /
+
+# TODO: Install oss compliance here
 
 ENTRYPOINT ["bash", "-m", "start_with_right_hostname.sh"]
 CMD ["/bin/bash"]
