@@ -32,7 +32,7 @@ def test_dlc_major_version_label(image, region):
 @pytest.mark.model("N/A")
 def test_dlc_standard_labels(image, region):
     customer_type_label_prefix = "ec2" if test_utils.is_ec2_image(image) else "sagemaker"
-    
+
     framework, fw_version = test_utils.get_framework_and_version_from_tag(image)
     framework = framework.replace('_', '-')
     fw_version = fw_version.replace('.', '-')
@@ -220,6 +220,26 @@ def test_dlc_major_version_dockerfiles(image):
     assert actual_versions == expected_versions, (
         f"Found DLC major versions {actual_versions} but expected {expected_versions} for "
         f"{framework} {job_type} {processor}. Full version info: {versions}. Py version: {python_major_minor_version}"
+    )
+
+
+@pytest.mark.skipif(not test_utils.is_mainline_context(), reason="This test only applies to Release Candidate images")
+@pytest.mark.usefixtures("sagemaker")
+@pytest.mark.integration("dlc_nightly_feature_label")
+@pytest.mark.model("N/A")
+def test_dlc_nightly_feature_labels(image, region):
+    """
+    Test to ensure that nightly feature labels are not applied on prod DLCs
+    :param image:
+    :return:
+    """
+    image_labels = test_utils.get_labels_from_ecr_image(image, region)
+    nightly_labels_on_image = [
+        label.value for label in test_utils.NightlyFeatureLabel.__members__.values() if label.value in image_labels
+    ]
+    assert not nightly_labels_on_image, (
+        f"The labels {nightly_labels_on_image} must not be applied on images built to be release candidates.\n"
+        f"These labels are currently applied on {image}, and must be removed to proceed further."
     )
 
 
