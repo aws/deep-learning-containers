@@ -4,6 +4,35 @@
 # docker image region us-west-2
 FROM 763104351884.dkr.ecr.us-west-2.amazonaws.com/pytorch-training:1.11.0-gpu-py38-cu113-ubuntu20.04-sagemaker
 
+
+########
+###   :::Update NCCL:::
+###   This is a temporary workaround to
+###   upgrade NCCL
+########
+
+# Remove Older NCCL
+RUN rm -rvf `find /usr/local | grep nccl` /usr/local/obj
+
+ENV NCCL_VERSION=2.12.12
+
+# Install Newer NCCL
+RUN cd /tmp \
+ && git clone https://github.com/NVIDIA/nccl.git -b v${NCCL_VERSION}-1 \
+ && cd nccl \
+ && make -j `nproc` src.build BUILDDIR=/usr/local \
+ && rm -rf /tmp/nccl
+
+# Reinstall AWS OFI NCCL
+
+ENV BRANCH_OFI=1.4.0-aws
+
+RUN mkdir /tmp/efa-ofi-nccl  && cd /tmp/efa-ofi-nccl  && git clone https://github.com/aws/aws-ofi-nccl.git -b v${BRANCH_OFI}  && cd aws-ofi-nccl  && ./autogen.sh  && ./configure --with-libfabric=/opt/amazon/efa   --with-mpi=/opt/amazon/openmpi   --with-cuda=/usr/local/cuda   --with-nccl=/usr/local --prefix=/usr/local  && make  && make install  && rm -rf /tmp/efa-ofi-nccl  && rm -rf /var/lib/apt/lists/*  && apt-get clean
+
+########
+###   :::Update NCCL:::
+########
+
 LABEL maintainer="Amazon AI"
 LABEL dlc_major_version="1"
 
