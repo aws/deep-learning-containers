@@ -346,7 +346,7 @@ RUN pip uninstall -y torch torchvision torchaudio torchdata
 
 # TODO: Install PyTorch and other Torch packages here
 RUN /opt/conda/bin/conda install -c pytorch-nightly \
-    torch \
+    pytorch \
     torchvision \
     torchaudio \
     torchdata

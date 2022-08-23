@@ -220,7 +220,7 @@ RUN pip uninstall -y torch torchvision torchaudio torchdata
 # TODO: Install AWS-PyTorch and other torch packages here
 
 RUN /opt/conda/bin/conda install -c pytorch-nightly \
-    torch \
+    pytorch \
     torchvision \
     torchaudio \
     torchdata
