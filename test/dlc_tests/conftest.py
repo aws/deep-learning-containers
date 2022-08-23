@@ -22,7 +22,7 @@ from test.test_utils import (
     get_job_type_from_image,
     is_tf_version,
     is_below_framework_version,
-    is_e3_image,
+    is_ec2_image,
     is_sagemaker_image,
     is_nightly_context,
     DEFAULT_REGION,
@@ -36,6 +36,7 @@ from test.test_utils import (
     are_efa_tests_disabled,
     get_ecr_repo_name,
     UBUNTU_HOME_DIR,
+    NightlyFeatureLabel,
 )
 from test.test_utils.imageutils import (
     are_image_labels_matched,
@@ -96,10 +97,14 @@ FRAMEWORK_FIXTURES = (
 
 # Nightly image fixture dictionary, maps nightly fixtures to set of image labels
 NIGHTLY_FIXTURES = {
-    "feature_smdebug_present": {"aws_framework_installed", "aws_smdebug_installed"},
-    "feature_smddp_present": {"aws_framework_installed", "aws_smddp_installed"},
-    "feature_smmp_present": {"aws_smmp_installed"},
-    "feature_aws_framework_present": {"aws_framework_installed"}
+    "feature_smdebug_present": {
+        NightlyFeatureLabel.AWS_FRAMEWORK_INSTALLED.value, NightlyFeatureLabel.AWS_SMDEBUG_INSTALLED.value
+    },
+    "feature_smddp_present": {
+        NightlyFeatureLabel.AWS_FRAMEWORK_INSTALLED.value, NightlyFeatureLabel.AWS_SMDDP_INSTALLED.value
+    },
+    "feature_smmp_present": {NightlyFeatureLabel.AWS_SMMP_INSTALLED.value},
+    "feature_aws_framework_present": {NightlyFeatureLabel.AWS_FRAMEWORK_INSTALLED.value}
 }
 
 # Nightly fixtures
@@ -765,7 +770,7 @@ def lookup_condition(lookup, image):
             return True
         # Pytest does not allow usage of fixtures, specially dynamically loaded fixtures into pytest.mark.parametrize
         # See https://github.com/pytest-dev/pytest/issues/349.
-        # Hence, explicitly setting the below fixtues to allow trcomp images to run on E3 test
+        # Hence, explicitly setting the below fixtues to allow trcomp images to run on EC2 test
         elif "huggingface-pytorch-trcomp-training" in repo_name:
             if lookup == "pytorch-training":
                 return True
@@ -785,7 +790,7 @@ def pytest_generate_tests(metafunc):
     if not images:
         return
 
-        
+
     # Parametrize framework specific tests
     for fixture in FRAMEWORK_FIXTURES:
         if fixture in metafunc.fixturenames:
@@ -806,8 +811,8 @@ def pytest_generate_tests(metafunc):
                         fixture_name not in metafunc.fixturenames
                         for fixture_name in ["example_only", "huggingface_only"]
                     ) and all(keyword not in image for keyword in ["example", "huggingface"])
-                    if "sagemaker_only" in metafunc.fixturenames and is_e3_image(image):
-                        LOGGER.info(f"Not running E3 image {image} on sagemaker_only test")
+                    if "sagemaker_only" in metafunc.fixturenames and is_ec2_image(image):
+                        LOGGER.info(f"Not running EC2 image {image} on sagemaker_only test")
                         continue
                     if is_sagemaker_image(image):
                         if "sagemaker_only" not in metafunc.fixturenames and "sagemaker" not in metafunc.fixturenames:
@@ -852,8 +857,8 @@ def pytest_generate_tests(metafunc):
                     if all([are_valid_fixture_labels_present(image_candidate, nightly_labels) for _, nightly_labels in func_nightly_fixtures.items()]):
                         nightly_images_to_parametrize.append(image_candidate)
                 images_to_parametrize = nightly_images_to_parametrize
-            
-            
+
+
             # Parametrize tests that spin up an ecs cluster or tests that spin up an EC2 instance with a unique name
             values_to_generate_for_fixture = {
                 "ecs_container_instance": "ecs_cluster_name",
@@ -892,4 +897,3 @@ def disable_test(request):
 
     if test_utils.is_test_disabled(test_name, build_name, version):
         pytest.skip(f"Skipping {test_name} test because it has been disabled.")
-

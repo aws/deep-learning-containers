@@ -412,7 +412,7 @@ release_images:
   31:
     framework: "pytorch"
     version: "1.10.0"
-    customer_type: "e3"
+    customer_type: "ec2"
     arch_type: "graviton"
     inference:
       device_types: ["cpu"]
@@ -426,7 +426,7 @@ release_images:
   32:
     framework: "tensorflow"
     version: "2.7.0"
-    customer_type: "e3"
+    customer_type: "ec2"
     arch_type: "graviton"
     inference:
       device_types: ["cpu"]
@@ -464,7 +464,7 @@ release_images:
   35:
     framework: "mxnet"
     version: "1.9.0"
-    customer_type: "e3"
+    customer_type: "ec2"
     arch_type: "x86"
     training:
       device_types: [ "cpu", "gpu" ]
@@ -514,7 +514,7 @@ release_images:
   37:
     framework: "mxnet"
     version: "1.9.0"
-    customer_type: "e3"
+    customer_type: "ec2"
     arch_type: "x86"
     training:
       device_types: [ "gpu" ]
@@ -529,7 +529,7 @@ release_images:
   38:
     framework: "tensorflow"
     version: "2.8.0"
-    customer_type: "e3"
+    customer_type: "ec2"
     arch_type: "x86"
     training:
       device_types: ["cpu","gpu"]
@@ -550,7 +550,7 @@ release_images:
   39:
     framework: "tensorflow"
     version: "2.8.0"
-    customer_type: "e3"
+    customer_type: "ec2"
     arch_type: "x86"
     training:
       device_types: ["gpu"]
@@ -589,7 +589,7 @@ release_images:
     framework: "pytorch"
     version: "1.11.0"
     arch_type: "x86"
-    customer_type: "e3"
+    customer_type: "ec2"
     training:
       device_types: [ "cpu", "gpu" ]
       python_versions: [ "py38" ]
@@ -614,7 +614,7 @@ release_images:
     framework: "pytorch"
     version: "1.11.0"
     arch_type: "x86"
-    customer_type: "e3"
+    customer_type: "ec2"
     training:
       device_types: [ "gpu" ]
       python_versions: [ "py38" ]
@@ -653,7 +653,7 @@ release_images:
   44:
     framework: "mxnet"
     version: "1.9.0"
-    customer_type: "e3"
+    customer_type: "ec2"
     arch_type: "x86"
     training:
       device_types: [ "cpu", "gpu" ]
@@ -678,7 +678,7 @@ release_images:
   45:
     framework: "mxnet"
     version: "1.9.0"
-    customer_type: "e3"
+    customer_type: "ec2"
     arch_type: "x86"
     training:
       device_types: [ "gpu" ]
@@ -694,7 +694,7 @@ release_images:
     framework: "pytorch"
     version: "1.10.2"
     arch_type: "x86"
-    customer_type: "e3"
+    customer_type: "ec2"
     training:
       device_types: [ "cpu", "gpu" ]
       python_versions: [ "py38" ]
@@ -715,7 +715,7 @@ release_images:
     framework: "pytorch"
     version: "1.10.2"
     arch_type: "x86"
-    customer_type: "e3"
+    customer_type: "ec2"
     training:
       device_types: [ "gpu" ]
       python_versions: [ "py38" ]
@@ -748,7 +748,7 @@ release_images:
   49:
     framework: "tensorflow"
     version: "2.9.1"
-    customer_type: "e3"
+    customer_type: "ec2"
     arch_type: "x86"
     training:
       device_types: ["cpu", "gpu"]
@@ -761,7 +761,7 @@ release_images:
   50:
     framework: "tensorflow"
     version: "2.9.1"
-    customer_type: "e3"
+    customer_type: "ec2"
     arch_type: "x86"
     training:
       device_types: ["gpu"]
@@ -905,7 +905,7 @@ release_images:
     framework: "pytorch"
     version: "1.12.0"
     arch_type: "x86"
-    customer_type: "e3"
+    customer_type: "ec2"
     training:
       device_types: ["cpu", "gpu" ]
       python_versions: [ "py38" ]
@@ -930,7 +930,7 @@ release_images:
     framework: "pytorch"
     version: "1.12.0"
     arch_type: "x86"
-    customer_type: "e3"
+    customer_type: "ec2"
     training:
       device_types: [ "gpu" ]
       python_versions: [ "py38" ]
