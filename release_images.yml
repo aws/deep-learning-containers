@@ -63,7 +63,6 @@ release_images:
     framework: "pytorch"
     version: "1.9.1"
     arch_type: "x86"
-    customer_type: "sagemaker"
     inference:
       device_types: ["cpu", "gpu"]
       python_versions: ["py38"]
