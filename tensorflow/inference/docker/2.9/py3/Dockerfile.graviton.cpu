@@ -82,8 +82,8 @@ RUN ${PIP} install --no-cache-dir \
     "awscli<2" \
     boto3 \
     cython==0.29.21 \
-    falcon==2.0.0 \
-    gunicorn==20.0.4 \
+    falcon==3.1.0 \
+    gunicorn==20.1.0 \
     gevent==21.1.1 \
     requests==2.25.1 \
     grpcio==1.34.1 \
@@ -129,7 +129,7 @@ RUN HOME_DIR=/root \
  && cp ${HOME_DIR}/oss_compliance/build_from_source_packages/BUILD_FROM_SOURCE_PACKAGES_LICENCES_AARCH64_IMAGES ${HOME_DIR} \
  && rm -rf ${HOME_DIR}/oss_compliance*
 
-RUN curl https://aws-dlc-licenses.s3.amazonaws.com/tensorflow-2.7/license.txt -o /license.txt
+RUN curl https://aws-dlc-licenses.s3.amazonaws.com/tensorflow-2.9/license.txt -o /license.txt
 
 CMD ["/usr/bin/tf_serving_entrypoint.sh"]
 
@@ -172,10 +172,6 @@ RUN curl -s http://nginx.org/keys/nginx_signing.key | apt-key add - \
     nginx-module-njs \
  && apt-get clean \
  && rm -rf /var/lib/apt/lists/*
-
-RUN ${PIP} install --no-cache-dir \
-    falcon==3.1.0 \
-    gunicorn==20.1.0
 
 COPY ./sagemaker /sagemaker
 
