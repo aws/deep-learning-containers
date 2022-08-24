@@ -356,6 +356,17 @@ def pr_build_setup(pr_number, framework):
 
     parse_modifed_root_files_info(files, pattern="testspec\.yml")
 
+    # convert job parameters to array
+    # return type is expected to be an array of string
+    if JobParameters.device_types == constants.ALL:
+        JobParameters.device_types = []
+
+    if JobParameters.image_types == constants.ALL:
+        JobParameters.image_types = []
+
+    if JobParameters.py_versions == constants.ALL:
+        JobParameters.py_versions = []
+
     LOGGER.info(f"Device types: {JobParameters.device_types}")
     LOGGER.info(f"Image types: {JobParameters.image_types}")
     LOGGER.info(f"Python types: {JobParameters.py_versions}")
