@@ -367,10 +367,6 @@ def pr_build_setup(pr_number, framework):
     if JobParameters.py_versions == constants.ALL:
         JobParameters.py_versions = []
 
-    LOGGER.info(f"Device types: {JobParameters.device_types}")
-    LOGGER.info(f"Image types: {JobParameters.image_types}")
-    LOGGER.info(f"Python types: {JobParameters.py_versions}")
-
     return (
         JobParameters.device_types,
         JobParameters.image_types,
@@ -417,8 +413,6 @@ def build_setup(framework, device_types=[], image_types=[], py_versions=[]):
 
     if py_versions:
         to_build["py_versions"] = constants.PYTHON_VERSIONS.intersection(set(py_versions))
-
-    LOGGER.info(f"To Build Configuration: {to_build}")
         
     for device_type in to_build["device_types"]:
         for image_type in to_build["image_types"]:
