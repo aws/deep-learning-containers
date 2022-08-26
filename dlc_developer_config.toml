@@ -55,15 +55,15 @@ use_scheduler = false
 [buildspec_override]
 # Assign the path to the required buildspec file from the deep-learning-containers folder
 # For example:
-# dlc-pr-tensorflow = "tensorflow/buildspec-2-8.yml"
+# dlc-pr-ec2-tensorflow = "tensorflow/buildspec-2-8.yml"
 # dlc-pr-huggingface-pytorch = "huggingface/pytorch/buildspec-1-9.yml"
 # Setting the buildspec file path to "" allows the image builder to choose the default buildspec file.
 
 # EC2 Framework DLC buildspecs
-dlc-pr-mxnet = ""
-dlc-pr-pytorch = ""
-dlc-pr-tensorflow-1 = ""
-dlc-pr-tensorflow-2 = ""
+dlc-pr-ec2-mxnet = ""
+dlc-pr-ec2-pytorch = ""
+dlc-pr-ec2-tensorflow-1 = ""
+dlc-pr-ec2-tensorflow-2 = ""
 
 # SageMaker Framework DLC buildspecs
 dlc-pr-autogluon = ""
