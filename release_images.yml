@@ -119,7 +119,7 @@ release_images:
       os_version: "ubuntu20.04"
       example: False
       disable_sm_tag: False
-      force_release: False
+      force_release: True
   10:
     framework: "tensorflow"
     version: "2.9.1"
