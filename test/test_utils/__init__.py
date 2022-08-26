@@ -6,6 +6,8 @@ import subprocess
 import sys
 import time
 
+from enum import Enum
+
 import boto3
 import git
 import pytest
@@ -133,6 +135,14 @@ SAGEMAKER_EXECUTION_REGIONS = ["us-west-2", "us-east-1", "eu-west-1"]
 UPGRADE_ECR_REPO_NAME = "upgraded-image-ecr-scan-repo"
 ECR_SCAN_HELPER_BUCKET = f"""ecr-scan-helper-{boto3.client("sts", region_name=DEFAULT_REGION).get_caller_identity().get("Account")}"""
 ECR_SCAN_FAILURE_ROUTINE_LAMBDA = "ecr-scan-failure-routine-lambda"
+
+
+class NightlyFeatureLabel(Enum):
+    AWS_FRAMEWORK_INSTALLED = "aws_framework_installed"
+    AWS_SMDEBUG_INSTALLED = "aws_smdebug_installed"
+    AWS_SMDDP_INSTALLED = "aws_smddp_installed"
+    AWS_SMMP_INSTALLED = "aws_smmp_installed"
+
 
 class MissingPythonVersionException(Exception):
     """
@@ -379,7 +389,7 @@ def is_mainline_context():
 
 
 def is_nightly_context():
-    return os.getenv("BUILD_CONTEXT") == "NIGHTLY"
+    return os.getenv("BUILD_CONTEXT") == "NIGHTLY" or os.getenv("NIGHTLY_PR_TEST_MODE", "false").lower() == "true"
 
 
 def is_empty_build_context():
@@ -1008,8 +1018,8 @@ def parse_canary_images(framework, region):
             }
 
             # ec2 Images have an additional "ec2" tag to distinguish them from the regular "sagemaker" tag
-            if customer_type == "e3":
-                dlc_images += [f"{img}-e3" for img in images[canary_type]]
+            if customer_type == "ec2":
+                dlc_images += [f"{img}-ec2" for img in images[canary_type]]
             else:
                 dlc_images += images[canary_type]
 
