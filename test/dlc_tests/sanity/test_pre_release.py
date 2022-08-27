@@ -451,7 +451,7 @@ def _run_dependency_check_test(image, ec2_connection):
             "0.4": ["cpu", "gpu"],
             "0.5": ["cpu", "gpu"]
         },
-        "huggingface_pytorch_trcomp": {"1.9": ["gpu"]},
+        "huggingface_pytorch_trcomp": {"1.9": ["gpu"], "1.11": ["gpu"]},
         "huggingface_tensorflow_trcomp": {"2.6": ["gpu"]},
     }
 

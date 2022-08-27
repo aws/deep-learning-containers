@@ -105,8 +105,15 @@ class DLCReleaseInformation:
 
     @property
     def bom_pipdeptree(self):
-        self.get_container_command_output("pip install pipdeptree")
-        return self.get_container_command_output("pipdeptree")
+        # TODO: Change how this process works as this using qemu with graviton is making part of the image
+        # OS read-only. Thus, when installing pipdeptree, it does not install in the expected location and
+        # the pipdeptree command will fail for graviton.
+        if "graviton" in self.dlc_repository:
+            self.get_container_command_output("python3 -m pip install pipdeptree")
+            return self.get_container_command_output("python3 -m pipdeptree")
+        else:
+            self.get_container_command_output("pip install pipdeptree")
+            return self.get_container_command_output("pipdeptree")
 
     @property
     def imp_pip_packages(self):
