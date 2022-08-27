@@ -228,10 +228,13 @@ ARG PYTHON_SHORT_VERSION
 RUN pip uninstall -y torch torchvision torchaudio torchdata
 
 # TODO: Install PyTorch and other Torch packages here
-RUN /opt/conda/bin/conda install -c pytorch-nightly pytorch=1.13.*
-RUN /opt/conda/bin/conda install -c pytorch-nightly torchvision 
-RUN /opt/conda/bin/conda install -c pytorch-nightly torchaudio 
-RUN /opt/conda/bin/conda install -c pytorch-nightly torchdata
+RUN /opt/conda/bin/conda install \
+   pytorch=1.13.* \
+   torchvision \
+   torchaudio \
+   torchdata \
+   cudatoolkit=11.3 \
+   -c pytorch-nightly
 
 RUN pip install --no-cache-dir -U torchnet
 
