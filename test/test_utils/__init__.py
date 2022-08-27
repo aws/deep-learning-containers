@@ -142,6 +142,10 @@ class NightlyFeatureLabel(Enum):
     AWS_SMDEBUG_INSTALLED = "aws_smdebug_installed"
     AWS_SMDDP_INSTALLED = "aws_smddp_installed"
     AWS_SMMP_INSTALLED = "aws_smmp_installed"
+    PYTORCH_INSTALLED = "pytorch_installed"
+    TORCHAUDIO_INSTALLED = "torchaudio_installed"
+    TORCHVISION_INSTALLED = "torchvision_installed"
+    TORCHDATA_INSTALLED = "torchdata_installed"
 
 
 class MissingPythonVersionException(Exception):

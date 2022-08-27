@@ -98,13 +98,31 @@ FRAMEWORK_FIXTURES = (
 # Nightly image fixture dictionary, maps nightly fixtures to set of image labels
 NIGHTLY_FIXTURES = {
     "feature_smdebug_present": {
-        NightlyFeatureLabel.AWS_FRAMEWORK_INSTALLED.value, NightlyFeatureLabel.AWS_SMDEBUG_INSTALLED.value
+        NightlyFeatureLabel.AWS_FRAMEWORK_INSTALLED.value, 
+        NightlyFeatureLabel.AWS_SMDEBUG_INSTALLED.value
     },
     "feature_smddp_present": {
-        NightlyFeatureLabel.AWS_FRAMEWORK_INSTALLED.value, NightlyFeatureLabel.AWS_SMDDP_INSTALLED.value
+        NightlyFeatureLabel.AWS_FRAMEWORK_INSTALLED.value, 
+        NightlyFeatureLabel.AWS_SMDDP_INSTALLED.value
     },
-    "feature_smmp_present": {NightlyFeatureLabel.AWS_SMMP_INSTALLED.value},
-    "feature_aws_framework_present": {NightlyFeatureLabel.AWS_FRAMEWORK_INSTALLED.value}
+    "feature_smmp_present": {
+        NightlyFeatureLabel.AWS_SMMP_INSTALLED.value
+    },
+    "feature_aws_framework_present": {
+        NightlyFeatureLabel.AWS_FRAMEWORK_INSTALLED.value
+    },
+    "feature_torchaudio_present":{
+        NightlyFeatureLabel.PYTORCH_INSTALLED.value,
+        NightlyFeatureLabel.TORCHAUDIO_INSTALLED.value
+    },
+    "feature_torchvision_present":{
+        NightlyFeatureLabel.PYTORCH_INSTALLED.value,
+        NightlyFeatureLabel.TORCHVISION_INSTALLED.value
+    },
+    "feature_torchdata_present":{
+        NightlyFeatureLabel.PYTORCH_INSTALLED.value,
+        NightlyFeatureLabel.TORCHDATA_INSTALLED.value
+    },
 }
 
 # Nightly fixtures
@@ -122,6 +140,18 @@ def feature_smmp_present():
 
 @pytest.fixture(scope="session")
 def feature_aws_framework_present():
+    pass
+
+@pytest.fixture(scope="session")
+def torchaudio_framework_present():
+    pass
+
+@pytest.fixture(scope="session")
+def torchvision_framework_present():
+    pass
+
+@pytest.fixture(scope="session")
+def torchdata_framework_present():
     pass
 
 # Ignore container_tests collection, as they will be called separately from test functions
