@@ -421,6 +421,7 @@ def _run_dependency_check_test(image, ec2_connection):
         "huggingface_pytorch": {"1.8": ["cpu", "gpu"], "1.9": ["cpu", "gpu"]},
         "huggingface_tensorflow": {"2.4": ["cpu", "gpu"], "2.5": ["cpu", "gpu"], "2.6": ["cpu", "gpu"]},
         "huggingface_tensorflow_trcomp": {"2.6": ["gpu"]},
+        "huggingface_pytorch_trcomp": {"1.11": ["gpu"]},
         "autogluon": {
             "0.3": ["cpu", "gpu"],
             "0.4": ["cpu", "gpu"],
