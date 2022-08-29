@@ -182,6 +182,9 @@ RUN HOME_DIR=/root \
 
 RUN curl https://aws-dlc-licenses.s3.amazonaws.com/pytorch-1.12/license.txt -o /license.txt
 
+# Removing the cache as it is needed for security verification
+RUN rm -iRf /root/.cache
+
 EXPOSE 8080 8081
 ENTRYPOINT ["python", "/usr/local/bin/dockerd-entrypoint.py"]
 CMD ["torchserve", "--start", "--ts-config", "/home/model-server/config.properties"]
@@ -213,11 +216,6 @@ ARG PYTHON=python3
 ARG PYTHON_VERSION=3.8.10
 
 ENV SAGEMAKER_SERVING_MODULE sagemaker_pytorch_serving_container.serving:main
-
-# Install scikit-learn and pandas
-RUN conda install -y -c conda-forge \
-    scikit-learn \
-    pandas
 
 RUN pip install --no-cache-dir "sagemaker-pytorch-inference>=2"
 
