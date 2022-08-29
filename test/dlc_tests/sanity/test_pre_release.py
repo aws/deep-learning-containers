@@ -35,7 +35,7 @@ from test.test_utils import (
     is_tf_version,
     get_processor_from_image_uri,
     execute_env_variables_test,
-    UL18_CPU_ARM64_US_WEST_2,
+    UL20_CPU_ARM64_US_WEST_2,
     UBUNTU_18_HPU_DLAMI_US_WEST_2
 )
 
@@ -562,7 +562,7 @@ def test_dependency_check_neuron(neuron, ec2_connection):
 @pytest.mark.usefixtures("sagemaker")
 @pytest.mark.model("N/A")
 @pytest.mark.parametrize("ec2_instance_type", ["c6g.4xlarge"], indirect=True)
-@pytest.mark.parametrize("ec2_instance_ami", [UL18_CPU_ARM64_US_WEST_2], indirect=True)
+@pytest.mark.parametrize("ec2_instance_ami", [UL20_CPU_ARM64_US_WEST_2], indirect=True)
 def test_dependency_check_graviton_cpu(cpu, ec2_connection, graviton_compatible_only):
     _run_dependency_check_test(cpu, ec2_connection)
 
