@@ -143,15 +143,15 @@ def feature_aws_framework_present():
     pass
 
 @pytest.fixture(scope="session")
-def torchaudio_framework_present():
+def feature_torchaudio_present():
     pass
 
 @pytest.fixture(scope="session")
-def torchvision_framework_present():
+def feature_torchvision_present():
     pass
 
 @pytest.fixture(scope="session")
-def torchdata_framework_present():
+def feature_torchdata_present():
     pass
 
 # Ignore container_tests collection, as they will be called separately from test functions
