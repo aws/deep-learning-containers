@@ -174,6 +174,8 @@ def test_pytorch_nccl_version(
     """
     Tests nccl version
     """
+    if 'huggingface' in pytorch_training and 'trcomp' in pytorch_training:
+        pytest.skip(f"Image {pytorch_training} should use the system nccl through xla. Hence the test is skipped.")
     if test_utils.is_image_incompatible_with_instance_type(pytorch_training, ec2_instance_type):
         pytest.skip(f"Image {pytorch_training} is incompatible with instance type {ec2_instance_type}")
     test_cmd = os.path.join(CONTAINER_TESTS_PREFIX, "pytorch_tests", "testPyTorchNcclVersion")
