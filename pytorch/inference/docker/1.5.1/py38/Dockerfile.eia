@@ -1,4 +1,4 @@
-FROM ubuntu:16.04
+FROM ubuntu:20.04
 LABEL maintainer="Amazon AI"
 LABEL com.amazonaws.sagemaker.capabilities.accept-bind-to-port=true
 LABEL dlc_major_version="2"
@@ -9,7 +9,7 @@ ARG PYTHON_VERSION=3.8.13
 ARG PYTORCH_VERSION=1.5.1
 ARG TORCHVISION_VERSION=0.6.1
 ARG GRAPHVIZ_VERSION=0.13.2
-ARG MMS_VERSION=1.1.5
+ARG MMS_VERSION=1.1.8
 ARG HEALTH_CHECK_VERSION=1.7.0
 ARG MAMBA_VERSION=4.12.0-2
 
