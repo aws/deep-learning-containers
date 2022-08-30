@@ -326,7 +326,7 @@ FROM common AS sagemaker
 LABEL maintainer="Amazon AI"
 LABEL dlc_major_version="1"
 
-ARG TF_URL=https://framework-binaries.s3.us-west-2.amazonaws.com/tensorflow/r2.10_aws/gpu/2022-08-29-19-12/tensorflow_gpu-2.10.0rc3-cp39-cp39-manylinux_2_17_x86_64.manylinux2014_x86_64.whl
+ARG TF_URL=https://framework-binaries.s3.us-west-2.amazonaws.com/tensorflow/r2.10_aws/gpu/2022-08-30-19-00/tensorflow_gpu-2.10.0rc3-cp39-cp39-manylinux_2_17_x86_64.manylinux2014_x86_64.whl
 
 # sagemaker-specific environment variable
 ENV SAGEMAKER_TRAINING_MODULE sagemaker_tensorflow_container.training:main
@@ -365,13 +365,13 @@ RUN $PYTHON -m pip install --no-cache-dir -U \
     "numba<0.54" \
     "shap>=0.39,<1"
 
-## install smdebug directly the specific branch
-#ARG SMDEBUG_TAG=1.0.17
-#RUN git clone https://github.com/awslabs/sagemaker-debugger.git \
-#    && cd sagemaker-debugger \
-#    && git checkout tags/$SMDEBUG_TAG -b $SMDEBUG_TAG \
-#    && $PYTHON setup.py install && cd .. && rm -rf sagemaker-debugger
-#
+# install smdebug directly the specific branch
+ARG SMDEBUG_TAG=1.0.20
+RUN git clone https://github.com/awslabs/sagemaker-debugger.git \
+    && cd sagemaker-debugger \
+    && git checkout tags/$SMDEBUG_TAG -b $SMDEBUG_TAG \
+    && $PYTHON setup.py install && cd .. && rm -rf sagemaker-debugger
+
 ## install sagemaker-tensorflow from source
 #ARG SAGEMAKER_TENSORFLOW_TAG=v1.15.0
 #RUN apt update && apt install -y libcurl4-openssl-dev
