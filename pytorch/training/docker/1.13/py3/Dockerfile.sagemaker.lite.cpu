@@ -172,11 +172,12 @@ RUN pip uninstall -y torch torchvision torchaudio torchdata
 
 # TODO: Install AWS-PyTorch and other torch packages here
 
-RUN /opt/conda/bin/conda install -c pytorch-nightly \
+RUN /opt/conda/bin/conda install \
     pytorch=1.13.* \
     torchvision \
     torchaudio \
-    torchdata
+    torchdata \
+    -c pytorch-nightly
 
 # TODO: Install PyTorch S3 plugin here
 
@@ -219,11 +220,12 @@ RUN pip uninstall -y torch torchvision torchaudio torchdata
 
 # TODO: Install AWS-PyTorch and other torch packages here
 
-RUN /opt/conda/bin/conda install -c pytorch-nightly \
-    pytorch \
+RUN /opt/conda/bin/conda install \
+    pytorch=1.13.* \
     torchvision \
     torchaudio \
-    torchdata
+    torchdata \
+    -c pytorch-nightly
 
 # TODO: Install PyTorch S3 plugin here
 
