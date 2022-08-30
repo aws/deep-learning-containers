@@ -3,6 +3,10 @@ LABEL maintainer="Amazon AI"
 LABEL com.amazonaws.sagemaker.capabilities.accept-bind-to-port=true
 LABEL dlc_major_version="2"
 
+# prevent stopping by user interaction
+ENV DEBIAN_FRONTEND noninteractive
+ENV DEBCONF_NONINTERACTIVE_SEEN true
+
 # Add arguments to achieve the version, python and url
 ARG PYTHON=python3
 ARG PYTHON_VERSION=3.8.13
@@ -59,7 +63,6 @@ RUN curl -L -o ~/mambaforge.sh https://github.com/conda-forge/miniforge/releases
     conda-forge \
     python=$PYTHON_VERSION \
  && /opt/conda/bin/conda install -y \
-    # conda 4.9.2 requires ruamel_yaml to be installed. Currently pinned at latest.
     ruamel_yaml==0.15.80 \
     cython==0.29.30 \
     ipython==8.4.0 \
