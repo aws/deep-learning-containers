@@ -90,7 +90,7 @@ release_images:
     arch_type: "x86"
     inference:
       device_types: ["cpu", "gpu"]
-      python_versions: ["py38"]
+      python_versions: ["py39"]
       os_version: "ubuntu20.04"
       cuda_version: "cu112"
       example: False
