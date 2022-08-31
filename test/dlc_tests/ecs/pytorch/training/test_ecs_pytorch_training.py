@@ -59,6 +59,7 @@ def test_ecs_pytorch_training_mnist_gpu(
     )
 
 
+@pytest.mark.usefixtures("feature_s3_plugin_present")
 @pytest.mark.model("resnet18")
 @pytest.mark.integration("pt_s3_plugin")
 @pytest.mark.parametrize("training_script", [PT_S3_PLUGIN_CMD], indirect=True)
@@ -83,6 +84,7 @@ def test_ecs_pytorch_s3_plugin_training_cpu(
     ecs_utils.ecs_training_test_executor(ecs_cluster_name, cluster_arn, training_cmd, pytorch_training, instance_id)
 
 
+@pytest.mark.usefixtures("feature_s3_plugin_present")
 @pytest.mark.model("resnet18")
 @pytest.mark.integration("pt_s3_plugin")
 @pytest.mark.parametrize("training_script", [PT_S3_PLUGIN_CMD], indirect=True)

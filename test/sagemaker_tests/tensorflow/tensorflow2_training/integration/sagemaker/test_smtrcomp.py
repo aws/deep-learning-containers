@@ -309,7 +309,7 @@ class TestMLWorkFlow:
         captured = capsys.readouterr()
         _assert_training_compiler_invoked(captured)
 
-
+    @pytest.mark.usefixtures("feature_s3_plugin_present")
     @pytest.mark.model('LeNet')
     @pytest.mark.integration("s3 plugin")
     def test_s3_plugin(self, sagemaker_session, ecr_image, framework_version, instance_type, instance_count, tmpdir, mnist_distributed_dataset, capsys):

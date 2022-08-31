@@ -207,6 +207,7 @@ def _test_distributed_mnist_custom_ps(ecr_image, sagemaker_session, instance_typ
     _assert_checkpoint_exists_v2(sagemaker_session.boto_region_name, estimator.model_dir, 10)
 
 
+@pytest.mark.usefixtures("feature_s3_plugin_present")
 @pytest.mark.skipif(is_pr_context(), reason=SKIP_PR_REASON)
 @pytest.mark.model("mnist")
 @pytest.mark.integration("s3 plugin")
@@ -250,6 +251,8 @@ def _test_s3_plugin_function(ecr_image, sagemaker_session, instance_type, framew
     print(estimator.model_dir)
     _assert_checkpoint_exists_v2(sagemaker_session.boto_region_name, estimator.model_dir, 10)
 
+
+@pytest.mark.usefixtures("feature_s3_plugin_present")
 @pytest.mark.model("mnist")
 @pytest.mark.integration("s3 plugin")
 @pytest.mark.skip_gpu

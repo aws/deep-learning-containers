@@ -123,6 +123,9 @@ NIGHTLY_FIXTURES = {
         NightlyFeatureLabel.PYTORCH_INSTALLED.value,
         NightlyFeatureLabel.TORCHDATA_INSTALLED.value
     },
+    "feature_s3_plugin_present":{
+        NightlyFeatureLabel.AWS_S3_PLUGIN_INSTALLED.value
+    }
 }
 
 # Nightly fixtures
@@ -152,6 +155,10 @@ def feature_torchvision_present():
 
 @pytest.fixture(scope="session")
 def feature_torchdata_present():
+    pass
+
+@pytest.fixture(scope="session")
+def feature_s3_plugin_present():
     pass
 
 # Ignore container_tests collection, as they will be called separately from test functions

@@ -242,3 +242,9 @@ def skip_test_successfully_executed_before(request):
     if lastfailed is not None \
             and not any(test_name in failed_test_name for failed_test_name in lastfailed.keys()):
         pytest.skip(f"Skipping {test_name} because it was successfully executed for this commit")
+
+
+# Nightly fixtures
+@pytest.fixture(scope="session")
+def feature_s3_plugin_present():
+    pass
