@@ -13,9 +13,6 @@ FROM nvidia/cuda:11.6.2-base-ubuntu20.04 AS common
 
 LABEL maintainer="Amazon AI"
 LABEL dlc_major_version="1"
-LABEL aws_smdp_installed="false"
-LABEL aws_smmp_installed="false"
-LABEL aws_smdebug_installed="false"
 
 ARG PYTHON
 ARG PYTHON_VERSION
@@ -230,11 +227,16 @@ RUN pip uninstall -y torch torchvision torchaudio torchdata
 
 # TODO: Install PyTorch and other Torch packages here
 
-RUN /opt/conda/bin/conda install -c pytorch-nightly \
+RUN /opt/conda/bin/conda install\
     pytorch=1.13.* \
     torchvision \
     torchaudio \
-    torchdata
+    torchdata \
+    cudatoolkit=11.6 \
+    -c pytorch-nightly 
+
+# Remove the repo lists
+RUN rm /etc/apt/sources.list.d/cuda*.list
 
 # TODO: Install Nvidia Apex
 
@@ -345,11 +347,16 @@ ENV SAGEMAKER_TRAINING_MODULE=sagemaker_pytorch_container.training:main
 RUN pip uninstall -y torch torchvision torchaudio torchdata
 
 # TODO: Install PyTorch and other Torch packages here
-RUN /opt/conda/bin/conda install -c pytorch-nightly \
-    pytorch \
+RUN /opt/conda/bin/conda install\
+    pytorch=1.13.* \
     torchvision \
     torchaudio \
-    torchdata
+    torchdata \
+    cudatoolkit=11.6 \
+    -c pytorch-nightly 
+
+# Remove the repo lists
+RUN rm /etc/apt/sources.list.d/cuda*.list
 
 # TODO: Install Nvidia Apex here
 
