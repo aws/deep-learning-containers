@@ -1,7 +1,7 @@
 FROM ubuntu:20.04
 LABEL maintainer="Amazon AI"
 LABEL com.amazonaws.sagemaker.capabilities.accept-bind-to-port=true
-LABEL dlc_major_version="2"
+LABEL dlc_major_version="1"
 
 # prevent stopping by user interaction
 ENV DEBIAN_FRONTEND noninteractive
