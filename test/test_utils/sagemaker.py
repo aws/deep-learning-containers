@@ -28,6 +28,7 @@ from test_utils import (
     SAGEMAKER_REMOTE_TEST_TYPE,
     UBUNTU_HOME_DIR,
     DEFAULT_REGION,
+    is_nightly_context,
 )
 from test_utils.pytest_cache import PytestCache
 

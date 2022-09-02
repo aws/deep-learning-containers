@@ -24,6 +24,14 @@ from sagemaker import LocalSession, Session
 from sagemaker.tensorflow import TensorFlow
 from ..integration import NO_P2_REGIONS, NO_P3_REGIONS, NO_P4_REGIONS, get_ecr_registry
 
+from test.test_utils import (
+    is_nightly_context,
+    NightlyFeatureLabel
+)
+from test.test_utils.imageutils import (
+    are_fixture_labels_enabled
+)
+
 logger = logging.getLogger(__name__)
 logging.getLogger('boto').setLevel(logging.INFO)
 logging.getLogger('botocore').setLevel(logging.INFO)
@@ -69,6 +77,18 @@ def pytest_configure(config):
     os.environ['TEST_PY_VERSIONS'] = config.getoption('--py-version')
     os.environ['TEST_PROCESSORS'] = config.getoption('--processor')
     config.addinivalue_line("markers", "efa(): explicitly mark to run efa tests")
+
+# Nightly image fixture dictionary, maps nightly fixtures to set of image labels
+NIGHTLY_FIXTURES = {
+    "feature_aws_framework_present":{
+        NightlyFeatureLabel.AWS_FRAMEWORK_INSTALLED.value
+    }
+}
+
+# Nightly fixtures
+@pytest.fixture(scope="session")
+def feature_aws_framework_present():
+    pass
 
 
 @pytest.fixture(scope='session')
@@ -226,6 +246,22 @@ def disable_test(request):
     if build_name and version and _is_test_disabled(test_name, build_name, version):
         pytest.skip(f"Skipping {test_name} test because it has been disabled.")
 
+@pytest.fixture(autouse=True)
+def disable_nightly_test(request):
+    test_name = request.node.name
+    if is_nightly_context():
+        # default image uri
+        image_uri = None
+        # get a list of nightly fixtures present for the test function
+        nightly_fixtures_present = {key: value for (key,value) in NIGHTLY_FIXTURES.items() if key in request.fixturenames}
+        # get image uri value
+        if "ecr_image" in request.fixturenames:
+            image_uri = request.getfixturevalue("ecr_image")
+
+        if nightly_fixtures_present and image_uri:
+            for _, labels in nightly_fixtures_present.items():
+                if not are_fixture_labels_enabled(image_uri, labels):
+                    pytest.skip(f"{test_name} will be skipped.")
 
 @pytest.fixture(autouse=True)
 def skip_test_successfully_executed_before(request):
@@ -242,9 +278,3 @@ def skip_test_successfully_executed_before(request):
     if lastfailed is not None \
             and not any(test_name in failed_test_name for failed_test_name in lastfailed.keys()):
         pytest.skip(f"Skipping {test_name} because it was successfully executed for this commit")
-
-
-# Nightly fixtures
-@pytest.fixture(scope="session")
-def feature_s3_plugin_present():
-    pass

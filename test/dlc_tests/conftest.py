@@ -40,7 +40,7 @@ from test.test_utils import (
 )
 from test.test_utils.imageutils import (
     are_image_labels_matched,
-    are_valid_fixture_labels_present
+    are_fixture_labels_enabled
 )
 from test.test_utils.test_reporting import TestReportGenerator
 
@@ -122,9 +122,6 @@ NIGHTLY_FIXTURES = {
     "feature_torchdata_present":{
         NightlyFeatureLabel.PYTORCH_INSTALLED.value,
         NightlyFeatureLabel.TORCHDATA_INSTALLED.value
-    },
-    "feature_s3_plugin_present":{
-        NightlyFeatureLabel.AWS_S3_PLUGIN_INSTALLED.value
     }
 }
 
@@ -155,10 +152,6 @@ def feature_torchvision_present():
 
 @pytest.fixture(scope="session")
 def feature_torchdata_present():
-    pass
-
-@pytest.fixture(scope="session")
-def feature_s3_plugin_present():
     pass
 
 # Ignore container_tests collection, as they will be called separately from test functions
@@ -891,7 +884,7 @@ def pytest_generate_tests(metafunc):
                 func_nightly_fixtures = {key: value for (key,value) in NIGHTLY_FIXTURES.items() if key in metafunc.fixturenames}
                 # iterate through image candidates and select images with labels that match all nightly fixture labels
                 for image_candidate in images_to_parametrize:
-                    if all([are_valid_fixture_labels_present(image_candidate, nightly_labels) for _, nightly_labels in func_nightly_fixtures.items()]):
+                    if all([are_fixture_labels_enabled(image_candidate, nightly_labels) for _, nightly_labels in func_nightly_fixtures.items()]):
                         nightly_images_to_parametrize.append(image_candidate)
                 images_to_parametrize = nightly_images_to_parametrize
 

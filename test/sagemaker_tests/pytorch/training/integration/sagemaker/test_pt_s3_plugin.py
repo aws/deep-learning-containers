@@ -42,7 +42,7 @@ def validate_or_skip_s3_plugin(ecr_image):
         pytest.skip("S3 plugin is added only on PyTorch 1.6 or higher")
 
 
-@pytest.mark.usefixtures("feature_s3_plugin_present")
+@pytest.mark.usefixtures("feature_aws_framework_present")
 @pytest.mark.processor("gpu")
 @pytest.mark.integration("pt_s3_plugin_gpu")
 @pytest.mark.model("resnet18")
@@ -64,7 +64,7 @@ def test_pt_s3_plugin_sm_gpu(framework_version, ecr_image, sagemaker_regions):
         invoke_pytorch_estimator(ecr_image, sagemaker_regions, estimator_parameter, job_name=job_name)
 
 
-@pytest.mark.usefixtures("feature_s3_plugin_present")
+@pytest.mark.usefixtures("feature_aws_framework_present")
 @pytest.mark.processor("gpu")
 @pytest.mark.integration("pt_s3_plugin_gpu")
 @pytest.mark.model("resnet18")
@@ -86,7 +86,7 @@ def test_hc_pt_s3_plugin_sm_gpu(framework_version, ecr_image, sagemaker_regions)
         invoke_pytorch_estimator(ecr_image, sagemaker_regions, estimator_parameter, job_name=job_name)
 
 
-@pytest.mark.usefixtures("feature_s3_plugin_present")
+@pytest.mark.usefixtures("feature_aws_framework_present")
 @pytest.mark.processor("cpu")
 @pytest.mark.integration("pt_s3_plugin_cpu")
 @pytest.mark.model("resnet18")
@@ -107,7 +107,7 @@ def test_pt_s3_plugin_sm_cpu(framework_version, ecr_image, sagemaker_regions):
         invoke_pytorch_estimator(ecr_image, sagemaker_regions, estimator_parameter, job_name=job_name)
 
 
-@pytest.mark.usefixtures("feature_s3_plugin_present")
+@pytest.mark.usefixtures("feature_aws_framework_present")
 @pytest.mark.processor("cpu")
 @pytest.mark.integration("pt_s3_plugin_cpu")
 @pytest.mark.model("resnet18")

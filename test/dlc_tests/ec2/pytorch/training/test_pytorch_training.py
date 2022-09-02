@@ -235,7 +235,7 @@ def test_pytorch_amp(pytorch_training, ec2_connection, gpu_only, ec2_instance_ty
     execute_ec2_training_test(ec2_connection, pytorch_training, PT_AMP_CMD)
 
 
-@pytest.mark.usefixtures("feature_s3_plugin_present")
+@pytest.mark.usefixtures("feature_aws_framework_present")
 @pytest.mark.usefixtures("sagemaker")
 @pytest.mark.integration("pt_s3_plugin_gpu")
 @pytest.mark.model("N/A")
@@ -246,7 +246,7 @@ def test_pytorch_s3_plugin_gpu(pytorch_training, ec2_connection, gpu_only, ec2_i
     execute_ec2_training_test(ec2_connection, pytorch_training, PT_S3_PLUGIN_CMD)
 
 
-@pytest.mark.usefixtures("feature_s3_plugin_present")
+@pytest.mark.usefixtures("feature_aws_framework_present")
 @pytest.mark.usefixtures("sagemaker")
 @pytest.mark.integration("pt_s3_plugin_cpu")
 @pytest.mark.model("N/A")
@@ -319,6 +319,7 @@ def test_pytorch_training_torchdata_cpu(
         execute_ec2_training_test(ec2_connection, pytorch_training, PT_TORCHDATA_CMD)
 
 
+@pytest.mark.usefixtures("feature_aws_framework_present")
 @pytest.mark.usefixtures("sagemaker")
 @pytest.mark.integration("telemetry")
 @pytest.mark.model("N/A")
@@ -328,6 +329,7 @@ def test_pytorch_telemetry_gpu(pytorch_training, ec2_connection, gpu_only, ec2_i
         pytest.skip(f"Image {pytorch_training} is incompatible with instance type {ec2_instance_type}")
 
 
+@pytest.mark.usefixtures("feature_aws_framework_present")
 @pytest.mark.usefixtures("sagemaker")
 @pytest.mark.integration("telemetry")
 @pytest.mark.model("N/A")
