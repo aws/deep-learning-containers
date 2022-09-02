@@ -711,12 +711,10 @@ def test_cuda_paths(gpu):
     # replacing '_' by '/' to handle huggingface_<framework> case
     framework = framework.replace("_trcomp", "")
     framework_path = framework.replace("_", "/")
-    framework_version_path = os.path.join(
-        dlc_path, framework_path, job_type, "docker", framework_version)
+    framework_version_path = os.path.join(dlc_path, framework_path, job_type, "docker", framework_version)
 
     if not os.path.exists(framework_version_path):
-        framework_version_path = os.path.join(
-            dlc_path, framework_path, job_type, "docker", framework_short_version)
+        framework_version_path = os.path.join(dlc_path, framework_path, job_type, "docker", framework_short_version)
 
     if not os.path.exists(os.path.join(framework_version_path, python_version)):
         # Use the pyX version as opposed to the pyXY version if pyXY path does not exist
@@ -728,6 +726,8 @@ def test_cuda_paths(gpu):
         buildspec = "buildspec-tf1"
     if "trcomp" in image:
         buildspec = "buildspec-trcomp"
+    if "sagemaker-lite" in image:
+        buildspec = "buildspec-sagemaker-lite"
 
     image_tag_in_buildspec = False
     dockerfile_spec_abs_path = None
@@ -735,21 +735,23 @@ def test_cuda_paths(gpu):
     buildspec_path = construct_buildspec_path(dlc_path, framework_path, buildspec, framework_version)
     buildspec_def = Buildspec()
     buildspec_def.load(buildspec_path)
+    
+    # print buildspec path for debugging purpose
+    LOGGER.info(f"\nBuildspec Path: {buildspec_path}\n")
+    # collect all available tags in the buildspec file
+    image_spec_tags = [image_spec["tag"] for name, image_spec in buildspec_def["images"].items()]
+    LOGGER.info(f"\nImage spec tags{image_spec_tags}\n")
 
     for name, image_spec in buildspec_def["images"].items():
         if image_spec["device_type"] == "gpu" and image_spec["tag"] == image_tag:
             image_tag_in_buildspec = True
-            dockerfile_spec_abs_path = os.path.join(
-                os.path.dirname(
-                    framework_version_path), image_spec["docker_file"].lstrip("docker/")
-            )
+            dockerfile_spec_abs_path = os.path.join(os.path.dirname(framework_version_path), image_spec["docker_file"].lstrip("docker/"))
             break
     try:
         assert image_tag_in_buildspec, f"Image tag {image_tag} not found in {buildspec_path}"
     except AssertionError as e:
         if not is_dlc_cicd_context():
-            LOGGER.warn(
-                f"{e} - not failing, as this is a(n) {os.getenv('BUILD_CONTEXT', 'empty')} build context.")
+            LOGGER.warn(f"{e} - not failing, as this is a(n) {os.getenv('BUILD_CONTEXT', 'empty')} build context.")
         else:
             raise
 
@@ -763,8 +765,7 @@ def test_cuda_paths(gpu):
         f"{image_properties_expected_in_dockerfile_path}"
     )
 
-    assert os.path.exists(
-        dockerfile_spec_abs_path), f"Cannot find dockerfile for {image} in {dockerfile_spec_abs_path}"
+    assert os.path.exists(dockerfile_spec_abs_path), f"Cannot find dockerfile for {image} in {dockerfile_spec_abs_path}"
 
 def _assert_artifact_free(output, stray_artifacts):
     """
