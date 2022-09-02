@@ -386,7 +386,7 @@ def main():
                 LOGGER.warning("\nSuppresed Failed Nightly Tests")
                 for index, status in enumerate(cmd_exit_statuses):
                     if status != 0:
-                        LOGGER.warning(f'"{test_path}" failed. Status code: {status}')
+                        LOGGER.warning(f'"{test_path}" tests failed. Status code: {status}')
                 sys.exit(0)
             else:
                 raise RuntimeError(pytest_cmds)
@@ -419,7 +419,7 @@ def main():
             status = pytest.main(pytest_cmd)
             if is_nightly_context() and status != 0:
                 LOGGER.warning("\nSuppresed Failed Nightly Tests")
-                LOGGER.warning(f'"{test_path}" failed. Status code: {status}')
+                LOGGER.warning(f'"{test_path}" tests failed. Status code: {status}')
                 sys.exit(0)
             else:
                 sys.exit(status)

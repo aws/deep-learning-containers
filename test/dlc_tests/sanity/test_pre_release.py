@@ -735,12 +735,6 @@ def test_cuda_paths(gpu):
     buildspec_path = construct_buildspec_path(dlc_path, framework_path, buildspec, framework_version)
     buildspec_def = Buildspec()
     buildspec_def.load(buildspec_path)
-    
-    # print buildspec path for debugging purpose
-    LOGGER.info(f"\nBuildspec Path: {buildspec_path}\n")
-    # collect all available tags in the buildspec file
-    image_spec_tags = [image_spec["tag"] for name, image_spec in buildspec_def["images"].items()]
-    LOGGER.info(f"\nImage spec tags{image_spec_tags}\n")
 
     for name, image_spec in buildspec_def["images"].items():
         if image_spec["device_type"] == "gpu" and image_spec["tag"] == image_tag:
