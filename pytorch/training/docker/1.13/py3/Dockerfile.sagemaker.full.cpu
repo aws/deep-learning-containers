@@ -255,7 +255,8 @@ RUN chmod +x /usr/local/bin/start_with_right_hostname.sh
 # Install scikit-learn and pandas
 RUN conda install -y -c conda-forge \
     scikit-learn \
-    pandas
+    pandas \
+    openssl==1.1.1o
 
 RUN pip install --upgrade pip --trusted-host pypi.org --trusted-host files.pythonhosted.org \
  && pip install --no-cache-dir -U \

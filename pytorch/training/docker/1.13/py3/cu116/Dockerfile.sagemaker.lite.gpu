@@ -431,7 +431,8 @@ WORKDIR /
 # Install scikit-learn and pandas
 RUN conda install -y -c conda-forge \
     scikit-learn \
-    pandas
+    pandas \
+    openssl==1.1.1o
 
 WORKDIR /
 
