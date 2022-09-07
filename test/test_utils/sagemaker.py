@@ -189,7 +189,7 @@ def generate_sagemaker_pytest_cmd(image, sagemaker_test_type):
     )
 
     if processor == "eia":
-        remote_pytest_cmd += f"{accelerator_type_arg} {eia_arg}"
+        remote_pytest_cmd += f" {accelerator_type_arg} {eia_arg}"
 
     local_pytest_cmd = (f"pytest -s -v {integration_path} {docker_base_arg} "
                         f"{sm_local_docker_repo_uri} --tag {tag} --framework-version {framework_version} "
