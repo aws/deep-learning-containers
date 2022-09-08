@@ -384,7 +384,7 @@ def main():
             if all([status == 0 for status in cmd_exit_statuses]):
                 sys.exit(0)
             elif any([status != 0 for status in cmd_exit_statuses]) and is_nightly_context():
-                LOGGER.warning("\nSuppresed Failed Nightly Tests")
+                LOGGER.warning("\nSuppressed Failed Nightly Tests")
                 for index, status in enumerate(cmd_exit_statuses):
                     if status != 0:
                         LOGGER.warning(f'"{pytest_cmds[index]}" tests failed. Status code: {status}')
@@ -419,7 +419,7 @@ def main():
                 pytest_cmd += ["--efa"] if efa_dedicated else ["-m", "not efa"]
             status = pytest.main(pytest_cmd)
             if is_nightly_context() and status != 0:
-                LOGGER.warning("\nSuppresed Failed Nightly Tests")
+                LOGGER.warning("\nSuppressed Failed Nightly Tests")
                 LOGGER.warning(f'"{pytest_cmd}" tests failed. Status code: {status}')
                 sys.exit(0)
             else:

@@ -289,6 +289,8 @@ def execute_local_tests(image, pytest_cache_params):
     ec2_ami_id = UBUNTU_18_BASE_DLAMI_US_EAST_1 if region == "us-east-1" else UBUNTU_18_BASE_DLAMI_US_WEST_2
     sm_tests_tar_name = "sagemaker_tests.tar.gz"
     ec2_test_report_path = os.path.join(UBUNTU_HOME_DIR, "test", f"{job_type}_{tag}_sm_local.xml")
+    test_python_path = os.path.join(UBUNTU_HOME_DIR, "test")
+    ec2_cwd = ec2_conn.cwd
     instance_id = ""
     ec2_conn = None
     try:
@@ -314,14 +316,14 @@ def execute_local_tests(image, pytest_cache_params):
         ec2_conn.run(f"tar -xzf {sm_tests_tar_name}")
         kill_background_processes_and_run_apt_get_update(ec2_conn)
         with ec2_conn.cd(path):
-            print(f"Changed path to: {path}")
+            print(f"Changed path from {ec2_cwd} to: {path}")
             install_sm_local_dependencies(framework, job_type, image, ec2_conn, ec2_ami_id)
             pytest_cache_util.download_pytest_cache_from_s3_to_ec2(ec2_conn, path, **pytest_cache_params)
             # Workaround for mxnet cpu training images as test distributed
             # causes an issue with fabric ec2_connection
             if framework == "mxnet" and job_type == "training" and "cpu" in image:
                 try:
-                    ec2_conn.run(pytest_command, timeout=1000, warn=True)
+                    ec2_conn.run(pytest_command, env={"PYTHONPATH": test_python_path}, timeout=1000, warn=True)
                 except exceptions.CommandTimedOut as exc:
                     print(f"Ec2 connection timed out for {image}, {exc}")
                 finally:
@@ -333,20 +335,25 @@ def execute_local_tests(image, pytest_cache_params):
                     output = subprocess.check_output(f"cat test/{job_type}_{tag}_sm_local.xml", shell=True,
                                                      executable="/bin/bash")
                     pytest_cache_util.upload_pytest_cache_from_ec2_to_s3(ec2_conn_new, path, **pytest_cache_params)
-                    if 'failures="0"' not in str(output) and not is_nightly_context():
-                        raise ValueError(f"Sagemaker Local tests failed for {image}")
+                    if 'failures="0"' not in str(output):
+                        if is_nightly_context():
+                            print(f"\nSuppresed Failed Nightly Sagemaker Local Tests")
+                        else:
+                            raise ValueError(f"Sagemaker Local tests failed for {image}")
             else:
                 try:
-                    ec2_conn.run(pytest_command)
+                    ec2_conn.run(pytest_command, env={"PYTHONPATH": test_python_path})
                     print(f"Downloading Test reports for image: {image}")
                     ec2_conn.get(ec2_test_report_path, os.path.join("test", f"{job_type}_{tag}_sm_local.xml"))
-                except:
-                    if not is_nightly_context():
-                        raise ValueError(f"Sagemaker Local tests failed for {image}")
+                except Exception as e:
+                    if is_nightly_context():
+                        print(f"\nSuppresed Failed Nightly Sagemaker Local Tests: {e}")
+                    else:
+                        raise e
     finally:
         if ec2_conn:
             with ec2_conn.cd(path):
-                print(f"Changed path to: {path}")
+                print(f"Changed path from {ec2_cwd} to: {path}")
                 pytest_cache_util.upload_pytest_cache_from_ec2_to_s3(ec2_conn, path, **pytest_cache_params)
         if instance_id:
             print(f"Terminating Instances for image: {image}")
@@ -373,21 +380,27 @@ def execute_sagemaker_remote_tests(process_index, image, global_pytest_cache, py
     account_id = os.getenv("ACCOUNT_ID", boto3.client("sts").get_caller_identity()["Account"])
     pytest_cache_util = PytestCache(boto3.client("s3"), account_id)
     pytest_command, path, tag, job_type = generate_sagemaker_pytest_cmd(image, SAGEMAKER_REMOTE_TEST_TYPE)
+    test_python_path = os.path.join(UBUNTU_HOME_DIR, "test")
     context = Context()
+    cwd = context.cwd
     with context.cd(path):
-        print(f"Changed path to: {path}")
+        print(f"Changed path from {cwd} to: {path}")
         context.run(f"virtualenv {tag}")
         with context.prefix(f"source {tag}/bin/activate"):
             context.run("pip install -r requirements.txt", warn=True)
             pytest_cache_util.download_pytest_cache_from_s3_to_local(path, **pytest_cache_params, custom_cache_directory=str(process_index))
             # adding -o cache_dir with a custom directory name
             pytest_command += f" -o cache_dir={os.path.join(str(process_index), '.pytest_cache')}"
-            res = context.run(pytest_command, warn=True)
+            res = context.run(pytest_command, env={"PYTHONPATH": test_python_path}, warn=True)
             metrics_utils.send_test_result_metrics(res.return_code)
             cache_json = pytest_cache_util.convert_pytest_cache_file_to_json(path, custom_cache_directory=str(process_index))
             global_pytest_cache.update(cache_json)
             if res.failed:
-                if not is_nightly_context():
+                if is_nightly_context():
+                    print(f"Suppressed Failed Nightly Sagemaker Tests")
+                    print(f"{pytest_command} failed with error code: {res.return_code}\n")
+                    print(f"Traceback:\n{res.stdout}")
+                else:
                     raise DLCSageMakerRemoteTestFailure(
                         f"{pytest_command} failed with error code: {res.return_code}\n"
                         f"Traceback:\n{res.stdout}"
