@@ -181,13 +181,9 @@ def test_eks_pytorch_dgl_single_node_training(pytorch_training, py3_only):
     yaml_path = os.path.join(os.sep, "tmp", f"pytorch_single_node_training_dgl_{rand_int}.yaml")
     pod_name = f"pytorch-single-node-training-dgl-{rand_int}"
 
-    if is_below_framework_version("1.7", pytorch_training, "pytorch"):
-        dgl_branch = "0.4.x"
-    else:
-        dgl_branch = "0.8.x"
-
     args = (
-        f"git clone -b {dgl_branch} https://github.com/dmlc/dgl.git && "
+        f"dgl_branch=$(python -c \"import dgl; dgl_versions = dgl.__version__.split('.'); print(dgl_versions[0] + '.' + dgl_versions[1] + '.x')\") && "
+        f"git clone -b $dgl_branch https://github.com/dmlc/dgl.git && "
         f"cd /dgl/examples/pytorch/gcn/ && DGLBACKEND=pytorch python train.py --dataset cora"
     )
 
