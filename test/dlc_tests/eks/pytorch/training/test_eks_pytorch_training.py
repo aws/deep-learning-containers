@@ -191,11 +191,6 @@ def test_eks_pytorch_dgl_single_node_training(pytorch_training, py3_only):
     cpu_limit = 72
     cpu_limit = str(int(cpu_limit) / 2)
 
-    if "gpu" in pytorch_training:
-        args = args + " --gpu 0"
-    else:
-        args = args + " --gpu -1"
-
     search_replace_dict = {
         "<POD_NAME>": pod_name,
         "<CONTAINER_NAME>": pytorch_training,
