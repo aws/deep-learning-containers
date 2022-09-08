@@ -184,7 +184,7 @@ def test_eks_pytorch_dgl_single_node_training(pytorch_training, py3_only):
     if is_below_framework_version("1.7", pytorch_training, "pytorch"):
         dgl_branch = "0.4.x"
     else:
-        dgl_branch = "0.9.x"
+        dgl_branch = "0.8.x"
 
     args = (
         f"git clone -b {dgl_branch} https://github.com/dmlc/dgl.git && "
