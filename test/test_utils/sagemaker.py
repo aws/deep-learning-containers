@@ -290,7 +290,6 @@ def execute_local_tests(image, pytest_cache_params):
     sm_tests_tar_name = "sagemaker_tests.tar.gz"
     ec2_test_report_path = os.path.join(UBUNTU_HOME_DIR, "test", f"{job_type}_{tag}_sm_local.xml")
     test_python_path = os.path.join(UBUNTU_HOME_DIR, "test")
-    ec2_cwd = ec2_conn.cwd
     instance_id = ""
     ec2_conn = None
     try:
@@ -315,6 +314,7 @@ def execute_local_tests(image, pytest_cache_params):
                 ) from e
         ec2_conn.run(f"tar -xzf {sm_tests_tar_name}")
         kill_background_processes_and_run_apt_get_update(ec2_conn)
+        ec2_cwd = ec2_conn.cwd
         with ec2_conn.cd(path):
             print(f"Changed path from {ec2_cwd} to: {path}")
             install_sm_local_dependencies(framework, job_type, image, ec2_conn, ec2_ami_id)
@@ -353,7 +353,7 @@ def execute_local_tests(image, pytest_cache_params):
     finally:
         if ec2_conn:
             with ec2_conn.cd(path):
-                print(f"Changed path from {ec2_cwd} to: {path}")
+                print(f"Changed path to: {path}")
                 pytest_cache_util.upload_pytest_cache_from_ec2_to_s3(ec2_conn, path, **pytest_cache_params)
         if instance_id:
             print(f"Terminating Instances for image: {image}")
