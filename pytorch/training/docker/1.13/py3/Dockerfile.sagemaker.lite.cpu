@@ -3,6 +3,7 @@ ARG PYTHON_VERSION=3.8.13
 ARG MAMBA_VERSION=4.12.0-2
 
 # TODO: Declare and assign build-time variables for AWS PyTorch and other packages here
+# TODO: Declare and assign build-time variable for S3 plugin
 
 FROM ubuntu:20.04 AS common
 
@@ -168,21 +169,22 @@ FROM common AS ec2
 ARG PYTHON
 
 # TODO: Redeclare build-time variables for AWS PyTorch and other Torch packages here
-
+# TODO: Redeclare build-time variable for S3 plugin
 
 # uninstall if already present
 RUN pip uninstall -y torch torchvision torchaudio torchdata
 
 # TODO: Install AWS-PyTorch and other torch packages here
+
 # PyTorch and other packages currently installed from pytorch-nightly pipeline
-RUN /opt/conda/bin/conda install \
+RUN /opt/conda/bin/conda install -c pytorch-nightly \
     pytorch=1.13.* \
     torchvision \
     torchaudio \
-    torchdata \
-    -c pytorch-nightly
+    torchdata
 
-#TODO: Install PT S3 plugin
+# TODO: Install S3 plugin
+
 RUN mkdir -p /etc/pki/tls/certs && cp /etc/ssl/certs/ca-certificates.crt /etc/pki/tls/certs/ca-bundle.crt
 
 RUN HOME_DIR=/root \
@@ -220,7 +222,7 @@ LABEL dlc_major_version="1"
 
 ARG PYTHON
 
-#TODO: Redeclare build-time variables for PyTorch S3 plugin
+# TODO: Redeclare build-time variable for S3 plugin
 
 # TODO: Install SMDEBUG VERSION here
 
@@ -233,14 +235,13 @@ RUN pip uninstall -y torch torchvision torchaudio torchdata
 
 # TODO: Install AWS-PyTorch and other torch packages here
 
-RUN /opt/conda/bin/conda install \
+RUN /opt/conda/bin/conda install -c pytorch-nightly \
     pytorch=1.13.* \
     torchvision \
     torchaudio \
-    torchdata \
-    -c pytorch-nightly
+    torchdata
 
-#TODO: Install PT S3 plugin
+# TODO: Install S3 plugin
 
 RUN mkdir -p /etc/pki/tls/certs && cp /etc/ssl/certs/ca-certificates.crt /etc/pki/tls/certs/ca-bundle.crt
 
@@ -255,8 +256,7 @@ RUN chmod +x /usr/local/bin/start_with_right_hostname.sh
 # Install scikit-learn and pandas
 RUN conda install -y -c conda-forge \
     scikit-learn \
-    pandas \
-    openssl==1.1.1o
+    pandas
 
 RUN pip install --upgrade pip --trusted-host pypi.org --trusted-host files.pythonhosted.org \
  && pip install --no-cache-dir -U \

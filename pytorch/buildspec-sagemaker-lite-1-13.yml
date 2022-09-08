@@ -56,6 +56,7 @@ images:
     labels:
       aws_framework_installed: false
       aws_smdebug_installed: false
+      aws_s3_plugin_installed: false
     context:
       <<: *TRAINING_CONTEXT
   # Build Sagemaker GPU Training Image
@@ -76,6 +77,7 @@ images:
       aws_smdebug_installed: false
       aws_smddp_installed: false
       aws_smmp_installed: false
+      aws_s3_plugin_installed: false
     context:
       <<: *TRAINING_CONTEXT
   # # Build Sagemaker CPU Inference Image

@@ -4,6 +4,7 @@ ARG PYTHON_SHORT_VERSION=3.8
 ARG MAMBA_VERSION=4.12.0-2
 
 # TODO: Declare and assign build-time variables for AWS PyTorch and other packages here
+# TODO: Declare and assign build-time variable for S3 plugin
 
 # TODO: Declare SMD_DATA_PARALLEL_URL and SMD_MODEL_PARALLEL_URL urls here
 
@@ -222,19 +223,19 @@ ARG PYTHON_VERSION
 ARG PYTHON_SHORT_VERSION
 
 # TODO: Redeclare build-time variables for AWS PyTorch and other Torch packages here
+# TODO: Redeclare build-time variables for S3 plugin
 
 # uninstall if already present
 RUN pip uninstall -y torch torchvision torchaudio torchdata
 
 # TODO: Install PyTorch and other Torch packages here
 
-RUN /opt/conda/bin/conda install\
+RUN /opt/conda/bin/conda install -c pytorch-nightly \
     pytorch=1.13.* \
     torchvision \
     torchaudio \
     torchdata \
-    cudatoolkit=11.6 \
-    -c pytorch-nightly 
+    cudatoolkit=11.6
 
 # Remove the repo lists
 RUN rm /etc/apt/sources.list.d/cuda*.list
@@ -295,7 +296,7 @@ RUN pip uninstall -y horovod \
  && HOROVOD_GPU_ALLREDUCE=NCCL HOROVOD_CUDA_HOME=/usr/local/cuda-11.6 HOROVOD_WITH_PYTORCH=1 pip install --no-cache-dir horovod==${HOROVOD_VERSION} \
  && ldconfig
 
-# Install PT S3 plugin
+# TODO: Install S3 plugin
 RUN mkdir -p /etc/pki/tls/certs && cp /etc/ssl/certs/ca-certificates.crt /etc/pki/tls/certs/ca-bundle.crt
 
 WORKDIR /
@@ -350,18 +351,18 @@ ENV SAGEMAKER_TRAINING_MODULE=sagemaker_pytorch_container.training:main
 # TODO: Declare ZeRO_2D_URL url here
 
 # TODO: Redeclare build-time variables for PyTorch and other Torch packages here
+# TODO: Redeclare build-time variables for S3 plugin
 
 # uninstall if already present
 RUN pip uninstall -y torch torchvision torchaudio torchdata
 
 # TODO: Install PyTorch and other Torch packages here
-RUN /opt/conda/bin/conda install\
+RUN /opt/conda/bin/conda install -c pytorch-nightly \
     pytorch=1.13.* \
     torchvision \
     torchaudio \
     torchdata \
-    cudatoolkit=11.6 \
-    -c pytorch-nightly 
+    cudatoolkit=11.6
 
 # Remove the repo lists
 RUN rm /etc/apt/sources.list.d/cuda*.list
@@ -422,7 +423,7 @@ RUN pip uninstall -y horovod \
  && HOROVOD_GPU_ALLREDUCE=NCCL HOROVOD_CUDA_HOME=/usr/local/cuda-11.6 HOROVOD_WITH_PYTORCH=1 pip install --no-cache-dir horovod==${HOROVOD_VERSION} \
  && ldconfig
 
-#TODO: Install PT S3 plugin
+# TODO: Install S3 plugin
 
 RUN mkdir -p /etc/pki/tls/certs && cp /etc/ssl/certs/ca-certificates.crt /etc/pki/tls/certs/ca-bundle.crt
 
@@ -431,8 +432,7 @@ WORKDIR /
 # Install scikit-learn and pandas
 RUN conda install -y -c conda-forge \
     scikit-learn \
-    pandas \
-    openssl==1.1.1o
+    pandas
 
 WORKDIR /
 

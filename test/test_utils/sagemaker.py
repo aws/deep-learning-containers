@@ -281,7 +281,7 @@ def execute_local_tests(image, pytest_cache_params):
     ec2_client = boto3.client("ec2", config=Config(retries={"max_attempts": 10}), region_name=DEFAULT_REGION)
     pytest_command, path, tag, job_type = generate_sagemaker_pytest_cmd(image, SAGEMAKER_LOCAL_TEST_TYPE)
     pytest_command += " --last-failed --last-failed-no-failures all "
-    print(pytest_command)
+    
     framework, _ = get_framework_and_version_from_tag(image)
     random.seed(f"{datetime.datetime.now().strftime('%Y%m%d%H%M%S%f')}")
     ec2_key_name = f"{job_type}_{tag}_sagemaker_{random.randint(1, 1000)}"
@@ -314,6 +314,7 @@ def execute_local_tests(image, pytest_cache_params):
         ec2_conn.run(f"tar -xzf {sm_tests_tar_name}")
         kill_background_processes_and_run_apt_get_update(ec2_conn)
         with ec2_conn.cd(path):
+            print(f"Changed path to: {path}")
             install_sm_local_dependencies(framework, job_type, image, ec2_conn, ec2_ami_id)
             pytest_cache_util.download_pytest_cache_from_s3_to_ec2(ec2_conn, path, **pytest_cache_params)
             # Workaround for mxnet cpu training images as test distributed
@@ -332,17 +333,20 @@ def execute_local_tests(image, pytest_cache_params):
                     output = subprocess.check_output(f"cat test/{job_type}_{tag}_sm_local.xml", shell=True,
                                                      executable="/bin/bash")
                     pytest_cache_util.upload_pytest_cache_from_ec2_to_s3(ec2_conn_new, path, **pytest_cache_params)
-                    if 'failures="0"' not in str(output):
+                    if 'failures="0"' not in str(output) and not is_nightly_context():
                         raise ValueError(f"Sagemaker Local tests failed for {image}")
             else:
-                ec2_conn.run(pytest_command)
-                print(f"Downloading Test reports for image: {image}")
-                ec2_conn.get(ec2_test_report_path, os.path.join("test", f"{job_type}_{tag}_sm_local.xml"))
-    except:
-        print(f"Exception {sys.exc_info()[0]} occurred")
+                try:
+                    ec2_conn.run(pytest_command)
+                    print(f"Downloading Test reports for image: {image}")
+                    ec2_conn.get(ec2_test_report_path, os.path.join("test", f"{job_type}_{tag}_sm_local.xml"))
+                except:
+                    if not is_nightly_context():
+                        raise ValueError(f"Sagemaker Local tests failed for {image}")
     finally:
         if ec2_conn:
             with ec2_conn.cd(path):
+                print(f"Changed path to: {path}")
                 pytest_cache_util.upload_pytest_cache_from_ec2_to_s3(ec2_conn, path, **pytest_cache_params)
         if instance_id:
             print(f"Terminating Instances for image: {image}")
@@ -371,6 +375,7 @@ def execute_sagemaker_remote_tests(process_index, image, global_pytest_cache, py
     pytest_command, path, tag, job_type = generate_sagemaker_pytest_cmd(image, SAGEMAKER_REMOTE_TEST_TYPE)
     context = Context()
     with context.cd(path):
+        print(f"Changed path to: {path}")
         context.run(f"virtualenv {tag}")
         with context.prefix(f"source {tag}/bin/activate"):
             context.run("pip install -r requirements.txt", warn=True)
@@ -382,10 +387,11 @@ def execute_sagemaker_remote_tests(process_index, image, global_pytest_cache, py
             cache_json = pytest_cache_util.convert_pytest_cache_file_to_json(path, custom_cache_directory=str(process_index))
             global_pytest_cache.update(cache_json)
             if res.failed:
-                raise DLCSageMakerRemoteTestFailure(
-                    f"{pytest_command} failed with error code: {res.return_code}\n"
-                    f"Traceback:\n{res.stdout}"
-                )
+                if not is_nightly_context():
+                    raise DLCSageMakerRemoteTestFailure(
+                        f"{pytest_command} failed with error code: {res.return_code}\n"
+                        f"Traceback:\n{res.stdout}"
+                    )
     return None
 
 

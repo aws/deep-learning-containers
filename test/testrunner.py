@@ -84,6 +84,7 @@ def run_sagemaker_test_in_executor(image, num_of_instances, instance_type):
         log_return.update_pool("running", instance_type, num_of_instances, job_type)
         context = Context()
         with context.cd(path):
+            print(f"Changed path to: {path}")
             context.run(f"python3 -m virtualenv {tag}")
             with context.prefix(f"source {tag}/bin/activate"):
                 context.run("pip install -r requirements.txt", warn=True)
@@ -386,7 +387,7 @@ def main():
                 LOGGER.warning("\nSuppresed Failed Nightly Tests")
                 for index, status in enumerate(cmd_exit_statuses):
                     if status != 0:
-                        LOGGER.warning(f'"{test_path}" tests failed. Status code: {status}')
+                        LOGGER.warning(f'"{pytest_cmds[index]}" tests failed. Status code: {status}')
                 sys.exit(0)
             else:
                 raise RuntimeError(pytest_cmds)
@@ -419,7 +420,7 @@ def main():
             status = pytest.main(pytest_cmd)
             if is_nightly_context() and status != 0:
                 LOGGER.warning("\nSuppresed Failed Nightly Tests")
-                LOGGER.warning(f'"{test_path}" tests failed. Status code: {status}')
+                LOGGER.warning(f'"{pytest_cmd}" tests failed. Status code: {status}')
                 sys.exit(0)
             else:
                 sys.exit(status)

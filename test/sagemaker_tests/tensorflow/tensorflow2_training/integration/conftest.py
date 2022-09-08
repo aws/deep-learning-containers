@@ -94,7 +94,11 @@ NIGHTLY_FIXTURES = {
     },
     "feature_aws_framework_present": {
         NightlyFeatureLabel.AWS_FRAMEWORK_INSTALLED.value
+    },
+    "feature_s3_plugin_present":{
+        NightlyFeatureLabel.AWS_S3_PLUGIN_INSTALLED.value
     }
+    
 }
 
 # Nightly fixtures
@@ -115,6 +119,11 @@ def feature_smmp_present():
 
 @pytest.fixture(scope="session")
 def feature_aws_framework_present():
+    pass
+
+
+@pytest.fixture(scope="session")
+def feature_s3_plugin_present():
     pass
 
 

@@ -23,13 +23,13 @@ def main():
     py_versions = []
     device_types = []
 
-    if not args.device_types == constants.ALL:
+    if args.device_types != constants.ALL:
         device_types = args.device_types.split(",")
         
-    if not args.image_types == constants.ALL:
+    if args.image_types != constants.ALL:
         image_types = args.image_types.split(",")
 
-    if not args.py_versions == constants.ALL:
+    if args.py_versions != constants.ALL:
         py_versions = args.py_versions.split(",")
 
     # create the empty json file for images

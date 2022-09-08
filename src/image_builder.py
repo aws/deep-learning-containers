@@ -42,7 +42,7 @@ def is_nightly_build_context():
     Returns True if image builder is running in a nightly context or nightly PR test mode. Otherwise returns False
     :return: <bool> True or False
     """
-    return True if build_context == "NIGHTLY" or os.getenv("NIGHTLY_PR_TEST_MODE", "false").lower() == "true" else False
+    return build_context == "NIGHTLY" or os.getenv("NIGHTLY_PR_TEST_MODE", "false").lower() == "true"
 
 def _find_image_object(images_list, image_name):
     """

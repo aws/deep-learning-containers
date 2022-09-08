@@ -236,7 +236,7 @@ def test_framework_version_cpu(image):
         elif "habana" not in image_repo_name:
             if tested_framework == "torch" and Version(tag_framework_version) >= Version("1.10.0"):
                 if is_nightly_context():
-                    torch_version_pattern = r"{torch_version}(\.dev\d+)".format(torch_version=tag_framework_version)
+                    torch_version_pattern = r"{torch_version}(\+cpu|\.dev\d+)".format(torch_version=tag_framework_version)
                     assert re.fullmatch(torch_version_pattern, output.stdout.strip()), (
                         f"torch.__version__ = {output.stdout.strip()} does not match {torch_version_pattern}\n"
                         f"Please specify nightly framework version as X.Y.Z.devYYYYMMDD"
@@ -364,7 +364,7 @@ def test_framework_and_cuda_version_gpu(gpu, ec2_connection):
                 assert output.stdout.strip().startswith(version_to_check)
             elif tested_framework == "torch" and Version(tag_framework_version) >= Version("1.10.0"):
                 if is_nightly_context():
-                    torch_version_pattern = r"{torch_version}(\.dev\d+)".format(torch_version=tag_framework_version)
+                    torch_version_pattern = r"{torch_version}(\+cu\d+|\.dev\d+)".format(torch_version=tag_framework_version)
                     assert re.fullmatch(torch_version_pattern, output.stdout.strip()), (
                         f"torch.__version__ = {output.stdout.strip()} does not match {torch_version_pattern}\n"
                         f"Please specify nightly framework version as X.Y.Z.devYYYYMMDD"
