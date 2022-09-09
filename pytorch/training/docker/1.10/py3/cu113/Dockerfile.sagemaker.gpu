@@ -73,6 +73,8 @@ RUN pip install --no-cache-dir -U \
     "shap>=0.39,<1" \
  && pip uninstall -y torch \
  && pip install --no-cache-dir -U ${PT_TRAINING_URL}
+ && pip uninstall -y torchvision \
+ && pip install --no-deps --no-cache-dir -U torchvision=0.11.3
 
 # Install RAPIDSMemoryManager.
 # Requires cmake>=3.14.
