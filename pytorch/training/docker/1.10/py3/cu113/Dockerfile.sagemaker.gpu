@@ -76,6 +76,12 @@ RUN pip install --no-cache-dir -U \
  && pip uninstall -y torchvision \
  && pip install --no-deps --no-cache-dir -U torchvision==0.11.3
 
+# Install Horovod
+RUN pip uninstall -y horovod \
+ && ldconfig /usr/local/cuda-11.3/targets/x86_64-linux/lib/stubs \
+ && HOROVOD_GPU_ALLREDUCE=NCCL HOROVOD_CUDA_HOME=/usr/local/cuda-11.3 HOROVOD_WITH_PYTORCH=1 pip install --no-cache-dir horovod==${HOROVOD_VERSION} \
+ && ldconfig
+
 # Install RAPIDSMemoryManager.
 # Requires cmake>=3.14.
 RUN  wget -nv https://github.com/rapidsai/rmm/archive/v${RMM_VERSION}.tar.gz \
