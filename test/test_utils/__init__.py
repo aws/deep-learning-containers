@@ -1017,8 +1017,8 @@ def parse_canary_images(framework, region):
             }
 
             # ec2 Images have an additional "ec2" tag to distinguish them from the regular "sagemaker" tag
-            if customer_type == "e3":
-                dlc_images += [f"{img}-e3" for img in images[canary_type]]
+            if customer_type == "ec2":
+                dlc_images += [f"{img}-ec2" for img in images[canary_type]]
             else:
                 dlc_images += images[canary_type]
 
