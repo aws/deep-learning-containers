@@ -339,15 +339,19 @@ def execute_local_tests(image, pytest_cache_params):
                         else:
                             raise ValueError(f"Sagemaker Local tests failed for {image}")
             else:
-                try:
-                    ec2_conn.run(pytest_command)
-                    print(f"Downloading Test reports for image: {image}")
-                    ec2_conn.get(ec2_test_report_path, os.path.join("test", f"{job_type}_{tag}_sm_local.xml"))
-                except Exception as e:
+                res = ec2_conn.run(pytest_command, warn=True)
+                print(f"Downloading Test reports for image: {image}")
+                ec2_conn.get(ec2_test_report_path, os.path.join("test", f"{job_type}_{tag}_sm_local.xml"))
+                if res.failed:
                     if is_nightly_context():
-                        print(f"\nSuppresed Failed Nightly Sagemaker Local Tests: {e}")
+                        print(f"Suppressed Failed Nightly Sagemaker Tests")
+                        print(f"{pytest_command} failed with error code: {res.return_code}\n")
+                        print(f"Traceback:\n{res.stderr}")
                     else:
-                        raise e
+                        raise DLCSageMakerLocalTestFailure(
+                            f"{pytest_command} failed with error code: {res.return_code}\n"
+                            f"Traceback:\n{res.stdout}"
+                        )
     finally:
         if ec2_conn:
             with ec2_conn.cd(path):
