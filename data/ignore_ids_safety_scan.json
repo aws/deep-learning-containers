@@ -698,6 +698,14 @@
         }
     },
 
+    "huggingface_pytorch_trcomp": {
+        "training": {
+            "py3": {
+                "48547":"Latest version of rdflib is being installed"
+            }
+        }
+    },
+
     "huggingface_tensorflow_trcomp": {
         "training": {
             "py3": {
