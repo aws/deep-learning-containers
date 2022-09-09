@@ -22,13 +22,9 @@ import pytest
 from botocore.exceptions import ClientError
 from sagemaker import LocalSession, Session
 from sagemaker.tensorflow import TensorFlow
-from ..integration import NO_P2_REGIONS, NO_P3_REGIONS, NO_P4_REGIONS, get_ecr_registry
+from ..integration import NO_P2_REGIONS, NO_P3_REGIONS, NO_P4_REGIONS, get_ecr_registry, NightlyFeatureLabel, is_nightly_context
 
-from test.test_utils import (
-    is_nightly_context,
-    NightlyFeatureLabel
-)
-from test.test_utils.imageutils import (
+from utils import (
     are_fixture_labels_enabled
 )
 
@@ -98,7 +94,6 @@ NIGHTLY_FIXTURES = {
     "feature_s3_plugin_present":{
         NightlyFeatureLabel.AWS_S3_PLUGIN_INSTALLED.value
     }
-    
 }
 
 # Nightly fixtures
