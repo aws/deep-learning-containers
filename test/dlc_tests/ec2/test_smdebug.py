@@ -115,7 +115,8 @@ def run_smdebug_test(
     framework = get_framework_from_image_uri(image_uri)
     container_test_local_dir = os.path.join("$HOME", "container_tests")
     ec2_connection.run(f"$(aws ecr get-login --no-include-email --region {region})", hide=True)
-    ec2_connection.run(f"docker pull -q {image_uri}")
+    # Do not add -q to docker pull as it leads to a hang for huge images like trcomp
+    ec2_connection.run(f"docker pull {image_uri}")
 
     try:
         ec2_connection.run(
@@ -153,7 +154,8 @@ def run_smprofiler_test(
     framework = get_framework_from_image_uri(image_uri)
     container_test_local_dir = os.path.join("$HOME", "container_tests")
     ec2_connection.run(f"$(aws ecr get-login --no-include-email --region {region})", hide=True)
-    ec2_connection.run(f"docker pull -q {image_uri}")
+    # Do not add -q to docker pull as it leads to a hang for huge images like trcomp
+    ec2_connection.run(f"docker pull {image_uri}")
 
     try:
         ec2_connection.run(
