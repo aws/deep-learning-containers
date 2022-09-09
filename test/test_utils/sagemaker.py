@@ -314,16 +314,14 @@ def execute_local_tests(image, pytest_cache_params):
                 ) from e
         ec2_conn.run(f"tar -xzf {sm_tests_tar_name}")
         kill_background_processes_and_run_apt_get_update(ec2_conn)
-        ec2_cwd = ec2_conn.cwd
         with ec2_conn.cd(path):
-            print(f"Changed path from {ec2_cwd} to: {path}")
             install_sm_local_dependencies(framework, job_type, image, ec2_conn, ec2_ami_id)
             pytest_cache_util.download_pytest_cache_from_s3_to_ec2(ec2_conn, path, **pytest_cache_params)
             # Workaround for mxnet cpu training images as test distributed
             # causes an issue with fabric ec2_connection
             if framework == "mxnet" and job_type == "training" and "cpu" in image:
                 try:
-                    ec2_conn.run(pytest_command, env={"PYTHONPATH": test_python_path}, timeout=1000, warn=True)
+                    ec2_conn.run(pytest_command, timeout=1000, warn=True)
                 except exceptions.CommandTimedOut as exc:
                     print(f"Ec2 connection timed out for {image}, {exc}")
                 finally:
@@ -342,7 +340,7 @@ def execute_local_tests(image, pytest_cache_params):
                             raise ValueError(f"Sagemaker Local tests failed for {image}")
             else:
                 try:
-                    ec2_conn.run(pytest_command, env={"PYTHONPATH": test_python_path})
+                    ec2_conn.run(pytest_command)
                     print(f"Downloading Test reports for image: {image}")
                     ec2_conn.get(ec2_test_report_path, os.path.join("test", f"{job_type}_{tag}_sm_local.xml"))
                 except Exception as e:
@@ -353,7 +351,6 @@ def execute_local_tests(image, pytest_cache_params):
     finally:
         if ec2_conn:
             with ec2_conn.cd(path):
-                print(f"Changed path to: {path}")
                 pytest_cache_util.upload_pytest_cache_from_ec2_to_s3(ec2_conn, path, **pytest_cache_params)
         if instance_id:
             print(f"Terminating Instances for image: {image}")
@@ -382,16 +379,14 @@ def execute_sagemaker_remote_tests(process_index, image, global_pytest_cache, py
     pytest_command, path, tag, job_type = generate_sagemaker_pytest_cmd(image, SAGEMAKER_REMOTE_TEST_TYPE)
     test_python_path = os.path.join(UBUNTU_HOME_DIR, "test")
     context = Context()
-    cwd = context.cwd
     with context.cd(path):
-        print(f"Changed path from {cwd} to: {path}")
         context.run(f"virtualenv {tag}")
         with context.prefix(f"source {tag}/bin/activate"):
             context.run("pip install -r requirements.txt", warn=True)
             pytest_cache_util.download_pytest_cache_from_s3_to_local(path, **pytest_cache_params, custom_cache_directory=str(process_index))
             # adding -o cache_dir with a custom directory name
             pytest_command += f" -o cache_dir={os.path.join(str(process_index), '.pytest_cache')}"
-            res = context.run(pytest_command, env={"PYTHONPATH": test_python_path}, warn=True)
+            res = context.run(pytest_command, warn=True)
             metrics_utils.send_test_result_metrics(res.return_code)
             cache_json = pytest_cache_util.convert_pytest_cache_file_to_json(path, custom_cache_directory=str(process_index))
             global_pytest_cache.update(cache_json)

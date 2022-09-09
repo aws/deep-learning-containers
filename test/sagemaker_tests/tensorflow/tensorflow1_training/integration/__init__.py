@@ -26,6 +26,10 @@ logging.getLogger("botocore").setLevel(logging.INFO)
 
 RESOURCE_PATH = os.path.join(os.path.dirname(__file__), "..", "resources")
 
+class NightlyFeatureLabel(Enum):
+    AWS_FRAMEWORK_INSTALLED = "aws_framework_installed"
+    AWS_S3_PLUGIN_INSTALLED = "aws_s3_plugin_installed"
+
 # these regions have some p2 and p3 instances, but not enough for automated testing
 NO_P2_REGIONS = [
     "ap-northeast-3",
@@ -100,3 +104,6 @@ def get_ecr_registry(account, region):
     """
     endpoint_data = _botocore_resolver().construct_endpoint("ecr", region)
     return "{}.dkr.{}".format(account, endpoint_data["hostname"])
+
+def is_nightly_context():
+    return os.getenv("BUILD_CONTEXT") == "NIGHTLY" or os.getenv("NIGHTLY_PR_TEST_MODE", "false").lower() == "true"
