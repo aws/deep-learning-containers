@@ -84,7 +84,6 @@ def run_sagemaker_test_in_executor(image, num_of_instances, instance_type):
         log_return.update_pool("running", instance_type, num_of_instances, job_type)
         context = Context()
         with context.cd(path):
-            print(f"Changed path to: {path}")
             context.run(f"python3 -m virtualenv {tag}")
             with context.prefix(f"source {tag}/bin/activate"):
                 context.run("pip install -r requirements.txt", warn=True)

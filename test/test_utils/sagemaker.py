@@ -289,7 +289,6 @@ def execute_local_tests(image, pytest_cache_params):
     ec2_ami_id = UBUNTU_18_BASE_DLAMI_US_EAST_1 if region == "us-east-1" else UBUNTU_18_BASE_DLAMI_US_WEST_2
     sm_tests_tar_name = "sagemaker_tests.tar.gz"
     ec2_test_report_path = os.path.join(UBUNTU_HOME_DIR, "test", f"{job_type}_{tag}_sm_local.xml")
-    test_python_path = os.path.join(UBUNTU_HOME_DIR, "test")
     instance_id = ""
     ec2_conn = None
     try:
@@ -381,7 +380,6 @@ def execute_sagemaker_remote_tests(process_index, image, global_pytest_cache, py
     account_id = os.getenv("ACCOUNT_ID", boto3.client("sts").get_caller_identity()["Account"])
     pytest_cache_util = PytestCache(boto3.client("s3"), account_id)
     pytest_command, path, tag, job_type = generate_sagemaker_pytest_cmd(image, SAGEMAKER_REMOTE_TEST_TYPE)
-    test_python_path = os.path.join(UBUNTU_HOME_DIR, "test")
     context = Context()
     with context.cd(path):
         context.run(f"virtualenv {tag}")
