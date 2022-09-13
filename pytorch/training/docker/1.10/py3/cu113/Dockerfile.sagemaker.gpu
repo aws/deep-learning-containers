@@ -20,7 +20,7 @@ ENV SAGEMAKER_TRAINING_MODULE=sagemaker_pytorch_container.training:main
 # swap the pytorch training wheel with additional smdebug and smmdp features
 ARG PT_TRAINING_URL=https://aws-pytorch-unified-cicd-binaries.s3.us-west-2.amazonaws.com/r1.10.2_sm/20220912-052006/8463a9e51a7938004fece4983b367a2cfa876237/torch-1.10.2%2Bcu113-cp38-cp38-linux_x86_64.whl
 ARG SMD_MODEL_PARALLEL_URL=https://sagemaker-distributed-model-parallel.s3.us-west-2.amazonaws.com/pytorch-1.10.0/build-artifacts/2022-04-14-03-58/smdistributed_modelparallel-1.8.1-cp38-cp38-linux_x86_64.whl
-ARG SMDATAPARALLEL_BINARY=https://smdataparallel.s3.amazonaws.com/binary/pytorch/1.10.0/cu113/2022-09-12/smdistributed_dataparallel-1.5.1-cp38-cp38-linux_x86_64.whl
+ARG SMDATAPARALLEL_BINARY=https://smdataparallel.s3.amazonaws.com/binary/pytorch/1.10.2/cu113/2022-09-13/smdistributed_dataparallel-1.4.0-cp38-cp38-linux_x86_64.whl
 # Install scikit-learn and pandas
 RUN conda install -y -c conda-forge \
     scikit-learn \
