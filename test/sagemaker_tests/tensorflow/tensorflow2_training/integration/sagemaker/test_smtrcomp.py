@@ -85,7 +85,7 @@ def smtrcomp_only(framework_version, ecr_image, request):
 @pytest.mark.multinode(2)
 @pytest.mark.integration("trcomp")
 class TestDistributedTraining:
-    
+
 
     @pytest.fixture()
     def instance_type(self):
@@ -244,7 +244,7 @@ class TestDistributedTraining:
                                        "processes_per_host": 2,
                                        "custom_mpi_options": "-verbose --mca orte_base_help_aggregate 0 -x FI_EFA_USE_DEVICE_RDMA=1 -x FI_PROVIDER=efa ",
                                     }
-                             },                              
+                             },
                             )
         estimator.fit(job_name=unique_name_from_base("test-TF-trcomp-DT-SMMP-horovod"))
         captured = capsys.readouterr()
@@ -309,7 +309,7 @@ class TestMLWorkFlow:
         captured = capsys.readouterr()
         _assert_training_compiler_invoked(captured)
 
-    @pytest.mark.usefixtures("feature_s3_plugin_present")
+
     @pytest.mark.model('LeNet')
     @pytest.mark.integration("s3 plugin")
     def test_s3_plugin(self, sagemaker_session, ecr_image, framework_version, instance_type, instance_count, tmpdir, mnist_distributed_dataset, capsys):
@@ -401,4 +401,3 @@ class TestMLWorkFlow:
                                 framework='keras',
                                 framework_version='2.6.0',
                                 )
-
