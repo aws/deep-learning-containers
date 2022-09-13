@@ -136,7 +136,9 @@ def _run_instance_role_disabled(image_uri, ec2_client, ec2_instance, ec2_connect
     docker_cmd = "nvidia-docker" if processor == "gpu" else "docker"
 
     test_utils.login_to_ecr_registry(ec2_connection, account_id, image_region)
-    ec2_connection.run(f"{docker_cmd} pull -q {image_uri}")
+    ## For big images like trcomp, the ec2_connection.run command stops listening and the code hangs here.
+    ## Hence, avoiding the use of -q to let the connection remain active.
+    ec2_connection.run(f"{docker_cmd} pull {image_uri}")
 
     preexisting_ec2_instance_tags = ec2_utils.get_ec2_instance_tags(ec2_instance_id, ec2_client=ec2_client)
     if expected_tag_key in preexisting_ec2_instance_tags:

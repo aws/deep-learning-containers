@@ -409,7 +409,8 @@ def _run_dependency_check_test(image, ec2_connection):
             "2.6": ["cpu", "gpu"],
             "2.7": ["cpu", "gpu", "hpu"],
             "2.8": ["cpu", "gpu", "hpu"],
-            "2.9": ["cpu", "gpu", "hpu"]
+            "2.9": ["cpu", "gpu", "hpu"],
+            "2.10": ["cpu", "gpu", "hpu"],
         },
         "mxnet": {"1.8": ["neuron"], "1.9": ["cpu", "gpu"]},
         "pytorch": {
@@ -421,6 +422,7 @@ def _run_dependency_check_test(image, ec2_connection):
         "huggingface_pytorch": {"1.8": ["cpu", "gpu"], "1.9": ["cpu", "gpu"]},
         "huggingface_tensorflow": {"2.4": ["cpu", "gpu"], "2.5": ["cpu", "gpu"], "2.6": ["cpu", "gpu"]},
         "huggingface_tensorflow_trcomp": {"2.6": ["gpu"]},
+        "huggingface_pytorch_trcomp": {"1.11": ["gpu"]},
         "autogluon": {
             "0.3": ["cpu", "gpu"],
             "0.4": ["cpu", "gpu"],
@@ -443,6 +445,7 @@ def _run_dependency_check_test(image, ec2_connection):
             "2.7": ["cpu", "gpu", "hpu"],
             "2.8": ["cpu", "gpu", "hpu"],
             "2.9": ["cpu", "gpu", "hpu"],
+            "2.10": ["cpu", "gpu", "hpu"],
         },
         "mxnet": {"1.8": ["neuron"], "1.9": ["cpu", "gpu"]},
         "huggingface_tensorflow": {"2.5": ["gpu"], "2.6": ["gpu"]},
@@ -451,7 +454,7 @@ def _run_dependency_check_test(image, ec2_connection):
             "0.4": ["cpu", "gpu"],
             "0.5": ["cpu", "gpu"]
         },
-        "huggingface_pytorch_trcomp": {"1.9": ["gpu"]},
+        "huggingface_pytorch_trcomp": {"1.9": ["gpu"], "1.11": ["gpu"]},
         "huggingface_tensorflow_trcomp": {"2.6": ["gpu"]},
     }
 
@@ -688,7 +691,7 @@ def test_cuda_paths(gpu):
     python_version = re.search(r"(py\d+)", image).group(1)
     short_python_version = None
     image_tag = re.search(
-        r":(\d+(\.\d+){2}(-transformers\d+(\.\d+){2})?-(gpu)-(py\d+)(-cu\d+)-(ubuntu\d+\.\d+)((-e3)?-example|-e3|-sagemaker)?)",
+        r":(\d+(\.\d+){2}(-transformers\d+(\.\d+){2})?-(gpu)-(py\d+)(-cu\d+)-(ubuntu\d+\.\d+)((-ec2)?-example|-ec2|-sagemaker)?)",
         image,
     ).group(1)
 
