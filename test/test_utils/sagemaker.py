@@ -281,7 +281,7 @@ def execute_local_tests(image, pytest_cache_params):
     ec2_client = boto3.client("ec2", config=Config(retries={"max_attempts": 10}), region_name=DEFAULT_REGION)
     pytest_command, path, tag, job_type = generate_sagemaker_pytest_cmd(image, SAGEMAKER_LOCAL_TEST_TYPE)
     pytest_command += " --last-failed --last-failed-no-failures all "
-    
+    print(pytest_command)
     framework, _ = get_framework_and_version_from_tag(image)
     random.seed(f"{datetime.datetime.now().strftime('%Y%m%d%H%M%S%f')}")
     ec2_key_name = f"{job_type}_{tag}_sagemaker_{random.randint(1, 1000)}"
@@ -358,7 +358,7 @@ def execute_local_tests(image, pytest_cache_params):
         if instance_id:
             print(f"Terminating Instances for image: {image}")
             ec2_utils.terminate_instance(instance_id, region)
-            
+
         if ec2_client and ec2_key_name:
             print(f"Destroying ssh Key_pair for image: {image}")
             destroy_ssh_keypair(ec2_client, ec2_key_name)
@@ -370,9 +370,9 @@ def execute_local_tests(image, pytest_cache_params):
 def execute_sagemaker_remote_tests(process_index, image, global_pytest_cache, pytest_cache_params):
     """
     Run pytest in a virtual env for a particular image. Creates a custom directory for each thread for pytest cache file.
-    Stores pytest cache in a shared dict.  
+    Stores pytest cache in a shared dict.
     Expected to run via multiprocessing
-    :param process_index - id for process. Used to create a custom cache dir 
+    :param process_index - id for process. Used to create a custom cache dir
     :param image - ECR url
     :param global_pytest_cache - shared Manager().dict() for cache merging
     :param pytest_cache_params - parameters required for s3 file path building
