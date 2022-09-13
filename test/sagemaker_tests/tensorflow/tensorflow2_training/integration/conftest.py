@@ -24,7 +24,7 @@ from sagemaker import LocalSession, Session
 from sagemaker.tensorflow import TensorFlow
 from ..integration import NO_P2_REGIONS, NO_P3_REGIONS, NO_P4_REGIONS, get_ecr_registry, NightlyFeatureLabel, is_nightly_context
 
-from utils import (
+from .utils import (
     are_fixture_labels_enabled
 )
 
@@ -78,11 +78,11 @@ def pytest_configure(config):
 # Nightly image fixture dictionary, maps nightly fixtures to set of image labels
 NIGHTLY_FIXTURES = {
     "feature_smdebug_present": {
-        NightlyFeatureLabel.AWS_FRAMEWORK_INSTALLED.value, 
+        NightlyFeatureLabel.AWS_FRAMEWORK_INSTALLED.value,
         NightlyFeatureLabel.AWS_SMDEBUG_INSTALLED.value
     },
     "feature_smddp_present": {
-        NightlyFeatureLabel.AWS_FRAMEWORK_INSTALLED.value, 
+        NightlyFeatureLabel.AWS_FRAMEWORK_INSTALLED.value,
         NightlyFeatureLabel.AWS_SMDDP_INSTALLED.value
     },
     "feature_smmp_present": {
