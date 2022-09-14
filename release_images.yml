@@ -61,7 +61,7 @@ release_images:
       os_version: "ubuntu20.04"
       cuda_version: "cu112"
       example: False
-      disable_sm_tag: True
+      disable_sm_tag: False
       force_release: False
     inference:
       device_types: ["cpu", "gpu"]
@@ -69,7 +69,7 @@ release_images:
       os_versions: "ubuntu20.04"
       cuda_version: "cu112"
       example: False
-      disable_sm_tag: True
+      disable_sm_tag: False
       force_release: False
   6:
     framework: "tensorflow"
@@ -82,6 +82,6 @@ release_images:
       os_version: "ubuntu20.04"
       cuda_version: "cu112"
       example: True
-      disable_sm_tag: True
+      disable_sm_tag: False
       force_release: False
   
