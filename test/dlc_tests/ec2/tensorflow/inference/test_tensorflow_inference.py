@@ -189,6 +189,11 @@ def train_mnist_model(serving_folder_path, ec2_connection, python_invoker):
 def host_setup_for_tensorflow_inference(
     serving_folder_path, framework_version, ec2_connection, is_neuron, is_graviton, model_name, python_invoker
 ):
+    # Wait for any existing apt-get calls to finish before moving on
+    # TODO(Mike Schneider): Improve this by adding a check for running apt-get processes and wait for them to finish,
+    # then timeout after a given amount of time if other apt-get calls are taking too long.
+    ec2_connection.run((f"sleep 180"), hide=True)
+
     # Install PIP so we can test
     ec2_connection.run((f"sudo apt-get update && sudo apt-get install -y python3-pip"), hide=True)
 
