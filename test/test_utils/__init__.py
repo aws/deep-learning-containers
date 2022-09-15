@@ -18,6 +18,8 @@ from invoke.context import Context
 from packaging.version import LegacyVersion, Version, parse
 from packaging.specifiers import SpecifierSet
 from retrying import retry
+import dataclasses
+# from security import EnhancedJSONEncoder
 
 from src import config
 
@@ -150,6 +152,17 @@ class CudaVersionTagNotFoundException(Exception):
     """
 
     pass
+
+
+class EnhancedJSONEncoder(json.JSONEncoder):
+    """
+    EnhancedJSONEncoder is required to dump dataclass objects as JSON.
+    """
+
+    def default(self, o):
+        if dataclasses.is_dataclass(o):
+            return dataclasses.asdict(o)
+        return super().default(o)
 
 
 def get_dockerfile_path_for_image(image_uri):
@@ -1657,6 +1670,20 @@ def uniquify_list_of_dict(list_of_dict):
     unique_list_of_string.sort() 
     list_of_dict_to_return = [json.loads(str_element) for str_element in unique_list_of_string]
     return list_of_dict_to_return
+
+
+def uniquify_list_of_complex_datatypes(list_of_complex_datatypes):
+    assert all(type(element) == type(list_of_complex_datatypes[0]) for element in list_of_complex_datatypes), f"{list_of_complex_datatypes} has multiple types"
+    if list_of_complex_datatypes:
+        if isinstance(list_of_complex_datatypes[0], dict):
+            return uniquify_list_of_dict(list_of_complex_datatypes)
+        if dataclasses.is_dataclass(list_of_complex_datatypes[0]):
+            type_of_dataclass = type(list_of_complex_datatypes[0])
+            list_of_dict = json.loads(json.dumps(list_of_complex_datatypes, cls= EnhancedJSONEncoder))
+            uniquified_list = uniquify_list_of_dict(list_of_dict=list_of_dict)
+            return [type_of_dataclass(**uniquified_list_dict_element) for uniquified_list_dict_element in uniquified_list]
+        raise "Not implemented"
+    return list_of_complex_datatypes
 
 
 def check_if_two_dictionaries_are_equal(dict1, dict2, ignore_keys=[]):

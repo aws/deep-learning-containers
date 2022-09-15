@@ -3,26 +3,27 @@ import os
 import json
 import copy, collections
 import boto3
-import dataclasses, json
+import json
 
 from invoke import run, Context
 from time import sleep, time
 from enum import IntEnum
 from test import test_utils
 from test.test_utils import LOGGER, ecr as ecr_utils
+import dataclasses
 from dataclasses import dataclass
-from typing import Any
+from typing import Any, List
 
 
-class EnhancedJSONEncoder(json.JSONEncoder):
-    """
-    EnhancedJSONEncoder is required to dump dataclass objects as JSON.
-    """
+# class EnhancedJSONEncoder(json.JSONEncoder):
+#     """
+#     EnhancedJSONEncoder is required to dump dataclass objects as JSON.
+#     """
 
-    def default(self, o):
-        if dataclasses.is_dataclass(o):
-            return dataclasses.asdict(o)
-        return super().default(o)
+#     def default(self, o):
+#         if dataclasses.is_dataclass(o):
+#             return dataclasses.asdict(o)
+#         return super().default(o)
 
 
 @dataclass
@@ -56,7 +57,7 @@ class VulnerablePackageDetails:
 
 
 @dataclass
-class AllowListFormatVulnerability:
+class AllowListFormatVulnerabilityForEnhancedScan:
     """
     AllowlistFormatVulnerability represents how the data looks for a single vulnerability in the allowlist format.
     The data from the ECR Ehanced Results are deserialized into AllowListFormatVulnerability dataclass. In 
@@ -83,7 +84,7 @@ class AllowListFormatVulnerability:
     def __init__(
         self,
         description: str,
-        packageVulnerabilityDetails: dict,
+        # packageVulnerabilityDetails: dict,
         remediation: dict,
         severity: str,
         status: str,
@@ -92,20 +93,21 @@ class AllowListFormatVulnerability:
         **kwargs: Any,
     ):
         self.description = description
-        self.vulnerability_id = packageVulnerabilityDetails["vulnerabilityId"]
-        self.name = packageVulnerabilityDetails["vulnerabilityId"]
-        self.package_name = None
-        self.package_details = None
+        packageVulnerabilityDetails = kwargs["packageVulnerabilityDetails"] if "packageVulnerabilityDetails" in kwargs else None
+        self.vulnerability_id = packageVulnerabilityDetails["vulnerabilityId"] if packageVulnerabilityDetails else kwargs["vulnerability_id"]
+        self.name = packageVulnerabilityDetails["vulnerabilityId"] if packageVulnerabilityDetails else kwargs["name"]
+        self.package_name = None if packageVulnerabilityDetails else kwargs["package_name"]
+        self.package_details = None if packageVulnerabilityDetails else kwargs["package_details"]
         self.remediation = remediation
-        self.source_url = packageVulnerabilityDetails["sourceUrl"]
-        self.source = packageVulnerabilityDetails["source"]
+        self.source_url = packageVulnerabilityDetails["sourceUrl"] if packageVulnerabilityDetails else kwargs["source_url"]
+        self.source = packageVulnerabilityDetails["source"] if packageVulnerabilityDetails else kwargs["source"]
         self.severity = severity
         self.status = status
         self.title = title
-        self.cvss_v3_score = self.get_cvss_score(packageVulnerabilityDetails, score_version="3.1")
-        self.cvss_v30_score = self.get_cvss_score(packageVulnerabilityDetails, score_version="3.0")
-        self.cvss_v2_score = self.get_cvss_score(packageVulnerabilityDetails, score_version="2.0")
-        self.cvss_v3_severity = self.get_cvss_v3_severity(self.cvss_v3_score)
+        self.cvss_v3_score = self.get_cvss_score(packageVulnerabilityDetails, score_version="3.1") if packageVulnerabilityDetails else kwargs["cvss_v3_score"]
+        self.cvss_v30_score = self.get_cvss_score(packageVulnerabilityDetails, score_version="3.0") if packageVulnerabilityDetails else kwargs["cvss_v30_score"]
+        self.cvss_v2_score = self.get_cvss_score(packageVulnerabilityDetails, score_version="2.0") if packageVulnerabilityDetails else kwargs["cvss_v2_score"]
+        self.cvss_v3_severity = self.get_cvss_v3_severity(self.cvss_v3_score) if packageVulnerabilityDetails else kwargs["cvss_v3_severity"]
 
     def get_cvss_score(self, packageVulnerabilityDetails: dict, score_version: str = "3.1"):
         for cvss_score in packageVulnerabilityDetails["cvss"]:
@@ -187,7 +189,7 @@ class ScanVulnerabilityList:
             ]
         return []
 
-    def get_sorted_vulnerability_list(self):
+    def get_sorted_vulnerability_list(self, vulnerability_object_type=None):
         """
         This method is specifically made to sort the vulnerability list which is actually a dict 
         and has the following structure:
@@ -207,11 +209,21 @@ class ScanVulnerabilityList:
         :return: dict, sorted vulnerability list
         """
         copy_dict = copy.deepcopy(self.vulnerability_list)
-        for key, list_of_dict in copy_dict.items():
-            uniquified_list = test_utils.uniquify_list_of_dict(list_of_dict)
-            uniquified_list.sort(key=lambda dict_element: dict_element["name"])
-            copy_dict[key] = uniquified_list
+        for key, list_of_complex_types in copy_dict.items():
+            uniquified_list = test_utils.uniquify_list_of_complex_datatypes(list_of_complex_types)
+            uniquified_list.sort(key=lambda dict_element: dict_element["name"] if isinstance(dict_element, dict) else dict_element.name)
         return dict(sorted(copy_dict.items()))
+        #     copy_dict[key] = uniquified_list
+        # copy_dict = dict(sorted(copy_dict.items()))
+        # if not vulnerability_object_type:
+        #     return copy_dict
+        # return_dict = {}
+        # for package_name, vulnerabilities_corresponding_to_package in copy_dict.items():
+        #     return_dict[package_name] = []
+        #     for vulnerability_corresponding_to_package in vulnerabilities_corresponding_to_package:
+        #         return_dict[package_name].append(vulnerability_object_type(**vulnerability_corresponding_to_package))
+
+        # return return_dict
 
     def save_vulnerability_list(self, path):
         if self.vulnerability_list:
@@ -296,7 +308,7 @@ class ScanVulnerabilityList:
         all_vulnerabilities = flattened_vulnerability_list_self + flattened_vulnerability_list_other
         if not all_vulnerabilities:
             return None
-        union_vulnerabilities = test_utils.uniquify_list_of_dict(all_vulnerabilities)
+        union_vulnerabilities = test_utils.uniquify_list_of_complex_datatypes(all_vulnerabilities)
 
         union = type(self)(minimum_severity=self.minimum_severity)
         union.construct_allowlist_from_allowlist_formatted_vulnerabilities(union_vulnerabilities)
@@ -397,13 +409,13 @@ class ECREnhancedScanVulnerabilityList(ScanVulnerabilityList):
     A child class of ScanVulnerabilityList that is specifically made to deal with ECR Enhanced Scans.
     """
 
-    def get_vulnerability_package_name_from_allowlist_formatted_vulnerability(self, vulnerability):
+    def get_vulnerability_package_name_from_allowlist_formatted_vulnerability(self, vulnerability: AllowListFormatVulnerabilityForEnhancedScan):
         """
         Get Package Name from a vulnerability JSON object
         :param vulnerability: dict JSON object consisting of information about the vulnerability in the Allowlist Format.
         :return: str package name
         """
-        return vulnerability["package_name"]
+        return vulnerability.package_name
 
     def construct_allowlist_from_file(self, file_path):
         """
@@ -416,10 +428,11 @@ class ECREnhancedScanVulnerabilityList(ScanVulnerabilityList):
         with open(file_path, "r") as f:
             file_allowlist = json.load(f)
         for _, package_vulnerability_list in file_allowlist.items():
-            self.construct_allowlist_from_allowlist_formatted_vulnerabilities(package_vulnerability_list)
+            allowlist_formatted_package_vulnerability_list = [AllowListFormatVulnerabilityForEnhancedScan(**vulnerability) for vulnerability in package_vulnerability_list]
+            self.construct_allowlist_from_allowlist_formatted_vulnerabilities(allowlist_formatted_package_vulnerability_list)
         return self.vulnerability_list
 
-    def construct_allowlist_from_allowlist_formatted_vulnerabilities(self, allowlist_formatted_vulnerability_list):
+    def construct_allowlist_from_allowlist_formatted_vulnerabilities(self, allowlist_formatted_vulnerability_list:List[AllowListFormatVulnerabilityForEnhancedScan]):
         """
         Read a vulnerability list in the AllowListFormat and construct the vulnerability_list in the same format.
 
@@ -428,7 +441,7 @@ class ECREnhancedScanVulnerabilityList(ScanVulnerabilityList):
         """
         for vulnerability in allowlist_formatted_vulnerability_list:
             package_name = self.get_vulnerability_package_name_from_allowlist_formatted_vulnerability(vulnerability)
-            if CVESeverity[vulnerability["cvss_v3_severity"]] < self.minimum_severity:
+            if CVESeverity[vulnerability.cvss_v3_severity] < self.minimum_severity:
                 continue
             if package_name not in self.vulnerability_list:
                 self.vulnerability_list[package_name] = []
@@ -444,17 +457,15 @@ class ECREnhancedScanVulnerabilityList(ScanVulnerabilityList):
         """
         for ecr_format_vulnerability in ecr_format_vulnerability_list:
             for vulnerable_package in ecr_format_vulnerability["packageVulnerabilityDetails"]["vulnerablePackages"]:
-                allowlist_format_vulnerability_object = AllowListFormatVulnerability(**ecr_format_vulnerability)
+                allowlist_format_vulnerability_object = AllowListFormatVulnerabilityForEnhancedScan(**ecr_format_vulnerability)
                 vulnerable_package_object = VulnerablePackageDetails(**vulnerable_package)
                 allowlist_format_vulnerability_object.set_package_details_and_name(vulnerable_package_object)
                 if CVESeverity[allowlist_format_vulnerability_object.cvss_v3_severity] < self.minimum_severity:
                     continue
                 if allowlist_format_vulnerability_object.package_name not in self.vulnerability_list:
                     self.vulnerability_list[allowlist_format_vulnerability_object.package_name] = []
-                self.vulnerability_list[allowlist_format_vulnerability_object.package_name].append(
-                    json.loads(json.dumps(allowlist_format_vulnerability_object, cls=EnhancedJSONEncoder))
-                )
-        self.vulnerability_list = self.get_sorted_vulnerability_list()
+                self.vulnerability_list[allowlist_format_vulnerability_object.package_name].append(allowlist_format_vulnerability_object)
+        self.vulnerability_list = self.get_sorted_vulnerability_list(vulnerability_object_type=AllowListFormatVulnerabilityForEnhancedScan)
         return self.vulnerability_list
 
     def are_vulnerabilities_equivalent(self, vulnerability_1, vulnerability_2):
@@ -468,10 +479,10 @@ class ECREnhancedScanVulnerabilityList(ScanVulnerabilityList):
         ## Ignore version key in package_details as it might represent the version of the package existing in the image
         ## and might differ from  image to image, even when the vulnerability is same.
         if test_utils.check_if_two_dictionaries_are_equal(
-            vulnerability_1["package_details"], vulnerability_2["package_details"], ignore_keys=["version"]
+            dataclasses.asdict(vulnerability_1.package_details), dataclasses.asdict(vulnerability_2.package_details), ignore_keys=["version"]
         ):
             return test_utils.check_if_two_dictionaries_are_equal(
-                vulnerability_1, vulnerability_2, ignore_keys=["package_details"]
+                dataclasses.asdict(vulnerability_1), dataclasses.asdict(vulnerability_2), ignore_keys=["package_details"]
             )
         return False
 

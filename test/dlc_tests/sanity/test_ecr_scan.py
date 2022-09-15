@@ -70,7 +70,22 @@ def get_minimum_sev_threshold_level(image):
     return "HIGH"
 
 
-def conduct_preprocessing(image, ecr_client, sts_client, region):
+def conduct_preprocessing_of_images_before_running_ecr_scans(image, ecr_client, sts_client, region):
+    """
+    Conducts the following steps before starting any kind of ecr test:
+        1. Pulls the image in case it is not existing locally.
+        2. Pulls all the additional tags of the image.
+        3. In case the test_account_id != image_account_id it reuploads the pulled images to the test_account_id for conducting the tests.
+           Therafter, it replaces the original image uri with the new one, to the one that points to the image in test_account_id, and returns
+           new image id.
+           
+    :param image: str, Image URI for image to be tested
+    :param ecr_client: boto3 Client for ECR
+    :param sts_client: boto3 Client for STS
+    :param region: str, Name of region where test is executed
+    :return image: str, Image URI for image to be tested. If test_account_id is same as image_accout_id, the image uri remains same as input param
+                        otherwise, a new image uri is returned.
+    """
     test_account_id = sts_client.get_caller_identity().get("Account")
     image_account_id = get_account_id_from_image_uri(image)
     image_region = get_region_from_image_uri(image)
@@ -123,29 +138,8 @@ def test_ecr_basic_scan(image, ecr_client, sts_client, region):
     :param sts_client: boto3 Client for STS
     :param region: str Name of region where test is executed
     """
-    test_account_id = sts_client.get_caller_identity().get("Account")
-    image_account_id = get_account_id_from_image_uri(image)
-    image_region = get_region_from_image_uri(image)
-    image_repo_name, original_image_tag = get_repository_and_tag_from_image_uri(image)
-    additional_image_tags = get_all_the_tags_of_an_image_from_ecr(ecr_client, image)
-    if not is_image_available_locally(image):
-        LOGGER.info(f"Image {image} not available locally!! Pulling the image...")
-        login_to_ecr_registry(Context(), image_account_id, image_region)
-        run(f"docker pull {image}")
-        if not is_image_available_locally(image):
-            raise RuntimeError("Image shown as not available even after pulling")
-    for additional_tag in additional_image_tags:
-        image_uri_with_new_tag = image.replace(original_image_tag, additional_tag)
-        run(f"docker tag {image} {image_uri_with_new_tag}", hide=True)
-
-    if image_account_id != test_account_id:
-        original_image = image
-        target_image_repo_name = f"beta-{image_repo_name}"
-        for additional_tag in additional_image_tags:
-            image_uri_with_new_tag = original_image.replace(original_image_tag, additional_tag)
-            new_image_uri = ecr_utils.reupload_image_to_test_ecr(image_uri_with_new_tag, target_image_repo_name, region)
-            if image_uri_with_new_tag == original_image:
-                image = new_image_uri
+    LOGGER.info(f"Running test_ecr_enhanced_scan for image {image}")
+    image = conduct_preprocessing_of_images_before_running_ecr_scans(image, ecr_client, sts_client, region)
 
     minimum_sev_threshold = get_minimum_sev_threshold_level(image)
     LOGGER.info(f"Severity threshold level is {minimum_sev_threshold}")
@@ -174,7 +168,7 @@ def test_ecr_basic_scan(image, ecr_client, sts_client, region):
         if remaining_vulnerabilities:
             assert not remaining_vulnerabilities.vulnerability_list, (
                 f"The following vulnerabilities need to be fixed on {image}:\n"
-                f"{json.dumps(remaining_vulnerabilities.vulnerability_list, indent=4)}"
+                f"{json.dumps(remaining_vulnerabilities.vulnerability_list, cls= test_utils.EnhancedJSONEncoder)}"
             )
         return
 
@@ -239,7 +233,7 @@ def test_ecr_enhanced_scan(image, ecr_client, sts_client, region):
     :param region: str Name of region where test is executed
     """
     LOGGER.info(f"Running test_ecr_enhanced_scan for image {image}")
-    image = conduct_preprocessing(image, ecr_client, sts_client, region)
+    image = conduct_preprocessing_of_images_before_running_ecr_scans(image, ecr_client, sts_client, region)
 
     new_uri = get_new_image_uri_using_current_uri_and_new_repo(
         image,
@@ -273,11 +267,13 @@ def test_ecr_enhanced_scan(image, ecr_client, sts_client, region):
     image_scan_allowlist = ECREnhancedScanVulnerabilityList(minimum_severity=CVESeverity[minimum_sev_threshold])
 
     try:
+        # Derive Image Scan Allowlist Path
         image_scan_allowlist_path = get_ecr_scan_allowlist_path(image)
+        # Check if image Scan Allowlist Path exists
         if os.path.exists(image_scan_allowlist_path):
             image_scan_allowlist.construct_allowlist_from_file(image_scan_allowlist_path)
     except:
-        LOGGER.info(f"[AllowlistPathNotFound] Image scan allowlist path not found for {image}")
+        LOGGER.info(f"[AllowlistPathNotFound] Image scan allowlist path could not be derived for {image}")
         traceback.print_exc()
 
     remaining_vulnerabilities = remaining_vulnerabilities - image_scan_allowlist
