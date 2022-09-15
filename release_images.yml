@@ -77,7 +77,7 @@ release_images:
     customer_type: "ec2"
     arch_type: "x86"
     training:
-      device_types: ["cpu", "gpu"]
+      device_types: ["gpu"]
       python_versions: ["py39"]
       os_version: "ubuntu20.04"
       cuda_version: "cu112"
