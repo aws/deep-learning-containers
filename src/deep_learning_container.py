@@ -24,6 +24,64 @@ import requests
 
 TIMEOUT_SECS = 5
 
+TOKEN = None
+
+def requests_helper(url, headers, timeout = 0.1):
+    response = None
+    try:
+        if headers:
+            response = requests.get(url, headers=headers, timeout=timeout)
+        else:
+            response = requests.get(url, timeout=timeout)
+
+    except requests.exceptions.RequestException as e:
+        logging.error("Request exception: {}".format(e))
+
+    return response
+
+def requests_helper_imds(url):
+    response_text = None
+    response = None
+    headers = None
+    if TOKEN:
+        headers={"X-aws-ec2-metadata-token": TOKEN}
+    timeout = TIMEOUT_SECS
+    try:
+        while timeout >= 1:
+            if headers:
+                response = requests.get(url, headers=headers, timeout=timeout)
+            else:
+                response = requests.get(url, timeout=timeout)
+            if response:
+                break
+            timeout = timeout - 2
+
+    except requests.exceptions.RequestException as e:
+        logging.error("Request exception: {}".format(e))
+
+    if response is not None and not (400 <= response.status_code < 600):
+        response_text = response.text
+
+    return response_text
+
+def initialize_imdsv2_token():
+    response = None
+    headers = {"X-aws-ec2-metadata-token-ttl-seconds": "600"}
+    url = "http://169.254.169.254/latest/api/token"
+    timeout = TIMEOUT_SECS
+    global TOKEN
+    if TOKEN is None:
+        try:
+            while timeout >= 1:
+                response = requests.put(url, headers=headers, timeout=timeout)
+                if response:
+                    break
+                timeout = timeout - 2
+        except requests.exceptions.RequestException as e:
+            logging.error("Request exception: {}".format(e))
+
+        if response is not None and not (400 <= response.status_code < 600):
+            TOKEN = response.text
 
 def _validate_instance_id(instance_id):
     """
@@ -44,21 +102,25 @@ def _retrieve_instance_id():
     Retrieve instance ID from instance metadata service
     """
     instance_id = None
-    # We can't use IMDSv2 here which needs token, as adding it mandates docker container to add additional parameter "--network host", else it hangs.
-    url = "http://169.254.169.254/latest/meta-data/instance-id"
-    response = requests_helper(url, timeout=0.1)
+    instance_url = "http://169.254.169.254/latest/meta-data/instance-id"
+    
+    instance_id = requests_helper_imds(instance_url)
 
-    if response is not None and not (400 <= response.status_code < 600):
-        instance_id = _validate_instance_id(response.text)
+    if instance_id is None:
+        initialize_imdsv2_token()
+        instance_id = requests_helper_imds(instance_url)
+
+    if instance_id:
+        instance_id = _validate_instance_id(instance_id)
 
     return instance_id
-
 
 def _retrieve_instance_region():
     """
     Retrieve instance region from instance metadata service
     """
     region = None
+    response_json = None
     valid_regions = [
         "ap-northeast-1",
         "ap-northeast-2",
@@ -77,12 +139,17 @@ def _retrieve_instance_region():
         "us-west-1",
         "us-west-2",
     ]
-    # We can't use IMDSv2 here which needs token, as adding it mandates docker container to add additional parameter "--network host", else it hangs.
-    url = "http://169.254.169.254/latest/dynamic/instance-identity/document"
-    response = requests_helper(url, timeout=0.1)
 
-    if response is not None and not (400 <= response.status_code < 600):
-        response_json = json.loads(response.text)
+    region_url = "http://169.254.169.254/latest/dynamic/instance-identity/document"
+
+    response_text = requests_helper_imds(region_url)
+
+    if response_text is None:
+        initialize_imdsv2_token()
+        response_text = requests_helper_imds(region_url)
+    
+    if response_text:
+        response_json = json.loads(response_text)
 
         if response_json["region"] in valid_regions:
             region = response_json["region"]
@@ -124,15 +191,6 @@ def _retrieve_os():
                 version = re.search(r'^VERSION_ID="(\d+\.\d+)"$', line).group(1)
     return name + version
 
-
-def requests_helper(url, timeout):
-    response = None
-    try:
-        response = requests.get(url, timeout=timeout)
-    except requests.exceptions.RequestException as e:
-        logging.error("Request exception: {}".format(e))
-
-    return response
 
 
 def parse_args():
