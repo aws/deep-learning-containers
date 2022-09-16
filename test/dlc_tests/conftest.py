@@ -222,7 +222,7 @@ def ec2_instance(
                 else UBUNTU_18_BASE_DLAMI_US_EAST_1
             )
 
-    if ec2_instance_type == "trn1.24xlarge" or ec2_instance_type == "trn1.2xlarge":
+    if ec2_instance_type == "trn1.32xlarge" or ec2_instance_type == "trn1.2xlarge":
         region = TRN1_REGION
         ec2_client = boto3.client("ec2", region_name=region, config=Config(retries={"max_attempts": 10}))
         ec2_resource = boto3.resource("ec2", region_name=region, config=Config(retries={"max_attempts": 10}))
@@ -252,13 +252,6 @@ def ec2_instance(
     }
 
     volume_name = "/dev/sda1" if ec2_instance_ami in test_utils.UL_AMI_LIST else "/dev/xvda"
-
-    # The droplet is for trn1.2xlarge only. When trn1 instance is GA's then we can
-    # remove this droplet specific launch. Also for the time being having
-    # 32xlarge here so that easy to remove this later
-    if ec2_instance_type == "trn1.24xlarge" or ec2_instance_type == "trn1.2xlarge":
-        params["AdditionalInfo"] = "target-droplet-workflow=28.128.235.197,droplet-workflow-disable-dwm-redirect=true,ignore-no-launches=true,target-droplet=28.138.2.254, target-slot=25"
-
 
     if (
         "pytorch_training_habana" in request.fixturenames
@@ -291,6 +284,12 @@ def ec2_instance(
         # Using private AMI, the EBS volume size is reduced to 28GB as opposed to 50GB from public AMI. This leads to space issues on test instances
         # TODO: Revert the configuration once DLAMI is public
         params["BlockDeviceMappings"] = [{"DeviceName": volume_name, "Ebs": {"VolumeSize": 90,},}]
+
+    # For TRN1 since we are using a private AMI that has some BERT data/tests, have a bifgger volume size
+    # Once use DLAMI, this can be removed
+    if ec2_instance_type == "trn1.32xlarge" or ec2_instance_type == "trn1.2xlarge":
+        params["BlockDeviceMappings"] = [{"DeviceName": volume_name, "Ebs": {"VolumeSize": 1024,},}]
+
     if ei_accelerator_type:
         params["ElasticInferenceAccelerators"] = [{"Type": ei_accelerator_type, "Count": 1}]
         availability_zones = {
@@ -356,7 +355,7 @@ def ec2_connection(request, ec2_instance, ec2_key_name, ec2_instance_type, regio
     """
     instance_id, instance_pem_file = ec2_instance
     region = P3DN_REGION if ec2_instance_type == "p3dn.24xlarge" else region
-    region = TRN1_REGION if ec2_instance_type == "trn1.24xlarge" or ec2_instance_type == "trn1.2xlarge" else region
+    region = TRN1_REGION if ec2_instance_type == "trn1.32xlarge" or ec2_instance_type == "trn1.2xlarge" else region
     ip_address = ec2_utils.get_public_ip(instance_id, region=region)
     LOGGER.info(f"Instance ip_address: {ip_address}")
     user = ec2_utils.get_instance_user(instance_id, region=region)

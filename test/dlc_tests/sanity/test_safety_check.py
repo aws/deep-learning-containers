@@ -432,6 +432,18 @@ IGNORE_SAFETY_IDS = {
                 "42815",
             ],
         },
+        "training-neuron":{
+            "_comment":"py2 is deprecated",
+            "py2": [
+            ],
+            "py3": [
+                # not possible for neuron-cc
+                "43453",
+                "44715",
+                "44717",
+                "44716",
+            ],
+        },
         "inference": {
             "py3": [
                 # for shipping Torchserve 0.5.2 - the last available version
@@ -638,12 +650,14 @@ def _get_safety_ignore_list(image_uri):
         framework = "tensorflow"
 
     job_type = (
-        "training"
+        "training-neuron"
+        if "training-neuron" in image_uri
+        else "training"
         if "training" in image_uri
         else "inference-eia"
         if "eia" in image_uri
         else "inference-neuron"
-        if "neuron" in image_uri
+        if "inference-neuron" in image_uri
         else "inference"
     )
     python_version = "py2" if "py2" in image_uri else "py3"

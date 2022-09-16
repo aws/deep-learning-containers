@@ -1,11 +1,12 @@
-FROM ubuntu:18.04
+FROM ubuntu:20.04
 
 LABEL maintainer="Amazon AI"
 LABEL dlc_major_version="1"
 
-ARG PYTHON=python3.7
+ARG PYTHON=python3.8
 # Add arguments to achieve the version, python and url
-ARG PYTHON_VERSION=3.7.10
+ARG PYTHON_VERSION=3.8.10
+# Add arguments to achieve the version, python and url
 ARG OPEN_MPI_VERSION=4.0.1
 ARG PIP=pip3
 
@@ -67,12 +68,14 @@ RUN apt-get update \
  && rm -rf /var/lib/apt/lists/* \
  && apt-get clean
 
-RUN echo "deb https://NeuronUser:ZOgdZY3PLBTOwMX1@apt.repos.beta.sunda.neuron.annapurna.aws.a2z.com bionic main" > /etc/apt/sources.list.d/neuron.list
+RUN echo "deb https://NeuronUser:ZOgdZY3PLBTOwMX1@apt.repos.beta.sunda.neuron.annapurna.aws.a2z.com focal main" > /etc/apt/sources.list.d/neuron.list
 RUN wget -qO - https://NeuronUser:ZOgdZY3PLBTOwMX1@apt.repos.beta.sunda.neuron.annapurna.aws.a2z.com/GPG-PUB-KEY-AMAZON-AWS-NEURON.PUB | apt-key add -
 
 RUN apt-get update \
  && apt-get install -y \
     aws-neuronx-tools \
+    aws-neuronx-collectives \
+    aws-neuronx-runtime-lib \
  && rm -rf /var/lib/apt/lists/* \
  && rm -rf /tmp/tmp* \
  && apt-get clean
@@ -112,7 +115,6 @@ RUN ompi_info --parsable --all | grep mpi_built_with_cuda_support:value
 COPY changehostname.c /
 COPY start_with_right_hostname.sh /usr/local/bin/start_with_right_hostname.sh
 
-
 RUN ${PIP} install --no-cache-dir -U \
     "pyyaml>=5.4,<5.5" \
     "bokeh>=2.3,<3" \
@@ -130,7 +132,7 @@ RUN ${PIP} install --no-cache-dir -U \
 
 RUN mkdir -p /etc/pki/tls/certs && cp /etc/ssl/certs/ca-certificates.crt /etc/pki/tls/certs/ca-bundle.crt
 RUN ${PIP} config set global.extra-index-url "https://NeuronUser:ZOgdZY3PLBTOwMX1@pip.repos.beta.sunda.neuron.annapurna.aws.a2z.com" \
- && ${PIP} install --force-reinstall torch-neuronx==1.10.2.* --extra-index-url https://NeuronUser:ZOgdZY3PLBTOwMX1@pip.repos.beta.sunda.neuron.annapurna.aws.a2z.com \
+ && ${PIP} install --force-reinstall torch-neuronx==1.11.0.* --extra-index-url https://NeuronUser:ZOgdZY3PLBTOwMX1@pip.repos.beta.sunda.neuron.annapurna.aws.a2z.com \
     && ${PIP} install --force-reinstall neuronx-cc==2.* --extra-index-url https://NeuronUser:ZOgdZY3PLBTOwMX1@pip.repos.beta.sunda.neuron.annapurna.aws.a2z.com
 
 # attrs, neurox-cc required: >=19.2.0, sagemaker 2.103.0 <22,>=20.3.0
@@ -165,12 +167,6 @@ RUN cd $HOME \
     && ./efa_installer.sh -y -g -d --skip-kmod --skip-limit-conf --no-verify \
     && cd $HOME
 
-
-## Install neuron collectives library
-RUN apt-get install -f aws-neuronx-collectives
-
-## Install neurun runtime-lib
-RUN apt-get install -f aws-neuronx-runtime-lib
 
 
 # Clean up after apt update
