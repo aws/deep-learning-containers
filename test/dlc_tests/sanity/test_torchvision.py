@@ -12,6 +12,7 @@ from test.test_utils import (
 )
 
 
+@pytest.mark.usefixtures("feature_torchvision_present")
 @pytest.mark.usefixtures("sagemaker", "huggingface")
 @pytest.mark.model("N/A")
 def test_torchvision_nms_training(pytorch_training):
@@ -32,6 +33,7 @@ def test_torchvision_nms_training(pytorch_training):
     )
 
 
+@pytest.mark.usefixtures("feature_torchvision_present")
 @pytest.mark.usefixtures("sagemaker")
 @pytest.mark.model("N/A")
 def test_torchvision_nms_inference(pytorch_inference, non_huggingface_only):
