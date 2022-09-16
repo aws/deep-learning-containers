@@ -83,6 +83,7 @@ def test_smdataparallel_throughput(framework_version, ecr_image, sagemaker_regio
         invoke_pytorch_estimator(ecr_image, sagemaker_regions, estimator_parameter, job_name=job_name)
 
 
+@pytest.mark.usefixtures("feature_smddp_present")
 @pytest.mark.integration("smdataparallel")
 @pytest.mark.model("mnist")
 @pytest.mark.processor("gpu")
@@ -168,6 +169,8 @@ def test_hc_smdataparallel_mnist(ecr_image, sagemaker_regions, instance_types, t
         invoke_pytorch_estimator(ecr_image, sagemaker_regions, estimator_parameter, job_name=job_name)
 
 
+@pytest.mark.usefixtures("feature_smmp_present")
+@pytest.mark.usefixtures("feature_smddp_present")
 @pytest.mark.processor("gpu")
 @pytest.mark.skip_cpu
 @pytest.mark.integration("smdataparallel_smmodelparallel")
