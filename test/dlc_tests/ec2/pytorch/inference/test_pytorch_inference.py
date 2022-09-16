@@ -82,6 +82,7 @@ def test_ec2_pytorch_inference_eia_gpu(pytorch_inference_eia, ec2_connection, re
     ec2_pytorch_inference(pytorch_inference_eia, "eia", ec2_connection, region)
 
 
+@pytest.mark.usefixtures("feature_torchaudio_present")
 @pytest.mark.usefixtures("sagemaker")
 @pytest.mark.integration("pt_torchaudio_gpu")
 @pytest.mark.model("N/A")
@@ -95,6 +96,7 @@ def test_pytorch_inference_torchaudio_gpu(pytorch_inference, ec2_connection, gpu
     execute_ec2_inference_test(ec2_connection, pytorch_inference, PT_TORCHAUDIO_CMD)
 
 
+@pytest.mark.usefixtures("feature_torchaudio_present")
 @pytest.mark.usefixtures("sagemaker")
 @pytest.mark.integration("pt_torchaudio_cpu")
 @pytest.mark.model("N/A")
@@ -106,6 +108,7 @@ def test_pytorch_inference_torchaudio_cpu(pytorch_inference, ec2_connection, cpu
     execute_ec2_inference_test(ec2_connection, pytorch_inference, PT_TORCHAUDIO_CMD)
 
 
+@pytest.mark.usefixtures("feature_torchdata_present")
 @pytest.mark.usefixtures("sagemaker")
 @pytest.mark.integration("pt_torchdata_gpu")
 @pytest.mark.model("N/A")
@@ -122,6 +125,7 @@ def test_pytorch_inference_torchdata_gpu(
         execute_ec2_inference_test(ec2_connection, pytorch_inference, PT_TORCHDATA_CMD)
 
 
+@pytest.mark.usefixtures("feature_torchdata_present")
 @pytest.mark.usefixtures("sagemaker")
 @pytest.mark.integration("pt_torchdata_cpu")
 @pytest.mark.model("N/A")
