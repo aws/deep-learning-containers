@@ -168,7 +168,7 @@ def test_ecr_basic_scan(image, ecr_client, sts_client, region):
         if remaining_vulnerabilities:
             assert not remaining_vulnerabilities.vulnerability_list, (
                 f"The following vulnerabilities need to be fixed on {image}:\n"
-                f"{json.dumps(remaining_vulnerabilities.vulnerability_list, cls= test_utils.EnhancedJSONEncoder)}"
+                f"{json.dumps(remaining_vulnerabilities.vulnerability_list, indent=4)}"
             )
         return
 
@@ -277,9 +277,10 @@ def test_ecr_enhanced_scan(image, ecr_client, sts_client, region):
         traceback.print_exc()
 
     remaining_vulnerabilities = remaining_vulnerabilities - image_scan_allowlist
+    LOGGER.info(f"Remaining Vulnerabilities found for image: {image}")
 
     if remaining_vulnerabilities:
         assert not remaining_vulnerabilities.vulnerability_list, (
             f"The following vulnerabilities need to be fixed on {image}:\n"
-            f"{json.dumps(remaining_vulnerabilities.vulnerability_list, indent=4)}"
+            f"{json.dumps(remaining_vulnerabilities.vulnerability_list, cls= test_utils.EnhancedJSONEncoder)}"
         )
