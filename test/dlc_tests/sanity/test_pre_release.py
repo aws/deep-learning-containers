@@ -33,6 +33,7 @@ from test.test_utils import (
     get_python_version_from_image_uri,
     construct_buildspec_path,
     is_tf_version,
+    is_nightly_context,
     get_processor_from_image_uri,
     execute_env_variables_test,
     UL18_CPU_ARM64_US_WEST_2,
@@ -234,11 +235,18 @@ def test_framework_version_cpu(image):
         # Habana v1.2 binary does not follow the X.Y.Z+cpu naming convention
         elif "habana" not in image_repo_name:
             if tested_framework == "torch" and Version(tag_framework_version) >= Version("1.10.0"):
-                torch_version_pattern = r"{torch_version}(\+cpu)".format(torch_version=tag_framework_version)
-                assert re.fullmatch(torch_version_pattern, output.stdout.strip()), (
-                    f"torch.__version__ = {output.stdout.strip()} does not match {torch_version_pattern}\n"
-                    f"Please specify framework version as X.Y.Z+cpu"
-                )
+                if is_nightly_context():
+                    torch_version_pattern = r"{torch_version}(\+cpu|\.dev\d+)".format(torch_version=tag_framework_version)
+                    assert re.fullmatch(torch_version_pattern, output.stdout.strip()), (
+                        f"torch.__version__ = {output.stdout.strip()} does not match {torch_version_pattern}\n"
+                        f"Please specify nightly framework version as X.Y.Z.devYYYYMMDD"
+                    )
+                else:    
+                    torch_version_pattern = r"{torch_version}(\+cpu)".format(torch_version=tag_framework_version)
+                    assert re.fullmatch(torch_version_pattern, output.stdout.strip()), (
+                        f"torch.__version__ = {output.stdout.strip()} does not match {torch_version_pattern}\n"
+                        f"Please specify framework version as X.Y.Z+cpu"
+                    )
         else:
             if "neuron" in image:
                 assert tag_framework_version in output.stdout.strip()
@@ -355,11 +363,18 @@ def test_framework_and_cuda_version_gpu(gpu, ec2_connection):
                 version_to_check = "0.3.1" if tag_framework_version == "0.3.2" else tag_framework_version
                 assert output.stdout.strip().startswith(version_to_check)
             elif tested_framework == "torch" and Version(tag_framework_version) >= Version("1.10.0"):
-                torch_version_pattern = r"{torch_version}(\+cu\d+)".format(torch_version=tag_framework_version)
-                assert re.fullmatch(torch_version_pattern, output.stdout.strip()), (
-                    f"torch.__version__ = {output.stdout.strip()} does not match {torch_version_pattern}\n"
-                    f"Please specify framework version as X.Y.Z+cuXXX"
-                )
+                if is_nightly_context():
+                    torch_version_pattern = r"{torch_version}(\+cu\d+|\.dev\d+)".format(torch_version=tag_framework_version)
+                    assert re.fullmatch(torch_version_pattern, output.stdout.strip()), (
+                        f"torch.__version__ = {output.stdout.strip()} does not match {torch_version_pattern}\n"
+                        f"Please specify nightly framework version as X.Y.Z.devYYYYMMDD"
+                    )
+                else:
+                    torch_version_pattern = r"{torch_version}(\+cu\d+)".format(torch_version=tag_framework_version)
+                    assert re.fullmatch(torch_version_pattern, output.stdout.strip()), (
+                        f"torch.__version__ = {output.stdout.strip()} does not match {torch_version_pattern}\n"
+                        f"Please specify framework version as X.Y.Z+cuXXX"
+                    )
             else:
                 assert tag_framework_version == output.stdout.strip()
 
@@ -691,19 +706,17 @@ def test_cuda_paths(gpu):
     python_version = re.search(r"(py\d+)", image).group(1)
     short_python_version = None
     image_tag = re.search(
-        r":(\d+(\.\d+){2}(-transformers\d+(\.\d+){2})?-(gpu)-(py\d+)(-cu\d+)-(ubuntu\d+\.\d+)((-ec2)?-example|-ec2|-sagemaker)?)",
+        r":(\d+(\.\d+){2}(-transformers\d+(\.\d+){2})?-(gpu)-(py\d+)(-cu\d+)-(ubuntu\d+\.\d+)((-ec2)?-example|-ec2|-sagemaker-lite|-sagemaker-full|-sagemaker)?)",
         image,
     ).group(1)
 
     # replacing '_' by '/' to handle huggingface_<framework> case
     framework = framework.replace("_trcomp", "")
     framework_path = framework.replace("_", "/")
-    framework_version_path = os.path.join(
-        dlc_path, framework_path, job_type, "docker", framework_version)
+    framework_version_path = os.path.join(dlc_path, framework_path, job_type, "docker", framework_version)
 
     if not os.path.exists(framework_version_path):
-        framework_version_path = os.path.join(
-            dlc_path, framework_path, job_type, "docker", framework_short_version)
+        framework_version_path = os.path.join(dlc_path, framework_path, job_type, "docker", framework_short_version)
 
     if not os.path.exists(os.path.join(framework_version_path, python_version)):
         # Use the pyX version as opposed to the pyXY version if pyXY path does not exist
@@ -715,6 +728,8 @@ def test_cuda_paths(gpu):
         buildspec = "buildspec-tf1"
     if "trcomp" in image:
         buildspec = "buildspec-trcomp"
+    if "sagemaker-lite" in image:
+        buildspec = "buildspec-sagemaker-lite"
 
     image_tag_in_buildspec = False
     dockerfile_spec_abs_path = None
@@ -726,17 +741,13 @@ def test_cuda_paths(gpu):
     for name, image_spec in buildspec_def["images"].items():
         if image_spec["device_type"] == "gpu" and image_spec["tag"] == image_tag:
             image_tag_in_buildspec = True
-            dockerfile_spec_abs_path = os.path.join(
-                os.path.dirname(
-                    framework_version_path), image_spec["docker_file"].lstrip("docker/")
-            )
+            dockerfile_spec_abs_path = os.path.join(os.path.dirname(framework_version_path), image_spec["docker_file"].lstrip("docker/"))
             break
     try:
         assert image_tag_in_buildspec, f"Image tag {image_tag} not found in {buildspec_path}"
     except AssertionError as e:
         if not is_dlc_cicd_context():
-            LOGGER.warn(
-                f"{e} - not failing, as this is a(n) {os.getenv('BUILD_CONTEXT', 'empty')} build context.")
+            LOGGER.warn(f"{e} - not failing, as this is a(n) {os.getenv('BUILD_CONTEXT', 'empty')} build context.")
         else:
             raise
 
@@ -750,8 +761,7 @@ def test_cuda_paths(gpu):
         f"{image_properties_expected_in_dockerfile_path}"
     )
 
-    assert os.path.exists(
-        dockerfile_spec_abs_path), f"Cannot find dockerfile for {image} in {dockerfile_spec_abs_path}"
+    assert os.path.exists(dockerfile_spec_abs_path), f"Cannot find dockerfile for {image} in {dockerfile_spec_abs_path}"
 
 def _assert_artifact_free(output, stray_artifacts):
     """

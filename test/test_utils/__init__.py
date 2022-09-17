@@ -145,6 +145,11 @@ class NightlyFeatureLabel(Enum):
     AWS_SMDEBUG_INSTALLED = "aws_smdebug_installed"
     AWS_SMDDP_INSTALLED = "aws_smddp_installed"
     AWS_SMMP_INSTALLED = "aws_smmp_installed"
+    PYTORCH_INSTALLED = "pytorch_installed"
+    AWS_S3_PLUGIN_INSTALLED = "aws_s3_plugin_installed"
+    TORCHAUDIO_INSTALLED = "torchaudio_installed"
+    TORCHVISION_INSTALLED = "torchvision_installed"
+    TORCHDATA_INSTALLED = "torchdata_installed"
 
 
 class MissingPythonVersionException(Exception):
@@ -823,7 +828,7 @@ def upload_tests_to_s3(testname_datetime_suffix):
 
     path = run("pwd", hide=True).stdout.strip("\n")
     if "dlc_tests" not in path:
-        EnvironmentError("Test is being run from wrong path")
+        raise EnvironmentError("Test is being run from wrong path")
     while os.path.basename(path) != "dlc_tests":
         path = os.path.dirname(path)
     container_tests_path = os.path.join(path, "container_tests")

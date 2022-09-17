@@ -48,6 +48,7 @@ def test_telemetry_bad_instance_role_disabled_neuron(neuron, ec2_client, ec2_ins
     _run_instance_role_disabled(neuron, ec2_client, ec2_instance, ec2_connection)
 
 
+@pytest.mark.usefixtures("feature_aws_framework_present")
 @pytest.mark.usefixtures("sagemaker")
 @pytest.mark.model("N/A")
 @pytest.mark.processor("gpu")
@@ -57,6 +58,7 @@ def test_telemetry_instance_tag_success_gpu(gpu, ec2_client, ec2_instance, ec2_c
     _run_tag_success(gpu, ec2_client, ec2_instance, ec2_connection)
 
 
+@pytest.mark.usefixtures("feature_aws_framework_present")
 @pytest.mark.usefixtures("sagemaker")
 @pytest.mark.model("N/A")
 @pytest.mark.processor("cpu")
