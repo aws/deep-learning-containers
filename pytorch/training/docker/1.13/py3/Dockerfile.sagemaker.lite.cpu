@@ -2,13 +2,8 @@ ARG PYTHON=python3
 ARG PYTHON_VERSION=3.8.13
 ARG MAMBA_VERSION=4.12.0-2
 
-# PyTorch Binaries
-ARG PT_EC2_TRAINING_URL=https://aws-pytorch-cicd-v3-binaries.s3.us-west-2.amazonaws.com/r1.11.0_v3_e3/20220309-213627/9c116675b0719f637546dbc5507bf79ef8fb622e/cpu/torch-1.11.0%2Bcpu-cp38-cp38-linux_x86_64.whl
-ARG PT_SM_TRAINING_URL=https://aws-pytorch-unified-cicd-binaries.s3.us-west-2.amazonaws.com/r1.11.0_sm/20220907-204239/acb1e0e5642e2893aeef5d95bfe5e949a33b0695/torch-1.11.0%2Bcpu-cp38-cp38-linux_x86_64.whl
-ARG PT_TORCHVISION_URL=https://download.pytorch.org/whl/cpu/torchvision-0.12.0%2Bcpu-cp38-cp38-linux_x86_64.whl
-ARG PT_TORCHAUDIO_URL=https://download.pytorch.org/whl/cpu/torchaudio-0.11.0%2Bcpu-cp38-cp38-linux_x86_64.whl
-ARG PT_TORCHDATA_URL=https://aws-pytorch-cicd-v3-binaries.s3.us-west-2.amazonaws.com/r1.11.0_v3_e3/aws-torchdata/torchdata-0.4.0-cp38-cp38-linux_x86_64.whl
-ARG PT_S3_WHL=https://aws-s3-plugin.s3.us-west-2.amazonaws.com/binaries/0.0.1/1c3e69e/awsio-0.0.1-cp38-cp38-manylinux1_x86_64.whl
+# TODO: Declare and assign build-time variables for AWS PyTorch and other packages here
+# TODO: Declare and assign build-time variable for S3 plugin
 
 FROM ubuntu:20.04 AS common
 
@@ -64,17 +59,6 @@ RUN apt-get update \
  && rm -rf /var/lib/apt/lists/* \
  && apt-get clean
 
-# Install aws-sdk-cpp s3;transfer modules for torchdata
-RUN git clone --recurse-submodules https://github.com/aws/aws-sdk-cpp \
- && cd aws-sdk-cpp/ \
- && mkdir sdk-build \
- && cd sdk-build \
- && cmake .. -DCMAKE_BUILD_TYPE=Release -DBUILD_ONLY="s3;transfer" -DAUTORUN_UNIT_TESTS=OFF \
- && make \
- && make install \
- && cd ../.. \
- && rm -rf aws-sdk-cpp
-
 # Install Open MPI
 RUN wget https://www.open-mpi.org/software/ompi/v4.0/downloads/openmpi-$OPEN_MPI_VERSION.tar.gz \
  && gunzip -c openmpi-$OPEN_MPI_VERSION.tar.gz | tar xf - \
@@ -129,14 +113,12 @@ RUN curl -L -o ~/mambaforge.sh https://github.com/conda-forge/miniforge/releases
     # Below 2 are included in miniconda base, but not mamba so need to install
     conda-content-trust \
     charset-normalizer \
- && /opt/conda/bin/conda install -c dglteam -y dgl=0.8.0 \
- && /opt/conda/bin/conda clean -ya
-
-# Upstream conda looks to have moved to 4.13 which is incompatible with mamba 0.22.1 and will fail the conda-forge installs.
-# having "conda update conda" before the "conda -c conda-forge" commands will automatically update conda to 4.13.
-# Moving conda update conda" after the "conda -c conda-forge" commands keep conda at 4.12 but will update other packages using
-# the current conda 4.12
-RUN /opt/conda/bin/conda update -y conda \
+ && /opt/conda/bin/conda install -c dglteam -y dgl \
+ # Upstream conda looks to have moved to 4.13 which is incompatible with mamba 0.22.1 and will fail the conda-forge installs.
+ # having "conda update conda" before the "conda -c conda-forge" commands will automatically update conda to 4.13.
+ # Moving conda update conda" after the "conda -c conda-forge" commands keep conda at 4.12 but will update other packages using
+ # the current conda 4.12
+ && /opt/conda/bin/conda update -y conda \
  && /opt/conda/bin/conda clean -ya
 
 # Conda installs links for libtinfo.so.6 and libtinfo.so.6.2 both
@@ -154,7 +136,7 @@ RUN pip install --upgrade pip --trusted-host pypi.org --trusted-host files.pytho
     "cryptography>3.2" \
     ipython==8.1.0 \
     numpy==1.22.2 \
-    "opencv-python>=4.3,<5" \
+    "opencv-python>=4.6,<5" \
     packaging \
     "Pillow>=9.0.0" \
     psutil==5.9.0 \
@@ -165,7 +147,7 @@ COPY deep_learning_container.py /usr/local/bin/deep_learning_container.py
 
 RUN chmod +x /usr/local/bin/deep_learning_container.py
 
-RUN curl -o /license.txt  https://aws-dlc-licenses.s3.amazonaws.com/pytorch-1.11/license.txt
+RUN curl -o /license.txt  https://aws-dlc-licenses.s3.amazonaws.com/pytorch-1.12/license.txt
 
 ########################################################
 #  _____ ____ ____    ___
@@ -186,19 +168,23 @@ FROM common AS ec2
 
 ARG PYTHON
 
-# PyTorch Binaries
-ARG PT_EC2_TRAINING_URL
-ARG PT_TORCHVISION_URL
-ARG PT_TORCHAUDIO_URL
-ARG PT_TORCHDATA_URL
-ARG PT_S3_WHL
+# TODO: Redeclare build-time variables for AWS PyTorch and other Torch packages here
+# TODO: Redeclare build-time variable for S3 plugin
 
-# Install AWS-PyTorch and other torch packages
-RUN pip uninstall -y torch torchvision torchaudio torchdata \
- && pip install --no-cache-dir -U ${PT_EC2_TRAINING_URL} ${PT_TORCHVISION_URL} ${PT_TORCHAUDIO_URL} ${PT_TORCHDATA_URL}
+# uninstall if already present
+RUN pip uninstall -y torch torchvision torchaudio torchdata
 
-# Install PT S3 plugin
-RUN pip install -U ${PT_S3_WHL}
+# TODO: Install AWS-PyTorch and other torch packages here
+
+# PyTorch and other packages currently installed from pytorch-nightly pipeline
+RUN /opt/conda/bin/conda install -c pytorch-nightly \
+    pytorch=1.13.* \
+    torchvision \
+    torchaudio \
+    torchdata
+
+# TODO: Install S3 plugin
+
 RUN mkdir -p /etc/pki/tls/certs && cp /etc/ssl/certs/ca-certificates.crt /etc/pki/tls/certs/ca-bundle.crt
 
 RUN HOME_DIR=/root \
@@ -236,24 +222,27 @@ LABEL dlc_major_version="1"
 
 ARG PYTHON
 
-# The smdebug pipeline relies for following format to perform string replace and trigger DLC pipeline for validating
-# the nightly builds. Therefore, while updating the smdebug version, please ensure that the format is not disturbed.
-ARG SMDEBUG_VERSION=1.0.22
+# TODO: Redeclare build-time variable for S3 plugin
+
+# TODO: Install SMDEBUG VERSION here
 
 ENV SAGEMAKER_TRAINING_MODULE=sagemaker_pytorch_container.training:main
 
-ARG PT_SM_TRAINING_URL
-ARG PT_TORCHVISION_URL
-ARG PT_TORCHAUDIO_URL
-ARG PT_TORCHDATA_URL
-ARG PT_S3_WHL
+# TODO: Redeclare ARGs for PyTorch and other Torch packages here
 
-# Install AWS-PyTorch and other torch packages
-RUN pip uninstall -y torch torchvision torchaudio torchdata \
- && pip install --no-cache-dir -U ${PT_SM_TRAINING_URL} ${PT_TORCHVISION_URL} ${PT_TORCHAUDIO_URL} ${PT_TORCHDATA_URL}
+# uninstall if already present
+RUN pip uninstall -y torch torchvision torchaudio torchdata
 
-# Install PT S3 plugin
-RUN pip install -U ${PT_S3_WHL}
+# TODO: Install AWS-PyTorch and other torch packages here
+
+RUN /opt/conda/bin/conda install -c pytorch-nightly \
+    pytorch=1.13.* \
+    torchvision \
+    torchaudio \
+    torchdata
+
+# TODO: Install S3 plugin
+
 RUN mkdir -p /etc/pki/tls/certs && cp /etc/ssl/certs/ca-certificates.crt /etc/pki/tls/certs/ca-bundle.crt
 
 WORKDIR /
@@ -276,14 +265,9 @@ RUN pip install --upgrade pip --trusted-host pypi.org --trusted-host files.pytho
     smclarify \
     "sagemaker>=2,<3" \
     sagemaker-experiments==0.* \
-    "sagemaker-pytorch-training>=2.5.1,<3"
+    "sagemaker-pytorch-training<3"
 
-# Install smdebug from souce
-RUN cd /tmp \
-  && git clone -b ${SMDEBUG_VERSION} https://github.com/awslabs/sagemaker-debugger \
-  && cd sagemaker-debugger \
-  && python setup.py install \
-  && rm -rf /tmp/*
+# TODO: Install SMDEBUG from source here
 
 # Install extra packages
 # numba 0.54 only works with numpy>=1.20. See https://github.com/numba/numba/issues/7339

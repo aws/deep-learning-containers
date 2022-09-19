@@ -3,29 +3,24 @@ ARG PYTHON_VERSION=3.8.13
 ARG PYTHON_SHORT_VERSION=3.8
 ARG MAMBA_VERSION=4.12.0-2
 
-# PyTorch Binaries
-ARG PT_EC2_TRAINING_URL=https://aws-pytorch-cicd-v3-binaries.s3.us-west-2.amazonaws.com/r1.11.0_v3_e3/20220322-194812/272547162a367c4aaafe8f7e1d9d35d39441c6f3/gpu/torch-1.11.0%2Bcu113-cp38-cp38-linux_x86_64.whl
-ARG PT_SM_TRAINING_URL=https://aws-pytorch-unified-cicd-binaries.s3.us-west-2.amazonaws.com/r1.11.0_sm/20220907-205807/acb1e0e5642e2893aeef5d95bfe5e949a33b0695/torch-1.11.0%2Bcu113-cp38-cp38-linux_x86_64.whl
-ARG PT_TORCHVISION_URL=https://download.pytorch.org/whl/cu113/torchvision-0.12.0%2Bcu113-cp38-cp38-linux_x86_64.whl
-ARG PT_TORCHAUDIO_URL=https://download.pytorch.org/whl/cu113/torchaudio-0.11.0%2Bcu113-cp38-cp38-linux_x86_64.whl
-ARG PT_TORCHDATA_URL=https://aws-pytorch-cicd-v3-binaries.s3.us-west-2.amazonaws.com/r1.11.0_v3_e3/aws-torchdata/torchdata-0.4.0-cp38-cp38-linux_x86_64.whl
-ARG PT_S3_WHL_GPU=https://aws-s3-plugin.s3.us-west-2.amazonaws.com/binaries/0.0.1/1c3e69e/awsio-0.0.1-cp38-cp38-manylinux1_x86_64.whl
+# TODO: Declare and assign build-time variables for AWS PyTorch and other packages here
+# TODO: Declare and assign build-time variable for S3 plugin
 
-# SMD binaries
-ARG SMD_DATA_PARALLEL_URL=https://smdataparallel.s3.amazonaws.com/binary/pytorch/1.11.0/cu113/2022-09-12/smdistributed_dataparallel-1.5.1-cp38-cp38-linux_x86_64.whl
-ARG SMD_MODEL_PARALLEL_URL=https://sagemaker-distributed-model-parallel.s3.us-west-2.amazonaws.com/pytorch-1.11.0/build-artifacts/2022-09-14-05-49/smdistributed_modelparallel-1.11.2-cp38-cp38-linux_x86_64.whl
+# TODO: Declare SMD_DATA_PARALLEL_URL and SMD_MODEL_PARALLEL_URL urls here
 
-FROM nvidia/cuda:11.3.1-base-ubuntu20.04 AS common
+# TODO: Declare ZERO_2D_URL url here
+
+FROM nvidia/cuda:11.6.2-base-ubuntu20.04 AS common
 
 LABEL maintainer="Amazon AI"
-LABEL dlc_major_version="2"
+LABEL dlc_major_version="1"
 
 ARG PYTHON
 ARG PYTHON_VERSION
 ARG PYTHON_SHORT_VERSION
 ARG MAMBA_VERSION
 
-ARG CUBLAS_VERSION=11.5.1.109
+ARG CUBLAS_VERSION=11.9.2.110
 ARG EFA_PATH=/opt/amazon/efa
 ARG CUDA_HOME=/usr/local/cuda
 
@@ -45,12 +40,12 @@ ENV PATH /opt/conda/bin:$PATH
 ENV TORCH_CUDA_ARCH_LIST="3.7 5.0 7.0+PTX 8.0"
 ENV TORCH_NVCC_FLAGS="-Xfatbin -compress-all"
 
-ENV CUDNN_VERSION=8.2.0.53
+ENV CUDNN_VERSION=8.4.0.27
 ENV NCCL_VERSION=2.10.3
 ENV HOROVOD_VERSION=0.24.3
-ENV EFA_VERSION=1.15.2
+ENV EFA_VERSION=1.16.0
 ENV OMPI_VERSION=4.1.1
-ENV BRANCH_OFI=1.4.0-aws
+ENV BRANCH_OFI=1.3.0-aws
 
 ENV CMAKE_PREFIX_PATH="$(dirname $(which conda))/../"
 ENV OPEN_MPI_PATH=/opt/amazon/openmpi
@@ -67,22 +62,22 @@ RUN apt-get update \
     build-essential \
     ca-certificates \
     cmake \
-    cuda-command-line-tools-11-3 \
-    cuda-cudart-11-3 \
-    cuda-libraries-11-3 \
+    cuda-command-line-tools-11-6 \
+    cuda-cudart-11-6 \
+    cuda-libraries-11-6 \
     curl \
     emacs \
     git \
     hwloc \
     jq \
-    libcublas-11-3=${CUBLAS_VERSION}-1 \
-    libcublas-dev-11-3=${CUBLAS_VERSION}-1 \
-    libcudnn8=$CUDNN_VERSION-1+cuda11.3 \
-    libcufft-dev-11-3 \
-    libcurand-dev-11-3 \
+    libcublas-11-6=${CUBLAS_VERSION}-1 \
+    libcublas-dev-11-6=${CUBLAS_VERSION}-1 \
+    libcudnn8=$CUDNN_VERSION-1+cuda11.6 \
+    libcufft-dev-11-6 \
+    libcurand-dev-11-6 \
     libcurl4-openssl-dev \
-    libcusolver-dev-11-3 \
-    libcusparse-dev-11-3 \
+    libcusolver-dev-11-6 \
+    libcusparse-dev-11-6 \
     libglib2.0-0 \
     libgl1-mesa-glx \
     libsm6 \
@@ -104,17 +99,6 @@ RUN apt-get update \
     zlib1g-dev \
  && rm -rf /var/lib/apt/lists/* \
  && apt-get clean
-
-# Install aws-sdk-cpp s3;transfer modules for torchdata
-RUN git clone --recurse-submodules https://github.com/aws/aws-sdk-cpp \
- && cd aws-sdk-cpp/ \
- && mkdir sdk-build \
- && cd sdk-build \
- && cmake .. -DCMAKE_BUILD_TYPE=Release -DBUILD_ONLY="s3;transfer" -DAUTORUN_UNIT_TESTS=OFF \
- && make \
- && make install \
- && cd ../.. \
- && rm -rf aws-sdk-cpp
 
 # Install NCCL
 RUN cd /tmp \
@@ -173,15 +157,13 @@ RUN ompi_info --parsable --all | grep mpi_built_with_cuda_support:value \
     # Below 2 are included in miniconda base, but not mamba so need to install
     conda-content-trust \
     charset-normalizer \
- && /opt/conda/bin/conda install -c dglteam -y dgl-cuda11.3=0.8.0 \
- && /opt/conda/bin/conda install -c pytorch magma-cuda113 \
- && /opt/conda/bin/conda clean -ya
-
-# Upstream conda looks to have moved to 4.13 which is incompatible with mamba 0.22.1 and will fail the conda-forge installs.
-# having "conda update conda" before the "conda -c conda-forge" commands will automatically update conda to 4.13.
-# Moving conda update conda" after the "conda -c conda-forge" commands keep conda at 4.12 but will update other packages using
-# the current conda 4.12
-RUN /opt/conda/bin/conda update -y conda \
+ && /opt/conda/bin/conda install -c dglteam -y dgl-cuda11.6 \
+ && /opt/conda/bin/conda install -c pytorch magma-cuda116 \
+ # Upstream conda looks to have moved to 4.13 which is incompatible with mamba 0.22.1 and will fail the conda-forge installs.
+ # having "conda update conda" before the "conda -c conda-forge" commands will automatically update conda to 4.13.
+ # Moving conda update conda" after the "conda -c conda-forge" commands keep conda at 4.12 but will update other packages using
+ # the current conda 4.12
+ && /opt/conda/bin/conda update conda \
  && /opt/conda/bin/conda clean -ya
 
 # Conda installs links for libtinfo.so.6 and libtinfo.so.6.2 both
@@ -205,7 +187,7 @@ RUN pip install --no-cache-dir -U \
     ipython==8.1.0 \
     mpi4py==3.1.3 \
     numpy==1.22.2 \
-    "opencv-python>=4.3,<5" \
+    opencv-python \
     packaging \
     "Pillow>=9.0.0" \
     psutil \
@@ -217,7 +199,7 @@ COPY deep_learning_container.py /usr/local/bin/deep_learning_container.py
 
 RUN chmod +x /usr/local/bin/deep_learning_container.py
 
-RUN curl -o /license.txt  https://aws-dlc-licenses.s3.amazonaws.com/pytorch-1.11/license.txt
+RUN curl -o /license.txt  https://aws-dlc-licenses.s3.amazonaws.com/pytorch-1.12/license.txt
 
 ########################################################
 #  _____ ____ ____    ___
@@ -240,23 +222,25 @@ ARG PYTHON
 ARG PYTHON_VERSION
 ARG PYTHON_SHORT_VERSION
 
-# PyTorch Binaries
-ARG PT_EC2_TRAINING_URL
-ARG PT_TORCHVISION_URL
-ARG PT_TORCHAUDIO_URL
-ARG PT_TORCHDATA_URL
-ARG PT_S3_WHL_GPU
+# TODO: Redeclare build-time variables for AWS PyTorch and other Torch packages here
+# TODO: Redeclare build-time variables for S3 plugin
 
-# Install AWS-PyTorch and other torch packages
-RUN pip uninstall -y torch torchvision torchaudio torchdata \
- && pip install --no-cache-dir -U ${PT_EC2_TRAINING_URL} ${PT_TORCHVISION_URL} ${PT_TORCHAUDIO_URL} ${PT_TORCHDATA_URL} torchnet
+# uninstall if already present
+RUN pip uninstall -y torch torchvision torchaudio torchdata
 
-# Install Nvidia Apex
-## Pin apex commit requested by sm-model-parallel team
-RUN git clone https://github.com/NVIDIA/apex && \
-    cd apex && \
-    git checkout aa756ce && \
-    pip install -v --no-cache-dir --global-option="--cpp_ext" --global-option="--cuda_ext" ./
+# TODO: Install PyTorch and other Torch packages here
+
+RUN /opt/conda/bin/conda install -c pytorch-nightly \
+    pytorch=1.13.* \
+    torchvision \
+    torchaudio \
+    torchdata \
+    cudatoolkit=11.6
+
+# Remove the repo lists
+RUN rm /etc/apt/sources.list.d/cuda*.list
+
+# TODO: Install Nvidia Apex
 
 # Configure Open MPI and configure NCCL parameters
 RUN mv $OPEN_MPI_PATH/bin/mpirun $OPEN_MPI_PATH/bin/mpirun.real \
@@ -308,12 +292,11 @@ RUN rm -rf /root/.ssh/ && \
 
 # Install Horovod
 RUN pip uninstall -y horovod \
- && ldconfig /usr/local/cuda-11.3/targets/x86_64-linux/lib/stubs \
- && HOROVOD_GPU_ALLREDUCE=NCCL HOROVOD_CUDA_HOME=/usr/local/cuda-11.3 HOROVOD_WITH_PYTORCH=1 pip install --no-cache-dir horovod==${HOROVOD_VERSION} \
+ && ldconfig /usr/local/cuda-11.6/targets/x86_64-linux/lib/stubs \
+ && HOROVOD_GPU_ALLREDUCE=NCCL HOROVOD_CUDA_HOME=/usr/local/cuda-11.6 HOROVOD_WITH_PYTORCH=1 pip install --no-cache-dir horovod==${HOROVOD_VERSION} \
  && ldconfig
 
-# Install PT S3 plugin
-RUN pip install --no-cache-dir -U ${PT_S3_WHL_GPU}
+# TODO: Install S3 plugin
 RUN mkdir -p /etc/pki/tls/certs && cp /etc/ssl/certs/ca-certificates.crt /etc/pki/tls/certs/ca-bundle.crt
 
 WORKDIR /
@@ -355,35 +338,36 @@ ARG PYTHON
 ARG PYTHON_VERSION
 ARG PYTHON_SHORT_VERSION
 
+ARG METIS=metis-5.1.0
 ARG RMM_VERSION=0.15.0
 
-# The smdebug pipeline relies for following format to perform string replace and trigger DLC pipeline for validating
-# the nightly builds. Therefore, while updating the smdebug version, please ensure that the format is not disturbed.
-ARG SMDEBUG_VERSION=1.0.22
+# TODO: Declare SMDEBUG_VERSION version here
 
 ENV SAGEMAKER_TRAINING_MODULE=sagemaker_pytorch_container.training:main
 
-# SMD model parallel and data parallel binaries
-ARG SMD_DATA_PARALLEL_URL
-ARG SMD_MODEL_PARALLEL_URL
+# TODO: Declare SM_DATA_PARALLEL_URL url here
+# TODO: Declare SM_MODEL_PARALLEL_URL url here
 
-# PyTorch Binaries
-ARG PT_SM_TRAINING_URL
-ARG PT_TORCHVISION_URL
-ARG PT_TORCHAUDIO_URL
-ARG PT_TORCHDATA_URL
-ARG PT_S3_WHL_GPU
+# TODO: Declare ZeRO_2D_URL url here
 
-# Install AWS-PyTorch and other torch packages
-RUN pip uninstall -y torch torchvision torchaudio torchdata \
- && pip install --no-cache-dir -U ${PT_SM_TRAINING_URL} ${PT_TORCHVISION_URL} ${PT_TORCHAUDIO_URL} ${PT_TORCHDATA_URL} torchnet
+# TODO: Redeclare build-time variables for PyTorch and other Torch packages here
+# TODO: Redeclare build-time variables for S3 plugin
 
-# Install Nvidia Apex
-## Pin apex commit requested by sm-model-parallel team
-RUN git clone https://github.com/NVIDIA/apex && \
-    cd apex && \
-    git checkout aa756ce && \
-    pip install -v --no-cache-dir --global-option="--cpp_ext" --global-option="--cuda_ext" ./
+# uninstall if already present
+RUN pip uninstall -y torch torchvision torchaudio torchdata
+
+# TODO: Install PyTorch and other Torch packages here
+RUN /opt/conda/bin/conda install -c pytorch-nightly \
+    pytorch=1.13.* \
+    torchvision \
+    torchaudio \
+    torchdata \
+    cudatoolkit=11.6
+
+# Remove the repo lists
+RUN rm /etc/apt/sources.list.d/cuda*.list
+
+# TODO: Install Nvidia Apex here
 
 # Configure Open MPI and configure NCCL parameters
 RUN mv $OPEN_MPI_PATH/bin/mpirun $OPEN_MPI_PATH/bin/mpirun.real \
@@ -435,12 +419,12 @@ RUN rm -rf /root/.ssh/ && \
 
 # Install Horovod
 RUN pip uninstall -y horovod \
- && ldconfig /usr/local/cuda-11.3/targets/x86_64-linux/lib/stubs \
- && HOROVOD_GPU_ALLREDUCE=NCCL HOROVOD_CUDA_HOME=/usr/local/cuda-11.3 HOROVOD_WITH_PYTORCH=1 pip install --no-cache-dir horovod==${HOROVOD_VERSION} \
+ && ldconfig /usr/local/cuda-11.6/targets/x86_64-linux/lib/stubs \
+ && HOROVOD_GPU_ALLREDUCE=NCCL HOROVOD_CUDA_HOME=/usr/local/cuda-11.6 HOROVOD_WITH_PYTORCH=1 pip install --no-cache-dir horovod==${HOROVOD_VERSION} \
  && ldconfig
 
-# Install PT S3 plugin
-RUN pip install --no-cache-dir -U ${PT_S3_WHL_GPU}
+# TODO: Install S3 plugin
+
 RUN mkdir -p /etc/pki/tls/certs && cp /etc/ssl/certs/ca-certificates.crt /etc/pki/tls/certs/ca-bundle.crt
 
 WORKDIR /
@@ -479,14 +463,9 @@ RUN pip install --no-cache-dir -U \
     smclarify \
     "sagemaker>=2,<3" \
     sagemaker-experiments==0.* \
-    "sagemaker-pytorch-training>=2.5.1,<3"
+    sagemaker-pytorch-training
 
-# Install smdebug from souce
-RUN cd /tmp \
-  && git clone -b ${SMDEBUG_VERSION} https://github.com/awslabs/sagemaker-debugger \
-  && cd sagemaker-debugger \
-  && python setup.py install \
-  && rm -rf /tmp/*
+# TODO: Install stable SMDEBUG releases from source here
 
 # Install extra packages
 # numba 0.54 only works with numpy>=1.20. See https://github.com/numba/numba/issues/7339
@@ -499,6 +478,21 @@ RUN pip install --no-cache-dir -U \
     "numba<0.54" \
     "shap>=0.39,<1"
 
+# install metis
+RUN rm /etc/apt/sources.list.d/* \
+ && wget -nv http://glaros.dtc.umn.edu/gkhome/fetch/sw/metis/${METIS}.tar.gz \
+ && gunzip -f ${METIS}.tar.gz \
+ && tar -xvf ${METIS}.tar \
+ && cd ${METIS} \
+ && apt-get update \
+ && make config shared=1 \
+ && make install \
+ && cd .. \
+ && rm -rf ${METIS}.tar* \
+ && rm -rf ${METIS} \
+ && rm -rf /var/lib/apt/lists/* \
+ && apt-get clean
+
 # Install RAPIDSMemoryManager.
 # Requires cmake>=3.14.
 RUN  wget -nv https://github.com/rapidsai/rmm/archive/v${RMM_VERSION}.tar.gz \
@@ -509,13 +503,13 @@ RUN  wget -nv https://github.com/rapidsai/rmm/archive/v${RMM_VERSION}.tar.gz \
  && rm -rf v${RMM_VERSION}.tar* \
  && rm -rf rmm-${RMM_VERSION}
 
-# Install SM Distributed Modelparallel binary
-RUN pip install --no-cache-dir -U ${SMD_MODEL_PARALLEL_URL}
+# TODO: Install ZeRO-2D Binary here
 
-# Install SM Distributed DataParallel binary
-RUN SMDATAPARALLEL_PT=1 pip install --no-cache-dir ${SMD_DATA_PARALLEL_URL}
+# TODO: Install SM Distributed Model Parallel binary here
 
-ENV LD_LIBRARY_PATH="/opt/conda/lib/python${PYTHON_SHORT_VERSION}/site-packages/smdistributed/dataparallel/lib:$LD_LIBRARY_PATH"
+# TODO: Install SM Distributed Data Parallel binary here
+
+# TODO: Update LD_LIBRARY_PATH for SM Distributed Data Parallel
 
 WORKDIR /
 
