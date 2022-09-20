@@ -26,7 +26,7 @@ TIMEOUT_SECS = 5
 
 TOKEN = None
 
-def requests_helper(url, headers, timeout = 0.1):
+def requests_helper(url, headers = None, timeout = 0.1):
     response = None
     try:
         if headers:

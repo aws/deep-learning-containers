@@ -13,7 +13,7 @@ from packaging.specifiers import SpecifierSet
 @pytest.mark.processor("gpu")
 @pytest.mark.integration("telemetry")
 @pytest.mark.parametrize("ec2_instance_type", ["p3.2xlarge"], indirect=True)
-def test_telemetry_bad_instance_gpu(gpu, ec2_client, ec2_instance, ec2_connection):
+def test_telemetry_instance_tag_failure_gpu(gpu, ec2_client, ec2_instance, ec2_connection):
     _run_tag_failure_IMDSv1_disabled(gpu, ec2_client, ec2_instance, ec2_connection)
     _run_tag_failure_IMDSv2_hop_limit_1(gpu, ec2_client, ec2_instance, ec2_connection)
 
@@ -23,7 +23,7 @@ def test_telemetry_bad_instance_gpu(gpu, ec2_client, ec2_instance, ec2_connectio
 @pytest.mark.processor("cpu")
 @pytest.mark.integration("telemetry")
 @pytest.mark.parametrize("ec2_instance_type", ["c4.4xlarge"], indirect=True)
-def test_telemetry_bad_instance_cpu(cpu, ec2_client, ec2_instance, ec2_connection, cpu_only, x86_compatible_only):
+def test_telemetry_instance_tag_failure_cpu(cpu, ec2_client, ec2_instance, ec2_connection, cpu_only, x86_compatible_only):
     _run_tag_failure_IMDSv1_disabled(cpu, ec2_client, ec2_instance, ec2_connection)
     _run_tag_failure_IMDSv2_hop_limit_1(cpu, ec2_client, ec2_instance, ec2_connection)
 
@@ -34,7 +34,7 @@ def test_telemetry_bad_instance_cpu(cpu, ec2_client, ec2_instance, ec2_connectio
 @pytest.mark.integration("telemetry")
 @pytest.mark.parametrize("ec2_instance_type", ["c6g.4xlarge"], indirect=True)
 @pytest.mark.parametrize("ec2_instance_ami", [test_utils.UL18_CPU_ARM64_US_WEST_2], indirect=True)
-def test_telemetry_bad_instance_graviton_cpu(cpu, ec2_client, ec2_instance, ec2_connection, graviton_compatible_only):
+def test_telemetry_instance_tag_failure_graviton_cpu(cpu, ec2_client, ec2_instance, ec2_connection, graviton_compatible_only):
     ec2_connection.run(f"sudo apt-get update -y")
     ec2_connection.run(f"sudo apt-get install -y net-tools")
     _run_tag_failure_IMDSv1_disabled(cpu, ec2_client, ec2_instance, ec2_connection)
@@ -47,7 +47,7 @@ def test_telemetry_bad_instance_graviton_cpu(cpu, ec2_client, ec2_instance, ec2_
 @pytest.mark.integration("telemetry")
 @pytest.mark.parametrize("ec2_instance_type", ["inf1.xlarge"], indirect=True)
 @pytest.mark.skip("Feature doesn't exist on Neuron DLCs")
-def test_telemetry_bad_instance_neuron(neuron, ec2_client, ec2_instance, ec2_connection):
+def test_telemetry_instance_tag_failure_neuron(neuron, ec2_client, ec2_instance, ec2_connection):
     _run_tag_failure_IMDSv1_disabled(neuron, ec2_client, ec2_instance, ec2_connection)
     _run_tag_failure_IMDSv2_hop_limit_1(neuron, ec2_client, ec2_instance, ec2_connection)
 
@@ -139,7 +139,7 @@ def _run_tag_failure_IMDSv1_disabled(image_uri, ec2_client, ec2_instance, ec2_co
     job_type = test_utils.get_job_type_from_image(image_uri)
     processor = test_utils.get_processor_from_image_uri(image_uri)
 
-    container_name = f"{repo_name}-telemetry_bad_instance_role-ec2"
+    container_name = f"{repo_name}-telemetry_instance_tag_failure-ec2"
 
     docker_cmd = "nvidia-docker" if processor == "gpu" else "docker"
 
@@ -192,7 +192,7 @@ def _run_tag_success_IMDSv1(image_uri, ec2_client, ec2_instance, ec2_connection)
     job_type = test_utils.get_job_type_from_image(image_uri)
     processor = test_utils.get_processor_from_image_uri(image_uri)
 
-    container_name = f"{repo_name}-telemetry_tag_instance_success-ec2"
+    container_name = f"{repo_name}-telemetry_tag_instance_success-ec2-IMDSv1"
 
     docker_cmd = "nvidia-docker" if processor == "gpu" else "docker"
 
@@ -235,7 +235,7 @@ def _run_tag_failure_IMDSv2_hop_limit_1(image_uri, ec2_client, ec2_instance, ec2
     job_type = test_utils.get_job_type_from_image(image_uri)
     processor = test_utils.get_processor_from_image_uri(image_uri)
 
-    container_name = f"{repo_name}-telemetry_tag_instance_success-ec2"
+    container_name = f"{repo_name}-telemetry_tag_instance_failure-ec2-IMDSv2"
 
     docker_cmd = "nvidia-docker" if processor == "gpu" else "docker"
 
@@ -282,7 +282,7 @@ def _run_tag_success_IMDSv2_hop_limit_2(image_uri, ec2_client, ec2_instance, ec2
     job_type = test_utils.get_job_type_from_image(image_uri)
     processor = test_utils.get_processor_from_image_uri(image_uri)
 
-    container_name = f"{repo_name}-telemetry_tag_instance_success-ec2"
+    container_name = f"{repo_name}-telemetry_tag_instance_success-ec2-IMDSv2"
 
     docker_cmd = "nvidia-docker" if processor == "gpu" else "docker"
 
