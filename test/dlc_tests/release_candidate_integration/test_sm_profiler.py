@@ -32,8 +32,8 @@ def test_sm_profiler_pt(pytorch_training):
         pytest.skip(f"Processor {processor} not supported. Skipping test.")
 
     _, image_framework_version = get_framework_and_version_from_tag(pytorch_training)
-    if Version(image_framework_version) in SpecifierSet(">=1.12"):
-        pytest.skip("sm profiler ZCC test is not supported in PT 1.12 and above")
+    if Version(image_framework_version) in SpecifierSet(">=1.10"):
+        pytest.skip("sm profiler ZCC test is not supported in PT 1.10 and above")
 
     ctx = Context()
 
