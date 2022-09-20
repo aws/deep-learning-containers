@@ -54,8 +54,7 @@ RUN pip install --no-cache-dir --user -U \
     torchnet \
     "cryptography>3.2" \
     werkzeug \
-    oauthlib \
- && pip install --no-cache-dir --user -U boto3 --upgrade \
+ && pip install --no-cache-dir --user -U boto3 oauthlib --upgrade \
  && pip uninstall -y torch \
  && pip uninstall -y hb-torch \
  && pip install --no-cache-dir --user -U ${PT_TRAINING_URL} \
