@@ -3,7 +3,7 @@ release_images:
 # Check .release_images_template.yml for reference
   1:
     framework: "pytorch"
-    version: "1.11.0"
+    version: "1.10.2"
     arch_type: "x86"
     customer_type: "sagemaker"
     training:
