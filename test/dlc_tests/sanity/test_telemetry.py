@@ -13,8 +13,9 @@ from packaging.specifiers import SpecifierSet
 @pytest.mark.processor("gpu")
 @pytest.mark.integration("telemetry")
 @pytest.mark.parametrize("ec2_instance_type", ["p3.2xlarge"], indirect=True)
-def test_telemetry_instance_role_disabled_gpu(gpu, ec2_client, ec2_instance, ec2_connection):
+def test_telemetry_bad_instance_gpu(gpu, ec2_client, ec2_instance, ec2_connection):
     _run_instance_role_disabled(gpu, ec2_client, ec2_instance, ec2_connection)
+    _run_tag_failure_IMDSv2_hop_limit_1(gpu, ec2_client, ec2_instance, ec2_connection)
 
 
 @pytest.mark.usefixtures("sagemaker", "huggingface")
@@ -22,8 +23,9 @@ def test_telemetry_instance_role_disabled_gpu(gpu, ec2_client, ec2_instance, ec2
 @pytest.mark.processor("cpu")
 @pytest.mark.integration("telemetry")
 @pytest.mark.parametrize("ec2_instance_type", ["c4.4xlarge"], indirect=True)
-def test_telemetry_bad_instance_role_disabled_cpu(cpu, ec2_client, ec2_instance, ec2_connection, cpu_only, x86_compatible_only):
+def test_telemetry_bad_instance_cpu(cpu, ec2_client, ec2_instance, ec2_connection, cpu_only, x86_compatible_only):
     _run_instance_role_disabled(cpu, ec2_client, ec2_instance, ec2_connection)
+    _run_tag_failure_IMDSv2_hop_limit_1(cpu, ec2_client, ec2_instance, ec2_connection)
 
 
 @pytest.mark.usefixtures("sagemaker")
@@ -32,10 +34,11 @@ def test_telemetry_bad_instance_role_disabled_cpu(cpu, ec2_client, ec2_instance,
 @pytest.mark.integration("telemetry")
 @pytest.mark.parametrize("ec2_instance_type", ["c6g.4xlarge"], indirect=True)
 @pytest.mark.parametrize("ec2_instance_ami", [test_utils.UL18_CPU_ARM64_US_WEST_2], indirect=True)
-def test_telemetry_bad_instance_role_disabled_graviton_cpu(cpu, ec2_client, ec2_instance, ec2_connection, graviton_compatible_only):
+def test_telemetry_bad_instance_graviton_cpu(cpu, ec2_client, ec2_instance, ec2_connection, graviton_compatible_only):
     ec2_connection.run(f"sudo apt-get update -y")
     ec2_connection.run(f"sudo apt-get install -y net-tools")
     _run_instance_role_disabled(cpu, ec2_client, ec2_instance, ec2_connection)
+    _run_tag_failure_IMDSv2_hop_limit_1(cpu, ec2_client, ec2_instance, ec2_connection)
 
 
 @pytest.mark.usefixtures("sagemaker")
@@ -44,8 +47,9 @@ def test_telemetry_bad_instance_role_disabled_graviton_cpu(cpu, ec2_client, ec2_
 @pytest.mark.integration("telemetry")
 @pytest.mark.parametrize("ec2_instance_type", ["inf1.xlarge"], indirect=True)
 @pytest.mark.skip("Feature doesn't exist on Neuron DLCs")
-def test_telemetry_bad_instance_role_disabled_neuron(neuron, ec2_client, ec2_instance, ec2_connection):
+def test_telemetry_bad_instance_neuron(neuron, ec2_client, ec2_instance, ec2_connection):
     _run_instance_role_disabled(neuron, ec2_client, ec2_instance, ec2_connection)
+    _run_tag_failure_IMDSv2_hop_limit_1(neuron, ec2_client, ec2_instance, ec2_connection)
 
 
 @pytest.mark.usefixtures("sagemaker")
@@ -55,7 +59,6 @@ def test_telemetry_bad_instance_role_disabled_neuron(neuron, ec2_client, ec2_ins
 @pytest.mark.parametrize("ec2_instance_type", ["p3.2xlarge"], indirect=True)
 def test_telemetry_instance_tag_success_gpu(gpu, ec2_client, ec2_instance, ec2_connection, non_huggingface_only, non_autogluon_only):
     _run_tag_success_IMDSv1(gpu, ec2_client, ec2_instance, ec2_connection)
-    _run_tag_failure_IMDSv2_hop_limit_1(gpu, ec2_client, ec2_instance, ec2_connection)
     _run_tag_success_IMDSv2_hop_limit_2(gpu, ec2_client, ec2_instance, ec2_connection)
 
 
@@ -65,9 +68,8 @@ def test_telemetry_instance_tag_success_gpu(gpu, ec2_client, ec2_instance, ec2_c
 @pytest.mark.integration("telemetry")
 @pytest.mark.parametrize("ec2_instance_type", ["c4.4xlarge"], indirect=True)
 def test_telemetry_instance_tag_success_cpu(cpu, ec2_client, ec2_instance, ec2_connection, cpu_only, non_huggingface_only, non_autogluon_only, x86_compatible_only):
-    _run_tag_success_IMDSv1(gpu, ec2_client, ec2_instance, ec2_connection)
-    _run_tag_failure_IMDSv2_hop_limit_1(gpu, ec2_client, ec2_instance, ec2_connection)
-    _run_tag_success_IMDSv2_hop_limit_2(gpu, ec2_client, ec2_instance, ec2_connection)
+    _run_tag_success_IMDSv1(cpu, ec2_client, ec2_instance, ec2_connection)
+    _run_tag_success_IMDSv2_hop_limit_2(cpu, ec2_client, ec2_instance, ec2_connection)
 
 
 @pytest.mark.usefixtures("sagemaker")
@@ -77,9 +79,8 @@ def test_telemetry_instance_tag_success_cpu(cpu, ec2_client, ec2_instance, ec2_c
 @pytest.mark.parametrize("ec2_instance_type", ["c6g.4xlarge"], indirect=True)
 @pytest.mark.parametrize("ec2_instance_ami", [test_utils.UL18_CPU_ARM64_US_WEST_2], indirect=True)
 def test_telemetry_instance_tag_success_graviton_cpu(cpu, ec2_client, ec2_instance, ec2_connection, graviton_compatible_only):
-    _run_tag_success_IMDSv1(gpu, ec2_client, ec2_instance, ec2_connection)
-    _run_tag_failure_IMDSv2_hop_limit_1(gpu, ec2_client, ec2_instance, ec2_connection)
-    _run_tag_success_IMDSv2_hop_limit_2(gpu, ec2_client, ec2_instance, ec2_connection)
+    _run_tag_success_IMDSv1(cpu, ec2_client, ec2_instance, ec2_connection)
+    _run_tag_success_IMDSv2_hop_limit_2(cpu, ec2_client, ec2_instance, ec2_connection)
 
 
 @pytest.mark.usefixtures("sagemaker")
@@ -89,9 +90,8 @@ def test_telemetry_instance_tag_success_graviton_cpu(cpu, ec2_client, ec2_instan
 @pytest.mark.parametrize("ec2_instance_type", ["inf1.xlarge"], indirect=True)
 @pytest.mark.skip("Feature doesn't exist on Neuron DLCs")
 def test_telemetry_instance_tag_success_neuron(neuron, ec2_client, ec2_instance, ec2_connection, non_huggingface_only, non_autogluon_only):
-    _run_tag_success_IMDSv1(gpu, ec2_client, ec2_instance, ec2_connection)
-    _run_tag_failure_IMDSv2_hop_limit_1(gpu, ec2_client, ec2_instance, ec2_connection)
-    _run_tag_success_IMDSv2_hop_limit_2(gpu, ec2_client, ec2_instance, ec2_connection)
+    _run_tag_success_IMDSv1(neuron, ec2_client, ec2_instance, ec2_connection)
+    _run_tag_success_IMDSv2_hop_limit_2(neuron, ec2_client, ec2_instance, ec2_connection)
 
 
 @pytest.mark.usefixtures("sagemaker")
