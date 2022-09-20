@@ -48,6 +48,7 @@ def test_telemetry_bad_instance_role_disabled_neuron(neuron, ec2_client, ec2_ins
     _run_instance_role_disabled(neuron, ec2_client, ec2_instance, ec2_connection)
 
 
+@pytest.mark.usefixtures("feature_aws_framework_present")
 @pytest.mark.usefixtures("sagemaker")
 @pytest.mark.model("N/A")
 @pytest.mark.processor("gpu")
@@ -57,6 +58,7 @@ def test_telemetry_instance_tag_success_gpu(gpu, ec2_client, ec2_instance, ec2_c
     _run_tag_success(gpu, ec2_client, ec2_instance, ec2_connection)
 
 
+@pytest.mark.usefixtures("feature_aws_framework_present")
 @pytest.mark.usefixtures("sagemaker")
 @pytest.mark.model("N/A")
 @pytest.mark.processor("cpu")
@@ -136,7 +138,9 @@ def _run_instance_role_disabled(image_uri, ec2_client, ec2_instance, ec2_connect
     docker_cmd = "nvidia-docker" if processor == "gpu" else "docker"
 
     test_utils.login_to_ecr_registry(ec2_connection, account_id, image_region)
-    ec2_connection.run(f"{docker_cmd} pull -q {image_uri}")
+    ## For big images like trcomp, the ec2_connection.run command stops listening and the code hangs here.
+    ## Hence, avoiding the use of -q to let the connection remain active.
+    ec2_connection.run(f"{docker_cmd} pull {image_uri}")
 
     preexisting_ec2_instance_tags = ec2_utils.get_ec2_instance_tags(ec2_instance_id, ec2_client=ec2_client)
     if expected_tag_key in preexisting_ec2_instance_tags:

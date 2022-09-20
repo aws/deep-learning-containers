@@ -75,8 +75,11 @@ NEURON_UBUNTU_18_BASE_DLAMI_US_WEST_2 = get_ami_id_boto3(region_name="us-west-2"
 # UBUNTU_18_HPU_DLAMI_US_WEST_2 = "ami-08e564663ef2e761c"
 # UBUNTU_18_HPU_DLAMI_US_EAST_1 = "ami-06a0a1e2c90bfc1c8"
 # Habana Base v1.5 ami
-UBUNTU_18_HPU_DLAMI_US_WEST_2 = "ami-06bb08c4a3c5ba3bb"
-UBUNTU_18_HPU_DLAMI_US_EAST_1 = "ami-009bbfadb94835957"
+#UBUNTU_18_HPU_DLAMI_US_WEST_2 = "ami-06bb08c4a3c5ba3bb"
+#UBUNTU_18_HPU_DLAMI_US_EAST_1 = "ami-009bbfadb94835957"
+# Habana Base v1.6 ami
+UBUNTU_18_HPU_DLAMI_US_WEST_2 = "ami-03cdcfc91a96a8f92"
+UBUNTU_18_HPU_DLAMI_US_EAST_1 = "ami-0d83d7487f322545a"
 UL_AMI_LIST = [
     UBUNTU_18_BASE_DLAMI_US_EAST_1,
     UBUNTU_18_BASE_DLAMI_US_WEST_2,
@@ -144,6 +147,11 @@ class NightlyFeatureLabel(Enum):
     AWS_SMDEBUG_INSTALLED = "aws_smdebug_installed"
     AWS_SMDDP_INSTALLED = "aws_smddp_installed"
     AWS_SMMP_INSTALLED = "aws_smmp_installed"
+    PYTORCH_INSTALLED = "pytorch_installed"
+    AWS_S3_PLUGIN_INSTALLED = "aws_s3_plugin_installed"
+    TORCHAUDIO_INSTALLED = "torchaudio_installed"
+    TORCHVISION_INSTALLED = "torchvision_installed"
+    TORCHDATA_INSTALLED = "torchdata_installed"
 
 
 class MissingPythonVersionException(Exception):
@@ -822,7 +830,7 @@ def upload_tests_to_s3(testname_datetime_suffix):
 
     path = run("pwd", hide=True).stdout.strip("\n")
     if "dlc_tests" not in path:
-        EnvironmentError("Test is being run from wrong path")
+        raise EnvironmentError("Test is being run from wrong path")
     while os.path.basename(path) != "dlc_tests":
         path = os.path.dirname(path)
     container_tests_path = os.path.join(path, "container_tests")

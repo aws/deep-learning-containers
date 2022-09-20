@@ -30,6 +30,7 @@ from test_utils import (
     SAGEMAKER_REMOTE_TEST_TYPE,
     UBUNTU_HOME_DIR,
     DEFAULT_REGION,
+    is_nightly_context,
 )
 from test_utils.pytest_cache import PytestCache
 
@@ -205,7 +206,7 @@ def generate_sagemaker_pytest_cmd(image, sagemaker_test_type):
     )
 
     if processor == "eia":
-        remote_pytest_cmd += f"{accelerator_type_arg} {eia_arg}"
+        remote_pytest_cmd += f" {accelerator_type_arg} {eia_arg}"
 
     local_pytest_cmd = (f"pytest -s -v {integration_path} {docker_base_arg} "
                         f"{sm_local_docker_repo_uri} --tag {tag} --framework-version {framework_version} "
@@ -349,13 +350,24 @@ def execute_local_tests(image, pytest_cache_params):
                                                      executable="/bin/bash")
                     pytest_cache_util.upload_pytest_cache_from_ec2_to_s3(ec2_conn_new, path, **pytest_cache_params)
                     if 'failures="0"' not in str(output):
-                        raise ValueError(f"Sagemaker Local tests failed for {image}")
+                        if is_nightly_context():
+                            print(f"\nSuppresed Failed Nightly Sagemaker Local Tests")
+                        else:
+                            raise ValueError(f"Sagemaker Local tests failed for {image}")
             else:
-                ec2_conn.run(pytest_command)
+                res = ec2_conn.run(pytest_command, warn=True)
                 print(f"Downloading Test reports for image: {image}")
                 ec2_conn.get(ec2_test_report_path, os.path.join("test", f"{job_type}_{tag}_sm_local.xml"))
-    except:
-        print(f"Exception {sys.exc_info()[0]} occurred")
+                if res.failed:
+                    if is_nightly_context():
+                        print(f"Suppressed Failed Nightly Sagemaker Tests")
+                        print(f"{pytest_command} failed with error code: {res.return_code}\n")
+                        print(f"Traceback:\n{res.stderr}")
+                    else:
+                        raise DLCSageMakerLocalTestFailure(
+                            f"{pytest_command} failed with error code: {res.return_code}\n"
+                            f"Traceback:\n{res.stdout}"
+                        )
     finally:
         if ec2_conn:
             with ec2_conn.cd(path):
@@ -363,7 +375,7 @@ def execute_local_tests(image, pytest_cache_params):
         if instance_id:
             print(f"Terminating Instances for image: {image}")
             ec2_utils.terminate_instance(instance_id, region)
-            
+
         if ec2_client and ec2_key_name:
             print(f"Destroying ssh Key_pair for image: {image}")
             destroy_ssh_keypair(ec2_client, ec2_key_name)
@@ -375,9 +387,9 @@ def execute_local_tests(image, pytest_cache_params):
 def execute_sagemaker_remote_tests(process_index, image, global_pytest_cache, pytest_cache_params):
     """
     Run pytest in a virtual env for a particular image. Creates a custom directory for each thread for pytest cache file.
-    Stores pytest cache in a shared dict.  
+    Stores pytest cache in a shared dict.
     Expected to run via multiprocessing
-    :param process_index - id for process. Used to create a custom cache dir 
+    :param process_index - id for process. Used to create a custom cache dir
     :param image - ECR url
     :param global_pytest_cache - shared Manager().dict() for cache merging
     :param pytest_cache_params - parameters required for s3 file path building
@@ -398,10 +410,15 @@ def execute_sagemaker_remote_tests(process_index, image, global_pytest_cache, py
             cache_json = pytest_cache_util.convert_pytest_cache_file_to_json(path, custom_cache_directory=str(process_index))
             global_pytest_cache.update(cache_json)
             if res.failed:
-                raise DLCSageMakerRemoteTestFailure(
-                    f"{pytest_command} failed with error code: {res.return_code}\n"
-                    f"Traceback:\n{res.stdout}"
-                )
+                if is_nightly_context():
+                    print(f"Suppressed Failed Nightly Sagemaker Tests")
+                    print(f"{pytest_command} failed with error code: {res.return_code}\n")
+                    print(f"Traceback:\n{res.stdout}")
+                else:
+                    raise DLCSageMakerRemoteTestFailure(
+                        f"{pytest_command} failed with error code: {res.return_code}\n"
+                        f"Traceback:\n{res.stdout}"
+                    )
     return None
 
 
