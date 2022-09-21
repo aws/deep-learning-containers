@@ -44,11 +44,12 @@ images:
   BuildHardenedBaseUbuntuImage:
     <<: *TRAINING_REPOSITORY
     build: &MXNET_CPU_TRAINING_PY3 true
-    image_size_baseline: 3000
+    image_size_baseline: 740
     device_type: &DEVICE_TYPE cpu
     python_version: &DOCKER_PYTHON_VERSION py3
     tag_python_version: &TAG_PYTHON_VERSION py38
     os_version: &OS_VERSION ubuntu20.04
+    hardening_image: true
     tag: !join [ *DEVICE_TYPE, "-", *OS_VERSION ]
     docker_file: !join [ ../../hardened_base_dockerfiles/, "Dockerfile.", *OS_VERSION, ".", *DEVICE_TYPE ]
     context:
@@ -56,12 +57,13 @@ images:
   BuildHardenedCuda112BaseImage:
     <<: *TRAINING_REPOSITORY
     build: &MXNET_GPU_TRAINING_PY3 true
-    image_size_baseline: 3000
+    image_size_baseline: 2000
     device_type: &DEVICE_TYPE gpu
     python_version: &DOCKER_PYTHON_VERSION py3
     tag_python_version: &TAG_PYTHON_VERSION py38
     cuda_version: &CUDA_VERSION cu112
     os_version: &OS_VERSION ubuntu20.04
+    hardening_image: true
     tag: !join [ *DEVICE_TYPE, "-", *CUDA_VERSION, "-base-", *OS_VERSION ]
     docker_file: !join [ ../../hardened_base_dockerfiles/, "Dockerfile.cuda-11.2.2-base.", *DEVICE_TYPE ]
     context:
@@ -69,12 +71,13 @@ images:
   BuildHardenedCuda112Cudnn8RuntimeImage:
     <<: *TRAINING_REPOSITORY
     build: &MXNET_GPU_INFERENCE_PY3 true
-    image_size_baseline: 3000
+    image_size_baseline: 2000
     device_type: &DEVICE_TYPE gpu
     python_version: &DOCKER_PYTHON_VERSION py3
     tag_python_version: &TAG_PYTHON_VERSION py38
     cuda_version: &CUDA_VERSION cu112
     os_version: &OS_VERSION ubuntu20.04
+    hardening_image: true
     tag: !join [ *DEVICE_TYPE, "-", *CUDA_VERSION, "-cudnn8-runtime-", *OS_VERSION ]
     docker_file: !join [ ../../hardened_base_dockerfiles/, "Dockerfile.cuda-11.2.2-cudnn8-runtime.", *DEVICE_TYPE ]
     context:

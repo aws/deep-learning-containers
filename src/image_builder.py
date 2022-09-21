@@ -65,8 +65,8 @@ def image_builder(buildspec, image_types=[], device_types=[]):
     Builds images using build specification with specified image and device types
     and export them to ECR image repository
     An empty image types array indicates all image types.
-    Similarly, an empty device types array indicates all device types 
-    :param buildspec: buid specification defining images to be build 
+    Similarly, an empty device types array indicates all device types
+    :param buildspec: buid specification defining images to be build
     :param image_types: <list> list of image types
     :param device_types: <list> list of image device type
     """
@@ -103,7 +103,7 @@ def image_builder(buildspec, image_types=[], device_types=[]):
         if image_config.get("context") is not None:
             ARTIFACTS.update(image_config["context"])
         image_tag = tag_image_with_pr_number(image_config["tag"]) if build_context == "PR" else image_config["tag"]
-        
+
         additional_image_tags = []
         if is_nightly_build_context():
             additional_image_tags.append(tag_image_with_date(image_tag))
@@ -112,7 +112,7 @@ def image_builder(buildspec, image_types=[], device_types=[]):
             image_tag = tag_image_with_datetime(image_tag)
 
         additional_image_tags.append(image_tag)
-        
+
         image_repo_uri = (
             image_config["repository"]
             if build_context == "PR"
@@ -244,6 +244,7 @@ def image_builder(buildspec, image_types=[], device_types=[]):
             "image_size_baseline": int(image_config["image_size_baseline"]),
             "base_image_uri": base_image_uri,
             "enable_test_promotion": image_config.get("enable_test_promotion", True),
+            "hardening_image": image_config.get("hardening_image", False),
             "labels": labels,
             "extra_build_args": extra_build_args,
         }
@@ -265,8 +266,9 @@ def image_builder(buildspec, image_types=[], device_types=[]):
         # If for a pre_push stage image we create a common stage image, then we do not push the pre_push stage image
         # to the repository. Instead, we just push its common stage image to the repository. Therefore,
         # inside function get_common_stage_image_object we make pre_push_stage_image_object non pushable.
-        common_stage_image_object = generate_common_stage_image_object(pre_push_stage_image_object, image_tag)
-        COMMON_STAGE_IMAGES.append(common_stage_image_object)
+        if not info["hardening_image"]:
+            common_stage_image_object = generate_common_stage_image_object(pre_push_stage_image_object, image_tag)
+            COMMON_STAGE_IMAGES.append(common_stage_image_object)
 
         PRE_PUSH_STAGE_IMAGES.append(pre_push_stage_image_object)
         FORMATTER.separator()
