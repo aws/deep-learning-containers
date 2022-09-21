@@ -243,7 +243,7 @@ def install_sm_local_dependencies(framework, job_type, image, ec2_conn, ec2_inst
     python_invoker = get_python_invoker(ec2_instance_ami)
     # Install custom packages which need to be latest version"
     # using virtualenv to avoid package conflicts with the current packages
-    ec2_conn.run(f"sudo apt-get install virtualenv -y ")
+    ec2_conn.run(f"sudo apt-get install virtualenv python3-pip -y ")
     ec2_conn.run(f"virtualenv env --python {python_invoker}")
     ec2_conn.run(f"source ./env/bin/activate")
     if framework == "pytorch":
