@@ -48,10 +48,10 @@ class VulnerablePackageDetails:
 @dataclass
 class AllowListFormatVulnerabilityForEnhancedScan:
     """
-    AllowlistFormatVulnerability represents how the data looks for a single vulnerability in the allowlist format.
-    The data from the ECR Ehanced Results are deserialized into AllowListFormatVulnerability dataclass. In 
-    other words, vulnerabilities from the ecr format are are directly deserialized into vulnerabilities in Allowlist
-    format using AllowlistFormatVulnerability dataclass.
+    AllowListFormatVulnerabilityForEnhancedScan represents how the data looks for a single vulnerability in the allowlist format.
+    The data from the ECR Enhanced Results are deserialized into AllowListFormatVulnerabilityForEnhancedScan dataclass. In 
+    other words, vulnerabilities from the ecr format are directly deserialized into vulnerabilities in Allowlist
+    format using AllowListFormatVulnerabilityForEnhancedScan dataclass.
     """
 
     description: str
@@ -111,6 +111,30 @@ class AllowListFormatVulnerabilityForEnhancedScan:
         return False
 
     def get_cvss_score(self, packageVulnerabilityDetails: dict, score_version: str = "3.1"):
+        """
+        The ECR Enhanced Scan returns the CVSS scores as a list under packageVulnerabilityDetails["cvss"].
+        The list looks like: 
+            "packageVulnerabilityDetails": {
+                "cvss": [
+                    {
+                        "baseScore": 7.7,
+                        "scoringVector": "CVSS:3.1/AV:N/AC:H/PR:H/UI:N/S:C/C:H/I:N/A:H",
+                        "source": "SNYK",
+                        "version": "3.1"
+                    },
+                    {
+                        "baseScore": 6.5,
+                        "scoringVector": "CVSS:2.0/AV:N/AC:H/PR:H/UI:N/.....",
+                        "source": "SNYK",
+                        "version": "2.0"
+                    }
+                ]
+            }
+        This method iterates through all the CVSS scores and returns the baseScore for a particular CVSS version.
+        :param packageVulnerabilityDetails: dict, as described above
+        :param score_version: str, desired CVSS version
+        :return: float, CVSS score
+        """
         for cvss_score in packageVulnerabilityDetails["cvss"]:
             if cvss_score["version"] == score_version:
                 return float(cvss_score["baseScore"])

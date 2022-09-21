@@ -264,8 +264,6 @@ def test_ecr_enhanced_scan(image, ecr_client, sts_client, region):
 
     LOGGER.info(f"ecr_image_vulnerability_list formed {ecr_image_vulnerability_list.vulnerability_list}")
 
-    remaining_vulnerabilities = ecr_image_vulnerability_list
-
     image_scan_allowlist = ECREnhancedScanVulnerabilityList(minimum_severity=CVESeverity[minimum_sev_threshold])
 
     try:
@@ -278,7 +276,7 @@ def test_ecr_enhanced_scan(image, ecr_client, sts_client, region):
         LOGGER.info(f"[AllowlistPathNotFound] Image scan allowlist path could not be derived for {image}")
         traceback.print_exc()
 
-    remaining_vulnerabilities = remaining_vulnerabilities - image_scan_allowlist
+    remaining_vulnerabilities = ecr_image_vulnerability_list - image_scan_allowlist
     LOGGER.info(f"ECR Enhanced Scanning test completed for image: {image}")
 
     if remaining_vulnerabilities:
