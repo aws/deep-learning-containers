@@ -4,10 +4,10 @@ LABEL maintainer="Amazon AI"
 LABEL dlc_major_version="1"
 
 ARG PYTHON=python3
-ARG PYTHON_VERSION=3.8.10
+ARG PYTHON_VERSION=3.8.13
 ARG OPEN_MPI_VERSION=4.0.1
 ARG TS_VERSION=0.5.2
-ARG MAMBA_VERSION=4.12.0-0
+ARG MAMBA_VERSION=4.12.0-2
 ARG PT_INFERENCE_URL=https://pytorch-ei-binaries.s3.us-west-2.amazonaws.com/r1.10.2_inference/20220211-013556/528b6ca3747ec951396383f2a70d1354283ad29f/cpu/torch-1.10.2%2Bcpu-cp38-cp38-manylinux1_x86_64.whl
 ARG PT_TORCHVISION_URL=https://framework-binaries.s3.us-west-2.amazonaws.com/pytorch/1.10.2/torchvision-0.11.3%2Bcpu-cp38-cp38-linux_x86_64.whl
 
@@ -51,6 +51,7 @@ RUN apt-get update \
 RUN keytool -importkeystore -srckeystore /etc/ssl/certs/java/cacerts -destkeystore /etc/ssl/certs/java/cacerts.jks -deststoretype JKS -srcstorepass changeit -deststorepass changeit -noprompt; \
     mv /etc/ssl/certs/java/cacerts.jks /etc/ssl/certs/java/cacerts; \
     /var/lib/dpkg/info/ca-certificates-java.postinst configure;
+
 
 RUN curl -L -o ~/mambaforge.sh https://github.com/conda-forge/miniforge/releases/download/${MAMBA_VERSION}/Mambaforge-${MAMBA_VERSION}-Linux-x86_64.sh \
  && chmod +x ~/mambaforge.sh \
