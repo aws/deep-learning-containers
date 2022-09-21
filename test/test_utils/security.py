@@ -510,9 +510,9 @@ def get_ecr_vulnerability_package_version(vulnerability):
 def get_ecr_scan_allowlist_path(image_uri):
     dockerfile_location = test_utils.get_dockerfile_path_for_image(image_uri)
     image_scan_allowlist_path = dockerfile_location + ".os_scan_allowlist.json"
-    if test_utils.is_covered_by_e3_sm_split(image_uri) and test_utils.is_e3_sm_in_same_dockerfile(image_uri):
-        if test_utils.is_e3_image(image_uri):
-            image_scan_allowlist_path = image_scan_allowlist_path.replace("Dockerfile", "Dockerfile.e3")
+    if test_utils.is_covered_by_ec2_sm_split(image_uri) and test_utils.is_ec2_sm_in_same_dockerfile(image_uri):
+        if test_utils.is_ec2_image(image_uri):
+            image_scan_allowlist_path = image_scan_allowlist_path.replace("Dockerfile", "Dockerfile.ec2")
         else:
             image_scan_allowlist_path = image_scan_allowlist_path.replace("Dockerfile", "Dockerfile.sagemaker")
 

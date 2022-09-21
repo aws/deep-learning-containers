@@ -336,6 +336,7 @@ def _test_tuning_function(ecr_image, sagemaker_session, instance_type, framework
         tuner.wait()
 
 
+@pytest.mark.usefixtures("feature_smdebug_present")
 @pytest.mark.skip(reason="skip the test temporarily due to timeout issue")
 @pytest.mark.model("mnist")
 @pytest.mark.integration("smdebug")
@@ -364,6 +365,8 @@ def _test_smdebug_function(ecr_image, sagemaker_session, instance_type, framewor
     _assert_s3_file_exists(sagemaker_session.boto_region_name, estimator.model_data)
 
 
+@pytest.mark.usefixtures("feature_smddp_present")
+@pytest.mark.usefixtures("feature_smmp_present")
 @pytest.mark.integration("smdataparallel_smmodelparallel")
 @pytest.mark.processor("gpu")
 @pytest.mark.model("mnist")

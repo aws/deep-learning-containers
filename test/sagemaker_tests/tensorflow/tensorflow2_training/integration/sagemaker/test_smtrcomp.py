@@ -85,7 +85,7 @@ def smtrcomp_only(framework_version, ecr_image, request):
 @pytest.mark.multinode(2)
 @pytest.mark.integration("trcomp")
 class TestDistributedTraining:
-    
+
 
     @pytest.fixture()
     def instance_type(self):
@@ -167,6 +167,7 @@ class TestDistributedTraining:
         _assert_training_compiler_invoked(captured)
 
 
+    @pytest.mark.usefixtures("feature_smddp_present")
     @pytest.mark.xfail(reason="Trcomp behavior with SMDP is undefined")
     @pytest.mark.model('toy')
     @pytest.mark.integration("smdataparallel")
@@ -189,6 +190,7 @@ class TestDistributedTraining:
         _assert_training_compiler_invoked(captured)
 
 
+    @pytest.mark.usefixtures("feature_smmp_present")
     @pytest.mark.xfail(reason="SMMP is only supported on CUDA 11 on TensorFlow version between v2.3.1(inclusive) and v2.7.0(exclusive)")
     @pytest.mark.model('toy')
     @pytest.mark.integration("smmodelparallel")
@@ -218,6 +220,7 @@ class TestDistributedTraining:
         _assert_training_compiler_invoked(captured)
 
 
+    @pytest.mark.usefixtures("feature_smmp_present")
     @pytest.mark.xfail(reason='SMMP is only supported on CUDA 11 on TensorFlow version between v2.3.1(inclusive) and v2.7.0(exclusive)')
     @pytest.mark.model('toy')
     @pytest.mark.integration("horovod")
@@ -241,7 +244,7 @@ class TestDistributedTraining:
                                        "processes_per_host": 2,
                                        "custom_mpi_options": "-verbose --mca orte_base_help_aggregate 0 -x FI_EFA_USE_DEVICE_RDMA=1 -x FI_PROVIDER=efa ",
                                     }
-                             },                              
+                             },
                             )
         estimator.fit(job_name=unique_name_from_base("test-TF-trcomp-DT-SMMP-horovod"))
         captured = capsys.readouterr()
@@ -263,6 +266,7 @@ class TestMLWorkFlow:
         return 1
 
 
+    @pytest.mark.usefixtures("feature_smdebug_present")
     @pytest.mark.skip(reason="skip the test temporarily due to timeout issue")
     @pytest.mark.model('toy')
     @pytest.mark.integration("smdebug")
@@ -397,4 +401,3 @@ class TestMLWorkFlow:
                                 framework='keras',
                                 framework_version='2.6.0',
                                 )
-

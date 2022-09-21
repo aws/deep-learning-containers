@@ -27,7 +27,16 @@ from botocore.exceptions import ClientError
 from sagemaker import LocalSession, Session
 from sagemaker.pytorch import PyTorch
 
-from .utils import image_utils, get_ecr_registry
+from .utils import (
+    get_ecr_registry, 
+    NightlyFeatureLabel, 
+    is_nightly_context
+)
+
+from .utils.image_utils import (
+    build_base_image,
+    are_fixture_labels_enabled
+)
 
 logger = logging.getLogger(__name__)
 logging.getLogger('boto').setLevel(logging.INFO)
@@ -136,6 +145,53 @@ def pytest_collection_modifyitems(session, config, items):
         report_generator.generate_coverage_doc(framework="pytorch", job_type="training")
 
 
+# Nightly image fixture dictionary, maps nightly fixtures to set of image labels
+NIGHTLY_FIXTURES = {
+    "feature_smdebug_present": {
+        NightlyFeatureLabel.AWS_FRAMEWORK_INSTALLED.value, 
+        NightlyFeatureLabel.AWS_SMDEBUG_INSTALLED.value
+    },
+    "feature_smddp_present": {
+        NightlyFeatureLabel.AWS_FRAMEWORK_INSTALLED.value, 
+        NightlyFeatureLabel.AWS_SMDDP_INSTALLED.value
+    },
+    "feature_smmp_present": {
+        NightlyFeatureLabel.AWS_SMMP_INSTALLED.value
+    },
+    "feature_aws_framework_present": {
+        NightlyFeatureLabel.AWS_FRAMEWORK_INSTALLED.value
+    },
+    "feature_s3_plugin_present":{
+        NightlyFeatureLabel.AWS_S3_PLUGIN_INSTALLED.value
+    }
+}
+
+# Nightly fixtures
+@pytest.fixture(scope="session")
+def feature_smdebug_present():
+    pass
+
+
+@pytest.fixture(scope="session")
+def feature_smddp_present():
+    pass
+
+
+@pytest.fixture(scope="session")
+def feature_smmp_present():
+    pass
+
+
+@pytest.fixture(scope="session")
+def feature_aws_framework_present():
+    pass
+
+
+@pytest.fixture(scope="session")
+def feature_s3_plugin_present():
+    pass
+
+
 @pytest.fixture(scope='session', name='docker_base_name')
 def fixture_docker_base_name(request):
     return request.config.getoption('--docker-base-name')
@@ -197,9 +253,9 @@ def fixture_use_gpu(processor):
 
 @pytest.fixture(scope='session', name='build_base_image', autouse=True)
 def fixture_build_base_image(request, framework_version, py_version, processor, tag, docker_base_name):
-    build_base_image = request.config.getoption('--build-base-image')
-    if build_base_image:
-        return image_utils.build_base_image(framework_name=docker_base_name,
+    build_base_image_option = request.config.getoption('--build-base-image')
+    if build_base_image_option:
+        return build_base_image(framework_name=docker_base_name,
                                             framework_version=framework_version,
                                             py_version=py_version,
                                             base_image_tag=tag,
@@ -351,12 +407,30 @@ def disable_test(request):
 
 
 @pytest.fixture(autouse=True)
+def disable_nightly_test(request):
+    test_name = request.node.name
+    if is_nightly_context():
+        # default image uri
+        image_uri = None
+        # get a list of nightly fixtures present for the test function
+        nightly_fixtures_present = {key: value for (key,value) in NIGHTLY_FIXTURES.items() if key in request.fixturenames}
+        # get image uri value
+        if "ecr_image" in request.fixturenames:
+            image_uri = request.getfixturevalue("ecr_image")
+
+        if nightly_fixtures_present and image_uri:
+            for _, labels in nightly_fixtures_present.items():
+                if not are_fixture_labels_enabled(image_uri, labels):
+                    pytest.skip(f"{test_name} will be skipped.")
+
+
+@pytest.fixture(autouse=True)
 def skip_test_successfully_executed_before(request):
     """
     "cache/lastfailed" contains information about failed tests only. We're running SM tests in separate threads for each image.
     So when we retry SM tests, successfully executed tests executed again because pytest doesn't have that info in /.cache.
     But the flag "--last-failed-no-failures all" requires pytest to execute all the available tests.
-    The only sign that a test passed last time - lastfailed file exists and the test name isn't in that file.  
+    The only sign that a test passed last time - lastfailed file exists and the test name isn't in that file.
     The method checks whether lastfailed file exists and the test name is not in it.
     """
     test_name = request.node.name

@@ -6,6 +6,8 @@ import subprocess
 import sys
 import time
 
+from enum import Enum
+
 import boto3
 import git
 import pytest
@@ -69,14 +71,17 @@ NEURON_UBUNTU_18_BASE_DLAMI_US_WEST_2 = get_ami_id_boto3(region_name="us-west-2"
 # UBUNTU_18_HPU_DLAMI_US_WEST_2 = "ami-047fd74c001116366"
 # UBUNTU_18_HPU_DLAMI_US_EAST_1 = "ami-04c47cb3d4fdaa874"
 # Habana Base v1.3 ami
-# UBUNTU_18_HPU_DLAMI_US_WEST_2 = "ami-0ef18b1906e7010fb" 
+# UBUNTU_18_HPU_DLAMI_US_WEST_2 = "ami-0ef18b1906e7010fb"
 # UBUNTU_18_HPU_DLAMI_US_EAST_1 = "ami-040ef14d634e727a2"
 # Habana Base v1.4.1 ami
 # UBUNTU_18_HPU_DLAMI_US_WEST_2 = "ami-08e564663ef2e761c"
 # UBUNTU_18_HPU_DLAMI_US_EAST_1 = "ami-06a0a1e2c90bfc1c8"
 # Habana Base v1.5 ami
-UBUNTU_18_HPU_DLAMI_US_WEST_2 = "ami-06bb08c4a3c5ba3bb"
-UBUNTU_18_HPU_DLAMI_US_EAST_1 = "ami-009bbfadb94835957"
+#UBUNTU_18_HPU_DLAMI_US_WEST_2 = "ami-06bb08c4a3c5ba3bb"
+#UBUNTU_18_HPU_DLAMI_US_EAST_1 = "ami-009bbfadb94835957"
+# Habana Base v1.6 ami
+UBUNTU_18_HPU_DLAMI_US_WEST_2 = "ami-03cdcfc91a96a8f92"
+UBUNTU_18_HPU_DLAMI_US_EAST_1 = "ami-0d83d7487f322545a"
 UL_AMI_LIST = [
     UBUNTU_18_BASE_DLAMI_US_EAST_1,
     UBUNTU_18_BASE_DLAMI_US_WEST_2,
@@ -139,6 +144,18 @@ ECR_SCAN_FAILURE_ROUTINE_LAMBDA = "ecr-scan-failure-routine-lambda"
 
 ECR_ENHANCED_SCANNING_REPO_NAME = "ecr-enhanced-scanning-dlc-repo"
 ECR_ENHANCED_REPO_REGION = "us-west-1"
+
+class NightlyFeatureLabel(Enum):
+    AWS_FRAMEWORK_INSTALLED = "aws_framework_installed"
+    AWS_SMDEBUG_INSTALLED = "aws_smdebug_installed"
+    AWS_SMDDP_INSTALLED = "aws_smddp_installed"
+    AWS_SMMP_INSTALLED = "aws_smmp_installed"
+    PYTORCH_INSTALLED = "pytorch_installed"
+    AWS_S3_PLUGIN_INSTALLED = "aws_s3_plugin_installed"
+    TORCHAUDIO_INSTALLED = "torchaudio_installed"
+    TORCHVISION_INSTALLED = "torchvision_installed"
+    TORCHDATA_INSTALLED = "torchdata_installed"
+
 
 class MissingPythonVersionException(Exception):
     """
@@ -257,18 +274,18 @@ def get_dockerfile_path_for_image(image_uri):
 
 
 def get_expected_dockerfile_filename(device_type, image_uri):
-    if is_covered_by_e3_sm_split(image_uri):
-        if is_e3_sm_in_same_dockerfile(image_uri):
+    if is_covered_by_ec2_sm_split(image_uri):
+        if is_ec2_sm_in_same_dockerfile(image_uri):
             return f"Dockerfile.{device_type}"
-        elif is_e3_image(image_uri):
-            return f"Dockerfile.e3.{device_type}"
+        elif is_ec2_image(image_uri):
+            return f"Dockerfile.ec2.{device_type}"
         else:
             return f"Dockerfile.sagemaker.{device_type}"
 
     ## TODO: Keeping here for backward compatibility, should be removed in future when the 
-    ## functions is_covered_by_e3_sm_split and is_e3_sm_in_same_dockerfile are made exhaustive
-    if is_e3_image(image_uri):
-        return f"Dockerfile.e3.{device_type}"
+    ## functions is_covered_by_ec2_sm_split and is_ec2_sm_in_same_dockerfile are made exhaustive
+    if is_ec2_image(image_uri):
+        return f"Dockerfile.ec2.{device_type}"
     if is_sagemaker_image(image_uri):
         return f"Dockerfile.sagemaker.{device_type}"
     if is_trcomp_image(image_uri):
@@ -404,7 +421,7 @@ def is_mainline_context():
 
 
 def is_nightly_context():
-    return os.getenv("BUILD_CONTEXT") == "NIGHTLY"
+    return os.getenv("BUILD_CONTEXT") == "NIGHTLY" or os.getenv("NIGHTLY_PR_TEST_MODE", "false").lower() == "true"
 
 
 def is_empty_build_context():
@@ -428,26 +445,26 @@ def is_rc_test_context():
     return sm_remote_tests_val == config.AllowedSMRemoteConfigValues.RC.value
 
 
-def is_covered_by_e3_sm_split(image_uri):
-    e3_sm_split_images = {
+def is_covered_by_ec2_sm_split(image_uri):
+    ec2_sm_split_images = {
         "pytorch": SpecifierSet(">=1.10.0"),
         "tensorflow": SpecifierSet(">=2.7.0"),
     }
     framework, version = get_framework_and_version_from_tag(image_uri)
-    return framework in e3_sm_split_images and Version(version) in e3_sm_split_images[framework]
+    return framework in ec2_sm_split_images and Version(version) in ec2_sm_split_images[framework]
 
 
-def is_e3_sm_in_same_dockerfile(image_uri):
-    same_sm_e3_dockerfile_record = {
+def is_ec2_sm_in_same_dockerfile(image_uri):
+    same_sm_ec2_dockerfile_record = {
         "pytorch": SpecifierSet(">=1.11.0"),
         "tensorflow": SpecifierSet(">=2.8.0"),
     }
     framework, version = get_framework_and_version_from_tag(image_uri)
-    return framework in same_sm_e3_dockerfile_record and Version(version) in same_sm_e3_dockerfile_record[framework]
+    return framework in same_sm_ec2_dockerfile_record and Version(version) in same_sm_ec2_dockerfile_record[framework]
 
 
-def is_e3_image(image_uri):
-    return "-e3" in image_uri
+def is_ec2_image(image_uri):
+    return "-ec2" in image_uri
 
 
 def is_sagemaker_image(image_uri):
@@ -857,7 +874,7 @@ def upload_tests_to_s3(testname_datetime_suffix):
 
     path = run("pwd", hide=True).stdout.strip("\n")
     if "dlc_tests" not in path:
-        EnvironmentError("Test is being run from wrong path")
+        raise EnvironmentError("Test is being run from wrong path")
     while os.path.basename(path) != "dlc_tests":
         path = os.path.dirname(path)
     container_tests_path = os.path.join(path, "container_tests")
@@ -929,7 +946,7 @@ def parse_canary_images(framework, region):
     """
     customer_type = get_customer_type()
     customer_type_tag = f"-{customer_type}" if customer_type else ""
-    
+
     # initialize graviton variables
     use_graviton = False
 
@@ -1047,12 +1064,12 @@ def parse_canary_images(framework, region):
                 "graviton_pytorch": [
                     f"{registry}.dkr.ecr.{region}.amazonaws.com/pytorch-inference-graviton:{fw_version}-cpu-{py_version}",
                 ],
-                # TODO: create graviton_mxnet DLC and add to dictionary 
+                # TODO: create graviton_mxnet DLC and add to dictionary
             }
 
-            # E3 Images have an additional "e3" tag to distinguish them from the regular "sagemaker" tag
-            if customer_type == "e3":
-                dlc_images += [f"{img}-e3" for img in images[canary_type]]
+            # ec2 Images have an additional "ec2" tag to distinguish them from the regular "sagemaker" tag
+            if customer_type == "ec2":
+                dlc_images += [f"{img}-ec2" for img in images[canary_type]]
             else:
                 dlc_images += images[canary_type]
 
@@ -1421,14 +1438,14 @@ def get_os_version_from_image_uri(image_uri):
 
 def get_framework_from_image_uri(image_uri):
     return (
-        "huggingface_tensorflow_trcomp" 
-        if "huggingface-tensorflow-trcomp" in image_uri 
+        "huggingface_tensorflow_trcomp"
+        if "huggingface-tensorflow-trcomp" in image_uri
         else "huggingface_tensorflow"
         if "huggingface-tensorflow" in image_uri
-        else "huggingface_pytorch_trcomp" 
-        if "huggingface-pytorch-trcomp" in image_uri 
-        else "huggingface_pytorch" 
-        if "huggingface-pytorch" in image_uri 
+        else "huggingface_pytorch_trcomp"
+        if "huggingface-pytorch-trcomp" in image_uri
+        else "huggingface_pytorch"
+        if "huggingface-pytorch" in image_uri
         else "mxnet"
         if "mxnet" in image_uri
         else "pytorch"
@@ -1663,7 +1680,7 @@ def uniquify_list_of_dict(list_of_dict):
     """
     Takes list_of_dict as an input and returns a list of dict such that each dict is only present
     once in the returned list. Runs an operation that is similar to list(set(input_list)). However,
-    for list_of_dict, it is not possible to run the operation directly. 
+    for list_of_dict, it is not possible to run the operation directly.
 
     :param list_of_dict: List(dict)
     :return: List(dict)
@@ -1790,7 +1807,7 @@ def is_image_available_locally(image_uri):
     """
     run_output = run(f"docker inspect {image_uri}", hide=True, warn=True)
     return run_output.ok
-    
+
 
 def get_contributor_from_image_uri(image_uri):
     """
