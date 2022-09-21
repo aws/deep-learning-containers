@@ -15,17 +15,6 @@ from dataclasses import dataclass
 from typing import Any, List
 
 
-# class EnhancedJSONEncoder(json.JSONEncoder):
-#     """
-#     EnhancedJSONEncoder is required to dump dataclass objects as JSON.
-#     """
-
-#     def default(self, o):
-#         if dataclasses.is_dataclass(o):
-#             return dataclasses.asdict(o)
-#         return super().default(o)
-
-
 @dataclass
 class VulnerablePackageDetails:
     """
@@ -108,6 +97,18 @@ class AllowListFormatVulnerabilityForEnhancedScan:
         self.cvss_v30_score = self.get_cvss_score(packageVulnerabilityDetails, score_version="3.0") if packageVulnerabilityDetails else kwargs["cvss_v30_score"]
         self.cvss_v2_score = self.get_cvss_score(packageVulnerabilityDetails, score_version="2.0") if packageVulnerabilityDetails else kwargs["cvss_v2_score"]
         self.cvss_v3_severity = self.get_cvss_v3_severity(self.cvss_v3_score) if packageVulnerabilityDetails else kwargs["cvss_v3_severity"]
+    
+    def __eq__(self, other):
+        assert type(self) == type(other), f"Types {type(self)} and {type(other)} mismatch!!"
+        ## Ignore version key in package_details as it might represent the version of the package existing in the image
+        ## and might differ from  image to image, even when the vulnerability is same.
+        if test_utils.check_if_two_dictionaries_are_equal(
+            dataclasses.asdict(self.package_details), dataclasses.asdict(other.package_details), ignore_keys=["version"]
+        ):
+            return test_utils.check_if_two_dictionaries_are_equal(
+                dataclasses.asdict(self), dataclasses.asdict(other), ignore_keys=["package_details"]
+            )
+        return False
 
     def get_cvss_score(self, packageVulnerabilityDetails: dict, score_version: str = "3.1"):
         for cvss_score in packageVulnerabilityDetails["cvss"]:
@@ -189,7 +190,7 @@ class ScanVulnerabilityList:
             ]
         return []
 
-    def get_sorted_vulnerability_list(self, vulnerability_object_type=None):
+    def get_sorted_vulnerability_list(self):
         """
         This method is specifically made to sort the vulnerability list which is actually a dict 
         and has the following structure:
@@ -213,17 +214,6 @@ class ScanVulnerabilityList:
             uniquified_list = test_utils.uniquify_list_of_complex_datatypes(list_of_complex_types)
             uniquified_list.sort(key=lambda dict_element: dict_element["name"] if isinstance(dict_element, dict) else dict_element.name)
         return dict(sorted(copy_dict.items()))
-        #     copy_dict[key] = uniquified_list
-        # copy_dict = dict(sorted(copy_dict.items()))
-        # if not vulnerability_object_type:
-        #     return copy_dict
-        # return_dict = {}
-        # for package_name, vulnerabilities_corresponding_to_package in copy_dict.items():
-        #     return_dict[package_name] = []
-        #     for vulnerability_corresponding_to_package in vulnerabilities_corresponding_to_package:
-        #         return_dict[package_name].append(vulnerability_object_type(**vulnerability_corresponding_to_package))
-
-        # return return_dict
 
     def save_vulnerability_list(self, path):
         if self.vulnerability_list:
@@ -465,7 +455,7 @@ class ECREnhancedScanVulnerabilityList(ScanVulnerabilityList):
                 if allowlist_format_vulnerability_object.package_name not in self.vulnerability_list:
                     self.vulnerability_list[allowlist_format_vulnerability_object.package_name] = []
                 self.vulnerability_list[allowlist_format_vulnerability_object.package_name].append(allowlist_format_vulnerability_object)
-        self.vulnerability_list = self.get_sorted_vulnerability_list(vulnerability_object_type=AllowListFormatVulnerabilityForEnhancedScan)
+        self.vulnerability_list = self.get_sorted_vulnerability_list()
         return self.vulnerability_list
 
     def are_vulnerabilities_equivalent(self, vulnerability_1, vulnerability_2):
@@ -476,15 +466,7 @@ class ECREnhancedScanVulnerabilityList(ScanVulnerabilityList):
         :param vulnerability_2: dict, JSON object consisting of information about the vulnerability in the Allowlist Format
         :return: bool True if the two input objects are equivalent, False otherwise
         """
-        ## Ignore version key in package_details as it might represent the version of the package existing in the image
-        ## and might differ from  image to image, even when the vulnerability is same.
-        if test_utils.check_if_two_dictionaries_are_equal(
-            dataclasses.asdict(vulnerability_1.package_details), dataclasses.asdict(vulnerability_2.package_details), ignore_keys=["version"]
-        ):
-            return test_utils.check_if_two_dictionaries_are_equal(
-                dataclasses.asdict(vulnerability_1), dataclasses.asdict(vulnerability_2), ignore_keys=["package_details"]
-            )
-        return False
+        return vulnerability_1 == vulnerability_2
 
 
 def get_ecr_vulnerability_package_version(vulnerability):
@@ -824,7 +806,7 @@ def wait_for_enhanced_scans_to_complete(ecr_client, image):
     scan_status = None
     scan_status_description = ""
     start_time = time()
-    while (time() - start_time) <= 1200:
+    while (time() - start_time) <= 30 * 60:
         try:
             scan_status, scan_status_description = ecr_utils.get_ecr_image_enhanced_scan_status(ecr_client, image)
         except ecr_client.exceptions.ScanNotFoundException as e:

@@ -235,6 +235,7 @@ def test_ecr_enhanced_scan(image, ecr_client, sts_client, region):
     LOGGER.info(f"Running test_ecr_enhanced_scan for image {image}")
     image = conduct_preprocessing_of_images_before_running_ecr_scans(image, ecr_client, sts_client, region)
 
+    ## TODO: change new_uri name
     new_uri = get_new_image_uri_using_current_uri_and_new_repo(
         image,
         new_repository_name=ECR_ENHANCED_SCANNING_REPO_NAME,
@@ -277,10 +278,10 @@ def test_ecr_enhanced_scan(image, ecr_client, sts_client, region):
         traceback.print_exc()
 
     remaining_vulnerabilities = remaining_vulnerabilities - image_scan_allowlist
-    LOGGER.info(f"Remaining Vulnerabilities found for image: {image}")
+    LOGGER.info(f"ECR Enhanced Scanning test completed for image: {image}")
 
     if remaining_vulnerabilities:
         assert not remaining_vulnerabilities.vulnerability_list, (
-            f"The following vulnerabilities need to be fixed on {image}:\n"
+            f"Total of {len(remaining_vulnerabilities.vulnerability_list)} vulnerabilities need to be fixed on {image}:\n"
             f"{json.dumps(remaining_vulnerabilities.vulnerability_list, cls= test_utils.EnhancedJSONEncoder)}"
         )

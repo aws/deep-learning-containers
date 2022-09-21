@@ -132,27 +132,23 @@ def get_all_ecr_image_scan_results_using_pagination(ecr_client, image_uri, scan_
     :return: list<dict> Scan results
     """
     scan_info_findings = []
+    registry_id = get_account_id_from_image_uri(image_uri)
     repository, tag = get_repository_and_tag_from_image_uri(image_uri)
-    scan_info = ecr_client.describe_image_scan_findings(
-        repositoryName=repository, imageId={"imageTag": tag}, maxResults=100
+    paginator = ecr_client.get_paginator('describe_image_scan_findings')
+    response_iterator = paginator.paginate(
+        registryId=registry_id,
+        repositoryName=repository,
+        imageId={
+            'imageTag': tag
+        },
+        PaginationConfig={
+            'PageSize': 50,
+        }
     )
-    if scan_info_finding_key in scan_info["imageScanFindings"]:
-        scan_info_findings.append(scan_info["imageScanFindings"][scan_info_finding_key])
-
-    nextToken = None
-    if "nextToken" in scan_info:
-        nextToken = scan_info["nextToken"]
-
-    while nextToken:
-        scan_info = ecr_client.describe_image_scan_findings(
-            repositoryName=repository, imageId={"imageTag": tag}, maxResults=100, nextToken=nextToken
-        )
-        if scan_info_finding_key in scan_info["imageScanFindings"]:
-            scan_info_findings.append(scan_info["imageScanFindings"][scan_info_finding_key])
-        nextToken = None
-        if "nextToken" in scan_info:
-            nextToken = scan_info["nextToken"]
-
+    for page in response_iterator:
+        if scan_info_finding_key in page["imageScanFindings"]:
+            scan_info_findings += page["imageScanFindings"][scan_info_finding_key]
+    LOGGER.info(f"[TotalVulnsFound] For image_uri: {image_uri} {len(scan_info_findings)} vulnerabilities found in total.")
     return scan_info_findings
 
 
@@ -184,11 +180,7 @@ def get_all_ecr_enhanced_scan_findings(ecr_client, image_uri):
     scan_info_findings = get_all_ecr_image_scan_results_using_pagination(
         ecr_client, image_uri, scan_info_finding_key="enhancedFindings"
     )
-    scan_findings = []
-    for scan_info_finding in scan_info_findings:
-        scan_findings += [finding for finding in scan_info_finding]
-
-    return scan_findings
+    return scan_info_findings
 
 
 def ecr_json_serializer(obj):
