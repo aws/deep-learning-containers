@@ -78,7 +78,7 @@ dlc-pr-huggingface-tensorflow-neuron = ""
 
 # Habana DLC buildspecs
 dlc-pr-pytorch-habana = ""
-dlc-pr-tensorflow-2-habana = "habana/tensorflow/buildspec-2-8.yml"
+dlc-pr-tensorflow-2-habana = "habana/tensorflow/buildspec-2-8-syai-1-4.yml"
 
 # Neuron DLC buildspecs
 dlc-pr-mxnet-neuron = ""
