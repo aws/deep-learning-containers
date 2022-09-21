@@ -37,12 +37,14 @@ from output import OutputFormatter
 FORMATTER = OutputFormatter(constants.PADDING)
 build_context = os.getenv("BUILD_CONTEXT")
 
+
 def is_nightly_build_context():
     """
     Returns True if image builder is running in a nightly context or nightly PR test mode. Otherwise returns False
     :return: <bool> True or False
     """
     return build_context == "NIGHTLY" or os.getenv("NIGHTLY_PR_TEST_MODE", "false").lower() == "true"
+
 
 def _find_image_object(images_list, image_name):
     """
@@ -56,6 +58,8 @@ def _find_image_object(images_list, image_name):
         if image.name == image_name:
             ret_image_object = image
             break
+    if not ret_image_object:
+        raise LookupError(f"Failed to find {image_name} in {[image.name for image in images_list]}")
     return ret_image_object
 
 
@@ -65,8 +69,8 @@ def image_builder(buildspec, image_types=[], device_types=[]):
     Builds images using build specification with specified image and device types
     and export them to ECR image repository
     An empty image types array indicates all image types.
-    Similarly, an empty device types array indicates all device types 
-    :param buildspec: buid specification defining images to be build 
+    Similarly, an empty device types array indicates all device types
+    :param buildspec: buid specification defining images to be build
     :param image_types: <list> list of image types
     :param device_types: <list> list of image device type
     """
@@ -103,7 +107,7 @@ def image_builder(buildspec, image_types=[], device_types=[]):
         if image_config.get("context") is not None:
             ARTIFACTS.update(image_config["context"])
         image_tag = tag_image_with_pr_number(image_config["tag"]) if build_context == "PR" else image_config["tag"]
-        
+
         additional_image_tags = []
         if is_nightly_build_context():
             additional_image_tags.append(tag_image_with_date(image_tag))
@@ -112,7 +116,7 @@ def image_builder(buildspec, image_types=[], device_types=[]):
             image_tag = tag_image_with_datetime(image_tag)
 
         additional_image_tags.append(image_tag)
-        
+
         image_repo_uri = (
             image_config["repository"]
             if build_context == "PR"
