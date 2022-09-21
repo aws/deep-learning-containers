@@ -139,7 +139,7 @@ def test_ecr_basic_scan(image, ecr_client, sts_client, region):
     :param sts_client: boto3 Client for STS
     :param region: str Name of region where test is executed
     """
-    LOGGER.info(f"Running test_ecr_enhanced_scan for image {image}")
+    LOGGER.info(f"Running test_ecr_basic_scan for image {image}")
     image = conduct_preprocessing_of_images_before_running_ecr_scans(image, ecr_client, sts_client, region)
 
     minimum_sev_threshold = get_minimum_sev_threshold_level(image)
