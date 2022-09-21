@@ -12,7 +12,7 @@ neuron_mode = false
 graviton_mode = false
 # Please only set it to True if you are preparing a HABANA related PR
 # Do remember to revert it back to False before merging any PR (including HABANA dedicated PR)
-habana_mode = false
+habana_mode = true
 # Please only set it to True if you are preparing a TRCOMP related PR
 # Do remember to revert it back to False before merging any PR (including TRCOMP dedicated PR)
 trcomp_mode = false
@@ -78,7 +78,7 @@ dlc-pr-huggingface-tensorflow-neuron = ""
 
 # Habana DLC buildspecs
 dlc-pr-pytorch-habana = ""
-dlc-pr-tensorflow-2-habana = ""
+dlc-pr-tensorflow-2-habana = "habana/tensorflow/buildspec-2-8.yml"
 
 # Neuron DLC buildspecs
 dlc-pr-mxnet-neuron = ""
