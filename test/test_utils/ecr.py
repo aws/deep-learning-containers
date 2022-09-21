@@ -124,7 +124,7 @@ def get_ecr_image_scan_severity_count(ecr_client, image_uri):
     return severity_counts
 
 
-def get_all_ecr_image_scan_results_using_pagination(ecr_client, image_uri, scan_info_finding_key="enhancedFindings"):
+def get_all_ecr_image_scan_results(ecr_client, image_uri, scan_info_finding_key="enhancedFindings"):
     """
     Get list of All vulnerabilities from ECR image scan results using pagination
     :param ecr_client: boto3 ecr client
@@ -177,7 +177,7 @@ def get_all_ecr_enhanced_scan_findings(ecr_client, image_uri):
     :param image_uri:
     :return: list<dict> Scan results
     """
-    scan_info_findings = get_all_ecr_image_scan_results_using_pagination(
+    scan_info_findings = get_all_ecr_image_scan_results(
         ecr_client, image_uri, scan_info_finding_key="enhancedFindings"
     )
     return scan_info_findings

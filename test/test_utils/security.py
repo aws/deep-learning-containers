@@ -285,6 +285,24 @@ class ScanVulnerabilityList:
                 if not self.are_vulnerabilities_equivalent(v1, v2):
                     return False
         return True
+    
+    def __eq__(self, other):
+        """
+        Compare two ScanVulnerabilityList objects for equivalence.
+
+        :param other: Another ScanVulnerabilityList object
+        :return: True if equivalent, False otherwise
+        """
+        return self.__cmp__(other)
+
+    def __ne__(self, other):
+        """
+        Reverse of __eq__
+
+        :param other: Another ScanVulnerabilityList object
+        :return: True if not equivalent, False otherwise
+        """
+        return not self.__eq__(other)
 
     def __sub__(self, other):
         """

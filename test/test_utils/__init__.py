@@ -142,6 +142,9 @@ UPGRADE_ECR_REPO_NAME = "upgraded-image-ecr-scan-repo"
 ECR_SCAN_HELPER_BUCKET = f"""ecr-scan-helper-{boto3.client("sts", region_name=DEFAULT_REGION).get_caller_identity().get("Account")}"""
 ECR_SCAN_FAILURE_ROUTINE_LAMBDA = "ecr-scan-failure-routine-lambda"
 
+## Note that the region for the repo used for conducting ecr enhanced scans should be different from other
+## repos since ecr enhanced scanning is activated in all the repos of a region and does not allow one to 
+## conduct basic scanning on some repos whereas enhanced scanning on others within the same region.
 ECR_ENHANCED_SCANNING_REPO_NAME = "ecr-enhanced-scanning-dlc-repo"
 ECR_ENHANCED_REPO_REGION = "us-west-1"
 
