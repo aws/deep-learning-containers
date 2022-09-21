@@ -36,7 +36,7 @@ from test.test_utils.security import (
     process_failure_routine_summary_and_store_data_in_s3,
     run_scan,
     fetch_other_vulnerability_lists,
-    get_new_image_uri_using_current_uri_and_new_repo,
+    get_target_image_uri_using_current_uri_and_target_repo,
     wait_for_enhanced_scans_to_complete,
     get_ecr_scan_allowlist_path,
 )
@@ -236,25 +236,24 @@ def test_ecr_enhanced_scan(image, ecr_client, sts_client, region):
     LOGGER.info(f"Running test_ecr_enhanced_scan for image {image}")
     image = conduct_preprocessing_of_images_before_running_ecr_scans(image, ecr_client, sts_client, region)
 
-    ## TODO: change new_uri name
-    new_uri = get_new_image_uri_using_current_uri_and_new_repo(
+    ecr_enhanced_repo_uri = get_target_image_uri_using_current_uri_and_target_repo(
         image,
-        new_repository_name=ECR_ENHANCED_SCANNING_REPO_NAME,
-        new_repository_region=ECR_ENHANCED_REPO_REGION,
+        target_repository_name=ECR_ENHANCED_SCANNING_REPO_NAME,
+        target_repository_region=ECR_ENHANCED_REPO_REGION,
         append_tag="ENHSCAN",
     )
 
-    run(f"docker tag {image} {new_uri}", hide=True)
+    run(f"docker tag {image} {ecr_enhanced_repo_uri}", hide=True)
     ecr_utils.reupload_image_to_test_ecr(
-        new_uri, ECR_ENHANCED_SCANNING_REPO_NAME, ECR_ENHANCED_REPO_REGION, pull_image=False
+        ecr_enhanced_repo_uri, ECR_ENHANCED_SCANNING_REPO_NAME, ECR_ENHANCED_REPO_REGION, pull_image=False
     )
 
     ecr_client_for_enhanced_scanning_repo = boto3.client("ecr", region_name=ECR_ENHANCED_REPO_REGION)
-    wait_for_enhanced_scans_to_complete(ecr_client_for_enhanced_scanning_repo, new_uri)
+    wait_for_enhanced_scans_to_complete(ecr_client_for_enhanced_scanning_repo, ecr_enhanced_repo_uri)
     sleep(1 * 60)
 
     scan_results = ecr_utils.get_all_ecr_enhanced_scan_findings(
-        ecr_client=ecr_client_for_enhanced_scanning_repo, image_uri=new_uri
+        ecr_client=ecr_client_for_enhanced_scanning_repo, image_uri=ecr_enhanced_repo_uri
     )
     scan_results = json.loads(json.dumps(scan_results, cls=EnhancedJSONEncoder))
 

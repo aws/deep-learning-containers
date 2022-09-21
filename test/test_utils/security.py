@@ -538,27 +538,27 @@ def _save_lists_in_s3(save_details, s3_bucket_name):
         s3_client.upload_file(Filename=filename, Bucket=s3_bucket_name, Key=filename)
 
 
-def get_new_image_uri_using_current_uri_and_new_repo(image, new_repository_name, new_repository_region, append_tag=""):
+def get_target_image_uri_using_current_uri_and_target_repo(image, target_repository_name, target_repository_region, append_tag=""):
     """
-    This function helps formulate a new image uri for a given image such that the new uri retains
+    This function helps formulate a target image uri for a given image such that the target uri retains
     the old uri info (i.e. old repo name and old repo tag).
 
     :param image: str, image uri
-    :param new_repository_name: str, name of new repository
-    :param new_repository_region: str, region of new repository
+    :param target_repository_name: str, name of target repository
+    :param target_repository_region: str, region of target repository
     :param append_tag: str, string that needs to be appended at the end of the tag
-    :return: str, new image uri
+    :return: str, target image uri
     """
-    sts_client = boto3.client("sts", region_name=new_repository_region)
+    sts_client = boto3.client("sts", region_name=target_repository_region)
     account_id = sts_client.get_caller_identity().get("Account")
-    registry = ecr_utils.get_ecr_registry(account_id, new_repository_region)
+    registry = ecr_utils.get_ecr_registry(account_id, target_repository_region)
     original_image_repository, original_image_tag = test_utils.get_repository_and_tag_from_image_uri(image)
     if append_tag:
         upgraded_image_tag = f"{original_image_repository}-{original_image_tag}-{append_tag}"
     else:
         upgraded_image_tag = f"{original_image_repository}-{original_image_tag}"
-    new_image_uri = f"{registry}/{new_repository_name}:{upgraded_image_tag}"
-    return new_image_uri
+    target_image_uri = f"{registry}/{target_repository_name}:{upgraded_image_tag}"
+    return target_image_uri
 
 
 def run_upgrade_on_image_and_push(image, new_image_uri):
@@ -859,10 +859,10 @@ def fetch_other_vulnerability_lists(image, ecr_client, minimum_sev_threshold):
     :return upgraded_image_vulnerability_list: ScanVulnerabilityList, Vulnerabilites exisiting in the image WITH apt-upgrade run on it.
     :return image_allowlist: ScanVulnerabilityList, Vulnerabities that are present in the respective allowlist in the DLC git repo.
     """
-    new_image_uri_for_upgraded_image = get_new_image_uri_using_current_uri_and_new_repo(
+    new_image_uri_for_upgraded_image = get_target_image_uri_using_current_uri_and_target_repo(
         image,
-        new_repository_name=test_utils.UPGRADE_ECR_REPO_NAME,
-        new_repository_region=os.getenv("REGION", test_utils.DEFAULT_REGION),
+        target_repository_name=test_utils.UPGRADE_ECR_REPO_NAME,
+        target_repository_region=os.getenv("REGION", test_utils.DEFAULT_REGION),
         append_tag="upgraded",
     )
     run_upgrade_on_image_and_push(image, new_image_uri_for_upgraded_image)
