@@ -9,8 +9,6 @@ RUN apt-get update \
  && apt-get clean \
  && rm -rf /var/lib/apt/lists/*
 
-FROM base_image AS ec2
-
 LABEL maintainer="Amazon AI"
 LABEL dlc_major_version="1"
 
@@ -93,7 +91,8 @@ RUN apt-get update \
 RUN ${PIP} --no-cache-dir install --upgrade \
     pip \
     #Setuptools release 60.x (and later) revealed an issue in Habana-TensorFlow package.
-    "setuptools<60.0.0"
+    "setuptools<60.0.0" \
+    "oauthlib>=3.2.1"
 
 # Some TF tools expect a "python" binary
 RUN ln -s $(which ${PYTHON}) /usr/local/bin/python \
