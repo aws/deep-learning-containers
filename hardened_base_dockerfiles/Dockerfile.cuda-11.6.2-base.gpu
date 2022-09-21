@@ -1,0 +1,6 @@
+FROM nvidia/cuda:11.6.2-base-ubuntu20.04
+
+RUN apt-get update \
+ && apt-get upgrade \
+ && apt clean \
+ && rm -rf /var/lib/apt/lists/*
