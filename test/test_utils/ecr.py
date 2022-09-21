@@ -183,16 +183,6 @@ def get_all_ecr_enhanced_scan_findings(ecr_client, image_uri):
     return scan_info_findings
 
 
-def ecr_json_serializer(obj):
-    """
-    The ECR Enhanced Scan results have datetime objects that cannot be directly dumped as JSON. 
-    This JSON serializer helps serializing results obtained from ECR Scan results.
-    """
-    if isinstance(obj, (datetime, date)):
-        return obj.isoformat()
-    raise TypeError("Type %s not serializable" % type(obj))
-
-
 def ecr_repo_exists(ecr_client, repo_name, account_id=None):
     """
     :param ecr_client: boto3.Client for ECR

@@ -13,6 +13,7 @@ from test import test_utils
 
 from test.test_utils import (
     LOGGER,
+    EnhancedJSONEncoder,
     get_account_id_from_image_uri,
     get_framework_and_version_from_tag,
     get_repository_and_tag_from_image_uri,
@@ -255,7 +256,7 @@ def test_ecr_enhanced_scan(image, ecr_client, sts_client, region):
     scan_results = ecr_utils.get_all_ecr_enhanced_scan_findings(
         ecr_client=ecr_client_for_enhanced_scanning_repo, image_uri=new_uri
     )
-    scan_results = json.loads(json.dumps(scan_results, default=ecr_utils.ecr_json_serializer))
+    scan_results = json.loads(json.dumps(scan_results, cls=EnhancedJSONEncoder))
 
     minimum_sev_threshold = get_minimum_sev_threshold_level(image)
     ecr_image_vulnerability_list = ECREnhancedScanVulnerabilityList(minimum_severity=CVESeverity[minimum_sev_threshold])

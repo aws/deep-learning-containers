@@ -17,6 +17,7 @@ from invoke import run
 from invoke.context import Context
 from packaging.version import LegacyVersion, Version, parse
 from packaging.specifiers import SpecifierSet
+from datetime import date, datetime
 from retrying import retry
 import dataclasses
 # from security import EnhancedJSONEncoder
@@ -162,6 +163,8 @@ class EnhancedJSONEncoder(json.JSONEncoder):
     def default(self, o):
         if dataclasses.is_dataclass(o):
             return dataclasses.asdict(o)
+        if isinstance(o, (datetime, date)):
+            return o.isoformat()
         return super().default(o)
 
 
