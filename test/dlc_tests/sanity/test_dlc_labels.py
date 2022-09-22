@@ -224,7 +224,8 @@ def test_dlc_major_version_dockerfiles(image):
     # made to this rule, please see the above handling of TF2.3 as an example.
     assert actual_versions == expected_versions, (
         f"Found DLC major versions {actual_versions} but expected {expected_versions} for "
-        f"{framework} {job_type} {processor}. Full version info: {versions}. Py version: {python_major_minor_version}"
+        f"{framework} {job_type} {processor}. Full version info: {versions}. Py version: {python_major_minor_version}. "
+        f"Dockerfiles looked into: {dockerfiles}"
     )
 
 

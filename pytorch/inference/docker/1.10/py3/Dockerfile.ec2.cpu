@@ -52,14 +52,13 @@ RUN keytool -importkeystore -srckeystore /etc/ssl/certs/java/cacerts -destkeysto
     mv /etc/ssl/certs/java/cacerts.jks /etc/ssl/certs/java/cacerts; \
     /var/lib/dpkg/info/ca-certificates-java.postinst configure;
 
+
 RUN curl -L -o ~/mambaforge.sh https://github.com/conda-forge/miniforge/releases/download/${MAMBA_VERSION}/Mambaforge-${MAMBA_VERSION}-Linux-x86_64.sh \
  && chmod +x ~/mambaforge.sh \
  && ~/mambaforge.sh -b -p /opt/conda \
  && rm ~/mambaforge.sh \
- && /opt/conda/bin/conda update conda \
- && /opt/conda/bin/conda install -c conda-forge \
-    python=$PYTHON_VERSION \
  && /opt/conda/bin/conda install -c conda-forge -y \
+    python=$PYTHON_VERSION \
     cython \
     mkl-include \
     mkl \
@@ -69,6 +68,13 @@ RUN curl -L -o ~/mambaforge.sh https://github.com/conda-forge/miniforge/releases
     # Below 2 are included in miniconda base, but not mamba so need to install
     conda-content-trust \
     charset-normalizer \
+ && /opt/conda/bin/conda clean -ya
+
+# Upstream conda looks to have moved to 4.13 which is incompatible with mamba 0.22.1 and will fail the conda-forge installs.
+# having "conda update conda" before the "conda -c conda-forge" commands will automatically update conda to 4.13.
+# Moving conda update conda" after the "conda -c conda-forge" commands keep conda at 4.12 but will update other packages using
+# the current conda 4.12
+RUN /opt/conda/bin/conda update -y conda \
  && /opt/conda/bin/conda clean -ya
 
 # Conda installs links for libtinfo.so.6 and libtinfo.so.6.2 both
