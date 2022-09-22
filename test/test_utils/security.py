@@ -1,13 +1,160 @@
+from abc import abstractmethod
 import os
 import json
 import copy, collections
 import boto3
+import json
 
 from invoke import run, Context
 from time import sleep, time
 from enum import IntEnum
 from test import test_utils
-from test.test_utils import ecr as ecr_utils
+from test.test_utils import LOGGER, ecr as ecr_utils
+import dataclasses
+from dataclasses import dataclass
+from typing import Any, List
+
+
+@dataclass
+class VulnerablePackageDetails:
+    """
+    VulnerablePackageDetails dataclass is used to represent the "package_details" for 
+    a single vulnerability in Allowlist format.
+    """
+
+    file_path: str
+    name: str
+    package_manager: str
+    version: str
+    release: str
+
+    def __init__(
+        self,
+        name: str,
+        version: str,
+        filePath: str = None,
+        packageManager: str = None,
+        release: str = None,
+        *args: Any,
+        **kwargs: Any,
+    ):
+        self.file_path = filePath
+        self.name = name
+        self.package_manager = packageManager
+        self.version = version
+        self.release = release
+
+
+@dataclass
+class AllowListFormatVulnerabilityForEnhancedScan:
+    """
+    AllowListFormatVulnerabilityForEnhancedScan represents how the data looks for a single vulnerability in the allowlist format.
+    The data from the ECR Enhanced Results are deserialized into AllowListFormatVulnerabilityForEnhancedScan dataclass. In 
+    other words, vulnerabilities from the ecr format are directly deserialized into vulnerabilities in Allowlist
+    format using AllowListFormatVulnerabilityForEnhancedScan dataclass.
+    """
+
+    description: str
+    vulnerability_id: str
+    name: str
+    package_name: str
+    package_details: VulnerablePackageDetails
+    remediation: dict
+    cvss_v3_score: float
+    cvss_v30_score: float
+    cvss_v2_score: float
+    cvss_v3_severity: str
+    source_url: str
+    source: str
+    severity: str
+    status: str
+    title: str
+
+    def __init__(
+        self,
+        description: str,
+        # packageVulnerabilityDetails: dict,
+        remediation: dict,
+        severity: str,
+        status: str,
+        title: str,
+        *args: Any,
+        **kwargs: Any,
+    ):
+        self.description = description
+        packageVulnerabilityDetails = kwargs.get("packageVulnerabilityDetails")
+        self.vulnerability_id = packageVulnerabilityDetails["vulnerabilityId"] if packageVulnerabilityDetails else kwargs["vulnerability_id"]
+        self.name = packageVulnerabilityDetails["vulnerabilityId"] if packageVulnerabilityDetails else kwargs["name"]
+        self.package_name = None if packageVulnerabilityDetails else kwargs["package_name"]
+        self.package_details = None if packageVulnerabilityDetails else kwargs["package_details"]
+        self.remediation = remediation
+        self.source_url = packageVulnerabilityDetails["sourceUrl"] if packageVulnerabilityDetails else kwargs["source_url"]
+        self.source = packageVulnerabilityDetails["source"] if packageVulnerabilityDetails else kwargs["source"]
+        self.severity = severity
+        self.status = status
+        self.title = title
+        self.cvss_v3_score = self.get_cvss_score(packageVulnerabilityDetails, score_version="3.1") if packageVulnerabilityDetails else kwargs["cvss_v3_score"]
+        self.cvss_v30_score = self.get_cvss_score(packageVulnerabilityDetails, score_version="3.0") if packageVulnerabilityDetails else kwargs["cvss_v30_score"]
+        self.cvss_v2_score = self.get_cvss_score(packageVulnerabilityDetails, score_version="2.0") if packageVulnerabilityDetails else kwargs["cvss_v2_score"]
+        self.cvss_v3_severity = self.get_cvss_v3_severity(self.cvss_v3_score) if packageVulnerabilityDetails else kwargs["cvss_v3_severity"]
+    
+    def __eq__(self, other):
+        assert type(self) == type(other), f"Types {type(self)} and {type(other)} mismatch!!"
+        ## Ignore version key in package_details as it might represent the version of the package existing in the image
+        ## and might differ from  image to image, even when the vulnerability is same.
+        if test_utils.check_if_two_dictionaries_are_equal(
+            dataclasses.asdict(self.package_details), dataclasses.asdict(other.package_details), ignore_keys=["version"]
+        ):
+            return test_utils.check_if_two_dictionaries_are_equal(
+                dataclasses.asdict(self), dataclasses.asdict(other), ignore_keys=["package_details"]
+            )
+        return False
+
+    def get_cvss_score(self, packageVulnerabilityDetails: dict, score_version: str = "3.1"):
+        """
+        The ECR Enhanced Scan returns the CVSS scores as a list under packageVulnerabilityDetails["cvss"].
+        The list looks like: 
+            "packageVulnerabilityDetails": {
+                "cvss": [
+                    {
+                        "baseScore": 7.7,
+                        "scoringVector": "CVSS:3.1/AV:N/AC:H/PR:H/UI:N/S:C/C:H/I:N/A:H",
+                        "source": "SNYK",
+                        "version": "3.1"
+                    },
+                    {
+                        "baseScore": 6.5,
+                        "scoringVector": "CVSS:2.0/AV:N/AC:H/PR:H/UI:N/.....",
+                        "source": "SNYK",
+                        "version": "2.0"
+                    }
+                ]
+            }
+        This method iterates through all the CVSS scores and returns the baseScore for a particular CVSS version.
+        :param packageVulnerabilityDetails: dict, as described above
+        :param score_version: str, desired CVSS version
+        :return: float, CVSS score
+        """
+        for cvss_score in packageVulnerabilityDetails["cvss"]:
+            if cvss_score["version"] == score_version:
+                return float(cvss_score["baseScore"])
+        return 0.0
+
+    ## Taken from https://nvd.nist.gov/vuln-metrics/cvss and section 5 of first.org/cvss/specification-document
+    def get_cvss_v3_severity(self, cvss_v3_score: float):
+        if cvss_v3_score >= 9.0:
+            return "CRITICAL"
+        elif cvss_v3_score >= 7.0:
+            return "HIGH"
+        elif cvss_v3_score >= 4.0:
+            return "MEDIUM"
+        elif cvss_v3_score >= 0.1:
+            return "LOW"
+        return "UNDEFINED"  # Used to represent None Severity as well
+
+    def set_package_details_and_name(self, package_details: VulnerablePackageDetails):
+        self.package_details = package_details
+        self.package_name = self.package_details.name
 
 
 class ECRScanFailureException(Exception):
@@ -29,45 +176,27 @@ class CVESeverity(IntEnum):
 
 class ScanVulnerabilityList:
     """
-    ScanAllowList is a class that reads an OS vulnerability allow-list, in the format stored on the DLC repo,
-    to allow easy comparison of any ECR Scan Vulnerabilities on an image with its corresponding allow-list file.
+    ScanVulnerabilityList is a class that reads and stores a vulnerability list in the Allowlist format. The format in which 
+    the allowlist JSON files are stored on the DLC repo is referred as the Allowlist Format. This class allows easy comparison
+    of 2 Allowlist formatted vulnerability lists and defines methods to convert ECR Scan Lists to Allowlist Format lists that 
+    can be stored within the class itself.
     """
 
     def __init__(self, minimum_severity=CVESeverity["MEDIUM"]):
         self.vulnerability_list = {}
         self.minimum_severity = minimum_severity
 
-    def construct_allowlist_from_file(self, file_path):
-        """
-        Read JSON file and prepare the object with all allowed vulnerabilities
+    @abstractmethod
+    def are_vulnerabilities_equivalent(self, vulnerability_1, vulnerability_2):
+        pass
 
-        :param file_path: Path to the allow-list JSON file.
-        :return: dict self.vulnerability_list
-        """
-        with open(file_path, "r") as f:
-            file_allowlist = json.load(f)
-        for package_name, package_vulnerability_list in file_allowlist.items():
-            for vulnerability in package_vulnerability_list:
-                if CVESeverity[vulnerability["severity"]] >= self.minimum_severity:
-                    if package_name not in self.vulnerability_list:
-                        self.vulnerability_list[package_name] = []
-                    self.vulnerability_list[package_name].append(vulnerability)
-        return self.vulnerability_list
+    @abstractmethod
+    def get_vulnerability_package_name_from_allowlist_formatted_vulnerability(self, vulnerability):
+        pass
 
-    def construct_allowlist_from_ecr_scan_result(self, vulnerability_list):
-        """
-        Read a vulnerability list and construct the vulnerability_list
-
-        :param vulnerability_list: list ECR Scan Result results
-        :return: dict self.vulnerability_list
-        """
-        for vulnerability in vulnerability_list:
-            package_name = get_ecr_vulnerability_package_name(vulnerability)
-            if package_name not in self.vulnerability_list:
-                self.vulnerability_list[package_name] = []
-            if CVESeverity[vulnerability["severity"]] >= self.minimum_severity:
-                self.vulnerability_list[package_name].append(vulnerability)
-        return self.vulnerability_list
+    @abstractmethod
+    def construct_allowlist_from_allowlist_formatted_vulnerabilities(self, allowlist_formatted_vulnerability_list):
+        pass
 
     def get_flattened_vulnerability_list(self):
         """
@@ -105,10 +234,9 @@ class ScanVulnerabilityList:
         :return: dict, sorted vulnerability list
         """
         copy_dict = copy.deepcopy(self.vulnerability_list)
-        for key, list_of_dict in copy_dict.items():
-            uniquified_list = test_utils.uniquify_list_of_dict(list_of_dict)
-            uniquified_list.sort(key=lambda dict_element: dict_element["name"])
-            copy_dict[key] = uniquified_list
+        for key, list_of_complex_types in copy_dict.items():
+            uniquified_list = test_utils.uniquify_list_of_complex_datatypes(list_of_complex_types)
+            uniquified_list.sort(key=lambda dict_element: dict_element["name"] if isinstance(dict_element, dict) else dict_element.name)
         return dict(sorted(copy_dict.items()))
 
     def save_vulnerability_list(self, path):
@@ -127,11 +255,11 @@ class ScanVulnerabilityList:
                               presented by the ECR Scan Tool
         :return: bool True if the vulnerability is allowed on the allow-list.
         """
-        package_name = get_ecr_vulnerability_package_name(vulnerability)
+        package_name = self.get_vulnerability_package_name_from_allowlist_formatted_vulnerability(vulnerability)
         if package_name not in self.vulnerability_list:
             return False
         for allowed_vulnerability in self.vulnerability_list[package_name]:
-            if are_vulnerabilities_equivalent(vulnerability, allowed_vulnerability):
+            if self.are_vulnerabilities_equivalent(vulnerability, allowed_vulnerability):
                 return True
         return False
 
@@ -152,11 +280,29 @@ class ScanVulnerabilityList:
             if len(self.vulnerability_list[package_name]) != len(other.vulnerability_list[package_name]):
                 return False
             for v1, v2 in zip(
-                sorted(self.vulnerability_list[package_name]), sorted(other.vulnerability_list[package_name])
+                self.get_sorted_vulnerability_list()[package_name], other.get_sorted_vulnerability_list()[package_name]
             ):
-                if not are_vulnerabilities_equivalent(v1, v2):
+                if not self.are_vulnerabilities_equivalent(v1, v2):
                     return False
         return True
+    
+    def __eq__(self, other):
+        """
+        Compare two ScanVulnerabilityList objects for equivalence.
+
+        :param other: Another ScanVulnerabilityList object
+        :return: True if equivalent, False otherwise
+        """
+        return self.__cmp__(other)
+
+    def __ne__(self, other):
+        """
+        Reverse of __eq__
+
+        :param other: Another ScanVulnerabilityList object
+        :return: True if not equivalent, False otherwise
+        """
+        return not self.__eq__(other)
 
     def __sub__(self, other):
         """
@@ -178,8 +324,8 @@ class ScanVulnerabilityList:
         if not missing_vulnerabilities:
             return None
 
-        difference = ScanVulnerabilityList(minimum_severity=self.minimum_severity)
-        difference.construct_allowlist_from_ecr_scan_result(missing_vulnerabilities)
+        difference = type(self)(minimum_severity=self.minimum_severity)
+        difference.construct_allowlist_from_allowlist_formatted_vulnerabilities(missing_vulnerabilities)
         return difference
 
     def __add__(self, other):
@@ -194,48 +340,175 @@ class ScanVulnerabilityList:
         all_vulnerabilities = flattened_vulnerability_list_self + flattened_vulnerability_list_other
         if not all_vulnerabilities:
             return None
-        union_vulnerabilities = test_utils.uniquify_list_of_dict(all_vulnerabilities)
+        union_vulnerabilities = test_utils.uniquify_list_of_complex_datatypes(all_vulnerabilities)
 
-        union = ScanVulnerabilityList(minimum_severity=self.minimum_severity)
-        union.construct_allowlist_from_ecr_scan_result(union_vulnerabilities)
+        union = type(self)(minimum_severity=self.minimum_severity)
+        union.construct_allowlist_from_allowlist_formatted_vulnerabilities(union_vulnerabilities)
         return union
 
 
-def are_vulnerabilities_equivalent(vulnerability_1, vulnerability_2):
+class ECRBasicScanVulnerabilityList(ScanVulnerabilityList):
     """
-    Check if two vulnerability JSON objects are equivalent
+    A child class of ScanVulnerabilityList that is specifically made to deal with ECR Basic Scans.
+    """
 
-    :param vulnerability_1: dict JSON object consisting of information about the vulnerability in the format
-                            presented by the ECR Scan Tool
-    :param vulnerability_2: dict JSON object consisting of information about the vulnerability in the format
-                            presented by the ECR Scan Tool
-    :return: bool True if the two input objects are equivalent, False otherwise
-    """
-    if (vulnerability_1["name"], vulnerability_1["severity"]) == (vulnerability_2["name"], vulnerability_2["severity"]):
-        # Do not compare package_version, because this may have been obtained at the time the CVE was first observed
-        # on the ECR Scan, which would result in unrelated version updates causing a mismatch while the CVE still
-        # applies on both vulnerabilities.
-        if all(
-            attribute in vulnerability_2["attributes"]
-            for attribute in vulnerability_1["attributes"]
-            if not attribute["key"] == "package_version"
+    def get_vulnerability_package_name_from_allowlist_formatted_vulnerability(self, vulnerability):
+        """
+        Get Package Name from a vulnerability JSON object. 
+        For ECR Basic Scans, the format of the vulnerability is same in ecr format and allowlist format, so this function 
+        can be used interchangeably.
+
+        :param vulnerability: dict JSON object consisting of information about the vulnerability in the Allowlist format data
+        which is same as ECR Scan Tool data for ECR Basic Scanning.
+        :return: str package name
+        """
+        for attribute in vulnerability["attributes"]:
+            if attribute["key"] == "package_name":
+                return attribute["value"]
+        return None
+
+    def construct_allowlist_from_file(self, file_path):
+        """
+        Read JSON file and prepare the object with all allowed vulnerabilities
+
+        :param file_path: Path to the allow-list JSON file.
+        :return: dict self.vulnerability_list
+        """
+        with open(file_path, "r") as f:
+            file_allowlist = json.load(f)
+        for package_name, package_vulnerability_list in file_allowlist.items():
+            for vulnerability in package_vulnerability_list:
+                if CVESeverity[vulnerability["severity"]] >= self.minimum_severity:
+                    if package_name not in self.vulnerability_list:
+                        self.vulnerability_list[package_name] = []
+                    self.vulnerability_list[package_name].append(vulnerability)
+        return self.vulnerability_list
+
+    def construct_allowlist_from_allowlist_formatted_vulnerabilities(self, allowlist_formatted_vulnerability_list):
+        """
+        Read a vulnerability list and construct the vulnerability_list
+
+        :param vulnerability_list: list ECR Scan Result results
+        :return: dict self.vulnerability_list
+        """
+        for vulnerability in allowlist_formatted_vulnerability_list:
+            package_name = self.get_vulnerability_package_name_from_allowlist_formatted_vulnerability(vulnerability)
+            if package_name not in self.vulnerability_list:
+                self.vulnerability_list[package_name] = []
+            if CVESeverity[vulnerability["severity"]] >= self.minimum_severity:
+                self.vulnerability_list[package_name].append(vulnerability)
+        return self.vulnerability_list
+
+    def construct_allowlist_from_ecr_scan_result(self, ecr_format_vulnerability_list):
+        """
+        Read a vulnerability list and construct the vulnerability_list
+        For Basic Scan, the ecr scan vulnerabilities and the allowlist vulnerabilities have the same format
+        and hence we can use the same function.
+
+        :param vulnerability_list: list ECR Scan Result results
+        :return: dict self.vulnerability_list
+        """
+        return self.construct_allowlist_from_allowlist_formatted_vulnerabilities(ecr_format_vulnerability_list)
+
+    def are_vulnerabilities_equivalent(self, vulnerability_1, vulnerability_2):
+        """
+        Check if two vulnerability JSON objects are equivalent
+
+        :param vulnerability_1: dict JSON object consisting of information about the vulnerability in the format
+                                presented by the ECR Scan Tool
+        :param vulnerability_2: dict JSON object consisting of information about the vulnerability in the format
+                                presented by the ECR Scan Tool
+        :return: bool True if the two input objects are equivalent, False otherwise
+        """
+        if (vulnerability_1["name"], vulnerability_1["severity"]) == (
+            vulnerability_2["name"],
+            vulnerability_2["severity"],
         ):
-            return True
-    return False
+            # Do not compare package_version, because this may have been obtained at the time the CVE was first observed
+            # on the ECR Scan, which would result in unrelated version updates causing a mismatch while the CVE still
+            # applies on both vulnerabilities.
+            if all(
+                attribute in vulnerability_2["attributes"]
+                for attribute in vulnerability_1["attributes"]
+                if not attribute["key"] == "package_version"
+            ):
+                return True
+        return False
 
 
-def get_ecr_vulnerability_package_name(vulnerability):
+class ECREnhancedScanVulnerabilityList(ScanVulnerabilityList):
     """
-    Get Package Name from a vulnerability JSON object
-
-    :param vulnerability: dict JSON object consisting of information about the vulnerability in the format
-                          presented by the ECR Scan Tool
-    :return: str package name
+    A child class of ScanVulnerabilityList that is specifically made to deal with ECR Enhanced Scans.
     """
-    for attribute in vulnerability["attributes"]:
-        if attribute["key"] == "package_name":
-            return attribute["value"]
-    return None
+
+    def get_vulnerability_package_name_from_allowlist_formatted_vulnerability(self, vulnerability: AllowListFormatVulnerabilityForEnhancedScan):
+        """
+        Get Package Name from a vulnerability JSON object
+        :param vulnerability: dict JSON object consisting of information about the vulnerability in the Allowlist Format.
+        :return: str package name
+        """
+        return vulnerability.package_name
+
+    def construct_allowlist_from_file(self, file_path):
+        """
+        Read JSON file that has the vulnerability data saved in the Allowlist format itself and prepare the object with 
+        all the vulnerabilities in the Allowlist format as well.
+
+        :param file_path: Path to the allow-list JSON file.
+        :return: dict self.vulnerability_list
+        """
+        with open(file_path, "r") as f:
+            file_allowlist = json.load(f)
+        for _, package_vulnerability_list in file_allowlist.items():
+            allowlist_formatted_package_vulnerability_list = [AllowListFormatVulnerabilityForEnhancedScan(**vulnerability) for vulnerability in package_vulnerability_list]
+            self.construct_allowlist_from_allowlist_formatted_vulnerabilities(allowlist_formatted_package_vulnerability_list)
+        return self.vulnerability_list
+
+    def construct_allowlist_from_allowlist_formatted_vulnerabilities(self, allowlist_formatted_vulnerability_list:List[AllowListFormatVulnerabilityForEnhancedScan]):
+        """
+        Read a vulnerability list in the AllowListFormat and construct the vulnerability_list in the same format.
+
+        :param vulnerability_list: list ECR Scan Result results
+        :return: dict self.vulnerability_list
+        """
+        for vulnerability in allowlist_formatted_vulnerability_list:
+            package_name = self.get_vulnerability_package_name_from_allowlist_formatted_vulnerability(vulnerability)
+            if CVESeverity[vulnerability.cvss_v3_severity] < self.minimum_severity:
+                continue
+            if package_name not in self.vulnerability_list:
+                self.vulnerability_list[package_name] = []
+            self.vulnerability_list[package_name].append(vulnerability)
+        return self.vulnerability_list
+
+    def construct_allowlist_from_ecr_scan_result(self, ecr_format_vulnerability_list):
+        """
+        Read an ECR formatted vulnerability list and construct the Allowlist Formatted vulnerability_list
+
+        :param vulnerability_list: list ECR Scan Result results
+        :return: dict self.vulnerability_list
+        """
+        for ecr_format_vulnerability in ecr_format_vulnerability_list:
+            for vulnerable_package in ecr_format_vulnerability["packageVulnerabilityDetails"]["vulnerablePackages"]:
+                allowlist_format_vulnerability_object = AllowListFormatVulnerabilityForEnhancedScan(**ecr_format_vulnerability)
+                vulnerable_package_object = VulnerablePackageDetails(**vulnerable_package)
+                allowlist_format_vulnerability_object.set_package_details_and_name(vulnerable_package_object)
+                if CVESeverity[allowlist_format_vulnerability_object.cvss_v3_severity] < self.minimum_severity:
+                    continue
+                if allowlist_format_vulnerability_object.package_name not in self.vulnerability_list:
+                    self.vulnerability_list[allowlist_format_vulnerability_object.package_name] = []
+                self.vulnerability_list[allowlist_format_vulnerability_object.package_name].append(allowlist_format_vulnerability_object)
+        self.vulnerability_list = self.get_sorted_vulnerability_list()
+        return self.vulnerability_list
+
+    def are_vulnerabilities_equivalent(self, vulnerability_1, vulnerability_2):
+        """
+        Check if two vulnerability JSON objects are equivalent
+
+        :param vulnerability_1: dict, JSON object consisting of information about the vulnerability in the Allowlist Format
+        :param vulnerability_2: dict, JSON object consisting of information about the vulnerability in the Allowlist Format
+        :return: bool True if the two input objects are equivalent, False otherwise
+        """
+        return vulnerability_1 == vulnerability_2
 
 
 def get_ecr_vulnerability_package_version(vulnerability):
@@ -255,6 +528,12 @@ def get_ecr_vulnerability_package_version(vulnerability):
 def get_ecr_scan_allowlist_path(image_uri):
     dockerfile_location = test_utils.get_dockerfile_path_for_image(image_uri)
     image_scan_allowlist_path = dockerfile_location + ".os_scan_allowlist.json"
+    if test_utils.is_covered_by_ec2_sm_split(image_uri) and test_utils.is_ec2_sm_in_same_dockerfile(image_uri):
+        if test_utils.is_ec2_image(image_uri):
+            image_scan_allowlist_path = image_scan_allowlist_path.replace("Dockerfile", "Dockerfile.ec2")
+        else:
+            image_scan_allowlist_path = image_scan_allowlist_path.replace("Dockerfile", "Dockerfile.sagemaker")
+
     # Each example image (tied to CUDA version/OS version/other variants) can have its own list of vulnerabilities,
     # which means that we cannot have just a single allowlist for all example images for any framework version.
     if "example" in image_uri:
@@ -277,23 +556,27 @@ def _save_lists_in_s3(save_details, s3_bucket_name):
         s3_client.upload_file(Filename=filename, Bucket=s3_bucket_name, Key=filename)
 
 
-def get_new_image_uri_for_uploading_upgraded_image_to_ecr(image):
+def get_target_image_uri_using_current_uri_and_target_repo(image, target_repository_name, target_repository_region, append_tag=""):
     """
-    Returns the new image uri for the image being tested. After running the apt commands, the
-    new image will be uploaded to the ECR based on the new image uri.
+    This function helps formulate a target image uri for a given image such that the target uri retains
+    the old uri info (i.e. old repo name and old repo tag).
 
-    :param image: str
-    :param new_image_uri: str
+    :param image: str, image uri
+    :param target_repository_name: str, name of target repository
+    :param target_repository_region: str, region of target repository
+    :param append_tag: str, string that needs to be appended at the end of the tag
+    :return: str, target image uri
     """
-    new_repository_name = test_utils.UPGRADE_ECR_REPO_NAME
-    region = os.getenv("REGION", test_utils.DEFAULT_REGION)
-    sts_client = boto3.client("sts", region_name=region)
+    sts_client = boto3.client("sts", region_name=target_repository_region)
     account_id = sts_client.get_caller_identity().get("Account")
-    registry = ecr_utils.get_ecr_registry(account_id, region)
+    registry = ecr_utils.get_ecr_registry(account_id, target_repository_region)
     original_image_repository, original_image_tag = test_utils.get_repository_and_tag_from_image_uri(image)
-    upgraded_image_tag = f"{original_image_repository}-{original_image_tag}-upgraded"
-    new_image_uri = f"{registry}/{new_repository_name}:{upgraded_image_tag}"
-    return new_image_uri
+    if append_tag:
+        upgraded_image_tag = f"{original_image_repository}-{original_image_tag}-{append_tag}"
+    else:
+        upgraded_image_tag = f"{original_image_repository}-{original_image_tag}"
+    target_image_uri = f"{registry}/{target_repository_name}:{upgraded_image_tag}"
+    return target_image_uri
 
 
 def run_upgrade_on_image_and_push(image, new_image_uri):
@@ -369,7 +652,12 @@ def get_apt_package_name(ecr_package_name):
     :param ecr_package_name: str, name of the package in ecr scans
     :param apt_package_name: str, name of the package in apt
     """
-    name_mapper = {"cyrus-sasl2": "libsasl2-2", "glibc": "libc6", "libopenmpt": "libopenmpt-dev", "fribidi": "libfribidi-dev", }
+    name_mapper = {
+        "cyrus-sasl2": "libsasl2-2",
+        "glibc": "libc6",
+        "libopenmpt": "libopenmpt-dev",
+        "fribidi": "libfribidi-dev",
+    }
     return name_mapper.get(ecr_package_name, ecr_package_name)
 
 
@@ -548,6 +836,35 @@ def run_scan(ecr_client, image):
         raise TimeoutError(f"ECR Scan is still in {scan_status} state. Exiting.")
 
 
+def wait_for_enhanced_scans_to_complete(ecr_client, image):
+    """
+    For Continuous Enhanced scans, the images will go through `SCAN_ON_PUSH` when they are uploaded for the 
+    first time. During that time, their state will be shown as `PENDING`. From next time onwards, their status will show 
+    itself as `ACTIVE`.
+
+    :param ecr_client: boto3 Client for ECR
+    :param image: str, Image URI for image being scanned
+    """
+    scan_status = None
+    scan_status_description = ""
+    start_time = time()
+    while (time() - start_time) <= 30 * 60:
+        try:
+            scan_status, scan_status_description = ecr_utils.get_ecr_image_enhanced_scan_status(ecr_client, image)
+        except ecr_client.exceptions.ScanNotFoundException as e:
+            LOGGER.info(e.response)
+            LOGGER.info(
+                "It takes sometime for the newly uploaded image to show its scan status, hence the error handling"
+            )
+        if scan_status == "ACTIVE":
+            break
+        sleep(1 * 60)
+    if scan_status != "ACTIVE":
+        raise TimeoutError(
+            f"ECR Scan is still in {scan_status} state with description: {scan_status_description}. Exiting."
+        )
+
+
 def fetch_other_vulnerability_lists(image, ecr_client, minimum_sev_threshold):
     """
     For a given image it fetches all the other vulnerability lists except the vulnerability list formed by the
@@ -560,7 +877,12 @@ def fetch_other_vulnerability_lists(image, ecr_client, minimum_sev_threshold):
     :return upgraded_image_vulnerability_list: ScanVulnerabilityList, Vulnerabilites exisiting in the image WITH apt-upgrade run on it.
     :return image_allowlist: ScanVulnerabilityList, Vulnerabities that are present in the respective allowlist in the DLC git repo.
     """
-    new_image_uri_for_upgraded_image = get_new_image_uri_for_uploading_upgraded_image_to_ecr(image)
+    new_image_uri_for_upgraded_image = get_target_image_uri_using_current_uri_and_target_repo(
+        image,
+        target_repository_name=test_utils.UPGRADE_ECR_REPO_NAME,
+        target_repository_region=os.getenv("REGION", test_utils.DEFAULT_REGION),
+        append_tag="upgraded",
+    )
     run_upgrade_on_image_and_push(image, new_image_uri_for_upgraded_image)
     run_scan(ecr_client, new_image_uri_for_upgraded_image)
     scan_results_with_upgrade = ecr_utils.get_ecr_image_scan_results(
@@ -569,9 +891,11 @@ def fetch_other_vulnerability_lists(image, ecr_client, minimum_sev_threshold):
     scan_results_with_upgrade = ecr_utils.populate_ecr_scan_with_web_scraper_results(
         new_image_uri_for_upgraded_image, scan_results_with_upgrade
     )
-    upgraded_image_vulnerability_list = ScanVulnerabilityList(minimum_severity=CVESeverity[minimum_sev_threshold])
+    upgraded_image_vulnerability_list = ECRBasicScanVulnerabilityList(
+        minimum_severity=CVESeverity[minimum_sev_threshold]
+    )
     upgraded_image_vulnerability_list.construct_allowlist_from_ecr_scan_result(scan_results_with_upgrade)
-    image_scan_allowlist = ScanVulnerabilityList(minimum_severity=CVESeverity[minimum_sev_threshold])
+    image_scan_allowlist = ECRBasicScanVulnerabilityList(minimum_severity=CVESeverity[minimum_sev_threshold])
     image_scan_allowlist_path = get_ecr_scan_allowlist_path(image)
     if os.path.exists(image_scan_allowlist_path):
         image_scan_allowlist.construct_allowlist_from_file(image_scan_allowlist_path)
