@@ -57,8 +57,9 @@ UBUNTU_18_BASE_DLAMI_US_EAST_1 = get_ami_id_boto3(region_name="us-east-1", ami_n
 AML2_GPU_DLAMI_US_WEST_2 = get_ami_id_boto3(region_name="us-west-2", ami_name_pattern="Deep Learning AMI GPU CUDA 11.1.1 (Amazon Linux 2) ????????")
 AML2_GPU_DLAMI_US_EAST_1 = get_ami_id_boto3(region_name="us-east-1", ami_name_pattern="Deep Learning AMI GPU CUDA 11.1.1 (Amazon Linux 2) ????????")
 # We use the following DLAMI for MXNet and TensorFlow tests as well, but this is ok since we use custom DLC Graviton containers on top. We just need an ARM base DLAMI.
-UL18_CPU_ARM64_US_WEST_2 = get_ami_id_boto3(region_name="us-west-2", ami_name_pattern="Deep Learning AMI Graviton GPU PyTorch 1.10.0 (Ubuntu 20.04) ????????")
-UL18_BENCHMARK_CPU_ARM64_US_WEST_2 = get_ami_id_boto3(region_name="us-west-2", ami_name_pattern="Deep Learning AMI Graviton GPU TensorFlow 2.7.0 (Ubuntu 20.04) ????????")
+UL20_CPU_ARM64_US_WEST_2 = get_ami_id_boto3(region_name="us-west-2", ami_name_pattern="Deep Learning AMI Graviton GPU PyTorch 1.10.0 (Ubuntu 20.04) ????????")
+UL20_CPU_ARM64_US_EAST_1 = get_ami_id_boto3(region_name="us-east-1", ami_name_pattern="Deep Learning AMI Graviton GPU PyTorch 1.10.0 (Ubuntu 20.04) ????????")
+UL20_BENCHMARK_CPU_ARM64_US_WEST_2 = get_ami_id_boto3(region_name="us-west-2", ami_name_pattern="Deep Learning AMI Graviton GPU TensorFlow 2.7.0 (Ubuntu 20.04) ????????")
 AML2_CPU_ARM64_US_EAST_1 = get_ami_id_boto3(region_name="us-east-1", ami_name_pattern="Deep Learning Base AMI (Amazon Linux 2) Version ??.?")
 PT_GPU_PY3_BENCHMARK_IMAGENET_AMI_US_EAST_1 = "ami-0673bb31cc62485dd"
 PT_GPU_PY3_BENCHMARK_IMAGENET_AMI_US_WEST_2 = "ami-02d9a47bc61a31d43"
@@ -90,8 +91,9 @@ UL_AMI_LIST = [
     PT_GPU_PY3_BENCHMARK_IMAGENET_AMI_US_EAST_1,
     PT_GPU_PY3_BENCHMARK_IMAGENET_AMI_US_WEST_2,
     NEURON_UBUNTU_18_BASE_DLAMI_US_WEST_2,
-    UL18_CPU_ARM64_US_WEST_2,
-    UL18_BENCHMARK_CPU_ARM64_US_WEST_2,
+    UL20_CPU_ARM64_US_EAST_1,
+    UL20_CPU_ARM64_US_WEST_2,
+    UL20_BENCHMARK_CPU_ARM64_US_WEST_2,
 ]
 
 # ECS images are maintained here: https://docs.aws.amazon.com/AmazonECS/latest/developerguide/ecs-optimized_AMI.html
@@ -108,7 +110,7 @@ TENSORFLOW_MODELS_BUCKET = "s3://tensoflow-trained-models"
 DLAMI_PYTHON_MAPPING = {
     UBUNTU_18_BASE_DLAMI_US_WEST_2: "/usr/bin/python3.7",
     UBUNTU_18_BASE_DLAMI_US_EAST_1: "/usr/bin/python3.7",
-    UL18_CPU_ARM64_US_WEST_2: "/usr/bin/python3.8",
+    UL20_CPU_ARM64_US_WEST_2: "/usr/bin/python3.8",
 }
 # Used for referencing tests scripts from container_tests directory (i.e. from ECS cluster)
 CONTAINER_TESTS_PREFIX = os.path.join(os.sep, "test", "bin")
