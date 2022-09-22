@@ -19,7 +19,10 @@ from invoke import run
 from invoke.context import Context
 from packaging.version import LegacyVersion, Version, parse
 from packaging.specifiers import SpecifierSet
+from datetime import date, datetime
 from retrying import retry
+import dataclasses
+# from security import EnhancedJSONEncoder
 
 from src import config
 
@@ -139,6 +142,11 @@ UPGRADE_ECR_REPO_NAME = "upgraded-image-ecr-scan-repo"
 ECR_SCAN_HELPER_BUCKET = f"""ecr-scan-helper-{boto3.client("sts", region_name=DEFAULT_REGION).get_caller_identity().get("Account")}"""
 ECR_SCAN_FAILURE_ROUTINE_LAMBDA = "ecr-scan-failure-routine-lambda"
 
+## Note that the region for the repo used for conducting ecr enhanced scans should be different from other
+## repos since ecr enhanced scanning is activated in all the repos of a region and does not allow one to 
+## conduct basic scanning on some repos whereas enhanced scanning on others within the same region.
+ECR_ENHANCED_SCANNING_REPO_NAME = "ecr-enhanced-scanning-dlc-repo"
+ECR_ENHANCED_REPO_REGION = "us-west-1"
 
 class NightlyFeatureLabel(Enum):
     AWS_FRAMEWORK_INSTALLED = "aws_framework_installed"
@@ -165,6 +173,19 @@ class CudaVersionTagNotFoundException(Exception):
     """
 
     pass
+
+
+class EnhancedJSONEncoder(json.JSONEncoder):
+    """
+    EnhancedJSONEncoder is required to dump dataclass objects as JSON.
+    """
+
+    def default(self, o):
+        if dataclasses.is_dataclass(o):
+            return dataclasses.asdict(o)
+        if isinstance(o, (datetime, date)):
+            return o.isoformat()
+        return super().default(o)
 
 
 def get_dockerfile_path_for_image(image_uri):
@@ -256,6 +277,16 @@ def get_dockerfile_path_for_image(image_uri):
 
 
 def get_expected_dockerfile_filename(device_type, image_uri):
+    if is_covered_by_ec2_sm_split(image_uri):
+        if is_ec2_sm_in_same_dockerfile(image_uri):
+            return f"Dockerfile.{device_type}"
+        elif is_ec2_image(image_uri):
+            return f"Dockerfile.ec2.{device_type}"
+        else:
+            return f"Dockerfile.sagemaker.{device_type}"
+
+    ## TODO: Keeping here for backward compatibility, should be removed in future when the 
+    ## functions is_covered_by_ec2_sm_split and is_ec2_sm_in_same_dockerfile are made exhaustive
     if is_ec2_image(image_uri):
         return f"Dockerfile.ec2.{device_type}"
     if is_sagemaker_image(image_uri):
@@ -415,6 +446,24 @@ def is_benchmark_dev_context():
 def is_rc_test_context():
     sm_remote_tests_val = config.get_sagemaker_remote_tests_config_value()
     return sm_remote_tests_val == config.AllowedSMRemoteConfigValues.RC.value
+
+
+def is_covered_by_ec2_sm_split(image_uri):
+    ec2_sm_split_images = {
+        "pytorch": SpecifierSet(">=1.10.0"),
+        "tensorflow": SpecifierSet(">=2.7.0"),
+    }
+    framework, version = get_framework_and_version_from_tag(image_uri)
+    return framework in ec2_sm_split_images and Version(version) in ec2_sm_split_images[framework]
+
+
+def is_ec2_sm_in_same_dockerfile(image_uri):
+    same_sm_ec2_dockerfile_record = {
+        "pytorch": SpecifierSet(">=1.11.0"),
+        "tensorflow": SpecifierSet(">=2.8.0"),
+    }
+    framework, version = get_framework_and_version_from_tag(image_uri)
+    return framework in same_sm_ec2_dockerfile_record and Version(version) in same_sm_ec2_dockerfile_record[framework]
 
 
 def is_ec2_image(image_uri):
@@ -1629,6 +1678,7 @@ def run_cmd_on_container(container_name, context, cmd, executable="bash", warn=F
         f"docker exec --user root {container_name} {executable} -c '{cmd}'", hide=True, warn=warn, timeout=60
     )
 
+
 def uniquify_list_of_dict(list_of_dict):
     """
     Takes list_of_dict as an input and returns a list of dict such that each dict is only present
@@ -1640,8 +1690,38 @@ def uniquify_list_of_dict(list_of_dict):
     """
     list_of_string = [json.dumps(dict_element, sort_keys=True) for dict_element in list_of_dict]
     unique_list_of_string = list(set(list_of_string))
+    unique_list_of_string.sort() 
     list_of_dict_to_return = [json.loads(str_element) for str_element in unique_list_of_string]
     return list_of_dict_to_return
+
+
+def uniquify_list_of_complex_datatypes(list_of_complex_datatypes):
+    assert all(type(element) == type(list_of_complex_datatypes[0]) for element in list_of_complex_datatypes), f"{list_of_complex_datatypes} has multiple types"
+    if list_of_complex_datatypes:
+        if isinstance(list_of_complex_datatypes[0], dict):
+            return uniquify_list_of_dict(list_of_complex_datatypes)
+        if dataclasses.is_dataclass(list_of_complex_datatypes[0]):
+            type_of_dataclass = type(list_of_complex_datatypes[0])
+            list_of_dict = json.loads(json.dumps(list_of_complex_datatypes, cls= EnhancedJSONEncoder))
+            uniquified_list = uniquify_list_of_dict(list_of_dict=list_of_dict)
+            return [type_of_dataclass(**uniquified_list_dict_element) for uniquified_list_dict_element in uniquified_list]
+        raise "Not implemented"
+    return list_of_complex_datatypes
+
+
+def check_if_two_dictionaries_are_equal(dict1, dict2, ignore_keys=[]):
+    """
+    Compares if 2 dictionaries are equal or not. The ignore_keys argument is used to provide
+    a list of keys that are ignored while comparing the dictionaires.
+
+    :param dict1: dict
+    :param dict2: dict
+    :param ignore_keys: list[str], keys that are ignored while comparison
+    """
+    dict1_filtered = {k: v for k, v in dict1.items() if k not in ignore_keys}
+    dict2_filtered = {k: v for k, v in dict2.items() if k not in ignore_keys}
+    return dict1_filtered == dict2_filtered
+
 
 def get_tensorflow_model_base_path(image_uri):
     """
