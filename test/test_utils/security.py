@@ -82,7 +82,7 @@ class AllowListFormatVulnerabilityForEnhancedScan:
         **kwargs: Any,
     ):
         self.description = description
-        packageVulnerabilityDetails = kwargs["packageVulnerabilityDetails"] if "packageVulnerabilityDetails" in kwargs else None
+        packageVulnerabilityDetails = kwargs.get("packageVulnerabilityDetails")
         self.vulnerability_id = packageVulnerabilityDetails["vulnerabilityId"] if packageVulnerabilityDetails else kwargs["vulnerability_id"]
         self.name = packageVulnerabilityDetails["vulnerabilityId"] if packageVulnerabilityDetails else kwargs["name"]
         self.package_name = None if packageVulnerabilityDetails else kwargs["package_name"]
