@@ -93,8 +93,9 @@ class AllowListFormatVulnerabilityForEnhancedScan:
         self.severity = severity
         self.status = status
         self.title = title
-        self.cvss_v3_score = self.get_cvss_score(packageVulnerabilityDetails, score_version="3.1") if packageVulnerabilityDetails else kwargs["cvss_v3_score"]
         self.cvss_v30_score = self.get_cvss_score(packageVulnerabilityDetails, score_version="3.0") if packageVulnerabilityDetails else kwargs["cvss_v30_score"]
+        self.cvss_v31_score = self.get_cvss_score(packageVulnerabilityDetails, score_version="3.1") if packageVulnerabilityDetails else kwargs["cvss_v31_score"]
+        self.cvss_v3_score = self.cvss_v31_score if self.cvss_v31_score > 0 else self.cvss_v30_score
         self.cvss_v2_score = self.get_cvss_score(packageVulnerabilityDetails, score_version="2.0") if packageVulnerabilityDetails else kwargs["cvss_v2_score"]
         self.cvss_v3_severity = self.get_cvss_v3_severity(self.cvss_v3_score) if packageVulnerabilityDetails else kwargs["cvss_v3_severity"]
     
