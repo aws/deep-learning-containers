@@ -1,0 +1,31 @@
+{
+    "package5": [
+        {
+            "cvss_v2_score": 0.0,
+            "cvss_v30_score": 0.0,
+            "cvss_v3_score": 9.8,
+            "cvss_v3_severity": "CRITICAL",
+            "description": "temp-description",
+            "name": "CVE-A123",
+            "package_details": {
+                "file_path": "usr/lib",
+                "name": "package5",
+                "package_manager": "PYTHONPKG",
+                "release": null,
+                "version": "1.2"
+            },
+            "package_name": "package5",
+            "remediation": {
+                "recommendation": {
+                    "text": "None Provided"
+                }
+            },
+            "severity": "CRITICAL",
+            "source": "SNYK",
+            "source_url": "https://temp-url",
+            "status": "ACTIVE",
+            "title": "CVE-A123 - package5",
+            "vulnerability_id": "CVE-A123"
+        }
+    ]
+}
