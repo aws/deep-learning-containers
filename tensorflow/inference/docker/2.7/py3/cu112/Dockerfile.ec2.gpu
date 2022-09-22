@@ -91,7 +91,8 @@ RUN wget https://www.python.org/ftp/python/$PYTHON_VERSION/Python-$PYTHON_VERSIO
 
 RUN ${PIP} --no-cache-dir install --upgrade \
     pip \
-    setuptools
+    setuptools \
+    packaging
 
 
 # Install TensorRT 
