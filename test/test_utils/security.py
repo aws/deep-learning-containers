@@ -62,6 +62,7 @@ class AllowListFormatVulnerabilityForEnhancedScan:
     remediation: dict
     cvss_v3_score: float
     cvss_v30_score: float
+    cvss_v31_score: float
     cvss_v2_score: float
     cvss_v3_severity: str
     source_url: str
