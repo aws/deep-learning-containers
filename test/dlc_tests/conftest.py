@@ -4,7 +4,7 @@ import logging
 import random
 import sys
 import re
-import uuid
+
 import boto3
 from botocore.exceptions import ClientError
 import docker
@@ -783,7 +783,7 @@ def generate_unique_values_for_fixtures(metafunc_obj, images_to_parametrize, val
                             image,
                             f"{metafunc_obj.function.__name__}-{framework_name_map.get(framework)}-"
                             f"{job_type_map.get(job_type)}-{image_tag}-"
-                            f"{os.getenv('CODEBUILD_RESOLVED_SOURCE_VERSION')}-{str(uuid.uuid4())}{instance_tag}",
+                            f"{os.getenv('CODEBUILD_RESOLVED_SOURCE_VERSION')}-{index}{instance_tag}",
                         )
                     )
     return fixtures_parametrized
