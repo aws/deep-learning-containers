@@ -129,8 +129,4 @@ RUN HOME_DIR=/root \
 
 RUN curl https://aws-dlc-licenses.s3.amazonaws.com/tensorflow-${TF_VERSION}/license.txt -o /license.txt
 
-# cleanup conda 
-RUN conda clean --yes --all \
-   && rm -rf /opt/miniconda/pkgs/*
-
 CMD ["/bin/bash"]
