@@ -58,6 +58,7 @@ RUN pip install --no-cache-dir --user -U \
     "awscli<2" \
     psutil \
     Pillow \
+    pillow-simd \
     scipy \
     pybind11 \
     mpi4py==3.0.3 \
