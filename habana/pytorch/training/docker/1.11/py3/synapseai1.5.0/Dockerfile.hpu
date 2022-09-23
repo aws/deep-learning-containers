@@ -34,7 +34,6 @@ RUN apt-get update \
     libtemplate-perl \
     libssl1.1 \
     openssl \
-    oauthlib \
     unzip \
     wget \
     vim \
@@ -66,6 +65,7 @@ RUN pip install --no-cache-dir --user -U \
     torchnet \
     "cryptography>3.2" \
     werkzeug \
+    oauthlib \
  && pip install --no-cache-dir --user -U boto3 --upgrade \
  && pip uninstall -y torch \
  && pip uninstall -y hb-torch \
