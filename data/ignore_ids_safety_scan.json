@@ -34,7 +34,8 @@
             "py3": {
                 "42098":"Can't upgrade TF version to 2.7.x in non 2.7 images.",
                 "42062":"Can't upgrade TF version to 2.7.x in non 2.7 images.",
-                "44715":"False positive for numpy. Was fixed in 1.22.2"
+                "44715":"False positive for numpy. Was fixed in 1.22.2",
+                "51159":"in order to to get approved version of cryptography (>=39.0.0), the python version needs to be 3.9 or above."
             }
         },
         "inference-eia": {
@@ -227,7 +228,8 @@
                 "43453":"mxnet 1.9 currently does not work with numpy 1.20.0 or above",
                 "44715":"mxnet 1.9 currently does not work with numpy 1.20.0 or above",
                 "44716":"mxnet 1.9 currently does not work with numpy 1.20.0 or above",
-                "44717":"mxnet 1.9 currently does not work with numpy 1.20.0 or above"
+                "44717":"mxnet 1.9 currently does not work with numpy 1.20.0 or above",
+                "51159":"in order to to get approved version of cryptography (>=39.0.0), the python version needs to be 3.9 or above."
             }
         },
         "inference-eia": {
@@ -411,6 +413,7 @@
             "py2": {
             },
             "py3": {
+                "51159":"in order to to get approved version of cryptography (>=39.0.0), the python version needs to be 3.9 or above."
             }
         },
         "inference-eia": {
