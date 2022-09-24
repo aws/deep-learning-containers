@@ -76,6 +76,8 @@ IGNORE_SAFETY_IDS = {
                 "43453",
                 # tensorflow-estimator and tensorflow versions must match. For all TF versions below TF 2.9.0, we cannot upgrade tf-estimator to 2.9.0
                 "48551",
+                # in order to to get approved version of cryptography (>=39.0.0), the python version needs to be 3.9 or above.
+                "51159",
             ],
         },
         "inference-eia": {
@@ -258,7 +260,10 @@ IGNORE_SAFETY_IDS = {
                 "38451",
                 "38452",
             ],
-            "py3": [],
+            "py3": [
+                # in order to to get approved version of cryptography (>=39.0.0), the python version needs to be 3.9 or above.
+                "51159",
+            ],
         },
         "training": {
             "py2": [
@@ -447,6 +452,8 @@ IGNORE_SAFETY_IDS = {
                 "44715",
                 "44716",
                 "44717",
+                # in order to to get approved version of cryptography (>=39.0.0), the python version needs to be 3.9 or above.
+                "51159",
             ]
         },
         "inference-eia": {"py3": []},
