@@ -289,7 +289,8 @@ def ec2_instance(
                 if ec2_instance_ami == AML2_GPU_DLAMI_US_WEST_2
                 else UBUNTU_18_BASE_DLAMI_US_EAST_1
             )
-
+    
+    ec2_key_name = f"{ec2_key_name}-{str(uuid.uuid4())}"
     print(f"Creating instance: CI-CD {ec2_key_name}")
     key_filename = test_utils.generate_ssh_keypair(ec2_client, ec2_key_name)
 
@@ -783,7 +784,7 @@ def generate_unique_values_for_fixtures(metafunc_obj, images_to_parametrize, val
                             image,
                             f"{metafunc_obj.function.__name__}-{framework_name_map.get(framework)}-"
                             f"{job_type_map.get(job_type)}-{image_tag}-"
-                            f"{os.getenv('CODEBUILD_RESOLVED_SOURCE_VERSION')}-{str(uuid.uuid4())}{instance_tag}",
+                            f"{os.getenv('CODEBUILD_RESOLVED_SOURCE_VERSION')}-{index}{instance_tag}",
                         )
                     )
     return fixtures_parametrized
