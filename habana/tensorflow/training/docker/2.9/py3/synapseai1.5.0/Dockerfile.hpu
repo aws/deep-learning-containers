@@ -93,6 +93,8 @@ RUN apt-get update \
 RUN ${PIP} --no-cache-dir install --upgrade \
     pip \
     oauthlib \
+    # Protobuf 3.18.3, 3.19.5, 3.20.2 and 4.21.6 include a fix for CVE-2022-1941
+    protobuf==3.19.5 \
     #Setuptools release 60.x (and later) revealed an issue in Habana-TensorFlow package.
     "setuptools<60.0.0"
 
