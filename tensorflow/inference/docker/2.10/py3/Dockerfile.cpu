@@ -98,6 +98,7 @@ RUN ${PIP} install --no-cache-dir \
     requests==2.27.1 \
     grpcio==1.46.3 \
     protobuf==3.19.4 \
+    packaging \
 # using --no-dependencies to avoid installing tensorflow binary
  && ${PIP} install --no-dependencies --no-cache-dir \
     tensorflow-serving-api=="2.10.0"
