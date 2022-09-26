@@ -4,14 +4,14 @@ LABEL maintainer="Amazon AI"
 LABEL dlc_major_version="1"
 
 ARG PYTHON=python3
-ARG PYTHON_VERSION=3.8.10
+ARG PYTHON_VERSION=3.8.13
 ARG PYTHON_SHORT_VERSION=3.8
 ARG CUBLAS_VERSION=11.5.1.109
 ARG OPEN_MPI_PATH=/opt/amazon/openmpi
 ARG EFA_PATH=/opt/amazon/efa
 
 ARG CUDA_HOME=/usr/local/cuda
-ARG MAMBA_VERSION=4.12.0-0
+ARG MAMBA_VERSION=4.12.0-2
 
 # This arg required to stop docker build waiting for region configuration while installing tz data from ubuntu 20
 ARG DEBIAN_FRONTEND=noninteractive

@@ -97,6 +97,7 @@ def test_eks_pytorch_single_node_training(pytorch_training):
         run("kubectl delete pods {}".format(pod_name))
 
 
+@pytest.mark.usefixtures("feature_s3_plugin_present")
 @pytest.mark.skipif(
     not is_pr_context(),
     reason="Skip this test. It is already tested under PR context and we do not have enough resouces to test it again on mainline pipeline",
@@ -181,24 +182,15 @@ def test_eks_pytorch_dgl_single_node_training(pytorch_training, py3_only):
     yaml_path = os.path.join(os.sep, "tmp", f"pytorch_single_node_training_dgl_{rand_int}.yaml")
     pod_name = f"pytorch-single-node-training-dgl-{rand_int}"
 
-    if is_below_framework_version("1.7", pytorch_training, "pytorch"):
-        dgl_branch = "0.4.x"
-    else:
-        dgl_branch = "0.7.x"
-
     args = (
-        f"git clone -b {dgl_branch} https://github.com/dmlc/dgl.git && "
+        f"dgl_branch=$(python -c \"import dgl; dgl_versions = dgl.__version__.split('.'); print(dgl_versions[0] + '.' + dgl_versions[1] + '.x')\") && "
+        f"git clone -b $dgl_branch https://github.com/dmlc/dgl.git && "
         f"cd /dgl/examples/pytorch/gcn/ && DGLBACKEND=pytorch python train.py --dataset cora"
     )
 
     # TODO: Change hardcoded value to read a mapping from the EKS cluster instance.
     cpu_limit = 72
     cpu_limit = str(int(cpu_limit) / 2)
-
-    if "gpu" in pytorch_training:
-        args = args + " --gpu 0"
-    else:
-        args = args + " --gpu -1"
 
     search_replace_dict = {
         "<POD_NAME>": pod_name,
