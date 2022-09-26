@@ -4,7 +4,7 @@ import logging
 import random
 import sys
 import re
-
+import uuid
 import boto3
 from botocore.exceptions import ClientError
 import docker
@@ -289,7 +289,8 @@ def ec2_instance(
                 if ec2_instance_ami == AML2_GPU_DLAMI_US_WEST_2
                 else UBUNTU_18_BASE_DLAMI_US_EAST_1
             )
-
+    
+    ec2_key_name = f"{ec2_key_name}-{str(uuid.uuid4())}"
     print(f"Creating instance: CI-CD {ec2_key_name}")
     key_filename = test_utils.generate_ssh_keypair(ec2_client, ec2_key_name)
 
