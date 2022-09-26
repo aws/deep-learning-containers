@@ -159,7 +159,7 @@ RUN ${PIP} install --no-cache-dir -U \
     "werkzeug>=2.0.2,<3" \
     psutil==5.7.2 \
     "urllib3>1.26.0<1.27.0" \
-    protobuf==3.19.4
+    "protobuf>=3.20.2,<3.21"
 
 ADD https://raw.githubusercontent.com/aws/deep-learning-containers/master/src/deep_learning_container.py /usr/local/bin/deep_learning_container.py
 
