@@ -72,7 +72,7 @@ dlc-pr-tensorflow-2 = ""
 
 # Hugging Face DLC buildspecs
 dlc-pr-huggingface-pytorch = ""
-dlc-pr-huggingface-tensorflow = ""
+dlc-pr-huggingface-tensorflow = "huggingface/tensorflow/buildspec.yml"
 dlc-pr-huggingface-pytorch-neuron = ""
 dlc-pr-huggingface-tensorflow-neuron = ""
 
