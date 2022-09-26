@@ -248,6 +248,8 @@ WORKDIR /
 RUN pip install --no-cache --upgrade \
     sagemaker-experiments==0.* \
     sagemaker-mxnet-training \
+    # sagemaker-mxnet-training indirectly depends on cryptography, and cryptography<39.0 has vulnerabilities
+    "cryptography>=39.0" \
     smdebug==${SMDEBUG_VERSION} \
     sagemaker \
     smclarify
