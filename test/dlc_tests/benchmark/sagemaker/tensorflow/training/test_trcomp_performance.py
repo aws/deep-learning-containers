@@ -17,6 +17,7 @@ from test.test_utils import (
     get_framework_and_version_from_tag,
     get_cuda_version_from_tag,
 )
+import os
 
 
 
@@ -180,70 +181,58 @@ class TestImageClassification:
 class TestNLPModels:
 
 
-    @pytest.mark.model("facebook/bart-base")
-    def test_facebook_bart_base(self, instance_type, num_gpus, total_n_gpus, instance_count, distribution_strategy, caching, tensorflow_training, sagemaker_session, capsys, framework_version):
-        epochs = int(100*total_n_gpus)
-        batches = np.array([224])*total_n_gpus
-        for batch in np.array(batches, dtype=int):
-            train_steps = int(10240*epochs/batch)
-            steps_per_loop = train_steps//10
-            overrides=\
-            f"runtime.enable_xla=True,"\
-            f"runtime.num_gpus={num_gpus},"\
-            f"runtime.distribution_strategy={distribution_strategy},"\
-            f"runtime.mixed_precision_dtype=float16,"\
-            f"task.train_data.global_batch_size={batch},"\
-            f"task.train_data.cache={caching},"\
-            f"trainer.train_steps={train_steps},"\
-            f"trainer.steps_per_loop={steps_per_loop},"\
-            f"trainer.summary_interval={steps_per_loop},"\
-            f"trainer.checkpoint_interval={train_steps},"
-            estimator = TensorFlow(
-                                sagemaker_session=sagemaker_session,
-                                git_config={
-                                    'repo': 'https://github.com/huggingface/transformers.git',
-                                    'branch': 'v4.21-release',
-                                },
-                                source_dir='.',
-                                entry_point='examples/tensorflow/summarization/run_summarization.py',
-                                model_dir=False,
-                                instance_type=instance_type,
-                                instance_count=instance_count,
-                                image_uri=tensorflow_training,
-                                hyperparameters={
-                                    TrainingCompilerConfig.HP_ENABLE_COMPILER : True,
-                                    "model_name_or_path": "facebook/bart-base",
-                                    "dataset_name": "xsum",
-                                    "fp16": 1,
-                                    "num_train_epochs": 1,
-                                    "pad_to_max_length": True,
-                                    "do_train": True,
-                                    "do_eval": False,
-                                    "overwrite_output_dir": True,
-                                    "save_strategy": "no",
-                                    "logging_strategy": "no",
-                                    "evaluation_strategy": "no",
-                                },
-                                debugger_hook_config=None,
-                                disable_profiler=True,
-                                max_run=60*60*1, # Timeout in 1 hours
-                                base_job_name=f"tf{framework_version.replace('.','')}-trcomp-bench-facebook/bert-base",
-                                role="SageMakerRole",
-                            )
-            estimator.fit(logs=True, wait=True)
-            
-            captured = capsys.readouterr()
-            logs = captured.out + captured.err
-            match = re.search('Billable seconds: ([0-9]*)', logs)
-            billable = int(match.group(1))
+    @pytest.mark.model("GPT-2")
+    def test_gpt2(self, instance_type, num_gpus, total_n_gpus, instance_count, tensorflow_training, sagemaker_session, capsys, framework_version):
+        source_path = os.path.join('resources', 'clm','')
+        epochs = int(30*total_n_gpus)
+        batch = int(75*total_n_gpus)
+        estimator = TensorFlow(
+            sagemaker_session=sagemaker_session,
+            entry_point="run_clm.py",
+            source_dir=source_path,
+            model_dir=False,
+            instance_type=instance_type,
+            instance_count=instance_count,
+            image_uri=tensorflow_training,
+            hyperparameters={
+                TrainingCompilerConfig.HP_ENABLE_COMPILER : True,
+                "model_name_or_path": "gpt2",
+                "block_size": 128,
+                "dataset_name": "wikitext",
+                "dataset_config_name": "wikitext-2-raw-v1",
+                "fp16": 1,
+                "num_train_epochs": epochs,
+                "per_device_train_batch_size": 75,
+                "do_train": True,
+                "do_eval": False,
+                "overwrite_output_dir": True,
+                "save_strategy": "no",
+                "logging_strategy": "no",
+                "evaluation_strategy": "no",
+                "output_dir": "/opt/ml/model",
+            },
+            debugger_hook_config=None,
+            disable_profiler=True,
+            py_version="py38",
+            volume_size=500,
+            max_run=60*60*1, # Timeout in 1 hours
+            base_job_name=f"tf{framework_version.replace('.','')}-trcomp-bench-GPT-2",
+            role="SageMakerRole",
+        )
+        estimator.fit(logs=True, wait=True)
+        
+        captured = capsys.readouterr()
+        logs = captured.out + captured.err
+        match = re.search('Billable seconds: ([0-9]*)', logs)
+        billable = int(match.group(1))
 
-            short_version = '.'.join(framework_version.split('.')[:2])
-            threshold = TRCOMP_THRESHOLD['tensorflow'][short_version]['facebook/bert-base'][instance_type][instance_count][batch]
-            result = (
-                f"tensorflow-trcomp {framework_version} facebook/bert-base fp16 XLA "
-                f"imagenet {instance_type} {instance_count} {batch} Billable: {billable} secs threshold: {threshold} secs "
-                f"{estimator.latest_training_job.name}"
-            )
-            LOGGER.info(result)
-            assert billable>=1000, 'False Positive '+result
-            assert billable<=threshold, result
+        short_version = '.'.join(framework_version.split('.')[:2])
+        threshold = TRCOMP_THRESHOLD['tensorflow'][short_version]['GPT-2'][instance_type][instance_count][batch]
+        result = (
+            f"tensorflow-trcomp {framework_version} GPT-2 fp16 XLA "
+            f"imagenet {instance_type} {instance_count} {batch} Billable: {billable} secs threshold: {threshold} secs "
+            f"{estimator.latest_training_job.name}"
+        )
+        LOGGER.info(result)
+        assert billable>=1000, 'False Positive '+result
+        assert billable<=threshold, result
