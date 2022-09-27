@@ -65,7 +65,7 @@ def test_eks_pytorch_single_node_training(pytorch_training):
       mv $FILE mnist/main.py
     '''
 
-    args = f"git clone https://github.com/pytorch/examples.git && cd examples && git reset --hard 5a06e9cac1728c860b53ebfc6792e0a0e21a5678 && {mnist_dataset_download_config}  && python examples/mnist/main.py"
+    args = f"git clone https://github.com/pytorch/examples.git && cd examples && git reset --hard 5a06e9cac1728c860b53ebfc6792e0a0e21a5678 && {mnist_dataset_download_config}  && python mnist/main.py"
 
     # TODO: Change hardcoded value to read a mapping from the EKS cluster instance.
     cpu_limit = 72
