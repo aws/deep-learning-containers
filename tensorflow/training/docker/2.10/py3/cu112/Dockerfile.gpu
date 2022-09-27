@@ -1,9 +1,20 @@
-FROM nvidia/cuda:11.2.2-base-ubuntu20.04 AS common
+FROM nvidia/cuda:11.2.2-base-ubuntu20.04 AS base_image
+
+ENV DEBIAN_FRONTEND=noninteractive \
+    LD_LIBRARY_PATH="${LD_LIBRARY_PATH}:/usr/local/lib"
+
+RUN apt-get update \
+ && apt-get upgrade -y \
+ && apt-get autoremove -y \
+ && apt-get clean \
+ && rm -rf /var/lib/apt/lists/*
+
+FROM base_image AS common
 
 LABEL maintainer="Amazon AI"
 LABEL dlc_major_version="1"
 
-# TensorFlow major.minor version 
+# TensorFlow major.minor version
 ENV TF_VERSION=2.10
 
 # prevent stopping by user interaction
@@ -213,7 +224,7 @@ RUN ${PIP} install --no-cache-dir -U \
    "opencv-python>=4.3,<5" \
    "werkzeug>=2.0.2,<3" \
    "urllib3>1.26.0<1.27.0" \
-   protobuf==3.19.4
+   "protobuf>=3.20.2,<3.21"
 
 # Install AWS OFI NCCL plug-in
 RUN apt-get update && apt-get install -y autoconf
@@ -260,7 +271,7 @@ RUN curl https://aws-dlc-licenses.s3.amazonaws.com/tensorflow-${TF_VERSION}/lice
 # |_____\____|_____| |___|_| |_| |_|\__,_|\__, |\___|
 #                                         |___/
 #  ____           _
-# |  _ \ ___  ___(_)_ __   ___ 
+# |  _ \ ___  ___(_)_ __   ___
 # | |_) / _ \/ __| | '_ \ / _ \
 # |  _ <  __/ (__| | |_) |  __/
 # |_| \_\___|\___|_| .__/ \___|
@@ -405,5 +416,5 @@ CMD ["/bin/bash"]
 #   && chmod +x ${HOME_DIR}/oss_compliance/generate_oss_compliance.sh \
 #   && ${HOME_DIR}/oss_compliance/generate_oss_compliance.sh ${HOME_DIR} ${PYTHON} \
 #   && rm -rf ${HOME_DIR}/oss_compliance*
-#   
+#
 #CMD ["/bin/bash"]
