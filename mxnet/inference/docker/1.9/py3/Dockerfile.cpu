@@ -176,3 +176,4 @@ RUN HOME_DIR=/root \
 EXPOSE 8080 8081
 ENTRYPOINT ["python", "/usr/local/bin/dockerd-entrypoint.py"]
 CMD ["multi-model-server", "--start", "--mms-config", "/home/model-server/config.properties"]
+
