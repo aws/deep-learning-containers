@@ -92,7 +92,7 @@ dlc-pr-huggingface-tensorflow-2-trcomp = ""
 
 # Graviton DLC buildspecs
 dlc-pr-mxnet-graviton = ""
-dlc-pr-pytorch-graviton = "buildspec-graviton-1-10.yml"
+dlc-pr-pytorch-graviton = "buildspec-graviton-1.10.yml"
 dlc-pr-tensorflow-2-graviton = "buildspec-graviton-2-7.yml"
 
 # EIA DLC buildspecs
