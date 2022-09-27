@@ -66,7 +66,8 @@ RUN pip install --no-cache-dir --user -U \
     "cryptography>3.2" \
     werkzeug \
     oauthlib \
-    protobuf \
+    # tensorboard requirement
+    "protobuf<3.20" \
  # Updating the shipped version of pillow-simd
  && pip install pillow-simd -U \
  && pip install --no-cache-dir --user -U boto3 --upgrade \
