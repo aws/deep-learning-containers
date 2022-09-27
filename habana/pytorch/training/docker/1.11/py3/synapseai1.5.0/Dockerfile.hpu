@@ -58,7 +58,6 @@ RUN pip install --no-cache-dir --user -U \
     "awscli<2" \
     psutil \
     Pillow \
-    pillow-simd \
     scipy \
     pybind11 \
     mpi4py==3.0.3 \
@@ -68,6 +67,8 @@ RUN pip install --no-cache-dir --user -U \
     werkzeug \
     oauthlib \
     protobuf \
+ # Updating the shipped version of pillow-simd
+ && pip install pillow-simd -U \
  && pip install --no-cache-dir --user -U boto3 --upgrade \
  && pip uninstall -y torch \
  && pip uninstall -y hb-torch \
