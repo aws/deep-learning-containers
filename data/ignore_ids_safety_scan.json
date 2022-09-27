@@ -212,7 +212,8 @@
                 "43453":"mxnet 1.9 currently does not work with numpy 1.20.0 or above",
                 "44715":"mxnet 1.9 currently does not work with numpy 1.20.0 or above",
                 "44716":"mxnet 1.9 currently does not work with numpy 1.20.0 or above",
-                "44717":"mxnet 1.9 currently does not work with numpy 1.20.0 or above"
+                "44717":"mxnet 1.9 currently does not work with numpy 1.20.0 or above",
+                "51159":"cryptography>38.0.1 does not exist yet"
             }
         },
         "inference": {
