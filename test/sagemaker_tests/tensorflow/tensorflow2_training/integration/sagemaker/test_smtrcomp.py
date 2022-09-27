@@ -311,7 +311,7 @@ class TestMLWorkFlow:
 
     @pytest.mark.model('distilbert')
     def test_BYOC_training(self, sagemaker_session, ecr_image, framework_version, instance_type, instance_count,tmpdir, capsys):
-        source_path = os.path.join(resource_path, 'mlm', '')
+        source_path = os.path.join(resource_path, 'mlm')
         estimator = TensorFlow(
             entry_point="run_mlm.py",
             source_dir=source_path,
