@@ -183,9 +183,7 @@ class TestNLPModels:
 
     @pytest.mark.model("GPT-2")
     def test_gpt2(self, instance_type, num_gpus, total_n_gpus, instance_count, tensorflow_training, sagemaker_session, capsys, framework_version):
-        cwd = os.getcwd()
-        source_path = os.path.join(cwd,'resources','clm')
-        print(source_path)
+        source_path = os.path.join(os.path.dirname(__file__),'resources','clm')
         epochs = int(30*total_n_gpus)
         batch = int(75*total_n_gpus)
         estimator = TensorFlow(
