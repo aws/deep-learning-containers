@@ -332,6 +332,7 @@ class TestMLWorkFlow:
                 "max_seq_length": 128,
                 "dataset_name": "wikitext",
                 "dataset_config_name": "wikitext-2-raw-v1",
+                "max_steps": 3,
                 "fp16": 1,
                 "num_train_epochs": 1,
                 "per_device_train_batch_size": 160,
