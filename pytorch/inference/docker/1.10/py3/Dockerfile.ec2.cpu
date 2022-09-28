@@ -86,13 +86,6 @@ RUN curl -L -o ~/mambaforge.sh https://github.com/conda-forge/miniforge/releases
  && /opt/conda/bin/conda update -y conda \
    && /opt/conda/bin/conda clean -ya
 
-# Upstream conda looks to have moved to 4.13 which is incompatible with mamba 0.22.1 and will fail the conda-forge installs.
-# having "conda update conda" before the "conda -c conda-forge" commands will automatically update conda to 4.13.
-# Moving conda update conda" after the "conda -c conda-forge" commands keep conda at 4.12 but will update other packages using
-# the current conda 4.12
-RUN /opt/conda/bin/conda update -y conda \
- && /opt/conda/bin/conda clean -ya
-
 # Conda installs links for libtinfo.so.6 and libtinfo.so.6.2 both
 # Which causes "/opt/conda/lib/libtinfo.so.6: no version information available" warning
 # Removing link for libtinfo.so.6. This change is needed only for ubuntu 20.04-conda, and can be reverted
