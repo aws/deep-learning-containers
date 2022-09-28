@@ -32,7 +32,7 @@ RUN apt-get update \
 FROM base_image AS common
 
 LABEL maintainer="Amazon AI"
-LABEL dlc_major_version="2"
+LABEL dlc_major_version="1"
 
 ARG PYTHON
 ARG PYTHON_VERSION
@@ -348,6 +348,9 @@ CMD ["/bin/bash"]
 #################################################################
 
 FROM common AS sagemaker
+
+LABEL maintainer="Amazon AI"
+LABEL dlc_major_version="1"
 
 ARG PYTHON
 ARG PYTHON_VERSION
