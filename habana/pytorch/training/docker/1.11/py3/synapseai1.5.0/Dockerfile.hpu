@@ -1,4 +1,15 @@
-FROM vault.habana.ai/gaudi-docker/1.5.0/ubuntu20.04/habanalabs/pytorch-installer-1.11.0:latest
+FROM vault.habana.ai/gaudi-docker/1.5.0/ubuntu20.04/habanalabs/pytorch-installer-1.11.0:latest AS base_image
+
+ENV DEBIAN_FRONTEND=noninteractive \
+    LD_LIBRARY_PATH="${LD_LIBRARY_PATH}:/usr/local/lib"
+
+RUN apt-get update \
+ && apt-get upgrade -y \
+ && apt-get autoremove -y \
+ && apt-get clean \
+ && rm -rf /var/lib/apt/lists/*
+
+FROM base_image
 
 LABEL maintainer="Amazon AI"
 LABEL dlc_major_version="1"
@@ -54,6 +65,11 @@ RUN pip install --no-cache-dir --user -U \
     torchnet \
     "cryptography>3.2" \
     werkzeug \
+    oauthlib \
+    # tensorboard requirement
+    "protobuf<3.20" \
+ # Updating the shipped version of pillow-simd
+ && pip install pillow-simd -U \
  && pip install --no-cache-dir --user -U boto3 --upgrade \
  && pip uninstall -y torch \
  && pip uninstall -y hb-torch \
