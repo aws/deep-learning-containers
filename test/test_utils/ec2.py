@@ -461,6 +461,14 @@ def get_ec2_instance_tags(instance_id, region=DEFAULT_REGION, ec2_client=None):
 
 
 def enforce_IMDSv2(instance_id, region=DEFAULT_REGION, ec2_client=None, hop_limit = 1):
+    """
+    Enabled HTTP TOKENS required option on EC2 instance with given hop limit.
+    
+    :param instance_id: str, ec2 instance id
+    :param region: str, Region where ec2 instance is launched.
+    :param ec2_client: str, ec2 client.
+    :param hop_limit: str, hop limit to be set on ec2 instance.
+    """
     ec2_client = ec2_client or get_ec2_client(region)
     IMDSv2_enforced = False
     response = ec2_client.modify_instance_metadata_options(
@@ -473,9 +481,9 @@ def enforce_IMDSv2(instance_id, region=DEFAULT_REGION, ec2_client=None, hop_limi
     if not response:
         raise Exception("Unable to enforce IMDSv2. No response received.")
 
-    timeout = 5
+    timeout = 1
     if response["InstanceId"]:
-        while timeout >= 1:
+        while timeout >= 3:
             time.sleep(timeout)
             res = ec2_client.describe_instances(InstanceIds=[instance_id])
             metadata_options = res['Reservations'][0]['Instances'][0]['MetadataOptions']
@@ -486,7 +494,7 @@ def enforce_IMDSv2(instance_id, region=DEFAULT_REGION, ec2_client=None, hop_limi
             if http_tokens == 'required' and state == 'applied' and hop_limit == hop_limit:
                 break
             else:
-                timeout = timeout - 2
+                timeout += 1
 
     if timeout == 1:
         raise Exception("Unable to enforce IMDSv2. Describe instance is not able to confirm if IMDSv2 enforced.")
