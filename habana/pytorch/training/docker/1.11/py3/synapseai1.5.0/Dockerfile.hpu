@@ -66,10 +66,10 @@ RUN pip install --no-cache-dir --user -U \
     "cryptography>3.2" \
     werkzeug \
     oauthlib \
-    # tensorboard requirement
-    "protobuf<3.20" \
- # Updating the shipped version of pillow-simd
- && pip install pillow-simd -U \
+ # Updating the shipped version of pillow-simd and protobuf
+ && pip install --no-cache-dir -U \
+    pillow-simd \
+    "protobuf>=3.19.5,<3.20" \
  && pip install --no-cache-dir --user -U boto3 --upgrade \
  && pip uninstall -y torch \
  && pip uninstall -y hb-torch \
