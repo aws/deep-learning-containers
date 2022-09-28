@@ -207,6 +207,8 @@ RUN ${PIP} --no-cache-dir install --upgrade \
 RUN ln -s $(which ${PYTHON}) /usr/local/bin/python \
    && ln -s $(which ${PIP}) /usr/bin/pip
 
+RUN apt-get update && apt-get -y install  protobuf-compiler
+
 # install PyYAML==5.1.2 to avoid conflict with latest awscli
 # # python-dateutil==2.8.0 to satisfy botocore associated with latest awscli
 RUN ${PIP} install --no-cache-dir -U \
@@ -243,8 +245,6 @@ RUN mkdir /tmp/efa-ofi-nccl \
 
 # Upgrade libsasl2-2 for fixing cyrus-sasl2 related CVE
 RUN apt-get install -y --only-upgrade libsasl2-2
-
-RUN apt-get update && apt-get -y install  protobuf-compiler
 
 # Upgrade libsasl2-2 for fixing cyrus-sasl2 related CVE
 RUN apt-get install -y --only-upgrade libsasl2-2
