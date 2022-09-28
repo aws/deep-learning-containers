@@ -3,6 +3,7 @@
         {
             "cvss_v2_score": 0.0,
             "cvss_v30_score": 0.0,
+            "cvss_v31_score": 9.8,
             "cvss_v3_score": 9.8,
             "cvss_v3_severity": "CRITICAL",
             "description": "temp-description",

@@ -1,4 +1,15 @@
-FROM vault.habana.ai/gaudi-docker/1.5.0/ubuntu20.04/habanalabs/tensorflow-installer-tf-cpu-2.9.1:latest
+FROM vault.habana.ai/gaudi-docker/1.5.0/ubuntu20.04/habanalabs/tensorflow-installer-tf-cpu-2.9.1:latest AS base_image
+
+ENV DEBIAN_FRONTEND=noninteractive \
+    LD_LIBRARY_PATH="${LD_LIBRARY_PATH}:/usr/local/lib"
+
+RUN apt-get update \
+ && apt-get upgrade -y \
+ && apt-get autoremove -y \
+ && apt-get clean \
+ && rm -rf /var/lib/apt/lists/*
+
+FROM base_image AS ec2
 
 LABEL maintainer="Amazon AI"
 LABEL dlc_major_version="1"
@@ -81,6 +92,7 @@ RUN apt-get update \
 
 RUN ${PIP} --no-cache-dir install --upgrade \
     pip \
+    oauthlib \
     #Setuptools release 60.x (and later) revealed an issue in Habana-TensorFlow package.
     "setuptools<60.0.0"
 
@@ -100,6 +112,8 @@ RUN ${PIP} uninstall -y tensorflow-cpu \
     h5py==3.1.0 \
     werkzeug \
     psutil==5.7.2 \
+    # Protobuf 3.18.3, 3.19.5, 3.20.2 and 4.21.6 include a fix for CVE-2022-1941
+    protobuf==3.19.5 \
  && rm -rf ${TF_URL}
 
 COPY deep_learning_container.py /usr/local/bin/deep_learning_container.py
