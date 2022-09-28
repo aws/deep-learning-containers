@@ -1,9 +1,20 @@
-FROM ubuntu:20.04 AS common
+FROM ubuntu:20.04 AS base_image
+
+ENV DEBIAN_FRONTEND=noninteractive \
+    LD_LIBRARY_PATH="${LD_LIBRARY_PATH}:/usr/local/lib"
+
+RUN apt-get update \
+ && apt-get upgrade -y \
+ && apt-get autoremove -y \
+ && apt-get clean \
+ && rm -rf /var/lib/apt/lists/*
+
+FROM base_image AS common
 
 LABEL maintainer="Amazon AI"
 LABEL dlc_major_version="1"
 
-# TensorFlow major.minor version 
+# TensorFlow major.minor version
 ENV TF_VERSION=2.10
 
 # prevent stopping by user interaction
@@ -112,7 +123,7 @@ RUN wget https://www.python.org/ftp/python/$PYTHON_VERSION/Python-$PYTHON_VERSIO
  && cd Python-$PYTHON_VERSION \
  && ./configure \
  && make -j $(nproc) \
- && make install \ 
+ && make install \
  && rm -rf ../Python-$PYTHON_VERSION* \
  # Starting from Python39, a xxx.pem file will be generated under /tmp folder during installation. Remove it to complete cleanup after installation from python source.
  && rm /tmp/*.pem
@@ -129,7 +140,7 @@ RUN apt-get update && apt-get -y install protobuf-compiler
 
 # install PyYAML==5.1.2 to avoid conflict with latest awscli
 # # python-dateutil==2.8.0 to satisfy botocore associated with latest awscli
-RUN ${PIP} install --no-cache-dir -U \ 
+RUN ${PIP} install --no-cache-dir -U \
     pybind11 \
     cmake==3.18.2.post1 \
     scipy==1.8.0 \
@@ -148,7 +159,7 @@ RUN ${PIP} install --no-cache-dir -U \
     "werkzeug>=2.0.2,<3" \
     psutil==5.7.2 \
     "urllib3>1.26.0<1.27.0" \
-    protobuf==3.19.4
+    "protobuf>=3.20.2,<3.21"
 
 ADD https://raw.githubusercontent.com/aws/deep-learning-containers/master/src/deep_learning_container.py /usr/local/bin/deep_learning_container.py
 
@@ -164,7 +175,7 @@ RUN curl https://aws-dlc-licenses.s3.amazonaws.com/tensorflow-${TF_VERSION}/lice
 # |_____\____|_____| |___|_| |_| |_|\__,_|\__, |\___|
 #                                         |___/
 #  ____           _
-# |  _ \ ___  ___(_)_ __   ___ 
+# |  _ \ ___  ___(_)_ __   ___
 # | |_) / _ \/ __| | '_ \ / _ \
 # |  _ <  __/ (__| | |_) |  __/
 # |_| \_\___|\___|_| .__/ \___|
@@ -284,7 +295,7 @@ CMD ["/bin/bash"]
 #    && git checkout tags/$SAGEMAKER_TENSORFLOW_TAG -b $SAGEMAKER_TENSORFLOW_TAG \
 #    && $PYTHON -m pip install . \
 #    && cd .. && rm -rf sagemaker-tensorflow-extensions
-#    
+#
 ## remove tmp files
 #RUN rm -rf /tmp/*
 #
