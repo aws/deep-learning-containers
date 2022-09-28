@@ -6,14 +6,25 @@
 # |_____\____|_____| |___|_| |_| |_|\__,_|\__, |\___|
 #                                         |___/
 #  ____           _
-# |  _ \ ___  ___(_)_ __   ___ 
+# |  _ \ ___  ___(_)_ __   ___
 # | |_) / _ \/ __| | '_ \ / _ \
 # |  _ <  __/ (__| | |_) |  __/
 # |_| \_\___|\___|_| .__/ \___|
 #                  |_|
 ########################################################
 
-FROM nvidia/cuda:11.2.1-base-ubuntu20.04 AS ec2
+FROM nvidia/cuda:11.2.1-base-ubuntu20.04 AS base_image
+
+ENV DEBIAN_FRONTEND=noninteractive \
+    LD_LIBRARY_PATH="${LD_LIBRARY_PATH}:/usr/local/lib"
+
+RUN apt-get update \
+ && apt-get upgrade -y \
+ && apt-get autoremove -y \
+ && apt-get clean \
+ && rm -rf /var/lib/apt/lists/*
+
+FROM base_image AS ec2
 
 LABEL maintainer="Amazon AI"
 LABEL dlc_major_version="1"
@@ -100,7 +111,7 @@ RUN ${PIP} --no-cache-dir install --upgrade \
     setuptools
 
 
-# Install TensorRT 
+# Install TensorRT
 # see https://github.com/NVIDIA/TensorRT/blob/master/docker/ubuntu-20.04.Dockerfile
 # ENV TRT_VERSION 8.0.1.6
 # ENV CUDA_VERSION 11.3.1
@@ -132,7 +143,8 @@ RUN ${PIP} install -U --no-cache-dir \
     gevent==21.12.0 \
     requests==2.27.1 \
     grpcio==1.46.3 \
-    protobuf==3.19.4 \
+    "protobuf>=3.19.5,<3.20" \
+    packaging \
 # using --no-dependencies to avoid installing tensorflow binary
  && ${PIP} install --no-dependencies --no-cache-dir \
     tensorflow-serving-api-gpu=="2.10.0"
