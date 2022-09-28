@@ -78,6 +78,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends --allow-unauthe
    # Install dependent library for OpenCV
    libgtk2.0-dev \
    libgnutls30=3.6.13-2ubuntu1.7 \
+   e2fsprogs=1.45.5-2ubuntu1.1 \
    jq \
  && apt-get update \
  && apt-get install -y --no-install-recommends --allow-unauthenticated --allow-change-held-packages \
