@@ -404,7 +404,8 @@
                 "42772":"for shipping bokeh<=2.3.3 - the last available version for py3.6",
                 "42814":"for shipping bokeh<=2.3.3 - the last available version for py3.6",
                 "42815":"for shipping bokeh<=2.3.3 - the last available version for py3.6",
-                "48298":"for shipping PT1.12 on safety check tools might report a vulnerability for the package commonmarker, which is a dependency of deepspeed. This package is only used to build the documentation pages of deepspeed and won’t be used in the package that gets installed into the DLC. This security issue can be safely ignored and an attempt to upgrade deepspeed version to remediate it might have an inadvertent negative impact on the DLC components functionality."
+                "48298":"for shipping PT1.12 on safety check tools might report a vulnerability for the package commonmarker, which is a dependency of deepspeed. This package is only used to build the documentation pages of deepspeed and won’t be used in the package that gets installed into the DLC. This security issue can be safely ignored and an attempt to upgrade deepspeed version to remediate it might have an inadvertent negative impact on the DLC components functionality.",
+                "51159":"cryptography>38.0.1 does not exist yet"
             }
         },
         "inference": {
