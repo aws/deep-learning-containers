@@ -6,14 +6,25 @@
 # |_____\____|_____| |___|_| |_| |_|\__,_|\__, |\___|
 #                                         |___/
 #  ____           _
-# |  _ \ ___  ___(_)_ __   ___ 
+# |  _ \ ___  ___(_)_ __   ___
 # | |_) / _ \/ __| | '_ \ / _ \
 # |  _ <  __/ (__| | |_) |  __/
 # |_| \_\___|\___|_| .__/ \___|
 #                  |_|
 ########################################################
 
-FROM nvidia/cuda:11.2.2-cudnn8-runtime-ubuntu20.04 AS ec2
+FROM nvidia/cuda:11.2.2-cudnn8-runtime-ubuntu20.04 AS base_image
+
+ENV DEBIAN_FRONTEND=noninteractive \
+    LD_LIBRARY_PATH="${LD_LIBRARY_PATH}:/usr/local/lib"
+
+RUN apt-get update \
+ && apt-get upgrade -y \
+ && apt-get autoremove -y \
+ && apt-get clean \
+ && rm -rf /var/lib/apt/lists/*
+
+FROM base_image AS ec2
 
 LABEL maintainer="Amazon AI"
 LABEL dlc_major_version="1"
@@ -79,8 +90,8 @@ RUN pip install --upgrade pip --trusted-host pypi.org --trusted-host files.pytho
     multi-model-server==$MMS_VERSION \
     "numpy<1.20" \
     onnx==1.8.1 \
-    # Protobuf above this version appears to result protobuf errors.
-    protobuf==3.20.1
+    # Protobuf >=3.21 results in protobuf errors version mismatch errors with framework and other packages.
+    "protobuf>=3.20.2,<3.21"
 
 # This is here to make our installed version of OpenCV work.
 # https://stackoverflow.com/questions/29274638/opencv-libdc1394-error-failed-to-initialize-libdc1394
