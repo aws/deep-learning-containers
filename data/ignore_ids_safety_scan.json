@@ -413,6 +413,7 @@
             "py2": {
             },
             "py3": {
+                "51159":"cryptography>38.0.1 does not exist yet"
             }
         },
         "inference-eia": {
