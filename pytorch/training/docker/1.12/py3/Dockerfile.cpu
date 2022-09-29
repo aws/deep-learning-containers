@@ -3,11 +3,11 @@ ARG PYTHON_VERSION=3.8.13
 ARG MAMBA_VERSION=4.12.0-2
 
 # PyTorch Binaries
-ARG PT_EC2_TRAINING_URL=https://aws-pytorch-unified-cicd-binaries.s3.us-west-2.amazonaws.com/r1.12.0_e3/20220714-051536/64a46e47aea7de3d99f75c5b4feba6d66c80af8b/torch-1.12.0%2Bcpu-cp38-cp38-linux_x86_64.whl
-ARG PT_SM_TRAINING_URL=https://aws-pytorch-unified-cicd-binaries.s3.us-west-2.amazonaws.com/r1.12.0_sm/20220713-224008/9f169f548f4b1eca6631c07d48bbe73a59e300ca/torch-1.12.0%2Bcpu-cp38-cp38-linux_x86_64.whl
-ARG PT_TORCHVISION_URL=https://download.pytorch.org/whl/cpu/torchvision-0.13.0%2Bcpu-cp38-cp38-linux_x86_64.whl
-ARG PT_TORCHAUDIO_URL=https://download.pytorch.org/whl/cpu/torchaudio-0.12.0%2Bcpu-cp38-cp38-linux_x86_64.whl
-ARG PT_TORCHDATA_URL=https://download.pytorch.org/whl/test/torchdata-0.4.0-cp38-cp38-linux_x86_64.whl
+ARG PT_EC2_TRAINING_URL=https://aws-pytorch-unified-cicd-binaries.s3.us-west-2.amazonaws.com/r1.12.1_ec2/20220901-174403/8bdac67149be0f39bc84053e79addabd056d0181/torch-1.12.1%2Bcpu-cp38-cp38-linux_x86_64.whl
+ARG PT_SM_TRAINING_URL=https://aws-pytorch-unified-cicd-binaries.s3.us-west-2.amazonaws.com/r1.12.1_sm/20220826-041023/52d0b296338e206c4c1666e948207e7eac83791b/torch-1.12.1%2Bcpu-cp38-cp38-linux_x86_64.whl
+ARG PT_TORCHVISION_URL=https://download.pytorch.org/whl/cpu/torchvision-0.13.1%2Bcpu-cp38-cp38-linux_x86_64.whl
+ARG PT_TORCHAUDIO_URL=https://download.pytorch.org/whl/cpu/torchaudio-0.12.1%2Bcpu-cp38-cp38-linux_x86_64.whl
+ARG PT_TORCHDATA_URL=https://download.pytorch.org/whl/test/torchdata-0.4.1-cp38-cp38-manylinux_2_17_x86_64.manylinux2014_x86_64.whl
 ARG PT_S3_WHL=https://aws-s3-plugin.s3.us-west-2.amazonaws.com/binaries/0.0.1/1c3e69e/awsio-0.0.1-cp38-cp38-manylinux1_x86_64.whl
 
 FROM ubuntu:20.04 AS common
@@ -225,7 +225,7 @@ ARG PYTHON
 
 # The smdebug pipeline relies for following format to perform string replace and trigger DLC pipeline for validating
 # the nightly builds. Therefore, while updating the smdebug version, please ensure that the format is not disturbed.
-ARG SMDEBUG_VERSION=1.0.19
+ARG SMDEBUG_VERSION=1.0.22
 
 ENV SAGEMAKER_TRAINING_MODULE=sagemaker_pytorch_container.training:main
 

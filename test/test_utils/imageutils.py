@@ -97,7 +97,7 @@ def get_image_manifest(repository, tag, client, **kwargs):
     return response["images"][0]["imageManifest"]
 
 
-def are_valid_fixture_labels_present(image_uri, labels):
+def are_fixture_labels_enabled(image_uri, labels):
     """
     Returns False if a fixture label in the given image has value other than true
     Otherwise returns True

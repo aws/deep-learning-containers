@@ -1,17 +1,28 @@
-FROM nvidia/cuda:11.3.1-base-ubuntu20.04
+FROM nvidia/cuda:11.3.1-base-ubuntu20.04 AS base_image
+
+ENV DEBIAN_FRONTEND=noninteractive \
+    LD_LIBRARY_PATH="${LD_LIBRARY_PATH}:/usr/local/lib"
+
+RUN apt-get update \
+ && apt-get upgrade -y \
+ && apt-get autoremove -y \
+ && apt-get clean \
+ && rm -rf /var/lib/apt/lists/*
+
+FROM base_image
 
 LABEL maintainer="Amazon AI"
 LABEL dlc_major_version="1"
 
 ARG PYTHON=python3
-ARG PYTHON_VERSION=3.8.10
+ARG PYTHON_VERSION=3.8.13
 ARG PYTHON_SHORT_VERSION=3.8
 ARG CUBLAS_VERSION=11.5.1.109
 ARG OPEN_MPI_PATH=/opt/amazon/openmpi
 ARG EFA_PATH=/opt/amazon/efa
 
 ARG CUDA_HOME=/usr/local/cuda
-ARG MAMBA_VERSION=4.12.0-0
+ARG MAMBA_VERSION=4.12.0-2
 
 # This arg required to stop docker build waiting for region configuration while installing tz data from ubuntu 20
 ARG DEBIAN_FRONTEND=noninteractive
@@ -30,7 +41,7 @@ ENV TORCH_CUDA_ARCH_LIST="3.7 5.0 7.0+PTX 8.0"
 ENV TORCH_NVCC_FLAGS="-Xfatbin -compress-all"
 ENV CUDNN_VERSION=8.2.0.53
 ENV NCCL_VERSION=2.10.3
-ENV HOROVOD_VERSION=0.21.3
+ENV HOROVOD_VERSION=0.25.0
 ENV EFA_VERSION=1.15.2
 ENV OMPI_VERSION=4.1.1
 ENV BRANCH_OFI=1.2.0-aws

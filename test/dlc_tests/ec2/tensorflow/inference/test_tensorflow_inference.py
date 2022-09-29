@@ -92,7 +92,7 @@ def test_ec2_tensorflow_inference_cpu_telemetry(
 
 @pytest.mark.model("mnist")
 @pytest.mark.parametrize("ec2_instance_type", TF_EC2_GRAVITON_INSTANCE_TYPE, indirect=True)
-@pytest.mark.parametrize("ec2_instance_ami", [test_utils.UL18_CPU_ARM64_US_WEST_2], indirect=True)
+@pytest.mark.parametrize("ec2_instance_ami", [test_utils.UL20_CPU_ARM64_US_WEST_2], indirect=True)
 def test_ec2_tensorflow_inference_graviton_cpu(
     tensorflow_inference_graviton, ec2_connection, ec2_instance_ami, region, cpu_only
 ):
@@ -101,7 +101,7 @@ def test_ec2_tensorflow_inference_graviton_cpu(
 
 @pytest.mark.model("mnist")
 @pytest.mark.parametrize("ec2_instance_type", TF_EC2_GRAVITON_INSTANCE_TYPE, indirect=True)
-@pytest.mark.parametrize("ec2_instance_ami", [test_utils.UL18_CPU_ARM64_US_WEST_2], indirect=True)
+@pytest.mark.parametrize("ec2_instance_ami", [test_utils.UL20_CPU_ARM64_US_WEST_2], indirect=True)
 def test_ec2_tensorflow_inference_graviton_cpu_telemetry(
     tensorflow_inference_graviton, ec2_connection, ec2_instance_ami, region, cpu_only
 ):
@@ -189,6 +189,11 @@ def train_mnist_model(serving_folder_path, ec2_connection, python_invoker):
 def host_setup_for_tensorflow_inference(
     serving_folder_path, framework_version, ec2_connection, is_neuron, is_graviton, model_name, python_invoker
 ):
+    # Wait for any existing apt-get calls to finish before moving on
+    # TODO(Mike Schneider): Improve this by adding a check for running apt-get processes and wait for them to finish,
+    # then timeout after a given amount of time if other apt-get calls are taking too long.
+    ec2_connection.run((f"sleep 180"), hide=True)
+
     # Install PIP so we can test
     ec2_connection.run((f"sudo apt-get update && sudo apt-get install -y python3-pip"), hide=True)
 
