@@ -486,17 +486,18 @@ def enforce_IMDSv2(instance_id, region=DEFAULT_REGION, ec2_client=None, hop_limi
         while timeout <= 3:
             time.sleep(timeout)
             res = ec2_client.describe_instances(InstanceIds=[instance_id])
-            metadata_options = res['Reservations'][0]['Instances'][0]['MetadataOptions']
-            http_tokens = metadata_options['HttpTokens']
-            state = metadata_options['State']
-            instance_hop_limit = metadata_options['HttpPutResponseHopLimit']
+            if res:
+                metadata_options = res['Reservations'][0]['Instances'][0]['MetadataOptions']
+                http_tokens = metadata_options['HttpTokens']
+                state = metadata_options['State']
+                instance_hop_limit = metadata_options['HttpPutResponseHopLimit']
 
-            if http_tokens == 'required' and state == 'applied' and hop_limit == instance_hop_limit:
-                break
-            else:
-                timeout += 1
+                if http_tokens == 'required' and state == 'applied' and hop_limit == instance_hop_limit:
+                    break
+                else:
+                    timeout += 1
 
-    if state == 'pending':
+    if timeout > 3:
         raise Exception("Unable to enforce IMDSv2. Describe instance is not able to confirm if IMDSv2 enforced.")
 
 
