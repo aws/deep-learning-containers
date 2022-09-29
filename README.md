@@ -195,14 +195,19 @@ extraneous resources or waiting for a build to complete. The testing is supporte
 Similar to building locally, to test locally, you’ll need access to a personal/team AWS account. To test out:
 
 1. Either on an EC2 instance with the deep-learning-containers repo cloned, or on your local machine, make sure you have
-the images you want to test locally (likely need to pull them from ECR)
-2. In a shell, export environment variable DLC_IMAGES to be a space separated list of ECR uris to be tested. Also set 
+the images you want to test locally (likely need to pull them from ECR). Then change directory into the cloned folder.
+    ```shell script
+    cd deep-learning-containers/
+    ```
+3. In a shell, export environment variable DLC_IMAGES to be a space separated list of ECR uris to be tested. Set 
 CODEBUILD_RESOLVED_SOURCE_VERSION to some unique identifier that you can use to identify the resources your test spins up. 
+Set PYTHONPATH as the absolute path to the src/ folder.
 Example:
 [Note: change the repository name to the one setup in your account]
     ```shell script
     export DLC_IMAGES="$ACCOUNT_ID.dkr.ecr.us-west-2.amazonaws.com/pr-pytorch-training:training-gpu-py3 $ACCOUNT_ID.dkr.ecr.us-west-2.amazonaws.com/pr-mxnet-training:training-gpu-py3"
-    export CODEBUILD_RESOLVED_SOURCE_VERSION="my_unique_test"
+    export PYTHONPATH=$(pwd)/src
+    export CODEBUILD_RESOLVED_SOURCE_VERSION="my-unique-test"
     ```
 3. Our pytest framework expects the root dir to be test/dlc_tests, so change directories in your shell to be here
     ```shell script
