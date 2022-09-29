@@ -49,7 +49,7 @@ images:
   BuildEC2CPUPTTrainPy3DockerImage:
     <<: *TRAINING_REPOSITORY
     build: &PYTORCH_CPU_TRAINING_PY3 false
-    enable_test_promotion: false
+    enable_test_promotion: true
     image_size_baseline: 5000
     device_type: &DEVICE_TYPE cpu
     python_version: &DOCKER_PYTHON_VERSION py3
@@ -62,7 +62,7 @@ images:
   BuildEC2GPUPTTrainPy3DockerImage:
     <<: *TRAINING_REPOSITORY
     build: &PYTORCH_GPU_TRAINING_PY3 false
-    enable_test_promotion: false
+    enable_test_promotion: true
     image_size_baseline: 14000
     device_type: &DEVICE_TYPE gpu
     python_version: &DOCKER_PYTHON_VERSION py3
