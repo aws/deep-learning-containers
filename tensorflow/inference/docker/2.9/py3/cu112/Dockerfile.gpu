@@ -144,7 +144,7 @@ RUN ${PIP} install -U --no-cache-dir \
     requests==2.27.1 \
     grpcio==1.46.3 \
     # Protobuf 3.18.3, 3.19.5, 3.20.2 and 4.21.6 include a fix for CVE-2022-1941
-    protobuf==3.19.5 \
+    "protobuf>=3.19.5,<3.20" \
     # using --no-dependencies to avoid installing tensorflow binary
  && ${PIP} install --no-dependencies --no-cache-dir \
     tensorflow-serving-api-gpu=="2.9.0"
