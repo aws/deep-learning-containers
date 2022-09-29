@@ -32,7 +32,6 @@ ENV LD_LIBRARY_PATH /opt/conda/lib/:$LD_LIBRARY_PATH
 ENV PATH /opt/conda/bin:$PATH
 ENV TEMP=/home/model-server/tmp
 RUN apt-get update \
- && apt-get -y upgrade \
  && apt-get install -y --no-install-recommends software-properties-common \
  && add-apt-repository ppa:openjdk-r/ppa \
  && apt-get update \
@@ -129,7 +128,6 @@ RUN conda install -c conda-forge -y \
  && pip install --upgrade pip --trusted-host pypi.org --trusted-host files.pythonhosted.org \
  && ln -s /opt/conda/bin/pip /usr/local/bin/pip3 \
  && pip install packaging==20.4 \
-    protobuf>=4.21.6 \
     enum-compat==0.0.3 \
     "cryptography>=3.3.2"
 
