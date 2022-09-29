@@ -13,12 +13,10 @@
 #                  |_|
 ########################################################
 
-FROM arm64v8/ubuntu:20.04 AS base_image
+FROM arm64v8/ubuntu:20.04 AS ec2
 
 ENV DEBIAN_FRONTEND=noninteractive \
     LD_LIBRARY_PATH="${LD_LIBRARY_PATH}:/usr/local/lib"
-
-FROM base_image AS ec2
 
 LABEL maintainer="Amazon AI"
 LABEL dlc_major_version="1"

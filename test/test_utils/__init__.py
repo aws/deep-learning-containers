@@ -280,6 +280,8 @@ def get_dockerfile_path_for_image(image_uri):
 
 def get_expected_dockerfile_filename(device_type, image_uri):
     if is_covered_by_ec2_sm_split(image_uri):
+        if is_graviton_architecture() == "graviton":
+            return f"Dockerfile.graviton.{device_type}"
         if is_ec2_sm_in_same_dockerfile(image_uri):
             return f"Dockerfile.{device_type}"
         elif is_ec2_image(image_uri):
