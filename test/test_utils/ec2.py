@@ -496,7 +496,7 @@ def enforce_IMDSv2(instance_id, region=DEFAULT_REGION, ec2_client=None, hop_limi
             else:
                 timeout += 1
 
-    if timeout == 1:
+    if timeout == 3:
         raise Exception("Unable to enforce IMDSv2. Describe instance is not able to confirm if IMDSv2 enforced.")
 
 
