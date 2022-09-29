@@ -158,24 +158,7 @@ def _run_tag_failure_IMDSv1_disabled(image_uri, ec2_client, ec2_instance, ec2_co
     # Disable access to EC2 instance metadata
     ec2_connection.run(f"sudo route add -host 169.254.169.254 reject")
 
-    if "tensorflow" in framework and job_type == "inference":
-        model_name = "saved_model_half_plus_two"
-        model_base_path = test_utils.get_tensorflow_model_base_path(image_uri)
-        env_vars_list = test_utils.get_tensorflow_inference_environment_variables(model_name, model_base_path)
-        env_vars = " ".join([f"-e {entry['name']}={entry['value']}" for entry in env_vars_list])
-        inference_command = get_tensorflow_inference_command_tf27_above(image_uri, model_name)
-        ec2_connection.run(f"{docker_cmd} run {env_vars} --name {container_name} -id {image_uri} {inference_command}")
-        time.sleep(5)
-    else:
-        # Replace the huggingface and trcomp string as it is extracted from ECR repo name
-        framework_to_import = framework.replace("huggingface_", "").replace("_trcomp", "")
-        framework_to_import = "torch" if framework_to_import == "pytorch" else framework_to_import
-        ec2_connection.run(f"{docker_cmd} run --name {container_name} -id {image_uri} bash")
-        output = ec2_connection.run(
-            f"{docker_cmd} exec -i {container_name} python -c 'import {framework_to_import}; import time; time.sleep(5)'",
-            warn=True
-        )
-        assert output.ok, f"'import {framework_to_import}' fails when credentials not configured"
+    import_framework(image_uri, container_name, docker_cmd, framework, job_type, ec2_connection)
 
     ec2_instance_tags = ec2_utils.get_ec2_instance_tags(ec2_instance_id, ec2_client=ec2_client)
     assert expected_tag_key not in ec2_instance_tags, (
@@ -211,7 +194,7 @@ def _run_tag_success_IMDSv1(image_uri, ec2_client, ec2_instance, ec2_connection)
     if expected_tag_key in preexisting_ec2_instance_tags:
         ec2_client.delete_tags(Resources=[ec2_instance_id], Tags=[{"Key": expected_tag_key}])
 
-    import_framework(framework, job_type, ec2_connection)
+   import_framework(image_uri, container_name, docker_cmd, framework, job_type, ec2_connection)
 
     ec2_instance_tags = ec2_utils.get_ec2_instance_tags(ec2_instance_id, ec2_client=ec2_client)
     assert expected_tag_key in ec2_instance_tags, f"{expected_tag_key} was not applied as an instance tag"
@@ -245,7 +228,7 @@ def _run_tag_failure_IMDSv2_disabled_as_hop_limit_1(image_uri, ec2_client, ec2_i
 
     IMDSv2_enforced = ec2_utils.enforce_IMDSv2(ec2_instance_id)
 
-    import_framework(framework, job_type, ec2_connection)
+    import_framework(image_uri, container_name, docker_cmd, framework, job_type, ec2_connection)
 
     ec2_instance_tags = ec2_utils.get_ec2_instance_tags(ec2_instance_id, ec2_client=ec2_client)
     assert expected_tag_key not in ec2_instance_tags, (
@@ -307,6 +290,7 @@ def import_framework(image_uri, container_name, docker_cmd, framework, job_type,
             f"{docker_cmd} exec -i {container_name} python -c 'import {framework_to_import}; import time; time.sleep(5)'",
             warn=True
         )
+        assert output.ok, f"'import {framework_to_import}' fails when credentials not configured"
 
 
 def get_tensorflow_inference_command_tf27_above(image_uri, model_name):
