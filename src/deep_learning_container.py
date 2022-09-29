@@ -24,8 +24,6 @@ import requests
 
 TIMEOUT_SECS = 5
 
-TOKEN = None
-
 def requests_helper(url, headers = None, timeout = 0.1):
     """
     Requests to get instance metadata using imdsv1 and imdsv2
