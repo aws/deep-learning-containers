@@ -196,10 +196,13 @@ Similar to building locally, to test locally, you’ll need access to a personal
 
 1. Either on an EC2 instance with the deep-learning-containers repo cloned, or on your local machine, make sure you have
 the images you want to test locally (likely need to pull them from ECR). Then change directory into the cloned folder.
+Install the requirements for tests.
     ```shell script
     cd deep-learning-containers/
+    pip install -r src/requirements.txt
+    pip install -r test/requirements.txt
     ```
-3. In a shell, export environment variable DLC_IMAGES to be a space separated list of ECR uris to be tested. Set 
+2. In a shell, export environment variable DLC_IMAGES to be a space separated list of ECR uris to be tested. Set 
 CODEBUILD_RESOLVED_SOURCE_VERSION to some unique identifier that you can use to identify the resources your test spins up. 
 Set PYTHONPATH as the absolute path to the src/ folder.
 Example:
@@ -221,6 +224,7 @@ Example:
     pytest -s -rA ecs/ -n=auto
     
     #EKS
+    cd ../
     export TEST_TYPE=eks
     python test/testrunner.py
     ```
