@@ -18,12 +18,6 @@ FROM arm64v8/ubuntu:20.04 AS base_image
 ENV DEBIAN_FRONTEND=noninteractive \
     LD_LIBRARY_PATH="${LD_LIBRARY_PATH}:/usr/local/lib"
 
-RUN apt-get update \
- && apt-get upgrade -y \
- && apt-get autoremove -y \
- && apt-get clean \
- && rm -rf /var/lib/apt/lists/*
-
 FROM base_image AS ec2
 
 LABEL maintainer="Amazon AI"
@@ -75,6 +69,7 @@ RUN apt-get update \
     tk-dev \
     libgdbm-dev \
     libc6-dev \
+ && apt-get autoremove -y \
  && apt-get clean \
  && rm -rf /var/lib/apt/lists/*
 
