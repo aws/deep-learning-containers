@@ -49,5 +49,4 @@ release_images:
       synapseai_version: "1.5.0"
       os_version: "ubuntu20.04"
       example: True
-      disable_sm_tag: True
       force_release: False
