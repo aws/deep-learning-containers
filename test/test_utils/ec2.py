@@ -483,7 +483,7 @@ def enforce_IMDSv2(instance_id, region=DEFAULT_REGION, ec2_client=None, hop_limi
 
     timeout = 1
     if response["InstanceId"]:
-        while timeout >= 4:
+        while timeout > 3:
             time.sleep(timeout)
             res = ec2_client.describe_instances(InstanceIds=[instance_id])
             metadata_options = res['Reservations'][0]['Instances'][0]['MetadataOptions']
@@ -494,10 +494,9 @@ def enforce_IMDSv2(instance_id, region=DEFAULT_REGION, ec2_client=None, hop_limi
             if http_tokens == 'required' and state == 'applied' and hop_limit == instance_hop_limit:
                 break
             else:
+                if timeout == 3:
+                    raise Exception("Unable to enforce IMDSv2. Describe instance is not able to confirm if IMDSv2 enforced.")
                 timeout += 1
-
-    if state != 'applied' and hop_limit != instance_hop_limit:
-        raise Exception("Unable to enforce IMDSv2. Describe instance is not able to confirm if IMDSv2 enforced.")
 
 
 def fetch_s3_file_and_get_last_line(s3_location, local_filename="temp.txt"):
