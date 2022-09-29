@@ -50,7 +50,7 @@ release_images:
       os_version: "ubuntu20.04"
       example: True
       force_release: False
-  4:
+  5:
     framework: "pytorch"
     version: "1.10.0"
     customer_type: "ec2"
@@ -62,7 +62,7 @@ release_images:
       example: False
       disable_sm_tag: True
       force_release: False
-  5:
+  6:
     framework: "tensorflow"
     version: "2.7.0"
     customer_type: "ec2"
