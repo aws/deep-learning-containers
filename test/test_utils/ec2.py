@@ -487,6 +487,8 @@ def enforce_IMDSv2(instance_id, region=DEFAULT_REGION, ec2_client=None, hop_limi
             time.sleep(timeout)
             res = ec2_client.describe_instances(InstanceIds=[instance_id])
             metadata_options = res['Reservations'][0]['Instances'][0]['MetadataOptions']
+            print(f"meta data {timeout}")
+            print(metadata_options)
             http_tokens = metadata_options['HttpTokens']
             state = metadata_options['State']
             instance_hop_limit = metadata_options['HttpPutResponseHopLimit']
