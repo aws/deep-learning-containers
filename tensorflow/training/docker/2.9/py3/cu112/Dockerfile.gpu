@@ -224,6 +224,7 @@ RUN ${PIP} install --no-cache-dir -U \
    "opencv-python>=4.3,<5" \
    "werkzeug>=2.0.2,<3" \
    "urllib3>1.26.0<1.27.0" \
+    # Protobuf 3.18.3, 3.19.5, 3.20.2 and 4.21.6 include a fix for CVE-2022-1941
    "protobuf>=3.20.2,<3.21"
 
 # Install AWS OFI NCCL plug-in
