@@ -26,7 +26,8 @@
             "source": "UBUNTU_CVE",
             "severity": "MEDIUM",
             "status": "ACTIVE",
-            "title": "CVE-2022-1304 - e2fsprogs"
+            "title": "CVE-2022-1304 - e2fsprogs",
+            "reason_to_ignore": "No newer version of e2fsprogs is available for Ubuntu 20.04 currently."
         }
     ],
     "tensorflow": [
@@ -56,7 +57,8 @@
             "source": "SNYK",
             "severity": "CRITICAL",
             "status": "ACTIVE",
-            "title": "SNYK-PYTHON-TENSORFLOW-1315149 - tensorflow"
+            "title": "SNYK-PYTHON-TENSORFLOW-1315149 - tensorflow",
+            "reason_to_ignore": "No newer version of Tensorflow 2.7 available than 2.7.4."
         }
     ]
 }

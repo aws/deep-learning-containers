@@ -26,7 +26,8 @@
             "source": "SNYK",
             "severity": "CRITICAL",
             "status": "ACTIVE",
-            "title": "SNYK-PYTHON-TENSORFLOW-1315149 - tensorflow"
+            "title": "SNYK-PYTHON-TENSORFLOW-1315149 - tensorflow",
+            "reason_to_ignore": "No newer version of Tensorflow 2.7 available than 2.7.4."
         }
     ]
 }
