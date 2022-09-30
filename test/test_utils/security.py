@@ -32,15 +32,13 @@ class VulnerablePackageDetails:
         self,
         name: str,
         version: str,
-        filePath: str = None,
-        packageManager: str = None,
         release: str = None,
         *args: Any,
         **kwargs: Any,
     ):
-        self.file_path = filePath
+        self.file_path = kwargs.get("filePath") or kwargs.get("file_path")
         self.name = name
-        self.package_manager = packageManager
+        self.package_manager = kwargs.get("packageManager") or kwargs.get("package_manager")
         self.version = version
         self.release = release
 
@@ -74,7 +72,6 @@ class AllowListFormatVulnerabilityForEnhancedScan:
     def __init__(
         self,
         description: str,
-        # packageVulnerabilityDetails: dict,
         remediation: dict,
         severity: str,
         status: str,
@@ -87,7 +84,7 @@ class AllowListFormatVulnerabilityForEnhancedScan:
         self.vulnerability_id = packageVulnerabilityDetails["vulnerabilityId"] if packageVulnerabilityDetails else kwargs["vulnerability_id"]
         self.name = packageVulnerabilityDetails["vulnerabilityId"] if packageVulnerabilityDetails else kwargs["name"]
         self.package_name = None if packageVulnerabilityDetails else kwargs["package_name"]
-        self.package_details = None if packageVulnerabilityDetails else kwargs["package_details"]
+        self.package_details = None if packageVulnerabilityDetails else VulnerablePackageDetails(**kwargs["package_details"])
         self.remediation = remediation
         self.source_url = packageVulnerabilityDetails["sourceUrl"] if packageVulnerabilityDetails else kwargs["source_url"]
         self.source = packageVulnerabilityDetails["source"] if packageVulnerabilityDetails else kwargs["source"]
@@ -511,6 +508,17 @@ class ECREnhancedScanVulnerabilityList(ScanVulnerabilityList):
         :return: bool True if the two input objects are equivalent, False otherwise
         """
         return vulnerability_1 == vulnerability_2
+    
+    def get_summarized_info(self):
+        """
+        Gets summarized info regarding all the packages vulnerability_list and all the vulenrability IDs corresponding to them.
+        """
+        summarized_list = []
+        for package_name, vulnerabilities in self.vulnerability_list.items():
+            for vulnerability in vulnerabilities:
+                summarized_list.append((package_name, vulnerability.vulnerability_id, vulnerability.severity))
+        summarized_list = sorted(list(set(summarized_list)))
+        return summarized_list
 
 
 def get_ecr_vulnerability_package_version(vulnerability):
