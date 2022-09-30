@@ -1,4 +1,15 @@
-FROM vault.habana.ai/gaudi-docker/1.6.0/ubuntu20.04/habanalabs/tensorflow-installer-tf-cpu-2.9.1:latest
+FROM vault.habana.ai/gaudi-docker/1.6.0/ubuntu20.04/habanalabs/tensorflow-installer-tf-cpu-2.9.1:latest AS base_image
+
+ENV DEBIAN_FRONTEND=noninteractive \
+    LD_LIBRARY_PATH="${LD_LIBRARY_PATH}:/usr/local/lib"
+
+RUN apt-get update \
+ && apt-get upgrade -y \
+ && apt-get autoremove -y \
+ && apt-get clean \
+ && rm -rf /var/lib/apt/lists/*
+
+FROM base_image AS ec2
 
 LABEL maintainer="Amazon AI"
 LABEL dlc_major_version="1"
@@ -81,6 +92,7 @@ RUN apt-get update \
 
 RUN ${PIP} --no-cache-dir install --upgrade \
     pip \
+    oauthlib \
     #Setuptools release 60.x (and later) revealed an issue in Habana-TensorFlow package.
     "setuptools<60.0.0"
 
@@ -116,5 +128,9 @@ RUN HOME_DIR=/root \
    && rm -rf ${HOME_DIR}/oss_compliance*
 
 RUN curl https://aws-dlc-licenses.s3.amazonaws.com/tensorflow-${TF_VERSION}/license.txt -o /license.txt
+
+# cleanup conda 
+RUN conda clean --yes --all \
+   && rm -rf /opt/miniconda/pkgs/*
 
 CMD ["/bin/bash"]

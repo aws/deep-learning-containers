@@ -185,6 +185,7 @@ def test_hc_mnist_gpu(framework_version, ecr_image, sagemaker_regions, dist_gpu_
         invoke_pytorch_estimator(ecr_image, sagemaker_regions, estimator_parameter, upload_s3_data_args=upload_s3_data_args, job_name=job_name)
 
 
+@pytest.mark.usefixtures("feature_smmp_present")
 @pytest.mark.integration("smmodelparallel")
 @pytest.mark.model("gpt2")
 @pytest.mark.processor("gpu")
@@ -256,6 +257,7 @@ def test_smmodelparallel_gpt2_multigpu_singlenode(ecr_image, instance_type, sage
         job_name=utils.unique_name_from_base('test-pt-smdmp-gpt2-singlenode')
         invoke_pytorch_estimator(ecr_image, sagemaker_regions, estimator_parameter, inputs=inputs, job_name=job_name)
 
+@pytest.mark.usefixtures("feature_smmp_present")
 @pytest.mark.integration("smmodelparallel")
 @pytest.mark.model("mnist")
 @pytest.mark.processor("gpu")
@@ -300,6 +302,8 @@ def test_smmodelparallel_mnist_multigpu_multinode(ecr_image, instance_type, sage
         job_name=utils.unique_name_from_base('test-pt-smdmp-multinode')
         invoke_pytorch_estimator(ecr_image, sagemaker_regions, estimator_parameter, job_name=job_name)
 
+
+@pytest.mark.usefixtures("feature_smmp_present")
 @pytest.mark.integration("smmodelparallel")
 @pytest.mark.model("mnist")
 @pytest.mark.processor("gpu")
@@ -346,6 +350,8 @@ def test_hc_smmodelparallel_mnist_multigpu_multinode(ecr_image, instance_type, s
         job_name=utils.unique_name_from_base('test-pt-hc-smdmp-multinode')
         invoke_pytorch_estimator(ecr_image, sagemaker_regions, estimator_parameter, job_name=job_name)
 
+
+@pytest.mark.usefixtures("feature_smmp_present")
 @pytest.mark.integration("smmodelparallel")
 @pytest.mark.model("mnist")
 @pytest.mark.processor("gpu")
