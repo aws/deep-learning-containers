@@ -36,7 +36,7 @@ RUN apt-get update \
 FROM base_image AS ec2
 
 LABEL maintainer="Amazon AI"
-LABEL dlc_major_version="1"
+LABEL dlc_major_version="2"
 
 ARG PYTHON
 ARG PYTHON_VERSION
@@ -274,6 +274,8 @@ CMD ["torchserve", "--start", "--ts-config", "/home/model-server/config.properti
 
 FROM ec2 AS sagemaker
 
+LABEL maintainer="Amazon AI"
+LABEL dlc_major_version="1"
 LABEL com.amazonaws.sagemaker.capabilities.accept-bind-to-port=true
 
 ARG PYTHON
