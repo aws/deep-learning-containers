@@ -200,6 +200,7 @@ RUN ${PIP} install --no-cache-dir -U \
    requests \
    "awscli<2" \
    mpi4py==3.0.3 \
+   packaging \
    # Let's install TensorFlow separately in the end to avoid
    # the library version to be overwritten
  && ${PIP} install --no-cache-dir -U \
