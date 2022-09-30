@@ -18,6 +18,7 @@ RUN apt-get update \
  && apt-get install -y --no-install-recommends software-properties-common \
  && add-apt-repository ppa:openjdk-r/ppa \
  && apt-get update \
+ && apt-get -y upgrade \
  && apt-get install -y --no-install-recommends \
     build-essential \
     ca-certificates \
@@ -155,6 +156,9 @@ RUN HOME_DIR=/root \
  && rm -rf ${HOME_DIR}/oss_compliance*
 
 RUN curl https://aws-dlc-licenses.s3.amazonaws.com/pytorch-1.10/license.txt -o /license.txt
+
+# Removing the cache as it is needed for security verification
+RUN rm -iRf /root/.cache
 
 EXPOSE 8080 8081
 ENTRYPOINT ["python", "/usr/local/bin/dockerd-entrypoint.py"]
