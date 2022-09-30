@@ -99,6 +99,19 @@ release_images:
     framework: "pytorch"
     version: "1.10.2"
     arch_type: "x86"
+    customer_type: "ec2"
+    training:
+      device_types: [ "gpu" ]
+      python_versions: [ "py38" ]
+      cuda_version: "cu113"
+      os_version: "ubuntu20.04"
+      example: True
+      disable_sm_tag: False
+      force_release: False
+  9:
+    framework: "pytorch"
+    version: "1.10.2"
+    arch_type: "x86"
     customer_type: "sagemaker"
     training:
       device_types: [ "cpu", "gpu" ]
@@ -114,18 +127,5 @@ release_images:
       cuda_version: "cu113"
       os_version: "ubuntu20.04"
       example: False
-      disable_sm_tag: False
-      force_release: False
-  9:
-    framework: "pytorch"
-    version: "1.10.2"
-    arch_type: "x86"
-    customer_type: "ec2"
-    training:
-      device_types: [ "gpu" ]
-      python_versions: [ "py38" ]
-      cuda_version: "cu113"
-      os_version: "ubuntu20.04"
-      example: True
       disable_sm_tag: False
       force_release: False
