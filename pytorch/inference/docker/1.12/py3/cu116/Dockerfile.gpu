@@ -22,21 +22,10 @@ ARG PT_TORCHDATA_URL=https://download.pytorch.org/whl/test/torchdata-0.4.1-cp38-
 #                  |_|
 ########################################################
 
-FROM nvidia/cuda:11.6.2-base-ubuntu20.04 AS base_image
-
-ENV DEBIAN_FRONTEND=noninteractive \
-    LD_LIBRARY_PATH="${LD_LIBRARY_PATH}:/usr/local/lib"
-
-RUN apt-get update \
- && apt-get upgrade -y \
- && apt-get autoremove -y \
- && apt-get clean \
- && rm -rf /var/lib/apt/lists/*
-
-FROM base_image AS ec2
+FROM nvidia/cuda:11.6.2-base-ubuntu20.04 AS ec2
 
 LABEL maintainer="Amazon AI"
-LABEL dlc_major_version="2"
+LABEL dlc_major_version="1"
 
 ARG PYTHON
 ARG PYTHON_VERSION
@@ -274,6 +263,8 @@ CMD ["torchserve", "--start", "--ts-config", "/home/model-server/config.properti
 
 FROM ec2 AS sagemaker
 
+LABEL maintainer="Amazon AI"
+LABEL dlc_major_version="1"
 LABEL com.amazonaws.sagemaker.capabilities.accept-bind-to-port=true
 
 ARG PYTHON
