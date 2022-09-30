@@ -496,8 +496,8 @@ def enforce_IMDSv2(instance_id, region=DEFAULT_REGION, ec2_client=None, hop_limi
                 if http_tokens == 'required' and state == 'applied' and hop_limit == instance_hop_limit:
                     break
             timeout += 1
-    LOGGER.info(state)
-    if state == 'pending':
+
+    if state == 'pending' or timeout > 3:
         raise Exception("Unable to enforce IMDSv2. Describe instance is not able to confirm if IMDSv2 enforced.")
 
 
