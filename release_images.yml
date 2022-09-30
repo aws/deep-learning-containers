@@ -37,7 +37,7 @@ release_images:
       synapseai_version: "1.5.0"
       os_version: "ubuntu20.04"
       example: False
-      disable_sm_tag: False
+      disable_sm_tag: True
       force_release: False
   4:
     framework: "pytorch"
