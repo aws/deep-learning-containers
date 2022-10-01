@@ -26,7 +26,8 @@
          "source":"SNYK",
          "severity":"HIGH",
          "status":"ACTIVE",
-         "title":"SNYK-PYTHON-RDFLIB-1324490 - rdflib"
+         "title":"SNYK-PYTHON-RDFLIB-1324490 - rdflib",
+         "reason_to_ignore":"Latest version of rdflib is being installed"
       }
    ]
 }
