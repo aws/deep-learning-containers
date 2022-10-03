@@ -58,14 +58,14 @@ def test_eks_pytorch_single_node_training(pytorch_training):
       echo "          ('https://dlinfra-mnist-dataset.s3-us-west-2.amazonaws.com/mnist/t10k-images-idx3-ubyte.gz', '9fb629c4189551a2d022fa330f9573f3')," >> $FILE &&
       echo "          ('https://dlinfra-mnist-dataset.s3-us-west-2.amazonaws.com/mnist/t10k-labels-idx1-ubyte.gz', 'ec29112dd5afa0611ce80d1b7f02629c')" >> $FILE &&
       echo "          ]" >> $FILE &&
-      sed -i '1d' examples/mnist/main.py &&
-      sed -i '6d' examples/mnist/main.py &&
-      cat examples/mnist/main.py >> $FILE &&
-      rm examples/mnist/main.py &&
-      mv $FILE examples/mnist/main.py
+      sed -i '1d' mnist/main.py &&
+      sed -i '6d' mnist/main.py &&
+      cat mnist/main.py >> $FILE &&
+      rm mnist/main.py &&
+      mv $FILE mnist/main.py
     '''
 
-    args = f"git clone https://github.com/pytorch/examples.git && {mnist_dataset_download_config}  && python examples/mnist/main.py"
+    args = f"git clone https://github.com/pytorch/examples.git && cd examples && git reset --hard 5a06e9cac1728c860b53ebfc6792e0a0e21a5678 && {mnist_dataset_download_config}  && python mnist/main.py"
 
     # TODO: Change hardcoded value to read a mapping from the EKS cluster instance.
     cpu_limit = 72
