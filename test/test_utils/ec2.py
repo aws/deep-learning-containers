@@ -49,7 +49,7 @@ def filter_not_heavy_instance_types(instance_type_list):
     return filtered_list
 
 
-def get_ec2_instance_type(default, processor, filter_function=lambda x: x, efa=False, arch_type=""):
+def get_ec2_instance_type(default, processor, filter_function=lambda x: x, efa=False, arch_type="", job_type=""):
     """
     Get EC2 instance type from associated EC2_[CPU|GPU]_INSTANCE_TYPE env variable, or set it to a default
     for contexts where the variable is not present (i.e. PR, Nightly, local testing)
@@ -64,6 +64,7 @@ def get_ec2_instance_type(default, processor, filter_function=lambda x: x, efa=F
     a list.
     """
     allowed_processors = ("cpu", "gpu", "neuron", "hpu")
+    job_type_str = f"_{job_type.upper()}" if job_type else ""
     if processor not in allowed_processors:
         raise RuntimeError(
             f"Aborting EC2 test run. Unrecognized processor type {processor}. "
@@ -71,9 +72,9 @@ def get_ec2_instance_type(default, processor, filter_function=lambda x: x, efa=F
         )
     if default in HEAVY_INSTANCE_LIST and not efa:
         raise RuntimeError(f"Default instance type should never be one of {HEAVY_INSTANCE_LIST}, but it is {default}")
-    instance_type = os.getenv(f"EC2_{processor.upper()}_INSTANCE_TYPE")
+    instance_type = os.getenv(f"EC2_{processor.upper()}{job_type_str}_INSTANCE_TYPE")
     if arch_type == "graviton":
-        instance_type = os.getenv(f"EC2_{processor.upper()}_{arch_type.upper()}_INSTANCE_TYPE")
+        instance_type = os.getenv(f"EC2_{processor.upper()}_{arch_type.upper()}{job_type_str}_INSTANCE_TYPE")
     if not instance_type and is_mainline_context():
         return []
 

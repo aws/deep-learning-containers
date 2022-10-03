@@ -269,6 +269,11 @@ def main():
     specific_test_type = re.sub("benchmark-", "", test_type) if "benchmark" in test_type else test_type
     build_context = get_build_context()
 
+    # Do not run neuron training tests in mainline if we have not defined them
+    if test_type == "ec2" and build_context == "MAINLINE" and "training-neuron" in dlc_images and not os.getenv("EC2_NEURON_TRAINING_INSTANCE_TYPE"):
+        report = os.path.join(os.getcwd(), "test", f"{test_type}.xml") 
+        sm_utils.generate_empty_report(report, test_type, "training-neuron")
+
     # quick_checks tests don't have images in it. Using a placeholder here for jobs like that
     try:
         framework, version = get_framework_and_version_from_tag(all_image_list[0])

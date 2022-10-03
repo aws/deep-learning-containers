@@ -35,7 +35,7 @@ PT_EC2_MULTI_GPU_INSTANCE_TYPE = get_ec2_instance_type(
     default="g3.8xlarge", processor="gpu", filter_function=ec2_utils.filter_only_multi_gpu,
 )
 PT_EC2_HPU_INSTANCE_TYPE = get_ec2_instance_type(default="dl1.24xlarge", processor="hpu")
-PT_EC2_NEURON_TRN1_INSTANCE_TYPE = get_ec2_instance_type(default="trn1.2xlarge", processor="neuron")
+PT_EC2_NEURON_TRN1_INSTANCE_TYPE = get_ec2_instance_type(default="trn1.2xlarge", processor="neuron", job_type="training")
 
 @pytest.mark.parametrize("ec2_instance_ami", [test_utils.NEURON_TRN1_AMI_US_EAST_1], indirect=True)
 @pytest.mark.parametrize("ec2_instance_type", PT_EC2_NEURON_TRN1_INSTANCE_TYPE, indirect=True)
