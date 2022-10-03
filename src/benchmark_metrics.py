@@ -90,6 +90,13 @@ TRCOMP_THRESHOLD = {
                         224: 2500   # batch size : threshold
                     }
                 }
+            },
+            'GPT-2': {          # model name
+                'ml.p3.2xlarge': {  # instance
+                    1: {            # Num nodes
+                        75: 2000   # batch size : threshold
+                    }
+                }
             }   
         },
         '2.10': {                    # framework version
