@@ -15,7 +15,18 @@ ARG PT_S3_WHL_GPU=https://aws-s3-plugin.s3.us-west-2.amazonaws.com/binaries/0.0.
 ARG SMD_DATA_PARALLEL_URL=https://smdataparallel.s3.amazonaws.com/binary/pytorch/1.11.0/cu113/2022-09-12/smdistributed_dataparallel-1.5.1-cp38-cp38-linux_x86_64.whl
 ARG SMD_MODEL_PARALLEL_URL=https://sagemaker-distributed-model-parallel.s3.us-west-2.amazonaws.com/pytorch-1.11.0/build-artifacts/2022-09-14-05-49/smdistributed_modelparallel-1.11.2-cp38-cp38-linux_x86_64.whl
 
-FROM nvidia/cuda:11.3.1-base-ubuntu20.04 AS common
+FROM nvidia/cuda:11.3.1-base-ubuntu20.04 AS base_image
+
+ENV DEBIAN_FRONTEND=noninteractive \
+    LD_LIBRARY_PATH="${LD_LIBRARY_PATH}:/usr/local/lib"
+
+RUN apt-get update \
+ && apt-get upgrade -y \
+ && apt-get autoremove -y \
+ && apt-get clean \
+ && rm -rf /var/lib/apt/lists/*
+
+FROM base_image AS common
 
 LABEL maintainer="Amazon AI"
 LABEL dlc_major_version="2"
