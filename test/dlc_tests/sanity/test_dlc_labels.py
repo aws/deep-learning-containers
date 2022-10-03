@@ -132,12 +132,13 @@ def test_dlc_major_version_dockerfiles(image):
     # Skip older FW versions that did not use this versioning scheme
     references = {"tensorflow2": "2.2.0", "tensorflow1": "1.16.0", "mxnet": "1.7.0", "pytorch": "1.5.0"}
     excluded_versions = {
-        "tensorflow2": SpecifierSet("<2.2"),
-        "tensorflow1": SpecifierSet("<1.16"),
-        "mxnet": SpecifierSet("<1.7"),
-        "pytorch": SpecifierSet("<1.5"),
+        "tensorflow2": [SpecifierSet("<2.2")],
+        "tensorflow1": [SpecifierSet("<1.16")],
+        "mxnet": [SpecifierSet("<1.7")],
+        # HACK Temporary exception PT 1.11 and PT 1.12 since they use different cuda versions for ec2 and SM 
+        "pytorch": [SpecifierSet("<1.5"), SpecifierSet("==1.11.*"), SpecifierSet("==1.12.*")],
         # autogluon 0.3.1 and 0.3.2 DLCs are both v1, and are meant to exist in the repo simultaneously
-        "autogluon": SpecifierSet("==0.3.*"),
+        "autogluon": [SpecifierSet("==0.3.*")],
     }
     if test_utils.is_tf_version("1", image):
         reference_fw = "tensorflow1"
@@ -145,7 +146,7 @@ def test_dlc_major_version_dockerfiles(image):
         reference_fw = "tensorflow2"
     else:
         reference_fw = framework
-    if reference_fw in excluded_versions and Version(fw_version) in excluded_versions[reference_fw]:
+    if any(Version(fw_version) in ev for ev in excluded_versions.get(reference_fw, [])):
         pytest.skip(
             f"Not enforcing new versioning scheme on old image {image}. "
             f"Enforcing version scheme on {reference_fw} versions that do not match {excluded_versions[reference_fw]}"
