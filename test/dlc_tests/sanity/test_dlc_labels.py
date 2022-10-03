@@ -135,6 +135,7 @@ def test_dlc_major_version_dockerfiles(image):
         "tensorflow2": [SpecifierSet("<2.2")],
         "tensorflow1": [SpecifierSet("<1.16")],
         "mxnet": [SpecifierSet("<1.7")],
+        # HACK Temporary exception PT 1.11 and PT 1.12 since they use different cuda versions for ec2 and SM 
         "pytorch": [SpecifierSet("<1.5"), SpecifierSet("==1.11.*"), SpecifierSet("==1.12.*")],
         # autogluon 0.3.1 and 0.3.2 DLCs are both v1, and are meant to exist in the repo simultaneously
         "autogluon": [SpecifierSet("==0.3.*")],
