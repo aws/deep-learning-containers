@@ -1,4 +1,4 @@
-FROM vault.habana.ai/gaudi-docker/1.6.0/ubuntu20.04/habanalabs/tensorflow-installer-tf-cpu-2.9.1:latest AS base_image
+FROM vault.habana.ai/gaudi-docker/1.6.1/ubuntu20.04/habanalabs/tensorflow-installer-tf-cpu-2.9.1:latest AS base_image
 
 ENV DEBIAN_FRONTEND=noninteractive \
     LD_LIBRARY_PATH="${LD_LIBRARY_PATH}:/usr/local/lib"

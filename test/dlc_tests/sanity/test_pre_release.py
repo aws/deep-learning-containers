@@ -252,7 +252,7 @@ def test_framework_version_cpu(image):
                 assert tag_framework_version in output.stdout.strip()
             if (all(_string in image for _string in ["pytorch", "habana"])
                and any(_string in image for _string in 
-               ["synapseai1.3.0", "synapseai1.4.1", "synapseai1.5.0"])):
+               ["synapseai1.3.0", "synapseai1.4.1", "synapseai1.5.0", "synapseai1.6.1"])):
                 # Habana Pytorch version looks like 1.10.0a0+gitb488e78 for SynapseAI1.3 PT1.10.1 images
                 pt_fw_version_pattern = r"(\d+(\.\d+){1,2}(-rc\d)?)((a0\+git\w{7}))"
                 pt_fw_version_match = re.fullmatch(pt_fw_version_pattern, output.stdout.strip())
