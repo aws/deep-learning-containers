@@ -364,6 +364,7 @@ def get_instance_type_details(instance_type, region=DEFAULT_REGION):
     return response["InstanceTypes"][0]
 
 
+
 def get_instance_details(instance_id, region=DEFAULT_REGION):
     """
     Get instance details for instance with given instance ID
@@ -457,6 +458,47 @@ def get_ec2_instance_tags(instance_id, region=DEFAULT_REGION, ec2_client=None):
     ec2_client = ec2_client or get_ec2_client(region)
     response = ec2_client.describe_tags(Filters=[{"Name": "resource-id", "Values": [instance_id]}])
     return {tag["Key"]: tag["Value"] for tag in response.get("Tags")}
+
+
+def enforce_IMDSv2(instance_id, region=DEFAULT_REGION, ec2_client=None, hop_limit = 1):
+    """
+    Enabled HTTP TOKENS required option on EC2 instance with given hop limit.
+    
+    :param instance_id: str, ec2 instance id
+    :param region: str, Region where ec2 instance is launched.
+    :param ec2_client: str, ec2 client.
+    :param hop_limit: str, hop limit to be set on ec2 instance.
+    """
+    ec2_client = ec2_client or get_ec2_client(region)
+    IMDSv2_enforced = False
+    response = ec2_client.modify_instance_metadata_options(
+        InstanceId=instance_id,
+        HttpTokens='required',
+        HttpPutResponseHopLimit=hop_limit,
+        HttpEndpoint='enabled',
+    )
+
+    if not response:
+        raise Exception("Unable to enforce IMDSv2. No response received.")
+
+    timeout = 3
+    state = None
+    if response["InstanceId"]:
+        while timeout > 0:
+            time.sleep(timeout)
+            res = ec2_client.describe_instances(InstanceIds=[instance_id])
+            if res:
+                metadata_options = res['Reservations'][0]['Instances'][0]['MetadataOptions']
+                http_tokens = metadata_options['HttpTokens']
+                state = metadata_options['State']
+                instance_hop_limit = metadata_options['HttpPutResponseHopLimit']
+
+                if http_tokens == 'required' and state == 'applied' and hop_limit == instance_hop_limit:
+                    break
+            timeout -= 1
+
+    if state == 'pending' or timeout == 0:
+        raise Exception("Unable to enforce IMDSv2. Describe instance is not able to confirm if IMDSv2 enforced.")
 
 
 def fetch_s3_file_and_get_last_line(s3_location, local_filename="temp.txt"):
