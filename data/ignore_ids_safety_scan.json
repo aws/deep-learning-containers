@@ -413,7 +413,8 @@
                 "43453":"numpy > 1.22.0 is not available for py37",
                 "44715":"numpy > 1.22.0 is not available for py37",
                 "44717":"numpy > 1.22.0 is not available for py37",
-                "44716":"numpy > 1.22.0 is not available for py37"
+                "44716":"numpy > 1.22.0 is not available for py37",
+                "51159":"cryptography>38.0.1 does not exist yet"
             }
         },
         "inference": {
