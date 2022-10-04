@@ -73,6 +73,7 @@ def test_telemetry_instance_tag_success_gpu(gpu, ec2_client, ec2_instance, ec2_c
 def test_telemetry_instance_tag_success_cpu(cpu, ec2_client, ec2_instance, ec2_connection, cpu_only, non_huggingface_only, non_autogluon_only, x86_compatible_only):
     _run_tag_success_IMDSv1(cpu, ec2_client, ec2_instance, ec2_connection)
     _run_tag_success_IMDSv2_hop_limit_2(cpu, ec2_client, ec2_instance, ec2_connection)
+    _run_s3_query_bucket_success(cpu, ec2_client, ec2_instance, ec2_connection)
 
 
 @pytest.mark.usefixtures("sagemaker")
@@ -129,6 +130,38 @@ def test_pytorch_inference_job_type_env_var(pytorch_inference):
         env_vars_to_test=env_vars,
         container_name_prefix=container_name_prefix
     )
+
+def _run_s3_query_bucket_success(image_uri, ec2_client, ec2_instance, ec2_connection):
+    ec2_instance_id, _ = ec2_instance
+    account_id = test_utils.get_account_id_from_image_uri(image_uri)
+    image_region = test_utils.get_region_from_image_uri(image_uri)
+    repo_name, image_tag = test_utils.get_repository_and_tag_from_image_uri(image_uri)
+    framework, framework_version = test_utils.get_framework_and_version_from_tag(image_uri)
+    job_type = test_utils.get_job_type_from_image(image_uri)
+    processor = test_utils.get_processor_from_image_uri(image_uri)
+    container_type = test_utils.get_job_type_from_image(image_uri)
+    container_name = f"{repo_name}-telemetry_s3_query_success-ec2"
+
+    docker_cmd = "nvidia-docker" if processor == "gpu" else "docker"
+    test_utils.login_to_ecr_registry(ec2_connection, account_id, image_region)
+    ## For big images like trcomp, the ec2_connection.run command stops listening and the code hangs here.
+    ## Hence, avoiding the use of -q to let the connection remain active.
+    ec2_connection.run(f"{docker_cmd} pull {image_uri}")
+
+    actual_output = import_framework(image_uri, container_name, docker_cmd, framework, job_type, ec2_connection, test_mode = 1)
+
+    py_version = ec2_connection.run(
+        f"{docker_cmd} exec -i {container_name} /bin/bash -c 'python --version'",
+        warn=True
+    ).stdout.strip('\n').split(" ")[1]
+
+    expected_s3_url = (
+        "https://aws-deep-learning-containers-{0}.s3.{0}.amazonaws.com"
+        "/dlc-containers-{1}.txt?x-instance-id={1}&x-framework={2}&x-framework_version={3}&x-py_version={4}&x-container_type={5}".format(
+        image_region, ec2_instance_id, framework, framework_version, py_version, container_type)
+    )
+    
+    assert expected_s3_url == actual_output, f"S3 telemetry is not working"
 
 
 def _run_tag_failure_IMDSv1_disabled(image_uri, ec2_client, ec2_instance, ec2_connection):
@@ -273,10 +306,11 @@ def _run_tag_success_IMDSv2_hop_limit_2(image_uri, ec2_client, ec2_instance, ec2
     assert expected_tag_key in ec2_instance_tags, f"{expected_tag_key} was not applied as an instance tag"
 
 
-def import_framework(image_uri, container_name, docker_cmd, framework, job_type, ec2_connection):
+def import_framework(image_uri, container_name, docker_cmd, framework, job_type, ec2_connection, test_mode = None):
     """
     Run import framework command inside docker container
     """
+    output = None
     if "tensorflow" in framework and job_type == "inference":
         model_name = "saved_model_half_plus_two"
         model_base_path = test_utils.get_tensorflow_model_base_path(image_uri)
@@ -289,11 +323,23 @@ def import_framework(image_uri, container_name, docker_cmd, framework, job_type,
         framework_to_import = framework.replace("huggingface_", "")
         framework_to_import = "torch" if framework_to_import == "pytorch" else framework_to_import
         ec2_connection.run(f"{docker_cmd} run --name {container_name} -id {image_uri} bash")
-        output = ec2_connection.run(
-            f"{docker_cmd} exec -i {container_name} python -c 'import {framework_to_import}; import time; time.sleep(5)'",
-            warn=True
-        )
-        assert output.ok, f"'import {framework_to_import}' fails when credentials not configured"
+        if test_mode:
+            ec2_connection.run(
+                f"{docker_cmd} exec -i -e TEST_MODE={test_mode} {container_name} python -c 'import mxnet; import time; time.sleep(5);'",
+                warn=True
+            )
+            output = ec2_connection.run(
+                f"{docker_cmd} exec -i {container_name} /bin/bash -c 'cat /tmp/test_request.txt'",
+                warn=True
+            ).stdout.strip('\n')
+        else:
+            output = ec2_connection.run(
+                f"{docker_cmd} exec -i {container_name} python -c 'import {framework_to_import}; import time; time.sleep(5)'",
+                warn=True
+            )
+            assert output.ok, f"'import {framework_to_import}' fails when credentials not configured"
+
+    return output
 
 
 def get_tensorflow_inference_command_tf27_above(image_uri, model_name):
