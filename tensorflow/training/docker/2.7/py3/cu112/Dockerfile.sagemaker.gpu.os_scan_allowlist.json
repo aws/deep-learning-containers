@@ -1,0 +1,64 @@
+{
+    "e2fsprogs": [
+        {
+            "description": " An out-of-bounds read/write vulnerability was found in e2fsprogs 1.46.5. This issue leads to a segmentation fault and possibly arbitrary code execution via a specially crafted filesystem.",
+            "vulnerability_id": "CVE-2022-1304",
+            "name": "CVE-2022-1304",
+            "package_name": "e2fsprogs",
+            "package_details": {
+                "file_path": null,
+                "name": "e2fsprogs",
+                "package_manager": "OS",
+                "version": "1.45.5",
+                "release": "2ubuntu1"
+            },
+            "remediation": {
+                "recommendation": {
+                    "text": "None Provided"
+                }
+            },
+            "cvss_v3_score": 7.8,
+            "cvss_v30_score": 0.0,
+            "cvss_v31_score": 7.8,
+            "cvss_v2_score": 6.8,
+            "cvss_v3_severity": "HIGH",
+            "source_url": "https://people.canonical.com/~ubuntu-security/cve/2022/CVE-2022-1304.html",
+            "source": "UBUNTU_CVE",
+            "severity": "MEDIUM",
+            "status": "ACTIVE",
+            "title": "CVE-2022-1304 - e2fsprogs",
+            "reason_to_ignore": "No newer version of e2fsprogs is available for Ubuntu 20.04 currently."
+        }
+    ],
+    "tensorflow": [
+        {
+            "description": "[tensorflow](https://pypi.org/project/tensorflow/) is a machine learning framework.\n\nAffected versions of this package are vulnerable to Arbitrary File Write via Archive Extraction (Zip Slip) via a crafted archive when `tf.keras.utils.get_file` is used with `extract=True`.\r\n\r\nNOTE: This CVE is disputed as the vendor's position is that `tf.keras.utils.get_file` is not intended for untrusted archives. However, we feel this advisory is relevant as, as at the time of publication, there is no known security notice or documentation warning users of this behaviour.",
+            "vulnerability_id": "IN1-PYTHON-TENSORFLOW-1315149",
+            "name": "IN1-PYTHON-TENSORFLOW-1315149",
+            "package_name": "tensorflow",
+            "package_details": {
+                "file_path": "usr/local/lib/python3.8/site-packages/tensorflow-2.7.4.dist-info/METADATA",
+                "name": "tensorflow",
+                "package_manager": "PYTHONPKG",
+                "version": "2.7.4",
+                "release": null
+            },
+            "remediation": {
+                "recommendation": {
+                    "text": "None Provided"
+                }
+            },
+            "cvss_v3_score": 9.1,
+            "cvss_v30_score": 0.0,
+            "cvss_v31_score": 9.1,
+            "cvss_v2_score": 0.0,
+            "cvss_v3_severity": "CRITICAL",
+            "source_url": "https://snyk.io/vuln/SNYK-PYTHON-TENSORFLOW-1315149",
+            "source": "SNYK",
+            "severity": "CRITICAL",
+            "status": "ACTIVE",
+            "title": "SNYK-PYTHON-TENSORFLOW-1315149 - tensorflow",
+            "reason_to_ignore": "No newer version of Tensorflow 2.7 available than 2.7.4."
+        }
+    ]
+}
