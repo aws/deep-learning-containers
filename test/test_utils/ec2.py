@@ -481,7 +481,7 @@ def enforce_IMDSv2(instance_id, region=DEFAULT_REGION, ec2_client=None, hop_limi
     if not response:
         raise Exception("Unable to enforce IMDSv2. No response received.")
 
-    timeout = 3
+    timeout = 4
     state = None
     if response["InstanceId"]:
         while timeout > 0:
