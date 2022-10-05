@@ -21,6 +21,7 @@ ENV MODEL_NAME=model
 ENV DEBIAN_FRONTEND=noninteractive
 
 RUN apt-get update \
+ && apt-get -y upgrade \
  && apt-get -y install --no-install-recommends \
     curl \
     gnupg2 \
@@ -68,7 +69,7 @@ RUN ${PIP} install --no-cache-dir \
     gevent==21.1.1 \
     requests==2.25.1 \
     grpcio==1.34.1 \
-    protobuf==3.14.0 \
+    "protobuf>=3.20.2,<3.21" \
 # using --no-dependencies to avoid installing tensorflow binary
  && ${PIP} install --no-dependencies --no-cache-dir \
     tensorflow-serving-api==2.7.0

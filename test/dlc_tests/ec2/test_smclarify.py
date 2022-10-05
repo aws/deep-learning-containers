@@ -72,7 +72,8 @@ def run_smclarify_bias_metrics(
     region = get_region_from_image_uri(image_uri)
 
     login_to_ecr_registry(ec2_connection, account_id, region)
-    ec2_connection.run(f"docker pull -q {image_uri}")
+    # Do not add -q to docker pull as it leads to a hang for huge images like trcomp
+    ec2_connection.run(f"docker pull {image_uri}")
 
     try:
         ec2_connection.run(

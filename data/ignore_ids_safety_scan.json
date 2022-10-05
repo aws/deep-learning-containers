@@ -20,7 +20,8 @@
                 "44716":"[DISPUTED] The vendor does not agree this is a vulnerability; the negative dimensions can only be created by an already privileged user (or internally).",
                 "43453":"[DISPUTED] The vendor does not agree this is a vulneraility; In (very limited) circumstances a user may be able provoke the buffer overflow, the user is most likely already privileged to at least provoke denial of service by exhausting memory. Triggering this further requires the use of uncommon API (complicated structured dtypes), which is very unlikely to be available to an unprivileged user.",
                 "44717":"The vendor states that this reported code behavior is completely harmless.",
-                "48551": "tensorflow-estimator and tensorflow versions must match. For all TF versions below TF 2.9.0, we cannot upgrade tf-estimator to 2.9.0"
+                "48551": "tensorflow-estimator and tensorflow versions must match. For all TF versions below TF 2.9.0, we cannot upgrade tf-estimator to 2.9.0",
+                "51159":"cryptography>38.0.1 does not exist yet"
             }
         },
         "inference":{
@@ -34,6 +35,7 @@
             "py3": {
                 "42098":"Can't upgrade TF version to 2.7.x in non 2.7 images.",
                 "42062":"Can't upgrade TF version to 2.7.x in non 2.7 images.",
+                "51159": "for cryptography until we have 39.0.0 release",
                 "44715":"False positive for numpy. Was fixed in 1.22.2"
             }
         },
@@ -212,7 +214,8 @@
                 "43453":"mxnet 1.9 currently does not work with numpy 1.20.0 or above",
                 "44715":"mxnet 1.9 currently does not work with numpy 1.20.0 or above",
                 "44716":"mxnet 1.9 currently does not work with numpy 1.20.0 or above",
-                "44717":"mxnet 1.9 currently does not work with numpy 1.20.0 or above"
+                "44717":"mxnet 1.9 currently does not work with numpy 1.20.0 or above",
+                "51159":"cryptography>38.0.1 does not exist yet"
             }
         },
         "inference": {
@@ -403,7 +406,8 @@
                 "42772":"for shipping bokeh<=2.3.3 - the last available version for py3.6",
                 "42814":"for shipping bokeh<=2.3.3 - the last available version for py3.6",
                 "42815":"for shipping bokeh<=2.3.3 - the last available version for py3.6",
-                "48298":"for shipping PT1.12 on safety check tools might report a vulnerability for the package commonmarker, which is a dependency of deepspeed. This package is only used to build the documentation pages of deepspeed and won’t be used in the package that gets installed into the DLC. This security issue can be safely ignored and an attempt to upgrade deepspeed version to remediate it might have an inadvertent negative impact on the DLC components functionality."
+                "48298":"for shipping PT1.12 on safety check tools might report a vulnerability for the package commonmarker, which is a dependency of deepspeed. This package is only used to build the documentation pages of deepspeed and won’t be used in the package that gets installed into the DLC. This security issue can be safely ignored and an attempt to upgrade deepspeed version to remediate it might have an inadvertent negative impact on the DLC components functionality.",
+                "51159":"cryptography>38.0.1 does not exist yet"
             }
         },
         "inference": {
@@ -411,6 +415,7 @@
             "py2": {
             },
             "py3": {
+                "51159":"cryptography>38.0.1 does not exist yet"
             }
         },
         "inference-eia": {
@@ -565,7 +570,49 @@
                 "44849": "tf ignore for neuron",
                 "44846": "tf ignore for neuron",
                 "44872": "tf ignore for neuron",
-                "44463":"for shipping Torchserve 0.5.2 - the last available version"
+                "44463":"for shipping Torchserve 0.5.2 - the last available version",
+                "48643":"Added in order to support tensorflow 1.15.5",
+                "48639":"Added in order to support tensorflow 1.15.5",
+                "48637":"Added in order to support tensorflow 1.15.5",
+                "48655":"Added in order to support tensorflow 1.15.5",
+                "48661":"Added in order to support tensorflow 1.15.5",
+                "48650":"Added in order to support tensorflow 1.15.5",
+                "48653":"Added in order to support tensorflow 1.15.5",
+                "48662":"Added in order to support tensorflow 1.15.5",
+                "48646":"Added in order to support tensorflow 1.15.5",
+                "48635":"Added in order to support tensorflow 1.15.5",
+                "48656":"Added in order to support tensorflow 1.15.5",
+                "48645":"Added in order to support tensorflow 1.15.5",
+                "48642":"Added in order to support tensorflow 1.15.5",
+                "48657":"Added in order to support tensorflow 1.15.5",
+                "48658":"Added in order to support tensorflow 1.15.5",
+                "48654":"Added in order to support tensorflow 1.15.5",
+                "48565":"Added in order to support tensorflow 1.15.5",
+                "48644":"Added in order to support tensorflow 1.15.5",
+                "48638":"Added in order to support tensorflow 1.15.5",
+                "48664":"Added in order to support tensorflow 1.15.5",
+                "48652":"Added in order to support tensorflow 1.15.5",
+                "48566":"Added in order to support tensorflow 1.15.5",
+                "48633":"Added in order to support tensorflow 1.15.5",
+                "48659":"Added in order to support tensorflow 1.15.5",
+                "48636":"Added in order to support tensorflow 1.15.5",
+                "48647":"Added in order to support tensorflow 1.15.5",
+                "48634":"Added in order to support tensorflow 1.15.5",
+                "48629":"Added in order to support tensorflow 1.15.5",
+                "48640":"Added in order to support tensorflow 1.15.5",
+                "48663":"Added in order to support tensorflow 1.15.5",
+                "48551":"Added in order to support tensorflow 1.15.5",
+                "48665":"Added in order to support tensorflow 1.15.5",
+                "48649":"Added in order to support tensorflow 1.15.5",
+                "48660":"Added in order to support tensorflow 1.15.5",
+                "48651":"Added in order to support tensorflow 1.15.5",
+                "48564":"Added in order to support tensorflow 1.15.5",
+                "48563":"Added in order to support tensorflow 1.15.5",
+                "48553":"Added in order to support tensorflow 1.15.5",
+                "48641":"Added in order to support tensorflow 1.15.5",
+                "44463":"Added in order to support tensorflow 1.15.5",
+                "48562":"Added in order to support tensorflow 1.15.5",
+                "48648":"Added in order to support tensorflow 1.15.5"
             }
         }
     },
@@ -642,7 +689,8 @@
                 "44715":"False positive for numpy. Was fixed in 1.22.2",
                 "44716":"The vendor states that this reported code behavior is completely harmless.",
                 "44717":"The vendor states that this reported code behavior is completely harmless.",
-                "48547":"Latest version of rdflib is being installed"
+                "48547":"Latest version of rdflib is being installed",
+                "51159":"cryptography>38.0.1 does not exist yet"
             }
         },
         "inference-neuron": {
@@ -652,6 +700,14 @@
                 "44715":"for shipping numpy 1.21.5 - the last available version for py3.7",
                 "44716":"for shipping numpy 1.21.5 - the last available version for py3.7",
                 "44717":"for shipping numpy 1.21.5 - the last available version for py3.7"
+            }
+        }
+    },
+
+    "huggingface_pytorch_trcomp": {
+        "training": {
+            "py3": {
+                "48547":"Latest version of rdflib is being installed"
             }
         }
     },
@@ -691,7 +747,8 @@
                 "43453":"[DISPUTED] The vendor does not agree this is a vulneraility; In (very limited) circumstances a user may be able provoke the buffer overflow, the user is most likely already privileged to at least provoke denial of service by exhausting memory. Triggering this further requires the use of uncommon API (complicated structured dtypes), which is very unlikely to be available to an unprivileged user.",
                 "44717":"The vendor states that this reported code behavior is completely harmless.",
                 "43752":"Flagged due to PyTorch Lightning version for having PyYAML < 5.4. Vulnerability is for PyYAML < 5.4. DLC has PyYAML 5.4 installed",
-                "43581":"Flagged due to PyTorch Lightning version for having PyYAML < 5.3.1. Vulnerability is for PyYAML < 5.3.1. DLC has PyYAML 5.4 installed"
+                "43581":"Flagged due to PyTorch Lightning version for having PyYAML < 5.3.1. Vulnerability is for PyYAML < 5.3.1. DLC has PyYAML 5.4 installed",
+                "51159":"cryptography>38.0.1 does not exist yet"
             }
         }
     },

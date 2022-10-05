@@ -4,7 +4,7 @@ import logging
 import random
 import sys
 import re
-
+import uuid
 import boto3
 from botocore.exceptions import ClientError
 import docker
@@ -36,10 +36,11 @@ from test.test_utils import (
     are_efa_tests_disabled,
     get_ecr_repo_name,
     UBUNTU_HOME_DIR,
+    NightlyFeatureLabel,
 )
 from test.test_utils.imageutils import (
     are_image_labels_matched,
-    are_valid_fixture_labels_present
+    are_fixture_labels_enabled
 )
 from test.test_utils.test_reporting import TestReportGenerator
 
@@ -96,10 +97,35 @@ FRAMEWORK_FIXTURES = (
 
 # Nightly image fixture dictionary, maps nightly fixtures to set of image labels
 NIGHTLY_FIXTURES = {
-    "feature_smdebug_present": {"aws_framework_installed", "aws_smdebug_installed"},
-    "feature_smddp_present": {"aws_framework_installed", "aws_smddp_installed"},
-    "feature_smmp_present": {"aws_smmp_installed"},
-    "feature_aws_framework_present": {"aws_framework_installed"}
+    "feature_smdebug_present": {
+        NightlyFeatureLabel.AWS_FRAMEWORK_INSTALLED.value, 
+        NightlyFeatureLabel.AWS_SMDEBUG_INSTALLED.value
+    },
+    "feature_smddp_present": {
+        NightlyFeatureLabel.AWS_FRAMEWORK_INSTALLED.value, 
+        NightlyFeatureLabel.AWS_SMDDP_INSTALLED.value
+    },
+    "feature_smmp_present": {
+        NightlyFeatureLabel.AWS_SMMP_INSTALLED.value
+    },
+    "feature_aws_framework_present": {
+        NightlyFeatureLabel.AWS_FRAMEWORK_INSTALLED.value
+    },
+    "feature_torchaudio_present":{
+        NightlyFeatureLabel.PYTORCH_INSTALLED.value,
+        NightlyFeatureLabel.TORCHAUDIO_INSTALLED.value
+    },
+    "feature_torchvision_present":{
+        NightlyFeatureLabel.PYTORCH_INSTALLED.value,
+        NightlyFeatureLabel.TORCHVISION_INSTALLED.value
+    },
+    "feature_torchdata_present":{
+        NightlyFeatureLabel.PYTORCH_INSTALLED.value,
+        NightlyFeatureLabel.TORCHDATA_INSTALLED.value
+    },
+    "feature_s3_plugin_present":{
+        NightlyFeatureLabel.AWS_S3_PLUGIN_INSTALLED.value
+    }
 }
 
 # Nightly fixtures
@@ -117,6 +143,22 @@ def feature_smmp_present():
 
 @pytest.fixture(scope="session")
 def feature_aws_framework_present():
+    pass
+
+@pytest.fixture(scope="session")
+def feature_torchaudio_present():
+    pass
+
+@pytest.fixture(scope="session")
+def feature_torchvision_present():
+    pass
+
+@pytest.fixture(scope="session")
+def feature_torchdata_present():
+    pass
+
+@pytest.fixture(scope="session")
+def feature_s3_plugin_present():
     pass
 
 # Ignore container_tests collection, as they will be called separately from test functions
@@ -247,7 +289,8 @@ def ec2_instance(
                 if ec2_instance_ami == AML2_GPU_DLAMI_US_WEST_2
                 else UBUNTU_18_BASE_DLAMI_US_EAST_1
             )
-
+    
+    ec2_key_name = f"{ec2_key_name}-{str(uuid.uuid4())}"
     print(f"Creating instance: CI-CD {ec2_key_name}")
     key_filename = test_utils.generate_ssh_keypair(ec2_client, ec2_key_name)
 
@@ -785,7 +828,7 @@ def pytest_generate_tests(metafunc):
     if not images:
         return
 
-        
+
     # Parametrize framework specific tests
     for fixture in FRAMEWORK_FIXTURES:
         if fixture in metafunc.fixturenames:
@@ -849,11 +892,11 @@ def pytest_generate_tests(metafunc):
                 func_nightly_fixtures = {key: value for (key,value) in NIGHTLY_FIXTURES.items() if key in metafunc.fixturenames}
                 # iterate through image candidates and select images with labels that match all nightly fixture labels
                 for image_candidate in images_to_parametrize:
-                    if all([are_valid_fixture_labels_present(image_candidate, nightly_labels) for _, nightly_labels in func_nightly_fixtures.items()]):
+                    if all([are_fixture_labels_enabled(image_candidate, nightly_labels) for _, nightly_labels in func_nightly_fixtures.items()]):
                         nightly_images_to_parametrize.append(image_candidate)
                 images_to_parametrize = nightly_images_to_parametrize
-            
-            
+
+
             # Parametrize tests that spin up an ecs cluster or tests that spin up an EC2 instance with a unique name
             values_to_generate_for_fixture = {
                 "ecs_container_instance": "ecs_cluster_name",
@@ -892,4 +935,3 @@ def disable_test(request):
 
     if test_utils.is_test_disabled(test_name, build_name, version):
         pytest.skip(f"Skipping {test_name} test because it has been disabled.")
-

@@ -50,6 +50,10 @@ sagemaker_local_tests = true
 # "efa" --> run efa sagemaker tests
 sagemaker_remote_tests = "standard"
 
+# Run CI tests for nightly images
+# false by default
+nightly_pr_test_mode = false
+
 use_scheduler = false
 
 [buildspec_override]

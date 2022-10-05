@@ -29,6 +29,7 @@ from test_utils import (
     setup_sm_benchmark_hf_infer_env,
     get_framework_and_version_from_tag,
     get_build_context,
+    is_nightly_context,
 )
 from test_utils import KEYS_TO_DESTROY_FILE, DEFAULT_REGION
 from test_utils.pytest_cache import PytestCache
@@ -381,6 +382,12 @@ def main():
             cmd_exit_statuses = [pytest.main(pytest_cmd) for pytest_cmd in pytest_cmds]
             if all([status == 0 for status in cmd_exit_statuses]):
                 sys.exit(0)
+            elif any([status != 0 for status in cmd_exit_statuses]) and is_nightly_context():
+                LOGGER.warning("\nSuppressed Failed Nightly Tests")
+                for index, status in enumerate(cmd_exit_statuses):
+                    if status != 0:
+                        LOGGER.warning(f'"{pytest_cmds[index]}" tests failed. Status code: {status}')
+                sys.exit(0)
             else:
                 raise RuntimeError(pytest_cmds)
         finally:
@@ -409,7 +416,13 @@ def main():
             pytest_cmd = ["-s", "-rA", test_path, f"--junitxml={report}", "-n=auto", "-o", "norecursedirs=resources"]
             if not is_pr_context():
                 pytest_cmd += ["--efa"] if efa_dedicated else ["-m", "not efa"]
-            sys.exit(pytest.main(pytest_cmd))
+            status = pytest.main(pytest_cmd)
+            if is_nightly_context() and status != 0:
+                LOGGER.warning("\nSuppressed Failed Nightly Tests")
+                LOGGER.warning(f'"{pytest_cmd}" tests failed. Status code: {status}')
+                sys.exit(0)
+            else:
+                sys.exit(status)
 
         else:
             sm_remote_images = [

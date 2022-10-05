@@ -46,18 +46,14 @@ def run_test_job(commit, codebuild_project, images_str=""):
         [
             {"name": "DLC_IMAGES", "value": images_str, "type": "PLAINTEXT"},
             {"name": "PR_NUMBER", "value": pr_num, "type": "PLAINTEXT"},
+            # NIGHTLY_PR_TEST_MODE is passed as an env variable here because it is more convenient to set this in
+            # dlc_developer_config, and imports during test execution are less complicated when there are fewer
+            # cross-references between test and src code.
+            {"name": "NIGHTLY_PR_TEST_MODE", "value": str(config.is_nightly_pr_test_mode_enabled()), "type": "PLAINTEXT"},
             # USE_SCHEDULER is passed as an env variable here because it is more convenient to set this in
             # dlc_developer_config, compared to having another config file under dlc/tests/.
-            {
-                "name": "USE_SCHEDULER",
-                "value": str(config.is_scheduler_enabled()),
-                "type": "PLAINTEXT",
-            },
-            {
-                "name": "DISABLE_EFA_TESTS",
-                "value": str(not config.are_efa_tests_enabled()),
-                "type": "PLAINTEXT",
-            },
+            {"name": "USE_SCHEDULER", "value": str(config.is_scheduler_enabled()), "type": "PLAINTEXT"},
+            {"name": "DISABLE_EFA_TESTS", "value": str(not config.are_efa_tests_enabled()), "type": "PLAINTEXT"},
         ]
     )
     LOGGER.debug(f"env_overrides dict: {env_overrides}")

@@ -55,6 +55,8 @@ IGNORE_SAFETY_IDS = {
                 "42814",
                 # tensorflow-estimator and tensorflow versions must match. For all TF versions below TF 2.9.0, we cannot upgrade tf-estimator to 2.9.0
                 "48551",
+                # for cryptography until we have 39.0.0 release
+                "51159",
             ],
         },
         "inference": {
@@ -76,6 +78,8 @@ IGNORE_SAFETY_IDS = {
                 "43453",
                 # tensorflow-estimator and tensorflow versions must match. For all TF versions below TF 2.9.0, we cannot upgrade tf-estimator to 2.9.0
                 "48551",
+                # for cryptography until we have 39.0.0 release
+                "51159",
             ],
         },
         "inference-eia": {
@@ -438,6 +442,8 @@ IGNORE_SAFETY_IDS = {
                 # and an attempt to upgrade deepspeed version to 
                 # remediate it might have an inadvertent negative impact on the DLC components functionality.
                 "48298",
+                # for cryptography until e have 39.0.0 release
+                "51159",
             ],
         },
         "inference": {
@@ -447,6 +453,8 @@ IGNORE_SAFETY_IDS = {
                 "44715",
                 "44716",
                 "44717",
+                # for cryptography until e have 39.0.0 release
+                "51159",
             ]
         },
         "inference-eia": {"py3": []},

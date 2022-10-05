@@ -19,9 +19,19 @@ def main():
 
     args = parser.parse_args()
 
-    device_types = args.device_types.split(",") if not args.device_types == constants.ALL else args.device_types
-    image_types = args.image_types.split(",") if not args.image_types == constants.ALL else args.image_types
-    py_versions = args.py_versions.split(",") if not args.py_versions == constants.ALL else args.py_versions
+    image_types = []
+    py_versions = []
+    device_types = []
+
+    if args.device_types != constants.ALL:
+        device_types = args.device_types.split(",")
+        
+    if args.image_types != constants.ALL:
+        image_types = args.image_types.split(",")
+
+    if args.py_versions != constants.ALL:
+        py_versions = args.py_versions.split(",")
+
     # create the empty json file for images
     build_context = os.getenv("BUILD_CONTEXT")
     ei_dedicated = os.getenv("EIA_DEDICATED", "false").lower() == "true"
@@ -92,7 +102,7 @@ def main():
         utils.build_setup(
             args.framework, device_types=device_types, image_types=image_types, py_versions=py_versions,
         )
-        image_builder(buildspec_file)
+        image_builder(buildspec_file, image_types, device_types)
 
 
 if __name__ == "__main__":
