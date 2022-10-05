@@ -54,7 +54,7 @@ def requests_helper_imds(url, token = None):
     response = None
     headers = None
     session = requests.Session()
-    retries = Retry(total=3, backoff_factor=0.5)
+    retries = Retry(total=3, backoff_factor=1)
     session.mount('http://', HTTPAdapter(max_retries=retries))
 
     if token:
@@ -85,7 +85,7 @@ def get_imdsv2_token():
     url = "http://169.254.169.254/latest/api/token"
     timeout = 1
     session = requests.Session()
-    retries = Retry(total=3, backoff_factor=0.5)
+    retries = Retry(total=3, backoff_factor=1)
     session.mount('http://', HTTPAdapter(max_retries=retries))
     try:
         response = session.put(url, headers=headers, timeout=timeout)
