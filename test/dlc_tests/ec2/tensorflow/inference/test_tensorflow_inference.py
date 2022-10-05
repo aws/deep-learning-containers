@@ -92,7 +92,7 @@ def test_ec2_tensorflow_inference_cpu_telemetry(
 
 @pytest.mark.model("mnist")
 @pytest.mark.parametrize("ec2_instance_type", TF_EC2_GRAVITON_INSTANCE_TYPE, indirect=True)
-@pytest.mark.parametrize("ec2_instance_ami", [test_utils.UL18_CPU_ARM64_US_WEST_2], indirect=True)
+@pytest.mark.parametrize("ec2_instance_ami", [test_utils.UL20_CPU_ARM64_US_WEST_2], indirect=True)
 def test_ec2_tensorflow_inference_graviton_cpu(
     tensorflow_inference_graviton, ec2_connection, ec2_instance_ami, region, cpu_only
 ):
@@ -101,7 +101,7 @@ def test_ec2_tensorflow_inference_graviton_cpu(
 
 @pytest.mark.model("mnist")
 @pytest.mark.parametrize("ec2_instance_type", TF_EC2_GRAVITON_INSTANCE_TYPE, indirect=True)
-@pytest.mark.parametrize("ec2_instance_ami", [test_utils.UL18_CPU_ARM64_US_WEST_2], indirect=True)
+@pytest.mark.parametrize("ec2_instance_ami", [test_utils.UL20_CPU_ARM64_US_WEST_2], indirect=True)
 def test_ec2_tensorflow_inference_graviton_cpu_telemetry(
     tensorflow_inference_graviton, ec2_connection, ec2_instance_ami, region, cpu_only
 ):
@@ -189,14 +189,18 @@ def train_mnist_model(serving_folder_path, ec2_connection, python_invoker):
 def host_setup_for_tensorflow_inference(
     serving_folder_path, framework_version, ec2_connection, is_neuron, is_graviton, model_name, python_invoker
 ):
-    # Installing protobuf at 3.20.* to fix errors in using latest protobuf
-    ec2_connection.run((f"{python_invoker} -m pip install --user -qq -U 'protobuf>=3.20,<3.21'"), hide=True)
+    # Wait for any existing apt-get calls to finish before moving on
+    # TODO(Mike Schneider): Improve this by adding a check for running apt-get processes and wait for them to finish,
+    # then timeout after a given amount of time if other apt-get calls are taking too long.
+    ec2_connection.run((f"sleep 180"), hide=True)
 
-    # Tensorflow 1.x doesn't have package with version 1.15.2 so use only 1.15
+    # Install PIP so we can test
+    ec2_connection.run((f"sudo apt-get update && sudo apt-get install -y python3-pip"), hide=True)
+
+    # Attempting a pin will result in pip not finding the version. The internal repo only has a custom Tensorflow 2.6 
+    # which is not compatible with TF 2.9+ and this is the recommended action.
     if is_graviton:
-        # TF training binary is used that is compatible for graviton instance type
-        TF_URL = "https://aws-dlc-graviton-training-binaries.s3.us-west-2.amazonaws.com/tensorflow/2.6.0/tensorflow-2.6.0-cp38-cp38-linux_aarch64.whl"
-        ec2_connection.run((f"{python_invoker} -m pip install --no-cache-dir -U {TF_URL}"), hide=True)
+        ec2_connection.run((f"{python_invoker} -m pip install --no-cache-dir -U tensorflow-cpu-aws"), hide=True)
         ec2_connection.run(
             (
                 f"{python_invoker} -m pip install --no-dependencies --no-cache-dir tensorflow-serving-api=={framework_version}"

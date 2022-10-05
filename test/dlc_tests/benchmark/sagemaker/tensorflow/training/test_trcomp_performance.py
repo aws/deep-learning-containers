@@ -17,6 +17,7 @@ from test.test_utils import (
     get_framework_and_version_from_tag,
     get_cuda_version_from_tag,
 )
+import os
 
 
 
@@ -175,3 +176,63 @@ class TestImageClassification:
             assert billable>=1000, 'False Positive '+result
             assert billable<=threshold, result
 
+@pytest.mark.flaky(reruns=1)
+@pytest.mark.usefixtures("sagemaker_only")
+class TestNLPModels:
+
+
+    @pytest.mark.model("GPT-2")
+    def test_gpt2(self, instance_type, num_gpus, total_n_gpus, instance_count, tensorflow_training, sagemaker_session, capsys, framework_version):
+        source_path = os.path.join(os.path.dirname(__file__),'resources','clm')
+        epochs = int(30*total_n_gpus)
+        batch = int(75*total_n_gpus)
+        estimator = TensorFlow(
+            sagemaker_session=sagemaker_session,
+            entry_point="run_clm.py",
+            source_dir=source_path,
+            model_dir=False,
+            instance_type=instance_type,
+            instance_count=instance_count,
+            image_uri=tensorflow_training,
+            hyperparameters={
+                TrainingCompilerConfig.HP_ENABLE_COMPILER : True,
+                "model_name_or_path": "gpt2",
+                "block_size": 128,
+                "dataset_name": "wikitext",
+                "dataset_config_name": "wikitext-2-raw-v1",
+                "fp16": 1,
+                "num_train_epochs": epochs,
+                "per_device_train_batch_size": 75,
+                "do_train": True,
+                "do_eval": False,
+                "overwrite_output_dir": True,
+                "save_strategy": "no",
+                "logging_strategy": "no",
+                "evaluation_strategy": "no",
+                "output_dir": "/opt/ml/model",
+            },
+            debugger_hook_config=None,
+            disable_profiler=True,
+            py_version="py38",
+            volume_size=500,
+            max_run=60*60*1, # Timeout in 1 hours
+            base_job_name=f"tf{framework_version.replace('.','')}-trcomp-bench-GPT-2",
+            role="SageMakerRole",
+        )
+        estimator.fit(logs=True, wait=True)
+        
+        captured = capsys.readouterr()
+        logs = captured.out + captured.err
+        match = re.search('Billable seconds: ([0-9]*)', logs)
+        billable = int(match.group(1))
+
+        short_version = '.'.join(framework_version.split('.')[:2])
+        threshold = TRCOMP_THRESHOLD['tensorflow'][short_version]['GPT-2'][instance_type][instance_count][batch]
+        result = (
+            f"tensorflow-trcomp {framework_version} GPT-2 fp16 XLA "
+            f"imagenet {instance_type} {instance_count} {batch} Billable: {billable} secs threshold: {threshold} secs "
+            f"{estimator.latest_training_job.name}"
+        )
+        LOGGER.info(result)
+        assert billable>=1000, 'False Positive '+result
+        assert billable<=threshold, result

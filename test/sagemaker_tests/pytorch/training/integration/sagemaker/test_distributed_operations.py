@@ -113,8 +113,8 @@ def test_dist_operations_multi_gpu(framework_version, ecr_image, sagemaker_regio
 @pytest.mark.skip_py2_containers
 def test_dist_operations_fastai_gpu(framework_version, ecr_image, sagemaker_regions):
     _, image_framework_version = get_framework_and_version_from_tag(ecr_image)
-    if Version("1.9") <= Version(image_framework_version) < Version("1.12"):
-        pytest.skip("Fast ai is not supported on PyTorch v1.9.x, v1.10.x, v1.11.x")
+    if Version("1.9") <= Version(image_framework_version) < Version("1.13"):
+        pytest.skip("Fast ai is not supported on PyTorch v1.9.x, v1.10.x, v1.11.x, v1.12.x")
 
     with timeout(minutes=DEFAULT_TIMEOUT):
         estimator_parameter = {
@@ -184,13 +184,15 @@ def test_hc_mnist_gpu(framework_version, ecr_image, sagemaker_regions, dist_gpu_
         job_name = utils.unique_name_from_base('test-pt-hc-mnist-gpu')
         invoke_pytorch_estimator(ecr_image, sagemaker_regions, estimator_parameter, upload_s3_data_args=upload_s3_data_args, job_name=job_name)
 
+
+@pytest.mark.usefixtures("feature_smmp_present")
 @pytest.mark.integration("smmodelparallel")
 @pytest.mark.model("gpt2")
 @pytest.mark.processor("gpu")
 @pytest.mark.skip_cpu
 @pytest.mark.skip_py2_containers
 @pytest.mark.parametrize("test_script, num_processes", [("train_gpt_simple.py", 8)])
-def test_smmodelparallel_mnist_multigpu_singlenode(ecr_image, instance_type, sagemaker_regions, test_script, num_processes):
+def test_smmodelparallel_gpt2_multigpu_singlenode(ecr_image, instance_type, sagemaker_regions, test_script, num_processes):
     """
     Tests pt gpt2 command via script mode
     """
@@ -198,6 +200,7 @@ def test_smmodelparallel_mnist_multigpu_singlenode(ecr_image, instance_type, sag
     if framework == "pytorch" and Version(framework_version) in SpecifierSet("==1.9.*"):
         pytest.skip("Skipping the test for PT1.9")
     instance_type = "ml.p3.16xlarge"
+    smp_version = 110 if framework == "pytorch" and Version(framework_version) in SpecifierSet(">=1.11.0") else 109
     hyperparameters = {'training_dir': '/opt/ml/input/data/train','max_steps': 100,
                        'seed': 12345, 'fp16': 1, 'lr': 2.e-4, 'lr_decay_iters': 125000,
                        'min_lr': 0.00001, 'lr-decay-style': 'linear', 'warmup': 0.01,
@@ -205,7 +208,7 @@ def test_smmodelparallel_mnist_multigpu_singlenode(ecr_image, instance_type, sag
                        'num_layers': 12, 'num_heads': 12, 'n_gpus': 8, 'train_batch_size': 32,
                        'microbatches': 1, 'tensor_parallel_degree': 4, 'pipeline_parallel_degree': 2,
                        'activation_checkpointing': 1, 'activation_strategy': "group_2",
-                       'manual_partition': 1
+                       'manual_partition': 1, 'smp_version': smp_version,
                        }
     train = sagemaker.session.s3_input(
         "s3://gpt2-data/train_synthetic_small/",
@@ -215,6 +218,20 @@ def test_smmodelparallel_mnist_multigpu_singlenode(ecr_image, instance_type, sag
     )
     inputs = {"train": train, "test": train}
     validate_or_skip_smmodelparallel(ecr_image)
+    mp_params = {
+        "partitions": 2,
+        "tensor_parallel_degree": 4,
+        "microbatches": 1,
+        "optimize": "speed",
+        "pipeline": "interleaved",
+        "ddp": True,
+        "auto_partition": False,
+        "default_partition": 0,
+        "prescaled_batch": True,
+        "shard_optimizer_state": True,
+    }
+    if smp_version >= 110:
+        mp_params["fp16"] = True
     with timeout(minutes=DEFAULT_TIMEOUT):
         estimator_parameter = {
             'entry_point': test_script,
@@ -227,14 +244,7 @@ def test_smmodelparallel_mnist_multigpu_singlenode(ecr_image, instance_type, sag
                 "smdistributed": {
                     "modelparallel": {
                         "enabled": True,
-                        "parameters": {
-                            "partitions": 2,
-                            "tensor_parallel_degree": 4,
-                            "microbatches": 1,
-                            "optimize": "speed",
-                            "pipeline": "interleaved",
-                            "ddp": True,
-                        },
+                        "parameters": mp_params,
                     }
                 },
                 "mpi": {
@@ -247,69 +257,7 @@ def test_smmodelparallel_mnist_multigpu_singlenode(ecr_image, instance_type, sag
         job_name=utils.unique_name_from_base('test-pt-smdmp-gpt2-singlenode')
         invoke_pytorch_estimator(ecr_image, sagemaker_regions, estimator_parameter, inputs=inputs, job_name=job_name)
 
-@pytest.mark.integration("smmodelparallel")
-@pytest.mark.model("gpt2")
-@pytest.mark.processor("gpu")
-@pytest.mark.skip_cpu
-@pytest.mark.skip_py2_containers
-@pytest.mark.parametrize("test_script, num_processes", [("train_gpt_simple.py", 8)])
-def test_smmodelparallel_mnist_multigpu_singlenode(ecr_image, instance_type, sagemaker_regions, test_script, num_processes):
-    """
-    Tests pt gpt2 command via script mode
-    """
-    framework, framework_version = get_framework_and_version_from_tag(ecr_image)
-    if framework == "pytorch" and Version(framework_version) in SpecifierSet("==1.9.*"):
-        pytest.skip("Skipping the test for PT1.9")
-    instance_type = "ml.p3.16xlarge"
-    hyperparameters = {'training_dir': '/opt/ml/input/data/train','max_steps': 100,
-                       'seed': 12345, 'fp16': 1, 'lr': 2.e-4, 'lr_decay_iters': 125000,
-                       'min_lr': 0.00001, 'lr-decay-style': 'linear', 'warmup': 0.01,
-                       'logging_freq': 1, 'max_context_width': 1024, 'hidden_width': 768,
-                       'num_layers': 12, 'num_heads': 12, 'n_gpus': 8, 'train_batch_size': 32,
-                       'microbatches': 1, 'tensor_parallel_degree': 4, 'pipeline_parallel_degree': 2,
-                       'activation_checkpointing': 1, 'activation_strategy': "group_2",
-                       'manual_partition': 1
-                       }
-    train = sagemaker.session.s3_input(
-        "s3://gpt2-data/train_synthetic_small/",
-        distribution="FullyReplicated",
-        content_type="application/tfrecord",
-        s3_data_type="S3Prefix",
-    )
-    inputs = {"train": train, "test": train}
-    validate_or_skip_smmodelparallel(ecr_image)
-    with timeout(minutes=DEFAULT_TIMEOUT):
-        estimator_parameter = {
-            'entry_point': test_script,
-            'role': 'SageMakerRole',
-            'source_dir': gpt2_path,
-            'instance_count': 1,
-            'instance_type': instance_type,
-            'hyperparameters': hyperparameters,
-            'distribution': {
-                "smdistributed": {
-                    "modelparallel": {
-                        "enabled": True,
-                        "parameters": {
-                            "partitions": 2,
-                            "tensor_parallel_degree": 4,
-                            "microbatches": 1,
-                            "optimize": "speed",
-                            "pipeline": "interleaved",
-                            "ddp": True,
-                        },
-                    }
-                },
-                "mpi": {
-                    "enabled": True,
-                    "processes_per_host": num_processes,
-                    "custom_mpi_options": "-verbose --mca orte_base_help_aggregate 0 -x SMDEBUG_LOG_LEVEL=error -x OMPI_MCA_btl_vader_single_copy_mechanism=none ",
-                },
-            },
-        }
-        job_name=utils.unique_name_from_base('test-pt-smdmp-gpt2-singlenode')
-        invoke_pytorch_estimator(ecr_image, sagemaker_regions, estimator_parameter, inputs=inputs, job_name=job_name)
-
+@pytest.mark.usefixtures("feature_smmp_present")
 @pytest.mark.integration("smmodelparallel")
 @pytest.mark.model("mnist")
 @pytest.mark.processor("gpu")
@@ -354,6 +302,8 @@ def test_smmodelparallel_mnist_multigpu_multinode(ecr_image, instance_type, sage
         job_name=utils.unique_name_from_base('test-pt-smdmp-multinode')
         invoke_pytorch_estimator(ecr_image, sagemaker_regions, estimator_parameter, job_name=job_name)
 
+
+@pytest.mark.usefixtures("feature_smmp_present")
 @pytest.mark.integration("smmodelparallel")
 @pytest.mark.model("mnist")
 @pytest.mark.processor("gpu")
@@ -400,6 +350,8 @@ def test_hc_smmodelparallel_mnist_multigpu_multinode(ecr_image, instance_type, s
         job_name=utils.unique_name_from_base('test-pt-hc-smdmp-multinode')
         invoke_pytorch_estimator(ecr_image, sagemaker_regions, estimator_parameter, job_name=job_name)
 
+
+@pytest.mark.usefixtures("feature_smmp_present")
 @pytest.mark.integration("smmodelparallel")
 @pytest.mark.model("mnist")
 @pytest.mark.processor("gpu")
@@ -445,6 +397,79 @@ def test_smmodelparallel_mnist_multigpu_multinode_efa(ecr_image, efa_instance_ty
         job_name=utils.unique_name_from_base('test-pt-smdmp-multinode-efa')
         invoke_pytorch_estimator(ecr_image, sagemaker_regions, estimator_parameter, job_name=job_name)
 
+@pytest.mark.integration("smmodelparallel")
+@pytest.mark.model("gpt2")
+@pytest.mark.processor("gpu")
+@pytest.mark.multinode(2)
+@pytest.mark.skip_cpu
+@pytest.mark.skip_py2_containers
+@pytest.mark.parametrize("test_script, num_processes", [("train_gpt_simple.py", 8)])
+@pytest.mark.efa()
+def test_smmodelparallel_gpt2_sdp_multinode_efa(ecr_image, efa_instance_type, sagemaker_regions, test_script, num_processes):
+    """
+    Tests pt gpt2 command via script mode
+    """
+    framework, framework_version = get_framework_and_version_from_tag(ecr_image)
+    if framework == "pytorch" and Version(framework_version) in SpecifierSet("<1.12.0"):
+        pytest.skip("Skipping the test for PT version before 1.12")
+    smp_version = 111
+    hyperparameters = {'training_dir': '/opt/ml/input/data/train','max_steps': 100,
+                       'seed': 12345, 'fp16': 1, 'lr': 2.e-4, 'lr_decay_iters': 125000,
+                       'min_lr': 0.00001, 'lr-decay-style': 'linear', 'warmup': 0.01,
+                       'logging_freq': 1, 'max_context_width': 1024, 'hidden_width': 768,
+                       'num_layers': 12, 'num_heads': 12, 'n_gpus': 8, 'train_batch_size': 4,
+                       'microbatches': 1, 'tensor_parallel_degree': 1, 'pipeline_parallel_degree': 1,
+                       
+                       'activation_checkpointing': 1, 'activation_strategy': "group_2",
+                       'manual_partition': 1, 'smp_version': smp_version,
+                       }
+    train = sagemaker.session.s3_input(
+        "s3://gpt2-data/train_synthetic_small/",
+        distribution="FullyReplicated",
+        content_type="application/tfrecord",
+        s3_data_type="S3Prefix",
+    )
+    inputs = {"train": train, "test": train}
+    validate_or_skip_smmodelparallel(ecr_image)
+    mp_params = {
+        "partitions": 1,
+        "tensor_parallel_degree": 1,
+        "microbatches": 1,
+        "optimize": "speed",
+        "pipeline": "interleaved",
+        "ddp": True,
+        "auto_partition": False,
+        "default_partition": 0,
+        "prescaled_batch": True,
+        "sharded_data_parallel_degree": 4,
+        "offload_activations": True
+    }
+    if smp_version >= 110:
+        mp_params["fp16"] = True
+    with timeout(minutes=DEFAULT_TIMEOUT):
+        estimator_parameter = {
+            'entry_point': test_script,
+            'role': 'SageMakerRole',
+            'source_dir': gpt2_path,
+            'instance_count': 2,
+            'instance_type': efa_instance_type,
+            'hyperparameters': hyperparameters,
+            'distribution': {
+                "smdistributed": {
+                    "modelparallel": {
+                        "enabled": True,
+                        "parameters": mp_params,
+                    }
+                },
+                "mpi": {
+                    "enabled": True,
+                    "processes_per_host": num_processes,
+                    "custom_mpi_options": "-verbose --mca orte_base_help_aggregate 0 -x SMDEBUG_LOG_LEVEL=error -x OMPI_MCA_btl_vader_single_copy_mechanism=none ",
+                },
+            },
+        }
+        job_name=utils.unique_name_from_base('test-pt-smdmp-gpt2-sdp-singlenode')
+        invoke_pytorch_estimator(ecr_image, sagemaker_regions, estimator_parameter, inputs=inputs, job_name=job_name)
 
 @pytest.mark.integration("smmodelparallel")
 @pytest.mark.model("mnist")

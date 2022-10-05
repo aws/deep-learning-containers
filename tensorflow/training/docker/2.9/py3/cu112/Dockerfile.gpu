@@ -1,4 +1,15 @@
-FROM nvidia/cuda:11.2.2-base-ubuntu20.04 AS common
+FROM nvidia/cuda:11.2.2-base-ubuntu20.04 AS base_image
+
+ENV DEBIAN_FRONTEND=noninteractive \
+    LD_LIBRARY_PATH="${LD_LIBRARY_PATH}:/usr/local/lib"
+
+RUN apt-get update \
+ && apt-get upgrade -y \
+ && apt-get autoremove -y \
+ && apt-get clean \
+ && rm -rf /var/lib/apt/lists/*
+
+FROM base_image AS common
 
 LABEL maintainer="Amazon AI"
 LABEL dlc_major_version="1"
@@ -40,7 +51,7 @@ ARG CUDNN=8.2.4.15-1
 
 ARG NCCL_VERSION=2.10.3
 
-# To be passed to e3 and sagemaker stages
+# To be passed to ec2 and sagemaker stages
 ENV PYTHON=${PYTHON}
 ENV PYTHON_VERSION=${PYTHON_VERSION}
 ENV PIP=${PIP}
@@ -194,6 +205,8 @@ RUN ${PIP} --no-cache-dir install --upgrade \
 RUN ln -s $(which ${PYTHON}) /usr/local/bin/python \
    && ln -s $(which ${PIP}) /usr/bin/pip
 
+RUN apt-get update && apt-get -y install  protobuf-compiler
+
 # install PyYAML==5.1.2 to avoid conflict with latest awscli
 # # python-dateutil==2.8.0 to satisfy botocore associated with latest awscli
 RUN ${PIP} install --no-cache-dir -U \
@@ -211,7 +224,8 @@ RUN ${PIP} install --no-cache-dir -U \
    "opencv-python>=4.3,<5" \
    "werkzeug>=2.0.2,<3" \
    "urllib3>1.26.0<1.27.0" \
-   protobuf==3.19.4
+    # Protobuf 3.18.3, 3.19.5, 3.20.2 and 4.21.6 include a fix for CVE-2022-1941
+   "protobuf>=3.20.2,<3.21"
 
 # Install AWS OFI NCCL plug-in
 RUN apt-get update && apt-get install -y autoconf
@@ -231,8 +245,6 @@ RUN mkdir /tmp/efa-ofi-nccl \
 # Upgrade libsasl2-2 for fixing cyrus-sasl2 related CVE
 RUN apt-get install -y --only-upgrade libsasl2-2
 
-RUN apt-get update && apt-get -y install  protobuf-compiler
-
 # Upgrade libsasl2-2 for fixing cyrus-sasl2 related CVE
 RUN apt-get install -y --only-upgrade libsasl2-2
 
@@ -250,18 +262,24 @@ RUN chmod +x /usr/local/bin/deep_learning_container.py
 
 RUN curl https://aws-dlc-licenses.s3.amazonaws.com/tensorflow-${TF_VERSION}/license.txt -o /license.txt
 
-##############################################################################
-#  _____ _____   ___                              ____           _
-# | ____|___ /  |_ _|_ __ ___   __ _  __ _  ___  |  _ \ ___  ___(_)_ __   ___
-# |  _|   |_ \   | || '_ ` _ \ / _` |/ _` |/ _ \ | |_) / _ \/ __| | '_ \ / _ \
-# | |___ ___) |  | || | | | | | (_| | (_| |  __/ |  _ <  __/ (__| | |_) |  __/
-# |_____|____/  |___|_| |_| |_|\__,_|\__, |\___| |_| \_\___|\___|_| .__/ \___|
-#                                    |___/                        |_|
-##############################################################################
+########################################################
+#  _____ ____ ____    ___
+# | ____/ ___|___ \  |_ _|_ __ ___   __ _  __ _  ___
+# |  _|| |     __) |  | || '_ ` _ \ / _` |/ _` |/ _ \
+# | |__| |___ / __/   | || | | | | | (_| | (_| |  __/
+# |_____\____|_____| |___|_| |_| |_|\__,_|\__, |\___|
+#                                         |___/
+#  ____           _
+# |  _ \ ___  ___(_)_ __   ___ 
+# | |_) / _ \/ __| | '_ \ / _ \
+# |  _ <  __/ (__| | |_) |  __/
+# |_| \_\___|\___|_| .__/ \___|
+#                  |_|
+########################################################
 
-FROM common AS e3
+FROM common AS ec2
 
-ARG TF_URL=https://framework-binaries.s3.us-west-2.amazonaws.com/tensorflow/r2.9_aws/gpu/2022-06-06-22-28/tensorflow_gpu-2.9.1-cp39-cp39-manylinux_2_17_x86_64.manylinux2014_x86_64.whl
+ARG TF_URL=https://framework-binaries.s3.us-west-2.amazonaws.com/tensorflow/r2.9_aws/gpu/2022-09-23-01-18/tensorflow_gpu-2.9.2-cp39-cp39-manylinux_2_17_x86_64.manylinux2014_x86_64.whl
 
 RUN ${PIP} install --no-cache-dir -U \
    ${TF_URL} \
@@ -307,7 +325,7 @@ FROM common AS sagemaker
 LABEL maintainer="Amazon AI"
 LABEL dlc_major_version="1"
 
-ARG TF_URL=https://framework-binaries.s3.us-west-2.amazonaws.com/tensorflow/r2.9_aws/gpu/2022-06-06-22-28/tensorflow_gpu-2.9.1-cp39-cp39-manylinux_2_17_x86_64.manylinux2014_x86_64.whl
+ARG TF_URL=https://framework-binaries.s3.us-west-2.amazonaws.com/tensorflow/r2.9_aws/gpu/2022-09-23-01-18/tensorflow_gpu-2.9.2-cp39-cp39-manylinux_2_17_x86_64.manylinux2014_x86_64.whl
 
 # sagemaker-specific environment variable
 ENV SAGEMAKER_TRAINING_MODULE sagemaker_tensorflow_container.training:main
@@ -332,6 +350,7 @@ RUN $PYTHON -m pip install --no-cache-dir -U \
     "sagemaker>=2.93.0,<3" \
     sagemaker-experiments==0.* \
     "sagemaker-tensorflow-training>=20.3.1" \
+    "sagemaker-training>=4.2.8" \
     "sparkmagic<1" \
     "sagemaker-studio-sparkmagic-lib<1" \
     "sagemaker-studio-analytics-extension==0.0.2" \

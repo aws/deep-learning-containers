@@ -101,7 +101,8 @@ def execute_pytorch_gpu_py3_imagenet_ec2_training_performance_test(
 
     # Make sure we are logged into ECR so we can pull the image
     connection.run(f"$(aws ecr get-login --no-include-email --region {region})", hide=True)
-    connection.run(f"nvidia-docker pull -q {ecr_uri}")
+    # Do not add -q to docker pull as it leads to a hang for huge images like trcomp
+    connection.run(f"nvidia-docker pull {ecr_uri}")
     timestamp = time.strftime("%Y-%m-%d-%H-%M-%S")
     log_name = f"imagenet_{os.getenv('CODEBUILD_RESOLVED_SOURCE_VERSION')}_{timestamp}.txt"
     log_location = os.path.join(container_test_local_dir, "benchmark", "logs", log_name)

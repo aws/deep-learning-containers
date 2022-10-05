@@ -1,5 +1,7 @@
 smdistributed.dataparallel and smdistributed.modelparallel are released under the AWS Customer Agreement.
 
+"Anaconda has shifted to a commercial licensing model for certain users. In order to ensure the DLC user experience remains consistent, actively maintained DLC have been migrated to the publicly available open-source version of Conda (conda-forge (https://anaconda.org/conda-forge)) from the Anaconda channel. If you are actively using Anaconda to install and manage your packages and their dependencies in a DLC which is no longer being actively maintained, you are responsible for complying with the governing license from the Anaconda Repository (https://repo.anaconda.com/), if you determine that the terms apply to you. Alternatively, you can migrate to one of our currently supported DLCs outlined in our support policy, or you can install packages using conda-forge as a source, an open source alternative."
+
 https://aws.amazon.com/agreement/
 
                                  Apache License

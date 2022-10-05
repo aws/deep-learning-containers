@@ -31,10 +31,12 @@ from test.test_utils import (
     get_repository_local_path,
     get_repository_and_tag_from_image_uri,
     get_python_version_from_image_uri,
+    construct_buildspec_path,
     is_tf_version,
+    is_nightly_context,
     get_processor_from_image_uri,
     execute_env_variables_test,
-    UL18_CPU_ARM64_US_WEST_2,
+    UL20_CPU_ARM64_US_WEST_2,
     UBUNTU_18_HPU_DLAMI_US_WEST_2,
     NEURON_UBUNTU_18_BASE_DLAMI_US_WEST_2
 )
@@ -234,20 +236,29 @@ def test_framework_version_cpu(image):
         # Habana v1.2 binary does not follow the X.Y.Z+cpu naming convention
         elif "habana" not in image_repo_name:
             if tested_framework == "torch" and Version(tag_framework_version) >= Version("1.10.0"):
-                torch_version_pattern = r"{torch_version}(\+cpu)".format(torch_version=tag_framework_version)
-                assert re.fullmatch(torch_version_pattern, output.stdout.strip()), (
-                    f"torch.__version__ = {output.stdout.strip()} does not match {torch_version_pattern}\n"
-                    f"Please specify framework version as X.Y.Z+cpu"
-                )
+                if is_nightly_context():
+                    torch_version_pattern = r"{torch_version}(\+cpu|\.dev\d+)".format(torch_version=tag_framework_version)
+                    assert re.fullmatch(torch_version_pattern, output.stdout.strip()), (
+                        f"torch.__version__ = {output.stdout.strip()} does not match {torch_version_pattern}\n"
+                        f"Please specify nightly framework version as X.Y.Z.devYYYYMMDD"
+                    )
+                else:    
+                    torch_version_pattern = r"{torch_version}(\+cpu)".format(torch_version=tag_framework_version)
+                    assert re.fullmatch(torch_version_pattern, output.stdout.strip()), (
+                        f"torch.__version__ = {output.stdout.strip()} does not match {torch_version_pattern}\n"
+                        f"Please specify framework version as X.Y.Z+cpu"
+                    )
         else:
             if "neuron" in image:
                 assert tag_framework_version in output.stdout.strip()
-            if all(_string in image for _string in ["pytorch", "habana", "synapseai1.4.1"]):
+            if (all(_string in image for _string in ["pytorch", "habana"])
+               and any(_string in image for _string in 
+               ["synapseai1.3.0", "synapseai1.4.1", "synapseai1.5.0"])):
                 # Habana Pytorch version looks like 1.10.0a0+gitb488e78 for SynapseAI1.3 PT1.10.1 images
                 pt_fw_version_pattern = r"(\d+(\.\d+){1,2}(-rc\d)?)((a0\+git\w{7}))"
                 pt_fw_version_match = re.fullmatch(pt_fw_version_pattern, output.stdout.strip())
                 # This is desired for PT1.10.1 images
-                assert pt_fw_version_match.group(1) == "1.10.0"
+                assert tag_framework_version.rsplit('.', 1)[0] == pt_fw_version_match.group(1).rsplit('.', 1)[0]
             else:
                 assert tag_framework_version == output.stdout.strip()
     stop_and_remove_container(container_name, ctx)
@@ -353,11 +364,18 @@ def test_framework_and_cuda_version_gpu(gpu, ec2_connection):
                 version_to_check = "0.3.1" if tag_framework_version == "0.3.2" else tag_framework_version
                 assert output.stdout.strip().startswith(version_to_check)
             elif tested_framework == "torch" and Version(tag_framework_version) >= Version("1.10.0"):
-                torch_version_pattern = r"{torch_version}(\+cu\d+)".format(torch_version=tag_framework_version)
-                assert re.fullmatch(torch_version_pattern, output.stdout.strip()), (
-                    f"torch.__version__ = {output.stdout.strip()} does not match {torch_version_pattern}\n"
-                    f"Please specify framework version as X.Y.Z+cuXXX"
-                )
+                if is_nightly_context():
+                    torch_version_pattern = r"{torch_version}(\+cu\d+|\.dev\d+)".format(torch_version=tag_framework_version)
+                    assert re.fullmatch(torch_version_pattern, output.stdout.strip()), (
+                        f"torch.__version__ = {output.stdout.strip()} does not match {torch_version_pattern}\n"
+                        f"Please specify nightly framework version as X.Y.Z.devYYYYMMDD"
+                    )
+                else:
+                    torch_version_pattern = r"{torch_version}(\+cu\d+)".format(torch_version=tag_framework_version)
+                    assert re.fullmatch(torch_version_pattern, output.stdout.strip()), (
+                        f"torch.__version__ = {output.stdout.strip()} does not match {torch_version_pattern}\n"
+                        f"Please specify framework version as X.Y.Z+cuXXX"
+                    )
             else:
                 assert tag_framework_version == output.stdout.strip()
 
@@ -389,7 +407,7 @@ def _run_dependency_check_test(image, ec2_connection):
         "CVE-2016-2177",
         "CVE-2016-6303",
         "CVE-2016-2182",
-        "CVE-2022-2068"
+        "CVE-2022-2068",
     }
 
     processor = get_processor_from_image_uri(image)
@@ -408,22 +426,34 @@ def _run_dependency_check_test(image, ec2_connection):
             "2.6": ["cpu", "gpu"],
             "2.7": ["cpu", "gpu", "hpu"],
             "2.8": ["cpu", "gpu", "hpu"],
-            "2.9": ["cpu", "gpu"]
+            "2.9": ["cpu", "gpu", "hpu"],
+            "2.10": ["cpu", "gpu", "hpu"],
         },
         "mxnet": {"1.8": ["neuron"], "1.9": ["cpu", "gpu"]},
-        "pytorch": {"1.8": ["cpu", "gpu"], "1.10": ["cpu", "hpu", "neuron"], "1.11": ["cpu", "gpu", "neuron"]},
+        "pytorch": {
+            "1.8": ["cpu", "gpu"], 
+            "1.10": ["cpu", "hpu"], 
+            "1.11": ["cpu", "gpu", "hpu"],
+            "1.12": ["cpu", "gpu", "hpu"]
+        },
         "huggingface_pytorch": {"1.8": ["cpu", "gpu"], "1.9": ["cpu", "gpu"]},
         "huggingface_tensorflow": {"2.4": ["cpu", "gpu"], "2.5": ["cpu", "gpu"], "2.6": ["cpu", "gpu"]},
         "huggingface_tensorflow_trcomp": {"2.6": ["gpu"]},
-        "autogluon": {"0.3": ["cpu", "gpu"], "0.4": ["cpu", "gpu"]},
+        "huggingface_pytorch_trcomp": {"1.11": ["gpu"]},
+        "autogluon": {
+            "0.3": ["cpu", "gpu"],
+            "0.4": ["cpu", "gpu"],
+            "0.5": ["cpu", "gpu"]
+        },
     }
 
     # Allowlist CVE #CVE-2022-1292 for DLCs where openssl is installed using apt-get
     # Check that these versions have been matched on https://ubuntu.com/security/CVE-2022-1292 before adding
     allow_openssl_cve_2022_1292_fw_versions = {
         "pytorch": {
-            "1.10": ["gpu", "cpu", "hpu", "neuron"],
-            "1.11": ["gpu", "cpu", "neuron"],
+            "1.10": ["gpu", "cpu", "hpu"],
+            "1.11": ["gpu", "cpu", "hpu"],
+            "1.12": ["gpu", "cpu", "hpu"],
         },
         "tensorflow": {
             "1.15": ["neuron"],
@@ -431,12 +461,18 @@ def _run_dependency_check_test(image, ec2_connection):
             "2.6": ["cpu", "gpu"],
             "2.7": ["cpu", "gpu", "hpu"],
             "2.8": ["cpu", "gpu", "hpu"],
-            "2.9": ["cpu", "gpu"],
+            "2.9": ["cpu", "gpu", "hpu"],
+            "2.10": ["cpu", "gpu", "hpu"],
         },
         "mxnet": {"1.8": ["neuron"], "1.9": ["cpu", "gpu"]},
         "huggingface_tensorflow": {"2.5": ["gpu"], "2.6": ["gpu"]},
-        "autogluon": {"0.3": ["cpu", "gpu"], "0.4": ["cpu", "gpu"]},
-        "huggingface_pytorch_trcomp": {"1.9": ["gpu"]},
+        "autogluon": {
+            "0.3": ["cpu", "gpu"],
+            "0.4": ["cpu", "gpu"],
+            "0.5": ["cpu", "gpu"]
+        },
+        "huggingface_pytorch_trcomp": {"1.9": ["gpu"], "1.11": ["gpu"]},
+        "huggingface_tensorflow_trcomp": {"2.6": ["gpu"]},
     }
 
     if processor in allow_openssl_cve_2021_3711_fw_versions.get(framework, {}).get(short_fw_version, []):
@@ -547,7 +583,7 @@ def test_dependency_check_neuron(neuron, ec2_connection):
 @pytest.mark.usefixtures("sagemaker")
 @pytest.mark.model("N/A")
 @pytest.mark.parametrize("ec2_instance_type", ["c6g.4xlarge"], indirect=True)
-@pytest.mark.parametrize("ec2_instance_ami", [UL18_CPU_ARM64_US_WEST_2], indirect=True)
+@pytest.mark.parametrize("ec2_instance_ami", [UL20_CPU_ARM64_US_WEST_2], indirect=True)
 def test_dependency_check_graviton_cpu(cpu, ec2_connection, graviton_compatible_only):
     _run_dependency_check_test(cpu, ec2_connection)
 
@@ -632,8 +668,20 @@ def test_pip_check(image):
     # existing TF installation. https://github.com/tensorflow/models/issues/9267. This package in turn brings in
     # tensorflow-text. Skip checking these two packages as this is an upstream issue.
     if framework == "tensorflow" and Version(framework_version) in SpecifierSet(">=2.9.1"):
-        allowed_tf29_exception = re.compile(rf"^(tf-models-official 2.9.1|tensorflow-text 2.9.0) requires tensorflow, which is not installed.")
-        allowed_exception_list.append(allowed_tf29_exception)
+        exception_strings = []
+        models_versions = ["2.9.1", "2.9.2", "2.10.0"]
+        for ex_ver in models_versions:
+            exception_strings += [f"tf-models-official {ex_ver}".replace(".", "\.")]
+        text_versions = ["2.9.0", "2.10.0"]
+        for ex_ver in text_versions:
+            exception_strings += [f"tensorflow-text {ex_ver}".replace(".", "\.")]
+        allowed_tf_models_text_exception = re.compile(
+                rf"^({'|'.join(exception_strings)}) requires tensorflow, which is not installed.")
+        allowed_exception_list.append(allowed_tf_models_text_exception)
+
+        allowed_tf_models_text_compatibility_exception = re.compile(
+                rf"tf-models-official 2.9.2 has requirement tensorflow-text~=2.9.0, but you have tensorflow-text 2.10.0.")
+        allowed_exception_list.append(allowed_tf_models_text_compatibility_exception)
 
     # Add null entrypoint to ensure command exits immediately
     output = ctx.run(
@@ -667,24 +715,24 @@ def test_cuda_paths(gpu):
 
     # Get cuda, framework version, python version through regex
     cuda_version = re.search(r"-(cu\d+)-", image).group(1)
-    framework_short_version = None
+    
+    framework_short_version = re.match(r"(\d+\.\d+)", framework_version).group(1)
+
     python_version = re.search(r"(py\d+)", image).group(1)
     short_python_version = None
     image_tag = re.search(
-        r":(\d+(\.\d+){2}(-transformers\d+(\.\d+){2})?-(gpu)-(py\d+)(-cu\d+)-(ubuntu\d+\.\d+)((-e3)?-example|-e3|-sagemaker)?)",
+        r":(\d+(\.\d+){2}(-transformers\d+(\.\d+){2})?-(gpu)-(py\d+)(-cu\d+)-(ubuntu\d+\.\d+)((-ec2)?-example|-ec2|-sagemaker-lite|-sagemaker-full|-sagemaker)?)",
         image,
     ).group(1)
 
     # replacing '_' by '/' to handle huggingface_<framework> case
     framework = framework.replace("_trcomp", "")
     framework_path = framework.replace("_", "/")
-    framework_version_path = os.path.join(
-        dlc_path, framework_path, job_type, "docker", framework_version)
+    framework_version_path = os.path.join(dlc_path, framework_path, job_type, "docker", framework_version)
+
     if not os.path.exists(framework_version_path):
-        framework_short_version = re.match(
-            r"(\d+.\d+)", framework_version).group(1)
-        framework_version_path = os.path.join(
-            dlc_path, framework_path, job_type, "docker", framework_short_version)
+        framework_version_path = os.path.join(dlc_path, framework_path, job_type, "docker", framework_short_version)
+
     if not os.path.exists(os.path.join(framework_version_path, python_version)):
         # Use the pyX version as opposed to the pyXY version if pyXY path does not exist
         short_python_version = python_version[:3]
@@ -695,30 +743,26 @@ def test_cuda_paths(gpu):
         buildspec = "buildspec-tf1"
     if "trcomp" in image:
         buildspec = "buildspec-trcomp"
+    if "sagemaker-lite" in image:
+        buildspec = "buildspec-sagemaker-lite"
 
     image_tag_in_buildspec = False
     dockerfile_spec_abs_path = None
-    # Try versioned buildspec first, if it exists
-    buildspec_path = os.path.join(dlc_path, framework_path, f"{buildspec}-{framework_short_version.replace('.', '-')}.yml")
-    if not os.path.exists(buildspec_path):
-        buildspec_path = os.path.join(dlc_path, framework_path, f"{buildspec}.yml")
+    
+    buildspec_path = construct_buildspec_path(dlc_path, framework_path, buildspec, framework_version)
     buildspec_def = Buildspec()
     buildspec_def.load(buildspec_path)
 
     for name, image_spec in buildspec_def["images"].items():
         if image_spec["device_type"] == "gpu" and image_spec["tag"] == image_tag:
             image_tag_in_buildspec = True
-            dockerfile_spec_abs_path = os.path.join(
-                os.path.dirname(
-                    framework_version_path), image_spec["docker_file"].lstrip("docker/")
-            )
+            dockerfile_spec_abs_path = os.path.join(os.path.dirname(framework_version_path), image_spec["docker_file"].lstrip("docker/"))
             break
     try:
         assert image_tag_in_buildspec, f"Image tag {image_tag} not found in {buildspec_path}"
     except AssertionError as e:
         if not is_dlc_cicd_context():
-            LOGGER.warn(
-                f"{e} - not failing, as this is a(n) {os.getenv('BUILD_CONTEXT', 'empty')} build context.")
+            LOGGER.warn(f"{e} - not failing, as this is a(n) {os.getenv('BUILD_CONTEXT', 'empty')} build context.")
         else:
             raise
 
@@ -732,9 +776,7 @@ def test_cuda_paths(gpu):
         f"{image_properties_expected_in_dockerfile_path}"
     )
 
-    assert os.path.exists(
-        dockerfile_spec_abs_path), f"Cannot find dockerfile for {image} in {dockerfile_spec_abs_path}"
-
+    assert os.path.exists(dockerfile_spec_abs_path), f"Cannot find dockerfile for {image} in {dockerfile_spec_abs_path}"
 
 def _assert_artifact_free(output, stray_artifacts):
     """

@@ -14,7 +14,7 @@ RUN apt-get update \
  && apt-get clean \
  && rm -rf /var/lib/apt/lists/*
 
-ARG AUTOGLUON_VERSION=0.4.2
+ARG AUTOGLUON_VERSION=0.4.3
 
 # Pinning setuptools because it's breaking pip
 RUN pip install --no-cache-dir -U --trusted-host pypi.org --trusted-host files.pythonhosted.org pip \

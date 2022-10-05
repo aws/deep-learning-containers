@@ -265,4 +265,9 @@ def save(result, model_dir):
 
 
 if __name__ == '__main__':
+    from torch.multiprocessing import set_start_method
+    try:
+        set_start_method('spawn')
+    except RuntimeError:
+        pass
     main()

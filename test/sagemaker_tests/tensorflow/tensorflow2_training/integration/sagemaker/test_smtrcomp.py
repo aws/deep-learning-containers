@@ -85,7 +85,6 @@ def smtrcomp_only(framework_version, ecr_image, request):
 @pytest.mark.multinode(2)
 @pytest.mark.integration("trcomp")
 class TestDistributedTraining:
-    
 
     @pytest.fixture()
     def instance_type(self):
@@ -167,6 +166,7 @@ class TestDistributedTraining:
         _assert_training_compiler_invoked(captured)
 
 
+    @pytest.mark.usefixtures("feature_smddp_present")
     @pytest.mark.xfail(reason="Trcomp behavior with SMDP is undefined")
     @pytest.mark.model('toy')
     @pytest.mark.integration("smdataparallel")
@@ -189,6 +189,7 @@ class TestDistributedTraining:
         _assert_training_compiler_invoked(captured)
 
 
+    @pytest.mark.usefixtures("feature_smmp_present")
     @pytest.mark.xfail(reason="SMMP is only supported on CUDA 11 on TensorFlow version between v2.3.1(inclusive) and v2.7.0(exclusive)")
     @pytest.mark.model('toy')
     @pytest.mark.integration("smmodelparallel")
@@ -218,6 +219,7 @@ class TestDistributedTraining:
         _assert_training_compiler_invoked(captured)
 
 
+    @pytest.mark.usefixtures("feature_smmp_present")
     @pytest.mark.xfail(reason='SMMP is only supported on CUDA 11 on TensorFlow version between v2.3.1(inclusive) and v2.7.0(exclusive)')
     @pytest.mark.model('toy')
     @pytest.mark.integration("horovod")
@@ -241,7 +243,7 @@ class TestDistributedTraining:
                                        "processes_per_host": 2,
                                        "custom_mpi_options": "-verbose --mca orte_base_help_aggregate 0 -x FI_EFA_USE_DEVICE_RDMA=1 -x FI_PROVIDER=efa ",
                                     }
-                             },                              
+                             },
                             )
         estimator.fit(job_name=unique_name_from_base("test-TF-trcomp-DT-SMMP-horovod"))
         captured = capsys.readouterr()
@@ -263,6 +265,7 @@ class TestMLWorkFlow:
         return 1
 
 
+    @pytest.mark.usefixtures("feature_smdebug_present")
     @pytest.mark.skip(reason="skip the test temporarily due to timeout issue")
     @pytest.mark.model('toy')
     @pytest.mark.integration("smdebug")
@@ -301,6 +304,47 @@ class TestMLWorkFlow:
                                },
                                )
         estimator.fit(mnist_dataset, job_name=unique_name_from_base('test-TF-trcomp'))
+        _assert_model_exported_to_s3(estimator)
+        captured = capsys.readouterr()
+        _assert_training_compiler_invoked(captured)
+
+    @pytest.mark.model('distilbert')
+    def test_BYOC_training(self, sagemaker_session, ecr_image, framework_version, instance_type, instance_count,tmpdir, capsys):
+        source_path = os.path.join(resource_path, 'mlm')
+        estimator = TensorFlow(
+            entry_point="run_mlm.py",
+            source_dir=source_path,
+            role='SageMakerRole',
+            instance_type=instance_type,
+            instance_count=instance_count,
+            sagemaker_session=sagemaker_session,
+            image_uri=ecr_image,
+            framework_version=framework_version,
+            disable_profiler=True,
+            debugger_hook_config=False,
+            py_version="py38",
+            volume_size=500,
+            model_dir=False,
+            hyperparameters={
+                TrainingCompilerConfig.HP_ENABLE_COMPILER : True,
+                "model_name_or_path": "distilbert-base-uncased",
+                "max_seq_length": 128,
+                "dataset_name": "wikitext",
+                "dataset_config_name": "wikitext-2-raw-v1",
+                "max_steps": 3,
+                "fp16": 1,
+                "num_train_epochs": 1,
+                "per_device_train_batch_size": 160,
+                "do_train": True,
+                "do_eval": False,
+                "overwrite_output_dir": True,
+                "save_strategy": "no",
+                "logging_strategy": "no",
+                "evaluation_strategy": "no",
+                "output_dir": "/opt/ml/model",
+            },
+        )
+        estimator.fit(job_name=unique_name_from_base('test-TF-trcomp-BYOC'))
         _assert_model_exported_to_s3(estimator)
         captured = capsys.readouterr()
         _assert_training_compiler_invoked(captured)
@@ -397,4 +441,3 @@ class TestMLWorkFlow:
                                 framework='keras',
                                 framework_version='2.6.0',
                                 )
-

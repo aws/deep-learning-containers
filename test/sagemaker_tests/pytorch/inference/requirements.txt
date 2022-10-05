@@ -12,10 +12,10 @@ PyYAML==5.4
 sagemaker>=2,<3
 six==1.12.0
 requests==2.24.0
-torchvision==0.5.0
+torchvision
 tox==3.7.0
 requests_mock==1.6.0
-numpy==1.21.0
+numpy
 Pillow
 retrying==1.3.3
 requests_mock==1.6.0

@@ -1,4 +1,15 @@
-FROM ubuntu:20.04 AS common
+FROM ubuntu:20.04 AS base_image
+
+ENV DEBIAN_FRONTEND=noninteractive \
+    LD_LIBRARY_PATH="${LD_LIBRARY_PATH}:/usr/local/lib"
+
+RUN apt-get update \
+ && apt-get upgrade -y \
+ && apt-get autoremove -y \
+ && apt-get clean \
+ && rm -rf /var/lib/apt/lists/*
+
+FROM base_image AS common
 
 LABEL maintainer="Amazon AI"
 LABEL dlc_major_version="1"
@@ -29,7 +40,7 @@ ARG PYTHON_VERSION=3.9.10
 
 ARG PIP=pip3
 
-# To be passed to e3 and sagemaker stages
+# To be passed to ec2 and sagemaker stages
 ENV PYTHON=${PYTHON}
 ENV PYTHON_VERSION=${PYTHON_VERSION}
 ENV PIP=${PIP}
@@ -148,7 +159,8 @@ RUN ${PIP} install --no-cache-dir -U \
     "werkzeug>=2.0.2,<3" \
     psutil==5.7.2 \
     "urllib3>1.26.0<1.27.0" \
-    protobuf==3.19.4
+    # Protobuf 3.18.3, 3.19.5, 3.20.2 and 4.21.6 include a fix for CVE-2022-1941
+    "protobuf>=3.20.2,<3.21"
 
 ADD https://raw.githubusercontent.com/aws/deep-learning-containers/master/src/deep_learning_container.py /usr/local/bin/deep_learning_container.py
 
@@ -156,18 +168,24 @@ RUN chmod +x /usr/local/bin/deep_learning_container.py
 
 RUN curl https://aws-dlc-licenses.s3.amazonaws.com/tensorflow-${TF_VERSION}/license.txt -o /license.txt
 
-##############################################################################
-#  _____ _____   ___                              ____           _
-# | ____|___ /  |_ _|_ __ ___   __ _  __ _  ___  |  _ \ ___  ___(_)_ __   ___
-# |  _|   |_ \   | || '_ ` _ \ / _` |/ _` |/ _ \ | |_) / _ \/ __| | '_ \ / _ \
-# | |___ ___) |  | || | | | | | (_| | (_| |  __/ |  _ <  __/ (__| | |_) |  __/
-# |_____|____/  |___|_| |_| |_|\__,_|\__, |\___| |_| \_\___|\___|_| .__/ \___|
-#                                    |___/                        |_|
-##############################################################################
+########################################################
+#  _____ ____ ____    ___
+# | ____/ ___|___ \  |_ _|_ __ ___   __ _  __ _  ___
+# |  _|| |     __) |  | || '_ ` _ \ / _` |/ _` |/ _ \
+# | |__| |___ / __/   | || | | | | | (_| | (_| |  __/
+# |_____\____|_____| |___|_| |_| |_|\__,_|\__, |\___|
+#                                         |___/
+#  ____           _
+# |  _ \ ___  ___(_)_ __   ___ 
+# | |_) / _ \/ __| | '_ \ / _ \
+# |  _ <  __/ (__| | |_) |  __/
+# |_| \_\___|\___|_| .__/ \___|
+#                  |_|
+########################################################
 
-FROM common AS e3
+FROM common AS ec2
 
-ARG TF_URL=https://framework-binaries.s3.us-west-2.amazonaws.com/tensorflow/r2.9_aws/cpu/2022-05-23-23-00/tensorflow_cpu-2.9.1-cp39-cp39-manylinux_2_17_x86_64.manylinux2014_x86_64.whl
+ARG TF_URL=https://framework-binaries.s3.us-west-2.amazonaws.com/tensorflow/r2.9_aws/cpu/2022-09-23-01-04/tensorflow_cpu-2.9.2-cp39-cp39-manylinux_2_17_x86_64.manylinux2014_x86_64.whl
 
 RUN ${PIP} install --no-cache-dir -U \
     ${TF_URL} \
@@ -226,7 +244,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && apt-get install -y -qq krb5-user \
 && rm -rf /var/lib/apt/lists/*
 
-ARG TF_URL=https://framework-binaries.s3.us-west-2.amazonaws.com/tensorflow/r2.9_aws/cpu/2022-05-23-23-00/tensorflow_cpu-2.9.1-cp39-cp39-manylinux_2_17_x86_64.manylinux2014_x86_64.whl
+ARG TF_URL=https://framework-binaries.s3.us-west-2.amazonaws.com/tensorflow/r2.9_aws/cpu/2022-09-23-01-04/tensorflow_cpu-2.9.2-cp39-cp39-manylinux_2_17_x86_64.manylinux2014_x86_64.whl
 
 # https://github.com/tensorflow/models/issues/9267
 # tf-models does not respect existing installations of TF and always installs open source TF
@@ -257,6 +275,7 @@ RUN $PYTHON -m pip install --no-cache-dir -U \
     "sagemaker>=2.93.0,<3" \
     sagemaker-experiments==0.* \
     "sagemaker-tensorflow-training>=20.3.1" \
+    "sagemaker-training>=4.2.8" \
     "sagemaker-studio-analytics-extension==0.0.2" \
     "sparkmagic<1" \
     "sagemaker-studio-sparkmagic-lib<1" \

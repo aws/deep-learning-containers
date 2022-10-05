@@ -1,4 +1,4 @@
-# Expecting base image to be the image built by ../cu112/Dockerfile.gpu e3 target
+# Expecting base image to be the image built by ../cu112/Dockerfile.gpu ec2 target
 ARG BASE_IMAGE=""
 
 FROM $BASE_IMAGE

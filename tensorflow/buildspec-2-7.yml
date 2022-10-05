@@ -1,7 +1,7 @@
 account_id: &ACCOUNT_ID <set-$ACCOUNT_ID-in-environment>
 region: &REGION <set-$REGION-in-environment>
 framework: &FRAMEWORK tensorflow
-version: &VERSION 2.7.1
+version: &VERSION 2.7.4
 short_version: &SHORT_VERSION 2.7
 arch_type: x86
 
@@ -41,7 +41,7 @@ context:
       target: deep_learning_container.py
 
 images:
-  BuildTensorflowE3CpuPy38TrainingDockerImage:
+  BuildTensorflowEC2CpuPy38TrainingDockerImage:
     <<: *TRAINING_REPOSITORY
     build: &TENSORFLOW_CPU_TRAINING_PY3 false
     image_size_baseline: &IMAGE_SIZE_BASELINE 4489
@@ -49,13 +49,13 @@ images:
     python_version: &DOCKER_PYTHON_VERSION py3
     tag_python_version: &TAG_PYTHON_VERSION py38
     os_version: &OS_VERSION ubuntu20.04
-    tag: !join [ *VERSION, "-", *DEVICE_TYPE, "-", *TAG_PYTHON_VERSION, "-", *OS_VERSION, "-e3"
+    tag: !join [ *VERSION, "-", *DEVICE_TYPE, "-", *TAG_PYTHON_VERSION, "-", *OS_VERSION, "-ec2"
       ]
-    docker_file: !join [ docker/, *SHORT_VERSION, /, *DOCKER_PYTHON_VERSION, /Dockerfile.e3.,
+    docker_file: !join [ docker/, *SHORT_VERSION, /, *DOCKER_PYTHON_VERSION, /Dockerfile.ec2.,
       *DEVICE_TYPE ]
     context:
       <<: *TRAINING_CONTEXT
-  BuildTensorflowE3GpuCu112Py38TrainingDockerImage:
+  BuildTensorflowEC2GpuCu112Py38TrainingDockerImage:
     <<: *TRAINING_REPOSITORY
     build: &TENSORFLOW_GPU_TRAINING_PY3 false
     image_size_baseline: &IMAGE_SIZE_BASELINE 9307
@@ -65,32 +65,32 @@ images:
     cuda_version: &CUDA_VERSION cu112
     os_version: &OS_VERSION ubuntu20.04
     tag: !join [ *VERSION, "-", *DEVICE_TYPE, "-", *TAG_PYTHON_VERSION, "-", *CUDA_VERSION,
-      "-", *OS_VERSION, "-e3" ]
+      "-", *OS_VERSION, "-ec2" ]
     docker_file: !join [ docker/, *SHORT_VERSION, /, *DOCKER_PYTHON_VERSION, /, *CUDA_VERSION,
-      /Dockerfile.e3., *DEVICE_TYPE ]
+      /Dockerfile.ec2., *DEVICE_TYPE ]
     context:
       <<: *TRAINING_CONTEXT
   BuildTensorflowExampleGpuCu112Py38TrainingDockerImage:
-    <<: *TRAINING_REPOSITORY
-    build: &TENSORFLOW_GPU_TRAINING_PY3 false
-    image_size_baseline: &IMAGE_SIZE_BASELINE 7738
-    base_image_name: BuildTensorflowE3GpuCu112Py38TrainingDockerImage
-    device_type: &DEVICE_TYPE gpu
-    python_version: &DOCKER_PYTHON_VERSION py3
-    tag_python_version: &TAG_PYTHON_VERSION py38
-    cuda_version: &CUDA_VERSION cu112
-    os_version: &OS_VERSION ubuntu20.04
-    tag: !join [ *VERSION, "-", *DEVICE_TYPE, "-", *TAG_PYTHON_VERSION, "-", *CUDA_VERSION,
-      "-", *OS_VERSION, "-e3-example" ]
-    docker_file: !join [ docker/, *SHORT_VERSION, /, *DOCKER_PYTHON_VERSION, /example,
-      /Dockerfile., *DEVICE_TYPE ]
-    context:
-      <<: *TRAINING_CONTEXT
+   <<: *TRAINING_REPOSITORY
+   build: &TENSORFLOW_GPU_TRAINING_PY3 false
+   image_size_baseline: &IMAGE_SIZE_BASELINE 7738
+   base_image_name: BuildTensorflowEC2GpuCu112Py38TrainingDockerImage
+   device_type: &DEVICE_TYPE gpu
+   python_version: &DOCKER_PYTHON_VERSION py3
+   tag_python_version: &TAG_PYTHON_VERSION py38
+   cuda_version: &CUDA_VERSION cu112
+   os_version: &OS_VERSION ubuntu20.04
+   tag: !join [ *VERSION, "-", *DEVICE_TYPE, "-", *TAG_PYTHON_VERSION, "-", *CUDA_VERSION,
+     "-", *OS_VERSION, "-ec2-example" ]
+   docker_file: !join [ docker/, *SHORT_VERSION, /, *DOCKER_PYTHON_VERSION, /example,
+     /Dockerfile., *DEVICE_TYPE ]
+   context:
+     <<: *TRAINING_CONTEXT
   BuildTensorflowSageMakerCpuPy38TrainingDockerImage:
     <<: *TRAINING_REPOSITORY
     build: &TENSORFLOW_CPU_TRAINING_PY3 false
     image_size_baseline: &IMAGE_SIZE_BASELINE 4489
-    base_image_name: BuildTensorflowE3CpuPy38TrainingDockerImage
+    base_image_name: BuildTensorflowEC2CpuPy38TrainingDockerImage
     device_type: &DEVICE_TYPE cpu
     python_version: &DOCKER_PYTHON_VERSION py3
     tag_python_version: &TAG_PYTHON_VERSION py38
@@ -105,7 +105,7 @@ images:
     <<: *TRAINING_REPOSITORY
     build: &TENSORFLOW_GPU_TRAINING_PY3 false
     image_size_baseline: &IMAGE_SIZE_BASELINE 12000
-    base_image_name: BuildTensorflowE3GpuCu112Py38TrainingDockerImage
+    base_image_name: BuildTensorflowEC2GpuCu112Py38TrainingDockerImage
     device_type: &DEVICE_TYPE gpu
     python_version: &DOCKER_PYTHON_VERSION py3
     tag_python_version: &TAG_PYTHON_VERSION py38
@@ -117,8 +117,7 @@ images:
                          /Dockerfile.sagemaker., *DEVICE_TYPE ]
     context:
       <<: *TRAINING_CONTEXT
-
-  BuildE3TensorflowCPUInferencePy3DockerImage:
+  BuildEC2TensorflowCPUInferencePy3DockerImage:
     <<: *INFERENCE_REPOSITORY
     build: &TENSORFLOW_CPU_INFERENCE_PY3 false
     image_size_baseline: 4899
@@ -126,11 +125,11 @@ images:
     python_version: &DOCKER_PYTHON_VERSION py3
     tag_python_version: &TAG_PYTHON_VERSION py38
     os_version: &OS_VERSION ubuntu20.04
-    tag: !join [ *VERSION, "-", *DEVICE_TYPE, "-", *TAG_PYTHON_VERSION, "-", *OS_VERSION, "-e3" ]
-    docker_file: !join [ docker/, *SHORT_VERSION, /, *DOCKER_PYTHON_VERSION, /Dockerfile.e3., *DEVICE_TYPE ]
+    tag: !join [ *VERSION, "-", *DEVICE_TYPE, "-", *TAG_PYTHON_VERSION, "-", *OS_VERSION, "-ec2" ]
+    docker_file: !join [ docker/, *SHORT_VERSION, /, *DOCKER_PYTHON_VERSION, /Dockerfile.ec2., *DEVICE_TYPE ]
     context:
       <<: *INFERENCE_CONTEXT
-  BuildE3TensorflowGPUInferencePy3DockerImage:
+  BuildEC2TensorflowGPUInferencePy3DockerImage:
     <<: *INFERENCE_REPOSITORY
     build: &TENSORFLOW_GPU_INFERENCE_PY3 false
     image_size_baseline: 7738
@@ -139,15 +138,15 @@ images:
     tag_python_version: &TAG_PYTHON_VERSION py38
     cuda_version: &CUDA_VERSION cu112
     os_version: &OS_VERSION ubuntu20.04
-    tag: !join [ *VERSION, "-", *DEVICE_TYPE, "-", *TAG_PYTHON_VERSION, "-", *CUDA_VERSION, "-", *OS_VERSION, "-e3" ]
-    docker_file: !join [ docker/, *SHORT_VERSION, /, *DOCKER_PYTHON_VERSION, /, *CUDA_VERSION, /Dockerfile.e3., *DEVICE_TYPE ]
+    tag: !join [ *VERSION, "-", *DEVICE_TYPE, "-", *TAG_PYTHON_VERSION, "-", *CUDA_VERSION, "-", *OS_VERSION, "-ec2" ]
+    docker_file: !join [ docker/, *SHORT_VERSION, /, *DOCKER_PYTHON_VERSION, /, *CUDA_VERSION, /Dockerfile.ec2., *DEVICE_TYPE ]
     context:
       <<: *INFERENCE_CONTEXT
   BuildSageMakerTensorflowCPUInferencePy3DockerImage:
     <<: *INFERENCE_REPOSITORY
     build: &TENSORFLOW_CPU_INFERENCE_PY3 false
     image_size_baseline: 4899
-    base_image_name: BuildE3TensorflowCPUInferencePy3DockerImage
+    base_image_name: BuildEC2TensorflowCPUInferencePy3DockerImage
     device_type: &DEVICE_TYPE cpu
     python_version: &DOCKER_PYTHON_VERSION py3
     tag_python_version: &TAG_PYTHON_VERSION py38
@@ -160,7 +159,7 @@ images:
     <<: *INFERENCE_REPOSITORY
     build: &TENSORFLOW_GPU_INFERENCE_PY3 false
     image_size_baseline: 7738
-    base_image_name: BuildE3TensorflowGPUInferencePy3DockerImage
+    base_image_name: BuildEC2TensorflowGPUInferencePy3DockerImage
     device_type: &DEVICE_TYPE gpu
     python_version: &DOCKER_PYTHON_VERSION py3
     tag_python_version: &TAG_PYTHON_VERSION py38
