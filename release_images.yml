@@ -97,6 +97,7 @@ release_images:
       cuda_version: "cu112"
       example: False
       disable_sm_tag: False
+      force_release: False
   8:
     framework: "tensorflow"
     version: "2.7.4"
@@ -109,3 +110,4 @@ release_images:
       cuda_version: "cu112"
       example: True
       disable_sm_tag: False
+      force_release: False
