@@ -157,7 +157,9 @@ ARG PYTHON_VERSION=3.8.10
 WORKDIR /
 
 RUN pip install --no-cache-dir \
-    sagemaker-mxnet-inference \
+    sagemaker-mxnet-inference
+
+RUN pip install --no-cache-dir \
     "sagemaker-inference==1.6.1"
 
 COPY mms-entrypoint.py /usr/local/bin/dockerd-entrypoint.py
