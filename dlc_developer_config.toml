@@ -65,7 +65,7 @@ use_scheduler = false
 
 # Standard Framework DLC buildspecs
 dlc-pr-autogluon = ""
-dlc-pr-mxnet = ""
+dlc-pr-mxnet = "mxnet/buildspec.yml"
 dlc-pr-pytorch = ""
 dlc-pr-tensorflow-1 = ""
 dlc-pr-tensorflow-2 = ""
