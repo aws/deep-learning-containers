@@ -689,7 +689,8 @@
                 "44715":"False positive for numpy. Was fixed in 1.22.2",
                 "44716":"The vendor states that this reported code behavior is completely harmless.",
                 "44717":"The vendor states that this reported code behavior is completely harmless.",
-                "48547":"Latest version of rdflib is being installed"
+                "48547":"Latest version of rdflib is being installed",
+                "51159":"cryptography>38.0.1 does not exist yet"
             }
         },
         "inference-neuron": {
