@@ -499,6 +499,7 @@ def enforce_IMDSv2(instance_id, region=DEFAULT_REGION, ec2_client=None, hop_limi
 
     if state == 'pending' or timeout == 0:
         raise Exception("Unable to enforce IMDSv2. Describe instance is not able to confirm if IMDSv2 enforced.")
+    LOGGER.info(f"Modify Metadata options State of EC2 instance: {state}")
 
 
 def fetch_s3_file_and_get_last_line(s3_location, local_filename="temp.txt"):

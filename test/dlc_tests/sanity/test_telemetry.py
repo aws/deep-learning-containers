@@ -62,7 +62,7 @@ def test_telemetry_instance_tag_failure_neuron(neuron, ec2_client, ec2_instance,
 def test_telemetry_instance_tag_success_gpu(gpu, ec2_client, ec2_instance, ec2_connection, non_huggingface_only, non_autogluon_only):
     _run_tag_success_IMDSv1(gpu, ec2_client, ec2_instance, ec2_connection)
     _run_tag_success_IMDSv2_hop_limit_2(gpu, ec2_client, ec2_instance, ec2_connection)
-
+    _run_s3_query_bucket_success(gpu, ec2_client, ec2_instance, ec2_connection)
 
 @pytest.mark.usefixtures("feature_aws_framework_present")
 @pytest.mark.usefixtures("sagemaker")
@@ -85,7 +85,7 @@ def test_telemetry_instance_tag_success_cpu(cpu, ec2_client, ec2_instance, ec2_c
 def test_telemetry_instance_tag_success_graviton_cpu(cpu, ec2_client, ec2_instance, ec2_connection, graviton_compatible_only):
     _run_tag_success_IMDSv1(cpu, ec2_client, ec2_instance, ec2_connection)
     _run_tag_success_IMDSv2_hop_limit_2(cpu, ec2_client, ec2_instance, ec2_connection)
-
+    _run_s3_query_bucket_success(cpu, ec2_client, ec2_instance, ec2_connection)
 
 @pytest.mark.usefixtures("sagemaker")
 @pytest.mark.model("N/A")
@@ -96,7 +96,7 @@ def test_telemetry_instance_tag_success_graviton_cpu(cpu, ec2_client, ec2_instan
 def test_telemetry_instance_tag_success_neuron(neuron, ec2_client, ec2_instance, ec2_connection, non_huggingface_only, non_autogluon_only):
     _run_tag_success_IMDSv1(neuron, ec2_client, ec2_instance, ec2_connection)
     _run_tag_success_IMDSv2_hop_limit_2(neuron, ec2_client, ec2_instance, ec2_connection)
-
+    _run_s3_query_bucket_success(neuron, ec2_client, ec2_instance, ec2_connection)
 
 @pytest.mark.usefixtures("sagemaker")
 @pytest.mark.model("N/A")
