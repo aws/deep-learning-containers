@@ -31,7 +31,7 @@ ARG TORCH_TEXT_VER=0.13
 
 RUN pip install --no-cache-dir -U --trusted-host pypi.org --trusted-host files.pythonhosted.org pip \
  && pip install --no-cache-dir -U setuptools wheel \
- && pip install --no-cache-dir -U numpy numba sagemaker-training==4.2.0 protobuf==3.18.1 \
+ && pip install --no-cache-dir -U numpy numba sagemaker-training==4.2.0 protobuf==3.18.1 joblib>=1.2\
  && pip install --no-cache-dir -U torch==${TORCH_VER} torchvision==${TORCH_VISION_VER} torchtext==${TORCH_TEXT_VER} --extra-index-url https://download.pytorch.org/whl/cu113 \
  && pip uninstall -y horovod && HOROVOD_WITH_PYTORCH=1 pip install --no-cache-dir horovod==0.24.3 \
  && pip install --no-cache-dir -U autogluon==${AUTOGLUON_VERSION} \

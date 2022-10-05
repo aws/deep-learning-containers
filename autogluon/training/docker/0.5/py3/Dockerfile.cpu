@@ -36,7 +36,8 @@ RUN pip install --no-cache-dir -U --trusted-host pypi.org --trusted-host files.p
     sagemaker-training==4.2.0 protobuf==3.18.1 sagemaker-mxnet-training \
  && pip uninstall -y horovod \
  && HOROVOD_WITH_PYTORCH=1 pip install --no-cache-dir horovod==0.24.3 \
- && pip install --no-cache-dir -U autogluon==${AUTOGLUON_VERSION}
+ && pip install --no-cache-dir -U autogluon==${AUTOGLUON_VERSION} \
+ && pip install -no-cache-dir -U joblib>=1.2 \
 
 # Resolving sagemaker 2.92.1 conflict
 RUN pip install --no-cache-dir 'importlib-metadata<2.0,>=1.4.0' markdown

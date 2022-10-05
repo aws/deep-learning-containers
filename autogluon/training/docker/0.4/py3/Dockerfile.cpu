@@ -32,7 +32,8 @@ RUN pip install --no-cache-dir -U --trusted-host pypi.org --trusted-host files.p
     numpy numba \
     torch==${TORCH_VER} torchvision==${TORCH_VISION_VER} -f https://download.pytorch.org/whl/cpu/torch_stable.html \
     autogluon==${AUTOGLUON_VERSION} \
-    sagemaker-mxnet-training
+    sagemaker-mxnet-training \
+    joblib>=1.2
 
 # Resolving sagemaker 2.92.1 conflict
 RUN pip install --no-cache-dir 'importlib-metadata<2.0,>=1.4.0' markdown
