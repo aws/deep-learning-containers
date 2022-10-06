@@ -30,6 +30,7 @@ resnet18_path = os.path.join(resources_path, 'resnet18')
 data_dir = os.path.join(mnist_path, 'data')
 training_dir = os.path.join(data_dir, 'training')
 dist_operations_path = os.path.join(resources_path, 'distributed_operations.py')
+neuron_allreduce_path = os.path.join(resources_path, 'neuron')
 smdebug_mnist_script = os.path.join(mnist_path, 'smdebug_mnist.py')
 
 mnist_1d_script = os.path.join(mnist_path, 'mnist_1d.py')

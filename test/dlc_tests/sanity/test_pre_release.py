@@ -432,8 +432,8 @@ def _run_dependency_check_test(image, ec2_connection):
         "mxnet": {"1.8": ["neuron"], "1.9": ["cpu", "gpu"]},
         "pytorch": {
             "1.8": ["cpu", "gpu"], 
-            "1.10": ["cpu", "hpu"], 
-            "1.11": ["cpu", "gpu", "hpu"],
+            "1.10": ["cpu", "hpu", "neuron"],
+            "1.11": ["cpu", "gpu", "hpu", "neuron"],
             "1.12": ["cpu", "gpu", "hpu"]
         },
         "huggingface_pytorch": {"1.8": ["cpu", "gpu"], "1.9": ["cpu", "gpu"]},
@@ -451,8 +451,8 @@ def _run_dependency_check_test(image, ec2_connection):
     # Check that these versions have been matched on https://ubuntu.com/security/CVE-2022-1292 before adding
     allow_openssl_cve_2022_1292_fw_versions = {
         "pytorch": {
-            "1.10": ["gpu", "cpu", "hpu"],
-            "1.11": ["gpu", "cpu", "hpu"],
+            "1.10": ["gpu", "cpu", "hpu", "neuron"],
+            "1.11": ["gpu", "cpu", "hpu", "neuron"],
             "1.12": ["gpu", "cpu", "hpu"],
         },
         "tensorflow": {
