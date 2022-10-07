@@ -259,14 +259,22 @@ def _run_tag_failure_IMDSv2_disabled_as_hop_limit_1(image_uri, ec2_client, ec2_i
     ec2_connection.run(f"{docker_cmd} pull -q {image_uri}")
 
     preexisting_ec2_instance_tags = ec2_utils.get_ec2_instance_tags(ec2_instance_id, ec2_client=ec2_client)
-    if expected_tag_key in preexisting_ec2_instance_tags:
-        ec2_client.delete_tags(Resources=[ec2_instance_id], Tags=[{"Key": expected_tag_key}])
+    LOGGER.info(f"preexisting_ec2_instance_tags: {preexisting_ec2_instance_tags}")
 
     ec2_utils.enforce_IMDSv2(ec2_instance_id)
 
+    time.sleep(5)
+
+    res = ec2_client.describe_instances(InstanceIds=[ec2_instance_id])
+    if res:
+        metadata_options = res['Reservations'][0]['Instances'][0]['MetadataOptions']
+        LOGGER.info(metadata_options)
+    if expected_tag_key in preexisting_ec2_instance_tags:
+        ec2_client.delete_tags(Resources=[ec2_instance_id], Tags=[{"Key": expected_tag_key}])
     import_framework(image_uri, container_name, docker_cmd, framework, job_type, ec2_connection)
 
     ec2_instance_tags = ec2_utils.get_ec2_instance_tags(ec2_instance_id, ec2_client=ec2_client)
+    LOGGER.info(f"ec2_instance_tags: {ec2_instance_tags}")
     assert expected_tag_key not in ec2_instance_tags, (
         f"{expected_tag_key} was applied as an instance tag."
         "EC2 create_tags went through even though it should not have"

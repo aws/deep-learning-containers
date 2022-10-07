@@ -486,6 +486,7 @@ def enforce_IMDSv2(instance_id, region=DEFAULT_REGION, ec2_client=None, hop_limi
     if response["InstanceId"]:
         while timeout > 0:
             time.sleep(timeout)
+            LOGGER.info(f"Slept for: {timeout}")
             res = ec2_client.describe_instances(InstanceIds=[instance_id])
             if res:
                 metadata_options = res['Reservations'][0]['Instances'][0]['MetadataOptions']
