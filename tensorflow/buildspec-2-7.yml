@@ -55,6 +55,7 @@ images:
   #     *DEVICE_TYPE ]
   #   context:
   #     <<: *TRAINING_CONTEXT
+
   BuildTensorflowEC2GpuCu112Py38TrainingDockerImage:
     <<: *TRAINING_REPOSITORY
     build: &TENSORFLOW_GPU_TRAINING_PY3 false
@@ -70,6 +71,7 @@ images:
       /Dockerfile.ec2., *DEVICE_TYPE ]
     context:
       <<: *TRAINING_CONTEXT
+
   BuildTensorflowExampleGpuCu112Py38TrainingDockerImage:
     <<: *TRAINING_REPOSITORY
     build: &TENSORFLOW_GPU_TRAINING_PY3 false
@@ -86,6 +88,7 @@ images:
       /Dockerfile., *DEVICE_TYPE ]
     context:
       <<: *TRAINING_CONTEXT
+      
   # BuildTensorflowSageMakerCpuPy38TrainingDockerImage:
   #   <<: *TRAINING_REPOSITORY
   #   build: &TENSORFLOW_CPU_TRAINING_PY3 false
