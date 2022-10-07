@@ -25,6 +25,5 @@ release_images:
       os_version: "ubuntu20.04"
       cuda_version: "cu112"
       example: True
-      disable_sm_tag: True
       force_release: False
   
