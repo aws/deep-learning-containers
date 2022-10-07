@@ -268,12 +268,13 @@ def test_ecr_enhanced_scan(image, ecr_client, sts_client, region):
     try:
         # Derive Image Scan Allowlist Path
         image_scan_allowlist_path = get_ecr_scan_allowlist_path(image)
+        LOGGER.info(f"[Allowlist] Trying to locate Allowlist at PATH: {image_scan_allowlist_path}")
         # Check if image Scan Allowlist Path exists
         if os.path.exists(image_scan_allowlist_path):
             image_scan_allowlist.construct_allowlist_from_file(image_scan_allowlist_path)
-            LOGGER.info(f"Using allowlist at location {image_scan_allowlist_path} to skip {image_scan_allowlist.get_summarized_info()}")
+            LOGGER.info(f"[Allowlist] Using allowlist at location {image_scan_allowlist_path} to skip {image_scan_allowlist.get_summarized_info()}")
     except:
-        LOGGER.info(f"[AllowlistPathNotFound] Image scan allowlist path could not be derived for {image}")
+        LOGGER.info(f"[Allowlist] Image scan allowlist path could not be derived for {image}")
         traceback.print_exc()
 
     remaining_vulnerabilities = ecr_image_vulnerability_list - image_scan_allowlist

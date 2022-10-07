@@ -13,6 +13,7 @@ from test.test_utils import LOGGER, ecr as ecr_utils
 import dataclasses
 from dataclasses import dataclass
 from typing import Any, List
+from pathlib import Path
 
 
 @dataclass
@@ -547,7 +548,15 @@ def get_ecr_scan_allowlist_path(image_uri):
     # Each example image (tied to CUDA version/OS version/other variants) can have its own list of vulnerabilities,
     # which means that we cannot have just a single allowlist for all example images for any framework version.
     if "example" in image_uri:
-        image_scan_allowlist_path = dockerfile_location + ".example.os_scan_allowlist.json"
+        # The extracted dockerfile_location in case of example image points to the base gpu image on top of which the
+        # example image was built. The dockerfile_location looks like 
+        # tensorflow/training/docker/2.7/py3/cu112/Dockerfile.ec2.gpu.example.os_scan_allowlist.json
+        # We want to change the parent folder such that it points from cu112 folder to example folder and
+        # looks like tensorflow/training/docker/2.7/py3/example/Dockerfile.gpu.example.os_scan_allowlist.json
+        dockerfile_location = dockerfile_location.replace(".ec2.",".")
+        base_gpu_image_path = Path(dockerfile_location)
+        image_scan_allowlist_path = os.path.join(str(base_gpu_image_path.parent.parent), "example", base_gpu_image_path.name)
+        image_scan_allowlist_path += ".example.os_scan_allowlist.json"
     return image_scan_allowlist_path
 
 
