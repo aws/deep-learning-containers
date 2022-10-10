@@ -21,7 +21,6 @@ import sys
 
 import botocore.session
 import requests
-from requests.adapters import HTTPAdapter, Retry
 
 TIMEOUT_SECS = 5
 
@@ -53,18 +52,18 @@ def requests_helper_imds(url, token = None):
     response_text = None
     response = None
     headers = None
-    session = requests.Session()
-    retries = Retry(total=3, backoff_factor=1)
-    session.mount('http://', HTTPAdapter(max_retries=retries))
-
     if token:
         headers={"X-aws-ec2-metadata-token": token}
     timeout = 1
     try:
-        if headers:
-            response = session.get(url, headers=headers, timeout=timeout)
-        else:
-            response = session.get(url, timeout=timeout)
+        while timeout <= 3:
+            if headers:
+                response = requests.get(url, headers=headers, timeout=timeout)
+            else:
+                response = requests.get(url, timeout=timeout)
+            if response:
+                break
+            timeout += 1
 
     except requests.exceptions.RequestException as e:
         logging.error("Request exception: {}".format(e))
@@ -84,11 +83,13 @@ def get_imdsv2_token():
     headers = {"X-aws-ec2-metadata-token-ttl-seconds": "600"}
     url = "http://169.254.169.254/latest/api/token"
     timeout = 1
-    session = requests.Session()
-    retries = Retry(total=3, backoff_factor=1)
-    session.mount('http://', HTTPAdapter(max_retries=retries))
+
     try:
-        response = session.put(url, headers=headers, timeout=timeout)
+        while timeout <= 3:
+            response = requests.put(url, headers=headers, timeout=timeout)
+            if response:
+                break
+            timeout += 1
     except requests.exceptions.RequestException as e:
         logging.error("Request exception: {}".format(e))
 
@@ -255,14 +256,7 @@ def query_bucket(instance_id, region):
                 region, instance_id, framework, framework_version, py_version, container_type
             )
         )
-        timeout = 0.5
-        while timeout <= 1:
-            response = requests_helper(url, timeout=timeout)
-            if response is not None:
-                if response.status_code in [200, 403]:
-                    break
-            timeout += 0.5
-
+        response = requests_helper(url, timeout=0.2)
         if os.environ.get("TEST_MODE") == str(1):
             with open(os.path.join(os.sep, "tmp", "test_request.txt"), "w+") as rf:
                 rf.write(url)
