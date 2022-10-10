@@ -25,6 +25,7 @@ ENV LD_LIBRARY_PATH="${LD_LIBRARY_PATH}:/opt/amazon/efa/lib"
 ENV LD_LIBRARY_PATH="${LD_LIBRARY_PATH}:/opt/amazon/efa/lib64"
 ENV LD_LIBRARY_PATH="${LD_LIBRARY_PATH}:/opt/amazon/openmpi/lib64"
 ENV LD_LIBRARY_PATH="${LD_LIBRARY_PATH}:/usr/local/lib"
+ENV PATH /opt/aws/neuron/bin/:$PATH
 ENV SAGEMAKER_TRAINING_MODULE=sagemaker_pytorch_container.training:main
 ENV DGLBACKEND=pytorch
 
@@ -68,8 +69,8 @@ RUN apt-get update \
  && rm -rf /var/lib/apt/lists/* \
  && apt-get clean
 
-RUN echo "deb https://NeuronUser:ZOgdZY3PLBTOwMX1@apt.repos.beta.sunda.neuron.annapurna.aws.a2z.com focal main" > /etc/apt/sources.list.d/neuron.list
-RUN wget -qO - https://NeuronUser:ZOgdZY3PLBTOwMX1@apt.repos.beta.sunda.neuron.annapurna.aws.a2z.com/GPG-PUB-KEY-AMAZON-AWS-NEURON.PUB | apt-key add -
+RUN echo "deb https://apt.repos.neuron.amazonaws.com focal main" > /etc/apt/sources.list.d/neuron.list
+RUN wget -qO - https://apt.repos.neuron.amazonaws.com/GPG-PUB-KEY-AMAZON-AWS-NEURON.PUB | apt-key add -
 
 RUN apt-get update \
  && apt-get install -y \
@@ -131,9 +132,9 @@ RUN ${PIP} install --no-cache-dir -U \
     'Pillow>=9.0.1,<9.1.0'
 
 RUN mkdir -p /etc/pki/tls/certs && cp /etc/ssl/certs/ca-certificates.crt /etc/pki/tls/certs/ca-bundle.crt
-RUN ${PIP} config set global.extra-index-url "https://NeuronUser:ZOgdZY3PLBTOwMX1@pip.repos.beta.sunda.neuron.annapurna.aws.a2z.com" \
- && ${PIP} install --force-reinstall torch-neuronx==1.11.0.* --extra-index-url https://NeuronUser:ZOgdZY3PLBTOwMX1@pip.repos.beta.sunda.neuron.annapurna.aws.a2z.com \
-    && ${PIP} install --force-reinstall neuronx-cc==2.* --extra-index-url https://NeuronUser:ZOgdZY3PLBTOwMX1@pip.repos.beta.sunda.neuron.annapurna.aws.a2z.com
+RUN ${PIP} config set global.extra-index-url https://pip.repos.neuron.amazonaws.com \
+ && ${PIP} install --force-reinstall torch-neuronx==1.11.0.* --extra-index-url https://pip.repos.neuron.amazonaws.com \
+    && ${PIP} install --force-reinstall neuronx-cc==2.* --extra-index-url https://pip.repos.neuron.amazonaws.com
 
 # attrs, neurox-cc required: >=19.2.0, sagemaker 2.103.0 <22,>=20.3.0
 # protobuf neurox-cc<4 , sagemaker training <3.20,>=3.9.2

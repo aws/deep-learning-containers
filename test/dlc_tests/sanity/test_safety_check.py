@@ -456,6 +456,8 @@ IGNORE_SAFETY_IDS = {
                 "48298",
                 # for cryptography until e have 39.0.0 release
                 "51159",
+                # for Safety. it is test package and not part of image
+                "51358",
             ],
         },
         "inference": {
