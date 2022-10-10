@@ -214,6 +214,8 @@ RUN pip install --no-cache-dir -U \
     "pyyaml>=5.4,<5.5" \
     scipy
 
+RUN conda update scipy numpy
+
 COPY deep_learning_container.py /usr/local/bin/deep_learning_container.py
 
 RUN chmod +x /usr/local/bin/deep_learning_container.py
