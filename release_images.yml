@@ -26,4 +26,56 @@ release_images:
       cuda_version: "cu112"
       example: True
       force_release: False
+  3:
+    framework: "tensorflow"
+    version: "2.8.3"
+    customer_type: "ec2"
+    arch_type: "x86"
+    inference:
+      device_types: ["cpu", "gpu"]
+      python_versions: ["py39"]
+      os_version: "ubuntu20.04"
+      cuda_version: "cu112"
+      example: False
+      disable_sm_tag: False
+      force_release: False
+  4:
+    framework: "tensorflow"
+    version: "2.8.3"
+    customer_type: "sagemaker"
+    arch_type: "x86"
+    inference:
+      device_types: ["cpu", "gpu"]
+      python_versions: ["py39"]
+      os_version: "ubuntu20.04"
+      cuda_version: "cu112"
+      example: False
+      disable_sm_tag: False
+      force_release: False
+  5:
+    framework: "tensorflow"
+    version: "2.9.2"
+    customer_type: "ec2"
+    arch_type: "x86"
+    inference:
+      device_types: ["cpu", "gpu"]
+      python_versions: ["py39"]
+      os_version: "ubuntu20.04"
+      cuda_version: "cu112"
+      example: False
+      disable_sm_tag: False
+      force_release: False
+  6:
+    framework: "tensorflow"
+    version: "2.9.2"
+    customer_type: "sagemaker"
+    arch_type: "x86"
+    inference:
+      device_types: ["cpu", "gpu"]
+      python_versions: ["py39"]
+      os_version: "ubuntu20.04"
+      cuda_version: "cu112"
+      example: False
+      disable_sm_tag: False
+      force_release: False
   
