@@ -46,6 +46,9 @@ RUN rm -rf /usr/local/lib/python3.8/dist-packages/gluonts/nursery/tsbench
 # Remove these to address security issues; these are not used if only python package is used
 RUN rm -rf /usr/local/lib/python3.8/dist-packages/ray/jars
 
+# Updating SageMaker to address security
+RUN pip install -U sagemaker
+
 RUN HOME_DIR=/root \
  && curl -o ${HOME_DIR}/oss_compliance.zip https://aws-dlinfra-utilities.s3.amazonaws.com/oss_compliance.zip \
  && unzip ${HOME_DIR}/oss_compliance.zip -d ${HOME_DIR}/ \

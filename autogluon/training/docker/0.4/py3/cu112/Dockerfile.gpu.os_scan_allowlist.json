@@ -55,7 +55,8 @@
       "source": "UBUNTU_CVE",
       "severity": "LOW",
       "status": "ACTIVE",
-      "title": "CVE-2022-1941 - protobuf"
+      "title": "CVE-2022-1941 - protobuf",
+      "reason_to_ignore": "protobuf upgrade is not possible at the moment - it cause segfaults - see https://github.com/awslabs/autogluon/issues/1762"
     }
   ]
 }
