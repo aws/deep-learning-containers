@@ -263,8 +263,6 @@ def _run_tag_failure_IMDSv2_disabled_as_hop_limit_1(image_uri, ec2_client, ec2_i
 
     ec2_utils.enforce_IMDSv2(ec2_instance_id)
 
-    time.sleep(5)
-
     res = ec2_client.describe_instances(InstanceIds=[ec2_instance_id])
     if res:
         metadata_options = res['Reservations'][0]['Instances'][0]['MetadataOptions']
