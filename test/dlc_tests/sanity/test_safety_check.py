@@ -617,9 +617,10 @@ IGNORE_SAFETY_IDS = {
                 "44716",
                 # False positive CVE for numpy
                 "44715",
-                # pytorch-lightning stable release (1.6.0) is not available
-                "43581",
-                "43752",
+                # Pydantic 1.10.2 prevents long strings as int inputs to fix CVE-2020-10735 - upstream dependencies are still not patched
+                "50916",
+                # Protobuf 3.18.3, 3.19.5, 3.20.2 and 4.21.6 include a fix for CVE-2022-1941 - upstream dependencies are still not patched
+                "51167"
             ]
         },
         "inference": {
@@ -629,9 +630,10 @@ IGNORE_SAFETY_IDS = {
                 "44716",
                 # False positive CVE for numpy
                 "44715",
-                # pytorch-lightning stable release (1.6.0) is not available
-                "43581",
-                "43752",
+                # Pydantic 1.10.2 prevents long strings as int inputs to fix CVE-2020-10735 - upstream dependencies are still not patched
+                "50916",
+                # Protobuf 3.18.3, 3.19.5, 3.20.2 and 4.21.6 include a fix for CVE-2022-1941 - upstream dependencies are still not patched
+                "51167"
             ]
         },
     }
