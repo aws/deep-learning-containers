@@ -37,6 +37,12 @@ RUN pip install --no-cache-dir -U --trusted-host pypi.org --trusted-host files.p
 # Resolving sagemaker 2.92.1 conflict
 RUN pip install --no-cache-dir 'importlib-metadata<2.0,>=1.4.0' markdown
 
+# Removing GluonTS nursery/tsbench package - it is not used in training/inference and have security vulnerabilities
+RUN rm -rf /usr/local/lib/python3.8/dist-packages/gluonts/nursery/tsbench
+
+# Remove these to address security issues; these are not used if only python package is used
+RUN rm -rf /usr/local/lib/python3.8/dist-packages/ray/jars
+
 RUN HOME_DIR=/root \
  && curl -o ${HOME_DIR}/oss_compliance.zip https://aws-dlinfra-utilities.s3.amazonaws.com/oss_compliance.zip \
  && unzip ${HOME_DIR}/oss_compliance.zip -d ${HOME_DIR}/ \

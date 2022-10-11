@@ -38,7 +38,7 @@ Deep Learning Containers Docker Images are available in the following regions:
 |Asia Pacific (Seoul)		|ap-northeast-2		|Available 			|Available 			        |None				|763104351884.dkr.ecr.ap-northeast-2.amazonaws.com/&lt;repository-name>:&lt;image-tag>		|
 |Asia Pacific (Singapore)	|ap-southeast-1		|Available 			|None 			            |Available			|763104351884.dkr.ecr.ap-southeast-1.amazonaws.com/&lt;repository-name>:&lt;image-tag>		|
 |Asia Pacific (Sydney)		|ap-southeast-2 	|Available 			|None 			            |Available			|763104351884.dkr.ecr.ap-southeast-2.amazonaws.com/&lt;repository-name>:&lt;image-tag>		|
-|Asia Pacific (Jakarta)		|ap-southeast-3 	|Available 			|None 			            |Available			|907027046896.dkr.ecr.ap-southeast-3.amazonaws.com/&lt;repository-name>:&lt;image-tag>		|
+|Asia Pacific (Jakarta)		|ap-southeast-3 	|Available 			|None 			            |None			|907027046896.dkr.ecr.ap-southeast-3.amazonaws.com/&lt;repository-name>:&lt;image-tag>		|
 |Asia Pacific (Tokyo)		|ap-northeast-1		|Available 			|Available 			        |Available			|763104351884.dkr.ecr.ap-northeast-1.amazonaws.com/&lt;repository-name>:&lt;image-tag>		|
 |Canada (Central)			|ca-central-1		|Available 			|None 			            |None				|763104351884.dkr.ecr.ca-central-1.amazonaws.com/&lt;repository-name>:&lt;image-tag>		|
 |EU (Frankfurt) 			|eu-central-1		|Available 			|None 			            |Available			|763104351884.dkr.ecr.eu-central-1.amazonaws.com/&lt;repository-name>:&lt;image-tag>		|
@@ -48,6 +48,7 @@ Deep Learning Containers Docker Images are available in the following regions:
 |EU (Paris) 				|eu-west-3			|Available 			|None 			            |Available			|763104351884.dkr.ecr.eu-west-3.amazonaws.com/&lt;repository-name>:&lt;image-tag>			|
 |EU (Stockholm) 			|eu-north-1			|Available 			|None 			            |None				|763104351884.dkr.ecr.eu-north-1.amazonaws.com/&lt;repository-name>:&lt;image-tag>			|
 |Middle East (Bahrain) 		|me-south-1			|Available 			|None 			            |None				|217643126080.dkr.ecr.me-south-1.amazonaws.com/&lt;repository-name>:&lt;image-tag>			|
+|Middle East (UAE)		|me-central-1 	|Available 			|None 			            |None			|914824155844.dkr.ecr.me-central-1.amazonaws.com/&lt;repository-name>:&lt;image-tag>		|
 |South America (Sao Paulo)	|sa-east-1			|Available 			|None 			            |Available			|763104351884.dkr.ecr.sa-east-1.amazonaws.com/&lt;repository-name>:&lt;image-tag>			|
 |China (Beijing)			|cn-north-1			|Available 			|None 			            |None				|727897471807.dkr.ecr.cn-north-1.amazonaws.com.cn/&lt;repository-name>:&lt;image-tag>		|
 |China (Ningxia)			|cn-northwest-1		|Available 			|None 			            |None				|727897471807.dkr.ecr.cn-northwest-1.amazonaws.com.cn/&lt;repository-name>:&lt;image-tag>	|
@@ -134,10 +135,11 @@ SageMaker Framework Containers (SM support only)
 | MXNet 1.9.0      |training	| Yes			          |GPU 		| 3.8 (py38)			| 763104351884.dkr.ecr.us-east-1.amazonaws.com/mxnet-training:1.9.0-gpu-py38-cu112-ubuntu20.04-sagemaker	       |
 | MXNet 1.9.0      |inference	| No			           |CPU 		| 3.8 (py38)			| 763104351884.dkr.ecr.us-east-1.amazonaws.com/mxnet-inference:1.9.0-cpu-py38-ubuntu20.04-sagemaker             |
 | MXNet 1.9.0      |inference	| No			           |GPU 		| 3.8 (py38)			| 763104351884.dkr.ecr.us-east-1.amazonaws.com/mxnet-inference:1.9.0-gpu-py38-cu112-ubuntu20.04-sagemaker	      |
-| TensorFlow 2.9.1 |training	|Yes			|CPU 		| 3.9 (py39)			| 763104351884.dkr.ecr.us-east-1.amazonaws.com/tensorflow-training:2.9.1-cpu-py39-ubuntu20.04-sagemaker		       |
-| TensorFlow 2.9.1 |training	|Yes			|GPU 		| 3.9 (py39)			| 763104351884.dkr.ecr.us-east-1.amazonaws.com/tensorflow-training:2.9.1-gpu-py39-cu112-ubuntu20.04-sagemaker	 |
-| TensorFlow 2.9.0 |inference	|Yes			|CPU 		| 3.9 (py39)			| 763104351884.dkr.ecr.us-east-1.amazonaws.com/tensorflow-inference:2.9.0-cpu-py39-ubuntu20.04-sagemaker		      |
-| TensorFlow 2.9.0 |inference	|Yes			|GPU 		| 3.9 (py39)			| 763104351884.dkr.ecr.us-east-1.amazonaws.com/tensorflow-inference:2.9.0-gpu-py39-cu112-ubuntu20.04-sagemaker	 |
+| TensorFlow 2.10.0 |training	|Yes			|CPU 		| 3.9 (py39)			| 763104351884.dkr.ecr.us-east-1.amazonaws.com/tensorflow-training:2.10.0-cpu-py39-ubuntu20.04-sagemaker		       |
+| TensorFlow 2.10.0 |training	|Yes			|GPU 		| 3.9 (py39)			| 763104351884.dkr.ecr.us-east-1.amazonaws.com/tensorflow-training:2.10.0-gpu-py39-cu112-ubuntu20.04-sagemaker	 |
+| TensorFlow 2.10.0 |inference	|Yes			|CPU 		| 3.9 (py39)			| 763104351884.dkr.ecr.us-east-1.amazonaws.com/tensorflow-inference:2.10.0-cpu-py39-ubuntu20.04-sagemaker		      |
+| TensorFlow 2.10.0 |inference	|Yes			|GPU 		| 3.9 (py39)			| 763104351884.dkr.ecr.us-east-1.amazonaws.com/tensorflow-inference:2.10.0-gpu-py39-cu112-ubuntu20.04-sagemaker	 |
+
 
 
 NVIDIA Triton Inference Containers (SM support only)
@@ -210,18 +212,19 @@ SageMaker Training Compiler Containers
 
 | Framework                                     |Job Type	|CPU/GPU 	|Python Version Options	|Example URL																						|
 |-----------------------------------------------|-----------|-----------|-----------------------|---------------------------------------------------------------------------------------------------|
-| TensorFlow 2.9.1                              |training   |GPU        | 3.9 (py39)            | 763104351884.dkr.ecr.us-east-1.amazonaws.com/tensorflow-training:2.9.1-gpu-py39-cu112-ubuntu20.04-sagemaker     |
+| TensorFlow 2.10.0                              |training   |GPU        | 3.9 (py39)            | 763104351884.dkr.ecr.us-west-2.amazonaws.com/tensorflow-training:2.10.0-gpu-py39-cu112-ubuntu20.04-sagemaker     |
 |PyTorch 1.11.0 with HuggingFace transformers 4.21.1 and SageMaker Training Compiler    |training	|GPU 		| 3.8 (py38)			|763104351884.dkr.ecr.us-west-2.amazonaws.com/huggingface-pytorch-trcomp-training:1.11.0-transformers4.21.1-gpu-py38-cu113-ubuntu20.04      |
 |TensorFlow 2.6.3 with HuggingFace transformers 4.17.0 and SageMaker Training Compiler |training	|GPU 		| 3.8 (py38)			|763104351884.dkr.ecr.us-east-1.amazonaws.com/huggingface-tensorflow-trcomp-training:2.6.3-transformers4.17.0-gpu-py38-cu112-ubuntu20.04 	|
 
 
-Neuron Inference Containers
-============================
+Neuron Containers
+=================
 
-|Framework                                  |Job Type   |Python Version Options |Example URL                                                                                                |
-|-------------------------------------------|-----------|-----------------------|-----------------------------------------------------------------------------------------------------------|
-|PyTorch 1.10.2 with Neuron Inference        |inference 	|3.7 (py37) 	        |763104351884.dkr.ecr.us-west-2.amazonaws.com/pytorch-inference-neuron:1.10.2-neuron-py37-sdk1.19.0-ubuntu18.04        |
-|MXNet 1.8.0 with Neuron Inference          |inference 	|3.7 (py37) 	        |763104351884.dkr.ecr.us-west-2.amazonaws.com/mxnet-inference-neuron:1.8.0-neuron-py37-sdk1.18.0-ubuntu18.04          |
+|Framework      |Neuron Package |Neuron SDK Version |Job Type   |Instances  |Python Version Options |Example URL                                                                                                |
+|---------------|---------------|-------------------|-----------|-----------|-----------------------|-----------------------------------------------------------------------------------------------------------|
+|PyTorch 1.11.0 |torch-neuronx  |Neuron 2.3.0       |training 	|trn1   |3.8 (py38) 	        |763104351884.dkr.ecr.us-west-2.amazonaws.com/pytorch-training-neuron:1.11.0-neuron-py38-sdk2.3.0-ubuntu20.04        |
+|PyTorch 1.10.2 |torch-neuron   |Neuron 1.19.0      |inference 	|inf1   |3.7 (py37) 	        |763104351884.dkr.ecr.us-west-2.amazonaws.com/pytorch-inference-neuron:1.10.2-neuron-py37-sdk1.19.0-ubuntu18.04        |
+|MXNet 1.8.0    |mx_neuron      |Neuron 1.18.0      |inference 	|inf1   |3.7 (py37) 	        |763104351884.dkr.ecr.us-west-2.amazonaws.com/mxnet-inference-neuron:1.8.0-neuron-py37-sdk1.18.0-ubuntu18.04          |
 
 
 Elastic Inference Containers
@@ -261,6 +264,10 @@ Prior SageMaker Framework Container Versions
 ==============
 | Framework 			                      |Job Type 			   |Horovod Options 			     |CPU/GPU 	  |Python Version Options 			      |Example URL 			                                                                               |
 |---------------------------------------------|------------------------|---------------------------------|------------|---------------------------------------|----------------------------------------------------------------------------------------------------|
+| TensorFlow 2.9.1 |training	|Yes			|CPU 		| 3.9 (py39)			| 763104351884.dkr.ecr.us-east-1.amazonaws.com/tensorflow-training:2.9.1-cpu-py39-ubuntu20.04-sagemaker		       |
+| TensorFlow 2.9.1 |training	|Yes			|GPU 		| 3.9 (py39)			| 763104351884.dkr.ecr.us-east-1.amazonaws.com/tensorflow-training:2.9.1-gpu-py39-cu112-ubuntu20.04-sagemaker	 |
+| TensorFlow 2.9.0 |inference	|Yes			|CPU 		| 3.9 (py39)			| 763104351884.dkr.ecr.us-east-1.amazonaws.com/tensorflow-inference:2.9.0-cpu-py39-ubuntu20.04-sagemaker		      |
+| TensorFlow 2.9.0 |inference	|Yes			|GPU 		| 3.9 (py39)			| 763104351884.dkr.ecr.us-east-1.amazonaws.com/tensorflow-inference:2.9.0-gpu-py39-cu112-ubuntu20.04-sagemaker	 |
 | TensorFlow 2.8.0 |training	|Yes			|CPU 		| 3.9 (py39)			| 763104351884.dkr.ecr.us-east-1.amazonaws.com/tensorflow-training:2.8.0-cpu-py39-ubuntu20.04-sagemaker		       |
 | TensorFlow 2.8.0 |training	|Yes			|GPU 		| 3.9 (py39)			| 763104351884.dkr.ecr.us-east-1.amazonaws.com/tensorflow-training:2.8.0-gpu-py39-cu112-ubuntu20.04-sagemaker	  |
 | TensorFlow 2.8.0 |inference	|Yes			|CPU 		| 3.9 (py39)			| 763104351884.dkr.ecr.us-east-1.amazonaws.com/tensorflow-inference:2.8.0-cpu-py39-ubuntu20.04-sagemaker		      |

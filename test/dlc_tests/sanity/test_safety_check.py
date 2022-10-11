@@ -55,6 +55,8 @@ IGNORE_SAFETY_IDS = {
                 "42814",
                 # tensorflow-estimator and tensorflow versions must match. For all TF versions below TF 2.9.0, we cannot upgrade tf-estimator to 2.9.0
                 "48551",
+                # for cryptography until we have 39.0.0 release
+                "51159",
             ],
         },
         "inference": {
@@ -76,6 +78,8 @@ IGNORE_SAFETY_IDS = {
                 "43453",
                 # tensorflow-estimator and tensorflow versions must match. For all TF versions below TF 2.9.0, we cannot upgrade tf-estimator to 2.9.0
                 "48551",
+                # for cryptography until we have 39.0.0 release
+                "51159",
             ],
         },
         "inference-eia": {
@@ -438,6 +442,8 @@ IGNORE_SAFETY_IDS = {
                 # and an attempt to upgrade deepspeed version to 
                 # remediate it might have an inadvertent negative impact on the DLC components functionality.
                 "48298",
+                # for cryptography until e have 39.0.0 release
+                "51159",
             ],
         },
         "inference": {
@@ -447,6 +453,8 @@ IGNORE_SAFETY_IDS = {
                 "44715",
                 "44716",
                 "44717",
+                # for cryptography until e have 39.0.0 release
+                "51159",
             ]
         },
         "inference-eia": {"py3": []},
@@ -609,9 +617,10 @@ IGNORE_SAFETY_IDS = {
                 "44716",
                 # False positive CVE for numpy
                 "44715",
-                # pytorch-lightning stable release (1.6.0) is not available
-                "43581",
-                "43752",
+                # Pydantic 1.10.2 prevents long strings as int inputs to fix CVE-2020-10735 - upstream dependencies are still not patched
+                "50916",
+                # Protobuf 3.18.3, 3.19.5, 3.20.2 and 4.21.6 include a fix for CVE-2022-1941 - upstream dependencies are still not patched
+                "51167"
             ]
         },
         "inference": {
@@ -621,9 +630,10 @@ IGNORE_SAFETY_IDS = {
                 "44716",
                 # False positive CVE for numpy
                 "44715",
-                # pytorch-lightning stable release (1.6.0) is not available
-                "43581",
-                "43752",
+                # Pydantic 1.10.2 prevents long strings as int inputs to fix CVE-2020-10735 - upstream dependencies are still not patched
+                "50916",
+                # Protobuf 3.18.3, 3.19.5, 3.20.2 and 4.21.6 include a fix for CVE-2022-1941 - upstream dependencies are still not patched
+                "51167"
             ]
         },
     }
