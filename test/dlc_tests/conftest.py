@@ -4,14 +4,16 @@ import logging
 import random
 import sys
 import re
-import uuid
+
 import boto3
-from botocore.exceptions import ClientError
 import docker
 import pytest
+import uuid
 
 from botocore.config import Config
+from botocore.exceptions import ClientError
 from fabric import Connection
+from retrying import retry
 
 import test.test_utils.ec2 as ec2_utils
 
@@ -38,6 +40,7 @@ from test.test_utils import (
     UBUNTU_HOME_DIR,
     NightlyFeatureLabel,
 )
+from test.test_utils.backoff import RandomExponentialBackoff
 from test.test_utils.imageutils import (
     are_image_labels_matched,
     are_fixture_labels_enabled
@@ -98,11 +101,11 @@ FRAMEWORK_FIXTURES = (
 # Nightly image fixture dictionary, maps nightly fixtures to set of image labels
 NIGHTLY_FIXTURES = {
     "feature_smdebug_present": {
-        NightlyFeatureLabel.AWS_FRAMEWORK_INSTALLED.value, 
+        NightlyFeatureLabel.AWS_FRAMEWORK_INSTALLED.value,
         NightlyFeatureLabel.AWS_SMDEBUG_INSTALLED.value
     },
     "feature_smddp_present": {
-        NightlyFeatureLabel.AWS_FRAMEWORK_INSTALLED.value, 
+        NightlyFeatureLabel.AWS_FRAMEWORK_INSTALLED.value,
         NightlyFeatureLabel.AWS_SMDDP_INSTALLED.value
     },
     "feature_smmp_present": {
@@ -266,8 +269,8 @@ def ei_accelerator_type(request):
     return request.param if hasattr(request, "param") else None
 
 
-@pytest.mark.timeout(300)
 @pytest.fixture(scope="function")
+@retry(RandomExponentialBackoff().generate_wait_time_milliseconds)
 def ec2_instance(
     request,
     ec2_client,
@@ -289,7 +292,7 @@ def ec2_instance(
                 if ec2_instance_ami == AML2_GPU_DLAMI_US_WEST_2
                 else UBUNTU_18_BASE_DLAMI_US_EAST_1
             )
-    
+
     ec2_key_name = f"{ec2_key_name}-{str(uuid.uuid4())}"
     print(f"Creating instance: CI-CD {ec2_key_name}")
     key_filename = test_utils.generate_ssh_keypair(ec2_client, ec2_key_name)

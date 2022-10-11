@@ -14,7 +14,8 @@ from botocore.exceptions import ClientError
 from invoke import run
 
 from test.test_utils import is_pr_context, is_mainline_context, get_synapseai_version_from_tag
-from . import DEFAULT_REGION, UL_AMI_LIST, LOGGER, BENCHMARK_RESULTS_S3_BUCKET
+from test.test_utils import DEFAULT_REGION, UL_AMI_LIST, BENCHMARK_RESULTS_S3_BUCKET
+from test.test_utils.backoff import RandomExponentialBackoff
 
 EC2_INSTANCE_ROLE_NAME = "ec2TestInstanceRole"
 
@@ -27,6 +28,7 @@ HEAVY_INSTANCE_LIST = ["p3dn.24xlarge", "p4d.24xlarge"]
 LOGGER = logging.getLogger(__name__)
 LOGGER.addHandler(logging.StreamHandler(sys.stdout))
 LOGGER.setLevel(logging.INFO)
+
 
 def filter_only_multi_gpu(instance_type_list):
     filtered_list = [
@@ -108,6 +110,7 @@ def get_ec2_accelerator_type(default, processor):
     return [accelerator_type]
 
 
+@retry(RandomExponentialBackoff().generate_wait_time_milliseconds)
 def launch_instance(
     ami_id,
     instance_type,
@@ -449,7 +452,7 @@ def get_ec2_fabric_connection(instance_id, instance_pem_file, region):
     """
     user = get_instance_user(instance_id, region=region)
     conn = Connection(
-        user=user, host=get_public_ip(instance_id, region), connect_kwargs={"key_filename": [instance_pem_file]}, connect_timeout=18000, 
+        user=user, host=get_public_ip(instance_id, region), connect_kwargs={"key_filename": [instance_pem_file]}, connect_timeout=18000,
     )
     return conn
 
@@ -463,7 +466,7 @@ def get_ec2_instance_tags(instance_id, region=DEFAULT_REGION, ec2_client=None):
 def enforce_IMDSv2(instance_id, region=DEFAULT_REGION, ec2_client=None, hop_limit = 1):
     """
     Enabled HTTP TOKENS required option on EC2 instance with given hop limit.
-    
+
     :param instance_id: str, ec2 instance id
     :param region: str, Region where ec2 instance is launched.
     :param ec2_client: str, ec2 client.
@@ -504,7 +507,7 @@ def enforce_IMDSv2(instance_id, region=DEFAULT_REGION, ec2_client=None, hop_limi
 def fetch_s3_file_and_get_last_line(s3_location, local_filename="temp.txt"):
     """
     Fetches the s3 file locally and extracts its last line.
-    
+
     :param s3_location: str, s3 uri
     :param local_filename: str, location where s3 file is to be downloaded locally.
     :return: str, The last line of the file
@@ -573,7 +576,7 @@ def execute_asynchronus_testing_using_s3_bucket(
                 )
                 break
         LOGGER.info(f"Uploaded file to {s3_location} for {loop_count} number of times")
-    
+
     if not last_line_of_log.endswith(required_log_ending):
         raise ValueError(
             f""" Test failed because the last row is not as expected. \n"""
@@ -755,7 +758,7 @@ def execute_ec2_habana_training_performance_test(
         f"{container_runtime} {ompi_mca_btl} {hpu_env_vars} {cap_add} {ipc} " \
         f"-v {container_test_local_dir}:{os.path.join(os.sep, 'test')} -v {habana_container_test_repo} " \
         f"{ecr_uri} {os.path.join(os.sep, 'bin', 'bash')} -c '{test_cmd}'"
-    
+
     framework = "tensorflow" if "tensorflow" in ecr_uri else "pytorch" if "pytorch" in ecr_uri else None
     account_id_prefix = os.getenv("ACCOUNT_ID", boto3.client("sts").get_caller_identity()["Account"])[:3]
     s3_bucket_for_permanent_logs = f"dlinfra-habana-tests-{account_id_prefix}"
