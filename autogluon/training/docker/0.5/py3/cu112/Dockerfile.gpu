@@ -47,7 +47,7 @@ RUN rm -rf /usr/local/lib/python3.8/dist-packages/gluonts/nursery/tsbench
 RUN rm -rf /usr/local/lib/python3.8/dist-packages/ray/jars
 
 # Updating SageMaker to address security
-RUN pip install -U sagemaker
+RUN pip install -U "sagemaker<2.113,>=2.112.2"
 
 RUN HOME_DIR=/root \
  && curl -o ${HOME_DIR}/oss_compliance.zip https://aws-dlinfra-utilities.s3.amazonaws.com/oss_compliance.zip \
