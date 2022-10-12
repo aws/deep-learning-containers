@@ -33,7 +33,7 @@ ARG PYTHON=python3.9
 ARG PYTHON_PIP=python3-pip
 ARG PIP=pip3
 ARG PYTHON_VERSION=3.9.10
-ARG TFS_URL=https://framework-binaries.s3.us-west-2.amazonaws.com/tensorflow_serving/r2.9_aws/gpu/2022-06-15-15-24/tensorflow_model_server
+ARG TFS_URL=https://framework-binaries.s3.us-west-2.amazonaws.com/tensorflow_serving/r2.9_aws/gpu/2022-10-03-20-54/tensorflow_model_server
 
 # ENV variable to be pased to SageMaker stage
 ENV PIP=${PIP}
