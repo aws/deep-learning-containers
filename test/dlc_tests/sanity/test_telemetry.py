@@ -155,7 +155,7 @@ def _run_s3_query_bucket_success(image_uri, ec2_client, ec2_instance, ec2_connec
     container_type = test_utils.get_job_type_from_image(image_uri)
     container_name = f"{repo_name}-telemetry_s3_query_success-ec2"
 
-    if 'mxnet' in container_type:
+    if 'mxnet' in framework:
         # import mxnet sends container_type as training for inference images as well
         container_type = "training"
 
