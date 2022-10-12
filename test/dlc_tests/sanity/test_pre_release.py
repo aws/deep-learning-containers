@@ -665,8 +665,20 @@ def test_pip_check(image):
     # existing TF installation. https://github.com/tensorflow/models/issues/9267. This package in turn brings in
     # tensorflow-text. Skip checking these two packages as this is an upstream issue.
     if framework == "tensorflow" and Version(framework_version) in SpecifierSet(">=2.9.1"):
-        allowed_tf29_exception = re.compile(rf"^(tf-models-official 2.9.1|tensorflow-text 2.9.0) requires tensorflow, which is not installed.")
-        allowed_exception_list.append(allowed_tf29_exception)
+        exception_strings = []
+        models_versions = ["2.9.1", "2.9.2", "2.10.0"]
+        for ex_ver in models_versions:
+            exception_strings += [f"tf-models-official {ex_ver}".replace(".", "\.")]
+        text_versions = ["2.9.0", "2.10.0"]
+        for ex_ver in text_versions:
+            exception_strings += [f"tensorflow-text {ex_ver}".replace(".", "\.")]
+        allowed_tf_models_text_exception = re.compile(
+                rf"^({'|'.join(exception_strings)}) requires tensorflow, which is not installed.")
+        allowed_exception_list.append(allowed_tf_models_text_exception)
+
+        allowed_tf_models_text_compatibility_exception = re.compile(
+                rf"tf-models-official 2.9.2 has requirement tensorflow-text~=2.9.0, but you have tensorflow-text 2.10.0.")
+        allowed_exception_list.append(allowed_tf_models_text_compatibility_exception)
 
     # Add null entrypoint to ensure command exits immediately
     output = ctx.run(

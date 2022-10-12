@@ -13,6 +13,7 @@ from test.test_utils import LOGGER, ecr as ecr_utils
 import dataclasses
 from dataclasses import dataclass
 from typing import Any, List
+from pathlib import Path
 
 
 @dataclass
@@ -32,15 +33,13 @@ class VulnerablePackageDetails:
         self,
         name: str,
         version: str,
-        filePath: str = None,
-        packageManager: str = None,
         release: str = None,
         *args: Any,
         **kwargs: Any,
     ):
-        self.file_path = filePath
+        self.file_path = kwargs.get("filePath") or kwargs.get("file_path")
         self.name = name
-        self.package_manager = packageManager
+        self.package_manager = kwargs.get("packageManager") or kwargs.get("package_manager")
         self.version = version
         self.release = release
 
@@ -74,7 +73,6 @@ class AllowListFormatVulnerabilityForEnhancedScan:
     def __init__(
         self,
         description: str,
-        # packageVulnerabilityDetails: dict,
         remediation: dict,
         severity: str,
         status: str,
@@ -87,7 +85,7 @@ class AllowListFormatVulnerabilityForEnhancedScan:
         self.vulnerability_id = packageVulnerabilityDetails["vulnerabilityId"] if packageVulnerabilityDetails else kwargs["vulnerability_id"]
         self.name = packageVulnerabilityDetails["vulnerabilityId"] if packageVulnerabilityDetails else kwargs["name"]
         self.package_name = None if packageVulnerabilityDetails else kwargs["package_name"]
-        self.package_details = None if packageVulnerabilityDetails else kwargs["package_details"]
+        self.package_details = None if packageVulnerabilityDetails else VulnerablePackageDetails(**kwargs["package_details"])
         self.remediation = remediation
         self.source_url = packageVulnerabilityDetails["sourceUrl"] if packageVulnerabilityDetails else kwargs["source_url"]
         self.source = packageVulnerabilityDetails["source"] if packageVulnerabilityDetails else kwargs["source"]
@@ -511,6 +509,17 @@ class ECREnhancedScanVulnerabilityList(ScanVulnerabilityList):
         :return: bool True if the two input objects are equivalent, False otherwise
         """
         return vulnerability_1 == vulnerability_2
+    
+    def get_summarized_info(self):
+        """
+        Gets summarized info regarding all the packages vulnerability_list and all the vulenrability IDs corresponding to them.
+        """
+        summarized_list = []
+        for package_name, vulnerabilities in self.vulnerability_list.items():
+            for vulnerability in vulnerabilities:
+                summarized_list.append((package_name, vulnerability.vulnerability_id, vulnerability.severity))
+        summarized_list = sorted(list(set(summarized_list)))
+        return summarized_list
 
 
 def get_ecr_vulnerability_package_version(vulnerability):
@@ -539,7 +548,15 @@ def get_ecr_scan_allowlist_path(image_uri):
     # Each example image (tied to CUDA version/OS version/other variants) can have its own list of vulnerabilities,
     # which means that we cannot have just a single allowlist for all example images for any framework version.
     if "example" in image_uri:
-        image_scan_allowlist_path = dockerfile_location + ".example.os_scan_allowlist.json"
+        # The extracted dockerfile_location in case of example image points to the base gpu image on top of which the
+        # example image was built. The dockerfile_location looks like 
+        # tensorflow/training/docker/2.7/py3/cu112/Dockerfile.ec2.gpu.example.os_scan_allowlist.json
+        # We want to change the parent folder such that it points from cu112 folder to example folder and
+        # looks like tensorflow/training/docker/2.7/py3/example/Dockerfile.gpu.example.os_scan_allowlist.json
+        dockerfile_location = dockerfile_location.replace(".ec2.",".")
+        base_gpu_image_path = Path(dockerfile_location)
+        image_scan_allowlist_path = os.path.join(str(base_gpu_image_path.parent.parent), "example", base_gpu_image_path.name)
+        image_scan_allowlist_path += ".example.os_scan_allowlist.json"
     return image_scan_allowlist_path
 
 
