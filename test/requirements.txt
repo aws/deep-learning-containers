@@ -11,6 +11,7 @@ sagemaker>=2,<3
 xmltodict
 boto3
 retrying
+tenacity
 gitpython
 pytz
 toml

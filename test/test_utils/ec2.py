@@ -7,19 +7,20 @@ import logging
 import sys
 import uuid
 
-from retrying import retry
-from fabric import Connection
 from botocore.config import Config
 from botocore.exceptions import ClientError
+from fabric import Connection
 from invoke import run
+from tenacity import retry, stop_after_attempt, stop_after_delay, wait_exponential_jitter, wait_fixed
 
 from test.test_utils import is_pr_context, is_mainline_context, get_synapseai_version_from_tag
 from test.test_utils import DEFAULT_REGION, UL_AMI_LIST, BENCHMARK_RESULTS_S3_BUCKET
-from test.test_utils.backoff import RandomExponentialBackoff
+
+INSTANCE_CREATION_MAX_DELAY = 40 * 60 * 1000  # 40 min
 
 EC2_INSTANCE_ROLE_NAME = "ec2TestInstanceRole"
 
-# List of instance types for which if instance spin-up fails, the test is skipped instead of failing.
+# List of instance types for which, if instance spin-up fails, the test is skipped instead of failing.
 ICE_SKIP_INSTANCE_LIST = ["p3dn.24xlarge"]
 
 # List of instance types which are too powerful for minor tests
@@ -110,7 +111,7 @@ def get_ec2_accelerator_type(default, processor):
     return [accelerator_type]
 
 
-@retry(RandomExponentialBackoff().generate_wait_time_milliseconds)
+@retry(stop=stop_after_delay(INSTANCE_CREATION_MAX_DELAY), wait_func=wait_exponential_jitter)
 def launch_instance(
     ami_id,
     instance_type,
@@ -203,7 +204,7 @@ def get_instance_from_id(instance_id, region=DEFAULT_REGION):
     return instance["Reservations"][0]["Instances"][0]
 
 
-@retry(stop_max_attempt_number=16, wait_fixed=60000)
+@retry(stop=stop_after_attempt(16), wait=wait_fixed(60000))
 def get_public_ip(instance_id, region=DEFAULT_REGION):
     """
     Get Public IP of instance using instance ID
@@ -217,7 +218,7 @@ def get_public_ip(instance_id, region=DEFAULT_REGION):
     return instance["PublicIpAddress"]
 
 
-@retry(stop_max_attempt_number=16, wait_fixed=60000)
+@retry(stop=stop_after_attempt(16), wait=wait_fixed(60000))
 def get_public_ip_from_private_dns(private_dns, region=DEFAULT_REGION):
     """
     Get Public IP of instance using private DNS
@@ -230,7 +231,7 @@ def get_public_ip_from_private_dns(private_dns, region=DEFAULT_REGION):
     return response.get("Reservations")[0].get("Instances")[0].get("PublicIpAddress")
 
 
-@retry(stop_max_attempt_number=16, wait_fixed=60000)
+@retry(stop=stop_after_attempt(16), wait=wait_fixed(60000))
 def get_instance_user(instance_id, region=DEFAULT_REGION):
     """
     Get "ubuntu" or "ec2-user" based on AMI used to launch instance
@@ -254,7 +255,7 @@ def get_instance_state(instance_id, region=DEFAULT_REGION):
     return instance["State"]["Name"]
 
 
-@retry(stop_max_attempt_number=16, wait_fixed=60000)
+@retry(stop=stop_after_attempt(16), wait=wait_fixed(60000))
 def check_instance_state(instance_id, state="running", region=DEFAULT_REGION):
     """
     Compares the instance state with the state argument.
@@ -307,7 +308,7 @@ def get_system_state(instance_id, region=DEFAULT_REGION):
     )
 
 
-@retry(stop_max_attempt_number=96, wait_fixed=10000)
+@retry(stop=stop_after_attempt(96), wait=wait_fixed(10000))
 def check_system_state(instance_id, system_status="ok", instance_status="ok", region=DEFAULT_REGION):
     """
     Compares the system state (Health Checks).
@@ -384,7 +385,7 @@ def get_instance_details(instance_id, region=DEFAULT_REGION):
     return get_instance_type_details(instance["InstanceType"], region=region)
 
 
-@retry(stop_max_attempt_number=30, wait_fixed=10000)
+@retry(stop=stop_after_attempt(30), wait=wait_fixed(10000))
 def get_instance_num_cpus(instance_id, region=DEFAULT_REGION):
     """
     Get number of VCPUs on instance with given instance ID
@@ -396,7 +397,7 @@ def get_instance_num_cpus(instance_id, region=DEFAULT_REGION):
     return instance_info["VCpuInfo"]["DefaultVCpus"]
 
 
-@retry(stop_max_attempt_number=30, wait_fixed=10000)
+@retry(stop=stop_after_attempt(30), wait=wait_fixed(10000))
 def get_instance_memory(instance_id, region=DEFAULT_REGION):
     """
     Get total RAM available on instance with given instance ID
@@ -407,7 +408,8 @@ def get_instance_memory(instance_id, region=DEFAULT_REGION):
     instance_info = get_instance_details(instance_id, region=region)
     return instance_info["MemoryInfo"]["SizeInMiB"]
 
-@retry(stop_max_attempt_number=30, wait_fixed=10000)
+
+@retry(stop=stop_after_attempt(30), wait=wait_fixed(10000))
 def get_instance_num_inferentias(instance_id=None, instance_type=None, region=DEFAULT_REGION):
     """
     Get total number of neurons on instance with given instance ID
@@ -424,7 +426,8 @@ def get_instance_num_inferentias(instance_id=None, instance_type=None, region=DE
     )
     return sum(neuron_type["Count"] for neuron_type in instance_info["InferenceAcceleratorInfo"]["Accelerators"] if neuron_type["Name"]=="Inferentia")
 
-@retry(stop_max_attempt_number=30, wait_fixed=10000)
+
+@retry(stop=stop_after_attempt(30), wait=wait_fixed(10000))
 def get_instance_num_gpus(instance_id=None, instance_type=None, region=DEFAULT_REGION):
     """
     Get total number of GPUs on instance with given instance ID

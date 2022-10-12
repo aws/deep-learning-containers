@@ -14,6 +14,7 @@ from botocore.config import Config
 from botocore.exceptions import ClientError
 from fabric import Connection
 from retrying import retry
+from tenacity import retry, stop_after_delay, wait_exponential_jitter
 
 import test.test_utils.ec2 as ec2_utils
 
@@ -270,7 +271,7 @@ def ei_accelerator_type(request):
 
 
 @pytest.fixture(scope="function")
-@retry(RandomExponentialBackoff().generate_wait_time_milliseconds)
+@retry(stop=stop_after_delay(ec2_utils.INSTANCE_CREATION_MAX_DELAY), wait_func=wait_exponential_jitter)
 def ec2_instance(
     request,
     ec2_client,
@@ -368,7 +369,7 @@ def ec2_instance(
                 continue
     else:
         try:
-            instances = ec2_resource.create_instances(**params)
+            instances = _create_instance_helper(ec2_resource)
         except ClientError as e:
             if e.response["Error"]["Code"] == "InsufficientInstanceCapacity":
                 LOGGER.warning(f"Failed to launch {ec2_instance_type} in {region} because of insufficient capacity")
@@ -386,6 +387,11 @@ def ec2_instance(
     ec2_utils.check_instance_state(instance_id, state="running", region=region)
     ec2_utils.check_system_state(instance_id, system_status="ok", instance_status="ok", region=region)
     return instance_id, key_filename
+
+
+@retry(stop=stop_after_delay(ec2_utils.INSTANCE_CREATION_MAX_DELAY), wait_func=wait_exponential_jitter)
+def _create_instance_helper(ec2_resource, **kwargs):
+    return ec2_resource.create_instances(**kwargs)
 
 
 def is_neuron_image(fixtures):
