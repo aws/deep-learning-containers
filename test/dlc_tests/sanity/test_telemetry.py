@@ -62,7 +62,12 @@ def test_telemetry_instance_tag_failure_neuron(neuron, ec2_client, ec2_instance,
 def test_telemetry_instance_tag_success_gpu(gpu, ec2_client, ec2_instance, ec2_connection, non_huggingface_only, non_autogluon_only):
     _run_tag_success_IMDSv1(gpu, ec2_client, ec2_instance, ec2_connection)
     _run_tag_success_IMDSv2_hop_limit_2(gpu, ec2_client, ec2_instance, ec2_connection)
+    framework, _ = test_utils.get_framework_and_version_from_tag(gpu)
+    container_type = test_utils.get_job_type_from_image(gpu)
+    if 'inference' in container_type and 'tensorflow' in framework:
+        pytest.skip("TensorFlow inference doesn't have tensorflow package to do a import tensorflow.")
     _run_s3_query_bucket_success(gpu, ec2_client, ec2_instance, ec2_connection)
+
 
 @pytest.mark.usefixtures("feature_aws_framework_present")
 @pytest.mark.usefixtures("sagemaker")
@@ -73,6 +78,10 @@ def test_telemetry_instance_tag_success_gpu(gpu, ec2_client, ec2_instance, ec2_c
 def test_telemetry_instance_tag_success_cpu(cpu, ec2_client, ec2_instance, ec2_connection, cpu_only, non_huggingface_only, non_autogluon_only, x86_compatible_only):
     _run_tag_success_IMDSv1(cpu, ec2_client, ec2_instance, ec2_connection)
     _run_tag_success_IMDSv2_hop_limit_2(cpu, ec2_client, ec2_instance, ec2_connection)
+    framework, _ = test_utils.get_framework_and_version_from_tag(cpu)
+    container_type = test_utils.get_job_type_from_image(cpu)
+    if 'inference' in container_type and 'tensorflow' in framework:
+        pytest.skip("TensorFlow inference doesn't have tensorflow package to do a import tensorflow.")
     _run_s3_query_bucket_success(cpu, ec2_client, ec2_instance, ec2_connection)
 
 
@@ -85,6 +94,10 @@ def test_telemetry_instance_tag_success_cpu(cpu, ec2_client, ec2_instance, ec2_c
 def test_telemetry_instance_tag_success_graviton_cpu(cpu, ec2_client, ec2_instance, ec2_connection, graviton_compatible_only):
     _run_tag_success_IMDSv1(cpu, ec2_client, ec2_instance, ec2_connection)
     _run_tag_success_IMDSv2_hop_limit_2(cpu, ec2_client, ec2_instance, ec2_connection)
+    framework, _ = test_utils.get_framework_and_version_from_tag(cpu)
+    container_type = test_utils.get_job_type_from_image(cpu)
+    if 'inference' in container_type and 'tensorflow' in framework:
+        pytest.skip("TensorFlow inference doesn't have tensorflow package to do a import tensorflow.")
     _run_s3_query_bucket_success(cpu, ec2_client, ec2_instance, ec2_connection)
 
 @pytest.mark.usefixtures("sagemaker")
@@ -141,6 +154,10 @@ def _run_s3_query_bucket_success(image_uri, ec2_client, ec2_instance, ec2_connec
     processor = test_utils.get_processor_from_image_uri(image_uri)
     container_type = test_utils.get_job_type_from_image(image_uri)
     container_name = f"{repo_name}-telemetry_s3_query_success-ec2"
+
+    if 'mxnet' in container_type:
+        # import mxnet sends container_type as training for inference images as well
+        container_type = "training"
 
     docker_cmd = "nvidia-docker" if processor == "gpu" else "docker"
     test_utils.login_to_ecr_registry(ec2_connection, account_id, image_region)
@@ -263,10 +280,6 @@ def _run_tag_failure_IMDSv2_disabled_as_hop_limit_1(image_uri, ec2_client, ec2_i
 
     ec2_utils.enforce_IMDSv2(ec2_instance_id)
 
-    res = ec2_client.describe_instances(InstanceIds=[ec2_instance_id])
-    if res:
-        metadata_options = res['Reservations'][0]['Instances'][0]['MetadataOptions']
-        LOGGER.info(metadata_options)
     if expected_tag_key in preexisting_ec2_instance_tags:
         ec2_client.delete_tags(Resources=[ec2_instance_id], Tags=[{"Key": expected_tag_key}])
     import_framework(image_uri, container_name, docker_cmd, framework, job_type, ec2_connection)
@@ -331,17 +344,14 @@ def import_framework(image_uri, container_name, docker_cmd, framework, job_type,
         ec2_connection.run(f"{docker_cmd} run --name {container_name} -id {image_uri} bash")
         if test_mode:
             ec2_connection.run(
-                f"{docker_cmd} exec -i -e TEST_MODE={test_mode} {container_name} python -c 'import mxnet; import time; time.sleep(5);'",
-                warn=True
+                f"{docker_cmd} exec -i -e TEST_MODE={test_mode} {container_name} python -c 'import {framework_to_import}; import time; time.sleep(5);'"
             )
             output = ec2_connection.run(
-                f"{docker_cmd} exec -i {container_name} /bin/bash -c 'cat /tmp/test_request.txt'",
-                warn=True
+                f"{docker_cmd} exec -i {container_name} /bin/bash -c 'cat /tmp/test_request.txt'"
             ).stdout.strip('\n')
         else:
             output = ec2_connection.run(
-                f"{docker_cmd} exec -i {container_name} python -c 'import {framework_to_import}; import time; time.sleep(5)'",
-                warn=True
+                f"{docker_cmd} exec -i {container_name} python -c 'import {framework_to_import}; import time; time.sleep(5)'"
             )
             assert output.ok, f"'import {framework_to_import}' fails when credentials not configured"
 
