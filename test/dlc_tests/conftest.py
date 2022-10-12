@@ -13,8 +13,7 @@ import uuid
 from botocore.config import Config
 from botocore.exceptions import ClientError
 from fabric import Connection
-from retrying import retry
-from tenacity import retry, stop_after_delay, wait_exponential_jitter
+from tenacity import retry, stop_after_delay, wait_random_exponential
 
 import test.test_utils.ec2 as ec2_utils
 
@@ -271,7 +270,6 @@ def ei_accelerator_type(request):
 
 
 @pytest.fixture(scope="function")
-@retry(stop=stop_after_delay(ec2_utils.INSTANCE_CREATION_MAX_DELAY), wait_func=wait_exponential_jitter)
 def ec2_instance(
     request,
     ec2_client,
@@ -389,7 +387,7 @@ def ec2_instance(
     return instance_id, key_filename
 
 
-@retry(stop=stop_after_delay(ec2_utils.INSTANCE_CREATION_MAX_DELAY), wait_func=wait_exponential_jitter)
+@retry(stop=stop_after_delay(ec2_utils.INSTANCE_CREATION_MAX_DELAY), wait=wait_random_exponential)
 def _create_instance_helper(ec2_resource, **kwargs):
     return ec2_resource.create_instances(**kwargs)
 
