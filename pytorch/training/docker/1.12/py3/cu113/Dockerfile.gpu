@@ -74,6 +74,9 @@ ENV MANUAL_BUILD=0
 ENV RDMAV_FORK_SAFE=1
 ENV DLC_CONTAINER_TYPE=training
 
+ENV GDRCOPY_VERSION=2.3
+ENV GDRCOPY_DISPLAY_DRIVER_VERSION=510
+
 RUN apt-get update \
  # TODO: Remove systemd upgrade once it is updated in base image
  && apt-get -y upgrade --only-upgrade systemd \
@@ -81,6 +84,7 @@ RUN apt-get update \
     build-essential \
     ca-certificates \
     cmake \
+    nvidia-driver-${GDRCOPY_DISPLAY_DRIVER_VERSION} \
     cuda-command-line-tools-11-3 \
     cuda-cudart-11-3 \
     cuda-libraries-11-3 \
@@ -379,8 +383,6 @@ ARG PT_TORCHAUDIO_URL
 ARG PT_TORCHDATA_URL
 ARG PT_S3_WHL_GPU
 
-ENV GDRCOPY_VERSION=2.3
-
 # Install AWS-PyTorch and other torch packages
 RUN pip uninstall -y torch torchvision torchaudio torchdata \
  && pip install --no-cache-dir -U ${PT_SM_TRAINING_URL} ${PT_TORCHVISION_URL} ${PT_TORCHAUDIO_URL} ${PT_TORCHDATA_URL} torchnet
@@ -450,15 +452,15 @@ RUN pip uninstall -y horovod \
 RUN mkdir /tmp/gdrcopy \
  && cd /tmp/gdrcopy \
  && apt-get update \
- && apt-get install -y check libsubunit0 libsubunit-dev devscripts debhelper fakeroot pkg-config dkms nvidia-dkms-510 \
+ && apt-get install -y check libsubunit0 libsubunit-dev devscripts debhelper fakeroot pkg-config dkms nvidia-dkms-${GDRCOPY_DISPLAY_DRIVER_VERSION} \
  && wget https://github.com/NVIDIA/gdrcopy/archive/refs/tags/v${GDRCOPY_VERSION}.tar.gz \
  && tar -xf v${GDRCOPY_VERSION}.tar.gz \
  && cd gdrcopy-${GDRCOPY_VERSION}/packages \
  && CUDA=/usr/local/cuda ./build-deb-packages.sh \
- && sudo dpkg -i gdrdrv-dkms_${GDRCOPY_VERSION}-1_amd64.Ubuntu20_04.deb \
- && sudo dpkg -i libgdrapi_${GDRCOPY_VERSION}-1_amd64.Ubuntu20_04.deb \
- && sudo dpkg -i gdrcopy-tests_${GDRCOPY_VERSION}-1_amd64.Ubuntu20_04.deb \ 
- && sudo dpkg -i gdrcopy_${GDRCOPY_VERSION}-1_amd64.Ubuntu20_04.deb 
+ && dpkg -i gdrdrv-dkms_${GDRCOPY_VERSION}-1_amd64.Ubuntu20_04.deb \
+ && dpkg -i libgdrapi_${GDRCOPY_VERSION}-1_amd64.Ubuntu20_04.deb \
+ && dpkg -i gdrcopy-tests_${GDRCOPY_VERSION}-1_amd64.Ubuntu20_04.deb \
+ && dpkg -i gdrcopy_${GDRCOPY_VERSION}-1_amd64.Ubuntu20_04.deb
 
 # Install PT S3 plugin
 RUN pip install --no-cache-dir -U ${PT_S3_WHL_GPU}
