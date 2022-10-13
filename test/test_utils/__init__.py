@@ -443,6 +443,17 @@ def is_dlc_cicd_context():
     return os.getenv("BUILD_CONTEXT") in ["PR", "CANARY", "NIGHTLY", "MAINLINE"]
 
 
+def is_not_dlc_image_type():
+    try:
+        return os.getenv("NOT_DLC").lower() == "true"
+    except:
+        return False
+
+
+def get_allowlist_path_for_enhanced_scan_from_env_variable():
+    return os.getenv("ALLOWLIST_PATH_ENHSCAN")
+
+
 def is_benchmark_dev_context():
     return config.is_benchmark_mode_enabled()
 
