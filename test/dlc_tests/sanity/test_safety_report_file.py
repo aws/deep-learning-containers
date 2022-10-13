@@ -106,7 +106,7 @@ def test_safety_file_exists_and_is_valid(image):
 
 
 @pytest.mark.model("N/A")
-def test_safety_package_installed(image):
+def test_safety_package_not_installed(image):
     """
     We do not ship safety within DLCs. This test confirms that safety is not installed in the image.
     """
