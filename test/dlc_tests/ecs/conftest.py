@@ -9,7 +9,7 @@ from tenacity import retry, stop_after_delay, wait_random_exponential
 import test.test_utils.ecs as ecs_utils
 
 from test import test_utils
-from test.test_utils.ec2 import INSTANCE_CREATE_MAX_WAIT_SECONDS
+from test.test_utils.ec2 import INSTANCE_CREATE_MAX_WAIT_SECONDS, INSTANCE_CREATE_MAX_RETRY_PERIOD_SECONDS
 
 
 @pytest.fixture(scope="session")
@@ -168,7 +168,7 @@ def ecs_container_instance(
 @retry(
     reraise=True,
     stop=stop_after_delay(INSTANCE_CREATE_MAX_WAIT_SECONDS),
-    wait=wait_random_exponential(multiplier=0.001, max=INSTANCE_CREATE_MAX_WAIT_SECONDS / 2),
+    wait=wait_random_exponential(multiplier=0.001, max=INSTANCE_CREATE_MAX_RETRY_PERIOD_SECONDS),
 )
 def _run_instances(ec2_client, params):
     """

@@ -389,7 +389,7 @@ def ec2_instance(
 @retry(
     reraise=True,
     stop=stop_after_delay(ec2_utils.INSTANCE_CREATE_MAX_WAIT_SECONDS),
-    wait=wait_random_exponential(multiplier=0.001, max=ec2_utils.INSTANCE_CREATE_MAX_WAIT_SECONDS / 2),
+    wait=wait_random_exponential(multiplier=0.001, max=ec2_utils.INSTANCE_CREATE_MAX_RETRY_PERIOD_SECONDS),
 )
 def _create_instance_helper(ec2_resource, params):
     """

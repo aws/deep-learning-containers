@@ -16,7 +16,8 @@ from tenacity import retry, stop_after_attempt, stop_after_delay, wait_fixed, wa
 from test.test_utils import is_pr_context, is_mainline_context, get_synapseai_version_from_tag
 from test.test_utils import DEFAULT_REGION, UL_AMI_LIST, BENCHMARK_RESULTS_S3_BUCKET
 
-INSTANCE_CREATE_MAX_WAIT_SECONDS = 40 * 60  # 40 min
+INSTANCE_CREATE_MAX_WAIT_SECONDS = 2 * 60 * 60  # 2 hrs
+INSTANCE_CREATE_MAX_RETRY_PERIOD_SECONDS = 15 * 60  # 15 min
 
 EC2_INSTANCE_ROLE_NAME = "ec2TestInstanceRole"
 
@@ -185,7 +186,7 @@ def launch_instance(
 @retry(
     reraise=True,
     stop=stop_after_delay(INSTANCE_CREATE_MAX_WAIT_SECONDS),
-    wait=wait_random_exponential(multiplier=0.001, max=INSTANCE_CREATE_MAX_WAIT_SECONDS / 2),
+    wait=wait_random_exponential(multiplier=0.001, max=INSTANCE_CREATE_MAX_RETRY_PERIOD_SECONDS),
 )
 def _run_instances(ec2_client, params):
     """
