@@ -34,6 +34,7 @@ def validate_or_skip_gdrcopy(ecr_image):
         pytest.skip("GDRCopy is supported on CUDA 113 on PyTorch v1.12.1 and above")
 
 
+@pytest.mark.model("N/A")
 @pytest.mark.processor("gpu")
 @pytest.mark.integration("gdrcopy")
 @pytest.mark.parametrize('instance_types', ["ml.p4d.24xlarge"])
