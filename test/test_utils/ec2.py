@@ -16,7 +16,7 @@ from tenacity import retry, stop_after_attempt, stop_after_delay, wait_fixed, wa
 from test.test_utils import is_pr_context, is_mainline_context, get_synapseai_version_from_tag
 from test.test_utils import DEFAULT_REGION, UL_AMI_LIST, BENCHMARK_RESULTS_S3_BUCKET
 
-INSTANCE_CREATION_MAX_DELAY = 40 * 60  # 40 min
+INSTANCE_CREATE_MAX_WAIT_SECONDS = 40 * 60  # 40 min
 
 EC2_INSTANCE_ROLE_NAME = "ec2TestInstanceRole"
 
@@ -111,7 +111,10 @@ def get_ec2_accelerator_type(default, processor):
     return [accelerator_type]
 
 
-@retry(stop=stop_after_delay(INSTANCE_CREATION_MAX_DELAY), wait=wait_random_exponential)
+@retry(
+    stop=stop_after_delay(INSTANCE_CREATE_MAX_WAIT_SECONDS),
+    wait=wait_random_exponential(multiplier=0.001, max=INSTANCE_CREATE_MAX_WAIT_SECONDS / 2),
+)
 def launch_instance(
     ami_id,
     instance_type,

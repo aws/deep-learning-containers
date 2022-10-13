@@ -387,7 +387,10 @@ def ec2_instance(
     return instance_id, key_filename
 
 
-@retry(stop=stop_after_delay(ec2_utils.INSTANCE_CREATION_MAX_DELAY), wait=wait_random_exponential)
+@retry(
+    stop=stop_after_delay(ec2_utils.INSTANCE_CREATE_MAX_WAIT_SECONDS),
+    wait=wait_random_exponential(multiplier=0.001, max=ec2_utils.INSTANCE_CREATE_MAX_WAIT_SECONDS / 2),
+)
 def _create_instance_helper(ec2_resource, **kwargs):
     return ec2_resource.create_instances(**kwargs)
 
