@@ -6,8 +6,10 @@ import boto3
 from botocore.exceptions import ClientError
 from tenacity import retry, stop_after_delay, wait_random_exponential
 
-from test import test_utils
 import test.test_utils.ecs as ecs_utils
+
+from test import test_utils
+from test.test_utils.ec2 import INSTANCE_CREATE_MAX_WAIT_SECONDS
 
 
 @pytest.fixture(scope="session")
@@ -80,7 +82,6 @@ def ecs_instance_type(request):
     return request.param
 
 
-@pytest.mark.timeout(300)
 @pytest.fixture(scope="function")
 def ecs_container_instance(
     request, ecs_cluster, ec2_client, ecs_client, ecs_instance_type, ecs_ami, region, ei_accelerator_type
