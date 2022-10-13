@@ -41,7 +41,7 @@ def validate_or_skip_gdrcopy(ecr_image):
 @pytest.mark.skip_cpu
 @pytest.mark.skip_py2_containers
 @pytest.mark.efa()
-def test_gdr_copy():
+def test_gdr_copy(framework_version, ecr_image, sagemaker_regions, instance_types):
     with timeout(minutes=DEFAULT_TIMEOUT):
         validate_or_skip_gdrcopy(ecr_image)
         hyperparameters = {
