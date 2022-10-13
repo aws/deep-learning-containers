@@ -69,6 +69,7 @@ RUN apt-get update \
     # remove libsasl2-2 after Nvidia docker upstream fix CVE-2022-24407
     libsasl2-2 \
     libgnutls30=3.6.13-2ubuntu1.7 \
+    libpcre2-8-0=10.34-7ubuntu0.1 \
  && apt-get clean \
  && rm -rf /var/lib/apt/lists/*
 
