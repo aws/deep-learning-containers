@@ -111,10 +111,6 @@ def get_ec2_accelerator_type(default, processor):
     return [accelerator_type]
 
 
-@retry(
-    stop=stop_after_delay(INSTANCE_CREATE_MAX_WAIT_SECONDS),
-    wait=wait_random_exponential(multiplier=0.001, max=INSTANCE_CREATE_MAX_WAIT_SECONDS / 2),
-)
 def launch_instance(
     ami_id,
     instance_type,
@@ -166,14 +162,14 @@ def launch_instance(
         for a_zone in availability_zones[region]:
             arguments_dict["Placement"] = {"AvailabilityZone": a_zone}
             try:
-                response = client.run_instances(**arguments_dict)
+                response = _run_instances(client, arguments_dict)
                 if response and len(response["Instances"]) >= 1:
                     break
             except ClientError as e:
                 print(f"Failed to launch in {a_zone} with Error: {e}")
                 continue
     else:
-        response = client.run_instances(**arguments_dict)
+        response = _run_instances(client, arguments_dict)
 
     if not response or len(response["Instances"]) < 1:
         raise Exception(
@@ -182,6 +178,22 @@ def launch_instance(
         )
 
     return response["Instances"][0]
+
+
+@retry(
+    reraise=True,
+    stop=stop_after_delay(INSTANCE_CREATE_MAX_WAIT_SECONDS),
+    wait=wait_random_exponential(multiplier=0.001, max=INSTANCE_CREATE_MAX_WAIT_SECONDS / 2),
+)
+def _run_instances(ec2_client, params):
+    """
+    Helper function that can be independently retried without re-creating resources such as key-pairs.
+
+    :param ec2_client: boto3.Client object for EC2
+    :param params: dict Keyword Parameters to be passed to the run_instances function
+    :return: dict object returned by run_instances function
+    """
+    return ec2_client.run_instances(**params)
 
 
 def get_ec2_client(region):

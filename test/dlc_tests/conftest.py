@@ -359,7 +359,7 @@ def ec2_instance(
         for a_zone in availability_zones[region]:
             params["Placement"] = {"AvailabilityZone": a_zone}
             try:
-                instances = ec2_resource.create_instances(**params)
+                instances = _create_instance_helper(ec2_resource, params)
                 if instances:
                     break
             except ClientError as e:
@@ -367,7 +367,7 @@ def ec2_instance(
                 continue
     else:
         try:
-            instances = _create_instance_helper(ec2_resource)
+            instances = _create_instance_helper(ec2_resource, params)
         except ClientError as e:
             if e.response["Error"]["Code"] == "InsufficientInstanceCapacity":
                 LOGGER.warning(f"Failed to launch {ec2_instance_type} in {region} because of insufficient capacity")
@@ -388,11 +388,19 @@ def ec2_instance(
 
 
 @retry(
+    reraise=True,
     stop=stop_after_delay(ec2_utils.INSTANCE_CREATE_MAX_WAIT_SECONDS),
     wait=wait_random_exponential(multiplier=0.001, max=ec2_utils.INSTANCE_CREATE_MAX_WAIT_SECONDS / 2),
 )
-def _create_instance_helper(ec2_resource, **kwargs):
-    return ec2_resource.create_instances(**kwargs)
+def _create_instance_helper(ec2_resource, params):
+    """
+    Helper function that can be independently retried without re-creating resources such as key-pairs.
+
+    :param ec2_resource: boto3.Resource object for EC2
+    :param params: dict Keyword Parameters to be passed to the create_instances function
+    :return: dict object returned by create_instances function
+    """
+    return ec2_resource.create_instances(**params)
 
 
 def is_neuron_image(fixtures):
