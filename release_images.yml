@@ -3,7 +3,7 @@ release_images:
   # Check .release_images_template.yml for reference
   1:
     framework: "autogluon"
-    version: "0.5.2"
+    version: "0.4.3"
     arch_type: "x86"
     training:
       device_types: ["cpu","gpu"]
