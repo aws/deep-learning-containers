@@ -357,15 +357,23 @@ def main():
                 context.run("tar -c -f gaudi-test-suite.tar.gz gaudi-test-suite")
             else:
                 pytest_cmd += ["--reruns=1", "--reruns-delay=10"]
-        
+
+        # TODO: pytest timeouts are more "suggestions" than "rules". It is possible for the timeout interrupt from
+        #       pytest to not be recognized by a test while its thread is in a Wait state, and thus end up overshooting
+        #       the timeout time. Add more reasonable timeouts for tests as per CodeBuild Job limits.
+        # Default timeout for EC2, ECS, and Sanity Tests
+        timeout_arg = "--timeout=4860"  # 81 min
         if is_pr_context():
             if specific_test_type == "eks":
-                pytest_cmd.append("--timeout=2340")
-            else:
-                if is_habana_image:
-                    pytest_cmd.append("--timeout=18000")
-                else:
-                    pytest_cmd.append("--timeout=4860")
+                timeout_arg = "--timeout=2340"  # 39 min
+            elif is_habana_image:
+                timeout_arg = "--timeout=18000"  # 5 hours
+        else:
+            # Leaving EKS tests and Habana tests without a timeout because the recommended timeout is unknown.
+            if specific_test_type == "eks" or is_habana_image:
+                timeout_arg = ""
+        if timeout_arg:
+            pytest_cmd.append(timeout_arg)
 
         pytest_cmds = [pytest_cmd]
         # Execute separate cmd for canaries
@@ -442,7 +450,7 @@ def main():
             "neuron": "Skipping - there are no local mode tests for Neuron",
             "huggingface-tensorflow-training": "Skipping - there are no local mode tests for HF TF training"
         }
-        
+
         for skip_condition, reason in sm_local_to_skip.items():
             if skip_condition in dlc_images:
                 LOGGER.info(f"{reason}. Images: {dlc_images}")
