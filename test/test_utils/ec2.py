@@ -125,9 +125,11 @@ def launch_instance(
     Launch an instance
     :param ami_id: AMI ID to be used for launched instance
     :param instance_type: Instance type of launched instance
+    :param ei_accelerator_type: EI Accelerator type to be attached to instance
+    :param ec2_key_name: Instance Key Pair name
     :param region: Region where instance will be launched
     :param user_data: Script to run when instance is launched as a str
-    :param iam_instance_profile_arn: EC2 Role to be attached
+    :param iam_instance_profile_name: EC2 Role to be attached
     :param instance_name: Tag to display as Name on EC2 Console
     :return: <dict> Information about the instance that was launched
     """
@@ -145,9 +147,9 @@ def launch_instance(
         "MaxCount": 1,
         "MinCount": 1,
         "TagSpecifications": [
-            {"ResourceType": "instance", "Tags": [{"Key": "Name", "Value": f"CI-CD {instance_name}"}],},
+            {"ResourceType": "instance", "Tags": [{"Key": "Name", "Value": f"CI-CD {instance_name}"}]},
         ],
-        "BlockDeviceMappings": [{"DeviceName": "/dev/sda1", "Ebs": {"VolumeSize": 70,}}]
+        "BlockDeviceMappings": [{"DeviceName": "/dev/sda1", "Ebs": {"VolumeSize": 70}}]
     }
     if user_data:
         arguments_dict["UserData"] = user_data

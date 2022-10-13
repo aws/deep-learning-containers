@@ -180,6 +180,8 @@ def list_ecs_container_instances(cluster_arn_or_name, filter_value=None, status=
         raise Exception(f"Failed list instances with given arguments. Exception - {e}")
 
 
+# TODO: This function is unused, and can be deprecated. Instead use ecs_container_instance() in ecs/conftest.py to
+#       launch and attach ECS cluster instances.
 def attach_ecs_worker_node(
     worker_instance_type, ami_id, cluster_name, cluster_arn=None, region=DEFAULT_REGION, worker_eia_capable=False
 ):
@@ -190,23 +192,21 @@ def attach_ecs_worker_node(
     :param cluster_name:
     :param cluster_arn:
     :param region:
+    :param worker_eia_capable:
     :return: <tuple> instance_id, public_ip_address
     """
     ecs_user_data = f"#!/bin/bash\necho ECS_CLUSTER={cluster_name} >> /etc/ecs/ecs.config"
 
-    sts_client = boto3.client("sts")
-    account_id = sts_client.get_caller_identity().get("Account")
     ecs_role_name = "ecsInstanceRole"
-    ecs_instance_role_arn = f"arn:aws:iam::{account_id}:instance-profile/{ecs_role_name}"
 
     instc = ec2_utils.launch_instance(
         ami_id,
         region=region,
         instance_type=worker_instance_type,
         user_data=ecs_user_data,
-        iam_instance_profile_arn=ecs_instance_role_arn,
+        iam_instance_profile_name=ecs_role_name,
         instance_name=f"ecs worker {cluster_name}",
-        eia_capable=worker_eia_capable,
+        ei_accelerator_type=("eia2.xlarge" if worker_eia_capable else None),
     )
 
     instance_id = instc["InstanceId"]

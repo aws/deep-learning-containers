@@ -2,7 +2,9 @@ import time
 
 import pytest
 import boto3
+
 from botocore.exceptions import ClientError
+from tenacity import retry, stop_after_delay, wait_random_exponential
 
 from test import test_utils
 import test.test_utils.ecs as ecs_utils
@@ -80,7 +82,9 @@ def ecs_instance_type(request):
 
 @pytest.mark.timeout(300)
 @pytest.fixture(scope="function")
-def ecs_container_instance(request, ecs_cluster, ec2_client, ecs_client, ecs_instance_type, ecs_ami, region, ei_accelerator_type):
+def ecs_container_instance(
+    request, ecs_cluster, ec2_client, ecs_client, ecs_instance_type, ecs_ami, region, ei_accelerator_type
+):
     """
     Fixture to handle spin up and tear down of ECS container instance
 
@@ -90,7 +94,9 @@ def ecs_container_instance(request, ecs_cluster, ec2_client, ecs_client, ecs_ins
     :param ecs_client: boto3 ecs client
     :param ecs_instance_type: eventually to be used
     :param ecs_ami: eventually to be used
-    :return:
+    :param region: region in which to launch instance
+    :param ei_accelerator_type: ei accelerator type to attach to instance
+    :return: tuple (ec2_instance_id, ecs_cluster_name)
     """
     # Get these from params on the test
     instance_type = ecs_instance_type
@@ -125,14 +131,14 @@ def ecs_container_instance(request, ecs_cluster, ec2_client, ecs_client, ecs_ins
                 'AvailabilityZone': a_zone
             }
             try:
-                instances = ec2_client.run_instances(**params)
+                instances = _run_instances(ec2_client, params)
                 if instances:
                     break
             except ClientError as e:
                 print(f"Failed to launch in {a_zone} with Error: {e}")
                 continue
     else:
-        instances = ec2_client.run_instances(**params)
+        instances = _run_instances(ec2_client, params)
     instance_id = instances.get("Instances")[0].get("InstanceId")
 
     # Define finalizer to terminate instance after this fixture completes
@@ -156,3 +162,19 @@ def ecs_container_instance(request, ecs_cluster, ec2_client, ecs_client, ecs_ins
             is_attached = True
 
     return instance_id, ecs_cluster
+
+
+@retry(
+    reraise=True,
+    stop=stop_after_delay(INSTANCE_CREATE_MAX_WAIT_SECONDS),
+    wait=wait_random_exponential(multiplier=0.001, max=INSTANCE_CREATE_MAX_WAIT_SECONDS / 2),
+)
+def _run_instances(ec2_client, params):
+    """
+    Helper function that can be independently retried without re-creating resources such as key-pairs.
+
+    :param ec2_client: boto3.Client object for EC2
+    :param params: dict Keyword Parameters to be passed to the run_instances function
+    :return: dict object returned by run_instances function
+    """
+    return ec2_client.run_instances(**params)
