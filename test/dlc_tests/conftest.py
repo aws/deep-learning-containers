@@ -40,7 +40,6 @@ from test.test_utils import (
     UBUNTU_HOME_DIR,
     NightlyFeatureLabel,
 )
-from test.test_utils.backoff import RandomExponentialBackoff
 from test.test_utils.imageutils import (
     are_image_labels_matched,
     are_fixture_labels_enabled
