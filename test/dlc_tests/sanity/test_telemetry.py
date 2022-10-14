@@ -94,10 +94,10 @@ def test_telemetry_instance_tag_success_cpu(cpu, ec2_client, ec2_instance, ec2_c
 def test_telemetry_instance_tag_success_graviton_cpu(cpu, ec2_client, ec2_instance, ec2_connection, graviton_compatible_only):
     _run_tag_success_IMDSv1(cpu, ec2_client, ec2_instance, ec2_connection)
     _run_tag_success_IMDSv2_hop_limit_2(cpu, ec2_client, ec2_instance, ec2_connection)
-    framework, _ = test_utils.get_framework_and_version_from_tag(cpu)
-    container_type = test_utils.get_job_type_from_image(cpu)
-    if 'inference' in container_type and 'tensorflow' in framework:
-        pytest.skip("TensorFlow inference doesn't have tensorflow package to do a import tensorflow.")
+    # framework, _ = test_utils.get_framework_and_version_from_tag(cpu)
+    # container_type = test_utils.get_job_type_from_image(cpu)
+    # if 'inference' in container_type and 'tensorflow' in framework:
+    #     pytest.skip("TensorFlow inference doesn't have tensorflow package to do a import tensorflow.")
     _run_s3_query_bucket_success(cpu, ec2_client, ec2_instance, ec2_connection)
 
 @pytest.mark.usefixtures("sagemaker")
@@ -154,10 +154,6 @@ def _run_s3_query_bucket_success(image_uri, ec2_client, ec2_instance, ec2_connec
     processor = test_utils.get_processor_from_image_uri(image_uri)
     container_type = test_utils.get_job_type_from_image(image_uri)
     container_name = f"{repo_name}-telemetry_s3_query_success-ec2"
-
-    if 'mxnet' in framework:
-        # import mxnet sends container_type as training for inference images as well
-        container_type = "training"
 
     docker_cmd = "nvidia-docker" if processor == "gpu" else "docker"
     test_utils.login_to_ecr_registry(ec2_connection, account_id, image_region)
@@ -336,7 +332,7 @@ def import_framework(image_uri, container_name, docker_cmd, framework, job_type,
         env_vars_list = test_utils.get_tensorflow_inference_environment_variables(model_name, model_base_path)
         env_vars = " ".join([f"-e {entry['name']}={entry['value']}" for entry in env_vars_list])
         inference_command = get_tensorflow_inference_command_tf27_above(image_uri, model_name)
-        ec2_connection.run(f"{docker_cmd} run {env_vars} --name {container_name} -id {image_uri} {inference_command}")
+        ec2_connection.run(f"{docker_cmd} run {env_vars} -e TEST_MODE={test_mode} --name {container_name} -id {image_uri}  {inference_command}")
         time.sleep(5)
     else:
         framework_to_import = framework.replace("huggingface_", "")
