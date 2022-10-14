@@ -33,7 +33,7 @@ ARG PYTHON=python3.9
 ARG PYTHON_PIP=python3-pip
 ARG PIP=pip3
 ARG PYTHON_VERSION=3.9.10
-ARG TFS_URL=https://framework-binaries.s3.us-west-2.amazonaws.com/tensorflow_serving/r2.8_aws/gpu/2022-02-04-23-24/tensorflow_model_server
+ARG TFS_URL=https://framework-binaries.s3.us-west-2.amazonaws.com/tensorflow_serving/r2.8_aws/gpu/2022-10-03-21-03/tensorflow_model_server
 
 # ENV variable to be pased to SageMaker stage
 ENV PIP=${PIP}
@@ -139,6 +139,7 @@ RUN apt-get update \
 RUN ${PIP} install -U --no-cache-dir \
     "awscli<2" \
     boto3 \
+    botocore==1.27.85 \
     cython==0.29.21 \
     gevent==21.1.1 \
     requests==2.25.1 \
