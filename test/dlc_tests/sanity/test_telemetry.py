@@ -62,10 +62,10 @@ def test_telemetry_instance_tag_failure_neuron(neuron, ec2_client, ec2_instance,
 def test_telemetry_instance_tag_success_gpu(gpu, ec2_client, ec2_instance, ec2_connection, non_huggingface_only, non_autogluon_only):
     _run_tag_success_IMDSv1(gpu, ec2_client, ec2_instance, ec2_connection)
     _run_tag_success_IMDSv2_hop_limit_2(gpu, ec2_client, ec2_instance, ec2_connection)
-    framework, _ = test_utils.get_framework_and_version_from_tag(gpu)
-    container_type = test_utils.get_job_type_from_image(gpu)
-    if 'inference' in container_type and 'tensorflow' in framework:
-        pytest.skip("TensorFlow inference doesn't have tensorflow package to do a import tensorflow.")
+    # framework, _ = test_utils.get_framework_and_version_from_tag(gpu)
+    # container_type = test_utils.get_job_type_from_image(gpu)
+    # if 'inference' in container_type and 'tensorflow' in framework:
+    #     pytest.skip("TensorFlow inference doesn't have tensorflow package to do a import tensorflow.")
     _run_s3_query_bucket_success(gpu, ec2_client, ec2_instance, ec2_connection)
 
 
@@ -78,10 +78,10 @@ def test_telemetry_instance_tag_success_gpu(gpu, ec2_client, ec2_instance, ec2_c
 def test_telemetry_instance_tag_success_cpu(cpu, ec2_client, ec2_instance, ec2_connection, cpu_only, non_huggingface_only, non_autogluon_only, x86_compatible_only):
     _run_tag_success_IMDSv1(cpu, ec2_client, ec2_instance, ec2_connection)
     _run_tag_success_IMDSv2_hop_limit_2(cpu, ec2_client, ec2_instance, ec2_connection)
-    framework, _ = test_utils.get_framework_and_version_from_tag(cpu)
-    container_type = test_utils.get_job_type_from_image(cpu)
-    if 'inference' in container_type and 'tensorflow' in framework:
-        pytest.skip("TensorFlow inference doesn't have tensorflow package to do a import tensorflow.")
+    # framework, _ = test_utils.get_framework_and_version_from_tag(cpu)
+    # container_type = test_utils.get_job_type_from_image(cpu)
+    # if 'inference' in container_type and 'tensorflow' in framework:
+    #     pytest.skip("TensorFlow inference doesn't have tensorflow package to do a import tensorflow.")
     _run_s3_query_bucket_success(cpu, ec2_client, ec2_instance, ec2_connection)
 
 
