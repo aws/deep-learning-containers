@@ -443,11 +443,8 @@ def is_dlc_cicd_context():
     return os.getenv("BUILD_CONTEXT") in ["PR", "CANARY", "NIGHTLY", "MAINLINE"]
 
 
-def is_not_dlc_image_type():
-    try:
-        return os.getenv("NOT_DLC").lower() == "true"
-    except:
-        return False
+def is_generic_image():
+    return os.getenv("IS_GENERIC_IMAGE", "false").lower() == "true"
 
 
 def get_allowlist_path_for_enhanced_scan_from_env_variable():

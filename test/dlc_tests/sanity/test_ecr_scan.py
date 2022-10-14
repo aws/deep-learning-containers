@@ -26,7 +26,7 @@ from test.test_utils import (
     get_region_from_image_uri,
     ECR_ENHANCED_SCANNING_REPO_NAME,
     ECR_ENHANCED_REPO_REGION,
-    is_not_dlc_image_type,
+    is_generic_image,
     get_allowlist_path_for_enhanced_scan_from_env_variable,
 )
 from test.test_utils import ecr as ecr_utils
@@ -68,7 +68,7 @@ def get_minimum_sev_threshold_level(image):
 
     :param image: str Image URI for which threshold has to be set
     """
-    if is_not_dlc_image_type():
+    if is_generic_image():
         return "HIGH"
     if is_image_covered_by_allowlist_feature(image):
         return "MEDIUM"
@@ -271,7 +271,7 @@ def test_ecr_enhanced_scan(image, ecr_client, sts_client, region):
 
     try:
         # Derive Image Scan Allowlist Path
-        if is_not_dlc_image_type():
+        if is_generic_image():
             image_scan_allowlist_path = get_allowlist_path_for_enhanced_scan_from_env_variable()
         else:
             image_scan_allowlist_path = get_ecr_scan_allowlist_path(image)
