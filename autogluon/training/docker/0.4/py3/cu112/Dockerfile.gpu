@@ -24,14 +24,24 @@ RUN apt-get update \
 ARG AUTOGLUON_VERSION=0.4.3
 
 # Pinning setuptools because it's breaking pip
+# Updating SageMaker to address security; pinning sagemaker-training to ensure resolve conflicts with protobuf
 RUN pip install --no-cache-dir -U --trusted-host pypi.org --trusted-host files.pythonhosted.org pip \
  && pip install --no-cache-dir -U setuptools==59.5.0 wheel \
- && pip install --no-cache-dir -U numba \
- && pip install --no-cache-dir -U autogluon==${AUTOGLUON_VERSION} \
- && pip install --no-cache-dir -U sagemaker-mxnet-training
+ && pip install --no-cache-dir -U \
+    "sagemaker<2.113,>=2.112.2" \
+    sagemaker-mxnet-training==4.3.0 \
+    sagemaker-training==4.1.5 \
+    numba \
+    autogluon==${AUTOGLUON_VERSION}
 
 # Resolving sagemaker 2.92.1 conflict
 RUN pip install --no-cache-dir 'importlib-metadata<2.0,>=1.4.0' markdown
+
+# Removing GluonTS nursery/tsbench package - it is not used in training/inference and have security vulnerabilities
+RUN rm -rf /usr/local/lib/python3.8/dist-packages/gluonts/nursery/tsbench
+
+# Remove these to address security issues; these are not used if only python package is used
+RUN rm -rf /usr/local/lib/python3.8/dist-packages/ray/jars
 
 RUN HOME_DIR=/root \
  && curl -o ${HOME_DIR}/oss_compliance.zip https://aws-dlinfra-utilities.s3.amazonaws.com/oss_compliance.zip \

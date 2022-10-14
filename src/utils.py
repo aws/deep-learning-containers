@@ -356,6 +356,17 @@ def pr_build_setup(pr_number, framework):
 
     parse_modifed_root_files_info(files, pattern="testspec\.yml")
 
+    # convert job parameters to array
+    # return type is expected to be an array of string
+    if JobParameters.device_types == constants.ALL:
+        JobParameters.device_types = []
+
+    if JobParameters.image_types == constants.ALL:
+        JobParameters.image_types = []
+
+    if JobParameters.py_versions == constants.ALL:
+        JobParameters.py_versions = []
+
     return (
         JobParameters.device_types,
         JobParameters.image_types,
@@ -363,7 +374,7 @@ def pr_build_setup(pr_number, framework):
     )
 
 
-def build_setup(framework, device_types=None, image_types=None, py_versions=None):
+def build_setup(framework, device_types=[], image_types=[], py_versions=[]):
     """
     Setup the appropriate environment variables depending on whether this is a PR build
     or a dev build
@@ -394,16 +405,15 @@ def build_setup(framework, device_types=None, image_types=None, py_versions=None
             pr_number = int(pr_number)
         device_types, image_types, py_versions = pr_build_setup(pr_number, framework)
 
-    if device_types != constants.ALL:
-        to_build["device_types"] = constants.DEVICE_TYPES.intersection(
-            set(device_types)
-        )
-    if image_types != constants.ALL:
+    if device_types:
+        to_build["device_types"] = constants.DEVICE_TYPES.intersection(set(device_types))
+
+    if image_types:
         to_build["image_types"] = constants.IMAGE_TYPES.intersection(set(image_types))
-    if py_versions != constants.ALL:
-        to_build["py_versions"] = constants.PYTHON_VERSIONS.intersection(
-            set(py_versions)
-        )
+
+    if py_versions:
+        to_build["py_versions"] = constants.PYTHON_VERSIONS.intersection(set(py_versions))
+        
     for device_type in to_build["device_types"]:
         for image_type in to_build["image_types"]:
             for py_version in to_build["py_versions"]:
@@ -519,8 +529,17 @@ def get_safety_ignore_dict(image_uri, framework, python_version, job_type):
     ignore_data_file = os.path.join(os.sep, get_cloned_folder_path(), "data", "ignore_ids_safety_scan.json")
     with open(ignore_data_file) as f:
         ignore_safety_ids = json.load(f)
+    ignore_dict = ignore_safety_ids.get(framework, {}).get(job_type, {}).get(python_version, {})
 
-    return ignore_safety_ids.get(framework, {}).get(job_type, {}).get(python_version, {})
+    ## Find common vulnerabilites and add it to the ignore dict
+    common_ignore_list_file = os.path.join(os.sep, get_cloned_folder_path(), "data", "common-safety-ignorelist.json")
+    with open(common_ignore_list_file) as f:
+        common_ids_to_ignore = json.load(f)
+    for common_id, reason in common_ids_to_ignore.items():
+        if common_id not in ignore_dict:
+            ignore_dict[common_id] = reason
+
+    return ignore_dict
 
 
 def generate_safety_report_for_image(image_uri, image_info, storage_file_path=None):

@@ -1,4 +1,15 @@
-FROM ubuntu:20.04
+FROM ubuntu:20.04 AS base_image
+
+ENV DEBIAN_FRONTEND=noninteractive \
+    LD_LIBRARY_PATH="${LD_LIBRARY_PATH}:/usr/local/lib"
+
+RUN apt-get update \
+ && apt-get upgrade -y \
+ && apt-get autoremove -y \
+ && apt-get clean \
+ && rm -rf /var/lib/apt/lists/*
+
+FROM base_image
 
 LABEL maintainer="Amazon AI"
 LABEL dlc_major_version="1"
@@ -27,7 +38,7 @@ ARG PYTHON_VERSION=3.8.2
 ARG PYTHON_PIP=python3-pip
 ARG PIP=pip3
 
-ARG TF_URL=https://framework-binaries.s3.us-west-2.amazonaws.com/tensorflow/smdebugger/r2.7_aws/cpu/2022-02-03-23-05/tensorflow_cpu-2.7.1-cp38-cp38-manylinux_2_12_x86_64.manylinux2010_x86_64.whl
+ARG TF_URL=https://framework-binaries.s3.us-west-2.amazonaws.com/tensorflow/smdebugger/r2.7_aws/cpu/2022-09-29-01-17/tensorflow-2.7.4-cp38-cp38-manylinux_2_12_x86_64.manylinux2010_x86_64.whl
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
     build-essential \
@@ -46,6 +57,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     zlib1g-dev \
     # Install dependent library for OpenCV
     libgtk2.0-dev \
+    libgnutls30=3.6.13-2ubuntu1.7 \
  && rm -rf /var/lib/apt/lists/*
 
 # Install Open MPI
@@ -132,6 +144,7 @@ RUN ${PIP} install --no-cache-dir -U \
     requests \
     "awscli<2" \
     mpi4py==3.0.3 \
+    packaging \
     # Let's install TensorFlow separately in the end to avoid
     # the library version to be overwritten
  && ${PIP} install --no-cache-dir -U \
@@ -143,13 +156,12 @@ RUN ${PIP} install --no-cache-dir -U \
     "opencv-python>=4.6,<5" \
     "werkzeug>=2.0.2,<3" \
     psutil==5.7.2 \
-   'protobuf>=3.20,<3.21'
+    "protobuf>=3.19.5,<3.20"
 
 # Install Horovod with TensorFlow
 RUN HOROVOD_WITH_MPI=1 \
    && HOROVOD_WITH_TENSORFLOW=1 HOROVOD_WITHOUT_MXNET=1 HOROVOD_WITHOUT_PYTORCH=1 \
-   && ${PIP} install --no-cache-dir horovod==0.23.0
-
+   && ${PIP} install --no-cache-dir horovod==0.25.0
 
 ADD https://raw.githubusercontent.com/aws/deep-learning-containers/master/src/deep_learning_container.py /usr/local/bin/deep_learning_container.py
 

@@ -174,6 +174,8 @@ def test_pytorch_nccl_version(
     """
     Tests nccl version
     """
+    if 'huggingface' in pytorch_training and 'trcomp' in pytorch_training:
+        pytest.skip(f"Image {pytorch_training} should use the system nccl through xla. Hence the test is skipped.")
     if test_utils.is_image_incompatible_with_instance_type(pytorch_training, ec2_instance_type):
         pytest.skip(f"Image {pytorch_training} is incompatible with instance type {ec2_instance_type}")
     test_cmd = os.path.join(CONTAINER_TESTS_PREFIX, "pytorch_tests", "testPyTorchNcclVersion")
@@ -188,6 +190,8 @@ def test_pytorch_mpi_gpu(pytorch_training, ec2_connection, gpu_only, py3_only, e
     """
     Tests mpi backend
     """
+    if 'huggingface' in pytorch_training and 'trcomp' in pytorch_training:
+        pytest.skip(f"Image {pytorch_training} is incompatible with distribution type MPI.")
     if test_utils.is_image_incompatible_with_instance_type(pytorch_training, ec2_instance_type):
         pytest.skip(f"Image {pytorch_training} is incompatible with instance type {ec2_instance_type}")
     test_cmd = os.path.join(CONTAINER_TESTS_PREFIX, "pytorch_tests", "testPyTorchMpi")
@@ -202,6 +206,8 @@ def test_pytorch_mpi_cpu(pytorch_training, ec2_connection, cpu_only, py3_only, e
     """
     Tests mpi backend
     """
+    if 'huggingface' in pytorch_training and 'trcomp' in pytorch_training:
+        pytest.skip(f"Image {pytorch_training} is incompatible with distribution type MPI.")
     test_cmd = os.path.join(CONTAINER_TESTS_PREFIX, "pytorch_tests", "testPyTorchMpi")
     execute_ec2_training_test(ec2_connection, pytorch_training, test_cmd)
 
@@ -229,6 +235,7 @@ def test_pytorch_amp(pytorch_training, ec2_connection, gpu_only, ec2_instance_ty
     execute_ec2_training_test(ec2_connection, pytorch_training, PT_AMP_CMD)
 
 
+@pytest.mark.usefixtures("feature_s3_plugin_present")
 @pytest.mark.usefixtures("sagemaker")
 @pytest.mark.integration("pt_s3_plugin_gpu")
 @pytest.mark.model("N/A")
@@ -239,6 +246,7 @@ def test_pytorch_s3_plugin_gpu(pytorch_training, ec2_connection, gpu_only, ec2_i
     execute_ec2_training_test(ec2_connection, pytorch_training, PT_S3_PLUGIN_CMD)
 
 
+@pytest.mark.usefixtures("feature_s3_plugin_present")
 @pytest.mark.usefixtures("sagemaker")
 @pytest.mark.integration("pt_s3_plugin_cpu")
 @pytest.mark.model("N/A")
@@ -249,6 +257,7 @@ def test_pytorch_s3_plugin_cpu(pytorch_training, ec2_connection, cpu_only, ec2_i
     execute_ec2_training_test(ec2_connection, pytorch_training, PT_S3_PLUGIN_CMD)
 
 
+@pytest.mark.usefixtures("feature_torchaudio_present")
 @pytest.mark.usefixtures("sagemaker")
 @pytest.mark.integration("pt_torchaudio_gpu")
 @pytest.mark.model("N/A")
@@ -262,6 +271,7 @@ def test_pytorch_training_torchaudio_gpu(
     execute_ec2_training_test(ec2_connection, pytorch_training, PT_TORCHAUDIO_CMD)
 
 
+@pytest.mark.usefixtures("feature_torchaudio_present")
 @pytest.mark.usefixtures("sagemaker")
 @pytest.mark.integration("pt_torchaudio_cpu")
 @pytest.mark.model("N/A")
@@ -275,6 +285,7 @@ def test_pytorch_training_torchaudio_cpu(
     execute_ec2_training_test(ec2_connection, pytorch_training, PT_TORCHAUDIO_CMD)
 
 
+@pytest.mark.usefixtures("feature_torchdata_present")
 @pytest.mark.usefixtures("sagemaker")
 @pytest.mark.integration("pt_torchdata_gpu")
 @pytest.mark.model("N/A")
@@ -291,6 +302,7 @@ def test_pytorch_training_torchdata_gpu(
         execute_ec2_training_test(ec2_connection, pytorch_training, PT_TORCHDATA_CMD)
 
 
+@pytest.mark.usefixtures("feature_torchdata_present")
 @pytest.mark.usefixtures("sagemaker")
 @pytest.mark.integration("pt_torchdata_cpu")
 @pytest.mark.model("N/A")
@@ -307,6 +319,7 @@ def test_pytorch_training_torchdata_cpu(
         execute_ec2_training_test(ec2_connection, pytorch_training, PT_TORCHDATA_CMD)
 
 
+@pytest.mark.usefixtures("feature_aws_framework_present")
 @pytest.mark.usefixtures("sagemaker")
 @pytest.mark.integration("telemetry")
 @pytest.mark.model("N/A")
@@ -316,6 +329,7 @@ def test_pytorch_telemetry_gpu(pytorch_training, ec2_connection, gpu_only, ec2_i
         pytest.skip(f"Image {pytorch_training} is incompatible with instance type {ec2_instance_type}")
 
 
+@pytest.mark.usefixtures("feature_aws_framework_present")
 @pytest.mark.usefixtures("sagemaker")
 @pytest.mark.integration("telemetry")
 @pytest.mark.model("N/A")

@@ -51,6 +51,8 @@ def test_training_smdebug(framework_version, ecr_image, sagemaker_regions, insta
         job_name=utils.unique_name_from_base('test-pt-smdebug-training')
         invoke_pytorch_estimator(ecr_image, sagemaker_regions, estimator_parameter, upload_s3_data_args=upload_s3_data_args, job_name=job_name)        
 
+
+@pytest.mark.usefixtures("feature_smdebug_present")
 @pytest.mark.integration("smdebug")
 @pytest.mark.model("mnist")
 @pytest.mark.skip_py2_containers
