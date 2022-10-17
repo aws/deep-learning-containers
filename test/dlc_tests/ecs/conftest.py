@@ -9,7 +9,7 @@ from tenacity import retry, stop_after_delay, wait_random_exponential
 import test.test_utils.ecs as ecs_utils
 
 from test import test_utils
-from test.test_utils.ec2 import INSTANCE_CREATE_MAX_WAIT_SECONDS, INSTANCE_CREATE_MAX_RETRY_PERIOD_SECONDS
+from test.test_utils import ec2 as ec2_utils
 
 
 @pytest.fixture(scope="session")
@@ -167,8 +167,8 @@ def ecs_container_instance(
 
 @retry(
     reraise=True,
-    stop=stop_after_delay(INSTANCE_CREATE_MAX_WAIT_SECONDS),
-    wait=wait_random_exponential(multiplier=0.001, max=INSTANCE_CREATE_MAX_RETRY_PERIOD_SECONDS),
+    stop=stop_after_delay(ec2_utils.INSTANCE_CREATE_MAX_WAIT_SECONDS),
+    wait=wait_random_exponential(multiplier=0.001, max=ec2_utils.INSTANCE_CREATE_MAX_RETRY_PERIOD_SECONDS),
 )
 def _run_instances(ec2_client, params):
     """
@@ -178,4 +178,10 @@ def _run_instances(ec2_client, params):
     :param params: dict Keyword Parameters to be passed to the run_instances function
     :return: dict object returned by run_instances function
     """
-    return ec2_client.run_instances(**params)
+    try:
+        response = ec2_client.run_instances(**params)
+        ec2_utils.instance_launch_successful_metric(params["InstanceType"], "us-west-2")
+        return response
+    except Exception:
+        ec2_utils.instance_launch_failed_attempt_metric(params["InstanceType"], "us-west-2")
+        raise

@@ -32,6 +32,50 @@ LOGGER.addHandler(logging.StreamHandler(sys.stdout))
 LOGGER.setLevel(logging.INFO)
 
 
+def instance_launch_failed_attempt_metric(instance_type, region):
+    try:
+        client = boto3.Session(region_name=region).client("cloudwatch")
+        response = client.put_metric_data(
+            MetricData=[
+                {
+                    "MetricName": "launch_failed",
+                    "Dimensions": [
+                        {"Name": "Region", "Value": region},
+                        {"Name": "Instance Type", "Value": instance_type},
+                    ],
+                    "Unit": "Count",
+                    "Value": 1,
+                },
+            ],
+            Namespace="ec2-instances",
+        )
+    except Exception as e:
+        LOGGER.warning(f"Warning: Failed to upload instance launch failed metric: {e}")
+        pass
+
+
+def instance_launch_successful_metric(instance_type, region):
+    try:
+        client = boto3.Session(region_name=region).client("cloudwatch")
+        response = client.put_metric_data(
+            MetricData=[
+                {
+                    "MetricName": "launch_succeeded",
+                    "Dimensions": [
+                        {"Name": "Region", "Value": region},
+                        {"Name": "Instance Type", "Value": instance_type},
+                    ],
+                    "Unit": "Count",
+                    "Value": 1,
+                },
+            ],
+            Namespace="ec2-instances",
+        )
+    except Exception as e:
+        LOGGER.warning(f"Warning: Failed to upload instance launch failed metric: {e}")
+        pass
+
+
 def filter_only_multi_gpu(instance_type_list):
     filtered_list = [
         instance_type for instance_type in instance_type_list if get_instance_num_gpus(instance_type=instance_type) > 1
@@ -196,7 +240,13 @@ def _run_instances(ec2_client, params):
     :param params: dict Keyword Parameters to be passed to the run_instances function
     :return: dict object returned by run_instances function
     """
-    return ec2_client.run_instances(**params)
+    try:
+        response = ec2_client.run_instances(**params)
+        instance_launch_successful_metric(params["InstanceType"], "us-west-2")
+        return response
+    except Exception:
+        instance_launch_failed_attempt_metric(params["InstanceType"], "us-west-2")
+        raise
 
 
 def get_ec2_client(region):

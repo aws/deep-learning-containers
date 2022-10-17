@@ -399,7 +399,13 @@ def _create_instance_helper(ec2_resource, params):
     :param params: dict Keyword Parameters to be passed to the create_instances function
     :return: dict object returned by create_instances function
     """
-    return ec2_resource.create_instances(**params)
+    try:
+        response = ec2_resource.create_instances(**params)
+        ec2_utils.instance_launch_successful_metric(params["InstanceType"], "us-west-2")
+        return response
+    except Exception:
+        ec2_utils.instance_launch_failed_attempt_metric(params["InstanceType"], "us-west-2")
+        raise
 
 
 def is_neuron_image(fixtures):
