@@ -113,6 +113,10 @@ def test_tfs_neuron_model(boto_session, sagemaker_client,
 def test_batch_transform(region, boto_session, sagemaker_client,
                          model_name, tfs_model, image_uri,
                          instance_type):
+                         
+    if "graviton" in image_uri:
+        pytest.skip("Test not supported with Graviton test instance.")
+
     results = util.run_batch_transform_job(region=region,
                                            boto_session=boto_session,
                                            model_data=tfs_model,
