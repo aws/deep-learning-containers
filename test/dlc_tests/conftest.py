@@ -998,9 +998,8 @@ def track_test_time_elapsed(request, region):
                         {"Name": "Instance Type", "Value": instance_type},
                         {"Name": "Tested Image", "Value": tested_image},
                     ],
-                    "Unit": "Minutes",
-                    "Value": (elapsed_time // 60 + 1),  # + 1 min because it doesn't make too much difference,
-                                                        # and a 0-min runtime for tests doesn't make sense.
+                    "Unit": "Seconds",
+                    "Value": elapsed_time,
                 },
             ],
             Namespace="dlc-test-time-tracking",
