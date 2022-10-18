@@ -30,7 +30,11 @@ RUN pip install --no-cache-dir \
     psutil \
     "typing-extensions==3.7.4.3" \
     # bokeh 2.3.3 is the latest compatible version for typing-extensions 3.7.4.3
-    "bokeh==2.3.3"
+    "bokeh==2.3.3" \
+    # Fixing versions to mitigate known CVEs.
+    "nbconvert>6.5.0" \
+    "joblib>=1.2.0" \
+    "protobuf==3.19.5"
 
 RUN apt-get update \
  # TODO: Remove upgrade statements once packages are updated in base image
