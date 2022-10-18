@@ -114,7 +114,7 @@ def test_batch_transform(region, boto_session, sagemaker_client,
                          model_name, tfs_model, image_uri,
                          instance_type):
                          
-    if "c6" in instance_type:
+    if "graviton" in image_uri:
         pytest.skip("Test not supported with Graviton test instance.")
 
     results = util.run_batch_transform_job(region=region,
