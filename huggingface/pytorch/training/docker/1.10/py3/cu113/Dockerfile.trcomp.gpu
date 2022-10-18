@@ -21,7 +21,7 @@ ARG TORCHAUDIO_URL=${PT_BUCKET}/torchaudio-0.10.1%2B6f539cf-cp38-cp38-linux_x86_
 ARG HF_TRANSFORMERS_URL=https://sm-training-comp-pytorch-binaries.s3.us-west-2.amazonaws.com/092f939a-23a9-4625-a74c-95e793816647/20220331-061338/6da962c22532524d43f33610e34a53fa998c5c8e/transformers-4.17.0-py3-none-any.whl
 
 # Install Sagemaker PythonSDK
-RUN pip install --no-cache-dir sagemaker
+RUN pip install --no-cache-dir -U "sagemaker>=2.111.0"
 
 # install Hugging Face libraries and its dependencies
 RUN pip install -U --no-cache-dir \ 
@@ -70,6 +70,10 @@ RUN pip install --no-cache-dir \
     rouge-score \
     soundfile \
     sentence-transformers
+
+# Fixing identified CVEs
+RUN pip install -U \
+    "safety>=2.2.0"
 
 # Fix library links
 RUN ln -s ${CONDA_PREFIX}/lib/libmkl_intel_lp64.so ${CONDA_PREFIX}/lib/libmkl_intel_lp64.so.1 \
