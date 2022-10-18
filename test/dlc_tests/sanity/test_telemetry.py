@@ -320,11 +320,15 @@ def import_framework(image_uri, container_name, docker_cmd, framework, job_type,
         env_vars_list = test_utils.get_tensorflow_inference_environment_variables(model_name, model_base_path)
         env_vars = " ".join([f"-e {entry['name']}={entry['value']}" for entry in env_vars_list])
         inference_command = get_tensorflow_inference_command_tf27_above(image_uri, model_name)
-        ec2_connection.run(f"{docker_cmd} run {env_vars} -e TEST_MODE={test_mode} --name {container_name} -id {image_uri}  {inference_command}")
-        time.sleep(5)
-        output = ec2_connection.run(
-            f"{docker_cmd} exec -i {container_name} /bin/bash -c 'cat /tmp/test_request.txt'"
-        ).stdout.strip('\n')
+        if test_mode:
+            ec2_connection.run(f"{docker_cmd} run {env_vars} -e TEST_MODE={test_mode} --name {container_name} -id {image_uri}  {inference_command}")
+            time.sleep(5)
+            output = ec2_connection.run(
+                f"{docker_cmd} exec -i {container_name} /bin/bash -c 'cat /tmp/test_request.txt'"
+            ).stdout.strip('\n')
+        else:
+            ec2_connection.run(f"{docker_cmd} run {env_vars} --name {container_name} -id {image_uri} {inference_command}")
+            time.sleep(5)
     else:
         framework_to_import = framework.replace("huggingface_", "")
         framework_to_import = "torch" if framework_to_import == "pytorch" else framework_to_import
