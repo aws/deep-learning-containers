@@ -116,6 +116,10 @@ RUN pip install --no-cache-dir \
     soundfile \
     sentence-transformers
 
+# Fixing identified CVEs
+RUN pip install -U \
+    "safety>=2.2.0"
+
 # Numpy version gets downgraded and becomes incompatible with PyTorch wheel in the above conda command.
 RUN pip install -U numpy==1.22.2
 
