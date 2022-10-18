@@ -965,13 +965,13 @@ def disable_test(request):
 def track_test_time_elapsed(request, region):
     test_name = request.node.name
 
-    instance_type = None
+    instance_type = "None"
     if "ec2_instance_type" in request.fixturenames:
         instance_type = request.getfixturevalue("ec2_instance_type")
     elif "ecs_instance_type" in request.fixturenames:
         instance_type = request.getfixturevalue("ecs_instance_type")
 
-    tested_image = None
+    tested_image = "None"
     if "image" in request.fixturenames:
         tested_image = request.getfixturevalue("image")
     else:
