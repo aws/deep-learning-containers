@@ -1,9 +1,10 @@
 import datetime
-import os
 import logging
+import os
 import random
-import sys
 import re
+import sys
+import time
 
 import boto3
 import docker
@@ -958,3 +959,52 @@ def disable_test(request):
 
     if test_utils.is_test_disabled(test_name, build_name, version):
         pytest.skip(f"Skipping {test_name} test because it has been disabled.")
+
+
+@pytest.fixture(autouse=True)
+def track_test_time_elapsed(request, region):
+    test_name = request.node.name
+
+    instance_type = None
+    if "ec2_instance_type" in request.fixturenames:
+        instance_type = request.getfixturevalue("ec2_instance_type")
+    elif "ecs_instance_type" in request.fixturenames:
+        instance_type = request.getfixturevalue("ecs_instance_type")
+
+    tested_image = None
+    if "image" in request.fixturenames:
+        tested_image = request.getfixturevalue("image")
+    else:
+        for fixture in FRAMEWORK_FIXTURES:
+            if fixture in request.fixturenames:
+                tested_image = request.getfixturevalue(fixture)
+                break
+
+    start_time = time.time()
+
+    yield
+
+    end_time = time.time()
+    elapsed_time = end_time - start_time
+
+    try:
+        cw_client = boto3.client("cloudwatch", region_name=region)
+        response = cw_client.put_metric_data(
+            MetricData=[
+                {
+                    "MetricName": "elapsed_time",
+                    "Dimensions": [
+                        {"Name": "Test Name", "Value": test_name},
+                        {"Name": "Instance Type", "Value": instance_type},
+                        {"Name": "Tested Image", "Value": tested_image},
+                    ],
+                    "Unit": "Minutes",
+                    "Value": (elapsed_time // 60 + 1),  # + 1 min because it doesn't make too much difference,
+                                                        # and a 0-min runtime for tests doesn't make sense.
+                },
+            ],
+            Namespace="dlc-test-time-tracking",
+        )
+    except Exception as e:
+        LOGGER.warning(f"Warning: Failed to upload test time elapsed metric: {e}")
+        pass
