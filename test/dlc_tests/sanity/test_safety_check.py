@@ -455,6 +455,7 @@ IGNORE_SAFETY_IDS = {
                 "44717",
                 # for cryptography until e have 39.0.0 release
                 "51159",
+                "51358",
             ]
         },
         "inference-eia": {"py3": []},
