@@ -482,8 +482,7 @@ RUN pip install --no-cache-dir -U \
     # disable smdebug pip install until available stable smdebug releases
     # smdebug==${SMDEBUG_VERSION} \
     smclarify \
-    #Pin sagemaker version to 2.102.0 as the latest version has an issue, should revert it when the issue has gone
-    "sagemaker==2.102.0" \
+    "sagemaker>=2,<3" \
     sagemaker-experiments==0.* \
     sagemaker-pytorch-training
 
