@@ -1,0 +1,708 @@
+{
+  "github.com/satori/go.uuid": [
+    {
+      "description": "[github.com/satori/go.uuid](https://github.com/satori/go.uuid) is a provides pure Go implementation of Universally Unique Identifier (UUID).\n\nAffected versions of this package are vulnerable to Insecure Randomness producing predictable `UUID` identifiers due to the limited number of bytes read when using the `g.rand.Read` function.\r\n\r\n**Note:** This vulnerability was introduced on the master branch of `satori/go.uuid` after version 1.2.0. This was fixed on commit d91630c8510268e75203009fe7daf2b8e1d60c45.",
+      "vulnerability_id": "IN1-GOLANG-GITHUBCOMSATORIGOUUID-72488",
+      "name": "IN1-GOLANG-GITHUBCOMSATORIGOUUID-72488",
+      "package_name": "github.com/satori/go.uuid",
+      "package_details": {
+        "file_path": "opt/aws/neuron/bin/neuron-monitor",
+        "name": "github.com/satori/go.uuid",
+        "package_manager": "GOBINARY",
+        "version": "v1.2.0",
+        "release": null
+      },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
+      "cvss_v3_score": 8.1,
+      "cvss_v30_score": 0,
+      "cvss_v31_score": 8.1,
+      "cvss_v2_score": 0,
+      "cvss_v3_severity": "HIGH",
+      "source_url": "https://snyk.io/vuln/SNYK-GOLANG-GITHUBCOMSATORIGOUUID-72488",
+      "source": "SNYK",
+      "severity": "HIGH",
+      "status": "ACTIVE",
+      "title": "SNYK-GOLANG-GITHUBCOMSATORIGOUUID-72488 - github.com/satori/go.uuid, github.com/satori/go.uuid and 1 more"
+    },
+    {
+      "description": "[github.com/satori/go.uuid](https://github.com/satori/go.uuid) is a provides pure Go implementation of Universally Unique Identifier (UUID).\n\nAffected versions of this package are vulnerable to Insecure Randomness producing predictable `UUID` identifiers due to the limited number of bytes read when using the `g.rand.Read` function.\r\n\r\n**Note:** This vulnerability was introduced on the master branch of `satori/go.uuid` after version 1.2.0. This was fixed on commit d91630c8510268e75203009fe7daf2b8e1d60c45.",
+      "vulnerability_id": "IN1-GOLANG-GITHUBCOMSATORIGOUUID-72488",
+      "name": "IN1-GOLANG-GITHUBCOMSATORIGOUUID-72488",
+      "package_name": "github.com/satori/go.uuid",
+      "package_details": {
+        "file_path": "opt/aws/neuron/bin/neuron-profile",
+        "name": "github.com/satori/go.uuid",
+        "package_manager": "GOBINARY",
+        "version": "v1.2.0",
+        "release": null
+      },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
+      "cvss_v3_score": 8.1,
+      "cvss_v30_score": 0,
+      "cvss_v31_score": 8.1,
+      "cvss_v2_score": 0,
+      "cvss_v3_severity": "HIGH",
+      "source_url": "https://snyk.io/vuln/SNYK-GOLANG-GITHUBCOMSATORIGOUUID-72488",
+      "source": "SNYK",
+      "severity": "HIGH",
+      "status": "ACTIVE",
+      "title": "SNYK-GOLANG-GITHUBCOMSATORIGOUUID-72488 - github.com/satori/go.uuid, github.com/satori/go.uuid and 1 more"
+    },
+    {
+      "description": "[github.com/satori/go.uuid](https://github.com/satori/go.uuid) is a provides pure Go implementation of Universally Unique Identifier (UUID).\n\nAffected versions of this package are vulnerable to Insecure Randomness producing predictable `UUID` identifiers due to the limited number of bytes read when using the `g.rand.Read` function.\r\n\r\n**Note:** This vulnerability was introduced on the master branch of `satori/go.uuid` after version 1.2.0. This was fixed on commit d91630c8510268e75203009fe7daf2b8e1d60c45.",
+      "vulnerability_id": "IN1-GOLANG-GITHUBCOMSATORIGOUUID-72488",
+      "name": "IN1-GOLANG-GITHUBCOMSATORIGOUUID-72488",
+      "package_name": "github.com/satori/go.uuid",
+      "package_details": {
+        "file_path": "opt/aws/neuron/bin/neuron-ls",
+        "name": "github.com/satori/go.uuid",
+        "package_manager": "GOBINARY",
+        "version": "v1.2.0",
+        "release": null
+      },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
+      "cvss_v3_score": 8.1,
+      "cvss_v30_score": 0,
+      "cvss_v31_score": 8.1,
+      "cvss_v2_score": 0,
+      "cvss_v3_severity": "HIGH",
+      "source_url": "https://snyk.io/vuln/SNYK-GOLANG-GITHUBCOMSATORIGOUUID-72488",
+      "source": "SNYK",
+      "severity": "HIGH",
+      "status": "ACTIVE",
+      "title": "SNYK-GOLANG-GITHUBCOMSATORIGOUUID-72488 - github.com/satori/go.uuid, github.com/satori/go.uuid and 1 more"
+    },
+    {
+      "description": " A flaw was found in github.com/satori/go.uuid in versions from commit 0ef6afb2f6cdd6cdaeee3885a95099c63f18fc8c to d91630c8510268e75203009fe7daf2b8e1d60c45. Due to insecure randomness in the g.rand.Read function the generated UUIDs are predictable for an attacker.",
+      "vulnerability_id": "CVE-2021-3538",
+      "name": "CVE-2021-3538",
+      "package_name": "github.com/satori/go.uuid",
+      "package_details": {
+        "file_path": "opt/aws/neuron/bin/neuron-monitor",
+        "name": "github.com/satori/go.uuid",
+        "package_manager": "GOBINARY",
+        "version": "v1.2.0",
+        "release": null
+      },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
+      "cvss_v3_score": 9.8,
+      "cvss_v30_score": 0,
+      "cvss_v31_score": 9.8,
+      "cvss_v2_score": 7.5,
+      "cvss_v3_severity": "CRITICAL",
+      "source_url": "https://people.canonical.com/~ubuntu-security/cve/2021/CVE-2021-3538.html",
+      "source": "UBUNTU_CVE",
+      "severity": "MEDIUM",
+      "status": "ACTIVE",
+      "title": "CVE-2021-3538 - github.com/satori/go.uuid, github.com/satori/go.uuid and 1 more"
+    },
+    {
+      "description": " A flaw was found in github.com/satori/go.uuid in versions from commit 0ef6afb2f6cdd6cdaeee3885a95099c63f18fc8c to d91630c8510268e75203009fe7daf2b8e1d60c45. Due to insecure randomness in the g.rand.Read function the generated UUIDs are predictable for an attacker.",
+      "vulnerability_id": "CVE-2021-3538",
+      "name": "CVE-2021-3538",
+      "package_name": "github.com/satori/go.uuid",
+      "package_details": {
+        "file_path": "opt/aws/neuron/bin/neuron-profile",
+        "name": "github.com/satori/go.uuid",
+        "package_manager": "GOBINARY",
+        "version": "v1.2.0",
+        "release": null
+      },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
+      "cvss_v3_score": 9.8,
+      "cvss_v30_score": 0,
+      "cvss_v31_score": 9.8,
+      "cvss_v2_score": 7.5,
+      "cvss_v3_severity": "CRITICAL",
+      "source_url": "https://people.canonical.com/~ubuntu-security/cve/2021/CVE-2021-3538.html",
+      "source": "UBUNTU_CVE",
+      "severity": "MEDIUM",
+      "status": "ACTIVE",
+      "title": "CVE-2021-3538 - github.com/satori/go.uuid, github.com/satori/go.uuid and 1 more"
+    },
+    {
+      "description": " A flaw was found in github.com/satori/go.uuid in versions from commit 0ef6afb2f6cdd6cdaeee3885a95099c63f18fc8c to d91630c8510268e75203009fe7daf2b8e1d60c45. Due to insecure randomness in the g.rand.Read function the generated UUIDs are predictable for an attacker.",
+      "vulnerability_id": "CVE-2021-3538",
+      "name": "CVE-2021-3538",
+      "package_name": "github.com/satori/go.uuid",
+      "package_details": {
+        "file_path": "opt/aws/neuron/bin/neuron-ls",
+        "name": "github.com/satori/go.uuid",
+        "package_manager": "GOBINARY",
+        "version": "v1.2.0",
+        "release": null
+      },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
+      "cvss_v3_score": 9.8,
+      "cvss_v30_score": 0,
+      "cvss_v31_score": 9.8,
+      "cvss_v2_score": 7.5,
+      "cvss_v3_severity": "CRITICAL",
+      "source_url": "https://people.canonical.com/~ubuntu-security/cve/2021/CVE-2021-3538.html",
+      "source": "UBUNTU_CVE",
+      "severity": "MEDIUM",
+      "status": "ACTIVE",
+      "title": "CVE-2021-3538 - github.com/satori/go.uuid, github.com/satori/go.uuid and 1 more"
+    }
+  ],
+  "github.com/ulikunitz/xz": [
+    {
+      "description": "[github.com/ulikunitz/xz](https://github.com/ulikunitz/xz) is a package for reading and writing of xz compressed streams.\n\nAffected versions of this package are vulnerable to Infinite Loop. An attacker could construct a byte sequence so that `readUvarint` would not stop to consume bytes.",
+      "vulnerability_id": "IN1-GOLANG-GITHUBCOMULIKUNITZXZ-598892",
+      "name": "IN1-GOLANG-GITHUBCOMULIKUNITZXZ-598892",
+      "package_name": "github.com/ulikunitz/xz",
+      "package_details": {
+        "file_path": "opt/aws/neuron/bin/neuron-ls",
+        "name": "github.com/ulikunitz/xz",
+        "package_manager": "GOBINARY",
+        "version": "v0.5.6",
+        "release": null
+      },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
+      "cvss_v3_score": 7.5,
+      "cvss_v30_score": 0,
+      "cvss_v31_score": 7.5,
+      "cvss_v2_score": 0,
+      "cvss_v3_severity": "HIGH",
+      "source_url": "https://snyk.io/vuln/SNYK-GOLANG-GITHUBCOMULIKUNITZXZ-598892",
+      "source": "SNYK",
+      "severity": "HIGH",
+      "status": "ACTIVE",
+      "title": "SNYK-GOLANG-GITHUBCOMULIKUNITZXZ-598892 - github.com/ulikunitz/xz, github.com/ulikunitz/xz and 1 more"
+    },
+    {
+      "description": "[github.com/ulikunitz/xz](https://github.com/ulikunitz/xz) is a package for reading and writing of xz compressed streams.\n\nAffected versions of this package are vulnerable to Infinite Loop. An attacker could construct a byte sequence so that `readUvarint` would not stop to consume bytes.",
+      "vulnerability_id": "IN1-GOLANG-GITHUBCOMULIKUNITZXZ-598892",
+      "name": "IN1-GOLANG-GITHUBCOMULIKUNITZXZ-598892",
+      "package_name": "github.com/ulikunitz/xz",
+      "package_details": {
+        "file_path": "opt/aws/neuron/bin/neuron-profile",
+        "name": "github.com/ulikunitz/xz",
+        "package_manager": "GOBINARY",
+        "version": "v0.5.6",
+        "release": null
+      },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
+      "cvss_v3_score": 7.5,
+      "cvss_v30_score": 0,
+      "cvss_v31_score": 7.5,
+      "cvss_v2_score": 0,
+      "cvss_v3_severity": "HIGH",
+      "source_url": "https://snyk.io/vuln/SNYK-GOLANG-GITHUBCOMULIKUNITZXZ-598892",
+      "source": "SNYK",
+      "severity": "HIGH",
+      "status": "ACTIVE",
+      "title": "SNYK-GOLANG-GITHUBCOMULIKUNITZXZ-598892 - github.com/ulikunitz/xz, github.com/ulikunitz/xz and 1 more"
+    },
+    {
+      "description": "[github.com/ulikunitz/xz](https://github.com/ulikunitz/xz) is a package for reading and writing of xz compressed streams.\n\nAffected versions of this package are vulnerable to Infinite Loop. An attacker could construct a byte sequence so that `readUvarint` would not stop to consume bytes.",
+      "vulnerability_id": "IN1-GOLANG-GITHUBCOMULIKUNITZXZ-598892",
+      "name": "IN1-GOLANG-GITHUBCOMULIKUNITZXZ-598892",
+      "package_name": "github.com/ulikunitz/xz",
+      "package_details": {
+        "file_path": "opt/aws/neuron/bin/neuron-monitor",
+        "name": "github.com/ulikunitz/xz",
+        "package_manager": "GOBINARY",
+        "version": "v0.5.6",
+        "release": null
+      },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
+      "cvss_v3_score": 7.5,
+      "cvss_v30_score": 0,
+      "cvss_v31_score": 7.5,
+      "cvss_v2_score": 0,
+      "cvss_v3_severity": "HIGH",
+      "source_url": "https://snyk.io/vuln/SNYK-GOLANG-GITHUBCOMULIKUNITZXZ-598892",
+      "source": "SNYK",
+      "severity": "HIGH",
+      "status": "ACTIVE",
+      "title": "SNYK-GOLANG-GITHUBCOMULIKUNITZXZ-598892 - github.com/ulikunitz/xz, github.com/ulikunitz/xz and 1 more"
+    },
+    {
+      "description": "[github.com/ulikunitz/xz](https://github.com/ulikunitz/xz) is a package for reading and writing of xz compressed streams.\n\nAffected versions of this package are vulnerable to Denial of Service (DoS). It is possible create an infinite read loop due to the usage of the `ReadUvarint` and `ReadVarint` function when encoding/binary via invalid inputs.",
+      "vulnerability_id": "IN1-GOLANG-GITHUBCOMULIKUNITZXZ-607912",
+      "name": "IN1-GOLANG-GITHUBCOMULIKUNITZXZ-607912",
+      "package_name": "github.com/ulikunitz/xz",
+      "package_details": {
+        "file_path": "opt/aws/neuron/bin/neuron-ls",
+        "name": "github.com/ulikunitz/xz",
+        "package_manager": "GOBINARY",
+        "version": "v0.5.6",
+        "release": null
+      },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
+      "cvss_v3_score": 7.5,
+      "cvss_v30_score": 0,
+      "cvss_v31_score": 7.5,
+      "cvss_v2_score": 0,
+      "cvss_v3_severity": "HIGH",
+      "source_url": "https://snyk.io/vuln/SNYK-GOLANG-GITHUBCOMULIKUNITZXZ-607912",
+      "source": "SNYK",
+      "severity": "HIGH",
+      "status": "ACTIVE",
+      "title": "SNYK-GOLANG-GITHUBCOMULIKUNITZXZ-607912 - github.com/ulikunitz/xz, github.com/ulikunitz/xz and 1 more"
+    },
+    {
+      "description": "[github.com/ulikunitz/xz](https://github.com/ulikunitz/xz) is a package for reading and writing of xz compressed streams.\n\nAffected versions of this package are vulnerable to Denial of Service (DoS). It is possible create an infinite read loop due to the usage of the `ReadUvarint` and `ReadVarint` function when encoding/binary via invalid inputs.",
+      "vulnerability_id": "IN1-GOLANG-GITHUBCOMULIKUNITZXZ-607912",
+      "name": "IN1-GOLANG-GITHUBCOMULIKUNITZXZ-607912",
+      "package_name": "github.com/ulikunitz/xz",
+      "package_details": {
+        "file_path": "opt/aws/neuron/bin/neuron-profile",
+        "name": "github.com/ulikunitz/xz",
+        "package_manager": "GOBINARY",
+        "version": "v0.5.6",
+        "release": null
+      },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
+      "cvss_v3_score": 7.5,
+      "cvss_v30_score": 0,
+      "cvss_v31_score": 7.5,
+      "cvss_v2_score": 0,
+      "cvss_v3_severity": "HIGH",
+      "source_url": "https://snyk.io/vuln/SNYK-GOLANG-GITHUBCOMULIKUNITZXZ-607912",
+      "source": "SNYK",
+      "severity": "HIGH",
+      "status": "ACTIVE",
+      "title": "SNYK-GOLANG-GITHUBCOMULIKUNITZXZ-607912 - github.com/ulikunitz/xz, github.com/ulikunitz/xz and 1 more"
+    },
+    {
+      "description": "[github.com/ulikunitz/xz](https://github.com/ulikunitz/xz) is a package for reading and writing of xz compressed streams.\n\nAffected versions of this package are vulnerable to Denial of Service (DoS). It is possible create an infinite read loop due to the usage of the `ReadUvarint` and `ReadVarint` function when encoding/binary via invalid inputs.",
+      "vulnerability_id": "IN1-GOLANG-GITHUBCOMULIKUNITZXZ-607912",
+      "name": "IN1-GOLANG-GITHUBCOMULIKUNITZXZ-607912",
+      "package_name": "github.com/ulikunitz/xz",
+      "package_details": {
+        "file_path": "opt/aws/neuron/bin/neuron-monitor",
+        "name": "github.com/ulikunitz/xz",
+        "package_manager": "GOBINARY",
+        "version": "v0.5.6",
+        "release": null
+      },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
+      "cvss_v3_score": 7.5,
+      "cvss_v30_score": 0,
+      "cvss_v31_score": 7.5,
+      "cvss_v2_score": 0,
+      "cvss_v3_severity": "HIGH",
+      "source_url": "https://snyk.io/vuln/SNYK-GOLANG-GITHUBCOMULIKUNITZXZ-607912",
+      "source": "SNYK",
+      "severity": "HIGH",
+      "status": "ACTIVE",
+      "title": "SNYK-GOLANG-GITHUBCOMULIKUNITZXZ-607912 - github.com/ulikunitz/xz, github.com/ulikunitz/xz and 1 more"
+    },
+    {
+      "description": " xz is a compression and decompression library focusing on the xz format completely written in Go. The function readUvarint used to read the xz container format may not terminate a loop provide malicous input. The problem has been fixed in release v0.5.8. As a workaround users can limit the size of the compressed file input to a reasonable size for their use case. The standard library had recently the same issue and got the CVE-2020-16845 allocated.",
+      "vulnerability_id": "CVE-2021-29482",
+      "name": "CVE-2021-29482",
+      "package_name": "github.com/ulikunitz/xz",
+      "package_details": {
+        "file_path": "opt/aws/neuron/bin/neuron-ls",
+        "name": "github.com/ulikunitz/xz",
+        "package_manager": "GOBINARY",
+        "version": "v0.5.6",
+        "release": null
+      },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
+      "cvss_v3_score": 7.5,
+      "cvss_v30_score": 0,
+      "cvss_v31_score": 7.5,
+      "cvss_v2_score": 5,
+      "cvss_v3_severity": "HIGH",
+      "source_url": "https://people.canonical.com/~ubuntu-security/cve/2021/CVE-2021-29482.html",
+      "source": "UBUNTU_CVE",
+      "severity": "MEDIUM",
+      "status": "ACTIVE",
+      "title": "CVE-2021-29482 - github.com/ulikunitz/xz, github.com/ulikunitz/xz and 1 more"
+    },
+    {
+      "description": " xz is a compression and decompression library focusing on the xz format completely written in Go. The function readUvarint used to read the xz container format may not terminate a loop provide malicous input. The problem has been fixed in release v0.5.8. As a workaround users can limit the size of the compressed file input to a reasonable size for their use case. The standard library had recently the same issue and got the CVE-2020-16845 allocated.",
+      "vulnerability_id": "CVE-2021-29482",
+      "name": "CVE-2021-29482",
+      "package_name": "github.com/ulikunitz/xz",
+      "package_details": {
+        "file_path": "opt/aws/neuron/bin/neuron-profile",
+        "name": "github.com/ulikunitz/xz",
+        "package_manager": "GOBINARY",
+        "version": "v0.5.6",
+        "release": null
+      },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
+      "cvss_v3_score": 7.5,
+      "cvss_v30_score": 0,
+      "cvss_v31_score": 7.5,
+      "cvss_v2_score": 5,
+      "cvss_v3_severity": "HIGH",
+      "source_url": "https://people.canonical.com/~ubuntu-security/cve/2021/CVE-2021-29482.html",
+      "source": "UBUNTU_CVE",
+      "severity": "MEDIUM",
+      "status": "ACTIVE",
+      "title": "CVE-2021-29482 - github.com/ulikunitz/xz, github.com/ulikunitz/xz and 1 more"
+    },
+    {
+      "description": " xz is a compression and decompression library focusing on the xz format completely written in Go. The function readUvarint used to read the xz container format may not terminate a loop provide malicous input. The problem has been fixed in release v0.5.8. As a workaround users can limit the size of the compressed file input to a reasonable size for their use case. The standard library had recently the same issue and got the CVE-2020-16845 allocated.",
+      "vulnerability_id": "CVE-2021-29482",
+      "name": "CVE-2021-29482",
+      "package_name": "github.com/ulikunitz/xz",
+      "package_details": {
+        "file_path": "opt/aws/neuron/bin/neuron-monitor",
+        "name": "github.com/ulikunitz/xz",
+        "package_manager": "GOBINARY",
+        "version": "v0.5.6",
+        "release": null
+      },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
+      "cvss_v3_score": 7.5,
+      "cvss_v30_score": 0,
+      "cvss_v31_score": 7.5,
+      "cvss_v2_score": 5,
+      "cvss_v3_severity": "HIGH",
+      "source_url": "https://people.canonical.com/~ubuntu-security/cve/2021/CVE-2021-29482.html",
+      "source": "UBUNTU_CVE",
+      "severity": "MEDIUM",
+      "status": "ACTIVE",
+      "title": "CVE-2021-29482 - github.com/ulikunitz/xz, github.com/ulikunitz/xz and 1 more"
+    },
+    {
+      "description": "Go before 1.13.15 and 14.x before 1.14.7 can have an infinite read loop in ReadUvarint and ReadVarint in encoding/binary via invalid inputs.",
+      "vulnerability_id": "GHSA-q6gq-997w-f55g",
+      "name": "GHSA-q6gq-997w-f55g",
+      "package_name": "github.com/ulikunitz/xz",
+      "package_details": {
+        "file_path": "opt/aws/neuron/bin/neuron-ls",
+        "name": "github.com/ulikunitz/xz",
+        "package_manager": "GOBINARY",
+        "version": "v0.5.6",
+        "release": null
+      },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
+      "cvss_v3_score": 7.5,
+      "cvss_v30_score": 0,
+      "cvss_v31_score": 7.5,
+      "cvss_v2_score": 0,
+      "cvss_v3_severity": "HIGH",
+      "source_url": "https://github.com/advisories/GHSA-q6gq-997w-f55g",
+      "source": "GITHUB",
+      "severity": "HIGH",
+      "status": "ACTIVE",
+      "title": "GHSA-q6gq-997w-f55g - github.com/ulikunitz/xz, github.com/ulikunitz/xz and 1 more"
+    },
+    {
+      "description": "Go before 1.13.15 and 14.x before 1.14.7 can have an infinite read loop in ReadUvarint and ReadVarint in encoding/binary via invalid inputs.",
+      "vulnerability_id": "GHSA-q6gq-997w-f55g",
+      "name": "GHSA-q6gq-997w-f55g",
+      "package_name": "github.com/ulikunitz/xz",
+      "package_details": {
+        "file_path": "opt/aws/neuron/bin/neuron-profile",
+        "name": "github.com/ulikunitz/xz",
+        "package_manager": "GOBINARY",
+        "version": "v0.5.6",
+        "release": null
+      },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
+      "cvss_v3_score": 7.5,
+      "cvss_v30_score": 0,
+      "cvss_v31_score": 7.5,
+      "cvss_v2_score": 0,
+      "cvss_v3_severity": "HIGH",
+      "source_url": "https://github.com/advisories/GHSA-q6gq-997w-f55g",
+      "source": "GITHUB",
+      "severity": "HIGH",
+      "status": "ACTIVE",
+      "title": "GHSA-q6gq-997w-f55g - github.com/ulikunitz/xz, github.com/ulikunitz/xz and 1 more"
+    },
+    {
+      "description": "Go before 1.13.15 and 14.x before 1.14.7 can have an infinite read loop in ReadUvarint and ReadVarint in encoding/binary via invalid inputs.",
+      "vulnerability_id": "GHSA-q6gq-997w-f55g",
+      "name": "GHSA-q6gq-997w-f55g",
+      "package_name": "github.com/ulikunitz/xz",
+      "package_details": {
+        "file_path": "opt/aws/neuron/bin/neuron-monitor",
+        "name": "github.com/ulikunitz/xz",
+        "package_manager": "GOBINARY",
+        "version": "v0.5.6",
+        "release": null
+      },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
+      "cvss_v3_score": 7.5,
+      "cvss_v30_score": 0,
+      "cvss_v31_score": 7.5,
+      "cvss_v2_score": 0,
+      "cvss_v3_severity": "HIGH",
+      "source_url": "https://github.com/advisories/GHSA-q6gq-997w-f55g",
+      "source": "GITHUB",
+      "severity": "HIGH",
+      "status": "ACTIVE",
+      "title": "GHSA-q6gq-997w-f55g - github.com/ulikunitz/xz, github.com/ulikunitz/xz and 1 more"
+    },
+    {
+      "description": " Go before 1.13.15 and 14.x before 1.14.7 can have an infinite read loop in ReadUvarint and ReadVarint in encoding/binary via invalid inputs.",
+      "vulnerability_id": "CVE-2020-16845",
+      "name": "CVE-2020-16845",
+      "package_name": "github.com/ulikunitz/xz",
+      "package_details": {
+        "file_path": "opt/aws/neuron/bin/neuron-ls",
+        "name": "github.com/ulikunitz/xz",
+        "package_manager": "GOBINARY",
+        "version": "v0.5.6",
+        "release": null
+      },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
+      "cvss_v3_score": 7.5,
+      "cvss_v30_score": 0,
+      "cvss_v31_score": 7.5,
+      "cvss_v2_score": 5,
+      "cvss_v3_severity": "HIGH",
+      "source_url": "https://people.canonical.com/~ubuntu-security/cve/2020/CVE-2020-16845.html",
+      "source": "UBUNTU_CVE",
+      "severity": "LOW",
+      "status": "ACTIVE",
+      "title": "CVE-2020-16845 - github.com/ulikunitz/xz, github.com/ulikunitz/xz and 1 more"
+    },
+    {
+      "description": " Go before 1.13.15 and 14.x before 1.14.7 can have an infinite read loop in ReadUvarint and ReadVarint in encoding/binary via invalid inputs.",
+      "vulnerability_id": "CVE-2020-16845",
+      "name": "CVE-2020-16845",
+      "package_name": "github.com/ulikunitz/xz",
+      "package_details": {
+        "file_path": "opt/aws/neuron/bin/neuron-profile",
+        "name": "github.com/ulikunitz/xz",
+        "package_manager": "GOBINARY",
+        "version": "v0.5.6",
+        "release": null
+      },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
+      "cvss_v3_score": 7.5,
+      "cvss_v30_score": 0,
+      "cvss_v31_score": 7.5,
+      "cvss_v2_score": 5,
+      "cvss_v3_severity": "HIGH",
+      "source_url": "https://people.canonical.com/~ubuntu-security/cve/2020/CVE-2020-16845.html",
+      "source": "UBUNTU_CVE",
+      "severity": "LOW",
+      "status": "ACTIVE",
+      "title": "CVE-2020-16845 - github.com/ulikunitz/xz, github.com/ulikunitz/xz and 1 more"
+    },
+    {
+      "description": " Go before 1.13.15 and 14.x before 1.14.7 can have an infinite read loop in ReadUvarint and ReadVarint in encoding/binary via invalid inputs.",
+      "vulnerability_id": "CVE-2020-16845",
+      "name": "CVE-2020-16845",
+      "package_name": "github.com/ulikunitz/xz",
+      "package_details": {
+        "file_path": "opt/aws/neuron/bin/neuron-monitor",
+        "name": "github.com/ulikunitz/xz",
+        "package_manager": "GOBINARY",
+        "version": "v0.5.6",
+        "release": null
+      },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
+      "cvss_v3_score": 7.5,
+      "cvss_v30_score": 0,
+      "cvss_v31_score": 7.5,
+      "cvss_v2_score": 5,
+      "cvss_v3_severity": "HIGH",
+      "source_url": "https://people.canonical.com/~ubuntu-security/cve/2020/CVE-2020-16845.html",
+      "source": "UBUNTU_CVE",
+      "severity": "LOW",
+      "status": "ACTIVE",
+      "title": "CVE-2020-16845 - github.com/ulikunitz/xz, github.com/ulikunitz/xz and 1 more"
+    },
+    {
+      "description": "### Impact\n\nThe function readUvarint used to read the xz container format may not terminate a loop provide malicous input.\n\n### Patches\n\nThe problem has been fixed in release v0.5.8.\n\n### Workarounds\n\nLimit the size of the compressed file input to a reasonable size for your use case.\n\n### References\n\nThe standard library had recently the same issue and got the [CVE-2020-16845](https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2020-16845) allocated.\n\n### For more information\nIf you have any questions or comments about this advisory:\n* Open an issue in [xz](https://github.com/ulikunitz/xz/issues).",
+      "vulnerability_id": "GHSA-25xm-hr59-7c27",
+      "name": "GHSA-25xm-hr59-7c27",
+      "package_name": "github.com/ulikunitz/xz",
+      "package_details": {
+        "file_path": "opt/aws/neuron/bin/neuron-ls",
+        "name": "github.com/ulikunitz/xz",
+        "package_manager": "GOBINARY",
+        "version": "v0.5.6",
+        "release": null
+      },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
+      "cvss_v3_score": 7.5,
+      "cvss_v30_score": 0,
+      "cvss_v31_score": 7.5,
+      "cvss_v2_score": 0,
+      "cvss_v3_severity": "HIGH",
+      "source_url": "https://github.com/advisories/GHSA-25xm-hr59-7c27",
+      "source": "GITHUB",
+      "severity": "HIGH",
+      "status": "ACTIVE",
+      "title": "GHSA-25xm-hr59-7c27 - github.com/ulikunitz/xz, github.com/ulikunitz/xz and 1 more"
+    },
+    {
+      "description": "### Impact\n\nThe function readUvarint used to read the xz container format may not terminate a loop provide malicous input.\n\n### Patches\n\nThe problem has been fixed in release v0.5.8.\n\n### Workarounds\n\nLimit the size of the compressed file input to a reasonable size for your use case.\n\n### References\n\nThe standard library had recently the same issue and got the [CVE-2020-16845](https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2020-16845) allocated.\n\n### For more information\nIf you have any questions or comments about this advisory:\n* Open an issue in [xz](https://github.com/ulikunitz/xz/issues).",
+      "vulnerability_id": "GHSA-25xm-hr59-7c27",
+      "name": "GHSA-25xm-hr59-7c27",
+      "package_name": "github.com/ulikunitz/xz",
+      "package_details": {
+        "file_path": "opt/aws/neuron/bin/neuron-profile",
+        "name": "github.com/ulikunitz/xz",
+        "package_manager": "GOBINARY",
+        "version": "v0.5.6",
+        "release": null
+      },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
+      "cvss_v3_score": 7.5,
+      "cvss_v30_score": 0,
+      "cvss_v31_score": 7.5,
+      "cvss_v2_score": 0,
+      "cvss_v3_severity": "HIGH",
+      "source_url": "https://github.com/advisories/GHSA-25xm-hr59-7c27",
+      "source": "GITHUB",
+      "severity": "HIGH",
+      "status": "ACTIVE",
+      "title": "GHSA-25xm-hr59-7c27 - github.com/ulikunitz/xz, github.com/ulikunitz/xz and 1 more"
+    },
+    {
+      "description": "### Impact\n\nThe function readUvarint used to read the xz container format may not terminate a loop provide malicous input.\n\n### Patches\n\nThe problem has been fixed in release v0.5.8.\n\n### Workarounds\n\nLimit the size of the compressed file input to a reasonable size for your use case.\n\n### References\n\nThe standard library had recently the same issue and got the [CVE-2020-16845](https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2020-16845) allocated.\n\n### For more information\nIf you have any questions or comments about this advisory:\n* Open an issue in [xz](https://github.com/ulikunitz/xz/issues).",
+      "vulnerability_id": "GHSA-25xm-hr59-7c27",
+      "name": "GHSA-25xm-hr59-7c27",
+      "package_name": "github.com/ulikunitz/xz",
+      "package_details": {
+        "file_path": "opt/aws/neuron/bin/neuron-monitor",
+        "name": "github.com/ulikunitz/xz",
+        "package_manager": "GOBINARY",
+        "version": "v0.5.6",
+        "release": null
+      },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
+      "cvss_v3_score": 7.5,
+      "cvss_v30_score": 0,
+      "cvss_v31_score": 7.5,
+      "cvss_v2_score": 0,
+      "cvss_v3_severity": "HIGH",
+      "source_url": "https://github.com/advisories/GHSA-25xm-hr59-7c27",
+      "source": "GITHUB",
+      "severity": "HIGH",
+      "status": "ACTIVE",
+      "title": "GHSA-25xm-hr59-7c27 - github.com/ulikunitz/xz, github.com/ulikunitz/xz and 1 more"
+    }
+  ],
+  "networkx": [
+    {
+      "description": "[networkx](https://pypi.org/project/networkx/) is a Python package for creating and manipulating graphs and networks\n\nAffected versions of this package are vulnerable to Deserialization of Untrusted Data. This package is vulnerable to arbitrary code execution via insecure YAML deserialization due to the use of a known vulnerable function `load()` in yaml, which is called in `read_yaml()` in `networkx/readwrite/nx_yaml.py`.\r\n\r\n`networkx/readwrite/nx_yaml.py` is deprecated and scheduled to be removed in the next release of Networkx. Users should avoid using this function completely.",
+      "vulnerability_id": "IN1-PYTHON-NETWORKX-1062709",
+      "name": "IN1-PYTHON-NETWORKX-1062709",
+      "package_name": "networkx",
+      "package_details": {
+        "file_path": "usr/local/lib/python3.8/site-packages/networkx-2.5.dist-info/METADATA",
+        "name": "networkx",
+        "package_manager": "PYTHONPKG",
+        "version": "2.5",
+        "release": null
+      },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
+      "cvss_v3_score": 8.8,
+      "cvss_v30_score": 0,
+      "cvss_v31_score": 8.8,
+      "cvss_v2_score": 0,
+      "cvss_v3_severity": "HIGH",
+      "source_url": "https://snyk.io/vuln/SNYK-PYTHON-NETWORKX-1062709",
+      "source": "SNYK",
+      "severity": "HIGH",
+      "status": "ACTIVE",
+      "title": "SNYK-PYTHON-NETWORKX-1062709 - networkx"
+    }
+  ]
+}

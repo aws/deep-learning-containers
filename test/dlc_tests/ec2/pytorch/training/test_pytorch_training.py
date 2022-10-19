@@ -7,7 +7,7 @@ import pytest
 import test.test_utils as test_utils
 import test.test_utils.ec2 as ec2_utils
 
-from test.test_utils import CONTAINER_TESTS_PREFIX, UBUNTU_18_HPU_DLAMI_US_WEST_2, get_framework_and_version_from_tag, get_cuda_version_from_tag
+from test.test_utils import TRN1_REGION, CONTAINER_TESTS_PREFIX, UBUNTU_18_HPU_DLAMI_US_WEST_2, get_framework_and_version_from_tag, get_cuda_version_from_tag
 from test.test_utils.ec2 import execute_ec2_training_test, get_ec2_instance_type
 
 
@@ -22,6 +22,8 @@ PT_S3_PLUGIN_CMD = os.path.join(CONTAINER_TESTS_PREFIX, "pytorch_tests", "testPy
 PT_HABANA_TEST_SUITE_CMD = os.path.join(CONTAINER_TESTS_PREFIX, "testHabanaPTSuite")
 PT_TORCHAUDIO_CMD = os.path.join(CONTAINER_TESTS_PREFIX, "pytorch_tests", "testTorchaudio")
 PT_TORCHDATA_CMD = os.path.join(CONTAINER_TESTS_PREFIX, "pytorch_tests", "testTorchdata")
+PT_NEURON_TEST_SCRIPT = os.path.join(CONTAINER_TESTS_PREFIX, "pytorch_tests", "testNeuronSingleAllReduce")
+PT_NEURON_TEST_CMD = f"python3 -m torch.distributed.launch --nproc_per_node=2 --nnodes=1 --node_rank=0 --master_addr=localhost --master_port=2022 {PT_NEURON_TEST_SCRIPT} --enable_dist_launch"
 PT_TORCHDATA_DEV_CMD = os.path.join(CONTAINER_TESTS_PREFIX, "pytorch_tests", "testTorchdataDev")
 
 
@@ -34,7 +36,14 @@ PT_EC2_MULTI_GPU_INSTANCE_TYPE = get_ec2_instance_type(
     default="g3.8xlarge", processor="gpu", filter_function=ec2_utils.filter_only_multi_gpu,
 )
 PT_EC2_HPU_INSTANCE_TYPE = get_ec2_instance_type(default="dl1.24xlarge", processor="hpu")
+PT_EC2_NEURON_TRN1_INSTANCE_TYPE = get_ec2_instance_type(default="trn1.2xlarge", processor="neuron", job_type="training")
 
+@pytest.mark.parametrize("ec2_instance_ami", [test_utils.NEURON_TRN1_AMI_US_EAST_1], indirect=True)
+@pytest.mark.parametrize("ec2_instance_type", PT_EC2_NEURON_TRN1_INSTANCE_TYPE, indirect=True)
+@pytest.mark.integration("pytorch_neuron_sanity_test")
+@pytest.mark.model("xla")
+def test_pytorch_standalone_neuron(pytorch_training_neuron, ec2_connection):
+    execute_ec2_training_test(ec2_connection, pytorch_training_neuron, PT_NEURON_TEST_CMD)
 
 @pytest.mark.usefixtures("sagemaker")
 @pytest.mark.integration("pytorch_sanity_test")

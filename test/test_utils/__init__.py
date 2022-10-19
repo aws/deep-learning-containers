@@ -34,6 +34,8 @@ LOGGER.addHandler(logging.StreamHandler(sys.stderr))
 DEFAULT_REGION = "us-west-2"
 # Constant to represent region where p3dn tests can be run
 P3DN_REGION = "us-east-1"
+# Constant to represent region where TRN1 tests can be run
+TRN1_REGION = "us-east-1"
 def get_ami_id_boto3(region_name, ami_name_pattern):
     """
     For a given region and ami name pattern, return the latest ami-id
@@ -65,6 +67,8 @@ PT_GPU_PY3_BENCHMARK_IMAGENET_AMI_US_EAST_1 = "ami-0673bb31cc62485dd"
 PT_GPU_PY3_BENCHMARK_IMAGENET_AMI_US_WEST_2 = "ami-02d9a47bc61a31d43"
 # Since latest driver is not in public DLAMI yet, using a custom one
 NEURON_UBUNTU_18_BASE_DLAMI_US_WEST_2 = get_ami_id_boto3(region_name="us-west-2", ami_name_pattern="Deep Learning Base AMI (Ubuntu 18.04) Version ??.?")
+# Since NEURON TRN1 is not released yet use a custom AMI
+NEURON_TRN1_AMI_US_EAST_1 = "ami-0a3a08190eb7e5b29"
 # Habana Base v0.15.4 ami
 # UBUNTU_18_HPU_DLAMI_US_WEST_2 = "ami-0f051d0c1a667a106"
 # UBUNTU_18_HPU_DLAMI_US_EAST_1 = "ami-04c47cb3d4fdaa874"
@@ -139,6 +143,29 @@ SAGEMAKER_REMOTE_TEST_TYPE = "sagemaker"
 PUBLIC_DLC_REGISTRY = "763104351884"
 
 SAGEMAKER_EXECUTION_REGIONS = ["us-west-2", "us-east-1", "eu-west-1"]
+# Before SM GA with Trn1, they support launch of ml.trn1 instance only in us-east-1. After SM GA this can be removed
+SAGEMAKER_NEURON_EXECUTION_REGIONS = ["us-east-1"]
+
+UPGRADE_ECR_REPO_NAME = "upgraded-image-ecr-scan-repo"
+ECR_SCAN_HELPER_BUCKET = f"""ecr-scan-helper-{boto3.client("sts", region_name=DEFAULT_REGION).get_caller_identity().get("Account")}"""
+ECR_SCAN_FAILURE_ROUTINE_LAMBDA = "ecr-scan-failure-routine-lambda"
+
+## Note that the region for the repo used for conducting ecr enhanced scans should be different from other
+## repos since ecr enhanced scanning is activated in all the repos of a region and does not allow one to 
+## conduct basic scanning on some repos whereas enhanced scanning on others within the same region.
+ECR_ENHANCED_SCANNING_REPO_NAME = "ecr-enhanced-scanning-dlc-repo"
+ECR_ENHANCED_REPO_REGION = "us-west-1"
+
+class NightlyFeatureLabel(Enum):
+    AWS_FRAMEWORK_INSTALLED = "aws_framework_installed"
+    AWS_SMDEBUG_INSTALLED = "aws_smdebug_installed"
+    AWS_SMDDP_INSTALLED = "aws_smddp_installed"
+    AWS_SMMP_INSTALLED = "aws_smmp_installed"
+    PYTORCH_INSTALLED = "pytorch_installed"
+    AWS_S3_PLUGIN_INSTALLED = "aws_s3_plugin_installed"
+    TORCHAUDIO_INSTALLED = "torchaudio_installed"
+    TORCHVISION_INSTALLED = "torchvision_installed"
+    TORCHDATA_INSTALLED = "torchdata_installed"
 
 UPGRADE_ECR_REPO_NAME = "upgraded-image-ecr-scan-repo"
 ECR_SCAN_HELPER_BUCKET = f"""ecr-scan-helper-{boto3.client("sts", region_name=DEFAULT_REGION).get_caller_identity().get("Account")}"""
@@ -332,6 +359,13 @@ def is_tf_version(required_version, image_uri):
     required_version_specifier_set = SpecifierSet(f"=={required_version}.*")
     return is_tf_based_framework(image_framework_name) and image_framework_version in required_version_specifier_set
 
+def is_tf_based_framework(name):
+    """
+    Checks whether framework is TF based.
+    Relying on current convention to include "tensorflow" into TF based names
+    E.g. "huggingface-tensorflow" or "huggingface-tensorflow-trcomp"
+    """
+    return "tensorflow" in name
 
 def is_tf_based_framework(name):
     """
@@ -1359,6 +1393,11 @@ NEURON_VERSION_MANIFEST = {
         },
         "mxnet": {
             "1.8.0": "1.8.0.2.2.2.0",
+        },
+    },
+    "2.3.0": {
+        "pytorch": {
+            "1.11.0": "1.11.0.2.3.0.0",
         },
     },
     "1.19.1": {

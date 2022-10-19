@@ -86,7 +86,6 @@ def smtrcomp_only(framework_version, ecr_image, request):
 @pytest.mark.integration("trcomp")
 class TestDistributedTraining:
 
-
     @pytest.fixture()
     def instance_type(self):
         return 'ml.p3.8xlarge'
