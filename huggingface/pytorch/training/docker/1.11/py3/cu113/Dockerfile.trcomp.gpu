@@ -114,14 +114,16 @@ RUN pip install --no-cache-dir \
     nltk \
     rouge-score \
     soundfile \
-    sentence-transformers
-
-# Fixing identified CVEs
-RUN pip install -U \
-    "safety>=2.2.0"
+    sentence-transformers    
 
 # Numpy version gets downgraded and becomes incompatible with PyTorch wheel in the above conda command.
 RUN pip install -U numpy==1.22.2
+
+# Fixing identified CVEs
+RUN pip install -U \
+    "safety>=2.2.0" \
+    "protobuf==3.20.2"
+
 
 # Fix library links
 RUN ln -s ${CONDA_PREFIX}/lib/libmkl_intel_lp64.so ${CONDA_PREFIX}/lib/libmkl_intel_lp64.so.1 \
