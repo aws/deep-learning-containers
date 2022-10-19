@@ -62,7 +62,6 @@ def test_telemetry_instance_tag_failure_neuron(neuron, ec2_client, ec2_instance,
 def test_telemetry_instance_tag_success_gpu(gpu, ec2_client, ec2_instance, ec2_connection, non_huggingface_only, non_autogluon_only):
     _run_tag_success_IMDSv1(gpu, ec2_client, ec2_instance, ec2_connection)
     _run_tag_success_IMDSv2_hop_limit_2(gpu, ec2_client, ec2_instance, ec2_connection)
-    _run_s3_query_bucket_success(gpu, ec2_client, ec2_instance, ec2_connection)
 
 
 @pytest.mark.usefixtures("feature_aws_framework_present")
@@ -74,7 +73,6 @@ def test_telemetry_instance_tag_success_gpu(gpu, ec2_client, ec2_instance, ec2_c
 def test_telemetry_instance_tag_success_cpu(cpu, ec2_client, ec2_instance, ec2_connection, cpu_only, non_huggingface_only, non_autogluon_only, x86_compatible_only):
     _run_tag_success_IMDSv1(cpu, ec2_client, ec2_instance, ec2_connection)
     _run_tag_success_IMDSv2_hop_limit_2(cpu, ec2_client, ec2_instance, ec2_connection)
-    _run_s3_query_bucket_success(cpu, ec2_client, ec2_instance, ec2_connection)
 
 
 @pytest.mark.usefixtures("sagemaker")
@@ -86,7 +84,7 @@ def test_telemetry_instance_tag_success_cpu(cpu, ec2_client, ec2_instance, ec2_c
 def test_telemetry_instance_tag_success_graviton_cpu(cpu, ec2_client, ec2_instance, ec2_connection, graviton_compatible_only):
     _run_tag_success_IMDSv1(cpu, ec2_client, ec2_instance, ec2_connection)
     _run_tag_success_IMDSv2_hop_limit_2(cpu, ec2_client, ec2_instance, ec2_connection)
-    _run_s3_query_bucket_success(cpu, ec2_client, ec2_instance, ec2_connection)
+
 
 @pytest.mark.usefixtures("sagemaker")
 @pytest.mark.model("N/A")
@@ -97,7 +95,47 @@ def test_telemetry_instance_tag_success_graviton_cpu(cpu, ec2_client, ec2_instan
 def test_telemetry_instance_tag_success_neuron(neuron, ec2_client, ec2_instance, ec2_connection, non_huggingface_only, non_autogluon_only):
     _run_tag_success_IMDSv1(neuron, ec2_client, ec2_instance, ec2_connection)
     _run_tag_success_IMDSv2_hop_limit_2(neuron, ec2_client, ec2_instance, ec2_connection)
+
+
+@pytest.mark.usefixtures("feature_aws_framework_present")
+@pytest.mark.usefixtures("sagemaker")
+@pytest.mark.model("N/A")
+@pytest.mark.processor("gpu")
+@pytest.mark.integration("telemetry")
+@pytest.mark.parametrize("ec2_instance_type", ["p3.2xlarge"], indirect=True)
+def test_telemetry_s3_query_bucket_success_gpu(gpu, ec2_client, ec2_instance, ec2_connection, non_huggingface_only, non_autogluon_only):
+    _run_s3_query_bucket_success(gpu, ec2_client, ec2_instance, ec2_connection)
+
+
+@pytest.mark.usefixtures("feature_aws_framework_present")
+@pytest.mark.usefixtures("sagemaker")
+@pytest.mark.model("N/A")
+@pytest.mark.processor("cpu")
+@pytest.mark.integration("telemetry")
+@pytest.mark.parametrize("ec2_instance_type", ["c4.4xlarge"], indirect=True)
+def test_telemetry_s3_query_bucket_success_cpu(cpu, ec2_client, ec2_instance, ec2_connection, cpu_only, non_huggingface_only, non_autogluon_only, x86_compatible_only):
+    _run_s3_query_bucket_success(cpu, ec2_client, ec2_instance, ec2_connection)
+
+
+@pytest.mark.usefixtures("sagemaker")
+@pytest.mark.model("N/A")
+@pytest.mark.processor("cpu")
+@pytest.mark.integration("telemetry")
+@pytest.mark.parametrize("ec2_instance_type", ["c6g.4xlarge"], indirect=True)
+@pytest.mark.parametrize("ec2_instance_ami", [test_utils.UL20_CPU_ARM64_US_WEST_2], indirect=True)
+def test_telemetry_s3_query_bucket_success_graviton_cpu(cpu, ec2_client, ec2_instance, ec2_connection, graviton_compatible_only):
+    _run_s3_query_bucket_success(cpu, ec2_client, ec2_instance, ec2_connection)
+
+
+@pytest.mark.usefixtures("sagemaker")
+@pytest.mark.model("N/A")
+@pytest.mark.processor("neuron")
+@pytest.mark.integration("telemetry")
+@pytest.mark.parametrize("ec2_instance_type", ["inf1.xlarge"], indirect=True)
+@pytest.mark.skip("Feature doesn't exist on Neuron DLCs")
+def test_telemetry_s3_query_bucket_success_neuron(neuron, ec2_client, ec2_instance, ec2_connection, non_huggingface_only, non_autogluon_only):
     _run_s3_query_bucket_success(neuron, ec2_client, ec2_instance, ec2_connection)
+
 
 @pytest.mark.usefixtures("sagemaker")
 @pytest.mark.model("N/A")
@@ -149,7 +187,7 @@ def _run_s3_query_bucket_success(image_uri, ec2_client, ec2_instance, ec2_connec
     ## Hence, avoiding the use of -q to let the connection remain active.
     ec2_connection.run(f"{docker_cmd} pull {image_uri}")
 
-    actual_output = import_framework(image_uri, container_name, docker_cmd, framework, job_type, ec2_connection, test_mode = 1)
+    actual_output = invoke_telemetry_call(image_uri, container_name, docker_cmd, framework, job_type, ec2_connection, test_mode = 1)
 
     py_version = ec2_connection.run(
         f"{docker_cmd} exec -i {container_name} /bin/bash -c 'python --version'",
@@ -195,7 +233,7 @@ def _run_tag_failure_IMDSv1_disabled(image_uri, ec2_client, ec2_instance, ec2_co
     # Disable access to EC2 instance metadata
     ec2_connection.run(f"sudo route add -host 169.254.169.254 reject")
 
-    import_framework(image_uri, container_name, docker_cmd, framework, job_type, ec2_connection)
+    invoke_telemetry_call(image_uri, container_name, docker_cmd, framework, job_type, ec2_connection)
 
     ec2_instance_tags = ec2_utils.get_ec2_instance_tags(ec2_instance_id, ec2_client=ec2_client)
     assert expected_tag_key not in ec2_instance_tags, (
@@ -231,7 +269,7 @@ def _run_tag_success_IMDSv1(image_uri, ec2_client, ec2_instance, ec2_connection)
     if expected_tag_key in preexisting_ec2_instance_tags:
         ec2_client.delete_tags(Resources=[ec2_instance_id], Tags=[{"Key": expected_tag_key}])
 
-    import_framework(image_uri, container_name, docker_cmd, framework, job_type, ec2_connection)
+    invoke_telemetry_call(image_uri, container_name, docker_cmd, framework, job_type, ec2_connection)
 
     ec2_instance_tags = ec2_utils.get_ec2_instance_tags(ec2_instance_id, ec2_client=ec2_client)
     assert expected_tag_key in ec2_instance_tags, f"{expected_tag_key} was not applied as an instance tag"
@@ -266,7 +304,7 @@ def _run_tag_failure_IMDSv2_disabled_as_hop_limit_1(image_uri, ec2_client, ec2_i
 
     if expected_tag_key in preexisting_ec2_instance_tags:
         ec2_client.delete_tags(Resources=[ec2_instance_id], Tags=[{"Key": expected_tag_key}])
-    import_framework(image_uri, container_name, docker_cmd, framework, job_type, ec2_connection)
+    invoke_telemetry_call(image_uri, container_name, docker_cmd, framework, job_type, ec2_connection)
 
     ec2_instance_tags = ec2_utils.get_ec2_instance_tags(ec2_instance_id, ec2_client=ec2_client)
     LOGGER.info(f"ec2_instance_tags: {ec2_instance_tags}")
@@ -303,13 +341,13 @@ def _run_tag_success_IMDSv2_hop_limit_2(image_uri, ec2_client, ec2_instance, ec2
 
     ec2_utils.enforce_IMDSv2(ec2_instance_id, hop_limit = 2)
 
-    import_framework(image_uri, container_name, docker_cmd, framework, job_type, ec2_connection)
+    invoke_telemetry_call(image_uri, container_name, docker_cmd, framework, job_type, ec2_connection)
 
     ec2_instance_tags = ec2_utils.get_ec2_instance_tags(ec2_instance_id, ec2_client=ec2_client)
     assert expected_tag_key in ec2_instance_tags, f"{expected_tag_key} was not applied as an instance tag"
 
 
-def import_framework(image_uri, container_name, docker_cmd, framework, job_type, ec2_connection, test_mode = None):
+def invoke_telemetry_call(image_uri, container_name, docker_cmd, framework, job_type, ec2_connection, test_mode = None):
     """
     Run import framework command inside docker container
     """
