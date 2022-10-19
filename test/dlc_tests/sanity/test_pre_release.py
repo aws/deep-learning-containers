@@ -455,6 +455,7 @@ def _run_dependency_check_test(image, ec2_connection):
         },
         "tensorflow": {
             "1.15": ["neuron"],
+            "2.3": ["eia"],
             "2.5": ["cpu", "gpu", "neuron"],
             "2.6": ["cpu", "gpu"],
             "2.7": ["cpu", "gpu", "hpu"],
