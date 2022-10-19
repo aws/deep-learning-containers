@@ -492,7 +492,7 @@ WORKDIR /opt/pytorch
 
 # Copy workaround script for incorrect hostname
 COPY changehostname.c /
-COPYstart_with_right_hostname.sh /usr/local/bin/start_with_right_hostname.sh
+COPY start_with_right_hostname.sh /usr/local/bin/start_with_right_hostname.sh
 
 RUN chmod +x /usr/local/bin/start_with_right_hostname.sh
 
