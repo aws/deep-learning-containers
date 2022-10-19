@@ -963,7 +963,7 @@ def disable_test(request):
 
 @pytest.fixture(autouse=True)
 def track_test_time_elapsed(request, region):
-    test_name = request.node.name
+    test_name = request.node.name.split("[")[0]
 
     instance_type = "None"
     if "ec2_instance_type" in request.fixturenames:
@@ -1002,7 +1002,7 @@ def track_test_time_elapsed(request, region):
                     "Value": elapsed_time,
                 },
             ],
-            Namespace="dlc-test-time-tracking",
+            Namespace="dlc-test-time-tracking-2",
         )
     except Exception as e:
         LOGGER.warning(f"Warning: Failed to upload test time elapsed metric: {e}")
