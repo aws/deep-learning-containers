@@ -16,9 +16,7 @@ def test_binary_visibility(image: str):
     'https://' may still be private, codebuild 'build' job uses 'curl' i.e. unsigned request to fetch them and hence should
     fail if an 'https://' link is still private
     """
-    if is_trcomp_image(image):
-        pytest.skip("Skipping test for HF TrComp images due to labels from base image being carried over")
-
+    
     ctx = Context()
     labels = json.loads(ctx.run("docker inspect --format='{{json .Config.Labels}}' " + image).stdout.strip())
 
