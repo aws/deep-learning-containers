@@ -1,5 +1,6 @@
 import json
 import pytest
+import re
 
 from invoke.context import Context
 
@@ -17,7 +18,7 @@ def test_binary_visibility(image: str):
     fail if an 'https://' link is still private
     """
 
-    if is_trcomp_image(image) and image.find('tensorflow'):
+    if is_trcomp_image(image) and re.search('tensorflow', image):
         pytest.skip("Skipping test for HF TrComp Tensorflow images")
         
 
