@@ -402,7 +402,6 @@ def _run_dependency_check_test(image, ec2_connection):
     # Record any whitelisted medium/low severity CVEs; I.E. allowed_vulnerabilities = {CVE-1000-5555, CVE-9999-9999}
     allowed_vulnerabilities = {
         # Those vulnerabilities are fixed. Current openssl version is 1.1.1g. These are false positive
-        # CVE-2022-2068: https://ubuntu.com/security/CVE-2022-2068
         "CVE-2016-2109",
         "CVE-2016-2177",
         "CVE-2016-6303",

@@ -167,27 +167,6 @@ class NightlyFeatureLabel(Enum):
     TORCHVISION_INSTALLED = "torchvision_installed"
     TORCHDATA_INSTALLED = "torchdata_installed"
 
-UPGRADE_ECR_REPO_NAME = "upgraded-image-ecr-scan-repo"
-ECR_SCAN_HELPER_BUCKET = f"""ecr-scan-helper-{boto3.client("sts", region_name=DEFAULT_REGION).get_caller_identity().get("Account")}"""
-ECR_SCAN_FAILURE_ROUTINE_LAMBDA = "ecr-scan-failure-routine-lambda"
-
-## Note that the region for the repo used for conducting ecr enhanced scans should be different from other
-## repos since ecr enhanced scanning is activated in all the repos of a region and does not allow one to 
-## conduct basic scanning on some repos whereas enhanced scanning on others within the same region.
-ECR_ENHANCED_SCANNING_REPO_NAME = "ecr-enhanced-scanning-dlc-repo"
-ECR_ENHANCED_REPO_REGION = "us-west-1"
-
-class NightlyFeatureLabel(Enum):
-    AWS_FRAMEWORK_INSTALLED = "aws_framework_installed"
-    AWS_SMDEBUG_INSTALLED = "aws_smdebug_installed"
-    AWS_SMDDP_INSTALLED = "aws_smddp_installed"
-    AWS_SMMP_INSTALLED = "aws_smmp_installed"
-    PYTORCH_INSTALLED = "pytorch_installed"
-    AWS_S3_PLUGIN_INSTALLED = "aws_s3_plugin_installed"
-    TORCHAUDIO_INSTALLED = "torchaudio_installed"
-    TORCHVISION_INSTALLED = "torchvision_installed"
-    TORCHDATA_INSTALLED = "torchdata_installed"
-
 
 class MissingPythonVersionException(Exception):
     """
@@ -359,13 +338,6 @@ def is_tf_version(required_version, image_uri):
     required_version_specifier_set = SpecifierSet(f"=={required_version}.*")
     return is_tf_based_framework(image_framework_name) and image_framework_version in required_version_specifier_set
 
-def is_tf_based_framework(name):
-    """
-    Checks whether framework is TF based.
-    Relying on current convention to include "tensorflow" into TF based names
-    E.g. "huggingface-tensorflow" or "huggingface-tensorflow-trcomp"
-    """
-    return "tensorflow" in name
 
 def is_tf_based_framework(name):
     """
