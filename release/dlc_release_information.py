@@ -53,7 +53,7 @@ class DLCReleaseInformation:
 
         run(f"docker rm -f {container_name}", warn=True, hide=True)
 
-        run(f"docker run -id --name {container_name} --entrypoint='/bin/bash' {self.image}", hide=True)
+        run(f"docker run -id --privileged --name {container_name} --entrypoint='/bin/bash' {self.image}", hide=True)
 
         return container_name
 
