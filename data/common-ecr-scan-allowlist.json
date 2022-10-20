@@ -57,5 +57,65 @@
                 }
             ]
         }
+    ],
+    "libksba": [
+        {
+            "name": "CVE-2022-3515",
+            "uri": "http://people.ubuntu.com/~ubuntu-security/cve/CVE-2022-3515",
+            "severity": "HIGH",
+            "attributes": [
+                {
+                    "key": "package_version",
+                    "value": "1.3.5-2"
+                },
+                {
+                    "key": "package_name",
+                    "value": "libksba"
+                }
+            ],
+            "scraped_data": [
+                {
+                    "status_table": {
+                        "packages": [
+                            "libksba",
+                            "Launchpad",
+                            "Ubuntu",
+                            "Debian"
+                        ],
+                        "release_states": [
+                            [
+                                "bionic",
+                                "Needed"
+                            ],
+                            [
+                                "focal",
+                                "Needed"
+                            ],
+                            [
+                                "jammy",
+                                "Needed"
+                            ],
+                            [
+                                "trusty",
+                                "Ignored (out of standard support)"
+                            ],
+                            [
+                                "upstream",
+                                "Released (1.6.2-1)"
+                            ],
+                            [
+                                "xenial",
+                                "Needed"
+                            ],
+                            [
+                                "Patches:",
+                                "upstream:"
+                            ]
+                        ]
+                    },
+                    "notes": ["The CVE does not have a score yet and not been published on NVD yet."]
+                }
+            ]
+        }
     ]
 }

@@ -523,14 +523,28 @@ def get_safety_ignore_dict(image_uri, framework, python_version, job_type):
             "inference-eia" if "eia" in image_uri else "inference-neuron" if "neuron" in image_uri else "inference"
         )
 
+    if job_type == "training":
+        job_type = (
+            "training-neuron" if "neuron" in image_uri else "training"
+        )
+
     if "habana" in image_uri:
         framework = f"habana_{framework}"
 
     ignore_data_file = os.path.join(os.sep, get_cloned_folder_path(), "data", "ignore_ids_safety_scan.json")
     with open(ignore_data_file) as f:
         ignore_safety_ids = json.load(f)
+    ignore_dict = ignore_safety_ids.get(framework, {}).get(job_type, {}).get(python_version, {})
 
-    return ignore_safety_ids.get(framework, {}).get(job_type, {}).get(python_version, {})
+    ## Find common vulnerabilites and add it to the ignore dict
+    common_ignore_list_file = os.path.join(os.sep, get_cloned_folder_path(), "data", "common-safety-ignorelist.json")
+    with open(common_ignore_list_file) as f:
+        common_ids_to_ignore = json.load(f)
+    for common_id, reason in common_ids_to_ignore.items():
+        if common_id not in ignore_dict:
+            ignore_dict[common_id] = reason
+
+    return ignore_dict
 
 
 def generate_safety_report_for_image(image_uri, image_info, storage_file_path=None):
