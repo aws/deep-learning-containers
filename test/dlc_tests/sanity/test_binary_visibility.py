@@ -1,10 +1,10 @@
 import json
 import pytest
-import re
 
 from invoke.context import Context
-
-from test.test_utils import is_pr_context, PR_ONLY_REASON, is_trcomp_image
+from packaging.version import Version
+from packaging.specifiers import SpecifierSet
+from test.test_utils import is_pr_context, PR_ONLY_REASON, is_trcomp_image, get_framework_and_version_from_tag
 
 
 @pytest.mark.usefixtures("sagemaker")
@@ -18,8 +18,9 @@ def test_binary_visibility(image: str):
     fail if an 'https://' link is still private
     """
 
-    if is_trcomp_image(image) and re.search('tensorflow', image):
-        pytest.skip("Skipping test for HF TrComp Tensorflow images")
+    framework, version = get_framework_and_version_from_tag(image)
+    if is_trcomp_image(image) and framework == "tensorflow" and Version(version) in SpecifierSet("==2.6.*"):
+        pytest.skip("Skipping test for HF TrComp Tensorflow 2.6 images")
         
 
     ctx = Context()
