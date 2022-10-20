@@ -49,7 +49,7 @@ def filter_not_heavy_instance_types(instance_type_list):
     return filtered_list
 
 
-def get_ec2_instance_type(default, processor, filter_function=lambda x: x, efa=False, arch_type=""):
+def get_ec2_instance_type(default, processor, filter_function=lambda x: x, efa=False, arch_type="", job_type=""):
     """
     Get EC2 instance type from associated EC2_[CPU|GPU]_INSTANCE_TYPE env variable, or set it to a default
     for contexts where the variable is not present (i.e. PR, Nightly, local testing)
@@ -64,6 +64,7 @@ def get_ec2_instance_type(default, processor, filter_function=lambda x: x, efa=F
     a list.
     """
     allowed_processors = ("cpu", "gpu", "neuron", "hpu")
+    job_type_str = f"_{job_type.upper()}" if job_type else ""
     if processor not in allowed_processors:
         raise RuntimeError(
             f"Aborting EC2 test run. Unrecognized processor type {processor}. "
@@ -71,9 +72,9 @@ def get_ec2_instance_type(default, processor, filter_function=lambda x: x, efa=F
         )
     if default in HEAVY_INSTANCE_LIST and not efa:
         raise RuntimeError(f"Default instance type should never be one of {HEAVY_INSTANCE_LIST}, but it is {default}")
-    instance_type = os.getenv(f"EC2_{processor.upper()}_INSTANCE_TYPE")
+    instance_type = os.getenv(f"EC2_{processor.upper()}{job_type_str}_INSTANCE_TYPE")
     if arch_type == "graviton":
-        instance_type = os.getenv(f"EC2_{processor.upper()}_{arch_type.upper()}_INSTANCE_TYPE")
+        instance_type = os.getenv(f"EC2_{processor.upper()}_{arch_type.upper()}{job_type_str}_INSTANCE_TYPE")
     if not instance_type and is_mainline_context():
         return []
 
@@ -636,12 +637,13 @@ def execute_ec2_training_test(
     ipc = '--ipc=host' if "hpu" in ecr_uri and "pytorch" in ecr_uri else ""
     hpu_env_vars = f'-e GIT_BRANCH={synapseai_version}' if "hpu" in ecr_uri else ""
     habana_container_test_repo = '-v ${HOME}/gaudi-test-suite:/gaudi-test-suite' if "hpu" in ecr_uri else ""
+    neuron_device = '--device=/dev/neuron0' if "neuron" in ecr_uri else ""
     bin_bash_cmd = "--entrypoint /bin/bash " if bin_bash_entrypoint else ""
     connection.run(
         f"{docker_cmd} run --name {container_name} "
         f"{container_runtime} {ompi_mca_btl} {cap_add} {hpu_env_vars} "
         f"{ipc} {network}-v {container_test_local_dir}:{os.path.join(os.sep, 'test')} "
-        f"{habana_container_test_repo} {shm_setting} -itd {bin_bash_cmd}{ecr_uri}",
+        f"{habana_container_test_repo} {shm_setting} {neuron_device} -itd {bin_bash_cmd}{ecr_uri}",
         hide=True,
     )
 
@@ -674,6 +676,12 @@ def execute_ec2_training_test(
             except:
                 LOGGER.info(f"Could not upload the logs")
             return run_output
+
+    #Hack not sure why but see the following. since not using latest driver yet in the AMI, doing this for now
+    # [  214.939271] Neuron Driver Started with Version:2.x.381.0-b70a76a18efb5e89ffed987461e9a1009d8b6f1e
+    # [  214.939619] neuron-driver 0000:00:1e.0: BAR 4: can't reserve [mem 0x1000000000-0x17ffffffff 64bit pref]
+    if "neuron" in ecr_uri:
+        connection.run(f"sudo modprobe -r neuron  && sudo modprobe -i neuron")
 
     return connection.run(
         f"{docker_cmd} exec --user root {container_name} {executable} -c '{test_cmd}'",
