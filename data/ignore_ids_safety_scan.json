@@ -420,7 +420,8 @@
                 "44717":"numpy > 1.22.0 is not available for py37",
                 "44716":"numpy > 1.22.0 is not available for py37",
                 "51159":"cryptography>38.0.1 does not exist yet",
-                "51358":"Safety is test pkg and not part of image"
+                "51358":"Safety is test pkg and not part of image",
+                "51457":"Ignored- please check https://github.com/pytest-dev/py/issues/287"
             }
         },
         "inference": {

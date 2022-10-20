@@ -458,6 +458,8 @@ IGNORE_SAFETY_IDS = {
                 "51159",
                 # for Safety. it is test package and not part of image
                 "51358",
+                # Ignored- please check https://github.com/pytest-dev/py/issues/287
+                "51457",
             ],
         },
         "inference": {
