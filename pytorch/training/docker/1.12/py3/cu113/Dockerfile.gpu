@@ -462,6 +462,7 @@ RUN apt-get update \
  && dpkg -i libgdrapi_${GDRCOPY_VERSION}-1_amd64.Ubuntu20_04.deb \
  && dpkg -i gdrcopy-tests_${GDRCOPY_VERSION}-1_amd64.Ubuntu20_04.deb \
  && dpkg -i gdrcopy_${GDRCOPY_VERSION}-1_amd64.Ubuntu20_04.deb \
+ && apt-get purge -y nvidia-driver-${GDRCOPY_DISPLAY_DRIVER_VERSION} \
  && apt-get clean
 
 # Install PT S3 plugin
