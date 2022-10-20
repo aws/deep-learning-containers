@@ -2,10 +2,10 @@ ARG PYTHON=python3
 ARG PYTHON_VERSION=3.8.13
 
 # PyTorch Binaries
-ARG PT_INFERENCE_URL=https://aws-pytorch-unified-cicd-binaries.s3.us-west-2.amazonaws.com/r1.12.1_ec2/20220901-210444/0125567ca85b9aa9f26c6251c97bf0ffad6452d4/torch-1.12.1%2Bcu116-cp38-cp38-linux_x86_64.whl
-ARG PT_TORCHVISION_URL=https://download.pytorch.org/whl/cu116/torchvision-0.13.1%2Bcu116-cp38-cp38-linux_x86_64.whl
-ARG PT_TORCHAUDIO_URL=https://download.pytorch.org/whl/cu116/torchaudio-0.12.1%2Bcu116-cp38-cp38-linux_x86_64.whl
-ARG PT_TORCHDATA_URL=https://download.pytorch.org/whl/test/torchdata-0.4.1-cp38-cp38-manylinux_2_17_x86_64.manylinux2014_x86_64.whl
+ARG PT_INFERENCE_URL=https://download.pytorch.org/whl/test/cu117/torch-1.13.0%2Bcu117-cp38-cp38-linux_x86_64.whl
+ARG PT_TORCHVISION_URL=https://download.pytorch.org/whl/test/cu117/torchvision-0.14.0%2Bcu117-cp38-cp38-linux_x86_64.whl
+ARG PT_TORCHAUDIO_URL=https://download.pytorch.org/whl/test/cu117/torchaudio-0.13.0%2Bcu117-cp38-cp38-linux_x86_64.whl
+ARG PT_TORCHDATA_URL=https://download.pytorch.org/whl/test/torchdata-0.5.0-cp38-cp38-manylinux_2_17_x86_64.manylinux2014_x86_64.whl
 
 ########################################################
 #  _____ ____ ____    ___

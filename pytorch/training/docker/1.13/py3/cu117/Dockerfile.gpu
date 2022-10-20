@@ -4,11 +4,11 @@ ARG PYTHON_SHORT_VERSION=3.8
 ARG MAMBA_VERSION=4.12.0-2
 
 # PyTorch Binaries
-ARG PT_EC2_TRAINING_URL=https://aws-pytorch-unified-cicd-binaries.s3.us-west-2.amazonaws.com/r1.12.1_ec2/20220901-210444/0125567ca85b9aa9f26c6251c97bf0ffad6452d4/torch-1.12.1%2Bcu116-cp38-cp38-linux_x86_64.whl
+ARG PT_EC2_TRAINING_URL=https://download.pytorch.org/whl/test/cu117/torch-1.13.0%2Bcu117-cp38-cp38-linux_x86_64.whl
 ARG PT_SM_TRAINING_URL=https://aws-pytorch-cicd-v3-binaries.s3.us-west-2.amazonaws.com/r1.11.0_v3_sm/20220404-193901/15c50b561b1a638dacc59db932cab0fcb8d60d10/gpu/torch-1.11.0%2Bcu113-cp38-cp38-linux_x86_64.whl
-ARG PT_TORCHVISION_URL=https://download.pytorch.org/whl/cu116/torchvision-0.13.1%2Bcu116-cp38-cp38-linux_x86_64.whl
-ARG PT_TORCHAUDIO_URL=https://download.pytorch.org/whl/cu116/torchaudio-0.12.1%2Bcu116-cp38-cp38-linux_x86_64.whl
-ARG PT_TORCHDATA_URL=https://download.pytorch.org/whl/test/torchdata-0.4.1-cp38-cp38-manylinux_2_17_x86_64.manylinux2014_x86_64.whl
+ARG PT_TORCHVISION_URL=https://download.pytorch.org/whl/test/cu117/torchvision-0.14.0%2Bcu117-cp38-cp38-linux_x86_64.whl
+ARG PT_TORCHAUDIO_URL=https://download.pytorch.org/whl/test/cu117/torchaudio-0.13.0%2Bcu117-cp38-cp38-linux_x86_64.whl
+ARG PT_TORCHDATA_URL=https://download.pytorch.org/whl/test/torchdata-0.5.0-cp38-cp38-manylinux_2_17_x86_64.manylinux2014_x86_64.whl
 ARG PT_S3_WHL_GPU=https://aws-s3-plugin.s3.us-west-2.amazonaws.com/binaries/0.0.1/1c3e69e/awsio-0.0.1-cp38-cp38-manylinux1_x86_64.whl
 
 # SMD binaries
