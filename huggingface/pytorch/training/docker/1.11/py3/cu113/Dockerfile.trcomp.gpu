@@ -92,7 +92,8 @@ RUN pip uninstall -y torchaudio \
 # Install Transformers
 RUN pip uninstall -y transformers \
  && pip install --no-deps --no-cache-dir --force-reinstall -U ${HF_TRANSFORMERS_URL} \
- && rm -rf ${HF_TRANSFORMERS_URL}
+ && rm -rf ${HF_TRANSFORMERS_URL} \
+ && rm -rf $(${PYTHON} -c "import transformers; print(transformers.__file__)")/examples
 
 # Install SageMaker Training Toolkit
 RUN pip uninstall -y sagemaker-training \
