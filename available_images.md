@@ -233,6 +233,7 @@ Elastic Inference Containers
 |Framework                                  |Job Type   |Python Version Options |Example URL                                                                                                |
 |-------------------------------------------|-----------|-----------------------|-----------------------------------------------------------------------------------------------------------|
 | PyTorch 1.5.1 with Elastic Inference        |inference 	|3.8 (py38) 	        | 763104351884.dkr.ecr.us-west-2.amazonaws.com/pytorch-inference-eia:1.5.1-cpu-py38-ubuntu20.04        |
+| PyTorch 2.3.0 with Elastic Inference        |inference 	|3.7 (py37) 	        | 763104351884.dkr.ecr.us-west-2.amazonaws.com/tensorflow-inference-eia:2.3.0-cpu-py37-ubuntu18.04-v2.0        |
 
 
 Prior EC2 Framework Container Versions
