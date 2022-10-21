@@ -22,8 +22,10 @@ PT_S3_PLUGIN_CMD = os.path.join(CONTAINER_TESTS_PREFIX, "pytorch_tests", "testPy
 PT_HABANA_TEST_SUITE_CMD = os.path.join(CONTAINER_TESTS_PREFIX, "testHabanaPTSuite")
 PT_TORCHAUDIO_CMD = os.path.join(CONTAINER_TESTS_PREFIX, "pytorch_tests", "testTorchaudio")
 PT_TORCHDATA_CMD = os.path.join(CONTAINER_TESTS_PREFIX, "pytorch_tests", "testTorchdata")
-PT_NEURON_TEST_SCRIPT = os.path.join(CONTAINER_TESTS_PREFIX, "pytorch_tests", "testNeuronSingleAllReduce")
-PT_NEURON_TEST_CMD = f"python3 -m torch.distributed.launch --nproc_per_node=2 --nnodes=1 --node_rank=0 --master_addr=localhost --master_port=2022 {PT_NEURON_TEST_SCRIPT} --enable_dist_launch"
+PT_NEURON_ALLREDUCE_SCRIPT = os.path.join(CONTAINER_TESTS_PREFIX, "pytorch_tests", "testNeuronSingleAllReduce")
+PT_NEURON_MNIST_SCRIPT = os.path.join(CONTAINER_TESTS_PREFIX, "pytorch_tests", "testNeuronMlp")
+PT_NEURON_ALLREDUCE_CMD = f"torchrun --nproc_per_node=2 --nnodes=1 --node_rank=0 --master_addr=localhost --master_port=2022 {PT_NEURON_ALLREDUCE_SCRIPT}"
+PT_NEURON_MLP_CMD = f"torchrun --nproc_per_node=2 --nnodes=1 --node_rank=0 --master_addr=localhost --master_port=2022 {PT_NEURON_MNIST_SCRIPT}"
 PT_TORCHDATA_DEV_CMD = os.path.join(CONTAINER_TESTS_PREFIX, "pytorch_tests", "testTorchdataDev")
 
 
@@ -42,8 +44,15 @@ PT_EC2_NEURON_TRN1_INSTANCE_TYPE = get_ec2_instance_type(default="trn1.2xlarge",
 @pytest.mark.parametrize("ec2_instance_type", PT_EC2_NEURON_TRN1_INSTANCE_TYPE, indirect=True)
 @pytest.mark.integration("pytorch_neuron_sanity_test")
 @pytest.mark.model("xla")
-def test_pytorch_standalone_neuron(pytorch_training_neuron, ec2_connection):
-    execute_ec2_training_test(ec2_connection, pytorch_training_neuron, PT_NEURON_TEST_CMD)
+def test_pytorch_allreduce_neuron(pytorch_training_neuron, ec2_connection):
+    execute_ec2_training_test(ec2_connection, pytorch_training_neuron, PT_NEURON_ALLREDUCE_CMD)
+
+@pytest.mark.parametrize("ec2_instance_ami", [test_utils.NEURON_TRN1_AMI_US_EAST_1], indirect=True)
+@pytest.mark.parametrize("ec2_instance_type", PT_EC2_NEURON_TRN1_INSTANCE_TYPE, indirect=True)
+@pytest.mark.integration("pytorch_neuron_sanity_test")
+@pytest.mark.model("mlp")
+def test_pytorch_train_mlp_neuron(pytorch_training, ec2_connection):
+    execute_ec2_training_test(ec2_connection, pytorch_training, PT_NEURON_MLP_CMD)
 
 @pytest.mark.usefixtures("sagemaker")
 @pytest.mark.integration("pytorch_sanity_test")
