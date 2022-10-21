@@ -50,7 +50,26 @@ def test_py_versions(sagemaker_local_session, docker_image, py_full_version, fra
 
     with tarfile.open(os.path.join(str(tmpdir), 'output.tar.gz')) as tar:
         output_file = tar.getmember('py_version')
-        tar.extractall(path=str(tmpdir), members=[output_file])
+        def is_within_directory(directory, target):
+            
+            abs_directory = os.path.abspath(directory)
+            abs_target = os.path.abspath(target)
+        
+            prefix = os.path.commonprefix([abs_directory, abs_target])
+            
+            return prefix == abs_directory
+        
+        def safe_extract(tar, path=".", members=None, *, numeric_owner=False):
+        
+            for member in tar.getmembers():
+                member_path = os.path.join(path, member.name)
+                if not is_within_directory(path, member_path):
+                    raise Exception("Attempted Path Traversal in Tar File")
+        
+            tar.extractall(path, members, numeric_owner=numeric_owner) 
+            
+        
+        safe_extract(tar, path=str(tmpdir), members=[output_file])
 
     with open(os.path.join(str(tmpdir), 'py_version')) as f:
         assert f.read().strip() == py_full_version
