@@ -278,6 +278,11 @@ def fixture_build_base_image(request, framework_version, py_version, processor, 
 def fixture_sagemaker_session(region):
     return Session(boto_session=boto3.Session(region_name=region))
 
+@pytest.fixture(name='neuron_efa_instance_type')
+def fixture_neuron_efa_instance_type():
+    default_instance_type = "ml.trn1.32xlarge"
+    return default_instance_type
+
 
 @pytest.fixture(name='efa_instance_type')
 def fixture_efa_instance_type():
