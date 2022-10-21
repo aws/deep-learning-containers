@@ -434,6 +434,18 @@ IGNORE_SAFETY_IDS = {
                 "42772",
                 "42814",
                 "42815",
+            ],
+        },
+        "training-neuron":{
+            "_comment":"py2 is deprecated",
+            "py2": [
+            ],
+            "py3": [
+                # not possible for neuron-cc
+                "43453",
+                "44715",
+                "44717",
+                "44716",
                 # for releasing PT1.12 safety check tools might report a vulnerability for the package commonmarker, 
                 # which is a dependency of deepspeed. 
                 # This package is only used to build the documentation pages of deepspeed 
@@ -444,6 +456,10 @@ IGNORE_SAFETY_IDS = {
                 "48298",
                 # for cryptography until e have 39.0.0 release
                 "51159",
+                # for Safety. it is test package and not part of image
+                "51358",
+                # Ignored- please check https://github.com/pytest-dev/py/issues/287
+                "51457",
             ],
         },
         "inference": {
@@ -661,12 +677,14 @@ def _get_safety_ignore_list(image_uri):
         framework = "tensorflow"
 
     job_type = (
-        "training"
+        "training-neuron"
+        if "training-neuron" in image_uri
+        else "training"
         if "training" in image_uri
         else "inference-eia"
         if "eia" in image_uri
         else "inference-neuron"
-        if "neuron" in image_uri
+        if "inference-neuron" in image_uri
         else "inference"
     )
     python_version = "py2" if "py2" in image_uri else "py3"
