@@ -122,7 +122,7 @@ RUN pip install -U numpy==1.22.2
 
 # Fixing identified CVEs
 RUN pip install -U \
-    "protobuf==3.20.2"
+    "protobuf==3.19.5"
 
 
 # Fix library links
