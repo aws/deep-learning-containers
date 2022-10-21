@@ -56,7 +56,7 @@ def test_neuron_allreduce_distributed(framework_version, ecr_image, sagemaker_re
 @pytest.mark.processor("neuron")
 @pytest.mark.model("mlp")
 @pytest.mark.neuron_test
-def test_neuron_mlp_process(framework_version, ecr_image, sagemaker_regions, neuron_efa_instance_type):
+def test_neuron_mlp_distributed(framework_version, ecr_image, sagemaker_regions, neuron_efa_instance_type):
     function_args = {
             'framework_version': framework_version,
             'instance_type': neuron_efa_instance_type,
