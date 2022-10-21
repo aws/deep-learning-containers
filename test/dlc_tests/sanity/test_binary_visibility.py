@@ -19,7 +19,7 @@ def test_binary_visibility(image: str):
     """
 
     framework, version = get_framework_and_version_from_tag(image)
-    if is_trcomp_image(image) and framework == "tensorflow" and Version(version) in SpecifierSet("==2.6.*"):
+    if is_trcomp_image(image) and framework == "huggingface_tensorflow_trcomp" and Version(version) in SpecifierSet("==2.6.*"):
         pytest.skip("Skipping test for HF TrComp Tensorflow 2.6 images")
         
 
