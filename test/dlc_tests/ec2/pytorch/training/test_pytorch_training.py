@@ -51,8 +51,8 @@ def test_pytorch_allreduce_neuron(pytorch_training_neuron, ec2_connection):
 @pytest.mark.parametrize("ec2_instance_type", PT_EC2_NEURON_TRN1_INSTANCE_TYPE, indirect=True)
 @pytest.mark.integration("pytorch_neuron_sanity_test")
 @pytest.mark.model("mlp")
-def test_pytorch_train_mlp_neuron(pytorch_training, ec2_connection):
-    execute_ec2_training_test(ec2_connection, pytorch_training, PT_NEURON_MLP_CMD)
+def test_pytorch_train_mlp_neuron(pytorch_training_neuron, ec2_connection):
+    execute_ec2_training_test(ec2_connection, pytorch_training_neuron, PT_NEURON_MLP_CMD)
 
 @pytest.mark.usefixtures("sagemaker")
 @pytest.mark.integration("pytorch_sanity_test")

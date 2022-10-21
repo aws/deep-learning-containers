@@ -132,7 +132,7 @@ def _test_neuron_allreduce_distributed(
                 "torch_distributed": {
                 "enabled": True
                 }
-            }
+            },
             disable_profiler=True,
             env={"NEURON_RT_LOG_LEVEL": "DEBUG"}
         )
@@ -161,7 +161,7 @@ def _test_neuron_mlp_distributed(
                 "torch_distributed": {
                 "enabled": True
                 }
-            }
+            },
             disable_profiler=True,
             env={"NEURON_RT_LOG_LEVEL": "DEBUG"}
         )
