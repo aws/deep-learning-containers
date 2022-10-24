@@ -37,7 +37,8 @@ from test.test_utils import (
     get_processor_from_image_uri,
     execute_env_variables_test,
     UL20_CPU_ARM64_US_WEST_2,
-    UBUNTU_18_HPU_DLAMI_US_WEST_2
+    UBUNTU_18_HPU_DLAMI_US_WEST_2,
+    NEURON_UBUNTU_18_BASE_DLAMI_US_WEST_2
 )
 
 
@@ -430,8 +431,8 @@ def _run_dependency_check_test(image, ec2_connection):
         "mxnet": {"1.8": ["neuron"], "1.9": ["cpu", "gpu"]},
         "pytorch": {
             "1.8": ["cpu", "gpu"], 
-            "1.10": ["cpu", "hpu"], 
-            "1.11": ["cpu", "gpu", "hpu"],
+            "1.10": ["cpu", "hpu", "neuron"],
+            "1.11": ["cpu", "gpu", "hpu", "neuron"],
             "1.12": ["cpu", "gpu", "hpu"]
         },
         "huggingface_pytorch": {"1.8": ["cpu", "gpu"], "1.9": ["cpu", "gpu"]},
@@ -449,8 +450,8 @@ def _run_dependency_check_test(image, ec2_connection):
     # Check that these versions have been matched on https://ubuntu.com/security/CVE-2022-1292 before adding
     allow_openssl_cve_2022_1292_fw_versions = {
         "pytorch": {
-            "1.10": ["gpu", "cpu", "hpu"],
-            "1.11": ["gpu", "cpu", "hpu"],
+            "1.10": ["gpu", "cpu", "hpu", "neuron"],
+            "1.11": ["gpu", "cpu", "hpu", "neuron"],
             "1.12": ["gpu", "cpu", "hpu"],
         },
         "tensorflow": {
@@ -574,6 +575,7 @@ def test_dependency_check_hpu(hpu, ec2_connection):
 @pytest.mark.usefixtures("sagemaker", "huggingface")
 @pytest.mark.model("N/A")
 @pytest.mark.parametrize("ec2_instance_type", ["inf1.xlarge"], indirect=True)
+@pytest.mark.parametrize("ec2_instance_ami", [NEURON_UBUNTU_18_BASE_DLAMI_US_WEST_2], indirect=True)
 def test_dependency_check_neuron(neuron, ec2_connection):
     _run_dependency_check_test(neuron, ec2_connection)
 
