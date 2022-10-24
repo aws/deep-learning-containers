@@ -435,9 +435,6 @@ def ec2_connection(request, ec2_instance, ec2_key_name, ec2_instance_type, regio
     LOGGER.info(f"Instance ip_address: {ip_address}")
     user = ec2_utils.get_instance_user(instance_id, region=region)
 
-    # Hack for the time being. Seeing that the instance gets rebooted after it comes up for some reason
-    if "pytorch_training_neuron" in request.fixturenames:
-        time.sleep(300)
     LOGGER.info(f"Connecting to {user}@{ip_address}")
     conn = Connection(
         user=user, host=ip_address, connect_kwargs={"key_filename": [instance_pem_file]}, connect_timeout=18000,
@@ -456,9 +453,6 @@ def ec2_connection(request, ec2_instance, ec2_key_name, ec2_instance_type, regio
 
     conn.run(f"aws s3 cp --recursive {test_utils.TEST_TRANSFER_S3_BUCKET}/{artifact_folder} $HOME/container_tests")
     conn.run(f"mkdir -p $HOME/container_tests/logs && chmod -R +x $HOME/container_tests/*")
-    # Since using old driver that has a bug on reboot, have to do this here
-    if "pytorch_training_neuron" in request.fixturenames:
-        conn.run(f"sudo modprobe -r neuron  && sudo modprobe -i neuron")
 
     # Log into ECR if we are in canary context
     if test_utils.is_canary_context():
