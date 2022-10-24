@@ -67,7 +67,7 @@ def training_cmd(request, ecs_cluster_name, training_script):
 
     # For neuron set the cmd to have torchrun
     if "pytorch_training_neuron" in request.fixturenames:
-        training_script = [f'torchrun --nproc_per_node=2 --nnodes=1 {training_script}']
+        training_script = f'torchrun --nproc_per_node=2 --nnodes=1 {training_script}'
 
     return ecs_utils.build_ecs_training_command(s3_test_artifact_location, training_script)
 
