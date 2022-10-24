@@ -54,7 +54,7 @@ def test_ecs_pytorch_training_mnist_neuron(
 
     # Hard coding the following things for neuron now
     num_neurons = 1
-    training_cmd = f'torchrun --nproc_per_node=2 --nnodes=1 {training_script}'
+    training_cmd = f'torchrun --nproc_per_node=2 --nnodes=1 {PT_MLP_NEURON_TRAINING_SCRIPT}'
 
     ecs_utils.ecs_training_test_executor(
         ecs_cluster_name, cluster_arn, training_cmd, pytorch_training_neuron, instance_id, num_neurons=num_neurons
