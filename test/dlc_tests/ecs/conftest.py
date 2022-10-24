@@ -65,6 +65,10 @@ def training_cmd(request, ecs_cluster_name, training_script):
 
     request.addfinalizer(delete_s3_artifact_copy)
 
+    # For neuron set the cmd to have torchrun
+    if "pytorch_training_neuron" in request.fixturenames:
+        training_script = [f'torchrun --nproc_per_node=2 --nnodes=1 {training_script}']
+
     return ecs_utils.build_ecs_training_command(s3_test_artifact_location, training_script)
 
 
@@ -77,6 +81,16 @@ def ecs_ami(request):
 def ecs_instance_type(request):
     return request.param
 
+
+@pytest.fixture(scope="session")
+def ecs_num_neurons(request, ecs_instance_type):
+    # Set the num neurons based on instance_type
+    if ecs_instance_type == "trn1.2xlarge":
+        return 1
+    elif ecs_instance_type == "trn1.32xlarge":
+        return 16
+
+    return None
 
 @pytest.mark.timeout(300)
 @pytest.fixture(scope="function")

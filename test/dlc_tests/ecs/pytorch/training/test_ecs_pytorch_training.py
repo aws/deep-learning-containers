@@ -40,7 +40,7 @@ def test_ecs_pytorch_training_mnist_cpu(
 @pytest.mark.parametrize("ecs_instance_type", ["trn1.2xlarge"], indirect=True)
 @pytest.mark.parametrize("ecs_ami", [ECS_AML2_NEURON_USWEST2], indirect=True)
 def test_ecs_pytorch_training_mnist_neuron(
-    ecs_container_instance, pytorch_training_neuron, training_cmd, ecs_cluster_name
+    ecs_container_instance, pytorch_training_neuron, training_cmd, ecs_cluster_name, ecs_num_neurons
 ):
     """
     Neuron MLP test for PyTorch Training
@@ -52,12 +52,8 @@ def test_ecs_pytorch_training_mnist_neuron(
     """
     instance_id, cluster_arn = ecs_container_instance
 
-    # Hard coding the following things for neuron now
-    num_neurons = 1
-    training_cmd = f'torchrun --nproc_per_node=2 --nnodes=1 {PT_MLP_NEURON_TRAINING_SCRIPT}'
-
     ecs_utils.ecs_training_test_executor(
-        ecs_cluster_name, cluster_arn, training_cmd, pytorch_training_neuron, instance_id, num_neurons=num_neurons
+        ecs_cluster_name, cluster_arn, training_cmd, pytorch_training_neuron, instance_id, num_neurons=ecs_num_neurons
     )
 
 @pytest.mark.model("mnist")
