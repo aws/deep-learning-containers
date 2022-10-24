@@ -681,7 +681,7 @@ def build_ecs_training_command(s3_test_location, test_string):
     ]
 
 
-def ecs_training_test_executor(cluster_name, cluster_arn, training_command, image_uri, instance_id, num_gpus=None, num_neurons-None):
+def ecs_training_test_executor(cluster_name, cluster_arn, training_command, image_uri, instance_id, num_gpus=None, num_neurons=None):
     """
     Function to run training task on ECS; Cleans up the resources after each execution
 
