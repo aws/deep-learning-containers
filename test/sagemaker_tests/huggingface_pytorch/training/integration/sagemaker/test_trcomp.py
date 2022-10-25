@@ -79,6 +79,8 @@ def instance_count():
 def num_gpus_per_instance(instance_type):
     if instance_type in ["ml.p3.16xlarge", "ml.p4d.24xlarge"]:
         return 8
+    elif instance_type in ["ml.g4dn.12xlarge", "ml.g5.12xlarge"]:
+        return 4
     raise NotImplementedError("Unforeseen Instance Type")
 
 
@@ -277,6 +279,8 @@ class TestSingleNodeMultiGPU:
         "instance_type, instance_count",
         [
             ("ml.p3.16xlarge", 1),
+            ("ml.g4dn.12xlarge", 1),
+            ("ml.g5.12xlarge", 1),
         ],
     )
     @pytest.mark.model("bert-large")
@@ -324,6 +328,8 @@ class TestSingleNodeMultiGPU:
                 hyperparameters=hyperparameters,
                 py_version=py_version,
                 max_retry_attempts=15,
+                distribution = {'pytorch_xla': {'enabled': True}},
+                environment = {'NCCL_P2P_LEVEL': 'PXB'} if 'g' in instance_type else {}, #Temporary measure to enable communication through PCIe instead of NVLink 
             )
             estimator.fit(
                 job_name=sagemaker.utils.unique_name_from_base("hf-pt-trcomp-SNMG-default"),
@@ -334,6 +340,10 @@ class TestSingleNodeMultiGPU:
         assert "Found configuration for Training Compiler" in logs
         assert "Configuring SM Training Compiler" in logs
         assert "device: xla" in logs
+        assert "Invoking PT-XLA Runner" in logs
+        assert "distributed training through PT-XLA Runtime" in logs
+        assert "torch_xla.distributed.xla_spawn" in logs
+        assert f"nranks {num_gpus_per_instance}" in logs
 
 
 @pytest.mark.integration("sagmaker-training-compiler")
@@ -352,6 +362,8 @@ class TestMultiNodeMultiGPU:
         [
             ("ml.p3.16xlarge", 2),
             ("ml.p4d.24xlarge", 2),
+            ("ml.g4dn.12xlarge", 2),
+            ("ml.g5.12xlarge", 2),
         ],
     )
     @pytest.mark.model("bert-large")
@@ -403,6 +415,8 @@ class TestMultiNodeMultiGPU:
                 hyperparameters=hyperparameters,
                 py_version=py_version,
                 max_retry_attempts=15,
+                distribution = {'pytorch_xla': {'enabled': True}},
+                environment = {'NCCL_P2P_LEVEL': 'PXB'} if 'g' in instance_type else {}, #Temporary measure to enable communication through PCIe instead of NVLink 
             )
             estimator.fit(
                 job_name=sagemaker.utils.unique_name_from_base("hf-pt-trcomp-MNMG-default"),
