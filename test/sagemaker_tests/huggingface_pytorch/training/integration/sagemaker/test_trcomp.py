@@ -328,7 +328,7 @@ class TestSingleNodeMultiGPU:
                 hyperparameters=hyperparameters,
                 py_version=py_version,
                 max_retry_attempts=15,
-                distribution = {'pytorch_xla': {'enabled': True}},
+                distribution = {'pytorchxla': {'enabled': True}},
                 environment = {'NCCL_P2P_LEVEL': 'PXB'} if 'g' in instance_type else {}, #Temporary measure to enable communication through PCIe instead of NVLink 
             )
             estimator.fit(
@@ -397,9 +397,6 @@ class TestMultiNodeMultiGPU:
         total_gpus = num_gpus_per_instance * instance_count
         hyperparameters["max_steps"] = 3 * total_gpus
 
-        # This is temporary workaround until distribution = {'pytorch_xla': 'enabled': True} is supported by SM SDK.
-        hyperparameters["sagemaker_pytorch_xla_multi_worker_enabled"] = True
-
         with timeout(minutes=DEFAULT_TIMEOUT):
             estimator = HuggingFace(
                 compiler_config=TrainingCompilerConfig(),
@@ -415,7 +412,7 @@ class TestMultiNodeMultiGPU:
                 hyperparameters=hyperparameters,
                 py_version=py_version,
                 max_retry_attempts=15,
-                distribution = {'pytorch_xla': {'enabled': True}},
+                distribution = {'pytorchxla': {'enabled': True}},
                 environment = {'NCCL_P2P_LEVEL': 'PXB'} if 'g' in instance_type else {}, #Temporary measure to enable communication through PCIe instead of NVLink 
             )
             estimator.fit(
