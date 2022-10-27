@@ -1,5 +1,5 @@
 # https://github.com/aws/deep-learning-containers/blob/master/available_images.md 
-# refer to the above page to pull latest Pytorch image
+# Refer to the above page to pull latest Pytorch image
 
 # docker image region us-west-2
 FROM 763104351884.dkr.ecr.us-west-2.amazonaws.com/pytorch-training:1.11.0-gpu-py38-cu113-ubuntu20.04-sagemaker
