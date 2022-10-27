@@ -19,7 +19,32 @@ from sagemaker import utils
 from sagemaker.pytorch import PyTorch
 from ...integration import (neuron_allreduce_path, neuron_mlp_path, DEFAULT_TIMEOUT)
 from ...integration.sagemaker.timeout import timeout
-from .... import invoke_pytorch_helper_function
+
+def invoke_neuron_helper_function(ecr_image, sagemaker_regions, helper_function, helper_function_args):
+    """
+    Used to invoke SM job defined in the helper functions in respective test file. The ECR image and the sagemaker
+    session are passed explicitly depending on the AWS region.
+    This function will rerun for all SM regions after a defined wait time if capacity issues are seen.
+
+    :param ecr_image: ECR image in us-west-2 region
+    :param sagemaker_regions: List of SageMaker regions
+    :param helper_function: Function to invoke
+    :param helper_function_args: Helper function args
+
+    :return: None
+    """
+    from ..... import get_ecr_image_region, get_sagemaker_session, get_ecr_image
+
+    ecr_image_region = get_ecr_image_region(ecr_image)
+    for region in sagemaker_regions:
+        sagemaker_session = get_sagemaker_session(region)
+        # Reupload the image to test region if needed
+        tested_ecr_image = get_ecr_image(ecr_image, region) if region != ecr_image_region else ecr_image
+        try:
+            helper_function(tested_ecr_image, sagemaker_session, **helper_function_args)
+            return
+        except sagemaker.exceptions.UnexpectedStatusException as e:
+            raise e
 
 @pytest.mark.processor("neuron")
 @pytest.mark.model("unknown_model")
@@ -30,7 +55,7 @@ def test_neuron_allreduce_process(framework_version, ecr_image, sagemaker_region
             'instance_type': instance_type,
             'num_neuron_cores': 2,
         }
-    invoke_pytorch_helper_function(ecr_image, sagemaker_regions, _test_neuron_allreduce, function_args)
+    invoke_neuron_helper_function(ecr_image, sagemaker_regions, _test_neuron_allreduce, function_args)
 
 @pytest.mark.processor("neuron")
 @pytest.mark.model("mlp")
@@ -41,7 +66,7 @@ def test_neuron_mlp_process(framework_version, ecr_image, sagemaker_regions, ins
             'instance_type': instance_type,
             'num_neuron_cores': 2,
         }
-    invoke_pytorch_helper_function(ecr_image, sagemaker_regions, _test_neuron_mlp, function_args)
+    invoke_neuron_helper_function(ecr_image, sagemaker_regions, _test_neuron_mlp, function_args)
 
 @pytest.mark.processor("neuron")
 @pytest.mark.model("unknown_model")
@@ -50,8 +75,9 @@ def test_neuron_allreduce_distributed(framework_version, ecr_image, sagemaker_re
     function_args = {
             'framework_version': framework_version,
             'instance_type': neuron_efa_instance_type,
+            'instance_count': 2,
         }
-    invoke_pytorch_helper_function(ecr_image, sagemaker_regions, _test_neuron_allreduce_distributed, function_args)
+    invoke_neuron_helper_function(ecr_image, sagemaker_regions, _test_neuron_allreduce_distributed, function_args)
 
 @pytest.mark.processor("neuron")
 @pytest.mark.model("mlp")
@@ -60,8 +86,9 @@ def test_neuron_mlp_distributed(framework_version, ecr_image, sagemaker_regions,
     function_args = {
             'framework_version': framework_version,
             'instance_type': neuron_efa_instance_type,
+            'instance_count': 2,
         }
-    invoke_pytorch_helper_function(ecr_image, sagemaker_regions, _test_neuron_mlp_distributed, function_args)
+    invoke_neuron_helper_function(ecr_image, sagemaker_regions, _test_neuron_mlp_distributed, function_args)
 
 
 def _test_neuron_allreduce(
