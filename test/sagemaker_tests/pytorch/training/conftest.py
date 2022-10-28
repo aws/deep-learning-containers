@@ -50,7 +50,7 @@ logging.getLogger('connectionpool.py').setLevel(logging.INFO)
 dir_path = os.path.dirname(os.path.realpath(__file__))
 
 NEURON_TRN1_REGIONS = [
-    "us-east-1",
+    "us-west-2",
 ]
 
 NEURON_TRN1_INSTANCES = [
