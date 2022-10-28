@@ -19,7 +19,15 @@ from sagemaker import utils
 from sagemaker.pytorch import PyTorch
 from ...integration import (neuron_allreduce_path, neuron_mlp_path, DEFAULT_TIMEOUT)
 from ...integration.sagemaker.timeout import timeout
+from retrying import retry
 
+def retry_if_value_error(exception):
+    """Return True if we should retry (in this case when it's an ValueError), False otherwise"""
+    return isinstance(exception, ValueError)
+
+@retry(
+    stop_max_attempt_number=360, wait_fixed=10000, retry_on_exception=retry_if_value_error,
+)
 def invoke_neuron_helper_function(ecr_image, sagemaker_regions, helper_function, helper_function_args):
     """
     Used to invoke SM job defined in the helper functions in respective test file. The ECR image and the sagemaker
@@ -44,29 +52,10 @@ def invoke_neuron_helper_function(ecr_image, sagemaker_regions, helper_function,
             helper_function(tested_ecr_image, sagemaker_session, **helper_function_args)
             return
         except sagemaker.exceptions.UnexpectedStatusException as e:
-            raise e
-
-@pytest.mark.processor("neuron")
-@pytest.mark.model("unknown_model")
-@pytest.mark.neuron_test
-def test_neuron_allreduce_process(framework_version, ecr_image, sagemaker_regions, instance_type):
-    function_args = {
-            'framework_version': framework_version,
-            'instance_type': instance_type,
-            'num_neuron_cores': 2,
-        }
-    invoke_neuron_helper_function(ecr_image, sagemaker_regions, _test_neuron_allreduce, function_args)
-
-@pytest.mark.processor("neuron")
-@pytest.mark.model("mlp")
-@pytest.mark.neuron_test
-def test_neuron_mlp_process(framework_version, ecr_image, sagemaker_regions, instance_type):
-    function_args = {
-            'framework_version': framework_version,
-            'instance_type': instance_type,
-            'num_neuron_cores': 2,
-        }
-    invoke_neuron_helper_function(ecr_image, sagemaker_regions, _test_neuron_mlp, function_args)
+            if "CapacityError" in str(e):
+                raise ValueError("CapacityError: Retry.")
+            else:
+                raise e
 
 @pytest.mark.processor("neuron")
 @pytest.mark.model("unknown_model")
@@ -89,6 +78,28 @@ def test_neuron_mlp_distributed(framework_version, ecr_image, sagemaker_regions,
             'instance_count': 2,
         }
     invoke_neuron_helper_function(ecr_image, sagemaker_regions, _test_neuron_mlp_distributed, function_args)
+
+@pytest.mark.processor("neuron")
+@pytest.mark.model("unknown_model")
+@pytest.mark.neuron_test
+def test_neuron_allreduce_process(framework_version, ecr_image, sagemaker_regions, instance_type):
+    function_args = {
+            'framework_version': framework_version,
+            'instance_type': instance_type,
+            'num_neuron_cores': 2,
+        }
+    invoke_neuron_helper_function(ecr_image, sagemaker_regions, _test_neuron_allreduce, function_args)
+
+@pytest.mark.processor("neuron")
+@pytest.mark.model("mlp")
+@pytest.mark.neuron_test
+def test_neuron_mlp_process(framework_version, ecr_image, sagemaker_regions, instance_type):
+    function_args = {
+            'framework_version': framework_version,
+            'instance_type': instance_type,
+            'num_neuron_cores': 2,
+        }
+    invoke_neuron_helper_function(ecr_image, sagemaker_regions, _test_neuron_mlp, function_args)
 
 
 def _test_neuron_allreduce(
