@@ -61,22 +61,24 @@ def invoke_neuron_helper_function(ecr_image, sagemaker_regions, helper_function,
 
 @pytest.mark.processor("neuron")
 @pytest.mark.model("unknown_model")
+@pytest.mark.parametrize('instance_types', ["ml.trn1.32xlarge"])
 @pytest.mark.neuron_test
-def test_neuron_allreduce_distributed(framework_version, ecr_image, sagemaker_regions):
+def test_neuron_allreduce_distributed(framework_version, ecr_image, sagemaker_regions, instance_types):
     function_args = {
             'framework_version': framework_version,
-            'instance_type': 'ml.trn1.32xlarge',
+            'instance_type': instance_types,
             'instance_count': 2,
         }
     invoke_neuron_helper_function(ecr_image, sagemaker_regions, _test_neuron_allreduce_distributed, function_args)
 
 @pytest.mark.processor("neuron")
 @pytest.mark.model("mlp")
+@pytest.mark.parametrize('instance_types', ["ml.trn1.32xlarge"])
 @pytest.mark.neuron_test
-def test_neuron_mlp_distributed(framework_version, ecr_image, sagemaker_regions):
+def test_neuron_mlp_distributed(framework_version, ecr_image, sagemaker_regions, instance_types):
     function_args = {
             'framework_version': framework_version,
-            'instance_type': 'ml.trn1.32xlarge',
+            'instance_type': instance_types,
             'instance_count': 2,
         }
     invoke_neuron_helper_function(ecr_image, sagemaker_regions, _test_neuron_mlp_distributed, function_args)
