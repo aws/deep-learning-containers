@@ -2,7 +2,7 @@ import os
 
 import pytest
 
-from test.test_utils import ECS_AML2_CPU_USWEST2, ECS_AML2_GPU_USWEST2, CONTAINER_TESTS_PREFIX
+from test.test_utils import ECS_AML2_CPU_USWEST2, ECS_AML2_GPU_USWEST2, ECS_AML2_NEURON_USWEST2, CONTAINER_TESTS_PREFIX
 from test.test_utils import ecs as ecs_utils
 from test.test_utils import ec2 as ec2_utils
 
@@ -13,6 +13,9 @@ from packaging.specifiers import SpecifierSet
 PT_MNIST_TRAINING_SCRIPT = os.path.join(CONTAINER_TESTS_PREFIX, "pytorch_tests", "testPyTorch")
 PT_DGL_TRAINING_SCRIPT = os.path.join(CONTAINER_TESTS_PREFIX, "dgl_tests", "testPyTorchDGL")
 PT_S3_PLUGIN_CMD = os.path.join(CONTAINER_TESTS_PREFIX, "pytorch_tests", "testPyTorchS3Plugin")
+# For neuron the training script is called using torchrun. Since the trainind cmd is built based on 
+# the training script, adding torchrun here.
+PT_MLP_NEURON_TRAINING_SCRIPT = f'torchrun --nproc_per_node=2 --nnodes=1 ' + os.path.join(CONTAINER_TESTS_PREFIX, "pytorch_tests", "testNeuronMlp")
 
 
 @pytest.mark.model("mnist")
@@ -34,6 +37,26 @@ def test_ecs_pytorch_training_mnist_cpu(
 
     ecs_utils.ecs_training_test_executor(ecs_cluster_name, cluster_arn, training_cmd, pytorch_training, instance_id)
 
+@pytest.mark.model("mlp")
+@pytest.mark.parametrize("training_script", [PT_MLP_NEURON_TRAINING_SCRIPT], indirect=True)
+@pytest.mark.parametrize("ecs_instance_type", ["trn1.2xlarge"], indirect=True)
+@pytest.mark.parametrize("ecs_ami", [ECS_AML2_NEURON_USWEST2], indirect=True)
+def test_ecs_pytorch_training_mnist_neuron(
+    ecs_container_instance, pytorch_training_neuron, training_cmd, ecs_cluster_name, ecs_num_neurons
+):
+    """
+    Neuron MLP test for PyTorch Training
+
+    Instance Type - trn1.2xlarge
+
+    Given above parameters, registers a task with family named after this test, runs the task, and waits for
+    the task to be stopped before doing teardown operations of instance and cluster.
+    """
+    instance_id, cluster_arn = ecs_container_instance
+
+    ecs_utils.ecs_training_test_executor(
+        ecs_cluster_name, cluster_arn, training_cmd, pytorch_training_neuron, instance_id, num_neurons=ecs_num_neurons
+    )
 
 @pytest.mark.model("mnist")
 @pytest.mark.parametrize("training_script", [PT_MNIST_TRAINING_SCRIPT], indirect=True)

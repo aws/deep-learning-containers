@@ -50,7 +50,7 @@ logging.getLogger('connectionpool.py').setLevel(logging.INFO)
 dir_path = os.path.dirname(os.path.realpath(__file__))
 
 NEURON_TRN1_REGIONS = [
-    "us-east-1",
+    "us-west-2",
 ]
 
 NEURON_TRN1_INSTANCES = [
@@ -277,7 +277,6 @@ def fixture_build_base_image(request, framework_version, py_version, processor, 
 @pytest.fixture(scope='session', name='sagemaker_session')
 def fixture_sagemaker_session(region):
     return Session(boto_session=boto3.Session(region_name=region))
-
 
 @pytest.fixture(name='efa_instance_type')
 def fixture_efa_instance_type():
