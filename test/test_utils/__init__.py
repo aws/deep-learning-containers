@@ -67,8 +67,8 @@ PT_GPU_PY3_BENCHMARK_IMAGENET_AMI_US_EAST_1 = "ami-0673bb31cc62485dd"
 PT_GPU_PY3_BENCHMARK_IMAGENET_AMI_US_WEST_2 = "ami-02d9a47bc61a31d43"
 # Since latest driver is not in public DLAMI yet, using a custom one
 NEURON_UBUNTU_18_BASE_DLAMI_US_WEST_2 = get_ami_id_boto3(region_name="us-west-2", ami_name_pattern="Deep Learning Base AMI (Ubuntu 18.04) Version ??.?")
-# Since NEURON TRN1 is not released yet use a custom AMI
-NEURON_TRN1_AMI_US_EAST_1 = "ami-0a3a08190eb7e5b29"
+# Since NEURON TRN1 DLAMI is not released yet use a custom AMI
+NEURON_TRN1_AMI_US_WEST_2 = "ami-0a610a15fcc9e0242"
 # Habana Base v0.15.4 ami
 # UBUNTU_18_HPU_DLAMI_US_WEST_2 = "ami-0f051d0c1a667a106"
 # UBUNTU_18_HPU_DLAMI_US_EAST_1 = "ami-04c47cb3d4fdaa874"

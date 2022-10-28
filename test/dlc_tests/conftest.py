@@ -430,7 +430,6 @@ def ec2_connection(request, ec2_instance, ec2_key_name, ec2_instance_type, regio
     """
     instance_id, instance_pem_file = ec2_instance
     region = P3DN_REGION if ec2_instance_type == "p3dn.24xlarge" else region
-    region = TRN1_REGION if ec2_instance_type == "trn1.32xlarge" or ec2_instance_type == "trn1.2xlarge" else region
     ip_address = ec2_utils.get_public_ip(instance_id, region=region)
     LOGGER.info(f"Instance ip_address: {ip_address}")
     user = ec2_utils.get_instance_user(instance_id, region=region)

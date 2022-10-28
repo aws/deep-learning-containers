@@ -25,6 +25,8 @@ def retry_if_value_error(exception):
     """Return True if we should retry (in this case when it's an ValueError), False otherwise"""
     return isinstance(exception, ValueError)
 
+# TBD. This function is mainly there to handle capacity issues now. Once trn1 capacaity issues
+# are fixed, we can remove this function
 @retry(
     stop_max_attempt_number=360, wait_fixed=10000, retry_on_exception=retry_if_value_error,
 )
@@ -60,10 +62,10 @@ def invoke_neuron_helper_function(ecr_image, sagemaker_regions, helper_function,
 @pytest.mark.processor("neuron")
 @pytest.mark.model("unknown_model")
 @pytest.mark.neuron_test
-def test_neuron_allreduce_distributed(framework_version, ecr_image, sagemaker_regions, neuron_efa_instance_type):
+def test_neuron_allreduce_distributed(framework_version, ecr_image, sagemaker_regions):
     function_args = {
             'framework_version': framework_version,
-            'instance_type': neuron_efa_instance_type,
+            'instance_type': 'ml.trn1.32xlarge',
             'instance_count': 2,
         }
     invoke_neuron_helper_function(ecr_image, sagemaker_regions, _test_neuron_allreduce_distributed, function_args)
@@ -71,10 +73,10 @@ def test_neuron_allreduce_distributed(framework_version, ecr_image, sagemaker_re
 @pytest.mark.processor("neuron")
 @pytest.mark.model("mlp")
 @pytest.mark.neuron_test
-def test_neuron_mlp_distributed(framework_version, ecr_image, sagemaker_regions, neuron_efa_instance_type):
+def test_neuron_mlp_distributed(framework_version, ecr_image, sagemaker_regions):
     function_args = {
             'framework_version': framework_version,
-            'instance_type': neuron_efa_instance_type,
+            'instance_type': 'ml.trn1.32xlarge',
             'instance_count': 2,
         }
     invoke_neuron_helper_function(ecr_image, sagemaker_regions, _test_neuron_mlp_distributed, function_args)
