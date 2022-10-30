@@ -9,7 +9,7 @@ release_images:
       device_types: [ "gpu" ]
       python_versions: [ "py38" ]
       os_version: "ubuntu20.04"
-      deepspeed: "0.7.3"
+      deepspeed_version: "0.7.3"
       cuda_version: "cu113"
       example: False        # [Default: False] Set to True to denote that this image is an Example image
       disable_sm_tag: True # [Default: False] Set to True to prevent SageMaker Abbreviated Tags from being attached
