@@ -89,8 +89,8 @@ RUN apt-get update \
     git \
     hwloc \
     jq \
-    libcublas-11-6=${CUBLAS_VERSION}-1 \
-    libcublas-dev-11-6=${CUBLAS_VERSION}-1 \
+    libcublas-11-7=${CUBLAS_VERSION}-1 \
+    libcublas-dev-11-7=${CUBLAS_VERSION}-1 \
     libcudnn8=$CUDNN_VERSION-1+cuda11.7 \
     libcufft-dev-11-7 \
     libcurand-dev-11-7 \
