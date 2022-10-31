@@ -175,6 +175,21 @@ RUN rm -rf /var/lib/apt/lists/* \
  && rm -rf /tmp/tmp* \
  && apt-get clean
 
+ # Install some common packages used by training scripts
+ # torchvision needed for MLP. since it depends on torch and torch neuron/torch
+ # is already installed install it with nodeps
+ RUN pip3 install --no-cache-dir --no-deps -U \
+    torchvision==0.12.0
+
+# Needed for running bert training scripts
+RUN pip3 install --no-cache-dir -U \
+    graphviz \
+    tensorboard==2.6 \
+    accelerate \
+    sentencepiece!=0.1.92 \
+    h5py \
+    requests
+
 COPY deep_learning_container.py /usr/local/bin/deep_learning_container.py
 
 RUN chmod +x /usr/local/bin/start_with_right_hostname.sh \
