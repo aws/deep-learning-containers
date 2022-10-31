@@ -84,6 +84,16 @@ def num_gpus_per_instance(instance_type):
     raise NotImplementedError("Unforeseen Instance Type")
 
 
+@pytest.fixture
+def should_nccl_use_pcie(instance_type, instance_count, ecr_image):
+    """Should NCCL be explicitly forced to use PCIE when NVLINK is not available ? This is baked in from PyTorch 1.12.
+    """
+    pytorch_version = get_framework_and_version_from_tag(ecr_image)[1]
+    if 'g' in instance_type and ( Version(pytorch_version) in SpecifierSet("< 1.12") ):
+        return True
+    return False
+
+
 @pytest.mark.integration("sagmaker-training-compiler")
 @pytest.mark.processor("gpu")
 @pytest.mark.skip_py2_containers
@@ -295,6 +305,7 @@ class TestSingleNodeMultiGPU:
         instance_type,
         instance_count,
         num_gpus_per_instance,
+        should_nccl_use_pcie,
     ):
         """
         Tests the default configuration of SM trcomp
@@ -329,7 +340,7 @@ class TestSingleNodeMultiGPU:
                 py_version=py_version,
                 max_retry_attempts=15,
                 distribution = {'pytorchxla': {'enabled': True}},
-                environment = {'NCCL_P2P_LEVEL': 'PXB'} if 'g' in instance_type else {}, #Temporary measure to enable communication through PCIe instead of NVLink 
+                environment = {'NCCL_P2P_LEVEL': 'PXB'} if should_nccl_use_pcie else {}, #Temporary measure to enable communication through PCIe instead of NVLink 
             )
             estimator.fit(
                 job_name=sagemaker.utils.unique_name_from_base("hf-pt-trcomp-SNMG-default"),
@@ -378,6 +389,7 @@ class TestMultiNodeMultiGPU:
         instance_type,
         instance_count,
         num_gpus_per_instance,
+        should_nccl_use_pcie,
     ):
         """
         Tests the default configuration of SM trcomp
@@ -413,7 +425,7 @@ class TestMultiNodeMultiGPU:
                 py_version=py_version,
                 max_retry_attempts=15,
                 distribution = {'pytorchxla': {'enabled': True}},
-                environment = {'NCCL_P2P_LEVEL': 'PXB'} if 'g' in instance_type else {}, #Temporary measure to enable communication through PCIe instead of NVLink 
+                environment = {'NCCL_P2P_LEVEL': 'PXB'} if should_nccl_use_pcie else {}, #Temporary measure to enable communication through PCIe instead of NVLink 
             )
             estimator.fit(
                 job_name=sagemaker.utils.unique_name_from_base("hf-pt-trcomp-MNMG-default"),
