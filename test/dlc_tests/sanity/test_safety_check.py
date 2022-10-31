@@ -458,6 +458,8 @@ IGNORE_SAFETY_IDS = {
                 "51159",
                 # for Safety. it is test package and not part of image
                 "51358",
+                # Wheel is needed by tensorboard but v0.38 is not there yet
+                "51499",
                 # Ignored- please check https://github.com/pytest-dev/py/issues/287
                 "51457",
             ],
