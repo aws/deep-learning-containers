@@ -28,7 +28,6 @@ from test.test_utils import (
     is_nightly_context,
     DEFAULT_REGION,
     P3DN_REGION,
-    TRN1_REGION,
     UBUNTU_18_BASE_DLAMI_US_EAST_1,
     UBUNTU_18_BASE_DLAMI_US_WEST_2,
     PT_GPU_PY3_BENCHMARK_IMAGENET_AMI_US_EAST_1,
@@ -295,12 +294,6 @@ def ec2_instance(
                 else UBUNTU_18_BASE_DLAMI_US_EAST_1
             )
 
-    if ec2_instance_type == "trn1.32xlarge" or ec2_instance_type == "trn1.2xlarge":
-        region = TRN1_REGION
-        ec2_client = boto3.client("ec2", region_name=region, config=Config(retries={"max_attempts": 10}))
-        ec2_resource = boto3.resource("ec2", region_name=region, config=Config(retries={"max_attempts": 10}))
-
-    
     ec2_key_name = f"{ec2_key_name}-{str(uuid.uuid4())}"
     print(f"Creating instance: CI-CD {ec2_key_name}")
     key_filename = test_utils.generate_ssh_keypair(ec2_client, ec2_key_name)
@@ -430,14 +423,10 @@ def ec2_connection(request, ec2_instance, ec2_key_name, ec2_instance_type, regio
     """
     instance_id, instance_pem_file = ec2_instance
     region = P3DN_REGION if ec2_instance_type == "p3dn.24xlarge" else region
-    region = TRN1_REGION if ec2_instance_type == "trn1.32xlarge" or ec2_instance_type == "trn1.2xlarge" else region
     ip_address = ec2_utils.get_public_ip(instance_id, region=region)
     LOGGER.info(f"Instance ip_address: {ip_address}")
     user = ec2_utils.get_instance_user(instance_id, region=region)
 
-    # Hack for the time being. Seeing that the instance gets rebooted after it comes up for some reason
-    if "pytorch_training_neuron" in request.fixturenames:
-        time.sleep(300)
     LOGGER.info(f"Connecting to {user}@{ip_address}")
     conn = Connection(
         user=user, host=ip_address, connect_kwargs={"key_filename": [instance_pem_file]}, connect_timeout=18000,
@@ -456,9 +445,6 @@ def ec2_connection(request, ec2_instance, ec2_key_name, ec2_instance_type, regio
 
     conn.run(f"aws s3 cp --recursive {test_utils.TEST_TRANSFER_S3_BUCKET}/{artifact_folder} $HOME/container_tests")
     conn.run(f"mkdir -p $HOME/container_tests/logs && chmod -R +x $HOME/container_tests/*")
-    # Since using old driver that has a bug on reboot, have to do this here
-    if "pytorch_training_neuron" in request.fixturenames:
-        conn.run(f"sudo modprobe -r neuron  && sudo modprobe -i neuron")
 
     # Log into ECR if we are in canary context
     if test_utils.is_canary_context():
