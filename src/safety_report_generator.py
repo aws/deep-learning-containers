@@ -81,7 +81,7 @@ class SafetyReportGenerator:
         """
         python_cmd_to_extract_package_set = """ python -c "import pkg_resources; \
                 import json; \
-                print(json.dumps([{'key':d.key, 'version':d.version} for d in pkg_resources.working_set]))" """
+                print(json.dumps([{'name':d.key, 'version':d.version} for d in pkg_resources.working_set]))" """
 
         run_output = self.ctx.run(f"{self.docker_exec_cmd} {python_cmd_to_extract_package_set}", hide=True, warn=True)
         if run_output.exited != 0:
