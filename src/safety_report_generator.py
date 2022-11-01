@@ -77,7 +77,7 @@ class SafetyReportGenerator:
         """
         Extracts package set of a container.
 
-        :return: list[dict], each dict is structured like {'key': package_name, 'version':package_version}
+        :return: list[dict], each dict is structured like {'name': package_name, 'version':package_version}
         """
         python_cmd_to_extract_package_set = """ python -c "import pkg_resources; \
                 import json; \
@@ -94,12 +94,12 @@ class SafetyReportGenerator:
         Takes the list of all the packages existing in a container and inserts safe packages into the
         vulnerability_dict.
         
-        :param packages: list[dict], each dict looks like {"key":package_name, "version":package_version}
+        :param packages: list[dict], each dict looks like {"name":package_name, "version":package_version}
         """
         for pkg in packages:
-            if pkg["key"] not in self.vulnerability_dict:
-                self.vulnerability_dict[pkg["key"]] = {
-                    "package": pkg["key"],
+            if pkg["name"] not in self.vulnerability_dict:
+                self.vulnerability_dict[pkg["name"]] = {
+                    "package": pkg["name"],
                     "scan_status": "SUCCEEDED",
                     "installed": pkg["version"],
                     "vulnerabilities": [
