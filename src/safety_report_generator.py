@@ -87,7 +87,7 @@ class SafetyReportGenerator:
         if run_output.exited != 0:
             raise Exception("Package set cannot be retrieved from the container.")
 
-        return json.loads(run_output.stdout)
+        return run_output.stdout
 
     def insert_safe_packages_into_report(self, packages):
         """
