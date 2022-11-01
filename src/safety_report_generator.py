@@ -79,6 +79,7 @@ class SafetyReportGenerator:
 
         :return: list[dict], each dict is structured like {'name': package_name, 'version':package_version}
         """
+        
         python_cmd_to_extract_package_set = """ python -c "import pkg_resources; \
                 import json; \
                 print(json.dumps([{'name':d.key, 'version':d.version} for d in pkg_resources.working_set]))" """
@@ -87,7 +88,7 @@ class SafetyReportGenerator:
         if run_output.exited != 0:
             raise Exception("Package set cannot be retrieved from the container.")
 
-        return run_output.stdout
+        return json.loads(run_output.stdout)
 
     def insert_safe_packages_into_report(self, packages):
         """
@@ -128,7 +129,7 @@ class SafetyReportGenerator:
 
         :return: string, A JSON formatted string containing vulnerabilities found in the container
         """
-        safety_check_command = f"{self.docker_exec_cmd} safety check --json"
+        safety_check_command = f"{self.docker_exec_cmd} safety check --output json"
         run_out = self.ctx.run(safety_check_command, warn=True, hide=True)
         if run_out.return_code != 0:
             print("safety check command returned non-zero error code. This indicates that vulnerabilities might exist.")
