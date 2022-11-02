@@ -402,7 +402,7 @@ RUN wget https://sourceforge.net/projects/boost/files/boost/1.73.0/boost_1_73_0.
 # ARG SMDATAPARALLEL_BINARY=https://smdataparallel.s3.amazonaws.com/binary/tensorflow/2.10.0/cu112/2022-09-08/smdistributed_dataparallel-1.4.1-cp39-cp39-linux_x86_64.whl
 
 # Install SMD DP binary
-RUN SMDATAPARALLEL_TF=1 ${PYTHON} -m pip install --no-cache-dir ${SMDATAPARALLEL_BINARY}
+# RUN SMDATAPARALLEL_TF=1 ${PYTHON} -m pip install --no-cache-dir ${SMDATAPARALLEL_BINARY}
 
 # Add NGC vars
 ENV TF_AUTOTUNE_THRESHOLD=2
