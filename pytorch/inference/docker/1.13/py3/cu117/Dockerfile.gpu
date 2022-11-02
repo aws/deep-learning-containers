@@ -79,22 +79,22 @@ RUN apt-get update \
     build-essential \
     ca-certificates \
     cmake \
-    cuda-command-line-tools-11-6 \
-    cuda-cudart-11-6 \
-    cuda-libraries-11-6 \
-    cuda-libraries-dev-11-6 \
+    cuda-command-line-tools-11-7 \
+    cuda-cudart-11-7 \
+    cuda-libraries-11-7 \
+    cuda-libraries-dev-11-7 \
     curl \
     emacs \
     git \
     jq \
-    libcublas-11-6=${CUBLAS_VERSION}-1 \
-    libcublas-dev-11-6=${CUBLAS_VERSION}-1 \
+    libcublas-11-7=${CUBLAS_VERSION}-1 \
+    libcublas-dev-11-7=${CUBLAS_VERSION}-1 \
     libcudnn8 \
-    libcufft-dev-11-6 \
-    libcurand-dev-11-6 \
+    libcufft-dev-11-7 \
+    libcurand-dev-11-7 \
     libcurl4-openssl-dev \
-    libcusolver-dev-11-6 \
-    libcusparse-dev-11-6 \
+    libcusolver-dev-11-7 \
+    libcusparse-dev-11-7 \
     cuda-nvml-dev-11-7=${NVML_VERSION}-1 \
     libgl1-mesa-glx \
     libglib2.0-0 \
