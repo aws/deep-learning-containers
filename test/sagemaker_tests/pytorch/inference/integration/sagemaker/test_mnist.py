@@ -19,6 +19,12 @@ import pytest
 import sagemaker
 from sagemaker.pytorch import PyTorchModel
 
+#boto3 imports
+import boto3
+from datetime import datetime, timedelta
+import time
+import json
+
 from ...integration import model_cpu_dir, mnist_cpu_script, mnist_gpu_script, model_eia_dir, mnist_eia_script
 from ...integration.sagemaker.timeout import timeout_and_delete_endpoint
 from .... import invoke_pytorch_helper_function
@@ -34,7 +40,8 @@ def test_mnist_distributed_cpu(framework_version, ecr_image, instance_type, sage
             'framework_version': framework_version,
             'instance_type': instance_type,
             'model_dir': model_dir,
-            'mnist_script': mnist_cpu_script
+            'mnist_script': mnist_cpu_script,
+            'verify_logs': True
 
         }
     invoke_pytorch_helper_function(ecr_image, sagemaker_regions, _test_mnist_distributed, function_args)
@@ -71,7 +78,7 @@ def test_mnist_eia(framework_version, ecr_image, instance_type, accelerator_type
             'instance_type': instance_type,
             'model_dir': model_dir,
             'mnist_script': mnist_eia_script,
-            'accelerator_type': accelerator_type
+            'accelerator_type': accelerator_type,
 
         }
     invoke_pytorch_helper_function(ecr_image, sagemaker_regions, _test_mnist_distributed, function_args)
@@ -79,7 +86,7 @@ def test_mnist_eia(framework_version, ecr_image, instance_type, accelerator_type
 
 
 def _test_mnist_distributed(
-        ecr_image, sagemaker_session, framework_version, instance_type, model_dir, mnist_script, accelerator_type=None
+        ecr_image, sagemaker_session, framework_version, instance_type, model_dir, mnist_script, accelerator_type=None, verify_logs= False
 ):
     endpoint_name = sagemaker.utils.unique_name_from_base("sagemaker-pytorch-serving")
 
@@ -118,3 +125,45 @@ def _test_mnist_distributed(
         output = predictor.predict(data)
 
         assert output.shape == (batch_size, 10)
+
+        #  Check for Cloudwatch logs if true
+        if verify_logs:
+            _check_for_cloudwatch_logs(endpoint_name)
+
+def _check_for_cloudwatch_logs(endpoint_name):
+    print('##############################################################################')
+    print('##############################################################################')
+    print('##############################################################################')
+    print('INFO: Checking logs for the endpoint: /aws/sagemaker/'+endpoint_name)
+    print('##############################################################################')
+    print('##############################################################################')
+    print('##############################################################################')
+    print('##############################################################################')
+    client=boto3.client('logs')
+    query = "fields @timestamp | sort @timestamp desc | limit 2";
+    start_query_response = client.start_query(
+        logGroupName='/aws/sagemaker/'+endpoint_name,
+        startTime=int((datetime.today() - timedelta(minutes=4)).timestamp()),
+        endTime=int(datetime.now().timestamp()),
+        queryString=query,
+    )
+    query_id = start_query_response['queryId']
+    response = None
+    while response == None or response['status'] == 'Running':
+        print('Waiting for query to complete ...')
+        time.sleep(1)
+        response = client.get_query_results(
+            queryId=query_id
+        )        
+    recordsAvailable=bool(response['results'])
+    if not recordsAvailable:
+        print("Exception... No results")
+    else:
+        print(response['results'][0][0]['value'])
+
+    print('##############################################################################')
+    print('##############################################################################')
+    print('##############################################################################')    
+
+
+
