@@ -145,7 +145,7 @@ RUN pip install --no-cache-dir -U \
 RUN pip install --no-cache-dir -U catboost==0.26.1 \
  && pip install --no-cache-dir -U "dask>2021.09.1" "distributed>2021.09.1" \
  && pip install --no-cache-dir -U 'numpy>=1.21,<1.22' \
- && pip install --no-cache-dir -U 'Pillow>=9.0.0,<9.1.0'
+ && pip install --no-cache-dir -U 'Pillow>=9.0.1,<9.1.0'
 
 
 # Allow OpenSSH to talk to containers without asking for confirmation

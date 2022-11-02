@@ -27,7 +27,16 @@ from botocore.exceptions import ClientError
 from sagemaker import LocalSession, Session
 from sagemaker.pytorch import PyTorch
 
-from .utils import image_utils, get_ecr_registry
+from .utils import (
+    get_ecr_registry, 
+    NightlyFeatureLabel, 
+    is_nightly_context
+)
+
+from .utils.image_utils import (
+    build_base_image,
+    are_fixture_labels_enabled
+)
 
 logger = logging.getLogger(__name__)
 logging.getLogger('boto').setLevel(logging.INFO)
@@ -39,6 +48,15 @@ logging.getLogger('connectionpool.py').setLevel(logging.INFO)
 
 
 dir_path = os.path.dirname(os.path.realpath(__file__))
+
+NEURON_TRN1_REGIONS = [
+    "us-west-2",
+]
+
+NEURON_TRN1_INSTANCES = [
+    "ml.trn1.2xlarge",
+    "ml.trn1.32xlarge"
+]
 
 NO_P2_REGIONS = [
     "ap-east-1",
@@ -107,7 +125,7 @@ def pytest_addoption(parser):
     parser.addoption('--region', default='us-west-2')
     parser.addoption('--framework-version', default='')
     parser.addoption('--py-version', choices=['2', '3', '37', '38'], default=str(sys.version_info.major))
-    parser.addoption('--processor', choices=['gpu', 'cpu'], default='cpu')
+    parser.addoption('--processor', choices=['gpu', 'cpu', 'neuron'], default='cpu')
     # If not specified, will default to {framework-version}-{processor}-py{py-version}
     parser.addoption('--tag', default=None)
     parser.addoption('--generate-coverage-doc', default=False, action='store_true',
@@ -134,6 +152,53 @@ def pytest_collection_modifyitems(session, config, items):
         from test.test_utils.test_reporting import TestReportGenerator
         report_generator = TestReportGenerator(items, is_sagemaker=True)
         report_generator.generate_coverage_doc(framework="pytorch", job_type="training")
+
+
+# Nightly image fixture dictionary, maps nightly fixtures to set of image labels
+NIGHTLY_FIXTURES = {
+    "feature_smdebug_present": {
+        NightlyFeatureLabel.AWS_FRAMEWORK_INSTALLED.value, 
+        NightlyFeatureLabel.AWS_SMDEBUG_INSTALLED.value
+    },
+    "feature_smddp_present": {
+        NightlyFeatureLabel.AWS_FRAMEWORK_INSTALLED.value, 
+        NightlyFeatureLabel.AWS_SMDDP_INSTALLED.value
+    },
+    "feature_smmp_present": {
+        NightlyFeatureLabel.AWS_SMMP_INSTALLED.value
+    },
+    "feature_aws_framework_present": {
+        NightlyFeatureLabel.AWS_FRAMEWORK_INSTALLED.value
+    },
+    "feature_s3_plugin_present":{
+        NightlyFeatureLabel.AWS_S3_PLUGIN_INSTALLED.value
+    }
+}
+
+# Nightly fixtures
+@pytest.fixture(scope="session")
+def feature_smdebug_present():
+    pass
+
+
+@pytest.fixture(scope="session")
+def feature_smddp_present():
+    pass
+
+
+@pytest.fixture(scope="session")
+def feature_smmp_present():
+    pass
+
+
+@pytest.fixture(scope="session")
+def feature_aws_framework_present():
+    pass
+
+
+@pytest.fixture(scope="session")
+def feature_s3_plugin_present():
+    pass
 
 
 @pytest.fixture(scope='session', name='docker_base_name')
@@ -197,9 +262,9 @@ def fixture_use_gpu(processor):
 
 @pytest.fixture(scope='session', name='build_base_image', autouse=True)
 def fixture_build_base_image(request, framework_version, py_version, processor, tag, docker_base_name):
-    build_base_image = request.config.getoption('--build-base-image')
-    if build_base_image:
-        return image_utils.build_base_image(framework_name=docker_base_name,
+    build_base_image_option = request.config.getoption('--build-base-image')
+    if build_base_image_option:
+        return build_base_image(framework_name=docker_base_name,
                                             framework_version=framework_version,
                                             py_version=py_version,
                                             base_image_tag=tag,
@@ -212,7 +277,6 @@ def fixture_build_base_image(request, framework_version, py_version, processor, 
 @pytest.fixture(scope='session', name='sagemaker_session')
 def fixture_sagemaker_session(region):
     return Session(boto_session=boto3.Session(region_name=region))
-
 
 @pytest.fixture(name='efa_instance_type')
 def fixture_efa_instance_type():
@@ -260,6 +324,14 @@ def fixture_dist_gpu_backend(request):
 @pytest.fixture(autouse=True)
 def skip_by_device_type(request, use_gpu, instance_type):
     is_gpu = use_gpu or instance_type[3] in ['g', 'p']
+    is_neuron = instance_type in NEURON_TRN1_INSTANCES
+
+    #If neuron run only tests marked as neuron
+    if (is_neuron  and not request.node.get_closest_marker("neuron_test")):
+        pytest.skip("Skipping because running on \"{}\" instance".format(instance_type))
+    if (request.node.get_closest_marker("neuron_test") and not is_neuron):
+        pytest.skip("Skipping because running on \"{}\" instance".format(instance_type))
+
     if (request.node.get_closest_marker('skip_gpu') and is_gpu) or \
             (request.node.get_closest_marker('skip_cpu') and not is_gpu):
         pytest.skip('Skipping because running on \'{}\' instance'.format(instance_type))
@@ -289,6 +361,12 @@ def skip_gpu_instance_restricted_regions(region, instance_type):
         or (region in NO_P3_REGIONS and instance_type.startswith('ml.p3'))
             or (region in NO_P4_REGIONS and instance_type.startswith('ml.p4'))):
                 pytest.skip('Skipping GPU test in region {}'.format(region))
+
+@pytest.fixture(autouse=True)
+def skip_neuron_trn1_test_in_region(request, region):
+    if request.node.get_closest_marker('skip_neuron_trn1_test_in_region'):
+        if region not in NEURON_TRN1_REGIONS:
+            pytest.skip('Skipping SageMaker test in region {}'.format(region))
 
 
 @pytest.fixture(autouse=True)
@@ -351,12 +429,30 @@ def disable_test(request):
 
 
 @pytest.fixture(autouse=True)
+def disable_nightly_test(request):
+    test_name = request.node.name
+    if is_nightly_context():
+        # default image uri
+        image_uri = None
+        # get a list of nightly fixtures present for the test function
+        nightly_fixtures_present = {key: value for (key,value) in NIGHTLY_FIXTURES.items() if key in request.fixturenames}
+        # get image uri value
+        if "ecr_image" in request.fixturenames:
+            image_uri = request.getfixturevalue("ecr_image")
+
+        if nightly_fixtures_present and image_uri:
+            for _, labels in nightly_fixtures_present.items():
+                if not are_fixture_labels_enabled(image_uri, labels):
+                    pytest.skip(f"{test_name} will be skipped.")
+
+
+@pytest.fixture(autouse=True)
 def skip_test_successfully_executed_before(request):
     """
     "cache/lastfailed" contains information about failed tests only. We're running SM tests in separate threads for each image.
     So when we retry SM tests, successfully executed tests executed again because pytest doesn't have that info in /.cache.
     But the flag "--last-failed-no-failures all" requires pytest to execute all the available tests.
-    The only sign that a test passed last time - lastfailed file exists and the test name isn't in that file.  
+    The only sign that a test passed last time - lastfailed file exists and the test name isn't in that file.
     The method checks whether lastfailed file exists and the test name is not in it.
     """
     test_name = request.node.name

@@ -39,6 +39,12 @@ def pytest_collection_modifyitems(session, config, items):
         report_generator.generate_coverage_doc(framework="tensorflow", job_type="inference")
 
 
+# Nightly fixtures
+@pytest.fixture(scope="session")
+def feature_aws_framework_present():
+    pass
+
+
 @pytest.fixture(scope='module')
 def docker_base_name(request):
     return request.config.getoption('--docker-base-name')

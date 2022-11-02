@@ -3,6 +3,7 @@
   framework: &FRAMEWORK tensorflow
   version: &VERSION 2.0.0
   os_version: &OS_VERSION ubuntu18.04
+  arch_type: x86
 
   repository_info:
     inference_repository: &INFERENCE_REPOSITORY

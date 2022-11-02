@@ -15,6 +15,7 @@ from __future__ import absolute_import
 import pytest
 import os
 from sagemaker import utils
+from sagemaker.instance_group import InstanceGroup
 from sagemaker.pytorch import PyTorch
 
 from packaging.version import Version
@@ -82,6 +83,7 @@ def test_smdataparallel_throughput(framework_version, ecr_image, sagemaker_regio
         invoke_pytorch_estimator(ecr_image, sagemaker_regions, estimator_parameter, job_name=job_name)
 
 
+@pytest.mark.usefixtures("feature_smddp_present")
 @pytest.mark.integration("smdataparallel")
 @pytest.mark.model("mnist")
 @pytest.mark.processor("gpu")
@@ -137,6 +139,38 @@ def test_smdataparallel_mnist(ecr_image, sagemaker_regions, instance_types, tmpd
         invoke_pytorch_estimator(ecr_image, sagemaker_regions, estimator_parameter, job_name=job_name)
 
 
+@pytest.mark.processor("gpu")
+@pytest.mark.skip_cpu
+@pytest.mark.multinode(2)
+@pytest.mark.integration("smdataparallel")
+@pytest.mark.model("mnist")
+@pytest.mark.skip_py2_containers
+@pytest.mark.flaky(reruns=2)
+@pytest.mark.efa()
+@pytest.mark.parametrize("instance_types", ["ml.p3.16xlarge"])
+def test_hc_smdataparallel_mnist(ecr_image, sagemaker_regions, instance_types, tmpdir):
+    """
+    Tests smddprun command via Estimator API distribution parameter
+    """
+    with timeout(minutes=DEFAULT_TIMEOUT):
+        validate_or_skip_smdataparallel_efa(ecr_image)
+        instance_count = 2
+        training_group = InstanceGroup("train_group", instance_types, instance_count)
+        distribution = {"smdistributed": {"dataparallel": {"enabled": True}}, "instance_groups": [training_group]}
+        estimator_parameter = {
+            'entry_point': 'smdataparallel_mnist.py',
+            'role': 'SageMakerRole',
+            'source_dir': mnist_path,
+            'instance_groups': [training_group],
+            'distribution': distribution,
+        }
+
+        job_name = utils.unique_name_from_base("test-pt-hc-smddp-mnist")
+        invoke_pytorch_estimator(ecr_image, sagemaker_regions, estimator_parameter, job_name=job_name)
+
+
+@pytest.mark.usefixtures("feature_smmp_present")
+@pytest.mark.usefixtures("feature_smddp_present")
 @pytest.mark.processor("gpu")
 @pytest.mark.skip_cpu
 @pytest.mark.integration("smdataparallel_smmodelparallel")

@@ -116,6 +116,20 @@ def test_predict_two_instances():
 
 @pytest.mark.flaky(reruns=5, reruns_delay=25)
 @pytest.mark.model("half_plus_three")
+def test_predict_instance_jsonlines_input_error():
+    """
+    Test with input that previously triggered jsonlines code in tensorflowServing.js
+    Will still produce error - but error should be 'Type: String is not of expected type: float'
+    """
+    x = {"instances": ["]["]}
+    y = make_request(json.dumps(x))
+    assert (
+        "error" in y
+        and y['error'].endswith('JSON Value: "][" Type: String is not of expected type: float')
+    )
+
+@pytest.mark.flaky(reruns=5, reruns_delay=25)
+@pytest.mark.model("half_plus_three")
 def test_predict_jsons_json_content_type():
     x = '[1.0, 2.0, 5.0]\n[1.0, 2.0, 5.0]'
     y = make_request(x)

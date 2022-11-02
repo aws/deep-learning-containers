@@ -13,7 +13,7 @@ elif [[ $(python -c 'import tensorflow as tf; print(tf.__version__)') == 2.2.* ]
 else
   pip install -U --no-deps tensorflow_addons
 fi
-pip install typeguard
+pip install typeguard packaging
 
 python ${BIN_DIR}/testTFAddons.py || exit 1
 

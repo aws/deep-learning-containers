@@ -2,7 +2,8 @@
   region: &REGION <set-$REGION-in-environment>
   framework: &FRAMEWORK tensorflow
   version: &VERSION 2.3.0
-  os_version: &OS_VERSION ubuntu18.04
+  arch_type: x86
+
 
   repository_info:
     inference_repository: &INFERENCE_REPOSITORY
@@ -28,10 +29,11 @@
       <<: *INFERENCE_REPOSITORY
       build: &TENSORFLOW_CPU_INFERENCE_PY3 false
       image_size_baseline: 5000
-      device_type: &DEVICE_TYPE cpu
+      device_type: &DEVICE_TYPE eia
       python_version: &DOCKER_PYTHON_VERSION py3
       tag_python_version: &TAG_PYTHON_VERSION py37
-      tag: !join [ *VERSION, "-", *DEVICE_TYPE, "-", *TAG_PYTHON_VERSION, "-", *OS_VERSION ]
+      os_version: &OS_VERSION ubuntu18.04
+      tag: !join [ *VERSION, "-", "cpu", "-", *TAG_PYTHON_VERSION, "-", *OS_VERSION ]
       docker_file: !join [ docker/, *VERSION, /, *TAG_PYTHON_VERSION, /Dockerfile., eia ]
       context:
         <<: *INFERENCE_CONTEXT

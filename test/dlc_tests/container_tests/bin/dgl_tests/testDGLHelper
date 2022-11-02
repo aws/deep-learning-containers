@@ -6,6 +6,7 @@ LOG_DIR=${HOME_DIR}/logs
 
 DGLTESTDIR=${HOME_DIR}/artifacts/dgl
 TRAINING_LOG=${LOG_DIR}/dgl_train_gcn.log
+DGL_GE_09X=$(python -c "import dgl; dgl_versions = dgl.__version__.split('.'); print(1 if int(dgl_versions[1]) >= 9 else 0)")
 
 set -e
 
@@ -25,12 +26,15 @@ FRAMEWORK=$2
 cd ./examples/${FRAMEWORK}/gcn
 
 set +e
-if [ ${RETURN_VAL} -eq 0 ]; then
-    echo "Running DGL training script..."
-    $PYTHON_BIN ./train.py --dataset cora --gpu 0 >> ${TRAINING_LOG} 2>&1
+echo "Running DGL training script..."
+if [ ${DGL_GE_09X} -eq 1 ]; then
+    $PYTHON_BIN ./train.py --dataset cora >> ${TRAINING_LOG} 2>&1
 else
-    echo "Running DGL training script..."
-    $PYTHON_BIN ./train.py --dataset cora --gpu -1 >> ${TRAINING_LOG} 2>&1
+    if [ ${RETURN_VAL} -eq 0 ]; then
+        $PYTHON_BIN ./train.py --dataset cora --gpu 0 >> ${TRAINING_LOG} 2>&1
+    else
+        $PYTHON_BIN ./train.py --dataset cora --gpu -1 >> ${TRAINING_LOG} 2>&1
+    fi
 fi
 RETURN_VAL=$?
 set -e

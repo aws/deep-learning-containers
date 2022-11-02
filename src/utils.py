@@ -20,24 +20,17 @@ import sys
 import boto3
 import constants
 
-from config import is_build_enabled
-from invoke.context import Context
 from botocore.exceptions import ClientError
+from invoke.context import Context
+
+from codebuild_environment import get_cloned_folder_path, get_user_and_repo_name
+from config import is_build_enabled
 from safety_report_generator import SafetyReportGenerator
 
 LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.DEBUG)
 LOGGER.addHandler(logging.StreamHandler(sys.stdout))
 LOGGER.addHandler(logging.StreamHandler(sys.stderr))
-
-
-def get_codebuild_build_arn():
-    """
-    Get env variable CODEBUILD_BUILD_ARN
-
-    @return: value or empty string if not set
-    """
-    return os.getenv("CODEBUILD_BUILD_ARN", "")
 
 
 class JobParameters:
@@ -70,6 +63,7 @@ class JobParameters:
             and JobParameters.py_versions == constants.ALL
         )
 
+
 def download_s3_file(bucket_name, filepath, local_file_name):
     """
 
@@ -86,6 +80,7 @@ def download_s3_file(bucket_name, filepath, local_file_name):
         LOGGER.error("Error: Cannot read file from s3 bucket.")
         LOGGER.error("Exception: {}".format(e))
         raise
+
 
 def download_file(remote_url: str, link_type: str):
     """
@@ -127,8 +122,7 @@ def get_pr_modified_files(pr_number):
     from dlc.github_handler import GitHubHandler
 
     # Example: "https://github.com/aws/deep-learning-containers.git"
-    repo_url = os.getenv("CODEBUILD_SOURCE_REPO_URL")
-    _, user, repo_name = repo_url.rstrip(".git").rsplit("/", 2)
+    user, repo_name = get_user_and_repo_name()
 
     github_handler = GitHubHandler(user, repo_name)
     files = github_handler.get_pr_files_changed(pr_number)
@@ -171,24 +165,24 @@ def parse_modified_docker_files_info(files, framework, pattern=""):
     """
     rule = re.findall(rf"{pattern}", files)
     for dockerfile in rule:
-        dockerfile = dockerfile.split("/")
-        if dockerfile[0] == "huggingface":
+        dockerfile_arr = dockerfile.split("/")
+        if dockerfile_arr[0] == "huggingface":
             # HuggingFace related files stored in huggingface/<framework> directories
             # Joining 1 and 2 elements to get huggingface_<framework> as a first element
-            dockerfile = [f"{dockerfile[0]}_{dockerfile[1]}"]+dockerfile[2:]
-        framework_change = dockerfile[0]
+            dockerfile_arr = [f"{dockerfile_arr[0]}_{dockerfile_arr[1]}"]+dockerfile_arr[2:]
+        framework_change = (dockerfile_arr[0] + "_trcomp") if "trcomp" in dockerfile_arr[-1] else dockerfile_arr[0]
 
-        if dockerfile[0] == "habana":
-            framework_change = dockerfile[1]
-            dockerfile = [f"{dockerfile[0]}_{dockerfile[1]}"]+dockerfile[2:]
+        if dockerfile_arr[0] == "habana":
+            framework_change = dockerfile_arr[1]
+            dockerfile_arr = [f"{dockerfile_arr[0]}_{dockerfile_arr[1]}"]+dockerfile_arr[2:]
         # If the modified dockerfile belongs to a different
         # framework, do nothing
         if framework_change != framework:
             continue
-        image_type = dockerfile[1]
-        py_version = dockerfile[4]
-        device_type = dockerfile[-1].split(".")[-1]
-        LOGGER.info(f"Building dockerfile: {dockerfile}")
+        image_type = dockerfile_arr[1]
+        py_version = dockerfile_arr[4]
+        device_type = dockerfile_arr[-1].split(".")[-1]
+        LOGGER.info(f"Building dockerfile: {dockerfile_arr}")
         # Use class static variables to avoid passing, returning the varibles from all functions
         JobParameters.device_types.append(device_type)
         JobParameters.image_types.append(image_type)
@@ -214,7 +208,7 @@ def parse_modifed_buidspec_yml_info(files, framework, pattern=""):
             # HuggingFace related files stored in huggingface/<framework> directories
             # Joining 1 and 2 elements to get huggingface_<framework> as a first element
             buildspec_arr = [f"{buildspec_arr[0]}_{buildspec_arr[1]}"]+buildspec_arr[2:]
-        buildspec_framework = buildspec_arr[0]
+        buildspec_framework = (buildspec_arr[0] + "_trcomp") if "trcomp" in buildspec_arr[-1] else buildspec_arr[0]
         if buildspec_arr[0] == "habana":
             buildspec_framework = buildspec_arr[1]
         if buildspec_framework == framework:
@@ -362,6 +356,17 @@ def pr_build_setup(pr_number, framework):
 
     parse_modifed_root_files_info(files, pattern="testspec\.yml")
 
+    # convert job parameters to array
+    # return type is expected to be an array of string
+    if JobParameters.device_types == constants.ALL:
+        JobParameters.device_types = []
+
+    if JobParameters.image_types == constants.ALL:
+        JobParameters.image_types = []
+
+    if JobParameters.py_versions == constants.ALL:
+        JobParameters.py_versions = []
+
     return (
         JobParameters.device_types,
         JobParameters.image_types,
@@ -369,7 +374,7 @@ def pr_build_setup(pr_number, framework):
     )
 
 
-def build_setup(framework, device_types=None, image_types=None, py_versions=None):
+def build_setup(framework, device_types=[], image_types=[], py_versions=[]):
     """
     Setup the appropriate environment variables depending on whether this is a PR build
     or a dev build
@@ -400,16 +405,15 @@ def build_setup(framework, device_types=None, image_types=None, py_versions=None
             pr_number = int(pr_number)
         device_types, image_types, py_versions = pr_build_setup(pr_number, framework)
 
-    if device_types != constants.ALL:
-        to_build["device_types"] = constants.DEVICE_TYPES.intersection(
-            set(device_types)
-        )
-    if image_types != constants.ALL:
+    if device_types:
+        to_build["device_types"] = constants.DEVICE_TYPES.intersection(set(device_types))
+
+    if image_types:
         to_build["image_types"] = constants.IMAGE_TYPES.intersection(set(image_types))
-    if py_versions != constants.ALL:
-        to_build["py_versions"] = constants.PYTHON_VERSIONS.intersection(
-            set(py_versions)
-        )
+
+    if py_versions:
+        to_build["py_versions"] = constants.PYTHON_VERSIONS.intersection(set(py_versions))
+        
     for device_type in to_build["device_types"]:
         for image_type in to_build["image_types"]:
             for py_version in to_build["py_versions"]:
@@ -504,25 +508,6 @@ def set_test_env(images, use_latest_additional_tag=False, images_env="DLC_IMAGES
     write_to_json_file(constants.TEST_ENV_PATH, test_envs)
 
 
-def get_codebuild_project_name():
-    # Default value for codebuild project name is "local_test" when run outside of CodeBuild
-    return os.getenv("CODEBUILD_BUILD_ID", "local_test").split(":")[0]
-
-
-def get_root_folder_path():
-    """
-    Extract the root folder path for the repository.
-
-    :return: str
-    """
-    root_dir_pattern = re.compile(r"^(\S+deep-learning-containers)")
-    pwd = os.getcwd()
-    codebuild_src_dir_env = os.getenv("CODEBUILD_SRC_DIR")
-    root_folder_path = codebuild_src_dir_env if codebuild_src_dir_env else root_dir_pattern.match(pwd).group(1)
-
-    return root_folder_path
-
-
 def get_safety_ignore_dict(image_uri, framework, python_version, job_type):
     """
     Get a dict of known safety check issue IDs to ignore, if specified in file ../data/ignore_ids_safety_scan.json.
@@ -537,21 +522,34 @@ def get_safety_ignore_dict(image_uri, framework, python_version, job_type):
         job_type = (
             "inference-eia" if "eia" in image_uri else "inference-neuron" if "neuron" in image_uri else "inference"
         )
-    
+
+    if job_type == "training":
+        job_type = (
+            "training-neuron" if "neuron" in image_uri else "training"
+        )
+
     if "habana" in image_uri:
         framework = f"habana_{framework}"
 
-    ignore_safety_ids = {}
-    ignore_data_file = os.path.join(os.sep, get_root_folder_path(), "data", "ignore_ids_safety_scan.json")
+    ignore_data_file = os.path.join(os.sep, get_cloned_folder_path(), "data", "ignore_ids_safety_scan.json")
     with open(ignore_data_file) as f:
         ignore_safety_ids = json.load(f)
+    ignore_dict = ignore_safety_ids.get(framework, {}).get(job_type, {}).get(python_version, {})
 
-    return ignore_safety_ids.get(framework, {}).get(job_type, {}).get(python_version, {})
+    ## Find common vulnerabilites and add it to the ignore dict
+    common_ignore_list_file = os.path.join(os.sep, get_cloned_folder_path(), "data", "common-safety-ignorelist.json")
+    with open(common_ignore_list_file) as f:
+        common_ids_to_ignore = json.load(f)
+    for common_id, reason in common_ids_to_ignore.items():
+        if common_id not in ignore_dict:
+            ignore_dict[common_id] = reason
+
+    return ignore_dict
 
 
 def generate_safety_report_for_image(image_uri, image_info, storage_file_path=None):
     """
-    Genereate safety scan reports for an image and store it at the location specified 
+    Generate safety scan reports for an image and store it at the location specified
 
     :param image_uri: str, consists of f"{image_repo}:{image_tag}"
     :param image_info: dict, should consist of 3 keys - "framework", "python_version" and "image_type".
@@ -561,7 +559,7 @@ def generate_safety_report_for_image(image_uri, image_info, storage_file_path=No
     ctx = Context()
     docker_run_cmd = f"docker run -id --entrypoint='/bin/bash' {image_uri} "
     container_id = ctx.run(f"{docker_run_cmd}", hide=True, warn=True).stdout.strip()
-    install_safety_cmd = "pip install safety"
+    install_safety_cmd = "pip install 'safety<2.0.0'"
     docker_exec_cmd = f"docker exec -i {container_id}"
     ctx.run(f"{docker_exec_cmd} {install_safety_cmd}", hide=True, warn=True)
     ignore_dict = get_safety_ignore_dict(
@@ -573,3 +571,17 @@ def generate_safety_report_for_image(image_uri, image_info, storage_file_path=No
         with open(storage_file_path, "w", encoding="utf-8") as f:
             json.dump(safety_scan_output, f, indent=4)
     return safety_scan_output
+
+
+def get_label_prefix_customer_type(image_tag):
+    """
+    Return customer type from image tag, to be used as label prefix
+
+    @param image_tag: image tag
+    @return: ec2 or sagemaker
+    """
+    if "-ec2" in image_tag:
+        return "ec2"
+
+    # Older images are not tagged with ec2 or sagemaker. Assuming that lack of ec2 tag implies sagemaker.
+    return "sagemaker"
