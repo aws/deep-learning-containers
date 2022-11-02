@@ -15,7 +15,7 @@ LABEL maintainer="Amazon AI"
 LABEL dlc_major_version="1"
 
 # TensorFlow major.minor version
-ENV TF_VERSION=2.10
+ENV TF_VERSION=2.11
 
 # prevent stopping by user interaction
 ENV DEBIAN_FRONTEND noninteractive
@@ -184,17 +184,17 @@ RUN curl https://aws-dlc-licenses.s3.amazonaws.com/tensorflow-${TF_VERSION}/lice
 
 FROM common AS ec2
 
-ARG TF_URL=https://framework-binaries.s3.us-west-2.amazonaws.com/tensorflow/r2.10_aws/cpu/2022-09-07-02-00/tensorflow_cpu-2.10.0-cp39-cp39-manylinux_2_17_x86_64.manylinux2014_x86_64.whl
+ARG TF_URL=https://framework-binaries.s3.us-west-2.amazonaws.com/tensorflow/r2.11_aws/cpu/2022-11-02-16-34/tensorflow_cpu-2.11.0rc1-cp39-cp39-manylinux_2_17_x86_64.manylinux2014_x86_64.whl
 
 RUN ${PIP} install --no-cache-dir -U \
     ${TF_URL} \
-    tensorflow-io==0.24.0 \
-    tensorflow-datasets==4.5.2
+    tensorflow-io==0.27.0 \
+    tensorflow-datasets==4.7.0
 
 # Install Horovod with TensorFlow
 RUN HOROVOD_WITH_MPI=1 \
    && HOROVOD_WITH_TENSORFLOW=1 HOROVOD_WITHOUT_MXNET=1 HOROVOD_WITHOUT_PYTORCH=1 \
-   && ${PIP} install --no-cache-dir horovod==0.25.0
+   && ${PIP} install --no-cache-dir horovod==0.26.0
 
 RUN HOME_DIR=/root \
    && curl -o ${HOME_DIR}/oss_compliance.zip https://aws-dlinfra-utilities.s3.amazonaws.com/oss_compliance.zip \

@@ -15,7 +15,7 @@ LABEL maintainer="Amazon AI"
 LABEL dlc_major_version="1"
 
 # TensorFlow major.minor version
-ENV TF_VERSION=2.10
+ENV TF_VERSION=2.11
 
 # prevent stopping by user interaction
 ENV DEBIAN_FRONTEND noninteractive
@@ -49,7 +49,7 @@ ARG CUDA=11.2
 ARG CUDA_DASH=11-2
 ARG CUDNN=8.2.4.15-1
 
-ARG NCCL_VERSION=2.12.10
+ARG NCCL_VERSION=2.13.4
 
 # To be passed to ec2 and sagemaker stages
 ENV PYTHON=${PYTHON}
@@ -280,16 +280,16 @@ RUN curl https://aws-dlc-licenses.s3.amazonaws.com/tensorflow-${TF_VERSION}/lice
 
 FROM common AS ec2
 
-ARG TF_URL=https://framework-binaries.s3.us-west-2.amazonaws.com/tensorflow/r2.10_aws/gpu/2022-09-07-02-07/tensorflow_gpu-2.10.0-cp39-cp39-manylinux_2_17_x86_64.manylinux2014_x86_64.whl
+ARG TF_URL=https://framework-binaries.s3.us-west-2.amazonaws.com/tensorflow/r2.11_aws/gpu/2022-11-02-18-19/tensorflow_gpu-2.11.0rc1-cp39-cp39-manylinux_2_17_x86_64.manylinux2014_x86_64.whl
 
 RUN ${PIP} install --no-cache-dir -U \
    ${TF_URL} \
-   tensorflow-io==0.24.0 \
-   tensorflow-datasets==4.5.2
+   tensorflow-io==0.27.0 \
+   tensorflow-datasets==4.7.0
 
 # Install Horovod, temporarily using CUDA stubs
 RUN ldconfig /usr/local/cuda-11.2/targets/x86_64-linux/lib/stubs \
- && HOROVOD_GPU_ALLREDUCE=NCCL HOROVOD_WITH_TENSORFLOW=1 ${PIP} install --no-cache-dir horovod==0.25.0 \
+ && HOROVOD_GPU_ALLREDUCE=NCCL HOROVOD_WITH_TENSORFLOW=1 ${PIP} install --no-cache-dir horovod==0.26.0 \
  && ldconfig
 
 RUN HOME_DIR=/root \
