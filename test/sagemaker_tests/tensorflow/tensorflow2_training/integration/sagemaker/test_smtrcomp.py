@@ -391,7 +391,6 @@ class TestMLWorkFlow:
         raise NotImplementedError()
 
 
-    @pytest.mark.xfail(reason="TF 2.9 for inference has not been released yet")
     @pytest.mark.model('toy')
     @pytest.mark.integration("serving")
     def test_serving(self, sagemaker_session, ecr_image, framework_version, instance_type, instance_count, tmpdir, capsys, mnist_dataset):
@@ -415,7 +414,6 @@ class TestMLWorkFlow:
         predictor.delete_predictor()
 
 
-    @pytest.mark.xfail(reason="SM Neo does not currently support TF > 2.4")
     @pytest.mark.model('toy')
     @pytest.mark.integration("neo")
     def test_inference_compiler_neo(self, sagemaker_session, ecr_image, framework_version, instance_type, instance_count, tmpdir, capsys, mnist_dataset):
@@ -440,5 +438,5 @@ class TestMLWorkFlow:
                                 input_shape={'data':[1, 28, 28]},
                                 output_path=s3_prefix,
                                 framework='keras',
-                                framework_version='2.6.0',
+                                framework_version='2.9',
                                 )
