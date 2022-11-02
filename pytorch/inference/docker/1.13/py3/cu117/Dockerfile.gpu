@@ -1,11 +1,12 @@
 ARG PYTHON=python3
 ARG PYTHON_VERSION=3.8.13
+ARG MAMBA_VERSION=4.12.0-2
 
 # PyTorch Binaries
-ARG PT_INFERENCE_URL=https://aws-pytorch-unified-cicd-binaries.s3.us-west-2.amazonaws.com/r1.12.1_ec2/20220901-210444/0125567ca85b9aa9f26c6251c97bf0ffad6452d4/torch-1.12.1%2Bcu116-cp38-cp38-linux_x86_64.whl
-ARG PT_TORCHVISION_URL=https://download.pytorch.org/whl/cu116/torchvision-0.13.1%2Bcu116-cp38-cp38-linux_x86_64.whl
-ARG PT_TORCHAUDIO_URL=https://download.pytorch.org/whl/cu116/torchaudio-0.12.1%2Bcu116-cp38-cp38-linux_x86_64.whl
-ARG PT_TORCHDATA_URL=https://download.pytorch.org/whl/test/torchdata-0.4.1-cp38-cp38-manylinux_2_17_x86_64.manylinux2014_x86_64.whl
+ARG PT_INFERENCE_URL=https://aws-pytorch-unified-cicd-binaries.s3.us-west-2.amazonaws.com/r1.13.0_ec2/20221102-024144/30b103572e6a206b088d60600ef9deddb3d59d3b/torch-1.13.0%2Bcu117-cp38-cp38-linux_x86_64.whl
+ARG PT_TORCHVISION_URL=https://download.pytorch.org/whl/cu116/torchvision-0.14.0%2Bcu116-cp38-cp38-linux_x86_64.whl
+ARG PT_TORCHAUDIO_URL=https://download.pytorch.org/whl/cu116/torchaudio-0.13.0%2Bcu116-cp38-cp38-linux_x86_64.whl
+ARG PT_TORCHDATA_URL=https://download.pytorch.org/whl/test/torchdata-0.5.0-cp38-cp38-manylinux_2_17_x86_64.manylinux2014_x86_64.whl
 
 ########################################################
 #  _____ ____ ____    ___
@@ -22,7 +23,8 @@ ARG PT_TORCHDATA_URL=https://download.pytorch.org/whl/test/torchdata-0.4.1-cp38-
 #                  |_|
 ########################################################
 
-FROM nvidia/cuda:11.6.2-base-ubuntu20.04 AS base_image
+# FROM nvidia/cuda:11.6.2-base-ubuntu20.04 AS base_image
+FROM nvidia/cuda:11.7.1-base-ubuntu20.04 AS base_image
 
 ENV DEBIAN_FRONTEND=noninteractive \
     LD_LIBRARY_PATH="${LD_LIBRARY_PATH}:/usr/local/lib"
@@ -40,7 +42,6 @@ LABEL dlc_major_version="1"
 
 ARG PYTHON
 ARG PYTHON_VERSION
-ARG MAMBA_VERSION=4.12.0-2
 
 # PyTorch Binaries
 ARG PT_INFERENCE_URL
@@ -62,7 +63,7 @@ ENV TEMP=/home/model-server/tmp
 ENV TORCH_CUDA_ARCH_LIST="3.7 5.0 7.0+PTX 8.0"
 
 ENV NCCL_VERSION=2.10.3
-ENV NVML_VERSION=11.6.55
+ENV NVML_VERSION=11.7.91
 
 # Set MKL_THREADING_LAYER=GNU to prevent issues between torch and numpy/mkl
 ENV MKL_THREADING_LAYER=GNU
@@ -94,7 +95,7 @@ RUN apt-get update \
     libcurl4-openssl-dev \
     libcusolver-dev-11-6 \
     libcusparse-dev-11-6 \
-    cuda-nvml-dev-11-6=${NVML_VERSION}-1 \
+    cuda-nvml-dev-11-7=${NVML_VERSION}-1 \
     libgl1-mesa-glx \
     libglib2.0-0 \
     libgomp1 \
