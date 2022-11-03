@@ -410,7 +410,8 @@ class TestMLWorkFlow:
         _assert_model_exported_to_s3(estimator)
         captured = capsys.readouterr()
         _assert_training_compiler_invoked(captured)
-        predictor = estimator.deploy(initial_instance_count=1, instance_type=instance_type)
+        predictor = estimator.deploy(initial_instance_count=1, instance_type=instance_type,
+            image_uri=f'763104351884.dkr.ecr.{estimator.sagemaker_session.boto_region_name}.amazonaws.com/tensorflow-inference:2.10.0-gpu-py39-cu112-ubuntu20.04-sagemaker')
         predictor.delete_predictor()
 
 
