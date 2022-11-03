@@ -46,11 +46,14 @@ class SafetyReportGenerator:
         
         :param scanned_vulnerabilities: list[list], consists of a list of Vulnerabilities. Each vulnerability is a list itself.
         """
-        for vulnerability in scanned_vulnerabilities:
-            package, spec, installed, advisory, vulnerability_id = vulnerability[:5]
+        for vulnerability in scanned_vulnerabilities["vulnerabilities"]:
+            package = vulnerability["package_name"]
+            vulnerability_id = vulnerability["vulnerability_id"]
+            spec = vulnerability["vulnerable_spec"]
+            installed = vulnerability["analyzed_version"]
             vulnerability_details = {
                 "vulnerability_id": vulnerability_id,
-                "advisory": advisory,
+                "advisory": vulnerability_id,
                 "spec": spec,
                 "reason_to_ignore": "N/A",
             }
