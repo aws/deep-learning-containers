@@ -57,6 +57,7 @@ IGNORE_SAFETY_IDS = {
                 "48551",
                 # for cryptography until we have 39.0.0 release
                 "51159",
+                "51499"
             ],
         },
         "inference": {
