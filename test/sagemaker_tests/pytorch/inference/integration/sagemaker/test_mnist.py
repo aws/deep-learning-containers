@@ -143,12 +143,13 @@ def _check_for_cloudwatch_logs(endpoint_name):
     query = "fields @timestamp | sort @timestamp desc | limit 2";
     start_query_response = client.start_query(
         logGroupName='/aws/sagemaker/Endpoints/'+endpoint_name,
-        startTime=int((datetime.today() - timedelta(minutes=4)).timestamp()),
+        startTime=int((datetime.today() - timedelta(minutes=30)).timestamp()),
         endTime=int(datetime.now().timestamp()),
         queryString=query,
     )
     query_id = start_query_response['queryId']
     response = None
+    print('INFO: Querying Cloudwatch for log events...')
     while response == None or response['status'] == 'Running':
         print('Waiting for query to complete ...')
         time.sleep(1)
@@ -157,13 +158,14 @@ def _check_for_cloudwatch_logs(endpoint_name):
         )        
     recordsAvailable=bool(response['results'])
     if not recordsAvailable:
-        print("Exception... No results")
-    else:
-        print(response['results'][0][0]['value'])
+        print("Exception... No cloudwatch log results!!")
+        raise Exception('Exception: No cloudwatch events getting logged for the group /aws/sagemaker/Endpoints/'+endpoint_name)
+    else:    
+        print('INFO: Most recently logged event was found at @timestamp -- '+response['results'][0][0]['value'])
 
     print('##############################################################################')
     print('##############################################################################')
     print('##############################################################################')    
 
-
+    
 
