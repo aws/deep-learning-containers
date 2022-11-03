@@ -141,23 +141,51 @@ def _check_for_cloudwatch_logs(endpoint_name):
     print('##############################################################################')
     client=boto3.client('logs')
     query = "fields @timestamp | sort @timestamp desc | limit 2";
-    start_query_response = client.start_query(
-        logGroupName='/aws/sagemaker/Endpoints/'+endpoint_name,
-        startTime=int((datetime.today() - timedelta(minutes=30)).timestamp()),
-        endTime=int(datetime.now().timestamp()),
-        queryString=query,
-    )
-    query_id = start_query_response['queryId']
-    response = None
-    print('INFO: Querying Cloudwatch for log events...')
-    while response == None or response['status'] == 'Running':
-        print('Waiting for query to complete ...')
-        time.sleep(1)
-        response = client.get_query_results(
-            queryId=query_id
-        )        
-    recordsAvailable=bool(response['results'])
-    print('INFO: Response for the query: '+response)
+    
+    
+    if not recordsAvailable:
+        for i in range(3):        
+            start_query_response = client.start_query(
+            logGroupName='/aws/sagemaker/Endpoints/'+endpoint_name,
+            startTime=int((datetime.today() - timedelta(minutes=30)).timestamp()),
+            endTime=int(datetime.now().timestamp()),
+            queryString=query,
+        )
+        query_id = start_query_response['queryId']
+        print(f'Query ID: {query_id}')    
+        while response == None or response['status'] == 'Running':
+            print('Waiting for query to complete ...')
+            time.sleep(1)
+            response = client.get_query_results(
+                queryId=query_id
+            )
+        recordsAvailable=bool(response['results'])    
+        print(response)
+        time.sleep(60)
+
+
+
+    # start_query_response = client.start_query(
+    #     logGroupName='/aws/sagemaker/Endpoints/'+endpoint_name,
+    #     startTime=int((datetime.today() - timedelta(minutes=30)).timestamp()),
+    #     endTime=int(datetime.now().timestamp()),
+    #     queryString=query,
+    # )
+
+    # recordsAvailable=False;
+    # response = None;
+    # query_id = start_query_response['queryId']
+    # response = None
+    # print('INFO: Querying Cloudwatch for log events...')
+    # while response == None or response['status'] == 'Running':
+    #     print('Waiting for query to complete ...')
+    #     time.sleep(1)
+    #     response = client.get_query_results(
+    #         queryId=query_id
+    #     )        
+
+    #recordsAvailable=bool(response['results'])   
+
     if not recordsAvailable:
         print("Exception... No cloudwatch log results!!")
         raise Exception('Exception: No cloudwatch events getting logged for the group /aws/sagemaker/Endpoints/'+endpoint_name)
@@ -168,5 +196,4 @@ def _check_for_cloudwatch_logs(endpoint_name):
     print('##############################################################################')
     print('##############################################################################')    
 
-    
 
