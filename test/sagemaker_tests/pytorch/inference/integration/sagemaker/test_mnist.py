@@ -141,7 +141,8 @@ def _check_for_cloudwatch_logs(endpoint_name):
     print('##############################################################################')
     client=boto3.client('logs')
     query = "fields @timestamp | sort @timestamp desc | limit 2";
-    
+    recordsAvailable=False;
+    response = None;
     
     if not recordsAvailable:
         for i in range(3):        
