@@ -134,7 +134,7 @@ def _check_for_cloudwatch_logs(endpoint_name):
     print('##############################################################################')
     print('##############################################################################')
     print('##############################################################################')
-    print('INFO: Checking logs for the endpoint: /aws/sagemaker/Endpoints'+endpoint_name)
+    print('INFO: Checking logs for the endpoint: /aws/sagemaker/Endpoints/'+endpoint_name)
     print('##############################################################################')
     print('##############################################################################')
     print('##############################################################################')
@@ -142,7 +142,7 @@ def _check_for_cloudwatch_logs(endpoint_name):
     client=boto3.client('logs')
     query = "fields @timestamp | sort @timestamp desc | limit 2";
     start_query_response = client.start_query(
-        logGroupName='/aws/sagemaker/Endpoints'+endpoint_name,
+        logGroupName='/aws/sagemaker/Endpoints/'+endpoint_name,
         startTime=int((datetime.today() - timedelta(minutes=4)).timestamp()),
         endTime=int(datetime.now().timestamp()),
         queryString=query,
