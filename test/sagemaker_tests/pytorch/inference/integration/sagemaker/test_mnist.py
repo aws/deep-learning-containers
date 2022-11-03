@@ -157,6 +157,7 @@ def _check_for_cloudwatch_logs(endpoint_name):
             queryId=query_id
         )        
     recordsAvailable=bool(response['results'])
+    print('INFO: Response for the query: '+response)
     if not recordsAvailable:
         print("Exception... No cloudwatch log results!!")
         raise Exception('Exception: No cloudwatch events getting logged for the group /aws/sagemaker/Endpoints/'+endpoint_name)
