@@ -404,6 +404,7 @@ class TestMLWorkFlow:
                                framework_version=framework_version,
                                hyperparameters={
                                     TrainingCompilerConfig.HP_ENABLE_COMPILER : True,
+                                    'save-as-tf': True,
                                },
                                )
         estimator.fit(mnist_dataset, job_name=unique_name_from_base('test-TF-trcomp-serving'))
@@ -428,6 +429,7 @@ class TestMLWorkFlow:
                                framework_version=framework_version,
                                hyperparameters={
                                     TrainingCompilerConfig.HP_ENABLE_COMPILER : True,
+                                    'save-as-tf': True,
                                },
                                )
         estimator.fit(mnist_dataset, job_name=unique_name_from_base('test-TF-trcomp-serving'))
@@ -438,6 +440,6 @@ class TestMLWorkFlow:
         estimator.compile_model(target_instance_family='ml_p3',
                                 input_shape={'data':[1, 28, 28]},
                                 output_path=s3_prefix,
-                                framework='keras',
+                                framework='tensorflow',
                                 framework_version='2.9',
                                 )

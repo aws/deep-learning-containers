@@ -19,6 +19,7 @@ def _parse_args():
     parser.add_argument('--train', type=str, default=os.environ['SM_CHANNEL_TRAINING'])
     parser.add_argument('--hosts', type=list, default=json.loads(os.environ['SM_HOSTS']))
     parser.add_argument('--current-host', type=str, default=os.environ['SM_CURRENT_HOST'])
+    parser.add_argument('--save-as-tf', type=bool, default=False)
 
     return parser.parse_known_args()
 
@@ -53,4 +54,8 @@ model.fit(x_train, y_train, epochs=args.epochs)
 model.evaluate(x_test, y_test)
 
 if args.current_host == args.hosts[0]:
-    model.save(os.path.join(args.model_dir, 'my_model.h5'))
+    if args.save_as_tf:
+        model.save(os.path.join(args.model_dir))
+    else:
+        model.save(os.path.join(args.model_dir, 'my_model.h5'))
+
