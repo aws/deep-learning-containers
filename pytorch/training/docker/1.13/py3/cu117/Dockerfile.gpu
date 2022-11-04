@@ -361,8 +361,8 @@ ARG SMDEBUG_VERSION=1.0.22
 ENV SAGEMAKER_TRAINING_MODULE=sagemaker_pytorch_container.training:main
 
 # SMD model parallel and data parallel binaries
-ARG SMD_DATA_PARALLEL_URL
-ARG SMD_MODEL_PARALLEL_URL
+# ARG SMD_DATA_PARALLEL_URL
+# ARG SMD_MODEL_PARALLEL_URL
 
 # ZeRO-2D Binary
 ARG ZERO_2D_URL
@@ -528,10 +528,10 @@ RUN  wget -nv https://github.com/rapidsai/rmm/archive/v${RMM_VERSION}.tar.gz \
 RUN pip install --no-cache-dir -U ${ZERO_2D_URL}
 
 # Install SM Distributed Modelparallel binary
-RUN pip install --no-cache-dir -U ${SMD_MODEL_PARALLEL_URL}
+# RUN pip install --no-cache-dir -U ${SMD_MODEL_PARALLEL_URL}
 
 # Install SM Distributed DataParallel binary
-RUN SMDATAPARALLEL_PT=1 pip install --no-cache-dir ${SMD_DATA_PARALLEL_URL}
+# RUN SMDATAPARALLEL_PT=1 pip install --no-cache-dir ${SMD_DATA_PARALLEL_URL}
 
 ENV LD_LIBRARY_PATH="/opt/conda/lib/python${PYTHON_SHORT_VERSION}/site-packages/smdistributed/dataparallel/lib:$LD_LIBRARY_PATH"
 
