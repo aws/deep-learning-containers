@@ -694,7 +694,7 @@ def _get_safety_ignore_list(image_uri):
     return IGNORE_SAFETY_IDS.get(framework, {}).get(job_type, {}).get(python_version, [])
 
 
-def _get_latest_package_version(package_info):
+def _get_latest_package_version(package):
     """
     Get the latest package version available on pypi for a package.
     It is retried multiple times in case there are transient failures in executing the command.
