@@ -145,10 +145,10 @@ def _check_for_cloudwatch_logs(endpoint_name):
     response = None;
     
     if not recordsAvailable:
-        for i in range(6):        
+        for i in range(4):        
             start_query_response = client.start_query(
             logGroupName='/aws/sagemaker/Endpoints/'+endpoint_name,
-            startTime=int((datetime.today() - timedelta(minutes=30)).timestamp()),
+            startTime=int((datetime.today() - timedelta(days=2)).timestamp()),
             endTime=int(datetime.now().timestamp()),
             queryString=query,
             )
@@ -163,7 +163,7 @@ def _check_for_cloudwatch_logs(endpoint_name):
                 )
             recordsAvailable=bool(response['results'])    
             print(response)
-            time.sleep(90)
+            time.sleep(60)
 
 
 
