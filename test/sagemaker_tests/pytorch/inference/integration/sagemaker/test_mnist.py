@@ -151,18 +151,19 @@ def _check_for_cloudwatch_logs(endpoint_name):
             startTime=int((datetime.today() - timedelta(minutes=30)).timestamp()),
             endTime=int(datetime.now().timestamp()),
             queryString=query,
-        )
-        query_id = start_query_response['queryId']
-        print(f'Query ID: {query_id}')    
-        while response == None or response['status'] == 'Running':
-            print('Waiting for query to complete ...')
-            time.sleep(1)
-            response = client.get_query_results(
-                queryId=query_id
             )
-        recordsAvailable=bool(response['results'])    
-        print(response)
-        time.sleep(60)
+            query_id = start_query_response['queryId']
+            response = client.get_query_results(queryId=query_id)
+            print(f'Query ID: {query_id}')    
+            while response == None or response['status'] == 'Running':
+                print('Waiting for query to complete ...')
+                time.sleep(1)
+                response = client.get_query_results(
+                    queryId=query_id
+                )
+            recordsAvailable=bool(response['results'])    
+            print(response)
+            time.sleep(60)
 
 
 
