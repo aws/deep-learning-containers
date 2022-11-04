@@ -148,8 +148,8 @@ def _check_for_cloudwatch_logs(endpoint_name):
         for i in range(4):        
             start_query_response = client.start_query(
             logGroupName='/aws/sagemaker/Endpoints/'+endpoint_name,
-            startTime=int((datetime.today() - timedelta(days=2)).timestamp()),
-            endTime=int(datetime.now().timestamp()),
+            #startTime=int((datetime.today() - timedelta(days=2)).timestamp()),
+            #endTime=int(datetime.now().timestamp()),
             queryString=query,
             )
             query_id = start_query_response['queryId']
