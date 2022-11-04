@@ -749,13 +749,12 @@ def test_safety(image):
         hide=True,
     )
     try:
-        run(f"{docker_exec_cmd} pip install 'safety<2.0.0' yolk3k ", hide=True)
+        run(f"{docker_exec_cmd} pip install 'safety>=2.0.0' yolk3k ", hide=True)
         json_str_safety_result = safety_check.run_safety_check_on_container(docker_exec_cmd)
         safety_result = json.loads(json_str_safety_result)["vulnerabilities"]
         for vulnerability in safety_result:
             package = vulnerability["package_name"]
             affected_versions = vulnerability["affected_versions"]
-            curr_version = vulnerability["analyzed_version"]
             vulnerability_id = vulnerability["vulnerability_id"]
             # package, affected_versions, curr_version, _, vulnerability_id = vulnerability[:5]
             # Get the latest version of the package with vulnerability
