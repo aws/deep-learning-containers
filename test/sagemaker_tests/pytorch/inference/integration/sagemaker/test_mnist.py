@@ -131,71 +131,32 @@ def _test_mnist_distributed(
             _check_for_cloudwatch_logs(endpoint_name)
 
 def _check_for_cloudwatch_logs(endpoint_name):
-    print('##############################################################################')
-    print('##############################################################################')
-    print('##############################################################################')
-    print('INFO: Checking logs for the endpoint: /aws/sagemaker/Endpoints/'+endpoint_name)
-    print('##############################################################################')
-    print('##############################################################################')
-    print('##############################################################################')
-    print('##############################################################################')
     client=boto3.client('logs')
-    query = "fields @timestamp | sort @timestamp desc | limit 2";
-    recordsAvailable=False;
-    response = None;
-    
-    if not recordsAvailable:
-        for i in range(4):        
-            start_query_response = client.start_query(
-            logGroupName='/aws/sagemaker/Endpoints/'+endpoint_name,
-            #startTime=int((datetime.today() - timedelta(days=2)).timestamp()),
-            #endTime=int(datetime.now().timestamp()),
-            queryString=query,
-            )
-            query_id = start_query_response['queryId']
-            response = client.get_query_results(queryId=query_id)
-            print(f'Query ID: {query_id}')    
-            while response == None or response['status'] == 'Running':
-                print('Waiting for query to complete ...')
-                time.sleep(1)
-                response = client.get_query_results(
-                    queryId=query_id
-                )
-            recordsAvailable=bool(response['results'])    
-            print(response)
-            time.sleep(60)
+    response = client.describe_log_streams(
+        logGroupName='/aws/sagemaker/Endpoints/'+endpoint_name,    
+        orderBy='LastEventTime',
+        descending=True,
+        limit=5
+    )
 
+    logStreamName=response['logStreams'][0]['logStreamName']
+    print(logStreamName)
 
+    new_response = client.get_log_events(
+        logGroupName='/aws/sagemaker/Endpoints/sagemaker-pytorch-serving-1667543046-3c2e',
+        logStreamName=logStreamName,
+        #startTime=int((datetime.today() - timedelta(days=2)).timestamp()),
+        #endTime=int(datetime.now().timestamp()),
+        limit=50,
+        startFromHead=True
+    )
 
-    # start_query_response = client.start_query(
-    #     logGroupName='/aws/sagemaker/Endpoints/'+endpoint_name,
-    #     startTime=int((datetime.today() - timedelta(minutes=30)).timestamp()),
-    #     endTime=int(datetime.now().timestamp()),
-    #     queryString=query,
-    # )
-
-    # recordsAvailable=False;
-    # response = None;
-    # query_id = start_query_response['queryId']
-    # response = None
-    # print('INFO: Querying Cloudwatch for log events...')
-    # while response == None or response['status'] == 'Running':
-    #     print('Waiting for query to complete ...')
-    #     time.sleep(1)
-    #     response = client.get_query_results(
-    #         queryId=query_id
-    #     )        
-
-    #recordsAvailable=bool(response['results'])   
-
+    print(new_response['events'])
+    recordsAvailable=bool(new_response['events'])
+    print('Are log events avaiable? '+str(recordsAvailable))
+   
     if not recordsAvailable:
         print("Exception... No cloudwatch log results!!")
         raise Exception('Exception: No cloudwatch events getting logged for the group /aws/sagemaker/Endpoints/'+endpoint_name)
     else:    
-        print('INFO: Most recently logged event was found at @timestamp -- '+response['results'][0][0]['value'])
-
-    print('##############################################################################')
-    print('##############################################################################')
-    print('##############################################################################')    
-
-
+        print('INFO: Most recently logged event were found for log group & log stream -- ')
