@@ -55,7 +55,7 @@ model.evaluate(x_test, y_test)
 
 if args.current_host == args.hosts[0]:
     if args.save_as_tf:
-        model.save(os.path.join(args.model_dir))
+        model.save(os.path.join(args.model_dir, '001'))
     else:
         model.save(os.path.join(args.model_dir, 'my_model.h5'))
 
