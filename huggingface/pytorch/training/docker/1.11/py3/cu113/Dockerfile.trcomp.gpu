@@ -51,8 +51,9 @@ ARG HF_BINARY_PATH=${PT_BUCKET}/3464575b-920a-48e6-b964-4d4c5fe2acae/20220816-02
 ARG HF_TRANSFORMERS_URL=${HF_BINARY_PATH}/transformers-${TRANSFORMERS_VERSION}-py3-none-any.whl
 
 
-# COPY ${SAGEMAKER_BINARY} .
-RUN pip install --no-cache-dir -U --force-reinstall sagemaker
+RUN pip install --no-cache-dir -U \
+    sagemaker \
+    "importlib-metadata<5.0,>=1.4.0"
 
 
 # install Hugging Face libraries and its dependencies
