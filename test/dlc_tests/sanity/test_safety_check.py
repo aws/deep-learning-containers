@@ -754,11 +754,10 @@ def test_safety(image):
         safety_result = json.loads(json_str_safety_result)["vulnerabilities"]
         for vulnerability in safety_result:
             package = vulnerability["package_name"]
-            affected_versions = vulnerability["affected_versions"]
+            affected_versions = vulnerability["vulnerable_spec"]
             vulnerability_id = vulnerability["vulnerability_id"]
             # package, affected_versions, curr_version, _, vulnerability_id = vulnerability[:5]
             # Get the latest version of the package with vulnerability
-            print(safety_result)
             latest_version = _get_latest_package_version(package)
             # If the latest version of the package is also affected, igvnore this vulnerability
             if Version(latest_version) in SpecifierSet(affected_versions):
