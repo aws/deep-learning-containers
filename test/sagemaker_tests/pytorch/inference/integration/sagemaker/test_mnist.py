@@ -48,40 +48,40 @@ def test_mnist_distributed_cpu(framework_version, ecr_image, instance_type, sage
 
 
 
-@pytest.mark.model("mnist")
-@pytest.mark.processor("gpu")
-@pytest.mark.gpu_test
-def test_mnist_distributed_gpu(framework_version, ecr_image, instance_type, sagemaker_regions):
-    instance_type = instance_type or 'ml.p2.xlarge'
-    model_dir = os.path.join(model_cpu_dir, 'model_mnist.tar.gz')
-    function_args = {
-            'framework_version': framework_version,
-            'instance_type': instance_type,
-            'model_dir': model_dir,
-            'mnist_script': mnist_gpu_script
+# @pytest.mark.model("mnist")
+# @pytest.mark.processor("gpu")
+# @pytest.mark.gpu_test
+# def test_mnist_distributed_gpu(framework_version, ecr_image, instance_type, sagemaker_regions):
+#     instance_type = instance_type or 'ml.p2.xlarge'
+#     model_dir = os.path.join(model_cpu_dir, 'model_mnist.tar.gz')
+#     function_args = {
+#             'framework_version': framework_version,
+#             'instance_type': instance_type,
+#             'model_dir': model_dir,
+#             'mnist_script': mnist_gpu_script
 
-        }
-    invoke_pytorch_helper_function(ecr_image, sagemaker_regions, _test_mnist_distributed, function_args)
+#         }
+#     invoke_pytorch_helper_function(ecr_image, sagemaker_regions, _test_mnist_distributed, function_args)
 
 
-@pytest.mark.model("mnist")
-@pytest.mark.integration("elastic_inference")
-@pytest.mark.processor("eia")
-@pytest.mark.eia_test
-def test_mnist_eia(framework_version, ecr_image, instance_type, accelerator_type, sagemaker_regions):
-    instance_type = instance_type or 'ml.c4.xlarge'
-    # Scripted model is serialized with torch.jit.save().
-    # Inference test for EIA doesn't need to instantiate model definition then load state_dict
-    model_dir = os.path.join(model_eia_dir, 'model_mnist.tar.gz')
-    function_args = {
-            'framework_version': framework_version,
-            'instance_type': instance_type,
-            'model_dir': model_dir,
-            'mnist_script': mnist_eia_script,
-            'accelerator_type': accelerator_type,
+# @pytest.mark.model("mnist")
+# @pytest.mark.integration("elastic_inference")
+# @pytest.mark.processor("eia")
+# @pytest.mark.eia_test
+# def test_mnist_eia(framework_version, ecr_image, instance_type, accelerator_type, sagemaker_regions):
+#     instance_type = instance_type or 'ml.c4.xlarge'
+#     # Scripted model is serialized with torch.jit.save().
+#     # Inference test for EIA doesn't need to instantiate model definition then load state_dict
+#     model_dir = os.path.join(model_eia_dir, 'model_mnist.tar.gz')
+#     function_args = {
+#             'framework_version': framework_version,
+#             'instance_type': instance_type,
+#             'model_dir': model_dir,
+#             'mnist_script': mnist_eia_script,
+#             'accelerator_type': accelerator_type,
 
-        }
-    invoke_pytorch_helper_function(ecr_image, sagemaker_regions, _test_mnist_distributed, function_args)
+#         }
+#     invoke_pytorch_helper_function(ecr_image, sagemaker_regions, _test_mnist_distributed, function_args)
 
 
 
@@ -143,7 +143,7 @@ def _check_for_cloudwatch_logs(endpoint_name):
     print(logStreamName)
 
     new_response = client.get_log_events(
-        logGroupName='/aws/sagemaker/Endpoints/sagemaker-pytorch-serving-1667543046-3c2e',
+        logGroupName='/aws/sagemaker/Endpoints/'+endpoint_name,
         logStreamName=logStreamName,
         #startTime=int((datetime.today() - timedelta(days=2)).timestamp()),
         #endTime=int(datetime.now().timestamp()),
