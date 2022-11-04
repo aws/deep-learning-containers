@@ -758,8 +758,9 @@ def test_safety(image):
             vulnerability_id = vulnerability["vulnerability_id"]
             # package, affected_versions, curr_version, _, vulnerability_id = vulnerability[:5]
             # Get the latest version of the package with vulnerability
-            latest_version = safety_result["affected_packages"][package]["latest_version"]
-            # If the latest version of the package is also affected, ignore this vulnerability
+            print(safety_result)
+            latest_version = _get_latest_package_version(package)
+            # If the latest version of the package is also affected, igvnore this vulnerability
             if Version(latest_version) in SpecifierSet(affected_versions):
                 # Version(x) gives an object that can be easily compared with another version, or with a SpecifierSet.
                 # Comparing two versions as a string has some edge cases which require us to write more code.
