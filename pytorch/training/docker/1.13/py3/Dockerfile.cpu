@@ -189,14 +189,14 @@ ARG PT_EC2_TRAINING_URL
 ARG PT_TORCHVISION_URL
 ARG PT_TORCHAUDIO_URL
 ARG PT_TORCHDATA_URL
-ARG PT_S3_WHL
+# ARG PT_S3_WHL
 
 # Install AWS-PyTorch and other torch packages
 RUN pip uninstall -y torch torchvision torchaudio torchdata \
  && pip install --no-cache-dir -U ${PT_EC2_TRAINING_URL} ${PT_TORCHVISION_URL} ${PT_TORCHAUDIO_URL} ${PT_TORCHDATA_URL}
 
 # Install PT S3 plugin
-RUN pip install -U ${PT_S3_WHL}
+# RUN pip install -U ${PT_S3_WHL}
 RUN mkdir -p /etc/pki/tls/certs && cp /etc/ssl/certs/ca-certificates.crt /etc/pki/tls/certs/ca-bundle.crt
 
 RUN HOME_DIR=/root \
@@ -244,14 +244,14 @@ ARG PT_SM_TRAINING_URL
 ARG PT_TORCHVISION_URL
 ARG PT_TORCHAUDIO_URL
 ARG PT_TORCHDATA_URL
-ARG PT_S3_WHL
+# ARG PT_S3_WHL
 
 # Install AWS-PyTorch and other torch packages
 RUN pip uninstall -y torch torchvision torchaudio torchdata \
  && pip install --no-cache-dir -U ${PT_SM_TRAINING_URL} ${PT_TORCHVISION_URL} ${PT_TORCHAUDIO_URL} ${PT_TORCHDATA_URL}
 
 # Install PT S3 plugin
-RUN pip install -U ${PT_S3_WHL}
+# RUN pip install -U ${PT_S3_WHL}
 RUN mkdir -p /etc/pki/tls/certs && cp /etc/ssl/certs/ca-certificates.crt /etc/pki/tls/certs/ca-bundle.crt
 
 WORKDIR /
