@@ -23,7 +23,6 @@ class SafetyVulnerabilityAdvisory:
     """
     One of the DataClasses for parsing Safety Report
     """
-
     vulnerability_id: str
     advisory: str
     reason_to_ignore: str
@@ -35,14 +34,13 @@ class SafetyPackageVulnerabilityReport:
     """
     One of the DataClasses for parsing Safety Report
     """
-
     package: str
     scan_status: str
     installed: str
     vulnerabilities: List[SafetyVulnerabilityAdvisory]
     date: str
-
     def __post_init__(self):
+        print(self.vulnerabilities)
         self.vulnerabilities = [SafetyVulnerabilityAdvisory(**i) for i in self.vulnerabilities]
 
 
@@ -51,10 +49,9 @@ class SafetyPythonEnvironmentVulnerabilityReport:
     """
     One of the DataClasses for parsing Safety Report
     """
-
     report: List[SafetyPackageVulnerabilityReport]
-
     def __post_init__(self):
+        print(self.report)
         self.report = [SafetyPackageVulnerabilityReport(**i) for i in self.report]
 
 
@@ -81,13 +78,17 @@ def test_safety_file_exists_and_is_valid(image):
 
         file_content = run(f"{docker_exec_cmd} cat {SAFETY_FILE}", warn=True, hide=True)
         raw_scan_result = json.loads(file_content.stdout)
+        print(f"Raw Scan Result- {raw_scan_result}")
         safety_report_object = SafetyPythonEnvironmentVulnerabilityReport(report=raw_scan_result)
-
+ 
+        print(f"Safety Report Object: {safety_report_object}")
         # processing safety reports
         report_log_template = (
             "SAFETY_REPORT ({status}) [pkg: {pkg}] [installed: {installed}] [vulnerabilities: {vulnerabilities}]"
         )
         failed_count = 0
+
+        print(f"Safety Report Object's Report: {safety_report_object.report}")
         for report_item in safety_report_object.report:
             if report_item.scan_status == "FAILED":
                 failed_count += 1
