@@ -159,9 +159,9 @@ ENV LD_LIBRARY_PATH=$OPEN_MPI_PATH/lib/:$EFA_PATH/lib/:$LD_LIBRARY_PATH
 RUN ompi_info --parsable --all | grep mpi_built_with_cuda_support:value \
  && curl -L -o ~/mambaforge.sh https://github.com/conda-forge/miniforge/releases/download/${MAMBA_VERSION}/Mambaforge-${MAMBA_VERSION}-Linux-x86_64.sh \
  && chmod +x ~/mambaforge.sh \
- && ~/mambaforge.sh -b -p ~/conda \
+ && ~/mambaforge.sh -b -p /opt/conda \
  && rm ~/mambaforge.sh \
- && ~/conda/bin/conda install -c conda-forge \
+ && /opt/conda/bin/conda install -c conda-forge \
     python=$PYTHON_VERSION \
     cython \
     mkl \
@@ -175,10 +175,10 @@ RUN ompi_info --parsable --all | grep mpi_built_with_cuda_support:value \
     libgcc \
     conda-content-trust \
     charset-normalizer \
- &&  ~/conda/bin/conda install -c dglteam -y dgl-cuda11.7 \
- &&  ~/conda/bin/conda install -c pytorch magma-cuda117 \
- &&  ~/conda/bin/conda update conda \
- &&  ~/conda/bin/conda clean -ya
+ &&  /opt/conda/bin/conda install -c dglteam -y dgl-cuda11.7 \
+ &&  /opt/conda/bin/conda install -c pytorch magma-cuda117 \
+ &&  /opt/conda/bin/conda update conda \
+ &&  /opt/conda/bin/conda clean -ya
 
 # Conda installs links for libtinfo.so.6 and libtinfo.so.6.2 both
 # Which causes "/opt/conda/lib/libtinfo.so.6: no version information available" warning
