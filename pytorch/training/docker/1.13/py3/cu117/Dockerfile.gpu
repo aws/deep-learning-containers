@@ -1,7 +1,7 @@
 ARG PYTHON=python3
-ARG PYTHON_VERSION=3.9.12
+ARG PYTHON_VERSION=3.9.13
 ARG PYTHON_SHORT_VERSION=3.9
-ARG MAMBA_VERSION=4.14.0-2
+ARG MAMBA_VERSION=4.12.0-2
 
 # PyTorch Binaries
 ARG PT_EC2_TRAINING_URL=https://aws-pytorch-unified-cicd-binaries.s3.us-west-2.amazonaws.com/r1.13.0_ec2/20221102-024144/30b103572e6a206b088d60600ef9deddb3d59d3b/torch-1.13.0%2Bcu117-cp38-cp38-linux_x86_64.whl
@@ -159,9 +159,9 @@ ENV LD_LIBRARY_PATH=$OPEN_MPI_PATH/lib/:$EFA_PATH/lib/:$LD_LIBRARY_PATH
 RUN ompi_info --parsable --all | grep mpi_built_with_cuda_support:value \
  && curl -L -o ~/mambaforge.sh https://github.com/conda-forge/miniforge/releases/download/${MAMBA_VERSION}/Mambaforge-${MAMBA_VERSION}-Linux-x86_64.sh \
  && chmod +x ~/mambaforge.sh \
- && ~/mambaforge.sh -b -p /opt/conda \
+ && ~/mambaforge.sh -b -p ~/conda \
  && rm ~/mambaforge.sh \
- && /opt/conda/bin/conda install -c conda-forge \
+ && ~/conda/bin/conda install -c conda-forge \
     python=$PYTHON_VERSION \
     cython \
     mkl \
@@ -173,17 +173,12 @@ RUN ompi_info --parsable --all | grep mpi_built_with_cuda_support:value \
     future \
     "pyopenssl>=17.5.0" \
     libgcc \
-    # Below 2 are included in miniconda base, but not mamba so need to install
     conda-content-trust \
     charset-normalizer \
- && /opt/conda/bin/conda install -c dglteam -y dgl-cuda11.7 \
- && /opt/conda/bin/conda install -c pytorch magma-cuda117 \
- # Upstream conda looks to have moved to 4.13 which is incompatible with mamba 0.22.1 and will fail the conda-forge installs.
- # having "conda update conda" before the "conda -c conda-forge" commands will automatically update conda to 4.13.
- # Moving conda update conda" after the "conda -c conda-forge" commands keep conda at 4.12 but will update other packages using
- # the current conda 4.12
- && /opt/conda/bin/conda update conda \
- && /opt/conda/bin/conda clean -ya
+ &&  ~/conda/bin/conda install -c dglteam -y dgl-cuda11.7 \
+ &&  ~/conda/bin/conda install -c pytorch magma-cuda117 \
+ &&  ~/conda/bin/conda update conda \
+ &&  ~/conda/bin/conda clean -ya
 
 # Conda installs links for libtinfo.so.6 and libtinfo.so.6.2 both
 # Which causes "/opt/conda/lib/libtinfo.so.6: no version information available" warning
