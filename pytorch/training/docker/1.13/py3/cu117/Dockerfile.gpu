@@ -186,7 +186,7 @@ RUN ompi_info --parsable --all | grep mpi_built_with_cuda_support:value \
 RUN rm -rf /opt/conda/lib/libtinfo.so.6
 
 RUN /opt/conda/bin/conda config --set ssl_verify False \
- && pip install --upgrade pip --trusted-host pypi.org --trusted-host files.pythonhosted.org \
+ && pip install --no-cache-dir --upgrade pip --no-cache-dir --trusted-host pypi.org --trusted-host files.pythonhosted.org \
  && ln -s /opt/conda/bin/pip /usr/local/bin/pip3
 
 WORKDIR /root
@@ -213,6 +213,9 @@ COPY deep_learning_container.py /usr/local/bin/deep_learning_container.py
 RUN chmod +x /usr/local/bin/deep_learning_container.py
 
 RUN curl -o /license.txt  https://aws-dlc-licenses.s3.amazonaws.com/pytorch-1.12/license.txt
+
+# Removing the cache as it is needed for security verification
+RUN rm -rf /root/.cache | true
 
 ########################################################
 #  _____ ____ ____    ___
@@ -319,6 +322,9 @@ RUN HOME_DIR=/root \
  && ${HOME_DIR}/oss_compliance/generate_oss_compliance.sh ${HOME_DIR} ${PYTHON} \
  && rm -rf ${HOME_DIR}/oss_compliance* \
  && rm -rf /tmp/tmp*
+
+# Removing the cache as it is needed for security verification
+RUN rm -rf /root/.cache | true
 
 # Starts framework
 CMD ["/bin/bash"]
@@ -539,6 +545,9 @@ RUN HOME_DIR=/root \
  && ${HOME_DIR}/oss_compliance/generate_oss_compliance.sh ${HOME_DIR} ${PYTHON} \
  && rm -rf ${HOME_DIR}/oss_compliance* \
  && rm -rf /tmp/tmp*
+ 
+# Removing the cache as it is needed for security verification
+RUN rm -rf /root/.cache | true
 
 ENTRYPOINT ["bash", "-m", "start_with_right_hostname.sh"]
 CMD ["/bin/bash"]
