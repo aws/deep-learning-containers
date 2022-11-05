@@ -57,6 +57,8 @@ IGNORE_SAFETY_IDS = {
                 "48551",
                 # for cryptography until we have 39.0.0 release
                 "51159",
+                # Keras 2.10.0 is latest, rc in place for 2.11.0+ 
+                "51516"
             ],
         },
         "inference": {
@@ -739,6 +741,7 @@ def test_safety(image):
     container_name = f"{repo_name}-{image_tag}-safety"
     docker_exec_cmd = f"docker exec -i {container_name}"
     test_file_path = os.path.join(CONTAINER_TESTS_PREFIX, "testSafety")
+
     # Add null entrypoint to ensure command exits immediately
     run(
         f"docker run -id "
@@ -749,14 +752,14 @@ def test_safety(image):
         hide=True,
     )
     try:
-        run(f"{docker_exec_cmd} pip install 'safety>=2.0.0' yolk3k ", hide=True)
+        run(f"{docker_exec_cmd} pip install 'safety>=2.2.0' yolk3k ", hide=True)
         json_str_safety_result = safety_check.run_safety_check_on_container(docker_exec_cmd)
         safety_result = json.loads(json_str_safety_result)["vulnerabilities"]
         for vulnerability in safety_result:
             package = vulnerability["package_name"]
             affected_versions = vulnerability["vulnerable_spec"]
             vulnerability_id = vulnerability["vulnerability_id"]
-            # package, affected_versions, curr_version, _, vulnerability_id = vulnerability[:5]
+
             # Get the latest version of the package with vulnerability
             latest_version = _get_latest_package_version(package)
             # If the latest version of the package is also affected, igvnore this vulnerability
