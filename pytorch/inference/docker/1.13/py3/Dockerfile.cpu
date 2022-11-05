@@ -168,7 +168,7 @@ RUN pip install --upgrade pip --trusted-host pypi.org --trusted-host files.pytho
     torchaudio==${TORCHAUDIO_VERSION} \
     torchvision==${TORCHVISION_VERSION} \
     torchdata==${TORCHDATA_VERSION} \
-    torchserve==${TTORCHSERVE_VERSION} \
+    torchserve==${TORCHSERVE_VERSION} \
     torch-model-archiver==${TORCHSERVE_VERSION}
 
 # add necessary certificate for aws sdk cpp download

@@ -237,8 +237,8 @@ RUN pip install --no-cache-dir --extra-index-url https://download.pytorch.org/wh
     torchaudio==${TORCHAUDIO_VERSION} \
     torchvision==${TORCHVISION_VERSION} \
     torchdata==${TORCHDATA_VERSION} \
-    torchserve==${TS_VERSION} \
-    torch-model-archiver==${TS_VERSION}
+    torchserve==${TORCHSERVE_VERSION} \
+    torch-model-archiver==${TORCHSERVE_VERSION}
 
 # add necessary certificate for aws sdk cpp download
 RUN mkdir -p /etc/pki/tls/certs && cp /etc/ssl/certs/ca-certificates.crt /etc/pki/tls/certs/ca-bundle.crt
