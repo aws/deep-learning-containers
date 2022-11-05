@@ -99,6 +99,7 @@ RUN conda install -y \
  && pip install numpy==1.22.4 \
  && pip install pillow==9.2.0 \
  && pip install urllib3==1.26.11 \
+ && pip install wheel==0.38.1 \
  # pyOpenSSL requires cryptography>=2.3, but all versions <3.3 have vulnerabilities
  && pip install -U "cryptography>=3.3"
 
