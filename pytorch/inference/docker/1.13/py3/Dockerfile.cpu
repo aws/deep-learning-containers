@@ -1,6 +1,7 @@
 ARG PYTHON=python3
 ARG PYTHON_VERSION=3.9.13
 ARG MAMBA_VERSION=4.12.0-2
+ARG OPEN_MPI_VERSION=4.1.1
 
 # PyTorch Binaries
 ARG TORCH_URL=https://aws-pytorch-unified-cicd-binaries.s3.us-west-2.amazonaws.com/r1.13.0_ec2/20221105-013447/41160d617a294a8963a868ec942a2569a2fbf3ea/torch-1.13.0%2Bcpu-cp39-cp39-linux_x86_64.whl
@@ -8,11 +9,6 @@ ARG TORCHVISION_VERSION=0.14.0
 ARG TORCHAUDIO_VERSION=0.13.0
 ARG TORCHDATA_VERSION=0.5.0
 ARG TORCHSERVE_VERSION=0.6.0
-# ARG PT_TORCHVISION_URL=https://download.pytorch.org/whl/cpu/torch-1.13.0%2Bcpu-cp39-cp39-linux_x86_64.whl
-# ARG PT_TORCHVISION_URL=https://download.pytorch.org/whl/cpu/torchvision-0.14.0%2Bcpu-cp39-cp39-linux_x86_64.whl
-# ARG PT_TORCHAUDIO_URL=https://download.pytorch.org/whl/cpu/torchaudio-0.13.0%2Bcpu-cp39-cp39-linux_x86_64.whl
-# ARG PT_TORCHDATA_URL=https://download.pytorch.org/whl/cpu/torchdata-0.5.0%2Bcpu-cp39-cp39-linux_x86_64.whl
-# ARG PT_TORCHDATA_URL=https://download.pytorch.org/whl/test/torchdata-0.5.0-cp39-cp39-manylinux_2_17_x86_64.manylinux2014_x86_64.whl
 
 ########################################################
 #  _____ ____ ____    ___
@@ -34,12 +30,6 @@ FROM ubuntu:20.04 AS base_image
 ENV DEBIAN_FRONTEND=noninteractive \
     LD_LIBRARY_PATH="${LD_LIBRARY_PATH}:/usr/local/lib"
 
-RUN apt-get update \
- && apt-get upgrade -y \
- && apt-get autoremove -y \
- && apt-get clean \
- && rm -rf /var/lib/apt/lists/*
-
 FROM base_image AS ec2
 
 LABEL maintainer="Amazon AI"
@@ -47,8 +37,8 @@ LABEL dlc_major_version="1"
 
 ARG PYTHON
 ARG PYTHON_VERSION
-ARG OPEN_MPI_VERSION=4.0.1
 ARG MAMBA_VERSION
+ARG OPEN_MPI_VERSION
 
 # PyTorch Passed arguments (URLs and Versions)
 ARG TORCH_URL
@@ -56,12 +46,13 @@ ARG TORCHVISION_VERSION
 ARG TORCHAUDIO_VERSION
 ARG TORCHDATA_VERSION
 ARG TORCHSERVE_VERSION
-ARG CUBLAS_VERSION
-ARG OMPI_VERSION
-ARG CUDNN_VERSION
 
+# Set Debian interaction
+ARG DEBIAN_FRONTEND=noninteractive
+
+# See http://bugs.python.org/issue19846
 ENV LANG=C.UTF-8
-ENV LD_LIBRARY_PATH="${LD_LIBRARY_PATH}:/opt/conda/lib"
+ENV LD_LIBRARY_PATH="/opt/conda/lib:${LD_LIBRARY_PATH}"
 ENV PATH=/opt/conda/bin:$PATH
 ENV TEMP=/home/model-server/tmp
 # Set MKL_THREADING_LAYER=GNU to prevent issues between torch and numpy/mkl
@@ -69,8 +60,7 @@ ENV MKL_THREADING_LAYER=GNU
 ENV DLC_CONTAINER_TYPE=inference
 
 RUN apt-get update \
-# TODO: Remove systemd upgrade once it is updated in base image
- && apt-get -y upgrade --only-upgrade systemd \
+ && apt-get -y upgrade \
  && apt-get install -y --no-install-recommends software-properties-common \
  # && add-apt-repository ppa:openjdk-r/ppa \
  && apt-get update \
@@ -120,10 +110,12 @@ ENV LD_LIBRARY_PATH="$LD_LIBRARY_PATH:/home/.openmpi/lib/"
 RUN ompi_info --parsable --all | grep mpi_built_with_cuda_support:value
 
 # Install CondaForge miniconda
+# Note: SSD Verification disabled as it breaks installs due to downgrading from py3.10 to py3.9
 RUN curl -L -o ~/mambaforge.sh https://github.com/conda-forge/miniforge/releases/download/${MAMBA_VERSION}/Mambaforge-${MAMBA_VERSION}-Linux-x86_64.sh \
  && chmod +x ~/mambaforge.sh \
  && ~/mambaforge.sh -b -p /opt/conda \
  && rm ~/mambaforge.sh \
+ && /opt/conda/bin/conda config --set ssl_verify False \
  && /opt/conda/bin/conda update -y conda \
  && /opt/conda/bin/conda install -c conda-forge \
     python=${PYTHON_VERSION} \
@@ -139,19 +131,15 @@ RUN curl -L -o ~/mambaforge.sh https://github.com/conda-forge/miniforge/releases
     charset-normalizer \
  && /opt/conda/bin/conda clean -ya
 
-# Conda installs links for libtinfo.so.6 and libtinfo.so.6.2 both
-# Which causes "/opt/conda/lib/libtinfo.so.6: no version information available" warning
-# Removing link for libtinfo.so.6. This change is needed only for ubuntu 20.04-conda, and can be reverted
-# once conda fixes the issue: https://github.com/conda/conda/issues/9680
-RUN rm -rf /opt/conda/lib/libtinfo.so.6
+# symlink pip for OS use
+RUN pip install --upgrade pip --trusted-host pypi.org --trusted-host files.pythonhosted.org \
+ && ln -s /opt/conda/bin/pip /usr/local/bin/pip3
 
-# Ensure PyTorch did not get installed from Conda due to magma-cuda117
+# Ensure PyTorch did not get installed from Conda
 RUN pip uninstall -y torch torchvision torchaudio torchdata model-archiver multi-model-server
 
 # Install AWS-PyTorch, and other torch packages
-RUN pip install --upgrade pip --trusted-host pypi.org --trusted-host files.pythonhosted.org \
- && ln -s /opt/conda/bin/pip /usr/local/bin/pip3 \
- && pip install --no-cache-dir -U \
+RUN pip install -y --no-cache-dir -U \
     "awscli<2" \
     boto3 \
     "cryptography>3.2" \

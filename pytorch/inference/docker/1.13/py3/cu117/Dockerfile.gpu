@@ -1,25 +1,18 @@
 ARG PYTHON=python3
 ARG PYTHON_VERSION=3.9.13
 ARG MAMBA_VERSION=22.9.0-1
-ARG CUDA_VERSION=117
+ARG OPEN_MPI_VERSION=4.1.1
 
 # Nvidia software versions
 ARG CUBLAS_VERSION=11.10.3.66
-ARG OMPI_VERSION=4.1.1
 ARG CUDNN_VERSION=8.5.0.96
 
 # PyTorch Binaries and versions.
 ARG TORCH_URL=https://aws-pytorch-unified-cicd-binaries.s3.us-west-2.amazonaws.com/r1.13.0_ec2/20221105-023216/41160d617a294a8963a868ec942a2569a2fbf3ea/torch-1.13.0%2Bcu117-cp39-cp39-linux_x86_64.whl
-ARG TORCHVISION_VERSION=0.14.0+cu${CUDA_VERSION}
-ARG TORCHAUDIO_VERSION=0.13.0+cu${CUDA_VERSION}
+ARG TORCHVISION_VERSION=0.14.0+cu117
+ARG TORCHAUDIO_VERSION=0.13.0+cu117
 ARG TORCHDATA_VERSION=0.5.0
 ARG TORCHSERVE_VERSION=0.6.0
-
-# ARG PT_TORCHVISION_URL=https://download.pytorch.org/whl/cu117/torch-1.13.0%2Bcu117-cp39-cp39-linux_x86_64.whl
-# ARG PT_TORCHVISION_URL=https://download.pytorch.org/whl/cu117/torchvision-0.14.0%2Bcu117-cp39-cp39-linux_x86_64.whl
-# ARG PT_TORCHAUDIO_URL=https://download.pytorch.org/whl/cu117/torchaudio-0.13.0%2Bcu117-cp39-cp39-linux_x86_64.whl
-# ARG PT_TORCHDATA_URL=https://download.pytorch.org/whl/cu117/torchdata-0.5.0%2Bcu117-cp39-cp39-linux_x86_64.whl
-# ARG PT_TORCHDATA_URL=https://download.pytorch.org/whl/cu117/torchdata-0.5.0%2Bcu117-cp39-cp39-manylinux_2_17_x86_64.manylinux2014_x86_64.whl
 
 ########################################################
 #  _____ ____ ____    ___
@@ -50,6 +43,7 @@ LABEL dlc_major_version="1"
 ARG PYTHON
 ARG PYTHON_VERSION
 ARG MAMBA_VERSION
+ARG OPEN_MPI_VERSION
 
 # PyTorch Passed arguments (URLs and Versions)
 ARG TORCH_URL
@@ -58,7 +52,6 @@ ARG TORCHAUDIO_VERSION
 ARG TORCHDATA_VERSION
 ARG TORCHSERVE_VERSION
 ARG CUBLAS_VERSION
-ARG OMPI_VERSION
 ARG CUDNN_VERSION
 
 # Set Debian interaction
@@ -69,6 +62,9 @@ ENV LANG C.UTF-8
 ENV LD_LIBRARY_PATH="/opt/conda/lib:${LD_LIBRARY_PATH}"
 ENV PATH /opt/conda/bin:$PATH
 ENV TEMP=/home/model-server/tmp
+# Set MKL_THREADING_LAYER=GNU to prevent issues between torch and numpy/mkl
+ENV MKL_THREADING_LAYER=GNU
+ENV DLC_CONTAINER_TYPE=inference
 
 ## Cuda Arch List setting Options
 # Kepler+Tesla = 3.7 (P2 Instances "No Longer Supported")
@@ -81,17 +77,10 @@ ENV TEMP=/home/model-server/tmp
 # Ampere = 8.0;8.6+PTX (P4 and G5 Instances)
 # Ada = 8.9+PTX
 ENV TORCH_CUDA_ARCH_LIST="5.0 7.0+PTX 7.5+PTX 8.0"
-
 ENV NCCL_VERSION=2.14.3
 ENV NVML_VERSION=11.7.91
 
-# Set MKL_THREADING_LAYER=GNU to prevent issues between torch and numpy/mkl
-ENV MKL_THREADING_LAYER=GNU
-ENV DLC_CONTAINER_TYPE=inference
-
 RUN apt-get update \
-# TODO: Remove systemd upgrade once it is updated in base image
-# not sure only systemd allowing upgrade we are were doing up above anyway.
  && apt-get -y upgrade \
  && apt-get install -y --no-install-recommends software-properties-common \
 # && add-apt-repository ppa:openjdk-r/ppa \
@@ -161,14 +150,14 @@ RUN keytool -importkeystore -srckeystore /etc/ssl/certs/java/cacerts -destkeysto
     mv /etc/ssl/certs/java/cacerts.jks /etc/ssl/certs/java/cacerts; \
     /var/lib/dpkg/info/ca-certificates-java.postinst configure;
 
-RUN wget --quiet https://download.open-mpi.org/release/open-mpi/v4.1/openmpi-${OMPI_VERSION}.tar.gz \
- && gunzip -c openmpi-${OMPI_VERSION}.tar.gz | tar xf - \
- && cd openmpi-${OMPI_VERSION} \
+RUN wget --quiet https://download.open-mpi.org/release/open-mpi/v4.1/openmpi-${OPEN_MPI_VERSION}.tar.gz \
+ && gunzip -c openmpi-${OPEN_MPI_VERSION}.tar.gz | tar xf - \
+ && cd openmpi-${OPEN_MPI_VERSION} \
  && ./configure --prefix=/home/.openmpi --with-cuda \
  && make all install \
  && cd .. \
- && rm openmpi-${OMPI_VERSION}.tar.gz \
- && rm -rf openmpi-${OMPI_VERSION}
+ && rm openmpi-${OPEN_MPI_VERSION}.tar.gz \
+ && rm -rf openmpi-${OPEN_MPI_VERSION}
 
 ENV PATH="$PATH:/home/.openmpi/bin"
 ENV LD_LIBRARY_PATH="$LD_LIBRARY_PATH:/home/.openmpi/lib/"
@@ -182,13 +171,14 @@ RUN mkdir -p /var/run/sshd \
  && apt-get clean
 
 # Install CondaForge miniconda
+# Note: SSD Verification disabled as it breaks installs due to downgrading from py3.10 to py3.9
 RUN curl -L -o ~/mambaforge.sh https://github.com/conda-forge/miniforge/releases/download/${MAMBA_VERSION}/Mambaforge-${MAMBA_VERSION}-Linux-x86_64.sh \
  && chmod +x ~/mambaforge.sh \
  && ~/mambaforge.sh -b -p /opt/conda \
  && rm ~/mambaforge.sh \
+ && /opt/conda/bin/conda config --set ssl_verify False \
  && /opt/conda/bin/conda update -y conda \
- && /opt/conda/bin/conda install -c conda-forge \
-    python=${PYTHON_VERSION} \
+ && /opt/conda/bin/conda install -c conda-forge python=${PYTHON_VERSION} \
     cython \
     mkl \
     mkl-include \
@@ -202,17 +192,10 @@ RUN curl -L -o ~/mambaforge.sh https://github.com/conda-forge/miniforge/releases
     conda-content-trust \
     charset-normalizer \
  && /opt/conda/bin/conda install -c pytorch magma-cuda117 \
-   && /opt/conda/bin/conda clean -ya
+ && /opt/conda/bin/conda clean -ya
 
-# Conda installs links for libtinfo.so.6 and libtinfo.so.6.2 both
-# Which causes "/opt/conda/lib/libtinfo.so.6: no version information available" warning
-# Removing link for libtinfo.so.6. This change is needed only for ubuntu 20.04-conda, and can be reverted
-# once conda fixes the issue: https://github.com/conda/conda/issues/9680
-RUN rm -rf /opt/conda/lib/libtinfo.so.6
-
-# disable SSL Verify for conda and symlink pip for OS use
-RUN /opt/conda/bin/conda config --set ssl_verify False \
- && pip install --upgrade pip --trusted-host pypi.org --trusted-host files.pythonhosted.org \
+# symlink pip for OS use
+RUN pip install --upgrade pip --trusted-host pypi.org --trusted-host files.pythonhosted.org \
  && ln -s /opt/conda/bin/pip /usr/local/bin/pip3
 
 WORKDIR /root
@@ -221,7 +204,7 @@ WORKDIR /root
 RUN pip uninstall -y torch torchvision torchaudio torchdata model-archiver multi-model-server
 
 # Install AWS-PyTorch, and other torch packages
-RUN pip install --no-cache-dir --extra-index-url https://download.pytorch.org/whl/${CUDA_VERSION} -U \
+RUN pip install -y --no-cache-dir --extra-index-url https://download.pytorch.org/whl/cu117 -U \
     "awscli<2" \
     boto3 \
     "cryptography>3.2" \
