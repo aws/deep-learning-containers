@@ -407,6 +407,9 @@ def _run_dependency_check_test(image, ec2_connection):
         "CVE-2016-6303",
         "CVE-2016-2182",
         "CVE-2022-2068",
+        # Latest installed openssl on ubuntu 20.04is 1.1.1f-1ubuntu2.16 which is higher than these CVEs. False Positive
+        "CVE-2022-1292",
+        "CVE-2021-3711",
     }
 
     processor = get_processor_from_image_uri(image)
