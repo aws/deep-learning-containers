@@ -204,7 +204,7 @@ WORKDIR /root
 RUN pip uninstall -y torch torchvision torchaudio torchdata model-archiver multi-model-server
 
 # Install AWS-PyTorch, and other torch packages
-RUN pip install -y --no-cache-dir --extra-index-url https://download.pytorch.org/whl/cu117 -U \
+RUN pip install --no-cache-dir --extra-index-url https://download.pytorch.org/whl/cu117 -U \
     "awscli<2" \
     boto3 \
     "cryptography>3.2" \
