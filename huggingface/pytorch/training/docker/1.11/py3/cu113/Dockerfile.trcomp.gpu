@@ -53,7 +53,6 @@ ARG HF_TRANSFORMERS_URL=${HF_BINARY_PATH}/transformers-${TRANSFORMERS_VERSION}-p
 
 RUN pip install --no-cache-dir -U \
     sagemaker \
-    "importlib-metadata<5.0,>=1.4.0"
 
 
 # install Hugging Face libraries and its dependencies
@@ -124,7 +123,7 @@ RUN pip install -U numpy==1.22.2
 # Fixing identified CVEs
 RUN pip install -U \
     "protobuf<3.20.0"
-
+     "importlib-metadata<5.0,>=1.4.0"
 
 # Fix library links
 RUN ln -s ${CONDA_PREFIX}/lib/libmkl_intel_lp64.so ${CONDA_PREFIX}/lib/libmkl_intel_lp64.so.1 \
