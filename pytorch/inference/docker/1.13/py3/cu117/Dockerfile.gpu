@@ -1,14 +1,25 @@
 ARG PYTHON=python3
 ARG PYTHON_VERSION=3.9.13
-ARG MAMBA_VERSION=4.12.0-2
+ARG MAMBA_VERSION=22.9.0-1
+ARG CUDA_VERSION=117
 
-# PyTorch Binaries
-# ARG PT_INFERENCE_URL=https://aws-pytorch-unified-cicd-binaries.s3.us-west-2.amazonaws.com/r1.13.0_ec2/20221102-024144/30b103572e6a206b088d60600ef9deddb3d59d3b/torch-1.13.0%2Bcu117-cp39-cp39-linux_x86_64.whl
-ARG PT_TORCHVISION_URL=https://download.pytorch.org/whl/cu117/torch-1.13.0%2Bcu117-cp39-cp39-linux_x86_64.whl
-ARG PT_TORCHVISION_URL=https://download.pytorch.org/whl/cu117/torchvision-0.14.0%2Bcu117-cp39-cp39-linux_x86_64.whl
-ARG PT_TORCHAUDIO_URL=https://download.pytorch.org/whl/cu117/torchaudio-0.13.0%2Bcu117-cp39-cp39-linux_x86_64.whl
-ARG PT_TORCHDATA_URL=https://download.pytorch.org/whl/cu117/torchdata-0.5.0%2Bcu117-cp39-cp39-linux_x86_64.whl
-# ARG PT_TORCHDATA_URL=https://download.pytorch.org/whl/cu117/torchdata-0.5.0-cp39-cp39-manylinux_2_17_x86_64.manylinux2014_x86_64.whl
+# Nvidia software versions
+ARG CUBLAS_VERSION=11.10.3.66
+ARG OMPI_VERSION=4.1.1
+ARG CUDNN_VERSION=8.5.0.96
+
+# PyTorch Binaries and versions.
+ARG TORCH_URL=https://aws-pytorch-unified-cicd-binaries.s3.us-west-2.amazonaws.com/r1.13.0_ec2/20221105-023216/41160d617a294a8963a868ec942a2569a2fbf3ea/torch-1.13.0%2Bcu117-cp39-cp39-linux_x86_64.whl
+ARG TORCHVISION_VERSION=0.14.0+cu${CUDA_VERSION}
+ARG TORCHAUDIO_VERSION=0.13.0+cu${CUDA_VERSION}
+ARG TORCHDATA_VERSION=0.5.0
+ARG TORCHSERVE_VERSION=0.6.0
+
+# ARG PT_TORCHVISION_URL=https://download.pytorch.org/whl/cu117/torch-1.13.0%2Bcu117-cp39-cp39-linux_x86_64.whl
+# ARG PT_TORCHVISION_URL=https://download.pytorch.org/whl/cu117/torchvision-0.14.0%2Bcu117-cp39-cp39-linux_x86_64.whl
+# ARG PT_TORCHAUDIO_URL=https://download.pytorch.org/whl/cu117/torchaudio-0.13.0%2Bcu117-cp39-cp39-linux_x86_64.whl
+# ARG PT_TORCHDATA_URL=https://download.pytorch.org/whl/cu117/torchdata-0.5.0%2Bcu117-cp39-cp39-linux_x86_64.whl
+# ARG PT_TORCHDATA_URL=https://download.pytorch.org/whl/cu117/torchdata-0.5.0%2Bcu117-cp39-cp39-manylinux_2_17_x86_64.manylinux2014_x86_64.whl
 
 ########################################################
 #  _____ ____ ____    ___
@@ -31,12 +42,6 @@ FROM nvidia/cuda:11.7.1-base-ubuntu20.04 AS base_image
 ENV DEBIAN_FRONTEND=noninteractive \
     LD_LIBRARY_PATH="${LD_LIBRARY_PATH}:/usr/local/lib"
 
-RUN apt-get update \
- && apt-get upgrade -y \
- && apt-get autoremove -y \
- && apt-get clean \
- && rm -rf /var/lib/apt/lists/*
-
 FROM base_image AS ec2
 
 LABEL maintainer="Amazon AI"
@@ -46,16 +51,17 @@ ARG PYTHON
 ARG PYTHON_VERSION
 ARG MAMBA_VERSION
 
-# PyTorch Binaries
-ARG PT_INFERENCE_URL
-ARG PT_TORCHVISION_URL
-ARG PT_TORCHAUDIO_URL
-ARG PT_TORCHDATA_URL
+# PyTorch Passed arguments (URLs and Versions)
+ARG TORCH_URL
+ARG TORCHVISION_VERSION
+ARG TORCHAUDIO_VERSION
+ARG TORCHDATA_VERSION
+ARG TORCHSERVE_VERSION
+ARG CUBLAS_VERSION
+ARG OMPI_VERSION
+ARG CUDNN_VERSION
 
-ARG CUBLAS_VERSION=11.10.3.66
-ARG OMPI_VERSION=4.1.1
-ARG TS_VERSION=0.6.0
-
+# Set Debian interaction
 ARG DEBIAN_FRONTEND=noninteractive
 
 # See http://bugs.python.org/issue19846
@@ -63,9 +69,20 @@ ENV LANG C.UTF-8
 ENV LD_LIBRARY_PATH="/opt/conda/lib:${LD_LIBRARY_PATH}"
 ENV PATH /opt/conda/bin:$PATH
 ENV TEMP=/home/model-server/tmp
-ENV TORCH_CUDA_ARCH_LIST="3.7 5.0 7.0+PTX 8.0"
 
-ENV NCCL_VERSION=2.10.3
+## Cuda Arch List setting Options
+# Kepler+Tesla = 3.7 (P2 Instances "No Longer Supported")
+# Kepler = 3.5+PTX
+# Maxwell+Tegra = 5.3
+# Maxwell = 5.0;5.2+PTX (G3 Instances)
+# Pascal = 6.0;6.1+PTX
+# Volta = 7.0+PTX (P3 Instances)
+# Turing = 7.5+PTX (G4 Instances)
+# Ampere = 8.0;8.6+PTX (P4 and G5 Instances)
+# Ada = 8.9+PTX
+ENV TORCH_CUDA_ARCH_LIST="5.0 7.0+PTX 7.5+PTX 8.0"
+
+ENV NCCL_VERSION=2.14.3
 ENV NVML_VERSION=11.7.91
 
 # Set MKL_THREADING_LAYER=GNU to prevent issues between torch and numpy/mkl
@@ -74,7 +91,8 @@ ENV DLC_CONTAINER_TYPE=inference
 
 RUN apt-get update \
 # TODO: Remove systemd upgrade once it is updated in base image
- && apt-get -y upgrade --only-upgrade systemd \
+# not sure only systemd allowing upgrade we are were doing up above anyway.
+ && apt-get -y upgrade \
  && apt-get install -y --no-install-recommends software-properties-common \
 # && add-apt-repository ppa:openjdk-r/ppa \
  && apt-get update \
@@ -92,7 +110,7 @@ RUN apt-get update \
     jq \
     libcublas-11-7=${CUBLAS_VERSION}-1 \
     libcublas-dev-11-7=${CUBLAS_VERSION}-1 \
-    libcudnn8 \
+    libcudnn8=${CUDNN_VERSION}-1+cuda11.7 \
     libcufft-dev-11-7 \
     libcurand-dev-11-7 \
     libcurl4-openssl-dev \
@@ -116,8 +134,9 @@ RUN apt-get update \
     wget \
     unzip \
     zlib1g-dev \
- && rm -rf /var/lib/apt/lists/* \
- && apt-get clean
+    openssh-client \
+    openssh-server \
+ && rm -rf /var/lib/apt/lists/*
 
 # Install aws-sdk-cpp s3;transfer modules for torchdata
 RUN git clone --recurse-submodules https://github.com/aws/aws-sdk-cpp \
@@ -154,22 +173,20 @@ RUN wget --quiet https://download.open-mpi.org/release/open-mpi/v4.1/openmpi-${O
 ENV PATH="$PATH:/home/.openmpi/bin"
 ENV LD_LIBRARY_PATH="$LD_LIBRARY_PATH:/home/.openmpi/lib/"
 
-# Install OpenSSH. Allow OpenSSH to talk to containers without asking for confirmation
-RUN apt-get update \
- && apt-get install -y --no-install-recommends \
-    openssh-client \
-    openssh-server \
- && mkdir -p /var/run/sshd \
+# Allow OpenSSH to talk to containers without asking for confirmation
+RUN mkdir -p /var/run/sshd \
  && cat /etc/ssh/ssh_config | grep -v StrictHostKeyChecking > /etc/ssh/ssh_config.new \
  && echo "    StrictHostKeyChecking no" >> /etc/ssh/ssh_config.new \
  && mv /etc/ssh/ssh_config.new /etc/ssh/ssh_configs \
  && rm -rf /var/lib/apt/lists/* \
  && apt-get clean
 
+# Install CondaForge miniconda
 RUN curl -L -o ~/mambaforge.sh https://github.com/conda-forge/miniforge/releases/download/${MAMBA_VERSION}/Mambaforge-${MAMBA_VERSION}-Linux-x86_64.sh \
  && chmod +x ~/mambaforge.sh \
  && ~/mambaforge.sh -b -p /opt/conda \
  && rm ~/mambaforge.sh \
+ && /opt/conda/bin/conda update -y conda \
  && /opt/conda/bin/conda install -c conda-forge \
     python=${PYTHON_VERSION} \
     cython \
@@ -184,12 +201,7 @@ RUN curl -L -o ~/mambaforge.sh https://github.com/conda-forge/miniforge/releases
     # Below 2 are included in miniconda base, but not mamba so need to install
     conda-content-trust \
     charset-normalizer \
- && /opt/conda/bin/conda install -c pytorch magma-cuda116 \
-# Upstream conda looks to have moved to 4.13 which is incompatible with mamba 0.22.1 and will fail the conda-forge installs.
-# having "conda update conda" before the "conda -c conda-forge" commands will automatically update conda to 4.13.
-# Moving conda update conda" after the "conda -c conda-forge" commands keep conda at 4.12 but will update other packages using
-# the current conda 4.12
- && /opt/conda/bin/conda update -y conda \
+ && /opt/conda/bin/conda install -c pytorch magma-cuda117 \
    && /opt/conda/bin/conda clean -ya
 
 # Conda installs links for libtinfo.so.6 and libtinfo.so.6.2 both
@@ -198,14 +210,18 @@ RUN curl -L -o ~/mambaforge.sh https://github.com/conda-forge/miniforge/releases
 # once conda fixes the issue: https://github.com/conda/conda/issues/9680
 RUN rm -rf /opt/conda/lib/libtinfo.so.6
 
+# disable SSL Verify for conda and symlink pip for OS use
 RUN /opt/conda/bin/conda config --set ssl_verify False \
  && pip install --upgrade pip --trusted-host pypi.org --trusted-host files.pythonhosted.org \
  && ln -s /opt/conda/bin/pip /usr/local/bin/pip3
 
 WORKDIR /root
 
+# Ensure PyTorch did not get installed from Conda due to magma-cuda117
+RUN pip uninstall -y torch torchvision torchaudio torchdata model-archiver multi-model-server
+
 # Install AWS-PyTorch, and other torch packages
-RUN pip install --no-cache-dir -U \
+RUN pip install --no-cache-dir --extra-index-url https://download.pytorch.org/whl/${CUDA_VERSION} -U \
     "awscli<2" \
     boto3 \
     "cryptography>3.2" \
@@ -216,17 +232,16 @@ RUN pip install --no-cache-dir -U \
     packaging \
     "Pillow>=9.0.0" \
     "pyyaml>=5.4,<5.5" \
- && pip uninstall -y torch torchvision torchaudio torchdata \
- && pip install --no-cache-dir -U ${PT_INFERENCE_URL} ${PT_TORCHVISION_URL} ${PT_TORCHAUDIO_URL} ${PT_TORCHDATA_URL}
+    captum \
+    ${TORCH_URL} \
+    torchaudio==${TORCHAUDIO_VERSION} \
+    torchvision==${TORCHVISION_VERSION} \
+    torchdata==${TORCHDATA_VERSION} \
+    torchserve==${TS_VERSION} \
+    torch-model-archiver==${TS_VERSION}
 
 # add necessary certificate for aws sdk cpp download
 RUN mkdir -p /etc/pki/tls/certs && cp /etc/ssl/certs/ca-certificates.crt /etc/pki/tls/certs/ca-bundle.crt
-
-# TODO: revert torchserve-nightly back to torchserve once a compatible stable version is released
-RUN pip uninstall -y model-archiver multi-model-server \
- && pip install captum \
- && pip install torchserve==${TS_VERSION} \
- && pip install torch-model-archiver==${TS_VERSION}
 
 WORKDIR /
 
