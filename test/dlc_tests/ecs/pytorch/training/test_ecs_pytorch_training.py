@@ -125,7 +125,7 @@ def test_ecs_pytorch_s3_plugin_training_gpu(
     the task to be stopped before doing teardown operations of instance and cluster.
     """
     _, image_framework_version = get_framework_and_version_from_tag(pytorch_training)
-    if image_framework_version >= Version("1.13"):
+    if Version(image_framework_version) >= Version("1.13"):
         pytest.skip(f"S3 plugin is supported on PyTorch version >=1.13")
     if Version(image_framework_version) < Version("1.8"):
         pytest.skip("S3 plugin is supported on PyTorch version <1.8")
