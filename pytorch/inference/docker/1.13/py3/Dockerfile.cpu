@@ -5,8 +5,8 @@ ARG OPEN_MPI_VERSION=4.1.1
 
 # PyTorch Binaries
 ARG TORCH_URL=https://aws-pytorch-unified-cicd-binaries.s3.us-west-2.amazonaws.com/r1.13.0_ec2/20221105-013447/41160d617a294a8963a868ec942a2569a2fbf3ea/torch-1.13.0%2Bcpu-cp39-cp39-linux_x86_64.whl
-ARG TORCHVISION_VERSION=0.14.0
-ARG TORCHAUDIO_VERSION=0.13.0
+ARG TORCHVISION_VERSION=0.14.0+cpu
+ARG TORCHAUDIO_VERSION=0.13.0+cpu
 ARG TORCHDATA_VERSION=0.5.0
 ARG TORCHSERVE_VERSION=0.6.0
 
@@ -139,7 +139,7 @@ RUN pip install --upgrade pip --trusted-host pypi.org --trusted-host files.pytho
 RUN pip uninstall -y torch torchvision torchaudio torchdata model-archiver multi-model-server
 
 # Install AWS-PyTorch, and other torch packages
-RUN pip install --no-cache-dir -U \
+RUN pip install --no-cache-dir --extra-index-url https://download.pytorch.org/whl/cpu -U \
     "awscli<2" \
     boto3 \
     "cryptography>3.2" \
