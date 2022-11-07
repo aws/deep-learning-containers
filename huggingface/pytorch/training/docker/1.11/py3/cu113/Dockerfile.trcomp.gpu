@@ -52,7 +52,7 @@ ARG HF_TRANSFORMERS_URL=${HF_BINARY_PATH}/transformers-${TRANSFORMERS_VERSION}-p
 
 
 RUN pip install --no-cache-dir -U \
-    sagemaker \
+    sagemaker
 
 
 # install Hugging Face libraries and its dependencies
