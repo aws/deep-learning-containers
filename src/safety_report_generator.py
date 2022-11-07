@@ -51,9 +51,10 @@ class SafetyReportGenerator:
             vulnerability_id = vulnerability["vulnerability_id"]
             spec = vulnerability["vulnerable_spec"]
             installed = vulnerability["analyzed_version"]
+            advisory = vulnerability["advisory"]
             vulnerability_details = {
                 "vulnerability_id": vulnerability_id,
-                "advisory": vulnerability_id,
+                "advisory": advisory,
                 "spec": spec,
                 "reason_to_ignore": "N/A",
             }
