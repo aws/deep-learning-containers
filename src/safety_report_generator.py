@@ -46,8 +46,12 @@ class SafetyReportGenerator:
         
         :param scanned_vulnerabilities: list[list], consists of a list of Vulnerabilities. Each vulnerability is a list itself.
         """
-        for vulnerability in scanned_vulnerabilities:
-            package, spec, installed, advisory, vulnerability_id = vulnerability[:5]
+        for vulnerability in scanned_vulnerabilities["vulnerabilities"]:
+            package = vulnerability["package_name"]
+            vulnerability_id = vulnerability["vulnerability_id"]
+            spec = vulnerability["vulnerable_spec"]
+            installed = vulnerability["analyzed_version"]
+            advisory = vulnerability["advisory"]
             vulnerability_details = {
                 "vulnerability_id": vulnerability_id,
                 "advisory": advisory,
@@ -77,11 +81,12 @@ class SafetyReportGenerator:
         """
         Extracts package set of a container.
 
-        :return: list[dict], each dict is structured like {'key': package_name, 'version':package_version}
+        :return: list[dict], each dict is structured like {'name': package_name, 'version':package_version}
         """
+        
         python_cmd_to_extract_package_set = """ python -c "import pkg_resources; \
                 import json; \
-                print(json.dumps([{'key':d.key, 'version':d.version} for d in pkg_resources.working_set]))" """
+                print(json.dumps([{'name':d.key, 'version':d.version} for d in pkg_resources.working_set]))" """
 
         run_output = self.ctx.run(f"{self.docker_exec_cmd} {python_cmd_to_extract_package_set}", hide=True, warn=True)
         if run_output.exited != 0:
@@ -94,12 +99,12 @@ class SafetyReportGenerator:
         Takes the list of all the packages existing in a container and inserts safe packages into the
         vulnerability_dict.
         
-        :param packages: list[dict], each dict looks like {"key":package_name, "version":package_version}
+        :param packages: list[dict], each dict looks like {"name":package_name, "version":package_version}
         """
         for pkg in packages:
-            if pkg["key"] not in self.vulnerability_dict:
-                self.vulnerability_dict[pkg["key"]] = {
-                    "package": pkg["key"],
+            if pkg["name"] not in self.vulnerability_dict:
+                self.vulnerability_dict[pkg["name"]] = {
+                    "package": pkg["name"],
                     "scan_status": "SUCCEEDED",
                     "installed": pkg["version"],
                     "vulnerabilities": [
@@ -128,7 +133,7 @@ class SafetyReportGenerator:
 
         :return: string, A JSON formatted string containing vulnerabilities found in the container
         """
-        safety_check_command = f"{self.docker_exec_cmd} safety check --json"
+        safety_check_command = f"{self.docker_exec_cmd} safety check --output json"
         run_out = self.ctx.run(safety_check_command, warn=True, hide=True)
         if run_out.return_code != 0:
             print("safety check command returned non-zero error code. This indicates that vulnerabilities might exist.")
