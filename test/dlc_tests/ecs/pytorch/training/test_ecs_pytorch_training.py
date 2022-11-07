@@ -101,7 +101,7 @@ def test_ecs_pytorch_s3_plugin_training_cpu(
     """
     _, framework_version = get_framework_and_version_from_tag(pytorch_training)
     if Version(framework_version) < Version("1.8") or Version(framework_version) >= Version("1.13"):
-        pytest.skip("S3 plugin sanity is supported on PyTorch version < 1.8 or >= 1.13")
+        pytest.skip("S3 plugin is not supported on PyTorch version < 1.8 or >= 1.13")
     instance_id, cluster_arn = ecs_container_instance
 
     ecs_utils.ecs_training_test_executor(ecs_cluster_name, cluster_arn, training_cmd, pytorch_training, instance_id)

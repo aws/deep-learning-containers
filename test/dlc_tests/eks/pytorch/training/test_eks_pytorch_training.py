@@ -113,7 +113,7 @@ def test_eks_pt_s3_plugin_single_node_training(pytorch_training, pt17_and_above_
     """
     _, framework_version = get_framework_and_version_from_tag(pytorch_training)
     if Version(framework_version) < Version("1.8") or Version(framework_version) >= Version("1.13"):
-        pytest.skip("S3 plugin sanity is supported on PyTorch version < 1.8 or >= 1.13")
+        pytest.skip("S3 plugin is not supported on PyTorch version < 1.8 or >= 1.13")
 
     training_result = False
 
