@@ -442,7 +442,6 @@
             "py2": {
             },
             "py3": {
-                "51499":"the requested wheel is YANKED in pypi https://pypi.org/project/wheel/#history"
             }
         },
         "inference-neuron": {
