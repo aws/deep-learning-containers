@@ -123,7 +123,8 @@ RUN pip install -U numpy==1.22.2
 # Fixing identified CVEs
 RUN pip install -U \
     "protobuf<3.20.0" \
-    "importlib-metadata<5.0,>=1.4.0"
+    "importlib-metadata<5.0,>=1.4.0" \
+    "wheel>=0.38.0"
 
 # Fix library links
 RUN ln -s ${CONDA_PREFIX}/lib/libmkl_intel_lp64.so ${CONDA_PREFIX}/lib/libmkl_intel_lp64.so.1 \
