@@ -391,7 +391,6 @@ class TestMLWorkFlow:
         raise NotImplementedError()
 
 
-    @pytest.mark.xfail(reason="TF 2.9 for inference has not been released yet")
     @pytest.mark.model('toy')
     @pytest.mark.integration("serving")
     def test_serving(self, sagemaker_session, ecr_image, framework_version, instance_type, instance_count, tmpdir, capsys, mnist_dataset):
@@ -405,17 +404,18 @@ class TestMLWorkFlow:
                                framework_version=framework_version,
                                hyperparameters={
                                     TrainingCompilerConfig.HP_ENABLE_COMPILER : True,
+                                    'save-as-tf': True,
                                },
                                )
         estimator.fit(mnist_dataset, job_name=unique_name_from_base('test-TF-trcomp-serving'))
         _assert_model_exported_to_s3(estimator)
         captured = capsys.readouterr()
         _assert_training_compiler_invoked(captured)
-        predictor = estimator.deploy(initial_instance_count=1, instance_type=instance_type)
+        predictor = estimator.deploy(initial_instance_count=1, instance_type=instance_type,
+            image_uri=f'763104351884.dkr.ecr.{estimator.sagemaker_session.boto_region_name}.amazonaws.com/tensorflow-inference:2.10.0-gpu-py39-cu112-ubuntu20.04-sagemaker')
         predictor.delete_predictor()
 
 
-    @pytest.mark.xfail(reason="SM Neo does not currently support TF > 2.4")
     @pytest.mark.model('toy')
     @pytest.mark.integration("neo")
     def test_inference_compiler_neo(self, sagemaker_session, ecr_image, framework_version, instance_type, instance_count, tmpdir, capsys, mnist_dataset):
@@ -429,6 +429,7 @@ class TestMLWorkFlow:
                                framework_version=framework_version,
                                hyperparameters={
                                     TrainingCompilerConfig.HP_ENABLE_COMPILER : True,
+                                    'save-as-tf': True,
                                },
                                )
         estimator.fit(mnist_dataset, job_name=unique_name_from_base('test-TF-trcomp-serving'))
@@ -439,6 +440,6 @@ class TestMLWorkFlow:
         estimator.compile_model(target_instance_family='ml_p3',
                                 input_shape={'data':[1, 28, 28]},
                                 output_path=s3_prefix,
-                                framework='keras',
-                                framework_version='2.6.0',
+                                framework='tensorflow',
+                                framework_version='2.9',
                                 )
