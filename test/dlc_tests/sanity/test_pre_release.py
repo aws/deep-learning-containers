@@ -407,9 +407,6 @@ def _run_dependency_check_test(image, ec2_connection):
         "CVE-2016-6303",
         "CVE-2016-2182",
         "CVE-2022-2068",
-        # Latest installed openssl on ubuntu 20.04 is 1.1.1f-1ubuntu2.16 which is higher than these CVEs. False Positive
-        "CVE-2022-1292",
-        "CVE-2021-3711",
     }
 
     processor = get_processor_from_image_uri(image)
@@ -436,7 +433,8 @@ def _run_dependency_check_test(image, ec2_connection):
             "1.8": ["cpu", "gpu"], 
             "1.10": ["cpu", "hpu", "neuron"],
             "1.11": ["cpu", "gpu", "hpu", "neuron"],
-            "1.12": ["cpu", "gpu", "hpu"]
+            "1.12": ["cpu", "gpu", "hpu"],
+            "1.13": ["cpu", "gpu", "hpu"]
         },
         "huggingface_pytorch": {"1.8": ["cpu", "gpu"], "1.9": ["cpu", "gpu"]},
         "huggingface_tensorflow": {"2.4": ["cpu", "gpu"], "2.5": ["cpu", "gpu"], "2.6": ["cpu", "gpu"]},
@@ -456,6 +454,7 @@ def _run_dependency_check_test(image, ec2_connection):
             "1.10": ["gpu", "cpu", "hpu", "neuron"],
             "1.11": ["gpu", "cpu", "hpu", "neuron"],
             "1.12": ["gpu", "cpu", "hpu"],
+            "1.13": ["cpu", "gpu", "hpu"]
         },
         "tensorflow": {
             "1.15": ["neuron"],
