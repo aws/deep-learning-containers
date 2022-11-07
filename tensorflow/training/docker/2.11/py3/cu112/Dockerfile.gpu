@@ -15,7 +15,7 @@ LABEL maintainer="Amazon AI"
 LABEL dlc_major_version="1"
 
 # TensorFlow major.minor version
-ENV TF_VERSION=2.11.0rc2
+ENV TF_VERSION=2.11.0
 
 # prevent stopping by user interaction
 ENV DEBIAN_FRONTEND noninteractive
