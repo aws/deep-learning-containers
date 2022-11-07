@@ -400,7 +400,7 @@ RUN wget https://sourceforge.net/projects/boost/files/boost/1.73.0/boost_1_73_0.
 
 # add smdataparallel
 # smdataparallel
-ARG SMDATAPARALLEL_BINARY=https://s3.console.aws.amazon.com/s3/object/smdataparallel?region=us-east-1&prefix=binary/tensorflow/2.11.0/cu112/smdistributed_dataparallel-1.4.1-cp39-cp39-linux_x86_64.whl
+ARG SMDATAPARALLEL_BINARY=https://smdataparallel.s3.amazonaws.com/binary/tensorflow/2.11.0/cu112/smdistributed_dataparallel-1.4.1-cp39-cp39-linux_x86_64.whl
 
 # Install SMD DP binary
 RUN SMDATAPARALLEL_TF=1 ${PYTHON} -m pip install --no-cache-dir ${SMDATAPARALLEL_BINARY}
