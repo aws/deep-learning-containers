@@ -11,6 +11,7 @@ from botocore.exceptions import ClientError
 import docker
 import pytest
 
+from packaging.version import Version
 from botocore.config import Config
 from fabric import Connection
 
@@ -626,6 +627,18 @@ def pt15_and_above_only():
 def pt14_and_above_only():
     pass
 
+@pytest.fixture(scope="session")
+def outside_versions_skip():
+    def _outside_versions_skip(img_uri, start_ver, end_ver):
+        """
+        skip test if the image framework versios is not within the (start_ver, end_ver) range
+        """
+        _, image_framework_version = get_framework_and_version_from_tag(img_uri)
+        # LOGGER.error(str(img_uri) + "  " + str(image_framework_version) + "   " + start_ver + "  "+end_ver)
+        # LOGGER.error(Version(start_ver) > Version(image_framework_version) or Version(end_ver) < Version(image_framework_version))
+        if Version(start_ver) > Version(image_framework_version) or Version(end_ver) < Version(image_framework_version):
+            pytest.skip(f"S3 plugin is only supported in PyTorch versions >{start_ver},<{end_ver}")
+    return _outside_versions_skip
 
 def framework_version_within_limit(metafunc_obj, image):
     """

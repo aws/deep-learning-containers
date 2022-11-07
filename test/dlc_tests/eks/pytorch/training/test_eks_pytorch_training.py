@@ -104,16 +104,14 @@ def test_eks_pytorch_single_node_training(pytorch_training):
 )
 @pytest.mark.model("resnet18")
 @pytest.mark.integration("pt_s3_plugin")
-def test_eks_pt_s3_plugin_single_node_training(pytorch_training, pt17_and_above_only):
+def test_eks_pt_s3_plugin_single_node_training(pytorch_training, outside_versions_skip):
     """
     Function to create a pod using kubectl and given container image, and run MXNet training
     Args:
         :param setup_utils: environment in which EKS tools are setup
         :param pytorch_training: the ECR URI
     """
-    _, framework_version = get_framework_and_version_from_tag(pytorch_training)
-    if Version(framework_version) < Version("1.8") or Version(framework_version) >= Version("1.13"):
-        pytest.skip("S3 plugin is not supported on PyTorch version < 1.8 or >= 1.13")
+    outside_versions_skip(pytorch_training, "1.8", "1.12.1")
 
     training_result = False
 

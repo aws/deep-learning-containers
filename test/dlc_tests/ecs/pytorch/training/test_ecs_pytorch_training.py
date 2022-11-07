@@ -89,7 +89,7 @@ def test_ecs_pytorch_training_mnist_gpu(
 @pytest.mark.parametrize("ecs_instance_type", ["c5.9xlarge"], indirect=True)
 @pytest.mark.parametrize("ecs_ami", [ECS_AML2_CPU_USWEST2], indirect=True)
 def test_ecs_pytorch_s3_plugin_training_cpu(
-    cpu_only, ecs_container_instance, pytorch_training, training_cmd, ecs_cluster_name
+    ecs_container_instance, pytorch_training, training_cmd, ecs_cluster_name, outside_versions_skip
 ):
     """
     CPU resnet18 test for PyTorch Training using S3 plugin
@@ -99,9 +99,7 @@ def test_ecs_pytorch_s3_plugin_training_cpu(
     Given above parameters, registers a task with family named after this test, runs the task, and waits for
     the task to be stopped before doing teardown operations of instance and cluster.
     """
-    _, framework_version = get_framework_and_version_from_tag(pytorch_training)
-    if Version(framework_version) < Version("1.8") or Version(framework_version) >= Version("1.13"):
-        pytest.skip("S3 plugin is not supported on PyTorch version < 1.8 or >= 1.13")
+    outside_versions_skip(pytorch_training, "1.8", "1.12.1")
     instance_id, cluster_arn = ecs_container_instance
 
     ecs_utils.ecs_training_test_executor(ecs_cluster_name, cluster_arn, training_cmd, pytorch_training, instance_id)
@@ -114,7 +112,7 @@ def test_ecs_pytorch_s3_plugin_training_cpu(
 @pytest.mark.parametrize("ecs_instance_type", ["p3.8xlarge"], indirect=True)
 @pytest.mark.parametrize("ecs_ami", [ECS_AML2_GPU_USWEST2], indirect=True)
 def test_ecs_pytorch_s3_plugin_training_gpu(
-    gpu_only, ecs_container_instance, pytorch_training, training_cmd, ecs_cluster_name
+    ecs_container_instance, pytorch_training, training_cmd, ecs_cluster_name, outside_versions_skip
 ):
     """
     GPU resnet18 test for PyTorch Training using S3 plugin
@@ -124,11 +122,7 @@ def test_ecs_pytorch_s3_plugin_training_gpu(
     Given above parameters, registers a task with family named after this test, runs the task, and waits for
     the task to be stopped before doing teardown operations of instance and cluster.
     """
-    _, image_framework_version = get_framework_and_version_from_tag(pytorch_training)
-    if Version(image_framework_version) >= Version("1.13"):
-        pytest.skip(f"S3 plugin is supported on PyTorch version >=1.13")
-    if Version(image_framework_version) < Version("1.8"):
-        pytest.skip("S3 plugin is supported on PyTorch version <1.8")
+    outside_versions_skip(pytorch_training, "1.8", "1.12.1")
     instance_id, cluster_arn = ecs_container_instance
 
     num_gpus = ec2_utils.get_instance_num_gpus(instance_id)
