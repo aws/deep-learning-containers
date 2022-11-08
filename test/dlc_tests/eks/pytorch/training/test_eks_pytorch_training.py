@@ -111,7 +111,7 @@ def test_eks_pt_s3_plugin_single_node_training(pytorch_training, outside_version
         :param setup_utils: environment in which EKS tools are setup
         :param pytorch_training: the ECR URI
     """
-    outside_versions_skip(pytorch_training, "1.8", "1.12.1")
+    outside_versions_skip(pytorch_training, "1.8.0", "1.12.1")
 
     training_result = False
 

@@ -20,7 +20,7 @@ def test_pt_s3_sanity(pytorch_training, outside_versions_skip):
     Check that the internally built PT S3 binary is properly installed.
     :param pytorch_training: framework fixture for pytorch training
     """
-    outside_versions_skip(pytorch_training, "1.8", "1.12.1")
+    outside_versions_skip(pytorch_training, "1.8.0", "1.12.1")
     ctx = Context()
     container_name = get_container_name("pt-s3", pytorch_training)
     start_container(container_name, pytorch_training, ctx)
