@@ -136,7 +136,6 @@ images:
   #   <<: *INFERENCE_REPOSITORY
   #   build: &PYTORCH_CPU_INFERENCE_PY3 false
   #   image_size_baseline: 4899
-  #   #base_image_name: BuildEC2CPUPTInferencePy3DockerImage
   #   device_type: &DEVICE_TYPE cpu
   #   python_version: &DOCKER_PYTHON_VERSION py3
   #   tag_python_version: &TAG_PYTHON_VERSION py39
@@ -150,7 +149,6 @@ images:
   #   <<: *INFERENCE_REPOSITORY
   #   build: &PYTORCH_GPU_INFERENCE_PY3 false
   #   image_size_baseline: 14000
-  #   #base_image_name: BuildEC2GPUPTInferencePy3DockerImage
   #   device_type: &DEVICE_TYPE gpu
   #   python_version: &DOCKER_PYTHON_VERSION py3
   #   tag_python_version: &TAG_PYTHON_VERSION py39

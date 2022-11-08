@@ -29,7 +29,6 @@ ARG TORCHSERVE_VERSION=0.6.0
 #                  |_|
 ########################################################
 
-# FROM nvidia/cuda:11.6.2-base-ubuntu20.04 AS base_image
 FROM nvidia/cuda:11.7.1-base-ubuntu20.04 AS base_image
 
 ENV DEBIAN_FRONTEND=noninteractive \
