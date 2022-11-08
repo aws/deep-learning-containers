@@ -8,7 +8,8 @@ ARG CUBLAS_VERSION=11.10.3.66
 ARG CUDNN_VERSION=8.5.0.96
 
 # PyTorch Binaries and versions.
-ARG TORCH_URL=https://aws-pytorch-unified-cicd-binaries.s3.us-west-2.amazonaws.com/r1.13.0_ec2/20221105-023216/41160d617a294a8963a868ec942a2569a2fbf3ea/torch-1.13.0%2Bcu117-cp39-cp39-linux_x86_64.whl
+# ARG TORCH_URL=https://aws-pytorch-unified-cicd-binaries.s3.us-west-2.amazonaws.com/r1.13.0_ec2/20221105-023216/41160d617a294a8963a868ec942a2569a2fbf3ea/torch-1.13.0%2Bcu117-cp39-cp39-linux_x86_64.whl
+ARG TORCH_URL=https://pytorch-graviton.s3.us-west-2.amazonaws.com/torch-1.12.0a0%2Bgitaa9293f-cp310-cp310-linux_aarch64.whl
 ARG TORCHVISION_VERSION=0.14.0+cu117
 ARG TORCHAUDIO_VERSION=0.13.0+cu117
 ARG TORCHDATA_VERSION=0.5.0
