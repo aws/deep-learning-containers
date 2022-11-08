@@ -57,6 +57,8 @@ IGNORE_SAFETY_IDS = {
                 "48551",
                 # for cryptography until we have 39.0.0 release
                 "51159",
+                # Keras 2.10.0 is latest, rc in place for 2.11.0+ 
+                "51516"
             ],
         },
         "inference": {
@@ -434,6 +436,18 @@ IGNORE_SAFETY_IDS = {
                 "42772",
                 "42814",
                 "42815",
+            ],
+        },
+        "training-neuron":{
+            "_comment":"py2 is deprecated",
+            "py2": [
+            ],
+            "py3": [
+                # not possible for neuron-cc
+                "43453",
+                "44715",
+                "44717",
+                "44716",
                 # for releasing PT1.12 safety check tools might report a vulnerability for the package commonmarker, 
                 # which is a dependency of deepspeed. 
                 # This package is only used to build the documentation pages of deepspeed 
@@ -444,6 +458,12 @@ IGNORE_SAFETY_IDS = {
                 "48298",
                 # for cryptography until e have 39.0.0 release
                 "51159",
+                # for Safety. it is test package and not part of image
+                "51358",
+                # Wheel is needed by tensorboard but v0.38 is not there yet
+                "51499",
+                # Ignored- please check https://github.com/pytest-dev/py/issues/287
+                "51457",
             ],
         },
         "inference": {
@@ -455,6 +475,7 @@ IGNORE_SAFETY_IDS = {
                 "44717",
                 # for cryptography until e have 39.0.0 release
                 "51159",
+                "51358",
             ]
         },
         "inference-eia": {"py3": []},
@@ -660,12 +681,14 @@ def _get_safety_ignore_list(image_uri):
         framework = "tensorflow"
 
     job_type = (
-        "training"
+        "training-neuron"
+        if "training-neuron" in image_uri
+        else "training"
         if "training" in image_uri
         else "inference-eia"
         if "eia" in image_uri
         else "inference-neuron"
-        if "neuron" in image_uri
+        if "inference-neuron" in image_uri
         else "inference"
     )
     python_version = "py2" if "py2" in image_uri else "py3"
@@ -681,6 +704,7 @@ def _get_latest_package_version(package):
     :param package: str Name of the package whose latest version must be retrieved
     :return: tuple(command_success: bool, latest_version_value: str)
     """
+    # safe
     pypi_package_info = requests.get(f"https://pypi.org/pypi/{package}/json")
     data = json.loads(pypi_package_info.text)
     versions = data["releases"].keys()
@@ -717,6 +741,7 @@ def test_safety(image):
     container_name = f"{repo_name}-{image_tag}-safety"
     docker_exec_cmd = f"docker exec -i {container_name}"
     test_file_path = os.path.join(CONTAINER_TESTS_PREFIX, "testSafety")
+
     # Add null entrypoint to ensure command exits immediately
     run(
         f"docker run -id "
@@ -727,14 +752,17 @@ def test_safety(image):
         hide=True,
     )
     try:
-        run(f"{docker_exec_cmd} pip install 'safety<2.0.0' yolk3k ", hide=True)
+        run(f"{docker_exec_cmd} pip install 'safety>=2.2.0' yolk3k ", hide=True)
         json_str_safety_result = safety_check.run_safety_check_on_container(docker_exec_cmd)
-        safety_result = json.loads(json_str_safety_result)
+        safety_result = json.loads(json_str_safety_result)["vulnerabilities"]
         for vulnerability in safety_result:
-            package, affected_versions, curr_version, _, vulnerability_id = vulnerability[:5]
+            package = vulnerability["package_name"]
+            affected_versions = vulnerability["vulnerable_spec"]
+            vulnerability_id = vulnerability["vulnerability_id"]
+
             # Get the latest version of the package with vulnerability
             latest_version = _get_latest_package_version(package)
-            # If the latest version of the package is also affected, ignore this vulnerability
+            # If the latest version of the package is also affected, igvnore this vulnerability
             if Version(latest_version) in SpecifierSet(affected_versions):
                 # Version(x) gives an object that can be easily compared with another version, or with a SpecifierSet.
                 # Comparing two versions as a string has some edge cases which require us to write more code.

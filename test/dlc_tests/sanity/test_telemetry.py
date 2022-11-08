@@ -368,7 +368,7 @@ def invoke_telemetry_call(image_uri, container_name, docker_cmd, framework, job_
             ec2_connection.run(f"{docker_cmd} run {env_vars} --name {container_name} -id {image_uri} {inference_command}")
             time.sleep(5)
     else:
-        framework_to_import = framework.replace("huggingface_", "")
+        framework_to_import = framework.replace("huggingface_", "").replace("_trcomp", "")
         framework_to_import = "torch" if framework_to_import == "pytorch" else framework_to_import
         ec2_connection.run(f"{docker_cmd} run --name {container_name} -id {image_uri} bash")
         if test_mode:

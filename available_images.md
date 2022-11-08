@@ -112,6 +112,25 @@ EC2 Framework Containers (Tested on EC2, ECS, and EKS only)
 | MXNet 1.9.0      |inference	|No			|GPU 		| 3.8 (py38)			| 763104351884.dkr.ecr.us-east-1.amazonaws.com/mxnet-inference:1.9.0-gpu-py38-cu112-ubuntu20.04-ec2	      |
 
 
+SageMaker Framework Containers (SM support only)
+============================
+
+| Framework         | Job Type  | Horovod Options | CPU/GPU   | Python Version Options | Example URL																						           |
+|-------------------|-----------|-----------------|-----------|------------------------|---------------------------------------------------------------------------------------------------------------|
+| PyTorch 1.12.1    | training  | No			  | CPU 	  | 3.8 (py38)			   | 763104351884.dkr.ecr.us-east-1.amazonaws.com/pytorch-training:1.12.1-cpu-py38-ubuntu20.04-sagemaker           |
+| PyTorch 1.12.1    | training  | Yes			  | GPU 	  | 3.8 (py38)			   | 763104351884.dkr.ecr.us-east-1.amazonaws.com/pytorch-training:1.12.1-gpu-py38-cu113-ubuntu20.04-sagemaker     |
+| PyTorch 1.12.1    | inference | No			  | CPU 	  | 3.8 (py38)			   | 763104351884.dkr.ecr.us-east-1.amazonaws.com/pytorch-inference:1.12.1-cpu-py38-ubuntu20.04-sagemaker          |
+| PyTorch 1.12.1    | inference | No			  | GPU 	  | 3.8 (py38)			   | 763104351884.dkr.ecr.us-east-1.amazonaws.com/pytorch-inference:1.12.1-gpu-py38-cu113-ubuntu20.04-sagemaker    |
+| MXNet 1.9.0       | training  | Yes			  | CPU 	  | 3.8 (py38)			   | 763104351884.dkr.ecr.us-east-1.amazonaws.com/mxnet-training:1.9.0-cpu-py38-ubuntu20.04-sagemaker		       |
+| MXNet 1.9.0       | training  | Yes			  | GPU 	  | 3.8 (py38)			   | 763104351884.dkr.ecr.us-east-1.amazonaws.com/mxnet-training:1.9.0-gpu-py38-cu112-ubuntu20.04-sagemaker	       |
+| MXNet 1.9.0       | inference | No			  | CPU 	  | 3.8 (py38)			   | 763104351884.dkr.ecr.us-east-1.amazonaws.com/mxnet-inference:1.9.0-cpu-py38-ubuntu20.04-sagemaker             |
+| MXNet 1.9.0       | inference | No			  | GPU 	  | 3.8 (py38)			   | 763104351884.dkr.ecr.us-east-1.amazonaws.com/mxnet-inference:1.9.0-gpu-py38-cu112-ubuntu20.04-sagemaker	   |
+| TensorFlow 2.10.0 | training  | Yes			  | CPU 	  | 3.9 (py39)			   | 763104351884.dkr.ecr.us-east-1.amazonaws.com/tensorflow-training:2.10.0-cpu-py39-ubuntu20.04-sagemaker		   |
+| TensorFlow 2.10.0 | training  | Yes			  | GPU 	  | 3.9 (py39)			   | 763104351884.dkr.ecr.us-east-1.amazonaws.com/tensorflow-training:2.10.0-gpu-py39-cu112-ubuntu20.04-sagemaker  |
+| TensorFlow 2.10.0 | inference | Yes			  | CPU 	  | 3.9 (py39)			   | 763104351884.dkr.ecr.us-east-1.amazonaws.com/tensorflow-inference:2.10.0-cpu-py39-ubuntu20.04-sagemaker	   |
+| TensorFlow 2.10.0 | inference | Yes			  | GPU 	  | 3.9 (py39)			   | 763104351884.dkr.ecr.us-east-1.amazonaws.com/tensorflow-inference:2.10.0-gpu-py39-cu112-ubuntu20.04-sagemaker |
+
+
 EC2 Framework Graviton Containers (EC2, ECS, and EKS support only)
 ============================
 
@@ -122,24 +141,14 @@ EC2 Framework Graviton Containers (EC2, ECS, and EKS support only)
 |TensorFlow 2.9.1   |inference	|No			|CPU 		| 3.8 (py38)			|763104351884.dkr.ecr.us-east-1.amazonaws.com/tensorflow-inference-graviton:2.9.1-cpu-py38-ubuntu20.04-ec2		|
 |TensorFlow 2.7.0   |inference	|No			|CPU 		| 3.8 (py38)			|763104351884.dkr.ecr.us-east-1.amazonaws.com/tensorflow-inference-graviton:2.7.0-cpu-py38-ubuntu20.04-ec2		|
 
-SageMaker Framework Containers (SM support only)
+
+SageMaker Framework Graviton Containers (SM support only)
 ============================
 
-| Framework        |Job Type	| Horovod Options |CPU/GPU 	|Python Version Options	| Example URL																						                                                                             |
-|------------------|-----------|-----------------|-----------|-----------------------|---------------------------------------------------------------------------------------------------------------|
-| PyTorch 1.12.1   |training	| No			           |CPU 		| 3.8 (py38)			|763104351884.dkr.ecr.us-east-1.amazonaws.com/pytorch-training:1.12.1-cpu-py38-ubuntu20.04-sagemaker            |
-| PyTorch 1.12.1   |training	| Yes			           |GPU 		| 3.8 (py38)			|763104351884.dkr.ecr.us-east-1.amazonaws.com/pytorch-training:1.12.1-gpu-py38-cu113-ubuntu20.04-sagemaker      |
-| PyTorch 1.12.1   |inference	| No			           |CPU 		| 3.8 (py38)			|763104351884.dkr.ecr.us-east-1.amazonaws.com/pytorch-inference:1.12.1-cpu-py38-ubuntu20.04-sagemaker           |
-| PyTorch 1.12.1   |inference	| No			           |GPU 		| 3.8 (py38)			|763104351884.dkr.ecr.us-east-1.amazonaws.com/pytorch-inference:1.12.1-gpu-py38-cu113-ubuntu20.04-sagemaker     |
-| MXNet 1.9.0      |training	| Yes			          |CPU 		| 3.8 (py38)			| 763104351884.dkr.ecr.us-east-1.amazonaws.com/mxnet-training:1.9.0-cpu-py38-ubuntu20.04-sagemaker		            |
-| MXNet 1.9.0      |training	| Yes			          |GPU 		| 3.8 (py38)			| 763104351884.dkr.ecr.us-east-1.amazonaws.com/mxnet-training:1.9.0-gpu-py38-cu112-ubuntu20.04-sagemaker	       |
-| MXNet 1.9.0      |inference	| No			           |CPU 		| 3.8 (py38)			| 763104351884.dkr.ecr.us-east-1.amazonaws.com/mxnet-inference:1.9.0-cpu-py38-ubuntu20.04-sagemaker             |
-| MXNet 1.9.0      |inference	| No			           |GPU 		| 3.8 (py38)			| 763104351884.dkr.ecr.us-east-1.amazonaws.com/mxnet-inference:1.9.0-gpu-py38-cu112-ubuntu20.04-sagemaker	      |
-| TensorFlow 2.10.0 |training	|Yes			|CPU 		| 3.9 (py39)			| 763104351884.dkr.ecr.us-east-1.amazonaws.com/tensorflow-training:2.10.0-cpu-py39-ubuntu20.04-sagemaker		       |
-| TensorFlow 2.10.0 |training	|Yes			|GPU 		| 3.9 (py39)			| 763104351884.dkr.ecr.us-east-1.amazonaws.com/tensorflow-training:2.10.0-gpu-py39-cu112-ubuntu20.04-sagemaker	 |
-| TensorFlow 2.10.0 |inference	|Yes			|CPU 		| 3.9 (py39)			| 763104351884.dkr.ecr.us-east-1.amazonaws.com/tensorflow-inference:2.10.0-cpu-py39-ubuntu20.04-sagemaker		      |
-| TensorFlow 2.10.0 |inference	|Yes			|GPU 		| 3.9 (py39)			| 763104351884.dkr.ecr.us-east-1.amazonaws.com/tensorflow-inference:2.10.0-gpu-py39-cu112-ubuntu20.04-sagemaker	 |
-
+| Framework         | Job Type	| Horovod Options| CPU/GPU | Python Version Options	| Example URL																						              |
+|-------------------|-----------|----------------|---------|------------------------|-----------------------------------------------------------------------------------------------------------------|
+| PyTorch 1.12.1    | inference | No			 | CPU 	   | 3.8 (py38)			    | 763104351884.dkr.ecr.us-east-1.amazonaws.com/pytorch-inference-graviton:1.12.1-cpu-py38-ubuntu20.04-sagemaker   |
+| TensorFlow 2.9.1  | inference | no			 | CPU 	   | 3.9 (py39)			    | 763104351884.dkr.ecr.us-east-1.amazonaws.com/tensorflow-inference-graviton:2.9.1-cpu-py38-ubuntu20.04-sagemaker |
 
 
 NVIDIA Triton Inference Containers (SM support only)
@@ -153,6 +162,13 @@ NVIDIA Triton Inference Containers (SM support only)
 |NVIDIA Triton Inference Server 22.05    |inference	|No			|CPU 		| 3.8 (py38)			|007439368137.dkr.ecr.us-east-2.amazonaws.com/sagemaker-tritonserver:22.05-py3-cpu		|
 |NVIDIA Triton Inference Server 21.08    |inference	|No			|GPU 		| 3.8 (py38)			|007439368137.dkr.ecr.us-east-2.amazonaws.com/sagemaker-tritonserver:21.08-py3		|
 |NVIDIA Triton Inference Server 21.08    |inference	|No			|CPU 		| 3.8 (py38)			|007439368137.dkr.ecr.us-east-2.amazonaws.com/sagemaker-tritonserver:21.08-py3-cpu		|
+
+
+Large Model Inference Containers
+===============================
+| Framework                                     |Job Type	|CPU/GPU 	|Python Version Options	|Example URL																						|
+|-----------------------------------------------|-----------|-----------|-----------------------|---------------------------------------------------------------------------------------------------|
+|DJLServing 0.19.0 with DeepSpeed 0.7.3, HuggingFace Transformers 4.22.1, and HuggingFace Accelerate 0.13.2    |inference	|GPU 		| 3.8 (py38)			|763104351884.dkr.ecr.us-west-2.amazonaws.com/djl-inference:0.19.0-deepspeed0.7.3-cu113		|
 
 Habana Training Containers
 ===============================
@@ -222,7 +238,7 @@ Neuron Containers
 
 |Framework      |Neuron Package |Neuron SDK Version |Job Type   |Instances  |Python Version Options |Example URL                                                                                                |
 |---------------|---------------|-------------------|-----------|-----------|-----------------------|-----------------------------------------------------------------------------------------------------------|
-|PyTorch 1.11.0 |torch-neuronx  |Neuron 2.3.0       |training 	|trn1   |3.8 (py38) 	        |763104351884.dkr.ecr.us-west-2.amazonaws.com/pytorch-training-neuron:1.11.0-neuron-py38-sdk2.3.0-ubuntu20.04        |
+|PyTorch 1.11.0 |torch-neuronx  |Neuron 2.4.0       |training 	|trn1   |3.8 (py38) 	        |763104351884.dkr.ecr.us-west-2.amazonaws.com/pytorch-training-neuron:1.11.0-neuron-py38-sdk2.4.0-ubuntu20.04        |
 |PyTorch 1.10.2 |torch-neuron   |Neuron 1.19.0      |inference 	|inf1   |3.7 (py37) 	        |763104351884.dkr.ecr.us-west-2.amazonaws.com/pytorch-inference-neuron:1.10.2-neuron-py37-sdk1.19.0-ubuntu18.04        |
 |MXNet 1.8.0    |mx_neuron      |Neuron 1.18.0      |inference 	|inf1   |3.7 (py37) 	        |763104351884.dkr.ecr.us-west-2.amazonaws.com/mxnet-inference-neuron:1.8.0-neuron-py37-sdk1.18.0-ubuntu18.04          |
 

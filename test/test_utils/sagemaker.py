@@ -22,6 +22,7 @@ from test_utils import (
     get_python_invoker,
     is_pr_context,
     SAGEMAKER_EXECUTION_REGIONS,
+    SAGEMAKER_NEURON_EXECUTION_REGIONS,
     UBUNTU_18_BASE_DLAMI_US_EAST_1,
     UBUNTU_18_BASE_DLAMI_US_WEST_2,
     UL20_CPU_ARM64_US_EAST_1,
@@ -46,7 +47,9 @@ class DLCSageMakerLocalTestFailure(Exception):
 def assign_sagemaker_remote_job_instance_type(image):
     if "graviton" in image:
         return "c6g.2xlarge"
-    elif "neuron" in image:
+    elif "training-neuron" in image:
+        return "ml.trn1.2xlarge"
+    elif "inference-neuron" in image:
         return "ml.inf1.xlarge"
     elif "gpu" in image:
         return "ml.p3.8xlarge"
@@ -199,7 +202,11 @@ def generate_sagemaker_pytest_cmd(image, sagemaker_test_type):
         efa_dedicated = os.getenv("EFA_DEDICATED", "False").lower() == "true"
         efa_flag = '--efa' if efa_dedicated else '-m \"not efa\"'
 
-    region_list = ",".join(SAGEMAKER_EXECUTION_REGIONS)
+    region_list = (
+        ",".join(SAGEMAKER_NEURON_EXECUTION_REGIONS)
+        if "neuron" in image
+        else ",".join(SAGEMAKER_EXECUTION_REGIONS)
+    )
 
     sagemaker_regions_list = f"--sagemaker-regions {region_list}"
 
