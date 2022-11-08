@@ -32,8 +32,8 @@ from test.test_utils import (
     UBUNTU_18_BASE_DLAMI_US_EAST_1,
     UBUNTU_18_BASE_DLAMI_US_WEST_2,
     PT_GPU_PY3_BENCHMARK_IMAGENET_AMI_US_EAST_1,
-    AML2_GPU_DLAMI_US_WEST_2,
-    AML2_GPU_DLAMI_US_EAST_1,
+    AML2_BASE_DLAMI_US_WEST_2,
+    AML2_BASE_DLAMI_US_EAST_1,
     KEYS_TO_DESTROY_FILE,
     are_efa_tests_disabled,
     get_ecr_repo_name,
@@ -290,8 +290,8 @@ def ec2_instance(
         ec2_resource = boto3.resource("ec2", region_name=region, config=Config(retries={"max_attempts": 10}))
         if ec2_instance_ami != PT_GPU_PY3_BENCHMARK_IMAGENET_AMI_US_EAST_1:
             ec2_instance_ami = (
-                AML2_GPU_DLAMI_US_EAST_1
-                if ec2_instance_ami == AML2_GPU_DLAMI_US_WEST_2
+                AML2_BASE_DLAMI_US_EAST_1
+                if ec2_instance_ami == AML2_BASE_DLAMI_US_WEST_2
                 else UBUNTU_18_BASE_DLAMI_US_EAST_1
             )
 
