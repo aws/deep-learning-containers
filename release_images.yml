@@ -52,7 +52,7 @@ release_images:
       python_versions: [ "py39" ]
       os_version: "ubuntu20.04"
       cuda_version: "cu117"
-      example: True
+      example: False
       disable_sm_tag: False  # [Default: False] This option is not used by Example images
       force_release: False
     inference:
@@ -61,5 +61,18 @@ release_images:
       os_version: "ubuntu20.04"
       cuda_version: "cu117"
       example: False
+      disable_sm_tag: False  # [Default: False] This option is not used by Example images
+      force_release: False
+  5:
+    framework: "pytorch"
+    version: "1.13.0"
+    arch_type: "x86"
+    customer_type: "ec2"
+    training:
+      device_types: ["gpu"]
+      python_versions: [ "py39" ]
+      os_version: "ubuntu20.04"
+      cuda_version: "cu117"
+      example: True
       disable_sm_tag: False  # [Default: False] This option is not used by Example images
       force_release: False
