@@ -52,7 +52,7 @@ release_images:
       python_versions: [ "py39" ]
       os_version: "ubuntu20.04"
       cuda_version: "cu117"
-      example: False
+      example: True
       disable_sm_tag: False  # [Default: False] This option is not used by Example images
       force_release: False
     inference:
