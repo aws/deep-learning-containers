@@ -153,8 +153,8 @@ RUN pip install --no-cache-dir --upgrade pip --trusted-host pypi.org --trusted-h
     "numpy>=1.23.4,<1.24" \
     "opencv-python>=4.6.0,<4.7" \
     "packaging>=21.3,<22" \
-    "Pillow==9.3" \
-    "psutil==5.9" \
+    "Pillow>=9.3,<9.4" \
+    "psutil>=5.9.4,<5.10" \
     "pyyaml>=5.4,<5.5" \
     "scipy>=1.9.3,<2"
 
