@@ -82,6 +82,17 @@ def ecs_instance_type(request):
     return request.param
 
 
+@pytest.fixture(scope="session")
+def ecs_num_neurons(request, ecs_instance_type):
+    # Set the num neurons based on instance_type
+    if ecs_instance_type == "trn1.2xlarge":
+        return 1
+    elif ecs_instance_type == "trn1.32xlarge":
+        return 16
+
+    return None
+
+
 @pytest.fixture(scope="function")
 def ecs_container_instance(
     request, ecs_cluster, ec2_client, ecs_client, ecs_instance_type, ecs_ami, region, ei_accelerator_type

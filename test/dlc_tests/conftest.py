@@ -11,6 +11,7 @@ import docker
 import pytest
 import uuid
 
+from packaging.version import Version
 from botocore.config import Config
 from botocore.exceptions import ClientError
 from fabric import Connection
@@ -33,8 +34,8 @@ from test.test_utils import (
     UBUNTU_18_BASE_DLAMI_US_EAST_1,
     UBUNTU_18_BASE_DLAMI_US_WEST_2,
     PT_GPU_PY3_BENCHMARK_IMAGENET_AMI_US_EAST_1,
-    AML2_GPU_DLAMI_US_WEST_2,
-    AML2_GPU_DLAMI_US_EAST_1,
+    AML2_BASE_DLAMI_US_WEST_2,
+    AML2_BASE_DLAMI_US_EAST_1,
     KEYS_TO_DESTROY_FILE,
     are_efa_tests_disabled,
     get_ecr_repo_name,
@@ -60,12 +61,14 @@ FRAMEWORK_FIXTURES = (
     "pytorch_inference",
     "pytorch_inference_eia",
     "pytorch_inference_neuron",
+    "pytorch_training_neuron",
     "pytorch_inference_graviton",
     # TensorFlow
     "tensorflow_training",
     "tensorflow_inference",
     "tensorflow_inference_eia",
     "tensorflow_inference_neuron",
+    "tensorflow_training_neuron",
     "tensorflow_training_habana",
     "tensorflow_inference_graviton",
     # MxNET
@@ -73,6 +76,7 @@ FRAMEWORK_FIXTURES = (
     "mxnet_inference",
     "mxnet_inference_eia",
     "mxnet_inference_neuron",
+    "mxnet_training_neuron",
     "mxnet_inference_graviton",
     # HuggingFace
     "huggingface_tensorflow_training",
@@ -287,8 +291,8 @@ def ec2_instance(
         ec2_resource = boto3.resource("ec2", region_name=region, config=Config(retries={"max_attempts": 10}))
         if ec2_instance_ami != PT_GPU_PY3_BENCHMARK_IMAGENET_AMI_US_EAST_1:
             ec2_instance_ami = (
-                AML2_GPU_DLAMI_US_EAST_1
-                if ec2_instance_ami == AML2_GPU_DLAMI_US_WEST_2
+                AML2_BASE_DLAMI_US_EAST_1
+                if ec2_instance_ami == AML2_BASE_DLAMI_US_WEST_2
                 else UBUNTU_18_BASE_DLAMI_US_EAST_1
             )
 
@@ -350,6 +354,12 @@ def ec2_instance(
         # Using private AMI, the EBS volume size is reduced to 28GB as opposed to 50GB from public AMI. This leads to space issues on test instances
         # TODO: Revert the configuration once DLAMI is public
         params["BlockDeviceMappings"] = [{"DeviceName": volume_name, "Ebs": {"VolumeSize": 90,},}]
+
+    # For TRN1 since we are using a private AMI that has some BERT data/tests, have a bifgger volume size
+    # Once use DLAMI, this can be removed
+    if ec2_instance_type == "trn1.32xlarge" or ec2_instance_type == "trn1.2xlarge":
+        params["BlockDeviceMappings"] = [{"DeviceName": volume_name, "Ebs": {"VolumeSize": 1024,},}]
+
     if ei_accelerator_type:
         params["ElasticInferenceAccelerators"] = [{"Type": ei_accelerator_type, "Count": 1}]
         availability_zones = {
@@ -416,6 +426,7 @@ def is_neuron_image(fixtures):
     :return: bool
     """
     neuron_fixtures = ["tensorflow_inference_neuron", "mxnet_inference_neuron", "pytorch_inference_neuron"]
+    neuron_fixtures += ["tensorflow_training_neuron", "mxnet_training_neuron", "pytorch_training_neuron"]
 
     for fixture in neuron_fixtures:
         if fixture in fixtures:
@@ -439,6 +450,7 @@ def ec2_connection(request, ec2_instance, ec2_key_name, ec2_instance_type, regio
     ip_address = ec2_utils.get_public_ip(instance_id, region=region)
     LOGGER.info(f"Instance ip_address: {ip_address}")
     user = ec2_utils.get_instance_user(instance_id, region=region)
+
     LOGGER.info(f"Connecting to {user}@{ip_address}")
     conn = Connection(
         user=user, host=ip_address, connect_kwargs={"key_filename": [instance_pem_file]}, connect_timeout=18000,
@@ -638,6 +650,16 @@ def pt15_and_above_only():
 def pt14_and_above_only():
     pass
 
+@pytest.fixture(scope="session")
+def outside_versions_skip():
+    def _outside_versions_skip(img_uri, start_ver, end_ver):
+        """
+        skip test if the image framework versios is not within the (start_ver, end_ver) range
+        """
+        _, image_framework_version = get_framework_and_version_from_tag(img_uri)
+        if Version(start_ver) > Version(image_framework_version) or Version(end_ver) < Version(image_framework_version):
+            pytest.skip(f"S3 plugin is only supported in PyTorch versions >{start_ver},<{end_ver}")
+    return _outside_versions_skip
 
 def framework_version_within_limit(metafunc_obj, image):
     """
