@@ -99,7 +99,7 @@ class TestDistributedTraining:
 
     @pytest.mark.model('toy')
     def test_native(self, sagemaker_session, ecr_image, framework_version, instance_type, instance_count, tmpdir, mnist_dataset, capsys):
-        script = os.path.join(resource_path, 'mnist', 'mnist.py')
+        script = os.path.join(resource_path, 'mnist', 'multi_worker_mnist.py')
         estimator = TensorFlow(entry_point=script,
                                role='SageMakerRole',
                                instance_type=instance_type,
@@ -109,6 +109,7 @@ class TestDistributedTraining:
                                framework_version=framework_version,
                                hyperparameters={
                                     TrainingCompilerConfig.HP_ENABLE_COMPILER : True,
+                                    ''
                                },
                                )
         estimator.fit(mnist_dataset, job_name=unique_name_from_base('test-TF-trcomp-DT'))
