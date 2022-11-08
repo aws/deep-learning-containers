@@ -48,7 +48,7 @@ mnist_model = tf.keras.Sequential([
 loss = tf.losses.SparseCategoricalCrossentropy()
 
 # Horovod: adjust learning rate based on number of GPUs.
-opt = tf.optimizers.Adam(0.001 * hvd.size())
+opt = tf.optimizers.legacy.Adam(0.001 * hvd.size())
 
 checkpoint_dir = './checkpoints'
 checkpoint = tf.train.Checkpoint(model=mnist_model, optimizer=opt)
