@@ -19,7 +19,8 @@ LABEL dlc_major_version="1"
 
 ARG PYTHON=python3
 ARG PYTHON_VERSION=3.8.12
-ARG PT_INFERENCE_URL=https://aws-pytorch-unified-cicd-binaries.s3.us-west-2.amazonaws.com/r1.12.0_graviton/torch-1.12.1%2Bcpu-cp38-cp38-linux_aarch64.whl
+# ARG PT_INFERENCE_URL=https://aws-pytorch-unified-cicd-binaries.s3.us-west-2.amazonaws.com/r1.12.0_graviton/torch-1.12.1%2Bcpu-cp38-cp38-linux_aarch64.whl
+ARG TORCH_URL=https://pytorch-graviton.s3.us-west-2.amazonaws.com/torch-1.12.0a0%2Bgitaa9293f-cp310-cp310-linux_aarch64.whl
 ARG PT_XLA_INFERENCE_URL=https://aws-pytorch-unified-cicd-binaries.s3.us-west-2.amazonaws.com/r1.12.0_graviton/torch_xla-1.12.0%2B82fbe57-cp38-cp38-linux_aarch64.whl
 ARG PT_TORCHDATA_URL=https://aws-pytorch-unified-cicd-binaries.s3.us-west-2.amazonaws.com/r1.12.0_graviton/torchdata-0.4.1%2B983e87a-py3-none-any.whl
 ARG PT_TORCHTEXT_URL=https://aws-pytorch-unified-cicd-binaries.s3.us-west-2.amazonaws.com/r1.12.0_graviton/torchtext-0.13.1a0%2B330201f-cp38-cp38-linux_aarch64.whl
@@ -37,7 +38,6 @@ ENV PATH /opt/conda/bin:$PATH
 ENV TEMP=/home/model-server/tmp
 RUN apt-get update \
  && apt-get install -y --no-install-recommends software-properties-common \
- && add-apt-repository ppa:openjdk-r/ppa \
  && apt-get update \
  && apt-get -y upgrade \
  && apt-get install -y --no-install-recommends \
