@@ -193,7 +193,7 @@ RUN ${PIP} install --no-cache-dir -U \
 # Install Horovod with TensorFlow
 RUN HOROVOD_WITH_MPI=1 \
    && HOROVOD_WITH_TENSORFLOW=1 HOROVOD_WITHOUT_MXNET=1 HOROVOD_WITHOUT_PYTORCH=1 \
-   && ${PIP} install --no-cache-dir horovod==0.26.1
+   && ${PIP} install --no-cache-dir horovod==0.25.0
 
 RUN HOME_DIR=/root \
    && curl -o ${HOME_DIR}/oss_compliance.zip https://aws-dlinfra-utilities.s3.amazonaws.com/oss_compliance.zip \
