@@ -9,7 +9,7 @@ arch_type: x86
 repository_info:
   training_repository: &TRAINING_REPOSITORY
     image_type: &TRAINING_IMAGE_TYPE training
-    root: !join [ *FRAMEWORK, "/", *TRAINING_IMAGE_TYPE ]
+    root: !join [ *BASE_FRAMEWORK, "/", *TRAINING_IMAGE_TYPE ]
     repository_name: &REPOSITORY_NAME !join ["pr", "-", *BASE_FRAMEWORK, "-", "trcomp", "-", *TRAINING_IMAGE_TYPE]
     repository: &REPOSITORY !join [ *ACCOUNT_ID, .dkr.ecr., *REGION, .amazonaws.com/, *REPOSITORY_NAME ]
 
