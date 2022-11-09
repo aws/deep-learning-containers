@@ -184,7 +184,6 @@ RUN curl https://aws-dlc-licenses.s3.amazonaws.com/tensorflow-${TF_VERSION}/lice
 
 FROM common AS ec2
 ARG TF_URL=https://framework-binaries.s3.us-west-2.amazonaws.com/tensorflow/r2.11_aws/cpu/2022-11-02-22-53/tensorflow_cpu-2.11.0rc2-cp39-cp39-manylinux_2_17_x86_64.manylinux2014_x86_64.whl
-
 RUN ${PIP} install --no-cache-dir -U \
     ${TF_URL} \
     tensorflow-io==0.27.0 \
@@ -242,7 +241,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && apt-get install -y -qq krb5-user \
 && rm -rf /var/lib/apt/lists/*
 
-ARG TF_URL=https://framework-binaries.s3.us-west-2.amazonaws.com/tensorflow/r2.10_aws/cpu/2022-09-07-02-00/tensorflow_cpu-2.10.0-cp39-cp39-manylinux_2_17_x86_64.manylinux2014_x86_64.whl
+ARG TF_URL=https://framework-binaries.s3.us-west-2.amazonaws.com/tensorflow/r2.11_aws/cpu/2022-11-02-22-53/tensorflow_cpu-2.11.0rc2-cp39-cp39-manylinux_2_17_x86_64.manylinux2014_x86_64.whl
 
 # https://github.com/tensorflow/models/issues/9267
 # tf-models does not respect existing installations of TF and always installs open source TF

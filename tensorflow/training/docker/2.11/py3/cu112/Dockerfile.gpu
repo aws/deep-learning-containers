@@ -326,7 +326,7 @@ FROM common AS sagemaker
 LABEL maintainer="Amazon AI"
 LABEL dlc_major_version="1"
 
-ARG TF_URL=https://framework-binaries.s3.us-west-2.amazonaws.com/tensorflow/r2.10_aws/gpu/2022-09-07-02-07/tensorflow_gpu-2.10.0-cp39-cp39-manylinux_2_17_x86_64.manylinux2014_x86_64.whl
+ARG TF_URL=https://framework-binaries.s3.us-west-2.amazonaws.com/tensorflow/r2.11_aws/gpu/2022-11-02-23-08/tensorflow_gpu-2.11.0rc2-cp39-cp39-manylinux_2_17_x86_64.manylinux2014_x86_64.whl
 
 # sagemaker-specific environment variable
 ENV SAGEMAKER_TRAINING_MODULE sagemaker_tensorflow_container.training:main
@@ -399,8 +399,7 @@ RUN wget https://sourceforge.net/projects/boost/files/boost/1.73.0/boost_1_73_0.
 
 # add smdataparallel
 # smdataparallel
-ARG SMDATAPARALLEL_BINARY=https://smdataparallel.s3.amazonaws.com/binary/tensorflow/2.10.0/cu112/2022-09-08/smdistributed_dataparallel-1.4.1-cp39-cp39-linux_x86_64.whl
-
+ARG SMDATAPARALLEL_BINARY=https://smdataparallel.s3.amazonaws.com/binary/tensorflow/2.11.0/cu112/smdistributed_dataparallel-1.4.1-cp39-cp39-linux_x86_64.whl
 # Install SMD DP binary
 RUN SMDATAPARALLEL_TF=1 ${PYTHON} -m pip install --no-cache-dir ${SMDATAPARALLEL_BINARY}
 
