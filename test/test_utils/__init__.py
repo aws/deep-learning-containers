@@ -949,8 +949,10 @@ def get_canary_default_tag_py3_version(framework, version):
             return "py38"
 
     if framework == "pytorch" or framework == "huggingface_pytorch":
-        if Version(version) >= Version("1.9"):
+        if Version("1.9") <= Version(version) < Version("1.13"):
             return "py38"
+        if Version(version) >= Version("1.13"):
+            return "py39"
 
     return "py3"
 
