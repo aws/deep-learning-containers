@@ -229,3 +229,4 @@ RUN HOME_DIR=/root \
  && rm -rf ${HOME_DIR}/oss_compliance*
 
 CMD ["/bin/bash"]
+
