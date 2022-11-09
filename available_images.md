@@ -98,6 +98,8 @@ EC2 Framework Containers (Tested on EC2, ECS, and EKS only)
 
 | Framework        |Job Type	|Horovod Options|CPU/GPU 	|Python Version Options	| Example URL																						                                                                      |
 |------------------|-----------|---------------|-----------|-----------------------|--------------------------------------------------------------------------------------------------------|
+| PyTorch 1.13.0   |inference	|No			|CPU 		| 3.9 (py39)			| 763104351884.dkr.ecr.us-east-1.amazonaws.com/pytorch-inference:1.13.0-cpu-py39-ubuntu20.04-ec2             |
+| PyTorch 1.13.0   |inference	|No			|GPU 		| 3.9 (py39)			| 763104351884.dkr.ecr.us-east-1.amazonaws.com/pytorch-inference:1.13.0-gpu-py39-cu117-ubuntu20.04-ec2       |
 | PyTorch 1.12.1   |training	|No			|CPU 		| 3.8 (py38)			| 763104351884.dkr.ecr.us-east-1.amazonaws.com/pytorch-training:1.12.1-cpu-py38-ubuntu20.04-ec2              |
 | PyTorch 1.12.1   |training	|Yes		|GPU 		| 3.8 (py38)			| 763104351884.dkr.ecr.us-east-1.amazonaws.com/pytorch-training:1.12.1-gpu-py38-cu116-ubuntu20.04-ec2        |
 | PyTorch 1.12.1   |inference	|No			|CPU 		| 3.8 (py38)			| 763104351884.dkr.ecr.us-east-1.amazonaws.com/pytorch-inference:1.12.1-cpu-py38-ubuntu20.04-ec2             |
