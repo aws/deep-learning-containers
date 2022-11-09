@@ -300,17 +300,3 @@ Prior AutoGluon Inference Containers
 |-----------------|-------------------|-----------|---------|------------------------|---------------------------------------------------------------------------------------------------|
 | AutoGluon 0.4.3 | 0.4.3             | inference | GPU     | 3.8 (py38)             | 763104351884.dkr.ecr.us-east-1.amazonaws.com/autogluon-inference:0.4.3-gpu-py38-cu112-ubuntu20.04 |
 | AutoGluon 0.4.3 | 0.4.3             | inference | CPU     | 3.8 (py38)             | 763104351884.dkr.ecr.us-east-1.amazonaws.com/autogluon-inference:0.4.3-cpu-py38-ubuntu20.04       |
-
-
-Prior Neuron Inference Container Versions
-==============
-| Framework 			                    |Job Type 	 |Python Version Options    |Example URL 			                                                                                    |
-|-------------------------------------------|------------|--------------------------|-----------------------------------------------------------------------------------------------------------|
-|PyTorch 1.10.1 with Neuron Inference        |inference 	|3.7 (py37) 	        |763104351884.dkr.ecr.us-east-1.amazonaws.com/pytorch-inference-neuron:1.10.1-neuron-py37-sdk1.17.1-ubuntu18.04        |
-
-
-Prior SageMaker Training Compiler Containers
-===============================
-| Framework                                     |Job Type	|CPU/GPU 	|Python Version Options	|Example URL																						|
-|-----------------------------------------------|-----------|-----------|-----------------------|---------------------------------------------------------------------------------------------------|
-|PyTorch 1.10.2 with HuggingFace transformers 4.17.0 and SageMaker Training Compiler    |training	|GPU 		| 3.8 (py38)			|763104351884.dkr.ecr.us-east-1.amazonaws.com/huggingface-pytorch-trcomp-training:1.10.2-transformers4.17.0-gpu-py38-cu113-ubuntu20.04      |
