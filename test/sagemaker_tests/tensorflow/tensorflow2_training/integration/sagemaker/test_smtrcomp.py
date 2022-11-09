@@ -109,7 +109,7 @@ class TestDistributedTraining:
                                framework_version=framework_version,
                                hyperparameters={
                                     TrainingCompilerConfig.HP_ENABLE_COMPILER : True,
-                                    ''
+                                    'sagemaker_multi_worker_mirrored_strategy_enabled': True,
                                },
                                )
         estimator.fit(mnist_dataset, job_name=unique_name_from_base('test-TF-trcomp-DT'))
