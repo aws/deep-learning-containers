@@ -51,8 +51,8 @@ ARG HF_BINARY_PATH=${PT_BUCKET}/3464575b-920a-48e6-b964-4d4c5fe2acae/20220816-02
 ARG HF_TRANSFORMERS_URL=${HF_BINARY_PATH}/transformers-${TRANSFORMERS_VERSION}-py3-none-any.whl
 
 
-# COPY ${SAGEMAKER_BINARY} .
-RUN pip install --no-cache-dir -U sagemaker
+RUN pip install --no-cache-dir -U \
+    sagemaker
 
 
 # install Hugging Face libraries and its dependencies
@@ -122,8 +122,9 @@ RUN pip install -U numpy==1.22.2
 
 # Fixing identified CVEs
 RUN pip install -U \
-    "protobuf<3.20.0"
-
+    "protobuf<3.20.0" \
+    "importlib-metadata<5.0,>=1.4.0" \
+    "wheel>=0.38.0"
 
 # Fix library links
 RUN ln -s ${CONDA_PREFIX}/lib/libmkl_intel_lp64.so ${CONDA_PREFIX}/lib/libmkl_intel_lp64.so.1 \

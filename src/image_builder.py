@@ -149,7 +149,7 @@ def image_builder(buildspec, image_types=[], device_types=[]):
 
         transformers_version = image_config.get("transformers_version")
 
-        if str(BUILDSPEC["framework"]).startswith("huggingface") or str(BUILDSPEC["framework"]).endswith("trcomp"):
+        if str(BUILDSPEC["framework"]).startswith("huggingface"):
             if transformers_version:
                 extra_build_args["TRANSFORMERS_VERSION"] = transformers_version
             else:
