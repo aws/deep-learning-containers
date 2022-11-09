@@ -433,7 +433,8 @@ def _run_dependency_check_test(image, ec2_connection):
             "1.8": ["cpu", "gpu"], 
             "1.10": ["cpu", "hpu", "neuron"],
             "1.11": ["cpu", "gpu", "hpu", "neuron"],
-            "1.12": ["cpu", "gpu", "hpu"]
+            "1.12": ["cpu", "gpu", "hpu"],
+            "1.13": ["cpu", "gpu", "hpu"],
         },
         "huggingface_pytorch": {"1.8": ["cpu", "gpu"], "1.9": ["cpu", "gpu"]},
         "huggingface_tensorflow": {"2.4": ["cpu", "gpu"], "2.5": ["cpu", "gpu"], "2.6": ["cpu", "gpu"]},
@@ -453,6 +454,7 @@ def _run_dependency_check_test(image, ec2_connection):
             "1.10": ["gpu", "cpu", "hpu", "neuron"],
             "1.11": ["gpu", "cpu", "hpu", "neuron"],
             "1.12": ["gpu", "cpu", "hpu"],
+            "1.13": ["gpu", "cpu", "hpu"],
         },
         "tensorflow": {
             "1.15": ["neuron"],
