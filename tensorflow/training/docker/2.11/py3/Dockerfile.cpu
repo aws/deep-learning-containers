@@ -256,7 +256,7 @@ RUN ${PIP} uninstall -y tensorflow tensorflow-gpu \
   ; ${PIP} install --no-cache-dir -U \
     ${TF_URL} \
     tensorflow-io==0.27.0 \
-    tensorflow-datasets==4.7.2
+    tensorflow-datasets==4.7.0
 
 # Install Horovod with TensorFlow
 RUN HOROVOD_WITH_MPI=1 \
