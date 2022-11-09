@@ -100,8 +100,8 @@ EC2 Framework Containers (Tested on EC2, ECS, and EKS only)
 |------------------|-----------|---------------|-----------|-----------------------|--------------------------------------------------------------------------------------------------------|
 | PyTorch 1.12.1   |training	|No			|CPU 		| 3.8 (py38)			| 763104351884.dkr.ecr.us-east-1.amazonaws.com/pytorch-training:1.12.1-cpu-py38-ubuntu20.04-ec2              |
 | PyTorch 1.12.1   |training	|Yes		|GPU 		| 3.8 (py38)			| 763104351884.dkr.ecr.us-east-1.amazonaws.com/pytorch-training:1.12.1-gpu-py38-cu116-ubuntu20.04-ec2        |
-| PyTorch 1.12.1   |inference	|No			|CPU 		| 3.8 (py38)			| 763104351884.dkr.ecr.us-east-1.amazonaws.com/pytorch-inference:1.12.1-cpu-py38-ubuntu20.04-ec2             |
-| PyTorch 1.12.1   |inference	|No			|GPU 		| 3.8 (py38)			| 763104351884.dkr.ecr.us-east-1.amazonaws.com/pytorch-inference:1.12.1-gpu-py38-cu116-ubuntu20.04-ec2       |
+| PyTorch 1.13.0   |inference	|No			|CPU 		| 3.9 (py39)			| 763104351884.dkr.ecr.us-east-1.amazonaws.com/pytorch-inference:1.13.0-cpu-py39-ubuntu20.04-ec2             |
+| PyTorch 1.13.0   |inference	|No			|GPU 		| 3.9 (py39)			| 763104351884.dkr.ecr.us-east-1.amazonaws.com/pytorch-inference:1.13.0-gpu-py39-cu117-ubuntu20.04-ec2       |
 | TensorFlow 2.10.0 |training	|Yes			|CPU 		| 3.9 (py39)			| 763104351884.dkr.ecr.us-east-1.amazonaws.com/tensorflow-training:2.10.0-cpu-py39-ubuntu20.04-ec2		       |
 | TensorFlow 2.10.0 |training	|Yes			|GPU 		| 3.9 (py39)			| 763104351884.dkr.ecr.us-east-1.amazonaws.com/tensorflow-training:2.10.0-gpu-py39-cu112-ubuntu20.04-ec2	  |
 | TensorFlow 2.10.0 |inference	|Yes			|CPU 		| 3.9 (py39)			| 763104351884.dkr.ecr.us-east-1.amazonaws.com/tensorflow-inference:2.10.0-cpu-py39-ubuntu20.04-ec2		      |
@@ -137,9 +137,7 @@ EC2 Framework Graviton Containers (EC2, ECS, and EKS support only)
 | Framework         |Job Type	|Horovod Options|CPU/GPU 	|Python Version Options	|Example URL																						|
 |-------------------|-----------|---------------|-----------|-----------------------|---------------------------------------------------------------------------------------------------|
 |PyTorch 1.12.1   |inference	|No			|CPU 		| 3.8 (py38)			|763104351884.dkr.ecr.us-east-1.amazonaws.com/pytorch-inference-graviton:1.12.1-cpu-py38-ubuntu20.04-ec2		|
-|PyTorch 1.10.0   |inference	|No			|CPU 		| 3.8 (py38)			|763104351884.dkr.ecr.us-east-1.amazonaws.com/pytorch-inference-graviton:1.10.0-cpu-py38-ubuntu20.04-ec2		|
 |TensorFlow 2.9.1   |inference	|No			|CPU 		| 3.8 (py38)			|763104351884.dkr.ecr.us-east-1.amazonaws.com/tensorflow-inference-graviton:2.9.1-cpu-py38-ubuntu20.04-ec2		|
-|TensorFlow 2.7.0   |inference	|No			|CPU 		| 3.8 (py38)			|763104351884.dkr.ecr.us-east-1.amazonaws.com/tensorflow-inference-graviton:2.7.0-cpu-py38-ubuntu20.04-ec2		|
 
 
 SageMaker Framework Graviton Containers (SM support only)
@@ -255,18 +253,12 @@ Prior EC2 Framework Container Versions
 ==============
 | Framework 			                      |Job Type 			   |Horovod Options 			     |CPU/GPU 	  |Python Version Options 			      |Example URL 			                                                                               |
 |---------------------------------------------|------------------------|---------------------------------|------------|---------------------------------------|----------------------------------------------------------------------------------------------------|
+| PyTorch 1.12.1   |inference	|No			|CPU 		| 3.8 (py38)			| 763104351884.dkr.ecr.us-east-1.amazonaws.com/pytorch-inference:1.12.1-cpu-py38-ubuntu20.04-ec2             |
+| PyTorch 1.12.1   |inference	|No			|GPU 		| 3.8 (py38)			| 763104351884.dkr.ecr.us-east-1.amazonaws.com/pytorch-inference:1.12.1-gpu-py38-cu116-ubuntu20.04-ec2       |
 | PyTorch 1.11.0   |training	|No			|CPU 		| 3.8 (py38)			| 763104351884.dkr.ecr.us-east-1.amazonaws.com/pytorch-training:1.11.0-cpu-py38-ubuntu20.04-ec2              |
 | PyTorch 1.11.0   |training	|Yes		|GPU 		| 3.8 (py38)			| 763104351884.dkr.ecr.us-east-1.amazonaws.com/pytorch-training:1.11.0-gpu-py38-cu115-ubuntu20.04-ec2        |
 | PyTorch 1.11.0   |inference	|No			|CPU 		| 3.8 (py38)			| 763104351884.dkr.ecr.us-east-1.amazonaws.com/pytorch-inference:1.11.0-cpu-py38-ubuntu20.04-ec2             |
 | PyTorch 1.11.0   |inference	|No			|GPU 		| 3.8 (py38)			| 763104351884.dkr.ecr.us-east-1.amazonaws.com/pytorch-inference:1.11.0-gpu-py38-cu115-ubuntu20.04-ec2       |
-| PyTorch 1.10.2   |training	|No			|CPU 		| 3.8 (py38)			| 763104351884.dkr.ecr.us-east-1.amazonaws.com/pytorch-training:1.10.2-cpu-py38-ubuntu20.04-ec2              |
-| PyTorch 1.10.2   |training	|Yes		|GPU 		| 3.8 (py38)			| 763104351884.dkr.ecr.us-east-1.amazonaws.com/pytorch-training:1.10.2-gpu-py38-cu113-ubuntu20.04-ec2        |
-| PyTorch 1.10.2   |inference	|No			|CPU 		| 3.8 (py38)			| 763104351884.dkr.ecr.us-east-1.amazonaws.com/pytorch-inference:1.10.2-cpu-py38-ubuntu20.04-ec2             |
-| PyTorch 1.10.2   |inference	|No			|GPU 		| 3.8 (py38)			| 763104351884.dkr.ecr.us-east-1.amazonaws.com/pytorch-inference:1.10.2-gpu-py38-cu113-ubuntu20.04-ec2       |
-| TensorFlow 2.7.0   |training	|Yes			|CPU 		| 3.8 (py38)			|763104351884.dkr.ecr.us-east-1.amazonaws.com/tensorflow-training:2.7.0-cpu-py38-ubuntu20.04-ec2		|
-| TensorFlow 2.7.0   |training	|Yes			|GPU 		| 3.8 (py38)			|763104351884.dkr.ecr.us-east-1.amazonaws.com/tensorflow-training:2.7.0-gpu-py38-cu112-ubuntu20.04-ec2	|
-| TensorFlow 2.7.0   |inference	|Yes			|CPU 		| 3.8 (py38)			|763104351884.dkr.ecr.us-east-1.amazonaws.com/tensorflow-inference:2.7.0-cpu-py38-ubuntu20.04-ec2		|
-| TensorFlow 2.7.0   |inference	|Yes			|GPU 		| 3.8 (py38)			|763104351884.dkr.ecr.us-east-1.amazonaws.com/tensorflow-inference:2.7.0-gpu-py38-cu112-ubuntu20.04-ec2	|
 | TensorFlow 2.8.0 |training	|Yes			|CPU 		| 3.9 (py39)			| 763104351884.dkr.ecr.us-east-1.amazonaws.com/tensorflow-training:2.8.0-cpu-py39-ubuntu20.04-ec2		       |
 | TensorFlow 2.8.0 |training	|Yes			|GPU 		| 3.9 (py39)			| 763104351884.dkr.ecr.us-east-1.amazonaws.com/tensorflow-training:2.8.0-gpu-py39-cu112-ubuntu20.04-ec2	  |
 | TensorFlow 2.8.0 |inference	|Yes			|CPU 		| 3.9 (py39)			| 763104351884.dkr.ecr.us-east-1.amazonaws.com/tensorflow-inference:2.8.0-cpu-py39-ubuntu20.04-ec2		      |
@@ -288,29 +280,10 @@ Prior SageMaker Framework Container Versions
 | TensorFlow 2.8.0 |training	|Yes			|GPU 		| 3.9 (py39)			| 763104351884.dkr.ecr.us-east-1.amazonaws.com/tensorflow-training:2.8.0-gpu-py39-cu112-ubuntu20.04-sagemaker	  |
 | TensorFlow 2.8.0 |inference	|Yes			|CPU 		| 3.9 (py39)			| 763104351884.dkr.ecr.us-east-1.amazonaws.com/tensorflow-inference:2.8.0-cpu-py39-ubuntu20.04-sagemaker		      |
 | TensorFlow 2.8.0 |inference	|Yes			|GPU 		| 3.9 (py39)			| 763104351884.dkr.ecr.us-east-1.amazonaws.com/tensorflow-inference:2.8.0-gpu-py39-cu112-ubuntu20.04-sagemaker	 |
-| TensorFlow 2.7.1 |training	| Yes			          |CPU 		| 3.8 (py38)			| 763104351884.dkr.ecr.us-east-1.amazonaws.com/tensorflow-training:2.7.1-cpu-py38-ubuntu20.04-sagemaker		       |
-| TensorFlow 2.7.1 |training	| Yes			          |GPU 		| 3.8 (py38)			| 763104351884.dkr.ecr.us-east-1.amazonaws.com/tensorflow-training:2.7.1-gpu-py38-cu112-ubuntu20.04-sagemaker	  |
-| TensorFlow 2.7.0 |inference	| Yes			          |CPU 		| 3.8 (py38)			| 763104351884.dkr.ecr.us-east-1.amazonaws.com/tensorflow-inference:2.7.0-cpu-py38-ubuntu20.04-sagemaker		      |
-| TensorFlow 2.7.0 |inference	| Yes			          |GPU 		| 3.8 (py38)			| 763104351884.dkr.ecr.us-east-1.amazonaws.com/tensorflow-inference:2.7.0-gpu-py38-cu112-ubuntu20.04-sagemaker	 |
 | PyTorch 1.11.0   |training	| No			           |CPU 		| 3.8 (py38)			|763104351884.dkr.ecr.us-east-1.amazonaws.com/pytorch-training:1.11.0-cpu-py38-ubuntu20.04-sagemaker            |
 | PyTorch 1.11.0   |training	| Yes			           |GPU 		| 3.8 (py38)			|763104351884.dkr.ecr.us-east-1.amazonaws.com/pytorch-training:1.11.0-gpu-py38-cu113-ubuntu20.04-sagemaker      |
 | PyTorch 1.11.0   |inference	| No			           |CPU 		| 3.8 (py38)			|763104351884.dkr.ecr.us-east-1.amazonaws.com/pytorch-inference:1.11.0-cpu-py38-ubuntu20.04-sagemaker           |
 | PyTorch 1.11.0   |inference	| No			           |GPU 		| 3.8 (py38)			|763104351884.dkr.ecr.us-east-1.amazonaws.com/pytorch-inference:1.11.0-gpu-py38-cu113-ubuntu20.04-sagemaker     |
-| PyTorch 1.10.2   |training	| No			           |CPU 		| 3.8 (py38)			| 763104351884.dkr.ecr.us-east-1.amazonaws.com/pytorch-training:1.10.2-cpu-py38-ubuntu20.04-sagemaker		         |
-| PyTorch 1.10.2   |training	| Yes			          |GPU 		| 3.8 (py38)			| 763104351884.dkr.ecr.us-east-1.amazonaws.com/pytorch-training:1.10.2-gpu-py38-cu113-ubuntu20.04-sagemaker	    |
-| PyTorch 1.10.2   |inference	| No			           |CPU 		| 3.8 (py38)			| 763104351884.dkr.ecr.us-east-1.amazonaws.com/pytorch-inference:1.10.2-cpu-py38-ubuntu20.04-sagemaker		        |
-| PyTorch 1.10.2   |inference	| No			           |GPU 		| 3.8 (py38)			| 763104351884.dkr.ecr.us-east-1.amazonaws.com/pytorch-inference:1.10.2-gpu-py38-cu113-ubuntu20.04-sagemaker	   |
-
-Prior General Framework Container Versions
-==============
-
-| Framework 			                      |Job Type 			   |Horovod Options 			     |CPU/GPU 	  |Python Version Options 			      |Example URL 			                                                                               |
-|---------------------------------------------|------------------------|---------------------------------|------------|---------------------------------------|----------------------------------------------------------------------------------------------------|
-|TensorFlow 2.6.2   |training	|Yes			|CPU 		| 3.8 (py38)			|763104351884.dkr.ecr.us-east-1.amazonaws.com/tensorflow-training:2.6.2-cpu-py38-ubuntu20.04		|
-|TensorFlow 2.6.2   |training	|Yes			|GPU 		| 3.8 (py38)			|763104351884.dkr.ecr.us-east-1.amazonaws.com/tensorflow-training:2.6.2-gpu-py38-cu112-ubuntu20.04	|
-|TensorFlow 2.6.0   |inference	|Yes			|CPU 		| 3.8 (py38)			|763104351884.dkr.ecr.us-east-1.amazonaws.com/tensorflow-inference:2.6.0-cpu-py38-ubuntu20.04		|
-|TensorFlow 2.6.0   |inference	|Yes			|GPU 		| 3.8 (py38)			|763104351884.dkr.ecr.us-east-1.amazonaws.com/tensorflow-inference:2.6.0-gpu-py38-cu112-ubuntu20.04	|
-
 
 Prior AutoGluon Training Containers
 ===============================
@@ -327,17 +300,3 @@ Prior AutoGluon Inference Containers
 |-----------------|-------------------|-----------|---------|------------------------|---------------------------------------------------------------------------------------------------|
 | AutoGluon 0.4.3 | 0.4.3             | inference | GPU     | 3.8 (py38)             | 763104351884.dkr.ecr.us-east-1.amazonaws.com/autogluon-inference:0.4.3-gpu-py38-cu112-ubuntu20.04 |
 | AutoGluon 0.4.3 | 0.4.3             | inference | CPU     | 3.8 (py38)             | 763104351884.dkr.ecr.us-east-1.amazonaws.com/autogluon-inference:0.4.3-cpu-py38-ubuntu20.04       |
-
-
-Prior Neuron Inference Container Versions
-==============
-| Framework 			                    |Job Type 	 |Python Version Options    |Example URL 			                                                                                    |
-|-------------------------------------------|------------|--------------------------|-----------------------------------------------------------------------------------------------------------|
-|PyTorch 1.10.1 with Neuron Inference        |inference 	|3.7 (py37) 	        |763104351884.dkr.ecr.us-east-1.amazonaws.com/pytorch-inference-neuron:1.10.1-neuron-py37-sdk1.17.1-ubuntu18.04        |
-
-
-Prior SageMaker Training Compiler Containers
-===============================
-| Framework                                     |Job Type	|CPU/GPU 	|Python Version Options	|Example URL																						|
-|-----------------------------------------------|-----------|-----------|-----------------------|---------------------------------------------------------------------------------------------------|
-|PyTorch 1.10.2 with HuggingFace transformers 4.17.0 and SageMaker Training Compiler    |training	|GPU 		| 3.8 (py38)			|763104351884.dkr.ecr.us-east-1.amazonaws.com/huggingface-pytorch-trcomp-training:1.10.2-transformers4.17.0-gpu-py38-cu113-ubuntu20.04      |
