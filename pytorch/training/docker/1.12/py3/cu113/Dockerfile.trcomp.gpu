@@ -42,7 +42,7 @@ ARG PT_URL=${PT_BUCKET}/torch-1.12.0%2Bcu113-cp38-cp38-linux_x86_64.whl
 ARG PT_XLA_URL=${PT_BUCKET}/torch_xla-1.12-cp38-cp38-linux_x86_64.whl
 ARG TORCHVISION_URL=${PT_BUCKET}/torchvision-0.13.0a0%2Bda3794e-cp38-cp38-linux_x86_64.whl
 ARG TORCHAUDIO_URL=${PT_BUCKET}/torchaudio-0.12.0%2B2e13884-cp38-cp38-linux_x86_64.whl
-ARG HF_TRANSFORMERS_URL=https://sm-training-comp-pytorch-binaries.s3.us-west-2.amazonaws.com/d590055d-bfc4-439e-8199-2b51a9f46beb/20220521-013053/5906ed2b65214eddbb7ee27f08dbe1cad3ed1921/transformers-4.19.2-py3-none-any.whl
+ARG HF_TRANSFORMERS_URL=https://sm-training-comp-pytorch-binaries.s3.us-west-2.amazonaws.com/b1aba864-e7ce-4416-9559-6d2277169b06/20221108-221349/d49c05a6da01e0849fd39ffa9c3d533f40af32f0/transformers-4.19.2-py3-none-any.whl
 ARG SMD_DATA_PARALLEL_URL=https://smdataparallel.s3.amazonaws.com/binary/pytorch/1.12.0/cu113-compiler/2022-08-09/smdistributed_dataparallel-1.5.0-cp38-cp38-linux_x86_64.whl
 
 
