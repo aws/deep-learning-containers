@@ -79,7 +79,19 @@ def instance_count():
 def num_gpus_per_instance(instance_type):
     if instance_type in ["ml.p3.16xlarge", "ml.p4d.24xlarge"]:
         return 8
+    elif instance_type in ["ml.g4dn.12xlarge", "ml.g5.12xlarge"]:
+        return 4
     raise NotImplementedError("Unforeseen Instance Type")
+
+
+@pytest.fixture
+def should_nccl_use_pcie(instance_type, instance_count, ecr_image):
+    """Should NCCL be explicitly forced to use PCIE when NVLINK is not available ? This is baked in from PyTorch 1.12.
+    """
+    pytorch_version = get_framework_and_version_from_tag(ecr_image)[1]
+    if 'g' in instance_type and ( Version(pytorch_version) in SpecifierSet("< 1.12") ):
+        return True
+    return False
 
 
 @pytest.mark.integration("sagmaker-training-compiler")
@@ -277,6 +289,8 @@ class TestSingleNodeMultiGPU:
         "instance_type, instance_count",
         [
             ("ml.p3.16xlarge", 1),
+            ("ml.g4dn.12xlarge", 1),
+            ("ml.g5.12xlarge", 1),
         ],
     )
     @pytest.mark.model("bert-large")
@@ -291,6 +305,7 @@ class TestSingleNodeMultiGPU:
         instance_type,
         instance_count,
         num_gpus_per_instance,
+        should_nccl_use_pcie,
     ):
         """
         Tests the default configuration of SM trcomp
@@ -324,6 +339,8 @@ class TestSingleNodeMultiGPU:
                 hyperparameters=hyperparameters,
                 py_version=py_version,
                 max_retry_attempts=15,
+                distribution = {'pytorchxla': {'enabled': True}},
+                environment = {'NCCL_P2P_LEVEL': 'PXB'} if should_nccl_use_pcie else {}, #Temporary measure to enable communication through PCIe instead of NVLink 
             )
             estimator.fit(
                 job_name=sagemaker.utils.unique_name_from_base("hf-pt-trcomp-SNMG-default"),
@@ -334,6 +351,10 @@ class TestSingleNodeMultiGPU:
         assert "Found configuration for Training Compiler" in logs
         assert "Configuring SM Training Compiler" in logs
         assert "device: xla" in logs
+        assert "Invoking PT-XLA Runner" in logs
+        assert "distributed training through PT-XLA Runtime" in logs
+        assert "torch_xla.distributed.xla_spawn" in logs
+        assert f"nranks {num_gpus_per_instance}" in logs
 
 
 @pytest.mark.integration("sagmaker-training-compiler")
@@ -352,6 +373,8 @@ class TestMultiNodeMultiGPU:
         [
             ("ml.p3.16xlarge", 2),
             ("ml.p4d.24xlarge", 2),
+            ("ml.g4dn.12xlarge", 2),
+            ("ml.g5.12xlarge", 2),
         ],
     )
     @pytest.mark.model("bert-large")
@@ -366,6 +389,7 @@ class TestMultiNodeMultiGPU:
         instance_type,
         instance_count,
         num_gpus_per_instance,
+        should_nccl_use_pcie,
     ):
         """
         Tests the default configuration of SM trcomp
@@ -385,9 +409,6 @@ class TestMultiNodeMultiGPU:
         total_gpus = num_gpus_per_instance * instance_count
         hyperparameters["max_steps"] = 3 * total_gpus
 
-        # This is temporary workaround until distribution = {'pytorch_xla': 'enabled': True} is supported by SM SDK.
-        hyperparameters["sagemaker_pytorch_xla_multi_worker_enabled"] = True
-
         with timeout(minutes=DEFAULT_TIMEOUT):
             estimator = HuggingFace(
                 compiler_config=TrainingCompilerConfig(),
@@ -403,6 +424,8 @@ class TestMultiNodeMultiGPU:
                 hyperparameters=hyperparameters,
                 py_version=py_version,
                 max_retry_attempts=15,
+                distribution = {'pytorchxla': {'enabled': True}},
+                environment = {'NCCL_P2P_LEVEL': 'PXB'} if should_nccl_use_pcie else {}, #Temporary measure to enable communication through PCIe instead of NVLink 
             )
             estimator.fit(
                 job_name=sagemaker.utils.unique_name_from_base("hf-pt-trcomp-MNMG-default"),
