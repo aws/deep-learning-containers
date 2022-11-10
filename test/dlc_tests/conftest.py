@@ -11,6 +11,7 @@ from botocore.exceptions import ClientError
 import docker
 import pytest
 
+from packaging.version import Version
 from botocore.config import Config
 from fabric import Connection
 
@@ -31,8 +32,8 @@ from test.test_utils import (
     UBUNTU_18_BASE_DLAMI_US_EAST_1,
     UBUNTU_18_BASE_DLAMI_US_WEST_2,
     PT_GPU_PY3_BENCHMARK_IMAGENET_AMI_US_EAST_1,
-    AML2_GPU_DLAMI_US_WEST_2,
-    AML2_GPU_DLAMI_US_EAST_1,
+    AML2_BASE_DLAMI_US_WEST_2,
+    AML2_BASE_DLAMI_US_EAST_1,
     KEYS_TO_DESTROY_FILE,
     are_efa_tests_disabled,
     get_ecr_repo_name,
@@ -289,8 +290,8 @@ def ec2_instance(
         ec2_resource = boto3.resource("ec2", region_name=region, config=Config(retries={"max_attempts": 10}))
         if ec2_instance_ami != PT_GPU_PY3_BENCHMARK_IMAGENET_AMI_US_EAST_1:
             ec2_instance_ami = (
-                AML2_GPU_DLAMI_US_EAST_1
-                if ec2_instance_ami == AML2_GPU_DLAMI_US_WEST_2
+                AML2_BASE_DLAMI_US_EAST_1
+                if ec2_instance_ami == AML2_BASE_DLAMI_US_WEST_2
                 else UBUNTU_18_BASE_DLAMI_US_EAST_1
             )
 
@@ -626,6 +627,16 @@ def pt15_and_above_only():
 def pt14_and_above_only():
     pass
 
+@pytest.fixture(scope="session")
+def outside_versions_skip():
+    def _outside_versions_skip(img_uri, start_ver, end_ver):
+        """
+        skip test if the image framework versios is not within the (start_ver, end_ver) range
+        """
+        _, image_framework_version = get_framework_and_version_from_tag(img_uri)
+        if Version(start_ver) > Version(image_framework_version) or Version(end_ver) < Version(image_framework_version):
+            pytest.skip(f"S3 plugin is only supported in PyTorch versions >{start_ver},<{end_ver}")
+    return _outside_versions_skip
 
 def framework_version_within_limit(metafunc_obj, image):
     """
