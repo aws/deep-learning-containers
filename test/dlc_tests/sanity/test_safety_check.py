@@ -55,6 +55,10 @@ IGNORE_SAFETY_IDS = {
                 "42814",
                 # tensorflow-estimator and tensorflow versions must match. For all TF versions below TF 2.9.0, we cannot upgrade tf-estimator to 2.9.0
                 "48551",
+                # for cryptography until we have 39.0.0 release
+                "51159",
+                # Keras 2.10.0 is latest, rc in place for 2.11.0+ 
+                "51516"
             ],
         },
         "inference": {
@@ -76,6 +80,8 @@ IGNORE_SAFETY_IDS = {
                 "43453",
                 # tensorflow-estimator and tensorflow versions must match. For all TF versions below TF 2.9.0, we cannot upgrade tf-estimator to 2.9.0
                 "48551",
+                # for cryptography until we have 39.0.0 release
+                "51159",
             ],
         },
         "inference-eia": {
@@ -432,6 +438,34 @@ IGNORE_SAFETY_IDS = {
                 "42815",
             ],
         },
+        "training-neuron":{
+            "_comment":"py2 is deprecated",
+            "py2": [
+            ],
+            "py3": [
+                # not possible for neuron-cc
+                "43453",
+                "44715",
+                "44717",
+                "44716",
+                # for releasing PT1.12 safety check tools might report a vulnerability for the package commonmarker, 
+                # which is a dependency of deepspeed. 
+                # This package is only used to build the documentation pages of deepspeed 
+                # and won’t be used in the package that gets installed into the DLC. 
+                # This security issue can be safely ignored 
+                # and an attempt to upgrade deepspeed version to 
+                # remediate it might have an inadvertent negative impact on the DLC components functionality.
+                "48298",
+                # for cryptography until e have 39.0.0 release
+                "51159",
+                # for Safety. it is test package and not part of image
+                "51358",
+                # Wheel is needed by tensorboard but v0.38 is not there yet
+                "51499",
+                # Ignored- please check https://github.com/pytest-dev/py/issues/287
+                "51457",
+            ],
+        },
         "inference": {
             "py3": [
                 # for shipping Torchserve 0.5.2 - the last available version
@@ -439,6 +473,9 @@ IGNORE_SAFETY_IDS = {
                 "44715",
                 "44716",
                 "44717",
+                # for cryptography until e have 39.0.0 release
+                "51159",
+                "51358",
             ]
         },
         "inference-eia": {"py3": []},
@@ -601,9 +638,12 @@ IGNORE_SAFETY_IDS = {
                 "44716",
                 # False positive CVE for numpy
                 "44715",
-                # pytorch-lightning stable release (1.6.0) is not available
-                "43581",
-                "43752",
+                # Pydantic 1.10.2 prevents long strings as int inputs to fix CVE-2020-10735 - upstream dependencies are still not patched
+                "50916",
+                # Protobuf 3.18.3, 3.19.5, 3.20.2 and 4.21.6 include a fix for CVE-2022-1941 - upstream dependencies are still not patched
+                "51167",
+                # Safety 2.2.0 updates its dependency 'dparse' to include a security fix. - not packaged with container, result of security scanning process
+                "51358",
             ]
         },
         "inference": {
@@ -613,9 +653,12 @@ IGNORE_SAFETY_IDS = {
                 "44716",
                 # False positive CVE for numpy
                 "44715",
-                # pytorch-lightning stable release (1.6.0) is not available
-                "43581",
-                "43752",
+                # Pydantic 1.10.2 prevents long strings as int inputs to fix CVE-2020-10735 - upstream dependencies are still not patched
+                "50916",
+                # Protobuf 3.18.3, 3.19.5, 3.20.2 and 4.21.6 include a fix for CVE-2022-1941 - upstream dependencies are still not patched
+                "51167",
+                # Safety 2.2.0 updates its dependency 'dparse' to include a security fix. - not packaged with container, result of security scanning process
+                "51358",
             ]
         },
     }
@@ -638,12 +681,14 @@ def _get_safety_ignore_list(image_uri):
         framework = "tensorflow"
 
     job_type = (
-        "training"
+        "training-neuron"
+        if "training-neuron" in image_uri
+        else "training"
         if "training" in image_uri
         else "inference-eia"
         if "eia" in image_uri
         else "inference-neuron"
-        if "neuron" in image_uri
+        if "inference-neuron" in image_uri
         else "inference"
     )
     python_version = "py2" if "py2" in image_uri else "py3"
@@ -659,6 +704,7 @@ def _get_latest_package_version(package):
     :param package: str Name of the package whose latest version must be retrieved
     :return: tuple(command_success: bool, latest_version_value: str)
     """
+    # safe
     pypi_package_info = requests.get(f"https://pypi.org/pypi/{package}/json")
     data = json.loads(pypi_package_info.text)
     versions = data["releases"].keys()
@@ -695,6 +741,7 @@ def test_safety(image):
     container_name = f"{repo_name}-{image_tag}-safety"
     docker_exec_cmd = f"docker exec -i {container_name}"
     test_file_path = os.path.join(CONTAINER_TESTS_PREFIX, "testSafety")
+
     # Add null entrypoint to ensure command exits immediately
     run(
         f"docker run -id "
@@ -705,14 +752,17 @@ def test_safety(image):
         hide=True,
     )
     try:
-        run(f"{docker_exec_cmd} pip install 'safety<2.0.0' yolk3k ", hide=True)
+        run(f"{docker_exec_cmd} pip install 'safety>=2.2.0' yolk3k ", hide=True)
         json_str_safety_result = safety_check.run_safety_check_on_container(docker_exec_cmd)
-        safety_result = json.loads(json_str_safety_result)
+        safety_result = json.loads(json_str_safety_result)["vulnerabilities"]
         for vulnerability in safety_result:
-            package, affected_versions, curr_version, _, vulnerability_id = vulnerability[:5]
+            package = vulnerability["package_name"]
+            affected_versions = vulnerability["vulnerable_spec"]
+            vulnerability_id = vulnerability["vulnerability_id"]
+
             # Get the latest version of the package with vulnerability
             latest_version = _get_latest_package_version(package)
-            # If the latest version of the package is also affected, ignore this vulnerability
+            # If the latest version of the package is also affected, igvnore this vulnerability
             if Version(latest_version) in SpecifierSet(affected_versions):
                 # Version(x) gives an object that can be easily compared with another version, or with a SpecifierSet.
                 # Comparing two versions as a string has some edge cases which require us to write more code.

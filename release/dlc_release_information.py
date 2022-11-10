@@ -53,7 +53,7 @@ class DLCReleaseInformation:
 
         run(f"docker rm -f {container_name}", warn=True, hide=True)
 
-        run(f"docker run -id --name {container_name} --entrypoint='/bin/bash' {self.image}", hide=True)
+        run(f"docker run -id --privileged --name {container_name} --entrypoint='/bin/bash' {self.image}", hide=True)
 
         return container_name
 
@@ -105,13 +105,20 @@ class DLCReleaseInformation:
 
     @property
     def bom_pipdeptree(self):
-        self.get_container_command_output("pip install pipdeptree")
-        return self.get_container_command_output("pipdeptree")
+        # TODO: Change how this process works as this using qemu with graviton is making part of the image
+        # OS read-only. Thus, when installing pipdeptree, it does not install in the expected location and
+        # the pipdeptree command will fail for graviton.
+        if "graviton" in self.dlc_repository:
+            self.get_container_command_output("python3 -m pip install pipdeptree")
+            return self.get_container_command_output("python3 -m pipdeptree")
+        else:
+            self.get_container_command_output("pip install pipdeptree")
+            return self.get_container_command_output("pipdeptree")
 
     @property
     def imp_pip_packages(self):
         imp_pip_packages = {}
-        container_pip_packages = json.loads(self.get_container_command_output("pip list --format=json"))
+        container_pip_packages = json.loads(self.get_container_command_output("pip list --disable-pip-version-check --format=json"))
 
         for pip_package in sorted(self.imp_packages_to_record["pip_packages"]):
             for package_entry in container_pip_packages:
