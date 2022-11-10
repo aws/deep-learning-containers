@@ -169,7 +169,8 @@ RUN pip install --upgrade pip --trusted-host pypi.org --trusted-host files.pytho
     ${MX_URL} \
     awscli \
     s3fs==0.4.2 \
-    opencv-python
+    opencv-python \
+    wheel
 
 # Install Horovod, temporarily using CUDA stubs
 RUN ldconfig /usr/local/cuda-11.2/targets/x86_64-linux/lib/stubs \

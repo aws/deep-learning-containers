@@ -132,7 +132,8 @@ RUN pip install --upgrade pip --trusted-host pypi.org --trusted-host files.pytho
     mpi4py==3.0.3 \
     ${MX_URL} \
     awscli \
-    opencv-python
+    opencv-python \
+    wheel
 
 # Install Horovod
 RUN pip install --no-cache-dir horovod
