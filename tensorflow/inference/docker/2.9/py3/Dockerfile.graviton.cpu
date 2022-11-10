@@ -31,10 +31,6 @@ ARG TFS_URL=https://framework-binaries.s3.us-west-2.amazonaws.com/tensorflow_ser
 ENV PIP=${PIP}
 ENV PYTHON=${PYTHON}
 
-# Graviton Optimaziation ENV Variables
-ENV TF_ENABLE_ONEDNN_OPTS=1
-ENV DNNL_DEFAULT_FPMATH_MODE=BF16
-
 # See http://bugs.python.org/issue19846
 ENV LANG=C.UTF-8
 # Python won’t try to write .pyc or .pyo files on the import of source modules
