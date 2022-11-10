@@ -168,6 +168,9 @@ ARG TFS_SHORT_VERSION=2.9
 ENV SAGEMAKER_TFS_VERSION="${TFS_SHORT_VERSION}"
 ENV PATH="$PATH:/sagemaker"
 
+ENV TF_ENABLE_ONEDNN_OPTS=1
+ENV DNNL_DEFAULT_FPMATH_MODE=BF16
+
 # nginx + njs
 RUN curl -s http://nginx.org/keys/nginx_signing.key | apt-key add - \
  && echo 'deb http://nginx.org/packages/ubuntu/ focal nginx' >> /etc/apt/sources.list \
