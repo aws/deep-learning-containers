@@ -37,7 +37,7 @@ ARG TRANSFORMERS_VERSION=4.19.2
 ARG DATASETS_VERSION=1.18.4
 ARG PYTHON=python3
 
-ARG PT_BUCKET=https://aws-pytorch-unified-cicd-binaries.s3.us-west-2.amazonaws.com/trcomp/r1.12.0_sm/20221021-002035/6f7707122a5d66d36080e7aaa48e6e059fad9860
+ARG PT_BUCKET=https://aws-pytorch-unified-cicd-binaries.s3.us-west-2.amazonaws.com/trcomp/r1.12.0_sm/20221110-064048/f77b79fa779a512c319d20e42f59bbd3559bd16a
 ARG PT_URL=${PT_BUCKET}/torch-1.12.0%2Bcu113-cp38-cp38-linux_x86_64.whl
 ARG PT_XLA_URL=${PT_BUCKET}/torch_xla-1.12-cp38-cp38-linux_x86_64.whl
 ARG TORCHVISION_URL=${PT_BUCKET}/torchvision-0.13.0a0%2Bda3794e-cp38-cp38-linux_x86_64.whl
