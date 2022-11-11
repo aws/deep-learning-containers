@@ -132,29 +132,37 @@ def _test_mnist_distributed(
 
 def _check_for_cloudwatch_logs(endpoint_name):
     client=boto3.client('logs')
-    response = client.describe_log_streams(
+    identifyLogStream = client.describe_log_streams(
         logGroupName='/aws/sagemaker/Endpoints/'+endpoint_name,    
         orderBy='LastEventTime',
         descending=True,
         limit=5
     )
 
-    logStreamName=response['logStreams'][0]['logStreamName']
-    print(logStreamName)
+    logStreamName=identifyLogStream['logStreams'][0]['logStreamName']
+    #print(logStreamName)
 
-    new_response = client.get_log_events(
+    log_events_response = client.get_log_events(
         logGroupName='/aws/sagemaker/Endpoints/'+endpoint_name,
         logStreamName=logStreamName,
         limit=50,
         startFromHead=True
     )
 
-    print(new_response['events'])
-    recordsAvailable=bool(new_response['events'])
+    #print(log_events_response['events'])
+    recordsAvailable=bool(log_events_response['events'])
     print('Are log events avaiable? '+str(recordsAvailable))
    
     if not recordsAvailable:
         print("Exception... No cloudwatch log results!!")
         raise Exception('Exception: No cloudwatch events getting logged for the group /aws/sagemaker/Endpoints/'+endpoint_name)
     else:    
-        print('INFO: Most recently logged events were found for the given log group & log stream')
+        print('INFO: Most recently logged events were found for the given log group & log stream... Now verifying that TorchServe endpoint is logging on cloudwatch')
+        check_for_torchserve_response = client.filter_log_events(
+            logGroupName='/aws/sagemaker/Endpoints/'+endpoint_name,
+            logStreamNames=[logStreamName], 
+            filterPattern='Torch worker started.',
+            limit=10,
+            interleaved=False
+        )
+        assert bool(check_for_torchserve_response['events'])
