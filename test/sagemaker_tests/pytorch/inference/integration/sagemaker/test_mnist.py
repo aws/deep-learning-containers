@@ -138,8 +138,14 @@ def _check_for_cloudwatch_logs(endpoint_name):
         limit=5
     )
 
-    logStreamName=identifyLogStream['logStreams'][0]['logStreamName']
-    #print(logStreamName)
+    indexError=False;
+    try:
+        logStreamName=identifyLogStream['logStreams'][0]['logStreamName']        
+    except IndexError:
+        indexError=True    
+
+    if(indexError):
+        raise Exception('Exception: Trying to lookup log streams from the given log group failed')
 
     log_events_response = client.get_log_events(
         logGroupName='/aws/sagemaker/Endpoints/'+endpoint_name,
@@ -152,8 +158,7 @@ def _check_for_cloudwatch_logs(endpoint_name):
     recordsAvailable=bool(log_events_response['events'])
     print('Are log events avaiable? '+str(recordsAvailable))
    
-    if not recordsAvailable:
-        print("Exception... No cloudwatch log results!!")
+    if not recordsAvailable:        
         raise Exception('Exception: No cloudwatch events getting logged for the group /aws/sagemaker/Endpoints/'+endpoint_name)
     else:    
         print('INFO: Most recently logged events were found for the given log group & log stream... Now verifying that TorchServe endpoint is logging on cloudwatch')
