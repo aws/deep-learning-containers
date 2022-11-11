@@ -40,8 +40,7 @@ def test_mnist_distributed_cpu(framework_version, ecr_image, instance_type, sage
             'framework_version': framework_version,
             'instance_type': instance_type,
             'model_dir': model_dir,
-            'mnist_script': mnist_cpu_script,
-            'verify_logs': True
+            'mnist_script': mnist_cpu_script
 
         }
     invoke_pytorch_helper_function(ecr_image, sagemaker_regions, _test_mnist_distributed, function_args)
@@ -126,7 +125,7 @@ def _test_mnist_distributed(
 
         assert output.shape == (batch_size, 10)
 
-        #  Check for Cloudwatch logs if true
+        #  Check for Cloudwatch logs
         if verify_logs:
             _check_for_cloudwatch_logs(endpoint_name)
 
@@ -166,3 +165,4 @@ def _check_for_cloudwatch_logs(endpoint_name):
             interleaved=False
         )
         assert bool(check_for_torchserve_response['events'])
+        print('Success!')
