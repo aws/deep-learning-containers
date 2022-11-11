@@ -114,9 +114,6 @@ RUN ln -s ${CONDA_PREFIX}/lib/libmkl_intel_lp64.so ${CONDA_PREFIX}/lib/libmkl_in
 # Install SM Distributed DataParallel binary
 RUN SMDATAPARALLEL_PT=1 pip install --no-cache-dir ${SMD_DATA_PARALLEL_URL} --force-reinstall
 
-RUN pip install tensorboardX --upgrade
-RUN pip install vit-pytorch 
-
 # Install SageMaker Training Toolkit
 RUN pip uninstall -y sagemaker-training \
  && pip install --no-deps --no-cache-dir -U --force-reinstall "sagemaker-training>=4.2.6"
