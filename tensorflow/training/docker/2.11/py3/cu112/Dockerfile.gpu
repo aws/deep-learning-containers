@@ -289,7 +289,7 @@ RUN ${PIP} install --no-cache-dir -U \
 
 # Install Horovod, temporarily using CUDA stubs
 RUN ldconfig /usr/local/cuda-11.2/targets/x86_64-linux/lib/stubs \
- && HOROVOD_GPU_ALLREDUCE=NCCL HOROVOD_WITH_TENSORFLOW=1 ${PIP} install --no-cache-dir horovod==0.25.0 \
+ && HOROVOD_GPU_ALLREDUCE=NCCL HOROVOD_WITH_TENSORFLOW=1 ${PIP} install --no-cache-dir horovod==0.26.1 \
  && ldconfig
 
 RUN HOME_DIR=/root \
@@ -370,10 +370,10 @@ RUN $PYTHON -m pip install --no-cache-dir -U \
     "shap>=0.39,<1"
 
 # install smdebug directly the specific branch
-ARG SMDEBUG_TAG=1.0.23
+# ARG SMDEBUG_TAG=1.0.23
 RUN git clone https://github.com/awslabs/sagemaker-debugger.git \
     && cd sagemaker-debugger \
-    && git checkout tags/$SMDEBUG_TAG -b $SMDEBUG_TAG \
+    && git checkout tags/1.0.23 -b 1.0.23 \
     && $PYTHON setup.py install && cd .. && rm -rf sagemaker-debugger
 
 
