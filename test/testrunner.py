@@ -374,7 +374,7 @@ def main():
                 ["-s", "-rA", f"--junitxml={report}", "-n=auto", f"--{specific_test_type}", "--ignore=container_tests/"]
             ]
 
-        pytest_cmds = [pytest_cmd + ["--last-failed", "--last-failed-no-failures", "all"] for pytest_cmd in pytest_cmds]
+        pytest_cmds = [pytest_cmd for pytest_cmd in pytest_cmds]
         pytest_cache_util.download_pytest_cache_from_s3_to_local(os.getcwd(), **pytest_cache_params)
         try:
             # Note:- Running multiple pytest_cmds in a sequence will result in the execution log having two
