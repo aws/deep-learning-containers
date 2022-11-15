@@ -13,22 +13,27 @@
 from __future__ import absolute_import
 
 import os
+import sys
 
 import numpy as np
 import pytest
 import sagemaker
 from sagemaker.pytorch import PyTorchModel
 
-#boto3 imports
 import boto3
 from datetime import datetime, timedelta
 import time
 import json
+import logging
 
 from ...integration import model_cpu_dir, mnist_cpu_script, mnist_gpu_script, model_eia_dir, mnist_eia_script
 from ...integration.sagemaker.timeout import timeout_and_delete_endpoint
 from .... import invoke_pytorch_helper_function
 
+
+LOGGER = logging.getLogger(__name__)
+LOGGER.setLevel(logging.INFO)
+LOGGER.addHandler(logging.StreamHandler(sys.stderr))
 
 @pytest.mark.model("mnist")
 @pytest.mark.processor("cpu")
@@ -127,10 +132,10 @@ def _test_mnist_distributed(
 
         #  Check for Cloudwatch logs
         if verify_logs:
-            _check_for_cloudwatch_logs(endpoint_name)
+            _check_for_cloudwatch_logs(endpoint_name, sagemaker_session)
 
-def _check_for_cloudwatch_logs(endpoint_name):
-    client=boto3.client('logs')
+def _check_for_cloudwatch_logs(endpoint_name, sagemaker_session):
+    client=sagemaker_session.boto_session.client('logs')
     log_group_name='/aws/sagemaker/Endpoints/'+endpoint_name
 
     identify_log_stream = client.describe_log_streams(
@@ -158,7 +163,7 @@ def _check_for_cloudwatch_logs(endpoint_name):
     if not records_available:        
         raise RuntimeError(f"records_available variable is false... No cloudwatch events getting logged for the group {log_group_name}")
     else:    
-        print('INFO: Most recently logged events were found for the given log group & log stream... Now verifying that TorchServe endpoint is logging on cloudwatch')
+        LOGGER.info(f"Most recently logged events were found for the given log group {log_group_name} & log stream {log_stream_name}... Now verifying that TorchServe endpoint is logging on cloudwatch")
         check_for_torchserve_response = client.filter_log_events(
             logGroupName=log_group_name,
             logStreamNames=[log_stream_name], 
@@ -167,4 +172,4 @@ def _check_for_cloudwatch_logs(endpoint_name):
             interleaved=False
         )
         assert bool(check_for_torchserve_response['events'])
-        print('Success!')
+        LOGGER.info("Success!")
