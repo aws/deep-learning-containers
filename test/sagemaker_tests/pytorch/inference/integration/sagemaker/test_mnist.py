@@ -131,40 +131,37 @@ def _test_mnist_distributed(
 
 def _check_for_cloudwatch_logs(endpoint_name):
     client=boto3.client('logs')
-    identifyLogStream = client.describe_log_streams(
-        logGroupName='/aws/sagemaker/Endpoints/'+endpoint_name,    
+    log_group_name='/aws/sagemaker/Endpoints/'+endpoint_name
+
+    identify_log_stream = client.describe_log_streams(
+        logGroupName=log_group_name,    
         orderBy='LastEventTime',
         descending=True,
         limit=5
     )
 
-    indexError=False;
     try:
-        logStreamName=identifyLogStream['logStreams'][0]['logStreamName']        
-    except IndexError:
-        indexError=True    
+        log_stream_name=identify_log_stream['logStreams'][0]['logStreamName']        
+    except IndexError as e:
+        raise RuntimeError(f"Unable to look up log streams for the log group {log_group_name}") from e
 
-    if(indexError):
-        raise Exception('Exception: Trying to lookup log streams from the given log group failed')
 
     log_events_response = client.get_log_events(
-        logGroupName='/aws/sagemaker/Endpoints/'+endpoint_name,
-        logStreamName=logStreamName,
+        logGroupName=log_group_name,
+        logStreamName=log_stream_name,
         limit=50,
         startFromHead=True
     )
-
-    #print(log_events_response['events'])
-    recordsAvailable=bool(log_events_response['events'])
-    print('Are log events avaiable? '+str(recordsAvailable))
+    
+    records_available=bool(log_events_response['events'])    
    
-    if not recordsAvailable:        
-        raise Exception('Exception: No cloudwatch events getting logged for the group /aws/sagemaker/Endpoints/'+endpoint_name)
+    if not records_available:        
+        raise RuntimeError(f"records_available variable is false... No cloudwatch events getting logged for the group {log_group_name}")
     else:    
         print('INFO: Most recently logged events were found for the given log group & log stream... Now verifying that TorchServe endpoint is logging on cloudwatch')
         check_for_torchserve_response = client.filter_log_events(
-            logGroupName='/aws/sagemaker/Endpoints/'+endpoint_name,
-            logStreamNames=[logStreamName], 
+            logGroupName=log_group_name,
+            logStreamNames=[log_stream_name], 
             filterPattern='Torch worker started.',
             limit=10,
             interleaved=False
