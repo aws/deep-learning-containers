@@ -33,7 +33,7 @@ from .... import invoke_pytorch_helper_function
 
 LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.INFO)
-LOGGER.addHandler(logging.StreamHandler(sys.stderr))
+LOGGER.addHandler(logging.StreamHandler(sys.stdout))
 
 @pytest.mark.model("mnist")
 @pytest.mark.processor("cpu")
