@@ -258,7 +258,7 @@ def test_pytorch_amp(pytorch_training, ec2_connection, gpu_only, ec2_instance_ty
 @pytest.mark.integration("pt_s3_plugin_gpu")
 @pytest.mark.model("N/A")
 @pytest.mark.parametrize("ec2_instance_type", PT_EC2_GPU_INSTANCE_TYPE, indirect=True)
-def test_pytorch_s3_plugin_gpu(pytorch_training, ec2_connection, ec2_instance_type, outside_versions_skip):
+def test_pytorch_s3_plugin_gpu(pytorch_training, ec2_connection, gpu_only, ec2_instance_type, outside_versions_skip):
     outside_versions_skip(pytorch_training, "1.8.0", "1.12.1")
     if test_utils.is_image_incompatible_with_instance_type(pytorch_training, ec2_instance_type):
         pytest.skip(f"Image {pytorch_training} is incompatible with instance type {ec2_instance_type}")
@@ -270,7 +270,7 @@ def test_pytorch_s3_plugin_gpu(pytorch_training, ec2_connection, ec2_instance_ty
 @pytest.mark.integration("pt_s3_plugin_cpu")
 @pytest.mark.model("N/A")
 @pytest.mark.parametrize("ec2_instance_type", PT_EC2_CPU_INSTANCE_TYPE, indirect=True)
-def test_pytorch_s3_plugin_cpu(pytorch_training, ec2_connection, ec2_instance_type, outside_versions_skip):
+def test_pytorch_s3_plugin_cpu(pytorch_training, ec2_connection, cpu_only, ec2_instance_type, outside_versions_skip):
     outside_versions_skip(pytorch_training, "1.8.0", "1.12.1")
     if test_utils.is_image_incompatible_with_instance_type(pytorch_training, ec2_instance_type):
         pytest.skip(f"Image {pytorch_training} is incompatible with instance type {ec2_instance_type}")
