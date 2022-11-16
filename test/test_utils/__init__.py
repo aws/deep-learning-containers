@@ -1218,6 +1218,7 @@ def get_framework_and_version_from_tag(image_uri):
         "huggingface_pytorch_trcomp",
         "huggingface_tensorflow",
         "huggingface_pytorch",
+        "pytorch_trcomp"
         "tensorflow",
         "mxnet",
         "pytorch",
@@ -1469,7 +1470,9 @@ def get_os_version_from_image_uri(image_uri):
 
 def get_framework_from_image_uri(image_uri):
     return (
-        "huggingface_tensorflow_trcomp"
+        "pytorch_trcomp" 
+        if "pytorch_trcomp" in image_uri
+        else "huggingface_tensorflow_trcomp"
         if "huggingface-tensorflow-trcomp" in image_uri
         else "huggingface_tensorflow"
         if "huggingface-tensorflow" in image_uri
