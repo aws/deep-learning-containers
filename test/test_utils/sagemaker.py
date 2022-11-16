@@ -379,6 +379,8 @@ def execute_local_tests(image, pytest_cache_params):
                             f"{pytest_command} failed with error code: {res.return_code}\n"
                             f"Traceback:\n{res.stdout}"
                         )
+    except Exception as e:
+        print(f"{type(e)} thrown : {str(e)}")
     finally:
         if ec2_conn:
             with ec2_conn.cd(path):
