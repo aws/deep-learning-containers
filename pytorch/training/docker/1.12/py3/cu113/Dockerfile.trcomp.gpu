@@ -33,8 +33,6 @@ LABEL maintainer="Amazon AI"
 LABEL dlc_major_version="1"
 
 # Version args - overwritten by args specified in buildspec
-ARG TRANSFORMERS_VERSION=4.19.2
-ARG DATASETS_VERSION=1.18.4
 ARG PYTHON=python3
 
 ARG PT_BUCKET=https://aws-pytorch-unified-cicd-binaries.s3.us-west-2.amazonaws.com/trcomp/r1.12.0_sm/20221110-064048/f77b79fa779a512c319d20e42f59bbd3559bd16a
@@ -42,17 +40,12 @@ ARG PT_URL=${PT_BUCKET}/torch-1.12.0%2Bcu113-cp38-cp38-linux_x86_64.whl
 ARG PT_XLA_URL=${PT_BUCKET}/torch_xla-1.12-cp38-cp38-linux_x86_64.whl
 ARG TORCHVISION_URL=${PT_BUCKET}/torchvision-0.13.0a0%2Bda3794e-cp38-cp38-linux_x86_64.whl
 ARG TORCHAUDIO_URL=${PT_BUCKET}/torchaudio-0.12.0%2B2e13884-cp38-cp38-linux_x86_64.whl
-ARG HF_TRANSFORMERS_URL=https://sm-training-comp-pytorch-binaries.s3.us-west-2.amazonaws.com/b1aba864-e7ce-4416-9559-6d2277169b06/20221108-221349/d49c05a6da01e0849fd39ffa9c3d533f40af32f0/transformers-4.19.2-py3-none-any.whl
 ARG SMD_DATA_PARALLEL_URL=https://smdataparallel.s3.amazonaws.com/binary/pytorch/1.12.0/cu113-compiler/2022-08-09/smdistributed_dataparallel-1.5.0-cp38-cp38-linux_x86_64.whl
 
 
 # Install Sagemaker PythonSDK
 RUN pip install --no-cache-dir sagemaker
 
-# install Hugging Face libraries and its dependencies
-RUN pip install -U --no-cache-dir \ 
-	transformers[sklearn,sentencepiece,audio,vision]==${TRANSFORMERS_VERSION} \ 
-	datasets==${DATASETS_VERSION}
 
 RUN apt-get update \
  # TODO: Remove upgrade statements once packages are updated in base image
@@ -83,24 +76,7 @@ RUN pip uninstall -y torchaudio \
  && pip install --no-deps --no-cache-dir -U --force-reinstall ${TORCHAUDIO_URL} \
  && rm -rf ${TORCHAUDIO_URL}
 
-# Install Tranformers
-RUN pip uninstall -y transformers \
- && pip install --no-deps --no-cache-dir --force-reinstall -U ${HF_TRANSFORMERS_URL} \
- && rm -rf ${HF_TRANSFORMERS_URL}
-
 ARG CONDA_PREFIX=/opt/conda
-
-# Install common training dependencies
-RUN ${CONDA_PREFIX}/bin/conda install -y -c conda-forge librosa
-RUN pip install --no-cache-dir \
-    sacrebleu \
-    fugashi \
-    ipadic \
-    nltk \
-    rouge-score \
-    soundfile \
-    sentence-transformers \
-    evaluate
 
 # Numpy version gets downgraded and becomes incompatible with PyTorch wheel in the above conda command.
 RUN pip install numpy --upgrade 
