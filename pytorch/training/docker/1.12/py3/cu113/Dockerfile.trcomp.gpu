@@ -79,7 +79,7 @@ RUN pip uninstall -y torchaudio \
 ARG CONDA_PREFIX=/opt/conda
 
 # Numpy version gets downgraded and becomes incompatible with PyTorch wheel in the above conda command.
-RUN pip install numpy --upgrade 
+RUN pip install numpy --upgrade
 
 # Fix library links
 RUN ln -s ${CONDA_PREFIX}/lib/libmkl_intel_lp64.so ${CONDA_PREFIX}/lib/libmkl_intel_lp64.so.1 \
@@ -98,6 +98,8 @@ RUN pip uninstall -y sagemaker-training \
 RUN pip uninstall -y sagemaker-pytorch-training \
  && pip install --no-deps --no-cache-dir -U --force-reinstall "sagemaker-pytorch-training>=2.6.1,<3"
 
+# CVE Fixes
+RUN pip install --no-cache-dir -U "protobuf<3.20.0"
 
 RUN HOME_DIR=/root \
  && curl -o ${HOME_DIR}/oss_compliance.zip https://aws-dlinfra-utilities.s3.amazonaws.com/oss_compliance.zip \
