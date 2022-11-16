@@ -191,6 +191,7 @@ def test_hc_mnist_gpu(framework_version, ecr_image, sagemaker_regions, dist_gpu_
 @pytest.mark.processor("gpu")
 @pytest.mark.skip_cpu
 @pytest.mark.skip_py2_containers
+@pytest.mark.skip_trcomp_containers
 @pytest.mark.parametrize("test_script, num_processes", [("train_gpt_simple.py", 8)])
 def test_smmodelparallel_gpt2_multigpu_singlenode(ecr_image, instance_type, sagemaker_regions, test_script, num_processes):
     """
@@ -264,6 +265,7 @@ def test_smmodelparallel_gpt2_multigpu_singlenode(ecr_image, instance_type, sage
 @pytest.mark.multinode(2)
 @pytest.mark.skip_cpu
 @pytest.mark.skip_py2_containers
+@pytest.mark.skip_trcomp_containers
 @pytest.mark.parametrize("test_script, num_processes", [("smmodelparallel_pt_mnist.py", 8)])
 def test_smmodelparallel_mnist_multigpu_multinode(ecr_image, instance_type, sagemaker_regions, test_script, num_processes):
     """
