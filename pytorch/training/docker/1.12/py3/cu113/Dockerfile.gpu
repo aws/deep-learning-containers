@@ -173,6 +173,8 @@ RUN ompi_info --parsable --all | grep mpi_built_with_cuda_support:value \
     future \
     "pyopenssl>=17.5.0" \
     libgcc \
+    # Include procps-ng to fix segfaults on watch command due to LD_LIBRARY_PATH issues
+    procps-ng \
     # Below 2 are included in miniconda base, but not mamba so need to install
     conda-content-trust \
     charset-normalizer \
@@ -228,7 +230,7 @@ RUN curl -o /license.txt  https://aws-dlc-licenses.s3.amazonaws.com/pytorch-1.12
 # |_____\____|_____| |___|_| |_| |_|\__,_|\__, |\___|
 #                                         |___/
 #  ____           _
-# |  _ \ ___  ___(_)_ __   ___ 
+# |  _ \ ___  ___(_)_ __   ___
 # | |_) / _ \/ __| | '_ \ / _ \
 # |  _ <  __/ (__| | |_) |  __/
 # |_| \_\___|\___|_| .__/ \___|
