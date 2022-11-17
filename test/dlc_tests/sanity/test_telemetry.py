@@ -362,7 +362,7 @@ def invoke_telemetry_call(image_uri, container_name, docker_cmd, framework, job_
             ec2_connection.run(f"{docker_cmd} run {env_vars} -e TEST_MODE={test_mode} --name {container_name} -id {image_uri}  {inference_command}")
             time.sleep(5)
             output = ec2_connection.run(
-                f"{docker_cmd} exec -i {container_name} /bin/bash -c 'cat /tmp/test_request.txt'"
+                f"{docker_cmd} exec -i {container_name} /bin/bash -c 'cat /tmp/test_request.txt'", hide=True
             ).stdout.strip('\n')
         else:
             ec2_connection.run(f"{docker_cmd} run {env_vars} --name {container_name} -id {image_uri} {inference_command}")
