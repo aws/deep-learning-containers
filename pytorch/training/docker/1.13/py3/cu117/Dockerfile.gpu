@@ -199,14 +199,12 @@ RUN pip install --no-cache-dir -U \
     "cryptography>=38.0.3,<39" \
     "ipython>=8.6.0,<8.7" \
     "mpi4py>=3.1.4,<3.2" \
-    "numpy>=1.23.4,<1.24" \
     "opencv-python>=4.6.0,<4.7" \
     "packaging>=21.3,<22" \
     "Pillow>=9.3,<9.4" \
     "psutil>=5.9.4,<5.10" \
     "pybind11>=2.10,<2.11" \
-    "pyyaml>=5.4,<5.5" \
-    "scipy>=1.9.3,<2"
+    "pyyaml>=5.4,<5.5"
 
 COPY deep_learning_container.py /usr/local/bin/deep_learning_container.py
 
