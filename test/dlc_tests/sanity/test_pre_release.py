@@ -25,6 +25,7 @@ from test.test_utils import (
     get_neuron_framework_and_version_from_tag,
     is_canary_context,
     is_dlc_cicd_context,
+    is_pr_context,
     run_cmd_on_container,
     start_container,
     stop_and_remove_container,
@@ -696,7 +697,7 @@ def test_pip_check(image):
 
 @pytest.mark.usefixtures("sagemaker", "huggingface")
 @pytest.mark.model("N/A")
-@pytest.mark.skipif(not is_dlc_cicd_context(), reason="This relies on buildspec env variables being properly set")
+@pytest.mark.skipif(not is_pr_context(), reason="This test relies on buildspec envs and configs. It checks for dir structure, only need in PR context.")
 def test_cuda_paths(gpu):
     """
     Test to ensure that:
