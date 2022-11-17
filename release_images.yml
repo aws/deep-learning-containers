@@ -56,6 +56,16 @@ release_images:
       disable_sm_tag: False  # [Default: False] This option is not used by Example images
       force_release: False
   5:
+    framework: "pytorch"
+    version: "1.5.1"
+    arch_type: "x86"
+    inference:
+      device_types: ["eia"]
+      python_versions: ["py38"]
+      os_version: "ubuntu20.04"
+      example: False
+      disable_sm_tag: True
+  6:
     framework: "mxnet"
     version: "1.9.0"
     customer_type: "ec2"
@@ -68,7 +78,7 @@ release_images:
       example: False
       disable_sm_tag: False
       force_release: False
-  6:
+  7:
     framework: "mxnet"
     version: "1.9.0"
     customer_type: "sagemaker"
