@@ -172,5 +172,4 @@ def _check_for_cloudwatch_logs(endpoint_name, sagemaker_session):
             limit=10,
             interleaved=False,
         )
-        assert bool(check_for_torchserve_response["events"])
-        LOGGER.info("Success!")
+        assert bool(check_for_torchserve_response["events"])           
