@@ -3,14 +3,17 @@ import os
 import subprocess
 import random
 import re
-import boto3
-from botocore.config import Config
+
 from time import sleep
 
+import boto3
 import invoke
+
+from botocore.config import Config
 from invoke.context import Context
 from invoke import exceptions
 from junit_xml import TestSuite, TestCase
+from tenacity import retry, stop_after_attempt, wait_fixed
 
 from test_utils import ec2 as ec2_utils
 from test_utils import metrics as metrics_utils
@@ -240,6 +243,7 @@ def generate_sagemaker_pytest_cmd(image, sagemaker_test_type):
     )
 
 
+@retry(reraise=True, wait=wait_fixed(60), stop=stop_after_attempt(5))
 def install_python_in_instance(context, python_invoker="python3.8"):
     """
     Install sagemaker local test dependencies
