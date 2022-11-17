@@ -514,6 +514,10 @@ def pull_images(docker_client, dlc_images):
 def non_huggingface_only():
     pass
 
+@pytest.fixture(scope="session")
+def non_pytorch_trcomp_only():
+    pass
+
 
 @pytest.fixture(scope="session")
 def training_compiler_only():
@@ -890,6 +894,8 @@ def pytest_generate_tests(metafunc):
                     if not framework_version_within_limit(metafunc, image):
                         continue
                     if "non_huggingface_only" in metafunc.fixturenames and "huggingface" in image:
+                        continue
+                    if "non_pytorch_trcomp_only" in metafunc.fixturenames and "pytorch-trcomp" in image:
                         continue
                     if "non_autogluon_only" in metafunc.fixturenames and "autogluon" in image:
                         continue
