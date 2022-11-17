@@ -240,25 +240,20 @@ def generate_sagemaker_pytest_cmd(image, sagemaker_test_type):
     )
 
 
-def install_sm_local_dependencies(framework, job_type, image, ec2_conn, ec2_instance_ami):
+def install_python_in_instance(context, python_invoker="python3.8"):
     """
     Install sagemaker local test dependencies
-    :param framework: str
-    :param job_type: str
-    :param image: str
-    :param ec2_conn: Fabric_obj
+    :param context: Invoke/Fabric Context object
+    :param python_invoker: str python version to install, such as python3.8, python3.9, etc.
     :return: None
     """
-    python_invoker = get_python_invoker(ec2_instance_ami)
-    # Install custom packages which need to be latest version"
-    # using virtualenv to avoid package conflicts with the current packages
-    ec2_conn.run(f"sudo apt-get install virtualenv python3-pip -y ")
-    ec2_conn.run(f"virtualenv env --python {python_invoker}")
-    ec2_conn.run(f"source ./env/bin/activate")
-    if framework == "pytorch":
-        # The following distutils package conflict with test dependencies
-        ec2_conn.run("sudo apt-get remove python3-scipy python3-yaml -y")
-    ec2_conn.run(f"sudo {python_invoker} -m pip install -r requirements.txt ", warn=True)
+    context.run("sudo apt-get update")
+    context.run("sudo apt-get install software-properties-common")
+    context.run("sudo add-apt-repository ppa:deadsnakes/ppa")
+    context.run("sudo apt-get update")
+    context.run(f"sudo apt-get install {python_invoker}")
+    context.run("curl -sSL https://bootstrap.pypa.io/get-pip.py -o get-pip.py")
+    context.run(f"{python_invoker} get-pip.py")
 
 
 def kill_background_processes_and_run_apt_get_update(ec2_conn):
@@ -307,8 +302,9 @@ def execute_local_tests(image, pytest_cache_params):
     account_id = os.getenv("ACCOUNT_ID", boto3.client("sts").get_caller_identity()["Account"])
     pytest_cache_util = PytestCache(boto3.client("s3"), account_id)
     ec2_client = boto3.client("ec2", config=Config(retries={"max_attempts": 10}), region_name=DEFAULT_REGION)
+    python_invoker = "python3.8"
     pytest_command, path, tag, job_type = generate_sagemaker_pytest_cmd(image, SAGEMAKER_LOCAL_TEST_TYPE)
-    pytest_command += " --last-failed --last-failed-no-failures all "
+    pytest_command = f"{python_invoker} -m {pytest_command} --last-failed --last-failed-no-failures all "
     print(pytest_command)
     framework, _ = get_framework_and_version_from_tag(image)
     random.seed(f"{datetime.datetime.now().strftime('%Y%m%d%H%M%S%f')}")
@@ -326,10 +322,11 @@ def execute_local_tests(image, pytest_cache_params):
             image,
             ec2_ami_id,
             ec2_key_name,
-            region
+            region,
         )
         ec2_conn = ec2_utils.get_ec2_fabric_connection(instance_id, key_file, region)
         ec2_conn.put(sm_tests_tar_name, f"{UBUNTU_HOME_DIR}")
+        install_python_in_instance(ec2_conn, python_invoker=python_invoker)
         ec2_conn.run(f"$(aws ecr get-login --no-include-email --region {region})")
         try:
             ec2_conn.run(f"docker pull {image}", timeout=600)
@@ -342,7 +339,7 @@ def execute_local_tests(image, pytest_cache_params):
         ec2_conn.run(f"tar -xzf {sm_tests_tar_name}")
         kill_background_processes_and_run_apt_get_update(ec2_conn)
         with ec2_conn.cd(path):
-            install_sm_local_dependencies(framework, job_type, image, ec2_conn, ec2_ami_id)
+            ec2_conn.run(f"{python_invoker} -m pip install -r requirements.txt ", warn=True)
             pytest_cache_util.download_pytest_cache_from_s3_to_ec2(ec2_conn, path, **pytest_cache_params)
             # Workaround for mxnet cpu training images as test distributed
             # causes an issue with fabric ec2_connection
