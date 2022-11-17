@@ -696,6 +696,7 @@ def test_pip_check(image):
 
 @pytest.mark.usefixtures("sagemaker", "huggingface")
 @pytest.mark.model("N/A")
+@pytest.mark.skipif(not is_dlc_cicd_context(), reason="This relies on buildspec env variables being properly set")
 def test_cuda_paths(gpu):
     """
     Test to ensure that:
@@ -739,19 +740,10 @@ def test_cuda_paths(gpu):
         # Use the pyX version as opposed to the pyXY version if pyXY path does not exist
         short_python_version = python_version[:3]
 
-    # Check buildspec for cuda version
-    buildspec = "buildspec"
-    if is_tf_version("1", image):
-        buildspec = "buildspec-tf1"
-    if "trcomp" in image:
-        buildspec = "buildspec-trcomp"
-    if "sagemaker-lite" in image:
-        buildspec = "buildspec-sagemaker-lite"
-
     image_tag_in_buildspec = False
     dockerfile_spec_abs_path = None
     
-    buildspec_path = construct_buildspec_path(dlc_path, framework_path, buildspec, framework_version)
+    buildspec_path = construct_buildspec_path(dlc_path)
     buildspec_def = Buildspec()
     buildspec_def.load(buildspec_path)
 

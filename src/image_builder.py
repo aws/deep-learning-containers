@@ -315,6 +315,7 @@ def image_builder(buildspec, image_types=[], device_types=[]):
             use_latest_additional_tag=True,
             BUILD_CONTEXT=os.getenv("BUILD_CONTEXT"),
             TEST_TRIGGER=test_trigger_job,
+            FRAMEWORK_BUILDSPEC_FILE=os.getenv("FRAMEWORK_BUILDSPEC_FILE")
         )
 
 

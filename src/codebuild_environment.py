@@ -48,6 +48,15 @@ def get_codebuild_project_name():
     return os.getenv("CODEBUILD_BUILD_ID", "local_test").split(":")[0]
 
 
+def get_test_trigger_project_name():
+    """
+    Get env variable for TEST_TRIGGER
+
+    :return: value, or "local_test" if not set
+    """
+    return os.getenv("TEST_TRIGGER", "local_test")
+
+
 def get_cloned_folder_path():
     """
     Extract the root folder path for the repository.

@@ -6,7 +6,7 @@ from enum import Enum
 
 import toml
 
-from codebuild_environment import get_codebuild_project_name, get_cloned_folder_path
+from codebuild_environment import get_codebuild_project_name, get_cloned_folder_path, get_test_trigger_project_name
 
 LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.DEBUG)
@@ -27,6 +27,11 @@ def parse_dlc_developer_configs(section, option, tomlfile=get_dlc_developer_conf
 
 def get_buildspec_override():
     build_project_name = get_codebuild_project_name()
+    return parse_dlc_developer_configs("buildspec_override", build_project_name)
+
+
+def get_buildspec_override_from_testjob():
+    build_project_name = get_test_trigger_project_name()
     return parse_dlc_developer_configs("buildspec_override", build_project_name)
 
 
