@@ -1,3 +1,4 @@
+import json
 import os
 import random
 import sys
@@ -60,7 +61,13 @@ def run_sagemaker_local_tests(images, pytest_cache_params):
 
     pool_number = len(images)
     with Pool(pool_number) as p:
-        p.starmap(sm_utils.execute_local_tests, [[image, pytest_cache_params] for image in images])
+        test_results = p.starmap(sm_utils.execute_local_tests, [[image, pytest_cache_params] for image in images])
+    if not all(test_results):
+        failed_images = [images[index] for index, result in enumerate(test_results)]
+        raise RuntimeError(
+            f"SageMaker Local tests failed on the following DLCs:\n"
+            f"{json.dumps(failed_images, indent=4)}"
+        )
 
 
 def run_sagemaker_test_in_executor(image, num_of_instances, instance_type):
@@ -357,7 +364,7 @@ def main():
                 context.run("tar -c -f gaudi-test-suite.tar.gz gaudi-test-suite")
             else:
                 pytest_cmd += ["--reruns=1", "--reruns-delay=10"]
-        
+
         if is_pr_context():
             if specific_test_type == "eks":
                 pytest_cmd.append("--timeout=2340")
@@ -442,7 +449,7 @@ def main():
             "neuron": "Skipping - there are no local mode tests for Neuron",
             "huggingface-tensorflow-training": "Skipping - there are no local mode tests for HF TF training"
         }
-        
+
         for skip_condition, reason in sm_local_to_skip.items():
             if skip_condition in dlc_images:
                 LOGGER.info(f"{reason}. Images: {dlc_images}")

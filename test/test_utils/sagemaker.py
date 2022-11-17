@@ -299,6 +299,7 @@ def execute_local_tests(image, pytest_cache_params):
     :param pytest_cache_params: parameters required for :param pytest_cache_util
     :return: None
     """
+    test_success = False
     account_id = os.getenv("ACCOUNT_ID", boto3.client("sts").get_caller_identity()["Account"])
     pytest_cache_util = PytestCache(boto3.client("s3"), account_id)
     ec2_client = boto3.client("ec2", config=Config(retries={"max_attempts": 10}), region_name=DEFAULT_REGION)
@@ -376,6 +377,7 @@ def execute_local_tests(image, pytest_cache_params):
                             f"{pytest_command} failed with error code: {res.return_code}\n"
                             f"Traceback:\n{res.stdout}"
                         )
+        test_success = True
     except Exception as e:
         print(f"{type(e)} thrown : {str(e)}")
     finally:
@@ -389,9 +391,8 @@ def execute_local_tests(image, pytest_cache_params):
         if ec2_client and ec2_key_name:
             print(f"Destroying ssh Key_pair for image: {image}")
             destroy_ssh_keypair(ec2_client, ec2_key_name)
-        # return None here to prevent errors from multiprocessing.map(). Without this it returns some object by default
-        # which is causing "cannot pickle '_thread.lock' object" error
-        return None
+
+    return test_success
 
 
 def execute_sagemaker_remote_tests(process_index, image, global_pytest_cache, pytest_cache_params):
