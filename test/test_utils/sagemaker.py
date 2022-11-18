@@ -244,20 +244,29 @@ def generate_sagemaker_pytest_cmd(image, sagemaker_test_type):
 
 
 @retry(reraise=True, wait=wait_fixed(60), stop=stop_after_attempt(5))
-def install_python_in_instance(context, python_invoker="python3.8"):
+def install_python_in_instance(context, python_version="3.9"):
     """
     Install sagemaker local test dependencies
     :param context: Invoke/Fabric Context object
-    :param python_invoker: str python version to install, such as python3.8, python3.9, etc.
+    :param python_version: str python version to install, such as 3.8, 3.9, etc.
     :return: None
     """
+    context.run("""ls ~/.pyenv || git clone https://github.com/pyenv/pyenv.git ~/.pyenv""")
+    context.run("""echo 'export PYENV_ROOT="$HOME/.pyenv"' >> ~/.bashrc""")
+    context.run("""echo 'command -v pyenv >/dev/null || export PATH="$PYENV_ROOT/bin:$PATH"' >> ~/.bashrc""")
+    context.run("""echo 'eval "$(pyenv init -)"' >> ~/.bashrc""")
+    context.run("""echo 'export PYENV_ROOT="$HOME/.pyenv"' >> ~/.profile""")
+    context.run("""echo 'command -v pyenv >/dev/null || export PATH="$PYENV_ROOT/bin:$PATH"' >> ~/.profile""")
+    context.run("""echo 'eval "$(pyenv init -)"' >> ~/.profile""")
+
     context.run("sudo apt-get update")
-    context.run("sudo apt-get install -y software-properties-common")
-    context.run("sudo add-apt-repository ppa:deadsnakes/ppa")
-    context.run("sudo apt-get update")
-    context.run(f"sudo apt-get install -y {python_invoker}")
-    context.run("curl -sSL https://bootstrap.pypa.io/get-pip.py -o get-pip.py")
-    context.run(f"{python_invoker} get-pip.py")
+    context.run(
+        "sudo apt install -y make build-essential libssl-dev zlib1g-dev "
+        "libbz2-dev libreadline-dev libsqlite3-dev wget curl llvm "
+        "libncursesw5-dev xz-utils tk-dev libxml2-dev libxmlsec1-dev libffi-dev liblzma-dev"
+    )
+
+    context.run(f"pyenv install {python_version}")
 
 
 def kill_background_processes_and_run_apt_get_update(ec2_conn):
@@ -307,9 +316,8 @@ def execute_local_tests(image, pytest_cache_params):
     account_id = os.getenv("ACCOUNT_ID", boto3.client("sts").get_caller_identity()["Account"])
     pytest_cache_util = PytestCache(boto3.client("s3"), account_id)
     ec2_client = boto3.client("ec2", config=Config(retries={"max_attempts": 10}), region_name=DEFAULT_REGION)
-    python_invoker = "python3.8"
     pytest_command, path, tag, job_type = generate_sagemaker_pytest_cmd(image, SAGEMAKER_LOCAL_TEST_TYPE)
-    pytest_command = f"{python_invoker} -m {pytest_command} --last-failed --last-failed-no-failures all "
+    pytest_command += " --last-failed --last-failed-no-failures all "
     print(pytest_command)
     framework, _ = get_framework_and_version_from_tag(image)
     random.seed(f"{datetime.datetime.now().strftime('%Y%m%d%H%M%S%f')}")
@@ -331,7 +339,7 @@ def execute_local_tests(image, pytest_cache_params):
         )
         ec2_conn = ec2_utils.get_ec2_fabric_connection(instance_id, key_file, region)
         ec2_conn.put(sm_tests_tar_name, f"{UBUNTU_HOME_DIR}")
-        install_python_in_instance(ec2_conn, python_invoker=python_invoker)
+        install_python_in_instance(ec2_conn, python_invoker="3.9")
         ec2_conn.run(f"$(aws ecr get-login --no-include-email --region {region})")
         try:
             ec2_conn.run(f"docker pull {image}", timeout=600)
@@ -344,7 +352,7 @@ def execute_local_tests(image, pytest_cache_params):
         ec2_conn.run(f"tar -xzf {sm_tests_tar_name}")
         kill_background_processes_and_run_apt_get_update(ec2_conn)
         with ec2_conn.cd(path):
-            ec2_conn.run(f"{python_invoker} -m pip install -r requirements.txt ", warn=True)
+            ec2_conn.run(f"pip install -r requirements.txt")
             pytest_cache_util.download_pytest_cache_from_s3_to_ec2(ec2_conn, path, **pytest_cache_params)
             # Workaround for mxnet cpu training images as test distributed
             # causes an issue with fabric ec2_connection
