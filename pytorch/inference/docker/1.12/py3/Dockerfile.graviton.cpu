@@ -19,10 +19,10 @@ LABEL dlc_major_version="1"
 
 ARG PYTHON=python3
 ARG PYTHON_VERSION=3.8.12
-ARG PT_INFERENCE_URL=https://aws-pytorch-unified-cicd-binaries.s3.us-west-2.amazonaws.com/r1.12.1_graviton/torch-1.12.1%2Bcpu-cp38-cp38-manylinux2014_aarch64.whl
-ARG PT_XLA_INFERENCE_URL=https://aws-pytorch-unified-cicd-binaries.s3.us-west-2.amazonaws.com/r1.12.1_graviton/torch_xla-1.12.0_cpu-cp38-cp38-manylinux2014_aarch64.whl
-ARG PT_TORCHDATA_URL=https://aws-pytorch-unified-cicd-binaries.s3.us-west-2.amazonaws.com/r1.12.0_graviton/torchdata-0.4.1%2B983e87a-py3-none-any.whl
-ARG PT_TORCHTEXT_URL=https://aws-pytorch-unified-cicd-binaries.s3.us-west-2.amazonaws.com/r1.12.1_graviton/torchtext-0.13.1-cp38-cp38-manylinux2014_aarch64.whl
+ARG PT_INFERENCE_URL=https://aws-pytorch-unified-cicd-binaries.s3.us-west-2.amazonaws.com/r1.12.1_graviton/torch-1.12.1%2Bcpu-cp38-cp38-linux_aarch64.whl
+ARG PT_XLA_INFERENCE_URL=https://aws-pytorch-unified-cicd-binaries.s3.us-west-2.amazonaws.com/r1.12.1_graviton/torch_xla-1.12.0%2B82fbe57-cp38-cp38-linux_aarch64.whl
+ARG PT_TORCHDATA_URL=https://aws-pytorch-unified-cicd-binaries.s3.us-west-2.amazonaws.com/r1.12.1_graviton/torchdata-0.4.1%2B983e87a-py3-none-any.whl
+ARG PT_TORCHTEXT_URL=https://aws-pytorch-unified-cicd-binaries.s3.us-west-2.amazonaws.com/r1.12.1_graviton/torchtext-0.13.1a0%2B330201f-cp38-cp38-linux_aarch64.whl
 ARG ARMCL_BRANCH=v22.05
 ARG OPEN_MPI_VERSION=4.1.4
 ARG TS_VERSION=0.6.0
