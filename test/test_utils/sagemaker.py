@@ -252,10 +252,10 @@ def install_python_in_instance(context, python_invoker="python3.8"):
     :return: None
     """
     context.run("sudo apt-get update")
-    context.run("sudo apt-get install software-properties-common")
+    context.run("sudo apt-get install -y software-properties-common")
     context.run("sudo add-apt-repository ppa:deadsnakes/ppa")
     context.run("sudo apt-get update")
-    context.run(f"sudo apt-get install {python_invoker}")
+    context.run(f"sudo apt-get install -y {python_invoker}")
     context.run("curl -sSL https://bootstrap.pypa.io/get-pip.py -o get-pip.py")
     context.run(f"{python_invoker} get-pip.py")
 
