@@ -247,17 +247,20 @@ def generate_sagemaker_pytest_cmd(image, sagemaker_test_type):
 def install_python_in_instance(context, python_version="3.9"):
     """
     Install sagemaker local test dependencies
-    :param context: Invoke/Fabric Context object
+    :param context: Invoke Context / Fabric Connection object
     :param python_version: str python version to install, such as 3.8, 3.9, etc.
     :return: None
     """
     context.run("""ls ~/.pyenv || git clone https://github.com/pyenv/pyenv.git ~/.pyenv""")
-    context.run("""echo 'export PYENV_ROOT="$HOME/.pyenv"' >> ~/.bashrc""")
-    context.run("""echo 'command -v pyenv >/dev/null || export PATH="$PYENV_ROOT/bin:$PATH"' >> ~/.bashrc""")
-    context.run("""echo 'eval "$(pyenv init -)"' >> ~/.bashrc""")
-    context.run("""echo 'export PYENV_ROOT="$HOME/.pyenv"' >> ~/.profile""")
-    context.run("""echo 'command -v pyenv >/dev/null || export PATH="$PYENV_ROOT/bin:$PATH"' >> ~/.profile""")
-    context.run("""echo 'eval "$(pyenv init -)"' >> ~/.profile""")
+    # Need to configure PATH and PYENV_ROOT changes in alternative location because ~/.bashrc and ~/.profile are
+    # not used when using bash through Fabric Connection.
+    context.run("sudo chmod 666 /etc/profile.d/dlami.sh")
+    context.run("""echo 'export PYENV_ROOT="$HOME/.pyenv"' >> /etc/profile.d/dlami.sh""")
+    context.run(
+        """echo 'command -v pyenv >/dev/null || export PATH="$PYENV_ROOT/bin:$PATH"' >> /etc/profile.d/dlami.sh"""
+    )
+    context.run("sudo chmod 644 /etc/profile.d/dlami.sh")
+    context.run("""echo 'eval "$(pyenv init -)"' >> /etc/profile.d/dlami.sh""")
     context.run("""exec "$SHELL" """)
 
     context.run("sudo apt-get update")
