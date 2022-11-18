@@ -112,6 +112,7 @@ RUN ${PIP} uninstall -y tensorflow-cpu \
     h5py==3.1.0 \
     werkzeug \
     psutil==5.7.2 \
+    Pillow \
     # Protobuf 3.18.3, 3.19.5, 3.20.2 and 4.21.6 include a fix for CVE-2022-1941
     protobuf==3.19.5 \
  && rm -rf ${TF_URL}
