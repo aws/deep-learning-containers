@@ -258,6 +258,7 @@ def install_python_in_instance(context, python_version="3.9"):
     context.run("""echo 'export PYENV_ROOT="$HOME/.pyenv"' >> ~/.profile""")
     context.run("""echo 'command -v pyenv >/dev/null || export PATH="$PYENV_ROOT/bin:$PATH"' >> ~/.profile""")
     context.run("""echo 'eval "$(pyenv init -)"' >> ~/.profile""")
+    context.run("""exec "$SHELL" """)
 
     context.run("sudo apt-get update")
     context.run(
@@ -267,6 +268,7 @@ def install_python_in_instance(context, python_version="3.9"):
     )
 
     context.run(f"pyenv install {python_version}")
+    context.run(f"pyenv global {python_version}")
 
 
 def kill_background_processes_and_run_apt_get_update(ec2_conn):
