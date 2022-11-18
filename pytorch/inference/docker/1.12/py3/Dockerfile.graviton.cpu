@@ -141,6 +141,10 @@ RUN pip uninstall -y torch \
  && pip install --no-cache-dir -U $PT_INFERENCE_URL $PT_XLA_INFERENCE_URL $PT_TORCHDATA_URL $PT_TORCHTEXT_URL
 RUN pip install "torchvision>=0.13,<0.14"
 
+## Adding generic git config to handle the fetch of the patched repo
+RUN git config --global user.email "you@example.com" \
+ && git config --global user.name "Your Name"
+
 ## compile and install ArmCL
 RUN git clone https://github.com/Arm-software/ComputeLibrary.git \
  && cd ComputeLibrary \
