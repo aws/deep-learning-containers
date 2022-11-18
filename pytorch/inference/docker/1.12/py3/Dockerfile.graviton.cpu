@@ -145,6 +145,8 @@ RUN pip install "torchvision>=0.13,<0.14"
 RUN git clone https://github.com/Arm-software/ComputeLibrary.git \
  && cd ComputeLibrary \
  && git checkout $ARMCL_BRANCH \
+ && git fetch https://review.mlplatform.org/ml/ComputeLibrary refs/changes/16/8416/1 \
+ && git cherry-pick FETCH_HEAD \
  && scons Werror=0 -j8 debug=0 neon=1 opencl=0 os=linux arch=armv8.2-a multi_isa=1 embed_kernels=0 os=linux build=native \
  && mkdir /opt/armClArtifact \
  && cp build/libarm* /opt/armClArtifact \
