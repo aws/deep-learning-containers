@@ -374,7 +374,8 @@ RUN $PYTHON -m pip install --no-cache-dir -U \
 RUN git clone https://github.com/yl-to/sagemaker-debugger.git\
     && cd sagemaker-debugger \
     && git checkout tf211-version-bump \
-    && $PYTHON setup.py install && cd .. && rm -rf sagemaker-debugger
+    && pip install -e . && cd .. && rm -rf sagemaker-debugger
+#    && $PYTHON setup.py install && cd .. && rm -rf sagemaker-debugger
 
 # install sagemaker-tensorflow from source
 # ARG SAGEMAKER_TENSORFLOW_TAG=v1.16.0
