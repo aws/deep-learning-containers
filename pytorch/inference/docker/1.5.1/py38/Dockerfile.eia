@@ -1,4 +1,10 @@
 FROM ubuntu:20.04
+
+RUN apt-get update \
+ && apt-get upgrade -y \
+ && apt-get clean \
+ && rm -rf /var/lib/apt/lists/*
+
 LABEL maintainer="Amazon AI"
 LABEL com.amazonaws.sagemaker.capabilities.accept-bind-to-port=true
 LABEL dlc_major_version="1"
@@ -91,7 +97,7 @@ RUN conda install -y \
  && pip install multi-model-server==$MMS_VERSION \
  && pip install opencv-python  \
  && pip install numpy==1.22.4 \
- && pip install pillow==9.2.0 \
+ && pip install pillow==9.3.0 \
  && pip install urllib3==1.26.11 \
  # pyOpenSSL requires cryptography>=2.3, but all versions <3.3 have vulnerabilities
  && pip install -U "cryptography>=3.3"

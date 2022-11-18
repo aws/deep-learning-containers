@@ -21,7 +21,9 @@
                 "43453":"[DISPUTED] The vendor does not agree this is a vulneraility; In (very limited) circumstances a user may be able provoke the buffer overflow, the user is most likely already privileged to at least provoke denial of service by exhausting memory. Triggering this further requires the use of uncommon API (complicated structured dtypes), which is very unlikely to be available to an unprivileged user.",
                 "44717":"The vendor states that this reported code behavior is completely harmless.",
                 "48551": "tensorflow-estimator and tensorflow versions must match. For all TF versions below TF 2.9.0, we cannot upgrade tf-estimator to 2.9.0",
-                "51159":"cryptography>38.0.1 does not exist yet"
+                "51159":"cryptography>38.0.1 does not exist yet",
+                "51516":"keras>2.10.0 does not exist yet",
+                "51499":"wheel>0.37.1 does not exist yet"
             }
         },
         "inference":{
@@ -36,7 +38,9 @@
                 "42098":"Can't upgrade TF version to 2.7.x in non 2.7 images.",
                 "42062":"Can't upgrade TF version to 2.7.x in non 2.7 images.",
                 "51159": "for cryptography until we have 39.0.0 release",
-                "44715":"False positive for numpy. Was fixed in 1.22.2"
+                "44715":"False positive for numpy. Was fixed in 1.22.2",
+                "51499": "the requested wheel is YANKED in pypi https://pypi.org/project/wheel/#history",
+                "51516":"keras>2.10.0 does not exist yet"
             }
         },
         "inference-eia": {
@@ -49,7 +53,8 @@
             },
             "py3": {
                 "42098":"Can't upgrade TF version to 2.7.x in non 2.7 images.",
-                "42062":"Can't upgrade TF version to 2.7.x in non 2.7 images."
+                "42062":"Can't upgrade TF version to 2.7.x in non 2.7 images.",
+                "51499": "the requested wheel is YANKED in pypi https://pypi.org/project/wheel/#history"
             }
         },
         "inference-neuron":{
@@ -197,7 +202,8 @@
                 "44850": "tf ignore for neuron",
                 "44849": "tf ignore for neuron",
                 "44846": "tf ignore for neuron",
-                "44872": "tf ignore for neuron"
+                "44872": "tf ignore for neuron",
+                "51499": "the requested wheel is YANKED in pypi https://pypi.org/project/wheel/#history"
             }
         }
     },
@@ -410,12 +416,28 @@
                 "51159":"cryptography>38.0.1 does not exist yet"
             }
         },
+        "training-neuron":{
+            "_comment":"py2 is deprecated",
+            "py2": {
+            },
+            "py3": {
+                "43453":"numpy > 1.22.0 is not available for py37",
+                "44715":"numpy > 1.22.0 is not available for py37",
+                "44717":"numpy > 1.22.0 is not available for py37",
+                "44716":"numpy > 1.22.0 is not available for py37",
+                "51159":"cryptography>38.0.1 does not exist yet",
+                "51358":"Safety is test pkg and not part of image",
+                "51499":"Wheel is needed by tensorboard but v0.38 is not there yet",
+                "51457":"Ignored- please check https://github.com/pytest-dev/py/issues/287"
+            }
+        },
         "inference": {
             "_comment":"py2 is deprecated",
             "py2": {
             },
             "py3": {
-                "51159":"cryptography>38.0.1 does not exist yet"
+                "51159":"cryptography>38.0.1 does not exist yet",
+                "51499": "the requested wheel is YANKED in pypi https://pypi.org/project/wheel/#history"
             }
         },
         "inference-eia": {
@@ -612,7 +634,8 @@
                 "48641":"Added in order to support tensorflow 1.15.5",
                 "44463":"Added in order to support tensorflow 1.15.5",
                 "48562":"Added in order to support tensorflow 1.15.5",
-                "48648":"Added in order to support tensorflow 1.15.5"
+                "48648":"Added in order to support tensorflow 1.15.5",
+                "51499": "the requested wheel is YANKED in pypi https://pypi.org/project/wheel/#history"
             }
         }
     },
@@ -657,7 +680,8 @@
                 "44717":"for shipping numpy 1.21.5 - the last available version for py3.7",
                 "43453":"[DISPUTED] The vendor does not agree this is a vulneraility; In (very limited) circumstances a user may be able provoke the buffer overflow, the user is most likely already privileged to at least provoke denial of service by exhausting memory. Triggering this further requires the use of uncommon API (complicated structured dtypes), which is very unlikely to be available to an unprivileged user.",
                 "48551": "tensorflow-estimator and tensorflow versions must match. For all TF versions below TF 2.9.0, we cannot upgrade tf-estimator to 2.9.0",
-                "48547":"Latest version of rdflib is being installed"
+                "48547":"Latest version of rdflib is being installed",
+                "51499": "the requested wheel is YANKED in pypi https://pypi.org/project/wheel/#history"
             }
         }
     },
@@ -690,7 +714,9 @@
                 "44716":"The vendor states that this reported code behavior is completely harmless.",
                 "44717":"The vendor states that this reported code behavior is completely harmless.",
                 "48547":"Latest version of rdflib is being installed",
-                "51159":"cryptography>38.0.1 does not exist yet"
+                "51159":"cryptography>38.0.1 does not exist yet",
+                "51450": "This bug is in Jax/Flax backend that would need Transformers 4.23 for fix.",
+                "51396": "Protobuf is only a runtime dependency of transformers. Current version of Protobuf installed in the image is not vulnerable."
             }
         },
         "inference-neuron": {
@@ -707,7 +733,9 @@
     "huggingface_pytorch_trcomp": {
         "training": {
             "py3": {
-                "48547":"Latest version of rdflib is being installed"
+                "48547":"Latest version of rdflib is being installed",
+                "51396":"Protobuf is only a runtime dependency of transformers and we build our own transformers.",
+                "51450":"We build our own transformers specifically for PyTorch. This bug is in Jax/Flax backend."
             }
         }
     },
