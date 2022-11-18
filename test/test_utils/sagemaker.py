@@ -46,7 +46,7 @@ class DLCSageMakerLocalTestFailure(Exception):
 
 def assign_sagemaker_remote_job_instance_type(image):
     if "graviton" in image:
-        return "c6g.2xlarge"
+        return "ml.c6g.2xlarge"
     elif "training-neuron" in image:
         return "ml.trn1.2xlarge"
     elif "inference-neuron" in image:
