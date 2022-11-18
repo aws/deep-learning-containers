@@ -338,7 +338,7 @@ RUN ${PIP} install --no-cache-dir -U \
     tensorflow-text==2.10.0
 
 RUN ${PIP} uninstall -y tensorflow tensorflow-gpu \
-    ${PIP} install --no-cache-dir -U \
+    ${PIP} install --no-cache-dir \
     ${TF_URL} \
     tensorflow-io==0.27.0 \
     tensorflow-datasets==4.7.0
