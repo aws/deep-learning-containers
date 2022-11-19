@@ -103,8 +103,6 @@ RUN ln -s $(which ${PYTHON}) /usr/local/bin/python \
 RUN apt-get update && apt-get -y install cmake protobuf-compiler
 
 RUN ${PIP} uninstall -y tensorflow-cpu \
- && ${PIP} install --no-cache-dir -U \
-    Pillow \
  && ${PIP} uninstall -y keras \
  && ${PIP} install --no-cache-dir -U boto3 --upgrade \
     # Let's install TensorFlow separately in the end to avoid
