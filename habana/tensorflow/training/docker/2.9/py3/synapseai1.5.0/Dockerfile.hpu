@@ -114,7 +114,8 @@ RUN ${PIP} uninstall -y tensorflow-cpu \
     psutil==5.7.2 \
     # Protobuf 3.18.3, 3.19.5, 3.20.2 and 4.21.6 include a fix for CVE-2022-1941
     protobuf==3.19.5 \
-    Pillow\
+    Pillow \
+    wheel \
  && rm -rf ${TF_URL}\
  && ${PIP} uninstall -y keras 
 
