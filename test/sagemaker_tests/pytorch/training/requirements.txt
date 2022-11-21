@@ -15,8 +15,8 @@ pytest-rerunfailures==8.0
 pytest-xdist==1.28.0
 PyYAML==5.4
 requests==2.24
-torch==1.6.0
-torchvision==0.7.0
+torch==1.11
+torchvision==0.12
 tox==3.7.0
 requests_mock==1.6.0
 fabric
