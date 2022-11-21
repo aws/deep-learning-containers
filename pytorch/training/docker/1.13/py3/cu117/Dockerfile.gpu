@@ -5,7 +5,7 @@ ARG MAMBA_VERSION=4.12.0-2
 
 # PyTorch Binaries
 ARG PT_EC2_TRAINING_URL=https://aws-pytorch-unified-cicd-binaries.s3.us-west-2.amazonaws.com/r1.13.0_ec2/20221105-023216/41160d617a294a8963a868ec942a2569a2fbf3ea/torch-1.13.0%2Bcu117-cp39-cp39-linux_x86_64.whl
-ARG PT_SM_TRAINING_URL=https://download.pytorch.org/whl/cu117/torch-1.13.0%2Bcu117-cp39-cp39-linux_x86_64.whl
+ARG PT_SM_TRAINING_URL=https://aws-pytorch-unified-cicd-binaries.s3.us-west-2.amazonaws.com/r1.13.0_sm/20221118-233439/3c2c8e82a7e202bce4e22daffc2c3ac7dc1c920b/torch-1.13.0%2Bcu117-cp39-cp39-linux_x86_64.whl
 ARG PT_TORCHVISION_URL=https://download.pytorch.org/whl/cu117/torchvision-0.14.0%2Bcu117-cp39-cp39-linux_x86_64.whl
 ARG PT_TORCHAUDIO_URL=https://download.pytorch.org/whl/cu117/torchaudio-0.13.0%2Bcu117-cp39-cp39-linux_x86_64.whl
 ARG PT_TORCHDATA_URL=https://download.pytorch.org/whl/test/torchdata-0.5.0-cp39-cp39-manylinux_2_17_x86_64.manylinux2014_x86_64.whl
