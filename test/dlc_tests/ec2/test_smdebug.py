@@ -5,6 +5,7 @@ import pytest
 import test.test_utils as test_utils
 
 from packaging.version import Version
+from packaging.specifiers import SpecifierSet
 
 from test.test_utils import CONTAINER_TESTS_PREFIX, LOGGER, is_tf_version, get_framework_and_version_from_tag, is_nightly_context
 from test.test_utils.ec2 import get_ec2_instance_type
