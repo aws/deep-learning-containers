@@ -1,4 +1,4 @@
-import os
+;import os
 import re
 import subprocess
 import botocore
@@ -659,6 +659,12 @@ def test_pip_check(image):
     if framework in tf263_io21_issue_framework_list or Version(framework_version) in SpecifierSet(">=2.6.3,<2.7"):
         allowed_tf263_exception = re.compile(rf"^tensorflow-io 0.21.0 requires tensorflow, which is not installed.$")
         allowed_exception_list.append(allowed_tf263_exception)
+
+
+    if "pytorch" in image and "trcomp" in image and Version(framework_version) in SpecifierSet("1.12"):
+        allowed_exception_list.append(re.compile(rf"^torch-xla 1.12 requires absl-py, which is not installed.$"))
+        allowed_exception_list.append(re.compile(rf"^torch-xla 1.12 requires cloud-tpu-client, which is not installed.$"))
+
 
     if "autogluon" in image and (("0.3.1" in image) or ("0.3.2" in image)):
         allowed_autogluon_exception = re.compile(

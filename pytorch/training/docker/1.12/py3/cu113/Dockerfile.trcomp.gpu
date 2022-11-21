@@ -101,6 +101,9 @@ RUN pip uninstall -y sagemaker-pytorch-training \
 # CVE Fixes
 RUN pip install --no-cache-dir -U "protobuf<3.20.0"
 
+# Uninstall Torch Data
+RUN pip uninstall torchdata
+
 # Reinstall Horovod
 RUN pip uninstall -y horovod \
  && ldconfig /usr/local/cuda-11.3/targets/x86_64-linux/lib/stubs \
