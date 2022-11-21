@@ -350,6 +350,10 @@ def test_framework_and_cuda_version_gpu(gpu, ec2_connection):
             tested_framework = tested_framework[len("huggingface_"):]
             # Replace the trcomp string as it is extracted from ECR repo name
             tested_framework = tested_framework.replace("_trcomp", "")
+        # Framework name may include trcomp
+        if "trcomp" in tested_framework:
+            # Replace the trcomp string as it is extracted from ECR repo name
+            tested_framework = tested_framework.replace("_trcomp", "")
         # Module name is "torch"
         if tested_framework == "pytorch":
             tested_framework = "torch"
