@@ -373,7 +373,9 @@ RUN $PYTHON -m pip install --no-cache-dir -U \
 RUN git clone https://github.com/yl-to/sagemaker-debugger.git \
     && cd sagemaker-debugger \
     && git checkout tf211-version-bump \
-    && pip install -e . && cd .. && rm -rf sagemaker-debugger
+    && pip install -e . \
+    && mv smdebug .. \
+    && cd .. && rm -rf sagemaker-debugger
 
 # install smdebug directly the specific branch
 # ARG SMDEBUG_TAG=1.0.23
