@@ -253,7 +253,7 @@ RUN ${PIP} install --no-cache-dir -U \
     tensorflow-text==2.10.0
 
 RUN ${PIP} uninstall -y tensorflow tensorflow-gpu \
-    ; ${PIP} install --no-cache-dir \
+    ; ${PIP} install --no-cache-dir -U \
     ${TF_URL} \
     tensorflow-io==0.27.0 \
     tensorflow-datasets==4.7.0
@@ -283,7 +283,7 @@ RUN $PYTHON -m pip install --no-cache-dir -U \
     smclarify
 
 # SMDebugger Dev Changes
-RUN git clone https://github.com/yl-to/sagemaker-debugger.git\
+RUN git clone https://github.com/yl-to/sagemaker-debugger.git \
     && cd sagemaker-debugger \
     && git checkout tf211-version-bump \
     && pip install -e . && cd .. && rm -rf sagemaker-debugger
