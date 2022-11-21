@@ -102,7 +102,7 @@ RUN pip uninstall -y sagemaker-pytorch-training \
 RUN pip install --no-cache-dir -U "protobuf<3.20.0"
 
 # Uninstall Torch Data
-RUN pip uninstall torchdata
+RUN pip uninstall -y torchdata
 
 # Reinstall Horovod
 RUN pip uninstall -y horovod \
