@@ -259,9 +259,8 @@ def install_python_in_instance(context, python_version="3.9"):
     context.run(
         """echo 'command -v pyenv >/dev/null || export PATH="$PYENV_ROOT/bin:$PATH"' >> /etc/profile.d/dlami.sh"""
     )
-    context.run("sudo chmod 644 /etc/profile.d/dlami.sh")
     context.run("""echo 'eval "$(pyenv init -)"' >> /etc/profile.d/dlami.sh""")
-    context.run("""exec "$SHELL" """)
+    context.run("sudo chmod 644 /etc/profile.d/dlami.sh")
 
     context.run("sudo apt-get update")
     context.run(
