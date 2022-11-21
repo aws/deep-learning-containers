@@ -26,9 +26,9 @@ def test_smdebug_gpu(training, ec2_connection, region, ec2_instance_type, gpu_on
     if test_utils.is_image_incompatible_with_instance_type(training, ec2_instance_type):
         pytest.skip(f"Image {training} is incompatible with instance type {ec2_instance_type}")
 
-    _, image_framework_version = get_framework_and_version_from_tag(pytorch_training)
-    if 'trcomp' in pytorch_training and Version(image_framework_version) in SpecifierSet("<1.13.*"):
-        pytest.skip(f"Image {pytorch_training} doesn't s3. Hence test is skipped.")
+    _, image_framework_version = get_framework_and_version_from_tag(training)
+    if 'trcomp' in training and 'pytorch' in training and Version(image_framework_version) in SpecifierSet("<1.13.*"):
+        pytest.skip(f"Image {training} doesn't s3. Hence test is skipped.")
     smdebug_test_timeout = 2400
     if is_tf_version("1", training):
         if is_nightly_context():
@@ -60,9 +60,9 @@ def test_smprofiler_gpu(
     # This code needs to be modified past reInvent 2020
     if test_utils.is_image_incompatible_with_instance_type(training, ec2_instance_type):
         pytest.skip(f"Image {training} is incompatible with instance type {ec2_instance_type}")
-    _, image_framework_version = get_framework_and_version_from_tag(pytorch_training)
-    if 'trcomp' in pytorch_training and Version(image_framework_version) in SpecifierSet("<1.13.*"):
-        pytest.skip(f"Image {pytorch_training} doesn't s3. Hence test is skipped.")
+    _, image_framework_version = get_framework_and_version_from_tag(training)
+    if 'trcomp' in training and 'pytorch' in training and Version(image_framework_version) in SpecifierSet("<1.13.*"):
+        pytest.skip(f"Image {training} doesn't s3. Hence test is skipped.")
     framework = get_framework_from_image_uri(training)
     if framework not in ["pytorch", "tensorflow2"]:
         return
