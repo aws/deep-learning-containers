@@ -633,6 +633,10 @@ def test_pip_check(image):
 
     :param image: ECR image URI
     """
+
+    if "pytorch" in image and "trcomp" in image:
+        pytest.skip(f"Skipping pip check for DLC image {image} as it's not support")
+
     ctx = Context()
     gpu_suffix = "-gpu" if "gpu" in image else ""
     allowed_exception_list = []
@@ -663,10 +667,6 @@ def test_pip_check(image):
     if framework in tf263_io21_issue_framework_list or Version(framework_version) in SpecifierSet(">=2.6.3,<2.7"):
         allowed_tf263_exception = re.compile(rf"^tensorflow-io 0.21.0 requires tensorflow, which is not installed.$")
         allowed_exception_list.append(allowed_tf263_exception)
-
-    if "pytorch" in image and "trcomp" in image:
-        allowed_exception_list.append(re.compile(r"^torch-xla \d+(\.\d+)* requires absl-py, which is not installed.$"))
-        allowed_exception_list.append(re.compile(r"^torch-xla \d+(\.\d+)* requires cloud-tpu-client, which is not installed.$"))
 
 
     if "autogluon" in image and (("0.3.1" in image) or ("0.3.2" in image)):
