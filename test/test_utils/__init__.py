@@ -34,6 +34,8 @@ LOGGER.addHandler(logging.StreamHandler(sys.stderr))
 DEFAULT_REGION = "us-west-2"
 # Constant to represent region where p3dn tests can be run
 P3DN_REGION = "us-east-1"
+
+
 def get_ami_id_boto3(region_name, ami_name_pattern):
     """
     For a given region and ami name pattern, return the latest ami-id
@@ -44,6 +46,7 @@ def get_ami_id_boto3(region_name, ami_name_pattern):
     ami = max(ami_list["Images"], key=lambda x: x["CreationDate"])
     return ami['ImageId']
 
+
 def get_ami_id_ssm(region_name, parameter_path):
     """
     For a given region and parameter path, return the latest ami-id
@@ -52,11 +55,10 @@ def get_ami_id_ssm(region_name, parameter_path):
     ami_id = eval(ami['Parameter']['Value'])['image_id']
     return ami_id
 
-# TODO revert change after Python 3.7+ is added to Base DLAMI 
-# UBUNTU_18_BASE_DLAMI_US_WEST_2 = get_ami_id_boto3(region_name="us-west-2", ami_name_pattern="Deep Learning Base AMI (Ubuntu 18.04) Version ??.?")
-# UBUNTU_18_BASE_DLAMI_US_EAST_1 = get_ami_id_boto3(region_name="us-east-1", ami_name_pattern="Deep Learning Base AMI (Ubuntu 18.04) Version ??.?")
-UBUNTU_18_BASE_DLAMI_US_WEST_2 = get_ami_id_boto3(region_name="us-west-2", ami_name_pattern="Deep Learning AMI GPU CUDA 11.1.1 (Ubuntu 18.04) ????????")
-UBUNTU_18_BASE_DLAMI_US_EAST_1 = get_ami_id_boto3(region_name="us-east-1", ami_name_pattern="Deep Learning AMI GPU CUDA 11.1.1 (Ubuntu 18.04) ????????")
+
+# TODO revert change after Python 3.7+ is added to Base DLAMI
+UBUNTU_18_BASE_DLAMI_US_WEST_2 = get_ami_id_boto3(region_name="us-west-2", ami_name_pattern="Deep Learning Base AMI (Ubuntu 18.04) Version ??.?")
+UBUNTU_18_BASE_DLAMI_US_EAST_1 = get_ami_id_boto3(region_name="us-east-1", ami_name_pattern="Deep Learning Base AMI (Ubuntu 18.04) Version ??.?")
 AML2_BASE_DLAMI_US_WEST_2 = get_ami_id_boto3(region_name="us-west-2", ami_name_pattern="Deep Learning Base AMI (Amazon Linux 2) Version ??.?")
 AML2_BASE_DLAMI_US_EAST_1 = get_ami_id_boto3(region_name="us-east-1", ami_name_pattern="Deep Learning Base AMI (Amazon Linux 2) Version ??.?")
 # We use the following DLAMI for MXNet and TensorFlow tests as well, but this is ok since we use custom DLC Graviton containers on top. We just need an ARM base DLAMI.
@@ -152,7 +154,7 @@ ECR_SCAN_HELPER_BUCKET = f"""ecr-scan-helper-{boto3.client("sts", region_name=DE
 ECR_SCAN_FAILURE_ROUTINE_LAMBDA = "ecr-scan-failure-routine-lambda"
 
 ## Note that the region for the repo used for conducting ecr enhanced scans should be different from other
-## repos since ecr enhanced scanning is activated in all the repos of a region and does not allow one to 
+## repos since ecr enhanced scanning is activated in all the repos of a region and does not allow one to
 ## conduct basic scanning on some repos whereas enhanced scanning on others within the same region.
 ECR_ENHANCED_SCANNING_REPO_NAME = "ecr-enhanced-scanning-dlc-repo"
 ECR_ENHANCED_REPO_REGION = "us-west-1"
@@ -175,6 +177,7 @@ class MissingPythonVersionException(Exception):
     """
 
     pass
+
 
 class CudaVersionTagNotFoundException(Exception):
     """
@@ -296,7 +299,7 @@ def get_expected_dockerfile_filename(device_type, image_uri):
         else:
             return f"Dockerfile.sagemaker.{device_type}"
 
-    ## TODO: Keeping here for backward compatibility, should be removed in future when the 
+    ## TODO: Keeping here for backward compatibility, should be removed in future when the
     ## functions is_covered_by_ec2_sm_split and is_ec2_sm_in_same_dockerfile are made exhaustive
     if is_ec2_image(image_uri):
         return f"Dockerfile.ec2.{device_type}"
@@ -504,6 +507,7 @@ def is_time_for_canary_safety_scan():
     """
     current_utc_time = time.gmtime()
     return current_utc_time.tm_hour == 16 and (0 < current_utc_time.tm_min < 20)
+
 
 def is_time_for_invoking_ecr_scan_failure_routine_lambda():
     """
@@ -1491,9 +1495,11 @@ def get_framework_from_image_uri(image_uri):
         else None
     )
 
+
 def is_trcomp_image(image_uri):
     framework = get_framework_from_image_uri(image_uri)
     return "trcomp" in framework
+
 
 def get_all_the_tags_of_an_image_from_ecr(ecr_client, image_uri):
     """
@@ -1623,6 +1629,7 @@ def get_python_version_from_image_uri(image_uri):
     python_version = python_version_search.group()
     return "py36" if python_version == "py3" else python_version
 
+
 def construct_buildspec_path(dlc_path, framework_path, buildspec, framework_version):
     """
     Construct a relative path to the buildspec yaml file by iterative checking on the existence of
@@ -1657,6 +1664,7 @@ def construct_buildspec_path(dlc_path, framework_path, buildspec, framework_vers
         raise ValueError('Could not construct a valid buildspec path.')
 
     return buildspec_path
+
 
 def get_container_name(prefix, image_uri):
     """
@@ -1721,7 +1729,7 @@ def uniquify_list_of_dict(list_of_dict):
     """
     list_of_string = [json.dumps(dict_element, sort_keys=True) for dict_element in list_of_dict]
     unique_list_of_string = list(set(list_of_string))
-    unique_list_of_string.sort() 
+    unique_list_of_string.sort()
     list_of_dict_to_return = [json.loads(str_element) for str_element in unique_list_of_string]
     return list_of_dict_to_return
 
@@ -1743,7 +1751,7 @@ def uniquify_list_of_complex_datatypes(list_of_complex_datatypes):
 def check_if_two_dictionaries_are_equal(dict1, dict2, ignore_keys=[]):
     """
     Compares if 2 dictionaries are equal or not. The ignore_keys argument is used to provide
-    a list of keys that are ignored while comparing the dictionaires.
+    a list of keys that are ignored while comparing the dictionaries.
 
     :param dict1: dict
     :param dict2: dict
