@@ -699,7 +699,7 @@ def test_pip_check(image):
     output = ctx.run(
         f"docker run --entrypoint='' {image} pip check", hide=True, warn=True)
     if output.return_code != 0:
-        if not(any([allowed_exception.findaall(output.stdout) for allowed_exception in allowed_exception_list])):
+        if not(any([allowed_exception.findall(output.stdout) for allowed_exception in allowed_exception_list])):
             # Rerun pip check test if this is an unexpected failure
             ctx.run(f"docker run --entrypoint='' {image} pip check", hide=True)
 
