@@ -13,6 +13,8 @@ from botocore.config import Config
 from invoke.context import Context
 from invoke import exceptions
 from junit_xml import TestSuite, TestCase
+from packaging.version import Version
+from packaging.specifiers import SpecifierSet
 from tenacity import retry, stop_after_attempt, wait_fixed
 
 from test_utils import ec2 as ec2_utils
@@ -272,6 +274,16 @@ def install_python_in_instance(context, python_version="3.9"):
     context.run(f"pyenv install {python_version}")
     context.run(f"pyenv global {python_version}")
 
+    # Validate that installed python version is the same as requested python version
+    python_version_response = context.run("python --version")
+    python_version_match = re.search(r"Python (\d+(\.\d+)+)", python_version_response.stdout)
+    assert python_version_match, "Running 'python --version' returned None"
+    installed_python_version = python_version_match.group(1)
+    # Use SpecifierSet("=={python_version}.*") to accommodate python_version of the form X.Y as well as X.Y.Z
+    assert Version(installed_python_version) in SpecifierSet(f"=={python_version}.*"), (
+        f"Installed python version {installed_python_version} does not match required python_version {python_version}"
+    )
+
 
 def kill_background_processes_and_run_apt_get_update(ec2_conn):
     """
@@ -314,7 +326,7 @@ def execute_local_tests(image, pytest_cache_params):
     Run the sagemaker local tests in ec2 instance for the image
     :param image: ECR url
     :param pytest_cache_params: parameters required for :param pytest_cache_util
-    :return: None
+    :return: True if test execution was successful, else False
     """
     test_success = False
     account_id = os.getenv("ACCOUNT_ID", boto3.client("sts").get_caller_identity()["Account"])
