@@ -485,7 +485,7 @@ RUN pip install --no-cache-dir -U \
 # Install smdebug from souce
 # use the hotfix commit id for pt-1.13 
 RUN cd /tmp \
-  && git clone https://github.com/awslabs/sagemaker-debugger \
+  && git clone https://github.com/awslabs/sagemaker-debugger \ 
   && cd sagemaker-debugger \
   && git checkout -f 09aacdf8d061bb1a5785797ccd9d6ef5cf380e35 \
   && pip install . \
