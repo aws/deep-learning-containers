@@ -665,7 +665,7 @@ def test_pip_check(image):
         allowed_exception_list.append(allowed_tf263_exception)
 
 
-    if "pytorch" in image and "trcomp" in image and Version(framework_version) in SpecifierSet("1.12"):
+    if "pytorch" in image and "trcomp" in image and Version(framework_version) in SpecifierSet("==1.12"):
         allowed_exception_list.append(re.compile(rf"^torch-xla 1.12 requires absl-py, which is not installed.$"))
         allowed_exception_list.append(re.compile(rf"^torch-xla 1.12 requires cloud-tpu-client, which is not installed.$"))
 
