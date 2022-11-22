@@ -100,9 +100,14 @@ RUN pip uninstall -y sagemaker-pytorch-training \
 
 # CVE Fixes
 RUN pip install --no-cache-dir -U "protobuf<3.20.0"
+RUN apt-get update -y && \
+    apt-get upgrade -y openssl && \
+    apt-get clean
 
 # Uninstall Torch Data
 RUN pip uninstall -y torchdata
+
+
 
 # Reinstall Horovod
 RUN pip uninstall -y horovod \
