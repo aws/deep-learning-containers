@@ -41,7 +41,7 @@ ENV PYTHON=${PYTHON}
 
 
 ENV NCCL_VERSION=2.8.4-1+cuda11.2
-ENV CUDNN_VERSION=8.2.4.15-1+cuda11.4
+ENV CUDNN_VERSION=8.2.4.15-1+cuda11.2
 
 # See http://bugs.python.org/issue19846
 ENV LANG=C.UTF-8
