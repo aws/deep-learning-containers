@@ -113,8 +113,8 @@ HPU_AL2_DLAMI = get_ami_id_boto3(region_name="us-west-2", ami_name_pattern="Deep
 TENSORFLOW_MODELS_BUCKET = "s3://tensoflow-trained-models"
 
 DLAMI_PYTHON_MAPPING = {
-    UBUNTU_18_BASE_DLAMI_US_WEST_2: "/usr/bin/python3.7",
-    UBUNTU_18_BASE_DLAMI_US_EAST_1: "/usr/bin/python3.7",
+    UBUNTU_18_BASE_DLAMI_US_WEST_2: "/usr/bin/python3.6",
+    UBUNTU_18_BASE_DLAMI_US_EAST_1: "/usr/bin/python3.6",
     UL20_CPU_ARM64_US_WEST_2: "/usr/bin/python3.8",
 }
 # Used for referencing tests scripts from container_tests directory (i.e. from ECS cluster)
