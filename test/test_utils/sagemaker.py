@@ -13,9 +13,6 @@ from botocore.config import Config
 from invoke.context import Context
 from invoke import exceptions
 from junit_xml import TestSuite, TestCase
-from packaging.version import Version
-from packaging.specifiers import SpecifierSet
-from tenacity import retry, stop_after_attempt, wait_fixed
 
 from test_utils import ec2 as ec2_utils
 from test_utils import metrics as metrics_utils
@@ -24,7 +21,6 @@ from test_utils import (
     generate_ssh_keypair,
     get_framework_and_version_from_tag,
     get_job_type_from_image,
-    get_python_invoker,
     is_pr_context,
     SAGEMAKER_EXECUTION_REGIONS,
     SAGEMAKER_NEURON_EXECUTION_REGIONS,
@@ -245,46 +241,6 @@ def generate_sagemaker_pytest_cmd(image, sagemaker_test_type):
     )
 
 
-@retry(reraise=True, wait=wait_fixed(60), stop=stop_after_attempt(5))
-def install_python_in_instance(context, python_version="3.9"):
-    """
-    Install sagemaker local test dependencies
-    :param context: Invoke Context / Fabric Connection object
-    :param python_version: str python version to install, such as 3.8, 3.9, etc.
-    :return: None
-    """
-    context.run("""ls ~/.pyenv || git clone https://github.com/pyenv/pyenv.git ~/.pyenv""")
-    # Need to configure PATH and PYENV_ROOT changes in alternative location because ~/.bashrc and ~/.profile are
-    # not used when using bash through Fabric Connection.
-    context.run("sudo chmod 666 /etc/profile.d/dlami.sh")
-    context.run("""echo 'export PYENV_ROOT="$HOME/.pyenv"' >> /etc/profile.d/dlami.sh""")
-    context.run(
-        """echo 'command -v pyenv >/dev/null || export PATH="$PYENV_ROOT/bin:$PATH"' >> /etc/profile.d/dlami.sh"""
-    )
-    context.run("""echo 'eval "$(pyenv init -)"' >> /etc/profile.d/dlami.sh""")
-    context.run("sudo chmod 644 /etc/profile.d/dlami.sh")
-
-    context.run("sudo apt-get update")
-    context.run(
-        "sudo apt install -y make build-essential libssl-dev zlib1g-dev "
-        "libbz2-dev libreadline-dev libsqlite3-dev wget curl llvm "
-        "libncursesw5-dev xz-utils tk-dev libxml2-dev libxmlsec1-dev libffi-dev liblzma-dev"
-    )
-
-    context.run(f"pyenv install {python_version}")
-    context.run(f"pyenv global {python_version}")
-
-    # Validate that installed python version is the same as requested python version
-    python_version_response = context.run("python --version")
-    python_version_match = re.search(r"Python (\d+(\.\d+)+)", python_version_response.stdout)
-    assert python_version_match, "Running 'python --version' returned None"
-    installed_python_version = python_version_match.group(1)
-    # Use SpecifierSet("=={python_version}.*") to accommodate python_version of the form X.Y as well as X.Y.Z
-    assert Version(installed_python_version) in SpecifierSet(f"=={python_version}.*"), (
-        f"Installed python version {installed_python_version} does not match required python_version {python_version}"
-    )
-
-
 def kill_background_processes_and_run_apt_get_update(ec2_conn):
     """
     The apt-daily services on the DLAMI cause a conflict upon running any "apt install" commands within the first few
@@ -355,7 +311,7 @@ def execute_local_tests(image, pytest_cache_params):
         )
         ec2_conn = ec2_utils.get_ec2_fabric_connection(instance_id, key_file, region)
         ec2_conn.put(sm_tests_tar_name, f"{UBUNTU_HOME_DIR}")
-        install_python_in_instance(ec2_conn, python_version="3.9")
+        ec2_utils.install_python_in_instance(ec2_conn, python_version="3.9")
         ec2_conn.run(f"$(aws ecr get-login --no-include-email --region {region})")
         try:
             ec2_conn.run(f"docker pull {image}", timeout=600)

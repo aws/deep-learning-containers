@@ -114,11 +114,6 @@ HPU_AL2_DLAMI = get_ami_id_boto3(region_name="us-west-2", ami_name_pattern="Deep
 # S3 bucket for TensorFlow models
 TENSORFLOW_MODELS_BUCKET = "s3://tensoflow-trained-models"
 
-DLAMI_PYTHON_MAPPING = {
-    UBUNTU_18_BASE_DLAMI_US_WEST_2: "/usr/bin/python3.7",
-    UBUNTU_18_BASE_DLAMI_US_EAST_1: "/usr/bin/python3.7",
-    UL20_CPU_ARM64_US_WEST_2: "/usr/bin/python3.8",
-}
 # Used for referencing tests scripts from container_tests directory (i.e. from ECS cluster)
 CONTAINER_TESTS_PREFIX = os.path.join(os.sep, "test", "bin")
 
@@ -312,10 +307,6 @@ def get_expected_dockerfile_filename(device_type, image_uri):
 
 def get_customer_type():
     return os.getenv("CUSTOMER_TYPE")
-
-
-def get_python_invoker(ami_id):
-    return DLAMI_PYTHON_MAPPING.get(ami_id, "/usr/bin/python3")
 
 
 def get_ecr_repo_name(image_uri):
@@ -750,7 +741,7 @@ def request_tensorflow_inference_nlp(model_name, ip_address="127.0.0.1", port="8
 
 
 def request_tensorflow_inference_grpc(
-    script_file_path, ip_address="127.0.0.1", port="8500", connection=None, ec2_instance_ami=None
+    script_file_path, ip_address="127.0.0.1", port="8500", connection=None
 ):
     """
     Method to run tensorflow inference on MNIST model using gRPC protocol
@@ -760,9 +751,8 @@ def request_tensorflow_inference_grpc(
     :param connection:
     :return:
     """
-    python_invoker = get_python_invoker(ec2_instance_ami)
     conn_run = connection.run if connection is not None else run
-    conn_run(f"{python_invoker} {script_file_path} --num_tests=1000 --server={ip_address}:{port}", hide=True)
+    conn_run(f"python {script_file_path} --num_tests=1000 --server={ip_address}:{port}", hide=True)
 
 
 def get_inference_run_command(image_uri, model_names, processor="cpu"):
