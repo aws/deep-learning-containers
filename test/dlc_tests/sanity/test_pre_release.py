@@ -664,8 +664,7 @@ def test_pip_check(image):
         allowed_tf263_exception = re.compile(rf"^tensorflow-io 0.21.0 requires tensorflow, which is not installed.$")
         allowed_exception_list.append(allowed_tf263_exception)
 
-    print(f'image="{image}" and version="{Version(framework_version)}"')
-    if "pytorch" in image and "trcomp" in image and Version(framework_version) in SpecifierSet("==1.12"):
+    if "pytorch" in image and "trcomp" in image:
         allowed_exception_list.append(re.compile(rf"^torch-xla 1.12 requires absl-py, which is not installed.$"))
         allowed_exception_list.append(re.compile(rf"^torch-xla 1.12 requires cloud-tpu-client, which is not installed.$"))
 
