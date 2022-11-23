@@ -1,3 +1,4 @@
+import json
 import os
 import random
 import sys
@@ -60,7 +61,13 @@ def run_sagemaker_local_tests(images, pytest_cache_params):
 
     pool_number = len(images)
     with Pool(pool_number) as p:
-        p.starmap(sm_utils.execute_local_tests, [[image, pytest_cache_params] for image in images])
+        test_results = p.starmap(sm_utils.execute_local_tests, [[image, pytest_cache_params] for image in images])
+    if not all(test_results):
+        failed_images = [images[index] for index, result in enumerate(test_results) if not result]
+        raise RuntimeError(
+            f"SageMaker Local tests failed on the following DLCs:\n"
+            f"{json.dumps(failed_images, indent=4)}"
+        )
 
 
 def run_sagemaker_test_in_executor(image, num_of_instances, instance_type):
