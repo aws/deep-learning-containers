@@ -30,6 +30,7 @@ LABEL maintainer="Amazon AI"
 LABEL dlc_major_version="1"
 
 ARG PYTHON_VERSION=3.8.10
+ARG MAMBA_VERSION=4.12.0-2
 ARG MMS_VERSION=1.1.8
 ARG MX_URL=https://framework-binaries.s3.us-west-2.amazonaws.com/mxnet/v1.9.0/aws_mx-1.9.0b20221117.193-py3-none-manylinux2014_x86_64.whl
 
@@ -41,6 +42,9 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
     LC_ALL=C.UTF-8 \
     TEMP=/home/model-server/tmp \
     DEBIAN_FRONTEND=noninteractive
+
+# Set MKL_THREADING_LAYER=GNU to prevent issues between torch and numpy/mkl
+ENV MKL_THREADING_LAYER=GNU
 
 RUN apt-get update \
  && apt-get -y upgrade --only-upgrade systemd \
@@ -78,6 +82,20 @@ RUN apt-get update \
  && ln -s /usr/bin/pip3 /usr/bin/pip
 
 WORKDIR /
+
+RUN curl -L -o ~/mambaforge.sh https://github.com/conda-forge/miniforge/releases/download/${MAMBA_VERSION}/Mambaforge-${MAMBA_VERSION}-Linux-x86_64.sh \
+ && chmod +x ~/mambaforge.sh \
+ && ~/mambaforge.sh -b -p /opt/conda \
+ && rm ~/mambaforge.sh \
+ && /opt/conda/bin/conda install -c conda-forge \
+    mkl \
+    mkl-include \
+ # Upstream conda looks to have moved to 4.13 which is incompatible with mamba 0.22.1 and will fail the conda-forge installs.
+ # having "conda update conda" before the "conda -c conda-forge" commands will automatically update conda to 4.13.
+ # Moving conda update conda" after the "conda -c conda-forge" commands keep conda at 4.12 but will update other packages using
+ # the current conda 4.12
+ && /opt/conda/bin/conda update -y conda \
+ && /opt/conda/bin/conda clean -ya
 
 RUN pip install --upgrade pip --trusted-host pypi.org --trusted-host files.pythonhosted.org \
  && pip install --no-cache-dir \
