@@ -40,7 +40,7 @@ ENV PIP=${PIP}
 ENV PYTHON=${PYTHON}
 
 
-ENV NCCL_VERSION=2.13.4-1+cuda11.6
+ENV NCCL_VERSION=2.13.4-1+cuda11.7
 ENV CUDNN_VERSION=8.2.4.15-1+cuda11.4
 
 # See http://bugs.python.org/issue19846
