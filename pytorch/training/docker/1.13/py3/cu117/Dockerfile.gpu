@@ -178,6 +178,7 @@ RUN ompi_info --parsable --all | grep mpi_built_with_cuda_support:value \
     charset-normalizer \
  &&  /opt/conda/bin/conda install -c dglteam -y dgl-cuda11.7 \
  &&  /opt/conda/bin/conda install -c pytorch magma-cuda117 \
+ &&  /opt/conda/bin/conda install -c fastai "fastai>=2.7.10,<2.8" \
  &&  /opt/conda/bin/conda update conda \
  &&  /opt/conda/bin/conda clean -ya
 
