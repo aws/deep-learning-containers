@@ -25,6 +25,9 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
     LC_ALL=C.UTF-8 \
     TEMP=/home/model-server/tmp
 
+# Set MKL_THREADING_LAYER=GNU to prevent issues between torch and numpy/mkl
+ENV MKL_THREADING_LAYER=GNU
+
 RUN apt-get update \
  && apt-get install -y --no-install-recommends \
     build-essential \
@@ -82,6 +85,20 @@ RUN wget -q https://www.python.org/ftp/python/$PYTHON_VERSION/Python-$PYTHON_VER
     setuptools
 
 WORKDIR /
+
+RUN curl -L -o ~/mambaforge.sh https://github.com/conda-forge/miniforge/releases/download/${MAMBA_VERSION}/Mambaforge-${MAMBA_VERSION}-Linux-x86_64.sh \
+ && chmod +x ~/mambaforge.sh \
+ && ~/mambaforge.sh -b -p /opt/conda \
+ && rm ~/mambaforge.sh \
+ && /opt/conda/bin/conda install -c conda-forge \
+    mkl \
+    mkl-include \
+ # Upstream conda looks to have moved to 4.13 which is incompatible with mamba 0.22.1 and will fail the conda-forge installs.
+ # having "conda update conda" before the "conda -c conda-forge" commands will automatically update conda to 4.13.
+ # Moving conda update conda" after the "conda -c conda-forge" commands keep conda at 4.12 but will update other packages using
+ # the current conda 4.12
+ && /opt/conda/bin/conda update -y conda \
+ && /opt/conda/bin/conda clean -ya
 
 RUN ${PIP} install --no-cache-dir \
     "awscli<2" \
