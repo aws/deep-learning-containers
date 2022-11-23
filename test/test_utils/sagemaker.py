@@ -3,11 +3,13 @@ import os
 import subprocess
 import random
 import re
-import boto3
-from botocore.config import Config
+
 from time import sleep
 
+import boto3
 import invoke
+
+from botocore.config import Config
 from invoke.context import Context
 from invoke import exceptions
 from junit_xml import TestSuite, TestCase
@@ -19,7 +21,6 @@ from test_utils import (
     generate_ssh_keypair,
     get_framework_and_version_from_tag,
     get_job_type_from_image,
-    get_python_invoker,
     is_pr_context,
     SAGEMAKER_EXECUTION_REGIONS,
     SAGEMAKER_NEURON_EXECUTION_REGIONS,
@@ -240,27 +241,6 @@ def generate_sagemaker_pytest_cmd(image, sagemaker_test_type):
     )
 
 
-def install_sm_local_dependencies(framework, job_type, image, ec2_conn, ec2_instance_ami):
-    """
-    Install sagemaker local test dependencies
-    :param framework: str
-    :param job_type: str
-    :param image: str
-    :param ec2_conn: Fabric_obj
-    :return: None
-    """
-    python_invoker = get_python_invoker(ec2_instance_ami)
-    # Install custom packages which need to be latest version"
-    # using virtualenv to avoid package conflicts with the current packages
-    ec2_conn.run(f"sudo apt-get install virtualenv python3-pip -y ")
-    ec2_conn.run(f"virtualenv env --python {python_invoker}")
-    ec2_conn.run(f"source ./env/bin/activate")
-    if framework == "pytorch":
-        # The following distutils package conflict with test dependencies
-        ec2_conn.run("sudo apt-get remove python3-scipy python3-yaml -y")
-    ec2_conn.run(f"sudo {python_invoker} -m pip install -r requirements.txt ", warn=True)
-
-
 def kill_background_processes_and_run_apt_get_update(ec2_conn):
     """
     The apt-daily services on the DLAMI cause a conflict upon running any "apt install" commands within the first few
@@ -302,8 +282,9 @@ def execute_local_tests(image, pytest_cache_params):
     Run the sagemaker local tests in ec2 instance for the image
     :param image: ECR url
     :param pytest_cache_params: parameters required for :param pytest_cache_util
-    :return: None
+    :return: True if test execution was successful, else False
     """
+    test_success = False
     account_id = os.getenv("ACCOUNT_ID", boto3.client("sts").get_caller_identity()["Account"])
     pytest_cache_util = PytestCache(boto3.client("s3"), account_id)
     ec2_client = boto3.client("ec2", config=Config(retries={"max_attempts": 10}), region_name=DEFAULT_REGION)
@@ -326,10 +307,11 @@ def execute_local_tests(image, pytest_cache_params):
             image,
             ec2_ami_id,
             ec2_key_name,
-            region
+            region,
         )
         ec2_conn = ec2_utils.get_ec2_fabric_connection(instance_id, key_file, region)
         ec2_conn.put(sm_tests_tar_name, f"{UBUNTU_HOME_DIR}")
+        ec2_utils.install_python_in_instance(ec2_conn, python_version="3.9")
         ec2_conn.run(f"$(aws ecr get-login --no-include-email --region {region})")
         try:
             ec2_conn.run(f"docker pull {image}", timeout=600)
@@ -342,7 +324,7 @@ def execute_local_tests(image, pytest_cache_params):
         ec2_conn.run(f"tar -xzf {sm_tests_tar_name}")
         kill_background_processes_and_run_apt_get_update(ec2_conn)
         with ec2_conn.cd(path):
-            install_sm_local_dependencies(framework, job_type, image, ec2_conn, ec2_ami_id)
+            ec2_conn.run(f"pip install -r requirements.txt")
             pytest_cache_util.download_pytest_cache_from_s3_to_ec2(ec2_conn, path, **pytest_cache_params)
             # Workaround for mxnet cpu training images as test distributed
             # causes an issue with fabric ec2_connection
@@ -362,7 +344,7 @@ def execute_local_tests(image, pytest_cache_params):
                     pytest_cache_util.upload_pytest_cache_from_ec2_to_s3(ec2_conn_new, path, **pytest_cache_params)
                     if 'failures="0"' not in str(output):
                         if is_nightly_context():
-                            print(f"\nSuppresed Failed Nightly Sagemaker Local Tests")
+                            print(f"\nSuppressed Failed Nightly Sagemaker Local Tests")
                         else:
                             raise ValueError(f"Sagemaker Local tests failed for {image}")
             else:
@@ -379,6 +361,7 @@ def execute_local_tests(image, pytest_cache_params):
                             f"{pytest_command} failed with error code: {res.return_code}\n"
                             f"Traceback:\n{res.stdout}"
                         )
+        test_success = True
     except Exception as e:
         print(f"{type(e)} thrown : {str(e)}")
     finally:
@@ -392,9 +375,8 @@ def execute_local_tests(image, pytest_cache_params):
         if ec2_client and ec2_key_name:
             print(f"Destroying ssh Key_pair for image: {image}")
             destroy_ssh_keypair(ec2_client, ec2_key_name)
-        # return None here to prevent errors from multiprocessing.map(). Without this it returns some object by default
-        # which is causing "cannot pickle '_thread.lock' object" error
-        return None
+
+    return test_success
 
 
 def execute_sagemaker_remote_tests(process_index, image, global_pytest_cache, pytest_cache_params):
