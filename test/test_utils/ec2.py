@@ -914,34 +914,41 @@ def post_process_mxnet_ec2_performance(connection, log_location):
 @retry(reraise=True, wait=wait_fixed(60), stop=stop_after_attempt(5))
 def install_python_in_instance(context, python_version="3.9"):
     """
-    Install sagemaker local test dependencies
+    Install python on DLAMI EC2 instances to create a consistent test environment that is agnostic to AMI used for test.
+    This helper function assumes that the EC2 instance uses a DLAMI. The /etc/profile.d/dlami.sh file doesn't exist
+    in other AMIs. If support for other AMIs is needed, this function will need to be updated.
     :param context: Invoke Context / Fabric Connection object
     :param python_version: str python version to install, such as 3.8, 3.9, etc.
     :return: None
     """
-    context.run("""ls ~/.pyenv || git clone https://github.com/pyenv/pyenv.git ~/.pyenv""")
-    # Need to configure PATH and PYENV_ROOT changes in alternative location because ~/.bashrc and ~/.profile are
-    # not used when using bash through Fabric Connection.
-    context.run("sudo chmod 666 /etc/profile.d/dlami.sh")
-    context.run("""echo 'export PYENV_ROOT="$HOME/.pyenv"' >> /etc/profile.d/dlami.sh""")
-    context.run(
-        """echo 'command -v pyenv >/dev/null || export PATH="$PYENV_ROOT/bin:$PATH"' >> /etc/profile.d/dlami.sh"""
-    )
-    context.run("""echo 'eval "$(pyenv init -)"' >> /etc/profile.d/dlami.sh""")
-    context.run("sudo chmod 644 /etc/profile.d/dlami.sh")
+    if context.run("pyenv --version", warn=True, hide=True).failed:
+        context.run("""ls ~/.pyenv || git clone https://github.com/pyenv/pyenv.git ~/.pyenv""", hide=True)
+        # Need to configure PATH and PYENV_ROOT changes in alternative location because ~/.bashrc and ~/.profile are
+        # not used when using bash through Fabric Connection.
+        context.run("sudo chmod 666 /etc/profile.d/dlami.sh", hide=True)
+        context.run("""echo 'export PYENV_ROOT="$HOME/.pyenv"' >> /etc/profile.d/dlami.sh""", hide=True)
+        context.run(
+            """echo 'command -v pyenv >/dev/null || export PATH="$PYENV_ROOT/bin:$PATH"' >> /etc/profile.d/dlami.sh""",
+            hide=True,
+        )
+        context.run("""echo 'eval "$(pyenv init -)"' >> /etc/profile.d/dlami.sh""", hide=True)
+        context.run("sudo chmod 644 /etc/profile.d/dlami.sh", hide=True)
 
-    context.run("sudo apt-get update")
+    context.run("sudo apt-get update", hide=True)
     context.run(
-        "sudo apt install -y make build-essential libssl-dev zlib1g-dev "
-        "libbz2-dev libreadline-dev libsqlite3-dev wget curl llvm "
-        "libncursesw5-dev xz-utils tk-dev libxml2-dev libxmlsec1-dev libffi-dev liblzma-dev"
+        (
+            "sudo apt install -y make build-essential libssl-dev zlib1g-dev "
+            "libbz2-dev libreadline-dev libsqlite3-dev wget curl llvm "
+            "libncursesw5-dev xz-utils tk-dev libxml2-dev libxmlsec1-dev libffi-dev liblzma-dev"
+        ),
+        hide=True,
     )
 
-    context.run(f"pyenv install {python_version}")
-    context.run(f"pyenv global {python_version}")
+    context.run(f"pyenv install {python_version}", hide=True)
+    context.run(f"pyenv global {python_version}", hide=True)
 
     # Validate that installed python version is the same as requested python version
-    python_version_response = context.run("python --version")
+    python_version_response = context.run("python --version", hide=True)
     python_version_match = re.search(r"Python (\d+(\.\d+)+)", python_version_response.stdout)
     assert python_version_match, "Running 'python --version' returned None"
     installed_python_version = python_version_match.group(1)
