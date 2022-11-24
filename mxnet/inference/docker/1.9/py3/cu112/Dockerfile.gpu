@@ -31,7 +31,7 @@ LABEL dlc_major_version="1"
 
 ARG PYTHON_VERSION=3.8.10
 ARG MMS_VERSION=1.1.8
-ARG MX_URL=https://aws-mx-pypi.s3.us-west-2.amazonaws.com/1.9.0/aws_mx_cu112-1.9.0b20211227.163-py3-none-manylinux2014_x86_64.whl
+ARG MX_URL=https://framework-binaries.s3.us-west-2.amazonaws.com/mxnet/v1.9.0_telemetry/aws_mx_cu112-1.9.0b20221123.1-py3-none-manylinux2014_x86_64.whl
 
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
@@ -41,7 +41,8 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
     LC_ALL=C.UTF-8 \
     TEMP=/home/model-server/tmp \
     DEBIAN_FRONTEND=noninteractive \
-    NVIDIA_REQUIRE_CUDA="cuda>=11.2 brand=tesla,driver>=418,driver<419 brand=tesla,driver>=440,driver<441 driver>=450"
+    NVIDIA_REQUIRE_CUDA="cuda>=11.2 brand=tesla,driver>=418,driver<419 brand=tesla,driver>=440,driver<441 driver>=450" \
+    DLC_CONTAINER_TYPE=inference
 
 RUN apt-get update \
  && apt-get -y upgrade --only-upgrade systemd \
