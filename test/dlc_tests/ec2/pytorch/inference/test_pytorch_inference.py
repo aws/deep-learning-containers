@@ -119,7 +119,8 @@ def test_pytorch_inference_torchdata_gpu(
     _, image_framework_version = get_framework_and_version_from_tag(pytorch_inference)
     if test_utils.is_image_incompatible_with_instance_type(pytorch_inference, ec2_instance_type):
         pytest.skip(f"Image {pytorch_inference} is incompatible with instance type {ec2_instance_type}")
-    if Version(image_framework_version) in SpecifierSet(">=1.11,<1.13"):
+    # HACK including PT 1.13 in this condition because the Torchdata 0.5.0 tag includes old tests data
+    if Version(image_framework_version) in SpecifierSet(">=1.11,<=1.13"):
         execute_ec2_inference_test(ec2_connection, pytorch_inference, PT_TORCHDATA_DEV_CMD)
     else:
         execute_ec2_inference_test(ec2_connection, pytorch_inference, PT_TORCHDATA_CMD) 
@@ -131,7 +132,8 @@ def test_pytorch_inference_torchdata_gpu(
 @pytest.mark.parametrize("ec2_instance_type", PT_EC2_CPU_INSTANCE_TYPE, indirect=True)
 def test_pytorch_inference_torchdata_cpu(pytorch_inference, ec2_connection, cpu_only, pt111_and_above_only):
     _, image_framework_version = get_framework_and_version_from_tag(pytorch_inference)
-    if Version(image_framework_version) in SpecifierSet(">=1.11,<1.13"):
+    # HACK including PT 1.13 in this condition because the Torchdata 0.5.0 tag includes old tests data
+    if Version(image_framework_version) in SpecifierSet(">=1.11,<=1.13"):
         execute_ec2_inference_test(ec2_connection, pytorch_inference, PT_TORCHDATA_DEV_CMD)
     else:
         execute_ec2_inference_test(ec2_connection, pytorch_inference, PT_TORCHDATA_CMD)
