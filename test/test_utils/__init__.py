@@ -34,6 +34,8 @@ LOGGER.addHandler(logging.StreamHandler(sys.stderr))
 DEFAULT_REGION = "us-west-2"
 # Constant to represent region where p3dn tests can be run
 P3DN_REGION = "us-east-1"
+
+
 def get_ami_id_boto3(region_name, ami_name_pattern):
     """
     For a given region and ami name pattern, return the latest ami-id
@@ -44,6 +46,7 @@ def get_ami_id_boto3(region_name, ami_name_pattern):
     ami = max(ami_list["Images"], key=lambda x: x["CreationDate"])
     return ami['ImageId']
 
+
 def get_ami_id_ssm(region_name, parameter_path):
     """
     For a given region and parameter path, return the latest ami-id
@@ -51,6 +54,7 @@ def get_ami_id_ssm(region_name, parameter_path):
     ami = boto3.client("ssm", region_name=region_name).get_parameter(Name=parameter_path)
     ami_id = eval(ami['Parameter']['Value'])['image_id']
     return ami_id
+
 
 UBUNTU_18_BASE_DLAMI_US_WEST_2 = get_ami_id_boto3(region_name="us-west-2", ami_name_pattern="Deep Learning Base AMI (Ubuntu 18.04) Version ??.?")
 UBUNTU_18_BASE_DLAMI_US_EAST_1 = get_ami_id_boto3(region_name="us-east-1", ami_name_pattern="Deep Learning Base AMI (Ubuntu 18.04) Version ??.?")
@@ -109,11 +113,6 @@ HPU_AL2_DLAMI = get_ami_id_boto3(region_name="us-west-2", ami_name_pattern="Deep
 # S3 bucket for TensorFlow models
 TENSORFLOW_MODELS_BUCKET = "s3://tensoflow-trained-models"
 
-DLAMI_PYTHON_MAPPING = {
-    UBUNTU_18_BASE_DLAMI_US_WEST_2: "/usr/bin/python3.7",
-    UBUNTU_18_BASE_DLAMI_US_EAST_1: "/usr/bin/python3.7",
-    UL20_CPU_ARM64_US_WEST_2: "/usr/bin/python3.8",
-}
 # Used for referencing tests scripts from container_tests directory (i.e. from ECS cluster)
 CONTAINER_TESTS_PREFIX = os.path.join(os.sep, "test", "bin")
 
@@ -149,7 +148,7 @@ ECR_SCAN_HELPER_BUCKET = f"""ecr-scan-helper-{boto3.client("sts", region_name=DE
 ECR_SCAN_FAILURE_ROUTINE_LAMBDA = "ecr-scan-failure-routine-lambda"
 
 ## Note that the region for the repo used for conducting ecr enhanced scans should be different from other
-## repos since ecr enhanced scanning is activated in all the repos of a region and does not allow one to 
+## repos since ecr enhanced scanning is activated in all the repos of a region and does not allow one to
 ## conduct basic scanning on some repos whereas enhanced scanning on others within the same region.
 ECR_ENHANCED_SCANNING_REPO_NAME = "ecr-enhanced-scanning-dlc-repo"
 ECR_ENHANCED_REPO_REGION = "us-west-1"
@@ -172,6 +171,7 @@ class MissingPythonVersionException(Exception):
     """
 
     pass
+
 
 class CudaVersionTagNotFoundException(Exception):
     """
@@ -293,7 +293,7 @@ def get_expected_dockerfile_filename(device_type, image_uri):
         else:
             return f"Dockerfile.sagemaker.{device_type}"
 
-    ## TODO: Keeping here for backward compatibility, should be removed in future when the 
+    ## TODO: Keeping here for backward compatibility, should be removed in future when the
     ## functions is_covered_by_ec2_sm_split and is_ec2_sm_in_same_dockerfile are made exhaustive
     if is_ec2_image(image_uri):
         return f"Dockerfile.ec2.{device_type}"
@@ -306,10 +306,6 @@ def get_expected_dockerfile_filename(device_type, image_uri):
 
 def get_customer_type():
     return os.getenv("CUSTOMER_TYPE")
-
-
-def get_python_invoker(ami_id):
-    return DLAMI_PYTHON_MAPPING.get(ami_id, "/usr/bin/python3")
 
 
 def get_ecr_repo_name(image_uri):
@@ -501,6 +497,7 @@ def is_time_for_canary_safety_scan():
     """
     current_utc_time = time.gmtime()
     return current_utc_time.tm_hour == 16 and (0 < current_utc_time.tm_min < 20)
+
 
 def is_time_for_invoking_ecr_scan_failure_routine_lambda():
     """
@@ -743,7 +740,7 @@ def request_tensorflow_inference_nlp(model_name, ip_address="127.0.0.1", port="8
 
 
 def request_tensorflow_inference_grpc(
-    script_file_path, ip_address="127.0.0.1", port="8500", connection=None, ec2_instance_ami=None
+    script_file_path, ip_address="127.0.0.1", port="8500", connection=None
 ):
     """
     Method to run tensorflow inference on MNIST model using gRPC protocol
@@ -753,9 +750,8 @@ def request_tensorflow_inference_grpc(
     :param connection:
     :return:
     """
-    python_invoker = get_python_invoker(ec2_instance_ami)
     conn_run = connection.run if connection is not None else run
-    conn_run(f"{python_invoker} {script_file_path} --num_tests=1000 --server={ip_address}:{port}", hide=True)
+    conn_run(f"python {script_file_path} --num_tests=1000 --server={ip_address}:{port}", hide=True)
 
 
 def get_inference_run_command(image_uri, model_names, processor="cpu"):
@@ -1488,9 +1484,11 @@ def get_framework_from_image_uri(image_uri):
         else None
     )
 
+
 def is_trcomp_image(image_uri):
     framework = get_framework_from_image_uri(image_uri)
     return "trcomp" in framework
+
 
 def get_all_the_tags_of_an_image_from_ecr(ecr_client, image_uri):
     """
@@ -1620,6 +1618,7 @@ def get_python_version_from_image_uri(image_uri):
     python_version = python_version_search.group()
     return "py36" if python_version == "py3" else python_version
 
+
 def construct_buildspec_path(dlc_path, framework_path, buildspec, framework_version):
     """
     Construct a relative path to the buildspec yaml file by iterative checking on the existence of
@@ -1654,6 +1653,7 @@ def construct_buildspec_path(dlc_path, framework_path, buildspec, framework_vers
         raise ValueError('Could not construct a valid buildspec path.')
 
     return buildspec_path
+
 
 def get_container_name(prefix, image_uri):
     """
@@ -1718,7 +1718,7 @@ def uniquify_list_of_dict(list_of_dict):
     """
     list_of_string = [json.dumps(dict_element, sort_keys=True) for dict_element in list_of_dict]
     unique_list_of_string = list(set(list_of_string))
-    unique_list_of_string.sort() 
+    unique_list_of_string.sort()
     list_of_dict_to_return = [json.loads(str_element) for str_element in unique_list_of_string]
     return list_of_dict_to_return
 
@@ -1740,7 +1740,7 @@ def uniquify_list_of_complex_datatypes(list_of_complex_datatypes):
 def check_if_two_dictionaries_are_equal(dict1, dict2, ignore_keys=[]):
     """
     Compares if 2 dictionaries are equal or not. The ignore_keys argument is used to provide
-    a list of keys that are ignored while comparing the dictionaires.
+    a list of keys that are ignored while comparing the dictionaries.
 
     :param dict1: dict
     :param dict2: dict
