@@ -7,18 +7,20 @@ import logging
 import sys
 import uuid
 
-from retrying import retry
 from fabric import Connection
 from botocore.config import Config
 from botocore.exceptions import ClientError
 from invoke import run
+from packaging.version import Version
+from packaging.specifiers import SpecifierSet
+from tenacity import retry, stop_after_attempt, wait_fixed
 
 from test.test_utils import is_pr_context, is_mainline_context, get_synapseai_version_from_tag
-from . import DEFAULT_REGION, UL_AMI_LIST, LOGGER, BENCHMARK_RESULTS_S3_BUCKET
+from . import DEFAULT_REGION, UL_AMI_LIST, BENCHMARK_RESULTS_S3_BUCKET
 
 EC2_INSTANCE_ROLE_NAME = "ec2TestInstanceRole"
 
-# List of instance types for which if instance spin-up fails, the test is skipped instead of failing.
+# List of instance types for which, if instance spin-up fails, the test is skipped instead of failing.
 ICE_SKIP_INSTANCE_LIST = ["p3dn.24xlarge"]
 
 # List of instance types which are too powerful for minor tests
@@ -27,6 +29,7 @@ HEAVY_INSTANCE_LIST = ["p3dn.24xlarge", "p4d.24xlarge"]
 LOGGER = logging.getLogger(__name__)
 LOGGER.addHandler(logging.StreamHandler(sys.stdout))
 LOGGER.setLevel(logging.INFO)
+
 
 def filter_only_multi_gpu(instance_type_list):
     filtered_list = [
@@ -201,7 +204,7 @@ def get_instance_from_id(instance_id, region=DEFAULT_REGION):
     return instance["Reservations"][0]["Instances"][0]
 
 
-@retry(stop_max_attempt_number=16, wait_fixed=60000)
+@retry(stop=stop_after_attempt(16), wait=wait_fixed(60))
 def get_public_ip(instance_id, region=DEFAULT_REGION):
     """
     Get Public IP of instance using instance ID
@@ -215,7 +218,7 @@ def get_public_ip(instance_id, region=DEFAULT_REGION):
     return instance["PublicIpAddress"]
 
 
-@retry(stop_max_attempt_number=16, wait_fixed=60000)
+@retry(stop=stop_after_attempt(16), wait=wait_fixed(60))
 def get_public_ip_from_private_dns(private_dns, region=DEFAULT_REGION):
     """
     Get Public IP of instance using private DNS
@@ -228,7 +231,7 @@ def get_public_ip_from_private_dns(private_dns, region=DEFAULT_REGION):
     return response.get("Reservations")[0].get("Instances")[0].get("PublicIpAddress")
 
 
-@retry(stop_max_attempt_number=16, wait_fixed=60000)
+@retry(stop=stop_after_attempt(16), wait=wait_fixed(60))
 def get_instance_user(instance_id, region=DEFAULT_REGION):
     """
     Get "ubuntu" or "ec2-user" based on AMI used to launch instance
@@ -252,7 +255,7 @@ def get_instance_state(instance_id, region=DEFAULT_REGION):
     return instance["State"]["Name"]
 
 
-@retry(stop_max_attempt_number=16, wait_fixed=60000)
+@retry(stop=stop_after_attempt(16), wait=wait_fixed(60))
 def check_instance_state(instance_id, state="running", region=DEFAULT_REGION):
     """
     Compares the instance state with the state argument.
@@ -305,7 +308,7 @@ def get_system_state(instance_id, region=DEFAULT_REGION):
     )
 
 
-@retry(stop_max_attempt_number=96, wait_fixed=10000)
+@retry(stop=stop_after_attempt(96), wait=wait_fixed(10))
 def check_system_state(instance_id, system_status="ok", instance_status="ok", region=DEFAULT_REGION):
     """
     Compares the system state (Health Checks).
@@ -382,7 +385,7 @@ def get_instance_details(instance_id, region=DEFAULT_REGION):
     return get_instance_type_details(instance["InstanceType"], region=region)
 
 
-@retry(stop_max_attempt_number=30, wait_fixed=10000)
+@retry(stop=stop_after_attempt(30), wait=wait_fixed(10))
 def get_instance_num_cpus(instance_id, region=DEFAULT_REGION):
     """
     Get number of VCPUs on instance with given instance ID
@@ -394,7 +397,7 @@ def get_instance_num_cpus(instance_id, region=DEFAULT_REGION):
     return instance_info["VCpuInfo"]["DefaultVCpus"]
 
 
-@retry(stop_max_attempt_number=30, wait_fixed=10000)
+@retry(stop=stop_after_attempt(30), wait=wait_fixed(10))
 def get_instance_memory(instance_id, region=DEFAULT_REGION):
     """
     Get total RAM available on instance with given instance ID
@@ -405,7 +408,8 @@ def get_instance_memory(instance_id, region=DEFAULT_REGION):
     instance_info = get_instance_details(instance_id, region=region)
     return instance_info["MemoryInfo"]["SizeInMiB"]
 
-@retry(stop_max_attempt_number=30, wait_fixed=10000)
+
+@retry(stop=stop_after_attempt(30), wait=wait_fixed(10))
 def get_instance_num_inferentias(instance_id=None, instance_type=None, region=DEFAULT_REGION):
     """
     Get total number of neurons on instance with given instance ID
@@ -422,7 +426,8 @@ def get_instance_num_inferentias(instance_id=None, instance_type=None, region=DE
     )
     return sum(neuron_type["Count"] for neuron_type in instance_info["InferenceAcceleratorInfo"]["Accelerators"] if neuron_type["Name"]=="Inferentia")
 
-@retry(stop_max_attempt_number=30, wait_fixed=10000)
+
+@retry(stop=stop_after_attempt(30), wait=wait_fixed(10))
 def get_instance_num_gpus(instance_id=None, instance_type=None, region=DEFAULT_REGION):
     """
     Get total number of GPUs on instance with given instance ID
@@ -450,7 +455,7 @@ def get_ec2_fabric_connection(instance_id, instance_pem_file, region):
     """
     user = get_instance_user(instance_id, region=region)
     conn = Connection(
-        user=user, host=get_public_ip(instance_id, region), connect_kwargs={"key_filename": [instance_pem_file]}, connect_timeout=18000, 
+        user=user, host=get_public_ip(instance_id, region), connect_kwargs={"key_filename": [instance_pem_file]}, connect_timeout=18000,
     )
     return conn
 
@@ -464,7 +469,7 @@ def get_ec2_instance_tags(instance_id, region=DEFAULT_REGION, ec2_client=None):
 def enforce_IMDSv2(instance_id, region=DEFAULT_REGION, ec2_client=None, hop_limit = 1):
     """
     Enabled HTTP TOKENS required option on EC2 instance with given hop limit.
-    
+
     :param instance_id: str, ec2 instance id
     :param region: str, Region where ec2 instance is launched.
     :param ec2_client: str, ec2 client.
@@ -507,7 +512,7 @@ def enforce_IMDSv2(instance_id, region=DEFAULT_REGION, ec2_client=None, hop_limi
 def fetch_s3_file_and_get_last_line(s3_location, local_filename="temp.txt"):
     """
     Fetches the s3 file locally and extracts its last line.
-    
+
     :param s3_location: str, s3 uri
     :param local_filename: str, location where s3 file is to be downloaded locally.
     :return: str, The last line of the file
@@ -576,7 +581,7 @@ def execute_asynchronus_testing_using_s3_bucket(
                 )
                 break
         LOGGER.info(f"Uploaded file to {s3_location} for {loop_count} number of times")
-    
+
     if not last_line_of_log.endswith(required_log_ending):
         raise ValueError(
             f""" Test failed because the last row is not as expected. \n"""
@@ -765,7 +770,7 @@ def execute_ec2_habana_training_performance_test(
         f"{container_runtime} {ompi_mca_btl} {hpu_env_vars} {cap_add} {ipc} " \
         f"-v {container_test_local_dir}:{os.path.join(os.sep, 'test')} -v {habana_container_test_repo} " \
         f"{ecr_uri} {os.path.join(os.sep, 'bin', 'bash')} -c '{test_cmd}'"
-    
+
     framework = "tensorflow" if "tensorflow" in ecr_uri else "pytorch" if "pytorch" in ecr_uri else None
     account_id_prefix = os.getenv("ACCOUNT_ID", boto3.client("sts").get_caller_identity()["Account"])[:3]
     s3_bucket_for_permanent_logs = f"dlinfra-habana-tests-{account_id_prefix}"
@@ -904,3 +909,50 @@ def post_process_mxnet_ec2_performance(connection, log_location):
         return {"Throughput": total / n}
     else:
         raise ValueError("total: {}; n: {} -- something went wrong".format(total, n))
+
+
+@retry(reraise=True, wait=wait_fixed(60), stop=stop_after_attempt(5))
+def install_python_in_instance(context, python_version="3.9"):
+    """
+    Install python on DLAMI EC2 instances to create a consistent test environment that is agnostic to AMI used for test.
+    This helper function assumes that the EC2 instance uses a DLAMI. The /etc/profile.d/dlami.sh file doesn't exist
+    in other AMIs. If support for other AMIs is needed, this function will need to be updated.
+    :param context: Invoke Context / Fabric Connection object
+    :param python_version: str python version to install, such as 3.8, 3.9, etc.
+    :return: None
+    """
+    if context.run("pyenv --version", warn=True, hide=True).failed:
+        context.run("""ls ~/.pyenv || git clone https://github.com/pyenv/pyenv.git ~/.pyenv""", hide=True)
+        # Need to configure PATH and PYENV_ROOT changes in alternative location because ~/.bashrc and ~/.profile are
+        # not used when using bash through Fabric Connection.
+        context.run("sudo chmod 666 /etc/profile.d/dlami.sh", hide=True)
+        context.run("""echo 'export PYENV_ROOT="$HOME/.pyenv"' >> /etc/profile.d/dlami.sh""", hide=True)
+        context.run(
+            """echo 'command -v pyenv >/dev/null || export PATH="$PYENV_ROOT/bin:$PATH"' >> /etc/profile.d/dlami.sh""",
+            hide=True,
+        )
+        context.run("""echo 'eval "$(pyenv init -)"' >> /etc/profile.d/dlami.sh""", hide=True)
+        context.run("sudo chmod 644 /etc/profile.d/dlami.sh", hide=True)
+
+    context.run("sudo apt-get update", hide=True)
+    context.run(
+        (
+            "sudo apt install -y make build-essential libssl-dev zlib1g-dev "
+            "libbz2-dev libreadline-dev libsqlite3-dev wget curl llvm "
+            "libncursesw5-dev xz-utils tk-dev libxml2-dev libxmlsec1-dev libffi-dev liblzma-dev"
+        ),
+        hide=True,
+    )
+
+    context.run(f"pyenv install {python_version}", hide=True)
+    context.run(f"pyenv global {python_version}", hide=True)
+
+    # Validate that installed python version is the same as requested python version
+    python_version_response = context.run("python --version", hide=True)
+    python_version_match = re.search(r"Python (\d+(\.\d+)+)", python_version_response.stdout)
+    assert python_version_match, "Running 'python --version' returned None"
+    installed_python_version = python_version_match.group(1)
+    # Use SpecifierSet("=={python_version}.*") to accommodate python_version of the form X.Y as well as X.Y.Z
+    assert Version(installed_python_version) in SpecifierSet(f"=={python_version}.*"), (
+        f"Installed python version {installed_python_version} does not match required python_version {python_version}"
+    )
