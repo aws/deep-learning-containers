@@ -23,7 +23,7 @@ huggingface_trcomp_mode = false
 trcomp_mode = false
 # Please only set it to True if you are preparing a Benchmark related PR
 # Do remember to revert it back to False before merging any PR (including Benchmark dedicated PR)
-benchmark_mode = true
+benchmark_mode = false
 
 [build]
 # Frameworks for which you want to disable both builds and tests
@@ -33,7 +33,7 @@ skip_frameworks = ["autogluon", "huggingface_tensorflow", "huggingface_pytorch",
 datetime_tag = false
 # Note: Need to build the images at least once with datetime_tag = false
 # before disabling new builds, or tests will fail
-do_build = false
+do_build = true
 
 [test]
 ### On by default
@@ -53,7 +53,7 @@ sagemaker_local_tests = true
 # "standard" --> run standard sagemaker remote tests from test/sagemaker_tests
 # "rc" --> run release_candidate_integration tests
 # "efa" --> run efa sagemaker tests
-sagemaker_remote_tests = "efa"
+sagemaker_remote_tests = "standard"
 
 # Run CI tests for nightly images
 # false by default
