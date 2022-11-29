@@ -51,7 +51,7 @@ RUN wget -qO - https://apt.repos.neuron.amazonaws.com/GPG-PUB-KEY-AMAZON-AWS-NEU
 
 RUN apt-get update \
  && apt-get install -y \
-    aws-neuron-tools \
+    aws-neuronx-tools \
  && rm -rf /var/lib/apt/lists/* \
  && rm -rf /tmp/tmp* \
  && apt-get clean
