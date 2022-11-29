@@ -159,6 +159,12 @@ RUN ${PIP} install --no-cache-dir -U \
     "werkzeug>=2.0.2,<3" \
     psutil==5.7.2 \
     "urllib3>1.26.0<1.27.0" \
+    # The Following Issues Require the Upper Bound Set on Protobuf:
+    #    -  https://github.com/tensorflow/tensorflow/issues/53234  
+    #    -  https://github.com/protocolbuffers/protobuf/issues/9954
+    #    -  https://github.com/tensorflow/tensorflow/issues/56077
+    # Reference setup.py protobuf upper limit here:
+    #    - https://github.com/tensorflow/tensorflow/blob/master/tensorflow/tools/pip_package/setup.py#L105
     "protobuf>=3.9.2,<3.20"
 
 ADD https://raw.githubusercontent.com/aws/deep-learning-containers/master/src/deep_learning_container.py /usr/local/bin/deep_learning_container.py
