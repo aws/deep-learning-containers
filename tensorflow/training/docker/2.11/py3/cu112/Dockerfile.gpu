@@ -232,7 +232,7 @@ RUN ${PIP} install --no-cache-dir -U \
     #    -  https://github.com/tensorflow/tensorflow/issues/56077
     # Reference setup.py protobuf upper limit here:
     #    - https://github.com/tensorflow/tensorflow/blob/master/tensorflow/tools/pip_package/setup.py#L105
-   "protobuf>=3.9.2,<3.20"
+   "protobuf>=3.19,<3.20"
 
 # Install AWS OFI NCCL plug-in
 RUN apt-get update && apt-get install -y autoconf
