@@ -35,7 +35,7 @@ PT_TORCHDATA_DEV_CMD = os.path.join(CONTAINER_TESTS_PREFIX, "pytorch_tests", "te
 
 @pytest.mark.usefixtures("sagemaker")
 @pytest.mark.model("resnet")
-@pytest.mark.parametrize("ec2_instance_ami", [test_utils.UL20_PT_NEURON_US_WEST_2], indirect=True)
+@pytest.mark.parametrize("ec2_instance_ami", [test_utils.NEURON_TRN1_AMI_US_WEST_2], indirect=True)
 @pytest.mark.parametrize("ec2_instance_type", PT_EC2_NEURON_INSTANCE_TYPE, indirect=True)
 def test_ec2_pytorch_inference_neuron(pytorch_inference_neuron, ec2_connection, region):
     ec2_pytorch_inference(pytorch_inference_neuron, "neuron", ec2_connection, region)
