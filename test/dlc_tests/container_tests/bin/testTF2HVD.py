@@ -15,7 +15,7 @@
 
 import tensorflow as tf
 import horovod.tensorflow as hvd
-
+from packaging.specifiers import SpecifierSet
 # Horovod: initialize Horovod.
 hvd.init()
 
@@ -48,7 +48,10 @@ mnist_model = tf.keras.Sequential([
 loss = tf.losses.SparseCategoricalCrossentropy()
 
 # Horovod: adjust learning rate based on number of GPUs.
-opt = tf.optimizers.legacy.Adam(0.001 * hvd.size())
+if tf.__version__ in SpecifierSet("<2.11.0"):
+    opt = tf.optimizers.legacy.Adam(0.001)
+else:
+    opt = tf.legacy.Adam(0.001)
 
 checkpoint_dir = './checkpoints'
 checkpoint = tf.train.Checkpoint(model=mnist_model, optimizer=opt)
