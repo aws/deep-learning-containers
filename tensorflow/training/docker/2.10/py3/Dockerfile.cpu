@@ -283,6 +283,8 @@ RUN $PYTHON -m pip install --no-cache-dir -U \
     "sagemaker-studio-sparkmagic-lib<1" \
     smclarify
 
+# Remove python kernel installed by sparkmagic
+RUN /usr/local/bin/jupyter-kernelspec remove -f python3
 
 # install smdebug directly the specific branch
 ARG SMDEBUG_TAG=1.0.21
