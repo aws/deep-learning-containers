@@ -72,6 +72,7 @@ NEURON_UBUNTU_18_BASE_DLAMI_US_WEST_2 = get_ami_id_boto3(region_name="us-west-2"
 UL20_PT_NEURON_US_WEST_2 = get_ami_id_boto3(region_name="us-west-2", ami_name_pattern="Deep Learning AMI Neuron PyTorch 1.11.0 (Ubuntu 20.04) ????????")
 # Since NEURON TRN1 DLAMI is not released yet use a custom AMI
 NEURON_TRN1_AMI_US_WEST_2 = "ami-0a610a15fcc9e0242"
+NEURON_INF1_AMI_US_WEST_2 = "ami-06a5a60d3801a57b7"
 # Habana Base v0.15.4 ami
 # UBUNTU_18_HPU_DLAMI_US_WEST_2 = "ami-0f051d0c1a667a106"
 # UBUNTU_18_HPU_DLAMI_US_EAST_1 = "ami-04c47cb3d4fdaa874"

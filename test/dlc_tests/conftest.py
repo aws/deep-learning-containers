@@ -364,9 +364,7 @@ def ec2_instance(
     if (
         "pytorch_inference_neuron" in request.fixturenames
     ):
-        user_data = """#!/bin/bash
-        sudo apt-get update && sudo apt-get remove -y aws-neuron-dkms && sudo apt install -y aws-neuronx-dkms"""
-        params["UserData"] = user_data
+        params["BlockDeviceMappings"] = [{"DeviceName": volume_name, "Ebs": {"VolumeSize": 1024,},}]
 
     if ei_accelerator_type:
         params["ElasticInferenceAccelerators"] = [{"Type": ei_accelerator_type, "Count": 1}]
