@@ -77,6 +77,7 @@ RUN apt-get update
 RUN apt-get install -y \
     tensorflow-model-server-neuron=2.8.* \
     aws-neuronx-tools=2.* \
+    aws-neuronx-runtime-lib \
  && apt-get clean \
  && rm -rf /var/lib/apt/lists/*
 
@@ -103,7 +104,7 @@ RUN ${PIP} install --no-cache-dir \
 # resolve package dependencies during installation.
 RUN ${PIP} install "tensorflow-neuron[cc]==2.8.2.*" --extra-index-url https://pip.repos.neuron.amazonaws.com \
  && ${PIP} install "protobuf==3.20.1" \
- && ${PIP} install tensorboard-plugin-neuron --extra-index-url https://pip.repos.neuron.amazonaws.com \
+ && ${PIP} install tensorboard-plugin-neuron --extra-index-url https://pip.repos.neuron.amazonaws.com
 
 COPY ./sagemaker /sagemaker
 
