@@ -92,7 +92,7 @@ RUN SMDATAPARALLEL_PT=1 pip install --no-cache-dir ${SMD_DATA_PARALLEL_URL} --fo
 
 # Install SageMaker Training Toolkit
 RUN pip uninstall -y sagemaker-training \
- && pip install --no-deps --no-cache-dir -U --force-reinstall "sagemaker-training>=4.2.6"
+ && pip install --no-deps --no-cache-dir -U --force-reinstall "sagemaker-training>=4.3.2"
 
 # Install SageMaker PyTorch Training Toolkit
 RUN pip uninstall -y sagemaker-pytorch-training \
@@ -104,7 +104,7 @@ RUN apt-get update -y && \
     apt-get upgrade -y openssl && \
     apt-get clean
 
-# Uninstall Torch Data
+# Uninstall Torch Data - not needed for NLP support with PT 1.12
 RUN pip uninstall -y torchdata
 
 
