@@ -162,7 +162,8 @@ RUN ompi_info --parsable --all | grep mpi_built_with_cuda_support:value \
  && chmod +x ~/mambaforge.sh \
  && ~/mambaforge.sh -b -p /opt/conda \
  && rm ~/mambaforge.sh \
- && /opt/conda/bin/conda install -c conda-forge \
+ && /opt/conda/bin/conda update -y conda \
+ && /opt/conda/bin/conda install -y -c conda-forge \
     python=$PYTHON_VERSION \
     cython \
     mkl \
@@ -179,7 +180,6 @@ RUN ompi_info --parsable --all | grep mpi_built_with_cuda_support:value \
  &&  /opt/conda/bin/conda install -c dglteam -y dgl-cuda11.7 \
  &&  /opt/conda/bin/conda install -c pytorch -y magma-cuda117 \
  &&  /opt/conda/bin/conda install -c fastai -y fastai \
-RUN /opt/conda/bin/conda update -y conda \
  && /opt/conda/bin/conda clean -ya
 
 # Conda installs links for libtinfo.so.6 and libtinfo.so.6.2 both
