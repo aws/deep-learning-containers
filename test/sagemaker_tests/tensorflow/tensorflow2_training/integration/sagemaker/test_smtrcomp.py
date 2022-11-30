@@ -36,6 +36,11 @@ def _assert_training_compiler_invoked(captured):
     assert 'Found configuration for Training Compiler' in logs
 
 
+def _assert_fault_attributed_to_training_compiler(captured):
+    logs = captured.out + captured.err
+    assert 'SMTrainingCompiler Error: ' in logs
+
+
 def _assert_file_exists_in_s3(region, s3_url):
     parsed_url = urlparse(s3_url)
     s3 = boto3.resource('s3', region_name=region)
@@ -309,6 +314,7 @@ class TestMLWorkFlow:
         captured = capsys.readouterr()
         _assert_training_compiler_invoked(captured)
 
+
     @pytest.mark.model('distilbert')
     def test_BYOC_training(self, sagemaker_session, ecr_image, framework_version, instance_type, instance_count,tmpdir, capsys):
         source_path = os.path.join(resource_path, 'mlm')
@@ -443,3 +449,25 @@ class TestMLWorkFlow:
                                 framework='tensorflow',
                                 framework_version='2.9',
                                 )
+
+
+    @pytest.mark.model('toy')
+    @pytest.mark.integration("neo")
+    def test_toolkit_fault_attribution(self, sagemaker_session, ecr_image, framework_version, instance_type, instance_count, tmpdir, capsys):
+        script = os.path.join(resource_path, 'smtrcomp', 'xla_error.py')
+        estimator = TensorFlow(entry_point=script,
+                               role='SageMakerRole',
+                               instance_type=instance_type,
+                               instance_count=instance_count,
+                               sagemaker_session=sagemaker_session,
+                               image_uri=ecr_image,
+                               framework_version=framework_version,
+                               hyperparameters={
+                                    TrainingCompilerConfig.HP_ENABLE_COMPILER : True,
+                               },
+                               )
+        with pytest.raises(Exception):
+            estimator.fit(mnist_dataset, job_name=unique_name_from_base('test-TF-trcomp-fault'))
+        captured = capsys.readouterr()
+        _assert_training_compiler_invoked(captured)
+        _assert_fault_attributed_to_training_compiler(captured)
