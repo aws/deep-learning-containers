@@ -59,7 +59,7 @@ def test_fastai_mnist(docker_image, instance_type, py_version, sagemaker_local_s
 
 
 def _train_and_assert_success(estimator, input_dir, output_path):
-    estimator.fit({'training': 'file://{}'.format(os.path.join(input_dir, 'training'))})
+    estimator.fit({'training': 'file://{}'.format(input_dir)})
 
     success_files = {'model': ['model.pth'], 'output': ['success']}
     assert_files_exist(output_path, success_files)
