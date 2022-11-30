@@ -241,14 +241,6 @@ Neuron Containers
 |MXNet 1.8.0    |mx_neuron      |Neuron 1.18.0      |inference 	|inf1   |3.7 (py37) 	        |763104351884.dkr.ecr.us-west-2.amazonaws.com/mxnet-inference-neuron:1.8.0-neuron-py37-sdk1.18.0-ubuntu18.04          |
 
 
-Elastic Inference Containers
-============================
-
-|Framework                                  |Job Type   |Python Version Options |Example URL                                                                                                |
-|-------------------------------------------|-----------|-----------------------|-----------------------------------------------------------------------------------------------------------|
-| PyTorch 1.5.1 with Elastic Inference        |inference 	|3.8 (py38) 	        | 763104351884.dkr.ecr.us-west-2.amazonaws.com/pytorch-inference-eia:1.5.1-cpu-py38-ubuntu20.04        |
-
-
 Prior EC2 Framework Container Versions
 ==============
 | Framework 			                      |Job Type 			   |Horovod Options 			     |CPU/GPU 	  |Python Version Options 			      |Example URL 			                                                                               |
