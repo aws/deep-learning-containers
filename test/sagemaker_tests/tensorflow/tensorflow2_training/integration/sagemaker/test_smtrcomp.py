@@ -452,7 +452,7 @@ class TestMLWorkFlow:
 
 
     @pytest.mark.model('toy')
-    @pytest.mark.integration("neo")
+    @pytest.mark.integration("toolkit")
     def test_toolkit_fault_attribution(self, sagemaker_session, ecr_image, framework_version, instance_type, instance_count, tmpdir, capsys):
         script = os.path.join(resource_path, 'smtrcomp', 'xla_error.py')
         estimator = TensorFlow(entry_point=script,
@@ -467,7 +467,7 @@ class TestMLWorkFlow:
                                },
                                )
         with pytest.raises(Exception):
-            estimator.fit(mnist_dataset, job_name=unique_name_from_base('test-TF-trcomp-fault'))
+            estimator.fit(job_name=unique_name_from_base('test-TF-trcomp-fault'))
         captured = capsys.readouterr()
         _assert_training_compiler_invoked(captured)
         _assert_fault_attributed_to_training_compiler(captured)
