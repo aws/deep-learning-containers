@@ -20,14 +20,16 @@ def test_eks_tensorflow_neuron_inference(tensorflow_inference_neuron):
     model_name = "mnist_neuron"
     yaml_path = os.path.join(os.sep, "tmp", f"tensorflow_single_node_{processor}_inference_{rand_int}.yaml")
     inference_service_name = selector_name = f"mnist-{processor}-{rand_int}"
+    model_base_path = get_eks_tensorflow_model_base_path(tensorflow_inference_neuron, model_name)
+    command, args = get_tensorflow_command_args(tensorflow_inference_neuron, model_name, model_base_path)
 
     search_replace_dict = {
-        "<MODEL_NAME>": model_name,
-        "<MODEL_BASE_PATH>": f"s3://aws-dlc-sample-models",
         "<NUM_REPLICAS>": num_replicas,
         "<SELECTOR_NAME>": selector_name,
         "<INFERENCE_SERVICE_NAME>": inference_service_name,
         "<DOCKER_IMAGE_BUILD_ID>": tensorflow_inference_neuron,
+        "<COMMAND>": command,
+        "<ARGS>": args,
     }
 
     search_replace_dict["<NUM_INF1S>"] = "1"
@@ -165,12 +167,16 @@ def __test_eks_tensorflow_albert(tensorflow_inference):
 
 
 def get_tensorflow_command_args(image_uri, model_name, model_base_path):
+    if "neuron" in image_uri:
+        model_server = '/usr/local/bin/tensorflow_model_server_neuron'
+    else:
+        model_server = '/usr/bin/tensorflow_model_server'
     if test_utils.is_below_framework_version("2.7", image_uri, "tensorflow"):
-        command = "['/usr/bin/tensorflow_model_server']"
+        command = f"[{model_server}]"
         args = f"['--port=8501', '--rest_api_port=8500', '--model_name={model_name}', '--model_base_path={model_base_path}']"
     else:
         command = "['/bin/sh', '-c']"
-        args = f"['mkdir -p /tensorflow_model && aws s3 sync s3://tensoflow-trained-models/{model_name}/ /tensorflow_model/{model_name} && /usr/bin/tensorflow_model_server --port=8501 --rest_api_port=8500 --model_name={model_name} --model_base_path={model_base_path}']"
+        args = f"['mkdir -p /tensorflow_model && aws s3 sync s3://tensoflow-trained-models/{model_name}/ /tensorflow_model/{model_name} && {model_server} --port=8501 --rest_api_port=8500 --model_name={model_name} --model_base_path={model_base_path}']"
     return command, args
 
 
