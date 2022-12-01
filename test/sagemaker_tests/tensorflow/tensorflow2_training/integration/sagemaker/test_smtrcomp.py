@@ -454,20 +454,33 @@ class TestMLWorkFlow:
     @pytest.mark.model('toy')
     @pytest.mark.integration("toolkit")
     def test_toolkit_fault_attribution(self, sagemaker_session, ecr_image, framework_version, instance_type, instance_count, tmpdir, capsys):
-        script = os.path.join(resource_path, 'smtrcomp', 'xla_error.py')
-        estimator = TensorFlow(entry_point=script,
-                               role='SageMakerRole',
-                               instance_type=instance_type,
-                               instance_count=instance_count,
-                               sagemaker_session=sagemaker_session,
-                               image_uri=ecr_image,
-                               framework_version=framework_version,
-                               hyperparameters={
-                                    TrainingCompilerConfig.HP_ENABLE_COMPILER : True,
-                               },
-                               )
+        script = os.path.join(resource_path, 'smtrcomp', 'tensorflow_issue_58135.py')
+        estimator_args = dict(
+            entry_point=script,
+            role='SageMakerRole',
+            instance_type=instance_type,
+            instance_count=instance_count,
+            sagemaker_session=sagemaker_session,
+            image_uri=ecr_image,
+            framework_version=framework_version,
+        )
+        native_estimator = TensorFlow(
+            **estimator_args,
+        )
+        smtrcomp_estimator = TensorFlow(
+            **estimator_args,
+            hyperparameters={
+                TrainingCompilerConfig.HP_ENABLE_COMPILER : True,
+                'jit_compile': True,
+           },
+        )
+        # If a training script+args is successful without SM Training Compiler
+        native_estimator.fit(job_name=unique_name_from_base('test-TF-trcomp-fault'))
+        # But the training script+args fails with SM Training Compiler
         with pytest.raises(Exception):
-            estimator.fit(job_name=unique_name_from_base('test-TF-trcomp-fault'))
-        captured = capsys.readouterr()
-        _assert_training_compiler_invoked(captured)
-        _assert_fault_attributed_to_training_compiler(captured)
+            smtrcomp_estimator.fit(job_name=unique_name_from_base('test-TF-trcomp-fault'))
+        # Then the failure reason should clearly indicate that this failure is due to SM Training Compiler
+        reason = sagemaker_session.describe_training_job(smtrcomp_estimator.latest_training_job.name)['FailureReason']
+        raise NotImplementedError(reason)
+
+

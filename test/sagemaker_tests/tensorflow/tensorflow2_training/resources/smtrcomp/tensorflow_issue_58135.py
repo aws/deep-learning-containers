@@ -1,5 +1,9 @@
+# Inspired by https://github.com/tensorflow/tensorflow/issues/58135
+
+
 import tensorflow as tf
 import numpy as np
+import argparse
 
 
 class Chooser(tf.keras.layers.Layer):
@@ -20,11 +24,17 @@ def get_model():
 
     return tf.keras.Model([options_input, choices_input], net)
 
+
+parser = argparse.ArgumentParser()
+parser.add_argument('--jit_compile', type=bool, default=False)
+args, unknown = _parse_args()
+
+
 model = get_model()
 model.compile(
     optimizer=tf.keras.optimizers.Adam(0.001),
     loss=tf.keras.losses.MeanAbsoluteError(),
-    jit_compile=True
+    jit_compile=args.jit_compile
 )
 
 def batch_gen():
