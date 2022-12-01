@@ -244,20 +244,21 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 
 ARG TF_URL=https://framework-binaries.s3.us-west-2.amazonaws.com/tensorflow/r2.11_aws/cpu/2022-11-18-18-26/tensorflow_cpu-2.11.0-cp39-cp39-manylinux_2_17_x86_64.manylinux2014_x86_64.whl
 
-# https://github.com/tensorflow/models/issues/9267
-# tf-models does not respect existing installations of TF and always installs open source TF
-RUN ${PIP} install --no-cache-dir -U \
-    tf-models-official==2.10.1
-
-RUN ${PIP} install --no-cache-dir -U \
-    tensorflow-text==2.10.0
-
 RUN ${PIP} uninstall -y tensorflow tensorflow-gpu \
     ; ${PIP} install --no-cache-dir -U \
     ${TF_URL} \
     tensorflow-io==0.27.0 \
     tensorflow-datasets==4.7.0
 
+# https://github.com/tensorflow/models/issues/9267
+# tf-models does not respect existing installations of TF and always installs open source TF
+RUN ${PIP} install --no-cache-dir -U \
+    tf-models-official==2.11.0 
+
+RUN ${PIP} install --no-cache-dir -U \
+    tensorflow-text==2.11.0
+
+    
 # Install Horovod with TensorFlow
 RUN HOROVOD_WITH_MPI=1 \
    && HOROVOD_WITH_TENSORFLOW=1 HOROVOD_WITHOUT_MXNET=1 HOROVOD_WITHOUT_PYTORCH=1 \
