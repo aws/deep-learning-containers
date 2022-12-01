@@ -59,7 +59,7 @@ def invoke_pytorch_estimator(
     retry_delay = 600
     ecr_image_region = get_ecr_image_region(ecr_image)
     error = None
-    for i in range(num_retries):
+    for _ in range(num_retries):
         for test_region in sagemaker_regions:
             sagemaker_session = get_sagemaker_session(test_region)
             # Reupload the image to test region if needed
