@@ -11,10 +11,16 @@
 # ANY KIND, either express or implied. See the License for the specific
 # language governing permissions and limitations under the License.
 from __future__ import absolute_import
-from ..... import get_ecr_image, get_ecr_image_region, get_sagemaker_session
-import sagemaker
-from sagemaker.pytorch import PyTorch
+
 import time
+
+import pytest
+import sagemaker
+
+from sagemaker.pytorch import PyTorch
+
+from ..... import get_ecr_image, get_ecr_image_region, get_sagemaker_session, LOW_AVAILABILITY_INSTANCE_TYPES
+
 
 def upload_s3_data(estimator, path, key_prefix):
 
@@ -52,7 +58,8 @@ def invoke_pytorch_estimator(
     num_retries = 3
     retry_delay = 600
     ecr_image_region = get_ecr_image_region(ecr_image)
-    for _ in range(num_retries):
+    error = None
+    for i in range(num_retries):
         for test_region in sagemaker_regions:
             sagemaker_session = get_sagemaker_session(test_region)
             # Reupload the image to test region if needed
@@ -62,6 +69,8 @@ def invoke_pytorch_estimator(
             else:
                 estimator_parameter["environment"]["AWS_REGION"] = test_region
             try:
+                raise ReferenceError("Lol, oops")
+
                 pytorch = PyTorch(
                     image_uri=tested_ecr_image,
                     sagemaker_session=sagemaker_session,
@@ -79,9 +88,23 @@ def invoke_pytorch_estimator(
                 pytorch.fit(inputs=inputs, job_name=job_name)
                 return pytorch, sagemaker_session
 
-            except sagemaker.exceptions.UnexpectedStatusException as e:
-                if "CapacityError" in str(e):
-                    time.sleep(retry_delay)
+            except ReferenceError as e:
+                error = e
+                if "Lol, oops" in str(e):
+                    print(f"Lol oops, failed in {test_region}")
+                    time.sleep(0.5)
                     continue
                 else:
                     raise e
+            # except sagemaker.exceptions.UnexpectedStatusException as e:
+            #     error = e
+            #     if "CapacityError" in str(e):
+            #         time.sleep(retry_delay)
+            #         continue
+            #     else:
+            #         raise e
+
+    # if "CapacityError" in str(e) and estimator_parameter["instance_type"] in LOW_AVAILABILITY_INSTANCE_TYPES:
+    if "Lol, oops" in str(error):  # and estimator_parameter["instance_type"] in LOW_AVAILABILITY_INSTANCE_TYPES:
+        pytest.xfail(f"Failed to launch job due to low capacity on {estimator_parameter['instance_type']}")
+    raise error

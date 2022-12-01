@@ -13,17 +13,16 @@
 from __future__ import absolute_import
 
 import pytest
-import os
-from sagemaker import utils
-from sagemaker.instance_group import InstanceGroup
-from sagemaker.pytorch import PyTorch
 
 from packaging.version import Version
 from packaging.specifiers import SpecifierSet
+from sagemaker import utils
+
 from ...integration import DEFAULT_TIMEOUT, mnist_path
 from ...integration.sagemaker.timeout import timeout
 from test.test_utils import get_framework_and_version_from_tag
 from . import invoke_pytorch_estimator
+
 
 def validate_or_skip_pytorchddp(ecr_image):
     if not can_run_pytorchddp(ecr_image):
@@ -39,7 +38,7 @@ def can_run_pytorchddp(ecr_image):
 @pytest.mark.model("N/A")
 @pytest.mark.multinode(2)
 @pytest.mark.integration("pytorchddp")
-@pytest.mark.parametrize('instance_types', ["ml.p4d.24xlarge"])
+@pytest.mark.parametrize('instance_types', ["ml.p4d.24xlarge", "ml.p4de.24xlarge"])
 @pytest.mark.skip_cpu
 @pytest.mark.skip_py2_containers
 @pytest.mark.efa()
@@ -57,5 +56,5 @@ def test_pytorchddp_throughput_gpu(framework_version, ecr_image, sagemaker_regio
             'distribution': distribution
         }
 
-        job_name=utils.unique_name_from_base('test-pytorchddp-throughput-gpu')
+        job_name = utils.unique_name_from_base('test-pytorchddp-throughput-gpu')
         invoke_pytorch_estimator(ecr_image, sagemaker_regions, estimator_parameter, job_name=job_name)
