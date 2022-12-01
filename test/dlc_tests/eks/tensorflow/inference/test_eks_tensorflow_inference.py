@@ -169,14 +169,18 @@ def __test_eks_tensorflow_albert(tensorflow_inference):
 def get_tensorflow_command_args(image_uri, model_name, model_base_path):
     if "neuron" in image_uri:
         model_server = '/usr/local/bin/tensorflow_model_server_neuron'
+        port = 8500
+        rest_api_port = 8501
     else:
         model_server = '/usr/bin/tensorflow_model_server'
+        port = 8501
+        rest_api_port = 8500
     if test_utils.is_below_framework_version("2.7", image_uri, "tensorflow"):
         command = f"[{model_server}]"
-        args = f"['--port=8501', '--rest_api_port=8500', '--model_name={model_name}', '--model_base_path={model_base_path}']"
+        args = f"['--port={port}', '--rest_api_port={rest_api_port}', '--model_name={model_name}', '--model_base_path={model_base_path}']"
     else:
         command = "['/bin/sh', '-c']"
-        args = f"['mkdir -p /tensorflow_model && aws s3 sync s3://tensoflow-trained-models/{model_name}/ /tensorflow_model/{model_name} && {model_server} --port=8501 --rest_api_port=8500 --model_name={model_name} --model_base_path={model_base_path}']"
+        args = f"['mkdir -p /tensorflow_model && aws s3 sync s3://tensoflow-trained-models/{model_name}/ /tensorflow_model/{model_name} && {model_server} --port={port} --rest_api_port={rest_api_port} --model_name={model_name} --model_base_path={model_base_path}']"
     return command, args
 
 
