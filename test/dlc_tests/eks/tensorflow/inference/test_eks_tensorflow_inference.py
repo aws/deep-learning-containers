@@ -180,7 +180,7 @@ def get_tensorflow_command_args(image_uri, model_name, model_base_path):
         args = f"['--port={port}', '--rest_api_port={rest_api_port}', '--model_name={model_name}', '--model_base_path={model_base_path}']"
     else:
         command = "['/bin/sh', '-c']"
-        args = f"['mkdir -p /tensorflow_model && aws s3 sync s3://tensoflow-trained-models/{model_name}/ /tensorflow_model/{model_name} && {model_server} --port={port} --rest_api_port={rest_api_port} --model_name={model_name} --model_base_path={model_base_path}']"
+        args = f"['mkdir -p /tensorflow_model && aws s3 sync s3://tensoflow-trained-models/{model_name}/ /tensorflow_model/{model_name}/ && {model_server} --port={port} --rest_api_port={rest_api_port} --model_name={model_name} --model_base_path={model_base_path}']"
     return command, args
 
 
