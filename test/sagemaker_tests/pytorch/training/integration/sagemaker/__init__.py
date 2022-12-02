@@ -106,5 +106,12 @@ def invoke_pytorch_estimator(
 
     # if "CapacityError" in str(e) and estimator_parameter["instance_type"] in LOW_AVAILABILITY_INSTANCE_TYPES:
     if "Lol, oops" in str(error):  # and estimator_parameter["instance_type"] in LOW_AVAILABILITY_INSTANCE_TYPES:
-        pytest.xfail(f"Failed to launch job due to low capacity on {estimator_parameter['instance_type']}")
+        instance_types = []
+        if "instance_type" in estimator_parameter:
+            instance_types = [estimator_parameter["instance_type"]]
+        elif "instance_groups" in estimator_parameter:
+            instance_types = [instance_group.instance_type for instance_group in estimator_parameter["instance_groups"]]
+        # TODO: xfailed tests do not show up on CodeBuild Test Case Reports. Should this test be marked as "skip"
+        #       instead of xfail?
+        pytest.xfail(f"Failed to launch job due to low capacity on {instance_types}")
     raise error

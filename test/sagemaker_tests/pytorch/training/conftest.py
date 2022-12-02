@@ -28,8 +28,8 @@ from sagemaker import LocalSession, Session
 from sagemaker.pytorch import PyTorch
 
 from .utils import (
-    get_ecr_registry, 
-    NightlyFeatureLabel, 
+    get_ecr_registry,
+    NightlyFeatureLabel,
     is_nightly_context
 )
 
@@ -157,11 +157,11 @@ def pytest_collection_modifyitems(session, config, items):
 # Nightly image fixture dictionary, maps nightly fixtures to set of image labels
 NIGHTLY_FIXTURES = {
     "feature_smdebug_present": {
-        NightlyFeatureLabel.AWS_FRAMEWORK_INSTALLED.value, 
+        NightlyFeatureLabel.AWS_FRAMEWORK_INSTALLED.value,
         NightlyFeatureLabel.AWS_SMDEBUG_INSTALLED.value
     },
     "feature_smddp_present": {
-        NightlyFeatureLabel.AWS_FRAMEWORK_INSTALLED.value, 
+        NightlyFeatureLabel.AWS_FRAMEWORK_INSTALLED.value,
         NightlyFeatureLabel.AWS_SMDDP_INSTALLED.value
     },
     "feature_smmp_present": {
@@ -278,10 +278,10 @@ def fixture_build_base_image(request, framework_version, py_version, processor, 
 def fixture_sagemaker_session(region):
     return Session(boto_session=boto3.Session(region_name=region))
 
+
 @pytest.fixture(name='efa_instance_type')
-def fixture_efa_instance_type():
-    default_instance_type = "ml.p3dn.24xlarge"
-    return default_instance_type
+def fixture_efa_instance_type(request):
+    return request.param if hasattr(request, "param") else "ml.p4d.24xlarge"
 
 
 @pytest.fixture(scope='session', name='sagemaker_local_session')
