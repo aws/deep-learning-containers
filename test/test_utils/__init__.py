@@ -25,6 +25,7 @@ import dataclasses
 # from security import EnhancedJSONEncoder
 
 from src import config
+from src.config import are_efa_tests_enabled
 
 LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.INFO)
@@ -1466,7 +1467,7 @@ def get_os_version_from_image_uri(image_uri):
 
 def get_framework_from_image_uri(image_uri):
     return (
-        "pytorch_trcomp" 
+        "pytorch_trcomp"
         if "pytorch-trcomp" in image_uri
         else "huggingface_tensorflow_trcomp"
         if "huggingface-tensorflow-trcomp" in image_uri

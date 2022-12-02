@@ -116,6 +116,7 @@ NO_P4_REGIONS = [
     "af-south-1",
 ]
 
+
 def pytest_addoption(parser):
     parser.addoption('--build-image', '-D', action='store_true')
     parser.addoption('--build-base-image', '-B', action='store_true')
@@ -175,6 +176,7 @@ NIGHTLY_FIXTURES = {
     }
 }
 
+
 # Nightly fixtures
 @pytest.fixture(scope="session")
 def feature_smdebug_present():
@@ -225,10 +227,12 @@ def fixture_py_version(request):
 def fixture_processor(request):
     return request.config.getoption('--processor')
 
+
 @pytest.fixture(scope='session', name='sagemaker_regions')
 def fixture_sagemaker_regions(request):
     sagemaker_regions = request.config.getoption('--sagemaker-regions')
     return sagemaker_regions.split(",")
+
 
 @pytest.fixture(scope='session', name='tag')
 def fixture_tag(request, framework_version, processor, py_version):
@@ -264,12 +268,14 @@ def fixture_use_gpu(processor):
 def fixture_build_base_image(request, framework_version, py_version, processor, tag, docker_base_name):
     build_base_image_option = request.config.getoption('--build-base-image')
     if build_base_image_option:
-        return build_base_image(framework_name=docker_base_name,
-                                            framework_version=framework_version,
-                                            py_version=py_version,
-                                            base_image_tag=tag,
-                                            processor=processor,
-                                            cwd=os.path.join(dir_path, '..'))
+        return build_base_image(
+            framework_name=docker_base_name,
+            framework_version=framework_version,
+            py_version=py_version,
+            base_image_tag=tag,
+            processor=processor,
+            cwd=os.path.join(dir_path, '..'),
+        )
 
     return tag
 
@@ -357,10 +363,13 @@ def skip_test_in_region(request, region):
 
 @pytest.fixture(autouse=True)
 def skip_gpu_instance_restricted_regions(region, instance_type):
-    if ((region in NO_P2_REGIONS and instance_type.startswith('ml.p2'))
+    if (
+        (region in NO_P2_REGIONS and instance_type.startswith('ml.p2'))
         or (region in NO_P3_REGIONS and instance_type.startswith('ml.p3'))
-            or (region in NO_P4_REGIONS and instance_type.startswith('ml.p4'))):
-                pytest.skip('Skipping GPU test in region {}'.format(region))
+        or (region in NO_P4_REGIONS and instance_type.startswith('ml.p4'))
+    ):
+        pytest.skip('Skipping GPU test in region {}'.format(region))
+
 
 @pytest.fixture(autouse=True)
 def skip_neuron_trn1_test_in_region(request, region):

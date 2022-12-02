@@ -53,7 +53,8 @@ def run_test_job(commit, codebuild_project, images_str=""):
             # USE_SCHEDULER is passed as an env variable here because it is more convenient to set this in
             # dlc_developer_config, compared to having another config file under dlc/tests/.
             {"name": "USE_SCHEDULER", "value": str(config.is_scheduler_enabled()), "type": "PLAINTEXT"},
-            {"name": "DISABLE_EFA_TESTS", "value": str(not config.are_efa_tests_enabled()), "type": "PLAINTEXT"},
+            # If EFA_DEDICATED is True, only launch SM Remote EFA tests, else only launch standard/rc tests
+            {"name": "EFA_DEDICATED", "value": str(config.are_efa_tests_enabled()), "type": "PLAINTEXT"},
         ]
     )
     LOGGER.debug(f"env_overrides dict: {env_overrides}")
@@ -119,7 +120,7 @@ def is_test_job_implemented_for_framework(images_str, test_type):
     ] or config.is_benchmark_mode_enabled()):
         LOGGER.debug(f"Skipping {test_type} tests for huggingface trcomp containers")
         return False
-    
+
     if is_trcomp_image and (test_type in [
         constants.EKS_TESTS,
     ] or config.is_benchmark_mode_enabled()):

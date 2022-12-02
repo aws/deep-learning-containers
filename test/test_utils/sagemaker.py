@@ -45,8 +45,22 @@ class DLCSageMakerLocalTestFailure(Exception):
     pass
 
 
+def is_test_job_efa_dedicated():
+    # In both CI Sagemaker Test CB jobs and DLC Build Pipeline Actions that run SM EFA tests, the env variable
+    # "EFA_DEDICATED=True" must be configured so that those Actions only run the EFA tests.
+    # This is change from the previous system where only setting env variable "DISABLE_EFA_TESTS=False" would enable
+    # regular SM tests as well as SM EFA tests.
+    return os.getenv("EFA_DEDICATED", "False").lower() == "true"
+
+
+def get_efa_instance_type_from_environment():
+    return os.getenv("SM_EFA_INSTANCE_TYPE", "p4d.24xlarge")
+
+
 def assign_sagemaker_remote_job_instance_type(image):
-    if "graviton" in image:
+    if is_test_job_efa_dedicated():
+        return get_efa_instance_type_from_environment()
+    elif "graviton" in image:
         return "ml.c6g.2xlarge"
     elif "training-neuron" in image:
         return "ml.trn1.2xlarge"
@@ -71,6 +85,7 @@ def assign_sagemaker_local_job_instance_type(image):
         return "p3.2xlarge"
     return "p3.8xlarge" if "gpu" in image else "c5.18xlarge"
 
+
 def assign_sagemaker_local_test_ami(image, region):
     """
     Helper function to get the needed AMI for launching the image.
@@ -86,6 +101,7 @@ def assign_sagemaker_local_test_ami(image, region):
             return UBUNTU_18_BASE_DLAMI_US_EAST_1
         else:
             return UBUNTU_18_BASE_DLAMI_US_WEST_2
+
 
 def launch_sagemaker_local_ec2_instance(image, ami_id, ec2_key_name, region):
     """
@@ -190,18 +206,11 @@ def generate_sagemaker_pytest_cmd(image, sagemaker_test_type):
     test_report = os.path.join(os.getcwd(), "test", f"{job_type}_{tag}.xml")
     local_test_report = os.path.join(UBUNTU_HOME_DIR, "test", f"{job_type}_{tag}_sm_local.xml")
 
-    # Explanation of why we need the if-condition below:
-    # We have separate Pipeline Actions that run EFA tests, which have the env variable "EFA_DEDICATED=True" configured
-    # so that those Actions only run the EFA tests.
-    # However, there is no such dedicated CB job dedicated to EFA tests in the PR context. This means that when in the
-    # PR context, setting "DISABLE_EFA_TESTS" to True should skip EFA tests, but setting it to False should enable
-    # not just the EFA tests, but also all other tests as well.
-    if is_pr_context():
-        efa_tests_disabled = os.getenv("DISABLE_EFA_TESTS", "False").lower() == "true"
-        efa_flag = "-m \"not efa\"" if efa_tests_disabled else ""
-    else:
-        efa_dedicated = os.getenv("EFA_DEDICATED", "False").lower() == "true"
-        efa_flag = '--efa' if efa_dedicated else '-m \"not efa\"'
+    # In both CI Sagemaker Test CB jobs and DLC Build Pipeline Actions that run SM EFA tests, the env variable
+    # "EFA_DEDICATED=True" must be configured so that those Actions only run the EFA tests.
+    # This is change from the previous system where only setting env variable "DISABLE_EFA_TESTS=False" would enable
+    # regular SM tests as well as SM EFA tests.
+    efa_flag = '--efa' if is_test_job_efa_dedicated() else '-m \"not efa\"'
 
     region_list = (
         ",".join(SAGEMAKER_NEURON_EXECUTION_REGIONS)
@@ -214,15 +223,18 @@ def generate_sagemaker_pytest_cmd(image, sagemaker_test_type):
     remote_pytest_cmd = (
         f"pytest -rA {integration_path} --region {region} --processor {processor} {docker_base_arg} "
         f"{sm_remote_docker_base_name} --tag {tag} {framework_version_arg} {framework_version} "
-        f"{aws_id_arg} {account_id} {instance_type_arg} {instance_type} {efa_flag} {sagemaker_regions_list} --junitxml {test_report}"
+        f"{aws_id_arg} {account_id} {instance_type_arg} {instance_type} {efa_flag} {sagemaker_regions_list} "
+        f"--junitxml {test_report}"
     )
 
     if processor == "eia":
         remote_pytest_cmd += f" {accelerator_type_arg} {eia_arg}"
 
-    local_pytest_cmd = (f"pytest -s -v {integration_path} {docker_base_arg} "
-                        f"{sm_local_docker_repo_uri} --tag {tag} --framework-version {framework_version} "
-                        f"--processor {processor} {aws_id_arg} {account_id} --junitxml {local_test_report}")
+    local_pytest_cmd = (
+        f"pytest -s -v {integration_path} {docker_base_arg} "
+        f"{sm_local_docker_repo_uri} --tag {tag} --framework-version {framework_version} "
+        f"--processor {processor} {aws_id_arg} {account_id} --junitxml {local_test_report}"
+    )
 
     if framework == "tensorflow" and job_type != "inference":
         local_pytest_cmd = f"{local_pytest_cmd} --py-version {sm_local_py_version} --region {region}"
