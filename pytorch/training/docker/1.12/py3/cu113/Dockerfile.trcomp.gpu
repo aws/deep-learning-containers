@@ -35,6 +35,7 @@ LABEL dlc_major_version="1"
 # Version args - overwritten by args specified in buildspec
 ARG PYTHON=python3
 
+
 ARG PT_BUCKET=https://aws-pytorch-unified-cicd-binaries.s3.us-west-2.amazonaws.com/trcomp/r1.12.0_sm/20221202-082049/72513603d1a1d74129e980c4935de5bcd0959691
 ARG PT_URL=${PT_BUCKET}/torch-1.12.0%2Bcu113-cp38-cp38-linux_x86_64.whl
 ARG PT_XLA_URL=${PT_BUCKET}/torch_xla-1.12-cp38-cp38-linux_x86_64.whl
