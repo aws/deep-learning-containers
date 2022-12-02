@@ -376,6 +376,13 @@ def skip_py2_containers(request, tag):
             pytest.skip('Skipping python2 container with tag {}'.format(tag))
 
 
+@pytest.fixture(autouse=True)
+def skip_trcomp_containers(request, ecr_image):
+    if request.node.get_closest_marker('skip_trcomp_containers'):
+        if 'trcomp' in ecr_image:
+            pytest.skip('Skipping training compiler integrated container with tag {}'.format(ecr_image))
+
+
 def _get_remote_override_flags():
     try:
         s3_client = boto3.client('s3')
