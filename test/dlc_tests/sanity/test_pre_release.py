@@ -350,6 +350,10 @@ def test_framework_and_cuda_version_gpu(gpu, ec2_connection):
             tested_framework = tested_framework[len("huggingface_"):]
             # Replace the trcomp string as it is extracted from ECR repo name
             tested_framework = tested_framework.replace("_trcomp", "")
+        # Framework name may include trcomp
+        if "trcomp" in tested_framework:
+            # Replace the trcomp string as it is extracted from ECR repo name
+            tested_framework = tested_framework.replace("_trcomp", "")
         # Module name is "torch"
         if tested_framework == "pytorch":
             tested_framework = "torch"
@@ -631,6 +635,7 @@ def test_pip_check(image):
 
     :param image: ECR image URI
     """
+
     ctx = Context()
     gpu_suffix = "-gpu" if "gpu" in image else ""
     allowed_exception_list = []
@@ -662,6 +667,7 @@ def test_pip_check(image):
         allowed_tf263_exception = re.compile(rf"^tensorflow-io 0.21.0 requires tensorflow, which is not installed.$")
         allowed_exception_list.append(allowed_tf263_exception)
 
+
     if "autogluon" in image and (("0.3.1" in image) or ("0.3.2" in image)):
         allowed_autogluon_exception = re.compile(
             rf"autogluon-(vision|mxnet) 0.3.1 has requirement Pillow<8.4.0,>=8.3.0, but you have pillow \d+(\.\d+)*"
@@ -673,10 +679,10 @@ def test_pip_check(image):
     # tensorflow-text. Skip checking these two packages as this is an upstream issue.
     if framework == "tensorflow" and Version(framework_version) in SpecifierSet(">=2.9.1"):
         exception_strings = []
-        models_versions = ["2.9.1", "2.9.2", "2.10.0","2.11.0"]
+        models_versions = ["2.9.1", "2.9.2", "2.10.0", "2.11.0"]
         for ex_ver in models_versions:
             exception_strings += [f"tf-models-official {ex_ver}".replace(".", "\.")]
-        text_versions = ["2.9.0", "2.10.0","2.11.0"]
+        text_versions = ["2.9.0", "2.10.0", "2.11.0"]
         for ex_ver in text_versions:
             exception_strings += [f"tensorflow-text {ex_ver}".replace(".", "\.")]
         allowed_tf_models_text_exception = re.compile(
@@ -687,11 +693,15 @@ def test_pip_check(image):
                 rf"tf-models-official 2.9.2 has requirement tensorflow-text~=2.9.0, but you have tensorflow-text 2.10.0.")
         allowed_exception_list.append(allowed_tf_models_text_compatibility_exception)
 
+    if ("pytorch" in image and "trcomp" in image):
+        allowed_exception_list.append(re.compile(r"torch-xla \d+(\.\d+)* requires absl-py, which is not installed."))
+        allowed_exception_list.append(re.compile(r"torch-xla \d+(\.\d+)* requires cloud-tpu-client, which is not installed."))
+
     # Add null entrypoint to ensure command exits immediately
     output = ctx.run(
         f"docker run --entrypoint='' {image} pip check", hide=True, warn=True)
     if output.return_code != 0:
-        if not(any([allowed_exception.match(output.stdout) for allowed_exception in allowed_exception_list])):
+        if not(any([allowed_exception.findall(output.stdout) for allowed_exception in allowed_exception_list])):
             # Rerun pip check test if this is an unexpected failure
             ctx.run(f"docker run --entrypoint='' {image} pip check", hide=True)
 

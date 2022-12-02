@@ -247,17 +247,17 @@ ARG TF_URL=https://framework-binaries.s3.us-west-2.amazonaws.com/tensorflow/r2.1
 # https://github.com/tensorflow/models/issues/9267
 # tf-models does not respect existing installations of TF and always installs open source TF
 RUN ${PIP} install --no-cache-dir -U \
-    tf-models-official==2.10.1
+    tf-models-official==2.11.0 
 
 RUN ${PIP} install --no-cache-dir -U \
-    tensorflow-text==2.10.0
+    tensorflow-text==2.11.0
 
 RUN ${PIP} uninstall -y tensorflow tensorflow-gpu \
     ; ${PIP} install --no-cache-dir -U \
     ${TF_URL} \
     tensorflow-io==0.27.0 \
     tensorflow-datasets==4.7.0
-
+    
 # Install Horovod with TensorFlow
 RUN HOROVOD_WITH_MPI=1 \
    && HOROVOD_WITH_TENSORFLOW=1 HOROVOD_WITHOUT_MXNET=1 HOROVOD_WITHOUT_PYTORCH=1 \
@@ -298,7 +298,7 @@ RUN git clone https://github.com/yl-to/sagemaker-debugger.git \
 #     && $PYTHON setup.py install && cd .. && rm -rf sagemaker-debugger
 
 # install sagemaker-tensorflow from source
-ARG SAGEMAKER_TENSORFLOW_TAG=v1.16.1
+ARG SAGEMAKER_TENSORFLOW_TAG=v1.17.0
 RUN apt update && apt install -y libcurl4-openssl-dev
 RUN git clone -b tf-2 https://github.com/aws/sagemaker-tensorflow-extensions.git \
     && cd sagemaker-tensorflow-extensions \

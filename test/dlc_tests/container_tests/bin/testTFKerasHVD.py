@@ -1,7 +1,8 @@
 import tensorflow as tf
 import horovod.tensorflow.keras as hvd
 import argparse
-
+from packaging.specifiers import SpecifierSet
+from packaging.version import Version
 parser = argparse.ArgumentParser()
 parser.add_argument("data_type")
 args = parser.parse_args()
@@ -46,7 +47,10 @@ mnist_model = tf.keras.Sequential([
 ])
 
 # Horovod: adjust learning rate based on number of GPUs.
-opt = tf.optimizers.legacy.Adam(0.001)
+if Version(tf.__version__) in SpecifierSet("<2.11.0"):
+    opt = tf.optimizers.Adam(0.001)
+else:
+    opt = tf.optimizers.legacy.Adam(0.001)
 
 # Horovod: add Horovod DistributedOptimizer.
 opt = hvd.DistributedOptimizer(opt)
