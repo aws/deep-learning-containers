@@ -9,7 +9,7 @@ import test.test_utils.eks as eks_utils
 import test.test_utils as test_utils
 
 
-@pytest.mark.model("mnist")
+@pytest.mark.model("simple")
 def test_eks_tensorflow_neuron_inference(tensorflow_inference_neuron):
     num_replicas = "1"
 
@@ -17,9 +17,9 @@ def test_eks_tensorflow_neuron_inference(tensorflow_inference_neuron):
 
     processor = "neuron"
 
-    model_name = "mnist_neuron"
+    model_name = "simple"
     yaml_path = os.path.join(os.sep, "tmp", f"tensorflow_single_node_{processor}_inference_{rand_int}.yaml")
-    inference_service_name = selector_name = f"mnist-{processor}-{rand_int}"
+    inference_service_name = selector_name = f"simple-{processor}-{rand_int}"
     model_base_path = get_eks_tensorflow_model_base_path(tensorflow_inference_neuron, model_name)
     command, args = get_tensorflow_command_args(tensorflow_inference_neuron, model_name, model_base_path)
 
@@ -48,9 +48,8 @@ def test_eks_tensorflow_neuron_inference(tensorflow_inference_neuron):
         if eks_utils.is_service_running(selector_name):
             eks_utils.eks_forward_port_between_host_and_container(selector_name, port_to_forward, "8501")
 
-        inference_string = '\'{"instances": ' + "{}".format([[0 for i in range(784)]]) + "}'"
         assert test_utils.request_tensorflow_inference(
-            model_name=model_name, port=port_to_forward, inference_string=inference_string
+            model_name=model_name, port=port_to_forward
         )
     finally:
         run(f"kubectl delete deployment {selector_name}")
