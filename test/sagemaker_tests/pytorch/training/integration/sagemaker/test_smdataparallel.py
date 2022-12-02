@@ -53,7 +53,6 @@ def can_run_smdataparallel_efa(ecr_image):
 @pytest.mark.model("N/A")
 @pytest.mark.multinode(2)
 @pytest.mark.integration("smdataparallel")
-@pytest.mark.parametrize('instance_types', ["ml.p4d.24xlarge"])
 @pytest.mark.skip_cpu
 @pytest.mark.efa()
 def test_smdataparallel_throughput(framework_version, ecr_image, sagemaker_regions, instance_types, tmpdir):
@@ -204,4 +203,3 @@ def test_smmodelparallel_smdataparallel_mnist(instance_types, ecr_image, sagemak
         }
         job_name=utils.unique_name_from_base('test-pt-smdmp-smddp-mnist')
         invoke_pytorch_estimator(ecr_image, sagemaker_regions, estimator_parameter, disable_sm_profiler=True, job_name=job_name)
-
