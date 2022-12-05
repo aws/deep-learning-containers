@@ -27,7 +27,7 @@ def get_model():
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--jit_compile', type=bool, default=False)
-args, unknown = _parse_args()
+args, unknown = parser.parse_args()
 
 
 model = get_model()
