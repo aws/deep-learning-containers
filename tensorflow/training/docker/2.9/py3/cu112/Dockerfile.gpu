@@ -356,6 +356,9 @@ RUN $PYTHON -m pip install --no-cache-dir -U \
     "sagemaker-studio-analytics-extension==0.0.2" \
     smclarify
 
+# Remove python kernel installed by sparkmagic
+RUN /usr/local/bin/jupyter-kernelspec remove -f python3
+
 RUN $PYTHON -m pip install --no-cache-dir -U \
     "bokeh>=2.3,<3" \
     "imageio>=2.9,<3" \
