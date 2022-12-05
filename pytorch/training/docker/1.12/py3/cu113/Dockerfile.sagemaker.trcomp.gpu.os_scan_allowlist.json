@@ -1,0 +1,58 @@
+{
+    "torch": [
+        {
+        "description": "[torch](https://pypi.org/project/torch) is a Tensors and Dynamic neural networks in Python with strong GPU acceleration\n\nAffected versions of this package are vulnerable to Command Injection in `torch.jit.annotations.parse_type_line` which can cause arbitrary code execution because `eval` is used unsafely.",
+        "vulnerability_id": "SNYK-PYTHON-TORCH-3149871",
+        "name": "SNYK-PYTHON-TORCH-3149871",
+        "package_name": "torch",
+        "package_details": {
+            "file_path": "opt/conda/lib/python3.8/site-packages/torch-1.12.0+cu113.dist-info/METADATA",
+            "name": "torch",
+            "package_manager": "PYTHONPKG",
+            "version": "1.12.0+cu113",
+            "release": null
+        },
+        "remediation": {
+            "recommendation": {
+                "text": "None Provided"
+            }
+        },
+        "cvss_v3_score": 9.8,
+        "cvss_v30_score": 0.0,
+        "cvss_v31_score": 9.8,
+        "cvss_v2_score": 0.0,
+        "cvss_v3_severity": "CRITICAL",
+        "source_url": "https://snyk.io/vuln/SNYK-PYTHON-TORCH-3149871",
+        "source": "SNYK",
+        "severity": "CRITICAL",
+        "status": "ACTIVE",
+        "title": "IN1-PYTHON-TORCH-3149871 - torch"
+    }, {
+        "description": " In PyTorch before trunk/89695, torch.jit.annotations.parse_type_line can cause arbitrary code execution because eval is used unsafely.",
+        "vulnerability_id": "CVE-2022-45907",
+        "name": "CVE-2022-45907",
+        "package_name": "torch",
+        "package_details": {
+            "file_path": "opt/conda/lib/python3.8/site-packages/torch-1.12.0+cu113.dist-info/METADATA",
+            "name": "torch",
+            "package_manager": "PYTHONPKG",
+            "version": "1.12.0+cu113",
+            "release": null
+        },
+        "remediation": {
+            "recommendation": {
+                "text": "None Provided"
+            }
+        },
+        "cvss_v3_score": 9.8,
+        "cvss_v30_score": 0.0,
+        "cvss_v31_score": 9.8,
+        "cvss_v2_score": 0.0,
+        "cvss_v3_severity": "CRITICAL",
+        "source_url": "https://people.canonical.com/~ubuntu-security/cve/2022/CVE-2022-45907.html",
+        "source": "UBUNTU_CVE",
+        "severity": "MEDIUM",
+        "status": "ACTIVE",
+        "title": "CVE-2022-45907 - torch"
+    }]
+}

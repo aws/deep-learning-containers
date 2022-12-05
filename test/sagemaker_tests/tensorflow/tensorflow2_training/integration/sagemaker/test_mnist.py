@@ -317,7 +317,7 @@ def _test_tuning_function(ecr_image, sagemaker_session, instance_type, framework
 
     hyperparameter_ranges = {'epochs': IntegerParameter(1, 2)}
     objective_metric_name = 'accuracy'
-    metric_definitions = [{'Name': objective_metric_name, 'Regex': 'accuracy = ([0-9\\.]+)'}]
+    metric_definitions = [{'Name': objective_metric_name, 'Regex': 'accuracy: ([0-9\\.]+)'}]
 
     tuner = HyperparameterTuner(estimator,
                                 objective_metric_name,

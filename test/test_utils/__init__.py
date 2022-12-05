@@ -288,7 +288,10 @@ def get_expected_dockerfile_filename(device_type, image_uri):
         if "graviton" in image_uri:
             return f"Dockerfile.graviton.{device_type}"
         elif is_ec2_sm_in_same_dockerfile(image_uri):
-            return f"Dockerfile.{device_type}"
+            if "pytorch-trcomp-training" in image_uri:
+                return f"Dockerfile.trcomp.{device_type}"
+            else:
+                return f"Dockerfile.{device_type}"
         elif is_ec2_image(image_uri):
             return f"Dockerfile.ec2.{device_type}"
         else:
@@ -465,6 +468,7 @@ def is_covered_by_ec2_sm_split(image_uri):
     ec2_sm_split_images = {
         "pytorch": SpecifierSet(">=1.10.0"),
         "tensorflow": SpecifierSet(">=2.7.0"),
+        "pytorch_trcomp": SpecifierSet(">=1.12.0"),
     }
     framework, version = get_framework_and_version_from_tag(image_uri)
     return framework in ec2_sm_split_images and Version(version) in ec2_sm_split_images[framework]
@@ -474,6 +478,7 @@ def is_ec2_sm_in_same_dockerfile(image_uri):
     same_sm_ec2_dockerfile_record = {
         "pytorch": SpecifierSet(">=1.11.0"),
         "tensorflow": SpecifierSet(">=2.8.0"),
+        "pytorch_trcomp": SpecifierSet(">=1.12.0"),
     }
     framework, version = get_framework_and_version_from_tag(image_uri)
     return framework in same_sm_ec2_dockerfile_record and Version(version) in same_sm_ec2_dockerfile_record[framework]
