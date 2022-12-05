@@ -16,7 +16,7 @@
 FROM ubuntu:20.04 AS base_image
 
 ENV DEBIAN_FRONTEND=noninteractive \
-    LD_LIBRARY_PATH="${LD_LIBRARY_PATH}:/usr/local/lib"
+    LD_LIBRARY_PATH="${LD_LIBRARY_PATH}:/usr/local/lib:/opt/conda/lib"
 
 RUN apt-get update \
  && apt-get upgrade -y \
