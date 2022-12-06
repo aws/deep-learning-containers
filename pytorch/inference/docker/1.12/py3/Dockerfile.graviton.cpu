@@ -23,7 +23,6 @@ ARG PT_INFERENCE_URL=https://aws-pytorch-unified-cicd-binaries.s3.us-west-2.amaz
 ARG PT_XLA_INFERENCE_URL=https://aws-pytorch-unified-cicd-binaries.s3.us-west-2.amazonaws.com/r1.12.1_graviton/torch_xla-1.12.0%2B82fbe57-cp38-cp38-linux_aarch64.whl
 ARG PT_TORCHDATA_URL=https://aws-pytorch-unified-cicd-binaries.s3.us-west-2.amazonaws.com/r1.12.1_graviton/torchdata-0.4.1%2B983e87a-py3-none-any.whl
 ARG PT_TORCHTEXT_URL=https://aws-pytorch-unified-cicd-binaries.s3.us-west-2.amazonaws.com/r1.12.1_graviton/torchtext-0.13.1a0%2B330201f-cp38-cp38-linux_aarch64.whl
-ARG ARMCL_URL=https://aws-pytorch-unified-cicd-binaries.s3.us-west-2.amazonaws.com/r1.12.1_graviton/acl-v2205-12052022.tar.gz
 ARG OPEN_MPI_VERSION=4.1.4
 ARG TS_VERSION=0.6.0
 ARG MAMBA_VERSION=4.12.0-2
@@ -139,7 +138,7 @@ RUN pip uninstall -y torch \
 RUN pip install "torchvision>=0.13,<0.14"
 
 ## Install ArmCL Package
-RUN curl -L -o armcl.tar.gz $ARMCL_URL \
+RUN curl -L -o armcl.tar.gz https://aws-pytorch-unified-cicd-binaries.s3.us-west-2.amazonaws.com/r1.12.1_graviton/acl-v2205-12052022.tar.gz \
  && mkdir /opt/armClArtifact \
  && tar -xvf rmcl.tar.gz -C /opt/armClArtifact \
  && rm armcl.tar.gz
