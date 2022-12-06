@@ -139,7 +139,7 @@ RUN pip uninstall -y torch \
 RUN pip install "torchvision>=0.13,<0.14"
 
 ## Install ArmCL Package
-RUN curl -L -o armcl.tar.gz ${ARMCL_URL} \
+RUN curl -L -o armcl.tar.gz $ARMCL_URL \
  && mkdir /opt/armClArtifact \
  && tar -xvf rmcl.tar.gz -C /opt/armClArtifact \
  && rm armcl.tar.gz
