@@ -364,9 +364,7 @@ def test_hc_smmodelparallel_mnist_multigpu_multinode(ecr_image, instance_type, s
 @pytest.mark.skip_trcomp_containers
 @pytest.mark.parametrize("test_script, num_processes", [("smmodelparallel_pt_mnist.py", 8)])
 @pytest.mark.efa()
-def test_smmodelparallel_mnist_multigpu_multinode_efa(
-    ecr_image, instance_type, sagemaker_regions, test_script, num_processes
-):
+def test_smmodelparallel_mnist_multigpu_multinode_efa(ecr_image, efa_instance_type, sagemaker_regions, test_script, num_processes):
     """
     Tests pt mnist command via script mode
     """
@@ -378,7 +376,7 @@ def test_smmodelparallel_mnist_multigpu_multinode_efa(
             'role': 'SageMakerRole',
             'source_dir': mnist_path,
             'instance_count': 2,
-            'instance_type': instance_type,
+            'instance_type': efa_instance_type,
             'hyperparameters': {"assert-losses": 1, "amp": 1, "ddp": 1, "data-dir": "data/training", "epochs": 5},
             'distribution': {
                 "smdistributed": {
@@ -403,7 +401,6 @@ def test_smmodelparallel_mnist_multigpu_multinode_efa(
         job_name=utils.unique_name_from_base('test-pt-smdmp-multinode-efa')
         invoke_pytorch_estimator(ecr_image, sagemaker_regions, estimator_parameter, job_name=job_name)
 
-
 @pytest.mark.integration("smmodelparallel")
 @pytest.mark.model("gpt2")
 @pytest.mark.processor("gpu")
@@ -413,7 +410,7 @@ def test_smmodelparallel_mnist_multigpu_multinode_efa(
 @pytest.mark.skip_trcomp_containers
 @pytest.mark.parametrize("test_script, num_processes", [("train_gpt_simple.py", 8)])
 @pytest.mark.efa()
-def test_smmodelparallel_gpt2_sdp_multinode_efa(ecr_image, instance_type, sagemaker_regions, test_script, num_processes):
+def test_smmodelparallel_gpt2_sdp_multinode_efa(ecr_image, efa_instance_type, sagemaker_regions, test_script, num_processes):
     """
     Tests pt gpt2 command via script mode
     """
@@ -460,7 +457,7 @@ def test_smmodelparallel_gpt2_sdp_multinode_efa(ecr_image, instance_type, sagema
             'role': 'SageMakerRole',
             'source_dir': gpt2_path,
             'instance_count': 2,
-            'instance_type': instance_type,
+            'instance_type': efa_instance_type,
             'hyperparameters': hyperparameters,
             'distribution': {
                 "smdistributed": {
@@ -479,14 +476,13 @@ def test_smmodelparallel_gpt2_sdp_multinode_efa(ecr_image, instance_type, sagema
         job_name=utils.unique_name_from_base('test-pt-smdmp-gpt2-sdp-singlenode')
         invoke_pytorch_estimator(ecr_image, sagemaker_regions, estimator_parameter, inputs=inputs, job_name=job_name)
 
-
 @pytest.mark.integration("smmodelparallel")
 @pytest.mark.model("mnist")
 @pytest.mark.processor("gpu")
 @pytest.mark.skip_cpu
 @pytest.mark.efa()
 @pytest.mark.skip_py2_containers
-def test_sanity_efa(ecr_image, instance_type, sagemaker_regions):
+def test_sanity_efa(ecr_image, efa_instance_type, sagemaker_regions):
     """
     Tests pt mnist command via script mode
     """
@@ -497,7 +493,7 @@ def test_sanity_efa(ecr_image, instance_type, sagemaker_regions):
             'entry_point': efa_test_path,
             'role': 'SageMakerRole',
             'instance_count': 1,
-            'instance_type': instance_type,
+            'instance_type': efa_instance_type,
             'distribution': {
                 "mpi": {
                     "enabled": True,

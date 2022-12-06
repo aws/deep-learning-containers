@@ -20,6 +20,7 @@ from sagemaker import utils
 
 from ...integration import DEFAULT_TIMEOUT, mnist_path
 from ...integration.sagemaker.timeout import timeout
+from ....training import get_efa_test_instance_type
 from test.test_utils import get_framework_and_version_from_tag
 from . import invoke_pytorch_estimator
 
@@ -38,10 +39,11 @@ def can_run_pytorchddp(ecr_image):
 @pytest.mark.model("N/A")
 @pytest.mark.multinode(2)
 @pytest.mark.integration("pytorchddp")
+@pytest.mark.parametrize('efa_instance_type', get_efa_test_instance_type(default="ml.p4d.24xlarge"), indirect=True)
 @pytest.mark.skip_cpu
 @pytest.mark.skip_py2_containers
 @pytest.mark.efa()
-def test_pytorchddp_throughput_gpu(framework_version, ecr_image, sagemaker_regions, instance_type, tmpdir):
+def test_pytorchddp_throughput_gpu(framework_version, ecr_image, sagemaker_regions, efa_instance_type, tmpdir):
     with timeout(minutes=DEFAULT_TIMEOUT):
         validate_or_skip_pytorchddp(ecr_image)
         distribution = {'pytorchddp': {'enabled': True}}
@@ -49,7 +51,7 @@ def test_pytorchddp_throughput_gpu(framework_version, ecr_image, sagemaker_regio
             'entry_point': 'pytorchddp_throughput_mnist.py',
             'role': 'SageMakerRole',
             'instance_count': 2,
-            'instance_type': instance_type,
+            'instance_type': efa_instance_type,
             'source_dir': mnist_path,
             'framework_version': framework_version,
             'distribution': distribution

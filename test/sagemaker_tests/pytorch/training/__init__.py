@@ -11,3 +11,21 @@
 # ANY KIND, either express or implied. See the License for the specific
 # language governing permissions and limitations under the License.
 from __future__ import absolute_import
+
+import os
+
+
+def get_efa_test_instance_type(default):
+    """
+    Get the instance type to be used for EFA tests from the environment, or default to a given value if the type
+    isn't specified in the environment.
+
+    :param default: str/list of instance type to be used for tests
+    :return: list of instance types to be parametrized for a test
+    """
+    configured_instance_type = os.getenv("SM_EFA_TEST_INSTANCE_TYPE")
+    if configured_instance_type:
+        return [configured_instance_type]
+    if not isinstance(default, list):
+        default = [default]
+    return default

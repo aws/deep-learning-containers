@@ -54,13 +54,11 @@ def is_test_job_efa_dedicated():
 
 
 def get_efa_instance_type_from_environment():
-    return os.getenv("SM_EFA_INSTANCE_TYPE", "p4d.24xlarge")
+    return os.getenv("SM_EFA_TEST_INSTANCE_TYPE", "p4d.24xlarge")
 
 
 def assign_sagemaker_remote_job_instance_type(image):
-    if is_test_job_efa_dedicated():
-        return get_efa_instance_type_from_environment()
-    elif "graviton" in image:
+    if "graviton" in image:
         return "ml.c6g.2xlarge"
     elif "training-neuron" in image:
         return "ml.trn1.2xlarge"
@@ -223,18 +221,15 @@ def generate_sagemaker_pytest_cmd(image, sagemaker_test_type):
     remote_pytest_cmd = (
         f"pytest -rA {integration_path} --region {region} --processor {processor} {docker_base_arg} "
         f"{sm_remote_docker_base_name} --tag {tag} {framework_version_arg} {framework_version} "
-        f"{aws_id_arg} {account_id} {instance_type_arg} {instance_type} {efa_flag} {sagemaker_regions_list} "
-        f"--junitxml {test_report}"
+        f"{aws_id_arg} {account_id} {instance_type_arg} {instance_type} {efa_flag} {sagemaker_regions_list} --junitxml {test_report}"
     )
 
     if processor == "eia":
         remote_pytest_cmd += f" {accelerator_type_arg} {eia_arg}"
 
-    local_pytest_cmd = (
-        f"pytest -s -v {integration_path} {docker_base_arg} "
-        f"{sm_local_docker_repo_uri} --tag {tag} --framework-version {framework_version} "
-        f"--processor {processor} {aws_id_arg} {account_id} --junitxml {local_test_report}"
-    )
+    local_pytest_cmd = (f"pytest -s -v {integration_path} {docker_base_arg} "
+                        f"{sm_local_docker_repo_uri} --tag {tag} --framework-version {framework_version} "
+                        f"--processor {processor} {aws_id_arg} {account_id} --junitxml {local_test_report}")
 
     if framework == "tensorflow" and job_type != "inference":
         local_pytest_cmd = f"{local_pytest_cmd} --py-version {sm_local_py_version} --region {region}"

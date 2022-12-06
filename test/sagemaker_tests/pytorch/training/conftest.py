@@ -27,6 +27,8 @@ from botocore.exceptions import ClientError
 from sagemaker import LocalSession, Session
 from sagemaker.pytorch import PyTorch
 
+from . import get_efa_test_instance_type
+
 from .utils import (
     get_ecr_registry,
     NightlyFeatureLabel,
@@ -142,10 +144,11 @@ def pytest_configure(config):
 
 
 def pytest_runtest_setup(item):
-    if item.config.getoption("--efa"):
-        efa_tests = [mark for mark in item.iter_markers(name="efa")]
-        if not efa_tests:
-            pytest.skip("Skipping non-efa tests")
+    efa_tests = [mark for mark in item.iter_markers(name="efa")]
+    if item.config.getoption("--efa") and not efa_tests:
+        pytest.skip("Skipping non-efa tests due to --efa flag")
+    elif not item.config.getoption("--efa") and efa_tests:
+        pytest.skip("Skipping efa tests because --efa flag is missing")
 
 
 def pytest_collection_modifyitems(session, config, items):
@@ -268,14 +271,12 @@ def fixture_use_gpu(processor):
 def fixture_build_base_image(request, framework_version, py_version, processor, tag, docker_base_name):
     build_base_image_option = request.config.getoption('--build-base-image')
     if build_base_image_option:
-        return build_base_image(
-            framework_name=docker_base_name,
-            framework_version=framework_version,
-            py_version=py_version,
-            base_image_tag=tag,
-            processor=processor,
-            cwd=os.path.join(dir_path, '..'),
-        )
+        return build_base_image(framework_name=docker_base_name,
+                                            framework_version=framework_version,
+                                            py_version=py_version,
+                                            base_image_tag=tag,
+                                            processor=processor,
+                                            cwd=os.path.join(dir_path, '..'))
 
     return tag
 
@@ -287,7 +288,8 @@ def fixture_sagemaker_session(region):
 
 @pytest.fixture(name='efa_instance_type')
 def fixture_efa_instance_type(request):
-    return request.param if hasattr(request, "param") else "ml.p4d.24xlarge"
+    configured_efa_instance_type = get_efa_test_instance_type(default="ml.p4d.24xlarge")
+    return request.param if hasattr(request, "param") else configured_efa_instance_type[0]
 
 
 @pytest.fixture(scope='session', name='sagemaker_local_session')
@@ -363,12 +365,10 @@ def skip_test_in_region(request, region):
 
 @pytest.fixture(autouse=True)
 def skip_gpu_instance_restricted_regions(region, instance_type):
-    if (
-        (region in NO_P2_REGIONS and instance_type.startswith('ml.p2'))
+    if ((region in NO_P2_REGIONS and instance_type.startswith('ml.p2'))
         or (region in NO_P3_REGIONS and instance_type.startswith('ml.p3'))
-        or (region in NO_P4_REGIONS and instance_type.startswith('ml.p4'))
-    ):
-        pytest.skip('Skipping GPU test in region {}'.format(region))
+            or (region in NO_P4_REGIONS and instance_type.startswith('ml.p4'))):
+                pytest.skip('Skipping GPU test in region {}'.format(region))
 
 
 @pytest.fixture(autouse=True)

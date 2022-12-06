@@ -55,6 +55,12 @@ def run_test_job(commit, codebuild_project, images_str=""):
             {"name": "USE_SCHEDULER", "value": str(config.is_scheduler_enabled()), "type": "PLAINTEXT"},
             # If EFA_DEDICATED is True, only launch SM Remote EFA tests, else only launch standard/rc tests
             {"name": "EFA_DEDICATED", "value": str(config.are_efa_tests_enabled()), "type": "PLAINTEXT"},
+            # SM_EFA_TEST_INSTANCE_TYPE is passed to SM test job to pick a matching instance type as defined by user
+            {
+                "name": "SM_EFA_TEST_INSTANCE_TYPE",
+                "value": config.get_sagemaker_remote_efa_instance_type(),
+                "type": "PLAINTEXT",
+            }
         ]
     )
     LOGGER.debug(f"env_overrides dict: {env_overrides}")
