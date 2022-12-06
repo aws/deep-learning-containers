@@ -146,7 +146,7 @@ SageMaker Framework Graviton Containers (SM support only)
 | Framework         | Job Type	| Horovod Options| CPU/GPU | Python Version Options	| Example URL																						              |
 |-------------------|-----------|----------------|---------|------------------------|-----------------------------------------------------------------------------------------------------------------|
 | PyTorch 1.12.1    | inference | No			 | CPU 	   | 3.8 (py38)			    | 763104351884.dkr.ecr.us-east-1.amazonaws.com/pytorch-inference-graviton:1.12.1-cpu-py38-ubuntu20.04-sagemaker   |
-| TensorFlow 2.9.1  | inference | no			 | CPU 	   | 3.9 (py39)			    | 763104351884.dkr.ecr.us-east-1.amazonaws.com/tensorflow-inference-graviton:2.9.1-cpu-py38-ubuntu20.04-sagemaker |
+| TensorFlow 2.9.1  | inference | No			 | CPU 	   | 3.9 (py39)			    | 763104351884.dkr.ecr.us-east-1.amazonaws.com/tensorflow-inference-graviton:2.9.1-cpu-py38-ubuntu20.04-sagemaker |
 
 
 NVIDIA Triton Inference Containers (SM support only)
