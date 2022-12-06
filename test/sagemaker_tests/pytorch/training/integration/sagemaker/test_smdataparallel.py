@@ -173,6 +173,7 @@ def test_hc_smdataparallel_mnist(ecr_image, sagemaker_regions, instance_types, t
 @pytest.mark.usefixtures("feature_smddp_present")
 @pytest.mark.processor("gpu")
 @pytest.mark.skip_cpu
+@pytest.mark.skip_trcomp_containers
 @pytest.mark.integration("smdataparallel_smmodelparallel")
 @pytest.mark.model("mnist")
 @pytest.mark.parametrize('instance_types', ["ml.p3.16xlarge"])
