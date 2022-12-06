@@ -15,7 +15,7 @@ from packaging.version import Version
 from packaging.specifiers import SpecifierSet
 from tenacity import retry, stop_after_attempt, wait_fixed
 
-from test.test_utils import is_pr_context, is_mainline_context, get_synapseai_version_from_tag
+from test.test_utils import is_pr_context, is_mainline_context, get_synapseai_version_from_tag, is_graviton_architecture
 from . import DEFAULT_REGION, UL_AMI_LIST, BENCHMARK_RESULTS_S3_BUCKET
 
 EC2_INSTANCE_ROLE_NAME = "ec2TestInstanceRole"
@@ -956,6 +956,10 @@ def install_python_in_instance(context, python_version="3.9"):
     :param python_version: str python version to install, such as 3.8, 3.9, etc.
     :return: None
     """
+
+    if is_graviton_architecture():
+        return
+
     if context.run("pyenv --version", warn=True, hide=True).failed:
         context.run("""ls ~/.pyenv || git clone https://github.com/pyenv/pyenv.git ~/.pyenv""", hide=True)
         # Need to configure PATH and PYENV_ROOT changes in alternative location because ~/.bashrc and ~/.profile are
