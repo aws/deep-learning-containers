@@ -394,7 +394,12 @@
                 "44850": "tf ignore for neuron",
                 "44849": "tf ignore for neuron",
                 "44846": "tf ignore for neuron",
-                "44872": "tf ignore for neuron"
+                "44872": "tf ignore for neuron",
+                "44715": "numpy > 1.22.0, neuron-cc. Will be fixed in next release",
+                "44717": "numpy > 1.22.0, neuron-cc. Will be fixed in next release",
+                "44716": "numpy > 1.22.0, neuron-cc. Will be fixed in next release",
+                "43453": "numpy > 1.22.0, neuron-cc. Will be fixed in next release",
+                "51167": "neuron-cc requires protobuf<=3.20.1, #https://github.com/protocolbuffers/protobuf/issues/10051",
             }
         }
     },
