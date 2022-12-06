@@ -200,13 +200,12 @@ def host_setup_for_tensorflow_inference(
             hide=True,
         )
     else:
-        if not is_neuron:
-            ec2_connection.run(
-                (
-                    f"pip install --user -qq -U 'tensorflow<={framework_version}' "
-                    f" 'tensorflow-serving-api<={framework_version}' 'protobuf>=3.20,<3.21'"
-                ), hide=True
-            )
+        ec2_connection.run(
+            (
+                f"pip install --user -qq -U 'tensorflow<={framework_version}' "
+                f" 'tensorflow-serving-api<={framework_version}' 'protobuf>=3.20,<3.21'"
+            ), hide=True
+        )
     if os.path.exists(f"{serving_folder_path}"):
         ec2_connection.run(f"rm -rf {serving_folder_path}")
     if str(framework_version).startswith(TENSORFLOW1_VERSION):
