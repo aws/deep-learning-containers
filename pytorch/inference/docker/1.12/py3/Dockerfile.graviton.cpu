@@ -140,7 +140,7 @@ RUN pip install "torchvision>=0.13,<0.14"
 ## Install ArmCL Package
 RUN curl -L -o armcl.tar.gz https://aws-pytorch-unified-cicd-binaries.s3.us-west-2.amazonaws.com/r1.12.1_graviton/acl-v2205-12052022.tar.gz \
  && mkdir /opt/armClArtifact \
- && tar -xvf rmcl.tar.gz -C /opt/armClArtifact \
+ && tar -xvf armcl.tar.gz -C /opt/armClArtifact \
  && rm armcl.tar.gz
 ENV LD_LIBRARY_PATH="$LD_LIBRARY_PATH:/opt/armClArtifact/"
 
