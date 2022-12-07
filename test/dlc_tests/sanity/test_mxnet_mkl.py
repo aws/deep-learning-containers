@@ -6,6 +6,7 @@ from packaging.version import Version
 from test.test_utils import (
     get_container_name,
     get_framework_and_version_from_tag,
+    get_processor_from_image_uri,
     run_cmd_on_container,
     start_container,
     stop_and_remove_container,
@@ -27,6 +28,8 @@ def test_mxnet_mkl_sanity(mxnet_inference):
         pytest.skip("This test does not apply to EIA images.")
     if "neuron" in mxnet_inference:
         pytest.skip("Skipping because this is not relevant to Neuron images.")
+    if get_processor_from_image_uri(mxnet_inference) != "cpu":
+        pytest.skip("Skipping because this is only relevant for CPU images.")
 
     ctx = Context()
     container_name = get_container_name("mxnet-blasmkl", mxnet_inference)
