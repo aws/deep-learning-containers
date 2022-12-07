@@ -398,7 +398,7 @@
                 "44717": "numpy > 1.22.0, neuron-cc. Will be fixed in next release",
                 "44716": "numpy > 1.22.0, neuron-cc. Will be fixed in next release",
                 "43453": "numpy > 1.22.0, neuron-cc. Will be fixed in next release",
-                "51167": "neuron-cc requires protobuf<=3.20.1, #https://github.com/protocolbuffers/protobuf/issues/10051",
+                "51167": "neuron-cc requires protobuf<=3.20.1, #https://github.com/protocolbuffers/protobuf/issues/10051"
             }
         }
     },
