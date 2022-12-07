@@ -36,6 +36,11 @@ def _assert_training_compiler_invoked(captured):
     assert 'Found configuration for Training Compiler' in logs
 
 
+def _assert_fault_attributed_to_training_compiler(captured):
+    logs = captured.out + captured.err
+    assert 'SMTrainingCompiler Error: ' in logs
+
+
 def _assert_file_exists_in_s3(region, s3_url):
     parsed_url = urlparse(s3_url)
     s3 = boto3.resource('s3', region_name=region)
@@ -309,6 +314,7 @@ class TestMLWorkFlow:
         captured = capsys.readouterr()
         _assert_training_compiler_invoked(captured)
 
+
     @pytest.mark.model('distilbert')
     def test_BYOC_training(self, sagemaker_session, ecr_image, framework_version, instance_type, instance_count,tmpdir, capsys):
         source_path = os.path.join(resource_path, 'mlm')
@@ -416,6 +422,7 @@ class TestMLWorkFlow:
         predictor.delete_predictor()
 
 
+    @pytest.mark.xfail(reason="Neo does not support TF 2.11 yet. TF 2.11's saved models are not backwards compatible.")
     @pytest.mark.model('toy')
     @pytest.mark.integration("neo")
     def test_inference_compiler_neo(self, sagemaker_session, ecr_image, framework_version, instance_type, instance_count, tmpdir, capsys, mnist_dataset):
@@ -443,3 +450,52 @@ class TestMLWorkFlow:
                                 framework='tensorflow',
                                 framework_version='2.9',
                                 )
+
+
+@pytest.mark.integration("trcomp")
+class TestUserExperience:
+
+    @pytest.fixture()
+    def instance_type(self):
+        return 'ml.p3.2xlarge'
+
+
+    @pytest.fixture()
+    def instance_count(self):
+        return 1
+
+
+    @pytest.mark.xfail(reason="Signature based failure attribution does not differentiate between XLA errors and TF/Py errors. Stack trace based failure attribution does not work with TF since the stack trace is manipulate to abstract away graph mode execution details.")
+    @pytest.mark.model('toy')
+    @pytest.mark.integration("toolkit")
+    def test_toolkit_fault_attribution(self, sagemaker_session, ecr_image, framework_version, instance_type, instance_count, tmpdir, capsys):
+        script = os.path.join(resource_path, 'smtrcomp', 'tensorflow_issue_58135.py')
+        estimator_args = dict(
+            entry_point=script,
+            role='SageMakerRole',
+            instance_type=instance_type,
+            instance_count=instance_count,
+            sagemaker_session=sagemaker_session,
+            image_uri=ecr_image,
+            framework_version=framework_version,
+        )
+        native_estimator = TensorFlow(
+            **estimator_args,
+        )
+        smtrcomp_estimator = TensorFlow(
+            **estimator_args,
+            hyperparameters={
+                TrainingCompilerConfig.HP_ENABLE_COMPILER : True,
+                'jit_compile': True,
+           },
+        )
+        # If a training script+args is successful without SM Training Compiler
+        native_estimator.fit(job_name=unique_name_from_base('test-TF-trcomp-fault'))
+        # But the training script+args fails with SM Training Compiler
+        with pytest.raises(Exception):
+            smtrcomp_estimator.fit(job_name=unique_name_from_base('test-TF-trcomp-fault'))
+        # Then the failure reason should clearly indicate that this failure is due to SM Training Compiler
+        reason = sagemaker_session.describe_training_job(smtrcomp_estimator.latest_training_job.name)['FailureReason']
+        assert "SMTrainingCompiler Error" in reason
+
+
