@@ -972,7 +972,7 @@ def install_python_in_instance(context, python_version="3.9"):
             hide=True,
         )
         context.run("source /etc/profile.d/dlami.sh", hide=True)
-        context.run("pyenv init - >> /etc/profile.d/dlami.sh", hide=True)
+        context.run("/home/ubuntu/.pyenv/bin/pyenv init - >> /etc/profile.d/dlami.sh", hide=True)
         context.run("sudo chmod 755 /etc/profile.d/dlami.sh", hide=True)
 
     kill_background_processes_and_run_apt_get_update(context)
@@ -986,8 +986,8 @@ def install_python_in_instance(context, python_version="3.9"):
         hide=True,
     )
 
-    context.run(f"pyenv install {python_version}", hide=True)
-    context.run(f"pyenv global {python_version}", hide=True)
+    context.run(f"source /etc/profile.d/dlami.sh && pyenv install {python_version}", hide=True)
+    context.run(f"source /etc/profile.d/dlami.sh && pyenv global {python_version}", hide=True)
 
     # Validate that installed python version is the same as requested python version
     python_version_response = context.run("python --version", hide=True)
