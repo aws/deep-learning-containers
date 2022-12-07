@@ -1,7 +1,7 @@
 {
   "torch": [
     {
-      "//reason_to_ignore": "The binaries are patched for this CVE, but the system checks version and not code.",
+      "reason_to_ignore": "The binaries are patched for this CVE, but the system checks version and not code.",
       "description": " In PyTorch before trunk/89695, torch.jit.annotations.parse_type_line can cause arbitrary code execution because eval is used unsafely.",
       "vulnerability_id": "CVE-2022-45907",
       "name": "CVE-2022-45907",
@@ -26,7 +26,7 @@
       "title": "CVE-2022-45907 - torch"
     },
     {
-      "//reason_to_ignore": "The binaries are patched for this CVE, but the system checks version and not code.",
+      "reason_to_ignore": "The binaries are patched for this CVE, but the system checks version and not code.",
       "description": "[torch](https://pypi.org/project/torch) is a Tensors and Dynamic neural networks in Python with strong GPU acceleration\n\nAffected versions of this package are vulnerable to Command Injection in `torch.jit.annotations.parse_type_line` which can cause arbitrary code execution because `eval` is used unsafely.",
       "vulnerability_id": "SNYK-PYTHON-TORCH-3149871",
       "name": "SNYK-PYTHON-TORCH-3149871",
