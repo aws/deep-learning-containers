@@ -333,7 +333,7 @@ ENV SAGEMAKER_TRAINING_MODULE sagemaker_tensorflow_container.training:main
 # https://github.com/tensorflow/models/issues/9267
 # tf-models does not respect existing installations of TF and always installs open source TF
 RUN ${PIP} install --no-cache-dir -U \
-    tf-models-official==2.9.1
+    tf-models-official==2.9
 
 RUN ${PIP} uninstall -y tensorflow tensorflow-gpu \
   ; ${PIP} install --no-cache-dir -U \
