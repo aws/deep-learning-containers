@@ -957,23 +957,20 @@ def install_python_in_instance(context, python_version="3.9"):
     :param python_version: str python version to install, such as 3.8, 3.9, etc.
     :return: None
     """
-    # if not graviton, run the tests, /etc/profile.d/dlami.sh does not exist for graviton DLAMIs
-    arch = context.run(f'python -c "import platform; print(platform.machine())"')
-    if arch == "aarch64":
-        return
-
     if context.run("pyenv --version", warn=True, hide=True).failed:
         context.run("""ls ~/.pyenv || git clone https://github.com/pyenv/pyenv.git ~/.pyenv""", hide=True)
-        # Need to configure PATH and PYENV_ROOT changes in alternative location because ~/.bashrc and ~/.profile are
-        # not used when using bash through Fabric Connection.
-        context.run("sudo chmod 666 /etc/profile.d/dlami.sh", hide=True)
+
+        # for images that do not have /etc/profile.d/dlami.sh, we will make it here
+        context.run("test -f /etc/profile.d/dlami.sh && sudo chmod 666 /etc/profile.d/dlami.sh", hide=True)
         context.run("""echo 'export PYENV_ROOT="$HOME/.pyenv"' >> /etc/profile.d/dlami.sh""", hide=True)
         context.run(
             """echo 'command -v pyenv >/dev/null || export PATH="$PYENV_ROOT/bin:$PATH"' >> /etc/profile.d/dlami.sh""",
             hide=True,
         )
         context.run("""echo 'eval "$(pyenv init -)"' >> /etc/profile.d/dlami.sh""", hide=True)
-        context.run("sudo chmod 644 /etc/profile.d/dlami.sh", hide=True)
+        # if /etc/profile.d/dlami.sh was made it it will have the incorrect owner, insuring root is owner and
+        # setting permissions
+        context.run("sudo chown root:root /etc/profile.d/dlami.sh && sudo chmod 644 /etc/profile.d/dlami.sh", hide=True)
 
     kill_background_processes_and_run_apt_get_update(context)
     context.run("sudo apt-get update", hide=True)
