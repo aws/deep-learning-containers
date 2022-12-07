@@ -14,8 +14,8 @@ from test.test_utils import (
 @pytest.mark.usefixtures("sagemaker")
 @pytest.mark.model("N/A")
 @pytest.mark.processor("cpu")
-@pytest.mark.integration("mxnet_bkl_sanity")
-def test_mxnet_bkl_sanity(mxnet_inference):
+@pytest.mark.integration("mxnet_mkl_sanity")
+def test_mxnet_mkl_sanity(mxnet_inference):
     """
     Check that the container's version of MXNet includes BLAS MKL.
     :param mxnet_inference: framework fixture for mxnet inference
