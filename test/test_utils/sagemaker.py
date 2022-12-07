@@ -241,40 +241,7 @@ def generate_sagemaker_pytest_cmd(image, sagemaker_test_type):
     )
 
 
-def kill_background_processes_and_run_apt_get_update(ec2_conn):
-    """
-    The apt-daily services on the DLAMI cause a conflict upon running any "apt install" commands within the first few
-    minutes of starting an EC2 instance. These services are not necessary for the purpose of the DLC tests, and can
-    therefore be killed. This function kills the services, and then forces "apt-get update" to run in the foreground.
 
-    :param ec2_conn: Fabric SSH connection
-    :return:
-    """
-    apt_daily_services_list = ["apt-daily.service", "apt-daily-upgrade.service", "unattended-upgrades.service"]
-    apt_daily_services = " ".join(apt_daily_services_list)
-    ec2_conn.run(f"sudo systemctl stop {apt_daily_services}")
-    ec2_conn.run(f"sudo systemctl kill --kill-who=all {apt_daily_services}")
-    num_stopped_services = 0
-    # The `systemctl kill` command is expected to take about 1 second. The 60 second loop here exists to force
-    # the execution to wait (if needed) for a longer amount of time than it would normally take to kill the services.
-    for _ in range(60):
-        sleep(1)
-        # List the apt-daily services, get the number of dead services
-        num_stopped_services = int(ec2_conn.run(
-            f"systemctl list-units --all {apt_daily_services} | egrep '(dead|failed)' | wc -l"
-        ).stdout.strip())
-        # Exit condition for the loop is when all apt daily services are dead.
-        if num_stopped_services == len(apt_daily_services_list):
-            break
-    if num_stopped_services != len(apt_daily_services_list):
-        raise RuntimeError(
-            "Failed to kill background services to allow apt installs on SM Local EC2 instance. "
-            f"{len(apt_daily_services) - num_stopped_services} still remaining."
-        )
-    ec2_conn.run("sudo rm -rf /var/lib/dpkg/lock*;")
-    ec2_conn.run("sudo dpkg --configure -a;")
-    ec2_conn.run("sudo apt-get update")
-    return
 
 
 def execute_local_tests(image, pytest_cache_params):
@@ -292,6 +259,7 @@ def execute_local_tests(image, pytest_cache_params):
     pytest_command += " --last-failed --last-failed-no-failures all "
     print(pytest_command)
     framework, _ = get_framework_and_version_from_tag(image)
+    framework = framework.replace("_trcomp", "")
     random.seed(f"{datetime.datetime.now().strftime('%Y%m%d%H%M%S%f')}")
     ec2_key_name = f"{job_type}_{tag}_sagemaker_{random.randint(1, 1000)}"
     region = os.getenv("AWS_REGION", DEFAULT_REGION)
@@ -322,7 +290,6 @@ def execute_local_tests(image, pytest_cache_params):
                     f"Image pull for {image} failed.\ndocker images output = {output}"
                 ) from e
         ec2_conn.run(f"tar -xzf {sm_tests_tar_name}")
-        kill_background_processes_and_run_apt_get_update(ec2_conn)
         with ec2_conn.cd(path):
             ec2_conn.run(f"pip install -r requirements.txt")
             pytest_cache_util.download_pytest_cache_from_s3_to_ec2(ec2_conn, path, **pytest_cache_params)
