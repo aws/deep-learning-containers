@@ -976,7 +976,8 @@ def install_python_in_instance(context, python_version="3.9"):
         context.run("""echo 'eval "$(pyenv init -)"' >> /etc/profile.d/dlami.sh""", hide=True)
         # if /etc/profile.d/dlami.sh was made it it will have the incorrect owner, insuring root is owner and
         # setting permissions
-        context.run("sudo chmod 755 /etc/profile.d/dlami.sh && source /etc/profile.d/dlami.sh", hide=True)
+        context.run("sudo chmod 755 /etc/profile.d/dlami.sh", hide=True)
+        context.run("source /etc/profile.d/dlami.sh", hide=True)
 
     kill_background_processes_and_run_apt_get_update(context)
     context.run("sudo apt-get update", hide=True)
