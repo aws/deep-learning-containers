@@ -6,7 +6,6 @@ import boto3
 import logging
 import sys
 import uuid
-import platform
 
 from fabric import Connection
 from botocore.config import Config
@@ -964,16 +963,18 @@ def install_python_in_instance(context, python_version="3.9"):
         if context.run("test -f /etc/profile.d/dlami.sh", warn=True, hide=True).failed:
             LOGGER.info("/etc/profile.d/dlami.sh does not exist. Making...")
             context.run("sudo touch /etc/profile.d/dlami.sh")
+            LOGGER.info("adding /etc/profile.d/dlami.sh to .bashrc")
+            context.run("""echo '[ -z "$PS1" ] && source /etc/profile.d/dlami.sh'|cat - .bashrc > ./temprc """
+                        """&& mv ./temprc ./.bashrc""", hide=True)
 
         context.run("sudo chmod 666 /etc/profile.d/dlami.sh", hide=True)
         context.run("""echo 'export PYENV_ROOT="$HOME/.pyenv"' >> /etc/profile.d/dlami.sh""", hide=True)
         context.run(
-            """command -v pyenv >/dev/null || echo 'export PATH="$PYENV_ROOT/bin:$PATH"' >> /etc/profile.d/dlami.sh""",
+            """echo 'command -v pyenv >/dev/null || export PATH="$PYENV_ROOT/bin:$PATH"' >> /etc/profile.d/dlami.sh""",
             hide=True,
         )
-        context.run("source /etc/profile.d/dlami.sh", hide=True)
-        context.run("/home/ubuntu/.pyenv/bin/pyenv init - >> /etc/profile.d/dlami.sh", hide=True)
-        context.run("sudo chmod 755 /etc/profile.d/dlami.sh", hide=True)
+        context.run("""echo 'eval "$(pyenv init -)"' >> /etc/profile.d/dlami.sh""", hide=True)
+        context.run("sudo chmod 644 /etc/profile.d/dlami.sh", hide=True)
 
     kill_background_processes_and_run_apt_get_update(context)
     context.run("sudo apt-get update", hide=True)
@@ -986,8 +987,8 @@ def install_python_in_instance(context, python_version="3.9"):
         hide=True,
     )
 
-    context.run(f"source /etc/profile.d/dlami.sh && pyenv install {python_version}", hide=True)
-    context.run(f"source /etc/profile.d/dlami.sh && pyenv global {python_version}", hide=True)
+    context.run(f"pyenv install {python_version}", hide=True)
+    context.run(f"pyenv global {python_version}", hide=True)
 
     # Validate that installed python version is the same as requested python version
     python_version_response = context.run("python --version", hide=True)
