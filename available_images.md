@@ -47,7 +47,7 @@ Deep Learning Containers Docker Images are available in the following regions:
 |EU (Ireland) 				|eu-west-1			|Available 			|Available			|763104351884.dkr.ecr.eu-west-1.amazonaws.com/&lt;repository-name>:&lt;image-tag>			|
 |EU (London) 				|eu-west-2			|Available 			|None				|763104351884.dkr.ecr.eu-west-2.amazonaws.com/&lt;repository-name>:&lt;image-tag>			|
 |EU (Milan)					|eu-south-1			|Available			|None				|692866216735.dkr.ecr.eu-south-1.amazonaws.com/&lt;repository-name>:&lt;image-tag>			|
-|EU (Spain)					|eu-south-2			|Available			|None				|503227376785.dkr.ecr.eu-south-1.amazonaws.com/&lt;repository-name>:&lt;image-tag>			|
+|EU (Spain)					|eu-south-2			|Available			|None				|503227376785.dkr.ecr.eu-south-2.amazonaws.com/&lt;repository-name>:&lt;image-tag>			|
 |EU (Paris) 				|eu-west-3			|Available 			|Available			|763104351884.dkr.ecr.eu-west-3.amazonaws.com/&lt;repository-name>:&lt;image-tag>			|
 |EU (Stockholm) 			|eu-north-1			|Available 			|None				|763104351884.dkr.ecr.eu-north-1.amazonaws.com/&lt;repository-name>:&lt;image-tag>			|
 |Middle East (Bahrain) 		|me-south-1			|Available 			|None				|217643126080.dkr.ecr.me-south-1.amazonaws.com/&lt;repository-name>:&lt;image-tag>			|
