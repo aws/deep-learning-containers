@@ -635,7 +635,8 @@
                 "44463":"Added in order to support tensorflow 1.15.5",
                 "48562":"Added in order to support tensorflow 1.15.5",
                 "48648":"Added in order to support tensorflow 1.15.5",
-                "51499": "the requested wheel is YANKED in pypi https://pypi.org/project/wheel/#history"
+                "51499": "the requested wheel is YANKED in pypi https://pypi.org/project/wheel/#history",
+                "51167":"Protobuf 3.18.3, 3.19.5, 3.20.2 and 4.21.6 include a fix for CVE-2022-1941 - upstream dependencies are still not patched"
             }
         }
     },

@@ -627,6 +627,8 @@ IGNORE_SAFETY_IDS = {
                 "44872",
                 # for shipping Torchserve 0.5.2 - the last available version
                 "44463",
+                # protobuf.. neuron-cc depends on this
+                "51167",
             ]
         },
     },
