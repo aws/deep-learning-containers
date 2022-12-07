@@ -960,8 +960,14 @@ def install_python_in_instance(context, python_version="3.9"):
     if context.run("pyenv --version", warn=True, hide=True).failed:
         context.run("""ls ~/.pyenv || git clone https://github.com/pyenv/pyenv.git ~/.pyenv""", hide=True)
 
+        try:
+            context.run("test -f /etc/profile.d/dlami.sh")
+        except:
+            LOGGER.info("/etc/profile.d/dlami.sh does not exist. Making...")
+            context.run("sudo touch /etc/profile.d/dlami.sh")
+
         # for images that do not have /etc/profile.d/dlami.sh, we will make it here
-        context.run("test -f /etc/profile.d/dlami.sh && sudo chmod 666 /etc/profile.d/dlami.sh", hide=True)
+        context.run("sudo chmod 666 /etc/profile.d/dlami.sh", hide=True)
         context.run("""echo 'export PYENV_ROOT="$HOME/.pyenv"' >> /etc/profile.d/dlami.sh""", hide=True)
         context.run(
             """echo 'command -v pyenv >/dev/null || export PATH="$PYENV_ROOT/bin:$PATH"' >> /etc/profile.d/dlami.sh""",
@@ -970,7 +976,7 @@ def install_python_in_instance(context, python_version="3.9"):
         context.run("""echo 'eval "$(pyenv init -)"' >> /etc/profile.d/dlami.sh""", hide=True)
         # if /etc/profile.d/dlami.sh was made it it will have the incorrect owner, insuring root is owner and
         # setting permissions
-        context.run("sudo chown root:root /etc/profile.d/dlami.sh && sudo chmod 644 /etc/profile.d/dlami.sh", hide=True)
+        context.run("sudo chmod 644 /etc/profile.d/dlami.sh", hide=True)
 
     kill_background_processes_and_run_apt_get_update(context)
     context.run("sudo apt-get update", hide=True)
