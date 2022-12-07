@@ -53,7 +53,7 @@ RUN apt-get update \
     libcap-dev \
     gnupg2 \
  && apt-get clean \
- && rm -rf /tmp/tmp* \
+ && rm -rf /tmp/* \
  && rm -rf /var/lib/apt/lists/*
 
 RUN echo "deb https://apt.repos.neuron.amazonaws.com focal main" > /etc/apt/sources.list.d/neuron.list
@@ -82,7 +82,8 @@ RUN wget -q https://www.python.org/ftp/python/$PYTHON_VERSION/Python-$PYTHON_VER
  && ln -s /usr/local/bin/$PYTHON /usr/local/bin/python \
  && ${PIP} --no-cache-dir install --upgrade \
     pip \
-    setuptools
+    setuptools \
+&& rm -rf /tmp/tmp*
 
 WORKDIR /
 
