@@ -957,11 +957,7 @@ def install_python_in_instance(context, python_version="3.9"):
     :param python_version: str python version to install, such as 3.8, 3.9, etc.
     :return: None
     """
-
-    # Graviton DLAMI Images are missing /etc/profile.d/dlami.sh. bypassing for graviton
-    if platform.machine() == "aarch64":
-        return
-
+    
     if context.run("pyenv --version", warn=True, hide=True).failed:
         context.run("""ls ~/.pyenv || git clone https://github.com/pyenv/pyenv.git ~/.pyenv""", hide=True)
         # Need to configure PATH and PYENV_ROOT changes in alternative location because ~/.bashrc and ~/.profile are
