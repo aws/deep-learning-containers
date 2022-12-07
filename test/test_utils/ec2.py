@@ -977,6 +977,7 @@ def install_python_in_instance(context, python_version="3.9"):
         # if /etc/profile.d/dlami.sh was made it it will have the incorrect owner, insuring root is owner and
         # setting permissions
         context.run("sudo chmod 755 /etc/profile.d/dlami.sh", hide=True)
+        context.run("cat /etc/profile.d/dlami.sh", hide=False)
         context.run("source /etc/profile.d/dlami.sh", hide=True)
 
     kill_background_processes_and_run_apt_get_update(context)
