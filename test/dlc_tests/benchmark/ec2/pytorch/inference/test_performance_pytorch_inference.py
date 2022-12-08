@@ -39,7 +39,7 @@ def test_performance_ec2_pytorch_inference_cpu(pytorch_inference, ec2_connection
     )
 
 
-@pytest.mark.skip(reason="PT graviton benchmarks are still in development due to latency and timeouts")
+# @pytest.mark.skip(reason="PT graviton benchmarks are still in development due to latency and timeouts")
 @pytest.mark.model("resnet18, VGG13, MobileNetV2, GoogleNet, DenseNet121, InceptionV3")
 @pytest.mark.parametrize("ec2_instance_type", ["c6g.4xlarge"], indirect=True)
 @pytest.mark.parametrize("ec2_instance_ami", [UL20_CPU_ARM64_US_WEST_2], indirect=True)
