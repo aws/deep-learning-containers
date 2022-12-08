@@ -146,7 +146,7 @@ def test_sagemaker_studio_analytics_extension(training, package_name):
 @pytest.mark.integration("ipykernel")
 def test_ipykernel_presence(tensorflow_training):
     """
-    ipykernel installed by sagemaker-studio-sparkmagic-lib package should be removed in order to make the DLC compatible with SM studio
+    ipykernel installed by sparkmagic package should be removed in order to make the DLC compatible with SM studio
     """
     try:
         image = tensorflow_training
