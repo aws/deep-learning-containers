@@ -51,6 +51,7 @@ def run_sagemaker_local_tests(images, pytest_cache_params):
         return
     # Run sagemaker Local tests
     framework, _ = get_framework_and_version_from_tag(images[0])
+    framework = framework.replace("_trcomp", "")
     sm_tests_path = (
         os.path.join("test", "sagemaker_tests", framework)
         if "huggingface" not in framework
@@ -303,8 +304,9 @@ def main():
     is_ag_image_present = any("autogluon" in image_uri for image_uri in all_image_list)
     is_trcomp_image_present = any("trcomp" in image_uri for image_uri in all_image_list)
     is_hf_image_present = is_hf_image_present and not is_trcomp_image_present
+    is_hf_trcomp_image_present = is_hf_image_present and is_trcomp_image_present
     if ((is_hf_image_present or is_ag_image_present) and specific_test_type in ("ecs", "ec2", "eks", "bai")) \
-            or (is_trcomp_image_present and (specific_test_type in ("ecs", "eks", "bai", "release_candidate_integration") or benchmark_mode)):
+            or (is_hf_trcomp_image_present and (specific_test_type in ("ecs", "eks", "bai", "release_candidate_integration") or benchmark_mode)):
         # Creating an empty file for because codebuild job fails without it
         LOGGER.info(f"NOTE: {specific_test_type} tests not supported on HF, AG or Trcomp. Skipping...")
         report = os.path.join(os.getcwd(), "test", f"{test_type}.xml")
