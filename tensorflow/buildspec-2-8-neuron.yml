@@ -2,7 +2,7 @@
   region: &REGION <set-$REGION-in-environment>
   framework: &FRAMEWORK tensorflow
   short_version: &SHORT_VERSION 2.8
-  version: &VERSION 2.8.2
+  version: &VERSION 2.8.0
   arch_type: x86
 
   repository_info:
