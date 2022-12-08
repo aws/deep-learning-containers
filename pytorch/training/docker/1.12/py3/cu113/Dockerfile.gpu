@@ -13,7 +13,7 @@ ARG PT_S3_WHL_GPU=https://aws-s3-plugin.s3.us-west-2.amazonaws.com/binaries/0.0.
 
 # SMD binaries
 ARG SMD_DATA_PARALLEL_URL=https://smdataparallel.s3.amazonaws.com/binary/pytorch/1.12.1/cu113/2022-08-31/smdistributed_dataparallel-1.5.1-cp38-cp38-linux_x86_64.whl
-ARG SMD_MODEL_PARALLEL_URL=https://sagemaker-distributed-model-parallel.s3.us-west-2.amazonaws.com/pytorch-1.12.1/build-artifacts/2022-10-07-06-47/smdistributed_modelparallel-1.12.1-cp38-cp38-linux_x86_64.whl
+ARG SMD_MODEL_PARALLEL_URL=https://sagemaker-distributed-model-parallel.s3.us-west-2.amazonaws.com/pytorch-1.12.1/build-artifacts/2022-12-08-21-34/smdistributed_modelparallel-1.13.0-cp38-cp38-linux_x86_64.whl
 
 # ZeRO-2D Binary
 ARG ZERO_2D_URL=https://aws-deepspeed-zero-2d-binaries.s3.us-west-2.amazonaws.com/r1.12.1/20221203-014851/b3d766ee27e7fa0e9b078665273a9550768445e7/deepspeed-0.6.1%2Bb3d766e-py3-none-any.whl
