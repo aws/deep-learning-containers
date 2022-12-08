@@ -85,6 +85,8 @@ FRAMEWORK_FIXTURES = (
     "huggingface_mxnet_inference",
     "huggingface_tensorflow_trcomp_training",
     "huggingface_pytorch_trcomp_training",
+    # PyTorch trcomp
+    "pytorch_trcomp_training",
     # Autogluon
     "autogluon_training",
     # Processor fixtures
@@ -521,6 +523,10 @@ def pull_images(docker_client, dlc_images):
 def non_huggingface_only():
     pass
 
+@pytest.fixture(scope="session")
+def non_pytorch_trcomp_only():
+    pass
+
 
 @pytest.fixture(scope="session")
 def training_compiler_only():
@@ -684,7 +690,7 @@ def framework_version_within_limit(metafunc_obj, image):
         )
         if mx18_requirement_failed:
             return False
-    if image_framework_name in ("pytorch", "huggingface_pytorch_trcomp"):
+    if image_framework_name in ("pytorch", "huggingface_pytorch_trcomp", "pytorch_trcomp"):
         pt111_requirement_failed = "pt111_and_above_only" in metafunc_obj.fixturenames and is_below_framework_version(
             "1.11", image, image_framework_name
         )
@@ -781,6 +787,7 @@ def generate_unique_values_for_fixtures(metafunc_obj, images_to_parametrize, val
         "huggingface_tensorflow": "hf-tf",
         "huggingface_pytorch_trcomp": "hf-pt-trc",
         "huggingface_tensorflow_trcomp": "hf-tf-trc",
+        "pytorch_trcomp": "pt-trc",
         "autogluon": "ag",
     }
     fixtures_parametrized = {}
@@ -847,6 +854,9 @@ def lookup_condition(lookup, image):
         elif "huggingface-tensorflow-trcomp-training" in repo_name:
             if lookup == "tensorflow-training":
                 return True
+        elif "pytorch-trcomp-training" in repo_name:
+            if lookup == "pytorch-training":
+                return True
         else:
             return False
     else:
@@ -893,6 +903,8 @@ def pytest_generate_tests(metafunc):
                     if not framework_version_within_limit(metafunc, image):
                         continue
                     if "non_huggingface_only" in metafunc.fixturenames and "huggingface" in image:
+                        continue
+                    if "non_pytorch_trcomp_only" in metafunc.fixturenames and "pytorch-trcomp" in image:
                         continue
                     if "non_autogluon_only" in metafunc.fixturenames and "autogluon" in image:
                         continue

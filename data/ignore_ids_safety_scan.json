@@ -38,8 +38,7 @@
                 "42098":"Can't upgrade TF version to 2.7.x in non 2.7 images.",
                 "42062":"Can't upgrade TF version to 2.7.x in non 2.7 images.",
                 "51159": "for cryptography until we have 39.0.0 release",
-                "44715":"False positive for numpy. Was fixed in 1.22.2",
-                "51499": "the requested wheel is YANKED in pypi https://pypi.org/project/wheel/#history",
+                "44715":"False positive for numpy. Was fixed in 1.22.2",                
                 "51516":"keras>2.10.0 does not exist yet"
             }
         },
