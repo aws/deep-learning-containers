@@ -34,6 +34,7 @@ Deep Learning Containers Docker Images are available in the following regions:
 |Africa (Cape Town)			|af-south-1			|Available			|None				|626614931356.dkr.ecr.af-south-1.amazonaws.com/&lt;repository-name>:&lt;image-tag>			|
 |Asia Pacific (Hong Kong)	|ap-east-1			|Available 			|None				|871362719292.dkr.ecr.ap-east-1.amazonaws.com/&lt;repository-name>:&lt;image-tag>			|
 |Asia Pacific (Mumbai)		|ap-south-1			|Available 			|Available			|763104351884.dkr.ecr.ap-south-1.amazonaws.com/&lt;repository-name>:&lt;image-tag>			|
+|Asia Pacific (Hyderabad)		|ap-south-2			|Available 			|None			|772153158452.dkr.ecr.ap-south-2.amazonaws.com/&lt;repository-name>:&lt;image-tag>			|
 |Asia Pacific (Osaka)		|ap-northeast-3		|Available 			|None				|364406365360.dkr.ecr.ap-northeast-3.amazonaws.com/&lt;repository-name>:&lt;image-tag>		|
 |Asia Pacific (Seoul)		|ap-northeast-2		|Available 			|None				|763104351884.dkr.ecr.ap-northeast-2.amazonaws.com/&lt;repository-name>:&lt;image-tag>		|
 |Asia Pacific (Singapore)	|ap-southeast-1		|Available 			|Available			|763104351884.dkr.ecr.ap-southeast-1.amazonaws.com/&lt;repository-name>:&lt;image-tag>		|
@@ -42,9 +43,11 @@ Deep Learning Containers Docker Images are available in the following regions:
 |Asia Pacific (Tokyo)		|ap-northeast-1		|Available 			|Available			|763104351884.dkr.ecr.ap-northeast-1.amazonaws.com/&lt;repository-name>:&lt;image-tag>		|
 |Canada (Central)			|ca-central-1		|Available 			|None				|763104351884.dkr.ecr.ca-central-1.amazonaws.com/&lt;repository-name>:&lt;image-tag>		|
 |EU (Frankfurt) 			|eu-central-1		|Available 			|Available			|763104351884.dkr.ecr.eu-central-1.amazonaws.com/&lt;repository-name>:&lt;image-tag>		|
+|EU (Zurich) 			|eu-central-2		|Available 			|None			|380420809688.dkr.ecr.eu-central-2.amazonaws.com/&lt;repository-name>:&lt;image-tag>		|
 |EU (Ireland) 				|eu-west-1			|Available 			|Available			|763104351884.dkr.ecr.eu-west-1.amazonaws.com/&lt;repository-name>:&lt;image-tag>			|
 |EU (London) 				|eu-west-2			|Available 			|None				|763104351884.dkr.ecr.eu-west-2.amazonaws.com/&lt;repository-name>:&lt;image-tag>			|
 |EU (Milan)					|eu-south-1			|Available			|None				|692866216735.dkr.ecr.eu-south-1.amazonaws.com/&lt;repository-name>:&lt;image-tag>			|
+|EU (Spain)					|eu-south-2			|Available			|None				|503227376785.dkr.ecr.eu-south-2.amazonaws.com/&lt;repository-name>:&lt;image-tag>			|
 |EU (Paris) 				|eu-west-3			|Available 			|Available			|763104351884.dkr.ecr.eu-west-3.amazonaws.com/&lt;repository-name>:&lt;image-tag>			|
 |EU (Stockholm) 			|eu-north-1			|Available 			|None				|763104351884.dkr.ecr.eu-north-1.amazonaws.com/&lt;repository-name>:&lt;image-tag>			|
 |Middle East (Bahrain) 		|me-south-1			|Available 			|None				|217643126080.dkr.ecr.me-south-1.amazonaws.com/&lt;repository-name>:&lt;image-tag>			|
