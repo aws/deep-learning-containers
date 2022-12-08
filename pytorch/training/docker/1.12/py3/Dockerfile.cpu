@@ -4,7 +4,7 @@ ARG MAMBA_VERSION=4.12.0-2
 
 # PyTorch Binaries
 ARG PT_EC2_TRAINING_URL=https://aws-pytorch-unified-cicd-binaries.s3.us-west-2.amazonaws.com/r1.12.1_ec2/20220901-174403/8bdac67149be0f39bc84053e79addabd056d0181/torch-1.12.1%2Bcpu-cp38-cp38-linux_x86_64.whl
-ARG PT_SM_TRAINING_URL=https://aws-pytorch-unified-cicd-binaries.s3.us-west-2.amazonaws.com/r1.12.1_sm/20220826-041023/52d0b296338e206c4c1666e948207e7eac83791b/torch-1.12.1%2Bcpu-cp38-cp38-linux_x86_64.whl
+ARG PT_SM_TRAINING_URL=https://aws-pytorch-unified-cicd-binaries.s3.us-west-2.amazonaws.com/r1.12.1_sm/20221130-175350/98e79c6834c193ed3751a155c5309d441bf904e3/torch-1.12.1%2Bcpu-cp38-cp38-linux_x86_64.whl
 ARG PT_TORCHVISION_URL=https://download.pytorch.org/whl/cpu/torchvision-0.13.1%2Bcpu-cp38-cp38-linux_x86_64.whl
 ARG PT_TORCHAUDIO_URL=https://download.pytorch.org/whl/cpu/torchaudio-0.12.1%2Bcpu-cp38-cp38-linux_x86_64.whl
 ARG PT_TORCHDATA_URL=https://download.pytorch.org/whl/test/torchdata-0.4.1-cp38-cp38-manylinux_2_17_x86_64.manylinux2014_x86_64.whl
@@ -151,13 +151,11 @@ RUN pip install --upgrade pip --trusted-host pypi.org --trusted-host files.pytho
     click \
     "cryptography>3.2" \
     ipython==8.1.0 \
-    numpy==1.22.2 \
     opencv-python \
     packaging \
     "Pillow>=9.0.0" \
     psutil==5.9.0 \
-    "pyyaml>=5.4,<5.5" \
-    scipy
+    "pyyaml>=5.4,<5.5"
 
 COPY deep_learning_container.py /usr/local/bin/deep_learning_container.py
 

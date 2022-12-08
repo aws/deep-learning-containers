@@ -16,3 +16,4 @@ pytz
 toml
 scrapy
 crochet
+tenacity
