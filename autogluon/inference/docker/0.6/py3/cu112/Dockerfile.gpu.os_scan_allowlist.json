@@ -6,10 +6,10 @@
       "name": "SNYK-PYTHON-TORCH-3149871",
       "package_name": "torch",
       "package_details": {
-        "file_path": "usr/local/lib/python3.8/dist-packages/torch-1.12.0+cu113.dist-info/METADATA",
+        "file_path": "usr/local/lib/python3.8/dist-packages/torch-1.12.1+cu113.dist-info/METADATA",
         "name": "torch",
         "package_manager": "PYTHONPKG",
-        "version": "1.12.0+cu113",
+        "version": "1.12.1+cu113",
         "release": null
       },
       "remediation": {
@@ -35,10 +35,10 @@
       "name": "CVE-2022-45907",
       "package_name": "torch",
       "package_details": {
-        "file_path": "usr/local/lib/python3.8/dist-packages/torch-1.12.0+cu113.dist-info/METADATA",
+        "file_path": "usr/local/lib/python3.8/dist-packages/torch-1.12.1+cu113.dist-info/METADATA",
         "name": "torch",
         "package_manager": "PYTHONPKG",
-        "version": "1.12.0+cu113",
+        "version": "1.12.1+cu113",
         "release": null
       },
       "remediation": {
