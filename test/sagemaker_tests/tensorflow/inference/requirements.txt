@@ -9,3 +9,4 @@ fabric
 retrying
 gitpython
 toml
+packaging==21.3
