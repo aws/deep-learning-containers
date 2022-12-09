@@ -17,7 +17,7 @@ from botocore.exceptions import ClientError
 from glob import glob
 from invoke import run
 from invoke.context import Context
-from packaging.version import LegacyVersion, Version, parse
+from packaging.version import Version, parse
 from packaging.specifiers import SpecifierSet
 from datetime import date, datetime
 from retrying import retry
@@ -409,7 +409,8 @@ def get_inference_server_type(image_uri):
         return "ts"
     image_tag = image_uri.split(":")[1]
     pytorch_ver = parse(image_tag.split("-")[0])
-    if isinstance(pytorch_ver, LegacyVersion) or pytorch_ver < Version("1.6"): # LegacyVersion is fully deprecated in packaging 22.0
+    from packaging.version import LegacyVersion
+    if isinstance(pytorch_ver, LegacyVersion) or pytorch_ver < Version("1.6"): 
         return "mms"
     return "ts"
 
