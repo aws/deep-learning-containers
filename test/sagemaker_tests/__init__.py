@@ -16,6 +16,10 @@ import boto3
 import re
 from test.test_utils.ecr import reupload_image_to_test_ecr
 
+# It is possible to have such low capacity on certain instance types that the test is never able to run due to
+# ICE errors. In these cases, we are forced to xfail/skip the test, or end up causing pipelines to fail forever.
+# We have approval to skip the test when this type of ICE error occurs for p4de. Will need approval for each new
+# instance type to be added to this list.
 LOW_AVAILABILITY_INSTANCE_TYPES = ["ml.p4de.24xlarge"]
 
 

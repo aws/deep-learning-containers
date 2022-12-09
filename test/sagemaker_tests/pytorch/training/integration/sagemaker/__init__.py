@@ -101,7 +101,8 @@ def invoke_pytorch_estimator(
         instance_types = [instance_group.instance_type for instance_group in estimator_parameter["instance_groups"]]
     # It is possible to have such low capacity on certain instance types that the test is never able to run due to
     # ICE errors. In these cases, we are forced to xfail/skip the test, or end up causing pipelines to fail forever.
-    # We have approval to skip the test when this type of ICE error occurs.
+    # We have approval to skip the test when this type of ICE error occurs for p4de. Will need approval for each new
+    # instance type to be added to this list.
     if "CapacityError" in str(error) and any(
         instance_type in LOW_AVAILABILITY_INSTANCE_TYPES for instance_type in instance_types
     ):
