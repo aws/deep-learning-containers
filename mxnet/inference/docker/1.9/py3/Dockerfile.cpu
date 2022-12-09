@@ -33,7 +33,7 @@ LABEL dlc_major_version="1"
 ARG PYTHON_VERSION=3.8.10
 ARG MAMBA_VERSION=4.12.0-2
 ARG MMS_VERSION=1.1.8
-ARG MX_URL=https://framework-binaries.s3.us-west-2.amazonaws.com/mxnet/v1.9.0/aws_mx-1.9.0b20221117.193-py3-none-manylinux2014_x86_64.whl
+ARG MX_URL=https://framework-binaries.s3.us-west-2.amazonaws.com/mxnet/v1.9.0_mkl_blas/aws_mx-1.9.0b20221209-py3-none-manylinux2014_x86_64.whl
 
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
@@ -42,7 +42,8 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
     LANG=C.UTF-8 \
     LC_ALL=C.UTF-8 \
     TEMP=/home/model-server/tmp \
-    DEBIAN_FRONTEND=noninteractive
+    DEBIAN_FRONTEND=noninteractive \
+    DLC_CONTAINER_TYPE=inference
 
 # Set MKL_THREADING_LAYER=GNU to prevent issues between torch and numpy/mkl
 ENV MKL_THREADING_LAYER=GNU
