@@ -74,7 +74,7 @@ images:
     target: ec2
     context:
       <<: *TRAINING_CONTEXT
- BuildSageMakerCPUPTTrainPy3DockerImage:
+  BuildSageMakerCPUPTTrainPy3DockerImage:
     <<: *TRAINING_REPOSITORY
     build: &PYTORCH_CPU_TRAINING_PY3 false
     image_size_baseline: 5000
@@ -177,3 +177,4 @@ images:
   #   target: sagemaker
   #   context:
   #     <<: *INFERENCE_CONTEXT
+  
