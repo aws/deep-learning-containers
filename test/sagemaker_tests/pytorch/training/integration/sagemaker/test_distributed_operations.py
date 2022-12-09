@@ -424,7 +424,7 @@ def test_smmodelparallel_gpt2_sdp_multinode_efa(ecr_image, efa_instance_type, sa
                        'logging_freq': 1, 'max_context_width': 1024, 'hidden_width': 768,
                        'num_layers': 12, 'num_heads': 12, 'n_gpus': 8, 'train_batch_size': 4,
                        'microbatches': 1, 'tensor_parallel_degree': 1, 'pipeline_parallel_degree': 1,
-                       
+
                        'activation_checkpointing': 1, 'activation_strategy': "group_2",
                        'manual_partition': 1, 'smp_version': smp_version,
                        }
