@@ -25,4 +25,4 @@ retrying==1.3.3
 fabric
 gitpython
 toml
-package==20.1
+packaging==21.3
