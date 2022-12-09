@@ -288,8 +288,10 @@ def fixture_sagemaker_session(region):
 
 @pytest.fixture(name='efa_instance_type')
 def fixture_efa_instance_type(request):
-    configured_efa_instance_type = get_efa_test_instance_type(default="ml.p4d.24xlarge")
-    return request.param if hasattr(request, "param") else configured_efa_instance_type[0]
+    try:
+        return request.param
+    except AttributeError:
+        return get_efa_test_instance_type(default=["ml.p4d.24xlarge"])[0]
 
 
 @pytest.fixture(scope='session', name='sagemaker_local_session')

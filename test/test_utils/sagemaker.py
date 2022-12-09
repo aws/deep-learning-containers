@@ -53,10 +53,6 @@ def is_test_job_efa_dedicated():
     return os.getenv("EFA_DEDICATED", "False").lower() == "true"
 
 
-def get_efa_instance_type_from_environment():
-    return os.getenv("SM_EFA_TEST_INSTANCE_TYPE", "p4d.24xlarge")
-
-
 def assign_sagemaker_remote_job_instance_type(image):
     if "graviton" in image:
         return "ml.c6g.2xlarge"

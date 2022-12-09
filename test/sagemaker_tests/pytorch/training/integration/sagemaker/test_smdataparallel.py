@@ -55,7 +55,7 @@ def can_run_smdataparallel_efa(ecr_image):
 @pytest.mark.model("N/A")
 @pytest.mark.multinode(2)
 @pytest.mark.integration("smdataparallel")
-@pytest.mark.parametrize('efa_instance_type', get_efa_test_instance_type(default="ml.p4d.24xlarge"), indirect=True)
+@pytest.mark.parametrize('efa_instance_type', get_efa_test_instance_type(default=["ml.p4d.24xlarge"]), indirect=True)
 @pytest.mark.skip_cpu
 @pytest.mark.efa()
 def test_smdataparallel_throughput(framework_version, ecr_image, sagemaker_regions, efa_instance_type, tmpdir):
@@ -67,7 +67,7 @@ def test_smdataparallel_throughput(framework_version, ecr_image, sagemaker_regio
             "iterations": 100,
             "warmup": 10,
             "bucket_size": 25,
-            "info": "PT-{}-N{}".format(efa_instance_type, 2),
+            "info": f"PT-{efa_instance_type}-N2",
         }
         distribution = {'smdistributed': {'dataparallel': {'enabled': True}}}
         estimator_parameter = {
@@ -151,7 +151,7 @@ def test_smdataparallel_mnist(ecr_image, sagemaker_regions, efa_instance_type, t
 @pytest.mark.skip_py2_containers
 @pytest.mark.flaky(reruns=2)
 @pytest.mark.efa()
-@pytest.mark.parametrize("efa_instance_type", get_efa_test_instance_type(default="ml.p3.16xlarge"), indirect=True)
+@pytest.mark.parametrize("efa_instance_type", get_efa_test_instance_type(default=["ml.p3.16xlarge"]), indirect=True)
 def test_hc_smdataparallel_mnist(ecr_image, sagemaker_regions, efa_instance_type, tmpdir):
     """
     Tests smddprun command via Estimator API distribution parameter

@@ -25,7 +25,6 @@ import dataclasses
 # from security import EnhancedJSONEncoder
 
 from src import config
-from src.config import are_efa_tests_enabled
 
 LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.INFO)

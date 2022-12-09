@@ -99,7 +99,12 @@ def invoke_pytorch_estimator(
         instance_types = [estimator_parameter["instance_type"]]
     elif "instance_groups" in estimator_parameter:
         instance_types = [instance_group.instance_type for instance_group in estimator_parameter["instance_groups"]]
-    if "CapacityError" in str(e) and any(instance_type in LOW_AVAILABILITY_INSTANCE_TYPES for instance_type in instance_types):
+    # It is possible to have such low capacity on certain instance types that the test is never able to run due to
+    # ICE errors. In these cases, we are forced to xfail/skip the test, or end up causing pipelines to fail forever.
+    # We have approval to skip the test when this type of ICE error occurs.
+    if "CapacityError" in str(error) and any(
+        instance_type in LOW_AVAILABILITY_INSTANCE_TYPES for instance_type in instance_types
+    ):
         # TODO: xfailed tests do not show up on CodeBuild Test Case Reports. Therefore using "skip" instead of xfail.
         pytest.skip(f"Failed to launch job due to low capacity on {instance_types}")
     raise error

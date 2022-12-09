@@ -39,7 +39,7 @@ def can_run_pytorchddp(ecr_image):
 @pytest.mark.model("N/A")
 @pytest.mark.multinode(2)
 @pytest.mark.integration("pytorchddp")
-@pytest.mark.parametrize('efa_instance_type', get_efa_test_instance_type(default="ml.p4d.24xlarge"), indirect=True)
+@pytest.mark.parametrize('efa_instance_type', get_efa_test_instance_type(default=["ml.p4d.24xlarge"]), indirect=True)
 @pytest.mark.skip_cpu
 @pytest.mark.skip_py2_containers
 @pytest.mark.efa()
