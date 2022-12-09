@@ -409,7 +409,7 @@ def get_inference_server_type(image_uri):
         return "ts"
     image_tag = image_uri.split(":")[1]
     pytorch_ver = parse(image_tag.split("-")[0])
-    if isinstance(pytorch_ver, LegacyVersion) or pytorch_ver < Version("1.6"):
+    if isinstance(pytorch_ver, LegacyVersion) or pytorch_ver < Version("1.6"): # LegacyVersion is fully deprecated in packaging 22.0
         return "mms"
     return "ts"
 
