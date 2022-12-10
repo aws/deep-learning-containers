@@ -200,7 +200,7 @@ def test_smmodelparallel_gpt2_multigpu_singlenode(ecr_image, instance_type, sage
     framework, framework_version = get_framework_and_version_from_tag(ecr_image)
     if framework == "pytorch" and Version(framework_version) in SpecifierSet("==1.9.*"):
         pytest.skip("Skipping the test for PT1.9")
-    instance_type = "ml.p4de.24xlarge"
+    instance_type = "ml.p4d.24xlarge"
     smp_version = 110 if framework == "pytorch" and Version(framework_version) in SpecifierSet(">=1.11.0") else 109
     hyperparameters = {'training_dir': '/opt/ml/input/data/train','max_steps': 100,
                        'seed': 12345, 'fp16': 1, 'lr': 2.e-4, 'lr_decay_iters': 125000,
