@@ -14,7 +14,6 @@ from __future__ import absolute_import
 
 import pytest
 import boto3
-from Typing import List
 from datetime import datetime, timedelta
 
 from packaging.version import Version
@@ -27,6 +26,13 @@ from ....training import get_efa_test_instance_type
 from test.test_utils import get_framework_and_version_from_tag
 from . import invoke_pytorch_estimator
 
+METRIC_DEFINITIONS_SMDDP = [
+    {'Name': 'SMDDP-COLLECTIVES-VERSION', 'Regex': 'SMDDP: Running SMDDPCollectives v(.*?)\n'},
+    {'Name': 'SMDDP-COLLECTIVES-ENV-CHECK', 'Regex': 'SMDDP: Environment checks succeeded.(.*?)\n'}
+]
+METRIC_DEFINITIONS_NCCL = [
+    {'Name': 'SMDDP-COLLECTIVES-VERSION', 'Regex': 'SMDDP: Running SMDDPCollectives v(.*?)\n'}
+]
 
 
 def _validate_or_skip_pytorchddp_backend(ecr_image: str):
@@ -44,8 +50,9 @@ def _is_smddpcoll_supported_instance(instance_type: str) -> bool:
     return instance_type in supported_instances
 
 
-def _fetch_metrics(cloudwatch_client, job_name: str, metric_definitions: List[dict]) -> dict:
+def _fetch_metrics(cloudwatch_client, job_name: str, use_smddp_metrics: bool) -> dict:
     metric_values = {}
+    metric_definitions = METRIC_DEFINITIONS_SMDDP if use_smddp_metrics else METRIC_DEFINITIONS_NCCL
     for definition in metric_definitions:
         datapoints = cloudwatch_client.get_metric_statistics(
             Namespace='/aws/sagemaker/TrainingJobs',
@@ -72,10 +79,6 @@ def test_pytorchddp_backend_default_gpu(framework_version, ecr_image, sagemaker_
     with timeout(minutes=DEFAULT_TIMEOUT):
         _validate_or_skip_pytorchddp_backend(ecr_image)
         distribution = {'pytorchddp': {'enabled': True}}
-        metric_definitions = [
-            {'Name': 'SMDDP-COLLECTIVES-VERSION', 'Regex': 'SMDDP: Running SMDDPCollectives v(.*?)\n'},
-            {'Name': 'SMDDP-COLLECTIVES-ENV-CHECK', 'Regex': 'SMDDP: Environment checks succeeded.(.*?)\n'}
-        ]
         estimator_parameter = {
             'entry_point': 'pytorchddp_throughput_mnist.py',
             'role': 'SageMakerRole',
@@ -84,7 +87,7 @@ def test_pytorchddp_backend_default_gpu(framework_version, ecr_image, sagemaker_
             'source_dir': mnist_path,
             'framework_version': framework_version,
             'distribution': distribution,
-            'metric_definitions': metric_definitions
+            'metric_definitions': METRIC_DEFINITIONS_SMDDP
         }
 
         job_name = utils.unique_name_from_base('test-pytorchddp-backend-default-gpu')
@@ -92,7 +95,7 @@ def test_pytorchddp_backend_default_gpu(framework_version, ecr_image, sagemaker_
 
         cloudwatch_client = boto3.client('cloudwatch')
         for _ in sagemaker_regions:
-            metric_values = _fetch_metrics(cloudwatch_client, job_name, metric_definitions)
+            metric_values = _fetch_metrics(cloudwatch_client, job_name, True)
             criterion = int(_is_smddpcoll_supported_instance(efa_instance_type))
             assert metric_values['SMDDP-COLLECTIVES-VERSION'] == criterion
             assert metric_values['SMDDP-COLLECTIVES-ENV-CHECK'] == criterion
@@ -111,10 +114,6 @@ def test_pytorchddp_backend_auto_gpu(framework_version, ecr_image, sagemaker_reg
     with timeout(minutes=DEFAULT_TIMEOUT):
         _validate_or_skip_pytorchddp_backend(ecr_image)
         distribution = {'pytorchddp': {'enabled': True, 'communication_options': {'backend': 'auto'}}}
-        metric_definitions = [
-            {'Name': 'SMDDP-COLLECTIVES-VERSION', 'Regex': 'SMDDP: Running SMDDPCollectives v(.*?)\n'},
-            {'Name': 'SMDDP-COLLECTIVES-ENV-CHECK', 'Regex': 'SMDDP: Environment checks succeeded.(.*?)\n'}
-        ]
         estimator_parameter = {
             'entry_point': 'pytorchddp_throughput_mnist.py',
             'role': 'SageMakerRole',
@@ -123,7 +122,7 @@ def test_pytorchddp_backend_auto_gpu(framework_version, ecr_image, sagemaker_reg
             'source_dir': mnist_path,
             'framework_version': framework_version,
             'distribution': distribution,
-            'metric_definitions': metric_definitions
+            'metric_definitions': METRIC_DEFINITIONS_SMDDP
         }
 
         job_name = utils.unique_name_from_base('test-pytorchddp-backend-auto-gpu')
@@ -131,7 +130,7 @@ def test_pytorchddp_backend_auto_gpu(framework_version, ecr_image, sagemaker_reg
 
         cloudwatch_client = boto3.client('cloudwatch')
         for _ in sagemaker_regions:
-            metric_values = _fetch_metrics(cloudwatch_client, job_name, metric_definitions)
+            metric_values = _fetch_metrics(cloudwatch_client, job_name, True)
             criterion = int(_is_smddpcoll_supported_instance(efa_instance_type))
             assert metric_values['SMDDP-COLLECTIVES-VERSION'] == criterion
             assert metric_values['SMDDP-COLLECTIVES-ENV-CHECK'] == criterion
@@ -150,9 +149,7 @@ def test_pytorchddp_backend_nccl_gpu(framework_version, ecr_image, sagemaker_reg
     with timeout(minutes=DEFAULT_TIMEOUT):
         _validate_or_skip_pytorchddp_backend(ecr_image)
         distribution = {'pytorchddp': {'enabled': True, 'communication_options': {'backend': 'nccl'}}}
-        metric_definitions = [
-            {'Name': 'SMDDP-COLLECTIVES-VERSION', 'Regex': 'SMDDP: Running SMDDPCollectives v(.*?)\n'}
-        ]
+        
         estimator_parameter = {
             'entry_point': 'pytorchddp_throughput_mnist.py',
             'role': 'SageMakerRole',
@@ -161,7 +158,7 @@ def test_pytorchddp_backend_nccl_gpu(framework_version, ecr_image, sagemaker_reg
             'source_dir': mnist_path,
             'framework_version': framework_version,
             'distribution': distribution,
-            'metric_definitions': metric_definitions
+            'metric_definitions': METRIC_DEFINITIONS_NCCL
         }
 
         job_name = utils.unique_name_from_base('test-pytorchddp-backend-nccl-gpu')
@@ -169,5 +166,5 @@ def test_pytorchddp_backend_nccl_gpu(framework_version, ecr_image, sagemaker_reg
 
         cloudwatch_client = boto3.client('cloudwatch')
         for _ in sagemaker_regions:
-            metric_values = _fetch_metrics(cloudwatch_client, job_name, metric_definitions)
+            metric_values = _fetch_metrics(cloudwatch_client, job_name, False)
             assert metric_values['SMDDP-COLLECTIVES-VERSION'] == 0
