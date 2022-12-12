@@ -139,7 +139,7 @@ RUN HOME_DIR=/root \
  && chmod +x ${HOME_DIR}/oss_compliance/generate_oss_compliance.sh \
  && ${HOME_DIR}/oss_compliance/generate_oss_compliance.sh ${HOME_DIR} python \
  && rm -rf ${HOME_DIR}/oss_compliance* \
- && rm -iRf /root/.cache
+ && rm -iRf ${HOME_DIR}/.cache
 
 RUN curl https://aws-dlc-licenses.s3.amazonaws.com/aws-mx-1.9.0/license.txt -o /license.txt
 
@@ -196,7 +196,7 @@ RUN HOME_DIR=/root \
  && chmod +x ${HOME_DIR}/oss_compliance/generate_oss_compliance.sh \
  && ${HOME_DIR}/oss_compliance/generate_oss_compliance.sh ${HOME_DIR} python \
  && rm -rf ${HOME_DIR}/oss_compliance* \
- && rm -iRf /root/.cache
+ && rm -iRf ${HOME_DIR}/.cache
 
 EXPOSE 8080 8081
 ENTRYPOINT ["python", "/usr/local/bin/dockerd-entrypoint.py"]
