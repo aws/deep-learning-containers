@@ -85,6 +85,7 @@
       "title": "IN1-GOLANG-GITHUBCOMSATORIGOUUID-72488 - github.com/satori/go.uuid, github.com/satori/go.uuid and 1 more"
     },
     {
+      "reason_to_ignore": "Will be fixed in the next neuron SDK release",
       "description": " A flaw was found in github.com/satori/go.uuid in versions from commit 0ef6afb2f6cdd6cdaeee3885a95099c63f18fc8c to d91630c8510268e75203009fe7daf2b8e1d60c45. Due to insecure randomness in the g.rand.Read function the generated UUIDs are predictable for an attacker.",
       "vulnerability_id": "CVE-2021-3538",
       "name": "CVE-2021-3538",
@@ -113,6 +114,7 @@
       "title": "CVE-2021-3538 - github.com/satori/go.uuid, github.com/satori/go.uuid and 1 more"
     },
     {
+      "reason_to_ignore": "Will be fixed in the next neuron SDK release",
       "description": " A flaw was found in github.com/satori/go.uuid in versions from commit 0ef6afb2f6cdd6cdaeee3885a95099c63f18fc8c to d91630c8510268e75203009fe7daf2b8e1d60c45. Due to insecure randomness in the g.rand.Read function the generated UUIDs are predictable for an attacker.",
       "vulnerability_id": "CVE-2021-3538",
       "name": "CVE-2021-3538",
@@ -141,6 +143,7 @@
       "title": "CVE-2021-3538 - github.com/satori/go.uuid, github.com/satori/go.uuid and 1 more"
     },
     {
+      "reason_to_ignore": "Will be fixed in the next neuron SDK release",
       "description": " A flaw was found in github.com/satori/go.uuid in versions from commit 0ef6afb2f6cdd6cdaeee3885a95099c63f18fc8c to d91630c8510268e75203009fe7daf2b8e1d60c45. Due to insecure randomness in the g.rand.Read function the generated UUIDs are predictable for an attacker.",
       "vulnerability_id": "CVE-2021-3538",
       "name": "CVE-2021-3538",
