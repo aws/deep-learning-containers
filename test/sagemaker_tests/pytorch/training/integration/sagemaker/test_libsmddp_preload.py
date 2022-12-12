@@ -31,7 +31,7 @@ METRIC_DEFINITIONS_SMDDP = [
     # {'Name': 'SMDDP-COLLECTIVES-ENV-CHECK', 'Regex': 'SMDDP: Environment checks succeeded.(.*?)\n'}
 ]
 METRIC_DEFINITIONS_NCCL = [
-    {'Name': 'SMDDP-COLLECTIVES-VERSION', 'Regex': 'SMDDP: Running SMDDPCollectives v(.*?)\n'}
+    {'Name': 'SMDDP-COLLECTIVES-VERSION', 'Regex': 'SMDDP: Running SMDDPCollectives v1.0.(.*?)'}
 ]
 
 
@@ -61,8 +61,7 @@ def _fetch_metrics(cloudwatch_client, job_name: str, use_smddp_metrics: bool) ->
             StartTime=datetime.now() - timedelta(days=1), EndTime=datetime.now(),
             Period=3600, Statistics=['SampleCount']
         )['Datapoints']
-        if datapoints:
-            metric_values[definition['Name']] = round(datapoints[0]['SampleCount'])
+        metric_values[definition['Name']] = round(datapoints[0]['SampleCount']) if datapoints else 0
     return metric_values
 
 
