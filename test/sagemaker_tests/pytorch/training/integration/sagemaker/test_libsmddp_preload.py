@@ -27,8 +27,8 @@ from test.test_utils import get_framework_and_version_from_tag
 from . import invoke_pytorch_estimator
 
 METRIC_DEFINITIONS_SMDDP = [
-    {'Name': 'SMDDP-COLLECTIVES-VERSION', 'Regex': 'SMDDP: Running SMDDPCollectives v(.*?)\n'},
-    {'Name': 'SMDDP-COLLECTIVES-ENV-CHECK', 'Regex': 'SMDDP: Environment checks succeeded.(.*?)\n'}
+    {'Name': 'SMDDP-COLLECTIVES-VERSION', 'Regex': 'SMDDP: Running SMDDPCollectives v1.0.(.*?)'},
+    # {'Name': 'SMDDP-COLLECTIVES-ENV-CHECK', 'Regex': 'SMDDP: Environment checks succeeded.(.*?)\n'}
 ]
 METRIC_DEFINITIONS_NCCL = [
     {'Name': 'SMDDP-COLLECTIVES-VERSION', 'Regex': 'SMDDP: Running SMDDPCollectives v(.*?)\n'}
@@ -98,7 +98,7 @@ def test_pytorchddp_backend_default_gpu(framework_version, ecr_image, sagemaker_
             metric_values = _fetch_metrics(cloudwatch_client, job_name, True)
             criterion = int(_is_smddpcoll_supported_instance(efa_instance_type))
             assert metric_values['SMDDP-COLLECTIVES-VERSION'] == criterion
-            assert metric_values['SMDDP-COLLECTIVES-ENV-CHECK'] == criterion
+            # assert metric_values['SMDDP-COLLECTIVES-ENV-CHECK'] == criterion
 
 
 @pytest.mark.processor("gpu")
@@ -133,7 +133,7 @@ def test_pytorchddp_backend_auto_gpu(framework_version, ecr_image, sagemaker_reg
             metric_values = _fetch_metrics(cloudwatch_client, job_name, True)
             criterion = int(_is_smddpcoll_supported_instance(efa_instance_type))
             assert metric_values['SMDDP-COLLECTIVES-VERSION'] == criterion
-            assert metric_values['SMDDP-COLLECTIVES-ENV-CHECK'] == criterion
+            # assert metric_values['SMDDP-COLLECTIVES-ENV-CHECK'] == criterion
 
 
 @pytest.mark.processor("gpu")
