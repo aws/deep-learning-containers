@@ -298,4 +298,5 @@ Prior SageMaker Training Compiler Containers
 ===============================
 
 | Framework                                     |Job Type	|CPU/GPU 	|Python Version Options	|Example URL																						|
+|-----------------------------------------------|-----------|-----------|-----------------------|---------------------------------------------------------------------------------------------------|
 |TensorFlow 2.6.3 with HuggingFace transformers 4.17.0 and SageMaker Training Compiler |training	|GPU 		| 3.8 (py38)			|763104351884.dkr.ecr.us-east-1.amazonaws.com/huggingface-tensorflow-trcomp-training:2.6.3-transformers4.17.0-gpu-py38-cu112-ubuntu20.04 	|
