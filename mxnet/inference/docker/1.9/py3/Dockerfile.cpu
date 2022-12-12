@@ -138,7 +138,8 @@ RUN HOME_DIR=/root \
  && chmod +x /usr/local/bin/testOSSCompliance \
  && chmod +x ${HOME_DIR}/oss_compliance/generate_oss_compliance.sh \
  && ${HOME_DIR}/oss_compliance/generate_oss_compliance.sh ${HOME_DIR} python \
- && rm -rf ${HOME_DIR}/oss_compliance*
+ && rm -rf ${HOME_DIR}/oss_compliance* \
+ && rm -iRf /root/.cache
 
 RUN curl https://aws-dlc-licenses.s3.amazonaws.com/aws-mx-1.9.0/license.txt -o /license.txt
 
