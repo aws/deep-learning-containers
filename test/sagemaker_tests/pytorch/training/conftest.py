@@ -27,9 +27,11 @@ from botocore.exceptions import ClientError
 from sagemaker import LocalSession, Session
 from sagemaker.pytorch import PyTorch
 
+from . import get_efa_test_instance_type
+
 from .utils import (
-    get_ecr_registry, 
-    NightlyFeatureLabel, 
+    get_ecr_registry,
+    NightlyFeatureLabel,
     is_nightly_context
 )
 
@@ -116,6 +118,7 @@ NO_P4_REGIONS = [
     "af-south-1",
 ]
 
+
 def pytest_addoption(parser):
     parser.addoption('--build-image', '-D', action='store_true')
     parser.addoption('--build-base-image', '-B', action='store_true')
@@ -141,10 +144,11 @@ def pytest_configure(config):
 
 
 def pytest_runtest_setup(item):
-    if item.config.getoption("--efa"):
-        efa_tests = [mark for mark in item.iter_markers(name="efa")]
-        if not efa_tests:
-            pytest.skip("Skipping non-efa tests")
+    efa_tests = [mark for mark in item.iter_markers(name="efa")]
+    if item.config.getoption("--efa") and not efa_tests:
+        pytest.skip("Skipping non-efa tests due to --efa flag")
+    elif not item.config.getoption("--efa") and efa_tests:
+        pytest.skip("Skipping efa tests because --efa flag is missing")
 
 
 def pytest_collection_modifyitems(session, config, items):
@@ -157,11 +161,11 @@ def pytest_collection_modifyitems(session, config, items):
 # Nightly image fixture dictionary, maps nightly fixtures to set of image labels
 NIGHTLY_FIXTURES = {
     "feature_smdebug_present": {
-        NightlyFeatureLabel.AWS_FRAMEWORK_INSTALLED.value, 
+        NightlyFeatureLabel.AWS_FRAMEWORK_INSTALLED.value,
         NightlyFeatureLabel.AWS_SMDEBUG_INSTALLED.value
     },
     "feature_smddp_present": {
-        NightlyFeatureLabel.AWS_FRAMEWORK_INSTALLED.value, 
+        NightlyFeatureLabel.AWS_FRAMEWORK_INSTALLED.value,
         NightlyFeatureLabel.AWS_SMDDP_INSTALLED.value
     },
     "feature_smmp_present": {
@@ -174,6 +178,7 @@ NIGHTLY_FIXTURES = {
         NightlyFeatureLabel.AWS_S3_PLUGIN_INSTALLED.value
     }
 }
+
 
 # Nightly fixtures
 @pytest.fixture(scope="session")
@@ -225,10 +230,12 @@ def fixture_py_version(request):
 def fixture_processor(request):
     return request.config.getoption('--processor')
 
+
 @pytest.fixture(scope='session', name='sagemaker_regions')
 def fixture_sagemaker_regions(request):
     sagemaker_regions = request.config.getoption('--sagemaker-regions')
     return sagemaker_regions.split(",")
+
 
 @pytest.fixture(scope='session', name='tag')
 def fixture_tag(request, framework_version, processor, py_version):
@@ -278,10 +285,13 @@ def fixture_build_base_image(request, framework_version, py_version, processor, 
 def fixture_sagemaker_session(region):
     return Session(boto_session=boto3.Session(region_name=region))
 
+
 @pytest.fixture(name='efa_instance_type')
-def fixture_efa_instance_type():
-    default_instance_type = "ml.p3dn.24xlarge"
-    return default_instance_type
+def fixture_efa_instance_type(request):
+    try:
+        return request.param
+    except AttributeError:
+        return get_efa_test_instance_type(default=["ml.p4d.24xlarge"])[0]
 
 
 @pytest.fixture(scope='session', name='sagemaker_local_session')
@@ -362,6 +372,7 @@ def skip_gpu_instance_restricted_regions(region, instance_type):
             or (region in NO_P4_REGIONS and instance_type.startswith('ml.p4'))):
                 pytest.skip('Skipping GPU test in region {}'.format(region))
 
+
 @pytest.fixture(autouse=True)
 def skip_neuron_trn1_test_in_region(request, region):
     if request.node.get_closest_marker('skip_neuron_trn1_test_in_region'):
@@ -374,6 +385,13 @@ def skip_py2_containers(request, tag):
     if request.node.get_closest_marker('skip_py2_containers'):
         if 'py2' in tag:
             pytest.skip('Skipping python2 container with tag {}'.format(tag))
+
+
+@pytest.fixture(autouse=True)
+def skip_trcomp_containers(request, ecr_image):
+    if request.node.get_closest_marker('skip_trcomp_containers'):
+        if 'trcomp' in ecr_image:
+            pytest.skip('Skipping training compiler integrated container with tag {}'.format(ecr_image))
 
 
 def _get_remote_override_flags():
