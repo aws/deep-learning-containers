@@ -28,7 +28,7 @@ ENV DEBIAN_FRONTEND=noninteractive
 
 # nginx + njs
 RUN apt-get update \
- # TODO: Remove systemd upgrade once it is updated in base image
+ && apt-get upgrade -y \
  && apt-get -y upgrade --only-upgrade systemd \
  && apt-get -y install --no-install-recommends \
     curl \
