@@ -23,7 +23,7 @@ RUN apt-get update \
  && apt-get clean \
  && rm -rf /var/lib/apt/lists/*
 
-ARG AUTOGLUON_VERSION=0.6.0
+ARG AUTOGLUON_VERSION=0.6.1
 ARG TORCH_VER=1.12.1+cpu
 ARG TORCH_VISION_VER=0.13.1+cpu
 ARG TORCH_TEXT_VER=0.13.1
