@@ -2,10 +2,10 @@
 release_images:
   1:
     framework: "tensorflow"
-    version: "2.10.1"
+    version: "2.9.2"
     customer_type: "ec2"
     arch_type: "x86"
-    training:
+    inference:
       device_types: ["cpu", "gpu"]
       python_versions: ["py39"]
       os_version: "ubuntu20.04"
@@ -15,10 +15,10 @@ release_images:
       force_release: False
   2:
     framework: "tensorflow"
-    version: "2.10.1"
+    version: "2.9.2"
     customer_type: "sagemaker"
     arch_type: "x86"
-    training:
+    inference:
       device_types: ["cpu", "gpu"]
       python_versions: ["py39"]
       os_version: "ubuntu20.04"
@@ -26,29 +26,4 @@ release_images:
       example: False
       disable_sm_tag: False
       force_release: False
-  3:
-    framework: "tensorflow"
-    version: "2.10.1"
-    customer_type: "ec2"
-    arch_type: "x86"
-    training:
-      device_types: ["gpu"]
-      python_versions: ["py39"]
-      os_version: "ubuntu20.04"
-      cuda_version: "cu112"
-      example: True
-      disable_sm_tag: False
-      force_release: False
-  4:
-    framework: "pytorch_trcomp"
-    version: "1.12.0"
-    arch_type: "x86"
-    customer_type: "sagemaker"
-    training:
-      device_types: [ "gpu" ]
-      python_versions: [ "py38" ]
-      os_version: "ubuntu20.04"
-      cuda_version: "cu113"
-      example: False
-      disable_sm_tag: False
-      force_release: False
+  
