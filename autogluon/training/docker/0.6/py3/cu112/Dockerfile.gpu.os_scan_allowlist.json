@@ -6,10 +6,10 @@
       "name": "CVE-2022-45907",
       "package_name": "torch",
       "package_details": {
-        "file_path": "usr/local/lib/python3.8/dist-packages/torch-1.12.1+cpu.dist-info/METADATA",
+        "file_path": "usr/local/lib/python3.8/dist-packages/torch-1.12.1+cu113.dist-info/METADATA",
         "name": "torch",
         "package_manager": "PYTHONPKG",
-        "version": "1.12.1+cpu",
+        "version": "1.12.1+cu113",
         "release": null
       },
       "remediation": {
@@ -26,7 +26,8 @@
       "source": "UBUNTU_CVE",
       "severity": "MEDIUM",
       "status": "ACTIVE",
-      "title": "CVE-2022-45907 - torch"
+      "title": "CVE-2022-45907 - torch",
+      "reason_to_ignore": "the patch is not released yet"
     },
     {
       "description": "[torch](https://pypi.org/project/torch) is a Tensors and Dynamic neural networks in Python with strong GPU acceleration\n\nAffected versions of this package are vulnerable to Command Injection in `torch.jit.annotations.parse_type_line` which can cause arbitrary code execution because `eval` is used unsafely.",
@@ -34,10 +35,10 @@
       "name": "SNYK-PYTHON-TORCH-3149871",
       "package_name": "torch",
       "package_details": {
-        "file_path": "usr/local/lib/python3.8/dist-packages/torch-1.12.1+cpu.dist-info/METADATA",
+        "file_path": "usr/local/lib/python3.8/dist-packages/torch-1.12.1+cu113.dist-info/METADATA",
         "name": "torch",
         "package_manager": "PYTHONPKG",
-        "version": "1.12.1+cpu",
+        "version": "1.12.1+cu113",
         "release": null
       },
       "remediation": {
@@ -54,7 +55,8 @@
       "source": "SNYK",
       "severity": "CRITICAL",
       "status": "ACTIVE",
-      "title": "IN1-PYTHON-TORCH-3149871 - torch"
+      "title": "IN1-PYTHON-TORCH-3149871 - torch",
+      "reason_to_ignore": "the patch is not released yet"
     }
   ]
 }
