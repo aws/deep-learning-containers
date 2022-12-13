@@ -23,15 +23,17 @@ RUN apt-get update \
  && apt-get clean \
  && rm -rf /var/lib/apt/lists/*
 
-ARG AUTOGLUON_VERSION=0.6.0
+ARG AUTOGLUON_VERSION=0.6.1
 ARG TORCH_VER=1.12.1+cpu
 ARG TORCH_VISION_VER=0.13.1+cpu
 ARG TORCH_TEXT_VER=0.13.1
 
 # NOTE: reinstalling horovod with pytorch support because it is available in the container
+# Updating certifi - https://pyup.io/p/pypi/certifi/2ff/
 RUN pip install --no-cache-dir -U --trusted-host pypi.org --trusted-host files.pythonhosted.org pip \
  && pip install --no-cache-dir -U setuptools wheel \
  && pip uninstall -y dataclasses \
+ && pip install --no-cache-dir -U certifi \
  && pip install --no-cache-dir -U numpy numba \
     torch==${TORCH_VER} torchvision==${TORCH_VISION_VER} torchtext==${TORCH_TEXT_VER} --extra-index-url https://download.pytorch.org/whl/cpu \
  && pip install --no-cache-dir -U autogluon==${AUTOGLUON_VERSION} \
