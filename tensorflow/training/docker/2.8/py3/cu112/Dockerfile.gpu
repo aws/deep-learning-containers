@@ -280,7 +280,7 @@ RUN curl https://aws-dlc-licenses.s3.amazonaws.com/tensorflow-${TF_VERSION}/lice
 
 FROM common AS ec2
 
-ARG TF_URL=https://framework-binaries.s3.us-west-2.amazonaws.com/tensorflow/r2.8_aws/gpu/2022-09-22-23-17/tensorflow_gpu-2.8.4-cp39-cp39-manylinux_2_12_x86_64.manylinux2010_x86_64.manylinux_2_17_x86_64.manylinux2014_x86_64.whl
+ARG TF_URL=https://framework-binaries.s3.us-west-2.amazonaws.com/tensorflow/r2.8_aws/gpu/2022-12-06-21-24/tensorflow_gpu-2.8.4-cp39-cp39-manylinux_2_12_x86_64.manylinux2010_x86_64.manylinux_2_17_x86_64.manylinux2014_x86_64.whl
 
 RUN ${PIP} install --no-cache-dir -U \
    ${TF_URL} \
@@ -329,7 +329,7 @@ LABEL dlc_major_version="1"
 # sagemaker-specific environment variable
 ENV SAGEMAKER_TRAINING_MODULE sagemaker_tensorflow_container.training:main
 
-ARG TF_URL=https://framework-binaries.s3.us-west-2.amazonaws.com/tensorflow/smdebugger/r2.8_aws/gpu/2022-09-27-17-36/tensorflow_gpu-2.8.4-cp39-cp39-manylinux_2_12_x86_64.manylinux2010_x86_64.manylinux_2_17_x86_64.manylinux2014_x86_64.whl
+ARG TF_URL=https://framework-binaries.s3.us-west-2.amazonaws.com/tensorflow/smdebugger/r2.8_aws/gpu/2022-12-06-21-24/tensorflow_gpu-2.8.4-cp39-cp39-manylinux_2_12_x86_64.manylinux2010_x86_64.manylinux_2_17_x86_64.manylinux2014_x86_64.whl
 
 RUN ${PIP} install --no-cache-dir -U \
    ${TF_URL} \
