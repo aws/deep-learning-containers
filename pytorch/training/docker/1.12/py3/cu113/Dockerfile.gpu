@@ -18,6 +18,10 @@ ARG SMD_MODEL_PARALLEL_URL=https://sagemaker-distributed-model-parallel.s3.us-we
 # ZeRO-2D Binary
 ARG ZERO_2D_URL=https://aws-deepspeed-zero-2d-binaries.s3.us-west-2.amazonaws.com/r1.12.1/20221203-014851/b3d766ee27e7fa0e9b078665273a9550768445e7/deepspeed-0.6.1%2Bb3d766e-py3-none-any.whl
 
+# Flash Attention version installed from source
+# TODO: This version needs to be updated to GitHub Tags or replaced with installation from pypi/conda releases
+ARG FLASH_ATTENTION_VERSION=1d0b41be3b0fa759502e274779db6758617fc7b9
+
 FROM nvidia/cuda:11.3.1-base-ubuntu20.04 AS base_image
 
 ENV DEBIAN_FRONTEND=noninteractive \
@@ -226,7 +230,7 @@ RUN curl -o /license.txt  https://aws-dlc-licenses.s3.amazonaws.com/pytorch-1.12
 # |_____\____|_____| |___|_| |_| |_|\__,_|\__, |\___|
 #                                         |___/
 #  ____           _
-# |  _ \ ___  ___(_)_ __   ___ 
+# |  _ \ ___  ___(_)_ __   ___
 # | |_) / _ \/ __| | '_ \ / _ \
 # |  _ <  __/ (__| | |_) |  __/
 # |_| \_\___|\___|_| .__/ \___|
@@ -377,6 +381,9 @@ ARG PT_TORCHAUDIO_URL
 ARG PT_TORCHDATA_URL
 ARG PT_S3_WHL_GPU
 
+# Flash Attention version installed from source
+ARG FLASH_ATTENTION_VERSION
+
 # Install AWS-PyTorch and other torch packages
 RUN pip uninstall -y torch torchvision torchaudio torchdata \
  && pip install --no-cache-dir -U ${PT_SM_TRAINING_URL} ${PT_TORCHVISION_URL} ${PT_TORCHAUDIO_URL} ${PT_TORCHDATA_URL} torchnet
@@ -519,7 +526,7 @@ RUN pip install --no-cache-dir -U ${ZERO_2D_URL}
 WORKDIR /flash
 RUN git clone https://github.com/HazyResearch/flash-attention.git \
     && cd flash-attention \
-    && git checkout 1d0b41be3b0fa759502e274779db6758617fc7b9 \
+    && git checkout ${FLASH_ATTENTION_VERSION} \
     && python setup.py install \
     && rm -rf /flash
 
