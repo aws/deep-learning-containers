@@ -19,6 +19,7 @@ torch==1.11
 torchvision==0.12
 tox==3.7.0
 requests_mock==1.6.0
+packaging
 fabric
 retrying
 gitpython
