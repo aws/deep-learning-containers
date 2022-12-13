@@ -31,7 +31,7 @@ LABEL maintainer="Amazon AI"
 LABEL dlc_major_version="1"
 
 ARG PYTHON_VERSION=3.8.10
-ARG MX_URL=https://framework-binaries.s3.us-west-2.amazonaws.com/mxnet/v1.9.0_telemetry/aws_mx_cu112-1.9.0b20221123.1-py3-none-manylinux2014_x86_64.whl
+ARG MX_URL=https://aws-mx-pypi.s3.us-west-2.amazonaws.com/1.9.0/aws_mx_cu112-1.9.0b20211227.163-py3-none-manylinux2014_x86_64.whl
 
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
@@ -42,8 +42,7 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
     DGLBACKEND=mxnet \
     CUDNN_VERSION=8.1.0.77-1+cuda11.2 \
     NCCL_VERSION=2.8.3-1+cuda11.2 \
-    DEBIAN_FRONTEND=noninteractive \
-    DLC_CONTAINER_TYPE=training
+    DEBIAN_FRONTEND=noninteractive
 
 RUN apt-get update \
  && apt-get -y upgrade --only-upgrade systemd \
