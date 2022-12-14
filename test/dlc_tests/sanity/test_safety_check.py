@@ -417,6 +417,13 @@ IGNORE_SAFETY_IDS = {
                 "44849",
                 "44846",
                 "44872",
+                #Following are shipping neuron-cc that depends on numpy<1.20.0 (will be fixed in next release)
+                "43453",
+                "44715",
+                "44716",
+                "44717",
+                #Following is for neuron-cc that depends on protobuf<=3.20.1
+                "51167",
             ],
         },
     },
