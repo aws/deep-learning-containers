@@ -361,6 +361,13 @@ def ec2_instance(
     if ec2_instance_type == "trn1.32xlarge" or ec2_instance_type == "trn1.2xlarge":
         params["BlockDeviceMappings"] = [{"DeviceName": volume_name, "Ebs": {"VolumeSize": 1024,},}]
 
+    # For neuron the current DLAMI does not have the latest drivers and compatibility
+    # is failing. So reinstall the latest neuron driver
+    if (
+        "pytorch_inference_neuron" in request.fixturenames
+    ):
+        params["BlockDeviceMappings"] = [{"DeviceName": volume_name, "Ebs": {"VolumeSize": 1024,},}]
+
     if ei_accelerator_type:
         params["ElasticInferenceAccelerators"] = [{"Type": ei_accelerator_type, "Count": 1}]
         availability_zones = {
