@@ -9,7 +9,7 @@ import test.test_utils.eks as eks_utils
 import test.test_utils as test_utils
 
 
-@pytest.mark.model("simple")
+@pytest.mark.model("mnist")
 def test_eks_tensorflow_neuron_inference(tensorflow_inference_neuron):
     num_replicas = "1"
 
