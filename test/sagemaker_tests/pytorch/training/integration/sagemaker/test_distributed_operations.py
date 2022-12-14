@@ -284,6 +284,7 @@ def test_smmodelparallel_gpt2_multigpu_singlenode_flashattn(ecr_image, instance_
                        'microbatches': 1, 'tensor_parallel_degree': 4, 'pipeline_parallel_degree': 2,
                        'activation_checkpointing': 1, 'activation_strategy': "group_2",
                        'manual_partition': 1, 'smp_version': smp_version,
+                       'query_key_layer_scaling': 0,
                        'assert_flash_attn': 1,
                        }
     train = sagemaker.session.s3_input(
