@@ -373,7 +373,7 @@ RUN $PYTHON -m pip install --no-cache-dir -U \
 RUN git clone https://github.com/yl-to/sagemaker-debugger.git \
     && cd sagemaker-debugger \
     && git checkout tf211-version-bump \
-    && pip install -e . \
+    && $PYTHON -m pip install -e . \
     && mv smdebug /usr/local/lib/${PYTHON}/site-packages \
     && cd .. && rm -rf sagemaker-debugger
 
