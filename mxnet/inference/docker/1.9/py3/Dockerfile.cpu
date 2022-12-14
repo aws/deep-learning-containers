@@ -16,7 +16,8 @@
 FROM ubuntu:20.04 AS base_image
 
 ENV DEBIAN_FRONTEND=noninteractive \
-    LD_LIBRARY_PATH="${LD_LIBRARY_PATH}:/usr/local/lib"
+    LD_LIBRARY_PATH="${LD_LIBRARY_PATH}:/usr/local/lib:/opt/conda/lib" \
+    PATH="${PATH}:/opt/conda/bin"
 
 RUN apt-get update \
  && apt-get upgrade -y \
@@ -30,8 +31,9 @@ LABEL maintainer="Amazon AI"
 LABEL dlc_major_version="1"
 
 ARG PYTHON_VERSION=3.8.10
+ARG MAMBA_VERSION=4.12.0-2
 ARG MMS_VERSION=1.1.8
-ARG MX_URL=https://framework-binaries.s3.us-west-2.amazonaws.com/mxnet/v1.9.0/aws_mx-1.9.0-py3-none-manylinux2014_x86_64.whl
+ARG MX_URL=https://framework-binaries.s3.us-west-2.amazonaws.com/mxnet/v1.9.0_mkl_blas/aws_mx-1.9.0b20221209-py3-none-manylinux2014_x86_64.whl
 
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
@@ -40,7 +42,11 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
     LANG=C.UTF-8 \
     LC_ALL=C.UTF-8 \
     TEMP=/home/model-server/tmp \
-    DEBIAN_FRONTEND=noninteractive
+    DEBIAN_FRONTEND=noninteractive \
+    DLC_CONTAINER_TYPE=inference
+
+# Set MKL_THREADING_LAYER=GNU to prevent issues between torch and numpy/mkl
+ENV MKL_THREADING_LAYER=GNU
 
 RUN apt-get update \
  && apt-get -y upgrade --only-upgrade systemd \
@@ -79,6 +85,20 @@ RUN apt-get update \
 
 WORKDIR /
 
+RUN curl -L -o ~/mambaforge.sh https://github.com/conda-forge/miniforge/releases/download/${MAMBA_VERSION}/Mambaforge-${MAMBA_VERSION}-Linux-x86_64.sh \
+ && chmod +x ~/mambaforge.sh \
+ && ~/mambaforge.sh -b -p /opt/conda \
+ && rm ~/mambaforge.sh \
+ && /opt/conda/bin/conda install -c conda-forge \
+    mkl \
+    mkl-include \
+ # Upstream conda looks to have moved to 4.13 which is incompatible with mamba 0.22.1 and will fail the conda-forge installs.
+ # having "conda update conda" before the "conda -c conda-forge" commands will automatically update conda to 4.13.
+ # Moving conda update conda" after the "conda -c conda-forge" commands keep conda at 4.12 but will update other packages using
+ # the current conda 4.12
+ && /opt/conda/bin/conda update -y conda \
+ && /opt/conda/bin/conda clean -ya
+
 RUN pip install --upgrade pip --trusted-host pypi.org --trusted-host files.pythonhosted.org \
  && pip install --no-cache-dir \
     "awscli<2" \
@@ -90,7 +110,8 @@ RUN pip install --upgrade pip --trusted-host pypi.org --trusted-host files.pytho
     "numpy<1.20" \
     onnx==1.8.1 \
     # Protobuf >=3.21 results in protobuf errors version mismatch errors with framework and other packages.
-    "protobuf>=3.20.2,<3.21" 
+    "protobuf>=3.20.2,<3.21" \
+    "wheel>=0.38.0"
 
 # This is here to make our installed version of OpenCV work.
 # https://stackoverflow.com/questions/29274638/opencv-libdc1394-error-failed-to-initialize-libdc1394
@@ -117,7 +138,8 @@ RUN HOME_DIR=/root \
  && chmod +x /usr/local/bin/testOSSCompliance \
  && chmod +x ${HOME_DIR}/oss_compliance/generate_oss_compliance.sh \
  && ${HOME_DIR}/oss_compliance/generate_oss_compliance.sh ${HOME_DIR} python \
- && rm -rf ${HOME_DIR}/oss_compliance*
+ && rm -rf ${HOME_DIR}/oss_compliance* \
+ && rm -iRf ${HOME_DIR}/.cache
 
 RUN curl https://aws-dlc-licenses.s3.amazonaws.com/aws-mx-1.9.0/license.txt -o /license.txt
 
@@ -173,7 +195,8 @@ RUN HOME_DIR=/root \
  && chmod +x /usr/local/bin/testOSSCompliance \
  && chmod +x ${HOME_DIR}/oss_compliance/generate_oss_compliance.sh \
  && ${HOME_DIR}/oss_compliance/generate_oss_compliance.sh ${HOME_DIR} python \
- && rm -rf ${HOME_DIR}/oss_compliance*
+ && rm -rf ${HOME_DIR}/oss_compliance* \
+ && rm -iRf ${HOME_DIR}/.cache
 
 EXPOSE 8080 8081
 ENTRYPOINT ["python", "/usr/local/bin/dockerd-entrypoint.py"]
