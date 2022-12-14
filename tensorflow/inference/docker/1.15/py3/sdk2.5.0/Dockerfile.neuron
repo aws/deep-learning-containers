@@ -40,6 +40,7 @@ ENV MODEL_BASE_PATH=/models
 ENV MODEL_NAME=model
 
 RUN apt-get update \
+ && apt-get upgrade -y \
  && apt-get install -y --no-install-recommends \
     build-essential \
     ca-certificates \
