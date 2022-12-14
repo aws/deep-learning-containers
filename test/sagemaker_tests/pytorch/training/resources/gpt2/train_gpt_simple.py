@@ -864,6 +864,7 @@ def parse_args():
     ci_grp.add_argument("--time_to_train", type=int, help="time to train threshold")
     ci_grp.add_argument("--throughput", type=float, help="throughput threshold")
     ci_grp.add_argument("--loss", type=float, help="loss threshold")
+    ci_grp.add_argument("--assert_flash_attn", type=int, default=0)
     args, _ = parser.parse_known_args()
     return args
 
@@ -1151,6 +1152,13 @@ def main():
         args,
     )
     time_to_train = time.time() - start
+
+    if args.assert_flash_attn:
+      print("Validate flash attention module.")
+      from smdistributed.modelparallel.torch.nn import FlashAttentionLayer
+      flash_layers = [x for x in model.get_module().modules() if isinstance(x, FlashAttentionLayer)]
+      assert len(flash_layers) > 0
+
     if args.ci:
         print(f"[SMP_METRIC]__GPT2__Time_to_train__{time_to_train}")
         print(f"[SMP_METRIC]__GPT2__samples/second__{throughput}")
