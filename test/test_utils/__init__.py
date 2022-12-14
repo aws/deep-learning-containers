@@ -17,7 +17,7 @@ from botocore.exceptions import ClientError
 from glob import glob
 from invoke import run
 from invoke.context import Context
-from packaging.version import LegacyVersion, Version, parse
+from packaging.version import Version, parse
 from packaging.specifiers import SpecifierSet
 from datetime import date, datetime
 from retrying import retry
@@ -69,8 +69,10 @@ PT_GPU_PY3_BENCHMARK_IMAGENET_AMI_US_EAST_1 = "ami-0673bb31cc62485dd"
 PT_GPU_PY3_BENCHMARK_IMAGENET_AMI_US_WEST_2 = "ami-02d9a47bc61a31d43"
 # Since latest driver is not in public DLAMI yet, using a custom one
 NEURON_UBUNTU_18_BASE_DLAMI_US_WEST_2 = get_ami_id_boto3(region_name="us-west-2", ami_name_pattern="Deep Learning Base AMI (Ubuntu 18.04) Version ??.?")
+UL20_PT_NEURON_US_WEST_2 = get_ami_id_boto3(region_name="us-west-2", ami_name_pattern="Deep Learning AMI Neuron PyTorch 1.11.0 (Ubuntu 20.04) ????????")
 # Since NEURON TRN1 DLAMI is not released yet use a custom AMI
 NEURON_TRN1_AMI_US_WEST_2 = "ami-0a610a15fcc9e0242"
+NEURON_INF1_AMI_US_WEST_2 = "ami-06a5a60d3801a57b7"
 # Habana Base v0.15.4 ami
 # UBUNTU_18_HPU_DLAMI_US_WEST_2 = "ami-0f051d0c1a667a106"
 # UBUNTU_18_HPU_DLAMI_US_EAST_1 = "ami-04c47cb3d4fdaa874"
@@ -97,6 +99,7 @@ UL_AMI_LIST = [
     PT_GPU_PY3_BENCHMARK_IMAGENET_AMI_US_EAST_1,
     PT_GPU_PY3_BENCHMARK_IMAGENET_AMI_US_WEST_2,
     NEURON_UBUNTU_18_BASE_DLAMI_US_WEST_2,
+    NEURON_INF1_AMI_US_WEST_2,
     UL20_CPU_ARM64_US_EAST_1,
     UL20_CPU_ARM64_US_WEST_2,
     UL20_BENCHMARK_CPU_ARM64_US_WEST_2,
@@ -409,7 +412,8 @@ def get_inference_server_type(image_uri):
         return "ts"
     image_tag = image_uri.split(":")[1]
     pytorch_ver = parse(image_tag.split("-")[0])
-    if isinstance(pytorch_ver, LegacyVersion) or pytorch_ver < Version("1.6"):
+    from packaging.version import LegacyVersion
+    if isinstance(pytorch_ver, LegacyVersion) or pytorch_ver < Version("1.6"): 
         return "mms"
     return "ts"
 
@@ -1377,6 +1381,17 @@ NEURON_VERSION_MANIFEST = {
     "2.4.0": {
         "pytorch": {
             "1.11.0": "1.11.0.2.3.0.0",
+        },
+    },
+    "2.5.0": {
+        "tensorflow": {
+            "1.15.5": "1.15.5.2.5.6.0",
+        },
+        "pytorch": {
+            "1.12.1": "1.12.1.2.5.8.0",
+        },
+        "mxnet": {
+            "1.8.0": "1.8.0.2.2.43.0",
         },
     },
     "1.19.1": {
