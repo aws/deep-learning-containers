@@ -958,8 +958,15 @@ def install_python_in_instance(context, python_version="3.9"):
     """
     if context.run("pyenv --version", warn=True, hide=True).failed:
         context.run("""ls ~/.pyenv || git clone https://github.com/pyenv/pyenv.git ~/.pyenv""", hide=True)
-        # Need to configure PATH and PYENV_ROOT changes in alternative location because ~/.bashrc and ~/.profile are
-        # not used when using bash through Fabric Connection.
+
+        # for images that do not have /etc/profile.d/dlami.sh, we will make it here
+        if context.run("test -f /etc/profile.d/dlami.sh", warn=True, hide=True).failed:
+            LOGGER.info("/etc/profile.d/dlami.sh does not exist. Making...")
+            context.run("sudo touch /etc/profile.d/dlami.sh")
+            LOGGER.info("adding /etc/profile.d/dlami.sh to .bashrc")
+            context.run("""echo '[ -z "$PS1" ] && source /etc/profile.d/dlami.sh'|cat - ~/.bashrc > ~/temprc """
+                        """&& mv ~/temprc ~/.bashrc""", hide=True)
+
         context.run("sudo chmod 666 /etc/profile.d/dlami.sh", hide=True)
         context.run("""echo 'export PYENV_ROOT="$HOME/.pyenv"' >> /etc/profile.d/dlami.sh""", hide=True)
         context.run(
