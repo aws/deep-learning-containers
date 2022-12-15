@@ -26,7 +26,11 @@ def check_that_cache_dir_is_removed(home_dir):
     if os.path.exists(cache_dir_path):
         content_of_cache_dir = [f for f in os.listdir(cache_dir_path)]
         LOGGER.info("Contents of cache directory: %s", content_of_cache_dir)
-        if len(content_of_cache_dir) == 2 and sorted(content_of_cache_dir) == ['mim', 'pip']:
+
+        is_autogluon: bool = os.popen("pip freeze | grep autogluon | wc -l").read().replace('\n', '') != '0'
+        if is_autogluon and (sorted(content_of_cache_dir) == ['mim', 'pip'] or sorted(content_of_cache_dir) == ['pip']):
+            # mim: provides a unified interface for launching and installing OpenMMLab projects and their extensions,
+            # and managing the OpenMMLab model zoo. See more here: https://github.com/open-mmlab/mim
             pass  # autogluon
         else:
             if len(content_of_cache_dir) > 1:
