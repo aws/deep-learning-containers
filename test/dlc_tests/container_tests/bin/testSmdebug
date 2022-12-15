@@ -36,11 +36,16 @@ LOG_DIR=${HOME_DIR}/logs
 echo "Simply verify if smdebug is installed correctly."
 echo "Cloning git repo for release tag $SMDEBUG_RELEASE_TAG"
 # git clone -b ${SMDEBUG_RELEASE_TAG} https://github.com/awslabs/sagemaker-debugger.git sagemaker-debugger || exit 1
-git clone -b tf211-version-bump https://github.com/yl-to/sagemaker-debugger.git sagemaker-debugger || exit 1
+git clone https://github.com/yl-to/sagemaker-debugger.git \
 
 
 echo "Changing to sagemaker-debugger."
-cd sagemaker-debugger
+cd sagemaker-debugger \
+
+## CHANGE THIS LINE 
+&& git checkout 211_opt \
+&& $PYTHON -m pip install .
+
 
 git pull
 
