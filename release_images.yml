@@ -3,48 +3,52 @@ release_images:
   1:
     framework: "pytorch"
     version: "1.12.1"
-    customer_type: "ec2"
-    arch_type: "graviton"
+    arch_type: "x86"
+    customer_type: "sagemaker"
     inference:
-      device_types: ["cpu"]
-      python_versions: ["py38"]
+      device_types: [ "cpu", "gpu" ]
+      python_versions: [ "py38" ]
       os_version: "ubuntu20.04"
+      cuda_version: "cu113"
       example: False
       disable_sm_tag: False
       force_release: False
   2:
     framework: "pytorch"
     version: "1.12.1"
-    customer_type: "sagemaker"
-    arch_type: "graviton"
+    arch_type: "x86"
+    customer_type: "ec2"
     inference:
-      device_types: ["cpu"]
-      python_versions: ["py38"]
+      device_types: [ "cpu", "gpu" ]
+      python_versions: [ "py38" ]
       os_version: "ubuntu20.04"
+      cuda_version: "cu116"
       example: False
       disable_sm_tag: False
       force_release: False
   3:
-    framework: "tensorflow"
-    version: "2.9.1"
+    framework: "mxnet"
+    version: "1.9.0"
     customer_type: "ec2"
-    arch_type: "graviton"
+    arch_type: "x86"
     inference:
-      device_types: ["cpu"]
+      device_types: ["cpu", "gpu"]
       python_versions: ["py38"]
       os_version: "ubuntu20.04"
+      cuda_version: "cu112"
       example: False
       disable_sm_tag: False
       force_release: False
   4:
-    framework: "tensorflow"
-    version: "2.9.1"
+    framework: "mxnet"
+    version: "1.9.0"
     customer_type: "sagemaker"
-    arch_type: "graviton"
+    arch_type: "x86"
     inference:
-      device_types: ["cpu"]
+      device_types: ["cpu", "gpu"]
       python_versions: ["py38"]
       os_version: "ubuntu20.04"
+      cuda_version: "cu112"
       example: False
       disable_sm_tag: False
       force_release: False
