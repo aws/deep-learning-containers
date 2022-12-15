@@ -32,7 +32,8 @@ RUN pip install --no-cache-dir -U --trusted-host pypi.org --trusted-host files.p
 RUN rm -rf /usr/local/lib/python3.8/dist-packages/gluonts/nursery/tsbench
 
 # Remove these to address security issues; these are not used if only python package is used
-RUN rm -rf /usr/local/lib/python3.8/dist-packages/ray/jars
+RUN rm -rf /usr/local/lib/python3.8/dist-packages/ray/jars \
+ && rm -rf /opt/conda/lib/python3.8/site-packages/ray/jars
 
 RUN HOME_DIR=/root \
  && curl -o ${HOME_DIR}/oss_compliance.zip https://aws-dlinfra-utilities.s3.amazonaws.com/oss_compliance.zip \
