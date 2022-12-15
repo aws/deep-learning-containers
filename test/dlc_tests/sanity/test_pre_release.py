@@ -470,7 +470,7 @@ def _run_dependency_check_test(image, ec2_connection):
             "2.5": ["cpu", "gpu", "neuron"],
             "2.6": ["cpu", "gpu"],
             "2.7": ["cpu", "gpu", "hpu"],
-            "2.8": ["cpu", "gpu", "hpu"],
+            "2.8": ["cpu", "gpu", "hpu", "neuron"],
             "2.9": ["cpu", "gpu", "hpu"],
             "2.10": ["cpu", "gpu", "hpu"],
             "2.11": ["cpu", "gpu", "hpu"],
