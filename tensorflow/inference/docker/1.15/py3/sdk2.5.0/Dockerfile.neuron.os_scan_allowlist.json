@@ -3371,6 +3371,34 @@
             "title": "CVE-2022-23558 - tensorflow"
         },
         {
+            "description": "[tensorflow](https://pypi.org/project/tensorflow/) is a machine learning framework.\n\nAffected versions of this package are vulnerable to Heap-based Buffer Overflow in `QuantizeAndDequantizeV2`, via the `MakeGrapplerFunctionItem` function, if the inputs are greater than or equal to the sizes of outputs.",
+            "vulnerability_id": "SNYK-PYTHON-TENSORFLOW-3136515",
+            "name": "SNYK-PYTHON-TENSORFLOW-3136515",
+            "package_name": "tensorflow",
+            "package_details": {
+            "file_path": "usr/local/lib/python3.8/site-packages/tensorflow-1.15.5.dist-info/METADATA",
+            "name": "tensorflow",
+            "package_manager": "PYTHONPKG",
+            "version": "1.15.5",
+            "release": null
+            },
+            "remediation": {
+            "recommendation": {
+                "text": "None Provided"
+            }
+            },
+            "cvss_v3_score": 7.5,
+            "cvss_v30_score": 0,
+            "cvss_v31_score": 7.5,
+            "cvss_v2_score": 0,
+            "cvss_v3_severity": "HIGH",
+            "source_url": "https://snyk.io/vuln/SNYK-PYTHON-TENSORFLOW-3136515",
+            "source": "SNYK",
+            "severity": "HIGH",
+            "status": "ACTIVE",
+            "title": "IN1-PYTHON-TENSORFLOW-3136515 - tensorflow"
+        },
+        {
             "description": "[tensorflow](https://pypi.org/project/tensorflow/) is a machine learning framework.\n\nAffected versions of this package are vulnerable to Out-of-bounds Write via the `MakeGrapplerFunctionItem` function, if the inputs given are greater than or equal to the sizes of the outputs.",
             "vulnerability_id": "SNYK-PYTHON-TENSORFLOW-3136509",
             "name": "SNYK-PYTHON-TENSORFLOW-3136509",
