@@ -52,6 +52,7 @@ ARG AUTOGLUON_VERSION=0.6.1
 
 # Updating certifi - https://pyup.io/p/pypi/certifi/2ff/
 # Downgrade protobuf 3.20.1 -> 3.19.6: https://pyup.io/v/51167/f17
+# Downgrade scipy 1.9.3 -> 1.8.* to resolve conflict w/ sktime
 RUN pip install --no-cache-dir -U --trusted-host pypi.org --trusted-host files.pythonhosted.org pip \
  && pip install --no-cache-dir -U setuptools wheel \
  && pip install --no-cache-dir -U certifi \
@@ -60,7 +61,7 @@ RUN pip install --no-cache-dir -U --trusted-host pypi.org --trusted-host files.p
  && pip install --no-cache-dir -U autogluon==${AUTOGLUON_VERSION} \
  && mim install -q mmcv-full \
  && pip install --no-cache-dir -U mmdet \
- && pip install -U protobuf==3.19.*
+ && pip install -U protobuf==3.19.* scipy==1.8.*
 
 # Removing GluonTS nursery/tsbench package - it is not used in training/inference and have security vulnerabilities
 RUN rm -rf /usr/local/lib/python3.8/dist-packages/gluonts/nursery/tsbench
