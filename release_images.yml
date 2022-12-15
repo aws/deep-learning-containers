@@ -67,7 +67,7 @@ release_images:
       example: False
       disable_sm_tag: False
       force_release: False
-  5:
+  6:
     framework: "pytorch"
     version: "1.13.0"
     arch_type: "x86"
@@ -80,7 +80,7 @@ release_images:
       example: False
       disable_sm_tag: False  # [Default: False] This option is not used by Example images
       force_release: False
-  6:
+  7:
     framework: "pytorch"
     version: "1.13.0"
     arch_type: "x86"
@@ -93,7 +93,7 @@ release_images:
       example: True
       disable_sm_tag: False
       force_release: False
-  7:
+  8:
     framework: "pytorch"
     version: "1.12.1"
     arch_type: "x86"
@@ -106,7 +106,7 @@ release_images:
       example: False
       disable_sm_tag: False
       force_release: False
-  8:
+  9:
     framework: "pytorch"
     version: "1.12.1"
     arch_type: "x86"
@@ -119,7 +119,7 @@ release_images:
       example: False
       disable_sm_tag: False
       force_release: False
-  9:
+  10:
     framework: "pytorch"
     version: "1.12.1"
     arch_type: "x86"
