@@ -130,7 +130,7 @@ images:
     <<: *INFERENCE_REPOSITORY
     build: &TENSORFLOW_CPU_INFERENCE_PY3 false
     image_size_baseline: &IMAGE_SIZE_BASELINE 4899
-    framework_version: &FRAMEWORK_VERSION 2.10.0
+    framework_version: &FRAMEWORK_VERSION 2.10.1
     device_type: &DEVICE_TYPE cpu
     python_version: &DOCKER_PYTHON_VERSION py3
     tag_python_version: &TAG_PYTHON_VERSION py39
@@ -145,7 +145,7 @@ images:
     <<: *INFERENCE_REPOSITORY
     build: &TENSORFLOW_GPU_INFERENCE_PY3 false
     image_size_baseline: &IMAGE_SIZE_BASELINE 10000
-    framework_version: &FRAMEWORK_VERSION 2.10.0
+    framework_version: &FRAMEWORK_VERSION 2.10.1
     device_type: &DEVICE_TYPE gpu
     python_version: &DOCKER_PYTHON_VERSION py3
     tag_python_version: &TAG_PYTHON_VERSION py39
@@ -161,7 +161,7 @@ images:
     <<: *INFERENCE_REPOSITORY
     build: &TENSORFLOW_CPU_INFERENCE_PY3 false
     image_size_baseline: &IMAGE_SIZE_BASELINE 4899
-    framework_version: &FRAMEWORK_VERSION 2.10.0
+    framework_version: &FRAMEWORK_VERSION 2.10.1
     device_type: &DEVICE_TYPE cpu
     python_version: &DOCKER_PYTHON_VERSION py3
     tag_python_version: &TAG_PYTHON_VERSION py39
@@ -176,7 +176,7 @@ images:
     <<: *INFERENCE_REPOSITORY
     build: &TENSORFLOW_GPU_INFERENCE_PY3 false
     image_size_baseline: &IMAGE_SIZE_BASELINE 10000
-    framework_version: &FRAMEWORK_VERSION 2.10.0
+    framework_version: &FRAMEWORK_VERSION 2.10.1
     device_type: &DEVICE_TYPE gpu
     python_version: &DOCKER_PYTHON_VERSION py3
     tag_python_version: &TAG_PYTHON_VERSION py39

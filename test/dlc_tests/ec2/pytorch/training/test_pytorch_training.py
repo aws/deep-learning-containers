@@ -324,7 +324,8 @@ def test_pytorch_training_torchdata_gpu(
         pytest.skip(f"Image {pytorch_training} doesn't package torch_data. Hence test is skipped.")
     if test_utils.is_image_incompatible_with_instance_type(pytorch_training, ec2_instance_type):
         pytest.skip(f"Image {pytorch_training} is incompatible with instance type {ec2_instance_type}")
-    if Version(image_framework_version) in SpecifierSet(">=1.11,<1.13"):
+    # HACK including PT 1.13 in this condition because the Torchdata 0.5.0 tag includes old tests data
+    if Version(image_framework_version) in SpecifierSet(">=1.11,<=1.13"):
         execute_ec2_training_test(ec2_connection, pytorch_training, PT_TORCHDATA_DEV_CMD)
     else:
         execute_ec2_training_test(ec2_connection, pytorch_training, PT_TORCHDATA_CMD)
@@ -341,7 +342,8 @@ def test_pytorch_training_torchdata_cpu(
     _, image_framework_version = get_framework_and_version_from_tag(pytorch_training)
     if test_utils.is_image_incompatible_with_instance_type(pytorch_training, ec2_instance_type):
         pytest.skip(f"Image {pytorch_training} is incompatible with instance type {ec2_instance_type}")
-    if Version(image_framework_version) in SpecifierSet(">=1.11,<1.13"):
+    # HACK including PT 1.13 in this condition because the Torchdata 0.5.0 tag includes old tests data
+    if Version(image_framework_version) in SpecifierSet(">=1.11,<=1.13"):
         execute_ec2_training_test(ec2_connection, pytorch_training, PT_TORCHDATA_DEV_CMD)
     else:
         execute_ec2_training_test(ec2_connection, pytorch_training, PT_TORCHDATA_CMD)
