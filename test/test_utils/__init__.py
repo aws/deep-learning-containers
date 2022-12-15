@@ -1643,7 +1643,7 @@ def get_python_version_from_image_uri(image_uri):
     return "py36" if python_version == "py3" else python_version
 
 
-def construct_buildspec_path(dlc_path, framework_path, buildspec, framework_version, job_type = None):
+def construct_buildspec_path(dlc_path, framework_path, buildspec, framework_version, job_type=""):
     """
     Construct a relative path to the buildspec yaml file by iterative checking on the existence of
     a specific version file for the framework being tested. Possible options include:
