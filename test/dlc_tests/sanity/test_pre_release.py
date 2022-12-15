@@ -759,7 +759,7 @@ def test_cuda_paths(gpu):
     image_tag_in_buildspec = False
     dockerfile_spec_abs_path = None
     
-    buildspec_path = construct_buildspec_path(dlc_path, framework_path, buildspec, framework_version)
+    buildspec_path = construct_buildspec_path(dlc_path, framework_path, buildspec, framework_version, job_type)
     buildspec_def = Buildspec()
     buildspec_def.load(buildspec_path)
 

@@ -1643,7 +1643,7 @@ def get_python_version_from_image_uri(image_uri):
     return "py36" if python_version == "py3" else python_version
 
 
-def construct_buildspec_path(dlc_path, framework_path, buildspec, framework_version):
+def construct_buildspec_path(dlc_path, framework_path, buildspec, framework_version, job_type = None):
     """
     Construct a relative path to the buildspec yaml file by iterative checking on the existence of
     a specific version file for the framework being tested. Possible options include:
@@ -1672,9 +1672,13 @@ def construct_buildspec_path(dlc_path, framework_path, buildspec, framework_vers
         else:
             raise ValueError(f"Framework version {framework_version} was not matched.")
 
-    buildspec_path = os.path.join(dlc_path, framework_path, f"{buildspec}.yml")
+    # for backward compatibility, first try new path structure 
+    # if it fails then revert to prior structure
+    buildspec_path = os.path.join(dlc_path, framework_path, job_type, f"{buildspec}.yml")
     if not os.path.exists(buildspec_path):
-        raise ValueError('Could not construct a valid buildspec path.')
+        buildspec_path = os.path.join(dlc_path, framework_path, f"{buildspec}.yml")
+        if not os.path.exists(buildspec_path):
+            raise ValueError('Could not construct a valid buildspec path.')
 
     return buildspec_path
 
