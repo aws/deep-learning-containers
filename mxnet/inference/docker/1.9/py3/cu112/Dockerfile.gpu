@@ -92,7 +92,8 @@ RUN pip install --upgrade pip --trusted-host pypi.org --trusted-host files.pytho
     "numpy<1.20" \
     onnx==1.8.1 \
     # Protobuf >=3.21 results in protobuf errors version mismatch errors with framework and other packages.
-    "protobuf>=3.20.2,<3.21"
+    "protobuf>=3.20.2,<3.21" \
+    "wheel>=0.38.0"
 
 # This is here to make our installed version of OpenCV work.
 # https://stackoverflow.com/questions/29274638/opencv-libdc1394-error-failed-to-initialize-libdc1394

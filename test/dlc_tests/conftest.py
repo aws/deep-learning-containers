@@ -85,6 +85,8 @@ FRAMEWORK_FIXTURES = (
     "huggingface_mxnet_inference",
     "huggingface_tensorflow_trcomp_training",
     "huggingface_pytorch_trcomp_training",
+    # PyTorch trcomp
+    "pytorch_trcomp_training",
     # Autogluon
     "autogluon_training",
     # Processor fixtures
@@ -359,6 +361,13 @@ def ec2_instance(
     if ec2_instance_type == "trn1.32xlarge" or ec2_instance_type == "trn1.2xlarge":
         params["BlockDeviceMappings"] = [{"DeviceName": volume_name, "Ebs": {"VolumeSize": 1024,},}]
 
+    # For neuron the current DLAMI does not have the latest drivers and compatibility
+    # is failing. So reinstall the latest neuron driver
+    if (
+        "pytorch_inference_neuron" in request.fixturenames
+    ):
+        params["BlockDeviceMappings"] = [{"DeviceName": volume_name, "Ebs": {"VolumeSize": 1024,},}]
+
     if ei_accelerator_type:
         params["ElasticInferenceAccelerators"] = [{"Type": ei_accelerator_type, "Count": 1}]
         availability_zones = {
@@ -444,7 +453,12 @@ def ec2_connection(request, ec2_instance, ec2_key_name, ec2_instance_type, regio
 
     request.addfinalizer(delete_s3_artifact_copy)
 
-    ec2_utils.install_python_in_instance(conn, python_version="3.9")
+    python_version = "3.9"
+    if is_neuron_image:
+        # neuron still support tf1.15 and that is only there in py37 and less.
+        # so use python3.7 for neuron
+        python_version="3.7"
+    ec2_utils.install_python_in_instance(conn, python_version=python_version)
 
     conn.run(f"aws s3 cp --recursive {test_utils.TEST_TRANSFER_S3_BUCKET}/{artifact_folder} $HOME/container_tests")
     conn.run(f"mkdir -p $HOME/container_tests/logs && chmod -R +x $HOME/container_tests/*")
@@ -512,6 +526,10 @@ def pull_images(docker_client, dlc_images):
 
 @pytest.fixture(scope="session")
 def non_huggingface_only():
+    pass
+
+@pytest.fixture(scope="session")
+def non_pytorch_trcomp_only():
     pass
 
 
@@ -677,7 +695,7 @@ def framework_version_within_limit(metafunc_obj, image):
         )
         if mx18_requirement_failed:
             return False
-    if image_framework_name in ("pytorch", "huggingface_pytorch_trcomp"):
+    if image_framework_name in ("pytorch", "huggingface_pytorch_trcomp", "pytorch_trcomp"):
         pt111_requirement_failed = "pt111_and_above_only" in metafunc_obj.fixturenames and is_below_framework_version(
             "1.11", image, image_framework_name
         )
@@ -774,6 +792,7 @@ def generate_unique_values_for_fixtures(metafunc_obj, images_to_parametrize, val
         "huggingface_tensorflow": "hf-tf",
         "huggingface_pytorch_trcomp": "hf-pt-trc",
         "huggingface_tensorflow_trcomp": "hf-tf-trc",
+        "pytorch_trcomp": "pt-trc",
         "autogluon": "ag",
     }
     fixtures_parametrized = {}
@@ -840,6 +859,9 @@ def lookup_condition(lookup, image):
         elif "huggingface-tensorflow-trcomp-training" in repo_name:
             if lookup == "tensorflow-training":
                 return True
+        elif "pytorch-trcomp-training" in repo_name:
+            if lookup == "pytorch-training":
+                return True
         else:
             return False
     else:
@@ -886,6 +908,8 @@ def pytest_generate_tests(metafunc):
                     if not framework_version_within_limit(metafunc, image):
                         continue
                     if "non_huggingface_only" in metafunc.fixturenames and "huggingface" in image:
+                        continue
+                    if "non_pytorch_trcomp_only" in metafunc.fixturenames and "pytorch-trcomp" in image:
                         continue
                     if "non_autogluon_only" in metafunc.fixturenames and "autogluon" in image:
                         continue

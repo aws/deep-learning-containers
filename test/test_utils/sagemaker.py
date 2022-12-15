@@ -45,6 +45,14 @@ class DLCSageMakerLocalTestFailure(Exception):
     pass
 
 
+def is_test_job_efa_dedicated():
+    # In both CI Sagemaker Test CB jobs and DLC Build Pipeline Actions that run SM EFA tests, the env variable
+    # "EFA_DEDICATED=True" must be configured so that those Actions only run the EFA tests.
+    # This is change from the previous system where only setting env variable "DISABLE_EFA_TESTS=False" would enable
+    # regular SM tests as well as SM EFA tests.
+    return os.getenv("EFA_DEDICATED", "False").lower() == "true"
+
+
 def assign_sagemaker_remote_job_instance_type(image):
     if "graviton" in image:
         return "ml.c6g.2xlarge"
@@ -71,6 +79,7 @@ def assign_sagemaker_local_job_instance_type(image):
         return "p3.2xlarge"
     return "p3.8xlarge" if "gpu" in image else "c5.18xlarge"
 
+
 def assign_sagemaker_local_test_ami(image, region):
     """
     Helper function to get the needed AMI for launching the image.
@@ -86,6 +95,7 @@ def assign_sagemaker_local_test_ami(image, region):
             return UBUNTU_18_BASE_DLAMI_US_EAST_1
         else:
             return UBUNTU_18_BASE_DLAMI_US_WEST_2
+
 
 def launch_sagemaker_local_ec2_instance(image, ami_id, ec2_key_name, region):
     """
@@ -190,18 +200,11 @@ def generate_sagemaker_pytest_cmd(image, sagemaker_test_type):
     test_report = os.path.join(os.getcwd(), "test", f"{job_type}_{tag}.xml")
     local_test_report = os.path.join(UBUNTU_HOME_DIR, "test", f"{job_type}_{tag}_sm_local.xml")
 
-    # Explanation of why we need the if-condition below:
-    # We have separate Pipeline Actions that run EFA tests, which have the env variable "EFA_DEDICATED=True" configured
-    # so that those Actions only run the EFA tests.
-    # However, there is no such dedicated CB job dedicated to EFA tests in the PR context. This means that when in the
-    # PR context, setting "DISABLE_EFA_TESTS" to True should skip EFA tests, but setting it to False should enable
-    # not just the EFA tests, but also all other tests as well.
-    if is_pr_context():
-        efa_tests_disabled = os.getenv("DISABLE_EFA_TESTS", "False").lower() == "true"
-        efa_flag = "-m \"not efa\"" if efa_tests_disabled else ""
-    else:
-        efa_dedicated = os.getenv("EFA_DEDICATED", "False").lower() == "true"
-        efa_flag = '--efa' if efa_dedicated else '-m \"not efa\"'
+    # In both CI Sagemaker Test CB jobs and DLC Build Pipeline Actions that run SM EFA tests, the env variable
+    # "EFA_DEDICATED=True" must be configured so that those Actions only run the EFA tests.
+    # This is change from the previous system where only setting env variable "DISABLE_EFA_TESTS=False" would enable
+    # regular SM tests as well as SM EFA tests.
+    efa_flag = '--efa' if is_test_job_efa_dedicated() else '-m \"not efa\"'
 
     region_list = (
         ",".join(SAGEMAKER_NEURON_EXECUTION_REGIONS)
@@ -241,40 +244,7 @@ def generate_sagemaker_pytest_cmd(image, sagemaker_test_type):
     )
 
 
-def kill_background_processes_and_run_apt_get_update(ec2_conn):
-    """
-    The apt-daily services on the DLAMI cause a conflict upon running any "apt install" commands within the first few
-    minutes of starting an EC2 instance. These services are not necessary for the purpose of the DLC tests, and can
-    therefore be killed. This function kills the services, and then forces "apt-get update" to run in the foreground.
 
-    :param ec2_conn: Fabric SSH connection
-    :return:
-    """
-    apt_daily_services_list = ["apt-daily.service", "apt-daily-upgrade.service", "unattended-upgrades.service"]
-    apt_daily_services = " ".join(apt_daily_services_list)
-    ec2_conn.run(f"sudo systemctl stop {apt_daily_services}")
-    ec2_conn.run(f"sudo systemctl kill --kill-who=all {apt_daily_services}")
-    num_stopped_services = 0
-    # The `systemctl kill` command is expected to take about 1 second. The 60 second loop here exists to force
-    # the execution to wait (if needed) for a longer amount of time than it would normally take to kill the services.
-    for _ in range(60):
-        sleep(1)
-        # List the apt-daily services, get the number of dead services
-        num_stopped_services = int(ec2_conn.run(
-            f"systemctl list-units --all {apt_daily_services} | egrep '(dead|failed)' | wc -l"
-        ).stdout.strip())
-        # Exit condition for the loop is when all apt daily services are dead.
-        if num_stopped_services == len(apt_daily_services_list):
-            break
-    if num_stopped_services != len(apt_daily_services_list):
-        raise RuntimeError(
-            "Failed to kill background services to allow apt installs on SM Local EC2 instance. "
-            f"{len(apt_daily_services) - num_stopped_services} still remaining."
-        )
-    ec2_conn.run("sudo rm -rf /var/lib/dpkg/lock*;")
-    ec2_conn.run("sudo dpkg --configure -a;")
-    ec2_conn.run("sudo apt-get update")
-    return
 
 
 def execute_local_tests(image, pytest_cache_params):
@@ -292,6 +262,7 @@ def execute_local_tests(image, pytest_cache_params):
     pytest_command += " --last-failed --last-failed-no-failures all "
     print(pytest_command)
     framework, _ = get_framework_and_version_from_tag(image)
+    framework = framework.replace("_trcomp", "")
     random.seed(f"{datetime.datetime.now().strftime('%Y%m%d%H%M%S%f')}")
     ec2_key_name = f"{job_type}_{tag}_sagemaker_{random.randint(1, 1000)}"
     region = os.getenv("AWS_REGION", DEFAULT_REGION)
@@ -322,7 +293,6 @@ def execute_local_tests(image, pytest_cache_params):
                     f"Image pull for {image} failed.\ndocker images output = {output}"
                 ) from e
         ec2_conn.run(f"tar -xzf {sm_tests_tar_name}")
-        kill_background_processes_and_run_apt_get_update(ec2_conn)
         with ec2_conn.cd(path):
             ec2_conn.run(f"pip install -r requirements.txt")
             pytest_cache_util.download_pytest_cache_from_s3_to_ec2(ec2_conn, path, **pytest_cache_params)

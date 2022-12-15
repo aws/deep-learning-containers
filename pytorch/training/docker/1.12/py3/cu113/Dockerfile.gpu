@@ -4,19 +4,23 @@ ARG PYTHON_SHORT_VERSION=3.8
 ARG MAMBA_VERSION=4.12.0-2
 
 # PyTorch Binaries
-ARG PT_EC2_TRAINING_URL=https://aws-pytorch-unified-cicd-binaries.s3.us-west-2.amazonaws.com/r1.12.1_ec2/20220901-194328/0125567ca85b9aa9f26c6251c97bf0ffad6452d4/torch-1.12.1%2Bcu113-cp38-cp38-linux_x86_64.whl
-ARG PT_SM_TRAINING_URL=https://aws-pytorch-unified-cicd-binaries.s3.us-west-2.amazonaws.com/r1.12.1_sm/20220826-044338/52d0b296338e206c4c1666e948207e7eac83791b/torch-1.12.1%2Bcu113-cp38-cp38-linux_x86_64.whl
+ARG PT_EC2_TRAINING_URL=https://aws-pytorch-unified-cicd-binaries.s3.us-west-2.amazonaws.com/r1.12.1_ec2/20221208-233710/d3dae914337cde7e182d28544aed5efce29255c4/torch-1.12.1%2Bcu113-cp38-cp38-linux_x86_64.whl
+ARG PT_SM_TRAINING_URL=https://aws-pytorch-unified-cicd-binaries.s3.us-west-2.amazonaws.com/r1.12.1_sm/20221201-232940/bbd58c88fe74811ebc2c7225a308eeadfa42a7b9/torch-1.12.1%2Bcu113-cp38-cp38-linux_x86_64.whl
 ARG PT_TORCHVISION_URL=https://download.pytorch.org/whl/cu113/torchvision-0.13.1%2Bcu113-cp38-cp38-linux_x86_64.whl
 ARG PT_TORCHAUDIO_URL=https://download.pytorch.org/whl/cu113/torchaudio-0.12.1%2Bcu113-cp38-cp38-linux_x86_64.whl
 ARG PT_TORCHDATA_URL=https://download.pytorch.org/whl/test/torchdata-0.4.1-cp38-cp38-manylinux_2_17_x86_64.manylinux2014_x86_64.whl
 ARG PT_S3_WHL_GPU=https://aws-s3-plugin.s3.us-west-2.amazonaws.com/binaries/0.0.1/1c3e69e/awsio-0.0.1-cp38-cp38-manylinux1_x86_64.whl
 
 # SMD binaries
-ARG SMD_DATA_PARALLEL_URL=https://smdataparallel.s3.amazonaws.com/binary/pytorch/1.12.1/cu113/2022-08-31/smdistributed_dataparallel-1.5.1-cp38-cp38-linux_x86_64.whl
-ARG SMD_MODEL_PARALLEL_URL=https://sagemaker-distributed-model-parallel.s3.us-west-2.amazonaws.com/pytorch-1.12.1/build-artifacts/2022-10-07-06-47/smdistributed_modelparallel-1.12.1-cp38-cp38-linux_x86_64.whl
+ARG SMD_DATA_PARALLEL_URL=https://smdataparallel.s3.amazonaws.com/binary/pytorch/1.12.1/cu113/2022-12-05/smdistributed_dataparallel-1.6.0-cp38-cp38-linux_x86_64.whl
+ARG SMD_MODEL_PARALLEL_URL=https://sagemaker-distributed-model-parallel.s3.us-west-2.amazonaws.com/pytorch-1.12.1/build-artifacts/2022-12-08-21-34/smdistributed_modelparallel-1.13.0-cp38-cp38-linux_x86_64.whl
 
 # ZeRO-2D Binary
-ARG ZERO_2D_URL=https://aws-deepspeed-zero-2d-binaries.s3.us-west-2.amazonaws.com/r1.12.0/20220715-085233/0a967071f3b77a87d54694471ebc591dee37e599/deepspeed-0.6.1%2B0a96707-py3-none-any.whl
+ARG ZERO_2D_URL=https://aws-deepspeed-zero-2d-binaries.s3.us-west-2.amazonaws.com/r1.12.1/20221203-014851/b3d766ee27e7fa0e9b078665273a9550768445e7/deepspeed-0.6.1%2Bb3d766e-py3-none-any.whl
+
+# Flash Attention version installed from source
+# TODO: This version needs to be updated to GitHub Tags or replaced with installation from pypi/conda releases
+ARG FLASH_ATTENTION_VERSION=1d0b41be3b0fa759502e274779db6758617fc7b9
 
 FROM nvidia/cuda:11.3.1-base-ubuntu20.04 AS base_image
 
@@ -226,7 +230,7 @@ RUN curl -o /license.txt  https://aws-dlc-licenses.s3.amazonaws.com/pytorch-1.12
 # |_____\____|_____| |___|_| |_| |_|\__,_|\__, |\___|
 #                                         |___/
 #  ____           _
-# |  _ \ ___  ___(_)_ __   ___ 
+# |  _ \ ___  ___(_)_ __   ___
 # | |_) / _ \/ __| | '_ \ / _ \
 # |  _ <  __/ (__| | |_) |  __/
 # |_| \_\___|\___|_| .__/ \___|
@@ -377,6 +381,9 @@ ARG PT_TORCHAUDIO_URL
 ARG PT_TORCHDATA_URL
 ARG PT_S3_WHL_GPU
 
+# Flash Attention version installed from source
+ARG FLASH_ATTENTION_VERSION
+
 # Install AWS-PyTorch and other torch packages
 RUN pip uninstall -y torch torchvision torchaudio torchdata \
  && pip install --no-cache-dir -U ${PT_SM_TRAINING_URL} ${PT_TORCHVISION_URL} ${PT_TORCHAUDIO_URL} ${PT_TORCHDATA_URL} torchnet
@@ -514,6 +521,16 @@ RUN  wget -nv https://github.com/rapidsai/rmm/archive/v${RMM_VERSION}.tar.gz \
 
 # Install ZeRO-2D Binary
 RUN pip install --no-cache-dir -U ${ZERO_2D_URL}
+
+# Install flash attention
+WORKDIR /flash
+RUN git clone https://github.com/HazyResearch/flash-attention.git \
+    && cd flash-attention \
+    && git checkout ${FLASH_ATTENTION_VERSION} \
+    && python setup.py install \
+    && rm -rf /flash
+
+WORKDIR /
 
 # Install SM Distributed Modelparallel binary
 RUN pip install --no-cache-dir -U ${SMD_MODEL_PARALLEL_URL}
