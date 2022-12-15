@@ -162,11 +162,12 @@ def test_dlc_major_version_dockerfiles(image):
         for filename in filenames:
             if filename == dockerfiles_of_interest:
                 dockerfile_path = os.path.join(root_dir, root, filename)
-                if "neuron" in image:
-                    if 'sdk'+neuron_sdk_version == os.path.basename(root):
+                if f"{os.sep}{fw_version_major_minor}" in dockerfile_path:
+                    if "neuron" in image:
+                        if 'sdk'+neuron_sdk_version == os.path.basename(root):
+                            dockerfiles.append(dockerfile_path)
+                    elif "example" not in dockerfile_path:
                         dockerfiles.append(dockerfile_path)
-                elif "example" not in dockerfile_path and f"{os.sep}{fw_version_major_minor}" in dockerfile_path:
-                    dockerfiles.append(dockerfile_path)
 
     # For the collected dockerfiles above, note the DLC major versions in each Dockerfile if python version matches
     # the current image under test
