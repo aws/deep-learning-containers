@@ -388,7 +388,7 @@ def test_framework_and_cuda_version_gpu(gpu, ec2_connection):
 
     # MXNet inference/HF tensorflow inference and Autogluon containers do not currently have nvcc in /usr/local/cuda/bin, so check symlink
     if "mxnet-inference" in image or "autogluon" in image or "huggingface-tensorflow-inference" in image:
-        cuda_cmd = "readlink /usr/local/cuda"
+        cuda_cmd = "readlink -f /usr/local/cuda"
     else:
         cuda_cmd = "nvcc --version"
     cuda_output = ec2.execute_ec2_training_test(
