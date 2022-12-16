@@ -143,7 +143,7 @@ release_images:
       example: False
       disable_sm_tag: False
       force_release: False
-  13:
+  12:
     framework: "autogluon"
     version: "0.6.1"
     arch_type: "x86"
