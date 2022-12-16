@@ -388,7 +388,7 @@ def test_framework_and_cuda_version_gpu(gpu, ec2_connection):
 
     # MXNet inference/HF tensorflow inference and Autogluon containers do not currently have nvcc in /usr/local/cuda/bin, so check symlink
     if "mxnet-inference" in image or "autogluon" in image or "huggingface-tensorflow-inference" in image:
-        cuda_cmd = "readlink /usr/local/cuda"
+        cuda_cmd = "readlink -f /usr/local/cuda"
     else:
         cuda_cmd = "nvcc --version"
     cuda_output = ec2.execute_ec2_training_test(
@@ -451,7 +451,8 @@ def _run_dependency_check_test(image, ec2_connection):
         "autogluon": {
             "0.3": ["cpu", "gpu"],
             "0.4": ["cpu", "gpu"],
-            "0.5": ["cpu", "gpu"]
+            "0.5": ["cpu", "gpu"],
+            "0.6": ["cpu", "gpu"]
         },
     }
 
@@ -480,7 +481,8 @@ def _run_dependency_check_test(image, ec2_connection):
         "autogluon": {
             "0.3": ["cpu", "gpu"],
             "0.4": ["cpu", "gpu"],
-            "0.5": ["cpu", "gpu"]
+            "0.5": ["cpu", "gpu"],
+            "0.6": ["cpu", "gpu"]
         },
         "huggingface_pytorch_trcomp": {"1.9": ["gpu"], "1.11": ["gpu"]},
         "huggingface_tensorflow_trcomp": {"2.6": ["gpu"]},
@@ -669,13 +671,6 @@ def test_pip_check(image):
     if framework in tf263_io21_issue_framework_list or Version(framework_version) in SpecifierSet(">=2.6.3,<2.7"):
         allowed_tf263_exception = re.compile(rf"^tensorflow-io 0.21.0 requires tensorflow, which is not installed.$")
         allowed_exception_list.append(allowed_tf263_exception)
-
-
-    if "autogluon" in image and (("0.3.1" in image) or ("0.3.2" in image)):
-        allowed_autogluon_exception = re.compile(
-            rf"autogluon-(vision|mxnet) 0.3.1 has requirement Pillow<8.4.0,>=8.3.0, but you have pillow \d+(\.\d+)*"
-        )
-        allowed_exception_list.append(allowed_autogluon_exception)
 
     # TF2.9 sagemaker containers introduce tf-models-official which has a known bug where in it does not respect the
     # existing TF installation. https://github.com/tensorflow/models/issues/9267. This package in turn brings in
