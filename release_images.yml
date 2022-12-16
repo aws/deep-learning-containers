@@ -167,7 +167,7 @@ release_images:
       example: False
       disable_sm_tag: True
       force_release: False
-  30:
+  14:
     framework: "tensorflow"
     version: "1.15.5"
     arch_type: "x86"
