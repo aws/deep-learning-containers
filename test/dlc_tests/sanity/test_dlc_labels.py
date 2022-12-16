@@ -117,6 +117,8 @@ def test_dlc_major_version_dockerfiles(image):
     job_type = test_utils.get_job_type_from_image(image)
     framework, fw_version = test_utils.get_framework_and_version_from_tag(image)
     processor = test_utils.get_processor_from_image_uri(image)
+    if "neuron" in image:
+        neuron_sdk_version = test_utils.get_neuron_sdk_version_from_tag(image)
 
     # TODO: Expected dockerfiles does not properly handle multiple python versions. We will fix this separately, and skip for the
     # eia condition in the interim to unblock the release.
@@ -160,8 +162,12 @@ def test_dlc_major_version_dockerfiles(image):
         for filename in filenames:
             if filename == dockerfiles_of_interest:
                 dockerfile_path = os.path.join(root_dir, root, filename)
-                if "example" not in dockerfile_path and f"{os.sep}{fw_version_major_minor}" in dockerfile_path:
-                    dockerfiles.append(dockerfile_path)
+                if f"{os.sep}{fw_version_major_minor}" in dockerfile_path:
+                    if "neuron" in image:
+                        if 'sdk'+neuron_sdk_version == os.path.basename(root):
+                            dockerfiles.append(dockerfile_path)
+                    elif "example" not in dockerfile_path:
+                        dockerfiles.append(dockerfile_path)
 
     # For the collected dockerfiles above, note the DLC major versions in each Dockerfile if python version matches
     # the current image under test
