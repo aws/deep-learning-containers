@@ -3376,7 +3376,7 @@
             "name": "SNYK-PYTHON-TENSORFLOW-3136509",
             "package_name": "tensorflow",
             "package_details": {
-                "file_path": "usr/local/lib/python3.8/site-packages/tensorflow-2.8.0.dist-info/METADATA",
+                "file_path": "usr/local/lib/python3.8/site-packages/tensorflow-1.15.5.dist-info/METADATA",
                 "name": "tensorflow",
                 "package_manager": "PYTHONPKG",
                 "version": "1.15.5",
@@ -3404,7 +3404,7 @@
             "name": "SNYK-PYTHON-TENSORFLOW-3136515",
             "package_name": "tensorflow",
             "package_details": {
-                "file_path": "usr/local/lib/python3.8/site-packages/tensorflow-2.8.0.dist-info/METADATA",
+                "file_path": "usr/local/lib/python3.8/site-packages/tensorflow-1.15.5.dist-info/METADATA",
                 "name": "tensorflow",
                 "package_manager": "PYTHONPKG",
                 "version": "1.15.5",
