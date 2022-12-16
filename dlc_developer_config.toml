@@ -72,7 +72,7 @@ use_scheduler = false
 # Setting the buildspec file path to "" allows the image builder to choose the default buildspec file.
 
 # Standard Framework DLC buildspecs
-dlc-pr-autogluon = "autogluon/inference/buildspec.yml"
+dlc-pr-autogluon = ""
 dlc-pr-mxnet = ""
 dlc-pr-pytorch = ""
 dlc-pr-tensorflow-1 = ""
