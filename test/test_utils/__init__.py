@@ -1385,6 +1385,7 @@ NEURON_VERSION_MANIFEST = {
     },
     "2.5.0": {
         "tensorflow": {
+            "2.8.0": "2.8.0.2.3.0.0",
             "1.15.5": "1.15.5.2.5.6.0",
         },
         "pytorch": {
@@ -1789,13 +1790,13 @@ def get_tensorflow_model_base_path(image_uri):
     return model_base_path
 
 
-def build_tensorflow_inference_command_tf27_and_above(model_name):
+def build_tensorflow_inference_command_tf27_and_above(model_name, entrypoint="/usr/bin/tf_serving_entrypoint.sh"):
     """
     Construct the command to download tensorflow model from S3 and start tensorflow model server
     :param model_name:
     :return: <list> command to send to the container
     """
-    inference_command = f"mkdir -p /tensorflow_model && aws s3 sync {TENSORFLOW_MODELS_BUCKET}/{model_name}/ /tensorflow_model/{model_name} && /usr/bin/tf_serving_entrypoint.sh"
+    inference_command = f"mkdir -p /tensorflow_model && aws s3 sync {TENSORFLOW_MODELS_BUCKET}/{model_name}/ /tensorflow_model/{model_name} && {entrypoint}"
     return inference_command
 
 
