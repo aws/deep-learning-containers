@@ -17,7 +17,7 @@ from botocore.exceptions import ClientError
 from glob import glob
 from invoke import run
 from invoke.context import Context
-from packaging.version import LegacyVersion, Version, parse
+from packaging.version import Version, parse
 from packaging.specifiers import SpecifierSet
 from datetime import date, datetime
 from retrying import retry
@@ -412,7 +412,8 @@ def get_inference_server_type(image_uri):
         return "ts"
     image_tag = image_uri.split(":")[1]
     pytorch_ver = parse(image_tag.split("-")[0])
-    if isinstance(pytorch_ver, LegacyVersion) or pytorch_ver < Version("1.6"):
+    from packaging.version import LegacyVersion
+    if isinstance(pytorch_ver, LegacyVersion) or pytorch_ver < Version("1.6"): 
         return "mms"
     return "ts"
 
@@ -1383,6 +1384,10 @@ NEURON_VERSION_MANIFEST = {
         },
     },
     "2.5.0": {
+        "tensorflow": {
+            "2.8.0": "2.8.0.2.3.0.0",
+            "1.15.5": "1.15.5.2.5.6.0",
+        },
         "pytorch": {
             "1.12.1": "1.12.1.2.5.8.0",
         },
@@ -1638,7 +1643,7 @@ def get_python_version_from_image_uri(image_uri):
     return "py36" if python_version == "py3" else python_version
 
 
-def construct_buildspec_path(dlc_path, framework_path, buildspec, framework_version):
+def construct_buildspec_path(dlc_path, framework_path, buildspec, framework_version, job_type=""):
     """
     Construct a relative path to the buildspec yaml file by iterative checking on the existence of
     a specific version file for the framework being tested. Possible options include:
@@ -1667,9 +1672,13 @@ def construct_buildspec_path(dlc_path, framework_path, buildspec, framework_vers
         else:
             raise ValueError(f"Framework version {framework_version} was not matched.")
 
-    buildspec_path = os.path.join(dlc_path, framework_path, f"{buildspec}.yml")
+    # for backward compatibility, first try new path structure 
+    # if it fails then revert to prior structure
+    buildspec_path = os.path.join(dlc_path, framework_path, job_type, f"{buildspec}.yml")
     if not os.path.exists(buildspec_path):
-        raise ValueError('Could not construct a valid buildspec path.')
+        buildspec_path = os.path.join(dlc_path, framework_path, f"{buildspec}.yml")
+        if not os.path.exists(buildspec_path):
+            raise ValueError('Could not construct a valid buildspec path.')
 
     return buildspec_path
 
@@ -1785,13 +1794,13 @@ def get_tensorflow_model_base_path(image_uri):
     return model_base_path
 
 
-def build_tensorflow_inference_command_tf27_and_above(model_name):
+def build_tensorflow_inference_command_tf27_and_above(model_name, entrypoint="/usr/bin/tf_serving_entrypoint.sh"):
     """
     Construct the command to download tensorflow model from S3 and start tensorflow model server
     :param model_name:
     :return: <list> command to send to the container
     """
-    inference_command = f"mkdir -p /tensorflow_model && aws s3 sync {TENSORFLOW_MODELS_BUCKET}/{model_name}/ /tensorflow_model/{model_name} && /usr/bin/tf_serving_entrypoint.sh"
+    inference_command = f"mkdir -p /tensorflow_model && aws s3 sync {TENSORFLOW_MODELS_BUCKET}/{model_name}/ /tensorflow_model/{model_name} && {entrypoint}"
     return inference_command
 
 
