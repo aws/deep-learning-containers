@@ -26,11 +26,18 @@ def check_that_cache_dir_is_removed(home_dir):
     if os.path.exists(cache_dir_path):
         content_of_cache_dir = [f for f in os.listdir(cache_dir_path)]
         LOGGER.info("Contents of cache directory: %s", content_of_cache_dir)
-        if len(content_of_cache_dir) > 1:
-            raise ValueError("cache dir includes more than 1 file (not only motd)")
-        if not content_of_cache_dir[0].startswith("pip"):
-            raise ValueError("cache dir include file that it probably should not have: {}"
-                             .format(content_of_cache_dir[0]))
+
+        is_autogluon: bool = os.popen("pip freeze | grep autogluon | wc -l").read().replace('\n', '') != '0'
+        if is_autogluon and (sorted(content_of_cache_dir) == ['mim', 'pip'] or sorted(content_of_cache_dir) == ['pip']):
+            # mim: provides a unified interface for launching and installing OpenMMLab projects and their extensions,
+            # and managing the OpenMMLab model zoo. See more here: https://github.com/open-mmlab/mim
+            pass  # autogluon
+        else:
+            if len(content_of_cache_dir) > 1:
+                raise ValueError("cache dir includes more than 1 file (not only motd)")
+            if not sorted(content_of_cache_dir)[0].startswith("pip"):
+                raise ValueError("cache dir include file that it probably should not have: {}"
+                                 .format(content_of_cache_dir[0]))
 
 
 def check_that_global_tmp_dir_is_empty():
