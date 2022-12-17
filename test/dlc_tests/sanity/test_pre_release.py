@@ -841,7 +841,7 @@ def test_oss_compliance(image):
                 try:
                     if not os.path.isdir(local_file_path):
                         context.run(
-                            f"git clone {url.rstrip()} {local_file_path}")
+                            f"git clone {url.rstrip()} {local_file_path}", hide=True)
                         context.run(
                             f"tar -czvf {local_file_path}.tar.gz {local_file_path}")
                 except Exception as e:
