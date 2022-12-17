@@ -44,9 +44,9 @@ context:
     deep_learning_container:
       source: ../../src/deep_learning_container.py
       target: deep_learning_container.py
-    pin_git_modules.py:
+    pin_git_modules:
       source: ../../src/pin_git_modules.py
-      target: deep_learning_container.py
+      target: pin_git_modules.py
 
 images:
   # BuildEC2CPUPTTrainPy3DockerImage:
