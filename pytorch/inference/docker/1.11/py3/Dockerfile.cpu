@@ -92,6 +92,8 @@ RUN apt-get update \
 
 # Install aws-sdk-cpp s3;transfer modules for torchdata
 # pin aws-sdk-cpp modules
+RUN ls $DOCKER_BUILD_DIR
+RUN pwd $DOCKER_BUILD_DIR
 COPY pin_git_modules.py .
 RUN python pin_git_modules.py --src $(pwd)/aws-sdk-cpp --date 2022-03-17
 # add necessary flags
