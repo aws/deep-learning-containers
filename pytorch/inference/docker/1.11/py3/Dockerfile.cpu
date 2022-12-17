@@ -92,11 +92,7 @@ RUN apt-get update \
 
 # Install aws-sdk-cpp s3;transfer modules for torchdata
 # pin aws-sdk-cpp modules
-ARG context
-RUN echo "build context $context"
-RUN ls $DOCKER_BUILD_DIR
-RUN pwd $DOCKER_BUILD_DIR
-COPY pin_git_modules.py /usr/local/bin/pin_git_modules.py
+COPY pin_git_modules.py .
 RUN python pin_git_modules.py --src $(pwd)/aws-sdk-cpp --date 2022-03-17
 # add necessary flags
 ENV LD_LIBRARY_PATH="/usr/lib/x86_64-linux-gnu/:${LD_LIBRARY_PATH}"
