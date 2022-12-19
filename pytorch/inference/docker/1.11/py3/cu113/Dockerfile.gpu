@@ -190,7 +190,7 @@ RUN /opt/conda/bin/conda config --set ssl_verify False \
 # Install aws-sdk-cpp s3;transfer modules for torchdata
 # pin aws-sdk-cpp modules
 COPY pin_git_modules.py .
-RUN git clone --recurse-submodules https://github.com/aws/aws-sdk-cpp --branch main
+RUN git clone https://github.com/aws/aws-sdk-cpp --branch main
 RUN python pin_git_modules.py --src $(pwd)/aws-sdk-cpp --date 2022-03-16
 # add necessary flags
 ENV LD_LIBRARY_PATH="/usr/lib/x86_64-linux-gnu/:${LD_LIBRARY_PATH}"

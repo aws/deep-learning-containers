@@ -6,7 +6,7 @@ from os.path import join, dirname
 def git_checkout(paths, date):
     checkout_cmds = []
     for p in paths:
-        checkout_cmds.append(f"cd {p} && git reset --hard $(git rev-list -1 --before=\"{date}\" main)")
+        checkout_cmds.append(f"cd {p} && git checkout -f $(git rev-list -1 --before=\"{date}\" HEAD)")
 
     if len(checkout_cmds) == 1:
         cmd = checkout_cmds[0]
