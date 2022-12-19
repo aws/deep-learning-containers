@@ -27,10 +27,10 @@ benchmark_mode = false
 
 [build]
 # Frameworks for which you want to disable both builds and tests
-# available frameworks - ["autogluon", "huggingface_tensorflow", "huggingface_pytorch", "huggingface_tensorflow_trcomp", "huggingface_pytorch_trcomp", "pytorch_trcomp", "tensorflow", "mxnet", "pytorch"]
-skip_frameworks = []
+# available frameworks - ["autogluon", "huggingface_tensorflow", "huggingface_pytorch", "huggingface_tensorflow_trcomp", "huggingface_pytorch_trcomp", "tensorflow", "mxnet", "pytorch"]
+skip_frameworks = ["autogluon", "huggingface_tensorflow", "huggingface_pytorch", "huggingface_tensorflow_trcomp", "huggingface_pytorch_trcomp", "mxnet", "pytorch"]
 # Set to false in order to remove datetime tag on PR builds
-datetime_tag = true
+datetime_tag = false
 # Note: Need to build the images at least once with datetime_tag = false
 # before disabling new builds, or tests will fail
 do_build = true
@@ -38,8 +38,8 @@ do_build = true
 [test]
 ### On by default
 sanity_tests = true
-  safety_check_test = false
-  ecr_scan_allowlist_feature = false
+  safety_check_test = true
+  ecr_scan_allowlist_feature = true
 ecs_tests = true
 eks_tests = true
 ec2_tests = true
@@ -53,7 +53,7 @@ sagemaker_local_tests = false
 # "standard" --> run standard sagemaker remote tests from test/sagemaker_tests
 # "rc" --> run release_candidate_integration tests
 # "efa" --> run efa sagemaker tests
-sagemaker_remote_tests = "off"
+sagemaker_remote_tests = "standard"
 
 # SM remote EFA test instance type
 sagemaker_remote_efa_instance_type = ""
