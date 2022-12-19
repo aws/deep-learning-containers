@@ -1,5 +1,6 @@
 import subprocess as sp
-import argparse
+import argparse, os
+from time import tzset
 from os.path import join, dirname
 
 def git_checkout(paths, date):
@@ -34,6 +35,8 @@ def find_submodules(path):
             
 
 if __name__ == "__main__":
+    os.environ["TZ"] = "US/Eastern"
+    tzset()
     parser = argparse.ArgumentParser()
     parser.add_argument("--src", required=True)
     parser.add_argument("--date", required=True, help="date string used to find the commit (format: YYYY-MM-DD)")
