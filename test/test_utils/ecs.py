@@ -807,7 +807,10 @@ def setup_ecs_inference_service(
         model_base_path = get_tensorflow_model_base_path(docker_image_uri)
         _, image_framework_version = get_framework_and_version_from_tag(docker_image_uri)
         if Version(image_framework_version) in SpecifierSet(">=2.7"):
-            arguments_dict["container_command"] = [build_tensorflow_inference_command_tf27_and_above(model_name)]
+            entrypoint = "/usr/bin/tf_serving_entrypoint.sh"
+            if processor == "neuron":
+                entrypoint = "/usr/local/bin/entrypoint.sh"
+            arguments_dict["container_command"] = [build_tensorflow_inference_command_tf27_and_above(model_name, entrypoint)]
             arguments_dict["entrypoint"] = ["sh", "-c"]
 
         arguments_dict["environment"] = get_tensorflow_inference_environment_variables(model_name, model_base_path)

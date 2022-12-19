@@ -229,7 +229,7 @@ def test_framework_version_cpu(image):
         if tested_framework == "autogluon.core":
             versions_map = {
                 # container version -> autogluon version
-                '0.3.2': '0.3.1',
+                # '0.3.2': '0.3.1',
             }
             version_to_check = versions_map.get(tag_framework_version, tag_framework_version)
             assert output.stdout.strip().startswith(version_to_check)
@@ -365,8 +365,10 @@ def test_framework_and_cuda_version_gpu(gpu, ec2_connection):
             assert tag_framework_version in output.stdout.strip()
         else:
             if tested_framework == "autogluon.core":
-                version_to_check = "0.3.1" if tag_framework_version == "0.3.2" else tag_framework_version
-                assert output.stdout.strip().startswith(version_to_check)
+                # If tag and framework are not matching:
+                # version_to_check = "0.3.1" if tag_framework_version == "0.3.2" else tag_framework_version
+                # assert output.stdout.strip().startswith(version_to_check)
+                pass
             elif tested_framework == "torch" and Version(tag_framework_version) >= Version("1.10.0"):
                 if is_nightly_context():
                     torch_version_pattern = r"{torch_version}(\+cu\d+|\.dev\d+)".format(torch_version=tag_framework_version)
@@ -388,7 +390,7 @@ def test_framework_and_cuda_version_gpu(gpu, ec2_connection):
 
     # MXNet inference/HF tensorflow inference and Autogluon containers do not currently have nvcc in /usr/local/cuda/bin, so check symlink
     if "mxnet-inference" in image or "autogluon" in image or "huggingface-tensorflow-inference" in image:
-        cuda_cmd = "readlink /usr/local/cuda"
+        cuda_cmd = "readlink -f /usr/local/cuda"
     else:
         cuda_cmd = "nvcc --version"
     cuda_output = ec2.execute_ec2_training_test(
@@ -428,7 +430,7 @@ def _run_dependency_check_test(image, ec2_connection):
             "2.5": ["cpu", "gpu", "neuron"],
             "2.6": ["cpu", "gpu"],
             "2.7": ["cpu", "gpu", "hpu"],
-            "2.8": ["cpu", "gpu", "hpu"],
+            "2.8": ["cpu", "gpu", "hpu", "neuron"],
             "2.9": ["cpu", "gpu", "hpu"],
             "2.10": ["cpu", "gpu", "hpu"],
             "2.11": ["cpu", "gpu", "hpu"],
@@ -449,9 +451,8 @@ def _run_dependency_check_test(image, ec2_connection):
         "huggingface_tensorflow_trcomp": {"2.6": ["gpu"]},
         "huggingface_pytorch_trcomp": {"1.11": ["gpu"]},
         "autogluon": {
-            "0.3": ["cpu", "gpu"],
-            "0.4": ["cpu", "gpu"],
-            "0.5": ["cpu", "gpu"]
+            "0.5": ["cpu", "gpu"],
+            "0.6": ["cpu", "gpu"]
         },
     }
 
@@ -470,7 +471,7 @@ def _run_dependency_check_test(image, ec2_connection):
             "2.5": ["cpu", "gpu", "neuron"],
             "2.6": ["cpu", "gpu"],
             "2.7": ["cpu", "gpu", "hpu"],
-            "2.8": ["cpu", "gpu", "hpu"],
+            "2.8": ["cpu", "gpu", "hpu", "neuron"],
             "2.9": ["cpu", "gpu", "hpu"],
             "2.10": ["cpu", "gpu", "hpu"],
             "2.11": ["cpu", "gpu", "hpu"],
@@ -478,9 +479,8 @@ def _run_dependency_check_test(image, ec2_connection):
         "mxnet": {"1.8": ["neuron"], "1.9": ["cpu", "gpu"]},
         "huggingface_tensorflow": {"2.5": ["gpu"], "2.6": ["gpu"]},
         "autogluon": {
-            "0.3": ["cpu", "gpu"],
-            "0.4": ["cpu", "gpu"],
-            "0.5": ["cpu", "gpu"]
+            "0.5": ["cpu", "gpu"],
+            "0.6": ["cpu", "gpu"]
         },
         "huggingface_pytorch_trcomp": {"1.9": ["gpu"], "1.11": ["gpu"]},
         "huggingface_tensorflow_trcomp": {"2.6": ["gpu"]},
@@ -670,13 +670,6 @@ def test_pip_check(image):
         allowed_tf263_exception = re.compile(rf"^tensorflow-io 0.21.0 requires tensorflow, which is not installed.$")
         allowed_exception_list.append(allowed_tf263_exception)
 
-
-    if "autogluon" in image and (("0.3.1" in image) or ("0.3.2" in image)):
-        allowed_autogluon_exception = re.compile(
-            rf"autogluon-(vision|mxnet) 0.3.1 has requirement Pillow<8.4.0,>=8.3.0, but you have pillow \d+(\.\d+)*"
-        )
-        allowed_exception_list.append(allowed_autogluon_exception)
-
     # TF2.9 sagemaker containers introduce tf-models-official which has a known bug where in it does not respect the
     # existing TF installation. https://github.com/tensorflow/models/issues/9267. This package in turn brings in
     # tensorflow-text. Skip checking these two packages as this is an upstream issue.
@@ -766,7 +759,7 @@ def test_cuda_paths(gpu):
     image_tag_in_buildspec = False
     dockerfile_spec_abs_path = None
     
-    buildspec_path = construct_buildspec_path(dlc_path, framework_path, buildspec, framework_version)
+    buildspec_path = construct_buildspec_path(dlc_path, framework_path, buildspec, framework_version, job_type)
     buildspec_def = Buildspec()
     buildspec_def.load(buildspec_path)
 
@@ -848,7 +841,7 @@ def test_oss_compliance(image):
                 try:
                     if not os.path.isdir(local_file_path):
                         context.run(
-                            f"git clone {url.rstrip()} {local_file_path}")
+                            f"git clone {url.rstrip()} {local_file_path}", hide=True)
                         context.run(
                             f"tar -czvf {local_file_path}.tar.gz {local_file_path}")
                 except Exception as e:
