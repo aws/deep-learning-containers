@@ -4,6 +4,7 @@ from time import tzset
 from os.path import join, dirname
 
 def git_checkout(paths, date):
+    tz_cmds = 'echo "America/New_York" > /etc/timezone && ln -sf /usr/share/zoneinfo/America/New_York /etc/localtime && '
     checkout_cmds = []
     for p in paths:
         checkout_cmds.append(f"cd {p} && git checkout -f $(git rev-list -1 --before=\"{date}\" HEAD)")
@@ -11,8 +12,8 @@ def git_checkout(paths, date):
     if len(checkout_cmds) == 1:
         cmd = checkout_cmds[0]
     else:
-        cmd = (" && ").join(checkout_cmds)
-    print(cmd)
+        cmd = " && ".join(checkout_cmds)
+    cmd = tz_cmds + cmd
     # git checkout all the modules in one process
     sp.run(cmd, shell=True, check=True)
 
@@ -38,8 +39,6 @@ def find_submodules(path):
             
 
 if __name__ == "__main__":
-    os.environ["TZ"] = "US/Eastern"
-    tzset()
     parser = argparse.ArgumentParser()
     parser.add_argument("--src", required=True)
     parser.add_argument("--date", required=True, help="date string used to find the commit (format: YYYY-MM-DD)")
