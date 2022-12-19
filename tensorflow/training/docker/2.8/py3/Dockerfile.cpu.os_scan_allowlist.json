@@ -44,7 +44,7 @@
                 "release": null
             },
             "remediation":{
-                "recommendation": {
+                "recommendation":{
                     "text": "None Provided"
                 }
             },
@@ -58,7 +58,7 @@
             "severity": "LOW",
             "status": "ACTIVE",
             "title": "CVE-2022-3996 - cryptography",
-            "reason_to_ignore": "No remediation for CVE crytopgraphy is available for Ubuntu 20.04 currently."
+            "reason_to_ignore": "No remediation for crytography is available for Ubuntu 20.04 currently."
         }
     ]
 }
