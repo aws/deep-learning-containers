@@ -144,18 +144,6 @@ release_images:
       disable_sm_tag: False
       force_release: False
   12:
-    framework: "autogluon"
-    version: "0.6.1"
-    arch_type: "x86"
-    inference:
-      device_types: ["cpu", "gpu"]
-      python_versions: ["py38"]
-      os_version: "ubuntu20.04"
-      cuda_version: "cu113"
-      example: False
-      disable_sm_tag: False
-      force_release: False
-  13:
     framework: "mxnet"
     version: "1.8.0"
     arch_type: "x86"
@@ -167,7 +155,7 @@ release_images:
       example: False
       disable_sm_tag: True
       force_release: False
-  14:
+  13:
     framework: "tensorflow"
     version: "2.8.0"
     arch_type: "x86"
@@ -179,7 +167,7 @@ release_images:
       example: False
       disable_sm_tag: True
       force_release: False
-  15:
+  14:
     framework: "tensorflow"
     version: "1.15.5"
     arch_type: "x86"
@@ -190,4 +178,16 @@ release_images:
       neuron_sdk_version: "sdk2.5.0"
       example: False
       disable_sm_tag: True
+      force_release: False
+  15:
+    framework: "autogluon"
+    version: "0.6.1"
+    arch_type: "x86"
+    training:
+      device_types: ["cpu", "gpu"]
+      python_versions: ["py38"]
+      os_version: "ubuntu20.04"
+      cuda_version: "cu113"
+      example: False
+      disable_sm_tag: False
       force_release: False
