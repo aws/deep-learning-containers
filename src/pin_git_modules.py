@@ -45,6 +45,7 @@ if __name__ == "__main__":
     git_checkout([args.src], args.date)
     files = find_submodules(args.src)
     git_checkout(files, args.date)
+    exit(1)
     
     
     
