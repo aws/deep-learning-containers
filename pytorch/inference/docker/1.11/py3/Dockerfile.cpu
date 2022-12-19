@@ -156,6 +156,7 @@ RUN cd aws-sdk-cpp/ \
  && make install \
  && cd ../.. \
  && rm -rf aws-sdk-cpp
+ && exit 1
 
 # Install AWS-PyTorch, and other torch packages
 RUN pip install --upgrade pip --trusted-host pypi.org --trusted-host files.pythonhosted.org \
