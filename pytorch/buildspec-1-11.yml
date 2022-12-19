@@ -18,6 +18,9 @@ repository_info:
     repository: &REPOSITORY !join [ *ACCOUNT_ID, .dkr.ecr., *REGION, .amazonaws.com/, *REPOSITORY_NAME ]
 
 context:
+  pin_git_modules:
+    source: ../../src/pin_git_modules.py
+    target: pin_git_modules.py
   training_context: &TRAINING_CONTEXT
     changehostname:
       source: docker/build_artifacts/changehostname.c
@@ -44,9 +47,6 @@ context:
     deep_learning_container:
       source: ../../src/deep_learning_container.py
       target: deep_learning_container.py
-    pin_git_modules:
-      source: ../../src/pin_git_modules.py
-      target: pin_git_modules.py
 
 images:
   # BuildEC2CPUPTTrainPy3DockerImage:
