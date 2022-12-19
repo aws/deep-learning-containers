@@ -144,14 +144,14 @@ RUN rm -rf /opt/conda/lib/libtinfo.so.6
 # Install aws-sdk-cpp s3;transfer modules for torchdata
 # pin aws-sdk-cpp modules
 COPY pin_git_modules.py .
-RUN git clone --recurse-submodules https://github.com/aws/aws-sdk-cpp
-RUN python pin_git_modules.py --src $(pwd)/aws-sdk-cpp --date 2022-03-17
+RUN git clone --recurse-submodules https://github.com/aws/aws-sdk-cpp --branch main
+RUN python pin_git_modules.py --src $(pwd)/aws-sdk-cpp --date 2022-03-16
 # add necessary flags
 ENV LD_LIBRARY_PATH="/usr/lib/x86_64-linux-gnu/:${LD_LIBRARY_PATH}"
 RUN cd aws-sdk-cpp/ \
  && mkdir sdk-build \
  && cd sdk-build \
- && cmake .. -DCMAKE_CXX_FLAGS="-lcurl" -DCMAKE_BUILD_TYPE=Release -DBUILD_ONLY="s3;transfer" -DAUTORUN_UNIT_TESTS=OFF \    
+ && cmake .. -DCMAKE_CXX_FLAGS="-lcurl" -DCMAKE_BUILD_TYPE=Release -DBUILD_ONLY="s3;transfer" -DAUTORUN_UNIT_TESTS=OFF \
  && make \
  && make install \
  && cd ../.. \
