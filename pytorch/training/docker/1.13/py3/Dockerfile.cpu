@@ -280,7 +280,7 @@ RUN pip install --no-cache-dir --upgrade pip --trusted-host pypi.org --trusted-h
 RUN cd /tmp \
   && git clone https://github.com/awslabs/sagemaker-debugger \
   && cd sagemaker-debugger \
-  && git checkout -f 09aacdf8d061bb1a5785797ccd9d6ef5cf380e35 \
+  && git checkout -f a3cb5182cd9d8f414e1f70da845961c2a35f49b7 \
   && pip install . \
   && rm -rf /tmp/*
 # Install extra packages
