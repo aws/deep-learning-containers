@@ -152,11 +152,11 @@ RUN cd aws-sdk-cpp/ \
  && mkdir sdk-build \
  && cd sdk-build \
  && cmake .. -DCMAKE_CXX_FLAGS="-lcurl" -DCMAKE_BUILD_TYPE=Release -DBUILD_ONLY="s3;transfer" -DAUTORUN_UNIT_TESTS=OFF \
+ && exit 1
  && make \
  && make install \
  && cd ../.. \
  && rm -rf aws-sdk-cpp
- && exit 1
 
 # Install AWS-PyTorch, and other torch packages
 RUN pip install --upgrade pip --trusted-host pypi.org --trusted-host files.pythonhosted.org \
