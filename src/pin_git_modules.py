@@ -6,15 +6,18 @@ from os.path import join, dirname
 def git_checkout(paths, date):
     checkout_cmds = []
     for p in paths:
-        checkout_cmds.append(f"cd {p} && git checkout -f $(git rev-list -1 --before=\"{date}\" main)")
+        checkout_cmds.append(f"cd {p} && git reset --hard $(git rev-list -1 --before=\"{date}\" main)")
 
     if len(checkout_cmds) == 1:
         cmd = checkout_cmds[0]
     else:
         cmd = (" && ").join(checkout_cmds)
-
+    print(cmd)
     # git checkout all the modules in one process
     sp.run(cmd, shell=True, check=True)
+
+def init_submodules(path):
+    sp.run(f"cd {path} && git submodule update --init --recursive", shell=True, check=True)
 
 def find_submodules(path):
     res = sp.run(f"find {path} -name .gitmodules", shell=True, check=True, capture_output=True)
@@ -43,9 +46,9 @@ if __name__ == "__main__":
     args = parser.parse_args()
     
     git_checkout([args.src], args.date)
+    init_submodules(args.src)
     files = find_submodules(args.src)
     git_checkout(files, args.date)
-    exit(1)
     
     
     
