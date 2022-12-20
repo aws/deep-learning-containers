@@ -326,7 +326,11 @@ FROM common AS sagemaker
 LABEL maintainer="Amazon AI"
 LABEL dlc_major_version="1"
 
-ARG TF_URL=https://framework-binaries.s3.us-west-2.amazonaws.com/tensorflow/r2.11_aws/gpu/2022-11-18-18-18/tensorflow_gpu-2.11.0-cp39-cp39-manylinux_2_17_x86_64.manylinux2014_x86_64.whl 
+#SMDEBUGGER TESTING PLEASE REMOVE
+ARG TF_URL=https://framework-binaries.s3.us-west-2.amazonaws.com/tensorflow/smdebugger_test/r2.11_aws/gpu/2022-12-20-11-07/tensorflow_gpu-2.11.0-cp39-cp39-manylinux_2_17_x86_64.manylinux2014_x86_64.whl
+
+# ORIGINAL
+# ARG TF_URL=https://framework-binaries.s3.us-west-2.amazonaws.com/tensorflow/r2.11_aws/gpu/2022-11-18-18-18/tensorflow_gpu-2.11.0-cp39-cp39-manylinux_2_17_x86_64.manylinux2014_x86_64.whl 
 # sagemaker-specific environment variable
 ENV SAGEMAKER_TRAINING_MODULE sagemaker_tensorflow_container.training:main
 
