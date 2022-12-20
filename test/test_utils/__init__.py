@@ -17,7 +17,7 @@ from botocore.exceptions import ClientError
 from glob import glob
 from invoke import run
 from invoke.context import Context
-from packaging.version import LegacyVersion, Version, parse
+from packaging.version import Version, parse
 from packaging.specifiers import SpecifierSet
 from datetime import date, datetime
 from retrying import retry
@@ -61,16 +61,18 @@ UBUNTU_18_BASE_DLAMI_US_EAST_1 = get_ami_id_boto3(region_name="us-east-1", ami_n
 AML2_BASE_DLAMI_US_WEST_2 = get_ami_id_boto3(region_name="us-west-2", ami_name_pattern="Deep Learning Base AMI (Amazon Linux 2) Version ??.?")
 AML2_BASE_DLAMI_US_EAST_1 = get_ami_id_boto3(region_name="us-east-1", ami_name_pattern="Deep Learning Base AMI (Amazon Linux 2) Version ??.?")
 # We use the following DLAMI for MXNet and TensorFlow tests as well, but this is ok since we use custom DLC Graviton containers on top. We just need an ARM base DLAMI.
-UL20_CPU_ARM64_US_WEST_2 = get_ami_id_boto3(region_name="us-west-2", ami_name_pattern="Deep Learning AMI Graviton GPU PyTorch 1.10.0 (Ubuntu 20.04) ????????")
-UL20_CPU_ARM64_US_EAST_1 = get_ami_id_boto3(region_name="us-east-1", ami_name_pattern="Deep Learning AMI Graviton GPU PyTorch 1.10.0 (Ubuntu 20.04) ????????")
+UL20_CPU_ARM64_US_WEST_2 = get_ami_id_boto3(region_name="us-west-2", ami_name_pattern="Deep Learning AMI Graviton GPU CUDA 11.4.2 (Ubuntu 20.04) ????????")
+UL20_CPU_ARM64_US_EAST_1 = get_ami_id_boto3(region_name="us-east-1", ami_name_pattern="Deep Learning AMI Graviton GPU CUDA 11.4.2 (Ubuntu 20.04) ????????")
 UL20_BENCHMARK_CPU_ARM64_US_WEST_2 = get_ami_id_boto3(region_name="us-west-2", ami_name_pattern="Deep Learning AMI Graviton GPU TensorFlow 2.7.0 (Ubuntu 20.04) ????????")
 AML2_CPU_ARM64_US_EAST_1 = get_ami_id_boto3(region_name="us-east-1", ami_name_pattern="Deep Learning Base AMI (Amazon Linux 2) Version ??.?")
 PT_GPU_PY3_BENCHMARK_IMAGENET_AMI_US_EAST_1 = "ami-0673bb31cc62485dd"
 PT_GPU_PY3_BENCHMARK_IMAGENET_AMI_US_WEST_2 = "ami-02d9a47bc61a31d43"
 # Since latest driver is not in public DLAMI yet, using a custom one
 NEURON_UBUNTU_18_BASE_DLAMI_US_WEST_2 = get_ami_id_boto3(region_name="us-west-2", ami_name_pattern="Deep Learning Base AMI (Ubuntu 18.04) Version ??.?")
+UL20_PT_NEURON_US_WEST_2 = get_ami_id_boto3(region_name="us-west-2", ami_name_pattern="Deep Learning AMI Neuron PyTorch 1.11.0 (Ubuntu 20.04) ????????")
 # Since NEURON TRN1 DLAMI is not released yet use a custom AMI
 NEURON_TRN1_AMI_US_WEST_2 = "ami-0a610a15fcc9e0242"
+NEURON_INF1_AMI_US_WEST_2 = "ami-06a5a60d3801a57b7"
 # Habana Base v0.15.4 ami
 # UBUNTU_18_HPU_DLAMI_US_WEST_2 = "ami-0f051d0c1a667a106"
 # UBUNTU_18_HPU_DLAMI_US_EAST_1 = "ami-04c47cb3d4fdaa874"
@@ -97,6 +99,7 @@ UL_AMI_LIST = [
     PT_GPU_PY3_BENCHMARK_IMAGENET_AMI_US_EAST_1,
     PT_GPU_PY3_BENCHMARK_IMAGENET_AMI_US_WEST_2,
     NEURON_UBUNTU_18_BASE_DLAMI_US_WEST_2,
+    NEURON_INF1_AMI_US_WEST_2,
     UL20_CPU_ARM64_US_EAST_1,
     UL20_CPU_ARM64_US_WEST_2,
     UL20_BENCHMARK_CPU_ARM64_US_WEST_2,
@@ -409,7 +412,8 @@ def get_inference_server_type(image_uri):
         return "ts"
     image_tag = image_uri.split(":")[1]
     pytorch_ver = parse(image_tag.split("-")[0])
-    if isinstance(pytorch_ver, LegacyVersion) or pytorch_ver < Version("1.6"):
+    from packaging.version import LegacyVersion
+    if isinstance(pytorch_ver, LegacyVersion) or pytorch_ver < Version("1.6"): 
         return "mms"
     return "ts"
 
@@ -1379,6 +1383,18 @@ NEURON_VERSION_MANIFEST = {
             "1.11.0": "1.11.0.2.3.0.0",
         },
     },
+    "2.5.0": {
+        "tensorflow": {
+            "2.8.0": "2.8.0.2.3.0.0",
+            "1.15.5": "1.15.5.2.5.6.0",
+        },
+        "pytorch": {
+            "1.12.1": "1.12.1.2.5.8.0",
+        },
+        "mxnet": {
+            "1.8.0": "1.8.0.2.2.43.0",
+        },
+    },
     "1.19.1": {
         "pytorch": {
             "1.7.1": "1.7.1.2.3.0.0",
@@ -1627,7 +1643,7 @@ def get_python_version_from_image_uri(image_uri):
     return "py36" if python_version == "py3" else python_version
 
 
-def construct_buildspec_path(dlc_path, framework_path, buildspec, framework_version):
+def construct_buildspec_path(dlc_path, framework_path, buildspec, framework_version, job_type=""):
     """
     Construct a relative path to the buildspec yaml file by iterative checking on the existence of
     a specific version file for the framework being tested. Possible options include:
@@ -1656,9 +1672,13 @@ def construct_buildspec_path(dlc_path, framework_path, buildspec, framework_vers
         else:
             raise ValueError(f"Framework version {framework_version} was not matched.")
 
-    buildspec_path = os.path.join(dlc_path, framework_path, f"{buildspec}.yml")
+    # for backward compatibility, first try new path structure 
+    # if it fails then revert to prior structure
+    buildspec_path = os.path.join(dlc_path, framework_path, job_type, f"{buildspec}.yml")
     if not os.path.exists(buildspec_path):
-        raise ValueError('Could not construct a valid buildspec path.')
+        buildspec_path = os.path.join(dlc_path, framework_path, f"{buildspec}.yml")
+        if not os.path.exists(buildspec_path):
+            raise ValueError('Could not construct a valid buildspec path.')
 
     return buildspec_path
 
@@ -1774,13 +1794,13 @@ def get_tensorflow_model_base_path(image_uri):
     return model_base_path
 
 
-def build_tensorflow_inference_command_tf27_and_above(model_name):
+def build_tensorflow_inference_command_tf27_and_above(model_name, entrypoint="/usr/bin/tf_serving_entrypoint.sh"):
     """
     Construct the command to download tensorflow model from S3 and start tensorflow model server
     :param model_name:
     :return: <list> command to send to the container
     """
-    inference_command = f"mkdir -p /tensorflow_model && aws s3 sync {TENSORFLOW_MODELS_BUCKET}/{model_name}/ /tensorflow_model/{model_name} && /usr/bin/tf_serving_entrypoint.sh"
+    inference_command = f"mkdir -p /tensorflow_model && aws s3 sync {TENSORFLOW_MODELS_BUCKET}/{model_name}/ /tensorflow_model/{model_name} && {entrypoint}"
     return inference_command
 
 
