@@ -350,6 +350,10 @@ def test_framework_and_cuda_version_gpu(gpu, ec2_connection):
             tested_framework = tested_framework[len("huggingface_"):]
             # Replace the trcomp string as it is extracted from ECR repo name
             tested_framework = tested_framework.replace("_trcomp", "")
+        # Framework name may include trcomp
+        if "trcomp" in tested_framework:
+            # Replace the trcomp string as it is extracted from ECR repo name
+            tested_framework = tested_framework.replace("_trcomp", "")
         # Module name is "torch"
         if tested_framework == "pytorch":
             tested_framework = "torch"
@@ -436,6 +440,9 @@ def _run_dependency_check_test(image, ec2_connection):
             "1.11": ["cpu", "gpu", "hpu", "neuron"],
             "1.12": ["cpu", "gpu", "hpu"],
             "1.13": ["cpu", "gpu", "hpu"],
+        },
+        "pytorch_trcomp": {
+            "1.12": ["gpu"],
         },
         "huggingface_pytorch": {"1.8": ["cpu", "gpu"], "1.9": ["cpu", "gpu"]},
         "huggingface_tensorflow": {"2.4": ["cpu", "gpu"], "2.5": ["cpu", "gpu"], "2.6": ["cpu", "gpu"]},
@@ -631,6 +638,7 @@ def test_pip_check(image):
 
     :param image: ECR image URI
     """
+
     ctx = Context()
     gpu_suffix = "-gpu" if "gpu" in image else ""
     allowed_exception_list = []
@@ -662,6 +670,7 @@ def test_pip_check(image):
         allowed_tf263_exception = re.compile(rf"^tensorflow-io 0.21.0 requires tensorflow, which is not installed.$")
         allowed_exception_list.append(allowed_tf263_exception)
 
+
     if "autogluon" in image and (("0.3.1" in image) or ("0.3.2" in image)):
         allowed_autogluon_exception = re.compile(
             rf"autogluon-(vision|mxnet) 0.3.1 has requirement Pillow<8.4.0,>=8.3.0, but you have pillow \d+(\.\d+)*"
@@ -687,11 +696,15 @@ def test_pip_check(image):
                 rf"tf-models-official 2.9.2 has requirement tensorflow-text~=2.9.0, but you have tensorflow-text 2.10.0.")
         allowed_exception_list.append(allowed_tf_models_text_compatibility_exception)
 
+    if ("pytorch" in image and "trcomp" in image):
+        allowed_exception_list.append(re.compile(r"torch-xla \d+(\.\d+)* requires absl-py, which is not installed."))
+        allowed_exception_list.append(re.compile(r"torch-xla \d+(\.\d+)* requires cloud-tpu-client, which is not installed."))
+
     # Add null entrypoint to ensure command exits immediately
     output = ctx.run(
         f"docker run --entrypoint='' {image} pip check", hide=True, warn=True)
     if output.return_code != 0:
-        if not(any([allowed_exception.match(output.stdout) for allowed_exception in allowed_exception_list])):
+        if not(any([allowed_exception.findall(output.stdout) for allowed_exception in allowed_exception_list])):
             # Rerun pip check test if this is an unexpected failure
             ctx.run(f"docker run --entrypoint='' {image} pip check", hide=True)
 
