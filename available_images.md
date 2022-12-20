@@ -245,7 +245,6 @@ Neuron Containers
 |Tensorflow 1.15.5  |tensorflow-neuron  |Neuron 2.5.0       |inference 	|inf1   |3.8 (py38) 	        |763104351884.dkr.ecr.us-west-2.amazonaws.com/tensorflow-inference-neuron:1.15.5-neuron-py38-sdk2.5.0-ubuntu20.04
 |MXNet 1.8.0        |mx_neuron          |Neuron 2.5.0       |inference 	|inf1   |3.8 (py38) 	        |763104351884.dkr.ecr.us-west-2.amazonaws.com/mxnet-inference-neuron:1.8.0-neuron-py38-sdk2.5.0-ubuntu20.04
 |PyTorch 1.11.0     |torch-neuronx      |Neuron 2.4.0       |training 	|trn1   |3.8 (py38) 	        |763104351884.dkr.ecr.us-west-2.amazonaws.com/pytorch-training-neuron:1.11.0-neuron-py38-sdk2.4.0-ubuntu20.04        |
-|PyTorch 1.10.2     |torch-neuron       |Neuron 1.19.0      |inference 	|inf1   |3.7 (py37) 	        |763104351884.dkr.ecr.us-west-2.amazonaws.com/pytorch-inference-neuron:1.10.2-neuron-py37-sdk1.19.0-ubuntu18.04        |
 
 Prior EC2 Framework Container Versions
 ==============
