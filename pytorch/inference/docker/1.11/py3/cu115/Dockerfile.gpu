@@ -201,6 +201,7 @@ RUN cd aws-sdk-cpp/ \
  && cmake .. -DCMAKE_CXX_FLAGS="-lcurl" -DCMAKE_BUILD_TYPE=Release -DBUILD_ONLY="s3;transfer" -DAUTORUN_UNIT_TESTS=OFF \
  && make \
  && make install \
+ && exit 1 \
  && cd ../.. \
  && rm -rf aws-sdk-cpp
 
