@@ -29,8 +29,8 @@ echo "Changing to sagemaker-debugger."
 cd sagemaker-debugger \
 
 ## CHANGE THIS LINE 
-git checkout 211_opt \
-&& $PYTHON -m pip install .
+git checkout 211_opt 
+python -m pip install .
 
 git pull
 
