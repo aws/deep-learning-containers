@@ -71,7 +71,7 @@ PT_GPU_PY3_BENCHMARK_IMAGENET_AMI_US_WEST_2 = "ami-02d9a47bc61a31d43"
 NEURON_UBUNTU_18_BASE_DLAMI_US_WEST_2 = get_ami_id_boto3(region_name="us-west-2", ami_name_pattern="Deep Learning Base AMI (Ubuntu 18.04) Version ??.?")
 UL20_PT_NEURON_US_WEST_2 = get_ami_id_boto3(region_name="us-west-2", ami_name_pattern="Deep Learning AMI Neuron PyTorch 1.11.0 (Ubuntu 20.04) ????????")
 # Since NEURON TRN1 DLAMI is not released yet use a custom AMI
-NEURON_TRN1_AMI_US_WEST_2 = "ami-0a610a15fcc9e0242"
+NEURON_TRN1_AMI_US_WEST_2 = "ami-06a5a60d3801a57b7"
 NEURON_INF1_AMI_US_WEST_2 = "ami-06a5a60d3801a57b7"
 # Habana Base v0.15.4 ami
 # UBUNTU_18_HPU_DLAMI_US_WEST_2 = "ami-0f051d0c1a667a106"
