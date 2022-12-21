@@ -179,7 +179,7 @@ RUN rm -rf /var/lib/apt/lists/* \
  # torchvision needed for MLP. since it depends on torch and torch neuron/torch
  # is already installed install it with nodeps
  RUN pip3 install --no-cache-dir --no-deps -U \
-    torchvision==0.13.0
+    torchvision==0.13.1
 
 # Needed for running bert training scripts
 RUN pip3 install --no-cache-dir -U \
