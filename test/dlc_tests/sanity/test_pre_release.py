@@ -221,7 +221,7 @@ def test_tf_serving_api_version_cpu(tensorflow_inference):
         pytest.skip("Skipping this test for TF 2.6.3 inference as the v2.6.3 version is already on production")
 
     ctx = Context()
-    container_name = get_container_name("tf-serving-version", image)
+    container_name = get_container_name("tf-serving-api-version", image)
     start_container(container_name, image, ctx)
     output = run_cmd_on_container(
         container_name, ctx, "pip show tensorflow-serving-api | grep Version | cut -d' ' -f2", executable="bash"
