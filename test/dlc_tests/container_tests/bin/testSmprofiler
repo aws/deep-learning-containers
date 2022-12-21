@@ -21,10 +21,16 @@ SMDEBUG_RELEASE_TAG=$(python -c "import smdebug; print(smdebug.__version__)")
 SMDEBUG_RELEASE_TAG=$(echo $SMDEBUG_RELEASE_TAG |  perl -lane 'print $F[-1]')
 
 echo "Cloning git repo for release tag $SMDEBUG_RELEASE_TAG"
-git clone -b ${SMDEBUG_RELEASE_TAG} https://github.com/awslabs/sagemaker-debugger.git sagemaker-debugger || exit 1
+# git clone -b ${SMDEBUG_RELEASE_TAG} https://github.com/awslabs/sagemaker-debugger.git sagemaker-debugger || exit 1
+git clone https://github.com/yl-to/sagemaker-debugger.git
+
 
 echo "Changing to sagemaker-debugger."
-cd sagemaker-debugger
+cd sagemaker-debugger \
+
+## CHANGE THIS LINE 
+git checkout 211_opt \
+&& $PYTHON -m pip install .
 
 git pull
 
