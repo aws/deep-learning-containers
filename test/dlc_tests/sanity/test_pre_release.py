@@ -292,7 +292,10 @@ def test_framework_and_neuron_sdk_version(neuron):
         tested_framework = tested_framework[len("huggingface_"):]
 
     if tested_framework == "pytorch":
-        tested_framework = "torch_neuron"
+        if "pytorch-training-neuron" in image:
+            tested_framework = "torch_neuronx"
+        else:
+            tested_framework = "torch_neuron"
     elif tested_framework == "tensorflow":
         tested_framework = "tensorflow_neuron"
     elif tested_framework == "mxnet":
