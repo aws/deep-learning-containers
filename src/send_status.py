@@ -1,9 +1,9 @@
 import os
 import argparse
 
-import utils
-
 from dlc.github_handler import GitHubHandler
+
+from codebuild_environment import get_codebuild_project_name, get_user_and_repo_name
 
 
 def get_args():
@@ -60,7 +60,7 @@ def post_status(state):
     if os.getenv("EXECUTOR_MODE", "False").lower() == "true":
         return
 
-    project_name = utils.get_codebuild_project_name()
+    project_name = get_codebuild_project_name()
     target_url = get_target_url(project_name)
 
     test_context = os.getenv("TEST_TYPE")
@@ -70,12 +70,10 @@ def post_status(state):
         context = f"{trigger_job}_{project_name}"
     else:
         context = f"{project_name}"
-    
+
     description = set_build_description(state, project_name)
 
-    # Example: "https://github.com/aws/deep-learning-containers.git"
-    repo_url = os.getenv("CODEBUILD_SOURCE_REPO_URL")
-    _, user, repo_name = repo_url.rstrip(".git").rsplit("/", 2)
+    user, repo_name = get_user_and_repo_name()
 
     handler = GitHubHandler(user, repo_name)
     handler.set_status(

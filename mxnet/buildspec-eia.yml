@@ -3,6 +3,7 @@
   framework: &FRAMEWORK mxnet
   version: &VERSION 1.7.0
   os_version: &OS_VERSION ubuntu16.04
+  arch_type: x86
 
   repository_info:
     inference_repository: &INFERENCE_REPOSITORY

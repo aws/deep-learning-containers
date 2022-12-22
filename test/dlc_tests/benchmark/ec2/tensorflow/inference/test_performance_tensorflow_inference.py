@@ -13,8 +13,7 @@ from test.test_utils import (
     get_framework_and_version_from_tag,
     is_pr_context,
     is_tf_version,
-    get_python_invoker,
-    UL18_BENCHMARK_CPU_ARM64_US_WEST_2,
+    UL20_BENCHMARK_CPU_ARM64_US_WEST_2,
 )
 from test.test_utils.ec2 import (
     ec2_performance_upload_result_to_s3_and_validate,
@@ -51,7 +50,7 @@ def test_performance_ec2_tensorflow_inference_cpu(
 
 @pytest.mark.model("inception, RCNN-Resnet101-kitti, resnet50_v2, mnist, SSDResnet50Coco")
 @pytest.mark.parametrize("ec2_instance_type", ["c6g.4xlarge"], indirect=True)
-@pytest.mark.parametrize("ec2_instance_ami", [UL18_BENCHMARK_CPU_ARM64_US_WEST_2], indirect=True)
+@pytest.mark.parametrize("ec2_instance_ami", [UL20_BENCHMARK_CPU_ARM64_US_WEST_2], indirect=True)
 def test_performance_ec2_tensorflow_inference_graviton_cpu(
     tensorflow_inference_graviton, ec2_connection, ec2_instance_ami, region, cpu_only
 ):
@@ -78,7 +77,7 @@ def ec2_performance_tensorflow_inference(image_uri, processor, ec2_connection, e
 
     if "graviton" in image_uri:
         # TF training binary is used that is compatible for graviton instance type
-    
+
         ec2_connection.run(
             (
                 f"sudo apt install python3-pip"
@@ -102,9 +101,8 @@ def ec2_performance_tensorflow_inference(image_uri, processor, ec2_connection, e
     time_str = time.strftime("%Y-%m-%d-%H-%M-%S")
     commit_info = os.getenv("CODEBUILD_RESOLVED_SOURCE_VERSION")
     log_file = f"synthetic_{commit_info}_{time_str}.log"
-    python_invoker = get_python_invoker(ec2_instance_ami)
     ec2_connection.run(
-        f"{python_invoker} {container_test_local_dir}/bin/benchmark/tf{tf_version}_serving_perf.py "
+        f"python {container_test_local_dir}/bin/benchmark/tf{tf_version}_serving_perf.py "
         f"--processor {processor} --docker_image_name {image_uri} "
         f"--run_all_s3 --binary /usr/bin/tensorflow_model_server --get_perf --iterations {num_iterations} "
         f"2>&1 | tee {log_file}"

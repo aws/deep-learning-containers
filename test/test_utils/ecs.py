@@ -681,7 +681,7 @@ def build_ecs_training_command(s3_test_location, test_string):
     ]
 
 
-def ecs_training_test_executor(cluster_name, cluster_arn, training_command, image_uri, instance_id, num_gpus=None):
+def ecs_training_test_executor(cluster_name, cluster_arn, training_command, image_uri, instance_id, num_gpus=None, num_neurons=None):
     """
     Function to run training task on ECS; Cleans up the resources after each execution
 
@@ -692,6 +692,7 @@ def ecs_training_test_executor(cluster_name, cluster_arn, training_command, imag
     :param image_uri:
     :param instance_id:
     :param num_gpus:
+    :param num_neurons:
     :return:
     """
     # Set defaults to satisfy finally case
@@ -719,6 +720,8 @@ def ecs_training_test_executor(cluster_name, cluster_arn, training_command, imag
 
     if "gpu" in image_tag and num_gpus:
         arguments_dict["num_gpu"] = str(num_gpus)
+    if "neuron" in image_tag and num_neurons:
+        arguments_dict["num_neurons"] = num_neurons
     try:
         task_family, revision = register_ecs_task_definition(**arguments_dict)
         print(f"Created Task definition - {task_family}:{revision}")
@@ -804,7 +807,10 @@ def setup_ecs_inference_service(
         model_base_path = get_tensorflow_model_base_path(docker_image_uri)
         _, image_framework_version = get_framework_and_version_from_tag(docker_image_uri)
         if Version(image_framework_version) in SpecifierSet(">=2.7"):
-            arguments_dict["container_command"] = [build_tensorflow_inference_command_tf27_and_above(model_name)]
+            entrypoint = "/usr/bin/tf_serving_entrypoint.sh"
+            if processor == "neuron":
+                entrypoint = "/usr/local/bin/entrypoint.sh"
+            arguments_dict["container_command"] = [build_tensorflow_inference_command_tf27_and_above(model_name, entrypoint)]
             arguments_dict["entrypoint"] = ["sh", "-c"]
 
         arguments_dict["environment"] = get_tensorflow_inference_environment_variables(model_name, model_base_path)

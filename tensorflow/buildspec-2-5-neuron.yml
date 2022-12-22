@@ -4,6 +4,7 @@
   short_version: &SHORT_VERSION 2.5
   version: &VERSION 2.5.3
   os_version: &OS_VERSION ubuntu18.04
+  arch_type: x86
 
   repository_info:
     inference_repository: &INFERENCE_REPOSITORY

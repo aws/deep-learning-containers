@@ -18,6 +18,7 @@ import pytest
 import sagemaker
 
 from packaging.version import Version
+from sagemaker.instance_group import InstanceGroup
 from packaging.specifiers import SpecifierSet
 from sagemaker.tensorflow import TensorFlow
 
@@ -91,7 +92,7 @@ def _test_distributed_training_smdataparallel_script_mode_function(
 
     estimator.fit(job_name=unique_name_from_base('test-tf-smdataparallel'))
 
-
+@pytest.mark.usefixtures("feature_smddp_present")
 @pytest.mark.processor("gpu")
 @pytest.mark.skip_cpu
 @pytest.mark.multinode(2)
@@ -127,6 +128,43 @@ def _test_smdataparallel_mnist_function(
     estimator.fit(job_name=unique_name_from_base('test-tf-smdataparallel-multi'))
 
 
+@pytest.mark.usefixtures("feature_smddp_present")
+@pytest.mark.processor("gpu")
+@pytest.mark.skip_cpu
+@pytest.mark.multinode(2)
+@pytest.mark.integration("smdataparallel")
+@pytest.mark.model("mnist")
+@pytest.mark.skip_py2_containers
+@pytest.mark.efa()
+@pytest.mark.parametrize('instance_types', ["ml.p3.16xlarge", "ml.p4d.24xlarge"])
+def test_hc_smdataparallel_mnist(ecr_image, sagemaker_regions, instance_types, py_version, tmpdir):
+    training_group = InstanceGroup("train_group", instance_types, 2)
+    invoke_sm_helper_function(ecr_image,
+                              sagemaker_regions,
+                              _test_hc_smdataparallel_mnist_function,
+                              [training_group])
+
+
+def _test_hc_smdataparallel_mnist_function(
+        ecr_image, sagemaker_session, instance_groups):
+    """
+    Tests smddprun command via Estimator API distribution parameter
+    """
+    validate_or_skip_smdataparallel_efa(ecr_image)
+
+    distribution = {"smdistributed": {"dataparallel": {"enabled": True}},  "instance_groups": instance_groups}
+    estimator = TensorFlow(entry_point='smdataparallel_mnist.py',
+                           role='SageMakerRole',
+                           image_uri=ecr_image,
+                           source_dir=MNIST_PATH,
+                           instance_groups=instance_groups,
+                           sagemaker_session=sagemaker_session,
+                           distribution=distribution)
+
+    estimator.fit(job_name=unique_name_from_base('test-tf-hc-smdataparallel-multi'))
+
+
+@pytest.mark.usefixtures("feature_smddp_present")
 @pytest.mark.processor("gpu")
 @pytest.mark.skip_cpu
 @pytest.mark.multinode(2)

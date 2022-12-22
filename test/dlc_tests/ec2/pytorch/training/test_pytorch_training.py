@@ -22,6 +22,11 @@ PT_S3_PLUGIN_CMD = os.path.join(CONTAINER_TESTS_PREFIX, "pytorch_tests", "testPy
 PT_HABANA_TEST_SUITE_CMD = os.path.join(CONTAINER_TESTS_PREFIX, "testHabanaPTSuite")
 PT_TORCHAUDIO_CMD = os.path.join(CONTAINER_TESTS_PREFIX, "pytorch_tests", "testTorchaudio")
 PT_TORCHDATA_CMD = os.path.join(CONTAINER_TESTS_PREFIX, "pytorch_tests", "testTorchdata")
+PT_NEURON_ALLREDUCE_SCRIPT = os.path.join(CONTAINER_TESTS_PREFIX, "pytorch_tests", "testNeuronSingleAllReduce")
+PT_NEURON_MNIST_SCRIPT = os.path.join(CONTAINER_TESTS_PREFIX, "pytorch_tests", "testNeuronMlp")
+PT_NEURON_ALLREDUCE_CMD = f"torchrun --nproc_per_node=2 --nnodes=1 --node_rank=0 --master_addr=localhost --master_port=2022 {PT_NEURON_ALLREDUCE_SCRIPT}"
+PT_NEURON_MLP_CMD = f"torchrun --nproc_per_node=2 --nnodes=1 --node_rank=0 --master_addr=localhost --master_port=2022 {PT_NEURON_MNIST_SCRIPT}"
+PT_TORCHDATA_DEV_CMD = os.path.join(CONTAINER_TESTS_PREFIX, "pytorch_tests", "testTorchdataDev")
 
 
 PT_EC2_GPU_INSTANCE_TYPE = get_ec2_instance_type(default="g3.8xlarge", processor="gpu")
@@ -33,7 +38,21 @@ PT_EC2_MULTI_GPU_INSTANCE_TYPE = get_ec2_instance_type(
     default="g3.8xlarge", processor="gpu", filter_function=ec2_utils.filter_only_multi_gpu,
 )
 PT_EC2_HPU_INSTANCE_TYPE = get_ec2_instance_type(default="dl1.24xlarge", processor="hpu")
+PT_EC2_NEURON_TRN1_INSTANCE_TYPE = get_ec2_instance_type(default="trn1.2xlarge", processor="neuron", job_type="training")
 
+@pytest.mark.parametrize("ec2_instance_ami", [test_utils.NEURON_TRN1_AMI_US_WEST_2], indirect=True)
+@pytest.mark.parametrize("ec2_instance_type", PT_EC2_NEURON_TRN1_INSTANCE_TYPE, indirect=True)
+@pytest.mark.integration("pytorch_neuron_sanity_test")
+@pytest.mark.model("xla")
+def test_pytorch_allreduce_neuron(pytorch_training_neuron, ec2_connection):
+    execute_ec2_training_test(ec2_connection, pytorch_training_neuron, PT_NEURON_ALLREDUCE_CMD)
+
+@pytest.mark.parametrize("ec2_instance_ami", [test_utils.NEURON_TRN1_AMI_US_WEST_2], indirect=True)
+@pytest.mark.parametrize("ec2_instance_type", PT_EC2_NEURON_TRN1_INSTANCE_TYPE, indirect=True)
+@pytest.mark.integration("pytorch_neuron_sanity_test")
+@pytest.mark.model("mlp")
+def test_pytorch_train_mlp_neuron(pytorch_training_neuron, ec2_connection):
+    execute_ec2_training_test(ec2_connection, pytorch_training_neuron, PT_NEURON_MLP_CMD)
 
 @pytest.mark.usefixtures("sagemaker")
 @pytest.mark.integration("pytorch_sanity_test")
@@ -117,6 +136,9 @@ def test_pytorch_train_dgl_cpu(pytorch_training, ec2_connection, cpu_only, py3_o
 @pytest.mark.model("mnist")
 @pytest.mark.parametrize("ec2_instance_type", PT_EC2_GPU_INSTANCE_TYPE, indirect=True)
 def test_pytorch_with_horovod(pytorch_training, ec2_connection, gpu_only, ec2_instance_type):
+    _, image_framework_version = get_framework_and_version_from_tag(pytorch_training)
+    if 'trcomp' in pytorch_training and Version(image_framework_version) in SpecifierSet("<1.13.*"):
+        pytest.skip(f"Image {pytorch_training} doesn't package horovod. Hence test is skipped.")
     if test_utils.is_image_incompatible_with_instance_type(pytorch_training, ec2_instance_type):
         pytest.skip(f"Image {pytorch_training} is incompatible with instance type {ec2_instance_type}")
     test_cmd = os.path.join(CONTAINER_TESTS_PREFIX, "pytorch_tests", "testPTHVD")
@@ -173,6 +195,8 @@ def test_pytorch_nccl_version(
     """
     Tests nccl version
     """
+    if 'trcomp' in pytorch_training:
+        pytest.skip(f"Image {pytorch_training} should use the system nccl through xla. Hence the test is skipped.")
     if test_utils.is_image_incompatible_with_instance_type(pytorch_training, ec2_instance_type):
         pytest.skip(f"Image {pytorch_training} is incompatible with instance type {ec2_instance_type}")
     test_cmd = os.path.join(CONTAINER_TESTS_PREFIX, "pytorch_tests", "testPyTorchNcclVersion")
@@ -187,6 +211,8 @@ def test_pytorch_mpi_gpu(pytorch_training, ec2_connection, gpu_only, py3_only, e
     """
     Tests mpi backend
     """
+    if 'trcomp' in pytorch_training:
+        pytest.skip(f"Image {pytorch_training} is incompatible with distribution type MPI.")
     if test_utils.is_image_incompatible_with_instance_type(pytorch_training, ec2_instance_type):
         pytest.skip(f"Image {pytorch_training} is incompatible with instance type {ec2_instance_type}")
     test_cmd = os.path.join(CONTAINER_TESTS_PREFIX, "pytorch_tests", "testPyTorchMpi")
@@ -201,6 +227,8 @@ def test_pytorch_mpi_cpu(pytorch_training, ec2_connection, cpu_only, py3_only, e
     """
     Tests mpi backend
     """
+    if 'trcomp' in pytorch_training:
+        pytest.skip(f"Image {pytorch_training} is incompatible with distribution type MPI.")
     test_cmd = os.path.join(CONTAINER_TESTS_PREFIX, "pytorch_tests", "testPyTorchMpi")
     execute_ec2_training_test(ec2_connection, pytorch_training, test_cmd)
 
@@ -228,26 +256,34 @@ def test_pytorch_amp(pytorch_training, ec2_connection, gpu_only, ec2_instance_ty
     execute_ec2_training_test(ec2_connection, pytorch_training, PT_AMP_CMD)
 
 
+@pytest.mark.usefixtures("feature_s3_plugin_present")
 @pytest.mark.usefixtures("sagemaker")
 @pytest.mark.integration("pt_s3_plugin_gpu")
 @pytest.mark.model("N/A")
 @pytest.mark.parametrize("ec2_instance_type", PT_EC2_GPU_INSTANCE_TYPE, indirect=True)
-def test_pytorch_s3_plugin_gpu(pytorch_training, ec2_connection, gpu_only, ec2_instance_type, pt17_and_above_only):
+def test_pytorch_s3_plugin_gpu(pytorch_training, ec2_connection, gpu_only, ec2_instance_type, outside_versions_skip):
+    outside_versions_skip(pytorch_training, "1.8.0", "1.12.1")
+    _, image_framework_version = get_framework_and_version_from_tag(pytorch_training)
+    if 'trcomp' in pytorch_training and Version(image_framework_version) in SpecifierSet("<1.13.*"):
+        pytest.skip(f"Image {pytorch_training} doesn't support s3. Hence test is skipped.")
     if test_utils.is_image_incompatible_with_instance_type(pytorch_training, ec2_instance_type):
         pytest.skip(f"Image {pytorch_training} is incompatible with instance type {ec2_instance_type}")
     execute_ec2_training_test(ec2_connection, pytorch_training, PT_S3_PLUGIN_CMD)
 
 
+@pytest.mark.usefixtures("feature_s3_plugin_present")
 @pytest.mark.usefixtures("sagemaker")
 @pytest.mark.integration("pt_s3_plugin_cpu")
 @pytest.mark.model("N/A")
 @pytest.mark.parametrize("ec2_instance_type", PT_EC2_CPU_INSTANCE_TYPE, indirect=True)
-def test_pytorch_s3_plugin_cpu(pytorch_training, ec2_connection, cpu_only, ec2_instance_type, pt17_and_above_only):
+def test_pytorch_s3_plugin_cpu(pytorch_training, ec2_connection, cpu_only, ec2_instance_type, outside_versions_skip):
+    outside_versions_skip(pytorch_training, "1.8.0", "1.12.1")
     if test_utils.is_image_incompatible_with_instance_type(pytorch_training, ec2_instance_type):
         pytest.skip(f"Image {pytorch_training} is incompatible with instance type {ec2_instance_type}")
     execute_ec2_training_test(ec2_connection, pytorch_training, PT_S3_PLUGIN_CMD)
 
 
+@pytest.mark.usefixtures("feature_torchaudio_present")
 @pytest.mark.usefixtures("sagemaker")
 @pytest.mark.integration("pt_torchaudio_gpu")
 @pytest.mark.model("N/A")
@@ -261,6 +297,7 @@ def test_pytorch_training_torchaudio_gpu(
     execute_ec2_training_test(ec2_connection, pytorch_training, PT_TORCHAUDIO_CMD)
 
 
+@pytest.mark.usefixtures("feature_torchaudio_present")
 @pytest.mark.usefixtures("sagemaker")
 @pytest.mark.integration("pt_torchaudio_cpu")
 @pytest.mark.model("N/A")
@@ -274,6 +311,7 @@ def test_pytorch_training_torchaudio_cpu(
     execute_ec2_training_test(ec2_connection, pytorch_training, PT_TORCHAUDIO_CMD)
 
 
+@pytest.mark.usefixtures("feature_torchdata_present")
 @pytest.mark.usefixtures("sagemaker")
 @pytest.mark.integration("pt_torchdata_gpu")
 @pytest.mark.model("N/A")
@@ -282,11 +320,18 @@ def test_pytorch_training_torchdata_gpu(
     pytorch_training, ec2_connection, gpu_only, ec2_instance_type, pt111_and_above_only
 ):
     _, image_framework_version = get_framework_and_version_from_tag(pytorch_training)
+    if 'trcomp' in pytorch_training and Version(image_framework_version) in SpecifierSet("<1.13.*"):
+        pytest.skip(f"Image {pytorch_training} doesn't package torch_data. Hence test is skipped.")
     if test_utils.is_image_incompatible_with_instance_type(pytorch_training, ec2_instance_type):
         pytest.skip(f"Image {pytorch_training} is incompatible with instance type {ec2_instance_type}")
-    execute_ec2_training_test(ec2_connection, pytorch_training, PT_TORCHDATA_CMD)
+    # HACK including PT 1.13 in this condition because the Torchdata 0.5.0 tag includes old tests data
+    if Version(image_framework_version) in SpecifierSet(">=1.11,<=1.13"):
+        execute_ec2_training_test(ec2_connection, pytorch_training, PT_TORCHDATA_DEV_CMD)
+    else:
+        execute_ec2_training_test(ec2_connection, pytorch_training, PT_TORCHDATA_CMD)
 
 
+@pytest.mark.usefixtures("feature_torchdata_present")
 @pytest.mark.usefixtures("sagemaker")
 @pytest.mark.integration("pt_torchdata_cpu")
 @pytest.mark.model("N/A")
@@ -297,9 +342,14 @@ def test_pytorch_training_torchdata_cpu(
     _, image_framework_version = get_framework_and_version_from_tag(pytorch_training)
     if test_utils.is_image_incompatible_with_instance_type(pytorch_training, ec2_instance_type):
         pytest.skip(f"Image {pytorch_training} is incompatible with instance type {ec2_instance_type}")
-    execute_ec2_training_test(ec2_connection, pytorch_training, PT_TORCHDATA_CMD)
+    # HACK including PT 1.13 in this condition because the Torchdata 0.5.0 tag includes old tests data
+    if Version(image_framework_version) in SpecifierSet(">=1.11,<=1.13"):
+        execute_ec2_training_test(ec2_connection, pytorch_training, PT_TORCHDATA_DEV_CMD)
+    else:
+        execute_ec2_training_test(ec2_connection, pytorch_training, PT_TORCHDATA_CMD)
 
 
+@pytest.mark.usefixtures("feature_aws_framework_present")
 @pytest.mark.usefixtures("sagemaker")
 @pytest.mark.integration("telemetry")
 @pytest.mark.model("N/A")
@@ -309,6 +359,7 @@ def test_pytorch_telemetry_gpu(pytorch_training, ec2_connection, gpu_only, ec2_i
         pytest.skip(f"Image {pytorch_training} is incompatible with instance type {ec2_instance_type}")
 
 
+@pytest.mark.usefixtures("feature_aws_framework_present")
 @pytest.mark.usefixtures("sagemaker")
 @pytest.mark.integration("telemetry")
 @pytest.mark.model("N/A")
@@ -322,4 +373,4 @@ def test_pytorch_telemetry_cpu(pytorch_training, ec2_connection, cpu_only, pt15_
 @pytest.mark.parametrize("ec2_instance_type", PT_EC2_HPU_INSTANCE_TYPE, indirect=True)
 @pytest.mark.parametrize("ec2_instance_ami", [UBUNTU_18_HPU_DLAMI_US_WEST_2], indirect=True)
 def test_pytorch_standalone_hpu(pytorch_training_habana, ec2_connection, upload_habana_test_artifact):
-    execute_ec2_training_test(ec2_connection, pytorch_training_habana, PT_HABANA_TEST_SUITE_CMD, container_name="ec2_training_habana_pytorch_container")
+    execute_ec2_training_test(ec2_connection, pytorch_training_habana, PT_HABANA_TEST_SUITE_CMD, container_name="ec2_training_habana_pytorch_container", enable_habana_async_execution=True)

@@ -1,51 +1,140 @@
 ---
 release_images:
-# Check .release_images_template.yml for reference
   1:
+    framework: "mxnet"
+    version: "1.9.0"
+    customer_type: "ec2"
+    arch_type: "x86"
+    inference:
+      device_types: ["cpu", "gpu"]
+      python_versions: ["py38"]
+      os_version: "ubuntu20.04"
+      cuda_version: "cu112"
+      example: False
+      disable_sm_tag: False
+      force_release: False
+  2:
+    framework: "mxnet"
+    version: "1.9.0"
+    customer_type: "sagemaker"
+    arch_type: "x86"
+    inference:
+      device_types: ["cpu", "gpu"]
+      python_versions: ["py38"]
+      os_version: "ubuntu20.04"
+      cuda_version: "cu112"
+      example: False
+      disable_sm_tag: False
+      force_release: False
+  3:
+    framework: "pytorch"
+    version: "1.13.0"
+    arch_type: "x86"
+    customer_type: "ec2"
+    training:
+      device_types: ["cpu", "gpu"]
+      python_versions: [ "py39" ]
+      os_version: "ubuntu20.04"
+      cuda_version: "cu117"
+      example: False
+      disable_sm_tag: False  # [Default: False] This option is not used by Example images
+      force_release: False
+  4:
+    framework: "pytorch"
+    version: "1.13.0"
+    arch_type: "x86"
+    customer_type: "ec2"
+    training:
+      device_types: [ "gpu" ]
+      python_versions: [ "py39" ]
+      os_version: "ubuntu20.04"
+      cuda_version: "cu117"
+      example: True
+      disable_sm_tag: False
+      force_release: False
+  5:
+    framework: "tensorflow"
+    version: "2.10.1"
+    customer_type: "ec2"
+    arch_type: "x86"
+    inference:
+      device_types: ["cpu", "gpu"]
+      python_versions: ["py39"]
+      os_version: "ubuntu20.04"
+      cuda_version: "cu112"
+      example: False
+      disable_sm_tag: False
+      force_release: False
+  6:
+    framework: "tensorflow"
+    version: "2.10.1"
+    customer_type: "sagemaker"
+    arch_type: "x86"
+    inference:
+      device_types: ["cpu", "gpu"]
+      python_versions: ["py39"]
+      os_version: "ubuntu20.04"
+      cuda_version: "cu112"
+      example: False
+      disable_sm_tag: False
+      force_release: False
+  7:
     framework: "mxnet"
     version: "1.8.0"
     arch_type: "x86"
     inference:
       device_types: ["neuron"]
-      python_versions: ["py37"]
-      os_version: "ubuntu18.04"
-      neuron_sdk_version: "sdk1.18.0"
+      python_versions: ["py38"]
+      os_version: "ubuntu20.04"
+      neuron_sdk_version: "sdk2.5.0"
       example: False
       disable_sm_tag: True
       force_release: False
-  2:
+  8:
     framework: "tensorflow"
-    version: "2.5.3"
+    version: "2.8.0"
     arch_type: "x86"
     inference:
       device_types: ["neuron"]
-      python_versions: ["py37"]
-      os_version: "ubuntu18.04"
-      neuron_sdk_version: "sdk1.19.0"
+      python_versions: ["py38"]
+      os_version: "ubuntu20.04"
+      neuron_sdk_version: "sdk2.5.0"
       example: False
       disable_sm_tag: True
       force_release: False
-  3:
+  9:
     framework: "tensorflow"
     version: "1.15.5"
     arch_type: "x86"
     inference:
       device_types: ["neuron"]
-      python_versions: ["py37"]
-      os_version: "ubuntu18.04"
-      neuron_sdk_version: "sdk1.19.0"
+      python_versions: ["py38"]
+      os_version: "ubuntu20.04"
+      neuron_sdk_version: "sdk2.5.0"
       example: False
       disable_sm_tag: True
       force_release: False
-  4:
+  10:
+    framework: "autogluon"
+    version: "0.6.1"
+    arch_type: "x86"
+    training:
+      device_types: ["cpu", "gpu"]
+      python_versions: ["py38"]
+      os_version: "ubuntu20.04"
+      cuda_version: "cu113"
+      example: False
+      disable_sm_tag: False
+      force_release: False
+  11:
     framework: "pytorch"
-    version: "1.10.2"
+    version: "1.12.1"
     arch_type: "x86"
     inference:
       device_types: ["neuron"]
-      python_versions: ["py37"]
-      os_version: "ubuntu18.04"
-      neuron_sdk_version: "sdk1.19.0"
+      python_versions: ["py38"]
+      os_version: "ubuntu20.04"
+      neuron_sdk_version: "sdk2.5.0"
       example: False
       disable_sm_tag: True
       force_release: False

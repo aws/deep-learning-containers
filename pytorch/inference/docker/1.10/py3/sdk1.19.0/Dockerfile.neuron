@@ -8,11 +8,11 @@ LABEL com.amazonaws.sagemaker.capabilities.accept-bind-to-port=true
 ARG PYTHON=python3.7
 ARG PYTHON_VERSION=3.7.10
 ARG TS_VERSION=0.5.2
-ARG MAMBA_VERSION=4.12.0-0
+ARG MAMBA_VERSION=4.12.0-2
 
 # See http://bugs.python.org/issue19846
 ENV LANG C.UTF-8
-ENV LD_LIBRARY_PATH /opt/conda/lib/:$LD_LIBRARY_PATH
+ENV LD_LIBRARY_PATH /lib/x86_64-linux-gnu:/opt/conda/lib/:$LD_LIBRARY_PATH
 ENV PATH /opt/conda/bin:$PATH
 ENV SAGEMAKER_SERVING_MODULE sagemaker_pytorch_serving_container.serving:main
 ENV TEMP=/home/model-server/tmp
@@ -41,7 +41,7 @@ RUN apt-get update \
     unzip \
     zlib1g-dev \
     libcap-dev \
-    gpg-agent \
+    gpg-agent \ 
  && rm -rf /var/lib/apt/lists/* \
  && rm -rf /tmp/tmp* \
  && apt-get clean
@@ -66,7 +66,6 @@ RUN curl -L -o ~/mambaforge.sh https://github.com/conda-forge/miniforge/releases
  && chmod +x ~/mambaforge.sh \
  && ~/mambaforge.sh -b -p /opt/conda \
  && rm ~/mambaforge.sh \
- && /opt/conda/bin/conda update conda \
  && /opt/conda/bin/conda install -c conda-forge -y \
     python=$PYTHON_VERSION \
     cython \
@@ -77,8 +76,7 @@ RUN curl -L -o ~/mambaforge.sh https://github.com/conda-forge/miniforge/releases
     typing \
     # Below 2 are included in miniconda base, but not mamba so need to install
     conda-content-trust \
-    charset-normalizer \
- && /opt/conda/bin/conda clean -ya
+    charset-normalizer
 
 RUN conda install -c conda-forge \
     opencv \

@@ -36,7 +36,8 @@ ARG PT_TORCHVISION_URL=https://aws-habana-pytorch-cicd-v3-binaries.s3.us-west-2.
 
 RUN pip --no-cache-dir install --upgrade \
     pip \
-    "setuptools==58.2.0"
+    "setuptools==58.2.0" \
+    "pytorch-lightning>=1.6"
 
 # The following section uninstalls torch and torchvision before installing the
 # custom versions from an S3 bucket.
@@ -52,6 +53,7 @@ RUN pip install --no-cache-dir --user -U \
     cmake==3.18.2.post1 \
     torchnet \
     "cryptography>3.2" \
+    "pytorch-lightning>=1.6" \
     werkzeug \
  && pip install --no-cache-dir --user -U boto3 --upgrade \
  && pip uninstall -y torch \
