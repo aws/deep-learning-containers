@@ -184,21 +184,15 @@ def test_tf_serving_version_cpu(tensorflow_inference):
 
     stop_and_remove_container(container_name, ctx)
 
-# Added by hballuru to confirm tf-serving-api version is matching tf serving version
 @pytest.mark.usefixtures("sagemaker")
 @pytest.mark.model("N/A")
-@pytest.mark.canary("Run non-gpu tf serving version test regularly on production images")
-def test_tf_serving_api_version_cpu(tensorflow_inference):
+def test_tf_serving_api_version(tensorflow_inference):
     """
-    For non-huggingface non-GPU TF inference images, check that the tag version matches the version of TF serving api
+    For non-huggingface TF inference images, check that the tag version matches the version of TF serving api
     in the container.
 
     Huggingface includes MMS and core TF, hence the versioning scheme is based off of the underlying tensorflow
     framework version, rather than the TF serving version.
-
-    GPU inference images will be tested along side `test_framework_and_cuda_version_gpu` in order to be judicious
-    about GPU resources. This test can run directly on the host, and thus does not require additional resources
-    to be spun up.
 
     @param tensorflow_inference: ECR image URI
     """
@@ -206,31 +200,27 @@ def test_tf_serving_api_version_cpu(tensorflow_inference):
     image = tensorflow_inference
 
     if "gpu" in image:
-        pytest.skip(
-            "GPU images will have their framework version tested in test_framework_and_cuda_version_gpu")
-    if "neuron" in image:
-        pytest.skip(
-            "Neuron images will have their framework version tested in test_framework_and_neuron_sdk_version")
+        cmd="pip show tensorflow-serving-api-gpu | grep Version"
+    if "cpu" in image:
+        cmd="pip show tensorflow-serving-api | grep Version"
 
-    _, tag_framework_version = get_framework_and_version_from_tag(
-        image)
-
-    image_repo_name, _ = get_repository_and_tag_from_image_uri(image)
-
-    if re.fullmatch(r"(pr-|beta-|nightly-)?tensorflow-inference", image_repo_name) and Version(tag_framework_version) == Version("2.6.3"):
-        pytest.skip("Skipping this test for TF 2.6.3 inference as the v2.6.3 version is already on production")
-
+    _, tag_framework_version = get_framework_and_version_from_tag(image)
+    
     ctx = Context()
     container_name = get_container_name("tf-serving-api-version", image)
     start_container(container_name, image, ctx)
-    output = run_cmd_on_container(
-        container_name, ctx, "pip show tensorflow-serving-api | grep Version", executable="bash"
-    )
-    str_version_from_output = ((str(output.stdout).split(' '))[1]).strip()
-    assert (tag_framework_version == str_version_from_output), \
-        f"Tensorflow serving API version is {str_version_from_output} while the Tensorflow version is {tag_framework_version}. Both don't match!"
-
-    stop_and_remove_container(container_name, ctx)
+    try:
+        output = run_cmd_on_container(
+            container_name, ctx, cmd, executable="bash"
+        )
+        str_version_from_output = ((str(output.stdout).split(' '))[1]).strip()
+        assert (tag_framework_version == str_version_from_output), \
+            f"Tensorflow serving API version is {str_version_from_output} while the Tensorflow version is {tag_framework_version}. Both don't match!"
+    except Exception as e:
+        LOGGER.error(f"Unable to execute command on container. Error: {e}")
+        raise        
+    finally:
+        stop_and_remove_container(container_name, ctx)
 
 @pytest.mark.usefixtures("sagemaker", "huggingface")
 @pytest.mark.model("N/A")
@@ -391,14 +381,6 @@ def test_framework_and_cuda_version_gpu(gpu, ec2_connection):
         output = ec2.execute_ec2_training_test(ec2_connection, image, cmd, executable="bash")
         assert re.match(rf"TensorFlow ModelServer: {tag_framework_version}(\D+)?", output.stdout), \
             f"Cannot find model server version {tag_framework_version} in {output.stdout}"
-    # Framework API Version Check #
-    # For tf inference containers, check TF model server version matches TF serving API version
-    if re.fullmatch(r"(pr-|beta-|nightly-)?tensorflow-inference(-eia|-graviton)?", image_repo_name):
-        cmd = "pip show tensorflow-serving-api-gpu | grep Version"
-        output = ec2.execute_ec2_training_test(ec2_connection, image, cmd, executable="bash", container_name="tf_serving_api_test")
-        str_version_from_output = ((str(output.stdout).split(' '))[1]).strip()
-        assert (tag_framework_version == str_version_from_output), \
-        f"Tensorflow serving API version is {str_version_from_output} while the Tensorflow version is {tag_framework_version}. Both don't match!"
     else:
         # Framework name may include huggingface
         if tested_framework.startswith('huggingface_'):
