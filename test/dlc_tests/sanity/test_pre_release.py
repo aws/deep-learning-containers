@@ -227,7 +227,7 @@ def test_tf_serving_api_version_cpu(tensorflow_inference):
         container_name, ctx, "pip show tensorflow-serving-api | grep Version", executable="bash"
     )
     str_version_from_output = ((str(output.stdout).split(' '))[1]).strip()
-    assert (tag_framework_version == {str_version_from_output}), \
+    assert (tag_framework_version == str_version_from_output), \
         f"Tensorflow serving API version is {str_version_from_output} while the Tensorflow version is {tag_framework_version}. Both don't match!"
 
     stop_and_remove_container(container_name, ctx)
@@ -397,7 +397,7 @@ def test_framework_and_cuda_version_gpu(gpu, ec2_connection):
         cmd = "pip show tensorflow-serving-api-gpu | grep Version"
         output = ec2.execute_ec2_training_test(ec2_connection, image, cmd, executable="bash", container_name="tf_serving_api_test")
         str_version_from_output = ((str(output.stdout).split(' '))[1]).strip()
-        assert (tag_framework_version == {str_version_from_output}), \
+        assert (tag_framework_version == str_version_from_output), \
         f"Tensorflow serving API version is {str_version_from_output} while the Tensorflow version is {tag_framework_version}. Both don't match!"
     else:
         # Framework name may include huggingface
