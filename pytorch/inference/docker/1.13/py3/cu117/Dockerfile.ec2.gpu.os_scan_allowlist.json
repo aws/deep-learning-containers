@@ -71,9 +71,9 @@
                 }
             },
             "cvss_v3_score": 7.5,
-            "cvss_v30_score": 0,
+            "cvss_v30_score": 0.0,
             "cvss_v31_score": 7.5,
-            "cvss_v2_score": 0,
+            "cvss_v2_score": 0.0,
             "cvss_v3_severity": "HIGH",
             "source_url": "https://people.canonical.com/~ubuntu-security/cve/2022/CVE-2022-3996.html",
             "source": "UBUNTU_CVE",
