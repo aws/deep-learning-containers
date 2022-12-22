@@ -286,7 +286,7 @@ RUN curl https://aws-dlc-licenses.s3.amazonaws.com/tensorflow-${TF_VERSION}/lice
 
 FROM common AS ec2
 
-ARG TF_URL=https://framework-binaries.s3.us-west-2.amazonaws.com/tensorflow/r2.11_aws/gpu/2022-11-18-18-18/tensorflow_gpu-2.11.0-cp39-cp39-manylinux_2_17_x86_64.manylinux2014_x86_64.whl
+ARG TF_URL=https://framework-binaries.s3.us-west-2.amazonaws.com/tensorflow/r2.11_aws/gpu/2022-12-22-20-41/tensorflow_gpu-2.11.0-cp39-cp39-manylinux_2_17_x86_64.manylinux2014_x86_64.whl
 
 RUN ${PIP} install --no-cache-dir -U \
    ${TF_URL} \
@@ -333,10 +333,8 @@ LABEL maintainer="Amazon AI"
 LABEL dlc_major_version="1"
 
 #SMDEBUGGER TESTING PLEASE REMOVE
-ARG TF_URL=https://framework-binaries.s3.us-west-2.amazonaws.com/tensorflow/smdebugger_test/r2.11_aws/gpu/2022-12-20-11-07/tensorflow_gpu-2.11.0-cp39-cp39-manylinux_2_17_x86_64.manylinux2014_x86_64.whl
+ARG TF_URL=https://framework-binaries.s3.us-west-2.amazonaws.com/tensorflow/r2.11_aws/gpu/2022-12-22-20-41/tensorflow_gpu-2.11.0-cp39-cp39-manylinux_2_17_x86_64.manylinux2014_x86_64.whl
 
-# ORIGINAL
-# ARG TF_URL=https://framework-binaries.s3.us-west-2.amazonaws.com/tensorflow/r2.11_aws/gpu/2022-11-18-18-18/tensorflow_gpu-2.11.0-cp39-cp39-manylinux_2_17_x86_64.manylinux2014_x86_64.whl 
 # sagemaker-specific environment variable
 ENV SAGEMAKER_TRAINING_MODULE sagemaker_tensorflow_container.training:main
 
@@ -379,19 +377,12 @@ RUN $PYTHON -m pip install --no-cache-dir -U \
     "shap>=0.39,<1"
 
 
-# SMDebugger Dev Changes
-RUN git clone https://github.com/yl-to/sagemaker-debugger.git \
-    && cd sagemaker-debugger \
-    && git checkout 211_opt \
-    && $PYTHON -m pip install . \
-    && cd .. && rm -rf sagemaker-debugger
-
 # install smdebug directly the specific branch
-# ARG SMDEBUG_TAG=1.0.23
-# RUN git clone https://github.com/awslabs/sagemaker-debugger.git \
-#     && cd sagemaker-debugger \
-#     && git checkout tags/$SMDEBUG_TAG -b $SMDEBUG_TAG \
-#     && $PYTHON setup.py install && cd .. && rm -rf sagemaker-debugger
+ARG SMDEBUG_TAG=1.0.24
+RUN git clone https://github.com/awslabs/sagemaker-debugger.git \
+    && cd sagemaker-debugger \
+    && git checkout tags/$SMDEBUG_TAG -b $SMDEBUG_TAG \
+    && $PYTHON setup.py install && cd .. && rm -rf sagemaker-debugger
 
 
 # install sagemaker-tensorflow from source
