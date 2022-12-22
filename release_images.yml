@@ -126,15 +126,3 @@ release_images:
       example: False
       disable_sm_tag: False
       force_release: False
-  11:
-    framework: "pytorch"
-    version: "1.12.1"
-    arch_type: "x86"
-    inference:
-      device_types: ["neuron"]
-      python_versions: ["py38"]
-      os_version: "ubuntu20.04"
-      neuron_sdk_version: "sdk2.5.0"
-      example: False
-      disable_sm_tag: True
-      force_release: False
