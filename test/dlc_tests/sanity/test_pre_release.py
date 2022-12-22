@@ -226,7 +226,7 @@ def test_tf_serving_api_version_cpu(tensorflow_inference):
     output = run_cmd_on_container(
         container_name, ctx, "pip show tensorflow-serving-api | grep Version", executable="bash"
     )
-    str_version_from_output = (str(output.stdout).split(' '))[1]
+    str_version_from_output = ((str(output.stdout).split(' '))[1]).strip()
     assert (tag_framework_version == {str_version_from_output}), \
         f"Tensorflow serving API version is {str_version_from_output} while the Tensorflow version is {tag_framework_version}. Both don't match!"
 
@@ -394,9 +394,9 @@ def test_framework_and_cuda_version_gpu(gpu, ec2_connection):
     # Framework API Version Check #
     # For tf inference containers, check TF model server version matches TF serving API version
     if re.fullmatch(r"(pr-|beta-|nightly-)?tensorflow-inference(-eia|-graviton)?", image_repo_name):
-        cmd = "pip show tensorflow-serving-api | grep Version"
+        cmd = "pip show tensorflow-serving-api-gpu | grep Version"
         output = ec2.execute_ec2_training_test(ec2_connection, image, cmd, executable="bash", container_name="tf_serving_api_test")
-        str_version_from_output = (str(output.stdout).split(' '))[1]
+        str_version_from_output = ((str(output.stdout).split(' '))[1]).strip()
         assert (tag_framework_version == {str_version_from_output}), \
         f"Tensorflow serving API version is {str_version_from_output} while the Tensorflow version is {tag_framework_version}. Both don't match!"
     else:
