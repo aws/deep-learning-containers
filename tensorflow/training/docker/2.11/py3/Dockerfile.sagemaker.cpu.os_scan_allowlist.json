@@ -27,7 +27,7 @@
             "severity": "LOW",
             "status": "ACTIVE",
             "title": "CVE-2022-3996 - cryptography",
-            "reason_to_ignore": "Ubuntu 18.04 is not affected by this CVE, therefore there is no remediation required for Cryptography"
+            "reason_to_ignore": "Ubuntu 20.04 is not affected by this CVE, therefore there is no remediation required for Cryptography"
         }
     ]
 }
