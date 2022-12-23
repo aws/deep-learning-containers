@@ -104,6 +104,7 @@ RUN apt-get update \
  && apt-get install -y --no-install-recommends \
     libbz2-dev \
     libc6-dev \
+    libcurl4-openssl-dev \
     libffi-dev \
     libgdbm-dev \
     liblzma-dev \
@@ -159,13 +160,13 @@ RUN ${PIP} install --no-cache-dir -U \
     "werkzeug>=2.0.2,<3" \
     psutil==5.7.2 \
     "urllib3>1.26.0<1.27.0" \
-        # The Following Issues Require the Upper Bound Set on Protobuf:
+    # The Following Issues Require the Upper Bound Set on Protobuf:
     #    -  https://github.com/tensorflow/tensorflow/issues/53234  
     #    -  https://github.com/protocolbuffers/protobuf/issues/9954
     #    -  https://github.com/tensorflow/tensorflow/issues/56077
     # Reference setup.py protobuf upper limit here:
     #    - https://github.com/tensorflow/tensorflow/blob/master/tensorflow/tools/pip_package/setup.py#L105
-    "protobuf>=3.19,<3.20" 
+    "protobuf>=3.19,<3.20"
 
 ADD https://raw.githubusercontent.com/aws/deep-learning-containers/master/src/deep_learning_container.py /usr/local/bin/deep_learning_container.py
 
@@ -248,14 +249,12 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && apt-get install -y -qq krb5-user \
 && rm -rf /var/lib/apt/lists/*
 
-# SMDEBUGGER TESTTING PLEASE REMOVE
 ARG TF_URL=https://framework-binaries.s3.us-west-2.amazonaws.com/tensorflow/r2.11_aws/cpu/2022-12-22-20-46/tensorflow_cpu-2.11.0-cp39-cp39-manylinux_2_17_x86_64.manylinux2014_x86_64.whl
+
 # https://github.com/tensorflow/models/issues/9267
 # tf-models does not respect existing installations of TF and always installs open source TF
 RUN ${PIP} install --no-cache-dir -U \
-    tf-models-official==2.11.0 
-
-RUN ${PIP} install --no-cache-dir -U \
+    tf-models-official==2.11.0 \
     tensorflow-text==2.11.0
 
 RUN ${PIP} uninstall -y tensorflow tensorflow-gpu \
@@ -283,7 +282,7 @@ RUN $PYTHON -m pip install --no-cache-dir -U \
     sagemaker-experiments==0.* \
     "sagemaker-tensorflow-training>=20.3.1" \
     "sagemaker-training>=4.2.8" \
-    "sagemaker-studio-analytics-extension==0.0.2" \
+    "sagemaker-studio-analytics-extension<1" \
     "sparkmagic<1" \
     "sagemaker-studio-sparkmagic-lib<1" \
     smclarify
@@ -297,7 +296,6 @@ RUN git clone https://github.com/awslabs/sagemaker-debugger.git \
 
 # install sagemaker-tensorflow from source
 ARG SAGEMAKER_TENSORFLOW_TAG=v1.17.0
-RUN apt update && apt install -y libcurl4-openssl-dev
 RUN git clone -b tf-2 https://github.com/aws/sagemaker-tensorflow-extensions.git \
     && cd sagemaker-tensorflow-extensions \
     && git checkout tags/$SAGEMAKER_TENSORFLOW_TAG -b $SAGEMAKER_TENSORFLOW_TAG \
