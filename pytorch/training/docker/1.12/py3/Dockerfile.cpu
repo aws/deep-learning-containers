@@ -129,6 +129,8 @@ RUN curl -L -o ~/mambaforge.sh https://github.com/conda-forge/miniforge/releases
     # Below 2 are included in miniconda base, but not mamba so need to install
     conda-content-trust \
     charset-normalizer \
+    # TMP FIX, NEED TO FIX SMDEBUG NUMPY DEPRECATION ERROR SOON: https://github.com/awslabs/sagemaker-debugger/blob/ff3b53607c36008164372b4fa785545f2e3ec2ef/smdebug/core/hook.py#L737
+    numpy=1.23.5
  && /opt/conda/bin/conda install -c dglteam -y dgl \
  # Upstream conda looks to have moved to 4.13 which is incompatible with mamba 0.22.1 and will fail the conda-forge installs.
  # having "conda update conda" before the "conda -c conda-forge" commands will automatically update conda to 4.13.
