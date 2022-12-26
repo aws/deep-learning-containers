@@ -67,7 +67,6 @@ def test_safety_file_exists_and_is_valid(image):
     container_name = f"{repo_name}-{image_tag}-safety-file"
     # Add null entrypoint to ensure command exits immediately
     run(f"docker run -id " f"--name {container_name} " f"--entrypoint='/bin/bash' " f"{image}", hide=True, warn=True)
-
     try:
         # Check if file exists
         docker_exec_cmd = f"docker exec -i {container_name}"
@@ -75,6 +74,7 @@ def test_safety_file_exists_and_is_valid(image):
         assert safety_file_check.ok, f"Safety file existence test failed for {image}"
 
         file_content = run(f"{docker_exec_cmd} cat {SAFETY_FILE}", warn=True, hide=True)
+        LOGGER.error(f"docker command: {docker_exec_cmd} cat {SAFETY_FILE}")
         raw_scan_result = json.loads(file_content.stdout)
         safety_report_object = SafetyPythonEnvironmentVulnerabilityReport(report=raw_scan_result)
 
