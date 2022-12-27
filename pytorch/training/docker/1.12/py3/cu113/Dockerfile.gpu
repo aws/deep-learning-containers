@@ -180,7 +180,7 @@ RUN ompi_info --parsable --all | grep mpi_built_with_cuda_support:value \
     conda-content-trust \
     charset-normalizer \
     # TMP FIX, NEED TO FIX SMDEBUG NUMPY DEPRECATION ERROR SOON: https://github.com/awslabs/sagemaker-debugger/blob/ff3b53607c36008164372b4fa785545f2e3ec2ef/smdebug/core/hook.py#L737
-    numpy=1.23.5
+    numpy=1.23.5 \
  && /opt/conda/bin/conda install -c dglteam -y dgl-cuda11.3 \
  && /opt/conda/bin/conda install -c pytorch magma-cuda113 \
  # Upstream conda looks to have moved to 4.13 which is incompatible with mamba 0.22.1 and will fail the conda-forge installs.
