@@ -4,7 +4,7 @@ ARG MAMBA_VERSION=4.12.0-2
 
 # PyTorch Binaries
 ARG PT_EC2_TRAINING_URL=https://aws-pytorch-unified-cicd-binaries.s3.us-west-2.amazonaws.com/r1.12.1_ec2/20221209-000906/d3dae914337cde7e182d28544aed5efce29255c4/torch-1.12.1%2Bcpu-cp38-cp38-linux_x86_64.whl
-ARG PT_SM_TRAINING_URL=https://aws-pytorch-unified-cicd-binaries.s3.us-west-2.amazonaws.com/r1.12.1_sm/20221130-175350/98e79c6834c193ed3751a155c5309d441bf904e3/torch-1.12.1%2Bcpu-cp38-cp38-linux_x86_64.whl
+ARG PT_SM_TRAINING_URL=https://aws-pytorch-unified-cicd-binaries.s3.us-west-2.amazonaws.com/r1.12.1_sm/20221221-163712/3f47707a34bf7656209a5941f74264cdb2547e05/torch-1.12.1%2Bcpu-cp38-cp38-linux_x86_64.whl
 ARG PT_TORCHVISION_URL=https://download.pytorch.org/whl/cpu/torchvision-0.13.1%2Bcpu-cp38-cp38-linux_x86_64.whl
 ARG PT_TORCHAUDIO_URL=https://download.pytorch.org/whl/cpu/torchaudio-0.12.1%2Bcpu-cp38-cp38-linux_x86_64.whl
 ARG PT_TORCHDATA_URL=https://download.pytorch.org/whl/test/torchdata-0.4.1-cp38-cp38-manylinux_2_17_x86_64.manylinux2014_x86_64.whl
