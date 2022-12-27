@@ -660,8 +660,7 @@
             "py2": {
             },
             "py3": {
-                "51159":"cryptography>38.0.1 does not exist yet",
-                "51499": "the requested wheel is YANKED in pypi https://pypi.org/project/wheel/#history"
+                "52510":"Future 0.18.2 is the latest package version - no fix version is available"
             }
         },
         "inference-eia": {
