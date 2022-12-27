@@ -174,7 +174,6 @@ RUN ompi_info --parsable --all | grep mpi_built_with_cuda_support:value \
     typing \
     h5py \
     requests \
-    future \
     "pyopenssl>=17.5.0" \
     libgcc \
     # Below 2 are included in miniconda base, but not mamba so need to install
