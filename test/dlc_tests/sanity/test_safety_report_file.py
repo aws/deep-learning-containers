@@ -67,7 +67,7 @@ def test_safety_file_exists_and_is_valid(image):
     container_name = f"{repo_name}-{image_tag}-safety-file"
     # Add null entrypoint to ensure command exits immediately
     run(f"docker run -id " f"--name {container_name} " f"--entrypoint='/bin/bash' " f"{image}", hide=True, warn=True)
-    
+
     try:
         # Check if file exists
         docker_exec_cmd = f"docker exec -i {container_name}"
