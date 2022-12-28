@@ -169,7 +169,6 @@ RUN ompi_info --parsable --all | grep mpi_built_with_cuda_support:value \
     typing \
     h5py \
     requests \
-    future \
     "pyopenssl>=22.1.0,<23" \
     libgcc \
     conda-content-trust \
