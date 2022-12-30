@@ -198,11 +198,13 @@ def test_tf_serving_api_version(tensorflow_inference):
     """
     # Set local variable to clarify contents of fixture
     image = tensorflow_inference
-
+    
     if "gpu" in image:
         cmd="pip show tensorflow-serving-api-gpu | grep Version"
-    if "cpu" in image:
+    elif "cpu" in image:
         cmd="pip show tensorflow-serving-api | grep Version"
+    else:
+        ValueError("Test as of now only covers CPU and GPU type images. If required, please modify this test to accommodate the new image type!")
 
     _, tag_framework_version = get_framework_and_version_from_tag(image)
     
