@@ -116,23 +116,6 @@ RUN apt-get update \
  && rm -rf /var/lib/apt/lists/* \
  && apt-get clean
 
-# Install aws-sdk-cpp s3;transfer modules for torchdata
-# pin aws-sdk-cpp modules
-COPY pin_git_modules.py .
-RUN git clone https://github.com/aws/aws-sdk-cpp --branch main
-RUN python pin_git_modules.py --src $(pwd)/aws-sdk-cpp --date 2022-03-17
-RUN rm pin_git_modules.py
-# add necessary flags
-ENV LD_LIBRARY_PATH="/usr/lib/x86_64-linux-gnu/:${LD_LIBRARY_PATH}"
-RUN cd aws-sdk-cpp/ \
- && mkdir sdk-build \
- && cd sdk-build \
- && cmake .. -DCMAKE_CXX_FLAGS="-lcurl" -DCMAKE_BUILD_TYPE=Release -DBUILD_ONLY="s3;transfer" -DAUTORUN_UNIT_TESTS=OFF \
- && make \
- && make install \
- && cd ../.. \
- && rm -rf aws-sdk-cpp
-
 # Install NCCL
 RUN cd /tmp \
  && git clone https://github.com/NVIDIA/nccl.git -b v${NCCL_VERSION}-1 \
@@ -229,6 +212,23 @@ RUN pip install --no-cache-dir -U \
     pybind11 \
     "pyyaml>=5.4,<5.5" \
     scipy
+
+# Install aws-sdk-cpp s3;transfer modules for torchdata
+# pin aws-sdk-cpp modules
+COPY pin_git_modules.py .
+RUN git clone https://github.com/aws/aws-sdk-cpp --branch main
+RUN python pin_git_modules.py --src $(pwd)/aws-sdk-cpp --date 2022-03-17
+RUN rm pin_git_modules.py
+# add necessary flags
+ENV LD_LIBRARY_PATH="/usr/lib/x86_64-linux-gnu/:${LD_LIBRARY_PATH}"
+RUN cd aws-sdk-cpp/ \
+ && mkdir sdk-build \
+ && cd sdk-build \
+ && cmake .. -DCMAKE_CXX_FLAGS="-lcurl" -DCMAKE_BUILD_TYPE=Release -DBUILD_ONLY="s3;transfer" -DAUTORUN_UNIT_TESTS=OFF \
+ && make \
+ && make install \
+ && cd ../.. \
+ && rm -rf aws-sdk-cpp
 
 COPY deep_learning_container.py /usr/local/bin/deep_learning_container.py
 
