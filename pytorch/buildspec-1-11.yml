@@ -18,6 +18,9 @@ repository_info:
     repository: &REPOSITORY !join [ *ACCOUNT_ID, .dkr.ecr., *REGION, .amazonaws.com/, *REPOSITORY_NAME ]
 
 context:
+  pin_git_modules:
+    source: ../build_artifacts/pin_git_modules.py
+    target: pin_git_modules.py
   training_context: &TRAINING_CONTEXT
     changehostname:
       source: docker/build_artifacts/changehostname.c
@@ -28,9 +31,6 @@ context:
     example_mnist_file:
       source: docker/build_artifacts/mnist.py
       target: mnist.py
-    pin_git_modules:
-      source: docker/build_artifacts/pin_git_modules.py
-      target: pin_git_modules.py
     deep_learning_container:
       source: ../../src/deep_learning_container.py
       target: deep_learning_container.py
@@ -44,9 +44,6 @@ context:
     config:
       source: docker/build_artifacts/config.properties
       target: config.properties
-    pin_git_modules:
-      source: docker/build_artifacts/pin_git_modules.py
-      target: pin_git_modules.py
     deep_learning_container:
       source: ../../src/deep_learning_container.py
       target: deep_learning_container.py
