@@ -4,7 +4,7 @@ ARG PYTHON_SHORT_VERSION=3.8
 ARG MAMBA_VERSION=4.12.0-2
 
 # PyTorch Binaries
-ARG PT_EC2_TRAINING_URL=https://aws-pytorch-cicd-v3-binaries.s3.us-west-2.amazonaws.com/r1.11.0_v3_e3/20220316-044906/9a915205c493de013250347af38ad1083854bc09/gpu/torch-1.11.0%2Bcu115-cp38-cp38-linux_x86_64.whl
+ARG PT_EC2_TRAINING_URL=https://aws-pytorch-unified-cicd-binaries.s3.us-west-2.amazonaws.com/r1.11.0_ec2/20221206-191440/6ead7f1c1f99d7cc5d15574e6698a855ddd7c823/torch-1.11.0%2Bcu115-cp38-cp38-linux_x86_64.whl
 ARG PT_SM_TRAINING_URL=https://aws-pytorch-cicd-v3-binaries.s3.us-west-2.amazonaws.com/r1.11.0_v3_e3/20220316-044906/9a915205c493de013250347af38ad1083854bc09/gpu/torch-1.11.0%2Bcu115-cp38-cp38-linux_x86_64.whl
 ARG PT_TORCHVISION_URL=https://download.pytorch.org/whl/cu115/torchvision-0.12.0%2Bcu115-cp38-cp38-linux_x86_64.whl
 ARG PT_TORCHAUDIO_URL=https://download.pytorch.org/whl/cu115/torchaudio-0.11.0%2Bcu115-cp38-cp38-linux_x86_64.whl
