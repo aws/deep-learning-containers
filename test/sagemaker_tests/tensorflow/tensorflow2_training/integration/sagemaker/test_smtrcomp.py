@@ -144,7 +144,7 @@ class TestDistributedTraining:
         _assert_training_compiler_invoked(captured)
 
 
-    @pytest.mark.xfail(reason="Trcomp behavior with Horovod is undefined")
+    @pytest.mark.skip(reason="Trcomp behavior with Horovod is undefined")
     @pytest.mark.model('toy')
     @pytest.mark.integration("horovod")
     def test_horovod(self, sagemaker_session, ecr_image, framework_version, instance_type, instance_count, tmpdir, capsys):
@@ -173,7 +173,7 @@ class TestDistributedTraining:
 
 
     @pytest.mark.usefixtures("feature_smddp_present")
-    @pytest.mark.xfail(reason="Trcomp behavior with SMDP is undefined")
+    @pytest.mark.skip(reason="Trcomp behavior with SMDP is undefined")
     @pytest.mark.model('toy')
     @pytest.mark.integration("smdataparallel")
     def test_smdp(self, sagemaker_session, ecr_image, framework_version, instance_count, tmpdir, capsys):
@@ -196,7 +196,7 @@ class TestDistributedTraining:
 
 
     @pytest.mark.usefixtures("feature_smmp_present")
-    @pytest.mark.xfail(reason="SMMP is only supported on CUDA 11 on TensorFlow version between v2.3.1(inclusive) and v2.7.0(exclusive)")
+    @pytest.mark.skip(reason="SMMP is only supported on CUDA 11 on TensorFlow version between v2.3.1(inclusive) and v2.7.0(exclusive)")
     @pytest.mark.model('toy')
     @pytest.mark.integration("smmodelparallel")
     def test_smmp(self, sagemaker_session, ecr_image, framework_version, efa_instance_type, instance_count, tmpdir, capsys):
@@ -226,7 +226,7 @@ class TestDistributedTraining:
 
 
     @pytest.mark.usefixtures("feature_smmp_present")
-    @pytest.mark.xfail(reason='SMMP is only supported on CUDA 11 on TensorFlow version between v2.3.1(inclusive) and v2.7.0(exclusive)')
+    @pytest.mark.skip(reason='SMMP is only supported on CUDA 11 on TensorFlow version between v2.3.1(inclusive) and v2.7.0(exclusive)')
     @pytest.mark.model('toy')
     @pytest.mark.integration("horovod")
     @pytest.mark.integration("smmodelparallel")
@@ -390,7 +390,7 @@ class TestMLWorkFlow:
         _assert_training_compiler_invoked(captured)
 
 
-    @pytest.mark.xfail(reason="SM Training Compiler team yet to implement this integration test")
+    @pytest.mark.skip(reason="SM Training Compiler team yet to implement this integration test")
     @pytest.mark.model('N/A')
     @pytest.mark.integration("hpo")
     def test_hyperparameter_tuner(self, sagemaker_session, ecr_image, framework_version, instance_type, instance_count, tmpdir, capsys):
@@ -422,7 +422,7 @@ class TestMLWorkFlow:
         predictor.delete_predictor()
 
 
-    @pytest.mark.xfail(reason="Neo does not support TF 2.11 yet. TF 2.11's saved models are not backwards compatible.")
+    @pytest.mark.skip(reason="Neo does not support TF 2.11 yet. TF 2.11's saved models are not backwards compatible.")
     @pytest.mark.model('toy')
     @pytest.mark.integration("neo")
     def test_inference_compiler_neo(self, sagemaker_session, ecr_image, framework_version, instance_type, instance_count, tmpdir, capsys, mnist_dataset):
@@ -465,7 +465,7 @@ class TestUserExperience:
         return 1
 
 
-    @pytest.mark.xfail(reason="Signature based failure attribution does not differentiate between XLA errors and TF/Py errors. Stack trace based failure attribution does not work with TF since the stack trace is manipulate to abstract away graph mode execution details.")
+    @pytest.mark.skip(reason="Signature based failure attribution does not differentiate between XLA errors and TF/Py errors. Stack trace based failure attribution does not work with TF since the stack trace is manipulate to abstract away graph mode execution details.")
     @pytest.mark.model('toy')
     @pytest.mark.integration("toolkit")
     def test_toolkit_fault_attribution(self, sagemaker_session, ecr_image, framework_version, instance_type, instance_count, tmpdir, capsys):
