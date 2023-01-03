@@ -171,7 +171,6 @@ RUN rm pin_git_modules.py
 # add necessary flags
 ENV LD_LIBRARY_PATH_OLD="${LD_LIBRARY_PATH}"
 ENV LD_LIBRARY_PATH="/usr/lib/x86_64-linux-gnu/:${LD_LIBRARY_PATH}"
-ENV LD_LIBRARY_PATH="${LD_LIBRARY_PATH_OLD}"
 RUN cd aws-sdk-cpp/ \
  && mkdir sdk-build \
  && cd sdk-build \
@@ -180,6 +179,7 @@ RUN cd aws-sdk-cpp/ \
  && make install \
  && cd ../.. \
  && rm -rf aws-sdk-cpp
+ENV LD_LIBRARY_PATH="/usr/lib/x86_64-linux-gnu/:${LD_LIBRARY_PATH}"
 
 COPY deep_learning_container.py /usr/local/bin/deep_learning_container.py
 
