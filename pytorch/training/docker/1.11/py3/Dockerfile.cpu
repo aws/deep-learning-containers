@@ -129,6 +129,7 @@ RUN curl -L -o ~/mambaforge.sh https://github.com/conda-forge/miniforge/releases
     # Below 2 are included in miniconda base, but not mamba so need to install
     conda-content-trust \
     charset-normalizer \
+    tqdm \
  && /opt/conda/bin/conda install -c dglteam -y dgl=0.8.0 \
  && /opt/conda/bin/conda clean -ya
 
