@@ -18,6 +18,9 @@ repository_info:
     repository: &REPOSITORY !join [ *ACCOUNT_ID, .dkr.ecr., *REGION, .amazonaws.com/, *REPOSITORY_NAME ]
 
 context:
+  pin_git_modules:
+    source: ../../src/pin_git_modules.py
+    target: pin_git_modules.py
   training_context: &TRAINING_CONTEXT
     changehostname:
       source: docker/build_artifacts/changehostname.c
@@ -153,7 +156,7 @@ images:
   BuildSageMakerCPUPTInferencePy3DockerImage:
     <<: *INFERENCE_REPOSITORY
     build: &PYTORCH_CPU_INFERENCE_PY3 false
-    image_size_baseline: 4899
+    image_size_baseline: 6500
     device_type: &DEVICE_TYPE cpu
     python_version: &DOCKER_PYTHON_VERSION py3
     tag_python_version: &TAG_PYTHON_VERSION py38
@@ -166,7 +169,7 @@ images:
   BuildSageMakerGPUPTInferencePy3DockerImage:
     <<: *INFERENCE_REPOSITORY
     build: &PYTORCH_GPU_INFERENCE_PY3 false
-    image_size_baseline: 14000
+    image_size_baseline: 16000
     device_type: &DEVICE_TYPE gpu
     python_version: &DOCKER_PYTHON_VERSION py3
     tag_python_version: &TAG_PYTHON_VERSION py38

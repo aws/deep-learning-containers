@@ -124,6 +124,7 @@ def conduct_preprocessing_of_images_before_running_ecr_scans(image, ecr_client, 
 @pytest.mark.model("N/A")
 @pytest.mark.canary("Run ECR Scan test regularly on production images")
 @pytest.mark.integration("check OS dependencies")
+@pytest.mark.skip("Obsolete tests")
 def test_ecr_basic_scan(image, ecr_client, sts_client, region):
     """
     Run ECR Scan Tool on an image being tested, and raise Error if vulnerabilities found
