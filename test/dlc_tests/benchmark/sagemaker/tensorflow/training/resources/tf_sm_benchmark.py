@@ -35,10 +35,6 @@ sagemaker_session = sagemaker.Session(boto_session=boto3.Session(region_name=arg
 if str(sagemaker.__version__).startswith('2'):
     tf_estimator = TensorFlow(
         sagemaker_session=sagemaker_session,
-        git_config={
-            'repo': 'https://github.com/tensorflow/models.git',
-            'branch': 'v2.11.0',
-        },
         entry_point=entrypoint_script,
         source_dir=source_dir,
         role="SageMakerRole",
