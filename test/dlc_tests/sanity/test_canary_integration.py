@@ -17,10 +17,24 @@ from test.test_utils import (
 @pytest.mark.usefixtures("sagemaker")
 @pytest.mark.skipif(not is_pr_context(), reason=PR_ONLY_REASON)
 @pytest.mark.model("N/A")
-def test_canary_images_pullable(region):
+def test_canary_images_pullable_training(region):
     """
     Sanity test to verify canary specific functions
     """
+    _run_canary_pull_test(region, "training")
+
+
+@pytest.mark.usefixtures("sagemaker")
+@pytest.mark.skipif(not is_pr_context(), reason=PR_ONLY_REASON)
+@pytest.mark.model("N/A")
+def test_canary_images_pullable_inference(region):
+    """
+    Sanity test to verify canary specific functions
+    """
+    _run_canary_pull_test(region, "inference")
+
+
+def _run_canary_pull_test(region, image_type):
     ctx = Context()
     frameworks = ("tensorflow", "mxnet", "pytorch")
 
@@ -31,7 +45,7 @@ def test_canary_images_pullable(region):
             framework = fw
             break
 
-    images = parse_canary_images(framework, region)
+    images = parse_canary_images(framework, region, image_type)
     login_to_ecr_registry(ctx, PUBLIC_DLC_REGISTRY, region)
     if not images:
         return
