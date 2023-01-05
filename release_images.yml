@@ -1,60 +1,34 @@
 ---
 release_images:
   1:
-    framework: "mxnet"
-    version: "1.9.0"
-    customer_type: "ec2"
-    arch_type: "x86"
-    inference:
-      device_types: ["cpu", "gpu"]
-      python_versions: ["py38"]
-      os_version: "ubuntu20.04"
-      cuda_version: "cu112"
-      example: False
-      disable_sm_tag: False
-      force_release: False
-  2:
-    framework: "mxnet"
-    version: "1.9.0"
-    customer_type: "sagemaker"
-    arch_type: "x86"
-    inference:
-      device_types: ["cpu", "gpu"]
-      python_versions: ["py38"]
-      os_version: "ubuntu20.04"
-      cuda_version: "cu112"
-      example: False
-      disable_sm_tag: False
-      force_release: False
-  3:
     framework: "pytorch"
-    version: "1.13.0"
-    arch_type: "x86"
+    version: "1.13.1"
     customer_type: "ec2"
+    arch_type: "x86"
     training:
       device_types: ["cpu", "gpu"]
-      python_versions: [ "py39" ]
+      python_versions: ["py39"]
       os_version: "ubuntu20.04"
       cuda_version: "cu117"
       example: False
       disable_sm_tag: False  # [Default: False] This option is not used by Example images
       force_release: False
-  4:
+  2:
     framework: "pytorch"
-    version: "1.13.0"
-    arch_type: "x86"
+    version: "1.13.1"
     customer_type: "ec2"
+    arch_type: "x86"
     training:
-      device_types: [ "gpu" ]
-      python_versions: [ "py39" ]
+      device_types: ["gpu"]
+      python_versions: ["py39"]
       os_version: "ubuntu20.04"
       cuda_version: "cu117"
       example: True
-      disable_sm_tag: False
+      disable_sm_tag: False  # [Default: False] This option is not used by Example images
       force_release: False
-  5:
+  3:
     framework: "tensorflow"
-    version: "2.10.1"
+    version: "2.9.3"
     customer_type: "ec2"
     arch_type: "x86"
     inference:
@@ -65,9 +39,9 @@ release_images:
       example: False
       disable_sm_tag: False
       force_release: False
-  6:
+  4:
     framework: "tensorflow"
-    version: "2.10.1"
+    version: "2.9.3"
     customer_type: "sagemaker"
     arch_type: "x86"
     inference:
@@ -78,67 +52,7 @@ release_images:
       example: False
       disable_sm_tag: False
       force_release: False
-  7:
-    framework: "mxnet"
-    version: "1.8.0"
-    arch_type: "x86"
-    inference:
-      device_types: ["neuron"]
-      python_versions: ["py38"]
-      os_version: "ubuntu20.04"
-      neuron_sdk_version: "sdk2.5.0"
-      example: False
-      disable_sm_tag: True
-      force_release: False
-  8:
-    framework: "tensorflow"
-    version: "2.8.0"
-    arch_type: "x86"
-    inference:
-      device_types: ["neuron"]
-      python_versions: ["py38"]
-      os_version: "ubuntu20.04"
-      neuron_sdk_version: "sdk2.5.0"
-      example: False
-      disable_sm_tag: True
-      force_release: False
-  9:
-    framework: "tensorflow"
-    version: "1.15.5"
-    arch_type: "x86"
-    inference:
-      device_types: ["neuron"]
-      python_versions: ["py38"]
-      os_version: "ubuntu20.04"
-      neuron_sdk_version: "sdk2.5.0"
-      example: False
-      disable_sm_tag: True
-      force_release: False
-  10:
-    framework: "autogluon"
-    version: "0.6.1"
-    arch_type: "x86"
-    training:
-      device_types: ["cpu", "gpu"]
-      python_versions: ["py38"]
-      os_version: "ubuntu20.04"
-      cuda_version: "cu113"
-      example: False
-      disable_sm_tag: False
-      force_release: False
-  11:
-    framework: "pytorch"
-    version: "1.12.1"
-    arch_type: "x86"
-    inference:
-      device_types: ["neuron"]
-      python_versions: ["py38"]
-      os_version: "ubuntu20.04"
-      neuron_sdk_version: "sdk2.5.0"
-      example: False
-      disable_sm_tag: True
-      force_release: False
-  12:
+  5:
     framework: "pytorch"
     version: "1.11.0"
     arch_type: "x86"
@@ -153,7 +67,7 @@ release_images:
       # to images being published.
       force_release: False   # [Default: False] Set to True to force images to be published even if the same image
       # has already been published. Re-released image will have minor version incremented by 1.
-  13:
+  6:
     framework: "pytorch"
     version: "1.11.0"
     arch_type: "x86"
