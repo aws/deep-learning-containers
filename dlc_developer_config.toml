@@ -56,7 +56,7 @@ sagemaker_local_tests = false
 sagemaker_remote_tests = "standard"
 
 # SM remote EFA test instance type
-sagemaker_remote_efa_instance_type = ""
+sagemaker_remote_efa_instance_type = "ml.p4de.24xlarge"
 
 # Run CI tests for nightly images
 # false by default
