@@ -175,6 +175,7 @@ RUN ompi_info --parsable --all | grep mpi_built_with_cuda_support:value \
     # Below 2 are included in miniconda base, but not mamba so need to install
     conda-content-trust \
     charset-normalizer \
+    "shap<1" \
  && /opt/conda/bin/conda install -c dglteam -y dgl-cuda11.6 \
  && /opt/conda/bin/conda install -c pytorch magma-cuda116 \
  # Upstream conda looks to have moved to 4.13 which is incompatible with mamba 0.22.1 and will fail the conda-forge installs.
@@ -499,7 +500,6 @@ RUN pip install --no-cache-dir -U \
     "plotly>=5.1,<6" \
     "seaborn>=0.11,<1" \
     "numba<0.54" \
-    "shap>=0.39,<1"
 
 # install metis
 RUN rm /etc/apt/sources.list.d/* \
