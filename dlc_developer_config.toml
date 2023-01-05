@@ -48,7 +48,7 @@ ec2_tests = false
 
 ### SM specific tests
 ### Off by default
-sagemaker_local_tests = true
+sagemaker_local_tests = false
 
 # SM remote test valid values:
 # "off" --> do not trigger sagemaker remote tests (default)
@@ -78,7 +78,7 @@ dlc-pr-autogluon = ""
 dlc-pr-mxnet = ""
 dlc-pr-pytorch = ""
 dlc-pr-tensorflow-1 = ""
-dlc-pr-tensorflow-2 = "tensorflow/buildspec-2-8.yml"
+dlc-pr-tensorflow-2 = ""
 
 # Hugging Face DLC buildspecs
 dlc-pr-huggingface-pytorch = ""
