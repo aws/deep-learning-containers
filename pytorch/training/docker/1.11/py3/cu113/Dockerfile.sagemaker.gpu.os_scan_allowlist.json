@@ -89,5 +89,36 @@
             "status": "ACTIVE",
             "title": "IN1-PYTHON-TORCH-3149871 - torch"
         }
+    ],
+    "libksba8": [
+        {
+            "reason_to_ignore": "medium severity",
+            "description": " Libksba before 1.6.3 is prone to an integer overflow vulnerability in the CRL signature parser.",
+            "vulnerability_id": "CVE-2022-47629",
+            "name": "CVE-2022-47629",
+            "package_name": "libksba8",
+            "package_details": {
+                "file_path": null,
+                "name": "libksba8",
+                "package_manager": "OS",
+                "version": "1.3.5",
+                "release": "2ubuntu0.20.04.1"
+            },
+            "remediation": {
+                "recommendation": {
+                    "text": "None Provided"
+                }
+            },
+            "cvss_v3_score": 9.8,
+            "cvss_v30_score": 0,
+            "cvss_v31_score": 9.8,
+            "cvss_v2_score": 0,
+            "cvss_v3_severity": "CRITICAL",
+            "source_url": "https://people.canonical.com/~ubuntu-security/cve/2022/CVE-2022-47629.html",
+            "source": "UBUNTU_CVE",
+            "severity": "MEDIUM",
+            "status": "ACTIVE",
+            "title": "CVE-2022-47629 - libksba8"
+        }
     ]
 }
