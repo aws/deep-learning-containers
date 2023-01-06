@@ -74,6 +74,9 @@ def test_sm_profiler_pt(pytorch_training):
 def test_sm_profiler_tf(tensorflow_training):
     if is_tf_version("1", tensorflow_training):
         pytest.skip("Skipping test on TF1, since there are no smprofiler config files for TF1")
+    _, image_framework_version = get_framework_and_version_from_tag(tensorflow_training)
+    if Version(image_framework_version) in SpecifierSet(">=2.11"):
+        pytest.skip("SM Profiler Tests Skipping for TensorFlow 2.11 and Above")
     processor = get_processor_from_image_uri(tensorflow_training)
     if processor not in ("cpu", "gpu"):
         pytest.skip(f"Processor {processor} not supported. Skipping test.")
