@@ -10,11 +10,8 @@ cd ${HOME_DIR}
 source dlbs/scripts/environment.sh
 
 set +e
-echo "before nvidia-smi"
 nvidia-smi
 NVIDIA_SMI_RETURN_VAL=`echo $?`
-echo $NVIDIA_SMI_RETURN_VAL
-echo "after"
 set -e
 
 if [ ${NVIDIA_SMI_RETURN_VAL} -eq 0 ]; then
