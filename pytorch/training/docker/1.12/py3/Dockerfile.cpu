@@ -279,7 +279,8 @@ RUN pip install --upgrade pip --trusted-host pypi.org --trusted-host files.pytho
 RUN cd /tmp \
   && git clone -b master --single-branch https://github.com/awslabs/sagemaker-debugger.git \
   && cd sagemaker-debugger \
-  && git checkout -f 9764a221fd3086ad8d2736128ccc2d69f269df1c \
+  # pin the debugger to the numpy deprecation fix
+  && git checkout -f 9764a221fd3086ad8d2736128ccc2d69f269df1c \ 
   && python setup.py install \
   && rm -rf /tmp/*
 
