@@ -104,15 +104,11 @@
         "version": "1.3.5",
         "release": "2ubuntu0.20.04.1"
       },
-      "remediation": {
-        "recommendation": {
-          "text": "None Provided"
-        }
-      },
+      "remediation": { "recommendation": { "text": "None Provided" } },
       "cvss_v3_score": 9.8,
-      "cvss_v30_score": 0,
+      "cvss_v30_score": 0.0,
       "cvss_v31_score": 9.8,
-      "cvss_v2_score": 0,
+      "cvss_v2_score": 0.0,
       "cvss_v3_severity": "CRITICAL",
       "source_url": "https://people.canonical.com/~ubuntu-security/cve/2022/CVE-2022-47629.html",
       "source": "UBUNTU_CVE",
