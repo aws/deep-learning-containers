@@ -37,7 +37,7 @@ do_build = true
 
 [test]
 ### On by default
-sanity_tests = true
+sanity_tests = false
   safety_check_test = false
   ecr_scan_allowlist_feature = false
 ecs_tests = false
@@ -46,7 +46,7 @@ ec2_tests = false
 
 ### SM specific tests
 ### Off by default
-sagemaker_local_tests = false
+sagemaker_local_tests = true
 
 # SM remote test valid values:
 # "off" --> do not trigger sagemaker remote tests (default)
