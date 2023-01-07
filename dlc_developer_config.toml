@@ -23,7 +23,7 @@ huggingface_trcomp_mode = false
 trcomp_mode = false
 # Please only set it to True if you are preparing a Benchmark related PR
 # Do remember to revert it back to False before merging any PR (including Benchmark dedicated PR)
-benchmark_mode = true
+benchmark_mode = false
 
 [build]
 # Frameworks for which you want to disable both builds and tests
@@ -46,7 +46,7 @@ ec2_tests = false
 
 ### SM specific tests
 ### Off by default
-sagemaker_local_tests = true
+sagemaker_local_tests = false
 
 # SM remote test valid values:
 # "off" --> do not trigger sagemaker remote tests (default)
