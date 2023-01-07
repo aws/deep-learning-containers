@@ -5,7 +5,7 @@ ARG MAMBA_VERSION=4.12.0-2
 
 # PyTorch Binaries
 ARG PT_EC2_TRAINING_URL=https://aws-pytorch-cicd-v3-binaries.s3.us-west-2.amazonaws.com/r1.11.0_v3_e3/20220322-194812/272547162a367c4aaafe8f7e1d9d35d39441c6f3/gpu/torch-1.11.0%2Bcu113-cp38-cp38-linux_x86_64.whl
-ARG PT_SM_TRAINING_URL=https://aws-pytorch-unified-cicd-binaries.s3.us-west-2.amazonaws.com/r1.11.0_sm/20220907-205807/acb1e0e5642e2893aeef5d95bfe5e949a33b0695/torch-1.11.0%2Bcu113-cp38-cp38-linux_x86_64.whl
+ARG PT_SM_TRAINING_URL=https://aws-pytorch-unified-cicd-binaries.s3.us-west-2.amazonaws.com/r1.11.0_sm/20221220-203416/94e93120457bddf7812c46007ec30afe767ca68e/torch-1.11.0%2Bcu113-cp38-cp38-linux_x86_64.whl
 ARG PT_TORCHVISION_URL=https://download.pytorch.org/whl/cu113/torchvision-0.12.0%2Bcu113-cp38-cp38-linux_x86_64.whl
 ARG PT_TORCHAUDIO_URL=https://download.pytorch.org/whl/cu113/torchaudio-0.11.0%2Bcu113-cp38-cp38-linux_x86_64.whl
 ARG PT_TORCHDATA_URL=https://aws-pytorch-cicd-v3-binaries.s3.us-west-2.amazonaws.com/r1.11.0_v3_e3/aws-torchdata/torchdata-0.4.0-cp38-cp38-linux_x86_64.whl
@@ -116,17 +116,6 @@ RUN apt-get update \
  && rm -rf /var/lib/apt/lists/* \
  && apt-get clean
 
-# Install aws-sdk-cpp s3;transfer modules for torchdata
-RUN git clone --recurse-submodules https://github.com/aws/aws-sdk-cpp \
- && cd aws-sdk-cpp/ \
- && mkdir sdk-build \
- && cd sdk-build \
- && cmake .. -DCMAKE_BUILD_TYPE=Release -DBUILD_ONLY="s3;transfer" -DAUTORUN_UNIT_TESTS=OFF \
- && make \
- && make install \
- && cd ../.. \
- && rm -rf aws-sdk-cpp
-
 # Install NCCL
 RUN cd /tmp \
  && git clone https://github.com/NVIDIA/nccl.git -b v${NCCL_VERSION}-1 \
@@ -178,12 +167,12 @@ RUN ompi_info --parsable --all | grep mpi_built_with_cuda_support:value \
     typing \
     h5py \
     requests \
-    future \
     "pyopenssl>=17.5.0" \
     libgcc \
     # Below 2 are included in miniconda base, but not mamba so need to install
     conda-content-trust \
     charset-normalizer \
+    tqdm \
  && /opt/conda/bin/conda install -c dglteam -y dgl-cuda11.3=0.8.0 \
  && /opt/conda/bin/conda install -c pytorch magma-cuda113 \
  && /opt/conda/bin/conda clean -ya
@@ -223,6 +212,25 @@ RUN pip install --no-cache-dir -U \
     pybind11 \
     "pyyaml>=5.4,<5.5" \
     scipy
+
+# Install aws-sdk-cpp s3;transfer modules for torchdata
+# pin aws-sdk-cpp modules
+COPY pin_git_modules.py .
+RUN git clone https://github.com/aws/aws-sdk-cpp --branch main
+RUN python pin_git_modules.py --src $(pwd)/aws-sdk-cpp --date 2022-03-17
+RUN rm pin_git_modules.py
+# add necessary flags
+ENV LD_LIBRARY_PATH_OLD="${LD_LIBRARY_PATH}"
+ENV LD_LIBRARY_PATH="/usr/lib/x86_64-linux-gnu/:${LD_LIBRARY_PATH}"
+RUN cd aws-sdk-cpp/ \
+ && mkdir sdk-build \
+ && cd sdk-build \
+ && cmake .. -DCMAKE_CXX_FLAGS="-lcurl" -DCMAKE_BUILD_TYPE=Release -DBUILD_ONLY="s3;transfer" -DAUTORUN_UNIT_TESTS=OFF \
+ && make \
+ && make install \
+ && cd ../.. \
+ && rm -rf aws-sdk-cpp
+ENV LD_LIBRARY_PATH="${LD_LIBRARY_PATH_OLD}"
 
 COPY deep_learning_container.py /usr/local/bin/deep_learning_container.py
 
