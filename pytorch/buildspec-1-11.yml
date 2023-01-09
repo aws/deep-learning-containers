@@ -19,7 +19,7 @@ repository_info:
 
 context:
   pin_git_modules:
-    source: ../../src/pin_git_modules.py
+    source: ../build_artifacts/pin_git_modules.py
     target: pin_git_modules.py
   training_context: &TRAINING_CONTEXT
     changehostname:
@@ -53,7 +53,7 @@ images:
   #   <<: *TRAINING_REPOSITORY
   #   build: &PYTORCH_CPU_TRAINING_PY3 false
   #   # enable_test_promotion: false
-  #   image_size_baseline: 5000
+  #   image_size_baseline: 6500
   #   device_type: &DEVICE_TYPE cpu
   #   python_version: &DOCKER_PYTHON_VERSION py3
   #   tag_python_version: &TAG_PYTHON_VERSION py38
@@ -67,7 +67,7 @@ images:
   #   <<: *TRAINING_REPOSITORY
   #   build: &PYTORCH_GPU_TRAINING_PY3 false
   #   # enable_test_promotion: false
-  #   image_size_baseline: 14000
+  #   image_size_baseline: 16000
   #   device_type: &DEVICE_TYPE gpu
   #   python_version: &DOCKER_PYTHON_VERSION py3
   #   tag_python_version: &TAG_PYTHON_VERSION py38
@@ -82,7 +82,7 @@ images:
   # BuildSageMakerCPUPTTrainPy3DockerImage:
   #   <<: *TRAINING_REPOSITORY
   #   build: &PYTORCH_CPU_TRAINING_PY3 false
-  #   image_size_baseline: 5000
+  #   image_size_baseline: 6500
   #   device_type: &DEVICE_TYPE cpu
   #   python_version: &DOCKER_PYTHON_VERSION py3
   #   tag_python_version: &TAG_PYTHON_VERSION py38
@@ -95,7 +95,7 @@ images:
   # BuildSageMakerGPUPTTrainPy3DockerImage:
   #   <<: *TRAINING_REPOSITORY
   #   build: &PYTORCH_GPU_TRAINING_PY3 false
-  #   image_size_baseline: 14000
+  #   image_size_baseline: 16000
   #   device_type: &DEVICE_TYPE gpu
   #   python_version: &DOCKER_PYTHON_VERSION py3
   #   tag_python_version: &TAG_PYTHON_VERSION py38
@@ -111,7 +111,7 @@ images:
   #   <<: *TRAINING_REPOSITORY
   #   build: &PYTORCH_GPU_TRAINING_PY3 false
   #   # enable_test_promotion: false
-  #   image_size_baseline: 14000
+  #   image_size_baseline: 16000
   #   base_image_name: BuildEC2GPUPTTrainPy3DockerImage
   #   device_type: &DEVICE_TYPE gpu
   #   python_version: &DOCKER_PYTHON_VERSION py3

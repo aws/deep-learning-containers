@@ -154,13 +154,13 @@ SageMaker Framework Graviton Containers (SM support only)
 
 NVIDIA Triton Inference Containers (SM support only)
 ============================
+**Note**: The following versions of the 22.`<XY>` container are supported:
+`22.05, 22.07, 22.08, 22.09, 22.10`
 
 | Framework         |Job Type	|Horovod Options|CPU/GPU 	|Python Version Options	|Example URL																						|
 |-------------------|-----------|---------------|-----------|-----------------------|---------------------------------------------------------------------------------------------------|
-|NVIDIA Triton Inference Server 22.07    |inference	|No			|GPU 		| 3.8 (py38)			|007439368137.dkr.ecr.us-east-2.amazonaws.com/sagemaker-tritonserver:22.07-py3		|
-|NVIDIA Triton Inference Server 22.07    |inference	|No			|CPU 		| 3.8 (py38)			|007439368137.dkr.ecr.us-east-2.amazonaws.com/sagemaker-tritonserver:22.07-py3-cpu		|
-|NVIDIA Triton Inference Server 22.05    |inference	|No			|GPU 		| 3.8 (py38)			|007439368137.dkr.ecr.us-east-2.amazonaws.com/sagemaker-tritonserver:22.05-py3		|
-|NVIDIA Triton Inference Server 22.05    |inference	|No			|CPU 		| 3.8 (py38)			|007439368137.dkr.ecr.us-east-2.amazonaws.com/sagemaker-tritonserver:22.05-py3-cpu		|
+|NVIDIA Triton Inference Server 22.`<XY>`    |inference	|No			|GPU 		| 3.8 (py38)			|007439368137.dkr.ecr.us-east-2.amazonaws.com/sagemaker-tritonserver:22.`<XY>`-py3		|
+|NVIDIA Triton Inference Server 22.`<XY>`    |inference	|No			|CPU 		| 3.8 (py38)			|007439368137.dkr.ecr.us-east-2.amazonaws.com/sagemaker-tritonserver:22.`<XY>`-py3-cpu		|
 |NVIDIA Triton Inference Server 21.08    |inference	|No			|GPU 		| 3.8 (py38)			|007439368137.dkr.ecr.us-east-2.amazonaws.com/sagemaker-tritonserver:21.08-py3		|
 |NVIDIA Triton Inference Server 21.08    |inference	|No			|CPU 		| 3.8 (py38)			|007439368137.dkr.ecr.us-east-2.amazonaws.com/sagemaker-tritonserver:21.08-py3-cpu		|
 
@@ -264,6 +264,8 @@ Prior EC2 Framework Container Versions
 | TensorFlow 2.10.0 |training	|Yes			|GPU 		| 3.9 (py39)			| 763104351884.dkr.ecr.us-east-1.amazonaws.com/tensorflow-training:2.10.0-gpu-py39-cu112-ubuntu20.04-ec2	  |
 | TensorFlow 2.10.0 |inference	|No			|CPU 		| 3.9 (py39)			| 763104351884.dkr.ecr.us-east-1.amazonaws.com/tensorflow-inference:2.10.0-cpu-py39-ubuntu20.04-ec2		      |
 | TensorFlow 2.10.0 |inference	|No			|GPU 		| 3.9 (py39)			| 763104351884.dkr.ecr.us-east-1.amazonaws.com/tensorflow-inference:2.10.0-gpu-py39-cu112-ubuntu20.04-ec2	 |
+| TensorFlow 2.9.3 |inference	|No			|CPU 		| 3.9 (py39)			| 763104351884.dkr.ecr.us-east-1.amazonaws.com/tensorflow-inference:2.9.3-cpu-py39-ubuntu20.04-ec2		      |
+| TensorFlow 2.9.3 |inference	|No			|GPU 		| 3.9 (py39)			| 763104351884.dkr.ecr.us-east-1.amazonaws.com/tensorflow-inference:2.9.3-gpu-py39-cu112-ubuntu20.04-ec2	 |
 | TensorFlow 2.9.2 |training	|Yes			|CPU 		| 3.9 (py39)			| 763104351884.dkr.ecr.us-east-1.amazonaws.com/tensorflow-training:2.9.2-cpu-py39-ubuntu20.04-ec2		       |
 | TensorFlow 2.9.2 |training	|Yes			|GPU 		| 3.9 (py39)			| 763104351884.dkr.ecr.us-east-1.amazonaws.com/tensorflow-training:2.9.2-gpu-py39-cu112-ubuntu20.04-ec2	  |
 | TensorFlow 2.9.2 |inference	|No			|CPU 		| 3.9 (py39)			| 763104351884.dkr.ecr.us-east-1.amazonaws.com/tensorflow-inference:2.9.2-cpu-py39-ubuntu20.04-ec2		      |
@@ -286,6 +288,8 @@ Prior SageMaker Framework Container Versions
 | TensorFlow 2.10.1 |inference	|No			|GPU 		| 3.9 (py39)			| 763104351884.dkr.ecr.us-east-1.amazonaws.com/tensorflow-inference:2.10.1-gpu-py39-cu112-ubuntu20.04-sagemaker	 |
 | TensorFlow 2.10.0 |inference	|No			|CPU 		| 3.9 (py39)			| 763104351884.dkr.ecr.us-east-1.amazonaws.com/tensorflow-inference:2.10.0-cpu-py39-ubuntu20.04-sagemaker		      |
 | TensorFlow 2.10.0 |inference	|No			|GPU 		| 3.9 (py39)			| 763104351884.dkr.ecr.us-east-1.amazonaws.com/tensorflow-inference:2.10.0-gpu-py39-cu112-ubuntu20.04-sagemaker	 |
+| TensorFlow 2.9.3 |inference   |No     	|CPU 		| 3.9 (py39)			| 763104351884.dkr.ecr.us-east-1.amazonaws.com/tensorflow-inference:2.9.3-cpu-py39-ubuntu20.04-sagemaker		      |
+| TensorFlow 2.9.3 |inference	|No			|GPU 		| 3.9 (py39)			| 763104351884.dkr.ecr.us-east-1.amazonaws.com/tensorflow-inference:2.9.3-gpu-py39-cu112-ubuntu20.04-sagemaker	 |
 | TensorFlow 2.9.2 |training	|Yes			|CPU 		| 3.9 (py39)			| 763104351884.dkr.ecr.us-east-1.amazonaws.com/tensorflow-training:2.9.2-cpu-py39-ubuntu20.04-sagemaker		       |
 | TensorFlow 2.9.2 |training	|Yes			|GPU 		| 3.9 (py39)			| 763104351884.dkr.ecr.us-east-1.amazonaws.com/tensorflow-training:2.9.2-gpu-py39-cu112-ubuntu20.04-sagemaker	 |
 | TensorFlow 2.9.2 |inference   |No     	|CPU 		| 3.9 (py39)			| 763104351884.dkr.ecr.us-east-1.amazonaws.com/tensorflow-inference:2.9.2-cpu-py39-ubuntu20.04-sagemaker		      |

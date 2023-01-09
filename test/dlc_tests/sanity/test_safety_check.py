@@ -692,6 +692,8 @@ IGNORE_SAFETY_IDS = {
                 "51499",
                 # Ignored- please check https://github.com/pytest-dev/py/issues/287
                 "51457",
+                # Sqlalchemy latest release is not there yet
+                "51668"
             ],
         },
         "inference": {

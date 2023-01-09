@@ -331,7 +331,10 @@ def test_framework_and_neuron_sdk_version(neuron):
         tested_framework = tested_framework[len("huggingface_"):]
 
     if tested_framework == "pytorch":
-        tested_framework = "torch_neuron"
+        if "pytorch-training-neuron" in image:
+            tested_framework = "torch_neuronx"
+        else:
+            tested_framework = "torch_neuron"
     elif tested_framework == "tensorflow":
         tested_framework = "tensorflow_neuron"
     elif tested_framework == "mxnet":
@@ -479,7 +482,7 @@ def _run_dependency_check_test(image, ec2_connection):
             "1.8": ["cpu", "gpu"], 
             "1.10": ["cpu", "hpu", "neuron"],
             "1.11": ["cpu", "gpu", "hpu", "neuron"],
-            "1.12": ["cpu", "gpu", "hpu"],
+            "1.12": ["cpu", "gpu", "hpu", "neuron"],
             "1.13": ["cpu", "gpu", "hpu"],
         },
         "pytorch_trcomp": {
@@ -502,7 +505,7 @@ def _run_dependency_check_test(image, ec2_connection):
         "pytorch": {
             "1.10": ["gpu", "cpu", "hpu", "neuron"],
             "1.11": ["gpu", "cpu", "hpu", "neuron"],
-            "1.12": ["gpu", "cpu", "hpu"],
+            "1.12": ["gpu", "cpu", "hpu", "neuron"],
             "1.13": ["gpu", "cpu", "hpu"],
         },
         "tensorflow": {
