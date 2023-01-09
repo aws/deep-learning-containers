@@ -126,7 +126,7 @@ def _test_neuron_allreduce(
 
         pytorch.sagemaker_session.default_bucket()
         fake_input = pytorch.sagemaker_session.upload_data(
-            path=neuron_allreduce_path, key_prefix='pytorch/distributed_operations'
+            path=neuron_allreduce_path, key_prefix='pytorch/neuron_allreduce'
         )
 
         pytorch.fit({'required_argument': fake_input}, job_name=utils.unique_name_from_base('test-pt-neuron-allreduce'))
@@ -151,7 +151,7 @@ def _test_neuron_mlp(
 
         pytorch.sagemaker_session.default_bucket()
         fake_input = pytorch.sagemaker_session.upload_data(
-            path=neuron_mlp_path, key_prefix='pytorch/distributed_operations'
+            path=neuron_mlp_path, key_prefix='pytorch/neuron_mlp'
         )
 
         pytorch.fit({'required_argument': fake_input}, job_name=utils.unique_name_from_base('test-pt-neuron-mlp'))
@@ -181,7 +181,7 @@ def _test_neuron_allreduce_distributed(
 
         pytorch.sagemaker_session.default_bucket()
         fake_input = pytorch.sagemaker_session.upload_data(
-            path=neuron_allreduce_path, key_prefix='pytorch/distributed_operations'
+            path=neuron_allreduce_path, key_prefix='pytorch/neuron_allreduce'
         )
 
         pytorch.fit({'required_argument': fake_input}, job_name=utils.unique_name_from_base('test-pt-neuron-allreduce-dist'))
@@ -210,7 +210,7 @@ def _test_neuron_mlp_distributed(
 
         pytorch.sagemaker_session.default_bucket()
         fake_input = pytorch.sagemaker_session.upload_data(
-            path=neuron_mlp_path, key_prefix='pytorch/distributed_operations'
+            path=neuron_mlp_path, key_prefix='pytorch/neuron_mlp'
         )
 
         pytorch.fit({'required_argument': fake_input}, job_name=utils.unique_name_from_base('test-pt-neuron-mlp-dist'))
