@@ -184,6 +184,45 @@ def test_tf_serving_version_cpu(tensorflow_inference):
 
     stop_and_remove_container(container_name, ctx)
 
+@pytest.mark.usefixtures("sagemaker")
+@pytest.mark.model("N/A")
+def test_tf_serving_api_version(tensorflow_inference):
+    """
+    For non-huggingface TF inference images, check that the tag version matches the version of TF serving api
+    in the container.
+
+    Huggingface includes MMS and core TF, hence the versioning scheme is based off of the underlying tensorflow
+    framework version, rather than the TF serving version.
+
+    @param tensorflow_inference: ECR image URI
+    """
+    # Set local variable to clarify contents of fixture
+    image = tensorflow_inference
+    
+    if "gpu" in image:
+        cmd="pip show tensorflow-serving-api-gpu | grep Version"
+    elif "cpu" in image:
+        cmd="pip show tensorflow-serving-api | grep Version"
+    else:
+        ValueError("Test as of now only covers CPU and GPU type images. If required, please modify this test to accommodate the new image type!")
+
+    _, tag_framework_version = get_framework_and_version_from_tag(image)
+    
+    ctx = Context()
+    container_name = get_container_name("tf-serving-api-version", image)
+    start_container(container_name, image, ctx)
+    try:
+        output = run_cmd_on_container(
+            container_name, ctx, cmd, executable="bash"
+        )
+        str_version_from_output = ((str(output.stdout).split(' '))[1]).strip()
+        assert (tag_framework_version == str_version_from_output), \
+            f"Tensorflow serving API version is {str_version_from_output} while the Tensorflow version is {tag_framework_version}. Both don't match!"
+    except Exception as e:
+        LOGGER.error(f"Unable to execute command on container. Error: {e}")
+        raise        
+    finally:
+        stop_and_remove_container(container_name, ctx)
 
 @pytest.mark.usefixtures("sagemaker", "huggingface")
 @pytest.mark.model("N/A")
@@ -292,7 +331,10 @@ def test_framework_and_neuron_sdk_version(neuron):
         tested_framework = tested_framework[len("huggingface_"):]
 
     if tested_framework == "pytorch":
-        tested_framework = "torch_neuron"
+        if "pytorch-training-neuron" in image:
+            tested_framework = "torch_neuronx"
+        else:
+            tested_framework = "torch_neuron"
     elif tested_framework == "tensorflow":
         tested_framework = "tensorflow_neuron"
     elif tested_framework == "mxnet":
@@ -440,7 +482,7 @@ def _run_dependency_check_test(image, ec2_connection):
             "1.8": ["cpu", "gpu"], 
             "1.10": ["cpu", "hpu", "neuron"],
             "1.11": ["cpu", "gpu", "hpu", "neuron"],
-            "1.12": ["cpu", "gpu", "hpu"],
+            "1.12": ["cpu", "gpu", "hpu", "neuron"],
             "1.13": ["cpu", "gpu", "hpu"],
         },
         "pytorch_trcomp": {
@@ -462,7 +504,7 @@ def _run_dependency_check_test(image, ec2_connection):
         "pytorch": {
             "1.10": ["gpu", "cpu", "hpu", "neuron"],
             "1.11": ["gpu", "cpu", "hpu", "neuron"],
-            "1.12": ["gpu", "cpu", "hpu"],
+            "1.12": ["gpu", "cpu", "hpu", "neuron"],
             "1.13": ["gpu", "cpu", "hpu"],
         },
         "tensorflow": {

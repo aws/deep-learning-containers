@@ -71,7 +71,6 @@ PT_GPU_PY3_BENCHMARK_IMAGENET_AMI_US_WEST_2 = "ami-02d9a47bc61a31d43"
 NEURON_UBUNTU_18_BASE_DLAMI_US_WEST_2 = get_ami_id_boto3(region_name="us-west-2", ami_name_pattern="Deep Learning Base AMI (Ubuntu 18.04) Version ??.?")
 UL20_PT_NEURON_US_WEST_2 = get_ami_id_boto3(region_name="us-west-2", ami_name_pattern="Deep Learning AMI Neuron PyTorch 1.11.0 (Ubuntu 20.04) ????????")
 # Since NEURON TRN1 DLAMI is not released yet use a custom AMI
-NEURON_TRN1_AMI_US_WEST_2 = "ami-0a610a15fcc9e0242"
 NEURON_INF1_AMI_US_WEST_2 = "ami-06a5a60d3801a57b7"
 # Habana Base v0.15.4 ami
 # UBUNTU_18_HPU_DLAMI_US_WEST_2 = "ami-0f051d0c1a667a106"
@@ -99,6 +98,7 @@ UL_AMI_LIST = [
     PT_GPU_PY3_BENCHMARK_IMAGENET_AMI_US_EAST_1,
     PT_GPU_PY3_BENCHMARK_IMAGENET_AMI_US_WEST_2,
     NEURON_UBUNTU_18_BASE_DLAMI_US_WEST_2,
+    UL20_PT_NEURON_US_WEST_2,
     NEURON_INF1_AMI_US_WEST_2,
     UL20_CPU_ARM64_US_EAST_1,
     UL20_CPU_ARM64_US_WEST_2,
@@ -312,6 +312,13 @@ def get_expected_dockerfile_filename(device_type, image_uri):
 
 def get_customer_type():
     return os.getenv("CUSTOMER_TYPE")
+
+
+def get_image_type():
+    """
+    Env variable should return training or inference
+    """
+    return os.getenv("IMAGE_TYPE")
 
 
 def get_ecr_repo_name(image_uri):
@@ -920,7 +927,9 @@ def get_dlc_images():
     if is_pr_context() or is_empty_build_context():
         return os.getenv("DLC_IMAGES")
     elif is_canary_context():
-        return parse_canary_images(os.getenv("FRAMEWORK"), os.getenv("AWS_REGION"))
+        # TODO: Remove 'training' default once training-specific canaries are added
+        image_type = get_image_type() or "training"
+        return parse_canary_images(os.getenv("FRAMEWORK"), os.getenv("AWS_REGION"), image_type)
     test_env_file = os.path.join(os.getenv("CODEBUILD_SRC_DIR_DLC_IMAGES_JSON"), "test_type_images.json")
     with open(test_env_file) as test_env:
         test_images = json.load(test_env)
@@ -962,16 +971,21 @@ def get_canary_default_tag_py3_version(framework, version):
     return "py3"
 
 
-def parse_canary_images(framework, region):
+def parse_canary_images(framework, region, image_type):
     """
     Return which canary images to run canary tests on for a given framework and AWS region
 
     :param framework: ML framework (mxnet, tensorflow, pytorch)
     :param region: AWS region
+    :param image_type: training or inference
     :return: dlc_images string (space separated string of image URIs)
     """
     customer_type = get_customer_type()
     customer_type_tag = f"-{customer_type}" if customer_type else ""
+
+    allowed_image_types = ("training", "inference")
+    if image_type not in allowed_image_types:
+        raise RuntimeError(f"Image type is set to {image_type}. It must be set to an allowed image type in {allowed_image_types}")
 
     # initialize graviton variables
     use_graviton = False
@@ -1049,55 +1063,87 @@ def parse_canary_images(framework, region):
             py_versions = [get_canary_default_tag_py3_version(canary_type, fw_version)]
         for py_version in py_versions:
             images = {
-                "tensorflow": [
-                    f"{registry}.dkr.ecr.{region}.amazonaws.com/tensorflow-training:{fw_version}-gpu-{py_version}",
-                    f"{registry}.dkr.ecr.{region}.amazonaws.com/tensorflow-training:{fw_version}-cpu-{py_version}",
-                    f"{registry}.dkr.ecr.{region}.amazonaws.com/tensorflow-inference:{fw_version}-gpu",
-                    f"{registry}.dkr.ecr.{region}.amazonaws.com/tensorflow-inference:{fw_version}-cpu",
-                ],
-                "mxnet": [
-                    f"{registry}.dkr.ecr.{region}.amazonaws.com/mxnet-training:{fw_version}-gpu-{py_version}",
-                    f"{registry}.dkr.ecr.{region}.amazonaws.com/mxnet-training:{fw_version}-cpu-{py_version}",
-                    f"{registry}.dkr.ecr.{region}.amazonaws.com/mxnet-inference:{fw_version}-gpu-{py_version}",
-                    f"{registry}.dkr.ecr.{region}.amazonaws.com/mxnet-inference:{fw_version}-cpu-{py_version}",
-                ],
-                "pytorch": [
-                    f"{registry}.dkr.ecr.{region}.amazonaws.com/pytorch-training:{fw_version}-gpu-{py_version}",
-                    f"{registry}.dkr.ecr.{region}.amazonaws.com/pytorch-training:{fw_version}-cpu-{py_version}",
-                    f"{registry}.dkr.ecr.{region}.amazonaws.com/pytorch-inference:{fw_version}-gpu-{py_version}",
-                    f"{registry}.dkr.ecr.{region}.amazonaws.com/pytorch-inference:{fw_version}-cpu-{py_version}",
-                ],
+                "tensorflow": {
+                    "training": [
+                        f"{registry}.dkr.ecr.{region}.amazonaws.com/tensorflow-training:{fw_version}-gpu-{py_version}",
+                        f"{registry}.dkr.ecr.{region}.amazonaws.com/tensorflow-training:{fw_version}-cpu-{py_version}",
+                    ],
+                    "inference": [
+                        f"{registry}.dkr.ecr.{region}.amazonaws.com/tensorflow-inference:{fw_version}-gpu",
+                        f"{registry}.dkr.ecr.{region}.amazonaws.com/tensorflow-inference:{fw_version}-cpu",
+                    ]
+                },
+                "mxnet": {
+                    "training": [
+                        f"{registry}.dkr.ecr.{region}.amazonaws.com/mxnet-training:{fw_version}-gpu-{py_version}",
+                        f"{registry}.dkr.ecr.{region}.amazonaws.com/mxnet-training:{fw_version}-cpu-{py_version}",
+                    ],
+                    "inference": [
+                        f"{registry}.dkr.ecr.{region}.amazonaws.com/mxnet-inference:{fw_version}-gpu-{py_version}",
+                        f"{registry}.dkr.ecr.{region}.amazonaws.com/mxnet-inference:{fw_version}-cpu-{py_version}",
+                    ],
+                },
+                "pytorch": {
+                    "training": [
+                        f"{registry}.dkr.ecr.{region}.amazonaws.com/pytorch-training:{fw_version}-gpu-{py_version}",
+                        f"{registry}.dkr.ecr.{region}.amazonaws.com/pytorch-training:{fw_version}-cpu-{py_version}",
+                    ],
+                    "inference": [
+                        f"{registry}.dkr.ecr.{region}.amazonaws.com/pytorch-inference:{fw_version}-gpu-{py_version}",
+                        f"{registry}.dkr.ecr.{region}.amazonaws.com/pytorch-inference:{fw_version}-cpu-{py_version}",
+                    ],
+                },
                 # TODO: uncomment once cpu training and inference images become available
-                "huggingface_pytorch": [
-                    f"{registry}.dkr.ecr.{region}.amazonaws.com/huggingface-pytorch-training:{fw_version}-gpu-{py_version}",
-                    # f"{registry}.dkr.ecr.{region}.amazonaws.com/huggingface-pytorch-training:{fw_version}-cpu-{py_version}",
-                    f"{registry}.dkr.ecr.{region}.amazonaws.com/huggingface-pytorch-inference:{fw_version}-gpu-{py_version}",
-                    f"{registry}.dkr.ecr.{region}.amazonaws.com/huggingface-pytorch-inference:{fw_version}-cpu-{py_version}",
-                ],
-                "huggingface_tensorflow": [
-                    f"{registry}.dkr.ecr.{region}.amazonaws.com/huggingface-tensorflow-training:{fw_version}-gpu-{py_version}",
-                    # f"{registry}.dkr.ecr.{region}.amazonaws.com/huggingface-tensorflow-training:{fw_version}-cpu-{py_version}",
-                    f"{registry}.dkr.ecr.{region}.amazonaws.com/huggingface-tensorflow-inference:{fw_version}-gpu-{py_version}",
-                    f"{registry}.dkr.ecr.{region}.amazonaws.com/huggingface-tensorflow-inference:{fw_version}-cpu-{py_version}",
-                ],
-                "autogluon": [
-                    f"{registry}.dkr.ecr.{region}.amazonaws.com/autogluon-training:{fw_version}-gpu-{py_version}",
-                    f"{registry}.dkr.ecr.{region}.amazonaws.com/autogluon-training:{fw_version}-cpu-{py_version}",
-                ],
-                "graviton_tensorflow": [
-                    f"{registry}.dkr.ecr.{region}.amazonaws.com/tensorflow-inference-graviton:{fw_version}-cpu-{py_version}",
-                ],
-                "graviton_pytorch": [
-                    f"{registry}.dkr.ecr.{region}.amazonaws.com/pytorch-inference-graviton:{fw_version}-cpu-{py_version}",
-                ],
-                # TODO: create graviton_mxnet DLC and add to dictionary
+                "huggingface_pytorch": {
+                    "training": [
+                        f"{registry}.dkr.ecr.{region}.amazonaws.com/huggingface-pytorch-training:{fw_version}-gpu-{py_version}",
+                        # f"{registry}.dkr.ecr.{region}.amazonaws.com/huggingface-pytorch-training:{fw_version}-cpu-{py_version}",
+                    ],
+                    "inference": [
+                        f"{registry}.dkr.ecr.{region}.amazonaws.com/huggingface-pytorch-inference:{fw_version}-gpu-{py_version}",
+                        f"{registry}.dkr.ecr.{region}.amazonaws.com/huggingface-pytorch-inference:{fw_version}-cpu-{py_version}",
+                    ]
+                },
+                "huggingface_tensorflow": {
+                    "training": [
+                        f"{registry}.dkr.ecr.{region}.amazonaws.com/huggingface-tensorflow-training:{fw_version}-gpu-{py_version}",
+                        # f"{registry}.dkr.ecr.{region}.amazonaws.com/huggingface-tensorflow-training:{fw_version}-cpu-{py_version}",
+                    ],
+                    "inference": [
+                        f"{registry}.dkr.ecr.{region}.amazonaws.com/huggingface-tensorflow-inference:{fw_version}-gpu-{py_version}",
+                        f"{registry}.dkr.ecr.{region}.amazonaws.com/huggingface-tensorflow-inference:{fw_version}-cpu-{py_version}",
+                    ],
+                },
+                "autogluon": {
+                    "training": [
+                        f"{registry}.dkr.ecr.{region}.amazonaws.com/autogluon-training:{fw_version}-gpu-{py_version}",
+                        f"{registry}.dkr.ecr.{region}.amazonaws.com/autogluon-training:{fw_version}-cpu-{py_version}",
+                    ],
+                    "inference": [
+                        f"{registry}.dkr.ecr.{region}.amazonaws.com/autogluon-inference:{fw_version}-gpu-{py_version}",
+                        f"{registry}.dkr.ecr.{region}.amazonaws.com/autogluon-inference:{fw_version}-cpu-{py_version}",
+                    ],
+                },
+                "graviton_tensorflow": {
+                    "training": [],
+                    "inference": [
+                        f"{registry}.dkr.ecr.{region}.amazonaws.com/tensorflow-inference-graviton:{fw_version}-cpu-{py_version}",
+                    ],
+                },
+
+                "graviton_pytorch": {
+                    "training": [],
+                    "inference": [
+                        f"{registry}.dkr.ecr.{region}.amazonaws.com/pytorch-inference-graviton:{fw_version}-cpu-{py_version}",
+                    ],
+                },
             }
 
             # ec2 Images have an additional "ec2" tag to distinguish them from the regular "sagemaker" tag
             if customer_type == "ec2":
-                dlc_images += [f"{img}-ec2" for img in images[canary_type]]
+                dlc_images += [f"{img}-ec2" for img in images[canary_type][image_type]]
             else:
-                dlc_images += images[canary_type]
+                dlc_images += images[canary_type][image_type]
 
     dlc_images.sort()
     return " ".join(dlc_images)
@@ -1393,6 +1439,11 @@ NEURON_VERSION_MANIFEST = {
         },
         "mxnet": {
             "1.8.0": "1.8.0.2.2.43.0",
+        },
+    },
+    "2.6.0": {
+        "pytorch": {
+            "1.12.0": "1.12.0.1.4.0",
         },
     },
     "1.19.1": {

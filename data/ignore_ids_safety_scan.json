@@ -652,7 +652,8 @@
                 "51159":"cryptography>38.0.1 does not exist yet",
                 "51358":"Safety is test pkg and not part of image",
                 "51499":"Wheel is needed by tensorboard but v0.38 is not there yet",
-                "51457":"Ignored- please check https://github.com/pytest-dev/py/issues/287"
+                "51457":"Ignored- please check https://github.com/pytest-dev/py/issues/287",
+                "51668": "# Sqlalchemy latest release is not there yet"
             }
         },
         "inference": {
@@ -660,8 +661,7 @@
             "py2": {
             },
             "py3": {
-                "51159":"cryptography>38.0.1 does not exist yet",
-                "51499": "the requested wheel is YANKED in pypi https://pypi.org/project/wheel/#history"
+                "52510":"Future 0.18.2 is the latest package version - no fix version is available"
             }
         },
         "inference-eia": {
