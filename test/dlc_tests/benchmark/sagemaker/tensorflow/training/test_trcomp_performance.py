@@ -136,7 +136,7 @@ class TestImageClassification:
                                 sagemaker_session=sagemaker_session,
                                 git_config={
                                     'repo': 'https://github.com/tensorflow/models.git',
-                                    'branch': 'v2.9.2',
+                                    'branch': 'v2.11.0',
                                 },
                                 source_dir='.',
                                 entry_point='official/vision/train.py',
