@@ -507,12 +507,12 @@ RUN rm /etc/apt/sources.list.d/* \
  && make config \
  && make \
  && make install \
- && popd -0 \
+ && popd \
  && git clone https://github.com/KarypisLab/METIS.git \
  && pushd METIS \
  && make config shared=1 cc=gcc prefix=/root/local \
  && make install \
- && popd -0 \
+ && popd \
  && rm -rf METIS GKlib \
  && rm -rf /var/lib/apt/lists/* \
  && apt-get clean
