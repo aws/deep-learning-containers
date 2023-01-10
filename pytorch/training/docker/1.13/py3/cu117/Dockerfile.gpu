@@ -503,16 +503,16 @@ RUN pip install --no-cache-dir -U \
 # install metis
 RUN rm /etc/apt/sources.list.d/* \
  && git clone https://github.com/KarypisLab/GKlib \
- && pushd GKlib \
+ && cd GKlib \
  && make config \
  && make \
  && make install \
- && popd \
+ && cd .. \
  && git clone https://github.com/KarypisLab/METIS.git \
- && pushd METIS \
+ && cd METIS \
  && make config shared=1 cc=gcc prefix=/root/local \
  && make install \
- && popd \
+ && cd .. \
  && rm -rf METIS GKlib \
  && rm -rf /var/lib/apt/lists/* \
  && apt-get clean
