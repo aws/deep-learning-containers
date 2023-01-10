@@ -7,7 +7,7 @@
       "name": "CVE-2022-3996",
       "package_name": "cryptography",
       "package_details": {
-        "file_path": "opt/conda/lib/python3.8/site-packages/cryptography-39.0.0.dist-info/METADATA",
+        "file_path": "opt/conda/lib/python3.9/site-packages/cryptography-39.0.0.dist-info/METADATA",
         "name": "cryptography",
         "package_manager": "PYTHONPKG",
         "version": "39.0.0",
@@ -28,13 +28,13 @@
   ],
   "future": [
     {
-      "reason_to_ignore": "Currently no fix, package is at highest GA version..",
+      "reason_to_ignore": "No fix at this time, is at highest GA version.",
       "description": " An issue discovered in Python Charmers Future 0.18.2 and earlier allows remote attackers to cause a denial of service via crafted Set-Cookie header from malicious web server.",
       "vulnerability_id": "CVE-2022-40899",
       "name": "CVE-2022-40899",
       "package_name": "future",
       "package_details": {
-        "file_path": "opt/conda/lib/python3.8/site-packages/future-0.18.2.dist-info/METADATA",
+        "file_path": "opt/conda/lib/python3.9/site-packages/future-0.18.2.dist-info/METADATA",
         "name": "future",
         "package_manager": "PYTHONPKG",
         "version": "0.18.2",
@@ -53,13 +53,13 @@
       "title": "CVE-2022-40899 - future"
     },
     {
-      "reason_to_ignore": "Currently no fix, package is at highest GA version..",
+      "reason_to_ignore": "No fix at this time, is at highest GA version.",
       "description": "Affected versions of this package are vulnerable to Regular Expression Denial of Service (ReDoS) via a crafted `Set-Cookie` HEADER from a malicious web server.",
       "vulnerability_id": "SNYK-PYTHON-FUTURE-3180414",
       "name": "SNYK-PYTHON-FUTURE-3180414",
       "package_name": "future",
       "package_details": {
-        "file_path": "opt/conda/lib/python3.8/site-packages/future-0.18.2.dist-info/METADATA",
+        "file_path": "opt/conda/lib/python3.9/site-packages/future-0.18.2.dist-info/METADATA",
         "name": "future",
         "package_manager": "PYTHONPKG",
         "version": "0.18.2",
@@ -78,13 +78,12 @@
       "title": "IN1-PYTHON-FUTURE-3180414 - future"
     },
     {
-      "reason_to_ignore": "Currently no fix, package is at highest GA version..",
       "description": "An issue discovered in Python Charmers Future 0.18.2 and earlier allows remote attackers to cause a denial of service via crafted Set-Cookie header from malicious web server.",
       "vulnerability_id": "GHSA-v3c5-jqr6-7qm8",
       "name": "GHSA-v3c5-jqr6-7qm8",
       "package_name": "future",
       "package_details": {
-        "file_path": "opt/conda/lib/python3.8/site-packages/future-0.18.2.dist-info/METADATA",
+        "file_path": "opt/conda/lib/python3.9/site-packages/future-0.18.2.dist-info/METADATA",
         "name": "future",
         "package_manager": "PYTHONPKG",
         "version": "0.18.2",
