@@ -482,7 +482,7 @@ RUN pip install --no-cache-dir -U \
 
 # Install smdebug from souce
 RUN cd /tmp \
-  && git clone https://github.com/awslabs/sagemaker-debugger/commits/master -b master --single-branch \ 
+  && git clone https://github.com/awslabs/sagemaker-debugger -b master --single-branch \ 
   && cd sagemaker-debugger \
   # checkout the numpy commit for now and wait for the release
   && git checkout -f 9764a221fd3086ad8d2736128ccc2d69f269df1c \ 
