@@ -3,7 +3,6 @@ boto3>1.0,<2.0
 awscli<2
 protobuf>=3.20,<3.21
 sagemaker
-smdebug>=1
 coverage==4.5.3
 docker-compose
 flake8==3.7.7
@@ -15,8 +14,6 @@ pytest-rerunfailures==8.0
 pytest-xdist==1.28.0
 PyYAML==5.4
 requests==2.24
-torch==1.11
-torchvision==0.12
 tox==3.7.0
 requests_mock==1.6.0
 fabric
