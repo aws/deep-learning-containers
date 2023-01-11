@@ -488,13 +488,13 @@ RUN cd /tmp \
 
 # Install extra packages
 # numba 0.54 only works with numpy>=1.20. See https://github.com/numba/numba/issues/7339
-RUN pip install --no-cache-dir -U \
-    "bokeh>=3.0.1,<4" \
-    "imageio>=2.22,<3" \
-    "plotly>=5.11,<6" \
-    "seaborn>=0.12,<1" \
-    "numba>=0.56.4,<0.57" \
-    "shap>=0.41,<1"
+RUN /opt/conda/bin/conda install -y -c conda-forge \
+  imageio \
+  shap \
+  && /opt/conda/bin/conda install -y -c numba numba \
+  && /opt/conda/bin/conda install -y -c anaconda seaborn \
+  && /opt/conda/bin/conda install -y -c bokeh bokeh \
+  && /opt/conda/bin/conda install -y -c plotly plotly 
 
 # install metis
 RUN rm /etc/apt/sources.list.d/* \
