@@ -280,7 +280,7 @@ RUN cd /tmp \
   && git checkout -f 9764a221fd3086ad8d2736128ccc2d69f269df1c \ 
   && pip install . \
   && rm -rf /tmp/*
-
+  
 # Install extra packages
 RUN /opt/conda/bin/conda install -y -c conda-forge \
   imageio \
