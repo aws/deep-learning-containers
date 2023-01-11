@@ -79,7 +79,6 @@ RUN apt-get update \
  && apt-get install -y --allow-change-held-packages --no-install-recommends \
     build-essential \
     ca-certificates \
-    cmake \
     cuda-command-line-tools-11-7 \
     cuda-cudart-11-7 \
     cuda-libraries-11-7 \
@@ -176,6 +175,20 @@ RUN ompi_info --parsable --all | grep mpi_built_with_cuda_support:value \
     libgcc \
     conda-content-trust \
     charset-normalizer \
+    packaging \
+    mpi4py \
+    opencv \
+    awscli \
+    boto3 \
+    pybind11 \
+    pyyaml \
+ && /opt/conda/bin/conda install -c anaconda -y cryptography \
+    cmake \
+    scipy \
+    click \
+    pillow \
+    psutil \
+    ipython \
  &&  /opt/conda/bin/conda install -c dglteam -y dgl-cuda11.7 \
  &&  /opt/conda/bin/conda install -c pytorch -y magma-cuda117 \
  &&  /opt/conda/bin/conda install -c fastai -y fastai \
@@ -193,24 +206,8 @@ RUN /opt/conda/bin/conda config --set ssl_verify False \
 
 WORKDIR /root
 
-RUN pip install --no-cache-dir -U \
-    "awscli>1.27,<2" \
-    boto3 \
-    "click==8.1.2,<9" \
-    "cmake>=3.24.3,<3.25" \
-    "cryptography>=38.0.3,<39" \
-    "ipython>=8.6.0,<8.7" \
-    "mpi4py>=3.1.4,<3.2" \
-    "opencv-python>=4.6.0,<4.7" \
-    "packaging>=21.3,<22" \
-    "Pillow>=9.3,<9.4" \
-    "psutil>=5.9.4,<5.10" \
-    "pybind11>=2.10,<2.11" \
-    "pyyaml>=5.4,<5.5" \
-    "scipy>=1.9.3,<2"
 
 COPY deep_learning_container.py /usr/local/bin/deep_learning_container.py
-
 RUN chmod +x /usr/local/bin/deep_learning_container.py
 
 RUN curl -o /license.txt https://aws-dlc-licenses.s3.amazonaws.com/pytorch-1.13/license.txt
@@ -494,7 +491,6 @@ RUN cd /tmp \
 RUN pip install --no-cache-dir -U \
     "bokeh>=3.0.1,<4" \
     "imageio>=2.22,<3" \
-    "opencv-python>=4.6,<5" \
     "plotly>=5.11,<6" \
     "seaborn>=0.12,<1" \
     "numba>=0.56.4,<0.57" \

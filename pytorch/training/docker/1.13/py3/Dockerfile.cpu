@@ -131,6 +131,20 @@ RUN curl -L -o ~/mambaforge.sh https://github.com/conda-forge/miniforge/releases
     # Below 2 are included in miniconda base, but not mamba so need to install
     conda-content-trust \
     charset-normalizer \
+    packaging \
+    mpi4py \
+    opencv \
+    awscli \
+    boto3 \
+    pybind11 \
+    pyyaml \
+ && /opt/conda/bin/conda install -c anaconda -y cryptography \
+    cmake \
+    scipy \
+    click \
+    pillow \
+    psutil \
+    ipython \
  && /opt/conda/bin/conda install -c dglteam -y dgl \
  && /opt/conda/bin/conda install -c fastai -y fastai \
  && /opt/conda/bin/conda clean -ya
@@ -141,23 +155,7 @@ RUN curl -L -o ~/mambaforge.sh https://github.com/conda-forge/miniforge/releases
 # once conda fixes the issue
 RUN rm -rf /opt/conda/lib/libtinfo.so.6
 
-RUN pip install --no-cache-dir --upgrade pip --trusted-host pypi.org --trusted-host files.pythonhosted.org \
- && ln -s /opt/conda/bin/pip /usr/local/bin/pip3 \
- && pip install --no-cache-dir -U \
-    "awscli>1.27,<2" \
-    boto3 \
-    "click==8.1.2,<9" \
-    "cryptography>=38.0.3,<39" \
-    "ipython>=8.6.0,<8.7" \
-    "opencv-python>=4.6.0,<4.7" \
-    "packaging>=21.3,<22" \
-    "Pillow>=9.3,<9.4" \
-    "psutil>=5.9.4,<5.10" \
-    "pyyaml>=5.4,<5.5" \
-    "scipy>=1.9.3,<2"
-
 COPY deep_learning_container.py /usr/local/bin/deep_learning_container.py
-
 RUN chmod +x /usr/local/bin/deep_learning_container.py
 
 RUN curl -o /license.txt https://aws-dlc-licenses.s3.amazonaws.com/pytorch-1.13/license.txt
