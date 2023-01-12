@@ -172,13 +172,13 @@ RUN ompi_info --parsable --all | grep mpi_built_with_cuda_support:value \
     typing \
     h5py \
     requests \
-    "pyopenssl>=22.1.0,<23" \
+    pyopenssl \
     libgcc \
     conda-content-trust \
     charset-normalizer \
     packaging \
     mpi4py \
-    opencv \
+    # opencv \
     awscli \
     boto3 \
     pybind11 \
