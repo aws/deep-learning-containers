@@ -401,13 +401,6 @@ RUN mkdir -p /etc/pki/tls/certs && cp /etc/ssl/certs/ca-certificates.crt /etc/pk
 
 WORKDIR /
 
-# Install scikit-learn and pandas
-RUN conda install -y -c conda-forge \
-    scikit-learn \
-    pandas
-
-WORKDIR /
-
 # Install libboost from source. This package is needed for smdataparallel functionality [for networking asynchronous IO].
 RUN wget https://sourceforge.net/projects/boost/files/boost/1.73.0/boost_1_73_0.tar.gz/download -O boost_1_73_0.tar.gz \
  && tar -xzf boost_1_73_0.tar.gz \
@@ -449,7 +442,9 @@ RUN cd /tmp \
 # Install extra packages
 RUN /opt/conda/bin/conda install -y -c conda-forge \
   imageio \
-  shap \
+  shap \    
+  scikit-learn \
+  pandas \
   && /opt/conda/bin/conda install -y -c numba numba \
   && /opt/conda/bin/conda install -y -c anaconda seaborn \
   && /opt/conda/bin/conda install -y -c bokeh bokeh \
