@@ -256,18 +256,7 @@ RUN rm -rf /root/.ssh/ && \
  cp /root/.ssh/id_rsa.pub /root/.ssh/authorized_keys \
  && printf "Host *\n StrictHostKeyChecking no\n" >> /root/.ssh/config
 
-# Install Horovod
-RUN pip uninstall -y horovod \
- && ldconfig /usr/local/cuda-11.7/targets/x86_64-linux/lib/stubs \
- && HOROVOD_GPU_ALLREDUCE=NCCL HOROVOD_CUDA_HOME=/usr/local/cuda-11.7 HOROVOD_WITH_PYTORCH=1 pip install --no-cache-dir horovod==${HOROVOD_VERSION} \
- && ldconfig
-
 RUN mkdir -p /etc/pki/tls/certs && cp /etc/ssl/certs/ca-certificates.crt /etc/pki/tls/certs/ca-bundle.crt
-
-COPY deep_learning_container.py /usr/local/bin/deep_learning_container.py
-RUN chmod +x /usr/local/bin/deep_learning_container.py
-
-RUN curl -o /license.txt https://aws-dlc-licenses.s3.amazonaws.com/pytorch-1.13/license.txt
 
 RUN HOME_DIR=/root \
  && curl -o ${HOME_DIR}/oss_compliance.zip https://aws-dlinfra-utilities.s3.amazonaws.com/oss_compliance.zip \
@@ -278,6 +267,11 @@ RUN HOME_DIR=/root \
  && ${HOME_DIR}/oss_compliance/generate_oss_compliance.sh ${HOME_DIR} ${PYTHON} \
  && rm -rf ${HOME_DIR}/oss_compliance* \
  && rm -rf /tmp/tmp*
+
+COPY deep_learning_container.py /usr/local/bin/deep_learning_container.py
+RUN chmod +x /usr/local/bin/deep_learning_container.py
+
+RUN curl -o /license.txt https://aws-dlc-licenses.s3.amazonaws.com/pytorch-1.13/license.txt
 
 # Removing the cache as it is needed for security verification
 RUN rm -rf /root/.cache | true
@@ -313,13 +307,18 @@ ARG PT_TORCHDATA_URL
 RUN pip uninstall -y torch torchvision torchaudio torchdata \
  && pip install --no-cache-dir -U ${PT_EC2_TRAINING_URL} ${PT_TORCHVISION_URL} ${PT_TORCHAUDIO_URL} ${PT_TORCHDATA_URL} torchnet
 
-# Install Nvidia Apex
+# Install Nvidia Apex (needs pytorch)
 ## Pin apex commit requested by sm-model-parallel team
 RUN git clone https://github.com/NVIDIA/apex && \
     cd apex && \
     git checkout aa756ce && \
     pip install -v --no-cache-dir --global-option="--cpp_ext" --global-option="--cuda_ext" ./
 
+# Install Horovod (needs pytorch)
+RUN pip uninstall -y horovod \
+ && ldconfig /usr/local/cuda-11.7/targets/x86_64-linux/lib/stubs \
+ && HOROVOD_GPU_ALLREDUCE=NCCL HOROVOD_CUDA_HOME=/usr/local/cuda-11.7 HOROVOD_WITH_PYTORCH=1 pip install --no-cache-dir horovod==${HOROVOD_VERSION} \
+ && ldconfig
 
 WORKDIR /
 
@@ -378,12 +377,18 @@ ARG PT_TORCHDATA_URL
 RUN pip uninstall -y torch torchvision torchaudio torchdata \
  && pip install --no-cache-dir -U ${PT_SM_TRAINING_URL} ${PT_TORCHVISION_URL} ${PT_TORCHAUDIO_URL} ${PT_TORCHDATA_URL} torchnet
 
-# Install Nvidia Apex
+# Install Nvidia Apex (needs pytorch)
 ## Pin apex commit requested by sm-model-parallel team
 RUN git clone https://github.com/NVIDIA/apex && \
     cd apex && \
     git checkout aa756ce && \
     pip install -v --no-cache-dir --global-option="--cpp_ext" --global-option="--cuda_ext" ./
+
+# Install Horovod (needs pytorch)
+RUN pip uninstall -y horovod \
+ && ldconfig /usr/local/cuda-11.7/targets/x86_64-linux/lib/stubs \
+ && HOROVOD_GPU_ALLREDUCE=NCCL HOROVOD_CUDA_HOME=/usr/local/cuda-11.7 HOROVOD_WITH_PYTORCH=1 pip install --no-cache-dir horovod==${HOROVOD_VERSION} \
+ && ldconfig
 
 WORKDIR /
 
