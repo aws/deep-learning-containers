@@ -213,14 +213,6 @@ RUN mv $OPEN_MPI_PATH/bin/mpirun $OPEN_MPI_PATH/bin/mpirun.real \
  && echo "rmaps_base_mapping_policy = slot" >> $OPEN_MPI_PATH/etc/openmpi-mca-params.conf \
  && echo NCCL_DEBUG=INFO >> /etc/nccl.conf \
  && echo NCCL_SOCKET_IFNAME=^docker0 >> /etc/nccl.conf
- 
-# Install Nvidia Apex
-## Pin apex commit requested by sm-model-parallel team
-RUN git clone https://github.com/NVIDIA/apex && \
-    cd apex && \
-    git checkout aa756ce && \
-    pip install -v --no-cache-dir --global-option="--cpp_ext" --global-option="--cuda_ext" ./
-
 # Install AWS OFI NCCL plug-in
 RUN apt-get update && apt-get install -y autoconf
 RUN mkdir /tmp/efa-ofi-nccl \
@@ -290,6 +282,12 @@ ARG PT_TORCHDATA_URL
 RUN pip uninstall -y torch torchvision torchaudio torchdata \
  && pip install --no-cache-dir -U ${PT_EC2_TRAINING_URL} ${PT_TORCHVISION_URL} ${PT_TORCHAUDIO_URL} ${PT_TORCHDATA_URL} torchnet
 
+# Install Nvidia Apex
+## Pin apex commit requested by sm-model-parallel team
+RUN git clone https://github.com/NVIDIA/apex && \
+    cd apex && \
+    git checkout aa756ce && \
+    pip install -v --no-cache-dir --global-option="--cpp_ext" --global-option="--cuda_ext" ./
 
 # Configure OpenSSH so that nodes can communicate with each other
 RUN mkdir -p /var/run/sshd && \
@@ -376,6 +374,13 @@ ARG PT_TORCHDATA_URL
 RUN pip uninstall -y torch torchvision torchaudio torchdata \
  && pip install --no-cache-dir -U ${PT_SM_TRAINING_URL} ${PT_TORCHVISION_URL} ${PT_TORCHAUDIO_URL} ${PT_TORCHDATA_URL} torchnet
 
+# Install Nvidia Apex
+## Pin apex commit requested by sm-model-parallel team
+RUN git clone https://github.com/NVIDIA/apex && \
+    cd apex && \
+    git checkout aa756ce && \
+    pip install -v --no-cache-dir --global-option="--cpp_ext" --global-option="--cuda_ext" ./
+    
 # Configure OpenSSH so that nodes can communicate with each other
 RUN mkdir -p /var/run/sshd && \
  sed 's@session\s*required\s*pam_loginuid.so@session optional pam_loginuid.so@g' -i /etc/pam.d/sshd
