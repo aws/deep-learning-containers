@@ -151,51 +151,6 @@ RUN mkdir /tmp/openmpi \
  && cd / \
  && rm -rf /tmp/openmpi
 
-# Configure Open MPI and configure NCCL parameters
-RUN mv $OPEN_MPI_PATH/bin/mpirun $OPEN_MPI_PATH/bin/mpirun.real \
- && echo '#!/bin/bash' > $OPEN_MPI_PATH/bin/mpirun \
- && echo "${OPEN_MPI_PATH}/bin/mpirun.real --allow-run-as-root \"\$@\"" >> $OPEN_MPI_PATH/bin/mpirun \
- && chmod a+x $OPEN_MPI_PATH/bin/mpirun \
- && echo "hwloc_base_binding_policy = none" >> $OPEN_MPI_PATH/etc/openmpi-mca-params.conf \
- && echo "rmaps_base_mapping_policy = slot" >> $OPEN_MPI_PATH/etc/openmpi-mca-params.conf \
- && echo NCCL_DEBUG=INFO >> /etc/nccl.conf \
- && echo NCCL_SOCKET_IFNAME=^docker0 >> /etc/nccl.conf
- 
-# Install Nvidia Apex
-## Pin apex commit requested by sm-model-parallel team
-RUN git clone https://github.com/NVIDIA/apex && \
-    cd apex && \
-    git checkout aa756ce && \
-    pip install -v --no-cache-dir --global-option="--cpp_ext" --global-option="--cuda_ext" ./
-
-# Install AWS OFI NCCL plug-in
-RUN apt-get update && apt-get install -y autoconf
-RUN mkdir /tmp/efa-ofi-nccl \
- && cd /tmp/efa-ofi-nccl \
- && git clone https://github.com/aws/aws-ofi-nccl.git -b v${BRANCH_OFI} \
- && cd aws-ofi-nccl \
- && ./autogen.sh \
- && ./configure --with-libfabric=/opt/amazon/efa \
-  --with-mpi=/opt/amazon/openmpi \
-  --with-cuda=/usr/local/cuda \
-  --with-nccl=/usr/local --prefix=/usr/local \
- && make \
- && make install \
- && rm -rf /tmp/efa-ofi-nccl \
- && rm -rf /var/lib/apt/lists/* \
- && apt-get clean
-
-# Install OpenSSH for MPI to communicate between containers, allow OpenSSH to talk to containers without asking for confirmation
-RUN apt-get update \
- && apt-get install -y  --allow-downgrades --allow-change-held-packages --no-install-recommends \
- && apt-get install -y --no-install-recommends openssh-client openssh-server \
- && mkdir -p /var/run/sshd \
- && cat /etc/ssh/ssh_config | grep -v StrictHostKeyChecking > /etc/ssh/ssh_config.new \
- && echo "    StrictHostKeyChecking no" >> /etc/ssh/ssh_config.new \
- && mv /etc/ssh/ssh_config.new /etc/ssh/ssh_config \
- && rm -rf /var/lib/apt/lists/* \
- && apt-get clean
- 
 ENV PATH="$OPEN_MPI_PATH/bin:$PATH"
 ENV LD_LIBRARY_PATH=$OPEN_MPI_PATH/lib/:$EFA_PATH/lib/:$LD_LIBRARY_PATH
 
@@ -248,6 +203,51 @@ RUN rm -rf /opt/conda/lib/libtinfo.so.6
 RUN /opt/conda/bin/conda config --set ssl_verify False \
  && pip install --no-cache-dir --upgrade pip --no-cache-dir --trusted-host pypi.org --trusted-host files.pythonhosted.org \
  && ln -s /opt/conda/bin/pip /usr/local/bin/pip3
+
+# Configure Open MPI and configure NCCL parameters
+RUN mv $OPEN_MPI_PATH/bin/mpirun $OPEN_MPI_PATH/bin/mpirun.real \
+ && echo '#!/bin/bash' > $OPEN_MPI_PATH/bin/mpirun \
+ && echo "${OPEN_MPI_PATH}/bin/mpirun.real --allow-run-as-root \"\$@\"" >> $OPEN_MPI_PATH/bin/mpirun \
+ && chmod a+x $OPEN_MPI_PATH/bin/mpirun \
+ && echo "hwloc_base_binding_policy = none" >> $OPEN_MPI_PATH/etc/openmpi-mca-params.conf \
+ && echo "rmaps_base_mapping_policy = slot" >> $OPEN_MPI_PATH/etc/openmpi-mca-params.conf \
+ && echo NCCL_DEBUG=INFO >> /etc/nccl.conf \
+ && echo NCCL_SOCKET_IFNAME=^docker0 >> /etc/nccl.conf
+ 
+# Install Nvidia Apex
+## Pin apex commit requested by sm-model-parallel team
+RUN git clone https://github.com/NVIDIA/apex && \
+    cd apex && \
+    git checkout aa756ce && \
+    pip install -v --no-cache-dir --global-option="--cpp_ext" --global-option="--cuda_ext" ./
+
+# Install AWS OFI NCCL plug-in
+RUN apt-get update && apt-get install -y autoconf
+RUN mkdir /tmp/efa-ofi-nccl \
+ && cd /tmp/efa-ofi-nccl \
+ && git clone https://github.com/aws/aws-ofi-nccl.git -b v${BRANCH_OFI} \
+ && cd aws-ofi-nccl \
+ && ./autogen.sh \
+ && ./configure --with-libfabric=/opt/amazon/efa \
+  --with-mpi=/opt/amazon/openmpi \
+  --with-cuda=/usr/local/cuda \
+  --with-nccl=/usr/local --prefix=/usr/local \
+ && make \
+ && make install \
+ && rm -rf /tmp/efa-ofi-nccl \
+ && rm -rf /var/lib/apt/lists/* \
+ && apt-get clean
+
+# Install OpenSSH for MPI to communicate between containers, allow OpenSSH to talk to containers without asking for confirmation
+RUN apt-get update \
+ && apt-get install -y  --allow-downgrades --allow-change-held-packages --no-install-recommends \
+ && apt-get install -y --no-install-recommends openssh-client openssh-server \
+ && mkdir -p /var/run/sshd \
+ && cat /etc/ssh/ssh_config | grep -v StrictHostKeyChecking > /etc/ssh/ssh_config.new \
+ && echo "    StrictHostKeyChecking no" >> /etc/ssh/ssh_config.new \
+ && mv /etc/ssh/ssh_config.new /etc/ssh/ssh_config \
+ && rm -rf /var/lib/apt/lists/* \
+ && apt-get clean
 
 WORKDIR /root
 
