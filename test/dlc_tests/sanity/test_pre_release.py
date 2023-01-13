@@ -247,17 +247,16 @@ def test_sm_toolkit_and_ts_version(pytorch_inference, region):
         output_smkit = run_cmd_on_container(
             container_name, ctx, cmd_smkit, executable="bash"
         )
-        toolkit_version_from_output = ((str(output_smkit.stdout).split(' '))[1]).strip()
+        toolkit_version_from_output = (((str(output_smkit.stdout).split(' '))[1]).strip()).replace('.', '-')
         output_ts = run_cmd_on_container(
             container_name, ctx, cmd_ts, executable="bash"
         )
-        ts_version_from_output = ((str(output_ts.stdout).split(' '))[3]).strip()
-        
-        #check if label exists
+        ts_version_from_output = (((str(output_ts.stdout).split(' '))[3]).strip()).replace('.', '-')
         image_labels = test_utils.get_labels_from_ecr_image(image, region)
-        #required_label = image_labels.get(f"", None)
-        #assert (tag_framework_version == str_version_from_output), \
-        #    f"Tensorflow serving API version is {str_version_from_output} while the Tensorflow version is {tag_framework_version}. Both don't match!"
+        expected_label=f"com.amazonaws.ml.engines.sagemaker.inference_tool_kit_{toolkit_version_from_output}.torchserve_{ts_version_from_output}"
+        required_label = image_labels.get(f"com.amazonaws.ml.engines.sagemaker.inference_tool_kit_{toolkit_version_from_output}.torchserve_{ts_version_from_output}", None)
+        assert required_label, \
+            f"The required label {expected_label} which enforces compatability between sagemaker inference toolkit and torchserve seems to be invalid/missing for the image {image}"
     except Exception as e:
         LOGGER.error(f"Unable to execute command on container. Error: {e}")
         raise        
