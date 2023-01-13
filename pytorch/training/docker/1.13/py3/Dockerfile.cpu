@@ -156,6 +156,11 @@ RUN curl -L -o ~/mambaforge.sh https://github.com/conda-forge/miniforge/releases
 # once conda fixes the issue
 RUN rm -rf /opt/conda/lib/libtinfo.so.6
 
+RUN pip install fastai --no-deps \
+ && pip install fastcore \
+ fastdownload \
+ fastprogress
+
 COPY deep_learning_container.py /usr/local/bin/deep_learning_container.py
 RUN chmod +x /usr/local/bin/deep_learning_container.py
 
