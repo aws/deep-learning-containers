@@ -127,7 +127,7 @@ RUN curl -L -o ~/mambaforge.sh https://github.com/conda-forge/miniforge/releases
     typing \
     h5py \
     requests \
-    "pyopenssl>=17.5.0" \
+    pyopenssl \
     # Below 2 are included in miniconda base, but not mamba so need to install
     conda-content-trust \
     charset-normalizer \
@@ -146,8 +146,14 @@ RUN curl -L -o ~/mambaforge.sh https://github.com/conda-forge/miniforge/releases
     psutil \
     ipython \
  && /opt/conda/bin/conda install -c dglteam -y dgl \
- && /opt/conda/bin/conda install -c fastai -y fastai \
  && /opt/conda/bin/conda clean -ya
+
+# fastai conda has a dependency chain of fastai -> spacy -> pathy -> dataclasses
+# conda pathy installs dataclasses regardless of py version: https://github.com/conda-forge/pathy-feedstock/blob/1e6da43da5c8e11e09c063c79b09236bbacb7780/recipe/meta.yaml#L29
+# pypi solves this issue: https://github.com/justindujardin/pathy/blob/master/requirements.txt#L3
+# dataclasses package is not needed for py>=37
+RUN pip install fastai
+
 
 # Conda installs links for libtinfo.so.6 and libtinfo.so.6.2 both
 # Which causes "/opt/conda/lib/libtinfo.so.6: no version information available" warning
