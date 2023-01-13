@@ -30,4 +30,3 @@ artifacts:
     - $HOME/test_type_images.json
   name: DLC_IMAGES_JSON
   discard-paths: yes
-
