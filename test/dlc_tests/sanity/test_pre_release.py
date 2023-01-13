@@ -20,6 +20,7 @@ from test.test_utils import (
     LOGGER,
     CONTAINER_TESTS_PREFIX,
     ec2,
+    test_utils,
     get_container_name,
     get_framework_and_version_from_tag,
     get_neuron_framework_and_version_from_tag,
@@ -218,6 +219,45 @@ def test_tf_serving_api_version(tensorflow_inference):
         str_version_from_output = ((str(output.stdout).split(' '))[1]).strip()
         assert (tag_framework_version == str_version_from_output), \
             f"Tensorflow serving API version is {str_version_from_output} while the Tensorflow version is {tag_framework_version}. Both don't match!"
+    except Exception as e:
+        LOGGER.error(f"Unable to execute command on container. Error: {e}")
+        raise        
+    finally:
+        stop_and_remove_container(container_name, ctx)
+
+@pytest.mark.usefixtures("sagemaker")
+@pytest.mark.model("N/A")
+def test_sm_toolkit_and_ts_version(pytorch_inference, region):
+    """
+    @param pytorch_inference: ECR image URI
+    """
+    # Set local variable to clarify contents of fixture
+    image = pytorch_inference
+    
+    if "gpu" or "cpu" in image:
+        cmd_smkit="pip show sagemaker-pytorch-inference | grep -i Version"
+        cmd_ts="torchserve --version"
+    else:
+        ValueError("Test as of now only covers CPU and GPU type images. If required, please modify this test to accommodate the new image type!")
+
+    ctx = Context()
+    container_name = get_container_name("pytorch-smtoolkit-ts-check", image)
+    start_container(container_name, image, ctx)
+    try:
+        output_smkit = run_cmd_on_container(
+            container_name, ctx, cmd_smkit, executable="bash"
+        )
+        toolkit_version_from_output = ((str(output_smkit.stdout).split(' '))[1]).strip()
+        output_ts = run_cmd_on_container(
+            container_name, ctx, cmd_ts, executable="bash"
+        )
+        ts_version_from_output = ((str(output_ts.stdout).split(' '))[3]).strip()
+        
+        #check if label exists
+        image_labels = test_utils.get_labels_from_ecr_image(image, region)
+        #required_label = image_labels.get(f"", None)
+        #assert (tag_framework_version == str_version_from_output), \
+        #    f"Tensorflow serving API version is {str_version_from_output} while the Tensorflow version is {tag_framework_version}. Both don't match!"
     except Exception as e:
         LOGGER.error(f"Unable to execute command on container. Error: {e}")
         raise        

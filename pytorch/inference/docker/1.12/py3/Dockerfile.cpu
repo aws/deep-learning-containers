@@ -50,7 +50,10 @@ ARG PT_TORCHVISION_URL
 ARG PT_TORCHAUDIO_URL
 ARG PT_TORCHDATA_URL
 
+#Changes to the below inputs require approval from TorchServe team
 ARG TS_VERSION=0.6.0
+ARG SM_TOOLKIT_VERSION=2.0.10
+LABEL com.amazonaws.ml.engines.sagemaker.inference_tool_kit_2.0.10.torchserve_0.6.0="true"
 
 ENV LANG=C.UTF-8
 ENV LD_LIBRARY_PATH="${LD_LIBRARY_PATH}:/opt/conda/lib"
@@ -228,7 +231,7 @@ RUN conda install -y -c conda-forge \
     scikit-learn \
     pandas
 
-RUN pip install --no-cache-dir "sagemaker-pytorch-inference>=2"
+RUN pip install --no-cache-dir "sagemaker-pytorch-inference==${SM_TOOLKIT_VERSION}"
 
 COPY torchserve-entrypoint.py /usr/local/bin/dockerd-entrypoint.py
 
