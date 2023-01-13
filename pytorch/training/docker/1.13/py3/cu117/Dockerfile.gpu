@@ -186,7 +186,7 @@ RUN ompi_info --parsable --all | grep mpi_built_with_cuda_support:value \
     cmake \
     scipy \
     click \
-    # avoid CVE
+    # patch CVE
     "pillow>=9.4" \
     psutil \
     ipython \
