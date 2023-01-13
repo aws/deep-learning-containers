@@ -55,6 +55,9 @@ ARG TS_VERSION=0.6.0
 ARG SM_TOOLKIT_VERSION=2.0.10
 LABEL com.amazonaws.ml.engines.sagemaker.inference_tool_kit_2.0.10.torchserve_0.6.0="true"
 
+# ENV variable to be pased to SageMaker stage
+ENV SM_TOOLKIT_VERSION=${SM_TOOLKIT_VERSION}
+
 ENV LANG=C.UTF-8
 ENV LD_LIBRARY_PATH="${LD_LIBRARY_PATH}:/opt/conda/lib"
 ENV PATH=/opt/conda/bin:$PATH
