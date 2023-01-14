@@ -225,7 +225,7 @@ def test_tf_serving_api_version(tensorflow_inference):
     finally:
         stop_and_remove_container(container_name, ctx)
 
-@pytest.mark.usefixtures("sagemaker")
+@pytest.mark.usefixtures("sagemaker_only")
 @pytest.mark.model("N/A")
 def test_sm_toolkit_and_ts_version(pytorch_inference, region):
     """
