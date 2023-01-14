@@ -53,7 +53,7 @@ ARG PT_TORCHDATA_URL
 #Changes to the below inputs require approval from TorchServe team
 ARG TS_VERSION=0.6.0
 ARG SM_TOOLKIT_VERSION=2.0.12
-LABEL com.amazonaws.ml.engines.sagemaker.inference_tool_kit_2.0.12.torchserve_0.6.0="true"
+LABEL com.amazonaws.ml.engines.sagemaker.inference_tool_kit_2-0-12.torchserve_0-6-0="true"
 
 # ENV variable to be pased to SageMaker stage
 ENV SM_TOOLKIT_VERSION=${SM_TOOLKIT_VERSION}
