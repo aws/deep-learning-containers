@@ -50,7 +50,14 @@ ARG PT_TORCHDATA_URL
 
 ARG CUBLAS_VERSION=11.7.4.6
 ARG OMPI_VERSION=4.1.1
+
+#Changes to the below inputs require approval from TorchServe team
 ARG TS_VERSION=0.6.0
+ARG SM_TOOLKIT_VERSION=2.0.12
+LABEL com.amazonaws.ml.engines.sagemaker.inference_tool_kit_2.0.12.torchserve_0.6.0="true"
+
+# ENV variable to be pased to SageMaker stage
+ENV SM_TOOLKIT_VERSION=${SM_TOOLKIT_VERSION}
 
 ARG DEBIAN_FRONTEND=noninteractive
 
@@ -290,7 +297,7 @@ RUN conda install -y -c conda-forge \
     scikit-learn \
     pandas
 
-RUN pip install --no-cache-dir "sagemaker-pytorch-inference>=2"
+RUN pip install --no-cache-dir "sagemaker-pytorch-inference==${SM_TOOLKIT_VERSION}"
 
 COPY torchserve-entrypoint.py /usr/local/bin/dockerd-entrypoint.py
 
