@@ -192,6 +192,13 @@ RUN ompi_info --parsable --all | grep mpi_built_with_cuda_support:value \
     ipython \
  && /opt/conda/bin/conda install -c dglteam -y dgl-cuda11.7 \
  && /opt/conda/bin/conda install -c pytorch -y magma-cuda117 \
+ && /opt/conda/bin/conda install -c fastai fastai \
+# fastai conda has a dependency chain of fastai -> spacy -> pathy -> dataclasses
+ # conda pathy installs dataclasses regardless of py version: https://github.com/conda-forge/pathy-feedstock/blob/1e6da43da5c8e11e09c063c79b09236bbacb7780/recipe/meta.yaml#L29
+ # pypi solves this issue: https://github.com/justindujardin/pathy/blob/master/requirements.txt#L3
+ # dataclasses package is not needed for py>=37
+ # install plainly will oversize the image
+ && pip uninstall dataclasses \
  && /opt/conda/bin/conda clean -ya
 
 # Conda installs links for libtinfo.so.6 and libtinfo.so.6.2 both
@@ -204,16 +211,7 @@ RUN pip install --no-cache-dir --upgrade pip --no-cache-dir --trusted-host pypi.
  && ln -s /opt/conda/bin/pip /usr/local/bin/pip3 \
  # use pip to install opencv since conda package broke nvidia ssl verification
  # https://github.com/NVIDIA/nvidia-docker/issues/1009
- && pip install opencv-python \
- # fastai conda has a dependency chain of fastai -> spacy -> pathy -> dataclasses
- # conda pathy installs dataclasses regardless of py version: https://github.com/conda-forge/pathy-feedstock/blob/1e6da43da5c8e11e09c063c79b09236bbacb7780/recipe/meta.yaml#L29
- # pypi solves this issue: https://github.com/justindujardin/pathy/blob/master/requirements.txt#L3
- # dataclasses package is not needed for py>=37
- # install plainly will oversize the image
- install fastai --no-deps \
- && pip install fastcore \
- fastdownload \
- fastprogress 
+ && pip install opencv-python 
 
 WORKDIR /root
 
