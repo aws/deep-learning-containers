@@ -198,7 +198,7 @@ RUN ompi_info --parsable --all | grep mpi_built_with_cuda_support:value \
  # pypi solves this issue: https://github.com/justindujardin/pathy/blob/master/requirements.txt#L3
  # dataclasses package is not needed for py>=37
  # install plainly will oversize the image
- && pip uninstall dataclasses \
+ && pip uninstall -y dataclasses \
  && /opt/conda/bin/conda clean -ya
 
 # Conda installs links for libtinfo.so.6 and libtinfo.so.6.2 both

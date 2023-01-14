@@ -153,7 +153,7 @@ RUN curl -L -o ~/mambaforge.sh https://github.com/conda-forge/miniforge/releases
  # pypi solves this issue: https://github.com/justindujardin/pathy/blob/master/requirements.txt#L3
  # dataclasses package is not needed for py>=37
  # install plainly will oversize the image
- && pip uninstall dataclasses \
+ && pip uninstall -y dataclasses \
  && /opt/conda/bin/conda clean -ya
 
 
