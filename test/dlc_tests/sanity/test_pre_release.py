@@ -20,7 +20,7 @@ from test.test_utils import (
     LOGGER,
     CONTAINER_TESTS_PREFIX,
     ec2,
-    test_utils,
+    get_labels_from_ecr_image,
     get_container_name,
     get_framework_and_version_from_tag,
     get_neuron_framework_and_version_from_tag,
@@ -252,7 +252,7 @@ def test_sm_toolkit_and_ts_version(pytorch_inference, region):
             container_name, ctx, cmd_ts, executable="bash"
         )
         ts_version_from_output = (((str(output_ts.stdout).split(' '))[3]).strip()).replace('.', '-')
-        image_labels = test_utils.get_labels_from_ecr_image(image, region)
+        image_labels = get_labels_from_ecr_image(image, region)
         expected_label=f"com.amazonaws.ml.engines.sagemaker.inference_tool_kit_{toolkit_version_from_output}.torchserve_{ts_version_from_output}"
         #remove the below print before PR review
         print(f"label expected {expected_label}")
