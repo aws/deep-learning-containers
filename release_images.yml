@@ -97,7 +97,7 @@ release_images:
     framework: "tensorflow"
     version: "2.9.1"
     arch_type: "graviton"
-    customer_type: "sagemaker"
+    customer_type: "ec2"
     inference:
       device_types: [ "cpu"]
       python_versions: [ "py38" ]
