@@ -279,7 +279,7 @@ RUN pip install --no-cache-dir --upgrade pip --trusted-host pypi.org --trusted-h
     "sagemaker>=2,<3" \
     sagemaker-experiments==0.* \
     "sagemaker-pytorch-training<3" \
-    protobuf==3.20.0
+    protobuf==3.20.2
 
 # Install smdebug from souce
 RUN cd /tmp \
