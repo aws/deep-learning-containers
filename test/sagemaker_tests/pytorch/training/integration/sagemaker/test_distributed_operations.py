@@ -480,13 +480,13 @@ def test_smmodelparallel_mnist_multigpu_multinode_efa(ecr_image, efa_instance_ty
         invoke_pytorch_estimator(ecr_image, sagemaker_regions, estimator_parameter, job_name=job_name)
 
 @pytest.mark.integration("smmodelparallel")
-@pytest.mark.parametrize('efa_instance_type', get_efa_test_instance_type(default=["ml.p4d.24xlarge"]), indirect=True)
 @pytest.mark.model("gpt2")
 @pytest.mark.processor("gpu")
 @pytest.mark.multinode(2)
 @pytest.mark.skip_cpu
 @pytest.mark.skip_py2_containers
 @pytest.mark.skip_trcomp_containers
+@pytest.mark.parametrize('efa_instance_type', get_efa_test_instance_type(default=["ml.p4d.24xlarge"]), indirect=True)
 @pytest.mark.parametrize("test_script, num_processes", [("train_gpt_simple.py", 8)])
 @pytest.mark.efa()
 def test_smmodelparallel_gpt2_sdp_multinode_efa(ecr_image, efa_instance_type, sagemaker_regions, test_script, num_processes):
