@@ -31,7 +31,7 @@ images:
   BuildEC2PytorchGravitonCPUInferencePy3DockerImage:
     <<: *INFERENCE_REPOSITORY
     build: &PYTORCH_CPU_INFERENCE_PY3 false
-    image_size_baseline: 10000
+    image_size_baseline: 10100
     device_type: &DEVICE_TYPE cpu
     os_version: &OS_VERSION ubuntu20.04
     python_version: &DOCKER_PYTHON_VERSION py3
@@ -44,7 +44,7 @@ images:
   BuildSageMakerPytorchGravitonCPUInferencePy3DockerImage:
     <<: *INFERENCE_REPOSITORY
     build: &PYTORCH_CPU_INFERENCE_PY3 false
-    image_size_baseline: 10000
+    image_size_baseline: 10100
     device_type: &DEVICE_TYPE cpu
     os_version: &OS_VERSION ubuntu20.04
     python_version: &DOCKER_PYTHON_VERSION py3
