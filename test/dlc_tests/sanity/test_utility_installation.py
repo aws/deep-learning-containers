@@ -37,7 +37,7 @@ def test_utility_packages_using_import(training):
     Verify that utility packages are installed in the Training DLC image
     :param training: training ECR image URI
     """
-    #TODO: revert once habana is supported on SM
+    # TODO: revert once habana is supported on SM
     if "hpu" in training:
         pytest.skip("Skipping test for Habana images as SM is not yet supported")
 
@@ -116,7 +116,8 @@ def test_emacs(image):
 def test_sagemaker_studio_analytics_extension(training, package_name):
     framework, framework_version = test_utils.get_framework_and_version_from_tag(training)
     utility_package_framework_version_limit = {
-        "pytorch": SpecifierSet(">=1.7,<1.9"), "tensorflow": SpecifierSet(">=2.4,<2.7,!=2.5.*")
+        "pytorch": SpecifierSet(">=1.7,<1.9"),
+        "tensorflow": SpecifierSet(">=2.4,<2.7,!=2.5.*"),
     }
 
     if (
@@ -138,3 +139,27 @@ def test_sagemaker_studio_analytics_extension(training, package_name):
         else f"import {import_package}; print({import_package}.__version__)"
     )
     test_utils.run_cmd_on_container(container_name, ctx, import_test_cmd, executable="python")
+
+
+@pytest.mark.usefixtures("sagemaker_only")
+@pytest.mark.model("N/A")
+@pytest.mark.integration("ipykernel")
+def test_ipykernel_presence(tensorflow_training):
+    """
+    ipykernel installed by sagemaker-studio-sparkmagic-lib package should be removed in order to make the DLC compatible with SM studio
+    """
+    try:
+        image = tensorflow_training
+        ctx = Context()
+        container_name = test_utils.get_container_name("ipykernel", image)
+        test_utils.start_container(container_name, image, ctx)
+        command = 'SYSTEM_PYTHON_PREFIX=$(python -c "from __future__ import print_function;import sys; print(sys.prefix)") && ls $SYSTEM_PYTHON_PREFIX/share/jupyter/kernels/python3/kernel.json'
+        command_output = test_utils.run_cmd_on_container(container_name, ctx, command, warn=True)
+        command_stdout = command_output.stdout.strip()
+        if command_output.return_code == 0:
+            raise RuntimeError(
+                f"Image {image} contains ipykernel at location: {command_stdout} "
+                f"Please ensure that the ipykernel is removed"
+            )
+    finally:
+        test_utils.stop_and_remove_container(container_name, ctx)

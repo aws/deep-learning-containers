@@ -195,8 +195,8 @@ RUN git clone https://github.com/aws/aws-sdk-cpp --branch main
 RUN python pin_git_modules.py --src $(pwd)/aws-sdk-cpp --date 2022-03-17
 RUN rm pin_git_modules.py
 # add necessary flags
-ENV LD_LIBRARY_PATH="/usr/lib/x86_64-linux-gnu/:${LD_LIBRARY_PATH}"
 RUN cd aws-sdk-cpp/ \
+ && export LD_LIBRARY_PATH="/usr/lib/x86_64-linux-gnu/:${LD_LIBRARY_PATH}" \
  && mkdir sdk-build \
  && cd sdk-build \
  && cmake .. -DCMAKE_CXX_FLAGS="-lcurl" -DCMAKE_BUILD_TYPE=Release -DBUILD_ONLY="s3;transfer" -DAUTORUN_UNIT_TESTS=OFF \
@@ -222,7 +222,6 @@ RUN pip install --no-cache-dir -U \
  && pip uninstall -y torch torchvision torchaudio torchdata \
  && pip install --no-cache-dir -U ${PT_INFERENCE_URL} ${PT_TORCHVISION_URL} ${PT_TORCHAUDIO_URL} ${PT_TORCHDATA_URL}
 
-# TODO: revert torchserve-nightly back to torchserve once a compatible stable version is released
 RUN pip uninstall -y model-archiver multi-model-server \
  && pip install captum \
  && pip install torchserve==${TS_VERSION} \
