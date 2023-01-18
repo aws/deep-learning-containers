@@ -25,5 +25,32 @@
       "status": "ACTIVE",
       "title": "CVE-2022-3996 - cryptography"
     }
+  ],
+  "certifi": [
+    {
+      "reason_to_ignore": "focal has been patched",
+      "description": " Certifi is a curated collection of Root Certificates for validating the trustworthiness of SSL certificates while verifying the identity of TLS hosts. Certifi 2022.12.07 removes root certificates from \"TrustCor\" from the root store. These are in the process of being removed from Mozilla's trust store. TrustCor's root certificates are being removed pursuant to an investigation prompted by media reporting that TrustCor's ownership also operated a business that produced spyware. Conclusions of Mozilla's investigation can be found in the linked google group discussion.",
+      "vulnerability_id": "CVE-2022-23491",
+      "name": "CVE-2022-23491",
+      "package_name": "certifi",
+      "package_details": {
+        "file_path": "opt/conda/pkgs/certifi-2022.6.15-py39h06a4308_0/lib/python3.9/site-packages/certifi-2022.6.15.dist-info/METADATA",
+        "name": "certifi",
+        "package_manager": "PYTHONPKG",
+        "version": "2022.6.15",
+        "release": null
+      },
+      "remediation": { "recommendation": { "text": "None Provided" } },
+      "cvss_v3_score": 7.5,
+      "cvss_v30_score": 0.0,
+      "cvss_v31_score": 7.5,
+      "cvss_v2_score": 0.0,
+      "cvss_v3_severity": "HIGH",
+      "source_url": "https://people.canonical.com/~ubuntu-security/cve/2022/CVE-2022-23491.html",
+      "source": "UBUNTU_CVE",
+      "severity": "MEDIUM",
+      "status": "ACTIVE",
+      "title": "CVE-2022-23491 - certifi"
+    }
   ]
 }
