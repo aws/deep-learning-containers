@@ -7,6 +7,10 @@ ARG PT_TORCHVISION_URL=https://download.pytorch.org/whl/cu113/torchvision-0.13.1
 ARG PT_TORCHAUDIO_URL=https://download.pytorch.org/whl/cu113/torchaudio-0.12.1%2Bcu113-cp38-cp38-linux_x86_64.whl
 ARG PT_TORCHDATA_URL=https://download.pytorch.org/whl/test/torchdata-0.4.1-cp38-cp38-manylinux_2_17_x86_64.manylinux2014_x86_64.whl
 
+#Changes to the below inputs require approval from TorchServe team
+ARG TS_VERSION=0.6.1
+ARG SM_TOOLKIT_VERSION=2.0.11
+
 ########################################################
 #  _____ ____ ____    ___
 # | ____/ ___|___ \  |_ _|_ __ ___   __ _  __ _  ___
@@ -41,6 +45,7 @@ LABEL dlc_major_version="2"
 ARG PYTHON
 ARG PYTHON_VERSION
 ARG MAMBA_VERSION=4.12.0-2
+ARG TS_VERSION
 
 # PyTorch Binaries
 ARG PT_INFERENCE_URL
@@ -50,11 +55,6 @@ ARG PT_TORCHDATA_URL
 
 ARG CUBLAS_VERSION=11.5.1.109
 ARG OMPI_VERSION=4.1.1
-
-#Changes to the below inputs require approval from TorchServe team
-ARG TS_VERSION=0.6.0
-ARG SM_TOOLKIT_VERSION=2.0.12
-LABEL com.amazonaws.ml.engines.sagemaker.inference_tool_kit_2.0.12.torchserve_0.6.0="true"
 
 # ENV variable to be pased to SageMaker stage
 ENV SM_TOOLKIT_VERSION=${SM_TOOLKIT_VERSION}
@@ -286,6 +286,10 @@ LABEL dlc_major_version="1"
 LABEL com.amazonaws.sagemaker.capabilities.accept-bind-to-port=true
 
 ARG PYTHON
+ARG TS_VERSION
+ARG SM_TOOLKIT_VERSION
+
+LABEL com.amazonaws.ml.engines.sagemaker.dlc.inference-toolkit.${SM_TOOLKIT_VERSION}.torchserve.${TS_VERSION}="true"
 
 ENV SAGEMAKER_SERVING_MODULE sagemaker_pytorch_serving_container.serving:main
 
