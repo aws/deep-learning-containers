@@ -266,10 +266,6 @@ COPY start_with_right_hostname.sh /usr/local/bin/start_with_right_hostname.sh
 
 RUN chmod +x /usr/local/bin/start_with_right_hostname.sh
 
-# Install scikit-learn and pandas
-RUN conda install -y -c conda-forge \
-    scikit-learn \
-    pandas
 
 RUN pip install --no-cache-dir --upgrade pip --trusted-host pypi.org --trusted-host files.pythonhosted.org \
  && pip install --no-cache-dir -U \
@@ -290,7 +286,9 @@ RUN cd /tmp \
 # Install extra packages
 RUN /opt/conda/bin/conda install -y -c conda-forge \
   imageio \
-  shap \
+  shap \    
+  scikit-learn \
+  pandas \
   && /opt/conda/bin/conda install -y -c numba numba \
   && /opt/conda/bin/conda install -y -c anaconda seaborn \
   && /opt/conda/bin/conda install -y -c bokeh bokeh \
