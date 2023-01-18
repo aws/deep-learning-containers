@@ -253,10 +253,10 @@ def test_sm_toolkit_and_ts_version(pytorch_inference, region):
         )
         ts_version_from_output = (((str(output_ts.stdout).split(' '))[3]).strip()).replace('.', '-')
         image_labels = get_labels_from_ecr_image(image, region)
-        expected_label=f"com.amazonaws.ml.engines.sagemaker.inference_tool_kit_{toolkit_version_from_output}.torchserve_{ts_version_from_output}"
+        expected_label=f"com.amazonaws.ml.engines.sagemaker.dlc.inference-toolkit.{toolkit_version_from_output}.torchserve.{ts_version_from_output}"
         #remove the below print before PR review
         #print(f"label expected by me {expected_label}")        
-        required_label = image_labels.get(f"com.amazonaws.ml.engines.sagemaker.inference_tool_kit_{toolkit_version_from_output}.torchserve_{ts_version_from_output}", None)
+        required_label = image_labels.get(expected_label, None)
         #print(f"label found in actuality {required_label}")
         assert required_label, \
             f"The required label {expected_label} which enforces compatability between sagemaker inference toolkit and torchserve seems to be invalid/missing for the image {image}"

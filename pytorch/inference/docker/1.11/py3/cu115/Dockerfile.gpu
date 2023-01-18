@@ -51,13 +51,11 @@ ARG PT_TORCHDATA_URL
 ARG CUBLAS_VERSION=11.7.4.6
 ARG OMPI_VERSION=4.1.1
 
-#Changes to the below inputs require approval from TorchServe team
+#Changes to the below two inputs require approval from TorchServe team
 ARG TS_VERSION=0.6.0
 ARG SM_TOOLKIT_VERSION=2.0.12
-LABEL com.amazonaws.ml.engines.sagemaker.inference_tool_kit_2-0-12.torchserve_0-6-0="true"
-
-# ENV variable to be pased to SageMaker stage
-ENV SM_TOOLKIT_VERSION=${SM_TOOLKIT_VERSION}
+ARG LBL_TS_VERSION=0-6-0
+ARG LBL_SM_TOOLKIT_VERSION=2-0-12
 
 ARG DEBIAN_FRONTEND=noninteractive
 
@@ -289,6 +287,12 @@ LABEL dlc_major_version="1"
 LABEL com.amazonaws.sagemaker.capabilities.accept-bind-to-port=true
 
 ARG PYTHON
+ARG TS_VERSION
+ARG SM_TOOLKIT_VERSION
+ARG LBL_TS_VERSION
+ARG LBL_SM_TOOLKIT_VERSION
+
+LABEL com.amazonaws.ml.engines.sagemaker.dlc.inference-toolkit.${LBL_SM_TOOLKIT_VERSION}.torchserve.${LBL_TS_VERSION}="true"
 
 ENV SAGEMAKER_SERVING_MODULE sagemaker_pytorch_serving_container.serving:main
 
