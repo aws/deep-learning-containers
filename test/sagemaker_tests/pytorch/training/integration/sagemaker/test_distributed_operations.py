@@ -119,20 +119,16 @@ def test_dist_operations_fastai_gpu(framework_version, ecr_image, sagemaker_regi
 
     with timeout(minutes=DEFAULT_TIMEOUT):
         estimator_parameter = {
-            'entry_point': 'train_cifar.py',
-            'source_dir': os.path.join(fastai_path, 'cifar'),
+            'entry_point': 'train_distributed.py',
+            'source_dir': fastai_path,
             'role': 'SageMakerRole',
             'instance_count': 1,
             'instance_type': MULTI_GPU_INSTANCE,
             'framework_version': framework_version,
         }
-        upload_s3_data_args = {
-        'path': os.path.join(fastai_path, 'cifar_tiny', 'training'),
-        'key_prefix': 'pytorch/distributed_operations'
-        }
 
         job_name=utils.unique_name_from_base('test-pt-fastai')
-        pytorch, sagemaker_session = invoke_pytorch_estimator(ecr_image, sagemaker_regions, estimator_parameter, upload_s3_data_args=upload_s3_data_args, job_name=job_name)
+        pytorch, sagemaker_session = invoke_pytorch_estimator(ecr_image, sagemaker_regions, estimator_parameter, job_name=job_name)
 
     model_s3_url = pytorch.create_model().model_data
     _assert_s3_file_exists(sagemaker_session.boto_region_name, model_s3_url)

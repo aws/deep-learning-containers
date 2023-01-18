@@ -138,6 +138,8 @@ RUN curl -L -o ~/mambaforge.sh https://github.com/conda-forge/miniforge/releases
     boto3 \
     pybind11 \
     pyyaml \
+    # needed by fastai
+    accelerate \ 
  && /opt/conda/bin/conda install -c anaconda -y cryptography \
     cmake \
     scipy \
