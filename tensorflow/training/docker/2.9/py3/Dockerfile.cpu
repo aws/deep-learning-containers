@@ -263,13 +263,14 @@ RUN HOROVOD_WITH_MPI=1 \
    && ${PIP} install --no-cache-dir horovod==0.24.2
 
 RUN $PYTHON -m pip install --no-cache-dir -U \
+    numba \
     "bokeh>=2.3,<3" \
     "imageio>=2.9,<3" \
     "opencv-python>=4.3,<5" \
     "plotly>=5.1,<6" \
     "seaborn>=0.11,<1" \
-    "numba" \
     "shap>=0.39,<1"
+
 
 RUN $PYTHON -m pip install --no-cache-dir -U \
     "sagemaker>=2.93.0,<3" \
