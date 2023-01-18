@@ -178,6 +178,9 @@ RUN HOME_DIR=/root \
  && rm -rf ${HOME_DIR}/oss_compliance* \
  && rm -rf /tmp/tmp*
  
+# needed by torchdata
+RUN mkdir -p /etc/pki/tls/certs && cp /etc/ssl/certs/ca-certificates.crt /etc/pki/tls/certs/ca-bundle.crt
+
 # Removing the cache as it is needed for security verification
 RUN rm -rf /root/.cache | true
 
