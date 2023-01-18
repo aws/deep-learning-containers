@@ -117,7 +117,8 @@
             "source": "NVD",
             "severity": "HIGH",
             "status": "ACTIVE",
-            "title": "CVE-2022-41883 - tensorflow-gpu"
+            "title": "CVE-2022-41883 - tensorflow-gpu",
+            "reason_to_ignore": "TensorFlow 2.8.4 is the latest version of the framework version for this container."
         }
     ]
 
