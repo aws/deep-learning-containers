@@ -247,11 +247,11 @@ def test_sm_toolkit_and_ts_version(pytorch_inference, region):
         output_smkit = run_cmd_on_container(
             container_name, ctx, cmd_smkit, executable="bash"
         )
-        toolkit_version_from_output = (((str(output_smkit.stdout).split(' '))[1]).strip()).replace('.', '-')
+        toolkit_version_from_output = ((str(output_smkit.stdout).split(' '))[1]).strip()
         output_ts = run_cmd_on_container(
             container_name, ctx, cmd_ts, executable="bash"
         )
-        ts_version_from_output = (((str(output_ts.stdout).split(' '))[3]).strip()).replace('.', '-')
+        ts_version_from_output = ((str(output_ts.stdout).split(' '))[3]).strip()
         image_labels = get_labels_from_ecr_image(image, region)
         expected_label=f"com.amazonaws.ml.engines.sagemaker.dlc.inference-toolkit.{toolkit_version_from_output}.torchserve.{ts_version_from_output}"
         #remove the below print before PR review
