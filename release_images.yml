@@ -39,3 +39,4 @@ release_images:
       example: True
       disable_sm_tag: False
       force_release: False
+      
