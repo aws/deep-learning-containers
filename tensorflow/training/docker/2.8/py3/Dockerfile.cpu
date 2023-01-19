@@ -293,6 +293,9 @@ RUN git clone -b tf-2 https://github.com/aws/sagemaker-tensorflow-extensions.git
     && $PYTHON -m pip install . \
     && cd .. && rm -rf sagemaker-tensorflow-extensions
 
+# Remove python kernel installed by sparkmagic
+RUN /usr/local/bin/jupyter-kernelspec remove -f python3
+
 # remove tmp files
 RUN rm -rf /tmp/*
 
