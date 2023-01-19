@@ -33,11 +33,11 @@ skip_frameworks = ["autogluon", "huggingface_tensorflow", "huggingface_pytorch",
 datetime_tag = false
 # Note: Need to build the images at least once with datetime_tag = false
 # before disabling new builds, or tests will fail
-do_build = true
+do_build = false
 
 [test]
 ### On by default
-sanity_tests = true
+sanity_tests = false
   # Deprecated Options (Set to false)
   safety_check_test = false
   ecr_scan_allowlist_feature = false
@@ -110,3 +110,4 @@ dlc-pr-mxnet-eia = ""
 dlc-pr-pytorch-eia = ""
 dlc-pr-tensorflow-1-eia = ""
 dlc-pr-tensorflow-2-eia = ""
+
