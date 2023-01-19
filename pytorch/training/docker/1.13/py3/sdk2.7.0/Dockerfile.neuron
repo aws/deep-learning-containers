@@ -66,6 +66,8 @@ RUN apt-get update \
     libcap-dev \
     gnupg2 \
     gpg-agent \
+# Remove this after moving to public neuron repo
+    awscli \
  && rm -rf /var/lib/apt/lists/* \
  && apt-get clean
 
