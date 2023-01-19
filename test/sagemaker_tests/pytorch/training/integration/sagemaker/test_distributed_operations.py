@@ -109,7 +109,7 @@ def test_dist_operations_multi_gpu(framework_version, ecr_image, sagemaker_regio
 
 @pytest.mark.processor("gpu")
 @pytest.mark.integration("fastai")
-@pytest.mark.model("cifar")
+@pytest.mark.model("mnist")
 @pytest.mark.skip_cpu
 @pytest.mark.skip_py2_containers
 def test_dist_operations_fastai_gpu(framework_version, ecr_image, sagemaker_regions):

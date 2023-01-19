@@ -1,5 +1,5 @@
 """
-from upstream test: https://github.com/fastai/fastai/blob/master/nbs/examples/distrib_pytorch.py
+adapted from upstream test: https://github.com/fastai/fastai/blob/master/nbs/examples/distrib_pytorch.py
 """
 
 from fastai.vision.all import *
@@ -30,5 +30,6 @@ test_loader = DataLoader(
 
 if __name__ == '__main__':
     data = DataLoaders(train_loader, test_loader)
-    learn = Learner(data, Net(), loss_func=F.nll_loss, opt_func=Adam, metrics=accuracy)
+    learn = Learner(data, Net(), loss_func=F.nll_loss, opt_func=Adam, metrics=accuracy, path='/opt/ml', model_dir='model')
     with learn.distrib_ctx(): learn.fit_one_cycle(epochs, lr)
+    learn.save('model')
