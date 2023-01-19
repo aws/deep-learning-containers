@@ -87,6 +87,16 @@ def framework_version(tensorflow_training):
     return version
 
 
+@pytest.fixture
+def tf_model_garden_version(framework_version):
+    if Version(framework_version) in SpecifierSet("<2.10"):
+        return 'v2.9.2'
+    elif Version(framework_version) in SpecifierSet("<2.11"):
+        return 'v2.10.1'
+    else:
+        return 'master'
+
+
 @pytest.fixture(autouse=True)
 def smtrcomp_only(framework_version, tensorflow_training, request):
     if Version(framework_version) in SpecifierSet("<2.9.1"):
@@ -112,7 +122,7 @@ class TestImageClassification:
 
 
     @pytest.mark.model("resnet101")
-    def test_resnet101_at_fp16(self, instance_type, num_gpus, total_n_gpus, instance_count, distribution_strategy, caching, tensorflow_training, sagemaker_session, capsys, framework_version):
+    def test_resnet101_at_fp16(self, instance_type, num_gpus, total_n_gpus, instance_count, distribution_strategy, caching, tensorflow_training, sagemaker_session, capsys, framework_version, tf_model_garden_version):
         epochs = int(100*total_n_gpus)
         batches = np.array([224])*total_n_gpus
         for batch in np.array(batches, dtype=int):
@@ -136,7 +146,7 @@ class TestImageClassification:
                                 sagemaker_session=sagemaker_session,
                                 git_config={
                                     'repo': 'https://github.com/tensorflow/models.git',
-                                    'branch': 'v2.11.0',
+                                    'branch': tf_model_garden_version,
                                 },
                                 source_dir='.',
                                 entry_point='official/vision/train.py',
