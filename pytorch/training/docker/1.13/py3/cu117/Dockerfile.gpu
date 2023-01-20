@@ -192,6 +192,8 @@ RUN ompi_info --parsable --all | grep mpi_built_with_cuda_support:value \
 # once conda fixes the issue
 RUN rm -rf /opt/conda/lib/libtinfo.so.6
 
+WORKDIR /root
+
 RUN pip install --no-cache-dir --upgrade pip --trusted-host pypi.org --trusted-host files.pythonhosted.org \	
  && ln -s /opt/conda/bin/pip /usr/local/bin/pip3 \	
  && pip install --no-cache-dir -U \	
@@ -207,10 +209,8 @@ RUN pip install --no-cache-dir --upgrade pip --trusted-host pypi.org --trusted-h
     "pyyaml>=5.4,<5.5" \	
     "scipy>=1.9.3,<2"	
 
-
-WORKDIR /root
-
 COPY deep_learning_container.py /usr/local/bin/deep_learning_container.py
+
 RUN chmod +x /usr/local/bin/deep_learning_container.py
 
 RUN curl -o /license.txt https://aws-dlc-licenses.s3.amazonaws.com/pytorch-1.13/license.txt
@@ -440,7 +440,14 @@ RUN pip uninstall -y horovod \
  && HOROVOD_GPU_ALLREDUCE=NCCL HOROVOD_CUDA_HOME=/usr/local/cuda-11.7 HOROVOD_WITH_PYTORCH=1 pip install --no-cache-dir horovod==${HOROVOD_VERSION} \
  && ldconfig
 
+RUN mkdir -p /etc/pki/tls/certs && cp /etc/ssl/certs/ca-certificates.crt /etc/pki/tls/certs/ca-bundle.crt
+
 WORKDIR /
+
+# Install scikit-learn and pandas	
+RUN conda install -y -c conda-forge \	
+    scikit-learn \	
+    pandas
 
 # Install libboost from source. This package is needed for smdataparallel functionality [for networking asynchronous IO].
 RUN wget https://sourceforge.net/projects/boost/files/boost/1.73.0/boost_1_73_0.tar.gz/download -O boost_1_73_0.tar.gz \
@@ -479,18 +486,18 @@ RUN pip install --no-cache-dir -U \
 
 # Install smdebug from souce
 RUN cd /tmp \
-  && git clone https://github.com/awslabs/sagemaker-debugger --branch ${SMDEBUG_VERSION} --depth 1 --single-branch \ 
+  && git clone https://github.com/awslabs/sagemaker-debugger --branch ${SMDEBUG_VERSION} --depth 1 --single-branch \
   && cd sagemaker-debugger \
   && pip install . \
   && rm -rf /tmp/*
 
 # numba 0.54 only works with numpy>=1.20. See https://github.com/numba/numba/issues/7339	RUN /opt/conda/bin/conda install -y -c conda-forge \
 RUN pip install --no-cache-dir -U
-    "bokeh>=3.0.1,<4" \	  
-    "imageio>=2.22,<3" \	 
+    "bokeh>=3.0.1,<4" \  
+    "imageio>=2.22,<3" \
     "opencv-python>=4.6,<5" \
-    "plotly>=5.11,<6" \	  
-    "seaborn>=0.12,<1" \	 
+    "plotly>=5.11,<6" \
+    "seaborn>=0.12,<1" \
     "numba>=0.56.4,<0.57" \
     "shap>=0.41,<1"
 
