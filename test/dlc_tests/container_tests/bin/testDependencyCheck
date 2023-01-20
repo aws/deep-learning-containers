@@ -8,8 +8,7 @@ JRE_HOME=/usr/lib/jvm/java-8-openjdk-amd64/jre
 EOL
 
 export DEPENDENCY_CHECK_VERSION=7.4.4
-export DEPENDENCY_CHECK_URL=https://github.com/jeremylong/DependencyCheck/releases/download/v7.4.4/dependency-check-7.4.4-release.zip
-export DEPENDENCY_CHECK_HOME=./root/.local/dependency-check
+export DEPENDENCY_CHECK_URL=https://github.com/jeremylong/DependencyCheck/releases/download/v${DEPENDENCY_CHECK_VERSION}/dependency-check-${DEPENDENCY_CHECK_VERSION}-release.zip
 
 git clone https://github.com/jhermann/dependency-check-py.git
 python dependency-check-py/dependency_check.py --disableAssembly -s / -o build --exclude "**/dependency-check/**"

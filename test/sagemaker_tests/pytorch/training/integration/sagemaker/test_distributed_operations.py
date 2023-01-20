@@ -25,6 +25,7 @@ from six.moves.urllib.parse import urlparse
 from test.test_utils import get_framework_and_version_from_tag, get_cuda_version_from_tag
 from packaging.version import Version
 from packaging.specifiers import SpecifierSet
+from ....training import get_efa_test_instance_type
 from ...integration import (data_dir, dist_operations_path, fastai_path, mnist_script,
                               DEFAULT_TIMEOUT, mnist_path, gpt2_path)
 from ...integration.sagemaker.timeout import timeout
@@ -108,7 +109,7 @@ def test_dist_operations_multi_gpu(framework_version, ecr_image, sagemaker_regio
 
 @pytest.mark.processor("gpu")
 @pytest.mark.integration("fastai")
-@pytest.mark.model("cifar")
+@pytest.mark.model("mnist")
 @pytest.mark.skip_cpu
 @pytest.mark.skip_py2_containers
 def test_dist_operations_fastai_gpu(framework_version, ecr_image, sagemaker_regions):
@@ -118,20 +119,16 @@ def test_dist_operations_fastai_gpu(framework_version, ecr_image, sagemaker_regi
 
     with timeout(minutes=DEFAULT_TIMEOUT):
         estimator_parameter = {
-            'entry_point': 'train_cifar.py',
-            'source_dir': os.path.join(fastai_path, 'cifar'),
+            'entry_point': 'train_distributed.py',
+            'source_dir': fastai_path,
             'role': 'SageMakerRole',
             'instance_count': 1,
             'instance_type': MULTI_GPU_INSTANCE,
             'framework_version': framework_version,
         }
-        upload_s3_data_args = {
-        'path': os.path.join(fastai_path, 'cifar_tiny', 'training'),
-        'key_prefix': 'pytorch/distributed_operations'
-        }
 
         job_name=utils.unique_name_from_base('test-pt-fastai')
-        pytorch, sagemaker_session = invoke_pytorch_estimator(ecr_image, sagemaker_regions, estimator_parameter, upload_s3_data_args=upload_s3_data_args, job_name=job_name)
+        pytorch, sagemaker_session = invoke_pytorch_estimator(ecr_image, sagemaker_regions, estimator_parameter, job_name=job_name)
 
     model_s3_url = pytorch.create_model().model_data
     _assert_s3_file_exists(sagemaker_session.boto_region_name, model_s3_url)
@@ -485,6 +482,7 @@ def test_smmodelparallel_mnist_multigpu_multinode_efa(ecr_image, efa_instance_ty
 @pytest.mark.skip_cpu
 @pytest.mark.skip_py2_containers
 @pytest.mark.skip_trcomp_containers
+@pytest.mark.parametrize('efa_instance_type', get_efa_test_instance_type(default=["ml.p3.16xlarge"]), indirect=True)
 @pytest.mark.parametrize("test_script, num_processes", [("train_gpt_simple.py", 8)])
 @pytest.mark.efa()
 def test_smmodelparallel_gpt2_sdp_multinode_efa(ecr_image, efa_instance_type, sagemaker_regions, test_script, num_processes):
