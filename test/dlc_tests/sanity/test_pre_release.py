@@ -172,7 +172,8 @@ def test_tf_serving_version_cpu(tensorflow_inference):
     image_repo_name, _ = get_repository_and_tag_from_image_uri(image)
 
     if re.fullmatch(r"(pr-|beta-|nightly-)?tensorflow-inference", image_repo_name) and Version(tag_framework_version) == Version("2.6.3"):
-        pytest.skip("Skipping this test for TF 2.6.3 inference as the v2.6.3 version is already on production")
+        pytest.skip(
+            "Skipping this test for TF 2.6.3 inference as the v2.6.3 version is already on production")
 
     ctx = Context()
     container_name = get_container_name("tf-serving-version", image)
@@ -184,6 +185,7 @@ def test_tf_serving_version_cpu(tensorflow_inference):
         f"Cannot find model server version {tag_framework_version} in {output.stdout}"
 
     stop_and_remove_container(container_name, ctx)
+
 
 @pytest.mark.usefixtures("sagemaker")
 @pytest.mark.model("N/A")
@@ -199,16 +201,17 @@ def test_tf_serving_api_version(tensorflow_inference):
     """
     # Set local variable to clarify contents of fixture
     image = tensorflow_inference
-    
+
     if "gpu" in image:
-        cmd="pip show tensorflow-serving-api-gpu | grep Version"
+        cmd = "pip show tensorflow-serving-api-gpu | grep Version"
     elif "cpu" in image:
-        cmd="pip show tensorflow-serving-api | grep Version"
+        cmd = "pip show tensorflow-serving-api | grep Version"
     else:
-        ValueError("Test as of now only covers CPU and GPU type images. If required, please modify this test to accommodate the new image type!")
+        ValueError(
+            "Test as of now only covers CPU and GPU type images. If required, please modify this test to accommodate the new image type!")
 
     _, tag_framework_version = get_framework_and_version_from_tag(image)
-    
+
     ctx = Context()
     container_name = get_container_name("tf-serving-api-version", image)
     start_container(container_name, image, ctx)
@@ -221,47 +224,57 @@ def test_tf_serving_api_version(tensorflow_inference):
             f"Tensorflow serving API version is {str_version_from_output} while the Tensorflow version is {tag_framework_version}. Both don't match!"
     except Exception as e:
         LOGGER.error(f"Unable to execute command on container. Error: {e}")
-        raise        
+        raise
     finally:
         stop_and_remove_container(container_name, ctx)
+
 
 @pytest.mark.usefixtures("sagemaker_only")
 @pytest.mark.model("N/A")
-def test_sm_toolkit_and_ts_version(pytorch_inference, region):
+def test_sm_toolkit_and_ts_version(image, region):
     """
     @param pytorch_inference: ECR image URI
     """
-    # Set local variable to clarify contents of fixture
-    image = pytorch_inference
-    
-    if "gpu" or "cpu" in image:
-        cmd_smkit="pip show sagemaker-pytorch-inference | grep -i Version"
-        cmd_ts="torchserve --version"
-    else:
-        ValueError("Test as of now only covers CPU and GPU type images. If required, please modify this test to accommodate the new image type!")
+    tested_framework, tag_framework_version = get_framework_and_version_from_tag(
+        image)
+    if tested_framework is "pytorch" and "sagemaker" in image:
+        if "gpu" or "cpu" in image:
+            cmd_smkit = "pip show sagemaker-pytorch-inference | grep -i Version"
+            cmd_ts = "torchserve --version"
+        else:
+            ValueError(
+                "Test as of now only covers CPU and GPU type images. If required, please modify this test to accommodate the new image type!")
 
-    ctx = Context()
-    container_name = get_container_name("pytorch-smtoolkit-ts-check", image)
-    start_container(container_name, image, ctx)
-    try:
-        output_smkit = run_cmd_on_container(
-            container_name, ctx, cmd_smkit, executable="bash"
+        ctx = Context()
+        container_name = get_container_name(
+            "pytorch-smtoolkit-ts-check", image)
+        start_container(container_name, image, ctx)
+        try:
+            output_smkit = run_cmd_on_container(
+                container_name, ctx, cmd_smkit, executable="bash"
+            )
+            toolkit_version_from_output = (
+                (str(output_smkit.stdout).split(' '))[1]).strip()
+            output_ts = run_cmd_on_container(
+                container_name, ctx, cmd_ts, executable="bash"
+            )
+            ts_version_from_output = (
+                (str(output_ts.stdout).split(' '))[3]).strip()
+            image_labels = get_labels_from_ecr_image(image, region)
+            expected_label = f"com.amazonaws.ml.engines.sagemaker.dlc.inference-toolkit.{toolkit_version_from_output}.torchserve.{ts_version_from_output}"
+            required_label = image_labels.get(expected_label, None)
+            assert required_label, \
+                f"The required label {expected_label} which enforces compatability between sagemaker inference toolkit and torchserve seems to be invalid/missing for the image {image}"
+        except Exception as e:
+            LOGGER.error(f"Unable to execute command on container. Error: {e}")
+            raise
+        finally:
+            stop_and_remove_container(container_name, ctx)
+    else:
+        pytest.skip(
+            "Not Pytorch framework or sagemaker image... Skipping the test."
         )
-        toolkit_version_from_output = ((str(output_smkit.stdout).split(' '))[1]).strip()
-        output_ts = run_cmd_on_container(
-            container_name, ctx, cmd_ts, executable="bash"
-        )
-        ts_version_from_output = ((str(output_ts.stdout).split(' '))[3]).strip()
-        image_labels = get_labels_from_ecr_image(image, region)
-        expected_label=f"com.amazonaws.ml.engines.sagemaker.dlc.inference-toolkit.{toolkit_version_from_output}.torchserve.{ts_version_from_output}"
-        required_label = image_labels.get(expected_label, None)
-        assert required_label, \
-            f"The required label {expected_label} which enforces compatability between sagemaker inference toolkit and torchserve seems to be invalid/missing for the image {image}"
-    except Exception as e:
-        LOGGER.error(f"Unable to execute command on container. Error: {e}")
-        raise        
-    finally:
-        stop_and_remove_container(container_name, ctx)
+
 
 @pytest.mark.usefixtures("sagemaker", "huggingface")
 @pytest.mark.model("N/A")
@@ -309,19 +322,22 @@ def test_framework_version_cpu(image):
                 # container version -> autogluon version
                 # '0.3.2': '0.3.1',
             }
-            version_to_check = versions_map.get(tag_framework_version, tag_framework_version)
+            version_to_check = versions_map.get(
+                tag_framework_version, tag_framework_version)
             assert output.stdout.strip().startswith(version_to_check)
         # Habana v1.2 binary does not follow the X.Y.Z+cpu naming convention
         elif "habana" not in image_repo_name:
             if tested_framework == "torch" and Version(tag_framework_version) >= Version("1.10.0"):
                 if is_nightly_context():
-                    torch_version_pattern = r"{torch_version}(\+cpu|\.dev\d+)".format(torch_version=tag_framework_version)
+                    torch_version_pattern = r"{torch_version}(\+cpu|\.dev\d+)".format(
+                        torch_version=tag_framework_version)
                     assert re.fullmatch(torch_version_pattern, output.stdout.strip()), (
                         f"torch.__version__ = {output.stdout.strip()} does not match {torch_version_pattern}\n"
                         f"Please specify nightly framework version as X.Y.Z.devYYYYMMDD"
                     )
-                else:    
-                    torch_version_pattern = r"{torch_version}(\+cpu)".format(torch_version=tag_framework_version)
+                else:
+                    torch_version_pattern = r"{torch_version}(\+cpu)".format(
+                        torch_version=tag_framework_version)
                     assert re.fullmatch(torch_version_pattern, output.stdout.strip()), (
                         f"torch.__version__ = {output.stdout.strip()} does not match {torch_version_pattern}\n"
                         f"Please specify framework version as X.Y.Z+cpu"
@@ -330,13 +346,15 @@ def test_framework_version_cpu(image):
             if "neuron" in image:
                 assert tag_framework_version in output.stdout.strip()
             if (all(_string in image for _string in ["pytorch", "habana"])
-               and any(_string in image for _string in 
+               and any(_string in image for _string in
                ["synapseai1.3.0", "synapseai1.4.1", "synapseai1.5.0"])):
                 # Habana Pytorch version looks like 1.10.0a0+gitb488e78 for SynapseAI1.3 PT1.10.1 images
                 pt_fw_version_pattern = r"(\d+(\.\d+){1,2}(-rc\d)?)((a0\+git\w{7}))"
-                pt_fw_version_match = re.fullmatch(pt_fw_version_pattern, output.stdout.strip())
+                pt_fw_version_match = re.fullmatch(
+                    pt_fw_version_pattern, output.stdout.strip())
                 # This is desired for PT1.10.1 images
-                assert tag_framework_version.rsplit('.', 1)[0] == pt_fw_version_match.group(1).rsplit('.', 1)[0]
+                assert tag_framework_version.rsplit(
+                    '.', 1)[0] == pt_fw_version_match.group(1).rsplit('.', 1)[0]
             else:
                 assert tag_framework_version == output.stdout.strip()
     stop_and_remove_container(container_name, ctx)
@@ -355,7 +373,8 @@ def test_framework_and_neuron_sdk_version(neuron):
     """
     image = neuron
 
-    tested_framework, neuron_tag_framework_version = get_neuron_framework_and_version_from_tag(image)
+    tested_framework, neuron_tag_framework_version = get_neuron_framework_and_version_from_tag(
+        image)
 
     # neuron tag is there in pytorch images for now. Once all frameworks have it, then this will
     # be removed
@@ -392,7 +411,7 @@ def test_framework_and_neuron_sdk_version(neuron):
         # can get the version of only the base mxnet model. The base mxnet model just
         # has framework version and does not have the neuron semantic version yet. Till
         # the mx_neuron supports __version__ do the minimal check and not exact match
-        _ , tag_framework_version = get_framework_and_version_from_tag(image)
+        _, tag_framework_version = get_framework_and_version_from_tag(image)
         assert tag_framework_version == output.stdout.strip()
     else:
         assert neuron_tag_framework_version == output.stdout.strip()
@@ -416,13 +435,15 @@ def test_framework_and_cuda_version_gpu(gpu, ec2_connection):
     image_repo_name, _ = get_repository_and_tag_from_image_uri(image)
 
     if re.fullmatch(r"(pr-|beta-|nightly-)?tensorflow-inference", image_repo_name) and Version(tag_framework_version) == Version("2.6.3"):
-        pytest.skip("Skipping this test for TF 2.6.3 inference as the v2.6.3 version is already on production")
+        pytest.skip(
+            "Skipping this test for TF 2.6.3 inference as the v2.6.3 version is already on production")
 
     # Framework Version Check #
     # For tf inference containers, check TF model server version
     if re.fullmatch(r"(pr-|beta-|nightly-)?tensorflow-inference(-eia|-graviton)?", image_repo_name):
         cmd = f"tensorflow_model_server --version"
-        output = ec2.execute_ec2_training_test(ec2_connection, image, cmd, executable="bash")
+        output = ec2.execute_ec2_training_test(
+            ec2_connection, image, cmd, executable="bash")
         assert re.match(rf"TensorFlow ModelServer: {tag_framework_version}(\D+)?", output.stdout), \
             f"Cannot find model server version {tag_framework_version} in {output.stdout}"
     else:
@@ -441,7 +462,8 @@ def test_framework_and_cuda_version_gpu(gpu, ec2_connection):
         elif tested_framework == "autogluon":
             tested_framework = "autogluon.core"
         cmd = f"import {tested_framework}; print({tested_framework}.__version__)"
-        output = ec2.execute_ec2_training_test(ec2_connection, image, cmd, executable="python")
+        output = ec2.execute_ec2_training_test(
+            ec2_connection, image, cmd, executable="python")
         if is_canary_context():
             assert tag_framework_version in output.stdout.strip()
         else:
@@ -452,13 +474,15 @@ def test_framework_and_cuda_version_gpu(gpu, ec2_connection):
                 pass
             elif tested_framework == "torch" and Version(tag_framework_version) >= Version("1.10.0"):
                 if is_nightly_context():
-                    torch_version_pattern = r"{torch_version}(\+cu\d+|\.dev\d+)".format(torch_version=tag_framework_version)
+                    torch_version_pattern = r"{torch_version}(\+cu\d+|\.dev\d+)".format(
+                        torch_version=tag_framework_version)
                     assert re.fullmatch(torch_version_pattern, output.stdout.strip()), (
                         f"torch.__version__ = {output.stdout.strip()} does not match {torch_version_pattern}\n"
                         f"Please specify nightly framework version as X.Y.Z.devYYYYMMDD"
                     )
                 else:
-                    torch_version_pattern = r"{torch_version}(\+cu\d+)".format(torch_version=tag_framework_version)
+                    torch_version_pattern = r"{torch_version}(\+cu\d+)".format(
+                        torch_version=tag_framework_version)
                     assert re.fullmatch(torch_version_pattern, output.stdout.strip()), (
                         f"torch.__version__ = {output.stdout.strip()} does not match {torch_version_pattern}\n"
                         f"Please specify framework version as X.Y.Z+cuXXX"
@@ -494,7 +518,7 @@ def test_dataclasses_check(image):
 
     container_name = get_container_name("dataclasses-check", image)
 
-    python_version = get_python_version_from_image_uri(image).replace("py","")
+    python_version = get_python_version_from_image_uri(image).replace("py", "")
     python_version = int(python_version)
 
     if python_version >= 37:
@@ -509,7 +533,8 @@ def test_dataclasses_check(image):
             LOGGER.info(
                 f"{pip_package} package does not exists in the DLC image {image}")
     else:
-        pytest.skip(f"Skipping test for DLC image {image} that has py36 version as {pip_package} is not included in the python framework")
+        pytest.skip(
+            f"Skipping test for DLC image {image} that has py36 version as {pip_package} is not included in the python framework")
 
 
 @pytest.mark.usefixtures("sagemaker")
@@ -541,15 +566,18 @@ def test_pip_check(image):
     allowed_exception_list.append(allowed_smclarify_exception)
 
     # The v0.22 version of tensorflow-io has a bug fixed in v0.23 https://github.com/tensorflow/io/releases/tag/v0.23.0
-    allowed_habana_tf_exception = re.compile(rf"^tensorflow-io 0.22.0 requires tensorflow, which is not installed.$")
+    allowed_habana_tf_exception = re.compile(
+        rf"^tensorflow-io 0.22.0 requires tensorflow, which is not installed.$")
     allowed_exception_list.append(allowed_habana_tf_exception)
 
     framework, framework_version = get_framework_and_version_from_tag(image)
     # The v0.21 version of tensorflow-io has a bug fixed in v0.23 https://github.com/tensorflow/io/releases/tag/v0.23.0
 
-    tf263_io21_issue_framework_list = ["tensorflow", "huggingface_tensorflow", "huggingface_tensorflow_trcomp"]
+    tf263_io21_issue_framework_list = [
+        "tensorflow", "huggingface_tensorflow", "huggingface_tensorflow_trcomp"]
     if framework in tf263_io21_issue_framework_list or Version(framework_version) in SpecifierSet(">=2.6.3,<2.7"):
-        allowed_tf263_exception = re.compile(rf"^tensorflow-io 0.21.0 requires tensorflow, which is not installed.$")
+        allowed_tf263_exception = re.compile(
+            rf"^tensorflow-io 0.21.0 requires tensorflow, which is not installed.$")
         allowed_exception_list.append(allowed_tf263_exception)
 
     # TF2.9 sagemaker containers introduce tf-models-official which has a known bug where in it does not respect the
@@ -559,27 +587,32 @@ def test_pip_check(image):
         exception_strings = []
         models_versions = ["2.9.1", "2.9.2", "2.10.0", "2.11.0"]
         for ex_ver in models_versions:
-            exception_strings += [f"tf-models-official {ex_ver}".replace(".", "\.")]
+            exception_strings += [
+                f"tf-models-official {ex_ver}".replace(".", "\.")]
         text_versions = ["2.9.0", "2.10.0", "2.11.0"]
         for ex_ver in text_versions:
-            exception_strings += [f"tensorflow-text {ex_ver}".replace(".", "\.")]
+            exception_strings += [
+                f"tensorflow-text {ex_ver}".replace(".", "\.")]
         allowed_tf_models_text_exception = re.compile(
-                rf"^({'|'.join(exception_strings)}) requires tensorflow, which is not installed.")
+            rf"^({'|'.join(exception_strings)}) requires tensorflow, which is not installed.")
         allowed_exception_list.append(allowed_tf_models_text_exception)
 
         allowed_tf_models_text_compatibility_exception = re.compile(
-                rf"tf-models-official 2.9.2 has requirement tensorflow-text~=2.9.0, but you have tensorflow-text 2.10.0.")
-        allowed_exception_list.append(allowed_tf_models_text_compatibility_exception)
+            rf"tf-models-official 2.9.2 has requirement tensorflow-text~=2.9.0, but you have tensorflow-text 2.10.0.")
+        allowed_exception_list.append(
+            allowed_tf_models_text_compatibility_exception)
 
     if ("pytorch" in image and "trcomp" in image):
-        allowed_exception_list.append(re.compile(r"torch-xla \d+(\.\d+)* requires absl-py, which is not installed."))
-        allowed_exception_list.append(re.compile(r"torch-xla \d+(\.\d+)* requires cloud-tpu-client, which is not installed."))
+        allowed_exception_list.append(re.compile(
+            r"torch-xla \d+(\.\d+)* requires absl-py, which is not installed."))
+        allowed_exception_list.append(re.compile(
+            r"torch-xla \d+(\.\d+)* requires cloud-tpu-client, which is not installed."))
 
     # Add null entrypoint to ensure command exits immediately
     output = ctx.run(
         f"docker run --entrypoint='' {image} pip check", hide=True, warn=True)
     if output.return_code != 0:
-        if not(any([allowed_exception.findall(output.stdout) for allowed_exception in allowed_exception_list])):
+        if not (any([allowed_exception.findall(output.stdout) for allowed_exception in allowed_exception_list])):
             # Rerun pip check test if this is an unexpected failure
             ctx.run(f"docker run --entrypoint='' {image} pip check", hide=True)
 
@@ -607,8 +640,9 @@ def test_cuda_paths(gpu):
 
     # Get cuda, framework version, python version through regex
     cuda_version = re.search(r"-(cu\d+)-", image).group(1)
-    
-    framework_short_version = re.match(r"(\d+\.\d+)", framework_version).group(1)
+
+    framework_short_version = re.match(
+        r"(\d+\.\d+)", framework_version).group(1)
 
     python_version = re.search(r"(py\d+)", image).group(1)
     short_python_version = None
@@ -620,10 +654,12 @@ def test_cuda_paths(gpu):
     # replacing '_' by '/' to handle huggingface_<framework> case
     framework = framework.replace("_trcomp", "")
     framework_path = framework.replace("_", "/")
-    framework_version_path = os.path.join(dlc_path, framework_path, job_type, "docker", framework_version)
+    framework_version_path = os.path.join(
+        dlc_path, framework_path, job_type, "docker", framework_version)
 
     if not os.path.exists(framework_version_path):
-        framework_version_path = os.path.join(dlc_path, framework_path, job_type, "docker", framework_short_version)
+        framework_version_path = os.path.join(
+            dlc_path, framework_path, job_type, "docker", framework_short_version)
 
     if not os.path.exists(os.path.join(framework_version_path, python_version)):
         # Use the pyX version as opposed to the pyXY version if pyXY path does not exist
@@ -640,21 +676,24 @@ def test_cuda_paths(gpu):
 
     image_tag_in_buildspec = False
     dockerfile_spec_abs_path = None
-    
-    buildspec_path = construct_buildspec_path(dlc_path, framework_path, buildspec, framework_version, job_type)
+
+    buildspec_path = construct_buildspec_path(
+        dlc_path, framework_path, buildspec, framework_version, job_type)
     buildspec_def = Buildspec()
     buildspec_def.load(buildspec_path)
 
     for name, image_spec in buildspec_def["images"].items():
         if image_spec["device_type"] == "gpu" and image_spec["tag"] == image_tag:
             image_tag_in_buildspec = True
-            dockerfile_spec_abs_path = os.path.join(os.path.dirname(framework_version_path), image_spec["docker_file"].lstrip("docker/"))
+            dockerfile_spec_abs_path = os.path.join(os.path.dirname(
+                framework_version_path), image_spec["docker_file"].lstrip("docker/"))
             break
     try:
         assert image_tag_in_buildspec, f"Image tag {image_tag} not found in {buildspec_path}"
     except AssertionError as e:
         if not is_dlc_cicd_context():
-            LOGGER.warn(f"{e} - not failing, as this is a(n) {os.getenv('BUILD_CONTEXT', 'empty')} build context.")
+            LOGGER.warn(
+                f"{e} - not failing, as this is a(n) {os.getenv('BUILD_CONTEXT', 'empty')} build context.")
         else:
             raise
 
@@ -668,7 +707,9 @@ def test_cuda_paths(gpu):
         f"{image_properties_expected_in_dockerfile_path}"
     )
 
-    assert os.path.exists(dockerfile_spec_abs_path), f"Cannot find dockerfile for {image} in {dockerfile_spec_abs_path}"
+    assert os.path.exists(
+        dockerfile_spec_abs_path), f"Cannot find dockerfile for {image} in {dockerfile_spec_abs_path}"
+
 
 def _assert_artifact_free(output, stray_artifacts):
     """
