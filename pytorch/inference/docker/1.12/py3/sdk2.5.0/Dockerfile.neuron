@@ -1,6 +1,3 @@
-#Changes to the below inputs require approval from TorchServe team
-ARG TS_VERSION=0.6.1
-ARG SM_TOOLKIT_VERSION=2.0.11
 
 FROM ubuntu:20.04
 
@@ -13,6 +10,11 @@ ARG PYTHON=python3.8
 ARG PYTHON_VERSION=3.8.13
 ARG TS_VERSION
 ARG MAMBA_VERSION=4.12.0-2
+
+#Changes to the below inputs require approval from TorchServe team
+ARG TS_VERSION=0.6.1
+ARG SM_TOOLKIT_VERSION=2.0.11
+
 
 # See http://bugs.python.org/issue19846
 ENV LANG C.UTF-8

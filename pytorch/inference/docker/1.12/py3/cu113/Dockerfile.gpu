@@ -1,15 +1,15 @@
 ARG PYTHON=python3
 ARG PYTHON_VERSION=3.8.13
 
+#Changes to the below inputs require approval from TorchServe team
+ARG TS_VERSION=0.6.1
+ARG SM_TOOLKIT_VERSION=2.0.11
+
 # PyTorch Binaries
 ARG PT_INFERENCE_URL=https://aws-pytorch-unified-cicd-binaries.s3.us-west-2.amazonaws.com/r1.12.1_ec2/20221208-233710/d3dae914337cde7e182d28544aed5efce29255c4/torch-1.12.1%2Bcu113-cp38-cp38-linux_x86_64.whl
 ARG PT_TORCHVISION_URL=https://download.pytorch.org/whl/cu113/torchvision-0.13.1%2Bcu113-cp38-cp38-linux_x86_64.whl
 ARG PT_TORCHAUDIO_URL=https://download.pytorch.org/whl/cu113/torchaudio-0.12.1%2Bcu113-cp38-cp38-linux_x86_64.whl
 ARG PT_TORCHDATA_URL=https://download.pytorch.org/whl/test/torchdata-0.4.1-cp38-cp38-manylinux_2_17_x86_64.manylinux2014_x86_64.whl
-
-#Changes to the below inputs require approval from TorchServe team
-ARG TS_VERSION=0.6.1
-ARG SM_TOOLKIT_VERSION=2.0.11
 
 ########################################################
 #  _____ ____ ____    ___
@@ -55,9 +55,6 @@ ARG PT_TORCHDATA_URL
 
 ARG CUBLAS_VERSION=11.5.1.109
 ARG OMPI_VERSION=4.1.1
-
-# ENV variable to be pased to SageMaker stage
-ENV SM_TOOLKIT_VERSION=${SM_TOOLKIT_VERSION}
 
 ARG DEBIAN_FRONTEND=noninteractive
 
