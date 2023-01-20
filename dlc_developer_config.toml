@@ -76,7 +76,7 @@ dlc-pr-autogluon = ""
 dlc-pr-mxnet = ""
 dlc-pr-pytorch = ""
 dlc-pr-tensorflow-1 = ""
-dlc-pr-tensorflow-2 = "tensorflow/inference/buildspec.yml"
+dlc-pr-tensorflow-2 = "tensorflow/training/buildspec.yml"
 
 # Hugging Face DLC buildspecs
 dlc-pr-huggingface-pytorch = ""
