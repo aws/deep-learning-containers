@@ -3,7 +3,7 @@ ARG PYTHON_VERSION=3.8.13
 ARG MAMBA_VERSION=4.12.0-2
 
 # PyTorch Binaries
-ARG PT_INFERENCE_URL=https://aws-pytorch-cicd-v3-binaries.s3.us-west-2.amazonaws.com/r1.11.0_v3_e3/20220316-044906/9a915205c493de013250347af38ad1083854bc09/cpu/torch-1.11.0%2Bcpu-cp38-cp38-linux_x86_64.whl
+ARG PT_INFERENCE_URL=https://aws-pytorch-unified-cicd-binaries.s3.us-west-2.amazonaws.com/r1.11.0_ec2/20221206-192811/6ead7f1c1f99d7cc5d15574e6698a855ddd7c823/torch-1.11.0%2Bcpu-cp38-cp38-linux_x86_64.whl
 ARG PT_TORCHVISION_URL=https://download.pytorch.org/whl/cpu/torchvision-0.12.0%2Bcpu-cp38-cp38-linux_x86_64.whl
 ARG PT_TORCHAUDIO_URL=https://download.pytorch.org/whl/cpu/torchaudio-0.11.0%2Bcpu-cp38-cp38-linux_x86_64.whl
 ARG PT_TORCHDATA_URL=https://aws-pytorch-cicd-v3-binaries.s3.us-west-2.amazonaws.com/r1.11.0_v3_e3/aws-torchdata/torchdata-0.4.0-cp38-cp38-linux_x86_64.whl
@@ -90,17 +90,6 @@ RUN apt-get update \
  && rm -rf /var/lib/apt/lists/* \
  && apt-get clean
 
-# Install aws-sdk-cpp s3;transfer modules for torchdata
-RUN git clone --recurse-submodules https://github.com/aws/aws-sdk-cpp \
- && cd aws-sdk-cpp/ \
- && mkdir sdk-build \
- && cd sdk-build \
- && cmake .. -DCMAKE_BUILD_TYPE=Release -DBUILD_ONLY="s3;transfer" -DAUTORUN_UNIT_TESTS=OFF \
- && make \
- && make install \
- && cd ../.. \
- && rm -rf aws-sdk-cpp
-
 # https://github.com/docker-library/openjdk/issues/261 https://github.com/docker-library/openjdk/pull/263/files
 RUN keytool -importkeystore -srckeystore /etc/ssl/certs/java/cacerts -destkeystore /etc/ssl/certs/java/cacerts.jks -deststoretype JKS -srcstorepass changeit -deststorepass changeit -noprompt; \
     mv /etc/ssl/certs/java/cacerts.jks /etc/ssl/certs/java/cacerts; \
@@ -152,6 +141,23 @@ RUN curl -L -o ~/mambaforge.sh https://github.com/conda-forge/miniforge/releases
 # once conda fixes the issue: https://github.com/conda/conda/issues/9680
 RUN rm -rf /opt/conda/lib/libtinfo.so.6
 
+# Install aws-sdk-cpp s3;transfer modules for torchdata
+# pin aws-sdk-cpp modules
+COPY pin_git_modules.py .
+RUN git clone https://github.com/aws/aws-sdk-cpp --branch main
+RUN python pin_git_modules.py --src $(pwd)/aws-sdk-cpp --date 2022-03-17
+RUN rm pin_git_modules.py
+# add necessary flags
+RUN cd aws-sdk-cpp/ \
+ && export LD_LIBRARY_PATH="/usr/lib/x86_64-linux-gnu/:${LD_LIBRARY_PATH}" \
+ && mkdir sdk-build \
+ && cd sdk-build \
+ && cmake .. -DCMAKE_CXX_FLAGS="-lcurl" -DCMAKE_BUILD_TYPE=Release -DBUILD_ONLY="s3;transfer" -DAUTORUN_UNIT_TESTS=OFF \
+ && make \
+ && make install \
+ && cd ../.. \
+ && rm -rf aws-sdk-cpp
+
 # Install AWS-PyTorch, and other torch packages
 RUN pip install --upgrade pip --trusted-host pypi.org --trusted-host files.pythonhosted.org \
  && ln -s /opt/conda/bin/pip /usr/local/bin/pip3 \
@@ -164,13 +170,12 @@ RUN pip install --upgrade pip --trusted-host pypi.org --trusted-host files.pytho
     numpy==1.22.2 \
     "opencv-python>=4.6,<5" \
     packaging \
-    "Pillow>=9.0.0" \
+    "Pillow>=9.3.0" \
     "pyyaml>=5.4,<5.5" \
     scipy \
  && pip uninstall -y torch torchvision torchaudio torchdata \
  && pip install --no-cache-dir -U ${PT_INFERENCE_URL} ${PT_TORCHVISION_URL} ${PT_TORCHAUDIO_URL} ${PT_TORCHDATA_URL}
 
-# TODO: revert torchserve-nightly back to torchserve once a compatible stable version is released
 RUN pip uninstall -y model-archiver multi-model-server \
  && pip install captum \
  && pip install torchserve==${TS_VERSION} \

@@ -19,11 +19,10 @@ LABEL dlc_major_version="1"
 
 ARG PYTHON=python3
 ARG PYTHON_VERSION=3.8.12
-ARG PT_INFERENCE_URL=https://aws-pytorch-unified-cicd-binaries.s3.us-west-2.amazonaws.com/r1.12.0_graviton/torch-1.12.1%2Bcpu-cp38-cp38-linux_aarch64.whl
-ARG PT_XLA_INFERENCE_URL=https://aws-pytorch-unified-cicd-binaries.s3.us-west-2.amazonaws.com/r1.12.0_graviton/torch_xla-1.12.0%2B82fbe57-cp38-cp38-linux_aarch64.whl
-ARG PT_TORCHDATA_URL=https://aws-pytorch-unified-cicd-binaries.s3.us-west-2.amazonaws.com/r1.12.0_graviton/torchdata-0.4.1%2B983e87a-py3-none-any.whl
-ARG PT_TORCHTEXT_URL=https://aws-pytorch-unified-cicd-binaries.s3.us-west-2.amazonaws.com/r1.12.0_graviton/torchtext-0.13.1a0%2B330201f-cp38-cp38-linux_aarch64.whl
-ARG ARMCL_BRANCH=v22.05
+ARG PT_INFERENCE_URL=https://aws-pytorch-unified-cicd-binaries.s3.us-west-2.amazonaws.com/r1.12.1_graviton/torch-1.12.1%2Bcpu-cp38-cp38-linux_aarch64.whl
+ARG PT_XLA_INFERENCE_URL=https://aws-pytorch-unified-cicd-binaries.s3.us-west-2.amazonaws.com/r1.12.1_graviton/torch_xla-1.12.0%2B82fbe57-cp38-cp38-linux_aarch64.whl
+ARG PT_TORCHDATA_URL=https://aws-pytorch-unified-cicd-binaries.s3.us-west-2.amazonaws.com/r1.12.1_graviton/torchdata-0.4.1%2B983e87a-py3-none-any.whl
+ARG PT_TORCHTEXT_URL=https://aws-pytorch-unified-cicd-binaries.s3.us-west-2.amazonaws.com/r1.12.1_graviton/torchtext-0.13.1a0%2B330201f-cp38-cp38-linux_aarch64.whl
 ARG OPEN_MPI_VERSION=4.1.4
 ARG TS_VERSION=0.6.0
 ARG MAMBA_VERSION=4.12.0-2
@@ -138,18 +137,15 @@ RUN pip uninstall -y torch \
  && pip install --no-cache-dir -U $PT_INFERENCE_URL $PT_XLA_INFERENCE_URL $PT_TORCHDATA_URL $PT_TORCHTEXT_URL
 RUN pip install "torchvision>=0.13,<0.14"
 
-## compile and install ArmCL
-RUN git clone https://github.com/Arm-software/ComputeLibrary.git \
- && cd ComputeLibrary \
- && git checkout $ARMCL_BRANCH \
- && scons Werror=0 -j8 debug=0 neon=1 opencl=0 os=linux arch=armv8.2-a multi_isa=1 embed_kernels=0 os=linux build=native \
+## Install ArmCL Package
+RUN curl -L -o armcl.tar.gz https://aws-pytorch-unified-cicd-binaries.s3.us-west-2.amazonaws.com/r1.12.1_graviton/acl-v2205-12052022.tar.gz \
  && mkdir /opt/armClArtifact \
- && cp build/libarm* /opt/armClArtifact \
- && cd .. && rm -rf ComputeLibrary
+ && tar -xvf armcl.tar.gz -C /opt/armClArtifact \
+ && rm armcl.tar.gz
 ENV LD_LIBRARY_PATH="$LD_LIBRARY_PATH:/opt/armClArtifact/"
 
 RUN conda install -y -c conda-forge "pyyaml>=5.4,<5.5"
-RUN pip install "opencv-python>=4.6,<5" "Pillow>=9.0.1,<9.1.0" "awscli<2"
+RUN pip install "opencv-python>=4.6,<5" "Pillow==9.3.0" "awscli<2"
 
 RUN pip uninstall -y model-archiver multi-model-server \
  && pip install captum \

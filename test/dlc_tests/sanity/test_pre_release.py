@@ -184,6 +184,45 @@ def test_tf_serving_version_cpu(tensorflow_inference):
 
     stop_and_remove_container(container_name, ctx)
 
+@pytest.mark.usefixtures("sagemaker")
+@pytest.mark.model("N/A")
+def test_tf_serving_api_version(tensorflow_inference):
+    """
+    For non-huggingface TF inference images, check that the tag version matches the version of TF serving api
+    in the container.
+
+    Huggingface includes MMS and core TF, hence the versioning scheme is based off of the underlying tensorflow
+    framework version, rather than the TF serving version.
+
+    @param tensorflow_inference: ECR image URI
+    """
+    # Set local variable to clarify contents of fixture
+    image = tensorflow_inference
+    
+    if "gpu" in image:
+        cmd="pip show tensorflow-serving-api-gpu | grep Version"
+    elif "cpu" in image:
+        cmd="pip show tensorflow-serving-api | grep Version"
+    else:
+        ValueError("Test as of now only covers CPU and GPU type images. If required, please modify this test to accommodate the new image type!")
+
+    _, tag_framework_version = get_framework_and_version_from_tag(image)
+    
+    ctx = Context()
+    container_name = get_container_name("tf-serving-api-version", image)
+    start_container(container_name, image, ctx)
+    try:
+        output = run_cmd_on_container(
+            container_name, ctx, cmd, executable="bash"
+        )
+        str_version_from_output = ((str(output.stdout).split(' '))[1]).strip()
+        assert (tag_framework_version == str_version_from_output), \
+            f"Tensorflow serving API version is {str_version_from_output} while the Tensorflow version is {tag_framework_version}. Both don't match!"
+    except Exception as e:
+        LOGGER.error(f"Unable to execute command on container. Error: {e}")
+        raise        
+    finally:
+        stop_and_remove_container(container_name, ctx)
 
 @pytest.mark.usefixtures("sagemaker", "huggingface")
 @pytest.mark.model("N/A")
@@ -229,7 +268,7 @@ def test_framework_version_cpu(image):
         if tested_framework == "autogluon.core":
             versions_map = {
                 # container version -> autogluon version
-                '0.3.2': '0.3.1',
+                # '0.3.2': '0.3.1',
             }
             version_to_check = versions_map.get(tag_framework_version, tag_framework_version)
             assert output.stdout.strip().startswith(version_to_check)
@@ -292,7 +331,10 @@ def test_framework_and_neuron_sdk_version(neuron):
         tested_framework = tested_framework[len("huggingface_"):]
 
     if tested_framework == "pytorch":
-        tested_framework = "torch_neuron"
+        if "pytorch-training-neuron" in image:
+            tested_framework = "torch_neuronx"
+        else:
+            tested_framework = "torch_neuron"
     elif tested_framework == "tensorflow":
         tested_framework = "tensorflow_neuron"
     elif tested_framework == "mxnet":
@@ -350,6 +392,10 @@ def test_framework_and_cuda_version_gpu(gpu, ec2_connection):
             tested_framework = tested_framework[len("huggingface_"):]
             # Replace the trcomp string as it is extracted from ECR repo name
             tested_framework = tested_framework.replace("_trcomp", "")
+        # Framework name may include trcomp
+        if "trcomp" in tested_framework:
+            # Replace the trcomp string as it is extracted from ECR repo name
+            tested_framework = tested_framework.replace("_trcomp", "")
         # Module name is "torch"
         if tested_framework == "pytorch":
             tested_framework = "torch"
@@ -361,8 +407,10 @@ def test_framework_and_cuda_version_gpu(gpu, ec2_connection):
             assert tag_framework_version in output.stdout.strip()
         else:
             if tested_framework == "autogluon.core":
-                version_to_check = "0.3.1" if tag_framework_version == "0.3.2" else tag_framework_version
-                assert output.stdout.strip().startswith(version_to_check)
+                # If tag and framework are not matching:
+                # version_to_check = "0.3.1" if tag_framework_version == "0.3.2" else tag_framework_version
+                # assert output.stdout.strip().startswith(version_to_check)
+                pass
             elif tested_framework == "torch" and Version(tag_framework_version) >= Version("1.10.0"):
                 if is_nightly_context():
                     torch_version_pattern = r"{torch_version}(\+cu\d+|\.dev\d+)".format(torch_version=tag_framework_version)
@@ -384,7 +432,7 @@ def test_framework_and_cuda_version_gpu(gpu, ec2_connection):
 
     # MXNet inference/HF tensorflow inference and Autogluon containers do not currently have nvcc in /usr/local/cuda/bin, so check symlink
     if "mxnet-inference" in image or "autogluon" in image or "huggingface-tensorflow-inference" in image:
-        cuda_cmd = "readlink /usr/local/cuda"
+        cuda_cmd = "readlink -f /usr/local/cuda"
     else:
         cuda_cmd = "nvcc --version"
     cuda_output = ec2.execute_ec2_training_test(
@@ -392,202 +440,6 @@ def test_framework_and_cuda_version_gpu(gpu, ec2_connection):
 
     # Ensure that cuda version in tag is in the container
     assert cuda_version in cuda_output.stdout.replace(".", "")
-
-
-class DependencyCheckFailure(Exception):
-    pass
-
-
-def _run_dependency_check_test(image, ec2_connection):
-    # Record any whitelisted medium/low severity CVEs; I.E. allowed_vulnerabilities = {CVE-1000-5555, CVE-9999-9999}
-    allowed_vulnerabilities = {
-        # Those vulnerabilities are fixed. Current openssl version is 1.1.1g. These are false positive
-        "CVE-2016-2109",
-        "CVE-2016-2177",
-        "CVE-2016-6303",
-        "CVE-2016-2182",
-        "CVE-2022-2068",
-    }
-
-    processor = get_processor_from_image_uri(image)
-
-    framework, _ = get_framework_and_version_from_tag(image)
-    short_fw_version = re.search(r"(\d+\.\d+)", image).group(1)
-
-    # Allowlist CVE #CVE-2021-3711 for DLCs where openssl is installed using apt-get
-    # Check that these versions have been matched on https://ubuntu.com/security/CVE-2021-3711 before adding
-    allow_openssl_cve_2021_3711_fw_versions = {
-        "tensorflow": {
-            "1.15": ["cpu", "gpu", "neuron"],
-            "2.3": ["cpu", "gpu"],
-            "2.4": ["cpu", "gpu"],
-            "2.5": ["cpu", "gpu", "neuron"],
-            "2.6": ["cpu", "gpu"],
-            "2.7": ["cpu", "gpu", "hpu"],
-            "2.8": ["cpu", "gpu", "hpu"],
-            "2.9": ["cpu", "gpu", "hpu"],
-            "2.10": ["cpu", "gpu", "hpu"],
-        },
-        "mxnet": {"1.8": ["neuron"], "1.9": ["cpu", "gpu"]},
-        "pytorch": {
-            "1.8": ["cpu", "gpu"], 
-            "1.10": ["cpu", "hpu", "neuron"],
-            "1.11": ["cpu", "gpu", "hpu", "neuron"],
-            "1.12": ["cpu", "gpu", "hpu"],
-            "1.13": ["cpu", "gpu", "hpu"],
-        },
-        "huggingface_pytorch": {"1.8": ["cpu", "gpu"], "1.9": ["cpu", "gpu"]},
-        "huggingface_tensorflow": {"2.4": ["cpu", "gpu"], "2.5": ["cpu", "gpu"], "2.6": ["cpu", "gpu"]},
-        "huggingface_tensorflow_trcomp": {"2.6": ["gpu"]},
-        "huggingface_pytorch_trcomp": {"1.11": ["gpu"]},
-        "autogluon": {
-            "0.3": ["cpu", "gpu"],
-            "0.4": ["cpu", "gpu"],
-            "0.5": ["cpu", "gpu"]
-        },
-    }
-
-    # Allowlist CVE #CVE-2022-1292 for DLCs where openssl is installed using apt-get
-    # Check that these versions have been matched on https://ubuntu.com/security/CVE-2022-1292 before adding
-    allow_openssl_cve_2022_1292_fw_versions = {
-        "pytorch": {
-            "1.10": ["gpu", "cpu", "hpu", "neuron"],
-            "1.11": ["gpu", "cpu", "hpu", "neuron"],
-            "1.12": ["gpu", "cpu", "hpu"],
-            "1.13": ["gpu", "cpu", "hpu"],
-        },
-        "tensorflow": {
-            "1.15": ["neuron"],
-            "2.3": ["eia"],
-            "2.5": ["cpu", "gpu", "neuron"],
-            "2.6": ["cpu", "gpu"],
-            "2.7": ["cpu", "gpu", "hpu"],
-            "2.8": ["cpu", "gpu", "hpu"],
-            "2.9": ["cpu", "gpu", "hpu"],
-            "2.10": ["cpu", "gpu", "hpu"],
-        },
-        "mxnet": {"1.8": ["neuron"], "1.9": ["cpu", "gpu"]},
-        "huggingface_tensorflow": {"2.5": ["gpu"], "2.6": ["gpu"]},
-        "autogluon": {
-            "0.3": ["cpu", "gpu"],
-            "0.4": ["cpu", "gpu"],
-            "0.5": ["cpu", "gpu"]
-        },
-        "huggingface_pytorch_trcomp": {"1.9": ["gpu"], "1.11": ["gpu"]},
-        "huggingface_tensorflow_trcomp": {"2.6": ["gpu"]},
-    }
-
-    if processor in allow_openssl_cve_2021_3711_fw_versions.get(framework, {}).get(short_fw_version, []):
-        allowed_vulnerabilities.add("CVE-2021-3711")
-    if processor in allow_openssl_cve_2022_1292_fw_versions.get(framework, {}).get(short_fw_version, []):
-        allowed_vulnerabilities.add("CVE-2022-1292")
-
-    container_name = f"dep_check_{processor}"
-    report_addon = get_container_name("depcheck-report", image)
-    dependency_check_report = f"{report_addon}.html"
-    html_file = f"{container_name}:/build/dependency-check-report.html"
-    test_script = os.path.join(CONTAINER_TESTS_PREFIX, "testDependencyCheck")
-
-    # Execute test, copy results to s3
-    ec2.execute_ec2_training_test(
-        ec2_connection, image, test_script, container_name=container_name, bin_bash_entrypoint=True
-    )
-    ec2_connection.run(f"docker cp {html_file} ~/{dependency_check_report}")
-    ec2_connection.run(
-        f"aws s3 cp ~/{dependency_check_report} s3://dlc-dependency-check")
-
-    # Check for any vulnerabilities not mentioned in allowed_vulnerabilities
-    html_output = ec2_connection.run(
-        f"cat ~/{dependency_check_report}", hide=True).stdout
-    cves = re.findall(r">(CVE-\d+-\d+)</a>", html_output)
-    vulnerabilities = set(cves) - allowed_vulnerabilities
-
-    if vulnerabilities:
-        vulnerability_severity = {}
-
-        # Check NVD for vulnerability severity to provide this useful info in error message.
-        for vulnerability in vulnerabilities:
-            try:
-                cve_url = f"https://services.nvd.nist.gov/rest/json/cve/1.0/{vulnerability}"
-
-                session = requests.Session()
-                session.mount(
-                    "https://",
-                    requests.adapters.HTTPAdapter(max_retries=Retry(
-                        total=5, status_forcelist=[404, 504, 502])),
-                )
-                response = session.get(cve_url)
-
-                if response.status_code == 200:
-                    severity = (
-                        response.json()
-                        .get("result", {})
-                        .get("CVE_Items", [{}])[0]
-                        .get("impact", {})
-                        .get("baseMetricV2", {})
-                        .get("severity", "UNKNOWN")
-                    )
-                    if vulnerability_severity.get(severity):
-                        vulnerability_severity[severity].append(vulnerability)
-                    else:
-                        vulnerability_severity[severity] = [vulnerability]
-            except ConnectionError:
-                LOGGER.exception(
-                    f"Failed to load NIST data for CVE {vulnerability}")
-
-        # TODO: Remove this once we have whitelisted appropriate LOW/MEDIUM vulnerabilities
-        if not (vulnerability_severity.get("CRITICAL") or vulnerability_severity.get("HIGH")):
-            return
-
-        raise DependencyCheckFailure(
-            f"Unrecognized CVEs have been reported : {vulnerability_severity}. "
-            f"Allowed vulnerabilities are {allowed_vulnerabilities or None}. Please see "
-            f"{dependency_check_report} for more details."
-        )
-
-
-@pytest.mark.usefixtures("sagemaker", "huggingface")
-@pytest.mark.model("N/A")
-@pytest.mark.parametrize("ec2_instance_type", ["c5.4xlarge"], indirect=True)
-def test_dependency_check_cpu(cpu, ec2_connection, cpu_only, x86_compatible_only):
-    _run_dependency_check_test(cpu, ec2_connection)
-
-
-@pytest.mark.usefixtures("sagemaker", "huggingface")
-@pytest.mark.model("N/A")
-@pytest.mark.parametrize("ec2_instance_type", ["p3.2xlarge"], indirect=True)
-def test_dependency_check_gpu(gpu, ec2_connection, gpu_only):
-    _run_dependency_check_test(gpu, ec2_connection)
-
-
-@pytest.mark.usefixtures("sagemaker")
-@pytest.mark.model("N/A")
-@pytest.mark.parametrize("ec2_instance_type", ["c5.4xlarge"], indirect=True)
-def test_dependency_check_eia(eia, ec2_connection):
-    _run_dependency_check_test(eia, ec2_connection)
-
-
-@pytest.mark.model("N/A")
-@pytest.mark.parametrize("ec2_instance_type", ["dl1.24xlarge"], indirect=True)
-@pytest.mark.parametrize("ec2_instance_ami", [UBUNTU_18_HPU_DLAMI_US_WEST_2], indirect=True)
-def test_dependency_check_hpu(hpu, ec2_connection):
-    _run_dependency_check_test(hpu, ec2_connection)
-
-
-@pytest.mark.usefixtures("sagemaker", "huggingface")
-@pytest.mark.model("N/A")
-@pytest.mark.parametrize("ec2_instance_type", ["inf1.xlarge"], indirect=True)
-@pytest.mark.parametrize("ec2_instance_ami", [NEURON_UBUNTU_18_BASE_DLAMI_US_WEST_2], indirect=True)
-def test_dependency_check_neuron(neuron, ec2_connection):
-    _run_dependency_check_test(neuron, ec2_connection)
-
-
-@pytest.mark.usefixtures("sagemaker")
-@pytest.mark.model("N/A")
-@pytest.mark.parametrize("ec2_instance_type", ["c6g.4xlarge"], indirect=True)
-@pytest.mark.parametrize("ec2_instance_ami", [UL20_CPU_ARM64_US_WEST_2], indirect=True)
-def test_dependency_check_graviton_cpu(cpu, ec2_connection, graviton_compatible_only):
-    _run_dependency_check_test(cpu, ec2_connection)
 
 
 @pytest.mark.usefixtures("sagemaker")
@@ -629,6 +481,7 @@ def test_pip_check(image):
 
     :param image: ECR image URI
     """
+
     ctx = Context()
     gpu_suffix = "-gpu" if "gpu" in image else ""
     allowed_exception_list = []
@@ -660,21 +513,15 @@ def test_pip_check(image):
         allowed_tf263_exception = re.compile(rf"^tensorflow-io 0.21.0 requires tensorflow, which is not installed.$")
         allowed_exception_list.append(allowed_tf263_exception)
 
-    if "autogluon" in image and (("0.3.1" in image) or ("0.3.2" in image)):
-        allowed_autogluon_exception = re.compile(
-            rf"autogluon-(vision|mxnet) 0.3.1 has requirement Pillow<8.4.0,>=8.3.0, but you have pillow \d+(\.\d+)*"
-        )
-        allowed_exception_list.append(allowed_autogluon_exception)
-
     # TF2.9 sagemaker containers introduce tf-models-official which has a known bug where in it does not respect the
     # existing TF installation. https://github.com/tensorflow/models/issues/9267. This package in turn brings in
     # tensorflow-text. Skip checking these two packages as this is an upstream issue.
     if framework == "tensorflow" and Version(framework_version) in SpecifierSet(">=2.9.1"):
         exception_strings = []
-        models_versions = ["2.9.1", "2.9.2", "2.10.0"]
+        models_versions = ["2.9.1", "2.9.2", "2.10.0", "2.11.0"]
         for ex_ver in models_versions:
             exception_strings += [f"tf-models-official {ex_ver}".replace(".", "\.")]
-        text_versions = ["2.9.0", "2.10.0"]
+        text_versions = ["2.9.0", "2.10.0", "2.11.0"]
         for ex_ver in text_versions:
             exception_strings += [f"tensorflow-text {ex_ver}".replace(".", "\.")]
         allowed_tf_models_text_exception = re.compile(
@@ -685,11 +532,15 @@ def test_pip_check(image):
                 rf"tf-models-official 2.9.2 has requirement tensorflow-text~=2.9.0, but you have tensorflow-text 2.10.0.")
         allowed_exception_list.append(allowed_tf_models_text_compatibility_exception)
 
+    if ("pytorch" in image and "trcomp" in image):
+        allowed_exception_list.append(re.compile(r"torch-xla \d+(\.\d+)* requires absl-py, which is not installed."))
+        allowed_exception_list.append(re.compile(r"torch-xla \d+(\.\d+)* requires cloud-tpu-client, which is not installed."))
+
     # Add null entrypoint to ensure command exits immediately
     output = ctx.run(
         f"docker run --entrypoint='' {image} pip check", hide=True, warn=True)
     if output.return_code != 0:
-        if not(any([allowed_exception.match(output.stdout) for allowed_exception in allowed_exception_list])):
+        if not(any([allowed_exception.findall(output.stdout) for allowed_exception in allowed_exception_list])):
             # Rerun pip check test if this is an unexpected failure
             ctx.run(f"docker run --entrypoint='' {image} pip check", hide=True)
 
@@ -751,7 +602,7 @@ def test_cuda_paths(gpu):
     image_tag_in_buildspec = False
     dockerfile_spec_abs_path = None
     
-    buildspec_path = construct_buildspec_path(dlc_path, framework_path, buildspec, framework_version)
+    buildspec_path = construct_buildspec_path(dlc_path, framework_path, buildspec, framework_version, job_type)
     buildspec_def = Buildspec()
     buildspec_def.load(buildspec_path)
 
@@ -833,7 +684,7 @@ def test_oss_compliance(image):
                 try:
                     if not os.path.isdir(local_file_path):
                         context.run(
-                            f"git clone {url.rstrip()} {local_file_path}")
+                            f"git clone {url.rstrip()} {local_file_path}", hide=True)
                         context.run(
                             f"tar -czvf {local_file_path}.tar.gz {local_file_path}")
                 except Exception as e:

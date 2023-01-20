@@ -17,7 +17,7 @@ from botocore.exceptions import ClientError
 from glob import glob
 from invoke import run
 from invoke.context import Context
-from packaging.version import LegacyVersion, Version, parse
+from packaging.version import Version, parse
 from packaging.specifiers import SpecifierSet
 from datetime import date, datetime
 from retrying import retry
@@ -34,6 +34,8 @@ LOGGER.addHandler(logging.StreamHandler(sys.stderr))
 DEFAULT_REGION = "us-west-2"
 # Constant to represent region where p3dn tests can be run
 P3DN_REGION = "us-east-1"
+
+
 def get_ami_id_boto3(region_name, ami_name_pattern):
     """
     For a given region and ami name pattern, return the latest ami-id
@@ -44,6 +46,7 @@ def get_ami_id_boto3(region_name, ami_name_pattern):
     ami = max(ami_list["Images"], key=lambda x: x["CreationDate"])
     return ami['ImageId']
 
+
 def get_ami_id_ssm(region_name, parameter_path):
     """
     For a given region and parameter path, return the latest ami-id
@@ -52,24 +55,23 @@ def get_ami_id_ssm(region_name, parameter_path):
     ami_id = eval(ami['Parameter']['Value'])['image_id']
     return ami_id
 
-# TODO revert change after Python 3.7+ is added to Base DLAMI 
-# UBUNTU_18_BASE_DLAMI_US_WEST_2 = get_ami_id_boto3(region_name="us-west-2", ami_name_pattern="Deep Learning Base AMI (Ubuntu 18.04) Version ??.?")
-# UBUNTU_18_BASE_DLAMI_US_EAST_1 = get_ami_id_boto3(region_name="us-east-1", ami_name_pattern="Deep Learning Base AMI (Ubuntu 18.04) Version ??.?")
-UBUNTU_18_BASE_DLAMI_US_WEST_2 = get_ami_id_boto3(region_name="us-west-2", ami_name_pattern="Deep Learning AMI GPU CUDA 11.1.1 (Ubuntu 18.04) ????????")
-UBUNTU_18_BASE_DLAMI_US_EAST_1 = get_ami_id_boto3(region_name="us-east-1", ami_name_pattern="Deep Learning AMI GPU CUDA 11.1.1 (Ubuntu 18.04) ????????")
+
+UBUNTU_18_BASE_DLAMI_US_WEST_2 = get_ami_id_boto3(region_name="us-west-2", ami_name_pattern="Deep Learning Base AMI (Ubuntu 18.04) Version ??.?")
+UBUNTU_18_BASE_DLAMI_US_EAST_1 = get_ami_id_boto3(region_name="us-east-1", ami_name_pattern="Deep Learning Base AMI (Ubuntu 18.04) Version ??.?")
 AML2_BASE_DLAMI_US_WEST_2 = get_ami_id_boto3(region_name="us-west-2", ami_name_pattern="Deep Learning Base AMI (Amazon Linux 2) Version ??.?")
 AML2_BASE_DLAMI_US_EAST_1 = get_ami_id_boto3(region_name="us-east-1", ami_name_pattern="Deep Learning Base AMI (Amazon Linux 2) Version ??.?")
 # We use the following DLAMI for MXNet and TensorFlow tests as well, but this is ok since we use custom DLC Graviton containers on top. We just need an ARM base DLAMI.
-UL20_CPU_ARM64_US_WEST_2 = get_ami_id_boto3(region_name="us-west-2", ami_name_pattern="Deep Learning AMI Graviton GPU PyTorch 1.10.0 (Ubuntu 20.04) ????????")
-UL20_CPU_ARM64_US_EAST_1 = get_ami_id_boto3(region_name="us-east-1", ami_name_pattern="Deep Learning AMI Graviton GPU PyTorch 1.10.0 (Ubuntu 20.04) ????????")
+UL20_CPU_ARM64_US_WEST_2 = get_ami_id_boto3(region_name="us-west-2", ami_name_pattern="Deep Learning AMI Graviton GPU CUDA 11.4.2 (Ubuntu 20.04) ????????")
+UL20_CPU_ARM64_US_EAST_1 = get_ami_id_boto3(region_name="us-east-1", ami_name_pattern="Deep Learning AMI Graviton GPU CUDA 11.4.2 (Ubuntu 20.04) ????????")
 UL20_BENCHMARK_CPU_ARM64_US_WEST_2 = get_ami_id_boto3(region_name="us-west-2", ami_name_pattern="Deep Learning AMI Graviton GPU TensorFlow 2.7.0 (Ubuntu 20.04) ????????")
 AML2_CPU_ARM64_US_EAST_1 = get_ami_id_boto3(region_name="us-east-1", ami_name_pattern="Deep Learning Base AMI (Amazon Linux 2) Version ??.?")
 PT_GPU_PY3_BENCHMARK_IMAGENET_AMI_US_EAST_1 = "ami-0673bb31cc62485dd"
 PT_GPU_PY3_BENCHMARK_IMAGENET_AMI_US_WEST_2 = "ami-02d9a47bc61a31d43"
 # Since latest driver is not in public DLAMI yet, using a custom one
 NEURON_UBUNTU_18_BASE_DLAMI_US_WEST_2 = get_ami_id_boto3(region_name="us-west-2", ami_name_pattern="Deep Learning Base AMI (Ubuntu 18.04) Version ??.?")
+UL20_PT_NEURON_US_WEST_2 = get_ami_id_boto3(region_name="us-west-2", ami_name_pattern="Deep Learning AMI Neuron PyTorch 1.11.0 (Ubuntu 20.04) ????????")
 # Since NEURON TRN1 DLAMI is not released yet use a custom AMI
-NEURON_TRN1_AMI_US_WEST_2 = "ami-0a610a15fcc9e0242"
+NEURON_INF1_AMI_US_WEST_2 = "ami-06a5a60d3801a57b7"
 # Habana Base v0.15.4 ami
 # UBUNTU_18_HPU_DLAMI_US_WEST_2 = "ami-0f051d0c1a667a106"
 # UBUNTU_18_HPU_DLAMI_US_EAST_1 = "ami-04c47cb3d4fdaa874"
@@ -96,6 +98,8 @@ UL_AMI_LIST = [
     PT_GPU_PY3_BENCHMARK_IMAGENET_AMI_US_EAST_1,
     PT_GPU_PY3_BENCHMARK_IMAGENET_AMI_US_WEST_2,
     NEURON_UBUNTU_18_BASE_DLAMI_US_WEST_2,
+    UL20_PT_NEURON_US_WEST_2,
+    NEURON_INF1_AMI_US_WEST_2,
     UL20_CPU_ARM64_US_EAST_1,
     UL20_CPU_ARM64_US_WEST_2,
     UL20_BENCHMARK_CPU_ARM64_US_WEST_2,
@@ -112,11 +116,6 @@ HPU_AL2_DLAMI = get_ami_id_boto3(region_name="us-west-2", ami_name_pattern="Deep
 # S3 bucket for TensorFlow models
 TENSORFLOW_MODELS_BUCKET = "s3://tensoflow-trained-models"
 
-DLAMI_PYTHON_MAPPING = {
-    UBUNTU_18_BASE_DLAMI_US_WEST_2: "/usr/bin/python3.7",
-    UBUNTU_18_BASE_DLAMI_US_EAST_1: "/usr/bin/python3.7",
-    UL20_CPU_ARM64_US_WEST_2: "/usr/bin/python3.8",
-}
 # Used for referencing tests scripts from container_tests directory (i.e. from ECS cluster)
 CONTAINER_TESTS_PREFIX = os.path.join(os.sep, "test", "bin")
 
@@ -152,7 +151,7 @@ ECR_SCAN_HELPER_BUCKET = f"""ecr-scan-helper-{boto3.client("sts", region_name=DE
 ECR_SCAN_FAILURE_ROUTINE_LAMBDA = "ecr-scan-failure-routine-lambda"
 
 ## Note that the region for the repo used for conducting ecr enhanced scans should be different from other
-## repos since ecr enhanced scanning is activated in all the repos of a region and does not allow one to 
+## repos since ecr enhanced scanning is activated in all the repos of a region and does not allow one to
 ## conduct basic scanning on some repos whereas enhanced scanning on others within the same region.
 ECR_ENHANCED_SCANNING_REPO_NAME = "ecr-enhanced-scanning-dlc-repo"
 ECR_ENHANCED_REPO_REGION = "us-west-1"
@@ -175,6 +174,7 @@ class MissingPythonVersionException(Exception):
     """
 
     pass
+
 
 class CudaVersionTagNotFoundException(Exception):
     """
@@ -290,13 +290,16 @@ def get_expected_dockerfile_filename(device_type, image_uri):
         if "graviton" in image_uri:
             return f"Dockerfile.graviton.{device_type}"
         elif is_ec2_sm_in_same_dockerfile(image_uri):
-            return f"Dockerfile.{device_type}"
+            if "pytorch-trcomp-training" in image_uri:
+                return f"Dockerfile.trcomp.{device_type}"
+            else:
+                return f"Dockerfile.{device_type}"
         elif is_ec2_image(image_uri):
             return f"Dockerfile.ec2.{device_type}"
         else:
             return f"Dockerfile.sagemaker.{device_type}"
 
-    ## TODO: Keeping here for backward compatibility, should be removed in future when the 
+    ## TODO: Keeping here for backward compatibility, should be removed in future when the
     ## functions is_covered_by_ec2_sm_split and is_ec2_sm_in_same_dockerfile are made exhaustive
     if is_ec2_image(image_uri):
         return f"Dockerfile.ec2.{device_type}"
@@ -311,8 +314,11 @@ def get_customer_type():
     return os.getenv("CUSTOMER_TYPE")
 
 
-def get_python_invoker(ami_id):
-    return DLAMI_PYTHON_MAPPING.get(ami_id, "/usr/bin/python3")
+def get_image_type():
+    """
+    Env variable should return training or inference
+    """
+    return os.getenv("IMAGE_TYPE")
 
 
 def get_ecr_repo_name(image_uri):
@@ -413,7 +419,8 @@ def get_inference_server_type(image_uri):
         return "ts"
     image_tag = image_uri.split(":")[1]
     pytorch_ver = parse(image_tag.split("-")[0])
-    if isinstance(pytorch_ver, LegacyVersion) or pytorch_ver < Version("1.6"):
+    from packaging.version import LegacyVersion
+    if isinstance(pytorch_ver, LegacyVersion) or pytorch_ver < Version("1.6"): 
         return "mms"
     return "ts"
 
@@ -471,6 +478,8 @@ def is_covered_by_ec2_sm_split(image_uri):
     ec2_sm_split_images = {
         "pytorch": SpecifierSet(">=1.10.0"),
         "tensorflow": SpecifierSet(">=2.7.0"),
+        "pytorch_trcomp": SpecifierSet(">=1.12.0"),
+        "mxnet": SpecifierSet(">=1.9.0"),
     }
     framework, version = get_framework_and_version_from_tag(image_uri)
     return framework in ec2_sm_split_images and Version(version) in ec2_sm_split_images[framework]
@@ -480,6 +489,8 @@ def is_ec2_sm_in_same_dockerfile(image_uri):
     same_sm_ec2_dockerfile_record = {
         "pytorch": SpecifierSet(">=1.11.0"),
         "tensorflow": SpecifierSet(">=2.8.0"),
+        "pytorch_trcomp": SpecifierSet(">=1.12.0"),
+        "mxnet": SpecifierSet(">=1.9.0"),
     }
     framework, version = get_framework_and_version_from_tag(image_uri)
     return framework in same_sm_ec2_dockerfile_record and Version(version) in same_sm_ec2_dockerfile_record[framework]
@@ -504,6 +515,7 @@ def is_time_for_canary_safety_scan():
     """
     current_utc_time = time.gmtime()
     return current_utc_time.tm_hour == 16 and (0 < current_utc_time.tm_min < 20)
+
 
 def is_time_for_invoking_ecr_scan_failure_routine_lambda():
     """
@@ -746,7 +758,7 @@ def request_tensorflow_inference_nlp(model_name, ip_address="127.0.0.1", port="8
 
 
 def request_tensorflow_inference_grpc(
-    script_file_path, ip_address="127.0.0.1", port="8500", connection=None, ec2_instance_ami=None
+    script_file_path, ip_address="127.0.0.1", port="8500", connection=None
 ):
     """
     Method to run tensorflow inference on MNIST model using gRPC protocol
@@ -756,9 +768,8 @@ def request_tensorflow_inference_grpc(
     :param connection:
     :return:
     """
-    python_invoker = get_python_invoker(ec2_instance_ami)
     conn_run = connection.run if connection is not None else run
-    conn_run(f"{python_invoker} {script_file_path} --num_tests=1000 --server={ip_address}:{port}", hide=True)
+    conn_run(f"python {script_file_path} --num_tests=1000 --server={ip_address}:{port}", hide=True)
 
 
 def get_inference_run_command(image_uri, model_names, processor="cpu"):
@@ -918,7 +929,9 @@ def get_dlc_images():
     if is_pr_context() or is_empty_build_context():
         return os.getenv("DLC_IMAGES")
     elif is_canary_context():
-        return parse_canary_images(os.getenv("FRAMEWORK"), os.getenv("AWS_REGION"))
+        # TODO: Remove 'training' default once training-specific canaries are added
+        image_type = get_image_type() or "training"
+        return parse_canary_images(os.getenv("FRAMEWORK"), os.getenv("AWS_REGION"), image_type)
     test_env_file = os.path.join(os.getenv("CODEBUILD_SRC_DIR_DLC_IMAGES_JSON"), "test_type_images.json")
     with open(test_env_file) as test_env:
         test_images = json.load(test_env)
@@ -960,16 +973,21 @@ def get_canary_default_tag_py3_version(framework, version):
     return "py3"
 
 
-def parse_canary_images(framework, region):
+def parse_canary_images(framework, region, image_type):
     """
     Return which canary images to run canary tests on for a given framework and AWS region
 
     :param framework: ML framework (mxnet, tensorflow, pytorch)
     :param region: AWS region
+    :param image_type: training or inference
     :return: dlc_images string (space separated string of image URIs)
     """
     customer_type = get_customer_type()
     customer_type_tag = f"-{customer_type}" if customer_type else ""
+
+    allowed_image_types = ("training", "inference")
+    if image_type not in allowed_image_types:
+        raise RuntimeError(f"Image type is set to {image_type}. It must be set to an allowed image type in {allowed_image_types}")
 
     # initialize graviton variables
     use_graviton = False
@@ -1047,55 +1065,87 @@ def parse_canary_images(framework, region):
             py_versions = [get_canary_default_tag_py3_version(canary_type, fw_version)]
         for py_version in py_versions:
             images = {
-                "tensorflow": [
-                    f"{registry}.dkr.ecr.{region}.amazonaws.com/tensorflow-training:{fw_version}-gpu-{py_version}",
-                    f"{registry}.dkr.ecr.{region}.amazonaws.com/tensorflow-training:{fw_version}-cpu-{py_version}",
-                    f"{registry}.dkr.ecr.{region}.amazonaws.com/tensorflow-inference:{fw_version}-gpu",
-                    f"{registry}.dkr.ecr.{region}.amazonaws.com/tensorflow-inference:{fw_version}-cpu",
-                ],
-                "mxnet": [
-                    f"{registry}.dkr.ecr.{region}.amazonaws.com/mxnet-training:{fw_version}-gpu-{py_version}",
-                    f"{registry}.dkr.ecr.{region}.amazonaws.com/mxnet-training:{fw_version}-cpu-{py_version}",
-                    f"{registry}.dkr.ecr.{region}.amazonaws.com/mxnet-inference:{fw_version}-gpu-{py_version}",
-                    f"{registry}.dkr.ecr.{region}.amazonaws.com/mxnet-inference:{fw_version}-cpu-{py_version}",
-                ],
-                "pytorch": [
-                    f"{registry}.dkr.ecr.{region}.amazonaws.com/pytorch-training:{fw_version}-gpu-{py_version}",
-                    f"{registry}.dkr.ecr.{region}.amazonaws.com/pytorch-training:{fw_version}-cpu-{py_version}",
-                    f"{registry}.dkr.ecr.{region}.amazonaws.com/pytorch-inference:{fw_version}-gpu-{py_version}",
-                    f"{registry}.dkr.ecr.{region}.amazonaws.com/pytorch-inference:{fw_version}-cpu-{py_version}",
-                ],
+                "tensorflow": {
+                    "training": [
+                        f"{registry}.dkr.ecr.{region}.amazonaws.com/tensorflow-training:{fw_version}-gpu-{py_version}",
+                        f"{registry}.dkr.ecr.{region}.amazonaws.com/tensorflow-training:{fw_version}-cpu-{py_version}",
+                    ],
+                    "inference": [
+                        f"{registry}.dkr.ecr.{region}.amazonaws.com/tensorflow-inference:{fw_version}-gpu",
+                        f"{registry}.dkr.ecr.{region}.amazonaws.com/tensorflow-inference:{fw_version}-cpu",
+                    ]
+                },
+                "mxnet": {
+                    "training": [
+                        f"{registry}.dkr.ecr.{region}.amazonaws.com/mxnet-training:{fw_version}-gpu-{py_version}",
+                        f"{registry}.dkr.ecr.{region}.amazonaws.com/mxnet-training:{fw_version}-cpu-{py_version}",
+                    ],
+                    "inference": [
+                        f"{registry}.dkr.ecr.{region}.amazonaws.com/mxnet-inference:{fw_version}-gpu-{py_version}",
+                        f"{registry}.dkr.ecr.{region}.amazonaws.com/mxnet-inference:{fw_version}-cpu-{py_version}",
+                    ],
+                },
+                "pytorch": {
+                    "training": [
+                        f"{registry}.dkr.ecr.{region}.amazonaws.com/pytorch-training:{fw_version}-gpu-{py_version}",
+                        f"{registry}.dkr.ecr.{region}.amazonaws.com/pytorch-training:{fw_version}-cpu-{py_version}",
+                    ],
+                    "inference": [
+                        f"{registry}.dkr.ecr.{region}.amazonaws.com/pytorch-inference:{fw_version}-gpu-{py_version}",
+                        f"{registry}.dkr.ecr.{region}.amazonaws.com/pytorch-inference:{fw_version}-cpu-{py_version}",
+                    ],
+                },
                 # TODO: uncomment once cpu training and inference images become available
-                "huggingface_pytorch": [
-                    f"{registry}.dkr.ecr.{region}.amazonaws.com/huggingface-pytorch-training:{fw_version}-gpu-{py_version}",
-                    # f"{registry}.dkr.ecr.{region}.amazonaws.com/huggingface-pytorch-training:{fw_version}-cpu-{py_version}",
-                    f"{registry}.dkr.ecr.{region}.amazonaws.com/huggingface-pytorch-inference:{fw_version}-gpu-{py_version}",
-                    f"{registry}.dkr.ecr.{region}.amazonaws.com/huggingface-pytorch-inference:{fw_version}-cpu-{py_version}",
-                ],
-                "huggingface_tensorflow": [
-                    f"{registry}.dkr.ecr.{region}.amazonaws.com/huggingface-tensorflow-training:{fw_version}-gpu-{py_version}",
-                    # f"{registry}.dkr.ecr.{region}.amazonaws.com/huggingface-tensorflow-training:{fw_version}-cpu-{py_version}",
-                    f"{registry}.dkr.ecr.{region}.amazonaws.com/huggingface-tensorflow-inference:{fw_version}-gpu-{py_version}",
-                    f"{registry}.dkr.ecr.{region}.amazonaws.com/huggingface-tensorflow-inference:{fw_version}-cpu-{py_version}",
-                ],
-                "autogluon": [
-                    f"{registry}.dkr.ecr.{region}.amazonaws.com/autogluon-training:{fw_version}-gpu-{py_version}",
-                    f"{registry}.dkr.ecr.{region}.amazonaws.com/autogluon-training:{fw_version}-cpu-{py_version}",
-                ],
-                "graviton_tensorflow": [
-                    f"{registry}.dkr.ecr.{region}.amazonaws.com/tensorflow-inference-graviton:{fw_version}-cpu-{py_version}",
-                ],
-                "graviton_pytorch": [
-                    f"{registry}.dkr.ecr.{region}.amazonaws.com/pytorch-inference-graviton:{fw_version}-cpu-{py_version}",
-                ],
-                # TODO: create graviton_mxnet DLC and add to dictionary
+                "huggingface_pytorch": {
+                    "training": [
+                        f"{registry}.dkr.ecr.{region}.amazonaws.com/huggingface-pytorch-training:{fw_version}-gpu-{py_version}",
+                        # f"{registry}.dkr.ecr.{region}.amazonaws.com/huggingface-pytorch-training:{fw_version}-cpu-{py_version}",
+                    ],
+                    "inference": [
+                        f"{registry}.dkr.ecr.{region}.amazonaws.com/huggingface-pytorch-inference:{fw_version}-gpu-{py_version}",
+                        f"{registry}.dkr.ecr.{region}.amazonaws.com/huggingface-pytorch-inference:{fw_version}-cpu-{py_version}",
+                    ]
+                },
+                "huggingface_tensorflow": {
+                    "training": [
+                        f"{registry}.dkr.ecr.{region}.amazonaws.com/huggingface-tensorflow-training:{fw_version}-gpu-{py_version}",
+                        # f"{registry}.dkr.ecr.{region}.amazonaws.com/huggingface-tensorflow-training:{fw_version}-cpu-{py_version}",
+                    ],
+                    "inference": [
+                        f"{registry}.dkr.ecr.{region}.amazonaws.com/huggingface-tensorflow-inference:{fw_version}-gpu-{py_version}",
+                        f"{registry}.dkr.ecr.{region}.amazonaws.com/huggingface-tensorflow-inference:{fw_version}-cpu-{py_version}",
+                    ],
+                },
+                "autogluon": {
+                    "training": [
+                        f"{registry}.dkr.ecr.{region}.amazonaws.com/autogluon-training:{fw_version}-gpu-{py_version}",
+                        f"{registry}.dkr.ecr.{region}.amazonaws.com/autogluon-training:{fw_version}-cpu-{py_version}",
+                    ],
+                    "inference": [
+                        f"{registry}.dkr.ecr.{region}.amazonaws.com/autogluon-inference:{fw_version}-gpu-{py_version}",
+                        f"{registry}.dkr.ecr.{region}.amazonaws.com/autogluon-inference:{fw_version}-cpu-{py_version}",
+                    ],
+                },
+                "graviton_tensorflow": {
+                    "training": [],
+                    "inference": [
+                        f"{registry}.dkr.ecr.{region}.amazonaws.com/tensorflow-inference-graviton:{fw_version}-cpu-{py_version}",
+                    ],
+                },
+
+                "graviton_pytorch": {
+                    "training": [],
+                    "inference": [
+                        f"{registry}.dkr.ecr.{region}.amazonaws.com/pytorch-inference-graviton:{fw_version}-cpu-{py_version}",
+                    ],
+                },
             }
 
             # ec2 Images have an additional "ec2" tag to distinguish them from the regular "sagemaker" tag
             if customer_type == "ec2":
-                dlc_images += [f"{img}-ec2" for img in images[canary_type]]
+                dlc_images += [f"{img}-ec2" for img in images[canary_type][image_type]]
             else:
-                dlc_images += images[canary_type]
+                dlc_images += images[canary_type][image_type]
 
     dlc_images.sort()
     return " ".join(dlc_images)
@@ -1221,6 +1271,7 @@ def get_framework_and_version_from_tag(image_uri):
         "huggingface_pytorch_trcomp",
         "huggingface_tensorflow",
         "huggingface_pytorch",
+        "pytorch_trcomp"
         "tensorflow",
         "mxnet",
         "pytorch",
@@ -1380,6 +1431,23 @@ NEURON_VERSION_MANIFEST = {
             "1.11.0": "1.11.0.2.3.0.0",
         },
     },
+    "2.5.0": {
+        "tensorflow": {
+            "2.8.0": "2.8.0.2.3.0.0",
+            "1.15.5": "1.15.5.2.5.6.0",
+        },
+        "pytorch": {
+            "1.12.1": "1.12.1.2.5.8.0",
+        },
+        "mxnet": {
+            "1.8.0": "1.8.0.2.2.43.0",
+        },
+    },
+    "2.6.0": {
+        "pytorch": {
+            "1.12.0": "1.12.0.1.4.0",
+        },
+    },
     "1.19.1": {
         "pytorch": {
             "1.7.1": "1.7.1.2.3.0.0",
@@ -1472,7 +1540,9 @@ def get_os_version_from_image_uri(image_uri):
 
 def get_framework_from_image_uri(image_uri):
     return (
-        "huggingface_tensorflow_trcomp"
+        "pytorch_trcomp"
+        if "pytorch-trcomp" in image_uri
+        else "huggingface_tensorflow_trcomp"
         if "huggingface-tensorflow-trcomp" in image_uri
         else "huggingface_tensorflow"
         if "huggingface-tensorflow" in image_uri
@@ -1491,9 +1561,11 @@ def get_framework_from_image_uri(image_uri):
         else None
     )
 
+
 def is_trcomp_image(image_uri):
     framework = get_framework_from_image_uri(image_uri)
     return "trcomp" in framework
+
 
 def get_all_the_tags_of_an_image_from_ecr(ecr_client, image_uri):
     """
@@ -1623,7 +1695,8 @@ def get_python_version_from_image_uri(image_uri):
     python_version = python_version_search.group()
     return "py36" if python_version == "py3" else python_version
 
-def construct_buildspec_path(dlc_path, framework_path, buildspec, framework_version):
+
+def construct_buildspec_path(dlc_path, framework_path, buildspec, framework_version, job_type=""):
     """
     Construct a relative path to the buildspec yaml file by iterative checking on the existence of
     a specific version file for the framework being tested. Possible options include:
@@ -1652,11 +1725,16 @@ def construct_buildspec_path(dlc_path, framework_path, buildspec, framework_vers
         else:
             raise ValueError(f"Framework version {framework_version} was not matched.")
 
-    buildspec_path = os.path.join(dlc_path, framework_path, f"{buildspec}.yml")
+    # for backward compatibility, first try new path structure 
+    # if it fails then revert to prior structure
+    buildspec_path = os.path.join(dlc_path, framework_path, job_type, f"{buildspec}.yml")
     if not os.path.exists(buildspec_path):
-        raise ValueError('Could not construct a valid buildspec path.')
+        buildspec_path = os.path.join(dlc_path, framework_path, f"{buildspec}.yml")
+        if not os.path.exists(buildspec_path):
+            raise ValueError('Could not construct a valid buildspec path.')
 
     return buildspec_path
+
 
 def get_container_name(prefix, image_uri):
     """
@@ -1721,7 +1799,7 @@ def uniquify_list_of_dict(list_of_dict):
     """
     list_of_string = [json.dumps(dict_element, sort_keys=True) for dict_element in list_of_dict]
     unique_list_of_string = list(set(list_of_string))
-    unique_list_of_string.sort() 
+    unique_list_of_string.sort()
     list_of_dict_to_return = [json.loads(str_element) for str_element in unique_list_of_string]
     return list_of_dict_to_return
 
@@ -1743,7 +1821,7 @@ def uniquify_list_of_complex_datatypes(list_of_complex_datatypes):
 def check_if_two_dictionaries_are_equal(dict1, dict2, ignore_keys=[]):
     """
     Compares if 2 dictionaries are equal or not. The ignore_keys argument is used to provide
-    a list of keys that are ignored while comparing the dictionaires.
+    a list of keys that are ignored while comparing the dictionaries.
 
     :param dict1: dict
     :param dict2: dict
@@ -1769,13 +1847,13 @@ def get_tensorflow_model_base_path(image_uri):
     return model_base_path
 
 
-def build_tensorflow_inference_command_tf27_and_above(model_name):
+def build_tensorflow_inference_command_tf27_and_above(model_name, entrypoint="/usr/bin/tf_serving_entrypoint.sh"):
     """
     Construct the command to download tensorflow model from S3 and start tensorflow model server
     :param model_name:
     :return: <list> command to send to the container
     """
-    inference_command = f"mkdir -p /tensorflow_model && aws s3 sync {TENSORFLOW_MODELS_BUCKET}/{model_name}/ /tensorflow_model/{model_name} && /usr/bin/tf_serving_entrypoint.sh"
+    inference_command = f"mkdir -p /tensorflow_model && aws s3 sync {TENSORFLOW_MODELS_BUCKET}/{model_name}/ /tensorflow_model/{model_name} && {entrypoint}"
     return inference_command
 
 

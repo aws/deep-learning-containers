@@ -118,3 +118,10 @@ def is_sm_remote_test_enabled():
 def are_efa_tests_enabled():
     sm_remote_value = get_sagemaker_remote_tests_config_value()
     return sm_remote_value == AllowedSMRemoteConfigValues.EFA.value
+
+
+def get_sagemaker_remote_efa_instance_type():
+    """
+    Get the config value for sagemaker_remote_efa_instance_type
+    """
+    return parse_dlc_developer_configs("test", "sagemaker_remote_efa_instance_type")
