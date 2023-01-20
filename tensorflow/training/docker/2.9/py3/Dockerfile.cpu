@@ -185,7 +185,7 @@ RUN curl https://aws-dlc-licenses.s3.amazonaws.com/tensorflow-${TF_VERSION}/lice
 
 FROM common AS ec2
 
-ARG TF_URL=https://framework-binaries.s3.us-west-2.amazonaws.com/tensorflow/r2.9_aws/cpu/2022-09-23-01-04/tensorflow_cpu-2.9.2-cp39-cp39-manylinux_2_17_x86_64.manylinux2014_x86_64.whl
+ARG TF_URL=https://framework-binaries.s3.us-west-2.amazonaws.com/tensorflow/r2.9_aws/cpu/2022-11-30-20-00/tensorflow_cpu-2.9.3-cp39-cp39-manylinux_2_17_x86_64.manylinux2014_x86_64.whl
 
 RUN ${PIP} install --no-cache-dir -U \
     ${TF_URL} \
@@ -244,12 +244,12 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && apt-get install -y -qq krb5-user \
 && rm -rf /var/lib/apt/lists/*
 
-ARG TF_URL=https://framework-binaries.s3.us-west-2.amazonaws.com/tensorflow/r2.9_aws/cpu/2022-09-23-01-04/tensorflow_cpu-2.9.2-cp39-cp39-manylinux_2_17_x86_64.manylinux2014_x86_64.whl
+ARG TF_URL=https://framework-binaries.s3.us-west-2.amazonaws.com/tensorflow/r2.9_aws/cpu/2022-11-30-20-00/tensorflow_cpu-2.9.3-cp39-cp39-manylinux_2_17_x86_64.manylinux2014_x86_64.whl
 
 # https://github.com/tensorflow/models/issues/9267
 # tf-models does not respect existing installations of TF and always installs open source TF
 RUN ${PIP} install --no-cache-dir -U \
-    tf-models-official==2.9.1
+    tf-models-official==2.9.2
 
 RUN ${PIP} uninstall -y tensorflow tensorflow-gpu \
   ; ${PIP} install --no-cache-dir -U \
@@ -263,13 +263,14 @@ RUN HOROVOD_WITH_MPI=1 \
    && ${PIP} install --no-cache-dir horovod==0.24.2
 
 RUN $PYTHON -m pip install --no-cache-dir -U \
+    numba \
     "bokeh>=2.3,<3" \
     "imageio>=2.9,<3" \
     "opencv-python>=4.3,<5" \
     "plotly>=5.1,<6" \
     "seaborn>=0.11,<1" \
-    "numba<0.54" \
     "shap>=0.39,<1"
+
 
 RUN $PYTHON -m pip install --no-cache-dir -U \
     "sagemaker>=2.93.0,<3" \
@@ -283,7 +284,7 @@ RUN $PYTHON -m pip install --no-cache-dir -U \
 
 
 # install smdebug directly the specific branch
-ARG SMDEBUG_TAG=1.0.17
+ARG SMDEBUG_TAG=1.0.26
 RUN git clone https://github.com/awslabs/sagemaker-debugger.git \
     && cd sagemaker-debugger \
     && git checkout tags/$SMDEBUG_TAG -b $SMDEBUG_TAG \
@@ -298,6 +299,10 @@ RUN git clone -b tf-2 https://github.com/aws/sagemaker-tensorflow-extensions.git
     && $PYTHON -m pip install . \
     && cd .. && rm -rf sagemaker-tensorflow-extensions
     
+
+# Remove python kernel installed by sparkmagic
+RUN /usr/local/bin/jupyter-kernelspec remove -f python3
+
 # remove tmp files
 RUN rm -rf /tmp/*
 
