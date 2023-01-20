@@ -44,6 +44,7 @@ RUN apt-get update \
     libgomp1 \
     libibverbs-dev \
     libsm6 \
+    libtiff5 \
     libxext6 \
     libxrender-dev \
     openjdk-8-jdk-headless \
