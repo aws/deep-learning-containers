@@ -228,8 +228,8 @@ RUN mkdir -p /etc/pki/tls/certs && cp /etc/ssl/certs/ca-certificates.crt /etc/pk
 # TODO: revert torchserve-nightly back to torchserve once a compatible stable version is released
 RUN pip uninstall -y model-archiver multi-model-server \
  && pip install captum \
- && pip install torchserve==${TS_VERSION} \
- && pip install torch-model-archiver==${TS_VERSION}
+ && pip install "torchserve==${TS_VERSION}" \
+ && pip install "torch-model-archiver==${TS_VERSION}"
 
 WORKDIR /
 
