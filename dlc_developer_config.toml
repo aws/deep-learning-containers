@@ -9,7 +9,7 @@ ei_mode = false
 neuron_mode = false
 # Please only set it to true if you are preparing a GRAVITON related PR
 # Do remember to revert it back to false before merging any PR (including GRAVITON dedicated PR)
-graviton_mode = true
+graviton_mode = false
 # Please only set it to True if you are preparing a HABANA related PR
 # Do remember to revert it back to False before merging any PR (including HABANA dedicated PR)
 habana_mode = false
@@ -74,7 +74,7 @@ use_scheduler = false
 # Standard Framework DLC buildspecs
 dlc-pr-autogluon = ""
 dlc-pr-mxnet = ""
-dlc-pr-pytorch = ""
+dlc-pr-pytorch = "pytorch/buildspec.yml"
 dlc-pr-tensorflow-1 = ""
 dlc-pr-tensorflow-2 = ""
 
