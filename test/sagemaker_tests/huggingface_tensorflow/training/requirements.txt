@@ -8,7 +8,7 @@ smdebug>=1
 sagemaker-experiments
 numpy
 scipy
-sklearn
+scikit-learn
 pandas
 Pillow
 h5py

@@ -3,11 +3,13 @@ import os
 import subprocess
 import random
 import re
-import boto3
-from botocore.config import Config
+
 from time import sleep
 
+import boto3
 import invoke
+
+from botocore.config import Config
 from invoke.context import Context
 from invoke import exceptions
 from junit_xml import TestSuite, TestCase
@@ -19,7 +21,6 @@ from test_utils import (
     generate_ssh_keypair,
     get_framework_and_version_from_tag,
     get_job_type_from_image,
-    get_python_invoker,
     is_pr_context,
     SAGEMAKER_EXECUTION_REGIONS,
     SAGEMAKER_NEURON_EXECUTION_REGIONS,
@@ -44,9 +45,17 @@ class DLCSageMakerLocalTestFailure(Exception):
     pass
 
 
+def is_test_job_efa_dedicated():
+    # In both CI Sagemaker Test CB jobs and DLC Build Pipeline Actions that run SM EFA tests, the env variable
+    # "EFA_DEDICATED=True" must be configured so that those Actions only run the EFA tests.
+    # This is change from the previous system where only setting env variable "DISABLE_EFA_TESTS=False" would enable
+    # regular SM tests as well as SM EFA tests.
+    return os.getenv("EFA_DEDICATED", "False").lower() == "true"
+
+
 def assign_sagemaker_remote_job_instance_type(image):
     if "graviton" in image:
-        return "c6g.2xlarge"
+        return "ml.c6g.2xlarge"
     elif "training-neuron" in image:
         return "ml.trn1.2xlarge"
     elif "inference-neuron" in image:
@@ -70,6 +79,7 @@ def assign_sagemaker_local_job_instance_type(image):
         return "p3.2xlarge"
     return "p3.8xlarge" if "gpu" in image else "c5.18xlarge"
 
+
 def assign_sagemaker_local_test_ami(image, region):
     """
     Helper function to get the needed AMI for launching the image.
@@ -85,6 +95,7 @@ def assign_sagemaker_local_test_ami(image, region):
             return UBUNTU_18_BASE_DLAMI_US_EAST_1
         else:
             return UBUNTU_18_BASE_DLAMI_US_WEST_2
+
 
 def launch_sagemaker_local_ec2_instance(image, ami_id, ec2_key_name, region):
     """
@@ -189,18 +200,11 @@ def generate_sagemaker_pytest_cmd(image, sagemaker_test_type):
     test_report = os.path.join(os.getcwd(), "test", f"{job_type}_{tag}.xml")
     local_test_report = os.path.join(UBUNTU_HOME_DIR, "test", f"{job_type}_{tag}_sm_local.xml")
 
-    # Explanation of why we need the if-condition below:
-    # We have separate Pipeline Actions that run EFA tests, which have the env variable "EFA_DEDICATED=True" configured
-    # so that those Actions only run the EFA tests.
-    # However, there is no such dedicated CB job dedicated to EFA tests in the PR context. This means that when in the
-    # PR context, setting "DISABLE_EFA_TESTS" to True should skip EFA tests, but setting it to False should enable
-    # not just the EFA tests, but also all other tests as well.
-    if is_pr_context():
-        efa_tests_disabled = os.getenv("DISABLE_EFA_TESTS", "False").lower() == "true"
-        efa_flag = "-m \"not efa\"" if efa_tests_disabled else ""
-    else:
-        efa_dedicated = os.getenv("EFA_DEDICATED", "False").lower() == "true"
-        efa_flag = '--efa' if efa_dedicated else '-m \"not efa\"'
+    # In both CI Sagemaker Test CB jobs and DLC Build Pipeline Actions that run SM EFA tests, the env variable
+    # "EFA_DEDICATED=True" must be configured so that those Actions only run the EFA tests.
+    # This is change from the previous system where only setting env variable "DISABLE_EFA_TESTS=False" would enable
+    # regular SM tests as well as SM EFA tests.
+    efa_flag = '--efa' if is_test_job_efa_dedicated() else '-m \"not efa\"'
 
     region_list = (
         ",".join(SAGEMAKER_NEURON_EXECUTION_REGIONS)
@@ -240,61 +244,7 @@ def generate_sagemaker_pytest_cmd(image, sagemaker_test_type):
     )
 
 
-def install_sm_local_dependencies(framework, job_type, image, ec2_conn, ec2_instance_ami):
-    """
-    Install sagemaker local test dependencies
-    :param framework: str
-    :param job_type: str
-    :param image: str
-    :param ec2_conn: Fabric_obj
-    :return: None
-    """
-    python_invoker = get_python_invoker(ec2_instance_ami)
-    # Install custom packages which need to be latest version"
-    # using virtualenv to avoid package conflicts with the current packages
-    ec2_conn.run(f"sudo apt-get install virtualenv python3-pip -y ")
-    ec2_conn.run(f"virtualenv env --python {python_invoker}")
-    ec2_conn.run(f"source ./env/bin/activate")
-    if framework == "pytorch":
-        # The following distutils package conflict with test dependencies
-        ec2_conn.run("sudo apt-get remove python3-scipy python3-yaml -y")
-    ec2_conn.run(f"sudo {python_invoker} -m pip install -r requirements.txt ", warn=True)
 
-
-def kill_background_processes_and_run_apt_get_update(ec2_conn):
-    """
-    The apt-daily services on the DLAMI cause a conflict upon running any "apt install" commands within the first few
-    minutes of starting an EC2 instance. These services are not necessary for the purpose of the DLC tests, and can
-    therefore be killed. This function kills the services, and then forces "apt-get update" to run in the foreground.
-
-    :param ec2_conn: Fabric SSH connection
-    :return:
-    """
-    apt_daily_services_list = ["apt-daily.service", "apt-daily-upgrade.service", "unattended-upgrades.service"]
-    apt_daily_services = " ".join(apt_daily_services_list)
-    ec2_conn.run(f"sudo systemctl stop {apt_daily_services}")
-    ec2_conn.run(f"sudo systemctl kill --kill-who=all {apt_daily_services}")
-    num_stopped_services = 0
-    # The `systemctl kill` command is expected to take about 1 second. The 60 second loop here exists to force
-    # the execution to wait (if needed) for a longer amount of time than it would normally take to kill the services.
-    for _ in range(60):
-        sleep(1)
-        # List the apt-daily services, get the number of dead services
-        num_stopped_services = int(ec2_conn.run(
-            f"systemctl list-units --all {apt_daily_services} | egrep '(dead|failed)' | wc -l"
-        ).stdout.strip())
-        # Exit condition for the loop is when all apt daily services are dead.
-        if num_stopped_services == len(apt_daily_services_list):
-            break
-    if num_stopped_services != len(apt_daily_services_list):
-        raise RuntimeError(
-            "Failed to kill background services to allow apt installs on SM Local EC2 instance. "
-            f"{len(apt_daily_services) - num_stopped_services} still remaining."
-        )
-    ec2_conn.run("sudo rm -rf /var/lib/dpkg/lock*;")
-    ec2_conn.run("sudo dpkg --configure -a;")
-    ec2_conn.run("sudo apt-get update")
-    return
 
 
 def execute_local_tests(image, pytest_cache_params):
@@ -302,8 +252,9 @@ def execute_local_tests(image, pytest_cache_params):
     Run the sagemaker local tests in ec2 instance for the image
     :param image: ECR url
     :param pytest_cache_params: parameters required for :param pytest_cache_util
-    :return: None
+    :return: True if test execution was successful, else False
     """
+    test_success = False
     account_id = os.getenv("ACCOUNT_ID", boto3.client("sts").get_caller_identity()["Account"])
     pytest_cache_util = PytestCache(boto3.client("s3"), account_id)
     ec2_client = boto3.client("ec2", config=Config(retries={"max_attempts": 10}), region_name=DEFAULT_REGION)
@@ -311,6 +262,7 @@ def execute_local_tests(image, pytest_cache_params):
     pytest_command += " --last-failed --last-failed-no-failures all "
     print(pytest_command)
     framework, _ = get_framework_and_version_from_tag(image)
+    framework = framework.replace("_trcomp", "")
     random.seed(f"{datetime.datetime.now().strftime('%Y%m%d%H%M%S%f')}")
     ec2_key_name = f"{job_type}_{tag}_sagemaker_{random.randint(1, 1000)}"
     region = os.getenv("AWS_REGION", DEFAULT_REGION)
@@ -326,10 +278,11 @@ def execute_local_tests(image, pytest_cache_params):
             image,
             ec2_ami_id,
             ec2_key_name,
-            region
+            region,
         )
         ec2_conn = ec2_utils.get_ec2_fabric_connection(instance_id, key_file, region)
         ec2_conn.put(sm_tests_tar_name, f"{UBUNTU_HOME_DIR}")
+        ec2_utils.install_python_in_instance(ec2_conn, python_version="3.9")
         ec2_conn.run(f"$(aws ecr get-login --no-include-email --region {region})")
         try:
             ec2_conn.run(f"docker pull {image}", timeout=600)
@@ -340,9 +293,8 @@ def execute_local_tests(image, pytest_cache_params):
                     f"Image pull for {image} failed.\ndocker images output = {output}"
                 ) from e
         ec2_conn.run(f"tar -xzf {sm_tests_tar_name}")
-        kill_background_processes_and_run_apt_get_update(ec2_conn)
         with ec2_conn.cd(path):
-            install_sm_local_dependencies(framework, job_type, image, ec2_conn, ec2_ami_id)
+            ec2_conn.run(f"pip install -r requirements.txt")
             pytest_cache_util.download_pytest_cache_from_s3_to_ec2(ec2_conn, path, **pytest_cache_params)
             # Workaround for mxnet cpu training images as test distributed
             # causes an issue with fabric ec2_connection
@@ -362,7 +314,7 @@ def execute_local_tests(image, pytest_cache_params):
                     pytest_cache_util.upload_pytest_cache_from_ec2_to_s3(ec2_conn_new, path, **pytest_cache_params)
                     if 'failures="0"' not in str(output):
                         if is_nightly_context():
-                            print(f"\nSuppresed Failed Nightly Sagemaker Local Tests")
+                            print(f"\nSuppressed Failed Nightly Sagemaker Local Tests")
                         else:
                             raise ValueError(f"Sagemaker Local tests failed for {image}")
             else:
@@ -379,6 +331,7 @@ def execute_local_tests(image, pytest_cache_params):
                             f"{pytest_command} failed with error code: {res.return_code}\n"
                             f"Traceback:\n{res.stdout}"
                         )
+        test_success = True
     except Exception as e:
         print(f"{type(e)} thrown : {str(e)}")
     finally:
@@ -392,9 +345,8 @@ def execute_local_tests(image, pytest_cache_params):
         if ec2_client and ec2_key_name:
             print(f"Destroying ssh Key_pair for image: {image}")
             destroy_ssh_keypair(ec2_client, ec2_key_name)
-        # return None here to prevent errors from multiprocessing.map(). Without this it returns some object by default
-        # which is causing "cannot pickle '_thread.lock' object" error
-        return None
+
+    return test_success
 
 
 def execute_sagemaker_remote_tests(process_index, image, global_pytest_cache, pytest_cache_params):

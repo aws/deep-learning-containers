@@ -59,7 +59,7 @@ def test_telemetry_instance_tag_failure_neuron(neuron, ec2_client, ec2_instance,
 @pytest.mark.processor("gpu")
 @pytest.mark.integration("telemetry")
 @pytest.mark.parametrize("ec2_instance_type", ["p3.2xlarge"], indirect=True)
-def test_telemetry_instance_tag_success_gpu(gpu, ec2_client, ec2_instance, ec2_connection, non_huggingface_only, non_autogluon_only):
+def test_telemetry_instance_tag_success_gpu(gpu, ec2_client, ec2_instance, ec2_connection, non_huggingface_only, non_autogluon_only, non_pytorch_trcomp_only):
     _run_tag_success_IMDSv1(gpu, ec2_client, ec2_instance, ec2_connection)
     _run_tag_success_IMDSv2_hop_limit_2(gpu, ec2_client, ec2_instance, ec2_connection)
 
@@ -176,6 +176,7 @@ def _run_s3_query_bucket_success(image_uri, ec2_client, ec2_instance, ec2_connec
     image_region = test_utils.get_region_from_image_uri(image_uri)
     repo_name, image_tag = test_utils.get_repository_and_tag_from_image_uri(image_uri)
     framework, framework_version = test_utils.get_framework_and_version_from_tag(image_uri)
+    framework = framework.replace("_trcomp", "")
     job_type = test_utils.get_job_type_from_image(image_uri)
     processor = test_utils.get_processor_from_image_uri(image_uri)
     container_type = test_utils.get_job_type_from_image(image_uri)
@@ -391,7 +392,10 @@ def get_tensorflow_inference_command_tf27_above(image_uri, model_name):
 
     _, image_framework_version = test_utils.get_framework_and_version_from_tag(image_uri)
     if Version(image_framework_version) in SpecifierSet(">=2.7"):
-        inference_command = test_utils.build_tensorflow_inference_command_tf27_and_above(model_name)
+        entrypoint = "/usr/bin/tf_serving_entrypoint.sh"
+        if "neuron" in image_uri:
+            entrypoint = "/usr/local/bin/entrypoint.sh"
+        inference_command = test_utils.build_tensorflow_inference_command_tf27_and_above(model_name, entrypoint)
         inference_shell_command = f"sh -c '{inference_command}'"
         return inference_shell_command
     else:
