@@ -183,8 +183,8 @@ RUN pip install --upgrade pip --trusted-host pypi.org --trusted-host files.pytho
 
 RUN pip uninstall -y model-archiver multi-model-server \
  && pip install captum \
- && pip install torchserve==${TS_VERSION} \
- && pip install torch-model-archiver==${TS_VERSION}
+ && pip install "torchserve==${TS_VERSION}" \
+ && pip install "torch-model-archiver==${TS_VERSION}"
 
 RUN useradd -m model-server \
  && mkdir -p /home/model-server/tmp /opt/ml/model \
