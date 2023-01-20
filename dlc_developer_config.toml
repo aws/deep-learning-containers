@@ -16,7 +16,7 @@ habana_mode = false
 # Please only set it to True if you are preparing a HUGGINGFACE TRCOMP related PR
 # Do remember to revert it back to False before merging any PR (including HUGGINGFACE TRCOMP dedicated PR)
 # This mode is used to build TF 2.6 and PT1.11 DLC
-huggingface_trcomp_mode = true
+huggingface_trcomp_mode = false
 # Please only set it to True if you are preparing a TRCOMP related PR
 # Do remember to revert it back to False before merging any PR (including TRCOMP dedicated PR)
 # This mode is used to build PT1.12 and above DLC
@@ -53,7 +53,7 @@ sagemaker_local_tests = false
 # "standard" --> run standard sagemaker remote tests from test/sagemaker_tests
 # "rc" --> run release_candidate_integration tests
 # "efa" --> run efa sagemaker tests
-sagemaker_remote_tests = "standard"
+sagemaker_remote_tests = "off"
 
 # SM remote EFA test instance type
 sagemaker_remote_efa_instance_type = ""
