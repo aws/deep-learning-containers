@@ -162,7 +162,6 @@ RUN pip install --no-cache-dir --upgrade pip --trusted-host pypi.org --trusted-h
     "pyyaml>=5.4,<5.5" \	
     "scipy>=1.9.3,<2"	
 
-
 COPY deep_learning_container.py /usr/local/bin/deep_learning_container.py
 RUN chmod +x /usr/local/bin/deep_learning_container.py
 
@@ -265,7 +264,11 @@ COPY start_with_right_hostname.sh /usr/local/bin/start_with_right_hostname.sh
 
 RUN chmod +x /usr/local/bin/start_with_right_hostname.sh
 
-
+# Install scikit-learn and pandas	
+RUN conda install -y -c conda-forge \	
+    scikit-learn \	
+    pandas
+    
 RUN pip install --no-cache-dir --upgrade pip --trusted-host pypi.org --trusted-host files.pythonhosted.org \
  && pip install --no-cache-dir -U \
     # disable smdebug pip install until available stable smdebug releases
@@ -283,15 +286,13 @@ RUN cd /tmp \
   && rm -rf /tmp/*
 
 # Install extra packages
-RUN /opt/conda/bin/conda install -y -c conda-forge \
-  imageio \
-  shap \    
-  scikit-learn \
-  pandas \
-  && /opt/conda/bin/conda install -y -c numba numba \
-  && /opt/conda/bin/conda install -y -c anaconda seaborn \
-  && /opt/conda/bin/conda install -y -c bokeh bokeh \
-  && /opt/conda/bin/conda install -y -c plotly plotly 
+    "bokeh>=3.0.1,<4" \
+    "imageio>=2.22,<3" \
+    "opencv-python>=4.6,<5" \
+    "plotly>=5.11,<6" \
+    "seaborn>=0.12,<1" \
+    "numba>=0.56.4,<0.57" \
+    "shap>=0.41,<1"
 
 RUN HOME_DIR=/root \
  && curl -o ${HOME_DIR}/oss_compliance.zip https://aws-dlinfra-utilities.s3.amazonaws.com/oss_compliance.zip \
@@ -303,9 +304,6 @@ RUN HOME_DIR=/root \
  && rm -rf ${HOME_DIR}/oss_compliance* \
  && rm -rf /tmp/tmp*
  
-# needed by torchdata
-RUN mkdir -p /etc/pki/tls/certs && cp /etc/ssl/certs/ca-certificates.crt /etc/pki/tls/certs/ca-bundle.crt
-
 # Removing the cache as it is needed for security verification
 RUN rm -rf /root/.cache | true
 
