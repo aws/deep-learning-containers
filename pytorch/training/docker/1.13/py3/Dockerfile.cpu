@@ -163,6 +163,7 @@ RUN pip install --no-cache-dir --upgrade pip --trusted-host pypi.org --trusted-h
     "scipy>=1.9.3,<2"	
 
 COPY deep_learning_container.py /usr/local/bin/deep_learning_container.py
+
 RUN chmod +x /usr/local/bin/deep_learning_container.py
 
 RUN curl -o /license.txt https://aws-dlc-licenses.s3.amazonaws.com/pytorch-1.13/license.txt
@@ -208,9 +209,6 @@ RUN HOME_DIR=/root \
  && ${HOME_DIR}/oss_compliance/generate_oss_compliance.sh ${HOME_DIR} ${PYTHON} \
  && rm -rf ${HOME_DIR}/oss_compliance* \
  && rm -rf /tmp/tmp*
- 
-# needed by torchdata
-RUN mkdir -p /etc/pki/tls/certs && cp /etc/ssl/certs/ca-certificates.crt /etc/pki/tls/certs/ca-bundle.crt
 
 # Removing the cache as it is needed for security verification
 RUN rm -rf /root/.cache | true
@@ -255,6 +253,8 @@ ARG PT_TORCHDATA_URL
 RUN pip uninstall -y torch torchvision torchaudio torchdata \
  && pip install --no-cache-dir -U ${PT_SM_TRAINING_URL} ${PT_TORCHVISION_URL} ${PT_TORCHAUDIO_URL} ${PT_TORCHDATA_URL}
 
+# needed by torchdata
+RUN mkdir -p /etc/pki/tls/certs && cp /etc/ssl/certs/ca-certificates.crt /etc/pki/tls/certs/ca-bundle.crt
 
 WORKDIR /
 
@@ -264,11 +264,11 @@ COPY start_with_right_hostname.sh /usr/local/bin/start_with_right_hostname.sh
 
 RUN chmod +x /usr/local/bin/start_with_right_hostname.sh
 
-# Install scikit-learn and pandas	
-RUN conda install -y -c conda-forge \	
-    scikit-learn \	
+# Install scikit-learn and pandas
+RUN conda install -y -c conda-forge \
+    scikit-learn \
     pandas
-    
+
 RUN pip install --no-cache-dir --upgrade pip --trusted-host pypi.org --trusted-host files.pythonhosted.org \
  && pip install --no-cache-dir -U \
     # disable smdebug pip install until available stable smdebug releases

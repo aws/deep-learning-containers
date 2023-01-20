@@ -195,19 +195,19 @@ RUN rm -rf /opt/conda/lib/libtinfo.so.6
 WORKDIR /root
 
 RUN pip install --no-cache-dir -U \
-    "awscli>1.27,<2" \	
-    boto3 \	
-    "click==8.1.2,<9" \	
+    "awscli>1.27,<2" \
+    boto3 \
+    "click==8.1.2,<9" \
     "cmake>=3.24.3,<3.25" \
     cryptography \
-    "ipython>=8.6.0,<8.7" \	
+    "ipython>=8.6.0,<8.7" \
     "mpi4py>=3.1.4,<3.2" \
-    "opencv-python>=4.6.0,<4.7" \	
+    "opencv-python>=4.6.0,<4.7" \
     packaging \
     Pillow \
-    "psutil>=5.9.4,<5.10" \	
-    "pyyaml>=5.4,<5.5" \	
-    "scipy>=1.9.3,<2"	
+    "psutil>=5.9.4,<5.10" \
+    "pyyaml>=5.4,<5.5" \
+    "scipy>=1.9.3,<2"
 
 COPY deep_learning_container.py /usr/local/bin/deep_learning_container.py
 
@@ -488,10 +488,10 @@ RUN cd /tmp \
   && pip install . \
   && rm -rf /tmp/*
 
-RUN pip install --no-cache-dir -U \
+# Install extra packages	
 # numba 0.54 only works with numpy>=1.20. See https://github.com/numba/numba/issues/7339
 RUN pip install --no-cache-dir -U
-    "bokeh>=3.0.1,<4" \  
+    "bokeh>=3.0.1,<4" \
     "imageio>=2.22,<3" \
     "opencv-python>=4.6,<5" \
     "plotly>=5.11,<6" \
