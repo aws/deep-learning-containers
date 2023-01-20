@@ -175,6 +175,8 @@ RUN ompi_info --parsable --all | grep mpi_built_with_cuda_support:value \
     libgcc \
     conda-content-trust \
     charset-normalizer \
+    # needed by fastai.distributed
+    accelerate \
  && /opt/conda/bin/conda install -c dglteam -y dgl-cuda11.7 \
  && /opt/conda/bin/conda install -c pytorch -y magma-cuda117 \
  && /opt/conda/bin/conda install -c fastai fastai \

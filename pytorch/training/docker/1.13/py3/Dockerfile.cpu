@@ -131,6 +131,8 @@ RUN curl -L -o ~/mambaforge.sh https://github.com/conda-forge/miniforge/releases
     # Below 2 are included in miniconda base, but not mamba so need to install
     conda-content-trust \
     charset-normalizer \
+    # needed by fastai.distributed
+    accelerate \
  && /opt/conda/bin/conda install -c dglteam -y dgl \
  && /opt/conda/bin/conda install -c fastai fastai \
 # fastai conda has a dependency chain of fastai -> spacy -> pathy -> dataclasses
