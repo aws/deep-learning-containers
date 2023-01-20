@@ -76,7 +76,7 @@ dlc-pr-autogluon = ""
 dlc-pr-mxnet = ""
 dlc-pr-pytorch = ""
 dlc-pr-tensorflow-1 = ""
-dlc-pr-tensorflow-2 = "tensorflow/training/buildspec.yml"
+dlc-pr-tensorflow-2 = ""
 
 # Hugging Face DLC buildspecs
 dlc-pr-huggingface-pytorch = ""
@@ -101,7 +101,7 @@ dlc-pr-huggingface-tensorflow-2-trcomp = ""
 # Graviton DLC buildspecs
 dlc-pr-mxnet-graviton = ""
 dlc-pr-pytorch-graviton = ""
-dlc-pr-tensorflow-2-graviton = ""
+dlc-pr-tensorflow-2-graviton = "tensorflow/inference/buildspec-graviton.yml"
 
 # EIA DLC buildspecs
 dlc-pr-mxnet-eia = ""
