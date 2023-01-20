@@ -237,7 +237,7 @@ def test_sm_toolkit_and_ts_version(image, region):
     """
     tested_framework, tag_framework_version = get_framework_and_version_from_tag(
         image)
-    if tested_framework is "pytorch":
+    if tested_framework is "pytorch" and "sagemaker" in image:
         if "gpu" or "cpu" in image:
             cmd_smkit = "pip show sagemaker-pytorch-inference | grep -i Version"
             cmd_ts = "torchserve --version"
@@ -272,7 +272,7 @@ def test_sm_toolkit_and_ts_version(image, region):
             stop_and_remove_container(container_name, ctx)
     else:
         pytest.skip(
-            "Not Pytorch framework... Skipping the test."
+            "Not Pytorch framework or sagemaker image... Skipping the test."
         )
 
 
