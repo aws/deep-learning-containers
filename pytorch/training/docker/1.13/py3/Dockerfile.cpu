@@ -200,6 +200,8 @@ ARG PT_TORCHDATA_URL
 RUN pip uninstall -y torch torchvision torchaudio torchdata \
  && pip install --no-cache-dir -U ${PT_EC2_TRAINING_URL} ${PT_TORCHVISION_URL} ${PT_TORCHAUDIO_URL} ${PT_TORCHDATA_URL}
 
+RUN mkdir -p /etc/pki/tls/certs && cp /etc/ssl/certs/ca-certificates.crt /etc/pki/tls/certs/ca-bundle.crt
+
 RUN HOME_DIR=/root \
  && curl -o ${HOME_DIR}/oss_compliance.zip https://aws-dlinfra-utilities.s3.amazonaws.com/oss_compliance.zip \
  && unzip ${HOME_DIR}/oss_compliance.zip -d ${HOME_DIR}/ \
@@ -286,6 +288,7 @@ RUN cd /tmp \
   && rm -rf /tmp/*
 
 # Install extra packages
+RUN pip install --no-cache-dir -U \
     "bokeh>=3.0.1,<4" \
     "imageio>=2.22,<3" \
     "opencv-python>=4.6,<5" \
@@ -303,7 +306,7 @@ RUN HOME_DIR=/root \
  && ${HOME_DIR}/oss_compliance/generate_oss_compliance.sh ${HOME_DIR} ${PYTHON} \
  && rm -rf ${HOME_DIR}/oss_compliance* \
  && rm -rf /tmp/tmp*
- 
+
 # Removing the cache as it is needed for security verification
 RUN rm -rf /root/.cache | true
 

@@ -192,6 +192,10 @@ RUN ompi_info --parsable --all | grep mpi_built_with_cuda_support:value \
 # once conda fixes the issue
 RUN rm -rf /opt/conda/lib/libtinfo.so.6
 
+RUN /opt/conda/bin/conda config --set ssl_verify False \
+ && pip install --no-cache-dir --upgrade pip --no-cache-dir --trusted-host pypi.org --trusted-host files.pythonhosted.org \
+ && ln -s /opt/conda/bin/pip /usr/local/bin/pip3
+
 WORKDIR /root
 
 RUN pip install --no-cache-dir -U \
@@ -488,9 +492,8 @@ RUN cd /tmp \
   && pip install . \
   && rm -rf /tmp/*
 
-# Install extra packages	
-# numba 0.54 only works with numpy>=1.20. See https://github.com/numba/numba/issues/7339
-RUN pip install --no-cache-dir -U
+# Install extra packages
+RUN pip install --no-cache-dir -U \
     "bokeh>=3.0.1,<4" \
     "imageio>=2.22,<3" \
     "opencv-python>=4.6,<5" \
@@ -548,7 +551,7 @@ RUN HOME_DIR=/root \
  && ${HOME_DIR}/oss_compliance/generate_oss_compliance.sh ${HOME_DIR} ${PYTHON} \
  && rm -rf ${HOME_DIR}/oss_compliance* \
  && rm -rf /tmp/tmp*
- 
+
 # Removing the cache as it is needed for security verification
 RUN rm -rf /root/.cache | true
 
