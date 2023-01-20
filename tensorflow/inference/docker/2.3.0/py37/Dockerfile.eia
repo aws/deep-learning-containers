@@ -59,6 +59,7 @@ RUN apt-get update \
     libreadline-gplv2-dev \
     libsqlite3-dev \
     libssl-dev \
+    libtiff5 \
     tk-dev \
  && apt-get clean \
  && rm -rf /var/lib/apt/lists/*
