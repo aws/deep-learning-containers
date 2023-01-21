@@ -105,6 +105,6 @@ dlc-pr-tensorflow-2-graviton = ""
 
 # EIA DLC buildspecs
 dlc-pr-mxnet-eia = ""
-dlc-pr-pytorch-eia = "pytorch/training/buildspec-eia.yml"
+dlc-pr-pytorch-eia = "pytorch/inference/buildspec-eia.yml"
 dlc-pr-tensorflow-1-eia = ""
 dlc-pr-tensorflow-2-eia = ""
