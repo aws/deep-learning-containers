@@ -40,7 +40,7 @@ def main():
     habana_dedicated = os.getenv("HABANA_DEDICATED", "false").lower() == "true"
     hf_trcomp_dedicated = os.getenv("HUGGINFACE_TRCOMP_DEDICATED", "false").lower() == "true"
     trcomp_dedicated = os.getenv("TRCOMP_DEDICATED", "false").lower() == "true"
-    image_type = os.getenv("IMAGE_TYPE").lower()
+    image_type = os.getenv("IMAGE_TYPE", "").lower()
     training_dedicated = image_type == "training"
     inference_dedicated = image_type == "inference"
 
