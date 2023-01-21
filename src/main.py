@@ -56,8 +56,8 @@ def main():
     hf_trcomp_build_mode = parse_dlc_developer_configs("dev", "huggingface_trcomp_mode")
 
     # Condition to check whether we are training or inference dedicated/enabled
-
-    train_or_inf_enabled = (training_dedicated and training_enabled) or (inference_dedicated and inference_enabled)
+    # If image_type is empty, assume this is not a training or inference specific job, and allow 'True' state
+    train_or_inf_enabled = (training_dedicated and training_enabled) or (inference_dedicated and inference_enabled) or (image_type == "")
 
     # Write empty dict to JSON file, so subsequent buildspec steps do not fail in case we skip this build
     utils.write_to_json_file(constants.TEST_TYPE_IMAGES_PATH, {})
