@@ -231,50 +231,18 @@ def test_tf_serving_api_version(tensorflow_inference):
 
 @pytest.mark.usefixtures("sagemaker_only")
 @pytest.mark.model("N/A")
-def test_sm_toolkit_and_ts_version(image, region):
-    """
-    @param pytorch_inference: ECR image URI
-    """
-    tested_framework, tag_framework_version = get_framework_and_version_from_tag(
-        image)
-    if tested_framework is "pytorch" and "sagemaker" in image:
-        if "gpu" or "cpu" in image:
-            cmd_smkit = "pip show sagemaker-pytorch-inference | grep -i Version"
-            cmd_ts = "torchserve --version"
-        else:
-            ValueError(
-                "Test as of now only covers CPU and GPU type images. If required, please modify this test to accommodate the new image type!")
+def test_sm_toolkit_and_ts_version_pytorch(pytorch_inference, region):
+    _test_sm_toolkit_and_ts_version(pytorch_inference, region)
 
-        ctx = Context()
-        container_name = get_container_name(
-            "pytorch-smtoolkit-ts-check", image)
-        start_container(container_name, image, ctx)
-        try:
-            output_smkit = run_cmd_on_container(
-                container_name, ctx, cmd_smkit, executable="bash"
-            )
-            toolkit_version_from_output = (
-                (str(output_smkit.stdout).split(' '))[1]).strip()
-            output_ts = run_cmd_on_container(
-                container_name, ctx, cmd_ts, executable="bash"
-            )
-            ts_version_from_output = (
-                (str(output_ts.stdout).split(' '))[3]).strip()
-            image_labels = get_labels_from_ecr_image(image, region)
-            expected_label = f"com.amazonaws.ml.engines.sagemaker.dlc.inference-toolkit.{toolkit_version_from_output}.torchserve.{ts_version_from_output}"
-            required_label = image_labels.get(expected_label, None)
-            assert required_label, \
-                f"The required label {expected_label} which enforces compatability between sagemaker inference toolkit and torchserve seems to be invalid/missing for the image {image}"
-        except Exception as e:
-            LOGGER.error(f"Unable to execute command on container. Error: {e}")
-            raise
-        finally:
-            stop_and_remove_container(container_name, ctx)
-    else:
-        pytest.skip(
-            "Not Pytorch framework or sagemaker image... Skipping the test."
-        )
+@pytest.mark.usefixtures("sagemaker_only")
+@pytest.mark.model("N/A")
+def test_sm_toolkit_and_ts_version_pytorch_graviton(pytorch_inference_graviton, region):
+    _test_sm_toolkit_and_ts_version(pytorch_inference_graviton, region)    
 
+@pytest.mark.usefixtures("sagemaker_only")
+@pytest.mark.model("N/A")
+def test_sm_toolkit_and_ts_version_pytorch_neuron(pytorch_inference_neuron, region):
+    _test_sm_toolkit_and_ts_version(pytorch_inference_neuron, region)
 
 @pytest.mark.usefixtures("sagemaker", "huggingface")
 @pytest.mark.model("N/A")
@@ -722,6 +690,44 @@ def _assert_artifact_free(output, stray_artifacts):
         assert not re.search(
             artifact, output.stdout
         ), f"Matched {artifact} in {output.stdout} while running {output.command}"
+
+def _test_sm_toolkit_and_ts_version(image, region):
+    """
+    @param pytorch_inference: ECR image URI
+    """
+
+    if "gpu" or "cpu" in image:
+        cmd_smkit = "pip show sagemaker-pytorch-inference | grep -i Version"
+        cmd_ts = "torchserve --version"
+    else:
+        ValueError(
+            "Test as of now only covers CPU and GPU type images. If required, please modify this test to accommodate the new image type!")
+
+    ctx = Context()
+    container_name = get_container_name(
+        "pytorch-smtoolkit-ts-check", image)
+    start_container(container_name, image, ctx)
+    try:
+        output_smkit = run_cmd_on_container(
+            container_name, ctx, cmd_smkit, executable="bash"
+        )
+        toolkit_version_from_output = (
+            (str(output_smkit.stdout).split(' '))[1]).strip()
+        output_ts = run_cmd_on_container(
+            container_name, ctx, cmd_ts, executable="bash"
+        )
+        ts_version_from_output = (
+            (str(output_ts.stdout).split(' '))[3]).strip()
+        image_labels = get_labels_from_ecr_image(image, region)
+        expected_label = f"com.amazonaws.ml.engines.sagemaker.dlc.inference-toolkit.{toolkit_version_from_output}.torchserve.{ts_version_from_output}"
+        required_label = image_labels.get(expected_label, None)
+        assert required_label, \
+            f"The required label {expected_label} which enforces compatability between sagemaker inference toolkit and torchserve seems to be invalid/missing for the image {image}"
+    except Exception as e:
+        LOGGER.error(f"Unable to execute command on container. Error: {e}")
+        raise
+    finally:
+        stop_and_remove_container(container_name, ctx)        
 
 
 @pytest.mark.usefixtures("sagemaker")
