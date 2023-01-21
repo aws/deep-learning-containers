@@ -55,7 +55,7 @@ def main():
     trcomp_build_mode = parse_dlc_developer_configs("dev", "trcomp_mode")
     hf_trcomp_build_mode = parse_dlc_developer_configs("dev", "huggingface_trcomp_mode")
 
-    # Condition to check whether we are training or inference dedicated/enabled
+    # Condition to check whether training or inference dedicated/enabled
     # If image_type is empty, assume this is not a training or inference specific job, and allow 'True' state
     train_or_inf_enabled = (training_dedicated and training_enabled) or (inference_dedicated and inference_enabled) or (image_type == "")
 
