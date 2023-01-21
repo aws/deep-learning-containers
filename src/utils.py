@@ -319,61 +319,6 @@ def parse_modified_dlc_test_files_info(files, framework, pattern=""):
                 break
 
 
-def pr_build_setup(pr_number, framework):
-    """
-    Identify the PR changeset and set the appropriate environment
-    variables
-    Parameters:
-        pr_number: int
-
-    Returns:
-        device_types: [str]
-        image_types: [str]
-        py_versions: [str]
-    """
-    files = get_pr_modified_files(pr_number)
-
-    # This below code currently appends the values to device_types, image_types, py_versions for files changed
-    # if there are no changes in the files then functions return same lists
-    parse_modified_docker_files_info(files, framework, pattern="\S+Dockerfile\S+")
-
-    parse_modified_sagemaker_test_files(
-        files, framework, pattern="sagemaker_tests\/\S+"
-    )
-
-    # The below functions are only run if all JobParameters variables are not set with constants.ALL
-    parse_modified_dlc_test_files_info(files, framework, pattern="dlc_tests\/\S+")
-
-    # The below code currently overides the device_types, image_types, py_versions with constants.ALL
-    # when there is a change in any the below files
-    parse_modifed_buidspec_yml_info(files, framework, pattern="\S+\/buildspec.*yml")
-
-    parse_modifed_root_files_info(files, pattern="src\/\S+")
-
-    parse_modifed_root_files_info(
-        files, pattern="(?:test\/(?!(dlc_tests|sagemaker_tests))\S+)"
-    )
-
-    parse_modifed_root_files_info(files, pattern="testspec\.yml")
-
-    # convert job parameters to array
-    # return type is expected to be an array of string
-    if JobParameters.device_types == constants.ALL:
-        JobParameters.device_types = []
-
-    if JobParameters.image_types == constants.ALL:
-        JobParameters.image_types = []
-
-    if JobParameters.py_versions == constants.ALL:
-        JobParameters.py_versions = []
-
-    return (
-        JobParameters.device_types,
-        JobParameters.image_types,
-        JobParameters.py_versions,
-    )
-
-
 def build_setup(framework, device_types=[], image_types=[], py_versions=[]):
     """
     Setup the appropriate environment variables depending on whether this is a PR build
@@ -401,9 +346,6 @@ def build_setup(framework, device_types=[], image_types=[], py_versions=[]):
     if build_context == "PR":
         pr_number = os.getenv("PR_NUMBER")
         LOGGER.info(f"pr number: {pr_number}")
-        if pr_number is not None:
-            pr_number = int(pr_number)
-        # device_types, image_types, py_versions = pr_build_setup(pr_number, framework)
 
     if device_types:
         to_build["device_types"] = constants.DEVICE_TYPES.intersection(set(device_types))
