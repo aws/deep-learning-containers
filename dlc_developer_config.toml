@@ -6,10 +6,10 @@ partner_developer = ""
 ei_mode = false
 # Please only set it to true if you are preparing a NEURON related PR
 # Do remember to revert it back to false before merging any PR (including NEURON dedicated PR)
-neuron_mode = false
+neuron_mode = true
 # Please only set it to true if you are preparing a GRAVITON related PR
 # Do remember to revert it back to false before merging any PR (including GRAVITON dedicated PR)
-graviton_mode = true
+graviton_mode = false
 # Please only set it to True if you are preparing a HABANA related PR
 # Do remember to revert it back to False before merging any PR (including HABANA dedicated PR)
 habana_mode = false
@@ -90,7 +90,7 @@ dlc-pr-tensorflow-2-habana = ""
 
 # Neuron DLC buildspecs
 dlc-pr-mxnet-neuron = ""
-dlc-pr-pytorch-neuron = ""
+dlc-pr-pytorch-neuron = "pytorch/inference/buildspec-neuron.yml"
 dlc-pr-tensorflow-1-neuron = ""
 dlc-pr-tensorflow-2-neuron = ""
 
@@ -100,7 +100,7 @@ dlc-pr-huggingface-tensorflow-2-trcomp = ""
 
 # Graviton DLC buildspecs
 dlc-pr-mxnet-graviton = ""
-dlc-pr-pytorch-graviton = "pytorch/inference/buildspec-graviton.yml"
+dlc-pr-pytorch-graviton = ""
 dlc-pr-tensorflow-2-graviton = ""
 
 # EIA DLC buildspecs
