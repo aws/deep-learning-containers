@@ -90,7 +90,7 @@ dlc-pr-tensorflow-2-habana = ""
 
 # Neuron DLC buildspecs
 dlc-pr-mxnet-neuron = ""
-dlc-pr-pytorch-neuron = "pytorch/inference/buildspec-neuron.yml"
+dlc-pr-pytorch-neuron = "pytorch/training/buildspec-neuron.yml"
 dlc-pr-tensorflow-1-neuron = ""
 dlc-pr-tensorflow-2-neuron = ""
 
