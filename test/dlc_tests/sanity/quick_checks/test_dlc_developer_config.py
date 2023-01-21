@@ -83,7 +83,6 @@ def test_build_version_override_configuration():
 
     assert config.parse_dlc_developer_configs("buildspec_override" ,"dlc-pr-mxnet-neuron-training") == ""
     assert config.parse_dlc_developer_configs("buildspec_override" ,"dlc-pr-pytorch-neuron-training") == ""
-    assert config.parse_dlc_developer_configs("buildspec_override" ,"dlc-pr-tensorflow-1-neuron-training") == ""
     assert config.parse_dlc_developer_configs("buildspec_override" ,"dlc-pr-tensorflow-2-neuron-training") == ""
 
     assert config.parse_dlc_developer_configs("buildspec_override" ,"dlc-pr-pytorch-habana-training") == ""
@@ -109,5 +108,4 @@ def test_build_version_override_configuration():
     
     assert config.parse_dlc_developer_configs("buildspec_override" ,"dlc-pr-mxnet-eia-inference") == ""
     assert config.parse_dlc_developer_configs("buildspec_override" ,"dlc-pr-pytorch-eia-inference") == ""
-    assert config.parse_dlc_developer_configs("buildspec_override" ,"dlc-pr-tensorflow-1-eia-inference") == ""
     assert config.parse_dlc_developer_configs("buildspec_override" ,"dlc-pr-tensorflow-2-eia-inference") == ""
