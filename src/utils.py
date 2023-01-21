@@ -403,7 +403,7 @@ def build_setup(framework, device_types=[], image_types=[], py_versions=[]):
         LOGGER.info(f"pr number: {pr_number}")
         if pr_number is not None:
             pr_number = int(pr_number)
-        device_types, image_types, py_versions = pr_build_setup(pr_number, framework)
+        # device_types, image_types, py_versions = pr_build_setup(pr_number, framework)
 
     if device_types:
         to_build["device_types"] = constants.DEVICE_TYPES.intersection(set(device_types))
