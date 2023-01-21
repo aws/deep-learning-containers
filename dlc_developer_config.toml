@@ -96,7 +96,6 @@ dlc-pr-pytorch-trcomp-training = ""
 # Neuron Training
 dlc-pr-mxnet-neuron-training = ""
 dlc-pr-pytorch-neuron-training = ""
-dlc-pr-tensorflow-1-neuron-training = ""
 dlc-pr-tensorflow-2-neuron-training = ""
 
 # Habana Training
@@ -130,5 +129,4 @@ dlc-pr-tensorflow-2-graviton-inference = ""
 # EIA Inference
 dlc-pr-mxnet-eia-inference = ""
 dlc-pr-pytorch-eia-inference = ""
-dlc-pr-tensorflow-1-eia-inference = ""
 dlc-pr-tensorflow-2-eia-inference = ""
