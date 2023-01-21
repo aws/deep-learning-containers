@@ -6,7 +6,7 @@ partner_developer = ""
 ei_mode = false
 # Please only set it to true if you are preparing a NEURON related PR
 # Do remember to revert it back to false before merging any PR (including NEURON dedicated PR)
-neuron_mode = false
+neuron_mode = true
 # Please only set it to true if you are preparing a GRAVITON related PR
 # Do remember to revert it back to false before merging any PR (including GRAVITON dedicated PR)
 graviton_mode = false
@@ -33,7 +33,7 @@ skip_frameworks = ["autogluon", "huggingface_tensorflow", "huggingface_pytorch",
 datetime_tag = false
 # Note: Need to build the images at least once with datetime_tag = false
 # before disabling new builds, or tests will fail
-do_build = false
+do_build = true
 
 [test]
 ### On by default
@@ -74,7 +74,7 @@ use_scheduler = false
 # Standard Framework DLC buildspecs
 dlc-pr-autogluon = ""
 dlc-pr-mxnet = ""
-dlc-pr-pytorch = "pytorch/buildspec-1-12.yml"
+dlc-pr-pytorch = ""
 dlc-pr-tensorflow-1 = ""
 dlc-pr-tensorflow-2 = ""
 
