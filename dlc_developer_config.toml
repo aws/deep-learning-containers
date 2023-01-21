@@ -6,7 +6,7 @@ partner_developer = ""
 ei_mode = false
 # Please only set it to true if you are preparing a NEURON related PR
 # Do remember to revert it back to false before merging any PR (including NEURON dedicated PR)
-neuron_mode = false
+neuron_mode = true
 # Please only set it to true if you are preparing a GRAVITON related PR
 # Do remember to revert it back to false before merging any PR (including GRAVITON dedicated PR)
 graviton_mode = false
@@ -32,7 +32,7 @@ build_frameworks = ["pytorch"]
 
 # By default we build both training and inference containers. Set true/false values to determine which to build.
 build_training = true
-build_inference = false
+build_inference = true
 
 # Set to false in order to remove datetime tag on PR builds
 datetime_tag = true
@@ -80,7 +80,7 @@ use_scheduler = false
 
 # Standard Framework Training
 dlc-pr-mxnet-training = ""
-dlc-pr-pytorch-training = "pytorch/training/buildspec-1-12.yml"
+dlc-pr-pytorch-training = ""
 dlc-pr-tensorflow-2-training = ""
 dlc-pr-autogluon-training = ""
 
