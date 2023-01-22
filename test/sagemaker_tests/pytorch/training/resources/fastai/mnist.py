@@ -11,19 +11,17 @@
 # ANY KIND, either express or implied. See the License for the specific
 # language governing permissions and limitations under the License.
 
-# Based on https://github.com/fastai/fastai/blob/master/examples/train_mnist.py
+# https://github.com/fastai/fastai/blob/master/nbs/examples/mnist_items.py
 # imports and the code was as much preserved to match the official example
-from fastai.script import *
-from fastai.vision import *
 
-@call_parse
-def main():
-    tgz_path = os.environ.get('SM_CHANNEL_TRAINING')
-    path = os.path.join(tgz_path, 'mnist_tiny')
-    tarfile.open(f'{path}.tgz', 'r:gz').extractall(tgz_path)
-    tfms = (rand_pad(2, 28), [])
-    data = ImageDataBunch.from_folder(path, ds_tfms=tfms, bs=64)
-    data.normalize(imagenet_stats)
-    learn = create_cnn(data, models.resnet18, metrics=accuracy, path='/opt/ml', model_dir='model')
-    learn.fit_one_cycle(1, 0.02)
+from fastai.vision.all import *
+
+items = get_image_files(untar_data(URLs.MNIST))
+splits = GrandparentSplitter(train_name='training', valid_name='testing')(items)
+tds = Datasets(items, [PILImageBW.create, [parent_label, Categorize()]], splits=splits)
+
+if __name__ == '__main__':
+    data = tds.dataloaders(bs=256, after_item=[ToTensor(), IntToFloatTensor()]).cuda()
+    learn = vision_learner(data, resnet18, metrics=accuracy, path='/opt/ml', model_dir='model')
+    learn.fit_one_cycle(1, 1e-2)
     learn.save('model')
