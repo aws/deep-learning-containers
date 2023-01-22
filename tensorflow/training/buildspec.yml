@@ -1,8 +1,8 @@
 account_id: &ACCOUNT_ID <set-$ACCOUNT_ID-in-environment>
 region: &REGION <set-$REGION-in-environment>
 framework: &FRAMEWORK tensorflow
-version: &VERSION 2.9.3
-short_version: &SHORT_VERSION 2.9
+version: &VERSION 2.11.0
+short_version: &SHORT_VERSION "2.11"
 arch_type: x86
 
 repository_info:
@@ -20,7 +20,6 @@ context:
     deep_learning_container:
       source: ../../src/deep_learning_container.py
       target: deep_learning_container.py
-
 images:
   BuildTensorflowEC2CpuPy39TrainingDockerImage:
     <<: *TRAINING_REPOSITORY
@@ -58,7 +57,7 @@ images:
   BuildTensorflowExampleGpuCu112Py39TrainingDockerImage:
     <<: *TRAINING_REPOSITORY
     build: &TENSORFLOW_GPU_TRAINING_PY3 false
-    image_size_baseline: &IMAGE_SIZE_BASELINE 7738
+    image_size_baseline: &IMAGE_SIZE_BASELINE 9295
     base_image_name: BuildTensorflowEC2GpuCu112Py39TrainingDockerImage
     device_type: &DEVICE_TYPE gpu
     python_version: &DOCKER_PYTHON_VERSION py3
@@ -72,11 +71,10 @@ images:
     enable_test_promotion: true
     context:
       <<: *TRAINING_CONTEXT
-
   BuildTensorflowSageMakerGpuPy39Cu112TrainingDockerImage:
     <<: *TRAINING_REPOSITORY
     build: &TENSORFLOW_GPU_TRAINING_PY3 false
-    image_size_baseline: &IMAGE_SIZE_BASELINE 11000
+    image_size_baseline: &IMAGE_SIZE_BASELINE 11998
     device_type: &DEVICE_TYPE gpu
     python_version: &DOCKER_PYTHON_VERSION py3
     tag_python_version: &TAG_PYTHON_VERSION py39
