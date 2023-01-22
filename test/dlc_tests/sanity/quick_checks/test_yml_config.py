@@ -4,7 +4,7 @@ import re
 import pytest
 import yaml
 
-from test_utils import is_pr_context
+from test.test_utils import is_pr_context
 
 
 @pytest.mark.quick_checks
