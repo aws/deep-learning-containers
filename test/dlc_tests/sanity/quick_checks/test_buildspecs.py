@@ -14,6 +14,8 @@ def test_train_inference_buildspec():
     2. if "training" is in the path, make sure "inference" is not in the file
     3. if "inference" is in the path, make sure "training" is not in the file
     """
+    # Define directories where non-image-type buildspecs are allowed
+    EXEMPT_DIRS = ("deep-learning-containers", "src", "eks_infrastructure")
     # Look up the path until deep-learning-containers is our base directory
     dlc_base_dir = os.getcwd()
     while os.path.basename(dlc_base_dir) != "deep-learning-containers":
@@ -30,13 +32,8 @@ def test_train_inference_buildspec():
             if buildspec_pattern.search(filename):
                 buildspec_path = os.path.join(dlc_base_dir, root, filename)
 
-                # There are several top level buildspecs, so if we are in the 
-                # top level dir, src dir or eks infra dir, don't count these
-                if (
-                    os.path.split(buildspec_path)[0] != dlc_base_dir
-                    and "eks_infrastructure" not in buildspec_path
-                    and "src" not in buildspec_path
-                ):
+                # Only look in directories that are not exempted from the search
+                if os.path.basename(buildspec_path) not in EXEMPT_DIRS:
                     _assert_single_image_type_buildspec(buildspec_path, inference_pattern, training_pattern)
 
 
