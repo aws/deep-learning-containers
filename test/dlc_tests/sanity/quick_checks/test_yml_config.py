@@ -1,4 +1,5 @@
 import os
+import re
 
 import pytest
 import yaml
@@ -8,23 +9,46 @@ from test_utils import is_pr_context
 
 @pytest.mark.quick_checks
 @pytest.mark.model("N/A")
-@pytest.mark.integration("release_images.yml")
+@pytest.mark.integration("release_images_training.yml")
 @pytest.mark.skipif(
     not is_pr_context(),
     reason="This test is only needed to validate release_images configs in PRs.",
 )
-def test_release_images_yml():
+def test_release_images_training_yml():
+    _release_images_yml_verifier(image_type="training", excluded_image_type="inference")
+
+
+@pytest.mark.quick_checks
+@pytest.mark.model("N/A")
+@pytest.mark.integration("release_images_inference.yml")
+@pytest.mark.skipif(
+    not is_pr_context(),
+    reason="This test is only needed to validate release_images configs in PRs.",
+)
+def test_release_images_training_yml():
+    _release_images_yml_verifier(image_type="inference", excluded_image_type="training")
+
+
+def _release_images_yml_verifier(image_type, excluded_image_type):
     """
     Simple test to ensure release images yml file is loadable
+    Also test that excluded_image_type is not present in the release yml file
     """
     # Look up the path until deep-learning-containers is our base directory
     dlc_base_dir = os.getcwd()
     while os.path.basename(dlc_base_dir) != "deep-learning-containers":
         dlc_base_dir = os.path.split(dlc_base_dir)[0]
 
-    release_images_yml_file = os.path.join(dlc_base_dir, "release_images.yml")
+    release_images_yml_file = os.path.join(dlc_base_dir, f"release_images_{image_type}.yml")
+
+    # Define exclude regex
+    exclude_pattern = re.compile(rf"{excluded_image_type}", re.IGNORECASE)
 
     with open(release_images_yml_file, "r") as release_imgs_handle:
+        for line in release_images_yml_file:
+            assert not exclude_pattern.search(
+                line
+            ), f"{exclude_pattern.pattern} found in {release_images_yml_file}. Please ensure there are not conflicting job types here."
         try:
             yaml.safe_load(release_imgs_handle)
         except yaml.YAMLError as e:
