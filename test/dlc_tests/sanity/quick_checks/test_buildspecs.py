@@ -20,9 +20,9 @@ def test_train_inference_buildspec():
         dlc_base_dir = os.path.split(dlc_base_dir)[0]
 
     # Regex definitions for buildspec matching
-    buildspec_pattern = re.compile(r'buildspec\S*\.yml')
-    training_pattern = re.compile(r'training', re.IGNORECASE)
-    inference_pattern = re.compile(r'inference', re.IGNORECASE)
+    buildspec_pattern = re.compile(r"buildspec\S*\.yml")
+    training_pattern = re.compile(r"training", re.IGNORECASE)
+    inference_pattern = re.compile(r"inference", re.IGNORECASE)
 
     # Navigate through files and look for matches
     for root, dirnames, filenames in os.walk(dlc_base_dir):
@@ -43,10 +43,16 @@ def _assert_single_image_type_buildspec(buildspec_path, inference_pattern, train
     if "training" in buildspec_path:
         with open(buildspec_path) as trn_buildspec_handle:
             for line in trn_buildspec_handle:
-                assert not inference_pattern.search(line), f"Found inference reference in training buildspec {buildspec_path}"
+                assert not inference_pattern.search(
+                    line
+                ), f"Found inference reference in training buildspec {buildspec_path}"
     elif "inference" in buildspec_path:
         with open(buildspec_path) as inf_buildspec_handle:
             for line in inf_buildspec_handle:
-                assert not training_pattern.search(line), f"Found training reference in training buildspec {buildspec_path}"
+                assert not training_pattern.search(
+                    line
+                ), f"Found training reference in training buildspec {buildspec_path}"
     else:
-        raise RuntimeError(f"Buildspec {buildspec_path} is not under a training dir nor an inference dir! Please correct this and retry.")
+        raise RuntimeError(
+            f"Buildspec {buildspec_path} is not under a training dir nor an inference dir! Please correct this and retry."
+        )
