@@ -47,13 +47,13 @@ def _assert_single_image_type_buildspec(buildspec_path, inference_pattern, train
             for line in trn_buildspec_handle:
                 assert not inference_pattern.search(
                     line
-                ), f"Found inference reference in training buildspec {buildspec_path}"
+                ), f"Found inference reference in training buildspec {buildspec_path}. Please check the file and remove them."
     elif "inference" in buildspec_path:
         with open(buildspec_path) as inf_buildspec_handle:
             for line in inf_buildspec_handle:
                 assert not training_pattern.search(
                     line
-                ), f"Found training reference in training buildspec {buildspec_path}"
+                ), f"Found training reference in inference buildspec {buildspec_path}. Please check the file and remove them."
     else:
         raise RuntimeError(
             f"Buildspec {buildspec_path} is not under a training dir nor an inference dir! Please correct this and retry."
