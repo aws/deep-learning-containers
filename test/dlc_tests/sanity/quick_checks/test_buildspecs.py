@@ -30,8 +30,13 @@ def test_train_inference_buildspec():
             if buildspec_pattern.search(filename):
                 buildspec_path = os.path.join(dlc_base_dir, root, filename)
 
-                # There are several top level buildspecs, so if we are in the top level dir or eks infra dir, don't count these
-                if os.path.split(buildspec_path)[0] != dlc_base_dir and "eks_infrastructure" not in buildspec_path:
+                # There are several top level buildspecs, so if we are in the 
+                # top level dir, src dir or eks infra dir, don't count these
+                if (
+                    os.path.split(buildspec_path)[0] != dlc_base_dir
+                    and "eks_infrastructure" not in buildspec_path
+                    and "src" not in buildspec_path
+                ):
                     _assert_single_image_type_buildspec(buildspec_path, inference_pattern, training_pattern)
 
 
