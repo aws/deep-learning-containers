@@ -8,7 +8,10 @@ ARG TORCH_URL=https://aws-pytorch-unified-cicd-binaries.s3.us-west-2.amazonaws.c
 ARG TORCHVISION_VERSION=0.14.1+cpu
 ARG TORCHAUDIO_VERSION=0.13.1+cpu
 ARG TORCHDATA_VERSION=0.5.1
-ARG TORCHSERVE_VERSION=0.7.0
+
+#Changes to the below inputs require approval from TorchServe team
+ARG TS_VERSION=0.7.0
+ARG SM_TOOLKIT_VERSION=2.0.12
 
 ########################################################
 #  _____ ____ ____    ___
@@ -45,7 +48,7 @@ ARG TORCH_URL
 ARG TORCHVISION_VERSION
 ARG TORCHAUDIO_VERSION
 ARG TORCHDATA_VERSION
-ARG TORCHSERVE_VERSION
+ARG TS_VERSION
 
 # Set Debian interaction
 ARG DEBIAN_FRONTEND=noninteractive
@@ -156,8 +159,8 @@ RUN pip install --no-cache-dir --extra-index-url https://download.pytorch.org/wh
     torchaudio==${TORCHAUDIO_VERSION} \
     torchvision==${TORCHVISION_VERSION} \
     torchdata==${TORCHDATA_VERSION} \
-    torchserve==${TORCHSERVE_VERSION} \
-    torch-model-archiver==${TORCHSERVE_VERSION}
+    torchserve==${TS_VERSION} \
+    torch-model-archiver==${TS_VERSION}
 
 # add necessary certificate for aws sdk cpp download
 RUN mkdir -p /etc/pki/tls/certs && cp /etc/ssl/certs/ca-certificates.crt /etc/pki/tls/certs/ca-bundle.crt
@@ -217,6 +220,10 @@ LABEL com.amazonaws.sagemaker.capabilities.accept-bind-to-port=true
 LABEL com.amazonaws.sagemaker.capabilities.multi-models=true
 
 ARG PYTHON
+ARG TS_VERSION
+ARG SM_TOOLKIT_VERSION
+
+LABEL com.amazonaws.ml.engines.sagemaker.dlc.inference-toolkit.${SM_TOOLKIT_VERSION}.torchserve.${TS_VERSION}="true"
 
 ENV SAGEMAKER_SERVING_MODULE sagemaker_pytorch_serving_container.serving:main
 
@@ -225,7 +232,7 @@ RUN conda install -y -c conda-forge \
     scikit-learn \
     pandas
 
-RUN pip install --no-cache-dir "sagemaker-pytorch-inference>=2"
+RUN pip install --no-cache-dir "sagemaker-pytorch-inference==${SM_TOOLKIT_VERSION}"
 
 COPY torchserve-entrypoint.py /usr/local/bin/dockerd-entrypoint.py
 
