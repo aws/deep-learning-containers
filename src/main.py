@@ -124,7 +124,7 @@ def main():
     # Ensure that buildspec_file starts with buildspec and ends with yml
     buildspec_pattern = re.compile(r"buildspec\S*\.yml")
     assert buildspec_pattern.match(
-        buildspec_file
+        os.path.basename(buildspec_file)
     ), f"{buildspec_file} must match {buildspec_pattern.pattern}. Please rename file."
 
     # A builder will always work if it is in non-PR context
