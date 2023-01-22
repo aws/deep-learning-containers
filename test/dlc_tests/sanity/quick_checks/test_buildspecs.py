@@ -32,7 +32,7 @@ def test_train_inference_buildspec():
             if buildspec_pattern.match(filename):
                 buildspec_path = os.path.join(dlc_base_dir, root, filename)
 
-                # Don't look for framework buildspecs in the top level directory - these are not FW buildspecs
+                # Don't look for framework buildspecs in the top level directory - these are not framework buildspecs
                 if os.path.split(buildspec_path)[0] != dlc_base_dir:
                     _assert_single_image_type_buildspec(buildspec_path, inference_pattern, training_pattern)
 
