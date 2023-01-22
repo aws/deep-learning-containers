@@ -12,11 +12,6 @@ repository_info:
     root: !join [ *FRAMEWORK, "/", *TRAINING_IMAGE_TYPE ]
     repository_name: &REPOSITORY_NAME !join [pr, "-", *FRAMEWORK, "-", *TRAINING_IMAGE_TYPE, "-", neuron]
     repository: &REPOSITORY !join [ *ACCOUNT_ID, .dkr.ecr., *REGION, .amazonaws.com/, *REPOSITORY_NAME ]
-  inference_repository: &INFERENCE_REPOSITORY
-      image_type: &INFERENCE_IMAGE_TYPE inference
-      root: !join [ *FRAMEWORK, "/", *INFERENCE_IMAGE_TYPE ]
-      repository_name: &REPOSITORY_NAME !join [pr, "-", *FRAMEWORK, "-", *INFERENCE_IMAGE_TYPE, "-", neuron]
-      repository: &REPOSITORY !join [ *ACCOUNT_ID, .dkr.ecr., *REGION, .amazonaws.com/, *REPOSITORY_NAME ]
 
 context:
   training_context: &TRAINING_CONTEXT
@@ -29,19 +24,6 @@ context:
     deep_learning_container:
       source: ../../src/deep_learning_container.py
       target: deep_learning_container.py
-  inference_context: &INFERENCE_CONTEXT
-    neuron-monitor:
-      source: docker/build_artifacts/neuron-monitor.sh
-      target: neuron-monitor.sh
-    neuron-entrypoint:
-      source: docker/build_artifacts/neuron-entrypoint.py
-      target: neuron-entrypoint.py
-    torchserve-neuron:
-      source: docker/build_artifacts/torchserve-neuron.sh
-      target: torchserve-neuron.sh
-    config:
-      source: docker/build_artifacts/config.properties
-      target: config.properties
 
 images:
   BuildNeuronPTTrainingPy3DockerImage:
