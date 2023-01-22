@@ -13,9 +13,9 @@ def test_train_inference_buildspec():
     1. "training" or "inference is in the path
     2. if "training" is in the path, make sure "inference" is not in the file
     3. if "inference" is in the path, make sure "training" is not in the file
+
+    Framework buildspecs are expected to follow buildspec<any_chars>.yml
     """
-    # Define directories where non-image-type buildspecs are allowed
-    EXEMPT_DIRS = ("deep-learning-containers", "src", "eks_infrastructure")
     # Look up the path until deep-learning-containers is our base directory
     dlc_base_dir = os.getcwd()
     while os.path.basename(dlc_base_dir) != "deep-learning-containers":
@@ -29,11 +29,11 @@ def test_train_inference_buildspec():
     # Navigate through files and look for matches
     for root, dirnames, filenames in os.walk(dlc_base_dir):
         for filename in filenames:
-            if buildspec_pattern.search(filename):
+            if buildspec_pattern.match(filename):
                 buildspec_path = os.path.join(dlc_base_dir, root, filename)
 
-                # Only look in directories that are not exempted from the search
-                if os.path.basename(buildspec_path) not in EXEMPT_DIRS:
+                # Don't look for framework buildspecs in the top level directory - these are CB buildspecs
+                if os.path.split(buildspec_path)[0] != dlc_base_dir:
                     _assert_single_image_type_buildspec(buildspec_path, inference_pattern, training_pattern)
 
 
