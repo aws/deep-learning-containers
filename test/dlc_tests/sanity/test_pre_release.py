@@ -661,7 +661,7 @@ def _assert_artifact_free(output, stray_artifacts):
 
 def _test_sm_toolkit_and_ts_version(image, region):
     """
-    @param pytorch_inference: ECR image URI
+    @param image: ECR image URI
     """
 
     if "gpu" or "cpu" in image:
