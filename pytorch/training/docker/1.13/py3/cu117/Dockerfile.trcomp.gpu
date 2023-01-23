@@ -36,7 +36,7 @@ LABEL dlc_major_version="1"
 ARG PYTHON=python3
 
 
-ARG PT_BUCKET=https://aws-pytorch-unified-cicd-binaries.s3.us-west-2.amazonaws.com/trcomp/r1.13.1_sm/20230105-044451/a0b236214cf97b6fcb7667c9ed3fe05c024e7ff2
+ARG PT_BUCKET=https://aws-pytorch-unified-cicd-binaries.s3.us-west-2.amazonaws.com/trcomp/r1.13.1_sm/20230112-003422/a0b236214cf97b6fcb7667c9ed3fe05c024e7ff2
 ARG PT_URL=${PT_BUCKET}/torch-1.13.1%2Bcu117-cp39-cp39-linux_x86_64.whl
 ARG PT_XLA_URL=${PT_BUCKET}/torch_xla-1.13-cp39-cp39-linux_x86_64.whl
 ARG TORCHVISION_URL=${PT_BUCKET}/torchvision-0.14.0a0%2B5ce4506-cp39-cp39-linux_x86_64.whl
