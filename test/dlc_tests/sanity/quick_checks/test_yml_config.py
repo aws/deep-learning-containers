@@ -25,7 +25,7 @@ def test_release_images_training_yml():
     not is_pr_context(),
     reason="This test is only needed to validate release_images configs in PRs.",
 )
-def test_release_images_training_yml():
+def test_release_images_inference_yml():
     _release_images_yml_verifier(image_type="inference", excluded_image_type="training")
 
 
