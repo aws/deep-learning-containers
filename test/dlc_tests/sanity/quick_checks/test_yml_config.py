@@ -45,7 +45,7 @@ def _release_images_yml_verifier(image_type, excluded_image_type):
     exclude_pattern = re.compile(rf"{excluded_image_type}", re.IGNORECASE)
 
     with open(release_images_yml_file, "r") as release_imgs_handle:
-        for line in release_images_yml_file:
+        for line in release_imgs_handle:
             assert not exclude_pattern.search(
                 line
             ), f"{exclude_pattern.pattern} found in {release_images_yml_file}. Please ensure there are not conflicting job types here."
