@@ -25,6 +25,7 @@ ARG PYTHON=python3.8
 ARG PYTHON_PIP=python3-pip
 ARG PIP=pip3
 ARG PYTHON_VERSION=3.8.10
+ARG TFS_API_VERSION=2.9.3
 ARG TFS_URL=https://framework-binaries.s3.us-west-2.amazonaws.com/tensorflow_serving/r2.9_aws/aarch64_test/tensorflow_model_server
 
 # ENV variable to be passed to SageMaker stage
@@ -95,7 +96,7 @@ RUN ${PIP} install --no-cache-dir \
     "protobuf>=3.20.2,<3.21" \
 # using --no-dependencies to avoid installing tensorflow binary
  && ${PIP} install --no-dependencies --no-cache-dir \
-    tensorflow-serving-api==2.9.1
+    tensorflow-serving-api==${TFS_API_VERSION}
 
 # Some TF tools expect a "python" binary
 RUN ln -s $(which ${PYTHON}) /usr/local/bin/python \
