@@ -20,6 +20,7 @@ from test.test_utils import (
     LOGGER,
     CONTAINER_TESTS_PREFIX,
     ec2,
+    get_labels_from_ecr_image,
     get_container_name,
     get_framework_and_version_from_tag,
     get_neuron_framework_and_version_from_tag,
