@@ -40,14 +40,14 @@ PT_EC2_MULTI_GPU_INSTANCE_TYPE = get_ec2_instance_type(
 PT_EC2_HPU_INSTANCE_TYPE = get_ec2_instance_type(default="dl1.24xlarge", processor="hpu")
 PT_EC2_NEURON_TRN1_INSTANCE_TYPE = get_ec2_instance_type(default="trn1.2xlarge", processor="neuron", job_type="training")
 
-@pytest.mark.parametrize("ec2_instance_ami", [test_utils.NEURON_TRN1_AMI_US_WEST_2], indirect=True)
+@pytest.mark.parametrize("ec2_instance_ami", [test_utils.UL20_PT_NEURON_US_WEST_2], indirect=True)
 @pytest.mark.parametrize("ec2_instance_type", PT_EC2_NEURON_TRN1_INSTANCE_TYPE, indirect=True)
 @pytest.mark.integration("pytorch_neuron_sanity_test")
 @pytest.mark.model("xla")
 def test_pytorch_allreduce_neuron(pytorch_training_neuron, ec2_connection):
     execute_ec2_training_test(ec2_connection, pytorch_training_neuron, PT_NEURON_ALLREDUCE_CMD)
 
-@pytest.mark.parametrize("ec2_instance_ami", [test_utils.NEURON_TRN1_AMI_US_WEST_2], indirect=True)
+@pytest.mark.parametrize("ec2_instance_ami", [test_utils.UL20_PT_NEURON_US_WEST_2], indirect=True)
 @pytest.mark.parametrize("ec2_instance_type", PT_EC2_NEURON_TRN1_INSTANCE_TYPE, indirect=True)
 @pytest.mark.integration("pytorch_neuron_sanity_test")
 @pytest.mark.model("mlp")
