@@ -155,7 +155,7 @@ SageMaker Framework Graviton Containers (SM support only)
 NVIDIA Triton Inference Containers (SM support only)
 ============================
 **Note**: The following versions of the 22.`<XY>` container are supported:
-`22.05, 22.07, 22.08, 22.09, 22.10`
+`22.05, 22.07, 22.08, 22.09, 22.10, 22.12`
 
 | Framework         |Job Type	|Horovod Options|CPU/GPU 	|Python Version Options	|Example URL																						|
 |-------------------|-----------|---------------|-----------|-----------------------|---------------------------------------------------------------------------------------------------|
