@@ -86,13 +86,17 @@ def models():
         make_load_model_request(json.dumps(model_data))
     return MODEL_NAMES
 
-
+@pytest.mark.processor("cpu")
+@pytest.mark.model("half_plus_three","half_plus_two")
+@pytest.mark.integration("mme")
 @pytest.mark.skip_gpu
 def test_ping_service():
     response = requests.get(PING_URL)
     assert 200 == response.status_code
 
-
+@pytest.mark.processor("cpu")
+@pytest.mark.model("half_plus_three","half_plus_two")
+@pytest.mark.integration("mme")
 @pytest.mark.skip_gpu
 def test_predict_json(models):
     headers = make_headers()
@@ -104,7 +108,9 @@ def test_predict_json(models):
     assert responses[0] == {"predictions": [3.5, 4.0, 5.5]}
     assert responses[1] == {"predictions": [2.5, 3.0, 4.5]}
 
-
+@pytest.mark.processor("cpu")
+@pytest.mark.model("half_plus_three","half_plus_two")
+@pytest.mark.integration("mme")
 @pytest.mark.skip_gpu
 def test_zero_content():
     headers = make_headers()
@@ -119,7 +125,9 @@ def test_zero_content():
     assert 200 == responses[1].status_code
     assert "document is empty" in responses[1].text
 
-
+@pytest.mark.processor("cpu")
+@pytest.mark.model("half_plus_three","half_plus_two")
+@pytest.mark.integration("mme")
 @pytest.mark.skip_gpu
 def test_large_input():
     data_file = "test/resources/inputs/test-large.csv"
@@ -136,7 +144,9 @@ def test_large_input():
         error = responses[1]["error"]
         assert "document root must not be followed by other values" in error
 
-
+@pytest.mark.processor("cpu")
+@pytest.mark.model("half_plus_three","half_plus_two")
+@pytest.mark.integration("mme")
 @pytest.mark.skip_gpu
 def test_csv_input():
     headers = make_headers(content_type="text/csv")
@@ -149,6 +159,9 @@ def test_csv_input():
     error = responses[1]["error"]
     assert "document root must not be followed by other values" in error
 
+@pytest.mark.processor("cpu")
+@pytest.mark.model("half_plus_three","half_plus_two")
+@pytest.mark.integration("mme")
 @pytest.mark.skip_gpu
 def test_specific_versions():
     for MODEL_NAME in MODEL_NAMES:
@@ -164,6 +177,9 @@ def test_specific_versions():
                 error = response["error"]
                 assert "document root must not be followed by other values" in error
 
+@pytest.mark.processor("cpu")
+@pytest.mark.model("half_plus_three","half_plus_two")
+@pytest.mark.integration("mme")
 @pytest.mark.skip_gpu
 def test_unsupported_content_type():
     headers = make_headers("unsupported-type", "predict")

@@ -26,11 +26,9 @@ import requests
 
 from multi_model_endpoint_test_utils import make_load_model_request, make_headers
 
-
 PING_URL = "http://localhost:8080/ping"
 INVOCATION_URL = "http://localhost:8080/models/{}/invoke"
-MODEL_NAMES = ["half_plus_three","half_plus_two"]
-
+MODEL_NAMES = ["half_plus_three", "half_plus_two"]
 
 @pytest.fixture(scope="session", autouse=True)
 def volume():
@@ -42,7 +40,6 @@ def volume():
         yield model_dir
     finally:
         subprocess.check_call("docker volume rm model_volume_mme1".split())
-
 
 @pytest.fixture(scope="module", autouse=True)
 def container(docker_base_name, tag, runtime_config):
@@ -74,7 +71,6 @@ def container(docker_base_name, tag, runtime_config):
     finally:
         subprocess.check_call("docker rm -f sagemaker-tensorflow-serving-test".split())
 
-
 @pytest.fixture
 def models():
     for MODEL_NAME in MODEL_NAMES:
@@ -85,13 +81,17 @@ def models():
         make_load_model_request(json.dumps(model_data))
     return MODEL_NAMES
 
-
+@pytest.mark.processor("cpu")
+@pytest.mark.model("half_plus_three", "half_plus_two")
+@pytest.mark.integration("mme")
 @pytest.mark.skip_gpu
 def test_ping_service():
     response = requests.get(PING_URL)
     assert 200 == response.status_code
 
-
+@pytest.mark.processor("cpu")
+@pytest.mark.model("half_plus_three", "half_plus_two")
+@pytest.mark.integration("mme")
 @pytest.mark.skip_gpu
 def test_predict_json(models):
     headers = make_headers()
@@ -103,7 +103,9 @@ def test_predict_json(models):
     assert responses[0] == {"predictions": [3.5, 4.0, 5.5]}
     assert responses[1] == {"predictions": [2.5, 3.0, 4.5]}
 
-
+@pytest.mark.processor("cpu")
+@pytest.mark.model("half_plus_three", "half_plus_two")
+@pytest.mark.integration("mme")
 @pytest.mark.skip_gpu
 def test_zero_content():
     headers = make_headers()
@@ -113,7 +115,9 @@ def test_zero_content():
         assert 500 == response.status_code
         assert "document is empty" in response.text
 
-
+@pytest.mark.processor("cpu")
+@pytest.mark.model("half_plus_three", "half_plus_two")
+@pytest.mark.integration("mme")
 @pytest.mark.skip_gpu
 def test_large_input():
     data_file = "test/resources/inputs/test-large.csv"
@@ -126,7 +130,9 @@ def test_large_input():
             predictions = response["predictions"]
             assert len(predictions) == 753936
 
-
+@pytest.mark.processor("cpu")
+@pytest.mark.model("half_plus_three", "half_plus_two")
+@pytest.mark.integration("mme")
 @pytest.mark.skip_gpu
 def test_csv_input():
     headers = make_headers(content_type="text/csv")
@@ -138,6 +144,9 @@ def test_csv_input():
     assert responses[0] == {"predictions": [3.5, 4.0, 5.5]}
     assert responses[1] == {"predictions": [2.5, 3.0, 4.5]}
 
+@pytest.mark.processor("cpu")
+@pytest.mark.model("half_plus_three", "half_plus_two")
+@pytest.mark.integration("mme")
 @pytest.mark.skip_gpu
 def test_specific_versions():
     for MODEL_NAME in MODEL_NAMES:
@@ -152,7 +161,9 @@ def test_specific_versions():
             else:
                 assert response == {"predictions": [2.5, 3.0, 4.5]}
 
-
+@pytest.mark.processor("cpu")
+@pytest.mark.model("half_plus_three", "half_plus_two")
+@pytest.mark.integration("mme")
 @pytest.mark.skip_gpu
 def test_unsupported_content_type():
     headers = make_headers("unsupported-type", "predict")
