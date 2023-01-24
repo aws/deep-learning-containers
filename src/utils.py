@@ -144,7 +144,7 @@ def fetch_dlc_images_for_test_jobs(images, use_latest_additional_tag=False):
             if use_latest_additional_tag and len(docker_image.additional_tags) > 0:
                 ecr_url_to_test = f"{docker_image.repository}:{docker_image.additional_tags[-1]}"
 
-            # Run sanity tests on the all images built
+            # Set up tests on all platforms
             for test_platform in DLC_IMAGES:
                 DLC_IMAGES[test_platform].append(ecr_url_to_test)
 
