@@ -82,7 +82,7 @@ def models():
     return MODEL_NAMES
 
 @pytest.mark.processor("cpu")
-@pytest.mark.model("half_plus_three", "half_plus_two")
+@pytest.mark.model("half_plus_three, half_plus_two")
 @pytest.mark.integration("mme")
 @pytest.mark.skip_gpu
 def test_ping_service():
@@ -90,7 +90,7 @@ def test_ping_service():
     assert 200 == response.status_code
 
 @pytest.mark.processor("cpu")
-@pytest.mark.model("half_plus_three", "half_plus_two")
+@pytest.mark.model("half_plus_three, half_plus_two")
 @pytest.mark.integration("mme")
 @pytest.mark.skip_gpu
 def test_predict_json(models):
@@ -104,7 +104,7 @@ def test_predict_json(models):
     assert responses[1] == {"predictions": [2.5, 3.0, 4.5]}
 
 @pytest.mark.processor("cpu")
-@pytest.mark.model("half_plus_three", "half_plus_two")
+@pytest.mark.model("half_plus_three, half_plus_two")
 @pytest.mark.integration("mme")
 @pytest.mark.skip_gpu
 def test_zero_content():
@@ -116,7 +116,7 @@ def test_zero_content():
         assert "document is empty" in response.text
 
 @pytest.mark.processor("cpu")
-@pytest.mark.model("half_plus_three", "half_plus_two")
+@pytest.mark.model("half_plus_three, half_plus_two")
 @pytest.mark.integration("mme")
 @pytest.mark.skip_gpu
 def test_large_input():
@@ -131,7 +131,7 @@ def test_large_input():
             assert len(predictions) == 753936
 
 @pytest.mark.processor("cpu")
-@pytest.mark.model("half_plus_three", "half_plus_two")
+@pytest.mark.model("half_plus_three, half_plus_two")
 @pytest.mark.integration("mme")
 @pytest.mark.skip_gpu
 def test_csv_input():
@@ -145,7 +145,7 @@ def test_csv_input():
     assert responses[1] == {"predictions": [2.5, 3.0, 4.5]}
 
 @pytest.mark.processor("cpu")
-@pytest.mark.model("half_plus_three", "half_plus_two")
+@pytest.mark.model("half_plus_three, half_plus_two")
 @pytest.mark.integration("mme")
 @pytest.mark.skip_gpu
 def test_specific_versions():
@@ -162,7 +162,7 @@ def test_specific_versions():
                 assert response == {"predictions": [2.5, 3.0, 4.5]}
 
 @pytest.mark.processor("cpu")
-@pytest.mark.model("half_plus_three", "half_plus_two")
+@pytest.mark.model("half_plus_three, half_plus_two")
 @pytest.mark.integration("mme")
 @pytest.mark.skip_gpu
 def test_unsupported_content_type():
