@@ -23,7 +23,7 @@ import constants
 from botocore.exceptions import ClientError
 from invoke.context import Context
 
-from codebuild_environment import get_cloned_folder_path, get_user_and_repo_name
+from codebuild_environment import get_cloned_folder_path
 from config import is_build_enabled
 from safety_report_generator import SafetyReportGenerator
 
@@ -31,37 +31,6 @@ LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.DEBUG)
 LOGGER.addHandler(logging.StreamHandler(sys.stdout))
 LOGGER.addHandler(logging.StreamHandler(sys.stderr))
-
-
-class JobParameters:
-    image_types = []
-    device_types = []
-    py_versions = []
-    image_run_test_types = {}
-
-    @staticmethod
-    def build_for_all_images():
-        JobParameters.image_types = constants.ALL
-        JobParameters.device_types = constants.ALL
-        JobParameters.py_versions = constants.ALL
-
-    @staticmethod
-    def add_image_types(value):
-        if JobParameters.image_types != constants.ALL:
-            JobParameters.image_types.append(value)
-
-    @staticmethod
-    def build_for_all_device_types_py_versions():
-        JobParameters.device_types = constants.ALL
-        JobParameters.py_versions = constants.ALL
-
-    @staticmethod
-    def do_build_all_images():
-        return (
-            JobParameters.device_types == constants.ALL
-            and JobParameters.image_types == constants.ALL
-            and JobParameters.py_versions == constants.ALL
-        )
 
 
 def download_s3_file(bucket_name, filepath, local_file_name):
@@ -175,35 +144,11 @@ def fetch_dlc_images_for_test_jobs(images, use_latest_additional_tag=False):
             if use_latest_additional_tag and len(docker_image.additional_tags) > 0:
                 ecr_url_to_test = f"{docker_image.repository}:{docker_image.additional_tags[-1]}"
 
-            # Run sanity tests on the all images built
-            DLC_IMAGES["sanity"].append(ecr_url_to_test)
-            image_job_type = docker_image.info.get("image_type")
-            image_device_type = docker_image.info.get("device_type")
-            image_python_version = docker_image.info.get("python_version")
-            image_tag = f"{image_job_type}_{image_device_type}_{image_python_version}"
-            # when image_run_test_types has key all values can be (all , ecs, eks, ec2, sagemaker)
-            if constants.ALL in JobParameters.image_run_test_types.keys():
-                run_tests = JobParameters.image_run_test_types.get(constants.ALL)
-                run_tests = (
-                    constants.ALL_TESTS if constants.ALL in run_tests else run_tests
-                )
-                for test in run_tests:
-                    DLC_IMAGES[test].append(ecr_url_to_test)
-            # when key is training or inference values can be  (ecs, eks, ec2, sagemaker)
-            if image_job_type in JobParameters.image_run_test_types.keys():
-                run_tests = JobParameters.image_run_test_types.get(image_job_type)
-                for test in run_tests:
-                    DLC_IMAGES[test].append(ecr_url_to_test)
-            # when key is image_tag (training-cpu-py3) values can be (ecs, eks, ec2, sagemaker)
-            if image_tag in JobParameters.image_run_test_types.keys():
-                run_tests = JobParameters.image_run_test_types.get(image_tag)
-                run_tests = (
-                    constants.ALL_TESTS if constants.ALL in run_tests else run_tests
-                )
-                for test in run_tests:
-                    DLC_IMAGES[test].append(ecr_url_to_test)
+            # Set up tests on all platforms
+            for test_platform in DLC_IMAGES:
+                DLC_IMAGES[test_platform].append(ecr_url_to_test)
 
-    for test_type in DLC_IMAGES.keys():
+    for test_type in DLC_IMAGES:
         test_images = DLC_IMAGES[test_type]
         if test_images:
             DLC_IMAGES[test_type] = list(set(test_images))
