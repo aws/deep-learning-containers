@@ -23,7 +23,7 @@ import constants
 from botocore.exceptions import ClientError
 from invoke.context import Context
 
-from codebuild_environment import get_cloned_folder_path, get_user_and_repo_name
+from codebuild_environment import get_cloned_folder_path
 from config import is_build_enabled
 from safety_report_generator import SafetyReportGenerator
 
@@ -31,37 +31,6 @@ LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.DEBUG)
 LOGGER.addHandler(logging.StreamHandler(sys.stdout))
 LOGGER.addHandler(logging.StreamHandler(sys.stderr))
-
-
-class JobParameters:
-    image_types = []
-    device_types = []
-    py_versions = []
-    image_run_test_types = {}
-
-    @staticmethod
-    def build_for_all_images():
-        JobParameters.image_types = constants.ALL
-        JobParameters.device_types = constants.ALL
-        JobParameters.py_versions = constants.ALL
-
-    @staticmethod
-    def add_image_types(value):
-        if JobParameters.image_types != constants.ALL:
-            JobParameters.image_types.append(value)
-
-    @staticmethod
-    def build_for_all_device_types_py_versions():
-        JobParameters.device_types = constants.ALL
-        JobParameters.py_versions = constants.ALL
-
-    @staticmethod
-    def do_build_all_images():
-        return (
-            JobParameters.device_types == constants.ALL
-            and JobParameters.image_types == constants.ALL
-            and JobParameters.py_versions == constants.ALL
-        )
 
 
 def download_s3_file(bucket_name, filepath, local_file_name):
