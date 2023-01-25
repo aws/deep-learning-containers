@@ -106,3 +106,4 @@ images:
     enable_test_promotion: true
     context:
       <<: *TRAINING_CONTEXT
+
