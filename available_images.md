@@ -272,8 +272,8 @@ Prior EC2 Framework Container Versions
 | TensorFlow 2.9.2 |inference	|No			|GPU 		| 3.9 (py39)			| 763104351884.dkr.ecr.us-east-1.amazonaws.com/tensorflow-inference:2.9.2-gpu-py39-cu112-ubuntu20.04-ec2	 |
 | TensorFlow 2.8.3 |training	|Yes			|CPU 		| 3.9 (py39)			| 763104351884.dkr.ecr.us-east-1.amazonaws.com/tensorflow-training:2.8.3-cpu-py39-ubuntu20.04-ec2		       |
 | TensorFlow 2.8.3 |training	|Yes			|GPU 		| 3.9 (py39)			| 763104351884.dkr.ecr.us-east-1.amazonaws.com/tensorflow-training:2.8.3-gpu-py39-cu112-ubuntu20.04-ec2	  |
-| TensorFlow 2.8.3 |inference	|No			|CPU 		| 3.9 (py39)			| 763104351884.dkr.ecr.us-east-1.amazonaws.com/tensorflow-inference:2.8.3-cpu-py39-ubuntu20.04-ec2		      |
-| TensorFlow 2.8.3 |inference	|No			|GPU 		| 3.9 (py39)			| 763104351884.dkr.ecr.us-east-1.amazonaws.com/tensorflow-inference:2.8.3-gpu-py39-cu112-ubuntu20.04-ec2	 |
+| TensorFlow 2.8.4 |inference	|No			|CPU 		| 3.9 (py39)			| 763104351884.dkr.ecr.us-east-1.amazonaws.com/tensorflow-inference:2.8.4-cpu-py39-ubuntu20.04-ec2		      |
+| TensorFlow 2.8.4 |inference	|No			|GPU 		| 3.9 (py39)			| 763104351884.dkr.ecr.us-east-1.amazonaws.com/tensorflow-inference:2.8.4-gpu-py39-cu112-ubuntu20.04-ec2	 |
 
 
 Prior SageMaker Framework Container Versions
@@ -302,8 +302,8 @@ Prior SageMaker Framework Container Versions
 | TensorFlow 2.9.2 |inference	|No			|GPU 		| 3.9 (py39)			| 763104351884.dkr.ecr.us-east-1.amazonaws.com/tensorflow-inference:2.9.2-gpu-py39-cu112-ubuntu20.04-sagemaker	 |
 | TensorFlow 2.8.3 |training	|Yes			|CPU 		| 3.9 (py39)			| 763104351884.dkr.ecr.us-east-1.amazonaws.com/tensorflow-training:2.8.3-cpu-py39-ubuntu20.04-sagemaker		       |
 | TensorFlow 2.8.3 |training	|Yes			|GPU 		| 3.9 (py39)			| 763104351884.dkr.ecr.us-east-1.amazonaws.com/tensorflow-training:2.8.3-gpu-py39-cu112-ubuntu20.04-sagemaker	  |
-| TensorFlow 2.8.3 |inference	|No			|CPU 		| 3.9 (py39)			| 763104351884.dkr.ecr.us-east-1.amazonaws.com/tensorflow-inference:2.8.3-cpu-py39-ubuntu20.04-sagemaker		      |
-| TensorFlow 2.8.3 |inference	|No			|GPU 		| 3.9 (py39)			| 763104351884.dkr.ecr.us-east-1.amazonaws.com/tensorflow-inference:2.8.3-gpu-py39-cu112-ubuntu20.04-sagemaker	 |
+| TensorFlow 2.8.4 |inference	|No			|CPU 		| 3.9 (py39)			| 763104351884.dkr.ecr.us-east-1.amazonaws.com/tensorflow-inference:2.8.4-cpu-py39-ubuntu20.04-sagemaker		      |
+| TensorFlow 2.8.4 |inference	|No			|GPU 		| 3.9 (py39)			| 763104351884.dkr.ecr.us-east-1.amazonaws.com/tensorflow-inference:2.8.4-gpu-py39-cu112-ubuntu20.04-sagemaker	 |
 
 Prior AutoGluon Training Containers
 ===============================
