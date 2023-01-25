@@ -1540,14 +1540,14 @@ def get_os_version_from_image_uri(image_uri):
 
 def get_framework_from_image_uri(image_uri):
     return (
-        "pytorch_trcomp"
-        if "pytorch-trcomp" in image_uri
-        else "huggingface_tensorflow_trcomp"
+        "huggingface_tensorflow_trcomp"
         if "huggingface-tensorflow-trcomp" in image_uri
         else "huggingface_tensorflow"
         if "huggingface-tensorflow" in image_uri
         else "huggingface_pytorch_trcomp"
         if "huggingface-pytorch-trcomp" in image_uri
+        else "pytorch_trcomp"
+        if "pytorch-trcomp" in image_uri
         else "huggingface_pytorch"
         if "huggingface-pytorch" in image_uri
         else "mxnet"
@@ -1719,19 +1719,16 @@ def construct_buildspec_path(dlc_path, framework_path, buildspec, framework_vers
                     versions_to_search.append(constructed_version)
 
             for version in reversed(versions_to_search):
-                buildspec_path = os.path.join(dlc_path, framework_path, f"{buildspec}-{version}.yml")
+                buildspec_path = os.path.join(dlc_path, framework_path, job_type, f"{buildspec}-{version}.yml")
                 if os.path.exists(buildspec_path):
                     return buildspec_path
         else:
             raise ValueError(f"Framework version {framework_version} was not matched.")
 
-    # for backward compatibility, first try new path structure 
-    # if it fails then revert to prior structure
+    # Only support buildspecs under "training/inference" - do not allow framework-level buildspecs anymore
     buildspec_path = os.path.join(dlc_path, framework_path, job_type, f"{buildspec}.yml")
     if not os.path.exists(buildspec_path):
-        buildspec_path = os.path.join(dlc_path, framework_path, f"{buildspec}.yml")
-        if not os.path.exists(buildspec_path):
-            raise ValueError('Could not construct a valid buildspec path.')
+        raise ValueError('Could not construct a valid buildspec path.')
 
     return buildspec_path
 

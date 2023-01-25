@@ -71,20 +71,20 @@ For the purposes of testing in your personal account, the following managed perm
 
 The paths to the dockerfiles follow a specific pattern e.g., mxnet/training/docker/\<version>/\<python_version>/Dockerfile.<processor>
 
-These paths are specified by the buildspec.yml residing in mxnet/buildspec.yml i.e. \<framework>/buildspec.yml. 
+These paths are specified by the buildspec.yml residing in mxnet/training/buildspec.yml i.e. \<framework>/<training|inference>/buildspec.yml. 
 If you want to build the dockerfile for a particular version, or introduce a new version of the framework, re-create the 
 folder structure as per above and modify the buildspec.yml file to specify the version of the dockerfile you want to build.
 
 1. To build all the dockerfiles specified in the buildspec.yml locally, use the command
     ```shell script
-    python src/main.py --buildspec mxnet/buildspec.yml --framework mxnet
+    python src/main.py --buildspec mxnet/training/buildspec.yml --framework mxnet
     ``` 
     The above step should take a while to complete the first time you run it since it will have to download all base layers 
     and create intermediate layers for the first time. 
     Subsequent runs should be much faster.
 2. If you would instead like to build only a single image
     ```shell script
-    python src/main.py --buildspec mxnet/buildspec.yml \
+    python src/main.py --buildspec mxnet/training/buildspec.yml \
                        --framework mxnet \
                        --image_types training \
                        --device_types cpu \
@@ -98,7 +98,7 @@ folder structure as per above and modify the buildspec.yml file to specify the v
     ```
 4. For example, to build all gpu, training containers, you could use the following command
     ```shell script
-    python src/main.py --buildspec mxnet/buildspec.yml \
+    python src/main.py --buildspec mxnet/training/buildspec.yml \
                        --framework mxnet \
                        --image_types training \
                        --device_types gpu \
@@ -107,9 +107,9 @@ folder structure as per above and modify the buildspec.yml file to specify the v
 
 ### Upgrading the framework version
 1. Suppose, if there is a new framework version for MXNet (version 1.7.0) then this would need to be changed in the 
-buildspec.yml file for MXNet.
+buildspec.yml file for MXNet training.
     ```yaml
-    # mxnet/buildspec.yml
+    # mxnet/training/buildspec.yml
       1   account_id: &ACCOUNT_ID <set-$ACCOUNT_ID-in-environment>
       2   region: &REGION <set-$REGION-in-environment>
       3   framework: &FRAMEWORK mxnet
@@ -119,7 +119,7 @@ buildspec.yml file for MXNet.
 2. The dockerfile for this should exist at mxnet/docker/1.7.0/py3/Dockerfile.gpu. This path is dictated by the 
 docker_file key for each repository. 
     ```yaml
-    # mxnet/buildspec.yml
+    # mxnet/training/buildspec.yml
      41   images:
      42     BuildMXNetCPUTrainPy3DockerImage:
      43       <<: *TRAINING_REPOSITORY
@@ -137,7 +137,7 @@ docker_file key for each repository.
     then README-context.rst needs to first be copied into the build context. You can do this by adding the artifact in 
     the framework buildspec file under the context key:
     ```yaml
-    # mxnet/buildspec.yml
+    # mxnet/training/buildspec.yml
      19 context:
      20   README.xyz: *<---- Object name (Can be anything)*
      21     source: README-context.rst *<--- Path for the file to be copied*
