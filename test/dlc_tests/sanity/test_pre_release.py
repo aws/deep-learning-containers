@@ -676,11 +676,15 @@ def _test_sm_toolkit_and_ts_version(image, region):
     output_smkit = run_cmd_on_container(
         container_name, ctx, cmd_smkit, executable="bash"
     )
-    toolkit_version_from_output = re.search(r'(\d+\.\d+\.\d+)',str(output_smkit.stdout))
+    tk_match = re.search(r'(\d+\.\d+\.\d+)',str(output_smkit.stdout))
+    if tk_match:
+        toolkit_version_from_output = tk_match.group(0)
     output_ts = run_cmd_on_container(
         container_name, ctx, cmd_ts, executable="bash"
     )
-    ts_version_from_output = re.search(r'(\d+\.\d+\.\d+)', str(output_ts.stdout)) 
+    ts_match = re.search(r'(\d+\.\d+\.\d+)', str(output_ts.stdout)) 
+    if ts_match:
+        ts_version_from_output = ts_match.group(0)
     image_labels = get_labels_from_ecr_image(image, region)
     expected_label = f"com.amazonaws.ml.engines.sagemaker.dlc.inference-toolkit.{toolkit_version_from_output}.torchserve.{ts_version_from_output}"
     required_label = image_labels.get(expected_label)
