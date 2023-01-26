@@ -689,7 +689,7 @@ def _test_sm_toolkit_and_ts_version(image, region):
     expected_label = f"com.amazonaws.ml.engines.sagemaker.dlc.inference-toolkit.{toolkit_version_from_output}.torchserve.{ts_version_from_output}"
     required_label = image_labels.get(expected_label)
     assert required_label, \
-        f"The required label {expected_label} which enforces compatability between sagemaker inference toolkit and torchserve seems to be invalid/missing for the image {image}"
+        f"The label {expected_label} which enforces compatability between sagemaker inference toolkit and torchserve seems to be invalid/missing for the image {image}"
    
 
 @pytest.mark.usefixtures("sagemaker")
