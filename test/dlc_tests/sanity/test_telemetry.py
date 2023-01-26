@@ -231,6 +231,9 @@ def _run_tag_failure_IMDSv1_disabled(image_uri, ec2_client, ec2_instance, ec2_co
     if expected_tag_key in preexisting_ec2_instance_tags:
         ec2_client.delete_tags(Resources=[ec2_instance_id], Tags=[{"Key": expected_tag_key}])
 
+    # Disable access to EC2 instance metadata
+    ec2_connection.run(f"sudo route add -host 169.254.169.254 reject")
+
     invoke_telemetry_call(image_uri, container_name, docker_cmd, framework, job_type, ec2_connection)
 
     ec2_instance_tags = ec2_utils.get_ec2_instance_tags(ec2_instance_id, ec2_client=ec2_client)
@@ -238,6 +241,8 @@ def _run_tag_failure_IMDSv1_disabled(image_uri, ec2_client, ec2_instance, ec2_co
         f"{expected_tag_key} was applied as an instance tag."
         "EC2 create_tags went through even though it should not have"
     )
+    # Enable access to EC2 instance metadata, so other tests can be run on same EC2 instance
+    ec2_connection.run(f"sudo route del -host 169.254.169.254 reject")
 
 
 def _run_tag_success_IMDSv1(image_uri, ec2_client, ec2_instance, ec2_connection):
@@ -271,6 +276,7 @@ def _run_tag_success_IMDSv1(image_uri, ec2_client, ec2_instance, ec2_connection)
 
     ec2_instance_tags = ec2_utils.get_ec2_instance_tags(ec2_instance_id, ec2_client=ec2_client)
     assert expected_tag_key in ec2_instance_tags, f"{expected_tag_key} was not applied as an instance tag"
+    # Change instance state back to IMDSv2
     ec2_utils.enforce_IMDSv2(ec2_instance_id, hop_limit=2)
 
 
