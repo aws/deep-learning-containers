@@ -94,11 +94,11 @@ RUN SMDATAPARALLEL_PT=1 pip install --no-cache-dir ${SMD_DATA_PARALLEL_URL} --fo
 
 # Install SageMaker Training Toolkit
 RUN pip uninstall -y sagemaker-training \
- && pip install --no-deps --no-cache-dir -U --force-reinstall "sagemaker-training>=4.3.2"
+ && pip install --no-deps --no-cache-dir -U --force-reinstall sagemaker-training
 
 # Install SageMaker PyTorch Training Toolkit
 RUN pip uninstall -y sagemaker-pytorch-training \
- && pip install --no-deps --no-cache-dir -U --force-reinstall "sagemaker-pytorch-training>=2.6.1,<3"
+ && pip install --no-deps --no-cache-dir -U --force-reinstall sagemaker-pytorch-training
 
 # CVE Fixes
 # RUN pip install --no-cache-dir -U "protobuf<3.20.0"
