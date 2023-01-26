@@ -182,9 +182,9 @@ RUN ompi_info --parsable --all | grep mpi_built_with_cuda_support:value \
     boto3 \
     pybind11 \
     pyyaml \
-    # needed by fastai
+    # needed by fastai.distributed
     accelerate \ 
- && /opt/conda/bin/conda install -c anaconda -y cryptography \
+    cryptography \
     cmake \
     scipy \
     click \
