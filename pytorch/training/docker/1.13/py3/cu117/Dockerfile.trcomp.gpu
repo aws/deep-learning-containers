@@ -41,7 +41,6 @@ ARG PT_URL=${PT_BUCKET}/torch-1.13.1%2Bcu117-cp39-cp39-linux_x86_64.whl
 ARG PT_XLA_URL=${PT_BUCKET}/torch_xla-1.13-cp39-cp39-linux_x86_64.whl
 ARG TORCHVISION_URL=${PT_BUCKET}/torchvision-0.14.0a0%2B5ce4506-cp39-cp39-linux_x86_64.whl
 ARG TORCHAUDIO_URL=${PT_BUCKET}/torchaudio-0.13.0%2Bbc8640b-cp39-cp39-linux_x86_64.whl
-ARG SMD_DATA_PARALLEL_URL=https://smdataparallel.s3.amazonaws.com/binary/pytorch/1.13.1/cu117/2023-01-09/smdistributed_dataparallel-1.7.0-cp39-cp39-linux_x86_64.whl
 
 
 # Install Sagemaker PythonSDK
@@ -89,17 +88,6 @@ RUN ln -s ${CONDA_PREFIX}/lib/libmkl_intel_lp64.so ${CONDA_PREFIX}/lib/libmkl_in
  && ln -s ${CONDA_PREFIX}/lib/libmkl_gnu_thread.so ${CONDA_PREFIX}/lib/libmkl_gnu_thread.so.1 \
  && ln -s ${CONDA_PREFIX}/lib/libmkl_gf_lp64.so ${CONDA_PREFIX}/lib/libmkl_gf_lp64.so.1
 
-# Install SM Distributed DataParallel binary
-RUN SMDATAPARALLEL_PT=1 pip install --no-cache-dir ${SMD_DATA_PARALLEL_URL} --force-reinstall
-
-# Install SageMaker Training Toolkit
-RUN pip uninstall -y sagemaker-training \
- && pip install --no-deps --no-cache-dir -U --force-reinstall sagemaker-training
-
-# Install SageMaker PyTorch Training Toolkit
-RUN pip uninstall -y sagemaker-pytorch-training \
- && pip install --no-deps --no-cache-dir -U --force-reinstall sagemaker-pytorch-training
-
 # CVE Fixes
 # RUN pip install --no-cache-dir -U "protobuf<3.20.0"
 RUN apt-get update -y && \
@@ -108,7 +96,6 @@ RUN apt-get update -y && \
 
 # Uninstall Torch Data - not needed for NLP support with PT 1.12
 RUN pip uninstall -y torchdata
-
 
 
 # Reinstall Horovod
