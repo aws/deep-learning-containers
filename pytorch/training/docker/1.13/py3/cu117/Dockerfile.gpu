@@ -192,6 +192,7 @@ RUN ompi_info --parsable --all | grep mpi_built_with_cuda_support:value \
     "pillow>=9.4" \
     psutil \
     ipython \
+    opencv \
  && /opt/conda/bin/conda install -c dglteam -y dgl-cuda11.7 \
  && /opt/conda/bin/conda install -c pytorch -y magma-cuda117 \
  && /opt/conda/bin/conda install -c fastai fastai \
@@ -208,12 +209,6 @@ RUN ompi_info --parsable --all | grep mpi_built_with_cuda_support:value \
 # Removing link for libtinfo.so.6. This change is needed only for ubuntu 20.04-conda, and can be reverted
 # once conda fixes the issue
 RUN rm -rf /opt/conda/lib/libtinfo.so.6
-
-RUN pip install --no-cache-dir --upgrade pip --no-cache-dir --trusted-host pypi.org --trusted-host files.pythonhosted.org \
- && ln -s /opt/conda/bin/pip /usr/local/bin/pip3 \
- # use pip to install opencv since conda package broke nvidia ssl verification
- # https://github.com/NVIDIA/nvidia-docker/issues/1009
- && pip install opencv-python 
 
 WORKDIR /root
 

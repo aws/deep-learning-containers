@@ -133,12 +133,11 @@ RUN curl -L -o ~/mambaforge.sh https://github.com/conda-forge/miniforge/releases
     charset-normalizer \
     packaging \
     mpi4py \
-    opencv \
     awscli \
     boto3 \
     pybind11 \
     pyyaml \
-    # needed by fastai
+    # needed by fastai.distributed
     accelerate \ 
     cryptography \
     cmake \
@@ -148,6 +147,7 @@ RUN curl -L -o ~/mambaforge.sh https://github.com/conda-forge/miniforge/releases
     "pillow>=9.4" \
     psutil \
     ipython \
+    opencv \
  && /opt/conda/bin/conda install -c dglteam -y dgl \
  && /opt/conda/bin/conda install -c fastai fastai \
 # fastai conda has a dependency chain of fastai -> spacy -> pathy -> dataclasses
