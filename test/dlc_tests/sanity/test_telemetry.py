@@ -231,9 +231,6 @@ def _run_tag_failure_IMDSv1_disabled(image_uri, ec2_client, ec2_instance, ec2_co
     if expected_tag_key in preexisting_ec2_instance_tags:
         ec2_client.delete_tags(Resources=[ec2_instance_id], Tags=[{"Key": expected_tag_key}])
 
-    # Disable access to EC2 instance metadata
-    ec2_connection.run(f"sudo route add -host 169.254.169.254 reject")
-
     invoke_telemetry_call(image_uri, container_name, docker_cmd, framework, job_type, ec2_connection)
 
     ec2_instance_tags = ec2_utils.get_ec2_instance_tags(ec2_instance_id, ec2_client=ec2_client)
@@ -241,8 +238,6 @@ def _run_tag_failure_IMDSv1_disabled(image_uri, ec2_client, ec2_instance, ec2_co
         f"{expected_tag_key} was applied as an instance tag."
         "EC2 create_tags went through even though it should not have"
     )
-    # Enable access to EC2 instance metadata, so other tests can be run on same EC2 instance
-    ec2_connection.run(f"sudo route del -host 169.254.169.254 reject")
 
 
 def _run_tag_success_IMDSv1(image_uri, ec2_client, ec2_instance, ec2_connection):
@@ -270,10 +265,13 @@ def _run_tag_success_IMDSv1(image_uri, ec2_client, ec2_instance, ec2_connection)
     if expected_tag_key in preexisting_ec2_instance_tags:
         ec2_client.delete_tags(Resources=[ec2_instance_id], Tags=[{"Key": expected_tag_key}])
 
+    ec2_utils.enforce_IMDSv1(ec2_instance_id)
+
     invoke_telemetry_call(image_uri, container_name, docker_cmd, framework, job_type, ec2_connection)
 
     ec2_instance_tags = ec2_utils.get_ec2_instance_tags(ec2_instance_id, ec2_client=ec2_client)
     assert expected_tag_key in ec2_instance_tags, f"{expected_tag_key} was not applied as an instance tag"
+    ec2_utils.enforce_IMDSv2(ec2_instance_id, hop_limit=2)
 
 
 # If hop limit on EC2 instance is 1, then IMDSv2 doesn't work as to get token IMDSv2 needs more than 1 hop
@@ -301,7 +299,7 @@ def _run_tag_failure_IMDSv2_disabled_as_hop_limit_1(image_uri, ec2_client, ec2_i
     preexisting_ec2_instance_tags = ec2_utils.get_ec2_instance_tags(ec2_instance_id, ec2_client=ec2_client)
     LOGGER.info(f"preexisting_ec2_instance_tags: {preexisting_ec2_instance_tags}")
 
-    ec2_utils.enforce_IMDSv2(ec2_instance_id)
+    ec2_utils.enforce_IMDSv2(ec2_instance_id, hop_limit=1)
 
     if expected_tag_key in preexisting_ec2_instance_tags:
         ec2_client.delete_tags(Resources=[ec2_instance_id], Tags=[{"Key": expected_tag_key}])
@@ -313,6 +311,7 @@ def _run_tag_failure_IMDSv2_disabled_as_hop_limit_1(image_uri, ec2_client, ec2_i
         f"{expected_tag_key} was applied as an instance tag."
         "EC2 create_tags went through even though it should not have"
     )
+    ec2_utils.enforce_IMDSv2(ec2_instance_id, hop_limit=2)
 
 # If hop limit on EC2 instance is 2, then IMDSv2 works as to get token IMDSv2 needs more than 1 hop
 def _run_tag_success_IMDSv2_hop_limit_2(image_uri, ec2_client, ec2_instance, ec2_connection):
@@ -339,8 +338,6 @@ def _run_tag_success_IMDSv2_hop_limit_2(image_uri, ec2_client, ec2_instance, ec2
     preexisting_ec2_instance_tags = ec2_utils.get_ec2_instance_tags(ec2_instance_id, ec2_client=ec2_client)
     if expected_tag_key in preexisting_ec2_instance_tags:
         ec2_client.delete_tags(Resources=[ec2_instance_id], Tags=[{"Key": expected_tag_key}])
-
-    ec2_utils.enforce_IMDSv2(ec2_instance_id, hop_limit = 2)
 
     invoke_telemetry_call(image_uri, container_name, docker_cmd, framework, job_type, ec2_connection)
 
