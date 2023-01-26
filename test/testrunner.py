@@ -356,7 +356,7 @@ def main():
                 raise Exception(f"EKS cluster {eks_cluster_name} is not in active state")
 
         # Execute dlc_tests pytest command
-        pytest_cmd = ["-s", "-rA", test_path, f"--junitxml={report}", "-n=auto"]
+        pytest_cmd = ["-s", "-rA", test_path, f"--junitxml={report}", " --tb=long", "-vvvv"]
 
         is_habana_image = any("habana" in image_uri for image_uri in all_image_list)
         if specific_test_type == "ec2":
@@ -384,6 +384,7 @@ def main():
             ]
 
         pytest_cmds = [pytest_cmd + ["--last-failed", "--last-failed-no-failures", "all"] for pytest_cmd in pytest_cmds]
+        print(f"pytest_cmds {pytest_cmds}")
         pytest_cache_util.download_pytest_cache_from_s3_to_local(os.getcwd(), **pytest_cache_params)
         try:
             # Note:- Running multiple pytest_cmds in a sequence will result in the execution log having two
