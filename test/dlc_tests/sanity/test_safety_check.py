@@ -1039,7 +1039,7 @@ def _get_latest_package_version(package):
 @pytest.mark.usefixtures("sagemaker")
 @pytest.mark.model("N/A")
 @pytest.mark.canary("Run safety tests regularly on production images")
-@pytest.mark.skipif(not is_dlc_cicd_context(), reason="Skipping test because it is not running in dlc cicd infra")
+# @pytest.mark.skipif(not is_dlc_cicd_context(), reason="Skipping test because it is not running in dlc cicd infra")
 @pytest.mark.skipif(
     not (
         is_safety_test_context()
