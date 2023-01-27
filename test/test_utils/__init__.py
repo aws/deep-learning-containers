@@ -1049,7 +1049,7 @@ def parse_canary_images(framework, region, image_type):
     versions = []
     for v, inf_train in versions_counter.items():
         # Earlier versions of huggingface did not have inference, Graviton is only inference
-        if (inf_train["inf"] and image_type == "inference") or (inf_train["train"] and image_type == "training") or framework.startswith("huggingface") or use_graviton:
+        if (inf_train["inf"] and image_type == "inference") or (inf_train["tr"] and image_type == "training") or framework.startswith("huggingface") or use_graviton:
             versions.append(v)
 
     # Sort ascending to descending, use lambda to ensure 2.2 < 2.15, for instance
