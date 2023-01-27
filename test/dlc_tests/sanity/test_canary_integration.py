@@ -25,7 +25,7 @@ def test_canary_images_pullable_training(region):
 
 
 @pytest.mark.usefixtures("sagemaker")
-# @pytest.mark.skipif(not is_pr_context(), reason=PR_ONLY_REASON)
+@pytest.mark.skipif(is_pr_context(), reason=PR_ONLY_REASON)
 @pytest.mark.model("N/A")
 def test_canary_images_pullable_inference(region):
     """

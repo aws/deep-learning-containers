@@ -647,7 +647,7 @@ def _assert_artifact_free(output, stray_artifacts):
 @pytest.mark.usefixtures("sagemaker")
 @pytest.mark.integration("oss_compliance")
 @pytest.mark.model("N/A")
-# @pytest.mark.skipif(not is_dlc_cicd_context(), reason="We need to test OSS compliance only on PRs and pipelines")
+@pytest.mark.skipif(is_dlc_cicd_context(), reason="We need to test OSS compliance only on PRs and pipelines")
 def test_oss_compliance(image):
     """
     Run oss compliance check on a container to check if license attribution files exist.

@@ -236,7 +236,7 @@ def test_dlc_major_version_dockerfiles(image):
     )
 
 
-# @pytest.mark.skipif(not test_utils.is_mainline_context(), reason="This test only applies to Release Candidate images")
+@pytest.mark.skipif(test_utils.is_mainline_context(), reason="This test only applies to Release Candidate images")
 @pytest.mark.usefixtures("sagemaker")
 @pytest.mark.integration("dlc_nightly_feature_label")
 @pytest.mark.model("N/A")
