@@ -245,7 +245,7 @@ ARG PYTHON
 
 # The smdebug pipeline relies for following format to perform string replace and trigger DLC pipeline for validating
 # the nightly builds. Therefore, while updating the smdebug version, please ensure that the format is not disturbed.
-ARG SMDEBUG_VERSION=1.0.25
+ARG SMDEBUG_VERSION=1.0.26
 
 ENV SAGEMAKER_TRAINING_MODULE=sagemaker_pytorch_container.training:main
 
@@ -274,7 +274,7 @@ RUN pip install --no-cache-dir --upgrade pip --trusted-host pypi.org --trusted-h
     # smdebug==${SMDEBUG_VERSION} \
     smclarify \
     "sagemaker>=2,<3" \
-    sagemaker-experiments==0.* \
+    "sagemaker-experiments<1" \
     sagemaker-pytorch-training
 
 # Install smdebug from souce
