@@ -34,6 +34,21 @@ BIN_DIR=${HOME_DIR}/bin
 LOG_DIR=${HOME_DIR}/logs
 
 echo "Simply verify if smdebug is installed correctly."
+
+echo "Verify if ZCC Code is deprecated in PyTorch codebase."
+if [[ $FRAMEWORK == "pytorch" ]]; then
+    # replace __init__.py to module.py
+    PYTORCH_ZCC_FILEPATH=$(python -c "import torch; print(torch.__file__[:-11] + 'nn/modules/module.py')")
+    grep smdebug $PYTORCH_ZCC_FILEPATH
+    if [ "$?" -eq "1" ]
+    then
+        echo "SMDebug ZCC code is deprecated."
+    else
+        echo "SMDebug ZCC code still exists in PyTorch codebase."
+        exit 1
+    fi
+fi
+
 echo "Cloning git repo for release tag $SMDEBUG_RELEASE_TAG"
 git clone -b ${SMDEBUG_RELEASE_TAG} https://github.com/awslabs/sagemaker-debugger.git sagemaker-debugger || exit 1
 
