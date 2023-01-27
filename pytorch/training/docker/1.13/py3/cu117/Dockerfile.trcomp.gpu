@@ -78,8 +78,6 @@ RUN pip uninstall -y torchaudio \
 
 ARG CONDA_PREFIX=/opt/conda
 
-# Numpy version gets downgraded and becomes incompatible with PyTorch wheel in the above conda command.
-RUN pip install numpy --upgrade
 
 # Fix library links
 RUN ln -s ${CONDA_PREFIX}/lib/libmkl_intel_lp64.so ${CONDA_PREFIX}/lib/libmkl_intel_lp64.so.1 \
@@ -103,6 +101,7 @@ RUN pip uninstall -y horovod \
  && ldconfig /usr/local/cuda-11.7/targets/x86_64-linux/lib/stubs \
  && HOROVOD_GPU_ALLREDUCE=NCCL HOROVOD_CUDA_HOME=/usr/local/cuda-11.7 HOROVOD_WITH_PYTORCH=1 pip install --no-cache-dir horovod==${HOROVOD_VERSION} \
  && ldconfig
+
 
 RUN HOME_DIR=/root \
  && curl -o ${HOME_DIR}/oss_compliance.zip https://aws-dlinfra-utilities.s3.amazonaws.com/oss_compliance.zip \
