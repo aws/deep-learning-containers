@@ -4,12 +4,10 @@ ARG MAMBA_VERSION=22.9.0-2
 ARG OPEN_MPI_VERSION=4.1.4
 
 # PyTorch Binaries
-#ARG TORCH_URL=https://aws-pytorch-unified-cicd-binaries.s3.us-west-2.amazonaws.com/r1.13.1_ec2/20221217-194030/54406b8eed7fbd61be629cb06229dfb7b6b2954e/torch-1.13.1%2Bcpu-cp39-cp39-linux_x86_64.whl
-ARG TORCH_URL=https://download.pytorch.org/whl/nightly/cpu/torch-2.0.0.dev20221231%2Bcpu-cp310-cp310-linux_x86_64.whl
-ARG TORCHVISION_VERSION=0.14.1+cpu
-ARG TORCHAUDIO_VERSION=0.13.1+cpu
-ARG TORCHDATA_VERSION=0.5.1
-ARG TORCHSERVE_VERSION=0.7.0
+ARG PT_INFERENCE_URL=https://xncqr-beta-pytorch-wheels.s3.us-west-2.amazonaws.com/torch-2.0.0a0%2Bgit62aa4e0-cp310-cp310-linux_x86_64.whl
+ARG PT_TORCHVISION_URL=https://xncqr-beta-pytorch-wheels.s3.us-west-2.amazonaws.com/torchvision-0.15.0a0%2B78ffda7-cp310-cp310-linux_x86_64.whl
+ARG PT_TORCHAUDIO_URL=https://xncqr-beta-pytorch-wheels.s3.us-west-2.amazonaws.com/torchaudio-2.0.0a0%2B12f960b-cp310-cp310-linux_x86_64.whl
+ARG PT_TORCHDATA_URL=https://xncqr-beta-pytorch-wheels.s3.us-west-2.amazonaws.com/torchdata-0.6.0a0%2Bf7242a4-py3-none-any.whl
 
 ########################################################
 #  _____ ____ ____    ___
@@ -31,6 +29,12 @@ FROM ubuntu:20.04 AS base_image
 ENV DEBIAN_FRONTEND=noninteractive \
     LD_LIBRARY_PATH="${LD_LIBRARY_PATH}:/usr/local/lib"
 
+RUN apt-get update \
+ && apt-get upgrade -y \
+ && apt-get autoremove -y \
+ && apt-get clean \
+ && rm -rf /var/lib/apt/lists/*
+
 FROM base_image AS ec2
 
 LABEL maintainer="Amazon AI"
@@ -38,22 +42,19 @@ LABEL dlc_major_version="1"
 
 ARG PYTHON
 ARG PYTHON_VERSION
-ARG MAMBA_VERSION
 ARG OPEN_MPI_VERSION
+ARG MAMBA_VERSION
 
-# PyTorch Passed arguments (URLs and Versions)
-ARG TORCH_URL
-ARG TORCHVISION_VERSION
-ARG TORCHAUDIO_VERSION
-ARG TORCHDATA_VERSION
-ARG TORCHSERVE_VERSION
+# PyTorch Binaries
+ARG PT_INFERENCE_URL
+ARG PT_TORCHVISION_URL
+ARG PT_TORCHAUDIO_URL
+ARG PT_TORCHDATA_URL
 
-# Set Debian interaction
-ARG DEBIAN_FRONTEND=noninteractive
+ARG TS_VERSION=0.7.0
 
-# See http://bugs.python.org/issue19846
 ENV LANG=C.UTF-8
-ENV LD_LIBRARY_PATH="/opt/conda/lib:${LD_LIBRARY_PATH}"
+ENV LD_LIBRARY_PATH="${LD_LIBRARY_PATH}:/opt/conda/lib"
 ENV PATH=/opt/conda/bin:$PATH
 ENV TEMP=/home/model-server/tmp
 # Set MKL_THREADING_LAYER=GNU to prevent issues between torch and numpy/mkl
@@ -61,9 +62,10 @@ ENV MKL_THREADING_LAYER=GNU
 ENV DLC_CONTAINER_TYPE=inference
 
 RUN apt-get update \
- && apt-get -y upgrade \
+# TODO: Remove systemd upgrade once it is updated in base image
+ && apt-get -y upgrade --only-upgrade systemd \
  && apt-get install -y --no-install-recommends software-properties-common \
- # && add-apt-repository ppa:openjdk-r/ppa \
+ && add-apt-repository ppa:openjdk-r/ppa \
  && apt-get update \
  && apt-get install -y --no-install-recommends \
     build-essential \
@@ -94,7 +96,7 @@ RUN keytool -importkeystore -srckeystore /etc/ssl/certs/java/cacerts -destkeysto
     mv /etc/ssl/certs/java/cacerts.jks /etc/ssl/certs/java/cacerts; \
     /var/lib/dpkg/info/ca-certificates-java.postinst configure;
 
-RUN wget https://download.open-mpi.org/release/open-mpi/v4.1/openmpi-${OPEN_MPI_VERSION}.tar.gz \
+RUN wget https://www.open-mpi.org/software/ompi/v4.0/downloads/openmpi-$OPEN_MPI_VERSION.tar.gz \
  && gunzip -c openmpi-$OPEN_MPI_VERSION.tar.gz | tar xf - \
  && cd openmpi-$OPEN_MPI_VERSION \
  && ./configure --prefix=/home/.openmpi \
@@ -110,16 +112,13 @@ ENV PATH="$PATH:/home/.openmpi/bin"
 ENV LD_LIBRARY_PATH="$LD_LIBRARY_PATH:/home/.openmpi/lib/"
 RUN ompi_info --parsable --all | grep mpi_built_with_cuda_support:value
 
-# Install CondaForge miniconda
-# Note: SSD Verification disabled as it breaks installs due to downgrading from py3.10 to py3.9
+
 RUN curl -L -o ~/mambaforge.sh https://github.com/conda-forge/miniforge/releases/download/${MAMBA_VERSION}/Mambaforge-${MAMBA_VERSION}-Linux-x86_64.sh \
  && chmod +x ~/mambaforge.sh \
  && ~/mambaforge.sh -b -p /opt/conda \
  && rm ~/mambaforge.sh \
- && /opt/conda/bin/conda config --set ssl_verify False \
- && /opt/conda/bin/conda update -y conda \
  && /opt/conda/bin/conda install -c conda-forge \
-    python=${PYTHON_VERSION} \
+    python=$PYTHON_VERSION \
     cython \
     mkl \
     mkl-include \
@@ -130,20 +129,26 @@ RUN curl -L -o ~/mambaforge.sh https://github.com/conda-forge/miniforge/releases
     # Below 2 are included in miniconda base, but not mamba so need to install
     conda-content-trust \
     charset-normalizer \
+ # Upstream conda looks to have moved to 4.13 which is incompatible with mamba 0.22.1 and will fail the conda-forge installs.
+ # having "conda update conda" before the "conda -c conda-forge" commands will automatically update conda to 4.13.
+ # Moving conda update conda" after the "conda -c conda-forge" commands keep conda at 4.12 but will update other packages using
+ # the current conda 4.12
+ && /opt/conda/bin/conda update -y conda \
  && /opt/conda/bin/conda clean -ya
 
-# symlink pip for OS use
-RUN pip install --upgrade pip --trusted-host pypi.org --trusted-host files.pythonhosted.org \
- && ln -s /opt/conda/bin/pip /usr/local/bin/pip3
-
-# Ensure PyTorch did not get installed from Conda
-RUN pip uninstall -y torch torchvision torchaudio torchdata model-archiver multi-model-server
+# Conda installs links for libtinfo.so.6 and libtinfo.so.6.2 both
+# Which causes "/opt/conda/lib/libtinfo.so.6: no version information available" warning
+# Removing link for libtinfo.so.6. This change is needed only for ubuntu 20.04-conda, and can be reverted
+# once conda fixes the issue: https://github.com/conda/conda/issues/9680
+RUN rm -rf /opt/conda/lib/libtinfo.so.6
 
 # Install AWS-PyTorch, and other torch packages
-RUN pip install --no-cache-dir --extra-index-url https://download.pytorch.org/whl/cpu -U \
+RUN pip install --upgrade pip --trusted-host pypi.org --trusted-host files.pythonhosted.org \
+ && ln -s /opt/conda/bin/pip /usr/local/bin/pip3 \
+ && pip install --no-cache-dir -U \
     "awscli<2" \
     boto3 \
-    "cryptography>3.2" \
+    cryptography \
     enum-compat==0.0.3 \
     ipython==8.1.0 \
     numpy==1.22.2 \
@@ -152,16 +157,17 @@ RUN pip install --no-cache-dir --extra-index-url https://download.pytorch.org/wh
     "Pillow>=9.0.0" \
     "pyyaml>=5.4,<5.5" \
     scipy \
-    captum \
-    ${TORCH_URL} \
-    torchaudio~=${TORCHAUDIO_VERSION} \
-    torchvision~=${TORCHVISION_VERSION} \
-    torchdata==${TORCHDATA_VERSION} \
-    torchserve==${TORCHSERVE_VERSION} \
-    torch-model-archiver==${TORCHSERVE_VERSION}
+ && pip uninstall -y torch torchvision torchaudio torchdata \
+ && pip install --no-cache-dir -U ${PT_INFERENCE_URL} ${PT_TORCHVISION_URL} ${PT_TORCHAUDIO_URL} ${PT_TORCHDATA_URL}
 
 # add necessary certificate for aws sdk cpp download
 RUN mkdir -p /etc/pki/tls/certs && cp /etc/ssl/certs/ca-certificates.crt /etc/pki/tls/certs/ca-bundle.crt
+
+# TODO: revert torchserve-nightly back to torchserve once a compatible stable version is released
+RUN pip uninstall -y model-archiver multi-model-server \
+ && pip install captum \
+ && pip install torchserve==${TS_VERSION} \
+ && pip install torch-model-archiver==${TS_VERSION}
 
 RUN useradd -m model-server \
  && mkdir -p /home/model-server/tmp /opt/ml/model \
@@ -186,10 +192,7 @@ RUN HOME_DIR=/root \
  && rm -rf ${HOME_DIR}/oss_compliance* \
  && rm -rf /tmp/tmp*
 
-RUN curl -o /license.txt  https://aws-dlc-licenses.s3.amazonaws.com/pytorch-1.13/license.txt
-
-# Removing the cache as it is needed for security verification
-RUN rm -iRf /root/.cache
+RUN curl -o /license.txt  https://aws-dlc-licenses.s3.amazonaws.com/pytorch-1.12/license.txt
 
 EXPOSE 8080 8081
 ENTRYPOINT ["python", "/usr/local/bin/dockerd-entrypoint.py"]
@@ -240,9 +243,6 @@ RUN HOME_DIR=/root \
  && chmod +x ${HOME_DIR}/oss_compliance/generate_oss_compliance.sh \
  && ${HOME_DIR}/oss_compliance/generate_oss_compliance.sh ${HOME_DIR} ${PYTHON} \
  && rm -rf ${HOME_DIR}/oss_compliance*
-
-# Removing the cache as it is needed for security verification
-RUN rm -iRf /root/.cache
 
 EXPOSE 8080 8081
 ENTRYPOINT ["python", "/usr/local/bin/dockerd-entrypoint.py"]
