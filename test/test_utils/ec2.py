@@ -516,7 +516,7 @@ def enforce_IMDSv2(instance_id, region=DEFAULT_REGION, ec2_client=None, hop_limi
 
 def enforce_IMDSv1(instance_id, region=DEFAULT_REGION, ec2_client=None):
     """
-    Enabled HTTP TOKENS required option on EC2 instance with given hop limit.
+    Enabled IMDSv1 on EC2 instance.
 
     :param instance_id: str, ec2 instance id
     :param region: str, Region where ec2 instance is launched.
