@@ -93,7 +93,7 @@ RUN apt-get update -y && \
     apt-get clean
 
 # Uninstall Torch Data - not needed for NLP support with PT 1.12
-RUN pip uninstall -y torchdata
+# RUN pip uninstall -y torchdata
 
 
 # Reinstall Horovod
