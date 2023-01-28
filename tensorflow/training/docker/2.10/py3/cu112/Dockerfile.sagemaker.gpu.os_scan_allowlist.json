@@ -32,65 +32,9 @@
     ],
     "imagemagick": [
         {
-            "description": " ImageMagick 7.1.0-27 is vulnerable to Buffer Overflow.",
-            "vulnerability_id": "CVE-2022-28463",
-            "name": "CVE-2022-28463",
-            "package_name": "imagemagick",
-            "package_details": {
-                "file_path": null,
-                "name": "imagemagick",
-                "package_manager": "OS",
-                "version": "6.9.10.23+dfsg",
-                "release": "2.1ubuntu11.4"
-            },
-            "remediation": {
-                "recommendation": {
-                    "text": "None Provided"
-                }
-            },
-            "cvss_v3_score": 7.8,
-            "cvss_v30_score": 0,
-            "cvss_v31_score": 7.8,
-            "cvss_v2_score": 6.8,
-            "cvss_v3_severity": "HIGH",
-            "source_url": "https://people.canonical.com/~ubuntu-security/cve/2022/CVE-2022-28463.html",
-            "source": "UBUNTU_CVE",
-            "severity": "MEDIUM",
-            "status": "ACTIVE",
-            "title": "CVE-2022-28463 - imagemagick, libmagickcore-6.q16-6 and 3 more"
-        },
-        {
-            "description": " ImageMagick 7.1.0-27 is vulnerable to Buffer Overflow.",
-            "vulnerability_id": "CVE-2022-28463",
-            "name": "CVE-2022-28463",
-            "package_name": "imagemagick",
-            "package_details": {
-                "file_path": null,
-                "name": "imagemagick",
-                "package_manager": "OS",
-                "version": "6.9.10.23+dfsg",
-                "release": "2.1ubuntu11.4"
-            },
-            "remediation": {
-                "recommendation": {
-                    "text": "None Provided"
-                }
-            },
-            "cvss_v3_score": 7.8,
-            "cvss_v30_score": 0,
-            "cvss_v31_score": 7.8,
-            "cvss_v2_score": 6.8,
-            "cvss_v3_severity": "HIGH",
-            "source_url": "https://people.canonical.com/~ubuntu-security/cve/2022/CVE-2022-28463.html",
-            "source": "UBUNTU_CVE",
-            "severity": "MEDIUM",
-            "status": "ACTIVE",
-            "title": "CVE-2022-28463 - imagemagick, libmagickcore-6.q16-6 and 3 more"
-        },
-        {
-            "description": " A flaw was found in ImageMagick in versions before 7.0.11. A potential cipher leak when the calculate signatures in TransformSignature is possible. The highest threat from this vulnerability is to data confidentiality.",
-            "vulnerability_id": "CVE-2021-20313",
-            "name": "CVE-2021-20313",
+            "description": " A flaw was found in ImageMagick in versions before 7.0.11 and before 6.9.12, where a division by zero in WaveImage() of MagickCore/visual-effects.c may trigger undefined behavior via a crafted image file submitted to an application using ImageMagick. The highest threat from this vulnerability is to system availability.",
+            "vulnerability_id": "CVE-2021-20309",
+            "name": "CVE-2021-20309",
             "package_name": "imagemagick",
             "package_details": {
                 "file_path": null,
@@ -107,97 +51,13 @@
             "cvss_v3_score": 7.5,
             "cvss_v30_score": 0,
             "cvss_v31_score": 7.5,
-            "cvss_v2_score": 5,
+            "cvss_v2_score": 7.8,
             "cvss_v3_severity": "HIGH",
-            "source_url": "https://people.canonical.com/~ubuntu-security/cve/2021/CVE-2021-20313.html",
+            "source_url": "https://people.canonical.com/~ubuntu-security/cve/2021/CVE-2021-20309.html",
             "source": "UBUNTU_CVE",
             "severity": "LOW",
             "status": "ACTIVE",
-            "title": "CVE-2021-20313 - imagemagick, libmagickcore-6.q16-6 and 3 more"
-        },
-        {
-            "description": " A flaw was found in ImageMagick in versions before 7.0.11. A potential cipher leak when the calculate signatures in TransformSignature is possible. The highest threat from this vulnerability is to data confidentiality.",
-            "vulnerability_id": "CVE-2021-20313",
-            "name": "CVE-2021-20313",
-            "package_name": "imagemagick",
-            "package_details": {
-                "file_path": null,
-                "name": "imagemagick",
-                "package_manager": "OS",
-                "version": "6.9.10.23+dfsg",
-                "release": "2.1ubuntu11.4"
-            },
-            "remediation": {
-                "recommendation": {
-                    "text": "None Provided"
-                }
-            },
-            "cvss_v3_score": 7.5,
-            "cvss_v30_score": 0,
-            "cvss_v31_score": 7.5,
-            "cvss_v2_score": 5,
-            "cvss_v3_severity": "HIGH",
-            "source_url": "https://people.canonical.com/~ubuntu-security/cve/2021/CVE-2021-20313.html",
-            "source": "UBUNTU_CVE",
-            "severity": "LOW",
-            "status": "ACTIVE",
-            "title": "CVE-2021-20313 - imagemagick, libmagickcore-6.q16-6 and 3 more"
-        },
-        {
-            "description": " A heap-use-after-free flaw was found in ImageMagick's RelinquishDCMInfo() function of dcm.c file. This vulnerability is triggered when an attacker passes a specially crafted DICOM image file to ImageMagick for conversion, potentially leading to information disclosure and a denial of service.",
-            "vulnerability_id": "CVE-2022-1114",
-            "name": "CVE-2022-1114",
-            "package_name": "imagemagick",
-            "package_details": {
-                "file_path": null,
-                "name": "imagemagick",
-                "package_manager": "OS",
-                "version": "6.9.10.23+dfsg",
-                "release": "2.1ubuntu11.4"
-            },
-            "remediation": {
-                "recommendation": {
-                    "text": "None Provided"
-                }
-            },
-            "cvss_v3_score": 7.1,
-            "cvss_v30_score": 0,
-            "cvss_v31_score": 7.1,
-            "cvss_v2_score": 5.8,
-            "cvss_v3_severity": "HIGH",
-            "source_url": "https://people.canonical.com/~ubuntu-security/cve/2022/CVE-2022-1114.html",
-            "source": "UBUNTU_CVE",
-            "severity": "MEDIUM",
-            "status": "ACTIVE",
-            "title": "CVE-2022-1114 - imagemagick, libmagickcore-6.q16-6 and 3 more"
-        },
-        {
-            "description": " A heap-use-after-free flaw was found in ImageMagick's RelinquishDCMInfo() function of dcm.c file. This vulnerability is triggered when an attacker passes a specially crafted DICOM image file to ImageMagick for conversion, potentially leading to information disclosure and a denial of service.",
-            "vulnerability_id": "CVE-2022-1114",
-            "name": "CVE-2022-1114",
-            "package_name": "imagemagick",
-            "package_details": {
-                "file_path": null,
-                "name": "imagemagick",
-                "package_manager": "OS",
-                "version": "6.9.10.23+dfsg",
-                "release": "2.1ubuntu11.4"
-            },
-            "remediation": {
-                "recommendation": {
-                    "text": "None Provided"
-                }
-            },
-            "cvss_v3_score": 7.1,
-            "cvss_v30_score": 0,
-            "cvss_v31_score": 7.1,
-            "cvss_v2_score": 5.8,
-            "cvss_v3_severity": "HIGH",
-            "source_url": "https://people.canonical.com/~ubuntu-security/cve/2022/CVE-2022-1114.html",
-            "source": "UBUNTU_CVE",
-            "severity": "MEDIUM",
-            "status": "ACTIVE",
-            "title": "CVE-2022-1114 - imagemagick, libmagickcore-6.q16-6 and 3 more"
+            "title": "CVE-2021-20309 - imagemagick-6-common, imagemagick and 3 more"
         },
         {
             "description": " A flaw was found in ImageMagick in versions before 7.0.11 and before 6.9.12, where a division by zero in WaveImage() of MagickCore/visual-effects.c may trigger undefined behavior via a crafted image file submitted to an application using ImageMagick. The highest threat from this vulnerability is to system availability.",
@@ -225,12 +85,68 @@
             "source": "UBUNTU_CVE",
             "severity": "LOW",
             "status": "ACTIVE",
-            "title": "CVE-2021-20309 - imagemagick, libmagickcore-6.q16-6 and 3 more"
+            "title": "CVE-2021-20309 - imagemagick-6-common, imagemagick and 3 more"
         },
         {
-            "description": " A flaw was found in ImageMagick in versions before 7.0.11 and before 6.9.12, where a division by zero in WaveImage() of MagickCore/visual-effects.c may trigger undefined behavior via a crafted image file submitted to an application using ImageMagick. The highest threat from this vulnerability is to system availability.",
-            "vulnerability_id": "CVE-2021-20309",
-            "name": "CVE-2021-20309",
+            "description": " A heap-use-after-free flaw was found in ImageMagick's RelinquishDCMInfo() function of dcm.c file. This vulnerability is triggered when an attacker passes a specially crafted DICOM image file to ImageMagick for conversion, potentially leading to information disclosure and a denial of service.",
+            "vulnerability_id": "CVE-2022-1114",
+            "name": "CVE-2022-1114",
+            "package_name": "imagemagick",
+            "package_details": {
+                "file_path": null,
+                "name": "imagemagick",
+                "package_manager": "OS",
+                "version": "6.9.10.23+dfsg",
+                "release": "2.1ubuntu11.4"
+            },
+            "remediation": {
+                "recommendation": {
+                    "text": "None Provided"
+                }
+            },
+            "cvss_v3_score": 7.1,
+            "cvss_v30_score": 0,
+            "cvss_v31_score": 7.1,
+            "cvss_v2_score": 5.8,
+            "cvss_v3_severity": "HIGH",
+            "source_url": "https://people.canonical.com/~ubuntu-security/cve/2022/CVE-2022-1114.html",
+            "source": "UBUNTU_CVE",
+            "severity": "MEDIUM",
+            "status": "ACTIVE",
+            "title": "CVE-2022-1114 - imagemagick-6-common, imagemagick and 3 more"
+        },
+        {
+            "description": " A heap-use-after-free flaw was found in ImageMagick's RelinquishDCMInfo() function of dcm.c file. This vulnerability is triggered when an attacker passes a specially crafted DICOM image file to ImageMagick for conversion, potentially leading to information disclosure and a denial of service.",
+            "vulnerability_id": "CVE-2022-1114",
+            "name": "CVE-2022-1114",
+            "package_name": "imagemagick",
+            "package_details": {
+                "file_path": null,
+                "name": "imagemagick",
+                "package_manager": "OS",
+                "version": "6.9.10.23+dfsg",
+                "release": "2.1ubuntu11.4"
+            },
+            "remediation": {
+                "recommendation": {
+                    "text": "None Provided"
+                }
+            },
+            "cvss_v3_score": 7.1,
+            "cvss_v30_score": 0,
+            "cvss_v31_score": 7.1,
+            "cvss_v2_score": 5.8,
+            "cvss_v3_severity": "HIGH",
+            "source_url": "https://people.canonical.com/~ubuntu-security/cve/2022/CVE-2022-1114.html",
+            "source": "UBUNTU_CVE",
+            "severity": "MEDIUM",
+            "status": "ACTIVE",
+            "title": "CVE-2022-1114 - imagemagick-6-common, imagemagick and 3 more"
+        },
+        {
+            "description": " A flaw was found in ImageMagick in versions before 7.0.11. A potential cipher leak when the calculate signatures in TransformSignature is possible. The highest threat from this vulnerability is to data confidentiality.",
+            "vulnerability_id": "CVE-2021-20313",
+            "name": "CVE-2021-20313",
             "package_name": "imagemagick",
             "package_details": {
                 "file_path": null,
@@ -247,18 +163,18 @@
             "cvss_v3_score": 7.5,
             "cvss_v30_score": 0,
             "cvss_v31_score": 7.5,
-            "cvss_v2_score": 7.8,
+            "cvss_v2_score": 5,
             "cvss_v3_severity": "HIGH",
-            "source_url": "https://people.canonical.com/~ubuntu-security/cve/2021/CVE-2021-20309.html",
+            "source_url": "https://people.canonical.com/~ubuntu-security/cve/2021/CVE-2021-20313.html",
             "source": "UBUNTU_CVE",
             "severity": "LOW",
             "status": "ACTIVE",
-            "title": "CVE-2021-20309 - imagemagick, libmagickcore-6.q16-6 and 3 more"
+            "title": "CVE-2021-20313 - imagemagick-6-common, imagemagick and 3 more"
         },
         {
-            "description": " A flaw was found in ImageMagick in versions 7.0.11, where an integer overflow in WriteTHUMBNAILImage of coders/thumbnail.c may trigger undefined behavior via a crafted image file that is submitted by an attacker and processed by an application using ImageMagick. The highest threat from this vulnerability is to system availability.",
-            "vulnerability_id": "CVE-2021-20312",
-            "name": "CVE-2021-20312",
+            "description": " A flaw was found in ImageMagick in versions before 7.0.11. A potential cipher leak when the calculate signatures in TransformSignature is possible. The highest threat from this vulnerability is to data confidentiality.",
+            "vulnerability_id": "CVE-2021-20313",
+            "name": "CVE-2021-20313",
             "package_name": "imagemagick",
             "package_details": {
                 "file_path": null,
@@ -275,41 +191,13 @@
             "cvss_v3_score": 7.5,
             "cvss_v30_score": 0,
             "cvss_v31_score": 7.5,
-            "cvss_v2_score": 7.8,
+            "cvss_v2_score": 5,
             "cvss_v3_severity": "HIGH",
-            "source_url": "https://people.canonical.com/~ubuntu-security/cve/2021/CVE-2021-20312.html",
+            "source_url": "https://people.canonical.com/~ubuntu-security/cve/2021/CVE-2021-20313.html",
             "source": "UBUNTU_CVE",
             "severity": "LOW",
             "status": "ACTIVE",
-            "title": "CVE-2021-20312 - imagemagick, libmagickcore-6.q16-6 and 3 more"
-        },
-        {
-            "description": " A flaw was found in ImageMagick in versions 7.0.11, where an integer overflow in WriteTHUMBNAILImage of coders/thumbnail.c may trigger undefined behavior via a crafted image file that is submitted by an attacker and processed by an application using ImageMagick. The highest threat from this vulnerability is to system availability.",
-            "vulnerability_id": "CVE-2021-20312",
-            "name": "CVE-2021-20312",
-            "package_name": "imagemagick",
-            "package_details": {
-                "file_path": null,
-                "name": "imagemagick",
-                "package_manager": "OS",
-                "version": "6.9.10.23+dfsg",
-                "release": "2.1ubuntu11.4"
-            },
-            "remediation": {
-                "recommendation": {
-                    "text": "None Provided"
-                }
-            },
-            "cvss_v3_score": 7.5,
-            "cvss_v30_score": 0,
-            "cvss_v31_score": 7.5,
-            "cvss_v2_score": 7.8,
-            "cvss_v3_severity": "HIGH",
-            "source_url": "https://people.canonical.com/~ubuntu-security/cve/2021/CVE-2021-20312.html",
-            "source": "UBUNTU_CVE",
-            "severity": "LOW",
-            "status": "ACTIVE",
-            "title": "CVE-2021-20312 - imagemagick, libmagickcore-6.q16-6 and 3 more"
+            "title": "CVE-2021-20313 - imagemagick-6-common, imagemagick and 3 more"
         },
         {
             "description": " A vulnerability was found in ImageMagick, causing an outside the range of representable values of type 'unsigned long' at coders/pcl.c, when crafted or untrusted input is processed. This leads to a negative impact to application availability or other problems related to undefined behavior.",
@@ -337,7 +225,7 @@
             "source": "UBUNTU_CVE",
             "severity": "MEDIUM",
             "status": "ACTIVE",
-            "title": "CVE-2022-32546 - imagemagick, libmagickcore-6.q16-6 and 3 more"
+            "title": "CVE-2022-32546 - imagemagick-6-common, imagemagick and 3 more"
         },
         {
             "description": " A vulnerability was found in ImageMagick, causing an outside the range of representable values of type 'unsigned long' at coders/pcl.c, when crafted or untrusted input is processed. This leads to a negative impact to application availability or other problems related to undefined behavior.",
@@ -365,7 +253,119 @@
             "source": "UBUNTU_CVE",
             "severity": "MEDIUM",
             "status": "ACTIVE",
-            "title": "CVE-2022-32546 - imagemagick, libmagickcore-6.q16-6 and 3 more"
+            "title": "CVE-2022-32546 - imagemagick-6-common, imagemagick and 3 more"
+        },
+        {
+            "description": " A flaw was found in ImageMagick in versions 7.0.11, where an integer overflow in WriteTHUMBNAILImage of coders/thumbnail.c may trigger undefined behavior via a crafted image file that is submitted by an attacker and processed by an application using ImageMagick. The highest threat from this vulnerability is to system availability.",
+            "vulnerability_id": "CVE-2021-20312",
+            "name": "CVE-2021-20312",
+            "package_name": "imagemagick",
+            "package_details": {
+                "file_path": null,
+                "name": "imagemagick",
+                "package_manager": "OS",
+                "version": "6.9.10.23+dfsg",
+                "release": "2.1ubuntu11.4"
+            },
+            "remediation": {
+                "recommendation": {
+                    "text": "None Provided"
+                }
+            },
+            "cvss_v3_score": 7.5,
+            "cvss_v30_score": 0,
+            "cvss_v31_score": 7.5,
+            "cvss_v2_score": 7.8,
+            "cvss_v3_severity": "HIGH",
+            "source_url": "https://people.canonical.com/~ubuntu-security/cve/2021/CVE-2021-20312.html",
+            "source": "UBUNTU_CVE",
+            "severity": "LOW",
+            "status": "ACTIVE",
+            "title": "CVE-2021-20312 - imagemagick-6-common, imagemagick and 3 more"
+        },
+        {
+            "description": " A flaw was found in ImageMagick in versions 7.0.11, where an integer overflow in WriteTHUMBNAILImage of coders/thumbnail.c may trigger undefined behavior via a crafted image file that is submitted by an attacker and processed by an application using ImageMagick. The highest threat from this vulnerability is to system availability.",
+            "vulnerability_id": "CVE-2021-20312",
+            "name": "CVE-2021-20312",
+            "package_name": "imagemagick",
+            "package_details": {
+                "file_path": null,
+                "name": "imagemagick",
+                "package_manager": "OS",
+                "version": "6.9.10.23+dfsg",
+                "release": "2.1ubuntu11.4"
+            },
+            "remediation": {
+                "recommendation": {
+                    "text": "None Provided"
+                }
+            },
+            "cvss_v3_score": 7.5,
+            "cvss_v30_score": 0,
+            "cvss_v31_score": 7.5,
+            "cvss_v2_score": 7.8,
+            "cvss_v3_severity": "HIGH",
+            "source_url": "https://people.canonical.com/~ubuntu-security/cve/2021/CVE-2021-20312.html",
+            "source": "UBUNTU_CVE",
+            "severity": "LOW",
+            "status": "ACTIVE",
+            "title": "CVE-2021-20312 - imagemagick-6-common, imagemagick and 3 more"
+        },
+        {
+            "description": " ImageMagick 7.1.0-27 is vulnerable to Buffer Overflow.",
+            "vulnerability_id": "CVE-2022-28463",
+            "name": "CVE-2022-28463",
+            "package_name": "imagemagick",
+            "package_details": {
+                "file_path": null,
+                "name": "imagemagick",
+                "package_manager": "OS",
+                "version": "6.9.10.23+dfsg",
+                "release": "2.1ubuntu11.4"
+            },
+            "remediation": {
+                "recommendation": {
+                    "text": "None Provided"
+                }
+            },
+            "cvss_v3_score": 7.8,
+            "cvss_v30_score": 0,
+            "cvss_v31_score": 7.8,
+            "cvss_v2_score": 6.8,
+            "cvss_v3_severity": "HIGH",
+            "source_url": "https://people.canonical.com/~ubuntu-security/cve/2022/CVE-2022-28463.html",
+            "source": "UBUNTU_CVE",
+            "severity": "MEDIUM",
+            "status": "ACTIVE",
+            "title": "CVE-2022-28463 - imagemagick-6-common, imagemagick and 3 more"
+        },
+        {
+            "description": " ImageMagick 7.1.0-27 is vulnerable to Buffer Overflow.",
+            "vulnerability_id": "CVE-2022-28463",
+            "name": "CVE-2022-28463",
+            "package_name": "imagemagick",
+            "package_details": {
+                "file_path": null,
+                "name": "imagemagick",
+                "package_manager": "OS",
+                "version": "6.9.10.23+dfsg",
+                "release": "2.1ubuntu11.4"
+            },
+            "remediation": {
+                "recommendation": {
+                    "text": "None Provided"
+                }
+            },
+            "cvss_v3_score": 7.8,
+            "cvss_v30_score": 0,
+            "cvss_v31_score": 7.8,
+            "cvss_v2_score": 6.8,
+            "cvss_v3_severity": "HIGH",
+            "source_url": "https://people.canonical.com/~ubuntu-security/cve/2022/CVE-2022-28463.html",
+            "source": "UBUNTU_CVE",
+            "severity": "MEDIUM",
+            "status": "ACTIVE",
+            "title": "CVE-2022-28463 - imagemagick-6-common, imagemagick and 3 more"
         },
         {
             "description": " A vulnerability was found in ImageMagick, causing an outside the range of representable values of type 'unsigned char' at coders/psd.c, when crafted or untrusted input is processed. This leads to a negative impact to application availability or other problems related to undefined behavior.",
@@ -393,7 +393,7 @@
             "source": "UBUNTU_CVE",
             "severity": "MEDIUM",
             "status": "ACTIVE",
-            "title": "CVE-2022-32545 - imagemagick, libmagickcore-6.q16-6 and 3 more"
+            "title": "CVE-2022-32545 - imagemagick-6-common, imagemagick and 3 more"
         },
         {
             "description": " A vulnerability was found in ImageMagick, causing an outside the range of representable values of type 'unsigned char' at coders/psd.c, when crafted or untrusted input is processed. This leads to a negative impact to application availability or other problems related to undefined behavior.",
@@ -421,7 +421,7 @@
             "source": "UBUNTU_CVE",
             "severity": "MEDIUM",
             "status": "ACTIVE",
-            "title": "CVE-2022-32545 - imagemagick, libmagickcore-6.q16-6 and 3 more"
+            "title": "CVE-2022-32545 - imagemagick-6-common, imagemagick and 3 more"
         },
         {
             "description": " In ImageMagick, there is load of misaligned address for type 'double', which requires 8 byte alignment and for type 'float', which requires 4 byte alignment at MagickCore/property.c. Whenever crafted or untrusted input is processed by ImageMagick, this causes a negative impact to application availability or other problems related to undefined behavior.",
@@ -449,7 +449,7 @@
             "source": "UBUNTU_CVE",
             "severity": "MEDIUM",
             "status": "ACTIVE",
-            "title": "CVE-2022-32547 - imagemagick, libmagickcore-6.q16-6 and 3 more"
+            "title": "CVE-2022-32547 - imagemagick-6-common, imagemagick and 3 more"
         },
         {
             "description": " In ImageMagick, there is load of misaligned address for type 'double', which requires 8 byte alignment and for type 'float', which requires 4 byte alignment at MagickCore/property.c. Whenever crafted or untrusted input is processed by ImageMagick, this causes a negative impact to application availability or other problems related to undefined behavior.",
@@ -477,42 +477,14 @@
             "source": "UBUNTU_CVE",
             "severity": "MEDIUM",
             "status": "ACTIVE",
-            "title": "CVE-2022-32547 - imagemagick, libmagickcore-6.q16-6 and 3 more"
+            "title": "CVE-2022-32547 - imagemagick-6-common, imagemagick and 3 more"
         }
     ],
     "imagemagick-6-common": [
         {
-            "description": " ImageMagick 7.1.0-27 is vulnerable to Buffer Overflow.",
-            "vulnerability_id": "CVE-2022-28463",
-            "name": "CVE-2022-28463",
-            "package_name": "imagemagick-6-common",
-            "package_details": {
-                "file_path": null,
-                "name": "imagemagick-6-common",
-                "package_manager": "OS",
-                "version": "6.9.10.23+dfsg",
-                "release": "2.1ubuntu11.4"
-            },
-            "remediation": {
-                "recommendation": {
-                    "text": "None Provided"
-                }
-            },
-            "cvss_v3_score": 7.8,
-            "cvss_v30_score": 0,
-            "cvss_v31_score": 7.8,
-            "cvss_v2_score": 6.8,
-            "cvss_v3_severity": "HIGH",
-            "source_url": "https://people.canonical.com/~ubuntu-security/cve/2022/CVE-2022-28463.html",
-            "source": "UBUNTU_CVE",
-            "severity": "MEDIUM",
-            "status": "ACTIVE",
-            "title": "CVE-2022-28463 - imagemagick, libmagickcore-6.q16-6 and 3 more"
-        },
-        {
-            "description": " A flaw was found in ImageMagick in versions before 7.0.11. A potential cipher leak when the calculate signatures in TransformSignature is possible. The highest threat from this vulnerability is to data confidentiality.",
-            "vulnerability_id": "CVE-2021-20313",
-            "name": "CVE-2021-20313",
+            "description": " A flaw was found in ImageMagick in versions before 7.0.11 and before 6.9.12, where a division by zero in WaveImage() of MagickCore/visual-effects.c may trigger undefined behavior via a crafted image file submitted to an application using ImageMagick. The highest threat from this vulnerability is to system availability.",
+            "vulnerability_id": "CVE-2021-20309",
+            "name": "CVE-2021-20309",
             "package_name": "imagemagick-6-common",
             "package_details": {
                 "file_path": null,
@@ -529,13 +501,13 @@
             "cvss_v3_score": 7.5,
             "cvss_v30_score": 0,
             "cvss_v31_score": 7.5,
-            "cvss_v2_score": 5,
+            "cvss_v2_score": 7.8,
             "cvss_v3_severity": "HIGH",
-            "source_url": "https://people.canonical.com/~ubuntu-security/cve/2021/CVE-2021-20313.html",
+            "source_url": "https://people.canonical.com/~ubuntu-security/cve/2021/CVE-2021-20309.html",
             "source": "UBUNTU_CVE",
             "severity": "LOW",
             "status": "ACTIVE",
-            "title": "CVE-2021-20313 - imagemagick, libmagickcore-6.q16-6 and 3 more"
+            "title": "CVE-2021-20309 - imagemagick-6-common, imagemagick and 3 more"
         },
         {
             "description": " A heap-use-after-free flaw was found in ImageMagick's RelinquishDCMInfo() function of dcm.c file. This vulnerability is triggered when an attacker passes a specially crafted DICOM image file to ImageMagick for conversion, potentially leading to information disclosure and a denial of service.",
@@ -563,12 +535,12 @@
             "source": "UBUNTU_CVE",
             "severity": "MEDIUM",
             "status": "ACTIVE",
-            "title": "CVE-2022-1114 - imagemagick, libmagickcore-6.q16-6 and 3 more"
+            "title": "CVE-2022-1114 - imagemagick-6-common, imagemagick and 3 more"
         },
         {
-            "description": " A flaw was found in ImageMagick in versions before 7.0.11 and before 6.9.12, where a division by zero in WaveImage() of MagickCore/visual-effects.c may trigger undefined behavior via a crafted image file submitted to an application using ImageMagick. The highest threat from this vulnerability is to system availability.",
-            "vulnerability_id": "CVE-2021-20309",
-            "name": "CVE-2021-20309",
+            "description": " A flaw was found in ImageMagick in versions before 7.0.11. A potential cipher leak when the calculate signatures in TransformSignature is possible. The highest threat from this vulnerability is to data confidentiality.",
+            "vulnerability_id": "CVE-2021-20313",
+            "name": "CVE-2021-20313",
             "package_name": "imagemagick-6-common",
             "package_details": {
                 "file_path": null,
@@ -585,41 +557,13 @@
             "cvss_v3_score": 7.5,
             "cvss_v30_score": 0,
             "cvss_v31_score": 7.5,
-            "cvss_v2_score": 7.8,
+            "cvss_v2_score": 5,
             "cvss_v3_severity": "HIGH",
-            "source_url": "https://people.canonical.com/~ubuntu-security/cve/2021/CVE-2021-20309.html",
+            "source_url": "https://people.canonical.com/~ubuntu-security/cve/2021/CVE-2021-20313.html",
             "source": "UBUNTU_CVE",
             "severity": "LOW",
             "status": "ACTIVE",
-            "title": "CVE-2021-20309 - imagemagick, libmagickcore-6.q16-6 and 3 more"
-        },
-        {
-            "description": " A flaw was found in ImageMagick in versions 7.0.11, where an integer overflow in WriteTHUMBNAILImage of coders/thumbnail.c may trigger undefined behavior via a crafted image file that is submitted by an attacker and processed by an application using ImageMagick. The highest threat from this vulnerability is to system availability.",
-            "vulnerability_id": "CVE-2021-20312",
-            "name": "CVE-2021-20312",
-            "package_name": "imagemagick-6-common",
-            "package_details": {
-                "file_path": null,
-                "name": "imagemagick-6-common",
-                "package_manager": "OS",
-                "version": "6.9.10.23+dfsg",
-                "release": "2.1ubuntu11.4"
-            },
-            "remediation": {
-                "recommendation": {
-                    "text": "None Provided"
-                }
-            },
-            "cvss_v3_score": 7.5,
-            "cvss_v30_score": 0,
-            "cvss_v31_score": 7.5,
-            "cvss_v2_score": 7.8,
-            "cvss_v3_severity": "HIGH",
-            "source_url": "https://people.canonical.com/~ubuntu-security/cve/2021/CVE-2021-20312.html",
-            "source": "UBUNTU_CVE",
-            "severity": "LOW",
-            "status": "ACTIVE",
-            "title": "CVE-2021-20312 - imagemagick, libmagickcore-6.q16-6 and 3 more"
+            "title": "CVE-2021-20313 - imagemagick-6-common, imagemagick and 3 more"
         },
         {
             "description": " A vulnerability was found in ImageMagick, causing an outside the range of representable values of type 'unsigned long' at coders/pcl.c, when crafted or untrusted input is processed. This leads to a negative impact to application availability or other problems related to undefined behavior.",
@@ -647,7 +591,63 @@
             "source": "UBUNTU_CVE",
             "severity": "MEDIUM",
             "status": "ACTIVE",
-            "title": "CVE-2022-32546 - imagemagick, libmagickcore-6.q16-6 and 3 more"
+            "title": "CVE-2022-32546 - imagemagick-6-common, imagemagick and 3 more"
+        },
+        {
+            "description": " A flaw was found in ImageMagick in versions 7.0.11, where an integer overflow in WriteTHUMBNAILImage of coders/thumbnail.c may trigger undefined behavior via a crafted image file that is submitted by an attacker and processed by an application using ImageMagick. The highest threat from this vulnerability is to system availability.",
+            "vulnerability_id": "CVE-2021-20312",
+            "name": "CVE-2021-20312",
+            "package_name": "imagemagick-6-common",
+            "package_details": {
+                "file_path": null,
+                "name": "imagemagick-6-common",
+                "package_manager": "OS",
+                "version": "6.9.10.23+dfsg",
+                "release": "2.1ubuntu11.4"
+            },
+            "remediation": {
+                "recommendation": {
+                    "text": "None Provided"
+                }
+            },
+            "cvss_v3_score": 7.5,
+            "cvss_v30_score": 0,
+            "cvss_v31_score": 7.5,
+            "cvss_v2_score": 7.8,
+            "cvss_v3_severity": "HIGH",
+            "source_url": "https://people.canonical.com/~ubuntu-security/cve/2021/CVE-2021-20312.html",
+            "source": "UBUNTU_CVE",
+            "severity": "LOW",
+            "status": "ACTIVE",
+            "title": "CVE-2021-20312 - imagemagick-6-common, imagemagick and 3 more"
+        },
+        {
+            "description": " ImageMagick 7.1.0-27 is vulnerable to Buffer Overflow.",
+            "vulnerability_id": "CVE-2022-28463",
+            "name": "CVE-2022-28463",
+            "package_name": "imagemagick-6-common",
+            "package_details": {
+                "file_path": null,
+                "name": "imagemagick-6-common",
+                "package_manager": "OS",
+                "version": "6.9.10.23+dfsg",
+                "release": "2.1ubuntu11.4"
+            },
+            "remediation": {
+                "recommendation": {
+                    "text": "None Provided"
+                }
+            },
+            "cvss_v3_score": 7.8,
+            "cvss_v30_score": 0,
+            "cvss_v31_score": 7.8,
+            "cvss_v2_score": 6.8,
+            "cvss_v3_severity": "HIGH",
+            "source_url": "https://people.canonical.com/~ubuntu-security/cve/2022/CVE-2022-28463.html",
+            "source": "UBUNTU_CVE",
+            "severity": "MEDIUM",
+            "status": "ACTIVE",
+            "title": "CVE-2022-28463 - imagemagick-6-common, imagemagick and 3 more"
         },
         {
             "description": " A vulnerability was found in ImageMagick, causing an outside the range of representable values of type 'unsigned char' at coders/psd.c, when crafted or untrusted input is processed. This leads to a negative impact to application availability or other problems related to undefined behavior.",
@@ -675,7 +675,7 @@
             "source": "UBUNTU_CVE",
             "severity": "MEDIUM",
             "status": "ACTIVE",
-            "title": "CVE-2022-32545 - imagemagick, libmagickcore-6.q16-6 and 3 more"
+            "title": "CVE-2022-32545 - imagemagick-6-common, imagemagick and 3 more"
         },
         {
             "description": " In ImageMagick, there is load of misaligned address for type 'double', which requires 8 byte alignment and for type 'float', which requires 4 byte alignment at MagickCore/property.c. Whenever crafted or untrusted input is processed by ImageMagick, this causes a negative impact to application availability or other problems related to undefined behavior.",
@@ -703,42 +703,14 @@
             "source": "UBUNTU_CVE",
             "severity": "MEDIUM",
             "status": "ACTIVE",
-            "title": "CVE-2022-32547 - imagemagick, libmagickcore-6.q16-6 and 3 more"
+            "title": "CVE-2022-32547 - imagemagick-6-common, imagemagick and 3 more"
         }
     ],
     "libmagickcore-6.q16-6": [
         {
-            "description": " ImageMagick 7.1.0-27 is vulnerable to Buffer Overflow.",
-            "vulnerability_id": "CVE-2022-28463",
-            "name": "CVE-2022-28463",
-            "package_name": "libmagickcore-6.q16-6",
-            "package_details": {
-                "file_path": null,
-                "name": "libmagickcore-6.q16-6",
-                "package_manager": "OS",
-                "version": "6.9.10.23+dfsg",
-                "release": "2.1ubuntu11.4"
-            },
-            "remediation": {
-                "recommendation": {
-                    "text": "None Provided"
-                }
-            },
-            "cvss_v3_score": 7.8,
-            "cvss_v30_score": 0,
-            "cvss_v31_score": 7.8,
-            "cvss_v2_score": 6.8,
-            "cvss_v3_severity": "HIGH",
-            "source_url": "https://people.canonical.com/~ubuntu-security/cve/2022/CVE-2022-28463.html",
-            "source": "UBUNTU_CVE",
-            "severity": "MEDIUM",
-            "status": "ACTIVE",
-            "title": "CVE-2022-28463 - imagemagick, libmagickcore-6.q16-6 and 3 more"
-        },
-        {
-            "description": " A flaw was found in ImageMagick in versions before 7.0.11. A potential cipher leak when the calculate signatures in TransformSignature is possible. The highest threat from this vulnerability is to data confidentiality.",
-            "vulnerability_id": "CVE-2021-20313",
-            "name": "CVE-2021-20313",
+            "description": " A flaw was found in ImageMagick in versions before 7.0.11 and before 6.9.12, where a division by zero in WaveImage() of MagickCore/visual-effects.c may trigger undefined behavior via a crafted image file submitted to an application using ImageMagick. The highest threat from this vulnerability is to system availability.",
+            "vulnerability_id": "CVE-2021-20309",
+            "name": "CVE-2021-20309",
             "package_name": "libmagickcore-6.q16-6",
             "package_details": {
                 "file_path": null,
@@ -755,13 +727,13 @@
             "cvss_v3_score": 7.5,
             "cvss_v30_score": 0,
             "cvss_v31_score": 7.5,
-            "cvss_v2_score": 5,
+            "cvss_v2_score": 7.8,
             "cvss_v3_severity": "HIGH",
-            "source_url": "https://people.canonical.com/~ubuntu-security/cve/2021/CVE-2021-20313.html",
+            "source_url": "https://people.canonical.com/~ubuntu-security/cve/2021/CVE-2021-20309.html",
             "source": "UBUNTU_CVE",
             "severity": "LOW",
             "status": "ACTIVE",
-            "title": "CVE-2021-20313 - imagemagick, libmagickcore-6.q16-6 and 3 more"
+            "title": "CVE-2021-20309 - imagemagick-6-common, imagemagick and 3 more"
         },
         {
             "description": " A heap-use-after-free flaw was found in ImageMagick's RelinquishDCMInfo() function of dcm.c file. This vulnerability is triggered when an attacker passes a specially crafted DICOM image file to ImageMagick for conversion, potentially leading to information disclosure and a denial of service.",
@@ -789,12 +761,12 @@
             "source": "UBUNTU_CVE",
             "severity": "MEDIUM",
             "status": "ACTIVE",
-            "title": "CVE-2022-1114 - imagemagick, libmagickcore-6.q16-6 and 3 more"
+            "title": "CVE-2022-1114 - imagemagick-6-common, imagemagick and 3 more"
         },
         {
-            "description": " A flaw was found in ImageMagick in versions before 7.0.11 and before 6.9.12, where a division by zero in WaveImage() of MagickCore/visual-effects.c may trigger undefined behavior via a crafted image file submitted to an application using ImageMagick. The highest threat from this vulnerability is to system availability.",
-            "vulnerability_id": "CVE-2021-20309",
-            "name": "CVE-2021-20309",
+            "description": " A flaw was found in ImageMagick in versions before 7.0.11. A potential cipher leak when the calculate signatures in TransformSignature is possible. The highest threat from this vulnerability is to data confidentiality.",
+            "vulnerability_id": "CVE-2021-20313",
+            "name": "CVE-2021-20313",
             "package_name": "libmagickcore-6.q16-6",
             "package_details": {
                 "file_path": null,
@@ -811,41 +783,13 @@
             "cvss_v3_score": 7.5,
             "cvss_v30_score": 0,
             "cvss_v31_score": 7.5,
-            "cvss_v2_score": 7.8,
+            "cvss_v2_score": 5,
             "cvss_v3_severity": "HIGH",
-            "source_url": "https://people.canonical.com/~ubuntu-security/cve/2021/CVE-2021-20309.html",
+            "source_url": "https://people.canonical.com/~ubuntu-security/cve/2021/CVE-2021-20313.html",
             "source": "UBUNTU_CVE",
             "severity": "LOW",
             "status": "ACTIVE",
-            "title": "CVE-2021-20309 - imagemagick, libmagickcore-6.q16-6 and 3 more"
-        },
-        {
-            "description": " A flaw was found in ImageMagick in versions 7.0.11, where an integer overflow in WriteTHUMBNAILImage of coders/thumbnail.c may trigger undefined behavior via a crafted image file that is submitted by an attacker and processed by an application using ImageMagick. The highest threat from this vulnerability is to system availability.",
-            "vulnerability_id": "CVE-2021-20312",
-            "name": "CVE-2021-20312",
-            "package_name": "libmagickcore-6.q16-6",
-            "package_details": {
-                "file_path": null,
-                "name": "libmagickcore-6.q16-6",
-                "package_manager": "OS",
-                "version": "6.9.10.23+dfsg",
-                "release": "2.1ubuntu11.4"
-            },
-            "remediation": {
-                "recommendation": {
-                    "text": "None Provided"
-                }
-            },
-            "cvss_v3_score": 7.5,
-            "cvss_v30_score": 0,
-            "cvss_v31_score": 7.5,
-            "cvss_v2_score": 7.8,
-            "cvss_v3_severity": "HIGH",
-            "source_url": "https://people.canonical.com/~ubuntu-security/cve/2021/CVE-2021-20312.html",
-            "source": "UBUNTU_CVE",
-            "severity": "LOW",
-            "status": "ACTIVE",
-            "title": "CVE-2021-20312 - imagemagick, libmagickcore-6.q16-6 and 3 more"
+            "title": "CVE-2021-20313 - imagemagick-6-common, imagemagick and 3 more"
         },
         {
             "description": " A vulnerability was found in ImageMagick, causing an outside the range of representable values of type 'unsigned long' at coders/pcl.c, when crafted or untrusted input is processed. This leads to a negative impact to application availability or other problems related to undefined behavior.",
@@ -873,7 +817,63 @@
             "source": "UBUNTU_CVE",
             "severity": "MEDIUM",
             "status": "ACTIVE",
-            "title": "CVE-2022-32546 - imagemagick, libmagickcore-6.q16-6 and 3 more"
+            "title": "CVE-2022-32546 - imagemagick-6-common, imagemagick and 3 more"
+        },
+        {
+            "description": " A flaw was found in ImageMagick in versions 7.0.11, where an integer overflow in WriteTHUMBNAILImage of coders/thumbnail.c may trigger undefined behavior via a crafted image file that is submitted by an attacker and processed by an application using ImageMagick. The highest threat from this vulnerability is to system availability.",
+            "vulnerability_id": "CVE-2021-20312",
+            "name": "CVE-2021-20312",
+            "package_name": "libmagickcore-6.q16-6",
+            "package_details": {
+                "file_path": null,
+                "name": "libmagickcore-6.q16-6",
+                "package_manager": "OS",
+                "version": "6.9.10.23+dfsg",
+                "release": "2.1ubuntu11.4"
+            },
+            "remediation": {
+                "recommendation": {
+                    "text": "None Provided"
+                }
+            },
+            "cvss_v3_score": 7.5,
+            "cvss_v30_score": 0,
+            "cvss_v31_score": 7.5,
+            "cvss_v2_score": 7.8,
+            "cvss_v3_severity": "HIGH",
+            "source_url": "https://people.canonical.com/~ubuntu-security/cve/2021/CVE-2021-20312.html",
+            "source": "UBUNTU_CVE",
+            "severity": "LOW",
+            "status": "ACTIVE",
+            "title": "CVE-2021-20312 - imagemagick-6-common, imagemagick and 3 more"
+        },
+        {
+            "description": " ImageMagick 7.1.0-27 is vulnerable to Buffer Overflow.",
+            "vulnerability_id": "CVE-2022-28463",
+            "name": "CVE-2022-28463",
+            "package_name": "libmagickcore-6.q16-6",
+            "package_details": {
+                "file_path": null,
+                "name": "libmagickcore-6.q16-6",
+                "package_manager": "OS",
+                "version": "6.9.10.23+dfsg",
+                "release": "2.1ubuntu11.4"
+            },
+            "remediation": {
+                "recommendation": {
+                    "text": "None Provided"
+                }
+            },
+            "cvss_v3_score": 7.8,
+            "cvss_v30_score": 0,
+            "cvss_v31_score": 7.8,
+            "cvss_v2_score": 6.8,
+            "cvss_v3_severity": "HIGH",
+            "source_url": "https://people.canonical.com/~ubuntu-security/cve/2022/CVE-2022-28463.html",
+            "source": "UBUNTU_CVE",
+            "severity": "MEDIUM",
+            "status": "ACTIVE",
+            "title": "CVE-2022-28463 - imagemagick-6-common, imagemagick and 3 more"
         },
         {
             "description": " A vulnerability was found in ImageMagick, causing an outside the range of representable values of type 'unsigned char' at coders/psd.c, when crafted or untrusted input is processed. This leads to a negative impact to application availability or other problems related to undefined behavior.",
@@ -901,7 +901,7 @@
             "source": "UBUNTU_CVE",
             "severity": "MEDIUM",
             "status": "ACTIVE",
-            "title": "CVE-2022-32545 - imagemagick, libmagickcore-6.q16-6 and 3 more"
+            "title": "CVE-2022-32545 - imagemagick-6-common, imagemagick and 3 more"
         },
         {
             "description": " In ImageMagick, there is load of misaligned address for type 'double', which requires 8 byte alignment and for type 'float', which requires 4 byte alignment at MagickCore/property.c. Whenever crafted or untrusted input is processed by ImageMagick, this causes a negative impact to application availability or other problems related to undefined behavior.",
@@ -929,42 +929,14 @@
             "source": "UBUNTU_CVE",
             "severity": "MEDIUM",
             "status": "ACTIVE",
-            "title": "CVE-2022-32547 - imagemagick, libmagickcore-6.q16-6 and 3 more"
+            "title": "CVE-2022-32547 - imagemagick-6-common, imagemagick and 3 more"
         }
     ],
     "libmagickwand-6.q16-6": [
         {
-            "description": " ImageMagick 7.1.0-27 is vulnerable to Buffer Overflow.",
-            "vulnerability_id": "CVE-2022-28463",
-            "name": "CVE-2022-28463",
-            "package_name": "libmagickwand-6.q16-6",
-            "package_details": {
-                "file_path": null,
-                "name": "libmagickwand-6.q16-6",
-                "package_manager": "OS",
-                "version": "6.9.10.23+dfsg",
-                "release": "2.1ubuntu11.4"
-            },
-            "remediation": {
-                "recommendation": {
-                    "text": "None Provided"
-                }
-            },
-            "cvss_v3_score": 7.8,
-            "cvss_v30_score": 0,
-            "cvss_v31_score": 7.8,
-            "cvss_v2_score": 6.8,
-            "cvss_v3_severity": "HIGH",
-            "source_url": "https://people.canonical.com/~ubuntu-security/cve/2022/CVE-2022-28463.html",
-            "source": "UBUNTU_CVE",
-            "severity": "MEDIUM",
-            "status": "ACTIVE",
-            "title": "CVE-2022-28463 - imagemagick, libmagickcore-6.q16-6 and 3 more"
-        },
-        {
-            "description": " A flaw was found in ImageMagick in versions before 7.0.11. A potential cipher leak when the calculate signatures in TransformSignature is possible. The highest threat from this vulnerability is to data confidentiality.",
-            "vulnerability_id": "CVE-2021-20313",
-            "name": "CVE-2021-20313",
+            "description": " A flaw was found in ImageMagick in versions before 7.0.11 and before 6.9.12, where a division by zero in WaveImage() of MagickCore/visual-effects.c may trigger undefined behavior via a crafted image file submitted to an application using ImageMagick. The highest threat from this vulnerability is to system availability.",
+            "vulnerability_id": "CVE-2021-20309",
+            "name": "CVE-2021-20309",
             "package_name": "libmagickwand-6.q16-6",
             "package_details": {
                 "file_path": null,
@@ -981,13 +953,13 @@
             "cvss_v3_score": 7.5,
             "cvss_v30_score": 0,
             "cvss_v31_score": 7.5,
-            "cvss_v2_score": 5,
+            "cvss_v2_score": 7.8,
             "cvss_v3_severity": "HIGH",
-            "source_url": "https://people.canonical.com/~ubuntu-security/cve/2021/CVE-2021-20313.html",
+            "source_url": "https://people.canonical.com/~ubuntu-security/cve/2021/CVE-2021-20309.html",
             "source": "UBUNTU_CVE",
             "severity": "LOW",
             "status": "ACTIVE",
-            "title": "CVE-2021-20313 - imagemagick, libmagickcore-6.q16-6 and 3 more"
+            "title": "CVE-2021-20309 - imagemagick-6-common, imagemagick and 3 more"
         },
         {
             "description": " A heap-use-after-free flaw was found in ImageMagick's RelinquishDCMInfo() function of dcm.c file. This vulnerability is triggered when an attacker passes a specially crafted DICOM image file to ImageMagick for conversion, potentially leading to information disclosure and a denial of service.",
@@ -1015,12 +987,12 @@
             "source": "UBUNTU_CVE",
             "severity": "MEDIUM",
             "status": "ACTIVE",
-            "title": "CVE-2022-1114 - imagemagick, libmagickcore-6.q16-6 and 3 more"
+            "title": "CVE-2022-1114 - imagemagick-6-common, imagemagick and 3 more"
         },
         {
-            "description": " A flaw was found in ImageMagick in versions before 7.0.11 and before 6.9.12, where a division by zero in WaveImage() of MagickCore/visual-effects.c may trigger undefined behavior via a crafted image file submitted to an application using ImageMagick. The highest threat from this vulnerability is to system availability.",
-            "vulnerability_id": "CVE-2021-20309",
-            "name": "CVE-2021-20309",
+            "description": " A flaw was found in ImageMagick in versions before 7.0.11. A potential cipher leak when the calculate signatures in TransformSignature is possible. The highest threat from this vulnerability is to data confidentiality.",
+            "vulnerability_id": "CVE-2021-20313",
+            "name": "CVE-2021-20313",
             "package_name": "libmagickwand-6.q16-6",
             "package_details": {
                 "file_path": null,
@@ -1037,41 +1009,13 @@
             "cvss_v3_score": 7.5,
             "cvss_v30_score": 0,
             "cvss_v31_score": 7.5,
-            "cvss_v2_score": 7.8,
+            "cvss_v2_score": 5,
             "cvss_v3_severity": "HIGH",
-            "source_url": "https://people.canonical.com/~ubuntu-security/cve/2021/CVE-2021-20309.html",
+            "source_url": "https://people.canonical.com/~ubuntu-security/cve/2021/CVE-2021-20313.html",
             "source": "UBUNTU_CVE",
             "severity": "LOW",
             "status": "ACTIVE",
-            "title": "CVE-2021-20309 - imagemagick, libmagickcore-6.q16-6 and 3 more"
-        },
-        {
-            "description": " A flaw was found in ImageMagick in versions 7.0.11, where an integer overflow in WriteTHUMBNAILImage of coders/thumbnail.c may trigger undefined behavior via a crafted image file that is submitted by an attacker and processed by an application using ImageMagick. The highest threat from this vulnerability is to system availability.",
-            "vulnerability_id": "CVE-2021-20312",
-            "name": "CVE-2021-20312",
-            "package_name": "libmagickwand-6.q16-6",
-            "package_details": {
-                "file_path": null,
-                "name": "libmagickwand-6.q16-6",
-                "package_manager": "OS",
-                "version": "6.9.10.23+dfsg",
-                "release": "2.1ubuntu11.4"
-            },
-            "remediation": {
-                "recommendation": {
-                    "text": "None Provided"
-                }
-            },
-            "cvss_v3_score": 7.5,
-            "cvss_v30_score": 0,
-            "cvss_v31_score": 7.5,
-            "cvss_v2_score": 7.8,
-            "cvss_v3_severity": "HIGH",
-            "source_url": "https://people.canonical.com/~ubuntu-security/cve/2021/CVE-2021-20312.html",
-            "source": "UBUNTU_CVE",
-            "severity": "LOW",
-            "status": "ACTIVE",
-            "title": "CVE-2021-20312 - imagemagick, libmagickcore-6.q16-6 and 3 more"
+            "title": "CVE-2021-20313 - imagemagick-6-common, imagemagick and 3 more"
         },
         {
             "description": " A vulnerability was found in ImageMagick, causing an outside the range of representable values of type 'unsigned long' at coders/pcl.c, when crafted or untrusted input is processed. This leads to a negative impact to application availability or other problems related to undefined behavior.",
@@ -1099,7 +1043,63 @@
             "source": "UBUNTU_CVE",
             "severity": "MEDIUM",
             "status": "ACTIVE",
-            "title": "CVE-2022-32546 - imagemagick, libmagickcore-6.q16-6 and 3 more"
+            "title": "CVE-2022-32546 - imagemagick-6-common, imagemagick and 3 more"
+        },
+        {
+            "description": " A flaw was found in ImageMagick in versions 7.0.11, where an integer overflow in WriteTHUMBNAILImage of coders/thumbnail.c may trigger undefined behavior via a crafted image file that is submitted by an attacker and processed by an application using ImageMagick. The highest threat from this vulnerability is to system availability.",
+            "vulnerability_id": "CVE-2021-20312",
+            "name": "CVE-2021-20312",
+            "package_name": "libmagickwand-6.q16-6",
+            "package_details": {
+                "file_path": null,
+                "name": "libmagickwand-6.q16-6",
+                "package_manager": "OS",
+                "version": "6.9.10.23+dfsg",
+                "release": "2.1ubuntu11.4"
+            },
+            "remediation": {
+                "recommendation": {
+                    "text": "None Provided"
+                }
+            },
+            "cvss_v3_score": 7.5,
+            "cvss_v30_score": 0,
+            "cvss_v31_score": 7.5,
+            "cvss_v2_score": 7.8,
+            "cvss_v3_severity": "HIGH",
+            "source_url": "https://people.canonical.com/~ubuntu-security/cve/2021/CVE-2021-20312.html",
+            "source": "UBUNTU_CVE",
+            "severity": "LOW",
+            "status": "ACTIVE",
+            "title": "CVE-2021-20312 - imagemagick-6-common, imagemagick and 3 more"
+        },
+        {
+            "description": " ImageMagick 7.1.0-27 is vulnerable to Buffer Overflow.",
+            "vulnerability_id": "CVE-2022-28463",
+            "name": "CVE-2022-28463",
+            "package_name": "libmagickwand-6.q16-6",
+            "package_details": {
+                "file_path": null,
+                "name": "libmagickwand-6.q16-6",
+                "package_manager": "OS",
+                "version": "6.9.10.23+dfsg",
+                "release": "2.1ubuntu11.4"
+            },
+            "remediation": {
+                "recommendation": {
+                    "text": "None Provided"
+                }
+            },
+            "cvss_v3_score": 7.8,
+            "cvss_v30_score": 0,
+            "cvss_v31_score": 7.8,
+            "cvss_v2_score": 6.8,
+            "cvss_v3_severity": "HIGH",
+            "source_url": "https://people.canonical.com/~ubuntu-security/cve/2022/CVE-2022-28463.html",
+            "source": "UBUNTU_CVE",
+            "severity": "MEDIUM",
+            "status": "ACTIVE",
+            "title": "CVE-2022-28463 - imagemagick-6-common, imagemagick and 3 more"
         },
         {
             "description": " A vulnerability was found in ImageMagick, causing an outside the range of representable values of type 'unsigned char' at coders/psd.c, when crafted or untrusted input is processed. This leads to a negative impact to application availability or other problems related to undefined behavior.",
@@ -1127,7 +1127,7 @@
             "source": "UBUNTU_CVE",
             "severity": "MEDIUM",
             "status": "ACTIVE",
-            "title": "CVE-2022-32545 - imagemagick, libmagickcore-6.q16-6 and 3 more"
+            "title": "CVE-2022-32545 - imagemagick-6-common, imagemagick and 3 more"
         },
         {
             "description": " In ImageMagick, there is load of misaligned address for type 'double', which requires 8 byte alignment and for type 'float', which requires 4 byte alignment at MagickCore/property.c. Whenever crafted or untrusted input is processed by ImageMagick, this causes a negative impact to application availability or other problems related to undefined behavior.",
@@ -1155,181 +1155,7 @@
             "source": "UBUNTU_CVE",
             "severity": "MEDIUM",
             "status": "ACTIVE",
-            "title": "CVE-2022-32547 - imagemagick, libmagickcore-6.q16-6 and 3 more"
-        }
-    ],
-    "libmysofa1": [
-        {
-            "description": " libmysofa is vulnerable to Heap-based Buffer Overflow",
-            "vulnerability_id": "CVE-2021-3756",
-            "name": "CVE-2021-3756",
-            "package_name": "libmysofa1",
-            "package_details": {
-                "file_path": null,
-                "name": "libmysofa1",
-                "package_manager": "OS",
-                "version": "1.0~dfsg0",
-                "release": "1"
-            },
-            "remediation": {
-                "recommendation": {
-                    "text": "None Provided"
-                }
-            },
-            "cvss_v3_score": 9.8,
-            "cvss_v30_score": 0,
-            "cvss_v31_score": 9.8,
-            "cvss_v2_score": 7.5,
-            "cvss_v3_severity": "CRITICAL",
-            "source_url": "https://people.canonical.com/~ubuntu-security/cve/2021/CVE-2021-3756.html",
-            "source": "UBUNTU_CVE",
-            "severity": "MEDIUM",
-            "status": "ACTIVE",
-            "title": "CVE-2021-3756 - libmysofa1"
-        }
-    ],
-    "libsdl2-2.0-0": [
-        {
-            "description": " SDL (Simple DirectMedia Layer) through 2.0.12 has an Integer Overflow (and resultant SDL_memcpy heap corruption) in SDL_BlitCopy in video/SDL_blit_copy.c via a crafted .BMP file.",
-            "vulnerability_id": "CVE-2020-14409",
-            "name": "CVE-2020-14409",
-            "package_name": "libsdl2-2.0-0",
-            "package_details": {
-                "file_path": null,
-                "name": "libsdl2-2.0-0",
-                "package_manager": "OS",
-                "version": "2.0.10+dfsg1",
-                "release": "3"
-            },
-            "remediation": {
-                "recommendation": {
-                    "text": "None Provided"
-                }
-            },
-            "cvss_v3_score": 7.8,
-            "cvss_v30_score": 0,
-            "cvss_v31_score": 7.8,
-            "cvss_v2_score": 6.8,
-            "cvss_v3_severity": "HIGH",
-            "source_url": "https://people.canonical.com/~ubuntu-security/cve/2020/CVE-2020-14409.html",
-            "source": "UBUNTU_CVE",
-            "severity": "MEDIUM",
-            "status": "ACTIVE",
-            "title": "CVE-2020-14409 - libsdl2-2.0-0"
-        }
-    ],
-    "libzmq5": [
-        {
-            "description": " An uncontrolled resource consumption (memory leak) flaw was found in ZeroMQ's src/xpub.cpp in versions before 4.3.3. This flaw allows a remote unauthenticated attacker to send crafted PUB messages that consume excessive memory if the CURVE/ZAP authentication is disabled on the server, causing a denial of service. The highest threat from this vulnerability is to system availability.",
-            "vulnerability_id": "CVE-2021-20237",
-            "name": "CVE-2021-20237",
-            "package_name": "libzmq5",
-            "package_details": {
-                "file_path": null,
-                "name": "libzmq5",
-                "package_manager": "OS",
-                "version": "4.3.2",
-                "release": "2ubuntu1"
-            },
-            "remediation": {
-                "recommendation": {
-                    "text": "None Provided"
-                }
-            },
-            "cvss_v3_score": 7.5,
-            "cvss_v30_score": 0,
-            "cvss_v31_score": 7.5,
-            "cvss_v2_score": 4.3,
-            "cvss_v3_severity": "HIGH",
-            "source_url": "https://people.canonical.com/~ubuntu-security/cve/2021/CVE-2021-20237.html",
-            "source": "UBUNTU_CVE",
-            "severity": "LOW",
-            "status": "ACTIVE",
-            "title": "CVE-2021-20237 - libzmq5"
-        },
-        {
-            "description": " There's a flaw in the zeromq server in versions before 4.3.3 in src/decoder_allocators.hpp. The decoder static allocator could have its sized changed, but the buffer would remain the same as it is a static buffer. A remote, unauthenticated attacker who sends a crafted request to the zeromq server could trigger a buffer overflow WRITE of arbitrary data if CURVE/ZAP authentication is not enabled. The greatest impact of this flaw is to application availability, data integrity, and confidentiality.",
-            "vulnerability_id": "CVE-2021-20235",
-            "name": "CVE-2021-20235",
-            "package_name": "libzmq5",
-            "package_details": {
-                "file_path": null,
-                "name": "libzmq5",
-                "package_manager": "OS",
-                "version": "4.3.2",
-                "release": "2ubuntu1"
-            },
-            "remediation": {
-                "recommendation": {
-                    "text": "None Provided"
-                }
-            },
-            "cvss_v3_score": 8.1,
-            "cvss_v30_score": 0,
-            "cvss_v31_score": 8.1,
-            "cvss_v2_score": 6.8,
-            "cvss_v3_severity": "HIGH",
-            "source_url": "https://people.canonical.com/~ubuntu-security/cve/2021/CVE-2021-20235.html",
-            "source": "UBUNTU_CVE",
-            "severity": "MEDIUM",
-            "status": "ACTIVE",
-            "title": "CVE-2021-20235 - libzmq5"
-        },
-        {
-            "description": "\n It was discovered that ZeroMQ incorrectly handled certain application metadata.\n A remote attacker could use this issue to cause ZeroMQ to crash, or possibly\n execute arbitrary code.",
-            "vulnerability_id": "CVE-2019-13132",
-            "name": "CVE-2019-13132",
-            "package_name": "libzmq5",
-            "package_details": {
-                "file_path": null,
-                "name": "libzmq5",
-                "package_manager": "OS",
-                "version": "4.3.2",
-                "release": "2ubuntu1"
-            },
-            "remediation": {
-                "recommendation": {
-                    "text": "None Provided"
-                }
-            },
-            "cvss_v3_score": 9.8,
-            "cvss_v30_score": 9.8,
-            "cvss_v31_score": 0,
-            "cvss_v2_score": 7.5,
-            "cvss_v3_severity": "CRITICAL",
-            "source_url": "https://people.canonical.com/~ubuntu-security/cve/2019/CVE-2019-13132.html",
-            "source": "UBUNTU_CVE",
-            "severity": "HIGH",
-            "status": "ACTIVE",
-            "title": "CVE-2019-13132 - libzmq5"
-        },
-        {
-            "description": "\n It was discovered that ZeroMQ mishandled certain network traffic. An\n unauthenticated attacker could use this vulnerability to cause a\n denial-of-service and prevent legitimate clients from communicating with\n ZeroMQ.",
-            "vulnerability_id": "CVE-2020-15166",
-            "name": "CVE-2020-15166",
-            "package_name": "libzmq5",
-            "package_details": {
-                "file_path": null,
-                "name": "libzmq5",
-                "package_manager": "OS",
-                "version": "4.3.2",
-                "release": "2ubuntu1"
-            },
-            "remediation": {
-                "recommendation": {
-                    "text": "None Provided"
-                }
-            },
-            "cvss_v3_score": 7.5,
-            "cvss_v30_score": 0,
-            "cvss_v31_score": 7.5,
-            "cvss_v2_score": 5,
-            "cvss_v3_severity": "HIGH",
-            "source_url": "https://people.canonical.com/~ubuntu-security/cve/2020/CVE-2020-15166.html",
-            "source": "UBUNTU_CVE",
-            "severity": "MEDIUM",
-            "status": "ACTIVE",
-            "title": "CVE-2020-15166 - libzmq5"
+            "title": "CVE-2022-32547 - imagemagick-6-common, imagemagick and 3 more"
         }
     ]
 }
