@@ -84,7 +84,9 @@ RUN ln -s ${CONDA_PREFIX}/lib/libmkl_intel_lp64.so ${CONDA_PREFIX}/lib/libmkl_in
  && ln -s ${CONDA_PREFIX}/lib/libmkl_intel_thread.so ${CONDA_PREFIX}/lib/libmkl_intel_thread.so.1 \
  && ln -s ${CONDA_PREFIX}/lib/libmkl_core.so ${CONDA_PREFIX}/lib/libmkl_core.so.1 \
  && ln -s ${CONDA_PREFIX}/lib/libmkl_gnu_thread.so ${CONDA_PREFIX}/lib/libmkl_gnu_thread.so.1 \
- && ln -s ${CONDA_PREFIX}/lib/libmkl_gf_lp64.so ${CONDA_PREFIX}/lib/libmkl_gf_lp64.so.1
+ && ln -s ${CONDA_PREFIX}/lib/libmkl_gf_lp64.so ${CONDA_PREFIX}/lib/libmkl_gf_lp64.so.1 \
+ && ln -s /opt/amazon/openmpi/lib/libmpi.so /opt/amazon/openmpi/lib/libmpi.so.12 \
+ && ln -s /opt/amazon/openmpi/lib/libmpi.so /opt/amazon/openmpi/lib/libmpicxx.so.12
 
 # CVE Fixes
 # RUN pip install --no-cache-dir -U "protobuf<3.20.0"
@@ -93,7 +95,7 @@ RUN apt-get update -y && \
     apt-get clean
 
 # Uninstall Torch Data - not needed for NLP support with PT 1.12
-# RUN pip uninstall -y torchdata
+RUN pip uninstall -y torchdata
 
 
 # Reinstall Horovod
