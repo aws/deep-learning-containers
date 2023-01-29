@@ -49,7 +49,12 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
 ENV MKL_THREADING_LAYER=GNU
 
 RUN apt-get update \
- && apt-get -y upgrade --only-upgrade systemd \
+ && apt-get -y upgrade --only-upgrade \
+    systemd \
+    imagemagick \
+    libmagickcore-6.q16-6 \
+    libmagickwand-6.q16-6 \
+    imagemagick-6-common \
  && apt-get install -y --no-install-recommends \
     build-essential \
     ca-certificates \

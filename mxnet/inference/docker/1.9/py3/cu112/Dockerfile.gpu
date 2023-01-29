@@ -45,7 +45,12 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
     DLC_CONTAINER_TYPE=inference
 
 RUN apt-get update \
- && apt-get -y upgrade --only-upgrade systemd \
+ && apt-get -y upgrade --only-upgrade \
+    systemd \
+    imagemagick \
+    libmagickcore-6.q16-6 \
+    libmagickwand-6.q16-6 \
+    imagemagick-6-common \
  && apt-get -y install --no-install-recommends \
     build-essential \
     ca-certificates \
