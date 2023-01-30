@@ -239,7 +239,6 @@ class ScanVulnerabilityList:
         for key, list_of_complex_types in copy_dict.items():
             uniquified_list = test_utils.uniquify_list_of_complex_datatypes(list_of_complex_types)
             uniquified_list.sort(key=lambda dict_element: dict_element["name"] if isinstance(dict_element, dict) else dict_element.name)
-            copy_dict[key] = uniquified_list
         return dict(sorted(copy_dict.items()))
 
     def save_vulnerability_list(self, path):
@@ -258,17 +257,12 @@ class ScanVulnerabilityList:
                               presented by the ECR Scan Tool
         :return: bool True if the vulnerability is allowed on the allow-list.
         """
-        print(f"^^^^^ {vulnerability} ^^^^^")
         package_name = self.get_vulnerability_package_name_from_allowlist_formatted_vulnerability(vulnerability)
         if package_name not in self.vulnerability_list:
-            print("Return value False")
             return False
         for allowed_vulnerability in self.vulnerability_list[package_name]:
             if self.are_vulnerabilities_equivalent(vulnerability, allowed_vulnerability):
-                print("Return value True")
                 return True
-        print(f"Package name: {package_name}")
-        print("Return value False")
         return False
 
     def __cmp__(self, other):
@@ -323,11 +317,6 @@ class ScanVulnerabilityList:
             return None
         if not other or not other.vulnerability_list:
             return self
-        
-        for package_vulnerabilities in self.vulnerability_list.values():
-            for vulnerability in package_vulnerabilities:
-                if vulnerability not in other:
-                    print(f"******* {vulnerability} *****")
 
         missing_vulnerabilities = [
             vulnerability
@@ -522,7 +511,6 @@ class ECREnhancedScanVulnerabilityList(ScanVulnerabilityList):
         :param vulnerability_2: dict, JSON object consisting of information about the vulnerability in the Allowlist Format
         :return: bool True if the two input objects are equivalent, False otherwise
         """
-        print(f"@@@@@ {vulnerability_1} |||||||| {vulnerability_2} @@@@@")
         return vulnerability_1 == vulnerability_2
     
     def get_summarized_info(self):

@@ -291,5 +291,5 @@ def test_ecr_enhanced_scan(image, ecr_client, sts_client, region):
     if remaining_vulnerabilities:
         assert not remaining_vulnerabilities.vulnerability_list, (
             f"Total of {len(remaining_vulnerabilities.vulnerability_list)} vulnerabilities need to be fixed on {image}:\n"
-            f"{json.dumps(remaining_vulnerabilities.get_sorted_vulnerability_list(), cls= test_utils.EnhancedJSONEncoder)}"
+            f"{json.dumps(remaining_vulnerabilities.vulnerability_list, cls= test_utils.EnhancedJSONEncoder)}"
         )
