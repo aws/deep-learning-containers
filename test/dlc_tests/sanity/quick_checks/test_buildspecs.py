@@ -3,10 +3,16 @@ import re
 
 import pytest
 
+from test.test_utils import is_pr_context
+
 
 @pytest.mark.quick_checks
 @pytest.mark.model("N/A")
 @pytest.mark.integration("buildspecs")
+@pytest.mark.skipif(
+    not is_pr_context(),
+    reason="This tests to ensure train/inference buildspecs are set up as expected in PRs.",
+)
 def test_train_inference_buildspec():
     """
     Walk through all buildspecs. Ensure the following:
