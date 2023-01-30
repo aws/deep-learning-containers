@@ -237,6 +237,7 @@ class ScanVulnerabilityList:
         for key, list_of_complex_types in copy_dict.items():
             uniquified_list = test_utils.uniquify_list_of_complex_datatypes(list_of_complex_types)
             uniquified_list.sort(key=lambda dict_element: dict_element["name"] if isinstance(dict_element, dict) else dict_element.name)
+            copy_dict[key] = uniquified_list
         return dict(sorted(copy_dict.items()))
 
     def save_vulnerability_list(self, path):
