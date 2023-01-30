@@ -30,6 +30,7 @@ PING_URL = "http://localhost:8080/ping"
 INVOCATION_URL = "http://localhost:8080/models/{}/invoke"
 MODEL_NAMES = ["half_plus_three", "half_plus_two"]
 
+
 @pytest.fixture(scope="session", autouse=True)
 def volume():
     try:
