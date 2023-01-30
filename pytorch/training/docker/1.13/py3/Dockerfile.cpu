@@ -138,7 +138,7 @@ RUN curl -L -o ~/mambaforge.sh https://github.com/conda-forge/miniforge/releases
     boto3 \
     pybind11 \
     pyyaml \
-    # needed by fastai
+    # needed by fastai.distributed
     accelerate \ 
     cryptography \
     cmake \
@@ -157,7 +157,6 @@ RUN curl -L -o ~/mambaforge.sh https://github.com/conda-forge/miniforge/releases
  # install plainly will oversize the image
  && pip uninstall -y dataclasses \
  && /opt/conda/bin/conda clean -ya
-
 
 # Conda installs links for libtinfo.so.6 and libtinfo.so.6.2 both
 # Which causes "/opt/conda/lib/libtinfo.so.6: no version information available" warning
