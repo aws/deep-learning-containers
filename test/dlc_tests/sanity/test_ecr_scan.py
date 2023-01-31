@@ -285,11 +285,18 @@ def test_ecr_enhanced_scan(image, ecr_client, sts_client, region):
         LOGGER.info(f"[Allowlist] Image scan allowlist path could not be derived for {image}")
         traceback.print_exc()
 
+    LOGGER.info("ECR IMAGE LIST: ", ecr_image_vulnerability_list)
+    LOGGER.info("ALLOWLIST: ", image_scan_allowlist)
+
+
+    LOGGER.info("ECR IMAGE LIST: ", ecr_image_vulnerability_list.vulnerability_list)
+    LOGGER.info("ALLOWLIST: ", image_scan_allowlist.vulnerability_list)
+
     remaining_vulnerabilities = ecr_image_vulnerability_list - image_scan_allowlist
     LOGGER.info(f"ECR Enhanced Scanning test completed for image: {image}")
 
     if remaining_vulnerabilities:
         assert not remaining_vulnerabilities.vulnerability_list, (
             f"Total of {len(remaining_vulnerabilities.vulnerability_list)} vulnerabilities need to be fixed on {image}:\n"
-            f"{json.dumps(remaining_vulnerabilities.vulnerability_list, cls= test_utils.EnhancedJSONEncoder)}"
+            f"{json.dumps(remaining_vulnerabilities.vulnerability_list, cls= test_utils.EnhancedJSONEncoder, indent=4)}"
         )
