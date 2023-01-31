@@ -94,6 +94,7 @@ RUN conda install -y \
  # Torchvision wheel must be installed first, so that PyTorch-EI framework is not overwritten.
  && pip install https://download.pytorch.org/whl/cpu/torchvision-0.6.1%2Bcpu-cp38-cp38-linux_x86_64.whl \
  && pip install https://amazonei-pytorcheia.s3.amazonaws.com/releases/torcheia-1.0.0-cp38-cp38-manylinux1_x86_64.whl \
+ && pip install certifi \
  && pip install graphviz==$GRAPHVIZ_VERSION \
  && pip install multi-model-server==$MMS_VERSION \
  && pip install opencv-python  \
