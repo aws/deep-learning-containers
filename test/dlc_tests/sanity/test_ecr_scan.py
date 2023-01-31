@@ -285,8 +285,8 @@ def test_ecr_enhanced_scan(image, ecr_client, sts_client, region):
         LOGGER.info(f"[Allowlist] Image scan allowlist path could not be derived for {image}")
         traceback.print_exc()
 
-    LOGGER.info("ECR IMAGE LIST: ", ecr_image_vulnerability_list)
-    LOGGER.info("ALLOWLIST: ", image_scan_allowlist)
+    LOGGER.info("ECR IMAGE LIST: ", ecr_image_vulnerability_list.vulnerability_list)
+    LOGGER.info("ALLOWLIST: ", image_scan_allowlist.vulnerability_list)
 
 
     LOGGER.info("ECR IMAGE LIST: ", ecr_image_vulnerability_list.vulnerability_list)
