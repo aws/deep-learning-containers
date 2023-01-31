@@ -286,8 +286,8 @@ def test_ecr_enhanced_scan(image, ecr_client, sts_client, region):
         traceback.print_exc()
 
 
-    LOGGER.info(f"ECR IMAGE LIST: {ecr_image_vulnerability_list}")
-    LOGGER.info(f"ALLOWLIST: {image_scan_allowlist}")
+    LOGGER.info(f"ECR IMAGE LIST: {ecr_image_vulnerability_list.vulnerability_list}")
+    LOGGER.info(f"ALLOWLIST: {image_scan_allowlist.vulnerability_list}")
 
     remaining_vulnerabilities = ecr_image_vulnerability_list - image_scan_allowlist
     LOGGER.info(f"ECR Enhanced Scanning test completed for image: {image}")
