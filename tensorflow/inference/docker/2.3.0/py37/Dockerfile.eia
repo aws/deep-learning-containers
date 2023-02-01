@@ -56,7 +56,7 @@ RUN apt-get update \
     libffi-dev \
     libgdbm-dev \
     libncursesw5-dev \
-    libpcre2-dev \
+    libpcre2-8-0 \
     libreadline-gplv2-dev \
     libsqlite3-dev \
     libssl-dev \
