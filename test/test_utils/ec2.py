@@ -507,7 +507,7 @@ def enforce_IMDSv2(instance_id, hop_limit, region=DEFAULT_REGION, ec2_client=Non
                 if http_tokens == 'required' and state == 'applied' and hop_limit == instance_hop_limit:
                     break
             timeout -= 1
-    LOGGER.info(f"Modify Metadata options State of EC2 instance: {state}")
+        LOGGER.info(f"Modify Metadata options of EC2 instance: {metadata_options}")
     if state != "applied" or timeout == 0:
         raise Exception("Unable to enforce IMDSv2. Describe instance is not able to confirm if IMDSv2 enforced.")
 
@@ -528,7 +528,7 @@ def disable_IMDSv2_calls(instance_id, hop_limit, region=DEFAULT_REGION, ec2_clie
     )
 
     if not response:
-        raise Exception("Unable to enforce IMDSv2. No response received.")
+        raise Exception("Unable to change hop limit on EC2 instance. No response received.")
 
     timeout = 3
     state = None
@@ -545,10 +545,9 @@ def disable_IMDSv2_calls(instance_id, hop_limit, region=DEFAULT_REGION, ec2_clie
                 if hop_limit == instance_hop_limit:
                     break
             timeout -= 1
-
-    LOGGER.info(f"Modify Metadata options State of EC2 instance: {state}")
+    LOGGER.info(f"Modify Metadata options of EC2 instance: {metadata_options}")
     if state != "applied" or timeout == 0:
-        raise Exception("Unable to disable IMDSv2 on EC2 instance by setting hop limit to 2.")
+        raise Exception("Unable to disable IMDSv2 on EC2 instance by setting hop limit to 1.")
 
 
 def enforce_IMDSv1(instance_id, region=DEFAULT_REGION, ec2_client=None):
@@ -585,10 +584,9 @@ def enforce_IMDSv1(instance_id, region=DEFAULT_REGION, ec2_client=None):
                 if http_tokens == 'optional' and state == 'applied':
                     break
             timeout -= 1
-
+    LOGGER.info(f"Modify Metadata options of EC2 instance: {metadata_options}")
     if state == 'pending' or timeout == 0:
         raise Exception("Unable to enforce IMDSv1. Describe instance is not able to confirm if IMDSv1 enforced.")
-    LOGGER.info(f"Modify Metadata options State of EC2 instance: {state}")
 
 
 def fetch_s3_file_and_get_last_line(s3_location, local_filename="temp.txt"):
