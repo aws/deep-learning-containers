@@ -150,6 +150,7 @@ def launch_instance(
         ],
         "MetadataOptions": {
             "HttpTokens": "required",
+            "HttpEndpoint": "enabled",
             'HttpPutResponseHopLimit': 2,
         },
         "BlockDeviceMappings": [{"DeviceName": "/dev/sda1", "Ebs": {"VolumeSize": 150,}}]
@@ -470,9 +471,9 @@ def get_ec2_instance_tags(instance_id, region=DEFAULT_REGION, ec2_client=None):
     return {tag["Key"]: tag["Value"] for tag in response.get("Tags")}
 
 
-def enforce_IMDSv2(instance_id, region=DEFAULT_REGION, ec2_client=None, hop_limit = 1):
+def enforce_IMDSv2(instance_id, hop_limit, region=DEFAULT_REGION, ec2_client=None):
     """
-    Enabled HTTP TOKENS required option on EC2 instance with given hop limit.
+    Enable IMDSv2 on EC2 instance with hop limit > 1.
 
     :param instance_id: str, ec2 instance id
     :param region: str, Region where ec2 instance is launched.
@@ -480,7 +481,6 @@ def enforce_IMDSv2(instance_id, region=DEFAULT_REGION, ec2_client=None, hop_limi
     :param hop_limit: str, hop limit to be set on ec2 instance.
     """
     ec2_client = ec2_client or get_ec2_client(region)
-    IMDSv2_enforced = False
     response = ec2_client.modify_instance_metadata_options(
         InstanceId=instance_id,
         HttpTokens='required',
@@ -507,11 +507,48 @@ def enforce_IMDSv2(instance_id, region=DEFAULT_REGION, ec2_client=None, hop_limi
                 if http_tokens == 'required' and state == 'applied' and hop_limit == instance_hop_limit:
                     break
             timeout -= 1
-
-    if state == 'pending' or timeout == 0:
-        raise Exception("Unable to enforce IMDSv2. Describe instance is not able to confirm if IMDSv2 enforced.")
     LOGGER.info(f"Modify Metadata options State of EC2 instance: {state}")
+    if state != "applied" or timeout == 0:
+        raise Exception("Unable to enforce IMDSv2. Describe instance is not able to confirm if IMDSv2 enforced.")
 
+
+def disable_IMDSv2_calls(instance_id, hop_limit, region=DEFAULT_REGION, ec2_client=None):
+    """
+    Disable IMDSv2 calls by setting hop limit to 1.
+
+    :param instance_id: str, ec2 instance id
+    :param region: str, Region where ec2 instance is launched.
+    :param ec2_client: str, ec2 client.
+    :param hop_limit: str, hop limit to be set on ec2 instance.
+    """
+    ec2_client = ec2_client or get_ec2_client(region)
+    response = ec2_client.modify_instance_metadata_options(
+        InstanceId=instance_id,
+        HttpPutResponseHopLimit=hop_limit,
+    )
+
+    if not response:
+        raise Exception("Unable to enforce IMDSv2. No response received.")
+
+    timeout = 3
+    state = None
+    if response["InstanceId"]:
+        while timeout > 0:
+            time.sleep(timeout)
+            LOGGER.info(f"Slept for: {timeout}")
+            res = ec2_client.describe_instances(InstanceIds=[instance_id])
+            if res:
+                metadata_options = res['Reservations'][0]['Instances'][0]['MetadataOptions']
+                state = metadata_options['State']
+                instance_hop_limit = metadata_options['HttpPutResponseHopLimit']
+
+                if hop_limit == instance_hop_limit:
+                    break
+            timeout -= 1
+
+    LOGGER.info(f"Modify Metadata options State of EC2 instance: {state}")
+    if state != "applied" or timeout == 0:
+        raise Exception("Unable to disable IMDSv2 on EC2 instance by setting hop limit to 2.")
 
 
 def enforce_IMDSv1(instance_id, region=DEFAULT_REGION, ec2_client=None):
@@ -527,6 +564,7 @@ def enforce_IMDSv1(instance_id, region=DEFAULT_REGION, ec2_client=None):
     response = ec2_client.modify_instance_metadata_options(
         InstanceId=instance_id,
         HttpTokens='optional',
+        HttpPutResponseHopLimit=1
     )
 
     if not response:

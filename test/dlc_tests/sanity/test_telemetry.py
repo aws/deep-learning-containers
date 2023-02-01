@@ -276,11 +276,11 @@ def _run_tag_success_IMDSv1(image_uri, ec2_client, ec2_instance, ec2_connection)
 
     ec2_instance_tags = ec2_utils.get_ec2_instance_tags(ec2_instance_id, ec2_client=ec2_client)
     assert expected_tag_key in ec2_instance_tags, f"{expected_tag_key} was not applied as an instance tag"
-    # Change instance state back to IMDSv2
+    
+    # Change instance state back to IMDSv2 enabled with hop limit to 2
     ec2_utils.enforce_IMDSv2(ec2_instance_id, hop_limit=2)
 
 
-# If hop limit on EC2 instance is 1, then IMDSv2 doesn't work as to get token IMDSv2 needs more than 1 hop
 def _run_tag_failure_IMDSv2_disabled_as_hop_limit_1(image_uri, ec2_client, ec2_instance, ec2_connection):
     """
     Try to add a tag on EC2 instance, it should not get added as IMDSv2 is disabled due to hop limit 1
@@ -305,7 +305,8 @@ def _run_tag_failure_IMDSv2_disabled_as_hop_limit_1(image_uri, ec2_client, ec2_i
     preexisting_ec2_instance_tags = ec2_utils.get_ec2_instance_tags(ec2_instance_id, ec2_client=ec2_client)
     LOGGER.info(f"preexisting_ec2_instance_tags: {preexisting_ec2_instance_tags}")
 
-    ec2_utils.enforce_IMDSv2(ec2_instance_id, hop_limit=1)
+    # If hop limit on EC2 instance is 1, then IMDSv2 doesn't work as to get token, hop limit should be 2 for IMDSv2
+    ec2_utils.disable_IMDSv2_calls(ec2_instance_id, hop_limit=1)
 
     if expected_tag_key in preexisting_ec2_instance_tags:
         ec2_client.delete_tags(Resources=[ec2_instance_id], Tags=[{"Key": expected_tag_key}])
@@ -317,7 +318,9 @@ def _run_tag_failure_IMDSv2_disabled_as_hop_limit_1(image_uri, ec2_client, ec2_i
         f"{expected_tag_key} was applied as an instance tag."
         "EC2 create_tags went through even though it should not have"
     )
+    # Change instance state back to IMDSv2 enabled with hop limit to 2
     ec2_utils.enforce_IMDSv2(ec2_instance_id, hop_limit=2)
+
 
 # If hop limit on EC2 instance is 2, then IMDSv2 works as to get token IMDSv2 needs more than 1 hop
 def _run_tag_success_IMDSv2_hop_limit_2(image_uri, ec2_client, ec2_instance, ec2_connection):
