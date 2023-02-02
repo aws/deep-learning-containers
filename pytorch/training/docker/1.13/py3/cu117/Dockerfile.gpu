@@ -170,7 +170,7 @@ RUN ompi_info --parsable --all | grep mpi_built_with_cuda_support:value \
     mkl-include \
     parso \
     typing \
-    # force h5py to install the openmpi build, not mpich (rubik error)
+    # force conda to install h5py with openmpi build, not mpich (rubik error)
     # https://anaconda.org/conda-forge/h5py/files?page=2
     openmpi \
     mpi4py \
