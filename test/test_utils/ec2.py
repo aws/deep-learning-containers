@@ -471,6 +471,8 @@ def get_ec2_instance_tags(instance_id, region=DEFAULT_REGION, ec2_client=None):
     return {tag["Key"]: tag["Value"] for tag in response.get("Tags")}
 
 
+# If IMDSv2 is enforced on EC2 instance with hop limit 1 then IMDSv2 api calls doesn't work
+# If IMDSv2 is enforced on EC2 instance with hop limit > 1 then IMDSv2 api calls work
 def enforce_IMDSv2(instance_id, hop_limit, region=DEFAULT_REGION, ec2_client=None):
     """
     Enable IMDSv2 on EC2 instance with hop limit > 1.
@@ -510,44 +512,6 @@ def enforce_IMDSv2(instance_id, hop_limit, region=DEFAULT_REGION, ec2_client=Non
         LOGGER.info(f"Modify Metadata options of EC2 instance: {metadata_options}")
     if state != "applied" or timeout == 0:
         raise Exception("Unable to enforce IMDSv2. Describe instance is not able to confirm if IMDSv2 enforced.")
-
-
-def disable_IMDSv2_calls(instance_id, hop_limit, region=DEFAULT_REGION, ec2_client=None):
-    """
-    Disable IMDSv2 calls by setting hop limit to 1.
-
-    :param instance_id: str, ec2 instance id
-    :param region: str, Region where ec2 instance is launched.
-    :param ec2_client: str, ec2 client.
-    :param hop_limit: str, hop limit to be set on ec2 instance.
-    """
-    ec2_client = ec2_client or get_ec2_client(region)
-    response = ec2_client.modify_instance_metadata_options(
-        InstanceId=instance_id,
-        HttpPutResponseHopLimit=hop_limit,
-    )
-
-    if not response:
-        raise Exception("Unable to change hop limit on EC2 instance. No response received.")
-
-    timeout = 3
-    state = None
-    if response["InstanceId"]:
-        while timeout > 0:
-            time.sleep(timeout)
-            LOGGER.info(f"Slept for: {timeout}")
-            res = ec2_client.describe_instances(InstanceIds=[instance_id])
-            if res:
-                metadata_options = res['Reservations'][0]['Instances'][0]['MetadataOptions']
-                state = metadata_options['State']
-                instance_hop_limit = metadata_options['HttpPutResponseHopLimit']
-
-                if hop_limit == instance_hop_limit:
-                    break
-            timeout -= 1
-    LOGGER.info(f"Modify Metadata options of EC2 instance: {metadata_options}")
-    if state != "applied" or timeout == 0:
-        raise Exception("Unable to disable IMDSv2 on EC2 instance by setting hop limit to 1.")
 
 
 def enforce_IMDSv1(instance_id, region=DEFAULT_REGION, ec2_client=None):

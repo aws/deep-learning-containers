@@ -305,8 +305,9 @@ def _run_tag_failure_IMDSv2_disabled_as_hop_limit_1(image_uri, ec2_client, ec2_i
     preexisting_ec2_instance_tags = ec2_utils.get_ec2_instance_tags(ec2_instance_id, ec2_client=ec2_client)
     LOGGER.info(f"preexisting_ec2_instance_tags: {preexisting_ec2_instance_tags}")
 
-    # If hop limit on EC2 instance is 1, then IMDSv2 doesn't work as to get token, hop limit should be 2 for IMDSv2
-    ec2_utils.disable_IMDSv2_calls(ec2_instance_id, hop_limit=1)
+    # If IMDSv2 is enforced on EC2 instance with hop limit 1 then IMDSv2 api calls doesn't work
+    # If IMDSv2 is enforced on EC2 instance with hop limit > 1 then IMDSv2 api calls work
+    ec2_utils.enforce_IMDSv2(ec2_instance_id, hop_limit=1)
 
     if expected_tag_key in preexisting_ec2_instance_tags:
         ec2_client.delete_tags(Resources=[ec2_instance_id], Tags=[{"Key": expected_tag_key}])
