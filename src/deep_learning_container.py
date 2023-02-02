@@ -308,14 +308,15 @@ def main():
 
     logging.basicConfig(level=logging.ERROR)
     token = None
-
-    instance_id = _retrieve_instance_id()
-    if instance_id:
-        region = _retrieve_instance_region()
-    else:
-        token = get_imdsv2_token()
+    instance_id = None
+    region = None
+    token = get_imdsv2_token()
+    if token:
         instance_id = _retrieve_instance_id(token)
         region = _retrieve_instance_region(token)
+    else:
+        instance_id = _retrieve_instance_id()
+        region = _retrieve_instance_region()
 
     bucket_process = multiprocessing.Process(target=query_bucket, args=(instance_id, region))
     tag_process = multiprocessing.Process(target=tag_instance, args=(instance_id, region))
