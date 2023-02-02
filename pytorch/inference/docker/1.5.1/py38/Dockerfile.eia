@@ -38,14 +38,10 @@ RUN apt-get update \
     curl \
     emacs \
     git \
-    imagemagick \
     krb5-user \
     libkdb5-9 \
-    libmagickcore-6.q16-6 \
-    libmagickwand-6.q16-6 \
     libsdl2-2.0-0 \
     libgssapi-krb5-2 \
-    imagemagick-6-common \
     jq \
     libgl1-mesa-glx \
     libglib2.0-0 \
