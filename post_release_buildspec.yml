@@ -6,5 +6,5 @@ phases:
       - start-dockerd
   build:
     commands:
-      - post_release_tag_test --release-spec $(pwd)/release_images.yml
+      - post_release_tag_test --release-spec $(pwd)/$RELEASE_IMAGE_FILE
       - publish_release_information
