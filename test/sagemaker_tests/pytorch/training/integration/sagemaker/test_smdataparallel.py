@@ -95,6 +95,8 @@ def test_smdataparallel_mnist_script_mode_multigpu(ecr_image, sagemaker_regions,
     """
     Tests SM Distributed DataParallel single-node via script mode
     """
+    if ecr_image.split("/")[1].startswith("pr-pytorch-trcomp-training"):
+         pytest.skip("trcomp DLC skip this SMDDP test")
     validate_or_skip_smdataparallel(ecr_image)
 
     instance_type = "ml.p3.16xlarge"
