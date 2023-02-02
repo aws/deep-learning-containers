@@ -28,7 +28,7 @@
   ],
   "imagemagick": [
     {
-      "reason to ignore": "focal is not vulnerable to or patched with all the imagemagick CVEs",
+      "reason to ignore": "patches are only released on ubuntu esm, ignoring due to low severity",
       "description": " A heap-use-after-free flaw was found in ImageMagick's RelinquishDCMInfo() function of dcm.c file. This vulnerability is triggered when an attacker passes a specially crafted DICOM image file to ImageMagick for conversion, potentially leading to information disclosure and a denial of service.",
       "vulnerability_id": "CVE-2022-1114",
       "name": "CVE-2022-1114",

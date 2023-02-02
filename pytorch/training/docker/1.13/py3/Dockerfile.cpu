@@ -128,7 +128,7 @@ RUN curl -L -o ~/mambaforge.sh https://github.com/conda-forge/miniforge/releases
     h5py \
     # force conda to install h5py with openmpi build, not mpich (rubik error)
     # https://anaconda.org/conda-forge/h5py/files?page=2
-    openmpi \
+    "mpi4py>=3.1.4,<3.2" \
     mpi4py \
     requests \
     pyopenssl \

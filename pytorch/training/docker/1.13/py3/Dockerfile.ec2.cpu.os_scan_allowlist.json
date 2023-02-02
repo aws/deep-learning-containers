@@ -88,7 +88,7 @@
   ],
   "imagemagick": [
     {
-      "reason to ignore": "focal is not vulnerable to or patched with all the imagemagick CVEs",
+      "reason to ignore": "patches are only released on ubuntu esm, ignoring due to low severity",
       "description": " ImageMagick 7.1.0-27 is vulnerable to Buffer Overflow.",
       "vulnerability_id": "CVE-2022-28463",
       "name": "CVE-2022-28463",

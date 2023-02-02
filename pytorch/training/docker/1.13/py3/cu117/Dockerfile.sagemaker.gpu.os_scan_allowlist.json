@@ -7,10 +7,10 @@
       "name": "CVE-2022-3996",
       "package_name": "cryptography",
       "package_details": {
-        "file_path": "opt/conda/lib/python3.9/site-packages/cryptography-39.0.0.dist-info/METADATA",
+        "file_path": "opt/conda/lib/python3.9/site-packages/cryptography-38.0.4.dist-info/METADATA",
         "name": "cryptography",
         "package_manager": "PYTHONPKG",
-        "version": "39.0.0",
+        "version": "38.0.4",
         "release": null
       },
       "remediation": { "recommendation": { "text": "None Provided" } },
@@ -55,7 +55,7 @@
   ],
   "imagemagick": [
     {
-      "reason to ignore": "focal is not vulnerable to or patched with all the imagemagick CVEs",
+      "reason to ignore": "patches are only released on ubuntu esm, ignoring due to low severity",
       "description": " A flaw was found in ImageMagick in versions before 7.0.11 and before 6.9.12, where a division by zero in WaveImage() of MagickCore/visual-effects.c may trigger undefined behavior via a crafted image file submitted to an application using ImageMagick. The highest threat from this vulnerability is to system availability.",
       "vulnerability_id": "CVE-2021-20309",
       "name": "CVE-2021-20309",

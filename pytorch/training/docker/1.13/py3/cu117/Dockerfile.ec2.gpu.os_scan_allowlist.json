@@ -88,7 +88,7 @@
   ],
   "imagemagick": [
     {
-      "reason to ignore": "focal is not vulnerable to or patched with all the imagemagick CVEs",
+      "reason to ignore": "patches are only released on ubuntu esm, ignoring due to low severity",
       "description": " A vulnerability was found in ImageMagick, causing an outside the range of representable values of type 'unsigned long' at coders/pcl.c, when crafted or untrusted input is processed. This leads to a negative impact to application availability or other problems related to undefined behavior.",
       "vulnerability_id": "CVE-2022-32546",
       "name": "CVE-2022-32546",
