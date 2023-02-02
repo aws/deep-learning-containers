@@ -126,13 +126,16 @@ RUN curl -L -o ~/mambaforge.sh https://github.com/conda-forge/miniforge/releases
     parso \
     typing \
     h5py \
+    # force conda to install h5py with openmpi build, not mpich (rubik error)
+    # https://anaconda.org/conda-forge/h5py/files?page=2
+    openmpi \
+    mpi4py \
     requests \
     pyopenssl \
     # Below 2 are included in miniconda base, but not mamba so need to install
     conda-content-trust \
     charset-normalizer \
     packaging \
-    mpi4py \
     opencv \
     awscli \
     boto3 \
@@ -150,11 +153,11 @@ RUN curl -L -o ~/mambaforge.sh https://github.com/conda-forge/miniforge/releases
     ipython \
  && /opt/conda/bin/conda install -c dglteam -y dgl \
  && /opt/conda/bin/conda install -c fastai fastai \
-# fastai conda has a dependency chain of fastai -> spacy -> pathy -> dataclasses
+ # fastai conda has a dependency chain of fastai -> spacy -> pathy -> dataclasses
  # conda pathy installs dataclasses regardless of py version: https://github.com/conda-forge/pathy-feedstock/blob/1e6da43da5c8e11e09c063c79b09236bbacb7780/recipe/meta.yaml#L29
  # pypi solves this issue: https://github.com/justindujardin/pathy/blob/master/requirements.txt#L3
- # dataclasses package is not needed for py>=37
- # install plainly will oversize the image
+ # dataclasses package, which contains CVE, is not needed for py>=37
+ # pypi fastai's dependencies will oversize the image
  && pip uninstall -y dataclasses \
  && /opt/conda/bin/conda clean -ya
 
