@@ -41,8 +41,6 @@ ARG PT_URL=${PT_BUCKET}/torch-1.13.1%2Bcu117-cp39-cp39-linux_x86_64.whl
 ARG PT_XLA_URL=${PT_BUCKET}/torch_xla-1.13-cp39-cp39-linux_x86_64.whl
 ARG TORCHVISION_URL=${PT_BUCKET}/torchvision-0.14.1a0%2B5e8e2f1-cp39-cp39-linux_x86_64.whl
 ARG TORCHAUDIO_URL=${PT_BUCKET}/torchaudio-0.13.1%2Bb90d798-cp39-cp39-linux_x86_64.whl
-ARG SMD_DATA_PARALLEL_URL=https://smdataparallel.s3.amazonaws.com/binary/pytorch/1.13.1/cu117/2023-01-09/smdistributed_dataparallel-1.7.0-cp39-cp39-linux_x86_64.whl
-
 
 
 # Install Sagemaker PythonSDK
@@ -59,11 +57,9 @@ RUN apt-get update \
 
 
 # Install PyTorch
-# RUN ldd /opt/conda/lib/python3.9/site-packages/torch/lib/libtorch.so
 RUN pip uninstall -y torch \
  && pip install --no-deps --no-cache-dir -U --force-reinstall ${PT_URL} \
  && rm -rf ${PT_URL}
-# RUN ldd /opt/conda/lib/python3.9/site-packages/torch/lib/libtorch.so
 
 # Install PyTorch XLA
 RUN pip uninstall -y torch_xla \
@@ -93,11 +89,6 @@ RUN ln -s ${CONDA_PREFIX}/lib/libmkl_intel_lp64.so ${CONDA_PREFIX}/lib/libmkl_in
  && ln -s ${CONDA_PREFIX}/lib/libmkl_gf_lp64.so ${CONDA_PREFIX}/lib/libmkl_gf_lp64.so.1 \
  && ln -s /opt/amazon/openmpi/lib/libmpi.so.40 ${CONDA_PREFIX}/lib/libmpicxx.so.12 \
  && ln -s /opt/amazon/openmpi/lib/libmpi.so.40 ${CONDA_PREFIX}/lib/libmpi.so.12
-
-# Install SM Distributed DataParallel binary
-RUN pip uninstall -y smdistributed_dataparallel 
-RUN SMDATAPARALLEL_PT=1 pip install --no-cache-dir ${SMD_DATA_PARALLEL_URL} --force-reinstall
-ENV LD_LIBRARY_PATH="/opt/conda/lib/python3.9/site-packages/smdistributed/dataparallel/lib:$LD_LIBRARY_PATH"
 
 # # Install SageMaker Training Toolkit
 RUN pip uninstall -y sagemaker-training \
