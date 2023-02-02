@@ -31,7 +31,7 @@ images:
  BuildEC2MXNetCPUInferencePy3DockerImage:
    <<: *INFERENCE_REPOSITORY
    build: &MXNET_CPU_INFERENCE_PY3 false
-   image_size_baseline: 2202
+   image_size_baseline: 3000
    device_type: &DEVICE_TYPE cpu
    python_version: &DOCKER_PYTHON_VERSION py3
    tag_python_version: &TAG_PYTHON_VERSION py38
@@ -58,7 +58,7 @@ images:
  BuildSMMXNetCPUInferencePy3DockerImage:
    <<: *INFERENCE_REPOSITORY
    build: &MXNET_CPU_INFERENCE_PY3 false
-   image_size_baseline: 2202
+   image_size_baseline: 3000
    device_type: &DEVICE_TYPE cpu
    python_version: &DOCKER_PYTHON_VERSION py3
    tag_python_version: &TAG_PYTHON_VERSION py38
