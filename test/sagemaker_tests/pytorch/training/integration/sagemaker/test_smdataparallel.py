@@ -31,8 +31,6 @@ from . import invoke_pytorch_estimator
 def validate_or_skip_smdataparallel(ecr_image):
     if not can_run_smdataparallel(ecr_image):
         pytest.skip("Data Parallelism is supported on CUDA 11 on PyTorch v1.6 and above")
-    if ecr_image.split("/")[1].endswith("pytorch-trcomp-training"):
-        pytest.skip("trcomp DLC skip this SMDDP test")
 
 
 def can_run_smdataparallel(ecr_image):
