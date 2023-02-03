@@ -1,34 +1,6 @@
 # docker image region us-west-2
 FROM 763104351884.dkr.ecr.us-west-2.amazonaws.com/pytorch-training:1.13.1-gpu-py39-cu117-ubuntu20.04-sagemaker AS sagemaker
 
-########
-###   :::Update NCCL:::
-###   This is a temporary workaround to
-###   upgrade NCCL
-########
-
-# Remove Older NCCL
-RUN rm -rvf `find /usr/local | grep nccl` /usr/local/obj
-
-ENV NCCL_VERSION=2.14.3
-
-# Install Newer NCCL
-RUN cd /tmp \
- && git clone https://github.com/NVIDIA/nccl.git -b v${NCCL_VERSION}-1 \
- && cd nccl \
- && make -j `nproc` src.build BUILDDIR=/usr/local \
- && rm -rf /tmp/nccl
-
-# Reinstall AWS OFI NCCL
-
-ENV BRANCH_OFI=1.4.0-aws
-
-RUN mkdir /tmp/efa-ofi-nccl  && cd /tmp/efa-ofi-nccl  && git clone https://github.com/aws/aws-ofi-nccl.git -b v${BRANCH_OFI}  && cd aws-ofi-nccl  && ./autogen.sh  && ./configure --with-libfabric=/opt/amazon/efa   --with-mpi=/opt/amazon/openmpi   --with-cuda=/usr/local/cuda   --with-nccl=/usr/local --prefix=/usr/local  && make  && make install  && rm -rf /tmp/efa-ofi-nccl  && rm -rf /var/lib/apt/lists/*  && apt-get clean
-
-########
-###   :::Update NCCL:::
-########
-
 LABEL maintainer="Amazon AI"
 LABEL dlc_major_version="1"
 
@@ -87,13 +59,8 @@ RUN ln -s ${CONDA_PREFIX}/lib/libmkl_intel_lp64.so ${CONDA_PREFIX}/lib/libmkl_in
  && ln -s /opt/amazon/openmpi/lib/libmpi.so.40 ${CONDA_PREFIX}/lib/libmpicxx.so.12 \
  && ln -s /opt/amazon/openmpi/lib/libmpi.so.40 ${CONDA_PREFIX}/lib/libmpi.so.12
 
-# # Install SageMaker Training Toolkit
-RUN pip uninstall -y sagemaker-training \
- && pip install --no-deps --no-cache-dir -U --force-reinstall "sagemaker-training>=4.3.2"
-
-# # Install SageMaker PyTorch Training Toolkit
-RUN pip uninstall -y sagemaker-pytorch-training \
- && pip install --no-deps --no-cache-dir -U --force-reinstall "sagemaker-pytorch-training>=2.6.1,<3"
+# Uninstall SMDDP
+RUN pip uninstall -y smdistributed-dataparallel
 
 # CVE Fixes
 # RUN pip install --no-cache-dir -U "protobuf<3.20.0"
