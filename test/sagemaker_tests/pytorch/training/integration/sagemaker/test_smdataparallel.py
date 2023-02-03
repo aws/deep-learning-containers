@@ -31,6 +31,8 @@ from . import invoke_pytorch_estimator
 def validate_or_skip_smdataparallel(ecr_image):
     if not can_run_smdataparallel(ecr_image):
         pytest.skip("Data Parallelism is supported on CUDA 11 on PyTorch v1.6 and above")
+    if ecr_image.split("/")[1].endswith("pytorch-trcomp-training"):
+        pytest.skip("trcomp DLC skip this SMDDP test")
 
 
 def can_run_smdataparallel(ecr_image):
@@ -91,12 +93,11 @@ def test_smdataparallel_throughput(framework_version, ecr_image, sagemaker_regio
 @pytest.mark.processor("gpu")
 @pytest.mark.skip_cpu
 @pytest.mark.skip_py2_containers
+@pytest.mark.skip_trcomp_containers
 def test_smdataparallel_mnist_script_mode_multigpu(ecr_image, sagemaker_regions, instance_type, tmpdir):
     """
     Tests SM Distributed DataParallel single-node via script mode
     """
-    if ecr_image.split("/")[1].startswith("pr-pytorch-trcomp-training"):
-         pytest.skip("trcomp DLC skip this SMDDP test")
     validate_or_skip_smdataparallel(ecr_image)
 
     instance_type = "ml.p3.16xlarge"
@@ -122,6 +123,7 @@ def test_smdataparallel_mnist_script_mode_multigpu(ecr_image, sagemaker_regions,
 @pytest.mark.skip_py2_containers
 @pytest.mark.flaky(reruns=2)
 @pytest.mark.efa()
+@pytest.mark.skip_trcomp_containers
 @pytest.mark.parametrize(
     "efa_instance_type", get_efa_test_instance_type(default=["ml.p3.16xlarge", "ml.p4d.24xlarge"]), indirect=True
 )
@@ -129,8 +131,6 @@ def test_smdataparallel_mnist(ecr_image, sagemaker_regions, efa_instance_type, t
     """
     Tests smddprun command via Estimator API distribution parameter
     """
-    if ecr_image.split("/")[1].startswith("pr-pytorch-trcomp-training"):
-         pytest.skip("trcomp DLC skip this SMDDP test")
     with timeout(minutes=DEFAULT_TIMEOUT):
         validate_or_skip_smdataparallel_efa(ecr_image)
         distribution = {"smdistributed": {"dataparallel": {"enabled": True}}}
@@ -155,13 +155,12 @@ def test_smdataparallel_mnist(ecr_image, sagemaker_regions, efa_instance_type, t
 @pytest.mark.skip_py2_containers
 @pytest.mark.flaky(reruns=2)
 @pytest.mark.efa()
+@pytest.mark.skip_trcomp_containers
 @pytest.mark.parametrize("efa_instance_type", get_efa_test_instance_type(default=["ml.p3.16xlarge"]), indirect=True)
 def test_hc_smdataparallel_mnist(ecr_image, sagemaker_regions, efa_instance_type, tmpdir):
     """
     Tests smddprun command via Estimator API distribution parameter
     """
-    if ecr_image.split("/")[1].startswith("pr-pytorch-trcomp-training"):
-         pytest.skip("trcomp DLC skip this SMDDP test")
     with timeout(minutes=DEFAULT_TIMEOUT):
         validate_or_skip_smdataparallel_efa(ecr_image)
         instance_count = 2

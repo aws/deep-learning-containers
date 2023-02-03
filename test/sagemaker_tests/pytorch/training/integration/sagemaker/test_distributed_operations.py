@@ -112,12 +112,11 @@ def test_dist_operations_multi_gpu(framework_version, ecr_image, sagemaker_regio
 @pytest.mark.model("mnist")
 @pytest.mark.skip_cpu
 @pytest.mark.skip_py2_containers
+@pytest.mark.skip_trcomp_containers
 def test_dist_operations_fastai_gpu(framework_version, ecr_image, sagemaker_regions):
     _, image_framework_version = get_framework_and_version_from_tag(ecr_image)
     if Version("1.9") <= Version(image_framework_version) < Version("1.13"):
         pytest.skip("Fast ai is not supported on PyTorch v1.9.x, v1.10.x, v1.11.x, v1.12.x")
-    if _ == "pytorch_trcomp":
-        pytest.skip("test_trcomp.py has tested the same thing")
 
     with timeout(minutes=DEFAULT_TIMEOUT):
         estimator_parameter = {
