@@ -195,7 +195,8 @@ RUN ompi_info --parsable --all | grep mpi_built_with_cuda_support:value \
     "pillow>=9.4" \
     psutil \
     ipython \
- && /opt/conda/bin/mamba install -c dglteam -y dgl-cuda11.7 \
+ # pin dgl to 0.9.1 as upstream test has not caught up, currently having accuracy error
+ && /opt/conda/bin/mamba install -c dglteam -y dgl-cuda11.7=0.9.1 \
  && /opt/conda/bin/mamba install -c pytorch -y magma-cuda117 \
  && /opt/conda/bin/mamba install -c fastai fastai \
  # fastai conda has a dependency chain of fastai -> spacy -> pathy -> dataclasses
