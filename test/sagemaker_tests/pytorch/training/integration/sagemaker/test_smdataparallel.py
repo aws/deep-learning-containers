@@ -57,6 +57,7 @@ def can_run_smdataparallel_efa(ecr_image):
 @pytest.mark.integration("smdataparallel")
 @pytest.mark.parametrize('efa_instance_type', get_efa_test_instance_type(default=["ml.p4d.24xlarge"]), indirect=True)
 @pytest.mark.skip_cpu
+@pytest.mark.skip_trcomp_containers
 @pytest.mark.efa()
 def test_smdataparallel_throughput(framework_version, ecr_image, sagemaker_regions, efa_instance_type, tmpdir):
     with timeout(minutes=DEFAULT_TIMEOUT):
