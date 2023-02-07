@@ -1,6 +1,7 @@
 {
   "imagemagick": [
     {
+      "reason_to_ignore": "No fix at this time, Package is at highest version for OS",
       "description": " In ImageMagick, there is load of misaligned address for type 'double', which requires 8 byte alignment and for type 'float', which requires 4 byte alignment at MagickCore/property.c. Whenever crafted or untrusted input is processed by ImageMagick, this causes a negative impact to application availability or other problems related to undefined behavior.",
       "vulnerability_id": "CVE-2022-32547",
       "name": "CVE-2022-32547",
@@ -387,6 +388,7 @@
   ],
   "imagemagick-6-common": [
     {
+      "reason_to_ignore": "No fix at this time, Package is at highest version for OS",
       "description": " In ImageMagick, there is load of misaligned address for type 'double', which requires 8 byte alignment and for type 'float', which requires 4 byte alignment at MagickCore/property.c. Whenever crafted or untrusted input is processed by ImageMagick, this causes a negative impact to application availability or other problems related to undefined behavior.",
       "vulnerability_id": "CVE-2022-32547",
       "name": "CVE-2022-32547",
@@ -581,6 +583,7 @@
   ],
   "libmagickcore-6.q16-6": [
     {
+      "reason_to_ignore": "No fix at this time, Package is at highest version for OS",
       "description": " In ImageMagick, there is load of misaligned address for type 'double', which requires 8 byte alignment and for type 'float', which requires 4 byte alignment at MagickCore/property.c. Whenever crafted or untrusted input is processed by ImageMagick, this causes a negative impact to application availability or other problems related to undefined behavior.",
       "vulnerability_id": "CVE-2022-32547",
       "name": "CVE-2022-32547",
@@ -775,6 +778,7 @@
   ],
   "libmagickwand-6.q16-6": [
     {
+      "reason_to_ignore": "No fix at this time, Package is at highest version for OS",
       "description": " In ImageMagick, there is load of misaligned address for type 'double', which requires 8 byte alignment and for type 'float', which requires 4 byte alignment at MagickCore/property.c. Whenever crafted or untrusted input is processed by ImageMagick, this causes a negative impact to application availability or other problems related to undefined behavior.",
       "vulnerability_id": "CVE-2022-32547",
       "name": "CVE-2022-32547",
