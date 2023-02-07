@@ -28,9 +28,8 @@ JS_PING = "js_content tensorflowServing.ping"
 JS_INVOCATIONS = "js_content tensorflowServing.invocations"
 GUNICORN_PING = "proxy_pass http://gunicorn_upstream/ping"
 GUNICORN_INVOCATIONS = "proxy_pass http://gunicorn_upstream/invocations"
-MULTI_MODEL = "s" if os.environ.get("SAGEMAKER_MULTI_MODEL", "False").lower() == "true" else ""
-MODEL_DIR = f"model{MULTI_MODEL}"
-CODE_DIR = "/opt/ml/{}/code".format(MODEL_DIR)
+MODEL_DIR = "" if os.environ.get("SAGEMAKER_MULTI_MODEL", "False").lower() == "true" else "model/"
+CODE_DIR = f"/opt/ml/{MODEL_DIR}code"
 PYTHON_LIB_PATH = os.path.join(CODE_DIR, "lib")
 REQUIREMENTS_PATH = os.path.join(CODE_DIR, "requirements.txt")
 INFERENCE_PATH = os.path.join(CODE_DIR, "inference.py")
@@ -134,7 +133,8 @@ class ServiceManager(object):
         os.environ["TFS_REST_PORTS"] = self._tfs_rest_concat_ports
 
     def _need_python_service(self):
-        if os.path.exists(INFERENCE_PATH):
+        if (os.path.exists(INFERENCE_PATH) or os.path.exists(REQUIREMENTS_PATH)
+                or os.path.exists(PYTHON_LIB_PATH)):
             self._enable_python_service = True
         if os.environ.get("SAGEMAKER_MULTI_MODEL_UNIVERSAL_BUCKET") and os.environ.get(
             "SAGEMAKER_MULTI_MODEL_UNIVERSAL_PREFIX"
@@ -256,7 +256,7 @@ class ServiceManager(object):
         paginator = client.get_paginator("list_objects")
         for result in paginator.paginate(Bucket=bucket, Delimiter="/", Prefix=prefix):
             for file in result.get("Contents", []):
-                destination = os.path.join(CODE_DIR, file.get("Key"))
+                destination = os.path.join(CODE_DIR, file.get("Key").split("/")[-1])
                 if not os.path.exists(os.path.dirname(destination)):
                     os.makedirs(os.path.dirname(destination))
                 resource.meta.client.download_file(bucket, file.get("Key"), destination)
