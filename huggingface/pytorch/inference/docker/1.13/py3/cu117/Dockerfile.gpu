@@ -47,7 +47,8 @@ ENV NCCL_VERSION=2.14.3
 ENV NVML_VERSION=11.7.91
 
 RUN apt-get update \
- && apt-get -y upgrade \
+ # TODO: Remove systemd upgrade once it is updated in base image
+ && apt-get -y upgrade --only-upgrade systemd openssl cryptsetup \
  && apt-get install -y --no-install-recommends software-properties-common \
 # && add-apt-repository ppa:openjdk-r/ppa \
  && apt-get update \
@@ -89,6 +90,8 @@ RUN apt-get update \
     wget \
     unzip \
     zlib1g-dev \
+    libsndfile1-dev \
+    ffmpeg \
     openssh-client \
     openssh-server \
  && rm -rf /var/lib/apt/lists/* \
