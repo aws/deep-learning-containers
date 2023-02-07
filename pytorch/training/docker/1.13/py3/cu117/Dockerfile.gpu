@@ -1,7 +1,7 @@
 ARG PYTHON=python3
-ARG PYTHON_VERSION=3.9.13
+ARG PYTHON_VERSION=3.9.16
 ARG PYTHON_SHORT_VERSION=3.9
-ARG MAMBA_VERSION=22.9.0-3
+ARG MAMBA_VERSION=22.11.1-2
 
 # PyTorch Binaries
 ARG PT_EC2_TRAINING_URL=https://aws-pytorch-unified-cicd-binaries.s3.us-west-2.amazonaws.com/r1.13.1_ec2/20221219-193736/54406b8eed7fbd61be629cb06229dfb7b6b2954e/torch-1.13.1%2Bcu117-cp39-cp39-linux_x86_64.whl
