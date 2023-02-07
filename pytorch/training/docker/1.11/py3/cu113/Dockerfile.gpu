@@ -173,7 +173,7 @@ RUN ompi_info --parsable --all | grep mpi_built_with_cuda_support:value \
     conda-content-trust \
     charset-normalizer \
     tqdm \
- && /opt/conda/bin/conda install -c dglteam -y dgl-cuda11.3=0.8.0 \
+ && /opt/conda/bin/conda install -c dglteam -y dgl-cuda11.3 \
  && /opt/conda/bin/conda install -c pytorch magma-cuda113 \
  && /opt/conda/bin/conda clean -ya
 
