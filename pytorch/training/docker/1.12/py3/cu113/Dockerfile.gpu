@@ -456,9 +456,10 @@ RUN mkdir -p /etc/pki/tls/certs && cp /etc/ssl/certs/ca-certificates.crt /etc/pk
 WORKDIR /
 
 # Install scikit-learn and pandas
-RUN conda install -y -c conda-forge \
+RUN /opt/conda/bin/conda install -y -c conda-forge \
     scikit-learn \
-    pandas
+    pandas \
+ && /opt/conda/bin/conda clean -ya
 
 WORKDIR /
 
