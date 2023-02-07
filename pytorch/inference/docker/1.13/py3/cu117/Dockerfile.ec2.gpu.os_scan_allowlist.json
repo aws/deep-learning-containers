@@ -28,6 +28,7 @@
   ],
   "imagemagick": [
     {
+      "reason_to_ignore": "No fix at this time, Package is at highest version for OS",
       "description": " ImageMagick 7.1.0-27 is vulnerable to Buffer Overflow.",
       "vulnerability_id": "CVE-2022-28463",
       "name": "CVE-2022-28463",
@@ -414,6 +415,7 @@
   ],
   "imagemagick-6-common": [
     {
+      "reason_to_ignore": "No fix at this time, Package is at highest version for OS",
       "description": " ImageMagick 7.1.0-27 is vulnerable to Buffer Overflow.",
       "vulnerability_id": "CVE-2022-28463",
       "name": "CVE-2022-28463",
@@ -608,6 +610,7 @@
   ],
   "libmagickcore-6.q16-6": [
     {
+      "reason_to_ignore": "No fix at this time, Package is at highest version for OS",
       "description": " ImageMagick 7.1.0-27 is vulnerable to Buffer Overflow.",
       "vulnerability_id": "CVE-2022-28463",
       "name": "CVE-2022-28463",
@@ -802,6 +805,7 @@
   ],
   "libmagickwand-6.q16-6": [
     {
+      "reason_to_ignore": "No fix at this time, Package is at highest version for OS",
       "description": " ImageMagick 7.1.0-27 is vulnerable to Buffer Overflow.",
       "vulnerability_id": "CVE-2022-28463",
       "name": "CVE-2022-28463",
