@@ -130,7 +130,7 @@ RUN curl -L -o ~/mambaforge.sh https://github.com/conda-forge/miniforge/releases
     conda-content-trust \
     charset-normalizer \
     tqdm \
- && /opt/conda/bin/conda install -c dglteam -y dgl \
+ && /opt/conda/bin/conda install -c dglteam -y dgl=0.9.1 \
  && /opt/conda/bin/conda clean -ya
 
 # Upstream conda looks to have moved to 4.13 which is incompatible with mamba 0.22.1 and will fail the conda-forge installs.
