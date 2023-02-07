@@ -7,10 +7,10 @@
       "name": "CVE-2022-3996",
       "package_name": "cryptography",
       "package_details": {
-        "file_path": "opt/conda/lib/python3.9/site-packages/cryptography-39.0.0.dist-info/METADATA",
+        "file_path": "opt/conda/lib/python3.9/site-packages/cryptography-39.0.1.dist-info/METADATA",
         "name": "cryptography",
         "package_manager": "PYTHONPKG",
-        "version": "39.0.0",
+        "version": "39.0.1",
         "release": null
       },
       "remediation": { "recommendation": { "text": "None Provided" } },
