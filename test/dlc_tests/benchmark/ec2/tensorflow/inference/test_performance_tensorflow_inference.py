@@ -80,7 +80,7 @@ def ec2_performance_tensorflow_inference(image_uri, processor, ec2_connection, e
 
         ec2_connection.run(
             (
-                f"sudo apt install python3-pip"
+                f"sudo apt-get -y install python3-pip"
             ), hide=True
         )
         ec2_connection.run(
