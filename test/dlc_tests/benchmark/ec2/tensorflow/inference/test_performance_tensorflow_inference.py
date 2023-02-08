@@ -90,7 +90,7 @@ def ec2_performance_tensorflow_inference(image_uri, processor, ec2_connection, e
         )
         ec2_connection.run(
             (
-                f"pip3 install --no-dependencies --user tensorflow tensorflow-serving-api=={tf_api_version}"
+                f"pip3 install --no-dependencies --user tensorflow-serving-api=={tf_api_version}"
             ), hide=True
         )
     else:
@@ -98,6 +98,8 @@ def ec2_performance_tensorflow_inference(image_uri, processor, ec2_connection, e
         ec2_connection.run(
             f"pip3 install boto3 grpcio 'tensorflow-serving-api<={tf_api_version}' --user --no-warn-script-location"
         )
+    # checking if TF uis available for python
+    ec2_connection.run('python3 -c "import tensorflow as tf"')
     time_str = time.strftime("%Y-%m-%d-%H-%M-%S")
     commit_info = os.getenv("CODEBUILD_RESOLVED_SOURCE_VERSION")
     log_file = f"synthetic_{commit_info}_{time_str}.log"
