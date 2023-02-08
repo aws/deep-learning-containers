@@ -107,8 +107,8 @@ RUN conda install -y \
  && pip install numpy==1.22.4 \
  && pip install pillow==9.3.0 \
  && pip install urllib3==1.26.11 \
- # pyOpenSSL requires cryptography>=2.3, but all versions <3.3 have vulnerabilities
- && pip install -U "cryptography>=3.3"
+ # pyOpenSSL requires cryptography>=2.3
+ && pip install cryptography==39.0.1
 
 RUN useradd -m model-server \
  && mkdir -p /home/model-server/tmp \
