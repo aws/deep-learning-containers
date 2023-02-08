@@ -231,6 +231,8 @@ RUN HOME_DIR=/root \
  && rm -rf ${HOME_DIR}/oss_compliance* \
  && rm -rf /tmp/tmp*
 
+RUN rm -rf ~/.cache
+
 # Starts framework
 CMD ["/bin/bash"]
 
@@ -325,6 +327,8 @@ RUN HOME_DIR=/root \
  && ${HOME_DIR}/oss_compliance/generate_oss_compliance.sh ${HOME_DIR} ${PYTHON} \
  && rm -rf ${HOME_DIR}/oss_compliance* \
  && rm -rf /tmp/tmp*
+
+RUN rm -rf ~/.cache
 
 ENTRYPOINT ["bash", "-m", "start_with_right_hostname.sh"]
 CMD ["/bin/bash"]
