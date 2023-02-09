@@ -1365,7 +1365,8 @@
             "source": "UBUNTU_CVE",
             "severity": "INFORMATIONAL",
             "status": "ACTIVE",
-            "title": "CVE-2022-28321 - libpam-modules"
+            "title": "CVE-2022-28321 - libpam-modules",
+            "reason_to_ignore": "libzmq5 upgraded to latest available version for Ubuntu Version."
         }
     ]
 }

@@ -1337,5 +1337,36 @@
             "title": "CVE-2021-20235 - libzmq5",
             "reason_to_ignore": "libzmq5 upgraded to latest available version for Ubuntu Version."
         }
+    ],            
+    "libpam-modules": [
+        {
+            "description": " The Linux-PAM package before 1.5.2-6.1 for openSUSE Tumbleweed allows authentication bypass for SSH logins. The pam_access.so module doesn't correctly restrict login if a user tries to connect from an IP address that is not resolvable via DNS. In such conditions, a user with denied access to a machine can still get access. NOTE: the relevance of this issue is largely limited to openSUSE Tumbleweed and openSUSE Factory; it does not affect Linux-PAM upstream.",
+            "vulnerability_id": "CVE-2022-28321",
+            "name": "CVE-2022-28321",
+            "package_name": "libpam-modules",
+            "package_details": {
+                "file_path": null,
+                "name": "libpam-modules",
+                "package_manager": "OS",
+                "version": "1.3.1",
+                "release": "5ubuntu4.4"
+            },
+            "remediation": {
+                "recommendation": {
+                    "text": "None Provided"
+                }
+            },
+            "cvss_v3_score": 9.8,
+            "cvss_v30_score": 0.0,
+            "cvss_v31_score": 9.8,
+            "cvss_v2_score": 0.0,
+            "cvss_v3_severity": "CRITICAL",
+            "source_url": "https://people.canonical.com/~ubuntu-security/cve/2022/CVE-2022-28321.html",
+            "source": "UBUNTU_CVE",
+            "severity": "INFORMATIONAL",
+            "status": "ACTIVE",
+            "title": "CVE-2022-28321 - libpam-modules",
+            "reason_to_ignore": "libzmq5 upgraded to latest available version for Ubuntu Version."
+        }
     ]
 }
