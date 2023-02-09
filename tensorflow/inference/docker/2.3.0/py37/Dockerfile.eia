@@ -59,9 +59,15 @@ RUN apt-get update \
     libreadline-gplv2-dev \
     libsqlite3-dev \
     libssl-dev \
+    libtiff5 \
     tk-dev \
  && apt-get clean \
  && rm -rf /var/lib/apt/lists/*
+
+# upgrade libpcre2-8-0
+RUN wget http://ftp.de.debian.org/debian/pool/main/p/pcre2/libpcre2-8-0_10.36-2+deb11u1_amd64.deb \
+ && dpkg -i libpcre2-8-0_10.36-2+deb11u1_amd64.deb \
+ && rm -rf libpcre2-8-0_10.36-2+deb11u1_amd64.deb
 
 RUN wget https://www.python.org/ftp/python/$PYTHON_VERSION/Python-$PYTHON_VERSION.tgz \
  && tar -xvf Python-$PYTHON_VERSION.tgz \
@@ -83,6 +89,7 @@ RUN ln -s $(which ${PYTHON}) /usr/local/bin/python \
 RUN ${PIP} install --no-cache-dir \
     "awscli<2" \
     boto3 \
+    certifi \
     cython==0.29.21 \
     falcon==2.0.0 \
     gunicorn==20.0.4 \
