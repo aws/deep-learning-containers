@@ -71,11 +71,8 @@ RUN apt-get update \
  && rm -rf /var/lib/apt/lists/* \
  && apt-get clean
 
-ENV REPO_USER=TrainiumPreview
-RUN export REPO_SECRET=$(aws secretsmanager get-secret-value --secret-id arn:aws:secretsmanager:us-east-1:125563815299:secret:TrainiumPreview-erPjTg --region us-east-1 --query 'SecretString' --output text | jq -r '.password') \
-  && echo "deb https://$REPO_USER:$REPO_SECRET@apt.repos.trn1.neuron.annapurna.aws.a2z.com focal main" > /etc/apt/sources.list.d/neuron.list \
-  && wget -qO - https://$REPO_USER:$REPO_SECRET@apt.repos.trn1.neuron.annapurna.aws.a2z.com/GPG-PUB-KEY-AMAZON-AWS-NEURON.PUB | apt-key add - \
-  && apt-get update
+RUN echo "deb https://apt.repos.neuron.amazonaws.com focal main" > /etc/apt/sources.list.d/neuron.list
+RUN wget -qO - https://apt.repos.neuron.amazonaws.com/GPG-PUB-KEY-AMAZON-AWS-NEURON.PUB | apt-key add -
 
 RUN apt-get update \
  && apt-get install -y \
@@ -137,11 +134,9 @@ RUN ${PIP} install --no-cache-dir -U \
     Pillow
 
 RUN mkdir -p /etc/pki/tls/certs && cp /etc/ssl/certs/ca-certificates.crt /etc/pki/tls/certs/ca-bundle.crt
-
-RUN /bin/bash -l -c 'export REPO_SECRET=$(aws secretsmanager get-secret-value --secret-id arn:aws:secretsmanager:us-east-1:125563815299:secret:TrainiumPreview-erPjTg --region us-east-1 --query 'SecretString' --output text | jq -r '.password')' \
- && ${PIP} config set global.extra-index-url https://$REPO_USER:$REPO_SECRET@pip.repos.trn1.neuron.annapurna.aws.a2z.com \
- && ${PIP} install --force-reinstall torch-neuronx==1.13.* --extra-index-url https://$REPO_USER:$REPO_SECRET@pip.repos.trn1.neuron.annapurna.aws.a2z.com --extra-index-url https://pip.repos.neuron.amazonaws.com \
-    && ${PIP} install --force-reinstall neuronx-cc==2.* --extra-index-url https://$REPO_USER:$REPO_SECRET@pip.repos.trn1.neuron.annapurna.aws.a2z.com --extra-index-url https://pip.repos.neuron.amazonaws.com
+RUN ${PIP} config set global.extra-index-url https://pip.repos.neuron.amazonaws.com \
+ && ${PIP} install --force-reinstall torch-neuronx==1.13.* --extra-index-url https://pip.repos.neuron.amazonaws.com \
+    && ${PIP} install --force-reinstall neuronx-cc==2.* --extra-index-url https://pip.repos.neuron.amazonaws.com
 
 # attrs, neurox-cc required: >=19.2.0, sagemaker 2.103.0 <22,>=20.3.0
 # protobuf neurox-cc<4 , sagemaker training <3.20,>=3.9.2
