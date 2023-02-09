@@ -2,7 +2,7 @@
 # refer to the above page to pull latest Tensorflow image
 
 # docker image region us-west-2
-FROM 763104351884.dkr.ecr.us-west-2.amazonaws.com/tensorflow-inference:2.11.0-cpu-py39-ubuntu20.04-sagemaker
+FROM 763104351884.dkr.ecr.us-west-2.amazonaws.com/tensorflow-inference:2.11.0-gpu-py39-cu112-ubuntu20.04-sagemaker
 
 LABEL maintainer="Amazon AI"
 LABEL dlc_major_version="1"
@@ -10,15 +10,12 @@ LABEL dlc_major_version="1"
 # Specify accept-bind-to-port LABEL for inference pipelines to use SAGEMAKER_BIND_TO_PORT
 # https://docs.aws.amazon.com/sagemaker/latest/dg/inference-pipeline-real-time.html
 LABEL com.amazonaws.sagemaker.capabilities.accept-bind-to-port=true
-# Specify multi-models LABEL to indicate container is capable of loading and serving multiple models concurrently
-# https://docs.aws.amazon.com/sagemaker/latest/dg/build-multi-model-build-container.html
-LABEL com.amazonaws.sagemaker.capabilities.multi-models=true
 
 ARG PYTHON=python3.9
 ARG MMS_VERSION=1.1.8
 ARG OPEN_MPI_VERSION=4.1.4
 # HF ARGS
-ARG TF_URL=https://framework-binaries.s3.us-west-2.amazonaws.com/tensorflow/r2.11_aws/cpu/2022-12-22-20-46/tensorflow_cpu-2.11.0-cp39-cp39-manylinux_2_17_x86_64.manylinux2014_x86_64.whl
+ARG TF_URL=https://framework-binaries.s3.us-west-2.amazonaws.com/tensorflow/r2.11_aws/gpu/2022-12-22-20-41/tensorflow_gpu-2.11.0-cp39-cp39-manylinux_2_17_x86_64.manylinux2014_x86_64.whl
 ARG TRANSFORMERS_VERSION
 
 RUN apt-get update \
@@ -31,21 +28,17 @@ RUN apt-get update \
  && apt-get clean \
  && rm -rf /var/lib/apt/lists/*
 
-RUN wget https://download.open-mpi.org/release/open-mpi/v4.1/openmpi-${OPEN_MPI_VERSION}.tar.gz \
- && gunzip -c openmpi-$OPEN_MPI_VERSION.tar.gz | tar xf - \
- && cd openmpi-$OPEN_MPI_VERSION \
- && ./configure --prefix=/home/.openmpi \
+RUN wget --quiet https://download.open-mpi.org/release/open-mpi/v4.1/openmpi-${OPEN_MPI_VERSION}.tar.gz \
+ && gunzip -c openmpi-${OPEN_MPI_VERSION}.tar.gz | tar xf - \
+ && cd openmpi-${OPEN_MPI_VERSION} \
+ && ./configure --prefix=/home/.openmpi --with-cuda \
  && make all install \
  && cd .. \
- && rm openmpi-$OPEN_MPI_VERSION.tar.gz \
- && rm -rf openmpi-$OPEN_MPI_VERSION
+ && rm openmpi-${OPEN_MPI_VERSION}.tar.gz \
+ && rm -rf openmpi-${OPEN_MPI_VERSION}
 
-# The ENV variables declared below are changed in the previous section
-# Grouping these ENV variables in the first section causes
-# ompi_info to fail. This is only observed in CPU containers
 ENV PATH="$PATH:/home/.openmpi/bin"
 ENV LD_LIBRARY_PATH="$LD_LIBRARY_PATH:/home/.openmpi/lib/"
-RUN ompi_info --parsable --all | grep mpi_built_with_cuda_support:value
 
 WORKDIR /
 
@@ -69,7 +62,10 @@ RUN chmod +x /usr/local/bin/dockerd-entrypoint.py
 # Install TF Binary
 RUN pip install --no-cache-dir -U ${TF_URL}
 
-# Install Hugging Face libraries and its dependencies
+# We need TF_FORCE_GPU_ALLOW_GROWTH=true to prevent TF from overusing GPU memory when loading models
+ENV TF_FORCE_GPU_ALLOW_GROWTH=true
+
+# install Hugging Face libraries and its dependencies
 RUN pip install --no-cache-dir \
     transformers[sentencepiece,audio,vision]==${TRANSFORMERS_VERSION} \
     "protobuf>=3.19.5,<3.20" \
