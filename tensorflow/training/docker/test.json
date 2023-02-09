@@ -26,7 +26,8 @@
             "source": "UBUNTU_CVE",
             "severity": "MEDIUM",
             "status": "ACTIVE",
-            "title": "CVE-2022-32545 - imagemagick-6-common, libmagickcore-6.q16-6 and 3 more"
+            "title": "CVE-2022-32545 - imagemagick-6-common, libmagickcore-6.q16-6 and 3 more",
+            "reason_to_ignore": "Test"
         },
         {
             "description": " A vulnerability was found in ImageMagick, causing an outside the range of representable values of type 'unsigned char' at coders/psd.c, when crafted or untrusted input is processed. This leads to a negative impact to application availability or other problems related to undefined behavior.",
@@ -54,7 +55,8 @@
             "source": "UBUNTU_CVE",
             "severity": "MEDIUM",
             "status": "ACTIVE",
-            "title": "CVE-2022-32545 - imagemagick-6-common, libmagickcore-6.q16-6 and 3 more"
+            "title": "CVE-2022-32545 - imagemagick-6-common, libmagickcore-6.q16-6 and 3 more",
+            "reason_to_ignore": "Test"
         },
         {
             "description": " ImageMagick 7.1.0-27 is vulnerable to Buffer Overflow.",
@@ -82,7 +84,8 @@
             "source": "UBUNTU_CVE",
             "severity": "MEDIUM",
             "status": "ACTIVE",
-            "title": "CVE-2022-28463 - imagemagick-6-common, libmagickcore-6.q16-6 and 3 more"
+            "title": "CVE-2022-28463 - imagemagick-6-common, libmagickcore-6.q16-6 and 3 more",
+            "reason_to_ignore": "Test"
         },
         {
             "description": " ImageMagick 7.1.0-27 is vulnerable to Buffer Overflow.",
@@ -110,7 +113,8 @@
             "source": "UBUNTU_CVE",
             "severity": "MEDIUM",
             "status": "ACTIVE",
-            "title": "CVE-2022-28463 - imagemagick-6-common, libmagickcore-6.q16-6 and 3 more"
+            "title": "CVE-2022-28463 - imagemagick-6-common, libmagickcore-6.q16-6 and 3 more",
+            "reason_to_ignore": "Test"
         },
         {
             "description": " A heap-use-after-free flaw was found in ImageMagick's RelinquishDCMInfo() function of dcm.c file. This vulnerability is triggered when an attacker passes a specially crafted DICOM image file to ImageMagick for conversion, potentially leading to information disclosure and a denial of service.",
@@ -138,7 +142,8 @@
             "source": "UBUNTU_CVE",
             "severity": "MEDIUM",
             "status": "ACTIVE",
-            "title": "CVE-2022-1114 - imagemagick-6-common, libmagickcore-6.q16-6 and 3 more"
+            "title": "CVE-2022-1114 - imagemagick-6-common, libmagickcore-6.q16-6 and 3 more",
+            "reason_to_ignore": "Test"
         },
         {
             "description": " A heap-use-after-free flaw was found in ImageMagick's RelinquishDCMInfo() function of dcm.c file. This vulnerability is triggered when an attacker passes a specially crafted DICOM image file to ImageMagick for conversion, potentially leading to information disclosure and a denial of service.",
@@ -166,7 +171,8 @@
             "source": "UBUNTU_CVE",
             "severity": "MEDIUM",
             "status": "ACTIVE",
-            "title": "CVE-2022-1114 - imagemagick-6-common, libmagickcore-6.q16-6 and 3 more"
+            "title": "CVE-2022-1114 - imagemagick-6-common, libmagickcore-6.q16-6 and 3 more",
+            "reason_to_ignore": "Test"
         },
         {
             "description": " A flaw was found in ImageMagick in versions before 7.0.11. A potential cipher leak when the calculate signatures in TransformSignature is possible. The highest threat from this vulnerability is to data confidentiality.",
@@ -194,7 +200,8 @@
             "source": "UBUNTU_CVE",
             "severity": "LOW",
             "status": "ACTIVE",
-            "title": "CVE-2021-20313 - imagemagick-6-common, libmagickcore-6.q16-6 and 3 more"
+            "title": "CVE-2021-20313 - imagemagick-6-common, libmagickcore-6.q16-6 and 3 more",
+            "reason_to_ignore": "Test"
         },
         {
             "description": " A flaw was found in ImageMagick in versions before 7.0.11. A potential cipher leak when the calculate signatures in TransformSignature is possible. The highest threat from this vulnerability is to data confidentiality.",
@@ -222,7 +229,8 @@
             "source": "UBUNTU_CVE",
             "severity": "LOW",
             "status": "ACTIVE",
-            "title": "CVE-2021-20313 - imagemagick-6-common, libmagickcore-6.q16-6 and 3 more"
+            "title": "CVE-2021-20313 - imagemagick-6-common, libmagickcore-6.q16-6 and 3 more",
+            "reason_to_ignore": "Test"
         },
         {
             "description": " In ImageMagick, there is load of misaligned address for type 'double', which requires 8 byte alignment and for type 'float', which requires 4 byte alignment at MagickCore/property.c. Whenever crafted or untrusted input is processed by ImageMagick, this causes a negative impact to application availability or other problems related to undefined behavior.",
@@ -250,7 +258,8 @@
             "source": "UBUNTU_CVE",
             "severity": "MEDIUM",
             "status": "ACTIVE",
-            "title": "CVE-2022-32547 - imagemagick-6-common, libmagickcore-6.q16-6 and 3 more"
+            "title": "CVE-2022-32547 - imagemagick-6-common, libmagickcore-6.q16-6 and 3 more",
+            "reason_to_ignore": "Test"
         },
         {
             "description": " In ImageMagick, there is load of misaligned address for type 'double', which requires 8 byte alignment and for type 'float', which requires 4 byte alignment at MagickCore/property.c. Whenever crafted or untrusted input is processed by ImageMagick, this causes a negative impact to application availability or other problems related to undefined behavior.",
@@ -278,7 +287,8 @@
             "source": "UBUNTU_CVE",
             "severity": "MEDIUM",
             "status": "ACTIVE",
-            "title": "CVE-2022-32547 - imagemagick-6-common, libmagickcore-6.q16-6 and 3 more"
+            "title": "CVE-2022-32547 - imagemagick-6-common, libmagickcore-6.q16-6 and 3 more",
+            "reason_to_ignore": "Test"
         },
         {
             "description": " A vulnerability was found in ImageMagick, causing an outside the range of representable values of type 'unsigned long' at coders/pcl.c, when crafted or untrusted input is processed. This leads to a negative impact to application availability or other problems related to undefined behavior.",
@@ -306,7 +316,8 @@
             "source": "UBUNTU_CVE",
             "severity": "MEDIUM",
             "status": "ACTIVE",
-            "title": "CVE-2022-32546 - imagemagick-6-common, libmagickcore-6.q16-6 and 3 more"
+            "title": "CVE-2022-32546 - imagemagick-6-common, libmagickcore-6.q16-6 and 3 more",
+            "reason_to_ignore": "Test"
         },
         {
             "description": " A vulnerability was found in ImageMagick, causing an outside the range of representable values of type 'unsigned long' at coders/pcl.c, when crafted or untrusted input is processed. This leads to a negative impact to application availability or other problems related to undefined behavior.",
@@ -334,7 +345,8 @@
             "source": "UBUNTU_CVE",
             "severity": "MEDIUM",
             "status": "ACTIVE",
-            "title": "CVE-2022-32546 - imagemagick-6-common, libmagickcore-6.q16-6 and 3 more"
+            "title": "CVE-2022-32546 - imagemagick-6-common, libmagickcore-6.q16-6 and 3 more",
+            "reason_to_ignore": "Test"
         },
         {
             "description": " A flaw was found in ImageMagick in versions 7.0.11, where an integer overflow in WriteTHUMBNAILImage of coders/thumbnail.c may trigger undefined behavior via a crafted image file that is submitted by an attacker and processed by an application using ImageMagick. The highest threat from this vulnerability is to system availability.",
@@ -362,7 +374,8 @@
             "source": "UBUNTU_CVE",
             "severity": "LOW",
             "status": "ACTIVE",
-            "title": "CVE-2021-20312 - imagemagick-6-common, libmagickcore-6.q16-6 and 3 more"
+            "title": "CVE-2021-20312 - imagemagick-6-common, libmagickcore-6.q16-6 and 3 more",
+            "reason_to_ignore": "Test"
         },
         {
             "description": " A flaw was found in ImageMagick in versions 7.0.11, where an integer overflow in WriteTHUMBNAILImage of coders/thumbnail.c may trigger undefined behavior via a crafted image file that is submitted by an attacker and processed by an application using ImageMagick. The highest threat from this vulnerability is to system availability.",
@@ -390,7 +403,8 @@
             "source": "UBUNTU_CVE",
             "severity": "LOW",
             "status": "ACTIVE",
-            "title": "CVE-2021-20312 - imagemagick-6-common, libmagickcore-6.q16-6 and 3 more"
+            "title": "CVE-2021-20312 - imagemagick-6-common, libmagickcore-6.q16-6 and 3 more",
+            "reason_to_ignore": "Test"
         },
         {
             "description": " A flaw was found in ImageMagick in versions before 7.0.11 and before 6.9.12, where a division by zero in WaveImage() of MagickCore/visual-effects.c may trigger undefined behavior via a crafted image file submitted to an application using ImageMagick. The highest threat from this vulnerability is to system availability.",
@@ -418,7 +432,8 @@
             "source": "UBUNTU_CVE",
             "severity": "LOW",
             "status": "ACTIVE",
-            "title": "CVE-2021-20309 - imagemagick-6-common, libmagickcore-6.q16-6 and 3 more"
+            "title": "CVE-2021-20309 - imagemagick-6-common, libmagickcore-6.q16-6 and 3 more",
+            "reason_to_ignore": "Test"
         },
         {
             "description": " A flaw was found in ImageMagick in versions before 7.0.11 and before 6.9.12, where a division by zero in WaveImage() of MagickCore/visual-effects.c may trigger undefined behavior via a crafted image file submitted to an application using ImageMagick. The highest threat from this vulnerability is to system availability.",
@@ -446,7 +461,8 @@
             "source": "UBUNTU_CVE",
             "severity": "LOW",
             "status": "ACTIVE",
-            "title": "CVE-2021-20309 - imagemagick-6-common, libmagickcore-6.q16-6 and 3 more"
+            "title": "CVE-2021-20309 - imagemagick-6-common, libmagickcore-6.q16-6 and 3 more",
+            "reason_to_ignore": "Test"
         }
     ],
     "imagemagick-6-common": [
@@ -476,7 +492,8 @@
             "source": "UBUNTU_CVE",
             "severity": "MEDIUM",
             "status": "ACTIVE",
-            "title": "CVE-2022-32545 - imagemagick-6-common, libmagickcore-6.q16-6 and 3 more"
+            "title": "CVE-2022-32545 - imagemagick-6-common, libmagickcore-6.q16-6 and 3 more",
+            "reason_to_ignore": "Test"
         },
         {
             "description": " ImageMagick 7.1.0-27 is vulnerable to Buffer Overflow.",
@@ -504,7 +521,8 @@
             "source": "UBUNTU_CVE",
             "severity": "MEDIUM",
             "status": "ACTIVE",
-            "title": "CVE-2022-28463 - imagemagick-6-common, libmagickcore-6.q16-6 and 3 more"
+            "title": "CVE-2022-28463 - imagemagick-6-common, libmagickcore-6.q16-6 and 3 more",
+            "reason_to_ignore": "Test"
         },
         {
             "description": " A heap-use-after-free flaw was found in ImageMagick's RelinquishDCMInfo() function of dcm.c file. This vulnerability is triggered when an attacker passes a specially crafted DICOM image file to ImageMagick for conversion, potentially leading to information disclosure and a denial of service.",
@@ -532,7 +550,8 @@
             "source": "UBUNTU_CVE",
             "severity": "MEDIUM",
             "status": "ACTIVE",
-            "title": "CVE-2022-1114 - imagemagick-6-common, libmagickcore-6.q16-6 and 3 more"
+            "title": "CVE-2022-1114 - imagemagick-6-common, libmagickcore-6.q16-6 and 3 more",
+            "reason_to_ignore": "Test"
         },
         {
             "description": " A flaw was found in ImageMagick in versions before 7.0.11. A potential cipher leak when the calculate signatures in TransformSignature is possible. The highest threat from this vulnerability is to data confidentiality.",
@@ -560,7 +579,8 @@
             "source": "UBUNTU_CVE",
             "severity": "LOW",
             "status": "ACTIVE",
-            "title": "CVE-2021-20313 - imagemagick-6-common, libmagickcore-6.q16-6 and 3 more"
+            "title": "CVE-2021-20313 - imagemagick-6-common, libmagickcore-6.q16-6 and 3 more",
+            "reason_to_ignore": "Test"
         },
         {
             "description": " In ImageMagick, there is load of misaligned address for type 'double', which requires 8 byte alignment and for type 'float', which requires 4 byte alignment at MagickCore/property.c. Whenever crafted or untrusted input is processed by ImageMagick, this causes a negative impact to application availability or other problems related to undefined behavior.",
@@ -588,7 +608,8 @@
             "source": "UBUNTU_CVE",
             "severity": "MEDIUM",
             "status": "ACTIVE",
-            "title": "CVE-2022-32547 - imagemagick-6-common, libmagickcore-6.q16-6 and 3 more"
+            "title": "CVE-2022-32547 - imagemagick-6-common, libmagickcore-6.q16-6 and 3 more",
+            "reason_to_ignore": "Test"
         },
         {
             "description": " A vulnerability was found in ImageMagick, causing an outside the range of representable values of type 'unsigned long' at coders/pcl.c, when crafted or untrusted input is processed. This leads to a negative impact to application availability or other problems related to undefined behavior.",
@@ -616,7 +637,8 @@
             "source": "UBUNTU_CVE",
             "severity": "MEDIUM",
             "status": "ACTIVE",
-            "title": "CVE-2022-32546 - imagemagick-6-common, libmagickcore-6.q16-6 and 3 more"
+            "title": "CVE-2022-32546 - imagemagick-6-common, libmagickcore-6.q16-6 and 3 more",
+            "reason_to_ignore": "Test"
         },
         {
             "description": " A flaw was found in ImageMagick in versions 7.0.11, where an integer overflow in WriteTHUMBNAILImage of coders/thumbnail.c may trigger undefined behavior via a crafted image file that is submitted by an attacker and processed by an application using ImageMagick. The highest threat from this vulnerability is to system availability.",
@@ -644,7 +666,8 @@
             "source": "UBUNTU_CVE",
             "severity": "LOW",
             "status": "ACTIVE",
-            "title": "CVE-2021-20312 - imagemagick-6-common, libmagickcore-6.q16-6 and 3 more"
+            "title": "CVE-2021-20312 - imagemagick-6-common, libmagickcore-6.q16-6 and 3 more",
+            "reason_to_ignore": "Test"
         },
         {
             "description": " A flaw was found in ImageMagick in versions before 7.0.11 and before 6.9.12, where a division by zero in WaveImage() of MagickCore/visual-effects.c may trigger undefined behavior via a crafted image file submitted to an application using ImageMagick. The highest threat from this vulnerability is to system availability.",
@@ -672,7 +695,8 @@
             "source": "UBUNTU_CVE",
             "severity": "LOW",
             "status": "ACTIVE",
-            "title": "CVE-2021-20309 - imagemagick-6-common, libmagickcore-6.q16-6 and 3 more"
+            "title": "CVE-2021-20309 - imagemagick-6-common, libmagickcore-6.q16-6 and 3 more",
+            "reason_to_ignore": "Test"
         }
     ],
     "libmagickcore-6.q16-6": [
@@ -702,7 +726,8 @@
             "source": "UBUNTU_CVE",
             "severity": "MEDIUM",
             "status": "ACTIVE",
-            "title": "CVE-2022-32545 - imagemagick-6-common, libmagickcore-6.q16-6 and 3 more"
+            "title": "CVE-2022-32545 - imagemagick-6-common, libmagickcore-6.q16-6 and 3 more",
+            "reason_to_ignore": "Test"
         },
         {
             "description": " ImageMagick 7.1.0-27 is vulnerable to Buffer Overflow.",
@@ -730,7 +755,8 @@
             "source": "UBUNTU_CVE",
             "severity": "MEDIUM",
             "status": "ACTIVE",
-            "title": "CVE-2022-28463 - imagemagick-6-common, libmagickcore-6.q16-6 and 3 more"
+            "title": "CVE-2022-28463 - imagemagick-6-common, libmagickcore-6.q16-6 and 3 more",
+            "reason_to_ignore": "Test"
         },
         {
             "description": " A heap-use-after-free flaw was found in ImageMagick's RelinquishDCMInfo() function of dcm.c file. This vulnerability is triggered when an attacker passes a specially crafted DICOM image file to ImageMagick for conversion, potentially leading to information disclosure and a denial of service.",
@@ -758,7 +784,8 @@
             "source": "UBUNTU_CVE",
             "severity": "MEDIUM",
             "status": "ACTIVE",
-            "title": "CVE-2022-1114 - imagemagick-6-common, libmagickcore-6.q16-6 and 3 more"
+            "title": "CVE-2022-1114 - imagemagick-6-common, libmagickcore-6.q16-6 and 3 more",
+            "reason_to_ignore": "Test"
         },
         {
             "description": " A flaw was found in ImageMagick in versions before 7.0.11. A potential cipher leak when the calculate signatures in TransformSignature is possible. The highest threat from this vulnerability is to data confidentiality.",
@@ -786,7 +813,8 @@
             "source": "UBUNTU_CVE",
             "severity": "LOW",
             "status": "ACTIVE",
-            "title": "CVE-2021-20313 - imagemagick-6-common, libmagickcore-6.q16-6 and 3 more"
+            "title": "CVE-2021-20313 - imagemagick-6-common, libmagickcore-6.q16-6 and 3 more",
+            "reason_to_ignore": "Test"
         },
         {
             "description": " In ImageMagick, there is load of misaligned address for type 'double', which requires 8 byte alignment and for type 'float', which requires 4 byte alignment at MagickCore/property.c. Whenever crafted or untrusted input is processed by ImageMagick, this causes a negative impact to application availability or other problems related to undefined behavior.",
@@ -814,7 +842,8 @@
             "source": "UBUNTU_CVE",
             "severity": "MEDIUM",
             "status": "ACTIVE",
-            "title": "CVE-2022-32547 - imagemagick-6-common, libmagickcore-6.q16-6 and 3 more"
+            "title": "CVE-2022-32547 - imagemagick-6-common, libmagickcore-6.q16-6 and 3 more",
+            "reason_to_ignore": "Test"
         },
         {
             "description": " A vulnerability was found in ImageMagick, causing an outside the range of representable values of type 'unsigned long' at coders/pcl.c, when crafted or untrusted input is processed. This leads to a negative impact to application availability or other problems related to undefined behavior.",
@@ -842,7 +871,8 @@
             "source": "UBUNTU_CVE",
             "severity": "MEDIUM",
             "status": "ACTIVE",
-            "title": "CVE-2022-32546 - imagemagick-6-common, libmagickcore-6.q16-6 and 3 more"
+            "title": "CVE-2022-32546 - imagemagick-6-common, libmagickcore-6.q16-6 and 3 more",
+            "reason_to_ignore": "Test"
         },
         {
             "description": " A flaw was found in ImageMagick in versions 7.0.11, where an integer overflow in WriteTHUMBNAILImage of coders/thumbnail.c may trigger undefined behavior via a crafted image file that is submitted by an attacker and processed by an application using ImageMagick. The highest threat from this vulnerability is to system availability.",
@@ -870,7 +900,8 @@
             "source": "UBUNTU_CVE",
             "severity": "LOW",
             "status": "ACTIVE",
-            "title": "CVE-2021-20312 - imagemagick-6-common, libmagickcore-6.q16-6 and 3 more"
+            "title": "CVE-2021-20312 - imagemagick-6-common, libmagickcore-6.q16-6 and 3 more",
+            "reason_to_ignore": "Test"
         },
         {
             "description": " A flaw was found in ImageMagick in versions before 7.0.11 and before 6.9.12, where a division by zero in WaveImage() of MagickCore/visual-effects.c may trigger undefined behavior via a crafted image file submitted to an application using ImageMagick. The highest threat from this vulnerability is to system availability.",
@@ -898,7 +929,8 @@
             "source": "UBUNTU_CVE",
             "severity": "LOW",
             "status": "ACTIVE",
-            "title": "CVE-2021-20309 - imagemagick-6-common, libmagickcore-6.q16-6 and 3 more"
+            "title": "CVE-2021-20309 - imagemagick-6-common, libmagickcore-6.q16-6 and 3 more",
+            "reason_to_ignore": "Test"
         }
     ],
     "libmagickwand-6.q16-6": [
@@ -928,7 +960,8 @@
             "source": "UBUNTU_CVE",
             "severity": "MEDIUM",
             "status": "ACTIVE",
-            "title": "CVE-2022-32545 - imagemagick-6-common, libmagickcore-6.q16-6 and 3 more"
+            "title": "CVE-2022-32545 - imagemagick-6-common, libmagickcore-6.q16-6 and 3 more",
+            "reason_to_ignore": "Test"
         },
         {
             "description": " ImageMagick 7.1.0-27 is vulnerable to Buffer Overflow.",
@@ -956,7 +989,8 @@
             "source": "UBUNTU_CVE",
             "severity": "MEDIUM",
             "status": "ACTIVE",
-            "title": "CVE-2022-28463 - imagemagick-6-common, libmagickcore-6.q16-6 and 3 more"
+            "title": "CVE-2022-28463 - imagemagick-6-common, libmagickcore-6.q16-6 and 3 more",
+            "reason_to_ignore": "Test"
         },
         {
             "description": " A heap-use-after-free flaw was found in ImageMagick's RelinquishDCMInfo() function of dcm.c file. This vulnerability is triggered when an attacker passes a specially crafted DICOM image file to ImageMagick for conversion, potentially leading to information disclosure and a denial of service.",
@@ -984,7 +1018,8 @@
             "source": "UBUNTU_CVE",
             "severity": "MEDIUM",
             "status": "ACTIVE",
-            "title": "CVE-2022-1114 - imagemagick-6-common, libmagickcore-6.q16-6 and 3 more"
+            "title": "CVE-2022-1114 - imagemagick-6-common, libmagickcore-6.q16-6 and 3 more",
+            "reason_to_ignore": "Test"
         },
         {
             "description": " A flaw was found in ImageMagick in versions before 7.0.11. A potential cipher leak when the calculate signatures in TransformSignature is possible. The highest threat from this vulnerability is to data confidentiality.",
@@ -1012,7 +1047,8 @@
             "source": "UBUNTU_CVE",
             "severity": "LOW",
             "status": "ACTIVE",
-            "title": "CVE-2021-20313 - imagemagick-6-common, libmagickcore-6.q16-6 and 3 more"
+            "title": "CVE-2021-20313 - imagemagick-6-common, libmagickcore-6.q16-6 and 3 more",
+            "reason_to_ignore": "Test"
         },
         {
             "description": " In ImageMagick, there is load of misaligned address for type 'double', which requires 8 byte alignment and for type 'float', which requires 4 byte alignment at MagickCore/property.c. Whenever crafted or untrusted input is processed by ImageMagick, this causes a negative impact to application availability or other problems related to undefined behavior.",
@@ -1040,7 +1076,8 @@
             "source": "UBUNTU_CVE",
             "severity": "MEDIUM",
             "status": "ACTIVE",
-            "title": "CVE-2022-32547 - imagemagick-6-common, libmagickcore-6.q16-6 and 3 more"
+            "title": "CVE-2022-32547 - imagemagick-6-common, libmagickcore-6.q16-6 and 3 more",
+            "reason_to_ignore": "Test"
         },
         {
             "description": " A vulnerability was found in ImageMagick, causing an outside the range of representable values of type 'unsigned long' at coders/pcl.c, when crafted or untrusted input is processed. This leads to a negative impact to application availability or other problems related to undefined behavior.",
@@ -1068,7 +1105,8 @@
             "source": "UBUNTU_CVE",
             "severity": "MEDIUM",
             "status": "ACTIVE",
-            "title": "CVE-2022-32546 - imagemagick-6-common, libmagickcore-6.q16-6 and 3 more"
+            "title": "CVE-2022-32546 - imagemagick-6-common, libmagickcore-6.q16-6 and 3 more",
+            "reason_to_ignore": "Test"
         },
         {
             "description": " A flaw was found in ImageMagick in versions 7.0.11, where an integer overflow in WriteTHUMBNAILImage of coders/thumbnail.c may trigger undefined behavior via a crafted image file that is submitted by an attacker and processed by an application using ImageMagick. The highest threat from this vulnerability is to system availability.",
@@ -1096,7 +1134,8 @@
             "source": "UBUNTU_CVE",
             "severity": "LOW",
             "status": "ACTIVE",
-            "title": "CVE-2021-20312 - imagemagick-6-common, libmagickcore-6.q16-6 and 3 more"
+            "title": "CVE-2021-20312 - imagemagick-6-common, libmagickcore-6.q16-6 and 3 more",
+            "reason_to_ignore": "Test"
         },
         {
             "description": " A flaw was found in ImageMagick in versions before 7.0.11 and before 6.9.12, where a division by zero in WaveImage() of MagickCore/visual-effects.c may trigger undefined behavior via a crafted image file submitted to an application using ImageMagick. The highest threat from this vulnerability is to system availability.",
@@ -1124,7 +1163,8 @@
             "source": "UBUNTU_CVE",
             "severity": "LOW",
             "status": "ACTIVE",
-            "title": "CVE-2021-20309 - imagemagick-6-common, libmagickcore-6.q16-6 and 3 more"
+            "title": "CVE-2021-20309 - imagemagick-6-common, libmagickcore-6.q16-6 and 3 more",
+            "reason_to_ignore": "Test"
         }
     ],
     "cryptography": [
@@ -1155,7 +1195,7 @@
             "severity": "LOW",
             "status": "ACTIVE",
             "title": "CVE-2022-3996 - cryptography",
-            "reason_to_ignore": "Ubuntu 20.04 is not affected by this CVE, therefore there is no remediation required for Cryptography"
+            "reason_to_ignore": "Test"
         }
     ],
     "libmysofa1": [
@@ -1186,7 +1226,7 @@
             "severity": "MEDIUM",
             "status": "ACTIVE",
             "title": "CVE-2021-3756 - libmysofa1",
-            "reason_to_ignore": "libmysofa1 upgraded to latest available version for Ubuntu Version."
+            "reason_to_ignore": "Test"
         }
     ],
     "libsdl2-2.0-0": [
@@ -1217,7 +1257,7 @@
             "severity": "MEDIUM",
             "status": "ACTIVE",
             "title": "CVE-2020-14409 - libsdl2-2.0-0",
-            "reason_to_ignore": "libsdl2 upgraded to latest available version for Ubuntu Version."
+            "reason_to_ignore": "Test"
         }
     ],
     "libzmq5": [
@@ -1248,7 +1288,7 @@
             "severity": "LOW",
             "status": "ACTIVE",
             "title": "CVE-2021-20237 - libzmq5",
-            "reason_to_ignore": "libzmq5 upgraded to latest available version for Ubuntu Version."
+            "reason_to_ignore": "Test"
         },
         {
             "description": "\n It was discovered that ZeroMQ mishandled certain network traffic. An\n unauthenticated attacker could use this vulnerability to cause a\n denial-of-service and prevent legitimate clients from communicating with\n ZeroMQ.",
@@ -1277,7 +1317,7 @@
             "severity": "MEDIUM",
             "status": "ACTIVE",
             "title": "CVE-2020-15166 - libzmq5",
-            "reason_to_ignore": "libzmq5 upgraded to latest available version for Ubuntu Version."
+            "reason_to_ignore": "Test"
         },
         {
             "description": "\n It was discovered that ZeroMQ incorrectly handled certain application metadata.\n A remote attacker could use this issue to cause ZeroMQ to crash, or possibly\n execute arbitrary code.",
@@ -1306,7 +1346,7 @@
             "severity": "HIGH",
             "status": "ACTIVE",
             "title": "CVE-2019-13132 - libzmq5",
-            "reason_to_ignore": "libzmq5 upgraded to latest available version for Ubuntu Version."
+            "reason_to_ignore": "Test"
         },
         {
             "description": " There's a flaw in the zeromq server in versions before 4.3.3 in src/decoder_allocators.hpp. The decoder static allocator could have its sized changed, but the buffer would remain the same as it is a static buffer. A remote, unauthenticated attacker who sends a crafted request to the zeromq server could trigger a buffer overflow WRITE of arbitrary data if CURVE/ZAP authentication is not enabled. The greatest impact of this flaw is to application availability, data integrity, and confidentiality.",
@@ -1335,39 +1375,7 @@
             "severity": "MEDIUM",
             "status": "ACTIVE",
             "title": "CVE-2021-20235 - libzmq5",
-            "reason_to_ignore": "libzmq5 upgraded to latest available version for Ubuntu Version."
+            "reason_to_ignore": "Test"
         }
-    ],
-    {
-        "libpam-modules": [
-            {
-                "description": " The Linux-PAM package before 1.5.2-6.1 for openSUSE Tumbleweed allows authentication bypass for SSH logins. The pam_access.so module doesn't correctly restrict login if a user tries to connect from an IP address that is not resolvable via DNS. In such conditions, a user with denied access to a machine can still get access. NOTE: the relevance of this issue is largely limited to openSUSE Tumbleweed and openSUSE Factory; it does not affect Linux-PAM upstream.",
-                "vulnerability_id": "CVE-2022-28321",
-                "name": "CVE-2022-28321",
-                "package_name": "libpam-modules",
-                "package_details": {
-                    "file_path": null,
-                    "name": "libpam-modules",
-                    "package_manager": "OS",
-                    "version": "1.3.1",
-                    "release": "5ubuntu4.4"
-                },
-                "remediation": {
-                    "recommendation": {
-                        "text": "None Provided"
-                    }
-                },
-                "cvss_v3_score": 9.8,
-                "cvss_v30_score": 0.0,
-                "cvss_v31_score": 9.8,
-                "cvss_v2_score": 0.0,
-                "cvss_v3_severity": "CRITICAL",
-                "source_url": "https://people.canonical.com/~ubuntu-security/cve/2022/CVE-2022-28321.html",
-                "source": "UBUNTU_CVE",
-                "severity": "INFORMATIONAL",
-                "status": "ACTIVE",
-                "title": "CVE-2022-28321 - libpam-modules"
-            }
-        ]
-    }
+    ]
 }
