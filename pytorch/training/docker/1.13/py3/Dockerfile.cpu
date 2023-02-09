@@ -133,7 +133,8 @@ RUN curl -L -o ~/mambaforge.sh https://github.com/conda-forge/miniforge/releases
     charset-normalizer \
     # needed by fastai.distributed
     accelerate \
- && /opt/conda/bin/conda install -c dglteam -y dgl \
+ # pin dgl to 0.9.1 as upstream test has not caught up, currently having accuracy error
+ && /opt/conda/bin/conda install -c dglteam -y dgl=0.9.1 \
  && /opt/conda/bin/conda install -c fastai fastai \
 # fastai conda has a dependency chain of fastai -> spacy -> pathy -> dataclasses
  # conda pathy installs dataclasses regardless of py version: https://github.com/conda-forge/pathy-feedstock/blob/1e6da43da5c8e11e09c063c79b09236bbacb7780/recipe/meta.yaml#L29
