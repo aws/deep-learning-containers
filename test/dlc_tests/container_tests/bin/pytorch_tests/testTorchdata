@@ -11,7 +11,7 @@ TORCHDATA_TEST_SCRIPT="data/test/test_remote_io.py"
 echo "Fetch Torchdata S3 IO test script."
 TORCHDATA_RELEASE_TAG=$(python -c "import torchdata as td; print(td.__version__.split('+')[0])")
 git clone $TORCHDATA_REPO \
-    && pushd data
+    && pushd data \
     && git checkout tags/v${TORCHDATA_RELEASE_TAG} -b ${TORCHDATA_RELEASE_TAG} \
     && popd
 
