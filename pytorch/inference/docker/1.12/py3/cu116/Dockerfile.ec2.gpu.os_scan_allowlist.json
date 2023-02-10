@@ -90,70 +90,10 @@
       "title": "CVE-2022-3996 - cryptography"
     }
   ],
-  "future": [
-    {
-      "reason_to_ignore": "Currently at the latest GA version with no fix.",
-      "description": "Affected versions of this package are vulnerable to Regular Expression Denial of Service (ReDoS) via a crafted `Set-Cookie` HEADER from a malicious web server.",
-      "vulnerability_id": "SNYK-PYTHON-FUTURE-3180414",
-      "name": "SNYK-PYTHON-FUTURE-3180414",
-      "package_name": "future",
-      "package_details": {
-        "file_path": "opt/conda/lib/python3.8/site-packages/future-0.18.2.dist-info/METADATA",
-        "name": "future",
-        "package_manager": "PYTHONPKG",
-        "version": "0.18.2",
-        "release": null
-      },
-      "remediation": {
-        "recommendation": {
-          "text": "None Provided"
-        }
-      },
-      "cvss_v3_score": 7.5,
-      "cvss_v30_score": 0,
-      "cvss_v31_score": 7.5,
-      "cvss_v2_score": 0,
-      "cvss_v3_severity": "HIGH",
-      "source_url": "https://snyk.io/vuln/SNYK-PYTHON-FUTURE-3180414",
-      "source": "SNYK",
-      "severity": "HIGH",
-      "status": "ACTIVE",
-      "title": "IN1-PYTHON-FUTURE-3180414 - future"
-    },
-    {
-      "reason_to_ignore": "Currently at the latest GA version with no fix.",
-      "description": " An issue discovered in Python Charmers Future 0.18.2 and earlier allows remote attackers to cause a denial of service via crafted Set-Cookie header from malicious web server.",
-      "vulnerability_id": "CVE-2022-40899",
-      "name": "CVE-2022-40899",
-      "package_name": "future",
-      "package_details": {
-        "file_path": "opt/conda/lib/python3.8/site-packages/future-0.18.2.dist-info/METADATA",
-        "name": "future",
-        "package_manager": "PYTHONPKG",
-        "version": "0.18.2",
-        "release": null
-      },
-      "remediation": {
-        "recommendation": {
-          "text": "None Provided"
-        }
-      },
-      "cvss_v3_score": 7.5,
-      "cvss_v30_score": 0,
-      "cvss_v31_score": 7.5,
-      "cvss_v2_score": 0,
-      "cvss_v3_severity": "HIGH",
-      "source_url": "https://people.canonical.com/~ubuntu-security/cve/2022/CVE-2022-40899.html",
-      "source": "UBUNTU_CVE",
-      "severity": "MEDIUM",
-      "status": "ACTIVE",
-      "title": "CVE-2022-40899 - future"
-    }
-  ],
   "imagemagick": [
     {
       "reason_to_ignore": "Currently at the latest version with no fix.",
-"description": " A vulnerability was found in ImageMagick, causing an outside the range of representable values of type 'unsigned long' at coders/pcl.c, when crafted or untrusted input is processed. This leads to a negative impact to application availability or other problems related to undefined behavior.",
+      "description": " A vulnerability was found in ImageMagick, causing an outside the range of representable values of type 'unsigned long' at coders/pcl.c, when crafted or untrusted input is processed. This leads to a negative impact to application availability or other problems related to undefined behavior.",
       "vulnerability_id": "CVE-2022-32546",
       "name": "CVE-2022-32546",
       "package_name": "imagemagick",
@@ -240,7 +180,7 @@
     },
     {
       "reason_to_ignore": "Currently at the latest version with no fix.",
-"description": " ImageMagick 7.1.0-27 is vulnerable to Buffer Overflow.",
+      "description": " ImageMagick 7.1.0-27 is vulnerable to Buffer Overflow.",
       "vulnerability_id": "CVE-2022-28463",
       "name": "CVE-2022-28463",
       "package_name": "imagemagick",
@@ -269,7 +209,7 @@
     },
     {
       "reason_to_ignore": "Currently at the latest version with no fix.",
-"description": " A vulnerability was found in ImageMagick, causing an outside the range of representable values of type 'unsigned char' at coders/psd.c, when crafted or untrusted input is processed. This leads to a negative impact to application availability or other problems related to undefined behavior.",
+      "description": " A vulnerability was found in ImageMagick, causing an outside the range of representable values of type 'unsigned char' at coders/psd.c, when crafted or untrusted input is processed. This leads to a negative impact to application availability or other problems related to undefined behavior.",
       "vulnerability_id": "CVE-2022-32545",
       "name": "CVE-2022-32545",
       "package_name": "imagemagick",
@@ -298,7 +238,7 @@
     },
     {
       "reason_to_ignore": "Currently at the latest version with no fix.",
-"description": " A vulnerability was found in ImageMagick, causing an outside the range of representable values of type 'unsigned char' at coders/psd.c, when crafted or untrusted input is processed. This leads to a negative impact to application availability or other problems related to undefined behavior.",
+      "description": " A vulnerability was found in ImageMagick, causing an outside the range of representable values of type 'unsigned char' at coders/psd.c, when crafted or untrusted input is processed. This leads to a negative impact to application availability or other problems related to undefined behavior.",
       "vulnerability_id": "CVE-2022-32545",
       "name": "CVE-2022-32545",
       "package_name": "imagemagick",
@@ -327,7 +267,7 @@
     },
     {
       "reason_to_ignore": "Currently at the latest version with no fix.",
-"description": " In ImageMagick, there is load of misaligned address for type 'double', which requires 8 byte alignment and for type 'float', which requires 4 byte alignment at MagickCore/property.c. Whenever crafted or untrusted input is processed by ImageMagick, this causes a negative impact to application availability or other problems related to undefined behavior.",
+      "description": " In ImageMagick, there is load of misaligned address for type 'double', which requires 8 byte alignment and for type 'float', which requires 4 byte alignment at MagickCore/property.c. Whenever crafted or untrusted input is processed by ImageMagick, this causes a negative impact to application availability or other problems related to undefined behavior.",
       "vulnerability_id": "CVE-2022-32547",
       "name": "CVE-2022-32547",
       "package_name": "imagemagick",
@@ -356,7 +296,7 @@
     },
     {
       "reason_to_ignore": "Currently at the latest version with no fix.",
-"description": " In ImageMagick, there is load of misaligned address for type 'double', which requires 8 byte alignment and for type 'float', which requires 4 byte alignment at MagickCore/property.c. Whenever crafted or untrusted input is processed by ImageMagick, this causes a negative impact to application availability or other problems related to undefined behavior.",
+      "description": " In ImageMagick, there is load of misaligned address for type 'double', which requires 8 byte alignment and for type 'float', which requires 4 byte alignment at MagickCore/property.c. Whenever crafted or untrusted input is processed by ImageMagick, this causes a negative impact to application availability or other problems related to undefined behavior.",
       "vulnerability_id": "CVE-2022-32547",
       "name": "CVE-2022-32547",
       "package_name": "imagemagick",
@@ -385,7 +325,7 @@
     },
     {
       "reason_to_ignore": "Currently at the latest version with no fix.",
-"description": " A flaw was found in ImageMagick in versions before 7.0.11 and before 6.9.12, where a division by zero in WaveImage() of MagickCore/visual-effects.c may trigger undefined behavior via a crafted image file submitted to an application using ImageMagick. The highest threat from this vulnerability is to system availability.",
+      "description": " A flaw was found in ImageMagick in versions before 7.0.11 and before 6.9.12, where a division by zero in WaveImage() of MagickCore/visual-effects.c may trigger undefined behavior via a crafted image file submitted to an application using ImageMagick. The highest threat from this vulnerability is to system availability.",
       "vulnerability_id": "CVE-2021-20309",
       "name": "CVE-2021-20309",
       "package_name": "imagemagick",
@@ -414,7 +354,7 @@
     },
     {
       "reason_to_ignore": "Currently at the latest version with no fix.",
-"description": " A flaw was found in ImageMagick in versions before 7.0.11 and before 6.9.12, where a division by zero in WaveImage() of MagickCore/visual-effects.c may trigger undefined behavior via a crafted image file submitted to an application using ImageMagick. The highest threat from this vulnerability is to system availability.",
+      "description": " A flaw was found in ImageMagick in versions before 7.0.11 and before 6.9.12, where a division by zero in WaveImage() of MagickCore/visual-effects.c may trigger undefined behavior via a crafted image file submitted to an application using ImageMagick. The highest threat from this vulnerability is to system availability.",
       "vulnerability_id": "CVE-2021-20309",
       "name": "CVE-2021-20309",
       "package_name": "imagemagick",
@@ -443,7 +383,7 @@
     },
     {
       "reason_to_ignore": "Currently at the latest version with no fix.",
-"description": " A heap-use-after-free flaw was found in ImageMagick's RelinquishDCMInfo() function of dcm.c file. This vulnerability is triggered when an attacker passes a specially crafted DICOM image file to ImageMagick for conversion, potentially leading to information disclosure and a denial of service.",
+      "description": " A heap-use-after-free flaw was found in ImageMagick's RelinquishDCMInfo() function of dcm.c file. This vulnerability is triggered when an attacker passes a specially crafted DICOM image file to ImageMagick for conversion, potentially leading to information disclosure and a denial of service.",
       "vulnerability_id": "CVE-2022-1114",
       "name": "CVE-2022-1114",
       "package_name": "imagemagick",
@@ -472,7 +412,7 @@
     },
     {
       "reason_to_ignore": "Currently at the latest version with no fix.",
-"description": " A heap-use-after-free flaw was found in ImageMagick's RelinquishDCMInfo() function of dcm.c file. This vulnerability is triggered when an attacker passes a specially crafted DICOM image file to ImageMagick for conversion, potentially leading to information disclosure and a denial of service.",
+      "description": " A heap-use-after-free flaw was found in ImageMagick's RelinquishDCMInfo() function of dcm.c file. This vulnerability is triggered when an attacker passes a specially crafted DICOM image file to ImageMagick for conversion, potentially leading to information disclosure and a denial of service.",
       "vulnerability_id": "CVE-2022-1114",
       "name": "CVE-2022-1114",
       "package_name": "imagemagick",
@@ -501,7 +441,7 @@
     },
     {
       "reason_to_ignore": "Currently at the latest version with no fix.",
-"description": " A flaw was found in ImageMagick in versions before 7.0.11. A potential cipher leak when the calculate signatures in TransformSignature is possible. The highest threat from this vulnerability is to data confidentiality.",
+      "description": " A flaw was found in ImageMagick in versions before 7.0.11. A potential cipher leak when the calculate signatures in TransformSignature is possible. The highest threat from this vulnerability is to data confidentiality.",
       "vulnerability_id": "CVE-2021-20313",
       "name": "CVE-2021-20313",
       "package_name": "imagemagick",
@@ -530,7 +470,7 @@
     },
     {
       "reason_to_ignore": "Currently at the latest version with no fix.",
-"description": " A flaw was found in ImageMagick in versions before 7.0.11. A potential cipher leak when the calculate signatures in TransformSignature is possible. The highest threat from this vulnerability is to data confidentiality.",
+      "description": " A flaw was found in ImageMagick in versions before 7.0.11. A potential cipher leak when the calculate signatures in TransformSignature is possible. The highest threat from this vulnerability is to data confidentiality.",
       "vulnerability_id": "CVE-2021-20313",
       "name": "CVE-2021-20313",
       "package_name": "imagemagick",
@@ -559,7 +499,7 @@
     },
     {
       "reason_to_ignore": "Currently at the latest version with no fix.",
-"description": " A flaw was found in ImageMagick in versions 7.0.11, where an integer overflow in WriteTHUMBNAILImage of coders/thumbnail.c may trigger undefined behavior via a crafted image file that is submitted by an attacker and processed by an application using ImageMagick. The highest threat from this vulnerability is to system availability.",
+      "description": " A flaw was found in ImageMagick in versions 7.0.11, where an integer overflow in WriteTHUMBNAILImage of coders/thumbnail.c may trigger undefined behavior via a crafted image file that is submitted by an attacker and processed by an application using ImageMagick. The highest threat from this vulnerability is to system availability.",
       "vulnerability_id": "CVE-2021-20312",
       "name": "CVE-2021-20312",
       "package_name": "imagemagick",
@@ -588,7 +528,7 @@
     },
     {
       "reason_to_ignore": "Currently at the latest version with no fix.",
-"description": " A flaw was found in ImageMagick in versions 7.0.11, where an integer overflow in WriteTHUMBNAILImage of coders/thumbnail.c may trigger undefined behavior via a crafted image file that is submitted by an attacker and processed by an application using ImageMagick. The highest threat from this vulnerability is to system availability.",
+      "description": " A flaw was found in ImageMagick in versions 7.0.11, where an integer overflow in WriteTHUMBNAILImage of coders/thumbnail.c may trigger undefined behavior via a crafted image file that is submitted by an attacker and processed by an application using ImageMagick. The highest threat from this vulnerability is to system availability.",
       "vulnerability_id": "CVE-2021-20312",
       "name": "CVE-2021-20312",
       "package_name": "imagemagick",
@@ -619,7 +559,7 @@
   "imagemagick-6-common": [
     {
       "reason_to_ignore": "Currently at the latest version with no fix.",
-"description": " A vulnerability was found in ImageMagick, causing an outside the range of representable values of type 'unsigned long' at coders/pcl.c, when crafted or untrusted input is processed. This leads to a negative impact to application availability or other problems related to undefined behavior.",
+      "description": " A vulnerability was found in ImageMagick, causing an outside the range of representable values of type 'unsigned long' at coders/pcl.c, when crafted or untrusted input is processed. This leads to a negative impact to application availability or other problems related to undefined behavior.",
       "vulnerability_id": "CVE-2022-32546",
       "name": "CVE-2022-32546",
       "package_name": "imagemagick-6-common",
@@ -648,7 +588,7 @@
     },
     {
       "reason_to_ignore": "Currently at the latest version with no fix.",
-"description": " ImageMagick 7.1.0-27 is vulnerable to Buffer Overflow.",
+      "description": " ImageMagick 7.1.0-27 is vulnerable to Buffer Overflow.",
       "vulnerability_id": "CVE-2022-28463",
       "name": "CVE-2022-28463",
       "package_name": "imagemagick-6-common",
@@ -677,7 +617,7 @@
     },
     {
       "reason_to_ignore": "Currently at the latest version with no fix.",
-"description": " A vulnerability was found in ImageMagick, causing an outside the range of representable values of type 'unsigned char' at coders/psd.c, when crafted or untrusted input is processed. This leads to a negative impact to application availability or other problems related to undefined behavior.",
+      "description": " A vulnerability was found in ImageMagick, causing an outside the range of representable values of type 'unsigned char' at coders/psd.c, when crafted or untrusted input is processed. This leads to a negative impact to application availability or other problems related to undefined behavior.",
       "vulnerability_id": "CVE-2022-32545",
       "name": "CVE-2022-32545",
       "package_name": "imagemagick-6-common",
@@ -706,7 +646,7 @@
     },
     {
       "reason_to_ignore": "Currently at the latest version with no fix.",
-"description": " In ImageMagick, there is load of misaligned address for type 'double', which requires 8 byte alignment and for type 'float', which requires 4 byte alignment at MagickCore/property.c. Whenever crafted or untrusted input is processed by ImageMagick, this causes a negative impact to application availability or other problems related to undefined behavior.",
+      "description": " In ImageMagick, there is load of misaligned address for type 'double', which requires 8 byte alignment and for type 'float', which requires 4 byte alignment at MagickCore/property.c. Whenever crafted or untrusted input is processed by ImageMagick, this causes a negative impact to application availability or other problems related to undefined behavior.",
       "vulnerability_id": "CVE-2022-32547",
       "name": "CVE-2022-32547",
       "package_name": "imagemagick-6-common",
@@ -735,7 +675,7 @@
     },
     {
       "reason_to_ignore": "Currently at the latest version with no fix.",
-"description": " A flaw was found in ImageMagick in versions before 7.0.11 and before 6.9.12, where a division by zero in WaveImage() of MagickCore/visual-effects.c may trigger undefined behavior via a crafted image file submitted to an application using ImageMagick. The highest threat from this vulnerability is to system availability.",
+      "description": " A flaw was found in ImageMagick in versions before 7.0.11 and before 6.9.12, where a division by zero in WaveImage() of MagickCore/visual-effects.c may trigger undefined behavior via a crafted image file submitted to an application using ImageMagick. The highest threat from this vulnerability is to system availability.",
       "vulnerability_id": "CVE-2021-20309",
       "name": "CVE-2021-20309",
       "package_name": "imagemagick-6-common",
@@ -764,7 +704,7 @@
     },
     {
       "reason_to_ignore": "Currently at the latest version with no fix.",
-"description": " A heap-use-after-free flaw was found in ImageMagick's RelinquishDCMInfo() function of dcm.c file. This vulnerability is triggered when an attacker passes a specially crafted DICOM image file to ImageMagick for conversion, potentially leading to information disclosure and a denial of service.",
+      "description": " A heap-use-after-free flaw was found in ImageMagick's RelinquishDCMInfo() function of dcm.c file. This vulnerability is triggered when an attacker passes a specially crafted DICOM image file to ImageMagick for conversion, potentially leading to information disclosure and a denial of service.",
       "vulnerability_id": "CVE-2022-1114",
       "name": "CVE-2022-1114",
       "package_name": "imagemagick-6-common",
@@ -793,7 +733,7 @@
     },
     {
       "reason_to_ignore": "Currently at the latest version with no fix.",
-"description": " A flaw was found in ImageMagick in versions before 7.0.11. A potential cipher leak when the calculate signatures in TransformSignature is possible. The highest threat from this vulnerability is to data confidentiality.",
+      "description": " A flaw was found in ImageMagick in versions before 7.0.11. A potential cipher leak when the calculate signatures in TransformSignature is possible. The highest threat from this vulnerability is to data confidentiality.",
       "vulnerability_id": "CVE-2021-20313",
       "name": "CVE-2021-20313",
       "package_name": "imagemagick-6-common",
@@ -822,7 +762,7 @@
     },
     {
       "reason_to_ignore": "Currently at the latest version with no fix.",
-"description": " A flaw was found in ImageMagick in versions 7.0.11, where an integer overflow in WriteTHUMBNAILImage of coders/thumbnail.c may trigger undefined behavior via a crafted image file that is submitted by an attacker and processed by an application using ImageMagick. The highest threat from this vulnerability is to system availability.",
+      "description": " A flaw was found in ImageMagick in versions 7.0.11, where an integer overflow in WriteTHUMBNAILImage of coders/thumbnail.c may trigger undefined behavior via a crafted image file that is submitted by an attacker and processed by an application using ImageMagick. The highest threat from this vulnerability is to system availability.",
       "vulnerability_id": "CVE-2021-20312",
       "name": "CVE-2021-20312",
       "package_name": "imagemagick-6-common",
@@ -853,7 +793,7 @@
   "libmagickcore-6.q16-6": [
     {
       "reason_to_ignore": "Currently at the latest version with no fix.",
-"description": " A vulnerability was found in ImageMagick, causing an outside the range of representable values of type 'unsigned long' at coders/pcl.c, when crafted or untrusted input is processed. This leads to a negative impact to application availability or other problems related to undefined behavior.",
+      "description": " A vulnerability was found in ImageMagick, causing an outside the range of representable values of type 'unsigned long' at coders/pcl.c, when crafted or untrusted input is processed. This leads to a negative impact to application availability or other problems related to undefined behavior.",
       "vulnerability_id": "CVE-2022-32546",
       "name": "CVE-2022-32546",
       "package_name": "libmagickcore-6.q16-6",
@@ -882,7 +822,7 @@
     },
     {
       "reason_to_ignore": "Currently at the latest version with no fix.",
-"description": " ImageMagick 7.1.0-27 is vulnerable to Buffer Overflow.",
+      "description": " ImageMagick 7.1.0-27 is vulnerable to Buffer Overflow.",
       "vulnerability_id": "CVE-2022-28463",
       "name": "CVE-2022-28463",
       "package_name": "libmagickcore-6.q16-6",
@@ -911,7 +851,7 @@
     },
     {
       "reason_to_ignore": "Currently at the latest version with no fix.",
-"description": " A vulnerability was found in ImageMagick, causing an outside the range of representable values of type 'unsigned char' at coders/psd.c, when crafted or untrusted input is processed. This leads to a negative impact to application availability or other problems related to undefined behavior.",
+      "description": " A vulnerability was found in ImageMagick, causing an outside the range of representable values of type 'unsigned char' at coders/psd.c, when crafted or untrusted input is processed. This leads to a negative impact to application availability or other problems related to undefined behavior.",
       "vulnerability_id": "CVE-2022-32545",
       "name": "CVE-2022-32545",
       "package_name": "libmagickcore-6.q16-6",
@@ -940,7 +880,7 @@
     },
     {
       "reason_to_ignore": "Currently at the latest version with no fix.",
-"description": " In ImageMagick, there is load of misaligned address for type 'double', which requires 8 byte alignment and for type 'float', which requires 4 byte alignment at MagickCore/property.c. Whenever crafted or untrusted input is processed by ImageMagick, this causes a negative impact to application availability or other problems related to undefined behavior.",
+      "description": " In ImageMagick, there is load of misaligned address for type 'double', which requires 8 byte alignment and for type 'float', which requires 4 byte alignment at MagickCore/property.c. Whenever crafted or untrusted input is processed by ImageMagick, this causes a negative impact to application availability or other problems related to undefined behavior.",
       "vulnerability_id": "CVE-2022-32547",
       "name": "CVE-2022-32547",
       "package_name": "libmagickcore-6.q16-6",
@@ -969,7 +909,7 @@
     },
     {
       "reason_to_ignore": "Currently at the latest version with no fix.",
-"description": " A flaw was found in ImageMagick in versions before 7.0.11 and before 6.9.12, where a division by zero in WaveImage() of MagickCore/visual-effects.c may trigger undefined behavior via a crafted image file submitted to an application using ImageMagick. The highest threat from this vulnerability is to system availability.",
+      "description": " A flaw was found in ImageMagick in versions before 7.0.11 and before 6.9.12, where a division by zero in WaveImage() of MagickCore/visual-effects.c may trigger undefined behavior via a crafted image file submitted to an application using ImageMagick. The highest threat from this vulnerability is to system availability.",
       "vulnerability_id": "CVE-2021-20309",
       "name": "CVE-2021-20309",
       "package_name": "libmagickcore-6.q16-6",
@@ -998,7 +938,7 @@
     },
     {
       "reason_to_ignore": "Currently at the latest version with no fix.",
-"description": " A heap-use-after-free flaw was found in ImageMagick's RelinquishDCMInfo() function of dcm.c file. This vulnerability is triggered when an attacker passes a specially crafted DICOM image file to ImageMagick for conversion, potentially leading to information disclosure and a denial of service.",
+      "description": " A heap-use-after-free flaw was found in ImageMagick's RelinquishDCMInfo() function of dcm.c file. This vulnerability is triggered when an attacker passes a specially crafted DICOM image file to ImageMagick for conversion, potentially leading to information disclosure and a denial of service.",
       "vulnerability_id": "CVE-2022-1114",
       "name": "CVE-2022-1114",
       "package_name": "libmagickcore-6.q16-6",
@@ -1027,7 +967,7 @@
     },
     {
       "reason_to_ignore": "Currently at the latest version with no fix.",
-"description": " A flaw was found in ImageMagick in versions before 7.0.11. A potential cipher leak when the calculate signatures in TransformSignature is possible. The highest threat from this vulnerability is to data confidentiality.",
+      "description": " A flaw was found in ImageMagick in versions before 7.0.11. A potential cipher leak when the calculate signatures in TransformSignature is possible. The highest threat from this vulnerability is to data confidentiality.",
       "vulnerability_id": "CVE-2021-20313",
       "name": "CVE-2021-20313",
       "package_name": "libmagickcore-6.q16-6",
@@ -1056,7 +996,7 @@
     },
     {
       "reason_to_ignore": "Currently at the latest version with no fix.",
-"description": " A flaw was found in ImageMagick in versions 7.0.11, where an integer overflow in WriteTHUMBNAILImage of coders/thumbnail.c may trigger undefined behavior via a crafted image file that is submitted by an attacker and processed by an application using ImageMagick. The highest threat from this vulnerability is to system availability.",
+      "description": " A flaw was found in ImageMagick in versions 7.0.11, where an integer overflow in WriteTHUMBNAILImage of coders/thumbnail.c may trigger undefined behavior via a crafted image file that is submitted by an attacker and processed by an application using ImageMagick. The highest threat from this vulnerability is to system availability.",
       "vulnerability_id": "CVE-2021-20312",
       "name": "CVE-2021-20312",
       "package_name": "libmagickcore-6.q16-6",
@@ -1087,7 +1027,7 @@
   "libmagickwand-6.q16-6": [
     {
       "reason_to_ignore": "Currently at the latest version with no fix.",
-"description": " A vulnerability was found in ImageMagick, causing an outside the range of representable values of type 'unsigned long' at coders/pcl.c, when crafted or untrusted input is processed. This leads to a negative impact to application availability or other problems related to undefined behavior.",
+      "description": " A vulnerability was found in ImageMagick, causing an outside the range of representable values of type 'unsigned long' at coders/pcl.c, when crafted or untrusted input is processed. This leads to a negative impact to application availability or other problems related to undefined behavior.",
       "vulnerability_id": "CVE-2022-32546",
       "name": "CVE-2022-32546",
       "package_name": "libmagickwand-6.q16-6",
@@ -1116,7 +1056,7 @@
     },
     {
       "reason_to_ignore": "Currently at the latest version with no fix.",
-"description": " ImageMagick 7.1.0-27 is vulnerable to Buffer Overflow.",
+      "description": " ImageMagick 7.1.0-27 is vulnerable to Buffer Overflow.",
       "vulnerability_id": "CVE-2022-28463",
       "name": "CVE-2022-28463",
       "package_name": "libmagickwand-6.q16-6",
@@ -1145,7 +1085,7 @@
     },
     {
       "reason_to_ignore": "Currently at the latest version with no fix.",
-"description": " A vulnerability was found in ImageMagick, causing an outside the range of representable values of type 'unsigned char' at coders/psd.c, when crafted or untrusted input is processed. This leads to a negative impact to application availability or other problems related to undefined behavior.",
+      "description": " A vulnerability was found in ImageMagick, causing an outside the range of representable values of type 'unsigned char' at coders/psd.c, when crafted or untrusted input is processed. This leads to a negative impact to application availability or other problems related to undefined behavior.",
       "vulnerability_id": "CVE-2022-32545",
       "name": "CVE-2022-32545",
       "package_name": "libmagickwand-6.q16-6",
@@ -1174,7 +1114,7 @@
     },
     {
       "reason_to_ignore": "Currently at the latest version with no fix.",
-"description": " In ImageMagick, there is load of misaligned address for type 'double', which requires 8 byte alignment and for type 'float', which requires 4 byte alignment at MagickCore/property.c. Whenever crafted or untrusted input is processed by ImageMagick, this causes a negative impact to application availability or other problems related to undefined behavior.",
+      "description": " In ImageMagick, there is load of misaligned address for type 'double', which requires 8 byte alignment and for type 'float', which requires 4 byte alignment at MagickCore/property.c. Whenever crafted or untrusted input is processed by ImageMagick, this causes a negative impact to application availability or other problems related to undefined behavior.",
       "vulnerability_id": "CVE-2022-32547",
       "name": "CVE-2022-32547",
       "package_name": "libmagickwand-6.q16-6",
@@ -1203,7 +1143,7 @@
     },
     {
       "reason_to_ignore": "Currently at the latest version with no fix.",
-"description": " A flaw was found in ImageMagick in versions before 7.0.11 and before 6.9.12, where a division by zero in WaveImage() of MagickCore/visual-effects.c may trigger undefined behavior via a crafted image file submitted to an application using ImageMagick. The highest threat from this vulnerability is to system availability.",
+      "description": " A flaw was found in ImageMagick in versions before 7.0.11 and before 6.9.12, where a division by zero in WaveImage() of MagickCore/visual-effects.c may trigger undefined behavior via a crafted image file submitted to an application using ImageMagick. The highest threat from this vulnerability is to system availability.",
       "vulnerability_id": "CVE-2021-20309",
       "name": "CVE-2021-20309",
       "package_name": "libmagickwand-6.q16-6",
@@ -1232,7 +1172,7 @@
     },
     {
       "reason_to_ignore": "Currently at the latest version with no fix.",
-"description": " A heap-use-after-free flaw was found in ImageMagick's RelinquishDCMInfo() function of dcm.c file. This vulnerability is triggered when an attacker passes a specially crafted DICOM image file to ImageMagick for conversion, potentially leading to information disclosure and a denial of service.",
+      "description": " A heap-use-after-free flaw was found in ImageMagick's RelinquishDCMInfo() function of dcm.c file. This vulnerability is triggered when an attacker passes a specially crafted DICOM image file to ImageMagick for conversion, potentially leading to information disclosure and a denial of service.",
       "vulnerability_id": "CVE-2022-1114",
       "name": "CVE-2022-1114",
       "package_name": "libmagickwand-6.q16-6",
@@ -1261,7 +1201,7 @@
     },
     {
       "reason_to_ignore": "Currently at the latest version with no fix.",
-"description": " A flaw was found in ImageMagick in versions before 7.0.11. A potential cipher leak when the calculate signatures in TransformSignature is possible. The highest threat from this vulnerability is to data confidentiality.",
+      "description": " A flaw was found in ImageMagick in versions before 7.0.11. A potential cipher leak when the calculate signatures in TransformSignature is possible. The highest threat from this vulnerability is to data confidentiality.",
       "vulnerability_id": "CVE-2021-20313",
       "name": "CVE-2021-20313",
       "package_name": "libmagickwand-6.q16-6",
@@ -1290,7 +1230,7 @@
     },
     {
       "reason_to_ignore": "Currently at the latest version with no fix.",
-"description": " A flaw was found in ImageMagick in versions 7.0.11, where an integer overflow in WriteTHUMBNAILImage of coders/thumbnail.c may trigger undefined behavior via a crafted image file that is submitted by an attacker and processed by an application using ImageMagick. The highest threat from this vulnerability is to system availability.",
+      "description": " A flaw was found in ImageMagick in versions 7.0.11, where an integer overflow in WriteTHUMBNAILImage of coders/thumbnail.c may trigger undefined behavior via a crafted image file that is submitted by an attacker and processed by an application using ImageMagick. The highest threat from this vulnerability is to system availability.",
       "vulnerability_id": "CVE-2021-20312",
       "name": "CVE-2021-20312",
       "package_name": "libmagickwand-6.q16-6",
