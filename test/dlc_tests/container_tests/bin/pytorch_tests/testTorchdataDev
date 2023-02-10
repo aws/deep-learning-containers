@@ -6,8 +6,18 @@ LOG_DIR=${HOME_DIR}/logs
 
 TORCHDATA_REPO="https://github.com/pytorch/data.git"
 TORCHDATA_TEST_SCRIPT="test/test_remote_io.py"
+TORCH_VERSION=$(python -c "import torch; print(torch.__version__)")
 TORCHDATA_RELEASE_TAG=$(python -c "import torchdata; torchdata_versions = torchdata.__version__.split('.'); print(f'release/{torchdata_versions[0]}.{torchdata_versions[1]}')")
 
+## PyTorch 1.11 DLC was built with TorchData 0.4.0 which is meant for PyTorch 1.12 and not PT 1.11
+## This fails the Torchdata 0.4.0 test_remote_io.py at test_http_reader_iterdatapipe due to 
+## Torch not knowing "auth" in 1.11. We need to use TorchData 0.3.0 Branch for testing PyTorch 1.11 DLC
+if [[ ${TORCH_VERSION} == "1.11"* ]]
+then
+    TORCHDATA_RELEASE_TAG = "release/0.3.0"
+fi
+
+## using the "cherry-pick" and commit requires user.email and user.name.. 
 echo adding temp git config user email and name
 git config --global user.email "you@example.com"
 git config --global user.name "Your Name"
