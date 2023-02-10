@@ -5,7 +5,7 @@ BIN_DIR=${HOME_DIR}/bin
 LOG_DIR=${HOME_DIR}/logs
 
 TORCHDATA_DEV_BRANCH_PREFIX="torchdata_pt_"
-TORCHDATA_DEV_REPO="https://github.com/kace/data.git"
+TORCHDATA_DEV_REPO="https://github.com/ShiboXing/data.git"
 TORCHDATA_TEST_SCRIPT="data/test/test_remote_io.py"
 VERSION=$(python -c "import torch; print(torch.__version__.split('+')[0])")
 
