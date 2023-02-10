@@ -48,7 +48,7 @@
       "severity": "LOW",
       "status": "ACTIVE",
       "title": "CVE-2022-3996 - cryptography, cryptography"
-    }
+    },
   ],
   "imagemagick": [
     {
