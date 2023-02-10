@@ -188,16 +188,16 @@ AutoGluon Training Containers
 
 | Framework       | AutoGluon Version  | Job Type | CPU/GPU | Python Version Options | Example URL                                                                                      |
 |-----------------|--------------------|----------|---------|------------------------|--------------------------------------------------------------------------------------------------|
-| AutoGluon 0.6.1 | 0.6.1              | training | GPU     | 3.8 (py38)             | 763104351884.dkr.ecr.us-east-1.amazonaws.com/autogluon-training:0.6.1-gpu-py38-cu113-ubuntu20.04 |
-| AutoGluon 0.6.1 | 0.6.1              | training | CPU     | 3.8 (py38)             | 763104351884.dkr.ecr.us-east-1.amazonaws.com/autogluon-training:0.6.1-cpu-py38-ubuntu20.04       |
+| AutoGluon 0.6.2 | 0.6.2              | training | GPU     | 3.8 (py38)             | 763104351884.dkr.ecr.us-east-1.amazonaws.com/autogluon-training:0.6.2-gpu-py38-cu113-ubuntu20.04 |
+| AutoGluon 0.6.2 | 0.6.2              | training | CPU     | 3.8 (py38)             | 763104351884.dkr.ecr.us-east-1.amazonaws.com/autogluon-training:0.6.2-cpu-py38-ubuntu20.04       |
 
 AutoGluon Inference Containers
 ===============================
 
 | Framework       | AutoGluon Version  | Job Type  | CPU/GPU | Python Version Options | Example URL                                                                                       |
 |-----------------|--------------------|-----------|---------|------------------------|---------------------------------------------------------------------------------------------------|
-| AutoGluon 0.6.1 | 0.6.1              | inference | GPU     | 3.8 (py38)             | 763104351884.dkr.ecr.us-east-1.amazonaws.com/autogluon-inference:0.6.1-gpu-py38-cu113-ubuntu20.04 |
-| AutoGluon 0.6.1 | 0.6.1              | inference | CPU     | 3.8 (py38)             | 763104351884.dkr.ecr.us-east-1.amazonaws.com/autogluon-inference:0.6.1-cpu-py38-ubuntu20.04       |
+| AutoGluon 0.6.2 | 0.6.2              | inference | GPU     | 3.8 (py38)             | 763104351884.dkr.ecr.us-east-1.amazonaws.com/autogluon-inference:0.6.2-gpu-py38-cu113-ubuntu20.04 |
+| AutoGluon 0.6.2 | 0.6.2              | inference | CPU     | 3.8 (py38)             | 763104351884.dkr.ecr.us-east-1.amazonaws.com/autogluon-inference:0.6.2-cpu-py38-ubuntu20.04       |
 
 HuggingFace Training Containers
 ===============================
