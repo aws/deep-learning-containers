@@ -77,12 +77,6 @@ def ec2_performance_tensorflow_inference(image_uri, processor, ec2_connection, e
 
     if "graviton" in image_uri:
         # TF training binary is used that is compatible for graviton instance type
-
-        # ec2_connection.run(
-        #     (
-        #         f"sudo apt-get -y install python3-pip"
-        #     ), hide=True
-        # )
         ec2_connection.run(
             (
                 f"/usr/bin/pip3 install --user --upgrade awscli boto3 && pip3 install --user grpcio"
@@ -98,17 +92,20 @@ def ec2_performance_tensorflow_inference(image_uri, processor, ec2_connection, e
         ec2_connection.run(
             f"/usr/bin/pip3 install boto3 grpcio 'tensorflow-serving-api<={tf_api_version}' --user --no-warn-script-location"
         )
-    # checking if TF uis available for python
-    ec2_connection.run('/usr/bin/python3 -c "import tensorflow as tf"')
     time_str = time.strftime("%Y-%m-%d-%H-%M-%S")
     commit_info = os.getenv("CODEBUILD_RESOLVED_SOURCE_VERSION")
     log_file = f"synthetic_{commit_info}_{time_str}.log"
-    ec2_connection.run(
+
+    # Run the test 
+    assert ec2_connection.run(
         f"/usr/bin/python3 {container_test_local_dir}/bin/benchmark/tf{tf_version}_serving_perf.py "
         f"--processor {processor} --docker_image_name {image_uri} "
         f"--run_all_s3 --binary /usr/bin/tensorflow_model_server --get_perf --iterations {num_iterations} "
         f"2>&1 | tee {log_file}"
     )
-    ec2_performance_upload_result_to_s3_and_validate(
+    
+
+    # Check is benchmark is within limits
+    assert ec2_performance_upload_result_to_s3_and_validate(
         ec2_connection, image_uri, log_file, "synthetic", threshold, post_process_inference, log_file,
     )
