@@ -279,7 +279,7 @@ RUN curl https://aws-dlc-licenses.s3.amazonaws.com/tensorflow-${TF_VERSION}/lice
 
 FROM common AS ec2
 
-ARG TF_URL=https://framework-binaries.s3.us-west-2.amazonaws.com/tensorflow/r2.9_aws/gpu/2022-09-23-01-18/tensorflow_gpu-2.9.2-cp39-cp39-manylinux_2_17_x86_64.manylinux2014_x86_64.whl
+ARG TF_URL=https://framework-binaries.s3.us-west-2.amazonaws.com/tensorflow/r2.9_aws/gpu/2022-11-30-20-52/tensorflow_gpu-2.9.3-cp39-cp39-manylinux_2_17_x86_64.manylinux2014_x86_64.whl
 
 RUN ${PIP} install --no-cache-dir -U \
    ${TF_URL} \
@@ -325,7 +325,7 @@ FROM common AS sagemaker
 LABEL maintainer="Amazon AI"
 LABEL dlc_major_version="1"
 
-ARG TF_URL=https://framework-binaries.s3.us-west-2.amazonaws.com/tensorflow/r2.9_aws/gpu/2022-09-23-01-18/tensorflow_gpu-2.9.2-cp39-cp39-manylinux_2_17_x86_64.manylinux2014_x86_64.whl
+ARG TF_URL=https://framework-binaries.s3.us-west-2.amazonaws.com/tensorflow/r2.9_aws/gpu/2022-11-30-20-52/tensorflow_gpu-2.9.3-cp39-cp39-manylinux_2_17_x86_64.manylinux2014_x86_64.whl
 
 # sagemaker-specific environment variable
 ENV SAGEMAKER_TRAINING_MODULE sagemaker_tensorflow_container.training:main
@@ -333,7 +333,7 @@ ENV SAGEMAKER_TRAINING_MODULE sagemaker_tensorflow_container.training:main
 # https://github.com/tensorflow/models/issues/9267
 # tf-models does not respect existing installations of TF and always installs open source TF
 RUN ${PIP} install --no-cache-dir -U \
-    tf-models-official==2.9.1
+    tf-models-official==2.9.2
 
 RUN ${PIP} uninstall -y tensorflow tensorflow-gpu \
   ; ${PIP} install --no-cache-dir -U \
@@ -357,16 +357,16 @@ RUN $PYTHON -m pip install --no-cache-dir -U \
     smclarify
 
 RUN $PYTHON -m pip install --no-cache-dir -U \
+    numba \
     "bokeh>=2.3,<3" \
     "imageio>=2.9,<3" \
     "opencv-python>=4.3,<5" \
     "plotly>=5.1,<6" \
     "seaborn>=0.11,<1" \
-    "numba<0.54" \
     "shap>=0.39,<1"
 
 # install smdebug directly the specific branch
-ARG SMDEBUG_TAG=1.0.17
+ARG SMDEBUG_TAG=1.0.26
 RUN git clone https://github.com/awslabs/sagemaker-debugger.git \
     && cd sagemaker-debugger \
     && git checkout tags/$SMDEBUG_TAG -b $SMDEBUG_TAG \
@@ -404,6 +404,9 @@ RUN SMDATAPARALLEL_TF=1 ${PYTHON} -m pip install --no-cache-dir ${SMDATAPARALLEL
 ENV TF_AUTOTUNE_THRESHOLD=2
 
 ENV LD_LIBRARY_PATH="/usr/local/lib/${PYTHON}/site-packages/smdistributed/dataparallel/lib:$LD_LIBRARY_PATH"
+
+# Remove python kernel installed by sparkmagic
+RUN /usr/local/bin/jupyter-kernelspec remove -f python3
 
 # remove tmp files
 RUN rm -rf /tmp/*

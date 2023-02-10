@@ -1,20 +1,16 @@
 import json
 import os
 import subprocess
-import sys
-import time
 
 from base64 import b64decode
 
 import boto3
 import botocore
 
-from datetime import date, datetime
 from test.test_utils import (
     get_repository_and_tag_from_image_uri,
     get_region_from_image_uri,
     get_account_id_from_image_uri,
-    login_to_ecr_registry,
     get_unique_name_from_tag,
     get_repository_local_path,
     LOGGER,

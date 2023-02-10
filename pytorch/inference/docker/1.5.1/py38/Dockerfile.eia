@@ -38,14 +38,21 @@ RUN apt-get update \
     curl \
     emacs \
     git \
+    krb5-user \
+    libkdb5-9 \
+    libsdl2-2.0-0 \
+    libgssapi-krb5-2 \
     jq \
     libgl1-mesa-glx \
     libglib2.0-0 \
     libgomp1 \
     libibverbs-dev \
+    libmysofa1 \
     libsm6 \
+    libtiff5 \
     libxext6 \
     libxrender-dev \
+    libzmq5 \
     openjdk-8-jdk-headless \
     vim \
     wget \
@@ -93,14 +100,15 @@ RUN conda install -y \
  # Torchvision wheel must be installed first, so that PyTorch-EI framework is not overwritten.
  && pip install https://download.pytorch.org/whl/cpu/torchvision-0.6.1%2Bcpu-cp38-cp38-linux_x86_64.whl \
  && pip install https://amazonei-pytorcheia.s3.amazonaws.com/releases/torcheia-1.0.0-cp38-cp38-manylinux1_x86_64.whl \
+ && pip install certifi \
  && pip install graphviz==$GRAPHVIZ_VERSION \
  && pip install multi-model-server==$MMS_VERSION \
  && pip install opencv-python  \
  && pip install numpy==1.22.4 \
  && pip install pillow==9.3.0 \
  && pip install urllib3==1.26.11 \
- # pyOpenSSL requires cryptography>=2.3, but all versions <3.3 have vulnerabilities
- && pip install -U "cryptography>=3.3"
+ # pyOpenSSL requires cryptography>=2.3
+ && pip install cryptography==39.0.1
 
 RUN useradd -m model-server \
  && mkdir -p /home/model-server/tmp \
