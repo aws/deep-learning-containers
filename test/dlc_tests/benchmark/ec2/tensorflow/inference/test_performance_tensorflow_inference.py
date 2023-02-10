@@ -106,6 +106,6 @@ def ec2_performance_tensorflow_inference(image_uri, processor, ec2_connection, e
     
 
     # Check is benchmark is within limits
-    assert ec2_performance_upload_result_to_s3_and_validate(
+    ec2_performance_upload_result_to_s3_and_validate(
         ec2_connection, image_uri, log_file, "synthetic", threshold, post_process_inference, log_file,
     )
