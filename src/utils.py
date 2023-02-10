@@ -33,7 +33,7 @@ LOGGER.addHandler(logging.StreamHandler(sys.stdout))
 LOGGER.addHandler(logging.StreamHandler(sys.stderr))
 
 import sys      
-sys.path.insert(1, '/home/ubuntu/deep-learning-containers/ecr_scans')
+sys.path.insert(1, 'ecr_scans')
 from test_ecr_scan import(
     test_ecr_enhanced_scan
 ) 
