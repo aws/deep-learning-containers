@@ -997,7 +997,7 @@
   ],
   "torch": [
     {
-      "reason_to_ignore": "patched in AWS-PyTorch"
+      "reason_to_ignore": "patched in AWS-PyTorch",
       "description": " In PyTorch before trunk/89695, torch.jit.annotations.parse_type_line can cause arbitrary code execution because eval is used unsafely.",
       "vulnerability_id": "CVE-2022-45907",
       "name": "CVE-2022-45907",
