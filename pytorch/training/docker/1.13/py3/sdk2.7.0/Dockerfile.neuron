@@ -157,7 +157,8 @@ RUN pip install --no-cache-dir -U \
     "seaborn>=0.11,<1" \
     "numba<0.54" \
     "shap>=0.39,<1" \
-    "numpy<=1.20.0,>=1.13.3"
+    "numpy<=1.20.0,>=1.13.3" \
+    "pyyaml>=5.4,<5.5"
 
 # EFA Installer does apt get. Make sure to run apt update before that
 RUN apt-get update
@@ -181,7 +182,7 @@ RUN rm -rf /var/lib/apt/lists/* \
  # torchvision needed for MLP. since it depends on torch and torch neuron/torch
  # is already installed install it with nodeps
  RUN pip3 install --no-cache-dir --no-deps -U \
-    torchvision==0.14.0
+    torchvision==0.14.1
 
 # Needed for running bert training scripts
 RUN pip3 install --no-cache-dir -U \
