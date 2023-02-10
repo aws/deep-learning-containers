@@ -33,8 +33,7 @@ LOGGER.addHandler(logging.StreamHandler(sys.stdout))
 LOGGER.addHandler(logging.StreamHandler(sys.stderr))
 
 import sys      
-sys.path.insert(0, '../ecr_scans')
-from test_ecr_scan import(
+from ecr_scan.test_ecr_scan import(
     test_ecr_enhanced_scan
 ) 
 

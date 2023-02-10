@@ -18,6 +18,7 @@ phases:
     commands:
       - echo Build started on `date`
       - echo Building the Docker image...
+      - export PYTHONPATH=$PYTHONPATH:$(pwd)/ecr_scan
       - python src/main.py --buildspec $FRAMEWORK_BUILDSPEC_FILE --framework $FRAMEWORK
   post_build:
     commands:
