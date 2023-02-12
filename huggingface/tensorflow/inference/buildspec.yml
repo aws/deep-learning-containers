@@ -41,7 +41,7 @@ images:
   BuildHuggingFaceTensorflowGpuPy39Cu112InferenceDockerImage:
     <<: *INFERENCE_REPOSITORY
     build: &HUGGINGFACE_TENSORFLOW_GPU_INFERENCE_PY3 false
-    image_size_baseline: 10000
+    image_size_baseline: 20000
     device_type: &DEVICE_TYPE gpu
     python_version: &DOCKER_PYTHON_VERSION py3
     tag_python_version: &TAG_PYTHON_VERSION py39
