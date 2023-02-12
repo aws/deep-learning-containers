@@ -130,7 +130,7 @@ RUN conda install -c conda-forge -y \
  && ln -s /opt/conda/bin/pip /usr/local/bin/pip3 \
  && pip install packaging==20.4 \
     enum-compat==0.0.3 \
-    "cryptography>=3.3.2"
+    "cryptography>=39.0.1"
 
 # install torch and torchvision from the PyTorch website
 RUN pip uninstall -y torch \
