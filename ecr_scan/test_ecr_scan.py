@@ -98,7 +98,6 @@ def test_ecr_enhanced_scan(image, ecr_client, sts_client, region):
     )
 
     ecr_client_for_enhanced_scanning_repo = boto3.client("ecr", region_name=ECR_ENHANCED_REPO_REGION)
-    ecr_enhanced_repo_uri = "669063966089.dkr.ecr.us-west-1.amazonaws.com/ecr-enhanced-scanning-dlc-repo:beta-pytorch-training-1.13.1-cpu-py39-ubuntu20.04-ec2-2023-02-03-20-28-41-pre-push-ENHSCAN"
     wait_for_enhanced_scans_to_complete(ecr_client_for_enhanced_scanning_repo, ecr_enhanced_repo_uri)
     sleep(1 * 60)
 
