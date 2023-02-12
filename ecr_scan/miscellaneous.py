@@ -21,6 +21,7 @@ def push_image_to_ecr(image):
     docker_client = DockerClient(base_url=constants.DOCKER_URL)
     res = docker_client.images.push(image)
 
+
 def get_ecr_registry(account, region):
     """
     Get prefix of ECR image URI
