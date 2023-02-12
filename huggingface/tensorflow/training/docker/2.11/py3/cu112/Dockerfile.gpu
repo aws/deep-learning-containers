@@ -12,16 +12,12 @@ ARG TRANSFORMERS_VERSION
 ARG DATASETS_VERSION
 ARG PYTHON=python3
 
-# We need TF_FORCE_GPU_ALLOW_GROWTH=true to prevent TF from overusing GPU memory when loading models
-ENV TF_FORCE_GPU_ALLOW_GROWTH=true
-
 # install Hugging Face libraries and its dependencies
 RUN pip install --no-cache-dir \
     transformers[sklearn,sentencepiece,audio,vision]==${TRANSFORMERS_VERSION} \
     datasets==${DATASETS_VERSION} \
     tensorflow-addons==0.19.0 \
     psutil
-
 
 RUN apt-get update \
  # TODO: Remove upgrade statements once packages are updated in base image

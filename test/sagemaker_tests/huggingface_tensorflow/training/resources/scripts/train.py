@@ -11,7 +11,7 @@ from transformers.file_utils import is_sagemaker_dp_enabled
 
 if os.environ.get("SDP_ENABLED") or is_sagemaker_dp_enabled():
     SDP_ENABLED = True
-    os.environ["SAGEMAKER_INSTANCE_TYPE"] = "p3dn.24xlarge"
+    os.environ["SAGEMAKER_INSTANCE_TYPE"] = "p4d.24xlarge"
     import smdistributed.dataparallel.tensorflow as sdp
 else:
     SDP_ENABLED = False
@@ -107,6 +107,8 @@ if __name__ == "__main__":
         format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
     )
 
+    learning_rate=args.learning_rate
+
     if SDP_ENABLED:
         sdp.init()
 
@@ -116,6 +118,8 @@ if __name__ == "__main__":
         if gpus:
             tf.config.experimental.set_visible_devices(gpus[sdp.local_rank()], "GPU")
 
+        learning_rate = learning_rate * sdp.size()
+
     # Load model and tokenizer
     model = TFAutoModelForSequenceClassification.from_pretrained(args.model_name)
     tokenizer = AutoTokenizer.from_pretrained(args.model_name)
@@ -124,7 +128,7 @@ if __name__ == "__main__":
     tf_train_dataset, tf_test_dataset = get_datasets()
 
     # fine optimizer and loss
-    optimizer = tf.keras.optimizers.Adam(learning_rate=args.learning_rate)
+    optimizer = tf.keras.optimizers.Adam(learning_rate=learning_rate)
     loss = tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True)
     metrics = [tf.keras.metrics.SparseCategoricalAccuracy()]
     model.compile(optimizer=optimizer, loss=loss, metrics=metrics)
@@ -134,7 +138,7 @@ if __name__ == "__main__":
 
         # train_results = model.fit(tf_train_dataset, epochs=args.epochs, batch_size=args.train_batch_size)
         train_results = fit(
-            model, loss, optimizer, tf_train_dataset, args.epochs, args.train_batch_size, max_steps=None
+            model, loss, optimizer, tf_train_dataset, args.epochs, args.train_batch_size, max_steps=args.max_steps
         )
         logger.info("*** Train ***")
 
