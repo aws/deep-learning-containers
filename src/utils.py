@@ -246,27 +246,11 @@ def generate_safety_report_for_image(image_uri, image_info, storage_file_path=No
     ecr_scan_report=test_ecr_enhanced_scan(image_uri, ecr_client, sts_client, region="us-west-2")
 
     ecr_scan_report = json.loads(ecr_scan_report)
-    vulnerability_dict = {}
-        
-    for package in ecr_scan_report:
-        package_name = package
-        vulnerability_details = []
-        for cve in ecr_scan_report[package]:
-            vulnerability_details.append({
-                "vulnerability_id": cve["vulnerability_id"],
-                "description": cve["description"],
-                "source": cve["source"],
-                "severity": cve["severity"]
-            })
-        vulnerability_dict[package] = {
-                "installed": ecr_scan_report[package][0]["package_details"]["version"],
-                "vulnerabilities": [vulnerability_details]
-            }
 
     if storage_file_path:
         with open(storage_file_path, "w", encoding="utf-8") as f:
-            json.dump(vulnerability_dict, f, indent=4)
-    return vulnerability_dict
+            json.dump(ecr_scan_report, f, indent=4)
+    return ecr_scan_report
 
 
 def get_label_prefix_customer_type(image_tag):

@@ -67,6 +67,39 @@ def get_target_image_uri_using_current_uri_and_target_repo(image, target_reposit
     target_image_uri = f"{registry}/{target_repository_name}:{upgraded_image_tag}"
     return target_image_uri
 
+def format_and_generate_report(ecr_image_vulnerability_list,image_scan_allowlist):
+    ecr_report = json.loads(ecr_image_vulnerability_list)
+    allowlist_report = json.loads(image_scan_allowlist)
+    vulnerability_dict = {}
+    for package in ecr_report:
+        vulnerability_details = []
+        if package in allowlist_report:
+            print("Package exists in allowlist")
+            print(package)
+            print(allowlist_report[package])
+            for cve in ecr_report[package]:
+                vulnerability_details.append({
+                    "vulnerability_id": cve["vulnerability_id"],
+                    "description": cve["description"],
+                    "source": cve["source"],
+                    "severity": cve["severity"],
+                    "scan_status": "IGNORED"
+                })
+        else:
+            for cve in ecr_report[package]:
+                vulnerability_details.append({
+                    "vulnerability_id": cve["vulnerability_id"],
+                    "description": cve["description"],
+                    "source": cve["source"],
+                    "severity": cve["severity"],
+                    "scan_status": "FAILED"
+                })
+        vulnerability_dict[package] = {
+                "installed": ecr_report[package][0]["package_details"]["version"],
+                "vulnerabilities": [vulnerability_details]
+            }
+    print(vulnerability_dict)
+    return vulnerability_dict
 
 def test_ecr_enhanced_scan(image, ecr_client, sts_client, region):
     """
@@ -121,7 +154,6 @@ def test_ecr_enhanced_scan(image, ecr_client, sts_client, region):
         if is_generic_image():
             image_scan_allowlist_path = get_allowlist_path_for_enhanced_scan_from_env_variable()
         else:
-            print("else ------------")
             image_scan_allowlist_path = get_ecr_scan_allowlist_path(image)
         LOGGER.info(f"[Allowlist] Trying to locate Allowlist at PATH: {image_scan_allowlist_path}")
         # Check if image Scan Allowlist Path exists
@@ -132,12 +164,13 @@ def test_ecr_enhanced_scan(image, ecr_client, sts_client, region):
         LOGGER.info(f"[Allowlist] Image scan allowlist path could not be derived for {image}")
         traceback.print_exc()
 
-    remaining_vulnerabilities = ecr_image_vulnerability_list - image_scan_allowlist
+    ecr_list = json.dumps(ecr_image_vulnerability_list.vulnerability_list, cls= EnhancedJSONEncoder)
+    allow_list = json.dumps(image_scan_allowlist.vulnerability_list, cls= EnhancedJSONEncoder)
+    formated_report = format_and_generate_report(ecr_list,allow_list)
+    
     LOGGER.info(f"ECR Enhanced Scanning test completed for image: {image}")
-    print(type(remaining_vulnerabilities.vulnerability_list))
-    vulnerability_list_to_embed = json.dumps(remaining_vulnerabilities.vulnerability_list, cls= EnhancedJSONEncoder)
-    print("-----------")
-    print(type(vulnerability_list_to_embed))
+    vulnerability_list_to_embed = json.dumps(formated_report, cls= EnhancedJSONEncoder)
+    print(vulnerability_list_to_embed)
     return vulnerability_list_to_embed
     # if remaining_vulnerabilities:
     #     assert not remaining_vulnerabilities.vulnerability_list, (
