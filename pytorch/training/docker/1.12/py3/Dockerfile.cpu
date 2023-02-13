@@ -152,7 +152,7 @@ RUN pip install --upgrade pip --trusted-host pypi.org --trusted-host files.pytho
     boto3 \
     click \
     "cryptography>3.2" \
-    ipython==8.1.0 \
+    ipython \
     opencv-python \
     packaging \
     "Pillow>=9.0.0" \
