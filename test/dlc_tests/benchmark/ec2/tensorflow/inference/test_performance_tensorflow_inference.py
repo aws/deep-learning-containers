@@ -75,11 +75,7 @@ def ec2_performance_tensorflow_inference(image_uri, processor, ec2_connection, e
     num_iterations = 500 if is_pr_context() else 1000
     # Make sure we are logged into ECR so we can pull the image
     ec2_connection.run(f"$(aws ecr get-login --no-include-email --region {region})", hide=True)
-
     ec2_connection.run(f"{docker_cmd} pull -q {image_uri} ")
-
-    # Run performance inference command, display benchmark results to console
-
     if "graviton" in image_uri:
         # TF training binary is used that is compatible for graviton instance type
         ec2_connection.run(
@@ -108,7 +104,6 @@ def ec2_performance_tensorflow_inference(image_uri, processor, ec2_connection, e
         f"--run_all_s3 --binary /usr/bin/tensorflow_model_server --get_perf --iterations {num_iterations} "
         f"2>&1 | tee {log_file}"
     )
-    
 
     # Check is benchmark is within limits
     ec2_performance_upload_result_to_s3_and_validate(
