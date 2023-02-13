@@ -333,7 +333,7 @@ RUN HOME_DIR=/root \
  && rm -rf /tmp/tmp*
 
 # Removing the cache as it is needed for security verification
-RUN rm -rf /root/.cache | true
+RUN rm -rf /root/.cache
 
 # Starts framework
 CMD ["/bin/bash"]
@@ -461,8 +461,7 @@ WORKDIR /
 # Install scikit-learn and pandas
 RUN /opt/conda/bin/conda install -y -c conda-forge \
     scikit-learn \
-    pandas \
- && /opt/conda/bin/conda clean -ya
+    pandas
 
 WORKDIR /
 

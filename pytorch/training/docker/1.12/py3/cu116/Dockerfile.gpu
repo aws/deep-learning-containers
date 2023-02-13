@@ -328,7 +328,7 @@ RUN HOME_DIR=/root \
  && rm -rf /tmp/tmp*
 
 # Removing the cache as it is needed for security verification
-RUN rm -rf /root/.cache | true
+RUN rm -rf /root/.cache
 
 # Starts framework
 CMD ["/bin/bash"]
@@ -553,7 +553,7 @@ RUN HOME_DIR=/root \
  && rm -rf /tmp/tmp*
 
 # Removing the cache as it is needed for security verification
-RUN rm -rf /root/.cache | true
+RUN rm -rf /root/.cache
 
 ENTRYPOINT ["bash", "-m", "start_with_right_hostname.sh"]
 CMD ["/bin/bash"]
