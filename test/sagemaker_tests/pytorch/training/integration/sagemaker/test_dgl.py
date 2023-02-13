@@ -71,7 +71,7 @@ def test_dgl_gcn_training_gpu(ecr_image, sagemaker_regions, instance_type):
         "instance_type": instance_type,
     }
 
-    if Version(image_framework_version) in SpecifierSet(">=1.12"):
+    if Version(image_framework_version) in SpecifierSet(">=1.11.0"):
         invoke_pytorch_helper_function(ecr_image, sagemaker_regions, _test_dgl_training, function_args)
     else:
         invoke_pytorch_helper_function(ecr_image, sagemaker_regions, _test_dgl_LT_09x_training, function_args)
