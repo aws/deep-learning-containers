@@ -6,7 +6,7 @@ LOG_DIR=${HOME_DIR}/logs
 
 TORCHDATA_REPO="https://github.com/pytorch/data.git"
 TORCHDATA_TEST_SCRIPT="test/test_remote_io.py"
-TORCH_VERSION=$(python -c "import torch; print(torch.__version__)")
+IS_PT_111=$(python -c "import torch; print('true') if '1.11.0' in torch.__version__ else print('false')")
 TORCHDATA_RELEASE_TAG=$(python -c "import torchdata; torchdata_versions = torchdata.__version__.split('.'); print(f'release/{torchdata_versions[0]}.{torchdata_versions[1]}')")
 
 ## using the commit requires user.email and user.name.. 
@@ -21,7 +21,7 @@ cd data
 ## PyTorch 1.11 DLC was built with TorchData 0.4.0 which is meant for PyTorch 1.12 and not PT 1.11
 ## This fails the Torchdata 0.4.0 test_remote_io.py at test_http_reader_iterdatapipe due to 
 ## Torch not knowing "auth" in 1.11. We need to use TorchData 0.3.0 Branch for testing PyTorch 1.11 DLC
-if [[ ${TORCH_VERSION} == "1.11.0" ]]
+if ${IS_PT_111}
 then
     echo "This is PT 1.11.0, checkout release/0.3"
     git checkout "release/0.3"
