@@ -21,7 +21,7 @@ cd data
 ## PyTorch 1.11 DLC was built with TorchData 0.4.0 which is meant for PyTorch 1.12 and not PT 1.11
 ## This fails the Torchdata 0.4.0 test_remote_io.py at test_http_reader_iterdatapipe due to 
 ## Torch not knowing "auth" in 1.11. We need to use TorchData 0.3.0 Branch for testing PyTorch 1.11 DLC
-if [[ ${TORCH_VERSION} == *"1.11"* ]]
+if [[ ${TORCH_VERSION} == "1.11.0" ]]
 then
     echo "This is PT 1.11.0, checkout release/0.3"
     git checkout "release/0.3"
@@ -29,9 +29,14 @@ else
     echo "checkout ${TORCHDATA_RELEASE_TAG}"
     git checkout ${TORCHDATA_RELEASE_TAG}
     
-    echo "Patching test_remote_io for E3 bucket issue"
+    # Need to patch the test with a couple PRs. PT 1.12.x needs both commits for remote-io test work but PT 1.13.x does not as
+    # the fist commit was already included in PT 1.13.x release branch. 
+    echo "Patching test_remote_io with PR-810 'Changing 1-to-M behaviour of on_disk_cache' for PT 1.12.x"
+    # "Changing 1-to-M behaviour of on_disk_cache" PR-810 solves for PT 1.12.x remote-io test. does not change PT 1.13.x
     git cherry-pick 2a58c306f11225264a2f432f3d483fca61e9576d --strategy-option theirs
     git commit -a
+    echo "Patching test_remote_io with PR-997 'Fix test_remote_io.py due to mutating public s3 bucket' for PT 1.12.x and PT 1.13.x"
+    # "Fix test_remote_io.py due to mutating public s3 bucket" PR-997 solves PT remote-io test 1.12.x and 1.13.x will not affect PT 2.0
     git cherry-pick c109c3a107a434db1904cd3ed0e9acab585508cc --strategy-option theirs
 fi
 
