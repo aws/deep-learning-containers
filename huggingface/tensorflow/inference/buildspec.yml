@@ -22,6 +22,9 @@ context:
     config:
       source: ../../build_artifacts/inference/config.properties
       target: config.properties
+    deep_learning_container:
+      source: ../../../src/deep_learning_container.py
+      target: deep_learning_container.py
 
 images:
   BuildHuggingFaceTensorflowCpuPy39InferenceDockerImage:
@@ -41,7 +44,7 @@ images:
   BuildHuggingFaceTensorflowGpuPy39Cu112InferenceDockerImage:
     <<: *INFERENCE_REPOSITORY
     build: &HUGGINGFACE_TENSORFLOW_GPU_INFERENCE_PY3 false
-    image_size_baseline: 20000
+    image_size_baseline: 27000
     device_type: &DEVICE_TYPE gpu
     python_version: &DOCKER_PYTHON_VERSION py3
     tag_python_version: &TAG_PYTHON_VERSION py39
