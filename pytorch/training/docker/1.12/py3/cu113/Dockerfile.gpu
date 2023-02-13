@@ -180,6 +180,7 @@ RUN ompi_info --parsable --all | grep mpi_built_with_cuda_support:value \
     conda-content-trust \
     charset-normalizer \
     "shap<1" \
+ # pin dgl since PyTorch 1.12 has accurancy error with 1.0.0
  && /opt/conda/bin/conda install -c dglteam -y dgl-cuda11.3=0.9.1 \
  && /opt/conda/bin/conda install -c pytorch magma-cuda113 \
  # Upstream conda looks to have moved to 4.13 which is incompatible with mamba 0.22.1 and will fail the conda-forge installs.
