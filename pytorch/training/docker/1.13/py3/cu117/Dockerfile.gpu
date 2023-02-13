@@ -206,7 +206,9 @@ RUN ompi_info --parsable --all | grep mpi_built_with_cuda_support:value \
  # dataclasses package, which contains CVE, is not needed for py>=37
  # pypi fastai's dependencies will oversize the image
  && pip uninstall -y dataclasses \
- && /opt/conda/bin/mamba clean -ya
+ && /opt/conda/bin/mamba clean -ya \
+ # related to NVIDIA CDN issue: https://github.com/NVIDIA/nvidia-docker/issues/1009
+ && rm /etc/apt/sources.list.d/cuda.list
 
 # Conda installs links for libtinfo.so.6 and libtinfo.so.6.2 both
 # Which causes "/opt/conda/lib/libtinfo.so.6: no version information available" warning
