@@ -8,7 +8,7 @@ ARG TORCH_URL=https://aws-pytorch-unified-cicd-binaries.s3.us-west-2.amazonaws.c
 ARG TORCHVISION_VERSION=0.14.1+cpu
 ARG TORCHAUDIO_VERSION=0.13.1+cpu
 ARG TORCHDATA_VERSION=0.5.1
-ARG TORCHSERVE_VERSION=0.7.0
+ARG TORCHSERVE_VERSION=0.7.1
 
 ########################################################
 #  _____ ____ ____    ___
@@ -79,7 +79,7 @@ RUN apt-get update \
     libssl-dev \
     libxext6 \
     libxrender-dev \
-    openjdk-11-jdk \
+    openjdk-17-jdk \
     openssl \
     unzip \
     vim \
@@ -142,14 +142,14 @@ RUN pip uninstall -y torch torchvision torchaudio torchdata model-archiver multi
 RUN pip install --no-cache-dir --extra-index-url https://download.pytorch.org/whl/cpu -U \
     "awscli<2" \
     boto3 \
-    "cryptography>3.2" \
+    cryptography \
     enum-compat==0.0.3 \
-    ipython==8.1.0 \
+    ipython \
     numpy==1.22.2 \
     opencv-python \
     packaging \
     "Pillow>=9.0.0" \
-    "pyyaml>=5.4,<5.5" \
+    pyyaml \
     scipy \
     captum \
     ${TORCH_URL} \
@@ -225,7 +225,7 @@ RUN conda install -y -c conda-forge \
     scikit-learn \
     pandas
 
-RUN pip install --no-cache-dir "sagemaker-pytorch-inference>=2"
+RUN pip install --no-cache-dir "sagemaker-pytorch-inference==2.0.12"
 
 COPY torchserve-entrypoint.py /usr/local/bin/dockerd-entrypoint.py
 
