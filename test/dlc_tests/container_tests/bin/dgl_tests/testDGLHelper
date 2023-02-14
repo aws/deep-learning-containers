@@ -6,7 +6,7 @@ LOG_DIR=${HOME_DIR}/logs
 
 DGLTESTDIR=${HOME_DIR}/artifacts/dgl
 TRAINING_LOG=${LOG_DIR}/dgl_train_gcn.log
-DGL_GE_09X=$(python -c "import dgl; vers = dgl.__version__.split('.'); print(1 if int(vers[1]) >= 9 or int(vers[0]) else 0)")
+DGL_GE_09X=$(python -c "import dgl; from packaging.version import Version; print(1 if Version(dgl.__version__) < Version('0.9.0') else 0)")
 
 set -e
 
