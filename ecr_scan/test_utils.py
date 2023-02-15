@@ -155,39 +155,6 @@ def get_framework_from_image_uri(image_uri):
         else None
     )
 
-def start_ecr_image_scan(ecr_client, image_uri):
-    """
-    Start ECR Scan for an image, and Warn if scan cannot be started
-    :param ecr_client: boto3 client for ECR
-    :param image_uri: image URI for image to be checked
-    """
-
-    repository, tag = get_repository_and_tag_from_image_uri(image_uri)
-
-    try:
-        scan_info = ecr_client.start_image_scan(repositoryName=repository, imageId={"imageTag": tag})
-    except ecr_client.exceptions.LimitExceededException:
-        print("Scan has already been run on this image in the last 24 hours.")
-        # LOGGER.warning("Scan has already been run on this image in the last 24 hours.")
-        return
-    if scan_info["imageScanStatus"]["status"] == "FAILED":
-        raise ECRScanFailedError(f"ECR Scan failed and returned:\n{json.dumps(scan_info, indent=4)}")
-    return
-
-def get_ecr_image_scan_status(ecr_client, image_uri):
-    """
-    Get status of an ECR image scan in progress
-    :param ecr_client: boto3 client for ECR
-    :param image_uri: image URI for image to be checked
-    :return: tuple<str, str> Scan Status, Status Description
-    """
-    repository, tag = get_repository_and_tag_from_image_uri(image_uri)
-    image_info = ecr_client.describe_images(repositoryName=repository, imageIds=[{"imageTag": tag}])["imageDetails"][0]
-    if "imageScanStatus" not in image_info.keys():
-        print("Scan not started")
-        return None, "Scan not started"
-    return image_info["imageScanStatus"]["status"], image_info["imageScanStatus"].get("description", "NO DESCRIPTION")
-
 def get_ecr_image_scan_results(ecr_client, image_uri, minimum_vulnerability="HIGH"):
     """
     Get list of vulnerabilities from ECR image scan results

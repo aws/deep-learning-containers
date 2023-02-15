@@ -1,18 +1,15 @@
 from time import sleep, time
 from test_utils import *
 from miscellaneous import *
-
 from abc import abstractmethod
 import os
 import json
 import copy, collections
 import boto3
 import json
-
 from invoke import run, Context
 from time import sleep, time
 from enum import IntEnum
-
 import dataclasses
 from dataclasses import dataclass
 from typing import Any, List
@@ -439,20 +436,6 @@ class ECREnhancedScanVulnerabilityList(ScanVulnerabilityList):
                 summarized_list.append((package_name, vulnerability.vulnerability_id, vulnerability.severity))
         summarized_list = sorted(list(set(summarized_list)))
         return summarized_list
-
-
-def get_ecr_vulnerability_package_version(vulnerability):
-    """
-    Get Package Version from a vulnerability JSON object
-
-    :param vulnerability: dict JSON object consisting of information about the vulnerability in the format
-                          presented by the ECR Scan Tool
-    :return: str package version
-    """
-    for attribute in vulnerability["attributes"]:
-        if attribute["key"] == "package_version":
-            return attribute["value"]
-    return None
 
 
 def get_ecr_scan_allowlist_path(image_uri):

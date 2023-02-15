@@ -10,7 +10,6 @@ from test_utils import *
 from security import *
 from packaging.version import Version
 from packaging.specifiers import SpecifierSet
-from config import is_ecr_scan_allowlist_feature_enabled
 
 ALLOWLIST_FEATURE_ENABLED_IMAGES = {"mxnet": SpecifierSet(">=1.8.0,<1.9.0")}
 
@@ -67,10 +66,34 @@ def get_target_image_uri_using_current_uri_and_target_repo(image, target_reposit
     target_image_uri = f"{registry}/{target_repository_name}:{upgraded_image_tag}"
     return target_image_uri
 
-def format_and_generate_report(ecr_image_vulnerability_list,image_scan_allowlist):
+def format_and_generate_report(ecr_image_vulnerability_list, image_scan_allowlist):
+    """
+    Takes the list of all vulnerabilities present in the image and the list of packages to be ignored
+    Adds a scan_status as IGNORED for all vulnrabilites present in the allowlist.
+    Returns a report in the format:
+    [
+        {
+            "package": "package",
+            "scan_status": "FAILED/IGNORED",
+            "installed": "version",
+            "vulnerabilities": [
+                {
+                    "vulnerability_id": "safety_vulnerability_id",
+                    "advisory": "description of the issue",
+                    "spec": "version_spec"
+                },
+                ...
+            ]
+        }
+        ...
+    ]
+
+    :param ecr_image_vulnerability_list: Image Vulnerability list 
+    :param image_scan_allowlist: Allowlist for specific image uri
+    """
     ecr_report = json.loads(ecr_image_vulnerability_list)
     allowlist_report = json.loads(image_scan_allowlist)
-    vulnerability_dict = {}
+    vulnerability_dict = []
     for package in ecr_report:
         vulnerability_details = []
         scan_status = "N/A"
@@ -82,7 +105,7 @@ def format_and_generate_report(ecr_image_vulnerability_list,image_scan_allowlist
             for cve in ecr_report[package]:
                 vulnerability_details.append({
                     "vulnerability_id": cve["vulnerability_id"],
-                    "description": cve["description"],
+                    "advisory": cve["description"],
                     "source": cve["source"],
                     "severity": cve["severity"]
                 })
@@ -91,15 +114,16 @@ def format_and_generate_report(ecr_image_vulnerability_list,image_scan_allowlist
             for cve in ecr_report[package]:
                 vulnerability_details.append({
                     "vulnerability_id": cve["vulnerability_id"],
-                    "description": cve["description"],
+                    "advisory": cve["description"],
                     "source": cve["source"],
                     "severity": cve["severity"]
                 })
-        vulnerability_dict[package] = {
+        vulnerability_dict.append({
+                "package_name": package,
                 "scan_status" : scan_status,
                 "installed": ecr_report[package][0]["package_details"]["version"],
                 "vulnerabilities": vulnerability_details
-            }
+            })
     print(vulnerability_dict)
     return vulnerability_dict
 
@@ -126,7 +150,6 @@ def test_ecr_enhanced_scan(image, ecr_client, sts_client, region):
         append_tag="ENHSCAN",
     )
 
-
     run(f"docker tag {image} {ecr_enhanced_repo_uri}", hide=True)
     reupload_image_to_test_ecr(
         ecr_enhanced_repo_uri, ECR_ENHANCED_SCANNING_REPO_NAME, ECR_ENHANCED_REPO_REGION, pull_image=False
@@ -144,7 +167,6 @@ def test_ecr_enhanced_scan(image, ecr_client, sts_client, region):
     scan_results = json.loads(json.dumps(scan_results, cls=EnhancedJSONEncoder))
     
     minimum_sev_threshold = get_minimum_sev_threshold_level(image)
-    print("minimum_sev_threshold",minimum_sev_threshold)
     ecr_image_vulnerability_list = ECREnhancedScanVulnerabilityList(minimum_severity=CVESeverity[minimum_sev_threshold])
     ecr_image_vulnerability_list.construct_allowlist_from_ecr_scan_result(scan_results)
 
