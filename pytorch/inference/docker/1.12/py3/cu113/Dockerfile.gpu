@@ -206,7 +206,7 @@ RUN pip install --no-cache-dir -U \
     boto3 \
     cryptography \
     enum-compat==0.0.3 \
-    ipython==8.1.0 \
+    ipython \
     numpy==1.22.2 \
     opencv-python \
     packaging \
