@@ -25,7 +25,7 @@ import pytest
 
 import requests
 
-from integration.local.multi_model_endpoint_test_utils import make_load_model_request, make_headers
+from multi_model_endpoint_test_utils import make_load_model_request, make_headers
 
 
 PING_URL = "http://localhost:8080/ping"
@@ -36,7 +36,7 @@ MODEL_NAMES = ["half_plus_three","half_plus_two"]
 @pytest.fixture(scope="session", autouse=True)
 def volume():
     try:
-        model_dir = os.path.abspath("/home/ec2-user/code/deep-learning-containers/test/sagemaker_tests/tensorflow/inference/test/resources/mme2")
+        model_dir = os.path.abspath("test/resources/mme2")
         subprocess.check_call(
             "docker volume create --name model_volume_mme2 --opt type=none "
             "--opt device={} --opt o=bind".format(model_dir).split())
