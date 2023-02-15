@@ -76,22 +76,22 @@ def test_safety_file_exists_and_is_valid(image):
 
         file_content = run(f"{docker_exec_cmd} cat {SAFETY_FILE}", warn=True, hide=True)
         raw_scan_result = json.loads(file_content.stdout)
-        safety_report_object = SafetyPythonEnvironmentVulnerabilityReport(report=raw_scan_result)
+        # safety_report_object = SafetyPythonEnvironmentVulnerabilityReport(report=raw_scan_result)
 
         # processing safety reports
         report_log_template = (
             "SAFETY_REPORT ({status}) [pkg: {pkg}] [installed: {installed}] [vulnerabilities: {vulnerabilities}]"
         )
         failed_count = 0
-        for report_item in safety_report_object.report:
-            if report_item.scan_status == "FAILED":
+        for package in raw_scan_result:
+            if raw_scan_result[package]["scan_status"] == "FAILED":
                 failed_count += 1
                 LOGGER.error(
                     report_log_template.format(
                         status="FAILED",
-                        pkg=report_item.package,
-                        installed=report_item.installed,
-                        vulnerabilities=report_item.vulnerabilities,
+                        pkg=package,
+                        installed=raw_scan_result[package]["installed"],
+                        vulnerabilities=raw_scan_result[package]["vulnerabilities"],
                     )
                 )
         assert failed_count == 0, f"{failed_count} package/s failed safety test for {image} !!!"

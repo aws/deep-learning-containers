@@ -73,30 +73,32 @@ def format_and_generate_report(ecr_image_vulnerability_list,image_scan_allowlist
     vulnerability_dict = {}
     for package in ecr_report:
         vulnerability_details = []
+        scan_status = "N/A"
         if package in allowlist_report:
             print("Package exists in allowlist")
             print(package)
             print(allowlist_report[package])
+            scan_status = "IGNORED"
             for cve in ecr_report[package]:
                 vulnerability_details.append({
                     "vulnerability_id": cve["vulnerability_id"],
                     "description": cve["description"],
                     "source": cve["source"],
-                    "severity": cve["severity"],
-                    "scan_status": "IGNORED"
+                    "severity": cve["severity"]
                 })
         else:
+            scan_status = "FAILED"
             for cve in ecr_report[package]:
                 vulnerability_details.append({
                     "vulnerability_id": cve["vulnerability_id"],
                     "description": cve["description"],
                     "source": cve["source"],
-                    "severity": cve["severity"],
-                    "scan_status": "FAILED"
+                    "severity": cve["severity"]
                 })
         vulnerability_dict[package] = {
+                "scan_status" : scan_status,
                 "installed": ecr_report[package][0]["package_details"]["version"],
-                "vulnerabilities": [vulnerability_details]
+                "vulnerabilities": vulnerability_details
             }
     print(vulnerability_dict)
     return vulnerability_dict
