@@ -19,22 +19,23 @@ import os
 import subprocess
 import sys
 import time
-
+import logging
 import pytest
 
 import requests
 
-from multi_model_endpoint_test_utils import make_load_model_request, make_headers
+from .multi_model_endpoint_test_utils import make_load_model_request, make_headers
 
 PING_URL = "http://localhost:8080/ping"
 INVOCATION_URL = "http://localhost:8080/models/{}/invoke"
 MODEL_NAMES = ["half_plus_three", "half_plus_two"]
 
-
+logging.basicConfig(level=logging.INFO)
+log = logging.getLogger(__name__)
 @pytest.fixture(scope="session", autouse=True)
 def volume():
     try:
-        model_dir = os.path.abspath("test/resources/mme1")
+        model_dir = os.path.abspath("/home/ec2-user/code/deep-learning-containers/test/sagemaker_tests/tensorflow/inference/test/resources/mme1")
         subprocess.check_call(
             "docker volume create --name model_volume_mme1 --opt type=none "
             "--opt device={} --opt o=bind".format(model_dir).split())
@@ -121,13 +122,14 @@ def test_zero_content():
 @pytest.mark.integration("mme")
 @pytest.mark.skip_gpu
 def test_large_input():
-    data_file = "test/resources/inputs/test-large.csv"
+    data_file = "/home/ec2-user/code/deep-learning-containers/test/sagemaker_tests/tensorflow/inference/test/resources/inputs/test-large.csv"
 
     with open(data_file, "r") as file:
         x = file.read()
         headers = make_headers(content_type="text/csv")
         for MODEL_NAME in MODEL_NAMES:
             response = requests.post(INVOCATION_URL.format(MODEL_NAME), data=x, headers=headers).json()
+            log.info(response)
             predictions = response["predictions"]
             assert len(predictions) == 753936
 
