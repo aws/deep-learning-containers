@@ -37,7 +37,7 @@ ENV DEBIAN_FRONTEND=noninteractive \
 FROM base_image AS ec2
 
 LABEL maintainer="Amazon AI"
-LABEL dlc_major_version="1"
+LABEL dlc_major_version="2"
 
 ARG PYTHON
 ARG PYTHON_VERSION
@@ -144,11 +144,6 @@ RUN cd /tmp \
  && make -j64 src.build BUILDDIR=/usr/local \
  && rm -rf /tmp/nccl
 
-# https://github.com/docker-library/openjdk/issues/261 https://github.com/docker-library/openjdk/pull/263/files
-RUN keytool -importkeystore -srckeystore /etc/ssl/certs/java/cacerts -destkeystore /etc/ssl/certs/java/cacerts.jks -deststoretype JKS -srcstorepass changeit -deststorepass changeit -noprompt; \
-    mv /etc/ssl/certs/java/cacerts.jks /etc/ssl/certs/java/cacerts; \
-    /var/lib/dpkg/info/ca-certificates-java.postinst configure;
-
 RUN wget --quiet https://download.open-mpi.org/release/open-mpi/v4.1/openmpi-${OPEN_MPI_VERSION}.tar.gz \
  && gunzip -c openmpi-${OPEN_MPI_VERSION}.tar.gz | tar xf - \
  && cd openmpi-${OPEN_MPI_VERSION} \
@@ -213,7 +208,7 @@ RUN pip install --no-cache-dir --extra-index-url https://download.pytorch.org/wh
     opencv-python \
     packaging \
     "Pillow>=9.0.0" \
-    pyyaml \
+    "pyyaml>=5.4,<5.5" \
     captum \
     ${TORCH_URL} \
     torchaudio==${TORCHAUDIO_VERSION} \
@@ -279,7 +274,7 @@ CMD ["torchserve", "--start", "--ts-config", "/home/model-server/config.properti
 FROM ec2 AS sagemaker
 
 LABEL maintainer="Amazon AI"
-LABEL dlc_major_version="1"
+LABEL dlc_major_version="2"
 LABEL com.amazonaws.sagemaker.capabilities.accept-bind-to-port=true
 
 ARG PYTHON
