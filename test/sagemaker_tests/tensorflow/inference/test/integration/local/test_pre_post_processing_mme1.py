@@ -19,12 +19,16 @@ import os
 import subprocess
 import sys
 import time
+import logging
 
 import pytest
 
 import requests
 
-from multi_model_endpoint_test_utils import make_load_model_request, make_headers
+from integration.local.multi_model_endpoint_test_utils import make_load_model_request, make_headers
+
+logging.basicConfig(level=logging.INFO)
+log = logging.getLogger(__name__)
 
 PING_URL = "http://localhost:8080/ping"
 INVOCATION_URL = "http://localhost:8080/models/{}/invoke"
@@ -34,7 +38,7 @@ MODEL_NAMES = ["half_plus_three", "half_plus_two"]
 @pytest.fixture(scope="session", autouse=True)
 def volume():
     try:
-        model_dir = os.path.abspath("test/resources/mme1")
+        model_dir = os.path.abspath("/home/ec2-user/code/deep-learning-containers/test/sagemaker_tests/tensorflow/inference/test/resources/mme1")
         subprocess.check_call(
             "docker volume create --name model_volume_mme1 --opt type=none "
             "--opt device={} --opt o=bind".format(model_dir).split())
@@ -83,7 +87,7 @@ def models():
     return MODEL_NAMES
 
 @pytest.mark.processor("cpu")
-@pytest.mark.model(["half_plus_three", "half_plus_two"])
+@pytest.mark.model("half_plus_three","half_plus_two")
 @pytest.mark.integration("mme")
 @pytest.mark.skip_gpu
 def test_ping_service():
@@ -91,7 +95,7 @@ def test_ping_service():
     assert 200 == response.status_code
 
 @pytest.mark.processor("cpu")
-@pytest.mark.model(["half_plus_three", "half_plus_two"])
+@pytest.mark.model("half_plus_three","half_plus_two")
 @pytest.mark.integration("mme")
 @pytest.mark.skip_gpu
 def test_predict_json(models):
@@ -105,7 +109,7 @@ def test_predict_json(models):
     assert responses[1] == {"predictions": [2.5, 3.0, 4.5]}
 
 @pytest.mark.processor("cpu")
-@pytest.mark.model(["half_plus_three", "half_plus_two"])
+@pytest.mark.model("half_plus_three","half_plus_two")
 @pytest.mark.integration("mme")
 @pytest.mark.skip_gpu
 def test_zero_content():
@@ -113,26 +117,29 @@ def test_zero_content():
     x = ""
     for MODEL_NAME in MODEL_NAMES:
         response = requests.post(INVOCATION_URL.format(MODEL_NAME), data=x, headers=headers)
+        log.info(response)
+        log.info(response.text)
         assert 500 == response.status_code
         assert "document is empty" in response.text
 
 @pytest.mark.processor("cpu")
-@pytest.mark.model(["half_plus_three", "half_plus_two"])
+@pytest.mark.model("half_plus_three","half_plus_two")
 @pytest.mark.integration("mme")
 @pytest.mark.skip_gpu
 def test_large_input():
-    data_file = "test/resources/inputs/test-large.csv"
+    data_file = "/home/ec2-user/code/deep-learning-containers/test/sagemaker_tests/tensorflow/inference/test/resources/inputs/test-large.csv"
 
     with open(data_file, "r") as file:
         x = file.read()
         headers = make_headers(content_type="text/csv")
         for MODEL_NAME in MODEL_NAMES:
             response = requests.post(INVOCATION_URL.format(MODEL_NAME), data=x, headers=headers).json()
+            log.info(response)
             predictions = response["predictions"]
             assert len(predictions) == 753936
 
 @pytest.mark.processor("cpu")
-@pytest.mark.model(["half_plus_three", "half_plus_two"])
+@pytest.mark.model("half_plus_three","half_plus_two")
 @pytest.mark.integration("mme")
 @pytest.mark.skip_gpu
 def test_csv_input():
@@ -141,12 +148,13 @@ def test_csv_input():
     responses = []
     for MODEL_NAME in MODEL_NAMES:
         response = requests.post(INVOCATION_URL.format(MODEL_NAME), data=data, headers=headers).json()
+        log.info(response)
         responses.append(response)
     assert responses[0] == {"predictions": [3.5, 4.0, 5.5]}
     assert responses[1] == {"predictions": [2.5, 3.0, 4.5]}
 
 @pytest.mark.processor("cpu")
-@pytest.mark.model(["half_plus_three", "half_plus_two"])
+@pytest.mark.model("half_plus_three","half_plus_two")
 @pytest.mark.integration("mme")
 @pytest.mark.skip_gpu
 def test_specific_versions():
@@ -157,13 +165,14 @@ def test_specific_versions():
             response = requests.post(
                 INVOCATION_URL.format(MODEL_NAME), data=data, headers=headers
             ).json()
+            log.info(response)
             if MODEL_NAME == "half_plus_three":
                 assert response == {"predictions": [3.5, 4.0, 5.5]}
             else:
                 assert response == {"predictions": [2.5, 3.0, 4.5]}
 
 @pytest.mark.processor("cpu")
-@pytest.mark.model(["half_plus_three", "half_plus_two"])
+@pytest.mark.model("half_plus_three","half_plus_two")
 @pytest.mark.integration("mme")
 @pytest.mark.skip_gpu
 def test_unsupported_content_type():
@@ -171,5 +180,6 @@ def test_unsupported_content_type():
     data = "aW1hZ2UgYnl0ZXM="
     for MODEL_NAME in MODEL_NAMES:
         response = requests.post(INVOCATION_URL.format(MODEL_NAME), data=data, headers=headers)
+        log.info(response)
         assert 500 == response.status_code
         assert "unsupported content type" in response.text
