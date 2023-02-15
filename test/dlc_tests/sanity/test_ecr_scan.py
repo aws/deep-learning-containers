@@ -255,7 +255,7 @@ def test_ecr_enhanced_scan(image, ecr_client, sts_client, region):
 
     ecr_client_for_enhanced_scanning_repo = boto3.client("ecr", region_name=ECR_ENHANCED_REPO_REGION)
     wait_for_enhanced_scans_to_complete(ecr_client_for_enhanced_scanning_repo, ecr_enhanced_repo_uri)
-    sleep(1 * 60)
+    sleep(3 * 60)
 
     scan_results = ecr_utils.get_all_ecr_enhanced_scan_findings(
         ecr_client=ecr_client_for_enhanced_scanning_repo, image_uri=ecr_enhanced_repo_uri
