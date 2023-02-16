@@ -1,6 +1,6 @@
 ARG PYTHON=python3
-ARG PYTHON_VERSION=3.9.13
-ARG MAMBA_VERSION=22.9.0-3
+ARG PYTHON_VERSION=3.9.16
+ARG MAMBA_VERSION=22.11.1-2
 
 # PyTorch Binaries
 ARG PT_EC2_TRAINING_URL=https://aws-pytorch-unified-cicd-binaries.s3.us-west-2.amazonaws.com/r1.13.1_ec2/20221217-194030/54406b8eed7fbd61be629cb06229dfb7b6b2954e/torch-1.13.1%2Bcpu-cp39-cp39-linux_x86_64.whl
@@ -133,7 +133,8 @@ RUN curl -L -o ~/mambaforge.sh https://github.com/conda-forge/miniforge/releases
     charset-normalizer \
     # needed by fastai.distributed
     accelerate \
- && /opt/conda/bin/conda install -c dglteam -y dgl \
+ # pin dgl to 0.9.1 as upstream test has not caught up, currently having accuracy error
+ && /opt/conda/bin/conda install -c dglteam -y dgl=0.9.1 \
  && /opt/conda/bin/conda install -c fastai fastai \
 # fastai conda has a dependency chain of fastai -> spacy -> pathy -> dataclasses
  # conda pathy installs dataclasses regardless of py version: https://github.com/conda-forge/pathy-feedstock/blob/1e6da43da5c8e11e09c063c79b09236bbacb7780/recipe/meta.yaml#L29
@@ -156,7 +157,7 @@ RUN pip install --no-cache-dir --upgrade pip --trusted-host pypi.org --trusted-h
     boto3 \	
     "click==8.1.2,<9" \	
     cryptography \	
-    "ipython>=8.6.0,<8.7" \	
+    ipython \	
     "opencv-python>=4.6.0,<4.7" \	
     packaging \
     Pillow \
