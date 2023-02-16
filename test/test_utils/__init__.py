@@ -549,8 +549,8 @@ def are_efa_tests_disabled():
     return disable_efa_tests or override_disable_efa_tests
 
 
-def is_safety_test_context():
-    return config.is_safety_check_test_enabled()
+def is_ecr_test_context():
+    return config.is_ecr_check_test_enabled()
 
 
 def is_test_disabled(test_name, build_name, version):

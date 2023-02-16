@@ -66,8 +66,8 @@ def is_scheduler_enabled():
     return parse_dlc_developer_configs("test", "use_scheduler")
 
 
-def is_safety_check_test_enabled():
-    return parse_dlc_developer_configs("test", "safety_check_test")
+def is_ecr_check_test_enabled():
+    return parse_dlc_developer_configs("test", "ecr_check_test")
 
 
 def is_ecr_scan_allowlist_feature_enabled():

@@ -78,7 +78,7 @@ def format_and_generate_report(ecr_image_vulnerability_list, image_scan_allowlis
             "installed": "version",
             "vulnerabilities": [
                 {
-                    "vulnerability_id": "safety_vulnerability_id",
+                    "vulnerability_id": "vulnerability_id",
                     "advisory": "description of the issue",
                     "spec": "version_spec"
                 },
