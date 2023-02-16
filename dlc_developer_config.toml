@@ -32,7 +32,7 @@ build_frameworks = ["pytorch_trcomp"]
 
 # By default we build both training and inference containers. Set true/false values to determine which to build.
 build_training = true
-build_inference = true
+build_inference = false
 
 # Set to false in order to remove datetime tag on PR builds
 datetime_tag = true
@@ -89,7 +89,7 @@ dlc-pr-huggingface-tensorflow-training = ""
 dlc-pr-huggingface-pytorch-training = ""
 
 # Training Compiler
-dlc-pr-huggingface-pytorch-trcomp-training = ""
+dlc-pr-huggingface-pytorch-trcomp-training = "huggingface/pytorch/training/buildspec-trcomp.yml"
 dlc-pr-huggingface-tensorflow-2-trcomp-training = ""
 dlc-pr-pytorch-trcomp-training = ""
 
