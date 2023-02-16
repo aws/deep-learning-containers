@@ -128,7 +128,9 @@ def test_large_input():
         x = file.read()
         headers = make_headers(content_type="text/csv")
         for MODEL_NAME in MODEL_NAMES:
-            response = requests.post(INVOCATION_URL.format(MODEL_NAME), data=x, headers=headers).json()
+            response = requests.post(INVOCATION_URL.format(MODEL_NAME), data=x, headers=headers)
+            log.info(response.text)
+            response = response.json()
             log.info(response)
             predictions = response["predictions"]
             assert len(predictions) == 753936
