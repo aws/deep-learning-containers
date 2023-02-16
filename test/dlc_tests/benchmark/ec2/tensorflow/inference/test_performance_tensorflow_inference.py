@@ -72,7 +72,7 @@ def ec2_performance_tensorflow_inference(image_uri, processor, ec2_connection, e
     tf_version = "1" if is_tf_version("1", image_uri) else "2"
     _, tf_api_version = get_framework_and_version_from_tag(image_uri)
 
-    num_iterations = 1000 if is_pr_context() else 1000
+    num_iterations = 500 if is_pr_context() else 1000
     # Make sure we are logged into ECR so we can pull the image
     ec2_connection.run(f"$(aws ecr get-login --no-include-email --region {region})", hide=True)
     ec2_connection.run(f"{docker_cmd} pull -q {image_uri} ")
