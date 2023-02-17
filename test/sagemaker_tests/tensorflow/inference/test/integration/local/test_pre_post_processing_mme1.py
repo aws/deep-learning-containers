@@ -35,7 +35,7 @@ log = logging.getLogger(__name__)
 @pytest.fixture(scope="session", autouse=True)
 def volume():
     try:
-        model_dir = os.path.abspath("/home/ec2-user/code/deep-learning-containers/test/sagemaker_tests/tensorflow/inference/test/resources/mme1")
+        model_dir = os.path.abspath("test/resources/mme1")
         subprocess.check_call(
             "docker volume create --name model_volume_mme1 --opt type=none "
             "--opt device={} --opt o=bind".format(model_dir).split())
@@ -72,6 +72,7 @@ def container(docker_base_name, tag, runtime_config):
         yield proc.pid
     finally:
         subprocess.check_call("docker rm -f sagemaker-tensorflow-serving-test".split())
+        
 
 @pytest.fixture
 def models():
@@ -84,7 +85,7 @@ def models():
     return MODEL_NAMES
 
 @pytest.mark.processor("cpu")
-@pytest.mark.model(["half_plus_three", "half_plus_two"])
+@pytest.mark.model("half_plus_three, half_plus_two")
 @pytest.mark.integration("mme")
 @pytest.mark.skip_gpu
 def test_ping_service():
@@ -92,7 +93,7 @@ def test_ping_service():
     assert 200 == response.status_code
 
 @pytest.mark.processor("cpu")
-@pytest.mark.model(["half_plus_three", "half_plus_two"])
+@pytest.mark.model("half_plus_three, half_plus_two")
 @pytest.mark.integration("mme")
 @pytest.mark.skip_gpu
 def test_predict_json(models):
@@ -106,7 +107,7 @@ def test_predict_json(models):
     assert responses[1] == {"predictions": [2.5, 3.0, 4.5]}
 
 @pytest.mark.processor("cpu")
-@pytest.mark.model(["half_plus_three", "half_plus_two"])
+@pytest.mark.model("half_plus_three, half_plus_two")
 @pytest.mark.integration("mme")
 @pytest.mark.skip_gpu
 def test_zero_content():
@@ -118,25 +119,23 @@ def test_zero_content():
         assert "document is empty" in response.text
 
 @pytest.mark.processor("cpu")
-@pytest.mark.model(["half_plus_three", "half_plus_two"])
+@pytest.mark.model("half_plus_three, half_plus_two")
 @pytest.mark.integration("mme")
 @pytest.mark.skip_gpu
 def test_large_input():
-    data_file = "/home/ec2-user/code/deep-learning-containers/test/sagemaker_tests/tensorflow/inference/test/resources/inputs/test-large.csv"
+    data_file = "test/resources/inputs/test-large.csv"
 
     with open(data_file, "r") as file:
         x = file.read()
         headers = make_headers(content_type="text/csv")
         for MODEL_NAME in MODEL_NAMES:
             response = requests.post(INVOCATION_URL.format(MODEL_NAME), data=x, headers=headers)
-            log.info(response.text)
             response = response.json()
-            log.info(response)
             predictions = response["predictions"]
             assert len(predictions) == 753936
 
 @pytest.mark.processor("cpu")
-@pytest.mark.model(["half_plus_three", "half_plus_two"])
+@pytest.mark.model("half_plus_three, half_plus_two")
 @pytest.mark.integration("mme")
 @pytest.mark.skip_gpu
 def test_csv_input():
@@ -150,7 +149,7 @@ def test_csv_input():
     assert responses[1] == {"predictions": [2.5, 3.0, 4.5]}
 
 @pytest.mark.processor("cpu")
-@pytest.mark.model(["half_plus_three", "half_plus_two"])
+@pytest.mark.model("half_plus_three, half_plus_two")
 @pytest.mark.integration("mme")
 @pytest.mark.skip_gpu
 def test_specific_versions():
@@ -167,7 +166,7 @@ def test_specific_versions():
                 assert response == {"predictions": [2.5, 3.0, 4.5]}
 
 @pytest.mark.processor("cpu")
-@pytest.mark.model(["half_plus_three", "half_plus_two"])
+@pytest.mark.model("half_plus_three, half_plus_two")
 @pytest.mark.integration("mme")
 @pytest.mark.skip_gpu
 def test_unsupported_content_type():
