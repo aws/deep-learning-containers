@@ -162,53 +162,32 @@ RUN ompi_info --parsable --all | grep mpi_built_with_cuda_support:value \
  && chmod +x ~/mambaforge.sh \
  && ~/mambaforge.sh -b -p /opt/conda \
  && rm ~/mambaforge.sh \
- && /opt/conda/bin/mamba install -y -c conda-forge \
+ && /opt/conda/bin/conda install -y -c conda-forge \
     python=$PYTHON_VERSION \
     cython \
     mkl \
     mkl-include \
     parso \
     typing \
-    # force conda to install h5py with openmpi build, not mpich (rubik error)
-    # https://anaconda.org/conda-forge/h5py/files?page=2
-    openmpi \
-    "mpi4py>=3.1.4,<3.2" \
     h5py \
-    openmpi \
     requests \
     pyopenssl \
     libgcc \
     conda-content-trust \
     charset-normalizer \
-    packaging \
-    opencv \
-    awscli \
-    boto3 \
-    pybind11 \
-    pyyaml \
     # needed by fastai.distributed
-    accelerate \ 
-    cryptography \
-    cmake \
-    scipy \
-    click \
-    # patch CVE
-    "pillow>=9.4" \
-    psutil \
-    ipython \
+    accelerate \
  # pin dgl to 0.9.1 as upstream test has not caught up, currently having accuracy error
- && /opt/conda/bin/mamba install -c dglteam -y dgl-cuda11.7 \
- && /opt/conda/bin/mamba install -c pytorch -y magma-cuda117 \
- && /opt/conda/bin/mamba install -c fastai fastai \
- # fastai conda has a dependency chain of fastai -> spacy -> pathy -> dataclasses
+ && /opt/conda/bin/conda install -c dglteam -y dgl-cuda11.7=0.9.1 \
+ && /opt/conda/bin/conda install -c pytorch -y magma-cuda117 \
+ && /opt/conda/bin/conda install -c fastai fastai \
+# fastai conda has a dependency chain of fastai -> spacy -> pathy -> dataclasses
  # conda pathy installs dataclasses regardless of py version: https://github.com/conda-forge/pathy-feedstock/blob/1e6da43da5c8e11e09c063c79b09236bbacb7780/recipe/meta.yaml#L29
  # pypi solves this issue: https://github.com/justindujardin/pathy/blob/master/requirements.txt#L3
- # dataclasses package, which contains CVE, is not needed for py>=37
- # pypi fastai's dependencies will oversize the image
+ # dataclasses package is not needed for py>=37
+ # install plainly will oversize the image
  && pip uninstall -y dataclasses \
- && /opt/conda/bin/mamba clean -ya \
- # related to NVIDIA CDN issue: https://github.com/NVIDIA/nvidia-docker/issues/1009
- && rm -rf /etc/apt/sources.list.d/* 
+ && /opt/conda/bin/conda clean -ya
 
 # Conda installs links for libtinfo.so.6 and libtinfo.so.6.2 both
 # Which causes "/opt/conda/lib/libtinfo.so.6: no version information available" warning
@@ -216,13 +195,73 @@ RUN ompi_info --parsable --all | grep mpi_built_with_cuda_support:value \
 # once conda fixes the issue
 RUN rm -rf /opt/conda/lib/libtinfo.so.6
 
-# RUN pip install --no-cache-dir --upgrade pip --no-cache-dir --trusted-host pypi.org --trusted-host files.pythonhosted.org \
-#  && ln -s /opt/conda/bin/pip /usr/local/bin/pip3 \
-#  # use pip to install opencv since conda package broke nvidia ssl verification
-#  # https://github.com/NVIDIA/nvidia-docker/issues/1009
-#  && pip install opencv-python 
+RUN /opt/conda/bin/conda config --set ssl_verify False \
+ && pip install --no-cache-dir --upgrade pip --no-cache-dir --trusted-host pypi.org --trusted-host files.pythonhosted.org \
+ && ln -s /opt/conda/bin/pip /usr/local/bin/pip3
 
 WORKDIR /root
+
+RUN pip install --no-cache-dir -U \
+    "awscli>1.27,<2" \
+    boto3 \
+    "click==8.1.2,<9" \
+    "cmake>=3.24.3,<3.25" \
+    cryptography \
+    ipython \
+    "mpi4py>=3.1.4,<3.2" \
+    "opencv-python>=4.6.0,<4.7" \
+    packaging \
+    Pillow \
+    "psutil>=5.9.4,<5.10" \
+    "pyyaml>=5.4,<5.5" \
+    "scipy>=1.9.3,<2"
+
+COPY deep_learning_container.py /usr/local/bin/deep_learning_container.py
+
+RUN chmod +x /usr/local/bin/deep_learning_container.py
+
+RUN curl -o /license.txt https://aws-dlc-licenses.s3.amazonaws.com/pytorch-1.13/license.txt
+
+# Removing the cache as it is needed for security verification
+RUN rm -rf /root/.cache | true
+
+########################################################
+#  _____ ____ ____    ___
+# | ____/ ___|___ \  |_ _|_ __ ___   __ _  __ _  ___
+# |  _|| |     __) |  | || '_ ` _ \ / _` |/ _` |/ _ \
+# | |__| |___ / __/   | || | | | | | (_| | (_| |  __/
+# |_____\____|_____| |___|_| |_| |_|\__,_|\__, |\___|
+#                                         |___/
+#  ____           _
+# |  _ \ ___  ___(_)_ __   ___ 
+# | |_) / _ \/ __| | '_ \ / _ \
+# |  _ <  __/ (__| | |_) |  __/
+# |_| \_\___|\___|_| .__/ \___|
+#                  |_|
+########################################################
+
+FROM common AS ec2
+
+ARG PYTHON
+ARG PYTHON_VERSION
+ARG PYTHON_SHORT_VERSION
+
+# PyTorch Binaries
+ARG PT_EC2_TRAINING_URL
+ARG PT_TORCHVISION_URL
+ARG PT_TORCHAUDIO_URL
+ARG PT_TORCHDATA_URL
+
+# Install AWS-PyTorch and other torch packages
+RUN pip uninstall -y torch torchvision torchaudio torchdata \
+ && pip install --no-cache-dir -U ${PT_EC2_TRAINING_URL} ${PT_TORCHVISION_URL} ${PT_TORCHAUDIO_URL} ${PT_TORCHDATA_URL} torchnet
+
+# Install Nvidia Apex (needs pytorch)
+## Pin apex commit requested by sm-model-parallel team
+RUN git clone https://github.com/NVIDIA/apex && \
+    cd apex && \
+    git checkout aa756ce && \
+    pip install -v --no-cache-dir --global-option="--cpp_ext" --global-option="--cuda_ext" ./
 
 # Configure Open MPI and configure NCCL parameters
 RUN mv $OPEN_MPI_PATH/bin/mpirun $OPEN_MPI_PATH/bin/mpirun.real \
@@ -272,59 +311,13 @@ RUN rm -rf /root/.ssh/ && \
  cp /root/.ssh/id_rsa.pub /root/.ssh/authorized_keys \
  && printf "Host *\n StrictHostKeyChecking no\n" >> /root/.ssh/config
 
-RUN mkdir -p /etc/pki/tls/certs && cp /etc/ssl/certs/ca-certificates.crt /etc/pki/tls/certs/ca-bundle.crt
-
-COPY deep_learning_container.py /usr/local/bin/deep_learning_container.py
-RUN chmod +x /usr/local/bin/deep_learning_container.py
-
-RUN curl -o /license.txt https://aws-dlc-licenses.s3.amazonaws.com/pytorch-1.13/license.txt
-
-# Removing the cache as it is needed for security verification
-RUN rm -rf /root/.cache | true
-
-########################################################
-#  _____ ____ ____    ___
-# | ____/ ___|___ \  |_ _|_ __ ___   __ _  __ _  ___
-# |  _|| |     __) |  | || '_ ` _ \ / _` |/ _` |/ _ \
-# | |__| |___ / __/   | || | | | | | (_| | (_| |  __/
-# |_____\____|_____| |___|_| |_| |_|\__,_|\__, |\___|
-#                                         |___/
-#  ____           _
-# |  _ \ ___  ___(_)_ __   ___ 
-# | |_) / _ \/ __| | '_ \ / _ \
-# |  _ <  __/ (__| | |_) |  __/
-# |_| \_\___|\___|_| .__/ \___|
-#                  |_|
-########################################################
-
-FROM common AS ec2
-
-ARG PYTHON
-ARG PYTHON_VERSION
-ARG PYTHON_SHORT_VERSION
-
-# PyTorch Binaries
-ARG PT_EC2_TRAINING_URL
-ARG PT_TORCHVISION_URL
-ARG PT_TORCHAUDIO_URL
-ARG PT_TORCHDATA_URL
-
-# Install AWS-PyTorch and other torch packages
-RUN pip uninstall -y torch torchvision torchaudio torchdata \
- && pip install --no-cache-dir -U ${PT_EC2_TRAINING_URL} ${PT_TORCHVISION_URL} ${PT_TORCHAUDIO_URL} ${PT_TORCHDATA_URL} torchnet
-
-# Install Nvidia Apex (needs pytorch)
-## Pin apex commit requested by sm-model-parallel team
-RUN git clone https://github.com/NVIDIA/apex && \
-    cd apex && \
-    git checkout aa756ce && \
-    pip install -v --no-cache-dir --global-option="--cpp_ext" --global-option="--cuda_ext" ./
-
 # Install Horovod (needs pytorch)
 RUN pip uninstall -y horovod \
  && ldconfig /usr/local/cuda-11.7/targets/x86_64-linux/lib/stubs \
  && HOROVOD_GPU_ALLREDUCE=NCCL HOROVOD_CUDA_HOME=/usr/local/cuda-11.7 HOROVOD_WITH_PYTORCH=1 pip install --no-cache-dir horovod==${HOROVOD_VERSION} \
  && ldconfig
+
+RUN mkdir -p /etc/pki/tls/certs && cp /etc/ssl/certs/ca-certificates.crt /etc/pki/tls/certs/ca-bundle.crt
 
 WORKDIR /
 
@@ -372,7 +365,7 @@ ARG RMM_VERSION=0.15.0
 
 # The smdebug pipeline relies for following format to perform string replace and trigger DLC pipeline for validating
 # the nightly builds. Therefore, while updating the smdebug version, please ensure that the format is not disturbed.
-ARG SMDEBUG_VERSION=1.0.26
+ARG SMDEBUG_VERSION=1.0.25
 
 ENV SAGEMAKER_TRAINING_MODULE=sagemaker_pytorch_container.training:main
 
@@ -400,11 +393,68 @@ RUN git clone https://github.com/NVIDIA/apex && \
     git checkout aa756ce && \
     pip install -v --no-cache-dir --global-option="--cpp_ext" --global-option="--cuda_ext" ./
 
+# Configure Open MPI and configure NCCL parameters
+RUN mv $OPEN_MPI_PATH/bin/mpirun $OPEN_MPI_PATH/bin/mpirun.real \
+ && echo '#!/bin/bash' > $OPEN_MPI_PATH/bin/mpirun \
+ && echo "${OPEN_MPI_PATH}/bin/mpirun.real --allow-run-as-root \"\$@\"" >> $OPEN_MPI_PATH/bin/mpirun \
+ && chmod a+x $OPEN_MPI_PATH/bin/mpirun \
+ && echo "hwloc_base_binding_policy = none" >> $OPEN_MPI_PATH/etc/openmpi-mca-params.conf \
+ && echo "rmaps_base_mapping_policy = slot" >> $OPEN_MPI_PATH/etc/openmpi-mca-params.conf \
+ && echo NCCL_DEBUG=INFO >> /etc/nccl.conf \
+ && echo NCCL_SOCKET_IFNAME=^docker0 >> /etc/nccl.conf
+
+# Install AWS OFI NCCL plug-in
+RUN apt-get update && apt-get install -y autoconf
+RUN mkdir /tmp/efa-ofi-nccl \
+ && cd /tmp/efa-ofi-nccl \
+ && git clone https://github.com/aws/aws-ofi-nccl.git -b v${BRANCH_OFI} \
+ && cd aws-ofi-nccl \
+ && ./autogen.sh \
+ && ./configure --with-libfabric=/opt/amazon/efa \
+  --with-mpi=/opt/amazon/openmpi \
+  --with-cuda=/usr/local/cuda \
+  --with-nccl=/usr/local --prefix=/usr/local \
+ && make \
+ && make install \
+ && rm -rf /tmp/efa-ofi-nccl \
+ && rm -rf /var/lib/apt/lists/* \
+ && apt-get clean
+
+# Install OpenSSH for MPI to communicate between containers, allow OpenSSH to talk to containers without asking for confirmation
+RUN apt-get update \
+ && apt-get install -y  --allow-downgrades --allow-change-held-packages --no-install-recommends \
+ && apt-get install -y --no-install-recommends openssh-client openssh-server \
+ && mkdir -p /var/run/sshd \
+ && cat /etc/ssh/ssh_config | grep -v StrictHostKeyChecking > /etc/ssh/ssh_config.new \
+ && echo "    StrictHostKeyChecking no" >> /etc/ssh/ssh_config.new \
+ && mv /etc/ssh/ssh_config.new /etc/ssh/ssh_config \
+ && rm -rf /var/lib/apt/lists/* \
+ && apt-get clean
+
+# Configure OpenSSH so that nodes can communicate with each other
+RUN mkdir -p /var/run/sshd && \
+ sed 's@session\s*required\s*pam_loginuid.so@session optional pam_loginuid.so@g' -i /etc/pam.d/sshd
+
+RUN rm -rf /root/.ssh/ && \
+ mkdir -p /root/.ssh/ && \
+ ssh-keygen -q -t rsa -N '' -f /root/.ssh/id_rsa && \
+ cp /root/.ssh/id_rsa.pub /root/.ssh/authorized_keys \
+ && printf "Host *\n StrictHostKeyChecking no\n" >> /root/.ssh/config
+
 # Install Horovod (needs pytorch)
 RUN pip uninstall -y horovod \
  && ldconfig /usr/local/cuda-11.7/targets/x86_64-linux/lib/stubs \
  && HOROVOD_GPU_ALLREDUCE=NCCL HOROVOD_CUDA_HOME=/usr/local/cuda-11.7 HOROVOD_WITH_PYTORCH=1 pip install --no-cache-dir horovod==${HOROVOD_VERSION} \
  && ldconfig
+
+RUN mkdir -p /etc/pki/tls/certs && cp /etc/ssl/certs/ca-certificates.crt /etc/pki/tls/certs/ca-bundle.crt
+
+WORKDIR /
+
+# Install scikit-learn and pandas
+RUN conda install -y -c conda-forge \
+    scikit-learn \
+    pandas
 
 WORKDIR /
 
@@ -430,32 +480,33 @@ RUN chmod +x /usr/local/bin/start_with_right_hostname.sh
 WORKDIR /root
 
 RUN pip install --no-cache-dir -U \
+    # disable smdebug pip install until available stable smdebug releases
+    # smdebug==${SMDEBUG_VERSION} \
     smclarify \
     "sagemaker>=2,<3" \
-    "sagemaker-experiments<1" \
+    sagemaker-experiments==0.* \
     sagemaker-pytorch-training \
     flash-attn==0.2.6.post1
 
 # Install smdebug from souce
 RUN cd /tmp \
-  && git clone https://github.com/awslabs/sagemaker-debugger --branch ${SMDEBUG_VERSION} --depth 1 --single-branch \ 
+  && git clone https://github.com/awslabs/sagemaker-debugger --branch ${SMDEBUG_VERSION} --depth 1 --single-branch \
   && cd sagemaker-debugger \
   && pip install . \
   && rm -rf /tmp/*
 
 # Install extra packages
-RUN /opt/conda/bin/mamba install -y -c conda-forge \
-  imageio \
-  shap \    
-  scikit-learn \
-  pandas \
-  && /opt/conda/bin/mamba install -y -c numba numba \
-  && /opt/conda/bin/mamba install -y -c anaconda seaborn \
-  && /opt/conda/bin/mamba install -y -c bokeh bokeh \
-  && /opt/conda/bin/mamba install -y -c plotly plotly 
+RUN pip install --no-cache-dir -U \
+    "bokeh>=3.0.1,<4" \
+    "imageio>=2.22,<3" \
+    "opencv-python>=4.6,<5" \
+    "plotly>=5.11,<6" \
+    "seaborn>=0.12,<1" \
+    "numba>=0.56.4,<0.57" \
+    "shap>=0.41,<1"
 
 # install metis
-RUN rm -rf /etc/apt/sources.list.d/* \
+RUN rm /etc/apt/sources.list.d/* \
  && git clone https://github.com/KarypisLab/GKlib \
  && cd GKlib \
  && make config \
@@ -493,7 +544,7 @@ RUN SMDATAPARALLEL_PT=1 pip install --no-cache-dir ${SMD_DATA_PARALLEL_URL}
 ENV LD_LIBRARY_PATH="/opt/conda/lib/python${PYTHON_SHORT_VERSION}/site-packages/smdistributed/dataparallel/lib:$LD_LIBRARY_PATH"
 
 WORKDIR /
- 
+
 RUN HOME_DIR=/root \
  && curl -o ${HOME_DIR}/oss_compliance.zip https://aws-dlinfra-utilities.s3.amazonaws.com/oss_compliance.zip \
  && unzip ${HOME_DIR}/oss_compliance.zip -d ${HOME_DIR}/ \
