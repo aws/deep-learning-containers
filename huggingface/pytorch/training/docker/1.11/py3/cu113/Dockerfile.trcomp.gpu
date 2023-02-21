@@ -106,6 +106,9 @@ RUN pip uninstall -y sagemaker-pytorch-training \
 
 ARG CONDA_PREFIX=/opt/conda
 
+# remove micromamba folder at default installation path
+RUN rm -rf /root/micromamba/ 
+
 # Install common training dependencies
 RUN ${CONDA_PREFIX}/bin/conda install -y -c conda-forge librosa
 RUN pip install --no-cache-dir \
