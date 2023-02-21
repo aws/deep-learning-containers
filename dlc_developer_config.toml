@@ -91,7 +91,7 @@ dlc-pr-huggingface-pytorch-training = ""
 # Training Compiler
 dlc-pr-huggingface-pytorch-trcomp-training = ""
 dlc-pr-huggingface-tensorflow-2-trcomp-training = ""
-dlc-pr-pytorch-trcomp-training = "huggingface/pytorch/training/buildspec.yml"
+dlc-pr-pytorch-trcomp-training = "huggingface/pytorch/training/buildspec-trcomp.yml"
 
 # Neuron Training
 dlc-pr-mxnet-neuron-training = ""
