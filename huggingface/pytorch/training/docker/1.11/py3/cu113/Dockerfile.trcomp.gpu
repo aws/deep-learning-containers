@@ -62,7 +62,7 @@ RUN pip install -U --no-cache-dir \
 	
 RUN apt-get update \
  # TODO: Remove upgrade statements once packages are updated in base image
- && apt-get -y upgrade --only-upgrade systemd openssl cryptsetup \
+ && apt-get -y install --only-upgrade systemd openssl cryptsetup \
  && apt install -y git-lfs \
  && apt install -y libomp5 \
  && apt-get clean \  
@@ -105,6 +105,9 @@ RUN pip uninstall -y sagemaker-pytorch-training \
 
 
 ARG CONDA_PREFIX=/opt/conda
+
+# remove micromamba folder at default installation path
+RUN rm -rf /root/micromamba/ 
 
 # Install common training dependencies
 RUN ${CONDA_PREFIX}/bin/conda install -y -c conda-forge librosa
