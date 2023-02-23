@@ -62,7 +62,7 @@ RUN pip install -U --no-cache-dir \
 	
 RUN apt-get update \
  # TODO: Remove upgrade statements once packages are updated in base image
- && apt-get -y upgrade --only-upgrade systemd openssl cryptsetup \
+ && apt-get -y install --only-upgrade systemd openssl cryptsetup \
  && apt install -y git-lfs \
  && apt install -y libomp5 \
  && apt-get clean \  
