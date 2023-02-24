@@ -241,7 +241,7 @@ RUN conda install -y -c conda-forge \
     scikit-learn \
     pandas
 
-RUN pip install --no-cache-dir "sagemaker-pytorch-inference>=2"
+RUN pip install --no-cache-dir "sagemaker-pytorch-inference==2.0.10"
 
 COPY torchserve-entrypoint.py /usr/local/bin/dockerd-entrypoint.py
 

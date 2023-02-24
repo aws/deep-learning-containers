@@ -218,6 +218,7 @@ RUN pip install --no-cache-dir -U \
     packaging \
     "Pillow>=9.3.0" \
     "pyyaml>=5.4,<5.5" \
+    "nvgpu==0.9.0" \
  && pip uninstall -y torch torchvision torchaudio torchdata \
  && pip install --no-cache-dir -U ${PT_INFERENCE_URL} ${PT_TORCHVISION_URL} ${PT_TORCHAUDIO_URL} ${PT_TORCHDATA_URL}
 
@@ -289,7 +290,7 @@ RUN conda install -y -c conda-forge \
     scikit-learn \
     pandas
 
-RUN pip install --no-cache-dir "sagemaker-pytorch-inference>=2"
+RUN pip install --no-cache-dir "sagemaker-pytorch-inference==2.0.10"
 
 COPY torchserve-entrypoint.py /usr/local/bin/dockerd-entrypoint.py
 
