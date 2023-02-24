@@ -1,7 +1,7 @@
 ARG PYTHON=python3
-ARG PYTHON_VERSION=3.9.13
+ARG PYTHON_VERSION=3.9.16
 ARG PYTHON_SHORT_VERSION=3.9
-ARG MAMBA_VERSION=22.9.0-3
+ARG MAMBA_VERSION=22.11.1-2
 
 # PyTorch Binaries
 ARG PT_EC2_TRAINING_URL=https://aws-pytorch-unified-cicd-binaries.s3.us-west-2.amazonaws.com/r1.13.1_ec2/20221219-193736/54406b8eed7fbd61be629cb06229dfb7b6b2954e/torch-1.13.1%2Bcu117-cp39-cp39-linux_x86_64.whl
@@ -15,7 +15,7 @@ ARG SMD_DATA_PARALLEL_URL=https://smdataparallel.s3.amazonaws.com/binary/pytorch
 ARG SMD_MODEL_PARALLEL_URL=https://sagemaker-distributed-model-parallel.s3.us-west-2.amazonaws.com/pytorch-1.13.1/build-artifacts/2023-01-19-18-35/smdistributed_modelparallel-1.14.0-cp39-cp39-linux_x86_64.whl
 
 # ZeRO-2D Binary
-ARG ZERO_2D_URL=https://aws-deepspeed-zero-2d-binaries.s3.us-west-2.amazonaws.com/r1.12.0/20220715-085233/0a967071f3b77a87d54694471ebc591dee37e599/deepspeed-0.6.1%2B0a96707-py3-none-any.whl
+ARG ZERO_2D_URL=https://aws-deepspeed-zero-2d-binaries.s3.us-west-2.amazonaws.com/r1.13.1/20230112-180452/06f2048e6bb27edb0deb662dd1fb663ef5b6803f/deepspeed-0.6.1%2B06f2048-py3-none-any.whl
 
 FROM nvidia/cuda:11.7.1-base-ubuntu20.04 AS base_image
 
@@ -177,7 +177,8 @@ RUN ompi_info --parsable --all | grep mpi_built_with_cuda_support:value \
     charset-normalizer \
     # needed by fastai.distributed
     accelerate \
- && /opt/conda/bin/conda install -c dglteam -y dgl-cuda11.7 \
+ # pin dgl to 0.9.1 as upstream test has not caught up, currently having accuracy error
+ && /opt/conda/bin/conda install -c dglteam -y dgl-cuda11.7=0.9.1 \
  && /opt/conda/bin/conda install -c pytorch -y magma-cuda117 \
  && /opt/conda/bin/conda install -c fastai fastai \
 # fastai conda has a dependency chain of fastai -> spacy -> pathy -> dataclasses
@@ -206,7 +207,7 @@ RUN pip install --no-cache-dir -U \
     "click==8.1.2,<9" \
     "cmake>=3.24.3,<3.25" \
     cryptography \
-    "ipython>=8.6.0,<8.7" \
+    ipython \
     "mpi4py>=3.1.4,<3.2" \
     "opencv-python>=4.6.0,<4.7" \
     packaging \
