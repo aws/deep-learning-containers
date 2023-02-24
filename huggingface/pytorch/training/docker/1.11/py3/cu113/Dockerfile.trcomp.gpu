@@ -62,7 +62,7 @@ RUN pip install -U --no-cache-dir \
 	
 RUN apt-get update \
  # TODO: Remove upgrade statements once packages are updated in base image
- && apt-get -y upgrade --only-upgrade systemd openssl cryptsetup \
+ && apt-get -y install --only-upgrade systemd openssl cryptsetup \
  && apt install -y git-lfs \
  && apt install -y libomp5 \
  && apt-get clean \  
@@ -106,6 +106,9 @@ RUN pip uninstall -y sagemaker-pytorch-training \
 
 ARG CONDA_PREFIX=/opt/conda
 
+# remove micromamba folder at default installation path
+RUN rm -rf /root/micromamba/ 
+
 # Install common training dependencies
 RUN ${CONDA_PREFIX}/bin/conda install -y -c conda-forge librosa
 RUN pip install --no-cache-dir \
@@ -138,6 +141,9 @@ RUN pip uninstall -y horovod \
  && ldconfig /usr/local/cuda-11.3/targets/x86_64-linux/lib/stubs \
  && HOROVOD_GPU_ALLREDUCE=NCCL HOROVOD_CUDA_HOME=/usr/local/cuda-11.3 HOROVOD_WITH_PYTORCH=1 pip install --no-cache-dir horovod==${HOROVOD_VERSION} \
  && ldconfig
+
+# Removing the cache as it is needed for security verification
+RUN rm -rf /root/.cache | true
 
 RUN HOME_DIR=/root \
  && curl -o ${HOME_DIR}/oss_compliance.zip https://aws-dlinfra-utilities.s3.amazonaws.com/oss_compliance.zip \
