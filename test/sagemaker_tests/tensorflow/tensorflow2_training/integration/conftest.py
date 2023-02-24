@@ -40,7 +40,7 @@ def pytest_addoption(parser):
     parser.addoption('--region', default='us-west-2')
     parser.addoption('--framework-version', default='')
     parser.addoption('--processor', default='cpu', choices=['cpu', 'gpu', 'cpu,gpu'])
-    parser.addoption('--py-version', default='3', choices=['2', '3', '2,3', '37', '38'])
+    parser.addoption('--py-version', default='3', choices=['2', '3', '2,3', '37', '38', '39'])
     parser.addoption('--account-id', default='142577830533')
     parser.addoption('--instance-type', default=None)
     parser.addoption('--generate-coverage-doc', default=False, action='store_true',
@@ -69,6 +69,24 @@ def pytest_configure(config):
     os.environ['TEST_PY_VERSIONS'] = config.getoption('--py-version')
     os.environ['TEST_PROCESSORS'] = config.getoption('--processor')
     config.addinivalue_line("markers", "efa(): explicitly mark to run efa tests")
+
+
+# Nightly fixtures
+@pytest.fixture(scope="session")
+def feature_smdebug_present():
+    pass
+
+@pytest.fixture(scope="session")
+def feature_smddp_present():
+    pass
+
+@pytest.fixture(scope="session")
+def feature_smmp_present():
+    pass
+
+@pytest.fixture(scope="session")
+def feature_aws_framework_present():
+    pass
 
 
 @pytest.fixture(scope='session')
@@ -233,7 +251,7 @@ def skip_test_successfully_executed_before(request):
     "cache/lastfailed" contains information about failed tests only. We're running SM tests in separate threads for each image.
     So when we retry SM tests, successfully executed tests executed again because pytest doesn't have that info in /.cache.
     But the flag "--last-failed-no-failures all" requires pytest to execute all the available tests.
-    The only sign that a test passed last time - lastfailed file exists and the test name isn't in that file.  
+    The only sign that a test passed last time - lastfailed file exists and the test name isn't in that file.
     The method checks whether lastfailed file exists and the test name is not in it.
     """
     test_name = request.node.name

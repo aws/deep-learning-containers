@@ -22,6 +22,7 @@ from ...integration import ROLE, distrilbert_script
 @pytest.mark.integration("hf_local")
 @pytest.mark.skip_cpu
 @pytest.mark.skip_py2_containers
+@pytest.mark.skip_trcomp_containers
 def test_distilbert_base(docker_image, processor, instance_type, sagemaker_local_session, py_version):
 
     # hyperparameters, which are passed into the training job

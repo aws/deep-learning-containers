@@ -106,7 +106,7 @@ def pytest_addoption(parser):
     parser.addoption('--docker-base-name', default='pytorch')
     parser.addoption('--region', default='us-west-2')
     parser.addoption('--framework-version', default='')
-    parser.addoption('--py-version', choices=['2', '3', '37', '38'], default=str(sys.version_info.major))
+    parser.addoption('--py-version', choices=['2', '3', '37', '38', '39'], default=str(sys.version_info.major))
     # Processor is still "cpu" for EIA tests
     parser.addoption('--processor', choices=['gpu', 'cpu', 'eia', 'neuron'], default='cpu')
     # If not specified, will default to {framework-version}-{processor}-py{py-version}
@@ -135,6 +135,12 @@ def pytest_collection_modifyitems(session, config, items):
         from test.test_utils.test_reporting import TestReportGenerator
         report_generator = TestReportGenerator(items, is_sagemaker=True)
         report_generator.generate_coverage_doc(framework="pytorch", job_type="inference")
+
+
+# Nightly fixtures
+@pytest.fixture(scope="session")
+def feature_aws_framework_present():
+    pass
 
 
 @pytest.fixture(scope='session', name='docker_base_name')
@@ -254,7 +260,7 @@ def skip_by_device_type(request, use_gpu, instance_type, accelerator_type):
     is_neuron = instance_type.startswith("ml.inf")
 
     # Separate out cases for clearer logic.
-    # When running Neuron test, skip CPU  and GPU test. 
+    # When running Neuron test, skip CPU  and GPU test.
     if (request.node.get_closest_marker('neuron_test') and not is_neuron):
         pytest.skip('Skipping because running on \'{}\' instance'.format(instance_type))
 
@@ -352,7 +358,7 @@ def skip_test_successfully_executed_before(request):
     "cache/lastfailed" contains information about failed tests only. We're running SM tests in separate threads for each image.
     So when we retry SM tests, successfully executed tests executed again because pytest doesn't have that info in /.cache.
     But the flag "--last-failed-no-failures all" requires pytest to execute all the available tests.
-    The only sign that a test passed last time - lastfailed file exists and the test name isn't in that file.  
+    The only sign that a test passed last time - lastfailed file exists and the test name isn't in that file.
     The method checks whether lastfailed file exists and the test name is not in it.
     """
     test_name = request.node.name

@@ -140,7 +140,7 @@ RUN ompi_info --parsable --all | grep mpi_built_with_cuda_support:value \
     # conda 4.10.0 requires ruamel_yaml to be installed. Currently pinned at latest.
     ruamel_yaml==0.15.100 \
  && ${CONDA_PREFIX}/bin/conda install -y -c anaconda \
-    numpy \
+    "numpy>=1.22.3" \
     ipython \
     mkl \
     mkl-include \
@@ -196,12 +196,12 @@ RUN pip install --no-cache-dir -U \
     "awscli<2" \
     smdebug==${SMDEBUG_VERSION} \
     smclarify \
-    "sagemaker>=2,<3" \
+    "sagemaker==2.75.1" \
     sagemaker-experiments==0.* \
     sagemaker-pytorch-training \
     "pyyaml>=5.4,<5.5" \
     psutil \
-    "Pillow>=8.3.2,<8.4" \
+    "Pillow>=9.1.1" \
     scipy \
     pybind11 \
     click \
@@ -230,7 +230,8 @@ RUN pip install --no-cache-dir -U \
     "packaging==21.2" \
     "pyarrow==6.0.0" \
     "pyinstrument==4.0.4" \
-    "pyparsing==2.4.7"
+    "pyparsing==2.4.7" \
+    "protobuf>=3.20,<3.21"
 
 # install metis
 RUN rm /etc/apt/sources.list.d/* \

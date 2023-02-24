@@ -40,21 +40,13 @@ spec:
       containers:
       - name: tfs-service
         image: <DOCKER_IMAGE_BUILD_ID>
+        command: <COMMAND>
+        args: <ARGS>
         ports:
         - containerPort: 8500
         - containerPort: 8501
         imagePullPolicy: IfNotPresent
-        securityContext:
-          capabilities:
-            add:
-              - IPC_LOCK
         env:
-        - name: MODEL_NAME
-          value: <MODEL_NAME>
-        - name: MODEL_BASE_PATH
-          value: <MODEL_BASE_PATH>
-        - name: AWS_LOG_LEVEL
-          value: "3"
         - name: AWS_REGION
           value: us-east-1
         - name: S3_USE_HTTPS

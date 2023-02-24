@@ -24,6 +24,79 @@ import requests
 
 TIMEOUT_SECS = 5
 
+def requests_helper(url, headers = None, timeout = 0.1):
+    """
+    Requests to get instance metadata using imdsv1 and imdsv2
+    :param url: str, url to get the request
+    :param headers: str, headers needed to make a request
+    :param timeout: float, timeout value for a request
+    """
+    response = None
+    try:
+        if headers:
+            response = requests.get(url, headers=headers, timeout=timeout)
+        else:
+            response = requests.get(url, timeout=timeout)
+
+    except requests.exceptions.RequestException as e:
+        logging.error("Request exception: {}".format(e))
+
+    return response
+
+def requests_helper_imds(url, token = None):
+    """
+    Requests to get instance metadata using imdsv1 and imdsv2
+    :param url: str, url to get the request
+    :param token: str, token is needed to use imdsv2
+    """
+    response_text = None
+    response = None
+    headers = None
+    if token:
+        headers={"X-aws-ec2-metadata-token": token}
+    timeout = 1
+    try:
+        while timeout <= 3:
+            if headers:
+                response = requests.get(url, headers=headers, timeout=timeout)
+            else:
+                response = requests.get(url, timeout=timeout)
+            if response:
+                break
+            timeout += 1
+
+    except requests.exceptions.RequestException as e:
+        logging.error("Request exception: {}".format(e))
+
+    if response is not None and not (400 <= response.status_code < 600):
+        response_text = response.text
+
+    return response_text
+
+
+def get_imdsv2_token():
+    """
+    Retrieve token using imdsv2 service
+    """
+    response = None
+    token = None
+    headers = {"X-aws-ec2-metadata-token-ttl-seconds": "600"}
+    url = "http://169.254.169.254/latest/api/token"
+    timeout = 1
+
+    try:
+        while timeout <= 3:
+            response = requests.put(url, headers=headers, timeout=timeout)
+            if response:
+                break
+            timeout += 1
+    except requests.exceptions.RequestException as e:
+        logging.error("Request exception: {}".format(e))
+
+    if response is not None and not (400 <= response.status_code < 600):
+        token = response.text
+
+    return token
 
 def _validate_instance_id(instance_id):
     """
@@ -39,26 +112,29 @@ def _validate_instance_id(instance_id):
     return match.group(1)
 
 
-def _retrieve_instance_id():
+def _retrieve_instance_id(token = None):
     """
     Retrieve instance ID from instance metadata service
     """
     instance_id = None
-    # We can't use IMDSv2 here which needs token, as adding it mandates docker container to add additional parameter "--network host", else it hangs.
-    url = "http://169.254.169.254/latest/meta-data/instance-id"
-    response = requests_helper(url, timeout=0.1)
+    instance_url = "http://169.254.169.254/latest/meta-data/instance-id"
+    
+    if token: 
+        instance_id = requests_helper_imds(instance_url, token)
+    else:
+        instance_id = requests_helper_imds(instance_url)
 
-    if response is not None and not (400 <= response.status_code < 600):
-        instance_id = _validate_instance_id(response.text)
+    if instance_id:
+        instance_id = _validate_instance_id(instance_id)
 
     return instance_id
 
-
-def _retrieve_instance_region():
+def _retrieve_instance_region(token = None):
     """
     Retrieve instance region from instance metadata service
     """
     region = None
+    response_json = None
     valid_regions = [
         "ap-northeast-1",
         "ap-northeast-2",
@@ -77,12 +153,16 @@ def _retrieve_instance_region():
         "us-west-1",
         "us-west-2",
     ]
-    # We can't use IMDSv2 here which needs token, as adding it mandates docker container to add additional parameter "--network host", else it hangs.
-    url = "http://169.254.169.254/latest/dynamic/instance-identity/document"
-    response = requests_helper(url, timeout=0.1)
 
-    if response is not None and not (400 <= response.status_code < 600):
-        response_json = json.loads(response.text)
+    region_url = "http://169.254.169.254/latest/dynamic/instance-identity/document"
+
+    if token:
+        response_text = requests_helper_imds(region_url, token)
+    else:
+        response_text = requests_helper_imds(region_url)
+    
+    if response_text:
+        response_json = json.loads(response_text)
 
         if response_json["region"] in valid_regions:
             region = response_json["region"]
@@ -125,16 +205,6 @@ def _retrieve_os():
     return name + version
 
 
-def requests_helper(url, timeout):
-    response = None
-    try:
-        response = requests.get(url, timeout=timeout)
-    except requests.exceptions.RequestException as e:
-        logging.error("Request exception: {}".format(e))
-
-    return response
-
-
 def parse_args():
     """
     Parsing function to parse input arguments.
@@ -170,13 +240,11 @@ def parse_args():
     return args
 
 
-def query_bucket():
+def query_bucket(instance_id, region):
     """
     GET request on an empty object from an Amazon S3 bucket
     """
     response = None
-    instance_id = _retrieve_instance_id()
-    region = _retrieve_instance_region()
     args = parse_args()
     framework, framework_version, container_type = args.framework, args.framework_version, args.container_type
     py_version = sys.version.split(" ")[0]
@@ -198,12 +266,10 @@ def query_bucket():
     return response
 
 
-def tag_instance():
+def tag_instance(instance_id, region):
     """
     Apply instance tag on the instance that is running the container using botocore
     """
-    instance_id = _retrieve_instance_id()
-    region = _retrieve_instance_region()
     args = parse_args()
     framework, framework_version, container_type = args.framework, args.framework_version, args.container_type
     py_version = sys.version.split(" ")[0]
@@ -241,9 +307,19 @@ def main():
     logging.getLogger().disabled = True
 
     logging.basicConfig(level=logging.ERROR)
+    token = None
+    instance_id = None
+    region = None
+    token = get_imdsv2_token()
+    if token:
+        instance_id = _retrieve_instance_id(token)
+        region = _retrieve_instance_region(token)
+    else:
+        instance_id = _retrieve_instance_id()
+        region = _retrieve_instance_region()
 
-    bucket_process = multiprocessing.Process(target=query_bucket)
-    tag_process = multiprocessing.Process(target=tag_instance)
+    bucket_process = multiprocessing.Process(target=query_bucket, args=(instance_id, region))
+    tag_process = multiprocessing.Process(target=tag_instance, args=(instance_id, region))
 
     bucket_process.start()
     tag_process.start()

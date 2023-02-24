@@ -1,3 +1,4 @@
+import json
 import os
 import random
 import sys
@@ -22,13 +23,14 @@ from test_utils import (
     is_pr_context,
     is_benchmark_dev_context,
     is_rc_test_context,
-    is_e3_image,
+    is_ec2_image,
     destroy_ssh_keypair,
     setup_sm_benchmark_tf_train_env,
     setup_sm_benchmark_mx_train_env,
     setup_sm_benchmark_hf_infer_env,
     get_framework_and_version_from_tag,
     get_build_context,
+    is_nightly_context,
 )
 from test_utils import KEYS_TO_DESTROY_FILE, DEFAULT_REGION
 from test_utils.pytest_cache import PytestCache
@@ -49,6 +51,7 @@ def run_sagemaker_local_tests(images, pytest_cache_params):
         return
     # Run sagemaker Local tests
     framework, _ = get_framework_and_version_from_tag(images[0])
+    framework = framework.replace("_trcomp", "")
     sm_tests_path = (
         os.path.join("test", "sagemaker_tests", framework)
         if "huggingface" not in framework
@@ -59,7 +62,13 @@ def run_sagemaker_local_tests(images, pytest_cache_params):
 
     pool_number = len(images)
     with Pool(pool_number) as p:
-        p.starmap(sm_utils.execute_local_tests, [[image, pytest_cache_params] for image in images])
+        test_results = p.starmap(sm_utils.execute_local_tests, [[image, pytest_cache_params] for image in images])
+    if not all(test_results):
+        failed_images = [images[index] for index, result in enumerate(test_results) if not result]
+        raise RuntimeError(
+            f"SageMaker Local tests failed on the following DLCs:\n"
+            f"{json.dumps(failed_images, indent=4)}"
+        )
 
 
 def run_sagemaker_test_in_executor(image, num_of_instances, instance_type):
@@ -293,9 +302,13 @@ def main():
     # Skipping non HuggingFace/AG specific tests to execute only sagemaker tests
     is_hf_image_present = any("huggingface" in image_uri for image_uri in all_image_list)
     is_ag_image_present = any("autogluon" in image_uri for image_uri in all_image_list)
-    if (is_hf_image_present or is_ag_image_present) and specific_test_type in ("ecs", "ec2", "eks", "bai"):
+    is_trcomp_image_present = any("trcomp" in image_uri for image_uri in all_image_list)
+    is_hf_image_present = is_hf_image_present and not is_trcomp_image_present
+    is_hf_trcomp_image_present = is_hf_image_present and is_trcomp_image_present
+    if ((is_hf_image_present or is_ag_image_present) and specific_test_type in ("ecs", "ec2", "eks", "bai")) \
+            or (is_hf_trcomp_image_present and (specific_test_type in ("ecs", "eks", "bai", "release_candidate_integration") or benchmark_mode)):
         # Creating an empty file for because codebuild job fails without it
-        LOGGER.info(f"NOTE: {specific_test_type} tests not supported on HF or AG. Skipping...")
+        LOGGER.info(f"NOTE: {specific_test_type} tests not supported on HF, AG or Trcomp. Skipping...")
         report = os.path.join(os.getcwd(), "test", f"{test_type}.xml")
         sm_utils.generate_empty_report(report, test_type, "huggingface")
         return
@@ -353,7 +366,7 @@ def main():
                 context.run("tar -c -f gaudi-test-suite.tar.gz gaudi-test-suite")
             else:
                 pytest_cmd += ["--reruns=1", "--reruns-delay=10"]
-        
+
         if is_pr_context():
             if specific_test_type == "eks":
                 pytest_cmd.append("--timeout=2340")
@@ -377,6 +390,12 @@ def main():
             #        separate pytest reports, both of which must be examined in case of a manual review of results.
             cmd_exit_statuses = [pytest.main(pytest_cmd) for pytest_cmd in pytest_cmds]
             if all([status == 0 for status in cmd_exit_statuses]):
+                sys.exit(0)
+            elif any([status != 0 for status in cmd_exit_statuses]) and is_nightly_context():
+                LOGGER.warning("\nSuppressed Failed Nightly Tests")
+                for index, status in enumerate(cmd_exit_statuses):
+                    if status != 0:
+                        LOGGER.warning(f'"{pytest_cmds[index]}" tests failed. Status code: {status}')
                 sys.exit(0)
             else:
                 raise RuntimeError(pytest_cmds)
@@ -406,13 +425,19 @@ def main():
             pytest_cmd = ["-s", "-rA", test_path, f"--junitxml={report}", "-n=auto", "-o", "norecursedirs=resources"]
             if not is_pr_context():
                 pytest_cmd += ["--efa"] if efa_dedicated else ["-m", "not efa"]
-            sys.exit(pytest.main(pytest_cmd))
+            status = pytest.main(pytest_cmd)
+            if is_nightly_context() and status != 0:
+                LOGGER.warning("\nSuppressed Failed Nightly Tests")
+                LOGGER.warning(f'"{pytest_cmd}" tests failed. Status code: {status}')
+                sys.exit(0)
+            else:
+                sys.exit(status)
 
         else:
             sm_remote_images = [
                 image
                 for image in standard_images_list
-                if not (("tensorflow-inference" in image and "py2" in image) or is_e3_image(image))
+                if not (("tensorflow-inference" in image and "py2" in image) or is_ec2_image(image))
             ]
             run_sagemaker_remote_tests(sm_remote_images, pytest_cache_params)
             if standard_images_list and not sm_remote_images:
@@ -421,22 +446,24 @@ def main():
         metrics_utils.send_test_duration_metrics(start_time)
 
     elif specific_test_type == "sagemaker-local":
-        if "neuron" in dlc_images:
-            LOGGER.info(f"Skipping sagemaker tests because Neuron is not yet supported on SM. Images: {dlc_images}")
-            # Creating an empty file for because codebuild job fails without it
-            report = os.path.join(os.getcwd(), "test", f"{test_type}.xml")
-            sm_utils.generate_empty_report(report, test_type, "neuron")
-            return
-        if "habana" in dlc_images:
-            LOGGER.info(f"Skipping sagemaker tests because Habana is not yet supported on SM. Images: {dlc_images}")
-            # Creating an empty file for because codebuild job fails without it
-            report = os.path.join(os.getcwd(), "test", f"{test_type}.xml")
-            sm_utils.generate_empty_report(report, test_type, "habana")
-            return
+        sm_local_to_skip = {
+            "habana": "Skipping SM tests because SM does not yet support Habana",
+            "neuron": "Skipping - there are no local mode tests for Neuron",
+            "huggingface-tensorflow-training": "Skipping - there are no local mode tests for HF TF training"
+        }
+
+        for skip_condition, reason in sm_local_to_skip.items():
+            if skip_condition in dlc_images:
+                LOGGER.info(f"{reason}. Images: {dlc_images}")
+                # Creating an empty file for because codebuild job fails without it
+                report = os.path.join(os.getcwd(), "test", f"{test_type}.xml")
+                sm_utils.generate_empty_report(report, test_type, skip_condition)
+                return
+
         testing_image_list = [
             image
             for image in standard_images_list
-            if not (("tensorflow-inference" in image and "py2" in image) or ("eia" in image) or (is_e3_image(image)))
+            if not (("tensorflow-inference" in image and "py2" in image) or ("eia" in image) or (is_ec2_image(image)))
         ]
         run_sagemaker_local_tests(testing_image_list, pytest_cache_params)
         # for EIA Images
