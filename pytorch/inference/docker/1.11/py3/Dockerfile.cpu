@@ -183,6 +183,8 @@ RUN pip uninstall -y model-archiver multi-model-server \
 # Install TorchServe pypi dependencies directly from their requirements.txt file
 # NOTE: This also brings in unnecessary cpu dependencies like nvgpu
 RUN pip install --no-cache-dir -U -r https://raw.githubusercontent.com/pytorch/serve/v${TS_VERSION}/requirements/common.txt
+# Pillow is pinned in TS 0.6.0 to an obsolete version. To work around this, re-install in a separate line
+RUN pip install --no-cache-dir -U "Pillow>=9.3.0,<10"
 
 RUN useradd -m model-server \
  && mkdir -p /home/model-server/tmp /opt/ml/model \
