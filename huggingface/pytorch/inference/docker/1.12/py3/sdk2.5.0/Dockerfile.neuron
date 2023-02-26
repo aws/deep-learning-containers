@@ -1,0 +1,39 @@
+# https://github.com/aws/deep-learning-containers/blob/master/available_images.md
+# refer to the above page to pull latest Pytorch image
+
+# docker image region us-west-2
+FROM 763104351884.dkr.ecr.us-west-2.amazonaws.com/pytorch-inference-neuron:1.12.1-neuron-py38-sdk2.5.0-ubuntu20.04
+
+LABEL maintainer="Amazon AI"
+LABEL dlc_major_version="2"
+
+# Specify accept-bind-to-port LABEL for inference pipelines to use SAGEMAKER_BIND_TO_PORT
+# https://docs.aws.amazon.com/sagemaker/latest/dg/inference-pipeline-real-time.html
+LABEL com.amazonaws.sagemaker.capabilities.accept-bind-to-port=true
+
+# version args
+ARG TRANSFORMERS_VERSION
+ARG PYTHON=python3
+
+RUN apt-get update \
+ && apt-get install -y --no-install-recommends \
+    openssl \
+    openjdk-11-jdk-headless \
+    gnupg2 \
+ && apt-get clean \
+ && rm -rf /var/lib/apt/lists/*
+
+# install Hugging Face libraries and its dependencies
+RUN pip install --no-cache-dir \
+	transformers[sentencepiece]==${TRANSFORMERS_VERSION} \
+	"protobuf>=3.19.5,<=3.20.2" \
+	"sagemaker-huggingface-inference-toolkit<3"
+
+RUN HOME_DIR=/root \
+ && curl -o ${HOME_DIR}/oss_compliance.zip https://aws-dlinfra-utilities.s3.amazonaws.com/oss_compliance.zip \
+ && unzip ${HOME_DIR}/oss_compliance.zip -d ${HOME_DIR}/ \
+ && cp ${HOME_DIR}/oss_compliance/test/testOSSCompliance /usr/local/bin/testOSSCompliance \
+ && chmod +x /usr/local/bin/testOSSCompliance \
+ && chmod +x ${HOME_DIR}/oss_compliance/generate_oss_compliance.sh \
+ && ${HOME_DIR}/oss_compliance/generate_oss_compliance.sh ${HOME_DIR} ${PYTHON} \
+ && rm -rf ${HOME_DIR}/oss_compliance*
