@@ -18,7 +18,7 @@ LABEL maintainer="Amazon AI"
 LABEL dlc_major_version="1"
 
 ARG PYTHON=python3
-ARG PYTHON_VERSION=3.10.10
+ARG PYTHON_VERSION=3.10
 ARG TORCH_URL=https://aws-pytorch-unified-cicd-binaries.s3.us-west-2.amazonaws.com/r2.0.0_graviton/20230225/torch-2.0.0rc2%2Bcpu-cp310-cp310-manylinux_2_31_aarch64.whl
 ARG TORCHVISION_URL=https://aws-pytorch-unified-cicd-binaries.s3.us-west-2.amazonaws.com/r2.0.0_graviton/20230225/torchvision-0.15.0rc2%2Bcpu-cp310-cp310-manylinux_2_31_aarch64.whl
 ARG TORCHAUDIO_URL=https://aws-pytorch-unified-cicd-binaries.s3.us-west-2.amazonaws.com/r2.0.0_graviton/20230225/torchaudio-2.0.0rc2%2Bcpu-cp310-cp310-manylinux_2_31_aarch64.whl
@@ -185,7 +185,7 @@ LABEL com.amazonaws.sagemaker.capabilities.accept-bind-to-port=true
 LABEL com.amazonaws.sagemaker.capabilities.multi-models=true
 
 ARG PYTHON=python3
-ARG PYTHON_VERSION=3.10.10
+ARG PYTHON_VERSION=3.10
 
 ENV SAGEMAKER_SERVING_MODULE sagemaker_pytorch_serving_container.serving:main
 
