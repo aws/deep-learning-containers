@@ -40,6 +40,7 @@ Deep Learning Containers Docker Images are available in the following regions:
 |Asia Pacific (Singapore)	|ap-southeast-1		|Available 			|Available			|763104351884.dkr.ecr.ap-southeast-1.amazonaws.com/&lt;repository-name>:&lt;image-tag>		|
 |Asia Pacific (Sydney)		|ap-southeast-2 	|Available 			|Available			|763104351884.dkr.ecr.ap-southeast-2.amazonaws.com/&lt;repository-name>:&lt;image-tag>		|
 |Asia Pacific (Jakarta)		|ap-southeast-3 	|Available 			|None			|907027046896.dkr.ecr.ap-southeast-3.amazonaws.com/&lt;repository-name>:&lt;image-tag>		|
+|Asia Pacific (Melbourne)		|ap-southeast-4 	|Available 			|None			|457447274322.dkr.ecr.ap-southeast-4.amazonaws.com/&lt;repository-name>:&lt;image-tag>		|
 |Asia Pacific (Tokyo)		|ap-northeast-1		|Available 			|Available			|763104351884.dkr.ecr.ap-northeast-1.amazonaws.com/&lt;repository-name>:&lt;image-tag>		|
 |Canada (Central)			|ca-central-1		|Available 			|None				|763104351884.dkr.ecr.ca-central-1.amazonaws.com/&lt;repository-name>:&lt;image-tag>		|
 |EU (Frankfurt) 			|eu-central-1		|Available 			|Available			|763104351884.dkr.ecr.eu-central-1.amazonaws.com/&lt;repository-name>:&lt;image-tag>		|
@@ -169,6 +170,7 @@ Large Model Inference Containers
 ===============================
 | Framework                                     |Job Type	|CPU/GPU 	|Python Version Options	|Example URL																						|
 |-----------------------------------------------|-----------|-----------|-----------------------|---------------------------------------------------------------------------------------------------|
+|DJLServing 0.21.0 with DeepSpeed 0.8.0, HuggingFace Transformers 4.26.0, and HuggingFace Accelerate 0.16.0    |inference	|GPU 		| 3.9 (py39)			|763104351884.dkr.ecr.us-west-2.amazonaws.com/djl-inference:0.21.0-deepspeed0.8.0-cu117		|
 |DJLServing 0.20.0 with DeepSpeed 0.7.5, HuggingFace Transformers 4.23.1, and HuggingFace Accelerate 0.13.2    |inference	|GPU 		| 3.8 (py38)			|763104351884.dkr.ecr.us-west-2.amazonaws.com/djl-inference:0.20.0-deepspeed0.7.5-cu116		|
 |DJLServing 0.19.0 with DeepSpeed 0.7.3, HuggingFace Transformers 4.22.1, and HuggingFace Accelerate 0.13.2    |inference	|GPU 		| 3.8 (py38)			|763104351884.dkr.ecr.us-west-2.amazonaws.com/djl-inference:0.19.0-deepspeed0.7.3-cu113		|
 
