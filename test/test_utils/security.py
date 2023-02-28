@@ -516,17 +516,29 @@ class ECREnhancedScanVulnerabilityList(ScanVulnerabilityList):
             self.vulnerability_list[package_name].append(vulnerability)
         return self.vulnerability_list
 
-    def allow_ubuntu_severity_override(self, vulnerability_obj):
+    def allow_vendor_severity_override(self, vulnerability_obj):
         """
-        If package source is Ubuntu, allow Ubuntu's severity to take precedence
+        If package source is from an allowed vendor, allow the vendor's severity to take precedence
         Args:
             vulnerability_obj (AllowListFormatVulnerabilityForEnhancedScan): object representing the vulnerability
         Return:
             bool: Whether to allow the vulnerability or not
         """
+        allowed_vendors = {"UBUNTU_CVE"}
         return (
-            vulnerability_obj.source == "UBUNTU_CVE" and CVESeverity[vulnerability_obj.severity] < self.minimum_severity
+            vulnerability_obj.source in allowed_vendors
+            and CVESeverity[vulnerability_obj.severity] < self.minimum_severity
         )
+
+    def allow_cvss_v3_severity(self, vulnerability_obj):
+        """
+        If CVSS v3 score is less than the threshold, return True, else return False
+        Args:
+            vulnerability_obj (AllowListFormatVulnerabilityForEnhancedScan): object representing the vulnerability
+        Return:
+            bool: Whether to allow the vulnerablity or not
+        """
+        return CVESeverity[vulnerability_obj.cvss_v3_severity] < self.minimum_severity
 
     def construct_allowlist_from_ecr_scan_result(self, ecr_format_vulnerability_list):
         """
@@ -542,9 +554,9 @@ class ECREnhancedScanVulnerabilityList(ScanVulnerabilityList):
                 )
                 vulnerable_package_object = VulnerablePackageDetails(**vulnerable_package)
                 allowlist_format_vulnerability_object.set_package_details_and_name(vulnerable_package_object)
-                if CVESeverity[
-                    allowlist_format_vulnerability_object.cvss_v3_severity
-                ] < self.minimum_severity or self.allow_ubuntu_severity_override(allowlist_format_vulnerability_object):
+                if self.allow_cvss_v3_severity(
+                    allowlist_format_vulnerability_object
+                ) or self.allow_vendor_severity_override(allowlist_format_vulnerability_object):
                     continue
                 if allowlist_format_vulnerability_object.package_name not in self.vulnerability_list:
                     self.vulnerability_list[allowlist_format_vulnerability_object.package_name] = []
