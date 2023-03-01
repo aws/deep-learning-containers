@@ -97,11 +97,17 @@ RUN apt-get update && apt-get install -y --no-install-recommends --allow-unauthe
  && rm -rf /var/lib/apt/lists/* \
  && mkdir -p /var/run/sshd
 
-RUN cd /tmp \
-  && git clone https://github.com/NVIDIA/nccl.git -b v$NCCL_VERSION-1 \
-  && cd nccl \
-  && make -j64 src.build BUILDDIR=/usr/local \
-  && rm -rf /tmp/nccl
+# RUN cd /tmp \
+#   && git clone https://github.com/NVIDIA/nccl.git -b v$NCCL_VERSION-1 \
+#   && cd nccl \
+#   && make -j64 src.build BUILDDIR=/usr/local \
+#   && rm -rf /tmp/nccl
+
+# Ref: https://docs.nvidia.com/deeplearning/nccl/install-guide/index.html#down
+RUN wget https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2004/x86_64/cuda-keyring_1.0-1_all.deb \
+  && sudo dpkg -i cuda-keyring_1.0-1_all.deb \
+  && apt-get update \
+  && apt install libnccl2=2.16.5-1+cuda11.8 libnccl-dev=2.16.5-1+cuda11.8
 
 # Install EFA without AWS OPEN_MPI
 RUN apt-get update \
