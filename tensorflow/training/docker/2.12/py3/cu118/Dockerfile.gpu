@@ -61,6 +61,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends --allow-unauthe
    ca-certificates \
    cuda-command-line-tools-${CUDA_DASH} \
    cuda-cudart-dev-${CUDA_DASH} \
+   cuda-nvcc-${CUDA_DASH} \
    libcufft-dev-${CUDA_DASH} \
    libcurand-dev-${CUDA_DASH} \
    libcusolver-dev-${CUDA_DASH} \
