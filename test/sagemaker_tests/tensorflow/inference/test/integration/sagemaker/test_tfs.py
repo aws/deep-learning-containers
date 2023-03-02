@@ -65,27 +65,66 @@ def accelerator_type():
 def tfs_model(region, boto_session):
     return util.find_or_put_model_data(region,
                                        boto_session,
-                                       "data/tfs-model.tar.gz")
+                                       "/home/ec2-user/code/deep-learning-containers/test/sagemaker_tests/tensorflow/inference/test/data/tfs-model.tar.gz")
 
 @pytest.fixture(scope="session")
 def tfs_neuron_model(region, boto_session):
     return util.find_or_put_model_data(region,
                                        boto_session,
-                                       "data/tfs-neuron-model.tar.gz")
+                                       "/home/ec2-user/code/deep-learning-containers/test/sagemaker_tests/tensorflow/inference/test/data/tfs-neuron-model.tar.gz")
 
 
 @pytest.fixture(scope="session")
 def python_model_with_requirements(region, boto_session):
     return util.find_or_put_model_data(region,
                                        boto_session,
-                                       "data/tfs-model_greater_than_equal_to_tf26.tar.gz")
+                                       "/home/ec2-user/code/deep-learning-containers/test/sagemaker_tests/tensorflow/inference/test/data/python-with-requirements.tar.gz")
 
 
 @pytest.fixture(scope="session")
 def python_model_with_lib(region, boto_session):
     return util.find_or_put_model_data(region,
                                        boto_session,
-                                       "data/python-with-lib.tar.gz")
+                                       "/home/ec2-user/code/deep-learning-containers/test/sagemaker_tests/tensorflow/inference/test/data/python-with-lib.tar.gz")
+
+
+@pytest.fixture(scope="session")
+def mme1_models(region, boto_session):
+    return util.find_or_put_mme_model_data(region, 
+                                           boto_session, 
+                                           "mme1", 
+                                           ["/home/ec2-user/code/deep-learning-containers/test/sagemaker_tests/tensorflow/inference/test/data/mme1/code/inference.py", 
+                                            "/home/ec2-user/code/deep-learning-containers/test/sagemaker_tests/tensorflow/inference/test/data/mme1/half_plus_three.tar.gz",
+                                            "/home/ec2-user/code/deep-learning-containers/test/sagemaker_tests/tensorflow/inference/test/data/mme1/half_plus_two.tar.gz"])
+
+
+@pytest.fixture(scope="session")
+def mme2_models(region, boto_session):
+    return util.find_or_put_mme_model_data(region, 
+                                           boto_session, 
+                                           "mme2", 
+                                           ["/home/ec2-user/code/deep-learning-containers/test/sagemaker_tests/tensorflow/inference/test/data/mme2/code/inference.py", 
+                                            "/home/ec2-user/code/deep-learning-containers/test/sagemaker_tests/tensorflow/inference/test/data/mme2/half_plus_three.tar.gz",
+                                            "/home/ec2-user/code/deep-learning-containers/test/sagemaker_tests/tensorflow/inference/test/data/mme2/half_plus_two.tar.gz"])
+
+
+@pytest.fixture(scope="session")
+def mme3_models(region, boto_session):
+    return util.find_or_put_mme_model_data(region, 
+                                           boto_session, 
+                                           "mme3", 
+                                           ["/home/ec2-user/code/deep-learning-containers/test/sagemaker_tests/tensorflow/inference/test/data/mme3/code/inference.py", 
+                                            "/home/ec2-user/code/deep-learning-containers/test/sagemaker_tests/tensorflow/inference/test/data/mme3/half_plus_three.tar.gz",
+                                            "/home/ec2-user/code/deep-learning-containers/test/sagemaker_tests/tensorflow/inference/test/data/mme3/half_plus_two.tar.gz"])
+
+
+@pytest.fixture(scope="session")
+def mme4_models(region, boto_session):
+    return util.find_or_put_mme_model_data(region, 
+                                           boto_session, 
+                                           "mme4", 
+                                           ["/home/ec2-user/code/deep-learning-containers/test/sagemaker_tests/tensorflow/inference/test/data/mme4/half_plus_three.tar.gz",
+                                            "/home/ec2-user/code/deep-learning-containers/test/sagemaker_tests/tensorflow/inference/test/data/mme4/half_plus_two.tar.gz"])
 
 
 @pytest.mark.model("unknown_model")
@@ -164,3 +203,103 @@ def test_python_model_with_lib(boto_session, sagemaker_client,
     # python service adds this to tfs response
     assert output_data["python"] is True
     assert output_data["dummy_module"] == "0.1"
+
+
+@pytest.mark.integration("mme")
+@pytest.mark.model("unknown_model")
+def test_mme1(boto_session, sagemaker_client,
+              sagemaker_runtime_client, model_name, mme1_models,
+              image_uri, instance_type, accelerator_type, region):
+    
+    if "p3" in instance_type:
+        pytest.skip("skip for p3 instance")
+
+    # the python service needs to transform this to get a valid prediction
+    input_data =  "{\"instances\": [1.0, 2.0, 5.0]}"
+    bucket = util._test_bucket(region, boto_session)
+    custom_env = {
+        "SAGEMAKER_MULTI_MODEL_UNIVERSAL_BUCKET": bucket,
+        "SAGEMAKER_MULTI_MODEL_UNIVERSAL_PREFIX": "test-tfs/mme1/code/"  
+        }
+    outputs = util.create_and_invoke_endpoint(boto_session, sagemaker_client,
+                                              sagemaker_runtime_client, model_name, mme1_models,
+                                              image_uri, instance_type, accelerator_type, input_data,
+                                              is_multi_model_mode_enabled = True, 
+                                              target_models = ["half_plus_three.tar.gz", "half_plus_two.tar.gz"],
+                                              environment = custom_env)
+    assert outputs[0] == {"predictions": [3.5, 4.0, 5.5]}
+    assert outputs[1] == {"predictions": [2.5, 3.0, 4.5]}
+
+
+@pytest.mark.integration("mme")
+@pytest.mark.model("unknown_model")
+def test_mme2(boto_session, sagemaker_client,
+              sagemaker_runtime_client, model_name, mme2_models,
+              image_uri, instance_type, accelerator_type, region):
+    
+    if "p3" in instance_type:
+        pytest.skip("skip for p3 instance")
+
+    # the python service needs to transform this to get a valid prediction
+    input_data =  "{\"instances\": [1.0, 2.0, 5.0]}"
+    bucket = util._test_bucket(region, boto_session)
+    custom_env = {
+        "SAGEMAKER_MULTI_MODEL_UNIVERSAL_BUCKET": bucket,
+        "SAGEMAKER_MULTI_MODEL_UNIVERSAL_PREFIX": "test-tfs/mme2/code/"  
+        }
+    outputs = util.create_and_invoke_endpoint(boto_session, sagemaker_client,
+                                              sagemaker_runtime_client, model_name, mme2_models,
+                                              image_uri, instance_type, accelerator_type, input_data,
+                                              is_multi_model_mode_enabled = True, 
+                                              target_models = ["half_plus_three.tar.gz", "half_plus_two.tar.gz"],
+                                              environment = custom_env)
+    assert outputs[0] == {"predictions": [3.5, 4.0, 5.5]}
+    error = outputs[1]["error"]
+    assert "unsupported content type application/json" in error
+
+
+@pytest.mark.integration("mme")
+@pytest.mark.model("unknown_model")
+def test_mme3(boto_session, sagemaker_client,
+              sagemaker_runtime_client, model_name, mme3_models,
+              image_uri, instance_type, accelerator_type, region):
+    
+    if "p3" in instance_type:
+        pytest.skip("skip for p3 instance")
+
+    # the python service needs to transform this to get a valid prediction
+    input_data =  "{\"instances\": [1.0, 2.0, 5.0]}"
+    bucket = util._test_bucket(region, boto_session)
+    custom_env = {
+        "SAGEMAKER_MULTI_MODEL_UNIVERSAL_BUCKET": bucket,
+        "SAGEMAKER_MULTI_MODEL_UNIVERSAL_PREFIX": "test-tfs/mme3/code/"  
+        }
+    outputs = util.create_and_invoke_endpoint(boto_session, sagemaker_client,
+                                              sagemaker_runtime_client, model_name, mme3_models,
+                                              image_uri, instance_type, accelerator_type, input_data,
+                                              is_multi_model_mode_enabled = True, 
+                                              target_models = ["half_plus_three.tar.gz", "half_plus_two.tar.gz"],
+                                              environment = custom_env)
+    assert outputs[0] == {"predictions": [3.5, 4.0, 5.5]}
+    error = outputs[1]["error"]
+    assert "unsupported content type application/json" in error
+
+
+@pytest.mark.integration("mme")
+@pytest.mark.model("unknown_model")
+def test_mme4(boto_session, sagemaker_client,
+              sagemaker_runtime_client, model_name, mme4_models,
+              image_uri, instance_type, accelerator_type):
+    
+    if "p3" in instance_type:
+        pytest.skip("skip for p3 instance")
+
+    # the python service needs to transform this to get a valid prediction
+    input_data =  "{\"instances\": [1.0, 2.0, 5.0]}"
+    outputs = util.create_and_invoke_endpoint(boto_session, sagemaker_client,
+                                              sagemaker_runtime_client, model_name, mme4_models,
+                                              image_uri, instance_type, accelerator_type, input_data,
+                                              is_multi_model_mode_enabled = True, 
+                                              target_models = ["half_plus_three.tar.gz", "half_plus_two.tar.gz"])
+    assert outputs[0] == {"predictions": [3.5, 4.0, 5.5]}
+    assert outputs[1] == {"predictions": [2.5, 3.0, 4.5]}
