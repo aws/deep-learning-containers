@@ -137,10 +137,6 @@ RUN mkdir /tmp/openmpi \
  && ldconfig \
  && rm -rf /tmp/openmpi
 
-###########################################################################
-# Horovod & its dependencies
-###########################################################################
-
 # Create a wrapper for OpenMPI to allow running as root by default
 RUN mv $OPEN_MPI_PATH/bin/mpirun $OPEN_MPI_PATH/bin/mpirun.real \
  && echo '#!/bin/bash' > $OPEN_MPI_PATH/bin/mpirun \
@@ -284,11 +280,6 @@ RUN ${PIP} install --no-cache-dir -U \
    ${TF_URL} \
    tensorflow-io \
    tensorflow-datasets
-
-# Install Horovod, temporarily using CUDA stubs
-RUN ldconfig /usr/local/cuda-11.8/targets/x86_64-linux/lib/stubs \
- && HOROVOD_GPU_ALLREDUCE=NCCL HOROVOD_WITH_TENSORFLOW=1 ${PIP} install --no-cache-dir horovod==0.27.0 \
- && ldconfig
 
 RUN HOME_DIR=/root \
    && curl -o ${HOME_DIR}/oss_compliance.zip https://aws-dlinfra-utilities.s3.amazonaws.com/oss_compliance.zip \
