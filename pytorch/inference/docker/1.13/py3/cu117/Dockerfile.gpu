@@ -12,7 +12,9 @@ ARG TORCH_URL=https://aws-pytorch-unified-cicd-binaries.s3.us-west-2.amazonaws.c
 ARG TORCHVISION_VERSION=0.14.1+cu117
 ARG TORCHAUDIO_VERSION=0.13.1+cu117
 ARG TORCHDATA_VERSION=0.5.1
-ARG TORCHSERVE_VERSION=0.7.0
+# Below 2 need to be match
+ARG TORCHSERVE_VERSION=0.7.1
+ARG SM_TOOLKIT_VERSION=2.0.12
 
 ########################################################
 #  _____ ____ ____    ___
@@ -116,7 +118,7 @@ RUN apt-get update \
     libssl-dev \
     libxext6 \
     libxrender-dev \
-    openjdk-11-jdk \
+    openjdk-17-jdk \
     openssl \
     vim \
     wget \
@@ -283,6 +285,7 @@ LABEL dlc_major_version="1"
 LABEL com.amazonaws.sagemaker.capabilities.accept-bind-to-port=true
 
 ARG PYTHON
+ARG SM_TOOLKIT_VERSION
 
 ENV SAGEMAKER_SERVING_MODULE sagemaker_pytorch_serving_container.serving:main
 
@@ -291,7 +294,7 @@ RUN conda install -y -c conda-forge \
     scikit-learn \
     pandas
 
-RUN pip install --no-cache-dir "sagemaker-pytorch-inference>=2"
+RUN pip install --no-cache-dir sagemaker-pytorch-inference==${SM_TOOLKIT_VERSION}
 
 COPY torchserve-entrypoint.py /usr/local/bin/dockerd-entrypoint.py
 
