@@ -20,7 +20,7 @@ import random
 import time
 
 logger = logging.getLogger(__name__)
-BATCH_CSV = os.path.join("/home/ec2-user/code/deep-learning-containers/test/sagemaker_tests/tensorflow/inference/test/data", "batch.csv")
+BATCH_CSV = os.path.join("data", "batch.csv")
 
 
 def _botocore_resolver():
