@@ -217,6 +217,7 @@ RUN pip install --no-cache-dir --extra-index-url https://download.pytorch.org/wh
     "Pillow>=9.0.0" \
     "pyyaml>=5.4,<5.5" \
     captum \
+    nvgpu \
     ${TORCH_URL} \
     torchaudio==${TORCHAUDIO_VERSION} \
     torchvision==${TORCHVISION_VERSION} \
