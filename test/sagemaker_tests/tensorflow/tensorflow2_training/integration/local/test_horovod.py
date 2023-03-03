@@ -18,6 +18,9 @@ import tarfile
 
 import pytest
 from sagemaker.tensorflow import TensorFlow
+from packaging.version import Version
+from packaging.specifiers import SpecifierSet
+from test.test_utils import get_framework_and_version_from_tag
 
 from ...integration.utils import processor, py_version  # noqa: F401
 
@@ -32,6 +35,9 @@ RESOURCE_PATH = os.path.join(os.path.dirname(__file__), "..", "..", "resources")
 def test_distributed_training_horovod_basic_singlenode(
     instances, processes, sagemaker_local_session, docker_image, tmpdir, framework_version
 ):
+    _, image_framework_version = get_framework_and_version_from_tag(docker_image)
+    if Version(image_framework_version) in SpecifierSet(">=2.12"):
+        pytest.skip("Support for Horovod is removed starting TF2.12")
     _run_distributed_training_horovod_basic(
         instances, processes, sagemaker_local_session, docker_image, tmpdir, framework_version
     )
@@ -46,6 +52,9 @@ def test_distributed_training_horovod_basic_singlenode(
 def test_distributed_training_horovod_basic_two_nodes(
     instances, processes, sagemaker_local_session, docker_image, tmpdir, framework_version
 ):
+    _, image_framework_version = get_framework_and_version_from_tag(docker_image)
+    if Version(image_framework_version) in SpecifierSet(">=2.12"):
+        pytest.skip("Support for Horovod is removed starting TF2.12")
     _run_distributed_training_horovod_basic(
         instances, processes, sagemaker_local_session, docker_image, tmpdir, framework_version
     )
@@ -60,6 +69,9 @@ def test_distributed_training_horovod_basic_two_nodes(
 def test_distributed_training_horovod_basic_two_nodes_two_processes(
     instances, processes, sagemaker_local_session, docker_image, tmpdir, framework_version
 ):
+    _, image_framework_version = get_framework_and_version_from_tag(docker_image)
+    if Version(image_framework_version) in SpecifierSet(">=2.12"):
+        pytest.skip("Support for Horovod is removed starting TF2.12")
     _run_distributed_training_horovod_basic(
         instances, processes, sagemaker_local_session, docker_image, tmpdir, framework_version
     )

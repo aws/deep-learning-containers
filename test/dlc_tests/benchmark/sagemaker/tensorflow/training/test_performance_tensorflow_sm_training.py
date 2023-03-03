@@ -21,6 +21,8 @@ from test.test_utils import (
     get_cuda_version_from_tag,
 )
 
+from packaging.specifiers import SpecifierSet
+from packaging.version import Version
 
 @pytest.mark.usefixtures("sagemaker_only")
 @pytest.mark.flaky(reruns=3)
@@ -28,6 +30,9 @@ from test.test_utils import (
 @pytest.mark.multinode(4)
 @pytest.mark.model("resnet50")
 def test_tensorflow_sagemaker_training_performance_multinode(tensorflow_training, region):
+    _, image_framework_version = get_framework_and_version_from_tag(tensorflow_training)
+    if Version(image_framework_version) in SpecifierSet(">=2.12"):
+        pytest.skip("Support for Horovod is removed starting TF2.12")
     run_sm_perf_test(tensorflow_training, 4, region)
 
 
@@ -35,6 +40,9 @@ def test_tensorflow_sagemaker_training_performance_multinode(tensorflow_training
 @pytest.mark.integration("imagenet dataset")
 @pytest.mark.model("resnet50")
 def test_tensorflow_sagemaker_training_performance_singlenode(tensorflow_training, region):
+    _, image_framework_version = get_framework_and_version_from_tag(tensorflow_training)
+    if Version(image_framework_version) in SpecifierSet(">=2.12"):
+        pytest.skip("Support for Horovod is removed starting TF2.12")
     run_sm_perf_test(tensorflow_training, 1, region)
 
 
