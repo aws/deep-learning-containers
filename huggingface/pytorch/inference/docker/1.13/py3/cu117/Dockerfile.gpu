@@ -47,12 +47,6 @@ ENV NCCL_VERSION=2.14.3
 ENV NVML_VERSION=11.7.91
 
 RUN apt-get update \
- && apt-get upgrade -y \
- && apt-get autoremove -y \
- && apt-get clean \
- && rm -rf /var/lib/apt/lists/*
-
-RUN apt-get update \
  # TODO: Remove systemd upgrade once it is updated in base image
  && apt-get -y upgrade --only-upgrade systemd openssl cryptsetup \
  && apt-get install -y --no-install-recommends software-properties-common \
