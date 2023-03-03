@@ -7,6 +7,8 @@ import test.test_utils.ec2 as ec2_utils
 
 from test.test_utils import CONTAINER_TESTS_PREFIX, UBUNTU_18_HPU_DLAMI_US_WEST_2, LOGGER, is_tf_version
 from test.test_utils.ec2 import execute_ec2_training_test, get_ec2_instance_type
+from packaging.specifiers import SpecifierSet
+from packaging.version import Version
 
 
 TF1_STANDALONE_CMD = os.path.join(CONTAINER_TESTS_PREFIX, "testTensorflow1Standalone")
@@ -75,6 +77,9 @@ def test_tensorflow_train_mnist_cpu(tensorflow_training, ec2_connection, cpu_onl
 @pytest.mark.model("resnet")
 @pytest.mark.parametrize("ec2_instance_type", TF_EC2_GPU_INSTANCE_TYPE, indirect=True)
 def test_tensorflow_with_horovod_gpu(tensorflow_training, ec2_instance_type, ec2_connection, gpu_only, tf2_only):
+    _, image_framework_version = test_utils.get_framework_and_version_from_tag(tensorflow_training)
+    if Version(image_framework_version) in SpecifierSet(">=2.12"):
+        pytest.skip("Support for Horovod is removed starting TF2.12")
     if test_utils.is_image_incompatible_with_instance_type(tensorflow_training, ec2_instance_type):
         pytest.skip(f"Image {tensorflow_training} is incompatible with instance type {ec2_instance_type}")
     test_script = TF1_HVD_CMD if is_tf_version("1", tensorflow_training) else TF2_HVD_CMD
@@ -90,6 +95,9 @@ def test_tensorflow_with_horovod_gpu(tensorflow_training, ec2_instance_type, ec2
 @pytest.mark.model("resnet")
 @pytest.mark.parametrize("ec2_instance_type", TF_EC2_CPU_INSTANCE_TYPE, indirect=True)
 def test_tensorflow_with_horovod_cpu(tensorflow_training, ec2_connection, cpu_only, tf2_only, ec2_instance_type):
+    _, image_framework_version = test_utils.get_framework_and_version_from_tag(tensorflow_training)
+    if Version(image_framework_version) in SpecifierSet(">=2.12"):
+        pytest.skip("Support for Horovod is removed starting TF2.12")
     container_name = "tf_hvd_cpu_test"
     test_script = TF1_HVD_CMD if is_tf_version("1", tensorflow_training) else TF2_HVD_CMD
     try:
@@ -156,6 +164,9 @@ def test_tensorflow_telemetry_cpu(tensorflow_training, ec2_connection, cpu_only)
 def test_tensorflow_keras_horovod_amp(
     tensorflow_training, ec2_connection, tf21_and_above_only, gpu_only, ec2_instance_type
 ):
+    _, image_framework_version = test_utils.get_framework_and_version_from_tag(tensorflow_training)
+    if Version(image_framework_version) in SpecifierSet(">=2.12"):
+        pytest.skip("Support for Horovod is removed starting TF2.12")
     if test_utils.is_image_incompatible_with_instance_type(tensorflow_training, ec2_instance_type):
         pytest.skip(f"Image {tensorflow_training} is incompatible with instance type {ec2_instance_type}")
     execute_ec2_training_test(ec2_connection, tensorflow_training, TF_KERAS_HVD_CMD_AMP)
@@ -165,6 +176,9 @@ def test_tensorflow_keras_horovod_amp(
 @pytest.mark.model("mnist")
 @pytest.mark.parametrize("ec2_instance_type", TF_EC2_GPU_INSTANCE_TYPE, indirect=True)
 def test_tensorflow_keras_horovod_fp32(tensorflow_training, ec2_connection, tf2_only, gpu_only, ec2_instance_type):
+    _, image_framework_version = test_utils.get_framework_and_version_from_tag(tensorflow_training)
+    if Version(image_framework_version) in SpecifierSet(">=2.12"):
+        pytest.skip("Support for Horovod is removed starting TF2.12")
     if test_utils.is_image_incompatible_with_instance_type(tensorflow_training, ec2_instance_type):
         pytest.skip(f"Image {tensorflow_training} is incompatible with instance type {ec2_instance_type}")
     execute_ec2_training_test(ec2_connection, tensorflow_training, TF_KERAS_HVD_CMD_FP32)
