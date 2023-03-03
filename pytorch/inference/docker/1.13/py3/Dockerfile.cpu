@@ -8,6 +8,7 @@ ARG TORCH_URL=https://aws-pytorch-unified-cicd-binaries.s3.us-west-2.amazonaws.c
 ARG TORCHVISION_VERSION=0.14.1+cpu
 ARG TORCHAUDIO_VERSION=0.13.1+cpu
 ARG TORCHDATA_VERSION=0.5.1
+# Below 2 need to be match
 ARG TORCHSERVE_VERSION=0.7.1
 ARG SM_TOOLKIT_VERSION=2.0.12
 
