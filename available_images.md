@@ -215,10 +215,8 @@ HuggingFace Inference Containers
 
 | Framework                                     |Job Type	|CPU/GPU 	|Python Version Options	|Example URL																						|
 |-----------------------------------------------|-----------|-----------|-----------------------|---------------------------------------------------------------------------------------------------|
-|PyTorch 1.10.2 with HuggingFace transformers    |inference	|CPU 		| 3.8 (py38)			|763104351884.dkr.ecr.us-east-1.amazonaws.com/huggingface-pytorch-inference:1.10.2-transformers4.17.0-cpu-py38-ubuntu20.04		|
-|PyTorch 1.10.2 with HuggingFace transformers    |inference	|GPU 		| 3.8 (py38)			|763104351884.dkr.ecr.us-east-1.amazonaws.com/huggingface-pytorch-inference:1.10.2-transformers4.17.0-gpu-py38-cu113-ubuntu20.04		|
-|TensorFlow 2.6.3 with HuggingFace transformers |inference	|CPU 		| 3.8 (py38)			|763104351884.dkr.ecr.us-east-1.amazonaws.com/huggingface-tensorflow-inference:2.6.3-transformers4.17.0-cpu-py38-ubuntu20.04 	|
-|TensorFlow 2.6.3 with HuggingFace transformers |inference	|GPU 		| 3.8 (py38)			|763104351884.dkr.ecr.us-east-1.amazonaws.com/huggingface-tensorflow-inference:2.6.3-transformers4.17.0-gpu-py38-cu112-ubuntu20.04 	|
+|PyTorch 1.13.1 with HuggingFace transformers    |inference	|CPU 		| 3.9 (py39)			|763104351884.dkr.ecr.us-east-1.amazonaws.com/huggingface-pytorch-inference:1.13.1-transformers4.26.0-cpu-py39-ubuntu20.04		|
+|PyTorch 1.13.1 with HuggingFace transformers    |inference	|GPU 		| 3.9 (py39)			|763104351884.dkr.ecr.us-east-1.amazonaws.com/huggingface-pytorch-inference:1.13.1-transformers4.26.0-gpu-py39-cu117-ubuntu20.04		|
 
 HuggingFace Neuron Inference Containers
 ===============================
