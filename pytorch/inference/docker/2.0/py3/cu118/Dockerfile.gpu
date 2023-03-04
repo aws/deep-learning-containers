@@ -93,11 +93,11 @@ RUN apt-get update \
     ca-certificates \
     cmake \
     libcurl4-openssl-dev \
-    cuda-command-line-tools-11-8 \
     cuda-cudart-11-8 \
     cuda-libraries-11-8 \
     cuda-libraries-dev-11-8 \
     cuda-command-line-tools-11-8 \
+    cuda-nvcc-11-8 \
     libcublas-11-8=${CUBLAS_VERSION}-1 \
     libcublas-dev-11-8=${CUBLAS_VERSION}-1 \
     cuda-nvml-dev-11-8=${NVML_VERSION}-1 \
