@@ -52,7 +52,7 @@ ARG OPEN_MPI_VERSION
 ARG TORCH_URL
 ARG TORCHVISION_URL
 ARG TORCHAUDIO_URL
-ARG TORCHTEST_URL
+ARG TORCHTEXT_URL
 ARG TORCHDATA_URL
 ARG TORCHSERVE_VERSION
 
@@ -186,7 +186,7 @@ RUN curl -L -o ~/mambaforge.sh https://github.com/conda-forge/miniforge/releases
     # Below 2 are included in miniconda base, but not mamba so need to install
     conda-content-trust \
     charset-normalizer \
- && /opt/conda/bin/conda install -c pytorch magma-cuda117 \
+ && /opt/conda/bin/conda install -c pytorch magma-cuda118 \
  && /opt/conda/bin/conda clean -ya
 
 # symlink pip for OS use
@@ -214,7 +214,7 @@ RUN pip install --no-cache-dir --extra-index-url https://download.pytorch.org/wh
     ${TORCH_URL} \
     ${TORCHVISION_URL} \
     ${TORCHAUDIO_URL} \
-    &{TORCHVISION_URL} \
+    &{TORCHTEXT_URL} \
     ${TORCHDATA_URL} \
     torchserve==${TORCHSERVE_VERSION} \
     torch-model-archiver==${TORCHSERVE_VERSION}
