@@ -20,7 +20,7 @@ import random
 import time
 
 logger = logging.getLogger(__name__)
-BATCH_CSV = os.path.join("data", "batch.csv")
+BATCH_CSV = os.path.join("test/data", "batch.csv")
 
 
 def _botocore_resolver():

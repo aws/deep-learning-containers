@@ -65,27 +65,27 @@ def accelerator_type():
 def tfs_model(region, boto_session):
     return util.find_or_put_model_data(region,
                                        boto_session,
-                                       "data/tfs-model.tar.gz")
+                                       "test/data/tfs-model.tar.gz")
 
 @pytest.fixture(scope="session")
 def tfs_neuron_model(region, boto_session):
     return util.find_or_put_model_data(region,
                                        boto_session,
-                                       "data/tfs-neuron-model.tar.gz")
+                                       "test/data/tfs-neuron-model.tar.gz")
 
 
 @pytest.fixture(scope="session")
 def python_model_with_requirements(region, boto_session):
     return util.find_or_put_model_data(region,
                                        boto_session,
-                                       "data/python-with-requirements.tar.gz")
+                                       "test/data/python-with-requirements.tar.gz")
 
 
 @pytest.fixture(scope="session")
 def python_model_with_lib(region, boto_session):
     return util.find_or_put_model_data(region,
                                        boto_session,
-                                       "data/python-with-lib.tar.gz")
+                                       "test/data/python-with-lib.tar.gz")
 
 
 @pytest.fixture(scope="session")
@@ -93,9 +93,9 @@ def mme1_models(region, boto_session):
     return util.find_or_put_mme_model_data(region, 
                                            boto_session, 
                                            "mme1", 
-                                           ["data/mme1/code/inference.py", 
-                                            "data/mme1/half_plus_three.tar.gz",
-                                            "data/mme1/half_plus_two.tar.gz"])
+                                           ["test/data/mme1/code/inference.py", 
+                                            "test/data/mme1/half_plus_three.tar.gz",
+                                            "test/data/mme1/half_plus_two.tar.gz"])
 
 
 @pytest.fixture(scope="session")
@@ -103,9 +103,9 @@ def mme2_models(region, boto_session):
     return util.find_or_put_mme_model_data(region, 
                                            boto_session, 
                                            "mme2", 
-                                           ["data/mme2/code/inference.py", 
-                                            "data/mme2/half_plus_three.tar.gz",
-                                            "data/mme2/half_plus_two.tar.gz"])
+                                           ["test/data/mme2/code/inference.py", 
+                                            "test/data/mme2/half_plus_three.tar.gz",
+                                            "test/data/mme2/half_plus_two.tar.gz"])
 
 
 @pytest.fixture(scope="session")
@@ -113,9 +113,9 @@ def mme3_models(region, boto_session):
     return util.find_or_put_mme_model_data(region, 
                                            boto_session, 
                                            "mme3", 
-                                           ["data/mme3/code/inference.py", 
-                                            "data/mme3/half_plus_three.tar.gz",
-                                            "data/mme3/half_plus_two.tar.gz"])
+                                           ["test/data/mme3/code/inference.py", 
+                                            "test/data/mme3/half_plus_three.tar.gz",
+                                            "test/data/mme3/half_plus_two.tar.gz"])
 
 
 @pytest.fixture(scope="session")
@@ -123,8 +123,8 @@ def mme4_models(region, boto_session):
     return util.find_or_put_mme_model_data(region, 
                                            boto_session, 
                                            "mme4", 
-                                           ["data/mme4/half_plus_three.tar.gz",
-                                            "data/mme4/half_plus_two.tar.gz"])
+                                           ["test/data/mme4/half_plus_three.tar.gz",
+                                            "test/data/mme4/half_plus_two.tar.gz"])
 
 
 @pytest.mark.model("unknown_model")
