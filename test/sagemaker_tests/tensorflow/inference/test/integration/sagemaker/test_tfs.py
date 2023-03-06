@@ -215,7 +215,7 @@ def test_mme1(boto_session, sagemaker_client,
         pytest.skip("skip for p3 instance")
 
     # the python service needs to transform this to get a valid prediction
-    input_data =  "{\"instances\": [1.0, 2.0, 5.0]}"
+    input_data =  {"instances": [1.0, 2.0, 5.0]}
     bucket = util._test_bucket(region, boto_session)
     custom_env = {
         "SAGEMAKER_MULTI_MODEL_UNIVERSAL_BUCKET": bucket,
@@ -241,7 +241,7 @@ def test_mme2(boto_session, sagemaker_client,
         pytest.skip("skip for p3 instance")
 
     # the python service needs to transform this to get a valid prediction
-    input_data =  "{\"instances\": [1.0, 2.0, 5.0]}"
+    input_data =  "1.0,2.0,5.0"
     bucket = util._test_bucket(region, boto_session)
     custom_env = {
         "SAGEMAKER_MULTI_MODEL_UNIVERSAL_BUCKET": bucket,
@@ -252,10 +252,9 @@ def test_mme2(boto_session, sagemaker_client,
                                               image_uri, instance_type, accelerator_type, input_data,
                                               is_multi_model_mode_enabled = True, 
                                               target_models = ["half_plus_three.tar.gz", "half_plus_two.tar.gz"],
-                                              environment = custom_env)
+                                              environment = custom_env, content_type = "text/csv")
     assert outputs[0] == {"predictions": [3.5, 4.0, 5.5]}
-    error = outputs[1]["error"]
-    assert "unsupported content type application/json" in error
+    assert outputs[1] == {"predictions": [2.5, 3.0, 4.5]}
 
 
 @pytest.mark.integration("mme")
@@ -268,7 +267,7 @@ def test_mme3(boto_session, sagemaker_client,
         pytest.skip("skip for p3 instance")
 
     # the python service needs to transform this to get a valid prediction
-    input_data =  "{\"instances\": [1.0, 2.0, 5.0]}"
+    input_data =  "1.0,2.0,5.0"
     bucket = util._test_bucket(region, boto_session)
     custom_env = {
         "SAGEMAKER_MULTI_MODEL_UNIVERSAL_BUCKET": bucket,
@@ -279,10 +278,9 @@ def test_mme3(boto_session, sagemaker_client,
                                               image_uri, instance_type, accelerator_type, input_data,
                                               is_multi_model_mode_enabled = True, 
                                               target_models = ["half_plus_three.tar.gz", "half_plus_two.tar.gz"],
-                                              environment = custom_env)
+                                              environment = custom_env, content_type = "text/csv")
     assert outputs[0] == {"predictions": [3.5, 4.0, 5.5]}
-    error = outputs[1]["error"]
-    assert "unsupported content type application/json" in error
+    assert outputs[1] == {"predictions": [2.5, 3.0, 4.5]}
 
 
 @pytest.mark.integration("mme")
@@ -295,7 +293,7 @@ def test_mme4(boto_session, sagemaker_client,
         pytest.skip("skip for p3 instance")
 
     # the python service needs to transform this to get a valid prediction
-    input_data =  "{\"instances\": [1.0, 2.0, 5.0]}"
+    input_data =  {"instances": [1.0, 2.0, 5.0]}
     outputs = util.create_and_invoke_endpoint(boto_session, sagemaker_client,
                                               sagemaker_runtime_client, model_name, mme4_models,
                                               image_uri, instance_type, accelerator_type, input_data,

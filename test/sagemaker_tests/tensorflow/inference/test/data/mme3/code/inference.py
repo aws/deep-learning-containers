@@ -43,7 +43,7 @@ def _process_input(data, context):
     if context.request_content_type == 'text/csv':
         # very simple csv handler
         return json.dumps({
-            'instances': [float(x) for x in data.read().decode('utf-8').split(',')]
+            'instances': [float(x) for x in data.read().decode('utf-8').strip('"').split(',')]
         })
 
     raise ValueError('{{"error": "unsupported content type {}"}}'.format(

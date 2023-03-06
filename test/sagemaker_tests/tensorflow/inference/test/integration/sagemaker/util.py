@@ -277,12 +277,12 @@ def run_batch_transform_job(region, boto_session, model_data, image_uri,
                timeout=600) # seconds
 
 
-def invoke_endpoint(sagemaker_runtime_client, endpoint_name, input_data, target_models):
+def invoke_endpoint(sagemaker_runtime_client, endpoint_name, input_data, target_models, content_type = "application/json"):
     if target_models:
         results = []
         for target_model in target_models:
             response = sagemaker_runtime_client.invoke_endpoint(EndpointName=endpoint_name,
-                                                        ContentType="application/json",
+                                                        ContentType=content_type,
                                                         TargetModel = target_model,
                                                         Body=json.dumps(input_data))
             result = json.loads(response["Body"].read().decode())
@@ -290,7 +290,7 @@ def invoke_endpoint(sagemaker_runtime_client, endpoint_name, input_data, target_
         return results
     else:
         response = sagemaker_runtime_client.invoke_endpoint(EndpointName=endpoint_name,
-                                                        ContentType="application/json",
+                                                        ContentType=content_type,
                                                         Body=json.dumps(input_data))
         result = json.loads(response["Body"].read().decode())
         assert result["predictions"] is not None
@@ -300,7 +300,7 @@ def invoke_endpoint(sagemaker_runtime_client, endpoint_name, input_data, target_
 def create_and_invoke_endpoint(boto_session, sagemaker_client, sagemaker_runtime_client,
                                model_name, model_data, image_uri, instance_type, accelerator_type,
                                input_data, is_multi_model_mode_enabled = False, 
-                               target_models = [], environment = {}):
+                               target_models = [], environment = {}, content_type = "application/json"):
     with sagemaker_model(boto_session, sagemaker_client, image_uri, model_name, model_data, is_multi_model_mode_enabled, environment):
         with sagemaker_endpoint(sagemaker_client, model_name, instance_type, accelerator_type):
-            return invoke_endpoint(sagemaker_runtime_client, model_name, input_data, target_models)
+            return invoke_endpoint(sagemaker_runtime_client, model_name, input_data, target_models, content_type)
