@@ -7,11 +7,11 @@ set -ex
 # Function to install kfctl cli
 install_kfctl(){
 
-    KFCTL_VERSION="v1.0.2"
+    KFCTL_VERSION="v1.2.0"
 
     if ! command -v kfctl &> /dev/null
     then
-        KFCTL_URL=https://github.com/kubeflow/kfctl/releases/download/${KFCTL_VERSION}/kfctl_${KFCTL_VERSION}-0-ga476281_linux.tar.gz
+        KFCTL_URL=https://github.com/kubeflow/kfctl/releases/download/${KFCTL_VERSION}/kfctl_${KFCTL_VERSION}-0-gbc038f9_linux.tar.gz
         curl --silent --location ${KFCTL_URL} -o /tmp/kfctl_${KFCTL_VERSION}_linux.tar.gz
         tar -xvf /tmp/kfctl_${KFCTL_VERSION}_linux.tar.gz -C /tmp --strip-components=1
         if ! [ -x "$(command -v sudo)" ]; then

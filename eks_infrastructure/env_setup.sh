@@ -4,7 +4,7 @@
 set -ex
 
 # The below url/version is based on EKS v1.20. The same needs to be updated for EKS version upgrade.
-KUBECTL_CLIENT="https://amazon-eks.s3-us-west-2.amazonaws.com/1.20.4/2021-04-12/bin/linux/amd64/kubectl"
+KUBECTL_CLIENT="https://s3.us-west-2.amazonaws.com/amazon-eks/1.25.6/2023-01-30/bin/linux/amd64/kubectl"
 EKSCTL_CLIENT="https://github.com/weaveworks/eksctl/releases/latest/download/eksctl_$(uname -s)_amd64.tar.gz"
 AWS_IAM_AUTHENTICATOR="https://amazon-eks.s3-us-west-2.amazonaws.com/1.20.4/2021-04-12/bin/linux/amd64/aws-iam-authenticator"
 LATEST_KUBECTL_CLIENT_VERSION=1.20
