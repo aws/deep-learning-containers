@@ -121,11 +121,13 @@ def _test_hc_distributed_training_horovod_function(ecr_image, sagemaker_session,
 def test_distributed_training_horovod_with_env_vars(
     ecr_image, sagemaker_regions, instance_type, tmpdir, framework_version
 ):
-    # add skip here
+    _, image_framework_version = get_framework_and_version_from_tag(ecr_image)
+    if Version(image_framework_version) in SpecifierSet(">=2.12"):
+        pytest.skip("Support for Horovod is removed starting TF2.12")
     invoke_sm_helper_function(
         ecr_image,
         sagemaker_regions,
-        _test_distributed_training_horovod_function,
+        _test_distributed_training_horovod_with_env_vars_function,
         instance_type,
         tmpdir,
         framework_version,
