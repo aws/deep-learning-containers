@@ -226,6 +226,8 @@ def get_parser():
     parser.add_argument("--data-dir", type=str, default=None)
     parser.add_argument("--ddp", type=int, default=0)
     parser.add_argument('--mp_parameters', type=str, default='')
+    parser.add_argument('--inductor', type=int, default=0,
+                        help='trcomp with inductor')
     return parser
 
 
@@ -277,8 +279,12 @@ def main():
 
     train_loader = torch.utils.data.DataLoader(dataset1, **kwargs)
     test_loader = torch.utils.data.DataLoader(dataset2, **kwargs)
-
+        
     model = GroupedNet()
+
+    use_inductor = (args.inductor == 1)
+    if use_inductor:
+        model = torch.compile(model, backend="inductor", mode="default")
 
     # SMP handles the transfer of parameters to the right device
     # and the user doesn't need to call 'model.to' explicitly.

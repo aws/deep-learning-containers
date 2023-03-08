@@ -115,6 +115,7 @@ def train(args):
     logger.debug("Number of gpus available - {}".format(args.num_gpus))
     kwargs = {'num_workers': 1, 'pin_memory': True} if use_cuda else {}
     device = torch.device("cuda" if use_cuda else "cpu")
+    use_inductor = (args.inductor == 1)
 
     if is_distributed:
         # Initialize the distributed environment.
@@ -147,6 +148,10 @@ def train(args):
     ))
 
     model = Net()
+    if use_inductor:
+        logger.debug("Inductor: using Inductor.")
+        model = torch.compile(model, backend="inductor", mode="default")
+
     if is_distributed and use_cuda:
         # multi-machine multi-gpu case
         logger.debug("Multi-machine multi-gpu: using DistributedDataParallel.")
@@ -266,6 +271,8 @@ if __name__ == '__main__':
                         help='backend for distributed training')
     parser.add_argument('--processor', type=str, default='cpu',
                         help='backend for distributed training')
+    parser.add_argument('--inductor', type=int, default=0,
+                        help='trcomp with inductor')
 
     # Container environment
     env = sagemaker_training.environment.Environment()

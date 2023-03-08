@@ -463,7 +463,7 @@ def disable_nightly_test(request):
                 if not are_fixture_labels_enabled(image_uri, labels):
                     pytest.skip(f"{test_name} will be skipped.")
 
-
+'''
 @pytest.fixture(autouse=True)
 def skip_test_successfully_executed_before(request):
     """
@@ -479,3 +479,4 @@ def skip_test_successfully_executed_before(request):
     if lastfailed is not None \
             and not any(test_name in failed_test_name for failed_test_name in lastfailed.keys()):
         pytest.skip(f"Skipping {test_name} because it was successfully executed for this commit")
+'''
