@@ -35,6 +35,9 @@ RUN rm -rf /usr/local/lib/python9/dist-packages/gluonts/nursery/tsbench
 RUN rm -rf /usr/local/lib/python3.9/dist-packages/ray/jars \
  && rm -rf /opt/conda/lib/python3.9/site-packages/ray/jars
 
+# Removing cryptography from micromamba version of cryptography which is not used to address security vulnerabilities
+RUN rm -rf /root/micromamba/pkgs/cryptography-39.0.0-py310h34c0648_0/lib/python3.10/site-packages/
+
 RUN HOME_DIR=/root \
  && curl -o ${HOME_DIR}/oss_compliance.zip https://aws-dlinfra-utilities.s3.amazonaws.com/oss_compliance.zip \
  && unzip ${HOME_DIR}/oss_compliance.zip -d ${HOME_DIR}/ \
