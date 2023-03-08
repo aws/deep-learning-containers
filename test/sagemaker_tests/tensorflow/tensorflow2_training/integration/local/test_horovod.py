@@ -20,7 +20,7 @@ import pytest
 from sagemaker.tensorflow import TensorFlow
 from packaging.version import Version
 from packaging.specifiers import SpecifierSet
-from ......test_utils import get_framework_and_version_from_tag
+from test.test_utils import get_framework_and_version_from_tag
 
 RESOURCE_PATH = os.path.join(os.path.dirname(__file__), "..", "..", "resources")
 
