@@ -79,6 +79,7 @@ RUN /opt/conda/bin/conda install -c conda-forge -y python=$PYTHON_VERSION \
     cython \
     ipython \
     parso \
+    numpy \
     scipy \
     # Below 2 are included in miniconda base, but not mamba so need to install
     conda-content-trust \
@@ -126,7 +127,6 @@ RUN ln -s /opt/conda/bin/pip /usr/local/bin/pip3 \
     "Pillow==9.3.0" \
     "awscli<2" \
     captum \
-    numpy==1.19.3 \
     torchserve==$TS_VERSION \
     torch-model-archiver==$TS_VERSION
 
