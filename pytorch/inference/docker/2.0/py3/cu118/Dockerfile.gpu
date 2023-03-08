@@ -90,7 +90,6 @@ RUN apt-get update \
  && apt-get -y upgrade \
  && apt-get install -y --allow-downgrades --allow-change-held-packages --no-install-recommends \
     build-essential \
-    gfortran \
     ca-certificates \
     cmake \
     libcurl4-openssl-dev \
@@ -206,7 +205,7 @@ RUN pip install --no-cache-dir --extra-index-url https://download.pytorch.org/wh
     "cryptography>3.2" \
     enum-compat==0.0.3 \
     "ipython>=8.10.0,<9.0" \
-    numpy==1.19.3 \
+    numpy==1.22.2 \
     nvgpu==0.8.0 \
     opencv-python \
     packaging \
