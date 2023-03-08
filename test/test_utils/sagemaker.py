@@ -61,7 +61,7 @@ def assign_sagemaker_remote_job_instance_type(image):
     elif "inference-neuron" in image:
         return "ml.inf1.xlarge"
     elif "gpu" in image:
-        return "ml.p2.8xlarge"
+        return "ml.p3.8xlarge"
     elif "tensorflow" in image:
         return "ml.c4.4xlarge"
     else:
@@ -77,7 +77,7 @@ def assign_sagemaker_local_job_instance_type(image):
         return "p3.2xlarge"
     elif "trcomp" in image:
         return "p3.2xlarge"
-    return "p2.8xlarge" if "gpu" in image else "c5.18xlarge"
+    return "p3.8xlarge" if "gpu" in image else "c5.18xlarge"
 
 
 def assign_sagemaker_local_test_ami(image, region):
