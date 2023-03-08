@@ -82,21 +82,14 @@ RUN apt-get update \
     cmake \
     cuda-toolkit-11-8 \
     cuda-command-line-tools-11-8 \
-    cuda-libraries-11-8 \
+    cuda-nvcc-11-8 \
+    libcudnn8=$CUDNN_VERSION-1+cuda11.8 \
     curl \
     emacs \
     git \
     hwloc \
     jq \
-    cuda-nvcc-11-8 \
-    libcublas-11-8=${CUBLAS_VERSION}-1 \
-    libcublas-dev-11-8=${CUBLAS_VERSION}-1 \
-    libcudnn8=$CUDNN_VERSION-1+cuda11.8 \
-    libcufft-dev-11-8 \
-    libcurand-dev-11-8 \
     libcurl4-openssl-dev \
-    libcusolver-dev-11-8 \
-    libcusparse-dev-11-8 \
     libglib2.0-0 \
     libgl1-mesa-glx \
     libsm6 \
@@ -168,7 +161,7 @@ RUN ompi_info --parsable --all | grep mpi_built_with_cuda_support:value \
 # correct PyTorch has to be installed first due since multiple DS packages require pytorch
 # might encounter `nothing provides __cuda needed by pytorch-1.11.0-cuda102py310hdf4a2db_20` error
 # if wrong version of PyTorch was installed 
-RUN /opt/conda/bin/mamba install -y pytorch pytorch-cuda=11.8 torchvision torchaudio \
+RUN /opt/conda/bin/mamba install -y pytorch=2.0.0 pytorch-cuda=11.8 torchvision torchaudio \
     -c pytorch-test -c pytorch -c nvidia -c conda-forge \
     && pip install torchtnt
 
@@ -395,7 +388,7 @@ ARG PT_TORCHAUDIO_URL
 ARG PT_TORCHDATA_URL
 
 # Install AWS-PyTorch and other torch packages
-RUN /opt/conda/bin/mamba install -y pytorch pytorch-cuda=11.8 torchvision torchaudio \
+RUN /opt/conda/bin/mamba install -y pytorch=2.0.0 pytorch-cuda=11.8 torchvision torchaudio \
     -c pytorch-test -c pytorch -c nvidia -c conda-forge \
     && pip install torchtnt
 
