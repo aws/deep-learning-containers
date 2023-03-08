@@ -1,6 +1,6 @@
 ARG PYTHON=python3
-ARG PYTHON_VERSION=3.9.16
-ARG MAMBA_VERSION=22.11.1-2
+ARG PYTHON_VERSION=3.10.9
+ARG MAMBA_VERSION=22.11.1-4
 
 # PyTorch Binaries
 ARG PT_EC2_TRAINING_URL=https://aws-pytorch-unified-cicd-binaries.s3.us-west-2.amazonaws.com/r1.13.1_ec2/20221217-194030/54406b8eed7fbd61be629cb06229dfb7b6b2954e/torch-1.13.1%2Bcpu-cp39-cp39-linux_x86_64.whl
@@ -116,8 +116,13 @@ ENV REQUESTS_CA_BUNDLE=/etc/ssl/certs/ca-certificates.crt
 RUN curl -L -o ~/mambaforge.sh https://github.com/conda-forge/miniforge/releases/download/${MAMBA_VERSION}/Mambaforge-${MAMBA_VERSION}-Linux-x86_64.sh \
  && chmod +x ~/mambaforge.sh \
  && ~/mambaforge.sh -b -p /opt/conda \
- && rm ~/mambaforge.sh \
- && /opt/conda/bin/mamba update -y conda \
+ && rm ~/mambaforge.sh 
+
+# Install AWS-PyTorch and other torch packages
+RUN /opt/conda/bin/mamba install -y pytorch==2.0.0 torchvision torchaudio cpuonly -c pytorch-test
+
+# install common python packages
+RUN /opt/conda/bin/mamba update -y conda \
  && /opt/conda/bin/mamba install -y -c conda-forge \
     python=$PYTHON_VERSION \
     cython \
@@ -204,9 +209,6 @@ ARG PT_TORCHVISION_URL
 ARG PT_TORCHAUDIO_URL
 ARG PT_TORCHDATA_URL
 
-# Install AWS-PyTorch and other torch packages
-RUN pip uninstall -y torch torchvision torchaudio torchdata \
- && pip install --no-cache-dir -U ${PT_EC2_TRAINING_URL} ${PT_TORCHVISION_URL} ${PT_TORCHAUDIO_URL} ${PT_TORCHDATA_URL}
 
 RUN HOME_DIR=/root \
  && curl -o ${HOME_DIR}/oss_compliance.zip https://aws-dlinfra-utilities.s3.amazonaws.com/oss_compliance.zip \
@@ -258,8 +260,7 @@ ARG PT_TORCHAUDIO_URL
 ARG PT_TORCHDATA_URL
 
 # Install AWS-PyTorch and other torch packages
-RUN pip uninstall -y torch torchvision torchaudio torchdata \
- && pip install --no-cache-dir -U ${PT_SM_TRAINING_URL} ${PT_TORCHVISION_URL} ${PT_TORCHAUDIO_URL} ${PT_TORCHDATA_URL}
+RUN /opt/conda/bin/mamba install -y pytorch==2.0.0 torchvision torchaudio cpuonly -c pytorch-test
 
 
 WORKDIR /
