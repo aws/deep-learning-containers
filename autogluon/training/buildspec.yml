@@ -7,10 +7,10 @@ arch_type: x86
 
 repository_info:
   training_repository: &TRAINING_REPOSITORY
-  image_type: &TRAINING_IMAGE_TYPE training
-  root: !join [ *FRAMEWORK, "/", *TRAINING_IMAGE_TYPE ]
-  repository_name: &REPOSITORY_NAME !join [pr, "-", *FRAMEWORK, "-", *TRAINING_IMAGE_TYPE]
-  repository: &REPOSITORY !join [ *ACCOUNT_ID, .dkr.ecr., *REGION, .amazonaws.com/, *REPOSITORY_NAME ]
+    image_type: &TRAINING_IMAGE_TYPE training
+    root: !join [ *FRAMEWORK, "/", *TRAINING_IMAGE_TYPE ]
+    repository_name: &REPOSITORY_NAME !join [pr, "-", *FRAMEWORK, "-", *TRAINING_IMAGE_TYPE]
+    repository: &REPOSITORY !join [ *ACCOUNT_ID, .dkr.ecr., *REGION, .amazonaws.com/, *REPOSITORY_NAME ]
 
 context:
   training_context: &TRAINING_CONTEXT
