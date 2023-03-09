@@ -7,7 +7,7 @@ set -ex
 # Function to install kustomize
 install_kustomize(){
     KUSTOMIZE_VERSION="v4.5.7"
-    KUSTOMIZE_URL="https://github.com/kubernetes-sigs/kustomize/releases/download/kustomize%2Fv4.5.7/kustomize_v4.5.7_linux_amd64.tar.gz"
+    KUSTOMIZE_URL="https://github.com/kubernetes-sigs/kustomize/releases/download/kustomize%2F${KUSTOMIZE_VERSION}/kustomize_${KUSTOMIZE_VERSION}_linux_amd64.tar.gz"
 
     if ~ command -v kustomize &> /dev/null
     then
@@ -24,7 +24,6 @@ install_kustomize(){
 # Function to install kubeflow in EKS cluster using kustomize
 setup_kubeflow(){
     TIMEOUT=600s
-
     # clones manifests from kubeflow github into a folder named manifests
     git clone https://github.com/kubeflow/manifests.git
 
@@ -50,13 +49,6 @@ setup_kubeflow(){
 
     echo "> Installing default user namespace"
     kustomize build manifests/common/user-namespace/base | kubectl apply -f -
-
-    # local REGION=$1
-    # KUBEFLOW_URL="https://raw.githubusercontent.com/aws/deep-learning-containers/master/test/dlc_tests/eks/eks_manifest_templates/kubeflow/kfctl_aws.yaml"
-    # CONFIG_FILE=kfctl_aws.yaml
-    # wget -O ${CONFIG_FILE} ${KUBEFLOW_URL} 
-    # sed -i -e 's/<REGION>/'"${REGION}"'/' ${CONFIG_FILE}
-    # kfctl apply -V -f ${CONFIG_FILE}
 }
 
 # Function to create directory to install kubeflow components
