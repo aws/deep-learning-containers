@@ -3,10 +3,10 @@
 
 set -ex
 
-# The below url/version is based on EKS v1.20. The same needs to be updated for EKS version upgrade.
+# The below url/version is based on EKS v1.25.6. The same needs to be updated for EKS version upgrade.
 KUBECTL_CLIENT="https://s3.us-west-2.amazonaws.com/amazon-eks/1.25.6/2023-01-30/bin/linux/amd64/kubectl"
 EKSCTL_CLIENT="https://github.com/weaveworks/eksctl/releases/latest/download/eksctl_$(uname -s)_amd64.tar.gz"
-AWS_IAM_AUTHENTICATOR="https://github.com/kubernetes-sigs/aws-iam-authenticator/releases/download/v0.5.9/aws-iam-authenticator_0.5.9_linux_amd64"
+AWS_IAM_AUTHENTICATOR="https://github.com/kubernetes-sigs/aws-iam-authenticator/releases/download/v0.6.2/aws-iam-authenticator_0.6.2_linux_amd64"
 
 LATEST_KUBECTL_CLIENT_VERSION=1.25.6
 
