@@ -1,7 +1,8 @@
 {
     "operation": "create",
     "contexts": [
-        "PR"
+        "PR",
+        "MAINLINE"
     ],
     "eks_clusters": [
         "dlc-mxnet",
