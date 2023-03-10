@@ -42,7 +42,6 @@ ARG PIP=pip3
 
 ARG OMPI_VERSION=4.1.5
 
-
 # To be passed to ec2 and sagemaker stages
 ENV PYTHON=${PYTHON}
 ENV PYTHON_VERSION=${PYTHON_VERSION}
@@ -196,6 +195,11 @@ RUN ${PIP} install --no-cache-dir -U \
     tensorflow-io \
     tensorflow-datasets
 
+# Install Horovod with TensorFlow
+RUN HOROVOD_WITH_MPI=1 \
+   && HOROVOD_WITH_TENSORFLOW=1 HOROVOD_WITHOUT_MXNET=1 HOROVOD_WITHOUT_PYTORCH=1 \
+   && ${PIP} install --no-cache-dir horovod==0.27.0
+
 RUN HOME_DIR=/root \
    && curl -o ${HOME_DIR}/oss_compliance.zip https://aws-dlinfra-utilities.s3.amazonaws.com/oss_compliance.zip \
    && unzip ${HOME_DIR}/oss_compliance.zip -d ${HOME_DIR}/ \
@@ -260,6 +264,12 @@ RUN ${PIP} uninstall -y tensorflow tensorflow-gpu \
     tensorflow-io \
     tensorflow-datasets
 
+
+# Install Horovod with TensorFlow
+RUN HOROVOD_WITH_MPI=1 \
+   && HOROVOD_WITH_TENSORFLOW=1 HOROVOD_WITHOUT_MXNET=1 HOROVOD_WITHOUT_PYTORCH=1 \
+   && ${PIP} install --no-cache-dir horovod==0.27.0
+
 RUN $PYTHON -m pip install --no-cache-dir -U \
     numba \
     bokeh \
@@ -281,7 +291,12 @@ RUN $PYTHON -m pip install --no-cache-dir -U \
 
 # install smdebug directly the specific branch
 
-#TODO: New version to be added
+#TODO: Switch to official installation once TF is GA
+
+RUN git clone https://github.com/yl-to/sagemaker-debugger.git \
+    && cd sagemaker-debugger \
+    && git checkout tf212 \
+    && $PYTHON setup.py install && cd .. && rm -rf sagemaker-debugger
 
 # ARG SMDEBUG_TAG=1.0.25
 # RUN git clone https://github.com/awslabs/sagemaker-debugger.git \
@@ -291,8 +306,13 @@ RUN $PYTHON -m pip install --no-cache-dir -U \
 
 # install sagemaker-tensorflow from source
 
-#TODO: New version to be added
+#TODO: Switch to official installation once TF is GA
 
+RUN git clone https://github.com/aws/sagemaker-tensorflow-extensions.git \
+    && cd sagemaker-tensorflow-extensions \
+    && git checkout trajanikant \
+    && $PYTHON -m pip install . \
+    && cd .. && rm -rf sagemaker-tensorflow-extensions
 
 # ARG SAGEMAKER_TENSORFLOW_TAG=v1.17.0
 # RUN git clone -b tf-2 https://github.com/aws/sagemaker-tensorflow-extensions.git \

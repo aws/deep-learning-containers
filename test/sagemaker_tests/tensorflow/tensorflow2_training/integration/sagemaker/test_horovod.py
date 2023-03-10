@@ -19,9 +19,6 @@ import pytest
 import sagemaker
 from sagemaker.instance_group import InstanceGroup
 from sagemaker.tensorflow import TensorFlow
-from packaging.version import Version
-from packaging.specifiers import SpecifierSet
-from test.test_utils import get_framework_and_version_from_tag
 
 from ..... import invoke_sm_helper_function
 from ...integration.utils import processor, py_version, unique_name_from_base  # noqa: F401
@@ -33,9 +30,6 @@ RESOURCE_PATH = os.path.join(os.path.dirname(__file__), "..", "..", "resources")
 @pytest.mark.model("mnist")
 @pytest.mark.multinode(2)
 def test_distributed_training_horovod(ecr_image, sagemaker_regions, instance_type, tmpdir, framework_version):
-    _, image_framework_version = get_framework_and_version_from_tag(ecr_image)
-    if Version(image_framework_version) in SpecifierSet(">=2.12"):
-        pytest.skip("Support for Horovod is removed starting TF2.12")
     invoke_sm_helper_function(
         ecr_image,
         sagemaker_regions,
@@ -76,9 +70,6 @@ def _test_distributed_training_horovod_function(ecr_image, sagemaker_session, in
 @pytest.mark.multinode(2)
 @pytest.mark.skip_cpu
 def test_hc_distributed_training_horovod(ecr_image, sagemaker_regions, instance_type, tmpdir, framework_version):
-    _, image_framework_version = get_framework_and_version_from_tag(ecr_image)
-    if Version(image_framework_version) in SpecifierSet(">=2.12"):
-        pytest.skip("Support for Horovod is removed starting TF2.12")
     instance_type = instance_type or 'ml.p3.16xlarge'
     training_group = InstanceGroup("train_group_1", instance_type, 2)
     invoke_sm_helper_function(
@@ -121,9 +112,6 @@ def _test_hc_distributed_training_horovod_function(ecr_image, sagemaker_session,
 def test_distributed_training_horovod_with_env_vars(
     ecr_image, sagemaker_regions, instance_type, tmpdir, framework_version
 ):
-    _, image_framework_version = get_framework_and_version_from_tag(ecr_image)
-    if Version(image_framework_version) in SpecifierSet(">=2.12"):
-        pytest.skip("Support for Horovod is removed starting TF2.12")
     invoke_sm_helper_function(
         ecr_image,
         sagemaker_regions,

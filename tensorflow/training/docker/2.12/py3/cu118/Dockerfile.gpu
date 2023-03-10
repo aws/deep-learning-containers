@@ -100,17 +100,6 @@ RUN apt-get update && apt-get install -y --no-install-recommends --allow-unauthe
  && rm -rf /var/lib/apt/lists/* \
  && mkdir -p /var/run/sshd
 
-# RUN cd /tmp \
-#   && git clone https://github.com/NVIDIA/nccl.git -b v$NCCL_VERSION-1 \
-#   && cd nccl \
-#   && make -j64 src.build BUILDDIR=/usr/local \
-#   && rm -rf /tmp/nccl
-
-# Ref: https://docs.nvidia.com/deeplearning/nccl/install-guide/index.html#down
-# RUN wget https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2004/x86_64/cuda-keyring_1.0-1_all.deb \
-#   && dpkg -i cuda-keyring_1.0-1_all.deb \
-#   && apt-get update \
-#   && apt install libnccl2=2.16.5-1+cuda11.8 libnccl-dev=2.16.5-1+cuda11.8
 
 # Install EFA without AWS OPEN_MPI
 RUN apt-get update \
@@ -136,6 +125,10 @@ RUN mkdir /tmp/openmpi \
  && make install \
  && ldconfig \
  && rm -rf /tmp/openmpi
+
+###########################################################################
+# Horovod & its dependencies
+###########################################################################
 
 # Create a wrapper for OpenMPI to allow running as root by default
 RUN mv $OPEN_MPI_PATH/bin/mpirun $OPEN_MPI_PATH/bin/mpirun.real \
@@ -281,6 +274,11 @@ RUN ${PIP} install --no-cache-dir -U \
    tensorflow-io \
    tensorflow-datasets
 
+# Install Horovod, temporarily using CUDA stubs
+RUN ldconfig /usr/local/cuda-11.2/targets/x86_64-linux/lib/stubs \
+ && HOROVOD_GPU_ALLREDUCE=NCCL HOROVOD_WITH_TENSORFLOW=1 ${PIP} install --no-cache-dir horovod==0.27.0 \
+ && ldconfig
+
 RUN HOME_DIR=/root \
    && curl -o ${HOME_DIR}/oss_compliance.zip https://aws-dlinfra-utilities.s3.amazonaws.com/oss_compliance.zip \
    && unzip ${HOME_DIR}/oss_compliance.zip -d ${HOME_DIR}/ \
@@ -334,6 +332,11 @@ RUN ${PIP} uninstall -y tensorflow tensorflow-gpu \
     ${TF_URL} \
     tensorflow-io \
     tensorflow-datasets
+
+# Install Horovod, temporarily using CUDA stubs
+RUN ldconfig /usr/local/cuda-11.2/targets/x86_64-linux/lib/stubs \
+ && HOROVOD_GPU_ALLREDUCE=NCCL HOROVOD_WITH_TENSORFLOW=1 ${PIP} install --no-cache-dir horovod==0.27.0 \
+ && ldconfig
 
 RUN $PYTHON -m pip install --no-cache-dir -U \
     numba \
