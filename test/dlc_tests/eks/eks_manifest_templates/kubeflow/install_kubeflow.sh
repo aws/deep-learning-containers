@@ -27,28 +27,11 @@ setup_kubeflow(){
     # clones manifests from kubeflow github into a folder named manifests
     git clone https://github.com/kubeflow/manifests.git
 
-    echo "> Installing cert-manager"
-    kustomize build manifests/common/cert-manager/cert-manager/base | kubectl apply -f -
-    kubectl wait --for=condition=ready pod -l 'app in (cert-manager,webhook)' --timeout=${TIMEOUT} -n cert-manager
-    kustomize build manifests/common/cert-manager/kubeflow-issuer/base | kubectl apply -f -
-
     echo "> Installing kubeflow namespace"
     kustomize build manifests/common/kubeflow-namespace/base | kubectl apply -f -
 
-    echo "> Installing kubeflow roles"
-    kustomize build manifests/common/kubeflow-roles/base | kubectl apply -f -
-
     echo "> Installing training operators"
     kustomize build manifests/apps/training-operator/upstream/overlays/kubeflow | kubectl apply -f -
-
-    echo "Waiting for kubeflow/training-operator to become ready..."
-    kubectl wait --for=condition=Ready pod -l control-plane=kubeflow-training-operator --timeout=${TIMEOUT} -n kubeflow
-
-    echo "> Installing kubeflow profiles"
-    kustomize build manifests/apps/profiles/upstream/overlays/kubeflow | kubectl apply -f -
-
-    echo "> Installing default user namespace"
-    kustomize build manifests/common/user-namespace/base | kubectl apply -f -
 }
 
 # Function to create directory to install kubeflow components
