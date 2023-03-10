@@ -84,7 +84,7 @@ ENV DLC_CONTAINER_TYPE=inference
 # Turing = 7.5+PTX (G4 Instances)
 # Ampere = 8.0;8.6+PTX (P4 and G5 Instances)
 # Ada = 8.9+PTX
-ENV TORCH_CUDA_ARCH_LIST="3.7 3.7 5.0 7.0+PTX 7.5+PTX 8.0"
+ENV TORCH_CUDA_ARCH_LIST="3.7 5.0 7.0+PTX 7.5+PTX 8.0"
 
 RUN apt-get update \
  && apt-get -y upgrade \
