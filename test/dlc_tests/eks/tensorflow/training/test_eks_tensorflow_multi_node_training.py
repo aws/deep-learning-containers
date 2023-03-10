@@ -10,9 +10,8 @@ from invoke.context import Context
 from invoke import run
 import test.test_utils.ec2 as ec2_utils
 import test.test_utils.eks as eks_utils
-from test.test_utils import is_pr_context, SKIP_PR_REASON, get_framework_and_version_from_tag
-from packaging.specifiers import SpecifierSet
-from packaging.version import Version
+from test.test_utils import is_pr_context, SKIP_PR_REASON
+
 
 # Test only runs in region us-west-2, on instance type p3.16xlarge, on PR_EKS_CLUSTER_NAME_TEMPLATE cluster
 @pytest.mark.skipif(is_pr_context(), reason=SKIP_PR_REASON)
@@ -20,9 +19,6 @@ from packaging.version import Version
 @pytest.mark.model("resnet")
 @pytest.mark.multinode(3)
 def test_eks_tensorflow_multi_node_training_gpu(tensorflow_training, example_only):
-    _, image_framework_version = get_framework_and_version_from_tag(tensorflow_training)
-    if Version(image_framework_version) in SpecifierSet(">=2.12"):
-        pytest.skip("Support for Horovod is removed starting TF2.12")
     eks_cluster_size = "3"
     ec2_instance_type = "p3.16xlarge"
 

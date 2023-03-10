@@ -42,7 +42,6 @@ ARG PIP=pip3
 
 ARG OMPI_VERSION=4.1.5
 
-
 # To be passed to ec2 and sagemaker stages
 ENV PYTHON=${PYTHON}
 ENV PYTHON_VERSION=${PYTHON_VERSION}
@@ -195,6 +194,11 @@ RUN ${PIP} install --no-cache-dir -U \
     ${TF_URL} \
     tensorflow-io \
     tensorflow-datasets
+
+# Install Horovod with TensorFlow
+RUN HOROVOD_WITH_MPI=1 \
+   && HOROVOD_WITH_TENSORFLOW=1 HOROVOD_WITHOUT_MXNET=1 HOROVOD_WITHOUT_PYTORCH=1 \
+   && ${PIP} install --no-cache-dir horovod==0.27.0
 
 RUN HOME_DIR=/root \
    && curl -o ${HOME_DIR}/oss_compliance.zip https://aws-dlinfra-utilities.s3.amazonaws.com/oss_compliance.zip \
