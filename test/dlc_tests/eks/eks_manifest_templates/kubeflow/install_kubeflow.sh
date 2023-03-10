@@ -9,7 +9,7 @@ install_kustomize(){
     KUSTOMIZE_VERSION="v4.5.7"
     KUSTOMIZE_URL="https://github.com/kubernetes-sigs/kustomize/releases/download/kustomize%2F${KUSTOMIZE_VERSION}/kustomize_${KUSTOMIZE_VERSION}_linux_amd64.tar.gz"
 
-    if ~ command -v kustomize &> /dev/null
+    if ! command -v kustomize &> /dev/null
     then
         wget -O /tmp/kustomize_${KUSTOMIZE_VERSION}_linux.tar.gz ${KUSTOMIZE_URL}
         tar -xvf /tmp/kustomize_${KUSTOMIZE_VERSION}_linux.tar.gz -C /tmp/
