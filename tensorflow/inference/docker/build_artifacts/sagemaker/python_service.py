@@ -89,6 +89,8 @@ class PythonServiceResource:
         self._tfs_enable_batching = SAGEMAKER_BATCHING_ENABLED == "true"
         self._tfs_default_model_name = os.environ.get("TFS_DEFAULT_MODEL_NAME", "None")
         self._tfs_wait_time_seconds = int(os.environ.get("SAGEMAKER_TFS_WAIT_TIME_SECONDS", 300))
+        self._tfs_inter_op_parallelism = os.environ.get("SAGEMAKER_TFS_INTER_OP_PARALLELISM", 0)
+        self._tfs_intra_op_parallelism = os.environ.get("SAGEMAKER_TFS_INTRA_OP_PARALLELISM", 0)
 
     def on_post(self, req, res, model_name=None):
         if model_name or "invocations" in req.uri:
@@ -162,7 +164,10 @@ class PythonServiceResource:
                     tfs_config_file,
                     self._tfs_enable_batching,
                     batching_config_file,
+                    tfs_intra_op_parallelism=self._tfs_intra_op_parallelism,
+                    tfs_inter_op_parallelism=self._tfs_inter_op_parallelism,
                 )
+                log.info("MME starts tensorflow serving with command: {}".format(cmd))
                 p = subprocess.Popen(cmd.split())
 
                 tfs_utils.wait_for_model(
