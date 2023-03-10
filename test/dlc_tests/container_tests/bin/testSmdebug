@@ -35,10 +35,14 @@ LOG_DIR=${HOME_DIR}/logs
 
 echo "Simply verify if smdebug is installed correctly."
 echo "Cloning git repo for release tag $SMDEBUG_RELEASE_TAG"
-git clone -b ${SMDEBUG_RELEASE_TAG} https://github.com/awslabs/sagemaker-debugger.git sagemaker-debugger || exit 1
+
+#TODO: revert this after TF goes GA
+git clone https://github.com/yl-to/sagemaker-debugger.git || exit 1
+#git clone -b ${SMDEBUG_RELEASE_TAG} https://github.com/awslabs/sagemaker-debugger.git sagemaker-debugger || exit 1
 
 echo "Changing to sagemaker-debugger."
 cd sagemaker-debugger
+git checkout tf212
 
 git pull
 
@@ -57,7 +61,7 @@ echo "Running framework tests."
 if [[ $FRAMEWORK == "tensorflow" ]]; then
     # Later version of tensorflow-datasets
     # do not work with tensorflow 1.x
-    pip install tensorflow-datasets==3.2.1
+    pip install tensorflow-datasets
     pytest tests/${FRAMEWORK} \
                             -k "not test_keras and not test_mnist_s3 and not test_mnist_s3_multi_save_configs" \
                             --ignore=tests/mxnet/test_training_end.py
