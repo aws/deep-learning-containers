@@ -23,7 +23,7 @@ install_kustomize(){
 
 # Function to install kubeflow in EKS cluster using kustomize
 setup_kubeflow(){
-    TIMEOUT=600s
+    
     # clones manifests from kubeflow github into a folder named manifests
     git clone https://github.com/kubeflow/manifests.git
 
