@@ -223,6 +223,8 @@ class ServiceManager(object):
             "{}{} -e TFS_GRPC_PORTS={} -e TFS_REST_PORTS={} "
             "-e SAGEMAKER_MULTI_MODEL={} -e SAGEMAKER_SAFE_PORT_RANGE={} "
             "-e SAGEMAKER_TFS_WAIT_TIME_SECONDS={} "
+            "-e SAGEMAKER_TFS_INTER_OP_PARALLELISM={} "
+            "-e SAGEMAKER_TFS_INTRA_OP_PARALLELISM={} "
             "python_service:app"
         ).format(
             self._gunicorn_worker_class,
@@ -237,6 +239,8 @@ class ServiceManager(object):
             self._tfs_enable_multi_model_endpoint,
             self._sagemaker_port_range,
             self._tfs_wait_time_seconds,
+            self._tfs_inter_op_parallelism,
+            self._tfs_intra_op_parallelism,
         )
 
         log.info("gunicorn command: {}".format(gunicorn_command))
