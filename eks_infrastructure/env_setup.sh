@@ -18,10 +18,8 @@ function install_kubectl_client() {
 aws sts get-caller-identity
 
 # install aws-iam-authenticator
-if ! [ -x "$(command -v aws-iam-authenticator)" ]; then
-    curl --silent --location ${AWS_IAM_AUTHENTICATOR} -o /usr/local/bin/aws-iam-authenticator
-    chmod +x /usr/local/bin/aws-iam-authenticator
-fi
+curl --silent --location ${AWS_IAM_AUTHENTICATOR} -o /usr/local/bin/aws-iam-authenticator
+chmod +x /usr/local/bin/aws-iam-authenticator
 
 #aws-iam-authenticator version
 aws-iam-authenticator version
