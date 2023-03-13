@@ -1,10 +1,10 @@
 {
-    "operation": "upgrade_cluster",
-    "contexts":[
-        "PR"
+    "operation": "create",
+    "contexts": [
+        "MAINLINE"
     ],
-    "eks_clusters":[
-        "mxnet"
+    "eks_clusters": [
+        "dlc-tensorflow"
     ],
     "eks_version": "1.25",
     "cluster_autoscalar_image_version": "v1.25.0"
