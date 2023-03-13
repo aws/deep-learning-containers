@@ -1,8 +1,4 @@
-# https://github.com/aws/deep-learning-containers/blob/master/available_images.md
-# refer to the above page to pull latest Tensorflow image
-
-# docker image region us-west-2
-FROM 763104351884.dkr.ecr.us-west-2.amazonaws.com/tensorflow-inference:2.11.0-cpu-py39-ubuntu20.04-sagemaker
+FROM ubuntu:20.04
 
 LABEL maintainer="Amazon AI"
 LABEL dlc_major_version="1"
@@ -14,22 +10,67 @@ LABEL com.amazonaws.sagemaker.capabilities.accept-bind-to-port=true
 # https://docs.aws.amazon.com/sagemaker/latest/dg/build-multi-model-build-container.html
 LABEL com.amazonaws.sagemaker.capabilities.multi-models=true
 
-ARG PYTHON=python3.9
 ARG MMS_VERSION=1.1.8
+ARG PYTHON=python3
+ARG PYTHON_VERSION=3.9.10
 ARG OPEN_MPI_VERSION=4.1.4
+ARG MAMBA_VERSION=22.9.0-1
 # HF ARGS
 ARG TF_URL=https://framework-binaries.s3.us-west-2.amazonaws.com/tensorflow/r2.11_aws/cpu/2022-12-22-20-46/tensorflow_cpu-2.11.0-cp39-cp39-manylinux_2_17_x86_64.manylinux2014_x86_64.whl
 ARG TRANSFORMERS_VERSION
+
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1 \
+    LD_LIBRARY_PATH="/opt/conda/lib/:${LD_LIBRARY_PATH}:/usr/local/lib" \
+    PYTHONIOENCODING=UTF-8 \
+    LANG=C.UTF-8 \
+    LC_ALL=C.UTF-8 \
+    TEMP=/home/model-server/tmp \
+    DEBIAN_FRONTEND=noninteractive
+
+ENV PATH /opt/conda/bin:$PATH
 
 RUN apt-get update \
  # TODO: Remove upgrade statements once packages are updated in base image
  && apt-get -y upgrade --only-upgrade systemd openssl cryptsetup \
  && apt-get install -y --no-install-recommends \
+    ca-certificates \
+    build-essential \
+    openssl \
     openjdk-11-jdk-headless \
+    vim \
+    wget \
+    curl \
+    emacs \
+    unzip \
+    git \
     libsndfile1-dev \
     ffmpeg \
  && apt-get clean \
  && rm -rf /var/lib/apt/lists/*
+
+RUN curl -L -o ~/mambaforge.sh https://github.com/conda-forge/miniforge/releases/download/${MAMBA_VERSION}/Mambaforge-${MAMBA_VERSION}-Linux-x86_64.sh \
+ && chmod +x ~/mambaforge.sh \
+ && ~/mambaforge.sh -b -p /opt/conda \
+ && rm ~/mambaforge.sh \
+ && /opt/conda/bin/conda install -c conda-forge \
+    python=$PYTHON_VERSION \
+ && /opt/conda/bin/conda install -y \
+    cython==0.29.30 \
+    mkl-include \
+    mkl \
+    botocore \
+    # Below 2 are included in miniconda base, but not mamba so need to install
+    conda-content-trust \
+    charset-normalizer 
+RUN /opt/conda/bin/conda update -y conda \
+ && /opt/conda/bin/conda clean -ya
+
+RUN pip install --upgrade pip --trusted-host pypi.org --trusted-host files.pythonhosted.org \
+ && ln -s /opt/conda/bin/pip /usr/local/bin/pip3 \
+ && pip install packaging \
+    enum-compat==0.0.3 \
+    "cryptography>3.2"
 
 RUN wget https://download.open-mpi.org/release/open-mpi/v4.1/openmpi-${OPEN_MPI_VERSION}.tar.gz \
  && gunzip -c openmpi-$OPEN_MPI_VERSION.tar.gz | tar xf - \
@@ -62,9 +103,15 @@ COPY config.properties /etc/sagemaker-mms.properties
 
 RUN chmod +x /usr/local/bin/dockerd-entrypoint.py
 
+COPY deep_learning_container.py /usr/local/bin/deep_learning_container.py
+
+RUN chmod +x /usr/local/bin/deep_learning_container.py
+
 #################################
 # Hugging Face specific section #
 #################################
+
+RUN curl https://aws-dlc-licenses.s3.amazonaws.com/tensorflow-2.11/license.txt -o /license.txt
 
 # Install TF Binary
 RUN pip install --no-cache-dir -U ${TF_URL}
