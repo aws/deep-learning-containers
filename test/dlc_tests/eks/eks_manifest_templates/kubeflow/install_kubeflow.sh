@@ -13,7 +13,7 @@ install_kustomize(){
     then
         wget -O /tmp/kustomize_${KUSTOMIZE_VERSION}_linux.tar.gz ${KUSTOMIZE_URL}
         tar -xvf /tmp/kustomize_${KUSTOMIZE_VERSION}_linux.tar.gz -C /tmp/
-        if ~ [ -x "$command -v sudo" ]; then
+        if ! [ -x "$command -v sudo" ]; then
             mv /tmp/kustomize /usr/local/bin
         else
             sudo mv /tmp/kustomize /usr/local/bin
