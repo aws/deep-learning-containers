@@ -214,6 +214,9 @@ def test_mme1(boto_session, sagemaker_client,
     if "p3" in instance_type:
         pytest.skip("skip for p3 instance")
 
+    if "graviton" in image_uri:
+        pytest.skip("MME test not supported with Graviton test instance.")
+
     # the python service needs to transform this to get a valid prediction
     input_data =  {"instances": [1.0, 2.0, 5.0]}
     bucket = util._test_bucket(region, boto_session)
@@ -239,6 +242,9 @@ def test_mme2(boto_session, sagemaker_client,
     
     if "p3" in instance_type:
         pytest.skip("skip for p3 instance")
+
+    if "graviton" in image_uri:
+        pytest.skip("MME test not supported with Graviton test instance.")
 
     # the python service needs to transform this to get a valid prediction
     input_data =  "1.0,2.0,5.0"
@@ -266,6 +272,9 @@ def test_mme3(boto_session, sagemaker_client,
     if "p3" in instance_type:
         pytest.skip("skip for p3 instance")
 
+    if "graviton" in image_uri:
+        pytest.skip("MME test not supported with Graviton test instance.")
+
     # the python service needs to transform this to get a valid prediction
     input_data =  "1.0,2.0,5.0"
     bucket = util._test_bucket(region, boto_session)
@@ -291,6 +300,9 @@ def test_mme4(boto_session, sagemaker_client,
     
     if "p3" in instance_type:
         pytest.skip("skip for p3 instance")
+
+    if "graviton" in image_uri:
+        pytest.skip("MME test not supported with Graviton test instance.")
 
     # the python service needs to transform this to get a valid prediction
     input_data =  {"instances": [1.0, 2.0, 5.0]}
