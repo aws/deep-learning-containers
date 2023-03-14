@@ -267,7 +267,7 @@ RUN curl https://aws-dlc-licenses.s3.amazonaws.com/tensorflow-${TF_VERSION}/lice
 
 FROM common AS ec2
 
-ARG TF_URL=https://framework-binaries.s3.us-west-2.amazonaws.com/tensorflow/r2.12_aws/gpu/2023-03-08-04-29/tensorflow_gpu-2.12.0rc1-cp310-cp310-manylinux_2_17_x86_64.manylinux2014_x86_64.whl
+ARG TF_URL=https://framework-binaries.s3.us-west-2.amazonaws.com/tensorflow/r2.12_aws/gpu/2023-03-14-03-26/tensorflow_gpu-2.12.0rc1-cp310-cp310-manylinux_2_17_x86_64.manylinux2014_x86_64.whl
 
 RUN ${PIP} install --no-cache-dir -U \
    ${TF_URL} \
@@ -276,7 +276,7 @@ RUN ${PIP} install --no-cache-dir -U \
 
 # Install Horovod, temporarily using CUDA stubs
 RUN ldconfig /usr/local/cuda-11.8/targets/x86_64-linux/lib/stubs \
- && HOROVOD_GPU_ALLREDUCE=NCCL HOROVOD_WITH_TENSORFLOW=1 ${PIP} install --no-cache-dir horovod==0.27.0 \
+ && HOROVOD_GPU_ALLREDUCE=NCCL HOROVOD_WITH_TENSORFLOW=1 HOROVOD_GPU_OPERATIONS=NCCL ${PIP} install --no-cache-dir horovod==0.27.0 \
  && ldconfig
 
 RUN HOME_DIR=/root \
@@ -313,7 +313,7 @@ FROM common AS sagemaker
 LABEL maintainer="Amazon AI"
 LABEL dlc_major_version="1"
 
-ARG TF_URL=https://framework-binaries.s3.us-west-2.amazonaws.com/tensorflow/r2.12_aws/gpu/2023-03-08-04-29/tensorflow_gpu-2.12.0rc1-cp310-cp310-manylinux_2_17_x86_64.manylinux2014_x86_64.whl
+ARG TF_URL=https://framework-binaries.s3.us-west-2.amazonaws.com/tensorflow/r2.12_aws/gpu/2023-03-14-03-26/tensorflow_gpu-2.12.0rc1-cp310-cp310-manylinux_2_17_x86_64.manylinux2014_x86_64.whl
 
 # sagemaker-specific environment variable
 ENV SAGEMAKER_TRAINING_MODULE sagemaker_tensorflow_container.training:main
@@ -335,7 +335,7 @@ RUN ${PIP} uninstall -y tensorflow tensorflow-gpu \
 
 # Install Horovod, temporarily using CUDA stubs
 RUN ldconfig /usr/local/cuda-11.8/targets/x86_64-linux/lib/stubs \
- && HOROVOD_GPU_ALLREDUCE=NCCL HOROVOD_WITH_TENSORFLOW=1 ${PIP} install --no-cache-dir horovod==0.27.0 \
+ && HOROVOD_GPU_ALLREDUCE=NCCL HOROVOD_WITH_TENSORFLOW=1 HOROVOD_GPU_OPERATIONS=NCCL ${PIP} install --no-cache-dir horovod==0.27.0 \
  && ldconfig
 
 RUN $PYTHON -m pip install --no-cache-dir -U \
