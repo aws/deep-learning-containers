@@ -119,7 +119,9 @@ RUN curl -L -o ~/mambaforge.sh https://github.com/conda-forge/miniforge/releases
  && rm ~/mambaforge.sh 
 
 # Install AWS-PyTorch and other torch packages
-RUN /opt/conda/bin/mamba install -y pytorch==2.0.0 torchvision torchaudio cpuonly -c pytorch-test
+RUN /opt/conda/bin/mamba install pytorch=${PYTORCH_VERSION} cpuonly torchvision torchaudio torchdata \
+ -c https://aws-ml-conda-pre-prod-ec2.s3.us-west-2.amazonaws.com \
+ -c pytorch -c pytorch-test -c nvidia 
 
 # install common python packages
 RUN /opt/conda/bin/mamba update -y conda \
@@ -166,12 +168,6 @@ RUN /opt/conda/bin/mamba update -y conda \
  # pypi fastai's dependencies will oversize the image
  && pip uninstall -y dataclasses \
  && /opt/conda/bin/mamba clean -ya
-
-# Conda installs links for libtinfo.so.6 and libtinfo.so.6.2 both
-# Which causes "/opt/conda/lib/libtinfo.so.6: no version information available" warning
-# Removing link for libtinfo.so.6. This change is needed only for ubuntu 20.04-conda, and can be reverted
-# once conda fixes the issue
-RUN rm -rf /opt/conda/lib/libtinfo.so.6
 
 COPY deep_learning_container.py /usr/local/bin/deep_learning_container.py
 RUN chmod +x /usr/local/bin/deep_learning_container.py
@@ -259,9 +255,11 @@ ARG PT_TORCHVISION_URL
 ARG PT_TORCHAUDIO_URL
 ARG PT_TORCHDATA_URL
 
-# Install AWS-PyTorch and other torch packages
-RUN /opt/conda/bin/mamba install -y pytorch==2.0.0 torchvision torchaudio cpuonly -c pytorch-test
-
+# force remove to prevent removing all packages depending on pytorch
+RUN /opt/conda/bin/conda remove -y --force pytorch \
+ && /opt/conda/bin/mamba install -y pytorch=${PYTORCH_VERSION} cpuonly \
+ -c https://aws-ml-conda-pre-prod-sm.s3.us-west-2.amazonaws.com \
+ -c pytorch -c pytorch-test -c nvidia -c conda-forge -c pytorch-nightly
 
 WORKDIR /
 
