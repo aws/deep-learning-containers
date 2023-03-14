@@ -1,14 +1,11 @@
 {
-    "operation": "upgrade_nodegroup",
-    "contexts":[
-        "PR",
+    "operation": "create",
+    "contexts": [
         "MAINLINE"
     ],
-    "eks_clusters":[
-        "mxnet",
-        "pytorch",
-        "tensorflow"
+    "eks_clusters": [
+        "dlc-tensorflow"
     ],
-    "eks_version": "1.20",
-    "cluster_autoscalar_image_version": "v1.20.0"
+    "eks_version": "1.25",
+    "cluster_autoscalar_image_version": "v1.25.0"
 }
