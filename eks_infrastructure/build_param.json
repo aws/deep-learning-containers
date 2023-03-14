@@ -1,10 +1,13 @@
 {
     "operation": "create",
     "contexts": [
+        "PR",
         "MAINLINE"
     ],
     "eks_clusters": [
-        "dlc-tensorflow"
+        "dlc-tensorflow",
+        "dlc-pytorch",
+        "dlc-mxnet"
     ],
     "eks_version": "1.25",
     "cluster_autoscalar_image_version": "v1.25.0"
