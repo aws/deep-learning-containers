@@ -188,7 +188,7 @@ RUN curl https://aws-dlc-licenses.s3.amazonaws.com/tensorflow-${TF_VERSION}/lice
 ########################################################
 
 FROM common AS ec2
-ARG TF_URL=https://framework-binaries.s3.us-west-2.amazonaws.com/tensorflow/r2.12_aws/cpu/2023-03-08-04-26/tensorflow_cpu-2.12.0rc1-cp310-cp310-manylinux_2_17_x86_64.manylinux2014_x86_64.whl
+ARG TF_URL=https://framework-binaries.s3.us-west-2.amazonaws.com/tensorflow/r2.12_aws/cpu/2023-03-14-03-22/tensorflow_cpu-2.12.0rc1-cp310-cp310-manylinux_2_17_x86_64.manylinux2014_x86_64.whl
 
 RUN ${PIP} install --no-cache-dir -U \
     ${TF_URL} \
