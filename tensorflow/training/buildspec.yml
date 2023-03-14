@@ -21,13 +21,13 @@ context:
       source: ../../src/deep_learning_container.py
       target: deep_learning_container.py
 images:
-  BuildTensorflowEC2CpuPy39TrainingDockerImage:
+  BuildTensorflowEC2CpuPy310TrainingDockerImage:
     <<: *TRAINING_REPOSITORY
     build: &TENSORFLOW_CPU_TRAINING_PY3 false
     image_size_baseline: &IMAGE_SIZE_BASELINE 4489
     device_type: &DEVICE_TYPE cpu
     python_version: &DOCKER_PYTHON_VERSION py3
-    tag_python_version: &TAG_PYTHON_VERSION py39
+    tag_python_version: &TAG_PYTHON_VERSION py310
     os_version: &OS_VERSION ubuntu20.04
     tag: !join [ *VERSION, "-", *DEVICE_TYPE, "-", *TAG_PYTHON_VERSION, "-", *OS_VERSION, "-ec2"
       ]
@@ -88,13 +88,13 @@ images:
   #   enable_test_promotion: true
   #   context:
   #     <<: *TRAINING_CONTEXT
-  BuildTensorflowSageMakerCpuPy39TrainingDockerImage:
+  BuildTensorflowSageMakerCpuPy310TrainingDockerImage:
     <<: *TRAINING_REPOSITORY
     build: &TENSORFLOW_CPU_TRAINING_PY3 false
     image_size_baseline: &IMAGE_SIZE_BASELINE 7500
     device_type: &DEVICE_TYPE cpu
     python_version: &DOCKER_PYTHON_VERSION py3
-    tag_python_version: &TAG_PYTHON_VERSION py39
+    tag_python_version: &TAG_PYTHON_VERSION py310
     os_version: &OS_VERSION ubuntu20.04
     tag: !join [ *VERSION, "-", *DEVICE_TYPE, "-", *TAG_PYTHON_VERSION, "-", *OS_VERSION, "-sagemaker"
     ]
