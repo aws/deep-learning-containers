@@ -244,7 +244,7 @@ def eks_write_kubeconfig(eks_cluster_name, region="us-west-2"):
         eks_cluster_name, region: str
     """
     eks_role = get_eks_role()
-    eksctl_write_kubeconfig_command = f"eksctl utils write-kubeconfig --name {eks_cluster_name} --region {region}"
+    eksctl_write_kubeconfig_command = f"eksctl utils write-kubeconfig --cluster {eks_cluster_name} --region {region}"
 
     if eks_role:
         eksctl_write_kubeconfig_command += f" --authenticator-role-arn {eks_role} "
