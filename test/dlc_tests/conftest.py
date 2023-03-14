@@ -655,7 +655,7 @@ def outside_versions_skip():
         """
         _, image_framework_version = get_framework_and_version_from_tag(img_uri)
         if Version(start_ver) > Version(image_framework_version) or Version(end_ver) < Version(image_framework_version):
-            pytest.skip(f"S3 plugin is only supported in PyTorch versions >{start_ver},<{end_ver}")
+            pytest.skip(f"test has gone out of support, supported version range >{start_ver},<{end_ver}")
     return _outside_versions_skip
 
 def framework_version_within_limit(metafunc_obj, image):

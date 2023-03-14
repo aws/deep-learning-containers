@@ -191,18 +191,16 @@ def test_pytorch_nccl(pytorch_training, ec2_connection, gpu_only, py3_only, ec2_
 @pytest.mark.parametrize("ec2_instance_type", PT_EC2_GPU_INSTANCE_TYPE, indirect=True)
 @pytest.mark.skip_trcomp_containers
 def test_pytorch_nccl_version(
-    pytorch_training, ec2_connection, gpu_only, py3_only, ec2_instance_type, pt17_and_above_only,
+    pytorch_training, ec2_connection, gpu_only, py3_only, ec2_instance_type, pt17_and_above_only, outside_versions_skip
 ):
     """
     Tests nccl version
     """
+    outside_versions_skip(pytorch_training, "0.0.0", "2.0.0")
     if 'trcomp' in pytorch_training:
         pytest.skip(f"Image {pytorch_training} should use the system nccl through xla. Hence the test is skipped.")
     if test_utils.is_image_incompatible_with_instance_type(pytorch_training, ec2_instance_type):
         pytest.skip(f"Image {pytorch_training} is incompatible with instance type {ec2_instance_type}")
-    _, ver = get_framework_and_version_from_tag(pytorch_training)
-    if Version(ver) == Version("2.0.0"):
-        pytest.skip(f"PyTorch NCCL diverges from system NCCL in this version")
     test_cmd = os.path.join(CONTAINER_TESTS_PREFIX, "pytorch_tests", "testPyTorchNcclVersion")
     execute_ec2_training_test(ec2_connection, pytorch_training, test_cmd)
 
