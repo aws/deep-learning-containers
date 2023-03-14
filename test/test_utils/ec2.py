@@ -525,6 +525,7 @@ def enforce_IMDSv1(instance_id, region=DEFAULT_REGION, ec2_client=None):
     if not response:
         raise Exception("Unable to enforce IMDSv1. No response received.")
 
+    state = None
     if response["InstanceId"]:
         res = ec2_client.describe_instances(InstanceIds=[instance_id])
         if res:
