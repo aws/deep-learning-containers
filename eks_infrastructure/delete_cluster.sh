@@ -112,6 +112,6 @@ if [ -n "${EKS_CLUSTER_MANAGER_ROLE}" ]; then
 fi
 
 remove_iam_permissions_nodegroup ${CLUSTER} ${AWS_REGION}
-delete_oidc_provider ${CLUSTER}
-delete_oidc_iam_roles ${CLUSTER}
+# delete_oidc_provider ${CLUSTER}
+# delete_oidc_iam_roles ${CLUSTER}
 delete_cluster ${CLUSTER} ${AWS_REGION}
