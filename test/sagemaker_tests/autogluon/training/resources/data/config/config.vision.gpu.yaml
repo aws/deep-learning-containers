@@ -1,14 +1,16 @@
 # AutoGluon Predictor constructor arguments
 # - see https://github.com/awslabs/autogluon/blob/master/vision/src/autogluon/vision/predictor/predictor.py#L29-L48
-ag_predictor_args: {}
+ag_predictor_args: 
+  label: "label"
 
 # AutoGluon Predictor.fit arguments
 # - see https://github.com/awslabs/autogluon/blob/master/vision/src/autogluon/vision/predictor/predictor.py#L83-L230
 ag_fit_args:
+  time_limit: 30
   hyperparameters:
-    epochs: 2
-    batch_size: 1
-  nthreads_per_trial: 1
+    optimization.max_epochs: 2
+    model.timm_image.checkpoint_name: "mobilenetv3_large_100"
+    env.per_gpu_batch_size: 1
 
 output_prediction_format: csv  # predictions output format: csv or parquet
 
