@@ -37,13 +37,13 @@ images:
     enable_test_promotion: true
     context:
       <<: *TRAINING_CONTEXT
-  BuildTensorflowEC2GpuCu112Py39TrainingDockerImage:
+  BuildTensorflowEC2GpuCu112py310TrainingDockerImage:
     <<: *TRAINING_REPOSITORY
     build: &TENSORFLOW_GPU_TRAINING_PY3 false
     image_size_baseline: &IMAGE_SIZE_BASELINE 9307
     device_type: &DEVICE_TYPE gpu
     python_version: &DOCKER_PYTHON_VERSION py3
-    tag_python_version: &TAG_PYTHON_VERSION py39
+    tag_python_version: &TAG_PYTHON_VERSION py310
     cuda_version: &CUDA_VERSION cu112
     os_version: &OS_VERSION ubuntu20.04
     tag: !join [ *VERSION, "-", *DEVICE_TYPE, "-", *TAG_PYTHON_VERSION, "-", *CUDA_VERSION,
@@ -54,14 +54,14 @@ images:
     enable_test_promotion: true
     context:
       <<: *TRAINING_CONTEXT
-  BuildTensorflowExampleGpuCu112Py39TrainingDockerImage:
+  BuildTensorflowExampleGpuCu112py310TrainingDockerImage:
     <<: *TRAINING_REPOSITORY
     build: &TENSORFLOW_GPU_TRAINING_PY3 false
     image_size_baseline: &IMAGE_SIZE_BASELINE 9295
-    base_image_name: BuildTensorflowEC2GpuCu112Py39TrainingDockerImage
+    base_image_name: BuildTensorflowEC2GpuCu112py310TrainingDockerImage
     device_type: &DEVICE_TYPE gpu
     python_version: &DOCKER_PYTHON_VERSION py3
-    tag_python_version: &TAG_PYTHON_VERSION py39
+    tag_python_version: &TAG_PYTHON_VERSION py310
     cuda_version: &CUDA_VERSION cu112
     os_version: &OS_VERSION ubuntu20.04
     tag: !join [ *VERSION, "-", *DEVICE_TYPE, "-", *TAG_PYTHON_VERSION, "-", *CUDA_VERSION,
@@ -71,13 +71,13 @@ images:
     enable_test_promotion: true
     context:
       <<: *TRAINING_CONTEXT
-  BuildTensorflowSageMakerGpuPy39Cu112TrainingDockerImage:
+  BuildTensorflowSageMakerGpupy310Cu112TrainingDockerImage:
     <<: *TRAINING_REPOSITORY
     build: &TENSORFLOW_GPU_TRAINING_PY3 false
     image_size_baseline: &IMAGE_SIZE_BASELINE 11998
     device_type: &DEVICE_TYPE gpu
     python_version: &DOCKER_PYTHON_VERSION py3
-    tag_python_version: &TAG_PYTHON_VERSION py39
+    tag_python_version: &TAG_PYTHON_VERSION py310
     cuda_version: &CUDA_VERSION cu112
     os_version: &OS_VERSION ubuntu20.04
     tag: !join [ *VERSION, "-", *DEVICE_TYPE, "-", *TAG_PYTHON_VERSION, "-", *CUDA_VERSION,
