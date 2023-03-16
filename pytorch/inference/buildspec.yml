@@ -4,7 +4,7 @@ framework: &FRAMEWORK pytorch
 version: &VERSION 1.13.1
 short_version: &SHORT_VERSION "1.13"
 arch_type: x86
-jdk_version: &JDK_VERSION "jdk17"
+jdk_version: &JDK_VERSION "jdk11"
 
 repository_info:
   inference_repository: &INFERENCE_REPOSITORY
