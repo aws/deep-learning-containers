@@ -2,9 +2,9 @@ ARG PYTHON=python3
 ARG PYTHON_VERSION=3.8.13
 
 # PyTorch Binaries
-ARG PT_INFERENCE_URL=https://aws-pytorch-unified-cicd-binaries.s3.us-west-2.amazonaws.com/r1.12.1_ec2/20221208-234008/d3dae914337cde7e182d28544aed5efce29255c4/torch-1.12.1%2Bcu116-cp38-cp38-linux_x86_64.whl
-ARG PT_TORCHVISION_URL=https://download.pytorch.org/whl/cu116/torchvision-0.13.1%2Bcu116-cp38-cp38-linux_x86_64.whl
-ARG PT_TORCHAUDIO_URL=https://download.pytorch.org/whl/cu116/torchaudio-0.12.1%2Bcu116-cp38-cp38-linux_x86_64.whl
+ARG PT_INFERENCE_URL=https://aws-pytorch-unified-cicd-binaries.s3.us-west-2.amazonaws.com/r1.12.1_ec2/20221208-233710/d3dae914337cde7e182d28544aed5efce29255c4/torch-1.12.1%2Bcu113-cp38-cp38-linux_x86_64.whl
+ARG PT_TORCHVISION_URL=https://download.pytorch.org/whl/cu113/torchvision-0.13.1%2Bcu113-cp38-cp38-linux_x86_64.whl
+ARG PT_TORCHAUDIO_URL=https://download.pytorch.org/whl/cu113/torchaudio-0.12.1%2Bcu113-cp38-cp38-linux_x86_64.whl
 ARG PT_TORCHDATA_URL=https://download.pytorch.org/whl/test/torchdata-0.4.1-cp38-cp38-manylinux_2_17_x86_64.manylinux2014_x86_64.whl
 
 ########################################################
@@ -22,7 +22,7 @@ ARG PT_TORCHDATA_URL=https://download.pytorch.org/whl/test/torchdata-0.4.1-cp38-
 #                  |_|
 ########################################################
 
-FROM nvidia/cuda:11.6.2-base-ubuntu20.04 AS base_image
+FROM nvidia/cuda:11.3.1-base-ubuntu20.04 AS base_image
 
 ENV DEBIAN_FRONTEND=noninteractive \
     LD_LIBRARY_PATH="${LD_LIBRARY_PATH}:/usr/local/lib"
@@ -36,7 +36,7 @@ RUN apt-get update \
 FROM base_image AS ec2
 
 LABEL maintainer="Amazon AI"
-LABEL dlc_major_version="1"
+LABEL dlc_major_version="2"
 
 ARG PYTHON
 ARG PYTHON_VERSION
@@ -48,9 +48,9 @@ ARG PT_TORCHVISION_URL
 ARG PT_TORCHAUDIO_URL
 ARG PT_TORCHDATA_URL
 
-ARG CUBLAS_VERSION=11.9.2.110
+ARG CUBLAS_VERSION=11.5.1.109
 ARG OMPI_VERSION=4.1.1
-ARG TS_VERSION=0.6.1
+ARG TS_VERSION=0.6.0
 
 ARG DEBIAN_FRONTEND=noninteractive
 
@@ -62,7 +62,7 @@ ENV TEMP=/home/model-server/tmp
 ENV TORCH_CUDA_ARCH_LIST="3.7 5.0 7.0+PTX 8.0"
 
 ENV NCCL_VERSION=2.10.3
-ENV NVML_VERSION=11.6.55
+ENV NVML_VERSION=11.3.58
 
 # Set MKL_THREADING_LAYER=GNU to prevent issues between torch and numpy/mkl
 ENV MKL_THREADING_LAYER=GNU
@@ -78,23 +78,23 @@ RUN apt-get update \
     build-essential \
     ca-certificates \
     cmake \
-    cuda-command-line-tools-11-6 \
-    cuda-cudart-11-6 \
-    cuda-libraries-11-6 \
-    cuda-libraries-dev-11-6 \
+    cuda-command-line-tools-11-3 \
+    cuda-cudart-11-3 \
+    cuda-libraries-11-3 \
+    cuda-libraries-dev-11-3 \
     curl \
     emacs \
     git \
     jq \
-    libcublas-11-6=${CUBLAS_VERSION}-1 \
-    libcublas-dev-11-6=${CUBLAS_VERSION}-1 \
+    libcublas-11-3=${CUBLAS_VERSION}-1 \
+    libcublas-dev-11-3=${CUBLAS_VERSION}-1 \
     libcudnn8 \
-    libcufft-dev-11-6 \
-    libcurand-dev-11-6 \
+    libcufft-dev-11-3 \
+    libcurand-dev-11-3 \
     libcurl4-openssl-dev \
-    libcusolver-dev-11-6 \
-    libcusparse-dev-11-6 \
-    cuda-nvml-dev-11-6=${NVML_VERSION}-1 \
+    libcusolver-dev-11-3 \
+    libcusparse-dev-11-3 \
+    cuda-nvml-dev-11-3=${NVML_VERSION}-1 \
     libgl1-mesa-glx \
     libglib2.0-0 \
     libgomp1 \
@@ -106,7 +106,7 @@ RUN apt-get update \
     libssl-dev \
     libxext6 \
     libxrender-dev \
-    openjdk-17-jdk \
+    openjdk-11-jdk \
     openssl \
     vim \
     wget \
@@ -180,13 +180,13 @@ RUN curl -L -o ~/mambaforge.sh https://github.com/conda-forge/miniforge/releases
     # Below 2 are included in miniconda base, but not mamba so need to install
     conda-content-trust \
     charset-normalizer \
- && /opt/conda/bin/conda install -c pytorch magma-cuda116 \
+ && /opt/conda/bin/conda install -c pytorch magma-cuda113 \
 # Upstream conda looks to have moved to 4.13 which is incompatible with mamba 0.22.1 and will fail the conda-forge installs.
 # having "conda update conda" before the "conda -c conda-forge" commands will automatically update conda to 4.13.
 # Moving conda update conda" after the "conda -c conda-forge" commands keep conda at 4.12 but will update other packages using
 # the current conda 4.12
  && /opt/conda/bin/conda update -y conda \
-   && /opt/conda/bin/conda clean -ya
+ && /opt/conda/bin/conda clean -ya
 
 # Conda installs links for libtinfo.so.6 and libtinfo.so.6.2 both
 # Which causes "/opt/conda/lib/libtinfo.so.6: no version information available" warning
@@ -210,6 +210,7 @@ RUN pip install --no-cache-dir -U \
     numpy==1.22.2 \
     opencv-python \
     packaging \
+    "Pillow>=9.0.0" \
     "pyyaml>=5.4,<5.5" \
  && pip uninstall -y torch torchvision torchaudio torchdata \
  && pip install --no-cache-dir -U ${PT_INFERENCE_URL} ${PT_TORCHVISION_URL} ${PT_TORCHAUDIO_URL} ${PT_TORCHDATA_URL}
@@ -219,23 +220,9 @@ RUN mkdir -p /etc/pki/tls/certs && cp /etc/ssl/certs/ca-certificates.crt /etc/pk
 
 # TODO: revert torchserve-nightly back to torchserve once a compatible stable version is released
 RUN pip uninstall -y model-archiver multi-model-server \
+ && pip install captum \
  && pip install torchserve==${TS_VERSION} \
  && pip install torch-model-archiver==${TS_VERSION}
-
-# Install TorchServe pypi dependencies directly from their requirements file common.txt
-# RUN pip install --no-cache-dir -U -r https://raw.githubusercontent.com/pytorch/serve/v${TS_VERSION}/requirements/common.txt
-
-# Update Pillow version since the version that comes with TS requirements is obsolete
-RUN pip install --no-cache-dir -U "Pillow>=9.3.0,<10" \
-    future \
-    psutil \
-    cython \
-    wheel \
-    requests \
-    captum \
-    packaging \
-    numpy; sys_platform != 'win32' \
-    nvgpu; sys_platform != 'win32'
 
 WORKDIR /
 
@@ -300,7 +287,7 @@ RUN conda install -y -c conda-forge \
     scikit-learn \
     pandas
 
-RUN pip install --no-cache-dir "sagemaker-pytorch-inference==2.0.11"
+RUN pip install --no-cache-dir "sagemaker-pytorch-inference>=2"
 
 COPY torchserve-entrypoint.py /usr/local/bin/dockerd-entrypoint.py
 
