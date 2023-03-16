@@ -205,13 +205,20 @@ RUN pip install --no-cache-dir --extra-index-url https://download.pytorch.org/wh
     "cryptography>3.2" \
     enum-compat==0.0.3 \
     "ipython>=8.10.0,<9.0" \
-    numpy==1.22.2 \
-    nvgpu==0.8.0 \
     opencv-python \
-    packaging \
-    "Pillow>=9.0.0" \
-    "pyyaml>=5.4,<5.5" \
+    # TS tsquirements 
+    # -> Numpy is higer version as required by torch
+    # -> Pillow is not upper pinned for security
+    psutil \
+    cython \
+    nvgpu \
+    "Pillow>=9.3.0" \
+    pynvml==11.4.1 \
+    numpy==1.22.2 \
     captum \
+    packaging \
+    pyyaml \
+    # End of TS requirements
     ${TORCH_URL} \
     ${TORCHVISION_URL} \
     ${TORCHAUDIO_URL} \
