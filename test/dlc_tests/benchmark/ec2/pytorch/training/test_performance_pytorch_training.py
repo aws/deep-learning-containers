@@ -34,9 +34,13 @@ PT_PERFORMANCE_TRAINING_GPU_SYNTHETIC_CMD = os.path.join(
 PT_PERFORMANCE_TRAINING_GPU_IMAGENET_CMD = os.path.join(
     CONTAINER_TESTS_PREFIX, "benchmark", "run_pytorch_training_performance_gpu_imagenet"
 )
+PT_PERFORMANCE_TRAINING_GPU_INDUCTOR_CMD = os.path.join(
+    CONTAINER_TESTS_PREFIX, "benchmark", "run_pytorch_training_performance_gpu_inductor"
+)
 
 PT_EC2_GPU_SYNTHETIC_INSTANCE_TYPE = "p3.16xlarge"
 PT_EC2_GPU_IMAGENET_INSTANCE_TYPE = "p3.16xlarge"
+PT_EC2_GPU_INDUCTOR_INSTANCE_TYPES = ("p3.16xlarge", "p4d.24xlarge", "g5.48xlarge")
 PT_EC2_HPU_INSTANCE_TYPE = "dl1.24xlarge"
 
 @pytest.mark.model("resnet50")
@@ -53,7 +57,6 @@ def test_performance_pytorch_gpu_synthetic(pytorch_training, ec2_connection, gpu
         threshold={"Throughput": threshold},
     )
 
-
 @pytest.mark.skip(reason="Current infrastructure issues are causing this to timeout.")
 @pytest.mark.model("resnet50")
 @pytest.mark.parametrize("ec2_instance_ami", [PT_GPU_PY3_BENCHMARK_IMAGENET_AMI_US_WEST_2], indirect=True)
@@ -61,6 +64,14 @@ def test_performance_pytorch_gpu_synthetic(pytorch_training, ec2_connection, gpu
 def test_performance_pytorch_gpu_imagenet(pytorch_training, ec2_connection, gpu_only, py3_only):
     execute_pytorch_gpu_py3_imagenet_ec2_training_performance_test(
         ec2_connection, pytorch_training, PT_PERFORMANCE_TRAINING_GPU_IMAGENET_CMD
+    )
+
+@pytest.mark.integration("inductor")
+@pytest.mark.parametrize("ec2_instance_ami", [PT_GPU_PY3_BENCHMARK_IMAGENET_AMI_US_WEST_2], indirect=True)
+@pytest.mark.parametrize("ec2_instance_type", [PT_EC2_GPU_INDUCTOR_INSTANCE_TYPES], indirect=True)
+def test_performance_pytorch_gpu_imagenet(pytorch_training, ec2_connection, gpu_only, py3_only):
+    execute_pytorch_gpu_py3_imagenet_ec2_training_performance_test(
+        ec2_connection, pytorch_training, PT_PERFORMANCE_TRAINING_GPU_INDUCTOR_CMD
     )
 
 @pytest.mark.model("resnet50")
