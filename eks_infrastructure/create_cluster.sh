@@ -15,7 +15,7 @@ function create_ec2_key_pair() {
 }
 
 # Function to create EKS cluster using eksctl.
-# The cluster name follows the {framework}-{build_context} convention
+# The cluster name follows the dlc-{framework}-{build_context} convention
 function create_eks_cluster() {
 
   if [ "${3}" = "us-east-1" ]; then
