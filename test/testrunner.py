@@ -382,6 +382,9 @@ def main():
             pytest_cmds = [
                 ["-s", "-rA", f"--junitxml={report}", "-n=auto", f"--{specific_test_type}", "--ignore=container_tests/"]
             ]
+            if specific_test_type == "canary":
+                # Add rerun flag to canaries to avoid flakiness
+                pytest_cmds = [pytest_cmd + ["--reruns=1", "--reruns-delay=10"] for pytest_cmd in pytest_cmds]
 
         pytest_cmds = [pytest_cmd + ["--last-failed", "--last-failed-no-failures", "all"] for pytest_cmd in pytest_cmds]
         pytest_cache_util.download_pytest_cache_from_s3_to_local(os.getcwd(), **pytest_cache_params)
