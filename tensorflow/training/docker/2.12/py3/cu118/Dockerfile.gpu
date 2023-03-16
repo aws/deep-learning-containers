@@ -42,15 +42,15 @@ ARG PYTHON_VERSION=3.10.10
 ARG OPEN_MPI_PATH=/opt/amazon/openmpi
 ARG EFA_PATH=/opt/amazon/efa
 ARG EFA_VERSION=1.21.0
-ARG OMPI_VERSION=4.1.1
+ARG OMPI_VERSION=4.1.5
 ARG BRANCH_OFI=1.5.0-aws
 
 
 ARG CUDA=11.8
 ARG CUDA_DASH=11-8
-ARG CUDNN=8.7.0.84-1
+ARG CUDNN=8.8.0.121-1
 
-ARG NCCL_VERSION=2.16.2
+ARG NCCL_VERSION=2.16.5
 
 # To be passed to ec2 and sagemaker stages
 ENV PYTHON=${PYTHON}
@@ -96,14 +96,11 @@ RUN apt-get update && apt-get install -y --no-install-recommends --allow-unauthe
  && apt-get install -y --no-install-recommends --allow-unauthenticated --allow-change-held-packages \
    libcublas-dev-${CUDA_DASH} \
    libcublas-${CUDA_DASH} \
+   libnccl2=2.16.5-1+cuda11.8 \
+   libnccl-dev=2.16.5-1+cuda11.8 \
  && rm -rf /var/lib/apt/lists/* \
  && mkdir -p /var/run/sshd
 
-RUN cd /tmp \
-  && git clone https://github.com/NVIDIA/nccl.git -b v$NCCL_VERSION-1 \
-  && cd nccl \
-  && make -j64 src.build BUILDDIR=/usr/local \
-  && rm -rf /tmp/nccl
 
 # Install EFA without AWS OPEN_MPI
 RUN apt-get update \
