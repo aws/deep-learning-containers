@@ -28,7 +28,6 @@ context:
       target: deep_learning_container.py
 
 images:
-<<<<<<< HEAD
   BuildEC2CPUPTTrainPy3DockerImage:
     <<: *TRAINING_REPOSITORY
     build: &PYTORCH_CPU_TRAINING_PY3 false
@@ -42,21 +41,6 @@ images:
     target: ec2
     context:
       <<: *TRAINING_CONTEXT
-=======
-  # BuildEC2CPUPTTrainPy3DockerImage:
-  #   <<: *TRAINING_REPOSITORY
-  #   build: &PYTORCH_CPU_TRAINING_PY3 false
-  #   image_size_baseline: 5000
-  #   device_type: &DEVICE_TYPE cpu
-  #   python_version: &DOCKER_PYTHON_VERSION py3
-  #   tag_python_version: &TAG_PYTHON_VERSION py310
-  #   os_version: &OS_VERSION ubuntu20.04
-  #   tag: !join [ *VERSION, "-", *DEVICE_TYPE, "-", *TAG_PYTHON_VERSION, "-", *OS_VERSION, "-ec2" ]
-  #   docker_file: !join [ docker/, *SHORT_VERSION, /, *DOCKER_PYTHON_VERSION, /Dockerfile., *DEVICE_TYPE ]
-  #   target: ec2
-  #   context:
-  #     <<: *TRAINING_CONTEXT
->>>>>>> PT-2.0-Inductor
   BuildEC2GPUPTTrainPy3DockerImage:
     <<: *TRAINING_REPOSITORY
     build: &PYTORCH_GPU_TRAINING_PY3 false
@@ -72,7 +56,6 @@ images:
     target: ec2
     context:
       <<: *TRAINING_CONTEXT
-<<<<<<< HEAD
   BuildSageMakerCPUPTTrainPy3DockerImage:
     <<: *TRAINING_REPOSITORY
     build: &PYTORCH_CPU_TRAINING_PY3 false
@@ -86,21 +69,6 @@ images:
     target: sagemaker
     context:
       <<: *TRAINING_CONTEXT
-=======
-  # BuildSageMakerCPUPTTrainPy3DockerImage:
-  #   <<: *TRAINING_REPOSITORY
-  #   build: &PYTORCH_CPU_TRAINING_PY3 false
-  #   image_size_baseline: 6200
-  #   device_type: &DEVICE_TYPE cpu
-  #   python_version: &DOCKER_PYTHON_VERSION py3
-  #   tag_python_version: &TAG_PYTHON_VERSION py310
-  #   os_version: &OS_VERSION ubuntu20.04
-  #   tag: !join [ *VERSION, "-", *DEVICE_TYPE, "-", *TAG_PYTHON_VERSION, "-", *OS_VERSION, "-sagemaker" ]
-  #   docker_file: !join [ docker/, *SHORT_VERSION, /, *DOCKER_PYTHON_VERSION, /Dockerfile., *DEVICE_TYPE ]
-  #   target: sagemaker
-  #   context:
-  #     <<: *TRAINING_CONTEXT
->>>>>>> PT-2.0-Inductor
   BuildSageMakerGPUPTTrainPy3DockerImage:
     <<: *TRAINING_REPOSITORY
     build: &PYTORCH_GPU_TRAINING_PY3 false

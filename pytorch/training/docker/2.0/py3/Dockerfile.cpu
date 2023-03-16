@@ -119,13 +119,9 @@ RUN curl -L -o ~/mambaforge.sh https://github.com/conda-forge/miniforge/releases
  && rm ~/mambaforge.sh 
 
 # Install AWS-PyTorch and other torch packages
-<<<<<<< HEAD:pytorch/training/docker/2.0/py3/Dockerfile.cpu
 RUN /opt/conda/bin/mamba install pytorch=${PYTORCH_VERSION} cpuonly torchvision torchaudio torchdata \
  -c https://aws-ml-conda-pre-prod-ec2.s3.us-west-2.amazonaws.com \
  -c pytorch -c pytorch-test -c nvidia 
-=======
-RUN /opt/conda/bin/mamba install -y pytorch==2.0.0 torchvision torchaudio cpuonly -c pytorch-test
->>>>>>> PT-2.0-Inductor:pytorch/training/docker/1.13_revamp/py3/Dockerfile.cpu
 
 # install common python packages
 RUN /opt/conda/bin/mamba update -y conda \
@@ -259,17 +255,11 @@ ARG PT_TORCHVISION_URL
 ARG PT_TORCHAUDIO_URL
 ARG PT_TORCHDATA_URL
 
-<<<<<<< HEAD:pytorch/training/docker/2.0/py3/Dockerfile.cpu
 # force remove to prevent removing all packages depending on pytorch
 RUN /opt/conda/bin/conda remove -y --force pytorch \
  && /opt/conda/bin/mamba install -y pytorch=${PYTORCH_VERSION} cpuonly \
  -c https://aws-ml-conda-pre-prod-sm.s3.us-west-2.amazonaws.com \
  -c pytorch -c pytorch-test -c nvidia -c conda-forge -c pytorch-nightly
-=======
-# Install AWS-PyTorch and other torch packages
-RUN /opt/conda/bin/mamba install -y pytorch==2.0.0 torchvision torchaudio cpuonly -c pytorch-test
-
->>>>>>> PT-2.0-Inductor:pytorch/training/docker/1.13_revamp/py3/Dockerfile.cpu
 
 WORKDIR /
 

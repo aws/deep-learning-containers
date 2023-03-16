@@ -39,10 +39,7 @@ ARG PYTHON_SHORT_VERSION
 ARG MAMBA_VERSION
 
 ARG CUBLAS_VERSION=11.11.3.6
-<<<<<<< HEAD:pytorch/training/docker/2.0/py3/cu118/Dockerfile.gpu
 ARG PYTORCH_VERSION=2.0.0
-=======
->>>>>>> PT-2.0-Inductor:pytorch/training/docker/1.13_revamp/py3/cu117/Dockerfile.gpu
 ARG EFA_PATH=/opt/amazon/efa
 ARG CUDA_HOME=/usr/local/cuda
 
@@ -161,7 +158,6 @@ RUN ompi_info --parsable --all | grep mpi_built_with_cuda_support:value \
  && ~/mambaforge.sh -b -p /opt/conda \
  && rm ~/mambaforge.sh 
 
-<<<<<<< HEAD:pytorch/training/docker/2.0/py3/cu118/Dockerfile.gpu
 # Install common mamba packages
 RUN /opt/conda/bin/mamba update conda \
  && /opt/conda/bin/mamba install -y pytorch=${PYTORCH_VERSION} pytorch-cuda=11.8 torchvision torchaudio torchdata \
@@ -169,18 +165,6 @@ RUN /opt/conda/bin/mamba update conda \
     -c pytorch -c pytorch-test -c pytorch-nightly -c nvidia \
  && pip install torchtnt \
  && /opt/conda/bin/mamba install -y -c conda-forge \
-=======
-# Install AWS-PyTorch and other torch packages (EC2)
-# correct PyTorch has to be installed first due since multiple DS packages require pytorch
-# might encounter `nothing provides __cuda needed by pytorch-1.11.0-cuda102py310hdf4a2db_20` error
-# if wrong version of PyTorch was installed 
-RUN /opt/conda/bin/mamba install -y pytorch=2.0.0 pytorch-cuda=11.8 torchvision torchaudio \
-    -c pytorch-test -c pytorch -c nvidia -c conda-forge \
-    && pip install torchtnt
-
-# Install common mamba packages
-RUN /opt/conda/bin/mamba install -y -c conda-forge \
->>>>>>> PT-2.0-Inductor:pytorch/training/docker/1.13_revamp/py3/cu117/Dockerfile.gpu
     python=$PYTHON_VERSION \
     cython \
     mkl \
@@ -227,15 +211,6 @@ RUN /opt/conda/bin/mamba install -y -c conda-forge \
  && /opt/conda/bin/mamba clean -ya \
  && rm -rf /etc/apt/sources.list.d/*
 
-<<<<<<< HEAD:pytorch/training/docker/2.0/py3/cu118/Dockerfile.gpu
-=======
-# Conda installs links for libtinfo.so.6 and libtinfo.so.6.2 both
-# Which causes "/opt/conda/lib/libtinfo.so.6: no version information available" warning
-# Removing link for libtinfo.so.6. This change is needed only for ubuntu 20.04-conda, and can be reverted
-# once conda fixes the issue
-RUN rm -rf /opt/conda/lib/libtinfo.so.6
-
->>>>>>> PT-2.0-Inductor:pytorch/training/docker/1.13_revamp/py3/cu117/Dockerfile.gpu
 RUN pip install --no-cache-dir --upgrade pip --no-cache-dir --trusted-host pypi.org --trusted-host files.pythonhosted.org \
  && ln -s /opt/conda/bin/pip /usr/local/bin/pip3 
 
@@ -342,23 +317,6 @@ ARG PT_TORCHVISION_URL
 ARG PT_TORCHAUDIO_URL
 ARG PT_TORCHDATA_URL
 
-<<<<<<< HEAD:pytorch/training/docker/2.0/py3/cu118/Dockerfile.gpu
-=======
-
-# Install Nvidia Apex (needs pytorch)
-## Pin apex commit requested by sm-model-parallel team
-RUN git clone https://github.com/NVIDIA/apex && \
-    cd apex && \
-    git checkout aa756ce && \
-    pip install -v --no-cache-dir --global-option="--cpp_ext" --global-option="--cuda_ext" ./
-
-# Install Horovod (needs pytorch)
-RUN pip uninstall -y horovod \
- && ldconfig /usr/local/cuda-11.8/targets/x86_64-linux/lib/stubs \
- && HOROVOD_GPU_ALLREDUCE=NCCL HOROVOD_CUDA_HOME=/usr/local/cuda-11.8 HOROVOD_WITH_PYTORCH=1 pip install --no-cache-dir horovod==${HOROVOD_VERSION} \
- && ldconfig
-
->>>>>>> PT-2.0-Inductor:pytorch/training/docker/1.13_revamp/py3/cu117/Dockerfile.gpu
 WORKDIR /
 
 RUN HOME_DIR=/root \
@@ -422,32 +380,12 @@ ARG PT_TORCHVISION_URL
 ARG PT_TORCHAUDIO_URL
 ARG PT_TORCHDATA_URL
 
-<<<<<<< HEAD:pytorch/training/docker/2.0/py3/cu118/Dockerfile.gpu
 # force remove to prevent removing all packages depending on pytorch
 RUN /opt/conda/bin/conda remove --force pytorch \
  && /opt/conda/bin/mamba install -y pytorch=${PYTORCH_VERSION} pytorch-cuda=11.8 \
    -c https://aws-ml-conda-pre-prod-sm.s3.us-west-2.amazonaws.com \
    -c pytorch -c pytorch-test -c pytorch-nightly -c nvidia \
  && pip install torchtnt
-=======
-# Install AWS-PyTorch and other torch packages
-RUN /opt/conda/bin/mamba install -y pytorch=2.0.0 pytorch-cuda=11.8 torchvision torchaudio \
-    -c pytorch-test -c pytorch -c nvidia -c conda-forge \
-    && pip install torchtnt
-
-# Install Nvidia Apex (needs pytorch)
-## Pin apex commit requested by sm-model-parallel team
-RUN git clone https://github.com/NVIDIA/apex && \
-    cd apex && \
-    git checkout aa756ce && \
-    pip install -v --no-cache-dir --global-option="--cpp_ext" --global-option="--cuda_ext" ./
-
-# Install Horovod (needs pytorch)
-RUN pip uninstall -y horovod \
- && ldconfig /usr/local/cuda-11.8/targets/x86_64-linux/lib/stubs \
- && HOROVOD_GPU_ALLREDUCE=NCCL HOROVOD_CUDA_HOME=/usr/local/cuda-11.8 HOROVOD_WITH_PYTORCH=1 pip install --no-cache-dir horovod==${HOROVOD_VERSION} \
- && ldconfig
->>>>>>> PT-2.0-Inductor:pytorch/training/docker/1.13_revamp/py3/cu117/Dockerfile.gpu
 
 WORKDIR /
 
