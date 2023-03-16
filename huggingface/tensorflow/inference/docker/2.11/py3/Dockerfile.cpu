@@ -52,17 +52,21 @@ RUN curl -L -o ~/mambaforge.sh https://github.com/conda-forge/miniforge/releases
  && chmod +x ~/mambaforge.sh \
  && ~/mambaforge.sh -b -p /opt/conda \
  && rm ~/mambaforge.sh \
+ && /opt/conda/bin/conda config --set ssl_verify False \
+ && /opt/conda/bin/conda update -y conda \
  && /opt/conda/bin/conda install -c conda-forge \
-    python=$PYTHON_VERSION \
- && /opt/conda/bin/conda install -y \
-    cython==0.29.30 \
-    mkl-include \
+    python=${PYTHON_VERSION} \
+    cython \
     mkl \
+    mkl-include \
     botocore \
+    parso \
+    typing \
+    h5py \
+    requests \
     # Below 2 are included in miniconda base, but not mamba so need to install
     conda-content-trust \
-    charset-normalizer 
-RUN /opt/conda/bin/conda update -y conda \
+    charset-normalizer \
  && /opt/conda/bin/conda clean -ya
 
 RUN pip install --upgrade pip --trusted-host pypi.org --trusted-host files.pythonhosted.org \
