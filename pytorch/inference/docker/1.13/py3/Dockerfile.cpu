@@ -81,7 +81,7 @@ RUN apt-get update \
     libssl-dev \
     libxext6 \
     libxrender-dev \
-    openjdk-17-jdk \
+    openjdk-11-jdk \
     openssl \
     unzip \
     vim \
