@@ -323,7 +323,7 @@ def is_mpijob_launcher_pod_ready(namespace, job_name):
     """
 
     pod_name = run(
-        f"kubectl get pods -n {namespace} -l mpi_job_name={job_name},mpi_role_type=launcher -o name"
+        f"kubectl get pods -n {namespace} -l training.kubeflow.org/job-name={job_name},training.kubeflow.org/replica-type=launcher -o name"
     ).stdout.strip("\n")
     if pod_name:
         return pod_name
