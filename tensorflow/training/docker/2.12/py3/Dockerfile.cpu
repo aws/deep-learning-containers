@@ -168,8 +168,6 @@ ADD https://raw.githubusercontent.com/aws/deep-learning-containers/master/src/de
 
 RUN chmod +x /usr/local/bin/deep_learning_container.py
 
-# TODO: Create license file
-
 RUN curl https://aws-dlc-licenses.s3.amazonaws.com/tensorflow-${TF_VERSION}/license.txt -o /license.txt
 
 ########################################################
