@@ -84,5 +84,3 @@ if [ "$has_anomaly" -eq 1 ]; then
     echo "encountered runtime error or performance anomaly"
     exit 1
 fi
-
-exit 0  

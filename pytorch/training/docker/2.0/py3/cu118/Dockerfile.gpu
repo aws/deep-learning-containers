@@ -159,12 +159,10 @@ RUN ompi_info --parsable --all | grep mpi_built_with_cuda_support:value \
  && rm ~/mambaforge.sh 
 
 # Install common mamba packages
-RUN /opt/conda/bin/mamba update conda \
- && /opt/conda/bin/mamba install -y pytorch=${PYTORCH_VERSION} pytorch-cuda=11.8 torchvision torchaudio torchdata \
+RUN /opt/conda/bin/mamba install -y pytorch=${PYTORCH_VERSION} pytorch-cuda=11.8 torchvision torchaudio torchdata \
     -c https://aws-ml-conda-pre-prod-ec2.s3.us-west-2.amazonaws.com \
-    -c pytorch -c pytorch-test -c pytorch-nightly -c nvidia \
- && pip install torchtnt \
- && /opt/conda/bin/mamba install -y -c conda-forge \
+    -c pytorch -c nvidia -c conda-forge \
+  && /opt/conda/bin/mamba install -y -c conda-forge \
     python=$PYTHON_VERSION \
     cython \
     mkl \
@@ -208,6 +206,8 @@ RUN /opt/conda/bin/mamba update conda \
  # dataclasses package, which contains CVE, is not needed for py>=37
  # pypi fastai's dependencies will oversize the image
  && pip uninstall -y dataclasses \
+ && pip install torchtnt \
+ && pip install dgl -f https://data.dgl.ai/wheels/cu118/repo.html \
  && /opt/conda/bin/mamba clean -ya \
  && rm -rf /etc/apt/sources.list.d/*
 
@@ -384,8 +384,7 @@ ARG PT_TORCHDATA_URL
 RUN /opt/conda/bin/conda remove --force pytorch \
  && /opt/conda/bin/mamba install -y pytorch=${PYTORCH_VERSION} pytorch-cuda=11.8 \
    -c https://aws-ml-conda-pre-prod-sm.s3.us-west-2.amazonaws.com \
-   -c pytorch -c pytorch-test -c pytorch-nightly -c nvidia \
- && pip install torchtnt
+   -c pytorch -c nvidia -c conda-forge 
 
 WORKDIR /
 
