@@ -7,10 +7,10 @@ LABEL dlc_major_version="1"
 # https://docs.aws.amazon.com/sagemaker/latest/dg/inference-pipeline-real-time.html
 LABEL com.amazonaws.sagemaker.capabilities.accept-bind-to-port=true
 
-ARG PYTHON=python3.9
+ARG PYTHON=python3.8
 ARG PYTHON_PIP=python3-pip
 ARG PIP=pip3
-ARG PYTHON_VERSION=3.9.16
+ARG PYTHON_VERSION=3.8.16
 ARG TFS_SHORT_VERSION=2.10
 
 # See http://bugs.python.org/issue19846
@@ -103,7 +103,7 @@ RUN ${PIP} install --no-cache-dir \
 
 # pip install statements have been separated out into multiple sequentially executed statements to
 # resolve package dependencies during installation.
-RUN ${PIP} install "tensorflow-neuron[cc]==2.10.1.1.0.0" --extra-index-url https://pip.repos.neuron.amazonaws.com \
+RUN ${PIP} install "tensorflow-neuron[cc]==2.10.1.2.6.5.0" --extra-index-url https://pip.repos.neuron.amazonaws.com \
  && ${PIP} install tensorboard-plugin-neuron --extra-index-url https://pip.repos.neuron.amazonaws.com
 
 COPY ./sagemaker /sagemaker
