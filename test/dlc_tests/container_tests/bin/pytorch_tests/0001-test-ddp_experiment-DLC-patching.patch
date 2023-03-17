@@ -1,0 +1,58 @@
+From a21b632b22ffce8047ff2258906be3d0cf9c3526 Mon Sep 17 00:00:00 2001
+From: Shibo Xing <shibox@amazon.com>
+Date: Thu, 16 Mar 2023 02:31:59 +0000
+Subject: [PATCH] test: ddp_experiment DLC patching
+
+---
+ userbenchmark/ddp_experiments/__init__.py | 9 +++++++--
+ 1 file changed, 7 insertions(+), 2 deletions(-)
+
+diff --git a/userbenchmark/ddp_experiments/__init__.py b/userbenchmark/ddp_experiments/__init__.py
+index 80dbdc25..af27a856 100644
+--- a/userbenchmark/ddp_experiments/__init__.py
++++ b/userbenchmark/ddp_experiments/__init__.py
+@@ -217,7 +217,7 @@ class TrainerWrapper(object):
+     def __init__(self, job_config: JobConfig, per_experiment_args: List[ExperimentParams]):
+         self.job_config = job_config
+         self.per_experiment_args = per_experiment_args
+-        self.timeout = timedelta(45)
++        self.timeout = timedelta(minutes=6)
+ 
+     # this is called within a multiprocessing.Process.
+     def run_once(self, args, model_args, q):
+@@ -364,6 +364,8 @@ class TrainerWrapper(object):
+         args.world_size = args.ngpus * args.nodes
+         print(f"Process group: {args.world_size} tasks, rank: {args.rank}")
+ 
++        # os.environ['MASTER_ADDR'] = '127.0.0.1'
++        # os.environ['MASTER_PORT'] = '12345'
+         os.environ["LOCAL_RANK"] = str(job_env.local_rank)
+         os.environ["RANK"] = str(job_env.global_rank)
+         os.environ["WORLD_SIZE"] = str(args.world_size)
+@@ -371,7 +373,7 @@ class TrainerWrapper(object):
+         # os.environ["NCCL_IB_DISABLE"] = str(1)
+         os.environ["NCCL_DEBUG"] = 'INFO'
+         os.environ["NCCL_DEBUG_SUBSYS"] = 'INIT,ENV,NET'
+-        os.environ['NCCL_SOCKET_IFNAME'] = 'ens'
++        os.environ['NCCL_SOCKET_IFNAME'] = 'eth0'
+         # os.environ["NCCL_ALGO"] = 'ring'
+         os.environ["FI_PROVIDER"] = 'efa'
+         os.environ["FI_EFA_USE_DEVICE_RDMA"]= str(1)
+@@ -688,10 +690,13 @@ def main():
+ 
+ 
+ if __name__=="__main__":
++    import time
+     import torch
+     if torch.version.debug:
+         raise RuntimeError("torch.version.debug == True, which is disallowed because " \
+             "NCCL performance is drastically worse when debug is on. Build with " \
+             "DEBUG=0 python setup.py [develop|install|bdist_wheel] instead."
+         )
++    start = time.time()
+     main()
++    print("time elapse: ", time.time() - start)
+\ No newline at end of file
+-- 
+2.25.1
+
