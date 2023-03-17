@@ -391,7 +391,7 @@ def invoke_telemetry_call(image_uri, container_name, docker_cmd, framework, job_
                 f"{docker_cmd} exec -i {container_name} python -c 'import {framework_to_import}; import time; time.sleep(5)'"
             )
             assert output.ok, f"'import {framework_to_import}' fails when credentials not configured"
-
+        time.sleep(1)
     return output
 
 
