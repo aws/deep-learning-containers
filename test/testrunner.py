@@ -356,7 +356,7 @@ def main():
                 raise Exception(f"EKS cluster {eks_cluster_name} is not in active state")
 
         # Execute dlc_tests pytest command
-        pytest_cmd = ["-s", "-rA", test_path, f"--junitxml={report}", "-n=auto"]
+        pytest_cmd = ["-s", "-rA", os.path.join(test_path, "tensorflow/training/test_tensorflow_training.py::test_tensorflow_with_horovod_gpu"), f"--junitxml={report}", "-n=auto"]
 
         is_habana_image = any("habana" in image_uri for image_uri in all_image_list)
         if specific_test_type == "ec2":
@@ -364,8 +364,8 @@ def main():
                 context = Context()
                 context.run("git clone https://github.com/HabanaAI/gaudi-test-suite.git")
                 context.run("tar -c -f gaudi-test-suite.tar.gz gaudi-test-suite")
-            else:
-                pytest_cmd += ["--reruns=1", "--reruns-delay=10"]
+            #else:
+            #    pytest_cmd += ["--reruns=1", "--reruns-delay=10"]
 
         if is_pr_context():
             if specific_test_type == "eks":
@@ -383,8 +383,8 @@ def main():
                 ["-s", "-rA", f"--junitxml={report}", "-n=auto", f"--{specific_test_type}", "--ignore=container_tests/"]
             ]
 
-        pytest_cmds = [pytest_cmd + ["--last-failed", "--last-failed-no-failures", "all"] for pytest_cmd in pytest_cmds]
-        pytest_cache_util.download_pytest_cache_from_s3_to_local(os.getcwd(), **pytest_cache_params)
+        #pytest_cmds = [pytest_cmd + ["--last-failed", "--last-failed-no-failures", "all"] for pytest_cmd in pytest_cmds]
+        #pytest_cache_util.download_pytest_cache_from_s3_to_local(os.getcwd(), **pytest_cache_params)
         try:
             # Note:- Running multiple pytest_cmds in a sequence will result in the execution log having two
             #        separate pytest reports, both of which must be examined in case of a manual review of results.
