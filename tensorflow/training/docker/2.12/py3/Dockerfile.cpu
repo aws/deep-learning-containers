@@ -168,8 +168,6 @@ ADD https://raw.githubusercontent.com/aws/deep-learning-containers/master/src/de
 
 RUN chmod +x /usr/local/bin/deep_learning_container.py
 
-# TODO: Create license file
-
 RUN curl https://aws-dlc-licenses.s3.amazonaws.com/tensorflow-${TF_VERSION}/license.txt -o /license.txt
 
 ########################################################
@@ -264,7 +262,6 @@ RUN ${PIP} uninstall -y tensorflow tensorflow-gpu \
     tensorflow-io \
     tensorflow-datasets
 
-
 # Install Horovod with TensorFlow
 RUN HOROVOD_WITH_MPI=1 \
    && HOROVOD_WITH_TENSORFLOW=1 HOROVOD_WITHOUT_MXNET=1 HOROVOD_WITHOUT_PYTORCH=1 \
@@ -290,19 +287,11 @@ RUN $PYTHON -m pip install --no-cache-dir -U \
     smclarify
 
 # install smdebug directly the specific branch
-
-#TODO: Switch to official installation once TF is GA
-
-RUN git clone https://github.com/yl-to/sagemaker-debugger.git \
+ARG SMDEBUG_TAG=1.0.31
+RUN git clone https://github.com/awslabs/sagemaker-debugger.git \
     && cd sagemaker-debugger \
-    && git checkout tf212 \
+    && git checkout tags/$SMDEBUG_TAG -b $SMDEBUG_TAG \
     && $PYTHON setup.py install && cd .. && rm -rf sagemaker-debugger
-
-# ARG SMDEBUG_TAG=1.0.25
-# RUN git clone https://github.com/awslabs/sagemaker-debugger.git \
-#     && cd sagemaker-debugger \
-#     && git checkout tags/$SMDEBUG_TAG -b $SMDEBUG_TAG \
-#     && $PYTHON setup.py install && cd .. && rm -rf sagemaker-debugger
 
 # install sagemaker-tensorflow from source
 

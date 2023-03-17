@@ -7,8 +7,6 @@
 
 set -ex
 
-nvidia-smi
-
 # p3 instances have larger GPU memory, so a higher batch size can be used
 GPU_MEM=`nvidia-smi --query-gpu=memory.total --format=csv,noheader -i 0 | awk '{print $1}'`
 if [ $GPU_MEM -gt 15000 ] ; then BATCH_SIZE=256; else BATCH_SIZE=128; fi
