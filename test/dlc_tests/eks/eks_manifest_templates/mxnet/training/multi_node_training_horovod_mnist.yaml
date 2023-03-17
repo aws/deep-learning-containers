@@ -1,4 +1,4 @@
-apiVersion: kubeflow.org/v1alpha2
+apiVersion: kubeflow.org/v1
 kind: MPIJob
 metadata:
   name: <JOB_NAME>
@@ -44,7 +44,7 @@ spec:
             - -x
             - MXNET_CUDNN_AUTOTUNE_DEFAULT=0
             - python
-            - /horovod/examples/mxnet_mnist.py
+            - /horovod/examples/mxnet/mxnet_mnist.py
           nodeSelector:
             test_type: gpu
     Worker:

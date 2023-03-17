@@ -1,0 +1,33 @@
+{
+  "libzmq5": [
+    {
+      "reason_to_ignore": "The current version is marked as a fix version in the CVE notes, and this is the latest version.",
+      "description": "\n It was discovered that ZeroMQ incorrectly handled certain application metadata.\n A remote attacker could use this issue to cause ZeroMQ to crash, or possibly\n execute arbitrary code.",
+      "vulnerability_id": "CVE-2019-13132",
+      "name": "CVE-2019-13132",
+      "package_name": "libzmq5",
+      "package_details": {
+        "file_path": null,
+        "name": "libzmq5",
+        "package_manager": "OS",
+        "version": "4.3.2",
+        "release": "2ubuntu1"
+      },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
+      "cvss_v3_score": 9.8,
+      "cvss_v30_score": 0,
+      "cvss_v31_score": 9.8,
+      "cvss_v2_score": 7.5,
+      "cvss_v3_severity": "CRITICAL",
+      "source_url": "https://people.canonical.com/~ubuntu-security/cve/2019/CVE-2019-13132.html",
+      "source": "UBUNTU_CVE",
+      "severity": "HIGH",
+      "status": "ACTIVE",
+      "title": "CVE-2019-13132 - libzmq5"
+    }
+  ]
+}
