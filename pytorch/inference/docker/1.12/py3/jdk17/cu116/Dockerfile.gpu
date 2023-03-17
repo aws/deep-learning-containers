@@ -22,7 +22,7 @@ ARG PT_TORCHDATA_URL=https://download.pytorch.org/whl/test/torchdata-0.4.1-cp38-
 #                  |_|
 ########################################################
 
-FROM nvidia/cuda:11.6.2-base-ubuntu20.04
+FROM nvidia/cuda:11.6.2-base-ubuntu20.04 as ec2
 
 ENV DEBIAN_FRONTEND=noninteractive \
     LD_LIBRARY_PATH="${LD_LIBRARY_PATH}:/usr/local/lib"
