@@ -2,6 +2,9 @@
 
 HOME_DIR=/test
 
+git config --global user.email "you@example.com"
+git config --global user.name "Your Name"
+
 cd ${HOME_DIR}
 # tmp fix for numpy deprecations, PR raised: https://github.com/HewlettPackard/dlcookbook-dlbs/pull/19
 git clone https://github.com/ShiboXing/dlcookbook-dlbs ./dlbs -b fix-numpy --single-branch --depth 1
