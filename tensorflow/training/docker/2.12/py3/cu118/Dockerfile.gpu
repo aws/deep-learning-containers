@@ -59,7 +59,6 @@ ENV PIP=${PIP}
 
 RUN apt-get update && apt-get install -y --no-install-recommends --allow-unauthenticated --allow-downgrades  --allow-change-held-packages \
    ca-certificates \
-   cuda-toolkit-11-8 \
    cuda-command-line-tools-${CUDA_DASH} \
    cuda-cudart-dev-${CUDA_DASH} \
    cuda-nvcc-${CUDA_DASH} \
@@ -278,7 +277,7 @@ RUN ${PIP} install --no-cache-dir -U \
 
 # Install Horovod, temporarily using CUDA stubs
 RUN ldconfig /usr/local/cuda-11.8/targets/x86_64-linux/lib/stubs \
- && HOROVOD_GPU_ALLREDUCE=NCCL HOROVOD_WITH_TENSORFLOW=1 ${PIP} install --no-cache-dir horovod==0.27.0 \
+ && HOROVOD_GPU_ALLREDUCE=NCCL HOROVOD_WITH_TENSORFLOW=1 HOROVOD_NCCL_LINK=SHARED ${PIP} install --no-cache-dir horovod==0.27.0 \
  && ldconfig
 
 RUN HOME_DIR=/root \
