@@ -348,7 +348,7 @@ def main():
                     f"Instead seeing {frameworks_in_images} frameworks."
                 )
             framework = frameworks_in_images[0]
-            eks_cluster_name = f"{framework}-{build_context}"
+            eks_cluster_name = f"dlc-{framework}-{build_context}"
             eks_utils.eks_setup()
             if eks_utils.is_eks_cluster_active(eks_cluster_name):
                 eks_utils.eks_write_kubeconfig(eks_cluster_name)
@@ -382,6 +382,9 @@ def main():
             pytest_cmds = [
                 ["-s", "-rA", f"--junitxml={report}", "-n=auto", f"--{specific_test_type}", "--ignore=container_tests/"]
             ]
+            if specific_test_type == "canary":
+                # Add rerun flag to canaries to avoid flakiness
+                pytest_cmds = [pytest_cmd + ["--reruns=1", "--reruns-delay=10"] for pytest_cmd in pytest_cmds]
 
         pytest_cmds = [pytest_cmd + ["--last-failed", "--last-failed-no-failures", "all"] for pytest_cmd in pytest_cmds]
         pytest_cache_util.download_pytest_cache_from_s3_to_local(os.getcwd(), **pytest_cache_params)
