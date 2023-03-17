@@ -235,12 +235,6 @@ def get_dockerfile_path_for_image(image_uri):
     if not os.path.isdir(python_version_path):
         python_version_path = os.path.join(framework_version_path, "py3")
 
-    jdk_version = re.search(r"jdk\d+", image_uri)
-    if jdk_version:
-        jdk_version_path = os.path.join(python_version_path, jdk_version.group())
-        if os.path.isdir(jdk_version_path):
-            python_version_path = jdk_version_path
-
     device_type = get_processor_from_image_uri(image_uri)
     cuda_version = get_cuda_version_from_tag(image_uri)
     synapseai_version = get_synapseai_version_from_tag(image_uri)
@@ -253,13 +247,6 @@ def get_dockerfile_path_for_image(image_uri):
         for path in glob(os.path.join(python_version_path, "**", dockerfile_name), recursive=True)
         if "example" not in path
     ]
-
-    if not jdk_version and any("jdk" in path for path in dockerfiles_list):
-        raise LookupError(
-            f"Image does not have jdk version in uri",
-            f"but path(s) with jdk version were found",
-            f"{[path for path in dockerfiles_list]}"
-        )
 
     if device_type in ["gpu", "hpu", "neuron"]:
         if len(dockerfiles_list) > 1:
