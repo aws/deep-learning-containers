@@ -2,6 +2,7 @@ ARG PYTHON=python3
 ARG PYTHON_VERSION=3.10.8
 ARG PYTHON_SHORT_VERSION=3.10
 ARG MAMBA_VERSION=22.11.1-4
+ARG PYTORCH_VERSION=2.0.0
 
 # PyTorch Binaries
 ARG PT_EC2_TRAINING_URL=https://aws-pytorch-unified-cicd-binaries.s3.us-west-2.amazonaws.com/r1.13.1_ec2/20221219-193736/54406b8eed7fbd61be629cb06229dfb7b6b2954e/torch-1.13.1%2Bcu117-cp39-cp39-linux_x86_64.whl
@@ -39,7 +40,6 @@ ARG PYTHON_SHORT_VERSION
 ARG MAMBA_VERSION
 
 ARG CUBLAS_VERSION=11.11.3.6
-ARG PYTORCH_VERSION=2.0.0
 ARG EFA_PATH=/opt/amazon/efa
 ARG CUDA_HOME=/usr/local/cuda
 
@@ -159,7 +159,7 @@ RUN ompi_info --parsable --all | grep mpi_built_with_cuda_support:value \
  && rm ~/mambaforge.sh 
 
 # Install ec2 PyTorch
-RUN /opt/conda/bin/mamba install pytorch={PYTORCH_VERSION} pytorch-cuda=11.8 torchvision torchaudio aws-ofi-nccl-dlc \
+RUN /opt/conda/bin/mamba install -y pytorch={PYTORCH_VERSION} pytorch-cuda=11.8 torchvision torchaudio aws-ofi-nccl-dlc \
     --override-channels \
     -c https://aws-ml-conda-pre-prod-ec2.s3.us-west-2.amazonaws.com \
     -c pytorch-test -c pytorch-nightly -c pytorch  -c nvidia -c conda-forge 
