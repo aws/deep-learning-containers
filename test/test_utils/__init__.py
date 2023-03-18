@@ -281,6 +281,11 @@ def get_dockerfile_path_for_image(image_uri):
                     return dockerfile_path
         raise LookupError(f"Failed to find a dockerfile path for {cuda_version} in:\n{dockerfiles_list}")
 
+    dockerfiles_list.sort(reverse=True)
+    for dockerfile_path in dockerfiles_list:
+        if "jdk" in dockerfile_path:
+            return dockerfile_path
+            
     assert len(dockerfiles_list) == 1, f"No unique dockerfile path in:\n{dockerfiles_list}\nfor image: {image_uri}"
 
     return dockerfiles_list[0]
