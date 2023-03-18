@@ -1,5 +1,5 @@
 ARG PYTHON=python3
-ARG PYTHON_VERSION=3.10.9
+ARG PYTHON_VERSION=3.10.8
 ARG MAMBA_VERSION=22.11.1-4
 
 # PyTorch Binaries
@@ -119,13 +119,13 @@ RUN curl -L -o ~/mambaforge.sh https://github.com/conda-forge/miniforge/releases
  && rm ~/mambaforge.sh 
 
 # Install AWS-PyTorch and other torch packages
-RUN /opt/conda/bin/mamba install pytorch=${PYTORCH_VERSION} cpuonly torchvision torchaudio torchdata \
- -c https://aws-ml-conda-pre-prod-ec2.s3.us-west-2.amazonaws.com \
- -c pytorch -c nvidia 
+RUN /opt/conda/bin/mamba install pytorch=${PYTORCH_VERSION} torchvision torchaudio cpuonly aws-ofi-nccl-dlc \
+   --override-channels \
+   -c https://aws-ml-conda-pre-prod-sm.s3.us-west-2.amazonaws.com \
+   -c pytorch-test -c pytorch-nightly -c nvidia -c conda-forge
 
 # install common python packages
-RUN /opt/conda/bin/mamba update -y conda \
- && /opt/conda/bin/mamba install -y -c conda-forge \
+RUN /opt/conda/bin/mamba install -y -c conda-forge \
     python=$PYTHON_VERSION \
     cython \
     mkl \
@@ -159,7 +159,7 @@ RUN /opt/conda/bin/mamba update -y conda \
     psutil \
     ipython \
 # wait for the cpu dgl for PT2.0
-#  && /opt/conda/bin/mamba install -c dglteam -y dgl \
+ && /opt/conda/bin/mamba install -c dglteam dgl \
  && /opt/conda/bin/mamba install -c fastai fastai \
  # fastai conda has a dependency chain of fastai -> spacy -> pathy -> dataclasses
  # conda pathy installs dataclasses regardless of py version: https://github.com/conda-forge/pathy-feedstock/blob/1e6da43da5c8e11e09c063c79b09236bbacb7780/recipe/meta.yaml#L29
