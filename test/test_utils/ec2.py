@@ -494,6 +494,7 @@ def enforce_IMDSv2(instance_id, hop_limit, region=DEFAULT_REGION, ec2_client=Non
     if not response:
         raise Exception("Unable to enforce IMDSv2. No response received.")
 
+    time.sleep(2)
     state = None
     if response["InstanceId"]:
         res = ec2_client.describe_instances(InstanceIds=[instance_id])
@@ -524,7 +525,7 @@ def enforce_IMDSv1(instance_id, region=DEFAULT_REGION, ec2_client=None):
 
     if not response:
         raise Exception("Unable to enforce IMDSv1. No response received.")
-
+    time.sleep(2)
     state = None
     if response["InstanceId"]:
         res = ec2_client.describe_instances(InstanceIds=[instance_id])
