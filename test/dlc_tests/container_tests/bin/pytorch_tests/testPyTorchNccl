@@ -10,8 +10,6 @@ ${BIN_DIR}/pytorch_tests/setupPyTorchBackendTest
 
 AWS_LOG_DIR=$LOG_DIR/aws_nccl_log/
 OSS_LOG_DIR=$LOG_DIR/oss_nccl_log/
-PT_VERSION=$(python -c "import torch; print(torch.__version__);")
-CUDA_VERSION=$(python -c "import torch; print(torch.version.cuda)")
 
 git clone https://github.com/pytorch/benchmark
 pushd benchmark
@@ -20,7 +18,7 @@ pip install -r requirements.txt
 
 # run NCCL benchmarking with 4 GPUS and 1 local node (resnet will use torchvision)
 python userbenchmark/ddp_experiments/__init__.py \
-    --ngpus 4 \
+    --ngpus 2 \
     --distributed ddp \
     --nodes 1 \
     --cluster local \
@@ -35,13 +33,12 @@ python userbenchmark/ddp_experiments/parse_ddp.py \
     --results_dir $AWS_LOG_DIR \
     --csv_out > $AWS_LOG_DIR/nccl_res.csv
 
-# install OSS PyTorch
-mamba uninstall pytorch \
-    && mamba install -y pytorch=$PT_VERSION torchvision torchaudio pytorch-cuda=$CUDA_VERSION -c pytorch -c nvidia
+# get OSS perf data
+${BIN_DIR}/pytorch_tests/downloadOSSPyTorch
 
 # run NCCL benchmarking with 4 GPUS and 1 local node (resnet will use torchvision)
 python userbenchmark/ddp_experiments/__init__.py \
-    --ngpus 4 \
+    --ngpus 2 \
     --distributed ddp \
     --nodes 1 \
     --cluster local \

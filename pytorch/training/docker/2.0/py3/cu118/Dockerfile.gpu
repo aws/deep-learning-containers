@@ -200,7 +200,7 @@ RUN /opt/conda/bin/mamba install -y -c conda-forge \
     psutil \
     ipython \
  # pin dgl to 0.9.1 as upstream test has not caught up, currently having accuracy error
- && /opt/conda/bin/mamba install -c glteam/label/cu118 dgl\
+ && /opt/conda/bin/mamba install -c dglteam/label/cu118 dgl\
  && /opt/conda/bin/mamba install -c pytorch -y magma-cuda118 \
  && /opt/conda/bin/mamba install -c fastai fastai \
  # fastai conda has a dependency chain of fastai -> spacy -> pathy -> dataclasses
