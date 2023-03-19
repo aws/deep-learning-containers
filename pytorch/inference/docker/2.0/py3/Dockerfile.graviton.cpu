@@ -53,7 +53,7 @@ RUN apt-get update \
     libsm6 \
     libxext6 \
     libxrender-dev \
-    openjdk-17-jdk \
+    openjdk-11-jdk \
     openssl \
     scons \
     vim \
