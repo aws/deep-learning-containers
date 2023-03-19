@@ -155,6 +155,11 @@ SageMaker Framework Graviton Containers (SM support only)
 
 NVIDIA Triton Inference Containers (SM support only)
 ============================
+**Note**: The following versions of the 23.`<XY>` container are supported: `23.01`
+| Framework         |Job Type	|Horovod Options|CPU/GPU 	|Python Version Options	|Example URL																						|
+|-------------------|-----------|---------------|-----------|-----------------------|---------------------------------------------------------------------------------------------------|
+|NVIDIA Triton Inference Server 23.`<XY>`    |inference	|No			|GPU 		| 3.8 (py38)			|007439368137.dkr.ecr.us-east-2.amazonaws.com/sagemaker-tritonserver:23.`<XY>`-py3		|
+
 **Note**: The following versions of the 22.`<XY>` container are supported:
 `22.05, 22.07, 22.08, 22.09, 22.10, 22.12`
 
@@ -251,7 +256,7 @@ Neuron Containers
 |Tensorflow 2.8.0   |tensorflow-neuron  |Neuron 2.5.0       |inference 	|inf1   |3.8 (py38) 	        |763104351884.dkr.ecr.us-west-2.amazonaws.com/tensorflow-inference-neuron:2.8.0-neuron-py38-sdk2.5.0-ubuntu20.04
 |Tensorflow 1.15.5  |tensorflow-neuron  |Neuron 2.5.0       |inference 	|inf1   |3.8 (py38) 	        |763104351884.dkr.ecr.us-west-2.amazonaws.com/tensorflow-inference-neuron:1.15.5-neuron-py38-sdk2.5.0-ubuntu20.04
 |MXNet 1.8.0        |mx_neuron          |Neuron 2.5.0       |inference 	|inf1   |3.8 (py38) 	        |763104351884.dkr.ecr.us-west-2.amazonaws.com/mxnet-inference-neuron:1.8.0-neuron-py38-sdk2.5.0-ubuntu20.04
-|PyTorch 1.12.0     |torch-neuronx      |Neuron 2.6.0       |training 	|trn1   |3.8 (py38) 	        |763104351884.dkr.ecr.us-west-2.amazonaws.com/pytorch-training-neuron:1.12.0-neuron-py38-sdk2.6.0-ubuntu20.04        |
+|PyTorch 1.13.0     |torch-neuronx      |Neuron 2.8.0       |training 	|trn1   |3.8 (py38) 	        |763104351884.dkr.ecr.us-west-2.amazonaws.com/pytorch-training-neuron:1.13.0-neuron-py38-sdk2.8.0-ubuntu20.04        |
 
 Prior EC2 Framework Container Versions
 ==============
