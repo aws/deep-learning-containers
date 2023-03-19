@@ -1,0 +1,5 @@
+[
+  "integration/sagemaker/test_mnist.py::test_mnist_distributed_cpu",
+  "integration/sagemaker/test_mnist.py::test_mnist_distributed_gpu",
+  "integration/sagemaker/test_mnist.py::test_mnist_eia"
+]
