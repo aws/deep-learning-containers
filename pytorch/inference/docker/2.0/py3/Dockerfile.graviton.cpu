@@ -27,10 +27,18 @@ ARG TORCHDATA_URL=https://aws-pytorch-unified-cicd-binaries.s3.us-west-2.amazona
 ARG OPEN_MPI_VERSION=4.1.5
 ARG TS_VERSION=0.7.1
 ARG MAMBA_VERSION=22.11.1-4
+
+### Common ENV Variables
 ENV LANG C.UTF-8
 ENV LD_LIBRARY_PATH /opt/conda/lib/:$LD_LIBRARY_PATH
 ENV PATH /opt/conda/bin:$PATH
 ENV TEMP=/home/model-server/tmp
+
+### Graviton Optimizaation ENV Variables
+ENV LRU_CACHE_CAPACITY=1024
+ENV THP_MEM_ALLOC_ENABLE=1
+ENV DNNL_DEFAULT_FPMATH_MODE=BF16
+
 RUN apt-get update \
  && apt-get install -y --no-install-recommends software-properties-common \
  && add-apt-repository ppa:openjdk-r/ppa \
@@ -53,13 +61,15 @@ RUN apt-get update \
     libsm6 \
     libxext6 \
     libxrender-dev \
-    openjdk-11-jdk \
+    openjdk-17-jdk \
     openssl \
     scons \
     vim \
     wget \
     unzip \
     zlib1g-dev \
+    libjpeg-dev \
+    libpng-dev \
  && apt-get autoremove -y \
  && rm -rf /var/lib/apt/lists/* \
  && apt-get clean
