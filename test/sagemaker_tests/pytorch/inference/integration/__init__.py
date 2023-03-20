@@ -28,10 +28,12 @@ code_sub_dir = 'code'
 
 model_cpu_dir = os.path.join(mnist_path, cpu_sub_dir)
 mnist_cpu_script = os.path.join(model_cpu_dir, code_sub_dir ,'mnist.py')
+mnist_cpu_compilation_script = os.path.join(model_cpu_dir, code_sub_dir ,'mnist_compilation.py')
 model_cpu_1d_dir = os.path.join(model_cpu_dir, '1d')
 mnist_1d_script = os.path.join(model_cpu_1d_dir, code_sub_dir, 'mnist_1d.py')
 model_gpu_dir = os.path.join(mnist_path, gpu_sub_dir)
 mnist_gpu_script = os.path.join(model_gpu_dir, code_sub_dir, 'mnist.py')
+mnist_gpu_compilation_script = os.path.join(model_gpu_dir, code_sub_dir ,'mnist_compilation.py')
 model_gpu_1d_dir = os.path.join(model_gpu_dir, '1d')
 model_eia_dir = os.path.join(mnist_path, eia_sub_dir)
 mnist_eia_script = os.path.join(model_eia_dir, 'mnist.py')
