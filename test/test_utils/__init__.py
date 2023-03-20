@@ -248,6 +248,13 @@ def get_dockerfile_path_for_image(image_uri):
         if "example" not in path
     ]
 
+    LOGGER.info(f"Before sorting Docker file list: {dockerfiles_list}")
+    
+    if len(dockerfiles_list) > 1:
+        dockerfiles_list.sort(reverse=True)
+
+    LOGGER.info(f"After sorting Docker file list: {dockerfiles_list}")
+
     if device_type in ["gpu", "hpu", "neuron"]:
         if len(dockerfiles_list) > 1:
             if device_type == "gpu" and not cuda_version:
@@ -280,10 +287,10 @@ def get_dockerfile_path_for_image(image_uri):
                 if neuron_sdk_version in dockerfile_path:
                     return dockerfile_path
         raise LookupError(f"Failed to find a dockerfile path for {cuda_version} in:\n{dockerfiles_list}")
-
-    dockerfiles_list.sort(reverse=True)
+    
     for dockerfile_path in dockerfiles_list:
         if "jdk" in dockerfile_path:
+            LOGGER.info(f"Dockerfile returned: {dockerfile_path}")
             return dockerfile_path
             
     assert len(dockerfiles_list) == 1, f"No unique dockerfile path in:\n{dockerfiles_list}\nfor image: {image_uri}"

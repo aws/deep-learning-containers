@@ -348,11 +348,6 @@ class ScanVulnerabilityList:
             for vulnerability in package_vulnerabilities
             if vulnerability not in other
         ]
-
-        print(f"ECR Vulnerability list:{self.vulnerability_list}\n")
-        print(f"Allow list:{other}\n")
-        print(f"Missing list: {missing_vulnerabilities}")
-        
         if not missing_vulnerabilities:
             return None
 
