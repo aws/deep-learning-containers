@@ -135,9 +135,8 @@ RUN HOME_DIR=/root \
  && chmod +x ${HOME_DIR}/oss_compliance/generate_oss_compliance.sh \
  && ${HOME_DIR}/oss_compliance/generate_oss_compliance.sh ${HOME_DIR} ${PYTHON} \
  && rm -rf ${HOME_DIR}/oss_compliance*
+ && rm -iRf ${HOME_DIR}/.cache
 
-# Clean ~/.cache/
-RUN rm -rf ~/.cache/*
 
 EXPOSE 8080 8081
 ENTRYPOINT ["python", "/usr/local/bin/dockerd-entrypoint.py"]
