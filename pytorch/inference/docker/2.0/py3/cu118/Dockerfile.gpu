@@ -117,11 +117,13 @@ RUN apt-get update \
     libssl-dev \
     libxext6 \
     libxrender-dev \
-    openjdk-11-jdk \
+    openjdk-17-jdk \
     openssl \
     vim \
     wget \
     unzip \
+    libjpeg-dev \
+    libpng-dev \
     zlib1g-dev \
     openssh-client \
     openssh-server \
@@ -195,11 +197,11 @@ RUN pip install --upgrade pip --trusted-host pypi.org --trusted-host files.pytho
 
 WORKDIR /root
 
-# Ensure PyTorch did not get installed from Conda due to magma-cuda117
+# Ensure PyTorch did not get installed from Conda due to magma-cuda118
 RUN pip uninstall -y torch torchvision torchaudio torchdata model-archiver multi-model-server
 
 # Install AWS-PyTorch, and other torch packages
-RUN pip install --no-cache-dir --extra-index-url https://download.pytorch.org/whl/cu117 -U \
+RUN pip install --no-cache-dir --extra-index-url https://download.pytorch.org/whl/cu118 -U \
     "awscli<2" \
     boto3 \
     "cryptography>3.2" \
@@ -211,7 +213,6 @@ RUN pip install --no-cache-dir --extra-index-url https://download.pytorch.org/wh
     # -> Pillow is not upper pinned for security
     psutil \
     cython \
-    nvgpu \
     "Pillow>=9.3.0" \
     pynvml==11.4.1 \
     numpy==1.22.2 \
@@ -219,6 +220,7 @@ RUN pip install --no-cache-dir --extra-index-url https://download.pytorch.org/wh
     packaging \
     pyyaml \
     # End of TS requirements
+    torchtriton \
     ${TORCH_URL} \
     ${TORCHVISION_URL} \
     ${TORCHAUDIO_URL} \
