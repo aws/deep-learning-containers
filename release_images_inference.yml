@@ -17,7 +17,7 @@ release_images:
     version: "2.10.1"
     customer_type: "ec2"
     arch_type: "x86"
-    training:
+    inference:
       device_types: ["cpu", "gpu"]
       python_versions: ["py39"]
       os_version: "ubuntu20.04"
@@ -30,7 +30,7 @@ release_images:
     version: "2.10.1"
     customer_type: "sagemaker"
     arch_type: "x86"
-    training:
+    inference:
       device_types: ["cpu", "gpu"]
       python_versions: ["py39"]
       os_version: "ubuntu20.04"
