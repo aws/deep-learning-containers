@@ -1,13 +1,7 @@
 ARG PYTHON=python3
-ARG PYTHON_VERSION=3.10.9
+ARG PYTHON_VERSION=3.10.8
 ARG MAMBA_VERSION=22.11.1-4
-
-# PyTorch Binaries
-ARG PT_EC2_TRAINING_URL=https://aws-pytorch-unified-cicd-binaries.s3.us-west-2.amazonaws.com/r1.13.1_ec2/20221217-194030/54406b8eed7fbd61be629cb06229dfb7b6b2954e/torch-1.13.1%2Bcpu-cp39-cp39-linux_x86_64.whl
-ARG PT_SM_TRAINING_URL=https://aws-pytorch-unified-cicd-binaries.s3.us-west-2.amazonaws.com/r1.13.1_sm/20230104-200143/4ad54e91be2ccb431cf26e7d7d1a2de10e8d82ac/torch-1.13.1%2Bcpu-cp39-cp39-linux_x86_64.whl
-ARG PT_TORCHVISION_URL=https://download.pytorch.org/whl/cpu/torchvision-0.14.1%2Bcpu-cp39-cp39-linux_x86_64.whl
-ARG PT_TORCHAUDIO_URL=https://download.pytorch.org/whl/cpu/torchaudio-0.13.1%2Bcpu-cp39-cp39-linux_x86_64.whl
-ARG PT_TORCHDATA_URL=https://download.pytorch.org/whl/test/torchdata-0.5.1-cp39-cp39-manylinux_2_17_x86_64.manylinux2014_x86_64.whl
+ARG PYTORCH_VERSION=2.0.0
 
 FROM ubuntu:20.04 AS base_image
 
@@ -119,13 +113,13 @@ RUN curl -L -o ~/mambaforge.sh https://github.com/conda-forge/miniforge/releases
  && rm ~/mambaforge.sh 
 
 # Install AWS-PyTorch and other torch packages
-RUN /opt/conda/bin/mamba install pytorch=${PYTORCH_VERSION} cpuonly torchvision torchaudio torchdata \
- -c https://aws-ml-conda-pre-prod-ec2.s3.us-west-2.amazonaws.com \
- -c pytorch -c pytorch-test -c nvidia 
+RUN /opt/conda/bin/mamba install -y pytorch=${PYTORCH_VERSION} torchvision torchaudio cpuonly aws-ofi-nccl-dlc \
+   --override-channels \
+   -c https://aws-ml-conda-pre-prod-sm.s3.us-west-2.amazonaws.com \
+   -c pytorch-test -c pytorch-nightly -c nvidia -c conda-forge
 
 # install common python packages
-RUN /opt/conda/bin/mamba update -y conda \
- && /opt/conda/bin/mamba install -y -c conda-forge \
+RUN /opt/conda/bin/mamba install -y -c conda-forge \
     python=$PYTHON_VERSION \
     cython \
     mkl \
@@ -158,8 +152,8 @@ RUN /opt/conda/bin/mamba update -y conda \
     "pillow>=9.4" \
     psutil \
     ipython \
- # pin dgl to 0.9.1 as upstream test has not caught up, currently having accuracy error
- && /opt/conda/bin/mamba install -c dglteam -y dgl \
+# wait for the cpu dgl for PT2.0
+ && /opt/conda/bin/mamba install -c dglteam dgl \
  && /opt/conda/bin/mamba install -c fastai fastai \
  # fastai conda has a dependency chain of fastai -> spacy -> pathy -> dataclasses
  # conda pathy installs dataclasses regardless of py version: https://github.com/conda-forge/pathy-feedstock/blob/1e6da43da5c8e11e09c063c79b09236bbacb7780/recipe/meta.yaml#L29
@@ -259,7 +253,7 @@ ARG PT_TORCHDATA_URL
 RUN /opt/conda/bin/conda remove -y --force pytorch \
  && /opt/conda/bin/mamba install -y pytorch=${PYTORCH_VERSION} cpuonly \
  -c https://aws-ml-conda-pre-prod-sm.s3.us-west-2.amazonaws.com \
- -c pytorch -c pytorch-test -c nvidia -c conda-forge -c pytorch-nightly
+ -c pytorch -c nvidia -c conda-forge
 
 WORKDIR /
 
