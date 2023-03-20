@@ -53,14 +53,20 @@ def _execution_role(boto_session):
 
 
 @contextlib.contextmanager
-def sagemaker_model(boto_session, sagemaker_client, image_uri, model_name, model_data):
+def sagemaker_model(boto_session, sagemaker_client, image_uri, model_name, model_data, is_multi_model_mode_enabled = False, environment = {}):
+    container = {
+            "Image": image_uri,
+            "ModelDataUrl": model_data
+        }
+    if is_multi_model_mode_enabled:
+        container['Mode'] = 'MultiModel'
+    if environment:
+        container['Environment'] = environment
     model = sagemaker_client.create_model(
         ModelName=model_name,
         ExecutionRoleArn=_execution_role(boto_session),
-        PrimaryContainer={
-            "Image": image_uri,
-            "ModelDataUrl": model_data
-        })
+        PrimaryContainer=container
+        )
 
     try:
         yield model
@@ -126,6 +132,40 @@ def find_or_put_model_data(region, boto_session, local_path):
         s3.upload_file(local_path, bucket, key)
 
     return "s3://{}/{}".format(bucket, key)
+    
+def find_or_put_mme_model_data(region, boto_session, mme_folder_name, path_list):
+    for local_path in path_list:
+        is_model_file = True if '.tar.gz' in local_path else False
+        file = os.path.basename(local_path)
+
+        bucket = _test_bucket(region, boto_session)
+        key = "test-tfs/{}/{}".format(mme_folder_name,file) if is_model_file else "test-tfs/{}/code/{}".format(mme_folder_name,file)
+
+        s3 = boto_session.client("s3", region)
+
+        try:
+            s3.head_bucket(Bucket=bucket)
+        except botocore.exceptions.ClientError as e:
+            if e.response["Error"]["Code"] != "404":
+                raise
+
+            # bucket doesn't exist, create it
+            if region == "us-east-1":
+                s3.create_bucket(Bucket=bucket)
+            else:
+                s3.create_bucket(Bucket=bucket,
+                                CreateBucketConfiguration={"LocationConstraint": region})
+
+        try:
+            s3.head_object(Bucket=bucket, Key=key)
+        except botocore.exceptions.ClientError as e:
+            if e.response["Error"]["Code"] != "404":
+                raise
+
+            # file doesn't exist - upload it
+            s3.upload_file(local_path, bucket, key)
+
+    return "s3://{}/test-tfs/{}/".format(bucket, mme_folder_name)
 
 
 @contextlib.contextmanager
@@ -237,18 +277,30 @@ def run_batch_transform_job(region, boto_session, model_data, image_uri,
                timeout=600) # seconds
 
 
-def invoke_endpoint(sagemaker_runtime_client, endpoint_name, input_data):
-    response = sagemaker_runtime_client.invoke_endpoint(EndpointName=endpoint_name,
-                                                        ContentType="application/json",
+def invoke_endpoint(sagemaker_runtime_client, endpoint_name, input_data, target_models, content_type = "application/json"):
+    if target_models:
+        results = []
+        for target_model in target_models:
+            response = sagemaker_runtime_client.invoke_endpoint(EndpointName=endpoint_name,
+                                                        ContentType=content_type,
+                                                        TargetModel = target_model,
                                                         Body=json.dumps(input_data))
-    result = json.loads(response["Body"].read().decode())
-    assert result["predictions"] is not None
-    return result
+            result = json.loads(response["Body"].read().decode())
+            results.append(result)
+        return results
+    else:
+        response = sagemaker_runtime_client.invoke_endpoint(EndpointName=endpoint_name,
+                                                        ContentType=content_type,
+                                                        Body=json.dumps(input_data))
+        result = json.loads(response["Body"].read().decode())
+        assert result["predictions"] is not None
+        return result
 
 
 def create_and_invoke_endpoint(boto_session, sagemaker_client, sagemaker_runtime_client,
                                model_name, model_data, image_uri, instance_type, accelerator_type,
-                               input_data):
-    with sagemaker_model(boto_session, sagemaker_client, image_uri, model_name, model_data):
+                               input_data, is_multi_model_mode_enabled = False, 
+                               target_models = [], environment = {}, content_type = "application/json"):
+    with sagemaker_model(boto_session, sagemaker_client, image_uri, model_name, model_data, is_multi_model_mode_enabled, environment):
         with sagemaker_endpoint(sagemaker_client, model_name, instance_type, accelerator_type):
-            return invoke_endpoint(sagemaker_runtime_client, model_name, input_data)
+            return invoke_endpoint(sagemaker_runtime_client, model_name, input_data, target_models, content_type)
