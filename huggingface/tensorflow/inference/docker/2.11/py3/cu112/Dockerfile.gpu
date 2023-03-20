@@ -143,10 +143,6 @@ RUN HOME_DIR=/root \
  && rm -iRf ${HOME_DIR}/.cache
 
 
-# EXPOSE 8080 8081
-# ENTRYPOINT ["python", "/usr/local/bin/dockerd-entrypoint.py"]
-# CMD ["serve"]
-
-WORKDIR .
-
-CMD ["/bin/bash"]
+EXPOSE 8080 8081
+ENTRYPOINT ["python", "/usr/local/bin/dockerd-entrypoint.py"]
+CMD ["serve"]
