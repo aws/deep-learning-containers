@@ -33,4 +33,4 @@ CLUSTER_AUTOSCALAR_IMAGE_VERSION=${2}
 install_cluster_autoscalar ${CLUSTER_NAME} ${CLUSTER_AUTOSCALAR_IMAGE_VERSION}
 
 # install kubeflow
-../test/dlc_tests/eks/eks_manifest_templates/kubeflow/install_kubeflow_custom_kfctl.sh ${CLUSTER_NAME} ${AWS_REGION}
+../test/dlc_tests/eks/eks_manifest_templates/kubeflow/install_kubeflow.sh ${CLUSTER_NAME} ${AWS_REGION}
