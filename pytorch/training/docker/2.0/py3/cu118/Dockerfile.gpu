@@ -269,21 +269,7 @@ RUN rm -rf /root/.ssh/ && \
 
 RUN mkdir -p /etc/pki/tls/certs && cp /etc/ssl/certs/ca-certificates.crt /etc/pki/tls/certs/ca-bundle.crt
 
-# Install Nvidia Apex (needs pytorch)
-## Pin apex commit requested by sm-model-parallel team
-RUN git clone https://github.com/NVIDIA/apex \
-  && cd apex \
-  && git checkout 6943fd2 \
-  && pip install -v --no-cache-dir --global-option="--cpp_ext" --global-option="--cuda_ext" ./ \
-  && cd .. \
-  && rm -rf apex
-    
 
-# Install Horovod (needs pytorch)
-RUN pip uninstall -y horovod \
- && ldconfig /usr/local/cuda-11.8/targets/x86_64-linux/lib/stubs \
- && HOROVOD_GPU_ALLREDUCE=NCCL HOROVOD_CUDA_HOME=/usr/local/cuda-11.8 HOROVOD_WITH_PYTORCH=1 pip install --no-cache-dir horovod==${HOROVOD_VERSION} \
- && ldconfig
 
 COPY deep_learning_container.py /usr/local/bin/deep_learning_container.py
 RUN chmod +x /usr/local/bin/deep_learning_container.py
@@ -321,6 +307,21 @@ ARG PT_TORCHAUDIO_URL
 ARG PT_TORCHDATA_URL
 
 WORKDIR /
+
+# Install Nvidia Apex (needs pytorch)
+## Pin apex commit requested by sm-model-parallel team
+RUN git clone https://github.com/NVIDIA/apex \
+  && cd apex \
+  && git checkout 6943fd2 \
+  && pip install -v --no-cache-dir --global-option="--cpp_ext" --global-option="--cuda_ext" ./ \
+  && cd .. \
+  && rm -rf apex
+
+# Install Horovod (needs pytorch)
+RUN pip uninstall -y horovod \
+ && ldconfig /usr/local/cuda-11.8/targets/x86_64-linux/lib/stubs \
+ && HOROVOD_GPU_ALLREDUCE=NCCL HOROVOD_CUDA_HOME=/usr/local/cuda-11.8 HOROVOD_WITH_PYTORCH=1 pip install --no-cache-dir horovod==${HOROVOD_VERSION} \
+ && ldconfig
 
 RUN HOME_DIR=/root \
  && curl -o ${HOME_DIR}/oss_compliance.zip https://aws-dlinfra-utilities.s3.amazonaws.com/oss_compliance.zip \
@@ -390,6 +391,21 @@ RUN /opt/conda/bin/conda remove --force pytorch \
    -c pytorch -c nvidia -c conda-forge 
 
 WORKDIR /
+
+# Install Nvidia Apex (needs pytorch)
+## Pin apex commit requested by sm-model-parallel team
+RUN git clone https://github.com/NVIDIA/apex \
+  && cd apex \
+  && git checkout 6943fd2 \
+  && pip install -v --no-cache-dir --global-option="--cpp_ext" --global-option="--cuda_ext" ./ \
+  && cd .. \
+  && rm -rf apex
+
+# Install Horovod (needs pytorch)
+RUN pip uninstall -y horovod \
+ && ldconfig /usr/local/cuda-11.8/targets/x86_64-linux/lib/stubs \
+ && HOROVOD_GPU_ALLREDUCE=NCCL HOROVOD_CUDA_HOME=/usr/local/cuda-11.8 HOROVOD_WITH_PYTORCH=1 pip install --no-cache-dir horovod==${HOROVOD_VERSION} \
+ && ldconfig
 
 # Install libboost from source. This package is needed for smdataparallel functionality [for networking asynchronous IO].
 RUN wget https://sourceforge.net/projects/boost/files/boost/1.73.0/boost_1_73_0.tar.gz/download -O boost_1_73_0.tar.gz \
