@@ -1,9 +1,12 @@
 {
-    "operation": "create",
+    "operation": "new_operation",
     "contexts": [
+        "PR",
         "MAINLINE"
     ],
     "eks_clusters": [
+        "dlc-mxnet",
+        "dlc-pytorch",
         "dlc-tensorflow"
     ],
     "eks_version": "1.25",
