@@ -1,3 +1,17 @@
+ARG PYTHON=python3
+ARG PYTHON_VERSION=3.10.9
+ARG MAMBA_VERSION=22.11.1-4
+ARG OPEN_MPI_VERSION=4.1.5
+
+# PyTorch Graviton Binaries
+ARG TORCH_URL=https://aws-pytorch-unified-cicd-binaries.s3.us-west-2.amazonaws.com/r2.0.0_inference/graviton_py310/torch-2.0.0%2Bcpu-cp310-cp310-manylinux_2_31_aarch64.whl
+ARG TORCHVISION_URL=https://aws-pytorch-unified-cicd-binaries.s3.us-west-2.amazonaws.com/r2.0.0_inference/graviton_py310/torchvision-0.15.1%2Bcpu-cp310-cp310-linux_aarch64.whl
+ARG TORCHAUDIO_URL=https://aws-pytorch-unified-cicd-binaries.s3.us-west-2.amazonaws.com/r2.0.0_inference/graviton_py310/torchaudio-2.0.1%2Bcpu-cp310-cp310-linux_aarch64.whl
+ARG TORCHTEXT_URL=https://aws-pytorch-unified-cicd-binaries.s3.us-west-2.amazonaws.com/r2.0.0_inference/graviton_py310/torchtext-0.15.1%2Bcpu-cp310-cp310-linux_aarch64.whl
+ARG TORCHDATA_URL=https://aws-pytorch-unified-cicd-binaries.s3.us-west-2.amazonaws.com/r2.0.0_inference/graviton_py310/torchdata-0.6.0%2Bcpu-cp310-cp310-linux_aarch64.whl
+ARG TORCHSERVE_VERSION=0.7.1
+ARG SM_TOOLKIT_VERSION=2.0.14
+
 ########################################################
 #  _____ ____ ____    ___
 # | ____/ ___|___ \  |_ _|_ __ ___   __ _  __ _  ___
@@ -17,32 +31,32 @@ FROM arm64v8/ubuntu:20.04 as ec2
 LABEL maintainer="Amazon AI"
 LABEL dlc_major_version="1"
 
-ARG PYTHON=python3
-ARG PYTHON_VERSION=3.10
-ARG TORCH_URL=https://aws-pytorch-unified-cicd-binaries.s3.us-west-2.amazonaws.com/r2.0.0_inference/graviton_py310/torch-2.0.0%2Bcpu-cp310-cp310-manylinux_2_31_aarch64.whl
-ARG TORCHVISION_URL=https://aws-pytorch-unified-cicd-binaries.s3.us-west-2.amazonaws.com/r2.0.0_inference/graviton_py310/torchvision-0.15.1%2Bcpu-cp310-cp310-linux_aarch64.whl
-ARG TORCHAUDIO_URL=https://aws-pytorch-unified-cicd-binaries.s3.us-west-2.amazonaws.com/r2.0.0_inference/graviton_py310/torchaudio-2.0.1%2Bcpu-cp310-cp310-linux_aarch64.whl
-ARG TORCHTEXT_URL=https://aws-pytorch-unified-cicd-binaries.s3.us-west-2.amazonaws.com/r2.0.0_inference/graviton_py310/torchtext-0.15.1%2Bcpu-cp310-cp310-linux_aarch64.whl
-ARG TORCHDATA_URL=https://aws-pytorch-unified-cicd-binaries.s3.us-west-2.amazonaws.com/r2.0.0_inference/graviton_py310/torchdata-0.6.0%2Bcpu-cp310-cp310-linux_aarch64.whl
-ARG OPEN_MPI_VERSION=4.1.5
-ARG TS_VERSION=0.7.1
-ARG MAMBA_VERSION=22.11.1-4
+ARG PYTHON
+ARG PYTHON_VERSION
+ARG OPEN_MPI_VERSION
+ARG MAMBA_VERSION
+
+# PyTorch Passed arguments (URLs and Versions)
+ARG TORCH_URL
+ARG TORCHVISION_URL
+ARG TORCHAUDIO_URL
+ARG TORCHTEXT_URL
+ARG TORCHDATA_URL
+ARG TORCHSERVE_VERSION
 
 ### Common ENV Variables
-ENV LANG C.UTF-8
-ENV LD_LIBRARY_PATH /opt/conda/lib/:$LD_LIBRARY_PATH
-ENV PATH /opt/conda/bin:$PATH
-ENV TEMP=/home/model-server/tmp
-
-### Graviton Optimizaation ENV Variables
-ENV LRU_CACHE_CAPACITY=1024
-ENV THP_MEM_ALLOC_ENABLE=1
-ENV DNNL_DEFAULT_FPMATH_MODE=BF16
+ENV DEBIAN_FRONTEND=noninteractive \
+    LD_LIBRARY_PATH="${LD_LIBRARY_PATH}:/usr/local/lib" \
+    LANG=C.UTF-8 \
+    LD_LIBRARY_PATH=/opt/conda/lib/:$LD_LIBRARY_PATH \
+    PATH=/opt/conda/bin:$PATH \
+    TEMP=/home/model-server/tmp \
+    ### Graviton Optimizaation ENV Variables
+    LRU_CACHE_CAPACITY=1024 \
+    THP_MEM_ALLOC_ENABLE=1 \
+    DNNL_DEFAULT_FPMATH_MODE=BF16
 
 RUN apt-get update \
- && apt-get install -y --no-install-recommends software-properties-common \
- && add-apt-repository ppa:openjdk-r/ppa \
- && apt-get update \
  && apt-get -y upgrade \
  && apt-get install -y --no-install-recommends \
     build-essential \
@@ -79,33 +93,7 @@ RUN update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-10 1 && \
     update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-10 1 && \
     update-alternatives --install /usr/bin/gfortran gfortran /usr/bin/gfortran-10 1
 
-RUN curl -L -o ~/mambaforge.sh https://github.com/conda-forge/miniforge/releases/download/${MAMBA_VERSION}/Mambaforge-${MAMBA_VERSION}-Linux-aarch64.sh \
- && chmod +x ~/mambaforge.sh \
- && ~/mambaforge.sh -b -p /opt/conda \
- && rm ~/mambaforge.sh
-
-RUN /opt/conda/bin/conda install -c conda-forge -y python=$PYTHON_VERSION \
-    ruamel_yaml \
-    cython \
-    ipython \
-    parso \
-    numpy \
-    scipy \
-    # Below 2 are included in miniconda base, but not mamba so need to install
-    conda-content-trust \
-    charset-normalizer \
-    scikit-learn \
-    pandas \
-    requests \
-    "pyyaml>=5.4,<5.5" \
- && conda clean -ya
-
-# Conda installs links for libtinfo.so.6 and libtinfo.so.6.2 both
-# Which causes "/opt/conda/lib/libtinfo.so.6: no version information available" warning
-# Removing link for libtinfo.so.6. This change is needed only for ubuntu 20.04-conda, and can be reverted
-# once conda fixes the issue https://github.com/conda/conda/issues/9680
-# RUN rm -rf /opt/conda/lib/libtinfo.so.6
-
+# Install OpenMPI
 RUN wget https://www.open-mpi.org/software/ompi/v4.1/downloads/openmpi-$OPEN_MPI_VERSION.tar.gz \
  && gunzip -c openmpi-$OPEN_MPI_VERSION.tar.gz | tar xf - \
  && cd openmpi-$OPEN_MPI_VERSION \
@@ -122,32 +110,82 @@ ENV PATH="$PATH:/home/.openmpi/bin"
 ENV LD_LIBRARY_PATH="$LD_LIBRARY_PATH:/home/.openmpi/lib/"
 RUN ompi_info --parsable --all | grep mpi_built_with_cuda_support:value
 
+# Allow OpenSSH to talk to containers without asking for confirmation
+RUN mkdir -p /var/run/sshd \
+ && cat /etc/ssh/ssh_config | grep -v StrictHostKeyChecking > /etc/ssh/ssh_config.new \
+ && echo "    StrictHostKeyChecking no" >> /etc/ssh/ssh_config.new \
+ && mv /etc/ssh/ssh_config.new /etc/ssh/ssh_configs \
+ && rm -rf /var/lib/apt/lists/* \
+ && apt-get clean
+
+# Install CondaForge miniconda
+RUN curl -L -o ~/mambaforge.sh https://github.com/conda-forge/miniforge/releases/download/${MAMBA_VERSION}/Mambaforge-${MAMBA_VERSION}-Linux-aarch64.sh \
+ && chmod +x ~/mambaforge.sh \
+ && ~/mambaforge.sh -b -p /opt/conda \
+ && rm ~/mambaforge.sh \
+ && /opt/conda/bin/conda install -c conda-forge -y python=$PYTHON_VERSION \
+    ruamel_yaml \
+    cython \
+    ipython \
+    parso \
+    numpy \
+    scipy \
+    # Below 2 are included in miniconda base, but not mamba so need to install
+    conda-content-trust \
+    charset-normalizer \
+    requests \
+ && conda clean -ya
+
+# symlink pip for OS use
+RUN pip install --upgrade pip --trusted-host pypi.org --trusted-host files.pythonhosted.org \
+ && ln -s /opt/conda/bin/pip /usr/local/bin/pip3
+
+# Ensure PyTorch did not get installed from Conda
+RUN pip uninstall -y torch torchvision torchaudio torchdata model-archiver multi-model-server
+
+# Install AWS-PyTorch, and other torch packages
 RUN ln -s /opt/conda/bin/pip /usr/local/bin/pip3 \
  && pip install --upgrade pip --trusted-host pypi.org --trusted-host files.pythonhosted.org \
  && pip install \
-     $TORCH_URL \
-    $TORCHVISION_URL \
-    $TORCHAUDIO_URL \
-    $TORCHTEXT_URL \
-    $TORCHDATA_URL \
-    packaging \
-    enum-compat \
+    boto3 \
+    scipy \
+    opencv-python \
     cryptography \
-    "opencv-python>=4.6,<5" \
-    "Pillow==9.3.0" \
+    "ipython>=8.10.0,<9.0" \
     "awscli<2" \
+    # TS tsquirements 
+    # -> Numpy is higer version as required by torch
+    # -> Pillow is not upper pinned for security
+    psutil \
+    cython \
     captum \
-    torchserve==$TS_VERSION \
-    torch-model-archiver==$TS_VERSION
+    packaging \
+    "pyyaml>=5.4,<5.5" \
+    "Pillow>=9.3.0" \
+    "numpy==1.22.2" \
+    # End of TS requirements
+    ${TORCH_URL} \
+    ${TORCHVISION_URL} \
+    ${TORCHAUDIO_URL} \
+    ${TORCHTEXT_URL} \
+    ${TORCHDATA_URL} \
+    torchserve==${TORCHSERVE_VERSION} \
+    torch-model-archiver==${TORCHSERVE_VERSION}
 
+# add necessary certificate for aws sdk cpp download
+RUN mkdir -p /etc/pki/tls/certs && cp /etc/ssl/certs/ca-certificates.crt /etc/pki/tls/certs/ca-bundle.crt
+
+# create user and folders
 RUN useradd -m model-server \
  && mkdir -p /home/model-server/tmp /opt/ml/model \
  && chown -R model-server /home/model-server /opt/ml/model
 
+# add TS entrypoint
 COPY torchserve-ec2-entrypoint.py /usr/local/bin/dockerd-entrypoint.py
 COPY config.properties /home/model-server/config.properties
 RUN chmod +x /usr/local/bin/dockerd-entrypoint.py
 
+# add telemetry
 COPY deep_learning_container.py /usr/local/bin/deep_learning_container.py
 RUN chmod +x /usr/local/bin/deep_learning_container.py
 
@@ -194,12 +232,17 @@ LABEL dlc_major_version="1"
 LABEL com.amazonaws.sagemaker.capabilities.accept-bind-to-port=true
 LABEL com.amazonaws.sagemaker.capabilities.multi-models=true
 
-ARG PYTHON=python3
-ARG PYTHON_VERSION=3.10
+ARG PYTHON
+ARG SM_TOOLKIT_VERSION
 
 ENV SAGEMAKER_SERVING_MODULE sagemaker_pytorch_serving_container.serving:main
 
-RUN pip install --no-cache-dir "sagemaker-pytorch-inference==2.0.12"
+# Install scikit-learn and pandas
+RUN conda install -y -c conda-forge \
+    scikit-learn \
+    pandas
+
+RUN pip install --no-cache-dir sagemaker-pytorch-inference==${SM_TOOLKIT_VERSION}
 
 COPY torchserve-entrypoint.py /usr/local/bin/dockerd-entrypoint.py
 
@@ -213,6 +256,11 @@ RUN HOME_DIR=/root \
  && chmod +x ${HOME_DIR}/oss_compliance/generate_oss_compliance.sh \
  && ${HOME_DIR}/oss_compliance/generate_oss_compliance.sh ${HOME_DIR} ${PYTHON} \
  && rm -rf ${HOME_DIR}/oss_compliance*
+
+## Cleanup ##
+RUN cd tmp/ \
+ && rm -rf tmp* \
+ &&rm -iRf /root/.cache
 
 EXPOSE 8080 8081
 ENTRYPOINT ["python", "/usr/local/bin/dockerd-entrypoint.py"]
