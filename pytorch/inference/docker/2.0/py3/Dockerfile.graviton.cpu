@@ -128,10 +128,6 @@ RUN curl -L -o ~/mambaforge.sh https://github.com/conda-forge/miniforge/releases
     requests \
  && conda clean -ya
 
-# symlink pip for OS use
-RUN pip install --upgrade pip --trusted-host pypi.org --trusted-host files.pythonhosted.org \
- && ln -s /opt/conda/bin/pip /usr/local/bin/pip3
-
 # Ensure PyTorch did not get installed from Conda
 RUN pip uninstall -y torch torchvision torchaudio torchdata model-archiver multi-model-server
 
