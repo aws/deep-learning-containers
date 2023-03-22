@@ -24,20 +24,10 @@ ROOT_DIR = os.path.abspath(os.path.join(os.getcwd(), os.pardir))
 DLC_TESTS_PREFIX = os.path.join(os.sep, ROOT_DIR, "dlc_tests")
 
 SINGLE_NODE_TRAINING_TEMPLATE_PATH = os.path.join(
-    os.sep,
-    DLC_TESTS_PREFIX,
-    "eks",
-    "eks_manifest_templates",
-    "training",
-    "single_node_training.yaml",
+    os.sep, DLC_TESTS_PREFIX, "eks", "eks_manifest_templates", "training", "single_node_training.yaml",
 )
 
-SINGLE_NODE_INFERENCE_TEMPLATE_PATH = os.path.join(
-    os.sep,
-    DLC_TESTS_PREFIX,
-    "eks",
-    "eks_manisfest_templates"
-)
+SINGLE_NODE_INFERENCE_TEMPLATE_PATH = os.path.join(os.sep, DLC_TESTS_PREFIX, "eks", "eks_manisfest_templates")
 
 LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.DEBUG)
@@ -45,40 +35,21 @@ LOGGER.addHandler(logging.StreamHandler(sys.stdout))
 LOGGER.addHandler(logging.StreamHandler(sys.stderr))
 
 
-EKS_VERSION = "1.14.6"
-EKSCTL_VERSION = "0.22.0"
-KUBEFLOW_VERSION = "v0.4.1"
+EKS_VERSION = "1.20.4"
+EKSCTL_VERSION = "0.53.0"
 KUBETAIL_VERSION = "1.6.7"
-
-EKS_NVIDIA_PLUGIN_VERSION = "0.6.0"
-
-# https://docs.aws.amazon.com/eks/latest/userguide/eks-optimized-ami.html
-EKS_AMI_ID = {"cpu": "ami-03086423d09685de3", "gpu": "ami-061798711b2adafb4", "neuron": "ami-092059396c7e51f52"}
-
-SSH_PUBLIC_KEY_NAME = "dlc-ec2-keypair-prod"
-PR_EKS_CLUSTER_NAME_TEMPLATE = "dlc-eks-pr-{}-test-cluster"
 
 def get_aws_secret_yml_path():
 
-    return os.path.join(
-        os.sep,
-        DLC_TESTS_PREFIX,
-        "eks",
-        "eks_manifest_templates",
-        "aws_access",
-        "secret.yaml",
-    )
+    return os.path.join(os.sep, DLC_TESTS_PREFIX, "eks", "eks_manifest_templates", "aws_access", "secret.yaml",)
+
 
 def get_single_node_training_template_path():
 
     return os.path.join(
-        os.sep,
-        DLC_TESTS_PREFIX,
-        "eks",
-        "eks_manifest_templates",
-        "training",
-        "single_node_training.yaml",
+        os.sep, DLC_TESTS_PREFIX, "eks", "eks_manifest_templates", "training", "single_node_training.yaml",
     )
+
 
 def get_single_node_inference_template_path(framework, processor):
 
@@ -92,17 +63,6 @@ def get_single_node_inference_template_path(framework, processor):
         f"single_node_{processor}_inference.yaml",
     )
 
-def get_device_plugin_path(framework, processor):
-
-    return os.path.join(
-        os.sep,
-        DLC_TESTS_PREFIX,
-        "eks",
-        "eks_manifest_templates",
-        framework,
-        "inference",
-        f"{processor}_device_plugin.yaml",
-    )
 
 def retry_if_value_error(exception):
     """Return True if we should retry (in this case when it's an ValueError), False otherwise"""
@@ -110,9 +70,7 @@ def retry_if_value_error(exception):
 
 
 @retry(
-    stop_max_attempt_number=360,
-    wait_fixed=10000,
-    retry_on_exception=retry_if_value_error,
+    stop_max_attempt_number=360, wait_fixed=10000, retry_on_exception=retry_if_value_error,
 )
 def is_eks_training_complete(pod_name):
     """Function to check if the pod status has reached 'Completion'
@@ -136,9 +94,7 @@ def is_eks_training_complete(pod_name):
                     # delete pod in case of error
                     run("kubectl delete pods {}".format(pod_name))
                     LOGGER.error(
-                        "ERROR: The container run threw an error and terminated. "
-                        "kubectl logs: %s",
-                        error_out,
+                        "ERROR: The container run threw an error and terminated. " "kubectl logs: %s", error_out,
                     )
                     raise AttributeError("Container Error!")
             elif (
@@ -149,152 +105,17 @@ def is_eks_training_complete(pod_name):
                 # delete pod in case of error
                 run("kubectl delete pods {}".format(pod_name))
                 LOGGER.error(
-                    "ERROR: The container run threw an error in waiting state. "
-                    "kubectl logs: %s",
-                    error_out,
+                    "ERROR: The container run threw an error in waiting state. " "kubectl logs: %s", error_out,
                 )
                 raise AttributeError("Error: CrashLoopBackOff!")
-            elif (
-                "waiting" in container_status["state"]
-                or "running" in container_status["state"]
-            ):
-                LOGGER.info(
-                    "IN-PROGRESS: Container is either Creating or Running. Waiting to complete..."
-                )
+            elif "waiting" in container_status["state"] or "running" in container_status["state"]:
+                LOGGER.info("IN-PROGRESS: Container is either Creating or Running. Waiting to complete...")
                 raise ValueError("IN-PROGRESS: Retry.")
     else:
         LOGGER.info(f"containerStatuses not available yet, retrying. Pod: {pod_name}")
         raise ValueError("IN-PROGRESS: Retry.")
 
     return False
-
-
-def init_cfn_client():
-    """Function to initiate the cfn session
-    Args:
-        material_set: str
-    """
-    return boto3.client('cloudformation')
-
-def list_cfn_stack_names():
-    """Function to list the cfn stacks in the account.
-    Note: lists all the cfn stacks that aren't
-    Args:
-        material_set: str
-    """
-    stack_statuses = ['CREATE_IN_PROGRESS', 'CREATE_FAILED', 'CREATE_COMPLETE', 'ROLLBACK_IN_PROGRESS',
-                      'ROLLBACK_FAILED', 'ROLLBACK_COMPLETE', 'DELETE_IN_PROGRESS', 'DELETE_FAILED',
-                      'UPDATE_IN_PROGRESS', 'UPDATE_COMPLETE_CLEANUP_IN_PROGRESS', 'UPDATE_COMPLETE',
-                      'UPDATE_ROLLBACK_IN_PROGRESS', 'UPDATE_ROLLBACK_FAILED',
-                      'UPDATE_ROLLBACK_COMPLETE_CLEANUP_IN_PROGRESS', 'UPDATE_ROLLBACK_COMPLETE',
-                      'REVIEW_IN_PROGRESS', 'DELETE_COMPLETE']
-    cfn = init_cfn_client()
-
-    try:
-        cfn_stacks = cfn.list_stacks(
-            StackStatusFilter=[status for status in stack_statuses if status != 'DELETE_COMPLETE']
-        )
-    except ClientError as e:
-        LOGGER.error(f"Error: Cannot list stack names. Full Exception:\n{e}")
-
-    return [stack['StackName'] for stack in cfn_stacks['StackSummaries']]
-
-
-def describe_cfn_stack_events(stack_name):
-    """
-    Function to describe CFN events.
-    Args:
-        stack_name, materialset: str
-    """
-    cfn = init_cfn_client()
-    max_items = 10
-    try:
-        LOGGER.info("Describing the latest {} events on the stack".format(max_items))
-        for stack_event in cfn.describe_stack_events(StackName=stack_name)["StackEvents"][:max_items]:
-            LOGGER.info(stack_event)
-    except ClientError as e:
-        LOGGER.error(f"Error: Cannot describe events on stack: {stack_name}. Full Exception:\n{e}")
-
-
-def delete_cfn_stack_and_wait(stack_name):
-    """Function to delete cfn stack. The waiter checks if the stack has been deleted every _delay seconds,
-    for a maximum of _max_attempts times i.e. for _max_attempts min.
-    Args:
-        stack_name, material_set: str
-    """
-    cfn = init_cfn_client()
-    _delay = 60
-    _max_attempts = 20
-    try:
-        cfn.delete_stack(StackName=stack_name)
-        cfn_waiter = cfn.get_waiter("stack_delete_complete")
-        cfn_waiter.wait(StackName=stack_name,
-                        WaiterConfig={
-                            'Delay': _delay,
-                            'MaxAttempts': _max_attempts
-                        })
-    except ClientError as e:
-        LOGGER.error(f"Error: Cannot delete stack: {stack_name}. Full Exception:\n{e}")
-        describe_cfn_stack_events(stack_name)
-
-def delete_oidc_provider(eks_cluster_name):
-    """Function to delete the oidc provider created by kubeflow
-    Args:
-        eks_cluster_name: str
-    """
-    iam_client = boto3.client('iam')
-    eks_client = boto3.client('eks', region_name=DEFAULT_REGION)
-    sts_client = boto3.client('sts')
-
-    try:
-        account_id = sts_client.get_caller_identity().get('Account')
-        response = eks_client.describe_cluster(name=eks_cluster_name)        
-        oidc_issuer = response['cluster']['identity']['oidc']['issuer']
-        oidc_url = oidc_issuer.rsplit('//', 1)[-1]
-        oidc_provider_arn = f"arn:aws:iam::{account_id}:oidc-provider/{oidc_url}"
-
-        LOGGER.info(f"Deleting oidc provider: {oidc_provider_arn}")
-        iam_client.delete_open_id_connect_provider(OpenIDConnectProviderArn=oidc_provider_arn)
-        LOGGER.info(f"Deleting IAM roles created by kubeflow")
-        delete_iam_roles(eks_cluster_name)
-
-    except ClientError as e:
-        LOGGER.error(f"Error: Cannot describe the EKS cluster: {eks_cluster_name}. Full Exception:\n{e}")
-
-def delete_iam_roles(eks_cluster_name):
-    """Function to delete IAM role and policy created by kubeflow
-    """
-    iam_resource = boto3.resource('iam')
-    role_list = [f'kf-admin-{eks_cluster_name}', f'kf-user-{eks_cluster_name}']
-    try:
-        for role in role_list:
-            iam_role = iam_resource.Role(name=role)
-            
-            for role_policy in iam_role.policies.all():
-                LOGGER.info(f"Deleting Policy {role_policy.name}")
-                role_policy.delete()
-
-            iam_role.delete()
-            LOGGER.info(f"IAM role {iam_role.name} deleted\n")
-    except ClientError as e:
-        LOGGER.error(f"Error: Cannot delete IAM role. Full Exception:\n{e}")
-
-def delete_eks_cluster(eks_cluster_name):
-    """Function to delete the EKS cluster, if it exists. Additionally, the function cleans up the oidc provider
-    created by kubeflow and any cloudformation stacks that are dangling. 
-    Args:
-        eks_cluster_name: str
-    """
-    
-    delete_oidc_provider(eks_cluster_name)
-
-    run("eksctl delete cluster {} --wait".format(eks_cluster_name), warn=True)
-
-    cfn_stack_names = list_cfn_stack_names()
-    for stack_name in cfn_stack_names:
-        if eks_cluster_name in stack_name:
-            LOGGER.info(f"Deleting dangling cloudformation stack: {stack_name}")
-            delete_cfn_stack_and_wait(stack_name)
 
 def setup_eksctl():
     run_out = run("eksctl version", echo=True, warn=True)
@@ -313,46 +134,8 @@ def setup_eksctl():
     run("mv /tmp/eksctl /usr/local/bin")
 
 
-@retry(stop_max_attempt_number=2, wait_fixed=60000)
-def create_eks_cluster(eks_cluster_name, processor_type, num_nodes, volume_size,
-                       instance_type, ssh_public_key_name, region=os.getenv("AWS_REGION", DEFAULT_REGION)):
-    """Function to setup an EKS cluster using eksctl. The AWS credentials used to perform eks operations
-    are that the user deepamiuser-beta as used in other functions. The 'deeplearning-ami-beta' public key
-    will be used to access the nodes created as EC2 instances in the EKS cluster.
-    Note: eksctl creates a cloudformation stack by the name of eksctl-${eks_cluster_name}-cluster.
-    Args:
-        eks_cluster_name, processor_type, num_nodes, instance_type, ssh_public_key_name: str
-    """
-    setup_eksctl()
-
-    delete_eks_cluster(eks_cluster_name)
-
-    eksctl_create_cluster_command = f"eksctl create cluster {eks_cluster_name} " \
-                                    f"--node-ami {EKS_AMI_ID[processor_type]} " \
-                                    f"--nodes {num_nodes} " \
-                                    f"--node-type={instance_type} " \
-                                    f"--node-volume-size={volume_size} " \
-                                    f"--timeout=40m " \
-                                    f"--ssh-access " \
-                                    f"--ssh-public-key {ssh_public_key_name} " \
-                                    f"--region {region}"
-
-    # In us-east-1 you are likely to get UnsupportedAvailabilityZoneException,
-    # if the allocated zones is us-east-1e as it does not support AmazonEKS
-    if region == "us-east-1":
-        eksctl_create_cluster_command += " --zones=us-east-1a,us-east-1b,us-east-1d "
-    eksctl_create_cluster_command += " --auto-kubeconfig "
-    run(eksctl_create_cluster_command)
-
-    eks_write_kubeconfig(eks_cluster_name, "us-west-2")
-    
-    LOGGER.info(f"EKS cluster created successfully, with the following parameters cluster_name: "
-                f"{eks_cluster_name} ami-id: {EKS_AMI_ID[processor_type]} num_nodes: {num_nodes} instance_type: "
-                f"{instance_type} ssh_public_key: {ssh_public_key_name}")
-
-
 def eks_setup():
-    """Function to download eksctl, kubectl, aws-iam-authenticator and ksonnet binaries
+    """Function to download eksctl, kubectl, aws-iam-authenticator and kubetail binaries
     Utilities:
     1. eksctl: create and manage cluster
     2. kubectl: create and manage runs on eks cluster
@@ -374,12 +157,12 @@ def eks_setup():
 
     kubectl_download_command = (
         f"curl --silent --location https://amazon-eks.s3-us-west-2.amazonaws.com/"
-        f"{EKS_VERSION}/2019-08-22/bin/{platform.lower()}/amd64/kubectl -o /usr/local/bin/kubectl"
+        f"{EKS_VERSION}/2021-04-12/bin/{platform.lower()}/amd64/kubectl -o /usr/local/bin/kubectl"
     )
 
     aws_iam_authenticator_download_command = (
         f"curl --silent --location https://amazon-eks.s3-us-west-2.amazonaws.com/"
-        f"{EKS_VERSION}/2019-08-22/bin/{platform.lower()}/amd64/aws-iam-authenticator "
+        f"{EKS_VERSION}/2021-04-12/bin/{platform.lower()}/amd64/aws-iam-authenticator "
         f"-o /usr/local/bin/aws-iam-authenticator"
     )
 
@@ -405,23 +188,7 @@ def eks_setup():
     run("kubectl version --short --client", echo=True)
     run("aws-iam-authenticator version", echo=True)
 
-def setup_kubeflow(eks_cluster_name,region=os.getenv("AWS_REGION", DEFAULT_REGION)):
-    """Function to setup kubeflow, MPI and MXNET operators
-    """
-
-    local_template_file_path = os.path.join(
-        "eks",
-        "eks_manifest_templates",
-        "kubeflow",
-        "install_kubeflow_custom_kfctl.sh"
-    )
-
-    run(f"chmod +x {local_template_file_path}")
-    run(f"./{local_template_file_path} {eks_cluster_name} {region}", echo=True)
-
-def write_eks_yaml_file_from_template(
-    local_template_file_path, remote_yaml_file_path, search_replace_dict
-):
+def write_eks_yaml_file_from_template(local_template_file_path, remote_yaml_file_path, search_replace_dict):
     """Function that does a simple replace operation based on the search_replace_dict on the template file contents
     and writes the final yaml file to remote_yaml_path
     Args:
@@ -463,6 +230,10 @@ def is_eks_cluster_active(eks_cluster_name):
     return if_active
 
 
+def get_eks_role():
+    return os.getenv("EKS_TEST_ROLE")
+
+
 def eks_write_kubeconfig(eks_cluster_name, region="us-west-2"):
     """Function that writes the aws eks configuration for the specified cluster in the file ~/.kube/config
     This file is used by the kubectl and ks utilities along with aws-iam-authenticator to authenticate with aws
@@ -472,7 +243,12 @@ def eks_write_kubeconfig(eks_cluster_name, region="us-west-2"):
     Args:
         eks_cluster_name, region: str
     """
-    eksctl_write_kubeconfig_command = f"eksctl utils write-kubeconfig --name {eks_cluster_name} --region {region}"
+    eks_role = get_eks_role()
+    eksctl_write_kubeconfig_command = f"eksctl utils write-kubeconfig --cluster {eks_cluster_name} --region {region}"
+
+    if eks_role:
+        eksctl_write_kubeconfig_command += f" --authenticator-role-arn {eks_role} "
+
     run(eksctl_write_kubeconfig_command)
 
     run("cat /root/.kube/config", warn=True)
@@ -489,57 +265,31 @@ def eks_forward_port_between_host_and_container(selector_name, host_port, contai
     # Terminate other port-forwards
     # run("lsof -ni | awk '{print $2}' |  grep -v PID | uniq | xargs kill -9", warn=True)
 
-    run("nohup kubectl port-forward -n {0} `kubectl get pods -n {0} --selector=app={1} -o "
-        "jsonpath='{{.items[0].metadata.name}}'` {2}:{3} > /dev/null 2>&1 &".format(namespace, selector_name, host_port, container_port))
+    run(
+        "nohup kubectl port-forward -n {0} `kubectl get pods -n {0} --selector=app={1} -o "
+        "jsonpath='{{.items[0].metadata.name}}'` {2}:{3} > /dev/null 2>&1 &".format(
+            namespace, selector_name, host_port, container_port
+        )
+    )
 
 
-@retry(stop_max_attempt_number=20, wait_fixed=30000, retry_on_exception=retry_if_value_error)
+@retry(stop_max_attempt_number=30, wait_fixed=30000, retry_on_exception=retry_if_value_error)
 def is_service_running(selector_name, namespace="default"):
     """Check if the service pod is running
     Args:
         namespace, selector_name: str
     """
-    run_out = run("kubectl get pods -n {} --selector=app={} -o jsonpath='{{.items[0].status.phase}}' ".format(namespace, selector_name), warn=True)
+    run_out = run(
+        "kubectl get pods -n {} --selector=app={} -o jsonpath='{{.items[0].status.phase}}' ".format(
+            namespace, selector_name
+        ),
+        warn=True,
+    )
 
     if run_out.stdout == "Running":
         return True
     else:
         raise ValueError("Service not running yet, try again")
-
-
-def create_eks_cluster_nodegroup(
-        eks_cluster_name, processor_type, num_nodes, instance_type, ssh_public_key_name, region=DEFAULT_REGION
-):
-    """
-    Function to create and attach a nodegroup to an existing EKS cluster.
-    :param eks_cluster_name: Cluster name of the form PR_EKS_CLUSTER_NAME_TEMPLATE
-    :param processor_type: cpu/gpu
-    :param num_nodes: number of nodes to create in nodegroup
-    :param instance_type: instance type to use for nodegroup instances
-    :param ssh_public_key_name:
-    :param region: Region where EKS cluster is located
-    :return: None
-    """
-    eksctl_create_nodegroup_command = (
-        f"eksctl create nodegroup "
-        f"--cluster {eks_cluster_name} "
-        f"--node-ami {EKS_AMI_ID.get(processor_type)} "
-        f"--nodes {num_nodes} "
-        f"--node-type={instance_type} "
-        f"--timeout=40m "
-        f"--ssh-access "
-        f"--ssh-public-key {ssh_public_key_name} "
-        f"--region {region}"
-    )
-
-    run(eksctl_create_nodegroup_command)
-
-    LOGGER.info("EKS cluster nodegroup created successfully, with the following parameters\n"
-                f"cluster_name: {eks_cluster_name}\n"
-                f"ami-id: {EKS_AMI_ID[processor_type]}\n"
-                f"num_nodes: {num_nodes}\n"
-                f"instance_type: {instance_type}\n"
-                f"ssh_public_key: {ssh_public_key_name}")
 
 
 def eks_multinode_cleanup(remote_yaml_file_path, namespace):
@@ -573,7 +323,7 @@ def is_mpijob_launcher_pod_ready(namespace, job_name):
     """
 
     pod_name = run(
-        f"kubectl get pods -n {namespace} -l mpi_job_name={job_name},mpi_role_type=launcher -o name"
+        f"kubectl get pods -n {namespace} -l training.kubeflow.org/job-name={job_name},training.kubeflow.org/replica-type=launcher -o name"
     ).stdout.strip("\n")
     if pod_name:
         return pod_name
@@ -592,30 +342,38 @@ def is_eks_multinode_training_complete(remote_yaml_file_path, namespace, pod_nam
     run_out = run(f"kubectl get pod -n {namespace} {pod_name} -o json")
     pod_info = json.loads(run_out.stdout)
 
-    if 'containerStatuses' in pod_info['status']:
-        container_status = pod_info['status']['containerStatuses'][0]
+    if "containerStatuses" in pod_info["status"]:
+        container_status = pod_info["status"]["containerStatuses"][0]
         LOGGER.info(f"Container Status: {container_status}")
-        if container_status['name'] == job_name:
-            if "terminated" in container_status['state']:
-                if container_status['state']['terminated']['reason'] == "Completed":
+        if container_status["name"] == job_name:
+            if "terminated" in container_status["state"]:
+                if container_status["state"]["terminated"]["reason"] == "Completed":
                     LOGGER.info("SUCCESS: The container terminated.")
                     return True
-                elif container_status['state']['terminated']['reason'] == "Error":
-                    LOGGER.error(f"ERROR: The container run threw an error and terminated. "
-                                 f"kubectl logs: {eks_multinode_get_logs(namespace, pod_name)}")
+                elif container_status["state"]["terminated"]["reason"] == "Error":
+                    LOGGER.error(
+                        f"ERROR: The container run threw an error and terminated. "
+                        f"kubectl logs: {eks_multinode_get_logs(namespace, pod_name)}"
+                    )
                     eks_multinode_cleanup(remote_yaml_file_path, namespace)
                     raise AttributeError("Container Error!")
-            elif 'waiting' in container_status['state'] and \
-                    container_status['state']['waiting']['reason'] == "PodInitializing":
+            elif (
+                "waiting" in container_status["state"]
+                and container_status["state"]["waiting"]["reason"] == "PodInitializing"
+            ):
                 LOGGER.info("POD-INITIALIZING: Pod is initializing")
                 raise ValueError("IN-PROGRESS: Retry.")
-            elif 'waiting' in container_status['state'] and \
-                    container_status['state']['waiting']['reason'] == "CrashLoopBackOff":
-                LOGGER.error(f"ERROR: The container run threw an error in waiting state. "
-                             f"kubectl logs: {eks_multinode_get_logs(namespace, pod_name)}")
+            elif (
+                "waiting" in container_status["state"]
+                and container_status["state"]["waiting"]["reason"] == "CrashLoopBackOff"
+            ):
+                LOGGER.error(
+                    f"ERROR: The container run threw an error in waiting state. "
+                    f"kubectl logs: {eks_multinode_get_logs(namespace, pod_name)}"
+                )
                 eks_multinode_cleanup(remote_yaml_file_path, namespace)
                 raise AttributeError("Error: CrashLoopBackOff!")
-            elif 'waiting' in container_status['state'] or 'running' in container_status['state']:
+            elif "waiting" in container_status["state"] or "running" in container_status["state"]:
                 LOGGER.info("IN-PROGRESS: Container is either Creating or Running. Waiting to complete...")
                 raise ValueError("IN-PROGRESS: Retry.")
 
@@ -628,15 +386,15 @@ def get_dgl_branch(ctx, image_uri):
 
     :param ctx: Invoke context
     :param image_uri: docker image URI, used to uniqify repo name to avoid asynchronous git pulls
-    :return: latest dgl branch, i.e. 0.4.x
+    :return: latest dgl branch, i.e. 0.5.x
     """
-    image_addition = image_uri.split('/')[-1].replace(':', '-')
-    dgl_local_repo = f'.dgl_branch-{image_addition}'
+    image_addition = image_uri.split("/")[-1].replace(":", "-")
+    dgl_local_repo = f".dgl_branch-{image_addition}"
     ctx.run(f"git clone https://github.com/dmlc/dgl.git {dgl_local_repo}", hide=True, warn=True)
     with ctx.cd(dgl_local_repo):
         branch = ctx.run("git branch -r", hide=True)
         branches = branch.stdout.split()
-        release_branch_regex = re.compile(r'\d+.\d+.x')
+        release_branch_regex = re.compile(r"\d+.\d+.x")
         release_branches = []
         for branch in branches:
             match = release_branch_regex.search(branch)

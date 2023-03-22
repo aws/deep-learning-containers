@@ -1,7 +1,11 @@
 import sys
 import re
+import dgl
 
-THRESHOLD = 75.0
+from packaging.version import Version
+
+# starting 0.9.x, dgl using 0.xx to represent accuracy 
+THRESHOLD = 0.75 if Version(dgl.__version__) >= Version("0.9.0") else 75.0
 
 def get_accuracies(log_file):
     # Instantiate lists for accuracies above threshold and below, respectively

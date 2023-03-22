@@ -2,7 +2,7 @@ FROM ubuntu:18.04
 
 LABEL maintainer="Amazon AI"
 
-ARG OPENSSL_VERSION=1.1.1g
+ARG OPENSSL_VERSION=1.1.1k
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
     ca-certificates \

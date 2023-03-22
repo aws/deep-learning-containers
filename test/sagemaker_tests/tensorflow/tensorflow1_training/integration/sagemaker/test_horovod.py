@@ -19,6 +19,7 @@ import pytest
 import sagemaker
 from sagemaker.tensorflow import TensorFlow
 
+from ..... import invoke_sm_helper_function
 from ...integration.utils import processor, py_version, unique_name_from_base  # noqa: F401
 
 RESOURCE_PATH = os.path.join(os.path.dirname(__file__), '..', '..', 'resources')
@@ -27,19 +28,23 @@ RESOURCE_PATH = os.path.join(os.path.dirname(__file__), '..', '..', 'resources')
 @pytest.mark.integration("horovod")
 @pytest.mark.model("mnist")
 @pytest.mark.multinode(2)
-def test_distributed_training_horovod(sagemaker_session,
+def test_distributed_training_horovod(ecr_image,
+                                      sagemaker_regions,
                                       instance_type,
-                                      ecr_image,
                                       tmpdir,
                                       framework_version):
+    invoke_sm_helper_function(ecr_image, sagemaker_regions, _test_distributed_training_horovod_function,
+                              instance_type, tmpdir, framework_version)
 
+
+def _test_distributed_training_horovod_function(ecr_image, sagemaker_session, instance_type, tmpdir, framework_version):
     mpi_options = '-verbose -x orte_base_help_aggregate=0'
     estimator = TensorFlow(
         entry_point=os.path.join(RESOURCE_PATH, 'mnist', 'horovod_mnist.py'),
         role='SageMakerRole',
-        train_instance_type=instance_type,
-        train_instance_count=2,
-        image_name=ecr_image,
+        instance_type=instance_type,
+        instance_count=2,
+        image_uri=ecr_image,
         framework_version=framework_version,
         py_version='py3',
         script_mode=True,
@@ -61,16 +66,21 @@ def test_distributed_training_horovod(sagemaker_session,
 @pytest.mark.multinode(2)
 @pytest.mark.model("unknown_model")
 def test_distributed_training_horovod_with_env_vars(
-        sagemaker_session, instance_type, ecr_image, tmpdir, framework_version
+        ecr_image, sagemaker_regions, instance_type, tmpdir, framework_version
 ):
+    invoke_sm_helper_function(ecr_image, sagemaker_regions, _test_distributed_training_horovod_with_env_vars_function,
+                              instance_type, tmpdir, framework_version)
 
+
+def _test_distributed_training_horovod_with_env_vars_function(ecr_image, sagemaker_session, instance_type, tmpdir,
+                                                              framework_version):
     mpi_options = "-verbose -x orte_base_help_aggregate=0"
     estimator = TensorFlow(
         entry_point=os.path.join(RESOURCE_PATH, "hvdbasic", "train_hvd_env_vars.py"),
         role="SageMakerRole",
-        train_instance_type=instance_type,
-        train_instance_count=2,
-        image_name=ecr_image,
+        instance_type=instance_type,
+        instance_count=2,
+        image_uri=ecr_image,
         framework_version=framework_version,
         py_version="py3",
         script_mode=True,

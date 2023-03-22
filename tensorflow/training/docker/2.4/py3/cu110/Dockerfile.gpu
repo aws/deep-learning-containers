@@ -1,0 +1,335 @@
+FROM nvidia/cuda:11.0-base-ubuntu18.04
+
+LABEL maintainer="Amazon AI"
+LABEL dlc_major_version="1"
+
+# prevent stopping by user interaction
+ENV DEBIAN_FRONTEND noninteractive
+ENV DEBCONF_NONINTERACTIVE_SEEN true
+ENV SAGEMAKER_TRAINING_MODULE sagemaker_tensorflow_container.training:main
+
+ENV PYTHONDONTWRITEBYTECODE=1
+ENV PYTHONUNBUFFERED=1
+ENV PYTHONIOENCODING=UTF-8
+ENV LANG=C.UTF-8
+ENV LC_ALL=C.UTF-8
+
+# Set environment variables for MKL
+# For more about MKL with TensorFlow see:
+# https://www.tensorflow.org/performance/performance_guide#tensorflow_with_intel%C2%AE_mkl_dnn
+ENV KMP_AFFINITY=granularity=fine,compact,1,0
+ENV KMP_BLOCKTIME=1
+ENV KMP_SETTINGS=0
+ENV MANUAL_BUILD=0
+ENV RDMAV_FORK_SAFE=1
+
+ARG PYTHON=python3.7
+ARG PYTHON_PIP=python3-pip
+ARG PIP=pip3
+ARG PYTHON_VERSION=3.7.10
+ARG OPEN_MPI_PATH=/opt/amazon/openmpi
+ARG EFA_PATH=/opt/amazon/efa
+ARG NCCL_VERSION=2.7.8
+ARG EFA_VERSION=1.11.2
+ARG OMPI_VERSION=4.1.1
+ARG BRANCH_OFI=1.1.1
+
+ARG TF_URL=https://aws-tensorflow-binaries.s3-us-west-2.amazonaws.com/tensorflow/r2.4_aws/20210813_093733/gpu/cu110/py37/tensorflow_gpu-2.4.3-cp37-cp37m-manylinux2010_x86_64.whl
+
+ARG ESTIMATOR_URL=https://aws-tensorflow-binaries.s3-us-west-2.amazonaws.com/estimator/r2.4_aws/20210813_093733/tensorflow_estimator-2.4.0-py2.py3-none-any.whl
+
+# The smdebug pipeline relies for following format to perform string replace and trigger DLC pipeline for validating
+# the nightly builds. Therefore, while updating the smdebug version, please ensure that the format is not disturbed.
+ARG SMDEBUG_VERSION=1.0.9
+
+ARG SMDATAPARALLEL_BINARY=https://smdataparallel.s3.amazonaws.com/binary/tensorflow/2.4.1/cu110/2021-04-28/smdistributed_dataparallel-1.2.0-cp37-cp37m-linux_x86_64.whl
+
+ARG SMMODELPARALLEL_BINARY=https://sagemaker-distributed-model-parallel.s3.amazonaws.com/tensorflow-2.4/build-artifacts/2021-03-26-21-57/smdistributed_modelparallel-1.3.1-cp37-cp37m-linux_x86_64.whl
+
+RUN apt-get update \
+ && apt-get -y upgrade --only-upgrade systemd \
+ && apt-get install -y --no-install-recommends --allow-unauthenticated \
+    ca-certificates \
+    cuda-command-line-tools-11-0 \
+    cuda-cudart-dev-11-0 \
+    libcufft-dev-11-0 \
+    libcurand-dev-11-0 \
+    libcusolver-dev-11-0 \
+    libcusparse-dev-11-0 \
+    curl \
+    emacs \
+    libcudnn8=8.0.5.39-1+cuda11.0 \
+    # TensorFlow doesn't require libnccl anymore but Open MPI still depends on it
+    libgomp1 \
+    libfreetype6-dev \
+    libhdf5-serial-dev \
+    liblzma-dev \
+    libpng-dev \
+    libtemplate-perl \
+    libzmq3-dev \
+    hwloc \
+    git \
+    unzip \
+    wget \
+    libtool \
+    vim \
+    libssl1.1 \
+    openssl \
+    build-essential \
+    openssh-client \
+    openssh-server \
+    zlib1g-dev \
+    # Install dependent library for OpenCV
+    libgtk2.0-dev \
+    # Needed for open-cv to resolve error: ImportError: libGL.so.1: cannot open shared object file: No such file or directory
+    libgl1-mesa-glx \
+    jq \
+ && apt-get update \
+ && apt-get install -y --no-install-recommends --allow-unauthenticated \
+    libcublas-11-0=11.2.0.252-1 \
+    libcublas-dev-11-0=11.2.0.252-1 \
+    # The 'apt-get install' of nvinfer-runtime-trt-repo-ubuntu1804-5.0.2-ga-cuda10.0
+    # adds a new list which contains libnvinfer library, so it needs another
+    # 'apt-get update' to retrieve that list before it can actually install the
+    # library.
+    # We don't install libnvinfer-dev since we don't need to build against TensorRT,
+    # and libnvinfer4 doesn't contain libnvinfer.a static library.
+    # nvinfer-runtime-trt-repo doesn't have a 1804-cuda10.1 version yet. see:
+    # https://developer.download.nvidia.cn/compute/machine-learning/repos/ubuntu1804/x86_64/
+ && apt-get update && apt-get install -y --no-install-recommends --allow-unauthenticated  \
+    nvinfer-runtime-trt-repo-ubuntu1804-5.0.2-ga-cuda10.0 \
+ && apt-get update && apt-get install -y --no-install-recommends --allow-unauthenticated  \
+    libnvinfer7=7.1.3-1+cuda11.0 \
+ && rm -rf /var/lib/apt/lists/* \
+ && mkdir -p /var/run/sshd
+
+RUN cd /tmp \
+  && git clone https://github.com/NVIDIA/nccl.git -b v$NCCL_VERSION-1 \
+  && cd nccl \
+  && make -j64 src.build BUILDDIR=/usr/local \
+  && rm -rf /tmp/nccl
+
+# Install EFA along without AWS OPEN_MPI
+RUN mkdir /tmp/efa \
+  && cd /tmp/efa \
+  && curl -O https://s3-us-west-2.amazonaws.com/aws-efa-installer/aws-efa-installer-${EFA_VERSION}.tar.gz \
+  && tar -xf aws-efa-installer-${EFA_VERSION}.tar.gz \
+  && cd aws-efa-installer \
+  && ./efa_installer.sh -y --skip-kmod -g \
+  && rm -rf $OPEN_MPI_PATH \
+  && rm -rf /tmp/efa \
+  && rm -rf /tmp/aws-efa-installer-${EFA_VERSION}.tar.gz
+
+# Install OpenMPI without libfabric support
+RUN mkdir /tmp/openmpi && \
+  cd /tmp/openmpi && \
+  wget --quiet https://download.open-mpi.org/release/open-mpi/v4.1/openmpi-${OMPI_VERSION}.tar.gz && \
+  tar zxf openmpi-${OMPI_VERSION}.tar.gz && \
+  cd openmpi-${OMPI_VERSION} && \
+  ./configure --enable-orterun-prefix-by-default --prefix=$OPEN_MPI_PATH && \
+  make -j $(nproc) all && \
+  make install && \
+  ldconfig && \
+  cd / && \
+  rm -rf /tmp/openmpi
+
+RUN wget https://sourceforge.net/projects/boost/files/boost/1.73.0/boost_1_73_0.tar.gz/download -O boost_1_73_0.tar.gz \
+ && tar -xzf boost_1_73_0.tar.gz \
+ && cd boost_1_73_0 \
+ && ./bootstrap.sh \
+ && ./b2 threading=multi --prefix=/usr -j 64 cxxflags=-fPIC cflags=-fPIC install || true \
+ && cd .. \
+ && rm -rf boost_1_73_0.tar.gz \
+ && rm -rf boost_1_73_0 \
+ && cd /usr/include/boost
+
+###########################################################################
+# Horovod & its dependencies
+###########################################################################
+
+# Create a wrapper for OpenMPI to allow running as root by default
+RUN mv $OPEN_MPI_PATH/bin/mpirun $OPEN_MPI_PATH/bin/mpirun.real \
+ && echo '#!/bin/bash' > $OPEN_MPI_PATH/bin/mpirun \
+ && echo 'mpirun.real --allow-run-as-root "$@"' >> $OPEN_MPI_PATH/bin/mpirun \
+ && chmod a+x $OPEN_MPI_PATH/bin/mpirun
+
+# Configure OpenMPI to run good defaults:
+#   --bind-to none --map-by slot --mca btl_tcp_if_exclude lo,docker0
+RUN echo "hwloc_base_binding_policy = none" >> $OPEN_MPI_PATH/etc/openmpi-mca-params.conf \
+ && echo "rmaps_base_mapping_policy = slot" >> $OPEN_MPI_PATH/etc/openmpi-mca-params.conf
+
+# Set default NCCL parameters
+RUN echo NCCL_DEBUG=INFO >> /etc/nccl.conf
+ENV LD_LIBRARY_PATH=$OPEN_MPI_PATH/lib/:$EFA_PATH/lib/:$LD_LIBRARY_PATH
+# /usr/local/lib/libpython* needs to be accessible for dynamic linking
+ENV LD_LIBRARY_PATH=/usr/local/lib:$LD_LIBRARY_PATH
+ENV PATH=$OPEN_MPI_PATH/bin/:$PATH
+ENV PATH=$OPEN_MPI_PATH/nvidia/bin:$PATH
+
+# SSH login fix. Otherwise user is kicked off after login
+RUN mkdir -p /var/run/sshd \
+ && sed 's@session\s*required\s*pam_loginuid.so@session optional pam_loginuid.so@g' -i /etc/pam.d/sshd
+
+# Create SSH key.
+RUN mkdir -p /root/.ssh/ \
+ && ssh-keygen -q -t rsa -N '' -f /root/.ssh/id_rsa \
+ && cp /root/.ssh/id_rsa.pub /root/.ssh/authorized_keys \
+ && printf "Host *\n  StrictHostKeyChecking no\n" >> /root/.ssh/config
+
+WORKDIR /
+
+RUN apt-get update \
+ && apt-get install -y --no-install-recommends \
+    libbz2-dev \
+    libc6-dev \
+    libffi-dev \
+    libgdbm-dev \
+    libncursesw5-dev \
+    libreadline-gplv2-dev \
+    libsqlite3-dev \
+    libssl-dev \
+    tk-dev \
+ && rm -rf /var/lib/apt/lists/* \
+ && apt-get clean
+
+RUN wget https://www.python.org/ftp/python/$PYTHON_VERSION/Python-$PYTHON_VERSION.tgz \
+ && tar -xvf Python-$PYTHON_VERSION.tgz \
+ && cd Python-$PYTHON_VERSION \
+ && ./configure --enable-shared && make && make install \
+ && rm -rf ../Python-$PYTHON_VERSION*
+
+RUN ${PIP} --no-cache-dir install --upgrade \
+    pip \
+    setuptools
+
+# Some TF tools expect a "python" binary
+RUN ln -s $(which ${PYTHON}) /usr/local/bin/python \
+ && ln -s $(which ${PIP}) /usr/bin/pip
+
+RUN ${PIP} install --no-cache-dir -U \
+    pybind11 \
+    cmake==3.18.2.post1 \
+    numpy==1.19.1 \
+    scipy==1.5.2 \
+    scikit-learn==0.23 \
+    pandas==1.1 \
+    "Pillow>=8.3,<8.4" \
+    # python-dateutil==2.8.1 to satisfy botocore associated with latest awscli
+    python-dateutil==2.8.1 \
+    # install PyYAML>=5.4 to avoid conflict with latest awscli
+    "pyYAML>=5.4,<5.5" \
+    requests==2.24.0 \
+    "awscli<2" \
+    mpi4py==3.0.3 \
+    "sagemaker>=2,<3" \
+    sagemaker-experiments==0.* \
+    "sagemaker-tensorflow>=2.4,<2.5" \
+    "sagemaker-tensorflow-training>=20" \
+    # Let's install TensorFlow separately in the end to avoid
+    # the library version to be overwritten
+ && ${PIP} install --no-cache-dir -U \
+    ${TF_URL} \
+    ${ESTIMATOR_URL} \
+    h5py==2.10.0 \
+    "absl-py>=0.9,<0.11" \
+    werkzeug==2.0.2 \
+    smdebug==${SMDEBUG_VERSION} \
+    smclarify
+
+# Install extra packages
+# numba 0.54 only works with numpy>=1.20. See https://github.com/numba/numba/issues/7339
+# Pinning bokeh to 2.3.3 due to typing-extension package version conflict with tensorlfow-cpu. See https://github.com/aws/deep-learning-containers/issues/1393 
+RUN ${PIP} install --no-cache-dir -U \
+    "bokeh==2.3.3" \
+    "imageio>=2.9,<3" \
+    "opencv-python>=4.3,<5" \
+    "plotly>=5.1,<6" \
+    "seaborn>=0.11,<1" \
+    "numba<0.54" \
+    "shap>=0.39,<1"
+
+ARG METIS=metis-5.1.0
+ARG RMM_VERSION=0.15.0
+
+# install metis
+RUN wget -nv http://glaros.dtc.umn.edu/gkhome/fetch/sw/metis/${METIS}.tar.gz \
+  && gunzip -f ${METIS}.tar.gz \
+  && tar -xvf ${METIS}.tar \
+  && cd ${METIS} \
+  && apt-get update \
+  && apt-get install -y build-essential \
+  && apt-get install -y cmake \
+  && make config shared=1 \
+  && make install \
+  && cd .. \
+  && rm -rf ${METIS}.tar* \
+  && rm -rf ${METIS} \
+  && rm -rf /var/lib/apt/lists/* \
+  && apt-get clean
+
+# Install RAPIDSMemoryManager.
+# Requires cmake>=3.14.
+RUN  wget -nv https://github.com/rapidsai/rmm/archive/v${RMM_VERSION}.tar.gz \
+  && tar -xvf v${RMM_VERSION}.tar.gz \
+  && cd rmm-${RMM_VERSION} \
+  && INSTALL_PREFIX=/usr/local ./build.sh librmm \
+  && cd .. \
+  && rm -rf v${RMM_VERSION}.tar* \
+  && rm -rf rmm-${RMM_VERSION}
+
+# Install AWS OFI NCCL plug-in
+RUN apt-get update && apt-get install -y autoconf
+RUN mkdir /tmp/efa-ofi-nccl \
+  && cd /tmp/efa-ofi-nccl \
+  && git clone https://github.com/aws/aws-ofi-nccl.git -b v$BRANCH_OFI \
+  && cd aws-ofi-nccl \
+  && ./autogen.sh \
+  && ./configure --with-libfabric=/opt/amazon/efa \
+  --with-mpi=/opt/amazon/openmpi \
+  --with-cuda=/usr/local/cuda \
+  --with-nccl=/usr/local --prefix=/usr/local \
+  && make \
+  && make install \
+  && rm -rf /tmp/efa-ofi-nccl
+
+ENV CPATH="/usr/local/lib/python3.7/dist-packages/pybind11/include/"
+
+RUN apt-get update && apt-get -y install cmake protobuf-compiler
+
+# Install Horovod, temporarily using CUDA stubs
+RUN ldconfig /usr/local/cuda-11.0/targets/x86_64-linux/lib/stubs \
+ && HOROVOD_GPU_ALLREDUCE=NCCL HOROVOD_WITH_TENSORFLOW=1 ${PIP} install --no-cache-dir horovod==0.21.0 \
+ && ldconfig
+
+# Allow OpenSSH to talk to containers without asking for confirmation
+RUN cat /etc/ssh/ssh_config | grep -v StrictHostKeyChecking > /etc/ssh/ssh_config.new \
+ && echo "    StrictHostKeyChecking no" >> /etc/ssh/ssh_config.new \
+ && mv /etc/ssh/ssh_config.new /etc/ssh/ssh_config
+
+# Add NGC vars
+ENV TF_AUTOTUNE_THRESHOLD=2
+
+# Install SMD MP binary
+RUN pip install --no-cache-dir -U ${SMMODELPARALLEL_BINARY}
+
+# Install SMD DP binary
+RUN SMDATAPARALLEL_TF=1 pip install --no-cache-dir ${SMDATAPARALLEL_BINARY}
+
+ENV LD_LIBRARY_PATH="/usr/local/lib/python3.7/site-packages/smdistributed/dataparallel/lib:$LD_LIBRARY_PATH"
+
+COPY deep_learning_container.py /usr/local/bin/deep_learning_container.py
+
+RUN chmod +x /usr/local/bin/deep_learning_container.py
+
+RUN HOME_DIR=/root \
+ && curl -o ${HOME_DIR}/oss_compliance.zip https://aws-dlinfra-utilities.s3.amazonaws.com/oss_compliance.zip \
+ && unzip ${HOME_DIR}/oss_compliance.zip -d ${HOME_DIR}/ \
+ && cp ${HOME_DIR}/oss_compliance/test/testOSSCompliance /usr/local/bin/testOSSCompliance \
+ && chmod +x /usr/local/bin/testOSSCompliance \
+ && chmod +x ${HOME_DIR}/oss_compliance/generate_oss_compliance.sh \
+ && ${HOME_DIR}/oss_compliance/generate_oss_compliance.sh ${HOME_DIR} ${PYTHON} \
+ && rm -rf ${HOME_DIR}/oss_compliance*
+
+RUN curl https://aws-dlc-licenses.s3.amazonaws.com/tensorflow-2.4/license.txt -o /license.txt
+
+CMD ["/bin/bash"]

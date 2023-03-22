@@ -4,7 +4,8 @@ TF_VERSION=$(python -c 'import tensorflow as tf; print(tf.__version__[0])'| tr -
 GIT_BRANCH="cnn_tf_v1.13_compatible"
 if [ "$TF_VERSION" -eq 2 ]
 then
-  GIT_BRANCH="cnn_tf_v2.1_compatible"
+  GIT_BRANCH="master"
+  GIT_COMMIT="19f4e7e5929fd53c84d5bd7ae7d767725f9fd89a"
 fi
 HOME_DIR=/test/benchmark
 BIN_DIR=${HOME_DIR}/bin
@@ -24,7 +25,7 @@ export KMP_BLOCKTIME=1
 export KMP_SETTINGS=0
 
 set -e
-git clone https://github.com/tensorflow/benchmarks.git ${HOME_DIR}/artifacts/tensorflow/benchmarks && cd ${HOME_DIR}/artifacts/tensorflow/benchmarks && git checkout ${GIT_BRANCH}
+git clone https://github.com/tensorflow/benchmarks.git ${HOME_DIR}/artifacts/tensorflow/benchmarks && cd ${HOME_DIR}/artifacts/tensorflow/benchmarks && git checkout ${GIT_BRANCH} && git checkout ${GIT_COMMIT}
 START=$(date +%s)
 python scripts/tf_cnn_benchmarks/tf_cnn_benchmarks.py --batch_size=256 --model=resnet50_v1.5 --train_dir=$HOME/test00 --device=cpu --data_format=NHWC --num_inter_threads=0 --num_intra_threads=36 --mkl=True --kmp_blocktime=0 2>&1 | tee ${LOG_FILE}
 END=$(date +%s)

@@ -21,6 +21,7 @@ import pytest
 from sagemaker import utils
 from sagemaker.tensorflow import TensorFlow
 
+from ..... import invoke_sm_helper_function
 from ...integration import RESOURCE_PATH
 from .timeout import timeout
 
@@ -28,12 +29,15 @@ DATA_PATH = os.path.join(RESOURCE_PATH, "mnist")
 SCRIPT_PATH = os.path.join(DATA_PATH, "mnist_gluon_basic_hook_demo.py")
 
 
-@pytest.mark.skip(reason="Skipping sm experiments tests until a fix is implemented")
 @pytest.mark.model("mnist")
 @pytest.mark.integration("smexperiments")
 @pytest.mark.skip_py2_containers
-def test_training(sagemaker_session, ecr_image, instance_type, framework_version, py_version):
+def test_training(ecr_image, sagemaker_regions, instance_type, framework_version, py_version):
+    invoke_sm_helper_function(ecr_image, sagemaker_regions, _test_training_function,
+                              instance_type, framework_version, py_version)
 
+
+def _test_training_function(ecr_image, sagemaker_session, instance_type, framework_version, py_version):
     if py_version is None or '2' in py_version:
         pytest.skip('Skipping python2 {}'.format(py_version))
         return
@@ -68,10 +72,10 @@ def test_training(sagemaker_session, ecr_image, instance_type, framework_version
         estimator = TensorFlow(
             entry_point=script,
             role="SageMakerRole",
-            train_instance_type=instance_type,
-            train_instance_count=1,
+            instance_type=instance_type,
+            instance_count=1,
             sagemaker_session=sagemaker_session,
-            image_name=ecr_image,
+            image_uri=ecr_image,
             framework_version=framework_version,
             script_mode=True,
         )

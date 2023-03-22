@@ -1,0 +1,36 @@
+# https://github.com/aws/deep-learning-containers/blob/master/available_images.md 
+# refer to the above page to pull latest Pytorch image
+
+# docker image region us-west-2
+FROM 763104351884.dkr.ecr.us-west-2.amazonaws.com/pytorch-training:1.9.1-gpu-py38-cu111-ubuntu20.04
+
+LABEL maintainer="Amazon AI"
+LABEL dlc_major_version="1"
+
+# version args
+ARG TRANSFORMERS_VERSION
+ARG DATASETS_VERSION
+ARG PYTHON=python3
+
+# install Hugging Face libraries and its dependencies
+RUN pip install --no-cache-dir \ 
+	transformers[sklearn,sentencepiece]==${TRANSFORMERS_VERSION} \ 
+	datasets==${DATASETS_VERSION} \
+	# TODO: Remove upgrade statements once packages are updated in base image
+	"Pillow>=8.3.2"
+	
+RUN apt-get update \
+ # TODO: Remove upgrade statements once packages are updated in base image
+ && apt-get -y upgrade --only-upgrade systemd openssl \
+ && apt install -y git-lfs \
+ && apt-get clean \  
+ && rm -rf /var/lib/apt/lists/*
+
+RUN HOME_DIR=/root \
+ && curl -o ${HOME_DIR}/oss_compliance.zip https://aws-dlinfra-utilities.s3.amazonaws.com/oss_compliance.zip \
+ && unzip ${HOME_DIR}/oss_compliance.zip -d ${HOME_DIR}/ \
+ && cp ${HOME_DIR}/oss_compliance/test/testOSSCompliance /usr/local/bin/testOSSCompliance \
+ && chmod +x /usr/local/bin/testOSSCompliance \
+ && chmod +x ${HOME_DIR}/oss_compliance/generate_oss_compliance.sh \
+ && ${HOME_DIR}/oss_compliance/generate_oss_compliance.sh ${HOME_DIR} ${PYTHON} \
+ && rm -rf ${HOME_DIR}/oss_compliance*

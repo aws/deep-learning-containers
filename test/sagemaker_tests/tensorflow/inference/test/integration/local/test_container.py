@@ -40,17 +40,19 @@ def container(request, docker_base_name, tag, runtime_config):
     try:
         if request.param:
             batching_config = ' -e SAGEMAKER_TFS_ENABLE_BATCHING=true'
+            port_config = ' -e SAGEMAKER_SAFE_PORT_RANGE=9000-9999'            
         else:
             batching_config = ''
+            port_config = ''            
         command = (
             'docker run {}--name sagemaker-tensorflow-serving-test -p 8080:8080'
             ' --mount type=volume,source=model_volume,target=/opt/ml/model,readonly'
             ' -e SAGEMAKER_TFS_NGINX_LOGLEVEL=info'
             ' -e SAGEMAKER_BIND_TO_PORT=8080'
-            ' -e SAGEMAKER_SAFE_PORT_RANGE=9000-9999'
+            ' {}'
             ' {}'
             ' {}:{} serve'
-        ).format(runtime_config, batching_config, docker_base_name, tag)
+        ).format(runtime_config, batching_config, port_config, docker_base_name, tag)
 
         proc = subprocess.Popen(command.split(), stdout=sys.stdout, stderr=subprocess.STDOUT)
 
@@ -111,6 +113,20 @@ def test_predict_two_instances():
 
     y = make_request(json.dumps(x))
     assert y == {'predictions': [[3.5, 4.0, 5.5], [3.5, 4.0, 5.5]]}
+
+@pytest.mark.flaky(reruns=5, reruns_delay=25)
+@pytest.mark.model("half_plus_three")
+def test_predict_instance_jsonlines_input_error():
+    """
+    Test with input that previously triggered jsonlines code in tensorflowServing.js
+    Will still produce error - but error should be 'Type: String is not of expected type: float'
+    """
+    x = {"instances": ["]["]}
+    y = make_request(json.dumps(x))
+    assert (
+        "error" in y
+        and y['error'].endswith('JSON Value: "][" Type: String is not of expected type: float')
+    )
 
 @pytest.mark.flaky(reruns=5, reruns_delay=25)
 @pytest.mark.model("half_plus_three")

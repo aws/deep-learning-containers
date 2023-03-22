@@ -18,8 +18,8 @@ import pytest
 from sagemaker.pytorch import PyTorch
 
 from ...utils.local_mode_utils import assert_files_exist
-from ...integration import data_dir, fastai_path, fastai_mnist_script, mnist_script, ROLE
-
+from ...integration import data_dir, fastai_path, fastai_mnist_script, mnist_path, mnist_script, ROLE, get_framework_and_version_from_tag
+from packaging.version import Version
 
 @pytest.mark.model("mnist")
 def test_mnist(docker_image, processor, instance_type, sagemaker_local_session, tmpdir):
@@ -34,13 +34,16 @@ def test_mnist(docker_image, processor, instance_type, sagemaker_local_session, 
         output_path='file://{}'.format(tmpdir),
     )
 
-    _train_and_assert_success(estimator, data_dir, str(tmpdir))
+    _train_and_assert_success(estimator, str(tmpdir), {'training': 'file://{}'.format(os.path.join(data_dir, 'training'))})
 
 
 @pytest.mark.integration("fastai")
 @pytest.mark.model("mnist")
 @pytest.mark.skip_py2_containers
 def test_fastai_mnist(docker_image, instance_type, py_version, sagemaker_local_session, tmpdir):
+    _, image_framework_version = get_framework_and_version_from_tag(docker_image)
+    if Version("1.9") <= Version(image_framework_version) < Version("1.13"):
+        pytest.skip("Fast ai is not supported on PyTorch v1.9.x, v1.10.x, v1.11.x, v1.12.x")
     estimator = PyTorch(
         entry_point=fastai_mnist_script,
         role=ROLE,
@@ -52,11 +55,11 @@ def test_fastai_mnist(docker_image, instance_type, py_version, sagemaker_local_s
     )
 
     input_dir = os.path.join(fastai_path, 'mnist_tiny')
-    _train_and_assert_success(estimator, input_dir, str(tmpdir))
+    _train_and_assert_success(estimator, str(tmpdir))
 
 
-def _train_and_assert_success(estimator, input_dir, output_path):
-    estimator.fit({'training': 'file://{}'.format(os.path.join(input_dir, 'training'))})
+def _train_and_assert_success(estimator, output_path, fit_params={}):
+    estimator.fit(fit_params)
 
     success_files = {'model': ['model.pth'], 'output': ['success']}
     assert_files_exist(output_path, success_files)

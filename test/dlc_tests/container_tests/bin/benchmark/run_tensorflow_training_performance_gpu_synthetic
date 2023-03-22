@@ -4,7 +4,8 @@ TF_VERSION=$(python -c 'import tensorflow as tf; print(tf.__version__[0])'| tr -
 GIT_BRANCH="cnn_tf_v1.13_compatible"
 if [ "$TF_VERSION" -eq 2 ]
 then
-  GIT_BRANCH="cnn_tf_v2.1_compatible"
+  GIT_BRANCH="master"
+  GIT_COMMIT="19f4e7e5929fd53c84d5bd7ae7d767725f9fd89a"
 fi
 HOME_DIR=/test/benchmark
 BIN_DIR=${HOME_DIR}/bin
@@ -15,7 +16,7 @@ mkdir -p ${BIN_DIR}
 mkdir -p ${LOG_DIR}
 
 set -e
-git clone https://github.com/tensorflow/benchmarks.git ${HOME_DIR}/artifacts/tensorflow/benchmarks && cd ${HOME_DIR}/artifacts/tensorflow/benchmarks && git checkout ${GIT_BRANCH}
+git clone https://github.com/tensorflow/benchmarks.git ${HOME_DIR}/artifacts/tensorflow/benchmarks && cd ${HOME_DIR}/artifacts/tensorflow/benchmarks && git checkout ${GIT_BRANCH} && git checkout ${GIT_COMMIT}
 TRAINING_TIME="100m"
 if [ "$PR_CONTEXT" == "1" ]
 then

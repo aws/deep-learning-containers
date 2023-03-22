@@ -1,0 +1,154 @@
+FROM ubuntu:20.04
+
+LABEL maintainer="Amazon AI"
+LABEL dlc_major_version="1"
+
+ARG PYTHON=python3
+# Add arguments to achieve the version, python and url
+ARG PYTHON_VERSION=3.8.10
+ARG OPEN_MPI_VERSION=4.0.1
+
+# This arg required to stop docker build waiting for region configuration while installing tz data from ubuntu 20
+ARG DEBIAN_FRONTEND=noninteractive
+
+# Python won’t try to write .pyc or .pyo files on the import of source modules
+# Force stdin, stdout and stderr to be totally unbuffered. Good for logging
+ENV PYTHONDONTWRITEBYTECODE=1
+ENV PYTHONUNBUFFERED=1
+ENV PYTHONIOENCODING=UTF-8
+ENV LANG=C.UTF-8
+ENV LC_ALL=C.UTF-8
+ENV LD_LIBRARY_PATH="${LD_LIBRARY_PATH}:/usr/local/lib"
+ENV LD_LIBRARY_PATH="${LD_LIBRARY_PATH}:/opt/conda/lib"
+ENV PATH=/opt/conda/bin:$PATH
+ENV DGLBACKEND=pytorch
+
+ARG PT_TRAINING_URL=https://aws-pytorch-cicd-v3-binaries.s3.us-west-2.amazonaws.com/r1.9.0_aws_v3/20210621-225848/ba7c4b277d2664f51afae8f0bfef33ec82dd6018/cpu/torch-1.9.0-cp38-cp38-manylinux1_x86_64.whl
+ARG PT_TORCHVISION_URL=https://torchvision-build-rc.s3.us-west-2.amazonaws.com/1.9.0/cpu/07-30-2021/torchvision-0.10.0-cp38-cp38-linux_x86_64.whl
+ARG PT_S3_WHL=https://aws-s3-plugin.s3.us-west-2.amazonaws.com/binaries/0.0.1/1c3e69e/awsio-0.0.1-cp38-cp38-manylinux1_x86_64.whl
+
+WORKDIR /
+
+RUN apt-get update \
+ # TODO: Remove systemd upgrade once it is updated in base image
+ && apt-get -y upgrade --only-upgrade systemd \
+ && apt-get install -y --no-install-recommends \
+    build-essential \
+    ca-certificates \
+    cmake \
+    curl \
+    emacs \
+    git \
+    jq \
+    libglib2.0-0 \
+    libgl1-mesa-glx \
+    libsm6 \
+    libxext6 \
+    libxrender-dev \
+    software-properties-common \
+    wget \
+    unzip \
+    vim \
+    zlib1g-dev \
+ && rm -rf /var/lib/apt/lists/* \
+ && apt-get clean
+
+RUN wget https://www.open-mpi.org/software/ompi/v4.0/downloads/openmpi-$OPEN_MPI_VERSION.tar.gz \
+ && gunzip -c openmpi-$OPEN_MPI_VERSION.tar.gz | tar xf - \
+ && cd openmpi-$OPEN_MPI_VERSION \
+ && ./configure --prefix=/home/.openmpi \
+ && make all install \
+ && cd .. \
+ && rm openmpi-$OPEN_MPI_VERSION.tar.gz \
+ && rm -rf openmpi-$OPEN_MPI_VERSION
+
+# The ENV variables declared below are changed in the previous section
+# Grouping these ENV variables in the first section causes
+# ompi_info to fail. This is only observed in CPU containers
+ENV PATH="$PATH:/home/.openmpi/bin"
+ENV LD_LIBRARY_PATH="$LD_LIBRARY_PATH:/home/.openmpi/lib/"
+RUN ompi_info --parsable --all | grep mpi_built_with_cuda_support:value
+
+RUN curl -L -o ~/miniconda.sh https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh \
+ && chmod +x ~/miniconda.sh \
+ && ~/miniconda.sh -b -p /opt/conda \
+ && rm ~/miniconda.sh \
+ && /opt/conda/bin/conda update conda \
+ && /opt/conda/bin/conda install -c conda-forge \
+    python=$PYTHON_VERSION \
+ && /opt/conda/bin/conda install -y -c anaconda \
+    # conda 4.10.0 requires ruamel_yaml to be installed. Currently pinned at latest.
+    ruamel_yaml==0.15.100 \
+    numpy \
+    ipython \
+    mkl \
+    mkl-include \
+    cython \
+    typing \
+    "pyopenssl>=17.5.0" \
+ && conda install -y \
+    scikit-learn \
+    pandas \
+    h5py \
+    requests \
+ && conda install -c dglteam -y dgl=0.6.1 \
+ && /opt/conda/bin/conda clean -ya \
+ && conda clean -ya
+
+# Conda installs links for libtinfo.so.6 and libtinfo.so.6.2 both
+# Which causes "/opt/conda/lib/libtinfo.so.6: no version information available" warning
+# Removing link for libtinfo.so.6. This change is needed only for ubuntu 20.04-conda, and can be reverted
+# once conda fixes the issue
+RUN rm -rf /opt/conda/lib/libtinfo.so.6
+
+# The following section uninstalls torch and torchvision before installing the
+# custom versions from an S3 bucket. This will need to be removed in the future
+RUN pip install --upgrade pip --trusted-host pypi.org --trusted-host files.pythonhosted.org \
+ && ln -s /opt/conda/bin/pip /usr/local/bin/pip3 \
+ && pip install --no-cache-dir -U \
+    "pyyaml>=5.4,<5.5" \
+    opencv-python==4.5.2.54 \
+    "awscli<2" \
+    boto3 \
+    scipy \
+    click \
+    "cryptography>3.2" \
+    psutil==5.6.7 \
+    "Pillow>=8.3.2" \
+ && pip uninstall -y torch \
+ && pip install --no-cache-dir -U ${PT_TRAINING_URL} \
+ && pip uninstall -y torchvision \
+ && pip install --no-deps --no-cache-dir -U ${PT_TORCHVISION_URL}
+
+# Install extra packages
+# numba 0.54 only works with numpy>=1.20. See https://github.com/numba/numba/issues/7339
+RUN pip install --no-cache-dir -U \
+    "bokeh>=2.3,<3" \
+    "imageio>=2.9,<3" \
+    "opencv-python>=4.3,<5" \
+    "plotly>=5.1,<6" \
+    "seaborn>=0.11,<1" \
+    "numba<0.54" \
+    "shap>=0.39,<1"
+
+# Install PT S3 plugin
+RUN pip install -U ${PT_S3_WHL}
+RUN mkdir -p /etc/pki/tls/certs && cp /etc/ssl/certs/ca-certificates.crt /etc/pki/tls/certs/ca-bundle.crt
+
+COPY deep_learning_container.py /usr/local/bin/deep_learning_container.py
+
+RUN chmod +x /usr/local/bin/deep_learning_container.py
+
+RUN HOME_DIR=/root \
+ && curl -o ${HOME_DIR}/oss_compliance.zip https://aws-dlinfra-utilities.s3.amazonaws.com/oss_compliance.zip \
+ && unzip ${HOME_DIR}/oss_compliance.zip -d ${HOME_DIR}/ \
+ && cp ${HOME_DIR}/oss_compliance/test/testOSSCompliance /usr/local/bin/testOSSCompliance \
+ && chmod +x /usr/local/bin/testOSSCompliance \
+ && chmod +x ${HOME_DIR}/oss_compliance/generate_oss_compliance.sh \
+ && ${HOME_DIR}/oss_compliance/generate_oss_compliance.sh ${HOME_DIR} ${PYTHON} \
+ && rm -rf ${HOME_DIR}/oss_compliance* \
+ && rm -rf /tmp/tmp*
+
+RUN curl -o /license.txt  https://aws-dlc-licenses.s3.amazonaws.com/pytorch-1.9/license.txt
+
+CMD ["/bin/bash"]

@@ -1,0 +1,288 @@
+FROM nvidia/cuda:11.0-cudnn8-devel-ubuntu18.04
+
+LABEL maintainer="Amazon AI"
+LABEL dlc_major_version="1"
+
+ARG PYTHON=python3
+ARG PYTHON_VERSION=3.6.13
+ARG OPEN_MPI_VERSION=4.0.1
+ARG CUBLAS_VERSION=11.2.0.252-1_amd64
+ARG OPEN_MPI_PATH=/home/.openmpi
+ARG CUDA_HOME=/usr/local/cuda
+ARG CONDA_PREFIX=/opt/conda
+ARG METIS=metis-5.1.0
+ARG RMM_VERSION=0.15.0
+
+# The smdebug pipeline relies for following format to perform string replace and trigger DLC pipeline for validating
+# the nightly builds. Therefore, while updating the smdebug version, please ensure that the format is not disturbed.
+ARG SMDEBUG_VERSION=1.0.9
+
+# Python won’t try to write .pyc or .pyo files on the import of source modules
+# Force stdin, stdout and stderr to be totally unbuffered. Good for logging
+ENV PYTHONDONTWRITEBYTECODE=1
+ENV PYTHONUNBUFFERED=1
+ENV LD_LIBRARY_PATH="/usr/local/lib:${LD_LIBRARY_PATH}"
+ENV LD_LIBRARY_PATH="/opt/conda/lib:${LD_LIBRARY_PATH}"
+ENV PYTHONIOENCODING=UTF-8
+ENV LANG=C.UTF-8
+ENV LC_ALL=C.UTF-8
+ENV PATH /opt/conda/bin:$PATH
+ENV TORCH_CUDA_ARCH_LIST="3.5 3.7 5.2 6.0 6.1 7.0+PTX 8.0"
+ENV TORCH_NVCC_FLAGS="-Xfatbin -compress-all"
+ENV HOROVOD_VERSION=0.20.3
+ENV DGLBACKEND=pytorch
+ENV CMAKE_PREFIX_PATH="$(dirname $(which conda))/../"
+ENV SAGEMAKER_TRAINING_MODULE=sagemaker_pytorch_container.training:main
+ENV MANUAL_BUILD=0
+
+ARG PT_TRAINING_URL=https://aws-pytorch-binaries.s3-us-west-2.amazonaws.com/r1.7.1_aws/20210107-213753/df8e57a23cbc00d4fff51f4ea7f2ce052d1384e9/gpu/torch-1.7.1-cp36-cp36m-manylinux1_x86_64.whl
+ARG PT_TORCHVISION_URL=https://torchvision-build.s3-us-west-2.amazonaws.com/1.7.1/gpu/torchvision-0.8.2%2Bcu110-cp36-cp36m-linux_x86_64.whl
+ARG SMD_MODEL_PARALLEL_URL=https://sagemaker-distributed-model-parallel.s3.amazonaws.com/pytorch-1.7/build-artifacts/2021-03-26-22-00/smdistributed_modelparallel-1.3.1-cp36-cp36m-linux_x86_64.whl
+ARG SMDATAPARALLEL_BINARY=https://smdataparallel.s3.amazonaws.com/binary/pytorch/1.7.1/cu110/2021-01-26/smdistributed_dataparallel-1.0.0-cp36-cp36m-linux_x86_64.whl
+ARG PT_S3_WHL_GPU=https://aws-s3-plugin.s3-us-west-2.amazonaws.com/binaries/0.0.1/93fdaed/awsio-0.0.1-cp36-cp36m-manylinux1_x86_64.whl
+
+RUN apt-get update \
+ # TODO: Remove systemd upgrade once it is updated in base image
+ && apt-get -y upgrade --only-upgrade systemd \
+ && apt-get install -y --allow-change-held-packages --no-install-recommends \
+    build-essential \
+    ca-certificates \
+    cmake \
+    cuda-command-line-tools-11-0 \
+    cuda-cudart-11-0 \
+    curl \
+    emacs \
+    git \
+    jq \
+    libcufft-dev-11-0 \
+    libcurand-dev-11-0 \
+    libcusolver-dev-11-0 \
+    libcusparse-dev-11-0 \
+    libglib2.0-0 \
+    libgl1-mesa-glx \
+    libnccl-dev=2.7.8-1+cuda11.0 \
+    libsm6 \
+    libxext6 \
+    libxrender-dev \
+    libgomp1 \
+    libibverbs-dev \
+    libhwloc-dev \
+    libnuma1 \
+    libnuma-dev \
+    libssl1.1 \
+    libtool \
+    openssl \
+    vim \
+    wget \
+    unzip \
+    zlib1g-dev \
+    # Install dependent library for OpenCV
+    libgtk2.0-dev \
+ && rm -rf /var/lib/apt/lists/*
+
+RUN wget https://developer.download.nvidia.com/compute/cuda/repos/ubuntu1804/x86_64/libcublas-11-0_${CUBLAS_VERSION}.deb \
+ && dpkg -i libcublas-11-0_${CUBLAS_VERSION}.deb \
+ && apt-get install -f -y \
+ && rm libcublas-11-0_${CUBLAS_VERSION}.deb
+
+RUN wget https://www.open-mpi.org/software/ompi/v4.0/downloads/openmpi-$OPEN_MPI_VERSION.tar.gz \
+ && gunzip -c openmpi-$OPEN_MPI_VERSION.tar.gz | tar xf - \
+ && cd openmpi-$OPEN_MPI_VERSION \
+ && ./configure --prefix=$OPEN_MPI_PATH \
+ && make all install \
+ && cd .. \
+ && rm openmpi-$OPEN_MPI_VERSION.tar.gz \
+ && rm -rf openmpi-$OPEN_MPI_VERSION
+
+ENV PATH="$OPEN_MPI_PATH/bin:$PATH"
+ENV LD_LIBRARY_PATH="$OPEN_MPI_PATH/lib/:$LD_LIBRARY_PATH"
+
+RUN ompi_info --parsable --all | grep mpi_built_with_cuda_support:value \
+ && curl -L -o ~/miniconda.sh https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh \
+ && chmod +x ~/miniconda.sh \
+ && ~/miniconda.sh -b -p ${CONDA_PREFIX} \
+ && rm ~/miniconda.sh \
+ && ${CONDA_PREFIX}/bin/conda install -c conda-forge \
+    python=$PYTHON_VERSION \
+ && ${CONDA_PREFIX}/bin/conda install -y -c anaconda \
+    # conda 4.10.0 requires ruamel_yaml to be installed. Currently pinned at latest.
+    ruamel_yaml==0.15.100 \
+    numpy \
+    ipython \
+    mkl \
+    mkl-include \
+    cython \
+    typing \
+    future \
+    "pyopenssl>=17.5.0" \
+ && pip install --pre dgl-cu110 \
+ && ${CONDA_PREFIX}/bin/conda clean -ya
+
+RUN ${CONDA_PREFIX}/bin/conda config --set ssl_verify False \
+ && pip install --upgrade pip --trusted-host pypi.org --trusted-host files.pythonhosted.org \
+ && ln -s ${CONDA_PREFIX}/bin/pip /usr/local/bin/pip3
+
+RUN conda install -c pytorch magma-cuda110==2.5.2 \
+ && conda install -c conda-forge \
+    opencv \
+ && conda install -y scikit-learn \
+    pandas \
+    h5py \
+    requests \
+    libgcc \
+ && conda clean -ya
+
+# Install libboost from source. This package is needed for smdataparallel functionality [for networking asynchronous IO].
+RUN wget --quiet https://dl.bintray.com/boostorg/release/1.73.0/source/boost_1_73_0.tar.gz \
+  && tar -xzf boost_1_73_0.tar.gz \
+  && cd boost_1_73_0 \
+  && ./bootstrap.sh \
+  && ./b2 threading=multi --prefix=${CONDA_PREFIX} -j 64 cxxflags=-fPIC cflags=-fPIC install || true \
+  && cd .. \
+  && rm -rf boost_1_73_0.tar.gz \
+  && rm -rf boost_1_73_0
+
+WORKDIR /opt/pytorch
+
+# Copy workaround script for incorrect hostname
+COPY changehostname.c /
+COPY start_with_right_hostname.sh /usr/local/bin/start_with_right_hostname.sh
+
+WORKDIR /root
+
+# Uninstall torch and torchvision before installing the custom versions from an S3 bucket
+RUN pip install --no-cache-dir -U \
+    smdebug==${SMDEBUG_VERSION} \
+    smclarify \
+    "sagemaker>=2,<3" \
+    sagemaker-experiments==0.* \
+    sagemaker-pytorch-training \
+    --no-cache-dir fastai==1.0.61 \
+    "pyyaml>=5.4,<5.5" \
+    "awscli<2" \
+    psutil \
+    Pillow \
+    scipy \
+    pybind11 \
+    click \
+    mpi4py==3.0.3 \
+    cmake==3.18.2.post1 \
+    torchnet \
+    "cryptography>3.2" \
+ && pip uninstall -y torch \
+ && pip install --no-cache-dir -U ${PT_TRAINING_URL} \
+ && pip uninstall -y torchvision \
+ && pip install --no-deps --no-cache-dir -U ${PT_TORCHVISION_URL}
+
+# Install extra packages
+# numba 0.54 only works with numpy>=1.20. See https://github.com/numba/numba/issues/7339
+RUN pip install --no-cache-dir -U \
+    "bokeh>=2.3,<3" \
+    "imageio>=2.9,<3" \
+    "opencv-python>=4.3,<5" \
+    "plotly>=5.1,<6" \
+    "seaborn>=0.11,<1" \
+    "numba<0.54" \
+    "shap>=0.39,<1"
+
+# install metis
+RUN wget -nv http://glaros.dtc.umn.edu/gkhome/fetch/sw/metis/${METIS}.tar.gz \
+  && gunzip -f ${METIS}.tar.gz \
+  && tar -xvf ${METIS}.tar \
+  && cd ${METIS} \
+  && apt-get update \
+  && apt-get install -y build-essential \
+  && apt-get install -y cmake \
+  && make config shared=1 \
+  && make install \
+  && cd .. \
+  && rm -rf ${METIS}.tar* \
+  && rm -rf ${METIS} \
+  && rm -rf /var/lib/apt/lists/* \
+  && apt-get clean
+
+# Install RAPIDSMemoryManager.
+# Requires cmake>=3.14.
+RUN  wget -nv https://github.com/rapidsai/rmm/archive/v${RMM_VERSION}.tar.gz \
+  && tar -xvf v${RMM_VERSION}.tar.gz \
+  && cd rmm-${RMM_VERSION} \
+  && INSTALL_PREFIX=/usr/local ./build.sh librmm \
+  && cd .. \
+  && rm -rf v${RMM_VERSION}.tar* \
+  && rm -rf rmm-${RMM_VERSION}
+
+# Install Horovod
+RUN pip uninstall -y horovod \
+ && ldconfig /usr/local/cuda-11.0/targets/x86_64-linux/lib/stubs \
+ && HOROVOD_GPU_ALLREDUCE=NCCL HOROVOD_CUDA_HOME=/usr/local/cuda-11.0 HOROVOD_WITH_PYTORCH=1 pip install --no-cache-dir horovod==${HOROVOD_VERSION} \
+ && ldconfig
+
+# Install Nvidia Apex
+RUN git clone https://github.com/NVIDIA/apex.git \
+ && cd apex \
+ && pip install -v --no-cache-dir --global-option="--cpp_ext" --global-option="--cuda_ext" ./
+
+# Configure Open MPI and configure NCCL parameters
+RUN mv $OPEN_MPI_PATH/bin/mpirun $OPEN_MPI_PATH/bin/mpirun.real \
+ && echo '#!/bin/bash' > $OPEN_MPI_PATH/bin/mpirun \
+ && echo 'mpirun.real --allow-run-as-root "$@"' >> $OPEN_MPI_PATH/bin/mpirun \
+ && chmod a+x $OPEN_MPI_PATH/bin/mpirun \
+ && echo "hwloc_base_binding_policy = none" >> $OPEN_MPI_PATH/etc/openmpi-mca-params.conf \
+ && echo "rmaps_base_mapping_policy = slot" >> $OPEN_MPI_PATH/etc/openmpi-mca-params.conf \
+ && echo NCCL_DEBUG=INFO >> /etc/nccl.conf \
+ && echo NCCL_SOCKET_IFNAME=^docker0 >> /etc/nccl.conf
+
+# Install OpenSSH for MPI to communicate between containers, allow OpenSSH to talk to containers without asking for confirmation
+RUN apt-get update \
+ && apt-get install -y  --allow-downgrades --allow-change-held-packages --no-install-recommends \
+ && apt-get install -y --no-install-recommends openssh-client openssh-server \
+ && mkdir -p /var/run/sshd \
+ && cat /etc/ssh/ssh_config | grep -v StrictHostKeyChecking > /etc/ssh/ssh_config.new \
+ && echo "    StrictHostKeyChecking no" >> /etc/ssh/ssh_config.new \
+ && mv /etc/ssh/ssh_config.new /etc/ssh/ssh_config \
+ && rm -rf /var/lib/apt/lists/*
+
+# Configure OpenSSH so that nodes can communicate with each other
+RUN mkdir -p /var/run/sshd && \
+ sed 's@session\s*required\s*pam_loginuid.so@session optional pam_loginuid.so@g' -i /etc/pam.d/sshd
+
+RUN rm -rf /root/.ssh/ && \
+ mkdir -p /root/.ssh/ && \
+ ssh-keygen -q -t rsa -N '' -f /root/.ssh/id_rsa && \
+ cp /root/.ssh/id_rsa.pub /root/.ssh/authorized_keys \
+ && printf "Host *\n StrictHostKeyChecking no\n" >> /root/.ssh/config
+
+# Install SM Distributed Modelparallel binary
+RUN pip install --no-cache-dir -U ${SMD_MODEL_PARALLEL_URL}
+
+# Install SM Distributed DataParallel binary
+RUN SMDATAPARALLEL_PT=1 pip install --no-cache-dir ${SMDATAPARALLEL_BINARY}
+
+ENV LD_LIBRARY_PATH="/opt/conda/lib/python3.6/site-packages/smdistributed/dataparallel/lib:$LD_LIBRARY_PATH"}
+
+# Install PT S3 plugin
+RUN pip install --no-cache-dir -U ${PT_S3_WHL_GPU} \
+ && mkdir -p /etc/pki/tls/certs \
+ && cp /etc/ssl/certs/ca-certificates.crt /etc/pki/tls/certs/ca-bundle.crt
+
+WORKDIR /
+
+ADD https://raw.githubusercontent.com/aws/deep-learning-containers/master/src/deep_learning_container.py /usr/local/bin/deep_learning_container.py
+
+RUN chmod +x /usr/local/bin/start_with_right_hostname.sh \
+ && chmod +x /usr/local/bin/deep_learning_container.py
+
+RUN HOME_DIR=/root \
+ && curl -o ${HOME_DIR}/oss_compliance.zip https://aws-dlinfra-utilities.s3.amazonaws.com/oss_compliance.zip \
+ && unzip ${HOME_DIR}/oss_compliance.zip -d ${HOME_DIR}/ \
+ && cp ${HOME_DIR}/oss_compliance/test/testOSSCompliance /usr/local/bin/testOSSCompliance \
+ && chmod +x /usr/local/bin/testOSSCompliance \
+ && chmod +x ${HOME_DIR}/oss_compliance/generate_oss_compliance.sh \
+ && ${HOME_DIR}/oss_compliance/generate_oss_compliance.sh ${HOME_DIR} ${PYTHON} \
+ && rm -rf ${HOME_DIR}/oss_compliance*
+
+RUN curl -o /license.txt https://aws-dlc-licenses.s3.amazonaws.com/pytorch-1.7/license.txt
+
+# Starts framework
+ENTRYPOINT ["bash", "-m", "start_with_right_hostname.sh"]
+CMD ["/bin/bash"]

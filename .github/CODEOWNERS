@@ -1,0 +1,27 @@
+# This is a comment.
+# Each line is a file pattern followed by one or more owners.
+
+# These owners will be the default owners for everything in
+# the repo. Unless a later match takes precedence,
+# @dl-containers will be requested for
+# review when someone opens a pull request.
+*       @aws/dl-containers
+
+# Any files modified under autogluon/ will be assigned to the autogluon reviewer team
+autogluon/ @aws/dlc-autogluon-reviewers
+
+# Any PR with a file with "smdebug" in it will be assigned to the smdebug reviewer team
+*smdebug* @aws/dlc-smdebug-reviewers
+test_sm_profiler.py @aws/dlc-smdebug-reviewers
+
+# Any PR with a file with "neuron" in it will be assigned to the neuron reviewer team
+*neuron* @aws/dlc-neuron-reviewers
+
+# Any PR with a file with "eia" in it will be assigned to the EI reviewer team
+*eia* @aws/dlc-eia-reviewers
+
+# Any file under dgl_tests dir will require review from DGL team
+dgl_tests/ @aws/dlc-dgl-reviewers
+
+# Any PR with a file with "trcomp" in it will be assigned to the SM Training Compiler team
+*trcomp* @aws/dlc-trcomp-reviewers

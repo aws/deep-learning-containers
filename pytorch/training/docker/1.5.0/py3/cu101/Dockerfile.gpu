@@ -1,10 +1,10 @@
 # The tag for the base image is: 10.1-cudnn7-devel-ubuntu16.04
-FROM nvidia/cuda@sha256:4979db047661dc0003594fb20d37cce6d6c7e989252f4e3fb0beb39874a078e2
+FROM nvidia/cuda:10.1-cudnn7-devel-ubuntu16.04
 
 LABEL maintainer="Amazon AI"
 LABEL dlc_major_version="1"
 
-ARG PYTHON_VERSION=3.6.10
+ARG PYTHON_VERSION=3.6.13
 ARG OPEN_MPI_VERSION=4.0.1
 ARG CUBLAS_VERSION=10.2.1.243-1_amd64
 
@@ -55,6 +55,7 @@ RUN apt-get update \
     libnuma-dev \
     vim \
     wget \
+    unzip \
     zlib1g-dev \
  && apt-get remove -y cuda-cufft-dev-10-1 \
     cuda-cusolver-dev-10-1 \
@@ -85,8 +86,12 @@ RUN ompi_info --parsable --all | grep mpi_built_with_cuda_support:value \
  && chmod +x ~/miniconda.sh \
  && ~/miniconda.sh -b -p /opt/conda \
  && rm ~/miniconda.sh \
- && /opt/conda/bin/conda install -y -c anaconda \
+ && /opt/conda/bin/conda update conda \
+ && /opt/conda/bin/conda install -c conda-forge \
     python=$PYTHON_VERSION \
+ && /opt/conda/bin/conda install -y -c anaconda \
+    # conda 4.9.2 requires ruamel_yaml to be installed. Currently pinned at latest.
+    ruamel_yaml==0.15.87 \
     numpy==1.16.4 \
     ipython==7.10.1 \
     mkl==2019.4 \
@@ -129,7 +134,11 @@ RUN pip install \
     "sagemaker<2" \
     sagemaker-experiments==0.* \
     --no-cache-dir fastai==1.0.59 \
+    # install PyYAML>=5.4,<5.5 to avoid conflict with latest awscli
+    "PyYAML>=5.4,<5.5" \
     "awscli<2" \
+    # cryptography required by pyopenssl and paramiko, <3.3.2 has safety vulnerabilities
+    "cryptography>=3.3.2" \
     scipy==1.2.2 \
  && pip install --no-cache-dir -U https://pytorch-aws.s3-us-west-2.amazonaws.com/pytorch-1.5.0/py3/gpu/torch-1.5.0-cp36-cp36m-manylinux1_x86_64.whl \
  && pip uninstall -y torchvision \
@@ -175,6 +184,15 @@ RUN chmod +x /usr/local/bin/start_with_right_hostname.sh
 ADD https://raw.githubusercontent.com/aws/deep-learning-containers/master/src/deep_learning_container.py /usr/local/bin/deep_learning_container.py
 
 RUN chmod +x /usr/local/bin/deep_learning_container.py
+
+RUN HOME_DIR=/root \
+ && curl -o ${HOME_DIR}/oss_compliance.zip https://aws-dlinfra-utilities.s3.amazonaws.com/oss_compliance.zip \
+ && unzip ${HOME_DIR}/oss_compliance.zip -d ${HOME_DIR}/ \
+ && cp ${HOME_DIR}/oss_compliance/test/testOSSCompliance /usr/local/bin/testOSSCompliance \
+ && chmod +x /usr/local/bin/testOSSCompliance \
+ && chmod +x ${HOME_DIR}/oss_compliance/generate_oss_compliance.sh \
+ && ${HOME_DIR}/oss_compliance/generate_oss_compliance.sh ${HOME_DIR} ${PYTHON} \
+ && rm -rf ${HOME_DIR}/oss_compliance*
 
 RUN curl -o /license.txt https://aws-dlc-licenses.s3.amazonaws.com/pytorch-1.5.0/license.txt
 

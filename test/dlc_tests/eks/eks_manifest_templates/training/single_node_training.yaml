@@ -4,10 +4,17 @@ kind: Pod
 metadata:
   name: <POD_NAME>
 spec:
+  volumes:
+  - name: dshm
+    emptyDir:
+      medium: Memory
   restartPolicy: OnFailure
   containers:
   - name: <POD_NAME>
     image: <CONTAINER_NAME>
+    volumeMounts:
+      - mountPath: /dev/shm
+        name: dshm
     command:
       - "/bin/sh"
       - "-c"
@@ -16,3 +23,5 @@ spec:
     resources:
       limits:
         cpu: <CPU_LIMIT>
+  nodeSelector:
+    test_type: gpu

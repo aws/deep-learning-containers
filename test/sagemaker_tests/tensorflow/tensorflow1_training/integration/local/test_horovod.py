@@ -72,10 +72,10 @@ def _run_distributed_training_horovod_basic(
     estimator = TensorFlow(
         entry_point=os.path.join(RESOURCE_PATH, "hvdbasic", "train_hvd_basic.py"),
         role="SageMakerRole",
-        train_instance_type="local",
+        instance_type="local",
         sagemaker_session=sagemaker_local_session,
-        train_instance_count=instances,
-        image_name=docker_image,
+        instance_count=instances,
+        image_uri=docker_image,
         output_path=output_path,
         framework_version=framework_version,
         hyperparameters={

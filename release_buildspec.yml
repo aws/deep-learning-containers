@@ -4,7 +4,12 @@ phases:
   pre_build:
     commands:
       - start-dockerd
+      - |
+        if expr "${ARCH_TYPE}" : "graviton" >/dev/null; then
+          docker run --rm --privileged multiarch/qemu-user-static --reset -p yes
+        fi
   build:
     commands:
-      - publish_dlc_images --release-spec $(pwd)/release_images.yml
+      - export PYTHONPATH=$PYTHONPATH:$(pwd)/src
+      - publish_dlc_images --release-spec $(pwd)/$RELEASE_IMAGE_FILE
       - generate_release_information

@@ -5,13 +5,13 @@ LABEL dlc_major_version="1"
 
 ARG PYTHON=python3
 ARG PIP=pip3
-ARG PYTHON_VERSION=3.6.10
+ARG PYTHON_VERSION=3.6.13
 ARG MX_URL=https://aws-mx-pypi.s3-us-west-2.amazonaws.com/1.7.0/aws_mx-1.7.0-py2.py3-none-manylinux2014_x86_64.whl
 
 # The smdebug pipeline relies for following format to perform string replace and trigger DLC pipeline for validating
 # the nightly builds. Therefore, while updating the smdebug version, please ensure that the format is not disturbed.
 ARG SMDEBUG_VERSION=0.9.3
-ARG OPENSSL_VERSION=1.1.1g
+ARG OPENSSL_VERSION=1.1.1k
 
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
@@ -35,6 +35,7 @@ RUN apt-get update \
     openssh-server \
     vim \
     wget \
+    unzip \
     zlib1g-dev \
  && apt-get clean \
  && rm -rf /var/lib/apt/lists/*
@@ -109,15 +110,12 @@ RUN wget https://www.python.org/ftp/python/$PYTHON_VERSION/Python-$PYTHON_VERSIO
  && rm -rf /var/lib/apt/lists/*
 
 
-# MXNet requires pip 19.3.1 due to being backwards compatible
-# with python2
 RUN ${PIP} --no-cache-dir install --upgrade \
-    pip==19.3.1 \
+    pip \
     setuptools
 
 WORKDIR /
 
-# install PyYAML==5.1.2 to avoid conflict with latest awscli
 # python-dateutil==2.8.0 to satisfy botocore associated with latest awscli
 RUN ${PIP} install --no-cache --upgrade \
     keras-mxnet==2.2.4.2 \
@@ -137,7 +135,8 @@ RUN ${PIP} install --no-cache --upgrade \
     python-dateutil==2.8.0 \
     tqdm==4.39.0 \
     sagemaker-experiments==0.* \
-    PyYAML==5.3.1 \
+    # install PyYAML>=5.4,<5.5 to avoid conflict with latest awscli
+    "PyYAML>=5.4,<5.5" \
     mpi4py==3.0.2 \
     "sagemaker-mxnet-training<5" \
     ${MX_URL} \
@@ -176,6 +175,15 @@ RUN ln -s /dev/null /dev/raw1394
 ADD https://raw.githubusercontent.com/aws/deep-learning-containers/master/src/deep_learning_container.py /usr/local/bin/deep_learning_container.py
 
 RUN chmod +x /usr/local/bin/deep_learning_container.py
+
+RUN HOME_DIR=/root \
+ && curl -o ${HOME_DIR}/oss_compliance.zip https://aws-dlinfra-utilities.s3.amazonaws.com/oss_compliance.zip \
+ && unzip ${HOME_DIR}/oss_compliance.zip -d ${HOME_DIR}/ \
+ && cp ${HOME_DIR}/oss_compliance/test/testOSSCompliance /usr/local/bin/testOSSCompliance \
+ && chmod +x /usr/local/bin/testOSSCompliance \
+ && chmod +x ${HOME_DIR}/oss_compliance/generate_oss_compliance.sh \
+ && ${HOME_DIR}/oss_compliance/generate_oss_compliance.sh ${HOME_DIR} ${PYTHON} \
+ && rm -rf ${HOME_DIR}/oss_compliance*
 
 RUN curl -o /license.txt https://aws-dlc-licenses.s3.amazonaws.com/aws-mx-1.7.0/license.txt
 

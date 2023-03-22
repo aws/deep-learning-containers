@@ -6,10 +6,9 @@ LABEL com.amazonaws.sagemaker.capabilities.accept-bind-to-port=true
 
 ARG PYTHON=python3
 ARG PIP=pip3
-ARG TFS_SHORT_VERSION=2.1.1
+ARG TFS_SHORT_VERSION=2.1
+ARG PYTHON_VERSION=3.6.13
 ARG TFS_URL=https://tensorflow-aws.s3-us-west-2.amazonaws.com/2.1.1/Serving/GPU/tensorflow_model_server
-
-ARG OPENSSL_VERSION=1.1.1g
 
 ENV NCCL_VERSION=2.4.7-1+cuda10.1
 ENV CUDNN_VERSION=7.6.2.24-1+cuda10.1
@@ -46,7 +45,10 @@ RUN apt-get update \
     curl \
     emacs \
     git \
+    libssl1.1 \
+    openssl \
     wget \
+    unzip \
     vim \
     build-essential \
     zlib1g-dev \
@@ -68,37 +70,34 @@ RUN apt-get update \
  && apt-get clean \
  && rm -rf /var/lib/apt/lists/*
 
-RUN wget -c https://www.openssl.org/source/openssl-${OPENSSL_VERSION}.tar.gz \
- && apt-get update \
- && apt remove -y --purge openssl \
- && rm -rf /usr/include/openssl \
- && apt-get install -y \
-    ca-certificates \
- && tar -xzvf openssl-${OPENSSL_VERSION}.tar.gz \
- && cd openssl-${OPENSSL_VERSION} \
- && ./config && make && make test \
- && make install \
- && ldconfig \
- && cd .. && rm -rf openssl-*
-
-# when we remove previous openssl, the ca-certificates pkgs and its symlinks gets deleted
-# causing sslcertverificationerror the below steps are to fix that
-RUN ln -s /etc/ssl/certs/*.* /usr/local/ssl/certs/
-
 RUN apt-get update \
- && apt-get install -y --no-install-recommends --allow-unauthenticated --allow-downgrades\
-    python3 \
-    python3-pip \
-    python3-setuptools \
- && apt-get clean \
- && rm -rf /var/lib/apt/lists/*
+ && apt-get install -y --no-install-recommends \
+    libbz2-dev \
+    libc6-dev \
+    libffi-dev \
+    libgdbm-dev \
+    liblzma-dev \
+    libncursesw5-dev \
+    libreadline-gplv2-dev \
+    libsqlite3-dev \
+    libssl-dev \
+    tk-dev \
+ && rm -rf /var/lib/apt/lists/* \
+ && apt-get clean
+
+RUN wget https://www.python.org/ftp/python/$PYTHON_VERSION/Python-$PYTHON_VERSION.tgz \
+ && tar -xvf Python-$PYTHON_VERSION.tgz \
+ && cd Python-$PYTHON_VERSION \
+ && ./configure && make && make install \
+ && rm -rf ../Python-$PYTHON_VERSION*
 
 RUN ${PIP} --no-cache-dir install --upgrade \
     pip \
     setuptools
 
 # Some TF tools expect a "python" binary
-RUN ln -s $(which ${PYTHON}) /usr/local/bin/python
+RUN ln -s $(which ${PYTHON}) /usr/local/bin/python \
+ && ln -s $(which ${PIP}) /usr/bin/pip
 
 # nginx + njs
 RUN apt-get update \
@@ -117,6 +116,7 @@ RUN apt-get update \
 # cython, falcon, gunicorn, grpc
 RUN ${PIP} install -U --no-cache-dir \
     "awscli<2" \
+    boto3 \
     cython==0.29.14 \
     falcon==2.0.0 \
     gunicorn==20.0.4 \
@@ -126,7 +126,7 @@ RUN ${PIP} install -U --no-cache-dir \
     protobuf==3.11.1 \
 # using --no-dependencies to avoid installing tensorflow binary
  && ${PIP} install --no-dependencies --no-cache-dir \
-    tensorflow-serving-api-gpu==2.1.0
+    tensorflow-serving-api-gpu==2.1
 
 COPY ./sagemaker /sagemaker
 
@@ -148,6 +148,15 @@ RUN echo '#!/bin/bash \n\n' > /usr/bin/tf_serving_entrypoint.sh \
 ADD https://raw.githubusercontent.com/aws/deep-learning-containers/master/src/deep_learning_container.py /usr/local/bin/deep_learning_container.py
 
 RUN chmod +x /usr/local/bin/deep_learning_container.py
+
+RUN HOME_DIR=/root \
+ && curl -o ${HOME_DIR}/oss_compliance.zip https://aws-dlinfra-utilities.s3.amazonaws.com/oss_compliance.zip \
+ && unzip ${HOME_DIR}/oss_compliance.zip -d ${HOME_DIR}/ \
+ && cp ${HOME_DIR}/oss_compliance/test/testOSSCompliance /usr/local/bin/testOSSCompliance \
+ && chmod +x /usr/local/bin/testOSSCompliance \
+ && chmod +x ${HOME_DIR}/oss_compliance/generate_oss_compliance.sh \
+ && ${HOME_DIR}/oss_compliance/generate_oss_compliance.sh ${HOME_DIR} ${PYTHON} \
+ && rm -rf ${HOME_DIR}/oss_compliance*
 
 RUN curl https://aws-dlc-licenses.s3.amazonaws.com/tensorflow-2.1/license.txt -o /license.txt
 

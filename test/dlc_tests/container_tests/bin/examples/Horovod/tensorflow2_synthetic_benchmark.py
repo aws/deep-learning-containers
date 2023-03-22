@@ -12,8 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # ==============================================================================
-from __future__ import absolute_import, division, print_function
-
 import argparse
 import os
 import numpy as np
@@ -43,6 +41,7 @@ parser.add_argument('--num-iters', type=int, default=10,
 
 parser.add_argument('--no-cuda', action='store_true', default=False,
                     help='disables CUDA training')
+
 
 args = parser.parse_args()
 args.cuda = not args.no_cuda

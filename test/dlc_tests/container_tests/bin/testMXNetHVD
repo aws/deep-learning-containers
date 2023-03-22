@@ -1,6 +1,11 @@
 #!/bin/bash
 
-INSTANCE_TYPE=`curl http://169.254.169.254/latest/meta-data/instance-type`
+INSTANCE_TYPE=$1
+if [ -z "$INSTANCE_TYPE" ];then
+  echo "Usage: "$0" <INSTANCE_TYPE>"
+  exit 1
+fi
+
 if [[ $INSTANCE_TYPE == g2* ]]; then
   echo "This is g2* instance. Skipped."
   exit 0
@@ -44,7 +49,6 @@ echo "Train a CNN model using Horovod with MXNet on MNIST data. You can follow p
 if [ ${RETURN_VAL} -eq 0 ]; then
   GPU_AMOUNT=`nvidia-smi -L | wc -l`
   if [ $GPU_AMOUNT -ge 8 ]; then GPU_AMOUNT=8; fi
-  INSTANCE_TYPE=`curl http://169.254.169.254/latest/meta-data/instance-type 2>>/var/tmp/${CONDA_DEFAULT_ENV}.err`
   # We only have Ubuntu16.04 image now. The only EIA it support is etho0.
   INTERFACE=eth0
   # Train

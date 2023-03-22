@@ -1,0 +1,10 @@
+# Use the Deep Learning Container as a base Image
+ARG BASE_IMAGE=""
+
+FROM $BASE_IMAGE
+ARG BASE_IMAGE
+
+# Add any script or repo as required
+RUN parse=$(echo $BASE_IMAGE | sed -r 's/.*synapseai([0-9]+\.[0-9]+\.[0-9]+)-.*/\1/') \
+    && git clone -b "$parse" https://github.com/HabanaAI/Model-References
+WORKDIR "/"

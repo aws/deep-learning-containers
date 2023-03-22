@@ -15,8 +15,8 @@ ARG MX_URL=https://aws-mx-pypi.s3-us-west-2.amazonaws.com/1.7.0/aws_mx-1.7.0-py2
 ARG PYTHON=python3
 ARG PYTHON_PIP=python3-pip
 ARG PIP=pip3
-ARG PYTHON_VERSION=3.6.10
-ARG OPENSSL_VERSION=1.1.1g
+ARG PYTHON_VERSION=3.6.13
+ARG OPENSSL_VERSION=1.1.1k
 
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
@@ -37,6 +37,7 @@ RUN apt-get update \
     openjdk-8-jdk-headless \
     vim \
     wget \
+    unzip \
     zlib1g-dev \
  && apt-get clean \
  && rm -rf /var/lib/apt/lists/*
@@ -95,6 +96,8 @@ RUN ${PIP} --no-cache-dir install --upgrade \
 WORKDIR /
 
 RUN ${PIP} install --no-cache-dir \
+   "awscli<2" \
+    boto3 \
     ${MX_URL} \
     gluonnlp==0.10.0 \
     gluoncv==0.6.0 \
@@ -121,6 +124,15 @@ RUN chmod +x /usr/local/bin/dockerd-entrypoint.py
 ADD https://raw.githubusercontent.com/aws/deep-learning-containers/master/src/deep_learning_container.py /usr/local/bin/deep_learning_container.py
 
 RUN chmod +x /usr/local/bin/deep_learning_container.py
+
+RUN HOME_DIR=/root \
+ && curl -o ${HOME_DIR}/oss_compliance.zip https://aws-dlinfra-utilities.s3.amazonaws.com/oss_compliance.zip \
+ && unzip ${HOME_DIR}/oss_compliance.zip -d ${HOME_DIR}/ \
+ && cp ${HOME_DIR}/oss_compliance/test/testOSSCompliance /usr/local/bin/testOSSCompliance \
+ && chmod +x /usr/local/bin/testOSSCompliance \
+ && chmod +x ${HOME_DIR}/oss_compliance/generate_oss_compliance.sh \
+ && ${HOME_DIR}/oss_compliance/generate_oss_compliance.sh ${HOME_DIR} ${PYTHON} \
+ && rm -rf ${HOME_DIR}/oss_compliance*
 
 RUN curl https://aws-dlc-licenses.s3.amazonaws.com/aws-mx-1.7.0/license.txt -o /license.txt
 

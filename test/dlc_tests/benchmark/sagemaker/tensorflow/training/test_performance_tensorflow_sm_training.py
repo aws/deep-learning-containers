@@ -8,14 +8,21 @@ import pytest
 
 from invoke.context import Context
 from src.benchmark_metrics import (
-    TENSORFLOW2_SM_TRAINING_CPU_1NODE_THRESHOLD,
-    TENSORFLOW2_SM_TRAINING_CPU_4NODE_THRESHOLD,
-    TENSORFLOW2_SM_TRAINING_GPU_1NODE_THRESHOLD,
-    TENSORFLOW2_SM_TRAINING_GPU_4NODE_THRESHOLD,
+    TENSORFLOW_SM_TRAINING_CPU_1NODE_THRESHOLD,
+    TENSORFLOW_SM_TRAINING_CPU_4NODE_THRESHOLD,
+    TENSORFLOW_SM_TRAINING_GPU_1NODE_THRESHOLD,
+    TENSORFLOW_SM_TRAINING_GPU_4NODE_THRESHOLD,
+    get_threshold_for_image,
 )
-from test.test_utils import BENCHMARK_RESULTS_S3_BUCKET, LOGGER
+from test.test_utils import (
+    BENCHMARK_RESULTS_S3_BUCKET,
+    LOGGER,
+    get_framework_and_version_from_tag,
+    get_cuda_version_from_tag,
+)
 
 
+@pytest.mark.usefixtures("sagemaker_only")
 @pytest.mark.flaky(reruns=3)
 @pytest.mark.integration("imagenet dataset")
 @pytest.mark.multinode(4)
@@ -24,6 +31,7 @@ def test_tensorflow_sagemaker_training_performance_multinode(tensorflow_training
     run_sm_perf_test(tensorflow_training, 4, region)
 
 
+@pytest.mark.usefixtures("sagemaker_only")
 @pytest.mark.integration("imagenet dataset")
 @pytest.mark.model("resnet50")
 def test_tensorflow_sagemaker_training_performance_singlenode(tensorflow_training, region):
@@ -34,7 +42,7 @@ def run_sm_perf_test(image_uri, num_nodes, region):
     """
     Run TF sagemaker training performance tests
 
-    Additonal context: Setup for this function is performed by 'setup_sm_benchmark_tf_train_env' -- this installs
+    Additional context: Setup for this function is performed by 'setup_sm_benchmark_tf_train_env' -- this installs
     some prerequisite packages, clones some repos, and creates a virtualenv called sm_benchmark_venv.
 
     TODO: Refactor the above setup function to be more obviously connected to this function,
@@ -44,11 +52,12 @@ def run_sm_perf_test(image_uri, num_nodes, region):
     :param num_nodes: Number of nodes to run on
     :param region: AWS region
     """
-    framework_version = re.search(r"[1,2](\.\d+){2}", image_uri).group()
+    _, framework_version = get_framework_and_version_from_tag(image_uri)
     if framework_version.startswith("1."):
         pytest.skip("Skipping benchmark test on TF 1.x images.")
 
     processor = "gpu" if "gpu" in image_uri else "cpu"
+    device_cuda_str = f"{processor}-{get_cuda_version_from_tag(image_uri)}" if processor == "gpu" else processor
 
     ec2_instance_type = "p3.16xlarge" if processor == "gpu" else "c5.18xlarge"
 
@@ -57,11 +66,15 @@ def run_sm_perf_test(image_uri, num_nodes, region):
     time_str = time.strftime("%Y-%m-%d-%H-%M-%S")
     commit_info = os.getenv("CODEBUILD_RESOLVED_SOURCE_VERSION")
     target_upload_location = os.path.join(
-        BENCHMARK_RESULTS_S3_BUCKET, "tensorflow", framework_version, "sagemaker", "training", processor, py_version
+        BENCHMARK_RESULTS_S3_BUCKET,
+        "tensorflow",
+        framework_version,
+        "sagemaker",
+        "training",
+        device_cuda_str,
+        py_version,
     )
-    training_job_name = (
-        f"tf{framework_version[0]}-tr-bench-{processor}-{num_nodes}-node-{py_version}" f"-{commit_info[:7]}-{time_str}"
-    )
+    training_job_name = f"tf{framework_version[0]}-tr-bench-{device_cuda_str}-{num_nodes}-node-{py_version}-{commit_info[:7]}-{time_str}"
 
     # Inserting random sleep because this test starts multiple training jobs around the same time, resulting in
     # a throttling error for SageMaker APIs.
@@ -73,7 +86,9 @@ def run_sm_perf_test(image_uri, num_nodes, region):
     ctx = Context()
 
     with ctx.cd(test_dir), ctx.prefix(f"source {venv_dir}/bin/activate"):
-        log_file = f"results-{commit_info}-{time_str}-{framework_version}-{processor}-{py_version}-{num_nodes}-node.txt"
+        log_file = (
+            f"results-{commit_info}-{time_str}-{framework_version}-{device_cuda_str}-{py_version}-{num_nodes}-node.txt"
+        )
         run_out = ctx.run(
             f"timeout 45m python tf_sm_benchmark.py "
             f"--framework-version {framework_version} "
@@ -103,15 +118,16 @@ def run_sm_perf_test(image_uri, num_nodes, region):
         f"Test results can be found at {os.path.join(target_upload_location, log_file)}"
     )
 
-    threshold = (
-        (TENSORFLOW2_SM_TRAINING_CPU_1NODE_THRESHOLD if num_nodes == 1 else TENSORFLOW2_SM_TRAINING_CPU_4NODE_THRESHOLD)
+    threshold_table = (
+        (TENSORFLOW_SM_TRAINING_CPU_1NODE_THRESHOLD if num_nodes == 1 else TENSORFLOW_SM_TRAINING_CPU_4NODE_THRESHOLD)
         if processor == "cpu"
-        else TENSORFLOW2_SM_TRAINING_GPU_1NODE_THRESHOLD
+        else TENSORFLOW_SM_TRAINING_GPU_1NODE_THRESHOLD
         if num_nodes == 1
-        else TENSORFLOW2_SM_TRAINING_GPU_4NODE_THRESHOLD
+        else TENSORFLOW_SM_TRAINING_GPU_4NODE_THRESHOLD
     )
+    threshold = get_threshold_for_image(framework_version, threshold_table)
     LOGGER.info(
-        f"tensorflow {framework_version} sagemaker training {processor} {py_version} "
+        f"tensorflow {framework_version} sagemaker training {device_cuda_str} {py_version} "
         f"imagenet {num_nodes} nodes Throughput: {throughput} images/sec, threshold: {threshold} images/sec"
     )
     assert throughput > threshold, (
@@ -121,30 +137,35 @@ def run_sm_perf_test(image_uri, num_nodes, region):
 
 
 def _print_results_of_test(file_path, processor):
-    last_100_lines = Context().run(f"tail -100 {file_path}").stdout.split("\n")
     result = ""
     throughput = 0
     if processor == "cpu":
-        for line in last_100_lines:
-            if "Total img/sec on " in line:
-                result = line + "\n"
-                throughput = float(
-                    re.search(r"(CPU\(s\):[ ]*)(?P<throughput>[0-9]+\.?[0-9]+)", line).group("throughput")
-                )
-                break
+        with open(file_path, "r") as f:
+            lines = f.readlines()
+            for line in lines:
+                if "Total img/sec on " in line:
+                    result = line + "\n"
+                    throughput += float(
+                        re.search(r"(CPU\(s\):[ ]*)(?P<throughput>[0-9]+\.?[0-9]+)", line).group("throughput")
+                    )
     elif processor == "gpu":
         """calculate average throughput"""
-        counter = 0
-        result_dict = dict()
-        for line in last_100_lines:
-            if "images/sec: " in line:
-                counter += 1
-                key = line.split("<stdout>")[0]
-                result_dict[key] = line.strip("\n")
-                throughput += float(
-                    re.search(r"(images/sec:[ ]*)(?P<throughput>[0-9]+\.?[0-9]+)", line).group("throughput")
-                )
-        result = "\n".join(result_dict.values()) + "\n"
-        throughput = throughput/counter
+        result_list, throughput_list = [], []
+        with open(file_path, "r") as f:
+            lines = f.readlines()
+            for line in lines:
+                if "images/sec: " in line:
+                    result_list.append(line.strip("\n"))
+                    throughput = float(
+                        re.search(r"(images/sec:[ ]*)(?P<throughput>[0-9]+\.?[0-9]+)", line).group("throughput")
+                    )
+                    throughput_list.append(throughput)
+        result = "\n".join(result_list[-100:]) + "\n"
+        if len(throughput_list) == 0:
+            raise Exception(
+                "Cannot find throughput lines. Looks like SageMaker job was not run successfully. Please check"
+            )
+        # Take average of last 100 throughput lines
+        throughput = sum(throughput_list[-100:]) / len(throughput_list[-100:])
     LOGGER.info(result)
     return result, throughput

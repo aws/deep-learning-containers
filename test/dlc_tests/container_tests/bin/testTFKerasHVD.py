@@ -1,7 +1,8 @@
 import tensorflow as tf
 import horovod.tensorflow.keras as hvd
 import argparse
-
+from packaging.specifiers import SpecifierSet
+from packaging.version import Version
 parser = argparse.ArgumentParser()
 parser.add_argument("data_type")
 args = parser.parse_args()
@@ -29,8 +30,8 @@ dataset = dataset.repeat().shuffle(10000).batch(128)
 if data_type == "AMP":
     # if this code block get excecuted, data type is mixed-precision AKA AMP. If not, it is FP32.
     # When ampere comes and TF32 is available, we need to extend the test to run TF32 as well
-    policy = tf.keras.mixed_precision.experimental.Policy('mixed_float16', 128)
-    tf.keras.mixed_precision.experimental.set_policy(policy)
+    policy = tf.keras.mixed_precision.Policy('mixed_float16')
+    tf.keras.mixed_precision.set_global_policy(policy)
 elif data_type != "FP32":
     raise Exception("not supported data type.\n")
 
@@ -46,7 +47,10 @@ mnist_model = tf.keras.Sequential([
 ])
 
 # Horovod: adjust learning rate based on number of GPUs.
-opt = tf.optimizers.Adam(0.001)
+if Version(tf.__version__) in SpecifierSet("<2.11.0"):
+    opt = tf.optimizers.Adam(0.001)
+else:
+    opt = tf.optimizers.legacy.Adam(0.001)
 
 # Horovod: add Horovod DistributedOptimizer.
 opt = hvd.DistributedOptimizer(opt)

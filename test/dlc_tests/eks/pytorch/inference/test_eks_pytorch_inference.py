@@ -9,14 +9,14 @@ from invoke import run
 import test.test_utils.eks as eks_utils
 import test.test_utils as test_utils
 
-@pytest.mark.model("resnet")
-def test_eks_pytorch_neuron_inference(pytorch_inference, neuron_only):
-    server_type = test_utils.get_inference_server_type(pytorch_inference)
-    if "neuron" not in pytorch_inference:
-        pytest.skip("Skipping EKS Neuron Test for EIA and Non Neuron Images")
 
+@pytest.mark.model("resnet")
+def test_eks_pytorch_neuron_inference(pytorch_inference_neuron):
+    server_type = test_utils.get_inference_server_type(pytorch_inference_neuron)
+    
     model = "pytorch-resnet-neuron=https://aws-dlc-sample-models.s3.amazonaws.com/pytorch/Resnet50-neuron.mar"
-    server_cmd = "/usr/local/bin/entrypoint.sh -m pytorch-resnet-neuron=https://aws-dlc-sample-models.s3.amazonaws.com/pytorch/Resnet50-neuron.mar -t /home/model-server/config.properties"
+    server_cmd = "torchserve"
+
     num_replicas = "1"
     rand_int = random.randint(4001, 6000)
     processor = "neuron"
@@ -25,12 +25,13 @@ def test_eks_pytorch_neuron_inference(pytorch_inference, neuron_only):
     inference_service_name = selector_name = f"resnet-{processor}-{rand_int}"
 
     search_replace_dict = {
+        "<MODELS>": model,
         "<NUM_REPLICAS>": num_replicas,
         "<SELECTOR_NAME>": selector_name,
         "<INFERENCE_SERVICE_NAME>": inference_service_name,
-        "<DOCKER_IMAGE_BUILD_ID>": pytorch_inference,
+        "<DOCKER_IMAGE_BUILD_ID>": pytorch_inference_neuron,
         "<SERVER_TYPE>": server_type,
-        "<SERVER_CMD>": server_cmd
+        "<SERVER_CMD>": server_cmd,
     }
 
     search_replace_dict["<NUM_INF1S>"] = "1"
@@ -38,15 +39,8 @@ def test_eks_pytorch_neuron_inference(pytorch_inference, neuron_only):
     eks_utils.write_eks_yaml_file_from_template(
         eks_utils.get_single_node_inference_template_path("pytorch", processor), yaml_path, search_replace_dict
     )
-    device_plugin_path = eks_utils.get_device_plugin_path("pytorch", processor)
 
     try:
-        # TODO - once eksctl gets the latest neuron device plugin this can be removed
-        run("kubectl delete -f {}".format(device_plugin_path))
-        sleep(60)
-        run("kubectl apply -f {}".format(device_plugin_path))
-        sleep(10)
-
         run("kubectl apply -f {}".format(yaml_path))
 
         port_to_forward = random.randint(49152, 65535)
@@ -54,22 +48,27 @@ def test_eks_pytorch_neuron_inference(pytorch_inference, neuron_only):
         if eks_utils.is_service_running(selector_name):
             eks_utils.eks_forward_port_between_host_and_container(selector_name, port_to_forward, "8080")
 
-        assert test_utils.request_pytorch_inference_densenet(port=port_to_forward)
-    except ValueError as excp:
-        run("kubectl cluster-info dump")
-        eks_utils.LOGGER.error("Service is not running: %s", excp)
+        assert test_utils.request_pytorch_inference_densenet(
+            port=port_to_forward, server_type=server_type, model_name="pytorch-resnet-neuron"
+        )
     finally:
         run(f"kubectl delete deployment {selector_name}")
         run(f"kubectl delete service {selector_name}")
 
+
 @pytest.mark.model("densenet")
 def test_eks_pytorch_densenet_inference(pytorch_inference):
+    __test_eks_pytorch_densenet_inference(pytorch_inference)
+
+
+@pytest.mark.model("densenet")
+def test_eks_pytorch_densenet_inference_graviton(pytorch_inference_graviton):
+    __test_eks_pytorch_densenet_inference(pytorch_inference_graviton)
+
+
+def __test_eks_pytorch_densenet_inference(pytorch_inference):
     server_type = test_utils.get_inference_server_type(pytorch_inference)
-    if "eia" in pytorch_inference:
-        pytest.skip("Skipping EKS Test for EIA")
-    elif "neuron" in pytorch_inference:
-        pytest.skip("Neuron specific test is run and so skipping this test for Neuron")
-    elif server_type == "ts":
+    if server_type == "ts":
         model = "pytorch-densenet=https://torchserve.s3.amazonaws.com/mar_files/densenet161.mar"
         server_cmd = "torchserve"
     else:
@@ -81,6 +80,7 @@ def test_eks_pytorch_densenet_inference(pytorch_inference):
     rand_int = random.randint(4001, 6000)
 
     processor = "gpu" if "gpu" in pytorch_inference else "cpu"
+    test_type = test_utils.get_eks_k8s_test_type_label(pytorch_inference)
 
     yaml_path = os.path.join(os.sep, "tmp", f"pytorch_single_node_{processor}_inference_{rand_int}.yaml")
     inference_service_name = selector_name = f"densenet-service-{processor}-{rand_int}"
@@ -92,7 +92,8 @@ def test_eks_pytorch_densenet_inference(pytorch_inference):
         "<INFERENCE_SERVICE_NAME>": inference_service_name,
         "<DOCKER_IMAGE_BUILD_ID>": pytorch_inference,
         "<SERVER_TYPE>": server_type,
-        "<SERVER_CMD>": server_cmd
+        "<SERVER_CMD>": server_cmd,
+        "<TEST_TYPE>": test_type
     }
 
     if processor == "gpu":
@@ -110,9 +111,7 @@ def test_eks_pytorch_densenet_inference(pytorch_inference):
         if eks_utils.is_service_running(selector_name):
             eks_utils.eks_forward_port_between_host_and_container(selector_name, port_to_forward, "8080")
 
-        assert test_utils.request_pytorch_inference_densenet(port=port_to_forward)
-    except ValueError as excp:
-        eks_utils.LOGGER.error("Service is not running: %s", excp)
+        assert test_utils.request_pytorch_inference_densenet(port=port_to_forward, server_type=server_type)
     finally:
         run(f"kubectl delete deployment {selector_name}")
         run(f"kubectl delete service {selector_name}")

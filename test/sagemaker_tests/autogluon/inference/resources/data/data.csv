@@ -1,0 +1,4 @@
+age,workclass,fnlwgt,education,education-num,marital-status,occupation,relationship,race,sex,capital-gain,capital-loss,hours-per-week,native-country
+31, Private,169085, 11th,7, Married-civ-spouse, Sales, Wife, White, Female,0,0,20, United-States
+17, Self-emp-not-inc,226203, 12th,8, Never-married, Sales, Own-child, White, Male,0,0,45, United-States
+47, Private,54260, Assoc-voc,11, Married-civ-spouse, Exec-managerial, Husband, White, Male,0,1887,60, United-States

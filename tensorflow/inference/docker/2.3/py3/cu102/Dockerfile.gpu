@@ -9,8 +9,7 @@ LABEL com.amazonaws.sagemaker.capabilities.accept-bind-to-port=true
 ARG PYTHON=python3.7
 ARG PYTHON_PIP=python3-pip
 ARG PIP=pip3
-ARG PYTHON_VERSION=3.7.7
-ARG OPENSSL_VERSION=1.1.1g
+ARG PYTHON_VERSION=3.7.10
 
 ARG TFS_SHORT_VERSION=2.3
 ARG TFS_URL=https://aws-tensorflow-binaries.s3-us-west-2.amazonaws.com/serving/r2.3_aws/20200812-151510/gpu/py37/tensorflow_model_server
@@ -54,35 +53,28 @@ RUN apt-get update \
     emacs \
     git \
     wget \
+    unzip \
     vim \
     build-essential \
     zlib1g-dev \
+    openssl \
+    libssl1.1 \
+    libreadline-gplv2-dev \
+    libncursesw5-dev \
+    libssl-dev \
+    libsqlite3-dev \
+    tk-dev \
+    libgdbm-dev \
+    libc6-dev \
  && apt-get clean \
  && rm -rf /var/lib/apt/lists/*
-
-RUN wget -c https://www.openssl.org/source/openssl-${OPENSSL_VERSION}.tar.gz \
- && apt-get update \
- && apt remove -y --purge openssl \
- && rm -rf /usr/include/openssl \
- && apt-get install -y \
-    ca-certificates \
- && tar -xzvf openssl-${OPENSSL_VERSION}.tar.gz \
- && cd openssl-${OPENSSL_VERSION} \
- && ./config && make && make test \
- && make install \
- && ldconfig \
- && cd .. && rm -rf openssl-*
-
-# when we remove previous openssl, the ca-certificates pkgs and its symlinks gets deleted
-# causing sslcertverificationerror the below steps are to fix that
-RUN ln -s /etc/ssl/certs/*.* /usr/local/ssl/certs/
 
 # Install python3.7
 RUN wget https://www.python.org/ftp/python/$PYTHON_VERSION/Python-$PYTHON_VERSION.tgz \
  && tar -xvf Python-$PYTHON_VERSION.tgz \
  && cd Python-$PYTHON_VERSION \
  && ./configure && make && make install \
- && make && make install && rm -rf ../Python-$PYTHON_VERSION*
+ && rm -rf ../Python-$PYTHON_VERSION*
 
 RUN ${PIP} --no-cache-dir install --upgrade \
     pip \
@@ -124,6 +116,7 @@ RUN apt-get update \
 # cython, falcon, gunicorn, grpc
 RUN ${PIP} install -U --no-cache-dir \
     "awscli<2" \
+    boto3 \
     cython==0.29.14 \
     falcon==2.0.0 \
     gunicorn==20.0.4 \
@@ -133,7 +126,7 @@ RUN ${PIP} install -U --no-cache-dir \
     protobuf==3.11.1 \
 # using --no-dependencies to avoid installing tensorflow binary
  && ${PIP} install --no-dependencies --no-cache-dir \
-    tensorflow-serving-api-gpu==2.3.0
+    tensorflow-serving-api-gpu==2.3
 
 COPY ./sagemaker /sagemaker
 
@@ -156,7 +149,15 @@ ADD https://raw.githubusercontent.com/aws/deep-learning-containers/master/src/de
 
 RUN chmod +x /usr/local/bin/deep_learning_container.py
 
+RUN HOME_DIR=/root \
+ && curl -o ${HOME_DIR}/oss_compliance.zip https://aws-dlinfra-utilities.s3.amazonaws.com/oss_compliance.zip \
+ && unzip ${HOME_DIR}/oss_compliance.zip -d ${HOME_DIR}/ \
+ && cp ${HOME_DIR}/oss_compliance/test/testOSSCompliance /usr/local/bin/testOSSCompliance \
+ && chmod +x /usr/local/bin/testOSSCompliance \
+ && chmod +x ${HOME_DIR}/oss_compliance/generate_oss_compliance.sh \
+ && ${HOME_DIR}/oss_compliance/generate_oss_compliance.sh ${HOME_DIR} ${PYTHON} \
+ && rm -rf ${HOME_DIR}/oss_compliance*
+
 RUN curl https://aws-dlc-licenses.s3.amazonaws.com/tensorflow-2.3/license.txt -o /license.txt
 
 CMD ["/usr/bin/tf_serving_entrypoint.sh"]
-

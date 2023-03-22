@@ -1,0 +1,63 @@
+ARG CUDA_VER=11.2
+ARG PYTHON_VERSION=3.8.10
+
+FROM 763104351884.dkr.ecr.us-west-2.amazonaws.com/mxnet-training:1.9.0-gpu-py38-cu112-ubuntu20.04-sagemaker
+
+ENV MXNET_CUDNN_LIB_CHECKING=0 \
+    MXNET_CUDNN_AUTOTUNE_DEFAULT=0
+
+LABEL maintainer="Amazon AI"
+LABEL dlc_major_version="1"
+
+RUN apt-get update \
+ && apt-get -y upgrade \
+ && apt-get install -y --no-install-recommends \
+    libgl1-mesa-glx \
+    ffmpeg \
+    libsm6 \
+    libxext6 \
+ && apt-get autoremove -y \
+ && apt-get clean \
+ && rm -rf /var/lib/apt/lists/* \
+ && rm -rf /tmp/*
+
+ARG AUTOGLUON_VERSION=0.5.2
+ARG TORCH_VER=1.12
+ARG TORCH_VISION_VER=0.13
+ARG TORCH_TEXT_VER=0.13
+
+# NOTE: fixing protobuf + sagemaker-training to compatible versions
+# NOTE: reinstalling horovod with pytorch support because it is available in the container
+
+RUN pip install --no-cache-dir -U --trusted-host pypi.org --trusted-host files.pythonhosted.org pip \
+ && pip install --no-cache-dir -U setuptools wheel \
+ && pip install --no-cache-dir -U numpy numba sagemaker-training==4.2.0 protobuf==3.18.1 \
+ && pip install --no-cache-dir -U torch==${TORCH_VER} torchvision==${TORCH_VISION_VER} torchtext==${TORCH_TEXT_VER} --extra-index-url https://download.pytorch.org/whl/cu113 \
+ && pip uninstall -y horovod && HOROVOD_WITH_PYTORCH=1 pip install --no-cache-dir horovod==0.24.3 \
+ && pip install --no-cache-dir -U autogluon==${AUTOGLUON_VERSION} \
+ && pip install --no-cache-dir -U sagemaker-mxnet-training
+
+# Resolving sagemaker 2.92.1 conflict
+RUN pip install --no-cache-dir 'importlib-metadata<2.0,>=1.4.0' markdown
+
+# Removing GluonTS nursery/tsbench package - it is not used in training/inference and have security vulnerabilities
+RUN rm -rf /usr/local/lib/python3.8/dist-packages/gluonts/nursery/tsbench
+
+# Remove these to address security issues; these are not used if only python package is used
+RUN rm -rf /usr/local/lib/python3.8/dist-packages/ray/jars
+
+# Updating SageMaker to address security
+RUN pip install -U "sagemaker<2.113,>=2.112.2"
+
+RUN HOME_DIR=/root \
+ && curl -o ${HOME_DIR}/oss_compliance.zip https://aws-dlinfra-utilities.s3.amazonaws.com/oss_compliance.zip \
+ && unzip ${HOME_DIR}/oss_compliance.zip -d ${HOME_DIR}/ \
+ && cp ${HOME_DIR}/oss_compliance/test/testOSSCompliance /usr/local/bin/testOSSCompliance \
+ && chmod +x /usr/local/bin/testOSSCompliance \
+ && chmod +x ${HOME_DIR}/oss_compliance/generate_oss_compliance.sh \
+ && ${HOME_DIR}/oss_compliance/generate_oss_compliance.sh ${HOME_DIR} python \
+ && rm -rf ${HOME_DIR}/oss_compliance*
+
+RUN curl -o /licenses-autogluon.txt https://autogluon.s3.us-west-2.amazonaws.com/licenses/THIRD-PARTY-LICENSES.txt
+
+CMD ["/bin/bash"]
