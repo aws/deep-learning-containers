@@ -42,12 +42,12 @@ do_build = true
 
 [test]
 ### On by default
-sanity_tests = true
+sanity_tests = false
   safety_check_test = false
   ecr_scan_allowlist_feature = false
-ecs_tests = true
-eks_tests = true
-ec2_tests = true
+ecs_tests = false
+eks_tests = false
+ec2_tests = false
 
 ### SM specific tests
 ### Off by default
@@ -105,8 +105,9 @@ dlc-pr-tensorflow-2-habana-training = ""
 ### INFERENCE PR JOBS ###
 
 # Standard Framework Inference
+# pytorch/inference/buildspec-2-0.yml
 dlc-pr-mxnet-inference = ""
-dlc-pr-pytorch-inference = "pytorch/inference/buildspec-2-0.yml"
+dlc-pr-pytorch-inference = ""
 dlc-pr-tensorflow-2-inference = ""
 dlc-pr-autogluon-inference = ""
 
