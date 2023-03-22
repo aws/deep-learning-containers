@@ -11,10 +11,16 @@
 # ANY KIND, either express or implied. See the License for the specific
 # language governing permissions and limitations under the License.
 from __future__ import absolute_import
-from .... import get_ecr_image, get_ecr_image_region, get_sagemaker_session
-import sagemaker
-from sagemaker.pytorch import PyTorch
+
 import time
+
+import pytest
+import sagemaker
+
+from sagemaker.pytorch import PyTorch
+
+from ..... import get_ecr_image, get_ecr_image_region, get_sagemaker_session, LOW_AVAILABILITY_INSTANCE_TYPES
+
 
 def upload_s3_data(estimator, path, key_prefix):
 
@@ -52,6 +58,7 @@ def invoke_pytorch_estimator(
     num_retries = 3
     retry_delay = 600
     ecr_image_region = get_ecr_image_region(ecr_image)
+    error = None
     for _ in range(num_retries):
         for test_region in sagemaker_regions:
             sagemaker_session = get_sagemaker_session(test_region)
@@ -76,12 +83,29 @@ def invoke_pytorch_estimator(
                     training_input = upload_s3_data(pytorch, **upload_s3_data_args)
                     inputs = {'training': training_input}
 
-                pytorch.fit(inputs=inputs, job_name=job_name)
+                pytorch.fit(inputs=inputs, job_name=job_name, logs=True)
                 return pytorch, sagemaker_session
 
             except sagemaker.exceptions.UnexpectedStatusException as e:
+                error = e
                 if "CapacityError" in str(e):
                     time.sleep(retry_delay)
                     continue
                 else:
                     raise e
+
+    instance_types = []
+    if "instance_type" in estimator_parameter:
+        instance_types = [estimator_parameter["instance_type"]]
+    elif "instance_groups" in estimator_parameter:
+        instance_types = [instance_group.instance_type for instance_group in estimator_parameter["instance_groups"]]
+    # It is possible to have such low capacity on certain instance types that the test is never able to run due to
+    # ICE errors. In these cases, we are forced to xfail/skip the test, or end up causing pipelines to fail forever.
+    # We have approval to skip the test when this type of ICE error occurs for p4de. Will need approval for each new
+    # instance type to be added to this list.
+    if "CapacityError" in str(error) and any(
+        instance_type in LOW_AVAILABILITY_INSTANCE_TYPES for instance_type in instance_types
+    ):
+        # TODO: xfailed tests do not show up on CodeBuild Test Case Reports. Therefore using "skip" instead of xfail.
+        pytest.skip(f"Failed to launch job due to low capacity on {instance_types}")
+    raise error

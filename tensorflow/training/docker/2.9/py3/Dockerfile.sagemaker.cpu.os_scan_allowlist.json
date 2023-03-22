@@ -1,0 +1,64 @@
+{
+    "cryptography": [
+        {
+            "description": " If an X.509 certificate contains a malformed policy constraint and policy processing is enabled, then a write lock will be taken twice recursively. On some operating systems (most widely: Windows) this results in a denial of service when the affected process hangs. Policy processing being enabled on a publicly facing server is not considered to be a common setup. Policy processing is enabled by passing the `-policy' argument to the command line utilities or by calling either `X509_VERIFY_PARAM_add0_policy()' or `X509_VERIFY_PARAM_set1_policies()' functions.",
+            "vulnerability_id": "CVE-2022-3996",
+            "name": "CVE-2022-3996",
+            "package_name": "cryptography",
+            "package_details": {
+                "file_path": "usr/local/lib/python3.9/site-packages/cryptography-39.0.0.dist-info/METADATA",
+                "name": "cryptography",
+                "package_manager": "PYTHONPKG",
+                "version": "39.0.0",
+                "release": null
+            },
+            "remediation": {
+                "recommendation": {
+                    "text": "None Provided"
+                }
+            },
+            "cvss_v3_score": 7.5,
+            "cvss_v30_score": 0.0,
+            "cvss_v31_score": 7.5,
+            "cvss_v2_score": 0.0,
+            "cvss_v3_severity": "HIGH",
+            "source_url": "https://people.canonical.com/~ubuntu-security/cve/2022/CVE-2022-3996.html",
+            "source": "UBUNTU_CVE",
+            "severity": "LOW",
+            "status": "ACTIVE",
+            "title": "CVE-2022-3996 - cryptography",
+            "reason_to_ignore": "Ubuntu 20.04 is not affected by this CVE, therefore there is no remediation required for Cryptography"
+        }
+    ],
+    "tensorflow-cpu": [
+        {
+            "description": "TensorFlow is an open source platform for machine learning. When ops that have specified input sizes receive a differing number of inputs, the executor will crash. We have patched the issue in GitHub commit f5381e0e10b5a61344109c1b7c174c68110f7629. The fix will be included in TensorFlow 2.11. We will also cherrypick this commit on TensorFlow 2.10.1, 2.9.3, and TensorFlow 2.8.4, as these are also affected and still in supported range.",
+            "vulnerability_id": "CVE-2022-41883",
+            "name": "CVE-2022-41883",
+            "package_name": "tensorflow-cpu",
+            "package_details": {
+                "file_path": "usr/local/lib/python3.9/site-packages/tensorflow_cpu-2.9.3.dist-info/METADATA",
+                "name": "tensorflow-cpu",
+                "package_manager": "PYTHONPKG",
+                "version": "2.9.3",
+                "release": null
+            },
+            "remediation": {
+                "recommendation": {
+                    "text": "None Provided"
+                }
+            },
+            "cvss_v3_score": 7.5,
+            "cvss_v30_score": 0,
+            "cvss_v31_score": 7.5,
+            "cvss_v2_score": 0,
+            "cvss_v3_severity": "HIGH",
+            "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2022-41883",
+            "source": "NVD",
+            "severity": "HIGH",
+            "status": "ACTIVE",
+            "title": "CVE-2022-41883 - tensorflow-cpu",
+            "reason_to_ignore": "TensorFlow 2.9.3 is the latest version of TensorFlow available for this container"
+        }
+    ]
+}

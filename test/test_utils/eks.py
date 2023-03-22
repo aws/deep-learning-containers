@@ -244,7 +244,7 @@ def eks_write_kubeconfig(eks_cluster_name, region="us-west-2"):
         eks_cluster_name, region: str
     """
     eks_role = get_eks_role()
-    eksctl_write_kubeconfig_command = f"eksctl utils write-kubeconfig --name {eks_cluster_name} --region {region}"
+    eksctl_write_kubeconfig_command = f"eksctl utils write-kubeconfig --cluster {eks_cluster_name} --region {region}"
 
     if eks_role:
         eksctl_write_kubeconfig_command += f" --authenticator-role-arn {eks_role} "
@@ -273,7 +273,7 @@ def eks_forward_port_between_host_and_container(selector_name, host_port, contai
     )
 
 
-@retry(stop_max_attempt_number=20, wait_fixed=30000, retry_on_exception=retry_if_value_error)
+@retry(stop_max_attempt_number=30, wait_fixed=30000, retry_on_exception=retry_if_value_error)
 def is_service_running(selector_name, namespace="default"):
     """Check if the service pod is running
     Args:
@@ -323,7 +323,7 @@ def is_mpijob_launcher_pod_ready(namespace, job_name):
     """
 
     pod_name = run(
-        f"kubectl get pods -n {namespace} -l mpi_job_name={job_name},mpi_role_type=launcher -o name"
+        f"kubectl get pods -n {namespace} -l training.kubeflow.org/job-name={job_name},training.kubeflow.org/replica-type=launcher -o name"
     ).stdout.strip("\n")
     if pod_name:
         return pod_name

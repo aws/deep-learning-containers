@@ -1,10 +1,15 @@
 FROM ubuntu:18.04
 
+RUN apt-get update \
+ && apt-get upgrade -y \
+ && apt-get clean \
+ && rm -rf /var/lib/apt/lists/*
+
 LABEL maintainer="Amazon AI"
 # Specify LABEL for inference pipelines to use SAGEMAKER_BIND_TO_PORT
 # https://docs.aws.amazon.com/sagemaker/latest/dg/inference-pipeline-real-time.html
 LABEL com.amazonaws.sagemaker.capabilities.accept-bind-to-port=true
-LABEL dlc_major_version="1"
+LABEL dlc_major_version="2"
 
 # Add arguments to achieve the version, python and url
 ARG PYTHON=python3.7
@@ -54,9 +59,15 @@ RUN apt-get update \
     libreadline-gplv2-dev \
     libsqlite3-dev \
     libssl-dev \
+    libtiff5 \
     tk-dev \
  && apt-get clean \
  && rm -rf /var/lib/apt/lists/*
+
+# upgrade libpcre2-8-0
+RUN wget http://ftp.de.debian.org/debian/pool/main/p/pcre2/libpcre2-8-0_10.36-2+deb11u1_amd64.deb \
+ && dpkg -i libpcre2-8-0_10.36-2+deb11u1_amd64.deb \
+ && rm -rf libpcre2-8-0_10.36-2+deb11u1_amd64.deb
 
 RUN wget https://www.python.org/ftp/python/$PYTHON_VERSION/Python-$PYTHON_VERSION.tgz \
  && tar -xvf Python-$PYTHON_VERSION.tgz \
@@ -78,13 +89,15 @@ RUN ln -s $(which ${PYTHON}) /usr/local/bin/python \
 RUN ${PIP} install --no-cache-dir \
     "awscli<2" \
     boto3 \
+    certifi \
     cython==0.29.21 \
     falcon==2.0.0 \
     gunicorn==20.0.4 \
     gevent==21.1.1 \
-    requests==2.24.0 \
+    requests==2.28.1 \
     grpcio==1.31.0 \
-    protobuf==3.12.4 \
+    protobuf==4.21.7 \
+    urllib3==1.26.12 \
 # using --no-dependencies to avoid installing tensorflow binary
  && ${PIP} install --no-dependencies --no-cache-dir \
     tensorflow-serving-api==2.3

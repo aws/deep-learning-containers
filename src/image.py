@@ -30,7 +30,7 @@ class DockerImage:
     The DockerImage class has the functions and attributes for building the dockerimage
     """
 
-    def __init__(self, info, dockerfile, repository, tag, to_build, stage, context=None, to_push=True, additional_tags=[]):
+    def __init__(self, info, dockerfile, repository, tag, to_build, stage, context=None, to_push=True, additional_tags=[], target=None):
 
         # Meta-data about the image should go to info.
         # All keys in info are accessible as attributes
@@ -59,6 +59,7 @@ class DockerImage:
         self.client = APIClient(base_url=constants.DOCKER_URL, timeout=constants.API_CLIENT_TIMEOUT)
         self.log = []
         self._corresponding_common_stage_image = None
+        self.target = target
 
     def __getattr__(self, name):
         return self.info[name]
@@ -182,6 +183,7 @@ class DockerImage:
             tag=self.ecr_url,
             buildargs=self.build_args,
             labels=self.labels,
+            target=self.target,
         ):
             if line.get("error") is not None:
                 response.append(line["error"])

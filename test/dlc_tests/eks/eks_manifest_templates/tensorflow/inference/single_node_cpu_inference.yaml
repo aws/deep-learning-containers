@@ -40,13 +40,8 @@ spec:
       containers:
       - name: tfs-service
         image: <DOCKER_IMAGE_BUILD_ID>
-        command:
-        - /usr/bin/tensorflow_model_server
-        args:
-        - --port=8501
-        - --rest_api_port=8500
-        - --model_name=<MODEL_NAME>
-        - --model_base_path=<MODEL_BASE_PATH>
+        command: <COMMAND>
+        args: <ARGS>
         ports:
         - containerPort: 8500
         - containerPort: 8501
@@ -68,4 +63,4 @@ spec:
             cpu: "1"
             memory: 1Gi
       nodeSelector:
-        test_type: gpu
+        test_type: <TEST_TYPE>

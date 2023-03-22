@@ -19,6 +19,7 @@ import pytest
 from sagemaker import utils
 from sagemaker.mxnet.model import MXNetModel
 
+from ..... import invoke_sm_helper_function
 from ...integration import RESOURCE_PATH
 from ...integration.sagemaker import timeout
 
@@ -30,8 +31,12 @@ SCRIPT_PATH = os.path.join(GLUONNLP_PATH, 'bert.py')
 @pytest.mark.model("bert_sst")
 @pytest.mark.skip_py2_containers
 @pytest.mark.skip_eia_containers
-@pytest.mark.skip_neuron_containers
-def test_gluonnlp(sagemaker_session, ecr_image, instance_type, framework_version):
+def test_gluonnlp(ecr_image, sagemaker_regions, instance_type, framework_version, skip_neuron_containers):
+    invoke_sm_helper_function(ecr_image, sagemaker_regions, _test_gluonnlp_function,
+                                 instance_type, framework_version)
+
+
+def _test_gluonnlp_function(ecr_image, sagemaker_session, instance_type, framework_version):
     import urllib.request
     tmpdir = tempfile.mkdtemp()
     tmpfile = os.path.join(tmpdir, 'bert_sst.tar.gz')

@@ -4,7 +4,10 @@ import pytest
 
 import test.test_utils as test_utils
 
-from test.test_utils import CONTAINER_TESTS_PREFIX, LOGGER, is_tf_version, is_nightly_context
+from packaging.version import Version
+from packaging.specifiers import SpecifierSet
+
+from test.test_utils import CONTAINER_TESTS_PREFIX, LOGGER, is_tf_version, get_framework_and_version_from_tag, is_nightly_context
 from test.test_utils.ec2 import get_ec2_instance_type
 
 
@@ -16,6 +19,7 @@ SMDEBUG_EC2_GPU_INSTANCE_TYPE = get_ec2_instance_type(default="p3.8xlarge", proc
 SMDEBUG_EC2_CPU_INSTANCE_TYPE = get_ec2_instance_type(default="c4.8xlarge", processor="cpu")
 
 
+@pytest.mark.usefixtures("feature_smdebug_present")
 @pytest.mark.usefixtures("sagemaker_only")
 @pytest.mark.integration("smdebug")
 @pytest.mark.model("mnist")
@@ -24,6 +28,10 @@ SMDEBUG_EC2_CPU_INSTANCE_TYPE = get_ec2_instance_type(default="c4.8xlarge", proc
 def test_smdebug_gpu(training, ec2_connection, region, ec2_instance_type, gpu_only, py3_only):
     if test_utils.is_image_incompatible_with_instance_type(training, ec2_instance_type):
         pytest.skip(f"Image {training} is incompatible with instance type {ec2_instance_type}")
+
+    _, image_framework_version = get_framework_and_version_from_tag(training)
+    if 'trcomp' in training and 'pytorch' in training and Version(image_framework_version) in SpecifierSet("<2.0"):
+        pytest.skip(f"Image {training} doesn't support s3. Hence test is skipped.")
     smdebug_test_timeout = 2400
     if is_tf_version("1", training):
         if is_nightly_context():
@@ -42,6 +50,7 @@ def test_smdebug_gpu(training, ec2_connection, region, ec2_instance_type, gpu_on
     )
 
 
+@pytest.mark.usefixtures("feature_smdebug_present")
 @pytest.mark.usefixtures("sagemaker_only")
 @pytest.mark.integration("smprofiler")
 @pytest.mark.model("mnist")
@@ -54,6 +63,9 @@ def test_smprofiler_gpu(
     # This code needs to be modified past reInvent 2020
     if test_utils.is_image_incompatible_with_instance_type(training, ec2_instance_type):
         pytest.skip(f"Image {training} is incompatible with instance type {ec2_instance_type}")
+    _, image_framework_version = get_framework_and_version_from_tag(training)
+    if 'trcomp' in training and 'pytorch' in training and Version(image_framework_version) in SpecifierSet("<2.0"):
+        pytest.skip(f"Image {training} doesn't support s3. Hence test is skipped.")
     framework = get_framework_from_image_uri(training)
     if framework not in ["pytorch", "tensorflow2"]:
         return
@@ -69,6 +81,7 @@ def test_smprofiler_gpu(
     )
 
 
+@pytest.mark.usefixtures("feature_smdebug_present")
 @pytest.mark.usefixtures("sagemaker_only")
 @pytest.mark.flaky(reruns=0)
 @pytest.mark.integration("smdebug")
@@ -78,6 +91,7 @@ def test_smdebug_cpu(training, ec2_connection, region, ec2_instance_type, cpu_on
     run_smdebug_test(training, ec2_connection, region, ec2_instance_type)
 
 
+@pytest.mark.usefixtures("feature_smdebug_present")
 @pytest.mark.usefixtures("sagemaker_only")
 @pytest.mark.flaky(reruns=0)
 @pytest.mark.integration("smdebug")
@@ -111,7 +125,8 @@ def run_smdebug_test(
     framework = get_framework_from_image_uri(image_uri)
     container_test_local_dir = os.path.join("$HOME", "container_tests")
     ec2_connection.run(f"$(aws ecr get-login --no-include-email --region {region})", hide=True)
-    ec2_connection.run(f"docker pull -q {image_uri}")
+    # Do not add -q to docker pull as it leads to a hang for huge images like trcomp
+    ec2_connection.run(f"docker pull {image_uri}")
 
     try:
         ec2_connection.run(
@@ -149,7 +164,8 @@ def run_smprofiler_test(
     framework = get_framework_from_image_uri(image_uri)
     container_test_local_dir = os.path.join("$HOME", "container_tests")
     ec2_connection.run(f"$(aws ecr get-login --no-include-email --region {region})", hide=True)
-    ec2_connection.run(f"docker pull -q {image_uri}")
+    # Do not add -q to docker pull as it leads to a hang for huge images like trcomp
+    ec2_connection.run(f"docker pull {image_uri}")
 
     try:
         ec2_connection.run(

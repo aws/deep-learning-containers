@@ -10,12 +10,12 @@ LABEL com.amazonaws.sagemaker.capabilities.accept-bind-to-port=true
 # https://docs.aws.amazon.com/sagemaker/latest/dg/build-multi-model-build-container.html
 LABEL com.amazonaws.sagemaker.capabilities.multi-models=true
 
-ARG MMS_VERSION=1.1.4
+ARG MMS_VERSION=1.1.8
 ARG PYTHON=python3
 ARG PYTHON_VERSION=3.8.10
 ARG OPEN_MPI_VERSION=4.0.1
 # HF ARGS
-ARG PT_INFERENCE_URL=https://pytorch-ei-binaries.s3.us-west-2.amazonaws.com/r1.9.0_inference/20210730-020505/2dc3e2055764606a22a3c59ea955184e85ad6110/cpu/torch-1.9.0-cp38-cp38-manylinux1_x86_64.whl
+ARG PT_INFERENCE_URL=https://pytorch-ei-binaries.s3.us-west-2.amazonaws.com/r1.9.1_inference/cpu/torch-1.9.1-cp38-cp38-manylinux1_x86_64.whl
 ARG TRANSFORMERS_VERSION
 
 ENV PYTHONDONTWRITEBYTECODE=1 \
@@ -43,6 +43,7 @@ RUN apt-get update \
     emacs \
     unzip \
     git \
+    libopenblas-dev \
  && apt-get clean \
  && rm -rf /var/lib/apt/lists/*
 
@@ -66,7 +67,8 @@ RUN pip install --upgrade pip --trusted-host pypi.org --trusted-host files.pytho
  && ln -s /opt/conda/bin/pip /usr/local/bin/pip3 \
  && pip install packaging==20.4 \
     enum-compat==0.0.3 \
-    "cryptography>3.2"
+    "cryptography>3.2" \
+    "urllib3>=1.26.9"
 
 RUN wget https://www.open-mpi.org/software/ompi/v4.0/downloads/openmpi-$OPEN_MPI_VERSION.tar.gz \
  && gunzip -c openmpi-$OPEN_MPI_VERSION.tar.gz | tar xf - \

@@ -1,0 +1,67 @@
+account_id: &ACCOUNT_ID <set-$ACCOUNT_ID-in-environment>
+region: &REGION <set-$REGION-in-environment>
+framework: &FRAMEWORK pytorch
+version: &VERSION 1.13.0
+short_version: &SHORT_VERSION "1.13"
+arch_type: x86
+docker_file_version: &DOCKER_FILE_VERSION lite
+
+repository_info:
+  training_repository: &TRAINING_REPOSITORY
+    image_type: &TRAINING_IMAGE_TYPE training
+    root: !join [ *FRAMEWORK, "/", *TRAINING_IMAGE_TYPE ]
+    repository_name: &REPOSITORY_NAME !join [pr, "-", *FRAMEWORK, "-", *TRAINING_IMAGE_TYPE]
+    repository: &REPOSITORY !join [ *ACCOUNT_ID, .dkr.ecr., *REGION, .amazonaws.com/, *REPOSITORY_NAME ]
+
+context:
+  training_context: &TRAINING_CONTEXT
+    changehostname:
+      source: docker/build_artifacts/changehostname.c
+      target: changehostname.c
+    start_with_right_hostname:
+      source: docker/build_artifacts/start_with_right_hostname.sh
+      target: start_with_right_hostname.sh
+    deep_learning_container:
+      source: ../../src/deep_learning_container.py
+      target: deep_learning_container.py
+
+images:
+  # Build Sagemaker CPU Training Image
+  BuildSageMakerCPUPTTrainPy3DockerImage:
+    <<: *TRAINING_REPOSITORY
+    build: &PYTORCH_CPU_TRAINING_PY3 false
+    image_size_baseline: 12000
+    device_type: &DEVICE_TYPE cpu
+    python_version: &DOCKER_PYTHON_VERSION py3
+    tag_python_version: &TAG_PYTHON_VERSION py38
+    os_version: &OS_VERSION ubuntu20.04
+    tag: !join [ *VERSION, "-", *DEVICE_TYPE, "-", *TAG_PYTHON_VERSION, "-", *OS_VERSION, "-sagemaker-lite" ]
+    docker_file: !join [ docker/, *SHORT_VERSION, /, *DOCKER_PYTHON_VERSION, /Dockerfile.sagemaker., *DOCKER_FILE_VERSION, ".", *DEVICE_TYPE ]
+    target: sagemaker
+    labels:
+      aws_framework_installed: false
+      aws_smdebug_installed: false
+      aws_s3_plugin_installed: false
+    context:
+      <<: *TRAINING_CONTEXT
+  # Build Sagemaker GPU Training Image
+  BuildSageMakerGPUPTTrainPy3DockerImage:
+    <<: *TRAINING_REPOSITORY
+    build: &PYTORCH_GPU_TRAINING_PY3 false
+    image_size_baseline: 18000
+    device_type: &DEVICE_TYPE gpu
+    python_version: &DOCKER_PYTHON_VERSION py3
+    tag_python_version: &TAG_PYTHON_VERSION py38
+    cuda_version: &CUDA_VERSION cu113
+    os_version: &OS_VERSION ubuntu20.04
+    tag: !join [ *VERSION, "-", *DEVICE_TYPE, "-", *TAG_PYTHON_VERSION, "-", *CUDA_VERSION, "-", *OS_VERSION, "-sagemaker-lite" ]
+    docker_file: !join [ docker/, *SHORT_VERSION, /, *DOCKER_PYTHON_VERSION, /, *CUDA_VERSION, /Dockerfile.sagemaker., *DOCKER_FILE_VERSION, ".", *DEVICE_TYPE ]
+    target: sagemaker
+    labels:
+      aws_framework_installed: false
+      aws_smdebug_installed: false
+      aws_smddp_installed: false
+      aws_smmp_installed: false
+      aws_s3_plugin_installed: false
+    context:
+      <<: *TRAINING_CONTEXT

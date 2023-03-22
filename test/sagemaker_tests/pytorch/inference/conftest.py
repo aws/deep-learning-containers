@@ -68,6 +68,7 @@ NO_P3_REGIONS = [
     "ca-central-1",
     "eu-central-1",
     "eu-north-1",
+    "eu-west-1",
     "eu-west-2",
     "eu-west-3",
     "eu-south-1",
@@ -105,7 +106,7 @@ def pytest_addoption(parser):
     parser.addoption('--docker-base-name', default='pytorch')
     parser.addoption('--region', default='us-west-2')
     parser.addoption('--framework-version', default='')
-    parser.addoption('--py-version', choices=['2', '3', '37', '38'], default=str(sys.version_info.major))
+    parser.addoption('--py-version', choices=['2', '3', '37', '38', '39'], default=str(sys.version_info.major))
     # Processor is still "cpu" for EIA tests
     parser.addoption('--processor', choices=['gpu', 'cpu', 'eia', 'neuron'], default='cpu')
     # If not specified, will default to {framework-version}-{processor}-py{py-version}
@@ -115,7 +116,7 @@ def pytest_addoption(parser):
     parser.addoption(
         "--efa", action="store_true", default=False, help="Run only efa tests",
     )
-    parser.addoption('--sagemaker-region')
+    parser.addoption('--sagemaker-regions', default='us-west-2')
 
 
 def pytest_configure(config):
@@ -136,6 +137,12 @@ def pytest_collection_modifyitems(session, config, items):
         report_generator.generate_coverage_doc(framework="pytorch", job_type="inference")
 
 
+# Nightly fixtures
+@pytest.fixture(scope="session")
+def feature_aws_framework_present():
+    pass
+
+
 @pytest.fixture(scope='session', name='docker_base_name')
 def fixture_docker_base_name(request):
     return request.config.getoption('--docker-base-name')
@@ -152,7 +159,7 @@ def fixture_framework_version(request):
 
 @pytest.fixture(scope='session', name='sagemaker_regions')
 def fixture_sagemaker_region(request):
-    sagemaker_regions = request.config.getoption('--sagemaker-region')
+    sagemaker_regions = request.config.getoption('--sagemaker-regions')
     return sagemaker_regions.split(",")
 
 @pytest.fixture(scope='session', name='py_version')
@@ -253,7 +260,7 @@ def skip_by_device_type(request, use_gpu, instance_type, accelerator_type):
     is_neuron = instance_type.startswith("ml.inf")
 
     # Separate out cases for clearer logic.
-    # When running Neuron test, skip CPU  and GPU test. 
+    # When running Neuron test, skip CPU  and GPU test.
     if (request.node.get_closest_marker('neuron_test') and not is_neuron):
         pytest.skip('Skipping because running on \'{}\' instance'.format(instance_type))
 
@@ -343,3 +350,20 @@ def disable_test(request):
 
     if build_name and version and _is_test_disabled(test_name, build_name, version):
         pytest.skip(f"Skipping {test_name} test because it has been disabled.")
+
+
+@pytest.fixture(autouse=True)
+def skip_test_successfully_executed_before(request):
+    """
+    "cache/lastfailed" contains information about failed tests only. We're running SM tests in separate threads for each image.
+    So when we retry SM tests, successfully executed tests executed again because pytest doesn't have that info in /.cache.
+    But the flag "--last-failed-no-failures all" requires pytest to execute all the available tests.
+    The only sign that a test passed last time - lastfailed file exists and the test name isn't in that file.
+    The method checks whether lastfailed file exists and the test name is not in it.
+    """
+    test_name = request.node.name
+    lastfailed = request.config.cache.get("cache/lastfailed", None)
+
+    if lastfailed is not None \
+            and not any(test_name in failed_test_name for failed_test_name in lastfailed.keys()):
+        pytest.skip(f"Skipping {test_name} because it was successfully executed for this commit")

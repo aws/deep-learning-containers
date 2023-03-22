@@ -3,6 +3,7 @@ import json
 import time
 
 from packaging.version import Version
+from packaging.specifiers import SpecifierSet
 
 import pytest
 
@@ -20,6 +21,7 @@ from test.test_utils import (
 )
 
 
+@pytest.mark.usefixtures("feature_smdebug_present")
 @pytest.mark.usefixtures("sagemaker_only", "huggingface")
 @pytest.mark.integration("smprofiler")
 @pytest.mark.model("N/A")
@@ -28,6 +30,10 @@ def test_sm_profiler_pt(pytorch_training):
     processor = get_processor_from_image_uri(pytorch_training)
     if processor not in ("cpu", "gpu"):
         pytest.skip(f"Processor {processor} not supported. Skipping test.")
+
+    _, image_framework_version = get_framework_and_version_from_tag(pytorch_training)
+    if Version(image_framework_version) in SpecifierSet(">=1.10"):
+        pytest.skip("sm profiler ZCC test is not supported in PT 1.10 and above")
 
     ctx = Context()
 
@@ -60,6 +66,7 @@ def test_sm_profiler_pt(pytorch_training):
     run_sm_profiler_tests(pytorch_training, profiler_tests_dir, "test_profiler_pytorch.py", processor)
 
 
+@pytest.mark.usefixtures("feature_smdebug_present")
 @pytest.mark.usefixtures("sagemaker_only", "huggingface")
 @pytest.mark.integration("smprofiler")
 @pytest.mark.model("N/A")
@@ -85,13 +92,6 @@ def test_sm_profiler_tf(tensorflow_training):
         hide=True
     )
     ctx.run(f"cd {profiler_tests_dir} && unzip {sm_tests_zip}", hide=True)
-
-    # Install tf datasets
-    ctx.run(
-        f"echo 'tensorflow-datasets==4.0.1' >> "
-        f"{profiler_tests_dir}/sagemaker-tests/tests/scripts/tf_scripts/requirements.txt",
-        hide=True,
-    )
 
     run_sm_profiler_tests(tensorflow_training, profiler_tests_dir, "test_profiler_tensorflow.py", processor)
 

@@ -85,7 +85,7 @@ def pytest_addoption(parser):
     parser.addoption('--docker-base-name', default='autogluon')
     parser.addoption('--region', default='us-west-2')
     parser.addoption('--framework-version', default='')
-    parser.addoption('--py-version', choices=['37'], default='37')
+    parser.addoption('--py-version', choices=['37', '38'], default='38')
     parser.addoption('--processor', choices=['gpu', 'cpu'], default='cpu')
 
     # If not specified, will default to {framework-version}-{processor}-py{py-version}
@@ -95,6 +95,7 @@ def pytest_addoption(parser):
     parser.addoption(
         "--efa", action="store_true", default=False, help="Run only efa tests",
     )
+    parser.addoption('--sagemaker-regions', default='us-west-2')
 
 
 def pytest_configure(config):
@@ -123,6 +124,12 @@ def fixture_docker_base_name(request):
 @pytest.fixture(scope='session', name='region')
 def fixture_region(request):
     return request.config.getoption('--region')
+
+
+@pytest.fixture(scope='session', name='sagemaker_regions')
+def fixture_sagemaker_regions(request):
+    sagemaker_regions = request.config.getoption('--sagemaker-regions')
+    return sagemaker_regions.split(",")
 
 
 @pytest.fixture(scope='session', name='framework_version')
@@ -316,3 +323,20 @@ def disable_test(request):
 
     if build_name and version and _is_test_disabled(test_name, build_name, version):
         pytest.skip(f"Skipping {test_name} test because it has been disabled.")
+
+
+@pytest.fixture(autouse=True)
+def skip_test_successfully_executed_before(request):
+    """
+    "cache/lastfailed" contains information about failed tests only. We're running SM tests in separate threads for each image.
+    So when we retry SM tests, successfully executed tests executed again because pytest doesn't have that info in /.cache.
+    But the flag "--last-failed-no-failures all" requires pytest to execute all the available tests.
+    The only sign that a test passed last time - lastfailed file exists and the test name isn't in that file.
+    The method checks whether lastfailed file exists and the test name is not in it.
+    """
+    test_name = request.node.name
+    lastfailed = request.config.cache.get("cache/lastfailed", None)
+
+    if lastfailed is not None \
+            and not any(test_name in failed_test_name for failed_test_name in lastfailed.keys()):
+        pytest.skip(f"Skipping {test_name} because it was successfully executed for this commit")

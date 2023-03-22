@@ -2,7 +2,7 @@
 # refer to the above page to pull latest Pytorch image
 
 # docker image region us-west-2
-FROM 763104351884.dkr.ecr.us-west-2.amazonaws.com/pytorch-training:1.9.0-gpu-py38-cu111-ubuntu20.04
+FROM 763104351884.dkr.ecr.us-west-2.amazonaws.com/pytorch-training:1.9.1-gpu-py38-cu111-ubuntu20.04
 
 LABEL maintainer="Amazon AI"
 LABEL dlc_major_version="1"

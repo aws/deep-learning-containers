@@ -56,10 +56,7 @@ def get_datasets():
     )
     train_dataset.set_format(type="tensorflow", columns=["input_ids", "attention_mask", "label"])
 
-    train_features = {
-        x: train_dataset[x].to_tensor(default_value=0, shape=[None, tokenizer.model_max_length])
-        for x in ["input_ids", "attention_mask"]
-    }
+    train_features = {x: train_dataset[x] for x in ["input_ids", "attention_mask"]}
     tf_train_dataset = tf.data.Dataset.from_tensor_slices((train_features, train_dataset["label"]))
 
     # Preprocess test dataset
@@ -68,10 +65,7 @@ def get_datasets():
     )
     test_dataset.set_format(type="tensorflow", columns=["input_ids", "attention_mask", "label"])
 
-    test_features = {
-        x: test_dataset[x].to_tensor(default_value=0, shape=[None, tokenizer.model_max_length])
-        for x in ["input_ids", "attention_mask"]
-    }
+    test_features = {x: test_dataset[x] for x in ["input_ids", "attention_mask"]}
     tf_test_dataset = tf.data.Dataset.from_tensor_slices((test_features, test_dataset["label"]))
 
     if SDP_ENABLED:
@@ -95,6 +89,7 @@ if __name__ == "__main__":
     parser.add_argument("--learning_rate", type=str, default=5e-5)
     parser.add_argument("--do_train", type=bool, default=True)
     parser.add_argument("--do_eval", type=bool, default=True)
+    parser.add_argument("--max_steps", type=int)
 
     # Data, model, and output directories
     parser.add_argument("--output_data_dir", type=str, default=os.environ["SM_OUTPUT_DATA_DIR"])

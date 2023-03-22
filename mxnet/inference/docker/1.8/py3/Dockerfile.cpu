@@ -10,7 +10,7 @@ LABEL com.amazonaws.sagemaker.capabilities.accept-bind-to-port=true
 # https://docs.aws.amazon.com/sagemaker/latest/dg/build-multi-model-build-container.html
 LABEL com.amazonaws.sagemaker.capabilities.multi-models=true
 
-ARG MMS_VERSION=1.1.2
+ARG MMS_VERSION=1.1.7
 ARG MX_URL=https://aws-mx-pypi.s3-us-west-2.amazonaws.com/1.8.0/aws_mx-1.8.0-py2.py3-none-manylinux2014_x86_64.whl
 ARG PYTHON=python3
 ARG PIP=pip3
@@ -51,6 +51,12 @@ RUN apt-get update \
     libffi-dev \
  && apt-get clean \
  && rm -rf /var/lib/apt/lists/*
+
+## This section is for allowing the automatic updates of vulnerable packages.
+COPY apt-upgrade-list.txt /tmp/apt-upgrade-list.txt
+RUN apt-get update \
+&& apt-get install --only-upgrade $(cat /tmp/apt-upgrade-list.txt) \
+&& rm -rf /tmp/apt-upgrade-list.txt
 
 # install OpenSSL
 RUN wget -q -c https://www.openssl.org/source/openssl-${OPENSSL_VERSION}.tar.gz \

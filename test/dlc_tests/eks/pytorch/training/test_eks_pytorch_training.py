@@ -13,7 +13,7 @@ import test.test_utils.eks as eks_utils
 from test.test_utils import is_pr_context, SKIP_PR_REASON, is_below_framework_version
 from test.test_utils import get_framework_and_version_from_tag, get_cuda_version_from_tag
 from packaging.version import Version
-
+from packaging.specifiers import SpecifierSet
 
 LOGGER = eks_utils.LOGGER
 
@@ -58,14 +58,14 @@ def test_eks_pytorch_single_node_training(pytorch_training):
       echo "          ('https://dlinfra-mnist-dataset.s3-us-west-2.amazonaws.com/mnist/t10k-images-idx3-ubyte.gz', '9fb629c4189551a2d022fa330f9573f3')," >> $FILE &&
       echo "          ('https://dlinfra-mnist-dataset.s3-us-west-2.amazonaws.com/mnist/t10k-labels-idx1-ubyte.gz', 'ec29112dd5afa0611ce80d1b7f02629c')" >> $FILE &&
       echo "          ]" >> $FILE &&
-      sed -i '1d' examples/mnist/main.py &&
-      sed -i '6d' examples/mnist/main.py &&
-      cat examples/mnist/main.py >> $FILE &&
-      rm examples/mnist/main.py &&
-      mv $FILE examples/mnist/main.py
+      sed -i '1d' mnist/main.py &&
+      sed -i '6d' mnist/main.py &&
+      cat mnist/main.py >> $FILE &&
+      rm mnist/main.py &&
+      mv $FILE mnist/main.py
     '''
 
-    args = f"git clone https://github.com/pytorch/examples.git && {mnist_dataset_download_config}  && python examples/mnist/main.py"
+    args = f"git clone https://github.com/pytorch/examples.git && cd examples && git reset --hard 5a06e9cac1728c860b53ebfc6792e0a0e21a5678 && {mnist_dataset_download_config}  && python mnist/main.py"
 
     # TODO: Change hardcoded value to read a mapping from the EKS cluster instance.
     cpu_limit = 72
@@ -97,22 +97,21 @@ def test_eks_pytorch_single_node_training(pytorch_training):
         run("kubectl delete pods {}".format(pod_name))
 
 
+@pytest.mark.usefixtures("feature_s3_plugin_present")
 @pytest.mark.skipif(
     not is_pr_context(),
     reason="Skip this test. It is already tested under PR context and we do not have enough resouces to test it again on mainline pipeline",
 )
 @pytest.mark.model("resnet18")
 @pytest.mark.integration("pt_s3_plugin")
-def test_eks_pt_s3_plugin_single_node_training(pytorch_training, pt17_and_above_only):
+def test_eks_pt_s3_plugin_single_node_training(pytorch_training, outside_versions_skip):
     """
     Function to create a pod using kubectl and given container image, and run MXNet training
     Args:
         :param setup_utils: environment in which EKS tools are setup
         :param pytorch_training: the ECR URI
     """
-    _, image_framework_version = get_framework_and_version_from_tag(pytorch_training)
-    if Version(image_framework_version) < Version("1.8"):
-        pytest.skip("S3 plugin is supported on PyTorch version >=1.8")
+    outside_versions_skip(pytorch_training, "1.8.0", "1.12.1")
 
     training_result = False
 
@@ -171,6 +170,9 @@ def test_eks_pytorch_dgl_single_node_training(pytorch_training, py3_only):
     image_cuda_version = get_cuda_version_from_tag(pytorch_training)
     if Version(image_framework_version) == Version("1.6") and image_cuda_version == "cu110":
         pytest.skip("DGL does not suport CUDA 11 for PyTorch 1.6")
+    # TODO: Remove when DGL gpu test on ecs get fixed
+    if Version(image_framework_version) in SpecifierSet("==1.10.*"):
+        pytest.skip("ecs test for DGL gpu fails for pt 1.10")
 
     training_result = False
     rand_int = random.randint(4001, 6000)
@@ -178,24 +180,15 @@ def test_eks_pytorch_dgl_single_node_training(pytorch_training, py3_only):
     yaml_path = os.path.join(os.sep, "tmp", f"pytorch_single_node_training_dgl_{rand_int}.yaml")
     pod_name = f"pytorch-single-node-training-dgl-{rand_int}"
 
-    if is_below_framework_version("1.7", pytorch_training, "pytorch"):
-        dgl_branch = "0.4.x"
-    else:
-        dgl_branch = "0.5.x"
-
     args = (
-        f"git clone -b {dgl_branch} https://github.com/dmlc/dgl.git && "
+        f"dgl_branch=$(python -c \"import dgl; dgl_versions = dgl.__version__.split('.'); print(dgl_versions[0] + '.' + dgl_versions[1] + '.x')\") && "
+        f"git clone -b $dgl_branch https://github.com/dmlc/dgl.git && "
         f"cd /dgl/examples/pytorch/gcn/ && DGLBACKEND=pytorch python train.py --dataset cora"
     )
 
     # TODO: Change hardcoded value to read a mapping from the EKS cluster instance.
     cpu_limit = 72
     cpu_limit = str(int(cpu_limit) / 2)
-
-    if "gpu" in pytorch_training:
-        args = args + " --gpu 0"
-    else:
-        args = args + " --gpu -1"
 
     search_replace_dict = {
         "<POD_NAME>": pod_name,

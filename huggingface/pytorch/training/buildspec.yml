@@ -1,0 +1,32 @@
+account_id: &ACCOUNT_ID <set-$ACCOUNT_ID-in-environment>
+region: &REGION <set-$REGION-in-environment>
+base_framework: &BASE_FRAMEWORK pytorch
+framework: &FRAMEWORK !join [ "huggingface_", *BASE_FRAMEWORK]
+version: &VERSION 1.13.1
+short_version: &SHORT_VERSION "1.13"
+contributor: huggingface
+arch_type: x86
+
+repository_info:
+  training_repository: &TRAINING_REPOSITORY
+    image_type: &TRAINING_IMAGE_TYPE training
+    root: !join [ "huggingface/", *BASE_FRAMEWORK, "/", *TRAINING_IMAGE_TYPE ]
+    repository_name: &REPOSITORY_NAME !join ["pr", "-", "huggingface", "-", *BASE_FRAMEWORK, "-", *TRAINING_IMAGE_TYPE]
+    repository: &REPOSITORY !join [ *ACCOUNT_ID, .dkr.ecr., *REGION, .amazonaws.com/, *REPOSITORY_NAME ]
+
+images:
+  BuildHuggingFacePytorchGpuPy39Cu117TrainingDockerImage:
+    <<: *TRAINING_REPOSITORY
+    build: &HUGGINGFACE_PYTORCH_GPU_TRAINING_PY3 false
+    image_size_baseline: &IMAGE_SIZE_BASELINE 15000
+    device_type: &DEVICE_TYPE gpu
+    python_version: &DOCKER_PYTHON_VERSION py3
+    tag_python_version: &TAG_PYTHON_VERSION py39
+    cuda_version: &CUDA_VERSION cu117
+    os_version: &OS_VERSION ubuntu20.04
+    transformers_version: &TRANSFORMERS_VERSION 4.26.0
+    datasets_version: &DATASETS_VERSION 2.9.0
+    tag: !join [ *VERSION, '-', 'transformers', *TRANSFORMERS_VERSION, '-', *DEVICE_TYPE, '-', *TAG_PYTHON_VERSION, '-',
+                 *CUDA_VERSION, '-', *OS_VERSION ]
+    docker_file: !join [ docker/, *SHORT_VERSION, /, *DOCKER_PYTHON_VERSION, /,
+                         *CUDA_VERSION, /Dockerfile., *DEVICE_TYPE ]

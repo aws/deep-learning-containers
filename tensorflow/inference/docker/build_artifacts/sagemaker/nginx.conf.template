@@ -15,7 +15,9 @@ http {
   include /etc/nginx/mime.types;
   default_type application/json;
   access_log /dev/stdout combined;
-  js_include tensorflow-serving.js;
+  js_import tensorflowServing.js;
+
+  proxy_read_timeout %PROXY_READ_TIMEOUT%;  
 
   upstream tfs_upstream {
     %TFS_UPSTREAM%;
@@ -62,3 +64,4 @@ http {
     keepalive_timeout 3;
   }
 }
+  

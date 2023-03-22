@@ -19,6 +19,7 @@ import pytest
 from sagemaker import utils
 from sagemaker.mxnet.model import MXNetModel
 
+from ..... import invoke_sm_helper_function
 from ...integration import RESOURCE_PATH
 from ...integration.sagemaker import timeout
 
@@ -29,8 +30,12 @@ SCRIPT_PATH = os.path.join(DEFAULT_HANDLER_PATH, 'model', 'code', 'empty_module.
 
 @pytest.mark.integration("hosting")
 @pytest.mark.model("linear_regression")
-@pytest.mark.skip_neuron_containers
-def test_hosting(sagemaker_session, ecr_image, instance_type, framework_version):
+def test_hosting(ecr_image, sagemaker_regions, instance_type, framework_version, skip_neuron_containers):
+    invoke_sm_helper_function(ecr_image, sagemaker_regions, _test_hosting_function,
+                                 instance_type, framework_version)
+
+
+def _test_hosting_function(ecr_image, sagemaker_session, instance_type, framework_version):
     prefix = 'mxnet-serving/default-handlers'
     model_data = sagemaker_session.upload_data(path=MODEL_PATH, key_prefix=prefix)
     model = MXNetModel(model_data,

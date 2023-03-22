@@ -1,0 +1,285 @@
+[
+    {
+        "awsAccountId": "abcd",
+        "description": "temp-description",
+        "findingArn": "arn",
+        "firstObservedAt": "2022-08-01T21:55:36.625000+00:00",
+        "lastObservedAt": "2022-08-01T21:55:36.625000+00:00",
+        "packageVulnerabilityDetails": {
+            "cvss": [
+                {
+                    "baseScore": 7.7,
+                    "scoringVector": "CVSS:3.1/AV:N/AC:H/PR:H/UI:N/S:C/C:H/I:N/A:H",
+                    "source": "SNYK",
+                    "version": "3.1"
+                }
+            ],
+            "referenceUrls": [],
+            "relatedVulnerabilities": [],
+            "source": "SNYK",
+            "sourceUrl": "https://temp-url",
+            "vendorCreatedAt": "2020-10-01T16:24:00+00:00",
+            "vendorSeverity": "high",
+            "vulnerabilityId": "CVE-123",
+            "vulnerablePackages": [
+                {
+                    "epoch": 0,
+                    "filePath": "usr/lib",
+                    "name": "package1",
+                    "packageManager": "PYTHONPKG",
+                    "sourceLayerHash": "temp",
+                    "version": "1.2"
+                }
+            ]
+        },
+        "remediation": {
+            "recommendation": {
+                "text": "None Provided"
+            }
+        },
+        "resources": [],
+        "score": 7.7,
+        "scoreDetails": {
+            "cvss": {
+                "adjustments": [],
+                "score": 7.7,
+                "scoreSource": "SNYK",
+                "scoringVector": "CVSS:3.1/AV:N/AC:H/PR:H/UI:N/S:C/C:H/I:N/A:H",
+                "version": "3.1"
+            }
+        },
+        "severity": "HIGH",
+        "status": "ACTIVE",
+        "title": "CVE-123 - package1",
+        "type": "PACKAGE_VULNERABILITY",
+        "updatedAt": "2022-08-01T21:55:36.625000+00:00"
+    },
+    {
+        "awsAccountId": "abcd",
+        "description": "temp-description",
+        "findingArn": "arn",
+        "firstObservedAt": "2022-08-01T21:55:36.625000+00:00",
+        "lastObservedAt": "2022-08-01T21:55:36.625000+00:00",
+        "packageVulnerabilityDetails": {
+            "cvss": [
+                {
+                    "baseScore": 9.1,
+                    "scoringVector": "CVSS:3.1/AV:N/AC:H/PR:H/UI:N/S:C/C:H/I:N/A:H",
+                    "source": "SNYK",
+                    "version": "3.1"
+                }
+            ],
+            "referenceUrls": [],
+            "relatedVulnerabilities": [],
+            "source": "SNYK",
+            "sourceUrl": "https://temp-url",
+            "vendorCreatedAt": "2020-10-01T16:24:00+00:00",
+            "vendorSeverity": "critical",
+            "vulnerabilityId": "CVE-456",
+            "vulnerablePackages": [
+                {
+                    "epoch": 0,
+                    "filePath": "usr/lib",
+                    "name": "package2",
+                    "packageManager": "PYTHONPKG",
+                    "sourceLayerHash": "temp",
+                    "version": "1.2"
+                },
+                {
+                    "epoch": 0,
+                    "filePath": "usr/lib",
+                    "name": "package4",
+                    "packageManager": "PYTHONPKG",
+                    "sourceLayerHash": "temp",
+                    "version": "1.2"
+                }
+            ]
+        },
+        "remediation": {
+            "recommendation": {
+                "text": "None Provided"
+            }
+        },
+        "resources": [],
+        "score": 9.1,
+        "scoreDetails": {
+            "cvss": {
+                "adjustments": [],
+                "score": 9.1,
+                "scoreSource": "SNYK",
+                "scoringVector": "CVSS:3.1/AV:N/AC:H/PR:H/UI:N/S:C/C:H/I:N/A:H",
+                "version": "3.1"
+            }
+        },
+        "severity": "CRITICAL",
+        "status": "ACTIVE",
+        "title": "CVE-456 - package2/package4",
+        "type": "PACKAGE_VULNERABILITY",
+        "updatedAt": "2022-08-01T21:55:36.625000+00:00"
+    },
+    {
+        "awsAccountId": "abcd",
+        "description": "temp-description",
+        "findingArn": "arn",
+        "firstObservedAt": "2022-08-01T21:55:36.625000+00:00",
+        "lastObservedAt": "2022-08-01T21:55:36.625000+00:00",
+        "packageVulnerabilityDetails": {
+            "cvss": [
+                {
+                    "baseScore": 5.1,
+                    "scoringVector": "CVSS:3.1/AV:N/AC:H/PR:H/UI:N/S:C/C:H/I:N/A:H",
+                    "source": "SNYK",
+                    "version": "3.1"
+                }
+            ],
+            "referenceUrls": [],
+            "relatedVulnerabilities": [],
+            "source": "SNYK",
+            "sourceUrl": "https://temp-url",
+            "vendorCreatedAt": "2020-10-01T16:24:00+00:00",
+            "vendorSeverity": "critical",
+            "vulnerabilityId": "CVE-789",
+            "vulnerablePackages": [
+                {
+                    "epoch": 0,
+                    "filePath": "usr/lib",
+                    "name": "package3",
+                    "packageManager": "PYTHONPKG",
+                    "sourceLayerHash": "temp",
+                    "version": "1.2"
+                }
+            ]
+        },
+        "remediation": {
+            "recommendation": {
+                "text": "None Provided"
+            }
+        },
+        "resources": [],
+        "score": 5.1,
+        "scoreDetails": {
+            "cvss": {
+                "adjustments": [],
+                "score": 5.1,
+                "scoreSource": "SNYK",
+                "scoringVector": "CVSS:3.1/AV:N/AC:H/PR:H/UI:N/S:C/C:H/I:N/A:H",
+                "version": "3.1"
+            }
+        },
+        "severity": "MEDIUM",
+        "status": "ACTIVE",
+        "title": "CVE-789 - package3",
+        "type": "PACKAGE_VULNERABILITY",
+        "updatedAt": "2022-08-01T21:55:36.625000+00:00"
+    },
+    {
+        "awsAccountId": "abcd",
+        "description": "temp-description",
+        "findingArn": "arn",
+        "firstObservedAt": "2022-08-01T21:55:36.625000+00:00",
+        "lastObservedAt": "2022-08-01T21:55:36.625000+00:00",
+        "packageVulnerabilityDetails": {
+            "cvss": [
+                {
+                    "baseScore": 9.1,
+                    "scoringVector": "CVSS:3.1/AV:N/AC:H/PR:H/UI:N/S:C/C:H/I:N/A:H",
+                    "source": "SNYK",
+                    "version": "3.1"
+                }
+            ],
+            "referenceUrls": [],
+            "relatedVulnerabilities": [],
+            "source": "SNYK",
+            "sourceUrl": "https://temp-url",
+            "vendorCreatedAt": "2020-10-01T16:24:00+00:00",
+            "vendorSeverity": "critical",
+            "vulnerabilityId": "CVE-4561",
+            "vulnerablePackages": [
+                {
+                    "epoch": 0,
+                    "filePath": "usr/lib",
+                    "name": "package4",
+                    "packageManager": "PYTHONPKG",
+                    "sourceLayerHash": "temp",
+                    "version": "1.2"
+                }
+            ]
+        },
+        "remediation": {
+            "recommendation": {
+                "text": "None Provided"
+            }
+        },
+        "resources": [],
+        "score": 9.1,
+        "scoreDetails": {
+            "cvss": {
+                "adjustments": [],
+                "score": 9.1,
+                "scoreSource": "SNYK",
+                "scoringVector": "CVSS:3.1/AV:N/AC:H/PR:H/UI:N/S:C/C:H/I:N/A:H",
+                "version": "3.1"
+            }
+        },
+        "severity": "CRITICAL",
+        "status": "ACTIVE",
+        "title": "CVE-4561 - package4",
+        "type": "PACKAGE_VULNERABILITY",
+        "updatedAt": "2022-08-01T21:55:36.625000+00:00"
+    },
+    {
+        "awsAccountId": "abcd",
+        "description": "temp-description",
+        "findingArn": "arn",
+        "firstObservedAt": "2022-08-01T21:55:36.625000+00:00",
+        "lastObservedAt": "2022-08-01T21:55:36.625000+00:00",
+        "packageVulnerabilityDetails": {
+            "cvss": [
+                {
+                    "baseScore": 9.4,
+                    "scoringVector": "CVSS:3.1/AV:N/AC:H/PR:H/UI:N/S:C/C:H/I:N/A:H",
+                    "source": "SNYK",
+                    "version": "3.1"
+                }
+            ],
+            "referenceUrls": [],
+            "relatedVulnerabilities": [],
+            "source": "SNYK",
+            "sourceUrl": "https://temp-url",
+            "vendorCreatedAt": "2020-10-01T16:24:00+00:00",
+            "vendorSeverity": "critical",
+            "vulnerabilityId": "CVE-A234",
+            "vulnerablePackages": [
+                {
+                    "epoch": 0,
+                    "filePath": "usr/lib",
+                    "name": "package6",
+                    "packageManager": "PYTHONPKG",
+                    "sourceLayerHash": "temp",
+                    "version": "1.235"
+                }
+            ]
+        },
+        "remediation": {
+            "recommendation": {
+                "text": "None Provided"
+            }
+        },
+        "resources": [],
+        "score": 9.4,
+        "scoreDetails": {
+            "cvss": {
+                "adjustments": [],
+                "score": 9.4,
+                "scoreSource": "SNYK",
+                "scoringVector": "CVSS:3.1/AV:N/AC:H/PR:H/UI:N/S:C/C:H/I:N/A:H",
+                "version": "3.1"
+            }
+        },
+        "severity": "CRITICAL",
+        "status": "ACTIVE",
+        "title": "CVE-A234 - package6",
+        "type": "PACKAGE_VULNERABILITY",
+        "updatedAt": "2022-08-01T21:55:36.625000+00:00"
+    }
+]
