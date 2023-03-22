@@ -3,22 +3,32 @@ import time
 import re
 from inspect import signature
 import boto3
+import logging
+import sys
+import uuid
 
-from retrying import retry
 from fabric import Connection
 from botocore.config import Config
 from botocore.exceptions import ClientError
+from invoke import run
+from packaging.version import Version
+from packaging.specifiers import SpecifierSet
+from tenacity import retry, stop_after_attempt, wait_fixed
 
-from test.test_utils import is_pr_context, is_mainline_context
-from . import DEFAULT_REGION, UL_AMI_LIST, LOGGER, BENCHMARK_RESULTS_S3_BUCKET
+from test.test_utils import is_pr_context, is_mainline_context, get_synapseai_version_from_tag
+from . import DEFAULT_REGION, UL_AMI_LIST, BENCHMARK_RESULTS_S3_BUCKET
 
 EC2_INSTANCE_ROLE_NAME = "ec2TestInstanceRole"
 
-# List of instance types for which if instance spin-up fails, the test is skipped instead of failing.
+# List of instance types for which, if instance spin-up fails, the test is skipped instead of failing.
 ICE_SKIP_INSTANCE_LIST = ["p3dn.24xlarge"]
 
 # List of instance types which are too powerful for minor tests
 HEAVY_INSTANCE_LIST = ["p3dn.24xlarge", "p4d.24xlarge"]
+
+LOGGER = logging.getLogger(__name__)
+LOGGER.addHandler(logging.StreamHandler(sys.stdout))
+LOGGER.setLevel(logging.INFO)
 
 
 def filter_only_multi_gpu(instance_type_list):
@@ -42,7 +52,7 @@ def filter_not_heavy_instance_types(instance_type_list):
     return filtered_list
 
 
-def get_ec2_instance_type(default, processor, filter_function=lambda x: x, efa=False):
+def get_ec2_instance_type(default, processor, filter_function=lambda x: x, efa=False, arch_type="", job_type=""):
     """
     Get EC2 instance type from associated EC2_[CPU|GPU]_INSTANCE_TYPE env variable, or set it to a default
     for contexts where the variable is not present (i.e. PR, Nightly, local testing)
@@ -56,7 +66,8 @@ def get_ec2_instance_type(default, processor, filter_function=lambda x: x, efa=F
     :return: one item list of instance type -- this is used to parametrize tests, and parameter is required to be
     a list.
     """
-    allowed_processors = ("cpu", "gpu", "neuron")
+    allowed_processors = ("cpu", "gpu", "neuron", "hpu")
+    job_type_str = f"_{job_type.upper()}" if job_type else ""
     if processor not in allowed_processors:
         raise RuntimeError(
             f"Aborting EC2 test run. Unrecognized processor type {processor}. "
@@ -64,7 +75,9 @@ def get_ec2_instance_type(default, processor, filter_function=lambda x: x, efa=F
         )
     if default in HEAVY_INSTANCE_LIST and not efa:
         raise RuntimeError(f"Default instance type should never be one of {HEAVY_INSTANCE_LIST}, but it is {default}")
-    instance_type = os.getenv(f"EC2_{processor.upper()}_INSTANCE_TYPE")
+    instance_type = os.getenv(f"EC2_{processor.upper()}{job_type_str}_INSTANCE_TYPE")
+    if arch_type == "graviton":
+        instance_type = os.getenv(f"EC2_{processor.upper()}_{arch_type.upper()}{job_type_str}_INSTANCE_TYPE")
     if not instance_type and is_mainline_context():
         return []
 
@@ -135,7 +148,7 @@ def launch_instance(
         "TagSpecifications": [
             {"ResourceType": "instance", "Tags": [{"Key": "Name", "Value": f"CI-CD {instance_name}"}],},
         ],
-        "BlockDeviceMappings": [{"DeviceName": "/dev/sda1", "Ebs": {"VolumeSize": 70,}}]
+        "BlockDeviceMappings": [{"DeviceName": "/dev/sda1", "Ebs": {"VolumeSize": 150,}}]
     }
     if user_data:
         arguments_dict["UserData"] = user_data
@@ -191,7 +204,7 @@ def get_instance_from_id(instance_id, region=DEFAULT_REGION):
     return instance["Reservations"][0]["Instances"][0]
 
 
-@retry(stop_max_attempt_number=16, wait_fixed=60000)
+@retry(stop=stop_after_attempt(16), wait=wait_fixed(60))
 def get_public_ip(instance_id, region=DEFAULT_REGION):
     """
     Get Public IP of instance using instance ID
@@ -205,7 +218,7 @@ def get_public_ip(instance_id, region=DEFAULT_REGION):
     return instance["PublicIpAddress"]
 
 
-@retry(stop_max_attempt_number=16, wait_fixed=60000)
+@retry(stop=stop_after_attempt(16), wait=wait_fixed(60))
 def get_public_ip_from_private_dns(private_dns, region=DEFAULT_REGION):
     """
     Get Public IP of instance using private DNS
@@ -218,7 +231,7 @@ def get_public_ip_from_private_dns(private_dns, region=DEFAULT_REGION):
     return response.get("Reservations")[0].get("Instances")[0].get("PublicIpAddress")
 
 
-@retry(stop_max_attempt_number=16, wait_fixed=60000)
+@retry(stop=stop_after_attempt(16), wait=wait_fixed(60))
 def get_instance_user(instance_id, region=DEFAULT_REGION):
     """
     Get "ubuntu" or "ec2-user" based on AMI used to launch instance
@@ -242,7 +255,7 @@ def get_instance_state(instance_id, region=DEFAULT_REGION):
     return instance["State"]["Name"]
 
 
-@retry(stop_max_attempt_number=16, wait_fixed=60000)
+@retry(stop=stop_after_attempt(16), wait=wait_fixed(60))
 def check_instance_state(instance_id, state="running", region=DEFAULT_REGION):
     """
     Compares the instance state with the state argument.
@@ -295,7 +308,7 @@ def get_system_state(instance_id, region=DEFAULT_REGION):
     )
 
 
-@retry(stop_max_attempt_number=96, wait_fixed=10000)
+@retry(stop=stop_after_attempt(96), wait=wait_fixed(10))
 def check_system_state(instance_id, system_status="ok", instance_status="ok", region=DEFAULT_REGION):
     """
     Compares the system state (Health Checks).
@@ -355,6 +368,7 @@ def get_instance_type_details(instance_type, region=DEFAULT_REGION):
     return response["InstanceTypes"][0]
 
 
+
 def get_instance_details(instance_id, region=DEFAULT_REGION):
     """
     Get instance details for instance with given instance ID
@@ -371,7 +385,7 @@ def get_instance_details(instance_id, region=DEFAULT_REGION):
     return get_instance_type_details(instance["InstanceType"], region=region)
 
 
-@retry(stop_max_attempt_number=30, wait_fixed=10000)
+@retry(stop=stop_after_attempt(30), wait=wait_fixed(10))
 def get_instance_num_cpus(instance_id, region=DEFAULT_REGION):
     """
     Get number of VCPUs on instance with given instance ID
@@ -383,7 +397,7 @@ def get_instance_num_cpus(instance_id, region=DEFAULT_REGION):
     return instance_info["VCpuInfo"]["DefaultVCpus"]
 
 
-@retry(stop_max_attempt_number=30, wait_fixed=10000)
+@retry(stop=stop_after_attempt(30), wait=wait_fixed(10))
 def get_instance_memory(instance_id, region=DEFAULT_REGION):
     """
     Get total RAM available on instance with given instance ID
@@ -395,7 +409,25 @@ def get_instance_memory(instance_id, region=DEFAULT_REGION):
     return instance_info["MemoryInfo"]["SizeInMiB"]
 
 
-@retry(stop_max_attempt_number=30, wait_fixed=10000)
+@retry(stop=stop_after_attempt(30), wait=wait_fixed(10))
+def get_instance_num_inferentias(instance_id=None, instance_type=None, region=DEFAULT_REGION):
+    """
+    Get total number of neurons on instance with given instance ID
+    :param instance_id: Instance ID to be queried
+    :param instance_type: Instance Type to be queried
+    :param region: Region where query will be performed
+    :return: <int> Number of neurons on instance with matching instance ID
+    """
+    assert instance_id or instance_type, "Input must be either instance_id or instance_type"
+    instance_info = (
+        get_instance_type_details(instance_type, region=region)
+        if instance_type
+        else get_instance_details(instance_id, region=region)
+    )
+    return sum(neuron_type["Count"] for neuron_type in instance_info["InferenceAcceleratorInfo"]["Accelerators"] if neuron_type["Name"]=="Inferentia")
+
+
+@retry(stop=stop_after_attempt(30), wait=wait_fixed(10))
 def get_instance_num_gpus(instance_id=None, instance_type=None, region=DEFAULT_REGION):
     """
     Get total number of GPUs on instance with given instance ID
@@ -423,7 +455,7 @@ def get_ec2_fabric_connection(instance_id, instance_pem_file, region):
     """
     user = get_instance_user(instance_id, region=region)
     conn = Connection(
-        user=user, host=get_public_ip(instance_id, region), connect_kwargs={"key_filename": [instance_pem_file]},
+        user=user, host=get_public_ip(instance_id, region), connect_kwargs={"key_filename": [instance_pem_file]}, connect_timeout=18000,
     )
     return conn
 
@@ -432,6 +464,152 @@ def get_ec2_instance_tags(instance_id, region=DEFAULT_REGION, ec2_client=None):
     ec2_client = ec2_client or get_ec2_client(region)
     response = ec2_client.describe_tags(Filters=[{"Name": "resource-id", "Values": [instance_id]}])
     return {tag["Key"]: tag["Value"] for tag in response.get("Tags")}
+
+
+def enforce_IMDSv2(instance_id, region=DEFAULT_REGION, ec2_client=None, hop_limit = 1):
+    """
+    Enabled HTTP TOKENS required option on EC2 instance with given hop limit.
+
+    :param instance_id: str, ec2 instance id
+    :param region: str, Region where ec2 instance is launched.
+    :param ec2_client: str, ec2 client.
+    :param hop_limit: str, hop limit to be set on ec2 instance.
+    """
+    ec2_client = ec2_client or get_ec2_client(region)
+    IMDSv2_enforced = False
+    response = ec2_client.modify_instance_metadata_options(
+        InstanceId=instance_id,
+        HttpTokens='required',
+        HttpPutResponseHopLimit=hop_limit,
+        HttpEndpoint='enabled',
+    )
+
+    if not response:
+        raise Exception("Unable to enforce IMDSv2. No response received.")
+
+    timeout = 3
+    state = None
+    if response["InstanceId"]:
+        while timeout > 0:
+            time.sleep(timeout)
+            LOGGER.info(f"Slept for: {timeout}")
+            res = ec2_client.describe_instances(InstanceIds=[instance_id])
+            if res:
+                metadata_options = res['Reservations'][0]['Instances'][0]['MetadataOptions']
+                http_tokens = metadata_options['HttpTokens']
+                state = metadata_options['State']
+                instance_hop_limit = metadata_options['HttpPutResponseHopLimit']
+
+                if http_tokens == 'required' and state == 'applied' and hop_limit == instance_hop_limit:
+                    break
+            timeout -= 1
+
+    if state == 'pending' or timeout == 0:
+        raise Exception("Unable to enforce IMDSv2. Describe instance is not able to confirm if IMDSv2 enforced.")
+    LOGGER.info(f"Modify Metadata options State of EC2 instance: {state}")
+
+
+def fetch_s3_file_and_get_last_line(s3_location, local_filename="temp.txt"):
+    """
+    Fetches the s3 file locally and extracts its last line.
+
+    :param s3_location: str, s3 uri
+    :param local_filename: str, location where s3 file is to be downloaded locally.
+    :return: str, The last line of the file
+    """
+    run(f"rm -rf {local_filename}", hide=True)
+    run(f"aws s3 cp {s3_location} {local_filename}", hide=True)
+    last_line_of_file = run(f"tail -n1 {local_filename}", hide=True).stdout.strip()
+    return last_line_of_file
+
+
+def execute_asynchronus_testing_using_s3_bucket(
+    connection,
+    execution_command,
+    connection_timeout,
+    required_log_ending,
+    loop_time=2.5 * 3600,
+    log_location_within_ec2="~/container_tests/logs.txt",
+    s3_uri_for_saving_permanent_logs=None,
+    hang_detection_window=3,
+):
+    """
+    This method uses fabric to run the provided execution_command in asynchronus mode. While the execution command
+    is being executed in the image, it keeps on uploading the logs to the s3 bucket at fixed intervals. After a
+    loop_time is over, it checks the last line of the uploaded logs to see if it is same as required_log_ending.
+    This is mainly used in cases where Fabric behaves in an undesired way due to long living connections.
+
+    :param connection: Fabric connection object
+    :param execution_command: str, command that connection.run() will execute
+    :param connection_timeout: timeout for fabric connection
+    :param required_log_ending: str, The string that is desired to be present at the end of the logs
+    :param loop_time: int, seconds for which we would wait for the tests to execute on ec2 instance
+    :param log_location_within_ec2: Location within ec2 instance where the logs are being witten.
+    :param s3_uri_for_saving_permanent_logs: Location where permanent s3 logs could be saved.
+    :param hang_detection_window: int, This method detects a hang if length of log file does not change for hang_detection_window number of iterations.
+    """
+    account_id = os.getenv("ACCOUNT_ID", boto3.client("sts").get_caller_identity()["Account"])
+    s3_bucket_name = f"dlc-async-test-{account_id}"
+    if not s3_uri_for_saving_permanent_logs:
+        unique_id = str(uuid.uuid4())
+        unique_id_with_timestamp = f"{unique_id}-{int(time.time())}"
+        s3_location = f"s3://{s3_bucket_name}/{unique_id_with_timestamp}.txt"
+    else:
+        s3_location = s3_uri_for_saving_permanent_logs
+    connection.run(execution_command, hide=True, timeout=connection_timeout, asynchronous=True)
+    start_time = int(time.time())
+    loop_count = 0
+    local_filename = s3_location.replace(':','-').replace('/','-')
+    last_line_of_log = ""
+    line_count_list = []
+    while (int(time.time()) - start_time <= loop_time) and (not last_line_of_log.endswith(required_log_ending)):
+        time.sleep(5 * 60)
+        loop_count += 1
+        connection.run(f"aws s3 cp {log_location_within_ec2} {s3_location}", timeout=connection_timeout)
+        last_line_of_log = fetch_s3_file_and_get_last_line(s3_location, local_filename)
+        number_of_lines_in_log_file = int(run(f"wc -l {local_filename}", hide=True).stdout.strip().split()[0])
+        line_count_list.append(number_of_lines_in_log_file)
+        number_of_previous_line_counts_to_check = hang_detection_window
+        if len(line_count_list) >= number_of_previous_line_counts_to_check:
+            if all(
+                line_count == line_count_list[-1]
+                for line_count in line_count_list[-number_of_previous_line_counts_to_check:]
+            ):
+                # If last 3 runs lead to same line number then it demonstrates no progress and hence we stop.
+                LOGGER.info(
+                    f"No progress reported for past {number_of_previous_line_counts_to_check} iterations. Job most likely hanged so stopping the execution!!"
+                )
+                break
+        LOGGER.info(f"Uploaded file to {s3_location} for {loop_count} number of times")
+
+    if not last_line_of_log.endswith(required_log_ending):
+        raise ValueError(
+            f""" Test failed because the last row is not as expected. \n"""
+            f""" Last row in the log file ===> {last_line_of_log} \n"""
+            f""" expected ===> {required_log_ending}. \n"""
+            f""" Full log ===> {s3_location} \n"""
+        )
+
+
+def get_s3_uri_for_saving_permanent_logs(framework, s3_bucket, test_type="ec2", custom_filename=None):
+    """
+    Helper function to get s3 uri where log files generated within test ec2 instances will be uploaded to.
+
+    :param framework: str, tensorflow, pytorch etc.
+    :param s3_bucket: str, name of the bucket where we want to upload the logs.
+    :param test_type: str, type of the test
+    :param custom_filename: str, custom name of the file that will be prepended with unique id to create the s3 filepath
+    """
+    commit_id = os.getenv("CODEBUILD_RESOLVED_SOURCE_VERSION", f"default-{int(time.time())}")
+    unique_id = str(uuid.uuid4())
+    unique_id_with_timestamp = f"{unique_id}-{int(time.time())}"
+    if custom_filename:
+        filename = f"{custom_filename}-logs-{unique_id_with_timestamp}.txt"
+    else:
+        filename = f"logs-{unique_id_with_timestamp}.txt"
+    s3_filepath = os.path.join(s3_bucket, test_type, framework, commit_id, filename)
+    s3_permanent_log_upload_uri = f"s3://{s3_filepath}"
+    return s3_permanent_log_upload_uri
 
 
 def execute_ec2_training_test(
@@ -443,7 +621,9 @@ def execute_ec2_training_test(
     large_shm=False,
     host_network=False,
     container_name="ec2_training_container",
-    timeout=3000,
+    timeout=18000,
+    bin_bash_entrypoint=False,
+    enable_habana_async_execution=False
 ):
     if executable not in ("bash", "python"):
         raise RuntimeError(f"This function only supports executing bash or python commands on containers")
@@ -451,20 +631,69 @@ def execute_ec2_training_test(
         executable = os.path.join(os.sep, "bin", "bash")
     docker_cmd = "nvidia-docker" if "gpu" in ecr_uri else "docker"
     container_test_local_dir = os.path.join("$HOME", "container_tests")
-
+    synapseai_version = get_synapseai_version_from_tag(ecr_uri)
     # Make sure we are logged into ECR so we can pull the image
     connection.run(f"$(aws ecr get-login --no-include-email --region {region})", hide=True)
 
     # Run training command
     shm_setting = '--shm-size="1g"' if large_shm else ""
     network = '--network="host" ' if host_network else ""
+    container_runtime = '--runtime=habana -e HABANA_VISIBLE_DEVICES=all' if "hpu" in ecr_uri else ""
+    ompi_mca_btl = '-e OMPI_MCA_btl_vader_single_copy_mechanism=none' if "hpu" in ecr_uri else ""
+    cap_add = '--cap-add=sys_nice' if "hpu" in ecr_uri else ""
+    ipc = '--ipc=host' if "hpu" in ecr_uri and "pytorch" in ecr_uri else ""
+    hpu_env_vars = f'-e GIT_BRANCH={synapseai_version}' if "hpu" in ecr_uri else ""
+    habana_container_test_repo = '-v ${HOME}/gaudi-test-suite:/gaudi-test-suite' if "hpu" in ecr_uri else ""
+    neuron_device = '--device=/dev/neuron0' if "neuron" in ecr_uri else ""
+    bin_bash_cmd = "--entrypoint /bin/bash " if bin_bash_entrypoint else ""
     connection.run(
-        f"{docker_cmd} run --name {container_name} {network}-v {container_test_local_dir}:{os.path.join(os.sep, 'test')}"
-        f" {shm_setting} -itd {ecr_uri}",
+        f"{docker_cmd} run --name {container_name} "
+        f"{container_runtime} {ompi_mca_btl} {cap_add} {hpu_env_vars} "
+        f"{ipc} {network}-v {container_test_local_dir}:{os.path.join(os.sep, 'test')} "
+        f"{habana_container_test_repo} {shm_setting} {neuron_device} -itd {bin_bash_cmd}{ecr_uri}",
         hide=True,
     )
+
+    if "habana" in ecr_uri:
+        execution_command = f"{docker_cmd} exec --user root {container_name} {executable} -c '{test_cmd}'"
+        required_log_ending = "Kudos!! Habana tests executed successfully"
+        framework = "tensorflow" if "tensorflow" in ecr_uri else "pytorch" if "pytorch" in ecr_uri else None
+        test_type = "ec2"
+        account_id_prefix = os.getenv("ACCOUNT_ID", boto3.client("sts").get_caller_identity()["Account"])[:3]
+        s3_bucket_for_permanent_logs = f"dlinfra-habana-tests-{account_id_prefix}"
+        s3_uri_permanent_logs = get_s3_uri_for_saving_permanent_logs(
+            framework, s3_bucket=s3_bucket_for_permanent_logs, test_type=test_type
+        )
+        if enable_habana_async_execution == True:
+            execute_asynchronus_testing_using_s3_bucket(
+                connection,
+                execution_command,
+                timeout,
+                required_log_ending,
+                loop_time= 4 * 3600,
+                s3_uri_for_saving_permanent_logs=s3_uri_permanent_logs,
+                hang_detection_window=15,
+            )
+            return
+        else:
+            run_output = connection.run(execution_command, hide=True, timeout=timeout)
+            try:
+                connection.run(f"aws s3 cp ~/container_tests/logs.txt {s3_uri_permanent_logs}")
+                LOGGER.info(f"Uploaded logs at: {s3_uri_permanent_logs}")
+            except:
+                LOGGER.info(f"Could not upload the logs")
+            return run_output
+
+    #Hack not sure why but see the following. since not using latest driver yet in the AMI, doing this for now
+    # [  214.939271] Neuron Driver Started with Version:2.x.381.0-b70a76a18efb5e89ffed987461e9a1009d8b6f1e
+    # [  214.939619] neuron-driver 0000:00:1e.0: BAR 4: can't reserve [mem 0x1000000000-0x17ffffffff 64bit pref]
+    if "neuron" in ecr_uri:
+        connection.run(f"sudo modprobe -r neuron  && sudo modprobe -i neuron")
+
     return connection.run(
-        f"{docker_cmd} exec --user root {container_name} {executable} -c '{test_cmd}'", hide=True, timeout=timeout,
+        f"{docker_cmd} exec --user root {container_name} {executable} -c '{test_cmd}'",
+        hide=True,
+        timeout=timeout,
     )
 
 
@@ -514,6 +743,55 @@ def execute_ec2_training_performance_test(
     ec2_performance_upload_result_to_s3_and_validate(
         connection, ecr_uri, log_location, data_source, threshold, post_process, log_name,
     )
+
+
+def execute_ec2_habana_training_performance_test(
+    connection, ecr_uri, test_cmd, region=DEFAULT_REGION, data_source="", cards_num=None, timeout=18000):
+    docker_cmd = "docker"
+    container_test_local_dir = os.path.join("$HOME", "container_tests")
+
+    timestamp = time.strftime("%Y-%m-%d-%H-%M-%S")
+    log_name = f"{data_source}_results_{os.getenv('CODEBUILD_RESOLVED_SOURCE_VERSION')}_{timestamp}.txt"
+    synapseai_version = get_synapseai_version_from_tag(ecr_uri)
+    # Make sure we are logged into ECR so we can pull the image
+    connection.run(f"$(aws ecr get-login --no-include-email --region {region})", hide=True)
+
+    connection.run(f"{docker_cmd} pull -q {ecr_uri}")
+
+    container_runtime = '--runtime=habana -e HABANA_VISIBLE_DEVICES=all'
+    hpu_env_vars = f'-e CARDS_NUM={cards_num} -e GIT_BRANCH={synapseai_version}'
+    ompi_mca_btl = '-e OMPI_MCA_btl_vader_single_copy_mechanism=none'
+    cap_add = '--cap-add=sys_nice'
+    ipc = '--ipc=host' if "pytorch" in ecr_uri else ""
+    habana_container_test_repo = '${HOME}/gaudi-test-suite:/gaudi-test-suite'
+    execution_command = f"{docker_cmd} run --user root " \
+        f"-e LOG_FILE={os.path.join(os.sep, 'test', 'benchmark', 'logs', log_name)} " \
+        f"-e PR_CONTEXT={1 if is_pr_context() else 0} " \
+        f"{container_runtime} {ompi_mca_btl} {hpu_env_vars} {cap_add} {ipc} " \
+        f"-v {container_test_local_dir}:{os.path.join(os.sep, 'test')} -v {habana_container_test_repo} " \
+        f"{ecr_uri} {os.path.join(os.sep, 'bin', 'bash')} -c '{test_cmd}'"
+
+    framework = "tensorflow" if "tensorflow" in ecr_uri else "pytorch" if "pytorch" in ecr_uri else None
+    account_id_prefix = os.getenv("ACCOUNT_ID", boto3.client("sts").get_caller_identity()["Account"])[:3]
+    s3_bucket_for_permanent_logs = f"dlinfra-habana-tests-{account_id_prefix}"
+    test_type = "benchmark"
+    custom_filename = test_cmd.split(f"{os.sep}")[-1]
+    custom_filename += f"-cards-{cards_num}" if cards_num else "-cards-0"
+    s3_uri_permanent_logs = get_s3_uri_for_saving_permanent_logs(
+        framework, s3_bucket=s3_bucket_for_permanent_logs, test_type=test_type, custom_filename=custom_filename
+    )
+    required_log_ending = "Kudos!! Habana tests executed successfully"
+    execute_asynchronus_testing_using_s3_bucket(
+        connection,
+        execution_command,
+        timeout,
+        required_log_ending,
+        loop_time= 4 * 3600,
+        s3_uri_for_saving_permanent_logs=s3_uri_permanent_logs,
+        hang_detection_window=15,
+    )
+    LOGGER.info(f"Uploaded logs at: {s3_uri_permanent_logs}")
+    return
 
 
 def execute_ec2_inference_performance_test(
@@ -631,3 +909,93 @@ def post_process_mxnet_ec2_performance(connection, log_location):
         return {"Throughput": total / n}
     else:
         raise ValueError("total: {}; n: {} -- something went wrong".format(total, n))
+
+
+def kill_background_processes_and_run_apt_get_update(ec2_conn):
+    """
+    The apt-daily services on the DLAMI cause a conflict upon running any "apt install" commands within the first few
+    minutes of starting an EC2 instance. These services are not necessary for the purpose of the DLC tests, and can
+    therefore be killed. This function kills the services, and then forces "apt-get update" to run in the foreground.
+
+    :param ec2_conn: Fabric SSH connection
+    :return:
+    """
+    apt_daily_services_list = ["apt-daily.service", "apt-daily-upgrade.service", "unattended-upgrades.service"]
+    apt_daily_services = " ".join(apt_daily_services_list)
+    ec2_conn.run(f"sudo systemctl stop {apt_daily_services}")
+    ec2_conn.run(f"sudo systemctl kill --kill-who=all {apt_daily_services}")
+    num_stopped_services = 0
+    # The `systemctl kill` command is expected to take about 1 second. The 60 second loop here exists to force
+    # the execution to wait (if needed) for a longer amount of time than it would normally take to kill the services.
+    for _ in range(60):
+        time.sleep(1)
+        # List the apt-daily services, get the number of dead services
+        num_stopped_services = int(ec2_conn.run(
+            f"systemctl list-units --all {apt_daily_services} | egrep '(dead|failed)' | wc -l"
+        ).stdout.strip())
+        # Exit condition for the loop is when all apt daily services are dead.
+        if num_stopped_services == len(apt_daily_services_list):
+            break
+    if num_stopped_services != len(apt_daily_services_list):
+        raise RuntimeError(
+            "Failed to kill background services to allow apt installs on SM Local EC2 instance. "
+            f"{len(apt_daily_services) - num_stopped_services} still remaining."
+        )
+    ec2_conn.run("sudo rm -rf /var/lib/dpkg/lock*;")
+    ec2_conn.run("sudo dpkg --configure -a;")
+    ec2_conn.run("sudo apt-get update")
+    return
+
+
+def install_python_in_instance(context, python_version="3.9"):
+    """
+    Install python on DLAMI EC2 instances to create a consistent test environment that is agnostic to AMI used for test.
+    This helper function assumes that the EC2 instance uses a DLAMI. The /etc/profile.d/dlami.sh file doesn't exist
+    in other AMIs. If support for other AMIs is needed, this function will need to be updated.
+    :param context: Invoke Context / Fabric Connection object
+    :param python_version: str python version to install, such as 3.8, 3.9, etc.
+    :return: None
+    """
+    if context.run("pyenv --version", warn=True, hide=True).failed:
+        context.run("""ls ~/.pyenv || git clone https://github.com/pyenv/pyenv.git ~/.pyenv""", hide=True)
+
+        # for images that do not have /etc/profile.d/dlami.sh, we will make it here
+        if context.run("test -f /etc/profile.d/dlami.sh", warn=True, hide=True).failed:
+            LOGGER.info("/etc/profile.d/dlami.sh does not exist. Making...")
+            context.run("sudo touch /etc/profile.d/dlami.sh")
+            LOGGER.info("adding /etc/profile.d/dlami.sh to .bashrc")
+            context.run("""echo '[ -z "$PS1" ] && source /etc/profile.d/dlami.sh'|cat - ~/.bashrc > ~/temprc """
+                        """&& mv ~/temprc ~/.bashrc""", hide=True)
+
+        context.run("sudo chmod 666 /etc/profile.d/dlami.sh", hide=True)
+        context.run("""echo 'export PYENV_ROOT="$HOME/.pyenv"' >> /etc/profile.d/dlami.sh""", hide=True)
+        context.run(
+            """echo 'command -v pyenv >/dev/null || export PATH="$PYENV_ROOT/bin:$PATH"' >> /etc/profile.d/dlami.sh""",
+            hide=True,
+        )
+        context.run("""echo 'eval "$(pyenv init -)"' >> /etc/profile.d/dlami.sh""", hide=True)
+        context.run("sudo chmod 644 /etc/profile.d/dlami.sh", hide=True)
+
+    kill_background_processes_and_run_apt_get_update(context)
+    context.run("sudo apt-get update", hide=True)
+    context.run(
+        (
+            "sudo apt install -y make build-essential libssl-dev zlib1g-dev "
+            "libbz2-dev libreadline-dev libsqlite3-dev wget curl llvm "
+            "libncursesw5-dev xz-utils tk-dev libxml2-dev libxmlsec1-dev libffi-dev liblzma-dev"
+        ),
+        hide=True,
+    )
+
+    context.run(f"pyenv install {python_version}", hide=True)
+    context.run(f"pyenv global {python_version}", hide=True)
+
+    # Validate that installed python version is the same as requested python version
+    python_version_response = context.run("python --version", hide=True)
+    python_version_match = re.search(r"Python (\d+(\.\d+)+)", python_version_response.stdout)
+    assert python_version_match, "Running 'python --version' returned None"
+    installed_python_version = python_version_match.group(1)
+    # Use SpecifierSet("=={python_version}.*") to accommodate python_version of the form X.Y as well as X.Y.Z
+    assert Version(installed_python_version) in SpecifierSet(f"=={python_version}.*"), (
+        f"Installed python version {installed_python_version} does not match required python_version {python_version}"
+    )

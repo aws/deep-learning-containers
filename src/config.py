@@ -1,11 +1,12 @@
 import os
-import re
 import logging
 import sys
 
 from enum import Enum
 
 import toml
+
+from codebuild_environment import get_codebuild_project_name, get_cloned_folder_path
 
 LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.DEBUG)
@@ -14,17 +15,7 @@ LOGGER.addHandler(logging.StreamHandler(sys.stderr))
 
 
 def get_dlc_developer_config_path():
-    root_dir_pattern = re.compile(r"^(\S+deep-learning-containers)")
-    pwd = os.getcwd()
-    dev_config_parent_dir = os.getenv("CODEBUILD_SRC_DIR")
-
-    # Ensure we are inside some directory called "deep-learning-containers
-    try:
-        if not dev_config_parent_dir:
-            dev_config_parent_dir = root_dir_pattern.match(pwd).group(1)
-    except AttributeError as e:
-        raise RuntimeError(f"Unable to find DLC root directory in path {pwd}, and no CODEBUILD_SRC_DIR set") from e
-
+    dev_config_parent_dir = get_cloned_folder_path()
     return os.path.join(dev_config_parent_dir, "dlc_developer_config.toml")
 
 
@@ -32,6 +23,11 @@ def parse_dlc_developer_configs(section, option, tomlfile=get_dlc_developer_conf
     data = toml.load(tomlfile)
 
     return data.get(section, {}).get(option)
+
+
+def get_buildspec_override():
+    build_project_name = get_codebuild_project_name()
+    return parse_dlc_developer_configs("buildspec_override", build_project_name)
 
 
 def is_benchmark_mode_enabled():
@@ -62,18 +58,27 @@ def is_sm_local_test_enabled():
     return parse_dlc_developer_configs("test", "sagemaker_local_tests")
 
 
-def are_efa_tests_enabled():
-    return parse_dlc_developer_configs("test", "efa_tests")
+def is_nightly_pr_test_mode_enabled():
+    return parse_dlc_developer_configs("test", "nightly_pr_test_mode")
 
 
 def is_scheduler_enabled():
     return parse_dlc_developer_configs("test", "use_scheduler")
 
 
+def is_safety_check_test_enabled():
+    return parse_dlc_developer_configs("test", "safety_check_test")
+
+
+def is_ecr_scan_allowlist_feature_enabled():
+    return parse_dlc_developer_configs("test", "ecr_scan_allowlist_feature")
+
+
 class AllowedSMRemoteConfigValues(Enum):
     OFF = "off"
     RC = "rc"
     STANDARD = "standard"
+    EFA = "efa"
 
 
 def get_sagemaker_remote_tests_config_value():
@@ -98,6 +103,7 @@ def is_sm_remote_test_enabled():
         True,
         AllowedSMRemoteConfigValues.STANDARD.value,
         AllowedSMRemoteConfigValues.RC.value,
+        AllowedSMRemoteConfigValues.EFA.value,
     }:
         return True
 
@@ -107,3 +113,15 @@ def is_sm_remote_test_enabled():
             f"Please choose one of {allowed_values}. Disabling sagemaker remote tests."
         )
     return False
+
+
+def are_efa_tests_enabled():
+    sm_remote_value = get_sagemaker_remote_tests_config_value()
+    return sm_remote_value == AllowedSMRemoteConfigValues.EFA.value
+
+
+def get_sagemaker_remote_efa_instance_type():
+    """
+    Get the config value for sagemaker_remote_efa_instance_type
+    """
+    return parse_dlc_developer_configs("test", "sagemaker_remote_efa_instance_type")

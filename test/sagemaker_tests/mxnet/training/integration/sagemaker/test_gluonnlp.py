@@ -17,6 +17,7 @@ import os
 import pytest
 from sagemaker import utils
 from sagemaker.mxnet.estimator import MXNet
+from ..... import invoke_sm_helper_function
 
 from ...integration import RESOURCE_PATH
 
@@ -27,8 +28,12 @@ NLP_SCRIPT_PATH = os.path.join(NLP_DATA_PATH, 'word_embedding.py')
 @pytest.mark.integration("gluonnlp")
 @pytest.mark.model("word_embeddings")
 @pytest.mark.skip_py2_containers
-def test_nlp_training(sagemaker_session, ecr_image, instance_type, framework_version):
+def test_nlp_training(ecr_image, sagemaker_regions, instance_type, framework_version):
+    invoke_sm_helper_function(ecr_image, sagemaker_regions, _test_nlp_training,
+                              instance_type, framework_version)
 
+
+def _test_nlp_training(ecr_image, sagemaker_session, instance_type, framework_version):
     nlp = MXNet(entry_point=NLP_SCRIPT_PATH,
                 role='SageMakerRole',
                 instance_count=1,

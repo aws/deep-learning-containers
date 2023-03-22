@@ -25,7 +25,7 @@ else
 fi
 pip install typeguard
 
-${BIN_DIR}/testTF2HVDHelper INSTANCE_TYPE || exit 1
+bash ${BIN_DIR}/testTF2HVDHelper INSTANCE_TYPE || exit 1
 
 echo "TF HVD tests passed!"
 exit 0

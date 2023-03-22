@@ -16,6 +16,8 @@ import os
 import re
 
 resources_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'resources'))
+gpt2_path = os.path.join(resources_path, 'gpt2')
+gpt2_script = os.path.join(gpt2_path, 'train_gpt_simple.py')
 mnist_path = os.path.join(resources_path, 'mnist')
 mnist_script = os.path.join(mnist_path, 'mnist.py')
 throughput_path = os.path.join(resources_path, "smdataparallel")
@@ -28,6 +30,8 @@ resnet18_path = os.path.join(resources_path, 'resnet18')
 data_dir = os.path.join(mnist_path, 'data')
 training_dir = os.path.join(data_dir, 'training')
 dist_operations_path = os.path.join(resources_path, 'distributed_operations.py')
+neuron_allreduce_path = os.path.join(resources_path, 'neuron', 'all_reduce')
+neuron_mlp_path = os.path.join(resources_path, 'neuron', 'mlp')
 smdebug_mnist_script = os.path.join(mnist_path, 'smdebug_mnist.py')
 
 mnist_1d_script = os.path.join(mnist_path, 'mnist_1d.py')
@@ -43,8 +47,14 @@ DEFAULT_TIMEOUT = 40
 
 def get_framework_from_image_uri(image_uri):
     return (
-        "huggingface_tensorflow" if "huggingface-tensorflow" in image_uri
-        else "huggingface_pytorch" if "huggingface-pytorch" in image_uri
+        "huggingface_tensorflow_trcomp" 
+        if "huggingface-tensorflow-trcomp" in image_uri 
+        else "huggingface_tensorflow"
+        if "huggingface-tensorflow" in image_uri
+        else "huggingface_pytorch_trcomp" 
+        if "huggingface-pytorch-trcomp" in image_uri 
+        else "huggingface_pytorch" 
+        if "huggingface-pytorch" in image_uri 
         else "mxnet" if "mxnet" in image_uri
         else "pytorch" if "pytorch" in image_uri
         else "tensorflow" if "tensorflow" in image_uri
@@ -60,7 +70,15 @@ def get_framework_and_version_from_tag(image_uri):
     :return: framework name, framework version
     """
     tested_framework = get_framework_from_image_uri(image_uri)
-    allowed_frameworks = ("huggingface_tensorflow", "huggingface_pytorch", "tensorflow", "mxnet", "pytorch")
+    allowed_frameworks = (
+        "huggingface_tensorflow_trcomp",
+        "huggingface_pytorch_trcomp",
+        "huggingface_tensorflow",
+        "huggingface_pytorch",
+        "tensorflow",
+        "mxnet",
+        "pytorch"
+    )
 
     if not tested_framework:
         raise RuntimeError(

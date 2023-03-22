@@ -15,17 +15,17 @@ from __future__ import absolute_import
 import os
 
 
-def load_fn(model_dir):
-    lock_file = os.path.join(model_dir, 'load_fn.lock.{}'.format(os.getpid()))
+def model_fn(model_dir):
+    lock_file = os.path.join(model_dir, "model_fn.lock.{}".format(os.getpid()))
     if os.path.exists(lock_file):
-        raise RuntimeError('load_fn called more than once (lock: {})'.format(lock_file))
+        raise RuntimeError("model_fn called more than once (lock: {})".format(lock_file))
 
-    open(lock_file, 'a').close()
+    open(lock_file, "a").close()
 
-    return 'model'
+    return "model"
 
 
-def preprocess_fn(data):
+def input_fn(data):
     return "data"
 
 
@@ -33,5 +33,5 @@ def predict_fn(data):
     return "output"
 
 
-def postprocess_fn(prediction):
+def output_fn(prediction):
     return prediction

@@ -1,0 +1,42 @@
+#!/bin/bash
+set -e
+
+TF_VERSION=$(python -c 'import tensorflow; print(tensorflow.__version__)')
+
+HOME_DIR=/test
+LOG_FILE=/test/logs.txt
+LOG_DIR=`dirname $LOG_FILE`
+
+mkdir -p ${HOME_DIR}/artifacts
+mkdir -p ${LOG_DIR}
+
+cp -r /gaudi-test-suite ${HOME_DIR}/artifacts/gaudi-test-suite
+cd ${HOME_DIR}/artifacts/gaudi-test-suite
+git checkout r${GIT_BRANCH}
+python3 -m pip install -r requirements.txt
+python3 -m pip install -r test/benchmark/tf-requirements.txt
+
+START=$(date +%s)
+TRAINING_TIME="20m"
+
+python3 gaudi_test_suite.py -tm benchmark -f tf -m resnet50 -c ${CARDS_NUM} -t ${TRAINING_TIME} -o ${HOME_DIR}/artifacts 2>&1 | tee ${LOG_FILE}
+RETURNVAL=${PIPESTATUS[0]}
+
+END=$(date +%s)
+DIFF=$(( END - START ))
+echo Script took $(( DIFF/60 )) mins to finish >> "${LOG_FILE}"
+
+if [ $RETURNVAL -eq 0 ];
+then
+    echo "Tensorflow Resnet50 test executed successfully" >> "${LOG_FILE}"
+    echo "Kudos!! Habana tests executed successfully" >> "${LOG_FILE}"
+    exitcode=0
+else
+    echo "Tensorflow Resnet50 test terminated unsuccessfully" >> "${LOG_FILE}"
+    exitcode=$RETURNVAL
+fi
+
+
+rm -rf ${HOME_DIR}/artifacts/gaudi-test-suite
+
+exit ${exitcode}

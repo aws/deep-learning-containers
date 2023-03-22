@@ -9,6 +9,7 @@ LABEL com.amazonaws.sagemaker.capabilities.accept-bind-to-port=true
 # https://docs.aws.amazon.com/sagemaker/latest/dg/build-multi-model-build-container.html
 LABEL com.amazonaws.sagemaker.capabilities.multi-models=true
 
+ARG PYTHON=python3
 ARG PYTHON_VERSION=3.6.13
 ARG MMS_VERSION=1.1.2
 
@@ -47,7 +48,7 @@ RUN curl -L -o ~/miniconda.sh https://repo.continuum.io/miniconda/Miniconda3-lat
     python=$PYTHON_VERSION \
  && /opt/conda/bin/conda install -y \
     # conda 4.9.2 requires ruamel_yaml to be installed. Currently pinned at latest.
-    ruamel_yaml==0.15.87 \
+    ruamel_yaml==0.15.100 \
     cython==0.29.12 \
     ipython==7.7.0 \
     mkl-include==2019.4 \
@@ -98,7 +99,7 @@ RUN curl https://aws-dlc-licenses.s3.amazonaws.com/pytorch-1.5.1/license.txt -o 
 RUN conda install -y -c conda-forge "PyYAML>=5.4,<5.5"
 
 RUN pip install \
-    pillow==7.1.0 \
+    "Pillow>=8.3.2,<8.4" \
     "awscli<2" \
     # cryptography required by pyopenssl and paramiko, <3.3.2 has safety vulnerabilities
     "cryptography>=3.3.2"

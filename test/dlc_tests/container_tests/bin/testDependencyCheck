@@ -1,11 +1,16 @@
+#!/bin/bash
+
 apt-get update
 apt install openjdk-8-jdk openjdk-8-jre -y
-cat >> /etc/environment <<EOL
+cat >> /etc/environment << EOL
 JAVA_HOME=/usr/lib/jvm/java-8-openjdk-amd64
 JRE_HOME=/usr/lib/jvm/java-8-openjdk-amd64/jre
 EOL
 
-pip install 'dependency-check<1'
-dependency-check --disableAssembly -s / -o build
+export DEPENDENCY_CHECK_VERSION=7.4.4
+export DEPENDENCY_CHECK_URL=https://github.com/jeremylong/DependencyCheck/releases/download/v${DEPENDENCY_CHECK_VERSION}/dependency-check-${DEPENDENCY_CHECK_VERSION}-release.zip
+
+git clone https://github.com/jhermann/dependency-check-py.git
+python dependency-check-py/dependency_check.py --disableAssembly -s / -o build --exclude "**/dependency-check/**"
 
 cat /build/dependency-check-report.html

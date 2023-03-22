@@ -1,0 +1,31 @@
+#!/bin/bash
+
+set -e
+
+HOME_DIR=/test
+BIN_DIR=${HOME_DIR}/bin
+LOG_DIR=${HOME_DIR}/logs
+
+TORCHAUDIO_BRANCH="v0.11.0"
+TORCHAUDIO_REPO="https://github.com/pytorch/audio.git"
+TORCHAUDIO_TEST_SCRIPT="audio/test/integration_tests/tacotron2_pipeline_test.py"
+
+echo "Fetch Torchaudio integration test script."
+git clone --recursive -b ${TORCHAUDIO_BRANCH} ${TORCHAUDIO_REPO}
+
+echo "Installing pre-requisites."
+pip install pytest
+
+echo "Running Torchaudio integration datapipe tests."
+python ${TORCHAUDIO_TEST_SCRIPT}
+
+if [ "$?" -eq "0" ]
+then
+    echo "Torchaudio integration tests succeeded."
+else
+    echo "Torchaudio integration tests failed at ${TORCHAUDIO_REPO} ${TORCHAUDIO_BRANCH} ${TORCHAUDIO_TEST_SCRIPT}"
+    exit 1
+fi
+
+echo "Torchaudio integration tests succeeded!"
+exit 0

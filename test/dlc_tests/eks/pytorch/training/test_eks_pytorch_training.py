@@ -13,12 +13,15 @@ import test.test_utils.eks as eks_utils
 from test.test_utils import is_pr_context, SKIP_PR_REASON, is_below_framework_version
 from test.test_utils import get_framework_and_version_from_tag, get_cuda_version_from_tag
 from packaging.version import Version
-
+from packaging.specifiers import SpecifierSet
 
 LOGGER = eks_utils.LOGGER
 
 
-@pytest.mark.skipif(not is_pr_context(), reason="Skip this test. It is already tested under PR context and we do not have enough resouces to test it again on mainline pipeline")
+@pytest.mark.skipif(
+    not is_pr_context(),
+    reason="Skip this test. It is already tested under PR context and we do not have enough resouces to test it again on mainline pipeline",
+)
 @pytest.mark.model("mnist")
 def test_eks_pytorch_single_node_training(pytorch_training):
     """
@@ -55,14 +58,14 @@ def test_eks_pytorch_single_node_training(pytorch_training):
       echo "          ('https://dlinfra-mnist-dataset.s3-us-west-2.amazonaws.com/mnist/t10k-images-idx3-ubyte.gz', '9fb629c4189551a2d022fa330f9573f3')," >> $FILE &&
       echo "          ('https://dlinfra-mnist-dataset.s3-us-west-2.amazonaws.com/mnist/t10k-labels-idx1-ubyte.gz', 'ec29112dd5afa0611ce80d1b7f02629c')" >> $FILE &&
       echo "          ]" >> $FILE &&
-      sed -i '1d' examples/mnist/main.py &&
-      sed -i '6d' examples/mnist/main.py &&
-      cat examples/mnist/main.py >> $FILE &&
-      rm examples/mnist/main.py &&
-      mv $FILE examples/mnist/main.py
+      sed -i '1d' mnist/main.py &&
+      sed -i '6d' mnist/main.py &&
+      cat mnist/main.py >> $FILE &&
+      rm mnist/main.py &&
+      mv $FILE mnist/main.py
     '''
 
-    args = f"git clone https://github.com/pytorch/examples.git && {mnist_dataset_download_config}  && python examples/mnist/main.py"
+    args = f"git clone https://github.com/pytorch/examples.git && cd examples && git reset --hard 5a06e9cac1728c860b53ebfc6792e0a0e21a5678 && {mnist_dataset_download_config}  && python mnist/main.py"
 
     # TODO: Change hardcoded value to read a mapping from the EKS cluster instance.
     cpu_limit = 72
@@ -94,19 +97,21 @@ def test_eks_pytorch_single_node_training(pytorch_training):
         run("kubectl delete pods {}".format(pod_name))
 
 
-@pytest.mark.skipif(not is_pr_context(), reason="Skip this test. It is already tested under PR context and we do not have enough resouces to test it again on mainline pipeline")
+@pytest.mark.usefixtures("feature_s3_plugin_present")
+@pytest.mark.skipif(
+    not is_pr_context(),
+    reason="Skip this test. It is already tested under PR context and we do not have enough resouces to test it again on mainline pipeline",
+)
 @pytest.mark.model("resnet18")
 @pytest.mark.integration("pt_s3_plugin")
-def test_eks_pt_s3_plugin_single_node_training(pytorch_training, pt17_and_above_only):
+def test_eks_pt_s3_plugin_single_node_training(pytorch_training, outside_versions_skip):
     """
     Function to create a pod using kubectl and given container image, and run MXNet training
     Args:
         :param setup_utils: environment in which EKS tools are setup
         :param pytorch_training: the ECR URI
     """
-    _, image_framework_version = get_framework_and_version_from_tag(pytorch_training)
-    if Version(image_framework_version) < Version("1.8"):
-        pytest.skip("S3 plugin is supported on PyTorch version >=1.8")
+    outside_versions_skip(pytorch_training, "1.8.0", "1.12.1")
 
     training_result = False
 
@@ -123,7 +128,7 @@ def test_eks_pt_s3_plugin_single_node_training(pytorch_training, pt17_and_above_
 
     if "gpu" in pytorch_training:
         args = args + " --gpu 0"
-  
+
     search_replace_dict = {
         "<POD_NAME>": pod_name,
         "<CONTAINER_NAME>": pytorch_training,
@@ -165,6 +170,9 @@ def test_eks_pytorch_dgl_single_node_training(pytorch_training, py3_only):
     image_cuda_version = get_cuda_version_from_tag(pytorch_training)
     if Version(image_framework_version) == Version("1.6") and image_cuda_version == "cu110":
         pytest.skip("DGL does not suport CUDA 11 for PyTorch 1.6")
+    # TODO: Remove when DGL gpu test on ecs get fixed
+    if Version(image_framework_version) in SpecifierSet("==1.10.*"):
+        pytest.skip("ecs test for DGL gpu fails for pt 1.10")
 
     training_result = False
     rand_int = random.randint(4001, 6000)
@@ -172,24 +180,15 @@ def test_eks_pytorch_dgl_single_node_training(pytorch_training, py3_only):
     yaml_path = os.path.join(os.sep, "tmp", f"pytorch_single_node_training_dgl_{rand_int}.yaml")
     pod_name = f"pytorch-single-node-training-dgl-{rand_int}"
 
-    if is_below_framework_version("1.7", pytorch_training, "pytorch"):
-        dgl_branch = "0.4.x"
-    else:
-        dgl_branch = "0.5.x"
-
     args = (
-        f"git clone -b {dgl_branch} https://github.com/dmlc/dgl.git && "
+        f"dgl_branch=$(python -c \"import dgl; dgl_versions = dgl.__version__.split('.'); print(dgl_versions[0] + '.' + dgl_versions[1] + '.x')\") && "
+        f"git clone -b $dgl_branch https://github.com/dmlc/dgl.git && "
         f"cd /dgl/examples/pytorch/gcn/ && DGLBACKEND=pytorch python train.py --dataset cora"
     )
 
     # TODO: Change hardcoded value to read a mapping from the EKS cluster instance.
     cpu_limit = 72
     cpu_limit = str(int(cpu_limit) / 2)
-
-    if "gpu" in pytorch_training:
-        args = args + " --gpu 0"
-    else:
-        args = args + " --gpu -1"
 
     search_replace_dict = {
         "<POD_NAME>": pod_name,
@@ -232,8 +231,7 @@ def test_eks_pytorch_multinode_node_training(pytorch_training, example_only):
     random.seed(f"{pytorch_training}-{datetime.datetime.now().strftime('%Y%m%d%H%M%S%f')}")
     unique_id = random.randint(1, 6000)
 
-    namespace = f"pytorch-multi-node-training-{unique_id}"
-    app_name = f"eks-pytorch-mnist-app-{unique_id}"
+    namespace = "pytorch"
     job_name = f"kubeflow-pytorch-gpu-dist-job-{unique_id}"
     num_masters = "1"
     num_workers = "3"
@@ -241,11 +239,7 @@ def test_eks_pytorch_multinode_node_training(pytorch_training, example_only):
     backend = "gloo"
     epochs = '"10"'
     local_template_file_path = os.path.join(
-        "eks",
-        "eks_manifest_templates",
-        "pytorch",
-        "training",
-        "multi_node_gpu_training.yaml"
+        "eks", "eks_manifest_templates", "pytorch", "training", "multi_node_gpu_training.yaml"
     )
     remote_yaml_path = os.path.join(os.sep, "tmp", f"pytorch_multinode_node_training_{unique_id}.yaml")
     replace_dict = {
@@ -255,7 +249,7 @@ def test_eks_pytorch_multinode_node_training(pytorch_training, example_only):
         "<CONTAINER_IMAGE>": pytorch_training,
         "<BACKEND>": backend,
         "<EPOCHS>": epochs,
-        "<GPU_LIMIT>": gpu_limit
+        "<GPU_LIMIT>": gpu_limit,
     }
 
     eks_utils.write_eks_yaml_file_from_template(local_template_file_path, remote_yaml_path, replace_dict)
@@ -269,11 +263,10 @@ def run_eks_pytorch_multi_node_training(namespace, job_name, remote_yaml_file_pa
     """
 
     # Namespaces will allow parallel runs on the same cluster. Create namespace if it doesnt exist.
-    does_namespace_exist = run(f"kubectl get namespace | grep {namespace}",
-                               warn=True)
-    if not does_namespace_exist:
+    does_namespace_exist = run(f"kubectl get namespace | grep {namespace}", warn=True)
+    if does_namespace_exist.return_code != 0:
         run(f"kubectl create namespace {namespace}")
-    
+
     try:
         run(f"kubectl delete -f {remote_yaml_file_path}", warn=True)
         run(f"kubectl create -f {remote_yaml_file_path} -n {namespace}")
@@ -307,38 +300,38 @@ def is_pytorch_eks_multinode_training_complete(job_name, namespace):
         job_info = json.loads(run_out.stdout)
         LOGGER.debug(f"Job info: {job_info}")
 
-    if 'status' not in job_info:
+    if "status" not in job_info:
         raise ValueError("Waiting for job to launch...")
-    job_status = job_info['status']
-    if 'conditions' not in job_status:
+    job_status = job_info["status"]
+    if "conditions" not in job_status:
         raise ValueError("Waiting for job to launch...")
-    job_conditions = job_status['conditions']
+    job_conditions = job_status["conditions"]
     if len(job_conditions) == 0:
         raise ValueError("Waiting for job to launch...")
     else:
         # job_conditions at least with length 1
-        if 'status' in job_conditions[0]:
-            job_created = job_conditions[0]['status']
-            if 'message' in job_conditions[0] and len(job_conditions) == 1:
-                LOGGER.info(job_conditions[0]['message'])
+        if "status" in job_conditions[0]:
+            job_created = job_conditions[0]["status"]
+            if "message" in job_conditions[0] and len(job_conditions) == 1:
+                LOGGER.info(job_conditions[0]["message"])
             if not job_created:
                 raise ValueError("Waiting for job to be created...")
             if len(job_conditions) == 1:
                 raise ValueError("Waiting for job to run...")
             # job_conditions at least with length 2
-            if 'status' in job_conditions[1]:
-                job_running = job_conditions[1]['status']
-                if 'message' in job_conditions[1] and len(job_conditions) == 2:
-                    LOGGER.info(job_conditions[1]['message'])
+            if "status" in job_conditions[1]:
+                job_running = job_conditions[1]["status"]
+                if "message" in job_conditions[1] and len(job_conditions) == 2:
+                    LOGGER.info(job_conditions[1]["message"])
                 if not job_running:
                     raise ValueError("Waiting for job to run...")
                 if len(job_conditions) == 2:
                     raise ValueError("Waiting for job to complete...")
                 # job_conditions at least with length 3
-                if 'status' in job_conditions[2]:
-                    job_succeed = job_conditions[2]['status']
-                    if 'message' in job_conditions[2]:
-                        LOGGER.info(job_conditions[2]['message'])
+                if "status" in job_conditions[2]:
+                    job_succeed = job_conditions[2]["status"]
+                    if "message" in job_conditions[2]:
+                        LOGGER.info(job_conditions[2]["message"])
                     if not job_succeed:
                         if job_running:
                             raise ValueError("Waiting for job to complete...")

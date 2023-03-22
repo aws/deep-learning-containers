@@ -8,15 +8,24 @@ Note: If merging this PR should also close the associated Issue, please also add
 
 ### Tests run
 
+**NOTE: By default, docker builds are disabled. In order to build your container, please update dlc_developer_config.toml and specify the framework to build in "build_frameworks"**
+- [ ] I have run builds/tests on commit <INSERT COMMIT ID> for my changes.
+
+**NOTE: If you are creating a PR for a new framework version, please ensure success of the standard, rc, and efa sagemaker remote tests by updating the dlc_developer_config.toml file:**
+
+- [ ] Revision A: `sagemaker_remote_tests = "standard"`
+- [ ] Revision B: `sagemaker_remote_tests = "rc"`
+- [ ] Revision C: `sagemaker_remote_tests = "efa"`
+
+**Additionally, please run the sagemaker local tests in at least one revision:**
+- [ ] `sagemaker_local_tests = true`
+
 ### DLC image/dockerfile
 
 ### Additional context
 
-## Label Checklist
-- [ ] I have added the project label for this PR (*<project_name>* or "Improvement")
-
 ## PR Checklist
-- [ ] I've prepended PR tag with frameworks/job this applies to : [mxnet, tensorflow, pytorch] | [ei/neuron] | [build] | [test] | [benchmark] | [ec2, ecs, eks, sagemaker]
+- [ ] I've prepended PR tag with frameworks/job this applies to : [mxnet, tensorflow, pytorch] | [ei/neuron/graviton] | [build] | [test] | [benchmark] | [ec2, ecs, eks, sagemaker]
 - [ ] If the PR changes affects SM test, I've modified dlc_developer_config.toml in my PR branch by setting sagemaker_tests = true and efa_tests = true
 - [ ] If this PR changes existing code, the change fully backward compatible with pre-existing code. (Non backward-compatible changes need special approval.)
 - [ ] (If applicable) I've documented below the DLC image/dockerfile this relates to
@@ -30,9 +39,9 @@ Note: If merging this PR should also close the associated Issue, please also add
 - [ ] (If applicable) I have added the marker `@pytest.mark.multinode(<integer-num-nodes>)` to the new tests which I have added, to specify the number of nodes used on a multi-node test
 - [ ] (If applicable) I have added the marker `@pytest.mark.processor(<"cpu"/"gpu"/"eia"/"neuron">)` to the new tests which I have added, if a test is specifically applicable to only one processor type
 
-#### EIA/NEURON Testing Checklist
+#### EIA/NEURON/GRAVITON Testing Checklist
 * When creating a PR:
-- [ ] I've modified `dlc_developer_config.toml` in my PR branch by setting `ei_mode = true` or `neuron_mode = true`
+- [ ] I've modified `dlc_developer_config.toml` in my PR branch by setting `ei_mode = true`, `neuron_mode = true` or `graviton_mode = true`
 
 #### Benchmark Testing Checklist
 * When creating a PR:

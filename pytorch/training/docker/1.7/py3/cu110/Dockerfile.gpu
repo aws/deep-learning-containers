@@ -42,6 +42,8 @@ ARG SMDATAPARALLEL_BINARY=https://smdataparallel.s3.amazonaws.com/binary/pytorch
 ARG PT_S3_WHL_GPU=https://aws-s3-plugin.s3-us-west-2.amazonaws.com/binaries/0.0.1/93fdaed/awsio-0.0.1-cp36-cp36m-manylinux1_x86_64.whl
 
 RUN apt-get update \
+ # TODO: Remove systemd upgrade once it is updated in base image
+ && apt-get -y upgrade --only-upgrade systemd \
  && apt-get install -y --allow-change-held-packages --no-install-recommends \
     build-essential \
     ca-certificates \
@@ -173,12 +175,14 @@ RUN pip install --no-cache-dir -U \
  && pip install --no-deps --no-cache-dir -U ${PT_TORCHVISION_URL}
 
 # Install extra packages
+# numba 0.54 only works with numpy>=1.20. See https://github.com/numba/numba/issues/7339
 RUN pip install --no-cache-dir -U \
     "bokeh>=2.3,<3" \
     "imageio>=2.9,<3" \
     "opencv-python>=4.3,<5" \
     "plotly>=5.1,<6" \
     "seaborn>=0.11,<1" \
+    "numba<0.54" \
     "shap>=0.39,<1"
 
 # install metis

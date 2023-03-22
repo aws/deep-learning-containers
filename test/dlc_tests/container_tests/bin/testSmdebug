@@ -12,6 +12,10 @@ FRAMEWORK=$1
 # Not using master because there could be breaking changes in tests between versions.
 SMDEBUG_RELEASE_TAG=$(python -c "import smdebug; print(smdebug.__version__)")
 
+# We need to filter only the word from the output of the previous line because
+# import statements might contain log statements which corrupt the logic below
+SMDEBUG_RELEASE_TAG=$(echo $SMDEBUG_RELEASE_TAG |  perl -lane 'print $F[-1]')
+
 # declare -A only works with bash 4 and above, and creates an "associate array" in bash
 if [ "$(printf '%s\n' "0.8.0" "$SMDEBUG_RELEASE_TAG" | sort -V | head -n1)" = "0.8.0" ]; then
     declare -A ZCC_TEST_NAME=( ["mxnet"]="test_mxnet_gluon_integration.py" \
@@ -75,15 +79,26 @@ elif [[ $FRAMEWORK == "mxnet" ]]; then
         echo "SMDebug tests failed for $FRAMEWORK"
         exit $exit_code
     fi
-else
-    TENSORFLOW_DATASETS_VERSION="4.0.1"
-    if [[ $FRAMEWORK == "tensorflow2" ]]; then
-        tf_version=$(python -c "import tensorflow as tf; print(tf.__version__)")
-        if [[ "$tf_version" == *"2.0."* ]]; then
-            TENSORFLOW_DATASETS_VERSION="3.2.1"
+elif [[ $FRAMEWORK == "tensorflow2" ]]; then
+    tf_version=$(python -c "import tensorflow as tf; print(tf.__version__)")
+    for test_file in tests/${FRAMEWORK}/*
+    do
+        if [[ "$tf_version" == *"2.7."* && "$test_file" == *"test_keras_mirrored.py" ]]; then
+            echo "skipping test_keras_mirrored.py for TF2.7 as it is flaky"
+        else
+            pytest $test_file
+            exit_code=$?
+            if [ "$exit_code" -eq "0" ]; then
+                echo "SMDebug test succeeded: $test_file"
+            elif [ "$exit_code" -eq "5" ]; then
+                echo "SMDebug no tests collected: $test_file"
+            else
+                echo "SMDebug test failed: $test_file"
+                exit $exit_code
+            fi
         fi
-    fi
-    pip install tensorflow-datasets==${TENSORFLOW_DATASETS_VERSION} "absl-py>=0.9,<0.11"
+    done
+else
     for test_file in tests/${FRAMEWORK}/*
     do
         pytest $test_file

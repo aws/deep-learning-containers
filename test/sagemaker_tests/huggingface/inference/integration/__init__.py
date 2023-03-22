@@ -24,8 +24,12 @@ resources_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "
 model_dir = os.path.join(resources_path, "tiny-distilbert-sst-2")
 pt_model = "pt_model.tar.gz"
 tf_model = "tf_model.tar.gz"
+pt_neuron_model = "pt_neuron_model.tar.gz"
 # TODO: current local test, tests without custom script
-# mnist_cpu_script = oos.path.join(resources_path, 'tiny-distilbert-sst-2','inference.py')
+script_dir = os.path.join(resources_path, 'code')
+pt_neuron_script = "neuron_inference.py"
+audio_sample_file_path =  os.path.join(resources_path, 'audio', 'sample1.wav')
+image_sample_file_path =  os.path.join(resources_path, 'image', 'tiger.png')
 
 
 ROLE = "dummy/unused-role"
@@ -46,8 +50,9 @@ def dump_logs_from_cloudwatch(e, region='us-west-2'):
     """
     Function to dump logs from cloudwatch during error handling
     """
-    endpoint_regex = re.compile(r"Error hosting endpoint ((\w|-)+):")
-    endpoint_match = endpoint_regex.search(str(e))
+    error_hosting_endpoint_regex = re.compile(r"Error hosting endpoint ((\w|-)+):")
+    endpoint_url_regex = re.compile(r"/aws/sagemaker/Endpoints/((\w|-)+)")
+    endpoint_match = error_hosting_endpoint_regex.search(str(e)) or endpoint_url_regex.search(str(e))
     if endpoint_match:
         logs_client = boto3.client('logs', region_name=region)
         endpoint = endpoint_match.group(1)

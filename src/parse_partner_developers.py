@@ -31,7 +31,7 @@ def main():
 
     if partner_dev:
         LOGGER.info(f"PARTNER_DEVELOPER: {partner_dev.upper()}")
-        LOGGER.info(f"PR_NUMBER: {os.getenv('PR_NUMBER', os.getenv('CODEBUILD_SOURCE_VERSION', '')).replace('/', '-')}")
+        LOGGER.info(f"PR_NUMBER: pr-{os.getenv('PR_NUMBER', '')}")
         LOGGER.info(f"COMMIT_ID: {os.getenv('CODEBUILD_RESOLVED_SOURCE_VERSION')}")
         test_trigger = os.getenv("TEST_TRIGGER")
         if test_trigger:

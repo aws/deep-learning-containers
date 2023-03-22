@@ -40,6 +40,7 @@ class Metrics(object):
             "device_type": image.device_type,
             "python_version": image.python_version,
             "image_type": image.image_type,
+            "image_stage": image.stage,
         }
         if image.build_status == constants.NOT_BUILT:
             return None

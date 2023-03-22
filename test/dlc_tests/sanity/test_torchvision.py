@@ -12,6 +12,8 @@ from test.test_utils import (
 )
 
 
+@pytest.mark.usefixtures("feature_torchvision_present")
+@pytest.mark.usefixtures("sagemaker", "huggingface")
 @pytest.mark.model("N/A")
 def test_torchvision_nms_training(pytorch_training):
     """
@@ -19,6 +21,8 @@ def test_torchvision_nms_training(pytorch_training):
     :param pytorch_training: framework fixture for pytorch training
     """
     _, framework_version = get_framework_and_version_from_tag(pytorch_training)
+    if Version(framework_version) >= Version("1.10.0"):
+        pytest.skip("Skipping this test for PT 1.10.0 and onward, since torch.ops.torchvision.nms api is outdated.")
     if Version(framework_version) == Version("1.5.1") and get_processor_from_image_uri(pytorch_training) == "gpu":
         pytest.skip("Skipping this test for PT 1.5.1 GPU Training DLC images")
     ctx = Context()
@@ -29,6 +33,8 @@ def test_torchvision_nms_training(pytorch_training):
     )
 
 
+@pytest.mark.usefixtures("feature_torchvision_present")
+@pytest.mark.usefixtures("sagemaker")
 @pytest.mark.model("N/A")
 def test_torchvision_nms_inference(pytorch_inference, non_huggingface_only):
     """
@@ -36,6 +42,8 @@ def test_torchvision_nms_inference(pytorch_inference, non_huggingface_only):
     :param pytorch_inference: framework fixture for pytorch inference
     """
     _, framework_version = get_framework_and_version_from_tag(pytorch_inference)
+    if Version(framework_version) >= Version("1.10.0"):
+        pytest.skip("Skipping this test for PT 1.10.0 and onward, since torch.ops.torchvision.nms api is outdated.")
     if Version(framework_version) == Version("1.5.1") and get_processor_from_image_uri(pytorch_inference) == "gpu":
         pytest.skip("Skipping this test for PT 1.5.1 GPU Inference DLC images")
     if "eia" in pytorch_inference and Version(framework_version) < Version("1.5.1"):

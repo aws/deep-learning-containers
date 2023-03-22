@@ -1,0 +1,184 @@
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: default-role
+  namespace: default
+rules:
+- apiGroups:
+  - ""
+  resources:
+  - pods
+  - pods/portforward
+  - pods/log
+  verbs:
+  - get
+  - list
+  - create
+  - delete
+- apiGroups:
+  - "apps"
+  resources:
+  - deployments
+  verbs:
+  - create
+  - delete
+  - get
+- apiGroups:
+  - ""
+  resources:
+  - services
+  verbs:
+  - create
+  - delete
+  - get
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: default-role-binding
+  namespace: default
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: default-role
+subjects:
+- apiGroup: rbac.authorization.k8s.io
+  kind: User
+  name: test-role
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: pytorch-role
+  namespace: pytorch
+rules:
+- apiGroups:
+  - "kubeflow.org"
+  resources:
+  - pytorchjobs
+  verbs:
+  - get
+  - create
+  - delete
+- apiGroups:
+  - ""
+  resources:
+  - pods
+  - pods/log
+  verbs:
+  - get
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: pytorch-role-binding
+  namespace: pytorch
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: pytorch-role
+subjects:
+- apiGroup: rbac.authorization.k8s.io
+  kind: User
+  name: test-role
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: tensorflow-role
+  namespace: tensorflow
+rules:
+- apiGroups:
+  - "kubeflow.org"
+  resources:
+  - mpijobs
+  verbs:
+  - get
+  - create
+  - delete
+- apiGroups:
+  - ""
+  resources:
+  - pods
+  - pods/log
+  verbs:
+  - get
+  - list
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: tensorflow-role-binding
+  namespace: tensorflow
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: tensorflow-role
+subjects:
+- apiGroup: rbac.authorization.k8s.io
+  kind: User
+  name: test-role
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: mxnet-role
+  namespace: mxnet
+rules:
+- apiGroups:
+  - "kubeflow.org"
+  resources:
+  - mxjobs
+  - mpijobs
+  verbs:
+  - get
+  - create
+  - delete
+- apiGroups:
+  - ""
+  resources:
+  - pods
+  - pods/log
+  verbs:
+  - get
+  - list
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: mxnet-role-binding
+  namespace: mxnet
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: mxnet-role
+subjects:
+- apiGroup: rbac.authorization.k8s.io
+  kind: User
+  name: test-role
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: eks-cluster-role
+rules:
+- apiGroups: 
+  - ""
+  resources: 
+  - namespaces
+  verbs: 
+  - list
+  - create
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: eks-cluster-role-binding
+subjects:
+- kind: User
+  name: test-role
+  apiGroup: rbac.authorization.k8s.io
+roleRef:
+  kind: ClusterRole
+  name: eks-cluster-role
+  apiGroup: rbac.authorization.k8s.io

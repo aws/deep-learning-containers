@@ -1,0 +1,155 @@
+# https://github.com/aws/deep-learning-containers/blob/master/available_images.md 
+# Refer to the above page to pull latest Pytorch image
+
+# docker image region us-west-2
+FROM 763104351884.dkr.ecr.us-west-2.amazonaws.com/pytorch-training:1.11.0-gpu-py38-cu113-ubuntu20.04-sagemaker
+
+
+########
+###   :::Update NCCL:::
+###   This is a temporary workaround to
+###   upgrade NCCL
+########
+
+# Remove Older NCCL
+RUN rm -rvf `find /usr/local | grep nccl` /usr/local/obj
+
+ENV NCCL_VERSION=2.12.12
+
+# Install Newer NCCL
+RUN cd /tmp \
+ && git clone https://github.com/NVIDIA/nccl.git -b v${NCCL_VERSION}-1 \
+ && cd nccl \
+ && make -j `nproc` src.build BUILDDIR=/usr/local \
+ && rm -rf /tmp/nccl
+
+# Reinstall AWS OFI NCCL
+
+ENV BRANCH_OFI=1.4.0-aws
+
+RUN mkdir /tmp/efa-ofi-nccl  && cd /tmp/efa-ofi-nccl  && git clone https://github.com/aws/aws-ofi-nccl.git -b v${BRANCH_OFI}  && cd aws-ofi-nccl  && ./autogen.sh  && ./configure --with-libfabric=/opt/amazon/efa   --with-mpi=/opt/amazon/openmpi   --with-cuda=/usr/local/cuda   --with-nccl=/usr/local --prefix=/usr/local  && make  && make install  && rm -rf /tmp/efa-ofi-nccl  && rm -rf /var/lib/apt/lists/*  && apt-get clean
+
+########
+###   :::Update NCCL:::
+########
+
+LABEL maintainer="Amazon AI"
+LABEL dlc_major_version="1"
+
+# Version args - overwritten by args specified in buildspec
+ARG TRANSFORMERS_VERSION=4.21.1
+ARG DATASETS_VERSION=1.18.4
+ARG PYTHON=python3
+
+ARG PT_BUCKET=https://sm-training-comp-pytorch-binaries.s3.us-west-2.amazonaws.com
+ARG PT_BINARY_PATH=${PT_BUCKET}/bdd09cad-152b-42bd-993c-16e49d7af027/20220819-180620/54da28ad4c33c2f259969f74364149ecc58672e0
+ARG PT_URL=${PT_BINARY_PATH}/torch-1.11.0%2Bcu113-cp38-cp38-linux_x86_64.whl
+ARG PT_XLA_URL=${PT_BINARY_PATH}/torch_xla-1.11.0-cp38-cp38-linux_x86_64.whl
+ARG TORCHVISION_URL=${PT_BINARY_PATH}/torchvision-0.12.0a0%2B9b5a3fe-cp38-cp38-linux_x86_64.whl
+ARG TORCHAUDIO_URL=${PT_BINARY_PATH}/torchaudio-0.11.0%2B6297e97-cp38-cp38-linux_x86_64.whl
+ARG HF_BINARY_PATH=${PT_BUCKET}/3464575b-920a-48e6-b964-4d4c5fe2acae/20220816-021125/7780d990d11d9552e913cae06c7315fa8545648b
+ARG HF_TRANSFORMERS_URL=${HF_BINARY_PATH}/transformers-${TRANSFORMERS_VERSION}-py3-none-any.whl
+
+
+RUN pip install --no-cache-dir -U \
+    sagemaker
+
+
+# install Hugging Face libraries and its dependencies
+RUN pip install -U --no-cache-dir \ 
+	transformers[sklearn,sentencepiece,audio,vision]==${TRANSFORMERS_VERSION} \ 
+	datasets==${DATASETS_VERSION}
+	
+RUN apt-get update \
+ # TODO: Remove upgrade statements once packages are updated in base image
+ && apt-get -y install --only-upgrade systemd openssl cryptsetup \
+ && apt install -y git-lfs \
+ && apt install -y libomp5 \
+ && apt-get clean \  
+ && rm -rf /var/lib/apt/lists/*
+
+
+# Install PyTorch
+RUN pip uninstall -y torch \
+ && pip install --no-deps --no-cache-dir -U --force-reinstall ${PT_URL} \
+ && rm -rf ${PT_URL}
+
+# Install PyTorch XLA
+RUN pip uninstall -y torch_xla \
+ && pip install --no-deps --no-cache-dir -U --force-reinstall ${PT_XLA_URL} \
+ && rm -rf ${PT_XLA_URL}
+
+# Install TorchVision
+RUN pip uninstall -y torchvision \
+ && pip install --no-deps --no-cache-dir -U --force-reinstall ${TORCHVISION_URL} \
+ && rm -rf ${TORCHVISION_URL}
+
+# Install TorchAudio
+RUN pip uninstall -y torchaudio \
+ && pip install --no-deps --no-cache-dir -U --force-reinstall ${TORCHAUDIO_URL} \
+ && rm -rf ${TORCHAUDIO_URL}
+
+# Install Transformers
+RUN pip uninstall -y transformers \
+ && pip install --no-deps --no-cache-dir --force-reinstall -U ${HF_TRANSFORMERS_URL} \
+ && rm -rf ${HF_TRANSFORMERS_URL} \
+ && rm -rf $(${PYTHON} -c "import transformers; print(transformers.__file__.replace('__init__.py', 'examples'))")
+
+# Install SageMaker Training Toolkit
+RUN pip uninstall -y sagemaker-training \
+ && pip install --no-deps --no-cache-dir -U --force-reinstall "sagemaker-training>=4.2.6"
+
+# Install SageMaker PyTorch Training Toolkit
+RUN pip uninstall -y sagemaker-pytorch-training \
+ && pip install --no-deps --no-cache-dir -U --force-reinstall "sagemaker-pytorch-training>=2.6.1,<3"
+
+
+ARG CONDA_PREFIX=/opt/conda
+
+# remove micromamba folder at default installation path
+RUN rm -rf /root/micromamba/ 
+
+# Install common training dependencies
+RUN ${CONDA_PREFIX}/bin/conda install -y -c conda-forge librosa
+RUN pip install --no-cache-dir \
+    sacrebleu \
+    fugashi \
+    ipadic \
+    nltk \
+    rouge-score \
+    soundfile \
+    sentence-transformers    
+
+# Numpy version gets downgraded and becomes incompatible with PyTorch wheel in the above conda command.
+RUN pip install -U numpy==1.22.2
+
+# Fixing identified CVEs
+RUN pip install -U \
+    "protobuf<3.20.0" \
+    "importlib-metadata<5.0,>=1.4.0" \
+    "wheel>=0.38.0"
+
+# Fix library links
+RUN ln -s ${CONDA_PREFIX}/lib/libmkl_intel_lp64.so ${CONDA_PREFIX}/lib/libmkl_intel_lp64.so.1 \
+ && ln -s ${CONDA_PREFIX}/lib/libmkl_intel_thread.so ${CONDA_PREFIX}/lib/libmkl_intel_thread.so.1 \
+ && ln -s ${CONDA_PREFIX}/lib/libmkl_core.so ${CONDA_PREFIX}/lib/libmkl_core.so.1 \
+ && ln -s ${CONDA_PREFIX}/lib/libmkl_gnu_thread.so ${CONDA_PREFIX}/lib/libmkl_gnu_thread.so.1
+
+# Install Horovod
+ENV HOROVOD_VERSION=0.24.3
+RUN pip uninstall -y horovod \
+ && ldconfig /usr/local/cuda-11.3/targets/x86_64-linux/lib/stubs \
+ && HOROVOD_GPU_ALLREDUCE=NCCL HOROVOD_CUDA_HOME=/usr/local/cuda-11.3 HOROVOD_WITH_PYTORCH=1 pip install --no-cache-dir horovod==${HOROVOD_VERSION} \
+ && ldconfig
+
+# Removing the cache as it is needed for security verification
+RUN rm -rf /root/.cache | true
+
+RUN HOME_DIR=/root \
+ && curl -o ${HOME_DIR}/oss_compliance.zip https://aws-dlinfra-utilities.s3.amazonaws.com/oss_compliance.zip \
+ && unzip ${HOME_DIR}/oss_compliance.zip -d ${HOME_DIR}/ \
+ && cp ${HOME_DIR}/oss_compliance/test/testOSSCompliance /usr/local/bin/testOSSCompliance \
+ && chmod +x /usr/local/bin/testOSSCompliance \
+ && chmod +x ${HOME_DIR}/oss_compliance/generate_oss_compliance.sh \
+ && ${HOME_DIR}/oss_compliance/generate_oss_compliance.sh ${HOME_DIR} ${PYTHON} \
+ && rm -rf ${HOME_DIR}/oss_compliance*

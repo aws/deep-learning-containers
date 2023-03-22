@@ -28,25 +28,20 @@ spec:
       labels:
         app: <SELECTOR_NAME>
     spec:
-      volumes:
-        - name: sock
-          emptyDir: {}
       containers:
       - name: <SERVER_TYPE>-container
         image: <DOCKER_IMAGE_BUILD_ID>
-        command: ["/bin/sh","-c"]
         args:
         - <SERVER_CMD>
+        - --start
+        - --<SERVER_TYPE>-config /home/model-server/config.properties
+        - --models <MODELS>
         ports:
         - name: <SERVER_TYPE>
           containerPort: 8080
         - name: <SERVER_TYPE>-management
           containerPort: 8081
         imagePullPolicy: Always
-        securityContext:
-          capabilities:
-            add:
-              - IPC_LOCK
         resources:
           limits:
             cpu: "4"
@@ -54,15 +49,12 @@ spec:
           requests:
             cpu: "1"
             memory: 1Gi
-        # Shared volume mount, for UDS socket
-        volumeMounts:
-          - name: sock
-            mountPath: /sock
 
         resources:
           limits:
-            hugepages-2Mi: 256Mi    # configure to 256 * desired number of Inferentia devices.
             aws.amazon.com/neuron: 1  # desired number of Inferentia devices.
           requests:
             aws.amazon.com/neuron: 1  # desired number of Inferentia devices.
             memory: 1024Mi
+      nodeSelector:
+        test_type: inf

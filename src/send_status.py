@@ -1,9 +1,9 @@
 import os
 import argparse
 
-import utils
-
 from dlc.github_handler import GitHubHandler
+
+from codebuild_environment import get_codebuild_project_name, get_user_and_repo_name
 
 
 def get_args():
@@ -32,21 +32,20 @@ def get_target_url(project):
            f"/log?region={region}"
 
 
-def set_build_description(state, project, trigger_job):
+def set_build_description(state, project):
     """
     Set the build description, based on the state, project name, and job that triggered the project.
 
     :param state: <str> choices are "success", "failure", "error" or "pending"
     :param project: Project name associated with the running CodeBuild job
-    :param trigger_job: The name of the CodeBuild project that triggered this build
     :return: <str> Description to be posted to the PR build
     """
     if state == "success":
-        return f"{project} succeeded for {trigger_job}."
+        return f"{project} succeeded."
     elif state == "failure" or state == "error":
-        return f"{project} is in state {state.upper()} for {trigger_job}! Check details to debug."
+        return f"{project} is in state {state.upper()}! Check details to debug."
     elif state == "pending":
-        return f"{project} is pending for {trigger_job}..."
+        return f"{project} is pending..."
     else:
         return f"Unknown state: {state}"
 
@@ -61,15 +60,20 @@ def post_status(state):
     if os.getenv("EXECUTOR_MODE", "False").lower() == "true":
         return
 
-    project_name = utils.get_codebuild_project_name()
-    trigger_job = os.getenv("TEST_TRIGGER", "UNKNOWN-TEST-TRIGGER")
+    project_name = get_codebuild_project_name()
     target_url = get_target_url(project_name)
-    context = f"{trigger_job}_{project_name}"
-    description = set_build_description(state, project_name, trigger_job)
 
-    # Example: "https://github.com/aws/deep-learning-containers.git"
-    repo_url = os.getenv("CODEBUILD_SOURCE_REPO_URL")
-    _, user, repo_name = repo_url.rstrip(".git").rsplit("/", 2)
+    test_context = os.getenv("TEST_TYPE")
+
+    if test_context and test_context not in "quick_checks":
+        trigger_job = os.getenv("TEST_TRIGGER", "UNKNOWN-TEST-TRIGGER")
+        context = f"{trigger_job}_{project_name}"
+    else:
+        context = f"{project_name}"
+
+    description = set_build_description(state, project_name)
+
+    user, repo_name = get_user_and_repo_name()
 
     handler = GitHubHandler(user, repo_name)
     handler.set_status(
@@ -87,7 +91,7 @@ def main():
     state = codebuild_statuses[args.status]
 
     # Send status for given state
-    if os.getenv("BUILD_CONTEXT") == "PR" and not os.getenv("CODEBUILD_WEBHOOK_TRIGGER", "").startswith("pr/"):
+    if os.getenv("BUILD_CONTEXT") == "PR":
         post_status(state)
 
 
