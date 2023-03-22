@@ -1269,8 +1269,8 @@
             }
         },
         "cvss_v3_score": 9.8,
-        "cvss_v30_score": 9.8,
-        "cvss_v31_score": 0.0,
+        "cvss_v30_score": 0.0,
+        "cvss_v31_score": 9.8,
         "cvss_v2_score": 7.5,
         "cvss_v3_severity": "CRITICAL",
         "source_url": "https://people.canonical.com/~ubuntu-security/cve/2019/CVE-2019-13132.html",

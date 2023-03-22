@@ -1,26 +1,15 @@
 #!/bin/bash
 
+set -e
+
 HOME_DIR=/test
 BIN_DIR=${HOME_DIR}/bin
 LOG_DIR=${HOME_DIR}/logs
 
-${BIN_DIR}/pytorch_tests/setupPyTorchBackendTest || exit 1
-set -e
-cd ${HOME_DIR}
-source dlbs/scripts/environment.sh
+source ${BIN_DIR}/pytorch_tests/setupPyTorchBackendTest
 
-set +e
-nvidia-smi
-NVIDIA_SMI_RETURN_VAL=`echo $?`
-set -e
-
-if [ ${NVIDIA_SMI_RETURN_VAL} -eq 0 ]; then
-  echo "Running Gloo test on gpu"
-  NUM_GPU=$(nvidia-smi -L | wc -l)
-  export OMP_NUM_THREADS=${NUM_GPU}
-else
-  echo "Running Gloo test on cpu"
-fi
+AWS_LOG_DIR=$LOG_DIR/aws_gloo_log/
+OSS_LOG_DIR=$LOG_DIR/oss_gloo_log/
 
 TRAINING_LOG=${LOG_DIR}/pytorch_train_gloo.log
 

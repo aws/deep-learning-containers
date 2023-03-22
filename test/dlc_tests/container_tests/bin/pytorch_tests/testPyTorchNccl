@@ -1,35 +1,83 @@
 #!/bin/bash
 
+set -e
+
 HOME_DIR=/test
 BIN_DIR=${HOME_DIR}/bin
 LOG_DIR=${HOME_DIR}/logs
 
-${BIN_DIR}/pytorch_tests/setupPyTorchBackendTest || exit 1
-set -e
-cd ${HOME_DIR}
-source dlbs/scripts/environment.sh
-NUM_GPU=$(nvidia-smi -L | wc -l)
-export OMP_NUM_THREADS=${NUM_GPU}
+source ${BIN_DIR}/pytorch_tests/setupPyTorchBackendTest
 
-TRAINING_LOG=${LOG_DIR}/pytorch_train_nccl.log
+AWS_LOG_DIR=$LOG_DIR/aws_nccl_log/
+OSS_LOG_DIR=$LOG_DIR/oss_nccl_log/
 
-echo "Training resnet18 using PyTorch Nccl... This may take a few minutes. You can follow progress on the log file : $TRAINING_LOG"
-set +e
+# run NCCL benchmarking with 2 GPUS and 1 local node (resnet will use torchvision)
+python userbenchmark/ddp_experiments/__init__.py \
+    --ngpus 4 \
+    --distributed ddp \
+    --nodes 1 \
+    --cluster local \
+    --filter_models resnet50 \
+    --timeout 6 \
+    --job_dir $AWS_LOG_DIR \
+    --nccl-socket-ifname eth0
 
-python -m torch.distributed.launch --nproc_per_node=${NUM_GPU} \
-dlbs/python/pytorch_benchmarks/benchmarks.py \
---model resnet18 --batch_size=32 --device gpu --cudnn_fastest --dist_backend=nccl > $TRAINING_LOG 2>&1
+# generate the result csv
+JOB_ID=$(ls $AWS_LOG_DIR | grep .out | head -n 1 | cut -d'_' -f 1)
+python userbenchmark/ddp_experiments/parse_ddp.py \
+    --job_id $JOB_ID \
+    --results_dir $AWS_LOG_DIR \
+    --csv_out > $AWS_LOG_DIR/nccl_res.csv
 
-RETURN_VAL=`echo $?`
-set -e
+# get OSS perf data
+${BIN_DIR}/pytorch_tests/downloadOSSPyTorch
 
-if [ ${RETURN_VAL} -eq 0 ]; then
-    echo "Training resnet18 Complete using PyTorch Nccl."
-else
-    echo "Training resnet18 Failed using PyTorch Nccl."
-    cat $TRAINING_LOG
-    exit 1
+# run NCCL benchmarking with 2 GPUS and 1 local node (resnet will use torchvision)
+python userbenchmark/ddp_experiments/__init__.py \
+    --ngpus 4 \
+    --distributed ddp \
+    --nodes 1 \
+    --cluster local \
+    --filter_models resnet50 \
+    --timeout 6 \
+    --job_dir $OSS_LOG_DIR \
+    --nccl-socket-ifname eth0
+
+# generate the result csv
+JOB_ID=$(ls $OSS_LOG_DIR | grep .out | head -n 1 | cut -d'_' -f 1)
+python userbenchmark/ddp_experiments/parse_ddp.py \
+    --job_id $JOB_ID \
+    --results_dir $OSS_LOG_DIR \
+    --csv_out > $OSS_LOG_DIR/nccl_res.csv
+
+# check if the tests have failed
+has_anomaly=0
+if grep -qi "error" $AWS_LOG_DIR/nccl_res.csv \
+    || grep -qi "error" $OSS_LOG_DIR/nccl_res.csv ; then
+    echo "some nccl processes failed"
+    has_anomaly=1
 fi
 
+# evaluate the performance
+for i in {2..5}
+do
+    aws_lat=$(cat $AWS_LOG_DIR/nccl_res.csv | awk -v line=$i -F',' 'NR==line {print $NF}')
+    oss_lat=$(cat  $OSS_LOG_DIR/nccl_res.csv | awk -v line=$i -F',' 'NR==line {print $NF}')
+    echo "--- TEST TYPE $i: ---"
+    echo "aws latecny: "$aws_lat
+    echo "oss latency: "$oss_lat
+    
+    # check if AWS-PyTorch deviates from OSS PyTorch by 10%
+    if awk -v aws_lat="$aws_lat" -v oss_lat="$oss_lat" 'BEGIN {exit !(aws_lat > (oss_lat * 1.1))}'; then
+        echo "aws latency is 10% greater than oss"  
+        has_anomaly=1
+    elif awk -v aws_lat="$aws_lat" -v oss_lat="$oss_lat" 'BEGIN {exit !(aws_lat < (oss_lat * 0.9))}'; then
+        echo "aws latency is 10% less than oss"
+        has_anomaly=1
+    fi
+done
 
-exit 0
+if [ "$has_anomaly" -eq 1 ]; then
+    echo "encountered runtime error or performance anomaly"
+    exit 1
+fi
