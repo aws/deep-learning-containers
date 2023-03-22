@@ -10,7 +10,7 @@ ARG TORCHAUDIO_URL=https://aws-pytorch-unified-cicd-binaries.s3.us-west-2.amazon
 ARG TORCHTEXT_URL=https://aws-pytorch-unified-cicd-binaries.s3.us-west-2.amazonaws.com/r2.0.0_inference/cpu_py310/torchtext-0.15.1%2Bcpu-cp310-cp310-linux_x86_64.whl
 ARG TORCHDATA_URL=https://aws-pytorch-unified-cicd-binaries.s3.us-west-2.amazonaws.com/r2.0.0_inference/cpu_py310/torchdata-0.6.0%2Bcpu-cp310-cp310-linux_x86_64.whl
 ARG TORCHSERVE_VERSION=0.7.1
-ARG SM_TOOLKIT_VERSION=2.0.13
+ARG SM_TOOLKIT_VERSION=2.0.14
 
 ########################################################
 #  _____ ____ ____    ___
@@ -26,13 +26,7 @@ ARG SM_TOOLKIT_VERSION=2.0.13
 # |_| \_\___|\___|_| .__/ \___|
 #                  |_|
 ########################################################
-
-FROM ubuntu:20.04 AS base_image
-
-ENV DEBIAN_FRONTEND=noninteractive \
-    LD_LIBRARY_PATH="${LD_LIBRARY_PATH}:/usr/local/lib"
-
-FROM base_image AS ec2
+FROM ubuntu:20.04 AS ec2
 
 LABEL maintainer="Amazon AI"
 LABEL dlc_major_version="1"
@@ -50,17 +44,16 @@ ARG TORCHTEXT_URL
 ARG TORCHDATA_URL
 ARG TORCHSERVE_VERSION
 
-# Set Debian interaction
-ARG DEBIAN_FRONTEND=noninteractive
-
-# See http://bugs.python.org/issue19846
-ENV LANG=C.UTF-8
-ENV LD_LIBRARY_PATH="/opt/conda/lib:${LD_LIBRARY_PATH}"
-ENV PATH=/opt/conda/bin:$PATH
-ENV TEMP=/home/model-server/tmp
-# Set MKL_THREADING_LAYER=GNU to prevent issues between torch and numpy/mkl
-ENV MKL_THREADING_LAYER=GNU
-ENV DLC_CONTAINER_TYPE=inference
+# Set Env Variables for the images
+ENV DEBIAN_FRONTEND=noninteractive \
+    LD_LIBRARY_PATH="${LD_LIBRARY_PATH}:/usr/local/lib" \
+    LD_LIBRARY_PATH="/opt/conda/lib:${LD_LIBRARY_PATH}" \
+    PATH=/opt/conda/bin:$PATH \
+    TEMP=/home/model-server/tmp \
+    MKL_THREADING_LAYER=GNU \
+    DLC_CONTAINER_TYPE=inference \
+    # See http://bugs.python.org/issue19846
+    LANG=C.UTF-8
 
 RUN apt-get update \
  && apt-get -y upgrade \
@@ -87,9 +80,11 @@ RUN apt-get update \
     libjpeg-dev \
     libpng-dev \
     zlib1g-dev \
+ && apt-get autoremove -y \
  && rm -rf /var/lib/apt/lists/* \
  && apt-get clean
 
+# Install OpenMPI
 RUN wget https://download.open-mpi.org/release/open-mpi/v4.1/openmpi-${OPEN_MPI_VERSION}.tar.gz \
  && gunzip -c openmpi-$OPEN_MPI_VERSION.tar.gz | tar xf - \
  && cd openmpi-$OPEN_MPI_VERSION \
@@ -106,14 +101,19 @@ ENV PATH="$PATH:/home/.openmpi/bin"
 ENV LD_LIBRARY_PATH="$LD_LIBRARY_PATH:/home/.openmpi/lib/"
 RUN ompi_info --parsable --all | grep mpi_built_with_cuda_support:value
 
+# Allow OpenSSH to talk to containers without asking for confirmation
+RUN mkdir -p /var/run/sshd \
+ && cat /etc/ssh/ssh_config | grep -v StrictHostKeyChecking > /etc/ssh/ssh_config.new \
+ && echo "    StrictHostKeyChecking no" >> /etc/ssh/ssh_config.new \
+ && mv /etc/ssh/ssh_config.new /etc/ssh/ssh_configs \
+ && rm -rf /var/lib/apt/lists/* \
+ && apt-get clean
+
 # Install CondaForge miniconda
-# Note: SSD Verification disabled as it breaks installs due to downgrading from py3.10 to py3.9
 RUN curl -L -o ~/mambaforge.sh https://github.com/conda-forge/miniforge/releases/download/${MAMBA_VERSION}/Mambaforge-${MAMBA_VERSION}-Linux-x86_64.sh \
  && chmod +x ~/mambaforge.sh \
  && ~/mambaforge.sh -b -p /opt/conda \
  && rm ~/mambaforge.sh \
- && /opt/conda/bin/conda config --set ssl_verify False \
- && /opt/conda/bin/conda update -y conda \
  && /opt/conda/bin/conda install -c conda-forge \
     python=${PYTHON_VERSION} \
     cython \
@@ -137,18 +137,23 @@ RUN pip uninstall -y torch torchvision torchaudio torchdata model-archiver multi
 
 # Install AWS-PyTorch, and other torch packages
 RUN pip install --no-cache-dir --extra-index-url https://download.pytorch.org/whl/cpu -U \
-    "awscli<2" \
     boto3 \
-    "cryptography>3.2" \
-    enum-compat==0.0.3 \
-    "ipython>=8.10.0,<9.0" \
-    numpy==1.22.2 \
-    opencv-python \
-    packaging \
-    "Pillow>=9.0.0" \
-    "pyyaml>=5.4,<5.5" \
     scipy \
+    opencv-python \
+    cryptography \
+    "ipython>=8.10.0,<9.0" \
+    "awscli<2" \
+    # TS tsquirements 
+    # -> Numpy is higer version as required by torch
+    # -> Pillow is not upper pinned for security
+    psutil \
+    cython \
     captum \
+    packaging \
+    "pyyaml>=5.4,<5.5" \
+    "Pillow>=9.3.0" \
+    "numpy==1.22.2" \
+    # End of TS requirements
     ${TORCH_URL} \
     ${TORCHVISION_URL} \
     ${TORCHAUDIO_URL} \
@@ -160,17 +165,18 @@ RUN pip install --no-cache-dir --extra-index-url https://download.pytorch.org/wh
 # add necessary certificate for aws sdk cpp download
 RUN mkdir -p /etc/pki/tls/certs && cp /etc/ssl/certs/ca-certificates.crt /etc/pki/tls/certs/ca-bundle.crt
 
+# create user and folders
 RUN useradd -m model-server \
  && mkdir -p /home/model-server/tmp /opt/ml/model \
  && chown -R model-server /home/model-server /opt/ml/model
 
+# add TS entrypoint
 COPY torchserve-ec2-entrypoint.py /usr/local/bin/dockerd-entrypoint.py
 COPY config.properties /home/model-server
-
 RUN chmod +x /usr/local/bin/dockerd-entrypoint.py
 
+# add telemetry
 COPY deep_learning_container.py /usr/local/bin/deep_learning_container.py
-
 RUN chmod +x /usr/local/bin/deep_learning_container.py
 
 RUN HOME_DIR=/root \
@@ -185,8 +191,10 @@ RUN HOME_DIR=/root \
 
 RUN curl -o /license.txt  https://aws-dlc-licenses.s3.amazonaws.com/pytorch-1.13/license.txt
 
-# Removing the cache as it is needed for security verification
-RUN rm -iRf /root/.cache
+## Cleanup ##
+RUN cd tmp/ \
+ && rm -rf tmp* \
+ &&rm -iRf /root/.cache
 
 EXPOSE 8080 8081
 ENTRYPOINT ["python", "/usr/local/bin/dockerd-entrypoint.py"]
@@ -239,8 +247,10 @@ RUN HOME_DIR=/root \
  && ${HOME_DIR}/oss_compliance/generate_oss_compliance.sh ${HOME_DIR} ${PYTHON} \
  && rm -rf ${HOME_DIR}/oss_compliance*
 
-# Removing the cache as it is needed for security verification
-RUN rm -iRf /root/.cache
+## Cleanup ##
+RUN cd tmp/ \
+ && rm -rf tmp* \
+ &&rm -iRf /root/.cache
 
 EXPOSE 8080 8081
 ENTRYPOINT ["python", "/usr/local/bin/dockerd-entrypoint.py"]
