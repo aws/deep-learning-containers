@@ -53,7 +53,3 @@ def _test_sagemaker_endpoint_function(ecr_image, sagemaker_session, instance_typ
     endpoint_name = utils.unique_name_from_base("sagemaker-pytorch-serving")
     with timeout.timeout_and_delete_endpoint_by_name(endpoint_name, sagemaker_session):
         predictor = model.deploy(initial_instance_count=1, instance_type=instance_type, endpoint_name=endpoint_name)
-
-
-
-    # --docker-base-name=beta-pytorch-inference --region=us-west-2 --framework-version=1.12.1 --py-version=38 --processor=gpu --aws-id=669063966089 --tag=1.12.1-gpu-py38-cu113-ubuntu20.04-sagemaker-rc-tested-2023-02-15-01-57-18 --sagemaker-regions=us-west-2 --instance-type=ml.p2.xlarge

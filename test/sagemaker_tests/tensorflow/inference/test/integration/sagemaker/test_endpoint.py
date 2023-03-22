@@ -88,7 +88,3 @@ def _test_sagemaker_endpoint_function(ecr_image, sagemaker_session, instance_typ
     endpoint_name = utils.unique_name_from_base("sagemaker-tensorflow-serving")
     with timeout.timeout_and_delete_endpoint_by_name(endpoint_name, sagemaker_session):
         predictor = model.deploy(initial_instance_count=1, instance_type=instance_type, endpoint_name=endpoint_name)
-
-# 669063966089.dkr.ecr.us-west-2.amazonaws.com/beta-tensorflow-inference:2.9.3-gpu-py39-cu112-ubuntu20.04-sagemaker-2023-03-20-16-32-33
-# --docker-base-name=beta-tensorflow-inference --region=us-west-2 --framework-version=2.9.3 --py-version=39 --processor=gpu --account-id=669063966089 --tag=2.9.3-gpu-py39-cu112-ubuntu20.04-sagemaker-2023-03-20-16-32-33 --sagemaker-regions=us-west-2 --instance-type=ml.p2.xlarge
-

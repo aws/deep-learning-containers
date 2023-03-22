@@ -57,5 +57,3 @@ def _test_sagemaker_endpoint_function(ecr_image, sagemaker_session, instance_typ
     endpoint_name = utils.unique_name_from_base('test-mxnet-serving')
     with timeout.timeout_and_delete_endpoint_by_name(endpoint_name, sagemaker_session):
         predictor = model.deploy(initial_instance_count=1, instance_type=instance_type, endpoint_name=endpoint_name)
-
-# --docker-base-name=beta-mxnet-inference --region=us-west-2 --framework-version=1.9.0 --py-version=38 --processor=gpu --aws-id=669063966089 --tag=1.9.0-gpu-py38-cu112-ubuntu20.04-sagemaker-2023-02-24-17-16-59 --sagemaker-regions=us-west-2
