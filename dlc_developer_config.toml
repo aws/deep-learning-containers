@@ -122,9 +122,8 @@ dlc-pr-huggingface-pytorch-inference = ""
 dlc-pr-huggingface-pytorch-neuron-inference = ""
 
 # Graviton Inference
-# pytorch/inference/buildspec-2-0-graviton.yml
 dlc-pr-mxnet-graviton-inference = ""
-dlc-pr-pytorch-graviton-inference = ""
+dlc-pr-pytorch-graviton-inference = "pytorch/inference/buildspec-2-0-graviton.yml"
 dlc-pr-tensorflow-2-graviton-inference = ""
 
 # EIA Inference
