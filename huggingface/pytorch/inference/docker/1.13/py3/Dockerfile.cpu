@@ -22,7 +22,8 @@ ARG OPEN_MPI_VERSION=4.1.4
 ARG MMS_VERSION=1.1.8
 
 # HF ARGS
-ARG TORCH_URL=https://aws-pytorch-unified-cicd-binaries.s3.us-west-2.amazonaws.com/r1.13.1_ec2/20221217-194030/54406b8eed7fbd61be629cb06229dfb7b6b2954e/torch-1.13.1%2Bcpu-cp39-cp39-linux_x86_64.whl
+ARG TORCH_VERSION=1.13.1
+ARG TORCH_URL=https://aws-pytorch-unified-cicd-binaries.s3.us-west-2.amazonaws.com/r${TORCH_VERSION}_ec2/20221217-194030/54406b8eed7fbd61be629cb06229dfb7b6b2954e/torch-${TORCH_VERSION}%2Bcpu-cp39-cp39-linux_x86_64.whl
 ARG TORCHVISION_VERSION=0.14.1+cpu
 ARG TORCHAUDIO_VERSION=0.13.1+cpu
 ARG TRANSFORMERS_VERSION
@@ -163,7 +164,8 @@ RUN pip install --no-cache-dir \
     transformers[sentencepiece,audio,vision]==${TRANSFORMERS_VERSION} \
     "protobuf>=3.19.5,<=3.20.2" \
     numpy>=1.21.5 \
-    "sagemaker-huggingface-inference-toolkit<3"
+    "sagemaker-huggingface-inference-toolkit<3" \
+    ipex==${TORCH_VERSION}00   # IPEx versioning is MAJOR.MINOR.PATCH * 100 (1.13.1 -> 1.13.100)
 
 RUN HOME_DIR=/root \
  && curl -o ${HOME_DIR}/oss_compliance.zip https://aws-dlinfra-utilities.s3.amazonaws.com/oss_compliance.zip \
