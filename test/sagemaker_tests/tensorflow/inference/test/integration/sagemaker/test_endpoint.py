@@ -1,6 +1,8 @@
+import contextlib
 import os
-
+import logging
 import pytest
+
 from ..sagemaker import util
 
 logger = logging.getLogger(__name__)
@@ -52,28 +54,6 @@ def tfs_model(region, boto_session):
     return util.find_or_put_model_data(region, boto_session, "data/tfs-model.tar.gz")
 
 
-@pytest.mark.model("unknown_model")
-def test_endpoint(boto_session, sagemaker_client, model_name, model_data, image_uri, instance_type, accelerator_type):
-    
-    with _create_model(boto_session, sagemaker_client, image_uri, model_name, model_data):
-        _create_endpoint(sagemaker_client, model_name, instance_type, accelerator_type)
-
-
-def _create_model(boto_session, sagemaker_client, image_uri, model_name, model_data):
-    
-    container = { "Image": image_uri, "ModelDataUrl": model_data}
-    model = sagemaker_client.create_model(
-        ModelName=model_name,
-        ExecutionRoleArn=_execution_role(boto_session),
-        PrimaryContainer=container
-    )
-    try:
-        yield model
-    finally:
-        logger.info("deleting model %s", model_name)
-        sagemaker_client.delete_model(ModelName=model_name)
-
-
 def _create_endpoint(sagemaker_client, model_name, instance_type, accelerator_type=None):
 
     logger.info("creating endpoint %s", model_name)
@@ -101,4 +81,12 @@ def _create_endpoint(sagemaker_client, model_name, instance_type, accelerator_ty
         logger.info("deleting endpoint and endpoint config %s", model_name)
         sagemaker_client.delete_endpoint(EndpointName=model_name)
         sagemaker_client.delete_endpoint_config(EndpointConfigName=model_name)
+        
+
+
+@pytest.mark.model("unknown_model")
+def test_endpoint(boto_session, sagemaker_client, model_name, tfs_model, image_uri, instance_type, accelerator_type):
+    
+    with util.sagemaker_model(boto_session, sagemaker_client, image_uri, model_name, tfs_model):
+        _create_endpoint(sagemaker_client, model_name, instance_type, accelerator_type)
         
