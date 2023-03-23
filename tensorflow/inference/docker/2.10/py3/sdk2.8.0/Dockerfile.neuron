@@ -63,7 +63,7 @@ RUN apt-get update \
  && apt-get clean \
  && rm -rf /var/lib/apt/lists/*
 
-# Install Python3
+# Install python3.8
 RUN wget https://www.python.org/ftp/python/$PYTHON_VERSION/Python-$PYTHON_VERSION.tgz \
  && tar -xvf Python-$PYTHON_VERSION.tgz \
  && cd Python-$PYTHON_VERSION \
@@ -76,7 +76,7 @@ RUN wget -qO - https://apt.repos.neuron.amazonaws.com/GPG-PUB-KEY-AMAZON-AWS-NEU
 RUN apt-get update
 
 RUN apt-get install -y \
-    tensorflow-model-server-neuron=2.10.30.0 \
+    tensorflow-model-server-neuron=1.15.0.2.3.0.0 \
     aws-neuronx-tools=2.* \
     aws-neuronx-runtime-lib \
  && apt-get clean \
