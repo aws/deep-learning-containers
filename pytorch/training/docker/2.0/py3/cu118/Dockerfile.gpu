@@ -153,11 +153,12 @@ RUN ompi_info --parsable --all | grep mpi_built_with_cuda_support:value \
 
 # Install ec2 PyTorch
 RUN /opt/conda/bin/mamba install -y pytorch=${PYTORCH_VERSION} \
-  pytorch-cuda=11.8 torchvision torchaudio torchtext aws-ofi-nccl-dlc \
-  --strict-channel-priority --override-channels \
-  -c https://aws-ml-conda-pre-prod-sm.s3.us-west-2.amazonaws.com \
+  pytorch-cuda=11.8 torchvision torchaudio torchtext=0.15.0 aws-ofi-nccl-dlc \
+  --override-channels \
+  -c https://aws-ml-conda-pre-prod-ec2.s3.us-west-2.amazonaws.com \
   -c pytorch \
-  -c nvidia -c conda-forge
+  -c nvidia \
+  -c conda-forge
 
 # Install common mamba packages
 RUN /opt/conda/bin/mamba install -y -c conda-forge \
@@ -195,19 +196,17 @@ RUN /opt/conda/bin/mamba install -y -c conda-forge \
     "pillow>=9.4" \
     psutil \
     ipython \
- # pin dgl to 0.9.1 as upstream test has not caught up, currently having accuracy error
- && /opt/conda/bin/mamba install -y -c dglteam/label/cu118 dgl \
- && /opt/conda/bin/mamba install -y -c fastai fastai \
- # fastai conda has a dependency chain of fastai -> spacy -> pathy -> dataclasses
- # conda pathy installs dataclasses regardless of py version: https://github.com/conda-forge/pathy-feedstock/blob/1e6da43da5c8e11e09c063c79b09236bbacb7780/recipe/meta.yaml#L29
- # pypi solves this issue: https://github.com/justindujardin/pathy/blob/master/requirements.txt#L3
- # dataclasses package, which contains CVE, is not needed for py>=37
- # pypi fastai's dependencies will oversize the image
- && pip uninstall -y dataclasses \
- # need to install cmake, lit as pypi triton depends on it 
- && pip install torchtnt cmake lit \
- && /opt/conda/bin/mamba clean -ya \
- && rm -rf /etc/apt/sources.list.d/*
+  # pin dgl to 0.9.1 as upstream test has not caught up, currently having accuracy error
+  && /opt/conda/bin/mamba install -y -c dglteam/label/cu118 dgl \
+  && /opt/conda/bin/mamba install -y -c fastai fastai \
+  # fastai conda has a dependency chain of fastai -> spacy -> pathy -> dataclasses, use pip to remove dataclass for CVE
+  && pip uninstall -y dataclasses \
+  && pip install \
+    torchtnt \
+  # explicitly install triton needed by conda torchtriton, otherwise pypi dependencies cmake and lit would be missing
+    triton \
+  && /opt/conda/bin/mamba clean -afy \
+  && rm -rf /etc/apt/sources.list.d/*
 
 RUN pip install --no-cache-dir --upgrade pip --no-cache-dir --trusted-host pypi.org --trusted-host files.pythonhosted.org \
  && ln -s /opt/conda/bin/pip /usr/local/bin/pip3 
@@ -264,12 +263,10 @@ RUN rm -rf /root/.ssh/ && \
 
 RUN mkdir -p /etc/pki/tls/certs && cp /etc/ssl/certs/ca-certificates.crt /etc/pki/tls/certs/ca-bundle.crt
 
-
-
 COPY deep_learning_container.py /usr/local/bin/deep_learning_container.py
 RUN chmod +x /usr/local/bin/deep_learning_container.py
 
-RUN curl -o /license.txt https://aws-dlc-licenses.s3.amazonaws.com/pytorch-1.13/license.txt
+RUN curl -o /license.txt https://aws-dlc-licenses.s3.amazonaws.com/pytorch-2.0/license.txt
 
 # Removing the cache as it is needed for security verification
 RUN rm -rf /root/.cache | true
@@ -382,8 +379,8 @@ ARG PT_TORCHDATA_URL
 # force remove to prevent removing all packages depending on pytorch
 RUN /opt/conda/bin/conda remove --force pytorch \
   && /opt/conda/bin/mamba install -y pytorch=${PYTORCH_VERSION} \
-  pytorch-cuda=11.8 torchvision torchaudio torchtext aws-ofi-nccl-dlc \
-  --strict-channel-priority --override-channels \
+  pytorch-cuda=11.8 \
+  --override-channels \
   -c https://aws-ml-conda-pre-prod-sm.s3.us-west-2.amazonaws.com \
   -c pytorch \
   -c nvidia -c conda-forge
@@ -449,7 +446,8 @@ RUN /opt/conda/bin/mamba install -y -c conda-forge \
   && /opt/conda/bin/mamba install -y -c numba numba \
   && /opt/conda/bin/mamba install -y -c anaconda seaborn \
   && /opt/conda/bin/mamba install -y -c bokeh bokeh \
-  && /opt/conda/bin/mamba install -y -c plotly plotly 
+  && /opt/conda/bin/mamba install -y -c plotly plotly \
+  && /opt/conda/bin/mamba clean -afy 
 
 # install metis
 RUN rm -rf /etc/apt/sources.list.d/* \
