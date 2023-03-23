@@ -20,7 +20,7 @@ JOB_ID=$(ls $AWS_LOG_DIR | grep .out | head -n 1 | cut -d'_' -f 1)
 python userbenchmark/ddp_experiments/parse_ddp.py \
     --job_id $JOB_ID \
     --results_dir $AWS_LOG_DIR \
-    --csv_out > $AWS_LOG_DIR/nccl_res.csv
+    --csv_out > $AWS_LOG_DIR/aws_res.csv
 
 # get OSS perf data
 bash ${BIN_DIR}/pytorch_tests/installOSSPyTorch
@@ -41,7 +41,7 @@ JOB_ID=$(ls $OSS_LOG_DIR | grep .out | head -n 1 | cut -d'_' -f 1)
 python userbenchmark/ddp_experiments/parse_ddp.py \
     --job_id $JOB_ID \
     --results_dir $OSS_LOG_DIR \
-    --csv_out > $OSS_LOG_DIR/nccl_res.csv
+    --csv_out > $OSS_LOG_DIR/oss_res.csv
 
 # evaluate the performance
-bash ${BIN_DIR}/pytorch_tests/evaluateResults $AWS_LOG_DIR/nccl_res.csv $OSS_LOG_DIR/nccl_res.csv
+bash ${BIN_DIR}/pytorch_tests/evaluateResults $AWS_LOG_DIR/aws_res.csv $OSS_LOG_DIR/oss_res.csv

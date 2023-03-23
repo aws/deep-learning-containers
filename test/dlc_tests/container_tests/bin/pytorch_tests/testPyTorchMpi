@@ -1,50 +1,23 @@
 #!/bin/bash
 
-HOME_DIR=/test
-BIN_DIR=${HOME_DIR}/bin
-LOG_DIR=${HOME_DIR}/logs
-
-set -e
-${BIN_DIR}/pytorch_tests/setupPyTorchBackendTest
-cd ${HOME_DIR}
-source dlbs/scripts/environment.sh
-
-set +e
-nvidia-smi
-NVIDIA_SMI_RETURN_VAL=`echo $?`
 set -e
 
-if [ ${NVIDIA_SMI_RETURN_VAL} -eq 0 ]; then
-  echo "Running Gloo test on gpu"
-  NUM_GPU=$(nvidia-smi -L | wc -l)
-  export OMP_NUM_THREADS=${NUM_GPU}
-else
-  echo "Running Gloo test on cpu"
-fi
+source /test/bin/pytorch_tests/setupPyTorchBackendTest
 
-TRAINING_LOG=${LOG_DIR}/pytorch_train_mpi.log
+export WORLD_SIZE=2
+USE_INDUCTOR=1 PT_BACKEND=mpi OUT_PATH=$AWS_LOG_DIR/aws_res.csv timeout 360 python run.py BERT_pytorch -m eager -d $DEVICE -t train
 
-echo "Training resnet18 using PyTorch Mpi... This may take a few minutes. You can follow progress on the log file : $TRAINING_LOG"
-set +e
-if [ ${NVIDIA_SMI_RETURN_VAL} -eq 0 ]; then
-  python -m torch.distributed.launch --nproc_per_node=${NUM_GPU} \
-  dlbs/python/pytorch_benchmarks/benchmarks.py \
-  --model resnet18 --batch_size=32 --device gpu --cudnn_fastest --dist_backend=mpi > $TRAINING_LOG 2>&1
-else
-  python -m torch.distributed.launch \
-  dlbs/python/pytorch_benchmarks/benchmarks.py \
-  --model resnet18 --batch_size=32 --device cpu --dist_backend=mpi > $TRAINING_LOG 2>&1
-fi
-RETURN_VAL=`echo $?`
-set -e
+# get OSS perf data
+bash ${BIN_DIR}/pytorch_tests/installOSSPyTorch
+# re-install requirements as some might be gone with pytorch
+pip install -r requirements.txt 
 
-if [ ${RETURN_VAL} -eq 0 ]; then
-    echo "Training resnet18 Complete using PyTorch Mpi."
-else
-    echo "Training resnet18 Failed using PyTorch Mpi."
-    cat $TRAINING_LOG
-    exit 1
-fi
+USE_INDUCTOR=1 PT_BACKEND=mpi OUT_PATH=$OSS_LOG_DIR/oss_res.csv timeout 360 python run.py BERT_pytorch -m eager -d $DEVICE -t train
 
+# compare aws and oss results process by process
+for ((i=0; i<$WORLD_SIZE; i++))
+do
+  bash ${BIN_DIR}/pytorch_tests/evaluateResults "$AWS_LOG_DIR/aws_res.csv_$i" "$OSS_LOG_DIR/oss_res.csv_$i"
+done
 
 exit 0

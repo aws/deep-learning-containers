@@ -173,28 +173,30 @@ def test_pytorch_with_horovod_inductor(pytorch_training, ec2_connection, gpu_onl
 @pytest.mark.usefixtures("sagemaker")
 @pytest.mark.integration("gloo")
 @pytest.mark.model("resnet18")
-@pytest.mark.parametrize("ec2_instance_type", PT_EC2_GPU_INSTANCE_TYPE, indirect=True)
+@pytest.mark.parametrize("ec2_instance_type", PT_TRITON_INSTANCE_TYPE, indirect=True)
 def test_pytorch_gloo_gpu(pytorch_training, ec2_connection, gpu_only, py3_only, ec2_instance_type):
     """
     Tests gloo backend
     """
     if test_utils.is_image_incompatible_with_instance_type(pytorch_training, ec2_instance_type):
         pytest.skip(f"Image {pytorch_training} is incompatible with instance type {ec2_instance_type}")
-    test_cmd = os.path.join(CONTAINER_TESTS_PREFIX, "pytorch_tests", "testPyTorchGloo")
+    test_cmd = os.path.join(CONTAINER_TESTS_PREFIX, "pytorch_tests", "testPyTorchGlooMpi") + \
+        " gloo 0" # backend, inductor flags
     execute_ec2_training_test(ec2_connection, pytorch_training, test_cmd, large_shm=True)
 
 @pytest.mark.usefixtures("sagemaker")
 @pytest.mark.integration("gloo")
 @pytest.mark.integration("inductor")
 @pytest.mark.model("resnet18")
-@pytest.mark.parametrize("ec2_instance_type", PT_EC2_GPU_INSTANCE_TYPE, indirect=True)
+@pytest.mark.parametrize("ec2_instance_type", PT_TRITON_INSTANCE_TYPE, indirect=True)
 def test_pytorch_gloo_inductor_gpu(pytorch_training, ec2_connection, gpu_only, py3_only, ec2_instance_type):
     """
     Tests gloo backend with torch inductor
     """
     if test_utils.is_image_incompatible_with_instance_type(pytorch_training, ec2_instance_type):
         pytest.skip(f"Image {pytorch_training} is incompatible with instance type {ec2_instance_type}")
-    test_cmd = os.path.join(CONTAINER_TESTS_PREFIX, "pytorch_tests", "testPyTorchGloowithInductor")
+    test_cmd = os.path.join(CONTAINER_TESTS_PREFIX, "pytorch_tests", "testPyTorchGlooMpi") + \
+        " gloo 1" # backend, inductor flags
     execute_ec2_training_test(ec2_connection, pytorch_training, test_cmd, large_shm=True)
 
 
@@ -206,7 +208,8 @@ def test_pytorch_gloo_cpu(pytorch_training, ec2_connection, cpu_only, py3_only, 
     """
     Tests gloo backend
     """
-    test_cmd = os.path.join(CONTAINER_TESTS_PREFIX, "pytorch_tests", "testPyTorchGloo")
+    test_cmd = os.path.join(CONTAINER_TESTS_PREFIX, "pytorch_tests", "testPyTorchGlooMpi") + \
+        " gloo 0" # backend, inductor flags
     execute_ec2_training_test(ec2_connection, pytorch_training, test_cmd, large_shm=True)
 
 
@@ -270,7 +273,8 @@ def test_pytorch_mpi_gpu(pytorch_training, ec2_connection, gpu_only, py3_only, e
         pytest.skip(f"Image {pytorch_training} is incompatible with distribution type MPI.")
     if test_utils.is_image_incompatible_with_instance_type(pytorch_training, ec2_instance_type):
         pytest.skip(f"Image {pytorch_training} is incompatible with instance type {ec2_instance_type}")
-    test_cmd = os.path.join(CONTAINER_TESTS_PREFIX, "pytorch_tests", "testPyTorchMpi")
+    test_cmd = os.path.join(CONTAINER_TESTS_PREFIX, "pytorch_tests", "testPyTorchGlooMpi") + \
+        " mpi 0" # backend, inductor flags
     execute_ec2_training_test(ec2_connection, pytorch_training, test_cmd)
 
 @pytest.mark.usefixtures("sagemaker")
@@ -286,7 +290,8 @@ def test_pytorch_mpi_inductor_gpu(pytorch_training, ec2_connection, gpu_only, py
         pytest.skip(f"Image {pytorch_training} is incompatible with distribution type MPI.")
     if test_utils.is_image_incompatible_with_instance_type(pytorch_training, ec2_instance_type):
         pytest.skip(f"Image {pytorch_training} is incompatible with instance type {ec2_instance_type}")
-    test_cmd = os.path.join(CONTAINER_TESTS_PREFIX, "pytorch_tests", "testPyTorchMpiwithInductor")
+    test_cmd = os.path.join(CONTAINER_TESTS_PREFIX, "pytorch_tests", "testPyTorchGlooMpi") + \
+        " mpi 1" # backend, inductor flags
     execute_ec2_training_test(ec2_connection, pytorch_training, test_cmd)
 
 
@@ -300,7 +305,8 @@ def test_pytorch_mpi_cpu(pytorch_training, ec2_connection, cpu_only, py3_only, e
     """
     if 'trcomp' in pytorch_training:
         pytest.skip(f"Image {pytorch_training} is incompatible with distribution type MPI.")
-    test_cmd = os.path.join(CONTAINER_TESTS_PREFIX, "pytorch_tests", "testPyTorchMpi")
+    test_cmd = os.path.join(CONTAINER_TESTS_PREFIX, "pytorch_tests", "testPyTorchGlooMpi") + \
+        " mpi 0" # backend, inductor flags
     execute_ec2_training_test(ec2_connection, pytorch_training, test_cmd)
 
 
