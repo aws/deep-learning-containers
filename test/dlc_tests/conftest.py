@@ -352,8 +352,6 @@ def ec2_instance(
     ):
         params["BlockDeviceMappings"] = [{"DeviceName": volume_name, "Ebs": {"VolumeSize": 300,},}]
     else:
-        # Using private AMI, the EBS volume size is reduced to 28GB as opposed to 50GB from public AMI. This leads to space issues on test instances
-        # TODO: Revert the configuration once DLAMI is public
         params["BlockDeviceMappings"] = [{"DeviceName": volume_name, "Ebs": {"VolumeSize": 150,},}]
 
     # For TRN1 since we are using a private AMI that has some BERT data/tests, have a bifgger volume size
