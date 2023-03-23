@@ -191,6 +191,7 @@ RUN pip install --no-cache-dir -U \
     # TS tsquirements 
     # -> Numpy is higer version as required by torch
     # -> Pillow is not upper pinned for security
+    nvgpu \
     psutil \
     cython \
     captum \
