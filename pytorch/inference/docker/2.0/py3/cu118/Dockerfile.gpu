@@ -67,7 +67,9 @@ ENV DEBIAN_FRONTEND=noninteractive \
     MKL_THREADING_LAYER=GNU \
     DLC_CONTAINER_TYPE=inference \
     # See http://bugs.python.org/issue19846
-    LANG=C.UTF-8
+    LANG=C.UTF-8 \
+    # adding to see about thread issue with SM local testing
+    OMP_NUM_THREADS=1
 
 ## Cuda Arch List setting Options
 # Kepler+Tesla = 3.7 (P2 Instances "No Longer Supported")
