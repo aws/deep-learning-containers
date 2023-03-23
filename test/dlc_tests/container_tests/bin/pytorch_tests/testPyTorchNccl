@@ -2,14 +2,7 @@
 
 set -e
 
-HOME_DIR=/test
-BIN_DIR=${HOME_DIR}/bin
-LOG_DIR=${HOME_DIR}/logs
-
-source ${BIN_DIR}/pytorch_tests/setupPyTorchBackendTest
-
-AWS_LOG_DIR=$LOG_DIR/aws_nccl_log/
-OSS_LOG_DIR=$LOG_DIR/oss_nccl_log/
+source /test/bin/pytorch_tests/setupPyTorchBackendTest
 
 # run NCCL benchmarking with 2 GPUS and 1 local node (resnet will use torchvision)
 python userbenchmark/ddp_experiments/__init__.py \
@@ -30,7 +23,7 @@ python userbenchmark/ddp_experiments/parse_ddp.py \
     --csv_out > $AWS_LOG_DIR/nccl_res.csv
 
 # get OSS perf data
-${BIN_DIR}/pytorch_tests/downloadOSSPyTorch
+bash ${BIN_DIR}/pytorch_tests/installOSSPyTorch
 
 # run NCCL benchmarking with 2 GPUS and 1 local node (resnet will use torchvision)
 python userbenchmark/ddp_experiments/__init__.py \
@@ -50,34 +43,5 @@ python userbenchmark/ddp_experiments/parse_ddp.py \
     --results_dir $OSS_LOG_DIR \
     --csv_out > $OSS_LOG_DIR/nccl_res.csv
 
-# check if the tests have failed
-has_anomaly=0
-if grep -qi "error" $AWS_LOG_DIR/nccl_res.csv \
-    || grep -qi "error" $OSS_LOG_DIR/nccl_res.csv ; then
-    echo "some nccl processes failed"
-    has_anomaly=1
-fi
-
 # evaluate the performance
-for i in {2..5}
-do
-    aws_lat=$(cat $AWS_LOG_DIR/nccl_res.csv | awk -v line=$i -F',' 'NR==line {print $NF}')
-    oss_lat=$(cat  $OSS_LOG_DIR/nccl_res.csv | awk -v line=$i -F',' 'NR==line {print $NF}')
-    echo "--- TEST TYPE $i: ---"
-    echo "aws latecny: "$aws_lat
-    echo "oss latency: "$oss_lat
-    
-    # check if AWS-PyTorch deviates from OSS PyTorch by 10%
-    if awk -v aws_lat="$aws_lat" -v oss_lat="$oss_lat" 'BEGIN {exit !(aws_lat > (oss_lat * 1.1))}'; then
-        echo "aws latency is 10% greater than oss"  
-        has_anomaly=1
-    elif awk -v aws_lat="$aws_lat" -v oss_lat="$oss_lat" 'BEGIN {exit !(aws_lat < (oss_lat * 0.9))}'; then
-        echo "aws latency is 10% less than oss"
-        has_anomaly=1
-    fi
-done
-
-if [ "$has_anomaly" -eq 1 ]; then
-    echo "encountered runtime error or performance anomaly"
-    exit 1
-fi
+bash ${BIN_DIR}/pytorch_tests/evaluateResults $AWS_LOG_DIR/nccl_res.csv $OSS_LOG_DIR/nccl_res.csv

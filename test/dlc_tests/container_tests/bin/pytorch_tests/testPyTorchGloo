@@ -2,15 +2,22 @@
 
 set -e
 
-HOME_DIR=/test
-BIN_DIR=${HOME_DIR}/bin
-LOG_DIR=${HOME_DIR}/logs
+source /test/bin/pytorch_tests/setupPyTorchBackendTest
 
-source ${BIN_DIR}/pytorch_tests/setupPyTorchBackendTest
+export WORLD_SIZE=2
+USE_INDUCTOR=1 PT_BACKEND=gloo OUT_PATH=$AWS_LOG_DIR/aws_gloo_res.csv timeout 360 python run.py BERT_pytorch -m eager -d $DEVICE -t train
 
-AWS_LOG_DIR=$LOG_DIR/aws_gloo_log/
-OSS_LOG_DIR=$LOG_DIR/oss_gloo_log/
+# get OSS perf data
+bash ${BIN_DIR}/pytorch_tests/installOSSPyTorch
+# re-install requirements as some might be gone with pytorch
+pip install -r requirements.txt 
 
-USE_INDUCTOR=1 WORLD_SIZE=2 PT_BACKEND=gloo OUT_PATH="./aws_res.csv" timeout 360 python run.py BERT_pytorch -m eager -d $DEVICE -t train
+USE_INDUCTOR=1 PT_BACKEND=gloo OUT_PATH=$OSS_LOG_DIR/oss_gloo_res.csv timeout 360 python run.py BERT_pytorch -m eager -d $DEVICE -t train
+
+# compare aws and oss results process by process
+for ((i=0; i<$WORLD_SIZE; i++))
+do
+  bash ${BIN_DIR}/pytorch_tests/evaluateResults "$AWS_LOG_DIR/aws_gloo_res.csv_$i" "$OSS_LOG_DIR/oss_gloo_res.csv_$i"
+done
 
 exit 0

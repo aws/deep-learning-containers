@@ -181,7 +181,7 @@ def test_pytorch_gloo_gpu(pytorch_training, ec2_connection, gpu_only, py3_only, 
     if test_utils.is_image_incompatible_with_instance_type(pytorch_training, ec2_instance_type):
         pytest.skip(f"Image {pytorch_training} is incompatible with instance type {ec2_instance_type}")
     test_cmd = os.path.join(CONTAINER_TESTS_PREFIX, "pytorch_tests", "testPyTorchGloo")
-    execute_ec2_training_test(ec2_connection, pytorch_training, test_cmd)
+    execute_ec2_training_test(ec2_connection, pytorch_training, test_cmd, large_shm=True)
 
 @pytest.mark.usefixtures("sagemaker")
 @pytest.mark.integration("gloo")
@@ -195,7 +195,7 @@ def test_pytorch_gloo_inductor_gpu(pytorch_training, ec2_connection, gpu_only, p
     if test_utils.is_image_incompatible_with_instance_type(pytorch_training, ec2_instance_type):
         pytest.skip(f"Image {pytorch_training} is incompatible with instance type {ec2_instance_type}")
     test_cmd = os.path.join(CONTAINER_TESTS_PREFIX, "pytorch_tests", "testPyTorchGloowithInductor")
-    execute_ec2_training_test(ec2_connection, pytorch_training, test_cmd)
+    execute_ec2_training_test(ec2_connection, pytorch_training, test_cmd, large_shm=True)
 
 
 @pytest.mark.usefixtures("sagemaker")
@@ -207,7 +207,7 @@ def test_pytorch_gloo_cpu(pytorch_training, ec2_connection, cpu_only, py3_only, 
     Tests gloo backend
     """
     test_cmd = os.path.join(CONTAINER_TESTS_PREFIX, "pytorch_tests", "testPyTorchGloo")
-    execute_ec2_training_test(ec2_connection, pytorch_training, test_cmd)
+    execute_ec2_training_test(ec2_connection, pytorch_training, test_cmd, large_shm=True)
 
 
 @pytest.mark.usefixtures("sagemaker")
@@ -221,7 +221,7 @@ def test_pytorch_nccl(pytorch_training, ec2_connection, gpu_only, py3_only, ec2_
     if test_utils.is_image_incompatible_with_instance_type(pytorch_training, ec2_instance_type):
         pytest.skip(f"Image {pytorch_training} is incompatible with instance type {ec2_instance_type}")
     test_cmd = os.path.join(CONTAINER_TESTS_PREFIX, "pytorch_tests", "testPyTorchNccl")
-    execute_ec2_training_test(ec2_connection, pytorch_training, test_cmd)
+    execute_ec2_training_test(ec2_connection, pytorch_training, test_cmd, large_shm=True)
 
 @pytest.mark.usefixtures("sagemaker")
 @pytest.mark.integration("nccl")

@@ -1,14 +1,14 @@
-From a29d2910ab436954836cf005e935569680162c01 Mon Sep 17 00:00:00 2001
+From 67c41ae661d2e0c1ebb91df90535e4d2709eaa19 Mon Sep 17 00:00:00 2001
 From: Your Name <you@example.com>
-Date: Wed, 22 Mar 2023 23:43:37 +0000
+Date: Thu, 23 Mar 2023 15:38:52 +0000
 Subject: [PATCH] test: adapt BERT_pytorch training with gloo and mpi backend
 
 ---
  requirements.txt                              |  1 +
- run.py                                        | 89 +++++++++++--------
+ run.py                                        | 99 +++++++++++--------
  .../models/BERT_pytorch/__init__.py           | 13 ++-
  .../bert_pytorch/trainer/pretrain.py          | 11 ++-
- 4 files changed, 70 insertions(+), 44 deletions(-)
+ 4 files changed, 79 insertions(+), 45 deletions(-)
 
 diff --git a/requirements.txt b/requirements.txt
 index 367be90c..f5b120a7 100644
@@ -21,7 +21,7 @@ index 367be90c..f5b120a7 100644
 +numba
 \ No newline at end of file
 diff --git a/run.py b/run.py
-index 1549689c..7c46ebcb 100644
+index 1549689c..75b5d079 100644
 --- a/run.py
 +++ b/run.py
 @@ -10,12 +10,14 @@ Wall time provided for sanity but is not a sane benchmark measurement.
@@ -48,8 +48,19 @@ index 1549689c..7c46ebcb 100644
      if args.device == "cuda":
          gpu_time = np.median(list(map(lambda x: x[0], result_summary)))
          cpu_walltime = np.median(list(map(lambda x: x[1], result_summary)))
-@@ -87,7 +89,7 @@ def printResultSummaryTime(result_summary, metrics_needed=[], model=None, flops_
+@@ -85,13 +87,21 @@ def printResultSummaryTime(result_summary, metrics_needed=[], model=None, flops_
+         print('{:<20} {:>20}'.format("GPU %d Peak Memory:" % mem_device_id, "%.4f GB" % gpu_peak_mem, sep=''))
+     if cpu_peak_mem is not None:
          print('{:<20} {:>20}'.format("CPU Peak Memory:", "%.4f GB" % cpu_peak_mem, sep=''))
++    
++    proc_rank = torch.multiprocessing.current_process()._identity[0] - 1
++    with open(os.environ["OUT_PATH"] + '_' + str(proc_rank), 'w') as f:
++        f.write(f"[1]cpu_walltime, [2]cpu_peak_mem, [3]gpu_time, [4]gpu_peak_time\n")
++        f.write(f"{cpu_walltime}\n")
++        f.write(f"{cpu_peak_mem}\n")
++        if args.device == "cuda":
++            f.write(f"{gpu_time}\n")
++            f.write(f"{gpu_peak_mem}\n")
  
  
 -def run_one_step(func, nwarmup=WARMUP_ROUNDS, num_iter=10, model=None, export_metrics_file=None, stress=0, metrics_needed=[], metrics_gpu_backend=None):
@@ -57,7 +68,11 @@ index 1549689c..7c46ebcb 100644
      # Warm-up `nwarmup` rounds
      for _i in range(nwarmup):
          func()
-@@ -158,7 +160,7 @@ def run_one_step(func, nwarmup=WARMUP_ROUNDS, num_iter=10, model=None, export_me
+-
+     result_summary = []
+     flops_model_analyzer = None
+     if 'flops' in metrics_needed:
+@@ -158,7 +168,7 @@ def run_one_step(func, nwarmup=WARMUP_ROUNDS, num_iter=10, model=None, export_me
      if 'cpu_peak_mem' or 'gpu_peak_mem' in metrics_needed:
          cpu_peak_mem, mem_device_id, gpu_peak_mem = get_peak_memory(func, model.device, export_metrics_file=export_metrics_file, metrics_needed=metrics_needed, metrics_gpu_backend=metrics_gpu_backend)
  
@@ -66,7 +81,7 @@ index 1549689c..7c46ebcb 100644
  
  
  
-@@ -252,39 +254,7 @@ def _validate_profile_options(profile_options: str):
+@@ -252,39 +262,7 @@ def _validate_profile_options(profile_options: str):
              raise ValueError(f'Invalid profile option {opt} passed into --profile-options. Expected options: {SUPPORT_PROFILE_LIST}.')
      return profile_options_list
  
@@ -107,7 +122,7 @@ index 1549689c..7c46ebcb 100644
  
      found = False
      Model = load_model_by_name(args.model)
-@@ -294,7 +264,12 @@ if __name__ == "__main__":
+@@ -294,7 +272,12 @@ if __name__ == "__main__":
          if not Model:
              print(f"Unable to find model matching {args.model}.")
              exit(-1)
@@ -121,7 +136,7 @@ index 1549689c..7c46ebcb 100644
      m = Model(device=args.device, test=args.test, jit=(args.mode == "jit"), batch_size=args.bs, extra_args=extra_args)
      if m.dynamo:
          mode = f"dynamo {m.opt_args.torchdynamo}"
-@@ -341,6 +316,44 @@ if __name__ == "__main__":
+@@ -341,6 +324,44 @@ if __name__ == "__main__":
          run_one_step_with_cudastreams(test, 10)
      else:
          run_one_step(test, model=m, export_metrics_file=export_metrics_file,

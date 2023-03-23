@@ -1,6 +1,14 @@
 #!/bin/bash
 
-HOME_DIR=/test
+set -e
+
+# initialize directories
+export HOME_DIR=/test
+export BIN_DIR=${HOME_DIR}/bin
+export LOG_DIR=${HOME_DIR}/logs
+export AWS_LOG_DIR=$LOG_DIR/aws_log/
+export OSS_LOG_DIR=$LOG_DIR/oss_log/
+mkdir -p $AWS_LOG_DIR $OSS_LOG_DIR
 
 git config --global user.email "you@example.com"
 git config --global user.name "Your Name"
@@ -12,7 +20,7 @@ source ~/.bashrc
 # setup benchmark repo
 git clone https://github.com/pytorch/benchmark
 pushd benchmark
-git am 0001-test-adapt-BERT_pytorch-training-with-gloo-backend.patch
+git am ${BIN_DIR}/pytorch_tests/0001-test-adapt-BERT_pytorch-training-with-gloo-mpi-backend.patch
 pip install -r requirements.txt
 
 # check GPU status
