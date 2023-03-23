@@ -62,15 +62,12 @@ def test_tensorflow_train_mnist_gpu(tensorflow_training, ec2_connection, gpu_onl
     execute_ec2_training_test(ec2_connection, tensorflow_training, TF_MNIST_CMD)
 
 
-@pytest.mark.skip(reason="Temporarily skip test due to timeout on small instance types")
 @pytest.mark.model("mnist")
 @pytest.mark.parametrize("ec2_instance_type", TF_EC2_CPU_INSTANCE_TYPE, indirect=True)
 def test_tensorflow_train_mnist_cpu(tensorflow_training, ec2_connection, cpu_only):
     execute_ec2_training_test(ec2_connection, tensorflow_training, TF_MNIST_CMD)
 
 
-# TODO: re-enable when infra issues are resolved
-@pytest.mark.skip(reason="Test currently fails due to infra issues, but passes manually")
 @pytest.mark.integration("horovod")
 @pytest.mark.model("resnet")
 @pytest.mark.parametrize("ec2_instance_type", TF_EC2_GPU_INSTANCE_TYPE, indirect=True)
@@ -211,7 +208,7 @@ def run_data_service_test(ec2_connection, tensorflow_training, cmd):
     _, tensorflow_version = test_utils.get_framework_and_version_from_tag(tensorflow_training)
     ec2_connection.run(f"python -m pip install --upgrade pip")
     ec2_connection.run(f"python -m pip install tensorflow=={tensorflow_version}")
-    ec2_connection.run(f"python -m pip install 'protobuf >= 3.19.0,<3.20'")
+    ec2_connection.run(f"python -m pip install 'protobuf<4'")
     container_test_local_dir = os.path.join("$HOME", "container_tests")
     ec2_connection.run(f"cd {container_test_local_dir}/bin && screen -d -m python start_dataservice.py")
     execute_ec2_training_test(ec2_connection, tensorflow_training, cmd, host_network=True)
