@@ -198,10 +198,7 @@ RUN ln -s $(which ${PYTHON}) /usr/local/bin/python \
 
 RUN apt-get update && apt-get -y install protobuf-compiler
 
-#TODO: revisit the below versioning at https://github.com/tensorflow/tensorflow/blob/r2.12/tensorflow/tools/pip_package/setup.py after GA
-
 # install PyYAML==5.1.2 to avoid conflict with latest awscli
-# # python-dateutil==2.8.0 to satisfy botocore associated with latest awscli
 RUN ${PIP} install --no-cache-dir -U \
    pybind11 \
    cmake \
@@ -265,7 +262,7 @@ RUN curl https://aws-dlc-licenses.s3.amazonaws.com/tensorflow-${TF_VERSION}/lice
 
 FROM common AS ec2
 
-ARG TF_URL=https://framework-binaries.s3.us-west-2.amazonaws.com/tensorflow/r2.12_aws/gpu/2023-03-14-03-26/tensorflow_gpu-2.12.0rc1-cp310-cp310-manylinux_2_17_x86_64.manylinux2014_x86_64.whl
+ARG TF_URL=https://framework-binaries.s3.us-west-2.amazonaws.com/tensorflow/r2.12_aws/gpu/2023-03-23-00-34/tensorflow_gpu-2.12.0-cp310-cp310-manylinux_2_17_x86_64.manylinux2014_x86_64.whl
 
 RUN ${PIP} install --no-cache-dir -U \
    ${TF_URL} \
@@ -311,7 +308,7 @@ FROM common AS sagemaker
 LABEL maintainer="Amazon AI"
 LABEL dlc_major_version="1"
 
-ARG TF_URL=https://framework-binaries.s3.us-west-2.amazonaws.com/tensorflow/r2.12_aws/gpu/2023-03-14-03-26/tensorflow_gpu-2.12.0rc1-cp310-cp310-manylinux_2_17_x86_64.manylinux2014_x86_64.whl
+ARG TF_URL=https://framework-binaries.s3.us-west-2.amazonaws.com/tensorflow/r2.12_aws/gpu/2023-03-23-00-34/tensorflow_gpu-2.12.0-cp310-cp310-manylinux_2_17_x86_64.manylinux2014_x86_64.whl
 
 # sagemaker-specific environment variable
 ENV SAGEMAKER_TRAINING_MODULE sagemaker_tensorflow_container.training:main
@@ -389,12 +386,6 @@ RUN wget https://sourceforge.net/projects/boost/files/boost/1.81.0/boost_1_81_0.
    && rm -rf boost_1_81_0.tar.gz \
    && rm -rf boost_1_81_0 \
    && cd /usr/include/boost
-
-#TODO: New version to be added
-# Install smdataparallel binary
-#ARG SMDATAPARALLEL_BINARY=https://smdataparallel.s3.amazonaws.com/binary/tensorflow/2.11.0/cu112/smdistributed_dataparallel-1.4.1-cp39-cp39-linux_x86_64.whl
-# Install SMD DP binary
-#RUN SMDATAPARALLEL_TF=1 ${PYTHON} -m pip install --no-cache-dir ${SMDATAPARALLEL_BINARY}
 
 # Add NGC vars
 ENV TF_AUTOTUNE_THRESHOLD=2
