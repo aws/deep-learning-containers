@@ -34,6 +34,8 @@ def test_git_secrets():
             ctx.run("make install")
         ctx.run("git secrets --install")
         ctx.run("git secrets --register-aws")
+        # Custom pattern to catch credential in the format <username>:<password>@<host> 
+        ctx.run("git secrets --add '\w+:\w+@'")
         output = ctx.run("git secrets --list")
         LOGGER.info(f"\n--COMMAND--\n{output.command}\n"
                     f"--STDOUT--\n{output.stdout}\n"
