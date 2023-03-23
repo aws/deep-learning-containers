@@ -5,7 +5,7 @@ HOME_DIR=/test
 git config --global user.email "you@example.com"
 git config --global user.name "Your Name"
 
-# setup conda env
+# activate conda env (to prevent duplicate pip install)
 conda init
 source ~/.bashrc
 
@@ -14,3 +14,10 @@ git clone https://github.com/pytorch/benchmark
 pushd benchmark
 git am 0001-test-adapt-BERT_pytorch-training-with-gloo-backend.patch
 pip install -r requirements.txt
+
+# check GPU status
+if nvidia-smi &> /dev/null; then
+   DEVICE="cuda"
+else
+   DEVICE="cpu"
+fi
