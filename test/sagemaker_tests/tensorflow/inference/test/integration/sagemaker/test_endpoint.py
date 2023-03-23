@@ -1,90 +1,104 @@
 import os
 
-import boto3
 import pytest
+from ..sagemaker import util
 
-from sagemaker import utils
-from sagemaker.tensorflow import TensorFlowModel
-from ...integration import get_ecr_registry, RESOURCE_PATH
-from ...integration.sagemaker import timeout
-from ...... import invoke_sm_helper_function
+logger = logging.getLogger(__name__)
 
 
-DEFAULT_HANDLER_PATH = os.path.join(RESOURCE_PATH, 'default_handlers')
-MODEL_PATH = os.path.join(DEFAULT_HANDLER_PATH, 'model.tar.gz')
-SCRIPT_PATH = os.path.join(DEFAULT_HANDLER_PATH, 'model', 'code', 'empty_module.py')
+@pytest.fixture(params=os.environ["TEST_VERSIONS"].split(","))
+def version(request):
+    return request.param
 
 
 @pytest.fixture(scope="session")
-def framework_version(request):
-    return request.config.getoption("--versions")
-
-
-@pytest.fixture
-def instance_type(request, processor):
-    provided_instance_type = request.config.getoption('--instance-types')
-    default_instance_type = 'ml.c4.xlarge' if processor == 'cpu' else 'ml.p2.xlarge'
-    return provided_instance_type if provided_instance_type is not None else default_instance_type
-
-
-@pytest.fixture(scope="session")
-def docker_base_name(request):
+def repo(request):
     return request.config.getoption("--repo") or "sagemaker-tensorflow-serving"
 
 
 @pytest.fixture
-def processor(request):
-    return request.config.getoption("--processor") 
+def processor(request, instance_type):
+    return request.config.getoption("--processor") or (
+        "gpu"
+        if instance_type.startswith("ml.p") or instance_type.startswith("ml.g")
+        else "cpu"
+    )
 
 
 @pytest.fixture
-def tag(request, framework_version, instance_type, processor):
+def tag(request, version, instance_type, processor):
     if request.config.getoption("--tag"):
         return request.config.getoption("--tag")
     return f"{version}-{processor}"
 
 
-@pytest.fixture(scope='session')
-def account_id(request):
-    return request.config.getoption('--registry')
-
-
 @pytest.fixture
-def ecr_image(account_id, region, docker_base_name, tag):
-    registry = get_ecr_registry(account_id, region)
-    return f"{registry}/{docker_base_name}:{tag}"
+def image_uri(registry, region, repo, tag):
+    return util.image_uri(registry, region, repo, tag)
 
 
-@pytest.fixture(scope='session')
-def sagemaker_session(region):
-    return Session(boto_session=boto3.Session(region_name=region))
+@pytest.fixture(params=os.environ["TEST_INSTANCE_TYPES"].split(","))
+def instance_type(request, region):
+    return request.param
 
 
-@pytest.mark.processor("gpu")
-@pytest.mark.gpu_test
-def test_sagemaker_endpoint_gpu(ecr_image, sagemaker_regions, instance_type, framework_version):
-    instance_type = instance_type or 'ml.p2.xlarge'
-    invoke_sm_helper_function(ecr_image, sagemaker_regions, _test_sagemaker_endpoint_function, instance_type, framework_version)
+@pytest.fixture(scope="module")
+def accelerator_type():
+    return None
 
 
-@pytest.mark.processor("cpu")
-@pytest.mark.cpu_test
-def test_sagemaker_endpoint_cpu(ecr_image, sagemaker_regions, instance_type, framework_version):
-    instance_type = instance_type or 'ml.c4.xlarge'
-    invoke_sm_helper_function(ecr_image, sagemaker_regions, _test_sagemaker_endpoint_function, instance_type, framework_version)
+@pytest.fixture(scope="session")
+def tfs_model(region, boto_session):
+    return util.find_or_put_model_data(region, boto_session, "data/tfs-model.tar.gz")
 
 
-def _test_sagemaker_endpoint_function(ecr_image, sagemaker_session, instance_type, framework_version):
-    prefix = 'sagemaker-tensorflow-serving/models'
-    model_data = sagemaker_session.upload_data(path=MODEL_PATH, key_prefix=prefix)
-    model = TensorFlowModel(model_data=model_data,
-                            role="SageMakerRole",
-                            entry_point=SCRIPT_PATH,
-                            framework_version=framework_version,
-                            image_uri=ecr_image,
-                            sagemaker_session=sagemaker_session,
+@pytest.mark.model("unknown_model")
+def test_endpoint(boto_session, sagemaker_client, model_name, model_data, image_uri, instance_type, accelerator_type):
+    
+    with _create_model(boto_session, sagemaker_client, image_uri, model_name, model_data):
+        _create_endpoint(sagemaker_client, model_name, instance_type, accelerator_type)
+
+
+def _create_model(boto_session, sagemaker_client, image_uri, model_name, model_data):
+    
+    container = { "Image": image_uri, "ModelDataUrl": model_data}
+    model = sagemaker_client.create_model(
+        ModelName=model_name,
+        ExecutionRoleArn=_execution_role(boto_session),
+        PrimaryContainer=container
     )
+    try:
+        yield model
+    finally:
+        logger.info("deleting model %s", model_name)
+        sagemaker_client.delete_model(ModelName=model_name)
 
-    endpoint_name = utils.unique_name_from_base("sagemaker-tensorflow-serving")
-    with timeout.timeout_and_delete_endpoint_by_name(endpoint_name, sagemaker_session):
-        predictor = model.deploy(initial_instance_count=1, instance_type=instance_type, endpoint_name=endpoint_name)
+
+def _create_endpoint(sagemaker_client, model_name, instance_type, accelerator_type=None):
+
+    logger.info("creating endpoint %s", model_name)
+    
+    production_variants = [{
+        "VariantName": "AllTraffic",
+        "ModelName": model_name,
+        "InitialInstanceCount": 1,
+        "InstanceType": instance_type
+    }]
+
+    if accelerator_type:
+        production_variants[0]["AcceleratorType"] = accelerator_type
+
+    sagemaker_client.create_endpoint_config(EndpointConfigName=model_name, ProductionVariants=production_variants)
+    sagemaker_client.create_endpoint(EndpointName=model_name, EndpointConfigName=model_name)
+    try:
+        sagemaker_client.get_waiter("endpoint_in_service").wait(EndpointName=model_name)
+    finally:
+        status = sagemaker_client.describe_endpoint(EndpointName=model_name)["EndpointStatus"]
+        if status != "InService":
+            raise ValueError("failed to create endpoint {}".format(model_name))
+
+        # delete endpoint
+        logger.info("deleting endpoint and endpoint config %s", model_name)
+        sagemaker_client.delete_endpoint(EndpointName=model_name)
+        sagemaker_client.delete_endpoint_config(EndpointConfigName=model_name)
+        
