@@ -76,7 +76,7 @@ RUN wget -qO - https://apt.repos.neuron.amazonaws.com/GPG-PUB-KEY-AMAZON-AWS-NEU
 RUN apt-get update
 
 RUN apt-get install -y \
-    tensorflow-model-server-neuron=1.15.0.2.3.0.0 \
+    tensorflow-model-server-neuronx=2.10.1.2.6.5.0 \
     aws-neuronx-tools=2.* \
     aws-neuronx-runtime-lib \
  && apt-get clean \
