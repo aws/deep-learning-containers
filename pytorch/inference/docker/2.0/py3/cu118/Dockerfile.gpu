@@ -186,7 +186,7 @@ RUN pip install --no-cache-dir -U \
     cryptography \
     "ipython>=8.10.0,<9.0" \
     "awscli<2" \
-    # for torch.compil() inductor
+    # for torch.compile() inductor
     triton \
     # TS tsquirements 
     # -> Numpy is higer version as required by torch
