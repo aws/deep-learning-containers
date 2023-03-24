@@ -153,7 +153,7 @@ RUN ompi_info --parsable --all | grep mpi_built_with_cuda_support:value \
 
 # Install ec2 PyTorch
 RUN /opt/conda/bin/mamba install -y pytorch=${PYTORCH_VERSION} \
-  pytorch-cuda=11.8 torchvision torchaudio torchtext=0.15.0 aws-ofi-nccl-dlc \
+  pytorch-cuda=11.8 torchvision torchaudio torchtext=0.15.* aws-ofi-nccl-dlc \
   --override-channels \
   -c https://aws-ml-conda-pre-prod-ec2.s3.us-west-2.amazonaws.com \
   -c pytorch \
