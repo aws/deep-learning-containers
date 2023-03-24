@@ -114,7 +114,7 @@ RUN curl -L -o ~/mambaforge.sh https://github.com/conda-forge/miniforge/releases
 
 # install core conda dependency packages (and pin essential packages)
 RUN /opt/conda/bin/mamba install -y -c conda-forge \
-    conda=23.1.0
+    conda=23.1.0 \
     "cryptography>39.0.0" \
     cmake \
     requests \
