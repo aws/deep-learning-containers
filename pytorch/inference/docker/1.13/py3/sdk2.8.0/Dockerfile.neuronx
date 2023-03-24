@@ -4,8 +4,8 @@ LABEL dlc_major_version="2"
 LABEL maintainer="Amazon AI"
 LABEL com.amazonaws.sagemaker.capabilities.accept-bind-to-port=true
 
-ARG PYTHON=python3.9
-ARG PYTHON_VERSION=3.9.16
+ARG PYTHON=python3.8
+ARG PYTHON_VERSION=3.8.16
 ARG TS_VERSION=0.7.1
 ARG MAMBA_VERSION=4.12.0-2
 
@@ -112,7 +112,7 @@ RUN pip install neuronx-cc==2.4.0.21 --extra-index-url https://pip.repos.neuron.
  && pip install "torch-neuronx==1.13.0.1.5.0" --extra-index-url https://pip.repos.neuron.amazonaws.com \
  && pip install "protobuf<4" \
  && pip install torchserve==$TS_VERSION \
- && pip install --no-deps --no-cache-dir -U torchvision==0.13.1 \
+ && pip install --no-deps --no-cache-dir -U torchvision==0.14.0 \
  && pip install torch-model-archiver==$TS_VERSION
 
 RUN useradd -m model-server \
@@ -132,7 +132,7 @@ ADD https://raw.githubusercontent.com/aws/deep-learning-containers/master/src/de
 
 RUN chmod +x /usr/local/bin/deep_learning_container.py
 
-RUN pip install --no-cache-dir "sagemaker-pytorch-inference==2.0.12"
+RUN pip install --no-cache-dir "sagemaker-pytorch-inference==2.0.14"
 
 RUN HOME_DIR=/root \
  && curl -o ${HOME_DIR}/oss_compliance.zip https://aws-dlinfra-utilities.s3.amazonaws.com/oss_compliance.zip \
