@@ -125,7 +125,7 @@ RUN /opt/conda/bin/mamba install -y -c conda-forge \
     # https://anaconda.org/conda-forge/h5py/files?page=2
     "mpi4py>=3.1.4,<3.2" \
     mpi4py \
-    h5py \
+    h5py 
 
 # Install AWS-PyTorch
 RUN /opt/conda/bin/mamba install -y pytorch=${PYTORCH_VERSION} \
@@ -166,9 +166,6 @@ RUN /opt/conda/bin/mamba install -y -c conda-forge \
  # pypi fastai's dependencies will oversize the image
  && pip uninstall -y dataclasses \
  && /opt/conda/bin/mamba clean -afy
-
-COPY deep_learning_container.py /usr/local/bin/deep_learning_container.py
-RUN chmod +x /usr/local/bin/deep_learning_container.py
 
 RUN curl -o /license.txt https://aws-dlc-licenses.s3.amazonaws.com/pytorch-2.0/license.txt
  

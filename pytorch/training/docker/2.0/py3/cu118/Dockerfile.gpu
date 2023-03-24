@@ -151,7 +151,7 @@ RUN ompi_info --parsable --all | grep mpi_built_with_cuda_support:value \
  && ~/mambaforge.sh -b -p /opt/conda \
  && rm ~/mambaforge.sh 
 
-# Install core dependency conda packages (and pin essential packages)
+# Install core dependency conda packages
 RUN /opt/conda/bin/mamba install -y -c conda-forge \
     # pin in PT2.0 to consume cryptography CVE fix
     conda=23.1.0 \
@@ -167,7 +167,7 @@ RUN /opt/conda/bin/mamba install -y -c conda-forge \
     # force conda to install h5py with openmpi build, not mpich (rubik error)
     # https://anaconda.org/conda-forge/h5py/files?page=2
     "mpi4py>=3.1.4,<3.2" \
-    h5py 
+    h5py
     
 # Install ec2 PyTorch
 RUN /opt/conda/bin/mamba install -y pytorch=${PYTORCH_VERSION} \
@@ -265,9 +265,6 @@ RUN rm -rf /root/.ssh/ && \
  && printf "Host *\n StrictHostKeyChecking no\n" >> /root/.ssh/config
 
 RUN mkdir -p /etc/pki/tls/certs && cp /etc/ssl/certs/ca-certificates.crt /etc/pki/tls/certs/ca-bundle.crt
-
-COPY deep_learning_container.py /usr/local/bin/deep_learning_container.py
-RUN chmod +x /usr/local/bin/deep_learning_container.py
 
 RUN curl -o /license.txt https://aws-dlc-licenses.s3.amazonaws.com/pytorch-2.0/license.txt
 

@@ -656,6 +656,17 @@ def outside_versions_skip():
             pytest.skip(f"test has gone out of support, supported version range >{start_ver},<{end_ver}")
     return _outside_versions_skip
 
+@pytest.fixture(scope="session")
+def version_skip():
+    def _version_skip(img_uri, ver):
+        """
+        skip test if the image framework versios is not within the (start_ver, end_ver) range
+        """
+        _, image_framework_version = get_framework_and_version_from_tag(img_uri)
+        if Version(ver) == Version(image_framework_version):
+            pytest.skip(f"test is not supported for version {ver}")
+    return _version_skip
+
 def framework_version_within_limit(metafunc_obj, image):
     """
     Test all pytest fixtures for TensorFlow version limits, and return True if all requirements are satisfied
