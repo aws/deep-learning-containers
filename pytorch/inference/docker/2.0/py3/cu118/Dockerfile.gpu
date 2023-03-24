@@ -175,32 +175,28 @@ RUN curl -L -o ~/mambaforge.sh https://github.com/conda-forge/miniforge/releases
 RUN pip install --upgrade pip --trusted-host pypi.org --trusted-host files.pythonhosted.org \
  && ln -s /opt/conda/bin/pip /usr/local/bin/pip3
 
-# Ensure PyTorch did not get installed from Conda due to magma-cuda118
-RUN pip uninstall -y torch torchvision torchaudio torchdata model-archiver multi-model-server
-
-# Install AWS-PyTorch, and other torch packages
+# Install Common python packages
 RUN pip install --no-cache-dir -U \
     boto3 \
     scipy \
     opencv-python \
     cryptography \
     "ipython>=8.10.0,<9.0" \
-    "awscli<2" \
-    # for torch.compile() inductor
+    "awscli<2"
+
+# Install TorchServe pypi dependencies directly from their requirements.txt file
+# NOTE: This also brings in unnecessary cpu dependencies like nvgpu
+RUN pip install --no-cache-dir -U -r https://raw.githubusercontent.com/pytorch/serve/v${TORCHSERVE_VERSION}/requirements/common.txt
+
+# Ensure PyTorch did not get installed from Conda or pip, prior to now
+RUN pip uninstall -y torch torchvision torchaudio torchdata model-archiver multi-model-server
+
+# install pytorch wheels
+# -> Numpy is higer version as required by torch
+RUN pip install --no-cache-dir -U \ 
+    "numpy>=1.22.2,<1.23" \
+    # triton required for torch inductor
     triton \
-    # TS tsquirements 
-    # -> Numpy is higer version as required by torch
-    # -> Pillow is not upper pinned for security
-    nvgpu \
-    psutil \
-    cython \
-    captum \
-    packaging \
-    "pyyaml>=5.4,<5.5" \
-    "Pillow>=9.3.0" \
-    "numpy==1.22.2" \
-    "pynvml==11.4.1" \
-    # End of TS requirements
     ${TORCH_URL} \
     ${TORCHVISION_URL} \
     ${TORCHAUDIO_URL} \
