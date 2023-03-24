@@ -28,7 +28,7 @@ import time
 import json
 import logging
 
-from ...integration import model_cpu_dir, mnist_cpu_compilation_script, mnist_gpu_compilation_script
+from ...integration import model_cpu_dir
 from ...integration.sagemaker.timeout import timeout_and_delete_endpoint
 from .... import invoke_pytorch_helper_function
 
@@ -45,12 +45,11 @@ def test_mnist_distributed_cpu_inductor(framework_version, ecr_image, instance_t
     if Version(framework_version) in SpecifierSet("<2.0"):
         pytest.skip("skip the test as torch.compile only support after 2.0")
     instance_type = "ml.c5.9xlarge"
-    model_dir = os.path.join(model_cpu_dir, "model_mnist.tar.gz")
+    model_dir = os.path.join(model_cpu_dir, "model_mnist_inductor.tar.gz")
     function_args = {
         "framework_version": framework_version,
         "instance_type": instance_type,
         "model_dir": model_dir,
-        "mnist_script": mnist_cpu_compilation_script,
     }
     invoke_pytorch_helper_function(ecr_image, sagemaker_regions, _test_mnist_distributed, function_args)
 
@@ -58,16 +57,47 @@ def test_mnist_distributed_cpu_inductor(framework_version, ecr_image, instance_t
 @pytest.mark.model("mnist")
 @pytest.mark.processor("gpu")
 @pytest.mark.gpu_test
-def test_mnist_distributed_gpu_inductor(framework_version, ecr_image, instance_type, sagemaker_regions):
+def test_mnist_distributed_gpu_inductor_p3(framework_version, ecr_image, instance_type, sagemaker_regions):
     if Version(framework_version) in SpecifierSet("<2.0"):
         pytest.skip("skip the test as torch.compile only support after 2.0")
     instance_type = "ml.p3.2xlarge"
-    model_dir = os.path.join(model_cpu_dir, "model_mnist.tar.gz")
+    model_dir = os.path.join(model_cpu_dir, "model_mnist_inductor.tar.gz")
     function_args = {
         "framework_version": framework_version,
         "instance_type": instance_type,
         "model_dir": model_dir,
-        "mnist_script": mnist_gpu_compilation_script,
+    }
+    invoke_pytorch_helper_function(ecr_image, sagemaker_regions, _test_mnist_distributed, function_args)
+
+
+@pytest.mark.model("mnist")
+@pytest.mark.processor("gpu")
+@pytest.mark.gpu_test
+def test_mnist_distributed_gpu_inductor_g4(framework_version, ecr_image, instance_type, sagemaker_regions):
+    if Version(framework_version) in SpecifierSet("<2.0"):
+        pytest.skip("skip the test as torch.compile only support after 2.0")
+    instance_type = "ml.g4dn.4xlarge"
+    model_dir = os.path.join(model_cpu_dir, "model_mnist_inductor.tar.gz")
+    function_args = {
+        "framework_version": framework_version,
+        "instance_type": instance_type,
+        "model_dir": model_dir,
+    }
+    invoke_pytorch_helper_function(ecr_image, sagemaker_regions, _test_mnist_distributed, function_args)
+
+
+@pytest.mark.model("mnist")
+@pytest.mark.processor("gpu")
+@pytest.mark.gpu_test
+def test_mnist_distributed_gpu_inductor_g5(framework_version, ecr_image, instance_type, sagemaker_regions):
+    if Version(framework_version) in SpecifierSet("<2.0"):
+        pytest.skip("skip the test as torch.compile only support after 2.0")
+    instance_type = "ml.g5.4xlarge"
+    model_dir = os.path.join(model_cpu_dir, "model_mnist_inductor.tar.gz")
+    function_args = {
+        "framework_version": framework_version,
+        "instance_type": instance_type,
+        "model_dir": model_dir,
     }
     invoke_pytorch_helper_function(ecr_image, sagemaker_regions, _test_mnist_distributed, function_args)
 
@@ -78,7 +108,6 @@ def _test_mnist_distributed(
     framework_version,
     instance_type,
     model_dir,
-    mnist_script,
     accelerator_type=None,
     verify_logs=True,
 ):
@@ -92,7 +121,7 @@ def _test_mnist_distributed(
     pytorch = PyTorchModel(
         model_data=model_data,
         role="SageMakerRole",
-        entry_point=mnist_script,
+        entry_point="mnist.py",
         framework_version=framework_version,
         image_uri=ecr_image,
         sagemaker_session=sagemaker_session,
