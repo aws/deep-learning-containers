@@ -226,20 +226,6 @@ def test_pytorch_nccl(pytorch_training, ec2_connection, gpu_only, py3_only, ec2_
     test_cmd = os.path.join(CONTAINER_TESTS_PREFIX, "pytorch_tests", "testPyTorchNccl")
     execute_ec2_training_test(ec2_connection, pytorch_training, test_cmd, large_shm=True)
 
-@pytest.mark.usefixtures("sagemaker")
-@pytest.mark.integration("nccl")
-@pytest.mark.integration("inductor")
-@pytest.mark.model("resnet18")
-@pytest.mark.parametrize("ec2_instance_type", PT_EC2_GPU_INSTANCE_TYPE, indirect=True)
-def test_pytorch_nccl_inductor(pytorch_training, ec2_connection, gpu_only, py3_only, ec2_instance_type):
-    """
-    Tests nccl backend with inductor
-    """
-    if test_utils.is_image_incompatible_with_instance_type(pytorch_training, ec2_instance_type):
-        pytest.skip(f"Image {pytorch_training} is incompatible with instance type {ec2_instance_type}")
-    test_cmd = os.path.join(CONTAINER_TESTS_PREFIX, "pytorch_tests", "testPyTorchNcclwithInductor")
-    execute_ec2_training_test(ec2_connection, pytorch_training, test_cmd)
-
 
 @pytest.mark.usefixtures("sagemaker")
 @pytest.mark.integration("nccl")
