@@ -11,14 +11,43 @@ from test.dlc_tests.conftest import LOGGER
 
 
 PT_EC2_CPU_INSTANCE_TYPE = get_ec2_instance_type(default="c5.9xlarge", processor="cpu")
-PT_EC2_SINGLE_GPU_INSTANCE_TYPE = get_ec2_instance_type(
+PT_EC2_SINGLE_GPU_INSTANCE_P3_TYPE = get_ec2_instance_type(
     default="p3.2xlarge", processor="gpu", filter_function=ec2_utils.filter_only_single_gpu,
+)
+PT_EC2_SINGLE_GPU_INSTANCE_G4_TYPE = get_ec2_instance_type(
+    default="g4dn.4xlarge", processor="gpu", filter_function=ec2_utils.filter_only_single_gpu,
+)
+PT_EC2_SINGLE_GPU_INSTANCE_G5_TYPE = get_ec2_instance_type(
+    default="g5.4xlarge", processor="gpu", filter_function=ec2_utils.filter_only_single_gpu,
 )
 
 
 @pytest.mark.model("densenet")
-@pytest.mark.parametrize("ec2_instance_type", PT_EC2_SINGLE_GPU_INSTANCE_TYPE, indirect=True)
-def test_ec2_pytorch_inference_gpu_compilation(pytorch_inference, ec2_connection, region, gpu_only, ec2_instance_type):
+@pytest.mark.parametrize("ec2_instance_type", PT_EC2_SINGLE_GPU_INSTANCE_P3_TYPE, indirect=True)
+def test_ec2_pytorch_inference_gpu_compilation_p3(pytorch_inference, ec2_connection, region, gpu_only, ec2_instance_type):
+    if test_utils.is_image_incompatible_with_instance_type(pytorch_inference, ec2_instance_type):
+        pytest.skip(f"Image {pytorch_inference} is incompatible with instance type {ec2_instance_type}")
+    _, image_framework_version = get_framework_and_version_from_tag(pytorch_inference)
+    if Version(image_framework_version) in SpecifierSet("<2.0"):
+        pytest.skip("skip the test as torch.compile only support after 2.0")
+    ec2_pytorch_inference(pytorch_inference, "gpu", ec2_connection, region)
+
+
+@pytest.mark.model("densenet")
+@pytest.mark.parametrize("ec2_instance_type", PT_EC2_SINGLE_GPU_INSTANCE_G4_TYPE, indirect=True)
+def test_ec2_pytorch_inference_gpu_compilation_g4(pytorch_inference, ec2_connection, region, gpu_only, ec2_instance_type):
+    if test_utils.is_image_incompatible_with_instance_type(pytorch_inference, ec2_instance_type):
+        pytest.skip(f"Image {pytorch_inference} is incompatible with instance type {ec2_instance_type}")
+    _, image_framework_version = get_framework_and_version_from_tag(pytorch_inference)
+    if Version(image_framework_version) in SpecifierSet("<2.0"):
+        pytest.skip("skip the test as torch.compile only support after 2.0")
+    ec2_pytorch_inference(pytorch_inference, "gpu", ec2_connection, region)
+
+
+@pytest.mark.skip(reason="Skip ec2 test on G5 instance")
+@pytest.mark.model("densenet")
+@pytest.mark.parametrize("ec2_instance_type", PT_EC2_SINGLE_GPU_INSTANCE_G5_TYPE, indirect=True)
+def test_ec2_pytorch_inference_gpu_compilation_g5(pytorch_inference, ec2_connection, region, gpu_only, ec2_instance_type):
     if test_utils.is_image_incompatible_with_instance_type(pytorch_inference, ec2_instance_type):
         pytest.skip(f"Image {pytorch_inference} is incompatible with instance type {ec2_instance_type}")
     _, image_framework_version = get_framework_and_version_from_tag(pytorch_inference)
