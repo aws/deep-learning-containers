@@ -164,6 +164,7 @@ RUN /opt/conda/bin/mamba install -y pytorch=${PYTORCH_VERSION} \
 RUN /opt/conda/bin/mamba install -y -c conda-forge \
     # pin in PT2.0 to consume cryptography CVE fix
     conda=23.1.0 \
+    "cryptography>39.0.0" \
     python=$PYTHON_VERSION \
     cython \
     mkl \
