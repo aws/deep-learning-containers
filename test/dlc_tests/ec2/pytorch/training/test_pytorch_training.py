@@ -256,7 +256,7 @@ def test_pytorch_mpi_gpu(pytorch_training, ec2_connection, gpu_only, py3_only, e
     Tests mpi backend
     """
     # PT2.0.0 doesn't support MPI https://github.com/pytorch/pytorch/issues/97507
-    version_skip("2.0.0")
+    version_skip(pytorch_training, "2.0.0")
     if 'trcomp' in pytorch_training:
         pytest.skip(f"Image {pytorch_training} is incompatible with distribution type MPI.")
     if test_utils.is_image_incompatible_with_instance_type(pytorch_training, ec2_instance_type):
@@ -275,7 +275,7 @@ def test_pytorch_mpi_inductor_gpu(pytorch_training, ec2_connection, gpu_only, py
     Tests mpi backend with torch inductor
     """   
     # PT2.0.0 doesn't support MPI https://github.com/pytorch/pytorch/issues/97507
-    version_skip("2.0.0")
+    version_skip(pytorch_training, "2.0.0")
     if 'trcomp' in pytorch_training:
         pytest.skip(f"Image {pytorch_training} is incompatible with distribution type MPI.")
     if test_utils.is_image_incompatible_with_instance_type(pytorch_training, ec2_instance_type):
@@ -294,7 +294,7 @@ def test_pytorch_mpi_cpu(pytorch_training, ec2_connection, cpu_only, py3_only, e
     Tests mpi backend
     """   
     # PT2.0.0 doesn't support MPI https://github.com/pytorch/pytorch/issues/97507
-    version_skip("2.0.0")
+    version_skip(pytorch_training, "2.0.0")
     if 'trcomp' in pytorch_training:
         pytest.skip(f"Image {pytorch_training} is incompatible with distribution type MPI.")
     test_cmd = os.path.join(CONTAINER_TESTS_PREFIX, "pytorch_tests", "testPyTorchGlooMpi") + \
