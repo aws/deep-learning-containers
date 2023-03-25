@@ -166,8 +166,6 @@ def test_ecr_enhanced_scan(image, ecr_client, sts_client, region):
     ecr_image_vulnerability_list = ECREnhancedScanVulnerabilityList(minimum_severity=CVESeverity[minimum_sev_threshold])
     ecr_image_vulnerability_list.construct_allowlist_from_ecr_scan_result(scan_results)
 
-    LOGGER.info(f"ecr_image_vulnerability_list formed {ecr_image_vulnerability_list.vulnerability_list}")
-
     image_scan_allowlist = ECREnhancedScanVulnerabilityList(minimum_severity=CVESeverity[minimum_sev_threshold])
 
     try:
