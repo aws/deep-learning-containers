@@ -147,8 +147,10 @@ RUN pip uninstall -y torch torchvision torchaudio torchdata model-archiver multi
 
 # install pytorch wheels
 # -> Numpy is higer version as required by torch
+# -> PyYaml needs to be high pinned for awscli v1 (current v1 = 1.27.99)
 RUN pip install --no-cache-dir -U \ 
     "numpy>=1.22.2,<1.23" \
+    "pyyaml>=5.4,<5.5" \
     ${TORCH_URL} \
     ${TORCHVISION_URL} \
     ${TORCHAUDIO_URL} \
