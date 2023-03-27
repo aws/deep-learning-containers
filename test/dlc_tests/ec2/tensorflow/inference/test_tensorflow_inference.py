@@ -27,7 +27,7 @@ TF_EC2_GRAVITON_INSTANCE_TYPE = get_ec2_instance_type(default="c6g.4xlarge", pro
 @pytest.mark.model("mnist")
 @pytest.mark.parametrize("ec2_instance_type", TF_EC2_NEURON_ACCELERATOR_TYPE, indirect=True)
 # FIX ME: Sharing the AMI from neuron account to DLC account; use public DLAMI with inf1 support instead
-@pytest.mark.parametrize("ec2_instance_ami", [test_utils.NEURON_UBUNTU_18_BASE_DLAMI_US_WEST_2], indirect=True)
+@pytest.mark.parametrize("ec2_instance_ami", [test_utils.UL20_TF_NEURON_US_WEST_2], indirect=True)
 def test_ec2_tensorflow_inference_neuron(tensorflow_inference_neuron, ec2_connection, region):
     run_ec2_tensorflow_inference(tensorflow_inference_neuron, ec2_connection, "8500", region)
 
@@ -154,7 +154,7 @@ def run_ec2_tensorflow_inference(image_uri, ec2_connection, grpc_port, region, t
         ec2_connection.run(f"$(aws ecr get-login --no-include-email --region {region})", hide=True)
         LOGGER.info(docker_run_cmd)
         ec2_connection.run(docker_run_cmd, hide=True)
-        sleep(30 if is_neuron else 20)
+        sleep(20)
         if is_neuron and str(framework_version).startswith(TENSORFLOW2_VERSION):
             test_utils.request_tensorflow_inference(
                 model_name, connection=ec2_connection, inference_string="'{\"instances\": [[1.0, 2.0, 5.0]]}'"
@@ -171,7 +171,8 @@ def run_ec2_tensorflow_inference(image_uri, ec2_connection, grpc_port, region, t
         LOGGER.info(f"--- TF container logs ---\n{remote_out.stdout}")
     finally:
         ec2_connection.run(f"docker rm -f {container_name}", warn=True, hide=True)
-    assert inference_test_failed is False
+    assert inference_test_failed is False, "tensorflow inference test failed"
+
 
 def get_tensorflow_framework_version(image_uri):
     return re.findall(r"[1-2]\.[0-9][\d|\.]+", image_uri)[0]
