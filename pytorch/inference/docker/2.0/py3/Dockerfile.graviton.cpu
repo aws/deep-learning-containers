@@ -147,7 +147,7 @@ RUN pip install --no-cache-dir -U -r https://raw.githubusercontent.com/pytorch/s
 # Any Nvidia installs for the DLC will be below, removing nvidia and cuda packages from pip here
 # Even the GPU image would not have nvidia or cuda packages in PIP.
 RUN pip uninstall -y torch torchvision torchaudio torchdata model-archiver multi-model-server nvgpu triton \
- && pip freeze | grep nvidia | xargs pip uninstall -y
+ && pip freeze | grep nvidia | xargs pip uninstall -y \
  && pip freeze | grep cuda | xargs pip uninstall -y
 
 # install pytorch wheels
