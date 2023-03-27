@@ -171,7 +171,7 @@ RUN /opt/conda/bin/mamba install -y -c conda-forge \
     
 # Install ec2 PyTorch
 RUN /opt/conda/bin/mamba install pytorch=${PYTORCH_VERSION} pytorch-cuda=11.8 torchvision torchaudio aws-ofi-nccl-dlc \
-  --strict-channel-priority --override-channels \
+  --override-channels \
   -c https://aws-ml-conda-pre-prod-ec2.s3.us-west-2.amazonaws.com \
   -c nvidia/label/cuda-11.8.0 -c conda-forge
 
@@ -196,7 +196,6 @@ RUN /opt/conda/bin/mamba install -y -c conda-forge \
     "pillow>=9.4" \
     psutil \
     ipython \
-  # pin dgl to 0.9.1 as upstream test has not caught up, currently having accuracy error
   && /opt/conda/bin/mamba install -y -c dglteam/label/cu118 dgl \
   && /opt/conda/bin/mamba install -y -c fastai fastai \
   # fastai conda has a dependency chain of fastai -> spacy -> pathy -> dataclasses, use pip to remove dataclass for CVE
@@ -377,7 +376,7 @@ ARG PT_TORCHDATA_URL
 RUN /opt/conda/bin/conda remove --force pytorch \
   && /opt/conda/bin/mamba install -y pytorch=${PYTORCH_VERSION} \
   pytorch-cuda=11.8 \
-  --strict-channel-priority --override-channels \
+  --override-channels \
   -c https://aws-ml-conda-pre-prod-sm.s3.us-west-2.amazonaws.com \
   -c conda-forge
 

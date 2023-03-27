@@ -157,7 +157,6 @@ RUN /opt/conda/bin/mamba install -y -c conda-forge \
     "pillow>=9.4" \
     psutil \
     ipython \
-# wait for the cpu dgl for PT2.0
  && /opt/conda/bin/mamba install -c dglteam dgl \
  && /opt/conda/bin/mamba install -c fastai fastai \
  # fastai conda has a dependency chain of fastai -> spacy -> pathy -> dataclasses
