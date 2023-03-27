@@ -341,7 +341,7 @@ def ec2_instance(
                 or "mxnet_inference" in request.fixturenames
             )
         )
-        or (is_neuron_image)
+        or (is_neuron_image(request.fixturenames))
         or (
             "tensorflow_training" in request.fixturenames
             and "gpu_only" in request.fixturenames
@@ -352,9 +352,7 @@ def ec2_instance(
     ):
         params["BlockDeviceMappings"] = [{"DeviceName": volume_name, "Ebs": {"VolumeSize": 300,},}]
     else:
-        # Using private AMI, the EBS volume size is reduced to 28GB as opposed to 50GB from public AMI. This leads to space issues on test instances
-        # TODO: Revert the configuration once DLAMI is public
-        params["BlockDeviceMappings"] = [{"DeviceName": volume_name, "Ebs": {"VolumeSize": 90,},}]
+        params["BlockDeviceMappings"] = [{"DeviceName": volume_name, "Ebs": {"VolumeSize": 150,},}]
 
     # For TRN1 since we are using a private AMI that has some BERT data/tests, have a bifgger volume size
     # Once use DLAMI, this can be removed
@@ -454,7 +452,7 @@ def ec2_connection(request, ec2_instance, ec2_key_name, ec2_instance_type, regio
     request.addfinalizer(delete_s3_artifact_copy)
 
     python_version = "3.9"
-    if is_neuron_image:
+    if is_neuron_image(request.fixturenames):
         # neuron still support tf1.15 and that is only there in py37 and less.
         # so use python3.7 for neuron
         python_version="3.7"
