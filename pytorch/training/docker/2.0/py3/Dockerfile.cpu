@@ -130,8 +130,9 @@ RUN /opt/conda/bin/mamba install -y -c conda-forge \
 # Install AWS-PyTorch
 RUN /opt/conda/bin/mamba install -y pytorch=${PYTORCH_VERSION} \
   torchvision torchaudio torchtext=0.15.0 cpuonly \
+  --override-channels \
   -c https://aws-ml-conda-pre-prod-ec2.s3.us-west-2.amazonaws.com \
-  -c pytorch
+  -c conda-forge
 
 # install common python packages
 RUN /opt/conda/bin/mamba install -y -c conda-forge \
@@ -252,9 +253,10 @@ ARG PT_TORCHDATA_URL
 
 # force remove to prevent removing all packages depending on pytorch
 RUN /opt/conda/bin/conda remove -y --force pytorch \
-  && /opt/conda/bin/mamba install -y pytorch=${PYTORCH_VERSION} \
+  && /opt/conda/bin/mamba install -y pytorch=${PYTORCH_VERSION} cpuonly \
+  --override-channels \
   -c https://aws-ml-conda-pre-prod-sm.s3.us-west-2.amazonaws.com \
-  -c pytorch
+  -c conda-forge
 
 WORKDIR /
 

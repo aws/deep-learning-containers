@@ -647,9 +647,9 @@ def execute_ec2_training_test(
     neuron_device = '--device=/dev/neuron0' if "neuron" in ecr_uri else ""
     bin_bash_cmd = "--entrypoint /bin/bash " if bin_bash_entrypoint else ""
     connection.run(
-        f"{docker_cmd} run --name {container_name} " \
-        f"{container_runtime} {ompi_mca_btl} {cap_add} {hpu_env_vars} " \
-        f"{ipc} {network}-v {container_test_local_dir}:{os.path.join(os.sep, 'test')} " \
+        f"{docker_cmd} run --name {container_name} "
+        f"{container_runtime} {ompi_mca_btl} {cap_add} {hpu_env_vars} "
+        f"{ipc} {network}-v {container_test_local_dir}:{os.path.join(os.sep, 'test')} "
         f"{habana_container_test_repo} {shm_setting} {neuron_device} -itd {bin_bash_cmd}{ecr_uri}",
         hide=True,
     )

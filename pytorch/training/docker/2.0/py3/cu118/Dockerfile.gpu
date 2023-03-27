@@ -170,13 +170,10 @@ RUN /opt/conda/bin/mamba install -y -c conda-forge \
     h5py
     
 # Install ec2 PyTorch
-RUN /opt/conda/bin/mamba install -y pytorch=${PYTORCH_VERSION} \
-  pytorch-cuda=11.8 torchvision torchaudio torchtext=0.15.* aws-ofi-nccl-dlc \
-  --override-channels \
+RUN /opt/conda/bin/mamba install pytorch=${PYTORCH_VERSION} pytorch-cuda=11.8 torchvision torchaudio aws-ofi-nccl-dlc \
+  --strict-channel-priority --override-channels \
   -c https://aws-ml-conda-pre-prod-ec2.s3.us-west-2.amazonaws.com \
-  -c pytorch \
-  -c nvidia \
-  -c conda-forge
+  -c nvidia/label/cuda-11.8.0 -c conda-forge
 
 # Install common conda packages
 RUN /opt/conda/bin/mamba install -y -c conda-forge \
@@ -380,10 +377,9 @@ ARG PT_TORCHDATA_URL
 RUN /opt/conda/bin/conda remove --force pytorch \
   && /opt/conda/bin/mamba install -y pytorch=${PYTORCH_VERSION} \
   pytorch-cuda=11.8 \
-  --override-channels \
+  --strict-channel-priority --override-channels \
   -c https://aws-ml-conda-pre-prod-sm.s3.us-west-2.amazonaws.com \
-  -c pytorch \
-  -c nvidia -c conda-forge
+  -c conda-forge
 
 WORKDIR /
 
