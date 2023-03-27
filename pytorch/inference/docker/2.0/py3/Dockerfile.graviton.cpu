@@ -190,8 +190,9 @@ RUN HOME_DIR=/root \
 RUN curl https://aws-dlc-licenses.s3.amazonaws.com/pytorch-2.0/license.txt -o /license.txt
 
 ## Cleanup ##
-RUN rm -rf /tmp/tmp* \
- &&rm -iRf /root/.cache
+RUN pip cache purge \
+ && rm -rf /tmp/tmp* \
+ && rm -iRf /root/.cache
 
 EXPOSE 8080 8081
 ENTRYPOINT ["python", "/usr/local/bin/dockerd-entrypoint.py"]
