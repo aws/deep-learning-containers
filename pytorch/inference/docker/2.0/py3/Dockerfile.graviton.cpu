@@ -138,17 +138,8 @@ RUN ln -s /opt/conda/bin/pip /usr/local/bin/pip3 \
     "ipython>=8.10.0,<9.0" \
     "awscli<2"
 
-# Install TorchServe pypi dependencies directly from their requirements.txt file
-# NOTE: This also brings in unnecessary cpu dependencies like nvgpu
-RUN pip install --no-cache-dir -U -r https://raw.githubusercontent.com/pytorch/serve/v${TORCHSERVE_VERSION}/requirements/common.txt
-
 # Ensure PyTorch did not get installed from Conda or pip, prior to now
-# is CPU image, removing nvgpu
-# Any Nvidia installs for the DLC will be below, removing nvidia and cuda packages from pip here
-# Even the GPU image would not have nvidia or cuda packages in PIP.
-RUN pip uninstall -y torch torchvision torchaudio torchdata model-archiver multi-model-server nvgpu triton \
- && pip freeze | grep nvidia | xargs pip uninstall -y \
- && pip freeze | grep cuda | xargs pip uninstall -y
+RUN pip uninstall -y torch torchvision torchaudio torchdata model-archiver multi-model-server
 
 # install pytorch wheels
 # -> Numpy is higer version as required by torch
@@ -160,7 +151,12 @@ RUN pip install --no-cache-dir -U \
     ${TORCHVISION_URL} \
     ${TORCHAUDIO_URL} \
     ${TORCHTEXT_URL} \
-    ${TORCHDATA_URL} \
+    ${TORCHDATA_URL}
+
+# Install TorchServe pypi dependencies directly from their requirements.txt file
+# NOTE: This also brings in unnecessary cpu dependencies like nvgpu
+RUN pip install --no-cache-dir -U -r https://raw.githubusercontent.com/pytorch/serve/v${TORCHSERVE_VERSION}/requirements/common.txt \
+ && pip install --no-cache-dir -U \
     torchserve==${TORCHSERVE_VERSION} \
     torch-model-archiver==${TORCHSERVE_VERSION}
 
