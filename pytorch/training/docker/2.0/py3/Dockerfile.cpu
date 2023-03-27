@@ -112,27 +112,33 @@ RUN curl -L -o ~/mambaforge.sh https://github.com/conda-forge/miniforge/releases
  && ~/mambaforge.sh -b -p /opt/conda \
  && rm ~/mambaforge.sh 
 
-# Install AWS-PyTorch and other torch packages
-RUN /opt/conda/bin/mamba install -y pytorch=${PYTORCH_VERSION} torchvision torchaudio cpuonly aws-ofi-nccl-dlc \
-   --override-channels \
-   -c https://aws-ml-conda-pre-prod-sm.s3.us-west-2.amazonaws.com \
-   -c pytorch-test -c pytorch-nightly -c nvidia -c conda-forge
-
-# install common python packages
+# install core conda dependency packages (and pin essential packages)
 RUN /opt/conda/bin/mamba install -y -c conda-forge \
+    conda=23.1.0 \
+    "cryptography>39.0.0" \
+    cmake \
+    requests \
+    pyopenssl \
     python=$PYTHON_VERSION \
     cython \
-    mkl \
-    mkl-include \
-    parso \
-    typing \
-    h5py \
     # force conda to install h5py with openmpi build, not mpich (rubik error)
     # https://anaconda.org/conda-forge/h5py/files?page=2
     "mpi4py>=3.1.4,<3.2" \
     mpi4py \
-    requests \
-    pyopenssl \
+    h5py 
+
+# Install AWS-PyTorch
+RUN /opt/conda/bin/mamba install -y pytorch=${PYTORCH_VERSION} \
+  torchvision torchaudio torchtext=0.15.0 cpuonly \
+  -c https://aws-ml-conda-pre-prod-ec2.s3.us-west-2.amazonaws.com \
+  -c pytorch
+
+# install common python packages
+RUN /opt/conda/bin/mamba install -y -c conda-forge \
+    mkl \
+    mkl-include \
+    parso \
+    typing \
     # Below 2 are included in miniconda base, but not mamba so need to install
     conda-content-trust \
     charset-normalizer \
@@ -143,9 +149,7 @@ RUN /opt/conda/bin/mamba install -y -c conda-forge \
     pybind11 \
     pyyaml \
     # needed by fastai.distributed
-    accelerate \ 
-    cryptography \
-    cmake \
+    accelerate \
     scipy \
     click \
     # patch CVE
@@ -161,12 +165,9 @@ RUN /opt/conda/bin/mamba install -y -c conda-forge \
  # dataclasses package, which contains CVE, is not needed for py>=37
  # pypi fastai's dependencies will oversize the image
  && pip uninstall -y dataclasses \
- && /opt/conda/bin/mamba clean -ya
+ && /opt/conda/bin/mamba clean -afy
 
-COPY deep_learning_container.py /usr/local/bin/deep_learning_container.py
-RUN chmod +x /usr/local/bin/deep_learning_container.py
-
-RUN curl -o /license.txt https://aws-dlc-licenses.s3.amazonaws.com/pytorch-1.13/license.txt
+RUN curl -o /license.txt https://aws-dlc-licenses.s3.amazonaws.com/pytorch-2.0/license.txt
  
 # needed by torchdata
 RUN mkdir -p /etc/pki/tls/certs && cp /etc/ssl/certs/ca-certificates.crt /etc/pki/tls/certs/ca-bundle.crt
@@ -251,9 +252,9 @@ ARG PT_TORCHDATA_URL
 
 # force remove to prevent removing all packages depending on pytorch
 RUN /opt/conda/bin/conda remove -y --force pytorch \
- && /opt/conda/bin/mamba install -y pytorch=${PYTORCH_VERSION} cpuonly \
- -c https://aws-ml-conda-pre-prod-sm.s3.us-west-2.amazonaws.com \
- -c pytorch -c nvidia -c conda-forge
+  && /opt/conda/bin/mamba install -y pytorch=${PYTORCH_VERSION} \
+  -c https://aws-ml-conda-pre-prod-sm.s3.us-west-2.amazonaws.com \
+  -c pytorch
 
 WORKDIR /
 
@@ -289,7 +290,8 @@ RUN /opt/conda/bin/mamba install -y -c conda-forge \
   && /opt/conda/bin/mamba install -y -c numba numba \
   && /opt/conda/bin/mamba install -y -c anaconda seaborn \
   && /opt/conda/bin/mamba install -y -c bokeh bokeh \
-  && /opt/conda/bin/mamba install -y -c plotly plotly 
+  && /opt/conda/bin/mamba install -y -c plotly plotly \
+  && /opt/conda/bin/mamba clean -afy
 
 
 RUN HOME_DIR=/root \
