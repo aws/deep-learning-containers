@@ -127,13 +127,14 @@ RUN curl -L -o ~/mambaforge.sh https://github.com/conda-forge/miniforge/releases
  && conda clean -ya
 
 # Install Common python packages
+# Pin Cryprography for pyopenssl
 RUN ln -s /opt/conda/bin/pip /usr/local/bin/pip3 \
  && pip install --upgrade pip --trusted-host pypi.org --trusted-host files.pythonhosted.org \
  && pip install \
     boto3 \
     scipy \
     opencv-python \
-    cryptography \
+    "cryptography>=38.0.0,<40" \
     "ipython>=8.10.0,<9.0" \
     "awscli<2"
 
@@ -189,8 +190,7 @@ RUN HOME_DIR=/root \
 RUN curl https://aws-dlc-licenses.s3.amazonaws.com/pytorch-2.0/license.txt -o /license.txt
 
 ## Cleanup ##
-RUN cd tmp/ \
- && rm -rf tmp* \
+RUN rm -rf /tmp/tmp* \
  &&rm -iRf /root/.cache
 
 EXPOSE 8080 8081
@@ -245,8 +245,7 @@ RUN HOME_DIR=/root \
  && rm -rf ${HOME_DIR}/oss_compliance*
 
 ## Cleanup ##
-RUN cd tmp/ \
- && rm -rf tmp* \
+RUN rm -rf /tmp/tmp* \
  &&rm -iRf /root/.cache
 
 EXPOSE 8080 8081
