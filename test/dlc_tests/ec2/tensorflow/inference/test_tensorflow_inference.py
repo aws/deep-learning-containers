@@ -142,6 +142,7 @@ def run_ec2_tensorflow_inference(image_uri, ec2_connection, grpc_port, region, t
             f"--mount type=bind,source={model_path},target=/models/mnist -e TEST_MODE=1 -e MODEL_NAME=mnist"
             f" {image_uri}"
         )
+    inference_test_failed = False
     try:
         host_setup_for_tensorflow_inference(
             serving_folder_path, framework_version, ec2_connection, is_neuron, is_graviton, model_name
@@ -153,7 +154,7 @@ def run_ec2_tensorflow_inference(image_uri, ec2_connection, grpc_port, region, t
         ec2_connection.run(f"$(aws ecr get-login --no-include-email --region {region})", hide=True)
         LOGGER.info(docker_run_cmd)
         ec2_connection.run(docker_run_cmd, hide=True)
-        sleep(20)
+        sleep(30 if is_neuron else 20)
         if is_neuron and str(framework_version).startswith(TENSORFLOW2_VERSION):
             test_utils.request_tensorflow_inference(
                 model_name, connection=ec2_connection, inference_string="'{\"instances\": [[1.0, 2.0, 5.0]]}'"
@@ -164,9 +165,13 @@ def run_ec2_tensorflow_inference(image_uri, ec2_connection, grpc_port, region, t
             )
         if telemetry_mode:
             check_telemetry(ec2_connection, container_name)
+    except:
+        inference_test_failed = True
+        remote_out = ec2_connection.run(f"docker logs {container_name}")
+        LOGGER.info(f"--- TF container logs ---\n{remote_out.stdout}")
     finally:
         ec2_connection.run(f"docker rm -f {container_name}", warn=True, hide=True)
-
+    assert inference_test_failed is False
 
 def get_tensorflow_framework_version(image_uri):
     return re.findall(r"[1-2]\.[0-9][\d|\.]+", image_uri)[0]
