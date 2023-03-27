@@ -93,6 +93,8 @@ def tf_model_garden_version(framework_version):
         return 'v2.9.2'
     elif Version(framework_version) in SpecifierSet("<2.11"):
         return 'v2.10.1'
+    elif Version(framework_version) in SpecifierSet("<2.12"):
+        return 'v2.11.0'
     else:
         return 'master'
 
@@ -101,6 +103,8 @@ def tf_model_garden_version(framework_version):
 def smtrcomp_only(framework_version, tensorflow_training, request):
     if Version(framework_version) in SpecifierSet("<2.9.1"):
         pytest.skip('Training Compiler support was added with TF 2.9.1')
+    if Version(framework_version) in SpecifierSet(">2.11.0"):
+        pytest.skip('Training Compiler support was removed from TF>2.11.0')
     if 'gpu' not in tensorflow_training:
         pytest.skip('Training Compiler is only available for GPUs')
 
