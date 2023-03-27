@@ -4,7 +4,7 @@ ARG MAMBA_VERSION=22.11.1-4
 ARG OPEN_MPI_VERSION=4.1.5
 
 # PyTorch Binaries
-ARG TORCH_URL=https://aws-pytorch-unified-cicd-binaries.s3.us-west-2.amazonaws.com/r2.0.0_inference/cpu_py310/torch-2.0.0%2Bcpu-cp310-cp310-manylinux_2_31_x86_64.whl
+ARG TORCH_URL=https://aws-pytorch-unified-cicd-binaries.s3.us-west-2.amazonaws.com/r2.0.0_inference/cpu_py310/torch-2.0.0%2Bcpu-cp310-cp310-linux_x86_64.whl
 ARG TORCHVISION_URL=https://aws-pytorch-unified-cicd-binaries.s3.us-west-2.amazonaws.com/r2.0.0_inference/cpu_py310/torchvision-0.15.1%2Bcpu-cp310-cp310-linux_x86_64.whl
 ARG TORCHAUDIO_URL=https://aws-pytorch-unified-cicd-binaries.s3.us-west-2.amazonaws.com/r2.0.0_inference/cpu_py310/torchaudio-2.0.1%2Bcpu-cp310-cp310-linux_x86_64.whl
 ARG TORCHTEXT_URL=https://aws-pytorch-unified-cicd-binaries.s3.us-west-2.amazonaws.com/r2.0.0_inference/cpu_py310/torchtext-0.15.1%2Bcpu-cp310-cp310-linux_x86_64.whl
@@ -139,7 +139,12 @@ RUN pip install --no-cache-dir -U -r https://raw.githubusercontent.com/pytorch/s
 
 # Ensure PyTorch did not get installed from Conda or pip, prior to now
 # is CPU image, removing nvgpu
-RUN pip uninstall -y torch torchvision torchaudio torchdata model-archiver multi-model-server nvgpu
+# Any Nvidia installs for the DLC will be below, removing nvidia and cuda packages from pip here
+# Even the GPU image would not have nvidia or cuda packages in PIP.
+RUN pip uninstall -y torch torchvision torchaudio torchdata model-archiver multi-model-server nvgpu triton \
+ && pip freeze | grep nvidia | xargs pip uninstall -y
+ && pip freeze | grep cuda | xargs pip uninstall -y
+
 
 # install pytorch wheels
 # -> Numpy is higer version as required by torch
