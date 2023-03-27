@@ -18,6 +18,7 @@ TF_EC2_GPU_INSTANCE_TYPE = get_ec2_instance_type(default="g3.8xlarge", processor
 TF_EC2_CPU_INSTANCE_TYPE = get_ec2_instance_type(default="c5.4xlarge", processor="cpu")
 TF_EC2_EIA_ACCELERATOR_TYPE = get_ec2_accelerator_type(default="eia1.large", processor="eia")
 TF_EC2_NEURON_ACCELERATOR_TYPE = get_ec2_instance_type(default="inf1.xlarge", processor="neuron")
+TF_EC2_NEURONX_ACCELERATOR_TYPE = get_ec2_instance_type(default="trn1.2xlarge", processor="neuronx")
 TF_EC2_SINGLE_GPU_INSTANCE_TYPE = get_ec2_instance_type(
     default="p3.2xlarge", processor="gpu", filter_function=ec2_utils.filter_only_single_gpu,
 )
@@ -29,6 +30,13 @@ TF_EC2_GRAVITON_INSTANCE_TYPE = get_ec2_instance_type(default="c6g.4xlarge", pro
 @pytest.mark.parametrize("ec2_instance_ami", [test_utils.UL20_TF_NEURON_US_WEST_2], indirect=True)
 def test_ec2_tensorflow_inference_neuron(tensorflow_inference_neuron, ec2_connection, region):
     run_ec2_tensorflow_inference(tensorflow_inference_neuron, ec2_connection, "8500", region)
+
+@pytest.mark.model("mnist")
+@pytest.mark.parametrize("ec2_instance_type", TF_EC2_NEURONX_ACCELERATOR_TYPE, indirect=True)
+# FIX ME: Sharing the AMI from neuron account to DLC account; use public DLAMI with inf1 support instead
+@pytest.mark.parametrize("ec2_instance_ami", [test_utils.UL20_PT_NEURON_US_WEST_2], indirect=True)
+def test_ec2_tensorflow_inference_neuronx(tensorflow_inference_neuronx, ec2_connection, region):
+    run_ec2_tensorflow_inference(tensorflow_inference_neuronx, ec2_connection, "8500", region)
 
 
 @pytest.mark.model("mnist")
