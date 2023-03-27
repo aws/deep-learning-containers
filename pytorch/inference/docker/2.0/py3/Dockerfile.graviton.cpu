@@ -211,6 +211,8 @@ CMD ["torchserve", "--start", "--ts-config", "/home/model-server/config.properti
 #  | || | | | | | (_| | (_| |  __/ |  _ <  __/ (__| | |_) |  __/
 # |___|_| |_| |_|\__,_|\__, |\___| |_| \_\___|\___|_| .__/ \___|
 #                      |___/                        |_|
+#
+# NOTE: This ImageRecipe is still under development
 #################################################################
 
 FROM ec2 AS sagemaker
