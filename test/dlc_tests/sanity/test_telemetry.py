@@ -197,9 +197,14 @@ def _run_s3_query_bucket_success(image_uri, ec2_client, ec2_instance, ec2_connec
 
     expected_s3_url = (
         "https://aws-deep-learning-containers-{0}.s3.{0}.amazonaws.com"
-        "/dlc-containers-{1}.txt?x-instance-id={1}&x-framework={2}&x-framework_version={3}&x-py_version={4}&x-container_type={5}".format(
-        image_region, ec2_instance_id, framework, framework_version, py_version, container_type)
+        "/dlc-containers-{1}.txt?x-instance-id={1}&x-framework={2}&x-framework_version={3}&x-py_version={4}".format(
+        image_region, ec2_instance_id, framework, framework_version, py_version)
     )
+    
+    if framework == "pytorch" and Version(framework_version) >= Version("2.0.0") and container_type == "training":
+        expected_s3_url += "&x-img_type=training&x-pkg_type=conda"
+    else:
+        expected_s3_url += f"&x-container_type={container_type}"
     
     assert expected_s3_url == actual_output, f"S3 telemetry is not working"
 
