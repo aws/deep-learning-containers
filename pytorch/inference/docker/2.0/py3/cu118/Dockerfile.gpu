@@ -10,7 +10,7 @@ ARG NCCL_VERSION=2.16.5
 ARG NVML_VERSION=11.8.86
 
 # PyTorch Binaries and versions.
-ARG TORCH_URL=https://aws-pytorch-unified-cicd-binaries.s3.us-west-2.amazonaws.com/r2.0.0_inference/cu118_py310/torch-2.0.0%2Bcu118-cp310-cp310-manylinux_2_31_x86_64.whl
+ARG TORCH_URL=https://aws-pytorch-unified-cicd-binaries.s3.us-west-2.amazonaws.com/r2.0.0_inference/cu118_py310/torch-2.0.0%2Bcu118-cp310-cp310-linux_x86_64.whl
 ARG TORCHVISION_URL=https://aws-pytorch-unified-cicd-binaries.s3.us-west-2.amazonaws.com/r2.0.0_inference/cu118_py310/torchvision-0.15.1%2Bcu118-cp310-cp310-linux_x86_64.whl
 ARG TORCHAUDIO_URL=https://aws-pytorch-unified-cicd-binaries.s3.us-west-2.amazonaws.com/r2.0.0_inference/cu118_py310/torchaudio-2.0.1%2Bcu118-cp310-cp310-linux_x86_64.whl
 ARG TORCHTEXT_URL=https://aws-pytorch-unified-cicd-binaries.s3.us-west-2.amazonaws.com/r2.0.0_inference/cu118_py310/torchtext-0.15.1%2Bcu118-cp310-cp310-linux_x86_64.whl
