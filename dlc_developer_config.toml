@@ -32,7 +32,7 @@ build_frameworks = []
 
 # By default we build both training and inference containers. Set true/false values to determine which to build.
 build_training = true
-build_inference = true
+build_inference = false
 
 # Set to false in order to remove datetime tag on PR builds
 datetime_tag = true
@@ -58,7 +58,7 @@ sagemaker_local_tests = false
 # "standard" --> run standard sagemaker remote tests from test/sagemaker_tests
 # "rc" --> run release_candidate_integration tests
 # "efa" --> run efa sagemaker tests
-sagemaker_remote_tests = "off"
+sagemaker_remote_tests = "standard"
 
 # SM remote EFA test instance type
 sagemaker_remote_efa_instance_type = ""
@@ -81,7 +81,7 @@ use_scheduler = false
 # Standard Framework Training
 dlc-pr-mxnet-training = ""
 dlc-pr-pytorch-training = ""
-dlc-pr-tensorflow-2-training = ""
+dlc-pr-tensorflow-2-training = "tensorflow/trailing/buildspec-2-11-py310.yml"
 dlc-pr-autogluon-training = ""
 
 # HuggingFace Training
