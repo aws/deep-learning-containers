@@ -227,6 +227,7 @@ def _run_tag_failure_IMDSv1_disabled(image_uri, ec2_client, ec2_instance, ec2_co
 
     docker_cmd = "nvidia-docker" if processor == "gpu" else "docker"
 
+    LOGGER.info(f"starting pulling : {image_uri}")
     test_utils.login_to_ecr_registry(ec2_connection, account_id, image_region)
     ## For big images like trcomp, the ec2_connection.run command stops listening and the code hangs here.
     ## Hence, avoiding the use of -q to let the connection remain active.
@@ -268,16 +269,19 @@ def _run_tag_success_IMDSv1(image_uri, ec2_client, ec2_instance, ec2_connection)
 
     docker_cmd = "nvidia-docker" if processor == "gpu" else "docker"
 
+    LOGGER.info(f"starting pulling : {image_uri}")
     test_utils.login_to_ecr_registry(ec2_connection, account_id, image_region)
     ec2_connection.run(f"{docker_cmd} pull -q {image_uri}")
 
     preexisting_ec2_instance_tags = ec2_utils.get_ec2_instance_tags(ec2_instance_id, ec2_client=ec2_client)
+    LOGGER.info(f"preexisting_ec2_instance_tags: {preexisting_ec2_instance_tags}")
     if expected_tag_key in preexisting_ec2_instance_tags:
         ec2_client.delete_tags(Resources=[ec2_instance_id], Tags=[{"Key": expected_tag_key}])
 
     invoke_telemetry_call(image_uri, container_name, docker_cmd, framework, job_type, ec2_connection)
 
     ec2_instance_tags = ec2_utils.get_ec2_instance_tags(ec2_instance_id, ec2_client=ec2_client)
+    LOGGER.info(f"ec2_instance_tags: {ec2_instance_tags}")
     assert expected_tag_key in ec2_instance_tags, f"{expected_tag_key} was not applied as an instance tag"
 
 
@@ -300,6 +304,7 @@ def _run_tag_failure_IMDSv2_disabled_as_hop_limit_1(image_uri, ec2_client, ec2_i
 
     docker_cmd = "nvidia-docker" if processor == "gpu" else "docker"
 
+    LOGGER.info(f"starting pulling : {image_uri}")
     test_utils.login_to_ecr_registry(ec2_connection, account_id, image_region)
     ec2_connection.run(f"{docker_cmd} pull -q {image_uri}")
 
@@ -338,10 +343,12 @@ def _run_tag_success_IMDSv2_hop_limit_2(image_uri, ec2_client, ec2_instance, ec2
 
     docker_cmd = "nvidia-docker" if processor == "gpu" else "docker"
 
+    LOGGER.info(f"starting pulling : {image_uri}")
     test_utils.login_to_ecr_registry(ec2_connection, account_id, image_region)
     ec2_connection.run(f"{docker_cmd} pull -q {image_uri}")
 
     preexisting_ec2_instance_tags = ec2_utils.get_ec2_instance_tags(ec2_instance_id, ec2_client=ec2_client)
+    LOGGER.info(f"preexisting_ec2_instance_tags: {preexisting_ec2_instance_tags}")
     if expected_tag_key in preexisting_ec2_instance_tags:
         ec2_client.delete_tags(Resources=[ec2_instance_id], Tags=[{"Key": expected_tag_key}])
 
@@ -350,6 +357,7 @@ def _run_tag_success_IMDSv2_hop_limit_2(image_uri, ec2_client, ec2_instance, ec2
     invoke_telemetry_call(image_uri, container_name, docker_cmd, framework, job_type, ec2_connection)
 
     ec2_instance_tags = ec2_utils.get_ec2_instance_tags(ec2_instance_id, ec2_client=ec2_client)
+    LOGGER.info(f"ec2_instance_tags: {ec2_instance_tags}")
     assert expected_tag_key in ec2_instance_tags, f"{expected_tag_key} was not applied as an instance tag"
 
 
