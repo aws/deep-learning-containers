@@ -37,6 +37,7 @@ def test_telemetry_instance_tag_failure_cpu(cpu, ec2_client, ec2_instance, ec2_c
 @pytest.mark.integration("telemetry")
 @pytest.mark.parametrize("ec2_instance_type", ["c6g.4xlarge"], indirect=True)
 @pytest.mark.parametrize("ec2_instance_ami", [test_utils.UL20_CPU_ARM64_US_WEST_2], indirect=True)
+@pytest.mark.timeout(1200)
 def test_telemetry_instance_tag_failure_graviton_cpu(cpu, ec2_client, ec2_instance, ec2_connection, graviton_compatible_only):
     ec2_connection.run(f"sudo apt-get update -y")
     ec2_connection.run(f"sudo apt-get install -y net-tools")
@@ -50,6 +51,7 @@ def test_telemetry_instance_tag_failure_graviton_cpu(cpu, ec2_client, ec2_instan
 @pytest.mark.integration("telemetry")
 @pytest.mark.parametrize("ec2_instance_type", ["inf1.xlarge"], indirect=True)
 @pytest.mark.skip("Feature doesn't exist on Neuron DLCs")
+@pytest.mark.timeout(1200)
 def test_telemetry_instance_tag_failure_neuron(neuron, ec2_client, ec2_instance, ec2_connection):
     _run_tag_failure_IMDSv1_disabled(neuron, ec2_client, ec2_instance, ec2_connection)
     _run_tag_failure_IMDSv2_disabled_as_hop_limit_1(neuron, ec2_client, ec2_instance, ec2_connection)
@@ -85,6 +87,7 @@ def test_telemetry_instance_tag_success_cpu(cpu, ec2_client, ec2_instance, ec2_c
 @pytest.mark.integration("telemetry")
 @pytest.mark.parametrize("ec2_instance_type", ["c6g.4xlarge"], indirect=True)
 @pytest.mark.parametrize("ec2_instance_ami", [test_utils.UL20_CPU_ARM64_US_WEST_2], indirect=True)
+@pytest.mark.timeout(1200)
 def test_telemetry_instance_tag_success_graviton_cpu(cpu, ec2_client, ec2_instance, ec2_connection, graviton_compatible_only):
     _run_tag_success_IMDSv1(cpu, ec2_client, ec2_instance, ec2_connection)
     _run_tag_success_IMDSv2_hop_limit_2(cpu, ec2_client, ec2_instance, ec2_connection)
@@ -96,6 +99,7 @@ def test_telemetry_instance_tag_success_graviton_cpu(cpu, ec2_client, ec2_instan
 @pytest.mark.integration("telemetry")
 @pytest.mark.parametrize("ec2_instance_type", ["inf1.xlarge"], indirect=True)
 @pytest.mark.skip("Feature doesn't exist on Neuron DLCs")
+@pytest.mark.timeout(1200)
 def test_telemetry_instance_tag_success_neuron(neuron, ec2_client, ec2_instance, ec2_connection, non_huggingface_only, non_autogluon_only):
     _run_tag_success_IMDSv1(neuron, ec2_client, ec2_instance, ec2_connection)
     _run_tag_success_IMDSv2_hop_limit_2(neuron, ec2_client, ec2_instance, ec2_connection)
@@ -107,6 +111,7 @@ def test_telemetry_instance_tag_success_neuron(neuron, ec2_client, ec2_instance,
 @pytest.mark.processor("gpu")
 @pytest.mark.integration("telemetry")
 @pytest.mark.parametrize("ec2_instance_type", ["p3.2xlarge"], indirect=True)
+@pytest.mark.timeout(1200)
 def test_telemetry_s3_query_bucket_success_gpu(gpu, ec2_client, ec2_instance, ec2_connection, non_huggingface_only, non_autogluon_only):
     _run_s3_query_bucket_success(gpu, ec2_client, ec2_instance, ec2_connection)
 
@@ -117,6 +122,7 @@ def test_telemetry_s3_query_bucket_success_gpu(gpu, ec2_client, ec2_instance, ec
 @pytest.mark.processor("cpu")
 @pytest.mark.integration("telemetry")
 @pytest.mark.parametrize("ec2_instance_type", ["c4.4xlarge"], indirect=True)
+@pytest.mark.timeout(1200)
 def test_telemetry_s3_query_bucket_success_cpu(cpu, ec2_client, ec2_instance, ec2_connection, cpu_only, non_huggingface_only, non_autogluon_only, x86_compatible_only):
     _run_s3_query_bucket_success(cpu, ec2_client, ec2_instance, ec2_connection)
 
@@ -127,6 +133,7 @@ def test_telemetry_s3_query_bucket_success_cpu(cpu, ec2_client, ec2_instance, ec
 @pytest.mark.integration("telemetry")
 @pytest.mark.parametrize("ec2_instance_type", ["c6g.4xlarge"], indirect=True)
 @pytest.mark.parametrize("ec2_instance_ami", [test_utils.UL20_CPU_ARM64_US_WEST_2], indirect=True)
+@pytest.mark.timeout(1200)
 def test_telemetry_s3_query_bucket_success_graviton_cpu(cpu, ec2_client, ec2_instance, ec2_connection, graviton_compatible_only):
     _run_s3_query_bucket_success(cpu, ec2_client, ec2_instance, ec2_connection)
 
@@ -137,6 +144,7 @@ def test_telemetry_s3_query_bucket_success_graviton_cpu(cpu, ec2_client, ec2_ins
 @pytest.mark.integration("telemetry")
 @pytest.mark.parametrize("ec2_instance_type", ["inf1.xlarge"], indirect=True)
 @pytest.mark.skip("Feature doesn't exist on Neuron DLCs")
+@pytest.mark.timeout(1200)
 def test_telemetry_s3_query_bucket_success_neuron(neuron, ec2_client, ec2_instance, ec2_connection, non_huggingface_only, non_autogluon_only):
     _run_s3_query_bucket_success(neuron, ec2_client, ec2_instance, ec2_connection)
 
