@@ -94,7 +94,7 @@ def test_ecs_pytorch_inference_neuron(pytorch_inference_neuron, ecs_container_in
 def test_ecs_pytorch_inference_neuronx(pytorch_inference_neuronx, ecs_container_instance, region):
     worker_instance_id, ecs_cluster_arn = ecs_container_instance
     public_ip_address = ec2_utils.get_public_ip(worker_instance_id, region=region)
-    num_neurons = 2
+    num_neurons = 1
 
     model_name = "pytorch-resnet-neuronx"
     service_name = task_family = revision = None

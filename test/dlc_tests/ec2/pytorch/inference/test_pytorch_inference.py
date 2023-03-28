@@ -15,6 +15,11 @@ from datetime import date, timedelta, datetime
 import time
 
 
+LOGGER = logging.getLogger(__name__)
+LOGGER.addHandler(logging.StreamHandler(sys.stdout))
+LOGGER.setLevel(logging.INFO)
+
+
 PT_EC2_GPU_INSTANCE_TYPE = get_ec2_instance_type(default="g3.8xlarge", processor="gpu")
 PT_EC2_CPU_INSTANCE_TYPE = get_ec2_instance_type(default="c5.9xlarge", processor="cpu")
 PT_EC2_GPU_EIA_INSTANCE_TYPE = get_ec2_instance_type(
@@ -131,7 +136,7 @@ def test_pytorch_inference_torchdata_gpu(
     if Version(image_framework_version) in SpecifierSet(">=1.11,<1.14"):
         execute_ec2_inference_test(ec2_connection, pytorch_inference, PT_TORCHDATA_DEV_CMD)
     else:
-        execute_ec2_inference_test(ec2_connection, pytorch_inference, PT_TORCHDATA_CMD) 
+        execute_ec2_inference_test(ec2_connection, pytorch_inference, PT_TORCHDATA_CMD)
 
 @pytest.mark.usefixtures("feature_torchdata_present")
 @pytest.mark.usefixtures("sagemaker")
@@ -189,6 +194,9 @@ def ec2_pytorch_inference(image_uri, processor, ec2_connection, region):
             model_name=model_name,
             server_type=server_type
         )
+        if not inference_result:
+            remote_out = ec2_connection.run(f"docker logs {container_name}")
+            LOGGER.info(f"--- PT container logs ---\n{remote_out.stdout}")
         assert (
             inference_result
         ), f"Failed to perform pytorch inference test for image: {image_uri} on ec2"
