@@ -3,6 +3,7 @@
 import os
 import sys
 import torch
+import logging
 import torch.distributed as dist
 import torch.nn as nn
 import torch.optim as optim
@@ -10,6 +11,7 @@ import torch.multiprocessing as mp
 import torchvision
 from torch.nn.parallel import DistributedDataParallel as DDP
 
+torch._dynamo.config.log_level = logging.INFO
 model = torchvision.models.resnet50()
 
 def setup(rank, world_size):
@@ -23,7 +25,6 @@ def basic_resnet(rank, world_size):
     setup(rank, world_size)
     torch.cuda.set_device(rank)
     model = torchvision.models.resnet50().to(torch.cuda.current_device())
-    #model = torch.compile(model, backend='inductor', mode='default')
     ddp_model = DDP(model, device_ids=[torch.cuda.current_device()])
     ddp_model = torch.compile(ddp_model, backend='inductor', mode='default')
     loss_fn = nn.MSELoss()
