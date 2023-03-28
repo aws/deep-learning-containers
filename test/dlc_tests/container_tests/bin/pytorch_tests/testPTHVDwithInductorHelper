@@ -51,7 +51,7 @@ sed -i 's/import logging/&\ntorch._dynamo.config.log_level = logging.INFO"/g' py
 sed -i 's/model=Net()/& \nmodel = torch.compile(model, backend='inductor', mode='default')/g' pytorch_mnist.py
 
 python pytorch_mnist.py >$TRAINING_LOG 2>&1
-RETURN_VAL=`echo $?`
+RETURN_VAL=[`echo $?`] && [grep -Fxq "torchinductor done compiling" $TRAINING_LOG]
 set -e
 
 if [ ${RETURN_VAL} -eq 0 ]; then
@@ -72,7 +72,7 @@ sed -i 's/import logging/&\ntorch._dynamo.config.log_level = logging.INFO"/g' py
 sed -i 's/model = getattr(models, args.model)()/&\nmodel = torch.compile(model, backend='inductor', mode='default')/g' pytorch_synthetic_benchmark.py
 
 python pytorch_synthetic_benchmark.py >$TRAINING_LOG 2>&1
-RETURN_VAL=`echo $?`
+RETURN_VAL=[`echo $?`] && [grep -Fxq "torchinductor done compiling" $TRAINING_LOG]
 set -e
 
 if [ ${RETURN_VAL} -eq 0 ]; then

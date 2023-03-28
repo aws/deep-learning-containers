@@ -22,71 +22,47 @@ from src.benchmark_metrics import (
     get_threshold_for_image,
 )
 
-PT_PERFORMANCE_RN50_TRAINING_HPU_SYNTHETIC_CMD = os.path.join(
-    CONTAINER_TESTS_PREFIX, "benchmark", "run_pytorch_rn50_training_performance_hpu_synthetic",
+PT_PERFORMANCE_TRAINING_GPU_INDUCTOR_HUGGINGFACE_CMD = os.path.join(
+    CONTAINER_TESTS_PREFIX, "benchmark", "run_pytorch_inductor_training_performance_gpu_huggingface"
 )
-PT_PERFORMANCE_BERT_TRAINING_HPU_CMD = os.path.join(
-    CONTAINER_TESTS_PREFIX, "benchmark", "run_pytorch_bert_training_performance_hpu",
+PT_PERFORMANCE_TRAINING_GPU_INDUCTOR_TIMM_CMD = os.path.join(
+    CONTAINER_TESTS_PREFIX, "benchmark", "run_pytorch_inductor_training_performance_gpu_timm"
 )
-PT_PERFORMANCE_TRAINING_GPU_SYNTHETIC_CMD = os.path.join(
-    CONTAINER_TESTS_PREFIX, "benchmark", "run_pytorch_training_performance_gpu_synthetic",
-)
-PT_PERFORMANCE_TRAINING_GPU_IMAGENET_CMD = os.path.join(
-    CONTAINER_TESTS_PREFIX, "benchmark", "run_pytorch_training_performance_gpu_imagenet"
+PT_PERFORMANCE_TRAINING_GPU_INDUCTOR_TORCHBENCH_CMD = os.path.join(
+    CONTAINER_TESTS_PREFIX, "benchmark", "run_pytorch_inductor_training_performance_gpu_torchbench"
 )
 
-PT_EC2_GPU_SYNTHETIC_INSTANCE_TYPE = "p3.16xlarge"
-PT_EC2_GPU_IMAGENET_INSTANCE_TYPE = "p3.16xlarge"
-PT_EC2_HPU_INSTANCE_TYPE = "dl1.24xlarge"
 
-@pytest.mark.model("resnet50")
-@pytest.mark.parametrize("ec2_instance_type", [PT_EC2_GPU_SYNTHETIC_INSTANCE_TYPE], indirect=True)
-def test_performance_pytorch_gpu_synthetic(pytorch_training, ec2_connection, gpu_only, py3_only):
-    _, framework_version = get_framework_and_version_from_tag(pytorch_training)
-    threshold = get_threshold_for_image(framework_version, PYTORCH_TRAINING_GPU_SYNTHETIC_THRESHOLD)
-    execute_ec2_training_performance_test(
-        ec2_connection,
-        pytorch_training,
-        PT_PERFORMANCE_TRAINING_GPU_SYNTHETIC_CMD,
-        post_process=post_process_pytorch_gpu_py3_synthetic_ec2_training_performance,
-        data_source="synthetic",
-        threshold={"Throughput": threshold},
-    )
+PT_EC2_GPU_INDUCTOR_INSTANCE_TYPES = ("p3.2xlarge", "p4d.24xlarge", "g5.4xlarge", "g4dn.4xlarge")
 
-@pytest.mark.skip(reason="Current infrastructure issues are causing this to timeout.")
-@pytest.mark.model("resnet50")
+
+@pytest.mark.integration("inductor")
+@pytest.mark.model("huggingface")
 @pytest.mark.parametrize("ec2_instance_ami", [PT_GPU_PY3_BENCHMARK_IMAGENET_AMI_US_WEST_2], indirect=True)
-@pytest.mark.parametrize("ec2_instance_type", [PT_EC2_GPU_IMAGENET_INSTANCE_TYPE], indirect=True)
-def test_performance_pytorch_gpu_imagenet(pytorch_training, ec2_connection, gpu_only, py3_only):
+@pytest.mark.parametrize("ec2_instance_type", [PT_EC2_GPU_INDUCTOR_INSTANCE_TYPES], indirect=True)
+def test_performance_pytorch_gpu_inductor_huggingface(pytorch_training, ec2_connection, gpu_only, py3_only):
     execute_pytorch_gpu_py3_imagenet_ec2_training_performance_test(
-        ec2_connection, pytorch_training, PT_PERFORMANCE_TRAINING_GPU_IMAGENET_CMD
+        ec2_connection, pytorch_training, PT_PERFORMANCE_TRAINING_GPU_INDUCTOR_HUGGINGFACE_CMD
     )
 
-@pytest.mark.model("resnet50")
-@pytest.mark.parametrize("ec2_instance_type", [PT_EC2_HPU_INSTANCE_TYPE], indirect=True)
-@pytest.mark.parametrize("ec2_instance_ami", [UBUNTU_18_HPU_DLAMI_US_WEST_2], indirect=True)
-@pytest.mark.parametrize('cards_num', [1, 8])
-def test_performance_pytorch_rn50_hpu_synthetic(pytorch_training_habana, ec2_connection, upload_habana_test_artifact, cards_num):
-    execute_ec2_habana_training_performance_test(
-        ec2_connection,
-        pytorch_training_habana,
-        PT_PERFORMANCE_RN50_TRAINING_HPU_SYNTHETIC_CMD,
-        data_source="synthetic",
-        cards_num=cards_num,
+@pytest.mark.integration("inductor")
+@pytest.mark.model("timm")
+@pytest.mark.parametrize("ec2_instance_ami", [PT_GPU_PY3_BENCHMARK_IMAGENET_AMI_US_WEST_2], indirect=True)
+@pytest.mark.parametrize("ec2_instance_type", [PT_EC2_GPU_INDUCTOR_INSTANCE_TYPES], indirect=True)
+def test_performance_pytorch_gpu_inductor_timm(pytorch_training, ec2_connection, gpu_only, py3_only):
+    execute_pytorch_gpu_py3_imagenet_ec2_training_performance_test(
+        ec2_connection, pytorch_training, PT_PERFORMANCE_TRAINING_GPU_INDUCTOR_TIMM_CMD
     )
 
-@pytest.mark.model("bert")
-@pytest.mark.parametrize("ec2_instance_type", [PT_EC2_HPU_INSTANCE_TYPE], indirect=True)
-@pytest.mark.parametrize("ec2_instance_ami", [UBUNTU_18_HPU_DLAMI_US_WEST_2], indirect=True)
-@pytest.mark.parametrize('cards_num', [1, 8])
-def test_performance_pytorch_bert_hpu(pytorch_training_habana, ec2_connection, upload_habana_test_artifact, cards_num):
-    execute_ec2_habana_training_performance_test(
-        ec2_connection,
-        pytorch_training_habana,
-        PT_PERFORMANCE_BERT_TRAINING_HPU_CMD,
-        data_source="synthetic",
-        cards_num=cards_num,
+@pytest.mark.integration("inductor")
+@pytest.mark.model("torchbench")
+@pytest.mark.parametrize("ec2_instance_ami", [PT_GPU_PY3_BENCHMARK_IMAGENET_AMI_US_WEST_2], indirect=True)
+@pytest.mark.parametrize("ec2_instance_type", [PT_EC2_GPU_INDUCTOR_INSTANCE_TYPES], indirect=True)
+def test_performance_pytorch_gpu_inductor_torchbench(pytorch_training, ec2_connection, gpu_only, py3_only):
+    execute_pytorch_gpu_py3_imagenet_ec2_training_performance_test(
+        ec2_connection, pytorch_training, PT_PERFORMANCE_TRAINING_GPU_INDUCTOR_TORCHBENCH_CMD
     )
+
 
 def execute_pytorch_gpu_py3_imagenet_ec2_training_performance_test(
     connection, ecr_uri, test_cmd, region=DEFAULT_REGION

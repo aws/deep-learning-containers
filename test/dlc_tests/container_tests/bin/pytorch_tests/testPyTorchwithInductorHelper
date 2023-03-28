@@ -18,7 +18,7 @@ sed -i 's/import logging/&\ntorch._dynamo.config.log_level = logging.INFO"/g' mn
 sed -i 's/model = Net().to(device)/&\n    model = torch.compile(model, backend='inductor', mode='default')/g' mnist/main.py
 
 python mnist/main.py 2>&1 | tee $TRAINING_LOG
-RETURN_VAL=`echo $?`
+RETURN_VAL=[`echo $?`] && [grep -Fxq "torchinductor done compiling" $TRAINING_LOG]
 set -e
 
 if [ ${RETURN_VAL} -eq 0 ]; then
