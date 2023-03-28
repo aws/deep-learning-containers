@@ -2,15 +2,14 @@ from packaging.version import Version
 from packaging.specifiers import SpecifierSet
 import pytest
 
-import test.test_utils.ec2 as ec2_utils
-
 from test import test_utils
-from test.test_utils import CONTAINER_TESTS_PREFIX, get_framework_and_version_from_tag, get_inference_server_type, get_cuda_version_from_tag
+from test.test_utils import CONTAINER_TESTS_PREFIX, get_framework_and_version_from_tag, get_inference_server_type, UL20_CPU_ARM64_US_WEST_2
 from test.test_utils.ec2 import get_ec2_instance_type, execute_ec2_inference_test, get_ec2_accelerator_type
 from test.dlc_tests.conftest import LOGGER
 
 
 PT_EC2_CPU_INSTANCE_TYPE = get_ec2_instance_type(default="c5.9xlarge", processor="cpu")
+PT_EC2_GRAVITON_INSTANCE_TYPE = get_ec2_instance_type(default="c6g.4xlarge", processor="cpu", arch_type="graviton")
 PT_EC2_SINGLE_GPU_INSTANCE_TYPES = ["p3.2xlarge", "g4dn.4xlarge", "g5.4xlarge"]
 
 
@@ -32,6 +31,16 @@ def test_ec2_pytorch_inference_cpu_compilation(pytorch_inference, ec2_connection
     if Version(image_framework_version) in SpecifierSet("<2.0"):
         pytest.skip("skip the test as torch.compile only support after 2.0")
     ec2_pytorch_inference(pytorch_inference, "cpu", ec2_connection, region)
+
+
+@pytest.mark.model("densenet")
+@pytest.mark.parametrize("ec2_instance_type", PT_EC2_GRAVITON_INSTANCE_TYPE, indirect=True)
+@pytest.mark.parametrize("ec2_instance_ami", [UL20_CPU_ARM64_US_WEST_2], indirect=True)
+def test_ec2_pytorch_inference_cpu_compilation(pytorch_inference_graviton, ec2_connection, region, cpu_only):
+    _, image_framework_version = get_framework_and_version_from_tag(pytorch_inference_graviton)
+    if Version(image_framework_version) in SpecifierSet("<2.0"):
+        pytest.skip("skip the test as torch.compile only support after 2.0")
+    ec2_pytorch_inference(pytorch_inference_graviton, "graviton", ec2_connection, region)
 
 
 def ec2_pytorch_inference(image_uri, processor, ec2_connection, region):
