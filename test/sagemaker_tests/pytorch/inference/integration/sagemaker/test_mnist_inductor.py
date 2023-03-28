@@ -58,30 +58,14 @@ def test_mnist_distributed_cpu_inductor(framework_version, ecr_image, instance_t
 
 
 @pytest.mark.model("mnist")
-@pytest.mark.processor("cpu")
-@pytest.mark.cpu_test
-def test_mnist_distributed_graviton_inductor(framework_version, ecr_image, instance_type, sagemaker_regions):
-    instance_type = instance_type or "ml.c6g.4xlarge"
-    if Version(framework_version) in SpecifierSet("<2.0"):
-        pytest.skip("skip the test as torch.compile only support after 2.0")
-    if 'graviton' not in ecr_image:
-        pytest.skip("skip the graviton test")
-    model_dir = os.path.join(model_cpu_dir, "model_mnist_inductor.tar.gz")
-    function_args = {
-        "framework_version": framework_version,
-        "instance_type": instance_type,
-        "model_dir": model_dir,
-    }
-    invoke_pytorch_helper_function(ecr_image, sagemaker_regions, _test_mnist_distributed, function_args)
-
-
-@pytest.mark.model("mnist")
 @pytest.mark.processor("gpu")
 @pytest.mark.gpu_test
 @pytest.mark.parametrize("instance_type", SM_SINGLE_GPU_INSTANCE_TYPES)
 def test_mnist_distributed_gpu_inductor(framework_version, ecr_image, instance_type, sagemaker_regions):
     if Version(framework_version) in SpecifierSet("<2.0"):
         pytest.skip("skip the test as torch.compile only support after 2.0")
+    if 'graviton' in ecr_image:
+        pytest.skip("skip the graviton test for GPU instance types")
     model_dir = os.path.join(model_cpu_dir, "model_mnist_inductor.tar.gz")
     function_args = {
         "framework_version": framework_version,
