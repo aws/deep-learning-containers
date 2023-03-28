@@ -34,13 +34,19 @@ PT_PERFORMANCE_TRAINING_GPU_SYNTHETIC_CMD = os.path.join(
 PT_PERFORMANCE_TRAINING_GPU_IMAGENET_CMD = os.path.join(
     CONTAINER_TESTS_PREFIX, "benchmark", "run_pytorch_training_performance_gpu_imagenet"
 )
-PT_PERFORMANCE_TRAINING_GPU_INDUCTOR_CMD = os.path.join(
-    CONTAINER_TESTS_PREFIX, "benchmark", "run_pytorch_training_performance_gpu_inductor"
+PT_PERFORMANCE_TRAINING_GPU_INDUCTOR_HUGGINGFACE_CMD = os.path.join(
+    CONTAINER_TESTS_PREFIX, "benchmark", "run_pytorch_inductor_training_performance_gpu_huggingface"
+)
+PT_PERFORMANCE_TRAINING_GPU_INDUCTOR_TIMM_CMD = os.path.join(
+    CONTAINER_TESTS_PREFIX, "benchmark", "run_pytorch_inductor_training_performance_gpu_timm"
+)
+PT_PERFORMANCE_TRAINING_GPU_INDUCTOR_TORCHBENCH_CMD = os.path.join(
+    CONTAINER_TESTS_PREFIX, "benchmark", "run_pytorch_inductor_training_performance_gpu_torchbench"
 )
 
 PT_EC2_GPU_SYNTHETIC_INSTANCE_TYPE = "p3.16xlarge"
 PT_EC2_GPU_IMAGENET_INSTANCE_TYPE = "p3.16xlarge"
-PT_EC2_GPU_INDUCTOR_INSTANCE_TYPES = ("p3.16xlarge", "p4d.24xlarge", "g5.48xlarge")
+PT_EC2_GPU_INDUCTOR_INSTANCE_TYPES = ("p3.2xlarge", "p4d.24xlarge", "g5.4xlarge", "g4dn.xlarge")
 PT_EC2_HPU_INSTANCE_TYPE = "dl1.24xlarge"
 
 @pytest.mark.model("resnet50")
@@ -67,12 +73,30 @@ def test_performance_pytorch_gpu_imagenet(pytorch_training, ec2_connection, gpu_
     )
 
 @pytest.mark.integration("inductor")
-@pytest.mark.model('N/A')
+@pytest.mark.model("huggingface")
 @pytest.mark.parametrize("ec2_instance_ami", [PT_GPU_PY3_BENCHMARK_IMAGENET_AMI_US_WEST_2], indirect=True)
 @pytest.mark.parametrize("ec2_instance_type", [PT_EC2_GPU_INDUCTOR_INSTANCE_TYPES], indirect=True)
-def test_performance_pytorch_gpu_inductor(pytorch_training, ec2_connection, gpu_only, py3_only):
+def test_performance_pytorch_gpu_inductor_huggingface(pytorch_training, ec2_connection, gpu_only, py3_only):
     execute_pytorch_gpu_py3_imagenet_ec2_training_performance_test(
-        ec2_connection, pytorch_training, PT_PERFORMANCE_TRAINING_GPU_INDUCTOR_CMD
+        ec2_connection, pytorch_training, PT_PERFORMANCE_TRAINING_GPU_INDUCTOR_HUGGINGFACE_CMD
+    )
+
+@pytest.mark.integration("inductor")
+@pytest.mark.model("timm")
+@pytest.mark.parametrize("ec2_instance_ami", [PT_GPU_PY3_BENCHMARK_IMAGENET_AMI_US_WEST_2], indirect=True)
+@pytest.mark.parametrize("ec2_instance_type", [PT_EC2_GPU_INDUCTOR_INSTANCE_TYPES], indirect=True)
+def test_performance_pytorch_gpu_inductor_timm(pytorch_training, ec2_connection, gpu_only, py3_only):
+    execute_pytorch_gpu_py3_imagenet_ec2_training_performance_test(
+        ec2_connection, pytorch_training, PT_PERFORMANCE_TRAINING_GPU_INDUCTOR_TIMM_CMD
+    )
+
+@pytest.mark.integration("inductor")
+@pytest.mark.model("torchbench")
+@pytest.mark.parametrize("ec2_instance_ami", [PT_GPU_PY3_BENCHMARK_IMAGENET_AMI_US_WEST_2], indirect=True)
+@pytest.mark.parametrize("ec2_instance_type", [PT_EC2_GPU_INDUCTOR_INSTANCE_TYPES], indirect=True)
+def test_performance_pytorch_gpu_inductor_torchbench(pytorch_training, ec2_connection, gpu_only, py3_only):
+    execute_pytorch_gpu_py3_imagenet_ec2_training_performance_test(
+        ec2_connection, pytorch_training, PT_PERFORMANCE_TRAINING_GPU_INDUCTOR_TORCHBENCH_CMD
     )
 
 @pytest.mark.model("resnet50")
