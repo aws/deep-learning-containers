@@ -461,24 +461,6 @@ IGNORE_SAFETY_IDS = {
                 "51955",
                 "48635",
                 "48644",
-                "53853", # TF 1.15.5, 2.10
-                "53850", # TF 1.15.5, 2.10
-                "53855", # TF 1.15.5, 2.10
-                "53864", # TF 1.15.5, 2.10
-                "53862", # TF 1.15.5, 2.10
-                "53861", # TF 1.15.5, 2.10
-                "53859", # TF 1.15.5, 2.10
-                "53858", # TF 1.15.5, 2.10
-                "53857", # TF 1.15.5, 2.10
-                "53856", # TF 1.15.5, 2.10
-                "53854", # TF 1.15.5, 2.10
-                "53852", # TF 1.15.5, 2.10
-                "53851", # TF 1.15.5, 2.10
-                "53849", # TF 1.15.5, 2.10
-                "53848", # TF 1.15.5, 2.10
-                "53847", # TF 1.15.5, 2.10
-                "53845", # TF 1.15.5, 2.10
-                "53846", # TF 1.15.5, 2.10
             ],
         },
     },
@@ -1078,7 +1060,6 @@ def test_safety(image):
 
     repo_name, image_tag = image.split("/")[-1].split(":")
     ignore_ids_list = _get_safety_ignore_list(image)
-    ignore_ids_set = set(ignore_ids_list)
     sep = " -i "
     ignore_str = "" if not ignore_ids_list else f"{sep}{sep.join(ignore_ids_list)}"
 
@@ -1095,7 +1076,6 @@ def test_safety(image):
         f"{image}",
         hide=True,
     )
-    vulnerabilities_left = []
     try:
         run(f"{docker_exec_cmd} pip install 'safety>=2.2.0' yolk3k ", hide=True)
         json_str_safety_result = safety_check.run_safety_check_on_container(docker_exec_cmd)
@@ -1115,11 +1095,6 @@ def test_safety(image):
                 # gives an object that can be easily compared against a Version object.
                 # https://packaging.pypa.io/en/latest/specifiers/
                 ignore_str += f" -i {vulnerability_id}"
-            else:
-                if vulnerability_id not in ignore_ids_set:
-                    vulnerabilities_left.append(vulnerability)
-        for vulnerability in vulnerabilities_left:
-            LOGGER.info(f"Remaining vulnerability:\n{json.dumps(vulnerability)}")
         assert (
             safety_check.run_safety_check_with_ignore_list(docker_exec_cmd, ignore_str) == 0
         ), f"Safety test failed for {image}"
