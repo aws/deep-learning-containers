@@ -247,7 +247,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && apt-get install -y -qq krb5-user \
 && rm -rf /var/lib/apt/lists/*
 
-ARG TF_URL=https://framework-binaries.s3.us-west-2.amazonaws.com/tensorflow/r2.11_py3.10_aws/cpu/2023-03-13-23-17/tensorflow_cpu-2.11.0-cp310-cp310-manylinux_2_17_x86_64.manylinux2014_x86_64.whl
+ARG TF_URL=https://framework-binaries.s3.us-west-2.amazonaws.com/tensorflow/r2.11_py3.10_aws/cpu/2023-03-29-16-26/tensorflow_cpu-2.11.1-cp310-cp310-manylinux_2_17_x86_64.manylinux2014_x86_64.whl
 
 # https://github.com/tensorflow/models/issues/9267
 # tf-models does not respect existing installations of TF and always installs open source TF
