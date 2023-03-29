@@ -32,6 +32,7 @@ hyperparameters = {
     'dataset_name': 'squad',
     'do_train': True,
     'do_eval': True,
+    'bf16': True,
     'per_device_train_batch_size': 4,
     'per_device_eval_batch_size': 4,
     'num_train_epochs': 1,
