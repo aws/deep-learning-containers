@@ -116,7 +116,7 @@ dlc-pr-autogluon-inference = ""
 # Neuron Inference
 dlc-pr-mxnet-neuron-inference = ""
 dlc-pr-pytorch-neuron-inference = ""
-dlc-pr-pytorch-neuronx-inference = "pytorch\inference\docker\1.13\py3\sdk2.8.0\Dockerfile.neuronx"
+dlc-pr-pytorch-neuronx-inference = "pytorch/inference/docker/1.13/py3/sdk2.8.0/Dockerfile.neuronx"
 dlc-pr-tensorflow-1-neuron-inference = ""
 dlc-pr-tensorflow-2-neuron-inference = ""
 
