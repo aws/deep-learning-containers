@@ -162,7 +162,7 @@ def test_pytorch_with_horovod(pytorch_training, ec2_connection, gpu_only, ec2_in
 @pytest.mark.parametrize("ec2_instance_type", PT_EC2_GPU_INSTANCE_TYPE, indirect=True)
 def test_pytorch_with_horovod_inductor(pytorch_training, ec2_connection, gpu_only, ec2_instance_type):
     _, image_framework_version = get_framework_and_version_from_tag(pytorch_training)
-    if ec2_instance_type == PT_EC2_GPU_INSTANCE_TYPE:
+    if ec2_instance_type.startswith("g3"):
         pytest.skip("skipping inductor related test on g3 instance")
     if 'trcomp' in pytorch_training and Version(image_framework_version) in SpecifierSet("<2.0"):
         pytest.skip(f"Image {pytorch_training} doesn't package horovod. Hence test is skipped.")
@@ -195,7 +195,7 @@ def test_pytorch_gloo_inductor_gpu(pytorch_training, ec2_connection, gpu_only, p
     """
     Tests gloo backend with torch inductor
     """
-    if ec2_instance_type == PT_EC2_GPU_INSTANCE_TYPE:
+    if ec2_instance_type.startswith("g3"):
         pytest.skip("skipping inductor related test on g3 instance")
     if test_utils.is_image_incompatible_with_instance_type(pytorch_training, ec2_instance_type):
         pytest.skip(f"Image {pytorch_training} is incompatible with instance type {ec2_instance_type}")
@@ -225,7 +225,7 @@ def test_pytorch_nccl(pytorch_training, ec2_connection, gpu_only, py3_only, ec2_
     """
     Tests nccl backend
     """
-    if ec2_instance_type == PT_EC2_GPU_INSTANCE_TYPE:
+    if ec2_instance_type.startswith("g3"):
         pytest.skip("skipping inductor related test on g3 instance")
     if test_utils.is_image_incompatible_with_instance_type(pytorch_training, ec2_instance_type):
         pytest.skip(f"Image {pytorch_training} is incompatible with instance type {ec2_instance_type}")
@@ -282,7 +282,7 @@ def test_pytorch_mpi_inductor_gpu(pytorch_training, ec2_connection, gpu_only, py
     """   
     # PT2.0.0 doesn't support MPI https://github.com/pytorch/pytorch/issues/97507
     version_skip(pytorch_training, "2.0.0")
-    if ec2_instance_type == PT_EC2_GPU_INSTANCE_TYPE:
+    if ec2_instance_type.startswith("g3"):
         pytest.skip("skipping inductor related test on g3 instance")
     if 'trcomp' in pytorch_training:
         pytest.skip(f"Image {pytorch_training} is incompatible with distribution type MPI.")
@@ -339,7 +339,7 @@ def test_pytorch_amp(pytorch_training, ec2_connection, gpu_only, ec2_instance_ty
 @pytest.mark.parametrize("ec2_instance_type", PT_EC2_MULTI_GPU_INSTANCE_TYPE, indirect=True)
 def test_pytorch_amp_inductor(pytorch_training, ec2_connection, gpu_only, ec2_instance_type):
     _, image_framework_version = get_framework_and_version_from_tag(pytorch_training)
-    if ec2_instance_type == PT_EC2_GPU_INSTANCE_TYPE:
+    if ec2_instance_type.startswith("g3"):
         pytest.skip("skipping inductor related test on g3 instance")
     if Version(image_framework_version) < Version("1.6"):
         pytest.skip("Native AMP was introduced in PyTorch 1.6")

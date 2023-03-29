@@ -259,7 +259,7 @@ index d1a4673c..83a7c056 100644
 +            self.model = DistributedDataParallel(self.model, device_ids=cuda_devices)
 +        else:
 +            self.model = DistributedDataParallel(self.model)
-+        if torch.cuda.is_available() and os.environ["USE_INDUCTOR"]:
++        if torch.cuda.is_available() and os.environ["USE_INDUCTOR"] == '1':
 +            self.model = torch.compile(self.model, backend="inductor", mode='default')
          # Setting the train and test data loader
          self.train_data = train_dataloader
