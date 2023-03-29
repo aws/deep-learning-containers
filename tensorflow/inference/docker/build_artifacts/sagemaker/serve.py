@@ -21,7 +21,7 @@ import tfs_utils
 
 from contextlib import contextmanager
 
-logging.basicConfig(level=logging.INFO)
+logging.basicConfig(format='%(process)d %(asctime)s %(levelname)-8s %(message)s', force=True, level=logging.INFO)
 log = logging.getLogger(__name__)
 
 JS_PING = "js_content tensorflowServing.ping"
@@ -58,7 +58,8 @@ class ServiceManager(object):
         # Use this to specify memory that is needed to initialize CUDA/cuDNN and other GPU libraries
         self._tfs_gpu_margin = float(os.environ.get("SAGEMAKER_TFS_FRACTIONAL_GPU_MEM_MARGIN", 0.2))
         self._tfs_instance_count = int(os.environ.get("SAGEMAKER_TFS_INSTANCE_COUNT", 1))
-        self._tfs_wait_time_seconds = int(os.environ.get("SAGEMAKER_TFS_WAIT_TIME_SECONDS", 300))
+        self._tfs_wait_time_seconds = int(
+            os.environ.get("SAGEMAKER_TFS_WAIT_TIME_SECONDS", 55 // self._tfs_instance_count))
         self._tfs_inter_op_parallelism = os.environ.get("SAGEMAKER_TFS_INTER_OP_PARALLELISM", 0)
         self._tfs_intra_op_parallelism = os.environ.get("SAGEMAKER_TFS_INTRA_OP_PARALLELISM", 0)
         self._gunicorn_worker_class = os.environ.get("SAGEMAKER_GUNICORN_WORKER_CLASS", "gevent")
@@ -224,6 +225,7 @@ class ServiceManager(object):
             "-e SAGEMAKER_TFS_WAIT_TIME_SECONDS={} "
             "-e SAGEMAKER_TFS_INTER_OP_PARALLELISM={} "
             "-e SAGEMAKER_TFS_INTRA_OP_PARALLELISM={} "
+            "-e SAGEMAKER_TFS_INSTANCE_COUNT={} "
             "python_service:app"
         ).format(
             self._gunicorn_worker_class,
@@ -240,6 +242,7 @@ class ServiceManager(object):
             self._tfs_wait_time_seconds,
             self._tfs_inter_op_parallelism,
             self._tfs_intra_op_parallelism,
+            self._tfs_instance_count,
         )
 
         log.info("gunicorn command: {}".format(gunicorn_command))
