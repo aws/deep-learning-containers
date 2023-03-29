@@ -146,7 +146,7 @@ def ec2_performance_pytorch_inference(image_uri, instance_type, ec2_connection, 
 
     # Run performance inference command, display benchmark results to console
     container_name = f"{repo_name}-performance-{image_tag}-ec2"
-    log_file = f"inductor_benchmarks_{instance_type}_{suite}.tar.gz"
+    log_file = f"inductor_benchmarks_{instance_type}_{suite}.log"
     ec2_connection.run(
         f"{docker_cmd} run -d --name {container_name}  -e OMP_NUM_THREADS=1 "
         f"-v {container_test_local_dir}:{os.path.join(os.sep, 'test')} {image_uri} "
