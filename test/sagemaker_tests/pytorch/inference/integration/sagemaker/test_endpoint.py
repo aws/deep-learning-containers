@@ -26,16 +26,20 @@ from ...integration.sagemaker import timeout
 @pytest.mark.model("mnist")
 @pytest.mark.processor("gpu")
 @pytest.mark.gpu_test
+@pytest.mark.sagemaker_canary
 def test_sagemaker_endpoint_gpu(ecr_image, sagemaker_regions, instance_type, framework_version):
     instance_type = instance_type or 'ml.p2.xlarge'
     invoke_sm_helper_function(ecr_image, sagemaker_regions, _test_sagemaker_endpoint_function, instance_type, framework_version)
 
+
 @pytest.mark.model("mnist")
 @pytest.mark.processor("cpu")
 @pytest.mark.cpu_test
+@pytest.mark.sagemaker_canary
 def test_sagemaker_endpoint_cpu(ecr_image, sagemaker_regions, instance_type, framework_version):
     instance_type = instance_type or 'ml.c4.xlarge'
     invoke_sm_helper_function(ecr_image, sagemaker_regions, _test_sagemaker_endpoint_function, instance_type, framework_version)
+    
 
 def _test_sagemaker_endpoint_function(ecr_image, sagemaker_session, instance_type, framework_version):
     prefix = 'sagemaker-pytorch-serving/models'

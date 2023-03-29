@@ -31,6 +31,7 @@ SCRIPT_PATH = os.path.join(DEFAULT_HANDLER_PATH, 'model', 'code', 'empty_module.
 @pytest.mark.model("linear_regression")
 @pytest.mark.processor("gpu")
 @pytest.mark.gpu_test
+@pytest.mark.sagemaker_canary
 def test_sagemaker_endpoint_gpu(ecr_image, sagemaker_regions, instance_type, framework_version, skip_neuron_containers):
     instance_type = instance_type or 'ml.p2.xlarge'
     invoke_sm_helper_function(ecr_image, sagemaker_regions, _test_sagemaker_endpoint_function, instance_type, framework_version)
@@ -39,6 +40,7 @@ def test_sagemaker_endpoint_gpu(ecr_image, sagemaker_regions, instance_type, fra
 @pytest.mark.model("linear_regression")
 @pytest.mark.processor("cpu")
 @pytest.mark.cpu_test
+@pytest.mark.sagemaker_canary
 def test_sagemaker_endpoint_cpu(ecr_image, sagemaker_regions, instance_type, framework_version, skip_neuron_containers):
     instance_type = instance_type or 'ml.c4.xlarge'
     invoke_sm_helper_function(ecr_image, sagemaker_regions, _test_sagemaker_endpoint_function, instance_type, framework_version)

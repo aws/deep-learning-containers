@@ -85,6 +85,7 @@ def _create_endpoint(sagemaker_client, model_name, instance_type, accelerator_ty
 
 
 @pytest.mark.model("unknown_model")
+@pytest.mark.sagemaker_canary
 def test_endpoint(boto_session, sagemaker_client, model_name, tfs_model, image_uri, instance_type, accelerator_type):
     
     with util.sagemaker_model(boto_session, sagemaker_client, image_uri, model_name, tfs_model):
