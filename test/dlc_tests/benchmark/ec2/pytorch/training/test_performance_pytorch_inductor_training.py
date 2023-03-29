@@ -1,25 +1,13 @@
 import os
 import time
 import pytest
-import re
 
 from test.test_utils import (
     CONTAINER_TESTS_PREFIX,
     PT_GPU_PY3_BENCHMARK_IMAGENET_AMI_US_WEST_2,
-    UBUNTU_18_HPU_DLAMI_US_WEST_2,
     DEFAULT_REGION,
     get_framework_and_version_from_tag,
     is_pr_context,
-)
-from test.test_utils.ec2 import (
-    execute_ec2_training_performance_test,
-    ec2_performance_upload_result_to_s3_and_validate,
-    execute_ec2_habana_training_performance_test,
-)
-from src.benchmark_metrics import (
-    PYTORCH_TRAINING_GPU_SYNTHETIC_THRESHOLD,
-    PYTORCH_TRAINING_GPU_IMAGENET_THRESHOLD,
-    get_threshold_for_image,
 )
 
 PT_PERFORMANCE_TRAINING_GPU_INDUCTOR_HUGGINGFACE_CMD = os.path.join(
@@ -77,7 +65,6 @@ def execute_pytorch_gpu_py3_imagenet_ec2_training_performance_test(
     connection, ecr_uri, test_cmd, ec2_instance_type, region=DEFAULT_REGION
 ):
     _, framework_version = get_framework_and_version_from_tag(ecr_uri)
-    threshold = get_threshold_for_image(framework_version, PYTORCH_TRAINING_GPU_IMAGENET_THRESHOLD)
     repo_name, image_tag = ecr_uri.split("/")[-1].split(":")
     container_test_local_dir = os.path.join("$HOME", "container_tests")
 
