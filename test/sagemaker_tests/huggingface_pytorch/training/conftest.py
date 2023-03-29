@@ -41,6 +41,11 @@ logging.getLogger('connectionpool.py').setLevel(logging.INFO)
 
 dir_path = os.path.dirname(os.path.realpath(__file__))
 
+NEURON_TRN1_INSTANCES = [
+    "ml.trn1.2xlarge",
+    "ml.trn1.32xlarge"
+]
+
 NO_P2_REGIONS = [
     "ap-east-1",
     "ap-northeast-3",
@@ -88,7 +93,7 @@ def pytest_addoption(parser):
     parser.addoption('--region', default='us-west-2')
     parser.addoption('--framework-version', default='')
     parser.addoption('--py-version', choices=['2', '3'], default=str(sys.version_info.major))
-    parser.addoption('--processor', choices=['gpu', 'cpu'], default='gpu')
+    parser.addoption('--processor', choices=['gpu', 'cpu', 'neuron'], default='gpu')
 
     # If not specified, will default to {framework-version}-{processor}-py{py-version}
     parser.addoption('--tag', default=None)
@@ -238,6 +243,14 @@ def fixture_dist_gpu_backend(request):
 @pytest.fixture(autouse=True)
 def skip_by_device_type(request, use_gpu, instance_type):
     is_gpu = use_gpu or instance_type[3] in ['g', 'p']
+    is_neuron = instance_type in NEURON_TRN1_INSTANCES
+
+    #If neuron run only tests marked as neuron
+    if (is_neuron  and not request.node.get_closest_marker("neuron_test")):
+        pytest.skip("Skipping because running on \"{}\" instance".format(instance_type))
+    if (request.node.get_closest_marker("neuron_test") and not is_neuron):
+        pytest.skip("Skipping because running on \"{}\" instance".format(instance_type))
+
     if (request.node.get_closest_marker('skip_gpu') and is_gpu) or \
             (request.node.get_closest_marker('skip_cpu') and not is_gpu):
         pytest.skip('Skipping because running on \'{}\' instance'.format(instance_type))
