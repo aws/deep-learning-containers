@@ -1247,5 +1247,36 @@
         "severity": "LOW",
         "status": "ACTIVE",
         "title": "CVE-2021-20237 - libzmq5"
-    }]
+    }],
+    "tensorflow-gpu": [
+        {
+            "description": "## Overview\n[tensorflow-gpu](https://pypi.org/project/tensorflow/) is a machine learning framework.\nAffected versions of this package are vulnerable to Double Free. The `nn_ops.fractional_avg_pool_v2` and `nn_ops.fractional_max_pool_v2` functions require the first and fourth elements of their parameter `pooling_ratio` to be equal to 1.0, as pooling on batch and channel dimensions is not supported.\n## PoC\n```\r\nimport tensorflow as tf\r\nimport os\r\nimport numpy as np\r\nfrom tensorflow.python.ops import nn_ops\r\ntry:\r\n  arg_0_tensor = tf.random.uniform([3, 30, 50, 3], dtype=tf.float64)\r\n  arg_0 = tf.identity(arg_0_tensor)\r\n  arg_1_0 = 2\r\n  arg_1_1 = 3\r\n  arg_1_2 = 1\r\n  arg_1_3 = 1\r\n  arg_1 = [arg_1_0,arg_1_1,arg_1_2,arg_1_3,]\r\n  arg_2 = True\r\n  arg_3 = True\r\n  seed = 341261001\r\n  out = nn_ops.fractional_avg_pool_v2(arg_0,arg_1,arg_2,arg_3,seed=seed,)\r\nexcept Exception as e:\r\n  print(\"Error:\"+str(e))\r\n```\n## Remediation\nUpgrade `tensorflow-gpu` to version 2.12.0 or higher.\n## References\n- [GitHub Commit](https://gith"
+            "vulnerability_id": "SNYK-PYTHON-TENSORFLOWGPU-3373000",
+            "name": "SNYK-PYTHON-TENSORFLOWGPU-3373000",
+            "package_name": "tensorflow-gpu",
+            "package_details": {
+                "file_path": "usr/local/lib/python3.9/site-packages/tensorflow_gpu-2.11.1.dist-info/METADATAs",
+                "name": "tensorflow-gpu",
+                "package_manager": "PYTHONPKG",
+                "version": "2.11.1",
+                "release": null
+            },
+            "remediation": {
+                "recommendation": {
+                    "text": "None Provided"
+                }
+            },
+            "cvss_v3_score": 7.5,
+            "cvss_v30_score": 0.0,
+            "cvss_v31_score": 7.5,
+            "cvss_v2_score": 0.0,
+            "cvss_v3_severity": "HIGH",
+            "source_url": "https://security.snyk.io/vuln/SNYK-PYTHON-TENSORFLOWGPU-3373030",
+            "source": "SNYK",
+            "severity": "HIGH",
+            "status": "ACTIVE",
+            "title": "IN1-PYTHON-TENSORFLOWGPU-3373030 - tensorflow-gpu",
+            "reason_to_ignore": "TensorFlow 2.11.1 is the latest version of TensorFlow for this image."
+        }
+    ]
 }
