@@ -29,7 +29,7 @@ FROM base_image AS ec2
 LABEL maintainer="Amazon AI"
 LABEL dlc_major_version="1"
 
-ARG PYTHON=python3.9
+ARG PYTHON=python3.10
 ARG PYTHON_PIP=python3-pip
 ARG PIP=pip3
 ARG PYTHON_VERSION=3.10.10
@@ -105,7 +105,7 @@ RUN wget https://www.python.org/ftp/python/$PYTHON_VERSION/Python-$PYTHON_VERSIO
  && cd Python-$PYTHON_VERSION \
  && ./configure && make && make install -j \
  && rm -rf ../Python-$PYTHON_VERSION* 
- 
+
 RUN ${PIP} --no-cache-dir install --upgrade \
     pip \
     setuptools
