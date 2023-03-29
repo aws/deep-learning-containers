@@ -57,6 +57,8 @@ def test_pytorch_nccl(pytorch_training, ec2_connection, gpu_only, py3_only, ec2_
 @pytest.mark.parametrize("ec2_instance_type", PT_EC2_GPU_INDUCTOR_INSTANCE_TYPES, indirect=True)
 def test_pytorch_with_horovod_inductor(pytorch_training, ec2_connection, gpu_only, ec2_instance_type):
     _, image_framework_version = get_framework_and_version_from_tag(pytorch_training)
+    if Version(image_framework_version) < Version("2.0"):
+        pytest.skip("Torch inductor was introduced in PyTorch 2.0")
     if 'trcomp' in pytorch_training and Version(image_framework_version) in SpecifierSet("<2.0"):
         pytest.skip(f"Image {pytorch_training} doesn't package horovod. Hence test is skipped.")
     if test_utils.is_image_incompatible_with_instance_type(pytorch_training, ec2_instance_type):
@@ -95,6 +97,8 @@ def test_pytorch_mpi_inductor_gpu(pytorch_training, ec2_connection, gpu_only, py
     """   
     # PT2.0.0 doesn't support MPI https://github.com/pytorch/pytorch/issues/97507
     version_skip(pytorch_training, "2.0.0")
+    if Version(image_framework_version) < Version("2.0"):
+        pytest.skip("Torch inductor was introduced in PyTorch 2.0")
     if 'trcomp' in pytorch_training:
         pytest.skip(f"Image {pytorch_training} is incompatible with distribution type MPI.")
     if test_utils.is_image_incompatible_with_instance_type(pytorch_training, ec2_instance_type):

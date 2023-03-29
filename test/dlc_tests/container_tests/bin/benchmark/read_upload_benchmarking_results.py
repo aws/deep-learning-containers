@@ -8,7 +8,7 @@ import argparse
 
 parser = argparse.ArgumentParser()
 parser.add_argument("-dir", "--directory", type=str)
-parser.add_argument("-namespace", "--namespace", type=str)
+parser.add_argument("-namespace", "--namespace", type=str, default="PyTorch/EC2/Benchmarks/TorchDynamo/Inductor")
 parser.add_argument("-instance_type", "--instance_type", type=str)
 parser.add_argument("-model_suite", "--model_suite", type=str)
 parser.add_argument("-precision", "--precision", type=str)
