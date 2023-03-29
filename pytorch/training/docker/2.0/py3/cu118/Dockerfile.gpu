@@ -198,7 +198,8 @@ RUN /opt/conda/bin/mamba install -y -c conda-forge \
     psutil \
     ipython \
   && /opt/conda/bin/mamba install -y -c dglteam/label/cu118 dgl \
-  && /opt/conda/bin/mamba install -y -c fastai fastai \
+  # waiting for inductor support: https://github.com/fastai/fastai/pull/3899
+  # && /opt/conda/bin/mamba install -y -c fastai fastai \
   # fastai conda has a dependency chain of fastai -> spacy -> pathy -> dataclasses, use pip to remove dataclass for CVE
   && pip uninstall -y dataclasses \
   && pip install \

@@ -14,6 +14,7 @@ from packaging.specifiers import SpecifierSet
 @pytest.mark.processor("gpu")
 @pytest.mark.integration("telemetry")
 @pytest.mark.parametrize("ec2_instance_type", ["p3.2xlarge"], indirect=True)
+@pytest.mark.timeout(1200)
 def test_telemetry_instance_tag_failure_gpu(gpu, ec2_client, ec2_instance, ec2_connection):
     _run_tag_failure_IMDSv1_disabled(gpu, ec2_client, ec2_instance, ec2_connection)
     _run_tag_failure_IMDSv2_disabled_as_hop_limit_1(gpu, ec2_client, ec2_instance, ec2_connection)
@@ -24,6 +25,7 @@ def test_telemetry_instance_tag_failure_gpu(gpu, ec2_client, ec2_instance, ec2_c
 @pytest.mark.processor("cpu")
 @pytest.mark.integration("telemetry")
 @pytest.mark.parametrize("ec2_instance_type", ["c4.4xlarge"], indirect=True)
+@pytest.mark.timeout(1200)
 def test_telemetry_instance_tag_failure_cpu(cpu, ec2_client, ec2_instance, ec2_connection, cpu_only, x86_compatible_only):
     _run_tag_failure_IMDSv1_disabled(cpu, ec2_client, ec2_instance, ec2_connection)
     _run_tag_failure_IMDSv2_disabled_as_hop_limit_1(cpu, ec2_client, ec2_instance, ec2_connection)
@@ -35,6 +37,7 @@ def test_telemetry_instance_tag_failure_cpu(cpu, ec2_client, ec2_instance, ec2_c
 @pytest.mark.integration("telemetry")
 @pytest.mark.parametrize("ec2_instance_type", ["c6g.4xlarge"], indirect=True)
 @pytest.mark.parametrize("ec2_instance_ami", [test_utils.UL20_CPU_ARM64_US_WEST_2], indirect=True)
+@pytest.mark.timeout(1200)
 def test_telemetry_instance_tag_failure_graviton_cpu(cpu, ec2_client, ec2_instance, ec2_connection, graviton_compatible_only):
     ec2_connection.run(f"sudo apt-get update -y")
     ec2_connection.run(f"sudo apt-get install -y net-tools")
@@ -48,6 +51,7 @@ def test_telemetry_instance_tag_failure_graviton_cpu(cpu, ec2_client, ec2_instan
 @pytest.mark.integration("telemetry")
 @pytest.mark.parametrize("ec2_instance_type", ["inf1.xlarge"], indirect=True)
 @pytest.mark.skip("Feature doesn't exist on Neuron DLCs")
+@pytest.mark.timeout(1200)
 def test_telemetry_instance_tag_failure_neuron(neuron, ec2_client, ec2_instance, ec2_connection):
     _run_tag_failure_IMDSv1_disabled(neuron, ec2_client, ec2_instance, ec2_connection)
     _run_tag_failure_IMDSv2_disabled_as_hop_limit_1(neuron, ec2_client, ec2_instance, ec2_connection)
@@ -59,6 +63,7 @@ def test_telemetry_instance_tag_failure_neuron(neuron, ec2_client, ec2_instance,
 @pytest.mark.processor("gpu")
 @pytest.mark.integration("telemetry")
 @pytest.mark.parametrize("ec2_instance_type", ["p3.2xlarge"], indirect=True)
+@pytest.mark.timeout(1200)
 def test_telemetry_instance_tag_success_gpu(gpu, ec2_client, ec2_instance, ec2_connection, non_huggingface_only, non_autogluon_only, non_pytorch_trcomp_only):
     _run_tag_success_IMDSv1(gpu, ec2_client, ec2_instance, ec2_connection)
     _run_tag_success_IMDSv2_hop_limit_2(gpu, ec2_client, ec2_instance, ec2_connection)
@@ -69,6 +74,7 @@ def test_telemetry_instance_tag_success_gpu(gpu, ec2_client, ec2_instance, ec2_c
 @pytest.mark.model("N/A")
 @pytest.mark.processor("cpu")
 @pytest.mark.integration("telemetry")
+@pytest.mark.timeout(1200)
 @pytest.mark.parametrize("ec2_instance_type", ["c4.4xlarge"], indirect=True)
 def test_telemetry_instance_tag_success_cpu(cpu, ec2_client, ec2_instance, ec2_connection, cpu_only, non_huggingface_only, non_autogluon_only, x86_compatible_only):
     _run_tag_success_IMDSv1(cpu, ec2_client, ec2_instance, ec2_connection)
@@ -81,6 +87,7 @@ def test_telemetry_instance_tag_success_cpu(cpu, ec2_client, ec2_instance, ec2_c
 @pytest.mark.integration("telemetry")
 @pytest.mark.parametrize("ec2_instance_type", ["c6g.4xlarge"], indirect=True)
 @pytest.mark.parametrize("ec2_instance_ami", [test_utils.UL20_CPU_ARM64_US_WEST_2], indirect=True)
+@pytest.mark.timeout(1200)
 def test_telemetry_instance_tag_success_graviton_cpu(cpu, ec2_client, ec2_instance, ec2_connection, graviton_compatible_only):
     _run_tag_success_IMDSv1(cpu, ec2_client, ec2_instance, ec2_connection)
     _run_tag_success_IMDSv2_hop_limit_2(cpu, ec2_client, ec2_instance, ec2_connection)
@@ -92,6 +99,7 @@ def test_telemetry_instance_tag_success_graviton_cpu(cpu, ec2_client, ec2_instan
 @pytest.mark.integration("telemetry")
 @pytest.mark.parametrize("ec2_instance_type", ["inf1.xlarge"], indirect=True)
 @pytest.mark.skip("Feature doesn't exist on Neuron DLCs")
+@pytest.mark.timeout(1200)
 def test_telemetry_instance_tag_success_neuron(neuron, ec2_client, ec2_instance, ec2_connection, non_huggingface_only, non_autogluon_only):
     _run_tag_success_IMDSv1(neuron, ec2_client, ec2_instance, ec2_connection)
     _run_tag_success_IMDSv2_hop_limit_2(neuron, ec2_client, ec2_instance, ec2_connection)
@@ -103,6 +111,7 @@ def test_telemetry_instance_tag_success_neuron(neuron, ec2_client, ec2_instance,
 @pytest.mark.processor("gpu")
 @pytest.mark.integration("telemetry")
 @pytest.mark.parametrize("ec2_instance_type", ["p3.2xlarge"], indirect=True)
+@pytest.mark.timeout(1200)
 def test_telemetry_s3_query_bucket_success_gpu(gpu, ec2_client, ec2_instance, ec2_connection, non_huggingface_only, non_autogluon_only):
     _run_s3_query_bucket_success(gpu, ec2_client, ec2_instance, ec2_connection)
 
@@ -113,6 +122,7 @@ def test_telemetry_s3_query_bucket_success_gpu(gpu, ec2_client, ec2_instance, ec
 @pytest.mark.processor("cpu")
 @pytest.mark.integration("telemetry")
 @pytest.mark.parametrize("ec2_instance_type", ["c4.4xlarge"], indirect=True)
+@pytest.mark.timeout(1200)
 def test_telemetry_s3_query_bucket_success_cpu(cpu, ec2_client, ec2_instance, ec2_connection, cpu_only, non_huggingface_only, non_autogluon_only, x86_compatible_only):
     _run_s3_query_bucket_success(cpu, ec2_client, ec2_instance, ec2_connection)
 
@@ -123,6 +133,7 @@ def test_telemetry_s3_query_bucket_success_cpu(cpu, ec2_client, ec2_instance, ec
 @pytest.mark.integration("telemetry")
 @pytest.mark.parametrize("ec2_instance_type", ["c6g.4xlarge"], indirect=True)
 @pytest.mark.parametrize("ec2_instance_ami", [test_utils.UL20_CPU_ARM64_US_WEST_2], indirect=True)
+@pytest.mark.timeout(1200)
 def test_telemetry_s3_query_bucket_success_graviton_cpu(cpu, ec2_client, ec2_instance, ec2_connection, graviton_compatible_only):
     _run_s3_query_bucket_success(cpu, ec2_client, ec2_instance, ec2_connection)
 
@@ -133,6 +144,7 @@ def test_telemetry_s3_query_bucket_success_graviton_cpu(cpu, ec2_client, ec2_ins
 @pytest.mark.integration("telemetry")
 @pytest.mark.parametrize("ec2_instance_type", ["inf1.xlarge"], indirect=True)
 @pytest.mark.skip("Feature doesn't exist on Neuron DLCs")
+@pytest.mark.timeout(1200)
 def test_telemetry_s3_query_bucket_success_neuron(neuron, ec2_client, ec2_instance, ec2_connection, non_huggingface_only, non_autogluon_only):
     _run_s3_query_bucket_success(neuron, ec2_client, ec2_instance, ec2_connection)
 
@@ -227,6 +239,7 @@ def _run_tag_failure_IMDSv1_disabled(image_uri, ec2_client, ec2_instance, ec2_co
 
     docker_cmd = "nvidia-docker" if processor == "gpu" else "docker"
 
+    LOGGER.info(f"starting pulling : {image_uri}")
     test_utils.login_to_ecr_registry(ec2_connection, account_id, image_region)
     ## For big images like trcomp, the ec2_connection.run command stops listening and the code hangs here.
     ## Hence, avoiding the use of -q to let the connection remain active.
@@ -268,16 +281,19 @@ def _run_tag_success_IMDSv1(image_uri, ec2_client, ec2_instance, ec2_connection)
 
     docker_cmd = "nvidia-docker" if processor == "gpu" else "docker"
 
+    LOGGER.info(f"starting pulling : {image_uri}")
     test_utils.login_to_ecr_registry(ec2_connection, account_id, image_region)
     ec2_connection.run(f"{docker_cmd} pull -q {image_uri}")
 
     preexisting_ec2_instance_tags = ec2_utils.get_ec2_instance_tags(ec2_instance_id, ec2_client=ec2_client)
+    LOGGER.info(f"preexisting_ec2_instance_tags: {preexisting_ec2_instance_tags}")
     if expected_tag_key in preexisting_ec2_instance_tags:
         ec2_client.delete_tags(Resources=[ec2_instance_id], Tags=[{"Key": expected_tag_key}])
 
     invoke_telemetry_call(image_uri, container_name, docker_cmd, framework, job_type, ec2_connection)
 
     ec2_instance_tags = ec2_utils.get_ec2_instance_tags(ec2_instance_id, ec2_client=ec2_client)
+    LOGGER.info(f"ec2_instance_tags: {ec2_instance_tags}")
     assert expected_tag_key in ec2_instance_tags, f"{expected_tag_key} was not applied as an instance tag"
 
 
@@ -300,6 +316,7 @@ def _run_tag_failure_IMDSv2_disabled_as_hop_limit_1(image_uri, ec2_client, ec2_i
 
     docker_cmd = "nvidia-docker" if processor == "gpu" else "docker"
 
+    LOGGER.info(f"starting pulling : {image_uri}")
     test_utils.login_to_ecr_registry(ec2_connection, account_id, image_region)
     ec2_connection.run(f"{docker_cmd} pull -q {image_uri}")
 
@@ -338,10 +355,12 @@ def _run_tag_success_IMDSv2_hop_limit_2(image_uri, ec2_client, ec2_instance, ec2
 
     docker_cmd = "nvidia-docker" if processor == "gpu" else "docker"
 
+    LOGGER.info(f"starting pulling : {image_uri}")
     test_utils.login_to_ecr_registry(ec2_connection, account_id, image_region)
     ec2_connection.run(f"{docker_cmd} pull -q {image_uri}")
 
     preexisting_ec2_instance_tags = ec2_utils.get_ec2_instance_tags(ec2_instance_id, ec2_client=ec2_client)
+    LOGGER.info(f"preexisting_ec2_instance_tags: {preexisting_ec2_instance_tags}")
     if expected_tag_key in preexisting_ec2_instance_tags:
         ec2_client.delete_tags(Resources=[ec2_instance_id], Tags=[{"Key": expected_tag_key}])
 
@@ -350,6 +369,7 @@ def _run_tag_success_IMDSv2_hop_limit_2(image_uri, ec2_client, ec2_instance, ec2
     invoke_telemetry_call(image_uri, container_name, docker_cmd, framework, job_type, ec2_connection)
 
     ec2_instance_tags = ec2_utils.get_ec2_instance_tags(ec2_instance_id, ec2_client=ec2_client)
+    LOGGER.info(f"ec2_instance_tags: {ec2_instance_tags}")
     assert expected_tag_key in ec2_instance_tags, f"{expected_tag_key} was not applied as an instance tag"
 
 
