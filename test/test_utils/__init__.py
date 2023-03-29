@@ -142,7 +142,8 @@ SAGEMAKER_REMOTE_TEST_TYPE = "sagemaker"
 
 PUBLIC_DLC_REGISTRY = "763104351884"
 
-SAGEMAKER_EXECUTION_REGIONS = ["us-west-2", "us-east-1", "eu-west-1"]
+#TODO: revert before merge
+SAGEMAKER_EXECUTION_REGIONS = ["us-east-2"]
 # Before SM GA with Trn1, they support launch of ml.trn1 instance only in us-east-1. After SM GA this can be removed
 SAGEMAKER_NEURON_EXECUTION_REGIONS = ["us-west-2"]
 
