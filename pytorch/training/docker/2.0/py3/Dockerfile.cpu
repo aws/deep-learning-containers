@@ -1,13 +1,7 @@
 ARG PYTHON=python3
-ARG PYTHON_VERSION=3.9.16
-ARG MAMBA_VERSION=22.11.1-2
-
-# PyTorch Binaries
-ARG PT_EC2_TRAINING_URL=https://aws-pytorch-unified-cicd-binaries.s3.us-west-2.amazonaws.com/r1.13.1_ec2/20221217-194030/54406b8eed7fbd61be629cb06229dfb7b6b2954e/torch-1.13.1%2Bcpu-cp39-cp39-linux_x86_64.whl
-ARG PT_SM_TRAINING_URL=https://aws-pytorch-unified-cicd-binaries.s3.us-west-2.amazonaws.com/r1.13.1_sm/20230104-200143/4ad54e91be2ccb431cf26e7d7d1a2de10e8d82ac/torch-1.13.1%2Bcpu-cp39-cp39-linux_x86_64.whl
-ARG PT_TORCHVISION_URL=https://download.pytorch.org/whl/cpu/torchvision-0.14.1%2Bcpu-cp39-cp39-linux_x86_64.whl
-ARG PT_TORCHAUDIO_URL=https://download.pytorch.org/whl/cpu/torchaudio-0.13.1%2Bcpu-cp39-cp39-linux_x86_64.whl
-ARG PT_TORCHDATA_URL=https://download.pytorch.org/whl/test/torchdata-0.5.1-cp39-cp39-manylinux_2_17_x86_64.manylinux2014_x86_64.whl
+ARG PYTHON_VERSION=3.10.8
+ARG MAMBA_VERSION=22.11.1-4
+ARG PYTORCH_VERSION=2.0.0
 
 FROM ubuntu:20.04 AS base_image
 
@@ -116,22 +110,36 @@ ENV REQUESTS_CA_BUNDLE=/etc/ssl/certs/ca-certificates.crt
 RUN curl -L -o ~/mambaforge.sh https://github.com/conda-forge/miniforge/releases/download/${MAMBA_VERSION}/Mambaforge-${MAMBA_VERSION}-Linux-x86_64.sh \
  && chmod +x ~/mambaforge.sh \
  && ~/mambaforge.sh -b -p /opt/conda \
- && rm ~/mambaforge.sh \
- && /opt/conda/bin/mamba update -y conda \
- && /opt/conda/bin/mamba install -y -c conda-forge \
+ && rm ~/mambaforge.sh 
+
+# install core conda dependency packages (and pin essential packages)
+RUN /opt/conda/bin/mamba install -y -c conda-forge \
+    conda=23.1.0 \
+    "cryptography>39.0.0" \
+    cmake \
+    requests \
+    pyopenssl \
     python=$PYTHON_VERSION \
     cython \
-    mkl \
-    mkl-include \
-    parso \
-    typing \
-    h5py \
     # force conda to install h5py with openmpi build, not mpich (rubik error)
     # https://anaconda.org/conda-forge/h5py/files?page=2
     "mpi4py>=3.1.4,<3.2" \
     mpi4py \
-    requests \
-    pyopenssl \
+    h5py 
+
+# Install AWS-PyTorch
+RUN /opt/conda/bin/mamba install -y pytorch=${PYTORCH_VERSION} \
+  torchvision torchaudio torchtext cpuonly \
+  --override-channels \
+  -c https://aws-ml-conda-pre-prod-ec2.s3.us-west-2.amazonaws.com \
+  -c conda-forge
+
+# install common python packages
+RUN /opt/conda/bin/mamba install -y -c conda-forge \
+    mkl \
+    mkl-include \
+    parso \
+    typing \
     # Below 2 are included in miniconda base, but not mamba so need to install
     conda-content-trust \
     charset-normalizer \
@@ -142,36 +150,25 @@ RUN curl -L -o ~/mambaforge.sh https://github.com/conda-forge/miniforge/releases
     pybind11 \
     pyyaml \
     # needed by fastai.distributed
-    accelerate \ 
-    cryptography \
-    cmake \
+    accelerate \
     scipy \
     click \
     # patch CVE
     "pillow>=9.4" \
     psutil \
     ipython \
- # pin dgl to 0.9.1 as upstream test has not caught up, currently having accuracy error
- && /opt/conda/bin/mamba install -c dglteam -y dgl \
- && /opt/conda/bin/mamba install -c fastai fastai \
+ && /opt/conda/bin/mamba install -y -c dglteam dgl \
+# waiting for inductor support: https://github.com/fastai/fastai/pull/3899
+#  && /opt/conda/bin/mamba install -y -c fastai fastai \
  # fastai conda has a dependency chain of fastai -> spacy -> pathy -> dataclasses
  # conda pathy installs dataclasses regardless of py version: https://github.com/conda-forge/pathy-feedstock/blob/1e6da43da5c8e11e09c063c79b09236bbacb7780/recipe/meta.yaml#L29
  # pypi solves this issue: https://github.com/justindujardin/pathy/blob/master/requirements.txt#L3
  # dataclasses package, which contains CVE, is not needed for py>=37
  # pypi fastai's dependencies will oversize the image
  && pip uninstall -y dataclasses \
- && /opt/conda/bin/mamba clean -ya
+ && /opt/conda/bin/mamba clean -afy
 
-# Conda installs links for libtinfo.so.6 and libtinfo.so.6.2 both
-# Which causes "/opt/conda/lib/libtinfo.so.6: no version information available" warning
-# Removing link for libtinfo.so.6. This change is needed only for ubuntu 20.04-conda, and can be reverted
-# once conda fixes the issue
-RUN rm -rf /opt/conda/lib/libtinfo.so.6
-
-COPY deep_learning_container.py /usr/local/bin/deep_learning_container.py
-RUN chmod +x /usr/local/bin/deep_learning_container.py
-
-RUN curl -o /license.txt https://aws-dlc-licenses.s3.amazonaws.com/pytorch-1.13/license.txt
+RUN curl -o /license.txt https://aws-dlc-licenses.s3.amazonaws.com/pytorch-2.0/license.txt
  
 # needed by torchdata
 RUN mkdir -p /etc/pki/tls/certs && cp /etc/ssl/certs/ca-certificates.crt /etc/pki/tls/certs/ca-bundle.crt
@@ -204,9 +201,6 @@ ARG PT_TORCHVISION_URL
 ARG PT_TORCHAUDIO_URL
 ARG PT_TORCHDATA_URL
 
-# Install AWS-PyTorch and other torch packages
-RUN pip uninstall -y torch torchvision torchaudio torchdata \
- && pip install --no-cache-dir -U ${PT_EC2_TRAINING_URL} ${PT_TORCHVISION_URL} ${PT_TORCHAUDIO_URL} ${PT_TORCHDATA_URL}
 
 RUN HOME_DIR=/root \
  && curl -o ${HOME_DIR}/oss_compliance.zip https://aws-dlinfra-utilities.s3.amazonaws.com/oss_compliance.zip \
@@ -257,10 +251,12 @@ ARG PT_TORCHVISION_URL
 ARG PT_TORCHAUDIO_URL
 ARG PT_TORCHDATA_URL
 
-# Install AWS-PyTorch and other torch packages
-RUN pip uninstall -y torch torchvision torchaudio torchdata \
- && pip install --no-cache-dir -U ${PT_SM_TRAINING_URL} ${PT_TORCHVISION_URL} ${PT_TORCHAUDIO_URL} ${PT_TORCHDATA_URL}
-
+# force remove to prevent removing all packages depending on pytorch
+RUN /opt/conda/bin/conda remove -y --force pytorch \
+  && /opt/conda/bin/mamba install -y pytorch=${PYTORCH_VERSION} cpuonly \
+  --override-channels \
+  -c https://aws-ml-conda-pre-prod-sm.s3.us-west-2.amazonaws.com \
+  -c conda-forge
 
 WORKDIR /
 
@@ -296,7 +292,8 @@ RUN /opt/conda/bin/mamba install -y -c conda-forge \
   && /opt/conda/bin/mamba install -y -c numba numba \
   && /opt/conda/bin/mamba install -y -c anaconda seaborn \
   && /opt/conda/bin/mamba install -y -c bokeh bokeh \
-  && /opt/conda/bin/mamba install -y -c plotly plotly 
+  && /opt/conda/bin/mamba install -y -c plotly plotly \
+  && /opt/conda/bin/mamba clean -afy
 
 
 RUN HOME_DIR=/root \

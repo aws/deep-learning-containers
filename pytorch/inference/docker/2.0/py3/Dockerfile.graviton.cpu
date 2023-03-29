@@ -1,0 +1,256 @@
+ARG PYTHON=python3
+ARG PYTHON_VERSION=3.10.9
+ARG MAMBA_VERSION=22.11.1-4
+ARG OPEN_MPI_VERSION=4.1.5
+
+# PyTorch Graviton Binaries
+ARG TORCH_URL=https://aws-pytorch-unified-cicd-binaries.s3.us-west-2.amazonaws.com/r2.0.0_inference/graviton_py310/torch-2.0.0%2Bcpu-cp310-cp310-manylinux_2_31_aarch64.whl
+ARG TORCHVISION_URL=https://aws-pytorch-unified-cicd-binaries.s3.us-west-2.amazonaws.com/r2.0.0_inference/graviton_py310/torchvision-0.15.1%2Bcpu-cp310-cp310-linux_aarch64.whl
+ARG TORCHAUDIO_URL=https://aws-pytorch-unified-cicd-binaries.s3.us-west-2.amazonaws.com/r2.0.0_inference/graviton_py310/torchaudio-2.0.1%2Bcpu-cp310-cp310-linux_aarch64.whl
+ARG TORCHTEXT_URL=https://aws-pytorch-unified-cicd-binaries.s3.us-west-2.amazonaws.com/r2.0.0_inference/graviton_py310/torchtext-0.15.1%2Bcpu-cp310-cp310-linux_aarch64.whl
+ARG TORCHDATA_URL=https://aws-pytorch-unified-cicd-binaries.s3.us-west-2.amazonaws.com/r2.0.0_inference/graviton_py310/torchdata-0.6.0%2Bcpu-cp310-cp310-linux_aarch64.whl
+ARG TORCHSERVE_VERSION=0.7.1
+ARG SM_TOOLKIT_VERSION=2.0.14
+
+########################################################
+#  _____ ____ ____    ___
+# | ____/ ___|___ \  |_ _|_ __ ___   __ _  __ _  ___
+# |  _|| |     __) |  | || '_ ` _ \ / _` |/ _` |/ _ \
+# | |__| |___ / __/   | || | | | | | (_| | (_| |  __/
+# |_____\____|_____| |___|_| |_| |_|\__,_|\__, |\___|
+#                                         |___/
+#  ____           _
+# |  _ \ ___  ___(_)_ __   ___ 
+# | |_) / _ \/ __| | '_ \ / _ \
+# |  _ <  __/ (__| | |_) |  __/
+# |_| \_\___|\___|_| .__/ \___|
+#                  |_|
+########################################################
+FROM arm64v8/ubuntu:20.04 as ec2
+
+LABEL maintainer="Amazon AI"
+LABEL dlc_major_version="1"
+
+ARG PYTHON
+ARG PYTHON_VERSION
+ARG OPEN_MPI_VERSION
+ARG MAMBA_VERSION
+
+# PyTorch Passed arguments (URLs and Versions)
+ARG TORCH_URL
+ARG TORCHVISION_URL
+ARG TORCHAUDIO_URL
+ARG TORCHTEXT_URL
+ARG TORCHDATA_URL
+ARG TORCHSERVE_VERSION
+
+### Common ENV Variables
+ENV DEBIAN_FRONTEND=noninteractive \
+    LD_LIBRARY_PATH="${LD_LIBRARY_PATH}:/usr/local/lib" \
+    LANG=C.UTF-8 \
+    LD_LIBRARY_PATH=/opt/conda/lib/:$LD_LIBRARY_PATH \
+    PATH=/opt/conda/bin:$PATH \
+    TEMP=/home/model-server/tmp \
+    ### Graviton Optimizaation ENV Variables
+    LRU_CACHE_CAPACITY=1024 \
+    THP_MEM_ALLOC_ENABLE=1 \
+    DNNL_DEFAULT_FPMATH_MODE=BF16
+
+RUN apt-get update \
+ && apt-get -y upgrade \
+ && apt-get install -y --no-install-recommends \
+    build-essential \
+    ca-certificates \
+    cmake \
+    curl \
+    emacs \
+    # adding GCC 10 for graviton compile support
+    gfortran-10 \
+    g++-10 \
+    gcc-10 \
+    git \
+    jq \
+    libgl1-mesa-glx \
+    libglib2.0-0 \
+    libsm6 \
+    libxext6 \
+    libxrender-dev \
+    openjdk-17-jdk \
+    openssl \
+    scons \
+    vim \
+    wget \
+    unzip \
+    zlib1g-dev \
+    libjpeg-dev \
+    libpng-dev \
+ && apt-get autoremove -y \
+ && rm -rf /var/lib/apt/lists/* \
+ && apt-get clean
+
+ # Set default gcc, python and pip versions
+RUN update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-10 1 && \
+    update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-10 1 && \
+    update-alternatives --install /usr/bin/gfortran gfortran /usr/bin/gfortran-10 1
+
+# Install OpenMPI
+RUN wget https://www.open-mpi.org/software/ompi/v4.1/downloads/openmpi-$OPEN_MPI_VERSION.tar.gz \
+ && gunzip -c openmpi-$OPEN_MPI_VERSION.tar.gz | tar xf - \
+ && cd openmpi-$OPEN_MPI_VERSION \
+ && ./configure --prefix=/home/.openmpi \
+ && make all install \
+ && cd .. \
+ && rm openmpi-$OPEN_MPI_VERSION.tar.gz \
+ && rm -rf openmpi-$OPEN_MPI_VERSION
+
+# The ENV variables declared below are changed in the previous section
+# Grouping these ENV variables in the first section causes
+# ompi_info to fail. This is only observed in CPU containers
+ENV PATH="$PATH:/home/.openmpi/bin"
+ENV LD_LIBRARY_PATH="$LD_LIBRARY_PATH:/home/.openmpi/lib/"
+RUN ompi_info --parsable --all | grep mpi_built_with_cuda_support:value
+
+# Install CondaForge miniconda
+RUN curl -L -o ~/mambaforge.sh https://github.com/conda-forge/miniforge/releases/download/${MAMBA_VERSION}/Mambaforge-${MAMBA_VERSION}-Linux-aarch64.sh \
+ && chmod +x ~/mambaforge.sh \
+ && ~/mambaforge.sh -b -p /opt/conda \
+ && rm ~/mambaforge.sh \
+ && /opt/conda/bin/conda install -c conda-forge -y python=$PYTHON_VERSION \
+    ruamel_yaml \
+    cython \
+    ipython \
+    parso \
+    # Below 2 are included in miniconda base, but not mamba so need to install
+    conda-content-trust \
+    charset-normalizer \
+    requests \
+ && conda clean -ya
+
+# Install Common python packages
+# Pin Cryprography for pyopenssl
+RUN ln -s /opt/conda/bin/pip /usr/local/bin/pip3 \
+ && pip install --upgrade pip --trusted-host pypi.org --trusted-host files.pythonhosted.org \
+ && pip install \
+    boto3 \
+    scipy \
+    opencv-python \
+    "cryptography>=38.0.0,<40" \
+    "ipython>=8.10.0,<9.0" \
+    "awscli<2"
+
+# Ensure PyTorch did not get installed from Conda or pip, prior to now
+RUN pip uninstall -y torch torchvision torchaudio torchdata model-archiver multi-model-server
+
+# install pytorch wheels
+RUN pip install --no-cache-dir -U \
+    ${TORCH_URL} \
+    ${TORCHVISION_URL} \
+    ${TORCHAUDIO_URL} \
+    ${TORCHTEXT_URL} \
+    ${TORCHDATA_URL}
+
+# Install TorchServe pypi dependencies directly from their requirements.txt file
+# NOTE: This also brings in unnecessary cpu dependencies like nvgpu
+# -> Numpy is higer version as required by torch
+# -> PyYaml needs to be high pinned for awscli v1 (current v1 = 1.27.99)
+RUN pip install --no-cache-dir -U -r https://raw.githubusercontent.com/pytorch/serve/v${TORCHSERVE_VERSION}/requirements/common.txt \
+ && pip install --no-cache-dir -U \
+    "numpy>=1.22.2,<1.23" \
+    "pyyaml>=5.4,<5.5" \
+    torchserve==${TORCHSERVE_VERSION} \
+    torch-model-archiver==${TORCHSERVE_VERSION}
+
+# add necessary certificate for aws sdk cpp download
+RUN mkdir -p /etc/pki/tls/certs && cp /etc/ssl/certs/ca-certificates.crt /etc/pki/tls/certs/ca-bundle.crt
+
+# create user and folders
+RUN useradd -m model-server \
+ && mkdir -p /home/model-server/tmp /opt/ml/model \
+ && chown -R model-server /home/model-server /opt/ml/model
+
+# add TS entrypoint
+COPY torchserve-ec2-entrypoint.py /usr/local/bin/dockerd-entrypoint.py
+COPY config.properties /home/model-server/config.properties
+RUN chmod +x /usr/local/bin/dockerd-entrypoint.py
+
+# add telemetry
+COPY deep_learning_container.py /usr/local/bin/deep_learning_container.py
+RUN chmod +x /usr/local/bin/deep_learning_container.py
+
+RUN HOME_DIR=/root \
+ && curl -o ${HOME_DIR}/oss_compliance.zip https://aws-dlinfra-utilities.s3.amazonaws.com/oss_compliance.zip \
+ && unzip ${HOME_DIR}/oss_compliance.zip -d ${HOME_DIR}/ \
+ && cp ${HOME_DIR}/oss_compliance/test/testOSSCompliance /usr/local/bin/testOSSCompliance \
+ && chmod +x /usr/local/bin/testOSSCompliance \
+ && chmod +x ${HOME_DIR}/oss_compliance/generate_oss_compliance.sh \
+ && ${HOME_DIR}/oss_compliance/generate_oss_compliance.sh ${HOME_DIR} ${PYTHON} \
+ && cp ${HOME_DIR}/oss_compliance/build_from_source_packages/BUILD_FROM_SOURCE_PACKAGES_LICENCES_AARCH64_IMAGES ${HOME_DIR} \
+ && rm -rf ${HOME_DIR}/oss_compliance*
+
+RUN curl https://aws-dlc-licenses.s3.amazonaws.com/pytorch-2.0/license.txt -o /license.txt
+
+## Cleanup ##
+RUN pip cache purge \
+ && rm -rf /tmp/tmp* \
+ && rm -iRf /root/.cache
+
+EXPOSE 8080 8081
+ENTRYPOINT ["python", "/usr/local/bin/dockerd-entrypoint.py"]
+CMD ["torchserve", "--start", "--ts-config", "/home/model-server/config.properties"]
+
+#################################################################
+#  ____                   __  __       _
+# / ___|  __ _  __ _  ___|  \/  | __ _| | _____ _ __
+# \___ \ / _` |/ _` |/ _ \ |\/| |/ _` | |/ / _ \ '__|
+#  ___) | (_| | (_| |  __/ |  | | (_| |   <  __/ |
+# |____/ \__,_|\__, |\___|_|  |_|\__,_|_|\_\___|_|
+#              |___/
+#  ___                              ____           _
+# |_ _|_ __ ___   __ _  __ _  ___  |  _ \ ___  ___(_)_ __   ___
+#  | || '_ ` _ \ / _` |/ _` |/ _ \ | |_) / _ \/ __| | '_ \ / _ \
+#  | || | | | | | (_| | (_| |  __/ |  _ <  __/ (__| | |_) |  __/
+# |___|_| |_| |_|\__,_|\__, |\___| |_| \_\___|\___|_| .__/ \___|
+#                      |___/                        |_|
+#
+# NOTE: This ImageRecipe is still under development
+#################################################################
+
+FROM ec2 AS sagemaker
+
+LABEL maintainer="Amazon AI"
+LABEL dlc_major_version="1"
+LABEL com.amazonaws.sagemaker.capabilities.accept-bind-to-port=true
+LABEL com.amazonaws.sagemaker.capabilities.multi-models=true
+
+ARG PYTHON
+ARG SM_TOOLKIT_VERSION
+
+ENV SAGEMAKER_SERVING_MODULE sagemaker_pytorch_serving_container.serving:main
+
+# Install scikit-learn and pandas
+RUN conda install -y -c conda-forge \
+    scikit-learn \
+    pandas
+
+RUN pip install --no-cache-dir sagemaker-pytorch-inference==${SM_TOOLKIT_VERSION}
+
+COPY torchserve-entrypoint.py /usr/local/bin/dockerd-entrypoint.py
+
+RUN chmod +x /usr/local/bin/dockerd-entrypoint.py
+
+RUN HOME_DIR=/root \
+ && curl -o ${HOME_DIR}/oss_compliance.zip https://aws-dlinfra-utilities.s3.amazonaws.com/oss_compliance.zip \
+ && unzip ${HOME_DIR}/oss_compliance.zip -d ${HOME_DIR}/ \
+ && cp ${HOME_DIR}/oss_compliance/test/testOSSCompliance /usr/local/bin/testOSSCompliance \
+ && chmod +x /usr/local/bin/testOSSCompliance \
+ && chmod +x ${HOME_DIR}/oss_compliance/generate_oss_compliance.sh \
+ && ${HOME_DIR}/oss_compliance/generate_oss_compliance.sh ${HOME_DIR} ${PYTHON} \
+ && rm -rf ${HOME_DIR}/oss_compliance*
+
+## Cleanup ##
+RUN rm -rf /tmp/tmp* \
+ &&rm -iRf /root/.cache
+
+EXPOSE 8080 8081
+ENTRYPOINT ["python", "/usr/local/bin/dockerd-entrypoint.py"]
+CMD ["torchserve", "--start", "--ts-config", "/home/model-server/config.properties", "--model-store", "/home/model-server/"]

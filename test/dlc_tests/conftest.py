@@ -341,7 +341,7 @@ def ec2_instance(
                 or "mxnet_inference" in request.fixturenames
             )
         )
-        or (is_neuron_image)
+        or (is_neuron_image(request.fixturenames))
         or (
             "tensorflow_training" in request.fixturenames
             and "gpu_only" in request.fixturenames
@@ -352,9 +352,7 @@ def ec2_instance(
     ):
         params["BlockDeviceMappings"] = [{"DeviceName": volume_name, "Ebs": {"VolumeSize": 300,},}]
     else:
-        # Using private AMI, the EBS volume size is reduced to 28GB as opposed to 50GB from public AMI. This leads to space issues on test instances
-        # TODO: Revert the configuration once DLAMI is public
-        params["BlockDeviceMappings"] = [{"DeviceName": volume_name, "Ebs": {"VolumeSize": 90,},}]
+        params["BlockDeviceMappings"] = [{"DeviceName": volume_name, "Ebs": {"VolumeSize": 150,},}]
 
     # For TRN1 since we are using a private AMI that has some BERT data/tests, have a bifgger volume size
     # Once use DLAMI, this can be removed
@@ -454,7 +452,7 @@ def ec2_connection(request, ec2_instance, ec2_key_name, ec2_instance_type, regio
     request.addfinalizer(delete_s3_artifact_copy)
 
     python_version = "3.9"
-    if is_neuron_image:
+    if is_neuron_image(request.fixturenames):
         # neuron still support tf1.15 and that is only there in py37 and less.
         # so use python3.7 for neuron
         python_version="3.7"
@@ -655,8 +653,19 @@ def outside_versions_skip():
         """
         _, image_framework_version = get_framework_and_version_from_tag(img_uri)
         if Version(start_ver) > Version(image_framework_version) or Version(end_ver) < Version(image_framework_version):
-            pytest.skip(f"S3 plugin is only supported in PyTorch versions >{start_ver},<{end_ver}")
+            pytest.skip(f"test has gone out of support, supported version range >{start_ver},<{end_ver}")
     return _outside_versions_skip
+
+@pytest.fixture(scope="session")
+def version_skip():
+    def _version_skip(img_uri, ver):
+        """
+        skip test if the image framework versios is not within the (start_ver, end_ver) range
+        """
+        _, image_framework_version = get_framework_and_version_from_tag(img_uri)
+        if Version(ver) == Version(image_framework_version):
+            pytest.skip(f"test is not supported for version {ver}")
+    return _version_skip
 
 def framework_version_within_limit(metafunc_obj, image):
     """

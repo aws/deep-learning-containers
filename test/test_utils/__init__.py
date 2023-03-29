@@ -967,8 +967,10 @@ def get_canary_default_tag_py3_version(framework, version):
     if framework == "pytorch" or framework == "huggingface_pytorch":
         if Version("1.9") <= Version(version) < Version("1.13"):
             return "py38"
-        if Version(version) >= Version("1.13"):
+        if Version(version) >= Version("1.13") and Version(version) < Version("2.0"):
             return "py39"
+        if Version(version) >= Version("2.0"):
+            return "py310"
 
     return "py3"
 
@@ -1451,6 +1453,12 @@ NEURON_VERSION_MANIFEST = {
     "2.8.0": {
         "pytorch": {
             "1.13.0": "1.13.0.1.5.0",
+        },
+    },
+    "2.8.0": {
+        "tensorflow": {
+            "1.15.5": "1.15.5.2.6.5.0",
+            "2.10.1": "2.10.1.2.6.5.0",
         },
     },
     "1.19.1": {

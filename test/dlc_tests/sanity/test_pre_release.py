@@ -31,6 +31,7 @@ from test.test_utils import (
     get_repository_local_path,
     get_repository_and_tag_from_image_uri,
     get_python_version_from_image_uri,
+    get_cuda_version_from_tag,
     construct_buildspec_path,
     is_tf_version,
     is_nightly_context,
@@ -261,9 +262,9 @@ def test_framework_version_cpu(image):
     start_container(container_name, image, ctx)
     output = run_cmd_on_container(
         container_name, ctx, f"import {tested_framework}; print({tested_framework}.__version__)", executable="python"
-    )
+    ).stdout.strip()
     if is_canary_context():
-        assert tag_framework_version in output.stdout.strip()
+        assert tag_framework_version in output
     else:
         if tested_framework == "autogluon.core":
             versions_map = {
@@ -271,35 +272,42 @@ def test_framework_version_cpu(image):
                 # '0.3.2': '0.3.1',
             }
             version_to_check = versions_map.get(tag_framework_version, tag_framework_version)
-            assert output.stdout.strip().startswith(version_to_check)
+            assert output.startswith(version_to_check)
         # Habana v1.2 binary does not follow the X.Y.Z+cpu naming convention
         elif "habana" not in image_repo_name:
             if tested_framework == "torch" and Version(tag_framework_version) >= Version("1.10.0"):
                 if is_nightly_context():
                     torch_version_pattern = r"{torch_version}(\+cpu|\.dev\d+)".format(torch_version=tag_framework_version)
-                    assert re.fullmatch(torch_version_pattern, output.stdout.strip()), (
-                        f"torch.__version__ = {output.stdout.strip()} does not match {torch_version_pattern}\n"
+                    assert re.fullmatch(torch_version_pattern, output), (
+                        f"torch.__version__ = {output} does not match {torch_version_pattern}\n"
                         f"Please specify nightly framework version as X.Y.Z.devYYYYMMDD"
                     )
-                else:    
-                    torch_version_pattern = r"{torch_version}(\+cpu)".format(torch_version=tag_framework_version)
-                    assert re.fullmatch(torch_version_pattern, output.stdout.strip()), (
-                        f"torch.__version__ = {output.stdout.strip()} does not match {torch_version_pattern}\n"
+                else:
+                    if Version(tag_framework_version) >= Version("2.0.0") and "training" in image_repo_name:
+                        cuda_output = run_cmd_on_container(
+                            container_name, ctx, f"import {tested_framework}; print({tested_framework}.version.cuda)", executable="python"
+                        ).stdout.strip()
+                        torch_version_pattern = r"{torch_version}".format(torch_version=tag_framework_version)
+                        assert cuda_output == "None", f"cuda version has value: {cuda_output}"
+                    else:
+                        torch_version_pattern = r"{torch_version}(\+cpu)".format(torch_version=tag_framework_version)
+                    assert re.fullmatch(torch_version_pattern, output), (
+                        f"torch.__version__ = {output} does not match {torch_version_pattern}\n"
                         f"Please specify framework version as X.Y.Z+cpu"
                     )
         else:
             if "neuron" in image:
-                assert tag_framework_version in output.stdout.strip()
+                assert tag_framework_version in output
             if (all(_string in image for _string in ["pytorch", "habana"])
                and any(_string in image for _string in 
                ["synapseai1.3.0", "synapseai1.4.1", "synapseai1.5.0"])):
                 # Habana Pytorch version looks like 1.10.0a0+gitb488e78 for SynapseAI1.3 PT1.10.1 images
                 pt_fw_version_pattern = r"(\d+(\.\d+){1,2}(-rc\d)?)((a0\+git\w{7}))"
-                pt_fw_version_match = re.fullmatch(pt_fw_version_pattern, output.stdout.strip())
+                pt_fw_version_match = re.fullmatch(pt_fw_version_pattern, output)
                 # This is desired for PT1.10.1 images
                 assert tag_framework_version.rsplit('.', 1)[0] == pt_fw_version_match.group(1).rsplit('.', 1)[0]
             else:
-                assert tag_framework_version == output.stdout.strip()
+                assert tag_framework_version == output
     stop_and_remove_container(container_name, ctx)
 
 
@@ -383,9 +391,9 @@ def test_framework_and_cuda_version_gpu(gpu, ec2_connection):
     # For tf inference containers, check TF model server version
     if re.fullmatch(r"(pr-|beta-|nightly-)?tensorflow-inference(-eia|-graviton)?", image_repo_name):
         cmd = f"tensorflow_model_server --version"
-        output = ec2.execute_ec2_training_test(ec2_connection, image, cmd, executable="bash")
-        assert re.match(rf"TensorFlow ModelServer: {tag_framework_version}(\D+)?", output.stdout), \
-            f"Cannot find model server version {tag_framework_version} in {output.stdout}"
+        output = ec2.execute_ec2_training_test(ec2_connection, image, cmd, executable="bash").stdout
+        assert re.match(rf"TensorFlow ModelServer: {tag_framework_version}(\D+)?", output), \
+            f"Cannot find model server version {tag_framework_version} in {output}"
     else:
         # Framework name may include huggingface
         if tested_framework.startswith('huggingface_'):
@@ -402,9 +410,9 @@ def test_framework_and_cuda_version_gpu(gpu, ec2_connection):
         elif tested_framework == "autogluon":
             tested_framework = "autogluon.core"
         cmd = f"import {tested_framework}; print({tested_framework}.__version__)"
-        output = ec2.execute_ec2_training_test(ec2_connection, image, cmd, executable="python")
+        output = ec2.execute_ec2_training_test(ec2_connection, image, cmd, executable="python").stdout.strip()
         if is_canary_context():
-            assert tag_framework_version in output.stdout.strip()
+            assert tag_framework_version in output
         else:
             if tested_framework == "autogluon.core":
                 # If tag and framework are not matching:
@@ -414,18 +422,28 @@ def test_framework_and_cuda_version_gpu(gpu, ec2_connection):
             elif tested_framework == "torch" and Version(tag_framework_version) >= Version("1.10.0"):
                 if is_nightly_context():
                     torch_version_pattern = r"{torch_version}(\+cu\d+|\.dev\d+)".format(torch_version=tag_framework_version)
-                    assert re.fullmatch(torch_version_pattern, output.stdout.strip()), (
-                        f"torch.__version__ = {output.stdout.strip()} does not match {torch_version_pattern}\n"
+                    assert re.fullmatch(torch_version_pattern, output), (
+                        f"torch.__version__ = {output} does not match {torch_version_pattern}\n"
                         f"Please specify nightly framework version as X.Y.Z.devYYYYMMDD"
                     )
                 else:
-                    torch_version_pattern = r"{torch_version}(\+cu\d+)".format(torch_version=tag_framework_version)
-                    assert re.fullmatch(torch_version_pattern, output.stdout.strip()), (
-                        f"torch.__version__ = {output.stdout.strip()} does not match {torch_version_pattern}\n"
-                        f"Please specify framework version as X.Y.Z+cuXXX"
-                    )
+                    if Version(tag_framework_version) >= Version("2.0.0") and "training" in image_repo_name:
+                        cuda_output = ec2.execute_ec2_training_test(ec2_connection, image, "import torch; print(torch.version.cuda.replace(\".\", \"\"));", \
+                                executable="python", container_name="PT2").stdout.strip()
+                        cuda_ver = get_cuda_version_from_tag(image)    
+                        torch_version_pattern = r"{torch_version}".format(torch_version=tag_framework_version)
+                        assert output == tag_framework_version, (
+                            f"torch.__version__ = {output} does not match {torch_version_pattern}\n"
+                        )
+                        assert cuda_ver == "cu" + cuda_output, f"torch.version.cuda {cuda_ver} doesn't match {cuda_output}"
+                    else:                
+                        torch_version_pattern = r"{torch_version}(\+cu\d+)".format(torch_version=tag_framework_version)
+                        assert re.fullmatch(torch_version_pattern, output), (
+                            f"torch.__version__ = {output} does not match {torch_version_pattern}\n"
+                            f"Please specify framework version as X.Y.Z+cuXXX"
+                        )
             else:
-                assert tag_framework_version == output.stdout.strip()
+                assert tag_framework_version == output
 
     # CUDA Version Check #
     cuda_version = re.search(r"-cu(\d+)-", image).group(1)
