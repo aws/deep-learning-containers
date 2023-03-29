@@ -26,6 +26,7 @@ pip install -r requirements.txt
 # check GPU status
 if nvidia-smi &> /dev/null; then
    DEVICE="cuda"
+   NUM_GPUS=$(nvidia-smi -L | wc -l)
 else
    DEVICE="cpu"
 fi
