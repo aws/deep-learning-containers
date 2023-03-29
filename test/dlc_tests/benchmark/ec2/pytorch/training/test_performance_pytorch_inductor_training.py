@@ -41,6 +41,9 @@ PT_EC2_GPU_INDUCTOR_INSTANCE_TYPES = ("p3.2xlarge", "p4d.24xlarge", "g5.4xlarge"
 @pytest.mark.parametrize("ec2_instance_ami", [PT_GPU_PY3_BENCHMARK_IMAGENET_AMI_US_WEST_2], indirect=True)
 @pytest.mark.parametrize("ec2_instance_type", [PT_EC2_GPU_INDUCTOR_INSTANCE_TYPES], indirect=True)
 def test_performance_pytorch_gpu_inductor_huggingface(pytorch_training, ec2_connection, gpu_only, py3_only, ec2_instance_type):
+    _, framework_version = get_framework_and_version_from_tag(pytorch_training)
+    if Version(image_framework_version) < Version("2.0"):
+        pytest.skip("Torch inductor was introduced in PyTorch 2.0")
     execute_pytorch_gpu_py3_imagenet_ec2_training_performance_test(
         ec2_connection, pytorch_training, PT_PERFORMANCE_TRAINING_GPU_INDUCTOR_HUGGINGFACE_CMD, ec2_instance_type
     )
@@ -50,6 +53,9 @@ def test_performance_pytorch_gpu_inductor_huggingface(pytorch_training, ec2_conn
 @pytest.mark.parametrize("ec2_instance_ami", [PT_GPU_PY3_BENCHMARK_IMAGENET_AMI_US_WEST_2], indirect=True)
 @pytest.mark.parametrize("ec2_instance_type", [PT_EC2_GPU_INDUCTOR_INSTANCE_TYPES], indirect=True)
 def test_performance_pytorch_gpu_inductor_timm(pytorch_training, ec2_connection, gpu_only, py3_only, ec2_instance_type):
+    _, framework_version = get_framework_and_version_from_tag(pytorch_training)
+    if Version(image_framework_version) < Version("2.0"):
+        pytest.skip("Torch inductor was introduced in PyTorch 2.0")
     execute_pytorch_gpu_py3_imagenet_ec2_training_performance_test(
         ec2_connection, pytorch_training, PT_PERFORMANCE_TRAINING_GPU_INDUCTOR_TIMM_CMD, ec2_instance_type
     )
@@ -59,6 +65,9 @@ def test_performance_pytorch_gpu_inductor_timm(pytorch_training, ec2_connection,
 @pytest.mark.parametrize("ec2_instance_ami", [PT_GPU_PY3_BENCHMARK_IMAGENET_AMI_US_WEST_2], indirect=True)
 @pytest.mark.parametrize("ec2_instance_type", [PT_EC2_GPU_INDUCTOR_INSTANCE_TYPES], indirect=True)
 def test_performance_pytorch_gpu_inductor_torchbench(pytorch_training, ec2_connection, gpu_only, py3_only, ec2_instance_type):
+    _, framework_version = get_framework_and_version_from_tag(pytorch_training)
+    if Version(image_framework_version) < Version("2.0"):
+        pytest.skip("Torch inductor was introduced in PyTorch 2.0")
     execute_pytorch_gpu_py3_imagenet_ec2_training_performance_test(
         ec2_connection, pytorch_training, PT_PERFORMANCE_TRAINING_GPU_INDUCTOR_TORCHBENCH_CMD, ec2_instance_type
     )
