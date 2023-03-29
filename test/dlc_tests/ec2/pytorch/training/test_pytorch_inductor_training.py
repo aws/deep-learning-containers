@@ -15,7 +15,7 @@ PT_MNIST_INDUCTOR_CMD = os.path.join(CONTAINER_TESTS_PREFIX, "pytorch_tests", "t
 PT_AMP_INDUCTOR_CMD = os.path.join(CONTAINER_TESTS_PREFIX, "pytorch_tests", "testPyTorchAMPwithInductor")
 
 PT_EC2_GPU_INDUCTOR_INSTANCE_TYPES = []
-for instance_type in ["p3.2xlarge", "p4d.24xlarge", "g5.4xlarge", "g4dn.4xlarge"]:
+for instance_type in ["p3.2xlarge", "g5.4xlarge", "g4dn.4xlarge"]:
     PT_EC2_GPU_INDUCTOR_INSTANCE_TYPES.append(get_ec2_instance_type(
     default=instance_type, processor="gpu", filter_function=ec2_utils.filter_only_single_gpu,))
 
