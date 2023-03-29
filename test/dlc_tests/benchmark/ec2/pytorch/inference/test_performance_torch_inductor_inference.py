@@ -168,8 +168,6 @@ def ec2_performance_pytorch_inference(image_uri, instance_type, ec2_connection, 
     upload_metric(instance_type, precision, suite,
                   "PassRate", passrate, "Percent")
 
-    ec2_connection.run(
-        f"{docker_cmd} exec {container_name} " f"/bin/bash tar -cvzf /test/{log_file} $HOME/pytorch/benchmark_logs")
     ec2_connection.run(f"docker rm -f {container_name}")
     framework_version = re.search(r"\d+(\.\d+){2}", image_uri).group()
     s3_location = os.path.join(
