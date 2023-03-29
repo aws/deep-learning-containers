@@ -8,6 +8,10 @@ import argparse
 
 parser = argparse.ArgumentParser()
 parser.add_argument("-dir", "--directory", type=str)
+parser.add_argument("-namespace", "--namespace", type=str)
+parser.add_argument("-instance_type", "--instance_type", type=str)
+parser.add_argument("-model_suite", "--model_suite", type=str)
+parser.add_argument("-precision", "--precision", type=str)
 
 
 def get_boto3_session(region="us-east-1"):
@@ -51,25 +55,19 @@ def read_metric(csv_file):
                 return float(value[:i])
     return float(value)
 
-def upload_metric(unique_cw_namespace, value, unique_metric_dims):
-    def _upload_metric(metric_name, value, unit):
-        put_metric_data(
-                 metric_name=metric_name,
-                 namespace=unique_cw_namespace,
-                 unit=unit,
-                 value=value,
-                 dimensions=unique_metric_dims,
-        )
-
-    return _upload_metric
-
 if __name__ == '__main__':
     args = parser.parse_args()
+    dimensions = [
+             {"Name": "InstanceType", "Value": args.instance_type},
+             {"Name": "ModelSuite", "Value": args.model_suite},
+             {"Name": "Precision", "Value": args.precision},
+             {"Name": "WorkLoad", "Value": "Training"},
+         ]
     speedup = read_metric(os.path.join(args.directory, "geomean.csv"))
     comp_time = read_metric(os.path.join(args.directory,"comp_time.csv"))
     memory = read_metric(os.path.join(args.directory,"memory.csv"))
     passrate = read_metric(os.path.join(args.directory,"passrate.csv"))
-    upload_metric("Speedup", speedup, "None")
-    upload_metric("CompilationTime", comp_time, "Seconds")
-    upload_metric("PeakMemoryFootprintCompressionRatio", memory, "None")
-    upload_metric("PassRate", passrate, "Percent")
+    put_metric_data("Speedup", args.namespace, "None", speedup, dimensions)
+    put_metric_data("CompilationTime", args.namespace, "Seconds", comp_time, dimensions)
+    put_metric_data("PeakMemoryFootprintCompressionRatio", args.namespace, "None", memory, dimensions)
+    put_metric_data("PassRate", args.namespace, "Percent", passrate, dimensions)
