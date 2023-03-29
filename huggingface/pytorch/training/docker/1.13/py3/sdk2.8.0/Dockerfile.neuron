@@ -8,6 +8,7 @@ LABEL maintainer="Amazon AI"
 LABEL dlc_major_version="1"
 
 # version args
+ARG OPTIMUM_NEURON_VERSION
 ARG TRANSFORMERS_VERSION
 ARG DATASETS_VERSION
 ARG PYTHON=python3
@@ -15,7 +16,8 @@ ARG PYTHON=python3
 # install Hugging Face libraries and its dependencies
 RUN pip install --no-cache-dir \
 	transformers[sklearn,sentencepiece,audio,vision]==${TRANSFORMERS_VERSION} \
-	datasets==${DATASETS_VERSION}
+	datasets==${DATASETS_VERSION} \
+	optimum-neuron==${OPTIMUM_NEURON_VERSION}
 
 RUN apt-get update \
  # TODO: Remove upgrade statements once packages are updated in base image

@@ -148,6 +148,7 @@ def image_builder(buildspec, image_types=[], device_types=[]):
                 labels[f"{var}_URI"] = uri
 
         transformers_version = image_config.get("transformers_version")
+        optimum_neuron_version = image_config.get("optimum_neuron_version")
 
         if str(BUILDSPEC["framework"]).startswith("huggingface"):
             if transformers_version:
@@ -158,6 +159,9 @@ def image_builder(buildspec, image_types=[], device_types=[]):
                 extra_build_args["DATASETS_VERSION"] = image_config.get("datasets_version")
             elif str(image_config["image_type"]) == "training":
                 raise KeyError(f"HuggingFace buildspec.yml must contain 'datasets_version' field for each image")
+            
+            if optimum_neuron_version:
+                extra_build_args["OPTIMUM_NEURON_VERSION"] = optimum_neuron_version
 
         ARTIFACTS.update(
             {
