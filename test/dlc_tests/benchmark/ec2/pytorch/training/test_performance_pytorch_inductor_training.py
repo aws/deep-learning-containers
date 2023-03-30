@@ -21,7 +21,7 @@ PT_PERFORMANCE_TRAINING_GPU_INDUCTOR_TORCHBENCH_CMD = os.path.join(
 )
 
 
-PT_EC2_GPU_INDUCTOR_INSTANCE_TYPES = ["p3.2xlarge", "p4d.24xlarge", "g5.4xlarge", "g4dn.4xlarge"]
+PT_EC2_GPU_INDUCTOR_INSTANCE_TYPES = ["p3.2xlarge","p4d.24xlarge", "g5.4xlarge", "g4dn.4xlarge"]
 
 
 @pytest.mark.integration("inductor")
