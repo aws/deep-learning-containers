@@ -2,7 +2,6 @@ import os
 from transformers import AutoTokenizer, AutoModel, PretrainedConfig
 import torch
 import numpy as np
-import torch.neuron
 import intel_extension_for_pytorch as ipex
 from sagemaker_huggingface_inference_toolkit import decoder_encoder
 
