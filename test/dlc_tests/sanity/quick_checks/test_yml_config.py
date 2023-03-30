@@ -34,9 +34,9 @@ def _release_images_yml_verifier(image_type, excluded_image_type):
     Simple test to ensure release images yml file is loadable
     Also test that excluded_image_type is not present in the release yml file
     """
-    # Look up the path until deep-learning-containers is our base directory
+    # Look up the path until deep-learning-containers is in our base directory
     dlc_base_dir = os.getcwd()
-    while os.path.basename(dlc_base_dir) != "deep-learning-containers":
+    while "deep-learning-containers" not in os.path.basename(dlc_base_dir):
         dlc_base_dir = os.path.split(dlc_base_dir)[0]
 
     release_images_yml_file = os.path.join(dlc_base_dir, f"release_images_{image_type}.yml")
@@ -44,14 +44,15 @@ def _release_images_yml_verifier(image_type, excluded_image_type):
     # Define exclude regex
     exclude_pattern = re.compile(rf"{excluded_image_type}", re.IGNORECASE)
 
-    with open(release_images_yml_file, "r") as release_imgs_handle:
+    with open(release_images_yml_file, "r", encoding="utf-8") as release_imgs_handle:
         for line in release_imgs_handle:
             assert not exclude_pattern.search(
                 line
             ), f"{exclude_pattern.pattern} found in {release_images_yml_file}. Please ensure there are not conflicting job types here."
         try:
             yaml.safe_load(release_imgs_handle)
-        except yaml.YAMLError as e:
+        except yaml.YAMLError as err:
             raise RuntimeError(
-                f"Failed to load {release_images_yml_file} via pyyaml package. Please check the contents of the file, correct errors and retry."
-            ) from e
+                f"Failed to load {release_images_yml_file} via pyyaml package. "
+                f"Please check the contents of the file, correct errors and retry."
+            ) from err
