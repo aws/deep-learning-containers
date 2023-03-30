@@ -27,7 +27,7 @@ RUN apt-get update \
 FROM base_image AS ec2
 
 LABEL maintainer="Amazon AI"
-LABEL dlc_major_version="1"
+LABEL dlc_major_version="2"
 
 ARG PYTHON=python3.10
 ARG PYTHON_PIP=python3-pip
