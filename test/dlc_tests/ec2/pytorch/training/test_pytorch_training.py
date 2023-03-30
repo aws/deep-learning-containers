@@ -181,6 +181,8 @@ def test_pytorch_nccl(pytorch_training, ec2_connection, gpu_only, py3_only, ec2_
     """
     Tests nccl backend
     """
+    if ec2_instance_type.startswith("g3"):
+        pytest.skip("skipping inductor related test on g3 instance")
     if test_utils.is_image_incompatible_with_instance_type(pytorch_training, ec2_instance_type):
         pytest.skip(f"Image {pytorch_training} is incompatible with instance type {ec2_instance_type}")
     test_cmd = os.path.join(CONTAINER_TESTS_PREFIX, "pytorch_tests", "testPyTorchNccl")
@@ -264,7 +266,7 @@ def test_pytorch_amp(pytorch_training, ec2_connection, gpu_only, ec2_instance_ty
     if test_utils.is_image_incompatible_with_instance_type(pytorch_training, ec2_instance_type):
         pytest.skip(f"Image {pytorch_training} is incompatible with instance type {ec2_instance_type}")
     execute_ec2_training_test(ec2_connection, pytorch_training, PT_AMP_CMD)
-
+    
 
 @pytest.mark.usefixtures("feature_s3_plugin_present")
 @pytest.mark.usefixtures("sagemaker")
