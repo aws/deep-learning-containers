@@ -422,7 +422,7 @@ def get_inference_server_type(image_uri):
     image_tag = image_uri.split(":")[1]
     pytorch_ver = parse(image_tag.split("-")[0])
     from packaging.version import LegacyVersion
-    if isinstance(pytorch_ver, LegacyVersion) or pytorch_ver < Version("1.6"): 
+    if isinstance(pytorch_ver, LegacyVersion) or pytorch_ver < Version("1.6"):
         return "mms"
     return "ts"
 
@@ -795,6 +795,7 @@ def get_inference_run_command(image_uri, model_names, processor="cpu"):
             "squeezenet": "https://torchserve.s3.amazonaws.com/mar_files/squeezenet1_1.mar",
             "pytorch-densenet": "https://torchserve.s3.amazonaws.com/mar_files/densenet161.mar",
             "pytorch-resnet-neuron": "https://aws-dlc-sample-models.s3.amazonaws.com/pytorch/Resnet50-neuron.mar",
+            "pytorch-densenet-inductor": "https://aws-dlc-sample-models.s3.amazonaws.com/pytorch/densenet161-inductor.mar",
         }
     else:
         multi_model_location = {
