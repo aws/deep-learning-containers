@@ -12,26 +12,28 @@
 # language governing permissions and limitations under the License.
 
 import os
-import time
-import pytest
-import re
-import pandas as pd
-import boto3
 import datetime
-from botocore.exceptions import ClientError
+import re
 from test.test_utils import (
-    CONTAINER_TESTS_PREFIX,
     get_framework_and_version_from_tag,
+    UL20_CPU_ARM64_US_WEST_2,
     LOGGER,
     BENCHMARK_RESULTS_S3_BUCKET
 )
+import pytest
+import pandas as pd
+import boto3
+from botocore.exceptions import ClientError
+from packaging.version import Version
+from packaging.specifiers import SpecifierSet
 
 SETUP_CMD = "cd $HOME && \
-             git clone --branch v2.0.0-rc3 --recursive --single-branch -depth 1 https://github.com/pytorch/pytorch.git && \
+             git clone --branch v2.0.0 --recursive --single-branch -depth 1 https://github.com/pytorch/pytorch.git && \
              git clone --recursive https://github.com/pytorch/benchmark.git && \
              git checkout $(cat pytorch/.github/ci_commit_pins/benchmark.txt && \
              cd $HOME/benchmark && \
              python install.py;"
+
 
 def unique_metric_dims(instance_type, precision, model_suite):
     dimensions = [
@@ -42,13 +44,16 @@ def unique_metric_dims(instance_type, precision, model_suite):
     ]
     return dimensions
 
+
 def get_boto3_session(region="us-east-1"):
     """Get boto3 session with us-east-1 as default region used to connect to AWS services."""
     return boto3.session.Session(region_name=region)
 
+
 def get_cloudwatch_client(region="us-east-1"):
     """Get AWS CloudWatch client object. Currently assume region is IAD (us-east-1)"""
     return get_boto3_session(region=region).client("cloudwatch")
+
 
 def put_metric_data(metric_name, namespace, unit, value, dimensions):
     """Puts data points to cloudwatch metrics"""
@@ -73,6 +78,7 @@ def put_metric_data(metric_name, namespace, unit, value, dimensions):
         LOGGER.error("Exception: {}".format(e))
         raise e
 
+
 def read_metric(model_suite, csv_file):
     csv = os.path.join("./", f"logs_{model_suite}", csv_file)
     df = pd.read_csv(csv)
@@ -85,40 +91,67 @@ def read_metric(model_suite, csv_file):
                 return float(value[:i])
     return float(value)
 
+
 def upload_metric(instance_type, precision, suite, metric_name, value, unit):
     put_metric_data(
         metric_name=metric_name,
-        namespace=f"pytorch/{instance_type}/Benchmarks/TorchDynamo/Inductor",
+        namespace=f"PyTorch/EC2/Benchmarks/TorchDynamo/Inductor",
         unit=unit,
         value=value,
         dimensions=unique_metric_dims(instance_type, precision, suite),
     )
 
-@pytest.mark.parametrize("ec2_instance_type", ["c5.4xlarge", "m5.4xlarge", "c7g.4xlarge", "m7g.4xlarge"], indirect=True)
+
+@pytest.mark.parametrize("ec2_instance_type", ["c5.4xlarge", "m5.4xlarge"], indirect=True)
 @pytest.mark.parametrize("suite", ["huggingface", "timm", "torchbench"])
 @pytest.mark.parametrize("precision", ["float32"])
 def test_performance_ec2_pytorch_inference_cpu(pytorch_inference, ec2_connection, region):
-    ec2_performance_pytorch_inference(
-        pytorch_inference,
-        ec2_instance_type,
-        ec2_connection,
-        region,
-        suite,
-    )
+    _, image_framework_version = get_framework_and_version_from_tag(
+        pytorch_inference)
+    if Version(image_framework_version) in SpecifierSet("<2.0"):
+        ec2_performance_pytorch_inference(
+            pytorch_inference,
+            ec2_instance_type,
+            ec2_connection,
+            region,
+            suite,
+            precision,
+        )
 
+
+@pytest.mark.parametrize("ec2_instance_type", ["c6g.4xlarge", "c7g.4xlarge", "m7g.4xlarge"], indirect=True)
+@pytest.mark.parametrize("suite", ["huggingface", "timm", "torchbench"])
+@pytest.mark.parametrize("precision", ["float32"])
+@pytest.mark.parametrize("ec2_instance_ami", [UL20_CPU_ARM64_US_WEST_2], indirect=True)
+def test_performance_ec2_pytorch_inference_graviton(pytorch_inference, ec2_connection, region):
+    _, image_framework_version = get_framework_and_version_from_tag(
+        pytorch_inference)
+    if Version(image_framework_version) in SpecifierSet("<2.0"):
+        ec2_performance_pytorch_inference(
+            pytorch_inference,
+            ec2_instance_type,
+            ec2_connection,
+            region,
+            suite,
+            precision,
+        )
 
 @pytest.mark.parametrize("ec2_instance_type", ["p3.2xlarge", "g5.4xlarge", "g4dn.4xlarge"], indirect=True)
 @pytest.mark.parametrize("suite", ["huggingface", "timm", "torchbench"])
 @pytest.mark.parametrize("precision", ["float32"])
 def test_performance_ec2_pytorch_inference_gpu(pytorch_inference, ec2_connection, region):
-    ec2_performance_pytorch_inference(
-        pytorch_inference,
-        ec2_instance_type,
-        ec2_connection,
-        region,
-        suite,
-        precision,
-    )
+    _, image_framework_version = get_framework_and_version_from_tag(
+        pytorch_inference)
+    if Version(image_framework_version) in SpecifierSet("<2.0"):
+        ec2_performance_pytorch_inference(
+            pytorch_inference,
+            ec2_instance_type,
+            ec2_connection,
+            region,
+            suite,
+            precision,
+        )
+
 
 def ec2_performance_pytorch_inference(image_uri, instance_type, ec2_connection, region, suite, precision):
     is_gpu = re.search(r"(p3|g4|g5)", instance_type)
