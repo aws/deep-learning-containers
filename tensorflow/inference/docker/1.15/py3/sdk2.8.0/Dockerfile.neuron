@@ -132,7 +132,7 @@ RUN ${PIP} install --no-cache-dir -U \
 # pip install statements have been separated out into multiple sequentially executed statements to
 # resolve package dependencies during installation.
 RUN ${PIP} install tensorflow_serving_api==1.15 --no-deps --extra-index-url https://pip.repos.neuron.amazonaws.com \
- && ${PIP} install tensorboard-neuron>=1.15,<1.16 --extra-index-url https://pip.repos.neuron.amazonaws.com \
+ && ${PIP} install "tensorboard-neuron>=1.15,<1.16" --extra-index-url https://pip.repos.neuron.amazonaws.com \
  && ${PIP} install neuron-cc=1.13.* --extra-index-url https://pip.repos.neuron.amazonaws.com \
  && ${PIP} install tensorflow-neuron==1.15.5.2.6.* --extra-index-url https://pip.repos.neuron.amazonaws.com
 

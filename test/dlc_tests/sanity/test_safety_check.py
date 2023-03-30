@@ -461,24 +461,6 @@ IGNORE_SAFETY_IDS = {
                 "51955",
                 "48635",
                 "48644",
-                "53853",
-                "53850",
-                "53855",
-                "53864",
-                "53862",
-                "53861",
-                "53859",
-                "53858",
-                "53857",
-                "53856",
-                "53854",
-                "53852",
-                "53851",
-                "53849",
-                "53848",
-                "53847",
-                "53845",
-                "53846",
             ],
         },
     },
@@ -1078,8 +1060,6 @@ def test_safety(image):
 
     repo_name, image_tag = image.split("/")[-1].split(":")
     ignore_ids_list = _get_safety_ignore_list(image)
-    ignore_ids_set = set(ignore_ids_list)
-    vulnerabilities_left = []
     sep = " -i "
     ignore_str = "" if not ignore_ids_list else f"{sep}{sep.join(ignore_ids_list)}"
 
@@ -1096,7 +1076,6 @@ def test_safety(image):
         f"{image}",
         hide=True,
     )
-
     try:
         run(f"{docker_exec_cmd} pip install 'safety>=2.2.0' yolk3k ", hide=True)
         json_str_safety_result = safety_check.run_safety_check_on_container(docker_exec_cmd)
@@ -1116,12 +1095,6 @@ def test_safety(image):
                 # gives an object that can be easily compared against a Version object.
                 # https://packaging.pypa.io/en/latest/specifiers/
                 ignore_str += f" -i {vulnerability_id}"
-            elif vulnerability_id not in ignore_ids_set:
-                    vulnerabilities_left.append(vulnerability)
-        if vulnerabilities_left:
-            LOGGER.info(f"Vulnerabilities (which are not in the 'ignored' list) found:")
-            for vulnerability in vulnerabilities_left:
-                LOGGER.info(f"{json.dumps(vulnerability)}\n-------------------")
         assert (
             safety_check.run_safety_check_with_ignore_list(docker_exec_cmd, ignore_str) == 0
         ), f"Safety test failed for {image}"
