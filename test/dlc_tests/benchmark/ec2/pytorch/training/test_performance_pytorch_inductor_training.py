@@ -1,6 +1,7 @@
 import os
 import time
 import pytest
+from packaging.version import Version
 
 from test.test_utils import (
     CONTAINER_TESTS_PREFIX,
@@ -67,7 +68,6 @@ def execute_pytorch_gpu_py3_imagenet_ec2_training_performance_test(
     _, framework_version = get_framework_and_version_from_tag(ecr_uri)
     repo_name, image_tag = ecr_uri.split("/")[-1].split(":")
     container_test_local_dir = os.path.join("$HOME", "container_tests")
-
     container_name = f"{repo_name}-performance-{image_tag}-ec2"
 
     # Make sure we are logged into ECR so we can pull the image
