@@ -10,7 +10,7 @@ from sagemaker_huggingface_inference_toolkit import decoder_encoder
 
 model_id2label = {"0": "NEGATIVE", "1": "POSITIVE"}
 
-print("running Neuron... test")
+print("running IPex... test")
 
 def model_fn(model_dir):
     tokenizer = AutoTokenizer.from_pretrained(model_dir)
