@@ -287,7 +287,13 @@ def _run_tag_success_IMDSv1(image_uri, ec2_client, ec2_instance, ec2_connection)
 
     LOGGER.info(f"_run_tag_success_IMDSv1 starting pulling: {image_uri}")
     test_utils.login_to_ecr_registry(ec2_connection, account_id, image_region)
-    res = ec2_connection.run(f"{docker_cmd} pull -q {image_uri}", timeout=360)
+    res = ec2_connection.run(f"time {docker_cmd} pull -q {image_uri}")
+    # for i in range(2):
+    #     try:
+    #         res = ec2_connection.run(f"{docker_cmd} pull -q {image_uri}", timeout=240)
+    #     except CommandTimedOut as e:
+    #         LOGGER.info(f"docker pull cmd didn't return: {e}")
+
     LOGGER.info(f"_run_tag_success_IMDSv1 pulling fabric res: {res.stdout}, {res.stderr}, {res.exited}")
 
     LOGGER.info(f"_run_tag_success_IMDSv1, {image_uri} starting get_ec2_instance_tags")
