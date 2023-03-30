@@ -20,7 +20,7 @@ PYTHON_VERSION_CHECK=`echo $?`
 set -e
 cd $BIN_DIR
 rm -rf $BIN_DIR/pytorch
-git clone https://github.com/pytorch/pytorch.git --branch master --single-branch --depth 1  $BIN_DIR/pytorch
+git clone https://github.com/pytorch/pytorch.git --branch v2.0.0 --single-branch --depth 1  $BIN_DIR/pytorch
 
 
 pip install -U numpy
@@ -42,6 +42,14 @@ FORCE_CUDA=1 python setup.py clean install
 git clone https://github.com/pytorch/benchmark $BIN_DIR/pytorch/benchmark
 cd $BIN_DIR/pytorch/benchmark
 python install.py
+
+if [$1 -eq "p3.2xlarge"] || [$1 -eq "g4dn.4xlarge"]; then
+    sed -i "s/BATCH_SIZE_KNOWN_MODELS\[model_name\] = batch_size/BATCH_SIZE_KNOWN_MODELS[model_name] = batch_size \/ 4 if batch_size >= 4 else 1/g" $BIN_DIR/pytorch/benchmarks/dynamo/torchbench.py
+elif [$1 -eq "g5.4xlarge"]; then
+    sed -i "s/BATCH_SIZE_KNOWN_MODELS\[model_name\] = batch_size/BATCH_SIZE_KNOWN_MODELS[model_name] = batch_size \/ 2 if batch_size >= 2 else 1/g" $BIN_DIR/pytorch/benchmarks/dynamo/torchbench.py
+else
+    echo "No need to adjust batch size since we are using p4d.24xlarge."
+fi
 
 rm -rf $BIN_DIR/pytorch/torchbench_logs
 mkdir -p $BIN_DIR/pytorch/torchbench_logs
