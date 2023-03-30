@@ -287,7 +287,7 @@ def _run_tag_success_IMDSv1(image_uri, ec2_client, ec2_instance, ec2_connection)
 
     LOGGER.info(f"_run_tag_success_IMDSv1 starting pulling: {image_uri}")
     test_utils.login_to_ecr_registry(ec2_connection, account_id, image_region)
-    ec2_connection.run(f"{docker_cmd} pull -q {image_uri}")
+    ec2_connection.run(f"{docker_cmd} pull -q {image_uri}", timeout=360)
 
     LOGGER.info(f"_run_tag_success_IMDSv1, {image_uri} starting get_ec2_instance_tags")
     preexisting_ec2_instance_tags = ec2_utils.get_ec2_instance_tags(ec2_instance_id, ec2_client=ec2_client)
@@ -325,7 +325,7 @@ def _run_tag_failure_IMDSv2_disabled_as_hop_limit_1(image_uri, ec2_client, ec2_i
 
     LOGGER.info(f"_run_tag_failure_IMDSv2_disabled_as_hop_limit_1 starting pulling: {image_uri}")
     test_utils.login_to_ecr_registry(ec2_connection, account_id, image_region)
-    ec2_connection.run(f"{docker_cmd} pull -q {image_uri}")
+    ec2_connection.run(f"{docker_cmd} pull -q {image_uri}", timeout=360)
 
     LOGGER.info(f"_run_tag_failure_IMDSv2_disabled_as_hop_limit_1, {image_uri} starting get_ec2_instance_tags")
     preexisting_ec2_instance_tags = ec2_utils.get_ec2_instance_tags(ec2_instance_id, ec2_client=ec2_client)
@@ -367,7 +367,7 @@ def _run_tag_success_IMDSv2_hop_limit_2(image_uri, ec2_client, ec2_instance, ec2
 
     LOGGER.info(f"_run_tag_success_IMDSv2_hop_limit_2 starting pulling: {image_uri}")
     test_utils.login_to_ecr_registry(ec2_connection, account_id, image_region)
-    ec2_connection.run(f"{docker_cmd} pull -q {image_uri}")
+    ec2_connection.run(f"{docker_cmd} pull -q {image_uri}", timeout=360)
 
     LOGGER.info(f"_run_tag_success_IMDSv2_hop_limit_2, {image_uri} starting get_ec2_instance_tags")
     preexisting_ec2_instance_tags = ec2_utils.get_ec2_instance_tags(ec2_instance_id, ec2_client=ec2_client)
