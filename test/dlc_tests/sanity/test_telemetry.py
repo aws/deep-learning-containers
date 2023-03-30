@@ -198,7 +198,7 @@ def _run_s3_query_bucket_success(image_uri, ec2_client, ec2_instance, ec2_connec
     test_utils.login_to_ecr_registry(ec2_connection, account_id, image_region)
     ## For big images like trcomp, the ec2_connection.run command stops listening and the code hangs here.
     ## Hence, avoiding the use of -q to let the connection remain active.
-    ec2_connection.run(f"{docker_cmd} pull {image_uri}")
+    ec2_connection.run(f"{docker_cmd} pull {image_uri}", hide="out")
 
     actual_output = invoke_telemetry_call(image_uri, container_name, docker_cmd, framework, job_type, ec2_connection, test_mode = 1)
 
@@ -240,13 +240,13 @@ def _run_tag_failure_IMDSv1_disabled(image_uri, ec2_client, ec2_instance, ec2_co
 
     docker_cmd = "nvidia-docker" if processor == "gpu" else "docker"
 
-    LOGGER.info(f"_run_tag_failure_IMDSv1_disabled starting pulling: {image_uri}")
+    LOGGER.info(f"_run_tag_failure_IMDSv1_disabled pulling: {image_uri}")
     test_utils.login_to_ecr_registry(ec2_connection, account_id, image_region)
     ## For big images like trcomp, the ec2_connection.run command stops listening and the code hangs here.
     ## Hence, avoiding the use of -q to let the connection remain active.
-    ec2_connection.run(f"{docker_cmd} pull {image_uri}")
+    ec2_connection.run(f"{docker_cmd} pull {image_uri}", hide="out")
 
-    LOGGER.info(f"_run_tag_failure_IMDSv1_disabled, {image_uri} starting get_ec2_instance_tags")
+    LOGGER.info(f"_run_tag_failure_IMDSv1_disabled, {image_uri} get_ec2_instance_tags")
     preexisting_ec2_instance_tags = ec2_utils.get_ec2_instance_tags(ec2_instance_id, ec2_client=ec2_client)
     if expected_tag_key in preexisting_ec2_instance_tags:
         ec2_client.delete_tags(Resources=[ec2_instance_id], Tags=[{"Key": expected_tag_key}])
@@ -285,16 +285,9 @@ def _run_tag_success_IMDSv1(image_uri, ec2_client, ec2_instance, ec2_connection)
 
     docker_cmd = "nvidia-docker" if processor == "gpu" else "docker"
 
-    LOGGER.info(f"_run_tag_success_IMDSv1 starting pulling: {image_uri}")
+    LOGGER.info(f"_run_tag_success_IMDSv1 pulling: {image_uri}")
     test_utils.login_to_ecr_registry(ec2_connection, account_id, image_region)
-    res = ec2_connection.run(f"time {docker_cmd} pull -q {image_uri}")
-    # for i in range(2):
-    #     try:
-    #         res = ec2_connection.run(f"{docker_cmd} pull -q {image_uri}", timeout=240)
-    #     except CommandTimedOut as e:
-    #         LOGGER.info(f"docker pull cmd didn't return: {e}")
-
-    LOGGER.info(f"_run_tag_success_IMDSv1 pulling fabric res: {res.stdout}, {res.stderr}, {res.exited}")
+    ec2_connection.run(f"{docker_cmd} pull {image_uri}", hide='out')
 
     LOGGER.info(f"_run_tag_success_IMDSv1, {image_uri} starting get_ec2_instance_tags")
     preexisting_ec2_instance_tags = ec2_utils.get_ec2_instance_tags(ec2_instance_id, ec2_client=ec2_client)
@@ -330,10 +323,9 @@ def _run_tag_failure_IMDSv2_disabled_as_hop_limit_1(image_uri, ec2_client, ec2_i
 
     docker_cmd = "nvidia-docker" if processor == "gpu" else "docker"
 
-    LOGGER.info(f"_run_tag_failure_IMDSv2_disabled_as_hop_limit_1 starting pulling: {image_uri}")
+    LOGGER.info(f"_run_tag_failure_IMDSv2_disabled_as_hop_limit_1 pulling: {image_uri}")
     test_utils.login_to_ecr_registry(ec2_connection, account_id, image_region)
-    res = ec2_connection.run(f"{docker_cmd} pull -q {image_uri}", timeout=360)
-    LOGGER.info(f"_run_tag_failure_IMDSv2_disabled_as_hop_limit_1 pulling fabric res: {res.stdout}, {res.stderr}, {res.exited}")
+    ec2_connection.run(f"{docker_cmd} pull {image_uri}", hide='out')
 
     LOGGER.info(f"_run_tag_failure_IMDSv2_disabled_as_hop_limit_1, {image_uri} starting get_ec2_instance_tags")
     preexisting_ec2_instance_tags = ec2_utils.get_ec2_instance_tags(ec2_instance_id, ec2_client=ec2_client)
@@ -373,10 +365,9 @@ def _run_tag_success_IMDSv2_hop_limit_2(image_uri, ec2_client, ec2_instance, ec2
 
     docker_cmd = "nvidia-docker" if processor == "gpu" else "docker"
 
-    LOGGER.info(f"_run_tag_success_IMDSv2_hop_limit_2 starting pulling: {image_uri}")
+    LOGGER.info(f"_run_tag_success_IMDSv2_hop_limit_2 pulling: {image_uri}")
     test_utils.login_to_ecr_registry(ec2_connection, account_id, image_region)
-    res = ec2_connection.run(f"{docker_cmd} pull -q {image_uri}", timeout=360)
-    LOGGER.info(f"_run_tag_success_IMDSv2_hop_limit_2 pulling fabric res: {res.stdout}, {res.stderr}, {res.exited}")
+    ec2_connection.run(f"{docker_cmd} pull {image_uri}", hide='out')
 
     LOGGER.info(f"_run_tag_success_IMDSv2_hop_limit_2, {image_uri} starting get_ec2_instance_tags")
     preexisting_ec2_instance_tags = ec2_utils.get_ec2_instance_tags(ec2_instance_id, ec2_client=ec2_client)
