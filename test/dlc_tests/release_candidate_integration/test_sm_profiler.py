@@ -86,7 +86,8 @@ def test_sm_profiler_tf(tensorflow_training):
     ctx.run(f"mkdir -p {profiler_tests_dir}", hide=True)
 
     # Download sagemaker-tests zip
-    sm_tests_zip = "sagemaker-tests.zip"
+    # TODO: revert the change
+    sm_tests_zip = "sagemaker-tests-tejas.zip"
     ctx.run(
         f"aws s3 cp {os.getenv('SMPROFILER_TESTS_BUCKET')}/{sm_tests_zip} {profiler_tests_dir}/{sm_tests_zip}",
         hide=True
