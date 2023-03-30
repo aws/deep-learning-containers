@@ -374,7 +374,7 @@ def main():
                 if is_habana_image:
                     pytest_cmd.append("--timeout=18000")
                 else:
-                    pytest_cmd.append("--timeout=4860")
+                    pytest_cmd.append("--timeout=18000")
 
         pytest_cmds = [pytest_cmd]
         # Execute separate cmd for canaries

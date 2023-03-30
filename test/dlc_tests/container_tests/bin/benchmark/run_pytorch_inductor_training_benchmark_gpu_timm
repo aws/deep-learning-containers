@@ -30,7 +30,7 @@ TRAINING_LOG=${LOG_DIR}/pytorch_inductor_timm_benchmark.log
 
 rm -rf $BIN_DIR/pytorch/timm_logs
 mkdir -p $BIN_DIR/pytorch/timm_logs
-python $BIN_DIR/pytorch/benchmarks/dynamo/timm_models.py --performance --amp -dcuda --output=timm_logs/inductor_timm_amp_training_cuda_performance.csv --training --inductor --output-directory=$BIN_DIR/pytorch/ --no-skip --dashboard -x GPTJForCausalLM -x Reformer -x GPTJForQuestionAnswering -x GPTNeoForSequenceClassification -x BlenderbotForConditionalGeneration -x GPTNeoForCausalLM --cold-start-latency > $TRAINING_LOG 2>&1
+python $BIN_DIR/pytorch/benchmarks/dynamo/timm_models.py --performance --amp -dcuda --output=timm_logs/inductor_timm_amp_training_cuda_performance.csv --training --inductor --output-directory=$BIN_DIR/pytorch/ --no-skip --dashboard -x GPTJForCausalLM -x Reformer -x GPTJForQuestionAnswering -x GPTNeoForSequenceClassification -x BlenderbotForConditionalGeneration -x GPTNeoForCausalLM --cold-start-latency 
 python $BIN_DIR/pytorch/benchmarks/dynamo/timm_models.py --accuracy --amp -dcuda --output=timm_logs/inductor_timm_amp_training_cuda_accuracy.csv --training --inductor --output-directory=$BIN_DIR/pytorch/ --no-skip --dashboard -x GPTJForCausalLM -x Reformer -x GPTJForQuestionAnswering -x GPTNeoForSequenceClassification -x BlenderbotForConditionalGeneration -x GPTNeoForCausalLM --cold-start-latency > $TRAINING_LOG 2>&1
 
 RETURN_VAL=`echo $?`

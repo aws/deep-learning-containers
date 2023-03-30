@@ -45,7 +45,7 @@ python install.py
 
 rm -rf $BIN_DIR/pytorch/torchbench_logs
 mkdir -p $BIN_DIR/pytorch/torchbench_logs
-python $BIN_DIR/pytorch/benchmarks/dynamo/torchbench.py --performance --amp -dcuda --output=torchbench_logs/inductor_torchbench_amp_training_cuda_performance.csv --training --inductor --output-directory=$BIN_DIR/pytorch/ --no-skip --dashboard -x GPTJForCausalLM -x Reformer -x GPTJForQuestionAnswering -x GPTNeoForSequenceClassification -x BlenderbotForConditionalGeneration -x GPTNeoForCausalLM --cold-start-latency > $TRAINING_LOG 2>&1
+python $BIN_DIR/pytorch/benchmarks/dynamo/torchbench.py --performance --amp -dcuda --output=torchbench_logs/inductor_torchbench_amp_training_cuda_performance.csv --training --inductor --output-directory=$BIN_DIR/pytorch/ --no-skip --dashboard -x GPTJForCausalLM -x Reformer -x GPTJForQuestionAnswering -x GPTNeoForSequenceClassification -x BlenderbotForConditionalGeneration -x GPTNeoForCausalLM --cold-start-latency 
 python $BIN_DIR/pytorch/benchmarks/dynamo/torchbench.py --accuracy --amp -dcuda --output=torchbench_logs/inductor_torchbench_amp_training_cuda_accuracy.csv --training --inductor --output-directory=$BIN_DIR/pytorch/ --no-skip --dashboard -x GPTJForCausalLM -x Reformer -x GPTJForQuestionAnswering -x GPTNeoForSequenceClassification -x BlenderbotForConditionalGeneration -x GPTNeoForCausalLM --cold-start-latency > $TRAINING_LOG 2>&1
 
 

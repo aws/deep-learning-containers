@@ -30,7 +30,7 @@ TRAINING_LOG=${LOG_DIR}/pytorch_inductor_huggingface_benchmark.log
 
 rm -rf $BIN_DIR/pytorch/huggingface_logs
 mkdir -p $BIN_DIR/pytorch/huggingface_logs
-python $BIN_DIR/pytorch/benchmarks/dynamo/huggingface.py --performance --amp -dcuda --output=huggingface_logs/inductor_huggingface_amp_training_cuda_performance.csv --training --inductor --output-directory=$BIN_DIR/pytorch/ --no-skip --dashboard -x GPTJForCausalLM -x Reformer -x GPTJForQuestionAnswering -x GPTNeoForSequenceClassification -x BlenderbotForConditionalGeneration -x GPTNeoForCausalLM --cold-start-latency > $TRAINING_LOG 2>&1
+python $BIN_DIR/pytorch/benchmarks/dynamo/huggingface.py --performance --amp -dcuda --output=huggingface_logs/inductor_huggingface_amp_training_cuda_performance.csv --training --inductor --output-directory=$BIN_DIR/pytorch/ --no-skip --dashboard -x GPTJForCausalLM -x Reformer -x GPTJForQuestionAnswering -x GPTNeoForSequenceClassification -x BlenderbotForConditionalGeneration -x GPTNeoForCausalLM --cold-start-latency 
 python $BIN_DIR/pytorch/benchmarks/dynamo/huggingface.py --accuracy --amp -dcuda --output=huggingface_logs/inductor_huggingface_amp_training_cuda_accuracy.csv --training --inductor --output-directory=$BIN_DIR/pytorch/ --no-skip --dashboard -x GPTJForCausalLM -x Reformer -x GPTJForQuestionAnswering -x GPTNeoForSequenceClassification -x BlenderbotForConditionalGeneration -x GPTNeoForCausalLM --cold-start-latency > $TRAINING_LOG 2>&1
 
 RETURN_VAL=`echo $?`
@@ -44,7 +44,7 @@ else
     exit 1
 fi
 
-python read_upload_benchmarking_results.py -dir $BIN_DIR/pytorch/huggingface_logs \
+python $HOME_DIR/read_upload_benchmarking_results.py -dir $BIN_DIR/pytorch/huggingface_logs \
        -model_suite huggingface -precision amp -instance_type $1
 
 

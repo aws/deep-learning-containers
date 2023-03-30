@@ -14,11 +14,11 @@ parser.add_argument("-model_suite", "--model_suite", type=str)
 parser.add_argument("-precision", "--precision", type=str)
 
 
-def get_boto3_session(region="us-east-1"):
+def get_boto3_session(region="us-west-2"):
     """Get boto3 session with us-east-1 as default region used to connect to AWS services."""
     return boto3.session.Session(region_name=region)
 
-def get_cloudwatch_client(region="us-east-1"):
+def get_cloudwatch_client(region="us-west-2"):
     """Get AWS CloudWatch client object. Currently assume region is IAD (us-east-1)"""
     return get_boto3_session(region=region).client("cloudwatch")
 
