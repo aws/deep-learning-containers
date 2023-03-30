@@ -60,7 +60,7 @@ else
     exit 1
 fi
 
-python read_upload_benchmarking_results.py -dir $BIN_DIR/pytorch/torchbench_logs \
+python $HOME_DIR/read_upload_benchmarking_results.py -dir $BIN_DIR/pytorch/torchbench_logs \
        -model_suite torchbench -precision amp -instance_type $1
 
 exit 0
