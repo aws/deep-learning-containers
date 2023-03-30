@@ -79,6 +79,13 @@ def ecs_instance_type(request):
 
 
 @pytest.fixture(scope="session")
+def use_large_storage(request):
+    if hasattr(request, "param"):
+        return request.param
+    else:
+        return False
+
+@pytest.fixture(scope="session")
 def ecs_num_neurons(request, ecs_instance_type):
     # Set the num neurons based on instance_type
     if ecs_instance_type == "trn1.2xlarge":
@@ -90,7 +97,7 @@ def ecs_num_neurons(request, ecs_instance_type):
 
 @pytest.mark.timeout(300)
 @pytest.fixture(scope="function")
-def ecs_container_instance(request, ecs_cluster, ec2_client, ecs_client, ecs_instance_type, ecs_ami, region, ei_accelerator_type):
+def ecs_container_instance(request, ecs_cluster, ec2_client, ecs_client, ecs_instance_type, ecs_ami, region, ei_accelerator_type, use_large_storage):
     """
     Fixture to handle spin up and tear down of ECS container instance
 
@@ -121,6 +128,17 @@ def ecs_container_instance(request, ecs_cluster, ec2_client, ecs_client, ecs_ins
         "MaxCount": 1,
         "MinCount": 1,
     }
+    if use_large_storage:
+        params["BlockDeviceMappings"] = [
+            {
+                "DeviceName": "/dev/xvda",
+                "Ebs": {
+                    "VolumeSize": 60,
+                    "VolumeType": "gp2"
+                }
+            }
+        ]
+        
     if ei_accelerator_type:
         params["ElasticInferenceAccelerators"] = [
             {

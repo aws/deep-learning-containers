@@ -941,7 +941,7 @@ def wait_for_enhanced_scans_to_complete(ecr_client, image):
     scan_status = None
     scan_status_description = ""
     start_time = time()
-    while (time() - start_time) <= 30 * 60:
+    while (time() - start_time) <= 45 * 60:
         try:
             scan_status, scan_status_description = ecr_utils.get_ecr_image_enhanced_scan_status(ecr_client, image)
         except ecr_client.exceptions.ScanNotFoundException as e:

@@ -9,12 +9,13 @@ fi
 HOME_DIR=/test
 BIN_DIR=${HOME_DIR}/bin
 LOG_DIR=${HOME_DIR}/logs
+MPI_TRAINING_LOG=${LOG_DIR}/mpi_tensorflow_horovod_test.log
 TRAINING_LOG=${LOG_DIR}/tensorflow_horovod_test.log
 HOVOROD_DIR=${BIN_DIR}/examples/Horovod
 
 set -e
 
-echo "Simply verify if Horovod works well. You can follow progress on the log file : $TRAINING_LOG" | tee -a $TRAINING_LOG
+echo "Simply verify if Horovod works well. You can follow progress on the log file : $MPI_TRAINING_LOG" | tee -a $MPI_TRAINING_LOG
 set +e
 nvidia-smi
 RETURN_VAL=`echo $?`
@@ -22,17 +23,17 @@ set -e
 
 if [ ${RETURN_VAL} -eq 0 ]; then
   echo "Running testTF2HVD.py on gpu"
-  python ${BIN_DIR}/testTF2HVD.py 2>&1 | tee $TRAINING_LOG
+  python ${BIN_DIR}/testTF2HVD.py 2>&1 | tee $MPI_TRAINING_LOG
 else
   echo "Running testTF2HVD.py on cpu"
-  python ${BIN_DIR}/testTF2HVD.py --no-cuda 2>&1 | tee $TRAINING_LOG
+  python ${BIN_DIR}/testTF2HVD.py --no-cuda 2>&1 | tee $MPI_TRAINING_LOG
 fi
 
-if grep "Loss =" $TRAINING_LOG; then
+if grep "Loss =" $MPI_TRAINING_LOG; then
   echo "Successfully verified Horovod works with mpi."
 else
   echo "Horovod training failed with mpi."
-  cat ${TRAINING_LOG}
+  cat ${MPI_TRAINING_LOG}
   exit 1
 fi
 
@@ -46,7 +47,7 @@ if [ ${RETURN_VAL} -eq 0 ]; then
   # Train
 
   set +e
-  horovodrun -np $GPU_AMOUNT -H localhost:$GPU_AMOUNT python -W ignore ${HOVOROD_DIR}/tensorflow2_synthetic_benchmark.py 2> ${TRAINING_LOG}
+  horovodrun -np $GPU_AMOUNT -H localhost:$GPU_AMOUNT python -W ignore ${HOVOROD_DIR}/tensorflow2_synthetic_benchmark.py > ${TRAINING_LOG} 2>&1
   TEST_SUCCESS_VAL=`echo $?`
   set -e
   if [ ${TEST_SUCCESS_VAL} -ne 0 ]; then

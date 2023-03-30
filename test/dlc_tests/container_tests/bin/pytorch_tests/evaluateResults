@@ -1,0 +1,43 @@
+#!/bin/bash
+
+set -e
+
+printf '\nevaluating the performance results in %s and %s' $1 $2
+echo "==============================================="
+
+# check if the tests have fatal error
+has_anomaly=0
+if grep -qi "error" $1 || grep -qi "error" $2 ; then
+    echo "some processes failed"
+    has_anomaly=1
+fi
+
+# evaluate the performance
+for i in {2..10}
+do
+    aws_val=$(cat $1 | awk -v line=$i -F',' 'NR==line {print $NF}')
+    oss_val=$(cat $2 | awk -v line=$i -F',' 'NR==line {print $NF}')
+    
+    if [ -z "$aws_val" ] && [ -z "$oss_val" ]; then
+        echo "results end at line $((i-1)), exiting"
+        exit 0
+    fi
+
+    echo "--- METRIC TYPE $i: ---"
+    echo "aws metric: "$aws_val
+    echo "oss metric: "$oss_val
+    
+    # check if AWS-PyTorch deviates from OSS PyTorch by 10%
+    if awk -v aws_val="$aws_val" -v oss_val="$oss_val" 'BEGIN {exit !(aws_val > (oss_val * 1.1))}'; then
+        echo "aws metric is 10% greater than oss"  
+        has_anomaly=1
+    elif awk -v aws_val="$aws_val" -v oss_val="$oss_val" 'BEGIN {exit !(aws_val < (oss_val * 0.9))}'; then
+        echo "aws metric is 10% less than oss"
+        has_anomaly=1
+    fi
+done
+
+if [ "$has_anomaly" -eq 1 ]; then
+    echo "encountered runtime error or performance anomaly"
+    exit 1
+fi

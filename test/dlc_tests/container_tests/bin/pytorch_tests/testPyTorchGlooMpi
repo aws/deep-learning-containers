@@ -1,0 +1,26 @@
+#!/bin/bash
+
+set -e
+
+source /test/bin/pytorch_tests/setupPyTorchBackendTest
+
+export PT_BACKEND=$1
+export USE_INDUCTOR=$2
+# assign the lower of 2 and gpu #, or 2 when no gpu
+export WORLD_SIZE=$(($NUM_GPUS == 0 ? 2 : ($NUM_GPUS < 2 ? $NUM_GPUS : 2)))
+
+# test aws pytorch
+OUT_PATH=$AWS_LOG_DIR/aws_res.csv timeout 360 python run.py BERT_pytorch -m eager -d $DEVICE -t train
+
+bash ${BIN_DIR}/pytorch_tests/installOSSPyTorch
+
+# test oss pytorch
+OUT_PATH=$OSS_LOG_DIR/oss_res.csv timeout 360 python run.py BERT_pytorch -m eager -d $DEVICE -t train
+
+# compare aws and oss results process by process (result metrics are aleady medians)
+for ((i=0; i<$WORLD_SIZE; i++))
+do
+  bash ${BIN_DIR}/pytorch_tests/evaluateResults "$AWS_LOG_DIR/aws_res.csv_$i" "$OSS_LOG_DIR/oss_res.csv_$i"
+done
+
+exit 0

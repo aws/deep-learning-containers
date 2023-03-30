@@ -1,0 +1,3178 @@
+{
+    "github.com/satori/go.uuid": [
+        {
+            "description": "[github.com/satori/go.uuid](https://github.com/satori/go.uuid) is a provides pure Go implementation of Universally Unique Identifier (UUID).\n\nAffected versions of this package are vulnerable to Insecure Randomness producing predictable `UUID` identifiers due to the limited number of bytes read when using the `g.rand.Read` function.\r\n\r\n**Note:** This vulnerability was introduced on the master branch of `satori/go.uuid` after version 1.2.0. This was fixed on commit d91630c8510268e75203009fe7daf2b8e1d60c45.",
+            "vulnerability_id": "SNYK-GOLANG-GITHUBCOMSATORIGOUUID-72488",
+            "name": "SNYK-GOLANG-GITHUBCOMSATORIGOUUID-72488",
+            "package_name": "github.com/satori/go.uuid",
+            "package_details": {
+                "file_path": "opt/aws/neuron/bin/neuron-ls",
+                "name": "github.com/satori/go.uuid",
+                "package_manager": "GOBINARY",
+                "version": "v1.2.0",
+                "release": null
+            },
+            "remediation": {
+                "recommendation": {
+                    "text": "None Provided"
+                }
+            },
+            "cvss_v3_score": 8.1,
+            "cvss_v30_score": 0,
+            "cvss_v31_score": 8.1,
+            "cvss_v2_score": 0,
+            "cvss_v3_severity": "HIGH",
+            "source_url": "https://snyk.io/vuln/SNYK-GOLANG-GITHUBCOMSATORIGOUUID-72488",
+            "source": "SNYK",
+            "severity": "HIGH",
+            "status": "ACTIVE",
+            "title": "IN1-GOLANG-GITHUBCOMSATORIGOUUID-72488 - github.com/satori/go.uuid, github.com/satori/go.uuid and 1 more"
+        },
+        {
+            "description": "[github.com/satori/go.uuid](https://github.com/satori/go.uuid) is a provides pure Go implementation of Universally Unique Identifier (UUID).\n\nAffected versions of this package are vulnerable to Insecure Randomness producing predictable `UUID` identifiers due to the limited number of bytes read when using the `g.rand.Read` function.\r\n\r\n**Note:** This vulnerability was introduced on the master branch of `satori/go.uuid` after version 1.2.0. This was fixed on commit d91630c8510268e75203009fe7daf2b8e1d60c45.",
+            "vulnerability_id": "SNYK-GOLANG-GITHUBCOMSATORIGOUUID-72488",
+            "name": "SNYK-GOLANG-GITHUBCOMSATORIGOUUID-72488",
+            "package_name": "github.com/satori/go.uuid",
+            "package_details": {
+                "file_path": "opt/aws/neuron/bin/neuron-monitor",
+                "name": "github.com/satori/go.uuid",
+                "package_manager": "GOBINARY",
+                "version": "v1.2.0",
+                "release": null
+            },
+            "remediation": {
+                "recommendation": {
+                    "text": "None Provided"
+                }
+            },
+            "cvss_v3_score": 8.1,
+            "cvss_v30_score": 0,
+            "cvss_v31_score": 8.1,
+            "cvss_v2_score": 0,
+            "cvss_v3_severity": "HIGH",
+            "source_url": "https://snyk.io/vuln/SNYK-GOLANG-GITHUBCOMSATORIGOUUID-72488",
+            "source": "SNYK",
+            "severity": "HIGH",
+            "status": "ACTIVE",
+            "title": "IN1-GOLANG-GITHUBCOMSATORIGOUUID-72488 - github.com/satori/go.uuid, github.com/satori/go.uuid and 1 more"
+        },
+        {
+            "description": "[github.com/satori/go.uuid](https://github.com/satori/go.uuid) is a provides pure Go implementation of Universally Unique Identifier (UUID).\n\nAffected versions of this package are vulnerable to Insecure Randomness producing predictable `UUID` identifiers due to the limited number of bytes read when using the `g.rand.Read` function.\r\n\r\n**Note:** This vulnerability was introduced on the master branch of `satori/go.uuid` after version 1.2.0. This was fixed on commit d91630c8510268e75203009fe7daf2b8e1d60c45.",
+            "vulnerability_id": "SNYK-GOLANG-GITHUBCOMSATORIGOUUID-72488",
+            "name": "SNYK-GOLANG-GITHUBCOMSATORIGOUUID-72488",
+            "package_name": "github.com/satori/go.uuid",
+            "package_details": {
+                "file_path": "opt/aws/neuron/bin/neuron-profile",
+                "name": "github.com/satori/go.uuid",
+                "package_manager": "GOBINARY",
+                "version": "v1.2.0",
+                "release": null
+            },
+            "remediation": {
+                "recommendation": {
+                    "text": "None Provided"
+                }
+            },
+            "cvss_v3_score": 8.1,
+            "cvss_v30_score": 0,
+            "cvss_v31_score": 8.1,
+            "cvss_v2_score": 0,
+            "cvss_v3_severity": "HIGH",
+            "source_url": "https://snyk.io/vuln/SNYK-GOLANG-GITHUBCOMSATORIGOUUID-72488",
+            "source": "SNYK",
+            "severity": "HIGH",
+            "status": "ACTIVE",
+            "title": "IN1-GOLANG-GITHUBCOMSATORIGOUUID-72488 - github.com/satori/go.uuid, github.com/satori/go.uuid and 1 more"
+        },
+        {
+            "description": " A flaw was found in github.com/satori/go.uuid in versions from commit 0ef6afb2f6cdd6cdaeee3885a95099c63f18fc8c to d91630c8510268e75203009fe7daf2b8e1d60c45. Due to insecure randomness in the g.rand.Read function the generated UUIDs are predictable for an attacker.",
+            "vulnerability_id": "CVE-2021-3538",
+            "name": "CVE-2021-3538",
+            "package_name": "github.com/satori/go.uuid",
+            "package_details": {
+                "file_path": "opt/aws/neuron/bin/neuron-ls",
+                "name": "github.com/satori/go.uuid",
+                "package_manager": "GOBINARY",
+                "version": "v1.2.0",
+                "release": null
+            },
+            "remediation": {
+                "recommendation": {
+                    "text": "None Provided"
+                }
+            },
+            "cvss_v3_score": 9.8,
+            "cvss_v30_score": 0,
+            "cvss_v31_score": 9.8,
+            "cvss_v2_score": 7.5,
+            "cvss_v3_severity": "CRITICAL",
+            "source_url": "https://people.canonical.com/~ubuntu-security/cve/2021/CVE-2021-3538.html",
+            "source": "UBUNTU_CVE",
+            "severity": "MEDIUM",
+            "status": "ACTIVE",
+            "title": "CVE-2021-3538 - github.com/satori/go.uuid, github.com/satori/go.uuid and 1 more"
+        },
+        {
+            "description": " A flaw was found in github.com/satori/go.uuid in versions from commit 0ef6afb2f6cdd6cdaeee3885a95099c63f18fc8c to d91630c8510268e75203009fe7daf2b8e1d60c45. Due to insecure randomness in the g.rand.Read function the generated UUIDs are predictable for an attacker.",
+            "vulnerability_id": "CVE-2021-3538",
+            "name": "CVE-2021-3538",
+            "package_name": "github.com/satori/go.uuid",
+            "package_details": {
+                "file_path": "opt/aws/neuron/bin/neuron-monitor",
+                "name": "github.com/satori/go.uuid",
+                "package_manager": "GOBINARY",
+                "version": "v1.2.0",
+                "release": null
+            },
+            "remediation": {
+                "recommendation": {
+                    "text": "None Provided"
+                }
+            },
+            "cvss_v3_score": 9.8,
+            "cvss_v30_score": 0,
+            "cvss_v31_score": 9.8,
+            "cvss_v2_score": 7.5,
+            "cvss_v3_severity": "CRITICAL",
+            "source_url": "https://people.canonical.com/~ubuntu-security/cve/2021/CVE-2021-3538.html",
+            "source": "UBUNTU_CVE",
+            "severity": "MEDIUM",
+            "status": "ACTIVE",
+            "title": "CVE-2021-3538 - github.com/satori/go.uuid, github.com/satori/go.uuid and 1 more"
+        },
+        {
+            "description": " A flaw was found in github.com/satori/go.uuid in versions from commit 0ef6afb2f6cdd6cdaeee3885a95099c63f18fc8c to d91630c8510268e75203009fe7daf2b8e1d60c45. Due to insecure randomness in the g.rand.Read function the generated UUIDs are predictable for an attacker.",
+            "vulnerability_id": "CVE-2021-3538",
+            "name": "CVE-2021-3538",
+            "package_name": "github.com/satori/go.uuid",
+            "package_details": {
+                "file_path": "opt/aws/neuron/bin/neuron-profile",
+                "name": "github.com/satori/go.uuid",
+                "package_manager": "GOBINARY",
+                "version": "v1.2.0",
+                "release": null
+            },
+            "remediation": {
+                "recommendation": {
+                    "text": "None Provided"
+                }
+            },
+            "cvss_v3_score": 9.8,
+            "cvss_v30_score": 0,
+            "cvss_v31_score": 9.8,
+            "cvss_v2_score": 7.5,
+            "cvss_v3_severity": "CRITICAL",
+            "source_url": "https://people.canonical.com/~ubuntu-security/cve/2021/CVE-2021-3538.html",
+            "source": "UBUNTU_CVE",
+            "severity": "MEDIUM",
+            "status": "ACTIVE",
+            "title": "CVE-2021-3538 - github.com/satori/go.uuid, github.com/satori/go.uuid and 1 more"
+        }
+    ],
+    "github.com/ulikunitz/xz": [
+        {
+            "description": "Go before 1.13.15 and 14.x before 1.14.7 can have an infinite read loop in ReadUvarint and ReadVarint in encoding/binary via invalid inputs.",
+            "vulnerability_id": "GHSA-q6gq-997w-f55g",
+            "name": "GHSA-q6gq-997w-f55g",
+            "package_name": "github.com/ulikunitz/xz",
+            "package_details": {
+                "file_path": "opt/aws/neuron/bin/neuron-ls",
+                "name": "github.com/ulikunitz/xz",
+                "package_manager": "GOBINARY",
+                "version": "v0.5.6",
+                "release": null
+            },
+            "remediation": {
+                "recommendation": {
+                    "text": "None Provided"
+                }
+            },
+            "cvss_v3_score": 7.5,
+            "cvss_v30_score": 0,
+            "cvss_v31_score": 7.5,
+            "cvss_v2_score": 0,
+            "cvss_v3_severity": "HIGH",
+            "source_url": "https://github.com/advisories/GHSA-q6gq-997w-f55g",
+            "source": "GITHUB",
+            "severity": "HIGH",
+            "status": "ACTIVE",
+            "title": "GHSA-q6gq-997w-f55g - github.com/ulikunitz/xz, github.com/ulikunitz/xz and 1 more"
+        },
+        {
+            "description": "Go before 1.13.15 and 14.x before 1.14.7 can have an infinite read loop in ReadUvarint and ReadVarint in encoding/binary via invalid inputs.",
+            "vulnerability_id": "GHSA-q6gq-997w-f55g",
+            "name": "GHSA-q6gq-997w-f55g",
+            "package_name": "github.com/ulikunitz/xz",
+            "package_details": {
+                "file_path": "opt/aws/neuron/bin/neuron-monitor",
+                "name": "github.com/ulikunitz/xz",
+                "package_manager": "GOBINARY",
+                "version": "v0.5.6",
+                "release": null
+            },
+            "remediation": {
+                "recommendation": {
+                    "text": "None Provided"
+                }
+            },
+            "cvss_v3_score": 7.5,
+            "cvss_v30_score": 0,
+            "cvss_v31_score": 7.5,
+            "cvss_v2_score": 0,
+            "cvss_v3_severity": "HIGH",
+            "source_url": "https://github.com/advisories/GHSA-q6gq-997w-f55g",
+            "source": "GITHUB",
+            "severity": "HIGH",
+            "status": "ACTIVE",
+            "title": "GHSA-q6gq-997w-f55g - github.com/ulikunitz/xz, github.com/ulikunitz/xz and 1 more"
+        },
+        {
+            "description": "Go before 1.13.15 and 14.x before 1.14.7 can have an infinite read loop in ReadUvarint and ReadVarint in encoding/binary via invalid inputs.",
+            "vulnerability_id": "GHSA-q6gq-997w-f55g",
+            "name": "GHSA-q6gq-997w-f55g",
+            "package_name": "github.com/ulikunitz/xz",
+            "package_details": {
+                "file_path": "opt/aws/neuron/bin/neuron-profile",
+                "name": "github.com/ulikunitz/xz",
+                "package_manager": "GOBINARY",
+                "version": "v0.5.6",
+                "release": null
+            },
+            "remediation": {
+                "recommendation": {
+                    "text": "None Provided"
+                }
+            },
+            "cvss_v3_score": 7.5,
+            "cvss_v30_score": 0,
+            "cvss_v31_score": 7.5,
+            "cvss_v2_score": 0,
+            "cvss_v3_severity": "HIGH",
+            "source_url": "https://github.com/advisories/GHSA-q6gq-997w-f55g",
+            "source": "GITHUB",
+            "severity": "HIGH",
+            "status": "ACTIVE",
+            "title": "GHSA-q6gq-997w-f55g - github.com/ulikunitz/xz, github.com/ulikunitz/xz and 1 more"
+        },
+        {
+            "description": "[github.com/ulikunitz/xz](https://github.com/ulikunitz/xz) is a package for reading and writing of xz compressed streams.\n\nAffected versions of this package are vulnerable to Infinite Loop. An attacker could construct a byte sequence so that `readUvarint` would not stop to consume bytes.",
+            "vulnerability_id": "SNYK-GOLANG-GITHUBCOMULIKUNITZXZ-598892",
+            "name": "SNYK-GOLANG-GITHUBCOMULIKUNITZXZ-598892",
+            "package_name": "github.com/ulikunitz/xz",
+            "package_details": {
+                "file_path": "opt/aws/neuron/bin/neuron-ls",
+                "name": "github.com/ulikunitz/xz",
+                "package_manager": "GOBINARY",
+                "version": "v0.5.6",
+                "release": null
+            },
+            "remediation": {
+                "recommendation": {
+                    "text": "None Provided"
+                }
+            },
+            "cvss_v3_score": 7.5,
+            "cvss_v30_score": 0,
+            "cvss_v31_score": 7.5,
+            "cvss_v2_score": 0,
+            "cvss_v3_severity": "HIGH",
+            "source_url": "https://snyk.io/vuln/SNYK-GOLANG-GITHUBCOMULIKUNITZXZ-598892",
+            "source": "SNYK",
+            "severity": "HIGH",
+            "status": "ACTIVE",
+            "title": "IN1-GOLANG-GITHUBCOMULIKUNITZXZ-598892 - github.com/ulikunitz/xz, github.com/ulikunitz/xz and 1 more"
+        },
+        {
+            "description": "[github.com/ulikunitz/xz](https://github.com/ulikunitz/xz) is a package for reading and writing of xz compressed streams.\n\nAffected versions of this package are vulnerable to Infinite Loop. An attacker could construct a byte sequence so that `readUvarint` would not stop to consume bytes.",
+            "vulnerability_id": "SNYK-GOLANG-GITHUBCOMULIKUNITZXZ-598892",
+            "name": "SNYK-GOLANG-GITHUBCOMULIKUNITZXZ-598892",
+            "package_name": "github.com/ulikunitz/xz",
+            "package_details": {
+                "file_path": "opt/aws/neuron/bin/neuron-monitor",
+                "name": "github.com/ulikunitz/xz",
+                "package_manager": "GOBINARY",
+                "version": "v0.5.6",
+                "release": null
+            },
+            "remediation": {
+                "recommendation": {
+                    "text": "None Provided"
+                }
+            },
+            "cvss_v3_score": 7.5,
+            "cvss_v30_score": 0,
+            "cvss_v31_score": 7.5,
+            "cvss_v2_score": 0,
+            "cvss_v3_severity": "HIGH",
+            "source_url": "https://snyk.io/vuln/SNYK-GOLANG-GITHUBCOMULIKUNITZXZ-598892",
+            "source": "SNYK",
+            "severity": "HIGH",
+            "status": "ACTIVE",
+            "title": "IN1-GOLANG-GITHUBCOMULIKUNITZXZ-598892 - github.com/ulikunitz/xz, github.com/ulikunitz/xz and 1 more"
+        },
+        {
+            "description": "[github.com/ulikunitz/xz](https://github.com/ulikunitz/xz) is a package for reading and writing of xz compressed streams.\n\nAffected versions of this package are vulnerable to Infinite Loop. An attacker could construct a byte sequence so that `readUvarint` would not stop to consume bytes.",
+            "vulnerability_id": "SNYK-GOLANG-GITHUBCOMULIKUNITZXZ-598892",
+            "name": "SNYK-GOLANG-GITHUBCOMULIKUNITZXZ-598892",
+            "package_name": "github.com/ulikunitz/xz",
+            "package_details": {
+                "file_path": "opt/aws/neuron/bin/neuron-profile",
+                "name": "github.com/ulikunitz/xz",
+                "package_manager": "GOBINARY",
+                "version": "v0.5.6",
+                "release": null
+            },
+            "remediation": {
+                "recommendation": {
+                    "text": "None Provided"
+                }
+            },
+            "cvss_v3_score": 7.5,
+            "cvss_v30_score": 0,
+            "cvss_v31_score": 7.5,
+            "cvss_v2_score": 0,
+            "cvss_v3_severity": "HIGH",
+            "source_url": "https://snyk.io/vuln/SNYK-GOLANG-GITHUBCOMULIKUNITZXZ-598892",
+            "source": "SNYK",
+            "severity": "HIGH",
+            "status": "ACTIVE",
+            "title": "IN1-GOLANG-GITHUBCOMULIKUNITZXZ-598892 - github.com/ulikunitz/xz, github.com/ulikunitz/xz and 1 more"
+        },
+        {
+            "description": " Go before 1.13.15 and 14.x before 1.14.7 can have an infinite read loop in ReadUvarint and ReadVarint in encoding/binary via invalid inputs.",
+            "vulnerability_id": "CVE-2020-16845",
+            "name": "CVE-2020-16845",
+            "package_name": "github.com/ulikunitz/xz",
+            "package_details": {
+                "file_path": "opt/aws/neuron/bin/neuron-ls",
+                "name": "github.com/ulikunitz/xz",
+                "package_manager": "GOBINARY",
+                "version": "v0.5.6",
+                "release": null
+            },
+            "remediation": {
+                "recommendation": {
+                    "text": "None Provided"
+                }
+            },
+            "cvss_v3_score": 7.5,
+            "cvss_v30_score": 0,
+            "cvss_v31_score": 7.5,
+            "cvss_v2_score": 5,
+            "cvss_v3_severity": "HIGH",
+            "source_url": "https://people.canonical.com/~ubuntu-security/cve/2020/CVE-2020-16845.html",
+            "source": "UBUNTU_CVE",
+            "severity": "LOW",
+            "status": "ACTIVE",
+            "title": "CVE-2020-16845 - github.com/ulikunitz/xz, github.com/ulikunitz/xz and 1 more"
+        },
+        {
+            "description": " Go before 1.13.15 and 14.x before 1.14.7 can have an infinite read loop in ReadUvarint and ReadVarint in encoding/binary via invalid inputs.",
+            "vulnerability_id": "CVE-2020-16845",
+            "name": "CVE-2020-16845",
+            "package_name": "github.com/ulikunitz/xz",
+            "package_details": {
+                "file_path": "opt/aws/neuron/bin/neuron-monitor",
+                "name": "github.com/ulikunitz/xz",
+                "package_manager": "GOBINARY",
+                "version": "v0.5.6",
+                "release": null
+            },
+            "remediation": {
+                "recommendation": {
+                    "text": "None Provided"
+                }
+            },
+            "cvss_v3_score": 7.5,
+            "cvss_v30_score": 0,
+            "cvss_v31_score": 7.5,
+            "cvss_v2_score": 5,
+            "cvss_v3_severity": "HIGH",
+            "source_url": "https://people.canonical.com/~ubuntu-security/cve/2020/CVE-2020-16845.html",
+            "source": "UBUNTU_CVE",
+            "severity": "LOW",
+            "status": "ACTIVE",
+            "title": "CVE-2020-16845 - github.com/ulikunitz/xz, github.com/ulikunitz/xz and 1 more"
+        },
+        {
+            "description": " Go before 1.13.15 and 14.x before 1.14.7 can have an infinite read loop in ReadUvarint and ReadVarint in encoding/binary via invalid inputs.",
+            "vulnerability_id": "CVE-2020-16845",
+            "name": "CVE-2020-16845",
+            "package_name": "github.com/ulikunitz/xz",
+            "package_details": {
+                "file_path": "opt/aws/neuron/bin/neuron-profile",
+                "name": "github.com/ulikunitz/xz",
+                "package_manager": "GOBINARY",
+                "version": "v0.5.6",
+                "release": null
+            },
+            "remediation": {
+                "recommendation": {
+                    "text": "None Provided"
+                }
+            },
+            "cvss_v3_score": 7.5,
+            "cvss_v30_score": 0,
+            "cvss_v31_score": 7.5,
+            "cvss_v2_score": 5,
+            "cvss_v3_severity": "HIGH",
+            "source_url": "https://people.canonical.com/~ubuntu-security/cve/2020/CVE-2020-16845.html",
+            "source": "UBUNTU_CVE",
+            "severity": "LOW",
+            "status": "ACTIVE",
+            "title": "CVE-2020-16845 - github.com/ulikunitz/xz, github.com/ulikunitz/xz and 1 more"
+        },
+        {
+            "description": " xz is a compression and decompression library focusing on the xz format completely written in Go. The function readUvarint used to read the xz container format may not terminate a loop provide malicous input. The problem has been fixed in release v0.5.8. As a workaround users can limit the size of the compressed file input to a reasonable size for their use case. The standard library had recently the same issue and got the CVE-2020-16845 allocated.",
+            "vulnerability_id": "CVE-2021-29482",
+            "name": "CVE-2021-29482",
+            "package_name": "github.com/ulikunitz/xz",
+            "package_details": {
+                "file_path": "opt/aws/neuron/bin/neuron-ls",
+                "name": "github.com/ulikunitz/xz",
+                "package_manager": "GOBINARY",
+                "version": "v0.5.6",
+                "release": null
+            },
+            "remediation": {
+                "recommendation": {
+                    "text": "None Provided"
+                }
+            },
+            "cvss_v3_score": 7.5,
+            "cvss_v30_score": 0,
+            "cvss_v31_score": 7.5,
+            "cvss_v2_score": 5,
+            "cvss_v3_severity": "HIGH",
+            "source_url": "https://people.canonical.com/~ubuntu-security/cve/2021/CVE-2021-29482.html",
+            "source": "UBUNTU_CVE",
+            "severity": "MEDIUM",
+            "status": "ACTIVE",
+            "title": "CVE-2021-29482 - github.com/ulikunitz/xz, github.com/ulikunitz/xz and 1 more"
+        },
+        {
+            "description": " xz is a compression and decompression library focusing on the xz format completely written in Go. The function readUvarint used to read the xz container format may not terminate a loop provide malicous input. The problem has been fixed in release v0.5.8. As a workaround users can limit the size of the compressed file input to a reasonable size for their use case. The standard library had recently the same issue and got the CVE-2020-16845 allocated.",
+            "vulnerability_id": "CVE-2021-29482",
+            "name": "CVE-2021-29482",
+            "package_name": "github.com/ulikunitz/xz",
+            "package_details": {
+                "file_path": "opt/aws/neuron/bin/neuron-monitor",
+                "name": "github.com/ulikunitz/xz",
+                "package_manager": "GOBINARY",
+                "version": "v0.5.6",
+                "release": null
+            },
+            "remediation": {
+                "recommendation": {
+                    "text": "None Provided"
+                }
+            },
+            "cvss_v3_score": 7.5,
+            "cvss_v30_score": 0,
+            "cvss_v31_score": 7.5,
+            "cvss_v2_score": 5,
+            "cvss_v3_severity": "HIGH",
+            "source_url": "https://people.canonical.com/~ubuntu-security/cve/2021/CVE-2021-29482.html",
+            "source": "UBUNTU_CVE",
+            "severity": "MEDIUM",
+            "status": "ACTIVE",
+            "title": "CVE-2021-29482 - github.com/ulikunitz/xz, github.com/ulikunitz/xz and 1 more"
+        },
+        {
+            "description": " xz is a compression and decompression library focusing on the xz format completely written in Go. The function readUvarint used to read the xz container format may not terminate a loop provide malicous input. The problem has been fixed in release v0.5.8. As a workaround users can limit the size of the compressed file input to a reasonable size for their use case. The standard library had recently the same issue and got the CVE-2020-16845 allocated.",
+            "vulnerability_id": "CVE-2021-29482",
+            "name": "CVE-2021-29482",
+            "package_name": "github.com/ulikunitz/xz",
+            "package_details": {
+                "file_path": "opt/aws/neuron/bin/neuron-profile",
+                "name": "github.com/ulikunitz/xz",
+                "package_manager": "GOBINARY",
+                "version": "v0.5.6",
+                "release": null
+            },
+            "remediation": {
+                "recommendation": {
+                    "text": "None Provided"
+                }
+            },
+            "cvss_v3_score": 7.5,
+            "cvss_v30_score": 0,
+            "cvss_v31_score": 7.5,
+            "cvss_v2_score": 5,
+            "cvss_v3_severity": "HIGH",
+            "source_url": "https://people.canonical.com/~ubuntu-security/cve/2021/CVE-2021-29482.html",
+            "source": "UBUNTU_CVE",
+            "severity": "MEDIUM",
+            "status": "ACTIVE",
+            "title": "CVE-2021-29482 - github.com/ulikunitz/xz, github.com/ulikunitz/xz and 1 more"
+        },
+        {
+            "description": "[github.com/ulikunitz/xz](https://github.com/ulikunitz/xz) is a package for reading and writing of xz compressed streams.\n\nAffected versions of this package are vulnerable to Denial of Service (DoS). It is possible create an infinite read loop due to the usage of the `ReadUvarint` and `ReadVarint` function when encoding/binary via invalid inputs.",
+            "vulnerability_id": "SNYK-GOLANG-GITHUBCOMULIKUNITZXZ-607912",
+            "name": "SNYK-GOLANG-GITHUBCOMULIKUNITZXZ-607912",
+            "package_name": "github.com/ulikunitz/xz",
+            "package_details": {
+                "file_path": "opt/aws/neuron/bin/neuron-ls",
+                "name": "github.com/ulikunitz/xz",
+                "package_manager": "GOBINARY",
+                "version": "v0.5.6",
+                "release": null
+            },
+            "remediation": {
+                "recommendation": {
+                    "text": "None Provided"
+                }
+            },
+            "cvss_v3_score": 7.5,
+            "cvss_v30_score": 0,
+            "cvss_v31_score": 7.5,
+            "cvss_v2_score": 0,
+            "cvss_v3_severity": "HIGH",
+            "source_url": "https://snyk.io/vuln/SNYK-GOLANG-GITHUBCOMULIKUNITZXZ-607912",
+            "source": "SNYK",
+            "severity": "HIGH",
+            "status": "ACTIVE",
+            "title": "IN1-GOLANG-GITHUBCOMULIKUNITZXZ-607912 - github.com/ulikunitz/xz, github.com/ulikunitz/xz and 1 more"
+        },
+        {
+            "description": "[github.com/ulikunitz/xz](https://github.com/ulikunitz/xz) is a package for reading and writing of xz compressed streams.\n\nAffected versions of this package are vulnerable to Denial of Service (DoS). It is possible create an infinite read loop due to the usage of the `ReadUvarint` and `ReadVarint` function when encoding/binary via invalid inputs.",
+            "vulnerability_id": "SNYK-GOLANG-GITHUBCOMULIKUNITZXZ-607912",
+            "name": "SNYK-GOLANG-GITHUBCOMULIKUNITZXZ-607912",
+            "package_name": "github.com/ulikunitz/xz",
+            "package_details": {
+                "file_path": "opt/aws/neuron/bin/neuron-monitor",
+                "name": "github.com/ulikunitz/xz",
+                "package_manager": "GOBINARY",
+                "version": "v0.5.6",
+                "release": null
+            },
+            "remediation": {
+                "recommendation": {
+                    "text": "None Provided"
+                }
+            },
+            "cvss_v3_score": 7.5,
+            "cvss_v30_score": 0,
+            "cvss_v31_score": 7.5,
+            "cvss_v2_score": 0,
+            "cvss_v3_severity": "HIGH",
+            "source_url": "https://snyk.io/vuln/SNYK-GOLANG-GITHUBCOMULIKUNITZXZ-607912",
+            "source": "SNYK",
+            "severity": "HIGH",
+            "status": "ACTIVE",
+            "title": "IN1-GOLANG-GITHUBCOMULIKUNITZXZ-607912 - github.com/ulikunitz/xz, github.com/ulikunitz/xz and 1 more"
+        },
+        {
+            "description": "[github.com/ulikunitz/xz](https://github.com/ulikunitz/xz) is a package for reading and writing of xz compressed streams.\n\nAffected versions of this package are vulnerable to Denial of Service (DoS). It is possible create an infinite read loop due to the usage of the `ReadUvarint` and `ReadVarint` function when encoding/binary via invalid inputs.",
+            "vulnerability_id": "SNYK-GOLANG-GITHUBCOMULIKUNITZXZ-607912",
+            "name": "SNYK-GOLANG-GITHUBCOMULIKUNITZXZ-607912",
+            "package_name": "github.com/ulikunitz/xz",
+            "package_details": {
+                "file_path": "opt/aws/neuron/bin/neuron-profile",
+                "name": "github.com/ulikunitz/xz",
+                "package_manager": "GOBINARY",
+                "version": "v0.5.6",
+                "release": null
+            },
+            "remediation": {
+                "recommendation": {
+                    "text": "None Provided"
+                }
+            },
+            "cvss_v3_score": 7.5,
+            "cvss_v30_score": 0,
+            "cvss_v31_score": 7.5,
+            "cvss_v2_score": 0,
+            "cvss_v3_severity": "HIGH",
+            "source_url": "https://snyk.io/vuln/SNYK-GOLANG-GITHUBCOMULIKUNITZXZ-607912",
+            "source": "SNYK",
+            "severity": "HIGH",
+            "status": "ACTIVE",
+            "title": "IN1-GOLANG-GITHUBCOMULIKUNITZXZ-607912 - github.com/ulikunitz/xz, github.com/ulikunitz/xz and 1 more"
+        },
+        {
+            "description": "### Impact\n\nThe function readUvarint used to read the xz container format may not terminate a loop provide malicous input.\n\n### Patches\n\nThe problem has been fixed in release v0.5.8.\n\n### Workarounds\n\nLimit the size of the compressed file input to a reasonable size for your use case.\n\n### References\n\nThe standard library had recently the same issue and got the [CVE-2020-16845](https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2020-16845) allocated.\n\n### For more information\nIf you have any questions or comments about this advisory:\n* Open an issue in [xz](https://github.com/ulikunitz/xz/issues).",
+            "vulnerability_id": "GHSA-25xm-hr59-7c27",
+            "name": "GHSA-25xm-hr59-7c27",
+            "package_name": "github.com/ulikunitz/xz",
+            "package_details": {
+                "file_path": "opt/aws/neuron/bin/neuron-ls",
+                "name": "github.com/ulikunitz/xz",
+                "package_manager": "GOBINARY",
+                "version": "v0.5.6",
+                "release": null
+            },
+            "remediation": {
+                "recommendation": {
+                    "text": "None Provided"
+                }
+            },
+            "cvss_v3_score": 7.5,
+            "cvss_v30_score": 0,
+            "cvss_v31_score": 7.5,
+            "cvss_v2_score": 0,
+            "cvss_v3_severity": "HIGH",
+            "source_url": "https://github.com/advisories/GHSA-25xm-hr59-7c27",
+            "source": "GITHUB",
+            "severity": "HIGH",
+            "status": "ACTIVE",
+            "title": "GHSA-25xm-hr59-7c27 - github.com/ulikunitz/xz, github.com/ulikunitz/xz and 1 more"
+        },
+        {
+            "description": "### Impact\n\nThe function readUvarint used to read the xz container format may not terminate a loop provide malicous input.\n\n### Patches\n\nThe problem has been fixed in release v0.5.8.\n\n### Workarounds\n\nLimit the size of the compressed file input to a reasonable size for your use case.\n\n### References\n\nThe standard library had recently the same issue and got the [CVE-2020-16845](https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2020-16845) allocated.\n\n### For more information\nIf you have any questions or comments about this advisory:\n* Open an issue in [xz](https://github.com/ulikunitz/xz/issues).",
+            "vulnerability_id": "GHSA-25xm-hr59-7c27",
+            "name": "GHSA-25xm-hr59-7c27",
+            "package_name": "github.com/ulikunitz/xz",
+            "package_details": {
+                "file_path": "opt/aws/neuron/bin/neuron-monitor",
+                "name": "github.com/ulikunitz/xz",
+                "package_manager": "GOBINARY",
+                "version": "v0.5.6",
+                "release": null
+            },
+            "remediation": {
+                "recommendation": {
+                    "text": "None Provided"
+                }
+            },
+            "cvss_v3_score": 7.5,
+            "cvss_v30_score": 0,
+            "cvss_v31_score": 7.5,
+            "cvss_v2_score": 0,
+            "cvss_v3_severity": "HIGH",
+            "source_url": "https://github.com/advisories/GHSA-25xm-hr59-7c27",
+            "source": "GITHUB",
+            "severity": "HIGH",
+            "status": "ACTIVE",
+            "title": "GHSA-25xm-hr59-7c27 - github.com/ulikunitz/xz, github.com/ulikunitz/xz and 1 more"
+        },
+        {
+            "description": "### Impact\n\nThe function readUvarint used to read the xz container format may not terminate a loop provide malicous input.\n\n### Patches\n\nThe problem has been fixed in release v0.5.8.\n\n### Workarounds\n\nLimit the size of the compressed file input to a reasonable size for your use case.\n\n### References\n\nThe standard library had recently the same issue and got the [CVE-2020-16845](https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2020-16845) allocated.\n\n### For more information\nIf you have any questions or comments about this advisory:\n* Open an issue in [xz](https://github.com/ulikunitz/xz/issues).",
+            "vulnerability_id": "GHSA-25xm-hr59-7c27",
+            "name": "GHSA-25xm-hr59-7c27",
+            "package_name": "github.com/ulikunitz/xz",
+            "package_details": {
+                "file_path": "opt/aws/neuron/bin/neuron-profile",
+                "name": "github.com/ulikunitz/xz",
+                "package_manager": "GOBINARY",
+                "version": "v0.5.6",
+                "release": null
+            },
+            "remediation": {
+                "recommendation": {
+                    "text": "None Provided"
+                }
+            },
+            "cvss_v3_score": 7.5,
+            "cvss_v30_score": 0,
+            "cvss_v31_score": 7.5,
+            "cvss_v2_score": 0,
+            "cvss_v3_severity": "HIGH",
+            "source_url": "https://github.com/advisories/GHSA-25xm-hr59-7c27",
+            "source": "GITHUB",
+            "severity": "HIGH",
+            "status": "ACTIVE",
+            "title": "GHSA-25xm-hr59-7c27 - github.com/ulikunitz/xz, github.com/ulikunitz/xz and 1 more"
+        }
+    ],
+    "networkx": [
+        {
+            "description": "## Overview\n[networkx](https://pypi.org/project/networkx/) is a Python package for creating and manipulating graphs and networks\nAffected versions of this package are vulnerable to Deserialization of Untrusted Data. This package is vulnerable to arbitrary code execution via insecure YAML deserialization due to the use of a known vulnerable function `load()` in yaml, which is called in `read_yaml()` in `networkx/readwrite/nx_yaml.py`.\r\n\r\n`networkx/readwrite/nx_yaml.py` is deprecated and scheduled to be removed in the next release of Networkx. Users should avoid using this function completely.\n\n## Details\n\nSerialization is a process of converting an object into a sequence of bytes which can be persisted to a disk or database or can be sent through streams. The reverse process of creating object from sequence of bytes is called deserialization. Serialization is commonly used for communication (sharing objects between multiple hosts) and persistence (store the object state in a file or a database). It is an integ",
+            "vulnerability_id": "SNYK-PYTHON-NETWORKX-1062709",
+            "name": "SNYK-PYTHON-NETWORKX-1062709",
+            "package_name": "networkx",
+            "package_details": {
+                "file_path": "usr/local/lib/python3.8/site-packages/networkx-2.5.dist-info/METADATA",
+                "name": "networkx",
+                "package_manager": "PYTHONPKG",
+                "version": "2.5",
+                "release": null
+            },
+            "remediation": {
+                "recommendation": {
+                    "text": "None Provided"
+                }
+            },
+            "cvss_v3_score": 8.8,
+            "cvss_v30_score": 0,
+            "cvss_v31_score": 8.8,
+            "cvss_v2_score": 0,
+            "cvss_v3_severity": "HIGH",
+            "source_url": "https://security.snyk.io/vuln/SNYK-PYTHON-NETWORKX-1062709",
+            "source": "SNYK",
+            "severity": "HIGH",
+            "status": "ACTIVE",
+            "title": "IN1-PYTHON-NETWORKX-1062709 - networkx"
+        }
+    ],
+    "protobuf": [
+        {
+            "description": " A parsing vulnerability for the MessageSet type in the ProtocolBuffers versions prior to and including 3.16.1, 3.17.3, 3.18.2, 3.19.4, 3.20.1 and 3.21.5 for protobuf-cpp, and versions prior to and including 3.16.1, 3.17.3, 3.18.2, 3.19.4, 3.20.1 and 4.21.5 for protobuf-python can lead to out of memory failures. A specially crafted message with multiple key-value per elements creates parsing issues, and can lead to a Denial of Service against services receiving unsanitized input. We recommend upgrading to versions 3.18.3, 3.19.5, 3.20.2, 3.21.6 for protobuf-cpp and 3.18.3, 3.19.5, 3.20.2, 4.21.6 for protobuf-python. Versions for 3.16 and 3.17 are no longer updated.",
+            "vulnerability_id": "CVE-2022-1941",
+            "name": "CVE-2022-1941",
+            "package_name": "protobuf",
+            "package_details": {
+                "file_path": "usr/local/lib/python3.8/site-packages/protobuf-3.14.0.dist-info/METADATA",
+                "name": "protobuf",
+                "package_manager": "PYTHONPKG",
+                "version": "3.14.0",
+                "release": null
+            },
+            "remediation": {
+                "recommendation": {
+                    "text": "None Provided"
+                }
+            },
+            "cvss_v3_score": 7.5,
+            "cvss_v30_score": 0,
+            "cvss_v31_score": 7.5,
+            "cvss_v2_score": 0,
+            "cvss_v3_severity": "HIGH",
+            "source_url": "https://people.canonical.com/~ubuntu-security/cve/2022/CVE-2022-1941.html",
+            "source": "UBUNTU_CVE",
+            "severity": "LOW",
+            "status": "ACTIVE",
+            "title": "CVE-2022-1941 - protobuf"
+        },
+        {
+            "description": "Nullptr dereference when a null char is present in a proto symbol. The symbol is parsed incorrectly, leading to an unchecked call into the proto file's name during generation of the resulting error message. Since the symbol is incorrectly parsed, the file is nullptr. We recommend upgrading to version 3.15.0 or greater.",
+            "vulnerability_id": "GHSA-77rm-9x9h-xj3g",
+            "name": "GHSA-77rm-9x9h-xj3g",
+            "package_name": "protobuf",
+            "package_details": {
+                "file_path": "usr/local/lib/python3.8/site-packages/protobuf-3.14.0.dist-info/METADATA",
+                "name": "protobuf",
+                "package_manager": "PYTHONPKG",
+                "version": "3.14.0",
+                "release": null
+            },
+            "remediation": {
+                "recommendation": {
+                    "text": "None Provided"
+                }
+            },
+            "cvss_v3_score": 7.5,
+            "cvss_v30_score": 0,
+            "cvss_v31_score": 7.5,
+            "cvss_v2_score": 0,
+            "cvss_v3_severity": "HIGH",
+            "source_url": "https://github.com/advisories/GHSA-77rm-9x9h-xj3g",
+            "source": "GITHUB",
+            "severity": "HIGH",
+            "status": "ACTIVE",
+            "title": "GHSA-77rm-9x9h-xj3g - protobuf"
+        },
+        {
+            "description": "### Summary\n\nA message parsing and memory management vulnerability in ProtocolBuffer\u2019s C++ and Python implementations can trigger an out of memory (OOM) failure when processing a specially crafted message, which could lead to a denial of service (DoS) on services using the libraries.\n\nReporter: [ClusterFuzz](https://google.github.io/clusterfuzz/)\n\nAffected versions: All versions of C++ Protobufs (including Python) prior to the versions listed below.\n\n### Severity & Impact\nAs scored by google  \n**Medium 5.7** - [CVSS:3.1/AV:A/AC:L/PR:L/UI:N/S:U/C:N/I:N/A:H](https://www.first.org/cvss/calculator/3.1#CVSS:3.1/AV:A/AC:L/PR:L/UI:N/S:U/C:N/I:N/A:H)  \nAsscored byt NIST  \n**High 7.5** - [CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:H](https://www.first.org/cvss/calculator/3.1#CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:H)\n\nA small (~500 KB) malicious payload can be constructed which causes the running service to allocate more than 3GB of RAM.\n\n### Proof of Concept\n\nFor reproduction details, please refer to the unit test",
+            "vulnerability_id": "GHSA-8gq9-2x98-w8hf",
+            "name": "GHSA-8gq9-2x98-w8hf",
+            "package_name": "protobuf",
+            "package_details": {
+                "file_path": "usr/local/lib/python3.8/site-packages/protobuf-3.14.0.dist-info/METADATA",
+                "name": "protobuf",
+                "package_manager": "PYTHONPKG",
+                "version": "3.14.0",
+                "release": null
+            },
+            "remediation": {
+                "recommendation": {
+                    "text": "None Provided"
+                }
+            },
+            "cvss_v3_score": 7.5,
+            "cvss_v30_score": 0,
+            "cvss_v31_score": 7.5,
+            "cvss_v2_score": 0,
+            "cvss_v3_severity": "HIGH",
+            "source_url": "https://github.com/advisories/GHSA-8gq9-2x98-w8hf",
+            "source": "GITHUB",
+            "severity": "HIGH",
+            "status": "ACTIVE",
+            "title": "GHSA-8gq9-2x98-w8hf - protobuf"
+        }
+    ],
+    "tensorflow": [
+        {
+            "description": "TensorFlow is an open source platform for machine learning. If `tf.sparse.cross` receives an input `separator` that is not a scalar, it gives a `CHECK` fail that can be used to trigger a denial of service attack. We have patched the issue in GitHub commit 83dcb4dbfa094e33db084e97c4d0531a559e0ebf. The fix will be included in TensorFlow 2.10.0. We will also cherrypick this commit on TensorFlow 2.9.1, TensorFlow 2.8.1, and TensorFlow 2.7.2, as these are also affected and still in supported range. There are no known workarounds for this issue.",
+            "vulnerability_id": "CVE-2022-35997",
+            "name": "CVE-2022-35997",
+            "package_name": "tensorflow",
+            "package_details": {
+                "file_path": "usr/local/lib/python3.8/site-packages/tensorflow-2.8.0.dist-info/METADATA",
+                "name": "tensorflow",
+                "package_manager": "PYTHONPKG",
+                "version": "2.8.0",
+                "release": null
+            },
+            "remediation": {
+                "recommendation": {
+                    "text": "None Provided"
+                }
+            },
+            "cvss_v3_score": 7.5,
+            "cvss_v30_score": 0,
+            "cvss_v31_score": 7.5,
+            "cvss_v2_score": 0,
+            "cvss_v3_severity": "HIGH",
+            "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2022-35997",
+            "source": "NVD",
+            "severity": "HIGH",
+            "status": "ACTIVE",
+            "title": "CVE-2022-35997 - tensorflow"
+        },
+        {
+            "description": "[tensorflow](https://pypi.org/project/tensorflow/) is a machine learning framework.\n\nAffected versions of this package are vulnerable to Denial of Service (DoS) via CHECK-failure caused by assuming input(0), input(1), and input(2) to be scalar.",
+            "vulnerability_id": "SNYK-PYTHON-TENSORFLOW-3026914",
+            "name": "SNYK-PYTHON-TENSORFLOW-3026914",
+            "package_name": "tensorflow",
+            "package_details": {
+                "file_path": "usr/local/lib/python3.8/site-packages/tensorflow-2.8.0.dist-info/METADATA",
+                "name": "tensorflow",
+                "package_manager": "PYTHONPKG",
+                "version": "2.8.0",
+                "release": null
+            },
+            "remediation": {
+                "recommendation": {
+                    "text": "None Provided"
+                }
+            },
+            "cvss_v3_score": 7.5,
+            "cvss_v30_score": 0,
+            "cvss_v31_score": 7.5,
+            "cvss_v2_score": 0,
+            "cvss_v3_severity": "HIGH",
+            "source_url": "https://snyk.io/vuln/SNYK-PYTHON-TENSORFLOW-3026914",
+            "source": "SNYK",
+            "severity": "HIGH",
+            "status": "ACTIVE",
+            "title": "IN1-PYTHON-TENSORFLOW-3026914 - tensorflow"
+        },
+        {
+            "description": "TensorFlow is an open source platform for machine learning. If `tf.raw_ops.TensorListConcat` is given `element_shape=[]`, it results segmentation fault which can be used to trigger a denial of service attack. We have patched the issue in GitHub commit fc33f3dc4c14051a83eec6535b608abe1d355fde. The fix will be included in TensorFlow 2.11. We will also cherrypick this commit on TensorFlow 2.10.1, 2.9.3, and TensorFlow 2.8.4, as these are also affected and still in supported range.",
+            "vulnerability_id": "CVE-2022-41891",
+            "name": "CVE-2022-41891",
+            "package_name": "tensorflow",
+            "package_details": {
+                "file_path": "usr/local/lib/python3.8/site-packages/tensorflow-2.8.0.dist-info/METADATA",
+                "name": "tensorflow",
+                "package_manager": "PYTHONPKG",
+                "version": "2.8.0",
+                "release": null
+            },
+            "remediation": {
+                "recommendation": {
+                    "text": "None Provided"
+                }
+            },
+            "cvss_v3_score": 7.5,
+            "cvss_v30_score": 0,
+            "cvss_v31_score": 7.5,
+            "cvss_v2_score": 0,
+            "cvss_v3_severity": "HIGH",
+            "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2022-41891",
+            "source": "NVD",
+            "severity": "HIGH",
+            "status": "ACTIVE",
+            "title": "CVE-2022-41891 - tensorflow"
+        },
+        {
+            "description": "[tensorflow](https://pypi.org/project/tensorflow/) is a machine learning framework.\n\nAffected versions of this package are vulnerable to Denial of Service (DoS). The implementation of depthwise ops in TensorFlow is vulnerable to a denial of service via `CHECK`-failure (assertion failure) caused by overflowing the number of elements in a tensor:\r\n\r\n```python\r\nimport tensorflow as tf\r\n\r\ninput = tf.constant(1, shape=[1, 4, 4, 3], dtype=tf.float32)\r\nfilter_sizes = tf.constant(1879048192, shape=[13], dtype=tf.int32)\r\nout_backprop = tf.constant(1, shape=[1, 4, 4, 3], dtype=tf.float32)\r\ntf.raw_ops.DepthwiseConv2dNativeBackpropFilter(\r\n    input=input, filter_sizes=filter_sizes, out_backprop=out_backprop, strides=[1, 1, 1, 1], padding=\"SAME\")\r\n```\r\n  \r\nThis is due to an incomplete fix for [CVE-2021-41197](https://security.snyk.io/vuln/?search=CVE-2021-41197).",
+            "vulnerability_id": "SNYK-PYTHON-TENSORFLOW-2848009",
+            "name": "SNYK-PYTHON-TENSORFLOW-2848009",
+            "package_name": "tensorflow",
+            "package_details": {
+                "file_path": "usr/local/lib/python3.8/site-packages/tensorflow-2.8.0.dist-info/METADATA",
+                "name": "tensorflow",
+                "package_manager": "PYTHONPKG",
+                "version": "2.8.0",
+                "release": null
+            },
+            "remediation": {
+                "recommendation": {
+                    "text": "None Provided"
+                }
+            },
+            "cvss_v3_score": 7.5,
+            "cvss_v30_score": 0,
+            "cvss_v31_score": 7.5,
+            "cvss_v2_score": 0,
+            "cvss_v3_severity": "HIGH",
+            "source_url": "https://snyk.io/vuln/SNYK-PYTHON-TENSORFLOW-2848009",
+            "source": "SNYK",
+            "severity": "HIGH",
+            "status": "ACTIVE",
+            "title": "IN1-PYTHON-TENSORFLOW-2848009 - tensorflow"
+        },
+        {
+            "description": "TensorFlow is an open source platform for machine learning. `tf.keras.losses.poisson` receives a `y_pred` and `y_true` that are passed through `functor::mul` in `BinaryOp`. If the resulting dimensions overflow an `int32`, TensorFlow will crash due to a size mismatch during broadcast assignment. We have patched the issue in GitHub commit c5b30379ba87cbe774b08ac50c1f6d36df4ebb7c. The fix will be included in TensorFlow 2.11. We will also cherrypick this commit on TensorFlow 2.10.1 and 2.9.3, as these are also affected and still in supported range. However, we will not cherrypick this commit into TensorFlow 2.8.x, as it depends on Eigen behavior that changed between 2.8 and 2.9.",
+            "vulnerability_id": "CVE-2022-41887",
+            "name": "CVE-2022-41887",
+            "package_name": "tensorflow",
+            "package_details": {
+                "file_path": "usr/local/lib/python3.8/site-packages/tensorflow-2.8.0.dist-info/METADATA",
+                "name": "tensorflow",
+                "package_manager": "PYTHONPKG",
+                "version": "2.8.0",
+                "release": null
+            },
+            "remediation": {
+                "recommendation": {
+                    "text": "None Provided"
+                }
+            },
+            "cvss_v3_score": 7.5,
+            "cvss_v30_score": 0,
+            "cvss_v31_score": 7.5,
+            "cvss_v2_score": 0,
+            "cvss_v3_severity": "HIGH",
+            "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2022-41887",
+            "source": "NVD",
+            "severity": "HIGH",
+            "status": "ACTIVE",
+            "title": "CVE-2022-41887 - tensorflow"
+        },
+        {
+            "description": "TensorFlow is an open source platform for machine learning. When `tf.quantization.fake_quant_with_min_max_vars_gradient` receives input `min` or `max` that is nonscalar, it gives a `CHECK` fail that can trigger a denial of service attack. We have patched the issue in GitHub commit f3cf67ac5705f4f04721d15e485e192bb319feed. The fix will be included in TensorFlow 2.10.0. We will also cherrypick this commit on TensorFlow 2.9.1, TensorFlow 2.8.1, and TensorFlow 2.7.2, as these are also affected and still in supported range. There are no known workarounds for this issue.",
+            "vulnerability_id": "CVE-2022-36005",
+            "name": "CVE-2022-36005",
+            "package_name": "tensorflow",
+            "package_details": {
+                "file_path": "usr/local/lib/python3.8/site-packages/tensorflow-2.8.0.dist-info/METADATA",
+                "name": "tensorflow",
+                "package_manager": "PYTHONPKG",
+                "version": "2.8.0",
+                "release": null
+            },
+            "remediation": {
+                "recommendation": {
+                    "text": "None Provided"
+                }
+            },
+            "cvss_v3_score": 7.5,
+            "cvss_v30_score": 0,
+            "cvss_v31_score": 7.5,
+            "cvss_v2_score": 0,
+            "cvss_v3_severity": "HIGH",
+            "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2022-36005",
+            "source": "NVD",
+            "severity": "HIGH",
+            "status": "ACTIVE",
+            "title": "CVE-2022-36005 - tensorflow"
+        },
+        {
+            "description": "TensorFlow is an open source platform for machine learning. If `QuantizedBiasAdd` is given `min_input`, `max_input`, `min_bias`, `max_bias` tensors of a nonzero rank, it results in a segfault that can be used to trigger a denial of service attack. We have patched the issue in GitHub commit 785d67a78a1d533759fcd2f5e8d6ef778de849e0. The fix will be included in TensorFlow 2.10.0. We will also cherrypick this commit on TensorFlow 2.9.1, TensorFlow 2.8.1, and TensorFlow 2.7.2, as these are also affected and still in supported range. There are no known workarounds for this issue.",
+            "vulnerability_id": "CVE-2022-35972",
+            "name": "CVE-2022-35972",
+            "package_name": "tensorflow",
+            "package_details": {
+                "file_path": "usr/local/lib/python3.8/site-packages/tensorflow-2.8.0.dist-info/METADATA",
+                "name": "tensorflow",
+                "package_manager": "PYTHONPKG",
+                "version": "2.8.0",
+                "release": null
+            },
+            "remediation": {
+                "recommendation": {
+                    "text": "None Provided"
+                }
+            },
+            "cvss_v3_score": 7.5,
+            "cvss_v30_score": 0,
+            "cvss_v31_score": 7.5,
+            "cvss_v2_score": 0,
+            "cvss_v3_severity": "HIGH",
+            "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2022-35972",
+            "source": "NVD",
+            "severity": "HIGH",
+            "status": "ACTIVE",
+            "title": "CVE-2022-35972 - tensorflow"
+        },
+        {
+            "description": "TensorFlow is an open source platform for machine learning. The `RaggedRangOp` function takes an argument `limits` that is eventually used to construct a `TensorShape` as an `int64`. If `limits` is a very large float, it can overflow when converted to an `int64`. This triggers an `InvalidArgument` but also throws an abort signal that crashes the program. We have patched the issue in GitHub commit 37cefa91bee4eace55715eeef43720b958a01192. The fix will be included in TensorFlow 2.10.0. We will also cherrypick this commit on TensorFlow 2.9.1, TensorFlow 2.8.1, and TensorFlow 2.7.2, as these are also affected and still in supported range. There are no known workarounds for this issue.",
+            "vulnerability_id": "CVE-2022-35940",
+            "name": "CVE-2022-35940",
+            "package_name": "tensorflow",
+            "package_details": {
+                "file_path": "usr/local/lib/python3.8/site-packages/tensorflow-2.8.0.dist-info/METADATA",
+                "name": "tensorflow",
+                "package_manager": "PYTHONPKG",
+                "version": "2.8.0",
+                "release": null
+            },
+            "remediation": {
+                "recommendation": {
+                    "text": "None Provided"
+                }
+            },
+            "cvss_v3_score": 7.5,
+            "cvss_v30_score": 0,
+            "cvss_v31_score": 7.5,
+            "cvss_v2_score": 0,
+            "cvss_v3_severity": "HIGH",
+            "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2022-35940",
+            "source": "NVD",
+            "severity": "HIGH",
+            "status": "ACTIVE",
+            "title": "CVE-2022-35940 - tensorflow"
+        },
+        {
+            "description": "TensorFlow is an open source platform for machine learning. When `tf.linalg.matrix_rank` receives an empty input `a`, the GPU kernel gives a `CHECK` fail that can be used to trigger a denial of service attack. We have patched the issue in GitHub commit c55b476aa0e0bd4ee99d0f3ad18d9d706cd1260a. The fix will be included in TensorFlow 2.10.0. We will also cherrypick this commit on TensorFlow 2.9.1, TensorFlow 2.8.1, and TensorFlow 2.7.2, as these are also affected and still in supported range. There are no known workarounds for this issue.",
+            "vulnerability_id": "CVE-2022-35988",
+            "name": "CVE-2022-35988",
+            "package_name": "tensorflow",
+            "package_details": {
+                "file_path": "usr/local/lib/python3.8/site-packages/tensorflow-2.8.0.dist-info/METADATA",
+                "name": "tensorflow",
+                "package_manager": "PYTHONPKG",
+                "version": "2.8.0",
+                "release": null
+            },
+            "remediation": {
+                "recommendation": {
+                    "text": "None Provided"
+                }
+            },
+            "cvss_v3_score": 7.5,
+            "cvss_v30_score": 0,
+            "cvss_v31_score": 7.5,
+            "cvss_v2_score": 0,
+            "cvss_v3_severity": "HIGH",
+            "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2022-35988",
+            "source": "NVD",
+            "severity": "HIGH",
+            "status": "ACTIVE",
+            "title": "CVE-2022-35988 - tensorflow"
+        },
+        {
+            "description": "[tensorflow](https://pypi.org/project/tensorflow/) is a machine learning framework.\n\nAffected versions of this package are vulnerable to Out-of-bounds Write via the `MakeGrapplerFunctionItem` function, if the inputs given are greater than or equal to the sizes of the outputs.",
+            "vulnerability_id": "SNYK-PYTHON-TENSORFLOW-3136509",
+            "name": "SNYK-PYTHON-TENSORFLOW-3136509",
+            "package_name": "tensorflow",
+            "package_details": {
+                "file_path": "usr/local/lib/python3.8/site-packages/tensorflow-2.8.0.dist-info/METADATA",
+                "name": "tensorflow",
+                "package_manager": "PYTHONPKG",
+                "version": "2.8.0",
+                "release": null
+            },
+            "remediation": {
+                "recommendation": {
+                    "text": "None Provided"
+                }
+            },
+            "cvss_v3_score": 7.3,
+            "cvss_v30_score": 0,
+            "cvss_v31_score": 7.3,
+            "cvss_v2_score": 0,
+            "cvss_v3_severity": "HIGH",
+            "source_url": "https://snyk.io/vuln/SNYK-PYTHON-TENSORFLOW-3136509",
+            "source": "SNYK",
+            "severity": "HIGH",
+            "status": "ACTIVE",
+            "title": "IN1-PYTHON-TENSORFLOW-3136509 - tensorflow"
+        },
+        {
+            "description": "[tensorflow](https://pypi.org/project/tensorflow/) is a machine learning framework.\n\nAffected versions of this package are vulnerable to Heap-based Buffer Overflow in `QuantizeAndDequantizeV2`, via the `MakeGrapplerFunctionItem` function, if the inputs are greater than or equal to the sizes of outputs.",
+            "vulnerability_id": "SNYK-PYTHON-TENSORFLOW-3136515",
+            "name": "SNYK-PYTHON-TENSORFLOW-3136515",
+            "package_name": "tensorflow",
+            "package_details": {
+                "file_path": "usr/local/lib/python3.8/site-packages/tensorflow-2.8.0.dist-info/METADATA",
+                "name": "tensorflow",
+                "package_manager": "PYTHONPKG",
+                "version": "2.8.0",
+                "release": null
+            },
+            "remediation": {
+                "recommendation": {
+                    "text": "None Provided"
+                }
+            },
+            "cvss_v3_score": 7.5,
+            "cvss_v30_score": 0,
+            "cvss_v31_score": 7.5,
+            "cvss_v2_score": 0,
+            "cvss_v3_severity": "HIGH",
+            "source_url": "https://snyk.io/vuln/SNYK-PYTHON-TENSORFLOW-3136515",
+            "source": "SNYK",
+            "severity": "HIGH",
+            "status": "ACTIVE",
+            "title": "IN1-PYTHON-TENSORFLOW-3136515 - tensorflow"
+        },
+        {
+            "description": "TensorFlow is an open source platform for machine learning. When printing a tensor, we get it's data as a `const char*` array (since that's the underlying storage) and then we typecast it to the element type. However, conversions from `char` to `bool` are undefined if the `char` is not `0` or `1`, so sanitizers/fuzzers will crash. The issue has been patched in GitHub commit `1be74370327`. The fix will be included in TensorFlow 2.11.0. We will also cherrypick this commit on TensorFlow 2.10.1, TensorFlow 2.9.3, and TensorFlow 2.8.4, as these are also affected and still in supported range.",
+            "vulnerability_id": "CVE-2022-41911",
+            "name": "CVE-2022-41911",
+            "package_name": "tensorflow",
+            "package_details": {
+                "file_path": "usr/local/lib/python3.8/site-packages/tensorflow-2.8.0.dist-info/METADATA",
+                "name": "tensorflow",
+                "package_manager": "PYTHONPKG",
+                "version": "2.8.0",
+                "release": null
+            },
+            "remediation": {
+                "recommendation": {
+                    "text": "None Provided"
+                }
+            },
+            "cvss_v3_score": 7.5,
+            "cvss_v30_score": 0,
+            "cvss_v31_score": 7.5,
+            "cvss_v2_score": 0,
+            "cvss_v3_severity": "HIGH",
+            "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2022-41911",
+            "source": "NVD",
+            "severity": "HIGH",
+            "status": "ACTIVE",
+            "title": "CVE-2022-41911 - tensorflow"
+        },
+        {
+            "description": "[tensorflow](https://pypi.org/project/tensorflow/) is a machine learning framework.\n\nAffected versions of this package are vulnerable to Out-of-bounds Write in `FractionalMax(AVG)Pool` with illegal `pooling_ratio`. Attackers can access heap memory that is not in the user's control, leading to a crash or remote code execution.",
+            "vulnerability_id": "SNYK-PYTHON-TENSORFLOW-3136204",
+            "name": "SNYK-PYTHON-TENSORFLOW-3136204",
+            "package_name": "tensorflow",
+            "package_details": {
+                "file_path": "usr/local/lib/python3.8/site-packages/tensorflow-2.8.0.dist-info/METADATA",
+                "name": "tensorflow",
+                "package_manager": "PYTHONPKG",
+                "version": "2.8.0",
+                "release": null
+            },
+            "remediation": {
+                "recommendation": {
+                    "text": "None Provided"
+                }
+            },
+            "cvss_v3_score": 7.1,
+            "cvss_v30_score": 0,
+            "cvss_v31_score": 7.1,
+            "cvss_v2_score": 0,
+            "cvss_v3_severity": "HIGH",
+            "source_url": "https://snyk.io/vuln/SNYK-PYTHON-TENSORFLOW-3136204",
+            "source": "SNYK",
+            "severity": "HIGH",
+            "status": "ACTIVE",
+            "title": "IN1-PYTHON-TENSORFLOW-3136204 - tensorflow"
+        },
+        {
+            "description": "TensorFlow is an open source platform for machine learning. If `LowerBound` or `UpperBound` is given an empty`sorted_inputs` input, it results in a `nullptr` dereference, leading to a segfault that can be used to trigger a denial of service attack. We have patched the issue in GitHub commit bce3717eaef4f769019fd18e990464ca4a2efeea. The fix will be included in TensorFlow 2.10.0. We will also cherrypick this commit on TensorFlow 2.9.1, TensorFlow 2.8.1, and TensorFlow 2.7.2, as these are also affected and still in supported range. There are no known workarounds for this issue.",
+            "vulnerability_id": "CVE-2022-35965",
+            "name": "CVE-2022-35965",
+            "package_name": "tensorflow",
+            "package_details": {
+                "file_path": "usr/local/lib/python3.8/site-packages/tensorflow-2.8.0.dist-info/METADATA",
+                "name": "tensorflow",
+                "package_manager": "PYTHONPKG",
+                "version": "2.8.0",
+                "release": null
+            },
+            "remediation": {
+                "recommendation": {
+                    "text": "None Provided"
+                }
+            },
+            "cvss_v3_score": 7.5,
+            "cvss_v30_score": 0,
+            "cvss_v31_score": 7.5,
+            "cvss_v2_score": 0,
+            "cvss_v3_severity": "HIGH",
+            "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2022-35965",
+            "source": "NVD",
+            "severity": "HIGH",
+            "status": "ACTIVE",
+            "title": "CVE-2022-35965 - tensorflow"
+        },
+        {
+            "description": "TensorFlow is an open source platform for machine learning. The `GatherNd` function takes arguments that determine the sizes of inputs and outputs. If the inputs given are greater than or equal to the sizes of the outputs, an out-of-bounds memory read is triggered. This issue has been patched in GitHub commit 595a65a3e224a0362d7e68c2213acfc2b499a196. The fix will be included in TensorFlow 2.10.0. We will also cherrypick this commit on TensorFlow 2.9.1, TensorFlow 2.8.1, and TensorFlow 2.7.2, as these are also affected and still in supported range. There are no known workarounds for this issue.",
+            "vulnerability_id": "CVE-2022-35937",
+            "name": "CVE-2022-35937",
+            "package_name": "tensorflow",
+            "package_details": {
+                "file_path": "usr/local/lib/python3.8/site-packages/tensorflow-2.8.0.dist-info/METADATA",
+                "name": "tensorflow",
+                "package_manager": "PYTHONPKG",
+                "version": "2.8.0",
+                "release": null
+            },
+            "remediation": {
+                "recommendation": {
+                    "text": "None Provided"
+                }
+            },
+            "cvss_v3_score": 9.1,
+            "cvss_v30_score": 0,
+            "cvss_v31_score": 9.1,
+            "cvss_v2_score": 0,
+            "cvss_v3_severity": "CRITICAL",
+            "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2022-35937",
+            "source": "NVD",
+            "severity": "CRITICAL",
+            "status": "ACTIVE",
+            "title": "CVE-2022-35937 - tensorflow"
+        },
+        {
+            "description": "TensorFlow is an open source platform for machine learning. The reference kernel of the `CONV_3D_TRANSPOSE` TensorFlow Lite operator wrongly increments the data_ptr when adding the bias to the result. Instead of `data_ptr += num_channels;` it should be `data_ptr += output_num_channels;` as if the number of input channels is different than the number of output channels, the wrong result will be returned and a buffer overflow will occur if num_channels > output_num_channels. An attacker can craft a model with a specific number of input channels. It is then possible to write specific values through the bias of the layer outside the bounds of the buffer. This attack only works if the reference kernel resolver is used in the interpreter. We have patched the issue in GitHub commit 72c0bdcb25305b0b36842d746cc61d72658d2941. The fix will be included in TensorFlow 2.11. We will also cherrypick this commit on TensorFlow 2.10.1, 2.9.3, and TensorFlow 2.8.4, as these are also affected and still in supported range.",
+            "vulnerability_id": "CVE-2022-41894",
+            "name": "CVE-2022-41894",
+            "package_name": "tensorflow",
+            "package_details": {
+                "file_path": "usr/local/lib/python3.8/site-packages/tensorflow-2.8.0.dist-info/METADATA",
+                "name": "tensorflow",
+                "package_manager": "PYTHONPKG",
+                "version": "2.8.0",
+                "release": null
+            },
+            "remediation": {
+                "recommendation": {
+                    "text": "None Provided"
+                }
+            },
+            "cvss_v3_score": 8.1,
+            "cvss_v30_score": 0,
+            "cvss_v31_score": 8.1,
+            "cvss_v2_score": 0,
+            "cvss_v3_severity": "HIGH",
+            "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2022-41894",
+            "source": "NVD",
+            "severity": "HIGH",
+            "status": "ACTIVE",
+            "title": "CVE-2022-41894 - tensorflow"
+        },
+        {
+            "description": "TensorFlow is an open source platform for machine learning. If `QuantizeDownAndShrinkRange` is given nonscalar inputs for `input_min` or `input_max`, it results in a segfault that can be used to trigger a denial of service attack. We have patched the issue in GitHub commit 73ad1815ebcfeb7c051f9c2f7ab5024380ca8613. The fix will be included in TensorFlow 2.10.0. We will also cherrypick this commit on TensorFlow 2.9.1, TensorFlow 2.8.1, and TensorFlow 2.7.2, as these are also affected and still in supported range. There are no known workarounds for this issue.",
+            "vulnerability_id": "CVE-2022-35974",
+            "name": "CVE-2022-35974",
+            "package_name": "tensorflow",
+            "package_details": {
+                "file_path": "usr/local/lib/python3.8/site-packages/tensorflow-2.8.0.dist-info/METADATA",
+                "name": "tensorflow",
+                "package_manager": "PYTHONPKG",
+                "version": "2.8.0",
+                "release": null
+            },
+            "remediation": {
+                "recommendation": {
+                    "text": "None Provided"
+                }
+            },
+            "cvss_v3_score": 7.5,
+            "cvss_v30_score": 0,
+            "cvss_v31_score": 7.5,
+            "cvss_v2_score": 0,
+            "cvss_v3_severity": "HIGH",
+            "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2022-35974",
+            "source": "NVD",
+            "severity": "HIGH",
+            "status": "ACTIVE",
+            "title": "CVE-2022-35974 - tensorflow"
+        },
+        {
+            "description": "TensorFlow is an open source platform for machine learning. `ParameterizedTruncatedNormal` assumes `shape` is of type `int32`. A valid `shape` of type `int64` results in a mismatched type `CHECK` fail that can be used to trigger a denial of service attack. We have patched the issue in GitHub commit 72180be03447a10810edca700cbc9af690dfeb51. The fix will be included in TensorFlow 2.10.0. We will also cherrypick this commit on TensorFlow 2.9.1, TensorFlow 2.8.1, and TensorFlow 2.7.2, as these are also affected and still in supported range. There are no known workarounds for this issue.",
+            "vulnerability_id": "CVE-2022-35984",
+            "name": "CVE-2022-35984",
+            "package_name": "tensorflow",
+            "package_details": {
+                "file_path": "usr/local/lib/python3.8/site-packages/tensorflow-2.8.0.dist-info/METADATA",
+                "name": "tensorflow",
+                "package_manager": "PYTHONPKG",
+                "version": "2.8.0",
+                "release": null
+            },
+            "remediation": {
+                "recommendation": {
+                    "text": "None Provided"
+                }
+            },
+            "cvss_v3_score": 7.5,
+            "cvss_v30_score": 0,
+            "cvss_v31_score": 7.5,
+            "cvss_v2_score": 0,
+            "cvss_v3_severity": "HIGH",
+            "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2022-35984",
+            "source": "NVD",
+            "severity": "HIGH",
+            "status": "ACTIVE",
+            "title": "CVE-2022-35984 - tensorflow"
+        },
+        {
+            "description": "TensorFlow is an open source platform for machine learning. When the `BaseCandidateSamplerOp` function receives a value in `true_classes` larger than `range_max`, a heap oob read occurs. We have patched the issue in GitHub commit b389f5c944cadfdfe599b3f1e4026e036f30d2d4. The fix will be included in TensorFlow 2.11. We will also cherrypick this commit on TensorFlow 2.10.1, 2.9.3, and TensorFlow 2.8.4, as these are also affected and still in supported range.",
+            "vulnerability_id": "CVE-2022-41880",
+            "name": "CVE-2022-41880",
+            "package_name": "tensorflow",
+            "package_details": {
+                "file_path": "usr/local/lib/python3.8/site-packages/tensorflow-2.8.0.dist-info/METADATA",
+                "name": "tensorflow",
+                "package_manager": "PYTHONPKG",
+                "version": "2.8.0",
+                "release": null
+            },
+            "remediation": {
+                "recommendation": {
+                    "text": "None Provided"
+                }
+            },
+            "cvss_v3_score": 9.1,
+            "cvss_v30_score": 0,
+            "cvss_v31_score": 9.1,
+            "cvss_v2_score": 0,
+            "cvss_v3_severity": "CRITICAL",
+            "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2022-41880",
+            "source": "NVD",
+            "severity": "CRITICAL",
+            "status": "ACTIVE",
+            "title": "CVE-2022-41880 - tensorflow"
+        },
+        {
+            "description": "[tensorflow](https://pypi.org/project/tensorflow/) is a machine learning framework.\n\nAffected versions of this package are vulnerable to Out-of-bounds Read. The `GatherNd` function takes arguments that determine the sizes of inputs and outputs. If the inputs given are greater than or equal to the sizes of the outputs, it triggers the exploitation of the vulnerability.",
+            "vulnerability_id": "SNYK-PYTHON-TENSORFLOW-3026911",
+            "name": "SNYK-PYTHON-TENSORFLOW-3026911",
+            "package_name": "tensorflow",
+            "package_details": {
+                "file_path": "usr/local/lib/python3.8/site-packages/tensorflow-2.8.0.dist-info/METADATA",
+                "name": "tensorflow",
+                "package_manager": "PYTHONPKG",
+                "version": "2.8.0",
+                "release": null
+            },
+            "remediation": {
+                "recommendation": {
+                    "text": "None Provided"
+                }
+            },
+            "cvss_v3_score": 7.5,
+            "cvss_v30_score": 0,
+            "cvss_v31_score": 7.5,
+            "cvss_v2_score": 0,
+            "cvss_v3_severity": "HIGH",
+            "source_url": "https://snyk.io/vuln/SNYK-PYTHON-TENSORFLOW-3026911",
+            "source": "SNYK",
+            "severity": "HIGH",
+            "status": "ACTIVE",
+            "title": "IN1-PYTHON-TENSORFLOW-3026911 - tensorflow"
+        },
+        {
+            "description": "TensorFlow is an open source platform for machine learning. When `tf.raw_ops.FusedResizeAndPadConv2D` is given a large tensor shape, it overflows. We have patched the issue in GitHub commit d66e1d568275e6a2947de97dca7a102a211e01ce. The fix will be included in TensorFlow 2.11. We will also cherrypick this commit on TensorFlow 2.10.1, 2.9.3, and TensorFlow 2.8.4, as these are also affected and still in supported range.",
+            "vulnerability_id": "CVE-2022-41885",
+            "name": "CVE-2022-41885",
+            "package_name": "tensorflow",
+            "package_details": {
+                "file_path": "usr/local/lib/python3.8/site-packages/tensorflow-2.8.0.dist-info/METADATA",
+                "name": "tensorflow",
+                "package_manager": "PYTHONPKG",
+                "version": "2.8.0",
+                "release": null
+            },
+            "remediation": {
+                "recommendation": {
+                    "text": "None Provided"
+                }
+            },
+            "cvss_v3_score": 7.5,
+            "cvss_v30_score": 0,
+            "cvss_v31_score": 7.5,
+            "cvss_v2_score": 0,
+            "cvss_v3_severity": "HIGH",
+            "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2022-41885",
+            "source": "NVD",
+            "severity": "HIGH",
+            "status": "ACTIVE",
+            "title": "CVE-2022-41885 - tensorflow"
+        },
+        {
+            "description": "TensorFlow is an open source platform for machine learning. The function MakeGrapplerFunctionItem takes arguments that determine the sizes of inputs and outputs. If the inputs given are greater than or equal to the sizes of the outputs, an out-of-bounds memory read or a crash is triggered. We have patched the issue in GitHub commit a65411a1d69edfb16b25907ffb8f73556ce36bb7. The fix will be included in TensorFlow 2.11.0. We will also cherrypick this commit on TensorFlow 2.8.4, 2.9.3, and 2.10.1.",
+            "vulnerability_id": "CVE-2022-41910",
+            "name": "CVE-2022-41910",
+            "package_name": "tensorflow",
+            "package_details": {
+                "file_path": "usr/local/lib/python3.8/site-packages/tensorflow-2.8.0.dist-info/METADATA",
+                "name": "tensorflow",
+                "package_manager": "PYTHONPKG",
+                "version": "2.8.0",
+                "release": null
+            },
+            "remediation": {
+                "recommendation": {
+                    "text": "None Provided"
+                }
+            },
+            "cvss_v3_score": 9.1,
+            "cvss_v30_score": 0,
+            "cvss_v31_score": 9.1,
+            "cvss_v2_score": 0,
+            "cvss_v3_severity": "CRITICAL",
+            "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2022-41910",
+            "source": "NVD",
+            "severity": "CRITICAL",
+            "status": "ACTIVE",
+            "title": "CVE-2022-41910 - tensorflow"
+        },
+        {
+            "description": "TensorFlow is an open source platform for machine learning. If `QuantizedAdd` is given `min_input` or `max_input` tensors of a nonzero rank, it results in a segfault that can be used to trigger a denial of service attack. We have patched the issue in GitHub commit 49b3824d83af706df0ad07e4e677d88659756d89. The fix will be included in TensorFlow 2.10.0. We will also cherrypick this commit on TensorFlow 2.9.1, TensorFlow 2.8.1, and TensorFlow 2.7.2, as these are also affected and still in supported range. There are no known workarounds for this issue.",
+            "vulnerability_id": "CVE-2022-35967",
+            "name": "CVE-2022-35967",
+            "package_name": "tensorflow",
+            "package_details": {
+                "file_path": "usr/local/lib/python3.8/site-packages/tensorflow-2.8.0.dist-info/METADATA",
+                "name": "tensorflow",
+                "package_manager": "PYTHONPKG",
+                "version": "2.8.0",
+                "release": null
+            },
+            "remediation": {
+                "recommendation": {
+                    "text": "None Provided"
+                }
+            },
+            "cvss_v3_score": 7.5,
+            "cvss_v30_score": 0,
+            "cvss_v31_score": 7.5,
+            "cvss_v2_score": 0,
+            "cvss_v3_severity": "HIGH",
+            "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2022-35967",
+            "source": "NVD",
+            "severity": "HIGH",
+            "status": "ACTIVE",
+            "title": "CVE-2022-35967 - tensorflow"
+        },
+        {
+            "description": "TensorFlow is an open source platform for machine learning. When `tf.random.gamma` receives large input shape and rates, it gives a `CHECK` fail that can trigger a denial of service attack. We have patched the issue in GitHub commit 552bfced6ce4809db5f3ca305f60ff80dd40c5a3. The fix will be included in TensorFlow 2.10.0. We will also cherrypick this commit on TensorFlow 2.9.1, TensorFlow 2.8.1, and TensorFlow 2.7.2, as these are also affected and still in supported range. There are no known workarounds for this issue.",
+            "vulnerability_id": "CVE-2022-36004",
+            "name": "CVE-2022-36004",
+            "package_name": "tensorflow",
+            "package_details": {
+                "file_path": "usr/local/lib/python3.8/site-packages/tensorflow-2.8.0.dist-info/METADATA",
+                "name": "tensorflow",
+                "package_manager": "PYTHONPKG",
+                "version": "2.8.0",
+                "release": null
+            },
+            "remediation": {
+                "recommendation": {
+                    "text": "None Provided"
+                }
+            },
+            "cvss_v3_score": 7.5,
+            "cvss_v30_score": 0,
+            "cvss_v31_score": 7.5,
+            "cvss_v2_score": 0,
+            "cvss_v3_severity": "HIGH",
+            "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2022-36004",
+            "source": "NVD",
+            "severity": "HIGH",
+            "status": "ACTIVE",
+            "title": "CVE-2022-36004 - tensorflow"
+        },
+        {
+            "description": "TensorFlow is an open source platform for machine learning. In `core/kernels/list_kernels.cc's TensorListReserve`, `num_elements` is assumed to be a tensor of size 1. When a `num_elements` of more than 1 element is provided, then `tf.raw_ops.TensorListReserve` fails the `CHECK_EQ` in `CheckIsAlignedAndSingleElement`. We have patched the issue in GitHub commit b5f6fbfba76576202b72119897561e3bd4f179c7. The fix will be included in TensorFlow 2.10.0. We will also cherrypick this commit on TensorFlow 2.9.1, TensorFlow 2.8.1, and TensorFlow 2.7.2, as these are also affected and still in supported range. There are no known workarounds for this issue.",
+            "vulnerability_id": "CVE-2022-35960",
+            "name": "CVE-2022-35960",
+            "package_name": "tensorflow",
+            "package_details": {
+                "file_path": "usr/local/lib/python3.8/site-packages/tensorflow-2.8.0.dist-info/METADATA",
+                "name": "tensorflow",
+                "package_manager": "PYTHONPKG",
+                "version": "2.8.0",
+                "release": null
+            },
+            "remediation": {
+                "recommendation": {
+                    "text": "None Provided"
+                }
+            },
+            "cvss_v3_score": 7.5,
+            "cvss_v30_score": 0,
+            "cvss_v31_score": 7.5,
+            "cvss_v2_score": 0,
+            "cvss_v3_severity": "HIGH",
+            "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2022-35960",
+            "source": "NVD",
+            "severity": "HIGH",
+            "status": "ACTIVE",
+            "title": "CVE-2022-35960 - tensorflow"
+        },
+        {
+            "description": "TensorFlow is an open source platform for machine learning. When `Conv2DBackpropInput` receives empty `out_backprop` inputs (e.g. `[3, 1, 0, 1]`), the current CPU/GPU kernels `CHECK` fail (one with dnnl, the other with cudnn). This can be used to trigger a denial of service attack. We have patched the issue in GitHub commit 27a65a43cf763897fecfa5cdb5cc653fc5dd0346. The fix will be included in TensorFlow 2.10.0. We will also cherrypick this commit on TensorFlow 2.9.1, TensorFlow 2.8.1, and TensorFlow 2.7.2, as these are also affected and still in supported range. There are no known workarounds for this issue.",
+            "vulnerability_id": "CVE-2022-35999",
+            "name": "CVE-2022-35999",
+            "package_name": "tensorflow",
+            "package_details": {
+                "file_path": "usr/local/lib/python3.8/site-packages/tensorflow-2.8.0.dist-info/METADATA",
+                "name": "tensorflow",
+                "package_manager": "PYTHONPKG",
+                "version": "2.8.0",
+                "release": null
+            },
+            "remediation": {
+                "recommendation": {
+                    "text": "None Provided"
+                }
+            },
+            "cvss_v3_score": 7.5,
+            "cvss_v30_score": 0,
+            "cvss_v31_score": 7.5,
+            "cvss_v2_score": 0,
+            "cvss_v3_severity": "HIGH",
+            "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2022-35999",
+            "source": "NVD",
+            "severity": "HIGH",
+            "status": "ACTIVE",
+            "title": "CVE-2022-35999 - tensorflow"
+        },
+        {
+            "description": "[tensorflow](https://pypi.org/project/tensorflow/) is a machine learning framework.\n\nAffected versions of this package are vulnerable to Out-of-bounds Write because the implementation of `tf.raw_ops.EditDistance` have an incomplete validation which allows users to pass negative values for `loc`.",
+            "vulnerability_id": "SNYK-PYTHON-TENSORFLOW-2841420",
+            "name": "SNYK-PYTHON-TENSORFLOW-2841420",
+            "package_name": "tensorflow",
+            "package_details": {
+                "file_path": "usr/local/lib/python3.8/site-packages/tensorflow-2.8.0.dist-info/METADATA",
+                "name": "tensorflow",
+                "package_manager": "PYTHONPKG",
+                "version": "2.8.0",
+                "release": null
+            },
+            "remediation": {
+                "recommendation": {
+                    "text": "None Provided"
+                }
+            },
+            "cvss_v3_score": 7.1,
+            "cvss_v30_score": 0,
+            "cvss_v31_score": 7.1,
+            "cvss_v2_score": 0,
+            "cvss_v3_severity": "HIGH",
+            "source_url": "https://snyk.io/vuln/SNYK-PYTHON-TENSORFLOW-2841420",
+            "source": "SNYK",
+            "severity": "HIGH",
+            "status": "ACTIVE",
+            "title": "IN1-PYTHON-TENSORFLOW-2841420 - tensorflow"
+        },
+        {
+            "description": "[tensorflow](https://pypi.org/project/tensorflow/) is a machine learning framework.\n\nAffected versions of this package are vulnerable to Denial of Service (DoS) when `tf.random.gamma` receives large input shapes and rates.",
+            "vulnerability_id": "SNYK-PYTHON-TENSORFLOW-3026926",
+            "name": "SNYK-PYTHON-TENSORFLOW-3026926",
+            "package_name": "tensorflow",
+            "package_details": {
+                "file_path": "usr/local/lib/python3.8/site-packages/tensorflow-2.8.0.dist-info/METADATA",
+                "name": "tensorflow",
+                "package_manager": "PYTHONPKG",
+                "version": "2.8.0",
+                "release": null
+            },
+            "remediation": {
+                "recommendation": {
+                    "text": "None Provided"
+                }
+            },
+            "cvss_v3_score": 7.5,
+            "cvss_v30_score": 0,
+            "cvss_v31_score": 7.5,
+            "cvss_v2_score": 0,
+            "cvss_v3_severity": "HIGH",
+            "source_url": "https://snyk.io/vuln/SNYK-PYTHON-TENSORFLOW-3026926",
+            "source": "SNYK",
+            "severity": "HIGH",
+            "status": "ACTIVE",
+            "title": "IN1-PYTHON-TENSORFLOW-3026926 - tensorflow"
+        },
+        {
+            "description": "TensorFlow is an open source platform for machine learning. When running on GPU, `tf.image.generate_bounding_box_proposals` receives a `scores` input that must be of rank 4 but is not checked. We have patched the issue in GitHub commit cf35502463a88ca7185a99daa7031df60b3c1c98. The fix will be included in TensorFlow 2.11. We will also cherrypick this commit on TensorFlow 2.10.1, 2.9.3, and TensorFlow 2.8.4, as these are also affected and still in supported range.",
+            "vulnerability_id": "CVE-2022-41888",
+            "name": "CVE-2022-41888",
+            "package_name": "tensorflow",
+            "package_details": {
+                "file_path": "usr/local/lib/python3.8/site-packages/tensorflow-2.8.0.dist-info/METADATA",
+                "name": "tensorflow",
+                "package_manager": "PYTHONPKG",
+                "version": "2.8.0",
+                "release": null
+            },
+            "remediation": {
+                "recommendation": {
+                    "text": "None Provided"
+                }
+            },
+            "cvss_v3_score": 7.5,
+            "cvss_v30_score": 0,
+            "cvss_v31_score": 7.5,
+            "cvss_v2_score": 0,
+            "cvss_v3_severity": "HIGH",
+            "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2022-41888",
+            "source": "NVD",
+            "severity": "HIGH",
+            "status": "ACTIVE",
+            "title": "CVE-2022-41888 - tensorflow"
+        },
+        {
+            "description": "TensorFlow is an open source platform for machine learning. Inputs `dense_features` or `example_state_data` not of rank 2 will trigger a `CHECK` fail in `SdcaOptimizer`. We have patched the issue in GitHub commit 80ff197d03db2a70c6a111f97dcdacad1b0babfa. The fix will be included in TensorFlow 2.11. We will also cherrypick this commit on TensorFlow 2.10.1, 2.9.3, and TensorFlow 2.8.4, as these are also affected and still in supported range.",
+            "vulnerability_id": "CVE-2022-41899",
+            "name": "CVE-2022-41899",
+            "package_name": "tensorflow",
+            "package_details": {
+                "file_path": "usr/local/lib/python3.8/site-packages/tensorflow-2.8.0.dist-info/METADATA",
+                "name": "tensorflow",
+                "package_manager": "PYTHONPKG",
+                "version": "2.8.0",
+                "release": null
+            },
+            "remediation": {
+                "recommendation": {
+                    "text": "None Provided"
+                }
+            },
+            "cvss_v3_score": 7.5,
+            "cvss_v30_score": 0,
+            "cvss_v31_score": 7.5,
+            "cvss_v2_score": 0,
+            "cvss_v3_severity": "HIGH",
+            "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2022-41899",
+            "source": "NVD",
+            "severity": "HIGH",
+            "status": "ACTIVE",
+            "title": "CVE-2022-41899 - tensorflow"
+        },
+        {
+            "description": "TensorFlow is an open source platform for machine learning. The function MakeGrapplerFunctionItem takes arguments that determine the sizes of inputs and outputs. If the inputs given are greater than or equal to the sizes of the outputs, an out-of-bounds memory read or a crash is triggered. We have patched the issue in GitHub commit a65411a1d69edfb16b25907ffb8f73556ce36bb7. The fix will be included in TensorFlow 2.11.0. We will also cherrypick this commit on TensorFlow 2.8.4, 2.9.3, and 2.10.1.",
+            "vulnerability_id": "CVE-2022-41902",
+            "name": "CVE-2022-41902",
+            "package_name": "tensorflow",
+            "package_details": {
+                "file_path": "usr/local/lib/python3.8/site-packages/tensorflow-2.8.0.dist-info/METADATA",
+                "name": "tensorflow",
+                "package_manager": "PYTHONPKG",
+                "version": "2.8.0",
+                "release": null
+            },
+            "remediation": {
+                "recommendation": {
+                    "text": "None Provided"
+                }
+            },
+            "cvss_v3_score": 9.1,
+            "cvss_v30_score": 0,
+            "cvss_v31_score": 9.1,
+            "cvss_v2_score": 0,
+            "cvss_v3_severity": "CRITICAL",
+            "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2022-41902",
+            "source": "NVD",
+            "severity": "CRITICAL",
+            "status": "ACTIVE",
+            "title": "CVE-2022-41902 - tensorflow"
+        },
+        {
+            "description": "TensorFlow is an open source platform for machine learning. When `SetSize` receives an input `set_shape` that is not a 1D tensor, it gives a `CHECK` fails that can be used to trigger a denial of service attack. We have patched the issue in GitHub commit cf70b79d2662c0d3c6af74583641e345fc939467. The fix will be included in TensorFlow 2.10.0. We will also cherrypick this commit on TensorFlow 2.9.1, TensorFlow 2.8.1, and TensorFlow 2.7.2, as these are also affected and still in supported range. There are no known workarounds for this issue.",
+            "vulnerability_id": "CVE-2022-35993",
+            "name": "CVE-2022-35993",
+            "package_name": "tensorflow",
+            "package_details": {
+                "file_path": "usr/local/lib/python3.8/site-packages/tensorflow-2.8.0.dist-info/METADATA",
+                "name": "tensorflow",
+                "package_manager": "PYTHONPKG",
+                "version": "2.8.0",
+                "release": null
+            },
+            "remediation": {
+                "recommendation": {
+                    "text": "None Provided"
+                }
+            },
+            "cvss_v3_score": 7.5,
+            "cvss_v30_score": 0,
+            "cvss_v31_score": 7.5,
+            "cvss_v2_score": 0,
+            "cvss_v3_severity": "HIGH",
+            "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2022-35993",
+            "source": "NVD",
+            "severity": "HIGH",
+            "status": "ACTIVE",
+            "title": "CVE-2022-35993 - tensorflow"
+        },
+        {
+            "description": "[tensorflow](https://pypi.org/project/tensorflow/) is a machine learning framework.\n\nAffected versions of this package are vulnerable to Out-of-bounds Read via the `GatherNd` function, when the given inputs to the function are greater than or equal to the sizes of the outputs.",
+            "vulnerability_id": "SNYK-PYTHON-TENSORFLOW-3026979",
+            "name": "SNYK-PYTHON-TENSORFLOW-3026979",
+            "package_name": "tensorflow",
+            "package_details": {
+                "file_path": "usr/local/lib/python3.8/site-packages/tensorflow-2.8.0.dist-info/METADATA",
+                "name": "tensorflow",
+                "package_manager": "PYTHONPKG",
+                "version": "2.8.0",
+                "release": null
+            },
+            "remediation": {
+                "recommendation": {
+                    "text": "None Provided"
+                }
+            },
+            "cvss_v3_score": 7,
+            "cvss_v30_score": 0,
+            "cvss_v31_score": 7,
+            "cvss_v2_score": 0,
+            "cvss_v3_severity": "HIGH",
+            "source_url": "https://snyk.io/vuln/SNYK-PYTHON-TENSORFLOW-3026979",
+            "source": "SNYK",
+            "severity": "HIGH",
+            "status": "ACTIVE",
+            "title": "IN1-PYTHON-TENSORFLOW-3026979 - tensorflow"
+        },
+        {
+            "description": "TensorFlow is an open source platform for machine learning. The implementation of `AvgPoolGrad` does not fully validate the input `orig_input_shape`. This results in a `CHECK` failure which can be used to trigger a denial of service attack. We have patched the issue in GitHub commit 3a6ac52664c6c095aa2b114e742b0aa17fdce78f. The fix will be included in TensorFlow 2.10.0. We will also cherrypick this commit on TensorFlow 2.9.1, TensorFlow 2.8.1, and TensorFlow 2.7.2, as these are also affected and still in supported range. There are no known workarounds for this issue.",
+            "vulnerability_id": "CVE-2022-35968",
+            "name": "CVE-2022-35968",
+            "package_name": "tensorflow",
+            "package_details": {
+                "file_path": "usr/local/lib/python3.8/site-packages/tensorflow-2.8.0.dist-info/METADATA",
+                "name": "tensorflow",
+                "package_manager": "PYTHONPKG",
+                "version": "2.8.0",
+                "release": null
+            },
+            "remediation": {
+                "recommendation": {
+                    "text": "None Provided"
+                }
+            },
+            "cvss_v3_score": 7.5,
+            "cvss_v30_score": 0,
+            "cvss_v31_score": 7.5,
+            "cvss_v2_score": 0,
+            "cvss_v3_severity": "HIGH",
+            "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2022-35968",
+            "source": "NVD",
+            "severity": "HIGH",
+            "status": "ACTIVE",
+            "title": "CVE-2022-35968 - tensorflow"
+        },
+        {
+            "description": "TensorFlow is an open source platform for machine learning. The implementation of `FractionalAvgPoolGrad` does not fully validate the input `orig_input_tensor_shape`. This results in an overflow that results in a `CHECK` failure which can be used to trigger a denial of service attack. We have patched the issue in GitHub commit 03a659d7be9a1154fdf5eeac221e5950fec07dad. The fix will be included in TensorFlow 2.10.0. We will also cherrypick this commit on TensorFlow 2.9.1, TensorFlow 2.8.1, and TensorFlow 2.7.2, as these are also affected and still in supported range. There are no known workarounds for this issue.",
+            "vulnerability_id": "CVE-2022-35963",
+            "name": "CVE-2022-35963",
+            "package_name": "tensorflow",
+            "package_details": {
+                "file_path": "usr/local/lib/python3.8/site-packages/tensorflow-2.8.0.dist-info/METADATA",
+                "name": "tensorflow",
+                "package_manager": "PYTHONPKG",
+                "version": "2.8.0",
+                "release": null
+            },
+            "remediation": {
+                "recommendation": {
+                    "text": "None Provided"
+                }
+            },
+            "cvss_v3_score": 7.5,
+            "cvss_v30_score": 0,
+            "cvss_v31_score": 7.5,
+            "cvss_v2_score": 0,
+            "cvss_v3_severity": "HIGH",
+            "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2022-35963",
+            "source": "NVD",
+            "severity": "HIGH",
+            "status": "ACTIVE",
+            "title": "CVE-2022-35963 - tensorflow"
+        },
+        {
+            "description": "TensorFlow is an open source platform for machine learning. If `FakeQuantWithMinMaxVars` is given `min` or `max` tensors of a nonzero rank, it results in a `CHECK` fail that can be used to trigger a denial of service attack. We have patched the issue in GitHub commit 785d67a78a1d533759fcd2f5e8d6ef778de849e0. The fix will be included in TensorFlow 2.10.0. We will also cherrypick this commit on TensorFlow 2.9.1, TensorFlow 2.8.1, and TensorFlow 2.7.2, as these are also affected and still in supported range. There are no known workarounds for this issue.",
+            "vulnerability_id": "CVE-2022-35971",
+            "name": "CVE-2022-35971",
+            "package_name": "tensorflow",
+            "package_details": {
+                "file_path": "usr/local/lib/python3.8/site-packages/tensorflow-2.8.0.dist-info/METADATA",
+                "name": "tensorflow",
+                "package_manager": "PYTHONPKG",
+                "version": "2.8.0",
+                "release": null
+            },
+            "remediation": {
+                "recommendation": {
+                    "text": "None Provided"
+                }
+            },
+            "cvss_v3_score": 7.5,
+            "cvss_v30_score": 0,
+            "cvss_v31_score": 7.5,
+            "cvss_v2_score": 0,
+            "cvss_v3_severity": "HIGH",
+            "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2022-35971",
+            "source": "NVD",
+            "severity": "HIGH",
+            "status": "ACTIVE",
+            "title": "CVE-2022-35971 - tensorflow"
+        },
+        {
+            "description": "[tensorflow](https://pypi.org/project/tensorflow/) is a machine learning framework.\n\nAffected versions of this package are vulnerable to Out-of-bounds Write via the `scatter_nd` function in TF Lite, when an input index is greater than the output tensor or less than zero.",
+            "vulnerability_id": "SNYK-PYTHON-TENSORFLOW-3026917",
+            "name": "SNYK-PYTHON-TENSORFLOW-3026917",
+            "package_name": "tensorflow",
+            "package_details": {
+                "file_path": "usr/local/lib/python3.8/site-packages/tensorflow-2.8.0.dist-info/METADATA",
+                "name": "tensorflow",
+                "package_manager": "PYTHONPKG",
+                "version": "2.8.0",
+                "release": null
+            },
+            "remediation": {
+                "recommendation": {
+                    "text": "None Provided"
+                }
+            },
+            "cvss_v3_score": 8.4,
+            "cvss_v30_score": 0,
+            "cvss_v31_score": 8.4,
+            "cvss_v2_score": 0,
+            "cvss_v3_severity": "HIGH",
+            "source_url": "https://snyk.io/vuln/SNYK-PYTHON-TENSORFLOW-3026917",
+            "source": "SNYK",
+            "severity": "HIGH",
+            "status": "ACTIVE",
+            "title": "IN1-PYTHON-TENSORFLOW-3026917 - tensorflow"
+        },
+        {
+            "description": "TensorFlow is an open source platform for machine learning. The `GatherNd` function takes arguments that determine the sizes of inputs and outputs. If the inputs given are greater than or equal to the sizes of the outputs, an out-of-bounds memory read or a crash is triggered. This issue has been patched in GitHub commit 4142e47e9e31db481781b955ed3ff807a781b494. The fix will be included in TensorFlow 2.10.0. We will also cherrypick this commit on TensorFlow 2.9.1, TensorFlow 2.8.1, and TensorFlow 2.7.2, as these are also affected and still in supported range. There are no known workarounds for this issue.",
+            "vulnerability_id": "CVE-2022-35938",
+            "name": "CVE-2022-35938",
+            "package_name": "tensorflow",
+            "package_details": {
+                "file_path": "usr/local/lib/python3.8/site-packages/tensorflow-2.8.0.dist-info/METADATA",
+                "name": "tensorflow",
+                "package_manager": "PYTHONPKG",
+                "version": "2.8.0",
+                "release": null
+            },
+            "remediation": {
+                "recommendation": {
+                    "text": "None Provided"
+                }
+            },
+            "cvss_v3_score": 9.1,
+            "cvss_v30_score": 0,
+            "cvss_v31_score": 9.1,
+            "cvss_v2_score": 0,
+            "cvss_v3_severity": "CRITICAL",
+            "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2022-35938",
+            "source": "NVD",
+            "severity": "CRITICAL",
+            "status": "ACTIVE",
+            "title": "CVE-2022-35938 - tensorflow"
+        },
+        {
+            "description": "[tensorflow](https://pypi.org/project/tensorflow/) is a machine learning framework.\n\nAffected versions of this package are vulnerable to Denial of Service (DoS) due to another discovered instance of [CVE-2022-35935](https://security.snyk.io/vuln/SNYK-PYTHON-TENSORFLOW-3026914) in `SobolSample` via assumed scalar inputs.",
+            "vulnerability_id": "SNYK-PYTHON-TENSORFLOW-3136512",
+            "name": "SNYK-PYTHON-TENSORFLOW-3136512",
+            "package_name": "tensorflow",
+            "package_details": {
+                "file_path": "usr/local/lib/python3.8/site-packages/tensorflow-2.8.0.dist-info/METADATA",
+                "name": "tensorflow",
+                "package_manager": "PYTHONPKG",
+                "version": "2.8.0",
+                "release": null
+            },
+            "remediation": {
+                "recommendation": {
+                    "text": "None Provided"
+                }
+            },
+            "cvss_v3_score": 7.5,
+            "cvss_v30_score": 0,
+            "cvss_v31_score": 7.5,
+            "cvss_v2_score": 0,
+            "cvss_v3_severity": "HIGH",
+            "source_url": "https://snyk.io/vuln/SNYK-PYTHON-TENSORFLOW-3136512",
+            "source": "SNYK",
+            "severity": "HIGH",
+            "status": "ACTIVE",
+            "title": "IN1-PYTHON-TENSORFLOW-3136512 - tensorflow"
+        },
+        {
+            "description": "TensorFlow is an open source platform for machine learning. When `tf.quantization.fake_quant_with_min_max_vars_per_channel_gradient` receives input `min` or `max` of rank other than 1, it gives a `CHECK` fail that can trigger a denial of service attack. We have patched the issue in GitHub commit f3cf67ac5705f4f04721d15e485e192bb319feed. The fix will be included in TensorFlow 2.10.0. We will also cherrypick this commit on TensorFlow 2.9.1, TensorFlow 2.8.1, and TensorFlow 2.7.2, as these are also affected and still in supported range.There are no known workarounds for this issue.",
+            "vulnerability_id": "CVE-2022-35990",
+            "name": "CVE-2022-35990",
+            "package_name": "tensorflow",
+            "package_details": {
+                "file_path": "usr/local/lib/python3.8/site-packages/tensorflow-2.8.0.dist-info/METADATA",
+                "name": "tensorflow",
+                "package_manager": "PYTHONPKG",
+                "version": "2.8.0",
+                "release": null
+            },
+            "remediation": {
+                "recommendation": {
+                    "text": "None Provided"
+                }
+            },
+            "cvss_v3_score": 7.5,
+            "cvss_v30_score": 0,
+            "cvss_v31_score": 7.5,
+            "cvss_v2_score": 0,
+            "cvss_v3_severity": "HIGH",
+            "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2022-35990",
+            "source": "NVD",
+            "severity": "HIGH",
+            "status": "ACTIVE",
+            "title": "CVE-2022-35990 - tensorflow"
+        },
+        {
+            "description": "[tensorflow](https://pypi.org/project/tensorflow/) is a machine learning framework.\n\nAffected versions of this package are vulnerable to NULL Pointer Dereference when the resource handle is empty.",
+            "vulnerability_id": "SNYK-PYTHON-TENSORFLOW-2841463",
+            "name": "SNYK-PYTHON-TENSORFLOW-2841463",
+            "package_name": "tensorflow",
+            "package_details": {
+                "file_path": "usr/local/lib/python3.8/site-packages/tensorflow-2.8.0.dist-info/METADATA",
+                "name": "tensorflow",
+                "package_manager": "PYTHONPKG",
+                "version": "2.8.0",
+                "release": null
+            },
+            "remediation": {
+                "recommendation": {
+                    "text": "None Provided"
+                }
+            },
+            "cvss_v3_score": 7.5,
+            "cvss_v30_score": 0,
+            "cvss_v31_score": 7.5,
+            "cvss_v2_score": 0,
+            "cvss_v3_severity": "HIGH",
+            "source_url": "https://snyk.io/vuln/SNYK-PYTHON-TENSORFLOW-2841463",
+            "source": "SNYK",
+            "severity": "HIGH",
+            "status": "ACTIVE",
+            "title": "IN1-PYTHON-TENSORFLOW-2841463 - tensorflow"
+        },
+        {
+            "description": "TensorFlow is an open source platform for machine learning. If `Conv2D` is given empty `input` and the `filter` and `padding` sizes are valid, the output is all-zeros. This causes division-by-zero floating point exceptions that can be used to trigger a denial of service attack. We have patched the issue in GitHub commit 611d80db29dd7b0cfb755772c69d60ae5bca05f9. The fix will be included in TensorFlow 2.10.0. We will also cherrypick this commit on TensorFlow 2.9.1, TensorFlow 2.8.1, and TensorFlow 2.7.2, as these are also affected and still in supported range. There are no known workarounds for this issue.",
+            "vulnerability_id": "CVE-2022-35996",
+            "name": "CVE-2022-35996",
+            "package_name": "tensorflow",
+            "package_details": {
+                "file_path": "usr/local/lib/python3.8/site-packages/tensorflow-2.8.0.dist-info/METADATA",
+                "name": "tensorflow",
+                "package_manager": "PYTHONPKG",
+                "version": "2.8.0",
+                "release": null
+            },
+            "remediation": {
+                "recommendation": {
+                    "text": "None Provided"
+                }
+            },
+            "cvss_v3_score": 7.5,
+            "cvss_v30_score": 0,
+            "cvss_v31_score": 7.5,
+            "cvss_v2_score": 0,
+            "cvss_v3_severity": "HIGH",
+            "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2022-35996",
+            "source": "NVD",
+            "severity": "HIGH",
+            "status": "ACTIVE",
+            "title": "CVE-2022-35996 - tensorflow"
+        },
+        {
+            "description": "TensorFlow is an open source platform for machine learning. When `AudioSummaryV2` receives an input `sample_rate` with more than one element, it gives a `CHECK` fails that can be used to trigger a denial of service attack. We have patched the issue in GitHub commit bf6b45244992e2ee543c258e519489659c99fb7f. The fix will be included in TensorFlow 2.10.0. We will also cherrypick this commit on TensorFlow 2.9.1, TensorFlow 2.8.1, and TensorFlow 2.7.2, as these are also affected and still in supported range. There are no known workarounds for this issue.",
+            "vulnerability_id": "CVE-2022-35995",
+            "name": "CVE-2022-35995",
+            "package_name": "tensorflow",
+            "package_details": {
+                "file_path": "usr/local/lib/python3.8/site-packages/tensorflow-2.8.0.dist-info/METADATA",
+                "name": "tensorflow",
+                "package_manager": "PYTHONPKG",
+                "version": "2.8.0",
+                "release": null
+            },
+            "remediation": {
+                "recommendation": {
+                    "text": "None Provided"
+                }
+            },
+            "cvss_v3_score": 7.5,
+            "cvss_v30_score": 0,
+            "cvss_v31_score": 7.5,
+            "cvss_v2_score": 0,
+            "cvss_v3_severity": "HIGH",
+            "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2022-35995",
+            "source": "NVD",
+            "severity": "HIGH",
+            "status": "ACTIVE",
+            "title": "CVE-2022-35995 - tensorflow"
+        },
+        {
+            "description": "### Impact\nThe [`GatherNd`](https://github.com/tensorflow/tensorflow/blob/f463040eb3997e42e60a2ffc6dc72de7ef11dbb4/tensorflow/lite/kernels/gather_nd.cc#L105-L111) function takes arguments that determine the sizes of inputs and outputs. If the inputs given are greater than or equal to the sizes of the outputs, an out-of-bounds memory read is triggered.\n\n### Patches\nWe have patched the issue in GitHub commit [595a65a3e224a0362d7e68c2213acfc2b499a196](https://github.com/tensorflow/tensorflow/commit/595a65a3e224a0362d7e68c2213acfc2b499a196).\n\n\nThe fix will be included in TensorFlow 2.10.0. We will also cherrypick this commit on TensorFlow 2.9.1, TensorFlow 2.8.1, and TensorFlow 2.7.2, as these are also affected and still in supported range.\n\n\n### For more information\nPlease consult [our security guide](https://github.com/tensorflow/tensorflow/blob/master/SECURITY.md) for more information regarding the security model and how to contact us with issues and questions.\n\n\n### Attribution\nThis vulnerability has been rep",
+            "vulnerability_id": "GHSA-pxrw-j2fv-hx3h",
+            "name": "GHSA-pxrw-j2fv-hx3h",
+            "package_name": "tensorflow",
+            "package_details": {
+                "file_path": "usr/local/lib/python3.8/site-packages/tensorflow-2.8.0.dist-info/METADATA",
+                "name": "tensorflow",
+                "package_manager": "PYTHONPKG",
+                "version": "2.8.0",
+                "release": null
+            },
+            "remediation": {
+                "recommendation": {
+                    "text": "None Provided"
+                }
+            },
+            "cvss_v3_score": 7,
+            "cvss_v30_score": 0,
+            "cvss_v31_score": 7,
+            "cvss_v2_score": 0,
+            "cvss_v3_severity": "HIGH",
+            "source_url": "https://github.com/advisories/GHSA-pxrw-j2fv-hx3h",
+            "source": "GITHUB",
+            "severity": "HIGH",
+            "status": "ACTIVE",
+            "title": "GHSA-pxrw-j2fv-hx3h - tensorflow"
+        },
+        {
+            "description": "TensorFlow is an open source platform for machine learning. If `RaggedTensorToVariant` is given a `rt_nested_splits` list that contains tensors of ranks other than one, it results in a `CHECK` fail that can be used to trigger a denial of service attack. We have patched the issue in GitHub commit 88f93dfe691563baa4ae1e80ccde2d5c7a143821. The fix will be included in TensorFlow 2.10.0. We will also cherrypick this commit on TensorFlow 2.9.1, TensorFlow 2.8.1, and TensorFlow 2.7.2, as these are also affected and still in supported range. There are no known workarounds for this issue.",
+            "vulnerability_id": "CVE-2022-36018",
+            "name": "CVE-2022-36018",
+            "package_name": "tensorflow",
+            "package_details": {
+                "file_path": "usr/local/lib/python3.8/site-packages/tensorflow-2.8.0.dist-info/METADATA",
+                "name": "tensorflow",
+                "package_manager": "PYTHONPKG",
+                "version": "2.8.0",
+                "release": null
+            },
+            "remediation": {
+                "recommendation": {
+                    "text": "None Provided"
+                }
+            },
+            "cvss_v3_score": 7.5,
+            "cvss_v30_score": 0,
+            "cvss_v31_score": 7.5,
+            "cvss_v2_score": 0,
+            "cvss_v3_severity": "HIGH",
+            "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2022-36018",
+            "source": "NVD",
+            "severity": "HIGH",
+            "status": "ACTIVE",
+            "title": "CVE-2022-36018 - tensorflow"
+        },
+        {
+            "description": "TensorFlow is an open source platform for machine learning. The `ScatterNd` function takes an input argument that determines the indices of of the output tensor. An input index greater than the output tensor or less than zero will either write content at the wrong index or trigger a crash. We have patched the issue in GitHub commit b4d4b4cb019bd7240a52daa4ba61e3cc814f0384. The fix will be included in TensorFlow 2.10.0. We will also cherrypick this commit on TensorFlow 2.9.1, TensorFlow 2.8.1, and TensorFlow 2.7.2, as these are also affected and still in supported range. There are no known workarounds for this issue.",
+            "vulnerability_id": "CVE-2022-35939",
+            "name": "CVE-2022-35939",
+            "package_name": "tensorflow",
+            "package_details": {
+                "file_path": "usr/local/lib/python3.8/site-packages/tensorflow-2.8.0.dist-info/METADATA",
+                "name": "tensorflow",
+                "package_manager": "PYTHONPKG",
+                "version": "2.8.0",
+                "release": null
+            },
+            "remediation": {
+                "recommendation": {
+                    "text": "None Provided"
+                }
+            },
+            "cvss_v3_score": 9.8,
+            "cvss_v30_score": 0,
+            "cvss_v31_score": 9.8,
+            "cvss_v2_score": 0,
+            "cvss_v3_severity": "CRITICAL",
+            "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2022-35939",
+            "source": "NVD",
+            "severity": "CRITICAL",
+            "status": "ACTIVE",
+            "title": "CVE-2022-35939 - tensorflow"
+        },
+        {
+            "description": "TensorFlow is an open source platform for machine learning. If `QuantizeAndDequantizeV3` is given a nonscalar `num_bits` input tensor, it results in a `CHECK` fail that can be used to trigger a denial of service attack. We have patched the issue in GitHub commit f3f9cb38ecfe5a8a703f2c4a8fead434ef291713. The fix will be included in TensorFlow 2.10.0. We will also cherrypick this commit on TensorFlow 2.9.1, TensorFlow 2.8.1, and TensorFlow 2.7.2, as these are also affected and still in supported range. There are no known workarounds for this issue.",
+            "vulnerability_id": "CVE-2022-36026",
+            "name": "CVE-2022-36026",
+            "package_name": "tensorflow",
+            "package_details": {
+                "file_path": "usr/local/lib/python3.8/site-packages/tensorflow-2.8.0.dist-info/METADATA",
+                "name": "tensorflow",
+                "package_manager": "PYTHONPKG",
+                "version": "2.8.0",
+                "release": null
+            },
+            "remediation": {
+                "recommendation": {
+                    "text": "None Provided"
+                }
+            },
+            "cvss_v3_score": 7.5,
+            "cvss_v30_score": 0,
+            "cvss_v31_score": 7.5,
+            "cvss_v2_score": 0,
+            "cvss_v3_severity": "HIGH",
+            "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2022-36026",
+            "source": "NVD",
+            "severity": "HIGH",
+            "status": "ACTIVE",
+            "title": "CVE-2022-36026 - tensorflow"
+        },
+        {
+            "description": "TensorFlow is an open source platform for machine learning. `DenseBincount` assumes its input tensor `weights` to either have the same shape as its input tensor `input` or to be length-0. A different `weights` shape will trigger a `CHECK` fail that can be used to trigger a denial of service attack. We have patched the issue in GitHub commit bf4c14353c2328636a18bfad1e151052c81d5f43. The fix will be included in TensorFlow 2.10.0. We will also cherrypick this commit on TensorFlow 2.9.1, TensorFlow 2.8.1, and TensorFlow 2.7.2, as these are also affected and still in supported range. There are no known workarounds for this issue.",
+            "vulnerability_id": "CVE-2022-35987",
+            "name": "CVE-2022-35987",
+            "package_name": "tensorflow",
+            "package_details": {
+                "file_path": "usr/local/lib/python3.8/site-packages/tensorflow-2.8.0.dist-info/METADATA",
+                "name": "tensorflow",
+                "package_manager": "PYTHONPKG",
+                "version": "2.8.0",
+                "release": null
+            },
+            "remediation": {
+                "recommendation": {
+                    "text": "None Provided"
+                }
+            },
+            "cvss_v3_score": 7.5,
+            "cvss_v30_score": 0,
+            "cvss_v31_score": 7.5,
+            "cvss_v2_score": 0,
+            "cvss_v3_severity": "HIGH",
+            "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2022-35987",
+            "source": "NVD",
+            "severity": "HIGH",
+            "status": "ACTIVE",
+            "title": "CVE-2022-35987 - tensorflow"
+        },
+        {
+            "description": "## Overview\n[tensorflow](https://pypi.org/project/tensorflow/) is a machine learning framework.\nAffected versions of this package are vulnerable to Arbitrary File Write via Archive Extraction (Zip Slip) via a crafted archive when `tf.keras.utils.get_file` is used with `extract=True`.\r\n\r\nNOTE: This CVE is disputed as the vendor's position is that `tf.keras.utils.get_file` is not intended for untrusted archives. However, we feel this advisory is relevant as, as at the time of publication, there is no known security notice or documentation warning users of this behaviour.\n\n## Details\n\nIt is exploited using a specially crafted zip archive, that holds path traversal filenames. When exploited, a filename in a malicious archive is concatenated to the target extraction directory, which results in the final path ending up outside of the target folder. For instance, a zip may hold a file with a \"../../file.exe\" location and thus break out of the target folder. If an executable or a configuration file is overwritten wit",
+            "vulnerability_id": "SNYK-PYTHON-TENSORFLOW-1315149",
+            "name": "SNYK-PYTHON-TENSORFLOW-1315149",
+            "package_name": "tensorflow",
+            "package_details": {
+                "file_path": "usr/local/lib/python3.8/site-packages/tensorflow-2.10.1.dist-info/METADATA",
+                "name": "tensorflow",
+                "package_manager": "PYTHONPKG",
+                "version": "2.10.1",
+                "release": null
+            },
+            "remediation": {
+                "recommendation": {
+                    "text": "None Provided"
+                }
+            },
+            "cvss_v3_score": 9.1,
+            "cvss_v30_score": 0,
+            "cvss_v31_score": 9.1,
+            "cvss_v2_score": 0,
+            "cvss_v3_severity": "CRITICAL",
+            "source_url": "https://security.snyk.io/vuln/SNYK-PYTHON-TENSORFLOW-1315149",
+            "source": "SNYK",
+            "severity": "CRITICAL",
+            "status": "ACTIVE",
+            "title": "IN1-PYTHON-TENSORFLOW-1315149 - tensorflow"
+        },
+        {
+            "description": "TensorFlow is an open source platform for machine learning. If `EmptyTensorList` receives an input `element_shape` with more than one dimension, it gives a `CHECK` fail that can be used to trigger a denial of service attack. We have patched the issue in GitHub commit c8ba76d48567aed347508e0552a257641931024d. The fix will be included in TensorFlow 2.10.0. We will also cherrypick this commit on TensorFlow 2.9.1, TensorFlow 2.8.1, and TensorFlow 2.7.2, as these are also affected and still in supported range. There are no known workarounds for this issue.",
+            "vulnerability_id": "CVE-2022-35998",
+            "name": "CVE-2022-35998",
+            "package_name": "tensorflow",
+            "package_details": {
+                "file_path": "usr/local/lib/python3.8/site-packages/tensorflow-2.8.0.dist-info/METADATA",
+                "name": "tensorflow",
+                "package_manager": "PYTHONPKG",
+                "version": "2.8.0",
+                "release": null
+            },
+            "remediation": {
+                "recommendation": {
+                    "text": "None Provided"
+                }
+            },
+            "cvss_v3_score": 7.5,
+            "cvss_v30_score": 0,
+            "cvss_v31_score": 7.5,
+            "cvss_v2_score": 0,
+            "cvss_v3_severity": "HIGH",
+            "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2022-35998",
+            "source": "NVD",
+            "severity": "HIGH",
+            "status": "ACTIVE",
+            "title": "CVE-2022-35998 - tensorflow"
+        },
+        {
+            "description": "TensorFlow is an open source platform for machine learning. When `mlir::tfg::GraphDefImporter::ConvertNodeDef` tries to convert NodeDefs without an op name, it crashes. We have patched the issue in GitHub commit a0f0b9a21c9270930457095092f558fbad4c03e5. The fix will be included in TensorFlow 2.10.0. We will also cherrypick this commit on TensorFlow 2.9.1, TensorFlow 2.8.1, and TensorFlow 2.7.2, as these are also affected and still in supported range. There are no known workarounds for this issue.",
+            "vulnerability_id": "CVE-2022-36013",
+            "name": "CVE-2022-36013",
+            "package_name": "tensorflow",
+            "package_details": {
+                "file_path": "usr/local/lib/python3.8/site-packages/tensorflow-2.8.0.dist-info/METADATA",
+                "name": "tensorflow",
+                "package_manager": "PYTHONPKG",
+                "version": "2.8.0",
+                "release": null
+            },
+            "remediation": {
+                "recommendation": {
+                    "text": "None Provided"
+                }
+            },
+            "cvss_v3_score": 7.5,
+            "cvss_v30_score": 0,
+            "cvss_v31_score": 7.5,
+            "cvss_v2_score": 0,
+            "cvss_v3_severity": "HIGH",
+            "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2022-36013",
+            "source": "NVD",
+            "severity": "HIGH",
+            "status": "ACTIVE",
+            "title": "CVE-2022-36013 - tensorflow"
+        },
+        {
+            "description": "TensorFlow is an open source platform for machine learning. If `SparseBincount` is given inputs for `indices`, `values`, and `dense_shape` that do not make a valid sparse tensor, it results in a segfault that can be used to trigger a denial of service attack. We have patched the issue in GitHub commit 40adbe4dd15b582b0210dfbf40c243a62f5119fa. The fix will be included in TensorFlow 2.10.0. We will also cherrypick this commit on TensorFlow 2.9.1, TensorFlow 2.8.1, and TensorFlow 2.7.2, as these are also affected and still in supported range. There are no known workarounds for this issue.",
+            "vulnerability_id": "CVE-2022-35982",
+            "name": "CVE-2022-35982",
+            "package_name": "tensorflow",
+            "package_details": {
+                "file_path": "usr/local/lib/python3.8/site-packages/tensorflow-2.8.0.dist-info/METADATA",
+                "name": "tensorflow",
+                "package_manager": "PYTHONPKG",
+                "version": "2.8.0",
+                "release": null
+            },
+            "remediation": {
+                "recommendation": {
+                    "text": "None Provided"
+                }
+            },
+            "cvss_v3_score": 7.5,
+            "cvss_v30_score": 0,
+            "cvss_v31_score": 7.5,
+            "cvss_v2_score": 0,
+            "cvss_v3_severity": "HIGH",
+            "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2022-35982",
+            "source": "NVD",
+            "severity": "HIGH",
+            "status": "ACTIVE",
+            "title": "CVE-2022-35982 - tensorflow"
+        },
+        {
+            "description": "TensorFlow is an open source platform for machine learning. An input `sparse_matrix` that is not a matrix with a shape with rank 0 will trigger a `CHECK` fail in `tf.raw_ops.SparseMatrixNNZ`. We have patched the issue in GitHub commit f856d02e5322821aad155dad9b3acab1e9f5d693. The fix will be included in TensorFlow 2.11. We will also cherrypick this commit on TensorFlow 2.10.1, 2.9.3, and TensorFlow 2.8.4, as these are also affected and still in supported range.",
+            "vulnerability_id": "CVE-2022-41901",
+            "name": "CVE-2022-41901",
+            "package_name": "tensorflow",
+            "package_details": {
+                "file_path": "usr/local/lib/python3.8/site-packages/tensorflow-2.8.0.dist-info/METADATA",
+                "name": "tensorflow",
+                "package_manager": "PYTHONPKG",
+                "version": "2.8.0",
+                "release": null
+            },
+            "remediation": {
+                "recommendation": {
+                    "text": "None Provided"
+                }
+            },
+            "cvss_v3_score": 7.5,
+            "cvss_v30_score": 0,
+            "cvss_v31_score": 7.5,
+            "cvss_v2_score": 0,
+            "cvss_v3_severity": "HIGH",
+            "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2022-41901",
+            "source": "NVD",
+            "severity": "HIGH",
+            "status": "ACTIVE",
+            "title": "CVE-2022-41901 - tensorflow"
+        },
+        {
+            "description": "TensorFlow is an open source platform for machine learning. The implementation of tf.reshape op in TensorFlow is vulnerable to a denial of service via CHECK-failure (assertion failure) caused by overflowing the number of elements in a tensor. This issue has been patched in GitHub commit 61f0f9b94df8c0411f0ad0ecc2fec2d3f3c33555. The fix will be included in TensorFlow 2.10.0. We will also cherrypick this commit on TensorFlow 2.9.1, TensorFlow 2.8.1, and TensorFlow 2.7.2, as these are also affected and still in supported range. There are no known workarounds for this issue.",
+            "vulnerability_id": "CVE-2022-35934",
+            "name": "CVE-2022-35934",
+            "package_name": "tensorflow",
+            "package_details": {
+                "file_path": "usr/local/lib/python3.8/site-packages/tensorflow-2.8.0.dist-info/METADATA",
+                "name": "tensorflow",
+                "package_manager": "PYTHONPKG",
+                "version": "2.8.0",
+                "release": null
+            },
+            "remediation": {
+                "recommendation": {
+                    "text": "None Provided"
+                }
+            },
+            "cvss_v3_score": 7.5,
+            "cvss_v30_score": 0,
+            "cvss_v31_score": 7.5,
+            "cvss_v2_score": 0,
+            "cvss_v3_severity": "HIGH",
+            "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2022-35934",
+            "source": "NVD",
+            "severity": "HIGH",
+            "status": "ACTIVE",
+            "title": "CVE-2022-35934 - tensorflow"
+        },
+        {
+            "description": "[tensorflow](https://pypi.org/project/tensorflow/) is a machine learning framework.\n\nAffected versions of this package are vulnerable to Remote Code Execution (RCE) due to improper fix of [CVE-2021-41228](https://security.snyk.io/vuln/SNYK-PYTHON-TENSORFLOW-1912653). Exploiting this vulnerability is possible via the `saved_model_cli` tool and can be abused to open a reverse shell. ",
+            "vulnerability_id": "SNYK-PYTHON-TENSORFLOW-2841408",
+            "name": "SNYK-PYTHON-TENSORFLOW-2841408",
+            "package_name": "tensorflow",
+            "package_details": {
+                "file_path": "usr/local/lib/python3.8/site-packages/tensorflow-2.8.0.dist-info/METADATA",
+                "name": "tensorflow",
+                "package_manager": "PYTHONPKG",
+                "version": "2.8.0",
+                "release": null
+            },
+            "remediation": {
+                "recommendation": {
+                    "text": "None Provided"
+                }
+            },
+            "cvss_v3_score": 7.8,
+            "cvss_v30_score": 0,
+            "cvss_v31_score": 7.8,
+            "cvss_v2_score": 0,
+            "cvss_v3_severity": "HIGH",
+            "source_url": "https://snyk.io/vuln/SNYK-PYTHON-TENSORFLOW-2841408",
+            "source": "SNYK",
+            "severity": "HIGH",
+            "status": "ACTIVE",
+            "title": "IN1-PYTHON-TENSORFLOW-2841408 - tensorflow"
+        },
+        {
+            "description": "### Impact\nThe [`ScatterNd`](https://github.com/tensorflow/tensorflow/blob/266558ac4c1f361e9a178ee9d3f0ce2e648ae499/tensorflow/lite/kernels/internal/reference/reference_ops.h#L659-L698) function takes an input argument that determines the indices of of the output tensor. An input index greater than the output tensor or less than zero will either write content at the wrong index or trigger a crash.\n\n### Patches\nWe have patched the issue in GitHub commit [b4d4b4cb019bd7240a52daa4ba61e3cc814f0384](https://github.com/tensorflow/tensorflow/commit/b4d4b4cb019bd7240a52daa4ba61e3cc814f0384).\n\nThe fix will be included in TensorFlow 2.10.0. We will also cherrypick this commit on TensorFlow 2.9.1, TensorFlow 2.8.1, and TensorFlow 2.7.2, as these are also affected and still in supported range.\n\n\n### For more information\nPlease consult [our security guide](https://github.com/tensorflow/tensorflow/blob/master/SECURITY.md) for more information regarding the security model and how to contact us with issues and questions.\n\n\n#",
+            "vulnerability_id": "GHSA-ffjm-4qwc-7cmf",
+            "name": "GHSA-ffjm-4qwc-7cmf",
+            "package_name": "tensorflow",
+            "package_details": {
+                "file_path": "usr/local/lib/python3.8/site-packages/tensorflow-2.8.0.dist-info/METADATA",
+                "name": "tensorflow",
+                "package_manager": "PYTHONPKG",
+                "version": "2.8.0",
+                "release": null
+            },
+            "remediation": {
+                "recommendation": {
+                    "text": "None Provided"
+                }
+            },
+            "cvss_v3_score": 7,
+            "cvss_v30_score": 0,
+            "cvss_v31_score": 7,
+            "cvss_v2_score": 0,
+            "cvss_v3_severity": "HIGH",
+            "source_url": "https://github.com/advisories/GHSA-ffjm-4qwc-7cmf",
+            "source": "GITHUB",
+            "severity": "HIGH",
+            "status": "ACTIVE",
+            "title": "GHSA-ffjm-4qwc-7cmf - tensorflow"
+        },
+        {
+            "description": "TensorFlow is an open source platform for machine learning. If `BCast::ToShape` is given input larger than an `int32`, it will crash, despite being supposed to handle up to an `int64`. An example can be seen in `tf.experimental.numpy.outer` by passing in large input to the input `b`. We have patched the issue in GitHub commit 8310bf8dd188ff780e7fc53245058215a05bdbe5. The fix will be included in TensorFlow 2.11. We will also cherrypick this commit on TensorFlow 2.10.1, 2.9.3, and TensorFlow 2.8.4, as these are also affected and still in supported range.",
+            "vulnerability_id": "CVE-2022-41890",
+            "name": "CVE-2022-41890",
+            "package_name": "tensorflow",
+            "package_details": {
+                "file_path": "usr/local/lib/python3.8/site-packages/tensorflow-2.8.0.dist-info/METADATA",
+                "name": "tensorflow",
+                "package_manager": "PYTHONPKG",
+                "version": "2.8.0",
+                "release": null
+            },
+            "remediation": {
+                "recommendation": {
+                    "text": "None Provided"
+                }
+            },
+            "cvss_v3_score": 7.5,
+            "cvss_v30_score": 0,
+            "cvss_v31_score": 7.5,
+            "cvss_v2_score": 0,
+            "cvss_v3_severity": "HIGH",
+            "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2022-41890",
+            "source": "NVD",
+            "severity": "HIGH",
+            "status": "ACTIVE",
+            "title": "CVE-2022-41890 - tensorflow"
+        },
+        {
+            "description": "TensorFlow is an open source platform for machine learning. When `mlir::tfg::ConvertGenericFunctionToFunctionDef` is given empty function attributes, it gives a null dereference. We have patched the issue in GitHub commit aed36912609fc07229b4d0a7b44f3f48efc00fd0. The fix will be included in TensorFlow 2.10.0. We will also cherrypick this commit on TensorFlow 2.9.1, TensorFlow 2.8.1, and TensorFlow 2.7.2, as these are also affected and still in supported range. There are no known workarounds for this issue.",
+            "vulnerability_id": "CVE-2022-36000",
+            "name": "CVE-2022-36000",
+            "package_name": "tensorflow",
+            "package_details": {
+                "file_path": "usr/local/lib/python3.8/site-packages/tensorflow-2.8.0.dist-info/METADATA",
+                "name": "tensorflow",
+                "package_manager": "PYTHONPKG",
+                "version": "2.8.0",
+                "release": null
+            },
+            "remediation": {
+                "recommendation": {
+                    "text": "None Provided"
+                }
+            },
+            "cvss_v3_score": 7.5,
+            "cvss_v30_score": 0,
+            "cvss_v31_score": 7.5,
+            "cvss_v2_score": 0,
+            "cvss_v3_severity": "HIGH",
+            "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2022-36000",
+            "source": "NVD",
+            "severity": "HIGH",
+            "status": "ACTIVE",
+            "title": "CVE-2022-36000 - tensorflow"
+        },
+        {
+            "description": "TensorFlow is an open source platform for machine learning. If `FakeQuantWithMinMaxVarsPerChannel` is given `min` or `max` tensors of a rank other than one, it results in a `CHECK` fail that can be used to trigger a denial of service attack. We have patched the issue in GitHub commit 785d67a78a1d533759fcd2f5e8d6ef778de849e0. The fix will be included in TensorFlow 2.10.0. We will also cherrypick this commit on TensorFlow 2.9.1, TensorFlow 2.8.1, and TensorFlow 2.7.2, as these are also affected and still in supported range. There are no known workarounds for this issue.",
+            "vulnerability_id": "CVE-2022-36019",
+            "name": "CVE-2022-36019",
+            "package_name": "tensorflow",
+            "package_details": {
+                "file_path": "usr/local/lib/python3.8/site-packages/tensorflow-2.8.0.dist-info/METADATA",
+                "name": "tensorflow",
+                "package_manager": "PYTHONPKG",
+                "version": "2.8.0",
+                "release": null
+            },
+            "remediation": {
+                "recommendation": {
+                    "text": "None Provided"
+                }
+            },
+            "cvss_v3_score": 7.5,
+            "cvss_v30_score": 0,
+            "cvss_v31_score": 7.5,
+            "cvss_v2_score": 0,
+            "cvss_v3_severity": "HIGH",
+            "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2022-36019",
+            "source": "NVD",
+            "severity": "HIGH",
+            "status": "ACTIVE",
+            "title": "CVE-2022-36019 - tensorflow"
+        },
+        {
+            "description": "TensorFlow is an open source platform for machine learning. When `tensorflow::full_type::SubstituteFromAttrs` receives a `FullTypeDef& t` that is not exactly three args, it triggers a `CHECK`-fail instead of returning a status. We have patched the issue in GitHub commit 6104f0d4091c260ce9352f9155f7e9b725eab012. The fix will be included in TensorFlow 2.10.0. We will also cherrypick this commit on TensorFlow 2.9.1, TensorFlow 2.8.1, and TensorFlow 2.7.2, as these are also affected and still in supported range. There are no known workarounds for this issue.",
+            "vulnerability_id": "CVE-2022-36016",
+            "name": "CVE-2022-36016",
+            "package_name": "tensorflow",
+            "package_details": {
+                "file_path": "usr/local/lib/python3.8/site-packages/tensorflow-2.8.0.dist-info/METADATA",
+                "name": "tensorflow",
+                "package_manager": "PYTHONPKG",
+                "version": "2.8.0",
+                "release": null
+            },
+            "remediation": {
+                "recommendation": {
+                    "text": "None Provided"
+                }
+            },
+            "cvss_v3_score": 7.5,
+            "cvss_v30_score": 0,
+            "cvss_v31_score": 7.5,
+            "cvss_v2_score": 0,
+            "cvss_v3_severity": "HIGH",
+            "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2022-36016",
+            "source": "NVD",
+            "severity": "HIGH",
+            "status": "ACTIVE",
+            "title": "CVE-2022-36016 - tensorflow"
+        },
+        {
+            "description": "TensorFlow is an open source platform for machine learning. If `QuantizedInstanceNorm` is given `x_min` or `x_max` tensors of a nonzero rank, it results in a segfault that can be used to trigger a denial of service attack. We have patched the issue in GitHub commit 785d67a78a1d533759fcd2f5e8d6ef778de849e0. The fix will be included in TensorFlow 2.10.0. We will also cherrypick this commit on TensorFlow 2.9.1, TensorFlow 2.8.1, and TensorFlow 2.7.2, as these are also affected and still in supported range. There are no known workarounds for this issue.",
+            "vulnerability_id": "CVE-2022-35970",
+            "name": "CVE-2022-35970",
+            "package_name": "tensorflow",
+            "package_details": {
+                "file_path": "usr/local/lib/python3.8/site-packages/tensorflow-2.8.0.dist-info/METADATA",
+                "name": "tensorflow",
+                "package_manager": "PYTHONPKG",
+                "version": "2.8.0",
+                "release": null
+            },
+            "remediation": {
+                "recommendation": {
+                    "text": "None Provided"
+                }
+            },
+            "cvss_v3_score": 7.5,
+            "cvss_v30_score": 0,
+            "cvss_v31_score": 7.5,
+            "cvss_v2_score": 0,
+            "cvss_v3_severity": "HIGH",
+            "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2022-35970",
+            "source": "NVD",
+            "severity": "HIGH",
+            "status": "ACTIVE",
+            "title": "CVE-2022-35970 - tensorflow"
+        },
+        {
+            "description": "TensorFlow is an open source platform for machine learning. When `Unbatch` receives a nonscalar input `id`, it gives a `CHECK` fail that can trigger a denial of service attack. We have patched the issue in GitHub commit 4419d10d576adefa36b0e0a9425d2569f7c0189f. The fix will be included in TensorFlow 2.10.0. We will also cherrypick this commit on TensorFlow 2.9.1, TensorFlow 2.8.1, and TensorFlow 2.7.2, as these are also affected and still in supported range. There are no known workarounds for this issue.",
+            "vulnerability_id": "CVE-2022-36002",
+            "name": "CVE-2022-36002",
+            "package_name": "tensorflow",
+            "package_details": {
+                "file_path": "usr/local/lib/python3.8/site-packages/tensorflow-2.8.0.dist-info/METADATA",
+                "name": "tensorflow",
+                "package_manager": "PYTHONPKG",
+                "version": "2.8.0",
+                "release": null
+            },
+            "remediation": {
+                "recommendation": {
+                    "text": "None Provided"
+                }
+            },
+            "cvss_v3_score": 7.5,
+            "cvss_v30_score": 0,
+            "cvss_v31_score": 7.5,
+            "cvss_v2_score": 0,
+            "cvss_v3_severity": "HIGH",
+            "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2022-36002",
+            "source": "NVD",
+            "severity": "HIGH",
+            "status": "ACTIVE",
+            "title": "CVE-2022-36002 - tensorflow"
+        },
+        {
+            "description": "[tensorflow](https://pypi.org/project/tensorflow/) is a machine learning framework.\n\nAffected versions of this package are vulnerable to Denial of Service (DoS) because the implementation of `tf.raw_ops.StagePeek` does not fully validate the input arguments, assuming that the `index` argument is a scalar when accessing its value.",
+            "vulnerability_id": "SNYK-PYTHON-TENSORFLOW-2841453",
+            "name": "SNYK-PYTHON-TENSORFLOW-2841453",
+            "package_name": "tensorflow",
+            "package_details": {
+                "file_path": "usr/local/lib/python3.8/site-packages/tensorflow-2.8.0.dist-info/METADATA",
+                "name": "tensorflow",
+                "package_manager": "PYTHONPKG",
+                "version": "2.8.0",
+                "release": null
+            },
+            "remediation": {
+                "recommendation": {
+                    "text": "None Provided"
+                }
+            },
+            "cvss_v3_score": 7.5,
+            "cvss_v30_score": 0,
+            "cvss_v31_score": 7.5,
+            "cvss_v2_score": 0,
+            "cvss_v3_severity": "HIGH",
+            "source_url": "https://snyk.io/vuln/SNYK-PYTHON-TENSORFLOW-2841453",
+            "source": "SNYK",
+            "severity": "HIGH",
+            "status": "ACTIVE",
+            "title": "IN1-PYTHON-TENSORFLOW-2841453 - tensorflow"
+        },
+        {
+            "description": "TensorFlow is an open source platform for machine learning. When `RandomPoissonV2` receives large input shape and rates, it gives a `CHECK` fail that can trigger a denial of service attack. We have patched the issue in GitHub commit 552bfced6ce4809db5f3ca305f60ff80dd40c5a3. The fix will be included in TensorFlow 2.10.0. We will also cherrypick this commit on TensorFlow 2.9.1, TensorFlow 2.8.1, and TensorFlow 2.7.2, as these are also affected and still in supported range. There are no known workarounds for this issue.",
+            "vulnerability_id": "CVE-2022-36003",
+            "name": "CVE-2022-36003",
+            "package_name": "tensorflow",
+            "package_details": {
+                "file_path": "usr/local/lib/python3.8/site-packages/tensorflow-2.8.0.dist-info/METADATA",
+                "name": "tensorflow",
+                "package_manager": "PYTHONPKG",
+                "version": "2.8.0",
+                "release": null
+            },
+            "remediation": {
+                "recommendation": {
+                    "text": "None Provided"
+                }
+            },
+            "cvss_v3_score": 7.5,
+            "cvss_v30_score": 0,
+            "cvss_v31_score": 7.5,
+            "cvss_v2_score": 0,
+            "cvss_v3_severity": "HIGH",
+            "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2022-36003",
+            "source": "NVD",
+            "severity": "HIGH",
+            "status": "ACTIVE",
+            "title": "CVE-2022-36003 - tensorflow"
+        },
+        {
+            "description": "## Overview\n[tensorflow](https://pypi.org/project/tensorflow/) is a machine learning framework.\nAffected versions of this package are vulnerable to Out-of-bounds Read in `GRUBlockCellGrad`.\n## PoC\n```\r\nfunc = tf.raw_ops.GRUBlockCellGrad\r\n\r\npara = {'x': [[21.1, 156.2], [83.3, 115.4]], 'h_prev': array([[136.5],\r\n      [136.6]]), 'w_ru': array([[26.7,  0.8],\r\n      [47.9, 26.1],\r\n      [26.2, 26.3]]), 'w_c': array([[ 0.4],\r\n      [31.5],\r\n      [ 0.6]]), 'b_ru': array([0.1, 0.2 ], dtype=float32), 'b_c': 0x41414141, 'r': array([[0.3],\r\n      [0.4]], dtype=float32), 'u': array([[5.7],\r\n      [5.8]]), 'c': array([[52.9],\r\n      [53.1]]), 'd_h': array([[172.2],\r\n      [188.3 ]])}\r\n```\n## Remediation\nUpgrade `tensorflow` to version 2.11.1, 2.12.0 or higher.\n## References\n- [GitHub Commit](https://github.com/tensorflow/tensorflow/commit/ff459137c2716a2a60f7d441b855fcb466d778cb)",
+            "vulnerability_id": "SNYK-PYTHON-TENSORFLOW-3372987",
+            "name": "SNYK-PYTHON-TENSORFLOW-3372987",
+            "package_name": "tensorflow",
+            "package_details": {
+                "file_path": "usr/local/lib/python3.8/site-packages/tensorflow-2.10.1.dist-info/METADATA",
+                "name": "tensorflow",
+                "package_manager": "PYTHONPKG",
+                "version": "2.10.1",
+                "release": null
+            },
+            "remediation": {
+                "recommendation": {
+                    "text": "None Provided"
+                }
+            },
+            "cvss_v3_score": 7.5,
+            "cvss_v30_score": 0,
+            "cvss_v31_score": 7.5,
+            "cvss_v2_score": 0,
+            "cvss_v3_severity": "HIGH",
+            "source_url": "https://security.snyk.io/vuln/SNYK-PYTHON-TENSORFLOW-3372987",
+            "source": "SNYK",
+            "severity": "HIGH",
+            "status": "ACTIVE",
+            "title": "IN1-PYTHON-TENSORFLOW-3372987 - tensorflow"
+        },
+        {
+            "description": "## Overview\n[tensorflow](https://pypi.org/project/tensorflow/) is a machine learning framework.\nAffected versions of this package are vulnerable to Denial of Service (DoS) due to a floating point exception in `TensorListSplit` with `XLA`.\n## PoC\n```\r\nimport tensorflow as tf\r\n\r\nfunc = tf.raw_ops.TensorListSplit\r\npara = {'tensor': [1], 'element_shape': -1, 'lengths': [0]}\r\n\r\n@tf.function(jit_compile=True)\r\ndef fuzz_jit():\r\n y = func(**para)\r\n return y\r\n\r\nprint(fuzz_jit())\r\n```\n\n## Details\n\nDenial of Service (DoS) describes a family of attacks, all aimed at making a system inaccessible to its intended and legitimate users.\n\nUnlike other vulnerabilities, DoS attacks usually do not aim at breaching security. Rather, they are focused on making websites and services unavailable to genuine users resulting in downtime.\n\nOne popular Denial of Service vulnerability is DDoS (a Distributed Denial of Service), an attack that attempts to clog network pipes to the system by generating a large volume of traffic from many mach",
+            "vulnerability_id": "SNYK-PYTHON-TENSORFLOW-3373035",
+            "name": "SNYK-PYTHON-TENSORFLOW-3373035",
+            "package_name": "tensorflow",
+            "package_details": {
+                "file_path": "usr/local/lib/python3.8/site-packages/tensorflow-2.10.1.dist-info/METADATA",
+                "name": "tensorflow",
+                "package_manager": "PYTHONPKG",
+                "version": "2.10.1",
+                "release": null
+            },
+            "remediation": {
+                "recommendation": {
+                    "text": "None Provided"
+                }
+            },
+            "cvss_v3_score": 7.5,
+            "cvss_v30_score": 0,
+            "cvss_v31_score": 7.5,
+            "cvss_v2_score": 0,
+            "cvss_v3_severity": "HIGH",
+            "source_url": "https://security.snyk.io/vuln/SNYK-PYTHON-TENSORFLOW-3373035",
+            "source": "SNYK",
+            "severity": "HIGH",
+            "status": "ACTIVE",
+            "title": "IN1-PYTHON-TENSORFLOW-3373035 - tensorflow"
+        },
+        {
+            "description": "## Overview\n[tensorflow](https://pypi.org/project/tensorflow/) is a machine learning framework.\nAffected versions of this package are vulnerable to Denial of Service (DoS). When the parameter `summarize` of `tf.raw_ops.Print` is zero, the new method `SummarizeArray<bool>` will reference to a nullptr, leading to a seg fault.\n## PoC\n```\r\nimport tensorflow as tf\r\n\r\ntf.raw_ops.Print(input =  tf.constant([1, 1, 1, 1],dtype=tf.int32),\r\n                            data =  [[False, False, False, False], [False], [False, False, False]],\r\n                            message =  'tmp/I',\r\n                            first_n = 100,\r\n                            summarize = 0)\r\n```\n\n## Details\n\nDenial of Service (DoS) describes a family of attacks, all aimed at making a system inaccessible to its intended and legitimate users.\n\nUnlike other vulnerabilities, DoS attacks usually do not aim at breaching security. Rather, they are focused on making websites and services unavailable to genuine users resulting in downtime.\n\nOne p",
+            "vulnerability_id": "SNYK-PYTHON-TENSORFLOW-3373002",
+            "name": "SNYK-PYTHON-TENSORFLOW-3373002",
+            "package_name": "tensorflow",
+            "package_details": {
+                "file_path": "usr/local/lib/python3.8/site-packages/tensorflow-2.10.1.dist-info/METADATA",
+                "name": "tensorflow",
+                "package_manager": "PYTHONPKG",
+                "version": "2.10.1",
+                "release": null
+            },
+            "remediation": {
+                "recommendation": {
+                    "text": "None Provided"
+                }
+            },
+            "cvss_v3_score": 7.5,
+            "cvss_v30_score": 0,
+            "cvss_v31_score": 7.5,
+            "cvss_v2_score": 0,
+            "cvss_v3_severity": "HIGH",
+            "source_url": "https://security.snyk.io/vuln/SNYK-PYTHON-TENSORFLOW-3373002",
+            "source": "SNYK",
+            "severity": "HIGH",
+            "status": "ACTIVE",
+            "title": "IN1-PYTHON-TENSORFLOW-3373002 - tensorflow"
+        },
+        {
+            "description": "## Overview\n[tensorflow](https://pypi.org/project/tensorflow/) is a machine learning framework.\nAffected versions of this package are vulnerable to Out-of-bounds Read if the parameter `indices` for `DynamicStitch` does not match the shape of the parameter `data`.\n## PoC\n```\r\nimport tensorflow as tf\r\nfunc = tf.raw_ops.DynamicStitch\r\npara={'indices': [[0xdeadbeef], [405], [519], [758], [1015]], 'data': [[110.27793884277344], [120.29475402832031], [157.2418212890625], [157.2626953125], [188.45382690429688]]}\r\ny = func(**para)\r\n```\n## Remediation\nUpgrade `tensorflow` to version 2.11.1, 2.12.0 or higher.\n## References\n- [GitHub Commit](https://github.com/tensorflow/tensorflow/commit/ee004b18b976eeb5a758020af8880236cd707d05)",
+            "vulnerability_id": "SNYK-PYTHON-TENSORFLOW-3372990",
+            "name": "SNYK-PYTHON-TENSORFLOW-3372990",
+            "package_name": "tensorflow",
+            "package_details": {
+                "file_path": "usr/local/lib/python3.8/site-packages/tensorflow-2.10.1.dist-info/METADATA",
+                "name": "tensorflow",
+                "package_manager": "PYTHONPKG",
+                "version": "2.10.1",
+                "release": null
+            },
+            "remediation": {
+                "recommendation": {
+                    "text": "None Provided"
+                }
+            },
+            "cvss_v3_score": 7.5,
+            "cvss_v30_score": 0,
+            "cvss_v31_score": 7.5,
+            "cvss_v2_score": 0,
+            "cvss_v3_severity": "HIGH",
+            "source_url": "https://security.snyk.io/vuln/SNYK-PYTHON-TENSORFLOW-3372990",
+            "source": "SNYK",
+            "severity": "HIGH",
+            "status": "ACTIVE",
+            "title": "IN1-PYTHON-TENSORFLOW-3372990 - tensorflow"
+        },
+        {
+            "description": "## Overview\n[tensorflow](https://pypi.org/project/tensorflow/) is a machine learning framework.\nAffected versions of this package are vulnerable to Out-of-Bounds due to mismatched integer type sizes in `ValueMap::Manager::GetValueOrCreatePlaceholder`, because there is a bug with the `tfg-translate` call to `InitMlir`.\n## Remediation\nUpgrade `tensorflow` to version 2.11.1, 2.12.0 or higher.\n## References\n- [GitHub Commit](https://github.com/tensorflow/tensorflow/commit/2eedc8f676d2c3b8be9492e547b2bc814c10b367)\n- [GitHub Commit](https://github.com/tensorflow/tensorflow/commit/760322a71ac9033e122ef1f4b1c62813021e5938)",
+            "vulnerability_id": "SNYK-PYTHON-TENSORFLOW-3373011",
+            "name": "SNYK-PYTHON-TENSORFLOW-3373011",
+            "package_name": "tensorflow",
+            "package_details": {
+                "file_path": "usr/local/lib/python3.8/site-packages/tensorflow-2.10.1.dist-info/METADATA",
+                "name": "tensorflow",
+                "package_manager": "PYTHONPKG",
+                "version": "2.10.1",
+                "release": null
+            },
+            "remediation": {
+                "recommendation": {
+                    "text": "None Provided"
+                }
+            },
+            "cvss_v3_score": 7.5,
+            "cvss_v30_score": 0,
+            "cvss_v31_score": 7.5,
+            "cvss_v2_score": 0,
+            "cvss_v3_severity": "HIGH",
+            "source_url": "https://security.snyk.io/vuln/SNYK-PYTHON-TENSORFLOW-3373011",
+            "source": "SNYK",
+            "severity": "HIGH",
+            "status": "ACTIVE",
+            "title": "IN1-PYTHON-TENSORFLOW-3373011 - tensorflow"
+        },
+        {
+            "description": "## Overview\n[tensorflow](https://pypi.org/project/tensorflow/) is a machine learning framework.\nAffected versions of this package are vulnerable to NULL Pointer Dereference. The function `tf.raw_ops.LookupTableImportV2` cannot handle scalars in the `values` parameter and gives a null pointer exception.\n## PoC\n```\r\nimport tensorflow as tf\r\n\r\nv = tf.Variable(1)\r\n\r\n@tf.function(jit_compile=True)\r\ndef test():\r\n   func = tf.raw_ops.LookupTableImportV2\r\n   para={'table_handle': v.handle,'keys': [62.98910140991211, 94.36528015136719], 'values': -919}\r\n\r\n   y = func(**para)\r\n   return y\r\n\r\nprint(test())\r\n```\n## Remediation\nUpgrade `tensorflow` to version 2.11.1, 2.12.0 or higher.\n## References\n- [GitHub Commit](https://github.com/tensorflow/tensorflow/commit/980b22536abcbbe1b4a5642fc940af33d8c19b69)",
+            "vulnerability_id": "SNYK-PYTHON-TENSORFLOW-3373032",
+            "name": "SNYK-PYTHON-TENSORFLOW-3373032",
+            "package_name": "tensorflow",
+            "package_details": {
+                "file_path": "usr/local/lib/python3.8/site-packages/tensorflow-2.10.1.dist-info/METADATA",
+                "name": "tensorflow",
+                "package_manager": "PYTHONPKG",
+                "version": "2.10.1",
+                "release": null
+            },
+            "remediation": {
+                "recommendation": {
+                    "text": "None Provided"
+                }
+            },
+            "cvss_v3_score": 7.5,
+            "cvss_v30_score": 0,
+            "cvss_v31_score": 7.5,
+            "cvss_v2_score": 0,
+            "cvss_v3_severity": "HIGH",
+            "source_url": "https://security.snyk.io/vuln/SNYK-PYTHON-TENSORFLOW-3373032",
+            "source": "SNYK",
+            "severity": "HIGH",
+            "status": "ACTIVE",
+            "title": "IN1-PYTHON-TENSORFLOW-3373032 - tensorflow"
+        },
+        {
+            "description": "## Overview\n[tensorflow](https://pypi.org/project/tensorflow/) is a machine learning framework.\nAffected versions of this package are vulnerable to Denial of Service (DoS) due to a floating point exception if the stride and window size are not positive for `tf.raw_ops.AvgPoolGrad`.\n## PoC\n```\r\nimport tensorflow as tf\r\nimport numpy as np\r\n\r\n@tf.function(jit_compile=True)\r\ndef test():\r\n   y = tf.raw_ops.AvgPoolGrad(orig_input_shape=[1,0,0,0], grad=[[[[0.39117979]]]], ksize=[1,0,0,0], strides=[1,0,0,0], padding=\"SAME\", data_format=\"NCHW\")\r\n   return y\r\n\r\nprint(test())\r\n```\n\n## Details\n\nDenial of Service (DoS) describes a family of attacks, all aimed at making a system inaccessible to its intended and legitimate users.\n\nUnlike other vulnerabilities, DoS attacks usually do not aim at breaching security. Rather, they are focused on making websites and services unavailable to genuine users resulting in downtime.\n\nOne popular Denial of Service vulnerability is DDoS (a Distributed Denial of Service), an attack that at",
+            "vulnerability_id": "SNYK-PYTHON-TENSORFLOW-3373008",
+            "name": "SNYK-PYTHON-TENSORFLOW-3373008",
+            "package_name": "tensorflow",
+            "package_details": {
+                "file_path": "usr/local/lib/python3.8/site-packages/tensorflow-2.10.1.dist-info/METADATA",
+                "name": "tensorflow",
+                "package_manager": "PYTHONPKG",
+                "version": "2.10.1",
+                "release": null
+            },
+            "remediation": {
+                "recommendation": {
+                    "text": "None Provided"
+                }
+            },
+            "cvss_v3_score": 7.5,
+            "cvss_v30_score": 0,
+            "cvss_v31_score": 7.5,
+            "cvss_v2_score": 0,
+            "cvss_v3_severity": "HIGH",
+            "source_url": "https://security.snyk.io/vuln/SNYK-PYTHON-TENSORFLOW-3373008",
+            "source": "SNYK",
+            "severity": "HIGH",
+            "status": "ACTIVE",
+            "title": "IN1-PYTHON-TENSORFLOW-3373008 - tensorflow"
+        },
+        {
+            "description": "## Overview\n[tensorflow](https://pypi.org/project/tensorflow/) is a machine learning framework.\nAffected versions of this package are vulnerable to Double Free. The `nn_ops.fractional_avg_pool_v2` and `nn_ops.fractional_max_pool_v2` functions require the first and fourth elements of their parameter `pooling_ratio` to be equal to 1.0, as pooling on batch and channel dimensions is not supported.\n## PoC\n```\r\nimport tensorflow as tf\r\nimport os\r\nimport numpy as np\r\nfrom tensorflow.python.ops import nn_ops\r\ntry:\r\n  arg_0_tensor = tf.random.uniform([3, 30, 50, 3], dtype=tf.float64)\r\n  arg_0 = tf.identity(arg_0_tensor)\r\n  arg_1_0 = 2\r\n  arg_1_1 = 3\r\n  arg_1_2 = 1\r\n  arg_1_3 = 1\r\n  arg_1 = [arg_1_0,arg_1_1,arg_1_2,arg_1_3,]\r\n  arg_2 = True\r\n  arg_3 = True\r\n  seed = 341261001\r\n  out = nn_ops.fractional_avg_pool_v2(arg_0,arg_1,arg_2,arg_3,seed=seed,)\r\nexcept Exception as e:\r\n  print(\"Error:\"+str(e))\r\n```\n## Remediation\nUpgrade `tensorflow` to version 2.11.1, 2.12.0 or higher.\n## References\n- [GitHub Commit](https://gith",
+            "vulnerability_id": "SNYK-PYTHON-TENSORFLOW-3372999",
+            "name": "SNYK-PYTHON-TENSORFLOW-3372999",
+            "package_name": "tensorflow",
+            "package_details": {
+                "file_path": "usr/local/lib/python3.8/site-packages/tensorflow-2.10.1.dist-info/METADATA",
+                "name": "tensorflow",
+                "package_manager": "PYTHONPKG",
+                "version": "2.10.1",
+                "release": null
+            },
+            "remediation": {
+                "recommendation": {
+                    "text": "None Provided"
+                }
+            },
+            "cvss_v3_score": 8.0,
+            "cvss_v30_score": 0,
+            "cvss_v31_score": 8.0,
+            "cvss_v2_score": 0,
+            "cvss_v3_severity": "HIGH",
+            "source_url": "https://security.snyk.io/vuln/SNYK-PYTHON-TENSORFLOW-3372999",
+            "source": "SNYK",
+            "severity": "HIGH",
+            "status": "ACTIVE",
+            "title": "IN1-PYTHON-TENSORFLOW-3372999 - tensorflow"
+        },
+        {
+            "description": "## Overview\n[tensorflow](https://pypi.org/project/tensorflow/) is a machine learning framework.\nAffected versions of this package are vulnerable to Incorrect Comparison. Constructing a `tflite` model with a paramater `filter_input_channel` of less than 1 gives a float pointer exception.\n## Remediation\nUpgrade `tensorflow` to version 2.11.1, 2.12.0 or higher.\n## References\n- [GitHub Commit](https://github.com/tensorflow/tensorflow/commit/34f8368c535253f5c9cb3a303297743b62442aaa)",
+            "vulnerability_id": "SNYK-PYTHON-TENSORFLOW-3373029",
+            "name": "SNYK-PYTHON-TENSORFLOW-3373029",
+            "package_name": "tensorflow",
+            "package_details": {
+                "file_path": "usr/local/lib/python3.8/site-packages/tensorflow-2.10.1.dist-info/METADATA",
+                "name": "tensorflow",
+                "package_manager": "PYTHONPKG",
+                "version": "2.10.1",
+                "release": null
+            },
+            "remediation": {
+                "recommendation": {
+                    "text": "None Provided"
+                }
+            },
+            "cvss_v3_score": 7.5,
+            "cvss_v30_score": 0,
+            "cvss_v31_score": 7.5,
+            "cvss_v2_score": 0,
+            "cvss_v3_severity": "HIGH",
+            "source_url": "https://security.snyk.io/vuln/SNYK-PYTHON-TENSORFLOW-3373029",
+            "source": "SNYK",
+            "severity": "HIGH",
+            "status": "ACTIVE",
+            "title": "IN1-PYTHON-TENSORFLOW-3373029 - tensorflow"
+        },
+        {
+            "description": "## Overview\n[tensorflow](https://pypi.org/project/tensorflow/) is a machine learning framework.\nAffected versions of this package are vulnerable to NULL Pointer Dereference when `SparseSparseMaximum` is given invalid sparse tensors as inputs.\n## PoC\n```\r\nimport tensorflow as tf\r\ntf.raw_ops.SparseSparseMaximum(\r\n a_indices=[[1]],\r\n a_values =[ 0.1 ],\r\n a_shape = [2],\r\n b_indices=[[]],\r\n b_values =[2 ],\r\n b_shape = [2],\r\n)\r\n```\n## Remediation\nUpgrade `tensorflow` to version 2.11.1, 2.12.0 or higher.\n## References\n- [GitHub Commit](https://github.com/tensorflow/tensorflow/commit/5e0ecfb42f5f65629fd7a4edd6c4afe7ff0feb04)",
+            "vulnerability_id": "SNYK-PYTHON-TENSORFLOW-3372984",
+            "name": "SNYK-PYTHON-TENSORFLOW-3372984",
+            "package_name": "tensorflow",
+            "package_details": {
+                "file_path": "usr/local/lib/python3.8/site-packages/tensorflow-2.10.1.dist-info/METADATA",
+                "name": "tensorflow",
+                "package_manager": "PYTHONPKG",
+                "version": "2.10.1",
+                "release": null
+            },
+            "remediation": {
+                "recommendation": {
+                    "text": "None Provided"
+                }
+            },
+            "cvss_v3_score": 7.5,
+            "cvss_v30_score": 0,
+            "cvss_v31_score": 7.5,
+            "cvss_v2_score": 0,
+            "cvss_v3_severity": "HIGH",
+            "source_url": "https://security.snyk.io/vuln/SNYK-PYTHON-TENSORFLOW-3372984",
+            "source": "SNYK",
+            "severity": "HIGH",
+            "status": "ACTIVE",
+            "title": "IN1-PYTHON-TENSORFLOW-3372984 - tensorflow"
+        },
+        {
+            "description": "## Overview\n[tensorflow](https://pypi.org/project/tensorflow/) is a machine learning framework.\nAffected versions of this package are vulnerable to Integer Overflow or Wraparound in `EditDistance`. A fix is included in TensorFlow version 2.12.0 and version 2.11.1.\n## PoC\n```\r\nimport tensorflow as tf\r\npara={\r\n    'hypothesis_indices': [[]],\r\n    'hypothesis_values': ['tmp/'],\r\n    'hypothesis_shape': [],\r\n    'truth_indices': [[]],\r\n    'truth_values': [''],\r\n    'truth_shape': [],\r\n    'normalize': False\r\n    }\r\ntf.raw_ops.EditDistance(**para)\r\n```\n## Remediation\nUpgrade `tensorflow` to version 2.11.1, 2.12.0 or higher.\n## References\n- [GitHub Commit](https://github.com/tensorflow/tensorflow/commit/08b8e18643d6dcde00890733b270ff8d9960c56c)",
+            "vulnerability_id": "SNYK-PYTHON-TENSORFLOW-3373014",
+            "name": "SNYK-PYTHON-TENSORFLOW-3373014",
+            "package_name": "tensorflow",
+            "package_details": {
+                "file_path": "usr/local/lib/python3.8/site-packages/tensorflow-2.10.1.dist-info/METADATA",
+                "name": "tensorflow",
+                "package_manager": "PYTHONPKG",
+                "version": "2.10.1",
+                "release": null
+            },
+            "remediation": {
+                "recommendation": {
+                    "text": "None Provided"
+                }
+            },
+            "cvss_v3_score": 7.3,
+            "cvss_v30_score": 0,
+            "cvss_v31_score": 7.3,
+            "cvss_v2_score": 0,
+            "cvss_v3_severity": "HIGH",
+            "source_url": "https://security.snyk.io/vuln/SNYK-PYTHON-TENSORFLOW-3373014",
+            "source": "SNYK",
+            "severity": "HIGH",
+            "status": "ACTIVE",
+            "title": "IN1-PYTHON-TENSORFLOW-3373014 - tensorflow"
+        },
+        {
+            "description": "## Overview\n[tensorflow](https://pypi.org/project/tensorflow/) is a machine learning framework.\nAffected versions of this package are vulnerable to Denial of Service (DoS) when running with XLA, `tf.raw_ops.ParallelConcat` segfaults with a nullptr dereference when given a parameter `shape` with rank that is not greater than zero.\n## PoC\n```\r\nimport tensorflow as tf\r\n\r\nfunc = tf.raw_ops.ParallelConcat\r\npara = {'shape':  0, 'values': [1]}\r\n\r\n@tf.function(jit_compile=True)\r\ndef test():\r\n   y = func(**para)\r\n   return y\r\n\r\ntest()\r\n```\n\n## Details\n\nDenial of Service (DoS) describes a family of attacks, all aimed at making a system inaccessible to its intended and legitimate users.\n\nUnlike other vulnerabilities, DoS attacks usually do not aim at breaching security. Rather, they are focused on making websites and services unavailable to genuine users resulting in downtime.\n\nOne popular Denial of Service vulnerability is DDoS (a Distributed Denial of Service), an attack that attempts to clog network pipes to the syst",
+            "vulnerability_id": "SNYK-PYTHON-TENSORFLOW-3373041",
+            "name": "SNYK-PYTHON-TENSORFLOW-3373041",
+            "package_name": "tensorflow",
+            "package_details": {
+                "file_path": "usr/local/lib/python3.8/site-packages/tensorflow-2.10.1.dist-info/METADATA",
+                "name": "tensorflow",
+                "package_manager": "PYTHONPKG",
+                "version": "2.10.1",
+                "release": null
+            },
+            "remediation": {
+                "recommendation": {
+                    "text": "None Provided"
+                }
+            },
+            "cvss_v3_score": 7.5,
+            "cvss_v30_score": 0,
+            "cvss_v31_score": 7.5,
+            "cvss_v2_score": 0,
+            "cvss_v3_severity": "HIGH",
+            "source_url": "https://security.snyk.io/vuln/SNYK-PYTHON-TENSORFLOW-3373041",
+            "source": "SNYK",
+            "severity": "HIGH",
+            "status": "ACTIVE",
+            "title": "IN1-PYTHON-TENSORFLOW-3373041 - tensorflow"
+        },
+        {
+            "description": "## Overview\n[tensorflow](https://pypi.org/project/tensorflow/) is a machine learning framework.\nAffected versions of this package are vulnerable to Buffer Overflow in `TAvgPoolGrad`.\n## PoC\n```\r\nimport os\r\nos.environ['TF_ENABLE_ONEDNN_OPTS'] = '0'\r\nimport tensorflow as tf\r\nprint(tf.__version__)\r\nwith tf.device(\"CPU\"):\r\n    ksize = [1, 40, 128, 1]\r\n    strides = [1, 128, 128, 30]\r\n    padding = \"SAME\"\r\n    data_format = \"NHWC\"\r\n    orig_input_shape = [11, 9, 78, 9]\r\n    grad = tf.saturate_cast(tf.random.uniform([16, 16, 16, 16], minval=-128, maxval=129, dtype=tf.int64), dtype=tf.float32)\r\n    res = tf.raw_ops.AvgPoolGrad(\r\n        ksize=ksize,\r\n        strides=strides,\r\n        padding=padding,\r\n        data_format=data_format,\r\n        orig_input_shape=orig_input_shape,\r\n        grad=grad,\r\n    )\r\n```\n## Remediation\nUpgrade `tensorflow` to version 2.11.1, 2.12.0 or higher.\n## References\n- [GitHub Commit](https://github.com/tensorflow/tensorflow/commit/ddaac2bdd099bec5d7923dea45276a7558217e5b)",
+            "vulnerability_id": "SNYK-PYTHON-TENSORFLOW-3373023",
+            "name": "SNYK-PYTHON-TENSORFLOW-3373023",
+            "package_name": "tensorflow",
+            "package_details": {
+                "file_path": "usr/local/lib/python3.8/site-packages/tensorflow-2.10.1.dist-info/METADATA",
+                "name": "tensorflow",
+                "package_manager": "PYTHONPKG",
+                "version": "2.10.1",
+                "release": null
+            },
+            "remediation": {
+                "recommendation": {
+                    "text": "None Provided"
+                }
+            },
+            "cvss_v3_score": 7.5,
+            "cvss_v30_score": 0,
+            "cvss_v31_score": 7.5,
+            "cvss_v2_score": 0,
+            "cvss_v3_severity": "HIGH",
+            "source_url": "https://security.snyk.io/vuln/SNYK-PYTHON-TENSORFLOW-3373023",
+            "source": "SNYK",
+            "severity": "HIGH",
+            "status": "ACTIVE",
+            "title": "IN1-PYTHON-TENSORFLOW-3373023 - tensorflow"
+        },
+        {
+            "description": "## Overview\n[tensorflow](https://pypi.org/project/tensorflow/) is a machine learning framework.\nAffected versions of this package are vulnerable to Denial of Service (DoS) due to a floating point exception in `AudioSpectrogram`.\n## PoC\n```\r\nimport tensorflow as tf\r\n\r\npara = {'input': tf.constant([[14.], [24.]], dtype=tf.float32), 'window_size': 1, 'stride': 0, 'magnitude_squared': False}\r\nfunc = tf.raw_ops.AudioSpectrogram\r\n\r\n@tf.function(jit_compile=True)\r\ndef fuzz_jit():\r\n   y = func(**para)\r\n   return y\r\n\r\nfuzz_jit()\r\n```\n\n## Details\n\nDenial of Service (DoS) describes a family of attacks, all aimed at making a system inaccessible to its intended and legitimate users.\n\nUnlike other vulnerabilities, DoS attacks usually do not aim at breaching security. Rather, they are focused on making websites and services unavailable to genuine users resulting in downtime.\n\nOne popular Denial of Service vulnerability is DDoS (a Distributed Denial of Service), an attack that attempts to clog network pipes to the system by ",
+            "vulnerability_id": "SNYK-PYTHON-TENSORFLOW-3372993",
+            "name": "SNYK-PYTHON-TENSORFLOW-3372993",
+            "package_name": "tensorflow",
+            "package_details": {
+                "file_path": "usr/local/lib/python3.8/site-packages/tensorflow-2.10.1.dist-info/METADATA",
+                "name": "tensorflow",
+                "package_manager": "PYTHONPKG",
+                "version": "2.10.1",
+                "release": null
+            },
+            "remediation": {
+                "recommendation": {
+                    "text": "None Provided"
+                }
+            },
+            "cvss_v3_score": 7.5,
+            "cvss_v30_score": 0,
+            "cvss_v31_score": 7.5,
+            "cvss_v2_score": 0,
+            "cvss_v3_severity": "HIGH",
+            "source_url": "https://security.snyk.io/vuln/SNYK-PYTHON-TENSORFLOW-3372993",
+            "source": "SNYK",
+            "severity": "HIGH",
+            "status": "ACTIVE",
+            "title": "IN1-PYTHON-TENSORFLOW-3372993 - tensorflow"
+        },
+        {
+            "description": "## Overview\n[tensorflow](https://pypi.org/project/tensorflow/) is a machine learning framework.\nAffected versions of this package are vulnerable to NULL Pointer Dereference due to a null pointer error in `RandomShuffle` with `XLA` enabled.\n## PoC\n```\r\nimport tensorflow as tf\r\n\r\nfunc = tf.raw_ops.RandomShuffle\r\npara = {'value': 1e+20, 'seed': -4294967297, 'seed2': -2147483649}\r\n\r\n@tf.function(jit_compile=True)\r\ndef test():\r\n   y = func(**para)\r\n   return y\r\n\r\ntest()\r\n```\n## Remediation\nUpgrade `tensorflow` to version 2.11.1, 2.12.0 or higher.\n## References\n- [GitHub Commit](https://github.com/tensorflow/tensorflow/commit/728113a3be690facad6ce436660a0bc1858017fa)",
+            "vulnerability_id": "SNYK-PYTHON-TENSORFLOW-3373038",
+            "name": "SNYK-PYTHON-TENSORFLOW-3373038",
+            "package_name": "tensorflow",
+            "package_details": {
+                "file_path": "usr/local/lib/python3.8/site-packages/tensorflow-2.10.1.dist-info/METADATA",
+                "name": "tensorflow",
+                "package_manager": "PYTHONPKG",
+                "version": "2.10.1",
+                "release": null
+            },
+            "remediation": {
+                "recommendation": {
+                    "text": "None Provided"
+                }
+            },
+            "cvss_v3_score": 7.5,
+            "cvss_v30_score": 0,
+            "cvss_v31_score": 7.5,
+            "cvss_v2_score": 0,
+            "cvss_v3_severity": "HIGH",
+            "source_url": "https://security.snyk.io/vuln/SNYK-PYTHON-TENSORFLOW-3373038",
+            "source": "SNYK",
+            "severity": "HIGH",
+            "status": "ACTIVE",
+            "title": "IN1-PYTHON-TENSORFLOW-3373038 - tensorflow"
+        },
+        {
+            "description": "## Overview\n[tensorflow](https://pypi.org/project/tensorflow/) is a machine learning framework.\nAffected versions of this package are vulnerable to Heap-based Buffer Overflow. Attackers can access heap memory which is not in the control of user, leading to a crash or remote code execution. The fix will be included in TensorFlow version 2.12.0 and will also cherrypick this commit on TensorFlow version 2.11.1.\n## PoC\n```\r\nimport tensorflow as tf\r\n@tf.function\r\ndef test():\r\n    tf.raw_ops.QuantizeAndDequantizeV2(input=[2.5],\r\n    \t\t\t\t\t\t\t\t   input_min=[1.0],\r\n    \t\t\t\t\t\t\t\t   input_max=[10.0],\r\n    \t\t\t\t\t\t\t\t   signed_input=True,\r\n    \t\t\t\t\t\t\t\t   num_bits=1,\r\n    \t\t\t\t\t\t\t\t   range_given=True,\r\n    \t\t\t\t\t\t\t\t   round_mode='HALF_TO_EVEN',\r\n    \t\t\t\t\t\t\t\t   narrow_range=True,\r\n    \t\t\t\t\t\t\t\t   axis=0x7fffffff)\r\ntest()\r\n```\n## Remediation\nUpgrade `tensorflow` to version 2.11.1, 2.12.0 or higher.\n## References\n- [GitHub Commit](https://github.com/tensorflow/tensorflow/commit/7b174a0f2e40ff3f3aa957aecddfd5aaae35eccb)",
+            "vulnerability_id": "SNYK-PYTHON-TENSORFLOW-3373020",
+            "name": "SNYK-PYTHON-TENSORFLOW-3373020",
+            "package_name": "tensorflow",
+            "package_details": {
+                "file_path": "usr/local/lib/python3.8/site-packages/tensorflow-2.10.1.dist-info/METADATA",
+                "name": "tensorflow",
+                "package_manager": "PYTHONPKG",
+                "version": "2.10.1",
+                "release": null
+            },
+            "remediation": {
+                "recommendation": {
+                    "text": "None Provided"
+                }
+            },
+            "cvss_v3_score": 7.5,
+            "cvss_v30_score": 0,
+            "cvss_v31_score": 7.5,
+            "cvss_v2_score": 0,
+            "cvss_v3_severity": "HIGH",
+            "source_url": "https://security.snyk.io/vuln/SNYK-PYTHON-TENSORFLOW-3373020",
+            "source": "SNYK",
+            "severity": "HIGH",
+            "status": "ACTIVE",
+            "title": "IN1-PYTHON-TENSORFLOW-3373020 - tensorflow"
+        },
+        {
+            "description": "## Overview\n[tensorflow](https://pypi.org/project/tensorflow/) is a machine learning framework.\nAffected versions of this package are vulnerable to Denial of Service (DoS). When running with XLA, `tf.raw_ops.Bincount` segfaults when given a parameter `weights` that is neither the same shape as parameter `arr` nor a length-0 tensor.\n## PoC\n```\r\nimport tensorflow as tf\r\n\r\nfunc = tf.raw_ops.Bincount\r\npara={'arr': 6, 'size': 804, 'weights': [52, 351]}\r\n\r\n@tf.function(jit_compile=True)\r\ndef fuzz_jit():\r\n y = func(**para)\r\n return y\r\n\r\nprint(fuzz_jit())\r\n```\n\n## Details\n\nDenial of Service (DoS) describes a family of attacks, all aimed at making a system inaccessible to its intended and legitimate users.\n\nUnlike other vulnerabilities, DoS attacks usually do not aim at breaching security. Rather, they are focused on making websites and services unavailable to genuine users resulting in downtime.\n\nOne popular Denial of Service vulnerability is DDoS (a Distributed Denial of Service), an attack that attempts to clog net",
+            "vulnerability_id": "SNYK-PYTHON-TENSORFLOW-3373026",
+            "name": "SNYK-PYTHON-TENSORFLOW-3373026",
+            "package_name": "tensorflow",
+            "package_details": {
+                "file_path": "usr/local/lib/python3.8/site-packages/tensorflow-2.10.1.dist-info/METADATA",
+                "name": "tensorflow",
+                "package_manager": "PYTHONPKG",
+                "version": "2.10.1",
+                "release": null
+            },
+            "remediation": {
+                "recommendation": {
+                    "text": "None Provided"
+                }
+            },
+            "cvss_v3_score": 7.5,
+            "cvss_v30_score": 0,
+            "cvss_v31_score": 7.5,
+            "cvss_v2_score": 0,
+            "cvss_v3_severity": "HIGH",
+            "source_url": "https://security.snyk.io/vuln/SNYK-PYTHON-TENSORFLOW-3373026",
+            "source": "SNYK",
+            "severity": "HIGH",
+            "status": "ACTIVE",
+            "title": "IN1-PYTHON-TENSORFLOW-3373026 - tensorflow"
+        },
+        {
+            "description": "## Overview\n[tensorflow](https://pypi.org/project/tensorflow/) is a machine learning framework.\nAffected versions of this package are vulnerable to NULL Pointer Dereference. When `ctx->step_containter()` is a null ptr, the `Lookup` function will be executed with a null pointer.\n## PoC\n```\r\nimport tensorflow as tf\r\ntf.raw_ops.TensorArrayConcatV2(handle=['a', 'b'], flow_in = 0.1, dtype=tf.int32, element_shape_except0=1)\r\n```\n## Remediation\nUpgrade `tensorflow` to version 2.11.1, 2.12.0 or higher.\n## References\n- [GitHub Commit](https://github.com/tensorflow/tensorflow/commit/239139d2ae6a81ae9ba499ad78b56d9b2931538a)",
+            "vulnerability_id": "SNYK-PYTHON-TENSORFLOW-3373005",
+            "name": "SNYK-PYTHON-TENSORFLOW-3373005",
+            "package_name": "tensorflow",
+            "package_details": {
+                "file_path": "usr/local/lib/python3.8/site-packages/tensorflow-2.10.1.dist-info/METADATA",
+                "name": "tensorflow",
+                "package_manager": "PYTHONPKG",
+                "version": "2.10.1",
+                "release": null
+            },
+            "remediation": {
+                "recommendation": {
+                    "text": "None Provided"
+                }
+            },
+            "cvss_v3_score": 7.5,
+            "cvss_v30_score": 0,
+            "cvss_v31_score": 7.5,
+            "cvss_v2_score": 0,
+            "cvss_v3_severity": "HIGH",
+            "source_url": "https://security.snyk.io/vuln/SNYK-PYTHON-TENSORFLOW-3373005",
+            "source": "SNYK",
+            "severity": "HIGH",
+            "status": "ACTIVE",
+            "title": "IN1-PYTHON-TENSORFLOW-3373005 - tensorflow"
+        }
+    ],
+    "golang.org/x/net": [
+        {
+            "description": "A maliciously crafted HTTP/2 stream could cause excessive CPU consumption in the HPACK decoder, sufficient to cause a denial of service from a small number of small requests.",
+            "vulnerability_id": "GHSA-vvpx-j8f3-3w6h",
+            "name": "GHSA-vvpx-j8f3-3w6h",
+            "package_name": "golang.org/x/net",
+            "package_details": {
+                "file_path": "opt/aws/neuron/bin/neuron-profile",
+                "name": "golang.org/x/net",
+                "package_manager": "GOBINARY",
+                "version": "v0.0.0-20210119194325-5f4716e94777",
+                "release": null
+            },
+            "remediation": {
+                "recommendation": {
+                    "text": "None Provided"
+                }
+            },
+            "cvss_v3_score": 7.5,
+            "cvss_v30_score": 0,
+            "cvss_v31_score": 7.5,
+            "cvss_v2_score": 0,
+            "cvss_v3_severity": "HIGH",
+            "source_url": "https://github.com/advisories/GHSA-vvpx-j8f3-3w6h",
+            "source": "GITHUB",
+            "severity": "HIGH",
+            "status": "ACTIVE",
+            "title": "GHSA-vvpx-j8f3-3w6h - golang.org/x/net"
+        },
+        {
+            "description": "Go through 1.15.12 and 1.16.x through 1.16.4 has a golang.org/x/net/html infinite loop via crafted ParseFragment input.",
+            "vulnerability_id": "GHSA-83g2-8m93-v3w7",
+            "name": "GHSA-83g2-8m93-v3w7",
+            "package_name": "golang.org/x/net",
+            "package_details": {
+                "file_path": "opt/aws/neuron/bin/neuron-profile",
+                "name": "golang.org/x/net",
+                "package_manager": "GOBINARY",
+                "version": "v0.0.0-20210119194325-5f4716e94777",
+                "release": null
+            },
+            "remediation": {
+                "recommendation": {
+                    "text": "None Provided"
+                }
+            },
+            "cvss_v3_score": 7.5,
+            "cvss_v30_score": 0,
+            "cvss_v31_score": 7.5,
+            "cvss_v2_score": 0,
+            "cvss_v3_severity": "HIGH",
+            "source_url": "https://github.com/advisories/GHSA-83g2-8m93-v3w7",
+            "source": "GITHUB",
+            "severity": "HIGH",
+            "status": "ACTIVE",
+            "title": "GHSA-83g2-8m93-v3w7 - golang.org/x/net"
+        },
+        {
+            "description": "In net/http in Go before 1.18.6 and 1.19.x before 1.19.1, attackers can cause a denial of service because an HTTP/2 connection can hang during closing if shutdown were preempted by a fatal error.",
+            "vulnerability_id": "GHSA-69cg-p879-7622",
+            "name": "GHSA-69cg-p879-7622",
+            "package_name": "golang.org/x/net",
+            "package_details": {
+                "file_path": "opt/aws/neuron/bin/neuron-profile",
+                "name": "golang.org/x/net",
+                "package_manager": "GOBINARY",
+                "version": "v0.0.0-20210119194325-5f4716e94777",
+                "release": null
+            },
+            "remediation": {
+                "recommendation": {
+                    "text": "None Provided"
+                }
+            },
+            "cvss_v3_score": 7.5,
+            "cvss_v30_score": 0,
+            "cvss_v31_score": 7.5,
+            "cvss_v2_score": 0,
+            "cvss_v3_severity": "HIGH",
+            "source_url": "https://github.com/advisories/GHSA-69cg-p879-7622",
+            "source": "GITHUB",
+            "severity": "HIGH",
+            "status": "ACTIVE",
+            "title": "GHSA-69cg-p879-7622 - golang.org/x/net"
+        }
+    ]
+}

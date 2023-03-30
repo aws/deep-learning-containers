@@ -1,0 +1,29 @@
+#!/bin/bash
+
+HOME_DIR=/test
+BIN_DIR=${HOME_DIR}/bin
+LOG_DIR=${HOME_DIR}/logs
+
+EXAMPLESDIR=${HOME_DIR}/artifacts/examples
+set -e
+cd ${EXAMPLESDIR}
+
+TRAINING_LOG=${LOG_DIR}/pytorch_train_bert_with_inductor.log
+
+pip install deepspeed==0.8.2
+
+echo "Training BertForMaskedLM using PyTorch dynamo and inductor backend... This may take a few minutes. You can follow progress on the log file : $TRAINING_LOG"
+set +e
+python benchmarks/dynamo/huggingface.py --only=BertForMaskedLM --float32 -dcuda --training --inductor --performance 2>&1 | tee $TRAINING_LOG
+RETURN_VAL=`echo $?`
+set -e
+
+if [ ${RETURN_VAL} -eq 0 ]; then
+    echo "Training BertForMaskedLM Complete using Pytorch with Inductor."
+else
+    echo "Training BertForMaskedLM Failed using Pytorch with Inductor."
+    cat $TRAINING_LOG
+    exit 1
+fi
+
+exit 0
