@@ -74,7 +74,9 @@ def execute_ec2_training_performance_test(
 
     # Make sure we are logged into ECR so we can pull the image
     connection.run(f"$(aws ecr get-login --no-include-email --region {region})", hide=True)
+    print("done login")
     connection.run(f"{docker_cmd} pull -q {ecr_uri}")
+    print("done pulling image")
 
     # Run training command
     connection.run(
