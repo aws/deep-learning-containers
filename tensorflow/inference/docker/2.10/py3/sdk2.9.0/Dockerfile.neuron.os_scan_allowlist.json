@@ -3087,6 +3087,258 @@
             "severity": "HIGH",
             "status": "ACTIVE",
             "title": "IN1-PYTHON-TENSORFLOW-3373005 - tensorflow"
+        },
+        {
+            "description": "### Impact\nWhen `SparseSparseMaximum` is given invalid sparse tensors as inputs, it can give an NPE. \n\n```python\nimport tensorflow as tf\ntf.raw_ops.SparseSparseMaximum(\n a_indices=[[1]],\n a_values =[ 0.1 ],\n a_shape = [2],\n b_indices=[[]],\n b_values =[2 ],\n b_shape = [2],\n)\n```\n\n### Patches\nWe have patched the issue in GitHub commit [5e0ecfb42f5f65629fd7a4edd6c4afe7ff0feb04](https://github.com/tensorflow/tensorflow/commit/5e0ecfb42f5f65629fd7a4edd6c4afe7ff0feb04).\n\nThe fix will be included in TensorFlow 2.12. We will also cherrypick this commit on TensorFlow 2.11.1.\n\n\n### For more information\nPlease consult [our security guide](https://github.com/tensorflow/tensorflow/blob/master/SECURITY.md) for more information regarding the security model and how to contact us with issues and questions.\n\n\n### Attribution\nThis vulnerability has been reported by Yu Tian of Qihoo 360 AIVul Team",
+            "vulnerability_id": "GHSA-558h-mq8x-7q9g",
+            "name": "GHSA-558h-mq8x-7q9g",
+            "package_name": "tensorflow",
+            "package_details": {
+                "file_path": "usr/local/lib/python3.8/site-packages/tensorflow-1.15.5.dist-info/METADATA",
+                "name": "tensorflow",
+                "package_manager": "PYTHONPKG",
+                "version": "1.15.5",
+                "release": null
+            },
+            "remediation": {
+                "recommendation": {
+                    "text": "None Provided"
+                }
+            },
+            "cvss_v3_score": 7.5,
+            "cvss_v30_score": 0,
+            "cvss_v31_score": 7.5,
+            "cvss_v2_score": 0,
+            "cvss_v3_severity": "HIGH",
+            "source_url": "https://github.com/advisories/GHSA-558h-mq8x-7q9g",
+            "source": "GITHUB",
+            "severity": "HIGH",
+            "status": "ACTIVE",
+            "title": "GHSA-558h-mq8x-7q9g - tensorflow"
+        },
+        {
+            "description": "### Impact\nTFversion 2.11.0 //tensorflow/core/ops/array_ops.cc:1067 const Tensor* hypothesis_shape_t = c->input_tensor(2); std::vector<DimensionHandle> dims(hypothesis_shape_t->NumElements() - 1); for (int i = 0; i < dims.size(); ++i) { dims[i] = c->MakeDim(std::max(h_values(i), t_values(i))); }\n\nif hypothesis_shape_t is empty, hypothesis_shape_t->NumElements() - 1 will be integer overflow, and the it will deadlock\n```python\nimport tensorflow as tf\npara={\n    'hypothesis_indices': [[]],\n    'hypothesis_values': ['tmp/'],\n    'hypothesis_shape': [],\n    'truth_indices': [[]],\n    'truth_values': [''],\n    'truth_shape': [],\n    'normalize': False\n    }\ntf.raw_ops.EditDistance(**para)\n```\n\n### Patches\nWe have patched the issue in GitHub commit [08b8e18643d6dcde00890733b270ff8d9960c56c](https://github.com/tensorflow/tensorflow/commit/08b8e18643d6dcde00890733b270ff8d9960c56c).\n\nThe fix will be included in TensorFlow 2.12.0. We will also cherrypick this commit on TensorFlow 2.11.1\n\n\n### For more information\nPlease",
+            "vulnerability_id": "GHSA-7jvm-xxmr-v5cw",
+            "name": "GHSA-7jvm-xxmr-v5cw",
+            "package_name": "tensorflow",
+            "package_details": {
+                "file_path": "usr/local/lib/python3.8/site-packages/tensorflow-1.15.5.dist-info/METADATA",
+                "name": "tensorflow",
+                "package_manager": "PYTHONPKG",
+                "version": "1.15.5",
+                "release": null
+            },
+            "remediation": {
+                "recommendation": {
+                    "text": "None Provided"
+                }
+            },
+            "cvss_v3_score": 7.5,
+            "cvss_v30_score": 0,
+            "cvss_v31_score": 7.5,
+            "cvss_v2_score": 0,
+            "cvss_v3_severity": "HIGH",
+            "source_url": "https://github.com/advisories/GHSA-7jvm-xxmr-v5cw",
+            "source": "GITHUB",
+            "severity": "HIGH",
+            "status": "ACTIVE",
+            "title": "GHSA-7jvm-xxmr-v5cw - tensorflow"
+        },
+        {
+            "description": "### Impact\n```python\nimport os\nos.environ['TF_ENABLE_ONEDNN_OPTS'] = '0'\nimport tensorflow as tf\nprint(tf.__version__)\nwith tf.device(\"CPU\"):\n    ksize = [1, 40, 128, 1]\n    strides = [1, 128, 128, 30]\n    padding = \"SAME\"\n    data_format = \"NHWC\"\n    orig_input_shape = [11, 9, 78, 9]\n    grad = tf.saturate_cast(tf.random.uniform([16, 16, 16, 16], minval=-128, maxval=129, dtype=tf.int64), dtype=tf.float32)\n    res = tf.raw_ops.AvgPoolGrad(\n        ksize=ksize,\n        strides=strides,\n        padding=padding,\n        data_format=data_format,\n        orig_input_shape=orig_input_shape,\n        grad=grad,\n    )\n```\n\n### Patches\nWe have patched the issue in GitHub commit [ddaac2bdd099bec5d7923dea45276a7558217e5b](https://github.com/tensorflow/tensorflow/commit/ddaac2bdd099bec5d7923dea45276a7558217e5b).\n\nThe fix will be included in TensorFlow 2.12.0. We will also cherrypick this commit on TensorFlow 2.11.1\n\n\n### For more information\nPlease consult [our security guide](https://github.com/tensorflow/tensorflow/blob/",
+            "vulnerability_id": "GHSA-6hg6-5c2q-7rcr",
+            "name": "GHSA-6hg6-5c2q-7rcr",
+            "package_name": "tensorflow",
+            "package_details": {
+                "file_path": "usr/local/lib/python3.8/site-packages/tensorflow-1.15.5.dist-info/METADATA",
+                "name": "tensorflow",
+                "package_manager": "PYTHONPKG",
+                "version": "1.15.5",
+                "release": null
+            },
+            "remediation": {
+                "recommendation": {
+                    "text": "None Provided"
+                }
+            },
+            "cvss_v3_score": 7.5,
+            "cvss_v30_score": 0,
+            "cvss_v31_score": 7.5,
+            "cvss_v2_score": 0,
+            "cvss_v3_severity": "HIGH",
+            "source_url": "https://github.com/advisories/GHSA-6hg6-5c2q-7rcr",
+            "source": "GITHUB",
+            "severity": "HIGH",
+            "status": "ACTIVE",
+            "title": "GHSA-6hg6-5c2q-7rcr - tensorflow"
+        },
+        {
+            "description": "### Impact\nversion:2.11.0 //core/ops/audio_ops.cc:70\n\nStatus SpectrogramShapeFn(InferenceContext* c) { ShapeHandle input; TF_RETURN_IF_ERROR(c->WithRank(c->input(0), 2, &input)); int32_t window_size; TF_RETURN_IF_ERROR(c->GetAttr(\"window_size\", &window_size)); int32_t stride; TF_RETURN_IF_ERROR(c->GetAttr(\"stride\", &stride)); .....[1]\n\nDimensionHandle input_length = c->Dim(input, 0); DimensionHandle input_channels = c->Dim(input, 1);\n\nDimensionHandle output_length; if (!c->ValueKnown(input_length)) { output_length = c->UnknownDim(); } else { const int64_t input_length_value = c->Value(input_length); const int64_t length_minus_window = (input_length_value - window_size); int64_t output_length_value; if (length_minus_window < 0) { output_length_value = 0; } else { output_length_value = 1 + (length_minus_window / stride); .....[2] } output_length = c->MakeDim(output_length_value); }\n\nGet the value of stride at [1], and the used at [2]\n```python\nimport tensorflow as tf\n\npara = {'input': tf.constant([[14.], [24.]]",
+            "vulnerability_id": "GHSA-f637-vh3r-vfh2",
+            "name": "GHSA-f637-vh3r-vfh2",
+            "package_name": "tensorflow",
+            "package_details": {
+                "file_path": "usr/local/lib/python3.8/site-packages/tensorflow-1.15.5.dist-info/METADATA",
+                "name": "tensorflow",
+                "package_manager": "PYTHONPKG",
+                "version": "1.15.5",
+                "release": null
+            },
+            "remediation": {
+                "recommendation": {
+                    "text": "None Provided"
+                }
+            },
+            "cvss_v3_score": 7.5,
+            "cvss_v30_score": 0,
+            "cvss_v31_score": 7.5,
+            "cvss_v2_score": 0,
+            "cvss_v3_severity": "HIGH",
+            "source_url": "https://github.com/advisories/GHSA-f637-vh3r-vfh2",
+            "source": "GITHUB",
+            "severity": "HIGH",
+            "status": "ACTIVE",
+            "title": "GHSA-f637-vh3r-vfh2 - tensorflow"
+        },
+        {
+            "description": "### Impact\nOut of bounds read in GRUBlockCellGrad\n```python\nfunc = tf.raw_ops.GRUBlockCellGrad\n\npara = {'x': [[21.1, 156.2], [83.3, 115.4]], 'h_prev': array([[136.5],\n      [136.6]]), 'w_ru': array([[26.7,  0.8],\n      [47.9, 26.1],\n      [26.2, 26.3]]), 'w_c': array([[ 0.4],\n      [31.5],\n      [ 0.6]]), 'b_ru': array([0.1, 0.2 ], dtype=float32), 'b_c': 0x41414141, 'r': array([[0.3],\n      [0.4]], dtype=float32), 'u': array([[5.7],\n      [5.8]]), 'c': array([[52.9],\n      [53.1]]), 'd_h': array([[172.2],\n      [188.3 ]])}\n```\n\n### Patches\nWe have patched the issue in GitHub commit [ff459137c2716a2a60f7d441b855fcb466d778cb](https://github.com/tensorflow/tensorflow/commit/ff459137c2716a2a60f7d441b855fcb466d778cb).\n\nThe fix will be included in TensorFlow 2.12.0. We will also cherrypick this commit on TensorFlow 2.11.1\n\n\n### For more information\nPlease consult [our security guide](https://github.com/tensorflow/tensorflow/blob/master/SECURITY.md) for more information regarding the security model and how to contac",
+            "vulnerability_id": "GHSA-68v3-g9cm-rmm6",
+            "name": "GHSA-68v3-g9cm-rmm6",
+            "package_name": "tensorflow",
+            "package_details": {
+                "file_path": "usr/local/lib/python3.8/site-packages/tensorflow-1.15.5.dist-info/METADATA",
+                "name": "tensorflow",
+                "package_manager": "PYTHONPKG",
+                "version": "1.15.5",
+                "release": null
+            },
+            "remediation": {
+                "recommendation": {
+                    "text": "None Provided"
+                }
+            },
+            "cvss_v3_score": 7.5,
+            "cvss_v30_score": 0,
+            "cvss_v31_score": 7.5,
+            "cvss_v2_score": 0,
+            "cvss_v3_severity": "HIGH",
+            "source_url": "https://github.com/advisories/GHSA-68v3-g9cm-rmm6",
+            "source": "GITHUB",
+            "severity": "HIGH",
+            "status": "ACTIVE",
+            "title": "GHSA-68v3-g9cm-rmm6 - tensorflow"
+        },
+        {
+            "description": "### Impact\nWhen the parameter `summarize` of `tf.raw_ops.Print` is zero, the new method `SummarizeArray<bool>` will reference to a nullptr, leading to a seg fault.\n\n```python\nimport tensorflow as tf\n\ntf.raw_ops.Print(input =  tf.constant([1, 1, 1, 1],dtype=tf.int32),\n                            data =  [[False, False, False, False], [False], [False, False, False]],\n                            message =  'tmp/I',\n                            first_n = 100,\n                            summarize = 0)\n```\n\n### Patches\nWe have patched the issue in GitHub commit [6d423b8bcc9aa9f5554dc988c1c16d038b508df1](https://github.com/tensorflow/tensorflow/commit/6d423b8bcc9aa9f5554dc988c1c16d038b508df1).\n\nThe fix will be included in TensorFlow 2.12. We will also cherrypick this commit on TensorFlow 2.11.1.\n\n\n### For more information\nPlease consult [our security guide](https://github.com/tensorflow/tensorflow/blob/master/SECURITY.md) for more information regarding the security model and how to contact us with issues and questio",
+            "vulnerability_id": "GHSA-qjqc-vqcf-5qvj",
+            "name": "GHSA-qjqc-vqcf-5qvj",
+            "package_name": "tensorflow",
+            "package_details": {
+                "file_path": "usr/local/lib/python3.8/site-packages/tensorflow-1.15.5.dist-info/METADATA",
+                "name": "tensorflow",
+                "package_manager": "PYTHONPKG",
+                "version": "1.15.5",
+                "release": null
+            },
+            "remediation": {
+                "recommendation": {
+                    "text": "None Provided"
+                }
+            },
+            "cvss_v3_score": 7.5,
+            "cvss_v30_score": 0,
+            "cvss_v31_score": 7.5,
+            "cvss_v2_score": 0,
+            "cvss_v3_severity": "HIGH",
+            "source_url": "https://github.com/advisories/GHSA-qjqc-vqcf-5qvj",
+            "source": "GITHUB",
+            "severity": "HIGH",
+            "status": "ACTIVE",
+            "title": "GHSA-qjqc-vqcf-5qvj - tensorflow"
+        },
+        {
+            "description": "### Impact\n`nn_ops.fractional_avg_pool_v2` and `nn_ops.fractional_max_pool_v2` require the first and fourth elements of their parameter `pooling_ratio` to be equal to 1.0, as pooling on batch and channel dimensions is not supported.\n\n```python\nimport tensorflow as tf\nimport os\nimport numpy as np\nfrom tensorflow.python.ops import nn_ops\ntry:\n  arg_0_tensor = tf.random.uniform([3, 30, 50, 3], dtype=tf.float64)\n  arg_0 = tf.identity(arg_0_tensor)\n  arg_1_0 = 2\n  arg_1_1 = 3\n  arg_1_2 = 1\n  arg_1_3 = 1\n  arg_1 = [arg_1_0,arg_1_1,arg_1_2,arg_1_3,]\n  arg_2 = True\n  arg_3 = True\n  seed = 341261001\n  out = nn_ops.fractional_avg_pool_v2(arg_0,arg_1,arg_2,arg_3,seed=seed,)\nexcept Exception as e:\n  print(\"Error:\"+str(e))\n```\n\n### Patches\nWe have patched the issue in GitHub commit [ee50d1e00f81f62a4517453f721c634bbb478307](https://github.com/tensorflow/tensorflow/commit/ee50d1e00f81f62a4517453f721c634bbb478307).\n\nThe fix will be included in TensorFlow 2.12. We will also cherrypick this commit on TensorFlow 2.11.1.\n\n\n### ",
+            "vulnerability_id": "GHSA-f49c-87jh-g47q",
+            "name": "GHSA-f49c-87jh-g47q",
+            "package_name": "tensorflow",
+            "package_details": {
+                "file_path": "usr/local/lib/python3.8/site-packages/tensorflow-1.15.5.dist-info/METADATA",
+                "name": "tensorflow",
+                "package_manager": "PYTHONPKG",
+                "version": "1.15.5",
+                "release": null
+            },
+            "remediation": {
+                "recommendation": {
+                    "text": "None Provided"
+                }
+            },
+            "cvss_v3_score": 8.0,
+            "cvss_v30_score": 0,
+            "cvss_v31_score": 8.0,
+            "cvss_v2_score": 0,
+            "cvss_v3_severity": "HIGH",
+            "source_url": "https://github.com/advisories/GHSA-f49c-87jh-g47q",
+            "source": "GITHUB",
+            "severity": "HIGH",
+            "status": "ACTIVE",
+            "title": "GHSA-f49c-87jh-g47q - tensorflow"
+        },
+        {
+            "description": "### Impact\nIf the parameter `indices` for `DynamicStitch` does not match the shape of the parameter `data`, it can trigger an stack OOB read.\n\n```python\nimport tensorflow as tf\nfunc = tf.raw_ops.DynamicStitch\npara={'indices': [[0xdeadbeef], [405], [519], [758], [1015]], 'data': [[110.27793884277344], [120.29475402832031], [157.2418212890625], [157.2626953125], [188.45382690429688]]}\ny = func(**para)\n```\n\n### Patches\nWe have patched the issue in GitHub commit [ee004b18b976eeb5a758020af8880236cd707d05](https://github.com/tensorflow/tensorflow/commit/ee004b18b976eeb5a758020af8880236cd707d05).\n\nThe fix will be included in TensorFlow 2.12. We will also cherrypick this commit on TensorFlow 2.11.1.\n\n\n### For more information\nPlease consult [our security guide](https://github.com/tensorflow/tensorflow/blob/master/SECURITY.md) for more information regarding the security model and how to contact us with issues and questions.\n\n\n### Attribution\nThis has been reported via Google OSS VRP.",
+            "vulnerability_id": "GHSA-93vr-9q9m-pj8p",
+            "name": "GHSA-93vr-9q9m-pj8p",
+            "package_name": "tensorflow",
+            "package_details": {
+                "file_path": "usr/local/lib/python3.8/site-packages/tensorflow-1.15.5.dist-info/METADATA",
+                "name": "tensorflow",
+                "package_manager": "PYTHONPKG",
+                "version": "1.15.5",
+                "release": null
+            },
+            "remediation": {
+                "recommendation": {
+                    "text": "None Provided"
+                }
+            },
+            "cvss_v3_score": 7.5,
+            "cvss_v30_score": 0,
+            "cvss_v31_score": 7.5,
+            "cvss_v2_score": 0,
+            "cvss_v3_severity": "HIGH",
+            "source_url": "https://github.com/advisories/GHSA-93vr-9q9m-pj8p",
+            "source": "GITHUB",
+            "severity": "HIGH",
+            "status": "ACTIVE",
+            "title": "GHSA-93vr-9q9m-pj8p - tensorflow"
+        },
+        {
+            "description": "### Impact\nWhen ctx->step_containter() is a null ptr, the Lookup function will be executed with a null pointer.\n```python\nimport tensorflow as tf\ntf.raw_ops.TensorArrayConcatV2(handle=['a', 'b'], flow_in = 0.1, dtype=tf.int32, element_shape_except0=1)\n```\n\n### Patches\nWe have patched the issue in GitHub commit [239139d2ae6a81ae9ba499ad78b56d9b2931538a](https://github.com/tensorflow/tensorflow/commit/239139d2ae6a81ae9ba499ad78b56d9b2931538a).\n\nThe fix will be included in TensorFlow 2.12.0. We will also cherrypick this commit on TensorFlow 2.11.1\n\n\n### For more information\nPlease consult [our security guide](https://github.com/tensorflow/tensorflow/blob/master/SECURITY.md) for more information regarding the security model and how to contact us with issues and questions.\n\n\n### Attribution\nThis vulnerability has been reported by Yu Tian",
+            "vulnerability_id": "GHSA-64jg-wjww-7c5w",
+            "name": "GHSA-64jg-wjww-7c5w",
+            "package_name": "tensorflow",
+            "package_details": {
+                "file_path": "usr/local/lib/python3.8/site-packages/tensorflow-1.15.5.dist-info/METADATA",
+                "name": "tensorflow",
+                "package_manager": "PYTHONPKG",
+                "version": "1.15.5",
+                "release": null
+            },
+            "remediation": {
+                "recommendation": {
+                    "text": "None Provided"
+                }
+            },
+            "cvss_v3_score": 7.5,
+            "cvss_v30_score": 0,
+            "cvss_v31_score": 7.5,
+            "cvss_v2_score": 0,
+            "cvss_v3_severity": "HIGH",
+            "source_url": "https://github.com/advisories/GHSA-64jg-wjww-7c5w",
+            "source": "GITHUB",
+            "severity": "HIGH",
+            "status": "ACTIVE",
+            "title": "GHSA-64jg-wjww-7c5w - tensorflow"
         }
     ],
     "golang.org/x/net": [
