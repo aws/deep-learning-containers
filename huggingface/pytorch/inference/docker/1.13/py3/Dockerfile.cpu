@@ -22,8 +22,7 @@ ARG OPEN_MPI_VERSION=4.1.4
 ARG MMS_VERSION=1.1.8
 
 # HF ARGS
-ARG TORCH_VERSION=1.13.1
-ARG TORCH_URL=https://aws-pytorch-unified-cicd-binaries.s3.us-west-2.amazonaws.com/r${TORCH_VERSION}_ec2/20221217-194030/54406b8eed7fbd61be629cb06229dfb7b6b2954e/torch-${TORCH_VERSION}%2Bcpu-cp39-cp39-linux_x86_64.whl
+ARG TORCH_URL=https://aws-pytorch-unified-cicd-binaries.s3.us-west-2.amazonaws.com/r1.13.1_ec2/20221217-194030/54406b8eed7fbd61be629cb06229dfb7b6b2954e/torch-1.13.1%2Bcpu-cp39-cp39-linux_x86_64.whl
 ARG TORCHVISION_VERSION=0.14.1+cpu
 ARG TORCHAUDIO_VERSION=0.13.1+cpu
 ARG TRANSFORMERS_VERSION
