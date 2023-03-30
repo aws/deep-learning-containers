@@ -254,7 +254,7 @@ def create_batching_config(batching_config_file):
         f.write(config)
 
 
-def wait_for_model(rest_port, model_name, timeout_seconds, pid):
+def wait_for_model(rest_port, model_name, timeout_seconds, pid=None):
     tfs_url = "http://localhost:{}/v1/models/{}".format(rest_port, model_name)
 
     try:
