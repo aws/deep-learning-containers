@@ -28,11 +28,11 @@ benchmark_mode = false
 [build]
 # Add in frameworks you would like to build. By default, builds are disabled unless you specify building an image.
 # available frameworks - ["autogluon", "huggingface_tensorflow", "huggingface_pytorch", "huggingface_tensorflow_trcomp", "huggingface_pytorch_trcomp", "pytorch_trcomp", "tensorflow", "mxnet", "pytorch"]
-build_frameworks = []
+build_frameworks = ["pytorch"]
 
 # By default we build both training and inference containers. Set true/false values to determine which to build.
 build_training = true
-build_inference = true
+build_inference = false
 
 # Set to false in order to remove datetime tag on PR builds
 datetime_tag = true
@@ -80,7 +80,7 @@ use_scheduler = false
 
 # Standard Framework Training
 dlc-pr-mxnet-training = ""
-dlc-pr-pytorch-training = ""
+dlc-pr-pytorch-training = "pytorch/training/buildspec-1-13.yml"
 dlc-pr-tensorflow-2-training = ""
 dlc-pr-autogluon-training = ""
 
