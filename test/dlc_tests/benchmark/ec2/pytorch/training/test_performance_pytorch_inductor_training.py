@@ -12,13 +12,13 @@ from test.test_utils import (
 )
 
 PT_PERFORMANCE_TRAINING_GPU_INDUCTOR_HUGGINGFACE_CMD = os.path.join(
-    CONTAINER_TESTS_PREFIX, "benchmark", "run_pytorch_inductor_training_performance_gpu_huggingface"
+    CONTAINER_TESTS_PREFIX, "benchmark", "run_pytorch_inductor_training_benchmark_gpu_huggingface"
 )
 PT_PERFORMANCE_TRAINING_GPU_INDUCTOR_TIMM_CMD = os.path.join(
-    CONTAINER_TESTS_PREFIX, "benchmark", "run_pytorch_inductor_training_performance_gpu_timm"
+    CONTAINER_TESTS_PREFIX, "benchmark", "run_pytorch_inductor_training_benchmark_gpu_timm"
 )
 PT_PERFORMANCE_TRAINING_GPU_INDUCTOR_TORCHBENCH_CMD = os.path.join(
-    CONTAINER_TESTS_PREFIX, "benchmark", "run_pytorch_inductor_training_performance_gpu_torchbench"
+    CONTAINER_TESTS_PREFIX, "benchmark", "run_pytorch_inductor_training_benchmark_gpu_torchbench"
 )
 
 
