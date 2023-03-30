@@ -328,7 +328,7 @@ CMD ["/bin/bash"]
 FROM common AS sagemaker
 
 LABEL maintainer="Amazon AI"
-LABEL dlc_major_version="1"
+LABEL dlc_major_version="2"
 
 ARG TF_URL=https://framework-binaries.s3.us-west-2.amazonaws.com/tensorflow/r2.11_py3.10_aws/gpu/2023-03-29-16-23/tensorflow_gpu-2.11.1-cp310-cp310-manylinux_2_17_x86_64.manylinux2014_x86_64.whl
 
