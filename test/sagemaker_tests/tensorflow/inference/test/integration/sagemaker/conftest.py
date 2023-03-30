@@ -197,12 +197,15 @@ def skip_gpu_instance_restricted_regions(region, instance_type):
 @pytest.fixture(autouse=True)
 def skip_by_device_type(request, instance_type):
     is_gpu = instance_type.lstrip("ml.")[0] in ["g", "p"]
-    is_neuron = instance_type == "ml.inf1.xlarge" or instance_type == "ml.trn1.2xlarge"
+    is_neuron = instance_type == "ml.inf1.xlarge"
+    is_neuron_x = instance_type == "ml.trn1.2xlarge"
 
     #If neuron run only tests marked as neuron
     if (is_neuron  and not request.node.get_closest_marker("neuron_test")):
         pytest.skip("Skipping because running on \"{}\" instance".format(instance_type))
     if (request.node.get_closest_marker("neuron_test") and not is_neuron):
+        pytest.skip("Skipping because running on \"{}\" instance".format(instance_type))
+    if (request.node.get_closest_marker("neuronx_test") and not is_neuron_x):
         pytest.skip("Skipping because running on \"{}\" instance".format(instance_type))
 
     if (request.node.get_closest_marker("skip_gpu") and is_gpu) or \

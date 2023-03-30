@@ -860,7 +860,7 @@ def get_tensorflow_model_name(processor, model_name):
         },
         "saved_model_half_plus_three": {"eia": "saved_model_half_plus_three"},
         "simple": {"neuron": "simple",
-                   "neuronx": "simple"}, # TODO: update
+                   "neuronx": "simple_x"},
     }
     if model_name in tensorflow_models:
         return tensorflow_models[model_name][processor]

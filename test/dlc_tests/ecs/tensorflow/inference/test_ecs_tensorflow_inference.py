@@ -103,12 +103,12 @@ def test_ecs_tensorflow_inference_neuron(tensorflow_inference_neuron, ecs_contai
 @pytest.mark.model("simple")
 @pytest.mark.parametrize("ecs_instance_type", ["trn1.2xlarge"], indirect=True)
 @pytest.mark.parametrize("ecs_ami", [ECS_AML2_NEURON_USWEST2], indirect=True)
-def test_ecs_tensorflow_inference_neuron(tensorflow_inference_neuronx, ecs_container_instance, region):
+def test_ecs_tensorflow_inference_neuronx(tensorflow_inference_neuronx, ecs_container_instance, region):
     worker_instance_id, ecs_cluster_arn = ecs_container_instance
     public_ip_address = ec2_utils.get_public_ip(worker_instance_id, region=region)
     num_neurons = 1
 
-    model_name = "simple"
+    model_name = "simple_x"
     service_name = task_family = revision = None
     try:
         service_name, task_family, revision = ecs_utils.setup_ecs_inference_service(

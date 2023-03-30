@@ -73,6 +73,12 @@ def tfs_neuron_model(region, boto_session):
                                        boto_session,
                                        "data/tfs-neuron-model.tar.gz")
 
+@pytest.fixture(scope="session")
+def tfs_neuronx_model(region, boto_session):
+    return util.find_or_put_model_data(region,
+                                       boto_session,
+                                       "data/tfs-neuronx-model.tar.gz")
+
 
 @pytest.fixture(scope="session")
 def python_model_with_requirements(region, boto_session):
@@ -142,6 +148,17 @@ def test_tfs_neuron_model(boto_session, sagemaker_client,
                    sagemaker_runtime_client, model_name, tfs_neuron_model,
                    image_uri, instance_type, accelerator_type):
     input_data = {"instances": [[[[1, 10], [2, 20]]]]}
+    util.create_and_invoke_endpoint(boto_session, sagemaker_client,
+                                    sagemaker_runtime_client, model_name, tfs_neuron_model,
+                                    image_uri, instance_type, accelerator_type, input_data)
+
+
+@pytest.mark.model("unknown_model")
+@pytest.mark.neuronx_test
+def test_tfs_neuroxn_model(boto_session, sagemaker_client,
+                   sagemaker_runtime_client, model_name, tfs_neuronx_model,
+                   image_uri, instance_type, accelerator_type):
+    input_data = {"instances": [1.0, 2.0, 5.0]}
     util.create_and_invoke_endpoint(boto_session, sagemaker_client,
                                     sagemaker_runtime_client, model_name, tfs_neuron_model,
                                     image_uri, instance_type, accelerator_type, input_data)

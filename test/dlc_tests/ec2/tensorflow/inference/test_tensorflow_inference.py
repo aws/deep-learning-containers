@@ -122,13 +122,14 @@ def run_ec2_tensorflow_inference(image_uri, ec2_connection, grpc_port, region, t
     mnist_client_path = os.path.join(serving_folder_path, "tensorflow_serving", "example", "mnist_client.py")
 
     is_neuron = "neuron" in image_uri
+    is_neuron_x = "neuronx" in image_uri
     is_graviton = "graviton" in image_uri
 
     docker_cmd = "nvidia-docker" if "gpu" in image_uri else "docker"
     if is_neuron:
         # For 2.5 using rest api port instead of grpc since using curl for prediction instead of grpc
         if str(framework_version).startswith(TENSORFLOW2_VERSION):
-            model_name = "simple"
+            model_name = "simple_x" if is_neuron_x else "simple"
             model_path = os.path.join(serving_folder_path, "models", model_name)
             src_port = "8501"
             dst_port = "8501"
@@ -241,9 +242,9 @@ def host_setup_for_tensorflow_inference(
         ec2_connection.run(f"mkdir -p {serving_folder_path}")
         ec2_connection.run(f"cp -r {local_scripts_path} {serving_folder_path}")
         if is_neuron:
-            neuron_local_model = os.path.join("$HOME", "container_tests", "bin", "neuron_tests", "simple")
+            neuron_local_model = os.path.join("$HOME", "container_tests", "bin", "neuron_tests", model_name)
             neuron_model_dir = os.path.join(serving_folder_path, "models")
-            neuron_model_file_path = os.path.join(serving_folder_path, "models", "model_name", "1")
+            neuron_model_file_path = os.path.join(serving_folder_path, "models", model_name, "1")
             LOGGER.info(f"Host Model path {neuron_model_file_path}")
             LOGGER.info(f"Host Model Dir {neuron_model_dir}")
             ec2_connection.run(f"mkdir -p {neuron_model_file_path}")
