@@ -225,21 +225,6 @@ def test_dlc_major_version_dockerfiles(image):
             f"DLC v2.0 is deprecated in PyTorch 1.6.0 gpu containers, but found major version 2 "
             f"in one of the Dockerfiles. Please inspect {versions}"
         )
-
-    
-    if (framework, fw_version_major_minor, processor, python_major_minor_version, job_type) == (
-        "tensorflow",
-        "2.11",
-        "gpu",
-        "310" or "39",
-        "training",
-    ):
-        expected_versions = [v + 1 for v in expected_versions]
-        expected_versions[0] = 1
-        assert 2 not in actual_versions, (
-            f"DLC v2.0 is deprecated in PyTorch 1.6.0 gpu containers, but found major version 2 "
-            f"in one of the Dockerfiles. Please inspect {versions}"
-        )
     # Note: If, for example, we find 3 dockerfiles with the same framework major/minor version, same processor,
     # and same python major/minor version, we will expect DLC major versions 1, 2, and 3. If an exception needs to be
     # made to this rule, please see the above handling of TF2.3 as an example.
