@@ -1279,8 +1279,6 @@
         "status": "ACTIVE",
         "title": "CVE-2021-20237 - libzmq5"
     }],
-
-    {
     "tensorflow-gpu": [
         {
             "description": "## Overview\n[tensorflow-gpu](https://pypi.org/project/tensorflow/) is a machine learning framework.\nAffected versions of this package are vulnerable to Buffer Overflow in `TAvgPoolGrad`.\n## PoC\n```\r\nimport os\r\nos.environ['TF_ENABLE_ONEDNN_OPTS'] = '0'\r\nimport tensorflow as tf\r\nprint(tf.__version__)\r\nwith tf.device(\"CPU\"):\r\n    ksize = [1, 40, 128, 1]\r\n    strides = [1, 128, 128, 30]\r\n    padding = \"SAME\"\r\n    data_format = \"NHWC\"\r\n    orig_input_shape = [11, 9, 78, 9]\r\n    grad = tf.saturate_cast(tf.random.uniform([16, 16, 16, 16], minval=-128, maxval=129, dtype=tf.int64), dtype=tf.float32)\r\n    res = tf.raw_ops.AvgPoolGrad(\r\n        ksize=ksize,\r\n        strides=strides,\r\n        padding=padding,\r\n        data_format=data_format,\r\n        orig_input_shape=orig_input_shape,\r\n        grad=grad,\r\n    )\r\n```\n## Remediation\nUpgrade `tensorflow-gpu` to version 2.12.0 or higher.\n## References\n- [GitHub Commit](https://github.com/tensorflow/tensorflow/commit/ddaac2bdd099bec5d7923dea45276a7558217e5b)",
@@ -2325,6 +2323,4 @@
             "title": "IN1-PYTHON-TENSORFLOWGPU-3373039 - tensorflow-gpu"
         }
     ]
-}
-
 }
