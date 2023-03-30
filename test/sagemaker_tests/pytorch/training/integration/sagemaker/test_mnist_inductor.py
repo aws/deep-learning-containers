@@ -91,7 +91,7 @@ def _test_mnist_with_native_launcher_distributed(ecr_image, sagemaker_session, f
         pytorch = PyTorch(
             entry_point=mnist_script,
             role='SageMakerRole',
-            instance_count=1,
+            instance_count=2,
             instance_type=instance_type,
             sagemaker_session=sagemaker_session,
             image_uri=ecr_image,
@@ -107,7 +107,7 @@ def _test_mnist_distributed(ecr_image, sagemaker_session, framework_version, ins
         pytorch = PyTorch(
             entry_point=mnist_script,
             role='SageMakerRole',
-            instance_count=1,
+            instance_count=2,
             instance_type=instance_type,
             sagemaker_session=sagemaker_session,
             image_uri=ecr_image,
@@ -142,7 +142,7 @@ def test_hc_mnist_distributed_cpu(framework_version, ecr_image, sagemaker_region
 @pytest.mark.skip_cpu
 def test_hc_mnist_distributed_gpu(framework_version, ecr_image, sagemaker_regions, instance_type, dist_gpu_backend):
     instance_type = instance_type or 'ml.p2.xlarge'
-    training_group = InstanceGroup("train_group", instance_type, 1)
+    training_group = InstanceGroup("train_group", instance_type, 2)
     function_args = {
             'framework_version': framework_version,
             'instance_groups': [training_group],

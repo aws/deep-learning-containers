@@ -26,6 +26,8 @@ fastai_path = os.path.join(resources_path, 'fastai')
 fastai_cifar_script = os.path.join(fastai_path, 'train_cifar.py')
 fastai_mnist_script = os.path.join(fastai_path, 'mnist.py')
 resnet18_path = os.path.join(resources_path, 'resnet18')
+inductor_path = os.path.join(resources_path, 'inductor')
+inductor_script = os.path.join(inductor_path, 'run_pytorch_inductor.sh')
 
 data_dir = os.path.join(mnist_path, 'data')
 training_dir = os.path.join(data_dir, 'training')
