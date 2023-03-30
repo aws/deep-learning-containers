@@ -3094,10 +3094,10 @@
             "name": "GHSA-558h-mq8x-7q9g",
             "package_name": "tensorflow",
             "package_details": {
-                "file_path": "usr/local/lib/python3.8/site-packages/tensorflow-1.15.5.dist-info/METADATA",
+                "file_path": "usr/local/lib/python3.8/site-packages/tensorflow-2.10.1.dist-info/METADATA",
                 "name": "tensorflow",
                 "package_manager": "PYTHONPKG",
-                "version": "1.15.5",
+                "version": "2.10.1",
                 "release": null
             },
             "remediation": {
@@ -3122,10 +3122,10 @@
             "name": "GHSA-7jvm-xxmr-v5cw",
             "package_name": "tensorflow",
             "package_details": {
-                "file_path": "usr/local/lib/python3.8/site-packages/tensorflow-1.15.5.dist-info/METADATA",
+                "file_path": "usr/local/lib/python3.8/site-packages/tensorflow-2.10.1.dist-info/METADATA",
                 "name": "tensorflow",
                 "package_manager": "PYTHONPKG",
-                "version": "1.15.5",
+                "version": "2.10.1",
                 "release": null
             },
             "remediation": {
@@ -3150,10 +3150,10 @@
             "name": "GHSA-6hg6-5c2q-7rcr",
             "package_name": "tensorflow",
             "package_details": {
-                "file_path": "usr/local/lib/python3.8/site-packages/tensorflow-1.15.5.dist-info/METADATA",
+                "file_path": "usr/local/lib/python3.8/site-packages/tensorflow-2.10.1.dist-info/METADATA",
                 "name": "tensorflow",
                 "package_manager": "PYTHONPKG",
-                "version": "1.15.5",
+                "version": "2.10.1",
                 "release": null
             },
             "remediation": {
@@ -3178,10 +3178,10 @@
             "name": "GHSA-f637-vh3r-vfh2",
             "package_name": "tensorflow",
             "package_details": {
-                "file_path": "usr/local/lib/python3.8/site-packages/tensorflow-1.15.5.dist-info/METADATA",
+                "file_path": "usr/local/lib/python3.8/site-packages/tensorflow-2.10.1.dist-info/METADATA",
                 "name": "tensorflow",
                 "package_manager": "PYTHONPKG",
-                "version": "1.15.5",
+                "version": "2.10.1",
                 "release": null
             },
             "remediation": {
@@ -3206,10 +3206,10 @@
             "name": "GHSA-68v3-g9cm-rmm6",
             "package_name": "tensorflow",
             "package_details": {
-                "file_path": "usr/local/lib/python3.8/site-packages/tensorflow-1.15.5.dist-info/METADATA",
+                "file_path": "usr/local/lib/python3.8/site-packages/tensorflow-2.10.1.dist-info/METADATA",
                 "name": "tensorflow",
                 "package_manager": "PYTHONPKG",
-                "version": "1.15.5",
+                "version": "2.10.1",
                 "release": null
             },
             "remediation": {
@@ -3234,10 +3234,10 @@
             "name": "GHSA-qjqc-vqcf-5qvj",
             "package_name": "tensorflow",
             "package_details": {
-                "file_path": "usr/local/lib/python3.8/site-packages/tensorflow-1.15.5.dist-info/METADATA",
+                "file_path": "usr/local/lib/python3.8/site-packages/tensorflow-2.10.1.dist-info/METADATA",
                 "name": "tensorflow",
                 "package_manager": "PYTHONPKG",
-                "version": "1.15.5",
+                "version": "2.10.1",
                 "release": null
             },
             "remediation": {
@@ -3262,10 +3262,10 @@
             "name": "GHSA-f49c-87jh-g47q",
             "package_name": "tensorflow",
             "package_details": {
-                "file_path": "usr/local/lib/python3.8/site-packages/tensorflow-1.15.5.dist-info/METADATA",
+                "file_path": "usr/local/lib/python3.8/site-packages/tensorflow-2.10.1.dist-info/METADATA",
                 "name": "tensorflow",
                 "package_manager": "PYTHONPKG",
-                "version": "1.15.5",
+                "version": "2.10.1",
                 "release": null
             },
             "remediation": {
@@ -3290,10 +3290,10 @@
             "name": "GHSA-93vr-9q9m-pj8p",
             "package_name": "tensorflow",
             "package_details": {
-                "file_path": "usr/local/lib/python3.8/site-packages/tensorflow-1.15.5.dist-info/METADATA",
+                "file_path": "usr/local/lib/python3.8/site-packages/tensorflow-2.10.1.dist-info/METADATA",
                 "name": "tensorflow",
                 "package_manager": "PYTHONPKG",
-                "version": "1.15.5",
+                "version": "2.10.1",
                 "release": null
             },
             "remediation": {
@@ -3318,10 +3318,10 @@
             "name": "GHSA-64jg-wjww-7c5w",
             "package_name": "tensorflow",
             "package_details": {
-                "file_path": "usr/local/lib/python3.8/site-packages/tensorflow-1.15.5.dist-info/METADATA",
+                "file_path": "usr/local/lib/python3.8/site-packages/tensorflow-2.10.1.dist-info/METADATA",
                 "name": "tensorflow",
                 "package_manager": "PYTHONPKG",
-                "version": "1.15.5",
+                "version": "2.10.1",
                 "release": null
             },
             "remediation": {
