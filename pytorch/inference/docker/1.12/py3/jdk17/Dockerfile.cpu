@@ -227,6 +227,8 @@ ARG PYTHON
 
 ENV SAGEMAKER_SERVING_MODULE sagemaker_pytorch_serving_container.serving:main
 
+RUN pip install -U pyOpenSSL cryptography
+
 # Install scikit-learn and pandas
 RUN conda install -y -c conda-forge \
     scikit-learn \
