@@ -63,8 +63,7 @@ def test_performance_pytorch_gpu_inductor_torchbench(pytorch_training, ec2_conne
 
 
 def execute_ec2_training_performance_test(
-    connection, ecr_uri, test_cmd, ec2_instance_type, model_suite, region=DEFAULT_REGION,
-):
+    connection, ecr_uri, test_cmd, ec2_instance_type, model_suite, region=DEFAULT_REGION):
     docker_cmd = "nvidia-docker" if "gpu" in ecr_uri else "docker"
     container_test_local_dir = os.path.join("$HOME", "container_tests")
 
@@ -74,9 +73,7 @@ def execute_ec2_training_performance_test(
 
     # Make sure we are logged into ECR so we can pull the image
     connection.run(f"$(aws ecr get-login --no-include-email --region {region})", hide=True)
-    print("done login")
     connection.run(f"{docker_cmd} pull -q {ecr_uri}")
-    print("done pulling image")
 
     # Run training command
     connection.run(
