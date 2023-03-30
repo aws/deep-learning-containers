@@ -35,8 +35,8 @@ PT_PERFORMANCE_TRAINING_GPU_IMAGENET_CMD = os.path.join(
     CONTAINER_TESTS_PREFIX, "benchmark", "run_pytorch_training_performance_gpu_imagenet"
 )
 
-PT_EC2_GPU_SYNTHETIC_INSTANCE_TYPE = "p3.16xlarge"
-PT_EC2_GPU_IMAGENET_INSTANCE_TYPE = "p3.16xlarge"
+PT_EC2_GPU_SYNTHETIC_INSTANCE_TYPE = "p3.2xlarge"
+PT_EC2_GPU_IMAGENET_INSTANCE_TYPE = "p3.2xlarge"
 PT_EC2_HPU_INSTANCE_TYPE = "dl1.24xlarge"
 
 @pytest.mark.model("resnet50")
