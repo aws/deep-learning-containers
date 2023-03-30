@@ -147,7 +147,8 @@ def run_sm_profiler_tests(image, profiler_tests_dir, test_file, processor):
 
     test_results_outfile = os.path.join(os.getcwd(), f"{get_container_name('smprof', image)}.txt")
     with ctx.prefix(f"cd {profiler_tests_dir}"):
-        with ctx.prefix(f"cd sagemaker-tests && {export_cmd}"):
+        #TODO: revert this
+        with ctx.prefix(f"cd sagemaker-tests-tejas && {export_cmd}"):
             try:
                 ctx.run(
                     f"pytest --json-report --json-report-file={test_results_outfile} -n=auto "
