@@ -6,7 +6,8 @@ source /test/bin/pytorch_tests/setupPyTorchBackendTest
 
 export PT_BACKEND=$1
 export USE_INDUCTOR=$2
-export WORLD_SIZE=2
+# assign the lower of 2 and gpu #, or 2 when no gpu
+export WORLD_SIZE=$(($NUM_GPUS == 0 ? 2 : ($NUM_GPUS < 2 ? $NUM_GPUS : 2)))
 
 # test aws pytorch
 OUT_PATH=$AWS_LOG_DIR/aws_res.csv timeout 360 python run.py BERT_pytorch -m eager -d $DEVICE -t train
