@@ -105,7 +105,7 @@ def upload_metric(instance_type, precision, suite, metric_name, value, unit):
 @pytest.mark.parametrize("ec2_instance_type", ["c5.4xlarge", "m5.4xlarge"], indirect=True)
 @pytest.mark.parametrize("suite", ["huggingface", "timm", "torchbench"])
 @pytest.mark.parametrize("precision", ["float32"])
-def test_performance_ec2_pytorch_inference_cpu(pytorch_inference, ec2_connection, region):
+def test_performance_ec2_pytorch_inference_cpu(suite, precision, pytorch_inference, ec2_connection, region):
     _, image_framework_version = get_framework_and_version_from_tag(
         pytorch_inference)
     if Version(image_framework_version) in SpecifierSet("<2.0"):
@@ -123,7 +123,7 @@ def test_performance_ec2_pytorch_inference_cpu(pytorch_inference, ec2_connection
 @pytest.mark.parametrize("suite", ["huggingface", "timm", "torchbench"])
 @pytest.mark.parametrize("precision", ["float32"])
 @pytest.mark.parametrize("ec2_instance_ami", [UL20_CPU_ARM64_US_WEST_2], indirect=True)
-def test_performance_ec2_pytorch_inference_graviton(pytorch_inference, ec2_connection, region):
+def test_performance_ec2_pytorch_inference_graviton(suite, precision, pytorch_inference, ec2_connection, region):
     _, image_framework_version = get_framework_and_version_from_tag(
         pytorch_inference)
     if Version(image_framework_version) in SpecifierSet("<2.0"):
@@ -139,7 +139,7 @@ def test_performance_ec2_pytorch_inference_graviton(pytorch_inference, ec2_conne
 @pytest.mark.parametrize("ec2_instance_type", ["p3.2xlarge", "g5.4xlarge", "g4dn.4xlarge"], indirect=True)
 @pytest.mark.parametrize("suite", ["huggingface", "timm", "torchbench"])
 @pytest.mark.parametrize("precision", ["float32"])
-def test_performance_ec2_pytorch_inference_gpu(pytorch_inference, ec2_connection, region):
+def test_performance_ec2_pytorch_inference_gpu(suite, precision, pytorch_inference, ec2_connection, region):
     _, image_framework_version = get_framework_and_version_from_tag(
         pytorch_inference)
     if Version(image_framework_version) in SpecifierSet("<2.0"):
