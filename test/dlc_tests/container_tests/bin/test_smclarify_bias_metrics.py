@@ -16,10 +16,12 @@ from smclarify.util.dataset import Datasets
 
 # Install and import pytest
 import subprocess
+
 subprocess.call([sys.executable, "-m", "pip", "install", "pytest"])
 import pytest
 
 logger = logging.getLogger(__name__)
+
 
 def approximate(expected, rtol=None, atol=None):
     """
@@ -68,9 +70,9 @@ def get_expected_results() -> Dict:
     s3_client = boto3.client("s3")
     test_dir = os.path.dirname(os.path.abspath(__file__))
     file_name = "bias_metrics_results.json"
-    s3_client.download_file("sagemaker-clarify-datasets",
-                            f"statlog/result/{file_name}",
-                            f"{test_dir}/{file_name}")
+    s3_client.download_file(
+        "sagemaker-clarify-datasets", f"statlog/result/{file_name}", f"{test_dir}/{file_name}"
+    )
     results_file = os.path.join(test_dir, file_name)
     with open(results_file) as json_file:
         expected_results = json.load(json_file)
@@ -85,7 +87,10 @@ def get_predicted_labels() -> pd.DataFrame:
 
 
 def get_pretraining_bias_metrics(
-    dataframe: pd.DataFrame, facet_column: FacetColumn, label_column: LabelColumn, group_variable: Optional[pd.Series]
+    dataframe: pd.DataFrame,
+    facet_column: FacetColumn,
+    label_column: LabelColumn,
+    group_variable: Optional[pd.Series],
 ) -> Dict:
     # Measure pre-training bias for the ForeignWorker attribute
     return bias_report(
@@ -126,7 +131,9 @@ def test_bias_metrics():
     group_variable = dataframe["A151"]
 
     # pre_training_bias metrics
-    pre_training_metrics = get_pretraining_bias_metrics(dataframe, facet_column, label_column, group_variable)
+    pre_training_metrics = get_pretraining_bias_metrics(
+        dataframe, facet_column, label_column, group_variable
+    )
 
     # post training bias metrics
     predicted_labels = get_predicted_labels()

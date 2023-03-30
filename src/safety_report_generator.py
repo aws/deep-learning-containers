@@ -43,7 +43,7 @@ class SafetyReportGenerator:
         """
         Takes the list of vulnerabilites produced by safety scan as the input and iterates through the list to insert
         the vulnerabilites into the vulnerability_dict.
-        
+
         :param scanned_vulnerabilities: list[list], consists of a list of Vulnerabilities. Each vulnerability is a list itself.
         """
         for vulnerability in scanned_vulnerabilities["vulnerabilities"]:
@@ -83,12 +83,14 @@ class SafetyReportGenerator:
 
         :return: list[dict], each dict is structured like {'name': package_name, 'version':package_version}
         """
-        
+
         python_cmd_to_extract_package_set = """ python -c "import pkg_resources; \
                 import json; \
                 print(json.dumps([{'name':d.key, 'version':d.version} for d in pkg_resources.working_set]))" """
 
-        run_output = self.ctx.run(f"{self.docker_exec_cmd} {python_cmd_to_extract_package_set}", hide=True, warn=True)
+        run_output = self.ctx.run(
+            f"{self.docker_exec_cmd} {python_cmd_to_extract_package_set}", hide=True, warn=True
+        )
         if run_output.exited != 0:
             raise Exception("Package set cannot be retrieved from the container.")
 
@@ -98,7 +100,7 @@ class SafetyReportGenerator:
         """
         Takes the list of all the packages existing in a container and inserts safe packages into the
         vulnerability_dict.
-        
+
         :param packages: list[dict], each dict looks like {"name":package_name, "version":package_version}
         """
         for pkg in packages:
@@ -108,7 +110,12 @@ class SafetyReportGenerator:
                     "scan_status": "SUCCEEDED",
                     "installed": pkg["version"],
                     "vulnerabilities": [
-                        {"vulnerability_id": "N/A", "advisory": "N/A", "reason_to_ignore": "N/A", "spec": "N/A"}
+                        {
+                            "vulnerability_id": "N/A",
+                            "advisory": "N/A",
+                            "reason_to_ignore": "N/A",
+                            "spec": "N/A",
+                        }
                     ],
                     "date": self.timestamp,
                 }
@@ -116,12 +123,15 @@ class SafetyReportGenerator:
     def process_report(self):
         """
         Once all the packages (safe and unsafe both) have been inserted in the vulnerability_dict, this method is called.
-        On being called, it processes each package within the vulnerability_dict and appends it to the vulnerability_list. 
+        On being called, it processes each package within the vulnerability_dict and appends it to the vulnerability_list.
         Before appending it checks if the scan_status is "TBD". If yes, it assigns the correct scan_status to the package.
         """
         for (package, package_scan_results) in self.vulnerability_dict.items():
             if package_scan_results["scan_status"] == "TBD":
-                if len(package_scan_results["vulnerabilities"]) == self.ignored_vulnerability_count[package]:
+                if (
+                    len(package_scan_results["vulnerabilities"])
+                    == self.ignored_vulnerability_count[package]
+                ):
                     package_scan_results["scan_status"] = "IGNORED"
                 else:
                     package_scan_results["scan_status"] = "FAILED"
@@ -136,7 +146,9 @@ class SafetyReportGenerator:
         safety_check_command = f"{self.docker_exec_cmd} safety check --output json"
         run_out = self.ctx.run(safety_check_command, warn=True, hide=True)
         if run_out.return_code != 0:
-            print("safety check command returned non-zero error code. This indicates that vulnerabilities might exist.")
+            print(
+                "safety check command returned non-zero error code. This indicates that vulnerabilities might exist."
+            )
         return run_out.stdout
 
     def run_safety_check_in_cb_context(self):
@@ -153,7 +165,7 @@ class SafetyReportGenerator:
         """
         Acts as a driver function for this class that initiates the entire process of running safety check and returing
         the vulnerability_list
-        
+
         :return: list[dict], the output follows the same format as mentioned in the description of the class
         """
         self.timestamp = datetime.now().strftime("%d-%m-%Y")

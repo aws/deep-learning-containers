@@ -38,7 +38,7 @@ def test_eks_pytorch_single_node_training(pytorch_training):
     yaml_path = os.path.join(os.sep, "tmp", f"pytorch_single_node_training_{rand_int}.yaml")
     pod_name = f"pytorch-single-node-training-{rand_int}"
     # Workaround for https://github.com/pytorch/vision/issues/1938 and https://github.com/pytorch/vision/issues/3549
-    mnist_dataset_download_config = '''
+    mnist_dataset_download_config = """
       FILE=new_main.py &&
       echo "from __future__ import print_function" > $FILE &&
       echo "from six.moves import urllib" >> $FILE &&
@@ -63,7 +63,7 @@ def test_eks_pytorch_single_node_training(pytorch_training):
       cat mnist/main.py >> $FILE &&
       rm mnist/main.py &&
       mv $FILE mnist/main.py
-    '''
+    """
 
     args = f"git clone https://github.com/pytorch/examples.git && cd examples && git reset --hard 5a06e9cac1728c860b53ebfc6792e0a0e21a5678 && {mnist_dataset_download_config}  && python mnist/main.py"
 
@@ -155,7 +155,9 @@ def test_eks_pt_s3_plugin_single_node_training(pytorch_training, outside_version
         run("kubectl delete pods {}".format(pod_name))
 
 
-@pytest.mark.skipif(not is_pr_context(), reason="Skip this test. It is already tested under PR context")
+@pytest.mark.skipif(
+    not is_pr_context(), reason="Skip this test. It is already tested under PR context"
+)
 @pytest.mark.integration("dgl")
 @pytest.mark.model("gcn")
 def test_eks_pytorch_dgl_single_node_training(pytorch_training, py3_only):
@@ -222,11 +224,11 @@ def test_eks_pytorch_dgl_single_node_training(pytorch_training, py3_only):
 @pytest.mark.multinode(4)
 def test_eks_pytorch_multinode_node_training(pytorch_training, example_only):
     """
-       Function to create mutliple pods using kubectl and given container image, and run Pytorch training
-       Args:
-           :param setup_utils: environment in which EKS tools are setup
-           :param pytorch_training: the ECR URI
-       """
+    Function to create mutliple pods using kubectl and given container image, and run Pytorch training
+    Args:
+        :param setup_utils: environment in which EKS tools are setup
+        :param pytorch_training: the ECR URI
+    """
     # TODO: Change hardcoded value to read a mapping from the EKS cluster instance.
     random.seed(f"{pytorch_training}-{datetime.datetime.now().strftime('%Y%m%d%H%M%S%f')}")
     unique_id = random.randint(1, 6000)
@@ -241,7 +243,9 @@ def test_eks_pytorch_multinode_node_training(pytorch_training, example_only):
     local_template_file_path = os.path.join(
         "eks", "eks_manifest_templates", "pytorch", "training", "multi_node_gpu_training.yaml"
     )
-    remote_yaml_path = os.path.join(os.sep, "tmp", f"pytorch_multinode_node_training_{unique_id}.yaml")
+    remote_yaml_path = os.path.join(
+        os.sep, "tmp", f"pytorch_multinode_node_training_{unique_id}.yaml"
+    )
     replace_dict = {
         "<JOB_NAME>": job_name,
         "<NUM_MASTERS>": num_masters,
@@ -252,7 +256,9 @@ def test_eks_pytorch_multinode_node_training(pytorch_training, example_only):
         "<GPU_LIMIT>": gpu_limit,
     }
 
-    eks_utils.write_eks_yaml_file_from_template(local_template_file_path, remote_yaml_path, replace_dict)
+    eks_utils.write_eks_yaml_file_from_template(
+        local_template_file_path, remote_yaml_path, replace_dict
+    )
     run_eks_pytorch_multi_node_training(namespace, job_name, remote_yaml_path)
 
 

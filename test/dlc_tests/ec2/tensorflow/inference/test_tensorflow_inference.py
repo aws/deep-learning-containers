@@ -19,9 +19,13 @@ TF_EC2_CPU_INSTANCE_TYPE = get_ec2_instance_type(default="c5.4xlarge", processor
 TF_EC2_EIA_ACCELERATOR_TYPE = get_ec2_accelerator_type(default="eia1.large", processor="eia")
 TF_EC2_NEURON_ACCELERATOR_TYPE = get_ec2_instance_type(default="inf1.xlarge", processor="neuron")
 TF_EC2_SINGLE_GPU_INSTANCE_TYPE = get_ec2_instance_type(
-    default="p3.2xlarge", processor="gpu", filter_function=ec2_utils.filter_only_single_gpu,
+    default="p3.2xlarge",
+    processor="gpu",
+    filter_function=ec2_utils.filter_only_single_gpu,
 )
-TF_EC2_GRAVITON_INSTANCE_TYPE = get_ec2_instance_type(default="c6g.4xlarge", processor="cpu", arch_type="graviton")
+TF_EC2_GRAVITON_INSTANCE_TYPE = get_ec2_instance_type(
+    default="c6g.4xlarge", processor="cpu", arch_type="graviton"
+)
 
 
 @pytest.mark.model("mnist")
@@ -37,7 +41,9 @@ def test_ec2_tensorflow_inference_gpu(
     tensorflow_inference, ec2_connection, region, gpu_only, ec2_instance_type
 ):
     if test_utils.is_image_incompatible_with_instance_type(tensorflow_inference, ec2_instance_type):
-        pytest.skip(f"Image {tensorflow_inference} is incompatible with instance type {ec2_instance_type}")
+        pytest.skip(
+            f"Image {tensorflow_inference} is incompatible with instance type {ec2_instance_type}"
+        )
     run_ec2_tensorflow_inference(tensorflow_inference, ec2_connection, "8500", region)
 
 
@@ -76,21 +82,27 @@ def test_ec2_tensorflow_inference_gpu_telemetry(
     tensorflow_inference, ec2_connection, region, gpu_only, ec2_instance_type
 ):
     if test_utils.is_image_incompatible_with_instance_type(tensorflow_inference, ec2_instance_type):
-        pytest.skip(f"Image {tensorflow_inference} is incompatible with instance type {ec2_instance_type}")
+        pytest.skip(
+            f"Image {tensorflow_inference} is incompatible with instance type {ec2_instance_type}"
+        )
     run_ec2_tensorflow_inference(tensorflow_inference, ec2_connection, "8500", region, True)
 
 
 @pytest.mark.usefixtures("sagemaker")
 @pytest.mark.model("mnist")
 @pytest.mark.parametrize("ec2_instance_type", TF_EC2_CPU_INSTANCE_TYPE, indirect=True)
-def test_ec2_tensorflow_inference_cpu_telemetry(tensorflow_inference, ec2_connection, region, cpu_only):
+def test_ec2_tensorflow_inference_cpu_telemetry(
+    tensorflow_inference, ec2_connection, region, cpu_only
+):
     run_ec2_tensorflow_inference(tensorflow_inference, ec2_connection, "8500", region, True)
 
 
 @pytest.mark.model("mnist")
 @pytest.mark.parametrize("ec2_instance_type", TF_EC2_GRAVITON_INSTANCE_TYPE, indirect=True)
 @pytest.mark.parametrize("ec2_instance_ami", [test_utils.UL20_CPU_ARM64_US_WEST_2], indirect=True)
-def test_ec2_tensorflow_inference_graviton_cpu(tensorflow_inference_graviton, ec2_connection, region, cpu_only):
+def test_ec2_tensorflow_inference_graviton_cpu(
+    tensorflow_inference_graviton, ec2_connection, region, cpu_only
+):
     run_ec2_tensorflow_inference(tensorflow_inference_graviton, ec2_connection, "8500", region)
 
 
@@ -100,18 +112,24 @@ def test_ec2_tensorflow_inference_graviton_cpu(tensorflow_inference_graviton, ec
 def test_ec2_tensorflow_inference_graviton_cpu_telemetry(
     tensorflow_inference_graviton, ec2_connection, region, cpu_only
 ):
-    run_ec2_tensorflow_inference(tensorflow_inference_graviton, ec2_connection, "8500", region, True)
+    run_ec2_tensorflow_inference(
+        tensorflow_inference_graviton, ec2_connection, "8500", region, True
+    )
 
 
-def run_ec2_tensorflow_inference(image_uri, ec2_connection, grpc_port, region, telemetry_mode=False):
+def run_ec2_tensorflow_inference(
+    image_uri, ec2_connection, grpc_port, region, telemetry_mode=False
+):
     repo_name, image_tag = image_uri.split("/")[-1].split(":")
     container_name = f"{repo_name}-{image_tag}-ec2"
     framework_version = get_tensorflow_framework_version(image_uri)
-    home_dir = ec2_connection.run("echo $HOME").stdout.strip('\n')
+    home_dir = ec2_connection.run("echo $HOME").stdout.strip("\n")
     serving_folder_path = os.path.join(home_dir, "serving")
     model_name = "mnist"
     model_path = os.path.join(serving_folder_path, "models", model_name)
-    mnist_client_path = os.path.join(serving_folder_path, "tensorflow_serving", "example", "mnist_client.py")
+    mnist_client_path = os.path.join(
+        serving_folder_path, "tensorflow_serving", "example", "mnist_client.py"
+    )
 
     is_neuron = "neuron" in image_uri
     is_graviton = "graviton" in image_uri
@@ -144,7 +162,12 @@ def run_ec2_tensorflow_inference(image_uri, ec2_connection, grpc_port, region, t
     inference_test_failed = False
     try:
         host_setup_for_tensorflow_inference(
-            serving_folder_path, framework_version, ec2_connection, is_neuron, is_graviton, model_name
+            serving_folder_path,
+            framework_version,
+            ec2_connection,
+            is_neuron,
+            is_graviton,
+            model_name,
         )
         sleep(2)
         if not is_neuron:
@@ -156,7 +179,9 @@ def run_ec2_tensorflow_inference(image_uri, ec2_connection, grpc_port, region, t
         sleep(20)
         if is_neuron and str(framework_version).startswith(TENSORFLOW2_VERSION):
             test_utils.request_tensorflow_inference(
-                model_name, connection=ec2_connection, inference_string="'{\"instances\": [[1.0, 2.0, 5.0]]}'"
+                model_name,
+                connection=ec2_connection,
+                inference_string="'{\"instances\": [[1.0, 2.0, 5.0]]}'",
             )
         else:
             test_utils.request_tensorflow_inference_grpc(
@@ -167,7 +192,9 @@ def run_ec2_tensorflow_inference(image_uri, ec2_connection, grpc_port, region, t
     except:
         inference_test_failed = True
         remote_out = ec2_connection.run(f"docker logs {container_name}", warn=True, hide=True)
-        LOGGER.info(f"--- TF container logs ---\n--- STDOUT ---\n{remote_out.stdout}\n--- STDERR ---\n{remote_out.stderr}")
+        LOGGER.info(
+            f"--- TF container logs ---\n--- STDOUT ---\n{remote_out.stdout}\n--- STDERR ---\n{remote_out.stderr}"
+        )
     finally:
         ec2_connection.run(f"docker rm -f {container_name}", warn=True, hide=True)
     assert inference_test_failed is False, "tensorflow inference test failed"
@@ -209,18 +236,25 @@ def host_setup_for_tensorflow_inference(
             (
                 f"pip install --user -qq -U 'tensorflow<={framework_version}' "
                 f" 'tensorflow-serving-api<={framework_version}' 'protobuf>=3.20,<3.21'"
-            ), hide=True
+            ),
+            hide=True,
         )
     if os.path.exists(f"{serving_folder_path}"):
         ec2_connection.run(f"rm -rf {serving_folder_path}")
     if str(framework_version).startswith(TENSORFLOW1_VERSION):
-        run_out = ec2_connection.run(f"git clone https://github.com/tensorflow/serving.git {serving_folder_path}")
+        run_out = ec2_connection.run(
+            f"git clone https://github.com/tensorflow/serving.git {serving_folder_path}"
+        )
         git_branch_version = re.findall(r"[1-2]\.[0-9]\d", framework_version)[0]
         ec2_connection.run(f"cd {serving_folder_path} && git checkout r{git_branch_version}")
         LOGGER.info(f"Clone TF serving repository status {run_out.return_code == 0}")
         if is_neuron:
-            container_test_local_file = os.path.join("$HOME", "container_tests/bin/neuron_tests/mnist_client.py")
-            ec2_connection.run(f"cp -f {container_test_local_file} {serving_folder_path}/tensorflow_serving/example")
+            container_test_local_file = os.path.join(
+                "$HOME", "container_tests/bin/neuron_tests/mnist_client.py"
+            )
+            ec2_connection.run(
+                f"cp -f {container_test_local_file} {serving_folder_path}/tensorflow_serving/example"
+            )
             neuron_model_file_path = os.path.join(serving_folder_path, f"models/{model_name}/1")
             neuron_model_file = os.path.join(neuron_model_file_path, "saved_model.pb")
             LOGGER.info(f"Host Model path {neuron_model_file_path}")
@@ -233,7 +267,9 @@ def host_setup_for_tensorflow_inference(
         ec2_connection.run(f"mkdir -p {serving_folder_path}")
         ec2_connection.run(f"cp -r {local_scripts_path} {serving_folder_path}")
         if is_neuron:
-            neuron_local_model = os.path.join("$HOME", "container_tests", "bin", "neuron_tests", "simple")
+            neuron_local_model = os.path.join(
+                "$HOME", "container_tests", "bin", "neuron_tests", "simple"
+            )
             neuron_model_dir = os.path.join(serving_folder_path, "models")
             neuron_model_file_path = os.path.join(serving_folder_path, "models", "model_name", "1")
             LOGGER.info(f"Host Model path {neuron_model_file_path}")
@@ -244,4 +280,6 @@ def host_setup_for_tensorflow_inference(
 
 def check_telemetry(ec2_connection, container_name):
     ec2_connection.run(f"docker exec -i {container_name} bash -c '[ -f /tmp/test_request.txt ]'")
-    ec2_connection.run(f"docker exec -i {container_name} bash -c '[ -f /tmp/test_tag_request.txt ]'")
+    ec2_connection.run(
+        f"docker exec -i {container_name} bash -c '[ -f /tmp/test_tag_request.txt ]'"
+    )

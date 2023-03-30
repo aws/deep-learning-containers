@@ -28,7 +28,11 @@ JS_PING = "js_content tensorflowServing.ping"
 JS_INVOCATIONS = "js_content tensorflowServing.invocations"
 GUNICORN_PING = "proxy_pass http://gunicorn_upstream/ping"
 GUNICORN_INVOCATIONS = "proxy_pass http://gunicorn_upstream/invocations"
-CODE_DIR = "/opt/ml/code" if os.environ.get("SAGEMAKER_MULTI_MODEL", "False").lower() == "true" else "/opt/ml/model/code"
+CODE_DIR = (
+    "/opt/ml/code"
+    if os.environ.get("SAGEMAKER_MULTI_MODEL", "False").lower() == "true"
+    else "/opt/ml/model/code"
+)
 PYTHON_LIB_PATH = os.path.join(CODE_DIR, "lib")
 REQUIREMENTS_PATH = os.path.join(CODE_DIR, "requirements.txt")
 INFERENCE_PATH = os.path.join(CODE_DIR, "inference.py")
@@ -66,7 +70,8 @@ class ServiceManager(object):
             os.environ.get("SAGEMAKER_GUNICORN_TIMEOUT_SECONDS", 30)
         )
         self._nginx_proxy_read_timeout_seconds = int(
-            os.environ.get("SAGEMAKER_NGINX_PROXY_READ_TIMEOUT_SECONDS", 60))
+            os.environ.get("SAGEMAKER_NGINX_PROXY_READ_TIMEOUT_SECONDS", 60)
+        )
 
         # Nginx proxy read timeout should not be less than the GUnicorn timeout. If it is, this
         # can result in upstream time out errors.
@@ -132,8 +137,11 @@ class ServiceManager(object):
         os.environ["TFS_REST_PORTS"] = self._tfs_rest_concat_ports
 
     def _need_python_service(self):
-        if (os.path.exists(INFERENCE_PATH) or os.path.exists(REQUIREMENTS_PATH)
-                or os.path.exists(PYTHON_LIB_PATH)):
+        if (
+            os.path.exists(INFERENCE_PATH)
+            or os.path.exists(REQUIREMENTS_PATH)
+            or os.path.exists(PYTHON_LIB_PATH)
+        ):
             self._enable_python_service = True
         if os.environ.get("SAGEMAKER_MULTI_MODEL_UNIVERSAL_BUCKET") and os.environ.get(
             "SAGEMAKER_MULTI_MODEL_UNIVERSAL_PREFIX"
@@ -314,10 +322,10 @@ class ServiceManager(object):
     def _get_number_of_gpu_on_host(self):
         nvidia_smi_exist = os.path.exists("/usr/bin/nvidia-smi")
         if nvidia_smi_exist:
-            return len(subprocess.check_output(['nvidia-smi', '-L'])
-                       .decode('utf-8').strip().split('\n'))
+            return len(
+                subprocess.check_output(["nvidia-smi", "-L"]).decode("utf-8").strip().split("\n")
+            )
         return 0
-
 
     def _calculate_per_process_gpu_memory_fraction(self):
         return round((1 - self._tfs_gpu_margin) / float(self._tfs_instance_count), 4)
@@ -436,9 +444,13 @@ class ServiceManager(object):
         if num_gpus > 1:
             # utilizing multi-gpu
             worker_env = os.environ.copy()
-            worker_env["CUDA_VISIBLE_DEVICES"] = str(instance_id%num_gpus)
+            worker_env["CUDA_VISIBLE_DEVICES"] = str(instance_id % num_gpus)
             p = subprocess.Popen(cmd.split(), env=worker_env)
-            log.info("started tensorflow serving (pid: {}) on GPU: {}".format(p.pid, instance_id%num_gpus))
+            log.info(
+                "started tensorflow serving (pid: {}) on GPU: {}".format(
+                    p.pid, instance_id % num_gpus
+                )
+            )
         else:
             # cpu and single gpu
             p = subprocess.Popen(cmd.split())

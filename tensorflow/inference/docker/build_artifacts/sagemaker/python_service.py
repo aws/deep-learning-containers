@@ -27,7 +27,11 @@ from multi_model_utils import lock, MultiModelException
 import tfs_utils
 
 SAGEMAKER_MULTI_MODEL_ENABLED = os.environ.get("SAGEMAKER_MULTI_MODEL", "false").lower() == "true"
-INFERENCE_SCRIPT_PATH = "/opt/ml/code/inference.py" if SAGEMAKER_MULTI_MODEL_ENABLED else "/opt/ml/model/code/inference.py"
+INFERENCE_SCRIPT_PATH = (
+    "/opt/ml/code/inference.py"
+    if SAGEMAKER_MULTI_MODEL_ENABLED
+    else "/opt/ml/model/code/inference.py"
+)
 
 SAGEMAKER_BATCHING_ENABLED = os.environ.get("SAGEMAKER_TFS_ENABLE_BATCHING", "false").lower()
 MODEL_CONFIG_FILE_PATH = "/sagemaker/model-config.cfg"
@@ -232,17 +236,33 @@ class PythonServiceResource:
         inference_script_path = "/opt/ml/models/{}/model/code/inference.py".format(model_name)
         python_lib_path = "/opt/ml/models/{}/model/code/lib".format(model_name)
         if os.path.exists(python_lib_path):
-            log.info("Add Python code library for the model {} found at path {}.".format(model_name, python_lib_path))
+            log.info(
+                "Add Python code library for the model {} found at path {}.".format(
+                    model_name, python_lib_path
+                )
+            )
             sys.path.append(python_lib_path)
         else:
-            log.info("Python code library for the model {} not found at path {}.".format(model_name, python_lib_path))
+            log.info(
+                "Python code library for the model {} not found at path {}.".format(
+                    model_name, python_lib_path
+                )
+            )
         if os.path.exists(inference_script_path):
-            log.info("Importing handlers from model-specific inference script for the model {} found at path {}.".format(model_name, inference_script_path))
+            log.info(
+                "Importing handlers from model-specific inference script for the model {} found at path {}.".format(
+                    model_name, inference_script_path
+                )
+            )
             handler, input_handler, output_handler = self._import_handlers(inference_script_path)
             model_handlers = self._make_handler(handler, input_handler, output_handler)
             self.model_handlers[model_name] = model_handlers
         else:
-            log.info("Model-specific inference script for the model {} not found at path {}.".format(model_name, inference_script_path))
+            log.info(
+                "Model-specific inference script for the model {} not found at path {}.".format(
+                    model_name, inference_script_path
+                )
+            )
 
     def _cleanup_config_file(self, config_file):
         if os.path.exists(config_file):
@@ -289,12 +309,22 @@ class PythonServiceResource:
             res.status = falcon.HTTP_200
             handlers = self._handlers
             if SAGEMAKER_MULTI_MODEL_ENABLED and model_name in self.model_handlers:
-                log.info("Model-specific inference script for the model {} exists, importing handlers.".format(model_name))
+                log.info(
+                    "Model-specific inference script for the model {} exists, importing handlers.".format(
+                        model_name
+                    )
+                )
                 handlers = self.model_handlers[model_name]
             elif not self._default_handlers_enabled:
-                log.info("Universal inference script exists at path {}, importing handlers.".format(INFERENCE_SCRIPT_PATH))
+                log.info(
+                    "Universal inference script exists at path {}, importing handlers.".format(
+                        INFERENCE_SCRIPT_PATH
+                    )
+                )
             else:
-                log.info("Model-specific inference script and universal inference script both do not exist, using default handlers.")
+                log.info(
+                    "Model-specific inference script and universal inference script both do not exist, using default handlers."
+                )
             res.body, res.content_type = handlers(data, context)
         except Exception as e:  # pylint: disable=broad-except
             log.exception("exception handling request: {}".format(e))

@@ -71,7 +71,10 @@ def _run_distributed_training_horovod_basic(
     output_path = "file://%s" % tmpdir
     estimator = TensorFlow(
         hyperparameters={
-            "sagemaker_mpi_enabled": True, "sagemaker_network_interface_name": "eth0", "sagemaker_mpi_num_of_processes_per_host": processes},
+            "sagemaker_mpi_enabled": True,
+            "sagemaker_network_interface_name": "eth0",
+            "sagemaker_mpi_num_of_processes_per_host": processes,
+        },
         model_dir=False,
         entry_point=os.path.join(RESOURCE_PATH, "hvdbasic", "train_hvd_basic.py"),
         role="SageMakerRole",

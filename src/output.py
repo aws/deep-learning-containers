@@ -100,9 +100,7 @@ class OutputFormatter:
                 for image, thread in futures.items():
                     output[i] = image
                     if thread.done():
-                        output[i] += (
-                            "." * 10 + constants.STATUS_MESSAGE[futures[image].result()]
-                        )
+                        output[i] += "." * 10 + constants.STATUS_MESSAGE[futures[image].result()]
                         done[image] = True
                     else:
                         output[i] += "." * (num_iterations % 10)

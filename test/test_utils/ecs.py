@@ -22,7 +22,11 @@ from packaging.version import Version
 from packaging.specifiers import SpecifierSet
 
 
-ECS_AMI_ID = {"cpu": "ami-0fb71e703258ab7eb", "gpu": "ami-0a36be2e955646bb2", "eia": "ami-0fb71e703258ab7eb"}
+ECS_AMI_ID = {
+    "cpu": "ami-0fb71e703258ab7eb",
+    "gpu": "ami-0a36be2e955646bb2",
+    "eia": "ami-0fb71e703258ab7eb",
+}
 
 ECS_TENSORFLOW_INFERENCE_PORT_MAPPINGS = [
     {"containerPort": 8500, "hostPort": 8500, "protocol": "tcp"},
@@ -100,7 +104,9 @@ def retry_if_value_error(exception):
 
 
 @retry(
-    stop_max_attempt_number=12, wait_fixed=10000, retry_on_exception=retry_if_value_error,
+    stop_max_attempt_number=12,
+    wait_fixed=10000,
+    retry_on_exception=retry_if_value_error,
 )
 def check_ecs_cluster_status(cluster_arn_or_name, status, region=DEFAULT_REGION):
     """
@@ -119,7 +125,8 @@ def check_ecs_cluster_status(cluster_arn_or_name, status, region=DEFAULT_REGION)
                 f"Failures in describe cluster. Error - Expected {status} but got {response['failures']}"
             )
         elif (
-            response["clusters"][0]["clusterArn"] == cluster_arn_or_name and response["clusters"][0]["status"] == status
+            response["clusters"][0]["clusterArn"] == cluster_arn_or_name
+            and response["clusters"][0]["status"] == status
         ):
             return True
         else:
@@ -157,7 +164,9 @@ def get_ecs_cluster_name(ecs_cluster_arn, region=DEFAULT_REGION):
     return cluster_name
 
 
-def list_ecs_container_instances(cluster_arn_or_name, filter_value=None, status=None, region=DEFAULT_REGION):
+def list_ecs_container_instances(
+    cluster_arn_or_name, filter_value=None, status=None, region=DEFAULT_REGION
+):
     """
     List container instances in a cluster.
     :param cluster_arn_or_name: Cluster ARN or Cluster Name
@@ -181,7 +190,12 @@ def list_ecs_container_instances(cluster_arn_or_name, filter_value=None, status=
 
 
 def attach_ecs_worker_node(
-    worker_instance_type, ami_id, cluster_name, cluster_arn=None, region=DEFAULT_REGION, worker_eia_capable=False
+    worker_instance_type,
+    ami_id,
+    cluster_name,
+    cluster_arn=None,
+    region=DEFAULT_REGION,
+    worker_eia_capable=False,
 ):
     """
     Launch a worker instance in a cluster.
@@ -212,15 +226,21 @@ def attach_ecs_worker_node(
     instance_id = instc["InstanceId"]
     public_ip_address = ec2_utils.get_public_ip(instance_id, region=region)
     ec2_utils.check_instance_state(instance_id, state="running", region=region)
-    ec2_utils.check_system_state(instance_id, system_status="ok", instance_status="ok", region=region)
+    ec2_utils.check_system_state(
+        instance_id, system_status="ok", instance_status="ok", region=region
+    )
 
     list_container_filter = f"ec2InstanceId in ['{instance_id}'] and agentConnected==true"
     if cluster_arn is None:
         cluster_arn = cluster_name
-    container_arns = list_ecs_container_instances(cluster_arn, list_container_filter, "ACTIVE", region)
+    container_arns = list_ecs_container_instances(
+        cluster_arn, list_container_filter, "ACTIVE", region
+    )
 
     if not container_arns:
-        raise Exception(f"No ACTIVE container instance found on instance-id {instance_id} in cluster {cluster_arn}")
+        raise Exception(
+            f"No ACTIVE container instance found on instance-id {instance_id} in cluster {cluster_arn}"
+        )
     return instance_id, public_ip_address
 
 
@@ -313,7 +333,9 @@ def register_ecs_task_definition(
         if num_gpu:
             if not isinstance(num_gpu, str):
                 if not isinstance(num_gpu, int):
-                    raise Exception(f"Invalid type for argument num_gpu, type: {num_gpu}. valid type: <int/str>")
+                    raise Exception(
+                        f"Invalid type for argument num_gpu, type: {num_gpu}. valid type: <int/str>"
+                    )
                 num_gpu = str(num_gpu)
             arguments_dict["containerDefinitions"][0]["resourceRequirements"] = [
                 {"value": num_gpu, "type": "GPU"},
@@ -364,7 +386,8 @@ def create_ecs_service(cluster_name, service_name, task_definition, region=DEFAU
         return response["service"]["serviceName"]
     except Exception as e:
         raise ECSServiceCreationException(
-            f"Failed to create service: {service_name} with task definition: {task_definition}. " f"Exception - {e}"
+            f"Failed to create service: {service_name} with task definition: {task_definition}. "
+            f"Exception - {e}"
         )
 
 
@@ -381,7 +404,9 @@ def check_running_task_for_ecs_service(cluster_arn_or_name, service_name, region
     try:
         ecs_client = boto3.Session(region_name=region).client("ecs")
         response = ecs_client.list_tasks(
-            cluster=cluster_arn_or_name, serviceName=service_name, desiredStatus="RUNNING",
+            cluster=cluster_arn_or_name,
+            serviceName=service_name,
+            desiredStatus="RUNNING",
         )
         task_arns = response["taskArns"]
 
@@ -411,7 +436,9 @@ def update_ecs_service(cluster_arn_or_name, service_name, desired_count, region=
             desiredCount=desired_count,
         )
     except Exception as e:
-        raise Exception(f"Failed to update desired count for service {service_name} to {desired_count}. Exception {e}")
+        raise Exception(
+            f"Failed to update desired count for service {service_name} to {desired_count}. Exception {e}"
+        )
 
 
 def create_ecs_task(cluster_arn_or_name, task_definition, region=DEFAULT_REGION):
@@ -443,11 +470,18 @@ def create_ecs_task(cluster_arn_or_name, task_definition, region=DEFAULT_REGION)
         ):
             return response["tasks"][0]["taskArn"]
     except Exception as e:
-        raise Exception(f"Failed to create task with task definition {task_definition}. Reason - {e}")
+        raise Exception(
+            f"Failed to create task with task definition {task_definition}. Reason - {e}"
+        )
 
 
 def ecs_task_waiter(
-    cluster_arn_or_name, task_arns, status, waiter_delay=30, waiter_max_attempts=100, region=DEFAULT_REGION,
+    cluster_arn_or_name,
+    task_arns,
+    status,
+    waiter_delay=30,
+    waiter_max_attempts=100,
+    region=DEFAULT_REGION,
 ):
     """
     Waiter for ECS tasks to get into status defined by "status" parameter.
@@ -493,7 +527,9 @@ def describe_ecs_task_exit_status(cluster_arn_or_name, task_arn, region=DEFAULT_
                 {
                     "container_arn": container["containerArn"],
                     "exit_code": container["exitCode"],
-                    "reason": container.get("reason", f"UnknownFailureReason - see response: {container}"),
+                    "reason": container.get(
+                        "reason", f"UnknownFailureReason - see response: {container}"
+                    ),
                 }
             )
 
@@ -511,7 +547,9 @@ def stop_ecs_task(cluster_arn_or_name, task_arn, region=DEFAULT_REGION):
         ecs_client = boto3.Session(region_name=region).client("ecs")
         ecs_client.stop_task(cluster=cluster_arn_or_name, task=task_arn)
     except Exception as e:
-        raise Exception(f"Failed to stop task {task_arn} in cluster {cluster_arn_or_name}. Exception - {e}")
+        raise Exception(
+            f"Failed to stop task {task_arn} in cluster {cluster_arn_or_name}. Exception - {e}"
+        )
 
 
 def delete_ecs_service(cluster_arn_or_name, service_name, region=DEFAULT_REGION):
@@ -523,9 +561,7 @@ def delete_ecs_service(cluster_arn_or_name, service_name, region=DEFAULT_REGION)
     """
     try:
         ecs_client = boto3.Session(region_name=region).client("ecs")
-        ecs_client.delete_service(
-            cluster=cluster_arn_or_name, service=service_name, force=True
-        )
+        ecs_client.delete_service(cluster=cluster_arn_or_name, service=service_name, force=True)
     except Exception as e:
         raise Exception(f"Failed to delete service {service_name}. Exception {e}")
 
@@ -539,14 +575,16 @@ def deregister_ecs_task_definition(task_family, revision, region=DEFAULT_REGION)
     """
     try:
         ecs_client = boto3.Session(region_name=region).client("ecs")
-        ecs_client.deregister_task_definition(
-            taskDefinition=f"{task_family}:{revision}"
-        )
+        ecs_client.deregister_task_definition(taskDefinition=f"{task_family}:{revision}")
     except Exception as e:
-        raise Exception(f"Failed to deregister task definition {task_family}:{revision}. Reason - {e}")
+        raise Exception(
+            f"Failed to deregister task definition {task_family}:{revision}. Reason - {e}"
+        )
 
 
-def deregister_ecs_container_instances(cluster_arn_or_name, container_instances, region=DEFAULT_REGION):
+def deregister_ecs_container_instances(
+    cluster_arn_or_name, container_instances, region=DEFAULT_REGION
+):
     """
     De-register all container instances in a cluster
     :param cluster_arn_or_name:
@@ -589,7 +627,9 @@ def delete_ecs_cluster(cluster_arn, region=DEFAULT_REGION):
         raise Exception(f"Failed to delete cluster. Exception - {e}")
 
 
-def tear_down_ecs_inference_service(cluster_arn, service_name, task_family, revision, region=DEFAULT_REGION):
+def tear_down_ecs_inference_service(
+    cluster_arn, service_name, task_family, revision, region=DEFAULT_REGION
+):
     """
     Function to clean up ECS task definition, service resources if exist
     :param cluster_arn:
@@ -681,7 +721,15 @@ def build_ecs_training_command(s3_test_location, test_string):
     ]
 
 
-def ecs_training_test_executor(cluster_name, cluster_arn, training_command, image_uri, instance_id, num_gpus=None, num_neurons=None):
+def ecs_training_test_executor(
+    cluster_name,
+    cluster_arn,
+    training_command,
+    image_uri,
+    instance_id,
+    num_gpus=None,
+    num_neurons=None,
+):
     """
     Function to run training task on ECS; Cleans up the resources after each execution
 
@@ -780,7 +828,15 @@ def setup_ecs_inference_service(
         Cleans up the resources if any step fails
     """
     datetime_suffix = datetime.datetime.now().strftime("%Y%m%d-%H-%M-%S")
-    processor = "gpu" if "gpu" in docker_image_uri else "eia" if "eia" in docker_image_uri else "neuron" if "neuron" in docker_image_uri else "cpu"
+    processor = (
+        "gpu"
+        if "gpu" in docker_image_uri
+        else "eia"
+        if "eia" in docker_image_uri
+        else "neuron"
+        if "neuron" in docker_image_uri
+        else "cpu"
+    )
     port_mappings = get_ecs_port_mappings(framework)
     log_group_name = f"/ecs/{framework}-inference-{processor}"
     num_cpus = ec2_utils.get_instance_num_cpus(worker_instance_id, region=region)
@@ -810,24 +866,33 @@ def setup_ecs_inference_service(
             entrypoint = "/usr/bin/tf_serving_entrypoint.sh"
             if processor == "neuron":
                 entrypoint = "/usr/local/bin/entrypoint.sh"
-            arguments_dict["container_command"] = [build_tensorflow_inference_command_tf27_and_above(model_name, entrypoint)]
+            arguments_dict["container_command"] = [
+                build_tensorflow_inference_command_tf27_and_above(model_name, entrypoint)
+            ]
             arguments_dict["entrypoint"] = ["sh", "-c"]
 
-        arguments_dict["environment"] = get_tensorflow_inference_environment_variables(model_name, model_base_path)
+        arguments_dict["environment"] = get_tensorflow_inference_environment_variables(
+            model_name, model_base_path
+        )
         print(f"Added environment variables: {arguments_dict['environment']}")
     elif framework in ["mxnet", "pytorch"]:
-        arguments_dict["container_command"] = [get_inference_run_command(docker_image_uri, model_name, processor)]
+        arguments_dict["container_command"] = [
+            get_inference_run_command(docker_image_uri, model_name, processor)
+        ]
     if processor == "eia":
         arguments_dict["health_check"] = {
             "retries": 2,
-            "command": ["CMD-SHELL", "LD_LIBRARY_PATH=/opt/ei_health_check/lib /opt/ei_health_check/bin/health_check"],
+            "command": [
+                "CMD-SHELL",
+                "LD_LIBRARY_PATH=/opt/ei_health_check/lib /opt/ei_health_check/bin/health_check",
+            ],
             "timeout": 5,
             "interval": 30,
             "startPeriod": 60,
         }
         arguments_dict["inference_accelerators"] = {
             "deviceName": "device_1",
-            "deviceType": ei_accelerator_type
+            "deviceType": ei_accelerator_type,
         }
 
     if processor == "neuron" and num_neurons:

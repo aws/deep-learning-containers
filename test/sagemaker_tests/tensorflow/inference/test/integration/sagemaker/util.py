@@ -53,20 +53,25 @@ def _execution_role(boto_session):
 
 
 @contextlib.contextmanager
-def sagemaker_model(boto_session, sagemaker_client, image_uri, model_name, model_data, is_multi_model_mode_enabled = False, environment = {}):
-    container = {
-            "Image": image_uri,
-            "ModelDataUrl": model_data
-        }
+def sagemaker_model(
+    boto_session,
+    sagemaker_client,
+    image_uri,
+    model_name,
+    model_data,
+    is_multi_model_mode_enabled=False,
+    environment={},
+):
+    container = {"Image": image_uri, "ModelDataUrl": model_data}
     if is_multi_model_mode_enabled:
-        container['Mode'] = 'MultiModel'
+        container["Mode"] = "MultiModel"
     if environment:
-        container['Environment'] = environment
+        container["Environment"] = environment
     model = sagemaker_client.create_model(
         ModelName=model_name,
         ExecutionRoleArn=_execution_role(boto_session),
-        PrimaryContainer=container
-        )
+        PrimaryContainer=container,
+    )
 
     try:
         yield model
@@ -76,12 +81,14 @@ def sagemaker_model(boto_session, sagemaker_client, image_uri, model_name, model
 
 
 def _production_variants(model_name, instance_type, accelerator_type):
-    production_variants = [{
-        "VariantName": "AllTraffic",
-        "ModelName": model_name,
-        "InitialInstanceCount": 1,
-        "InstanceType": instance_type
-    }]
+    production_variants = [
+        {
+            "VariantName": "AllTraffic",
+            "ModelName": model_name,
+            "InitialInstanceCount": 1,
+            "InstanceType": instance_type,
+        }
+    ]
 
     if accelerator_type:
         production_variants[0]["AcceleratorType"] = accelerator_type
@@ -92,11 +99,7 @@ def _production_variants(model_name, instance_type, accelerator_type):
 def _test_bucket(region, boto_session):
     domain_suffix = ".cn" if region in ("cn-north-1", "cn-northwest-1") else ""
     sts_regional_endpoint = "https://sts.{}.amazonaws.com{}".format(region, domain_suffix)
-    sts = boto_session.client(
-        "sts",
-        region_name=region,
-        endpoint_url=sts_regional_endpoint
-    )
+    sts = boto_session.client("sts", region_name=region, endpoint_url=sts_regional_endpoint)
     account = sts.get_caller_identity()["Account"]
     return "sagemaker-{}-{}".format(region, account)
 
@@ -119,8 +122,9 @@ def find_or_put_model_data(region, boto_session, local_path):
         if region == "us-east-1":
             s3.create_bucket(Bucket=bucket)
         else:
-            s3.create_bucket(Bucket=bucket,
-                             CreateBucketConfiguration={"LocationConstraint": region})
+            s3.create_bucket(
+                Bucket=bucket, CreateBucketConfiguration={"LocationConstraint": region}
+            )
 
     try:
         s3.head_object(Bucket=bucket, Key=key)
@@ -132,14 +136,19 @@ def find_or_put_model_data(region, boto_session, local_path):
         s3.upload_file(local_path, bucket, key)
 
     return "s3://{}/{}".format(bucket, key)
-    
+
+
 def find_or_put_mme_model_data(region, boto_session, mme_folder_name, path_list):
     for local_path in path_list:
-        is_model_file = True if '.tar.gz' in local_path else False
+        is_model_file = True if ".tar.gz" in local_path else False
         file = os.path.basename(local_path)
 
         bucket = _test_bucket(region, boto_session)
-        key = "test-tfs/{}/{}".format(mme_folder_name,file) if is_model_file else "test-tfs/{}/code/{}".format(mme_folder_name,file)
+        key = (
+            "test-tfs/{}/{}".format(mme_folder_name, file)
+            if is_model_file
+            else "test-tfs/{}/code/{}".format(mme_folder_name, file)
+        )
 
         s3 = boto_session.client("s3", region)
 
@@ -153,8 +162,9 @@ def find_or_put_mme_model_data(region, boto_session, mme_folder_name, path_list)
             if region == "us-east-1":
                 s3.create_bucket(Bucket=bucket)
             else:
-                s3.create_bucket(Bucket=bucket,
-                                CreateBucketConfiguration={"LocationConstraint": region})
+                s3.create_bucket(
+                    Bucket=bucket, CreateBucketConfiguration={"LocationConstraint": region}
+                )
 
         try:
             s3.head_object(Bucket=bucket, Key=key)
@@ -173,13 +183,14 @@ def sagemaker_endpoint(sagemaker_client, model_name, instance_type, accelerator_
     logger.info("creating endpoint %s", model_name)
 
     # Add jitter so we can run tests in parallel without running into service side limits.
-    delay = round(random.random()*5, 3)
+    delay = round(random.random() * 5, 3)
     logger.info("waiting for {} seconds".format(delay))
     time.sleep(delay)
 
     production_variants = _production_variants(model_name, instance_type, accelerator_type)
-    sagemaker_client.create_endpoint_config(EndpointConfigName=model_name,
-                                            ProductionVariants=production_variants)
+    sagemaker_client.create_endpoint_config(
+        EndpointConfigName=model_name, ProductionVariants=production_variants
+    )
 
     sagemaker_client.create_endpoint(EndpointName=model_name, EndpointConfigName=model_name)
 
@@ -203,24 +214,14 @@ def _create_transform_job_request(model_name, batch_output, batch_input, instanc
         "TransformJobName": model_name,
         "ModelName": model_name,
         "BatchStrategy": "MultiRecord",
-        "TransformOutput": {
-            "S3OutputPath": batch_output
-        },
+        "TransformOutput": {"S3OutputPath": batch_output},
         "TransformInput": {
-            "DataSource": {
-                "S3DataSource": {
-                    "S3DataType": "S3Prefix",
-                    "S3Uri": batch_input
-                }
-            },
+            "DataSource": {"S3DataSource": {"S3DataType": "S3Prefix", "S3Uri": batch_input}},
             "ContentType": "text/csv",
             "SplitType": "Line",
-            "CompressionType": "None"
+            "CompressionType": "None",
         },
-        "TransformResources": {
-            "InstanceType": instance_type,
-            "InstanceCount": 1
-        }
+        "TransformResources": {"InstanceType": instance_type, "InstanceCount": 1},
     }
 
 
@@ -232,7 +233,9 @@ def _read_batch_output(region, boto_session, bucket, model_name):
 
 
 def _wait_for_transform_job(region, boto_session, sagemaker_client, model_name, poll, timeout):
-    status = sagemaker_client.describe_transform_job(TransformJobName=model_name)["TransformJobStatus"]
+    status = sagemaker_client.describe_transform_job(TransformJobName=model_name)[
+        "TransformJobStatus"
+    ]
     job_runtime = 0
     while status == "InProgress":
 
@@ -240,23 +243,31 @@ def _wait_for_transform_job(region, boto_session, sagemaker_client, model_name, 
         time.sleep(poll)
         job_runtime += poll
         if job_runtime > timeout:
-            raise ValueError("Batch transform job {} exceeded maximum runtime {} seconds".format(model_name, timeout))
+            raise ValueError(
+                "Batch transform job {} exceeded maximum runtime {} seconds".format(
+                    model_name, timeout
+                )
+            )
 
-        status = sagemaker_client.describe_transform_job(TransformJobName=model_name)["TransformJobStatus"]
+        status = sagemaker_client.describe_transform_job(TransformJobName=model_name)[
+            "TransformJobStatus"
+        ]
         if status == "Completed":
-            return _read_batch_output(region=region,
-                                      boto_session=boto_session,
-                                      bucket=_test_bucket(region, boto_session),
-                                      model_name=model_name)
+            return _read_batch_output(
+                region=region,
+                boto_session=boto_session,
+                bucket=_test_bucket(region, boto_session),
+                model_name=model_name,
+            )
         if status == "Failed":
             raise ValueError("Failed to execute batch transform job {}".format(model_name))
         if status in ["Stopped", "Stopping"]:
             raise ValueError("Batch transform job {} was stopped".format(model_name))
 
 
-def run_batch_transform_job(region, boto_session, model_data, image_uri,
-                            sagemaker_client, model_name,
-                            instance_type):
+def run_batch_transform_job(
+    region, boto_session, model_data, image_uri, sagemaker_client, model_name, instance_type
+):
 
     with sagemaker_model(boto_session, sagemaker_client, image_uri, model_name, model_data):
         batch_input = find_or_put_model_data(region, boto_session, BATCH_CSV)
@@ -264,43 +275,76 @@ def run_batch_transform_job(region, boto_session, model_data, image_uri,
         batch_output = "s3://{}/output/{}".format(bucket, model_name)
 
         request = _create_transform_job_request(
-            model_name=model_name, batch_input=batch_input,
-            batch_output=batch_output, instance_type=instance_type)
+            model_name=model_name,
+            batch_input=batch_input,
+            batch_output=batch_output,
+            instance_type=instance_type,
+        )
         sagemaker_client.create_transform_job(**request)
 
     return _wait_for_transform_job(
-               region=region,
-               boto_session=boto_session,
-               sagemaker_client=sagemaker_client,
-               model_name=model_name,
-               poll=5, # seconds
-               timeout=600) # seconds
+        region=region,
+        boto_session=boto_session,
+        sagemaker_client=sagemaker_client,
+        model_name=model_name,
+        poll=5,  # seconds
+        timeout=600,
+    )  # seconds
 
 
-def invoke_endpoint(sagemaker_runtime_client, endpoint_name, input_data, target_models, content_type = "application/json"):
+def invoke_endpoint(
+    sagemaker_runtime_client,
+    endpoint_name,
+    input_data,
+    target_models,
+    content_type="application/json",
+):
     if target_models:
         results = []
         for target_model in target_models:
-            response = sagemaker_runtime_client.invoke_endpoint(EndpointName=endpoint_name,
-                                                        ContentType=content_type,
-                                                        TargetModel = target_model,
-                                                        Body=json.dumps(input_data))
+            response = sagemaker_runtime_client.invoke_endpoint(
+                EndpointName=endpoint_name,
+                ContentType=content_type,
+                TargetModel=target_model,
+                Body=json.dumps(input_data),
+            )
             result = json.loads(response["Body"].read().decode())
             results.append(result)
         return results
     else:
-        response = sagemaker_runtime_client.invoke_endpoint(EndpointName=endpoint_name,
-                                                        ContentType=content_type,
-                                                        Body=json.dumps(input_data))
+        response = sagemaker_runtime_client.invoke_endpoint(
+            EndpointName=endpoint_name, ContentType=content_type, Body=json.dumps(input_data)
+        )
         result = json.loads(response["Body"].read().decode())
         assert result["predictions"] is not None
         return result
 
 
-def create_and_invoke_endpoint(boto_session, sagemaker_client, sagemaker_runtime_client,
-                               model_name, model_data, image_uri, instance_type, accelerator_type,
-                               input_data, is_multi_model_mode_enabled = False, 
-                               target_models = [], environment = {}, content_type = "application/json"):
-    with sagemaker_model(boto_session, sagemaker_client, image_uri, model_name, model_data, is_multi_model_mode_enabled, environment):
+def create_and_invoke_endpoint(
+    boto_session,
+    sagemaker_client,
+    sagemaker_runtime_client,
+    model_name,
+    model_data,
+    image_uri,
+    instance_type,
+    accelerator_type,
+    input_data,
+    is_multi_model_mode_enabled=False,
+    target_models=[],
+    environment={},
+    content_type="application/json",
+):
+    with sagemaker_model(
+        boto_session,
+        sagemaker_client,
+        image_uri,
+        model_name,
+        model_data,
+        is_multi_model_mode_enabled,
+        environment,
+    ):
         with sagemaker_endpoint(sagemaker_client, model_name, instance_type, accelerator_type):
-            return invoke_endpoint(sagemaker_runtime_client, model_name, input_data, target_models, content_type)
+            return invoke_endpoint(
+                sagemaker_runtime_client, model_name, input_data, target_models, content_type
+            )

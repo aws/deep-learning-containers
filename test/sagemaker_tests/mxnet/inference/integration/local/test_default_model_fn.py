@@ -21,19 +21,21 @@ from sagemaker.mxnet.model import MXNetModel
 from ...integration.local import local_mode_utils
 from ...integration import RESOURCE_PATH
 
-DEFAULT_HANDLER_PATH = os.path.join(RESOURCE_PATH, 'default_handlers')
-MODEL_PATH = os.path.join(DEFAULT_HANDLER_PATH, 'model.tar.gz')
-SCRIPT_PATH = os.path.join(DEFAULT_HANDLER_PATH, 'model', 'code', 'empty_module.py')
+DEFAULT_HANDLER_PATH = os.path.join(RESOURCE_PATH, "default_handlers")
+MODEL_PATH = os.path.join(DEFAULT_HANDLER_PATH, "model.tar.gz")
+SCRIPT_PATH = os.path.join(DEFAULT_HANDLER_PATH, "model", "code", "empty_module.py")
 
 
-@pytest.fixture(scope='module')
+@pytest.fixture(scope="module")
 def predictor(docker_image, sagemaker_local_session, local_instance_type, framework_version):
-    model = MXNetModel('file://{}'.format(MODEL_PATH),
-                       'SageMakerRole',
-                       SCRIPT_PATH,
-                       image_uri=docker_image,
-                       framework_version=framework_version,
-                       sagemaker_session=sagemaker_local_session)
+    model = MXNetModel(
+        "file://{}".format(MODEL_PATH),
+        "SageMakerRole",
+        SCRIPT_PATH,
+        image_uri=docker_image,
+        framework_version=framework_version,
+        sagemaker_session=sagemaker_local_session,
+    )
 
     with local_mode_utils.lock():
         try:
@@ -52,6 +54,6 @@ def test_default_model_fn(predictor):
 
 @pytest.mark.model("linear_regression")
 def test_default_model_fn_content_type(predictor):
-    r = requests.post('http://localhost:8080/invocations', json=[[1, 2]])
-    assert 'application/json' == r.headers['Content-Type']
+    r = requests.post("http://localhost:8080/invocations", json=[[1, 2]])
+    assert "application/json" == r.headers["Content-Type"]
     assert [[4.9999918937683105]] == r.json()

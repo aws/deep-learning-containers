@@ -15,7 +15,7 @@ from test.test_utils.ec2 import (
     execute_ec2_training_performance_test,
     ec2_performance_upload_result_to_s3_and_validate,
     execute_ec2_habana_training_performance_test,
-    get_ec2_instance_type
+    get_ec2_instance_type,
 )
 from src.benchmark_metrics import (
     PYTORCH_TRAINING_GPU_SYNTHETIC_THRESHOLD,
@@ -24,13 +24,19 @@ from src.benchmark_metrics import (
 )
 
 PT_PERFORMANCE_RN50_TRAINING_HPU_SYNTHETIC_CMD = os.path.join(
-    CONTAINER_TESTS_PREFIX, "benchmark", "run_pytorch_rn50_training_performance_hpu_synthetic",
+    CONTAINER_TESTS_PREFIX,
+    "benchmark",
+    "run_pytorch_rn50_training_performance_hpu_synthetic",
 )
 PT_PERFORMANCE_BERT_TRAINING_HPU_CMD = os.path.join(
-    CONTAINER_TESTS_PREFIX, "benchmark", "run_pytorch_bert_training_performance_hpu",
+    CONTAINER_TESTS_PREFIX,
+    "benchmark",
+    "run_pytorch_bert_training_performance_hpu",
 )
 PT_PERFORMANCE_TRAINING_GPU_SYNTHETIC_CMD = os.path.join(
-    CONTAINER_TESTS_PREFIX, "benchmark", "run_pytorch_training_performance_gpu_synthetic",
+    CONTAINER_TESTS_PREFIX,
+    "benchmark",
+    "run_pytorch_training_performance_gpu_synthetic",
 )
 PT_PERFORMANCE_TRAINING_GPU_IMAGENET_CMD = os.path.join(
     CONTAINER_TESTS_PREFIX, "benchmark", "run_pytorch_training_performance_gpu_imagenet"
@@ -45,9 +51,12 @@ PT_EC2_GPU_INDUCTOR_INSTANCE_TYPES = ("p3.16xlarge", "p4d.24xlarge", "g5.48xlarg
 PT_EC2_HPU_INSTANCE_TYPE = "dl1.24xlarge"
 PT_EC2_GPU_INSTANCE_TYPE = get_ec2_instance_type(default="g3.8xlarge", processor="gpu")
 
+
 @pytest.mark.model("resnet50")
 @pytest.mark.parametrize("ec2_instance_type", [PT_EC2_GPU_SYNTHETIC_INSTANCE_TYPE], indirect=True)
-def test_performance_pytorch_gpu_synthetic(pytorch_training, ec2_connection, gpu_only, py3_only, ec2_instance_type):
+def test_performance_pytorch_gpu_synthetic(
+    pytorch_training, ec2_connection, gpu_only, py3_only, ec2_instance_type
+):
     if ec2_instance_type == PT_EC2_GPU_INSTANCE_TYPE:
         pytest.skip("skipping inductor related test on g3 instance")
     _, framework_version = get_framework_and_version_from_tag(pytorch_training)
@@ -61,29 +70,38 @@ def test_performance_pytorch_gpu_synthetic(pytorch_training, ec2_connection, gpu
         threshold={"Throughput": threshold},
     )
 
+
 @pytest.mark.skip(reason="Current infrastructure issues are causing this to timeout.")
 @pytest.mark.model("resnet50")
-@pytest.mark.parametrize("ec2_instance_ami", [PT_GPU_PY3_BENCHMARK_IMAGENET_AMI_US_WEST_2], indirect=True)
+@pytest.mark.parametrize(
+    "ec2_instance_ami", [PT_GPU_PY3_BENCHMARK_IMAGENET_AMI_US_WEST_2], indirect=True
+)
 @pytest.mark.parametrize("ec2_instance_type", [PT_EC2_GPU_IMAGENET_INSTANCE_TYPE], indirect=True)
 def test_performance_pytorch_gpu_imagenet(pytorch_training, ec2_connection, gpu_only, py3_only):
     execute_pytorch_gpu_py3_imagenet_ec2_training_performance_test(
         ec2_connection, pytorch_training, PT_PERFORMANCE_TRAINING_GPU_IMAGENET_CMD
     )
 
+
 @pytest.mark.integration("inductor")
-@pytest.mark.model('N/A')
-@pytest.mark.parametrize("ec2_instance_ami", [PT_GPU_PY3_BENCHMARK_IMAGENET_AMI_US_WEST_2], indirect=True)
+@pytest.mark.model("N/A")
+@pytest.mark.parametrize(
+    "ec2_instance_ami", [PT_GPU_PY3_BENCHMARK_IMAGENET_AMI_US_WEST_2], indirect=True
+)
 @pytest.mark.parametrize("ec2_instance_type", [PT_EC2_GPU_INDUCTOR_INSTANCE_TYPES], indirect=True)
 def test_performance_pytorch_gpu_inductor(pytorch_training, ec2_connection, gpu_only, py3_only):
     execute_pytorch_gpu_py3_imagenet_ec2_training_performance_test(
         ec2_connection, pytorch_training, PT_PERFORMANCE_TRAINING_GPU_INDUCTOR_CMD
     )
 
+
 @pytest.mark.model("resnet50")
 @pytest.mark.parametrize("ec2_instance_type", [PT_EC2_HPU_INSTANCE_TYPE], indirect=True)
 @pytest.mark.parametrize("ec2_instance_ami", [UBUNTU_18_HPU_DLAMI_US_WEST_2], indirect=True)
-@pytest.mark.parametrize('cards_num', [1, 8])
-def test_performance_pytorch_rn50_hpu_synthetic(pytorch_training_habana, ec2_connection, upload_habana_test_artifact, cards_num):
+@pytest.mark.parametrize("cards_num", [1, 8])
+def test_performance_pytorch_rn50_hpu_synthetic(
+    pytorch_training_habana, ec2_connection, upload_habana_test_artifact, cards_num
+):
     execute_ec2_habana_training_performance_test(
         ec2_connection,
         pytorch_training_habana,
@@ -92,11 +110,14 @@ def test_performance_pytorch_rn50_hpu_synthetic(pytorch_training_habana, ec2_con
         cards_num=cards_num,
     )
 
+
 @pytest.mark.model("bert")
 @pytest.mark.parametrize("ec2_instance_type", [PT_EC2_HPU_INSTANCE_TYPE], indirect=True)
 @pytest.mark.parametrize("ec2_instance_ami", [UBUNTU_18_HPU_DLAMI_US_WEST_2], indirect=True)
-@pytest.mark.parametrize('cards_num', [1, 8])
-def test_performance_pytorch_bert_hpu(pytorch_training_habana, ec2_connection, upload_habana_test_artifact, cards_num):
+@pytest.mark.parametrize("cards_num", [1, 8])
+def test_performance_pytorch_bert_hpu(
+    pytorch_training_habana, ec2_connection, upload_habana_test_artifact, cards_num
+):
     execute_ec2_habana_training_performance_test(
         ec2_connection,
         pytorch_training_habana,
@@ -104,6 +125,7 @@ def test_performance_pytorch_bert_hpu(pytorch_training_habana, ec2_connection, u
         data_source="synthetic",
         cards_num=cards_num,
     )
+
 
 def execute_pytorch_gpu_py3_imagenet_ec2_training_performance_test(
     connection, ecr_uri, test_cmd, region=DEFAULT_REGION
@@ -161,6 +183,8 @@ def post_process_pytorch_gpu_py3_imagenet_ec2_training_performance(connection, l
     cost = None
     for line in reversed(log_content):
         if "took time" in line:
-            cost = float(re.search(r"(took time:[ ]*)(?P<cost>[0-9]+\.?[0-9]+)", line).group("cost"))
+            cost = float(
+                re.search(r"(took time:[ ]*)(?P<cost>[0-9]+\.?[0-9]+)", line).group("cost")
+            )
             break
     return {"Cost": cost}

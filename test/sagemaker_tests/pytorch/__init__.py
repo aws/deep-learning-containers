@@ -14,7 +14,9 @@ from __future__ import absolute_import
 import sagemaker
 
 
-def invoke_pytorch_helper_function(ecr_image, sagemaker_regions, helper_function, helper_function_args):
+def invoke_pytorch_helper_function(
+    ecr_image, sagemaker_regions, helper_function, helper_function_args
+):
     """
     Used to invoke SM job defined in the helper functions in respective test file. The ECR image and the sagemaker
     session are passed explicitly depending on the AWS region.
@@ -33,7 +35,9 @@ def invoke_pytorch_helper_function(ecr_image, sagemaker_regions, helper_function
     for region in sagemaker_regions:
         sagemaker_session = get_sagemaker_session(region)
         # Reupload the image to test region if needed
-        tested_ecr_image = get_ecr_image(ecr_image, region) if region != ecr_image_region else ecr_image
+        tested_ecr_image = (
+            get_ecr_image(ecr_image, region) if region != ecr_image_region else ecr_image
+        )
         try:
             helper_function(tested_ecr_image, sagemaker_session, **helper_function_args)
             return

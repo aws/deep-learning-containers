@@ -225,7 +225,7 @@ def get_parser():
     parser.add_argument("--assert-losses", type=int, default=0)
     parser.add_argument("--data-dir", type=str, default=None)
     parser.add_argument("--ddp", type=int, default=0)
-    parser.add_argument('--mp_parameters', type=str, default='')
+    parser.add_argument("--mp_parameters", type=str, default="")
     return parser
 
 
@@ -235,7 +235,6 @@ def main():
     if not torch.cuda.is_available():
         raise ValueError("The script requires CUDA support, but CUDA not available")
     use_ddp = args.ddp > 0
-    
 
     # Fix seeds in order to get the same losses across runs
     random.seed(args.seed)

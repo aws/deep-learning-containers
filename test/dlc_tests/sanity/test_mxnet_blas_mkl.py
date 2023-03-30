@@ -12,6 +12,7 @@ from test.test_utils import (
     stop_and_remove_container,
 )
 
+
 @pytest.mark.usefixtures("sagemaker")
 @pytest.mark.model("N/A")
 @pytest.mark.processor("cpu")
@@ -30,7 +31,10 @@ def test_mxnet_blas_mkl_sanity(mxnet_inference, cpu_only):
     start_container(container_name, mxnet_inference, ctx)
 
     output = run_cmd_on_container(
-        container_name, ctx, 'import mxnet; assert mxnet.runtime.Features().is_enabled("BLAS_MKL") == True', executable="python"
+        container_name,
+        ctx,
+        'import mxnet; assert mxnet.runtime.Features().is_enabled("BLAS_MKL") == True',
+        executable="python",
     )
 
     try:

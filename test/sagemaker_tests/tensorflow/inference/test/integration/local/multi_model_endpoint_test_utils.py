@@ -46,9 +46,7 @@ def make_get_model_request(model_name):
 
 
 def make_load_model_request(data, content_type="application/json"):
-    headers = {
-        "Content-Type": content_type
-    }
+    headers = {"Content-Type": content_type}
     response = requests.post(MODELS_URL, data=data, headers=headers)
     return response.status_code, response.content.decode("utf-8")
 
