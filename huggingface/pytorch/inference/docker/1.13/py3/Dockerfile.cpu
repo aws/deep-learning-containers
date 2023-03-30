@@ -165,7 +165,7 @@ RUN pip install --no-cache-dir \
     "protobuf>=3.19.5,<=3.20.2" \
     numpy>=1.21.5 \
     "sagemaker-huggingface-inference-toolkit<3" \
-    ipex==${TORCH_VERSION}00   # IPEx versioning is MAJOR.MINOR.PATCH * 100 (1.13.1 -> 1.13.100)
+    intel_extension_for_pytorch==1.13.100   # IPEx versioning is MAJOR.MINOR.PATCH * 100 (1.13.1 -> 1.13.100)
 
 RUN HOME_DIR=/root \
  && curl -o ${HOME_DIR}/oss_compliance.zip https://aws-dlinfra-utilities.s3.amazonaws.com/oss_compliance.zip \
