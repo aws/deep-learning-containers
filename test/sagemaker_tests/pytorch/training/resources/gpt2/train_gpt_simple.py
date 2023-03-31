@@ -821,7 +821,7 @@ def parse_args():
         "--smp_version", type=int, default=110, help="Enable memory profile"
     )
     parser.add_argument('--inductor', type=int, default=0,
-                        help='trcomp with inductor')
+                        help='pytorch with inductor')
 
     # learning rate
     lr_grp = parser.add_argument_group(

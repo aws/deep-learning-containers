@@ -163,7 +163,7 @@ def main():
     parser.add_argument('--inductor', 
                         type=int, 
                         default=0,
-                        help='trcomp with inductor')
+                        help='pytorch with inductor')
 
     args = parser.parse_args()
     args.world_size = int(os.environ['WORLD_SIZE'])

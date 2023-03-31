@@ -272,7 +272,7 @@ if __name__ == '__main__':
     parser.add_argument('--processor', type=str, default='cpu',
                         help='backend for distributed training')
     parser.add_argument('--inductor', type=int, default=0,
-                        help='trcomp with inductor')
+                        help='pytorch with inductor')
 
     # Container environment
     env = sagemaker_training.environment.Environment()

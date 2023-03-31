@@ -65,6 +65,7 @@ def can_run_smmodelparallel_efa(ecr_image):
 @pytest.mark.skip_gpu
 @pytest.mark.deploy_test
 @pytest.mark.skip_test_in_region
+@pytest.mark.skip_inductor_test
 def test_dist_operations_cpu(framework_version, ecr_image, sagemaker_regions, instance_type, dist_cpu_backend):
     instance_type = instance_type or 'ml.c4.xlarge'
     function_args = {
@@ -80,6 +81,7 @@ def test_dist_operations_cpu(framework_version, ecr_image, sagemaker_regions, in
 @pytest.mark.model("unknown_model")
 @pytest.mark.skip_cpu
 @pytest.mark.deploy_test
+@pytest.mark.skip_inductor_test
 def test_dist_operations_gpu(framework_version, instance_type, ecr_image, sagemaker_regions, dist_gpu_backend):
     """
     Test is run as multinode
@@ -95,6 +97,7 @@ def test_dist_operations_gpu(framework_version, instance_type, ecr_image, sagema
 @pytest.mark.processor("gpu")
 @pytest.mark.model("unknown_model")
 @pytest.mark.skip_cpu
+@pytest.mark.skip_inductor_test
 def test_dist_operations_multi_gpu(framework_version, ecr_image, sagemaker_regions, dist_gpu_backend):
     """
     Test is run as single node, but multi-gpu
@@ -113,6 +116,7 @@ def test_dist_operations_multi_gpu(framework_version, ecr_image, sagemaker_regio
 @pytest.mark.skip_cpu
 @pytest.mark.skip_py2_containers
 @pytest.mark.skip_trcomp_containers
+@pytest.mark.skip_inductor_test
 def test_dist_operations_fastai_gpu(framework_version, ecr_image, sagemaker_regions):
     _, image_framework_version = get_framework_and_version_from_tag(ecr_image)
     if Version("1.9") <= Version(image_framework_version) < Version("1.13"):
@@ -140,6 +144,7 @@ def test_dist_operations_fastai_gpu(framework_version, ecr_image, sagemaker_regi
 @pytest.mark.multinode(2)
 @pytest.mark.skip_cpu
 @pytest.mark.skip_py2_containers
+@pytest.mark.skip_inductor_test
 def test_mnist_gpu(framework_version, ecr_image, sagemaker_regions, dist_gpu_backend):
     with timeout(minutes=DEFAULT_TIMEOUT):
         estimator_parameter = {
@@ -162,6 +167,7 @@ def test_mnist_gpu(framework_version, ecr_image, sagemaker_regions, dist_gpu_bac
 @pytest.mark.multinode(2)
 @pytest.mark.skip_cpu
 @pytest.mark.skip_py2_containers
+@pytest.mark.skip_inductor_test
 def test_hc_mnist_gpu(framework_version, ecr_image, sagemaker_regions, dist_gpu_backend):
     with timeout(minutes=DEFAULT_TIMEOUT):
         instance_type = MULTI_GPU_INSTANCE
@@ -191,6 +197,7 @@ def test_hc_mnist_gpu(framework_version, ecr_image, sagemaker_regions, dist_gpu_
 @pytest.mark.skip_py2_containers
 @pytest.mark.skip_trcomp_containers
 @pytest.mark.parametrize("test_script, num_processes", [("train_gpt_simple.py", 8)])
+@pytest.mark.skip_inductor_test
 def test_smmodelparallel_gpt2_multigpu_singlenode(ecr_image, instance_type, sagemaker_regions, test_script, num_processes):
     """
     Tests pt gpt2 command via script mode
@@ -265,6 +272,7 @@ def test_smmodelparallel_gpt2_multigpu_singlenode(ecr_image, instance_type, sage
 @pytest.mark.skip_py2_containers
 @pytest.mark.skip_trcomp_containers
 @pytest.mark.parametrize("test_script, num_processes", [("train_gpt_simple.py", 8)])
+@pytest.mark.skip_inductor_test
 def test_smmodelparallel_gpt2_multigpu_singlenode_flashattn(ecr_image, instance_type, sagemaker_regions, test_script, num_processes):
     """
     Tests pt gpt2 command via script mode
@@ -342,6 +350,7 @@ def test_smmodelparallel_gpt2_multigpu_singlenode_flashattn(ecr_image, instance_
 @pytest.mark.skip_py2_containers
 @pytest.mark.skip_trcomp_containers
 @pytest.mark.parametrize("test_script, num_processes", [("smmodelparallel_pt_mnist.py", 8)])
+@pytest.mark.skip_inductor_test
 def test_smmodelparallel_mnist_multigpu_multinode(ecr_image, instance_type, sagemaker_regions, test_script, num_processes):
     """
     Tests pt mnist command via script mode
@@ -389,6 +398,7 @@ def test_smmodelparallel_mnist_multigpu_multinode(ecr_image, instance_type, sage
 @pytest.mark.skip_py2_containers
 @pytest.mark.skip_trcomp_containers
 @pytest.mark.parametrize("test_script, num_processes", [("smmodelparallel_pt_mnist.py", 8)])
+@pytest.mark.skip_inductor_test
 def test_hc_smmodelparallel_mnist_multigpu_multinode(ecr_image, instance_type, sagemaker_regions, test_script, num_processes):
     """
     Tests pt mnist command via script mode
@@ -439,6 +449,7 @@ def test_hc_smmodelparallel_mnist_multigpu_multinode(ecr_image, instance_type, s
 @pytest.mark.skip_trcomp_containers
 @pytest.mark.parametrize("test_script, num_processes", [("smmodelparallel_pt_mnist.py", 8)])
 @pytest.mark.efa()
+@pytest.mark.skip_inductor_test
 def test_smmodelparallel_mnist_multigpu_multinode_efa(ecr_image, efa_instance_type, sagemaker_regions, test_script, num_processes):
     """
     Tests pt mnist command via script mode
@@ -485,6 +496,7 @@ def test_smmodelparallel_mnist_multigpu_multinode_efa(ecr_image, efa_instance_ty
 @pytest.mark.skip_trcomp_containers
 @pytest.mark.parametrize("test_script, num_processes", [("train_gpt_simple.py", 8)])
 @pytest.mark.efa()
+@pytest.mark.skip_inductor_test
 def test_smmodelparallel_gpt2_sdp_multinode_efa(ecr_image, efa_instance_type, sagemaker_regions, test_script, num_processes):
     """
     Tests pt gpt2 command via script mode
@@ -556,6 +568,7 @@ def test_smmodelparallel_gpt2_sdp_multinode_efa(ecr_image, efa_instance_type, sa
 @pytest.mark.skip_cpu
 @pytest.mark.efa()
 @pytest.mark.skip_py2_containers
+@pytest.mark.skip_inductor_test
 def test_sanity_efa(ecr_image, efa_instance_type, sagemaker_regions):
     """
     Tests pt mnist command via script mode

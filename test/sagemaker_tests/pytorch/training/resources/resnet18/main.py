@@ -94,7 +94,7 @@ parser.add_argument('--multiprocessing-distributed', action='store_true',
                          'fastest way to use PyTorch for either single node or '
                          'multi node data parallel training')
 parser.add_argument('--inductor', type=int, default=0,
-                        help='trcomp with inductor')
+                        help='pytorch with inductor')
 
 best_acc1 = 0
 

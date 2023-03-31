@@ -59,7 +59,7 @@ if __name__ == '__main__':
     parser.add_argument("--dataset", type=str, default="cora",
                         help="Dataset name ('cora', 'citeseer', 'pubmed').")
     parser.add_argument('--inductor', type=int, default=0,
-                        help='trcomp with inductor')
+                        help='pytorch with inductor')
     args = parser.parse_args()
     print(f'Training with DGL built-in GraphConv module.')
  

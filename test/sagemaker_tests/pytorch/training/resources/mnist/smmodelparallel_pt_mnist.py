@@ -227,7 +227,7 @@ def get_parser():
     parser.add_argument("--ddp", type=int, default=0)
     parser.add_argument('--mp_parameters', type=str, default='')
     parser.add_argument('--inductor', type=int, default=0,
-                        help='trcomp with inductor')
+                        help='pytorch with inductor')
     return parser
 
 

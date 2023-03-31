@@ -40,6 +40,9 @@ from .utils.image_utils import (
     are_fixture_labels_enabled
 )
 
+from packaging.version import Version
+from packaging.specifiers import SpecifierSet
+
 logger = logging.getLogger(__name__)
 logging.getLogger('boto').setLevel(logging.INFO)
 logging.getLogger('boto3').setLevel(logging.INFO)
@@ -392,6 +395,12 @@ def skip_trcomp_containers(request, ecr_image):
     if request.node.get_closest_marker('skip_trcomp_containers'):
         if 'trcomp' in ecr_image:
             pytest.skip('Skipping training compiler integrated container with tag {}'.format(ecr_image))
+
+@pytest.fixture(autouse=True)
+def skip_inductor_test(request, framework_version):
+    if request.node.get_closest_marker('skip_inductor_test'):
+        if Version(framework_version) in SpecifierSet("<2.0.*"):
+            pytest.skip('SM inductor test only support PT2.0 and above, skipping this container with tag{}'.format(framework_version))
 
 
 def _get_remote_override_flags():

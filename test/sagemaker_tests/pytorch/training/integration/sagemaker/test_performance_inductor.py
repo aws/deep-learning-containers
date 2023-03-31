@@ -22,7 +22,7 @@ from sagemaker import utils
 from packaging.version import Version
 from packaging.specifiers import SpecifierSet
 
-from ...integration import training_dir, DEFAULT_TIMEOUT, inductor_script
+from ...integration import training_dir, DEFAULT_TIMEOUT, inductor_path
 from ...integration.sagemaker.timeout import timeout
 from .... import invoke_pytorch_helper_function
 
@@ -30,28 +30,60 @@ PR_PARAMS = {"instance_type": ["ml.p3.2xlarge", "ml.g5.4xlarge", "ml.g4dn.4xlarg
 
 @pytest.mark.processor("gpu")
 @pytest.mark.skip_cpu
-def test_inductor_performance_gpu(framework_version, ecr_image, sagemaker_regions, instance_type):
+@pytest.mark.skip_inductor_test
+@pytest.mark.model(huggingface)
+def test_inductor_huggingface(framework_version, ecr_image, sagemaker_regions, instance_type):
     instance_type = "ml.p3.2xlarge"
     function_args = {
             'framework_version': framework_version,
             'instance_type': instance_type,
+            'suites': "huggingface",
         }
 
-    invoke_pytorch_helper_function(ecr_image, sagemaker_regions, _test_pytorch_inductor, function_args)
+    invoke_pytorch_helper_function(ecr_image, sagemaker_regions, _test_inductor_performance, function_args)
 
-def _test_pytorch_inductor(ecr_image, sagemaker_session, framework_version, instance_type):
+@pytest.mark.processor("gpu")
+@pytest.mark.skip_cpu
+@pytest.mark.skip_inductor_test
+@pytest.mark.model(timm)
+def _test_inductor_timm(framework_version, ecr_image, sagemaker_regions, instance_type):
+    instance_type = "ml.p3.2xlarge"
+    function_args = {
+            'framework_version': framework_version,
+            'instance_type': instance_type,
+            'suites': "timm",
+        }
+
+    invoke_pytorch_helper_function(ecr_image, sagemaker_regions, _test_inductor_performance, function_args)
+
+@pytest.mark.processor("gpu")
+@pytest.mark.skip_cpu
+@pytest.mark.skip_inductor_test
+@pytest.mark.model(torchbench)
+def _test_inductor_torchbench(framework_version, ecr_image, sagemaker_regions, instance_type):
+    instance_type = "ml.p3.2xlarge"
+    function_args = {
+            'framework_version': framework_version,
+            'instance_type': instance_type,
+            'suites': "torchbench",
+        }
+
+    invoke_pytorch_helper_function(ecr_image, sagemaker_regions, _test_inductor_performance, function_args)
+
+def _test_inductor_performance(ecr_image, sagemaker_session, framework_version, instance_type, suites):
     with timeout(minutes=DEFAULT_TIMEOUT):
         pytorch = PyTorch(
-            entry_point=inductor_script,
+            entry_point=f"run_inductor_{suites}.sh",
+            source_dir=inductor_path,
             role='SageMakerRole',
             instance_count=1,
             instance_type=instance_type,
             sagemaker_session=sagemaker_session,
             image_uri=ecr_image,
             framework_version=framework_version,
+            output_path=f"s3://sagemaker-inductor-test-{suites}",
         )
-        training_input = pytorch.sagemaker_session.upload_data(path=training_dir, key_prefix='pytorch/inductor')
-        pytorch.fit({'training': training_input}, job_name=utils.unique_name_from_base('test-pt-performance-inductor'))
-
+        # training_input = pytorch.sagemaker_session.upload_data(path=training_dir, key_prefix='pytorch/inductor')
+        pytorch.fit(job_name=utils.unique_name_from_base('test-pt-performance-inductor'))
 
 
