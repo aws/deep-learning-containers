@@ -22,19 +22,19 @@ pip install -U numpy
 pip install gitpython
 pip install tabulate==0.9.0
 
-TRAINING_LOG=${LOG_DIR}/pytorch_inductor_huggingface_benchmark.log
+#TRAINING_LOG=${LOG_DIR}/pytorch_inductor_huggingface_benchmark.log
 
-if [[$1 -eq "p3.2xlarge" || $1 -eq "g4dn.4xlarge"]]; then
-    sed -i "s/BATCH_SIZE_KNOWN_MODELS\[model_name\] = batch_size/BATCH_SIZE_KNOWN_MODELS[model_name] = batch_size \/ 4 if batch_size >= 4 else 1/g" $BIN_DIR/pytorch/benchmarks/dynamo/huggingface.py
-elif [[$1 -eq "g5.4xlarge"]]; then
-    sed -i "s/BATCH_SIZE_KNOWN_MODELS\[model_name\] = batch_size/BATCH_SIZE_KNOWN_MODELS[model_name] = batch_size \/ 2 if batch_size >= 2 else 1/g" $BIN_DIR/pytorch/benchmarks/dynamo/huggingface.py
-else
-    echo "No need to adjust batch size since we are using p4d.24xlarge."
-fi
+#if [[$1 -eq "p3.2xlarge" || $1 -eq "g4dn.4xlarge"]]; then
+sed -i "s/BATCH_SIZE_KNOWN_MODELS\[model_name\] = batch_size/BATCH_SIZE_KNOWN_MODELS[model_name] = batch_size \/ 4 if batch_size >= 4 else 1/g" $BIN_DIR/pytorch/benchmarks/dynamo/huggingface.py
+#elif [[$1 -eq "g5.4xlarge"]]; then
+#    sed -i "s/BATCH_SIZE_KNOWN_MODELS\[model_name\] = batch_size/BATCH_SIZE_KNOWN_MODELS[model_name] = batch_size \/ 2 if batch_size >= 2 else 1/g" $BIN_DIR/pytorch/benchmarks/dynamo/huggingface.py
+#else
+#    echo "No need to adjust batch size since we are using p4d.24xlarge."
+#fi
 
 rm -rf $BIN_DIR/pytorch/huggingface_logs
 mkdir -p $BIN_DIR/pytorch/huggingface_logs
-python $BIN_DIR/pytorch/benchmarks/dynamo/huggingface.py --performance --amp -dcuda --output=huggingface_logs/inductor_huggingface_amp_training_cuda_performance.csv --training --inductor --output-directory=$BIN_DIR/pytorch/ --no-skip --dashboard -x GPTJForCausalLM -x Reformer -x GPTJForQuestionAnswering -x GPTNeoForSequenceClassification -x BlenderbotForConditionalGeneration -x GPTNeoForCausalLM --cold-start-latency 2>&1 | tee $TRAINING_LOG
+python $BIN_DIR/pytorch/benchmarks/dynamo/huggingface.py --performance --amp -dcuda --output=huggingface_logs/inductor_huggingface_amp_training_cuda_performance.csv --training --inductor --output-directory=$BIN_DIR/pytorch/ --no-skip --dashboard -x GPTJForCausalLM -x Reformer -x GPTJForQuestionAnswering -x GPTNeoForSequenceClassification -x BlenderbotForConditionalGeneration -x GPTNeoForCausalLM --cold-start-latency
 #python $BIN_DIR/pytorch/benchmarks/dynamo/huggingface.py --accuracy --amp -dcuda --output=huggingface_logs/inductor_huggingface_amp_training_cuda_accuracy.csv --training --inductor --output-directory=$BIN_DIR/pytorch/ --no-skip --dashboard -x GPTJForCausalLM -x Reformer -x GPTJForQuestionAnswering -x GPTNeoForSequenceClassification -x BlenderbotForConditionalGeneration -x GPTNeoForCausalLM --cold-start-latency 
 
 #RETURN_VAL=`echo $?`
