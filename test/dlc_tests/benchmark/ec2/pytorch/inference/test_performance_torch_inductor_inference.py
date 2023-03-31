@@ -27,11 +27,11 @@ from botocore.exceptions import ClientError
 from packaging.version import Version
 from packaging.specifiers import SpecifierSet
 
-SETUP_CMD = "cd $HOME && \
+SETUP_CMD = "cd /root && \
              git clone --branch v2.0.0 --recursive --single-branch -depth 1 https://github.com/pytorch/pytorch.git && \
              git clone --recursive https://github.com/pytorch/benchmark.git && \
              git checkout $(cat pytorch/.github/ci_commit_pins/benchmark.txt && \
-             cd $HOME/benchmark && \
+             cd /root/benchmark && \
              python install.py;"
 
 
@@ -79,8 +79,8 @@ def put_metric_data(region, metric_name, namespace, unit, value, dimensions):
         raise e
 
 
-def read_metric(model_suite, csv_file):
-    csv = os.path.join("./", f"logs_{model_suite}", csv_file)
+def read_metric(csv_file):
+    csv = os.path.join("./", csv_file)
     df = pd.read_csv(csv)
     value = df[df.columns[-1]].iloc[0]
     if isinstance(value, str):
@@ -159,7 +159,7 @@ def ec2_performance_pytorch_inference(image_uri, instance_type, ec2_connection, 
     is_gpu = re.search(r"(p3|g4|g5)", instance_type)
     device = "cuda" if is_gpu else "cpu"
     docker_cmd = "nvidia-docker" if is_gpu == "gpu" else "docker"
-    container_test_local_dir = os.path.join("$HOME", "container_tests")
+    ec2_local_dir = os.path.join("$HOME", "results")
     repo_name, image_tag = image_uri.split("/")[-1].split(":")
 
     # Make sure we are logged into ECR so we can pull the image
@@ -167,14 +167,16 @@ def ec2_performance_pytorch_inference(image_uri, instance_type, ec2_connection, 
         f"$(aws ecr get-login --no-include-email --region {region})", hide=True)
 
     ec2_connection.run(f"{docker_cmd} pull -q {image_uri} ")
+    ec2_connection.run(f"mkdir -p $HOME/results")
 
-    test_cmd = "cd $HOME/pytorch &&"
+    test_cmd = f"cd /root/pytorch &&"
+    f" mkdir -p /root/pytorch/logs_{suite} &&"
     f" python benchmarks/dynamo/runner.py"
     f" --suites = {suite}"
     f" --inference"
     f" --dtypes = {precision}"
     f" --compilers=inductor"
-    f" --output-dir=logs_{suite}"
+    f" --output-dir=/root/pytorch/logs_{suite}"
     f" --extra-args='--output-directory=./'"
     f" --device {device}"
     f" --no-update-archive"
@@ -189,25 +191,30 @@ def ec2_performance_pytorch_inference(image_uri, instance_type, ec2_connection, 
     log_file = f"inductor_benchmarks_{instance_type}_{suite}.log"
     ec2_connection.run(
         f"{docker_cmd} run -d --name {container_name}  -e OMP_NUM_THREADS=1 "
-        f"-v {container_test_local_dir}:{os.path.join(os.sep, 'test')} {image_uri} "
+        f"-v {ec2_local_dir}:/root/pytorch/logs_{suite} {image_uri} "
     )
     print("=========================setting up instance=====================")
     ec2_connection.run(
         f"{docker_cmd} exec {container_name} " f"/bin/bash {SETUP_CMD}")
     print("=========================executing benchmarks=====================")
     ec2_connection.run(
-        f"{docker_cmd} exec {container_name} " f"/bin/bash {test_cmd} " f"2>&1 | tee {log_file}")
+        f"{docker_cmd} exec {container_name} " 
+        f"/bin/bash {test_cmd} " f"2>&1 | tee /root/pytorch/logs_{suite}/{log_file}")
     print("=========================Upload all logs to S3=====================")
-    ec2_connection.run(f"ls -l .")
+    ec2_connection.run(
+        f"{docker_cmd} exec {container_name} " f"/bin/bash ls -l")
+    ec2_connection.run(
+        f"{docker_cmd} exec {container_name} " f"/bin/bash ls -l $HOME/results")
 
-    ec2_connection.run(f"aws s3 cp ./logs_{suite} {s3_location}/logs_{suite}")
-    speedup = read_metric(suite, "geomean.csv")
+    ec2_connection.run(
+        f"aws s3 cp {ec2_local_dir} {s3_location}/logs_{suite} --recursive")
+    speedup = read_metric(f"{ec2_local_dir}/geomean.csv")
     LOGGER.info(f"Seedup = {speedup}")
-    comp_time = read_metric(suite, "comp_time.csv")
+    comp_time = read_metric(f"{ec2_local_dir}/comp_time.csv")
     LOGGER.info(f"Compilation Time = {comp_time}")
-    memory = read_metric(suite, "memory.csv")
+    memory = read_metric(f"{ec2_local_dir}/memory.csv")
     LOGGER.info(f"Memory Footprint = {memory}")
-    passrate = read_metric(suite, "passrate.csv")
+    passrate = read_metric(f"{ec2_local_dir}/passrate.csv")
     LOGGER.info(f"Pass Rate = {passrate}")
     upload_metric(region, instance_type, precision,
                   suite, "Speedup", speedup, "None")
@@ -219,5 +226,5 @@ def ec2_performance_pytorch_inference(image_uri, instance_type, ec2_connection, 
                   "PassRate", passrate, "Percent")
 
     ec2_connection.run(f"docker rm -f {container_name}")
-    ec2_connection.run(f"aws s3 cp {log_file} {s3_location}/{log_file}")
+    ec2_connection.run(f"aws s3 cp {ec2_local_dir}/{log_file} {s3_location}/{log_file}")
     LOGGER.info(f"To retrieve complete benchmark log, check {s3_location}")
