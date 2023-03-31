@@ -9,10 +9,6 @@ HOME_DIR=/test/benchmark
 BIN_DIR=${HOME_DIR}/bin
 LOG_DIR=${HOME_DIR}/logs
 
-mkdir -p ${HOME_DIR}
-mkdir -p ${BIN_DIR}
-mkdir -p ${LOG_DIR}
-
 python -c "import sys;
 assert sys.version_info < (3, 7);"
 PYTHON_VERSION_CHECK=`echo $?`
@@ -43,8 +39,10 @@ git clone https://github.com/pytorch/benchmark $BIN_DIR/pytorch/benchmark
 cd $BIN_DIR/pytorch/benchmark
 python install.py
 
+sed -i "s/BATCH_SIZE_KNOWN_MODELS\[model_name\] = batch_size/BATCH_SIZE_KNOWN_MODELS[model_name] = 1/g" $BIN_DIR/pytorch/benchmarks/dynamo/torchbench.py
+
 #if [[$1 -eq "p3.2xlarge" || $1 -eq "g4dn.4xlarge"]]; then
-sed -i "s/BATCH_SIZE_KNOWN_MODELS\[model_name\] = batch_size/BATCH_SIZE_KNOWN_MODELS[model_name] = batch_size \/ 4 if batch_size >= 4 else 1/g" $BIN_DIR/pytorch/benchmarks/dynamo/torchbench.py
+#sed -i "s/BATCH_SIZE_KNOWN_MODELS\[model_name\] = batch_size/BATCH_SIZE_KNOWN_MODELS[model_name] = batch_size \/ 4 if batch_size >= 4 else 1/g" $BIN_DIR/pytorch/benchmarks/dynamo/torchbench.py
 #elif [[$1 -eq "g5.4xlarge"]]; then
 #    sed -i "s/BATCH_SIZE_KNOWN_MODELS\[model_name\] = batch_size/BATCH_SIZE_KNOWN_MODELS[model_name] = batch_size \/ 4 if batch_size >= 4 else 1/g" $BIN_DIR/pytorch/benchmarks/dynamo/torchbench.py
 #else
@@ -54,7 +52,7 @@ sed -i "s/BATCH_SIZE_KNOWN_MODELS\[model_name\] = batch_size/BATCH_SIZE_KNOWN_MO
 rm -rf $BIN_DIR/pytorch/torchbench_logs
 mkdir -p $BIN_DIR/pytorch/torchbench_logs
 python $BIN_DIR/pytorch/benchmarks/dynamo/torchbench.py --performance --amp -dcuda --output=torchbench_logs/inductor_torchbench_amp_training_cuda_performance.csv --training --inductor --output-directory=$BIN_DIR/pytorch/ --no-skip --dashboard -x GPTJForCausalLM -x Reformer -x GPTJForQuestionAnswering -x GPTNeoForSequenceClassification -x BlenderbotForConditionalGeneration -x GPTNeoForCausalLM --cold-start-latency 
-python $BIN_DIR/pytorch/benchmarks/dynamo/torchbench.py --accuracy --amp -dcuda --output=torchbench_logs/inductor_torchbench_amp_training_cuda_accuracy.csv --training --inductor --output-directory=$BIN_DIR/pytorch/ --no-skip --dashboard -x GPTJForCausalLM -x Reformer -x GPTJForQuestionAnswering -x GPTNeoForSequenceClassification -x BlenderbotForConditionalGeneration -x GPTNeoForCausalLM --cold-start-latency > $TRAINING_LOG 2>&1
+python $BIN_DIR/pytorch/benchmarks/dynamo/torchbench.py --accuracy --amp -dcuda --output=torchbench_logs/inductor_torchbench_amp_training_cuda_accuracy.csv --training --inductor --output-directory=$BIN_DIR/pytorch/ --no-skip --dashboard -x GPTJForCausalLM -x Reformer -x GPTJForQuestionAnswering -x GPTNeoForSequenceClassification -x BlenderbotForConditionalGeneration -x GPTNeoForCausalLM --cold-start-latency 
 
 
 RETURN_VAL=`echo $?`

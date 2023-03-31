@@ -9,9 +9,6 @@ HOME_DIR=/test/benchmark
 BIN_DIR=${HOME_DIR}/bin
 LOG_DIR=${HOME_DIR}/logs
 
-mkdir -p ${HOME_DIR}
-mkdir -p ${BIN_DIR}
-mkdir -p ${LOG_DIR}
 
 python -c "import sys;
 assert sys.version_info < (3, 7);"
@@ -28,8 +25,11 @@ pip install tabulate==0.9.0
 
 TRAINING_LOG=${LOG_DIR}/pytorch_inductor_timm_benchmark.log
 
+sed -i "s/BATCH_SIZE_KNOWN_MODELS\[model_name\] = batch_size/BATCH_SIZE_KNOWN_MODELS[model_name] = 1/g" $BIN_DIR/pytorch/benchmarks/dynamo/timm_models.py
+
 #if [[$1 -eq "p3.2xlarge" || $1 -eq "g4dn.4xlarge"]]; then
-sed -i "s/BATCH_SIZE_KNOWN_MODELS\[model_name\] = batch_size/BATCH_SIZE_KNOWN_MODELS[model_name] = batch_size \/ 4 if batch_size >= 4 else 1/g" $BIN_DIR/pytorch/benchmarks/dynamo/timm_models.py
+#sed -i "s/BATCH_SIZE_KNOWN_MODELS\[model_name\] = batch_size/BATCH_SIZE_KNOWN_MODELS[model_name] = 1/g" $BIN_DIR/pytorch/benchmarks/dynamo/timm_models.py
+#sed -i "s/BATCH_SIZE_KNOWN_MODELS\[model_name\] = batch_size/BATCH_SIZE_KNOWN_MODELS[model_name] = batch_size \/ 4 if batch_size >= 4 else 1/g" $BIN_DIR/pytorch/benchmarks/dynamo/timm_models.py
 #elif [[$1 -eq "g5.4xlarge"]]; then
 #    sed -i "s/BATCH_SIZE_KNOWN_MODELS\[model_name\] = batch_size/BATCH_SIZE_KNOWN_MODELS[model_name] = batch_size \/ 4 if batch_size >= 4 else 1/g" $BIN_DIR/pytorch/benchmarks/dynamo/timm_models.py
 #else
@@ -39,7 +39,7 @@ sed -i "s/BATCH_SIZE_KNOWN_MODELS\[model_name\] = batch_size/BATCH_SIZE_KNOWN_MO
 rm -rf $BIN_DIR/pytorch/timm_logs
 mkdir -p $BIN_DIR/pytorch/timm_logs
 python $BIN_DIR/pytorch/benchmarks/dynamo/timm_models.py --performance --amp -dcuda --output=timm_logs/inductor_timm_amp_training_cuda_performance.csv --training --inductor --output-directory=$BIN_DIR/pytorch/ --no-skip --dashboard -x GPTJForCausalLM -x Reformer -x GPTJForQuestionAnswering -x GPTNeoForSequenceClassification -x BlenderbotForConditionalGeneration -x GPTNeoForCausalLM --cold-start-latency 
-python $BIN_DIR/pytorch/benchmarks/dynamo/timm_models.py --accuracy --amp -dcuda --output=timm_logs/inductor_timm_amp_training_cuda_accuracy.csv --training --inductor --output-directory=$BIN_DIR/pytorch/ --no-skip --dashboard -x GPTJForCausalLM -x Reformer -x GPTJForQuestionAnswering -x GPTNeoForSequenceClassification -x BlenderbotForConditionalGeneration -x GPTNeoForCausalLM --cold-start-latency > $TRAINING_LOG 2>&1
+python $BIN_DIR/pytorch/benchmarks/dynamo/timm_models.py --accuracy --amp -dcuda --output=timm_logs/inductor_timm_amp_training_cuda_accuracy.csv --training --inductor --output-directory=$BIN_DIR/pytorch/ --no-skip --dashboard -x GPTJForCausalLM -x Reformer -x GPTJForQuestionAnswering -x GPTNeoForSequenceClassification -x BlenderbotForConditionalGeneration -x GPTNeoForCausalLM --cold-start-latency
 
 RETURN_VAL=`echo $?`
 set -e
