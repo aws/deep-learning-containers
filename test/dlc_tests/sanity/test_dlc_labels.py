@@ -191,8 +191,7 @@ def test_dlc_major_version_dockerfiles(image):
                 raise DLCMajorVersionLabelNotFound(f"Cannot find dlc_major_version label in {dockerfile}")
             if not python_version:
                 raise DLCPythonVersionNotFound(f"Cannot find PYTHON_VERSION arg in {dockerfile}")
-            if python_version is not None:
-                versions[dockerfile] = dlc_version
+            versions[dockerfile] = dlc_version
 
     expected_versions = list(range(1, len(dockerfiles) + 1))
     actual_versions = sorted(versions.values())
