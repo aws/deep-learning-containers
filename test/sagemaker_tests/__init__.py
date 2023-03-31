@@ -14,7 +14,7 @@ from __future__ import absolute_import
 import sagemaker
 import boto3
 import re
-from test.test_utils.ecr import reupload_image_to_test_ecr
+# from test.test_utils.ecr import reupload_image_to_test_ecr
 
 # It is possible to have such low capacity on certain instance types that the test is never able to run due to
 # ICE errors. In these cases, we are forced to xfail/skip the test, or end up causing pipelines to fail forever.
@@ -60,8 +60,8 @@ def get_ecr_image(ecr_image, region):
     image_repo_uri, image_tag = ecr_image.split(":")
     _, image_repo_name = image_repo_uri.split("/")
     target_image_repo_name = f"{image_repo_name}"
-    regional_ecr_image = reupload_image_to_test_ecr(ecr_image, target_image_repo_name, region)
-    return regional_ecr_image
+    # regional_ecr_image = reupload_image_to_test_ecr(ecr_image, target_image_repo_name, region)
+    return "" # regional_ecr_image
 
 
 def invoke_sm_helper_function(ecr_image, sagemaker_regions, test_function, *test_function_args):
