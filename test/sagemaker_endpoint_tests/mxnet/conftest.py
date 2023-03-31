@@ -9,6 +9,7 @@ logging.getLogger('botocore').setLevel(logging.INFO)
 
 def pytest_addoption(parser):
     parser.addoption('--account-id', default=None)
+    parser.addoption('--registry', default=None)
     parser.addoption('--repository', default=None)
     parser.addoption('--region', default="us-west-2")
     parser.addoption('--tag', default=None)
@@ -43,6 +44,10 @@ def framework_version(request):
 def account_id(request):
     return request.config.getoption('--account-id')
 
+@pytest.fixture(scope='session')
+def registry(request):
+    return request.config.getoption('--registry')
+
 
 @pytest.fixture(scope='session')
 def tag(request):
@@ -60,9 +65,9 @@ def instance_type(request):
 
 
 @pytest.fixture(scope='session')
-def image_uri(account_id, region, repository, tag):
-    registry = utils.get_ecr_registry(account_id, region)
-    return f'{registry}/{repository}:{tag}'
+def image_uri(registry, region, repository, tag):
+    ecr_registry = utils.get_ecr_registry(registry, region)
+    return f'{ecr_registry}/{repository}:{tag}'
 
 
 @pytest.fixture(scope='session')
@@ -82,8 +87,7 @@ def sagemaker_session(region):
 
 @pytest.fixture(scope='session')
 def sagemaker_region(request):
-    sagemaker_region = request.config.getoption('--sagemaker-region')
-    return sagemaker_region
+    return request.config.getoption('--sagemaker-region')
 
 
 @pytest.fixture(scope='session')

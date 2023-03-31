@@ -8,7 +8,7 @@ from packaging.version import Version #, parse
 from invoke.context import Context
 
 PUBLIC_DLC_REGISTRY = "763104351884"
-
+PUBLIC_DLC_REGION = "us-west-2"
 
 LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.INFO)
@@ -137,7 +137,7 @@ def get_sagemaker_images_from_github(registry, framework, region, image_type, pr
     return image_definitions
 
 
-def run_endpoint_tests(account_id, region, repository, framework_name, framework_version, python_version, tag):
+def run_endpoint_tests(account_id, sagemaker_region, registry, region, repository, framework_name, framework_version, python_version, tag):
     env_variables = {}
     retries = "--reruns 2"
     instance_type = "p3.8xlarge"
@@ -149,87 +149,27 @@ def run_endpoint_tests(account_id, region, repository, framework_name, framework
 
     ctx = Context()
     with ctx.cd(test_location):
-        if framework_name == "mxnet":
-            run_out = ctx.run(f"pytest -rs {retries} test_endpoint.py "
-                f"--account-id {account_id} "
-                f"--region {region} "
-                f"--repository {repository} "
-                f"--instance-type ml.{instance_type} "
-                f"--framework-version {framework_version} "
-                f"--sagemaker-region {region} "
-                f"--py-version {python_version} "
-                f"--tag {tag}",
-                warn=True, env=env_variables, echo=True)
-
-            # run_out = ctx.run(f"pytest {retries} "
-            #     "integration/sagemaker/test_hosting.py::test_hosting "
-            #     f"--aws-id {account_id} "
-            #     f"--region {region} "
-            #     f"--docker-base-name {repository} "
-            #     f"--instance-type ml.{instance_type} "
-            #     f"--framework-version {framework_version} "
-            #     f"--processor gpu "
-            #     f"--sagemaker-regions {region} "
-            #     f"--py-version {python_version} "
-            #     f"--tag {tag}",
-            #     warn=True, env=env_variables, echo=True)
-
-        if framework_name == "pytorch":
-            run_out = ctx.run(f"pytest -rs {retries} test_endpoint.py "
-                f"--account-id {account_id} "
-                f"--region {region} "
-                f"--repository {repository} "
-                f"--instance-type ml.{instance_type} "
-                f"--framework-version {framework_version} "
-                f"--sagemaker-region {region} "
-                f"--py-version {python_version} "
-                f"--tag {tag}",
-                warn=True, env=env_variables, echo=True)
-
-            # run_out = ctx.run(f"python -m pytest {retries} "
-            #     "integration/sagemaker/test_mnist.py "
-            #     f"--aws-id {account_id} "
-            #     f"--region {region} "
-            #     f"--docker-base-name {repository} "
-            #     f"--instance-type ml.{instance_type} "
-            #     f"--framework-version {framework_version} "
-            #     f"--processor gpu "
-            #     f"--sagemaker-region {region} "
-            #     f"--py-version {python_version} "
-            #     f"--tag {tag}",
-            #     warn=True, env=env_variables, echo=True)
-
-        if framework_name == "tensorflow":
-            run_out = ctx.run(f"pytest -rs {retries} test_endpoint2.py "
-                f"--account-id {account_id} "
-                f"--region {region} "
-                f"--repository {repository} "
-                f"--instance-type ml.{instance_type} "
-                f"--framework-version {framework_version} "
-                f"--sagemaker-region {region} "
-                f"--py-version {python_version} "
-                f"--tag {tag}",
-                warn=True, env=env_variables, echo=True)
-                
-            # run_out = ctx.run(f"python -m pytest {retries} "
-            #     "integration/sagemaker/test_tfs.py::test_tfs_model "
-            #     f"--registry {account_id} "
-            #     f"--region {region} "
-            #     f"--repo {repository} "
-            #     f"--instance-types ml.{instance_type} "
-            #     f"--sagemaker-regions {region} "
-            #     f"--versions {framework_version} "
-            #     f"--tag {tag}",
-            #     warn=True, env=env_variables, echo=True)
-
+        run_out = ctx.run(f"pytest -rs {retries} test_endpoint.py "
+            f"--account-id {account_id} "
+            f"--region {region} "
+            f"--registry {registry} "
+            f"--repository {repository} "
+            f"--instance-type ml.{instance_type} "
+            f"--framework-version {framework_version} "
+            f"--sagemaker-region {sagemaker_region} "
+            f"--py-version {python_version} "
+            f"--tag {tag}",
+            warn=True, env=env_variables, echo=True
+        )
     return run_out.ok, run_out.stdout
 
 def main():
     frameworks = [os.environ["FRAMEWORK"]] # ["mxnet","pytorch", "tensorflow"]
-    region = os.environ["REGION"]
+    canary_account_id = os.environ["ACCOUNT_ID"]
+    sagemaker_region = os.environ["REGION"]
     image_type = os.environ["IMAGE_TYPE"]
-    account_id = os.environ["ACCOUNT_ID"]
-    registry = PUBLIC_DLC_REGISTRY
+    registry = os.getenv("PUBLIC_DLC_REGISTRY") or PUBLIC_DLC_REGISTRY
+    region = os.getenv("PUBLIC_DLC_REGION") or PUBLIC_DLC_REGION
     
     # assuming that the regions for sagemaker and image are the same
     for framework in frameworks:
@@ -239,10 +179,10 @@ def main():
             framework_version = image_definition["framework_version"]
             processor = image_definition["processor"]
             py_version = image_definition["py_version"]
-            test_status, test_logs = run_endpoint_tests(account_id, region, repository, framework, framework_version, py_version, f"{framework_version}-{processor}-{py_version}")
+            domain_suffix = ".cn" if region in ("cn-north-1", "cn-northwest-1") else ""
+            image_uri = f"{registry}.dkr.ecr.{region}.amazonaws.com{domain_suffix}/{repository}:{framework_version}-{processor}-{py_version}"
+            test_status, test_logs = run_endpoint_tests(canary_account_id, sagemaker_region, registry, region, repository, framework, framework_version, py_version, f"{framework_version}-{processor}-{py_version}")
             if not test_status:
-                domain_suffix = ".cn" if region in ("cn-north-1", "cn-northwest-1") else ""
-                image_uri = f"{account_id}.dkr.ecr.{region}.amazonaws.com{domain_suffix}/{repository}:{framework_version}-{processor}-{py_version}"
                 LOGGER.error(f"Endpoint test failed for image {image_uri}. {test_logs}")
 
 if __name__ == "__main__":

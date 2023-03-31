@@ -11,6 +11,7 @@ logging.getLogger('botocore').setLevel(logging.INFO)
 
 def pytest_addoption(parser):
     parser.addoption('--account-id', default=None)
+    parser.addoption('--registry', default=None)
     parser.addoption('--repository', default=None)
     parser.addoption('--region', default="us-west-2")
     parser.addoption('--tag', default=None)
@@ -46,6 +47,11 @@ def account_id(request):
 
 
 @pytest.fixture(scope='session')
+def registry(request):
+    return request.config.getoption('--registry')
+
+
+@pytest.fixture(scope='session')
 def tag(request):
     return request.config.getoption('--tag')
 
@@ -58,6 +64,12 @@ def py_version(request):
 @pytest.fixture(scope='session')
 def instance_type(request):
     return request.config.getoption('--instance-type')
+
+
+@pytest.fixture(scope='session')
+def image_uri(registry, region, repository, tag):
+    ecr_registry = utils.get_ecr_registry(registry, region)
+    return f'{ecr_registry}/{repository}:{tag}'
 
 
 @pytest.fixture(scope='session')
