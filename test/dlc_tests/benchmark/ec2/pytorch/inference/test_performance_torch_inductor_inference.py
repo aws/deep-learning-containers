@@ -55,9 +55,9 @@ def get_cloudwatch_client(region="us-east-1"):
     return get_boto3_session(region=region).client("cloudwatch")
 
 
-def put_metric_data(metric_name, namespace, unit, value, dimensions):
+def put_metric_data(region, metric_name, namespace, unit, value, dimensions):
     """Puts data points to cloudwatch metrics"""
-    cloudwatch_client = get_cloudwatch_client()
+    cloudwatch_client = get_cloudwatch_client(region)
     current_timestamp = datetime.datetime.utcnow()
     try:
         response = cloudwatch_client.put_metric_data(
@@ -92,8 +92,9 @@ def read_metric(model_suite, csv_file):
     return float(value)
 
 
-def upload_metric(instance_type, precision, suite, metric_name, value, unit):
+def upload_metric(instance_type, precision, suite, metric_name, value, unit, region):
     put_metric_data(
+        region=region,
         metric_name=metric_name,
         namespace=f"PyTorch/EC2/Benchmarks/TorchDynamo/Inductor",
         unit=unit,
@@ -105,7 +106,7 @@ def upload_metric(instance_type, precision, suite, metric_name, value, unit):
 @pytest.mark.parametrize("ec2_instance_type", ["c5.4xlarge", "m5.4xlarge"], indirect=True)
 @pytest.mark.parametrize("suite", ["huggingface", "timm", "torchbench"])
 @pytest.mark.parametrize("precision", ["float32"])
-def test_performance_ec2_pytorch_inference_cpu(suite, precision, pytorch_inference, ec2_connection, region):
+def test_performance_ec2_pytorch_inference_cpu(suite, precision, pytorch_inference, ec2_connection, region, cpu_only):
     _, image_framework_version = get_framework_and_version_from_tag(
         pytorch_inference)
     if Version(image_framework_version) in SpecifierSet("<2.0"):
@@ -123,7 +124,7 @@ def test_performance_ec2_pytorch_inference_cpu(suite, precision, pytorch_inferen
 @pytest.mark.parametrize("suite", ["huggingface", "timm", "torchbench"])
 @pytest.mark.parametrize("precision", ["float32"])
 @pytest.mark.parametrize("ec2_instance_ami", [UL20_CPU_ARM64_US_WEST_2], indirect=True)
-def test_performance_ec2_pytorch_inference_graviton(suite, precision, pytorch_inference, ec2_connection, region):
+def test_performance_ec2_pytorch_inference_graviton(suite, precision, pytorch_inference_graviton, ec2_connection, region, cpu_only):
     _, image_framework_version = get_framework_and_version_from_tag(
         pytorch_inference)
     if Version(image_framework_version) in SpecifierSet("<2.0"):
@@ -136,10 +137,11 @@ def test_performance_ec2_pytorch_inference_graviton(suite, precision, pytorch_in
             precision,
         )
 
+
 @pytest.mark.parametrize("ec2_instance_type", ["p3.2xlarge", "g5.4xlarge", "g4dn.4xlarge"], indirect=True)
 @pytest.mark.parametrize("suite", ["huggingface", "timm", "torchbench"])
 @pytest.mark.parametrize("precision", ["float32"])
-def test_performance_ec2_pytorch_inference_gpu(suite, precision, pytorch_inference, ec2_connection, region):
+def test_performance_ec2_pytorch_inference_gpu(suite, precision, pytorch_inference, ec2_connection, region, gpu_only):
     _, image_framework_version = get_framework_and_version_from_tag(
         pytorch_inference)
     if Version(image_framework_version) in SpecifierSet("<2.0"):
@@ -178,6 +180,10 @@ def ec2_performance_pytorch_inference(image_uri, instance_type, ec2_connection, 
     f" --no-gh-comment"
 
     # Run performance inference command, display benchmark results to console
+    framework_version = re.search(r"\d+(\.\d+){2}", image_uri).group()
+    s3_location = os.path.join(
+        BENCHMARK_RESULTS_S3_BUCKET, "pytorch", framework_version, "ec2", "inference", instance_type, "py3",
+    )
     container_name = f"{repo_name}-performance-{image_tag}-ec2"
     log_file = f"inductor_benchmarks_{instance_type}_{suite}.log"
     ec2_connection.run(
@@ -189,22 +195,24 @@ def ec2_performance_pytorch_inference(image_uri, instance_type, ec2_connection, 
     ec2_connection.run(
         f"{docker_cmd} exec {container_name} " f"/bin/bash {test_cmd} " f"2>&1 | tee {log_file}")
 
+    ec2_connection.run(f"aws s3 cp ./logs_{suite} {s3_location}/logs_{suite}")
     speedup = read_metric(suite, "geomean.csv")
+    LOGGER.info(f"Seedup = {speedup}")
     comp_time = read_metric(suite, "comp_time.csv")
+    LOGGER.info(f"Compilation Time = {comp_time}")
     memory = read_metric(suite, "memory.csv")
+    LOGGER.info(f"Memory Footprint = {memory}")
     passrate = read_metric(suite, "passrate.csv")
-    upload_metric(instance_type, precision, suite, "Speedup", speedup, "None")
-    upload_metric(instance_type, precision, suite,
+    LOGGER.info(f"Pass Rate = {passrate}")
+    upload_metric(region, instance_type, precision,
+                  suite, "Speedup", speedup, "None")
+    upload_metric(region, instance_type, precision, suite,
                   "CompilationTime", comp_time, "Seconds")
-    upload_metric(instance_type, precision, suite,
+    upload_metric(region, instance_type, precision, suite,
                   "PeakMemoryFootprintCompressionRatio", memory, "None")
-    upload_metric(instance_type, precision, suite,
+    upload_metric(region, instance_type, precision, suite,
                   "PassRate", passrate, "Percent")
 
     ec2_connection.run(f"docker rm -f {container_name}")
-    framework_version = re.search(r"\d+(\.\d+){2}", image_uri).group()
-    s3_location = os.path.join(
-        BENCHMARK_RESULTS_S3_BUCKET, "pytorch", framework_version, "ec2", "inference", instance_type, "py3", log_file,
-    )
-    ec2_connection.run(f"aws s3 cp {log_file} {s3_location}")
+    ec2_connection.run(f"aws s3 cp {log_file} {s3_location}/{log_file}")
     LOGGER.info(f"To retrieve complete benchmark log, check {s3_location}")
