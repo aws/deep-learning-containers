@@ -168,7 +168,8 @@ def ec2_performance_pytorch_inference(image_uri, instance_type, ec2_connection, 
 
     ec2_connection.run(f"{docker_cmd} pull -q {image_uri} ")
 
-    test_cmd = f"python benchmarks/dynamo/runner.py"
+    test_cmd = "cd $HOME/pytorch &&"
+    f" python benchmarks/dynamo/runner.py"
     f" --suites = {suite}"
     f" --inference"
     f" --dtypes = {precision}"
@@ -190,10 +191,14 @@ def ec2_performance_pytorch_inference(image_uri, instance_type, ec2_connection, 
         f"{docker_cmd} run -d --name {container_name}  -e OMP_NUM_THREADS=1 "
         f"-v {container_test_local_dir}:{os.path.join(os.sep, 'test')} {image_uri} "
     )
+    print("=========================setting up instance=====================")
     ec2_connection.run(
         f"{docker_cmd} exec {container_name} " f"/bin/bash {SETUP_CMD}")
+    print("=========================executing benchmarks=====================")
     ec2_connection.run(
         f"{docker_cmd} exec {container_name} " f"/bin/bash {test_cmd} " f"2>&1 | tee {log_file}")
+    print("=========================Upload all logs to S3=====================")
+    ec2_connection.run(f"ls -l .")
 
     ec2_connection.run(f"aws s3 cp ./logs_{suite} {s3_location}/logs_{suite}")
     speedup = read_metric(suite, "geomean.csv")
