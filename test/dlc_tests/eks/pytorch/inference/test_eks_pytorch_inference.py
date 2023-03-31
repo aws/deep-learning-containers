@@ -56,7 +56,7 @@ def __run_pytorch_neuron_inference(image, model_name, model_url, processor):
 
 @pytest.mark.model("resnet")
 def test_eks_pytorch_neuron_inference(pytorch_inference_neuron):
-    __run_pytorch_neuron_inference(pytorch_inference_neuron, "pytorch-resnet-neuron"
+    __run_pytorch_neuron_inference(pytorch_inference_neuron, "pytorch-resnet-neuron",
                                    "https://aws-dlc-sample-models.s3.amazonaws.com/pytorch/Resnet50-neuron.mar", "neuron")
 
 
