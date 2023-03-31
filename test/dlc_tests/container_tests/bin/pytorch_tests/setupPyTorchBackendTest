@@ -20,12 +20,15 @@ source ~/.bashrc
 # setup benchmark repo
 git clone https://github.com/pytorch/benchmark
 pushd benchmark
-git am ${BIN_DIR}/pytorch_tests/0001-test-adapt-BERT_pytorch-training-with-gloo-mpi-backend.patch
+git reset --hard 0faa0142
+git am -3 ${BIN_DIR}/pytorch_tests/0001-test-adapt-BERT_pytorch-training-with-gloo-mpi-backend.patch
 pip install -r requirements.txt
 
 # check GPU status
 if nvidia-smi &> /dev/null; then
    DEVICE="cuda"
+   NUM_GPUS=$(nvidia-smi -L | wc -l)
 else
    DEVICE="cpu"
+   NUM_GPUS=0
 fi
