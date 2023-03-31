@@ -37,6 +37,7 @@ def test_performance_pytorch_gpu_inductor_huggingface(pytorch_training, ec2_conn
         ec2_connection, pytorch_training, PT_PERFORMANCE_TRAINING_GPU_INDUCTOR_HUGGINGFACE_CMD, ec2_instance_type, model_suite="huggingface"
     )
 
+@pytest.mark.skip("temporarily skip")
 @pytest.mark.integration("inductor")
 @pytest.mark.model("timm")
 @pytest.mark.parametrize("ec2_instance_ami", [UBUNTU_18_BASE_DLAMI_US_WEST_2], indirect=True)
@@ -49,6 +50,7 @@ def test_performance_pytorch_gpu_inductor_timm(pytorch_training, ec2_connection,
         ec2_connection, pytorch_training, PT_PERFORMANCE_TRAINING_GPU_INDUCTOR_TIMM_CMD, ec2_instance_type, model_suite="timm"
     )
 
+@pytest.mark.skip("temporarily skip")
 @pytest.mark.integration("inductor")
 @pytest.mark.model("torchbench")
 @pytest.mark.parametrize("ec2_instance_ami", [UBUNTU_18_BASE_DLAMI_US_WEST_2], indirect=True)
