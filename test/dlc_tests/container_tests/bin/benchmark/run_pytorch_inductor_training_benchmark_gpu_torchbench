@@ -40,6 +40,7 @@ cd $BIN_DIR/pytorch/benchmark
 python install.py
 
 #sed -i "s/BATCH_SIZE_KNOWN_MODELS\[model_name\] = batch_size/BATCH_SIZE_KNOWN_MODELS[model_name] = 1/g" $BIN_DIR/pytorch/benchmarks/dynamo/torchbench.py
+TRAINING_LOG=${LOG_DIR}/pytorch_inductor_torchbench_benchmark.log
 
 if [[$1 -eq "p3.2xlarge" || $1 -eq "g4dn.4xlarge"]]; then
 sed -i "s/BATCH_SIZE_KNOWN_MODELS\[model_name\] = batch_size/BATCH_SIZE_KNOWN_MODELS[model_name] = batch_size \/ 4 if batch_size >= 4 else 1/g" $BIN_DIR/pytorch/benchmarks/dynamo/torchbench.py
