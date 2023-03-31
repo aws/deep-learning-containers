@@ -39,7 +39,7 @@ sed -i "s/BATCH_SIZE_KNOWN_MODELS\[model_name\] = batch_size/BATCH_SIZE_KNOWN_MO
 rm -rf $BIN_DIR/pytorch/timm_logs
 mkdir -p $BIN_DIR/pytorch/timm_logs
 python $BIN_DIR/pytorch/benchmarks/dynamo/timm_models.py --performance --amp -dcuda --output=timm_logs/inductor_timm_amp_training_cuda_performance.csv --training --inductor --output-directory=$BIN_DIR/pytorch/ --no-skip --dashboard -x GPTJForCausalLM -x Reformer -x GPTJForQuestionAnswering -x GPTNeoForSequenceClassification -x BlenderbotForConditionalGeneration -x GPTNeoForCausalLM --cold-start-latency 
-#python $BIN_DIR/pytorch/benchmarks/dynamo/timm_models.py --accuracy --amp -dcuda --output=timm_logs/inductor_timm_amp_training_cuda_accuracy.csv --training --inductor --output-directory=$BIN_DIR/pytorch/ --no-skip --dashboard -x GPTJForCausalLM -x Reformer -x GPTJForQuestionAnswering -x GPTNeoForSequenceClassification -x BlenderbotForConditionalGeneration -x GPTNeoForCausalLM --cold-start-latency
+python $BIN_DIR/pytorch/benchmarks/dynamo/timm_models.py --accuracy --amp -dcuda --output=timm_logs/inductor_timm_amp_training_cuda_accuracy.csv --training --inductor --output-directory=$BIN_DIR/pytorch/ --no-skip --dashboard -x GPTJForCausalLM -x Reformer -x GPTJForQuestionAnswering -x GPTNeoForSequenceClassification -x BlenderbotForConditionalGeneration -x GPTNeoForCausalLM --cold-start-latency
 
 #RETURN_VAL=`echo $?`
 #set -e
@@ -52,7 +52,7 @@ python $BIN_DIR/pytorch/benchmarks/dynamo/timm_models.py --performance --amp -dc
 #    exit 1
 #fi
 
-python $HOME_DIR/read_upload_benchmarking_results.py -dir $BIN_DIR/pytorch/timm_logs \
+python /test/bin/benchmark/read_upload_benchmarking_results.py -dir $BIN_DIR/pytorch/timm_logs \
        -model_suite timm -precision amp -instance_type $1
 
 
