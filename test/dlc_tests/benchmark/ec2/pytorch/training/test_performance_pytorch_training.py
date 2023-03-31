@@ -40,7 +40,8 @@ PT_PERFORMANCE_TRAINING_GPU_INDUCTOR_CMD = os.path.join(
 
 PT_EC2_GPU_SYNTHETIC_INSTANCE_TYPE = "p3.16xlarge"
 PT_EC2_GPU_IMAGENET_INSTANCE_TYPE = "p3.16xlarge"
-PT_EC2_GPU_INDUCTOR_INSTANCE_TYPES = ("p3.16xlarge", "p4d.24xlarge", "g5.48xlarge")
+# PT_EC2_GPU_INDUCTOR_INSTANCE_TYPES = ["p3.16xlarge", "p4d.24xlarge", "g5.48xlarge"]
+PT_EC2_GPU_INDUCTOR_INSTANCE_TYPES = "p3.16xlarge"
 PT_EC2_HPU_INSTANCE_TYPE = "dl1.24xlarge"
 
 @pytest.mark.model("resnet50")
@@ -68,10 +69,9 @@ def test_performance_pytorch_gpu_imagenet(pytorch_training, ec2_connection, gpu_
 
 @pytest.mark.integration("inductor")
 @pytest.mark.model('N/A')
-@pytest.mark.parametrize("ec2_instance_ami", [PT_GPU_PY3_BENCHMARK_IMAGENET_AMI_US_WEST_2], indirect=True)
 @pytest.mark.parametrize("ec2_instance_type", [PT_EC2_GPU_INDUCTOR_INSTANCE_TYPES], indirect=True)
 def test_performance_pytorch_gpu_inductor(pytorch_training, ec2_connection, gpu_only, py3_only):
-    execute_pytorch_gpu_py3_imagenet_ec2_training_performance_test(
+    execute_ec2_training_performance_test(
         ec2_connection, pytorch_training, PT_PERFORMANCE_TRAINING_GPU_INDUCTOR_CMD
     )
 
@@ -114,7 +114,7 @@ def execute_pytorch_gpu_py3_imagenet_ec2_training_performance_test(
     # Make sure we are logged into ECR so we can pull the image
     connection.run(f"$(aws ecr get-login --no-include-email --region {region})", hide=True)
     # Do not add -q to docker pull as it leads to a hang for huge images like trcomp
-    connection.run(f"nvidia-docker pull {ecr_uri}")
+    connection.run(f"nvidia-docker pull {ecr_uri}", hide="out")
     timestamp = time.strftime("%Y-%m-%d-%H-%M-%S")
     log_name = f"imagenet_{os.getenv('CODEBUILD_RESOLVED_SOURCE_VERSION')}_{timestamp}.txt"
     log_location = os.path.join(container_test_local_dir, "benchmark", "logs", log_name)
