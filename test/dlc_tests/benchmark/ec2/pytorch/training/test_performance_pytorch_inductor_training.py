@@ -40,7 +40,6 @@ def test_performance_pytorch_gpu_inductor_huggingface_p3(pytorch_training, ec2_c
         ec2_connection, pytorch_training, PT_PERFORMANCE_TRAINING_GPU_INDUCTOR_HUGGINGFACE_CMD, ec2_instance_type, model_suite="huggingface"
     )
     
-@pytest.mark.skip("temporarily skip")
 @pytest.mark.integration("inductor")
 @pytest.mark.model("huggingface")
 @pytest.mark.parametrize("ec2_instance_ami", [UBUNTU_18_BASE_DLAMI_US_WEST_2], indirect=True)
@@ -53,7 +52,6 @@ def test_performance_pytorch_gpu_inductor_huggingface_p4d(pytorch_training, ec2_
         ec2_connection, pytorch_training, PT_PERFORMANCE_TRAINING_GPU_INDUCTOR_HUGGINGFACE_CMD, ec2_instance_type, model_suite="huggingface"
     )
 
-@pytest.mark.skip("temporarily skip")
 @pytest.mark.integration("inductor")
 @pytest.mark.model("huggingface")
 @pytest.mark.parametrize("ec2_instance_ami", [UBUNTU_18_BASE_DLAMI_US_WEST_2], indirect=True)
@@ -66,7 +64,6 @@ def test_performance_pytorch_gpu_inductor_huggingface_g5(pytorch_training, ec2_c
         ec2_connection, pytorch_training, PT_PERFORMANCE_TRAINING_GPU_INDUCTOR_HUGGINGFACE_CMD, ec2_instance_type, model_suite="huggingface"
     )
 
-@pytest.mark.skip("temporarily skip")
 @pytest.mark.integration("inductor")
 @pytest.mark.model("huggingface")
 @pytest.mark.parametrize("ec2_instance_ami", [UBUNTU_18_BASE_DLAMI_US_WEST_2], indirect=True)
