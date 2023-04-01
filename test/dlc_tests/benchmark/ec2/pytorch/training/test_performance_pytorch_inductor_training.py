@@ -21,7 +21,7 @@ PT_PERFORMANCE_TRAINING_GPU_INDUCTOR_TORCHBENCH_CMD = os.path.join(
     CONTAINER_TESTS_PREFIX, "benchmark", "run_pytorch_inductor_training_benchmark_gpu_torchbench"
 )
 
-
+PT_EC2_GPU_INDUCTOR_INSTANCE_TYPES = ["p3.2xlarge"]
 PT_EC2_GPU_INDUCTOR_INSTANCE_TYPE_P3 = ["p3.2xlarge"]
 PT_EC2_GPU_INDUCTOR_INSTANCE_TYPE_P4D = ["p4d.24xlarge"]
 PT_EC2_GPU_INDUCTOR_INSTANCE_TYPE_G5 = ["g5.4xlarge"]
