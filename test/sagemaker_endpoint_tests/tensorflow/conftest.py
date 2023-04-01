@@ -71,13 +71,6 @@ def image_uri(registry, region, repository, tag):
     ecr_registry = utils.get_ecr_registry(registry, region)
     return f'{ecr_registry}/{repository}:{tag}'
 
-
-@pytest.fixture(scope='session')
-def image_uri(account_id, region, repository, tag):
-    registry = utils.get_ecr_registry(account_id, region)
-    return f'{registry}/{repository}:{tag}'
-
-
 @pytest.fixture(scope="session")
 def tfs_model(region, boto_session):
     return utils.find_or_put_model_data(region, boto_session, "tfs-model.tar.gz")
