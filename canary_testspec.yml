@@ -13,11 +13,11 @@ phases:
       - python src/parse_partner_developers.py
   build:
     commands:
+      - echo Default Region $AWS_DEFAULT_REGION
+      - echo Public DLC Registry $PUBLIC_DLC_REGISTRY
       - echo Logging in to Amazon ECR...
-      - $(aws ecr get-login --no-include-email --region $AWS_DEFAULT_REGION)
-      - $(aws ecr get-login --no-include-email --region $AWS_DEFAULT_REGION --registry-ids 763104351884)
+      - $(aws ecr get-login --no-include-email --region $AWS_DEFAULT_REGION --registry-ids $PUBLIC_DLC_REGISTRY)
       - pip install -r test/requirements.txt
-      - echo Running pytest $TEST_TYPE tests on $DLC_IMAGES...
       - export PYTHONPATH=$PYTHONPATH:$(pwd)/src
       - python test/endpoint_testrunner.py
   post_build:
