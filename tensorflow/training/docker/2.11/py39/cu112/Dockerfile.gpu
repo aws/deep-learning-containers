@@ -288,6 +288,10 @@ RUN curl https://aws-dlc-licenses.s3.amazonaws.com/tensorflow-${TF_VERSION}/lice
 FROM common AS ec2
 
 ARG TF_URL=https://framework-binaries.s3.us-west-2.amazonaws.com/tensorflow/r2.11_aws/gpu/2023-03-28-20-19/tensorflow_gpu-2.11.1-cp39-cp39-manylinux_2_17_x86_64.manylinux2014_x86_64.whl
+<<<<<<< HEAD:tensorflow/training/docker/2.11/py39/cu112/Dockerfile.gpu
+=======
+
+>>>>>>> b65f5b65 ([Tensorflow][Training]TF 2.11.1 Patch Release (#2820)):tensorflow/training/docker/2.11/py3/cu112/Dockerfile.gpu
 
 RUN ${PIP} install --no-cache-dir -U \
    ${TF_URL} \
