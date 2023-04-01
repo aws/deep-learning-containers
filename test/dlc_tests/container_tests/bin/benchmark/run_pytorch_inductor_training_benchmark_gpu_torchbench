@@ -68,6 +68,6 @@ python $BIN_DIR/pytorch/benchmarks/dynamo/torchbench.py --performance --amp -dcu
 #fi
 
 python /test/bin/benchmark/read_upload_benchmarking_results.py -dir $BIN_DIR/pytorch/torchbench_logs \
-       -model_suite torchbench -precision amp -instance_type $1 -region $2
+       -model_suite torchbench -precision amp -instance_type $1
 
 exit 0

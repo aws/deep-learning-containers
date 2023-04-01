@@ -50,7 +50,7 @@ python $BIN_DIR/pytorch/benchmarks/dynamo/timm_models.py --performance --amp -dc
 #fi
 
 python /test/bin/benchmark/read_upload_benchmarking_results.py -dir $BIN_DIR/pytorch/timm_logs \
-       -model_suite timm -precision amp -instance_type $1 -region $2
+       -model_suite timm -precision amp -instance_type $1
 
 
 exit 0

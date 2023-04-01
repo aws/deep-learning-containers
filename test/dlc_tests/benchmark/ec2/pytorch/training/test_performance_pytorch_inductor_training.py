@@ -122,5 +122,5 @@ def execute_ec2_training_performance_test(
         f"-e LOG_FILE={os.path.join(os.sep, 'test', 'benchmark', 'logs', log_name)} "
         f"-e PR_CONTEXT={1 if is_pr_context() else 0} "
         f"-v {container_test_local_dir}:{os.path.join(os.sep, 'test')} {ecr_uri} "
-        f"{os.path.join(os.sep, 'bin', 'bash')} -c {test_cmd} {ec2_instance_type} {region}"
+        f"{os.path.join(os.sep, 'bin', 'bash')} -c {test_cmd} {ec2_instance_type}"
     )
