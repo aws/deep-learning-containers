@@ -140,7 +140,7 @@ def get_sagemaker_images_from_github(registry, framework, region, image_type, pr
 def run_endpoint_tests(account_id, sagemaker_region, registry, region, repository, framework_name, framework_version, python_version, tag):
     env_variables = {}
     retries = "--reruns 2"
-    instance_type = "p3.8xlarge"
+    instance_type = "p2.xlarge"
     python_version = ("2" if "27" in python_version else
                       "3" if "36" in python_version else
                       python_version.lstrip("py"))
