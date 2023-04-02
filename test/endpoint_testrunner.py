@@ -3,16 +3,30 @@ import re
 import git
 import sys
 import logging
+from multiprocessing import Pool
 from packaging.version import Version #, parse
-
+from junit_xml import TestSuite, TestCase
 from invoke.context import Context
 
 PUBLIC_DLC_REGISTRY = "763104351884"
 PUBLIC_DLC_REGION = "us-west-2"
+REPORT_XML = os.path.join(os.getcwd(),"test", "sagemaker_endpoint_tests.xml")
 
 LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.INFO)
 LOGGER.addHandler(logging.StreamHandler(sys.stderr))
+
+def generate_report(report, test_name, test_class, test_out, test_err=''):
+    """
+    Generate junitxml test report
+    :param report: CodeBuild Report
+    Returns: None
+    """
+    # TestCase(name, classname, test time, system-out, system-err)
+    test_cases = [TestCase(test_name, test_class, 1, test_out, test_err)]
+    ts = TestSuite(report, test_cases)
+    with open(report, "w") as report_file:
+        TestSuite.to_file(report_file, [ts], prettyprint=False)
 
 
 def get_canary_default_tag_py3_version(framework, version):
@@ -137,8 +151,14 @@ def get_sagemaker_images_from_github(registry, framework, region, image_type, pr
     return image_definitions
 
 
-def run_endpoint_tests(account_id, sagemaker_region, registry, region, repository, framework_name, framework_version, python_version, tag):
-    env_variables = {}
+def execute_endpoint_test(framework_name, image_definition, account_id, sagemaker_region, registry, region):
+    
+    repository = image_definition.get("repository")
+    framework_version = image_definition.get("framework_version")
+    processor = image_definition.get("processor")
+    python_version = image_definition.get("py_version")
+    tag = f"{framework_version}-{processor}-{python_version}"
+
     retries = "--reruns 2"
     instance_type = "p2.xlarge"
     python_version = ("2" if "27" in python_version else
@@ -159,31 +179,56 @@ def run_endpoint_tests(account_id, sagemaker_region, registry, region, repositor
             f"--sagemaker-region {sagemaker_region} "
             f"--py-version {python_version} "
             f"--tag {tag}",
-            warn=True, env=env_variables, echo=True
+            warn=True, echo=True
         )
     return run_out.ok, run_out.stdout
 
+
+def generate_image_uri(image, registry, region):
+    repository = image.get("repository")
+    framework_version = image.get("framework_version")
+    processor = image.get("processor")
+    py_version = image.get("py_version")
+    domain_suffix = ".cn" if region in ("cn-north-1", "cn-northwest-1") else ""
+    return f"{registry}.dkr.ecr.{region}.amazonaws.com{domain_suffix}/{repository}:{framework_version}-{processor}-{py_version}"
+
+
+def run_framework_tests(framework, images, canary_account_id, sagemaker_region, registry, region):
+    if not images:
+        generate_report(REPORT_XML, "{framework} endpoint test", "sagemaker-endpoint", "No framework iaage to test.")
+        return
+
+    results = []
+    pool_number = len(images)
+    with Pool(pool_number) as p:
+        results = p.starmap(
+            execute_endpoint_test,
+            [[framework, images[i], canary_account_id, sagemaker_region, registry, region] for i in range(pool_number)]
+        )
+        
+    for i in range(pool_number):
+        test_status, test_logs = results[i]
+        if not test_status:
+            image_uri = generate_image_uri(images[i], registry, region)
+            LOGGER.error(f"Endpoint test failed for image {image_uri}")
+            generate_report(REPORT_XML, f"{framework} endpoint test", "sagemaker-endpoint", "", test_logs)
+        else:
+            generate_report(REPORT_XML, f"{framework} endpoint test", "sagemaker-endpoint", test_logs)
+
+
 def main():
-    frameworks = [os.environ["FRAMEWORK"]] # ["mxnet","pytorch", "tensorflow"]
-    canary_account_id = os.environ["ACCOUNT_ID"]
-    sagemaker_region = os.environ["REGION"]
-    image_type = os.environ["IMAGE_TYPE"]
-    registry = os.getenv("PUBLIC_DLC_REGISTRY") or PUBLIC_DLC_REGISTRY
+    framework = os.getenv("FRAMEWORK") # ["mxnet","pytorch","tensorflow"]
+    image_type = os.getenv("IMAGE_TYPE")
+    sagemaker_region = os.getenv("REGION")
+    canary_account_id = os.getenv("ACCOUNT_ID")
     region = os.getenv("PUBLIC_DLC_REGION") or PUBLIC_DLC_REGION
+    registry = os.getenv("PUBLIC_DLC_REGISTRY") or PUBLIC_DLC_REGISTRY
     
-    # assuming that the regions for sagemaker and image are the same
-    for framework in frameworks:
-        gpu_image_definitions = get_sagemaker_images_from_github(registry, framework, region, image_type, processor="gpu")
-        for image_definition in gpu_image_definitions:
-            repository = image_definition["repository"]
-            framework_version = image_definition["framework_version"]
-            processor = image_definition["processor"]
-            py_version = image_definition["py_version"]
-            domain_suffix = ".cn" if region in ("cn-north-1", "cn-northwest-1") else ""
-            image_uri = f"{registry}.dkr.ecr.{region}.amazonaws.com{domain_suffix}/{repository}:{framework_version}-{processor}-{py_version}"
-            test_status, test_logs = run_endpoint_tests(canary_account_id, sagemaker_region, registry, region, repository, framework, framework_version, py_version, f"{framework_version}-{processor}-{py_version}")
-            if not test_status:
-                LOGGER.error(f"Endpoint test failed for image {image_uri}. {test_logs}")
+    if framework:
+        images = get_sagemaker_images_from_github(registry, framework, region, image_type, processor="gpu")
+        run_framework_tests(framework, images, canary_account_id, sagemaker_region, registry, region)
+    else:
+        generate_report(REPORT_XML, "Endpoint test", "sagemaker-endpoint", "Framework name missing or not provided.")
 
 if __name__ == "__main__":
     main()
