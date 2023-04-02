@@ -197,7 +197,10 @@ def run_framework_tests(framework, images, canary_account_id, sagemaker_region, 
     if not images:
         generate_report(REPORT_XML, "{framework} endpoint test", "sagemaker-endpoint", "No framework iaage to test.")
         return
-
+    
+    """
+    # enable if there are sufficient instances in region
+    # to run process in parallel
     results = []
     pool_number = len(images)
     with Pool(pool_number) as p:
@@ -205,9 +208,10 @@ def run_framework_tests(framework, images, canary_account_id, sagemaker_region, 
             execute_endpoint_test,
             [[framework, images[i], canary_account_id, sagemaker_region, registry, region] for i in range(pool_number)]
         )
-        
-    for i in range(pool_number):
-        test_status, test_logs = results[i]
+    """
+    # run tests sequentially
+    for i in len(images):
+        test_status, test_logs = execute_endpoint_test(framework, images[i], canary_account_id, sagemaker_region, registry, region)
         if not test_status:
             image_uri = generate_image_uri(images[i], registry, region)
             LOGGER.error(f"Endpoint test failed for image {image_uri}")
