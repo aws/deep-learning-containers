@@ -1,0 +1,218 @@
+FROM nvidia/cuda:11.8.0-base-ubuntu20.04 AS base_image
+
+ENV DEBIAN_FRONTEND=noninteractive \
+    LD_LIBRARY_PATH="${LD_LIBRARY_PATH}:/usr/local/lib"
+
+FROM base_image AS ec2
+
+LABEL maintainer="Amazon AI"
+LABEL dlc_major_version="1"
+
+# Specify accept-bind-to-port LABEL for inference pipelines to use SAGEMAKER_BIND_TO_PORT
+# https://docs.aws.amazon.com/sagemaker/latest/dg/inference-pipeline-real-time.html
+LABEL com.amazonaws.sagemaker.capabilities.accept-bind-to-port=true
+
+ARG MMS_VERSION=1.1.8
+ARG PYTHON=python3
+ARG PYTHON_VERSION=3.10.9
+ARG MAMBA_VERSION=22.11.1-4
+ARG OPEN_MPI_VERSION=4.1.5
+
+# Nvidia software versions
+ARG CUBLAS_VERSION=11.11.3.6
+ARG CUDNN_VERSION=8.8.0.121
+
+# PyTorch Binaries and versions.
+ARG TORCH_URL=https://aws-pytorch-unified-cicd-binaries.s3.us-west-2.amazonaws.com/r2.0.0_inference/cu118_py310/torch-2.0.0%2Bcu118-cp310-cp310-linux_x86_64.whl
+ARG TORCHVISION_URL=https://aws-pytorch-unified-cicd-binaries.s3.us-west-2.amazonaws.com/r2.0.0_inference/cu118_py310/torchvision-0.15.1%2Bcu118-cp310-cp310-linux_x86_64.whl
+ARG TORCHAUDIO_URL=https://aws-pytorch-unified-cicd-binaries.s3.us-west-2.amazonaws.com/r2.0.0_inference/cu118_py310/torchaudio-2.0.1%2Bcu118-cp310-cp310-linux_x86_64.whl
+
+# HF ARGS
+ARG TRANSFORMERS_VERSION
+ARG DIFFUSERS_VERSION
+
+# Set Debian interaction
+ARG DEBIAN_FRONTEND=noninteractive
+
+# See http://bugs.python.org/issue19846
+ENV LANG C.UTF-8
+ENV LD_LIBRARY_PATH="/opt/conda/lib:${LD_LIBRARY_PATH}"
+ENV PATH /opt/conda/bin:$PATH
+ENV TEMP=/home/model-server/tmp
+# Set MKL_THREADING_LAYER=GNU to prevent issues between torch and numpy/mkl
+ENV MKL_THREADING_LAYER=GNU
+ENV DLC_CONTAINER_TYPE=inference
+
+ENV TORCH_CUDA_ARCH_LIST="3.7 5.0 7.0+PTX 7.5+PTX 8.0"
+ENV NCCL_VERSION=2.16.5
+ENV NVML_VERSION=11.8.86
+
+RUN apt-get update \
+ && apt-get -y upgrade \
+ && apt-get install -y --allow-downgrades --allow-change-held-packages --no-install-recommends \
+    software-properties-common \
+    build-essential \
+    ca-certificates \
+    cmake \
+    libcurl4-openssl-dev \
+    cuda-cudart-11-8 \
+    cuda-libraries-11-8 \
+    cuda-libraries-dev-11-8 \
+    cuda-command-line-tools-11-8 \
+    cuda-nvcc-11-8 \
+    libcublas-11-8=${CUBLAS_VERSION}-1 \
+    libcublas-dev-11-8=${CUBLAS_VERSION}-1 \
+    cuda-nvml-dev-11-8=${NVML_VERSION}-1 \
+    libcudnn8=${CUDNN_VERSION}-1+cuda11.8 \
+    curl \
+    emacs \
+    git \
+    jq \
+    libgl1-mesa-glx \
+    libglib2.0-0 \
+    libgomp1 \
+    libibverbs-dev \
+    libnuma1 \
+    libnuma-dev \
+    libsm6 \
+    libssl1.1 \
+    libssl-dev \
+    libxext6 \
+    libxrender-dev \
+    openjdk-17-jdk \
+    openssl \
+    vim \
+    wget \
+    unzip \
+    libjpeg-dev \
+    libpng-dev \
+    zlib1g-dev \
+    libsndfile1-dev \
+    ffmpeg \
+    openssh-client \
+    openssh-server \
+ && apt-get autoremove -y \
+ && rm -rf /var/lib/apt/lists/* \
+ && apt-get clean
+
+# Install NCCL
+RUN cd /tmp \
+ && git clone https://github.com/NVIDIA/nccl.git -b v${NCCL_VERSION}-1 \
+ && cd nccl \
+ && make -j64 src.build BUILDDIR=/usr/local \
+ && rm -rf /tmp/nccl
+
+RUN wget --quiet https://download.open-mpi.org/release/open-mpi/v4.1/openmpi-${OPEN_MPI_VERSION}.tar.gz \
+ && gunzip -c openmpi-${OPEN_MPI_VERSION}.tar.gz | tar xf - \
+ && cd openmpi-${OPEN_MPI_VERSION} \
+ && ./configure --prefix=/home/.openmpi --with-cuda \
+ && make all install \
+ && cd .. \
+ && rm openmpi-${OPEN_MPI_VERSION}.tar.gz \
+ && rm -rf openmpi-${OPEN_MPI_VERSION}
+
+ENV PATH="$PATH:/home/.openmpi/bin"
+ENV LD_LIBRARY_PATH="$LD_LIBRARY_PATH:/home/.openmpi/lib/"
+RUN ompi_info --parsable --all | grep mpi_built_with_cuda_support:value
+
+# Install CondaForge miniconda
+RUN curl -L -o ~/mambaforge.sh https://github.com/conda-forge/miniforge/releases/download/${MAMBA_VERSION}/Mambaforge-${MAMBA_VERSION}-Linux-x86_64.sh \
+ && chmod +x ~/mambaforge.sh \
+ && ~/mambaforge.sh -b -p /opt/conda \
+ && rm ~/mambaforge.sh \
+ && /opt/conda/bin/conda install -c conda-forge python=${PYTHON_VERSION} \
+    cython \
+    mkl \
+    mkl-include \
+    parso \
+    scipy \
+    typing \
+    h5py \
+    requests \
+    libgcc \
+    # Below 2 are included in miniconda base, but not mamba so need to install
+    conda-content-trust \
+    charset-normalizer \
+ && /opt/conda/bin/conda install -c pytorch magma-cuda118 \
+ && /opt/conda/bin/conda clean -ya
+
+# symlink pip for OS use
+RUN pip install --upgrade pip --trusted-host pypi.org --trusted-host files.pythonhosted.org \
+ && ln -s /opt/conda/bin/pip /usr/local/bin/pip3
+
+WORKDIR /root
+
+# Ensure PyTorch did not get installed from Conda due to magma-cuda117
+RUN pip uninstall -y torch torchvision torchaudio model-archiver multi-model-server
+
+# Install AWS-PyTorch, and other torch packages
+RUN pip install --no-cache-dir --extra-index-url https://download.pytorch.org/whl/cu117 -U \
+    "awscli<2" \
+    boto3 \
+    "cryptography>=38.0.0,<40" \
+    enum-compat==0.0.3 \
+    "numpy>=1.22.2,<1.23" \
+    opencv-python \
+    packaging \
+    "Pillow>=9.0.0" \
+    "pyyaml>=5.4,<5.5" \
+    captum \
+    ${TORCH_URL} \
+    ${TORCHVISION_URL} \
+    ${TORCHAUDIO_URL}
+
+# add necessary certificate for aws sdk cpp download
+RUN mkdir -p /etc/pki/tls/certs && cp /etc/ssl/certs/ca-certificates.crt /etc/pki/tls/certs/ca-bundle.crt
+
+WORKDIR /
+
+RUN pip install --no-cache-dir \
+    multi-model-server==$MMS_VERSION \
+    sagemaker-inference
+
+RUN cd tmp/ \
+ && rm -rf tmp*
+
+RUN useradd -m model-server \
+ && mkdir -p /home/model-server/tmp /opt/ml/model \
+ && chown -R model-server /home/model-server /opt/ml/model
+
+COPY mms-entrypoint.py /usr/local/bin/dockerd-entrypoint.py
+COPY config.properties /etc/sagemaker-mms.properties
+
+RUN chmod +x /usr/local/bin/dockerd-entrypoint.py
+
+COPY deep_learning_container.py /usr/local/bin/deep_learning_container.py
+
+RUN chmod +x /usr/local/bin/deep_learning_container.py
+
+#################################
+# Hugging Face specific section #
+#################################
+
+RUN curl -o /license.txt  https://aws-dlc-licenses.s3.amazonaws.com/pytorch-1.13/license.txt
+
+# install Hugging Face libraries and its dependencies
+RUN pip install --no-cache-dir \
+	transformers[sentencepiece,audio,vision]==${TRANSFORMERS_VERSION} \
+    diffusers[torch]==${DIFFUSERS_VERSION} \
+	"protobuf>=3.19.5,<=3.20.2" \
+	"numpy>=1.22.2,<1.23" \
+	"sagemaker-huggingface-inference-toolkit<3"
+
+
+RUN HOME_DIR=/root \
+ && curl -o ${HOME_DIR}/oss_compliance.zip https://aws-dlinfra-utilities.s3.amazonaws.com/oss_compliance.zip \
+ && unzip ${HOME_DIR}/oss_compliance.zip -d ${HOME_DIR}/ \
+ && cp ${HOME_DIR}/oss_compliance/test/testOSSCompliance /usr/local/bin/testOSSCompliance \
+ && chmod +x /usr/local/bin/testOSSCompliance \
+ && chmod +x ${HOME_DIR}/oss_compliance/generate_oss_compliance.sh \
+ && ${HOME_DIR}/oss_compliance/generate_oss_compliance.sh ${HOME_DIR} ${PYTHON} \
+ && rm -rf ${HOME_DIR}/oss_compliance*
+
+# Removing the cache as it is needed for security verification
+RUN rm -iRf /root/.cache
+
+EXPOSE 8080 8081
+ENTRYPOINT ["python", "/usr/local/bin/dockerd-entrypoint.py"]
+CMD ["serve"]
