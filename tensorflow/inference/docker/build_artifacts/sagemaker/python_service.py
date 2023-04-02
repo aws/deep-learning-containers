@@ -582,7 +582,7 @@ if __name__ == '__main__':
         ]
     }
     if args.pythonpath is not None:
-        options['pythonpath'] = args.pythonpath.split(',')
+        options['pythonpath'] = args.pythonpath
 
     from gunicorn.app.base import BaseApplication
 
