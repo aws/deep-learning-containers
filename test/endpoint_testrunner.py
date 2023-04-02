@@ -210,10 +210,10 @@ def run_framework_tests(framework, images, canary_account_id, sagemaker_region, 
         )
     """
     # run tests sequentially
-    for i in len(images):
-        test_status, test_logs = execute_endpoint_test(framework, images[i], canary_account_id, sagemaker_region, registry, region)
+    for image in images:
+        test_status, test_logs = execute_endpoint_test(framework, image, canary_account_id, sagemaker_region, registry, region)
         if not test_status:
-            image_uri = generate_image_uri(images[i], registry, region)
+            image_uri = generate_image_uri(image, registry, region)
             LOGGER.error(f"Endpoint test failed for image {image_uri}")
             generate_report(REPORT_XML, f"{framework} endpoint test", "sagemaker-endpoint", "", test_logs)
         else:
