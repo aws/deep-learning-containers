@@ -1,6 +1,6 @@
 #!/bin/bash
 
-INSTANCE_TYPE=$1
+export INSTANCE_TYPE=$1
 
 PYTHON_VERSION=$(python -c 'import sys; print(sys.version_info[0])' | tr -d "'")
 if [ "$PYTHON_VERSION" -eq 2 ]
@@ -51,7 +51,7 @@ mkdir -p $BIN_DIR/pytorch/huggingface_logs
 #fi
 
 python /test/bin/benchmark/read_upload_benchmarking_results.py -dir $BIN_DIR/pytorch/huggingface_logs \
-       -model_suite huggingface -precision amp -instance_type "p3.2xlarge"
+       -model_suite huggingface -precision amp
 
 
 exit 0

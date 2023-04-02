@@ -11,7 +11,6 @@ AWS_DEFAULT_REGION = "us-west-2"
 parser = argparse.ArgumentParser()
 parser.add_argument("-dir", "--directory", type=str)
 parser.add_argument("-namespace", "--namespace", type=str, default="PyTorch/EC2/Benchmarks/TorchDynamo/Inductor")
-parser.add_argument("-instance_type", "--instance_type", type=str)
 parser.add_argument("-model_suite", "--model_suite", type=str)
 parser.add_argument("-precision", "--precision", type=str)
 
@@ -60,7 +59,7 @@ def read_metric(csv_file):
 if __name__ == '__main__':
     args = parser.parse_args()
     dimensions = [
-             {"Name": "InstanceType", "Value": args.instance_type},
+             {"Name": "InstanceType", "Value": os.environ['INSTANCE_TYPE']},
              {"Name": "ModelSuite", "Value": args.model_suite},
              {"Name": "Precision", "Value": args.precision},
              {"Name": "WorkLoad", "Value": "Training"},
