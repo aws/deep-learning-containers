@@ -159,7 +159,7 @@ def execute_endpoint_test(framework_name, image_definition, account_id, sagemake
     python_version = image_definition.get("py_version")
     tag = f"{framework_version}-{processor}-{python_version}"
 
-    retries = "--reruns 2"
+    retries = "" # " --reruns 2"
     instance_type = "p2.xlarge"
     python_version = ("2" if "27" in python_version else
                       "3" if "36" in python_version else
@@ -169,7 +169,7 @@ def execute_endpoint_test(framework_name, image_definition, account_id, sagemake
 
     ctx = Context()
     with ctx.cd(test_location):
-        run_out = ctx.run(f"pytest -rs {retries} test_endpoint.py "
+        run_out = ctx.run(f"pytest -rs{retries} test_endpoint.py "
             f"--account-id {account_id} "
             f"--region {region} "
             f"--registry {registry} "
