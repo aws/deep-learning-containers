@@ -16,7 +16,7 @@ phases:
       - echo Default Region $AWS_DEFAULT_REGION
       - echo Public DLC Registry $PUBLIC_DLC_REGISTRY
       - echo Logging in to Amazon ECR...
-      - $(aws ecr get-login --no-include-email --region $AWS_DEFAULT_REGION --registry-ids 727897471807)
+      - $(aws ecr get-login --no-include-email --region $AWS_DEFAULT_REGION --registry-ids ${PUBLIC_DLC_REGISTRY})
       - pip install -r test/requirements.txt
       - export PYTHONPATH=$PYTHONPATH:$(pwd)/src
       - python test/endpoint_testrunner.py
