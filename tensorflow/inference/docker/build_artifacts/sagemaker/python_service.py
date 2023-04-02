@@ -11,23 +11,25 @@
 # ANY KIND, either express or implied. See the License for the specific
 # language governing permissions and limitations under the License.
 import bisect
+import argparse
 import importlib.util
 import json
 import logging
 import os
-import pickle
 import signal
 import subprocess
 import grpc
 import sys
 import shutil
 import copy
+import pickle
 
 import falcon
 import requests
 import random
 
-from multi_model_utils import lock, MultiModelException
+from multiprocessing import Manager
+from multi_model_utils import MultiModelException
 import tfs_utils
 
 SAGEMAKER_MULTI_MODEL_ENABLED = os.environ.get("SAGEMAKER_MULTI_MODEL", "false").lower() == "true"
@@ -44,7 +46,11 @@ logging.basicConfig(format='%(process)d %(asctime)s %(levelname)-8s %(message)s'
 log = logging.getLogger(__name__)
 
 CUSTOM_ATTRIBUTES_HEADER = "X-Amzn-SageMaker-Custom-Attributes"
-MME_TFS_INSTANCE_STATUS_FILE = "/sagemaker/tfs_instance.pickle"
+
+# Create a shared dictionary using a manager
+manager = Manager()
+shared_tfs_instance_dict = manager.dict()
+lock = manager.Lock()
 
 
 def default_handler(data, context):
@@ -247,7 +253,7 @@ class PythonServiceResource:
                     )}
 
     def _handle_load_model_post(self, res, data):  # noqa: C901
-        with lock():
+        with lock:
             model_name = data["model_name"]
             base_path = data["url"]
 
@@ -317,7 +323,7 @@ class PythonServiceResource:
             if model_name:
                 if model_name not in self._mme_tfs_instances_status or \
                         not self._check_pid(self._mme_tfs_instances_status[model_name][0].pid):
-                    with lock():
+                    with lock:
                         self._sync_local_mme_instance_status()
 
                 if model_name not in self._mme_tfs_instances_status:
@@ -406,7 +412,7 @@ class PythonServiceResource:
         return handler
 
     def on_get(self, req, res, model_name=None):  # pylint: disable=W0613
-        with lock():
+        with lock:
             self._sync_local_mme_instance_status()
             if model_name is None:
                 models_info = {}
@@ -440,7 +446,7 @@ class PythonServiceResource:
                         res.body = json.dumps({"error": str(e)}).encode("utf-8")
 
     def on_delete(self, req, res, model_name):  # pylint: disable=W0613
-        with lock():
+        with lock:
             self._sync_local_mme_instance_status()
             if model_name not in self._mme_tfs_instances_status:
                 res.status = falcon.HTTP_404
@@ -493,15 +499,14 @@ class PythonServiceResource:
 
     def _upload_mme_instance_status(self):
         log.info("uploaded mme instance status file with content: {}".format(self._mme_tfs_instances_status))
-        with open(MME_TFS_INSTANCE_STATUS_FILE, 'wb') as handle:
-            pickle.dump(self._mme_tfs_instances_status, handle, protocol=pickle.HIGHEST_PROTOCOL)
+        shared_tfs_instance_dict.clear()
+        for key, value in self._mme_tfs_instances_status.items():
+            shared_tfs_instance_dict[key] = pickle.dumps(value)
 
     def _sync_local_mme_instance_status(self):
-        if not os.path.exists(MME_TFS_INSTANCE_STATUS_FILE):
-            log.info("mme instance status file does not found.")
-            return
-        with open(MME_TFS_INSTANCE_STATUS_FILE, 'rb') as handle:
-            self._mme_tfs_instances_status = pickle.load(handle)
+        self._mme_tfs_instances_status.clear()
+        for key, value in shared_tfs_instance_dict.items():
+            self._mme_tfs_instances_status[key] = pickle.loads(value)
         log.info("updated local mme instance status with content: {}".format(self._mme_tfs_instances_status))
 
     def _check_pid(self, pid):
@@ -537,3 +542,64 @@ class ServiceResources:
 app = falcon.API()
 resources = ServiceResources()
 resources.add_routes(app)
+
+if __name__ == '__main__':
+    # Define the command-line arguments
+    parser = argparse.ArgumentParser()
+    parser.add_argument('-b', '--bind', type=str, required=True, help='Specify a server socket to bind.')
+    parser.add_argument('-k', '--worker-class', type=str, required=True,
+                        choices=['sync', 'eventlet', 'gevent', 'tornado', 'gthread', 'sync'],
+                        help='The type of worker process to run')
+    parser.add_argument('-c', '--chdir', type=str, required=True, help='Change root dir')
+    parser.add_argument('-w', '--workers', type=int, required=True,
+                        help='The number of worker processes. This number should generally be between 2-4 workers per core in the server.')
+    parser.add_argument('-t', '--threads', type=int, required=True, help='The number of threads')
+    parser.add_argument('-l', '--log-level', type=str, required=True)
+    parser.add_argument('-o', '--timeout', type=int, required=True, help='Gunicorn timeout')
+    parser.add_argument('-p', '--pythonpath', type=str, required=False)
+
+    # Parse the command-line arguments
+    args = parser.parse_args()
+
+    # Create gunicorn options
+    options = {
+        'bind': args.bind,
+        'worker_class': args.worker_class,
+        'chdir': args.chdir,
+        'workers': args.workers,
+        'threads': args.threads,
+        'loglevel': args.log_level,
+        'timeout': args.timeout,
+        'raw_env': [
+            f'TFS_GRPC_PORTS={TFS_GRPC_PORTS}',
+            f'TFS_REST_PORTS={TFS_REST_PORTS}',
+            f'SAGEMAKER_MULTI_MODEL={os.environ.get("SAGEMAKER_MULTI_MODEL")}',
+            f'SAGEMAKER_SAFE_PORT_RANGE={SAGEMAKER_TFS_PORT_RANGE}',
+            f'SAGEMAKER_TFS_WAIT_TIME_SECONDS={os.environ.get("SAGEMAKER_TFS_WAIT_TIME_SECONDS")}',
+            f'SAGEMAKER_TFS_INTER_OP_PARALLELISM={os.environ.get("SAGEMAKER_TFS_INTER_OP_PARALLELISM", 0)}',
+            f'SAGEMAKER_TFS_INTRA_OP_PARALLELISM={os.environ.get("SAGEMAKER_TFS_INTRA_OP_PARALLELISM", 0)}',
+            f'SAGEMAKER_TFS_INSTANCE_COUNT={os.environ.get("SAGEMAKER_TFS_INSTANCE_COUNT", "1")}'
+        ]
+    }
+    if args.pythonpath is not None:
+        options['pythonpath'] = args.pythonpath.split(',')
+
+    from gunicorn.app.base import BaseApplication
+
+    class StandaloneApplication(BaseApplication):
+        def __init__(self, app, options=None):
+            self.options = options or {}
+            self.application = app
+            super().__init__()
+
+        def load_config(self):
+            config = {key: value for key, value in self.options.items()
+                      if key in self.cfg.settings and value is not None}
+            for key, value in config.items():
+                self.cfg.set(key.lower(), value)
+
+        def load(self):
+            return self.application
+
+
+    StandaloneApplication(app, options).run()

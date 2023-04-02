@@ -41,6 +41,7 @@ class ServiceManager(object):
         self._tfs = []
         self._gunicorn = None
         self._gunicorn_command = None
+        self._gunicorn_env = None
         self._enable_python_service = False
         self._tfs_version = os.environ.get("SAGEMAKER_TFS_VERSION", "1.13")
         self._nginx_http_port = os.environ.get("SAGEMAKER_BIND_TO_PORT", "8080")
@@ -62,7 +63,7 @@ class ServiceManager(object):
             os.environ.get("SAGEMAKER_TFS_WAIT_TIME_SECONDS", 55 // self._tfs_instance_count))
         self._tfs_inter_op_parallelism = os.environ.get("SAGEMAKER_TFS_INTER_OP_PARALLELISM", 0)
         self._tfs_intra_op_parallelism = os.environ.get("SAGEMAKER_TFS_INTRA_OP_PARALLELISM", 0)
-        self._gunicorn_worker_class = os.environ.get("SAGEMAKER_GUNICORN_WORKER_CLASS", "gevent")
+        self._gunicorn_worker_class = os.environ.get("SAGEMAKER_GUNICORN_WORKER_CLASS", "gthread")
         self._gunicorn_timeout_seconds = int(
             os.environ.get("SAGEMAKER_GUNICORN_TIMEOUT_SECONDS", 30)
         )
@@ -218,15 +219,8 @@ class ServiceManager(object):
                         raise ChildProcessError("failed to install required packages.")
 
         gunicorn_command = (
-            "gunicorn -b unix:/tmp/gunicorn.sock -k {} --chdir /sagemaker "
-            "--workers {} --threads {} --log-level {} --timeout {} "
-            "{}{} -e TFS_GRPC_PORTS={} -e TFS_REST_PORTS={} "
-            "-e SAGEMAKER_MULTI_MODEL={} -e SAGEMAKER_SAFE_PORT_RANGE={} "
-            "-e SAGEMAKER_TFS_WAIT_TIME_SECONDS={} "
-            "-e SAGEMAKER_TFS_INTER_OP_PARALLELISM={} "
-            "-e SAGEMAKER_TFS_INTRA_OP_PARALLELISM={} "
-            "-e SAGEMAKER_TFS_INSTANCE_COUNT={} "
-            "python_service:app"
+            "python3 /sagemaker/python_service.py -b unix:/tmp/gunicorn.sock -k {} --chdir /sagemaker "
+            "--workers {} --threads {} --log-level {} --timeout {} {}{}"
         ).format(
             self._gunicorn_worker_class,
             self._gunicorn_workers,
@@ -235,18 +229,23 @@ class ServiceManager(object):
             self._gunicorn_timeout_seconds,
             python_path_option,
             ",".join(python_path_content),
-            self._tfs_grpc_concat_ports,
-            self._tfs_rest_concat_ports,
-            self._tfs_enable_multi_model_endpoint,
-            self._sagemaker_port_range,
-            self._tfs_wait_time_seconds,
-            self._tfs_inter_op_parallelism,
-            self._tfs_intra_op_parallelism,
-            self._tfs_instance_count,
         )
 
         log.info("gunicorn command: {}".format(gunicorn_command))
         self._gunicorn_command = gunicorn_command
+        gunicorn_env = {
+            'TFS_GRPC_PORTS': self._tfs_grpc_concat_ports,
+            'TFS_REST_PORTS': self._tfs_rest_concat_ports,
+            'SAGEMAKER_MULTI_MODEL': str(self._tfs_enable_multi_model_endpoint),
+            'SAGEMAKER_TFS_WAIT_TIME_SECONDS': str(self._tfs_wait_time_seconds),
+            'SAGEMAKER_TFS_INTER_OP_PARALLELISM': str(self._tfs_inter_op_parallelism),
+            'SAGEMAKER_TFS_INTRA_OP_PARALLELISM': str(self._tfs_intra_op_parallelism),
+            'SAGEMAKER_TFS_INSTANCE_COUNT': str(self._tfs_instance_count),
+        }
+        if self._sagemaker_port_range is not None:
+            gunicorn_env['SAGEMAKER_SAFE_PORT_RANGE'] = self._sagemaker_port_range
+        log.info(f"gunicorn env: {gunicorn_env}")
+        self._gunicorn_env = gunicorn_env
 
     def _download_scripts(self, bucket, prefix):
         log.info("checking boto session region ...")
@@ -336,6 +335,7 @@ class ServiceManager(object):
         self._log_version("gunicorn --version", "gunicorn version info:")
         env = os.environ.copy()
         env["TFS_DEFAULT_MODEL_NAME"] = self._tfs_default_model_name
+        env.update(self._gunicorn_env)
         p = subprocess.Popen(self._gunicorn_command.split(), env=env)
         log.info("started gunicorn (pid: %d)", p.pid)
         self._gunicorn = p
