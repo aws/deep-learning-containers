@@ -66,7 +66,7 @@ def get_ec2_instance_type(default, processor, filter_function=lambda x: x, efa=F
     :return: one item list of instance type -- this is used to parametrize tests, and parameter is required to be
     a list.
     """
-    allowed_processors = ("cpu", "gpu", "neuron", "neuronx", "hpu")
+    allowed_processors = ("cpu", "gpu", "neuronx", "neuron", "hpu")
     job_type_str = f"_{job_type.upper()}" if job_type else ""
     if processor not in allowed_processors:
         raise RuntimeError(
