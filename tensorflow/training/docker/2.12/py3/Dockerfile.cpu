@@ -246,9 +246,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 
 # https://github.com/tensorflow/models/issues/9267
 # tf-models does not respect existing installations of TF and always installs open source TF
-#TODO: Awaiting pypi release of tf2.12 tf-models-official
 RUN ${PIP} install --no-cache-dir -U \
-    #tf-models-official==2.12.0 \
+    tf-models-official==2.12.0 \
     tensorflow-text==2.12.0
 
 RUN ${PIP} uninstall -y tensorflow tensorflow-gpu \

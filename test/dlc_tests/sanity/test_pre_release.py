@@ -536,7 +536,7 @@ def test_pip_check(image):
     # tensorflow-text. Skip checking these two packages as this is an upstream issue.
     if framework == "tensorflow" and Version(framework_version) in SpecifierSet(">=2.9.1"):
         exception_strings = []
-        models_versions = ["2.9.1", "2.9.2", "2.10.0", "2.11.0"]
+        models_versions = ["2.9.1", "2.9.2", "2.10.0", "2.11.0", "2.12.0"]
         for ex_ver in models_versions:
             exception_strings += [f"tf-models-official {ex_ver}".replace(".", "\.")]
         text_versions = ["2.9.0", "2.10.0", "2.11.0", "2.12.0"]

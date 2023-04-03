@@ -86,7 +86,6 @@ def test_sm_profiler_tf(tensorflow_training):
     ctx.run(f"mkdir -p {profiler_tests_dir}", hide=True)
 
     # Download sagemaker-tests zip
-    # TODO: revert the change
     sm_tests_zip = "sagemaker-tests.zip"
     ctx.run(
         f"aws s3 cp {os.getenv('SMPROFILER_TESTS_BUCKET')}/{sm_tests_zip} {profiler_tests_dir}/{sm_tests_zip}",
@@ -147,7 +146,6 @@ def run_sm_profiler_tests(image, profiler_tests_dir, test_file, processor):
 
     test_results_outfile = os.path.join(os.getcwd(), f"{get_container_name('smprof', image)}.txt")
     with ctx.prefix(f"cd {profiler_tests_dir}"):
-        #TODO: revert this
         with ctx.prefix(f"cd sagemaker-tests && {export_cmd}"):
             try:
                 ctx.run(
