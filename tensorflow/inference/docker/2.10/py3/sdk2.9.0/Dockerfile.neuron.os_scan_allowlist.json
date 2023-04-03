@@ -3339,6 +3339,706 @@
             "severity": "HIGH",
             "status": "ACTIVE",
             "title": "GHSA-64jg-wjww-7c5w - tensorflow"
+        },
+        {
+            "description": "TensorFlow is an open source platform for machine learning. Prior to versions 2.12.0 and 2.11.1, if the parameter `indices` for `DynamicStitch` does not match the shape of the parameter `data`, it can trigger an stack OOB read. A fix is included in TensorFlow version 2.12.0 and version 2.11.1.",
+            "vulnerability_id": "CVE-2023-25659",
+            "name": "CVE-2023-25659",
+            "package_name": "tensorflow",
+            "package_details": {
+                "file_path": "usr/local/lib/python3.8/site-packages/tensorflow-2.10.1.dist-info/METADATA",
+                "name": "tensorflow",
+                "package_manager": "PYTHONPKG",
+                "version": "2.10.1",
+                "release": null
+            },
+            "remediation": {
+                "recommendation": {
+                    "text": "None Provided"
+                }
+            },
+            "cvss_v3_score": 7.5,
+            "cvss_v30_score": 0,
+            "cvss_v31_score": 7.5,
+            "cvss_v2_score": 0,
+            "cvss_v3_severity": "HIGH",
+            "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2023-25659",
+            "source": "NVD",
+            "severity": "HIGH",
+            "status": "ACTIVE",
+            "title": "CVE-2023-25659 - tensorflow"
+        },
+        {
+            "description": "TensorFlow is an open source platform for machine learning. There is out-of-bounds access due to mismatched integer type sizes. A fix is included in TensorFlow version 2.12.0 and version 2.11.1.",
+            "vulnerability_id": "CVE-2023-25671",
+            "name": "CVE-2023-25671",
+            "package_name": "tensorflow",
+            "package_details": {
+                "file_path": "usr/local/lib/python3.8/site-packages/tensorflow-2.10.1.dist-info/METADATA",
+                "name": "tensorflow",
+                "package_manager": "PYTHONPKG",
+                "version": "2.10.1",
+                "release": null
+            },
+            "remediation": {
+                "recommendation": {
+                    "text": "None Provided"
+                }
+            },
+            "cvss_v3_score": 7.5,
+            "cvss_v30_score": 0,
+            "cvss_v31_score": 7.5,
+            "cvss_v2_score": 0,
+            "cvss_v3_severity": "HIGH",
+            "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2023-25671",
+            "source": "NVD",
+            "severity": "HIGH",
+            "status": "ACTIVE",
+            "title": "CVE-2023-25671 - tensorflow"
+        },
+        {
+            "description": "TensorFlow is an open source platform for machine learning. Prior to versions 2.12.0 and 2.11.1, there is a floating point exception in AudioSpectrogram. A fix is included in TensorFlow version 2.12.0 and version 2.11.1.",
+            "vulnerability_id": "CVE-2023-25666",
+            "name": "CVE-2023-25666",
+            "package_name": "tensorflow",
+            "package_details": {
+                "file_path": "usr/local/lib/python3.8/site-packages/tensorflow-2.10.1.dist-info/METADATA",
+                "name": "tensorflow",
+                "package_manager": "PYTHONPKG",
+                "version": "2.10.1",
+                "release": null
+            },
+            "remediation": {
+                "recommendation": {
+                    "text": "None Provided"
+                }
+            },
+            "cvss_v3_score": 7.5,
+            "cvss_v30_score": 0,
+            "cvss_v31_score": 7.5,
+            "cvss_v2_score": 0,
+            "cvss_v3_severity": "HIGH",
+            "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2023-25666",
+            "source": "NVD",
+            "severity": "HIGH",
+            "status": "ACTIVE",
+            "title": "CVE-2023-25666 - tensorflow"
+        },
+        {
+            "description": "### Impact\nFPE in TensorListSplit with XLA \n```python\nimport tensorflow as tf\n\nfunc = tf.raw_ops.TensorListSplit\npara = {'tensor': [1], 'element_shape': -1, 'lengths': [0]}\n\n@tf.function(jit_compile=True)\ndef fuzz_jit():\n y = func(**para)\n return y\n\nprint(fuzz_jit())\n```\n\n### Patches\nWe have patched the issue in GitHub commit [728113a3be690facad6ce436660a0bc1858017fa](https://github.com/tensorflow/tensorflow/commit/728113a3be690facad6ce436660a0bc1858017fa).\n\nThe fix will be included in TensorFlow 2.12.0. We will also cherrypick this commit on TensorFlow 2.11.1\n\n\n### For more information\nPlease consult [our security guide](https://github.com/tensorflow/tensorflow/blob/master/SECURITY.md) for more information regarding the security model and how to contact us with issues and questions.\n\n\n### Attribution\nThis vulnerability has been reported by r3pwnx",
+            "vulnerability_id": "GHSA-647v-r7qq-24fh",
+            "name": "GHSA-647v-r7qq-24fh",
+            "package_name": "tensorflow",
+            "package_details": {
+                "file_path": "usr/local/lib/python3.8/site-packages/tensorflow-2.10.1.dist-info/METADATA",
+                "name": "tensorflow",
+                "package_manager": "PYTHONPKG",
+                "version": "2.10.1",
+                "release": null
+            },
+            "remediation": {
+                "recommendation": {
+                    "text": "None Provided"
+                }
+            },
+            "cvss_v3_score": 7.5,
+            "cvss_v30_score": 0,
+            "cvss_v31_score": 7.5,
+            "cvss_v2_score": 0,
+            "cvss_v3_severity": "HIGH",
+            "source_url": "https://github.com/advisories/GHSA-647v-r7qq-24fh",
+            "source": "GITHUB",
+            "severity": "HIGH",
+            "status": "ACTIVE",
+            "title": "GHSA-647v-r7qq-24fh - tensorflow"
+        },
+        {
+            "description": "TensorFlow is an open source platform for machine learning. Versions prior to 2.12.0 and 2.11.1 are vulnerable to integer overflow in EditDistance. A fix is included in TensorFlow version 2.12.0 and version 2.11.1.",
+            "vulnerability_id": "CVE-2023-25662",
+            "name": "CVE-2023-25662",
+            "package_name": "tensorflow",
+            "package_details": {
+                "file_path": "usr/local/lib/python3.8/site-packages/tensorflow-2.10.1.dist-info/METADATA",
+                "name": "tensorflow",
+                "package_manager": "PYTHONPKG",
+                "version": "2.10.1",
+                "release": null
+            },
+            "remediation": {
+                "recommendation": {
+                    "text": "None Provided"
+                }
+            },
+            "cvss_v3_score": 7.5,
+            "cvss_v30_score": 0,
+            "cvss_v31_score": 7.5,
+            "cvss_v2_score": 0,
+            "cvss_v3_severity": "HIGH",
+            "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2023-25662",
+            "source": "NVD",
+            "severity": "HIGH",
+            "status": "ACTIVE",
+            "title": "CVE-2023-25662 - tensorflow"
+        },
+        {
+            "description": "TensorFlow is an open source platform for machine learning. Prior to versions 2.12.0 and 2.11.1, if the stride and window size are not positive for `tf.raw_ops.AvgPoolGrad`, it can give a floating point exception. A fix is included in TensorFlow version 2.12.0 and version 2.11.1.",
+            "vulnerability_id": "CVE-2023-25669",
+            "name": "CVE-2023-25669",
+            "package_name": "tensorflow",
+            "package_details": {
+                "file_path": "usr/local/lib/python3.8/site-packages/tensorflow-2.10.1.dist-info/METADATA",
+                "name": "tensorflow",
+                "package_manager": "PYTHONPKG",
+                "version": "2.10.1",
+                "release": null
+            },
+            "remediation": {
+                "recommendation": {
+                    "text": "None Provided"
+                }
+            },
+            "cvss_v3_score": 7.5,
+            "cvss_v30_score": 0,
+            "cvss_v31_score": 7.5,
+            "cvss_v2_score": 0,
+            "cvss_v3_severity": "HIGH",
+            "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2023-25669",
+            "source": "NVD",
+            "severity": "HIGH",
+            "status": "ACTIVE",
+            "title": "CVE-2023-25669 - tensorflow"
+        },
+        {
+            "description": "TensorFlow is an open source platform for machine learning. Prior to versions 2.12.0 and 2.11.1, when the parameter `summarize` of `tf.raw_ops.Print` is zero, the new method `SummarizeArray<bool>` will reference to a nullptr, leading to a seg fault. A fix is included in TensorFlow version 2.12 and version 2.11.1.",
+            "vulnerability_id": "CVE-2023-25660",
+            "name": "CVE-2023-25660",
+            "package_name": "tensorflow",
+            "package_details": {
+                "file_path": "usr/local/lib/python3.8/site-packages/tensorflow-2.10.1.dist-info/METADATA",
+                "name": "tensorflow",
+                "package_manager": "PYTHONPKG",
+                "version": "2.10.1",
+                "release": null
+            },
+            "remediation": {
+                "recommendation": {
+                    "text": "None Provided"
+                }
+            },
+            "cvss_v3_score": 7.5,
+            "cvss_v30_score": 0,
+            "cvss_v31_score": 7.5,
+            "cvss_v2_score": 0,
+            "cvss_v3_severity": "HIGH",
+            "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2023-25660",
+            "source": "NVD",
+            "severity": "HIGH",
+            "status": "ACTIVE",
+            "title": "CVE-2023-25660 - tensorflow"
+        },
+        {
+            "description": "TensorFlow is an open source platform for machine learning. Versions prior to 2.12.0 and 2.11.1 have a Floating Point Exception in TensorListSplit with XLA. A fix is included in TensorFlow version 2.12.0 and version 2.11.1.",
+            "vulnerability_id": "CVE-2023-25673",
+            "name": "CVE-2023-25673",
+            "package_name": "tensorflow",
+            "package_details": {
+                "file_path": "usr/local/lib/python3.8/site-packages/tensorflow-2.10.1.dist-info/METADATA",
+                "name": "tensorflow",
+                "package_manager": "PYTHONPKG",
+                "version": "2.10.1",
+                "release": null
+            },
+            "remediation": {
+                "recommendation": {
+                    "text": "None Provided"
+                }
+            },
+            "cvss_v3_score": 7.5,
+            "cvss_v30_score": 0,
+            "cvss_v31_score": 7.5,
+            "cvss_v2_score": 0,
+            "cvss_v3_severity": "HIGH",
+            "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2023-25673",
+            "source": "NVD",
+            "severity": "HIGH",
+            "status": "ACTIVE",
+            "title": "CVE-2023-25673 - tensorflow"
+        },
+        {
+            "description": "TensorFlow is an open source platform for machine learning. The function `tf.raw_ops.LookupTableImportV2` cannot handle scalars in the `values` parameter and gives an NPE. A fix is included in TensorFlow version 2.12.0 and version 2.11.1.",
+            "vulnerability_id": "CVE-2023-25672",
+            "name": "CVE-2023-25672",
+            "package_name": "tensorflow",
+            "package_details": {
+                "file_path": "usr/local/lib/python3.8/site-packages/tensorflow-2.10.1.dist-info/METADATA",
+                "name": "tensorflow",
+                "package_manager": "PYTHONPKG",
+                "version": "2.10.1",
+                "release": null
+            },
+            "remediation": {
+                "recommendation": {
+                    "text": "None Provided"
+                }
+            },
+            "cvss_v3_score": 7.5,
+            "cvss_v30_score": 0,
+            "cvss_v31_score": 7.5,
+            "cvss_v2_score": 0,
+            "cvss_v3_severity": "HIGH",
+            "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2023-25672",
+            "source": "NVD",
+            "severity": "HIGH",
+            "status": "ACTIVE",
+            "title": "CVE-2023-25672 - tensorflow"
+        },
+        {
+            "description": "### Impact\nThe function `tf.raw_ops.LookupTableImportV2` cannot handle scalars in the `values` parameter and gives an NPE.\n\n```python\nimport tensorflow as tf\n\nv = tf.Variable(1)\n\n@tf.function(jit_compile=True)\ndef test():\n   func = tf.raw_ops.LookupTableImportV2\n   para={'table_handle': v.handle,'keys': [62.98910140991211, 94.36528015136719], 'values': -919}\n\n   y = func(**para)\n   return y\n\nprint(test())\n```\n\n### Patches\nWe have patched the issue in GitHub commit [980b22536abcbbe1b4a5642fc940af33d8c19b69](https://github.com/tensorflow/tensorflow/commit/980b22536abcbbe1b4a5642fc940af33d8c19b69).\n\nThe fix will be included in TensorFlow 2.12. We will also cherrypick this commit on TensorFlow 2.11.1.\n\n\n### For more information\nPlease consult [our security guide](https://github.com/tensorflow/tensorflow/blob/master/SECURITY.md) for more information regarding the security model and how to contact us with issues and questions.\n\n\n### Attribution\nThis vulnerability has been reported by r3pwnx of 360 AIVul Team\n",
+            "vulnerability_id": "GHSA-94mm-g2mv-8p7r",
+            "name": "GHSA-94mm-g2mv-8p7r",
+            "package_name": "tensorflow",
+            "package_details": {
+                "file_path": "usr/local/lib/python3.8/site-packages/tensorflow-2.10.1.dist-info/METADATA",
+                "name": "tensorflow",
+                "package_manager": "PYTHONPKG",
+                "version": "2.10.1",
+                "release": null
+            },
+            "remediation": {
+                "recommendation": {
+                    "text": "None Provided"
+                }
+            },
+            "cvss_v3_score": 7.5,
+            "cvss_v30_score": 0,
+            "cvss_v31_score": 7.5,
+            "cvss_v2_score": 0,
+            "cvss_v3_severity": "HIGH",
+            "source_url": "https://github.com/advisories/GHSA-94mm-g2mv-8p7r",
+            "source": "GITHUB",
+            "severity": "HIGH",
+            "status": "ACTIVE",
+            "title": "GHSA-94mm-g2mv-8p7r - tensorflow"
+        },
+        {
+            "description": "TensorFlow is an open source platform for machine learning. Prior to versions 2.12.0 and 2.11.1, when `ctx->step_containter()` is a null ptr, the Lookup function will be executed with a null pointer. A fix is included in TensorFlow 2.12.0 and 2.11.1.",
+            "vulnerability_id": "CVE-2023-25663",
+            "name": "CVE-2023-25663",
+            "package_name": "tensorflow",
+            "package_details": {
+                "file_path": "usr/local/lib/python3.8/site-packages/tensorflow-2.10.1.dist-info/METADATA",
+                "name": "tensorflow",
+                "package_manager": "PYTHONPKG",
+                "version": "2.10.1",
+                "release": null
+            },
+            "remediation": {
+                "recommendation": {
+                    "text": "None Provided"
+                }
+            },
+            "cvss_v3_score": 7.5,
+            "cvss_v30_score": 0,
+            "cvss_v31_score": 7.5,
+            "cvss_v2_score": 0,
+            "cvss_v3_severity": "HIGH",
+            "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2023-25663",
+            "source": "NVD",
+            "severity": "HIGH",
+            "status": "ACTIVE",
+            "title": "CVE-2023-25663 - tensorflow"
+        },
+        {
+            "description": "### Impact\nNPE in RandomShuffle with XLA enable \n```python\nimport tensorflow as tf\n\nfunc = tf.raw_ops.RandomShuffle\npara = {'value': 1e+20, 'seed': -4294967297, 'seed2': -2147483649}\n\n@tf.function(jit_compile=True)\ndef test():\n   y = func(**para)\n   return y\n\ntest()\n```\n\n### Patches\nWe have patched the issue in GitHub commit [728113a3be690facad6ce436660a0bc1858017fa](https://github.com/tensorflow/tensorflow/commit/728113a3be690facad6ce436660a0bc1858017fa).\n\nThe fix will be included in TensorFlow 2.12.0. We will also cherrypick this commit on TensorFlow 2.11.1\n\n\n### For more information\nPlease consult [our security guide](https://github.com/tensorflow/tensorflow/blob/master/SECURITY.md) for more information regarding the security model and how to contact us with issues and questions.\n\n\n### Attribution\nThis vulnerability has been reported by r3pwnx\n",
+            "vulnerability_id": "GHSA-gf97-q72m-7579",
+            "name": "GHSA-gf97-q72m-7579",
+            "package_name": "tensorflow",
+            "package_details": {
+                "file_path": "usr/local/lib/python3.8/site-packages/tensorflow-2.10.1.dist-info/METADATA",
+                "name": "tensorflow",
+                "package_manager": "PYTHONPKG",
+                "version": "2.10.1",
+                "release": null
+            },
+            "remediation": {
+                "recommendation": {
+                    "text": "None Provided"
+                }
+            },
+            "cvss_v3_score": 7.5,
+            "cvss_v30_score": 0,
+            "cvss_v31_score": 7.5,
+            "cvss_v2_score": 0,
+            "cvss_v3_severity": "HIGH",
+            "source_url": "https://github.com/advisories/GHSA-gf97-q72m-7579",
+            "source": "GITHUB",
+            "severity": "HIGH",
+            "status": "ACTIVE",
+            "title": "GHSA-gf97-q72m-7579 - tensorflow"
+        },
+        {
+            "description": "TensorFlow is an end-to-end open source platform for machine learning. Constructing a tflite model with a paramater `filter_input_channel` of less than 1 gives a FPE. This issue has been patched in version 2.12. TensorFlow will also cherrypick the fix commit on TensorFlow 2.11.1.",
+            "vulnerability_id": "CVE-2023-27579",
+            "name": "CVE-2023-27579",
+            "package_name": "tensorflow",
+            "package_details": {
+                "file_path": "usr/local/lib/python3.8/site-packages/tensorflow-2.10.1.dist-info/METADATA",
+                "name": "tensorflow",
+                "package_manager": "PYTHONPKG",
+                "version": "2.10.1",
+                "release": null
+            },
+            "remediation": {
+                "recommendation": {
+                    "text": "None Provided"
+                }
+            },
+            "cvss_v3_score": 7.5,
+            "cvss_v30_score": 0,
+            "cvss_v31_score": 7.5,
+            "cvss_v2_score": 0,
+            "cvss_v3_severity": "HIGH",
+            "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2023-27579",
+            "source": "NVD",
+            "severity": "HIGH",
+            "status": "ACTIVE",
+            "title": "CVE-2023-27579 - tensorflow"
+        },
+        {
+            "description": "TensorFlow is an open source platform for machine learning. Prior to versions 2.12.0 and 2.11.1, an out of bounds read is in GRUBlockCellGrad. A fix is included in TensorFlow 2.12.0 and 2.11.1.",
+            "vulnerability_id": "CVE-2023-25658",
+            "name": "CVE-2023-25658",
+            "package_name": "tensorflow",
+            "package_details": {
+                "file_path": "usr/local/lib/python3.8/site-packages/tensorflow-2.10.1.dist-info/METADATA",
+                "name": "tensorflow",
+                "package_manager": "PYTHONPKG",
+                "version": "2.10.1",
+                "release": null
+            },
+            "remediation": {
+                "recommendation": {
+                    "text": "None Provided"
+                }
+            },
+            "cvss_v3_score": 7.5,
+            "cvss_v30_score": 0,
+            "cvss_v31_score": 7.5,
+            "cvss_v2_score": 0,
+            "cvss_v3_severity": "HIGH",
+            "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2023-25658",
+            "source": "NVD",
+            "severity": "HIGH",
+            "status": "ACTIVE",
+            "title": "CVE-2023-25658 - tensorflow"
+        },
+        {
+            "description": "TensorFlow is an open source platform for machine learning. Prior to versions 2.12.0 and 2.11.1, integer overflow occurs when `2^31 <= num_frames * height * width * channels < 2^32`, for example Full HD screencast of at least 346 frames. A fix is included in TensorFlow version 2.12.0 and version 2.11.1.",
+            "vulnerability_id": "CVE-2023-25667",
+            "name": "CVE-2023-25667",
+            "package_name": "tensorflow",
+            "package_details": {
+                "file_path": "usr/local/lib/python3.8/site-packages/tensorflow-2.10.1.dist-info/METADATA",
+                "name": "tensorflow",
+                "package_manager": "PYTHONPKG",
+                "version": "2.10.1",
+                "release": null
+            },
+            "remediation": {
+                "recommendation": {
+                    "text": "None Provided"
+                }
+            },
+            "cvss_v3_score": 7.5,
+            "cvss_v30_score": 0,
+            "cvss_v31_score": 7.5,
+            "cvss_v2_score": 0,
+            "cvss_v3_severity": "HIGH",
+            "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2023-25667",
+            "source": "NVD",
+            "severity": "HIGH",
+            "status": "ACTIVE",
+            "title": "CVE-2023-25667 - tensorflow"
+        },
+        {
+            "description": "### Impact\nIf the stride and window size are not positive for `tf.raw_ops.AvgPoolGrad`, it can give an FPE.\n\n```python\nimport tensorflow as tf\nimport numpy as np\n\n@tf.function(jit_compile=True)\ndef test():\n   y = tf.raw_ops.AvgPoolGrad(orig_input_shape=[1,0,0,0], grad=[[[[0.39117979]]]], ksize=[1,0,0,0], strides=[1,0,0,0], padding=\"SAME\", data_format=\"NCHW\")\n   return y\n\nprint(test())\n```\n\n### Patches\nWe have patched the issue in GitHub commit [1295ae4dbb52fe06b19733b0257e2340d7b63b8d](https://github.com/tensorflow/tensorflow/commit/1295ae4dbb52fe06b19733b0257e2340d7b63b8d).\n\nThe fix will be included in TensorFlow 2.12. We will also cherrypick this commit on TensorFlow 2.11.1.\n\n\n### For more information\nPlease consult [our security guide](https://github.com/tensorflow/tensorflow/blob/master/SECURITY.md) for more information regarding the security model and how to contact us with issues and questions.\n\n\n### Attribution\nThis vulnerability has been reported by r3pwnx of 360 AIVul Team\n",
+            "vulnerability_id": "GHSA-rcf8-g8jv-vg6p",
+            "name": "GHSA-rcf8-g8jv-vg6p",
+            "package_name": "tensorflow",
+            "package_details": {
+                "file_path": "usr/local/lib/python3.8/site-packages/tensorflow-2.10.1.dist-info/METADATA",
+                "name": "tensorflow",
+                "package_manager": "PYTHONPKG",
+                "version": "2.10.1",
+                "release": null
+            },
+            "remediation": {
+                "recommendation": {
+                    "text": "None Provided"
+                }
+            },
+            "cvss_v3_score": 7.5,
+            "cvss_v30_score": 0,
+            "cvss_v31_score": 7.5,
+            "cvss_v2_score": 0,
+            "cvss_v3_severity": "HIGH",
+            "source_url": "https://github.com/advisories/GHSA-rcf8-g8jv-vg6p",
+            "source": "GITHUB",
+            "severity": "HIGH",
+            "status": "ACTIVE",
+            "title": "GHSA-rcf8-g8jv-vg6p - tensorflow"
+        },
+        {
+            "description": "TensorFlow is an open source platform for machine learning. Versions prior to 2.12.0 and 2.11.1 have a null point error in QuantizedMatMulWithBiasAndDequantize with MKL enabled. A fix is included in TensorFlow version 2.12.0 and version 2.11.1.",
+            "vulnerability_id": "CVE-2023-25670",
+            "name": "CVE-2023-25670",
+            "package_name": "tensorflow",
+            "package_details": {
+                "file_path": "usr/local/lib/python3.8/site-packages/tensorflow-2.10.1.dist-info/METADATA",
+                "name": "tensorflow",
+                "package_manager": "PYTHONPKG",
+                "version": "2.10.1",
+                "release": null
+            },
+            "remediation": {
+                "recommendation": {
+                    "text": "None Provided"
+                }
+            },
+            "cvss_v3_score": 7.5,
+            "cvss_v30_score": 0,
+            "cvss_v31_score": 7.5,
+            "cvss_v2_score": 0,
+            "cvss_v3_severity": "HIGH",
+            "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2023-25670",
+            "source": "NVD",
+            "severity": "HIGH",
+            "status": "ACTIVE",
+            "title": "CVE-2023-25670 - tensorflow"
+        },
+        {
+            "description": "TensorFlow is an open source machine learning platform. Versions prior to 2.12.0 and 2.11.1 have a null pointer error in RandomShuffle with XLA enabled. A fix is included in TensorFlow 2.12.0 and 2.11.1.",
+            "vulnerability_id": "CVE-2023-25674",
+            "name": "CVE-2023-25674",
+            "package_name": "tensorflow",
+            "package_details": {
+                "file_path": "usr/local/lib/python3.8/site-packages/tensorflow-2.10.1.dist-info/METADATA",
+                "name": "tensorflow",
+                "package_manager": "PYTHONPKG",
+                "version": "2.10.1",
+                "release": null
+            },
+            "remediation": {
+                "recommendation": {
+                    "text": "None Provided"
+                }
+            },
+            "cvss_v3_score": 7.5,
+            "cvss_v30_score": 0,
+            "cvss_v31_score": 7.5,
+            "cvss_v2_score": 0,
+            "cvss_v3_severity": "HIGH",
+            "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2023-25674",
+            "source": "NVD",
+            "severity": "HIGH",
+            "status": "ACTIVE",
+            "title": "CVE-2023-25674 - tensorflow"
+        },
+        {
+            "description": "TensorFlow is an open source platform for machine learning. Attackers using Tensorflow prior to 2.12.0 or 2.11.1 can access heap memory which is not in the control of user, leading to a crash or remote code execution. The fix will be included in TensorFlow version 2.12.0 and will also cherrypick this commit on TensorFlow version 2.11.1.",
+            "vulnerability_id": "CVE-2023-25668",
+            "name": "CVE-2023-25668",
+            "package_name": "tensorflow",
+            "package_details": {
+                "file_path": "usr/local/lib/python3.8/site-packages/tensorflow-2.10.1.dist-info/METADATA",
+                "name": "tensorflow",
+                "package_manager": "PYTHONPKG",
+                "version": "2.10.1",
+                "release": null
+            },
+            "remediation": {
+                "recommendation": {
+                    "text": "None Provided"
+                }
+            },
+            "cvss_v3_score": 9.8,
+            "cvss_v30_score": 0,
+            "cvss_v31_score": 9.8,
+            "cvss_v2_score": 0,
+            "cvss_v3_severity": "CRITICAL",
+            "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2023-25668",
+            "source": "NVD",
+            "severity": "CRITICAL",
+            "status": "ACTIVE",
+            "title": "CVE-2023-25668 - tensorflow"
+        },
+        {
+            "description": "## Overview\n[tensorflow](https://pypi.org/project/tensorflow/) is a machine learning framework.\nAffected versions of this package are vulnerable to Integer Overflow to Buffer Overflow when `2^31 <= num_frames * height * width * channels < 2^32`, for example Full HD screencast of at least 346 frames.\n## PoC\n```\r\nimport urllib.request\r\ndat = urllib.request.urlopen('https://raw.githubusercontent.com/tensorflow/tensorflow/1c38ad9b78ffe06076745a1ee00cec42f39ff726/tensorflow/core/lib/gif/testdata/3g_multiframe.gif').read()\r\nimport tensorflow as tf\r\ntf.io.decode_gif(dat)\r\n```\n## Remediation\nUpgrade `tensorflow` to version 2.11.1, 2.12.0 or higher.\n## References\n- [GitHub Commit](https://github.com/tensorflow/tensorflow/commit/8dc723fcdd1a6127d6c970bd2ecb18b019a1a58d)",
+            "vulnerability_id": "SNYK-PYTHON-TENSORFLOW-3373017",
+            "name": "SNYK-PYTHON-TENSORFLOW-3373017",
+            "package_name": "tensorflow",
+            "package_details": {
+                "file_path": "usr/local/lib/python3.8/site-packages/tensorflow-2.10.1.dist-info/METADATA",
+                "name": "tensorflow",
+                "package_manager": "PYTHONPKG",
+                "version": "2.10.1",
+                "release": null
+            },
+            "remediation": {
+                "recommendation": {
+                    "text": "None Provided"
+                }
+            },
+            "cvss_v3_score": 7.5,
+            "cvss_v30_score": 0,
+            "cvss_v31_score": 7.5,
+            "cvss_v2_score": 0,
+            "cvss_v3_severity": "HIGH",
+            "source_url": "https://security.snyk.io/vuln/SNYK-PYTHON-TENSORFLOW-3373017",
+            "source": "SNYK",
+            "severity": "HIGH",
+            "status": "ACTIVE",
+            "title": "IN1-PYTHON-TENSORFLOW-3373017 - tensorflow"
+        },
+        {
+            "description": "### Impact\nNPE in QuantizedMatMulWithBiasAndDequantize with MKL enable \n```python\nimport tensorflow as tf\n\nfunc = tf.raw_ops.QuantizedMatMulWithBiasAndDequantize\npara={'a': tf.constant(138, dtype=tf.quint8), 'b': tf.constant(4, dtype=tf.qint8), 'bias': [[31.81644630432129, 47.21876525878906], [109.95201110839844, 152.07968139648438]], 'min_a': 141.5337138686371, 'max_a': [73.84139251708984, 173.15280151367188], 'min_b': [], 'max_b': [[16.128345489501953, 193.26820373535156]], 'min_freezed_output': [], 'max_freezed_output': [115.50032806396484, 156.974853515625], 'Toutput': 1.0, 'transpose_a': True, 'transpose_b': False, 'input_quant_mode': 'MIN_FIRST'}\n\nfunc(**para)\n```\n\n### Patches\nWe have patched the issue in GitHub commit [8a47a39d9697969206d23a523c977238717e8727](https://github.com/tensorflow/tensorflow/commit/8a47a39d9697969206d23a523c977238717e8727).\n\nThe fix will be included in TensorFlow 2.12.0. We will also cherrypick this commit on TensorFlow 2.11.1\n\n\n### For more information\nPlease consult [our sec",
+            "vulnerability_id": "GHSA-49rq-hwc3-x77w",
+            "name": "GHSA-49rq-hwc3-x77w",
+            "package_name": "tensorflow",
+            "package_details": {
+                "file_path": "usr/local/lib/python3.8/site-packages/tensorflow-2.10.1.dist-info/METADATA",
+                "name": "tensorflow",
+                "package_manager": "PYTHONPKG",
+                "version": "2.10.1",
+                "release": null
+            },
+            "remediation": {
+                "recommendation": {
+                    "text": "None Provided"
+                }
+            },
+            "cvss_v3_score": 7.5,
+            "cvss_v30_score": 0,
+            "cvss_v31_score": 7.5,
+            "cvss_v2_score": 0,
+            "cvss_v3_severity": "HIGH",
+            "source_url": "https://github.com/advisories/GHSA-49rq-hwc3-x77w",
+            "source": "GITHUB",
+            "severity": "HIGH",
+            "status": "ACTIVE",
+            "title": "GHSA-49rq-hwc3-x77w - tensorflow"
+        },
+        {
+            "description": "### Impact\nOut-of-bounds access due to mismatched integer type sizes in ValueMap::Manager::GetValueOrCreatePlaceholder. Bug with tfg-translate call to InitMlir. The problem happens with generic functions, as it is already handled for non-generic functions. This is because they, unlike non-generic functions, are using the \"old importer\". A better long-term solution may be to have the \"new importer\" handle generic functions.\n\n### Patches\nWe have patched the issue in GitHub\n- commit [760322a71ac9033e122ef1f4b1c62813021e5938](https://github.com/tensorflow/tensorflow/commit/760322a71ac9033e122ef1f4b1c62813021e5938).\n- commit [2eedc8f676d2c3b8be9492e547b2bc814c10b367](https://github.com/tensorflow/tensorflow/commit/2eedc8f676d2c3b8be9492e547b2bc814c10b367)\n\nThe fix will be included in TensorFlow 2.12.0. We will also cherrypick this commit on TensorFlow 2.11.1\n\n\n### For more information\nPlease consult [our security guide](https://github.com/tensorflow/tensorflow/blob/master/SECURITY.md) for more information regardin",
+            "vulnerability_id": "GHSA-j5w9-hmfh-4cr6",
+            "name": "GHSA-j5w9-hmfh-4cr6",
+            "package_name": "tensorflow",
+            "package_details": {
+                "file_path": "usr/local/lib/python3.8/site-packages/tensorflow-2.10.1.dist-info/METADATA",
+                "name": "tensorflow",
+                "package_manager": "PYTHONPKG",
+                "version": "2.10.1",
+                "release": null
+            },
+            "remediation": {
+                "recommendation": {
+                    "text": "None Provided"
+                }
+            },
+            "cvss_v3_score": 7.5,
+            "cvss_v30_score": 0,
+            "cvss_v31_score": 7.5,
+            "cvss_v2_score": 0,
+            "cvss_v3_severity": "HIGH",
+            "source_url": "https://github.com/advisories/GHSA-j5w9-hmfh-4cr6",
+            "source": "GITHUB",
+            "severity": "HIGH",
+            "status": "ACTIVE",
+            "title": "GHSA-j5w9-hmfh-4cr6 - tensorflow"
+        },
+        {
+            "description": "TensorFlow is an open source platform for machine learning. Prior to versions 2.12.0 and 2.11.1, there is a heap buffer overflow in TAvgPoolGrad. A fix is included in TensorFlow 2.12.0 and 2.11.1.",
+            "vulnerability_id": "CVE-2023-25664",
+            "name": "CVE-2023-25664",
+            "package_name": "tensorflow",
+            "package_details": {
+                "file_path": "usr/local/lib/python3.8/site-packages/tensorflow-2.10.1.dist-info/METADATA",
+                "name": "tensorflow",
+                "package_manager": "PYTHONPKG",
+                "version": "2.10.1",
+                "release": null
+            },
+            "remediation": {
+                "recommendation": {
+                    "text": "None Provided"
+                }
+            },
+            "cvss_v3_score": 9.8,
+            "cvss_v30_score": 0,
+            "cvss_v31_score": 9.8,
+            "cvss_v2_score": 0,
+            "cvss_v3_severity": "CRITICAL",
+            "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2023-25664",
+            "source": "NVD",
+            "severity": "CRITICAL",
+            "status": "ACTIVE",
+            "title": "CVE-2023-25664 - tensorflow"
+        },
+        {
+            "description": "TensorFlow is an open source platform for machine learning. Prior to versions 2.12.0 and 2.11.1, when `SparseSparseMaximum` is given invalid sparse tensors as inputs, it can give a null pointer error. A fix is included in TensorFlow version 2.12 and version 2.11.1.",
+            "vulnerability_id": "CVE-2023-25665",
+            "name": "CVE-2023-25665",
+            "package_name": "tensorflow",
+            "package_details": {
+                "file_path": "usr/local/lib/python3.8/site-packages/tensorflow-2.10.1.dist-info/METADATA",
+                "name": "tensorflow",
+                "package_manager": "PYTHONPKG",
+                "version": "2.10.1",
+                "release": null
+            },
+            "remediation": {
+                "recommendation": {
+                    "text": "None Provided"
+                }
+            },
+            "cvss_v3_score": 7.5,
+            "cvss_v30_score": 0,
+            "cvss_v31_score": 7.5,
+            "cvss_v2_score": 0,
+            "cvss_v3_severity": "HIGH",
+            "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2023-25665",
+            "source": "NVD",
+            "severity": "HIGH",
+            "status": "ACTIVE",
+            "title": "CVE-2023-25665 - tensorflow"
+        },
+        {
+            "description": "### Impact\nConstructing a tflite model with a paramater `filter_input_channel` of less than 1 gives a FPE.\n\n\n### Patches\nWe have patched the issue in GitHub commit [34f8368c535253f5c9cb3a303297743b62442aaa](https://github.com/tensorflow/tensorflow/commit/34f8368c535253f5c9cb3a303297743b62442aaa).\n\nThe fix will be included in TensorFlow 2.12. We will also cherrypick this commit on TensorFlow 2.11.1.\n\n\n### For more information\nPlease consult [our security guide](https://github.com/tensorflow/tensorflow/blob/master/SECURITY.md) for more information regarding the security model and how to contact us with issues and questions.\n\n### Attribution\nThis vulnerability was reported by Wang Xuan of Qihoo 360 AIVul Team.\n",
+            "vulnerability_id": "GHSA-5w96-866f-6rm8",
+            "name": "GHSA-5w96-866f-6rm8",
+            "package_name": "tensorflow",
+            "package_details": {
+                "file_path": "usr/local/lib/python3.8/site-packages/tensorflow-2.10.1.dist-info/METADATA",
+                "name": "tensorflow",
+                "package_manager": "PYTHONPKG",
+                "version": "2.10.1",
+                "release": null
+            },
+            "remediation": {
+                "recommendation": {
+                    "text": "None Provided"
+                }
+            },
+            "cvss_v3_score": 7.5,
+            "cvss_v30_score": 0,
+            "cvss_v31_score": 7.5,
+            "cvss_v2_score": 0,
+            "cvss_v3_severity": "HIGH",
+            "source_url": "https://github.com/advisories/GHSA-5w96-866f-6rm8",
+            "source": "GITHUB",
+            "severity": "HIGH",
+            "status": "ACTIVE",
+            "title": "GHSA-5w96-866f-6rm8 - tensorflow"
         }
     ],
     "golang.org/x/net": [
