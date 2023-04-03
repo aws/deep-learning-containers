@@ -63,6 +63,7 @@
   ],
   "tensorflow-gpu": [
     {
+      "reason_to_ignore": "TF 2.11.1 is noted as a fix version, and this is version 2.11.1. This appears to be an issue with ecr scan reporting."
       "description": "TensorFlow is an open source platform for machine learning. There is out-of-bounds access due to mismatched integer type sizes. A fix is included in TensorFlow version 2.12.0 and version 2.11.1.",
       "vulnerability_id": "CVE-2023-25671",
       "name": "CVE-2023-25671",
