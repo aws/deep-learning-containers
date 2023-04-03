@@ -26,8 +26,7 @@ TF_EC2_GRAVITON_INSTANCE_TYPE = get_ec2_instance_type(default="c6g.4xlarge", pro
 
 @pytest.mark.model("mnist")
 @pytest.mark.parametrize("ec2_instance_type", TF_EC2_NEURON_ACCELERATOR_TYPE, indirect=True)
-# FIX ME: Sharing the AMI from neuron account to DLC account; use public DLAMI with inf1 support instead
-@pytest.mark.parametrize("ec2_instance_ami", [test_utils.NEURON_UBUNTU_18_BASE_DLAMI_US_WEST_2], indirect=True)
+@pytest.mark.parametrize("ec2_instance_ami", [test_utils.UL20_TF_NEURON_US_WEST_2], indirect=True)
 def test_ec2_tensorflow_inference_neuron(tensorflow_inference_neuron, ec2_connection, region):
     run_ec2_tensorflow_inference(tensorflow_inference_neuron, ec2_connection, "8500", region)
 
@@ -142,6 +141,7 @@ def run_ec2_tensorflow_inference(image_uri, ec2_connection, grpc_port, region, t
             f"--mount type=bind,source={model_path},target=/models/mnist -e TEST_MODE=1 -e MODEL_NAME=mnist"
             f" {image_uri}"
         )
+    inference_test_failed = False
     try:
         host_setup_for_tensorflow_inference(
             serving_folder_path, framework_version, ec2_connection, is_neuron, is_graviton, model_name
@@ -164,8 +164,13 @@ def run_ec2_tensorflow_inference(image_uri, ec2_connection, grpc_port, region, t
             )
         if telemetry_mode:
             check_telemetry(ec2_connection, container_name)
+    except:
+        inference_test_failed = True
+        remote_out = ec2_connection.run(f"docker logs {container_name}", warn=True, hide=True)
+        LOGGER.info(f"--- TF container logs ---\n--- STDOUT ---\n{remote_out.stdout}\n--- STDERR ---\n{remote_out.stderr}")
     finally:
         ec2_connection.run(f"docker rm -f {container_name}", warn=True, hide=True)
+    assert inference_test_failed is False, "tensorflow inference test failed"
 
 
 def get_tensorflow_framework_version(image_uri):
