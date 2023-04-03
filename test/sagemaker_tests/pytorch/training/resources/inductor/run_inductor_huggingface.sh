@@ -5,7 +5,7 @@ if [ "$PYTHON_VERSION" -eq 2 ]
 then
   exit 0
 fi
-HOME_DIR=/test/benchmark
+HOME_DIR=/opt/ml/output/data/test/benchmark
 BIN_DIR=${HOME_DIR}/bin
 LOG_DIR=${HOME_DIR}/logs
 
@@ -29,18 +29,19 @@ pip install deepspeed==0.8.2
 pip install gitpython
 pip install tabulate==0.9.0
 
-# # install torchdata and torchtext before installing torchbench
-# git clone --branch v0.6.0 https://github.com/pytorch/data.git 
-# cd data
-# pip install .
+TRAINING_LOG=${LOG_DIR}/pytorch_inductor_huggingface_benchmark.log
 
-# cd ..
-# git clone --branch v0.15.1 https://github.com/pytorch/text torchtext
-# cd torchtext
-# git submodule update --init --recursive
-# FORCE_CUDA=1 python setup.py clean install
+python benchmarks/dynamo/runner.py --suites=huggingface --training --dtypes=amp --compilers=inductor --output-dir=huggingface_logs --extra-args='--output-directory=./' > $TRAINING_LOG 2>&1
 
-cd ../pytorch
-python benchmarks/dynamo/runner.py --suites=huggingface --training --dtypes=amp --compilers=inductor --output-dir=huggingface_logs --extra-args='--output-directory=/opt/ml/output/data'
+RETURN_VAL=`echo $?`
+set -e
+
+if [ ${RETURN_VAL} -eq 0 ]; then
+    echo "Training Huggingface Complete using PyTorch Inductor."
+else
+    echo "Training Huggingface Failed using PyTorch Inductor."
+    cat $TRAINING_LOG
+    exit 1
+fi
 
 exit 0

@@ -39,10 +39,9 @@ DGL_SCRIPT_PATH = os.path.join(DGL_DATA_PATH, "train.py")
 @pytest.mark.skip_py2_containers
 @pytest.mark.skip_inductor_test
 def test_dgl_gcn_training_cpu(ecr_image, sagemaker_regions, instance_type):
-    # TODO: Remove when DGL gpu test on ecs get fixed
     _, image_framework_version = get_framework_and_version_from_tag(ecr_image)
 
-    instance_type = instance_type or "ml.c4.xlarge"
+    instance_type = instance_type or "ml.p3.2xlarge"
     function_args = {
         "instance_type": instance_type,
     }
@@ -58,10 +57,8 @@ def test_dgl_gcn_training_cpu(ecr_image, sagemaker_regions, instance_type):
 def test_dgl_gcn_training_gpu(ecr_image, sagemaker_regions, instance_type):
     _, image_framework_version = get_framework_and_version_from_tag(ecr_image)
     image_cuda_version = get_cuda_version_from_tag(ecr_image)
-    
-    # TODO: Remove when DGL gpu test on ecs get fixed
 
-    instance_type = instance_type or "ml.p2.xlarge"
+    instance_type = instance_type or "ml.p3.2xlarge"
     function_args = {
         "instance_type": instance_type,
     }

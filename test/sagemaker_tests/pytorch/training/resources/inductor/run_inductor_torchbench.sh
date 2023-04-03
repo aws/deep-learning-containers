@@ -5,7 +5,7 @@ if [ "$PYTHON_VERSION" -eq 2 ]
 then
   exit 0
 fi
-HOME_DIR=/test/benchmark
+HOME_DIR=/opt/ml/output/data/test/benchmark
 BIN_DIR=${HOME_DIR}/bin
 LOG_DIR=${HOME_DIR}/logs
 
@@ -25,7 +25,7 @@ git clone --quiet --single-branch --depth 1 --branch v2.0.0 https://github.com/p
 cd pytorch
 
 pip install -U numpy
-# pip install deepspeed==0.8.2
+pip install deepspeed==0.8.2
 pip install gitpython
 pip install tabulate==0.9.0
 
@@ -46,6 +46,19 @@ cd benchmark
 python install.py
 
 cd ../pytorch
-python benchmarks/dynamo/runner.py --suites=torchbench --training --dtypes=amp --compilers=inductor --output-dir=torchbench_logs --extra-args='--output-directory=/opt/ml/output/data'
+
+TRAINING_LOG=${LOG_DIR}/pytorch_inductor_torchbench_benchmark.log
+python benchmarks/dynamo/runner.py --suites=torchbench --training --dtypes=amp --compilers=inductor --output-dir=torchbench_logs --extra-args='--output-directory=./' > $TRAINING_LOG 2>&1 
+
+RETURN_VAL=`echo $?`
+set -e
+
+if [ ${RETURN_VAL} -eq 0 ]; then
+    echo "Training Torchbench Complete using PyTorch Inductor."
+else
+    echo "Training Torchbench Failed using PyTorch Inductor."
+    cat $TRAINING_LOG
+    exit 1
+fi
 
 exit 0

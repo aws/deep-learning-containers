@@ -5,7 +5,7 @@ if [ "$PYTHON_VERSION" -eq 2 ]
 then
   exit 0
 fi
-HOME_DIR=/test/benchmark
+HOME_DIR=/opt/ml/output/data/test/benchmark
 BIN_DIR=${HOME_DIR}/bin
 LOG_DIR=${HOME_DIR}/logs
 
@@ -25,7 +25,7 @@ git clone --quiet --single-branch --depth 1 --branch v2.0.0 https://github.com/p
 cd pytorch
 
 pip install -U numpy
-# pip install deepspeed==0.8.2
+pip install deepspeed==0.8.2
 pip install gitpython
 pip install tabulate==0.9.0
 
@@ -34,18 +34,19 @@ git clone --branch v0.6.0 https://github.com/pytorch/data.git
 cd data
 pip install .
 
-# cd ..
-# git clone --branch v0.15.1 https://github.com/pytorch/text torchtext
-# cd torchtext
-# git submodule update --init --recursive
-# FORCE_CUDA=1 python setup.py clean install
+TRAINING_LOG=${LOG_DIR}/pytorch_inductor_timm_benchmark.log
 
-# cd ../..
-# git clone --quiet --single-branch --depth 1 https://github.com/pytorch/benchmark.git
-# cd benchmark
-# python install.py
+python benchmarks/dynamo/runner.py --suites=timm_models --training --dtypes=amp --compilers=inductor --output-dir=timm_logs --extra-args='--output-directory=./' > $TRAINING_LOG 2>&1 
 
-cd ../pytorch
-python benchmarks/dynamo/runner.py --suites=timm_models --training --dtypes=float32 --compilers=inductor --output-dir=timm_logs --extra-args='--output-directory=/opt/ml/output/data'
+RETURN_VAL=`echo $?`
+set -e
+
+if [ ${RETURN_VAL} -eq 0 ]; then
+    echo "Training Timm Complete using PyTorch Inductor."
+else
+    echo "Training Timm Failed using PyTorch Inductor."
+    cat $TRAINING_LOG
+    exit 1
+fi
 
 exit 0
