@@ -213,19 +213,18 @@ def ec2_performance_pytorch_inference(image_uri, instance_type, ec2_connection, 
         f"{docker_cmd} run -d --name {container_name}  -e OMP_NUM_THREADS=1 "
         f"-v {ec2_local_dir}:/root {image_uri} "
     )
-    print("=========================setting up instance=====================")
-    ec2_connection.run(f"{docker_cmd} exec {container_name} --workdir=\"/root\""
-                       f"bash -c 'git clone --branch v2.0.0 --recursive --single-branch --depth 1 https://github.com/pytorch/pytorch.git && git clone --branch v2.0.0 --recursive --single-branch --depth 1 https://github.com/pytorch/pytorch.git'")
+    ec2_connection.run(f"{docker_cmd} exec --workdir=\"/root\" {container_name} "
+                       f"bash -c 'git clone --branch v2.0.0 --recursive --single-branch --depth 1 https://github.com/pytorch/pytorch.git && git clone --recursive https://github.com/pytorch/benchmark.git'")
     ec2_connection.run(
-        f"{docker_cmd} exec {container_name} --workdir=\"/root/benchmark\"" f"bash -c 'python install.py'")
+        f"{docker_cmd} exec --workdir=\"/root/benchmark\" {container_name} " f"bash -c 'python install.py'")
     ec2_connection.run(
-        f"{docker_cmd} exec {container_name} --workdir=\"/root/pytorch\"" f"bash -c 'mkdir -p /root/pytorch/logs_{suite}'")
+        f"{docker_cmd} exec --workdir=\"/root/pytorch\" {container_name} " f"bash -c 'mkdir -p /root/pytorch/logs_{suite}'")
     ec2_connection.run(
-        f"{docker_cmd} exec {container_name} --workdir=\"/root/pytorch\"" f"bash -c 'python benchmarks/dynamo/runner.py --suites=torchbench --inference --dtypes={precision} --compilers=inductor --output-dir=/root/pytorch/logs_{suite} --extra-args=\"--output-directory=./\" --device {device} --no-update-archive --no-gh-comment'" f"2>&1 | tee {log_file}")
+        f"{docker_cmd} exec --workdir=\"/root/pytorch\" {container_name} " f"bash -c 'python benchmarks/dynamo/runner.py --suites=torchbench --inference --dtypes={precision} --compilers=inductor --output-dir=/root/pytorch/logs_{suite} --extra-args=\"--output-directory=./\" --device {device} --no-update-archive --no-gh-comment'" f" 2>&1 | tee {log_file}")
     ec2_connection.run(
-        f"{docker_cmd} exec {container_name} --workdir=\"/root\"" f"bash -c 'echo root contents'")
+        f"{docker_cmd} exec --workdir=\"/root\" {container_name} " f"bash -c 'echo root contents'")
     ec2_connection.run(
-        f"{docker_cmd} exec {container_name} --workdir=\"/root\"" f"bash -c 'ls -l'")
+        f"{docker_cmd} exec --workdir=\"/root\" {container_name} " f"bash -c 'ls -l'")
 #    ec2_connection.run(
 #        f"{docker_cmd} exec {container_name} "
 #        f"/bin/bash {test_cmd} " f"2>&1 | tee /root/pytorch/logs_{suite}/{log_file}")
