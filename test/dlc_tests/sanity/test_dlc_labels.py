@@ -193,7 +193,7 @@ def test_dlc_major_version_dockerfiles(image):
                 raise DLCPythonVersionNotFound(f"Cannot find PYTHON_VERSION arg in {dockerfile}")
             versions[dockerfile] = dlc_version
 
-    expected_versions = list(range(1, len(dockerfiles) + 1))
+    expected_versions = list(range(1, len(versions) + 1))
     actual_versions = sorted(versions.values())
 
     # Test case explicitly for TF2.3 gpu, since v1.0 is banned
