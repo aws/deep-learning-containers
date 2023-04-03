@@ -1030,6 +1030,11 @@ def parse_canary_images(framework, region, image_type):
         ## The tags not have -py3 will not pass th condition below
         ## This eliminates all the old and testing tags that we are not monitoring.
         if match:
+            ## Trcomp tags like v1.0-trcomp-hf-4.21.1-pt-1.11.0-tr-gpu-py38 cause incorrect image URIs to be processed
+            ## durign HF PT canary runs. The `if` condition below will prevent any trcomp images to be picked during canary runs of
+            ## huggingface_pytorch and huggingface_tensorflow images.
+            if "trcomp" in tag_str and "trcomp" not in canary_type and "huggingface" in canary_type:
+                continue
             version = match.group(2)
             if not versions_counter.get(version):
                 versions_counter[version] = {"tr": False, "inf": False}
@@ -1049,7 +1054,7 @@ def parse_canary_images(framework, region, image_type):
                         pre_populated_py_version[version] = set()
                     pre_populated_py_version[version].add(python_version_extracted_through_regex)
             except IndexError:
-                LOGGER.info(f"For Framework: {framework} we do not use regex to fetch python version")
+                LOGGER.debug(f"For Framework: {framework} we do not use regex to fetch python version")
 
     versions = []
     for v, inf_train in versions_counter.items():
