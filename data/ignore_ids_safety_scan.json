@@ -440,15 +440,11 @@
                 "53848":"Added in order to support tensorflow 1.15.5 and 2.10",
                 "53847":"Added in order to support tensorflow 1.15.5 and 2.10",
                 "53845":"Added in order to support tensorflow 1.15.5 and 2.10",
-<<<<<<< HEAD
                 "53846":"Added in order to support tensorflow 1.15.5 and 2.10",
                 "53863":"Added in order to support tensorflow 1.15.5 and 2.10",
                 "53903":"Added in order to support tensorflow 1.15.5 and 2.10",
                 "53860":"Added in order to support tensorflow 1.15.5 and 2.10",
                 "53860":"Added in order to support tensorflow 1.15.5 and 2.10"
-=======
-                "53846":"Added in order to support tensorflow 1.15.5 and 2.10"
->>>>>>> Update to SDK 290
             }
         }
     },
