@@ -220,15 +220,13 @@ class ServiceManager(object):
 
         gunicorn_command = (
             "python3 /sagemaker/python_service.py -b unix:/tmp/gunicorn.sock -k {} --chdir /sagemaker "
-            "--workers {} --threads {} --log-level {} --timeout {} {}{}"
+            "--workers {} --threads {} --log-level {} --timeout {} "
         ).format(
             self._gunicorn_worker_class,
             self._gunicorn_workers,
             self._gunicorn_threads,
             self._gunicorn_loglevel,
             self._gunicorn_timeout_seconds,
-            python_path_option,
-            ",".join(python_path_content),
         )
 
         log.info("gunicorn command: {}".format(gunicorn_command))
@@ -241,6 +239,7 @@ class ServiceManager(object):
             'SAGEMAKER_TFS_INTER_OP_PARALLELISM': str(self._tfs_inter_op_parallelism),
             'SAGEMAKER_TFS_INTRA_OP_PARALLELISM': str(self._tfs_intra_op_parallelism),
             'SAGEMAKER_TFS_INSTANCE_COUNT': str(self._tfs_instance_count),
+            'PYTHONPATH': ':'.join(python_path_content)
         }
         if self._sagemaker_port_range is not None:
             gunicorn_env['SAGEMAKER_SAFE_PORT_RANGE'] = self._sagemaker_port_range

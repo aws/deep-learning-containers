@@ -556,7 +556,6 @@ if __name__ == '__main__':
     parser.add_argument('-t', '--threads', type=int, required=True, help='The number of threads')
     parser.add_argument('-l', '--log-level', type=str, required=True)
     parser.add_argument('-o', '--timeout', type=int, required=True, help='Gunicorn timeout')
-    parser.add_argument('-p', '--pythonpath', type=str, required=False)
 
     # Parse the command-line arguments
     args = parser.parse_args()
@@ -581,8 +580,6 @@ if __name__ == '__main__':
             f'SAGEMAKER_TFS_INSTANCE_COUNT={os.environ.get("SAGEMAKER_TFS_INSTANCE_COUNT", "1")}'
         ]
     }
-    if args.pythonpath is not None:
-        options['pythonpath'] = args.pythonpath
 
     from gunicorn.app.base import BaseApplication
 
