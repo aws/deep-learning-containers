@@ -1,7 +1,7 @@
 name: Mark and Remove Stale PRs
 on:
   schedule:
-  - cron: '0 0 * * 5'
+  - cron: '0 19 * * 1'
   workflow_dispatch:
 
 jobs:
