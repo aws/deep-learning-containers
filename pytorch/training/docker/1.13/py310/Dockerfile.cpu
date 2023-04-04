@@ -3,8 +3,8 @@ ARG PYTHON_VERSION=3.10.10
 ARG MAMBA_VERSION=22.11.1-2
 
 # PyTorch Binaries
-ARG PT_EC2_TRAINING_URL=https://download.pytorch.org/whl/cpu/torch-1.13.1%2Bcpu-cp310-cp310-linux_x86_64.whl
-ARG PT_SM_TRAINING_URL=https://download.pytorch.org/whl/cpu/torch-1.13.1%2Bcpu-cp310-cp310-linux_x86_64.whl
+ARG PT_EC2_TRAINING_URL=https://aws-pytorch-unified-cicd-binaries.s3.us-west-2.amazonaws.com/r1.13.1_ec2/20230403-122930/6a74ca05e5ded4f41f7a102548ae3641c0acdfbe/torch-1.13.1%2Bcpu-cp310-cp310-linux_x86_64.whl
+ARG PT_SM_TRAINING_URL=https://aws-pytorch-unified-cicd-binaries.s3.us-west-2.amazonaws.com/r1.13.1_ec2/20230403-122930/6a74ca05e5ded4f41f7a102548ae3641c0acdfbe/torch-1.13.1%2Bcpu-cp310-cp310-linux_x86_64.whl
 ARG PT_TORCHVISION_URL=https://download.pytorch.org/whl/cpu/torchvision-0.14.1%2Bcpu-cp310-cp310-linux_x86_64.whl
 ARG PT_TORCHAUDIO_URL=https://download.pytorch.org/whl/cpu/torchaudio-0.13.1%2Bcpu-cp310-cp310-linux_x86_64.whl
 ARG PT_TORCHDATA_URL=https://download.pytorch.org/whl/test/torchdata-0.5.1-cp310-cp310-manylinux_2_17_x86_64.manylinux2014_x86_64.whl
