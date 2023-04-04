@@ -2,9 +2,6 @@ import os
 import boto3
 import botocore
 import sagemaker
-import re
-import json
-
 from sagemaker import utils
 
 
@@ -30,28 +27,6 @@ def get_ecr_registry(account, region):
 
 def get_sagemaker_session(region, default_bucket=None):
     return sagemaker.Session(boto_session=boto3.Session(region_name=region), default_bucket=default_bucket)
-    
-def get_framework_version(image_uri):
-    framework_version = re.search(r":\s*([\d][.][\d]+)", image_uri).group(1)
-    return framework_version
-    
-def get_python_version(image_uri):
-    python_version = re.search(r"py\s*([\d])", image_uri).group()
-    return python_version
 
 def create_endpoint_name(prefix):
     return utils.unique_name_from_base(prefix)
-
-def load_image_definition(filename):
-    image_definition = {}
-    with open(filename) as filehandle:
-        image_definition = json.load(filehandle)
-    return image_definition
-
-def construct_image_uri(image_definition):
-    account_id = image_definition["account_id"]
-    region = image_definition["region"]
-    domain = image_definition["domain"]
-    repository = image_definition["repository"]
-    tag = image_definition["tag"]
-    return f"{account_id}.dkr.ecr.{region}.{domain}/{repository}:{tag}"

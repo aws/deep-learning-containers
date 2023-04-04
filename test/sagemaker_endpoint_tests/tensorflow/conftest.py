@@ -71,10 +71,6 @@ def image_uri(registry, region, repository, tag):
     ecr_registry = utils.get_ecr_registry(registry, region)
     return f'{ecr_registry}/{repository}:{tag}'
 
-@pytest.fixture(scope="session")
-def tfs_model(region, boto_session):
-    return utils.find_or_put_model_data(region, boto_session, "tfs-model.tar.gz")
-
 
 @pytest.fixture(scope='session')
 def model_dir(request):
@@ -95,18 +91,3 @@ def sagemaker_session(region):
 def sagemaker_region(request):
     sagemaker_region = request.config.getoption('--sagemaker-region')
     return sagemaker_region
-
-
-@pytest.fixture(scope='session')
-def sagemaker_local_session(sagemaker_region):
-    return LocalSession(boto_session=boto3.Session(region_name=sagemaker_region))
-
-
-@pytest.fixture(scope="session")
-def boto_session(sagemaker_region):
-    return boto3.Session(region_name=sagemaker_region)
-
-
-@pytest.fixture(scope="session")
-def sagemaker_client(boto_session):
-    return boto_session.client("sagemaker", config=Config(retries={"max_attempts": 10}))

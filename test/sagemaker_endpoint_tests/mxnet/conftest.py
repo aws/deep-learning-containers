@@ -88,8 +88,3 @@ def sagemaker_session(region):
 @pytest.fixture(scope='session')
 def sagemaker_region(request):
     return request.config.getoption('--sagemaker-region')
-
-
-@pytest.fixture(scope='session')
-def sagemaker_local_session(region):
-    return LocalSession(boto_session=boto3.Session(region_name=region))
