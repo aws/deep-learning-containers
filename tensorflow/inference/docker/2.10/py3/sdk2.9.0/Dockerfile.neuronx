@@ -14,9 +14,10 @@ ARG PYTHON_VERSION=3.8.16
 ARG TFS_SHORT_VERSION=2.10
 
 # Neuron SDK components version numbers
-ARG NEURON_RUNTIME_LIB_VERSION=2.12.*
-ARG NEURON_TOOLS_VERSION=2.9.*
-ARG NEURON_FRAMEWORK_VERSION=2.10.1.2.0.*
+ARG NEURONX_RUNTIME_LIB_VERSION=2.12.*
+ARG NEURONX_TOOLS_VERSION=2.9.*
+ARG NEURONX_FRAMEWORK_VERSION=2.10.1.2.0.*
+ARG NEURONX_CC_VERSION=2.5.*
 
 # See http://bugs.python.org/issue19846
 ENV LANG=C.UTF-8
@@ -81,9 +82,9 @@ RUN wget -qO - https://apt.repos.neuron.amazonaws.com/GPG-PUB-KEY-AMAZON-AWS-NEU
 RUN apt-get update
 
 RUN apt-get install -y \
-    tensorflow-model-server-neuronx=${NEURON_FRAMEWORK_VERSION} \
-    aws-neuronx-tools=${NEURON_TOOLS_VERSION} \
-    aws-neuronx-runtime-lib=${NEURON_RUNTIME_LIB_VERSION} \
+    tensorflow-model-server-neuronx=${NEURONX_FRAMEWORK_VERSION} \
+    aws-neuronx-tools=${NEURONX_TOOLS_VERSION} \
+    aws-neuronx-runtime-lib=${NEURONX_RUNTIME_LIB_VERSION} \
  && apt-get clean \
  && rm -rf /var/lib/apt/lists/*
 
@@ -108,7 +109,7 @@ RUN ${PIP} install --no-cache-dir \
 
 # pip install statements have been separated out into multiple sequentially executed statements to
 # resolve package dependencies during installation.
-RUN ${PIP} install "tensorflow-neuronx[cc]==${NEURON_FRAMEWORK_VERSION}" --extra-index-url https://pip.repos.neuron.amazonaws.com \
+RUN ${PIP} install "neuronx-cc==${NEURONX_CC_VERSION} tensorflow-neuronx==${NEURONX_FRAMEWORK_VERSION}" --extra-index-url https://pip.repos.neuron.amazonaws.com \
  && ${PIP} install tensorboard-plugin-neuron --extra-index-url https://pip.repos.neuron.amazonaws.com
 
 COPY ./sagemaker /sagemaker
