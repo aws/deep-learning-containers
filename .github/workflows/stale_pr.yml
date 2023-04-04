@@ -15,6 +15,7 @@ jobs:
       with:
         repo-token: ${{ secrets.GITHUB_TOKEN }}
         stale-pr-message: 'This PR is stale because it has been open 30 days with no activity. Remove stale label or comment or this will be closed in 5 days.'
+        close-pr-message: 'This PR has had no activity in 5 days since being marked stale. Closing this PR as a result.'
         stale-pr-label: 'no-pr-activity'
         days-before-pr-stale: 30
         days-before-pr-close: 5
