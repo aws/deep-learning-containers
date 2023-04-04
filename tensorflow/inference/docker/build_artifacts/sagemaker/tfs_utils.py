@@ -276,8 +276,8 @@ def wait_for_model(rest_port, model_name, timeout_seconds, pid=None):
         log.info(response)
         if response.status_code == 200:
             versions = json.loads(response.content)["model_version_status"]
-        if all(version["state"] == "AVAILABLE" for version in versions):
-            return
+            if all(version["state"] == "AVAILABLE" for version in versions):
+                return
         raise MultiModelException(408, "Timed out after {} seconds".format(timeout_seconds), pid)
     except (
             ConnectionRefusedError,
