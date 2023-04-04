@@ -5,6 +5,7 @@ import datetime
 import pandas as pd
 import os
 import argparse
+from logging import LOGGER
 
 AWS_DEFAULT_REGION = "us-west-2"
 
