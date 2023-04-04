@@ -17,6 +17,7 @@ ARG TFS_SHORT_VERSION=2.10
 ARG NEURONX_RUNTIME_LIB_VERSION=2.12.*
 ARG NEURONX_TOOLS_VERSION=2.9.*
 ARG NEURONX_FRAMEWORK_VERSION=2.10.1.2.0.*
+ARG NEURONX_TF_MODEL_SERVER_VERSION=2.10.1.2.7.*
 ARG NEURONX_CC_VERSION=2.5.*
 
 # See http://bugs.python.org/issue19846
@@ -82,7 +83,7 @@ RUN wget -qO - https://apt.repos.neuron.amazonaws.com/GPG-PUB-KEY-AMAZON-AWS-NEU
 RUN apt-get update
 
 RUN apt-get install -y \
-    tensorflow-model-server-neuronx=${NEURONX_FRAMEWORK_VERSION} \
+    tensorflow-model-server-neuronx=${NEURONX_TF_MODEL_SERVER_VERSION} \
     aws-neuronx-tools=${NEURONX_TOOLS_VERSION} \
     aws-neuronx-runtime-lib=${NEURONX_RUNTIME_LIB_VERSION} \
  && apt-get clean \
