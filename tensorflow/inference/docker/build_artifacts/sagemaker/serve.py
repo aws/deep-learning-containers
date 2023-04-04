@@ -218,6 +218,10 @@ class ServiceManager(object):
                         self._stop()
                         raise ChildProcessError("failed to install required packages.")
 
+        if self._gunicorn_worker_class != 'gthread':
+            log.warning(f'Overwrite SAGEMAKER_GUNICORN_WORKER_CLASS {self._gunicorn_worker_class} with gthread')
+            self._gunicorn_worker_class = 'gthread'
+
         gunicorn_command = (
             "python3 /sagemaker/python_service.py -b unix:/tmp/gunicorn.sock -k {} --chdir /sagemaker "
             "--workers {} --threads {} --log-level {} --timeout {} "
