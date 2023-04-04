@@ -1,0 +1,22 @@
+name: Mark and Remove Stale PRs
+on:
+  schedule:
+  - cron: '0 0 * * 5'
+  workflow_dispatch:
+
+jobs:
+  stale:
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: write
+    steps:
+    - name: PR Check
+      uses: actions/stale@v8
+      with:
+        repo-token: ${{ secrets.GITHUB_TOKEN }}
+        stale-pr-message: 'This PR is stale because it has been open 30 days with no activity. Remove stale label or comment or this will be closed in 5 days.'
+        stale-pr-label: 'no-pr-activity'
+        days-before-pr-stale: 30
+        days-before-pr-close: 5
+        days-before-issue-stale: -1
+        days-before-issue-close: -1
