@@ -9,7 +9,6 @@ HOME_DIR=/test/benchmark
 BIN_DIR=${HOME_DIR}/bin
 LOG_DIR=${HOME_DIR}/logs
 
-
 python -c "import sys;
 assert sys.version_info < (3, 7);"
 PYTHON_VERSION_CHECK=`echo $?`

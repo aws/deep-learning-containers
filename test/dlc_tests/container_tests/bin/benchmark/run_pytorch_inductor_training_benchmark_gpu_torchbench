@@ -14,7 +14,6 @@ assert sys.version_info < (3, 7);"
 PYTHON_VERSION_CHECK=`echo $?`
 
 set -e
-cd $BIN_DIR
 rm -rf $BIN_DIR/pytorch
 git clone https://github.com/pytorch/pytorch.git --branch v2.0.0 --single-branch --depth 1  $BIN_DIR/pytorch
 
