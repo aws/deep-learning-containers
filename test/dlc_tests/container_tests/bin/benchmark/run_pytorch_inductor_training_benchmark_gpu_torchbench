@@ -55,8 +55,7 @@ fi
 
 cd $BIN_DIR/pytorch
 
-python benchmarks/dynamo/runner.py --training --suites=torchbench --dtypes=amp --compilers=inductor --output-dir=huggingface_logs --extra-args='--output-directory=./' 2>&1 | tee $TRAINING_LOG
-
+python benchmarks/dynamo/runner.py --training --suites=torchbench --dtypes=amp --compilers=inductor --output-dir=huggingface_logs --extra-args='--output-directory=./' > $TRAINING_LOG 2>&1 
 
 RETURN_VAL=`echo $?`
 set -e
