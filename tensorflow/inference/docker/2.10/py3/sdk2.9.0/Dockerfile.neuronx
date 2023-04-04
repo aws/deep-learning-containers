@@ -110,7 +110,7 @@ RUN ${PIP} install --no-cache-dir \
 
 # pip install statements have been separated out into multiple sequentially executed statements to
 # resolve package dependencies during installation.
-RUN ${PIP} install "neuronx-cc==${NEURONX_CC_VERSION} tensorflow-neuronx==${NEURONX_FRAMEWORK_VERSION}" --extra-index-url https://pip.repos.neuron.amazonaws.com \
+RUN ${PIP} install neuronx-cc==${NEURONX_CC_VERSION} tensorflow-neuronx==${NEURONX_FRAMEWORK_VERSION} --extra-index-url https://pip.repos.neuron.amazonaws.com \
  && ${PIP} install tensorboard-plugin-neuron --extra-index-url https://pip.repos.neuron.amazonaws.com
 
 COPY ./sagemaker /sagemaker
