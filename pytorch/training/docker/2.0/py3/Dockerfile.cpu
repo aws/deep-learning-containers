@@ -158,13 +158,7 @@ RUN /opt/conda/bin/mamba install -y -c conda-forge \
     psutil \
     ipython \
  && /opt/conda/bin/mamba install -y -c dglteam dgl \
-# waiting for inductor support: https://github.com/fastai/fastai/pull/3899
-#  && /opt/conda/bin/mamba install -y -c fastai fastai \
- # fastai conda has a dependency chain of fastai -> spacy -> pathy -> dataclasses
- # conda pathy installs dataclasses regardless of py version: https://github.com/conda-forge/pathy-feedstock/blob/1e6da43da5c8e11e09c063c79b09236bbacb7780/recipe/meta.yaml#L29
- # pypi solves this issue: https://github.com/justindujardin/pathy/blob/master/requirements.txt#L3
- # dataclasses package, which contains CVE, is not needed for py>=37
- # pypi fastai's dependencies will oversize the image
+ && /opt/conda/bin/mamba install -y -c fastai fastai \
  && pip uninstall -y dataclasses \
  && /opt/conda/bin/mamba clean -afy
 
