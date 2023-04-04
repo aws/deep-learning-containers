@@ -311,6 +311,7 @@ def wait_for_model_ready(url, timeout_seconds):
             if is_model_ready(response):
                 return True
             timeout_seconds -= 1
+        return False
     except requests.exceptions.RequestException:
         return False
 
