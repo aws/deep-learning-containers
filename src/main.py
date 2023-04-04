@@ -135,9 +135,9 @@ def main():
     ), f"{buildspec_file} must match {buildspec_pattern.pattern}. Please rename file."
 
     if build_context == "PR":
-        if not neuron_build_enabled :
+        if not neuron_builder_enabled :
             excluded_devices.append("neuron")
-        if not neuronx_build_enabled:
+        if not neuronx_builder_enabled:
             excluded_devices.append("neuronx")
 
     # A builder will always work if it is in non-PR context
