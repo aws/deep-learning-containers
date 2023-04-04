@@ -4,7 +4,7 @@ ARG MAMBA_VERSION=22.11.1-2
 
 # PyTorch Binaries
 ARG PT_EC2_TRAINING_URL=https://aws-pytorch-unified-cicd-binaries.s3.us-west-2.amazonaws.com/r1.13.1_ec2/20230403-122930/6a74ca05e5ded4f41f7a102548ae3641c0acdfbe/torch-1.13.1%2Bcpu-cp310-cp310-linux_x86_64.whl
-ARG PT_SM_TRAINING_URL=https://aws-pytorch-unified-cicd-binaries.s3.us-west-2.amazonaws.com/r1.13.1_ec2/20230403-122930/6a74ca05e5ded4f41f7a102548ae3641c0acdfbe/torch-1.13.1%2Bcpu-cp310-cp310-linux_x86_64.whl
+ARG PT_SM_TRAINING_URL=https://aws-pytorch-unified-cicd-binaries.s3.us-west-2.amazonaws.com/r1.13.1_sm/20230404-132244/159c9f2fb36cb996aeb8462ed1e324aaa4b7d65d/torch-1.13.1%2Bcpu-cp310-cp310-linux_x86_64.whl
 ARG PT_TORCHVISION_URL=https://download.pytorch.org/whl/cpu/torchvision-0.14.1%2Bcpu-cp310-cp310-linux_x86_64.whl
 ARG PT_TORCHAUDIO_URL=https://download.pytorch.org/whl/cpu/torchaudio-0.13.1%2Bcpu-cp310-cp310-linux_x86_64.whl
 ARG PT_TORCHDATA_URL=https://download.pytorch.org/whl/test/torchdata-0.5.1-cp310-cp310-manylinux_2_17_x86_64.manylinux2014_x86_64.whl
@@ -23,7 +23,7 @@ RUN apt-get update \
 FROM base_image AS common
 
 LABEL maintainer="Amazon AI"
-LABEL dlc_major_version="1"
+LABEL dlc_major_version="2"
 
 ARG PYTHON
 ARG PYTHON_VERSION
@@ -239,7 +239,7 @@ CMD ["/bin/bash"]
 FROM common AS sagemaker
 
 LABEL maintainer="Amazon AI"
-LABEL dlc_major_version="1"
+LABEL dlc_major_version="2"
 
 ARG PYTHON
 
