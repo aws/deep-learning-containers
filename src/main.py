@@ -23,6 +23,7 @@ def main():
     image_types = []
     py_versions = []
     device_types = []
+    excluded_devices = []
 
     if args.device_types != constants.ALL:
         device_types = args.device_types.split(",")
@@ -51,6 +52,7 @@ def main():
     inference_enabled = parse_dlc_developer_configs("build", "build_inference")
     ei_build_mode = parse_dlc_developer_configs("dev", "ei_mode")
     neuron_build_mode = parse_dlc_developer_configs("dev", "neuron_mode")
+    neuronx_build_mode = parse_dlc_developer_configs("dev", "neuronx_mode")
     graviton_build_mode = parse_dlc_developer_configs("dev", "graviton_mode")
     habana_build_mode = parse_dlc_developer_configs("dev", "habana_mode")
     trcomp_build_mode = parse_dlc_developer_configs("dev", "trcomp_mode")
@@ -82,6 +84,7 @@ def main():
         and not trcomp_dedicated
         and not ei_build_mode
         and not neuron_build_mode
+        and not neuronx_build_mode
         and not graviton_build_mode
         and not habana_build_mode
         and not hf_trcomp_build_mode
@@ -97,6 +100,10 @@ def main():
     # A NEURON dedicated builder will work if in NEURON mode and its framework has not been disabled
     neuron_builder_enabled = (
         neuron_dedicated and neuron_build_mode and args.framework in frameworks_to_build and train_or_inf_enabled
+    )
+
+    neuronx_builder_enabled = (
+        neuronx_build_mode and args.framework in frameworks_to_build and train_or_inf_enabled
     )
 
     # A GRAVITON dedicated builder will work if in GRAVITON mode and its framework has not been disabled
@@ -127,11 +134,18 @@ def main():
         os.path.basename(buildspec_file)
     ), f"{buildspec_file} must match {buildspec_pattern.pattern}. Please rename file."
 
+    if build_context == "PR":
+        if not neuron_build_enabled :
+            excluded_devices.append("neuron")
+        if not neuronx_build_enabled:
+            excluded_devices.append("neuronx")
+
     # A builder will always work if it is in non-PR context
     if (
         general_builder_enabled
         or ei_builder_enabled
         or neuron_builder_enabled
+        or neuronx_builder_enabled
         or graviton_builder_enabled
         or habana_builder_enabled
         or hf_trcomp_builder_enabled
