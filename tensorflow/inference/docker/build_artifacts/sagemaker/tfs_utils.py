@@ -255,6 +255,11 @@ def create_batching_config(batching_config_file):
 
 
 def wait_for_model(rest_port, model_name, timeout_seconds, pid=None):
+    """
+    Notice:
+    The calculation for retry count based on timeout_seconds might introduce a small delta (0.1s) for each retry
+    which might cause total timeout longer than timeout_seconds
+    """
     tfs_url = "http://localhost:{}/v1/models/{}".format(rest_port, model_name)
 
     try:
