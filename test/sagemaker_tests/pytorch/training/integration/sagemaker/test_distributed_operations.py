@@ -112,6 +112,7 @@ def test_dist_operations_multi_gpu(framework_version, ecr_image, sagemaker_regio
 @pytest.mark.model("mnist")
 @pytest.mark.skip_cpu
 @pytest.mark.skip_py2_containers
+@pytest.mark.skip_trcomp_containers
 def test_dist_operations_fastai_gpu(framework_version, ecr_image, sagemaker_regions):
     _, image_framework_version = get_framework_and_version_from_tag(ecr_image)
     if Version("1.9") <= Version(image_framework_version) < Version("1.13"):
@@ -482,7 +483,6 @@ def test_smmodelparallel_mnist_multigpu_multinode_efa(ecr_image, efa_instance_ty
 @pytest.mark.skip_cpu
 @pytest.mark.skip_py2_containers
 @pytest.mark.skip_trcomp_containers
-@pytest.mark.parametrize('efa_instance_type', get_efa_test_instance_type(default=["ml.p3.16xlarge"]), indirect=True)
 @pytest.mark.parametrize("test_script, num_processes", [("train_gpt_simple.py", 8)])
 @pytest.mark.efa()
 def test_smmodelparallel_gpt2_sdp_multinode_efa(ecr_image, efa_instance_type, sagemaker_regions, test_script, num_processes):
@@ -547,7 +547,7 @@ def test_smmodelparallel_gpt2_sdp_multinode_efa(ecr_image, efa_instance_type, sa
                 },
             },
         }
-        job_name=utils.unique_name_from_base('test-pt-smdmp-gpt2-sdp-singlenode')
+        job_name=utils.unique_name_from_base('test-pt-smdmp-gpt2-sdp-multinode')
         invoke_pytorch_estimator(ecr_image, sagemaker_regions, estimator_parameter, inputs=inputs, job_name=job_name)
 
 @pytest.mark.integration("smmodelparallel")

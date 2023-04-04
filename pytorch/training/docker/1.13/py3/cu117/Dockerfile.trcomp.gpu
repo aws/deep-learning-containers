@@ -1,0 +1,85 @@
+# docker image region us-west-2
+FROM 763104351884.dkr.ecr.us-west-2.amazonaws.com/pytorch-training:1.13.1-gpu-py39-cu117-ubuntu20.04-sagemaker AS sagemaker
+
+LABEL maintainer="Amazon AI"
+LABEL dlc_major_version="1"
+
+# Version args - overwritten by args specified in buildspec
+ARG PYTHON=python3
+
+
+ARG PT_BUCKET=https://aws-pytorch-unified-cicd-binaries.s3.us-west-2.amazonaws.com/trcomp/r1.13.1_sm/20230207-025014/f5360e1b1bbecdd0399bbab72c024d1388714f04
+ARG PT_URL=${PT_BUCKET}/torch-1.13.1%2Bcu117-cp39-cp39-linux_x86_64.whl
+ARG PT_XLA_URL=${PT_BUCKET}/torch_xla-1.13-cp39-cp39-linux_x86_64.whl
+ARG TORCHVISION_URL=${PT_BUCKET}/torchvision-0.14.1a0%2B5e8e2f1-cp39-cp39-linux_x86_64.whl
+ARG TORCHAUDIO_URL=${PT_BUCKET}/torchaudio-0.13.1%2Bb90d798-cp39-cp39-linux_x86_64.whl
+
+
+# Install Sagemaker PythonSDK
+RUN pip install --no-cache-dir sagemaker
+
+
+RUN apt-get update \
+ # TODO: Remove upgrade statements once packages are updated in base image
+ && apt-get -y upgrade --only-upgrade systemd openssl cryptsetup \
+ && apt install -y git-lfs \
+ && apt install -y libomp5 \
+ && apt-get clean \  
+ && rm -rf /var/lib/apt/lists/*
+
+
+# Install PyTorch
+RUN pip uninstall -y torch \
+ && pip install --no-deps --no-cache-dir -U --force-reinstall ${PT_URL} \
+ && rm -rf ${PT_URL}
+
+# Install PyTorch XLA
+RUN pip uninstall -y torch_xla \
+ && pip install --no-deps --no-cache-dir -U --force-reinstall ${PT_XLA_URL} \
+ && rm -rf ${PT_XLA_URL}
+
+# Install TorchVision
+RUN pip uninstall -y torchvision \
+ && pip install --no-deps --no-cache-dir -U --force-reinstall ${TORCHVISION_URL} \
+ && rm -rf ${TORCHVISION_URL}
+
+# Install TorchAudio
+RUN pip uninstall -y torchaudio \
+ && pip install --no-deps --no-cache-dir -U --force-reinstall ${TORCHAUDIO_URL} \
+ && rm -rf ${TORCHAUDIO_URL}
+
+ARG CONDA_PREFIX=/opt/conda
+
+# Fix library links
+RUN ln -s ${CONDA_PREFIX}/lib/libmkl_intel_lp64.so ${CONDA_PREFIX}/lib/libmkl_intel_lp64.so.1 \
+ && ln -s ${CONDA_PREFIX}/lib/libmkl_intel_thread.so ${CONDA_PREFIX}/lib/libmkl_intel_thread.so.1 \
+ && ln -s ${CONDA_PREFIX}/lib/libmkl_core.so ${CONDA_PREFIX}/lib/libmkl_core.so.1 \
+ && ln -s ${CONDA_PREFIX}/lib/libmkl_gnu_thread.so ${CONDA_PREFIX}/lib/libmkl_gnu_thread.so.1 \
+ && ln -s ${CONDA_PREFIX}/lib/libmkl_gf_lp64.so ${CONDA_PREFIX}/lib/libmkl_gf_lp64.so.1 \
+ && ln -s /opt/amazon/openmpi/lib/libmpi.so.40 ${CONDA_PREFIX}/lib/libmpicxx.so.12 \
+ && ln -s /opt/amazon/openmpi/lib/libmpi.so.40 ${CONDA_PREFIX}/lib/libmpi.so.12
+
+# Uninstall SMDDP
+RUN pip uninstall -y smdistributed-dataparallel
+
+# CVE Fixes
+# RUN pip install --no-cache-dir -U "protobuf<3.20.0"
+RUN apt-get update -y && \
+    apt-get upgrade -y openssl && \
+    apt-get clean
+
+
+# Reinstall Horovod
+RUN pip uninstall -y horovod \
+ && ldconfig /usr/local/cuda-11.7/targets/x86_64-linux/lib/stubs \
+ && HOROVOD_GPU_ALLREDUCE=NCCL HOROVOD_CUDA_HOME=/usr/local/cuda-11.7 HOROVOD_WITH_PYTORCH=1 pip install --no-cache-dir horovod==${HOROVOD_VERSION} \
+ && ldconfig
+
+RUN HOME_DIR=/root \
+ && curl -o ${HOME_DIR}/oss_compliance.zip https://aws-dlinfra-utilities.s3.amazonaws.com/oss_compliance.zip \
+ && unzip ${HOME_DIR}/oss_compliance.zip -d ${HOME_DIR}/ \
+ && cp ${HOME_DIR}/oss_compliance/test/testOSSCompliance /usr/local/bin/testOSSCompliance \
+ && chmod +x /usr/local/bin/testOSSCompliance \
+ && chmod +x ${HOME_DIR}/oss_compliance/generate_oss_compliance.sh \
+ && ${HOME_DIR}/oss_compliance/generate_oss_compliance.sh ${HOME_DIR} ${PYTHON} \
+ && rm -rf ${HOME_DIR}/oss_compliance*

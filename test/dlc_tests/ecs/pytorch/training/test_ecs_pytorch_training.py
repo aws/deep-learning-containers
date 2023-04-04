@@ -62,8 +62,9 @@ def test_ecs_pytorch_training_mnist_neuron(
 @pytest.mark.parametrize("training_script", [PT_MNIST_TRAINING_SCRIPT], indirect=True)
 @pytest.mark.parametrize("ecs_instance_type", ["p3.8xlarge"], indirect=True)
 @pytest.mark.parametrize("ecs_ami", [ECS_AML2_GPU_USWEST2], indirect=True)
+@pytest.mark.parametrize("use_large_storage", [True], indirect=True)
 def test_ecs_pytorch_training_mnist_gpu(
-    gpu_only, ecs_container_instance, pytorch_training, training_cmd, ecs_cluster_name
+    gpu_only, use_large_storage, ecs_container_instance, pytorch_training, training_cmd, ecs_cluster_name
 ):
     """
     GPU mnist test for PyTorch Training
@@ -165,8 +166,9 @@ def test_ecs_pytorch_training_dgl_cpu(
 @pytest.mark.parametrize("training_script", [PT_DGL_TRAINING_SCRIPT], indirect=True)
 @pytest.mark.parametrize("ecs_instance_type", ["p3.8xlarge"], indirect=True)
 @pytest.mark.parametrize("ecs_ami", [ECS_AML2_GPU_USWEST2], indirect=True)
+@pytest.mark.parametrize("use_large_storage", [True], indirect=True)
 def test_ecs_pytorch_training_dgl_gpu(
-    gpu_only, py3_only, ecs_container_instance, pytorch_training, training_cmd, ecs_cluster_name
+    gpu_only, py3_only, use_large_storage, ecs_container_instance, pytorch_training, training_cmd, ecs_cluster_name
 ):
     """
     GPU DGL test for PyTorch Training

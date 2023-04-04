@@ -4,48 +4,34 @@
 
 set -ex
 
-# Function to install kfctl cli
-install_kfctl(){
+# Function to install kustomize
+install_kustomize(){
+    KUSTOMIZE_VERSION="v4.5.7"
+    KUSTOMIZE_URL="https://github.com/kubernetes-sigs/kustomize/releases/download/kustomize%2F${KUSTOMIZE_VERSION}/kustomize_${KUSTOMIZE_VERSION}_linux_amd64.tar.gz"
 
-    KFCTL_VERSION="v1.0.2"
-
-    if ! command -v kfctl &> /dev/null
+    if ! command -v kustomize &> /dev/null
     then
-        KFCTL_URL=https://github.com/kubeflow/kfctl/releases/download/${KFCTL_VERSION}/kfctl_${KFCTL_VERSION}-0-ga476281_linux.tar.gz
-        curl --silent --location ${KFCTL_URL} -o /tmp/kfctl_${KFCTL_VERSION}_linux.tar.gz
-        tar -xvf /tmp/kfctl_${KFCTL_VERSION}_linux.tar.gz -C /tmp --strip-components=1
-        if ! [ -x "$(command -v sudo)" ]; then
-            mv /tmp/kfctl /usr/local/bin
+        wget -O /tmp/kustomize_${KUSTOMIZE_VERSION}_linux.tar.gz ${KUSTOMIZE_URL}
+        tar -xvf /tmp/kustomize_${KUSTOMIZE_VERSION}_linux.tar.gz -C /tmp/
+        if ! [ -x "$command -v sudo" ]; then
+            mv /tmp/kustomize /usr/local/bin
         else
-            sudo mv /tmp/kfctl /usr/local/bin
+            sudo mv /tmp/kustomize /usr/local/bin
         fi
     fi
 }
 
-# Function to install kubeflow in EKS cluster 
+# Function to install kubeflow in EKS cluster using kustomize
 setup_kubeflow(){
+    
+    # clones manifests from kubeflow github into a folder named manifests
+    git clone https://github.com/kubeflow/manifests.git
 
-    local REGION=$1
-    KUBEFLOW_URL="https://raw.githubusercontent.com/aws/deep-learning-containers/master/test/dlc_tests/eks/eks_manifest_templates/kubeflow/kfctl_aws.yaml"
-    CONFIG_FILE=kfctl_aws.yaml
-    wget -O ${CONFIG_FILE} ${KUBEFLOW_URL} 
-    sed -i -e 's/<REGION>/'"${REGION}"'/' ${CONFIG_FILE}
-    kfctl apply -V -f ${CONFIG_FILE}
-}
+    echo "> Installing kubeflow namespace"
+    kustomize build manifests/common/kubeflow-namespace/base | kubectl apply -f -
 
-# Function to install mpi operator in EKS cluster
-install_mpi_operator() {
-
-    MPI_OPERATOR_URL=https://raw.githubusercontent.com/kubeflow/mpi-operator/v0.2.3/deploy/v1alpha2/mpi-operator.yaml
-    wget -O mpi-operator.yaml ${MPI_OPERATOR_URL}
-    kubectl create -f mpi-operator.yaml
-}
-
-# Function to install mxnet operator in EKS cluster
-install_mxnet_operator() {
-
-    git clone https://github.com/kubeflow/mxnet-operator.git
-    kubectl create -k mxnet-operator/manifests/overlays/v1beta1/
+    echo "> Installing training operators"
+    kustomize build manifests/apps/training-operator/upstream/overlays/kubeflow | kubectl apply -f -
 }
 
 # Function to create directory to install kubeflow components
@@ -76,16 +62,10 @@ export AWS_REGION=$2
 echo "> Setup installation directory"
 create_dir ${EKS_CLUSTER_NAME}
 
-echo "> Installing kfctl"
-install_kfctl 
+echo "> Installing kustomize"
+install_kustomize
 
 echo "> Setting up kubeflow"
 setup_kubeflow ${REGION_NAME}
-
-echo "> Installing mxnet operator"
-install_mxnet_operator
-
-echo "> Installing mpi operator"
-install_mpi_operator
 
 echo "> Installation complete"

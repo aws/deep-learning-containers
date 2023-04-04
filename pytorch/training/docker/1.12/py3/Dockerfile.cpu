@@ -1,6 +1,6 @@
 ARG PYTHON=python3
-ARG PYTHON_VERSION=3.8.13
-ARG MAMBA_VERSION=4.12.0-2
+ARG PYTHON_VERSION=3.8.16
+ARG MAMBA_VERSION=22.11.1-2
 
 # PyTorch Binaries
 ARG PT_EC2_TRAINING_URL=https://aws-pytorch-unified-cicd-binaries.s3.us-west-2.amazonaws.com/r1.12.1_ec2/20221209-000906/d3dae914337cde7e182d28544aed5efce29255c4/torch-1.12.1%2Bcpu-cp38-cp38-linux_x86_64.whl
@@ -130,7 +130,8 @@ RUN curl -L -o ~/mambaforge.sh https://github.com/conda-forge/miniforge/releases
     conda-content-trust \
     charset-normalizer \
     "shap<1" \
- && /opt/conda/bin/conda install -c dglteam -y dgl \
+ # pin dgl since PyTorch 1.12 has accurancy error with 1.0.0 upstream test
+ && /opt/conda/bin/conda install -c dglteam -y dgl=0.9.1 \
  # Upstream conda looks to have moved to 4.13 which is incompatible with mamba 0.22.1 and will fail the conda-forge installs.
  # having "conda update conda" before the "conda -c conda-forge" commands will automatically update conda to 4.13.
  # Moving conda update conda" after the "conda -c conda-forge" commands keep conda at 4.12 but will update other packages using
@@ -151,7 +152,7 @@ RUN pip install --upgrade pip --trusted-host pypi.org --trusted-host files.pytho
     boto3 \
     click \
     "cryptography>3.2" \
-    ipython==8.1.0 \
+    ipython \
     opencv-python \
     packaging \
     "Pillow>=9.0.0" \
@@ -207,6 +208,9 @@ RUN HOME_DIR=/root \
  && ${HOME_DIR}/oss_compliance/generate_oss_compliance.sh ${HOME_DIR} ${PYTHON} \
  && rm -rf ${HOME_DIR}/oss_compliance* \
  && rm -rf /tmp/tmp*
+
+# Removing the cache as it is needed for security verification
+RUN rm -rf /root/.cache
 
 # Starts framework
 CMD ["/bin/bash"]
@@ -303,6 +307,9 @@ RUN HOME_DIR=/root \
  && ${HOME_DIR}/oss_compliance/generate_oss_compliance.sh ${HOME_DIR} ${PYTHON} \
  && rm -rf ${HOME_DIR}/oss_compliance* \
  && rm -rf /tmp/tmp*
+
+# Removing the cache as it is needed for security verification
+RUN rm -rf /root/.cache
 
 ENTRYPOINT ["bash", "-m", "start_with_right_hostname.sh"]
 CMD ["/bin/bash"]

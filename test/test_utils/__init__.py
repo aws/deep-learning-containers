@@ -70,6 +70,7 @@ PT_GPU_PY3_BENCHMARK_IMAGENET_AMI_US_WEST_2 = "ami-02d9a47bc61a31d43"
 # Since latest driver is not in public DLAMI yet, using a custom one
 NEURON_UBUNTU_18_BASE_DLAMI_US_WEST_2 = get_ami_id_boto3(region_name="us-west-2", ami_name_pattern="Deep Learning Base AMI (Ubuntu 18.04) Version ??.?")
 UL20_PT_NEURON_US_WEST_2 = get_ami_id_boto3(region_name="us-west-2", ami_name_pattern="Deep Learning AMI Neuron PyTorch 1.11.0 (Ubuntu 20.04) ????????")
+UL20_TF_NEURON_US_WEST_2 = get_ami_id_boto3(region_name="us-west-2", ami_name_pattern="Deep Learning AMI Neuron TensorFlow 2.10.? (Ubuntu 20.04) ????????")
 # Since NEURON TRN1 DLAMI is not released yet use a custom AMI
 NEURON_INF1_AMI_US_WEST_2 = "ami-06a5a60d3801a57b7"
 # Habana Base v0.15.4 ami
@@ -99,6 +100,7 @@ UL_AMI_LIST = [
     PT_GPU_PY3_BENCHMARK_IMAGENET_AMI_US_WEST_2,
     NEURON_UBUNTU_18_BASE_DLAMI_US_WEST_2,
     UL20_PT_NEURON_US_WEST_2,
+    UL20_TF_NEURON_US_WEST_2,
     NEURON_INF1_AMI_US_WEST_2,
     UL20_CPU_ARM64_US_EAST_1,
     UL20_CPU_ARM64_US_WEST_2,
@@ -420,7 +422,7 @@ def get_inference_server_type(image_uri):
     image_tag = image_uri.split(":")[1]
     pytorch_ver = parse(image_tag.split("-")[0])
     from packaging.version import LegacyVersion
-    if isinstance(pytorch_ver, LegacyVersion) or pytorch_ver < Version("1.6"): 
+    if isinstance(pytorch_ver, LegacyVersion) or pytorch_ver < Version("1.6"):
         return "mms"
     return "ts"
 
@@ -793,6 +795,7 @@ def get_inference_run_command(image_uri, model_names, processor="cpu"):
             "squeezenet": "https://torchserve.s3.amazonaws.com/mar_files/squeezenet1_1.mar",
             "pytorch-densenet": "https://torchserve.s3.amazonaws.com/mar_files/densenet161.mar",
             "pytorch-resnet-neuron": "https://aws-dlc-sample-models.s3.amazonaws.com/pytorch/Resnet50-neuron.mar",
+            "pytorch-densenet-inductor": "https://aws-dlc-sample-models.s3.amazonaws.com/pytorch/densenet161-inductor.mar",
         }
     else:
         multi_model_location = {
@@ -967,8 +970,10 @@ def get_canary_default_tag_py3_version(framework, version):
     if framework == "pytorch" or framework == "huggingface_pytorch":
         if Version("1.9") <= Version(version) < Version("1.13"):
             return "py38"
-        if Version(version) >= Version("1.13"):
+        if Version(version) >= Version("1.13") and Version(version) < Version("2.0"):
             return "py39"
+        if Version(version) >= Version("2.0"):
+            return "py310"
 
     return "py3"
 
@@ -1025,6 +1030,11 @@ def parse_canary_images(framework, region, image_type):
         ## The tags not have -py3 will not pass th condition below
         ## This eliminates all the old and testing tags that we are not monitoring.
         if match:
+            ## Trcomp tags like v1.0-trcomp-hf-4.21.1-pt-1.11.0-tr-gpu-py38 cause incorrect image URIs to be processed
+            ## durign HF PT canary runs. The `if` condition below will prevent any trcomp images to be picked during canary runs of
+            ## huggingface_pytorch and huggingface_tensorflow images.
+            if "trcomp" in tag_str and "trcomp" not in canary_type and "huggingface" in canary_type:
+                continue
             version = match.group(2)
             if not versions_counter.get(version):
                 versions_counter[version] = {"tr": False, "inf": False}
@@ -1044,7 +1054,7 @@ def parse_canary_images(framework, region, image_type):
                         pre_populated_py_version[version] = set()
                     pre_populated_py_version[version].add(python_version_extracted_through_regex)
             except IndexError:
-                LOGGER.info(f"For Framework: {framework} we do not use regex to fetch python version")
+                LOGGER.debug(f"For Framework: {framework} we do not use regex to fetch python version")
 
     versions = []
     for v, inf_train in versions_counter.items():
@@ -1446,6 +1456,22 @@ NEURON_VERSION_MANIFEST = {
     "2.6.0": {
         "pytorch": {
             "1.12.0": "1.12.0.1.4.0",
+        },
+    },
+    "2.8.0": {
+        "pytorch": {
+            "1.13.0": "1.13.0.1.5.0",
+        },
+    },
+    "2.8.0": {
+        "tensorflow": {
+            "1.15.5": "1.15.5.2.6.5.0",
+            "2.10.1": "2.10.1.2.6.5.0",
+        },
+    },
+    "2.9.0": {
+        "tensorflow": {
+            "2.10.1": "2.10.1.2.7.3.0",
         },
     },
     "1.19.1": {

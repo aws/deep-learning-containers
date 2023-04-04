@@ -1,7 +1,7 @@
 ARG PYTHON=python3
-ARG PYTHON_VERSION=3.8.13
+ARG PYTHON_VERSION=3.8.16
 ARG PYTHON_SHORT_VERSION=3.8
-ARG MAMBA_VERSION=4.12.0-2
+ARG MAMBA_VERSION=22.11.1-2
 
 # PyTorch Binaries
 ARG PT_EC2_TRAINING_URL=https://aws-pytorch-cicd-v3-binaries.s3.us-west-2.amazonaws.com/r1.11.0_v3_e3/20220322-194812/272547162a367c4aaafe8f7e1d9d35d39441c6f3/gpu/torch-1.11.0%2Bcu113-cp38-cp38-linux_x86_64.whl
@@ -173,7 +173,7 @@ RUN ompi_info --parsable --all | grep mpi_built_with_cuda_support:value \
     conda-content-trust \
     charset-normalizer \
     tqdm \
- && /opt/conda/bin/conda install -c dglteam -y dgl-cuda11.3=0.8.0 \
+ && /opt/conda/bin/conda install -c dglteam -y dgl-cuda11.3=0.9.1 \
  && /opt/conda/bin/conda install -c pytorch magma-cuda113 \
  && /opt/conda/bin/conda clean -ya
 
@@ -202,7 +202,7 @@ RUN pip install --no-cache-dir -U \
     click \
     cmake==3.18.2.post1 \
     "cryptography>3.2" \
-    ipython==8.1.0 \
+    ipython \
     mpi4py==3.1.3 \
     numpy==1.22.2 \
     "opencv-python>=4.3,<5" \
@@ -347,6 +347,8 @@ RUN HOME_DIR=/root \
  && rm -rf ${HOME_DIR}/oss_compliance* \
  && rm -rf /tmp/tmp*
 
+RUN rm -rf ~/.cache
+
 # Starts framework
 CMD ["/bin/bash"]
 
@@ -378,7 +380,7 @@ ARG RMM_VERSION=0.15.0
 
 # The smdebug pipeline relies for following format to perform string replace and trigger DLC pipeline for validating
 # the nightly builds. Therefore, while updating the smdebug version, please ensure that the format is not disturbed.
-ARG SMDEBUG_VERSION=1.0.22
+ARG SMDEBUG_VERSION=1.0.26
 
 ENV SAGEMAKER_TRAINING_MODULE=sagemaker_pytorch_container.training:main
 
@@ -498,7 +500,7 @@ RUN pip install --no-cache-dir -U \
     smclarify \
     "sagemaker>=2,<3" \
     sagemaker-experiments==0.* \
-    "sagemaker-pytorch-training>=2.5.1,<3"
+    sagemaker-pytorch-training
 
 # Install smdebug from souce
 RUN cd /tmp \
@@ -547,6 +549,8 @@ RUN HOME_DIR=/root \
  && ${HOME_DIR}/oss_compliance/generate_oss_compliance.sh ${HOME_DIR} ${PYTHON} \
  && rm -rf ${HOME_DIR}/oss_compliance* \
  && rm -rf /tmp/tmp*
+
+RUN rm -rf ~/.cache
 
 ENTRYPOINT ["bash", "-m", "start_with_right_hostname.sh"]
 CMD ["/bin/bash"]

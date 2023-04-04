@@ -674,6 +674,10 @@ def execute_ec2_training_test(
     habana_container_test_repo = '-v ${HOME}/gaudi-test-suite:/gaudi-test-suite' if "hpu" in ecr_uri else ""
     neuron_device = '--device=/dev/neuron0' if "neuron" in ecr_uri else ""
     bin_bash_cmd = "--entrypoint /bin/bash " if bin_bash_entrypoint else ""
+    
+    LOGGER.info(f"execute_ec2_training_test pulling {ecr_uri}")
+    connection.run(f"docker pull {ecr_uri}", hide="out")
+    LOGGER.info(f"execute_ec2_training_test running {ecr_uri}")
     connection.run(
         f"{docker_cmd} run --name {container_name} "
         f"{container_runtime} {ompi_mca_btl} {cap_add} {hpu_env_vars} "

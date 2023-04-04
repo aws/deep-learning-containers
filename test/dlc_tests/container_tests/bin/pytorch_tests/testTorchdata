@@ -9,14 +9,17 @@ TORCHDATA_REPO="https://github.com/pytorch/data.git"
 TORCHDATA_TEST_SCRIPT="data/test/test_remote_io.py"
 
 echo "Fetch Torchdata S3 IO test script."
-TORCHDATA_RELEASE_TAG=$(python -c "import torchdata; torchdata_versions = torchdata.__version__.split('.'); print(f'release/{torchdata_versions[0]}.{torchdata_versions[1]}')")
-git clone -b ${TORCHDATA_RELEASE_TAG} ${TORCHDATA_REPO} || git clone -b ${TORCHDATA_BRANCH_DEFAULT} ${TORCHDATA_REPO}
+TORCHDATA_RELEASE_TAG=$(python -c "import torchdata as td; print(td.__version__.split('+')[0])")
+git clone $TORCHDATA_REPO \
+    && pushd data \
+    && git checkout tags/v${TORCHDATA_RELEASE_TAG} -b ${TORCHDATA_RELEASE_TAG} \
+    && popd
 
 echo "Installing pre-requisites."
-pip install expecttest
+pip install -r data/test/requirements.txt
 
 echo "Running Torchdata S3 IO datapipe tests."
-python ${TORCHDATA_TEST_SCRIPT}
+pytest data/test/test_remote_io.py
 
 if [ "$?" -eq "0" ]
 then

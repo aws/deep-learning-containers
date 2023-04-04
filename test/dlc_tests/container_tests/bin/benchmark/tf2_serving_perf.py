@@ -75,10 +75,9 @@ def print_helper(cmd):
 def download_test_image():
     if not os.path.isfile("/tmp/data/angeldog.jpg"):
         os.system(
-            "wget http://arumi.blog.kataweb.it/files/photos/uncategorized/2007/05/22/angeldog.jpg")
+            "wget https://upload.wikimedia.org/wikipedia/commons/7/75/Cute_grey_kitten.jpg")
         os.system("mkdir -p /tmp/data")
-        os.system("mv angeldog.jpg /tmp/data")
-        os.system("rm angeldog.jpg")
+        os.system("mv Cute_grey_kitten.jpg /tmp/data/angeldog.jpg")
 
 
 def PickUnusedPort():

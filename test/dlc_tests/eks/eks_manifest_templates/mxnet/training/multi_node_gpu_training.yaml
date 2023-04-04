@@ -1,4 +1,4 @@
-apiVersion: "kubeflow.org/v1beta1"
+apiVersion: "kubeflow.org/v1"
 kind: "MXJob"
 metadata:
   name: <JOB_NAME>

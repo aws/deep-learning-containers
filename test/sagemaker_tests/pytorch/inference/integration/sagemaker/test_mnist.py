@@ -70,7 +70,14 @@ def test_mnist_distributed_gpu(framework_version, ecr_image, instance_type, sage
 @pytest.mark.integration("elastic_inference")
 @pytest.mark.processor("eia")
 @pytest.mark.eia_test
-def test_mnist_eia(framework_version, ecr_image, instance_type, accelerator_type, sagemaker_regions):
+def test_mnist_eia(
+    framework_version,
+    ecr_image,
+    instance_type,
+    accelerator_type,
+    sagemaker_regions,
+    verify_logs=False
+):
     instance_type = instance_type or "ml.c4.xlarge"
     # Scripted model is serialized with torch.jit.save().
     # Inference test for EIA doesn't need to instantiate model definition then load state_dict
@@ -81,6 +88,7 @@ def test_mnist_eia(framework_version, ecr_image, instance_type, accelerator_type
         "model_dir": model_dir,
         "mnist_script": mnist_eia_script,
         "accelerator_type": accelerator_type,
+        "verify_logs": verify_logs,
     }
     invoke_pytorch_helper_function(ecr_image, sagemaker_regions, _test_mnist_distributed, function_args)
 

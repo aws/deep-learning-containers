@@ -28,9 +28,7 @@ JS_PING = "js_content tensorflowServing.ping"
 JS_INVOCATIONS = "js_content tensorflowServing.invocations"
 GUNICORN_PING = "proxy_pass http://gunicorn_upstream/ping"
 GUNICORN_INVOCATIONS = "proxy_pass http://gunicorn_upstream/invocations"
-MULTI_MODEL = "s" if os.environ.get("SAGEMAKER_MULTI_MODEL", "False").lower() == "true" else ""
-MODEL_DIR = f"model{MULTI_MODEL}"
-CODE_DIR = "/opt/ml/{}/code".format(MODEL_DIR)
+CODE_DIR = "/opt/ml/code" if os.environ.get("SAGEMAKER_MULTI_MODEL", "False").lower() == "true" else "/opt/ml/model/code"
 PYTHON_LIB_PATH = os.path.join(CODE_DIR, "lib")
 REQUIREMENTS_PATH = os.path.join(CODE_DIR, "requirements.txt")
 INFERENCE_PATH = os.path.join(CODE_DIR, "inference.py")
@@ -134,7 +132,8 @@ class ServiceManager(object):
         os.environ["TFS_REST_PORTS"] = self._tfs_rest_concat_ports
 
     def _need_python_service(self):
-        if os.path.exists(INFERENCE_PATH):
+        if (os.path.exists(INFERENCE_PATH) or os.path.exists(REQUIREMENTS_PATH)
+                or os.path.exists(PYTHON_LIB_PATH)):
             self._enable_python_service = True
         if os.environ.get("SAGEMAKER_MULTI_MODEL_UNIVERSAL_BUCKET") and os.environ.get(
             "SAGEMAKER_MULTI_MODEL_UNIVERSAL_PREFIX"
@@ -223,6 +222,8 @@ class ServiceManager(object):
             "{}{} -e TFS_GRPC_PORTS={} -e TFS_REST_PORTS={} "
             "-e SAGEMAKER_MULTI_MODEL={} -e SAGEMAKER_SAFE_PORT_RANGE={} "
             "-e SAGEMAKER_TFS_WAIT_TIME_SECONDS={} "
+            "-e SAGEMAKER_TFS_INTER_OP_PARALLELISM={} "
+            "-e SAGEMAKER_TFS_INTRA_OP_PARALLELISM={} "
             "python_service:app"
         ).format(
             self._gunicorn_worker_class,
@@ -237,6 +238,8 @@ class ServiceManager(object):
             self._tfs_enable_multi_model_endpoint,
             self._sagemaker_port_range,
             self._tfs_wait_time_seconds,
+            self._tfs_inter_op_parallelism,
+            self._tfs_intra_op_parallelism,
         )
 
         log.info("gunicorn command: {}".format(gunicorn_command))
@@ -256,7 +259,7 @@ class ServiceManager(object):
         paginator = client.get_paginator("list_objects")
         for result in paginator.paginate(Bucket=bucket, Delimiter="/", Prefix=prefix):
             for file in result.get("Contents", []):
-                destination = os.path.join(CODE_DIR, file.get("Key"))
+                destination = os.path.join(CODE_DIR, file.get("Key").split("/")[-1])
                 if not os.path.exists(os.path.dirname(destination)):
                     os.makedirs(os.path.dirname(destination))
                 resource.meta.client.download_file(bucket, file.get("Key"), destination)

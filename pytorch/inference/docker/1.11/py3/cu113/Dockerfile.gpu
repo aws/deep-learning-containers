@@ -212,19 +212,23 @@ RUN pip install --no-cache-dir -U \
     boto3 \
     "cryptography>3.2" \
     enum-compat==0.0.3 \
-    ipython==8.1.0 \
+    "ipython>=8.10,<9" \
     numpy==1.22.2 \
     "opencv-python>=4.6,<5" \
     packaging \
-    "Pillow>=9.3.0" \
     "pyyaml>=5.4,<5.5" \
  && pip uninstall -y torch torchvision torchaudio torchdata \
  && pip install --no-cache-dir -U ${PT_INFERENCE_URL} ${PT_TORCHVISION_URL} ${PT_TORCHAUDIO_URL} ${PT_TORCHDATA_URL}
 
 RUN pip uninstall -y model-archiver multi-model-server \
- && pip install captum \
  && pip install torchserve==${TS_VERSION} \
  && pip install torch-model-archiver==${TS_VERSION}
+
+# Install TorchServe pypi dependencies directly from their requirements.txt file
+RUN pip install --no-cache-dir -U -r https://raw.githubusercontent.com/pytorch/serve/v${TS_VERSION}/requirements/common.txt
+
+# Pillow is pinned in TS 0.6.0 to an obsolete version. To work around this, re-install in a separate line
+RUN pip install --no-cache-dir -U "Pillow>=9.3.0,<10"
 
 WORKDIR /
 
@@ -289,7 +293,7 @@ RUN conda install -y -c conda-forge \
     scikit-learn \
     pandas
 
-RUN pip install --no-cache-dir "sagemaker-pytorch-inference>=2"
+RUN pip install --no-cache-dir "sagemaker-pytorch-inference==2.0.10"
 
 COPY torchserve-entrypoint.py /usr/local/bin/dockerd-entrypoint.py
 

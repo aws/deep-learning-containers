@@ -16,7 +16,7 @@ RUN apt-get update \
  && apt-get clean \
  && rm -rf /var/lib/apt/lists/*
 
-ARG AUTOGLUON_VERSION=0.6.1
+ARG AUTOGLUON_VERSION=0.6.2
 
 # NOTE: reinstalling horovod with pytorch support because it is available in the container
 # Updating certifi - https://pyup.io/p/pypi/certifi/2ff/

@@ -17,6 +17,7 @@ import logging
 import os
 import subprocess
 import grpc
+import sys
 
 import falcon
 import requests
@@ -26,8 +27,7 @@ from multi_model_utils import lock, MultiModelException
 import tfs_utils
 
 SAGEMAKER_MULTI_MODEL_ENABLED = os.environ.get("SAGEMAKER_MULTI_MODEL", "false").lower() == "true"
-MODEL_DIR = "models" if SAGEMAKER_MULTI_MODEL_ENABLED else "model"
-INFERENCE_SCRIPT_PATH = f"/opt/ml/{MODEL_DIR}/code/inference.py"
+INFERENCE_SCRIPT_PATH = "/opt/ml/code/inference.py" if SAGEMAKER_MULTI_MODEL_ENABLED else "/opt/ml/model/code/inference.py"
 
 SAGEMAKER_BATCHING_ENABLED = os.environ.get("SAGEMAKER_TFS_ENABLE_BATCHING", "false").lower()
 MODEL_CONFIG_FILE_PATH = "/sagemaker/model-config.cfg"
@@ -45,7 +45,6 @@ CUSTOM_ATTRIBUTES_HEADER = "X-Amzn-SageMaker-Custom-Attributes"
 def default_handler(data, context):
     """A default inference request handler that directly send post request to TFS rest port with
     un-processed data and return un-processed response
-
     :param data: input data
     :param context: context instance that contains tfs_rest_uri
     :return: inference response from TFS model server
@@ -77,6 +76,7 @@ class PythonServiceResource:
                 # between each grpc port and channel
                 self._setup_channel(grpc_port)
 
+        self._default_handlers_enabled = False
         if os.path.exists(INFERENCE_SCRIPT_PATH):
             # Single-Model Mode & Multi-Model Mode both use one inference.py
             self._handler, self._input_handler, self._output_handler = self._import_handlers()
@@ -85,10 +85,13 @@ class PythonServiceResource:
             )
         else:
             self._handlers = default_handler
+            self._default_handlers_enabled = True
 
         self._tfs_enable_batching = SAGEMAKER_BATCHING_ENABLED == "true"
         self._tfs_default_model_name = os.environ.get("TFS_DEFAULT_MODEL_NAME", "None")
         self._tfs_wait_time_seconds = int(os.environ.get("SAGEMAKER_TFS_WAIT_TIME_SECONDS", 300))
+        self._tfs_inter_op_parallelism = os.environ.get("SAGEMAKER_TFS_INTER_OP_PARALLELISM", 0)
+        self._tfs_intra_op_parallelism = os.environ.get("SAGEMAKER_TFS_INTRA_OP_PARALLELISM", 0)
 
     def on_post(self, req, res, model_name=None):
         if model_name or "invocations" in req.uri:
@@ -143,6 +146,7 @@ class PythonServiceResource:
         # validate model files are in the specified base_path
         if self.validate_model_dir(base_path):
             try:
+                self._import_custom_modules(model_name)
                 tfs_config = tfs_utils.create_tfs_config_individual_model(model_name, base_path)
                 tfs_config_file = "/sagemaker/tfs-config/{}/model-config.cfg".format(model_name)
                 log.info("tensorflow serving model config: \n%s\n", tfs_config)
@@ -162,7 +166,10 @@ class PythonServiceResource:
                     tfs_config_file,
                     self._tfs_enable_batching,
                     batching_config_file,
+                    tfs_intra_op_parallelism=self._tfs_intra_op_parallelism,
+                    tfs_inter_op_parallelism=self._tfs_inter_op_parallelism,
                 )
+                log.info("MME starts tensorflow serving with command: {}".format(cmd))
                 p = subprocess.Popen(cmd.split())
 
                 tfs_utils.wait_for_model(
@@ -221,6 +228,22 @@ class PythonServiceResource:
                 }
             )
 
+    def _import_custom_modules(self, model_name):
+        inference_script_path = "/opt/ml/models/{}/model/code/inference.py".format(model_name)
+        python_lib_path = "/opt/ml/models/{}/model/code/lib".format(model_name)
+        if os.path.exists(python_lib_path):
+            log.info("Add Python code library for the model {} found at path {}.".format(model_name, python_lib_path))
+            sys.path.append(python_lib_path)
+        else:
+            log.info("Python code library for the model {} not found at path {}.".format(model_name, python_lib_path))
+        if os.path.exists(inference_script_path):
+            log.info("Importing handlers from model-specific inference script for the model {} found at path {}.".format(model_name, inference_script_path))
+            handler, input_handler, output_handler = self._import_handlers(inference_script_path)
+            model_handlers = self._make_handler(handler, input_handler, output_handler)
+            self.model_handlers[model_name] = model_handlers
+        else:
+            log.info("Model-specific inference script for the model {} not found at path {}.".format(model_name, inference_script_path))
+
     def _cleanup_config_file(self, config_file):
         if os.path.exists(config_file):
             os.remove(config_file)
@@ -264,8 +287,15 @@ class PythonServiceResource:
 
         try:
             res.status = falcon.HTTP_200
-
-            res.body, res.content_type = self._handlers(data, context)
+            handlers = self._handlers
+            if SAGEMAKER_MULTI_MODEL_ENABLED and model_name in self.model_handlers:
+                log.info("Model-specific inference script for the model {} exists, importing handlers.".format(model_name))
+                handlers = self.model_handlers[model_name]
+            elif not self._default_handlers_enabled:
+                log.info("Universal inference script exists at path {}, importing handlers.".format(INFERENCE_SCRIPT_PATH))
+            else:
+                log.info("Model-specific inference script and universal inference script both do not exist, using default handlers.")
+            res.body, res.content_type = handlers(data, context)
         except Exception as e:  # pylint: disable=broad-except
             log.exception("exception handling request: {}".format(e))
             res.status = falcon.HTTP_500
@@ -276,8 +306,7 @@ class PythonServiceResource:
             log.info("Creating grpc channel for port: %s", grpc_port)
             self._channels[grpc_port] = grpc.insecure_channel("localhost:{}".format(grpc_port))
 
-    def _import_handlers(self):
-        inference_script = INFERENCE_SCRIPT_PATH
+    def _import_handlers(self, inference_script=INFERENCE_SCRIPT_PATH):
         spec = importlib.util.spec_from_file_location("inference", inference_script)
         inference = importlib.util.module_from_spec(spec)
         spec.loader.exec_module(inference)

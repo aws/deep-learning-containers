@@ -8,8 +8,6 @@ pip_packages:
   - autogluon.features
   - autogluon.mxnet
   - autogluon.tabular
-  - autogluon.text
-  - autogluon.vision
   - awscli
   - awsio
   - boto3
