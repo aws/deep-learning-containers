@@ -1,7 +1,7 @@
 ARG PYTHON=python3
 ARG PYTHON_VERSION=3.10.8
 ARG PYTHON_SHORT_VERSION=3.10
-ARG MAMBA_VERSION=22.11.1-4
+ARG MAMBA_VERSION=23.1.0-1
 ARG PYTORCH_VERSION=2.0.0
 
 # SMD binaries
@@ -34,7 +34,7 @@ ARG MAMBA_VERSION
 
 ARG CUBLAS_VERSION=11.11.3.6
 ARG EFA_PATH=/opt/amazon/efa
-ARG CUDA_HOME=/usr/local/cuda
+ARG CUDA_HOME=/opt/conda/
 
 # This arg required to stop docker build waiting for region configuration while installing tz data from ubuntu 20
 ARG DEBIAN_FRONTEND=noninteractive
@@ -74,10 +74,10 @@ RUN apt-get update \
     build-essential \
     ca-certificates \
     cmake \
-    cuda-toolkit-11-8 \
-    cuda-command-line-tools-11-8 \
-    cuda-nvcc-11-8 \
-    libcudnn8=$CUDNN_VERSION-1+cuda11.8 \
+    # cuda-toolkit-11-8 \
+    # cuda-command-line-tools-11-8 \
+    # cuda-nvcc-11-8 \
+    # libcudnn8=$CUDNN_VERSION-1+cuda11.8 \
     curl \
     emacs \
     git \
@@ -103,58 +103,19 @@ RUN apt-get update \
     vim \
     wget \
     zlib1g-dev \
+    autoconf \
  && rm -rf /var/lib/apt/lists/* \
  && apt-get clean
-
-# Install NCCL
-RUN cd /tmp \
- && git clone https://github.com/NVIDIA/nccl.git -b v${NCCL_VERSION}-1 \
- && cd nccl \
- && make -j64 src.build BUILDDIR=/usr/local \
- && rm -rf /tmp/nccl
-
-# Install EFA alone without AWS OPEN_MPI
-RUN mkdir /tmp/efa \
- && cd /tmp/efa \
- && curl -O https://s3-us-west-2.amazonaws.com/aws-efa-installer/aws-efa-installer-${EFA_VERSION}.tar.gz \
- && tar -xf aws-efa-installer-${EFA_VERSION}.tar.gz \
- && cd aws-efa-installer \
- && apt-get update \
- && ./efa_installer.sh -y --skip-kmod -g \
- && rm -rf $OPEN_MPI_PATH \
- && rm -rf /tmp/efa \
- && rm -rf /tmp/aws-efa-installer-${EFA_VERSION}.tar.gz \
- && rm -rf /var/lib/apt/lists/* \
- && apt-get clean
-
-# Install OpenMPI without libfabric support
-RUN mkdir /tmp/openmpi \
- && cd /tmp/openmpi \
- && wget --quiet https://download.open-mpi.org/release/open-mpi/v4.1/openmpi-${OMPI_VERSION}.tar.gz \
- && tar zxf openmpi-${OMPI_VERSION}.tar.gz \
- && cd openmpi-${OMPI_VERSION} \
- && ./configure --enable-orterun-prefix-by-default --prefix=$OPEN_MPI_PATH --with-cuda \
- && make -j $(nproc) all \
- && make install \
- && ldconfig \
- && cd / \
- && rm -rf /tmp/openmpi
-
-ENV PATH="$OPEN_MPI_PATH/bin:$PATH"
-ENV LD_LIBRARY_PATH=$OPEN_MPI_PATH/lib/:$EFA_PATH/lib/:$LD_LIBRARY_PATH
 
 # for conda ssl verification
 ENV REQUESTS_CA_BUNDLE=/etc/ssl/certs/ca-certificates.crt
-RUN ompi_info --parsable --all | grep mpi_built_with_cuda_support:value \
- && curl -L -o ~/mambaforge.sh https://github.com/conda-forge/miniforge/releases/download/${MAMBA_VERSION}/Mambaforge-${MAMBA_VERSION}-Linux-x86_64.sh \
+RUN curl -L -o ~/mambaforge.sh https://github.com/conda-forge/miniforge/releases/download/${MAMBA_VERSION}/Mambaforge-${MAMBA_VERSION}-Linux-x86_64.sh \
  && chmod +x ~/mambaforge.sh \
  && ~/mambaforge.sh -b -p /opt/conda \
  && rm ~/mambaforge.sh 
 
 # Install core dependency conda packages
 RUN /opt/conda/bin/mamba install -y -c conda-forge \
-    # pin in PT2.0 to consume cryptography CVE fix
-    conda=23.1.0 \
     # patch CVE
     "cryptography>39.0.0" \
     pyopenssl \
@@ -170,8 +131,8 @@ RUN /opt/conda/bin/mamba install -y -c conda-forge \
     h5py
     
 # Install ec2 PyTorch
-RUN /opt/conda/bin/mamba install pytorch=${PYTORCH_VERSION} \
-  torchvision torchaudio torchtext aws-ofi-nccl-dlc pytorch-cuda=11.8 \
+RUN /opt/conda/bin/mamba install -y pytorch=${PYTORCH_VERSION} \
+  torchvision torchaudio torchtext aws-ofi-nccl-dlc pytorch-cuda=11.8 cuda-toolkit=11.8 \
   --override-channels \
   -c https://aws-ml-conda-pre-prod-ec2.s3.us-west-2.amazonaws.com \
   -c nvidia/label/cuda-11.8.0 -c conda-forge
@@ -209,6 +170,44 @@ RUN /opt/conda/bin/mamba install -y -c conda-forge \
   && /opt/conda/bin/mamba clean -afy \
   && rm -rf /etc/apt/sources.list.d/*
 
+# Install NCCL
+RUN cd /tmp \
+ && git clone https://github.com/NVIDIA/nccl.git -b v${NCCL_VERSION}-1 \
+ && cd nccl \
+ && make -j64 src.build BUILDDIR=/usr/local CUDA_LIB=${CUDA_HOME}/lib \
+ && rm -rf /tmp/nccl
+
+# Install EFA alone without AWS OPEN_MPI
+RUN mkdir /tmp/efa \
+ && cd /tmp/efa \
+ && curl -O https://s3-us-west-2.amazonaws.com/aws-efa-installer/aws-efa-installer-${EFA_VERSION}.tar.gz \
+ && tar -xf aws-efa-installer-${EFA_VERSION}.tar.gz \
+ && cd aws-efa-installer \
+ && apt-get update \
+ && ./efa_installer.sh -y --skip-kmod -g \
+ && rm -rf $OPEN_MPI_PATH \
+ && rm -rf /tmp/efa \
+ && rm -rf /tmp/aws-efa-installer-${EFA_VERSION}.tar.gz \
+ && rm -rf /var/lib/apt/lists/* \
+ && apt-get clean
+
+# Install OpenMPI without libfabric support
+RUN mkdir /tmp/openmpi \
+ && cd /tmp/openmpi \
+ && wget --quiet https://download.open-mpi.org/release/open-mpi/v4.1/openmpi-${OMPI_VERSION}.tar.gz \
+ && tar zxf openmpi-${OMPI_VERSION}.tar.gz \
+ && cd openmpi-${OMPI_VERSION} \
+ && ./configure --enable-orterun-prefix-by-default --prefix=$OPEN_MPI_PATH --with-cuda=/opt/conda/ \
+ && make -j $(nproc) all \
+ && make install \
+ && ldconfig \
+ && cd / \
+ && rm -rf /tmp/openmpi \
+ && ompi_info --parsable --all | grep mpi_built_with_cuda_support:value
+
+ENV PATH="$OPEN_MPI_PATH/bin:$PATH"
+ENV LD_LIBRARY_PATH=$OPEN_MPI_PATH/lib/:$EFA_PATH/lib/:$LD_LIBRARY_PATH
+
 RUN pip install --no-cache-dir --upgrade pip --no-cache-dir --trusted-host pypi.org --trusted-host files.pythonhosted.org \
  && ln -s /opt/conda/bin/pip /usr/local/bin/pip3 
 
@@ -223,23 +222,6 @@ RUN mv $OPEN_MPI_PATH/bin/mpirun $OPEN_MPI_PATH/bin/mpirun.real \
  && echo "rmaps_base_mapping_policy = slot" >> $OPEN_MPI_PATH/etc/openmpi-mca-params.conf \
  && echo NCCL_DEBUG=INFO >> /etc/nccl.conf \
  && echo NCCL_SOCKET_IFNAME=^docker0 >> /etc/nccl.conf
-
-# Install AWS OFI NCCL plug-in
-RUN apt-get update && apt-get install -y autoconf
-RUN mkdir /tmp/efa-ofi-nccl \
- && cd /tmp/efa-ofi-nccl \
- && git clone https://github.com/aws/aws-ofi-nccl.git -b v${BRANCH_OFI} \
- && cd aws-ofi-nccl \
- && ./autogen.sh \
- && ./configure --with-libfabric=/opt/amazon/efa \
-  --with-mpi=/opt/amazon/openmpi \
-  --with-cuda=/usr/local/cuda \
-  --with-nccl=/usr/local --prefix=/usr/local \
- && make \
- && make install \
- && rm -rf /tmp/efa-ofi-nccl \
- && rm -rf /var/lib/apt/lists/* \
- && apt-get clean
 
 # Install OpenSSH for MPI to communicate between containers, allow OpenSSH to talk to containers without asking for confirmation
 RUN apt-get update \
@@ -266,8 +248,8 @@ RUN mkdir -p /etc/pki/tls/certs && cp /etc/ssl/certs/ca-certificates.crt /etc/pk
 
 # Install Horovod (needs pytorch)
 RUN pip uninstall -y horovod \
- && ldconfig /usr/local/cuda-11.8/targets/x86_64-linux/lib/stubs \
- && HOROVOD_GPU_ALLREDUCE=NCCL HOROVOD_CUDA_HOME=/usr/local/cuda-11.8 HOROVOD_WITH_PYTORCH=1 pip install --no-cache-dir horovod==${HOROVOD_VERSION} \
+#  && ldconfig /usr/local/cuda-11.8/targets/x86_64-linux/lib/stubs \
+ && HOROVOD_GPU_ALLREDUCE=NCCL HOROVOD_CUDA_HOME=${CUDA_HOME} HOROVOD_WITH_PYTORCH=1 pip install --no-cache-dir horovod==${HOROVOD_VERSION} \
  && ldconfig
 
 RUN curl -o /license.txt https://aws-dlc-licenses.s3.amazonaws.com/pytorch-2.0/license.txt
@@ -378,7 +360,6 @@ ARG PT_TORCHDATA_URL
 # force remove to prevent removing all packages depending on pytorch
 RUN /opt/conda/bin/conda remove --force pytorch \
   && /opt/conda/bin/mamba install -y pytorch=${PYTORCH_VERSION} \
-  pytorch-cuda=11.8 \
   --override-channels \
   -c https://aws-ml-conda-pre-prod-sm.s3.us-west-2.amazonaws.com \
   -c conda-forge
