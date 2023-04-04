@@ -17,6 +17,7 @@ import os
 import re
 import requests
 import json
+import time
 
 from multi_model_utils import timeout
 from urllib3.util.retry import Retry
@@ -261,7 +262,7 @@ def wait_for_model(rest_port, model_name, timeout_seconds, pid=None):
     which might cause total timeout longer than timeout_seconds
     """
     tfs_url = "http://localhost:{}/v1/models/{}".format(rest_port, model_name)
-
+    start = time.time()
     try:
         session = requests.Session()
         backoff_factor = 0.1
@@ -273,11 +274,15 @@ def wait_for_model(rest_port, model_name, timeout_seconds, pid=None):
             "Trying to connect with model server: {} with timeout : {} and retry : {}".format(tfs_url, timeout_seconds,
                                                                                               retry_count))
         response = session.get(tfs_url, timeout=0.1)
-        log.info(response)
+        log.info(
+            f'tfs response status_code: {response.status_code} with content : {json.loads(response.content)}')
+        end = time.time()
         if response.status_code == 200:
-            versions = json.loads(response.content)["model_version_status"]
-            if all(version["state"] == "AVAILABLE" for version in versions):
+            if is_model_ready(response):
                 return
+            elif wait_for_model_ready(tfs_url, timeout_seconds - int(end - start)):
+                return
+
         raise MultiModelException(408, "Timed out after {} seconds".format(timeout_seconds), pid)
     except (
             ConnectionRefusedError,
@@ -286,6 +291,28 @@ def wait_for_model(rest_port, model_name, timeout_seconds, pid=None):
             requests.exceptions.ConnectionError,
     ):
         raise MultiModelException(408, "Timed out after {} seconds".format(timeout_seconds), pid)
+
+
+def is_model_ready(response):
+    versions = json.loads(response.content)["model_version_status"]
+    if all(version["state"] == "AVAILABLE" for version in versions):
+        return True
+    return False
+
+
+def wait_for_model_ready(url, timeout_seconds):
+    try:
+        while timeout_seconds > 0:
+            response = requests.get(url, timeout=0.1)
+            log.info(f'wait_for_model_ready response status_code : {response.status_code} '
+                     f'response : {json.loads(response.content)} timeout in : {timeout_seconds}s')
+            if response.status_code != 200:
+                return False
+            if is_model_ready(response):
+                return True
+            timeout_seconds -= 1
+    except requests.exceptions.RequestException:
+        return False
 
 
 def retry_from_timeout(timeout_seconds, backoff_factor):
