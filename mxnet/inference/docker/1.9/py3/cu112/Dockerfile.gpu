@@ -95,7 +95,9 @@ RUN pip install --upgrade pip --trusted-host pypi.org --trusted-host files.pytho
     "protobuf>=3.20.2,<3.21" \
     "wheel>=0.38.0" \
     # setuptools is installed while the installation of python
-    "setuptools>=66.0.0"
+    "setuptools>=66.0.0" \
+    # Upper bound pin matplotlib, as it creates dependency conflict with numpy
+    "matplotlib<3.7"
 
 # This is here to make our installed version of OpenCV work.
 # https://stackoverflow.com/questions/29274638/opencv-libdc1394-error-failed-to-initialize-libdc1394

@@ -56,6 +56,31 @@
       "name": "CVE-2022-3996",
       "package_name": "cryptography",
       "package_details": {
+        "file_path": "opt/conda/lib/python3.9/site-packages/cryptography-38.0.4.dist-info/METADATA",
+        "name": "cryptography",
+        "package_manager": "PYTHONPKG",
+        "version": "38.0.4",
+        "release": null
+      },
+      "remediation": { "recommendation": { "text": "None Provided" } },
+      "cvss_v3_score": 7.5,
+      "cvss_v30_score": 0.0,
+      "cvss_v31_score": 7.5,
+      "cvss_v2_score": 0.0,
+      "cvss_v3_severity": "HIGH",
+      "source_url": "https://people.canonical.com/~ubuntu-security/cve/2022/CVE-2022-3996.html",
+      "source": "UBUNTU_CVE",
+      "severity": "LOW",
+      "status": "ACTIVE",
+      "title": "CVE-2022-3996 - cryptography"
+    },
+    {
+      "reason_to_ignore": "doesn't affect focal",
+      "description": " If an X.509 certificate contains a malformed policy constraint and policy processing is enabled, then a write lock will be taken twice recursively. On some operating systems (most widely: Windows) this results in a denial of service when the affected process hangs. Policy processing being enabled on a publicly facing server is not considered to be a common setup. Policy processing is enabled by passing the `-policy' argument to the command line utilities or by calling either `X509_VERIFY_PARAM_add0_policy()' or `X509_VERIFY_PARAM_set1_policies()' functions.",
+      "vulnerability_id": "CVE-2022-3996",
+      "name": "CVE-2022-3996",
+      "package_name": "cryptography",
+      "package_details": {
         "file_path": "opt/conda/lib/python3.9/site-packages/cryptography-39.0.0.dist-info/METADATA",
         "name": "cryptography",
         "package_manager": "PYTHONPKG",

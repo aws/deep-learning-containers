@@ -3,8 +3,8 @@ import os
 from pprint import pprint
 
 import yaml
-from autogluon.vision import ImagePredictor
-
+from autogluon.multimodal import MultiModalPredictor
+from autogluon.multimodal.utils.misc import shopee_dataset
 
 def get_input_path(path):
     file = os.listdir(path)[0]
@@ -51,9 +51,8 @@ if __name__ == '__main__':
         config['num_gpus'] = int(args.n_gpus)
 
     # ---------------------------------------------------------------- Training
-
-    train_dataset, val_dataset, test_dataset = ImagePredictor.Dataset.from_folders(config['dataset'])
-
+    download_dir = './ag_automm_tutorial_hpo'
+    train_dataset, test_dataset = shopee_dataset(download_dir)
     ag_predictor_args = config['ag_predictor_args']
     ag_predictor_args['path'] = args.model_dir
     ag_fit_args = config['ag_fit_args']
@@ -61,7 +60,7 @@ if __name__ == '__main__':
     print('Running training job with the config:')
     pprint(config)
 
-    predictor = ImagePredictor(**ag_predictor_args).fit(train_dataset, **ag_fit_args)
+    predictor = MultiModalPredictor(**ag_predictor_args).fit(train_data = train_dataset, **ag_fit_args)
     predictor.save(f'{args.model_dir}/predictor.pkl')
 
     # --------------------------------------------------------------- Inference

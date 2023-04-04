@@ -207,7 +207,7 @@ RUN pip install --no-cache-dir -U \
     "click==8.1.2,<9" \
     "cmake>=3.24.3,<3.25" \
     cryptography \
-    "ipython>=8.6.0,<8.7" \
+    ipython \
     "mpi4py>=3.1.4,<3.2" \
     "opencv-python>=4.6.0,<4.7" \
     packaging \

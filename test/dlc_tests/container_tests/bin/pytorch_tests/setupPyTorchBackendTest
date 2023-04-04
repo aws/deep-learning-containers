@@ -1,18 +1,34 @@
 #!/bin/bash
 
-HOME_DIR=/test
+set -e
 
-cd ${HOME_DIR}
-# tmp fix for numpy deprecations, PR raised: https://github.com/HewlettPackard/dlcookbook-dlbs/pull/19
-git clone https://github.com/ShiboXing/dlcookbook-dlbs ./dlbs -b fix-numpy --single-branch --depth 1
-source dlbs/scripts/environment.sh
-sed -i "s/model = DDP(model, shared_param=True)/model = DDP(model, [opts['local_rank']], opts['local_rank'])/g" dlbs/python/pytorch_benchmarks/benchmarks.py
-sed -i '/from apex.fp16_utils import network_to_half, prep_param_lists, model_grads_to_master_grads, master_params_to_model_params/,/raise ImportError("Please install apex from https:\/\/www.github.com\/nvidia\/apex to run this example.")/d' dlbs/python/pytorch_benchmarks/benchmarks.py
-sed -i '/try:[ ]*$/{N;s/try:\s*from apex.parallel import DistributedDataParallel as DDP/from torch.nn.parallel import DistributedDataParallel as DDP/}' dlbs/python/pytorch_benchmarks/benchmarks.py
-sed -i 's/traceback.print_exc(file=sys.stdout)/traceback.print_exc(file=sys.stdout)\n        raise/g' dlbs/python/pytorch_benchmarks/benchmarks.py
+# initialize directories
+export HOME_DIR=/test
+export BIN_DIR=${HOME_DIR}/bin
+export LOG_DIR=${HOME_DIR}/logs
+export AWS_LOG_DIR=$LOG_DIR/aws_log/
+export OSS_LOG_DIR=$LOG_DIR/oss_log/
+mkdir -p $AWS_LOG_DIR $OSS_LOG_DIR
 
-RETURN_VAL=$(python -c "import sys; print(int(sys.version_info < (3, 7)));")
-if [ ${RETURN_VAL} -eq 0 ]; then
-    sed -i 's/async=True/non_blocking=True/g' dlbs/python/pytorch_benchmarks/dataset_factory.py
-    echo "Python version greater than or equal to 3.7, replacing asyc with non_blocking in test script"
+git config --global user.email "you@example.com"
+git config --global user.name "Your Name"
+
+# activate conda env (to prevent duplicate pip install)
+conda init
+source ~/.bashrc
+
+# setup benchmark repo
+git clone https://github.com/pytorch/benchmark
+pushd benchmark
+git reset --hard 0faa0142
+git am -3 ${BIN_DIR}/pytorch_tests/0001-test-adapt-BERT_pytorch-training-with-gloo-mpi-backend.patch
+pip install -r requirements.txt
+
+# check GPU status
+if nvidia-smi &> /dev/null; then
+   DEVICE="cuda"
+   NUM_GPUS=$(nvidia-smi -L | wc -l)
+else
+   DEVICE="cpu"
+   NUM_GPUS=0
 fi

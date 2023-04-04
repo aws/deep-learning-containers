@@ -4,13 +4,41 @@ HOME_DIR=/test
 BIN_DIR=${HOME_DIR}/bin
 LOG_DIR=${HOME_DIR}/logs
 
-TORCHDATA_DEV_BRANCH_PREFIX="torchdata_pt_"
-TORCHDATA_DEV_REPO="https://github.com/ShiboXing/data.git"
-TORCHDATA_TEST_SCRIPT="data/test/test_remote_io.py"
-VERSION=$(python -c "import torch; print(torch.__version__.split('+')[0])")
+TORCHDATA_REPO="https://github.com/pytorch/data.git"
+TORCHDATA_TEST_SCRIPT="test/test_remote_io.py"
+IS_PT_111=$(python -c "import torch; print('true') if '1.11.0' in torch.__version__ else print('false')")
+TORCHDATA_RELEASE_TAG=$(python -c "import torchdata; torchdata_versions = torchdata.__version__.split('.'); print(f'release/{torchdata_versions[0]}.{torchdata_versions[1]}')")
 
-echo "Fetch Torchdata S3 IO test script."
-git clone -b ${TORCHDATA_DEV_BRANCH_PREFIX}${VERSION} ${TORCHDATA_DEV_REPO}
+## using the commit requires user.email and user.name.. 
+echo adding temp git config user email and name
+git config --global user.email "you@example.com"
+git config --global user.name "Your Name"
+
+echo cloning torchdata repo
+git clone ${TORCHDATA_REPO}
+cd data
+
+## PyTorch 1.11 DLC was built with TorchData 0.4.0 which is meant for PyTorch 1.12 and not PT 1.11
+## This fails the Torchdata 0.4.0 test_remote_io.py at test_http_reader_iterdatapipe due to 
+## Torch not knowing "auth" in 1.11. We need to use TorchData 0.3.0 Branch for testing PyTorch 1.11 DLC
+if ${IS_PT_111}
+then
+    echo "This is PT 1.11.0, checkout release/0.3"
+    git checkout "release/0.3"
+else
+    echo "checkout ${TORCHDATA_RELEASE_TAG}"
+    git checkout ${TORCHDATA_RELEASE_TAG}
+    
+    # Need to patch the test with a couple PRs. PT 1.12.x needs both commits for remote-io test work but PT 1.13.x does not as
+    # the fist commit was already included in PT 1.13.x release branch. 
+    echo "Patching test_remote_io with PR-810 'Changing 1-to-M behaviour of on_disk_cache' for PT 1.12.x"
+    # [PR-810](https://github.com/pytorch/data/pull/810) solves for PT 1.12.x remote-io test. does not change PT 1.13.x
+    git cherry-pick 2a58c306f11225264a2f432f3d483fca61e9576d --strategy-option theirs
+    git commit -a
+    echo "Patching test_remote_io with PR-997 'Fix test_remote_io.py due to mutating public s3 bucket' for PT 1.12.x and PT 1.13.x"
+    # [PR-997](https://github.com/pytorch/data/pull/997) solves PT remote-io test 1.12.x and 1.13.x will not affect PT 2.0
+    git cherry-pick c109c3a107a434db1904cd3ed0e9acab585508cc --strategy-option theirs
+fi
 
 echo "Installing pre-requisites."
 pip install expecttest
@@ -21,10 +49,8 @@ python ${TORCHDATA_TEST_SCRIPT}
 if [ "$?" -eq "0" ]
 then
     echo "Torchdata S3 IO tests succeeded."
+    exit 0
 else
     echo "Torchdata S3 IO tests failed at ${TORCHDATA_DEV_REPO} ${TORCHDATA_DEV_BRANCH} ${TORCHDATA_TEST_SCRIPT}"
     exit 1
 fi
-
-echo "Torchdata S3 IO tests succeeded!"
-exit 0

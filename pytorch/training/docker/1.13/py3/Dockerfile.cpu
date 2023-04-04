@@ -157,7 +157,7 @@ RUN pip install --no-cache-dir --upgrade pip --trusted-host pypi.org --trusted-h
     boto3 \	
     "click==8.1.2,<9" \	
     cryptography \	
-    "ipython>=8.6.0,<8.7" \	
+    ipython \	
     "opencv-python>=4.6.0,<4.7" \	
     packaging \
     Pillow \

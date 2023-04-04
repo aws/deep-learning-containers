@@ -1,0 +1,64 @@
+{
+  "libzmq5": [
+    {
+      "reason_to_ignore": "The current version is marked as a fix version in the CVE notes, and this is the latest version.",
+      "description": "\n It was discovered that ZeroMQ incorrectly handled certain application metadata.\n A remote attacker could use this issue to cause ZeroMQ to crash, or possibly\n execute arbitrary code.",
+      "vulnerability_id": "CVE-2019-13132",
+      "name": "CVE-2019-13132",
+      "package_name": "libzmq5",
+      "package_details": {
+        "file_path": null,
+        "name": "libzmq5",
+        "package_manager": "OS",
+        "version": "4.3.2",
+        "release": "2ubuntu1"
+      },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
+      "cvss_v3_score": 9.8,
+      "cvss_v30_score": 0,
+      "cvss_v31_score": 9.8,
+      "cvss_v2_score": 7.5,
+      "cvss_v3_severity": "CRITICAL",
+      "source_url": "https://people.canonical.com/~ubuntu-security/cve/2019/CVE-2019-13132.html",
+      "source": "UBUNTU_CVE",
+      "severity": "HIGH",
+      "status": "ACTIVE",
+      "title": "CVE-2019-13132 - libzmq5"
+    }
+  ],
+  "rdflib": [
+    {
+      "reason_to_ignore": "This is the latest version of the package.",
+      "description": "## Overview\n[rdflib](https://pypi.org/project/rdflib/) is a Python library for working with RDF, a simple yet powerful language for representing information.\nAffected versions of this package are vulnerable to Server-Side Request Forgery (SSRF). `rdflib` provides no way to control how external references are resolved, nor a way to implement caching of external resources.\r\n\r\nIf a web service takes `POST`ed `JSON-LD` data, `rdflib` will attempt to resolve any URL in the `@context`.\r\nThis can lead to:\r\n1. attackers being able to probe internal networks, by having `rdflib` request potential non-public URLs\r\n2. reflection attacks, if the same or slightly-different URLs are repeated multiple times in the `@context`\r\n3. resource exhaustion, as the entire remote file is loaded into memory before JSON parsing is attempted\r\n4. Denial of Service, if web or task workers are tied up waiting for extended periods for HTTP requests to complete\r\n5. attackers being able to probe the local filesystem using `file://` URLs\n## Rem",
+      "vulnerability_id": "SNYK-PYTHON-RDFLIB-1324490",
+      "name": "SNYK-PYTHON-RDFLIB-1324490",
+      "package_name": "rdflib",
+      "package_details": {
+        "file_path": "opt/conda/lib/python3.9/site-packages/rdflib-6.3.1.dist-info/METADATA",
+        "name": "rdflib",
+        "package_manager": "PYTHONPKG",
+        "version": "6.3.1",
+        "release": null
+      },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
+      "cvss_v3_score": 8.6,
+      "cvss_v30_score": 0,
+      "cvss_v31_score": 8.6,
+      "cvss_v2_score": 0,
+      "cvss_v3_severity": "HIGH",
+      "source_url": "https://security.snyk.io/vuln/SNYK-PYTHON-RDFLIB-1324490",
+      "source": "SNYK",
+      "severity": "HIGH",
+      "status": "ACTIVE",
+      "title": "IN1-PYTHON-RDFLIB-1324490 - rdflib"
+    }
+  ]
+}

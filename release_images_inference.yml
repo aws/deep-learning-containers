@@ -2,23 +2,27 @@
 release_images:
   1:
     framework: "tensorflow"
-    version: "2.3.0"
+    version: "2.11.1"
+    customer_type: "ec2"
     arch_type: "x86"
     inference:
-      device_types: ["eia"]
-      python_versions: ["py37"]
-      os_version: "ubuntu18.04"
-      example: False
-      disable_sm_tag: True
-      force_release: False
-  2:  
-    framework: "pytorch"
-    version: "1.5.1"
-    arch_type: "x86"
-    inference:
-      device_types: ["eia"]
-      python_versions: ["py38"]
+      device_types: ["cpu", "gpu"]
+      python_versions: ["py39"]
       os_version: "ubuntu20.04"
+      cuda_version: "cu112"
       example: False
-      disable_sm_tag: True
+      disable_sm_tag: False
+      force_release: False
+  2:
+    framework: "tensorflow"
+    version: "2.11.1"
+    customer_type: "sagemaker"
+    arch_type: "x86"
+    inference:
+      device_types: ["cpu", "gpu"]
+      python_versions: ["py39"]
+      os_version: "ubuntu20.04"
+      cuda_version: "cu112"
+      example: False
+      disable_sm_tag: False
       force_release: False
