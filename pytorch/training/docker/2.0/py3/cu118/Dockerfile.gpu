@@ -165,8 +165,9 @@ RUN /opt/conda/bin/mamba install -y -c conda-forge \
   && pip uninstall -y dataclasses \
   && pip install \
     torchtnt \
-  # explicitly install triton needed by conda torchtriton, otherwise pypi dependencies cmake and lit would be missing
-    triton \
+  # explicitly install triton build-time dependencies, which won't get installed by conda for some reason
+    cmake \
+    lit \
   && /opt/conda/bin/mamba clean -afy \
   && rm -rf /etc/apt/sources.list.d/*
 
