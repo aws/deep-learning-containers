@@ -116,7 +116,7 @@ def execute_ec2_training_performance_test(
 
     # Make sure we are logged into ECR so we can pull the image
     connection.run(f"$(aws ecr get-login --no-include-email --region {region})", hide=True)
-    connection.run(f"{docker_cmd} pull {ecr_uri}", hide=out) # this line fixes the time out issue
+    connection.run(f"{docker_cmd} pull {ecr_uri}", hide='out') # this line fixes the time out issue
 
     # Run training command
     connection.run(

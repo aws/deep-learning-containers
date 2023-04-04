@@ -55,7 +55,7 @@ fi
 
 cd $BIN_DIR/pytorch
 
-python benchmarks/dynamo/runner.py --training --suites=torchbench --dtypes=amp --compilers=inductor --output-dir=huggingface_logs --extra-args='--output-directory=./' > $TRAINING_LOG 2>&1 
+python benchmarks/dynamo/runner.py --training --suites=torchbench --dtypes=amp --compilers=inductor --output-dir=huggingface_logs --extra-args='--output-directory=./'
 
 RETURN_VAL=`echo $?`
 set -e
@@ -64,7 +64,7 @@ if [ ${RETURN_VAL} -eq 0 ]; then
     echo "Training Torchbench Complete using PyTorch Inductor."
 else
     echo "Training Torchbench Failed using PyTorch Inductor."
-    cat $TRAINING_LOG
+    #cat $TRAINING_LOG
     exit 1
 fi
 
