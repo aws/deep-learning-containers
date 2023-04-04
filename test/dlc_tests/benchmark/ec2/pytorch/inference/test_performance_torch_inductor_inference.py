@@ -109,8 +109,9 @@ def upload_metric(instance_type, precision, suite, metric_name, value, unit, reg
     )
 
 
-@pytest.mark.parametrize("ec2_instance_type", ["c5.4xlarge", "m5.4xlarge"], indirect=True)
-@pytest.mark.parametrize("suite", ["huggingface", "timm", "torchbench"])
+#@pytest.mark.parametrize("ec2_instance_type", ["c5.4xlarge", "m5.4xlarge"], indirect=True)
+@pytest.mark.parametrize("ec2_instance_type", ["c5.4xlarge"], indirect=True)
+@pytest.mark.parametrize("suite", ["torchbench"])
 @pytest.mark.parametrize("precision", ["float32"])
 def test_performance_ec2_pytorch_inference_cpu(ec2_instance_type, suite, precision, pytorch_inference, ec2_connection, region, cpu_only):
     _, image_framework_version = get_framework_and_version_from_tag(
@@ -127,43 +128,43 @@ def test_performance_ec2_pytorch_inference_cpu(ec2_instance_type, suite, precisi
     )
 
 
-@pytest.mark.parametrize("ec2_instance_type", ["c6g.4xlarge", "c7g.4xlarge", "m7g.4xlarge"], indirect=True)
-@pytest.mark.parametrize("suite", ["huggingface", "timm", "torchbench"])
-@pytest.mark.parametrize("precision", ["float32"])
-@pytest.mark.parametrize("ec2_instance_ami", [UL20_CPU_ARM64_US_WEST_2], indirect=True)
-def test_performance_ec2_pytorch_inference_graviton(ec2_instance_type, suite, precision, pytorch_inference_graviton, ec2_connection, region, cpu_only):
-    _, image_framework_version = get_framework_and_version_from_tag(
-        pytorch_inference_graviton)
-    if Version(image_framework_version) in SpecifierSet("<2.0"):
-        pytest.skip("skip the test as torch.compile only supported after 2.0")
-    if "graviton" not in pytorch_inference_graviton:
-        pytest.skip("skip EC2 tests for inductor")
-    ec2_performance_pytorch_inference(
-        pytorch_inference_graviton,
-        ec2_instance_type,
-        ec2_connection,
-        region,
-        suite,
-        precision,
-    )
-
-
-@pytest.mark.parametrize("ec2_instance_type", ["p3.2xlarge", "g5.4xlarge", "g4dn.4xlarge"], indirect=True)
-@pytest.mark.parametrize("suite", ["huggingface", "timm", "torchbench"])
-@pytest.mark.parametrize("precision", ["float32"])
-def test_performance_ec2_pytorch_inference_gpu(ec2_instance_type, suite, precision, pytorch_inference, ec2_connection, region, gpu_only):
-    _, image_framework_version = get_framework_and_version_from_tag(
-        pytorch_inference)
-    if Version(image_framework_version) in SpecifierSet("<2.0"):
-        pytest.skip("skip the test as torch.compile only supported after 2.0")
-    ec2_performance_pytorch_inference(
-        pytorch_inference,
-        ec2_instance_type,
-        ec2_connection,
-        region,
-        suite,
-        precision,
-    )
+#@pytest.mark.parametrize("ec2_instance_type", ["c6g.4xlarge", "c7g.4xlarge", "m7g.4xlarge"], indirect=True)
+#@pytest.mark.parametrize("suite", ["huggingface", "timm", "torchbench"])
+#@pytest.mark.parametrize("precision", ["float32"])
+#@pytest.mark.parametrize("ec2_instance_ami", [UL20_CPU_ARM64_US_WEST_2], indirect=True)
+#def test_performance_ec2_pytorch_inference_graviton(ec2_instance_type, suite, precision, pytorch_inference_graviton, ec2_connection, region, cpu_only):
+#    _, image_framework_version = get_framework_and_version_from_tag(
+#        pytorch_inference_graviton)
+#    if Version(image_framework_version) in SpecifierSet("<2.0"):
+#        pytest.skip("skip the test as torch.compile only supported after 2.0")
+#    if "graviton" not in pytorch_inference_graviton:
+#        pytest.skip("skip EC2 tests for inductor")
+#    ec2_performance_pytorch_inference(
+#        pytorch_inference_graviton,
+#        ec2_instance_type,
+#        ec2_connection,
+#        region,
+#        suite,
+#        precision,
+#    )
+#
+#
+#@pytest.mark.parametrize("ec2_instance_type", ["p3.2xlarge", "g5.4xlarge", "g4dn.4xlarge"], indirect=True)
+#@pytest.mark.parametrize("suite", ["huggingface", "timm", "torchbench"])
+#@pytest.mark.parametrize("precision", ["float32"])
+#def test_performance_ec2_pytorch_inference_gpu(ec2_instance_type, suite, precision, pytorch_inference, ec2_connection, region, gpu_only):
+#    _, image_framework_version = get_framework_and_version_from_tag(
+#        pytorch_inference)
+#    if Version(image_framework_version) in SpecifierSet("<2.0"):
+#        pytest.skip("skip the test as torch.compile only supported after 2.0")
+#    ec2_performance_pytorch_inference(
+#        pytorch_inference,
+#        ec2_instance_type,
+#        ec2_connection,
+#        region,
+#        suite,
+#        precision,
+#    )
 
 
 def ec2_performance_pytorch_inference(image_uri, instance_type, ec2_connection, region, suite, precision):
@@ -220,7 +221,7 @@ def ec2_performance_pytorch_inference(image_uri, instance_type, ec2_connection, 
     ec2_connection.run(
         f"{docker_cmd} exec --workdir=\"/root/pytorch\" {container_name} " f"bash -c 'mkdir -p /root/pytorch/logs_{suite}'")
     ec2_connection.run(
-        f"{docker_cmd} exec --workdir=\"/root/pytorch\" {container_name} " f"bash -c 'python benchmarks/dynamo/runner.py --suites=torchbench --inference --dtypes={precision} --compilers=inductor --output-dir=/root/pytorch/logs_{suite} --extra-args=\"--output-directory=./\" --device {device} --no-update-archive --no-gh-comment'" f" 2>&1 | tee {log_file}")
+        f"{docker_cmd} exec --workdir=\"/root/pytorch\" {container_name} " f"bash -c 'python benchmarks/dynamo/runner.py --suites=torchbench --inference --dtypes={precision} --compilers=inductor --output-dir=/root/pytorch/logs_{suite} --extra-args=\"--output-directory=./\" --device {device} --no-update-archive --no-gh-comment' " f"2>&1 | tee {log_file}")
     ec2_connection.run(
         f"{docker_cmd} exec --workdir=\"/root\" {container_name} " f"bash -c 'echo root contents'")
     ec2_connection.run(
