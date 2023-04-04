@@ -245,7 +245,7 @@ ARG PT_TORCHVISION_URL
 ARG PT_TORCHAUDIO_URL
 ARG PT_TORCHDATA_URL
 
-# force remove to prevent removing all packages depending on pytorch
+# install sm pytorch, force remove first to prevent removing all packages depending on pytorch
 RUN /opt/conda/bin/conda remove -y --force pytorch \
   && /opt/conda/bin/mamba install -y pytorch=${PYTORCH_VERSION} \
   --override-channels \
