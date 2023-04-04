@@ -476,7 +476,7 @@ def get_ec2_instance_tags(instance_id, region=DEFAULT_REGION, ec2_client=None):
 @retry(stop=stop_after_attempt(16), wait=wait_fixed(60))
 def enforce_IMDSv2(instance_id, hop_limit, region=DEFAULT_REGION, ec2_client=None):
     """
-    Enable IMDSv2 on EC2 instance with hop limit > 1.
+    Enable HTTP TOKENS required option on EC2 instance with given hop limit.
 
     :param instance_id: str, ec2 instance id
     :param region: str, Region where ec2 instance is launched.
