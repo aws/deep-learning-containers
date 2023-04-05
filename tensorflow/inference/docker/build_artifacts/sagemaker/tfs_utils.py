@@ -266,7 +266,7 @@ def wait_for_model(rest_port, model_name, timeout_seconds, pid=None):
     try:
         session = requests.Session()
         backoff_factor = 0.1
-        # sleep = {backoff factor} * (2 ^ ({number of retries left} - 1))
+        # sleep = {backoff factor} * (2 ^ ({number of retries so far} - 1))
         retry_count = retry_from_timeout(timeout_seconds, backoff_factor)
         retries = Retry(total=retry_count, backoff_factor=backoff_factor)
         session.mount("http://", requests.adapters.HTTPAdapter(max_retries=retries))
