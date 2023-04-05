@@ -158,7 +158,7 @@ def execute_endpoint_test(framework_name, image_definition, account_id, sagemake
     tag = f"{framework_version}-{processor}-{python_version}"
 
     retries = "" # " --reruns 2"
-    instance_type = "p2.xlarge"
+    instance_type = "g4dn.xlarge"
     python_version = "3" if "36" in python_version else python_version.lstrip("py")
 
     #test_location = os.path.join("test", "sagemaker_endpoint_tests", framework_name)

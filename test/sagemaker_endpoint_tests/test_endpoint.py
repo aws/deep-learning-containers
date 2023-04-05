@@ -13,11 +13,11 @@ def test_mxnet_endpoint(image_uri, sagemaker_region, instance_type, framework_ve
     prefix = 'sagemaker-mxnet-serving/models'
     sagemaker_session = utils.get_sagemaker_session(sagemaker_region)
     endpoint_name = utils.create_endpoint_name("sagemaker-mxnet-serving")
-    instance_type = instance_type or "ml.p2.xlarge"
+    instance_type = instance_type or "ml.g4dn.xlarge"
     
     try:
         model_data = sagemaker_session.upload_data(path=mx_model_dir, key_prefix=prefix)
-        print("uploaded data")
+        
         model = MXNetModel(
             model_data,
             'SageMakerRole',
@@ -27,7 +27,7 @@ def test_mxnet_endpoint(image_uri, sagemaker_region, instance_type, framework_ve
             image_uri=image_uri,
             sagemaker_session=sagemaker_session
         )
-        print("instantiated model")
+        
         predictor = model.deploy(
             initial_instance_count=1,
             instance_type=instance_type,
@@ -47,7 +47,7 @@ def test_pytorch_endpoint(image_uri, sagemaker_region, instance_type, framework_
     prefix = 'sagemaker-pytorch-serving/models'
     sagemaker_session = utils.get_sagemaker_session(sagemaker_region)
     endpoint_name = utils.create_endpoint_name("sagemaker-pytorch-serving")
-    instance_type = instance_type or "ml.p2.xlarge"
+    instance_type = instance_type or "ml.g4dn.xlarge"
     try:
         model_data = sagemaker_session.upload_data(path=pt_model_dir, key_prefix=prefix)
         model = PyTorchModel(
@@ -59,6 +59,7 @@ def test_pytorch_endpoint(image_uri, sagemaker_region, instance_type, framework_
             image_uri=image_uri,
             sagemaker_session=sagemaker_session
         )
+
         predictor = model.deploy(
             initial_instance_count=1,
             instance_type=instance_type,
@@ -79,7 +80,7 @@ def test_tensorflow_endpoint(image_uri, sagemaker_region, instance_type, framewo
     prefix = 'sagemaker-tensorflow-serving/models'
     sagemaker_session = utils.get_sagemaker_session(sagemaker_region)
     endpoint_name = utils.create_endpoint_name("sagemaker-tensorflow-serving")
-    instance_type = instance_type or "ml.p2.xlarge"
+    instance_type = instance_type or "ml.g4dn.xlarge"
     try:
         model_data = sagemaker_session.upload_data(path=tf_model_dir, key_prefix=prefix)
         model = TensorFlowModel(
@@ -90,6 +91,7 @@ def test_tensorflow_endpoint(image_uri, sagemaker_region, instance_type, framewo
             image_uri=image_uri,
             sagemaker_session=sagemaker_session
         )
+
         predictor = model.deploy(
             initial_instance_count=1,
             instance_type=instance_type,
