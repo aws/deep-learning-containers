@@ -60,13 +60,13 @@ def _find_image_object(images_list, image_name):
 
 
 # TODO: Abstract away to ImageBuilder class
-def image_builder(buildspec, image_types=[], device_types=[], excluded_devices=[]):
+def image_builder(buildspec, image_types=[], device_types=[]):
     """
     Builds images using build specification with specified image and device types
     and export them to ECR image repository
     An empty image types array indicates all image types.
-    Similarly, an empty device types array indicates all device types 
-    :param buildspec: buid specification defining images to be build 
+    Similarly, an empty device types array indicates all device types
+    :param buildspec: buid specification defining images to be build
     :param image_types: <list> list of image types
     :param device_types: <list> list of image device type
     """
@@ -88,9 +88,6 @@ def image_builder(buildspec, image_types=[], device_types=[], excluded_devices=[
 
         # filter by device type if type is specified
         if device_types and not image_config["device_type"] in device_types:
-            continue
-
-        if excluded_devices and image_config["device_type"] in excluded_devices:
             continue
 
         ARTIFACTS = deepcopy(BUILDSPEC["context"]) if BUILDSPEC.get("context") else {}

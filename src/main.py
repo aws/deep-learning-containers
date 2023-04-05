@@ -23,7 +23,6 @@ def main():
     image_types = []
     py_versions = []
     device_types = []
-    excluded_devices = []
 
     if args.device_types != constants.ALL:
         device_types = args.device_types.split(",")
@@ -38,6 +37,7 @@ def main():
     build_context = os.getenv("BUILD_CONTEXT")
     ei_dedicated = os.getenv("EIA_DEDICATED", "false").lower() == "true"
     neuron_dedicated = os.getenv("NEURON_DEDICATED", "false").lower() == "true"
+    neuronx_dedicated = os.getenv("NEURONX_DEDICATED", "false").lower() == "true"
     graviton_dedicated = os.getenv("GRAVITON_DEDICATED", "false").lower() == "true"
     habana_dedicated = os.getenv("HABANA_DEDICATED", "false").lower() == "true"
     hf_trcomp_dedicated = os.getenv("HUGGINFACE_TRCOMP_DEDICATED", "false").lower() == "true"
@@ -78,6 +78,7 @@ def main():
     general_builder_enabled = (
         not ei_dedicated
         and not neuron_dedicated
+        and not neuronx_dedicated
         and not graviton_dedicated
         and not habana_dedicated
         and not hf_trcomp_dedicated
@@ -103,7 +104,7 @@ def main():
     )
 
     neuronx_builder_enabled = (
-        neuronx_build_mode and args.framework in frameworks_to_build and train_or_inf_enabled
+        neuronx_dedicated and neuronx_build_mode and args.framework in frameworks_to_build and train_or_inf_enabled
     )
 
     # A GRAVITON dedicated builder will work if in GRAVITON mode and its framework has not been disabled
@@ -133,12 +134,6 @@ def main():
     assert buildspec_pattern.match(
         os.path.basename(buildspec_file)
     ), f"{buildspec_file} must match {buildspec_pattern.pattern}. Please rename file."
-
-    if build_context == "PR":
-        if not neuron_builder_enabled :
-            excluded_devices.append("neuron")
-        if not neuronx_builder_enabled:
-            excluded_devices.append("neuronx")
 
     # A builder will always work if it is in non-PR context
     if (
