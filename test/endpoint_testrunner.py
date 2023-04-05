@@ -133,7 +133,7 @@ def get_sagemaker_images_from_github(registry, framework, region, image_type, pr
                             "region": region,
                             "repository": f"{framework}-{image_type}",
                             "framework_version": fw_version,
-                            "processor": processor,
+                            "processor": "gpu",
                             "py_version": py_version
                         })
             if processor == "cpu" or processor is None:
@@ -142,7 +142,7 @@ def get_sagemaker_images_from_github(registry, framework, region, image_type, pr
                             "region": region,
                             "repository": f"{framework}-{image_type}",
                             "framework_version": fw_version,
-                            "processor": processor,
+                            "processor": "cpu",
                             "py_version": py_version
                         })
 
