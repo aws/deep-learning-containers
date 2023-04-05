@@ -5,7 +5,7 @@ import datetime
 import pandas as pd
 import os
 import argparse
-from logging import LOGGER
+import logging
 
 AWS_DEFAULT_REGION = "us-west-2"
 
@@ -42,8 +42,8 @@ def put_metric_data(metric_name, namespace, unit, value, dimensions):
             ],
         )
     except ClientError as e:
-        LOGGER.error("Error: Cannot put data to cloudwatch metric: {}".format(metric_name))
-        LOGGER.error("Exception: {}".format(e))
+        logging.error("Error: Cannot put data to cloudwatch metric: {}".format(metric_name))
+        logging.error("Exception: {}".format(e))
         raise e
 
 def read_metric(csv_file):
