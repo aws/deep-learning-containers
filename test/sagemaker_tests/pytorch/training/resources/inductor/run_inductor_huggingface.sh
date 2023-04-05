@@ -37,9 +37,9 @@ RETURN_VAL=`echo $?`
 set -e
 
 if [ ${RETURN_VAL} -eq 0 ]; then
-    echo "Training Huggingface Complete using PyTorch Inductor."
+    echo "Training Huggingface Benchmark Test Complete using PyTorch Inductor."
 else
-    echo "Training Huggingface Failed using PyTorch Inductor."
+    echo "Training Huggingface Benchmark Test Failed using PyTorch Inductor."
     cat $TRAINING_LOG
     exit 1
 fi
