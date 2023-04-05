@@ -63,7 +63,7 @@ class ServiceManager(object):
             os.environ.get("SAGEMAKER_TFS_WAIT_TIME_SECONDS", 55 // self._tfs_instance_count))
         self._tfs_inter_op_parallelism = os.environ.get("SAGEMAKER_TFS_INTER_OP_PARALLELISM", 0)
         self._tfs_intra_op_parallelism = os.environ.get("SAGEMAKER_TFS_INTRA_OP_PARALLELISM", 0)
-        self._gunicorn_worker_class = os.environ.get("SAGEMAKER_GUNICORN_WORKER_CLASS", "gthread")
+        self._gunicorn_worker_class = os.environ.get("SAGEMAKER_GUNICORN_WORKER_CLASS", "gevent")
         self._gunicorn_timeout_seconds = int(
             os.environ.get("SAGEMAKER_GUNICORN_TIMEOUT_SECONDS", 30)
         )
@@ -99,6 +99,12 @@ class ServiceManager(object):
         if _enable_multi_model_endpoint not in ["true", "false"]:
             raise ValueError("SAGEMAKER_MULTI_MODEL must be 'true' or 'false'")
         self._tfs_enable_multi_model_endpoint = _enable_multi_model_endpoint == "true"
+
+        if _enable_multi_model_endpoint == 'true':
+            if self._gunicorn_worker_class != 'gthread':
+                log.warning(
+                    f'Overwrite SAGEMAKER_GUNICORN_WORKER_CLASS {self._gunicorn_worker_class} with gthread for MME')
+                self._gunicorn_worker_class = 'gthread'
 
         self._use_gunicorn = self._enable_python_service or self._tfs_enable_multi_model_endpoint
 
@@ -217,10 +223,6 @@ class ServiceManager(object):
                         log.error("failed to install required packages, exiting.")
                         self._stop()
                         raise ChildProcessError("failed to install required packages.")
-
-        if self._gunicorn_worker_class != 'gthread':
-            log.warning(f'Overwrite SAGEMAKER_GUNICORN_WORKER_CLASS {self._gunicorn_worker_class} with gthread')
-            self._gunicorn_worker_class = 'gthread'
 
         gunicorn_command = (
             "python3 /sagemaker/python_service.py -b unix:/tmp/gunicorn.sock -k {} --chdir /sagemaker "
