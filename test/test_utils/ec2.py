@@ -148,6 +148,11 @@ def launch_instance(
         "TagSpecifications": [
             {"ResourceType": "instance", "Tags": [{"Key": "Name", "Value": f"CI-CD {instance_name}"}],},
         ],
+        "MetadataOptions": {
+            "HttpTokens": "required",
+            "HttpEndpoint": "enabled",
+            'HttpPutResponseHopLimit': 2,
+        },
         "BlockDeviceMappings": [{"DeviceName": "/dev/sda1", "Ebs": {"VolumeSize": 150,}}]
     }
     if user_data:
@@ -466,9 +471,12 @@ def get_ec2_instance_tags(instance_id, region=DEFAULT_REGION, ec2_client=None):
     return {tag["Key"]: tag["Value"] for tag in response.get("Tags")}
 
 
-def enforce_IMDSv2(instance_id, region=DEFAULT_REGION, ec2_client=None, hop_limit = 1):
+# If IMDSv2 is enforced on EC2 instance with hop limit 1 then IMDSv2 api calls doesn't work
+# If IMDSv2 is enforced on EC2 instance with hop limit > 1 then IMDSv2 api calls work
+@retry(stop=stop_after_attempt(16), wait=wait_fixed(60))
+def enforce_IMDSv2(instance_id, hop_limit, region=DEFAULT_REGION, ec2_client=None):
     """
-    Enabled HTTP TOKENS required option on EC2 instance with given hop limit.
+    Enable HTTP TOKENS required option on EC2 instance with given hop limit.
 
     :param instance_id: str, ec2 instance id
     :param region: str, Region where ec2 instance is launched.
@@ -476,7 +484,6 @@ def enforce_IMDSv2(instance_id, region=DEFAULT_REGION, ec2_client=None, hop_limi
     :param hop_limit: str, hop limit to be set on ec2 instance.
     """
     ec2_client = ec2_client or get_ec2_client(region)
-    IMDSv2_enforced = False
     response = ec2_client.modify_instance_metadata_options(
         InstanceId=instance_id,
         HttpTokens='required',
@@ -487,26 +494,47 @@ def enforce_IMDSv2(instance_id, region=DEFAULT_REGION, ec2_client=None, hop_limi
     if not response:
         raise Exception("Unable to enforce IMDSv2. No response received.")
 
-    timeout = 3
+    time.sleep(2)
     state = None
     if response["InstanceId"]:
-        while timeout > 0:
-            time.sleep(timeout)
-            LOGGER.info(f"Slept for: {timeout}")
-            res = ec2_client.describe_instances(InstanceIds=[instance_id])
-            if res:
-                metadata_options = res['Reservations'][0]['Instances'][0]['MetadataOptions']
-                http_tokens = metadata_options['HttpTokens']
-                state = metadata_options['State']
-                instance_hop_limit = metadata_options['HttpPutResponseHopLimit']
-
-                if http_tokens == 'required' and state == 'applied' and hop_limit == instance_hop_limit:
-                    break
-            timeout -= 1
-
-    if state == 'pending' or timeout == 0:
+        res = ec2_client.describe_instances(InstanceIds=[instance_id])
+        if res:
+            metadata_options = res['Reservations'][0]['Instances'][0]['MetadataOptions']
+            state = metadata_options['State']
+            LOGGER.info(f"Modify Metadata options of EC2 instance: {metadata_options}")
+    if state != "applied":
         raise Exception("Unable to enforce IMDSv2. Describe instance is not able to confirm if IMDSv2 enforced.")
-    LOGGER.info(f"Modify Metadata options State of EC2 instance: {state}")
+
+
+@retry(stop=stop_after_attempt(16), wait=wait_fixed(60))
+def enforce_IMDSv1(instance_id, region=DEFAULT_REGION, ec2_client=None):
+    """
+    Enabled IMDSv1 on EC2 instance.
+
+    :param instance_id: str, ec2 instance id
+    :param region: str, Region where ec2 instance is launched.
+    :param ec2_client: str, ec2 client.
+    :param hop_limit: str, hop limit to be set on ec2 instance.
+    """
+    ec2_client = ec2_client or get_ec2_client(region)
+    response = ec2_client.modify_instance_metadata_options(
+        InstanceId=instance_id,
+        HttpTokens='optional',
+        HttpPutResponseHopLimit=1
+    )
+
+    if not response:
+        raise Exception("Unable to enforce IMDSv1. No response received.")
+    time.sleep(2)
+    state = None
+    if response["InstanceId"]:
+        res = ec2_client.describe_instances(InstanceIds=[instance_id])
+        if res:
+            metadata_options = res['Reservations'][0]['Instances'][0]['MetadataOptions']
+            state = metadata_options['State']
+            LOGGER.info(f"Modify Metadata options of EC2 instance: {metadata_options}")
+    if state != "applied":
+        raise Exception("Unable to enforce IMDSv1. Describe instance is not able to confirm if IMDSv1 enforced.")
 
 
 def fetch_s3_file_and_get_last_line(s3_location, local_filename="temp.txt"):
