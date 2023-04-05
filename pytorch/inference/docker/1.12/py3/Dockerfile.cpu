@@ -147,7 +147,6 @@ RUN pip install --upgrade pip --trusted-host pypi.org --trusted-host files.pytho
  && pip install --no-cache-dir -U \
     "awscli<2" \
     boto3 \
-    cryptography \
     enum-compat==0.0.3 \
     ipython \
     numpy==1.22.2 \
@@ -158,6 +157,10 @@ RUN pip install --upgrade pip --trusted-host pypi.org --trusted-host files.pytho
     scipy \
  && pip uninstall -y torch torchvision torchaudio torchdata \
  && pip install --no-cache-dir -U ${PT_INFERENCE_URL} ${PT_TORCHVISION_URL} ${PT_TORCHAUDIO_URL} ${PT_TORCHDATA_URL}
+
+# installed separately to ensure matching versions of both packages are installed
+# resolves an incompatibility issue between cryptography and pyopenssl
+RUN pip install -U pyOpenSSL cryptography
 
 # add necessary certificate for aws sdk cpp download
 RUN mkdir -p /etc/pki/tls/certs && cp /etc/ssl/certs/ca-certificates.crt /etc/pki/tls/certs/ca-bundle.crt
@@ -222,8 +225,6 @@ LABEL com.amazonaws.sagemaker.capabilities.multi-models=true
 ARG PYTHON
 
 ENV SAGEMAKER_SERVING_MODULE sagemaker_pytorch_serving_container.serving:main
-
-RUN pip install -U pyOpenSSL cryptography
 
 # Install scikit-learn and pandas
 RUN conda install -y -c conda-forge \

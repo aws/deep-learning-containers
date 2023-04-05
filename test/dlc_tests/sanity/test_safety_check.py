@@ -706,6 +706,10 @@ IGNORE_SAFETY_IDS = {
                 # for cryptography until e have 39.0.0 release
                 "51159",
                 "51358",
+                # for torch issue addressed in v1.13.1
+                "54718",
+                # for wheel issue addressed 0.38.1
+                "51499"
             ]
         },
         "inference-eia": {"py3": []},
