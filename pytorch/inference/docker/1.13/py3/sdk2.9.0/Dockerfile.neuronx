@@ -147,6 +147,8 @@ RUN HOME_DIR=/root \
  && chmod +x ${HOME_DIR}/oss_compliance/generate_oss_compliance.sh \
  && ${HOME_DIR}/oss_compliance/generate_oss_compliance.sh ${HOME_DIR} ${PYTHON} \
  && rm -rf ${HOME_DIR}/oss_compliance*
+ # conda leaves an empty /root/.cache/conda/notices.cache file which is not removed by conda clean -ya
+ && rm -rf ${HOME_DIR}/.cache/conda
 
 RUN curl https://aws-dlc-licenses.s3.amazonaws.com/pytorch-1.13/license.txt -o /license.txt
 
