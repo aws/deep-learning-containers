@@ -10,17 +10,10 @@
 # distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF
 # ANY KIND, either express or implied. See the License for the specific
 # language governing permissions and limitations under the License.
-import contextlib
-import json
 import boto3
-import logging
-import os
 import sagemaker
 import botocore
-
 from sagemaker import utils
-
-LOGGER = logging.getLogger(__name__)
 
 
 def _botocore_resolver():
@@ -43,8 +36,23 @@ def get_ecr_registry(account, region):
     return f'{account}.dkr.{endpoint_data["hostname"]}'
 
 
-def get_sagemaker_session(region, default_bucket=None):
-    return sagemaker.Session(boto_session=boto3.Session(region_name=region), default_bucket=default_bucket)
+def get_sagemaker_session(region, default_bucket=None) -> sagemaker.Session:
+    """
+    Initiates a SageMaker session in specified SageMaker region
+    optonally setting the default bucket
+    :param region: SageMaker region
+    :param default_bucket: default bucket
+    :return: returns a SageMaker session
+    """
+    return sagemaker.Session(
+        boto_session=boto3.Session(region_name=region),
+        default_bucket=default_bucket
+    )
 
-def create_endpoint_name(prefix):
+def create_endpoint_name(prefix) -> str:
+    """
+    Returns unique name for the endpoint
+    :param prefix: A prefix for the unique name
+    :return: str unique endpoint name
+    """
     return utils.unique_name_from_base(prefix)

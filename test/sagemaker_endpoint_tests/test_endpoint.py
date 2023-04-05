@@ -23,6 +23,7 @@ def test_mxnet_endpoint(image_uri, sagemaker_region, instance_type, framework_ve
             'SageMakerRole',
             mx_model_script,
             framework_version=framework_version,
+            py_version=py_version,
             image_uri=image_uri,
             sagemaker_session=sagemaker_session
         )
@@ -73,7 +74,7 @@ def test_pytorch_endpoint(image_uri, sagemaker_region, instance_type, framework_
 
 
 @pytest.mark.sagemaker_endpoint("tensorflow")
-def test_tensorflow_endpoint(image_uri, sagemaker_region, instance_type, framework_version, py_version, tf_model_dir, tf_model_script):
+def test_tensorflow_endpoint(image_uri, sagemaker_region, instance_type, framework_version, tf_model_dir, tf_model_script):
 
     prefix = 'sagemaker-tensorflow-serving/models'
     sagemaker_session = utils.get_sagemaker_session(sagemaker_region)
