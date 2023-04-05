@@ -232,6 +232,8 @@ def ec2_performance_pytorch_inference(image_uri, instance_type, ec2_connection, 
 
     ec2_connection.run(
         f"aws s3 cp /home/ubuntu/results/pytorch/logs_{suite} {s3_location}/logs_{suite} --recursive")
+    ec2_connection.run(
+        f"aws s3 cp /home/ubuntu/results/pytorch/{log_file} {s3_location}/{log_file}")
     speedup = read_metric(f"/home/ubuntu/results/pytorch/logs_{suite}/geomean.csv")
     LOGGER.info(f"Seedup = {speedup}")
     comp_time = read_metric(
