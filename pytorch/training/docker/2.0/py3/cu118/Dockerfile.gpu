@@ -34,13 +34,13 @@ ARG MAMBA_VERSION
 
 ARG CUBLAS_VERSION=11.11.3.6
 ARG EFA_PATH=/opt/amazon/efa
-ARG CUDA_HOME=/opt/conda/
 
 # This arg required to stop docker build waiting for region configuration while installing tz data from ubuntu 20
 ARG DEBIAN_FRONTEND=noninteractive
 
 # Python won’t try to write .pyc or .pyo files on the import of source modules
 # Force stdin, stdout and stderr to be totally unbuffered. Good for logging
+ENV CUDA_HOME=/opt/conda/
 ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
 ENV LD_LIBRARY_PATH="/usr/local/lib:${LD_LIBRARY_PATH}"
@@ -114,15 +114,12 @@ RUN curl -L -o ~/mambaforge.sh https://github.com/conda-forge/miniforge/releases
  && ~/mambaforge.sh -b -p /opt/conda \
  && rm ~/mambaforge.sh 
 
-# Install ec2 PyTorch
-RUN /opt/conda/bin/mamba install -y pytorch=${PYTORCH_VERSION} \
-  torchvision torchaudio torchtext aws-ofi-nccl-dlc pytorch-cuda=11.8 cuda-toolkit=11.8 \
-  --override-channels \
-  -c https://aws-ml-conda-pre-prod-ec2.s3.us-west-2.amazonaws.com \
-  -c nvidia/label/cuda-11.8.0 -c conda-forge
-
 # Install common conda packages
-RUN /opt/conda/bin/mamba install -y -c conda-forge \
+RUN /opt/conda/bin/mamba install -y --override-channels \
+  -c https://aws-ml-conda-pre-prod-ec2.s3.us-west-2.amazonaws.com \
+  -c nvidia/label/cuda-11.8.0 \
+  pytorch-cuda=11.8 cuda-toolkit=11.8 \
+  && /opt/conda/bin/mamba install -y -c conda-forge \
     pyopenssl \
     requests \
     libgcc \
@@ -141,8 +138,6 @@ RUN /opt/conda/bin/mamba install -y -c conda-forge \
     awscli \
     boto3 \
     pyyaml \
-    # needed by fastai.distributed
-    accelerate \ 
     scipy \
     click \
     psutil \
@@ -156,14 +151,6 @@ RUN /opt/conda/bin/mamba install -y -c conda-forge \
     "mpi4py>=3.1.4,<3.2" \
     h5py \
   && /opt/conda/bin/mamba install -y -c dglteam/label/cu118 dgl \
-  && /opt/conda/bin/mamba install -y -c fastai fastai \
-  # fastai conda strictly depends on dataclasses
-  && pip uninstall -y dataclasses \
-  && pip install \
-    torchtnt \
-  # explicitly install triton build-time dependencies, which won't get installed by conda for some reason
-    cmake \
-    lit \
   && /opt/conda/bin/mamba clean -afy \
   && rm -rf /etc/apt/sources.list.d/*
 
@@ -243,12 +230,6 @@ RUN rm -rf /root/.ssh/ && \
 
 RUN mkdir -p /etc/pki/tls/certs && cp /etc/ssl/certs/ca-certificates.crt /etc/pki/tls/certs/ca-bundle.crt
 
-# Install Horovod (needs pytorch)
-RUN pip uninstall -y horovod \
-#  && ldconfig /usr/local/cuda-11.8/targets/x86_64-linux/lib/stubs \
- && HOROVOD_GPU_ALLREDUCE=NCCL HOROVOD_CUDA_HOME=${CUDA_HOME} HOROVOD_WITH_PYTORCH=1 pip install --no-cache-dir horovod==${HOROVOD_VERSION} \
- && ldconfig
-
 RUN curl -o /license.txt https://aws-dlc-licenses.s3.amazonaws.com/pytorch-2.0/license.txt
 
 # Removing the cache as it is needed for security verification
@@ -283,6 +264,25 @@ ARG PT_TORCHDATA_URL
 
 WORKDIR /
 
+# Install ec2 PyTorch
+RUN /opt/conda/bin/mamba install -y pytorch=${PYTORCH_VERSION} \
+  torchvision torchaudio torchtext aws-ofi-nccl-dlc \
+  --override-channels \
+  -c https://aws-ml-conda-pre-prod-ec2.s3.us-west-2.amazonaws.com \
+  -c conda-forge
+
+# install PyTorch related python packages (depends on PyTorch)
+RUN /opt/conda/bin/mamba install -y -c conda-forge \
+  # needed by fastai.distributed
+  accelerate \ 
+  && /opt/conda/bin/mamba install -y -c fastai fastai \
+  # fastai conda strictly depends on dataclasses
+  && pip uninstall -y dataclasses \
+  && pip install torchtnt \
+# explicitly install triton build-time dependencies, which won't get installed by conda for some reason
+  cmake \
+  lit
+
 # Install Nvidia Apex (needs pytorch)
 ## Pin apex commit requested by sm-model-parallel team
 RUN git clone https://github.com/NVIDIA/apex \
@@ -292,6 +292,12 @@ RUN git clone https://github.com/NVIDIA/apex \
   && pip install -v --no-cache-dir --global-option="--cpp_ext" --global-option="--cuda_ext" ./ \
   && cd .. \
   && rm -rf apex
+
+# Install Horovod (needs pytorch)
+RUN pip uninstall -y horovod \
+#  && ldconfig /usr/local/cuda-11.8/targets/x86_64-linux/lib/stubs \
+ && HOROVOD_GPU_ALLREDUCE=NCCL HOROVOD_CUDA_HOME=${CUDA_HOME} HOROVOD_WITH_PYTORCH=1 pip install --no-cache-dir horovod==${HOROVOD_VERSION} \
+ && ldconfig
 
 RUN HOME_DIR=/root \
  && curl -o ${HOME_DIR}/oss_compliance.zip https://aws-dlinfra-utilities.s3.amazonaws.com/oss_compliance.zip \
@@ -354,12 +360,24 @@ ARG PT_TORCHVISION_URL
 ARG PT_TORCHAUDIO_URL
 ARG PT_TORCHDATA_URL
 
-# install sm pytorch, force remove first to prevent removing all packages depending on pytorch
-RUN /opt/conda/bin/conda remove -y --force pytorch \
-  && /opt/conda/bin/mamba install -y pytorch=${PYTORCH_VERSION} \
+# Install sm PyTorch (force remove will increase docker image size drastically)
+RUN /opt/conda/bin/mamba install -y pytorch=${PYTORCH_VERSION} \
+  torchvision torchaudio torchtext aws-ofi-nccl-dlc \
   --override-channels \
   -c https://aws-ml-conda-pre-prod-sm.s3.us-west-2.amazonaws.com \
   -c conda-forge
+
+# install PyTorch related python packages (depends on PyTorch)
+RUN /opt/conda/bin/mamba install -y -c conda-forge \
+  # needed by fastai.distributed
+  accelerate \ 
+  && /opt/conda/bin/mamba install -y -c fastai fastai \
+  # fastai conda strictly depends on dataclasses
+  && pip uninstall -y dataclasses \
+  && pip install torchtnt \
+# explicitly install triton build-time dependencies, which won't get installed by conda for some reason
+  cmake \
+  lit
 
 WORKDIR /
 
@@ -372,6 +390,12 @@ RUN git clone https://github.com/NVIDIA/apex \
   && pip install -v --no-cache-dir --global-option="--cpp_ext" --global-option="--cuda_ext" ./ \
   && cd .. \
   && rm -rf apex
+
+# Install Horovod (needs pytorch)
+RUN pip uninstall -y horovod \
+#  && ldconfig /usr/local/cuda-11.8/targets/x86_64-linux/lib/stubs \
+ && HOROVOD_GPU_ALLREDUCE=NCCL HOROVOD_CUDA_HOME=${CUDA_HOME} HOROVOD_WITH_PYTORCH=1 pip install --no-cache-dir horovod==${HOROVOD_VERSION} \
+ && ldconfig
 
 # Install libboost from source. This package is needed for smdataparallel functionality [for networking asynchronous IO].
 RUN wget https://sourceforge.net/projects/boost/files/boost/1.73.0/boost_1_73_0.tar.gz/download -O boost_1_73_0.tar.gz \
