@@ -21,7 +21,7 @@ def pytest_addoption(parser):
 
 def pytest_configure(config):
     config.addinivalue_line(
-        "markers", "sagemaker_canary(message): mark test to run as a part of sagemaker canary tests."
+        "markers", "sagemaker_endpoint(message): mark test to run as a part of sagemaker canary tests."
     )
 
 

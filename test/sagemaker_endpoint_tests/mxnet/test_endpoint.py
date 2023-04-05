@@ -1,4 +1,3 @@
-import os
 import pytest
 import logging
 from . import utils
@@ -7,7 +6,7 @@ from sagemaker.mxnet.model import MXNetModel
 LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.INFO)
 
-@pytest.mark.sagemaker_canary
+@pytest.mark.sagemaker_endpoint
 def test_endpoint(image_uri, sagemaker_region, instance_type, framework_version, py_version, model_dir, model_script):
     prefix = 'sagemaker-mxnet-serving/models'
     sagemaker_session = utils.get_sagemaker_session(sagemaker_region)

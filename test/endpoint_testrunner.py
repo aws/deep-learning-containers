@@ -10,7 +10,7 @@ from invoke.context import Context
 
 PUBLIC_DLC_REGISTRY = "763104351884"
 PUBLIC_DLC_REGION = "us-west-2"
-REPORT_XML = os.path.join(os.getcwd(),"test", "sagemaker_endpoint_tests.xml")
+DEFAULT_REPORT_XML = os.path.join(os.getcwd(),"test", "default_report.xml")
 
 LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.INFO)
@@ -71,11 +71,11 @@ def get_sagemaker_images_from_github(registry, framework, region, image_type, pr
     :param image_type: inference
     :return: a list of space separated image uris
     """
-    customer_type_tag = "-sagemaker"
+    
     version_regex = {
-        "tensorflow": rf"tf(-sagemaker)?{customer_type_tag}-(\d+.\d+)",
-        "mxnet": rf"mx(-sagemaker)?{customer_type_tag}-(\d+.\d+)",
-        "pytorch": rf"pt(-sagemaker)?{customer_type_tag}-(\d+.\d+)",
+        "tensorflow": rf"tf(-sagemaker)-(\d+.\d+)",
+        "mxnet": rf"mx(-sagemaker)-(\d+.\d+)",
+        "pytorch": rf"pt(-sagemaker)-(\d+.\d+)",
     }
 
     # Get tags from repo releases
@@ -117,7 +117,6 @@ def get_sagemaker_images_from_github(registry, framework, region, image_type, pr
         if inf_train["inf"]:
             versions.append(version)
 
-    # Sort ascending to descending, use lambda to ensure 2.2 < 2.15, for instance
     versions.sort(key=lambda version_str: [int(point) for point in version_str.split(".")], reverse=True)
 
     framework_versions = versions if len(versions) < 4 else versions[:3]
@@ -128,7 +127,6 @@ def get_sagemaker_images_from_github(registry, framework, region, image_type, pr
         else:
             py_versions = [get_canary_default_tag_py3_version(framework, fw_version)]
         for py_version in py_versions:
-            image_definition = []
             if processor == "gpu" or processor is None:
                 image_definitions.append({
                             "registry": registry,
@@ -161,15 +159,13 @@ def execute_endpoint_test(framework_name, image_definition, account_id, sagemake
 
     retries = "" # " --reruns 2"
     instance_type = "p2.xlarge"
-    python_version = ("2" if "27" in python_version else
-                      "3" if "36" in python_version else
-                      python_version.lstrip("py"))
+    python_version = "3" if "36" in python_version else python_version.lstrip("py")
 
     test_location = os.path.join("test", "sagemaker_endpoint_tests", framework_name)
 
     ctx = Context()
     with ctx.cd(test_location):
-        run_out = ctx.run(f"pytest -rs{retries} test_endpoint.py "
+        run_out = ctx.run(f"pytest -rs{retries} --junitxml=result.xml test_endpoint.py "
             f"--account-id {account_id} "
             f"--region {region} "
             f"--registry {registry} "
@@ -195,7 +191,7 @@ def generate_image_uri(image, registry, region):
 
 def run_framework_tests(framework, images, canary_account_id, sagemaker_region, registry, region):
     if not images:
-        generate_report(REPORT_XML, "{framework} endpoint test", "sagemaker-endpoint", "No framework iaage to test.")
+        generate_report(DEFAULT_REPORT_XML, "{framework} endpoint test", "sagemaker-endpoint", "No framework iaage to test.")
         return
     
     """
@@ -215,9 +211,6 @@ def run_framework_tests(framework, images, canary_account_id, sagemaker_region, 
         if not test_status:
             image_uri = generate_image_uri(image, registry, region)
             LOGGER.error(f"Endpoint test failed for image {image_uri}")
-            generate_report(REPORT_XML, f"{framework} endpoint test", "sagemaker-endpoint", "", test_logs)
-        else:
-            generate_report(REPORT_XML, f"{framework} endpoint test", "sagemaker-endpoint", test_logs)
 
 
 def main():
@@ -232,7 +225,7 @@ def main():
         images = get_sagemaker_images_from_github(registry, framework, region, image_type, processor="gpu")
         run_framework_tests(framework, images, canary_account_id, sagemaker_region, registry, region)
     else:
-        generate_report(REPORT_XML, "Endpoint test", "sagemaker-endpoint", "Framework name missing or not provided.")
+        generate_report(DEFAULT_REPORT_XML, "Endpoint test", "sagemaker-endpoint", "Framework name missing or not provided.")
 
 if __name__ == "__main__":
     main()
