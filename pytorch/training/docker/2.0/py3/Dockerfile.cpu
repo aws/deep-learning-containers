@@ -157,10 +157,11 @@ RUN /opt/conda/bin/mamba install -y -c conda-forge \
     "pillow>=9.4" \
     psutil \
     ipython \
- && /opt/conda/bin/mamba install -y -c dglteam dgl \
- && /opt/conda/bin/mamba install -y -c fastai fastai \
- && pip uninstall -y dataclasses \
- && /opt/conda/bin/mamba clean -afy
+  && /opt/conda/bin/mamba install -y -c dglteam dgl \
+  && /opt/conda/bin/mamba install -y -c fastai fastai \
+  # fastai conda strictly depends on dataclasses
+  && pip uninstall -y dataclasses \
+  && /opt/conda/bin/mamba clean -afy
 
 RUN curl -o /license.txt https://aws-dlc-licenses.s3.amazonaws.com/pytorch-2.0/license.txt
  

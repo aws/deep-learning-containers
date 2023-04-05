@@ -157,6 +157,8 @@ RUN /opt/conda/bin/mamba install -y -c conda-forge \
     h5py \
   && /opt/conda/bin/mamba install -y -c dglteam/label/cu118 dgl \
   && /opt/conda/bin/mamba install -y -c fastai fastai \
+  # fastai conda strictly depends on dataclasses
+  && pip uninstall -y dataclasses \
   && pip install \
     torchtnt \
   # explicitly install triton build-time dependencies, which won't get installed by conda for some reason

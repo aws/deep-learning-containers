@@ -676,7 +676,7 @@ def execute_ec2_training_test(
     bin_bash_cmd = "--entrypoint /bin/bash " if bin_bash_entrypoint else ""
     
     LOGGER.info(f"execute_ec2_training_test pulling {ecr_uri}")
-    connection.run(f"docker pull {ecr_uri}", timeout="420")
+    connection.run(f"docker pull {ecr_uri}", timeout="660")
     LOGGER.info(f"execute_ec2_training_test running {ecr_uri}")
     connection.run(
         f"{docker_cmd} run --name {container_name} "
