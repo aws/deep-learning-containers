@@ -56,7 +56,7 @@ ENV CUDNN_VERSION=8.7.0.84
 ENV NCCL_VERSION=2.16.2
 ENV HOROVOD_VERSION=0.27.0
 ENV EFA_VERSION=1.21.0
-ENV OMPI_VERSION=4.1.1
+ENV OMPI_VERSION=4.1.5
 ENV BRANCH_OFI=1.5.0-aws
 
 ENV CMAKE_PREFIX_PATH="$(dirname $(which conda))/../"
@@ -114,22 +114,6 @@ RUN curl -L -o ~/mambaforge.sh https://github.com/conda-forge/miniforge/releases
  && ~/mambaforge.sh -b -p /opt/conda \
  && rm ~/mambaforge.sh 
 
-# Install core dependency conda packages
-RUN /opt/conda/bin/mamba install -y -c conda-forge \
-    # patch CVE
-    "cryptography>39.0.0" \
-    pyopenssl \
-    requests \
-    libgcc \
-    pybind11 \
-    cmake \
-    python=$PYTHON_VERSION \
-    cython \
-    # force conda to install h5py with openmpi build, not mpich (rubik error)
-    # https://anaconda.org/conda-forge/h5py/files?page=2
-    "mpi4py>=3.1.4,<3.2" \
-    h5py
-    
 # Install ec2 PyTorch
 RUN /opt/conda/bin/mamba install -y pytorch=${PYTORCH_VERSION} \
   torchvision torchaudio torchtext aws-ofi-nccl-dlc pytorch-cuda=11.8 cuda-toolkit=11.8 \
@@ -139,6 +123,13 @@ RUN /opt/conda/bin/mamba install -y pytorch=${PYTORCH_VERSION} \
 
 # Install common conda packages
 RUN /opt/conda/bin/mamba install -y -c conda-forge \
+    pyopenssl \
+    requests \
+    libgcc \
+    pybind11 \
+    cmake \
+    python=$PYTHON_VERSION \
+    cython \
     mkl \
     mkl-include \
     parso \
@@ -154,10 +145,16 @@ RUN /opt/conda/bin/mamba install -y -c conda-forge \
     accelerate \ 
     scipy \
     click \
-    # patch CVE
-    "pillow>=9.4" \
     psutil \
     ipython \
+    # patch CVE
+    "cryptography>39.0.0" \
+    # patch CVE
+    "pillow>=9.4" \
+    # force conda to install h5py with openmpi build, not mpich (rubik error)
+    # https://anaconda.org/conda-forge/h5py/files?page=2
+    "mpi4py>=3.1.4,<3.2" \
+    h5py \
   && /opt/conda/bin/mamba install -y -c dglteam/label/cu118 dgl \
   && /opt/conda/bin/mamba install -y -c fastai fastai \
   && pip install \
