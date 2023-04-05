@@ -161,11 +161,13 @@ def execute_endpoint_test(framework_name, image_definition, account_id, sagemake
     instance_type = "p2.xlarge"
     python_version = "3" if "36" in python_version else python_version.lstrip("py")
 
-    test_location = os.path.join("test", "sagemaker_endpoint_tests", framework_name)
+    #test_location = os.path.join("test", "sagemaker_endpoint_tests", framework_name)
+    test_location = os.path.join("test", "sagemaker_endpoint_tests")
 
     ctx = Context()
     with ctx.cd(test_location):
-        run_out = ctx.run(f"pytest -rs{retries} --junitxml=result.xml test_endpoint.py "
+        #run_out = ctx.run(f"pytest -rs{retries} --junitxml=result.xml test_endpoint.py "
+        run_out = ctx.run(f"pytest -rs{retries} -F {framework_name} --junitxml=result.xml test_endpoint.py "
             f"--account-id {account_id} "
             f"--region {region} "
             f"--registry {registry} "

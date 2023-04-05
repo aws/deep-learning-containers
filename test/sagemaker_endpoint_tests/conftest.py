@@ -1,11 +1,14 @@
+import os
 import boto3
 import pytest
 import logging
-from . import utils
+import utils as utils
 
 logger = logging.getLogger(__name__)
 logging.getLogger('boto').setLevel(logging.INFO)
 logging.getLogger('botocore').setLevel(logging.INFO)
+
+RESOURCE_PATH = os.path.abspath(os.path.dirname(__file__))
 
 def pytest_addoption(parser):
     parser.addoption('--account-id', default=None)
@@ -17,12 +20,25 @@ def pytest_addoption(parser):
     parser.addoption('--instance-type', default='ml.p2.xlarge')
     parser.addoption('--framework-version', default=None)
     parser.addoption('--sagemaker-region', default='us-west-2')
+    parser.addoption(
+        "-F",
+        action="store",
+        metavar="NAME",
+        help="only run tests matching the framework NAME.",
+    )
 
 
 def pytest_configure(config):
     config.addinivalue_line(
-        "markers", "sagemaker_endpoint(message): mark test to run as a part of sagemaker canary tests."
+        "markers", "sagemaker_endpoint(name): mark test to run as a part of sagemaker canary tests."
     )
+
+
+def pytest_runtest_setup(item):
+    envnames = [mark.args[0] for mark in item.iter_markers(name="sagemaker_endpoint")]
+    if envnames:
+        if item.config.getoption("-F") not in envnames:
+            pytest.skip(f"test requires sagemaker_endpoint in {envnames}")
 
 
 @pytest.fixture(scope='session')
@@ -70,14 +86,35 @@ def image_uri(registry, region, repository, tag):
     return f'{ecr_registry}/{repository}:{tag}'
 
 
+
 @pytest.fixture(scope='session')
-def model_dir(request):
-    return "model.tar.gz"
+def mx_model_dir(request):
+    return "mxnet/model.tar.gz"
 
 
 @pytest.fixture(scope='session')
-def model_script(request):
-    return "empty_module.py"
+def mx_model_script(request):
+    return "mxnet/empty_module.py"
+
+
+@pytest.fixture(scope='session')
+def pt_model_dir(request):
+    return "pytorch/model.tar.gz"
+
+
+@pytest.fixture(scope='session')
+def pt_model_script(request):
+    return "pytorch/mnist.py"
+
+
+@pytest.fixture(scope='session')
+def tf_model_dir(request):
+    return "tensorflow/tfs-model.tar.gz"
+
+
+@pytest.fixture(scope='session')
+def tf_model_script(request):
+    return "tensorflow/empty_module.py"
 
 
 @pytest.fixture(scope='session')
