@@ -7,13 +7,13 @@ LABEL com.amazonaws.sagemaker.capabilities.accept-bind-to-port=true
 ARG PYTHON=python3.8
 ARG PYTHON_VERSION=3.8.16
 ARG TS_VERSION=0.7.1
-ARG MAMBA_VERSION=4.12.0-2
+ARG MAMBA_VERSION=23.1.0-1
 
 # Neuron SDK components version numbers
+ARG NEURONX_RUNTIME_LIB_VERSION=2.12.*
 ARG NEURONX_TOOLS_VERSION=2.9.*
 ARG NEURONX_FRAMEWORK_VERSION=1.13.0.1.6.*
 ARG NEURONX_CC_VERSION=2.5.*
-
 # See http://bugs.python.org/issue19846
 ENV LANG C.UTF-8
 ENV LD_LIBRARY_PATH /lib/x86_64-linux-gnu:/opt/conda/lib/:$LD_LIBRARY_PATH
@@ -56,6 +56,7 @@ RUN wget -qO - https://apt.repos.neuron.amazonaws.com/GPG-PUB-KEY-AMAZON-AWS-NEU
 
 RUN apt-get update \
  && apt-get install -y aws-neuronx-tools=$NEURONX_TOOLS_VERSION \
+ && apt-get install -y aws-neuronx-runtime-lib=${NEURONX_RUNTIME_LIB_VERSION} \
  && rm -rf /var/lib/apt/lists/* \
  && rm -rf /tmp/tmp* \
  && apt-get clean
