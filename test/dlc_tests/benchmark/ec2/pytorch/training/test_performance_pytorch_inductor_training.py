@@ -76,7 +76,7 @@ def test_performance_pytorch_gpu_inductor_huggingface_g4dn(pytorch_training, ec2
     _, image_framework_version = get_framework_and_version_from_tag(pytorch_training)
     if Version(image_framework_version) < Version("2.0"):
         pytest.skip("Torch inductor was introduced in PyTorch 2.0")
-    test_cmd = PT_PERFORMANCE_TRAINING_GPU_INDUCTOR_HUGGINGFACE_CMD + " " + ec2_instance_type"
+    test_cmd = PT_PERFORMANCE_TRAINING_GPU_INDUCTOR_HUGGINGFACE_CMD + " " + ec2_instance_type
     execute_ec2_training_performance_test(
         ec2_connection, pytorch_training, test_cmd, model_suite="huggingface"
     )
