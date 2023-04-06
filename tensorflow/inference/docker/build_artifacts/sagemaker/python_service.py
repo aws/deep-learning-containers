@@ -28,7 +28,6 @@ import falcon
 import requests
 import random
 
-from multiprocessing import Manager
 from multi_model_utils import MultiModelException, lock
 import tfs_utils
 
