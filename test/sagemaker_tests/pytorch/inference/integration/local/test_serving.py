@@ -52,7 +52,7 @@ def fixture_test_loader():
 def test_serve_json_npy(test_loader, use_gpu, docker_image, framework_version, sagemaker_local_session, instance_type):
     model_dir = model_gpu_dir if use_gpu else model_cpu_dir
     with _predictor(
-            model_dir, mnist_script, docker_image, framework_version, sagemaker_local_session, instance_type
+            model_dir, mnist_script, docker_image, framework_version, sagemaker_local_session, instance_type, 1
     ) as predictor:
         for content_type in (content_types.JSON, content_types.NPY):
             for accept in (content_types.JSON, content_types.CSV, content_types.NPY):
