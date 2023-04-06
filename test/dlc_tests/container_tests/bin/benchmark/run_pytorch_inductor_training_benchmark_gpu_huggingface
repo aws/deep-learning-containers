@@ -37,6 +37,9 @@ else
     echo "No need to adjust batch size since we are using p4d.24xlarge."
 fi
 
+python -c "import os;
+assert os.environ['INSTANCE_TYPE']=='p4d.24xlarge';"
+
 cd $BIN_DIR/pytorch
 
 python benchmarks/dynamo/runner.py --training --suites=huggingface --dtypes=amp --compilers=inductor --output-dir=huggingface_logs --extra-args='--output-directory=./'
