@@ -57,6 +57,7 @@ def test_eks_tensorflow_neuron_inference(tensorflow_inference_neuron):
         run(f"kubectl delete service {selector_name}")
 
 
+@pytest.mark.skip(reason="Will be enabled once infrastructure changes are made")
 @pytest.mark.model("mnist")
 def test_eks_tensorflow_neuronx_inference(tensorflow_inference_neuronx):
     num_replicas = "1"

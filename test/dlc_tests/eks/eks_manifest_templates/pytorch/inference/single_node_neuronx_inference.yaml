@@ -1,0 +1,60 @@
+---
+kind: Service
+apiVersion: v1
+metadata:
+  name: <INFERENCE_SERVICE_NAME>
+  labels:
+    app: <INFERENCE_SERVICE_NAME>
+spec:
+  ports:
+  - port: 8080
+    targetPort: 8080
+  selector:
+    app: <INFERENCE_SERVICE_NAME>
+---
+kind: Deployment
+apiVersion: apps/v1
+metadata:
+  name: <INFERENCE_SERVICE_NAME>
+  labels:
+    app: <INFERENCE_SERVICE_NAME>
+spec:
+  replicas: <NUM_REPLICAS>
+  selector:
+    matchLabels:
+      app: <SELECTOR_NAME>
+  template:
+    metadata:
+      labels:
+        app: <SELECTOR_NAME>
+    spec:
+      containers:
+      - name: <SERVER_TYPE>-container
+        image: <DOCKER_IMAGE_BUILD_ID>
+        args:
+        - <SERVER_CMD>
+        - --start
+        - --<SERVER_TYPE>-config /home/model-server/config.properties
+        - --models <MODELS>
+        ports:
+        - name: <SERVER_TYPE>
+          containerPort: 8080
+        - name: <SERVER_TYPE>-management
+          containerPort: 8081
+        imagePullPolicy: Always
+        resources:
+          limits:
+            cpu: "4"
+            memory: 4Gi
+          requests:
+            cpu: "1"
+            memory: 1Gi
+
+        resources:
+          limits:
+            aws.amazon.com/neuron: 1  # desired number of Inferentia devices.
+          requests:
+            aws.amazon.com/neuron: 1  # desired number of Inferentia devices.
+            memory: 4096Mi
+      nodeSelector:
+        test_type: trn1
