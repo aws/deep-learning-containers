@@ -232,8 +232,18 @@ def ec2_performance_pytorch_inference(image_uri, instance_type, ec2_connection, 
 
     ec2_connection.run(
         f"aws s3 cp /home/ubuntu/results/pytorch/logs_{suite} {s3_location}/logs_{suite} --recursive")
-    ec2_connection.run(
-        f"aws s3 cp /home/ubuntu/results/pytorch/{log_file} {s3_location}/{log_file}")
+
+    output_list_logs_dir = ec2_connection.run(
+        f"ls -l /home/ubuntu/results/pytorch/logs_{suite}").stdout.split("\n")
+    LOGGER.info(f"CONTENTS OF LOGS DIR============================{output_list_logs_dir}")
+    output_list_pytorch = ec2_connection.run(
+        f"ls -l /home/ubuntu/results/pytorch").stdout.split("\n")
+    LOGGER.info(f"CONTENTS OF PYTORCH DIR========================={output_list_pytorch}")
+    output_geomean = ec2_connection.run(
+        f"ls -l /home/ubuntu/results/pytorch/logs_{suite}/geomean.csv").stdout.split("\n")
+    LOGGER.info(f"GEOMEAN =================={output_geomean}")
+
+
     speedup = read_metric(f"/home/ubuntu/results/pytorch/logs_{suite}/geomean.csv")
     LOGGER.info(f"Seedup = {speedup}")
     comp_time = read_metric(
