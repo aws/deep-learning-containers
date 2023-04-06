@@ -1,8 +1,9 @@
 *GitHub Issue #, if available:*
 
-Note: If merging this PR should also close the associated Issue, please also add that Issue # to the Linked Issues section on the right. 
+**Note**: 
+- If merging this PR should also close the associated Issue, please also add that Issue # to the Linked Issues section on the right. 
 
-
+- All PR's are checked weekly for staleness. This PR will be closed if not updated in 30 days.
 
 ### Description
 
