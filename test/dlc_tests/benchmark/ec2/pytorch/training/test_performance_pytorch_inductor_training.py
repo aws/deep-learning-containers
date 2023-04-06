@@ -37,8 +37,9 @@ def test_performance_pytorch_gpu_inductor_huggingface_p3(pytorch_training, ec2_c
     _, image_framework_version = get_framework_and_version_from_tag(pytorch_training)
     if Version(image_framework_version) < Version("2.0"):
         pytest.skip("Torch inductor was introduced in PyTorch 2.0")
+    test_cmd = PT_PERFORMANCE_TRAINING_GPU_INDUCTOR_HUGGINGFACE_CMD + f" {ec2_instance_type}"
     execute_ec2_training_performance_test(
-        ec2_connection, pytorch_training, PT_PERFORMANCE_TRAINING_GPU_INDUCTOR_HUGGINGFACE_CMD, ec2_instance_type, model_suite="huggingface"
+        ec2_connection, pytorch_training, test_cmd, ec2_instance_type, model_suite="huggingface"
     )
 
 @pytest.mark.integration("inductor")
@@ -49,8 +50,9 @@ def test_performance_pytorch_gpu_inductor_huggingfac_p4d(pytorch_training, ec2_c
     _, image_framework_version = get_framework_and_version_from_tag(pytorch_training)
     if Version(image_framework_version) < Version("2.0"):
         pytest.skip("Torch inductor was introduced in PyTorch 2.0")
+    test_cmd = PT_PERFORMANCE_TRAINING_GPU_INDUCTOR_HUGGINGFACE_CMD + f" {ec2_instance_type}"
     execute_ec2_training_performance_test(
-        ec2_connection, pytorch_training, PT_PERFORMANCE_TRAINING_GPU_INDUCTOR_HUGGINGFACE_CMD, ec2_instance_type, model_suite="huggingface"
+        ec2_connection, pytorch_training, test_cmd, ec2_instance_type, model_suite="huggingface"
     )
 
 @pytest.mark.integration("inductor")
@@ -61,8 +63,9 @@ def test_performance_pytorch_gpu_inductor_huggingface_g5(pytorch_training, ec2_c
     _, image_framework_version = get_framework_and_version_from_tag(pytorch_training)
     if Version(image_framework_version) < Version("2.0"):
         pytest.skip("Torch inductor was introduced in PyTorch 2.0")
+    test_cmd = PT_PERFORMANCE_TRAINING_GPU_INDUCTOR_HUGGINGFACE_CMD + f" {ec2_instance_type}"
     execute_ec2_training_performance_test(
-        ec2_connection, pytorch_training, PT_PERFORMANCE_TRAINING_GPU_INDUCTOR_HUGGINGFACE_CMD, ec2_instance_type, model_suite="huggingface"
+        ec2_connection, pytorch_training, test_cmd, ec2_instance_type, model_suite="huggingface"
     )
 
 @pytest.mark.integration("inductor")
@@ -73,8 +76,9 @@ def test_performance_pytorch_gpu_inductor_huggingface_g4dn(pytorch_training, ec2
     _, image_framework_version = get_framework_and_version_from_tag(pytorch_training)
     if Version(image_framework_version) < Version("2.0"):
         pytest.skip("Torch inductor was introduced in PyTorch 2.0")
+    test_cmd = PT_PERFORMANCE_TRAINING_GPU_INDUCTOR_HUGGINGFACE_CMD + f" {ec2_instance_type}"
     execute_ec2_training_performance_test(
-        ec2_connection, pytorch_training, PT_PERFORMANCE_TRAINING_GPU_INDUCTOR_HUGGINGFACE_CMD, ec2_instance_type, model_suite="huggingface"
+        ec2_connection, pytorch_training, test_cmd, ec2_instance_type, model_suite="huggingface"
     )
     
 @pytest.mark.skip("skip for now")
@@ -99,13 +103,14 @@ def test_performance_pytorch_gpu_inductor_torchbench(pytorch_training, ec2_conne
     _, image_framework_version = get_framework_and_version_from_tag(pytorch_training)
     if Version(image_framework_version) < Version("2.0"):
         pytest.skip("Torch inductor was introduced in PyTorch 2.0")
+    test_cmd = 
     execute_ec2_training_performance_test(
         ec2_connection, pytorch_training, PT_PERFORMANCE_TRAINING_GPU_INDUCTOR_TORCHBENCH_CMD, ec2_instance_type, model_suite="torchbench"
     )
 
 
 def execute_ec2_training_performance_test(
-    connection, ecr_uri, test_cmd, ec2_instance_type, model_suite, region=DEFAULT_REGION):
+    connection, ecr_uri, test_cmd, model_suite, region=DEFAULT_REGION):
     docker_cmd = "nvidia-docker" if "gpu" in ecr_uri else "docker"
     container_test_local_dir = os.path.join("$HOME", "container_tests")
 
@@ -123,5 +128,5 @@ def execute_ec2_training_performance_test(
         f"-e LOG_FILE={os.path.join(os.sep, 'test', 'benchmark', 'logs', log_name)} "
         f"-e PR_CONTEXT={1 if is_pr_context() else 0} "
         f"-v {container_test_local_dir}:{os.path.join(os.sep, 'test')} {ecr_uri} "
-        f"{os.path.join(os.sep, 'bin', 'bash')} -c {test_cmd} {ec2_instance_type}"
+        f"{os.path.join(os.sep, 'bin', 'bash')} -c {test_cmd}"
     )
