@@ -29,7 +29,7 @@ import requests
 import random
 
 from multiprocessing import Manager
-from multi_model_utils import MultiModelException
+from multi_model_utils import MultiModelException, lock
 import tfs_utils
 
 SAGEMAKER_MULTI_MODEL_ENABLED = os.environ.get("SAGEMAKER_MULTI_MODEL", "false").lower() == "true"
@@ -46,11 +46,7 @@ logging.basicConfig(format='%(process)d %(asctime)s %(levelname)-8s %(message)s'
 log = logging.getLogger(__name__)
 
 CUSTOM_ATTRIBUTES_HEADER = "X-Amzn-SageMaker-Custom-Attributes"
-
-# Create a shared dictionary using a manager
-manager = Manager()
-shared_tfs_instance_dict = manager.dict()
-lock = manager.Lock()
+MME_TFS_INSTANCE_STATUS_FILE = "/sagemaker/tfs_instance.pickle"
 
 
 def default_handler(data, context):
@@ -253,7 +249,7 @@ class PythonServiceResource:
                     )}
 
     def _handle_load_model_post(self, res, data):  # noqa: C901
-        with lock:
+        with lock():
             model_name = data["model_name"]
             base_path = data["url"]
 
@@ -323,7 +319,7 @@ class PythonServiceResource:
             if model_name:
                 if model_name not in self._mme_tfs_instances_status or \
                         not self._check_pid(self._mme_tfs_instances_status[model_name][0].pid):
-                    with lock:
+                    with lock():
                         self._sync_local_mme_instance_status()
 
                 if model_name not in self._mme_tfs_instances_status:
@@ -412,7 +408,7 @@ class PythonServiceResource:
         return handler
 
     def on_get(self, req, res, model_name=None):  # pylint: disable=W0613
-        with lock:
+        with lock():
             self._sync_local_mme_instance_status()
             if model_name is None:
                 models_info = {}
@@ -446,7 +442,7 @@ class PythonServiceResource:
                         res.body = json.dumps({"error": str(e)}).encode("utf-8")
 
     def on_delete(self, req, res, model_name):  # pylint: disable=W0613
-        with lock:
+        with lock():
             self._sync_local_mme_instance_status()
             if model_name not in self._mme_tfs_instances_status:
                 res.status = falcon.HTTP_404
@@ -499,14 +495,15 @@ class PythonServiceResource:
 
     def _upload_mme_instance_status(self):
         log.info("uploaded mme instance status file with content: {}".format(self._mme_tfs_instances_status))
-        shared_tfs_instance_dict.clear()
-        for key, value in self._mme_tfs_instances_status.items():
-            shared_tfs_instance_dict[key] = pickle.dumps(value)
+        with open(MME_TFS_INSTANCE_STATUS_FILE, 'wb') as handle:
+            pickle.dump(self._mme_tfs_instances_status, handle, protocol=pickle.HIGHEST_PROTOCOL)
 
     def _sync_local_mme_instance_status(self):
-        self._mme_tfs_instances_status.clear()
-        for key, value in shared_tfs_instance_dict.items():
-            self._mme_tfs_instances_status[key] = pickle.loads(value)
+        if not os.path.exists(MME_TFS_INSTANCE_STATUS_FILE):
+            log.info("mme instance status file does not found.")
+            return
+        with open(MME_TFS_INSTANCE_STATUS_FILE, 'rb') as handle:
+            self._mme_tfs_instances_status = pickle.load(handle)
         log.info("updated local mme instance status with content: {}".format(self._mme_tfs_instances_status))
 
     def _check_pid(self, pid):

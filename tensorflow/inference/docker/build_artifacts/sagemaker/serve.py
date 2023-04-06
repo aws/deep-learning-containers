@@ -100,12 +100,6 @@ class ServiceManager(object):
             raise ValueError("SAGEMAKER_MULTI_MODEL must be 'true' or 'false'")
         self._tfs_enable_multi_model_endpoint = _enable_multi_model_endpoint == "true"
 
-        if _enable_multi_model_endpoint == 'true':
-            if self._gunicorn_worker_class != 'gthread':
-                log.warning(
-                    f'Overwrite SAGEMAKER_GUNICORN_WORKER_CLASS {self._gunicorn_worker_class} with gthread for MME')
-                self._gunicorn_worker_class = 'gthread'
-
         self._use_gunicorn = self._enable_python_service or self._tfs_enable_multi_model_endpoint
 
         if self._sagemaker_port_range is not None:
