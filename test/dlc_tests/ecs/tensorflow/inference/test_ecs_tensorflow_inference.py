@@ -108,7 +108,7 @@ def test_ecs_tensorflow_inference_neuronx(tensorflow_inference_neuronx, ecs_cont
     public_ip_address = ec2_utils.get_public_ip(worker_instance_id, region=region)
     num_neurons = 1
 
-    model_name = "simple_x"
+    model_name = "simple"
     service_name = task_family = revision = None
     try:
         service_name, task_family, revision = ecs_utils.setup_ecs_inference_service(

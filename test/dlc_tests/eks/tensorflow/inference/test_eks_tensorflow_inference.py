@@ -69,7 +69,7 @@ def test_eks_tensorflow_neuronx_inference(tensorflow_inference_neuronx):
     yaml_path = os.path.join(os.sep, "tmp", f"tensorflow_single_node_{processor}_inference_{rand_int}.yaml")
     inference_service_name = selector_name = f"simple-{processor}-{rand_int}"
     model_base_path = get_eks_tensorflow_model_base_path(tensorflow_inference_neuronx, model_name)
-    command, args = get_tensorflow_command_args(tensorflow_inference_neuron, model_name, model_base_path)
+    command, args = get_tensorflow_command_args(tensorflow_inference_neuronx, model_name, model_base_path)
 
     search_replace_dict = {
         "<NUM_REPLICAS>": num_replicas,
