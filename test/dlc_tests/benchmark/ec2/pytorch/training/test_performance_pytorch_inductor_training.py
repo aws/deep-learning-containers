@@ -21,14 +21,55 @@ PT_PERFORMANCE_TRAINING_GPU_INDUCTOR_TORCHBENCH_CMD = os.path.join(
     CONTAINER_TESTS_PREFIX, "benchmark", "run_pytorch_inductor_training_benchmark_gpu_torchbench"
 )
 
-PT_EC2_GPU_INDUCTOR_INSTANCE_TYPES = ["p3.2xlarge", "p3.2xlarge", "g5.4xlarge", "g4dn.4xlarge"]
+PT_EC2_GPU_INDUCTOR_INSTANCE_TYPES = ["p3.2xlarge", "p4d.24xlarge", "g5.4xlarge", "g4dn.4xlarge"]
+PT_EC2_GPU_INDUCTOR_INSTANCE_TYPE_P3 = ["p3.2xlarge"]
+PT_EC2_GPU_INDUCTOR_INSTANCE_TYPE_P4d = ["p4d.24xlarge"]
+PT_EC2_GPU_INDUCTOR_INSTANCE_TYPE_G5 = ["g5.4xlarge"]
+PT_EC2_GPU_INDUCTOR_INSTANCE_TYPE_G4DN = ["g4dn.4xlarge"]
+
 
 
 @pytest.mark.integration("inductor")
 @pytest.mark.model("huggingface")
 @pytest.mark.parametrize("ec2_instance_ami", [UBUNTU_18_BASE_DLAMI_US_WEST_2], indirect=True)
-@pytest.mark.parametrize("ec2_instance_type", PT_EC2_GPU_INDUCTOR_INSTANCE_TYPES, indirect=True)
-def test_performance_pytorch_gpu_inductor_huggingface(pytorch_training, ec2_connection, gpu_only, py3_only, ec2_instance_type):
+@pytest.mark.parametrize("ec2_instance_type", PT_EC2_GPU_INDUCTOR_INSTANCE_TYPE_P3, indirect=True)
+def test_performance_pytorch_gpu_inductor_huggingface_p3(pytorch_training, ec2_connection, gpu_only, py3_only, ec2_instance_type):
+    _, image_framework_version = get_framework_and_version_from_tag(pytorch_training)
+    if Version(image_framework_version) < Version("2.0"):
+        pytest.skip("Torch inductor was introduced in PyTorch 2.0")
+    execute_ec2_training_performance_test(
+        ec2_connection, pytorch_training, PT_PERFORMANCE_TRAINING_GPU_INDUCTOR_HUGGINGFACE_CMD, ec2_instance_type, model_suite="huggingface"
+    )
+
+@pytest.mark.integration("inductor")
+@pytest.mark.model("huggingface")
+@pytest.mark.parametrize("ec2_instance_ami", [UBUNTU_18_BASE_DLAMI_US_WEST_2], indirect=True)
+@pytest.mark.parametrize("ec2_instance_type", PT_EC2_GPU_INDUCTOR_INSTANCE_TYPE_P4D, indirect=True)
+def test_performance_pytorch_gpu_inductor_huggingfac_p4d(pytorch_training, ec2_connection, gpu_only, py3_only, ec2_instance_type):
+    _, image_framework_version = get_framework_and_version_from_tag(pytorch_training)
+    if Version(image_framework_version) < Version("2.0"):
+        pytest.skip("Torch inductor was introduced in PyTorch 2.0")
+    execute_ec2_training_performance_test(
+        ec2_connection, pytorch_training, PT_PERFORMANCE_TRAINING_GPU_INDUCTOR_HUGGINGFACE_CMD, ec2_instance_type, model_suite="huggingface"
+    )
+
+@pytest.mark.integration("inductor")
+@pytest.mark.model("huggingface")
+@pytest.mark.parametrize("ec2_instance_ami", [UBUNTU_18_BASE_DLAMI_US_WEST_2], indirect=True)
+@pytest.mark.parametrize("ec2_instance_type", PT_EC2_GPU_INDUCTOR_INSTANCE_TYPE_G5, indirect=True)
+def test_performance_pytorch_gpu_inductor_huggingface_g5(pytorch_training, ec2_connection, gpu_only, py3_only, ec2_instance_type):
+    _, image_framework_version = get_framework_and_version_from_tag(pytorch_training)
+    if Version(image_framework_version) < Version("2.0"):
+        pytest.skip("Torch inductor was introduced in PyTorch 2.0")
+    execute_ec2_training_performance_test(
+        ec2_connection, pytorch_training, PT_PERFORMANCE_TRAINING_GPU_INDUCTOR_HUGGINGFACE_CMD, ec2_instance_type, model_suite="huggingface"
+    )
+
+@pytest.mark.integration("inductor")
+@pytest.mark.model("huggingface")
+@pytest.mark.parametrize("ec2_instance_ami", [UBUNTU_18_BASE_DLAMI_US_WEST_2], indirect=True)
+@pytest.mark.parametrize("ec2_instance_type", PT_EC2_GPU_INDUCTOR_INSTANCE_TYPE_G4DN, indirect=True)
+def test_performance_pytorch_gpu_inductor_huggingface_g4dn(pytorch_training, ec2_connection, gpu_only, py3_only, ec2_instance_type):
     _, image_framework_version = get_framework_and_version_from_tag(pytorch_training)
     if Version(image_framework_version) < Version("2.0"):
         pytest.skip("Torch inductor was introduced in PyTorch 2.0")
