@@ -63,9 +63,9 @@ def test_eks_tensorflow_neuronx_inference(tensorflow_inference_neuronx):
 
     rand_int = random.randint(4001, 6000)
 
-    processor = "neuron"
+    processor = "neuronx"
+    model_name = "simple_neuronx"
 
-    model_name = "mnist_neuronx" # todo - inf2 models
     yaml_path = os.path.join(os.sep, "tmp", f"tensorflow_single_node_{processor}_inference_{rand_int}.yaml")
     inference_service_name = selector_name = f"simple-{processor}-{rand_int}"
     model_base_path = get_eks_tensorflow_model_base_path(tensorflow_inference_neuronx, model_name)
@@ -96,7 +96,7 @@ def test_eks_tensorflow_neuronx_inference(tensorflow_inference_neuronx):
         if eks_utils.is_service_running(selector_name):
             eks_utils.eks_forward_port_between_host_and_container(selector_name, port_to_forward, "8501")
 
-        inference_string = '\'{"instances": ' + "{}".format([[0 for i in range(784)]]) + "}'"
+        inference_string = "'{\"instances\": [[1.0, 2.0, 5.0]]}'"
         assert test_utils.request_tensorflow_inference(
             model_name=model_name, port=port_to_forward, inference_string=inference_string
         )

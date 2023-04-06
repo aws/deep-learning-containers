@@ -4039,6 +4039,62 @@
             "severity": "HIGH",
             "status": "ACTIVE",
             "title": "GHSA-5w96-866f-6rm8 - tensorflow"
+        },
+        {
+            "description": "### Impact\nWhen running with XLA, `tf.raw_ops.Bincount` segfaults when given a parameter `weights` that is neither the same shape as parameter `arr` nor a length-0 tensor.\n\n```python\nimport tensorflow as tf\n\nfunc = tf.raw_ops.Bincount\npara={'arr': 6, 'size': 804, 'weights': [52, 351]}\n\n@tf.function(jit_compile=True)\ndef fuzz_jit():\n y = func(**para)\n return y\n\nprint(fuzz_jit())\n```\n\n### Patches\nWe have patched the issue in GitHub commit [8ae76cf085f4be26295d2ecf2081e759e04b8acf](https://github.com/tensorflow/tensorflow/commit/8ae76cf085f4be26295d2ecf2081e759e04b8acf).\n\nThe fix will be included in TensorFlow 2.12. We will also cherrypick this commit on TensorFlow 2.11.1.\n\n\n### For more information\nPlease consult [our security guide](https://github.com/tensorflow/tensorflow/blob/master/SECURITY.md) for more information regarding the security model and how to contact us with issues and questions.\n\n\n### Attribution\nThis vulnerability has been reported by r3pwnx of 360 AIVul Team\n",
+            "vulnerability_id": "GHSA-7x4v-9gxg-9hwj",
+            "name": "GHSA-7x4v-9gxg-9hwj",
+            "package_name": "tensorflow",
+            "package_details": {
+                "file_path": "usr/local/lib/python3.8/site-packages/tensorflow-2.10.1.dist-info/METADATA",
+                "name": "tensorflow",
+                "package_manager": "PYTHONPKG",
+                "version": "2.10.1",
+                "release": null
+            },
+            "remediation": {
+                "recommendation": {
+                    "text": "None Provided"
+                }
+            },
+            "cvss_v3_score": 7.5,
+            "cvss_v30_score": 0,
+            "cvss_v31_score": 7.5,
+            "cvss_v2_score": 0,
+            "cvss_v3_severity": "HIGH",
+            "source_url": "https://github.com/advisories/GHSA-7x4v-9gxg-9hwj",
+            "source": "GITHUB",
+            "severity": "HIGH",
+            "status": "ACTIVE",
+            "title": "GHSA-7x4v-9gxg-9hwj - tensorflow"
+        },
+        {
+            "description": "### Impact\nWhen running with XLA, `tf.raw_ops.ParallelConcat` segfaults with a nullptr dereference when given a parameter `shape` with rank that is not greater than zero.\n\n```python\nimport tensorflow as tf\n\nfunc = tf.raw_ops.ParallelConcat\npara = {'shape':  0, 'values': [1]}\n\n@tf.function(jit_compile=True)\ndef test():\n   y = func(**para)\n   return y\n\ntest()\n```\n\n### Patches\nWe have patched the issue in GitHub commit [da66bc6d5ff466aee084f9e7397980a24890cd15](https://github.com/tensorflow/tensorflow/commit/da66bc6d5ff466aee084f9e7397980a24890cd15).\n\nThe fix will be included in TensorFlow 2.12. We will also cherrypick this commit on TensorFlow 2.11.1.\n\n\n### For more information\nPlease consult [our security guide](https://github.com/tensorflow/tensorflow/blob/master/SECURITY.md) for more information regarding the security model and how to contact us with issues and questions.\n\n\n### Attribution\nThis vulnerability has been reported by r3pwnx of 360 AIVul Team\n",
+            "vulnerability_id": "GHSA-6wfh-89q8-44jq",
+            "name": "GHSA-6wfh-89q8-44jq",
+            "package_name": "tensorflow",
+            "package_details": {
+                "file_path": "usr/local/lib/python3.8/site-packages/tensorflow-2.10.1.dist-info/METADATA",
+                "name": "tensorflow",
+                "package_manager": "PYTHONPKG",
+                "version": "2.10.1",
+                "release": null
+            },
+            "remediation": {
+                "recommendation": {
+                    "text": "None Provided"
+                }
+            },
+            "cvss_v3_score": 7.5,
+            "cvss_v30_score": 0,
+            "cvss_v31_score": 7.5,
+            "cvss_v2_score": 0,
+            "cvss_v3_severity": "HIGH",
+            "source_url": "https://github.com/advisories/GHSA-6wfh-89q8-44jq",
+            "source": "GITHUB",
+            "severity": "HIGH",
+            "status": "ACTIVE",
+            "title": "GHSA-6wfh-89q8-44jq - tensorflow"
         }
     ],
     "golang.org/x/net": [
