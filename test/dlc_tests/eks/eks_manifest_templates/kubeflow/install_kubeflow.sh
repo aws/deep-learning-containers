@@ -24,14 +24,25 @@ install_kustomize(){
 # Function to install kubeflow in EKS cluster using kustomize
 setup_kubeflow(){
     
+    KUBEFLOW_VERSION="v1.7.0"
     # clones manifests from kubeflow github into a folder named manifests
-    git clone https://github.com/kubeflow/manifests.git
+    git clone -b ${KUBEFLOW_VERSION} --single-branch https://github.com/kubeflow/manifests.git
 
     echo "> Installing kubeflow namespace"
     kustomize build manifests/common/kubeflow-namespace/base | kubectl apply -f -
 
     echo "> Installing training operators"
     kustomize build manifests/apps/training-operator/upstream/overlays/kubeflow | kubectl apply -f -
+}
+
+# Function to remove kubeflow in EKS cluster using kustomize
+delete_kubeflow(){
+
+    echo "> Uninstalling kubeflow namespace"
+    kustomize build manifests/common/kubeflow-namespace/base | kubectl delete -f -
+
+    echo "> Uninstalling training operators"
+    kustomize build manifests/apps/training-operator/upstream/overlays/kubeflow | kubectl delete -f -
 }
 
 # Function to create directory to install kubeflow components
@@ -56,14 +67,23 @@ fi
 EKS_CLUSTER_NAME=${1}
 REGION_NAME=${2}
 
-echo "> Set AWS region"
-export AWS_REGION=$2
+# Check for environment variables
+if [ -z "$AWS_REGION" ]; then
+  echo "AWS region not configured"
+  exit 1
+fi
+
+# delete the manifest if operation is to upgrade kubeflow
+if [ "${OPERATION}" = "upgrade_kubeflow" ]; then
+    echo "> Uninstalling kubeflow manifest"
+    delete_kubeflow
+else
+    echo "> Installing kustomize"
+    install_kustomize
+fi
 
 echo "> Setup installation directory"
 create_dir ${EKS_CLUSTER_NAME}
-
-echo "> Installing kustomize"
-install_kustomize
 
 echo "> Setting up kubeflow"
 setup_kubeflow ${REGION_NAME}

@@ -69,6 +69,22 @@ function upgrade_nodegroup() {
 
 }
 
+# Upgrade kubeflow version
+#
+# Invokes upgrade_kubeflow script to upgrade kubeflow manifests on each EKS cluster
+function upgrade_kubeflow(){
+  for CONTEXT in "${CONTEXTS[@]}"; do
+    for CLUSTER in "${EKS_CLUSTERS[@]}"; do
+      CLUSTER_NAME=${CLUSTER}-${CONTEXT}
+      if check_cluster_status $CLUSTER_NAME; then
+        ./upgrade_kubeflow.sh $CLUSTER_NAME $KUBEFLOW_VERSION
+      else
+        echo "EKS Cluster :: ${CLUSTER_NAME} :: does not exists. Skipping upgrade operation."
+      fi
+    done
+  done
+}
+
 # Delete operation function
 #
 # Invokes delete_cluster.sh script to delete EKS cluster, nodegroups and other related components
@@ -147,6 +163,10 @@ upgrade_cluster)
 
 upgrade_nodegroup)
   upgrade_nodegroup
+  ;;
+  
+upgrade_kubeflow)
+  upgrade_kubeflow
   ;;
 
 delete)
