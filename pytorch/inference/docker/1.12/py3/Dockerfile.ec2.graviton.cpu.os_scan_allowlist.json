@@ -1,8 +1,7 @@
 {
   "torch": [
     {
-      "reason_to_ignore": "The binaries are patched for this CVE, but the system checks version and not code.",
-      "description": "[torch](https://pypi.org/project/torch) is a Tensors and Dynamic neural networks in Python with strong GPU acceleration\n\nAffected versions of this package are vulnerable to Command Injection in `torch.jit.annotations.parse_type_line` which can cause arbitrary code execution because `eval` is used unsafely.",
+      "description": "## Overview\n[torch](https://pypi.org/project/torch) is a Tensors and Dynamic neural networks in Python with strong GPU acceleration\nAffected versions of this package are vulnerable to Command Injection in `torch.jit.annotations.parse_type_line` which can cause arbitrary code execution because `eval` is used unsafely.\n## Remediation\nUpgrade `torch` to version 1.13.1 or higher.\n## References\n- [GitHub Commit](https://github.com/pytorch/pytorch/commit/74a9ca993bd79f8131829e9c946657fa9a1d05ef)\n- [GitHub Commit](https://github.com/pytorch/pytorch/commit/767f6aa49fe20a2766b9843d01e3b7f7793df6a3)\n- [GitHub Issue](https://github.com/pytorch/pytorch/issues/88868)",
       "vulnerability_id": "SNYK-PYTHON-TORCH-3149871",
       "name": "SNYK-PYTHON-TORCH-3149871",
       "package_name": "torch",
@@ -19,36 +18,11 @@
       "cvss_v31_score": 9.8,
       "cvss_v2_score": 0.0,
       "cvss_v3_severity": "CRITICAL",
-      "source_url": "https://snyk.io/vuln/SNYK-PYTHON-TORCH-3149871",
+      "source_url": "https://security.snyk.io/vuln/SNYK-PYTHON-TORCH-3149871",
       "source": "SNYK",
       "severity": "CRITICAL",
       "status": "ACTIVE",
       "title": "IN1-PYTHON-TORCH-3149871 - torch"
-    },
-    {
-      "reason_to_ignore": "The binaries are patched for this CVE, but the system checks version and not code.",  
-      "description": " In PyTorch before trunk/89695, torch.jit.annotations.parse_type_line can cause arbitrary code execution because eval is used unsafely.",
-      "vulnerability_id": "CVE-2022-45907",
-      "name": "CVE-2022-45907",
-      "package_name": "torch",
-      "package_details": {
-        "file_path": "opt/conda/lib/python3.8/site-packages/torch-1.12.1+cpu.dist-info/METADATA",
-        "name": "torch",
-        "package_manager": "PYTHONPKG",
-        "version": "1.12.1+cpu",
-        "release": null
-      },
-      "remediation": { "recommendation": { "text": "None Provided" } },
-      "cvss_v3_score": 9.8,
-      "cvss_v30_score": 0.0,
-      "cvss_v31_score": 9.8,
-      "cvss_v2_score": 0.0,
-      "cvss_v3_severity": "CRITICAL",
-      "source_url": "https://people.canonical.com/~ubuntu-security/cve/2022/CVE-2022-45907.html",
-      "source": "UBUNTU_CVE",
-      "severity": "MEDIUM",
-      "status": "ACTIVE",
-      "title": "CVE-2022-45907 - torch"
     }
   ]
 }
