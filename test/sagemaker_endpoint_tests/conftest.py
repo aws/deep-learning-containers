@@ -2,7 +2,7 @@ import os
 import boto3
 import pytest
 import logging
-import utils as utils
+from . import utils
 
 logger = logging.getLogger(__name__)
 logging.getLogger('boto').setLevel(logging.INFO)

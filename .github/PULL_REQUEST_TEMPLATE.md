@@ -20,6 +20,9 @@ Note: If merging this PR should also close the associated Issue, please also add
 **Additionally, please run the sagemaker local tests in at least one revision:**
 - [ ] `sagemaker_local_tests = true`
 
+**Optionally, sagemaker endpoint tests is for testing the launch SageMaker endpoint using DLC image(s):**
+- [ ] `sagemaker_endpoint_tests = true`
+
 ### DLC image/dockerfile
 
 ### Additional context

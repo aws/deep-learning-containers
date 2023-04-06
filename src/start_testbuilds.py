@@ -15,6 +15,7 @@ language governing permissions and limitations under the License.
 import json
 import logging
 import os
+import re
 import sys
 
 import boto3
@@ -169,6 +170,19 @@ def main():
                 and config.is_sm_local_test_enabled()
             ):
                 test_job = f"dlc-pr-{test_type}-local-test"
+                run_test_job(commit, test_job, images_str)
+
+            # Trigger sagemaker endpoint test jobs
+            # sagemaker endpoint test supports only inference gpu images
+            # for the major frameworks: mxnet, pytorch, and tensorflow
+            endpoint_images = [image for image in images if re.match(r"pr-(mxnet|pytorch|tensorflow)-inference:.*gpu", image)]
+            if(
+                test_type == "sagemaker"
+                and config.is_sm_endpoint_test_enabled()
+                and endpoint_images
+            ):
+                test_job = f"dlc-pr-{test_type}-endpoint-test"
+                images_str = " ".join(endpoint_images)
                 run_test_job(commit, test_job, images_str)
 
 

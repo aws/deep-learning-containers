@@ -10,6 +10,7 @@
 # distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF
 # ANY KIND, either express or implied. See the License for the specific
 # language governing permissions and limitations under the License.
+import re
 import boto3
 import sagemaker
 import botocore
@@ -56,3 +57,70 @@ def create_endpoint_name(prefix) -> str:
     :return: str unique endpoint name
     """
     return utils.unique_name_from_base(prefix)
+
+def get_account_id_from_image_uri(image_uri):
+    """
+    Find the account ID where the image is located
+
+    :param image_uri: <str> ECR image URI
+    :return: <str> AWS Account ID
+    """
+    return image_uri.split(".")[0]
+
+
+def get_region_from_image_uri(image_uri):
+    """
+    Find the region where the image is located
+
+    :param image_uri: <str> ECR image URI
+    :return: <str> AWS Region Name
+    """
+    region_pattern = r"(us(-gov)?|ap|ca|cn|eu|sa)-(central|(north|south)?(east|west)?)-\d+"
+    region_search = re.search(region_pattern, image_uri)
+    assert region_search, f"{image_uri} must have region that matches {region_pattern}"
+    return region_search.group()
+
+
+def get_framework_name(image_uri):
+    """
+    Get the framework name from image uri
+    :param image_uri: <str> image uri containing framework name
+    :return: Returns str representing framework
+    """
+    return (
+        "mxnet" if "mxnet" in image_uri
+        else "pytorch" if "pytorch" in image_uri
+        else "tensorflow" if "tensorflow" in image_uri
+        else None
+    )
+
+def get_framework_version(image_uri):
+    """
+    Gets framework version from image_uri
+    :param image_uri: Where framework_version will be regexed from
+    :return: Returns str representing framework_version
+    """
+    framework_version = re.search(r":\s*([\d][.][\d]+)", image_uri).group(1)
+    return framework_version
+
+
+def get_py_version(image_uri):
+    """
+    Gets python version from image_uri
+    :param image_uri: Where python_version will be regexed from
+    :return: Returns str representing python_version
+    """
+    python_version = re.search(r"py\s*([\d])", image_uri).group()
+    return python_version
+
+
+def get_repository_and_tag_from_image_uri(image_uri):
+    """
+    Return the name of the repository holding the image
+
+    :param image_uri: URI of the image
+    :return: <str> repository name
+    """
+    repository_uri, tag = image_uri.split(":")
+    _, repository_name = repository_uri.split("/")
+    return repository_name, tag

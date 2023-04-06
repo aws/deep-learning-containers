@@ -7,6 +7,7 @@ from multiprocessing import Pool
 from packaging.version import Version #, parse
 from junit_xml import TestSuite, TestCase
 from invoke.context import Context
+from sagemaker_endpoint_tests import utils
 
 PUBLIC_DLC_REGISTRY = "763104351884"
 PUBLIC_DLC_REGION = "us-west-2"
@@ -61,6 +62,42 @@ def get_canary_default_tag_py3_version(framework, version):
             return "py310"
 
     return "py3"
+
+
+def get_sagemaker_images(images_str, processor):
+    """
+    Gets sagemaker images from images string
+    Assume that all image are of the same framework
+    :param images_str: string containing image uris
+    :param processor: string representing processor type
+    :return: a tuple - framework and a list of image definitions
+    """
+    framework = None 
+    image_definitions = []
+    image_uris = images_str.split(" ")
+    for image_uri in image_uris:
+        if processor in image_uri:
+            if framework is None:
+                framework = utils.get_framework_name(image_uri)
+            py_version = utils.get_py_version(image_uri)
+            framework = utils.get_framework_name(image_uri)
+            framework_version = utils.get_framework_version(image_uri)
+            repository, tag = utils.get_repository_and_tag_from_image_uri(image_uri)
+            registry = utils.get_account_id_from_image_uri(image_uri)
+            region = utils.get_region_from_image_uri(image_uri)
+
+            image_definitions.append({
+                "registry": registry,
+                "region": region,
+                "repository": repository,
+                "framework_version": framework_version,
+                "processor": processor,
+                "py_version": py_version,
+                "tag": tag
+            })
+
+    return framework, image_definitions
+
 
 def get_sagemaker_images_from_github(registry, framework, region, image_type, processor=None):
     """
@@ -134,7 +171,8 @@ def get_sagemaker_images_from_github(registry, framework, region, image_type, pr
                             "repository": f"{framework}-{image_type}",
                             "framework_version": fw_version,
                             "processor": "gpu",
-                            "py_version": py_version
+                            "py_version": py_version,
+                            "tag": f"{fw_version}-gpu-{py_version}"
                         })
             if processor == "cpu" or processor is None:
                 image_definitions.append({
@@ -143,7 +181,8 @@ def get_sagemaker_images_from_github(registry, framework, region, image_type, pr
                             "repository": f"{framework}-{image_type}",
                             "framework_version": fw_version,
                             "processor": "cpu",
-                            "py_version": py_version
+                            "py_version": py_version,
+                            "tag": f"{fw_version}-cpu-{py_version}"
                         })
 
     return image_definitions
@@ -155,7 +194,7 @@ def execute_endpoint_test(framework_name, image_definition, account_id, sagemake
     framework_version = image_definition.get("framework_version")
     processor = image_definition.get("processor")
     python_version = image_definition.get("py_version")
-    tag = f"{framework_version}-{processor}-{python_version}"
+    tag = image_definition.get("tag")
 
     retries = "" # " --reruns 2"
     instance_type = "g4dn.xlarge"
@@ -216,7 +255,11 @@ def run_framework_tests(framework, images, canary_account_id, sagemaker_region, 
 
 
 def main():
-    framework = os.getenv("FRAMEWORK") # ["mxnet","pytorch","tensorflow"]
+
+    processor = "gpu"
+    image_definitions = []
+    images_str = os.getenv("DLC_IMAGES")
+    framework = os.getenv("FRAMEWORK") # e.g. ["mxnet","pytorch","tensorflow"]
     image_type = os.getenv("IMAGE_TYPE")
     sagemaker_region = os.getenv("REGION")
     canary_account_id = os.getenv("ACCOUNT_ID")
@@ -224,8 +267,12 @@ def main():
     registry = os.getenv("PUBLIC_DLC_REGISTRY") or PUBLIC_DLC_REGISTRY
     
     if framework:
-        images = get_sagemaker_images_from_github(registry, framework, region, image_type, processor="gpu")
-        run_framework_tests(framework, images, canary_account_id, sagemaker_region, registry, region)
+        image_definitions = get_sagemaker_images_from_github(registry, framework, region, image_type, processor=processor)
+    elif images_str:
+        framework, image_definitions = get_sagemaker_images(images_str, processor)
+    
+    if image_definitions:
+        run_framework_tests(framework, image_definitions, canary_account_id, sagemaker_region, registry, region)
     else:
         generate_report(DEFAULT_REPORT_XML, "Endpoint test", "sagemaker-endpoint", "Framework name missing or not provided.")
 

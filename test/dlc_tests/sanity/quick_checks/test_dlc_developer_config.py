@@ -31,6 +31,7 @@ def test_developer_configuration():
     assert config.parse_dlc_developer_configs("test", "sagemaker_remote_tests") == "off"
     assert config.parse_dlc_developer_configs("test", "sagemaker_remote_efa_instance_type") == ""
     assert config.parse_dlc_developer_configs("test", "sagemaker_local_tests") is False
+    assert config.parse_dlc_developer_configs("test", "sagemaker_endpoint_tests") is False
     assert config.parse_dlc_developer_configs("test", "ecs_tests") is True
     assert config.parse_dlc_developer_configs("test", "eks_tests") is True
     assert config.parse_dlc_developer_configs("test", "ec2_tests") is True
@@ -51,6 +52,7 @@ def test_developer_config_wrappers_defaults():
     assert config.are_efa_tests_enabled() is False
     assert config.is_sanity_test_enabled() is True
     assert config.is_sm_local_test_enabled() is False
+    assert config.is_sm_endpoint_test_enabled() is False
     assert config.is_sm_remote_test_enabled() is False
     assert config.get_sagemaker_remote_efa_instance_type() == ""
     assert config.is_ecs_test_enabled() is True

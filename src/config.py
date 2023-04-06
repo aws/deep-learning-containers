@@ -58,6 +58,10 @@ def is_sm_local_test_enabled():
     return parse_dlc_developer_configs("test", "sagemaker_local_tests")
 
 
+def is_sm_endpoint_test_enabled():
+    return parse_dlc_developer_configs("test", "sagemaker_endpoint_tests")
+
+
 def is_nightly_pr_test_mode_enabled():
     return parse_dlc_developer_configs("test", "nightly_pr_test_mode")
 

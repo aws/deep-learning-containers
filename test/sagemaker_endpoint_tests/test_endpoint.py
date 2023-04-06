@@ -1,6 +1,6 @@
 import pytest
 import logging
-import utils as utils
+from . import utils
 from sagemaker.mxnet.model import MXNetModel
 from sagemaker.pytorch import PyTorchModel
 from sagemaker.tensorflow import TensorFlowModel
