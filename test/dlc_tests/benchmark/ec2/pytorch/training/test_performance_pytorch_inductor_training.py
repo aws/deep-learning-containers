@@ -37,9 +37,9 @@ def test_performance_pytorch_gpu_inductor_huggingface_p3(pytorch_training, ec2_c
     _, image_framework_version = get_framework_and_version_from_tag(pytorch_training)
     if Version(image_framework_version) < Version("2.0"):
         pytest.skip("Torch inductor was introduced in PyTorch 2.0")
-    test_cmd = PT_PERFORMANCE_TRAINING_GPU_INDUCTOR_HUGGINGFACE_CMD + f" {ec2_instance_type}"
+    test_cmd = PT_PERFORMANCE_TRAINING_GPU_INDUCTOR_HUGGINGFACE_CMD + " " + ec2_instance_type
     execute_ec2_training_performance_test(
-        ec2_connection, pytorch_training, test_cmd, ec2_instance_type, model_suite="huggingface"
+        ec2_connection, pytorch_training, test_cmd, model_suite="huggingface"
     )
 
 @pytest.mark.integration("inductor")
@@ -50,9 +50,9 @@ def test_performance_pytorch_gpu_inductor_huggingfac_p4d(pytorch_training, ec2_c
     _, image_framework_version = get_framework_and_version_from_tag(pytorch_training)
     if Version(image_framework_version) < Version("2.0"):
         pytest.skip("Torch inductor was introduced in PyTorch 2.0")
-    test_cmd = PT_PERFORMANCE_TRAINING_GPU_INDUCTOR_HUGGINGFACE_CMD + f" {ec2_instance_type}"
+    test_cmd = PT_PERFORMANCE_TRAINING_GPU_INDUCTOR_HUGGINGFACE_CMD + " " + ec2_instance_type
     execute_ec2_training_performance_test(
-        ec2_connection, pytorch_training, test_cmd, ec2_instance_type, model_suite="huggingface"
+        ec2_connection, pytorch_training, test_cmd, model_suite="huggingface"
     )
 
 @pytest.mark.integration("inductor")
@@ -63,9 +63,9 @@ def test_performance_pytorch_gpu_inductor_huggingface_g5(pytorch_training, ec2_c
     _, image_framework_version = get_framework_and_version_from_tag(pytorch_training)
     if Version(image_framework_version) < Version("2.0"):
         pytest.skip("Torch inductor was introduced in PyTorch 2.0")
-    test_cmd = PT_PERFORMANCE_TRAINING_GPU_INDUCTOR_HUGGINGFACE_CMD + f" {ec2_instance_type}"
+    test_cmd = PT_PERFORMANCE_TRAINING_GPU_INDUCTOR_HUGGINGFACE_CMD + " " + ec2_instance_type
     execute_ec2_training_performance_test(
-        ec2_connection, pytorch_training, test_cmd, ec2_instance_type, model_suite="huggingface"
+        ec2_connection, pytorch_training, test_cmd, model_suite="huggingface"
     )
 
 @pytest.mark.integration("inductor")
@@ -76,9 +76,9 @@ def test_performance_pytorch_gpu_inductor_huggingface_g4dn(pytorch_training, ec2
     _, image_framework_version = get_framework_and_version_from_tag(pytorch_training)
     if Version(image_framework_version) < Version("2.0"):
         pytest.skip("Torch inductor was introduced in PyTorch 2.0")
-    test_cmd = PT_PERFORMANCE_TRAINING_GPU_INDUCTOR_HUGGINGFACE_CMD + f" {ec2_instance_type}"
+    test_cmd = PT_PERFORMANCE_TRAINING_GPU_INDUCTOR_HUGGINGFACE_CMD + " " + ec2_instance_type"
     execute_ec2_training_performance_test(
-        ec2_connection, pytorch_training, test_cmd, ec2_instance_type, model_suite="huggingface"
+        ec2_connection, pytorch_training, test_cmd, model_suite="huggingface"
     )
     
 @pytest.mark.skip("skip for now")
@@ -91,7 +91,7 @@ def test_performance_pytorch_gpu_inductor_timm(pytorch_training, ec2_connection,
     if Version(image_framework_version) < Version("2.0"):
         pytest.skip("Torch inductor was introduced in PyTorch 2.0")
     execute_ec2_training_performance_test(
-        ec2_connection, pytorch_training, PT_PERFORMANCE_TRAINING_GPU_INDUCTOR_TIMM_CMD, ec2_instance_type, model_suite="timm"
+        ec2_connection, pytorch_training, PT_PERFORMANCE_TRAINING_GPU_INDUCTOR_TIMM_CMD, model_suite="timm"
     )
 
 @pytest.mark.skip("skip for now")
@@ -104,7 +104,7 @@ def test_performance_pytorch_gpu_inductor_torchbench(pytorch_training, ec2_conne
     if Version(image_framework_version) < Version("2.0"):
         pytest.skip("Torch inductor was introduced in PyTorch 2.0")
     execute_ec2_training_performance_test(
-        ec2_connection, pytorch_training, PT_PERFORMANCE_TRAINING_GPU_INDUCTOR_TORCHBENCH_CMD, ec2_instance_type, model_suite="torchbench"
+        ec2_connection, pytorch_training, PT_PERFORMANCE_TRAINING_GPU_INDUCTOR_TORCHBENCH_CMD, model_suite="torchbench"
     )
 
 
