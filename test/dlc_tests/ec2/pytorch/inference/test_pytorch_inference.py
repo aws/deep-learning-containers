@@ -1,19 +1,18 @@
 import os
+import time
+import logging
+from datetime import date, timedelta, datetime
 
+import pytest
 from packaging.version import Version
 from packaging.specifiers import SpecifierSet
-import pytest
 
 import test.test_utils.ec2 as ec2_utils
-
 from test import test_utils
 from test.test_utils import CONTAINER_TESTS_PREFIX, get_framework_and_version_from_tag, get_inference_server_type, get_cuda_version_from_tag
 from test.test_utils.ec2 import get_ec2_instance_type, execute_ec2_inference_test, get_ec2_accelerator_type
 from test.dlc_tests.conftest import LOGGER
 import boto3
-from datetime import date, timedelta, datetime
-import time
-
 
 LOGGER = logging.getLogger(__name__)
 LOGGER.addHandler(logging.StreamHandler(sys.stdout))

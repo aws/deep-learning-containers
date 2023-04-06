@@ -250,7 +250,7 @@ def get_dockerfile_path_for_image(image_uri):
         if "example" not in path
     ]
 
-    if device_type in ["gpu", "hpu", "neuron"]:
+    if device_type in ["gpu", "hpu", "neuron", "neuronx"]:
         if len(dockerfiles_list) > 1:
             if device_type == "gpu" and not cuda_version:
                 raise LookupError(
@@ -264,7 +264,7 @@ def get_dockerfile_path_for_image(image_uri):
                     f"uniquely identify the right dockerfile:\n"
                     f"{dockerfiles_list}"
                 )
-            if device_type == "neuron" and not neuron_sdk_version:
+            if "neuron" in device_type and not neuron_sdk_version:
                 raise LookupError(
                     f"dockerfiles_list has more than one result, and needs neuron_sdk_version to be in image_uri to "
                     f"uniquely identify the right dockerfile:\n"
