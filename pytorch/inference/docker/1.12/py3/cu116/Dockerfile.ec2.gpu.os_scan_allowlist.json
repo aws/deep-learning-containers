@@ -6,10 +6,10 @@
             "name": "SNYK-PYTHON-TORCH-3149871",
             "package_name": "torch",
             "package_details": {
-                "file_path": "opt/conda/lib/python3.8/site-packages/torch-1.12.1+cpu.dist-info/METADATA",
+                "file_path": "opt/conda/lib/python3.8/site-packages/torch-1.12.1+cu116.dist-info/METADATA",
                 "name": "torch",
                 "package_manager": "PYTHONPKG",
-                "version": "1.12.1+cpu",
+                "version": "1.12.1+cu116",
                 "release": null
             },
             "remediation": {
@@ -27,64 +27,6 @@
             "severity": "CRITICAL",
             "status": "ACTIVE",
             "title": "IN1-PYTHON-TORCH-3149871 - torch"
-        }
-    ],
-    "wheel": [
-        {
-            "description": "## Overview\nAffected versions of this package are vulnerable to Regular Expression Denial of Service (ReDoS) via attacker-controlled input to Wheel CLI, when parsing a maliciously crafted Wheel file.\r\n\r\n**Note:**[Version 0.38.0 has been yanked due to an unrelated non-security issue.](https://github.com/pypa/wheel/issues/470) Users are advised to upgrade to version 0.38.1.\n\n## Details\n\nDenial of Service (DoS) describes a family of attacks, all aimed at making a system inaccessible to its original and legitimate users. There are many types of DoS attacks, ranging from trying to clog the network pipes to the system by generating a large volume of traffic from many machines (a Distributed Denial of Service - DDoS - attack) to sending crafted requests that cause a system to crash or take a disproportional amount of time to process.\n\nThe Regular expression Denial of Service (ReDoS) is a type of Denial of Service attack. Regular expressions are incredibly powerful, but they aren't very intuitive and can ultimately e",
-            "vulnerability_id": "SNYK-PYTHON-WHEEL-3180413",
-            "name": "SNYK-PYTHON-WHEEL-3180413",
-            "package_name": "wheel",
-            "package_details": {
-                "file_path": "opt/conda/lib/python3.8/site-packages/wheel-0.37.1-py3.8.egg-info/PKG-INFO",
-                "name": "wheel",
-                "package_manager": "PYTHONPKG",
-                "version": "0.37.1",
-                "release": null
-            },
-            "remediation": {
-                "recommendation": {
-                    "text": "None Provided"
-                }
-            },
-            "cvss_v3_score": 7.5,
-            "cvss_v30_score": 0,
-            "cvss_v31_score": 7.5,
-            "cvss_v2_score": 0,
-            "cvss_v3_severity": "HIGH",
-            "source_url": "https://security.snyk.io/vuln/SNYK-PYTHON-WHEEL-3180413",
-            "source": "SNYK",
-            "severity": "HIGH",
-            "status": "ACTIVE",
-            "title": "IN1-PYTHON-WHEEL-3180413 - wheel"
-        },
-        {
-            "description": "Python Packaging Authority (PyPA) Wheel is a reference implementation of the Python wheel packaging standard. Wheel 0.37.1 and earlier are vulnerable to a Regular Expression denial of service via attacker controlled input to the wheel cli. The vulnerable regex is used to verify the validity of Wheel file names. This has been patched in version 0.38.1.",
-            "vulnerability_id": "GHSA-qwmp-2cf2-g9g6",
-            "name": "GHSA-qwmp-2cf2-g9g6",
-            "package_name": "wheel",
-            "package_details": {
-                "file_path": "opt/conda/lib/python3.8/site-packages/wheel-0.37.1-py3.8.egg-info/PKG-INFO",
-                "name": "wheel",
-                "package_manager": "PYTHONPKG",
-                "version": "0.37.1",
-                "release": null
-            },
-            "remediation": {
-                "recommendation": {
-                    "text": "None Provided"
-                }
-            },
-            "cvss_v3_score": 7.5,
-            "cvss_v30_score": 0,
-            "cvss_v31_score": 7.5,
-            "cvss_v2_score": 0,
-            "cvss_v3_severity": "HIGH",
-            "source_url": "https://github.com/advisories/GHSA-qwmp-2cf2-g9g6",
-            "source": "GITHUB",
-            "severity": "HIGH",
-            "status": "ACTIVE",
-            "title": "GHSA-qwmp-2cf2-g9g6 - wheel"
         }
     ]
 }
