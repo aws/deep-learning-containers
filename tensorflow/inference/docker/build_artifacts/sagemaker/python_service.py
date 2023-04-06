@@ -107,6 +107,7 @@ class PythonServiceResource:
         self._tfs_inter_op_parallelism = os.environ.get("SAGEMAKER_TFS_INTER_OP_PARALLELISM", 0)
         self._tfs_intra_op_parallelism = os.environ.get("SAGEMAKER_TFS_INTRA_OP_PARALLELISM", 0)
         self._tfs_instance_count = int(os.environ.get("SAGEMAKER_TFS_INSTANCE_COUNT", 1))
+        self._gunicorn_workers = int(os.environ.get("SAGEMAKER_GUNICORN_WORKERS", 1))
         self._tfs_wait_time_seconds = int(
             os.environ.get("SAGEMAKER_TFS_WAIT_TIME_SECONDS", 55 // self._tfs_instance_count))
 
@@ -316,10 +317,11 @@ class PythonServiceResource:
     def _handle_invocation_post(self, req, res, model_name=None):
         if SAGEMAKER_MULTI_MODEL_ENABLED:
             if model_name:
-                if model_name not in self._mme_tfs_instances_status or \
-                        not self._check_pid(self._mme_tfs_instances_status[model_name][0].pid):
-                    with lock():
-                        self._sync_local_mme_instance_status()
+                if self._gunicorn_workers > 1:
+                    if model_name not in self._mme_tfs_instances_status or \
+                            not self._check_pid(self._mme_tfs_instances_status[model_name][0].pid):
+                        with lock():
+                            self._sync_local_mme_instance_status()
 
                 if model_name not in self._mme_tfs_instances_status:
                     res.status = falcon.HTTP_404
@@ -573,7 +575,8 @@ if __name__ == '__main__':
             f'SAGEMAKER_TFS_WAIT_TIME_SECONDS={os.environ.get("SAGEMAKER_TFS_WAIT_TIME_SECONDS")}',
             f'SAGEMAKER_TFS_INTER_OP_PARALLELISM={os.environ.get("SAGEMAKER_TFS_INTER_OP_PARALLELISM", 0)}',
             f'SAGEMAKER_TFS_INTRA_OP_PARALLELISM={os.environ.get("SAGEMAKER_TFS_INTRA_OP_PARALLELISM", 0)}',
-            f'SAGEMAKER_TFS_INSTANCE_COUNT={os.environ.get("SAGEMAKER_TFS_INSTANCE_COUNT", "1")}'
+            f'SAGEMAKER_TFS_INSTANCE_COUNT={os.environ.get("SAGEMAKER_TFS_INSTANCE_COUNT", "1")}',
+            f'SAGEMAKER_GUNICORN_WORKERS={os.environ.get("SAGEMAKER_GUNICORN_WORKERS", "1")}'
         ]
     }
 

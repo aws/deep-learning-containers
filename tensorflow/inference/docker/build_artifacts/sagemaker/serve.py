@@ -239,7 +239,8 @@ class ServiceManager(object):
             'SAGEMAKER_TFS_INTER_OP_PARALLELISM': str(self._tfs_inter_op_parallelism),
             'SAGEMAKER_TFS_INTRA_OP_PARALLELISM': str(self._tfs_intra_op_parallelism),
             'SAGEMAKER_TFS_INSTANCE_COUNT': str(self._tfs_instance_count),
-            'PYTHONPATH': ':'.join(python_path_content)
+            'PYTHONPATH': ':'.join(python_path_content),
+            'SAGEMAKER_GUNICORN_WORKERS': str(self._gunicorn_workers),
         }
         if self._sagemaker_port_range is not None:
             gunicorn_env['SAGEMAKER_SAFE_PORT_RANGE'] = self._sagemaker_port_range
