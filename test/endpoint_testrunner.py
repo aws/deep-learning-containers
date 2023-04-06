@@ -221,13 +221,11 @@ def execute_endpoint_test(framework_name, image_definition, account_id, sagemake
     return run_out.ok, run_out.stdout
 
 
-def generate_image_uri(image, registry, region):
-    repository = image.get("repository")
-    framework_version = image.get("framework_version")
-    processor = image.get("processor")
-    py_version = image.get("py_version")
-    domain_suffix = ".cn" if region in ("cn-north-1", "cn-northwest-1") else ""
-    return f"{registry}.dkr.ecr.{region}.amazonaws.com{domain_suffix}/{repository}:{framework_version}-{processor}-{py_version}"
+def generate_image_uri(image_definition, registry, region):
+    repository = image_definition.get("repository")
+    tag = image_definition.get("tag")
+    ecr_registry = utils.get_ecr_registry(registry, region)
+    return f"{ecr_registry}/{repository}:{tag}"
 
 
 def run_framework_tests(framework, images, canary_account_id, sagemaker_region, registry, region):
