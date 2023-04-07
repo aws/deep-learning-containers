@@ -77,7 +77,7 @@ function upgrade_kubeflow(){
     for CLUSTER in "${EKS_CLUSTERS[@]}"; do
       CLUSTER_NAME=${CLUSTER}-${CONTEXT}
       if check_cluster_status $CLUSTER_NAME; then
-        ./upgrade_kubeflow.sh $CLUSTER_NAME $KUBEFLOW_VERSION
+        ./upgrade_kubeflow.sh $CLUSTER_NAME
       else
         echo "EKS Cluster :: ${CLUSTER_NAME} :: does not exists. Skipping upgrade operation."
       fi
