@@ -707,7 +707,7 @@ def request_pytorch_inference_densenet(
     return True
 
 
-@retry(stop_max_attempt_number=20, wait_fixed=10000, retry_on_result=retry_if_result_is_false)
+@retry(stop_max_attempt_number=20, wait_fixed=15000, retry_on_result=retry_if_result_is_false)
 def request_tensorflow_inference(
     model_name,
     ip_address="127.0.0.1",
