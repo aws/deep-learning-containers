@@ -135,7 +135,7 @@ def execute_ec2_training_performance_test(
     log_name = f"{model_suite}_results_{os.getenv('CODEBUILD_RESOLVED_SOURCE_VERSION')}_{timestamp}.txt"
     log_location = os.path.join(os.sep, "test", "benchmark", "logs", log_name)
 
-    s3_pth = os.join(BENCHMARK_RESULTS_S3_BUCKET_TRCOMP, fw, s3_key)
+    s3_pth = os.path.join(BENCHMARK_RESULTS_S3_BUCKET_TRCOMP, fw, s3_key)
 
     # Make sure we are logged into ECR so we can pull the image
     connection.run(f"$(aws ecr get-login --no-include-email --region {region})", hide=True)
