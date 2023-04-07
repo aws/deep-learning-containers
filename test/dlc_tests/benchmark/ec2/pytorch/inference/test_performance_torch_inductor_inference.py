@@ -231,9 +231,12 @@ def ec2_performance_pytorch_inference(image_uri, instance_type, ec2_connection, 
 #        f"{docker_cmd} exec {container_name} "
 #        f"/bin/bash {test_cmd} " f"2>&1 | tee /root/pytorch/logs_{suite}/{log_file}")
 
-    ec2_connection.run(
+    s3_outcome = ec2_connection.run(
         f"aws s3 cp /home/ubuntu/results/pytorch/logs_{suite} {s3_location}/logs_{suite} --recursive")
+    LOGGER.info(f"S3 upload logs============================{s3_outcome}")
 
+    import subprocess as sp
+    sp.run(f"aws s3 cp {s3_location}/logs_{suite} /home/ubuntu/results/ --recursive", shell=True)
     output_list_logs_dir = ec2_connection.run(
         f"ls -l /home/ubuntu/results/pytorch/logs_{suite}").stdout.split("\n")
     LOGGER.info(f"CONTENTS OF LOGS DIR============================{output_list_logs_dir}")
