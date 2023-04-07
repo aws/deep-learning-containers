@@ -153,7 +153,7 @@ def launch_instance(
             "HttpEndpoint": "enabled",
             'HttpPutResponseHopLimit': 2,
         },
-        "BlockDeviceMappings": [{"DeviceName": "/dev/sda1", "Ebs": {"VolumeSize": 150,}}]
+        "BlockDeviceMappings": [{"DeviceName": "/dev/sda1", "Ebs": {"VolumeSize": 500,}}]
     }
     if user_data:
         arguments_dict["UserData"] = user_data

@@ -374,7 +374,7 @@ def main():
                 if is_habana_image:
                     pytest_cmd.append("--timeout=18000")
                 else:
-                    pytest_cmd.append("--timeout=4860")
+                    pytest_cmd.append("--timeout=18000")
 
         pytest_cmds = [pytest_cmd]
         # Execute separate cmd for canaries
@@ -388,6 +388,7 @@ def main():
 
         pytest_cmds = [pytest_cmd + ["--last-failed", "--last-failed-no-failures", "all"] for pytest_cmd in pytest_cmds]
         pytest_cache_util.download_pytest_cache_from_s3_to_local(os.getcwd(), **pytest_cache_params)
+
         try:
             # Note:- Running multiple pytest_cmds in a sequence will result in the execution log having two
             #        separate pytest reports, both of which must be examined in case of a manual review of results.
