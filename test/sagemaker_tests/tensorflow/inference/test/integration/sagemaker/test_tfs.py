@@ -153,6 +153,7 @@ def test_tfs_neuron_model(boto_session, sagemaker_client,
                                     image_uri, instance_type, accelerator_type, input_data)
 
 
+@pytest.mark.skip("CreateEndpointConfig doesn't support trn1: https://docs.aws.amazon.com/sagemaker/latest/APIReference/API_ProductionVariant.html#sagemaker-Type-ProductionVariant-InstanceType")
 @pytest.mark.model("unknown_model")
 @pytest.mark.neuronx_test
 def test_tfs_neuronx_model(boto_session, sagemaker_client,
