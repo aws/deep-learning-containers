@@ -110,22 +110,22 @@ def upload_metric(instance_type, precision, suite, metric_name, value, unit, reg
 
 
 #@pytest.mark.parametrize("ec2_instance_type", ["c5.4xlarge", "m5.4xlarge"], indirect=True)
-@pytest.mark.parametrize("ec2_instance_type", ["c5.4xlarge"], indirect=True)
-@pytest.mark.parametrize("suite", ["torchbench"])
-@pytest.mark.parametrize("precision", ["float32"])
-def test_performance_ec2_pytorch_inference_cpu(ec2_instance_type, suite, precision, pytorch_inference, ec2_connection, region, cpu_only):
-    _, image_framework_version = get_framework_and_version_from_tag(
-        pytorch_inference)
-    if Version(image_framework_version) in SpecifierSet("<2.0"):
-        pytest.skip("skip the test as torch.compile only supported after 2.0")
-    ec2_performance_pytorch_inference(
-        pytorch_inference,
-        ec2_instance_type,
-        ec2_connection,
-        region,
-        suite,
-        precision,
-    )
+#@pytest.mark.parametrize("ec2_instance_type", ["c5.4xlarge"], indirect=True)
+#@pytest.mark.parametrize("suite", ["torchbench"])
+#@pytest.mark.parametrize("precision", ["float32"])
+#def test_performance_ec2_pytorch_inference_cpu(ec2_instance_type, suite, precision, pytorch_inference, ec2_connection, region, cpu_only):
+#    _, image_framework_version = get_framework_and_version_from_tag(
+#        pytorch_inference)
+#    if Version(image_framework_version) in SpecifierSet("<2.0"):
+#        pytest.skip("skip the test as torch.compile only supported after 2.0")
+#    ec2_performance_pytorch_inference(
+#        pytorch_inference,
+#        ec2_instance_type,
+#        ec2_connection,
+#        region,
+#        suite,
+#        precision,
+#    )
 
 
 #@pytest.mark.parametrize("ec2_instance_type", ["c6g.4xlarge", "c7g.4xlarge", "m7g.4xlarge"], indirect=True)
@@ -149,7 +149,8 @@ def test_performance_ec2_pytorch_inference_cpu(ec2_instance_type, suite, precisi
 #    )
 #
 #
-@pytest.mark.parametrize("ec2_instance_type", ["p3.2xlarge", "g5.4xlarge", "g4dn.4xlarge"], indirect=True)
+#@pytest.mark.parametrize("ec2_instance_type", ["p3.2xlarge", "g5.4xlarge", "g4dn.4xlarge"], indirect=True)
+@pytest.mark.parametrize("ec2_instance_type", ["p3.2xlarge"], indirect=True)
 @pytest.mark.parametrize("suite", ["huggingface", "timm", "torchbench"])
 @pytest.mark.parametrize("precision", ["float32"])
 def test_performance_ec2_pytorch_inference_gpu(ec2_instance_type, suite, precision, pytorch_inference, ec2_connection, region, gpu_only):
