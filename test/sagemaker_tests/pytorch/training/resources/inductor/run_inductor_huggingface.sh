@@ -1,5 +1,6 @@
 #!/bin/bash
-
+aws configure set region "us-west-2"
+aws cloudwatch put-metric-data --metric-name "test2" --namespace "PyTorch/SM/Benchmarks/TorchDynamo/Inductor" --value 5
 PYTHON_VERSION=$(python -c 'import sys; print(sys.version_info[0])' | tr -d "'")
 if [ "$PYTHON_VERSION" -eq 2 ]
 then
@@ -38,6 +39,54 @@ set -e
 
 if [ ${RETURN_VAL} -eq 0 ]; then
     echo "Training Huggingface Benchmark Test Complete using PyTorch Inductor."
+    # echo "Strat uploading Training Results to Cloudwatch"
+    # namespace="PyTorch/SM/Benchmarks/TorchDynamo/Inductor"
+    # cd huggingface_logs
+    # INPUT=geomean.csv
+    # OLDIFS=$IFS
+    # IFS=','
+    # [ ! -f $INPUT ] && { echo "$INPUT file not found"; exit 99; }
+    # while read speedup
+    # do
+    #   echo "speedup : $speedup"
+    #   aws cloudwatch put-metric-data --metric-name "speedup" --namespace $namespace --value $speedup
+    # done < <(cut -d "," -f3 $INPUT|tail -n +2)
+    # IFS=$OLDIFS
+
+    # INPUT=comp_time.csv
+    # OLDIFS=$IFS
+    # IFS=','
+    # [ ! -f $INPUT ] && { echo "$INPUT file not found"; exit 99; }
+    # while read comp_time
+    # do
+    #   echo "comp_time : $comp_time"
+    #   aws cloudwatch put-metric-data --metric-name "comp_time" --namespace $namespace --value $comp_time
+    # done < <(cut -d "," -f3 $INPUT|tail -n +2)
+    # IFS=$OLDIFS
+
+    # INPUT=memory.csv
+    # OLDIFS=$IFS
+    # IFS=','
+    # [ ! -f $INPUT ] && { echo "$INPUT file not found"; exit 99; }
+    # while read memory
+    # do
+    #   echo "memory : $memory"
+    #   aws cloudwatch put-metric-data --metric-name "memory" --namespace $namespace --value $memory
+    # done < <(cut -d "," -f3 $INPUT|tail -n +2)
+    # IFS=$OLDIFS
+
+    # INPUT=passrate.csv
+    # OLDIFS=$IFS
+    # IFS=','
+    # [ ! -f $INPUT ] && { echo "$INPUT file not found"; exit 99; }
+    # while read passrate
+    # do
+    #   echo "passrate : $passrate"
+    #   aws cloudwatch put-metric-data --metric-name "passrate" --namespace $namespace --value $passrate
+    # done < <(cut -d "," -f3 $INPUT|tail -n +2)
+    # IFS=$OLDIFS
+
+    # echo "finish uploading"
 else
     echo "Training Huggingface Benchmark Test Failed using PyTorch Inductor."
     cat $TRAINING_LOG
