@@ -150,7 +150,6 @@ class TestDistributedTraining:
     @pytest.mark.model('toy')
     @pytest.mark.integration("horovod")
     def test_horovod(self, sagemaker_session, ecr_image, framework_version, instance_type, instance_count, tmpdir, capsys):
-        #TODO: test needs to be reconfigured or skipped
         script = os.path.join(resource_path, 'mnist', 'horovod_mnist.py')
         estimator = TensorFlow(entry_point=script,
                                role='SageMakerRole',
@@ -234,7 +233,6 @@ class TestDistributedTraining:
     @pytest.mark.integration("horovod")
     @pytest.mark.integration("smmodelparallel")
     def test_smmp_with_horovod(self, sagemaker_session, ecr_image, framework_version, efa_instance_type, instance_count, tmpdir, capsys):
-        #TODO: test needs to be reconfigured or skipped
         path = os.path.join(resource_path, 'smmodelparallel')
         estimator = TensorFlow(source_dir=path,
                                entry_point='smmodelparallel_hvd2_conv_multinode.py',

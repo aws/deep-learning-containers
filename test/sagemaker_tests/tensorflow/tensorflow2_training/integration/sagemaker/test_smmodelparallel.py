@@ -58,7 +58,6 @@ def can_run_smmodelparallel_efa(ecr_image):
 @pytest.mark.parametrize("test_script, num_processes", [("tf2_conv.py", 2), ("tf2_conv_xla.py", 2), ("smmodelparallel_hvd2_conv.py", 4), ("send_receive_checkpoint.py", 2), ("tf2_checkpoint_test.py", 2)])
 @pytest.mark.efa()
 def test_smmodelparallel_efa(ecr_image, sagemaker_regions, efa_instance_type, tmpdir, framework_version, test_script, num_processes):
-    #TODO: test needs to be reconfigured or skipped
     invoke_sm_helper_function(ecr_image,
                               sagemaker_regions,
                               _test_smmodelparallel_efa_function,
@@ -101,7 +100,6 @@ def _test_smmodelparallel_efa_function(
 @pytest.mark.parametrize("test_script, num_processes", [("smmodelparallel_hvd2_conv_multinode.py", 2)])
 @pytest.mark.efa()
 def test_smmodelparallel_multinode_efa(ecr_image, sagemaker_regions, efa_instance_type, tmpdir, framework_version, test_script, num_processes):
-    #TODO: test needs to be reconfigured or skipped
     invoke_sm_helper_function(ecr_image,
                               sagemaker_regions,
                               _test_smmodelparallel_multinode_efa_function,
@@ -142,7 +140,6 @@ def _test_smmodelparallel_multinode_efa_function(
 @pytest.mark.skip_py2_containers
 @pytest.mark.parametrize("test_script, num_processes", [("tf2_conv.py", 2), ("tf2_conv_xla.py", 2), ("smmodelparallel_hvd2_conv.py", 4), ("send_receive_checkpoint.py", 2), ("tf2_checkpoint_test.py", 2)])
 def test_smmodelparallel(ecr_image, sagemaker_regions, instance_type, tmpdir, framework_version, test_script, num_processes):
-    #TODO: test needs to be reconfigured or skipped
     invoke_sm_helper_function(ecr_image,
                               sagemaker_regions,
                               _test_smmodelparallel_function,
@@ -185,7 +182,6 @@ def _test_smmodelparallel_function(
 @pytest.mark.skip_py2_containers
 @pytest.mark.parametrize("test_script, num_processes", [("smmodelparallel_hvd2_conv_multinode.py", 2)])
 def test_smmodelparallel_multinode(ecr_image, sagemaker_regions, instance_type, tmpdir, framework_version, test_script, num_processes):
-    #TODO: test needs to be reconfigured or skipped
     invoke_sm_helper_function(ecr_image,
                               sagemaker_regions,
                               _test_smmodelparallel_multinode_function,
