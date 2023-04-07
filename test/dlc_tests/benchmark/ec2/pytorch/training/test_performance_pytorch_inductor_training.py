@@ -142,16 +142,17 @@ def execute_ec2_training_performance_test(
     # Make sure we are logged into ECR so we can pull the image
     connection.run(f"$(aws ecr get-login --no-include-email --region {region})", hide=True)
     connection.run(f"{docker_cmd} pull {ecr_uri}", hide='out') # this line fixes the time out issue
-    # Run training command, display benchmark results to console
-    try:
-        connection.run(
+    # Run training command
+    connection.run(
         f"{docker_cmd} run --user root "
         f"-e LOG_FILE={os.path.join(os.sep, 'test', 'benchmark', 'logs', log_name)} "
         f"-e PR_CONTEXT={1 if is_pr_context() else 0} "
         f"-v {container_test_local_dir}:{os.path.join(os.sep, 'test')} {ecr_uri} "
         f"{os.path.join(os.sep, 'bin', 'bash')} -c {test_cmd} {s3_pth}")
 
+
 def read_upload_benchmarking_result_to_cw(metric_name, pth, precision="amp", instance_type="p4d.24xlarge", model_suite="huggingface", namespace="PyTorch/EC2/Benchmarks/TorchDynamo/Inductor"):
+    
     dimensions = [
              {"Name": "InstanceType", "Value": instance_type},
              {"Name": "ModelSuite", "Value": model_suite},
