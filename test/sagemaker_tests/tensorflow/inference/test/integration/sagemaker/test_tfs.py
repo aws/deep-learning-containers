@@ -77,7 +77,7 @@ def tfs_neuron_model(region, boto_session):
 def tfs_neuronx_model(region, boto_session):
     return util.find_or_put_model_data(region,
                                        boto_session,
-                                       "data/tfs-neuronx-model.tar.gz")
+                                       "test/data/tfs-neuronx-model.tar.gz")
 
 
 @pytest.fixture(scope="session")
