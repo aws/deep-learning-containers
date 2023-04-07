@@ -81,10 +81,7 @@ RUN curl -L -o ~/mambaforge.sh https://github.com/conda-forge/miniforge/releases
     # Below 2 are included in miniconda base, but not mamba so need to install
     conda-content-trust \
     charset-normalizer \
-# Upstream conda looks to have moved to 4.13 which is incompatible with mamba 0.22.1 and will fail the conda-forge installs.
-# having "conda update conda" before the "conda -c conda-forge" commands will automatically update conda to 4.13.
-# Moving conda update conda" after the "conda -c conda-forge" commands keep conda at 4.12 but will update other packages using
-# the current conda 4.12
+
  && /opt/conda/bin/conda update -y conda \
  && /opt/conda/bin/conda clean -ya
 
@@ -96,12 +93,10 @@ RUN conda install -c conda-forge \
  && conda clean -ya \
  && pip install --upgrade pip --trusted-host pypi.org --trusted-host files.pythonhosted.org \
  && ln -s /opt/conda/bin/pip /usr/local/bin/pip3 \
- && pip install packaging==20.4 \
-    enum-compat==0.0.3 \
-    numpy==1.20.3 \
+ && pip install packaging \
+    enum-compat \
     ipython \
-    # pyOpenSSL requires cryptography>=2.3, but all versions <3.3 have vulnerabilities
-    "cryptography>=3.3.2"
+    cryptography
 
 RUN pip install --no-cache-dir -U \
     scipy \
@@ -110,7 +105,7 @@ RUN pip install --no-cache-dir -U \
     "pyYAML>=5.4,<5.5" \
     "pillow>=8.3" \
     "awscli<2" \
-    pandas==1.4.0 \
+    pandas==1.* \
     boto3
 
 RUN pip install neuronx-cc==$NEURONX_CC_VERSION --extra-index-url https://pip.repos.neuron.amazonaws.com \
