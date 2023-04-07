@@ -28,7 +28,7 @@ from .... import invoke_pytorch_helper_function
 @pytest.mark.skip_gpu
 @pytest.mark.skip_inductor_test
 def test_mnist_distributed_cpu(framework_version, ecr_image, sagemaker_regions, instance_type, dist_cpu_backend):
-    instance_type = instance_type or 'ml.p2.xlarge'
+    instance_type = instance_type or 'ml.p3.2xlarge'
     function_args = {
             'framework_version': framework_version,
             'instance_type': instance_type,
@@ -45,7 +45,7 @@ def test_mnist_distributed_cpu(framework_version, ecr_image, sagemaker_regions, 
 @pytest.mark.skip_cpu
 @pytest.mark.skip_inductor_test
 def test_mnist_distributed_gpu(framework_version, ecr_image, sagemaker_regions, instance_type, dist_gpu_backend):
-    instance_type = instance_type or 'ml.p2.xlarge'
+    instance_type = instance_type or 'ml.p3.2xlarge'
     function_args = {
             'framework_version': framework_version,
             'instance_type': instance_type,
@@ -61,7 +61,7 @@ def test_mnist_distributed_gpu(framework_version, ecr_image, sagemaker_regions, 
 @pytest.mark.skip_gpu
 @pytest.mark.skip_inductor_test
 def test_mnist_with_native_launcher_distributed_cpu(framework_version, ecr_image, sagemaker_regions, instance_type, dist_cpu_backend):
-    instance_type = instance_type or 'ml.p2.xlarge'
+    instance_type = instance_type or 'ml.p3.2xlarge'
     function_args = {
             'framework_version': framework_version,
             'instance_type': instance_type,
@@ -79,7 +79,7 @@ def test_mnist_with_native_launcher_distributed_cpu(framework_version, ecr_image
 @pytest.mark.skip_cpu
 @pytest.mark.skip_inductor_test
 def test_mnist_with_native_launcher_distributed_gpu(framework_version, ecr_image, sagemaker_regions, instance_type, dist_gpu_backend):
-    instance_type = instance_type or 'ml.p2.xlarge'
+    instance_type = instance_type or 'ml.p3.2xlarge'
     function_args = {
             'framework_version': framework_version,
             'instance_type': instance_type,
@@ -129,7 +129,7 @@ def _test_mnist_distributed(ecr_image, sagemaker_session, framework_version, ins
 @pytest.mark.skip_gpu
 @pytest.mark.skip_inductor_test
 def test_hc_mnist_distributed_cpu(framework_version, ecr_image, sagemaker_regions, instance_type, dist_cpu_backend):
-    instance_type = instance_type or 'ml.p2.xlarge'
+    instance_type = instance_type or 'ml.p3.2xlarge'
     training_group = InstanceGroup("train_group", instance_type, 2)
     function_args = {
             'framework_version': framework_version,
@@ -147,7 +147,7 @@ def test_hc_mnist_distributed_cpu(framework_version, ecr_image, sagemaker_region
 @pytest.mark.skip_cpu
 @pytest.mark.skip_inductor_test
 def test_hc_mnist_distributed_gpu(framework_version, ecr_image, sagemaker_regions, instance_type, dist_gpu_backend):
-    instance_type = instance_type or 'ml.p2.xlarge'
+    instance_type = instance_type or 'ml.p3.2xlarge'
     training_group = InstanceGroup("train_group", instance_type, 2)
     function_args = {
             'framework_version': framework_version,

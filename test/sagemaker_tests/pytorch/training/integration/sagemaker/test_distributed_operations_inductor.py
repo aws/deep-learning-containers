@@ -67,7 +67,7 @@ def can_run_smmodelparallel_efa(ecr_image):
 @pytest.mark.skip_test_in_region
 @pytest.mark.skip_inductor_test
 def test_dist_operations_cpu(framework_version, ecr_image, sagemaker_regions, instance_type, dist_cpu_backend):
-    instance_type = instance_type or 'ml.p2.xlarge'
+    instance_type = instance_type or 'ml.p3.2xlarge'
     function_args = {
             'framework_version': framework_version,
             'instance_type': instance_type,
@@ -86,7 +86,7 @@ def test_dist_operations_gpu(framework_version, instance_type, ecr_image, sagema
     """
     Test is run as multinode
     """
-    instance_type = instance_type or 'ml.p2.xlarge'
+    instance_type = instance_type or 'ml.p3.2xlarge'
     function_args = {
             'framework_version': framework_version,
             'instance_type': instance_type,
