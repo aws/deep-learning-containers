@@ -14,9 +14,6 @@ from test.test_utils import (
 
 from test.test_utils.ec2 import (
     trcomp_perf_data_io,
-)
-
-from test.test_utils.read_upload_benchmarking_result import (
     read_metric,
     put_metric_data,
 )
