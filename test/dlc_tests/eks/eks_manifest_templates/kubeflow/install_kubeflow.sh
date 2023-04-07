@@ -22,11 +22,7 @@ install_kustomize(){
 }
 
 # Function to install kubeflow in EKS cluster using kustomize
-setup_kubeflow(){
-    
-    KUBEFLOW_VERSION="v1.7.0"
-    # clones manifests from kubeflow github into a folder named manifests
-    git clone -b ${KUBEFLOW_VERSION} --single-branch https://github.com/kubeflow/manifests.git
+install_kubeflow(){
 
     echo "> Installing kubeflow namespace"
     kustomize build manifests/common/kubeflow-namespace/base | kubectl apply -f -
@@ -36,17 +32,18 @@ setup_kubeflow(){
 }
 
 # Function to remove kubeflow in EKS cluster using kustomize
-delete_kubeflow(){
+uninstall_kubeflow(){
 
     echo "> Uninstalling kubeflow namespace"
-    kustomize build manifests/common/kubeflow-namespace/base | kubectl delete -f -
+    while ! kustomize build manifests/common/kubeflow-namespace/base | kubectl delete -f -; do echo "Retrying to delete namespace resources"; sleep 10; done
 
     echo "> Uninstalling training operators"
-    kustomize build manifests/apps/training-operator/upstream/overlays/kubeflow | kubectl delete -f -
+    while ! build manifests/apps/training-operator/upstream/overlays/kubeflow | kubectl delete -f -; do echo "Retrying to delete training operator resources"; sleep 10; done
 }
 
-# Function to create directory to install kubeflow components
-create_dir(){
+# Function to create directory and download kubeflow components
+setup_kubeflow(){
+    KUBEFLOW_VERSION="v1.7.0"
     local EKS_CLUSTER_NAME=$1
     DIRECTORY="${HOME}/${EKS_CLUSTER_NAME}"
 
@@ -56,7 +53,12 @@ create_dir(){
         
     mkdir ${DIRECTORY} 
     cd ${DIRECTORY}
+    
+    # clones manifests from kubeflow github into a folder named manifests
+    git clone -b ${KUBEFLOW_VERSION} --single-branch https://github.com/kubeflow/manifests.git
 }
+
+
 
 # Check for input arguments
 if [ $# -ne 2 ]; then
@@ -65,7 +67,6 @@ if [ $# -ne 2 ]; then
 fi
 
 EKS_CLUSTER_NAME=${1}
-REGION_NAME=${2}
 
 # Check for environment variables
 if [ -z "$AWS_REGION" ]; then
@@ -73,19 +74,19 @@ if [ -z "$AWS_REGION" ]; then
   exit 1
 fi
 
-# delete the manifest if operation is to upgrade kubeflow
-if [ "${OPERATION}" = "upgrade_kubeflow" ]; then
-    echo "> Uninstalling kubeflow manifest"
-    delete_kubeflow
-else
-    echo "> Installing kustomize"
-    install_kustomize
-fi
+echo "> Installing kustomize"
+install_kustomize
 
 echo "> Setup installation directory"
-create_dir ${EKS_CLUSTER_NAME}
+setup_kubeflow ${EKS_CLUSTER_NAME}
+
+# uninstall the manifest if operation is to upgrade kubeflow
+if [ "${OPERATION}" = "upgrade_kubeflow" ]; then
+    echo "> Uninstalling kubeflow manifest"
+    uninstall_kubeflow
+fi
 
 echo "> Setting up kubeflow"
-setup_kubeflow ${REGION_NAME}
+install_kubeflow
 
 echo "> Installation complete"
