@@ -16,7 +16,7 @@ from packaging.specifiers import SpecifierSet
 from tenacity import retry, stop_after_attempt, wait_fixed
 
 from test.test_utils import is_pr_context, is_mainline_context, get_synapseai_version_from_tag
-from . import DEFAULT_REGION, UL_AMI_LIST, BENCHMARK_RESULTS_S3_BUCKET
+from . import DEFAULT_REGION, UL_AMI_LIST, BENCHMARK_RESULTS_S3_BUCKET, BENCHMARK_RESULTS_S3_BUCKET_TRCOMP
 
 EC2_INSTANCE_ROLE_NAME = "ec2TestInstanceRole"
 
@@ -913,6 +913,14 @@ def ec2_performance_upload_result_to_s3_and_validate(
             f"Benchmark Result {performance_number} does not reach the threshold {threshold}"
         )
 
+def trcomp_perf_data_io(connection, local_pth, s3_key, fw="pytorch", hopper_s3_prefix=BENCHMARK_RESULTS_S3_BUCKET_TRCOMP, is_upload=True):
+    """Use to transfer hopper benchmark data between ec2 test instance, CB instance and s3"""
+    s3_pth = os.join(hopper_s3_prefix, fw, s3_key)
+    if is_upload:
+        connection.run(f"aws s3 cp {local_pth} {s3_pth}")
+    else:
+        connection.run(f"aws s3 cp {s3_pth} {local_pth}")
+    
 
 def post_process_inference(connection, log_location, threshold):
     log_content = connection.run(f"cat {log_location}").stdout.split("\n")

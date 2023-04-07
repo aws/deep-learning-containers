@@ -126,6 +126,7 @@ TEST_TRANSFER_S3_BUCKET = "s3://dlinfra-tests-transfer-bucket"
 
 # S3 Bucket to use to record benchmark results for further retrieving
 BENCHMARK_RESULTS_S3_BUCKET = "s3://dlinfra-dlc-cicd-performance"
+BENCHMARK_RESULTS_S3_BUCKET_TRCOMP = "s3://dlinfra-dlc-cicd-performance/hopper/"
 
 # Ubuntu ami home dir
 UBUNTU_HOME_DIR = "/home/ubuntu"
