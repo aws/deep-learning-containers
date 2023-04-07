@@ -43,7 +43,7 @@ def test_dgl_gcn_training_cpu(ecr_image, sagemaker_regions, instance_type):
     if Version(image_framework_version) in SpecifierSet("==1.10.*"):
         pytest.skip("ecs test for DGL gpu fails for pt 1.10")
 
-    instance_type = instance_type or "ml.p2.xlarge"
+    instance_type = instance_type or "ml.c4.xlarge"
     function_args = {
         "instance_type": instance_type,
     }
