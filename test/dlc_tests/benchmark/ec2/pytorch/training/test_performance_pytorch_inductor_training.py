@@ -45,7 +45,7 @@ def test_performance_pytorch_gpu_inductor_huggingface_p3(pytorch_training, ec2_c
     s3_key = os.path.join(PT_PERFORMANCE_TRAINING_GPU_INDUCTOR_HUGGINGFACE_CMD, current_timestamp)
     if Version(image_framework_version) < Version("2.0"):
         pytest.skip("Torch inductor was introduced in PyTorch 2.0")
-    test_cmd = PT_PERFORMANCE_TRAINING_GPU_INDUCTOR_HUGGINGFACE_CMD + " " + ec2_instance_type + " " + BENCHMARK_RESULTS_S3_BUCKET_TRCOMP + "/" + f"{fw} + s3_key
+    test_cmd = PT_PERFORMANCE_TRAINING_GPU_INDUCTOR_HUGGINGFACE_CMD + " " + ec2_instance_type + " " + BENCHMARK_RESULTS_S3_BUCKET_TRCOMP + "/" + f"{fw}" + s3_key
     execute_ec2_training_performance_test(
         ec2_connection, pytorch_training, test_cmd, "huggingface"
     )
