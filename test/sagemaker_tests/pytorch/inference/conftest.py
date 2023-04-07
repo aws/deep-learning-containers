@@ -258,14 +258,10 @@ def skip_by_device_type(request, use_gpu, instance_type, accelerator_type):
     is_gpu = use_gpu or instance_type[3] in ['g', 'p']
     is_eia = accelerator_type is not None
     is_neuron = instance_type.startswith("ml.inf")
-    is_neuronx = instance_type.startswith("ml.trn")
 
     # Separate out cases for clearer logic.
     # When running Neuron test, skip CPU  and GPU test.
     if (request.node.get_closest_marker('neuron_test') and not is_neuron):
-        pytest.skip('Skipping because running on \'{}\' instance'.format(instance_type))
-
-    if (request.node.get_closest_marker('neuronx_test') and not is_neuronx):
         pytest.skip('Skipping because running on \'{}\' instance'.format(instance_type))
 
     # When running GPU test, skip CPU  and neuron test. When running CPU test, skip GPU  and neuron test.
@@ -274,8 +270,7 @@ def skip_by_device_type(request, use_gpu, instance_type, accelerator_type):
         pytest.skip('Skipping because running on \'{}\' instance'.format(instance_type))
 
     # When running EIA test, skip the CPU, GPU and Neuron functions
-    elif ((request.node.get_closest_marker('neuron_test') or request.node.get_closest_marker('neuronx_test') or
-           request.node.get_closest_marker('gpu_test') or request.node.get_closest_marker('cpu_test')) and is_eia):
+    elif (request.node.get_closest_marker('neuron_test') or request.node.get_closest_marker('gpu_test') or request.node.get_closest_marker('cpu_test')) and is_eia:
         pytest.skip('Skipping because running on \'{}\' instance'.format(instance_type))
 
     # When running CPU or GPU or Neuron test, skip EIA test.
