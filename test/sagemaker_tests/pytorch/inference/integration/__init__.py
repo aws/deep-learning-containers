@@ -24,6 +24,7 @@ cpu_sub_dir = 'model_cpu'
 gpu_sub_dir = 'model_gpu'
 eia_sub_dir = 'model_eia'
 neuron_sub_dir = 'model_neuron'
+neuronx_sub_dir = 'model_neuronx'
 code_sub_dir = 'code'
 
 model_cpu_dir = os.path.join(mnist_path, cpu_sub_dir)
@@ -39,6 +40,10 @@ model_neuron_dir = os.path.join(resnet_path, neuron_sub_dir)
 resnet_neuron_script = os.path.join(model_neuron_dir, code_sub_dir, 'resnet18.py')
 resnet_neuron_input = os.path.join(model_neuron_dir, 'cat.jpg')
 resnet_neuron_image_list = os.path.join(model_neuron_dir, 'imagenet1000_clsidx_to_labels.txt')
+model_neuronx_dir = os.path.join(resnet_path, neuronx_sub_dir)
+resnet_neuronx_script = os.path.join(model_neuronx_dir, code_sub_dir, 'resnet18.py')
+resnet_neuronx_input = resnet_neuron_input
+resnet_neuronx_image_list = resnet_neuron_image_list
 call_model_fn_once_script = os.path.join(resources_path, code_sub_dir, 'call_model_fn_once.py')
 
 ROLE = "dummy/unused-role"

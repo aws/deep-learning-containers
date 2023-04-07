@@ -70,6 +70,7 @@ PT_GPU_PY3_BENCHMARK_IMAGENET_AMI_US_WEST_2 = "ami-02d9a47bc61a31d43"
 # Since latest driver is not in public DLAMI yet, using a custom one
 NEURON_UBUNTU_18_BASE_DLAMI_US_WEST_2 = get_ami_id_boto3(region_name="us-west-2", ami_name_pattern="Deep Learning Base AMI (Ubuntu 18.04) Version ??.?")
 UL20_PT_NEURON_US_WEST_2 = get_ami_id_boto3(region_name="us-west-2", ami_name_pattern="Deep Learning AMI Neuron PyTorch 1.11.0 (Ubuntu 20.04) ????????")
+UL20_TF_NEURON_US_WEST_2 = get_ami_id_boto3(region_name="us-west-2", ami_name_pattern="Deep Learning AMI Neuron TensorFlow 2.10.? (Ubuntu 20.04) ????????")
 # Since NEURON TRN1 DLAMI is not released yet use a custom AMI
 NEURON_INF1_AMI_US_WEST_2 = "ami-06a5a60d3801a57b7"
 # Habana Base v0.15.4 ami
@@ -99,6 +100,7 @@ UL_AMI_LIST = [
     PT_GPU_PY3_BENCHMARK_IMAGENET_AMI_US_WEST_2,
     NEURON_UBUNTU_18_BASE_DLAMI_US_WEST_2,
     UL20_PT_NEURON_US_WEST_2,
+    UL20_TF_NEURON_US_WEST_2,
     NEURON_INF1_AMI_US_WEST_2,
     UL20_CPU_ARM64_US_EAST_1,
     UL20_CPU_ARM64_US_WEST_2,
@@ -248,7 +250,7 @@ def get_dockerfile_path_for_image(image_uri):
         if "example" not in path
     ]
 
-    if device_type in ["gpu", "hpu", "neuron"]:
+    if device_type in ["gpu", "hpu", "neuron", "neuronx"]:
         if len(dockerfiles_list) > 1:
             if device_type == "gpu" and not cuda_version:
                 raise LookupError(
@@ -262,7 +264,7 @@ def get_dockerfile_path_for_image(image_uri):
                     f"uniquely identify the right dockerfile:\n"
                     f"{dockerfiles_list}"
                 )
-            if device_type == "neuron" and not neuron_sdk_version:
+            if "neuron" in device_type and not neuron_sdk_version:
                 raise LookupError(
                     f"dockerfiles_list has more than one result, and needs neuron_sdk_version to be in image_uri to "
                     f"uniquely identify the right dockerfile:\n"
@@ -420,7 +422,7 @@ def get_inference_server_type(image_uri):
     image_tag = image_uri.split(":")[1]
     pytorch_ver = parse(image_tag.split("-")[0])
     from packaging.version import LegacyVersion
-    if isinstance(pytorch_ver, LegacyVersion) or pytorch_ver < Version("1.6"): 
+    if isinstance(pytorch_ver, LegacyVersion) or pytorch_ver < Version("1.6"):
         return "mms"
     return "ts"
 
@@ -793,6 +795,8 @@ def get_inference_run_command(image_uri, model_names, processor="cpu"):
             "squeezenet": "https://torchserve.s3.amazonaws.com/mar_files/squeezenet1_1.mar",
             "pytorch-densenet": "https://torchserve.s3.amazonaws.com/mar_files/densenet161.mar",
             "pytorch-resnet-neuron": "https://aws-dlc-sample-models.s3.amazonaws.com/pytorch/Resnet50-neuron.mar",
+            "pytorch-densenet-inductor": "https://aws-dlc-sample-models.s3.amazonaws.com/pytorch/densenet161-inductor.mar",
+            "pytorch-resnet-neuronx": "https://aws-dlc-pt-sample-models.s3.amazonaws.com/resnet50/resnet_neuronx.mar",
         }
     else:
         multi_model_location = {
@@ -1027,6 +1031,11 @@ def parse_canary_images(framework, region, image_type):
         ## The tags not have -py3 will not pass th condition below
         ## This eliminates all the old and testing tags that we are not monitoring.
         if match:
+            ## Trcomp tags like v1.0-trcomp-hf-4.21.1-pt-1.11.0-tr-gpu-py38 cause incorrect image URIs to be processed
+            ## durign HF PT canary runs. The `if` condition below will prevent any trcomp images to be picked during canary runs of
+            ## huggingface_pytorch and huggingface_tensorflow images.
+            if "trcomp" in tag_str and "trcomp" not in canary_type and "huggingface" in canary_type:
+                continue
             version = match.group(2)
             if not versions_counter.get(version):
                 versions_counter[version] = {"tr": False, "inf": False}
@@ -1046,7 +1055,7 @@ def parse_canary_images(framework, region, image_type):
                         pre_populated_py_version[version] = set()
                     pre_populated_py_version[version].add(python_version_extracted_through_regex)
             except IndexError:
-                LOGGER.info(f"For Framework: {framework} we do not use regex to fetch python version")
+                LOGGER.debug(f"For Framework: {framework} we do not use regex to fetch python version")
 
     versions = []
     for v, inf_train in versions_counter.items():
@@ -1461,6 +1470,11 @@ NEURON_VERSION_MANIFEST = {
             "2.10.1": "2.10.1.2.6.5.0",
         },
     },
+    "2.9.0": {
+        "tensorflow": {
+            "2.10.1": "2.10.1.2.7.3.0",
+        },
+    },
     "1.19.1": {
         "pytorch": {
             "1.7.1": "1.7.1.2.3.0.0",
@@ -1480,6 +1494,14 @@ NEURON_VERSION_MANIFEST = {
             "1.8.0": "1.8.0.2.2.2.0",
         },
     },
+}
+
+NEURONX_VERSION_MANIFEST = {
+    "2.9.0": {
+        "pytorch": {
+            "1.13.0": "1.13.0.1.6.0",
+        }
+    }
 }
 
 
@@ -1510,14 +1532,16 @@ def get_neuron_framework_and_version_from_tag(image_uri):
     if neuron_sdk_version is None:
         return tag_framework_version, None
 
-    if neuron_sdk_version not in NEURON_VERSION_MANIFEST:
+    neuron_version_manifest = NEURONX_VERSION_MANIFEST if "neuronx" in image_uri else NEURON_VERSION_MANIFEST
+
+    if neuron_sdk_version not in neuron_version_manifest:
         raise KeyError(f"Cannot find neuron sdk version {neuron_sdk_version} ")
 
     # Framework name may include huggingface
     if tested_framework.startswith("huggingface_"):
         tested_framework = tested_framework[len("huggingface_") :]
 
-    neuron_framework_versions = NEURON_VERSION_MANIFEST[neuron_sdk_version][tested_framework]
+    neuron_framework_versions = neuron_version_manifest[neuron_sdk_version][tested_framework]
     neuron_tag_framework_version = neuron_framework_versions.get(tag_framework_version)
 
     return tested_framework, neuron_tag_framework_version
@@ -1686,7 +1710,7 @@ def get_processor_from_image_uri(image_uri):
     :param image_uri: ECR image URI
     :return: cpu, gpu, eia, neuron or hpu
     """
-    allowed_processors = ["eia", "neuron", "cpu", "gpu", "hpu"]
+    allowed_processors = ["eia", "neuronx", "neuron", "cpu", "gpu", "hpu"]
 
     for processor in allowed_processors:
         match = re.search(rf"-({processor})", image_uri)

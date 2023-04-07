@@ -780,7 +780,13 @@ def setup_ecs_inference_service(
         Cleans up the resources if any step fails
     """
     datetime_suffix = datetime.datetime.now().strftime("%Y%m%d-%H-%M-%S")
-    processor = "gpu" if "gpu" in docker_image_uri else "eia" if "eia" in docker_image_uri else "neuron" if "neuron" in docker_image_uri else "cpu"
+
+    processor = "cpu"
+    for proc in ["gpu", "eia", "neuronx", "neuron"]:
+        if proc in docker_image_uri:
+            processor = proc
+            break
+
     port_mappings = get_ecs_port_mappings(framework)
     log_group_name = f"/ecs/{framework}-inference-{processor}"
     num_cpus = ec2_utils.get_instance_num_cpus(worker_instance_id, region=region)
@@ -799,6 +805,7 @@ def setup_ecs_inference_service(
         "memory": memory,
         "region": region,
     }
+    processor_is_neuron = "neuron" in processor
 
     if processor == "gpu" and num_gpus:
         arguments_dict["num_gpu"] = num_gpus
@@ -808,7 +815,7 @@ def setup_ecs_inference_service(
         _, image_framework_version = get_framework_and_version_from_tag(docker_image_uri)
         if Version(image_framework_version) in SpecifierSet(">=2.7"):
             entrypoint = "/usr/bin/tf_serving_entrypoint.sh"
-            if processor == "neuron":
+            if processor_is_neuron:
                 entrypoint = "/usr/local/bin/entrypoint.sh"
             arguments_dict["container_command"] = [build_tensorflow_inference_command_tf27_and_above(model_name, entrypoint)]
             arguments_dict["entrypoint"] = ["sh", "-c"]
@@ -830,7 +837,7 @@ def setup_ecs_inference_service(
             "deviceType": ei_accelerator_type
         }
 
-    if processor == "neuron" and num_neurons:
+    if processor_is_neuron and num_neurons:
         arguments_dict["num_neurons"] = num_neurons
 
     try:

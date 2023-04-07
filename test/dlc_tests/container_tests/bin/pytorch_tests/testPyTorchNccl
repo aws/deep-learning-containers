@@ -6,7 +6,7 @@ source /test/bin/pytorch_tests/setupPyTorchBackendTest
 
 # run NCCL benchmarking with 2 GPUS and 1 local node (resnet will use torchvision)
 python userbenchmark/ddp_experiments/__init__.py \
-    --ngpus 4 \
+    --ngpus $NUM_GPUS \
     --distributed ddp \
     --nodes 1 \
     --cluster local \
@@ -27,7 +27,7 @@ bash ${BIN_DIR}/pytorch_tests/installOSSPyTorch
 
 # run NCCL benchmarking with 2 GPUS and 1 local node (resnet will use torchvision)
 python userbenchmark/ddp_experiments/__init__.py \
-    --ngpus 4 \
+    --ngpus $NUM_GPUS \
     --distributed ddp \
     --nodes 1 \
     --cluster local \
@@ -45,3 +45,5 @@ python userbenchmark/ddp_experiments/parse_ddp.py \
 
 # evaluate the performance
 bash ${BIN_DIR}/pytorch_tests/evaluateResults $AWS_LOG_DIR/aws_res.csv $OSS_LOG_DIR/oss_res.csv
+
+exit 0
