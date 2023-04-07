@@ -100,10 +100,10 @@ RUN ${PIP} install --no-cache-dir \
     cython==0.29.* \
     falcon==2.* \
     gunicorn==20.1.* \
-    gevent==21.12.1* \
+    gevent==21.12.* \
     requests \
     grpcio==1.34.* \
-    protobuf<4 \
+    "protobuf<4" \
 # using --no-dependencies to avoid installing tensorflow binary
  && ${PIP} install --no-dependencies --no-cache-dir \
     tensorflow-serving-api==2.10.1
