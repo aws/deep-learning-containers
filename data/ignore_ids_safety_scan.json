@@ -1123,5 +1123,12 @@
                 "51358": "Safety 2.2.0 updates its dependency 'dparse' to include a security fix. - not packaged with container, result of security scanning process"
             }
         }
+    },
+    "graviton_pytorch": {
+        "inference":{
+            "py3": {
+                "54718": "Jit CVE is patched in PT 1.12.1 by AWS"
+            }
+        }
     }
 }

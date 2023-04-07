@@ -210,6 +210,9 @@ def get_safety_ignore_dict(image_uri, framework, python_version, job_type):
     if "habana" in image_uri:
         framework = f"habana_{framework}"
 
+    if "graviton" in image_uri:
+        framework = f"graviton_{framework}"
+
     ignore_data_file = os.path.join(os.sep, get_cloned_folder_path(), "data", "ignore_ids_safety_scan.json")
     with open(ignore_data_file) as f:
         ignore_safety_ids = json.load(f)
