@@ -79,7 +79,7 @@ def test_performance_pytorch_gpu_inductor(pytorch_training, ec2_connection, gpu_
     execute_pytorch_gpu_py3_imagenet_ec2_training_performance_test(
         ec2_connection, pytorch_training, PT_PERFORMANCE_TRAINING_GPU_INDUCTOR_CMD, s3_key=s3_key
     )
-    trcomp_perf_data_io(ec2_connection, ".", s3_key, fw="pytorch", is_upload=False)
+    trcomp_perf_data_io(".", s3_key, fw="pytorch", is_upload=False)
 
 @pytest.mark.model("resnet50")
 @pytest.mark.parametrize("ec2_instance_type", [PT_EC2_HPU_INSTANCE_TYPE], indirect=True)
@@ -135,7 +135,7 @@ def execute_pytorch_gpu_py3_imagenet_ec2_training_performance_test(
             f"{ecr_uri} {os.path.join(os.sep, 'bin', 'bash')} -c {test_cmd}"
         )
     finally:
-        trcomp_perf_data_io(connection, log_location, s3_key=s3_key, fw=fw)
+        trcomp_perf_data_io(log_location, connection=connection, s3_key=s3_key, fw=fw)
         connection.run(f"docker rm -f {container_name}", warn=True, hide=True)
 
 

@@ -913,13 +913,18 @@ def ec2_performance_upload_result_to_s3_and_validate(
             f"Benchmark Result {performance_number} does not reach the threshold {threshold}"
         )
 
-def trcomp_perf_data_io(connection, local_pth, s3_key, fw="pytorch", hopper_s3_prefix=BENCHMARK_RESULTS_S3_BUCKET_TRCOMP, is_upload=True):
+def trcomp_perf_data_io(local_pth, s3_key, fw="pytorch", hopper_s3_prefix=BENCHMARK_RESULTS_S3_BUCKET_TRCOMP, connection=None, is_upload=True):
     """Use to transfer hopper benchmark data between ec2 test instance, CB instance and s3"""
     s3_pth = os.join(hopper_s3_prefix, fw, s3_key)
     if is_upload:
-        connection.run(f"aws s3 cp {local_pth} {s3_pth}")
+        cmd = f"aws s3 cp {local_pth} {s3_pth}"
     else:
-        connection.run(f"aws s3 cp {s3_pth} {local_pth}")
+        cmd = f"aws s3 cp {s3_pth} {local_pth}"
+    if not connection:
+        import subprocess as sp
+        sp.run(cmd, shell=True)
+    else:
+        connection.run(cmd)
     
 
 def post_process_inference(connection, log_location, threshold):
