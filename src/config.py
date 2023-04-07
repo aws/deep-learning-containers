@@ -18,11 +18,15 @@ def get_dlc_developer_config_path():
     dev_config_parent_dir = get_cloned_folder_path()
     return os.path.join(dev_config_parent_dir, "dlc_developer_config.toml")
 
+config_data = None
 
 def parse_dlc_developer_configs(section, option, tomlfile=get_dlc_developer_config_path()):
-    data = toml.load(tomlfile)
+    global config_data
 
-    return data.get(section, {}).get(option)
+    if config_data is None:
+        config_data = toml.load(tomlfile)
+
+    return config_data.get(section, {}).get(option)
 
 
 def get_buildspec_override():
