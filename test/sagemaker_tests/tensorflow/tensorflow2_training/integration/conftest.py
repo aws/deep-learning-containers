@@ -37,8 +37,7 @@ SCRIPT_PATH = os.path.dirname(os.path.realpath(__file__))
 def pytest_addoption(parser):
     parser.addoption('--docker-base-name', default='sagemaker-tensorflow-scriptmode')
     parser.addoption('--tag', default=None)
-    #revert the change before merge
-    parser.addoption('--region', default='us-east-2')
+    parser.addoption('--region', default='us-west-2')
     parser.addoption('--framework-version', default='')
     parser.addoption('--processor', default='cpu', choices=['cpu', 'gpu', 'cpu,gpu'])
     parser.addoption('--py-version', default='3', choices=['2', '3', '2,3', '37', '38', '39', '310'])
