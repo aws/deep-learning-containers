@@ -39,8 +39,11 @@ def validate_or_skip_smdataparallel(ecr_image):
 def can_run_smdataparallel(ecr_image):
     _, image_framework_version = get_framework_and_version_from_tag(ecr_image)
     image_cuda_version = get_cuda_version_from_tag(ecr_image)
-    return Version(image_framework_version) in SpecifierSet(">=2.3.1") and Version(
-        image_cuda_version.strip("cu")) >= Version("110")
+    if Version(image_framework_version) == Version("2.12.0"):
+        return False
+    else:
+        return Version(image_framework_version) in SpecifierSet(">=2.3.1") and Version(
+            image_cuda_version.strip("cu")) >= Version("110")
 
 
 def validate_or_skip_smdataparallel_efa(ecr_image):
