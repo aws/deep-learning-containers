@@ -50,7 +50,7 @@ cat <<EOF >geomean.csv
 speedup, 1.495
 EOF
 
-aws s3 cp $BIN_DIR/pytorch/huggingface_logs/geomean.csv $2
+aws s3 cp /test/benchmark/bin/pytorch/huggingface_logs/geomean.csv $2
 
 RETURN_VAL=`echo $?`
 set -e
