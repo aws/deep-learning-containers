@@ -13,7 +13,7 @@ from test.test_utils import (
 )
 from test.test_utils.ec2 import (
     execute_ec2_training_performance_test,
-    ec2_performance_upload_result_to_s3_and_validate,
+    trcomp_perf_data_io,
     execute_ec2_habana_training_performance_test,
     get_ec2_instance_type
 )
@@ -75,9 +75,11 @@ def test_performance_pytorch_gpu_imagenet(pytorch_training, ec2_connection, gpu_
 @pytest.mark.parametrize("ec2_instance_ami", [PT_GPU_PY3_BENCHMARK_IMAGENET_AMI_US_WEST_2], indirect=True)
 @pytest.mark.parametrize("ec2_instance_type", [PT_EC2_GPU_INDUCTOR_INSTANCE_TYPES], indirect=True)
 def test_performance_pytorch_gpu_inductor(pytorch_training, ec2_connection, gpu_only, py3_only):
+    s3_key = os.path.join(PT_PERFORMANCE_TRAINING_GPU_INDUCTOR_CMD, time.strftime("%Y-%m-%d-%H-%M-%S"))
     execute_pytorch_gpu_py3_imagenet_ec2_training_performance_test(
-        ec2_connection, pytorch_training, PT_PERFORMANCE_TRAINING_GPU_INDUCTOR_CMD
+        ec2_connection, pytorch_training, PT_PERFORMANCE_TRAINING_GPU_INDUCTOR_CMD, s3_key=s3_key
     )
+    trcomp_perf_data_io(ec2_connection, ".", s3_key, fw="pytorch", is_upload=False)
 
 @pytest.mark.model("resnet50")
 @pytest.mark.parametrize("ec2_instance_type", [PT_EC2_HPU_INSTANCE_TYPE], indirect=True)
@@ -106,9 +108,9 @@ def test_performance_pytorch_bert_hpu(pytorch_training_habana, ec2_connection, u
     )
 
 def execute_pytorch_gpu_py3_imagenet_ec2_training_performance_test(
-    connection, ecr_uri, test_cmd, region=DEFAULT_REGION
+    connection, ecr_uri, test_cmd, s3_key, region=DEFAULT_REGION
 ):
-    _, framework_version = get_framework_and_version_from_tag(ecr_uri)
+    fw, framework_version = get_framework_and_version_from_tag(ecr_uri)
     threshold = get_threshold_for_image(framework_version, PYTORCH_TRAINING_GPU_IMAGENET_THRESHOLD)
     repo_name, image_tag = ecr_uri.split("/")[-1].split(":")
     container_test_local_dir = os.path.join("$HOME", "container_tests")
@@ -119,9 +121,8 @@ def execute_pytorch_gpu_py3_imagenet_ec2_training_performance_test(
     connection.run(f"$(aws ecr get-login --no-include-email --region {region})", hide=True)
     # Do not add -q to docker pull as it leads to a hang for huge images like trcomp
     connection.run(f"nvidia-docker pull {ecr_uri}")
-    timestamp = time.strftime("%Y-%m-%d-%H-%M-%S")
-    log_name = f"imagenet_{os.getenv('CODEBUILD_RESOLVED_SOURCE_VERSION')}_{timestamp}.txt"
-    log_location = os.path.join(container_test_local_dir, "benchmark", "logs", log_name)
+    log_name = f"imagenet_{os.getenv('CODEBUILD_RESOLVED_SOURCE_VERSION')}.txt"
+    log_location = os.path.join(os.sep, "test", "benchmark", "logs", log_name)
     # Run training command, display benchmark results to console
     try:
         connection.run(
@@ -134,16 +135,8 @@ def execute_pytorch_gpu_py3_imagenet_ec2_training_performance_test(
             f"{ecr_uri} {os.path.join(os.sep, 'bin', 'bash')} -c {test_cmd}"
         )
     finally:
+        trcomp_perf_data_io(connection, log_location, s3_key=s3_key, fw=fw)
         connection.run(f"docker rm -f {container_name}", warn=True, hide=True)
-    ec2_performance_upload_result_to_s3_and_validate(
-        connection,
-        ecr_uri,
-        log_location,
-        "imagenet",
-        {"Cost": threshold},
-        post_process_pytorch_gpu_py3_imagenet_ec2_training_performance,
-        log_name,
-    )
 
 
 def post_process_pytorch_gpu_py3_synthetic_ec2_training_performance(connection, log_location):
