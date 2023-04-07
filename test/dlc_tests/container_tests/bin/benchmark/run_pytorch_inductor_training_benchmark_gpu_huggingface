@@ -1,7 +1,5 @@
 #!/bin/bash
 
-export S3_PTH="$2"
-
 PYTHON_VERSION=$(python -c 'import sys; print(sys.version_info[0])' | tr -d "'")
 if [ "$PYTHON_VERSION" -eq 2 ]
 then
@@ -52,7 +50,7 @@ cat <<EOF >geomean.csv
 speedup, 1.495
 EOF
 
-aws s3 cp $BIN_DIR/pytorch/huggingface_logs $S3_PTH --recursive
+aws s3 cp $BIN_DIR/pytorch/huggingface_logs "$2" --recursive
 
 RETURN_VAL=`echo $?`
 set -e
