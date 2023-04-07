@@ -917,8 +917,8 @@ def ec2_performance_upload_result_to_s3_and_validate(
 def trcomp_perf_data_io(connection, local_pth, s3_key, fw="pytorch", hopper_s3_prefix=BENCHMARK_RESULTS_S3_BUCKET_TRCOMP, is_upload=True):
     """Use to transfer hopper benchmark data between ec2 test instance, CB instance and s3"""
     s3_pth = hopper_s3_prefix + fw + s3_key
-    if not os.path.exists(local_pth):
-        connection.run(f"mkdir {local_pth}")
+    #if not os.path.exists(local_pth):
+    #    connection.run(f"mkdir {local_pth}")
     if is_upload:
         connection.run(f"aws s3 cp {local_pth} {s3_pth}")
     else:

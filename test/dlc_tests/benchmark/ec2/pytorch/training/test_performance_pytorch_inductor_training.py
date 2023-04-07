@@ -49,8 +49,8 @@ def test_performance_pytorch_gpu_inductor_huggingface_p3(pytorch_training, ec2_c
     execute_ec2_training_performance_test(
         ec2_connection, pytorch_training, test_cmd, "huggingface"
     )
-    trcomp_perf_data_io(ec2_connection, os.path.join(".", os.sep, "huggingface", os.sep, current_timestamp), s3_key, fw="pytorch", is_upload=False)
-    read_upload_benchmarking_result_to_cw("Speedup", os.path.join(".", os.sep, "huggingface", os.sep, current_timestamp))
+    trcomp_perf_data_io(ec2_connection, ".", s3_key, fw="pytorch", is_upload=False)
+    read_upload_benchmarking_result_to_cw("Speedup", ".")
 
 @pytest.mark.skip("skip for now")
 @pytest.mark.integration("inductor")
