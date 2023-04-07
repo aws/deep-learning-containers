@@ -59,6 +59,7 @@ FRAMEWORK_FIXTURES = (
     "pytorch_inference",
     "pytorch_inference_eia",
     "pytorch_inference_neuron",
+    "pytorch_inference_neuronx",
     "pytorch_training_neuron",
     "pytorch_inference_graviton",
     # TensorFlow
@@ -409,8 +410,12 @@ def is_neuron_image(fixtures):
     :param request.fixturenames: active fixtures in the request
     :return: bool
     """
-    neuron_fixtures = ["tensorflow_inference_neuron", "mxnet_inference_neuron", "pytorch_inference_neuron"]
-    neuron_fixtures += ["tensorflow_training_neuron", "mxnet_training_neuron", "pytorch_training_neuron"]
+    neuron_fixtures = [#inference
+                       "tensorflow_inference_neuron", "mxnet_inference_neuron",
+                       "pytorch_inference_neuron", "pytorch_inference_neuronx"
+                       #training
+                       "tensorflow_training_neuron", "mxnet_training_neuron",
+                       "pytorch_training_neuron"]
 
     for fixture in neuron_fixtures:
         if fixture in fixtures:
@@ -813,7 +818,7 @@ def generate_unique_values_for_fixtures(metafunc_obj, images_to_parametrize, val
                 for index, image in enumerate(images_to_parametrize):
 
                     # Tag fixtures with EC2 instance types if env variable is present
-                    allowed_processors = ("gpu", "cpu", "eia", "neuron", "hpu")
+                    allowed_processors = ("gpu", "cpu", "eia", "neuronx", "neuron", "hpu")
                     instance_tag = ""
                     for processor in allowed_processors:
                         if processor in image:
@@ -854,7 +859,7 @@ def lookup_condition(lookup, image):
         "training",
         "inference",
     )
-    device_types = ("cpu", "gpu", "eia", "neuron", "hpu", "graviton")
+    device_types = ("cpu", "gpu", "eia", "neuronx", "neuron", "hpu", "graviton")
 
     if not repo_name.endswith(lookup):
         if (lookup in job_types or lookup in device_types) and lookup in image:
