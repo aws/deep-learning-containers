@@ -45,11 +45,12 @@ def test_neuron_hosting(framework_version, ecr_image, instance_type, sagemaker_r
     invoke_pytorch_helper_function(ecr_image, sagemaker_regions, _test_resnet_distributed, function_args)
 
 
+@pytest.skip("CreateEndpointConfig doesn't support trn1: https://docs.aws.amazon.com/sagemaker/latest/APIReference/API_ProductionVariant.html#sagemaker-Type-ProductionVariant-InstanceType")
 @pytest.mark.model("resnet")
 @pytest.mark.processor("neuronx")
 @pytest.mark.neuron_test
 def test_neuron_hosting(framework_version, ecr_image, instance_type, sagemaker_regions):
-    instance_type = 'ml.trn1.32xlarge'
+    instance_type = 'ml.trn1.2xlarge'
     model_dir = os.path.join(model_neuronx_dir, 'model-resnet.tar.gz')
     function_args = {
             'framework_version': framework_version,
