@@ -41,15 +41,16 @@ PT_EC2_GPU_INDUCTOR_INSTANCE_TYPE_G4DN = ["g4dn.4xlarge"]
 @pytest.mark.parametrize("ec2_instance_type", PT_EC2_GPU_INDUCTOR_INSTANCE_TYPE_P3, indirect=True)
 def test_performance_pytorch_gpu_inductor_huggingface_p3(pytorch_training, ec2_connection, gpu_only, py3_only, ec2_instance_type):
     _, image_framework_version = get_framework_and_version_from_tag(pytorch_training)
-    s3_key = os.path.join(PT_PERFORMANCE_TRAINING_GPU_INDUCTOR_HUGGINGFACE_CMD, time.strftime("%Y-%m-%d-%H-%M-%S"))
+    current_timestamp = time.strftime("%Y-%m-%d-%H-%M-%S")
+    s3_key = os.path.join(PT_PERFORMANCE_TRAINING_GPU_INDUCTOR_HUGGINGFACE_CMD, current_timestamp)
     if Version(image_framework_version) < Version("2.0"):
         pytest.skip("Torch inductor was introduced in PyTorch 2.0")
     test_cmd = PT_PERFORMANCE_TRAINING_GPU_INDUCTOR_HUGGINGFACE_CMD + " " + ec2_instance_type
     execute_ec2_training_performance_test(
         ec2_connection, pytorch_training, test_cmd, s3_key, "huggingface"
     )
-    trcomp_perf_data_io(ec2_connection, os.path.join(".", os.sep, "huggingface_results", time.strftime("%Y-%m-%d-%H-%M-%S")), s3_key, fw="pytorch", is_upload=False)
-    read_upload_benchmarking_result_to_cw("Speedup", os.path.join(".", os.sep, "huggingface_results", time.strftime("%Y-%m-%d-%H-%M-%S")))
+    trcomp_perf_data_io(ec2_connection, os.path.join(".", os.sep, "huggingface", os.sep, current_timestamp), s3_key, fw="pytorch", is_upload=False)
+    read_upload_benchmarking_result_to_cw("Speedup", os.path.join(".", os.sep, "huggingface", os.sep, current_timestamp))
 
 @pytest.mark.skip("skip for now")
 @pytest.mark.integration("inductor")
