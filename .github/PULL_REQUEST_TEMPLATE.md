@@ -19,6 +19,9 @@ Note: If merging this PR should also close the associated Issue, please also add
 
 **Additionally, please run the sagemaker local tests in at least one revision:**
 - [ ] `sagemaker_local_tests = true`
+  
+### Formatting
+I have run `black -l 100` on my code (formatting tool: https://black.readthedocs.io/en/stable/getting_started.html)
 
 ### DLC image/dockerfile
 
