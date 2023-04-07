@@ -1,7 +1,7 @@
-#!/usr/bin/env python
 import os
 import sys
 import torch
+import logging
 import torch.distributed as dist
 import torch.nn as nn
 import torch.optim as optim
@@ -9,6 +9,7 @@ import torch.multiprocessing as mp
 import torchvision
 from torch.nn.parallel import DistributedDataParallel as DDP
 
+torch._dynamo.config.log_level = logging.INFO
 model = torchvision.models.resnet50()
 
 def setup(rank, world_size):
@@ -23,15 +24,17 @@ def basic_resnet(rank, world_size):
     torch.cuda.set_device(rank)
     model = torchvision.models.resnet50().to(torch.cuda.current_device())
     ddp_model = DDP(model, device_ids=[torch.cuda.current_device()])
+    ddp_model = torch.compile(ddp_model, backend='inductor', mode='default')
     loss_fn = nn.MSELoss()
-    optimizer = optim.SGD(ddp_model.parameters(), lr=0.001)
+    optimizer = optim.SGD(model.parameters(), lr=0.001)
+
     optimizer.zero_grad()
     # Creates a GradScaler once at the beginning of training
     scaler = torch.cuda.amp.GradScaler()
-    for epoch in range(1):
+    for epoch in range(5):
         with torch.cuda.amp.autocast():
             _inputs = torch.randn(20, 3, 32, 32).to(torch.cuda.current_device())
-            outputs = ddp_model(_inputs)
+            outputs = model(_inputs)
             labels = torch.randn(1000).to(torch.cuda.current_device())
             loss = loss_fn(outputs, labels)
         scaler.scale(loss).backward()
@@ -48,6 +51,6 @@ def run_test(demo_fn, world_size):
 
 if __name__ == '__main__':
     try:
-        sys.exit(run_test(basic_resnet, world_size=2))
+        sys.exit(run_test(basic_resnet, world_size=1))
     except KeyboardInterrupt:
         pass

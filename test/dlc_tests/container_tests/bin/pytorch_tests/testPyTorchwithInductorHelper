@@ -8,22 +8,26 @@ EXAMPLESDIR=${HOME_DIR}/artifacts/examples
 set -e
 cd ${EXAMPLESDIR}
 
-TRAINING_LOG=${LOG_DIR}/pytorch_train_bert_with_inductor.log
+TRAINING_LOG=${LOG_DIR}/pytorch_train_mnist_inductor.log
 
-pip install deepspeed==0.8.2
-
-echo "Training BertForMaskedLM using PyTorch dynamo and inductor backend... This may take a few minutes. You can follow progress on the log file : $TRAINING_LOG"
+echo "Training mnist using PyTorch inductor... This may take a few minutes. You can follow progress on the log file : $TRAINING_LOG"
 set +e
-python benchmarks/dynamo/huggingface.py --only=BertForMaskedLM --float32 -dcuda --training --inductor --performance 2>&1 | tee $TRAINING_LOG
-RETURN_VAL=`echo $?`
+
+sed -i 's/import torch/&\nimport logging"/g' mnist/main.py
+sed -i 's/import logging/&\ntorch._dynamo.config.log_level = logging.INFO"/g' mnist/main.py
+sed -i 's/model = Net().to(device)/&\n    model = torch.compile(model, backend='inductor', mode='default')/g' mnist/main.py
+
+python mnist/main.py 2>&1 | tee $TRAINING_LOG
+RETURN_VAL=[`echo $?`] && [grep -Fxq "torchinductor done compiling" $TRAINING_LOG]
 set -e
 
 if [ ${RETURN_VAL} -eq 0 ]; then
-    echo "Training BertForMaskedLM Complete using Pytorch with Inductor."
+    echo "Training mnist Complete using PyTorch with inductor."
 else
-    echo "Training BertForMaskedLM Failed using Pytorch with Inductor."
+    echo "Training mnist Failed using PyTorch with inductor."
     cat $TRAINING_LOG
     exit 1
 fi
+
 
 exit 0

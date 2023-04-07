@@ -46,16 +46,18 @@ cat pytorch_mnist.py >> $FILE
 rm pytorch_mnist.py
 mv $FILE pytorch_mnist.py
 
+sed -i 's/import torch/&\nimport logging"/g' pytorch_mnist.py
+sed -i 's/import logging/&\ntorch._dynamo.config.log_level = logging.INFO"/g' pytorch_mnist.py
 sed -i 's/model=Net()/& \nmodel = torch.compile(model, backend='inductor', mode='default')/g' pytorch_mnist.py
 
 python pytorch_mnist.py >$TRAINING_LOG 2>&1
-RETURN_VAL=`echo $?`
+RETURN_VAL=[`echo $?`] && [grep -Fxq "torchinductor done compiling" $TRAINING_LOG]
 set -e
 
 if [ ${RETURN_VAL} -eq 0 ]; then
-    echo "Training mnist Complete using PyTorch with Horovod."
+    echo "Training mnist Complete using PyTorch inductor with Horovod."
 else
-    echo "Training mnist Failed using PyTorch with Horovod."
+    echo "Training mnist Failed using PyTorch inductor with Horovod."
     cat $TRAINING_LOG
     exit 1
 fi
@@ -65,16 +67,18 @@ TRAINING_LOG=${LOG_DIR}/pytorch_test_synthetic_benchmark.log
 echo "Testing synthetic benchmark using PyTorch with Horovod... This may take a few minutes. You can follow progress on the log file : $TRAINING_LOG"
 set +e
 
-sed -i 's/model.train()/& \nmodel = torch.compile(model, backend='inductor', mode='default')/g' pytorch_synthetic_benchmark.py
+sed -i 's/import torch/&\nimport logging"/g' pytorch_mnist.py
+sed -i 's/import logging/&\ntorch._dynamo.config.log_level = logging.INFO"/g' pytorch_mnist.py
+sed -i 's/model = getattr(models, args.model)()/&\nmodel = torch.compile(model, backend='inductor', mode='default')/g' pytorch_synthetic_benchmark.py
 
 python pytorch_synthetic_benchmark.py >$TRAINING_LOG 2>&1
-RETURN_VAL=`echo $?`
+RETURN_VAL=[`echo $?`] && [grep -Fxq "torchinductor done compiling" $TRAINING_LOG]
 set -e
 
 if [ ${RETURN_VAL} -eq 0 ]; then
-    echo "Testing synthetic benchmark Complete using PyTorch with Horovod."
+    echo "Testing synthetic benchmark Complete using PyTorch inductor with Horovod."
 else
-    echo "Testing synthetic benchmark Failed using PyTorch with Horovod."
+    echo "Testing synthetic benchmark Failed using PyTorch inductor with Horovod."
     cat $TRAINING_LOG
     exit 1
 fi
