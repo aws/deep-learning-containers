@@ -52,9 +52,9 @@ spec:
 
         resources:
           limits:
-            aws.amazon.com/neuron: 1  # desired number of Inferentia devices.
+            aws.amazon.com/neuron: 1  # desired number of Neuron devices.
           requests:
-            aws.amazon.com/neuron: 1  # desired number of Inferentia devices.
+            aws.amazon.com/neuron: 1  # desired number of Neuron devices.
             memory: 4096Mi
       nodeSelector:
         test_type: trn1
