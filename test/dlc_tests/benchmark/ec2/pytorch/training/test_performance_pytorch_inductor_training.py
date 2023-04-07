@@ -46,7 +46,7 @@ def test_performance_pytorch_gpu_inductor_huggingface_p3(pytorch_training, ec2_c
         pytest.skip("Torch inductor was introduced in PyTorch 2.0")
     test_cmd = PT_PERFORMANCE_TRAINING_GPU_INDUCTOR_HUGGINGFACE_CMD + " " + ec2_instance_type
     execute_ec2_training_performance_test(
-        ec2_connection, pytorch_training, test_cmd, model_suite="huggingface", s3_key
+        ec2_connection, pytorch_training, test_cmd, s3_key, "huggingface"
     )
     trcomp_perf_data_io(ec2_connection, os.path.join(".", os.sep, "huggingface_results", time.strftime("%Y-%m-%d-%H-%M-%S")), s3_key, fw="pytorch", is_upload=False)
     read_upload_benchmarking_result_to_cw("Speedup", os.path.join(".", os.sep, "huggingface_results", time.strftime("%Y-%m-%d-%H-%M-%S")))
@@ -63,7 +63,7 @@ def test_performance_pytorch_gpu_inductor_huggingfac_p4d(pytorch_training, ec2_c
         pytest.skip("Torch inductor was introduced in PyTorch 2.0")
     test_cmd = PT_PERFORMANCE_TRAINING_GPU_INDUCTOR_HUGGINGFACE_CMD + " " + ec2_instance_type
     execute_ec2_training_performance_test(
-        ec2_connection, pytorch_training, test_cmd, model_suite="huggingface", s3_key
+        ec2_connection, pytorch_training, test_cmd, s3_key, "huggingface"
     )
     
 @pytest.mark.skip("skip for now")
@@ -78,7 +78,7 @@ def test_performance_pytorch_gpu_inductor_huggingface_g5(pytorch_training, ec2_c
         pytest.skip("Torch inductor was introduced in PyTorch 2.0")
     test_cmd = PT_PERFORMANCE_TRAINING_GPU_INDUCTOR_HUGGINGFACE_CMD + " " + ec2_instance_type
     execute_ec2_training_performance_test(
-        ec2_connection, pytorch_training, test_cmd, s3_key, model_suite="huggingface", s3_key
+        ec2_connection, pytorch_training, test_cmd, s3_key, "huggingface",
     )
 
 @pytest.mark.skip("skip for now")
@@ -93,7 +93,7 @@ def test_performance_pytorch_gpu_inductor_huggingface_g4dn(pytorch_training, ec2
         pytest.skip("Torch inductor was introduced in PyTorch 2.0")
     test_cmd = PT_PERFORMANCE_TRAINING_GPU_INDUCTOR_HUGGINGFACE_CMD + " " + ec2_instance_type
     execute_ec2_training_performance_test(
-        ec2_connection, pytorch_training, test_cmd, s3_key, model_suite="huggingface"
+        ec2_connection, pytorch_training, test_cmd, s3_key, "huggingface"
     )
     
 @pytest.mark.skip("skip for now")
@@ -124,7 +124,7 @@ def test_performance_pytorch_gpu_inductor_torchbench(pytorch_training, ec2_conne
 
 
 def execute_ec2_training_performance_test(
-    connection, ecr_uri, test_cmd, model_suite, s3_key, region=DEFAULT_REGION):
+    connection, ecr_uri, test_cmd, s3_key, model_suite, region=DEFAULT_REGION):
     fw, image_framework_version = get_framework_and_version_from_tag(ecr_uri)
 
     docker_cmd = "nvidia-docker" if "gpu" in ecr_uri else "docker"
