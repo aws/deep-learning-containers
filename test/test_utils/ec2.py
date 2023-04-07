@@ -7,6 +7,7 @@ import logging
 import sys
 import uuid
 import datetime
+import pandas as pd
 
 from fabric import Connection
 from botocore.config import Config
