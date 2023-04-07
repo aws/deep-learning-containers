@@ -67,17 +67,6 @@ def test_performance_pytorch_gpu_imagenet(pytorch_training, ec2_connection, gpu_
         ec2_connection, pytorch_training, PT_PERFORMANCE_TRAINING_GPU_IMAGENET_CMD
     )
 
-@pytest.mark.integration("inductor")
-@pytest.mark.model('N/A')
-@pytest.mark.parametrize("ec2_instance_ami", [PT_GPU_PY3_BENCHMARK_IMAGENET_AMI_US_WEST_2], indirect=True)
-@pytest.mark.parametrize("ec2_instance_type", [PT_EC2_GPU_INDUCTOR_INSTANCE_TYPES], indirect=True)
-def test_performance_pytorch_gpu_inductor(pytorch_training, ec2_connection, gpu_only, py3_only):
-    s3_key = os.path.join(PT_PERFORMANCE_TRAINING_GPU_INDUCTOR_CMD, time.strftime("%Y-%m-%d-%H-%M-%S"))
-    execute_pytorch_gpu_py3_imagenet_ec2_training_performance_test(
-        ec2_connection, pytorch_training, PT_PERFORMANCE_TRAINING_GPU_INDUCTOR_CMD, s3_key=s3_key
-    )
-    trcomp_perf_data_io(ec2_connection, ".", s3_key, fw="pytorch", is_upload=False)
-
 @pytest.mark.model("resnet50")
 @pytest.mark.parametrize("ec2_instance_type", [PT_EC2_HPU_INSTANCE_TYPE], indirect=True)
 @pytest.mark.parametrize("ec2_instance_ami", [UBUNTU_18_HPU_DLAMI_US_WEST_2], indirect=True)

@@ -38,7 +38,6 @@ PT_EC2_GPU_INDUCTOR_INSTANCE_TYPE_G5 = ["g5.4xlarge"]
 PT_EC2_GPU_INDUCTOR_INSTANCE_TYPE_G4DN = ["g4dn.4xlarge"]
 
 
-
 @pytest.mark.integration("inductor")
 @pytest.mark.model("huggingface")
 @pytest.mark.parametrize("ec2_instance_ami", [UBUNTU_18_BASE_DLAMI_US_WEST_2], indirect=True)
@@ -152,8 +151,8 @@ def execute_ec2_training_performance_test(
         f"-v {container_test_local_dir}:{os.path.join(os.sep, 'test')} {ecr_uri} "
         f"{os.path.join(os.sep, 'bin', 'bash')} -c {test_cmd} {s3_pth}")
 
-def read_upload_benchmarking_result_to_cw(metric_name, pth, precision="amp", instanct_type="p4d.24xlarge",\
-                                          model_suite="huggingface", namespace="PyTorch/EC2/Benchmarks/TorchDynamo/Inductor")
+def read_upload_benchmarking_result_to_cw(metric_name, pth, precision="amp", instance_type="p4d.24xlarge",
+    model_suite="huggingface", namespace="PyTorch/EC2/Benchmarks/TorchDynamo/Inductor")
     dimensions = [
              {"Name": "InstanceType", "Value": instance_type},
              {"Name": "ModelSuite", "Value": model_suite},
