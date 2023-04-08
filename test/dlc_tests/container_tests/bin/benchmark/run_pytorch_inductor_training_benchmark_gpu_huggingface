@@ -9,12 +9,12 @@ HOME_DIR=/test/benchmark
 BIN_DIR=${HOME_DIR}/bin
 LOG_DIR=${HOME_DIR}/logs
 
-#python -c "import sys;
-#assert sys.version_info < (3, 7);"
-#PYTHON_VERSION_CHECK=`echo $?`
+python -c "import sys;
+assert sys.version_info < (3, 7);"
+PYTHON_VERSION_CHECK=`echo $?`
 
-#set -e
-rm -rf $BIN_DIR/pytorch
+set -e
+
 git clone https://github.com/pytorch/pytorch.git --branch v2.0.0 --single-branch --depth 1 $BIN_DIR/pytorch 
 
 pip install -U numpy
@@ -40,18 +40,11 @@ else
     echo "No need to adjust batch size since we are using p4d.24xlarge."
 fi
 
-#cd $BIN_DIR/pytorch
+cd $BIN_DIR/pytorch
 
-#python benchmarks/dynamo/runner.py --training --suites=huggingface --dtypes=amp --compilers=inductor --output-dir=huggingface_logs --extra-args='--output-directory=./'
+python benchmarks/dynamo/runner.py --training --suites=huggingface --dtypes=amp --compilers=inductor --output-dir=huggingface_logs --extra-args='--output-directory=./'
 
-mkdir $BIN_DIR/pytorch/huggingface_logs
-cd $BIN_DIR/pytorch/huggingface_logs
-cat <<EOF >geomean.csv
-speedup
-1.495
-EOF
-
-aws s3 cp /test/benchmark/bin/pytorch/huggingface_logs/geomean.csv $2/geomean.csv
+aws s3 cp $BIN_DIR/pytorch/huggingface_logs/ $2/ --recursive
 
 RETURN_VAL=`echo $?`
 set -e
@@ -60,7 +53,6 @@ if [ ${RETURN_VAL} -eq 0 ]; then
     echo "Benchmarking Huggingface Training Complete using PyTorch Inductor."
 else
     echo "Benchmarking Huggingface Training Failed using PyTorch Inductor."
-    cat $TRAINING_LOG
     exit 1
 fi
 
