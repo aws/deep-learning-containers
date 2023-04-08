@@ -49,7 +49,7 @@ def test_performance_pytorch_gpu_inductor_huggingface_p3(pytorch_training, ec2_c
     execute_ec2_training_performance_test(
         ec2_connection, pytorch_training, test_cmd, "huggingface"
     )
-    trcomp_perf_data_io(ec2_connection, "./", s3_key + "/", fw="pytorch", is_upload=False)
+    trcomp_perf_data_io(ec2_connection, "./geomean.csv", s3_key + "/geomean.csv", fw="pytorch", is_upload=False)
     read_upload_benchmarking_result_to_cw("Speedup", ".")
 
 @pytest.mark.skip("skip for now")
