@@ -923,7 +923,7 @@ def trcomp_perf_data_io(connection, local_pth, s3_key, fw="pytorch", hopper_s3_p
     if is_upload:
         connection.run(f"aws s3 cp {local_pth} {s3_pth}")
     else:
-        connection.run(f"aws s3 cp {s3_pth} {local_pth} --recursive")
+        connection.run(f"aws s3 cp {s3_pth} {local_pth}")
     
 
 def post_process_inference(connection, log_location, threshold):

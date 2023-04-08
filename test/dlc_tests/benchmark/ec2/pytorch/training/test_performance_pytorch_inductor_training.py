@@ -156,7 +156,7 @@ def read_upload_benchmarking_result_to_cw(metric_name, pth, precision="amp", ins
              {"Name": "WorkLoad", "Value": "Training"},
          ]
     if metric_name == "Speedup":
-        value = read_metric(os.path.join(pth, "geomean.csv"))
+        value = read_metric("geomean.csv")
         unit = "None"
     put_metric_data(metric_name, namespace, unit, value, dimensions)
 
