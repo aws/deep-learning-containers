@@ -67,6 +67,7 @@ FRAMEWORK_FIXTURES = (
     "tensorflow_inference",
     "tensorflow_inference_eia",
     "tensorflow_inference_neuron",
+    "tensorflow_inference_neuronx",
     "tensorflow_training_neuron",
     "tensorflow_training_habana",
     "tensorflow_inference_graviton",
@@ -411,7 +412,8 @@ def is_neuron_image(fixtures):
     :return: bool
     """
     neuron_fixtures = [#inference
-                       "tensorflow_inference_neuron", "mxnet_inference_neuron",
+                       "tensorflow_inference_neuron", "tensorflow_inference_neuronx",
+                       "mxnet_inference_neuron",
                        "pytorch_inference_neuron", "pytorch_inference_neuronx"
                        #training
                        "tensorflow_training_neuron", "mxnet_training_neuron",

@@ -707,7 +707,7 @@ def request_pytorch_inference_densenet(
     return True
 
 
-@retry(stop_max_attempt_number=20, wait_fixed=10000, retry_on_result=retry_if_result_is_false)
+@retry(stop_max_attempt_number=20, wait_fixed=15000, retry_on_result=retry_if_result_is_false)
 def request_tensorflow_inference(
     model_name,
     ip_address="127.0.0.1",
@@ -859,7 +859,8 @@ def get_tensorflow_model_name(processor, model_name):
             "eia": "albert",
         },
         "saved_model_half_plus_three": {"eia": "saved_model_half_plus_three"},
-        "simple": {"neuron": "simple"},
+        "simple": {"neuron": "simple",
+                   "neuronx": "simple_x"},
     }
     if model_name in tensorflow_models:
         return tensorflow_models[model_name][processor]
@@ -1500,7 +1501,10 @@ NEURONX_VERSION_MANIFEST = {
     "2.9.0": {
         "pytorch": {
             "1.13.0": "1.13.0.1.6.0",
-        }
+        },
+        "tensorflow": {
+            "2.10.1": "2.10.1.2.0.0",
+        },
     }
 }
 
