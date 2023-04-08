@@ -204,7 +204,6 @@ WORKDIR /root
 RUN pip install --no-cache-dir -U \
     "awscli<2" \
     boto3 \
-    cryptography \
     enum-compat==0.0.3 \
     ipython \
     numpy==1.22.2 \
