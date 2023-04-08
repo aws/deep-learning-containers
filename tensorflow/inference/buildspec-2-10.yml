@@ -3,7 +3,6 @@ region: &REGION <set-$REGION-in-environment>
 framework: &FRAMEWORK tensorflow
 version: &VERSION 2.10.1
 short_version: &SHORT_VERSION "2.10"
-device_type: &DEVICE_TYPE neuronx
 arch_type: x86
 
 repository_info:
