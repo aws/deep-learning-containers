@@ -52,7 +52,7 @@ def test_performance_pytorch_gpu_inductor_huggingface(pytorch_training, ec2_conn
     subprocess.run(f"aws s3 cp {s3_pth}/ huggingface/ --recursive", shell=True)
     read_upload_benchmarking_result_to_cw(METRIC_NAMES, "huggingface", instance_type=ec2_instance_type)
 
-
+@pytest.mark.skip("skip for now")
 @pytest.mark.integration("inductor")
 @pytest.mark.model("timm")
 @pytest.mark.parametrize("ec2_instance_ami", [UBUNTU_18_BASE_DLAMI_US_WEST_2], indirect=True)
@@ -73,7 +73,7 @@ def test_performance_pytorch_gpu_inductor_timm(pytorch_training, ec2_connection,
     subprocess.run(f"aws s3 cp {s3_pth}/ timm/ --recursive", shell=True)
     read_upload_benchmarking_result_to_cw(METRIC_NAMES, "timm_models", instance_type=ec2_instance_type, model_suite="timm_models")
 
-@pytest.mark.skip("skip for now")
+
 @pytest.mark.integration("inductor")
 @pytest.mark.model("torchbench")
 @pytest.mark.parametrize("ec2_instance_ami", [UBUNTU_18_BASE_DLAMI_US_WEST_2], indirect=True)
