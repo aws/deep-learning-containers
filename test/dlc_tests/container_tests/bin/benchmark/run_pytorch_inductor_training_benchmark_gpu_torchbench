@@ -38,18 +38,17 @@ git clone https://github.com/pytorch/benchmark $BIN_DIR/pytorch/benchmark
 cd $BIN_DIR/pytorch/benchmark
 python install.py
 
-if [ "$1" = "p3.2xlarge" ]; then
-  export INSTANCE_TYPE="p3.2xlarge"
-  sed -i "s/BATCH_SIZE_KNOWN_MODELS\[model_name\] = batch_size/BATCH_SIZE_KNOWN_MODELS[model_name] = batch_size \/ 4 if batch_size >= 4 else 1/g" $BIN_DIR/pytorch/benchmarks/dynamo/torchbench.py
-elif [ "$1" = "g4dn.4xlarge" ]; then
-  export INSTANCE_TYPE="g4dn.4xlarge"
-  sed -i "s/BATCH_SIZE_KNOWN_MODELS\[model_name\] = batch_size/BATCH_SIZE_KNOWN_MODELS[model_name] = batch_size \/ 4 if batch_size >= 4 else 1/g" $BIN_DIR/pytorch/benchmarks/dynamo/torchbench.py
-elif [ "$1" = "g5.4xlarge" ]; then
-  export INSTANCE_TYPE="g5.4xlarge"
-  sed -i "s/BATCH_SIZE_KNOWN_MODELS\[model_name\] = batch_size/BATCH_SIZE_KNOWN_MODELS[model_name] = batch_size \/ 2 if batch_size >= 2 else 1/g" $BIN_DIR/pytorch/benchmarks/dynamo/torchbench.py
+if [ "$1" = "p3.2xlarge" ]
+then
+    sed -i "s/BATCH_SIZE_KNOWN_MODELS\[model_name\] = batch_size/BATCH_SIZE_KNOWN_MODELS[model_name] = batch_size \/ 4 if batch_size >= 4 else 1/g" $BIN_DIR/pytorch/benchmarks/dynamo/torchbench.py
+elif [ "$1" = "g4dn.4xlarge" ]
+then
+    sed -i "s/BATCH_SIZE_KNOWN_MODELS\[model_name\] = batch_size/BATCH_SIZE_KNOWN_MODELS[model_name] = batch_size \/ 4 if batch_size >= 4 else 1/g" $BIN_DIR/pytorch/benchmarks/dynamo/torchbench.py
+elif [ "$1" = "g5.4xlarge" ]
+then
+    sed -i "s/BATCH_SIZE_KNOWN_MODELS\[model_name\] = batch_size/BATCH_SIZE_KNOWN_MODELS[model_name] = batch_size \/ 2 if batch_size >= 2 else 1/g" $BIN_DIR/pytorch/benchmarks/dynamo/torchbench.py
 else
-  export INSTANCE_TYPE="p4d.24xlarge"
-  echo "No need to adjust batch size since we are using p4d.24xlarge."
+    echo "No need to adjust batch size since we are using p4d.24xlarge."
 fi
 
 cd $BIN_DIR/pytorch
