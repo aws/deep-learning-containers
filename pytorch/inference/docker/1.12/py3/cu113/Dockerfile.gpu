@@ -36,7 +36,7 @@ RUN apt-get update \
 FROM base_image AS ec2
 
 LABEL maintainer="Amazon AI"
-LABEL dlc_major_version="2"
+LABEL dlc_major_version="1"
 
 ARG PYTHON
 ARG PYTHON_VERSION
@@ -50,7 +50,7 @@ ARG PT_TORCHDATA_URL
 
 ARG CUBLAS_VERSION=11.5.1.109
 ARG OMPI_VERSION=4.1.1
-ARG TS_VERSION=0.6.0
+ARG TS_VERSION=0.6.1
 
 ARG DEBIAN_FRONTEND=noninteractive
 
@@ -290,7 +290,7 @@ RUN conda install -y -c conda-forge \
     scikit-learn \
     pandas
 
-RUN pip install --no-cache-dir "sagemaker-pytorch-inference>=2"
+RUN pip install --no-cache-dir "sagemaker-pytorch-inference==2.0.11"
 
 COPY torchserve-entrypoint.py /usr/local/bin/dockerd-entrypoint.py
 

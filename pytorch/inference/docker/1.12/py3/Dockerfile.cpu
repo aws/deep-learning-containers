@@ -50,7 +50,7 @@ ARG PT_TORCHVISION_URL
 ARG PT_TORCHAUDIO_URL
 ARG PT_TORCHDATA_URL
 
-ARG TS_VERSION=0.6.0
+ARG TS_VERSION=0.6.1
 
 ENV LANG=C.UTF-8
 ENV LD_LIBRARY_PATH="${LD_LIBRARY_PATH}:/opt/conda/lib"
@@ -231,7 +231,7 @@ RUN conda install -y -c conda-forge \
     scikit-learn \
     pandas
 
-RUN pip install --no-cache-dir "sagemaker-pytorch-inference>=2"
+RUN pip install --no-cache-dir "sagemaker-pytorch-inference==2.0.11"
 
 COPY torchserve-entrypoint.py /usr/local/bin/dockerd-entrypoint.py
 
