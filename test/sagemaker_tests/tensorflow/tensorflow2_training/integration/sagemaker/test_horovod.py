@@ -115,7 +115,7 @@ def test_distributed_training_horovod_with_env_vars(
     invoke_sm_helper_function(
         ecr_image,
         sagemaker_regions,
-        _test_distributed_training_horovod_function,
+        _test_distributed_training_horovod_with_env_vars_function,
         instance_type,
         tmpdir,
         framework_version,
