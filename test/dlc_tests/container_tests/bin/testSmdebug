@@ -55,9 +55,7 @@ echo "Running framework tests."
 
 
 if [[ $FRAMEWORK == "tensorflow" ]]; then
-    # Later version of tensorflow-datasets
-    # do not work with tensorflow 1.x
-    pip install tensorflow-datasets==3.2.1
+    pip install tensorflow-datasets
     pytest tests/${FRAMEWORK} \
                             -k "not test_keras and not test_mnist_s3 and not test_mnist_s3_multi_save_configs" \
                             --ignore=tests/mxnet/test_training_end.py
