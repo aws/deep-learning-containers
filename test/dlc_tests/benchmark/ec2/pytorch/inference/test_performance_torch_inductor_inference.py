@@ -240,21 +240,21 @@ def ec2_performance_pytorch_inference(image_uri, instance_type, ec2_connection, 
     import subprocess as sp
     sp.run(f"aws s3 cp {s3_location}/logs_{suite} /home/ubuntu/results/ --recursive", shell=True)
     output_list_logs_dir = ec2_connection.run(
-        f"ls -l /home/ubuntu/results/pytorch/logs_{suite}").stdout.split("\n")
+        f"ls -l /home/ubuntu/results/logs_{suite}").stdout.split("\n")
     LOGGER.info(f"CONTENTS OF LOGS DIR============================{output_list_logs_dir}")
     output_list_pytorch = ec2_connection.run(
         f"ls -l /home/ubuntu/results/pytorch").stdout.split("\n")
     LOGGER.info(f"CONTENTS OF PYTORCH DIR========================={output_list_pytorch}")
 
-    speedup = read_metric(f"/home/ubuntu/results/pytorch/logs_{suite}/geomean.csv")
+    speedup = read_metric(f"/home/ubuntu/results/logs_{suite}/geomean.csv")
     LOGGER.info(f"Seedup = {speedup}")
     comp_time = read_metric(
-        f"/home/ubuntu/results/pytorch/logs_{suite}/comp_time.csv")
+        f"/home/ubuntu/results/logs_{suite}/comp_time.csv")
     LOGGER.info(f"Compilation Time = {comp_time}")
-    memory = read_metric(f"/home/ubuntu/results/pytorch/logs_{suite}/memory.csv")
+    memory = read_metric(f"/home/ubuntu/results/logs_{suite}/memory.csv")
     LOGGER.info(f"Memory Footprint = {memory}")
     passrate = read_metric(
-        f"/home/ubuntu/results/pytorch/logs_{suite}/passrate.csv")
+        f"/home/ubuntu/results/logs_{suite}/passrate.csv")
     LOGGER.info(f"Pass Rate = {passrate}")
     upload_metric(region, instance_type, precision,
                   suite, "Speedup", speedup, "None")
