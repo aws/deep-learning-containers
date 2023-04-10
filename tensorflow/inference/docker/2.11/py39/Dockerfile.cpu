@@ -32,8 +32,13 @@ LABEL dlc_major_version="1"
 ARG PYTHON=python3.9
 ARG PYTHON_PIP=python3-pip
 ARG PIP=pip3
+<<<<<<< HEAD:tensorflow/inference/docker/2.11/py39/Dockerfile.cpu
 ARG PYTHON_VERSION=3.9.16
 ARG TFS_URL=https://framework-binaries.s3.us-west-2.amazonaws.com/tensorflow_serving/r2.11_aws/cpu/2022-11-24-02-06/tensorflow_model_server
+=======
+ARG PYTHON_VERSION=3.9.10
+ARG TFS_URL=https://framework-binaries.s3.us-west-2.amazonaws.com/tensorflow_serving/r2.11_aws/cpu/2023-03-29-21-32/tensorflow_model_server
+>>>>>>> 5bbffdb5 ([Tensorflow][Inference][Build][Test]  Tensorflow Inference 2.11.1 build and test (#2826)):tensorflow/inference/docker/2.11/py3/Dockerfile.cpu
 ARG TFS_SHORT_VERSION=2.11
 
 # ENV variable to be passed to SageMaker stage
