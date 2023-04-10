@@ -71,7 +71,7 @@ def test_performance_pytorch_gpu_inductor_timm(pytorch_training, ec2_connection,
     subprocess.run(f"rm -rf timm", shell=True)
     subprocess.run(f"mkdir timm", shell=True)
     subprocess.run(f"aws s3 cp {s3_pth}/ timm/ --recursive", shell=True)
-    read_upload_benchmarking_result_to_cw(METRIC_NAMES, "timm_models", instance_type=ec2_instance_type, model_suite="timm_models")
+    read_upload_benchmarking_result_to_cw(METRIC_NAMES, "timm", instance_type=ec2_instance_type, model_suite="timm_models")
 
 
 @pytest.mark.skip("skip for now")
