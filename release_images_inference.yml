@@ -47,7 +47,7 @@ release_images:
     framework: "pytorch"
     version: "2.0.0"
     arch_type: "x86"
-    customer: "ec2"
+    customer_type: "ec2"
     inference:
       device_types: [ "cpu", "gpu" ]
       python_versions: [ "py310" ]
@@ -60,7 +60,7 @@ release_images:
     framework: "pytorch"
     version: "2.0.0"
     arch_type: "x86"
-    customer: "sagemaker"
+    customer_type: "sagemaker"
     inference:
       device_types: [ "cpu", "gpu" ]
       python_versions: [ "py310" ]
@@ -73,7 +73,7 @@ release_images:
     framework: "pytorch"
     version: "2.0.0"
     arch_type: "graviton"
-    customer: "ec2"
+    customer_type: "ec2"
     inference:
       device_types: [ "cpu"]
       python_versions: [ "py310" ]
@@ -85,7 +85,7 @@ release_images:
     framework: "pytorch"
     version: "2.0.0"
     arch_type: "graviton"
-    customer: "sagemaker"
+    customer_type: "sagemaker"
     inference:
       device_types: [ "cpu"]
       python_versions: [ "py310" ]
