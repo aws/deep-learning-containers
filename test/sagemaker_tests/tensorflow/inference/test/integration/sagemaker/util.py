@@ -132,7 +132,8 @@ def find_or_put_model_data(region, boto_session, local_path):
         s3.upload_file(local_path, bucket, key)
 
     return "s3://{}/{}".format(bucket, key)
-    
+
+
 def find_or_put_mme_model_data(region, boto_session, mme_folder_name, path_list):
     for local_path in path_list:
         is_model_file = True if '.tar.gz' in local_path else False
