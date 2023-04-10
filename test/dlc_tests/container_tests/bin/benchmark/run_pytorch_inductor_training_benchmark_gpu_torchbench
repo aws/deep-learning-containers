@@ -27,11 +27,11 @@ pip install pyyaml
 curl -s https://packagecloud.io/install/repositories/github/git-lfs/script.deb.sh | bash
 apt-get install git-lfs
 
-cd $BIN_DIR/pytorch
+mamba install -y expecttest libglib pango
 
-git clone --recursive https://github.com/pytorch/benchmark
-cd benchmark
-FORCE_CUDA=1 python install.py
+git clone --recursive https://github.com/YuchengT/benchmark.git $BIN_DIR/benchmark
+cd $BIN_DIR/benchmark
+python install.py
 
 if [ "$1" = "p3.2xlarge" ]
 then
