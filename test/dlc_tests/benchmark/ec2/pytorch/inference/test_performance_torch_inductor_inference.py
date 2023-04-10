@@ -223,7 +223,7 @@ def ec2_performance_pytorch_inference(image_uri, instance_type, ec2_connection, 
     ec2_connection.run(
         f"{docker_cmd} exec --workdir=\"/root/pytorch\" {container_name} " f"bash -c 'mkdir -p /root/pytorch/logs_{suite}'")
     bench_output = ec2_connection.run(
-        f"{docker_cmd} exec --workdir=\"/root/pytorch\" {container_name} " f"bash -c 'python benchmarks/dynamo/runner.py --suites=torchbench --inference --dtypes={precision} --compilers=inductor --output-dir=/root/pytorch/logs_{suite} --extra-args=\"--output-directory=./\" --device {device} --no-update-archive --quick --no-gh-comment' " f"2>&1 | tee {log_file}").std.split("\n")
+        f"{docker_cmd} exec --workdir=\"/root/pytorch\" {container_name} " f"bash -c 'python benchmarks/dynamo/runner.py --suites=torchbench --inference --dtypes={precision} --compilers=inductor --output-dir=/root/pytorch/logs_{suite} --extra-args=\"--output-directory=./\" --device {device} --no-update-archive --quick --no-gh-comment' " f"2>&1 | tee {log_file}").stdout.split("\n")
     LOGGER.info(f"BENCHMARK OUTPUT ============================\n{bench_output}")
     ec2_connection.run(
         f"{docker_cmd} exec --workdir=\"/root\" {container_name} " f"bash -c 'echo root contents'")
