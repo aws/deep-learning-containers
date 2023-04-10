@@ -191,9 +191,10 @@ def test_dlc_major_version_dockerfiles(image):
                 raise DLCMajorVersionLabelNotFound(f"Cannot find dlc_major_version label in {dockerfile}")
             if not python_version:
                 raise DLCPythonVersionNotFound(f"Cannot find PYTHON_VERSION arg in {dockerfile}")
-            versions[dockerfile] = dlc_version
+            if python_version == python_major_minor_version:
+                versions[dockerfile] = dlc_version
 
-    expected_versions = list(range(1, len(versions) + 1))
+    expected_versions = list(range(1, len(dockerfiles) + 1))
     actual_versions = sorted(versions.values())
 
     # Test case explicitly for TF2.3 gpu, since v1.0 is banned
@@ -224,6 +225,7 @@ def test_dlc_major_version_dockerfiles(image):
             f"DLC v2.0 is deprecated in PyTorch 1.6.0 gpu containers, but found major version 2 "
             f"in one of the Dockerfiles. Please inspect {versions}"
         )
+
     # Note: If, for example, we find 3 dockerfiles with the same framework major/minor version, same processor,
     # and same python major/minor version, we will expect DLC major versions 1, 2, and 3. If an exception needs to be
     # made to this rule, please see the above handling of TF2.3 as an example.
