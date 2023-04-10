@@ -21,11 +21,15 @@ git clone https://github.com/pytorch/pytorch.git --branch v2.0.0 --single-branch
 pip install -U numpy
 pip install gitpython
 pip install tabulate==0.9.0
+pip install deepspeed==0.8.2
+pip install pyyaml
 
-#TRAINING_LOG=${LOG_DIR}/pytorch_inductor_torchbench_benchmark.log
+curl -s https://packagecloud.io/install/repositories/github/git-lfs/script.deb.sh | bash
+apt-get install git-lfs
+
 cd $BIN_DIR/pytorch
 
-git clone --recursive https://github.com/pytorch/benchmark --branch v2.0 
+git clone --recursive https://github.com/pytorch/benchmark
 cd benchmark
 FORCE_CUDA=1 python install.py
 
