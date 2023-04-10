@@ -24,15 +24,10 @@ pip install tabulate==0.9.0
 
 #TRAINING_LOG=${LOG_DIR}/pytorch_inductor_torchbench_benchmark.log
 
-install torchdata and torchtext before installing torchbench
+install torchdata before installing torchbench
 git clone --branch v0.6.0 https://github.com/pytorch/data.git $BIN_DIR/pytorch/torchdata
 cd $BIN_DIR/pytorch/torchdata
 pip install .
-
-git clone https://github.com/pytorch/text $BIN_DIR/pytorch/torchtext 
-cd $BIN_DIR/pytorch/torchtext
-git submodule update --init --recursive
-FORCE_CUDA=1 python setup.py clean install
 
 git clone https://github.com/pytorch/benchmark $BIN_DIR/pytorch/benchmark
 cd $BIN_DIR/pytorch/benchmark
