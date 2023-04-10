@@ -683,7 +683,9 @@
             "py2": {
             },
             "py3": {
-                "52510":"Future 0.18.2 is the latest package version - no fix version is available"
+                "52510":"Future 0.18.2 is the latest package version - no fix version is available",
+                "54718": "Fix for issue available in torch version 1.13.1",
+                "51499": "Fix for issue contained in Wheel 0.38.1"
             }
         },
         "inference-eia": {
