@@ -174,9 +174,16 @@ def launch_instance(
         "MetadataOptions": {
             "HttpTokens": "required",
             "HttpEndpoint": "enabled",
-            'HttpPutResponseHopLimit': 2,
+            "HttpPutResponseHopLimit": 2,
         },
-        "BlockDeviceMappings": [{"DeviceName": "/dev/sda1", "Ebs": {"VolumeSize": 150,}}]
+        "BlockDeviceMappings": [
+            {
+                "DeviceName": "/dev/sda1",
+                "Ebs": {
+                    "VolumeSize": 150,
+                },
+            }
+        ],
     }
     if user_data:
         arguments_dict["UserData"] = user_data
@@ -532,11 +539,13 @@ def enforce_IMDSv2(instance_id, hop_limit, region=DEFAULT_REGION, ec2_client=Non
     if response["InstanceId"]:
         res = ec2_client.describe_instances(InstanceIds=[instance_id])
         if res:
-            metadata_options = res['Reservations'][0]['Instances'][0]['MetadataOptions']
-            state = metadata_options['State']
+            metadata_options = res["Reservations"][0]["Instances"][0]["MetadataOptions"]
+            state = metadata_options["State"]
             LOGGER.info(f"Modify Metadata options of EC2 instance: {metadata_options}")
     if state != "applied":
-        raise Exception("Unable to enforce IMDSv2. Describe instance is not able to confirm if IMDSv2 enforced.")
+        raise Exception(
+            "Unable to enforce IMDSv2. Describe instance is not able to confirm if IMDSv2 enforced."
+        )
 
 
 @retry(stop=stop_after_attempt(16), wait=wait_fixed(60))
@@ -551,9 +560,7 @@ def enforce_IMDSv1(instance_id, region=DEFAULT_REGION, ec2_client=None):
     """
     ec2_client = ec2_client or get_ec2_client(region)
     response = ec2_client.modify_instance_metadata_options(
-        InstanceId=instance_id,
-        HttpTokens='optional',
-        HttpPutResponseHopLimit=1
+        InstanceId=instance_id, HttpTokens="optional", HttpPutResponseHopLimit=1
     )
 
     if not response:
@@ -563,11 +570,13 @@ def enforce_IMDSv1(instance_id, region=DEFAULT_REGION, ec2_client=None):
     if response["InstanceId"]:
         res = ec2_client.describe_instances(InstanceIds=[instance_id])
         if res:
-            metadata_options = res['Reservations'][0]['Instances'][0]['MetadataOptions']
-            state = metadata_options['State']
+            metadata_options = res["Reservations"][0]["Instances"][0]["MetadataOptions"]
+            state = metadata_options["State"]
             LOGGER.info(f"Modify Metadata options of EC2 instance: {metadata_options}")
     if state != "applied":
-        raise Exception("Unable to enforce IMDSv1. Describe instance is not able to confirm if IMDSv1 enforced.")
+        raise Exception(
+            "Unable to enforce IMDSv1. Describe instance is not able to confirm if IMDSv1 enforced."
+        )
 
 
 def fetch_s3_file_and_get_last_line(s3_location, local_filename="temp.txt"):

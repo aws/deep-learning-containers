@@ -35,6 +35,7 @@ TF_EC2_GRAVITON_INSTANCE_TYPE = get_ec2_instance_type(
 def test_ec2_tensorflow_inference_neuron(tensorflow_inference_neuron, ec2_connection, region):
     run_ec2_tensorflow_inference(tensorflow_inference_neuron, ec2_connection, "8500", region)
 
+
 @pytest.mark.model("mnist")
 @pytest.mark.parametrize("ec2_instance_type", TF_EC2_NEURONX_ACCELERATOR_TYPE, indirect=True)
 # FIX ME: Sharing the AMI from neuron account to DLC account; use public DLAMI with inf1 support instead
@@ -276,7 +277,9 @@ def host_setup_for_tensorflow_inference(
         ec2_connection.run(f"mkdir -p {serving_folder_path}")
         ec2_connection.run(f"cp -r {local_scripts_path} {serving_folder_path}")
         if is_neuron:
-            neuron_local_model = os.path.join("$HOME", "container_tests", "bin", "neuron_tests", model_name)
+            neuron_local_model = os.path.join(
+                "$HOME", "container_tests", "bin", "neuron_tests", model_name
+            )
             neuron_model_dir = os.path.join(serving_folder_path, "models")
             neuron_model_file_path = os.path.join(serving_folder_path, "models", model_name, "1")
             LOGGER.info(f"Host Model path {neuron_model_file_path}")

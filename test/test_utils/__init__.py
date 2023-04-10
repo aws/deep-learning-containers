@@ -954,8 +954,7 @@ def get_tensorflow_model_name(processor, model_name):
             "eia": "albert",
         },
         "saved_model_half_plus_three": {"eia": "saved_model_half_plus_three"},
-        "simple": {"neuron": "simple",
-                   "neuronx": "simple_x"},
+        "simple": {"neuron": "simple", "neuronx": "simple_x"},
     }
     if model_name in tensorflow_models:
         return tensorflow_models[model_name][processor]
@@ -1157,7 +1156,9 @@ def parse_canary_images(framework, region, image_type):
                         pre_populated_py_version[version] = set()
                     pre_populated_py_version[version].add(python_version_extracted_through_regex)
             except IndexError:
-                LOGGER.debug(f"For Framework: {framework} we do not use regex to fetch python version")
+                LOGGER.debug(
+                    f"For Framework: {framework} we do not use regex to fetch python version"
+                )
 
     versions = []
     for v, inf_train in versions_counter.items():
@@ -1645,7 +1646,9 @@ def get_neuron_framework_and_version_from_tag(image_uri):
     if neuron_sdk_version is None:
         return tag_framework_version, None
 
-    neuron_version_manifest = NEURONX_VERSION_MANIFEST if "neuronx" in image_uri else NEURON_VERSION_MANIFEST
+    neuron_version_manifest = (
+        NEURONX_VERSION_MANIFEST if "neuronx" in image_uri else NEURON_VERSION_MANIFEST
+    )
 
     if neuron_sdk_version not in neuron_version_manifest:
         raise KeyError(f"Cannot find neuron sdk version {neuron_sdk_version} ")

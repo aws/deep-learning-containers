@@ -75,10 +75,14 @@ def test_eks_tensorflow_neuronx_inference(tensorflow_inference_neuronx):
     processor = "neuronx"
     model_name = "simple_neuronx"
 
-    yaml_path = os.path.join(os.sep, "tmp", f"tensorflow_single_node_{processor}_inference_{rand_int}.yaml")
+    yaml_path = os.path.join(
+        os.sep, "tmp", f"tensorflow_single_node_{processor}_inference_{rand_int}.yaml"
+    )
     inference_service_name = selector_name = f"simple-{processor}-{rand_int}"
     model_base_path = get_eks_tensorflow_model_base_path(tensorflow_inference_neuronx, model_name)
-    command, args = get_tensorflow_command_args(tensorflow_inference_neuronx, model_name, model_base_path)
+    command, args = get_tensorflow_command_args(
+        tensorflow_inference_neuronx, model_name, model_base_path
+    )
 
     search_replace_dict = {
         "<NUM_REPLICAS>": num_replicas,
@@ -92,7 +96,9 @@ def test_eks_tensorflow_neuronx_inference(tensorflow_inference_neuronx):
     search_replace_dict["<NUM_INF1S>"] = "1"
 
     eks_utils.write_eks_yaml_file_from_template(
-        eks_utils.get_single_node_inference_template_path("tensorflow", processor), yaml_path, search_replace_dict
+        eks_utils.get_single_node_inference_template_path("tensorflow", processor),
+        yaml_path,
+        search_replace_dict,
     )
 
     secret_yml_path = eks_utils.get_aws_secret_yml_path()
@@ -103,7 +109,9 @@ def test_eks_tensorflow_neuronx_inference(tensorflow_inference_neuronx):
         port_to_forward = random.randint(49152, 65535)
 
         if eks_utils.is_service_running(selector_name):
-            eks_utils.eks_forward_port_between_host_and_container(selector_name, port_to_forward, "8501")
+            eks_utils.eks_forward_port_between_host_and_container(
+                selector_name, port_to_forward, "8501"
+            )
 
         inference_string = "'{\"instances\": [[1.0, 2.0, 5.0]]}'"
         assert test_utils.request_tensorflow_inference(

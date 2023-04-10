@@ -21,7 +21,9 @@ import tfs_utils
 
 from contextlib import contextmanager
 
-logging.basicConfig(format='%(process)d %(asctime)s %(levelname)-8s %(message)s', force=True, level=logging.INFO)
+logging.basicConfig(
+    format="%(process)d %(asctime)s %(levelname)-8s %(message)s", force=True, level=logging.INFO
+)
 log = logging.getLogger(__name__)
 
 JS_PING = "js_content tensorflowServing.ping"
@@ -64,7 +66,8 @@ class ServiceManager(object):
         self._tfs_gpu_margin = float(os.environ.get("SAGEMAKER_TFS_FRACTIONAL_GPU_MEM_MARGIN", 0.2))
         self._tfs_instance_count = int(os.environ.get("SAGEMAKER_TFS_INSTANCE_COUNT", 1))
         self._tfs_wait_time_seconds = int(
-            os.environ.get("SAGEMAKER_TFS_WAIT_TIME_SECONDS", 55 // self._tfs_instance_count))
+            os.environ.get("SAGEMAKER_TFS_WAIT_TIME_SECONDS", 55 // self._tfs_instance_count)
+        )
         self._tfs_inter_op_parallelism = os.environ.get("SAGEMAKER_TFS_INTER_OP_PARALLELISM", 0)
         self._tfs_intra_op_parallelism = os.environ.get("SAGEMAKER_TFS_INTRA_OP_PARALLELISM", 0)
         self._gunicorn_worker_class = os.environ.get("SAGEMAKER_GUNICORN_WORKER_CLASS", "gevent")
@@ -240,18 +243,18 @@ class ServiceManager(object):
         log.info("gunicorn command: {}".format(gunicorn_command))
         self._gunicorn_command = gunicorn_command
         gunicorn_env = {
-            'TFS_GRPC_PORTS': self._tfs_grpc_concat_ports,
-            'TFS_REST_PORTS': self._tfs_rest_concat_ports,
-            'SAGEMAKER_MULTI_MODEL': str(self._tfs_enable_multi_model_endpoint),
-            'SAGEMAKER_TFS_WAIT_TIME_SECONDS': str(self._tfs_wait_time_seconds),
-            'SAGEMAKER_TFS_INTER_OP_PARALLELISM': str(self._tfs_inter_op_parallelism),
-            'SAGEMAKER_TFS_INTRA_OP_PARALLELISM': str(self._tfs_intra_op_parallelism),
-            'SAGEMAKER_TFS_INSTANCE_COUNT': str(self._tfs_instance_count),
-            'PYTHONPATH': ':'.join(python_path_content),
-            'SAGEMAKER_GUNICORN_WORKERS': str(self._gunicorn_workers),
+            "TFS_GRPC_PORTS": self._tfs_grpc_concat_ports,
+            "TFS_REST_PORTS": self._tfs_rest_concat_ports,
+            "SAGEMAKER_MULTI_MODEL": str(self._tfs_enable_multi_model_endpoint),
+            "SAGEMAKER_TFS_WAIT_TIME_SECONDS": str(self._tfs_wait_time_seconds),
+            "SAGEMAKER_TFS_INTER_OP_PARALLELISM": str(self._tfs_inter_op_parallelism),
+            "SAGEMAKER_TFS_INTRA_OP_PARALLELISM": str(self._tfs_intra_op_parallelism),
+            "SAGEMAKER_TFS_INSTANCE_COUNT": str(self._tfs_instance_count),
+            "PYTHONPATH": ":".join(python_path_content),
+            "SAGEMAKER_GUNICORN_WORKERS": str(self._gunicorn_workers),
         }
         if self._sagemaker_port_range is not None:
-            gunicorn_env['SAGEMAKER_SAFE_PORT_RANGE'] = self._sagemaker_port_range
+            gunicorn_env["SAGEMAKER_SAFE_PORT_RANGE"] = self._sagemaker_port_range
         log.info(f"gunicorn env: {gunicorn_env}")
         self._gunicorn_env = gunicorn_env
 

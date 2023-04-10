@@ -46,8 +46,12 @@ PT_EC2_SINGLE_GPU_INSTANCE_TYPE = get_ec2_instance_type(
 PT_EC2_GRAVITON_INSTANCE_TYPE = get_ec2_instance_type(
     default="c6g.4xlarge", processor="cpu", arch_type="graviton"
 )
-PT_EC2_GRAVITON_INSTANCE_TYPE = get_ec2_instance_type(default="c6g.4xlarge", processor="cpu", arch_type="graviton")
-PT_EC2_NEURON_TRN1_INSTANCE_TYPE = get_ec2_instance_type(default="trn1.2xlarge", processor="neuron", job_type="inference")
+PT_EC2_GRAVITON_INSTANCE_TYPE = get_ec2_instance_type(
+    default="c6g.4xlarge", processor="cpu", arch_type="graviton"
+)
+PT_EC2_NEURON_TRN1_INSTANCE_TYPE = get_ec2_instance_type(
+    default="trn1.2xlarge", processor="neuron", job_type="inference"
+)
 
 PT_TELEMETRY_CMD = os.path.join(
     CONTAINER_TESTS_PREFIX, "pytorch_tests", "test_pt_dlc_telemetry_test"
@@ -171,6 +175,7 @@ def test_pytorch_inference_torchdata_gpu(
         execute_ec2_inference_test(ec2_connection, pytorch_inference, PT_TORCHDATA_DEV_CMD)
     else:
         execute_ec2_inference_test(ec2_connection, pytorch_inference, PT_TORCHDATA_CMD)
+
 
 @pytest.mark.usefixtures("feature_torchdata_present")
 @pytest.mark.usefixtures("sagemaker")

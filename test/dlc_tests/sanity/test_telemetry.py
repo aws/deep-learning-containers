@@ -354,18 +354,24 @@ def _run_tag_success_IMDSv1(image_uri, ec2_client, ec2_instance, ec2_connection)
 
     ec2_utils.enforce_IMDSv1(ec2_instance_id)
 
-    invoke_telemetry_call(image_uri, container_name, docker_cmd, framework, job_type, ec2_connection)
+    invoke_telemetry_call(
+        image_uri, container_name, docker_cmd, framework, job_type, ec2_connection
+    )
 
     LOGGER.info(f"_run_tag_success_IMDSv1, {image_uri} starting get_ec2_instance_tags")
     ec2_instance_tags = ec2_utils.get_ec2_instance_tags(ec2_instance_id, ec2_client=ec2_client)
     LOGGER.info(f"ec2_instance_tags: {ec2_instance_tags}")
-    assert expected_tag_key in ec2_instance_tags, f"{expected_tag_key} was not applied as an instance tag"
-    
+    assert (
+        expected_tag_key in ec2_instance_tags
+    ), f"{expected_tag_key} was not applied as an instance tag"
+
     # Change instance state back to IMDSv2 enabled with hop limit to 2
     ec2_utils.enforce_IMDSv2(ec2_instance_id, hop_limit=2)
 
 
-def _run_tag_failure_IMDSv2_disabled_as_hop_limit_1(image_uri, ec2_client, ec2_instance, ec2_connection):
+def _run_tag_failure_IMDSv2_disabled_as_hop_limit_1(
+    image_uri, ec2_client, ec2_instance, ec2_connection
+):
     """
     Try to add a tag on EC2 instance, it should not get added as IMDSv2 is disabled due to hop limit 1
     """
@@ -421,7 +427,6 @@ def _run_tag_failure_IMDSv2_disabled_as_hop_limit_1(image_uri, ec2_client, ec2_i
     ec2_utils.enforce_IMDSv2(ec2_instance_id, hop_limit=2)
 
 
-
 # If hop limit on EC2 instance is 2, then IMDSv2 works as to get token IMDSv2 needs more than 1 hop
 def _run_tag_success_IMDSv2_hop_limit_2(image_uri, ec2_client, ec2_instance, ec2_connection):
     """
@@ -456,7 +461,9 @@ def _run_tag_success_IMDSv2_hop_limit_2(image_uri, ec2_client, ec2_instance, ec2
     if expected_tag_key in preexisting_ec2_instance_tags:
         ec2_client.delete_tags(Resources=[ec2_instance_id], Tags=[{"Key": expected_tag_key}])
 
-    invoke_telemetry_call(image_uri, container_name, docker_cmd, framework, job_type, ec2_connection)
+    invoke_telemetry_call(
+        image_uri, container_name, docker_cmd, framework, job_type, ec2_connection
+    )
 
     ec2_instance_tags = ec2_utils.get_ec2_instance_tags(ec2_instance_id, ec2_client=ec2_client)
     LOGGER.info(f"ec2_instance_tags: {ec2_instance_tags}")
@@ -508,7 +515,9 @@ def invoke_telemetry_call(
             output = ec2_connection.run(
                 f"{docker_cmd} exec -i {container_name} python -c 'import {framework_to_import}; import time; time.sleep(5)'"
             )
-            assert output.ok, f"'import {framework_to_import}' fails when credentials not configured"
+            assert (
+                output.ok
+            ), f"'import {framework_to_import}' fails when credentials not configured"
         time.sleep(1)
     return output
 

@@ -26,16 +26,16 @@ TF_CHECKPOINT_FILES = ["graph.pbtxt", "model.ckpt-0.index", "model.ckpt-0.meta"]
 
 @pytest.fixture  # noqa: F811
 def py_full_version(py_version):  # noqa: F811
-    if py_version == '2':
-        return '2.7'
-    elif py_version == '37':
-        return '3.7'
-    elif py_version == '38':
-        return '3.8'
-    elif py_version == '39':
-        return '3.9'
-    elif py_version == '310':
-        return '3.10'
+    if py_version == "2":
+        return "2.7"
+    elif py_version == "37":
+        return "3.7"
+    elif py_version == "38":
+        return "3.8"
+    elif py_version == "39":
+        return "3.9"
+    elif py_version == "310":
+        return "3.10"
     else:
         return "3.6"
 

@@ -110,7 +110,11 @@ def image_builder(buildspec, image_types=[], device_types=[]):
 
         if image_config.get("context") is not None:
             ARTIFACTS.update(image_config["context"])
-        image_tag = tag_image_with_pr_number(image_config["tag"]) if build_context == "PR" else image_config["tag"]
+        image_tag = (
+            tag_image_with_pr_number(image_config["tag"])
+            if build_context == "PR"
+            else image_config["tag"]
+        )
 
         additional_image_tags = []
         if is_nightly_build_context():

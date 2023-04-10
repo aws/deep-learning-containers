@@ -13,9 +13,6 @@ from test.test_utils import is_pr_context
     not is_pr_context(),
     reason="This test is only needed to validate formatting in PRs.",
 )
-
-
-
 def test_black_formatting():
     """
     Check that black style formatting exits gracefully.

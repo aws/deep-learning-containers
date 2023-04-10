@@ -478,13 +478,17 @@ def is_neuron_image(fixtures):
     :param request.fixturenames: active fixtures in the request
     :return: bool
     """
-    neuron_fixtures = [#inference
-                       "tensorflow_inference_neuron", "tensorflow_inference_neuronx",
-                       "mxnet_inference_neuron",
-                       "pytorch_inference_neuron", "pytorch_inference_neuronx"
-                       #training
-                       "tensorflow_training_neuron", "mxnet_training_neuron",
-                       "pytorch_training_neuron"]
+    neuron_fixtures = [  # inference
+        "tensorflow_inference_neuron",
+        "tensorflow_inference_neuronx",
+        "mxnet_inference_neuron",
+        "pytorch_inference_neuron",
+        "pytorch_inference_neuronx"
+        # training
+        "tensorflow_training_neuron",
+        "mxnet_training_neuron",
+        "pytorch_training_neuron",
+    ]
 
     for fixture in neuron_fixtures:
         if fixture in fixtures:

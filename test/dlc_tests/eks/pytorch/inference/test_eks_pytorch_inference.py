@@ -62,15 +62,23 @@ def __run_pytorch_neuron_inference(image, model_name, model_url, processor):
 
 @pytest.mark.model("resnet")
 def test_eks_pytorch_neuron_inference(pytorch_inference_neuron):
-    __run_pytorch_neuron_inference(pytorch_inference_neuron, "pytorch-resnet-neuron",
-                                   "https://aws-dlc-sample-models.s3.amazonaws.com/pytorch/Resnet50-neuron.mar", "neuron")
+    __run_pytorch_neuron_inference(
+        pytorch_inference_neuron,
+        "pytorch-resnet-neuron",
+        "https://aws-dlc-sample-models.s3.amazonaws.com/pytorch/Resnet50-neuron.mar",
+        "neuron",
+    )
 
 
 @pytest.mark.skip("No trn1 in the EKS cluster, disabled temporarily")
 @pytest.mark.model("resnet")
 def test_eks_pytorch_neuronx_inference(pytorch_inference_neuronx):
-    __run_pytorch_neuron_inference(pytorch_inference_neuronx, "pytorch-resnet-neuronx",
-                                   "https://aws-dlc-sample-models.s3.amazonaws.com/pytorch/Resnet50-neuronx.mar", "neuronx")
+    __run_pytorch_neuron_inference(
+        pytorch_inference_neuronx,
+        "pytorch-resnet-neuronx",
+        "https://aws-dlc-sample-models.s3.amazonaws.com/pytorch/Resnet50-neuronx.mar",
+        "neuronx",
+    )
 
 
 @pytest.mark.model("densenet")

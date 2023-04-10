@@ -112,7 +112,10 @@ def main():
     )
 
     neuronx_builder_enabled = (
-        neuronx_dedicated and neuronx_build_mode and args.framework in frameworks_to_build and train_or_inf_enabled
+        neuronx_dedicated
+        and neuronx_build_mode
+        and args.framework in frameworks_to_build
+        and train_or_inf_enabled
     )
 
     # A GRAVITON dedicated builder will work if in GRAVITON mode and its framework has not been disabled

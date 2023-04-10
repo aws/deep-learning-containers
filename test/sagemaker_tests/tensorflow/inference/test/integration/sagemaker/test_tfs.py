@@ -75,11 +75,10 @@ def tfs_model(region, boto_session):
 def tfs_neuron_model(region, boto_session):
     return util.find_or_put_model_data(region, boto_session, "data/tfs-neuron-model.tar.gz")
 
+
 @pytest.fixture(scope="session")
 def tfs_neuronx_model(region, boto_session):
-    return util.find_or_put_model_data(region,
-                                       boto_session,
-                                       "test/data/tfs-neuronx-model.tar.gz")
+    return util.find_or_put_model_data(region, boto_session, "test/data/tfs-neuronx-model.tar.gz")
 
 
 @pytest.fixture(scope="session")
@@ -197,16 +196,33 @@ def test_tfs_neuron_model(
     )
 
 
-@pytest.mark.skip("CreateEndpointConfig doesn't support trn1: https://docs.aws.amazon.com/sagemaker/latest/APIReference/API_ProductionVariant.html#sagemaker-Type-ProductionVariant-InstanceType")
+@pytest.mark.skip(
+    "CreateEndpointConfig doesn't support trn1: https://docs.aws.amazon.com/sagemaker/latest/APIReference/API_ProductionVariant.html#sagemaker-Type-ProductionVariant-InstanceType"
+)
 @pytest.mark.model("unknown_model")
 @pytest.mark.neuronx_test
-def test_tfs_neuronx_model(boto_session, sagemaker_client,
-                   sagemaker_runtime_client, model_name, tfs_neuronx_model,
-                   image_uri, instance_type, accelerator_type):
+def test_tfs_neuronx_model(
+    boto_session,
+    sagemaker_client,
+    sagemaker_runtime_client,
+    model_name,
+    tfs_neuronx_model,
+    image_uri,
+    instance_type,
+    accelerator_type,
+):
     input_data = {"instances": [1.0, 2.0, 5.0]}
-    util.create_and_invoke_endpoint(boto_session, sagemaker_client,
-                                    sagemaker_runtime_client, model_name, tfs_neuronx_model,
-                                    image_uri, instance_type, accelerator_type, input_data)
+    util.create_and_invoke_endpoint(
+        boto_session,
+        sagemaker_client,
+        sagemaker_runtime_client,
+        model_name,
+        tfs_neuronx_model,
+        image_uri,
+        instance_type,
+        accelerator_type,
+        input_data,
+    )
 
 
 @pytest.mark.integration("batch_transform")
