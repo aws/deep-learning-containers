@@ -130,7 +130,7 @@ def pytest_addoption(parser):
     parser.addoption('--docker-base-name', default='pytorch')
     parser.addoption('--region', default='us-west-2')
     parser.addoption('--framework-version', default='')
-    parser.addoption('--py-version', choices=['2', '3', '37', '38', '39'], default=str(sys.version_info.major))
+    parser.addoption('--py-version', choices=['2', '3', '37', '38', '39', uil'310'], default=str(sys.version_info.major))
     parser.addoption('--processor', choices=['gpu', 'cpu', 'neuron'], default='cpu')
     # If not specified, will default to {framework-version}-{processor}-py{py-version}
     parser.addoption('--tag', default=None)
@@ -472,7 +472,7 @@ def disable_nightly_test(request):
                 if not are_fixture_labels_enabled(image_uri, labels):
                     pytest.skip(f"{test_name} will be skipped.")
 
-'''
+
 @pytest.fixture(autouse=True)
 def skip_test_successfully_executed_before(request):
     """
@@ -488,4 +488,3 @@ def skip_test_successfully_executed_before(request):
     if lastfailed is not None \
             and not any(test_name in failed_test_name for failed_test_name in lastfailed.keys()):
         pytest.skip(f"Skipping {test_name} because it was successfully executed for this commit")
-'''

@@ -117,9 +117,11 @@ def train(args):
 
     if is_distributed:
         # Initialize the distributed environment.
-        dist.init_process_group(backend=args.backend) #, rank=host_rank, world_size=world_size)
-        device_id = dist.get_rank() % torch.cuda.device_count()
-        device = torch.device(f"cuda:{device_id}")
+        if not os.getenv("RANK"): # for local dist job
+            os.environ['RANK'] = str(args.hosts.index(args.current_host))
+        if not os.getenv("WORLD_SIZE"): # for local dist job
+            os.environ["WORLD_SIZE"] = str(len(args.hosts))
+        dist.init_process_group(backend=args.backend)
         logger.info('Initialized the distributed environment: \'{}\' backend on {} processes. '.format(
             args.backend, dist.get_world_size()) + 'Current rank is {}, Current host is: {}, Number of gpus: {}, device used: {}'.format(
             dist.get_rank(), args.current_host, args.num_gpus, device))
@@ -149,6 +151,8 @@ def train(args):
         model = torch.compile(model, backend="inductor", mode="default")
 
     if is_distributed and use_cuda:
+        device_id = dist.get_rank() % torch.cuda.device_count()
+        device = torch.device(f"cuda:{device_id}")
         # multi-machine multi-gpu case
         logger.debug("Multi-machine multi-gpu: using DistributedDataParallel.")
         # establish host rank and set device on this node
