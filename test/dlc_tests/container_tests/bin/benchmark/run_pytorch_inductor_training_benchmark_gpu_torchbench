@@ -27,7 +27,7 @@ mkdir $BIN_DIR/torchbench
 
 git clone https://github.com/pytorch/benchmark --branch v2.0 $BIN_DIR/torchbench
 cd $BIN_DIR/torchbench
-python install.py
+FORCE_CUDA=1 python install.py
 
 if [ "$1" = "p3.2xlarge" ]
 then
