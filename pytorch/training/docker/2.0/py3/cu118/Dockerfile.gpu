@@ -6,7 +6,7 @@ ARG PYTORCH_VERSION=2.0.0
 
 # SMD binaries
 ARG SMD_DATA_PARALLEL_URL=https://smdataparallel.s3.amazonaws.com/binary/pytorch/2.0.0/cu118/2023-03-20/smdistributed_dataparallel-1.8.0-cp310-cp310-linux_x86_64.whl
-ARG SMD_MODEL_PARALLEL_URL=https://sagemaker-distributed-model-parallel.s3.us-west-2.amazonaws.com/pytorch-1.13.1/build-artifacts/2023-01-19-18-35/smdistributed_modelparallel-1.14.0-cp39-cp39-linux_x86_64.whl
+ARG SMD_MODEL_PARALLEL_URL="https://rubik-beta.s3.amazonaws.com/pytorch-2.0.0/build-artifacts/2023-04-10-17-08/smdistributed_modelparallel-1.15.0rc3-cp310-cp310-linux_x86_64.whl?AWSAccessKeyId=ASIA4OTHB676BVDJLZB4&Signature=J2fVjAZ%2BkKxcA9WrRaAK9zPOtmM%3D&x-amz-security-token=IQoJb3JpZ2luX2VjEKv%2F%2F%2F%2F%2F%2F%2F%2F%2F%2FwEaCXVzLWVhc3QtMSJHMEUCICY3JdQdEQY0nbPywzI%2BarCAU4Dh5t8Bk%2B2nwCOPLfZTAiEAqqYAnWCQZfpA%2FHnL1%2Fac3FBjOzt5nzsjH0nxcgOJGG8qqAIIk%2F%2F%2F%2F%2F%2F%2F%2F%2F%2F%2FARADGgw4NTU5ODgzNjk0MDQiDC8ZlgsLCmen9LJrzyr8ASRzGBYuOW842Qw%2BFSIGsJ245NvEFORjfTsB%2BsUULPtXP0NECjouptqS6DxnFParORJx7QwI%2F1GE0WJ6dejzOQpm7bUuzxSbtHU5z92Esfc8Xw0btymYv7aBgZ2%2BcKV0aV03f8sQxSSrKjC4%2FPlauTOh51KUAjy2u3ohXo0PHjlUEosFrQuzse2l1hBLOlOIkzCYXCidp1KU%2B7uLiNYo8XRm%2FlhjmpUUiI9qeZkUwGXRteOfuanDmexCTzVAV5ZMHcv%2Bh3LQ9uWFRl8O0M6IZPnL9Xj9uFQnghXxHdFeKa8AddKbyRV8REaCWc8G7oJWVy2Gg262e1Wff0aVrTC%2BpNGhBjqdAWkKsthNKsNWYJ3dgQI15HiB5IzC71W4okTkB5VJoJq0PS8dVlMww%2B8uJunO3lptCImMfN1YL71AwQhUqhHPUFKWG6ZL1%2B6xR0wnyFbQ5VbvF%2BLCzwJyEptN5ZeHcfftrf%2B2sXdP1RaFPrC8Wy2lPYqpZuLCzdmy5U4EvKbsne5JTZRb%2BTrD3WuwbI9CHD2%2FmPixhfU5OY9ICVQwiIc%3D&Expires=1681179432"
 
 # ZeRO-2D Binary
 ARG ZERO_2D_URL=https://aws-deepspeed-zero-2d-binaries.s3.us-west-2.amazonaws.com/r1.13.1/20230112-180452/06f2048e6bb27edb0deb662dd1fb663ef5b6803f/deepspeed-0.6.1%2B06f2048-py3-none-any.whl

@@ -43,7 +43,7 @@ def test_mnist_distributed_cpu(framework_version, ecr_image, sagemaker_regions, 
 @pytest.mark.integration("smexperiments")
 @pytest.mark.skip_cpu
 def test_mnist_distributed_gpu(framework_version, ecr_image, sagemaker_regions, instance_type, dist_gpu_backend):
-    instance_type = instance_type or 'ml.p2.xlarge'
+    instance_type = instance_type or 'ml.g4dn.12xlarge'
     function_args = {
             'framework_version': framework_version,
             'instance_type': instance_type,
@@ -75,7 +75,7 @@ def test_mnist_with_native_launcher_distributed_cpu(framework_version, ecr_image
 @pytest.mark.integration("smexperiments")
 @pytest.mark.skip_cpu
 def test_mnist_with_native_launcher_distributed_gpu(framework_version, ecr_image, sagemaker_regions, instance_type, dist_gpu_backend):
-    instance_type = instance_type or 'ml.p2.xlarge'
+    instance_type = instance_type or 'ml.g4dn.12xlarge'
     function_args = {
             'framework_version': framework_version,
             'instance_type': instance_type,
@@ -116,6 +116,7 @@ def _test_mnist_distributed(ecr_image, sagemaker_session, framework_version, ins
             distribution={"pytorchddp": {"enabled": True}},
         )
         training_input = pytorch.sagemaker_session.upload_data(path=training_dir, key_prefix='pytorch/mnist')
+        print(f"unique name!!!" + utils.unique_name_from_base('test-pt-mnist-distributed'))
         pytorch.fit({'training': training_input}, job_name=utils.unique_name_from_base('test-pt-mnist-distributed'))
 
 
