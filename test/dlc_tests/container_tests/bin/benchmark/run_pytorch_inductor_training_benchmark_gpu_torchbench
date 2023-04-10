@@ -29,8 +29,8 @@ git clone --branch v0.6.0 https://github.com/pytorch/data.git $BIN_DIR/pytorch/t
 cd $BIN_DIR/pytorch/torchdata
 pip install .
 
-git clone https://github.com/pytorch/benchmark $BIN_DIR/pytorch/benchmark
-cd $BIN_DIR/pytorch/benchmark
+git clone https://github.com/pytorch/benchmark $BIN_DIR/torchbench
+cd $BIN_DIR/torchbench
 python install.py
 
 if [ "$1" = "p3.2xlarge" ]
