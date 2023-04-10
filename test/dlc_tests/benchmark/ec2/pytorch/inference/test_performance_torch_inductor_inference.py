@@ -110,22 +110,22 @@ def upload_metric(instance_type, precision, suite, metric_name, value, unit, reg
 
 
 #@pytest.mark.parametrize("ec2_instance_type", ["c5.4xlarge", "m5.4xlarge"], indirect=True)
-#@pytest.mark.parametrize("ec2_instance_type", ["c5.4xlarge"], indirect=True)
-#@pytest.mark.parametrize("suite", ["torchbench"])
-#@pytest.mark.parametrize("precision", ["float32"])
-#def test_performance_ec2_pytorch_inference_cpu(ec2_instance_type, suite, precision, pytorch_inference, ec2_connection, region, cpu_only):
-#    _, image_framework_version = get_framework_and_version_from_tag(
-#        pytorch_inference)
-#    if Version(image_framework_version) in SpecifierSet("<2.0"):
-#        pytest.skip("skip the test as torch.compile only supported after 2.0")
-#    ec2_performance_pytorch_inference(
-#        pytorch_inference,
-#        ec2_instance_type,
-#        ec2_connection,
-#        region,
-#        suite,
-#        precision,
-#    )
+@pytest.mark.parametrize("ec2_instance_type", ["c5.4xlarge"], indirect=True)
+@pytest.mark.parametrize("suite", ["torchbench"])
+@pytest.mark.parametrize("precision", ["float32"])
+def test_performance_ec2_pytorch_inference_cpu(ec2_instance_type, suite, precision, pytorch_inference, ec2_connection, region, cpu_only):
+    _, image_framework_version = get_framework_and_version_from_tag(
+        pytorch_inference)
+    if Version(image_framework_version) in SpecifierSet("<2.0"):
+        pytest.skip("skip the test as torch.compile only supported after 2.0")
+    ec2_performance_pytorch_inference(
+        pytorch_inference,
+        ec2_instance_type,
+        ec2_connection,
+        region,
+        suite,
+        precision,
+    )
 
 
 #@pytest.mark.parametrize("ec2_instance_type", ["c6g.4xlarge", "c7g.4xlarge", "m7g.4xlarge"], indirect=True)
@@ -151,7 +151,8 @@ def upload_metric(instance_type, precision, suite, metric_name, value, unit, reg
 #
 #@pytest.mark.parametrize("ec2_instance_type", ["p3.2xlarge", "g5.4xlarge", "g4dn.4xlarge"], indirect=True)
 @pytest.mark.parametrize("ec2_instance_type", ["p3.2xlarge"], indirect=True)
-@pytest.mark.parametrize("suite", ["huggingface", "timm", "torchbench"])
+#@pytest.mark.parametrize("suite", ["huggingface", "timm", "torchbench"])
+@pytest.mark.parametrize("suite", ["torchbench"])
 @pytest.mark.parametrize("precision", ["float32"])
 def test_performance_ec2_pytorch_inference_gpu(ec2_instance_type, suite, precision, pytorch_inference, ec2_connection, region, gpu_only):
     _, image_framework_version = get_framework_and_version_from_tag(
@@ -221,8 +222,9 @@ def ec2_performance_pytorch_inference(image_uri, instance_type, ec2_connection, 
         f"{docker_cmd} exec --workdir=\"/root/benchmark\" {container_name} " f"bash -c 'python install.py'")
     ec2_connection.run(
         f"{docker_cmd} exec --workdir=\"/root/pytorch\" {container_name} " f"bash -c 'mkdir -p /root/pytorch/logs_{suite}'")
-    ec2_connection.run(
-        f"{docker_cmd} exec --workdir=\"/root/pytorch\" {container_name} " f"bash -c 'python benchmarks/dynamo/runner.py --suites=torchbench --inference --dtypes={precision} --compilers=inductor --output-dir=/root/pytorch/logs_{suite} --extra-args=\"--output-directory=./\" --device {device} --no-update-archive --quick --no-gh-comment' " f"2>&1 | tee {log_file}")
+    bench_output = ec2_connection.run(
+        f"{docker_cmd} exec --workdir=\"/root/pytorch\" {container_name} " f"bash -c 'python benchmarks/dynamo/runner.py --suites=torchbench --inference --dtypes={precision} --compilers=inductor --output-dir=/root/pytorch/logs_{suite} --extra-args=\"--output-directory=./\" --device {device} --no-update-archive --quick --no-gh-comment' " f"2>&1 | tee {log_file}").std.split("\n")
+    LOGGER.info(f"BENCHMARK OUTPUT ============================\n{bench_output}")
     ec2_connection.run(
         f"{docker_cmd} exec --workdir=\"/root\" {container_name} " f"bash -c 'echo root contents'")
     ec2_connection.run(
@@ -232,7 +234,7 @@ def ec2_performance_pytorch_inference(image_uri, instance_type, ec2_connection, 
 #        f"/bin/bash {test_cmd} " f"2>&1 | tee /root/pytorch/logs_{suite}/{log_file}")
 
     s3_outcome = ec2_connection.run(
-        f"aws s3 cp /home/ubuntu/results/pytorch/logs_{suite} {s3_location}/logs_{suite} --recursive")
+        f"aws s3 cp /home/ubuntu/results/pytorch/logs_{suite} {s3_location}/logs_{suite} --recursive").stdout.split("\n")
     LOGGER.info(f"S3 upload logs============================{s3_outcome}")
 
     import subprocess as sp
@@ -243,10 +245,6 @@ def ec2_performance_pytorch_inference(image_uri, instance_type, ec2_connection, 
     output_list_pytorch = ec2_connection.run(
         f"ls -l /home/ubuntu/results/pytorch").stdout.split("\n")
     LOGGER.info(f"CONTENTS OF PYTORCH DIR========================={output_list_pytorch}")
-    output_geomean = ec2_connection.run(
-        f"ls -l /home/ubuntu/results/pytorch/logs_{suite}/geomean.csv").stdout.split("\n")
-    LOGGER.info(f"GEOMEAN =================={output_geomean}")
-
 
     speedup = read_metric(f"/home/ubuntu/results/pytorch/logs_{suite}/geomean.csv")
     LOGGER.info(f"Seedup = {speedup}")
