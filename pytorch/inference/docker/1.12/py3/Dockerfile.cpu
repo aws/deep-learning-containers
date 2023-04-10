@@ -118,13 +118,11 @@ RUN curl -L -o ~/mambaforge.sh https://github.com/conda-forge/miniforge/releases
  && rm ~/mambaforge.sh \
  && /opt/conda/bin/conda install -c conda-forge \
     python=$PYTHON_VERSION \
-    cython \
     mkl \
     mkl-include \
     parso \
     typing \
     h5py \
-    requests \
     # Below 2 are included in miniconda base, but not mamba so need to install
     conda-content-trust \
     charset-normalizer \
@@ -149,10 +147,7 @@ RUN pip install --upgrade pip --trusted-host pypi.org --trusted-host files.pytho
     boto3 \
     enum-compat==0.0.3 \
     ipython \
-    numpy==1.22.2 \
     opencv-python \
-    packaging \
-    "Pillow>=9.0.0" \
     "pyyaml>=5.4,<5.5" \
     scipy \
  && pip uninstall -y torch torchvision torchaudio torchdata \
@@ -167,9 +162,17 @@ RUN mkdir -p /etc/pki/tls/certs && cp /etc/ssl/certs/ca-certificates.crt /etc/pk
 
 # TODO: revert torchserve-nightly back to torchserve once a compatible stable version is released
 RUN pip uninstall -y model-archiver multi-model-server \
- && pip install captum \
  && pip install torchserve==${TS_VERSION} \
  && pip install torch-model-archiver==${TS_VERSION}
+
+
+# Install TorchServe pypi dependencies directly from their requirements file common.txt
+# NOTE: This also brings in unnecessary cpu dependencies like nvgpu
+RUN pip install --no-cache-dir -U -r https://raw.githubusercontent.com/pytorch/serve/v${TS_VERSION}/requirements/common.txt
+
+# Update Pillow version since the version that comes with TS requirements is obsolete
+RUN pip install --no-cache-dir -U "Pillow>=9.3.0,<10" \
+    numpy==1.22.2
 
 RUN useradd -m model-server \
  && mkdir -p /home/model-server/tmp /opt/ml/model \
