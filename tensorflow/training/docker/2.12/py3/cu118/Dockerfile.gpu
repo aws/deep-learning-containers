@@ -378,8 +378,6 @@ RUN wget https://sourceforge.net/projects/boost/files/boost/1.81.0/boost_1_81_0.
 # Add NGC vars
 ENV TF_AUTOTUNE_THRESHOLD=2
 
-ENV LD_LIBRARY_PATH="/usr/local/lib/${PYTHON}/site-packages/smdistributed/dataparallel/lib:$LD_LIBRARY_PATH"
-
 # Remove python kernel installed by sparkmagic
 RUN /usr/local/bin/jupyter-kernelspec remove -f python3
 
