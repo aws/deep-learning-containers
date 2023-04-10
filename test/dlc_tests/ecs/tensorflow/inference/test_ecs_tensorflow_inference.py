@@ -128,6 +128,35 @@ def test_ecs_tensorflow_inference_neuron(
         )
 
 
+
+@pytest.mark.model("simple")
+@pytest.mark.parametrize("ecs_instance_type", ["trn1.2xlarge"], indirect=True)
+@pytest.mark.parametrize("ecs_ami", [ECS_AML2_NEURON_USWEST2], indirect=True)
+def test_ecs_tensorflow_inference_neuronx(tensorflow_inference_neuronx, ecs_container_instance, region):
+    worker_instance_id, ecs_cluster_arn = ecs_container_instance
+    public_ip_address = ec2_utils.get_public_ip(worker_instance_id, region=region)
+    num_neurons = 1
+
+    model_name = "simple"
+    service_name = task_family = revision = None
+    try:
+        service_name, task_family, revision = ecs_utils.setup_ecs_inference_service(
+            tensorflow_inference_neuronx,
+            "tensorflow",
+            ecs_cluster_arn,
+            model_name,
+            worker_instance_id,
+            num_neurons=num_neurons,
+            region=region,
+        )
+        model_name = get_tensorflow_model_name("neuronx", model_name)
+        inference_result = request_tensorflow_inference(model_name, ip_address=public_ip_address, inference_string="'{\"instances\": [[1.0, 2.0, 5.0]]}'")
+        assert inference_result, f"Failed to perform inference at IP address: {public_ip_address}"
+
+    finally:
+        ecs_utils.tear_down_ecs_inference_service(ecs_cluster_arn, service_name, task_family, revision)
+
+
 @pytest.mark.model("half_plus_two")
 @pytest.mark.parametrize("ecs_instance_type", ["p3.8xlarge"], indirect=True)
 @pytest.mark.parametrize("ecs_ami", [ECS_AML2_GPU_USWEST2], indirect=True)

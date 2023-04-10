@@ -1,11 +1,14 @@
 import os
+import sys
+import time
+import logging
+from datetime import date, timedelta, datetime
 
+import pytest
 from packaging.version import Version
 from packaging.specifiers import SpecifierSet
-import pytest
 
 import test.test_utils.ec2 as ec2_utils
-
 from test import test_utils
 from test.test_utils import (
     CONTAINER_TESTS_PREFIX,
@@ -20,8 +23,10 @@ from test.test_utils.ec2 import (
 )
 from test.dlc_tests.conftest import LOGGER
 import boto3
-from datetime import date, timedelta, datetime
-import time
+
+LOGGER = logging.getLogger(__name__)
+LOGGER.addHandler(logging.StreamHandler(sys.stdout))
+LOGGER.setLevel(logging.INFO)
 
 
 PT_EC2_GPU_INSTANCE_TYPE = get_ec2_instance_type(default="g3.8xlarge", processor="gpu")
@@ -41,6 +46,8 @@ PT_EC2_SINGLE_GPU_INSTANCE_TYPE = get_ec2_instance_type(
 PT_EC2_GRAVITON_INSTANCE_TYPE = get_ec2_instance_type(
     default="c6g.4xlarge", processor="cpu", arch_type="graviton"
 )
+PT_EC2_GRAVITON_INSTANCE_TYPE = get_ec2_instance_type(default="c6g.4xlarge", processor="cpu", arch_type="graviton")
+PT_EC2_NEURON_TRN1_INSTANCE_TYPE = get_ec2_instance_type(default="trn1.2xlarge", processor="neuron", job_type="inference")
 
 PT_TELEMETRY_CMD = os.path.join(
     CONTAINER_TESTS_PREFIX, "pytorch_tests", "test_pt_dlc_telemetry_test"
@@ -56,6 +63,14 @@ PT_TORCHDATA_DEV_CMD = os.path.join(CONTAINER_TESTS_PREFIX, "pytorch_tests", "te
 @pytest.mark.parametrize("ec2_instance_type", PT_EC2_NEURON_INSTANCE_TYPE, indirect=True)
 def test_ec2_pytorch_inference_neuron(pytorch_inference_neuron, ec2_connection, region):
     ec2_pytorch_inference(pytorch_inference_neuron, "neuron", ec2_connection, region)
+
+
+@pytest.mark.usefixtures("sagemaker")
+@pytest.mark.model("resnet")
+@pytest.mark.parametrize("ec2_instance_ami", [test_utils.UL20_PT_NEURON_US_WEST_2], indirect=True)
+@pytest.mark.parametrize("ec2_instance_type", PT_EC2_NEURON_TRN1_INSTANCE_TYPE, indirect=True)
+def test_ec2_pytorch_inference_neuronx(pytorch_inference_neuronx, ec2_connection, region):
+    ec2_pytorch_inference(pytorch_inference_neuronx, "neuronx", ec2_connection, region)
 
 
 @pytest.mark.usefixtures("sagemaker")
@@ -157,7 +172,6 @@ def test_pytorch_inference_torchdata_gpu(
     else:
         execute_ec2_inference_test(ec2_connection, pytorch_inference, PT_TORCHDATA_CMD)
 
-
 @pytest.mark.usefixtures("feature_torchdata_present")
 @pytest.mark.usefixtures("sagemaker")
 @pytest.mark.integration("pt_torchdata_cpu")
@@ -183,11 +197,14 @@ def ec2_pytorch_inference(image_uri, processor, ec2_connection, region):
             model_name = "pytorch-densenet-v1-3-1"
     if processor == "neuron":
         model_name = "pytorch-resnet-neuron"
+    if processor == "neuronx":
+        model_name = "pytorch-resnet-neuronx"
+    processor_is_neuron = "neuron" in processor
 
     inference_cmd = test_utils.get_inference_run_command(image_uri, model_name, processor)
     docker_cmd = "nvidia-docker" if "gpu" in image_uri else "docker"
 
-    if processor == "neuron":
+    if processor_is_neuron:
         docker_run_cmd = (
             f"{docker_cmd} run -itd --name {container_name}"
             f" -p 80:8080 -p 8081:8081"
@@ -209,6 +226,9 @@ def ec2_pytorch_inference(image_uri, processor, ec2_connection, region):
         inference_result = test_utils.request_pytorch_inference_densenet(
             connection=ec2_connection, model_name=model_name, server_type=server_type
         )
+        if not inference_result:
+            remote_out = ec2_connection.run(f"docker logs {container_name}")
+            LOGGER.info(f"--- PT container logs ---\n{remote_out.stdout}")
         assert (
             inference_result
         ), f"Failed to perform pytorch inference test for image: {image_uri} on ec2"

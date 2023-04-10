@@ -18,6 +18,7 @@ TF_EC2_GPU_INSTANCE_TYPE = get_ec2_instance_type(default="g3.8xlarge", processor
 TF_EC2_CPU_INSTANCE_TYPE = get_ec2_instance_type(default="c5.4xlarge", processor="cpu")
 TF_EC2_EIA_ACCELERATOR_TYPE = get_ec2_accelerator_type(default="eia1.large", processor="eia")
 TF_EC2_NEURON_ACCELERATOR_TYPE = get_ec2_instance_type(default="inf1.xlarge", processor="neuron")
+TF_EC2_NEURONX_ACCELERATOR_TYPE = get_ec2_instance_type(default="trn1.2xlarge", processor="neuronx")
 TF_EC2_SINGLE_GPU_INSTANCE_TYPE = get_ec2_instance_type(
     default="p3.2xlarge",
     processor="gpu",
@@ -33,6 +34,13 @@ TF_EC2_GRAVITON_INSTANCE_TYPE = get_ec2_instance_type(
 @pytest.mark.parametrize("ec2_instance_ami", [test_utils.UL20_TF_NEURON_US_WEST_2], indirect=True)
 def test_ec2_tensorflow_inference_neuron(tensorflow_inference_neuron, ec2_connection, region):
     run_ec2_tensorflow_inference(tensorflow_inference_neuron, ec2_connection, "8500", region)
+
+@pytest.mark.model("mnist")
+@pytest.mark.parametrize("ec2_instance_type", TF_EC2_NEURONX_ACCELERATOR_TYPE, indirect=True)
+# FIX ME: Sharing the AMI from neuron account to DLC account; use public DLAMI with inf1 support instead
+@pytest.mark.parametrize("ec2_instance_ami", [test_utils.UL20_PT_NEURON_US_WEST_2], indirect=True)
+def test_ec2_tensorflow_inference_neuronx(tensorflow_inference_neuronx, ec2_connection, region):
+    run_ec2_tensorflow_inference(tensorflow_inference_neuronx, ec2_connection, "8500", region)
 
 
 @pytest.mark.model("mnist")
@@ -132,13 +140,14 @@ def run_ec2_tensorflow_inference(
     )
 
     is_neuron = "neuron" in image_uri
+    is_neuron_x = "neuronx" in image_uri
     is_graviton = "graviton" in image_uri
 
     docker_cmd = "nvidia-docker" if "gpu" in image_uri else "docker"
     if is_neuron:
         # For 2.5 using rest api port instead of grpc since using curl for prediction instead of grpc
         if str(framework_version).startswith(TENSORFLOW2_VERSION):
-            model_name = "simple"
+            model_name = "simple_x" if is_neuron_x else "simple"
             model_path = os.path.join(serving_folder_path, "models", model_name)
             src_port = "8501"
             dst_port = "8501"
@@ -267,11 +276,9 @@ def host_setup_for_tensorflow_inference(
         ec2_connection.run(f"mkdir -p {serving_folder_path}")
         ec2_connection.run(f"cp -r {local_scripts_path} {serving_folder_path}")
         if is_neuron:
-            neuron_local_model = os.path.join(
-                "$HOME", "container_tests", "bin", "neuron_tests", "simple"
-            )
+            neuron_local_model = os.path.join("$HOME", "container_tests", "bin", "neuron_tests", model_name)
             neuron_model_dir = os.path.join(serving_folder_path, "models")
-            neuron_model_file_path = os.path.join(serving_folder_path, "models", "model_name", "1")
+            neuron_model_file_path = os.path.join(serving_folder_path, "models", model_name, "1")
             LOGGER.info(f"Host Model path {neuron_model_file_path}")
             LOGGER.info(f"Host Model Dir {neuron_model_dir}")
             ec2_connection.run(f"mkdir -p {neuron_model_file_path}")

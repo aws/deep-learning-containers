@@ -26,10 +26,13 @@ pt_model = "pt_model.tar.gz"
 tf_model = "tf_model.tar.gz"
 pt_neuron_model = "pt_neuron_model.tar.gz"
 # TODO: current local test, tests without custom script
-script_dir = os.path.join(resources_path, "code")
+
+script_dir = os.path.join(resources_path, 'code')
 pt_neuron_script = "neuron_inference.py"
-audio_sample_file_path = os.path.join(resources_path, "audio", "sample1.wav")
-image_sample_file_path = os.path.join(resources_path, "image", "tiger.png")
+pt_ipex_script = "ipex_inference.py"
+
+audio_sample_file_path = os.path.join(resources_path, 'audio', 'sample1.wav')
+image_sample_file_path = os.path.join(resources_path, 'image', 'tiger.png')
 
 
 ROLE = "dummy/unused-role"

@@ -411,7 +411,6 @@ def _test_tuning_function(ecr_image, sagemaker_session, instance_type, framework
 
 
 @pytest.mark.usefixtures("feature_smdebug_present")
-@pytest.mark.skip(reason="skip the test temporarily due to timeout issue")
 @pytest.mark.model("mnist")
 @pytest.mark.integration("smdebug")
 @pytest.mark.skip_py2_containers

@@ -35,14 +35,16 @@ SCRIPT_PATH = os.path.dirname(os.path.realpath(__file__))
 
 
 def pytest_addoption(parser):
-    parser.addoption("--docker-base-name", default="sagemaker-tensorflow-scriptmode")
-    parser.addoption("--tag", default=None)
-    parser.addoption("--region", default="us-west-2")
-    parser.addoption("--framework-version", default="")
-    parser.addoption("--processor", default="cpu", choices=["cpu", "gpu", "cpu,gpu"])
-    parser.addoption("--py-version", default="3", choices=["2", "3", "2,3", "37", "38", "39"])
-    parser.addoption("--account-id", default="142577830533")
-    parser.addoption("--instance-type", default=None)
+    parser.addoption('--docker-base-name', default='sagemaker-tensorflow-scriptmode')
+    parser.addoption('--tag', default=None)
+    parser.addoption('--region', default='us-west-2')
+    parser.addoption('--framework-version', default='')
+    parser.addoption('--processor', default='cpu', choices=['cpu', 'gpu', 'cpu,gpu'])
+    parser.addoption('--py-version', default='3', choices=['2', '3', '2,3', '37', '38', '39', '310'])
+    parser.addoption('--account-id', default='142577830533')
+    parser.addoption('--instance-type', default=None)
+    parser.addoption('--generate-coverage-doc', default=False, action='store_true',
+                     help='use this option to generate test coverage doc')
     parser.addoption(
         "--generate-coverage-doc",
         default=False,

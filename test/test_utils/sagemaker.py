@@ -56,7 +56,7 @@ def is_test_job_efa_dedicated():
 def assign_sagemaker_remote_job_instance_type(image):
     if "graviton" in image:
         return "ml.c6g.2xlarge"
-    elif "training-neuron" in image:
+    elif "neuronx" in image or "training-neuron" in image:
         return "ml.trn1.2xlarge"
     elif "inference-neuron" in image:
         return "ml.inf1.xlarge"
@@ -160,7 +160,9 @@ def generate_sagemaker_pytest_cmd(image, sagemaker_test_type):
     framework_version_arg = "--framework-version"
     eia_arg = "ml.eia1.large"
     processor = (
-        "neuron"
+        "neuronx"
+        if "neuronx" in image
+        else "neuron"
         if "neuron" in image
         else "gpu"
         if "gpu" in image
@@ -176,6 +178,8 @@ def generate_sagemaker_pytest_cmd(image, sagemaker_test_type):
         if py_version == "py38"
         else "39"
         if py_version == "py39"
+        else "310"
+        if py_version == "py310"
         else "2"
         if py_version == "py27"
         else "3"
