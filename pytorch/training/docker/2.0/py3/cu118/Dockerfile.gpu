@@ -427,10 +427,8 @@ RUN pip install --no-cache-dir -U \
 
 # Install smdebug from souce
 RUN cd /tmp \
-  && git clone https://github.com/awslabs/sagemaker-debugger --depth 1 --single-branch \ 
+  && git clone https://github.com/awslabs/sagemaker-debugger --branch ${SMDEBUG_VERSION} --depth 1 --single-branch \ 
   && cd sagemaker-debugger \
-  # pin and wait for official release
-  && git checkout 8887b3c \
   && pip install . \
   && rm -rf /tmp/*
 
