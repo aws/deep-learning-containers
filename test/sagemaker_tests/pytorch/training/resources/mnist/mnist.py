@@ -110,23 +110,19 @@ def _average_gradients(model):
 
 def train(args):
     is_distributed = len(args.hosts) > 1 and args.backend is not None
-    logger.debug("Distributed training - {}".format(is_distributed))
     use_cuda = (args.processor == 'gpu') or (args.num_gpus > 0)
-    logger.debug("Number of gpus available - {}".format(args.num_gpus))
     kwargs = {'num_workers': 1, 'pin_memory': True} if use_cuda else {}
     device = torch.device("cuda" if use_cuda else "cpu")
     use_inductor = (args.inductor == 1)
 
     if is_distributed:
         # Initialize the distributed environment.
-        world_size = len(args.hosts)
-        os.environ['WORLD_SIZE'] = str(world_size)
-        host_rank = args.hosts.index(args.current_host)
-        os.environ['RANK'] = str(host_rank)
-        dist.init_process_group(backend=args.backend, rank=host_rank, world_size=world_size)
-        logger.info('Initialized the distributed environment: \'{}\' backend on {} nodes. '.format(
-            args.backend, dist.get_world_size()) + 'Current host rank is {}. Number of gpus: {}'.format(
-            dist.get_rank(), args.num_gpus))
+        dist.init_process_group(backend=args.backend) #, rank=host_rank, world_size=world_size)
+        device_id = dist.get_rank() % torch.cuda.device_count()
+        device = torch.device(f"cuda:{device_id}")
+        logger.info('Initialized the distributed environment: \'{}\' backend on {} processes. '.format(
+            args.backend, dist.get_world_size()) + 'Current rank is {}, Current host is: {}, Number of gpus: {}, device used: {}'.format(
+            dist.get_rank(), args.current_host, args.num_gpus, device))
 
     # set the seed for generating random numbers
     torch.manual_seed(args.seed)
@@ -156,11 +152,10 @@ def train(args):
         # multi-machine multi-gpu case
         logger.debug("Multi-machine multi-gpu: using DistributedDataParallel.")
         # establish host rank and set device on this node
-        torch.cuda.set_device(host_rank)
-        model.cuda(host_rank)
+        model.to(device)
         # for multiprocessing distributed, the DDP constructor should always set
         # the single device scope. otherwise, DDP will use all available devices.
-        model = torch.nn.parallel.DistributedDataParallel(model, device_ids=[host_rank], output_device=host_rank)
+        model = torch.nn.parallel.DistributedDataParallel(model).to(device)
     elif use_cuda:
         # single-machine multi-gpu case
         logger.debug("Single-machine multi-gpu: using DataParallel().cuda().")
@@ -179,7 +174,7 @@ def train(args):
         for batch_idx, (data, target) in enumerate(train_loader, 1):
             if is_distributed and use_cuda:
                 # multi-machine multi-gpu case - allow asynchrous GPU copies of the data
-                data, target = data.cuda(non_blocking=True), target.cuda(non_blocking=True)
+                data, target = data.to(device, non_blocking=True), target.to(device, non_blocking=True)
             else:
                 data, target = data.to(device), target.to(device)
             optimizer.zero_grad()
@@ -197,7 +192,7 @@ def train(args):
         test(model, test_loader, device)
     save_model(model, args.model_dir)
 
-    if is_distributed and host_rank == 0 or not is_distributed:
+    if is_distributed and args.hosts.index(args.current_host) == 0 or not is_distributed:
         assert_can_track_sagemaker_experiments()
 
 

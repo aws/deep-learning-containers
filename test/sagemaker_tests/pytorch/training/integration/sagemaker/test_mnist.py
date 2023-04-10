@@ -113,6 +113,7 @@ def _test_mnist_distributed(ecr_image, sagemaker_session, framework_version, ins
             image_uri=ecr_image,
             framework_version=framework_version,
             hyperparameters={'backend': dist_backend, 'epochs': 1},
+            distribution={"pytorchddp": {"enabled": True}},
         )
         training_input = pytorch.sagemaker_session.upload_data(path=training_dir, key_prefix='pytorch/mnist')
         pytorch.fit({'training': training_input}, job_name=utils.unique_name_from_base('test-pt-mnist-distributed'))
@@ -141,7 +142,7 @@ def test_hc_mnist_distributed_cpu(framework_version, ecr_image, sagemaker_region
 @pytest.mark.integration("smexperiments")
 @pytest.mark.skip_cpu
 def test_hc_mnist_distributed_gpu(framework_version, ecr_image, sagemaker_regions, instance_type, dist_gpu_backend):
-    instance_type = instance_type or 'ml.p2.xlarge'
+    instance_type = instance_type or 'ml.g4dn.12xlarge'
     training_group = InstanceGroup("train_group", instance_type, 2)
     function_args = {
             'framework_version': framework_version,
