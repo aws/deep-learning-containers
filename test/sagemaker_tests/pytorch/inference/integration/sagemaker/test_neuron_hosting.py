@@ -23,6 +23,7 @@ from sagemaker.serializers import IdentitySerializer
 from sagemaker.deserializers import BytesDeserializer
 
 from ...integration import model_neuron_dir, resnet_neuron_script, resnet_neuron_input, resnet_neuron_image_list
+from ...integration import model_neuronx_dir, resnet_neuronx_script, resnet_neuronx_input, resnet_neuronx_image_list
 from ...integration.sagemaker.timeout import timeout_and_delete_endpoint
 from .... import invoke_pytorch_helper_function
 
@@ -40,7 +41,24 @@ def test_neuron_hosting(framework_version, ecr_image, instance_type, sagemaker_r
             'resnet_script': resnet_neuron_script,
             'resnet_neuron_input': resnet_neuron_input,
             'resnet_neuron_image_list': resnet_neuron_image_list,
+        }
+    invoke_pytorch_helper_function(ecr_image, sagemaker_regions, _test_resnet_distributed, function_args)
 
+
+@pytest.mark.skip("CreateEndpointConfig doesn't support trn1: https://docs.aws.amazon.com/sagemaker/latest/APIReference/API_ProductionVariant.html#sagemaker-Type-ProductionVariant-InstanceType")
+@pytest.mark.model("resnet")
+@pytest.mark.processor("neuronx")
+@pytest.mark.neuron_test
+def test_neuron_hosting(framework_version, ecr_image, instance_type, sagemaker_regions):
+    instance_type = 'ml.trn1.2xlarge'
+    model_dir = os.path.join(model_neuronx_dir, 'model-resnet.tar.gz')
+    function_args = {
+            'framework_version': framework_version,
+            'instance_type': instance_type,
+            'model_dir': model_dir,
+            'resnet_script': resnet_neuronx_script,
+            'resnet_neuron_input': resnet_neuronx_input,
+            'resnet_neuron_image_list': resnet_neuronx_image_list,
         }
     invoke_pytorch_helper_function(ecr_image, sagemaker_regions, _test_resnet_distributed, function_args)
 
