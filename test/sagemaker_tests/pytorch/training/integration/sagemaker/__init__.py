@@ -18,7 +18,9 @@ import pytest
 import sagemaker
 
 from sagemaker.pytorch import PyTorch
-
+from sagemaker import utils
+from .timeout import timeout
+from ...integration import training_dir, mnist_script, DEFAULT_TIMEOUT
 from ..... import get_ecr_image, get_ecr_image_region, get_sagemaker_session, LOW_AVAILABILITY_INSTANCE_TYPES
 
 
@@ -109,3 +111,28 @@ def invoke_pytorch_estimator(
         # TODO: xfailed tests do not show up on CodeBuild Test Case Reports. Therefore using "skip" instead of xfail.
         pytest.skip(f"Failed to launch job due to low capacity on {instance_types}")
     raise error
+
+
+def _test_mnist_distributed(ecr_image, sagemaker_session, framework_version, dist_backend, instance_type=None, instance_groups=None, use_inductor=False):
+
+    est_params = {
+        "entry_point": mnist_script,
+        "role": 'SageMakerRole',
+        "sagemaker_session": sagemaker_session,
+        "image_uri": ecr_image,
+        "hyperparamters": {'backend': dist_backend, 'epochs': 1, 'inductor': int(use_inductor)},
+        "framework_version": framework_version,
+        "distribution": {"torch_distributed": {"enabled": True}},
+    }
+    if not instance_groups:
+        est_params["instance_type"] = instance_type
+        est_params["instance_count"] = 2
+    else:
+        est_params["instance_groups"] = instance_groups
+    job_name = 'test-pt-hc-mnist-distributed' if instance_groups else "test-pt-mnist-distributed"
+    with timeout(minutes=DEFAULT_TIMEOUT):
+        pytorch = PyTorch(
+            **est_params
+        )
+        training_input = pytorch.sagemaker_session.upload_data(path=training_dir, key_prefix='pytorch/mnist')
+        pytorch.fit({'training': training_input}, job_name=utils.unique_name_from_base(job_name))

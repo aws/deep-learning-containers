@@ -17,8 +17,7 @@ from sagemaker import utils
 from sagemaker.instance_group import InstanceGroup
 from sagemaker.pytorch import PyTorch
 
-from ...integration import training_dir, mnist_script, DEFAULT_TIMEOUT
-from ...integration.sagemaker.timeout import timeout
+from . import _test_mnist_distributed
 from .... import invoke_pytorch_helper_function
 
 @pytest.mark.processor("cpu")
@@ -32,7 +31,8 @@ def test_mnist_distributed_cpu(framework_version, ecr_image, sagemaker_regions, 
     function_args = {
             'framework_version': framework_version,
             'instance_type': instance_type,
-            'dist_backend': dist_cpu_backend
+            'dist_backend': dist_cpu_backend,
+            "use_inductor": True,
         }
 
     invoke_pytorch_helper_function(ecr_image, sagemaker_regions, _test_mnist_distributed, function_args)
@@ -49,26 +49,11 @@ def test_mnist_distributed_gpu(framework_version, ecr_image, sagemaker_regions, 
     function_args = {
             'framework_version': framework_version,
             'instance_type': instance_type,
-            'dist_backend': dist_gpu_backend
+            'dist_backend': dist_gpu_backend,
+            "use_inductor": True,
         }
 
     invoke_pytorch_helper_function(ecr_image, sagemaker_regions, _test_mnist_distributed, function_args)
-
-
-def _test_mnist_distributed(ecr_image, sagemaker_session, framework_version, instance_type, dist_backend):
-    with timeout(minutes=DEFAULT_TIMEOUT):
-        pytorch = PyTorch(
-            entry_point=mnist_script,
-            role='SageMakerRole',
-            instance_count=2,
-            instance_type=instance_type,
-            sagemaker_session=sagemaker_session,
-            image_uri=ecr_image,
-            framework_version=framework_version,
-            hyperparameters={'backend': dist_backend, 'epochs': 1, 'inductor': 1},
-        )
-        training_input = pytorch.sagemaker_session.upload_data(path=training_dir, key_prefix='pytorch/mnist')
-        pytorch.fit({'training': training_input}, job_name=utils.unique_name_from_base('test-pt-mnist-distributed'))
 
 
 @pytest.mark.processor("cpu")
@@ -83,10 +68,11 @@ def test_hc_mnist_distributed_cpu(framework_version, ecr_image, sagemaker_region
     function_args = {
             'framework_version': framework_version,
             'instance_groups': [training_group],
-            'dist_backend': dist_cpu_backend
+            'dist_backend': dist_cpu_backend,
+            "use_inductor": True,
         }
 
-    invoke_pytorch_helper_function(ecr_image, sagemaker_regions, _test_hc_mnist_distributed, function_args)
+    invoke_pytorch_helper_function(ecr_image, sagemaker_regions, _test_mnist_distributed, function_args)
 
 
 @pytest.mark.processor("gpu")
@@ -101,22 +87,8 @@ def test_hc_mnist_distributed_gpu(framework_version, ecr_image, sagemaker_region
     function_args = {
             'framework_version': framework_version,
             'instance_groups': [training_group],
-            'dist_backend': dist_gpu_backend
+            'dist_backend': dist_gpu_backend,
+            "use_inductor": True,
         }
 
-    invoke_pytorch_helper_function(ecr_image, sagemaker_regions, _test_hc_mnist_distributed, function_args)
-
-
-def _test_hc_mnist_distributed(ecr_image, sagemaker_session, framework_version, instance_groups, dist_backend):
-    with timeout(minutes=DEFAULT_TIMEOUT):
-        pytorch = PyTorch(
-            entry_point=mnist_script,
-            role='SageMakerRole',
-            instance_groups=instance_groups,
-            sagemaker_session=sagemaker_session,
-            image_uri=ecr_image,
-            framework_version=framework_version,
-            hyperparameters={'backend': dist_backend, 'epochs': 1, 'inductor': 1},
-        )
-        training_input = pytorch.sagemaker_session.upload_data(path=training_dir, key_prefix='pytorch/mnist')
-        pytorch.fit({'training': training_input}, job_name=utils.unique_name_from_base('test-pt-hc-mnist-distributed'))
+    invoke_pytorch_helper_function(ecr_image, sagemaker_regions, _test_mnist_distributed, function_args)
