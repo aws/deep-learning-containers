@@ -1,6 +1,6 @@
 #!/bin/bash
 #/ Usage: 
-#/ ./install_kubeflow.sh eks_cluster_name region_name
+#/ ./install_kubeflow.sh eks_cluster_name operation
 
 set -ex
 
