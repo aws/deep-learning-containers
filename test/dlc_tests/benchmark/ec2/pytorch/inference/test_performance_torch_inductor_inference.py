@@ -172,7 +172,7 @@ def test_performance_ec2_pytorch_inference_gpu(ec2_instance_type, suite, precisi
 def ec2_performance_pytorch_inference(image_uri, instance_type, ec2_connection, region, suite, precision):
     is_gpu = re.search(r"(p3|g4|g5)", instance_type)
     device = "cuda" if is_gpu else "cpu"
-    docker_cmd = "nvidia-docker" if is_gpu == "gpu" else "docker"
+    docker_cmd = "nvidia-docker" if is_gpu else "docker"
     ec2_local_dir = os.path.join("/home/ubuntu", "results")
     repo_name, image_tag = image_uri.split("/")[-1].split(":")
 
