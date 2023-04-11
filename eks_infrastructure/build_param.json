@@ -1,5 +1,5 @@
 {
-    "operation": "new_operation",
+    "operation": "upgrade_kubeflow",
     "contexts": [
         "PR",
         "MAINLINE"
