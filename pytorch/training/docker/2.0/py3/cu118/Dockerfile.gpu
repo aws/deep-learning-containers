@@ -374,7 +374,7 @@ RUN /opt/conda/bin/mamba install -y -c conda-forge \
   && /opt/conda/bin/mamba install -y -c fastai fastai \
   # fastai conda strictly depends on dataclasses
   && pip uninstall -y dataclasses \
-  && pip install torchtnt \
+  && pip install torchnet \
 # explicitly install triton build-time dependencies, which won't get installed by conda for some reason
   cmake \
   lit
