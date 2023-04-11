@@ -34,7 +34,8 @@ def test_mnist(docker_image, processor, instance_type, sagemaker_local_session, 
         output_path='file://{}'.format(tmpdir),
     )
 
-    _train_and_assert_success(estimator, str(tmpdir), {'training': 'file://{}'.format(os.path.join(data_dir, 'training'))})
+    _train_and_assert_success(estimator, str(tmpdir), {'training': 'file://{}'.format(os.path.join(data_dir, 'training'))}, \
+                              model_pth="model_0.pth")
 
 
 @pytest.mark.integration("fastai")
@@ -58,8 +59,8 @@ def test_fastai_mnist(docker_image, instance_type, py_version, sagemaker_local_s
     _train_and_assert_success(estimator, str(tmpdir))
 
 
-def _train_and_assert_success(estimator, output_path, fit_params={}):
+def _train_and_assert_success(estimator, output_path, fit_params={}, model_pth="model.pth"):
     estimator.fit(fit_params)
 
-    success_files = {'model': ['model.pth'], 'output': ['success']}
+    success_files = {'model': [model_pth], 'output': ['success']}
     assert_files_exist(output_path, success_files)

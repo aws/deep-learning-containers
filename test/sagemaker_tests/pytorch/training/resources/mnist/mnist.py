@@ -109,7 +109,7 @@ def _average_gradients(model):
 
 
 def train(args):
-    is_distributed = len(args.hosts) > 1 and args.backend is not None
+    is_distributed = args.backend is not None
     use_cuda = (args.processor == 'gpu') or (args.num_gpus > 0)
     kwargs = {'num_workers': 1, 'pin_memory': True} if use_cuda else {}
     device = torch.device("cuda" if use_cuda else "cpu")
@@ -150,26 +150,19 @@ def train(args):
         logger.debug("Inductor: using Inductor.")
         model = torch.compile(model, backend="inductor", mode="default")
 
-    if is_distributed and use_cuda:
-        device_id = dist.get_rank() % torch.cuda.device_count()
-        device = torch.device(f"cuda:{device_id}")
-        # multi-machine multi-gpu case
-        logger.debug("Multi-machine multi-gpu: using DistributedDataParallel.")
-        # establish host rank and set device on this node
-        model.to(device)
+    if is_distributed:
+        if use_cuda:
+            device_id = dist.get_rank() % torch.cuda.device_count()
+            device = torch.device(f"cuda:{device_id}")
+            # multi-machine multi-gpu case
+            logger.debug("Multi-machine multi-gpu cuda: using DistributedDataParallel.")
         # for multiprocessing distributed, the DDP constructor should always set
         # the single device scope. otherwise, DDP will use all available devices.
         model = torch.nn.parallel.DistributedDataParallel(model).to(device)
-    elif use_cuda:
-        # single-machine multi-gpu case
-        logger.debug("Single-machine multi-gpu: using DataParallel().cuda().")
-        model =  model.to(device)
-        model = torch.nn.parallel.DistributedDataParallel(model).to(device)
     else:
         # single-machine or multi-machine cpu case
-        logger.debug("Single-machine/multi-machine cpu: using DataParallel.")
-        model =  model.to(device)
-        model = torch.nn.parallel.DistributedDataParallel(model)
+        logger.debug("Single-machine cpu: using DistributedDataParallel.")
+    model = model.to(device)
 
     optimizer = optim.SGD(model.parameters(), lr=args.lr, momentum=args.momentum)
 
@@ -227,8 +220,9 @@ def model_fn(model_dir):
 
 
 def save_model(model, model_dir, args):
-    logger.info("Saving the model.")
-    path = os.path.join(model_dir, f"model_{args.hosts.index(args.current_host)}.pth")
+    model_pth = f"model_{args.hosts.index(args.current_host)}.pth"
+    logger.info(f"Saving the model: {model_pth}")
+    path = os.path.join(model_dir, model_pth)
     # recommended way from http://pytorch.org/docs/master/notes/serialization.html
     torch.save(model.state_dict(), path)
 
