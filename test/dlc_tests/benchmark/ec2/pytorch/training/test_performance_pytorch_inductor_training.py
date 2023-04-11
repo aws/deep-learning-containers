@@ -29,6 +29,7 @@ PT_PERFORMANCE_TRAINING_GPU_INDUCTOR_TORCHBENCH_CMD = os.path.join(
 )
 
 PT_EC2_GPU_INDUCTOR_INSTANCE_TYPES = ["p3.2xlarge", "p4d.24xlarge", "g5.4xlarge", "g4dn.4xlarge"]
+PT_EC2_GPU_INDUCTOR_INSTANCE_TYPE_G4DN = ["g4dn.4xlarge"]
 METRIC_NAMES = ["speedup", "comp_time", "memory", "passrate"]
 
 @pytest.mark.skip("skip for now")
@@ -52,11 +53,11 @@ def test_performance_pytorch_gpu_inductor_huggingface(pytorch_training, ec2_conn
     subprocess.run(f"aws s3 cp {s3_pth}/ huggingface/ --recursive", shell=True)
     read_upload_benchmarking_result_to_cw(METRIC_NAMES, "huggingface", instance_type=ec2_instance_type)
 
-@pytest.mark.skip("skip for now")
+
 @pytest.mark.integration("inductor")
 @pytest.mark.model("timm")
 @pytest.mark.parametrize("ec2_instance_ami", [UBUNTU_18_BASE_DLAMI_US_WEST_2], indirect=True)
-@pytest.mark.parametrize("ec2_instance_type", PT_EC2_GPU_INDUCTOR_INSTANCE_TYPES, indirect=True)
+@pytest.mark.parametrize("ec2_instance_type", PT_EC2_GPU_INDUCTOR_INSTANCE_TYPE_G4DN, indirect=True)
 def test_performance_pytorch_gpu_inductor_timm(pytorch_training, ec2_connection, gpu_only, py3_only, ec2_instance_type):
     fw, image_framework_version = get_framework_and_version_from_tag(pytorch_training)
     current_timestamp = time.strftime("%Y-%m-%d-%H-%M-%S")
@@ -68,12 +69,15 @@ def test_performance_pytorch_gpu_inductor_timm(pytorch_training, ec2_connection,
     execute_ec2_training_performance_test(
         ec2_connection, pytorch_training, test_cmd, "timm_models"
     )
-    subprocess.check_output(f"rm -rf timm", shell=True, timeout=5)
-    subprocess.run(f"mkdir timm", shell=True)
-    subprocess.run(f"aws s3 cp {s3_pth}/ timm/ --recursive", shell=True)
+    output1 = subprocess.check_output(f"rm -rf timm", shell=True, timeout=60)
+    print(output1)
+    output2 = subprocess.check_output(f"mkdir timm", shell=True, timeout=60)
+    print(output2)
+    output3 = subprocess.check_output(f"aws s3 cp {s3_pth}/ timm/ --recursive", shell=True, timeout=60)
+    print(output3)
     read_upload_benchmarking_result_to_cw(METRIC_NAMES, "timm", instance_type=ec2_instance_type, model_suite="timm_models")
 
-
+@pytest.mark.skip("skip for now")
 @pytest.mark.integration("inductor")
 @pytest.mark.model("torchbench")
 @pytest.mark.parametrize("ec2_instance_ami", [UBUNTU_18_BASE_DLAMI_US_WEST_2], indirect=True)
