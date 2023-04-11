@@ -9,7 +9,7 @@ ARG SMD_DATA_PARALLEL_URL=https://smdataparallel.s3.amazonaws.com/binary/pytorch
 ARG SMD_MODEL_PARALLEL_URL=https://sagemaker-distributed-model-parallel.s3.us-west-2.amazonaws.com/pytorch-2.0.0/build-artifacts/2023-04-10-15-58/smdistributed_modelparallel-1.15.0rc3-cp310-cp310-linux_x86_64.whl
 
 # ZeRO-2D Binary
-ARG ZERO_2D_URL=https://aws-deepspeed-zero-2d-binaries.s3.us-west-2.amazonaws.com/r1.13.1/20230112-180452/06f2048e6bb27edb0deb662dd1fb663ef5b6803f/deepspeed-0.6.1%2B06f2048-py3-none-any.whl
+ARG ZERO_2D_URL=https://aws-deepspeed-zero-2d-binaries.s3.us-west-2.amazonaws.com/r2.0.0/20230407-184728/1ea3d4b6aa41fe66277daacbb78b3743a310d85a/deepspeed-0.6.1%2B1ea3d4b-py3-none-any.whl
 
 FROM nvidia/cuda:11.8.0-base-ubuntu20.04 AS base_image
 
