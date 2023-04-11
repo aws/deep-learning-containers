@@ -89,8 +89,8 @@ def test_performance_pytorch_gpu_inductor_torchbench(pytorch_training, ec2_conne
     execute_ec2_training_performance_test(
         ec2_connection, pytorch_training, test_cmd, "torchbench"
     )
-    subprocess.run(f"rm -rf torchbench")
-    subprocess.run(f"mkdir torchbench")
+    subprocess.run(f"rm -rf torchbench", shell=True)
+    subprocess.run(f"mkdir torchbench", shell=True)
     subprocess.run(f"aws s3 cp {s3_pth}/ torchbench/ --recursive", shell=True)
     read_upload_benchmarking_result_to_cw(METRIC_NAMES, "torchbench", instance_type=ec2_instance_type, model_suite="torchbench")
 
