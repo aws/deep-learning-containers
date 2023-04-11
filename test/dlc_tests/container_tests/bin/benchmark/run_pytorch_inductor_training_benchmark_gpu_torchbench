@@ -27,11 +27,11 @@ pip install pyyaml
 curl -s https://packagecloud.io/install/repositories/github/git-lfs/script.deb.sh | bash
 apt-get install git-lfs
 
-#mamba install -y expecttest libglib pango
+mamba install -y expecttest libglib pango
 
-#git clone --recursive https://github.com/YuchengT/benchmark.git $BIN_DIR/benchmark
-#cd $BIN_DIR/benchmark
-#python install.py
+git clone --recursive https://github.com/YuchengT/benchmark.git $BIN_DIR/benchmark
+cd $BIN_DIR/benchmark
+python install.py
 
 if [ "$1" = "p3.2xlarge" ]
 then
@@ -48,23 +48,8 @@ fi
 
 cd $BIN_DIR/pytorch
 
-mkdir torchbench_logs
-cat > geomean.csv <<EOF
-speedup
-1.5x
-EOF
-#python benchmarks/dynamo/runner.py --training --suites=torchbench --dtypes=amp --compilers=inductor --output-dir=torchbench_logs --extra-args='--output-directory=./'
+python benchmarks/dynamo/runner.py --training --suites=torchbench --dtypes=amp --compilers=inductor --output-dir=torchbench_logs --extra-args='--output-directory=./'
 
 aws s3 cp $BIN_DIR/pytorch/torchbench_logs/ $2/ --recursive
-
-RETURN_VAL=`echo $?`
-set -e
-
-if [ ${RETURN_VAL} -eq 0 ]; then
-    echo "Training Torchbench Complete using PyTorch Inductor."
-else
-    echo "Training Torchbench Failed using PyTorch Inductor."
-    exit 1
-fi
 
 exit 0

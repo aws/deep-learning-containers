@@ -68,7 +68,7 @@ def test_performance_pytorch_gpu_inductor_timm(pytorch_training, ec2_connection,
     execute_ec2_training_performance_test(
         ec2_connection, pytorch_training, test_cmd, "timm_models"
     )
-    subprocess.run(f"rm -rf timm", shell=True)
+    subprocess.check_output(f"rm -rf timm", shell=True, timeout=5)
     subprocess.run(f"mkdir timm", shell=True)
     subprocess.run(f"aws s3 cp {s3_pth}/ timm/ --recursive", shell=True)
     read_upload_benchmarking_result_to_cw(METRIC_NAMES, "timm", instance_type=ec2_instance_type, model_suite="timm_models")
@@ -89,10 +89,13 @@ def test_performance_pytorch_gpu_inductor_torchbench(pytorch_training, ec2_conne
     execute_ec2_training_performance_test(
         ec2_connection, pytorch_training, test_cmd, "torchbench"
     )
-    subprocess.run(f"rm -rf torchbench", shell=True)
-    subprocess.run(f"mkdir torchbench", shell=True)
-    subprocess.run(f"aws s3 cp {s3_pth}/ torchbench/ --recursive", shell=True)
-    read_upload_benchmarking_result_to_cw(["speedup"], "torchbench", instance_type=ec2_instance_type, model_suite="torchbench")
+    output1 = subprocess.check_output(f"rm -rf torchbench", shell=True, timeout=60)
+    print(output1)
+    output2 = subprocess.check_output(f"mkdir torchbench", shell=True, timeout=60)
+    print(output2)
+    output3 = subprocess.check_output(f"aws s3 cp {s3_pth}/ torchbench/ --recursive", shell=True, timeout=60)
+    print(output3)
+    read_upload_benchmarking_result_to_cw(METRIC_NAMES, "torchbench", instance_type=ec2_instance_type, model_suite="torchbench")
 
 
 def execute_ec2_training_performance_test(
