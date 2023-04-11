@@ -437,7 +437,7 @@ def ec2_connection(request, ec2_instance, ec2_key_name, ec2_instance_type, regio
 
     LOGGER.info(f"Connecting to {user}@{ip_address}")
     conn = Connection(
-        user=user, host=ip_address, connect_kwargs={"key_filename": [instance_pem_file]}, connect_timeout=18000,
+        user=user, host=ip_address, connect_kwargs={"key_filename": [instance_pem_file]}, connect_timeout=36000,
     )
 
     random.seed(f"{datetime.datetime.now().strftime('%Y%m%d%H%M%S%f')}")
