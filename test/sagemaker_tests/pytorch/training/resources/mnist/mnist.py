@@ -189,7 +189,7 @@ def train(args):
         test(model, test_loader, device)
     save_model(model, args.model_dir, args)
 
-    if (is_distributed and dist.get_rank() == 0) or not is_distributed:
+    if (len(args.hosts) and os.environ['RANK'] == 0) or len(args.hosts) == 0:
         assert_can_track_sagemaker_experiments()
 
 
