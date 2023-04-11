@@ -1,6 +1,7 @@
 #!/bin/bash
 #/ Usage: 
-#/ ./install_kubeflow.sh eks_cluster_name operation
+#/ cluster name is required. operation is optional
+#/ ./install_kubeflow.sh eks_cluster_name [operation]
 
 set -ex
 
@@ -61,8 +62,8 @@ setup_kubeflow(){
 
 
 # Check for input arguments
-if [ $# -ne 2 ]; then
-    echo "usage: ./${0} eks_cluster_name region_name"
+if [ $# ge 1 ]; then
+    echo "usage: ./${0} eks_cluster_name [operation]"
     exit 1
 fi
 
