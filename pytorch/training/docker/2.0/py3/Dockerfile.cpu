@@ -6,7 +6,7 @@ ARG PYTORCH_VERSION=2.0.0
 FROM ubuntu:20.04 AS base_image
 
 ENV DEBIAN_FRONTEND=noninteractive \
-    LD_LIBRARY_PATH="${LD_LIBRARY_PATH}:/usr/local/lib"
+    LD_LIBRARY_PATH="/usr/local/lib"
 
 RUN apt-get update \
  && apt-get upgrade -y \
@@ -34,8 +34,8 @@ ENV PYTHONUNBUFFERED=1
 ENV PYTHONIOENCODING=UTF-8
 ENV LANG=C.UTF-8
 ENV LC_ALL=C.UTF-8
-ENV LD_LIBRARY_PATH="${LD_LIBRARY_PATH}:/usr/local/lib"
-ENV LD_LIBRARY_PATH="${LD_LIBRARY_PATH}:/opt/conda/lib"
+ENV LD_LIBRARY_PATH="/usr/local/lib:${LD_LIBRARY_PATH}"
+ENV LD_LIBRARY_PATH="/opt/conda/lib:${LD_LIBRARY_PATH}"
 ENV PATH=/opt/conda/bin:$PATH
 ENV DGLBACKEND=pytorch
 ENV DLC_CONTAINER_TYPE=training
@@ -78,12 +78,6 @@ RUN wget https://www.open-mpi.org/software/ompi/v4.1/downloads/openmpi-$OPEN_MPI
  && rm openmpi-$OPEN_MPI_VERSION.tar.gz \
  && rm -rf openmpi-$OPEN_MPI_VERSION
 
-# The ENV variables declared below are changed in the previous section
-# Grouping these ENV variables in the first section causes
-# ompi_info to fail. This is only observed in CPU containers
-ENV PATH="$PATH:/home/.openmpi/bin"
-ENV LD_LIBRARY_PATH="$LD_LIBRARY_PATH:/home/.openmpi/lib/"
-RUN ompi_info --parsable --all | grep mpi_built_with_cuda_support:value
 
 # Install OpenSSH for MPI to communicate between containers, allow OpenSSH to talk to containers without asking for confirmation
 RUN apt-get update \
@@ -149,7 +143,14 @@ RUN /opt/conda/bin/mamba install -y -c conda-forge \
   && /opt/conda/bin/mamba clean -afy
 
 RUN curl -o /license.txt https://aws-dlc-licenses.s3.amazonaws.com/pytorch-2.0/license.txt
- 
+
+# The ENV variables declared below are changed in the previous section
+# Grouping these ENV variables in the first section causes
+# ompi_info to fail. This is only observed in CPU containers
+ENV PATH="/home/.openmpi/bin:$PATH"
+ENV LD_LIBRARY_PATH="/home/.openmpi/lib/:$LD_LIBRARY_PATH"
+RUN ompi_info --parsable --all | grep mpi_built_with_cuda_support:value
+
 # needed by torchdata
 RUN mkdir -p /etc/pki/tls/certs && cp /etc/ssl/certs/ca-certificates.crt /etc/pki/tls/certs/ca-bundle.crt
 

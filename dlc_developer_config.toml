@@ -58,7 +58,7 @@ sagemaker_local_tests = true
 # "standard" --> run standard sagemaker remote tests from test/sagemaker_tests
 # "rc" --> run release_candidate_integration tests
 # "efa" --> run efa sagemaker tests
-sagemaker_remote_tests = "standard"
+sagemaker_remote_tests = "off"
 
 # SM remote EFA test instance type
 sagemaker_remote_efa_instance_type = ""
