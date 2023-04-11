@@ -34,11 +34,11 @@ install_kubeflow(){
 # Function to remove kubeflow in EKS cluster using kustomize
 uninstall_kubeflow(){
 
+    echo "> Uninstalling training operators"
+    while ! kustomize build manifests/apps/training-operator/upstream/overlays/kubeflow | kubectl delete -f -; do echo "Retrying to delete training operator resources"; sleep 10; done
+
     echo "> Uninstalling kubeflow namespace"
     while ! kustomize build manifests/common/kubeflow-namespace/base | kubectl delete -f -; do echo "Retrying to delete namespace resources"; sleep 10; done
-
-    echo "> Uninstalling training operators"
-    while ! build manifests/apps/training-operator/upstream/overlays/kubeflow | kubectl delete -f -; do echo "Retrying to delete training operator resources"; sleep 10; done
 }
 
 # Function to create directory and download kubeflow components
@@ -67,6 +67,7 @@ if [ $# -ne 2 ]; then
 fi
 
 EKS_CLUSTER_NAME=${1}
+OPERATION=${2}
 
 # Check for environment variables
 if [ -z "$AWS_REGION" ]; then
@@ -81,7 +82,7 @@ echo "> Setup installation directory"
 setup_kubeflow ${EKS_CLUSTER_NAME}
 
 # uninstall the manifest if operation is to upgrade kubeflow
-if [ "${OPERATION}" = "upgrade_kubeflow" ]; then
+if [ "${OPERATION}" = "UPGRADE" ]; then
     echo "> Uninstalling kubeflow manifest"
     uninstall_kubeflow
 fi
