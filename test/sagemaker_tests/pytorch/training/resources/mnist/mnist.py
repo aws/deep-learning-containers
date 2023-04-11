@@ -189,7 +189,7 @@ def train(args):
         test(model, test_loader, device)
     save_model(model, args.model_dir, args)
 
-    if (len(args.hosts) and os.environ['RANK'] == 0) or len(args.hosts) == 0:
+    if len(args.hosts) == 1 or os.environ['RANK'] == 0:
         assert_can_track_sagemaker_experiments()
 
 
