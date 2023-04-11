@@ -69,12 +69,6 @@ fi
 EKS_CLUSTER_NAME=${1}
 OPERATION=${2}
 
-# Check for environment variables
-if [ -z "$AWS_REGION" ]; then
-  echo "AWS region not configured"
-  exit 1
-fi
-
 echo "> Installing kustomize"
 install_kustomize
 
