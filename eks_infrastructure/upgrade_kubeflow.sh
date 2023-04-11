@@ -37,4 +37,5 @@ if [ -n "${EKS_CLUSTER_MANAGER_ROLE}" ]; then
 fi
 
 # install kubeflow
-../test/dlc_tests/eks/eks_manifest_templates/kubeflow/install_kubeflow.sh ${CLUSTER_NAME} ${AWS_REGION}
+OPERATION="UPGRADE"
+../test/dlc_tests/eks/eks_manifest_templates/kubeflow/install_kubeflow.sh ${CLUSTER_NAME} ${OPERATION}
