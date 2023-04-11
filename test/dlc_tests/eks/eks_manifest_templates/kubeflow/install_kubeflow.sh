@@ -1,6 +1,7 @@
 #!/bin/bash
 #/ Usage: 
-#/ ./install_kubeflow.sh eks_cluster_name region_name
+#/ cluster name is required. operation is optional
+#/ ./install_kubeflow.sh eks_cluster_name [operation]
 
 set -ex
 
@@ -34,11 +35,11 @@ install_kubeflow(){
 # Function to remove kubeflow in EKS cluster using kustomize
 uninstall_kubeflow(){
 
+    echo "> Uninstalling training operators"
+    while ! kustomize build manifests/apps/training-operator/upstream/overlays/kubeflow | kubectl delete -f -; do echo "Retrying to delete training operator resources"; sleep 10; done
+
     echo "> Uninstalling kubeflow namespace"
     while ! kustomize build manifests/common/kubeflow-namespace/base | kubectl delete -f -; do echo "Retrying to delete namespace resources"; sleep 10; done
-
-    echo "> Uninstalling training operators"
-    while ! build manifests/apps/training-operator/upstream/overlays/kubeflow | kubectl delete -f -; do echo "Retrying to delete training operator resources"; sleep 10; done
 }
 
 # Function to create directory and download kubeflow components
@@ -61,18 +62,13 @@ setup_kubeflow(){
 
 
 # Check for input arguments
-if [ $# -ne 2 ]; then
-    echo "usage: ./${0} eks_cluster_name region_name"
+if [ $# ge 1 ]; then
+    echo "usage: ./${0} eks_cluster_name [operation]"
     exit 1
 fi
 
 EKS_CLUSTER_NAME=${1}
-
-# Check for environment variables
-if [ -z "$AWS_REGION" ]; then
-  echo "AWS region not configured"
-  exit 1
-fi
+OPERATION=${2}
 
 echo "> Installing kustomize"
 install_kustomize
@@ -81,7 +77,7 @@ echo "> Setup installation directory"
 setup_kubeflow ${EKS_CLUSTER_NAME}
 
 # uninstall the manifest if operation is to upgrade kubeflow
-if [ "${OPERATION}" = "upgrade_kubeflow" ]; then
+if [ "${OPERATION}" = "UPGRADE" ]; then
     echo "> Uninstalling kubeflow manifest"
     uninstall_kubeflow
 fi
