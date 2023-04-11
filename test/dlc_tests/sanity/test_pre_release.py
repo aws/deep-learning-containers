@@ -339,12 +339,15 @@ def test_framework_and_neuron_sdk_version(neuron):
         tested_framework = tested_framework[len("huggingface_"):]
 
     if tested_framework == "pytorch":
-        if "pytorch-training-neuron" in image:
+        if "training" in image or "neuronx" in image:
             tested_framework = "torch_neuronx"
         else:
             tested_framework = "torch_neuron"
     elif tested_framework == "tensorflow":
-        tested_framework = "tensorflow_neuron"
+        if "neuronx" in image:
+            tested_framework = "tensorflow_neuronx"
+        else:
+            tested_framework = "tensorflow_neuron"
     elif tested_framework == "mxnet":
         tested_framework = "mxnet"
 
@@ -536,10 +539,10 @@ def test_pip_check(image):
     # tensorflow-text. Skip checking these two packages as this is an upstream issue.
     if framework == "tensorflow" and Version(framework_version) in SpecifierSet(">=2.9.1"):
         exception_strings = []
-        models_versions = ["2.9.1", "2.9.2", "2.10.0", "2.11.0"]
+        models_versions = ["2.9.1", "2.9.2", "2.10.0", "2.11.0", "2.12.0"]
         for ex_ver in models_versions:
             exception_strings += [f"tf-models-official {ex_ver}".replace(".", "\.")]
-        text_versions = ["2.9.0", "2.10.0", "2.11.0"]
+        text_versions = ["2.9.0", "2.10.0", "2.11.0", "2.12.0"]
         for ex_ver in text_versions:
             exception_strings += [f"tensorflow-text {ex_ver}".replace(".", "\.")]
         allowed_tf_models_text_exception = re.compile(

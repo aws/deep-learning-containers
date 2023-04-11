@@ -250,7 +250,7 @@ def get_dockerfile_path_for_image(image_uri):
         if "example" not in path
     ]
 
-    if device_type in ["gpu", "hpu", "neuron"]:
+    if device_type in ["gpu", "hpu", "neuron", "neuronx"]:
         if len(dockerfiles_list) > 1:
             if device_type == "gpu" and not cuda_version:
                 raise LookupError(
@@ -264,7 +264,7 @@ def get_dockerfile_path_for_image(image_uri):
                     f"uniquely identify the right dockerfile:\n"
                     f"{dockerfiles_list}"
                 )
-            if device_type == "neuron" and not neuron_sdk_version:
+            if "neuron" in device_type and not neuron_sdk_version:
                 raise LookupError(
                     f"dockerfiles_list has more than one result, and needs neuron_sdk_version to be in image_uri to "
                     f"uniquely identify the right dockerfile:\n"
@@ -707,7 +707,7 @@ def request_pytorch_inference_densenet(
     return True
 
 
-@retry(stop_max_attempt_number=20, wait_fixed=10000, retry_on_result=retry_if_result_is_false)
+@retry(stop_max_attempt_number=20, wait_fixed=15000, retry_on_result=retry_if_result_is_false)
 def request_tensorflow_inference(
     model_name,
     ip_address="127.0.0.1",
@@ -796,6 +796,7 @@ def get_inference_run_command(image_uri, model_names, processor="cpu"):
             "pytorch-densenet": "https://torchserve.s3.amazonaws.com/mar_files/densenet161.mar",
             "pytorch-resnet-neuron": "https://aws-dlc-sample-models.s3.amazonaws.com/pytorch/Resnet50-neuron.mar",
             "pytorch-densenet-inductor": "https://aws-dlc-sample-models.s3.amazonaws.com/pytorch/densenet161-inductor.mar",
+            "pytorch-resnet-neuronx": "https://aws-dlc-pt-sample-models.s3.amazonaws.com/resnet50/resnet_neuronx.mar",
         }
     else:
         multi_model_location = {
@@ -858,7 +859,8 @@ def get_tensorflow_model_name(processor, model_name):
             "eia": "albert",
         },
         "saved_model_half_plus_three": {"eia": "saved_model_half_plus_three"},
-        "simple": {"neuron": "simple"},
+        "simple": {"neuron": "simple",
+                   "neuronx": "simple_x"},
     }
     if model_name in tensorflow_models:
         return tensorflow_models[model_name][processor]
@@ -1495,6 +1497,17 @@ NEURON_VERSION_MANIFEST = {
     },
 }
 
+NEURONX_VERSION_MANIFEST = {
+    "2.9.0": {
+        "pytorch": {
+            "1.13.0": "1.13.0.1.6.0",
+        },
+        "tensorflow": {
+            "2.10.1": "2.10.1.2.0.0",
+        },
+    }
+}
+
 
 def get_neuron_sdk_version_from_tag(image_uri):
     """
@@ -1523,14 +1536,16 @@ def get_neuron_framework_and_version_from_tag(image_uri):
     if neuron_sdk_version is None:
         return tag_framework_version, None
 
-    if neuron_sdk_version not in NEURON_VERSION_MANIFEST:
+    neuron_version_manifest = NEURONX_VERSION_MANIFEST if "neuronx" in image_uri else NEURON_VERSION_MANIFEST
+
+    if neuron_sdk_version not in neuron_version_manifest:
         raise KeyError(f"Cannot find neuron sdk version {neuron_sdk_version} ")
 
     # Framework name may include huggingface
     if tested_framework.startswith("huggingface_"):
         tested_framework = tested_framework[len("huggingface_") :]
 
-    neuron_framework_versions = NEURON_VERSION_MANIFEST[neuron_sdk_version][tested_framework]
+    neuron_framework_versions = neuron_version_manifest[neuron_sdk_version][tested_framework]
     neuron_tag_framework_version = neuron_framework_versions.get(tag_framework_version)
 
     return tested_framework, neuron_tag_framework_version
@@ -1699,7 +1714,7 @@ def get_processor_from_image_uri(image_uri):
     :param image_uri: ECR image URI
     :return: cpu, gpu, eia, neuron or hpu
     """
-    allowed_processors = ["eia", "neuron", "cpu", "gpu", "hpu"]
+    allowed_processors = ["eia", "neuronx", "neuron", "cpu", "gpu", "hpu"]
 
     for processor in allowed_processors:
         match = re.search(rf"-({processor})", image_uri)

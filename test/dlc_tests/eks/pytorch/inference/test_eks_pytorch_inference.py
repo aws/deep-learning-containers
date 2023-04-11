@@ -10,16 +10,14 @@ import test.test_utils.eks as eks_utils
 import test.test_utils as test_utils
 
 
-@pytest.mark.model("resnet")
-def test_eks_pytorch_neuron_inference(pytorch_inference_neuron):
-    server_type = test_utils.get_inference_server_type(pytorch_inference_neuron)
-    
-    model = "pytorch-resnet-neuron=https://aws-dlc-sample-models.s3.amazonaws.com/pytorch/Resnet50-neuron.mar"
+def __run_pytorch_neuron_inference(image, model_name, model_url, processor):
+    server_type = test_utils.get_inference_server_type(image)
+
+    model = f"{model_name}={model_url}"
     server_cmd = "torchserve"
 
     num_replicas = "1"
     rand_int = random.randint(4001, 6000)
-    processor = "neuron"
 
     yaml_path = os.path.join(os.sep, "tmp", f"pytorch_single_node_{processor}_inference_{rand_int}.yaml")
     inference_service_name = selector_name = f"resnet-{processor}-{rand_int}"
@@ -29,7 +27,7 @@ def test_eks_pytorch_neuron_inference(pytorch_inference_neuron):
         "<NUM_REPLICAS>": num_replicas,
         "<SELECTOR_NAME>": selector_name,
         "<INFERENCE_SERVICE_NAME>": inference_service_name,
-        "<DOCKER_IMAGE_BUILD_ID>": pytorch_inference_neuron,
+        "<DOCKER_IMAGE_BUILD_ID>": image,
         "<SERVER_TYPE>": server_type,
         "<SERVER_CMD>": server_cmd,
     }
@@ -49,11 +47,24 @@ def test_eks_pytorch_neuron_inference(pytorch_inference_neuron):
             eks_utils.eks_forward_port_between_host_and_container(selector_name, port_to_forward, "8080")
 
         assert test_utils.request_pytorch_inference_densenet(
-            port=port_to_forward, server_type=server_type, model_name="pytorch-resnet-neuron"
+            port=port_to_forward, server_type=server_type, model_name=model_name
         )
     finally:
         run(f"kubectl delete deployment {selector_name}")
         run(f"kubectl delete service {selector_name}")
+
+
+@pytest.mark.model("resnet")
+def test_eks_pytorch_neuron_inference(pytorch_inference_neuron):
+    __run_pytorch_neuron_inference(pytorch_inference_neuron, "pytorch-resnet-neuron",
+                                   "https://aws-dlc-sample-models.s3.amazonaws.com/pytorch/Resnet50-neuron.mar", "neuron")
+
+
+@pytest.mark.skip("No trn1 in the EKS cluster, disabled temporarily")
+@pytest.mark.model("resnet")
+def test_eks_pytorch_neuronx_inference(pytorch_inference_neuronx):
+    __run_pytorch_neuron_inference(pytorch_inference_neuronx, "pytorch-resnet-neuronx",
+                                   "https://aws-dlc-sample-models.s3.amazonaws.com/pytorch/Resnet50-neuronx.mar", "neuronx")
 
 
 @pytest.mark.model("densenet")
