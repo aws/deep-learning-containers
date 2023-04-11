@@ -116,6 +116,7 @@ def _test_mnist_distributed(ecr_image, sagemaker_session, framework_version, ins
             distribution={"torch_distributed": {"enabled": True}},
         )
         training_input = pytorch.sagemaker_session.upload_data(path=training_dir, key_prefix='pytorch/mnist')
+        print(f"unique name!!!" + utils.unique_name_from_base('test-pt-mnist-distributed'))
         pytorch.fit({'training': training_input}, job_name=utils.unique_name_from_base('test-pt-mnist-distributed'))
 
 
