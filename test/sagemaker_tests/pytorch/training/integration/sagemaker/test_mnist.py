@@ -31,7 +31,7 @@ def test_mnist_distributed_cpu(framework_version, ecr_image, sagemaker_regions, 
     function_args = {
             'framework_version': framework_version,
             'instance_type': instance_type,
-            'dist_backend': dist_cpu_backend
+            'dist_backend': dist_cpu_backend,
         }
 
     invoke_pytorch_helper_function(ecr_image, sagemaker_regions, _test_mnist_distributed, function_args)
@@ -113,7 +113,7 @@ def _test_mnist_distributed(ecr_image, sagemaker_session, framework_version, ins
             image_uri=ecr_image,
             framework_version=framework_version,
             hyperparameters={'backend': dist_backend, 'epochs': 1},
-            distribution={"pytorchddp": {"enabled": True}},
+            distribution={"torch_distributed": {"enabled": True}},
         )
         training_input = pytorch.sagemaker_session.upload_data(path=training_dir, key_prefix='pytorch/mnist')
         pytorch.fit({'training': training_input}, job_name=utils.unique_name_from_base('test-pt-mnist-distributed'))

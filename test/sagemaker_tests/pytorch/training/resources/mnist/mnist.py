@@ -164,12 +164,12 @@ def train(args):
         # single-machine multi-gpu case
         logger.debug("Single-machine multi-gpu: using DataParallel().cuda().")
         model =  model.to(device)
-        model = torch.nn.DataParallel(model).to(device)
+        model = torch.nn.parallel.DistributedDataParallel(model).to(device)
     else:
         # single-machine or multi-machine cpu case
         logger.debug("Single-machine/multi-machine cpu: using DataParallel.")
         model =  model.to(device)
-        model = torch.nn.DataParallel(model)
+        model = torch.nn.parallel.DistributedDataParallel(model)
 
     optimizer = optim.SGD(model.parameters(), lr=args.lr, momentum=args.momentum)
 
@@ -194,9 +194,9 @@ def train(args):
                     epoch, batch_idx * len(data), len(train_loader.sampler),
                     100. * batch_idx / len(train_loader), loss.item()))
         test(model, test_loader, device)
-    save_model(model, args.model_dir)
+    save_model(model, args.model_dir, args)
 
-    if is_distributed and args.hosts.index(args.current_host) == 0 or not is_distributed:
+    if (is_distributed and dist.get_rank() == 0) or not is_distributed:
         assert_can_track_sagemaker_experiments()
 
 
@@ -226,9 +226,9 @@ def model_fn(model_dir):
     return model
 
 
-def save_model(model, model_dir):
+def save_model(model, model_dir, args):
     logger.info("Saving the model.")
-    path = os.path.join(model_dir, 'model.pth')
+    path = os.path.join(model_dir, f"model_{args.hosts.index(args.current_host)}.pth")
     # recommended way from http://pytorch.org/docs/master/notes/serialization.html
     torch.save(model.state_dict(), path)
 
