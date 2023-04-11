@@ -683,7 +683,9 @@
             "py2": {
             },
             "py3": {
-                "52510":"Future 0.18.2 is the latest package version - no fix version is available"
+                "52510":"Future 0.18.2 is the latest package version - no fix version is available",
+                "54718": "Fix for issue available in torch version 1.13.1",
+                "51499": "Fix for issue contained in Wheel 0.38.1"
             }
         },
         "inference-eia": {
@@ -1121,6 +1123,13 @@
             "py3": {
                 "50916": "Pydantic 1.10.2 prevents long strings as int inputs to fix CVE-2020-10735 - upstream dependencies are still not patched",
                 "51358": "Safety 2.2.0 updates its dependency 'dparse' to include a security fix. - not packaged with container, result of security scanning process"
+            }
+        }
+    },
+    "graviton_pytorch": {
+        "inference":{
+            "py3": {
+                "54718": "Jit CVE is patched in PT 1.12.1 by AWS"
             }
         }
     }
