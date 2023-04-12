@@ -3,6 +3,7 @@ import re
 import time
 import pytest
 import subprocess
+import logging
 from packaging.version import Version
 
 from test.test_utils import (
@@ -39,13 +40,13 @@ METRIC_NAMES = ["speedup", "comp_time", "memory", "passrate"]
 @pytest.mark.parametrize("ec2_instance_ami", [UBUNTU_18_BASE_DLAMI_US_WEST_2], indirect=True)
 @pytest.mark.parametrize("ec2_instance_type", PT_EC2_GPU_INDUCTOR_INSTANCE_TYPES, indirect=True)
 def test_performance_pytorch_gpu_inductor_huggingface(pytorch_training, ec2_connection, gpu_only, py3_only, ec2_instance_type):
-    fw, image_framework_version = get_framework_and_version_from_tag(pytorch_training)
+    _, image_framework_version = get_framework_and_version_from_tag(pytorch_training)
     current_timestamp = time.strftime("%Y-%m-%d-%H-%M-%S")
-    s3_key = os.path.join(PT_PERFORMANCE_TRAINING_GPU_INDUCTOR_HUGGINGFACE_CMD, re.sub("\.", "-", ec2_instance_type), current_timestamp)
-    s3_pth = BENCHMARK_RESULTS_S3_BUCKET_TRCOMP + fw + s3_key
+    s3_key = os.path.join(os.sep, "huggingface", re.sub("\.", "-", ec2_instance_type), current_timestamp)
+    s3_pth = BENCHMARK_RESULTS_S3_BUCKET_TRCOMP + s3_key
     if Version(image_framework_version) < Version("2.0"):
         pytest.skip("Torch inductor was introduced in PyTorch 2.0")
-    test_cmd = PT_PERFORMANCE_TRAINING_GPU_INDUCTOR_HUGGINGFACE_CMD + " " + ec2_instance_type + " " + BENCHMARK_RESULTS_S3_BUCKET_TRCOMP + fw + s3_key
+    test_cmd = PT_PERFORMANCE_TRAINING_GPU_INDUCTOR_HUGGINGFACE_CMD + " " + ec2_instance_type + " " + BENCHMARK_RESULTS_S3_BUCKET_TRCOMP + s3_key
     execute_ec2_training_performance_test(
         ec2_connection, pytorch_training, test_cmd, "huggingface"
     )
@@ -60,13 +61,13 @@ def test_performance_pytorch_gpu_inductor_huggingface(pytorch_training, ec2_conn
 @pytest.mark.parametrize("ec2_instance_ami", [UBUNTU_18_BASE_DLAMI_US_WEST_2], indirect=True)
 @pytest.mark.parametrize("ec2_instance_type", PT_EC2_GPU_INDUCTOR_INSTANCE_TYPES, indirect=True)
 def test_performance_pytorch_gpu_inductor_timm(pytorch_training, ec2_connection, gpu_only, py3_only, ec2_instance_type):
-    fw, image_framework_version = get_framework_and_version_from_tag(pytorch_training)
+    _, image_framework_version = get_framework_and_version_from_tag(pytorch_training)
     current_timestamp = time.strftime("%Y-%m-%d-%H-%M-%S")
-    s3_key = os.path.join(PT_PERFORMANCE_TRAINING_GPU_INDUCTOR_TIMM_CMD, re.sub("\.", "-", ec2_instance_type), current_timestamp)
-    s3_pth = BENCHMARK_RESULTS_S3_BUCKET_TRCOMP + fw + s3_key
+    s3_key = os.path.join(os.sep, "timm", re.sub("\.", "-", ec2_instance_type), current_timestamp)
+    s3_pth = BENCHMARK_RESULTS_S3_BUCKET_TRCOMP + s3_key
     if Version(image_framework_version) < Version("2.0"):
         pytest.skip("Torch inductor was introduced in PyTorch 2.0")
-    test_cmd = PT_PERFORMANCE_TRAINING_GPU_INDUCTOR_TIMM_CMD + " " + ec2_instance_type + " " + BENCHMARK_RESULTS_S3_BUCKET_TRCOMP + fw + s3_key
+    test_cmd = PT_PERFORMANCE_TRAINING_GPU_INDUCTOR_TIMM_CMD + " " + ec2_instance_type + " " + BENCHMARK_RESULTS_S3_BUCKET_TRCOMP + s3_key
     execute_ec2_training_performance_test(
         ec2_connection, pytorch_training, test_cmd, "timm_models"
     )
@@ -84,29 +85,28 @@ def test_performance_pytorch_gpu_inductor_timm(pytorch_training, ec2_connection,
 @pytest.mark.parametrize("ec2_instance_ami", [UBUNTU_18_BASE_DLAMI_US_WEST_2], indirect=True)
 @pytest.mark.parametrize("ec2_instance_type", PT_EC2_GPU_INDUCTOR_INSTANCE_TYPES, indirect=True)
 def test_performance_pytorch_gpu_inductor_torchbench(pytorch_training, ec2_connection, gpu_only, py3_only, ec2_instance_type):
-    fw, image_framework_version = get_framework_and_version_from_tag(pytorch_training)
+    _, image_framework_version = get_framework_and_version_from_tag(pytorch_training)
     current_timestamp = time.strftime("%Y-%m-%d-%H-%M-%S")
-    s3_key = os.path.join(PT_PERFORMANCE_TRAINING_GPU_INDUCTOR_TORCHBENCH_CMD, re.sub("\.", "-", ec2_instance_type), current_timestamp)
-    s3_pth = BENCHMARK_RESULTS_S3_BUCKET_TRCOMP + fw + s3_key
+    s3_key = os.path.join(os.sep, "torchbench", re.sub("\.", "-", ec2_instance_type), current_timestamp)
+    s3_pth = BENCHMARK_RESULTS_S3_BUCKET_TRCOMP + s3_key
     if Version(image_framework_version) < Version("2.0"):
         pytest.skip("Torch inductor was introduced in PyTorch 2.0")
-    test_cmd = PT_PERFORMANCE_TRAINING_GPU_INDUCTOR_TORCHBENCH_CMD + " " + ec2_instance_type + " " + BENCHMARK_RESULTS_S3_BUCKET_TRCOMP + fw + s3_key
+    test_cmd = PT_PERFORMANCE_TRAINING_GPU_INDUCTOR_TORCHBENCH_CMD + " " + ec2_instance_type + " " + BENCHMARK_RESULTS_S3_BUCKET_TRCOMP + s3_key
     execute_ec2_training_performance_test(
         ec2_connection, pytorch_training, test_cmd, "torchbench"
     )
-    print("done benchmarking")
+    logging.warning("done benchmarking!")
     output1 = subprocess.check_output(f"rm -rf torchbench", shell=True, timeout=60)
-    print(output1)
     output2 = subprocess.check_output(f"mkdir torchbench", shell=True, timeout=60)
-    print(output2)
+    logging.warning("done making dir!")
     output3 = subprocess.check_output(f"aws s3 cp {s3_pth}/ torchbench/ --recursive", shell=True, timeout=60)
     print(output3)
     read_upload_benchmarking_result_to_cw(METRIC_NAMES, "torchbench", instance_type=ec2_instance_type, model_suite="torchbench")
-
+    logging.warning("done uploading metrics!")
 
 def execute_ec2_training_performance_test(
     connection, ecr_uri, test_cmd, model_suite, region=DEFAULT_REGION):
-    fw, image_framework_version = get_framework_and_version_from_tag(ecr_uri)
+    _, image_framework_version = get_framework_and_version_from_tag(ecr_uri)
 
     docker_cmd = "nvidia-docker" if "gpu" in ecr_uri else "docker"
     container_test_local_dir = os.path.join("$HOME", "container_tests")
@@ -124,7 +124,7 @@ def execute_ec2_training_performance_test(
         f"-e LOG_FILE={os.path.join(os.sep, 'test', 'benchmark', 'logs', log_name)} "
         f"-e PR_CONTEXT={1 if is_pr_context() else 0} "
         f"-v {container_test_local_dir}:{os.path.join(os.sep, 'test')} {ecr_uri} "
-        f"{os.path.join(os.sep, 'bin', 'bash')} {test_cmd}", timeout=300)
+        f"{os.path.join(os.sep, 'bin', 'bash')} {test_cmd}", timeout=60)
 
 
 def read_upload_benchmarking_result_to_cw(metric_names, pth, instance_type="p4d.24xlarge", model_suite="huggingface", precision="amp", namespace="PyTorch/EC2/Benchmarks/TorchDynamo/Inductor"):
