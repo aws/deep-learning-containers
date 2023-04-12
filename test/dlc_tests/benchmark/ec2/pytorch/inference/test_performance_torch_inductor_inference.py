@@ -151,9 +151,11 @@ def test_performance_ec2_pytorch_inference_graviton(ec2_instance_type, suite, pr
     )
 
 
-@pytest.mark.skip(reason="for testing")
-@pytest.mark.parametrize("ec2_instance_type", ["p3.2xlarge", "g5.4xlarge", "g4dn.4xlarge"], indirect=True)
-@pytest.mark.parametrize("suite", ["huggingface", "timm", "torchbench"])
+#@pytest.mark.skip(reason="for testing")
+#@pytest.mark.parametrize("ec2_instance_type", ["p3.2xlarge", "g5.4xlarge", "g4dn.4xlarge"], indirect=True)
+#@pytest.mark.parametrize("suite", ["huggingface", "timm", "torchbench"])
+@pytest.mark.parametrize("ec2_instance_type", ["p3.2xlarge"], indirect=True)
+@pytest.mark.parametrize("suite", ["torchbench"])
 @pytest.mark.parametrize("precision", ["float32"])
 def test_performance_ec2_pytorch_inference_gpu(ec2_instance_type, suite, precision, pytorch_inference, ec2_connection, region, gpu_only):
     _, image_framework_version = get_framework_and_version_from_tag(
@@ -206,6 +208,11 @@ def ec2_performance_pytorch_inference(image_uri, instance_type, ec2_connection, 
     f" --quick"
     f" --no-gh-comment 2>&1 | tee {log_file}")
 
+    git_clone = (f"git clone --branch v2.0.0 --recursive --single-branch --depth 1 "
+                 f"https://github.com/pytorch/pytorch.git && "
+                 f"git clone --recursive https://github.com/pytorch/benchmark.git"
+                 )
+
     # Run performance inference command, display benchmark results to console
     framework_version = re.search(r"\d+(\.\d+){2}", image_uri).group()
     s3_location = os.path.join(
@@ -217,44 +224,26 @@ def ec2_performance_pytorch_inference(image_uri, instance_type, ec2_connection, 
         f"-v /home/ubuntu/results:/root {image_uri} "
     )
     ec2_connection.run(f"{docker_cmd} exec --workdir=\"/root\" {container_name} "
-                       f"bash -c 'git clone --branch v2.0.0 --recursive --single-branch --depth 1 https://github.com/pytorch/pytorch.git && git clone --recursive https://github.com/pytorch/benchmark.git'")
+                       f"bash -c '{git_clone}'")
     ec2_connection.run(
         f"{docker_cmd} exec --workdir=\"/root/benchmark\" {container_name} " f"bash -c 'python install.py'")
     ec2_connection.run(
         f"{docker_cmd} exec --workdir=\"/root/pytorch\" {container_name} " f"bash -c 'mkdir -p /root/pytorch/logs_{suite}'")
     bench_output = ec2_connection.run(
         f"{docker_cmd} exec --workdir=\"/root/pytorch\" {container_name} " f"bash -c '{test_cmd}'").stdout.split("\n")
-    LOGGER.info(f"BENCHMARK OUTPUT ============================\n{bench_output}")
-#    ec2_connection.run(
-#        f"{docker_cmd} exec --workdir=\"/root\" {container_name} " f"bash -c 'echo root contents'")
-#    ec2_connection.run(
-#        f"{docker_cmd} exec --workdir=\"/root\" {container_name} " f"bash -c 'ls -l'")
-#    ec2_connection.run(
-#        f"{docker_cmd} exec {container_name} "
-#        f"/bin/bash {test_cmd} " f"2>&1 | tee /root/pytorch/logs_{suite}/{log_file}")
 
     s3_outcome = ec2_connection.run(
         f"aws s3 cp /home/ubuntu/results/pytorch/logs_{suite} {s3_location}/logs_{suite} --recursive").stdout.split("\n")
-    LOGGER.info(f"S3 upload logs============================{s3_outcome}")
 
     import subprocess as sp
     sp.run(f"aws s3 cp {s3_location}/logs_{suite} /home/ubuntu/results/logs_{suite} --recursive", shell=True)
 
-    output_list_logs_dir = sp.run(f"ls -l /home/ubuntu/results/logs_{suite}", shell=True, stdout=sp.PIPE)
-    LOGGER.info(f"CB:CONTENTS OF LOGS DIR============================{output_list_logs_dir.stdout.decode()}")
-    output_list_pytorch = sp.run(f"ls -l /home/ubuntu/results/pytorch", shell=True, stdout=sp.PIPE)
-    LOGGER.info(f"CB:CONTENTS OF PYTORCH DIR========================={output_list_pytorch.stdout.decode()}")
-
     speedup = read_metric(f"/home/ubuntu/results/logs_{suite}/geomean.csv")
-    LOGGER.info(f"Seedup = {speedup}")
     comp_time = read_metric(
         f"/home/ubuntu/results/logs_{suite}/comp_time.csv")
-    LOGGER.info(f"Compilation Time = {comp_time}")
     memory = read_metric(f"/home/ubuntu/results/logs_{suite}/memory.csv")
-    LOGGER.info(f"Memory Footprint = {memory}")
     passrate = read_metric(
         f"/home/ubuntu/results/logs_{suite}/passrate.csv")
-    LOGGER.info(f"Pass Rate = {passrate}")
     upload_metric(region, instance_type, precision,
                   suite, "Speedup", speedup, "None")
     upload_metric(region, instance_type, precision, suite,
