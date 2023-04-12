@@ -20,21 +20,9 @@ from test.test_utils.ec2 import (
     put_metric_data,
 )
 
-PT_PERFORMANCE_TRAINING_GPU_INDUCTOR_HUGGINGFACE_CMD = os.path.join(
-    CONTAINER_TESTS_PREFIX, "benchmark", "run_pytorch_inductor_training_benchmark_gpu_huggingface"
-)
-PT_PERFORMANCE_TRAINING_GPU_INDUCTOR_TIMM_CMD = os.path.join(
-    CONTAINER_TESTS_PREFIX, "benchmark", "run_pytorch_inductor_training_benchmark_gpu_timm"
-)
-PT_PERFORMANCE_TRAINING_GPU_INDUCTOR_TORCHBENCH_CMD = os.path.join(
-    CONTAINER_TESTS_PREFIX, "benchmark", "run_pytorch_inductor_training_benchmark_gpu_torchbench"
-)
-
 PT_EC2_GPU_INDUCTOR_INSTANCE_TYPES = ["p3.2xlarge", "p4d.24xlarge", "g5.4xlarge", "g4dn.4xlarge"]
-PT_EC2_GPU_INDUCTOR_INSTANCE_TYPE_G4DN = ["g4dn.4xlarge"]
 METRIC_NAMES = ["speedup", "comp_time", "memory", "passrate"]
 
-@pytest.mark.skip("skip for now")
 @pytest.mark.integration("inductor")
 @pytest.mark.model("huggingface")
 @pytest.mark.parametrize("ec2_instance_ami", [UBUNTU_18_BASE_DLAMI_US_WEST_2], indirect=True)
@@ -47,7 +35,6 @@ def test_performance_pytorch_gpu_inductor_huggingface(pytorch_training, ec2_conn
         ec2_connection, pytorch_training, "huggingface", ec2_instance_type)
 
 
-@pytest.mark.skip("skip for now")
 @pytest.mark.integration("inductor")
 @pytest.mark.model("timm_models")
 @pytest.mark.parametrize("ec2_instance_ami", [UBUNTU_18_BASE_DLAMI_US_WEST_2], indirect=True)
@@ -95,11 +82,11 @@ def execute_ec2_training_performance_test(
             f"-e LOG_FILE={os.path.join(os.sep, 'test', 'benchmark', 'logs', log_name)} "
             f"-e PR_CONTEXT={1 if is_pr_context() else 0} "
             f"-v {container_test_local_dir}:{os.path.join(os.sep, 'test')} {ecr_uri} "
-            f"{os.path.join(os.sep, 'bin', 'bash')} {test_cmd}", timeout=60)
+            f"{os.path.join(os.sep, 'bin', 'bash')} {test_cmd}", timeout=10800)
     finally:
-        output1 = subprocess.check_output(f"rm -rf {model_suite}", shell=True, timeout=60)
-        output2 = subprocess.check_output(f"mkdir {model_suite}", shell=True, timeout=60)
-        output3 = subprocess.check_output(f"aws s3 cp {s3_pth}/ {model_suite}/ --recursive", shell=True, timeout=60)
+        output1 = subprocess.check_output(f"rm -rf {model_suite}", shell=True, timeout=300)
+        output2 = subprocess.check_output(f"mkdir {model_suite}", shell=True, timeout=300)
+        output3 = subprocess.check_output(f"aws s3 cp {s3_pth}/ {model_suite}/ --recursive", shell=True, timeout=300)
         read_upload_benchmarking_result_to_cw(METRIC_NAMES, model_suite, instance_type=ec2_instance_type, model_suite=model_suite)
 
 
