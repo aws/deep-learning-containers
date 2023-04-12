@@ -192,6 +192,7 @@ def ec2_performance_pytorch_inference(image_uri, instance_type, ec2_connection, 
 
     ec2_connection.run(f"{docker_cmd} pull -q {image_uri} ")
     ec2_connection.run(f"mkdir -p /home/ubuntu/results")
+    log_file = f"inductor_benchmarks_{instance_type}_{suite}.log"
 
     test_cmd = f"python benchmarks/dynamo/runner.py"
     f" --suites = {suite}"
@@ -211,7 +212,6 @@ def ec2_performance_pytorch_inference(image_uri, instance_type, ec2_connection, 
         BENCHMARK_RESULTS_S3_BUCKET, "pytorch", framework_version, "ec2", "inference", instance_type, "py3",
     )
     container_name = f"{repo_name}-performance-{image_tag}-ec2"
-    log_file = f"inductor_benchmarks_{instance_type}_{suite}.log"
     ec2_connection.run(
         f"{docker_cmd} run -d --name {container_name}  -e OMP_NUM_THREADS=1 "
         f"-v /home/ubuntu/results:/root {image_uri} "
