@@ -24,6 +24,16 @@ install_kustomize(){
 
 # Function to install kubeflow in EKS cluster using kustomize
 install_kubeflow(){
+    local EKS_CLUSTER_NAME=$1
+    KUBEFLOW_VERSION="v1.7.0"
+    DIRECTORY="${HOME}/${EKS_CLUSTER_NAME}/manifests"
+
+    if [ -d "${DIRECTORY}" ]; then
+        rm -rf ${DIRECTORY};
+    fi
+
+    # clones manifests from kubeflow github into a folder named manifests
+    git clone -b ${KUBEFLOW_VERSION} --single-branch https://github.com/kubeflow/manifests.git
 
     echo "> Installing kubeflow namespace"
     kustomize build manifests/common/kubeflow-namespace/base | kubectl apply -f -
@@ -34,6 +44,16 @@ install_kubeflow(){
 
 # Function to remove kubeflow in EKS cluster using kustomize
 uninstall_kubeflow(){
+    local EKS_CLUSTER_NAME=$1
+    KUBEFLOW_VERSION="v1.6.1"
+    DIRECTORY="${HOME}/${EKS_CLUSTER_NAME}/manifests"
+
+    if [ -d "${DIRECTORY}" ]; then
+        rm -rf ${DIRECTORY};
+    fi
+
+    # clones manifests from kubeflow github into a folder named manifests
+    git clone -b ${KUBEFLOW_VERSION} --single-branch https://github.com/kubeflow/manifests.git
 
     echo "> Uninstalling training operators"
     while ! kustomize build manifests/apps/training-operator/upstream/overlays/kubeflow | kubectl delete -f -; do echo "Retrying to delete training operator resources"; sleep 10; done
@@ -44,7 +64,6 @@ uninstall_kubeflow(){
 
 # Function to create directory and download kubeflow components
 setup_kubeflow(){
-    KUBEFLOW_VERSION="v1.7.0"
     local EKS_CLUSTER_NAME=$1
     DIRECTORY="${HOME}/${EKS_CLUSTER_NAME}"
 
@@ -54,12 +73,7 @@ setup_kubeflow(){
         
     mkdir ${DIRECTORY} 
     cd ${DIRECTORY}
-    
-    # clones manifests from kubeflow github into a folder named manifests
-    git clone -b ${KUBEFLOW_VERSION} --single-branch https://github.com/kubeflow/manifests.git
 }
-
-
 
 # Check for input arguments
 if [ $# ge 1 ]; then
@@ -79,10 +93,10 @@ setup_kubeflow ${EKS_CLUSTER_NAME}
 # uninstall the manifest if operation is to upgrade kubeflow
 if [ "${OPERATION}" = "UPGRADE" ]; then
     echo "> Uninstalling kubeflow manifest"
-    uninstall_kubeflow
+    uninstall_kubeflow ${EKS_CLUSTER_NAME}
 fi
 
 echo "> Setting up kubeflow"
-install_kubeflow
+install_kubeflow ${EKS_CLUSTER_NAME}
 
 echo "> Installation complete"
