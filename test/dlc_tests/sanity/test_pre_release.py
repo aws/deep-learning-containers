@@ -537,12 +537,12 @@ def test_pip_check(image):
     # TF2.9 sagemaker containers introduce tf-models-official which has a known bug where in it does not respect the
     # existing TF installation. https://github.com/tensorflow/models/issues/9267. This package in turn brings in
     # tensorflow-text. Skip checking these two packages as this is an upstream issue.
-    if framework == "tensorflow" and Version(framework_version) in SpecifierSet(">=2.9.1"):
+    if framework in ["tensorflow", "huggingface_tensorflow"]  and Version(framework_version) in SpecifierSet(">=2.9.1"):
         exception_strings = []
-        models_versions = ["2.9.1", "2.9.2", "2.10.0", "2.11.0", "2.11.1", "2.12.0"]
+        models_versions = ["2.9.1", "2.9.2", "2.10.0", "2.11.0", "2.12.0"]
         for ex_ver in models_versions:
             exception_strings += [f"tf-models-official {ex_ver}".replace(".", "\.")]
-        text_versions = ["2.9.0", "2.10.0", "2.11.0", "2.11.1", "2.12.0"]
+        text_versions = ["2.9.0", "2.10.0", "2.11.0", "2.12.0"]
         for ex_ver in text_versions:
             exception_strings += [f"tensorflow-text {ex_ver}".replace(".", "\.")]
         allowed_tf_models_text_exception = re.compile(
