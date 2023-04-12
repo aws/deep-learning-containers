@@ -120,7 +120,7 @@ def _test_mnist_distributed(ecr_image, sagemaker_session, framework_version, dis
         "role": 'SageMakerRole',
         "sagemaker_session": sagemaker_session,
         "image_uri": ecr_image,
-        "hyperparamters": {'backend': dist_backend, 'epochs': 1, 'inductor': int(use_inductor)},
+        "hyperparameters": {"backend": dist_backend, "epochs": 1, "inductor": int(use_inductor)},
         "framework_version": framework_version,
         "distribution": {"torch_distributed": {"enabled": True}},
     }

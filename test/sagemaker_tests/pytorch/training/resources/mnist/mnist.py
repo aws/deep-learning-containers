@@ -178,7 +178,7 @@ def train(args):
             output = model(data)
             loss = F.nll_loss(output, target)
             loss.backward()
-            if is_distributed and not use_cuda:
+            if is_distributed:
                 # average gradients manually for multi-machine cpu case only
                 _average_gradients(model)
             optimizer.step()
@@ -240,6 +240,7 @@ def assert_can_track_sagemaker_experiments():
 
 
 if __name__ == '__main__':
+    print("sys.argv: ", sys.argv)
     # test opencv
     print(cv.__version__)
 
