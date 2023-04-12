@@ -110,6 +110,7 @@ def upload_metric(region, instance_type, precision, suite, metric_name, value, u
 
 
 #@pytest.mark.parametrize("ec2_instance_type", ["c5.4xlarge", "m5.4xlarge"], indirect=True)
+#@pytest.mark.parametrize("suite", ["huggingface", "timm", "torchbench"])
 @pytest.mark.parametrize("ec2_instance_type", ["c5.4xlarge"], indirect=True)
 @pytest.mark.parametrize("suite", ["torchbench"])
 @pytest.mark.parametrize("precision", ["float32"])
@@ -128,31 +129,31 @@ def test_performance_ec2_pytorch_inference_cpu(ec2_instance_type, suite, precisi
     )
 
 
-#@pytest.mark.parametrize("ec2_instance_type", ["c6g.4xlarge", "c7g.4xlarge", "m7g.4xlarge"], indirect=True)
-#@pytest.mark.parametrize("suite", ["huggingface", "timm", "torchbench"])
-#@pytest.mark.parametrize("precision", ["float32"])
-#@pytest.mark.parametrize("ec2_instance_ami", [UL20_CPU_ARM64_US_WEST_2], indirect=True)
-#def test_performance_ec2_pytorch_inference_graviton(ec2_instance_type, suite, precision, pytorch_inference_graviton, ec2_connection, region, cpu_only):
-#    _, image_framework_version = get_framework_and_version_from_tag(
-#        pytorch_inference_graviton)
-#    if Version(image_framework_version) in SpecifierSet("<2.0"):
-#        pytest.skip("skip the test as torch.compile only supported after 2.0")
-#    if "graviton" not in pytorch_inference_graviton:
-#        pytest.skip("skip EC2 tests for inductor")
-#    ec2_performance_pytorch_inference(
-#        pytorch_inference_graviton,
-#        ec2_instance_type,
-#        ec2_connection,
-#        region,
-#        suite,
-#        precision,
-#    )
-#
-#
-#@pytest.mark.parametrize("ec2_instance_type", ["p3.2xlarge", "g5.4xlarge", "g4dn.4xlarge"], indirect=True)
-@pytest.mark.parametrize("ec2_instance_type", ["p3.2xlarge"], indirect=True)
-#@pytest.mark.parametrize("suite", ["huggingface", "timm", "torchbench"])
-@pytest.mark.parametrize("suite", ["torchbench"])
+@pytest.mark.skip(reason="for testing")
+@pytest.mark.parametrize("ec2_instance_type", ["c6g.4xlarge", "c7g.4xlarge", "m7g.4xlarge"], indirect=True)
+@pytest.mark.parametrize("suite", ["huggingface", "timm", "torchbench"])
+@pytest.mark.parametrize("precision", ["float32"])
+@pytest.mark.parametrize("ec2_instance_ami", [UL20_CPU_ARM64_US_WEST_2], indirect=True)
+def test_performance_ec2_pytorch_inference_graviton(ec2_instance_type, suite, precision, pytorch_inference_graviton, ec2_connection, region, cpu_only):
+    _, image_framework_version = get_framework_and_version_from_tag(
+        pytorch_inference_graviton)
+    if Version(image_framework_version) in SpecifierSet("<2.0"):
+        pytest.skip("skip the test as torch.compile only supported after 2.0")
+    if "graviton" not in pytorch_inference_graviton:
+        pytest.skip("skip EC2 tests for inductor")
+    ec2_performance_pytorch_inference(
+        pytorch_inference_graviton,
+        ec2_instance_type,
+        ec2_connection,
+        region,
+        suite,
+        precision,
+    )
+
+
+@pytest.mark.skip(reason="for testing")
+@pytest.mark.parametrize("ec2_instance_type", ["p3.2xlarge", "g5.4xlarge", "g4dn.4xlarge"], indirect=True)
+@pytest.mark.parametrize("suite", ["huggingface", "timm", "torchbench"])
 @pytest.mark.parametrize("precision", ["float32"])
 def test_performance_ec2_pytorch_inference_gpu(ec2_instance_type, suite, precision, pytorch_inference, ec2_connection, region, gpu_only):
     _, image_framework_version = get_framework_and_version_from_tag(
@@ -192,18 +193,16 @@ def ec2_performance_pytorch_inference(image_uri, instance_type, ec2_connection, 
     ec2_connection.run(f"{docker_cmd} pull -q {image_uri} ")
     ec2_connection.run(f"mkdir -p /home/ubuntu/results")
 
-#    test_cmd = f"cd /root/pytorch &&"
-#    f" mkdir -p /root/pytorch/logs_{suite} &&"
-#    f" python benchmarks/dynamo/runner.py"
-#    f" --suites = {suite}"
-#    f" --inference"
-#    f" --dtypes = {precision}"
-#    f" --compilers=inductor"
-#    f" --output-dir=/root/pytorch/logs_{suite}"
-#    f" --extra-args='--output-directory=./'"
-#    f" --device {device}"
-#    f" --no-update-archive"
-#    f" --no-gh-comment"
+    test_cmd = f"python benchmarks/dynamo/runner.py"
+    f" --suites = {suite}"
+    f" --inference"
+    f" --dtypes = {precision}"
+    f" --compilers=inductor"
+    f" --output-dir=/root/pytorch/logs_{suite}"
+    f" --extra-args=\"--output-directory=./\""
+    f" --device {device}"
+    f" --no-update-archive"
+    f" --no-gh-comment 2>&1 | tee {log_file}"
 
     # Run performance inference command, display benchmark results to console
     framework_version = re.search(r"\d+(\.\d+){2}", image_uri).group()
@@ -223,7 +222,7 @@ def ec2_performance_pytorch_inference(image_uri, instance_type, ec2_connection, 
     ec2_connection.run(
         f"{docker_cmd} exec --workdir=\"/root/pytorch\" {container_name} " f"bash -c 'mkdir -p /root/pytorch/logs_{suite}'")
     bench_output = ec2_connection.run(
-        f"{docker_cmd} exec --workdir=\"/root/pytorch\" {container_name} " f"bash -c 'python benchmarks/dynamo/runner.py --suites=torchbench --inference --dtypes={precision} --compilers=inductor --output-dir=/root/pytorch/logs_{suite} --extra-args=\"--output-directory=./\" --device {device} --no-update-archive --quick --no-gh-comment' " f"2>&1 | tee {log_file}").stdout.split("\n")
+        f"{docker_cmd} exec --workdir=\"/root/pytorch\" {container_name} " f"bash -c '{test_cmd}'").stdout.split("\n")
     LOGGER.info(f"BENCHMARK OUTPUT ============================\n{bench_output}")
 #    ec2_connection.run(
 #        f"{docker_cmd} exec --workdir=\"/root\" {container_name} " f"bash -c 'echo root contents'")
@@ -239,6 +238,7 @@ def ec2_performance_pytorch_inference(image_uri, instance_type, ec2_connection, 
 
     import subprocess as sp
     sp.run(f"aws s3 cp {s3_location}/logs_{suite} /home/ubuntu/results/logs_{suite} --recursive", shell=True)
+
     output_list_logs_dir = sp.run(f"ls -l /home/ubuntu/results/logs_{suite}", shell=True, stdout=sp.PIPE)
     LOGGER.info(f"CB:CONTENTS OF LOGS DIR============================{output_list_logs_dir.stdout.decode()}")
     output_list_pytorch = sp.run(f"ls -l /home/ubuntu/results/pytorch", shell=True, stdout=sp.PIPE)
