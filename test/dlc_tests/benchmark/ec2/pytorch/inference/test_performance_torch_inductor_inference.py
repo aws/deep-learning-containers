@@ -129,9 +129,11 @@ def test_performance_ec2_pytorch_inference_cpu(ec2_instance_type, suite, precisi
     )
 
 
-@pytest.mark.skip(reason="for testing")
-@pytest.mark.parametrize("ec2_instance_type", ["c6g.4xlarge", "c7g.4xlarge", "m7g.4xlarge"], indirect=True)
-@pytest.mark.parametrize("suite", ["huggingface", "timm", "torchbench"])
+#@pytest.mark.skip(reason="for testing")
+#@pytest.mark.parametrize("ec2_instance_type", ["c6g.4xlarge", "c7g.4xlarge", "m7g.4xlarge"], indirect=True)
+#@pytest.mark.parametrize("suite", ["huggingface", "timm", "torchbench"])
+@pytest.mark.parametrize("ec2_instance_type", ["m7g.4xlarge"], indirect=True)
+@pytest.mark.parametrize("suite", ["torchbench"])
 @pytest.mark.parametrize("precision", ["float32"])
 @pytest.mark.parametrize("ec2_instance_ami", [UL20_CPU_ARM64_US_WEST_2], indirect=True)
 def test_performance_ec2_pytorch_inference_graviton(ec2_instance_type, suite, precision, pytorch_inference_graviton, ec2_connection, region, cpu_only):
@@ -151,11 +153,11 @@ def test_performance_ec2_pytorch_inference_graviton(ec2_instance_type, suite, pr
     )
 
 
-#@pytest.mark.skip(reason="for testing")
-#@pytest.mark.parametrize("ec2_instance_type", ["p3.2xlarge", "g5.4xlarge", "g4dn.4xlarge"], indirect=True)
-#@pytest.mark.parametrize("suite", ["huggingface", "timm", "torchbench"])
-@pytest.mark.parametrize("ec2_instance_type", ["p3.2xlarge"], indirect=True)
-@pytest.mark.parametrize("suite", ["torchbench"])
+@pytest.mark.skip(reason="Hangs indefinitely needs investigation")
+@pytest.mark.parametrize("ec2_instance_type", ["p3.2xlarge", "g5.4xlarge", "g4dn.4xlarge"], indirect=True)
+@pytest.mark.parametrize("suite", ["huggingface", "timm", "torchbench"])
+#@pytest.mark.parametrize("ec2_instance_type", ["p3.2xlarge"], indirect=True)
+#@pytest.mark.parametrize("suite", ["torchbench"])
 @pytest.mark.parametrize("precision", ["float32"])
 def test_performance_ec2_pytorch_inference_gpu(ec2_instance_type, suite, precision, pytorch_inference, ec2_connection, region, gpu_only):
     _, image_framework_version = get_framework_and_version_from_tag(
@@ -174,6 +176,7 @@ def test_performance_ec2_pytorch_inference_gpu(ec2_instance_type, suite, precisi
 
 def ec2_performance_pytorch_inference(image_uri, instance_type, ec2_connection, region, suite, precision):
     is_gpu = re.search(r"(p3|g4|g5)", instance_type)
+    is_graviton = re.search(r"(c6g|c7g|m7g)", instance_type)
     device = "cuda" if is_gpu else "cpu"
     docker_cmd = "nvidia-docker" if is_gpu else "docker"
     ec2_local_dir = os.path.join("/home/ubuntu", "results")
@@ -212,6 +215,15 @@ def ec2_performance_pytorch_inference(image_uri, instance_type, ec2_connection, 
                  f"https://github.com/pytorch/pytorch.git && "
                  f"git clone --recursive https://github.com/pytorch/benchmark.git"
                  )
+
+    if is_graviton:
+        git_clone += (f" && "
+                      f"rm -rf /root/benchmark/torchbenchmark/models/torchrec_dlrm && "
+                      f"apt update && "
+                      f"apt install libjpeg9 pkg-config libssl-dev -y && "
+                      f"curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh && "
+                      f"source \"$HOME/.cargo/env\""
+        )
 
     # Run performance inference command, display benchmark results to console
     framework_version = re.search(r"\d+(\.\d+){2}", image_uri).group()
