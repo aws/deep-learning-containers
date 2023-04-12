@@ -478,7 +478,7 @@ RUN  wget -nv https://github.com/rapidsai/rmm/archive/v${RMM_VERSION}.tar.gz \
 RUN pip install --no-cache-dir -U ${ZERO_2D_URL}
 
 # Install SM Distributed Modelparallel binary
-# RUN pip install --no-cache-dir -U ${SMD_MODEL_PARALLEL_URL}
+RUN pip install --no-cache-dir -U ${SMD_MODEL_PARALLEL_URL}
 
 # Install SM Distributed DataParallel binary
 RUN SMDATAPARALLEL_PT=1 pip install --no-cache-dir ${SMD_DATA_PARALLEL_URL}
