@@ -194,7 +194,7 @@ def ec2_performance_pytorch_inference(image_uri, instance_type, ec2_connection, 
     ec2_connection.run(f"mkdir -p /home/ubuntu/results")
     log_file = f"inductor_benchmarks_{instance_type}_{suite}.log"
 
-    test_cmd = f"python benchmarks/dynamo/runner.py"
+    test_cmd = (f"python benchmarks/dynamo/runner.py"
     f" --suites={suite}"
     f" --inference"
     f" --dtypes={precision}"
@@ -204,7 +204,7 @@ def ec2_performance_pytorch_inference(image_uri, instance_type, ec2_connection, 
     f" --device {device}"
     f" --no-update-archive"
     f" --quick"
-    f" --no-gh-comment 2>&1 | tee {log_file}"
+    f" --no-gh-comment 2>&1 | tee {log_file}")
 
     # Run performance inference command, display benchmark results to console
     framework_version = re.search(r"\d+(\.\d+){2}", image_uri).group()
