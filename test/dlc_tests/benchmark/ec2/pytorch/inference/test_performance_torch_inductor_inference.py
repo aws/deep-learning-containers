@@ -195,9 +195,9 @@ def ec2_performance_pytorch_inference(image_uri, instance_type, ec2_connection, 
     log_file = f"inductor_benchmarks_{instance_type}_{suite}.log"
 
     test_cmd = f"python benchmarks/dynamo/runner.py"
-    f" --suites = {suite}"
+    f" --suites={suite}"
     f" --inference"
-    f" --dtypes = {precision}"
+    f" --dtypes={precision}"
     f" --compilers=inductor"
     f" --output-dir=/root/pytorch/logs_{suite}"
     f" --extra-args=\"--output-directory=./\""
