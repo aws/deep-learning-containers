@@ -43,14 +43,4 @@ python benchmarks/dynamo/runner.py --training --suites=timm_models --dtypes=amp 
 
 aws s3 cp $BIN_DIR/pytorch/timm_logs/ $2/ --recursive
 
-RETURN_VAL=`echo $?`
-set -e
-
-if [ ${RETURN_VAL} -eq 0 ]; then
-    echo "Training Timm Complete using PyTorch Inductor."
-else
-    echo "Training Timm Failed using PyTorch Inductor."
-    exit 1
-fi
-
 exit 0

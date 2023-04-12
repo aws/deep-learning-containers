@@ -35,13 +35,13 @@ python install.py
 
 if [ "$1" = "p3.2xlarge" ]
 then
-    sed -i "s/extra_args = \[\]/&\n        batch_size = int(batch_size \/ 4) if (batch_size is not None and batch_size >= 4) else 1/g" $BIN_DIR/pytorch/benchmarks/dynamo/torchbench.py
+    sed -i "s/batch_size = benchmark.batch_size/batch_size = int(benchmark.batch_size \/ 4) if benchmark.batch_size >=4 else 1/g" $BIN_DIR/pytorch/benchmarks/dynamo/torchbench.py
 elif [ "$1" = "g4dn.4xlarge" ]
 then
-    sed -i "s/extra_args = \[\]/&\n        batch_size = int(batch_size \/ 4) if (batch_size is not None and batch_size >= 4) else 1/g" $BIN_DIR/pytorch/benchmarks/dynamo/torchbench.py
+    sed -i "s/batch_size = benchmark.batch_size/batch_size = int(benchmark.batch_size \/ 4) if benchmark.batch_size >=4 else 1/g" $BIN_DIR/pytorch/benchmarks/dynamo/torchbench.py
 elif [ "$1" = "g5.4xlarge" ]
 then
-    sed -i "s/extra_args = \[\]/&\n        batch_size = int(batch_size \/ 2) if (batch_size is not None and batch_size >= 2) else 1/g" $BIN_DIR/pytorch/benchmarks/dynamo/torchbench.py
+    sed -i "s/batch_size = benchmark.batch_size/batch_size = int(benchmark.batch_size \/ 2) if benchmark.batch_size >=2 else 1/g" $BIN_DIR/pytorch/benchmarks/dynamo/torchbench.py
 else
     echo "No need to adjust batch size since we are using p4d.24xlarge."
 fi
