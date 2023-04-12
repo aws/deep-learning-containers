@@ -41,44 +41,23 @@ METRIC_NAMES = ["speedup", "comp_time", "memory", "passrate"]
 @pytest.mark.parametrize("ec2_instance_type", PT_EC2_GPU_INDUCTOR_INSTANCE_TYPES, indirect=True)
 def test_performance_pytorch_gpu_inductor_huggingface(pytorch_training, ec2_connection, gpu_only, py3_only, ec2_instance_type):
     _, image_framework_version = get_framework_and_version_from_tag(pytorch_training)
-    current_timestamp = time.strftime("%Y-%m-%d-%H-%M-%S")
-    s3_key = os.path.join(os.sep, "huggingface", re.sub("\.", "-", ec2_instance_type), current_timestamp)
-    s3_pth = BENCHMARK_RESULTS_S3_BUCKET_TRCOMP + s3_key
     if Version(image_framework_version) < Version("2.0"):
         pytest.skip("Torch inductor was introduced in PyTorch 2.0")
-    test_cmd = PT_PERFORMANCE_TRAINING_GPU_INDUCTOR_HUGGINGFACE_CMD + " " + ec2_instance_type + " " + BENCHMARK_RESULTS_S3_BUCKET_TRCOMP + s3_key
     execute_ec2_training_performance_test(
-        ec2_connection, pytorch_training, test_cmd, "huggingface"
-    )
-    subprocess.run(f"rm -rf huggingface", shell=True)
-    subprocess.run(f"mkdir huggingface", shell=True)
-    subprocess.run(f"aws s3 cp {s3_pth}/ huggingface/ --recursive", shell=True)
-    read_upload_benchmarking_result_to_cw(METRIC_NAMES, "huggingface", instance_type=ec2_instance_type)
+        ec2_connection, pytorch_training, "huggingface", ec2_instance_type)
+
 
 @pytest.mark.skip("skip for now")
 @pytest.mark.integration("inductor")
-@pytest.mark.model("timm")
+@pytest.mark.model("timm_models")
 @pytest.mark.parametrize("ec2_instance_ami", [UBUNTU_18_BASE_DLAMI_US_WEST_2], indirect=True)
 @pytest.mark.parametrize("ec2_instance_type", PT_EC2_GPU_INDUCTOR_INSTANCE_TYPES, indirect=True)
 def test_performance_pytorch_gpu_inductor_timm_models(pytorch_training, ec2_connection, gpu_only, py3_only, ec2_instance_type):
     _, image_framework_version = get_framework_and_version_from_tag(pytorch_training)
-    current_timestamp = time.strftime("%Y-%m-%d-%H-%M-%S")
-    s3_key = os.path.join(os.sep, "timm_models", re.sub("\.", "-", ec2_instance_type), current_timestamp)
-    s3_pth = BENCHMARK_RESULTS_S3_BUCKET_TRCOMP + s3_key
     if Version(image_framework_version) < Version("2.0"):
         pytest.skip("Torch inductor was introduced in PyTorch 2.0")
-    test_cmd = PT_PERFORMANCE_TRAINING_GPU_INDUCTOR_TIMM_CMD + " " + ec2_instance_type + " " + BENCHMARK_RESULTS_S3_BUCKET_TRCOMP + s3_key
     execute_ec2_training_performance_test(
-        ec2_connection, pytorch_training, test_cmd, "timm_models"
-    )
-    output1 = subprocess.check_output(f"rm -rf timm_models", shell=True, timeout=60)
-    print(output1)
-    output2 = subprocess.check_output(f"mkdir timm_models", shell=True, timeout=60)
-    print(output2)
-    output3 = subprocess.check_output(f"aws s3 cp {s3_pth}/ timm_models/ --recursive", shell=True, timeout=60)
-    print(output3)
-    read_upload_benchmarking_result_to_cw(METRIC_NAMES, "timm_models", instance_type=ec2_instance_type, model_suite="timm_models")
-
+        ec2_connection, pytorch_training, "timm_models", ec2_instance_type)
 
 @pytest.mark.integration("inductor")
 @pytest.mark.model("torchbench")
