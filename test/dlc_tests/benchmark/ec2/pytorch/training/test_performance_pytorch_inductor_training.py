@@ -57,7 +57,7 @@ def test_performance_pytorch_gpu_inductor_huggingface(pytorch_training, ec2_conn
 @pytest.mark.integration("inductor")
 @pytest.mark.model("timm")
 @pytest.mark.parametrize("ec2_instance_ami", [UBUNTU_18_BASE_DLAMI_US_WEST_2], indirect=True)
-@pytest.mark.parametrize("ec2_instance_type", PT_EC2_GPU_INDUCTOR_INSTANCE_TYPE_G4DN, indirect=True)
+@pytest.mark.parametrize("ec2_instance_type", PT_EC2_GPU_INDUCTOR_INSTANCE_TYPES, indirect=True)
 def test_performance_pytorch_gpu_inductor_timm(pytorch_training, ec2_connection, gpu_only, py3_only, ec2_instance_type):
     fw, image_framework_version = get_framework_and_version_from_tag(pytorch_training)
     current_timestamp = time.strftime("%Y-%m-%d-%H-%M-%S")
