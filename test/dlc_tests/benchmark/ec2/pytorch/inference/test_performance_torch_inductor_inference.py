@@ -202,6 +202,7 @@ def ec2_performance_pytorch_inference(image_uri, instance_type, ec2_connection, 
     f" --extra-args=\"--output-directory=./\""
     f" --device {device}"
     f" --no-update-archive"
+    f" --quick"
     f" --no-gh-comment 2>&1 | tee {log_file}"
 
     # Run performance inference command, display benchmark results to console
