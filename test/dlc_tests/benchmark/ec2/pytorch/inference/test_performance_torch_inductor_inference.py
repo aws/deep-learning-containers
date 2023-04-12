@@ -98,7 +98,7 @@ def read_metric(csv_file):
     return float(value)
 
 
-def upload_metric(instance_type, precision, suite, metric_name, value, unit, region):
+def upload_metric(region, instance_type, precision, suite, metric_name, value, unit):
     put_metric_data(
         region=region,
         metric_name=metric_name,
@@ -225,10 +225,10 @@ def ec2_performance_pytorch_inference(image_uri, instance_type, ec2_connection, 
     bench_output = ec2_connection.run(
         f"{docker_cmd} exec --workdir=\"/root/pytorch\" {container_name} " f"bash -c 'python benchmarks/dynamo/runner.py --suites=torchbench --inference --dtypes={precision} --compilers=inductor --output-dir=/root/pytorch/logs_{suite} --extra-args=\"--output-directory=./\" --device {device} --no-update-archive --quick --no-gh-comment' " f"2>&1 | tee {log_file}").stdout.split("\n")
     LOGGER.info(f"BENCHMARK OUTPUT ============================\n{bench_output}")
-    ec2_connection.run(
-        f"{docker_cmd} exec --workdir=\"/root\" {container_name} " f"bash -c 'echo root contents'")
-    ec2_connection.run(
-        f"{docker_cmd} exec --workdir=\"/root\" {container_name} " f"bash -c 'ls -l'")
+#    ec2_connection.run(
+#        f"{docker_cmd} exec --workdir=\"/root\" {container_name} " f"bash -c 'echo root contents'")
+#    ec2_connection.run(
+#        f"{docker_cmd} exec --workdir=\"/root\" {container_name} " f"bash -c 'ls -l'")
 #    ec2_connection.run(
 #        f"{docker_cmd} exec {container_name} "
 #        f"/bin/bash {test_cmd} " f"2>&1 | tee /root/pytorch/logs_{suite}/{log_file}")
@@ -238,13 +238,11 @@ def ec2_performance_pytorch_inference(image_uri, instance_type, ec2_connection, 
     LOGGER.info(f"S3 upload logs============================{s3_outcome}")
 
     import subprocess as sp
-    sp.run(f"aws s3 cp {s3_location}/logs_{suite} /home/ubuntu/results/ --recursive", shell=True)
-    output_list_logs_dir = ec2_connection.run(
-        f"ls -l /home/ubuntu/results/logs_{suite}").stdout.split("\n")
-    LOGGER.info(f"CONTENTS OF LOGS DIR============================{output_list_logs_dir}")
-    output_list_pytorch = ec2_connection.run(
-        f"ls -l /home/ubuntu/results/pytorch").stdout.split("\n")
-    LOGGER.info(f"CONTENTS OF PYTORCH DIR========================={output_list_pytorch}")
+    sp.run(f"aws s3 cp {s3_location}/logs_{suite} /home/ubuntu/results/logs_{suite} --recursive", shell=True)
+    output_list_logs_dir = sp.run(f"ls -l /home/ubuntu/results/logs_{suite}", shell=True, stdout=sp.PIPE)
+    LOGGER.info(f"CB:CONTENTS OF LOGS DIR============================{output_list_logs_dir.stdout.decode()}")
+    output_list_pytorch = sp.run(f"ls -l /home/ubuntu/results/pytorch", shell=True, stdout=sp.PIPE)
+    LOGGER.info(f"CB:CONTENTS OF PYTORCH DIR========================={output_list_pytorch.stdout.decode()}")
 
     speedup = read_metric(f"/home/ubuntu/results/logs_{suite}/geomean.csv")
     LOGGER.info(f"Seedup = {speedup}")
@@ -266,6 +264,4 @@ def ec2_performance_pytorch_inference(image_uri, instance_type, ec2_connection, 
                   "PassRate", passrate, "Percent")
 
     ec2_connection.run(f"docker rm -f {container_name}")
-    ec2_connection.run(
-        f"aws s3 cp /home/ubuntu/results/pytorch/{log_file} {s3_location}/{log_file}")
     LOGGER.info(f"To retrieve complete benchmark log, check {s3_location}")
