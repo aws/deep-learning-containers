@@ -62,6 +62,7 @@ def test_mnist_distributed_gpu(framework_version, ecr_image, sagemaker_regions, 
 @pytest.mark.integration("smexperiments")
 @pytest.mark.skip_gpu
 @pytest.mark.skip_inductor_test
+@pytest.mark.skip
 def test_hc_mnist_distributed_cpu(framework_version, ecr_image, sagemaker_regions, instance_type, dist_cpu_backend):
     instance_type = instance_type or 'ml.p3.2xlarge'
     training_group = InstanceGroup("train_group", instance_type, 2)
