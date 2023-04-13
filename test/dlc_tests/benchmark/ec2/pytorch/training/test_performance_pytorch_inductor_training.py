@@ -23,7 +23,7 @@ from test.test_utils.ec2 import (
 PT_EC2_GPU_INDUCTOR_INSTANCE_TYPES = ["p3.2xlarge", "p4d.24xlarge", "g5.4xlarge", "g4dn.4xlarge"]
 METRIC_NAMES = ["speedup", "comp_time", "memory", "passrate"]
 
-
+@pytest.mark.skip("skip for now")
 @pytest.mark.integration("inductor")
 @pytest.mark.model("huggingface")
 @pytest.mark.parametrize("ec2_instance_ami", [UBUNTU_18_BASE_DLAMI_US_WEST_2], indirect=True)
@@ -36,7 +36,6 @@ def test_performance_pytorch_gpu_inductor_huggingface(pytorch_training, ec2_conn
         ec2_connection, pytorch_training, "huggingface", ec2_instance_type)
 
 
-@pytest.mark.skip("skip for now")
 @pytest.mark.integration("inductor")
 @pytest.mark.model("timm_models")
 @pytest.mark.parametrize("ec2_instance_ami", [UBUNTU_18_BASE_DLAMI_US_WEST_2], indirect=True)
