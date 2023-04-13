@@ -310,6 +310,9 @@ def ec2_instance(
 
     request.addfinalizer(delete_ssh_keypair)
 
+    user_data = """#!/bin/bash
+    sudo apt-get update && sudo apt-get upgrade && sudo apt-get install -y ec2-instance-connect"""
+
     params = {
         "KeyName": ec2_key_name,
         "ImageId": ec2_instance_ami,
