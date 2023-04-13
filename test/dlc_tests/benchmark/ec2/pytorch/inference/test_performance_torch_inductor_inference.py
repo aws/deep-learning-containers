@@ -157,7 +157,7 @@ def test_performance_ec2_pytorch_inference_graviton(ec2_instance_type, suite, pr
 #@pytest.mark.skip(reason="Hangs indefinitely needs investigation")
 #@pytest.mark.parametrize("ec2_instance_type", ["p3.2xlarge", "g5.4xlarge", "g4dn.4xlarge"], indirect=True)
 #@pytest.mark.parametrize("suite", ["huggingface", "timm", "torchbench"])
-@pytest.mark.parametrize("ec2_instance_type", ["p3.2xlarge"], indirect=True)
+@pytest.mark.parametrize("ec2_instance_type", ["g4dn.4xlarge"], indirect=True)
 @pytest.mark.parametrize("suite", ["torchbench"])
 @pytest.mark.parametrize("precision", ["float32"])
 def test_performance_ec2_pytorch_inference_gpu(ec2_instance_type, suite, precision, pytorch_inference, ec2_connection, region, gpu_only):
