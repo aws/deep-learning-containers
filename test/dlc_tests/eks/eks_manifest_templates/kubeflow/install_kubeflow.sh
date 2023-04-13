@@ -77,7 +77,7 @@ setup_kubeflow ${EKS_CLUSTER_NAME}
 # uninstall the manifest if operation is to upgrade kubeflow
 if [ "${OPERATION}" = "UPGRADE" ]; then
     echo "> Uninstalling kubeflow manifest"
-    uninstall_kubeflow
+    # uninstall_kubeflow
 fi
 
 echo "> Setting up kubeflow"
