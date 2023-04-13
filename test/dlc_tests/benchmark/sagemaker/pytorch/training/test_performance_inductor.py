@@ -50,7 +50,7 @@ def test_inductor_huggingface(framework_version, pytorch_training, region, sagem
 @pytest.mark.model("timm")
 @pytest.mark.parametrize("instance_type", instance_types, indirect=True)
 def test_inductor_timm(framework_version, pytorch_training, region, sagemaker_session, instance_type):
-    instance_type = instance_type,
+    instance_type = instance_type
     suites = "timm"
     _test_inductor_performance(pytorch_training, sagemaker_session, framework_version, instance_type, suites)
 
@@ -58,30 +58,12 @@ def test_inductor_timm(framework_version, pytorch_training, region, sagemaker_se
 @pytest.mark.model("torchbench")
 @pytest.mark.parametrize("instance_type", instance_types, indirect=True)
 def test_inductor_torchbench(framework_version, pytorch_training, region, sagemaker_session, instance_type):
-    instance_type = instance_type,
+    instance_type = instance_type
     suites = "torchbench"
     _test_inductor_performance(pytorch_training, sagemaker_session, framework_version, instance_type, suites)
 
 def _test_inductor_performance(image_uri, sagemaker_session, framework_version, instance_type, suites):
     output_path = f"s3://sagemaker-inductor-test/{suites}"
-    # job_name = "test-pt-performance-inductor-huggingface-1680825282-71e4"
-    # pytorch = PyTorch(
-    #     entry_point="test_inductor_helper.py",
-    #     source_dir=inductor_path,
-    #     role='SageMakerRole',
-    #     instance_count=1,
-    #     instance_type=instance_type,
-    #     sagemaker_session=sagemaker_session,
-    #     image_uri=ecr_image,
-    #     framework_version=framework_version,
-    #     hyperparameters = {'output_path':output_path,
-    #                         'job_name':job_name,
-    #                         'instance_type':instance_type,
-    #                         # 'tmpdir': tmpdir,
-    #                         'suites':suites
-    #                     },
-    # )
-    # pytorch.fit(job_name=utils.unique_name_from_base(f'upload-pt-performance-inductor-{suites}'))
     pytorch = PyTorch(
         entry_point=f"run_inductor_{suites}.sh",
         source_dir=inductor_path,
