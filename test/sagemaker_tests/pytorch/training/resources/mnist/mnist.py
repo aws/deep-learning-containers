@@ -146,9 +146,6 @@ def train(args):
     ))
 
     model = Net()
-    if use_inductor:
-        logger.debug("Inductor: using Inductor.")
-        model = torch.compile(model, backend="inductor", mode="default")
 
     if is_distributed:
         if use_cuda:
@@ -163,6 +160,10 @@ def train(args):
         # single-machine or multi-machine cpu case
         logger.debug("Single-machine cpu: using DistributedDataParallel.")
     model = model.to(device)
+
+    if use_inductor:
+        logger.debug("Inductor: using Inductor.")
+        model = torch.compile(model, backend="inductor", mode="default")
 
     optimizer = optim.SGD(model.parameters(), lr=args.lr, momentum=args.momentum)
 

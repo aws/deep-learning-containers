@@ -26,8 +26,9 @@ from .... import invoke_pytorch_helper_function
 @pytest.mark.integration("smexperiments")
 @pytest.mark.skip_gpu
 @pytest.mark.skip_inductor_test
+@pytest.mark.xfail(reason="known issue: https://github.com/pytorch/pytorch/issues/98436")
 def test_mnist_distributed_cpu(framework_version, ecr_image, sagemaker_regions, instance_type, dist_cpu_backend):
-    instance_type = instance_type or 'ml.p3.2xlarge'
+    instance_type = instance_type or 'ml.c4.xlarge'
     function_args = {
             'framework_version': framework_version,
             'instance_type': instance_type,
@@ -44,6 +45,7 @@ def test_mnist_distributed_cpu(framework_version, ecr_image, sagemaker_regions, 
 @pytest.mark.integration("smexperiments")
 @pytest.mark.skip_cpu
 @pytest.mark.skip_inductor_test
+@pytest.mark.xfail(reason="known issue: https://github.com/pytorch/pytorch/issues/99067")
 def test_mnist_distributed_gpu(framework_version, ecr_image, sagemaker_regions, instance_type, dist_gpu_backend):
     instance_type = instance_type or 'ml.p3.2xlarge'
     function_args = {
@@ -62,9 +64,9 @@ def test_mnist_distributed_gpu(framework_version, ecr_image, sagemaker_regions, 
 @pytest.mark.integration("smexperiments")
 @pytest.mark.skip_gpu
 @pytest.mark.skip_inductor_test
-@pytest.mark.skip
+@pytest.mark.xfail(reason="known issue: https://github.com/pytorch/pytorch/issues/98436")
 def test_hc_mnist_distributed_cpu(framework_version, ecr_image, sagemaker_regions, instance_type, dist_cpu_backend):
-    instance_type = instance_type or 'ml.p3.2xlarge'
+    instance_type = instance_type or 'ml.c4.xlarge'
     training_group = InstanceGroup("train_group", instance_type, 2)
     function_args = {
             'framework_version': framework_version,
@@ -82,6 +84,7 @@ def test_hc_mnist_distributed_cpu(framework_version, ecr_image, sagemaker_region
 @pytest.mark.integration("smexperiments")
 @pytest.mark.skip_cpu
 @pytest.mark.skip_inductor_test
+@pytest.mark.xfail(reason="known issue: https://github.com/pytorch/pytorch/issues/99067")
 def test_hc_mnist_distributed_gpu(framework_version, ecr_image, sagemaker_regions, instance_type, dist_gpu_backend):
     instance_type = instance_type or 'ml.p3.2xlarge'
     training_group = InstanceGroup("train_group", instance_type, 2)

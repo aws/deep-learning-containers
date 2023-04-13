@@ -41,7 +41,7 @@ DGL_SCRIPT_PATH = os.path.join(DGL_DATA_PATH, "train.py")
 def test_dgl_gcn_training_cpu(ecr_image, sagemaker_regions, instance_type):
     _, image_framework_version = get_framework_and_version_from_tag(ecr_image)
 
-    instance_type = instance_type or "ml.p3.2xlarge"
+    instance_type = instance_type or "ml.c4.xlarge"
     function_args = {
         "instance_type": instance_type,
     }
