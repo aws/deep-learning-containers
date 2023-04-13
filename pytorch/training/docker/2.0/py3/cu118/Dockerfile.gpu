@@ -418,11 +418,16 @@ RUN chmod +x /usr/local/bin/start_with_right_hostname.sh
 
 WORKDIR /root
 
+# temporarily install fork of training toolkit as a workaround of the Rubik NCCL hang issue
+RUN cd /tmp \
+  && git clone https://github.com/yongyanrao/sagemaker-training-toolkit.git -b nccl_env_var\
+  && cd sagemaker-training-toolkit \
+  && pip install .
+
 RUN pip install --no-cache-dir -U \
     smclarify \
     "sagemaker>=2,<3" \
     "sagemaker-experiments<1" \
-    sagemaker-pytorch-training \
     flash-attn==0.2.8 \
     triton==2.0.0.dev20221202
 
