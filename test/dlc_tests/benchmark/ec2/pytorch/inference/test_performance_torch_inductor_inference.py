@@ -109,6 +109,7 @@ def upload_metric(region, instance_type, precision, suite, metric_name, value, u
     )
 
 
+@pytest.mark.skip(reason="for testing")
 #@pytest.mark.parametrize("ec2_instance_type", ["c5.4xlarge", "m5.4xlarge"], indirect=True)
 #@pytest.mark.parametrize("suite", ["huggingface", "timm", "torchbench"])
 @pytest.mark.parametrize("ec2_instance_type", ["c5.4xlarge"], indirect=True)
@@ -129,7 +130,7 @@ def test_performance_ec2_pytorch_inference_cpu(ec2_instance_type, suite, precisi
     )
 
 
-#@pytest.mark.skip(reason="for testing")
+@pytest.mark.skip(reason="for testing")
 #@pytest.mark.parametrize("ec2_instance_type", ["c6g.4xlarge", "c7g.4xlarge", "m7g.4xlarge"], indirect=True)
 #@pytest.mark.parametrize("suite", ["huggingface", "timm", "torchbench"])
 @pytest.mark.parametrize("ec2_instance_type", ["m7g.4xlarge"], indirect=True)
@@ -153,11 +154,11 @@ def test_performance_ec2_pytorch_inference_graviton(ec2_instance_type, suite, pr
     )
 
 
-@pytest.mark.skip(reason="Hangs indefinitely needs investigation")
-@pytest.mark.parametrize("ec2_instance_type", ["p3.2xlarge", "g5.4xlarge", "g4dn.4xlarge"], indirect=True)
-@pytest.mark.parametrize("suite", ["huggingface", "timm", "torchbench"])
-#@pytest.mark.parametrize("ec2_instance_type", ["p3.2xlarge"], indirect=True)
-#@pytest.mark.parametrize("suite", ["torchbench"])
+#@pytest.mark.skip(reason="Hangs indefinitely needs investigation")
+#@pytest.mark.parametrize("ec2_instance_type", ["p3.2xlarge", "g5.4xlarge", "g4dn.4xlarge"], indirect=True)
+#@pytest.mark.parametrize("suite", ["huggingface", "timm", "torchbench"])
+@pytest.mark.parametrize("ec2_instance_type", ["p3.2xlarge"], indirect=True)
+@pytest.mark.parametrize("suite", ["torchbench"])
 @pytest.mark.parametrize("precision", ["float32"])
 def test_performance_ec2_pytorch_inference_gpu(ec2_instance_type, suite, precision, pytorch_inference, ec2_connection, region, gpu_only):
     _, image_framework_version = get_framework_and_version_from_tag(
@@ -231,21 +232,27 @@ def ec2_performance_pytorch_inference(image_uri, instance_type, ec2_connection, 
         BENCHMARK_RESULTS_S3_BUCKET, "pytorch", framework_version, "ec2", "inference", instance_type, "py3",
     )
     container_name = f"{repo_name}-performance-{image_tag}-ec2"
-    ec2_connection.run(
+    docker_run_output = ec2_connection.run(
         f"{docker_cmd} run -d --name {container_name}  -e OMP_NUM_THREADS=1 "
         f"-v /home/ubuntu/results:/root {image_uri} "
-    )
-    ec2_connection.run(f"{docker_cmd} exec --workdir=\"/root\" {container_name} "
-                       f"bash -c '{git_clone}'")
-    ec2_connection.run(
-        f"{docker_cmd} exec --workdir=\"/root/benchmark\" {container_name} " f"bash -c 'python install.py'")
-    ec2_connection.run(
-        f"{docker_cmd} exec --workdir=\"/root/pytorch\" {container_name} " f"bash -c 'mkdir -p /root/pytorch/logs_{suite}'")
+    ).stdout.split("\n")
+    LOGGER.info(f"Output docker run ================================\n{docker_run_output}")
+    git_clone_output = ec2_connection.run(f"{docker_cmd} exec --workdir=\"/root\" {container_name} "
+                       f"bash -c '{git_clone}'").stdout.split("\n")
+    LOGGER.info(f"Output git clone ================================\n{git_clone_output}")
+    install_output = ec2_connection.run(
+        f"{docker_cmd} exec --workdir=\"/root/benchmark\" {container_name} " f"bash -c 'python install.py'").stdout.split("\n")
+    LOGGER.info(f"Output python install.py ================================\n{install_output}")
+    mkdir_output = ec2_connection.run(
+        f"{docker_cmd} exec --workdir=\"/root/pytorch\" {container_name} " f"bash -c 'mkdir -p /root/pytorch/logs_{suite}'").stdout.split("\n")
+    LOGGER.info(f"Output mkdir ================================\n{mkdir_output}")
     bench_output = ec2_connection.run(
         f"{docker_cmd} exec --workdir=\"/root/pytorch\" {container_name} " f"bash -c '{test_cmd}'").stdout.split("\n")
+    LOGGER.info(f"Output benchmark command ================================\n{bench_output}")
 
-    s3_outcome = ec2_connection.run(
+    s3_cp_output = ec2_connection.run(
         f"aws s3 cp /home/ubuntu/results/pytorch/logs_{suite} {s3_location}/logs_{suite} --recursive").stdout.split("\n")
+    LOGGER.info(f"Output aws s3 cp ================================\n{s3_cp_output}")
 
     import subprocess as sp
     sp.run(f"aws s3 cp {s3_location}/logs_{suite} /home/ubuntu/results/logs_{suite} --recursive", shell=True)
