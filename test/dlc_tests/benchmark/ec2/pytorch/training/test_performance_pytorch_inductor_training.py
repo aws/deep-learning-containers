@@ -39,7 +39,7 @@ def test_performance_pytorch_gpu_inductor_huggingface(pytorch_training, ec2_conn
 @pytest.mark.integration("inductor")
 @pytest.mark.model("timm_models")
 @pytest.mark.parametrize("ec2_instance_ami", [UBUNTU_18_BASE_DLAMI_US_WEST_2], indirect=True)
-@pytest.mark.parametrize("ec2_instance_type", PT_EC2_GPU_INDUCTOR_INSTANCE_TYPES, indirect=True)
+@pytest.mark.parametrize("ec2_instance_type", ["g4dn.4xlarge"], indirect=True)
 def test_performance_pytorch_gpu_inductor_timm_models(pytorch_training, ec2_connection, gpu_only, py3_only, ec2_instance_type):
     _, image_framework_version = get_framework_and_version_from_tag(pytorch_training)
     if Version(image_framework_version) < Version("2.0"):
@@ -51,7 +51,7 @@ def test_performance_pytorch_gpu_inductor_timm_models(pytorch_training, ec2_conn
 @pytest.mark.integration("inductor")
 @pytest.mark.model("torchbench")
 @pytest.mark.parametrize("ec2_instance_ami", [UBUNTU_18_BASE_DLAMI_US_WEST_2], indirect=True)
-@pytest.mark.parametrize("ec2_instance_type", PT_EC2_GPU_INDUCTOR_INSTANCE_TYPES, indirect=True)
+@pytest.mark.parametrize("ec2_instance_type", ["p3.2xlarge","g4dn.4xlarge"], indirect=True)
 def test_performance_pytorch_gpu_inductor_torchbench(pytorch_training, ec2_connection, gpu_only, py3_only, ec2_instance_type):
     _, image_framework_version = get_framework_and_version_from_tag(pytorch_training)
     if Version(image_framework_version) < Version("2.0"):
