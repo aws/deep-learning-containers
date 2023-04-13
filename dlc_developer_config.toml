@@ -9,7 +9,7 @@ ei_mode = false
 neuron_mode = false
 # Please only set it to true if you are preparing a NEURONX related PR
 # Do remember to revert it back to false before merging any PR (including NEURONX dedicated PR)
-neuronx_mode = false
+neuronx_mode = true
 # Please only set it to true if you are preparing a GRAVITON related PR
 # Do remember to revert it back to false before merging any PR (including GRAVITON dedicated PR)
 graviton_mode = false
@@ -46,8 +46,8 @@ do_build = true
 [test]
 ### On by default
 sanity_tests = true
-  safety_check_test = false
-  ecr_scan_allowlist_feature = false
+  safety_check_test = true
+  ecr_scan_allowlist_feature = true
 ecs_tests = true
 eks_tests = true
 ec2_tests = true
@@ -61,7 +61,7 @@ sagemaker_local_tests = false
 # "standard" --> run standard sagemaker remote tests from test/sagemaker_tests
 # "rc" --> run release_candidate_integration tests
 # "efa" --> run efa sagemaker tests
-sagemaker_remote_tests = "off"
+sagemaker_remote_tests = "standard"
 
 # SM remote EFA test instance type
 sagemaker_remote_efa_instance_type = ""
