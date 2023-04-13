@@ -63,7 +63,7 @@ def test_inductor_torchbench(framework_version, pytorch_training, region, sagema
     _test_inductor_performance(pytorch_training, sagemaker_session, framework_version, instance_type, suites)
 
 def _test_inductor_performance(image_uri, sagemaker_session, framework_version, instance_type, suites):
-    output_path = f"s3://sagemaker-inductor-test/{suites}"
+    output_path = f"s3://sm-inductor-test/{suites}"
     pytorch = PyTorch(
         entry_point=f"run_inductor_{suites}.sh",
         source_dir=inductor_path,
