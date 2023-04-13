@@ -141,7 +141,7 @@ def main():
                         help='random seed (default: 1)')
     parser.add_argument('--log-interval',
                         type=int,
-                        default=10,
+                        default=200,
                         metavar='N',
                         help='how many batches to wait before logging training status')
     parser.add_argument('--save-model',
