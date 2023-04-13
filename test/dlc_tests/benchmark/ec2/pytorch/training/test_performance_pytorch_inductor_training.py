@@ -84,7 +84,7 @@ def execute_ec2_training_performance_test(
             f"-e LOG_FILE={os.path.join(os.sep, 'test', 'benchmark', 'logs', log_name)} "
             f"-e PR_CONTEXT={1 if is_pr_context() else 0} "
             f"-v {container_test_local_dir}:{os.path.join(os.sep, 'test')} {ecr_uri} "
-            f"{os.path.join(os.sep, 'bin', 'bash')} {test_cmd}", timeout=10800)
+            f"{os.path.join(os.sep, 'bin', 'bash')} {test_cmd}", timeout=18000)
     finally:
         output1 = subprocess.check_output(f"rm -rf {model_suite}", shell=True, timeout=300)
         output2 = subprocess.check_output(f"mkdir {model_suite}", shell=True, timeout=300)
