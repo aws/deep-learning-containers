@@ -318,6 +318,7 @@ def ec2_instance(
         "ImageId": ec2_instance_ami,
         "InstanceType": ec2_instance_type,
         "IamInstanceProfile": {"Name": ec2_instance_role_name},
+        "UserData": user_data,
         "TagSpecifications": [
             {"ResourceType": "instance", "Tags": [{"Key": "Name", "Value": f"CI-CD {ec2_key_name}"}]},
         ],
