@@ -32,14 +32,12 @@ install_kubeflow(){
     kustomize build manifests/apps/training-operator/upstream/overlays/kubeflow | kubectl apply -f -
 }
 
-# Function to remove kubeflow in EKS cluster using kustomize
+# Function to remove kubeflow training operators in EKS cluster using kustomize
 uninstall_kubeflow(){
 
     echo "> Uninstalling training operators"
     while ! kustomize build manifests/apps/training-operator/upstream/overlays/kubeflow | kubectl delete -f -; do echo "Retrying to delete training operator resources"; sleep 10; done
 
-    echo "> Uninstalling kubeflow namespace"
-    while ! kustomize build manifests/common/kubeflow-namespace/base | kubectl delete -f -; do echo "Retrying to delete namespace resources"; sleep 10; done
 }
 
 # Function to create directory and download kubeflow components
