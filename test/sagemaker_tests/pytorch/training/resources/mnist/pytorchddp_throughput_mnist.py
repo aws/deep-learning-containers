@@ -141,7 +141,7 @@ def main():
                         help='random seed (default: 1)')
     parser.add_argument('--log-interval',
                         type=int,
-                        default=10,
+                        default=200,
                         metavar='N',
                         help='how many batches to wait before logging training status')
     parser.add_argument('--save-model',
@@ -160,6 +160,10 @@ def main():
                         type=str,
                         default='/tmp/data',
                         help='Path for downloading the MNIST dataset')
+    parser.add_argument('--inductor', 
+                        type=int, 
+                        default=0,
+                        help='pytorch with inductor')
 
     args = parser.parse_args()
     args.world_size = int(os.environ['WORLD_SIZE'])
@@ -221,8 +225,13 @@ def main():
                            ])),
             batch_size=args.test_batch_size,
             shuffle=True)
-
+        
     model = Net()
+    
+    use_inductor = (args.inductor == 1)
+    if use_inductor:
+        model = torch.compile(model, backend="inductor", mode="default")
+
     model = model.to(device)
     model = DDP(model, device_ids=[local_rank])
     optimizer = optim.Adadelta(model.parameters(), lr=args.lr)

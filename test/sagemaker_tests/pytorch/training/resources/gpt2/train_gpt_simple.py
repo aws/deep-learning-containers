@@ -820,6 +820,8 @@ def parse_args():
     parser.add_argument(
         "--smp_version", type=int, default=110, help="Enable memory profile"
     )
+    parser.add_argument('--inductor', type=int, default=0,
+                        help='pytorch with inductor')
 
     # learning rate
     lr_grp = parser.add_argument_group(
@@ -994,6 +996,10 @@ def main():
 
     if args.smp_version < 110 and args.fp16:
         model = FP16_Module(model)
+    
+    use_inductor = (args.inductor == 1)
+    if use_inductor:
+        model = torch.compile(model, backend="inductor", mode="default")
 
     if args.enable_memory_profiling > 0:
         memory_status_cpu(msg="after model creation")

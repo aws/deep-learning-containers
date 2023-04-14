@@ -50,7 +50,7 @@ def _run_canary_pull_test(region, image_type):
     if not images:
         return
     for image in images.split(" "):
-        ctx.run(f"docker pull -q {image}")
+        ctx.run(f"docker pull {image}", hide="out")
         LOGGER.info(f"Canary image {image} is available")
         # Do not remove the pulled images as it may interfere with the functioning of the other
         # tests that need the image to be present on the build machine.

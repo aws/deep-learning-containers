@@ -58,6 +58,8 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument("--dataset", type=str, default="cora",
                         help="Dataset name ('cora', 'citeseer', 'pubmed').")
+    parser.add_argument('--inductor', type=int, default=0,
+                        help='pytorch with inductor')
     args = parser.parse_args()
     print(f'Training with DGL built-in GraphConv module.')
  
@@ -88,6 +90,10 @@ if __name__ == '__main__':
     in_size = features.shape[1]
     out_size = data.num_classes
     model = GCN(in_size, 16, out_size).to(device)
+
+    use_inductor = (args.inductor == 1)
+    if use_inductor:
+        model = torch.compile(model, backend="inductor", mode="default")
 
     # model training
     print('Training...')

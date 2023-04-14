@@ -133,7 +133,7 @@ def ecs_container_instance(request, ecs_cluster, ec2_client, ecs_client, ecs_ins
             {
                 "DeviceName": "/dev/xvda",
                 "Ebs": {
-                    "VolumeSize": 60,
+                    "VolumeSize": 90,
                     "VolumeType": "gp2"
                 }
             }

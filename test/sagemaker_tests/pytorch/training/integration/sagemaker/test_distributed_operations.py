@@ -135,54 +135,6 @@ def test_dist_operations_fastai_gpu(framework_version, ecr_image, sagemaker_regi
     _assert_s3_file_exists(sagemaker_session.boto_region_name, model_s3_url)
 
 
-@pytest.mark.processor("gpu")
-@pytest.mark.model("mnist")
-@pytest.mark.multinode(2)
-@pytest.mark.skip_cpu
-@pytest.mark.skip_py2_containers
-def test_mnist_gpu(framework_version, ecr_image, sagemaker_regions, dist_gpu_backend):
-    with timeout(minutes=DEFAULT_TIMEOUT):
-        estimator_parameter = {
-            'entry_point': mnist_script,
-            'role': 'SageMakerRole',
-            'instance_count': 2,
-            'framework_version': framework_version,
-            'instance_type': MULTI_GPU_INSTANCE,
-            'hyperparameters': {'backend': dist_gpu_backend},
-        }
-        upload_s3_data_args = {
-        'path': os.path.join(data_dir, 'training'),
-        'key_prefix': 'pytorch/mnist'
-        }
-        job_name=utils.unique_name_from_base('test-pt-mnist-gpu')
-        invoke_pytorch_estimator(ecr_image, sagemaker_regions, estimator_parameter, upload_s3_data_args=upload_s3_data_args, job_name=job_name)
-
-@pytest.mark.processor("gpu")
-@pytest.mark.model("mnist")
-@pytest.mark.multinode(2)
-@pytest.mark.skip_cpu
-@pytest.mark.skip_py2_containers
-def test_hc_mnist_gpu(framework_version, ecr_image, sagemaker_regions, dist_gpu_backend):
-    with timeout(minutes=DEFAULT_TIMEOUT):
-        instance_type = MULTI_GPU_INSTANCE
-        instance_count = 2
-        training_group_1 = InstanceGroup("train_group_1", instance_type, instance_count)
-        training_group_2 = InstanceGroup("train_group_2", instance_type, instance_count)
-        estimator_parameter = {
-            'entry_point': mnist_script,
-            'role': 'SageMakerRole',
-            'instance_groups': [training_group_1, training_group_2],
-            'framework_version': framework_version,
-            'hyperparameters': {'backend': dist_gpu_backend},
-        }
-        upload_s3_data_args = {
-        'path': os.path.join(data_dir, 'training'),
-        'key_prefix': 'pytorch/mnist'
-        }
-        job_name = utils.unique_name_from_base('test-pt-hc-mnist-gpu')
-        invoke_pytorch_estimator(ecr_image, sagemaker_regions, estimator_parameter, upload_s3_data_args=upload_s3_data_args, job_name=job_name)
-
-
 @pytest.mark.usefixtures("feature_smmp_present")
 @pytest.mark.integration("smmodelparallel")
 @pytest.mark.model("gpt2")

@@ -201,7 +201,7 @@ def get_parser():
     parser.add_argument(
         "--log-interval",
         type=int,
-        default=10,
+        default=200,
         metavar="N",
         help="how many batches to wait before logging training status",
     )
@@ -226,6 +226,8 @@ def get_parser():
     parser.add_argument("--data-dir", type=str, default=None)
     parser.add_argument("--ddp", type=int, default=0)
     parser.add_argument('--mp_parameters', type=str, default='')
+    parser.add_argument('--inductor', type=int, default=0,
+                        help='pytorch with inductor')
     return parser
 
 
@@ -279,6 +281,10 @@ def main():
     test_loader = torch.utils.data.DataLoader(dataset2, **kwargs)
 
     model = GroupedNet()
+
+    use_inductor = (args.inductor == 1)
+    if use_inductor:
+        model = torch.compile(model, backend="inductor", mode="default")
 
     # SMP handles the transfer of parameters to the right device
     # and the user doesn't need to call 'model.to' explicitly.

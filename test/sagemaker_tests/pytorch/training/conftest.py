@@ -40,6 +40,9 @@ from .utils.image_utils import (
     are_fixture_labels_enabled
 )
 
+from packaging.version import Version
+from packaging.specifiers import SpecifierSet
+
 logger = logging.getLogger(__name__)
 logging.getLogger('boto').setLevel(logging.INFO)
 logging.getLogger('boto3').setLevel(logging.INFO)
@@ -127,7 +130,7 @@ def pytest_addoption(parser):
     parser.addoption('--docker-base-name', default='pytorch')
     parser.addoption('--region', default='us-west-2')
     parser.addoption('--framework-version', default='')
-    parser.addoption('--py-version', choices=['2', '3', '37', '38', '39'], default=str(sys.version_info.major))
+    parser.addoption('--py-version', choices=['2', '3', '37', '38', '39', '310'], default=str(sys.version_info.major))
     parser.addoption('--processor', choices=['gpu', 'cpu', 'neuron'], default='cpu')
     # If not specified, will default to {framework-version}-{processor}-py{py-version}
     parser.addoption('--tag', default=None)
@@ -392,6 +395,18 @@ def skip_trcomp_containers(request, ecr_image):
     if request.node.get_closest_marker('skip_trcomp_containers'):
         if 'trcomp' in ecr_image:
             pytest.skip('Skipping training compiler integrated container with tag {}'.format(ecr_image))
+
+@pytest.fixture(autouse=True)
+def skip_inductor_test(request, framework_version):
+    if request.node.get_closest_marker('skip_inductor_test'):
+        if Version(framework_version) < Version("2.0.0"):
+            pytest.skip('SM inductor test only support PT2.0 and above, skipping this container with tag{}'.format(framework_version))
+
+@pytest.fixture(autouse=True)
+def skip_s3plugin_test(request, framework_version):
+    if request.node.get_closest_marker('skip_s3plugin_test'):
+        if Version(framework_version) < Version("1.6.0") or Version(framework_version) > Version("1.12.1"):
+            pytest.skip('s3 plugin is only supported in PT>=1.6.0,<=1.12.1, skipping this container with tag{}'.format(framework_version))
 
 
 def _get_remote_override_flags():

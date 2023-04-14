@@ -93,6 +93,8 @@ parser.add_argument('--multiprocessing-distributed', action='store_true',
                          'N processes per node, which has N GPUs. This is the '
                          'fastest way to use PyTorch for either single node or '
                          'multi node data parallel training')
+parser.add_argument('--inductor', type=int, default=0,
+                        help='pytorch with inductor')
 
 best_acc1 = 0
 
@@ -187,6 +189,10 @@ def main_worker(gpu, ngpus_per_node, args):
     else:
         print("=> creating model '{}'".format(args.arch))
         model = models.__dict__[args.arch]()
+
+    use_inductor = (args.inductor == 1)
+    if use_inductor:
+        model = torch.compile(model, backend="inductor", mode="default")
 
     if not torch.cuda.is_available():
         print('using CPU, this will be slow')

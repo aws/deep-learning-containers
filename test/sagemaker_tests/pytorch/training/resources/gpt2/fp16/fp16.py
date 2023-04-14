@@ -13,7 +13,6 @@ from apex.multi_tensor_apply import multi_tensor_applier
 from smdistributed.modelparallel.torch.state_mod import state as smp_state
 from smdistributed.modelparallel.torch.utils import get_distribution_axis
 from torch import nn
-from torch._six import inf
 from torch.autograd import Variable
 from torch.nn.parameter import Parameter
 

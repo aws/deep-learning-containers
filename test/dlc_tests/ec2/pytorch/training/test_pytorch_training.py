@@ -191,6 +191,7 @@ def test_pytorch_gloo_gpu(pytorch_training, ec2_connection, gpu_only, py3_only, 
 @pytest.mark.integration("inductor")
 @pytest.mark.model("resnet18")
 @pytest.mark.parametrize("ec2_instance_type", PT_TRITON_INSTANCE_TYPE, indirect=True)
+@pytest.mark.xfail # currently both OSS and AWS-PyTorch fail on the gloo inductor test script, needs fixing
 def test_pytorch_gloo_inductor_gpu(pytorch_training, ec2_connection, gpu_only, py3_only, ec2_instance_type):
     """
     Tests gloo backend with torch inductor

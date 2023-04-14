@@ -104,28 +104,27 @@ def _average_gradients(model):
     # Gradient averaging.
     size = float(dist.get_world_size())
     for param in model.parameters():
-        dist.all_reduce(param.grad.data, op=dist.reduce_op.SUM)
+        dist.all_reduce(param.grad.data, op=dist.ReduceOp.SUM)
         param.grad.data /= size
 
 
 def train(args):
-    is_distributed = len(args.hosts) > 1 and args.backend is not None
-    logger.debug("Distributed training - {}".format(is_distributed))
+    is_distributed = args.backend is not None
     use_cuda = (args.processor == 'gpu') or (args.num_gpus > 0)
-    logger.debug("Number of gpus available - {}".format(args.num_gpus))
     kwargs = {'num_workers': 1, 'pin_memory': True} if use_cuda else {}
     device = torch.device("cuda" if use_cuda else "cpu")
+    use_inductor = (args.inductor == 1)
 
     if is_distributed:
         # Initialize the distributed environment.
-        world_size = len(args.hosts)
-        os.environ['WORLD_SIZE'] = str(world_size)
-        host_rank = args.hosts.index(args.current_host)
-        os.environ['RANK'] = str(host_rank)
-        dist.init_process_group(backend=args.backend, rank=host_rank, world_size=world_size)
-        logger.info('Initialized the distributed environment: \'{}\' backend on {} nodes. '.format(
-            args.backend, dist.get_world_size()) + 'Current host rank is {}. Number of gpus: {}'.format(
-            dist.get_rank(), args.num_gpus))
+        if not os.getenv("RANK"): # for local dist job
+            os.environ['RANK'] = str(args.hosts.index(args.current_host))
+        if not os.getenv("WORLD_SIZE"): # for local dist job
+            os.environ["WORLD_SIZE"] = str(len(args.hosts))
+        dist.init_process_group(backend=args.backend)
+        logger.info('Initialized the distributed environment: \'{}\' backend on {} processes. '.format(
+            args.backend, dist.get_world_size()) + 'Current rank is {}, Current host is: {}, Number of gpus: {}, device used: {}'.format(
+            dist.get_rank(), args.current_host, args.num_gpus, device))
 
     # set the seed for generating random numbers
     torch.manual_seed(args.seed)
@@ -147,25 +146,24 @@ def train(args):
     ))
 
     model = Net()
-    if is_distributed and use_cuda:
-        # multi-machine multi-gpu case
-        logger.debug("Multi-machine multi-gpu: using DistributedDataParallel.")
-        # establish host rank and set device on this node
-        torch.cuda.set_device(host_rank)
-        model.cuda(host_rank)
+
+    if is_distributed:
+        if use_cuda:
+            device_id = dist.get_rank() % torch.cuda.device_count()
+            device = torch.device(f"cuda:{device_id}")
+            # multi-machine multi-gpu case
+            logger.debug("Multi-machine multi-gpu cuda: using DistributedDataParallel.")
         # for multiprocessing distributed, the DDP constructor should always set
         # the single device scope. otherwise, DDP will use all available devices.
-        model = torch.nn.parallel.DistributedDataParallel(model, device_ids=[host_rank], output_device=host_rank)
-    elif use_cuda:
-        # single-machine multi-gpu case
-        logger.debug("Single-machine multi-gpu: using DataParallel().cuda().")
-        model =  model.to(device)
-        model = torch.nn.DataParallel(model).to(device)
+        for name, param in model.named_parameters():
+            print(f"{dist.get_rank()} model parameters {name}: {param.size()}")
+        model = torch.nn.parallel.DistributedDataParallel(model.to(device))
     else:
-        # single-machine or multi-machine cpu case
-        logger.debug("Single-machine/multi-machine cpu: using DataParallel.")
-        model =  model.to(device)
-        model = torch.nn.DataParallel(model)
+        model = model.to(device)
+
+    if use_inductor:
+        logger.debug("Inductor: using Inductor.")
+        model = torch.compile(model, backend="inductor", mode="default")
 
     optimizer = optim.SGD(model.parameters(), lr=args.lr, momentum=args.momentum)
 
@@ -174,7 +172,7 @@ def train(args):
         for batch_idx, (data, target) in enumerate(train_loader, 1):
             if is_distributed and use_cuda:
                 # multi-machine multi-gpu case - allow asynchrous GPU copies of the data
-                data, target = data.cuda(non_blocking=True), target.cuda(non_blocking=True)
+                data, target = data.to(device, non_blocking=True), target.to(device, non_blocking=True)
             else:
                 data, target = data.to(device), target.to(device)
             optimizer.zero_grad()
@@ -190,9 +188,9 @@ def train(args):
                     epoch, batch_idx * len(data), len(train_loader.sampler),
                     100. * batch_idx / len(train_loader), loss.item()))
         test(model, test_loader, device)
-    save_model(model, args.model_dir)
+    save_model(model, args.model_dir, args)
 
-    if is_distributed and host_rank == 0 or not is_distributed:
+    if len(args.hosts) == 1 or os.environ['RANK'] == 0:
         assert_can_track_sagemaker_experiments()
 
 
@@ -213,18 +211,10 @@ def test(model, test_loader, device):
         test_loss, correct, len(test_loader.dataset),
         100. * correct / len(test_loader.dataset)))
 
-
-def model_fn(model_dir):
-    logger.info('model_fn')
-    model = torch.nn.DataParallel(Net())
-    with open(os.path.join(model_dir, 'model.pth'), 'rb') as f:
-        model.load_state_dict(torch.load(f))
-    return model
-
-
-def save_model(model, model_dir):
-    logger.info("Saving the model.")
-    path = os.path.join(model_dir, 'model.pth')
+def save_model(model, model_dir, args):
+    model_pth = f"model_{args.hosts.index(args.current_host)}.pth"
+    logger.info(f"Saving the model: {model_pth}")
+    path = os.path.join(model_dir, model_pth)
     # recommended way from http://pytorch.org/docs/master/notes/serialization.html
     torch.save(model.state_dict(), path)
 
@@ -242,6 +232,7 @@ def assert_can_track_sagemaker_experiments():
 
 
 if __name__ == '__main__':
+    print("sys.argv: ", sys.argv)
     # test opencv
     print(cv.__version__)
 
@@ -260,12 +251,14 @@ if __name__ == '__main__':
                         help='SGD momentum (default: 0.5)')
     parser.add_argument('--seed', type=int, default=1, metavar='S',
                         help='random seed (default: 1)')
-    parser.add_argument('--log-interval', type=int, default=100, metavar='N',
+    parser.add_argument('--log-interval', type=int, default=2000, metavar='N',
                         help='how many batches to wait before logging training status')
     parser.add_argument('--backend', type=str, default=None,
                         help='backend for distributed training')
     parser.add_argument('--processor', type=str, default='cpu',
                         help='backend for distributed training')
+    parser.add_argument('--inductor', type=int, default=0,
+                        help='pytorch with inductor')
 
     # Container environment
     env = sagemaker_training.environment.Environment()

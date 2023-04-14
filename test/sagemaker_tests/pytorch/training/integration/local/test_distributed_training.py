@@ -108,7 +108,7 @@ def test_mnist_cpu(docker_image, dist_cpu_backend, sagemaker_local_session, tmpd
     )
 
     success_files = {
-        'model': ['model.pth'],
+        'model': ['model_0.pth', 'model_1.pth'],
         'output': ['success'],
     }
     _train_and_assert_success(estimator, str(tmpdir), success_files)

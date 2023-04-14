@@ -259,6 +259,10 @@ def ec2_resource(region):
 def ec2_instance_type(request):
     return request.param if hasattr(request, "param") else "g4dn.xlarge"
 
+@pytest.fixture(scope="function")
+def instance_type(request):
+    return request.param if hasattr(request, "param") else "ml.p3.2xlarge"
+
 
 @pytest.fixture(scope="function")
 def ec2_instance_role_name(request):
