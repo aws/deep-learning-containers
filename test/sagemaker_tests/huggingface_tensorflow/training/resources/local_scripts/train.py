@@ -53,9 +53,9 @@ if __name__ == "__main__":
     train_dataset.set_format(type="tensorflow", columns=["input_ids", "attention_mask", "label"])
 
     train_features = {x: train_dataset[x] for x in ["input_ids", "attention_mask"]}
-    tf_train_dataset = tf.data.Dataset.from_tensor_slices((train_features, train_dataset["label"])).batch(
-        args.train_batch_size
-    )
+    tf_train_dataset = tf.data.Dataset.from_tensor_slices(
+        (train_features, train_dataset["label"])
+    ).batch(args.train_batch_size)
 
     # Preprocess test dataset
     test_dataset = test_dataset.map(
@@ -64,9 +64,9 @@ if __name__ == "__main__":
     test_dataset.set_format(type="tensorflow", columns=["input_ids", "attention_mask", "label"])
 
     test_features = {x: test_dataset[x] for x in ["input_ids", "attention_mask"]}
-    tf_test_dataset = tf.data.Dataset.from_tensor_slices((test_features, test_dataset["label"])).batch(
-        args.eval_batch_size
-    )
+    tf_test_dataset = tf.data.Dataset.from_tensor_slices(
+        (test_features, test_dataset["label"])
+    ).batch(args.eval_batch_size)
 
     # fine optimizer and loss
     optimizer = tf.keras.optimizers.Adam(learning_rate=args.learning_rate)
@@ -77,7 +77,9 @@ if __name__ == "__main__":
     # Training
     if args.do_train:
 
-        train_results = model.fit(tf_train_dataset, epochs=args.epochs, batch_size=args.train_batch_size)
+        train_results = model.fit(
+            tf_train_dataset, epochs=args.epochs, batch_size=args.train_batch_size
+        )
         logger.info("*** Train ***")
 
         output_eval_file = os.path.join(args.output_data_dir, "train_results.txt")

@@ -2,7 +2,12 @@ import os
 
 import pytest
 
-from test.test_utils import ECS_AML2_CPU_USWEST2, ECS_AML2_GPU_USWEST2, CONTAINER_TESTS_PREFIX, is_nightly_context
+from test.test_utils import (
+    ECS_AML2_CPU_USWEST2,
+    ECS_AML2_GPU_USWEST2,
+    CONTAINER_TESTS_PREFIX,
+    is_nightly_context,
+)
 from test.test_utils import ecs as ecs_utils
 from test.test_utils import ec2 as ec2_utils
 
@@ -28,7 +33,9 @@ def test_ecs_tensorflow_training_mnist_cpu(
     """
     instance_id, cluster_arn = ecs_container_instance
 
-    ecs_utils.ecs_training_test_executor(ecs_cluster_name, cluster_arn, training_cmd, tensorflow_training, instance_id)
+    ecs_utils.ecs_training_test_executor(
+        ecs_cluster_name, cluster_arn, training_cmd, tensorflow_training, instance_id
+    )
 
 
 @pytest.mark.model("mnist")
@@ -49,11 +56,18 @@ def test_ecs_tensorflow_training_mnist_gpu(
     num_gpus = ec2_utils.get_instance_num_gpus(instance_id)
 
     ecs_utils.ecs_training_test_executor(
-        ecs_cluster_name, cluster_arn, training_cmd, tensorflow_training, instance_id, num_gpus=num_gpus
+        ecs_cluster_name,
+        cluster_arn,
+        training_cmd,
+        tensorflow_training,
+        instance_id,
+        num_gpus=num_gpus,
     )
 
 
-@pytest.mark.skipif(not is_nightly_context(), reason="Running additional model in nightly context only")
+@pytest.mark.skipif(
+    not is_nightly_context(), reason="Running additional model in nightly context only"
+)
 @pytest.mark.model("FasterRCNN")
 @pytest.mark.parametrize("training_script", [TF_FasterRCNN_TRAINING_SCRIPT], indirect=True)
 @pytest.mark.parametrize("ecs_instance_type", ["g3.8xlarge"], indirect=True)
@@ -74,5 +88,10 @@ def test_ecs_tensorflow_training_fasterrcnn_gpu(
     num_gpus = ec2_utils.get_instance_num_gpus(instance_id)
 
     ecs_utils.ecs_training_test_executor(
-        ecs_cluster_name, cluster_arn, training_cmd, tensorflow_training, instance_id, num_gpus=num_gpus
+        ecs_cluster_name,
+        cluster_arn,
+        training_cmd,
+        tensorflow_training,
+        instance_id,
+        num_gpus=num_gpus,
     )

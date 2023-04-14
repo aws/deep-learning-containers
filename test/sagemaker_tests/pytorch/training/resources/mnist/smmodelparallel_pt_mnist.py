@@ -225,9 +225,8 @@ def get_parser():
     parser.add_argument("--assert-losses", type=int, default=0)
     parser.add_argument("--data-dir", type=str, default=None)
     parser.add_argument("--ddp", type=int, default=0)
-    parser.add_argument('--mp_parameters', type=str, default='')
-    parser.add_argument('--inductor', type=int, default=0,
-                        help='pytorch with inductor')
+    parser.add_argument("--mp_parameters", type=str, default="")
+    parser.add_argument("--inductor", type=int, default=0, help="pytorch with inductor")
     return parser
 
 
@@ -237,7 +236,6 @@ def main():
     if not torch.cuda.is_available():
         raise ValueError("The script requires CUDA support, but CUDA not available")
     use_ddp = args.ddp > 0
-    
 
     # Fix seeds in order to get the same losses across runs
     random.seed(args.seed)
@@ -282,7 +280,7 @@ def main():
 
     model = GroupedNet()
 
-    use_inductor = (args.inductor == 1)
+    use_inductor = args.inductor == 1
     if use_inductor:
         model = torch.compile(model, backend="inductor", mode="default")
 

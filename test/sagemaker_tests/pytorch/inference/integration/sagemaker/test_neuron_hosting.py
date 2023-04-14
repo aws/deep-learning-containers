@@ -22,8 +22,18 @@ from sagemaker.pytorch import PyTorchModel
 from sagemaker.serializers import IdentitySerializer
 from sagemaker.deserializers import BytesDeserializer
 
-from ...integration import model_neuron_dir, resnet_neuron_script, resnet_neuron_input, resnet_neuron_image_list
-from ...integration import model_neuronx_dir, resnet_neuronx_script, resnet_neuronx_input, resnet_neuronx_image_list
+from ...integration import (
+    model_neuron_dir,
+    resnet_neuron_script,
+    resnet_neuron_input,
+    resnet_neuron_image_list,
+)
+from ...integration import (
+    model_neuronx_dir,
+    resnet_neuronx_script,
+    resnet_neuronx_input,
+    resnet_neuronx_image_list,
+)
 from ...integration.sagemaker.timeout import timeout_and_delete_endpoint
 from .... import invoke_pytorch_helper_function
 
@@ -32,39 +42,53 @@ from .... import invoke_pytorch_helper_function
 @pytest.mark.processor("neuron")
 @pytest.mark.neuron_test
 def test_neuron_hosting(framework_version, ecr_image, instance_type, sagemaker_regions):
-    instance_type = instance_type or 'ml.inf1.xlarge'
-    model_dir = os.path.join(model_neuron_dir, 'model-resnet.tar.gz')
+    instance_type = instance_type or "ml.inf1.xlarge"
+    model_dir = os.path.join(model_neuron_dir, "model-resnet.tar.gz")
     function_args = {
-            'framework_version': framework_version,
-            'instance_type': instance_type,
-            'model_dir': model_dir,
-            'resnet_script': resnet_neuron_script,
-            'resnet_neuron_input': resnet_neuron_input,
-            'resnet_neuron_image_list': resnet_neuron_image_list,
-        }
-    invoke_pytorch_helper_function(ecr_image, sagemaker_regions, _test_resnet_distributed, function_args)
+        "framework_version": framework_version,
+        "instance_type": instance_type,
+        "model_dir": model_dir,
+        "resnet_script": resnet_neuron_script,
+        "resnet_neuron_input": resnet_neuron_input,
+        "resnet_neuron_image_list": resnet_neuron_image_list,
+    }
+    invoke_pytorch_helper_function(
+        ecr_image, sagemaker_regions, _test_resnet_distributed, function_args
+    )
 
 
-@pytest.mark.skip("CreateEndpointConfig doesn't support trn1: https://docs.aws.amazon.com/sagemaker/latest/APIReference/API_ProductionVariant.html#sagemaker-Type-ProductionVariant-InstanceType")
+@pytest.mark.skip(
+    "CreateEndpointConfig doesn't support trn1: https://docs.aws.amazon.com/sagemaker/latest/APIReference/API_ProductionVariant.html#sagemaker-Type-ProductionVariant-InstanceType"
+)
 @pytest.mark.model("resnet")
 @pytest.mark.processor("neuronx")
 @pytest.mark.neuron_test
 def test_neuron_hosting(framework_version, ecr_image, instance_type, sagemaker_regions):
-    instance_type = 'ml.trn1.2xlarge'
-    model_dir = os.path.join(model_neuronx_dir, 'model-resnet.tar.gz')
+    instance_type = "ml.trn1.2xlarge"
+    model_dir = os.path.join(model_neuronx_dir, "model-resnet.tar.gz")
     function_args = {
-            'framework_version': framework_version,
-            'instance_type': instance_type,
-            'model_dir': model_dir,
-            'resnet_script': resnet_neuronx_script,
-            'resnet_neuron_input': resnet_neuronx_input,
-            'resnet_neuron_image_list': resnet_neuronx_image_list,
-        }
-    invoke_pytorch_helper_function(ecr_image, sagemaker_regions, _test_resnet_distributed, function_args)
+        "framework_version": framework_version,
+        "instance_type": instance_type,
+        "model_dir": model_dir,
+        "resnet_script": resnet_neuronx_script,
+        "resnet_neuron_input": resnet_neuronx_input,
+        "resnet_neuron_image_list": resnet_neuronx_image_list,
+    }
+    invoke_pytorch_helper_function(
+        ecr_image, sagemaker_regions, _test_resnet_distributed, function_args
+    )
 
 
 def _test_resnet_distributed(
-        ecr_image, sagemaker_session, framework_version, instance_type, model_dir, resnet_script, resnet_neuron_input, resnet_neuron_image_list, accelerator_type=None
+    ecr_image,
+    sagemaker_session,
+    framework_version,
+    instance_type,
+    model_dir,
+    resnet_script,
+    resnet_neuron_input,
+    resnet_neuron_image_list,
+    accelerator_type=None,
 ):
     endpoint_name = sagemaker.utils.unique_name_from_base("sagemaker-pytorch-serving")
 
@@ -75,13 +99,19 @@ def _test_resnet_distributed(
 
     pytorch = PyTorchModel(
         model_data=model_data,
-        role='SageMakerRole',
+        role="SageMakerRole",
         entry_point=resnet_script,
         framework_version=framework_version,
         image_uri=ecr_image,
         sagemaker_session=sagemaker_session,
         model_server_workers=4,
-        env={"AWS_NEURON_VISIBLE_DEVICES": "ALL", "NEURONCORE_GROUP_SIZES":"1", "NEURON_RT_VISIBLE_CORES": "0", "NEURON_RT_LOG_LEVEL":"5", "NEURON_RTD_ADDRESS":"run"}
+        env={
+            "AWS_NEURON_VISIBLE_DEVICES": "ALL",
+            "NEURONCORE_GROUP_SIZES": "1",
+            "NEURON_RT_VISIBLE_CORES": "0",
+            "NEURON_RT_LOG_LEVEL": "5",
+            "NEURON_RTD_ADDRESS": "run",
+        },
     )
 
     with timeout_and_delete_endpoint(endpoint_name, sagemaker_session, minutes=30):
@@ -89,7 +119,7 @@ def _test_resnet_distributed(
             initial_instance_count=1,
             instance_type=instance_type,
             endpoint_name=endpoint_name,
-            serializer=IdentitySerializer(), 
+            serializer=IdentitySerializer(),
             deserializer=BytesDeserializer(),
         )
 
@@ -106,5 +136,5 @@ def _test_resnet_distributed(
             for line in f:
                 key, val = line.strip().split(":")
                 object_categories[key] = val
-        
-        assert("cat" in object_categories[str(np.argmax(result))])
+
+        assert "cat" in object_categories[str(np.argmax(result))]

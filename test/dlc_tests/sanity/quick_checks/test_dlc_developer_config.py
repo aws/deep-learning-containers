@@ -69,43 +69,151 @@ def test_build_version_override_configuration():
     """
     Ensure that buildspec override defaults are set back to normal before merge
     """
-    assert config.parse_dlc_developer_configs("buildspec_override" ,"dlc-pr-mxnet-training") == ""
-    assert config.parse_dlc_developer_configs("buildspec_override" ,"dlc-pr-pytorch-training") == ""
-    assert config.parse_dlc_developer_configs("buildspec_override" ,"dlc-pr-tensorflow-2-training") == ""
-    assert config.parse_dlc_developer_configs("buildspec_override" ,"dlc-pr-autogluon-training") == ""
+    assert config.parse_dlc_developer_configs("buildspec_override", "dlc-pr-mxnet-training") == ""
+    assert config.parse_dlc_developer_configs("buildspec_override", "dlc-pr-pytorch-training") == ""
+    assert (
+        config.parse_dlc_developer_configs("buildspec_override", "dlc-pr-tensorflow-2-training")
+        == ""
+    )
+    assert (
+        config.parse_dlc_developer_configs("buildspec_override", "dlc-pr-autogluon-training") == ""
+    )
 
-    assert config.parse_dlc_developer_configs("buildspec_override" ,"dlc-pr-huggingface-tensorflow-training") == ""
-    assert config.parse_dlc_developer_configs("buildspec_override" ,"dlc-pr-huggingface-pytorch-training") == ""
+    assert (
+        config.parse_dlc_developer_configs(
+            "buildspec_override", "dlc-pr-huggingface-tensorflow-training"
+        )
+        == ""
+    )
+    assert (
+        config.parse_dlc_developer_configs(
+            "buildspec_override", "dlc-pr-huggingface-pytorch-training"
+        )
+        == ""
+    )
 
-    assert config.parse_dlc_developer_configs("buildspec_override" ,"dlc-pr-huggingface-pytorch-trcomp-training") == ""
-    assert config.parse_dlc_developer_configs("buildspec_override" ,"dlc-pr-huggingface-tensorflow-2-trcomp-training") == ""
-    assert config.parse_dlc_developer_configs("buildspec_override" ,"dlc-pr-pytorch-trcomp-training") == ""
+    assert (
+        config.parse_dlc_developer_configs(
+            "buildspec_override", "dlc-pr-huggingface-pytorch-trcomp-training"
+        )
+        == ""
+    )
+    assert (
+        config.parse_dlc_developer_configs(
+            "buildspec_override", "dlc-pr-huggingface-tensorflow-2-trcomp-training"
+        )
+        == ""
+    )
+    assert (
+        config.parse_dlc_developer_configs("buildspec_override", "dlc-pr-pytorch-trcomp-training")
+        == ""
+    )
 
-    assert config.parse_dlc_developer_configs("buildspec_override" ,"dlc-pr-mxnet-neuron-training") == ""
-    assert config.parse_dlc_developer_configs("buildspec_override" ,"dlc-pr-pytorch-neuron-training") == ""
-    assert config.parse_dlc_developer_configs("buildspec_override" ,"dlc-pr-tensorflow-2-neuron-training") == ""
+    assert (
+        config.parse_dlc_developer_configs("buildspec_override", "dlc-pr-mxnet-neuron-training")
+        == ""
+    )
+    assert (
+        config.parse_dlc_developer_configs("buildspec_override", "dlc-pr-pytorch-neuron-training")
+        == ""
+    )
+    assert (
+        config.parse_dlc_developer_configs(
+            "buildspec_override", "dlc-pr-tensorflow-2-neuron-training"
+        )
+        == ""
+    )
 
-    assert config.parse_dlc_developer_configs("buildspec_override" ,"dlc-pr-pytorch-habana-training") == ""
-    assert config.parse_dlc_developer_configs("buildspec_override" ,"dlc-pr-tensorflow-2-habana-training") == ""
+    assert (
+        config.parse_dlc_developer_configs("buildspec_override", "dlc-pr-pytorch-habana-training")
+        == ""
+    )
+    assert (
+        config.parse_dlc_developer_configs(
+            "buildspec_override", "dlc-pr-tensorflow-2-habana-training"
+        )
+        == ""
+    )
 
-    assert config.parse_dlc_developer_configs("buildspec_override" ,"dlc-pr-mxnet-inference") == ""
-    assert config.parse_dlc_developer_configs("buildspec_override" ,"dlc-pr-pytorch-inference") == ""
-    assert config.parse_dlc_developer_configs("buildspec_override" ,"dlc-pr-tensorflow-2-inference") == ""
-    assert config.parse_dlc_developer_configs("buildspec_override" ,"dlc-pr-autogluon-inference") == ""
+    assert config.parse_dlc_developer_configs("buildspec_override", "dlc-pr-mxnet-inference") == ""
+    assert (
+        config.parse_dlc_developer_configs("buildspec_override", "dlc-pr-pytorch-inference") == ""
+    )
+    assert (
+        config.parse_dlc_developer_configs("buildspec_override", "dlc-pr-tensorflow-2-inference")
+        == ""
+    )
+    assert (
+        config.parse_dlc_developer_configs("buildspec_override", "dlc-pr-autogluon-inference") == ""
+    )
 
-    assert config.parse_dlc_developer_configs("buildspec_override" ,"dlc-pr-mxnet-neuron-inference") == ""
-    assert config.parse_dlc_developer_configs("buildspec_override" ,"dlc-pr-pytorch-neuron-inference") == ""
-    assert config.parse_dlc_developer_configs("buildspec_override" ,"dlc-pr-tensorflow-1-neuron-inference") == ""
-    assert config.parse_dlc_developer_configs("buildspec_override" ,"dlc-pr-tensorflow-2-neuron-inference") == ""
+    assert (
+        config.parse_dlc_developer_configs("buildspec_override", "dlc-pr-mxnet-neuron-inference")
+        == ""
+    )
+    assert (
+        config.parse_dlc_developer_configs("buildspec_override", "dlc-pr-pytorch-neuron-inference")
+        == ""
+    )
+    assert (
+        config.parse_dlc_developer_configs(
+            "buildspec_override", "dlc-pr-tensorflow-1-neuron-inference"
+        )
+        == ""
+    )
+    assert (
+        config.parse_dlc_developer_configs(
+            "buildspec_override", "dlc-pr-tensorflow-2-neuron-inference"
+        )
+        == ""
+    )
 
-    assert config.parse_dlc_developer_configs("buildspec_override" ,"dlc-pr-huggingface-tensorflow-inference") == ""
-    assert config.parse_dlc_developer_configs("buildspec_override" ,"dlc-pr-huggingface-pytorch-inference") == ""
-    assert config.parse_dlc_developer_configs("buildspec_override" ,"dlc-pr-huggingface-pytorch-neuron-inference") == ""
+    assert (
+        config.parse_dlc_developer_configs(
+            "buildspec_override", "dlc-pr-huggingface-tensorflow-inference"
+        )
+        == ""
+    )
+    assert (
+        config.parse_dlc_developer_configs(
+            "buildspec_override", "dlc-pr-huggingface-pytorch-inference"
+        )
+        == ""
+    )
+    assert (
+        config.parse_dlc_developer_configs(
+            "buildspec_override", "dlc-pr-huggingface-pytorch-neuron-inference"
+        )
+        == ""
+    )
 
-    assert config.parse_dlc_developer_configs("buildspec_override" ,"dlc-pr-mxnet-graviton-inference") == ""
-    assert config.parse_dlc_developer_configs("buildspec_override" ,"dlc-pr-pytorch-graviton-inference") == ""
-    assert config.parse_dlc_developer_configs("buildspec_override" ,"dlc-pr-tensorflow-2-graviton-inference") == ""
-    
-    assert config.parse_dlc_developer_configs("buildspec_override" ,"dlc-pr-mxnet-eia-inference") == ""
-    assert config.parse_dlc_developer_configs("buildspec_override" ,"dlc-pr-pytorch-eia-inference") == ""
-    assert config.parse_dlc_developer_configs("buildspec_override" ,"dlc-pr-tensorflow-2-eia-inference") == ""
+    assert (
+        config.parse_dlc_developer_configs("buildspec_override", "dlc-pr-mxnet-graviton-inference")
+        == ""
+    )
+    assert (
+        config.parse_dlc_developer_configs(
+            "buildspec_override", "dlc-pr-pytorch-graviton-inference"
+        )
+        == ""
+    )
+    assert (
+        config.parse_dlc_developer_configs(
+            "buildspec_override", "dlc-pr-tensorflow-2-graviton-inference"
+        )
+        == ""
+    )
+
+    assert (
+        config.parse_dlc_developer_configs("buildspec_override", "dlc-pr-mxnet-eia-inference") == ""
+    )
+    assert (
+        config.parse_dlc_developer_configs("buildspec_override", "dlc-pr-pytorch-eia-inference")
+        == ""
+    )
+    assert (
+        config.parse_dlc_developer_configs(
+            "buildspec_override", "dlc-pr-tensorflow-2-eia-inference"
+        )
+        == ""
+    )

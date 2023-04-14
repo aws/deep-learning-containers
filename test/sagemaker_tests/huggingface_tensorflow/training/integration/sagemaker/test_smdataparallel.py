@@ -46,8 +46,16 @@ def test_hf_smdp(ecr_image, sagemaker_regions, instance_type, framework_version,
     """
     Tests SMDataParallel single-node command via script mode
     """
-    invoke_sm_helper_function(ecr_image, sagemaker_regions, _test_hf_smdp_function,
-                                 instance_type, framework_version, py_version, tmpdir, 1)
+    invoke_sm_helper_function(
+        ecr_image,
+        sagemaker_regions,
+        _test_hf_smdp_function,
+        instance_type,
+        framework_version,
+        py_version,
+        tmpdir,
+        1,
+    )
 
 
 @pytest.mark.processor("gpu")
@@ -64,30 +72,46 @@ def test_hf_smdp_multi(ecr_image, sagemaker_regions, instance_type, tmpdir, fram
     """
     Tests smddprun command via Estimator API distribution parameter
     """
-    invoke_sm_helper_function(ecr_image, sagemaker_regions, _test_hf_smdp_function,
-                                 instance_type, framework_version, py_version, tmpdir, 2)
+    invoke_sm_helper_function(
+        ecr_image,
+        sagemaker_regions,
+        _test_hf_smdp_function,
+        instance_type,
+        framework_version,
+        py_version,
+        tmpdir,
+        2,
+    )
 
 
-def _test_hf_smdp_function(ecr_image, sagemaker_session, instance_type, framework_version, py_version, tmpdir,
-                           instance_count):
+def _test_hf_smdp_function(
+    ecr_image,
+    sagemaker_session,
+    instance_type,
+    framework_version,
+    py_version,
+    tmpdir,
+    instance_count,
+):
     _, image_framework_version = get_framework_and_version_from_tag(ecr_image)
     image_cuda_version = get_cuda_version_from_tag(ecr_image)
 
     instance_type = "ml.p3.16xlarge"
     distribution = {"smdistributed": {"dataparallel": {"enabled": True}}}
 
-    estimator = HuggingFace(entry_point='train.py',
-                            source_dir=BERT_PATH,
-                            role='SageMakerRole',
-                            instance_type=instance_type,
-                            instance_count=instance_count,
-                            image_uri=ecr_image,
-                            framework_version=framework_version,
-                            py_version=py_version,
-                            sagemaker_session=sagemaker_session,
-                            hyperparameters=hyperparameters,
-                            distribution=distribution,
-                            debugger_hook_config=False,  # currently needed
-                            )
+    estimator = HuggingFace(
+        entry_point="train.py",
+        source_dir=BERT_PATH,
+        role="SageMakerRole",
+        instance_type=instance_type,
+        instance_count=instance_count,
+        image_uri=ecr_image,
+        framework_version=framework_version,
+        py_version=py_version,
+        sagemaker_session=sagemaker_session,
+        hyperparameters=hyperparameters,
+        distribution=distribution,
+        debugger_hook_config=False,  # currently needed
+    )
 
     estimator.fit(job_name=unique_name_from_base("test-tf-hf-smdp-multi"))

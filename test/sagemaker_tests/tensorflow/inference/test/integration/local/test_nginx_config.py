@@ -29,6 +29,7 @@ def volume():
     finally:
         subprocess.check_call("docker volume rm nginx_model_volume".split())
 
+
 @pytest.mark.model("N/A")
 @pytest.mark.integration("nginx-config")
 def test_run_nginx_with_default_parameters(docker_base_name, tag, runtime_config):
@@ -58,6 +59,7 @@ def test_run_nginx_with_default_parameters(docker_base_name, tag, runtime_config
 
     finally:
         subprocess.check_call("docker rm -f sagemaker-tensorflow-serving-test".split())
+
 
 @pytest.mark.model("N/A")
 @pytest.mark.integration("nginx-config")
@@ -91,6 +93,7 @@ def test_run_nginx_with_env_var_parameters(docker_base_name, tag, runtime_config
     finally:
         subprocess.check_call("docker rm -f sagemaker-tensorflow-serving-test".split())
 
+
 @pytest.mark.model("N/A")
 @pytest.mark.integration("nginx-config")
 def test_run_nginx_with_higher_gunicorn_parameter(docker_base_name, tag, runtime_config):
@@ -106,7 +109,7 @@ def test_run_nginx_with_higher_gunicorn_parameter(docker_base_name, tag, runtime
         proc = subprocess.Popen(command.split(), stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
 
         lines_seen = {
-            "proxy_read_timeout 120;": 0, # When GUnicorn is higher, set timeout to match.
+            "proxy_read_timeout 120;": 0,  # When GUnicorn is higher, set timeout to match.
         }
 
         for stdout_line in iter(proc.stdout.readline, ""):

@@ -6,7 +6,10 @@ from packaging.version import Version
 
 from test.test_utils import CONTAINER_TESTS_PREFIX, LOGGER
 from test.test_utils import (
-    get_account_id_from_image_uri, get_cuda_version_from_tag, get_region_from_image_uri, login_to_ecr_registry,
+    get_account_id_from_image_uri,
+    get_cuda_version_from_tag,
+    get_region_from_image_uri,
+    login_to_ecr_registry,
 )
 from test.test_utils.ec2 import get_ec2_instance_type
 
@@ -52,7 +55,9 @@ def test_smclarify_metrics_gpu(
     image_cuda_version = get_cuda_version_from_tag(training)
     if Version(image_cuda_version.strip("cu")) < Version("110"):
         pytest.skip("SmClarify is currently installed in cuda 11 gpu images and above")
-    run_smclarify_bias_metrics(training, ec2_connection, ec2_instance_type, docker_executable="nvidia-docker")
+    run_smclarify_bias_metrics(
+        training, ec2_connection, ec2_instance_type, docker_executable="nvidia-docker"
+    )
 
 
 class SMClarifyTestFailure(Exception):
