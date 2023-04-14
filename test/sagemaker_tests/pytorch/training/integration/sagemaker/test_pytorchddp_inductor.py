@@ -42,7 +42,6 @@ def can_run_pytorchddp(ecr_image):
 @pytest.mark.parametrize('efa_instance_type', get_efa_test_instance_type(default=["ml.p4d.24xlarge"]), indirect=True)
 @pytest.mark.skip_cpu
 @pytest.mark.skip_py2_containers
-@pytest.mark.skip_trcomp_containers
 @pytest.mark.efa()
 @pytest.mark.skip_inductor_test
 @pytest.mark.xfail(reason="known issue: https://github.com/pytorch/pytorch/issues/99074")

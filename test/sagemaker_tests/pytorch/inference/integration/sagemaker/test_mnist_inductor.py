@@ -45,7 +45,6 @@ SM_GRAVITON_C7G = ["ml.c7g.4xlarge"]
 @pytest.mark.model("mnist")
 @pytest.mark.processor("cpu")
 @pytest.mark.cpu_test
-@pyest.mark.skip
 def test_mnist_distributed_cpu_inductor(framework_version, ecr_image, instance_type, sagemaker_regions):
     instance_type = instance_type or "ml.c5.9xlarge"
     if Version(framework_version) in SpecifierSet("<2.0"):
