@@ -240,6 +240,8 @@ def ec2_performance_pytorch_inference(image_uri, instance_type, ec2_connection, 
     git_clone_output = ec2_connection.run(f"{docker_cmd} exec --workdir=\"/root\" {container_name} "
                        f"bash -c '{git_clone}'").stdout.split("\n")
     LOGGER.info(f"Output git clone ================================\n{git_clone_output}")
+    pip_freezee_output = ec2_connection.run(f"{docker_cmd} exec --workdir=\"/root\" {container_name} "
+                                            f"bash -c 'pip freeze'").stdout.split("\n")
     install_output = ec2_connection.run(
         f"{docker_cmd} exec --workdir=\"/root/benchmark\" {container_name} " f"bash -c 'python install.py'").stdout.split("\n")
     LOGGER.info(f"Output python install.py ================================\n{install_output}")
