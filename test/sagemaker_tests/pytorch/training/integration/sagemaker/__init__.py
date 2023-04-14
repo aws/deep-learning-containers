@@ -90,7 +90,7 @@ def invoke_pytorch_estimator(
 
             except sagemaker.exceptions.UnexpectedStatusException as e:
                 error = e
-                if "CapacityError" in str(e) and _ != len(num_retries):
+                if "CapacityError" in str(e) and _ != len(num_retries) - 1:
                     time.sleep(retry_delay)
                     continue
                 else:
