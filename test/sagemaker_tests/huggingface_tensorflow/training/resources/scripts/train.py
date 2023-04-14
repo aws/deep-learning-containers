@@ -11,7 +11,7 @@ from transformers.file_utils import is_sagemaker_dp_enabled
 
 if os.environ.get("SDP_ENABLED") or is_sagemaker_dp_enabled():
     SDP_ENABLED = True
-    os.environ["SAGEMAKER_INSTANCE_TYPE"] = "p4d.24xlarge"
+    os.environ["SAGEMAKER_INSTANCE_TYPE"] = "p3dn.24xlarge"
     import smdistributed.dataparallel.tensorflow as sdp
 else:
     SDP_ENABLED = False

@@ -73,7 +73,7 @@ def _test_hf_smdp_function(ecr_image, sagemaker_session, instance_type, framewor
     _, image_framework_version = get_framework_and_version_from_tag(ecr_image)
     image_cuda_version = get_cuda_version_from_tag(ecr_image)
 
-    instance_type = "ml.p4d.24xlarge"
+    instance_type = "ml.p3.16xlarge"
     distribution = {"smdistributed": {"dataparallel": {"enabled": True}}}
 
     estimator = HuggingFace(entry_point='train.py',
