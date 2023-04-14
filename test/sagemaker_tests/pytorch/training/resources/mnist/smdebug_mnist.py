@@ -100,7 +100,7 @@ def parse_args():
              "If this is not passed, trains for one epoch "
              "of training and validation data",
     )
-    parser.add_argument('--log_interval', type=int, default=2000, metavar='N',
+    parser.add_argument('--log_interval', type=int, default=100, metavar='N',
                         help='how many batches to wait before logging training status')
 
     opt = parser.parse_args()
