@@ -104,7 +104,7 @@ def _average_gradients(model):
     # Gradient averaging.
     size = float(dist.get_world_size())
     for param in model.parameters():
-        dist.all_reduce(param.grad.data, op=dist.reduce_op.SUM)
+        dist.all_reduce(param.grad.data, op=dist.ReduceOp.SUM)
         param.grad.data /= size
 
 
@@ -155,11 +155,11 @@ def train(args):
             logger.debug("Multi-machine multi-gpu cuda: using DistributedDataParallel.")
         # for multiprocessing distributed, the DDP constructor should always set
         # the single device scope. otherwise, DDP will use all available devices.
-        model = torch.nn.parallel.DistributedDataParallel(model).to(device)
+        for name, param in model.named_parameters():
+            print(f"{dist.get_rank()} model parameters {name}: {param.size()}")
+        model = torch.nn.parallel.DistributedDataParallel(model.to(device))
     else:
-        # single-machine or multi-machine cpu case
-        logger.debug("Single-machine cpu: using DistributedDataParallel.")
-    model = model.to(device)
+        model = model.to(device)
 
     if use_inductor:
         logger.debug("Inductor: using Inductor.")
@@ -179,7 +179,7 @@ def train(args):
             output = model(data)
             loss = F.nll_loss(output, target)
             loss.backward()
-            if is_distributed:
+            if is_distributed and not use_cuda:
                 # average gradients manually for multi-machine cpu case only
                 _average_gradients(model)
             optimizer.step()
@@ -210,15 +210,6 @@ def test(model, test_loader, device):
     logger.debug('Test set: Average loss: {:.4f}, Accuracy: {}/{} ({:.0f}%)\n'.format(
         test_loss, correct, len(test_loader.dataset),
         100. * correct / len(test_loader.dataset)))
-
-
-def model_fn(model_dir):
-    logger.info('model_fn')
-    model = torch.nn.DataParallel(Net())
-    with open(os.path.join(model_dir, 'model.pth'), 'rb') as f:
-        model.load_state_dict(torch.load(f))
-    return model
-
 
 def save_model(model, model_dir, args):
     model_pth = f"model_{args.hosts.index(args.current_host)}.pth"

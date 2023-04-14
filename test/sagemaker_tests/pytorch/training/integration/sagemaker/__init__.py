@@ -114,7 +114,8 @@ def invoke_pytorch_estimator(
 
 
 def _test_mnist_distributed(ecr_image, sagemaker_session, framework_version, dist_backend, instance_type=None, instance_groups=None, use_inductor=False):
-
+        
+    dist_method = "pytorchddp" if dist_backend.lower() == "nccl" else "torch_distributed"
     est_params = {
         "entry_point": mnist_script,
         "role": 'SageMakerRole',
@@ -122,7 +123,7 @@ def _test_mnist_distributed(ecr_image, sagemaker_session, framework_version, dis
         "image_uri": ecr_image,
         "hyperparameters": {"backend": dist_backend, "epochs": 1, "inductor": int(use_inductor)},
         "framework_version": framework_version,
-        "distribution": {"torch_distributed": {"enabled": True}},
+        "distribution": {dist_method: {"enabled": True}}
     }
     if not instance_groups:
         est_params["instance_type"] = instance_type

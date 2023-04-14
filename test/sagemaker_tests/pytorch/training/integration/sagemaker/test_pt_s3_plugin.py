@@ -31,25 +31,14 @@ CPU_INSTANCE = 'ml.c5.4xlarge'
 
 RESOURCE_PATH = os.path.join(os.path.dirname(__file__), '..', '..', 'resources')
 
-
-def can_run_s3_plugin(ecr_image):
-    _, image_framework_version = get_framework_and_version_from_tag(ecr_image)
-    return Version(image_framework_version) in SpecifierSet(">=1.7") and Version(image_framework_version) in SpecifierSet("<1.13")
-
-
-def validate_or_skip_s3_plugin(ecr_image):
-    if not can_run_s3_plugin(ecr_image):
-        pytest.skip("S3 plugin is added only on PyTorch 1.6 or higher")
-
-
 @pytest.mark.usefixtures("feature_s3_plugin_present")
 @pytest.mark.processor("gpu")
 @pytest.mark.integration("pt_s3_plugin_gpu")
 @pytest.mark.model("resnet18")
 @pytest.mark.skip_cpu
 @pytest.mark.skip_py2_containers
+@pytest.mark.skip_s3plugin_test
 def test_pt_s3_plugin_sm_gpu(framework_version, ecr_image, sagemaker_regions):
-    validate_or_skip_s3_plugin(ecr_image)
     with timeout(minutes=DEFAULT_TIMEOUT):
         estimator_parameter = {
             'entry_point': 'main.py',
@@ -70,8 +59,8 @@ def test_pt_s3_plugin_sm_gpu(framework_version, ecr_image, sagemaker_regions):
 @pytest.mark.model("resnet18")
 @pytest.mark.skip_cpu
 @pytest.mark.skip_py2_containers
+@pytest.mark.skip_s3plugin_test
 def test_hc_pt_s3_plugin_sm_gpu(framework_version, ecr_image, sagemaker_regions):
-    validate_or_skip_s3_plugin(ecr_image)
     training_group = InstanceGroup('train_group', MULTI_GPU_INSTANCE, 1)
     with timeout(minutes=DEFAULT_TIMEOUT):
         estimator_parameter = {
@@ -92,8 +81,8 @@ def test_hc_pt_s3_plugin_sm_gpu(framework_version, ecr_image, sagemaker_regions)
 @pytest.mark.model("resnet18")
 @pytest.mark.skip_gpu
 @pytest.mark.skip_py2_containers
+@pytest.mark.skip_s3plugin_test
 def test_pt_s3_plugin_sm_cpu(framework_version, ecr_image, sagemaker_regions):
-    validate_or_skip_s3_plugin(ecr_image)
     with timeout(minutes=DEFAULT_TIMEOUT):
         estimator_parameter = {
             'entry_point': 'main.py',
@@ -113,8 +102,8 @@ def test_pt_s3_plugin_sm_cpu(framework_version, ecr_image, sagemaker_regions):
 @pytest.mark.model("resnet18")
 @pytest.mark.skip_gpu
 @pytest.mark.skip_py2_containers
+@pytest.mark.skip_s3plugin_test
 def test_hc_pt_s3_plugin_sm_cpu(framework_version, ecr_image, sagemaker_regions):
-    validate_or_skip_s3_plugin(ecr_image)
     training_group = InstanceGroup("train_group", CPU_INSTANCE, 1)
     with timeout(minutes=DEFAULT_TIMEOUT):
         estimator_parameter = {
