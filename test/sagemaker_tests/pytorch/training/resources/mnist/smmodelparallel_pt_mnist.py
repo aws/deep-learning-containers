@@ -279,7 +279,7 @@ def main():
 
     train_loader = torch.utils.data.DataLoader(dataset1, **kwargs)
     test_loader = torch.utils.data.DataLoader(dataset2, **kwargs)
-        
+
     model = GroupedNet()
 
     use_inductor = (args.inductor == 1)
