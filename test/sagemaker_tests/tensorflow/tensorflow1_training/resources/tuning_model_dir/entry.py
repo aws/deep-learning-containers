@@ -16,11 +16,13 @@ import argparse
 import os
 
 parser = argparse.ArgumentParser()
-parser.add_argument('--model_dir', type=str)
-parser.add_argument('--arbitrary_value', type=int, default=0)
+parser.add_argument("--model_dir", type=str)
+parser.add_argument("--arbitrary_value", type=int, default=0)
 args = parser.parse_args()
 
-assert os.environ['TRAINING_JOB_NAME'] in args.model_dir, 'model_dir not unique to training job: %s' % args.model_dir
+assert os.environ["TRAINING_JOB_NAME"] in args.model_dir, (
+    "model_dir not unique to training job: %s" % args.model_dir
+)
 
 # For the "hyperparameter tuning" to work
-print('accuracy=1')
+print("accuracy=1")

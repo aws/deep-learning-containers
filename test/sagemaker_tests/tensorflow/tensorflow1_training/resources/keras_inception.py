@@ -17,13 +17,13 @@ from tensorflow import keras
 import tensorflow as tf
 
 parser = argparse.ArgumentParser()
-parser.add_argument('--model_dir', type=str)
+parser.add_argument("--model_dir", type=str)
 
 args = parser.parse_args()
 
 
 # Loading pre-trained Keras model
-model = keras.applications.inception_v3.InceptionV3(weights='imagenet')
+model = keras.applications.inception_v3.InceptionV3(weights="imagenet")
 
 # Exports the keras model as TensorFlow Serving Saved Model
 with tf.Session() as session:
@@ -33,6 +33,7 @@ with tf.Session() as session:
 
     tf.saved_model.simple_save(
         session,
-        os.path.join(args.model_dir, 'inception-model/1'),
-        inputs={'input_image': model.input},
-        outputs={t.name: t for t in model.outputs})
+        os.path.join(args.model_dir, "inception-model/1"),
+        inputs={"input_image": model.input},
+        outputs={t.name: t for t in model.outputs},
+    )

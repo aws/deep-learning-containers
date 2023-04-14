@@ -107,7 +107,7 @@ if __name__ == "__main__":
         format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
     )
 
-    learning_rate=args.learning_rate
+    learning_rate = args.learning_rate
 
     if SDP_ENABLED:
         sdp.init()
@@ -138,7 +138,13 @@ if __name__ == "__main__":
 
         # train_results = model.fit(tf_train_dataset, epochs=args.epochs, batch_size=args.train_batch_size)
         train_results = fit(
-            model, loss, optimizer, tf_train_dataset, args.epochs, args.train_batch_size, max_steps=args.max_steps
+            model,
+            loss,
+            optimizer,
+            tf_train_dataset,
+            args.epochs,
+            args.train_batch_size,
+            max_steps=args.max_steps,
         )
         logger.info("*** Train ***")
 

@@ -45,7 +45,9 @@ SM_GRAVITON_C7G = ["ml.c7g.4xlarge"]
 @pytest.mark.model("mnist")
 @pytest.mark.processor("cpu")
 @pytest.mark.cpu_test
-def test_mnist_distributed_cpu_inductor(framework_version, ecr_image, instance_type, sagemaker_regions):
+def test_mnist_distributed_cpu_inductor(
+    framework_version, ecr_image, instance_type, sagemaker_regions
+):
     instance_type = instance_type or "ml.c5.9xlarge"
     if Version(framework_version) in SpecifierSet("<2.0"):
         pytest.skip("skip the test as torch.compile only supported after 2.0")
@@ -55,14 +57,18 @@ def test_mnist_distributed_cpu_inductor(framework_version, ecr_image, instance_t
         "instance_type": instance_type,
         "model_dir": model_dir,
     }
-    invoke_pytorch_helper_function(ecr_image, sagemaker_regions, _test_mnist_distributed, function_args)
+    invoke_pytorch_helper_function(
+        ecr_image, sagemaker_regions, _test_mnist_distributed, function_args
+    )
 
 
 @pytest.mark.model("mnist")
 @pytest.mark.processor("cpu")
 @pytest.mark.cpu_test
 @pytest.mark.parametrize("instance_type", SM_GRAVITON_C7G)
-def test_mnist_distributed_graviton_inductor(framework_version, ecr_image, instance_type, sagemaker_regions):
+def test_mnist_distributed_graviton_inductor(
+    framework_version, ecr_image, instance_type, sagemaker_regions
+):
     if Version(framework_version) in SpecifierSet("<2.0"):
         pytest.skip("skip the test as torch.compile only supported after 2.0")
     if "graviton" not in ecr_image:
@@ -73,14 +79,18 @@ def test_mnist_distributed_graviton_inductor(framework_version, ecr_image, insta
         "instance_type": instance_type,
         "model_dir": model_dir,
     }
-    invoke_pytorch_helper_function(ecr_image, sagemaker_regions, _test_mnist_distributed, function_args)
+    invoke_pytorch_helper_function(
+        ecr_image, sagemaker_regions, _test_mnist_distributed, function_args
+    )
 
 
 @pytest.mark.model("mnist")
 @pytest.mark.processor("gpu")
 @pytest.mark.gpu_test
 @pytest.mark.parametrize("instance_type", SM_SINGLE_GPU_INSTANCE_TYPES)
-def test_mnist_distributed_gpu_inductor(framework_version, ecr_image, instance_type, sagemaker_regions):
+def test_mnist_distributed_gpu_inductor(
+    framework_version, ecr_image, instance_type, sagemaker_regions
+):
     if Version(framework_version) in SpecifierSet("<2.0"):
         pytest.skip("skip the test as torch.compile only supported after 2.0")
     if "graviton" in ecr_image:
@@ -91,7 +101,9 @@ def test_mnist_distributed_gpu_inductor(framework_version, ecr_image, instance_t
         "instance_type": instance_type,
         "model_dir": model_dir,
     }
-    invoke_pytorch_helper_function(ecr_image, sagemaker_regions, _test_mnist_distributed, function_args)
+    invoke_pytorch_helper_function(
+        ecr_image, sagemaker_regions, _test_mnist_distributed, function_args
+    )
 
 
 def _test_mnist_distributed(
@@ -156,7 +168,9 @@ def _check_for_cloudwatch_logs(endpoint_name, sagemaker_session):
     try:
         log_stream_name = identify_log_stream["logStreams"][0]["logStreamName"]
     except IndexError as e:
-        raise RuntimeError(f"Unable to look up log streams for the log group {log_group_name}") from e
+        raise RuntimeError(
+            f"Unable to look up log streams for the log group {log_group_name}"
+        ) from e
 
     log_events_response = client.get_log_events(
         logGroupName=log_group_name, logStreamName=log_stream_name, limit=50, startFromHead=True

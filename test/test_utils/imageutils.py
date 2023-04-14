@@ -63,7 +63,9 @@ def get_image_labels_with_manifest(client, repository, tag, account_id=None, man
     :return: dict All Docker Image Labels applied on the image
     """
     if not manifest_kwargs:
-        manifest_kwargs = {"acceptedMediaTypes": ["application/vnd.docker.distribution.manifest.v1+json"]}
+        manifest_kwargs = {
+            "acceptedMediaTypes": ["application/vnd.docker.distribution.manifest.v1+json"]
+        }
     if account_id:
         manifest_kwargs["registryId"] = account_id
 
@@ -87,13 +89,17 @@ def get_image_manifest(repository, tag, client, **kwargs):
     :param ecr_client: <boto3.client> ECR client object to be used for query
     :return: ECR image manifest as dict, or requested format if mentioned in kwargs.
     """
-    response = client.batch_get_image(repositoryName=repository, imageIds=[{"imageTag": tag}], **kwargs)
+    response = client.batch_get_image(
+        repositoryName=repository, imageIds=[{"imageTag": tag}], **kwargs
+    )
     if not response.get("images"):
         raise ValueError(
             f"Failed to get images through ecr_client.batch_get_image response for image {repository}:{tag}"
         )
     elif not response["images"][0].get("imageManifest"):
-        raise KeyError(f"imageManifest not found in ecr_client.batch_get_image response:\n{response['images']}")
+        raise KeyError(
+            f"imageManifest not found in ecr_client.batch_get_image response:\n{response['images']}"
+        )
     return response["images"][0]["imageManifest"]
 
 
@@ -101,7 +107,7 @@ def are_fixture_labels_enabled(image_uri, labels):
     """
     Returns False if a fixture label in the given image has value other than true
     Otherwise returns True
-    Example: 
+    Example:
     Expected fixture labels: [a,b,c]
     image labels: [] -> True
     image labels: [a=true] -> True # assumes [b=true, c=true]
@@ -115,6 +121,7 @@ def are_fixture_labels_enabled(image_uri, labels):
             if image_labels.get(label, "True").lower() != "true":
                 return False
     return True
+
 
 def are_image_labels_matched(image_uri, labels):
     image_label_collection = get_image_labels(image_uri)
