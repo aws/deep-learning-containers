@@ -90,7 +90,7 @@ def test_hc_mnist_distributed_cpu(framework_version, ecr_image, sagemaker_region
 @pytest.mark.parametrize("instance_type", inductor_instance_types, indirect=True)
 @pytest.mark.xfail(reason="known issue: https://github.com/pytorch/pytorch/issues/99067")
 def test_hc_mnist_distributed_gpu(framework_version, ecr_image, sagemaker_regions, instance_type, dist_gpu_backend):
-    instance_type = instance_type or 'ml.p3.2xlarge'
+    instance_type = instance_type or 'ml.p3.8xlarge'
     training_group = InstanceGroup("train_group", instance_type, 2)
     function_args = {
             'framework_version': framework_version,
