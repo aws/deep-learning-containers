@@ -30,7 +30,6 @@ from .... import invoke_pytorch_helper_function
 DGL_DATA_PATH = os.path.join(resources_path, "dgl-gcn")
 DGL_LT_09x_SCRIPT_PATH = os.path.join(DGL_DATA_PATH, "train_dgl_lt_09x.py")
 DGL_SCRIPT_PATH = os.path.join(DGL_DATA_PATH, "train.py")
-inductor_instance_types=["ml.p3.2xlarge", "ml.g5.4xlarge", "ml.g4dn.4xlarge"]
 
 
 @pytest.mark.integration("dgl")
@@ -55,7 +54,6 @@ def test_dgl_gcn_training_cpu(ecr_image, sagemaker_regions, instance_type):
 @pytest.mark.skip_cpu
 @pytest.mark.skip_py2_containers
 @pytest.mark.skip_inductor_test
-@pytest.mark.parametrize("instance_type", inductor_instance_types, indirect=True)
 def test_dgl_gcn_training_gpu(ecr_image, sagemaker_regions, instance_type):
     _, image_framework_version = get_framework_and_version_from_tag(ecr_image)
     image_cuda_version = get_cuda_version_from_tag(ecr_image)
