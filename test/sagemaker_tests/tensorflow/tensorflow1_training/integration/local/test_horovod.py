@@ -21,7 +21,7 @@ from sagemaker.tensorflow import TensorFlow
 
 from ...integration.utils import processor, py_version  # noqa: F401
 
-RESOURCE_PATH = os.path.join(os.path.dirname(__file__), '..', '..', 'resources')
+RESOURCE_PATH = os.path.join(os.path.dirname(__file__), "..", "..", "resources")
 
 
 @pytest.mark.processor("cpu")
@@ -107,14 +107,14 @@ def read_json(file, tmp):
 
 
 def assert_files_exist_in_tar(output_path, files):
-    if output_path.startswith('file://'):
+    if output_path.startswith("file://"):
         output_path = output_path[7:]
-    model_file = os.path.join(output_path, 'model.tar.gz')
+    model_file = os.path.join(output_path, "model.tar.gz")
     with tarfile.open(model_file) as tar:
         for f in files:
             tar.getmember(f)
 
 
 def extract_files(output_path, tmpdir):
-    with tarfile.open(os.path.join(output_path, 'model.tar.gz')) as tar:
+    with tarfile.open(os.path.join(output_path, "model.tar.gz")) as tar:
         tar.extractall(tmpdir)

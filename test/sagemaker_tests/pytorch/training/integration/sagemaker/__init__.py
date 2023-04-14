@@ -21,15 +21,18 @@ from sagemaker.pytorch import PyTorch
 from sagemaker import utils
 from .timeout import timeout
 from ...integration import training_dir, mnist_script, DEFAULT_TIMEOUT
-from ..... import get_ecr_image, get_ecr_image_region, get_sagemaker_session, LOW_AVAILABILITY_INSTANCE_TYPES
+from ..... import (
+    get_ecr_image,
+    get_ecr_image_region,
+    get_sagemaker_session,
+    LOW_AVAILABILITY_INSTANCE_TYPES,
+)
 
 
 def upload_s3_data(estimator, path, key_prefix):
 
     estimator.sagemaker_session.default_bucket()
-    inputs = estimator.sagemaker_session.upload_data(
-        path=path,
-        key_prefix=key_prefix)
+    inputs = estimator.sagemaker_session.upload_data(path=path, key_prefix=key_prefix)
     return inputs
 
 
@@ -65,7 +68,11 @@ def invoke_pytorch_estimator(
         for test_region in sagemaker_regions:
             sagemaker_session = get_sagemaker_session(test_region)
             # Reupload the image to test region if needed
-            tested_ecr_image = get_ecr_image(ecr_image, test_region) if test_region != ecr_image_region else ecr_image
+            tested_ecr_image = (
+                get_ecr_image(ecr_image, test_region)
+                if test_region != ecr_image_region
+                else ecr_image
+            )
             if "environment" not in estimator_parameter:
                 estimator_parameter["environment"] = {"AWS_REGION": test_region}
             else:
@@ -78,12 +85,12 @@ def invoke_pytorch_estimator(
                 )
 
                 if disable_sm_profiler:
-                    if sagemaker_session.boto_region_name in ('cn-north-1', 'cn-northwest-1'):
+                    if sagemaker_session.boto_region_name in ("cn-north-1", "cn-northwest-1"):
                         pytorch.disable_profiler = True
 
                 if upload_s3_data_args:
                     training_input = upload_s3_data(pytorch, **upload_s3_data_args)
-                    inputs = {'training': training_input}
+                    inputs = {"training": training_input}
 
                 pytorch.fit(inputs=inputs, job_name=job_name, logs=True)
                 return pytorch, sagemaker_session
@@ -100,7 +107,10 @@ def invoke_pytorch_estimator(
     if "instance_type" in estimator_parameter:
         instance_types = [estimator_parameter["instance_type"]]
     elif "instance_groups" in estimator_parameter:
-        instance_types = [instance_group.instance_type for instance_group in estimator_parameter["instance_groups"]]
+        instance_types = [
+            instance_group.instance_type
+            for instance_group in estimator_parameter["instance_groups"]
+        ]
     # It is possible to have such low capacity on certain instance types that the test is never able to run due to
     # ICE errors. In these cases, we are forced to xfail/skip the test, or end up causing pipelines to fail forever.
     # We have approval to skip the test when this type of ICE error occurs for p4de. Will need approval for each new
@@ -113,27 +123,35 @@ def invoke_pytorch_estimator(
     raise error
 
 
-def _test_mnist_distributed(ecr_image, sagemaker_session, framework_version, dist_backend, instance_type=None, instance_groups=None, use_inductor=False):
-        
+def _test_mnist_distributed(
+    ecr_image,
+    sagemaker_session,
+    framework_version,
+    dist_backend,
+    instance_type=None,
+    instance_groups=None,
+    use_inductor=False,
+):
+
     dist_method = "pytorchddp" if dist_backend.lower() == "nccl" else "torch_distributed"
     est_params = {
         "entry_point": mnist_script,
-        "role": 'SageMakerRole',
+        "role": "SageMakerRole",
         "sagemaker_session": sagemaker_session,
         "image_uri": ecr_image,
         "hyperparameters": {"backend": dist_backend, "epochs": 1, "inductor": int(use_inductor)},
         "framework_version": framework_version,
-        "distribution": {dist_method: {"enabled": True}}
+        "distribution": {dist_method: {"enabled": True}},
     }
     if not instance_groups:
         est_params["instance_type"] = instance_type
         est_params["instance_count"] = 2
     else:
         est_params["instance_groups"] = instance_groups
-    job_name = 'test-pt-hc-mnist-distributed' if instance_groups else "test-pt-mnist-distributed"
+    job_name = "test-pt-hc-mnist-distributed" if instance_groups else "test-pt-mnist-distributed"
     with timeout(minutes=DEFAULT_TIMEOUT):
-        pytorch = PyTorch(
-            **est_params
+        pytorch = PyTorch(**est_params)
+        training_input = pytorch.sagemaker_session.upload_data(
+            path=training_dir, key_prefix="pytorch/mnist"
         )
-        training_input = pytorch.sagemaker_session.upload_data(path=training_dir, key_prefix='pytorch/mnist')
-        pytorch.fit({'training': training_input}, job_name=utils.unique_name_from_base(job_name))
+        pytorch.fit({"training": training_input}, job_name=utils.unique_name_from_base(job_name))

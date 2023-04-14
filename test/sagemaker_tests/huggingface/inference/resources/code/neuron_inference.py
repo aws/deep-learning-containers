@@ -11,6 +11,7 @@ model_id2label = {"0": "NEGATIVE", "1": "POSITIVE"}
 
 print("running Neuron... test")
 
+
 def model_fn(model_dir):
     tokenizer = AutoTokenizer.from_pretrained(model_dir)
     model = torch.jit.load(os.path.join(model_dir, AWS_NEURON_TRACED_WEIGHTS_NAME))
@@ -33,4 +34,6 @@ def predict_fn(data, model):
     maxes = np.max(outputs, axis=-1, keepdims=True)
     shifted_exp = np.exp(outputs - maxes)
     scores = shifted_exp / shifted_exp.sum(axis=-1, keepdims=True)
-    return [{"label": model_id2label[str(item.argmax())], "score": item.max().item()} for item in scores]
+    return [
+        {"label": model_id2label[str(item.argmax())], "score": item.max().item()} for item in scores
+    ]

@@ -11,13 +11,16 @@ from packaging import version
 import mxnet as mx
 import numpy as np
 
+
 def get_context():
     mxnet_version = version.parse(mx.__version__)
     if mxnet_version >= version.parse("1.8"):
         import mx_neuron as neuron
+
         return mx.cpu()
     else:
         return mx.neuron()
+
 
 ### NOTE: model_fn and transform_fn are used to load the model and serve inference
 def model_fn(model_dir):
@@ -52,7 +55,7 @@ def transform_fn(mod, payload, input_content_type, output_content_type):
     logging.info("input_content_type %s", input_content_type)
     Batch = namedtuple("Batch", ["data"])
     ctx = get_context()
-    
+
     print("payload {}".format(payload))
     data = np.array(json.loads(payload))
     print("shape {}".format(data.shape))

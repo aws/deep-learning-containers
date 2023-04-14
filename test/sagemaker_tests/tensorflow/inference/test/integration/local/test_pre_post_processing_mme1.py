@@ -29,16 +29,19 @@ PING_URL = "http://localhost:8080/ping"
 INVOCATION_URL = "http://localhost:8080/models/{}/invoke"
 MODEL_NAMES = ["half_plus_three", "half_plus_two"]
 
+
 @pytest.fixture(scope="session", autouse=True)
 def volume():
     try:
         model_dir = os.path.abspath("test/resources/mme1")
         subprocess.check_call(
             "docker volume create --name model_volume_mme1 --opt type=none "
-            "--opt device={} --opt o=bind".format(model_dir).split())
+            "--opt device={} --opt o=bind".format(model_dir).split()
+        )
         yield model_dir
     finally:
         subprocess.check_call("docker volume rm model_volume_mme1".split())
+
 
 @pytest.fixture(scope="module", autouse=True)
 def container(docker_base_name, tag, runtime_config):
@@ -69,17 +72,15 @@ def container(docker_base_name, tag, runtime_config):
         yield proc.pid
     finally:
         subprocess.check_call("docker rm -f sagemaker-tensorflow-serving-test".split())
-        
+
 
 @pytest.fixture
 def models():
     for MODEL_NAME in MODEL_NAMES:
-        model_data = {
-            "model_name": MODEL_NAME,
-            "url": "/opt/ml/models/{}/model".format(MODEL_NAME)
-        }
+        model_data = {"model_name": MODEL_NAME, "url": "/opt/ml/models/{}/model".format(MODEL_NAME)}
         make_load_model_request(json.dumps(model_data))
     return MODEL_NAMES
+
 
 @pytest.mark.processor("cpu")
 @pytest.mark.model("half_plus_three, half_plus_two")
@@ -89,19 +90,21 @@ def test_ping_service():
     response = requests.get(PING_URL)
     assert 200 == response.status_code
 
+
 @pytest.mark.processor("cpu")
 @pytest.mark.model("half_plus_three, half_plus_two")
 @pytest.mark.integration("mme")
 @pytest.mark.skip_gpu
 def test_predict_json(models):
     headers = make_headers()
-    data = "{\"instances\": [1.0, 2.0, 5.0]}"
+    data = '{"instances": [1.0, 2.0, 5.0]}'
     responses = []
     for model in models:
         response = requests.post(INVOCATION_URL.format(model), data=data, headers=headers).json()
         responses.append(response)
     assert responses[0] == {"predictions": [3.5, 4.0, 5.5]}
     assert responses[1] == {"predictions": [2.5, 3.0, 4.5]}
+
 
 @pytest.mark.processor("cpu")
 @pytest.mark.model("half_plus_three, half_plus_two")
@@ -114,6 +117,7 @@ def test_zero_content():
         response = requests.post(INVOCATION_URL.format(MODEL_NAME), data=x, headers=headers)
         assert 500 == response.status_code
         assert "document is empty" in response.text
+
 
 @pytest.mark.processor("cpu")
 @pytest.mark.model("half_plus_three, half_plus_two")
@@ -131,6 +135,7 @@ def test_large_input():
             predictions = response["predictions"]
             assert len(predictions) == 753936
 
+
 @pytest.mark.processor("cpu")
 @pytest.mark.model("half_plus_three, half_plus_two")
 @pytest.mark.integration("mme")
@@ -140,10 +145,13 @@ def test_csv_input():
     data = "1.0,2.0,5.0"
     responses = []
     for MODEL_NAME in MODEL_NAMES:
-        response = requests.post(INVOCATION_URL.format(MODEL_NAME), data=data, headers=headers).json()
+        response = requests.post(
+            INVOCATION_URL.format(MODEL_NAME), data=data, headers=headers
+        ).json()
         responses.append(response)
     assert responses[0] == {"predictions": [3.5, 4.0, 5.5]}
     assert responses[1] == {"predictions": [2.5, 3.0, 4.5]}
+
 
 @pytest.mark.processor("cpu")
 @pytest.mark.model("half_plus_three, half_plus_two")
@@ -161,6 +169,7 @@ def test_specific_versions():
                 assert response == {"predictions": [3.5, 4.0, 5.5]}
             else:
                 assert response == {"predictions": [2.5, 3.0, 4.5]}
+
 
 @pytest.mark.processor("cpu")
 @pytest.mark.model("half_plus_three, half_plus_two")

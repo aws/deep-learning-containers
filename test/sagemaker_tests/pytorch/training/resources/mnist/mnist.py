@@ -14,8 +14,9 @@
 # Workaround for https://github.com/pytorch/vision/issues/1938
 from __future__ import print_function, absolute_import
 from six.moves import urllib
+
 opener = urllib.request.build_opener()
-opener.addheaders = [('User-agent', 'Mozilla/5.0')]
+opener.addheaders = [("User-agent", "Mozilla/5.0")]
 urllib.request.install_opener(opener)
 from packaging.version import Version
 
@@ -42,14 +43,22 @@ from torchvision import datasets, transforms
 TORCHVISION_VERSION = "0.9.1"
 if Version(torchvision.__version__) < Version(TORCHVISION_VERSION):
     datasets.MNIST.resources = [
-        ('https://dlinfra-mnist-dataset.s3-us-west-2.amazonaws.com/mnist/train-images-idx3-ubyte.gz',
-         'f68b3c2dcbeaaa9fbdd348bbdeb94873'),
-        ('https://dlinfra-mnist-dataset.s3-us-west-2.amazonaws.com/mnist/train-labels-idx1-ubyte.gz',
-         'd53e105ee54ea40749a09fcbcd1e9432'),
-        ('https://dlinfra-mnist-dataset.s3-us-west-2.amazonaws.com/mnist/t10k-images-idx3-ubyte.gz',
-         '9fb629c4189551a2d022fa330f9573f3'),
-        ('https://dlinfra-mnist-dataset.s3-us-west-2.amazonaws.com/mnist/t10k-labels-idx1-ubyte.gz',
-         'ec29112dd5afa0611ce80d1b7f02629c')
+        (
+            "https://dlinfra-mnist-dataset.s3-us-west-2.amazonaws.com/mnist/train-images-idx3-ubyte.gz",
+            "f68b3c2dcbeaaa9fbdd348bbdeb94873",
+        ),
+        (
+            "https://dlinfra-mnist-dataset.s3-us-west-2.amazonaws.com/mnist/train-labels-idx1-ubyte.gz",
+            "d53e105ee54ea40749a09fcbcd1e9432",
+        ),
+        (
+            "https://dlinfra-mnist-dataset.s3-us-west-2.amazonaws.com/mnist/t10k-images-idx3-ubyte.gz",
+            "9fb629c4189551a2d022fa330f9573f3",
+        ),
+        (
+            "https://dlinfra-mnist-dataset.s3-us-west-2.amazonaws.com/mnist/t10k-labels-idx1-ubyte.gz",
+            "ec29112dd5afa0611ce80d1b7f02629c",
+        ),
     ]
 
 logger = logging.getLogger(__name__)
@@ -81,23 +90,39 @@ class Net(nn.Module):
 
 def _get_train_data_loader(batch_size, training_dir, is_distributed, **kwargs):
     logger.info("Get train data loader")
-    dataset = datasets.MNIST(training_dir, train=True, transform=transforms.Compose([
-        transforms.ToTensor(),
-        transforms.Normalize((0.1307,), (0.3081,))
-    ]))
-    train_sampler = torch.utils.data.distributed.DistributedSampler(dataset) if is_distributed else None
-    return torch.utils.data.DataLoader(dataset, batch_size=batch_size, shuffle=train_sampler is None,
-                                       sampler=train_sampler, **kwargs)
+    dataset = datasets.MNIST(
+        training_dir,
+        train=True,
+        transform=transforms.Compose(
+            [transforms.ToTensor(), transforms.Normalize((0.1307,), (0.3081,))]
+        ),
+    )
+    train_sampler = (
+        torch.utils.data.distributed.DistributedSampler(dataset) if is_distributed else None
+    )
+    return torch.utils.data.DataLoader(
+        dataset,
+        batch_size=batch_size,
+        shuffle=train_sampler is None,
+        sampler=train_sampler,
+        **kwargs,
+    )
 
 
 def _get_test_data_loader(test_batch_size, training_dir, **kwargs):
     logger.info("Get test data loader")
     return torch.utils.data.DataLoader(
-        datasets.MNIST(training_dir, train=False, transform=transforms.Compose([
-            transforms.ToTensor(),
-            transforms.Normalize((0.1307,), (0.3081,))
-        ])),
-        batch_size=test_batch_size, shuffle=True, **kwargs)
+        datasets.MNIST(
+            training_dir,
+            train=False,
+            transform=transforms.Compose(
+                [transforms.ToTensor(), transforms.Normalize((0.1307,), (0.3081,))]
+            ),
+        ),
+        batch_size=test_batch_size,
+        shuffle=True,
+        **kwargs,
+    )
 
 
 def _average_gradients(model):
@@ -110,21 +135,26 @@ def _average_gradients(model):
 
 def train(args):
     is_distributed = args.backend is not None
-    use_cuda = (args.processor == 'gpu') or (args.num_gpus > 0)
-    kwargs = {'num_workers': 1, 'pin_memory': True} if use_cuda else {}
+    use_cuda = (args.processor == "gpu") or (args.num_gpus > 0)
+    kwargs = {"num_workers": 1, "pin_memory": True} if use_cuda else {}
     device = torch.device("cuda" if use_cuda else "cpu")
-    use_inductor = (args.inductor == 1)
+    use_inductor = args.inductor == 1
 
     if is_distributed:
         # Initialize the distributed environment.
-        if not os.getenv("RANK"): # for local dist job
-            os.environ['RANK'] = str(args.hosts.index(args.current_host))
-        if not os.getenv("WORLD_SIZE"): # for local dist job
+        if not os.getenv("RANK"):  # for local dist job
+            os.environ["RANK"] = str(args.hosts.index(args.current_host))
+        if not os.getenv("WORLD_SIZE"):  # for local dist job
             os.environ["WORLD_SIZE"] = str(len(args.hosts))
         dist.init_process_group(backend=args.backend)
-        logger.info('Initialized the distributed environment: \'{}\' backend on {} processes. '.format(
-            args.backend, dist.get_world_size()) + 'Current rank is {}, Current host is: {}, Number of gpus: {}, device used: {}'.format(
-            dist.get_rank(), args.current_host, args.num_gpus, device))
+        logger.info(
+            "Initialized the distributed environment: '{}' backend on {} processes. ".format(
+                args.backend, dist.get_world_size()
+            )
+            + "Current rank is {}, Current host is: {}, Number of gpus: {}, device used: {}".format(
+                dist.get_rank(), args.current_host, args.num_gpus, device
+            )
+        )
 
     # set the seed for generating random numbers
     torch.manual_seed(args.seed)
@@ -135,15 +165,21 @@ def train(args):
     test_loader = _get_test_data_loader(args.test_batch_size, args.data_dir, **kwargs)
 
     # TODO: assert the logs when we move to the SDK local mode
-    logger.debug("Processes {}/{} ({:.0f}%) of train data".format(
-        len(train_loader.sampler), len(train_loader.dataset),
-        100. * len(train_loader.sampler) / len(train_loader.dataset)
-    ))
+    logger.debug(
+        "Processes {}/{} ({:.0f}%) of train data".format(
+            len(train_loader.sampler),
+            len(train_loader.dataset),
+            100.0 * len(train_loader.sampler) / len(train_loader.dataset),
+        )
+    )
 
-    logger.debug("Processes {}/{} ({:.0f}%) of test data".format(
-        len(test_loader.sampler), len(test_loader.dataset),
-        100. * len(test_loader.sampler) / len(test_loader.dataset)
-    ))
+    logger.debug(
+        "Processes {}/{} ({:.0f}%) of test data".format(
+            len(test_loader.sampler),
+            len(test_loader.dataset),
+            100.0 * len(test_loader.sampler) / len(test_loader.dataset),
+        )
+    )
 
     model = Net()
 
@@ -172,7 +208,9 @@ def train(args):
         for batch_idx, (data, target) in enumerate(train_loader, 1):
             if is_distributed and use_cuda:
                 # multi-machine multi-gpu case - allow asynchrous GPU copies of the data
-                data, target = data.to(device, non_blocking=True), target.to(device, non_blocking=True)
+                data, target = data.to(device, non_blocking=True), target.to(
+                    device, non_blocking=True
+                )
             else:
                 data, target = data.to(device), target.to(device)
             optimizer.zero_grad()
@@ -184,13 +222,19 @@ def train(args):
                 _average_gradients(model)
             optimizer.step()
             if batch_idx % args.log_interval == 0:
-                logger.debug('Train Epoch: {} [{}/{} ({:.0f}%)]\tLoss: {:.6f}'.format(
-                    epoch, batch_idx * len(data), len(train_loader.sampler),
-                    100. * batch_idx / len(train_loader), loss.item()))
+                logger.debug(
+                    "Train Epoch: {} [{}/{} ({:.0f}%)]\tLoss: {:.6f}".format(
+                        epoch,
+                        batch_idx * len(data),
+                        len(train_loader.sampler),
+                        100.0 * batch_idx / len(train_loader),
+                        loss.item(),
+                    )
+                )
         test(model, test_loader, device)
     save_model(model, args.model_dir, args)
 
-    if len(args.hosts) == 1 or os.environ['RANK'] == 0:
+    if len(args.hosts) == 1 or os.environ["RANK"] == 0:
         assert_can_track_sagemaker_experiments()
 
 
@@ -207,9 +251,12 @@ def test(model, test_loader, device):
             correct += pred.eq(target.view_as(pred)).sum().item()
 
     test_loss /= len(test_loader.dataset)
-    logger.debug('Test set: Average loss: {:.4f}, Accuracy: {}/{} ({:.0f}%)\n'.format(
-        test_loss, correct, len(test_loader.dataset),
-        100. * correct / len(test_loader.dataset)))
+    logger.debug(
+        "Test set: Average loss: {:.4f}, Accuracy: {}/{} ({:.0f}%)\n".format(
+            test_loss, correct, len(test_loader.dataset), 100.0 * correct / len(test_loader.dataset)
+        )
+    )
+
 
 def save_model(model, model_dir, args):
     model_pth = f"model_{args.hosts.index(args.current_host)}.pth"
@@ -220,18 +267,18 @@ def save_model(model, model_dir, args):
 
 
 def assert_can_track_sagemaker_experiments():
-    in_sagemaker_training = 'TRAINING_JOB_ARN' in os.environ
+    in_sagemaker_training = "TRAINING_JOB_ARN" in os.environ
     in_python_three = sys.version_info[0] == 3
 
     if in_sagemaker_training and in_python_three:
         import smexperiments.tracker
 
         with smexperiments.tracker.Tracker.load() as tracker:
-            tracker.log_parameter('param', 1)
-            tracker.log_metric('metric', 1.0)
+            tracker.log_parameter("param", 1)
+            tracker.log_metric("metric", 1.0)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     print("sys.argv: ", sys.argv)
     # test opencv
     print(cv.__version__)
@@ -239,33 +286,51 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
 
     # Data and model checkpoints directories
-    parser.add_argument('--batch-size', type=int, default=64, metavar='N',
-                        help='input batch size for training (default: 64)')
-    parser.add_argument('--test-batch-size', type=int, default=1000, metavar='N',
-                        help='input batch size for testing (default: 1000)')
-    parser.add_argument('--epochs', type=int, default=1, metavar='N',
-                        help='number of epochs to train (default: 10)')
-    parser.add_argument('--lr', type=float, default=0.01, metavar='LR',
-                        help='learning rate (default: 0.01)')
-    parser.add_argument('--momentum', type=float, default=0.5, metavar='M',
-                        help='SGD momentum (default: 0.5)')
-    parser.add_argument('--seed', type=int, default=1, metavar='S',
-                        help='random seed (default: 1)')
-    parser.add_argument('--log-interval', type=int, default=2000, metavar='N',
-                        help='how many batches to wait before logging training status')
-    parser.add_argument('--backend', type=str, default=None,
-                        help='backend for distributed training')
-    parser.add_argument('--processor', type=str, default='cpu',
-                        help='backend for distributed training')
-    parser.add_argument('--inductor', type=int, default=0,
-                        help='pytorch with inductor')
+    parser.add_argument(
+        "--batch-size",
+        type=int,
+        default=64,
+        metavar="N",
+        help="input batch size for training (default: 64)",
+    )
+    parser.add_argument(
+        "--test-batch-size",
+        type=int,
+        default=1000,
+        metavar="N",
+        help="input batch size for testing (default: 1000)",
+    )
+    parser.add_argument(
+        "--epochs", type=int, default=1, metavar="N", help="number of epochs to train (default: 10)"
+    )
+    parser.add_argument(
+        "--lr", type=float, default=0.01, metavar="LR", help="learning rate (default: 0.01)"
+    )
+    parser.add_argument(
+        "--momentum", type=float, default=0.5, metavar="M", help="SGD momentum (default: 0.5)"
+    )
+    parser.add_argument("--seed", type=int, default=1, metavar="S", help="random seed (default: 1)")
+    parser.add_argument(
+        "--log-interval",
+        type=int,
+        default=2000,
+        metavar="N",
+        help="how many batches to wait before logging training status",
+    )
+    parser.add_argument(
+        "--backend", type=str, default=None, help="backend for distributed training"
+    )
+    parser.add_argument(
+        "--processor", type=str, default="cpu", help="backend for distributed training"
+    )
+    parser.add_argument("--inductor", type=int, default=0, help="pytorch with inductor")
 
     # Container environment
     env = sagemaker_training.environment.Environment()
-    parser.add_argument('--hosts', type=list, default=env.hosts)
-    parser.add_argument('--current-host', type=str, default=env.current_host)
-    parser.add_argument('--model-dir', type=str, default=env.model_dir)
-    parser.add_argument('--data-dir', type=str, default=env.channel_input_dirs['training'])
-    parser.add_argument('--num-gpus', type=int, default=env.num_gpus)
+    parser.add_argument("--hosts", type=list, default=env.hosts)
+    parser.add_argument("--current-host", type=str, default=env.current_host)
+    parser.add_argument("--model-dir", type=str, default=env.model_dir)
+    parser.add_argument("--data-dir", type=str, default=env.channel_input_dirs["training"])
+    parser.add_argument("--num-gpus", type=int, default=env.num_gpus)
 
     train(parser.parse_args())

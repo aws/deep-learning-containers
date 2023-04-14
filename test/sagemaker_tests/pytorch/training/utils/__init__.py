@@ -15,6 +15,7 @@ from enum import Enum
 import os
 import botocore
 
+
 class NightlyFeatureLabel(Enum):
     AWS_FRAMEWORK_INSTALLED = "aws_framework_installed"
     AWS_SMDEBUG_INSTALLED = "aws_smdebug_installed"
@@ -22,14 +23,14 @@ class NightlyFeatureLabel(Enum):
     AWS_SMMP_INSTALLED = "aws_smmp_installed"
     AWS_S3_PLUGIN_INSTALLED = "aws_s3_plugin_installed"
 
-    
+
 def _botocore_resolver():
     """
     Get the DNS suffix for the given region.
     :return: endpoint object
     """
     loader = botocore.loaders.create_loader()
-    return botocore.regions.EndpointResolver(loader.load_data('endpoints'))
+    return botocore.regions.EndpointResolver(loader.load_data("endpoints"))
 
 
 def get_ecr_registry(account, region):
@@ -39,9 +40,12 @@ def get_ecr_registry(account, region):
     :param region: region where ECR repo exists
     :return: AWS ECR registry
     """
-    endpoint_data = _botocore_resolver().construct_endpoint('ecr', region)
-    return '{}.dkr.{}'.format(account, endpoint_data['hostname'])
+    endpoint_data = _botocore_resolver().construct_endpoint("ecr", region)
+    return "{}.dkr.{}".format(account, endpoint_data["hostname"])
 
 
 def is_nightly_context():
-    return os.getenv("BUILD_CONTEXT") == "NIGHTLY" or os.getenv("NIGHTLY_PR_TEST_MODE", "false").lower() == "true"
+    return (
+        os.getenv("BUILD_CONTEXT") == "NIGHTLY"
+        or os.getenv("NIGHTLY_PR_TEST_MODE", "false").lower() == "true"
+    )

@@ -30,25 +30,30 @@ from .. import RESOURCE_PATH
 
 @contextmanager
 def _test_sm_trained_model(sagemaker_session, ecr_image, instance_type, framework_version):
-    model_dir = os.path.join(RESOURCE_PATH, 'model')
-    source_dir = os.path.join(RESOURCE_PATH, 'scripts')
+    model_dir = os.path.join(RESOURCE_PATH, "model")
+    source_dir = os.path.join(RESOURCE_PATH, "scripts")
 
-    endpoint_name = sagemaker.utils.unique_name_from_base("sagemaker-autogluon-serving-trained-model")
+    endpoint_name = sagemaker.utils.unique_name_from_base(
+        "sagemaker-autogluon-serving-trained-model"
+    )
     versions_map = {
         # container version -> autogluon version
-        '0.3.2': '0.3.1',
+        "0.3.2": "0.3.1",
     }
     ag_framework_version = versions_map.get(framework_version, framework_version)
-    model_data = sagemaker_session.upload_data(path=os.path.join(model_dir, f'model_{ag_framework_version}.tar.gz'), key_prefix='sagemaker-autogluon-serving-trained-model/models')
+    model_data = sagemaker_session.upload_data(
+        path=os.path.join(model_dir, f"model_{ag_framework_version}.tar.gz"),
+        key_prefix="sagemaker-autogluon-serving-trained-model/models",
+    )
 
     model = MXNetModel(
         model_data=model_data,
-        role='SageMakerRole',
+        role="SageMakerRole",
         image_uri=ecr_image,
         sagemaker_session=sagemaker_session,
         source_dir=source_dir,
         entry_point="tabular_serve.py",
-        framework_version="1.9.0"
+        framework_version="1.9.0",
     )
 
     with timeout_and_delete_endpoint(endpoint_name, sagemaker_session, minutes=30):
@@ -60,12 +65,12 @@ def _test_sm_trained_model(sagemaker_session, ecr_image, instance_type, framewor
         predictor.serializer = CSVSerializer()
         predictor.deserializer = JSONDeserializer()
 
-        data_path = os.path.join(RESOURCE_PATH, 'data')
-        data = pd.read_csv(f'{data_path}/data.csv')
+        data_path = os.path.join(RESOURCE_PATH, "data")
+        data = pd.read_csv(f"{data_path}/data.csv")
         assert 3 == len(data)
 
         preds = predictor.predict(data.values)
-        assert preds == [' <=50K', ' <=50K', ' <=50K']
+        assert preds == [" <=50K", " <=50K", " <=50K"]
 
 
 @pytest.mark.integration("smexperiments")

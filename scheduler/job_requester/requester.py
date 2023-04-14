@@ -81,7 +81,9 @@ class JobRequester:
         ticket_name_prefix = self.get_ticket_name_prefix()
         request_time = ticket_content["TIMESTAMP"]
         self.request_lock.acquire()
-        ticket_name = f"{ticket_name_prefix}-{framework}{str(self.ticket_name_counter)}_{request_time}.json"
+        ticket_name = (
+            f"{ticket_name_prefix}-{framework}{str(self.ticket_name_counter)}_{request_time}.json"
+        )
         self.ticket_name_counter += 1
         self.request_lock.release()
         self.s3_client.put_object(
@@ -94,8 +96,11 @@ class JobRequester:
         S3_ticket_object.put(Body=bytes(json.dumps(ticket_content).encode("UTF-8")))
         try:
             # change object acl to make ticket accessible to dev account.
-            self.s3_client.put_object_acl(ACL="bucket-owner-full-control",Bucket=self.s3_ticket_bucket,
-                Key=f"{self.s3_ticket_bucket_folder}/{ticket_name}")
+            self.s3_client.put_object_acl(
+                ACL="bucket-owner-full-control",
+                Bucket=self.s3_ticket_bucket,
+                Key=f"{self.s3_ticket_bucket_folder}/{ticket_name}",
+            )
         except Exception as e:
             raise e
         LOGGER.info(f"Ticket sent successfully, ticket name: {ticket_name}")
@@ -160,7 +165,9 @@ class JobRequester:
         :param path: <string> path within the folder
         :return: <dict or None>
         """
-        objects = self.s3_client.list_objects(Bucket=self.s3_ticket_bucket, Prefix=f"{folder}/{path}")
+        objects = self.s3_client.list_objects(
+            Bucket=self.s3_ticket_bucket, Prefix=f"{folder}/{path}"
+        )
         if "Contents" in objects:
             ticket_key = objects["Contents"][0]["Key"]
             suffix_pattern = re.compile(".*-(.*).json")
@@ -188,12 +195,16 @@ class JobRequester:
         ), f"Job type (training/inference) not stated in image tag: {image}"
         time = datetime.now().strftime("%Y-%m-%d-%H-%M-%S")
         ticket_content = self.create_ticket_content(image, build_context, num_of_instances, time)
-        framework = "mxnet" if "mxnet" in image else "pytorch" if "pytorch" in image else "tensorflow"
+        framework = (
+            "mxnet" if "mxnet" in image else "pytorch" if "pytorch" in image else "tensorflow"
+        )
         ticket_name = self.send_ticket(ticket_content, framework)
 
         instance_type = self.assign_sagemaker_instance_type(image)
         job_type = "training" if "training" in image else "inference"
-        identifier = Message(self.s3_ticket_bucket, ticket_name, image, instance_type, job_type, time)
+        identifier = Message(
+            self.s3_ticket_bucket, ticket_name, image, instance_type, job_type, time
+        )
         return identifier
 
     def receive_logs(self, identifier):
@@ -228,18 +239,28 @@ class JobRequester:
         """
 
         # check if ticket is on the queue
-        ticket_in_queue = self.search_ticket_folder("request_tickets", identifier.ticket_name.rstrip(".json"))
+        ticket_in_queue = self.search_ticket_folder(
+            "request_tickets", identifier.ticket_name.rstrip(".json")
+        )
         if ticket_in_queue:
-            self.s3_client.delete_object(Bucket=self.s3_ticket_bucket, Key=f"request_tickets/{identifier.ticket_name}")
+            self.s3_client.delete_object(
+                Bucket=self.s3_ticket_bucket, Key=f"request_tickets/{identifier.ticket_name}"
+            )
             return
 
         # check if ticket is a PR duplicate
-        ticket_in_duplicate = self.search_ticket_folder("duplicate_pr_requests", identifier.ticket_name.rstrip(".json"))
+        ticket_in_duplicate = self.search_ticket_folder(
+            "duplicate_pr_requests", identifier.ticket_name.rstrip(".json")
+        )
         if ticket_in_duplicate:
-            LOGGER.info(f"{identifier.ticket_name} is a duplicate PR test, test request will not be scheduled.")
+            LOGGER.info(
+                f"{identifier.ticket_name} is a duplicate PR test, test request will not be scheduled."
+            )
             return
 
-        LOGGER.info(f"{identifier.ticket_name} test has begun, test request could not be cancelled.")
+        LOGGER.info(
+            f"{identifier.ticket_name} test has begun, test request could not be cancelled."
+        )
 
     def query_status(self, identifier):
         """
@@ -257,7 +278,9 @@ class JobRequester:
 
         for _ in range(retries):
             # check if ticket is on the queue
-            ticket_objects = self.s3_client.list_objects(Bucket=self.s3_ticket_bucket, Prefix="request_tickets/")
+            ticket_objects = self.s3_client.list_objects(
+                Bucket=self.s3_ticket_bucket, Prefix="request_tickets/"
+            )
             # "Contents" in the API response only if there are objects satisfy the prefix
             if "Contents" in ticket_objects:
                 ticket_name_pattern = re.compile(".*\/(.*)")
@@ -273,11 +296,15 @@ class JobRequester:
                     return self.construct_query_response("queuing", queueNum=queue_num)
 
             # check if ticket is on the dead letter queue
-            ticket_in_dead_letter = self.search_ticket_folder("dead_letter_queue", ticket_without_extension)
+            ticket_in_dead_letter = self.search_ticket_folder(
+                "dead_letter_queue", ticket_without_extension
+            )
             if ticket_in_dead_letter:
                 return ticket_in_dead_letter
 
-            ticket_in_duplicate = self.search_ticket_folder("duplicate_pr_requests", ticket_without_extension)
+            ticket_in_duplicate = self.search_ticket_folder(
+                "duplicate_pr_requests", ticket_without_extension
+            )
             if ticket_in_duplicate:
                 return ticket_in_duplicate
 

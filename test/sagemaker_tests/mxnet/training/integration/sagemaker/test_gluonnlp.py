@@ -21,27 +21,30 @@ from ..... import invoke_sm_helper_function
 
 from ...integration import RESOURCE_PATH
 
-NLP_DATA_PATH = os.path.join(RESOURCE_PATH, 'nlp')
-NLP_SCRIPT_PATH = os.path.join(NLP_DATA_PATH, 'word_embedding.py')
+NLP_DATA_PATH = os.path.join(RESOURCE_PATH, "nlp")
+NLP_SCRIPT_PATH = os.path.join(NLP_DATA_PATH, "word_embedding.py")
 
 
 @pytest.mark.integration("gluonnlp")
 @pytest.mark.model("word_embeddings")
 @pytest.mark.skip_py2_containers
 def test_nlp_training(ecr_image, sagemaker_regions, instance_type, framework_version):
-    invoke_sm_helper_function(ecr_image, sagemaker_regions, _test_nlp_training,
-                              instance_type, framework_version)
+    invoke_sm_helper_function(
+        ecr_image, sagemaker_regions, _test_nlp_training, instance_type, framework_version
+    )
 
 
 def _test_nlp_training(ecr_image, sagemaker_session, instance_type, framework_version):
-    nlp = MXNet(entry_point=NLP_SCRIPT_PATH,
-                role='SageMakerRole',
-                instance_count=1,
-                instance_type=instance_type,
-                sagemaker_session=sagemaker_session,
-                image_uri=ecr_image,
-                framework_version=framework_version,
-                train_max_run=5 * 60)
+    nlp = MXNet(
+        entry_point=NLP_SCRIPT_PATH,
+        role="SageMakerRole",
+        instance_count=1,
+        instance_type=instance_type,
+        sagemaker_session=sagemaker_session,
+        image_uri=ecr_image,
+        framework_version=framework_version,
+        train_max_run=5 * 60,
+    )
 
-    job_name = utils.unique_name_from_base('test-nlp-image')
+    job_name = utils.unique_name_from_base("test-nlp-image")
     nlp.fit(job_name=job_name)
