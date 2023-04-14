@@ -20,7 +20,7 @@ from sagemaker.pytorch import PyTorch
 from . import _test_mnist_distributed
 from .... import invoke_pytorch_helper_function
 
-inductor_instance_types=["ml.p3.2xlarge", "ml.g5.4xlarge", "ml.g4dn.4xlarge"]
+inductor_instance_types = ["ml.p3.8xlarge", "ml.g5.12xlarge", "ml.g4dn.12xlarge"]
 
 @pytest.mark.processor("cpu")
 @pytest.mark.model("mnist")

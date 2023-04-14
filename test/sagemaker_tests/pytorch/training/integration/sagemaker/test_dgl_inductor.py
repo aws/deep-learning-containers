@@ -30,7 +30,7 @@ from .... import invoke_pytorch_helper_function
 DGL_DATA_PATH = os.path.join(resources_path, "dgl-gcn")
 DGL_LT_09x_SCRIPT_PATH = os.path.join(DGL_DATA_PATH, "train_dgl_lt_09x.py")
 DGL_SCRIPT_PATH = os.path.join(DGL_DATA_PATH, "train.py")
-inductor_instance_types=["ml.p3.2xlarge", "ml.g5.4xlarge", "ml.g4dn.4xlarge"]
+inductor_instance_types = ["ml.p3.8xlarge", "ml.g5.12xlarge", "ml.g4dn.12xlarge"]
 
 @pytest.mark.integration("dgl")
 @pytest.mark.processor("cpu")
