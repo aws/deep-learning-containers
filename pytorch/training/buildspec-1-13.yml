@@ -99,4 +99,3 @@ images:
     docker_file: !join [ docker/, *SHORT_VERSION, /, *DOCKER_PYTHON_VERSION, /example, /Dockerfile., *DEVICE_TYPE ]
     context:
       <<: *TRAINING_CONTEXT
-  
