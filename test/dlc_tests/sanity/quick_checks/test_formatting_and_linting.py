@@ -25,4 +25,3 @@ def test_black_formatting():
     ctx = Context()
 
     ctx.run(f"black --check {dlc_base_dir}", hide=True)
-
