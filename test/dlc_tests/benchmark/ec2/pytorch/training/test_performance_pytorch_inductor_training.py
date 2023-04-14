@@ -86,13 +86,15 @@ def execute_ec2_training_performance_test(
             f"-e LOG_FILE={os.path.join(os.sep, 'test', 'benchmark', 'logs', log_name)} "
             f"-e PR_CONTEXT={1 if is_pr_context() else 0} "
             f"-v {container_test_local_dir}:{os.path.join(os.sep, 'test')} {ecr_uri} "
-            f"{os.path.join(os.sep, 'bin', 'bash')} {test_cmd}", timeout=10800)
+            f"{os.path.join(os.sep, 'bin', 'bash')} {test_cmd}", timeout=14400)
     finally:
         subprocess.check_output(f"rm -rf {model_suite}", shell=True)
         subprocess.check_output(f"mkdir {model_suite}", shell=True)
         subprocess.check_output(f"aws s3 cp {s3_pth}/ {model_suite}/ --recursive", shell=True)
-        read_upload_benchmarking_result_to_cw(METRIC_NAMES, model_suite, instance_type=ec2_instance_type, model_suite=model_suite)
-
+        try:
+            read_upload_benchmarking_result_to_cw(METRIC_NAMES, model_suite, instance_type=ec2_instance_type, model_suite=model_suite)
+        except:
+            print("Benchmarking was not finished in 4 hours.")
 
 
 def read_upload_benchmarking_result_to_cw(metric_names, pth, instance_type="p4d.24xlarge", model_suite="huggingface", precision="amp", namespace="PyTorch/EC2/Benchmarks/TorchDynamo/Inductor"):
