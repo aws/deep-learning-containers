@@ -50,7 +50,6 @@ def test_performance_pytorch_gpu_inductor_timm_models(pytorch_training, ec2_conn
         ec2_connection, pytorch_training, "timm_models", ec2_instance_type)
 
 
-@pytest.skip("skip for now")
 @pytest.mark.integration("inductor")
 @pytest.mark.model("torchbench")
 @pytest.mark.parametrize("ec2_instance_ami", [UBUNTU_18_BASE_DLAMI_US_WEST_2], indirect=True)
