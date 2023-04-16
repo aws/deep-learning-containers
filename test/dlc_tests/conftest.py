@@ -128,6 +128,18 @@ NIGHTLY_FIXTURES = {
     "feature_s3_plugin_present": {NightlyFeatureLabel.AWS_S3_PLUGIN_INSTALLED.value},
 }
 
+@pytest.fixture(autouse=True)
+def skip_s3plugin_test(request, framework_version):
+    if request.node.get_closest_marker("skip_s3plugin_test"):
+        if Version(framework_version) < Version("1.6.0") or Version(framework_version) > Version(
+            "1.12.1"
+        ):
+            pytest.skip(
+                "s3 plugin is only supported in PT>=1.6.0,<=1.12.1, skipping this container with tag{}".format(
+                    framework_version
+                )
+            )
+
 # Nightly fixtures
 @pytest.fixture(scope="session")
 def feature_smdebug_present():

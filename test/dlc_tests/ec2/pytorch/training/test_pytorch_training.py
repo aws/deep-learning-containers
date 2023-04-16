@@ -460,6 +460,7 @@ def test_pytorch_amp_inductor(pytorch_training, ec2_connection, gpu_only, ec2_in
 @pytest.mark.integration("pt_s3_plugin_gpu")
 @pytest.mark.model("N/A")
 @pytest.mark.parametrize("ec2_instance_type", PT_EC2_GPU_INSTANCE_TYPE, indirect=True)
+@pytest.mark.skip_s3plugin_test
 def test_pytorch_s3_plugin_gpu(
     pytorch_training, ec2_connection, gpu_only, ec2_instance_type, outside_versions_skip
 ):
@@ -479,6 +480,7 @@ def test_pytorch_s3_plugin_gpu(
 @pytest.mark.integration("pt_s3_plugin_cpu")
 @pytest.mark.model("N/A")
 @pytest.mark.parametrize("ec2_instance_type", PT_EC2_CPU_INSTANCE_TYPE, indirect=True)
+@pytest.mark.skip_s3plugin_test
 def test_pytorch_s3_plugin_cpu(
     pytorch_training, ec2_connection, cpu_only, ec2_instance_type, outside_versions_skip
 ):

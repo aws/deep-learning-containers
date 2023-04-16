@@ -723,7 +723,7 @@ def execute_ec2_training_test(
 
     LOGGER.info(f"execute_ec2_training_test pulling {ecr_uri}")
     connection.run(f"docker pull {ecr_uri}", hide="out")
-    LOGGER.info(f"execute_ec2_training_test running {ecr_uri}")
+    LOGGER.info(f"execute_ec2_training_test running {ecr_uri}, with cmd {test_cmd}")
     connection.run(
         f"{docker_cmd} run --name {container_name} "
         f"{container_runtime} {ompi_mca_btl} {cap_add} {hpu_env_vars} "
