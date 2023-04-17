@@ -211,7 +211,7 @@ def ec2_performance_pytorch_inference(image_uri, instance_type, ec2_connection, 
 
     clone_pytorch = (f"git clone --branch v2.0.0 --recursive --single-branch --depth 1 "
                      f"https://github.com/pytorch/pytorch.git")
-    clone_torchbench = f"git clone https://github.com/pytorch/benchmark.git"
+    clone_torchbench = f"git clone --verbose https://github.com/pytorch/benchmark.git"
     install_prereq = f"pip install -U numpy"
 
     #if is_graviton:
