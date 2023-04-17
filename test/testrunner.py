@@ -486,7 +486,7 @@ def main():
                 "-rA",
                 test_path,
                 f"--junitxml={report}",
-                "-n=auto",
+                "-n=72",
                 "-o",
                 "norecursedirs=resources",
             ]
