@@ -109,7 +109,7 @@ def upload_metric(region, instance_type, precision, suite, metric_name, value, u
     )
 
 
-#@pytest.mark.skip(reason="for testing")
+@pytest.mark.skip(reason="for testing")
 @pytest.mark.parametrize("ec2_instance_type", ["c5.4xlarge", "m5.4xlarge"], indirect=True)
 @pytest.mark.parametrize("suite", ["huggingface", "timm", "torchbench"])
 #@pytest.mark.parametrize("ec2_instance_type", ["c5.4xlarge"], indirect=True)
