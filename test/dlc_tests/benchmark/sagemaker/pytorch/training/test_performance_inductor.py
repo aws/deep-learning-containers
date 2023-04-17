@@ -96,6 +96,8 @@ def _test_inductor_performance(
         image_uri=image_uri,
         debugger_hook_config=None,
         disable_profiler=True,
+        environment=dict(framework_version=framework_version),
+        max_retry_attempts=5,
     )
     pytorch.fit(job_name=utils.unique_name_from_base(f"test-pt-performance-inductor-{suites}"))
     job_name = pytorch.latest_training_job.name
@@ -116,5 +118,6 @@ def _test_inductor_performance(
         },
         debugger_hook_config=None,
         disable_profiler=True,
+        max_retry_attempts=5,
     )
     pytorch.fit(job_name=utils.unique_name_from_base(f"upload-pt-performance-inductor-{suites}"))

@@ -20,7 +20,7 @@ PYTHON_VERSION_CHECK=`echo $?`
 set -e
 cd $BIN_DIR
 # tmp fix for numpy deprecations, PR raised: https://github.com/HewlettPackard/dlcookbook-dlbs/pull/19
-git clone --quiet --single-branch --depth 1 --branch v2.0.0 https://github.com/pytorch/pytorch.git pytorch
+git clone --quiet --single-branch --depth 1 --branch v$framework_version https://github.com/pytorch/pytorch.git pytorch
 
 cd pytorch
 
