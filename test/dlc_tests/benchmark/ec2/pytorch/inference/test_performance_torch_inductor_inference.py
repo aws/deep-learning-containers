@@ -209,19 +209,18 @@ def ec2_performance_pytorch_inference(image_uri, instance_type, ec2_connection, 
     f" --quick"
     f" --no-gh-comment 2>&1 | tee {log_file}")
 
-    git_clone = (f"git clone --branch v2.0.0 --recursive --single-branch --depth 1 "
-                 f"https://github.com/pytorch/pytorch.git && "
-                 f"git clone --recursive https://github.com/pytorch/benchmark.git"
-                 )
+    clone_pytorch = (f"git clone --branch v2.0.0 --recursive --single-branch --depth 1 "
+                     f"https://github.com/pytorch/pytorch.git")
+    clone_torchbench = f"git clone https://github.com/pytorch/benchmark.git"
+    install_prereq = f"pip install -U numpy"
 
-    if is_graviton:
-        git_clone += (f" && "
-                      f"rm -rf /root/benchmark/torchbenchmark/models/torchrec_dlrm && "
-                      f"apt update && "
-                      f"apt install libjpeg9 pkg-config libssl-dev -y && "
-                      f"curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh && "
-                      f"source \"$HOME/.cargo/env\""
-        )
+    #if is_graviton:
+    #    git_clone = (f"rm -rf /root/benchmark/torchbenchmark/models/torchrec_dlrm && "
+    #                  f"apt update && "
+    #                  f"apt install libjpeg9 pkg-config libssl-dev -y && "
+    #                  f"curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh && "
+    #                  f"source \"$HOME/.cargo/env\""
+    #    )
 
     # Run performance inference command, display benchmark results to console
     framework_version = re.search(r"\d+(\.\d+){2}", image_uri).group()
@@ -234,11 +233,18 @@ def ec2_performance_pytorch_inference(image_uri, instance_type, ec2_connection, 
         f"-v /home/ubuntu/results:/root {image_uri} "
     ).stdout.split("\n")
     LOGGER.info(f"Output docker run ================================\n{docker_run_output}")
-    git_clone_output = ec2_connection.run(f"{docker_cmd} exec --workdir=\"/root\" {container_name} "
-                       f"bash -c '{git_clone}'").stdout.split("\n")
-    LOGGER.info(f"Output git clone ================================\n{git_clone_output}")
+    prereq_output = ec2_connection.run(f"{docker_cmd} exec --workdir=\"/root\" {container_name} "
+                                            f"bash -c '{install_prereq}'").stdout.split("\n")
+    LOGGER.info(f"Output install prereq ================================\n{prereq_output}")
+    clone_pt_output = ec2_connection.run(f"{docker_cmd} exec --workdir=\"/root\" {container_name} "
+                       f"bash -c '{clone_pytorch}'").stdout.split("\n")
+    LOGGER.info(f"Output git clone ================================\n{clone_pt_output}")
+    clone_tb_output = ec2_connection.run(f"{docker_cmd} exec --workdir=\"/root\" {container_name} "
+                       f"bash -c '{clone_torchbench}'").stdout.split("\n")
+    LOGGER.info(f"Output git clone ================================\n{clone_tb_output}")
     pip_freezee_output = ec2_connection.run(f"{docker_cmd} exec --workdir=\"/root\" {container_name} "
                                             f"bash -c 'pip freeze'").stdout.split("\n")
+    LOGGER.info(f"Output pip freeze ================================\n{pip_freezee_output}")
     install_output = ec2_connection.run(
         f"{docker_cmd} exec --workdir=\"/root/benchmark\" {container_name} " f"bash -c 'python install.py'").stdout.split("\n")
     LOGGER.info(f"Output python install.py ================================\n{install_output}")

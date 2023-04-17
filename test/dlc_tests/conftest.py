@@ -356,7 +356,7 @@ def ec2_instance(
     ):
         params["BlockDeviceMappings"] = [{"DeviceName": volume_name, "Ebs": {"VolumeSize": 300,},}]
     else:
-        params["BlockDeviceMappings"] = [{"DeviceName": volume_name, "Ebs": {"VolumeSize": 150,},}]
+        params["BlockDeviceMappings"] = [{"DeviceName": volume_name, "Ebs": {"VolumeSize": 500,},}]
 
     # For TRN1 since we are using a private AMI that has some BERT data/tests, have a bifgger volume size
     # Once use DLAMI, this can be removed
