@@ -159,7 +159,6 @@ def run_ec2_tensorflow_inference(image_uri, ec2_connection, grpc_port, region, t
             train_mnist_model(serving_folder_path, ec2_connection)
             sleep(10)
         ec2_connection.run(f"$(aws ecr get-login --no-include-email --region {region})", hide=True)
-        LOGGER.info(docker_run_cmd)
         ec2_connection.run(docker_run_cmd, hide=True)
         sleep(20)
         if is_neuron and str(framework_version).startswith(TENSORFLOW2_VERSION):
@@ -170,8 +169,8 @@ def run_ec2_tensorflow_inference(image_uri, ec2_connection, grpc_port, region, t
             test_utils.request_tensorflow_inference_grpc(
                 script_file_path=mnist_client_path, port=grpc_port, connection=ec2_connection
             )
-        # if telemetry_mode:
-        #     check_telemetry(ec2_connection, container_name)
+        if telemetry_mode:
+            check_telemetry(ec2_connection, container_name)
     except:
         inference_test_failed = True
         remote_out = ec2_connection.run(f"docker logs {container_name}", warn=True, hide=True)
@@ -208,7 +207,8 @@ def host_setup_for_tensorflow_inference(
         ec2_connection.run(f"pip install --no-cache-dir -U tensorflow-cpu-aws", hide=True)
         ec2_connection.run(
             (
-                f"pip install --no-dependencies --no-cache-dir tensorflow-serving-api=={framework_version}"
+                f"pip install --no-dependencies --no-cache-dir "
+                f"'tensorflow-serving-api=={framework_version}' 'protobuf>=3.20,<3.21'"
             ),
             hide=True,
         )
