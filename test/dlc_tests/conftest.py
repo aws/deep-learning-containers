@@ -337,7 +337,7 @@ def ec2_instance(
                 else UBUNTU_18_BASE_DLAMI_US_EAST_1
             )
 
-    ec2_key_name = f"{ec2_key_name}-{str(uuid.uuid4())}"
+    ec2_key_name = f"{ec2_key_name}-{str(uuid.uuid4())}-{os.getpid()}"
     print(f"Creating instance: CI-CD {ec2_key_name}")
     key_filename = test_utils.generate_ssh_keypair(ec2_client, ec2_key_name)
 
