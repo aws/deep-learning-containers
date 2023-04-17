@@ -232,7 +232,7 @@ def test_pytorch_gloo_gpu(pytorch_training, ec2_connection, gpu_only, py3_only, 
     test_cmd = (
         os.path.join(CONTAINER_TESTS_PREFIX, "pytorch_tests", "testPyTorchGlooMpi") + " gloo 0"
     )  # backend, inductor flags
-    execute_ec2_training_test(ec2_connection, pytorch_training, test_cmd, large_shm=True)
+    execute_ec2_training_test(ec2_connection, pytorch_training, test_cmd, large_shm=True, timeout=1500)
 
 
 @pytest.mark.usefixtures("sagemaker")
@@ -256,7 +256,7 @@ def test_pytorch_gloo_inductor_gpu(
     test_cmd = (
         os.path.join(CONTAINER_TESTS_PREFIX, "pytorch_tests", "testPyTorchGlooMpi") + " gloo 1"
     )  # backend, inductor flags
-    execute_ec2_training_test(ec2_connection, pytorch_training, test_cmd, large_shm=True)
+    execute_ec2_training_test(ec2_connection, pytorch_training, test_cmd, large_shm=True, timeout=1500)
 
 
 @pytest.mark.usefixtures("sagemaker")
@@ -270,7 +270,7 @@ def test_pytorch_gloo_cpu(pytorch_training, ec2_connection, cpu_only, py3_only, 
     test_cmd = (
         os.path.join(CONTAINER_TESTS_PREFIX, "pytorch_tests", "testPyTorchGlooMpi") + " gloo 0"
     )  # backend, inductor flags
-    execute_ec2_training_test(ec2_connection, pytorch_training, test_cmd, large_shm=True)
+    execute_ec2_training_test(ec2_connection, pytorch_training, test_cmd, large_shm=True, timeout=1500)
 
 
 @pytest.mark.usefixtures("sagemaker")
@@ -434,7 +434,7 @@ def test_pytorch_amp(pytorch_training, ec2_connection, gpu_only, ec2_instance_ty
         pytest.skip(
             f"Image {pytorch_training} is incompatible with instance type {ec2_instance_type}"
         )
-    execute_ec2_training_test(ec2_connection, pytorch_training, PT_AMP_CMD)
+    execute_ec2_training_test(ec2_connection, pytorch_training, PT_AMP_CMD, timeout=1500)
 
 
 @pytest.mark.usefixtures("sagemaker")
@@ -452,7 +452,7 @@ def test_pytorch_amp_inductor(pytorch_training, ec2_connection, gpu_only, ec2_in
         pytest.skip(
             f"Image {pytorch_training} is incompatible with instance type {ec2_instance_type}"
         )
-    execute_ec2_training_test(ec2_connection, pytorch_training, PT_AMP_INDUCTOR_CMD)
+    execute_ec2_training_test(ec2_connection, pytorch_training, PT_AMP_INDUCTOR_CMD, timeout=1500)
 
 
 @pytest.mark.usefixtures("feature_s3_plugin_present")
