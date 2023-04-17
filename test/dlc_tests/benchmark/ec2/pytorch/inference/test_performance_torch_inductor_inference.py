@@ -211,8 +211,9 @@ def ec2_performance_pytorch_inference(image_uri, instance_type, ec2_connection, 
 
     clone_pytorch = (f"git clone --branch v2.0.0 --recursive --single-branch --depth 1 "
                      f"https://github.com/pytorch/pytorch.git")
-    clone_torchbench = f"GIT_CURL_VERBOSE=1 GIT_TRACE=1 git clone --verbose https://github.com/pytorch/benchmark.git"
-    install_prereq = f"pip install -U numpy"
+    clone_torchbench = "GIT_CURL_VERBOSE=1 GIT_TRACE=1 git clone --verbose https://github.com/pytorch/benchmark.git"
+    install_prereq = "pip install -U numpy"
+    increase_git_buffer_size = "git config --global http.postBuffer 1048576000"
 
     #if is_graviton:
     #    git_clone = (f"rm -rf /root/benchmark/torchbenchmark/models/torchrec_dlrm && "
@@ -236,6 +237,9 @@ def ec2_performance_pytorch_inference(image_uri, instance_type, ec2_connection, 
     prereq_output = ec2_connection.run(f"{docker_cmd} exec --workdir=\"/root\" {container_name} "
                                             f"bash -c '{install_prereq}'").stdout.split("\n")
     LOGGER.info(f"Output install prereq ================================\n{prereq_output}")
+    buffersize_output = ec2_connection.run(f"{docker_cmd} exec --workdir=\"/root\" {container_name} "
+                                            f"bash -c '{increase_git_buffer_size}'").stdout.split("\n")
+    LOGGER.info(f"Output buffersize ================================\n{buffersize_output}")
     pip_freezee_output = ec2_connection.run(f"{docker_cmd} exec --workdir=\"/root\" {container_name} "
                                             f"bash -c 'pip freeze'").stdout.split("\n")
     LOGGER.info(f"Output pip freeze ================================\n{pip_freezee_output}")
