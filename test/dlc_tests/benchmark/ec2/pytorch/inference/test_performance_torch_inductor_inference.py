@@ -211,7 +211,7 @@ def ec2_performance_pytorch_inference(image_uri, instance_type, ec2_connection, 
 
     clone_pytorch = (f"git clone --branch v2.0.0 --recursive --single-branch --depth 1 "
                      f"https://github.com/pytorch/pytorch.git")
-    clone_torchbench = "GIT_CURL_VERBOSE=1 GIT_TRACE=1 git clone --branch main --recursive --single-branch --depth 1 --verbose https://github.com/pytorch/benchmark.git"
+    clone_torchbench = "GIT_CURL_VERBOSE=1 git clone --branch main --recursive --single-branch --depth 1 --verbose https://github.com/pytorch/benchmark.git"
     install_prereq = "pip install -U numpy==1.23"
     increase_git_buffer_size = "git config --global http.postBuffer 1048576000"
 
