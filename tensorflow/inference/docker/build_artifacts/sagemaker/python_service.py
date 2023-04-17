@@ -356,6 +356,7 @@ class PythonServiceResource:
                     ):
                         with lock():
                             self._sync_local_mme_instance_status()
+                        self._import_custom_modules(model_name)
 
                 if model_name not in self._mme_tfs_instances_status:
                     res.status = falcon.HTTP_404
