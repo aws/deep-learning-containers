@@ -23,6 +23,7 @@ from test.test_utils.ec2 import (
 PT_EC2_GPU_INDUCTOR_INSTANCE_TYPES = ["p3.2xlarge", "p4d.24xlarge", "g5.4xlarge", "g4dn.4xlarge"]
 METRIC_NAMES = ["speedup", "comp_time", "memory", "passrate"]
 
+@pytest.mark.timeout(300)
 @pytest.mark.integration("inductor")
 @pytest.mark.model("huggingface")
 @pytest.mark.parametrize("ec2_instance_ami", [UBUNTU_18_BASE_DLAMI_US_WEST_2], indirect=True)
@@ -35,6 +36,7 @@ def test_performance_pytorch_gpu_inductor_huggingface(pytorch_training, ec2_conn
         ec2_connection, pytorch_training, "huggingface", ec2_instance_type)
 
 
+@pytest.mark.timeout(300)
 @pytest.mark.integration("inductor")
 @pytest.mark.model("timm_models")
 @pytest.mark.parametrize("ec2_instance_ami", [UBUNTU_18_BASE_DLAMI_US_WEST_2], indirect=True)
@@ -49,6 +51,7 @@ def test_performance_pytorch_gpu_inductor_timm_models(pytorch_training, ec2_conn
         ec2_connection, pytorch_training, "timm_models", ec2_instance_type)
 
 
+@pytest.mark.timeout(300)
 @pytest.mark.integration("inductor")
 @pytest.mark.model("torchbench")
 @pytest.mark.parametrize("ec2_instance_ami", [UBUNTU_18_BASE_DLAMI_US_WEST_2], indirect=True)
@@ -59,6 +62,7 @@ def test_performance_pytorch_gpu_inductor_torchbench(pytorch_training, ec2_conne
         pytest.skip("Torch inductor was introduced in PyTorch 2.0")
     execute_ec2_training_performance_test(
         ec2_connection, pytorch_training, "torchbench", ec2_instance_type)
+
 
 def execute_ec2_training_performance_test(
     connection, ecr_uri, model_suite, ec2_instance_type, region=DEFAULT_REGION):
@@ -85,7 +89,7 @@ def execute_ec2_training_performance_test(
             f"-e LOG_FILE={os.path.join(os.sep, 'test', 'benchmark', 'logs', log_name)} "
             f"-e PR_CONTEXT={1 if is_pr_context() else 0} "
             f"-v {container_test_local_dir}:{os.path.join(os.sep, 'test')} {ecr_uri} "
-            f"{os.path.join(os.sep, 'bin', 'bash')} {test_cmd}", timeout=300)
+            f"{os.path.join(os.sep, 'bin', 'bash')} {test_cmd}")
     finally:
         subprocess.check_output(f"rm -rf {model_suite}", shell=True)
         subprocess.check_output(f"mkdir {model_suite}", shell=True)
