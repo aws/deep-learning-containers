@@ -396,7 +396,7 @@ def main():
                 raise Exception(f"EKS cluster {eks_cluster_name} is not in active state")
 
         # Execute dlc_tests pytest command
-        pytest_cmd = ["-s", "-rA", test_path, f"--junitxml={report}", "-n=60"]
+        pytest_cmd = ["-s", "-rA", test_path, f"--junitxml={report}", "-n=128"]
 
         is_habana_image = any("habana" in image_uri for image_uri in all_image_list)
         if specific_test_type == "ec2":
@@ -424,7 +424,7 @@ def main():
                     "-s",
                     "-rA",
                     f"--junitxml={report}",
-                    "-n=auto",
+                    "-n=64",
                     f"--{specific_test_type}",
                     "--ignore=container_tests/",
                 ]

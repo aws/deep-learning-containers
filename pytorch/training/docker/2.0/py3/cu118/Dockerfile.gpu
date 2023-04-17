@@ -6,7 +6,7 @@ ARG PYTORCH_VERSION=2.0.0
 
 # SMD binaries
 ARG SMD_DATA_PARALLEL_URL=https://smdataparallel.s3.amazonaws.com/binary/pytorch/2.0.0/cu118/2023-03-20/smdistributed_dataparallel-1.8.0-cp310-cp310-linux_x86_64.whl
-ARG SMD_MODEL_PARALLEL_URLhttps://sagemaker-distributed-model-parallel.s3.us-west-2.amazonaws.com/pytorch-2.0.0/build-artifacts/2023-04-17-15-50/smdistributed_modelparallel-1.15.0-cp310-cp310-linux_x86_64.whl
+ARG SMD_MODEL_PARALLEL_URL=https://sagemaker-distributed-model-parallel.s3.us-west-2.amazonaws.com/pytorch-2.0.0/build-artifacts/2023-04-14-20-14/smdistributed_modelparallel-1.15.0-cp310-cp310-linux_x86_64.whl
 
 # ZeRO-2D Binary
 ARG ZERO_2D_URL=https://aws-deepspeed-zero-2d-binaries.s3.us-west-2.amazonaws.com/r2.0.0/20230407-184728/1ea3d4b6aa41fe66277daacbb78b3743a310d85a/deepspeed-0.6.1%2B1ea3d4b-py3-none-any.whl

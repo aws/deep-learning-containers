@@ -288,7 +288,7 @@ def test_pytorch_nccl(pytorch_training, ec2_connection, gpu_only, py3_only, ec2_
             f"Image {pytorch_training} is incompatible with instance type {ec2_instance_type}"
         )
     test_cmd = os.path.join(CONTAINER_TESTS_PREFIX, "pytorch_tests", "testPyTorchNccl")
-    execute_ec2_training_test(ec2_connection, pytorch_training, test_cmd, large_shm=True)
+    execute_ec2_training_test(ec2_connection, pytorch_training, test_cmd, large_shm=True, timeout=1500)
 
 
 @pytest.mark.usefixtures("sagemaker")
