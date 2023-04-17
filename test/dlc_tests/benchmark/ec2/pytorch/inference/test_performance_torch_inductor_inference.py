@@ -111,7 +111,7 @@ def upload_metric(region, instance_type, precision, suite, metric_name, value, u
 
 @pytest.mark.skip(reason="for testing")
 @pytest.mark.parametrize("ec2_instance_type", ["c5.4xlarge", "m5.4xlarge"], indirect=True)
-@pytest.mark.parametrize("suite", ["huggingface", "timm", "torchbench"])
+@pytest.mark.parametrize("suite", ["huggingface", "timm_models", "torchbench"])
 #@pytest.mark.parametrize("ec2_instance_type", ["c5.4xlarge"], indirect=True)
 #@pytest.mark.parametrize("suite", ["torchbench"])
 @pytest.mark.parametrize("precision", ["float32"])
@@ -132,7 +132,7 @@ def test_performance_ec2_pytorch_inference_cpu(ec2_instance_type, suite, precisi
 
 @pytest.mark.xfail
 @pytest.mark.parametrize("ec2_instance_type", ["c6g.4xlarge", "c7g.4xlarge", "m7g.4xlarge"], indirect=True)
-@pytest.mark.parametrize("suite", ["huggingface", "timm", "torchbench"])
+@pytest.mark.parametrize("suite", ["huggingface", "timm_models", "torchbench"])
 @pytest.mark.parametrize("precision", ["float32"])
 @pytest.mark.parametrize("ec2_instance_ami", [UL20_CPU_ARM64_US_WEST_2], indirect=True)
 def test_performance_ec2_pytorch_inference_graviton(ec2_instance_type, suite, precision, pytorch_inference_graviton, ec2_connection, region, cpu_only):
@@ -153,9 +153,9 @@ def test_performance_ec2_pytorch_inference_graviton(ec2_instance_type, suite, pr
 
 
 #@pytest.mark.parametrize("ec2_instance_type", ["p3.2xlarge", "g5.4xlarge", "g4dn.4xlarge"], indirect=True)
-#@pytest.mark.parametrize("suite", ["huggingface", "timm", "torchbench"])
+#@pytest.mark.parametrize("suite", ["huggingface", "timm_models", "torchbench"])
 @pytest.mark.parametrize("ec2_instance_type", ["g4dn.4xlarge"], indirect=True)
-@pytest.mark.parametrize("suite", ["torchbench"])
+@pytest.mark.parametrize("suite", ["torchbench", "timm_models"])
 @pytest.mark.parametrize("precision", ["float32"])
 def test_performance_ec2_pytorch_inference_gpu(ec2_instance_type, suite, precision, pytorch_inference, ec2_connection, region, gpu_only):
     _, image_framework_version = get_framework_and_version_from_tag(
@@ -211,8 +211,8 @@ def ec2_performance_pytorch_inference(image_uri, instance_type, ec2_connection, 
 
     clone_pytorch = (f"git clone --branch v2.0.0 --recursive --single-branch --depth 1 "
                      f"https://github.com/pytorch/pytorch.git")
-    clone_torchbench = "GIT_CURL_VERBOSE=1 GIT_TRACE=1 git clone --verbose https://github.com/pytorch/benchmark.git"
-    install_prereq = "pip install -U numpy"
+    clone_torchbench = "GIT_CURL_VERBOSE=1 GIT_TRACE=1 git clone --branch master --recursive --single-branch --depth 1 --verbose https://github.com/pytorch/benchmark.git"
+    install_prereq = "pip install -U numpy==1.23"
     increase_git_buffer_size = "git config --global http.postBuffer 1048576000"
 
     #if is_graviton:
@@ -230,7 +230,7 @@ def ec2_performance_pytorch_inference(image_uri, instance_type, ec2_connection, 
     )
     container_name = f"{repo_name}-performance-{image_tag}-ec2"
     docker_run_output = ec2_connection.run(
-        f"{docker_cmd} run -d --name {container_name}  -e OMP_NUM_THREADS=1 "
+        f"{docker_cmd} run -d --name {container_name} "
         f"-v /home/ubuntu/results:/root {image_uri} "
     ).stdout.split("\n")
     LOGGER.info(f"Output docker run ================================\n{docker_run_output}")
@@ -246,9 +246,10 @@ def ec2_performance_pytorch_inference(image_uri, instance_type, ec2_connection, 
     clone_pt_output = ec2_connection.run(f"{docker_cmd} exec --workdir=\"/root\" {container_name} "
                        f"bash -c '{clone_pytorch}'").stdout.split("\n")
     LOGGER.info(f"Output git clone ================================\n{clone_pt_output}")
-    clone_tb_output = ec2_connection.run(f"{docker_cmd} exec --workdir=\"/root\" {container_name} "
-                       f"bash -c '{clone_torchbench}'").stdout.split("\n")
-    LOGGER.info(f"Output git clone ================================\n{clone_tb_output}")
+    if suite == "torchbench":
+        clone_tb_output = ec2_connection.run(f"{docker_cmd} exec --workdir=\"/root\" {container_name} "
+                           f"bash -c '{clone_torchbench}'").stdout.split("\n")
+        LOGGER.info(f"Output git clone ================================\n{clone_tb_output}")
     install_output = ec2_connection.run(
         f"{docker_cmd} exec --workdir=\"/root/benchmark\" {container_name} "
         f"bash -c 'python install.py'").stdout.split("\n")
