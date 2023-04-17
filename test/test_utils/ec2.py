@@ -26,11 +26,6 @@ ICE_SKIP_INSTANCE_LIST = ["p3dn.24xlarge"]
 # List of instance types which are too powerful for minor tests
 HEAVY_INSTANCE_LIST = ["p3dn.24xlarge", "p4d.24xlarge"]
 
-logging.basicConfig(
-    format='%(asctime)s %(levelname)s %(message)s', 
-    level=logging.INFO,
-    datefmt='%Y-%m-%d %H:%M:%S %z'
-)
 LOGGER = logging.getLogger(__name__)
 LOGGER.addHandler(logging.StreamHandler(sys.stdout))
 def filter_only_multi_gpu(instance_type_list):
