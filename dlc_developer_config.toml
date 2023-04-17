@@ -35,13 +35,13 @@ build_frameworks = ["tensorflow"]
 
 # By default we build both training and inference containers. Set true/false values to determine which to build.
 build_training = true
-build_inference = true
+build_inference = false
 
 # Set to false in order to remove datetime tag on PR builds
 datetime_tag = false
 # Note: Need to build the images at least once with datetime_tag = false
 # before disabling new builds, or tests will fail
-do_build = false
+do_build = true
 
 [test]
 ### On by default
@@ -110,7 +110,7 @@ dlc-pr-tensorflow-2-habana-training = ""
 # Standard Framework Inference
 dlc-pr-mxnet-inference = ""
 dlc-pr-pytorch-inference = ""
-dlc-pr-tensorflow-2-inference = "tensorflow/inference/buildspec.yml"
+dlc-pr-tensorflow-2-inference = ""
 dlc-pr-autogluon-inference = ""
 
 # Neuron Inference
