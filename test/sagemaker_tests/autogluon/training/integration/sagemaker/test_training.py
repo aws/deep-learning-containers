@@ -27,14 +27,15 @@ from ...integration import RESOURCE_PATH, DEFAULT_TIMEOUT
 @pytest.mark.integration("smexperiments")
 @pytest.mark.skip_test_in_region
 def test_training(ecr_image, sagemaker_regions, instance_type, framework_version):
-    invoke_sm_helper_function(ecr_image, sagemaker_regions, _test_training_function,
-                                     instance_type, framework_version)
+    invoke_sm_helper_function(
+        ecr_image, sagemaker_regions, _test_training_function, instance_type, framework_version
+    )
 
 
 def _test_training_function(ecr_image, sagemaker_session, instance_type, framework_version):
     ag = AutoGluon(
-        entry_point=os.path.join(RESOURCE_PATH, 'scripts', 'train_tab.py'),
-        role='SageMakerRole',
+        entry_point=os.path.join(RESOURCE_PATH, "scripts", "train_tab.py"),
+        role="SageMakerRole",
         instance_count=1,
         instance_type=instance_type,
         sagemaker_session=sagemaker_session,
@@ -45,21 +46,28 @@ def _test_training_function(ecr_image, sagemaker_session, instance_type, framewo
     ag = _disable_sm_profiler(sagemaker_session.boto_region_name, ag)
 
     with timeout(minutes=DEFAULT_TIMEOUT):
-        device = 'cpu'
-        data_path = os.path.join(RESOURCE_PATH, 'data')
-        s3_prefix = 'autogluon_sm/{}'.format(utils.sagemaker_timestamp())
-        train_input = ag.sagemaker_session.upload_data(path=os.path.join(data_path, 'training', f'train.{device}.csv'), key_prefix=s3_prefix)
-        eval_input = ag.sagemaker_session.upload_data(path=os.path.join(data_path, 'evaluation', f'eval.{device}.csv'), key_prefix=s3_prefix)
-        config_input = ag.sagemaker_session.upload_data(path=os.path.join(data_path, 'config', f'config.{device}.yaml'), key_prefix=s3_prefix)
+        device = "cpu"
+        data_path = os.path.join(RESOURCE_PATH, "data")
+        s3_prefix = "autogluon_sm/{}".format(utils.sagemaker_timestamp())
+        train_input = ag.sagemaker_session.upload_data(
+            path=os.path.join(data_path, "training", f"train.{device}.csv"), key_prefix=s3_prefix
+        )
+        eval_input = ag.sagemaker_session.upload_data(
+            path=os.path.join(data_path, "evaluation", f"eval.{device}.csv"), key_prefix=s3_prefix
+        )
+        config_input = ag.sagemaker_session.upload_data(
+            path=os.path.join(data_path, "config", f"config.{device}.yaml"), key_prefix=s3_prefix
+        )
 
-        job_name = utils.unique_name_from_base('test-autogluon-image')
-        ag.fit({'config': config_input, 'train': train_input, 'test': eval_input}, job_name=job_name)
+        job_name = utils.unique_name_from_base("test-autogluon-image")
+        ag.fit(
+            {"config": config_input, "train": train_input, "test": eval_input}, job_name=job_name
+        )
 
 
 def _disable_sm_profiler(region, estimator):
-    """Disable SMProfiler feature for China regions
-    """
+    """Disable SMProfiler feature for China regions"""
 
-    if region in ('cn-north-1', 'cn-northwest-1'):
+    if region in ("cn-north-1", "cn-northwest-1"):
         estimator.disable_profiler = True
     return estimator

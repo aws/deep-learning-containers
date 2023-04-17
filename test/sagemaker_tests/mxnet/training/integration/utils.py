@@ -25,11 +25,11 @@ import botocore
 
 
 def unique_name_from_base(base, max_length=63):
-    unique = '%04x' % random.randrange(16**4)  # 4-digit hex
+    unique = "%04x" % random.randrange(16**4)  # 4-digit hex
     ts = str(int(time.time()))
     available_length = max_length - 2 - len(ts) - len(unique)
     trimmed = base[:available_length]
-    return '{}-{}-{}'.format(trimmed, ts, unique)
+    return "{}-{}-{}".format(trimmed, ts, unique)
 
 
 def _botocore_resolver():
@@ -38,7 +38,7 @@ def _botocore_resolver():
     :return: endpoint object
     """
     loader = botocore.loaders.create_loader()
-    return botocore.regions.EndpointResolver(loader.load_data('endpoints'))
+    return botocore.regions.EndpointResolver(loader.load_data("endpoints"))
 
 
 def get_ecr_registry(account, region):
@@ -48,5 +48,5 @@ def get_ecr_registry(account, region):
     :param region: region where ECR repo exists
     :return: AWS ECR registry
     """
-    endpoint_data = _botocore_resolver().construct_endpoint('ecr', region)
-    return '{}.dkr.{}'.format(account, endpoint_data['hostname'])
+    endpoint_data = _botocore_resolver().construct_endpoint("ecr", region)
+    return "{}.dkr.{}".format(account, endpoint_data["hostname"])

@@ -1,10 +1,10 @@
-
 import os
 import torch
 import torch.neuron
 import io
 import torchvision.transforms as transforms
 from PIL import Image
+
 
 def model_fn(model_dir):
     """Loads a model. Provides a default implementation.
@@ -21,13 +21,19 @@ def model_fn(model_dir):
             if ext == ".pt" or ext == ".pth":
                 model_files.append(f)
     if len(model_files) != 1:
-        raise ValueError("Exactly one .pth or .pt file is required for PyTorch models: {}".format(model_files))
+        raise ValueError(
+            "Exactly one .pth or .pt file is required for PyTorch models: {}".format(model_files)
+        )
     return torch.jit.load(model_files[0])
 
 
 def input_fn(request_body, request_content_type):
 
-    print("Type of request body is {} and content type is {}".format(type(request_body), request_content_type))
+    print(
+        "Type of request body is {} and content type is {}".format(
+            type(request_body), request_content_type
+        )
+    )
     f = io.BytesIO(request_body)
     print("nbytes is {}".format(f.getbuffer().nbytes))
     input_image = Image.open(f).convert("RGB")

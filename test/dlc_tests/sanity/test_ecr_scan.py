@@ -54,7 +54,9 @@ def is_image_covered_by_allowlist_feature(image):
     :param image: str, Image URI
     """
     image_framework, image_version = get_framework_and_version_from_tag(image)
-    if image_framework not in ALLOWLIST_FEATURE_ENABLED_IMAGES or any(substring in image for substring in ["example"]):
+    if image_framework not in ALLOWLIST_FEATURE_ENABLED_IMAGES or any(
+        substring in image for substring in ["example"]
+    ):
         return False
     if Version(image_version) in ALLOWLIST_FEATURE_ENABLED_IMAGES[image_framework]:
         return True
@@ -64,7 +66,7 @@ def is_image_covered_by_allowlist_feature(image):
 def get_minimum_sev_threshold_level(image):
     """
     This method gets the value for minimum threshold level. This threshold level determines the
-    vulnerability severity above which we want to raise an alarm. 
+    vulnerability severity above which we want to raise an alarm.
 
     :param image: str Image URI for which threshold has to be set
     """
@@ -83,7 +85,7 @@ def conduct_preprocessing_of_images_before_running_ecr_scans(image, ecr_client, 
         3. In case the test_account_id != image_account_id it reuploads the pulled images to the test_account_id for conducting the tests.
            Therafter, it replaces the original image uri with the new one, to the one that points to the image in test_account_id, and returns
            new image id.
-           
+
     :param image: str, Image URI for image to be tested
     :param ecr_client: boto3 Client for ECR
     :param sts_client: boto3 Client for STS
@@ -113,7 +115,9 @@ def conduct_preprocessing_of_images_before_running_ecr_scans(image, ecr_client, 
         target_image_repo_name = f"beta-{image_repo_name}"
         for additional_tag in additional_image_tags:
             image_uri_with_new_tag = original_image.replace(original_image_tag, additional_tag)
-            new_image_uri = ecr_utils.reupload_image_to_test_ecr(image_uri_with_new_tag, target_image_repo_name, region)
+            new_image_uri = ecr_utils.reupload_image_to_test_ecr(
+                image_uri_with_new_tag, target_image_repo_name, region
+            )
             if image_uri_with_new_tag == original_image:
                 image = new_image_uri
 
@@ -127,7 +131,7 @@ def test_ecr_enhanced_scan(image, ecr_client, sts_client, region):
     """
     Run ECR Enhanced Scan Tool on an image being tested, and raise Error if vulnerabilities found
     1. Upload image to the ECR Enhanced Scanning Testing Repo.
-    2. Wait for the scans to complete - takes approx 10 minutes for big images. Once the scan is complete, 
+    2. Wait for the scans to complete - takes approx 10 minutes for big images. Once the scan is complete,
         the scan status changes to ACTIVE
     3. If the status does not turn to ACTIVE, raise a TimeOut Error
     4. Read the ecr_scan_results and remove the allowlisted vulnerabilities from it
@@ -139,7 +143,9 @@ def test_ecr_enhanced_scan(image, ecr_client, sts_client, region):
     :param region: str Name of region where test is executed
     """
     LOGGER.info(f"Running test_ecr_enhanced_scan for image {image}")
-    image = conduct_preprocessing_of_images_before_running_ecr_scans(image, ecr_client, sts_client, region)
+    image = conduct_preprocessing_of_images_before_running_ecr_scans(
+        image, ecr_client, sts_client, region
+    )
 
     ecr_enhanced_repo_uri = get_target_image_uri_using_current_uri_and_target_repo(
         image,
@@ -150,11 +156,19 @@ def test_ecr_enhanced_scan(image, ecr_client, sts_client, region):
 
     run(f"docker tag {image} {ecr_enhanced_repo_uri}", hide=True)
     ecr_utils.reupload_image_to_test_ecr(
-        ecr_enhanced_repo_uri, ECR_ENHANCED_SCANNING_REPO_NAME, ECR_ENHANCED_REPO_REGION, pull_image=False
+        ecr_enhanced_repo_uri,
+        ECR_ENHANCED_SCANNING_REPO_NAME,
+        ECR_ENHANCED_REPO_REGION,
+        pull_image=False,
     )
 
-    ecr_client_for_enhanced_scanning_repo = boto3.client("ecr", region_name=ECR_ENHANCED_REPO_REGION)
-    wait_for_enhanced_scans_to_complete(ecr_client_for_enhanced_scanning_repo, ecr_enhanced_repo_uri)
+    ecr_client_for_enhanced_scanning_repo = boto3.client(
+        "ecr", region_name=ECR_ENHANCED_REPO_REGION
+    )
+    wait_for_enhanced_scans_to_complete(
+        ecr_client_for_enhanced_scanning_repo, ecr_enhanced_repo_uri
+    )
+    LOGGER.info(f"finished wait_for_enhanced_scans_to_complete, {image}")
     sleep(1 * 60)
 
     scan_results = ecr_utils.get_all_ecr_enhanced_scan_findings(
@@ -163,10 +177,14 @@ def test_ecr_enhanced_scan(image, ecr_client, sts_client, region):
     scan_results = json.loads(json.dumps(scan_results, cls=EnhancedJSONEncoder))
 
     minimum_sev_threshold = get_minimum_sev_threshold_level(image)
-    ecr_image_vulnerability_list = ECREnhancedScanVulnerabilityList(minimum_severity=CVESeverity[minimum_sev_threshold])
+    ecr_image_vulnerability_list = ECREnhancedScanVulnerabilityList(
+        minimum_severity=CVESeverity[minimum_sev_threshold]
+    )
     ecr_image_vulnerability_list.construct_allowlist_from_ecr_scan_result(scan_results)
 
-    image_scan_allowlist = ECREnhancedScanVulnerabilityList(minimum_severity=CVESeverity[minimum_sev_threshold])
+    image_scan_allowlist = ECREnhancedScanVulnerabilityList(
+        minimum_severity=CVESeverity[minimum_sev_threshold]
+    )
 
     try:
         # Derive Image Scan Allowlist Path
@@ -178,7 +196,9 @@ def test_ecr_enhanced_scan(image, ecr_client, sts_client, region):
         # Check if image Scan Allowlist Path exists
         if os.path.exists(image_scan_allowlist_path):
             image_scan_allowlist.construct_allowlist_from_file(image_scan_allowlist_path)
-            LOGGER.info(f"[Allowlist] Using allowlist at location {image_scan_allowlist_path} to skip {image_scan_allowlist.get_summarized_info()}")
+            LOGGER.info(
+                f"[Allowlist] Using allowlist at location {image_scan_allowlist_path} to skip {image_scan_allowlist.get_summarized_info()}"
+            )
     except:
         LOGGER.info(f"[Allowlist] Image scan allowlist path could not be derived for {image}")
         traceback.print_exc()

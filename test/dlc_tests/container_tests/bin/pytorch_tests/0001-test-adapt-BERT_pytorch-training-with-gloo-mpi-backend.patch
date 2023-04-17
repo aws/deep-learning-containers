@@ -1,17 +1,17 @@
-From 92a8cc55a315457133941a34dfb727da75e04e00 Mon Sep 17 00:00:00 2001
+From 041d5935dfdb0b3b0ee8ce38afbe528ffa29e58c Mon Sep 17 00:00:00 2001
 From: Your Name <you@example.com>
-Date: Wed, 29 Mar 2023 21:20:04 +0000
+Date: Thu, 6 Apr 2023 23:00:12 +0000
 Subject: [PATCH] test: adapt BERT_pytorch training with gloo and mpi backend
 
 ---
- requirements.txt                              |  1 +
- run.py                                        | 95 +++++++++++--------
- .../models/BERT_pytorch/__init__.py           | 12 ++-
- .../bert_pytorch/trainer/pretrain.py          | 11 ++-
- 4 files changed, 76 insertions(+), 43 deletions(-)
+ requirements.txt                              |   1 +
+ run.py                                        | 109 +++++++++++-------
+ .../models/BERT_pytorch/__init__.py           |  19 ++-
+ .../bert_pytorch/trainer/pretrain.py          |  14 ++-
+ 4 files changed, 95 insertions(+), 48 deletions(-)
 
 diff --git a/requirements.txt b/requirements.txt
-index 367be90c..f5b120a7 100644
+index b80143de..46e881b7 100644
 --- a/requirements.txt
 +++ b/requirements.txt
 @@ -21,3 +21,4 @@ git+https://github.com/kornia/kornia.git@b7050c3
@@ -21,25 +21,24 @@ index 367be90c..f5b120a7 100644
 +numba
 \ No newline at end of file
 diff --git a/run.py b/run.py
-index 1549689c..f587ff9d 100644
+index 827cf167..0d0ec675 100644
 --- a/run.py
 +++ b/run.py
-@@ -10,12 +10,14 @@ Wall time provided for sanity but is not a sane benchmark measurement.
- """
+@@ -11,10 +11,12 @@ Wall time provided for sanity but is not a sane benchmark measurement.
  import argparse
+ import logging
  import time
+-
 +import os
  import numpy as np
- import torch.profiler as profiler
- 
- from torchbenchmark import load_model_by_name, load_canary_model_by_name
- from torchbenchmark.util.experiment.metrics import get_peak_memory
  import torch
+ import torch.profiler as profiler
 +import torch.distributed as dist
++import torch.multiprocessing as mp
  
- WARMUP_ROUNDS = 3
- SUPPORT_DEVICE_LIST = ["cpu", "cuda"]
-@@ -58,7 +60,7 @@ def run_one_step_with_cudastreams(func, streamcount):
+ from torchbenchmark import load_canary_model_by_name, load_model_by_name
+ from torchbenchmark.util.experiment.metrics import get_peak_memory
+@@ -66,7 +68,7 @@ def run_one_step_with_cudastreams(func, streamcount):
          print('{:<20} {:>20}'.format("GPU Time:", "%.3f milliseconds" % start_event.elapsed_time(end_event)), sep='')
  
  
@@ -48,7 +47,7 @@ index 1549689c..f587ff9d 100644
      if args.device == "cuda":
          gpu_time = np.median(list(map(lambda x: x[0], result_summary)))
          cpu_walltime = np.median(list(map(lambda x: x[1], result_summary)))
-@@ -86,12 +88,19 @@ def printResultSummaryTime(result_summary, metrics_needed=[], model=None, flops_
+@@ -94,12 +96,19 @@ def printResultSummaryTime(result_summary, metrics_needed=[], model=None, flops_
      if cpu_peak_mem is not None:
          print('{:<20} {:>20}'.format("CPU Peak Memory:", "%.4f GB" % cpu_peak_mem, sep=''))
  
@@ -70,21 +69,17 @@ index 1549689c..f587ff9d 100644
      result_summary = []
      flops_model_analyzer = None
      if 'flops' in metrics_needed:
-@@ -131,10 +140,12 @@ def run_one_step(func, nwarmup=WARMUP_ROUNDS, num_iter=10, model=None, export_me
-             # TODO: modify this to add GPU time as well
-             result_summary.append([(t1 - t0) / 1_000_000])
-         else:
-+            print(f"before run one step before rank {dist.get_rank()}")
-             t0 = time.time_ns()
-             func()
-             t1 = time.time_ns()
-             result_summary.append([(t1 - t0) / 1_000_000])
-+            print(f"after run one step before rank {dist.get_rank()}")
-         if stress:
-             cur_time = time.time_ns()
-             # print out the status every 10s.
-@@ -158,7 +169,7 @@ def run_one_step(func, nwarmup=WARMUP_ROUNDS, num_iter=10, model=None, export_me
-     if 'cpu_peak_mem' or 'gpu_peak_mem' in metrics_needed:
+@@ -117,6 +126,8 @@ def run_one_step(func, nwarmup=WARMUP_ROUNDS, num_iter=10, model=None, export_me
+     last_it = 0
+     first_print_out = True
+     while (not stress and _i < num_iter) or (stress and cur_time < target_time) :
++
++        dist.barrier()
+         if args.device == "cuda":
+             torch.cuda.synchronize()
+             start_event = torch.cuda.Event(enable_timing=True)
+@@ -166,7 +177,7 @@ def run_one_step(func, nwarmup=WARMUP_ROUNDS, num_iter=10, model=None, export_me
+     if 'cpu_peak_mem' in metrics_needed or 'gpu_peak_mem' in metrics_needed:
          cpu_peak_mem, mem_device_id, gpu_peak_mem = get_peak_memory(func, model.device, export_metrics_file=export_metrics_file, metrics_needed=metrics_needed, metrics_gpu_backend=metrics_gpu_backend)
  
 -    printResultSummaryTime(result_summary, metrics_needed, model, flops_model_analyzer, cpu_peak_mem, mem_device_id, gpu_peak_mem)
@@ -92,7 +87,7 @@ index 1549689c..f587ff9d 100644
  
  
  
-@@ -253,38 +264,7 @@ def _validate_profile_options(profile_options: str):
+@@ -261,38 +272,7 @@ def _validate_profile_options(profile_options: str):
      return profile_options_list
  
  
@@ -132,18 +127,24 @@ index 1549689c..f587ff9d 100644
  
      found = False
      Model = load_model_by_name(args.model)
-@@ -295,6 +275,10 @@ if __name__ == "__main__":
+@@ -303,7 +283,15 @@ if __name__ == "__main__":
              print(f"Unable to find model matching {args.model}.")
              exit(-1)
  
+-    m = Model(device=args.device, test=args.test, jit=(args.mode == "jit"), batch_size=args.bs, extra_args=extra_args)
 +    os.environ["MASTER_ADDR"] = "127.0.0.1"
 +    os.environ["MASTER_PORT"] = "12345"
 +    dist.init_process_group(backend=os.environ["PT_BACKEND"].lower(), rank=rank, world_size=int(os.environ["WORLD_SIZE"]))
 +    print(f"running on rank {dist.get_rank()}")
-     m = Model(device=args.device, test=args.test, jit=(args.mode == "jit"), batch_size=args.bs, extra_args=extra_args)
++    if args.device == "cuda":
++        device = torch.device(f"cuda:{dist.get_rank()}")
++    else:
++        device = args.device
++    m = Model(device=device, test=args.test, jit=(args.mode == "jit"), batch_size=args.bs, extra_args=extra_args)
      if m.dynamo:
          mode = f"dynamo {m.opt_args.torchdynamo}"
-@@ -341,6 +325,43 @@ if __name__ == "__main__":
+     elif m.opt_args.backend:
+@@ -349,6 +337,49 @@ if __name__ == "__main__":
          run_one_step_with_cudastreams(test, 10)
      else:
          run_one_step(test, model=m, export_metrics_file=export_metrics_file,
@@ -187,10 +188,16 @@ index 1549689c..f587ff9d 100644
 +        print("cuda device required to use --cudastreams option!")
 +        exit(-1)
 +
-+    torch.multiprocessing.spawn(main, args=(args, extra_args), nprocs=int(os.environ["WORLD_SIZE"]), join=True)
++    mp.set_start_method('spawn', force=True)
++    # torch._dynamo.config.suppress_errors = True
++    procs = [mp.Process(target=main, args=(rank, args, extra_args)) for rank in range(int(os.environ["WORLD_SIZE"]))]
++    for p in procs:
++        p.start()
++    for p in procs:
++        p.join()
 \ No newline at end of file
 diff --git a/torchbenchmark/models/BERT_pytorch/__init__.py b/torchbenchmark/models/BERT_pytorch/__init__.py
-index f79893fb..9fab0875 100644
+index f79893fb..9a3a5793 100644
 --- a/torchbenchmark/models/BERT_pytorch/__init__.py
 +++ b/torchbenchmark/models/BERT_pytorch/__init__.py
 @@ -1,6 +1,7 @@
@@ -209,7 +216,19 @@ index f79893fb..9fab0875 100644
  import typing
  
  torch.backends.cudnn.deterministic = False
-@@ -138,9 +140,10 @@ class Model(BenchmarkModel):
+@@ -86,7 +88,10 @@ class Model(BenchmarkModel):
+             '--vocab_path', f'{root}/data/vocab.small',
+             '--output_path', 'bert.model',
+         ]) # Avoid reading sys.argv here
+-        args.with_cuda = self.device == 'cuda'
++        if self.device == "cpu":
++            args.with_cuda = False
++        else:
++            args.with_cuda = True
+         args.script = self.jit
+         args.on_memory = True
+ 
+@@ -138,12 +143,13 @@ class Model(BenchmarkModel):
              if args.test_dataset is not None else None
  
          set_random_seed()
@@ -222,8 +241,12 @@ index f79893fb..9fab0875 100644
 +        test_data_loader = DataLoader(test_dataset, batch_size=args.batch_size, num_workers=args.num_workers, sampler=test_sampler) \
              if test_dataset is not None else None
  
-         bert = BERT(len(vocab), hidden=args.hidden, n_layers=args.layers, attn_heads=args.attn_heads)
-@@ -192,4 +195,7 @@ class Model(BenchmarkModel):
+-        bert = BERT(len(vocab), hidden=args.hidden, n_layers=args.layers, attn_heads=args.attn_heads)
++        bert = BERT(len(vocab), hidden=args.hidden, n_layers=args.layers, attn_heads=args.attn_heads).to(self.device)
+ 
+         trainer = BERTTrainer(bert, len(vocab), train_dataloader=train_data_loader, test_dataloader=test_data_loader,
+                                    lr=args.lr, betas=(args.adam_beta1, args.adam_beta2), weight_decay=args.adam_weight_decay,
+@@ -192,4 +198,7 @@ class Model(BenchmarkModel):
          # 3. backward and optimization only in train
          trainer.optim_schedule.zero_grad()
          loss.backward()
@@ -232,16 +255,17 @@ index f79893fb..9fab0875 100644
 +        param.grad.data /= dist.get_world_size()
          trainer.optim_schedule.step_and_update_lr()
 diff --git a/torchbenchmark/models/BERT_pytorch/bert_pytorch/trainer/pretrain.py b/torchbenchmark/models/BERT_pytorch/bert_pytorch/trainer/pretrain.py
-index d1a4673c..83a7c056 100644
+index d1a4673c..9f50d29e 100644
 --- a/torchbenchmark/models/BERT_pytorch/bert_pytorch/trainer/pretrain.py
 +++ b/torchbenchmark/models/BERT_pytorch/bert_pytorch/trainer/pretrain.py
-@@ -1,11 +1,13 @@
+@@ -1,11 +1,14 @@
  import torch
  import torch.nn as nn
 +
 +from torch.nn.parallel import DistributedDataParallel
  from torch.optim import Adam
  from torch.utils.data import DataLoader
++from torch.distributed import get_rank
  
  from ..model import BERTLM, BERT
  from .optim_schedule import ScheduledOptim
@@ -250,7 +274,16 @@ index d1a4673c..83a7c056 100644
  
  class BERTTrainer:
      """
-@@ -45,8 +47,11 @@ class BERTTrainer:
+@@ -36,7 +39,7 @@ class BERTTrainer:
+ 
+         # Setup cuda device for BERT training, argument -c, --cuda should be true
+         cuda_condition = torch.cuda.is_available() and with_cuda
+-        self.device = torch.device("cuda:0" if cuda_condition else "cpu")
++        self.device = torch.device(f"cuda:{get_rank()}" if cuda_condition else "cpu")
+ 
+         # This BERT model will be saved every epoch
+         self.bert = bert
+@@ -45,8 +48,11 @@ class BERTTrainer:
  
          # Distributed GPU training if CUDA can detect more than 1 GPU
          if with_cuda and torch.cuda.device_count() > 1:
@@ -265,5 +298,5 @@ index d1a4673c..83a7c056 100644
          self.train_data = train_dataloader
          self.test_data = test_dataloader
 -- 
-2.17.1
+2.25.1
 
