@@ -18,9 +18,11 @@ from collections import namedtuple
 import requests
 
 
-Context = namedtuple('Context',
-                     'model_name, model_version, method, rest_uri, grpc_uri, '
-                     'custom_attributes, request_content_type, accept_header')
+Context = namedtuple(
+    "Context",
+    "model_name, model_version, method, rest_uri, grpc_uri, "
+    "custom_attributes, request_content_type, accept_header",
+)
 
 
 def handler(data, context):
@@ -40,19 +42,22 @@ def handler(data, context):
 
 
 def _process_input(data, context):
-    if context.request_content_type == 'text/csv':
+    if context.request_content_type == "text/csv":
         # very simple csv handler
-        return json.dumps({
-            'instances': [float(x) for x in data.read().decode('utf-8').strip('"').split(',')]
-        })
+        return json.dumps(
+            {"instances": [float(x) for x in data.read().decode("utf-8").strip('"').split(",")]}
+        )
 
-    raise ValueError('{{"error": "unsupported content type {}"}}'.format(
-        context.request_content_type or "unknown"))
+    raise ValueError(
+        '{{"error": "unsupported content type {}"}}'.format(
+            context.request_content_type or "unknown"
+        )
+    )
 
 
 def _process_output(data, context):
     if data.status_code != 200:
-        raise ValueError(data.content.decode('utf-8'))
+        raise ValueError(data.content.decode("utf-8"))
 
     response_content_type = context.accept_header
     prediction = data.content

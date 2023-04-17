@@ -19,25 +19,51 @@ import sagemaker
 from sagemaker.huggingface import HuggingFaceModel
 
 
-
-from ...integration import model_dir, pt_model, script_dir, pt_ipex_script, dump_logs_from_cloudwatch
+from ...integration import (
+    model_dir,
+    pt_model,
+    script_dir,
+    pt_ipex_script,
+    dump_logs_from_cloudwatch,
+)
 from ...integration.sagemaker.timeout import timeout_and_delete_endpoint
 
 
 @pytest.mark.model("tiny-distilbert")
 @pytest.mark.processor("cpu")
 @pytest.mark.cpu_test
-def test_ipex_hosting(sagemaker_session, framework_version, ecr_image, instance_type, region,py_version):
+def test_ipex_hosting(
+    sagemaker_session, framework_version, ecr_image, instance_type, region, py_version
+):
     instance_type = instance_type or "ml.m5.xlarge"
     try:
-        _test_pt_ipex(sagemaker_session, framework_version, ecr_image, instance_type, model_dir, script_dir, py_version)
+        _test_pt_ipex(
+            sagemaker_session,
+            framework_version,
+            ecr_image,
+            instance_type,
+            model_dir,
+            script_dir,
+            py_version,
+        )
     except Exception as e:
         dump_logs_from_cloudwatch(e, region)
         raise
 
 
-def _test_pt_ipex(sagemaker_session, framework_version, ecr_image, instance_type, model_dir,script_dir,py_version, accelerator_type=None):
-    endpoint_name = sagemaker.utils.unique_name_from_base("sagemaker-huggingface-inference-ipex-serving")
+def _test_pt_ipex(
+    sagemaker_session,
+    framework_version,
+    ecr_image,
+    instance_type,
+    model_dir,
+    script_dir,
+    py_version,
+    accelerator_type=None,
+):
+    endpoint_name = sagemaker.utils.unique_name_from_base(
+        "sagemaker-huggingface-inference-ipex-serving"
+    )
 
     model_data = sagemaker_session.upload_data(
         path=model_dir,

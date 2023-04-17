@@ -97,7 +97,7 @@ def train_step(model, optimizer, input_ids, attention_mask, args):
         loss = output["loss"]
     else:
         loss = model(input_ids=input_ids, attention_mask=attention_mask, labels=input_ids)["loss"]
-        
+
     if args.fp16 and args.smp_version < 110:
         optimizer.backward(loss, update_master_grads=False)
     else:
@@ -162,15 +162,19 @@ def save(
             if args.shard_optimizer_state == 0 or partial:
                 save_dict["optimizer"] = save_fn(args, model, optimizer, partial=partial)
             else:
-                print("Saving the full optimizer state does not work with shard_optimizer_state > 0! Skipping...")
+                print(
+                    "Saving the full optimizer state does not work with shard_optimizer_state > 0! Skipping..."
+                )
     elif partial:
-        save_dict["optimizer"] = optimizer.save_optimizer_backcompat(gather_if_shard=args.gather_if_shard)
+        save_dict["optimizer"] = optimizer.save_optimizer_backcompat(
+            gather_if_shard=args.gather_if_shard
+        )
     else:
         if args.skip_full_optimizer:
             print("Skipping saving the final optimizer state")
         elif args.shard_optimizer_state > 0:
             print(
-                    "Saving the full optimizer state does not work with shard_optimizer_state > 0! Skipping..."
+                "Saving the full optimizer state does not work with shard_optimizer_state > 0! Skipping..."
             )
         else:
             save_dict["optimizer"] = optimizer.state_dict()
@@ -242,8 +246,10 @@ def load_model_and_optimizer(
             lr_scheduler.load_state_dict(checkpoint["lr_scheduler"])
 
     if load_optimizer:
+
         def opt_load_hook(mod, opt):
             load_fn = load_fp16_optimizer
+
         checkpoint = (
             checkpoint if args.gather_if_shard > 0 or smp.rdp_rank() == 0 else opt_checkpoint
         )
@@ -257,7 +263,9 @@ def load_model_and_optimizer(
                 load_fn(args, mod, opt, checkpoint, partial=partial)
             model.register_post_step_hook(opt_load_hook)
         elif not partial and args.skip_full_optimizer:
-            print("Skipping loading the final optimizer state, and reloading master_params from model_params for fp16")
+            print(
+                "Skipping loading the final optimizer state, and reloading master_params from model_params for fp16"
+            )
             if args.fp16:
                 model.register_post_step_hook(opt.reload_model_params)
         else:
@@ -532,7 +540,7 @@ def train(
                 if args.smp_version < 110:
                     optimizer.update_master_grads()
                 optimizer.clip_master_grads(args.grad_clip)
-                
+
             optimizer.step()
             if not (args.fp16 and optimizer.overflow):
                 lr_scheduler.step()
@@ -817,9 +825,8 @@ def parse_args():
     parser.add_argument(
         "--enable_memory_profiling", type=int, default=0, help="Enable memory profile"
     )
-    parser.add_argument(
-        "--smp_version", type=int, default=110, help="Enable memory profile"
-    )
+    parser.add_argument("--smp_version", type=int, default=110, help="Enable memory profile")
+    parser.add_argument("--inductor", type=int, default=0, help="pytorch with inductor")
 
     # learning rate
     lr_grp = parser.add_argument_group(
@@ -972,11 +979,13 @@ def main():
 
     if args.enable_memory_profiling > 0:
         memory_status_cpu(msg="before model creation")
-    
+
     if args.smp_version < 110:
         if args.fp16:
             torch.set_default_dtype(torch.float16)
-        with smp.tensor_parallelism(enabled=smp.tp_size() > 1, attention_in_fp32=args.attention_in_fp32 > 0):
+        with smp.tensor_parallelism(
+            enabled=smp.tp_size() > 1, attention_in_fp32=args.attention_in_fp32 > 0
+        ):
             with smp.delay_param_initialization(
                 enabled=(smp.tp_size() > 1 and args.delayed_param > 0)
             ):
@@ -989,11 +998,15 @@ def main():
             fused_softmax=args.fused_softmax > 0,
             fused_bias_gelu=args.fused_bias_gelu > 0,
             dtype=torch.float16 if args.fp16 else torch.get_default_dtype(),
-            ):
-                model = AutoModelForCausalLM.from_config(model_config)
+        ):
+            model = AutoModelForCausalLM.from_config(model_config)
 
     if args.smp_version < 110 and args.fp16:
         model = FP16_Module(model)
+
+    use_inductor = args.inductor == 1
+    if use_inductor:
+        model = torch.compile(model, backend="inductor", mode="default")
 
     if args.enable_memory_profiling > 0:
         memory_status_cpu(msg="after model creation")
@@ -1099,11 +1112,11 @@ def main():
         model.register_post_step_hook(lambda model, optimizer: optimizer.init_master_params())
     else:
         optimizer = smp.DistributedOptimizer(
-            optimizer, 
-            static_loss_scale=None, 
+            optimizer,
+            static_loss_scale=None,
             dynamic_loss_scale=True,
             dynamic_loss_args={"scale_window": 1000, "min_scale": 1, "delayed_shift": 2},
-            )
+        )
     lr_scheduler = get_learning_rate_scheduler(optimizer, args)
 
     if args.enable_memory_profiling > 0:
@@ -1121,7 +1134,13 @@ def main():
         partial = not args.load_full
         path = args.checkpoint_dir if partial else args.model_dir
         translate_from_hf = not partial
-        model, optimizer, total_steps, start_train_path_index, start_batch_index = load_model_and_optimizer(
+        (
+            model,
+            optimizer,
+            total_steps,
+            start_train_path_index,
+            start_batch_index,
+        ) = load_model_and_optimizer(
             path,
             model,
             optimizer,
@@ -1154,10 +1173,13 @@ def main():
     time_to_train = time.time() - start
 
     if args.assert_flash_attn:
-      print("Validate flash attention module.")
-      from smdistributed.modelparallel.torch.nn import FlashAttentionLayer
-      flash_layers = [x for x in model.get_module().modules() if isinstance(x, FlashAttentionLayer)]
-      assert len(flash_layers) > 0
+        print("Validate flash attention module.")
+        from smdistributed.modelparallel.torch.nn import FlashAttentionLayer
+
+        flash_layers = [
+            x for x in model.get_module().modules() if isinstance(x, FlashAttentionLayer)
+        ]
+        assert len(flash_layers) > 0
 
     if args.ci:
         print(f"[SMP_METRIC]__GPT2__Time_to_train__{time_to_train}")

@@ -32,7 +32,11 @@ from multi_model_utils import MultiModelException, lock
 import tfs_utils
 
 SAGEMAKER_MULTI_MODEL_ENABLED = os.environ.get("SAGEMAKER_MULTI_MODEL", "false").lower() == "true"
-INFERENCE_SCRIPT_PATH = "/opt/ml/code/inference.py" if SAGEMAKER_MULTI_MODEL_ENABLED else "/opt/ml/model/code/inference.py"
+INFERENCE_SCRIPT_PATH = (
+    "/opt/ml/code/inference.py"
+    if SAGEMAKER_MULTI_MODEL_ENABLED
+    else "/opt/ml/model/code/inference.py"
+)
 
 SAGEMAKER_BATCHING_ENABLED = os.environ.get("SAGEMAKER_TFS_ENABLE_BATCHING", "false").lower()
 MODEL_CONFIG_FILE_PATH = "/sagemaker/model-config.cfg"
@@ -41,7 +45,9 @@ TFS_REST_PORTS = os.environ.get("TFS_REST_PORTS")
 SAGEMAKER_TFS_PORT_RANGE = os.environ.get("SAGEMAKER_SAFE_PORT_RANGE")
 TFS_INSTANCE_COUNT = int(os.environ.get("SAGEMAKER_TFS_INSTANCE_COUNT", "1"))
 
-logging.basicConfig(format='%(process)d %(asctime)s %(levelname)-8s %(message)s', force=True, level=logging.INFO)
+logging.basicConfig(
+    format="%(process)d %(asctime)s %(levelname)-8s %(message)s", force=True, level=logging.INFO
+)
 log = logging.getLogger(__name__)
 
 CUSTOM_ATTRIBUTES_HEADER = "X-Amzn-SageMaker-Custom-Attributes"
@@ -77,7 +83,9 @@ class PythonServiceResource:
         if SAGEMAKER_MULTI_MODEL_ENABLED:
             self._mme_tfs_instances_status: dict[str, [TfsInstanceStatus]] = {}
             self._tfs_ports = self._parse_sagemaker_port_range_mme(SAGEMAKER_TFS_PORT_RANGE)
-            self._tfs_available_ports = self._parse_sagemaker_port_range_mme(SAGEMAKER_TFS_PORT_RANGE)
+            self._tfs_available_ports = self._parse_sagemaker_port_range_mme(
+                SAGEMAKER_TFS_PORT_RANGE
+            )
             # If Multi-Model mode is enabled, dependencies/handlers will be imported
             # during the _handle_load_model_post()
             self.model_handlers = {}
@@ -109,7 +117,8 @@ class PythonServiceResource:
         self._tfs_instance_count = int(os.environ.get("SAGEMAKER_TFS_INSTANCE_COUNT", 1))
         self._gunicorn_workers = int(os.environ.get("SAGEMAKER_GUNICORN_WORKERS", 1))
         self._tfs_wait_time_seconds = int(
-            os.environ.get("SAGEMAKER_TFS_WAIT_TIME_SECONDS", 55 // self._tfs_instance_count))
+            os.environ.get("SAGEMAKER_TFS_WAIT_TIME_SECONDS", 55 // self._tfs_instance_count)
+        )
 
     def on_post(self, req, res, model_name=None):
         if model_name or "invocations" in req.uri:
@@ -145,26 +154,27 @@ class PythonServiceResource:
         self._tfs_available_ports = copy.deepcopy(self._tfs_ports)
         for _, tf_status_list in self._mme_tfs_instances_status.items():
             for tf_status in tf_status_list:
-                if tf_status.rest_port in self._tfs_available_ports['rest_port']:
-                    self._tfs_available_ports['rest_port'].remove(tf_status.rest_port)
-                if tf_status.grpc_port in self._tfs_available_ports['grpc_port']:
-                    self._tfs_available_ports['grpc_port'].remove(tf_status.grpc_port)
-        log.info(f'available ports : {self._tfs_available_ports}')
+                if tf_status.rest_port in self._tfs_available_ports["rest_port"]:
+                    self._tfs_available_ports["rest_port"].remove(tf_status.rest_port)
+                if tf_status.grpc_port in self._tfs_available_ports["grpc_port"]:
+                    self._tfs_available_ports["grpc_port"].remove(tf_status.grpc_port)
+        log.info(f"available ports : {self._tfs_available_ports}")
 
     def _load_model(self, model_name, base_path, rest_port, grpc_port, model_index):
         if self.validate_model_dir(base_path):
             try:
                 self._import_custom_modules(model_name)
                 tfs_config = tfs_utils.create_tfs_config_individual_model(model_name, base_path)
-                tfs_config_file = "/sagemaker/tfs-config/{}/{}/model-config.cfg".format(model_name, model_index)
+                tfs_config_file = "/sagemaker/tfs-config/{}/{}/model-config.cfg".format(
+                    model_name, model_index
+                )
                 log.info("tensorflow serving model config: \n%s\n", tfs_config)
                 os.makedirs(os.path.dirname(tfs_config_file))
                 with open(tfs_config_file, "w", encoding="utf8") as f:
                     f.write(tfs_config)
 
                 batching_config_file = "/sagemaker/batching/{}/{}/batching-config.cfg".format(
-                    model_name,
-                    model_index
+                    model_name, model_index
                 )
                 if self._tfs_enable_batching:
                     tfs_utils.create_batching_config(batching_config_file)
@@ -181,72 +191,78 @@ class PythonServiceResource:
                 log.info("MME starts tensorflow serving with command: {}".format(cmd))
                 p = subprocess.Popen(cmd.split())
 
-                tfs_utils.wait_for_model(
-                    rest_port, model_name, self._tfs_wait_time_seconds, p.pid
-                )
+                tfs_utils.wait_for_model(rest_port, model_name, self._tfs_wait_time_seconds, p.pid)
 
                 log.info("started tensorflow serving (pid: %d)", p.pid)
 
-                return {'status': falcon.HTTP_200,
-                        'body': json.dumps(
-                            {
-                                "success": "Successfully loaded model {}, "
-                                           "listening on rest port {} "
-                                           "and grpc port {}.".format(model_name, rest_port, grpc_port)
-                            },
-                        ),
-                        'pid': p.pid
-                        }
+                return {
+                    "status": falcon.HTTP_200,
+                    "body": json.dumps(
+                        {
+                            "success": "Successfully loaded model {}, "
+                            "listening on rest port {} "
+                            "and grpc port {}.".format(model_name, rest_port, grpc_port)
+                        },
+                    ),
+                    "pid": p.pid,
+                }
             except MultiModelException as multi_model_exception:
                 if multi_model_exception.code == 409:
-                    return {'status': falcon.HTTP_409,
-                            'body': multi_model_exception.msg,
-                            'pid': multi_model_exception.pid, }
+                    return {
+                        "status": falcon.HTTP_409,
+                        "body": multi_model_exception.msg,
+                        "pid": multi_model_exception.pid,
+                    }
                 elif multi_model_exception.code == 408:
                     cpu_memory_usage = tfs_utils.get_cpu_memory_util()
-                    log.info(f'cpu memory usage {cpu_memory_usage}')
+                    log.info(f"cpu memory usage {cpu_memory_usage}")
                     if cpu_memory_usage > 70:
                         return {
-                            'status': falcon.HTTP_507,
-                            'body': "Memory exhausted: not enough memory to start TFS instance",
-                            'pid': multi_model_exception.pid,
+                            "status": falcon.HTTP_507,
+                            "body": "Memory exhausted: not enough memory to start TFS instance",
+                            "pid": multi_model_exception.pid,
                         }
-                    return {'status': falcon.HTTP_408,
-                            'body': multi_model_exception.msg,
-                            'pid': multi_model_exception.pid,
-                            }
+                    return {
+                        "status": falcon.HTTP_408,
+                        "body": multi_model_exception.msg,
+                        "pid": multi_model_exception.pid,
+                    }
                 else:
-                    return {'status': falcon.HTTP_500,
-                            'body': multi_model_exception.msg,
-                            'pid': multi_model_exception.pid,
-                            }
+                    return {
+                        "status": falcon.HTTP_500,
+                        "body": multi_model_exception.msg,
+                        "pid": multi_model_exception.pid,
+                    }
             except FileExistsError as e:
-                return {'status': falcon.HTTP_409,
-                        'body': json.dumps(
-                            {"error": "Model {} is already loaded. {}".format(model_name, str(e))}
-                        )}
+                return {
+                    "status": falcon.HTTP_409,
+                    "body": json.dumps(
+                        {"error": "Model {} is already loaded. {}".format(model_name, str(e))}
+                    ),
+                }
             except OSError as os_error:
-                log.error(f'failed to load model with exception {os_error}')
+                log.error(f"failed to load model with exception {os_error}")
                 if os_error.errno == 12:
                     return {
-                        'status': falcon.HTTP_507,
-                        'body': "Memory exhausted: not enough memory to start TFS instance",
+                        "status": falcon.HTTP_507,
+                        "body": "Memory exhausted: not enough memory to start TFS instance",
                     }
                 else:
                     return {
-                        'status': falcon.HTTP_500,
-                        'body': os_error.strerror,
-
+                        "status": falcon.HTTP_500,
+                        "body": os_error.strerror,
                     }
         else:
-            return {'status': falcon.HTTP_404,
-                    'body': json.dumps(
-                        {
-                            "error": "Could not find valid base path {} for servable {}".format(
-                                base_path, model_name
-                            )
-                        }
-                    )}
+            return {
+                "status": falcon.HTTP_404,
+                "body": json.dumps(
+                    {
+                        "error": "Could not find valid base path {} for servable {}".format(
+                            base_path, model_name
+                        )
+                    }
+                ),
+            }
 
     def _handle_load_model_post(self, res, data):  # noqa: C901
         with lock():
@@ -269,57 +285,75 @@ class PythonServiceResource:
                 # check if there are available ports
                 if not self._ports_available():
                     is_load_successful = False
-                    response['status'] = falcon.HTTP_507
-                    response['body'] = json.dumps(
+                    response["status"] = falcon.HTTP_507
+                    response["body"] = json.dumps(
                         {"error": "Memory exhausted: no available ports to load the model."}
                     )
                     break
-                tfs_rest_port = self._tfs_available_ports['rest_port'].pop()
-                tfs_grpc_port = self._tfs_available_ports['grpc_port'].pop()
+                tfs_rest_port = self._tfs_available_ports["rest_port"].pop()
+                tfs_grpc_port = self._tfs_available_ports["grpc_port"].pop()
 
                 response = self._load_model(model_name, base_path, tfs_rest_port, tfs_grpc_port, i)
 
-                if 'pid' in response:
+                if "pid" in response:
                     self._mme_tfs_instances_status.setdefault(model_name, []).append(
-                        TfsInstanceStatus(tfs_rest_port, tfs_grpc_port, response['pid']))
+                        TfsInstanceStatus(tfs_rest_port, tfs_grpc_port, response["pid"])
+                    )
 
-                if response['status'] != falcon.HTTP_200:
-                    log.info(f'Failed to load model : {model_name}')
+                if response["status"] != falcon.HTTP_200:
+                    log.info(f"Failed to load model : {model_name}")
                     is_load_successful = False
                     break
 
             if not is_load_successful:
-                log.info(f'Failed to load model : {model_name}, Starting to cleanup...')
+                log.info(f"Failed to load model : {model_name}, Starting to cleanup...")
                 self._delete_model(model_name)
                 self._remove_model_config(model_name)
             else:
                 self._upload_mme_instance_status()
 
-            res.status = response['status']
-            res.body = response['body']
+            res.status = response["status"]
+            res.body = response["body"]
 
     def _import_custom_modules(self, model_name):
         inference_script_path = "/opt/ml/models/{}/model/code/inference.py".format(model_name)
         python_lib_path = "/opt/ml/models/{}/model/code/lib".format(model_name)
         if os.path.exists(python_lib_path):
-            log.info("Add Python code library for the model {} found at path {}.".format(model_name, python_lib_path))
+            log.info(
+                "Add Python code library for the model {} found at path {}.".format(
+                    model_name, python_lib_path
+                )
+            )
             sys.path.append(python_lib_path)
         else:
-            log.info("Python code library for the model {} not found at path {}.".format(model_name, python_lib_path))
+            log.info(
+                "Python code library for the model {} not found at path {}.".format(
+                    model_name, python_lib_path
+                )
+            )
         if os.path.exists(inference_script_path):
-            log.info("Importing handlers from model-specific inference script for the model {} found at path {}.".format(model_name, inference_script_path))
+            log.info(
+                "Importing handlers from model-specific inference script for the model {} found at path {}.".format(
+                    model_name, inference_script_path
+                )
+            )
             handler, input_handler, output_handler = self._import_handlers(inference_script_path)
             model_handlers = self._make_handler(handler, input_handler, output_handler)
             self.model_handlers[model_name] = model_handlers
         else:
-            log.info("Model-specific inference script for the model {} not found at path {}.".format(model_name, inference_script_path))
+            log.info(
+                "Model-specific inference script for the model {} not found at path {}.".format(
+                    model_name, inference_script_path
+                )
+            )
 
     def _handle_invocation_post(self, req, res, model_name=None):
         if SAGEMAKER_MULTI_MODEL_ENABLED:
             if model_name:
                 if self._gunicorn_workers > 1:
-                    if model_name not in self._mme_tfs_instances_status or \
-                            not self._check_pid(self._mme_tfs_instances_status[model_name][0].pid):
+                    if model_name not in self._mme_tfs_instances_status or not self._check_pid(
+                        self._mme_tfs_instances_status[model_name][0].pid
+                    ):
                         with lock():
                             self._sync_local_mme_instance_status()
 
@@ -331,10 +365,14 @@ class PythonServiceResource:
                     return
                 else:
                     log.info("model name: {}".format(model_name))
-                    rest_ports = [status.rest_port for status in self._mme_tfs_instances_status[model_name]]
+                    rest_ports = [
+                        status.rest_port for status in self._mme_tfs_instances_status[model_name]
+                    ]
                     rest_port = self._pick_port(rest_ports)
                     log.info("rest port: {}".format(str(rest_port)))
-                    grpc_ports = [status.grpc_port for status in self._mme_tfs_instances_status[model_name]]
+                    grpc_ports = [
+                        status.grpc_port for status in self._mme_tfs_instances_status[model_name]
+                    ]
                     grpc_port = grpc_ports[rest_ports.index(rest_port)]
                     log.info("grpc port: {}".format(str(grpc_port)))
                     data, context = tfs_utils.parse_request(
@@ -364,12 +402,22 @@ class PythonServiceResource:
             res.status = falcon.HTTP_200
             handlers = self._handlers
             if SAGEMAKER_MULTI_MODEL_ENABLED and model_name in self.model_handlers:
-                log.info("Model-specific inference script for the model {} exists, importing handlers.".format(model_name))
+                log.info(
+                    "Model-specific inference script for the model {} exists, importing handlers.".format(
+                        model_name
+                    )
+                )
                 handlers = self.model_handlers[model_name]
             elif not self._default_handlers_enabled:
-                log.info("Universal inference script exists at path {}, importing handlers.".format(INFERENCE_SCRIPT_PATH))
+                log.info(
+                    "Universal inference script exists at path {}, importing handlers.".format(
+                        INFERENCE_SCRIPT_PATH
+                    )
+                )
             else:
-                log.info("Model-specific inference script and universal inference script both do not exist, using default handlers.")
+                log.info(
+                    "Model-specific inference script and universal inference script both do not exist, using default handlers."
+                )
             res.body, res.content_type = handlers(data, context)
         except Exception as e:  # pylint: disable=broad-except
             log.exception("exception handling request: {}".format(e))
@@ -416,7 +464,11 @@ class PythonServiceResource:
                 uri = "http://localhost:{}/v1/models/{}"
                 for model, tfs_instance_status in self._mme_tfs_instances_status.items():
                     try:
-                        info = json.loads(requests.get(uri.format(tfs_instance_status[0].rest_port, model)).content)
+                        info = json.loads(
+                            requests.get(
+                                uri.format(tfs_instance_status[0].rest_port, model)
+                            ).content
+                        )
                         models_info[model] = info
                     except ValueError as e:
                         log.exception("exception handling request: {}".format(e))
@@ -469,8 +521,8 @@ class PythonServiceResource:
             os.kill(tfs_status.pid, signal.SIGKILL)
 
     def _remove_model_config(self, model_name):
-        shutil.rmtree('/sagemaker/tfs-config/{}'.format(model_name), ignore_errors=True)
-        shutil.rmtree('/sagemaker/batching/{}'.format(model_name), ignore_errors=True)
+        shutil.rmtree("/sagemaker/tfs-config/{}".format(model_name), ignore_errors=True)
+        shutil.rmtree("/sagemaker/batching/{}".format(model_name), ignore_errors=True)
 
     def validate_model_dir(self, model_path):
         # model base path doesn't exits
@@ -495,26 +547,35 @@ class PythonServiceResource:
         return False
 
     def _upload_mme_instance_status(self):
-        log.info("uploaded mme instance status file with content: {}".format(self._mme_tfs_instances_status))
-        with open(MME_TFS_INSTANCE_STATUS_FILE, 'wb') as handle:
+        log.info(
+            "uploaded mme instance status file with content: {}".format(
+                self._mme_tfs_instances_status
+            )
+        )
+        with open(MME_TFS_INSTANCE_STATUS_FILE, "wb") as handle:
             pickle.dump(self._mme_tfs_instances_status, handle, protocol=pickle.HIGHEST_PROTOCOL)
 
     def _sync_local_mme_instance_status(self):
         if not os.path.exists(MME_TFS_INSTANCE_STATUS_FILE):
             log.info("mme instance status file does not found.")
             return
-        with open(MME_TFS_INSTANCE_STATUS_FILE, 'rb') as handle:
+        with open(MME_TFS_INSTANCE_STATUS_FILE, "rb") as handle:
             self._mme_tfs_instances_status = pickle.load(handle)
-        log.info("updated local mme instance status with content: {}".format(self._mme_tfs_instances_status))
+        log.info(
+            "updated local mme instance status with content: {}".format(
+                self._mme_tfs_instances_status
+            )
+        )
 
     def _check_pid(self, pid):
-        """ Check For the existence of a unix pid. """
+        """Check For the existence of a unix pid."""
         try:
             os.kill(pid, 0)
         except OSError:
             return False
         else:
             return True
+
 
 class PingResource:
     def on_get(self, req, res):  # pylint: disable=W0613
@@ -541,43 +602,55 @@ app = falcon.API()
 resources = ServiceResources()
 resources.add_routes(app)
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     # Define the command-line arguments
     parser = argparse.ArgumentParser()
-    parser.add_argument('-b', '--bind', type=str, required=True, help='Specify a server socket to bind.')
-    parser.add_argument('-k', '--worker-class', type=str, required=True,
-                        choices=['sync', 'eventlet', 'gevent', 'tornado', 'gthread', 'sync'],
-                        help='The type of worker process to run')
-    parser.add_argument('-c', '--chdir', type=str, required=True, help='Change root dir')
-    parser.add_argument('-w', '--workers', type=int, required=True,
-                        help='The number of worker processes. This number should generally be between 2-4 workers per core in the server.')
-    parser.add_argument('-t', '--threads', type=int, required=True, help='The number of threads')
-    parser.add_argument('-l', '--log-level', type=str, required=True)
-    parser.add_argument('-o', '--timeout', type=int, required=True, help='Gunicorn timeout')
+    parser.add_argument(
+        "-b", "--bind", type=str, required=True, help="Specify a server socket to bind."
+    )
+    parser.add_argument(
+        "-k",
+        "--worker-class",
+        type=str,
+        required=True,
+        choices=["sync", "eventlet", "gevent", "tornado", "gthread", "sync"],
+        help="The type of worker process to run",
+    )
+    parser.add_argument("-c", "--chdir", type=str, required=True, help="Change root dir")
+    parser.add_argument(
+        "-w",
+        "--workers",
+        type=int,
+        required=True,
+        help="The number of worker processes. This number should generally be between 2-4 workers per core in the server.",
+    )
+    parser.add_argument("-t", "--threads", type=int, required=True, help="The number of threads")
+    parser.add_argument("-l", "--log-level", type=str, required=True)
+    parser.add_argument("-o", "--timeout", type=int, required=True, help="Gunicorn timeout")
 
     # Parse the command-line arguments
     args = parser.parse_args()
 
     # Create gunicorn options
     options = {
-        'bind': args.bind,
-        'worker_class': args.worker_class,
-        'chdir': args.chdir,
-        'workers': args.workers,
-        'threads': args.threads,
-        'loglevel': args.log_level,
-        'timeout': args.timeout,
-        'raw_env': [
-            f'TFS_GRPC_PORTS={TFS_GRPC_PORTS}',
-            f'TFS_REST_PORTS={TFS_REST_PORTS}',
+        "bind": args.bind,
+        "worker_class": args.worker_class,
+        "chdir": args.chdir,
+        "workers": args.workers,
+        "threads": args.threads,
+        "loglevel": args.log_level,
+        "timeout": args.timeout,
+        "raw_env": [
+            f"TFS_GRPC_PORTS={TFS_GRPC_PORTS}",
+            f"TFS_REST_PORTS={TFS_REST_PORTS}",
             f'SAGEMAKER_MULTI_MODEL={os.environ.get("SAGEMAKER_MULTI_MODEL")}',
-            f'SAGEMAKER_SAFE_PORT_RANGE={SAGEMAKER_TFS_PORT_RANGE}',
+            f"SAGEMAKER_SAFE_PORT_RANGE={SAGEMAKER_TFS_PORT_RANGE}",
             f'SAGEMAKER_TFS_WAIT_TIME_SECONDS={os.environ.get("SAGEMAKER_TFS_WAIT_TIME_SECONDS")}',
             f'SAGEMAKER_TFS_INTER_OP_PARALLELISM={os.environ.get("SAGEMAKER_TFS_INTER_OP_PARALLELISM", 0)}',
             f'SAGEMAKER_TFS_INTRA_OP_PARALLELISM={os.environ.get("SAGEMAKER_TFS_INTRA_OP_PARALLELISM", 0)}',
             f'SAGEMAKER_TFS_INSTANCE_COUNT={os.environ.get("SAGEMAKER_TFS_INSTANCE_COUNT", "1")}',
-            f'SAGEMAKER_GUNICORN_WORKERS={os.environ.get("SAGEMAKER_GUNICORN_WORKERS", "1")}'
-        ]
+            f'SAGEMAKER_GUNICORN_WORKERS={os.environ.get("SAGEMAKER_GUNICORN_WORKERS", "1")}',
+        ],
     }
 
     from gunicorn.app.base import BaseApplication
@@ -589,13 +662,15 @@ if __name__ == '__main__':
             super().__init__()
 
         def load_config(self):
-            config = {key: value for key, value in self.options.items()
-                      if key in self.cfg.settings and value is not None}
+            config = {
+                key: value
+                for key, value in self.options.items()
+                if key in self.cfg.settings and value is not None
+            }
             for key, value in config.items():
                 self.cfg.set(key.lower(), value)
 
         def load(self):
             return self.application
-
 
     StandaloneApplication(app, options).run()

@@ -8,7 +8,8 @@ ARG TORCH_URL=https://aws-pytorch-unified-cicd-binaries.s3.us-west-2.amazonaws.c
 ARG TORCHVISION_VERSION=0.14.1+cpu
 ARG TORCHAUDIO_VERSION=0.13.1+cpu
 ARG TORCHDATA_VERSION=0.5.1
-ARG TORCHSERVE_VERSION=0.7.0
+ARG TORCHSERVE_VERSION=0.7.1
+ARG SM_TOOLKIT_VERSION=2.0.14
 
 ########################################################
 #  _____ ____ ____    ___
@@ -140,22 +141,25 @@ RUN pip uninstall -y torch torchvision torchaudio torchdata model-archiver multi
 
 # Install AWS-PyTorch, and other torch packages
 RUN pip install --no-cache-dir --extra-index-url https://download.pytorch.org/whl/cpu -U \
-    "awscli<2" \
     boto3 \
-    "cryptography>3.2" \
     enum-compat==0.0.3 \
-    "ipython>=8.10.0,<9.0" \
-    numpy==1.22.2 \
     opencv-python \
-    packaging \
-    "Pillow>=9.0.0" \
-    "pyyaml>=5.4,<5.5" \
     scipy \
-    captum \
+    "cryptography>3.2" \
+    "ipython>=8.10.0,<9.0" \
+    "awscli<2" \
     ${TORCH_URL} \
     torchaudio==${TORCHAUDIO_VERSION} \
     torchvision==${TORCHVISION_VERSION} \
-    torchdata==${TORCHDATA_VERSION} \
+    torchdata==${TORCHDATA_VERSION}
+
+# Install TorchServe pypi dependencies directly from their requirements.txt file
+# NOTE: This also brings in unnecessary cpu dependencies like nvgpu
+# -> Numpy is higer version as required by torch
+# -> PyYaml needs to be high pinned for awscli v1 (current v1 = 1.27.99)
+RUN pip install --no-cache-dir -U -r https://raw.githubusercontent.com/pytorch/serve/v${TORCHSERVE_VERSION}/requirements/common.txt \
+    "numpy>=1.22.2,<1.23" \
+    "pyyaml>=5.4,<5.5" \
     torchserve==${TORCHSERVE_VERSION} \
     torch-model-archiver==${TORCHSERVE_VERSION}
 
@@ -217,6 +221,7 @@ LABEL com.amazonaws.sagemaker.capabilities.accept-bind-to-port=true
 LABEL com.amazonaws.sagemaker.capabilities.multi-models=true
 
 ARG PYTHON
+ARG SM_TOOLKIT_VERSION
 
 ENV SAGEMAKER_SERVING_MODULE sagemaker_pytorch_serving_container.serving:main
 
@@ -225,7 +230,7 @@ RUN conda install -y -c conda-forge \
     scikit-learn \
     pandas
 
-RUN pip install --no-cache-dir "sagemaker-pytorch-inference>=2"
+RUN pip install --no-cache-dir sagemaker-pytorch-inference==${SM_TOOLKIT_VERSION}
 
 COPY torchserve-entrypoint.py /usr/local/bin/dockerd-entrypoint.py
 
