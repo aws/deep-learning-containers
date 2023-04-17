@@ -23,17 +23,16 @@ from test.test_utils.ec2 import (
 PT_EC2_GPU_INDUCTOR_INSTANCE_TYPES = ["p3.2xlarge", "p4d.24xlarge", "g5.4xlarge", "g4dn.4xlarge"]
 METRIC_NAMES = ["speedup", "comp_time", "memory", "passrate"]
 
-
 @pytest.mark.integration("inductor")
-@pytest.mark.model("huggingface")
+@pytest.mark.model("torchbench")
 @pytest.mark.parametrize("ec2_instance_ami", [UBUNTU_18_BASE_DLAMI_US_WEST_2], indirect=True)
 @pytest.mark.parametrize("ec2_instance_type", PT_EC2_GPU_INDUCTOR_INSTANCE_TYPES, indirect=True)
-def test_performance_pytorch_gpu_inductor_huggingface(pytorch_training, ec2_connection, gpu_only, py3_only, ec2_instance_type):
+def test_performance_pytorch_gpu_inductor_torchbench(pytorch_training, ec2_connection, gpu_only, py3_only, ec2_instance_type):
     _, image_framework_version = get_framework_and_version_from_tag(pytorch_training)
     if Version(image_framework_version) < Version("2.0"):
         pytest.skip("Torch inductor was introduced in PyTorch 2.0")
     execute_ec2_training_performance_test(
-        ec2_connection, pytorch_training, "huggingface", ec2_instance_type)
+        ec2_connection, pytorch_training, "torchbench", ec2_instance_type)
 
 
 @pytest.mark.integration("inductor")
@@ -51,15 +50,15 @@ def test_performance_pytorch_gpu_inductor_timm_models(pytorch_training, ec2_conn
 
 
 @pytest.mark.integration("inductor")
-@pytest.mark.model("torchbench")
+@pytest.mark.model("huggingface")
 @pytest.mark.parametrize("ec2_instance_ami", [UBUNTU_18_BASE_DLAMI_US_WEST_2], indirect=True)
 @pytest.mark.parametrize("ec2_instance_type", PT_EC2_GPU_INDUCTOR_INSTANCE_TYPES, indirect=True)
-def test_performance_pytorch_gpu_inductor_torchbench(pytorch_training, ec2_connection, gpu_only, py3_only, ec2_instance_type):
+def test_performance_pytorch_gpu_inductor_huggingface(pytorch_training, ec2_connection, gpu_only, py3_only, ec2_instance_type):
     _, image_framework_version = get_framework_and_version_from_tag(pytorch_training)
     if Version(image_framework_version) < Version("2.0"):
         pytest.skip("Torch inductor was introduced in PyTorch 2.0")
     execute_ec2_training_performance_test(
-        ec2_connection, pytorch_training, "torchbench", ec2_instance_type)
+        ec2_connection, pytorch_training, "huggingface", ec2_instance_type)
 
 
 def execute_ec2_training_performance_test(
@@ -94,7 +93,7 @@ def execute_ec2_training_performance_test(
         subprocess.check_output(f"aws s3 cp {s3_pth}/ {model_suite}/ --recursive", shell=True)
         read_upload_benchmarking_result_to_cw(METRIC_NAMES, model_suite, instance_type=ec2_instance_type, model_suite=model_suite)
     except:
-        print("Benchmarking was not finished in 5 minutes.")
+        print("Benchmarking was not finished.")
     else:
         print("Completed uploading metric data.")
 

@@ -38,13 +38,8 @@ fi
 
 cd $BIN_DIR/pytorch
 
-timeout 100s python benchmarks/dynamo/runner.py --training --suites=timm_models --dtypes=amp --compilers=inductor --output-dir=timm_logs --extra-args='--output-directory=./'
+timeout 14400s python benchmarks/dynamo/runner.py --training --suites=timm_models --dtypes=amp --compilers=inductor --output-dir=timm_logs --extra-args='--output-directory=./' || true
 
-if [ $? -eq 0 ]
-then
-    aws s3 cp $BIN_DIR/pytorch/timm_logs/ $2/ --recursive
-else
-    echo "benchmarking not completed, no data recorded."
-fi
+aws s3 cp $BIN_DIR/pytorch/timm_logs/ $2/ --recursive
 
 exit 0
