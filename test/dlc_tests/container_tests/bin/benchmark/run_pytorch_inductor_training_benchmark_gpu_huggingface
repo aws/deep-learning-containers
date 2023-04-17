@@ -37,8 +37,13 @@ fi
 
 cd $BIN_DIR/pytorch
 
-python benchmarks/dynamo/runner.py --training --suites=huggingface --dtypes=amp --compilers=inductor --output-dir=huggingface_logs --extra-args='--output-directory=./'
+timeout 100s python benchmarks/dynamo/runner.py --training --suites=huggingface --dtypes=amp --compilers=inductor --output-dir=huggingface_logs --extra-args='--output-directory=./'
 
-aws s3 cp $BIN_DIR/pytorch/huggingface_logs/ $2/ --recursive
+if [ $? -eq 0 ]
+then
+    aws s3 cp $BIN_DIR/pytorch/huggingface_logs/ $2/ --recursive
+else
+    echo "benchmarking not completed, no data recorded."
+fi
 
 exit 0

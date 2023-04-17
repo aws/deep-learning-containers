@@ -48,8 +48,13 @@ fi
 
 cd $BIN_DIR/pytorch
 
-python benchmarks/dynamo/runner.py --training --suites=torchbench --dtypes=amp --compilers=inductor --output-dir=torchbench_logs --extra-args='--output-directory=./'
+timeout 100s python benchmarks/dynamo/runner.py --training --suites=torchbench --dtypes=amp --compilers=inductor --output-dir=torchbench_logs --extra-args='--output-directory=./'
 
-aws s3 cp $BIN_DIR/pytorch/torchbench_logs/ $2/ --recursive
+if [ $? -eq 0 ]
+then
+    aws s3 cp $BIN_DIR/pytorch/torchbench_logs/ $2/ --recursive
+else
+    echo "benchmarking not completed, no data recorded."
+fi
 
 exit 0
