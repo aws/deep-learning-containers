@@ -152,11 +152,11 @@ def test_performance_ec2_pytorch_inference_graviton(ec2_instance_type, suite, pr
     )
 
 
-@pytest.mark.skip(reason="for testing")
+#@pytest.mark.skip(reason="for testing")
 #@pytest.mark.parametrize("ec2_instance_type", ["p3.2xlarge", "g5.4xlarge", "g4dn.4xlarge"], indirect=True)
 #@pytest.mark.parametrize("suite", ["huggingface", "timm_models", "torchbench"])
 @pytest.mark.parametrize("ec2_instance_type", ["g4dn.4xlarge"], indirect=True)
-@pytest.mark.parametrize("suite", ["torchbench", "timm_models"])
+@pytest.mark.parametrize("suite", ["torchbench", "timm_models","huggingface"])
 @pytest.mark.parametrize("precision", ["float32"])
 def test_performance_ec2_pytorch_inference_gpu(ec2_instance_type, suite, precision, pytorch_inference, ec2_connection, region, gpu_only):
     _, image_framework_version = get_framework_and_version_from_tag(
@@ -174,6 +174,7 @@ def test_performance_ec2_pytorch_inference_gpu(ec2_instance_type, suite, precisi
 
 
 def ec2_performance_pytorch_inference(image_uri, instance_type, ec2_connection, region, suite, precision):
+    import subprocess as sp
     is_gpu = re.search(r"(p3|g4|g5)", instance_type)
     is_graviton = re.search(r"(c6g|c7g|m7g)", instance_type)
     device = "cuda" if is_gpu else "cpu"
@@ -196,6 +197,10 @@ def ec2_performance_pytorch_inference(image_uri, instance_type, ec2_connection, 
 
     ec2_connection.run(f"{docker_cmd} pull -q {image_uri} ")
     ec2_connection.run(f"mkdir -p /home/ubuntu/results")
+    ec2_connection.run(f"git clone https://github.com/pytorch/pytorch.git --branch v2.0.0"
+                       f" --recursive --single-branch --depth 1 /home/ubuntu/results/pytorch")
+    ec2_connection.run(f"git clone --branch main --recursive --single-branch --depth 1"
+                       f" https://github.com/pytorch/benchmark.git /home/ubuntu/results/benchmark")
     log_file = f"inductor_benchmarks_{instance_type}_{suite}.log"
 
     test_cmd = (f"python benchmarks/dynamo/runner.py"
@@ -244,13 +249,13 @@ def ec2_performance_pytorch_inference(image_uri, instance_type, ec2_connection, 
     pip_freezee_output = ec2_connection.run(f"{docker_cmd} exec --workdir=\"/root\" {container_name} "
                                             f"bash -c 'pip freeze'").stdout.split("\n")
     LOGGER.info(f"Output pip freeze ================================\n{pip_freezee_output}")
-    clone_pt_output = ec2_connection.run(f"{docker_cmd} exec --workdir=\"/root\" {container_name} "
-                       f"bash -c '{clone_pytorch}'").stdout.split("\n")
-    LOGGER.info(f"Output git clone ================================\n{clone_pt_output}")
-    if suite == "torchbench":
-        clone_tb_output = ec2_connection.run(f"{docker_cmd} exec --workdir=\"/root\" {container_name} "
-                           f"bash -c '{clone_torchbench}'").stdout.split("\n")
-        LOGGER.info(f"Output git clone ================================\n{clone_tb_output}")
+    #clone_pt_output = ec2_connection.run(f"{docker_cmd} exec --workdir=\"/root\" {container_name} "
+    #                   f"bash -c '{clone_pytorch}'").stdout.split("\n")
+    #LOGGER.info(f"Output clone pytorch ================================\n{clone_pt_output}")
+    #if suite == "torchbench":
+    #    clone_tb_output = ec2_connection.run(f"{docker_cmd} exec --workdir=\"/root\" {container_name} "
+    #                       f"bash -c '{clone_torchbench}'").stdout.split("\n")
+    #    LOGGER.info(f"Output clone torchbench ================================\n{clone_tb_output}")
     install_output = ec2_connection.run(
         f"{docker_cmd} exec --workdir=\"/root/benchmark\" {container_name} "
         f"bash -c 'python install.py'").stdout.split("\n")
@@ -268,7 +273,6 @@ def ec2_performance_pytorch_inference(image_uri, instance_type, ec2_connection, 
         f"aws s3 cp /home/ubuntu/results/pytorch/logs_{suite} {s3_location}/logs_{suite} --recursive").stdout.split("\n")
     LOGGER.info(f"Output aws s3 cp ================================\n{s3_cp_output}")
 
-    import subprocess as sp
     sp.run(f"aws s3 cp {s3_location}/logs_{suite} /home/ubuntu/results/logs_{suite} --recursive", shell=True)
 
     speedup = read_metric(f"/home/ubuntu/results/logs_{suite}/geomean.csv")
