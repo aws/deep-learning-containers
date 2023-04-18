@@ -7,8 +7,17 @@
 # review when someone opens a pull request.
 *       @aws/dl-containers
 
+
+# Common files that is managed by multiple owners
+available_images.md @aws/dl-containers @aws/dlc-autogluon-reviewers @aws/dlc-neuron-reviewers @aws/dlc-eia-reviewers @aws/dlc-dgl-reviewers @aws/dlc-trcomp-reviewers
+release_images_inference.yml @aws/dl-containers @aws/dlc-autogluon-reviewers @aws/dlc-neuron-reviewers @aws/dlc-eia-reviewers @aws/dlc-dgl-reviewers @aws/dlc-trcomp-reviewers
+release_images_training.yml @aws/dl-containers @aws/dlc-autogluon-reviewers @aws/dlc-neuron-reviewers @aws/dlc-eia-reviewers @aws/dlc-dgl-reviewers @aws/dlc-trcomp-reviewers
+.release_images_template.yml @aws/dl-containers @aws/dlc-autogluon-reviewers @aws/dlc-neuron-reviewers @aws/dlc-eia-reviewers @aws/dlc-dgl-reviewers @aws/dlc-trcomp-reviewers
+dlc_developer_config.toml @aws/dl-containers @aws/dlc-autogluon-reviewers @aws/dlc-neuron-reviewers @aws/dlc-eia-reviewers @aws/dlc-dgl-reviewers @aws/dlc-trcomp-reviewers @aws/dlc-smdebug-reviewers
+
 # Any files modified under autogluon/ will be assigned to the autogluon reviewer team
 autogluon/ @aws/dlc-autogluon-reviewers
+test/sagemaker_tests/autogluon @aws/dlc-autogluon-reviewers
 
 # Any PR with a file with "smdebug" in it will be assigned to the smdebug reviewer team
 *smdebug* @aws/dlc-smdebug-reviewers
