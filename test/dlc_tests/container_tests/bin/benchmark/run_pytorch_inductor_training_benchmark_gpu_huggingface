@@ -37,7 +37,7 @@ fi
 
 cd $BIN_DIR/pytorch
 
-timeout 7200s python benchmarks/dynamo/runner.py --training --suites=huggingface --dtypes=amp --compilers=inductor --output-dir=huggingface_logs --extra-args='--output-directory=./' || true
+timeout 300s python benchmarks/dynamo/runner.py --training --suites=huggingface --dtypes=amp --compilers=inductor --output-dir=huggingface_logs --extra-args='--output-directory=./' || true
 
 aws s3 cp $BIN_DIR/pytorch/huggingface_logs/ $2/ --recursive
 
