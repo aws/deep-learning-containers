@@ -34,3 +34,12 @@ dgl_tests/ @aws/dlc-dgl-reviewers
 
 # Any PR with a file with "trcomp" in it will be assigned to the SM Training Compiler team
 *trcomp* @aws/dlc-trcomp-reviewers
+
+# Any PR with a file with "inductor" in it will be assigned to the SM Training Compiler team
+*inductor* @aws/dlc-trcomp-reviewers
+
+# Any PR with a file with "smdataparallel" in it will be assigned to the SM DataParallel team
+*smdataparallel* @aws/dlc-sm-data-parallel-reviewers
+
+# Any PR with a file with "smmodelparallel" in it will be assigned to the SM ModelParallel team
+*smmodelparallel* @aws/dlc-sm-model-parallel-reviewers
