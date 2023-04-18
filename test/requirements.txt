@@ -1,7 +1,7 @@
 docker
 fabric
 junit-xml==1.9
-packaging==20.1
+packaging
 pytest
 pytest-rerunfailures
 pytest-timeout
