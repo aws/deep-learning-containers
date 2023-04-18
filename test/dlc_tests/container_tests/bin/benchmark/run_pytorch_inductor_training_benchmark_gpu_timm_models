@@ -38,7 +38,7 @@ fi
 
 cd $BIN_DIR/pytorch
 
-timeout 300s python benchmarks/dynamo/runner.py --training --suites=timm_models --dtypes=amp --compilers=inductor --output-dir=timm_logs --extra-args='--output-directory=./' || true
+timeout 7200s python benchmarks/dynamo/runner.py --training --suites=timm_models --dtypes=amp --compilers=inductor --output-dir=timm_logs --extra-args='--output-directory=./' || true
 
 aws s3 cp $BIN_DIR/pytorch/timm_logs/ $2/ --recursive
 
