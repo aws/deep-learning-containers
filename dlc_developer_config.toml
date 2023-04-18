@@ -32,7 +32,7 @@ build_frameworks = ["pytorch", "tensorflow", "mxnet"]
 
 # By default we build both training and inference containers. Set true/false values to determine which to build.
 build_training = true
-build_inference = true
+build_inference = false
 
 # Set to false in order to remove datetime tag on PR builds
 datetime_tag = false
