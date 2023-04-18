@@ -199,8 +199,9 @@ def ec2_performance_pytorch_inference(image_uri, instance_type, ec2_connection, 
     ec2_connection.run(f"mkdir -p /home/ubuntu/results")
     ec2_connection.run(f"git clone https://github.com/pytorch/pytorch.git --branch v2.0.0"
                        f" --recursive --single-branch --depth 1 /home/ubuntu/results/pytorch")
-    ec2_connection.run(f"git clone --branch main --recursive --single-branch --depth 1"
-                       f" https://github.com/pytorch/benchmark.git /home/ubuntu/results/benchmark")
+    if suite == "torchbench":
+        ec2_connection.run(f"git clone --branch main --recursive --single-branch --depth 1"
+                           f" https://github.com/pytorch/benchmark.git /home/ubuntu/results/benchmark")
     log_file = f"inductor_benchmarks_{instance_type}_{suite}.log"
 
     test_cmd = (f"python benchmarks/dynamo/runner.py"
@@ -256,10 +257,11 @@ def ec2_performance_pytorch_inference(image_uri, instance_type, ec2_connection, 
     #    clone_tb_output = ec2_connection.run(f"{docker_cmd} exec --workdir=\"/root\" {container_name} "
     #                       f"bash -c '{clone_torchbench}'").stdout.split("\n")
     #    LOGGER.info(f"Output clone torchbench ================================\n{clone_tb_output}")
-    install_output = ec2_connection.run(
-        f"{docker_cmd} exec --workdir=\"/root/benchmark\" {container_name} "
-        f"bash -c 'python install.py'").stdout.split("\n")
-    LOGGER.info(f"Output python install.py ================================\n{install_output}")
+    if suite == "torchbench":
+        install_output = ec2_connection.run(
+            f"{docker_cmd} exec --workdir=\"/root/benchmark\" {container_name} "
+            f"bash -c 'python install.py'").stdout.split("\n")
+        LOGGER.info(f"Output python install.py ================================\n{install_output}")
     mkdir_output = ec2_connection.run(
         f"{docker_cmd} exec --workdir=\"/root/pytorch\" {container_name} "
         f"bash -c 'mkdir -p /root/pytorch/logs_{suite}'").stdout.split("\n")
