@@ -1261,3 +1261,81 @@ release_images:
                             # to images being published.
       force_release: False  # [Default: False] Set to True to force images to be published even if the same image
                             # has already been published. Re-released image will have minor version incremented by 1.
+  82:
+    framework: "tensorflow"
+    version: "2.11.1"
+    customer_type: "ec2"
+    arch_type: "x86"
+    training:
+      device_types: ["cpu", "gpu"]
+      python_versions: ["py39"]
+      os_version: "ubuntu20.04"
+      cuda_version: "cu112"
+      example: False
+      disable_sm_tag: False
+      force_release: False
+  83:
+    framework: "tensorflow"
+    version: "2.11.1"
+    customer_type: "sagemaker"
+    arch_type: "x86"
+    training:
+      device_types: ["cpu", "gpu"]
+      python_versions: ["py39"]
+      os_version: "ubuntu20.04"
+      cuda_version: "cu112"
+      example: False
+      disable_sm_tag: False
+      force_release: False
+  84:
+    framework: "tensorflow"
+    version: "2.11.1"
+    customer_type: "ec2"
+    arch_type: "x86"
+    training:
+      device_types: ["gpu"]
+      python_versions: ["py39"]
+      os_version: "ubuntu20.04"
+      cuda_version: "cu112"
+      example: True
+      disable_sm_tag: False
+      force_release: False
+  85:
+    framework: "tensorflow"
+    version: "2.12.0"
+    customer_type: "ec2"
+    arch_type: "x86"
+    training:
+      device_types: ["cpu", "gpu"]
+      python_versions: ["py310"]
+      os_version: "ubuntu20.04"
+      cuda_version: "cu118"
+      example: False
+      disable_sm_tag: False
+      force_release: False
+  86:
+    framework: "tensorflow"
+    version: "2.12.0"
+    customer_type: "ec2"
+    arch_type: "x86"
+    training:
+      device_types: ["gpu"]
+      python_versions: ["py310"]
+      os_version: "ubuntu20.04"
+      cuda_version: "cu118"
+      example: True
+      disable_sm_tag: False
+      force_release: False
+  87:
+    framework: "tensorflow"
+    version: "2.12.0"
+    customer_type: "sagemaker"
+    arch_type: "x86"
+    training:
+      device_types: ["cpu", "gpu"]
+      python_versions: ["py310"]
+      os_version: "ubuntu20.04"
+      cuda_version: "cu118"
+      example: False
+      disable_sm_tag: False
+      force_release: False

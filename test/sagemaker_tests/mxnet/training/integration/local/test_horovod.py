@@ -30,7 +30,7 @@ def test_distributed_training_horovod_gpu(
     sagemaker_local_session, image_uri, tmpdir, framework_version
 ):
     _test_distributed_training_horovod(
-        1, 2, sagemaker_local_session, image_uri, tmpdir, framework_version, 'local_gpu'
+        1, 2, sagemaker_local_session, image_uri, tmpdir, framework_version, "local_gpu"
     )
 
 
@@ -38,43 +38,49 @@ def test_distributed_training_horovod_gpu(
 @pytest.mark.model("mnist")
 @pytest.mark.processor("cpu")
 @pytest.mark.skip_gpu
-@pytest.mark.parametrize('instances, processes', [(1, 2), (2, 1), (2, 2), (5, 2)])
+@pytest.mark.parametrize("instances, processes", [(1, 2), (2, 1), (2, 2), (5, 2)])
 def test_distributed_training_horovod_cpu(
     instances, processes, sagemaker_local_session, image_uri, tmpdir, framework_version
 ):
     _test_distributed_training_horovod(
-        instances, processes, sagemaker_local_session, image_uri, tmpdir, framework_version, 'local'
+        instances, processes, sagemaker_local_session, image_uri, tmpdir, framework_version, "local"
     )
 
 
 def _test_distributed_training_horovod(
     instances, processes, session, image_uri, tmpdir, framework_version, instance_type
 ):
-    output_path = 'file://%s' % tmpdir
+    output_path = "file://%s" % tmpdir
     estimator = MXNet(
-        entry_point=os.path.join(RESOURCE_PATH, 'hvdbasic', 'train_hvd_basic.py'),
-        role='SageMakerRole',
+        entry_point=os.path.join(RESOURCE_PATH, "hvdbasic", "train_hvd_basic.py"),
+        role="SageMakerRole",
         instance_type=instance_type,
         sagemaker_session=session,
         instance_count=instances,
         image_uri=image_uri,
         output_path=output_path,
         framework_version=framework_version,
-        hyperparameters={'sagemaker_mpi_enabled': True,
-                         'sagemaker_network_interface_name': 'eth0',
-                         'sagemaker_mpi_num_of_processes_per_host': processes})
+        hyperparameters={
+            "sagemaker_mpi_enabled": True,
+            "sagemaker_network_interface_name": "eth0",
+            "sagemaker_mpi_num_of_processes_per_host": processes,
+        },
+    )
 
-    estimator.fit('file://{}'.format(os.path.join(RESOURCE_PATH, 'mnist', 'data-distributed')))
+    estimator.fit("file://{}".format(os.path.join(RESOURCE_PATH, "mnist", "data-distributed")))
 
     tmp = str(tmpdir)
-    extract_files(output_path.replace('file://', ''), tmp)
+    extract_files(output_path.replace("file://", ""), tmp)
 
     size = instances * processes
 
     for rank in range(size):
         local_rank = rank % processes
-        assert read_json('local-rank-%s-rank-%s' % (local_rank, rank), tmp) == {
-            'local-rank': local_rank, 'rank': rank, 'size': size}
+        assert read_json("local-rank-%s-rank-%s" % (local_rank, rank), tmp) == {
+            "local-rank": local_rank,
+            "rank": rank,
+            "size": size,
+        }
 
 
 def read_json(file, tmp):
@@ -83,14 +89,14 @@ def read_json(file, tmp):
 
 
 def assert_files_exist_in_tar(output_path, files):
-    if output_path.startswith('file://'):
+    if output_path.startswith("file://"):
         output_path = output_path[7:]
-    model_file = os.path.join(output_path, 'model.tar.gz')
+    model_file = os.path.join(output_path, "model.tar.gz")
     with tarfile.open(model_file) as tar:
         for f in files:
             tar.getmember(f)
 
 
 def extract_files(output_path, tmpdir):
-    with tarfile.open(os.path.join(output_path, 'model.tar.gz')) as tar:
+    with tarfile.open(os.path.join(output_path, "model.tar.gz")) as tar:
         tar.extractall(tmpdir)

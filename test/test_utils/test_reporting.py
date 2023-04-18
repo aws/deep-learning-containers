@@ -12,9 +12,11 @@ from test.test_utils.ec2 import get_instance_num_gpus
 def get_test_coverage_file_path():
     cwd = os.getcwd()
 
-    dlc_dir = cwd.split('/test/')[0]
+    dlc_dir = cwd.split("/test/")[0]
 
-    repo_url = os.getenv("CODEBUILD_SOURCE_REPO_URL", "https://github.com/aws/deep-learning-containers.git")
+    repo_url = os.getenv(
+        "CODEBUILD_SOURCE_REPO_URL", "https://github.com/aws/deep-learning-containers.git"
+    )
     _, user, repo_name = repo_url.rstrip(".git").rsplit("/", 2)
     coverage_filename = f"test_coverage_report-{user}-{repo_name}-{datetime.datetime.now().strftime('%Y-%m-%d')}.csv"
 
@@ -52,7 +54,7 @@ class TestReportGenerator:
         "test_tensorflow_standalone_gpu",
         "test_smclarify",
         "test_ec2_pytorch_inference_gpu_inductor",
-        "test_mnist_distributed_gpu_inductor"
+        "test_mnist_distributed_gpu_inductor",
     )
     SM_REPOS = (
         os.path.join("pytorch", "training"),
@@ -61,7 +63,7 @@ class TestReportGenerator:
         os.path.join("tensorflow", "tensorflow2_training"),
         os.path.join("tensorflow", "inference"),
         os.path.join("mxnet", "training"),
-        os.path.join("mxnet", "inference")
+        os.path.join("mxnet", "inference"),
     )
     COVERAGE_DOC_COMMAND = "pytest -s --collect-only --generate-coverage-doc"
 
@@ -74,7 +76,9 @@ class TestReportGenerator:
         :param test_coverage_file: optional -- specify the name of the coverage file to write to
         """
         self.items = items
-        self.test_coverage_file = get_test_coverage_file_path() if not test_coverage_file else test_coverage_file
+        self.test_coverage_file = (
+            get_test_coverage_file_path() if not test_coverage_file else test_coverage_file
+        )
         self.is_sagemaker = is_sagemaker
         self.failure_conditions = {}
 
@@ -90,7 +94,9 @@ class TestReportGenerator:
         else:
             self.failure_conditions[function_key].append(message)
 
-    def handle_single_gpu_instances_test_report(self, function_key, function_keywords, processor="gpu"):
+    def handle_single_gpu_instances_test_report(
+        self, function_key, function_keywords, processor="gpu"
+    ):
         """
         Generally, we do not want tests running on single gpu instances. However, there are exceptions to this rule.
         This method is used to determine whether we need to raise an error with report generation or not, based on
@@ -146,8 +152,10 @@ class TestReportGenerator:
         final_message += f"TOTAL_ISSUES: {total_issues}"
 
         # Also write out error file
-        error_file = os.path.join(os.path.dirname(self.test_coverage_file), '.test_coverage_report_errors')
-        with open(error_file, 'w') as ef:
+        error_file = os.path.join(
+            os.path.dirname(self.test_coverage_file), ".test_coverage_report_errors"
+        )
+        with open(error_file, "w") as ef:
             ef.write(final_message)
 
         return final_message, total_issues, error_file
@@ -211,7 +219,9 @@ class TestReportGenerator:
 
         for repo in self.SM_REPOS:
             framework, job_type = repo.split(os.sep)
-            pytest_framework_path = os.path.join(git_repo_path, "test", "sagemaker_tests", framework, job_type)
+            pytest_framework_path = os.path.join(
+                git_repo_path, "test", "sagemaker_tests", framework, job_type
+            )
             with ctx.cd(pytest_framework_path):
                 # We need to install requirements in order to use the SM pytest frameworks
                 venv = os.path.join(pytest_framework_path, f".{repo.replace('/', '-')}")
@@ -220,13 +230,19 @@ class TestReportGenerator:
                     # Adding test/requirements.txt because coverage reporting tests all try to import
                     # test.test_utils.ec2, and fail to import tenacity because it isn't a member of SM test
                     # requirements.txt files.
-                    ctx.run(f"pip install -r {os.path.join(git_repo_path, 'test', 'requirements.txt')}", warn=True)
+                    ctx.run(
+                        f"pip install -r {os.path.join(git_repo_path, 'test', 'requirements.txt')}",
+                        warn=True,
+                    )
                     ctx.run("pip install -r requirements.txt", warn=True)
                     # TF inference separates remote/local conftests, and must be handled differently
                     if framework == "tensorflow" and job_type == "inference":
                         with ctx.cd(os.path.join(pytest_framework_path, "test", "integration")):
                             # Handle local tests
-                            ctx.run(f"{self.COVERAGE_DOC_COMMAND} --framework-version 2 local/", hide=True)
+                            ctx.run(
+                                f"{self.COVERAGE_DOC_COMMAND} --framework-version 2 local/",
+                                hide=True,
+                            )
                             # Handle remote integration tests
                             ctx.run(f"{self.COVERAGE_DOC_COMMAND} sagemaker/", hide=True)
                     else:
@@ -234,16 +250,22 @@ class TestReportGenerator:
 
         # Handle TF inference remote tests
         tf_inf_path = os.path.join(
-            git_repo_path, "test", "sagemaker_tests", "tensorflow", "inference")
+            git_repo_path, "test", "sagemaker_tests", "tensorflow", "inference"
+        )
 
         with ctx.cd(tf_inf_path):
             # Install TF inference pip requirements
             ctx.run(f"virtualenv .tf_inference")
-            with ctx.prefix(f"source {os.path.join(tf_inf_path, '.tf_inference', 'bin', 'activate')}"):
+            with ctx.prefix(
+                f"source {os.path.join(tf_inf_path, '.tf_inference', 'bin', 'activate')}"
+            ):
                 # Adding test/requirements.txt because coverage reporting tests all try to import
                 # test.test_utils.ec2, and fail to import tenacity because it isn't a member of SM test
                 # requirements.txt files.
-                ctx.run(f"pip install -r {os.path.join(git_repo_path, 'test', 'requirements.txt')}", warn=True)
+                ctx.run(
+                    f"pip install -r {os.path.join(git_repo_path, 'test', 'requirements.txt')}",
+                    warn=True,
+                )
                 ctx.run("pip install -r requirements.txt", warn=True)
                 with ctx.cd(os.path.join(tf_inf_path, "test", "integration")):
                     # Handle local tests
@@ -294,12 +316,24 @@ class TestReportGenerator:
             )
             integration_scope = _infer_field_value(
                 "general integration",
-                ("_dgl_", "smdebug", "gluonnlp", "smexperiments", "_mme_", "pipemode", "tensorboard", "_s3_", "nccl"),
+                (
+                    "_dgl_",
+                    "smdebug",
+                    "gluonnlp",
+                    "smexperiments",
+                    "_mme_",
+                    "pipemode",
+                    "tensorboard",
+                    "_s3_",
+                    "nccl",
+                ),
                 str_keywords,
             )
             processor_scope = _infer_field_value("all", ("cpu", "gpu", "eia"), str_keywords)
             if processor_scope == "gpu":
-                processor_scope = self.handle_single_gpu_instances_test_report(function_key, str_keywords)
+                processor_scope = self.handle_single_gpu_instances_test_report(
+                    function_key, str_keywords
+                )
 
             # Create a new test coverage item if we have not seen the function before. This is a necessary step,
             # as parametrization can make it appear as if the same test function is a unique test function
@@ -309,8 +343,12 @@ class TestReportGenerator:
                 "Scope": framework_scope,
                 "Job_Type": job_type_scope,
                 "Num_Instances": self.get_marker_arg_value(item, function_key, "multinode", 1),
-                "Processor": self.get_marker_arg_value(item, function_key, "processor", processor_scope),
-                "Integration": self.get_marker_arg_value(item, function_key, "integration", integration_scope),
+                "Processor": self.get_marker_arg_value(
+                    item, function_key, "processor", processor_scope
+                ),
+                "Integration": self.get_marker_arg_value(
+                    item, function_key, "integration", integration_scope
+                ),
                 "Model": self.get_marker_arg_value(item, function_key, "model"),
                 "GitHub_Link": github_link,
             }
@@ -321,7 +359,9 @@ class TestReportGenerator:
             if total_issues == 0:
                 LOGGER.warning(f"Found failure message, but no issues. Message:\n{message}")
             else:
-                raise TestReportGenerationFailure(f"{message}\nFollow {error_file} if message is truncated")
+                raise TestReportGenerationFailure(
+                    f"{message}\nFollow {error_file} if message is truncated"
+                )
 
 
 class TestReportGenerationFailure(Exception):

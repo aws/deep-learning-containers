@@ -16,30 +16,43 @@ import os
 import subprocess
 import sys
 
-CYAN_COLOR = '\033[36m'
-END_COLOR = '\033[0m'
+CYAN_COLOR = "\033[36m"
+END_COLOR = "\033[0m"
 
 
-def build_base_image(framework_name, framework_version, py_version,
-                     processor, base_image_tag, cwd='.'):
+def build_base_image(
+    framework_name, framework_version, py_version, processor, base_image_tag, cwd="."
+):
     base_image_uri = get_base_image_uri(framework_name, base_image_tag)
 
-    dockerfile_location = os.path.join('docker', framework_version, 'base',
-                                       'Dockerfile.{}'.format(processor))
+    dockerfile_location = os.path.join(
+        "docker", framework_version, "base", "Dockerfile.{}".format(processor)
+    )
 
-    subprocess.check_call(['docker', 'build', '-t', base_image_uri,
-                           '-f', dockerfile_location, '--build-arg',
-                           'py_version={}'.format(py_version[-1]), cwd], cwd=cwd)
-    print('created image {}'.format(base_image_uri))
+    subprocess.check_call(
+        [
+            "docker",
+            "build",
+            "-t",
+            base_image_uri,
+            "-f",
+            dockerfile_location,
+            "--build-arg",
+            "py_version={}".format(py_version[-1]),
+            cwd,
+        ],
+        cwd=cwd,
+    )
+    print("created image {}".format(base_image_uri))
     return base_image_uri
 
 
 def get_base_image_uri(framework_name, base_image_tag):
-    return '{}-base:{}'.format(framework_name, base_image_tag)
+    return "{}-base:{}".format(framework_name, base_image_tag)
 
 
 def get_image_uri(framework_name, tag):
-    return '{}:{}'.format(framework_name, tag)
+    return "{}:{}".format(framework_name, tag)
 
 
 def _check_call(cmd, *popenargs, **kwargs):
@@ -50,5 +63,5 @@ def _check_call(cmd, *popenargs, **kwargs):
 
 
 def _print_cmd(cmd):
-    print('executing docker command: {}{}{}'.format(CYAN_COLOR, ' '.join(cmd), END_COLOR))
+    print("executing docker command: {}{}{}".format(CYAN_COLOR, " ".join(cmd), END_COLOR))
     sys.stdout.flush()

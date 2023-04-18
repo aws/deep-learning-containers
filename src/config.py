@@ -18,7 +18,9 @@ def get_dlc_developer_config_path():
     dev_config_parent_dir = get_cloned_folder_path()
     return os.path.join(dev_config_parent_dir, "dlc_developer_config.toml")
 
+
 config_data = None
+
 
 def parse_dlc_developer_configs(section, option, tomlfile=get_dlc_developer_config_path()):
     global config_data

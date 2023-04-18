@@ -13,14 +13,14 @@
 import tensorflow as tf
 
 # https://www.tensorflow.org/programmers_guide/using_gpu
-print('-' * 87)
-print('Run GPU test.')
-with tf.device('/gpu:0'):
-    a = tf.constant([1.0, 2.0, 3.0, 4.0, 5.0, 6.0], shape=[2, 3], name='a')
-    b = tf.constant([1.0, 2.0, 3.0, 4.0, 5.0, 6.0], shape=[3, 2], name='b')
+print("-" * 87)
+print("Run GPU test.")
+with tf.device("/gpu:0"):
+    a = tf.constant([1.0, 2.0, 3.0, 4.0, 5.0, 6.0], shape=[2, 3], name="a")
+    b = tf.constant([1.0, 2.0, 3.0, 4.0, 5.0, 6.0], shape=[3, 2], name="b")
 c = tf.matmul(a, b)
 sess = tf.Session(config=tf.ConfigProto(log_device_placement=True))
 # Runs the op.
 print(sess.run(c))
-print('-' * 87)
-print('')
+print("-" * 87)
+print("")

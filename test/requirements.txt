@@ -1,12 +1,12 @@
-docker==4.2.0
-fabric==2.5.0
+docker
+fabric
 junit-xml==1.9
 packaging==20.1
 pytest
 pytest-rerunfailures
 pytest-timeout
 pytest-json-report
-pytest-xdist==1.31.0
+pytest-xdist
 sagemaker>=2,<3
 xmltodict
 boto3

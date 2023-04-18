@@ -12,6 +12,7 @@
 # language governing permissions and limitations under the License.
 
 import json
+import requests
 
 
 def handler(data, context):
