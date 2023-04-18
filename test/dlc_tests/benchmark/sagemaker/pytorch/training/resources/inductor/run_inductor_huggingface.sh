@@ -30,6 +30,8 @@ pip install deepspeed==0.8.2
 pip install gitpython
 pip install tabulate==0.9.0
 
+echo "Finish lib settings."
+
 TRAINING_LOG=${LOG_DIR}/pytorch_inductor_huggingface_benchmark.log
 
 python benchmarks/dynamo/runner.py --suites=huggingface --training --dtypes=amp --compilers=inductor --output-dir=huggingface_logs --extra-args='--output-directory=./' > $TRAINING_LOG 2>&1

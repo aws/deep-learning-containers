@@ -47,6 +47,8 @@ python install.py
 
 cd ../pytorch
 
+echo "Finish lib settings."
+
 TRAINING_LOG=${LOG_DIR}/pytorch_inductor_torchbench_benchmark.log
 python benchmarks/dynamo/runner.py --suites=torchbench --training --dtypes=amp --compilers=inductor --output-dir=torchbench_logs --extra-args='--output-directory=./' > $TRAINING_LOG 2>&1 
 
