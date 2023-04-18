@@ -219,7 +219,7 @@ def ec2_performance_pytorch_inference(image_uri, instance_type, ec2_connection, 
     clone_pytorch = (f"git clone --branch v2.0.0 --recursive --single-branch --depth 1 "
                      f"https://github.com/pytorch/pytorch.git")
     clone_torchbench = "git clone --branch main --recursive --single-branch --depth 1 --verbose https://github.com/pytorch/benchmark.git"
-    install_prereq = "apt-get install dialog apt-utils -y && pip install gitpython numpy==1.23"
+    install_prereq = "apt-get update && apt-get install dialog apt-utils -y && pip install gitpython numpy==1.23"
     increase_git_buffer_size = "git config --global http.postBuffer 1048576000"
 
     #if is_graviton:
