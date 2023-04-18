@@ -338,6 +338,7 @@ def test_mme1(
     custom_env = {
         "SAGEMAKER_MULTI_MODEL_UNIVERSAL_BUCKET": bucket,
         "SAGEMAKER_MULTI_MODEL_UNIVERSAL_PREFIX": "test-tfs/mme1/code/",
+        "SAGEMAKER_GUNICORN_WORKERS": "5",
     }
     outputs = util.create_and_invoke_endpoint(
         boto_session,
@@ -383,6 +384,7 @@ def test_mme2(
     custom_env = {
         "SAGEMAKER_MULTI_MODEL_UNIVERSAL_BUCKET": bucket,
         "SAGEMAKER_MULTI_MODEL_UNIVERSAL_PREFIX": "test-tfs/mme2/code/",
+        "SAGEMAKER_GUNICORN_WORKERS": "5",
     }
     outputs = util.create_and_invoke_endpoint(
         boto_session,
@@ -429,6 +431,7 @@ def test_mme3(
     custom_env = {
         "SAGEMAKER_MULTI_MODEL_UNIVERSAL_BUCKET": bucket,
         "SAGEMAKER_MULTI_MODEL_UNIVERSAL_PREFIX": "test-tfs/mme3/code/",
+        "SAGEMAKER_GUNICORN_WORKERS": "5",
     }
     outputs = util.create_and_invoke_endpoint(
         boto_session,
