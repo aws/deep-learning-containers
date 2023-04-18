@@ -260,7 +260,7 @@ def ec2_performance_pytorch_inference(image_uri, instance_type, ec2_connection, 
     if suite == "torchbench":
         install_output = ec2_connection.run(
             f"{docker_cmd} exec --workdir=\"/root/benchmark\" {container_name} "
-            f"bash -c 'python install.py'").stdout.split("\n")
+            f"--user root bash -c 'python install.py'").stdout.split("\n")
         LOGGER.info(f"Output python install.py ================================\n{install_output}")
     mkdir_output = ec2_connection.run(
         f"{docker_cmd} exec --workdir=\"/root/pytorch\" {container_name} "
@@ -268,7 +268,7 @@ def ec2_performance_pytorch_inference(image_uri, instance_type, ec2_connection, 
     LOGGER.info(f"Output mkdir ================================\n{mkdir_output}")
     bench_output = ec2_connection.run(
         f"{docker_cmd} exec --workdir=\"/root/pytorch\" {container_name} "
-        f"bash -c '{test_cmd}'").stdout.split("\n")
+        f"--user root bash -c '{test_cmd}'").stdout.split("\n")
     LOGGER.info(f"Output benchmark command ================================\n{bench_output}")
 
     s3_cp_output = ec2_connection.run(
