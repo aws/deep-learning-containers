@@ -31,6 +31,8 @@ INPUT_PATH = os.path.join(DEFAULT_HANDLER_PATH, "model", "input.npy")
 OUTPUT_PATH = os.path.join(DEFAULT_HANDLER_PATH, "model", "output.json")
 
 
+
+
 @pytest.mark.integration("neuron-hosting")
 @pytest.mark.model("mnist")
 @pytest.mark.skip_py2_containers
