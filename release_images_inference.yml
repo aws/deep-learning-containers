@@ -1,28 +1,26 @@
 ---
 release_images:
   1:
-    framework: "pytorch"
-    version: "2.0.0"
-    arch_type: "x86"
+    framework: "tensorflow"
+    version: "2.9.1"
+    arch_type: "graviton"
     customer_type: "ec2"
     inference:
-      device_types: [ "gpu" ]
-      python_versions: [ "py310" ]
+      device_types: [ "cpu" ]
+      python_versions: [ "py38" ]
       os_version: "ubuntu20.04"
-      cuda_version: "cu118"
       example: False
       disable_sm_tag: False
       force_release: False
   2:
-    framework: "pytorch"
-    version: "2.0.0"
-    arch_type: "x86"
+    framework: "tensorflow"
+    version: "2.9.1"
+    arch_type: "graviton"
     customer_type: "sagemaker"
     inference:
-      device_types: [ "gpu" ]
-      python_versions: [ "py310" ]
+      device_types: [ "cpu" ]
+      python_versions: [ "py38" ]
       os_version: "ubuntu20.04"
-      cuda_version: "cu118"
       example: False
       disable_sm_tag: False
       force_release: False
