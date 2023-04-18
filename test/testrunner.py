@@ -364,8 +364,8 @@ def main():
                 context = Context()
                 context.run("git clone https://github.com/HabanaAI/gaudi-test-suite.git")
                 context.run("tar -c -f gaudi-test-suite.tar.gz gaudi-test-suite")
-            else:
-                pytest_cmd += ["--reruns=1", "--reruns-delay=10"]
+            #else:
+            #    pytest_cmd += ["--reruns=1", "--reruns-delay=10"]
 
         if is_pr_context():
             if specific_test_type == "eks":
