@@ -32,7 +32,7 @@ build_frameworks = ["pytorch"]
 
 # By default we build both training and inference containers. Set true/false values to determine which to build.
 build_training = true
-build_inference = true
+build_inference = false
 
 # Set to false in order to remove datetime tag on PR builds
 datetime_tag = true
@@ -58,7 +58,7 @@ sagemaker_local_tests = true
 # "standard" --> run standard sagemaker remote tests from test/sagemaker_tests
 # "rc" --> run release_candidate_integration tests
 # "efa" --> run efa sagemaker tests
-sagemaker_remote_tests = "off"
+sagemaker_remote_tests = "standard"
 
 # SM remote EFA test instance type
 sagemaker_remote_efa_instance_type = ""
