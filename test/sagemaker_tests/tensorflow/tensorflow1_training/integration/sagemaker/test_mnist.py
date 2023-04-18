@@ -26,7 +26,7 @@ from ...integration.utils import processor, py_version, unique_name_from_base  #
 from .timeout import timeout
 
 
-@pytest.mark.skipif(is_pr_context(), reason=SKIP_PR_REASON)
+# @pytest.mark.skipif(is_pr_context(), reason=SKIP_PR_REASON)
 @pytest.mark.model("mnist")
 @pytest.mark.deploy_test
 def test_mnist(ecr_image, sagemaker_regions, instance_type, framework_version):
@@ -58,7 +58,7 @@ def _test_mnist_function(ecr_image, sagemaker_session, instance_type, framework_
     _assert_s3_file_exists(sagemaker_session.boto_region_name, estimator.model_data)
 
 
-@pytest.mark.skipif(is_pr_context(), reason=SKIP_PR_REASON)
+# @pytest.mark.skipif(is_pr_context(), reason=SKIP_PR_REASON)
 @pytest.mark.model("mnist")
 @pytest.mark.multinode(2)
 @pytest.mark.integration("no parameter server")
@@ -132,7 +132,7 @@ def _test_distributed_mnist_ps_function(
     _assert_s3_file_exists(sagemaker_session.boto_region_name, estimator.model_data)
 
 
-@pytest.mark.skipif(is_pr_context(), reason=SKIP_PR_REASON)
+# @pytest.mark.skipif(is_pr_context(), reason=SKIP_PR_REASON)
 @pytest.mark.model("mnist")
 @pytest.mark.integration("s3 plugin")
 def test_s3_plugin(ecr_image, sagemaker_regions, instance_type, region, framework_version):
