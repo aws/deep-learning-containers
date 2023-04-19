@@ -82,6 +82,8 @@ def image_builder(buildspec, image_types=[], device_types=[]):
         )
 
     for image_name, image_config in BUILDSPEC["images"].items():
+        print(f"[Logs-abcd][first] image_config['build']: {image_config['build']}")
+        
         # filter by image type if type is specified
         if image_types and not image_config["image_type"] in image_types:
             continue
@@ -252,7 +254,7 @@ def image_builder(buildspec, image_types=[], device_types=[]):
             "extra_build_args": extra_build_args,
         }
 
-        print(f"[Logs-abcd] image_config['build']: {image_config['build']}")
+        print(f"[Logs-abcd][second] image_config['build']: {image_config['build']}")
         
         # Create pre_push stage docker object
         pre_push_stage_image_object = DockerImage(
