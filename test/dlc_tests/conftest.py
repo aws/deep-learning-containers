@@ -129,7 +129,7 @@ NIGHTLY_FIXTURES = {
     "feature_s3_plugin_present": {NightlyFeatureLabel.AWS_S3_PLUGIN_INSTALLED.value},
 }
 
-@pytest.fixture(autouse=True)
+@pytest.fixture(scope="session")
 def skip_s3plugin_test(request, pytorch_training):
     if request.node.get_closest_marker("skip_s3plugin_test"):
         if Version(pytorch_training) not in SpecifierSet("<=1.12.1,>=1.6.0"):
