@@ -28,9 +28,6 @@ HEAVY_INSTANCE_LIST = ["p3dn.24xlarge", "p4d.24xlarge"]
 
 LOGGER = logging.getLogger(__name__)
 LOGGER.addHandler(logging.StreamHandler(sys.stdout))
-LOGGER.setLevel(logging.INFO)
-
-
 def filter_only_multi_gpu(instance_type_list):
     filtered_list = [
         instance_type
@@ -721,9 +718,8 @@ def execute_ec2_training_test(
     neuron_device = "--device=/dev/neuron0" if "neuron" in ecr_uri else ""
     bin_bash_cmd = "--entrypoint /bin/bash " if bin_bash_entrypoint else ""
 
-    LOGGER.info(f"execute_ec2_training_test pulling {ecr_uri}")
+    LOGGER.info(f"execute_ec2_training_test pulling {ecr_uri}, with cmd {test_cmd}")
     connection.run(f"docker pull {ecr_uri}", hide="out")
-    LOGGER.info(f"execute_ec2_training_test running {ecr_uri}")
     connection.run(
         f"{docker_cmd} run --name {container_name} "
         f"{container_runtime} {ompi_mca_btl} {cap_add} {hpu_env_vars} "
@@ -774,11 +770,14 @@ def execute_ec2_training_test(
     if "neuron" in ecr_uri:
         connection.run(f"sudo modprobe -r neuron  && sudo modprobe -i neuron")
 
-    return connection.run(
+    LOGGER.info(f"execute_ec2_training_test running {ecr_uri}, with cmd {test_cmd}")
+    ec2_res = connection.run(
         f"{docker_cmd} exec --user root {container_name} {executable} -c '{test_cmd}'",
         hide=True,
         timeout=timeout,
     )
+    LOGGER.info(f"execute_ec2_training_test completed {ecr_uri}, with cmd {test_cmd}")
+    return ec2_res
 
 
 def execute_ec2_inference_test(connection, ecr_uri, test_cmd, region=DEFAULT_REGION):

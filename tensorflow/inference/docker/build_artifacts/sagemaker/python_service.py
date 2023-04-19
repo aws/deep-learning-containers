@@ -272,6 +272,7 @@ class PythonServiceResource:
             # sync sync_local_mme_instance_status & update available ports
             self._sync_local_mme_instance_status()
             self._update_ports_available()
+            self._sync_model_handlers()
 
             # model is already loaded
             if model_name in self._mme_tfs_instances_status:
@@ -356,6 +357,7 @@ class PythonServiceResource:
                     ):
                         with lock():
                             self._sync_local_mme_instance_status()
+                        self._sync_model_handlers()
 
                 if model_name not in self._mme_tfs_instances_status:
                     res.status = falcon.HTTP_404
@@ -566,6 +568,11 @@ class PythonServiceResource:
                 self._mme_tfs_instances_status
             )
         )
+
+    def _sync_model_handlers(self):
+        for model_name, _ in self._mme_tfs_instances_status.items():
+            if model_name not in self.model_handlers:
+                self._import_custom_modules(model_name)
 
     def _check_pid(self, pid):
         """Check For the existence of a unix pid."""

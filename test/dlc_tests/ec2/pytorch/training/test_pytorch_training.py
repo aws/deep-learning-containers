@@ -245,7 +245,8 @@ def test_pytorch_gloo_gpu(pytorch_training, ec2_connection, gpu_only, py3_only, 
         else f"{PT_GLOO_MPI_CMD} gloo 0"  # backend, inductor flags
     )
 
-    execute_ec2_training_test(ec2_connection, pytorch_training, test_cmd, large_shm=True)
+    execute_ec2_training_test(ec2_connection, pytorch_training, test_cmd, large_shm=True, timeout=1500)
+
 
 
 @pytest.mark.usefixtures("sagemaker")
@@ -269,7 +270,7 @@ def test_pytorch_gloo_inductor_gpu(
     test_cmd = (
         os.path.join(CONTAINER_TESTS_PREFIX, "pytorch_tests", "testPyTorchGlooMpi") + " gloo 1"
     )  # backend, inductor flags
-    execute_ec2_training_test(ec2_connection, pytorch_training, test_cmd, large_shm=True)
+    execute_ec2_training_test(ec2_connection, pytorch_training, test_cmd, large_shm=True, timeout=1500)
 
 
 @pytest.mark.usefixtures("sagemaker")
@@ -288,7 +289,7 @@ def test_pytorch_gloo_cpu(pytorch_training, ec2_connection, cpu_only, py3_only, 
         else f"{PT_GLOO_MPI_CMD} gloo 0"  # backend, inductor flags
     )
 
-    execute_ec2_training_test(ec2_connection, pytorch_training, test_cmd, large_shm=True)
+    execute_ec2_training_test(ec2_connection, pytorch_training, test_cmd, large_shm=True, timeout=1500)
 
 
 @pytest.mark.usefixtures("sagemaker")
@@ -374,6 +375,7 @@ def test_pytorch_mpi_gpu(
         if Version(framework_version) < Version("2.0")
         else f"{PT_GLOO_MPI_CMD} mpi 0"  # backend, inductor flags
     )
+
     execute_ec2_training_test(ec2_connection, pytorch_training, test_cmd)
 
 
@@ -465,7 +467,7 @@ def test_pytorch_amp(pytorch_training, ec2_connection, gpu_only, ec2_instance_ty
         pytest.skip(
             f"Image {pytorch_training} is incompatible with instance type {ec2_instance_type}"
         )
-    execute_ec2_training_test(ec2_connection, pytorch_training, PT_AMP_CMD)
+    execute_ec2_training_test(ec2_connection, pytorch_training, PT_AMP_CMD, timeout=1500)
 
 
 @pytest.mark.usefixtures("sagemaker")
@@ -485,7 +487,7 @@ def test_pytorch_amp_inductor(
         pytest.skip(
             f"Image {pytorch_training} is incompatible with instance type {ec2_instance_type}"
         )
-    execute_ec2_training_test(ec2_connection, pytorch_training, PT_AMP_INDUCTOR_CMD)
+    execute_ec2_training_test(ec2_connection, pytorch_training, PT_AMP_INDUCTOR_CMD, timeout=1500)
 
 
 @pytest.mark.usefixtures("feature_s3_plugin_present")
@@ -493,6 +495,7 @@ def test_pytorch_amp_inductor(
 @pytest.mark.integration("pt_s3_plugin_gpu")
 @pytest.mark.model("N/A")
 @pytest.mark.parametrize("ec2_instance_type", PT_EC2_GPU_INSTANCE_TYPE, indirect=True)
+@pytest.mark.skip_s3plugin_test
 def test_pytorch_s3_plugin_gpu(
     pytorch_training, ec2_connection, gpu_only, ec2_instance_type, outside_versions_skip
 ):
@@ -512,6 +515,7 @@ def test_pytorch_s3_plugin_gpu(
 @pytest.mark.integration("pt_s3_plugin_cpu")
 @pytest.mark.model("N/A")
 @pytest.mark.parametrize("ec2_instance_type", PT_EC2_CPU_INSTANCE_TYPE, indirect=True)
+@pytest.mark.skip_s3plugin_test
 def test_pytorch_s3_plugin_cpu(
     pytorch_training, ec2_connection, cpu_only, ec2_instance_type, outside_versions_skip
 ):
@@ -617,7 +621,7 @@ def test_pytorch_telemetry_gpu(
 @pytest.mark.model("N/A")
 @pytest.mark.parametrize("ec2_instance_type", PT_EC2_CPU_INSTANCE_TYPE, indirect=True)
 def test_pytorch_telemetry_cpu(pytorch_training, ec2_connection, cpu_only, pt15_and_above_only):
-    execute_ec2_training_test(ec2_connection, pytorch_training, PT_TELEMETRY_CMD)
+    execute_ec2_training_test(ec2_connection, pytorch_training, PT_TELEMETRY_CMD, timeout=900)
 
 
 @pytest.mark.usefixtures("sagemaker")

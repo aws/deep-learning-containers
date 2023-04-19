@@ -53,6 +53,7 @@ def container(request, docker_base_name, tag, runtime_config):
             " -e SAGEMAKER_GUNICORN_WORKERS=4"
             " -e SAGEMAKER_TFS_INTER_OP_PARALLELISM=1"
             " -e SAGEMAKER_TFS_INTRA_OP_PARALLELISM=1"
+            " -e SAGEMAKER_GUNICORN_WORKERS=5"
             " {}"
             " {}:{} serve"
         ).format(runtime_config, batching_config, docker_base_name, tag)
