@@ -252,6 +252,8 @@ def image_builder(buildspec, image_types=[], device_types=[]):
             "extra_build_args": extra_build_args,
         }
 
+        print(f"[Logs-abcd] image_config['build']: {image_config['build']}")
+        
         # Create pre_push stage docker object
         pre_push_stage_image_object = DockerImage(
             info=info,
