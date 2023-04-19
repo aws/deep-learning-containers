@@ -39,7 +39,7 @@ def inductor_support_gpu_only(framework_version, pytorch_training):
     if Version(framework_version) in SpecifierSet("<2.0.0"):
         pytest.skip("Inductor support PyTorch version >= 2.0.0")
     if "gpu" not in pytorch_training:
-        pytest.skip("Training Compiler is only available for GPUs")
+        pytest.skip("Inductor benchmark is only available for GPUs")
 
 
 @pytest.fixture
