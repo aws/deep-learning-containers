@@ -53,6 +53,7 @@ def container(request, docker_base_name, tag, runtime_config):
             " -e SAGEMAKER_BIND_TO_PORT=8080"
             " -e SAGEMAKER_SAFE_PORT_RANGE=9000-9999"
             " -e SAGEMAKER_MULTI_MODEL=true"
+            " -e SAGEMAKER_GUNICORN_WORKERS=5"
             " {}:{} serve"
         ).format(runtime_config, docker_base_name, tag)
 
