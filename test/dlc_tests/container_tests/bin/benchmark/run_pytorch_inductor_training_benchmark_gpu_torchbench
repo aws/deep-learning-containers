@@ -33,6 +33,8 @@ git clone --recursive https://github.com/YuchengT/benchmark.git $BIN_DIR/benchma
 cd $BIN_DIR/benchmark
 python install.py
 
+sed -i "s/\"maml\",/&\n    \"tacotron2\",/g" $BIN_DIR/pytorch/benchmarks/dynamo/torchbench.py
+
 if [ "$1" = "p3.2xlarge" ]
 then
     sed -i "s/batch_size = benchmark.batch_size/batch_size = int(benchmark.batch_size \/ 4) if benchmark.batch_size >=4 else 1/g" $BIN_DIR/pytorch/benchmarks/dynamo/torchbench.py
