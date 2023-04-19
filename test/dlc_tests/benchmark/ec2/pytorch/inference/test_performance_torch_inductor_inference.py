@@ -268,7 +268,7 @@ def ec2_performance_pytorch_inference(image_uri, instance_type, ec2_connection, 
     LOGGER.info(f"Output mkdir ================================\n{mkdir_output}")
     bench_output = ec2_connection.run(
         f"{docker_cmd} exec --workdir=\"/root/pytorch\" {container_name} "
-        f"--user root bash -cex '{test_cmd}'").stdout.split("\n")
+        f"--user root {test_cmd}").stdout.split("\n")
     LOGGER.info(f"Output benchmark command ================================\n{bench_output}")
 
     s3_cp_output = ec2_connection.run(
