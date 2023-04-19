@@ -206,7 +206,7 @@ RUN pip install --no-cache-dir -U \
     boto3 \
     "click==8.1.2,<9" \
     "cmake>=3.24.3,<3.25" \
-    cryptography \
+    "cryptography>39.0.0" \
     ipython \
     "mpi4py>=3.1.4,<3.2" \
     "opencv-python>=4.6.0,<4.7" \
