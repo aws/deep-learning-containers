@@ -81,7 +81,7 @@ use_scheduler = false
 # Standard Framework Training
 dlc-pr-mxnet-training = ""
 dlc-pr-pytorch-training = ""
-dlc-pr-tensorflow-2-training = "tensoflow/training/buildspec.yml"
+dlc-pr-tensorflow-2-training = "tensorflow/training/buildspec.yml"
 dlc-pr-autogluon-training = ""
 
 # HuggingFace Training
