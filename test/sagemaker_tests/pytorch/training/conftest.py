@@ -402,7 +402,7 @@ def skip_trcomp_containers(request, ecr_image):
             )
 
 
-@pytest.fixture(autouse=True)
+@pytest.fixture(scope="session")
 def skip_inductor_test(request, framework_version):
     if request.node.get_closest_marker("skip_inductor_test"):
         if Version(framework_version) < Version("2.0.0"):
@@ -413,7 +413,7 @@ def skip_inductor_test(request, framework_version):
             )
 
 
-@pytest.fixture(autouse=True)
+@pytest.fixture(scope="session")
 def skip_s3plugin_test(request, framework_version):
     if request.node.get_closest_marker("skip_s3plugin_test"):
         if Version(framework_version) < Version("1.6.0") or Version(framework_version) > Version(
