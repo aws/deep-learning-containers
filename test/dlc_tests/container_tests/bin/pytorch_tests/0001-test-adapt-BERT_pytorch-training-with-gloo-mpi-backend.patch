@@ -1,14 +1,14 @@
-From 041d5935dfdb0b3b0ee8ce38afbe528ffa29e58c Mon Sep 17 00:00:00 2001
-From: Your Name <you@example.com>
-Date: Thu, 6 Apr 2023 23:00:12 +0000
-Subject: [PATCH] test: adapt BERT_pytorch training with gloo and mpi backend
+From f97dbc04afbaccd14bf27f23c3a3b066e44e456d Mon Sep 17 00:00:00 2001
+From: Shibo Xing <shibox@amazon.com>
+Date: Wed, 19 Apr 2023 18:35:36 +0000
+Subject: [PATCH] refactor: add DDP with gloo backend to bert script
 
 ---
  requirements.txt                              |   1 +
  run.py                                        | 109 +++++++++++-------
  .../models/BERT_pytorch/__init__.py           |  19 ++-
- .../bert_pytorch/trainer/pretrain.py          |  14 ++-
- 4 files changed, 95 insertions(+), 48 deletions(-)
+ .../bert_pytorch/trainer/pretrain.py          |  15 ++-
+ 4 files changed, 96 insertions(+), 48 deletions(-)
 
 diff --git a/requirements.txt b/requirements.txt
 index b80143de..46e881b7 100644
@@ -197,7 +197,7 @@ index 827cf167..0d0ec675 100644
 +        p.join()
 \ No newline at end of file
 diff --git a/torchbenchmark/models/BERT_pytorch/__init__.py b/torchbenchmark/models/BERT_pytorch/__init__.py
-index f79893fb..9a3a5793 100644
+index 030b03d2..3e341b18 100644
 --- a/torchbenchmark/models/BERT_pytorch/__init__.py
 +++ b/torchbenchmark/models/BERT_pytorch/__init__.py
 @@ -1,6 +1,7 @@
@@ -246,16 +246,18 @@ index f79893fb..9a3a5793 100644
  
          trainer = BERTTrainer(bert, len(vocab), train_dataloader=train_data_loader, test_dataloader=test_data_loader,
                                     lr=args.lr, betas=(args.adam_beta1, args.adam_beta2), weight_decay=args.adam_weight_decay,
-@@ -192,4 +198,7 @@ class Model(BenchmarkModel):
+@@ -192,6 +198,9 @@ class Model(BenchmarkModel):
          # 3. backward and optimization only in train
          trainer.optim_schedule.zero_grad()
          loss.backward()
-+        for param in trainer.model.parameters():
-+            dist.all_reduce(param.grad.data, op=dist.ReduceOp.SUM)
-+        param.grad.data /= dist.get_world_size()
++        # for param in trainer.model.parameters():
++        #     dist.all_reduce(param.grad.data, op=dist.ReduceOp.SUM)
++        # param.grad.data /= dist.get_world_size()
          trainer.optim_schedule.step_and_update_lr()
+ 
+     # self.model is a Trainer that has an inner optimizer wrapped by a scheduled optimizer. Return the inner,
 diff --git a/torchbenchmark/models/BERT_pytorch/bert_pytorch/trainer/pretrain.py b/torchbenchmark/models/BERT_pytorch/bert_pytorch/trainer/pretrain.py
-index d1a4673c..9f50d29e 100644
+index 67840ef5..153df03d 100644
 --- a/torchbenchmark/models/BERT_pytorch/bert_pytorch/trainer/pretrain.py
 +++ b/torchbenchmark/models/BERT_pytorch/bert_pytorch/trainer/pretrain.py
 @@ -1,11 +1,14 @@
@@ -283,7 +285,7 @@ index d1a4673c..9f50d29e 100644
  
          # This BERT model will be saved every epoch
          self.bert = bert
-@@ -45,8 +48,11 @@ class BERTTrainer:
+@@ -45,8 +48,12 @@ class BERTTrainer:
  
          # Distributed GPU training if CUDA can detect more than 1 GPU
          if with_cuda and torch.cuda.device_count() > 1:
@@ -294,6 +296,7 @@ index d1a4673c..9f50d29e 100644
 +            self.model = DistributedDataParallel(self.model)
 +        if torch.cuda.is_available() and os.environ["USE_INDUCTOR"] == '1':
 +            self.model = torch.compile(self.model, backend="inductor", mode='default')
++            print("model compiled", self.model)
          # Setting the train and test data loader
          self.train_data = train_dataloader
          self.test_data = test_dataloader

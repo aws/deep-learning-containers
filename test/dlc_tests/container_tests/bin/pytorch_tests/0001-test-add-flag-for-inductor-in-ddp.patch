@@ -1,0 +1,35 @@
+From df2e3e0ca569b2fdcb3e612d94df275af2f2e24e Mon Sep 17 00:00:00 2001
+From: Shibo Xing <shibox@amazon.com>
+Date: Wed, 19 Apr 2023 16:13:26 +0000
+Subject: [PATCH] refactor: parametrize inductor, change batchsize for resnet
+
+---
+ userbenchmark/ddp_experiments/__init__.py | 5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
+
+diff --git a/userbenchmark/ddp_experiments/__init__.py b/userbenchmark/ddp_experiments/__init__.py
+index cc1428f5..45b0c57a 100644
+--- a/userbenchmark/ddp_experiments/__init__.py
++++ b/userbenchmark/ddp_experiments/__init__.py
+@@ -427,15 +427,16 @@ def benchmark_ddp(args, executor):
+         'hf_T5_large': 4,
+         'timm_vision_transformer_large': 16,
+         'hf_T5': 12,
+-        'resnet50': 128,
++        'resnet50': 64,
+     }
+     model_batch_size = {MODEL_PATH_TEMPLATE.format(k): v for k, v in model_batch_size.items()}
+     # put eager first to ensure it can be used for reference values.
+     # try --torchdynamo eager or --torchdynamo aot_eager for debugging
+     model_args_configs = [
+         [],  # no args = pure eager baseline
+-        ["--torchdynamo", "inductor"],
+     ]
++    if os.environ["USE_INDUCTOR"] == '1':
++        model_args_configs.append(["--torchdynamo", "inductor"])
+     node_list = get_node_list(args)
+ 
+     def get_backend_name(model_args):
+-- 
+2.25.1
+
