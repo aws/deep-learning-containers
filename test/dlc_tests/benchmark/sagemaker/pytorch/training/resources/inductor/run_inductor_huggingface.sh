@@ -25,10 +25,7 @@ git clone --quiet --single-branch --depth 1 --branch v$framework_version https:/
 
 cd pytorch
 
-# pip install -U numpy
-# pip install deepspeed==0.8.2
 pip install gitpython
-# pip install tabulate==0.9.0
 
 echo "Finish lib settings."
 
