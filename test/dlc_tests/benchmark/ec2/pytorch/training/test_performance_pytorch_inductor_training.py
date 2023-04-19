@@ -31,6 +31,8 @@ def test_performance_pytorch_gpu_inductor_torchbench(pytorch_training, ec2_conne
     _, image_framework_version = get_framework_and_version_from_tag(pytorch_training)
     if Version(image_framework_version) < Version("2.0"):
         pytest.skip("Torch inductor was introduced in PyTorch 2.0")
+    if ec2_instance_type == "g4dn.4xlarge":
+        pytest.skip("This takes more than 4 hours to complete so skip for now")
     execute_ec2_training_performance_test(
         ec2_connection, pytorch_training, "torchbench", ec2_instance_type)
 
@@ -57,6 +59,8 @@ def test_performance_pytorch_gpu_inductor_huggingface(pytorch_training, ec2_conn
     _, image_framework_version = get_framework_and_version_from_tag(pytorch_training)
     if Version(image_framework_version) < Version("2.0"):
         pytest.skip("Torch inductor was introduced in PyTorch 2.0")
+    if ec2_instance_type == "g4dn.4xlarge":
+        pytest.skip("This takes more than 4 hours to complete so skip for now")
     execute_ec2_training_performance_test(
         ec2_connection, pytorch_training, "huggingface", ec2_instance_type)
 
