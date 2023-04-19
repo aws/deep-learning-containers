@@ -21,7 +21,7 @@ RUN pip install --no-cache-dir \
 	optimum-neuron==${OPTIMUM_NEURON_VERSION}
 
 # Ping numpy version
-pip install -U numpy==1.20.3
+RUN pip install -U numpy==1.20.3
 
 RUN apt-get update \
  # TODO: Remove upgrade statements once packages are updated in base image
