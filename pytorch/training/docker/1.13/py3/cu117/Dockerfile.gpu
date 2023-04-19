@@ -162,7 +162,7 @@ RUN ompi_info --parsable --all | grep mpi_built_with_cuda_support:value \
  && chmod +x ~/mambaforge.sh \
  && ~/mambaforge.sh -b -p /opt/conda \
  && rm ~/mambaforge.sh \
- && /opt/conda/bin/conda install -y -c conda-forge \
+ && /opt/conda/bin/mamba install -y -c conda-forge \
     python=$PYTHON_VERSION \
     cython \
     mkl \
@@ -178,9 +178,9 @@ RUN ompi_info --parsable --all | grep mpi_built_with_cuda_support:value \
     # needed by fastai.distributed
     accelerate \
  # pin dgl to 0.9.1 as upstream test has not caught up, currently having accuracy error
- && /opt/conda/bin/conda install -c dglteam -y dgl-cuda11.7=0.9.1 \
- && /opt/conda/bin/conda install -c pytorch -y magma-cuda117 \
- && /opt/conda/bin/conda install -c fastai fastai \
+ && /opt/conda/bin/mamba install -c dglteam -y dgl-cuda11.7=0.9.1 \
+ && /opt/conda/bin/mamba install -c pytorch -y magma-cuda117 \
+ && /opt/conda/bin/mamba install -c fastai fastai \
 # fastai conda has a dependency chain of fastai -> spacy -> pathy -> dataclasses
  # conda pathy installs dataclasses regardless of py version: https://github.com/conda-forge/pathy-feedstock/blob/1e6da43da5c8e11e09c063c79b09236bbacb7780/recipe/meta.yaml#L29
  # pypi solves this issue: https://github.com/justindujardin/pathy/blob/master/requirements.txt#L3
@@ -542,6 +542,8 @@ RUN pip install --no-cache-dir -U ${SMD_MODEL_PARALLEL_URL}
 # Install SM Distributed DataParallel binary
 RUN SMDATAPARALLEL_PT=1 pip install --no-cache-dir ${SMD_DATA_PARALLEL_URL}
 
+# remove the default mamba installation
+RUN rm -rf /root/micromamba/
 ENV LD_LIBRARY_PATH="/opt/conda/lib/python${PYTHON_SHORT_VERSION}/site-packages/smdistributed/dataparallel/lib:$LD_LIBRARY_PATH"
 
 WORKDIR /
