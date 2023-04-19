@@ -128,6 +128,7 @@ NIGHTLY_FIXTURES = {
     "feature_s3_plugin_present": {NightlyFeatureLabel.AWS_S3_PLUGIN_INSTALLED.value},
 }
 
+
 # Nightly fixtures
 @pytest.fixture(scope="session")
 def feature_smdebug_present():
@@ -692,6 +693,11 @@ def tf2_only():
 
 
 @pytest.fixture(scope="session")
+def pt2_only():
+    pass
+
+
+@pytest.fixture(scope="session")
 def tf23_and_above_only():
     pass
 
@@ -816,6 +822,10 @@ def framework_version_within_limit(metafunc_obj, image):
         if mx18_requirement_failed:
             return False
     if image_framework_name in ("pytorch", "huggingface_pytorch_trcomp", "pytorch_trcomp"):
+        pt2_requirement_failed = (
+            "pt2_only" in metafunc_obj.fixturenames
+            and is_below_framework_version("2.0", image, image_framework_name)
+        )
         pt111_requirement_failed = (
             "pt111_and_above_only" in metafunc_obj.fixturenames
             and is_below_framework_version("1.11", image, image_framework_name)
@@ -837,7 +847,8 @@ def framework_version_within_limit(metafunc_obj, image):
             and is_below_framework_version("1.4", image, image_framework_name)
         )
         if (
-            pt111_requirement_failed
+            pt2_requirement_failed
+            or pt111_requirement_failed
             or pt17_requirement_failed
             or pt16_requirement_failed
             or pt15_requirement_failed
@@ -945,7 +956,6 @@ def generate_unique_values_for_fixtures(
             if key in metafunc_obj.fixturenames:
                 fixtures_parametrized[new_fixture_name] = []
                 for index, image in enumerate(images_to_parametrize):
-
                     # Tag fixtures with EC2 instance types if env variable is present
                     allowed_processors = ("gpu", "cpu", "eia", "neuronx", "neuron", "hpu")
                     instance_tag = ""

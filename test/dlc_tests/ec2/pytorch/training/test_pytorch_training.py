@@ -19,6 +19,11 @@ from test.test_utils.ec2 import execute_ec2_training_test, get_ec2_instance_type
 PT_STANDALONE_CMD = os.path.join(CONTAINER_TESTS_PREFIX, "pytorch_tests", "testPyTorchStandalone")
 PT_MNIST_CMD = os.path.join(CONTAINER_TESTS_PREFIX, "pytorch_tests", "testPyTorch")
 PT_BERT_INDUCTOR_CMD = os.path.join(CONTAINER_TESTS_PREFIX, "pytorch_tests", "testPyTorch")
+PT1_GLOO_CMD = os.path.join(CONTAINER_TESTS_PREFIX, "pytorch_tests", "testPyTorch1Gloo")
+PT1_MPI_CMD = os.path.join(CONTAINER_TESTS_PREFIX, "pytorch_tests", "testPyTorch1Mpi")
+PT1_NCCL_CMD = os.path.join(CONTAINER_TESTS_PREFIX, "pytorch_tests", "testPyTorch1Nccl")
+PT_GLOO_MPI_CMD = os.path.join(CONTAINER_TESTS_PREFIX, "pytorch_tests", "testPyTorchGlooMpi")
+PT_NCCL_CMD = os.path.join(CONTAINER_TESTS_PREFIX, "pytorch_tests", "testPyTorchNccl")
 PT_REGRESSION_CMD = os.path.join(CONTAINER_TESTS_PREFIX, "pytorch_tests", "testPyTorchRegression")
 PT_DGL_CMD = os.path.join(CONTAINER_TESTS_PREFIX, "dgl_tests", "testPyTorchDGL")
 PT_APEX_CMD = os.path.join(CONTAINER_TESTS_PREFIX, "pytorch_tests", "testNVApex")
@@ -111,7 +116,9 @@ def test_pytorch_train_mnist_gpu(pytorch_training, ec2_connection, gpu_only, ec2
 @pytest.mark.model("bert")
 @pytest.mark.integration("inductor")
 @pytest.mark.parametrize("ec2_instance_type", PT_EC2_GPU_INSTANCE_TYPE, indirect=True)
-def test_pytorch_train_bert_gpu(pytorch_training, ec2_connection, gpu_only, ec2_instance_type):
+def test_pytorch_train_bert_gpu(
+    pytorch_training, ec2_connection, gpu_only, ec2_instance_type, pt2_only
+):
     if test_utils.is_image_incompatible_with_instance_type(pytorch_training, ec2_instance_type):
         pytest.skip(
             f"Image {pytorch_training} is incompatible with instance type {ec2_instance_type}"
@@ -202,7 +209,7 @@ def test_pytorch_with_horovod(pytorch_training, ec2_connection, gpu_only, ec2_in
 @pytest.mark.model("mnist")
 @pytest.mark.parametrize("ec2_instance_type", PT_EC2_GPU_INSTANCE_TYPE, indirect=True)
 def test_pytorch_with_horovod_inductor(
-    pytorch_training, ec2_connection, gpu_only, ec2_instance_type
+    pytorch_training, ec2_connection, gpu_only, ec2_instance_type, pt2_only
 ):
     _, image_framework_version = get_framework_and_version_from_tag(pytorch_training)
     if ec2_instance_type.startswith("g3"):
@@ -229,9 +236,15 @@ def test_pytorch_gloo_gpu(pytorch_training, ec2_connection, gpu_only, py3_only, 
         pytest.skip(
             f"Image {pytorch_training} is incompatible with instance type {ec2_instance_type}"
         )
+
+    # Reintroducing PT 1.x version of test script due to backward incompatible changes for PT 2.0
+    _, framework_version = get_framework_and_version_from_tag(pytorch_training)
     test_cmd = (
-        os.path.join(CONTAINER_TESTS_PREFIX, "pytorch_tests", "testPyTorchGlooMpi") + " gloo 0"
-    )  # backend, inductor flags
+        PT1_GLOO_CMD
+        if Version(framework_version) < Version("2.0")
+        else f"{PT_GLOO_MPI_CMD} gloo 0"  # backend, inductor flags
+    )
+
     execute_ec2_training_test(ec2_connection, pytorch_training, test_cmd, large_shm=True)
 
 
@@ -242,7 +255,7 @@ def test_pytorch_gloo_gpu(pytorch_training, ec2_connection, gpu_only, py3_only, 
 @pytest.mark.parametrize("ec2_instance_type", PT_TRITON_INSTANCE_TYPE, indirect=True)
 @pytest.mark.xfail  # currently both OSS and AWS-PyTorch fail on the gloo inductor test script, needs fixing
 def test_pytorch_gloo_inductor_gpu(
-    pytorch_training, ec2_connection, gpu_only, py3_only, ec2_instance_type
+    pytorch_training, ec2_connection, gpu_only, py3_only, ec2_instance_type, pt2_only
 ):
     """
     Tests gloo backend with torch inductor
@@ -267,9 +280,14 @@ def test_pytorch_gloo_cpu(pytorch_training, ec2_connection, cpu_only, py3_only, 
     """
     Tests gloo backend
     """
+    # Reintroducing PT 1.x version of test script due to backward incompatible changes for PT 2.0
+    _, framework_version = get_framework_and_version_from_tag(pytorch_training)
     test_cmd = (
-        os.path.join(CONTAINER_TESTS_PREFIX, "pytorch_tests", "testPyTorchGlooMpi") + " gloo 0"
-    )  # backend, inductor flags
+        PT1_GLOO_CMD
+        if Version(framework_version) < Version("2.0")
+        else f"{PT_GLOO_MPI_CMD} gloo 0"  # backend, inductor flags
+    )
+
     execute_ec2_training_test(ec2_connection, pytorch_training, test_cmd, large_shm=True)
 
 
@@ -287,7 +305,11 @@ def test_pytorch_nccl(pytorch_training, ec2_connection, gpu_only, py3_only, ec2_
         pytest.skip(
             f"Image {pytorch_training} is incompatible with instance type {ec2_instance_type}"
         )
-    test_cmd = os.path.join(CONTAINER_TESTS_PREFIX, "pytorch_tests", "testPyTorchNccl")
+
+    # Reintroducing PT 1.x version of test script due to backward incompatible changes for PT 2.0
+    _, framework_version = get_framework_and_version_from_tag(pytorch_training)
+    test_cmd = PT1_NCCL_CMD if Version(framework_version) < Version("2.0") else PT_NCCL_CMD
+
     execute_ec2_training_test(ec2_connection, pytorch_training, test_cmd, large_shm=True)
 
 
@@ -345,9 +367,13 @@ def test_pytorch_mpi_gpu(
         pytest.skip(
             f"Image {pytorch_training} is incompatible with instance type {ec2_instance_type}"
         )
+    # Reintroducing PT 1.x version of test script due to backward incompatible changes for PT 2.0
+    _, framework_version = get_framework_and_version_from_tag(pytorch_training)
     test_cmd = (
-        os.path.join(CONTAINER_TESTS_PREFIX, "pytorch_tests", "testPyTorchGlooMpi") + " mpi 0"
-    )  # backend, inductor flags
+        PT1_MPI_CMD
+        if Version(framework_version) < Version("2.0")
+        else f"{PT_GLOO_MPI_CMD} mpi 0"  # backend, inductor flags
+    )
     execute_ec2_training_test(ec2_connection, pytorch_training, test_cmd)
 
 
@@ -362,8 +388,8 @@ def test_pytorch_mpi_inductor_gpu(
     gpu_only,
     py3_only,
     ec2_instance_type,
-    pt111_and_above_only,
     version_skip,
+    pt2_only,
 ):
     """
     Tests mpi backend with torch inductor
@@ -404,9 +430,14 @@ def test_pytorch_mpi_cpu(
     version_skip(pytorch_training, "2.0.0")
     if "trcomp" in pytorch_training:
         pytest.skip(f"Image {pytorch_training} is incompatible with distribution type MPI.")
+
+    # Reintroducing PT 1.x version of test script due to backward incompatible changes for PT 2.0
+    _, framework_version = get_framework_and_version_from_tag(pytorch_training)
     test_cmd = (
-        os.path.join(CONTAINER_TESTS_PREFIX, "pytorch_tests", "testPyTorchGlooMpi") + " mpi 0"
-    )  # backend, inductor flags
+        PT1_MPI_CMD
+        if Version(framework_version) < Version("2.0")
+        else f"{PT_GLOO_MPI_CMD} mpi 0"  # backend, inductor flags
+    )
     execute_ec2_training_test(ec2_connection, pytorch_training, test_cmd)
 
 
@@ -442,7 +473,9 @@ def test_pytorch_amp(pytorch_training, ec2_connection, gpu_only, ec2_instance_ty
 @pytest.mark.integration("inductor")
 @pytest.mark.model("resnet50")
 @pytest.mark.parametrize("ec2_instance_type", PT_EC2_MULTI_GPU_INSTANCE_TYPE, indirect=True)
-def test_pytorch_amp_inductor(pytorch_training, ec2_connection, gpu_only, ec2_instance_type):
+def test_pytorch_amp_inductor(
+    pytorch_training, ec2_connection, gpu_only, ec2_instance_type, pt2_only
+):
     _, image_framework_version = get_framework_and_version_from_tag(pytorch_training)
     if ec2_instance_type.startswith("g3"):
         pytest.skip("skipping inductor related test on g3 instance")
