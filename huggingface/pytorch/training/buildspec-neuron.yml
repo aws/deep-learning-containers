@@ -29,7 +29,7 @@ context:
 images:
   BuildNeuronHuggingFacePytorchPy38TrainingDockerImage:
     <<: *TRAINING_REPOSITORY
-    build: &HUGGINGFACE_PYTORCH_NEURON_TRAINING_PY3 false
+    build: &HUGGINGFACE_PYTORCH_NEURON_TRAINING_PY3 true
     image_size_baseline: 13300
     device_type: &DEVICE_TYPE neuron
     python_version: &DOCKER_PYTHON_VERSION py3
