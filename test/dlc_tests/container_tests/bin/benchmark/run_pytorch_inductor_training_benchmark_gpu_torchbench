@@ -34,7 +34,7 @@ cd $BIN_DIR/benchmark
 python install.py
 
 sed -i "s/\"maml\",/&\n    \"tacotron2\",/g" $BIN_DIR/pytorch/benchmarks/dynamo/torchbench.py
-sed -i "s/\"tacotron2\",/&\n    \"vision_maskrcnn\",/g" $BIN_DIR/pytorch/benchmarks/dynamo/torchbench.py
+sed -i "s/\"maml\",/&\n    \"vision_maskrcnn\",/g" $BIN_DIR/pytorch/benchmarks/dynamo/torchbench.py
 
 if [ "$1" = "p3.2xlarge" ]
 then
