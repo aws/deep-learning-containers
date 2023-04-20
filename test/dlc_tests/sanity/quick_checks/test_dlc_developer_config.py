@@ -14,6 +14,7 @@ def test_developer_configuration():
     assert config.parse_dlc_developer_configs("dev", "partner_developer") == ""
     assert config.parse_dlc_developer_configs("dev", "ei_mode") is False
     assert config.parse_dlc_developer_configs("dev", "neuron_mode") is False
+    assert config.parse_dlc_developer_configs("dev", "neuronx_mode") is False
     assert config.parse_dlc_developer_configs("dev", "graviton_mode") is False
     assert config.parse_dlc_developer_configs("dev", "benchmark_mode") is False
     assert config.parse_dlc_developer_configs("dev", "habana_mode") is False
