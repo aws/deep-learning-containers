@@ -28,6 +28,7 @@ last_mem_usage = base_mem_usage
 
 
 def memory_status(msg="", reset_max=True, sync=True):
+
     rank = smp.rank()
     tp_rank = smp.tp_rank()
     pp_rank = smp.pp_rank()

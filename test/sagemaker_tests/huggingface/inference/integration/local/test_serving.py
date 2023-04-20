@@ -26,6 +26,7 @@ from ...utils import local_mode_utils
 
 @contextmanager
 def _predictor(model_dir, image, framework_version, sagemaker_local_session, instance_type):
+
     model_file = pt_model if "pytorch" in image else tf_model
 
     model = Model(

@@ -54,6 +54,7 @@ def parse_args():
 
 
 if __name__ == "__main__":
+
     args = parse_args()
     dlc_artifact_bucket = args.artifact_bucket
     github_publishing_metadata_path = os.path.join(os.sep, "tmp", "github_publishing_metadata.dict")

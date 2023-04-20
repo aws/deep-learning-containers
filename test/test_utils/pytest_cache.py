@@ -152,6 +152,7 @@ class PytestCache:
         self.__upload_cache_to_s3(tmp_file_for_cache_json, s3_file_path)
 
     def convert_pytest_cache_file_to_json(self, current_dir, custom_cache_directory=""):
+
         if custom_cache_directory:
             current_dir = os.path.join(current_dir, custom_cache_directory)
         local_file_dir = os.path.join(current_dir, ".pytest_cache", "v", "cache")

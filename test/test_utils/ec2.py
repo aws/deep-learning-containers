@@ -28,8 +28,6 @@ HEAVY_INSTANCE_LIST = ["p3dn.24xlarge", "p4d.24xlarge"]
 
 LOGGER = logging.getLogger(__name__)
 LOGGER.addHandler(logging.StreamHandler(sys.stdout))
-
-
 def filter_only_multi_gpu(instance_type_list):
     filtered_list = [
         instance_type

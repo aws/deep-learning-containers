@@ -25,6 +25,7 @@ class AnnealingLR(object):
         use_checkpoint_lr_scheduler=True,
         override_lr_scheduler=False,
     ):
+
         # Class values.
         self.optimizer = optimizer
         self.start_lr = start_lr
@@ -116,6 +117,7 @@ class AnnealingLR(object):
         return sd_value
 
     def load_state_dict(self, sd):
+
         self.start_lr = self._check_and_set(self.start_lr, sd["start_lr"], "learning rate")
         self.min_lr = self._check_and_set(self.min_lr, sd["min_lr"], "minimum learning rate")
         self.warmup_iter = self._check_and_set(

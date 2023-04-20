@@ -8,6 +8,7 @@ import tensorflow as tf
 
 
 def _parse_args():
+
     parser = argparse.ArgumentParser()
 
     # hyperparameters sent by the client are passed as command-line arguments to the script.

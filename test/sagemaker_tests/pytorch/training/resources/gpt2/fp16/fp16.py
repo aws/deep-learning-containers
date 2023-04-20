@@ -518,6 +518,7 @@ class FP16_Optimizer(object):
             )
 
     def init_master_params(self):
+
         if self.use_smp:
             torch.cuda.set_device(smp.local_rank())
             register_optimizer_hooks(self.model)

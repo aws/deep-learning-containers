@@ -315,6 +315,7 @@ class Float16OptimizerWithFloat16Params(MegatronOptimizer):
         shard_optimizer_state=False,
         verbose=False,
     ):
+
         super(Float16OptimizerWithFloat16Params, self).__init__(
             optimizer, clip_grad, log_num_zeros_in_grad, params_have_main_grad
         )
@@ -603,12 +604,14 @@ class Float16OptimizerWithFloat16Params(MegatronOptimizer):
 
     @torch.no_grad()
     def step(self):
+
         # Copy gradients from model params to main params.
         self._copy_model_grads_to_main_grads()
 
         # Do unscale, check for inf, and update grad scaler only for
         # the case that grad scaler is provided.
         if self.grad_scaler:
+
             # Unscale and check for inf/nan.
             found_inf_flag = self._unscale_main_grads_and_check_for_nan()
 

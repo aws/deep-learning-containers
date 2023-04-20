@@ -12,6 +12,7 @@ import test.test_utils as test_utils
 
 @pytest.mark.model("resnet50")
 def test_eks_mxnet_neuron_inference(mxnet_inference_neuron):
+
     num_replicas = "1"
 
     rand_int = random.randint(4001, 6000)

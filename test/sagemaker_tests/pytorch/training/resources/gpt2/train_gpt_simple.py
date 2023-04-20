@@ -41,6 +41,7 @@ logger = logging.getLogger(__name__)
 
 
 def get_learning_rate_scheduler(optimizer, args):
+
     # Add linear learning rate scheduler.
     if args.lr_decay_iters is not None:
         num_iters = args.lr_decay_iters

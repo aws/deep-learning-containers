@@ -108,6 +108,7 @@ ckpt_manager = smp.CheckpointManager(checkpoint, checkpoint_directory)
 
 
 def test_saved_ckpt():
+
     print("................................. Testing ckpt .......................................")
 
     ckpt_manager.restore(restore_prefix="ckpt-2")
@@ -130,6 +131,7 @@ def test_saved_ckpt():
 loss_list = []
 # running 5 step with same inputs and labels
 for step in range(5):
+
     if step == 1:
         ckpt_manager.restore(restore_prefix="ckpt-2")
 

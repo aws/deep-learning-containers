@@ -357,6 +357,7 @@ def upload_file(ServingTest, bucket_name):
     os.mkdir(working_dir)
 
     def is_pb_in_dir(dir_name):
+
         for versions in os.listdir(dir_name):
             for fname in os.listdir(dir_name + "/" + versions):
                 if fname.endswith(".pb"):

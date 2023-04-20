@@ -10,6 +10,7 @@ import os
 import torch
 
 if __name__ == "__main__":
+
     parser = argparse.ArgumentParser()
 
     # hyperparameters sent by the client are passed as command-line arguments to the script.

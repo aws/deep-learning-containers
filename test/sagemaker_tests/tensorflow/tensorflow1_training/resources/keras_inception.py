@@ -27,6 +27,7 @@ model = keras.applications.inception_v3.InceptionV3(weights="imagenet")
 
 # Exports the keras model as TensorFlow Serving Saved Model
 with tf.Session() as session:
+
     init = tf.global_variables_initializer()
     session.run(init)
 

@@ -10,6 +10,7 @@ class Metrics(object):
         self.namespace = namespace
 
     def push(self, name, unit, value, metrics_info):
+
         dimensions = [{"Name": "BuildContext", "Value": self.context}]
 
         for key in metrics_info:

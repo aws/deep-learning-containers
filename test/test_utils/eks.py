@@ -48,6 +48,7 @@ KUBETAIL_VERSION = "1.6.7"
 
 
 def get_aws_secret_yml_path():
+
     return os.path.join(
         os.sep,
         DLC_TESTS_PREFIX,
@@ -59,6 +60,7 @@ def get_aws_secret_yml_path():
 
 
 def get_single_node_training_template_path():
+
     return os.path.join(
         os.sep,
         DLC_TESTS_PREFIX,
@@ -70,6 +72,7 @@ def get_single_node_training_template_path():
 
 
 def get_single_node_inference_template_path(framework, processor):
+
     return os.path.join(
         os.sep,
         DLC_TESTS_PREFIX,

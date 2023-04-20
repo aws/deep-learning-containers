@@ -116,6 +116,7 @@ def clip_grad_norm_fp32(parameters, param_is_distributed, max_norm, norm_type=2)
 
 
 def count_zeros_fp32(parameters):
+
     if isinstance(parameters, torch.Tensor):
         parameters = [parameters]
 

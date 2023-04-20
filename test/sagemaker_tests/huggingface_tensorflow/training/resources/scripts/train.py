@@ -78,6 +78,7 @@ def get_datasets():
 
 
 if __name__ == "__main__":
+
     parser = argparse.ArgumentParser()
 
     # Hyperparameters sent by the client are passed as command-line arguments to the script.
@@ -134,6 +135,7 @@ if __name__ == "__main__":
 
     # Training
     if args.do_train:
+
         # train_results = model.fit(tf_train_dataset, epochs=args.epochs, batch_size=args.train_batch_size)
         train_results = fit(
             model,
@@ -158,6 +160,7 @@ if __name__ == "__main__":
 
     # Evaluation
     if args.do_eval and (not SDP_ENABLED or sdp.rank() == 0):
+
         result = model.evaluate(tf_test_dataset, batch_size=args.eval_batch_size, return_dict=True)
         logger.info("*** Evaluate ***")
 

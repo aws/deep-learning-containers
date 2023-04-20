@@ -129,7 +129,6 @@ NIGHTLY_FIXTURES = {
     "feature_s3_plugin_present": {NightlyFeatureLabel.AWS_S3_PLUGIN_INSTALLED.value},
 }
 
-
 # Nightly fixtures
 @pytest.fixture(scope="session")
 def feature_smdebug_present():
@@ -626,7 +625,7 @@ def skip_s3plugin_test(request):
 
 
 @pytest.fixture(autouse=True)
-def skip_inductor_test(request):
+def skip_inductor_test(request):    
     if "training" in request.fixturenames:
         img_uri = request.getfixturevalue("training")
     elif "pytorch_training" in request.fixturenames:
@@ -983,6 +982,7 @@ def generate_unique_values_for_fixtures(
             if key in metafunc_obj.fixturenames:
                 fixtures_parametrized[new_fixture_name] = []
                 for index, image in enumerate(images_to_parametrize):
+
                     # Tag fixtures with EC2 instance types if env variable is present
                     allowed_processors = ("gpu", "cpu", "eia", "neuronx", "neuron", "hpu")
                     instance_tag = ""
@@ -1169,7 +1169,7 @@ def pytest_generate_tests(metafunc):
             fixtures_parametrized = generate_unique_values_for_fixtures(
                 metafunc, images_to_parametrize, values_to_generate_for_fixture
             )
-            print("fixture_parametrized:", fixture, fixtures_parametrized, metafunc.fixturenames)
+            print("fixture_parametrized:", fixture, fixtures_parametrized,  metafunc.fixturenames)
             if fixtures_parametrized:
                 for new_fixture_name, test_parametrization in fixtures_parametrized.items():
                     metafunc.parametrize(f"{fixture},{new_fixture_name}", test_parametrization)

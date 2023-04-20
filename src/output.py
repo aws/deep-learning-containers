@@ -118,7 +118,7 @@ class OutputFormatter:
         Print a table from dictionary
         rows = iter of tuples
         """
-        for key, value in rows:
+        for (key, value) in rows:
             # TODO: left and right align key and value
             line = f"{key}:{value}".ljust(self.max_line_length)
             print(f"{line}")

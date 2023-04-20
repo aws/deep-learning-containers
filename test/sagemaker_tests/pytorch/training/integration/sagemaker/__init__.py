@@ -30,6 +30,7 @@ from ..... import (
 
 
 def upload_s3_data(estimator, path, key_prefix):
+
     estimator.sagemaker_session.default_bucket()
     inputs = estimator.sagemaker_session.upload_data(path=path, key_prefix=key_prefix)
     return inputs
@@ -131,6 +132,7 @@ def _test_mnist_distributed(
     instance_groups=None,
     use_inductor=False,
 ):
+
     dist_method = "pytorchddp" if dist_backend.lower() == "nccl" else "torch_distributed"
     est_params = {
         "entry_point": mnist_script,
