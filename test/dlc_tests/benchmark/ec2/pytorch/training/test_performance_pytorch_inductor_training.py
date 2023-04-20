@@ -31,13 +31,12 @@ def test_performance_pytorch_gpu_inductor_torchbench(pytorch_training, ec2_conne
     _, image_framework_version = get_framework_and_version_from_tag(pytorch_training)
     if Version(image_framework_version) < Version("2.0"):
         pytest.skip("Torch inductor was introduced in PyTorch 2.0")
-    if ec2_instance_type != "g4dn.4xlarge":
-        pytest.skip("skip for now")
+    if ec2_instance_type == "g4dn.4xlarge":
+        pytest.skip("timeout issue.")
     execute_ec2_training_performance_test(
         ec2_connection, pytorch_training, "torchbench", ec2_instance_type)
 
 
-@pytest.mark.skip("skip for now")
 @pytest.mark.integration("inductor")
 @pytest.mark.model("timm_models")
 @pytest.mark.parametrize("ec2_instance_ami", [UBUNTU_18_BASE_DLAMI_US_WEST_2], indirect=True)
@@ -46,17 +45,20 @@ def test_performance_pytorch_gpu_inductor_timm_models(pytorch_training, ec2_conn
     _, image_framework_version = get_framework_and_version_from_tag(pytorch_training)
     if Version(image_framework_version) < Version("2.0"):
         pytest.skip("Torch inductor was introduced in PyTorch 2.0")
+    if ec2_instance_type == "g4dn.4xlarge":
+        pytest.skip("takes more than 4 hours.")
     execute_ec2_training_performance_test(
         ec2_connection, pytorch_training, "timm_models", ec2_instance_type)
 
 
-@pytest.mark.skip("skip for now")
 @pytest.mark.integration("inductor")
 @pytest.mark.model("huggingface")
 @pytest.mark.parametrize("ec2_instance_ami", [UBUNTU_18_BASE_DLAMI_US_WEST_2], indirect=True)
 @pytest.mark.parametrize("ec2_instance_type", PT_EC2_GPU_INDUCTOR_INSTANCE_TYPES, indirect=True)
 def test_performance_pytorch_gpu_inductor_huggingface(pytorch_training, ec2_connection, gpu_only, py3_only, ec2_instance_type):
     _, image_framework_version = get_framework_and_version_from_tag(pytorch_training)
+    if Version(image_framework_version) < Version("2.0"):
+        pytest.skip("Torch inductor was introduced in PyTorch 2.0")
     execute_ec2_training_performance_test(
         ec2_connection, pytorch_training, "huggingface", ec2_instance_type)
 
