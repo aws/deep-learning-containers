@@ -129,6 +129,7 @@ NIGHTLY_FIXTURES = {
     "feature_s3_plugin_present": {NightlyFeatureLabel.AWS_S3_PLUGIN_INSTALLED.value},
 }
 
+
 # Nightly fixtures
 @pytest.fixture(scope="session")
 def feature_smdebug_present():
@@ -609,9 +610,9 @@ def existing_ec2_instance_connection(request, ec2_key_file_name, ec2_user_name, 
 @pytest.fixture(autouse=True)
 def skip_s3plugin_test(request):
     if "training" in request.fixturenames:
-        img_uri = request.getfixturevalue('training')
+        img_uri = request.getfixturevalue("training")
     else:
-        img_uri = request.getfixturevalue('pytorch_training')
+        img_uri = request.getfixturevalue("pytorch_training")
     _, fw_ver = get_framework_and_version_from_tag(img_uri)
     if request.node.get_closest_marker("skip_s3plugin_test"):
         if Version(fw_ver) not in SpecifierSet("<=1.12.1,>=1.6.0"):
@@ -623,11 +624,11 @@ def skip_s3plugin_test(request):
 
 
 @pytest.fixture(autouse=True)
-def skip_inductor_test(request):    
+def skip_inductor_test(request):
     if "training" in request.fixturenames:
-        img_uri = request.getfixturevalue('training')
+        img_uri = request.getfixturevalue("training")
     else:
-        img_uri = request.getfixturevalue('pytorch_training')
+        img_uri = request.getfixturevalue("pytorch_training")
     _, fw_ver = get_framework_and_version_from_tag(img_uri)
     if request.node.get_closest_marker("skip_inductor_test"):
         if Version(fw_ver) < Version("2.0.0"):
@@ -978,7 +979,6 @@ def generate_unique_values_for_fixtures(
             if key in metafunc_obj.fixturenames:
                 fixtures_parametrized[new_fixture_name] = []
                 for index, image in enumerate(images_to_parametrize):
-
                     # Tag fixtures with EC2 instance types if env variable is present
                     allowed_processors = ("gpu", "cpu", "eia", "neuronx", "neuron", "hpu")
                     instance_tag = ""
@@ -1165,7 +1165,7 @@ def pytest_generate_tests(metafunc):
             fixtures_parametrized = generate_unique_values_for_fixtures(
                 metafunc, images_to_parametrize, values_to_generate_for_fixture
             )
-            print("fixture_parametrized:", fixture, fixtures_parametrized,  metafunc.fixturenames)
+            print("fixture_parametrized:", fixture, fixtures_parametrized, metafunc.fixturenames)
             if fixtures_parametrized:
                 for new_fixture_name, test_parametrization in fixtures_parametrized.items():
                     metafunc.parametrize(f"{fixture},{new_fixture_name}", test_parametrization)

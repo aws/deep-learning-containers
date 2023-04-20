@@ -50,7 +50,6 @@ def model_fn(model_dir):
 
 
 def transform_fn(mod, payload, input_content_type, output_content_type):
-
     logging.info("Invoking user-defined transform_fn")
     logging.info("input_content_type %s", input_content_type)
     Batch = namedtuple("Batch", ["data"])
