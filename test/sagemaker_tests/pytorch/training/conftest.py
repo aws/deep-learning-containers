@@ -32,7 +32,6 @@ from . import get_efa_test_instance_type
 from .utils import get_ecr_registry, NightlyFeatureLabel, is_nightly_context
 
 from .utils.image_utils import build_base_image, are_fixture_labels_enabled
-from test.test_utils import get_framework_and_version_from_tag
 
 from packaging.version import Version
 from packaging.specifiers import SpecifierSet
@@ -407,8 +406,10 @@ def skip_trcomp_containers(request, ecr_image):
 def skip_inductor_test(request):
     if "framework_version" in request.fixturenames:
         fw_ver = request.getfixturevalue("framework_version")
-    else:
+    elif "ecr_image" in request.fixturenames:
         fw_ver = request.getfixturevalue("ecr_image")
+    else:
+        return
     if request.node.get_closest_marker("skip_inductor_test"):
         if Version(fw_ver) < Version("2.0.0"):
             pytest.skip(
@@ -422,8 +423,10 @@ def skip_inductor_test(request):
 def skip_s3plugin_test(request):
     if "framework_version" in request.fixturenames:
         fw_ver = request.getfixturevalue("framework_version")
-    else:
+    elif "ecr_image" in request.fixturenames:
         fw_ver = request.getfixturevalue("ecr_image")
+    else:
+        return
     if request.node.get_closest_marker("skip_s3plugin_test"):
         if Version(fw_ver) not in SpecifierSet("<=1.12.1,>=1.6.0"):
             pytest.skip(

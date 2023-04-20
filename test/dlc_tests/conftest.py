@@ -611,8 +611,10 @@ def existing_ec2_instance_connection(request, ec2_key_file_name, ec2_user_name, 
 def skip_s3plugin_test(request):
     if "training" in request.fixturenames:
         img_uri = request.getfixturevalue("training")
-    else:
+    elif "pytorch_training" in request.fixturenames:
         img_uri = request.getfixturevalue("pytorch_training")
+    else:
+        return
     _, fw_ver = get_framework_and_version_from_tag(img_uri)
     if request.node.get_closest_marker("skip_s3plugin_test"):
         if Version(fw_ver) not in SpecifierSet("<=1.12.1,>=1.6.0"):
@@ -627,8 +629,10 @@ def skip_s3plugin_test(request):
 def skip_inductor_test(request):
     if "training" in request.fixturenames:
         img_uri = request.getfixturevalue("training")
-    else:
+    elif "pytorch_training" in request.fixturenames:
         img_uri = request.getfixturevalue("pytorch_training")
+    else:
+        return
     _, fw_ver = get_framework_and_version_from_tag(img_uri)
     if request.node.get_closest_marker("skip_inductor_test"):
         if Version(fw_ver) < Version("2.0.0"):
