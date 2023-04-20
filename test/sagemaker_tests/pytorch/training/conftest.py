@@ -125,7 +125,7 @@ def pytest_addoption(parser):
         choices=["2", "3", "37", "38", "39", "310"],
         default=str(sys.version_info.major),
     )
-    parser.addoption("--processor", choices=["gpu", "cpu", "neuron"], default="cpu")
+    parser.addoption("--processor", choices=["gpu", "cpu", "neuron", "neuronx"], default="cpu")
     # If not specified, will default to {framework-version}-{processor}-py{py-version}
     parser.addoption("--tag", default=None)
     parser.addoption(
@@ -333,22 +333,21 @@ def fixture_dist_cpu_backend(request):
 def fixture_dist_gpu_backend(request):
     return request.param
 
-
 @pytest.fixture(autouse=True)
-def skip_by_device_type(request, use_gpu, instance_type):
-    is_gpu = use_gpu or instance_type[3] in ["g", "p"]
-    is_neuron = instance_type in NEURON_TRN1_INSTANCES
+def skip_by_device_type(request, instance_type):
+    is_gpu = instance_type.lstrip("ml.")[0] in ["g", "p"]
 
-    # If neuron run only tests marked as neuron
-    if is_neuron and not request.node.get_closest_marker("neuron_test"):
-        pytest.skip('Skipping because running on "{}" instance'.format(instance_type))
-    if request.node.get_closest_marker("neuron_test") and not is_neuron:
-        pytest.skip('Skipping because running on "{}" instance'.format(instance_type))
+    # Skip a neuronx test that's not on an neuron instance or a test which
+    # uses a neuron instance and is not a neuronx test
+    is_neuronx_test = request.node.get_closest_marker("neuronx_test") is not None
+    is_neuronx_instance = instance_type.startswith("ml.trn1")
+    if is_neuronx_test != is_neuronx_instance:
+        pytest.skip("Skipping because running on '{}' instance".format(instance_type))
 
     if (request.node.get_closest_marker("skip_gpu") and is_gpu) or (
         request.node.get_closest_marker("skip_cpu") and not is_gpu
     ):
-        pytest.skip("Skipping because running on '{}' instance".format(instance_type))
+        pytest.skip('Skipping because running on "{}" instance'.format(instance_type))
 
 
 @pytest.fixture(autouse=True)
