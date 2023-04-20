@@ -126,7 +126,7 @@ class SafetyReportGenerator:
         On being called, it processes each package within the vulnerability_dict and appends it to the vulnerability_list.
         Before appending it checks if the scan_status is "TBD". If yes, it assigns the correct scan_status to the package.
         """
-        for (package, package_scan_results) in self.vulnerability_dict.items():
+        for package, package_scan_results in self.vulnerability_dict.items():
             if package_scan_results["scan_status"] == "TBD":
                 if (
                     len(package_scan_results["vulnerabilities"])
