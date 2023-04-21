@@ -1,1 +1,1 @@
-sagemaker
+sagemaker>=2.148.0
