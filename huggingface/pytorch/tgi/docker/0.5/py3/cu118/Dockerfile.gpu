@@ -1,6 +1,7 @@
-FROM lukemathwalker/cargo-chef:latest-rust-1.67 AS builder
+FROM lukemathwalker/cargo-chef:latest-rust-1.67 AS chef
 WORKDIR /usr/src
 
+FROM chef as planner
 COPY Cargo.toml Cargo.toml
 COPY rust-toolchain.toml rust-toolchain.toml
 COPY proto proto
@@ -8,19 +9,25 @@ COPY router router
 COPY launcher launcher
 RUN cargo chef prepare --recipe-path recipe.json
 
+FROM chef AS builder
+
 RUN PROTOC_ZIP=protoc-21.12-linux-x86_64.zip && \
     curl -OL https://github.com/protocolbuffers/protobuf/releases/download/v21.12/$PROTOC_ZIP && \
     unzip -o $PROTOC_ZIP -d /usr/local bin/protoc && \
     unzip -o $PROTOC_ZIP -d /usr/local 'include/*' && \
     rm -f $PROTOC_ZIP
 
+COPY --from=planner /usr/src/recipe.json recipe.json
 RUN cargo chef cook --release --recipe-path recipe.json
+
+COPY Cargo.toml Cargo.toml
+COPY rust-toolchain.toml rust-toolchain.toml
+COPY proto proto
+COPY router router
+COPY launcher launcher
 RUN cargo build --release
 
 FROM nvidia/cuda:11.8.0-devel-ubuntu22.04 as base
-
-ARG PYTHON=python
-ARG PYTHON_VERSION=3.9
 
 ENV LANG=C.UTF-8 \
     LC_ALL=C.UTF-8 \
@@ -36,14 +43,14 @@ ENV LANG=C.UTF-8 \
     CONDA_DEFAULT_ENV=text-generation \
     PATH=$PATH:/opt/miniconda/envs/text-generation/bin:/opt/miniconda/bin:/usr/local/cuda/bin
 
-RUN apt-get update && apt-get install -y git curl unzip libssl-dev && rm -rf /var/lib/apt/lists/*
+RUN apt-get update && apt-get install -y git curl libssl-dev unzip && rm -rf /var/lib/apt/lists/*
 
 RUN cd ~ && \
     curl -L -O https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh && \
     chmod +x Miniconda3-latest-Linux-x86_64.sh && \
     bash ./Miniconda3-latest-Linux-x86_64.sh -bf -p /opt/miniconda && \
-    conda create -n text-generation python=${PYTHON_VERSION} -y && \
-    conda install -y requests
+    conda create -n text-generation python=3.9 -y && \
+    rm Miniconda3-latest-Linux-x86_64.sh
 
 WORKDIR /usr/src
 
@@ -52,11 +59,11 @@ RUN pip install torch --extra-index-url https://download.pytorch.org/whl/cu118 -
 
 # Install specific version of flash attention
 COPY server/Makefile-flash-att server/Makefile
-RUN cd server && make install-flash-attention && cd ..
+RUN cd server && make install-flash-attention
 
 # Install specific version of transformers
 COPY server/Makefile-transformers server/Makefile
-RUN cd server && BUILD_EXTENSIONS="True" make install-transformers && cd ..
+RUN cd server && BUILD_EXTENSIONS="True" make install-transformers
 
 COPY server/Makefile server/Makefile
 
@@ -66,27 +73,27 @@ COPY server server
 RUN cd server && \
     make gen-server && \
     /opt/miniconda/envs/text-generation/bin/pip install ".[bnb]" --no-cache-dir
+RUN rm -rf proto server
 
 # Install router
 COPY --from=builder /usr/src/target/release/text-generation-router /usr/local/bin/text-generation-router
-
 # Install launcher
 COPY --from=builder /usr/src/target/release/text-generation-launcher /usr/local/bin/text-generation-launcher
 
 # AWS Sagemaker compatible image
 FROM base as sagemaker
 
+COPY --chmod=775 sagemaker-entrypoint.sh entrypoint.sh
+
 RUN HOME_DIR=/root && \
+    pip install requests && \
     curl -o ${HOME_DIR}/oss_compliance.zip https://aws-dlinfra-utilities.s3.amazonaws.com/oss_compliance.zip && \
     unzip ${HOME_DIR}/oss_compliance.zip -d ${HOME_DIR}/ && \
     cp ${HOME_DIR}/oss_compliance/test/testOSSCompliance /usr/local/bin/testOSSCompliance && \
     chmod +x /usr/local/bin/testOSSCompliance && \
     chmod +x ${HOME_DIR}/oss_compliance/generate_oss_compliance.sh && \
-    ${HOME_DIR}/oss_compliance/generate_oss_compliance.sh ${HOME_DIR} ${PYTHON} && \
+    ${HOME_DIR}/oss_compliance/generate_oss_compliance.sh ${HOME_DIR} python && \
     rm -rf ${HOME_DIR}/oss_compliance*
-
-COPY sagemaker-entrypoint.sh entrypoint.sh
-RUN chmod +x entrypoint.sh
 
 ENTRYPOINT ["./entrypoint.sh"]
 
