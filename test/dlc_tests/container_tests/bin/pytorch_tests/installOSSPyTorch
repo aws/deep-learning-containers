@@ -11,5 +11,5 @@ conda remove -y --force pytorch torchvision torchaudio
 if [ -n "$cuda_version" ]; then
     mamba install -y pytorch=$PT_VERSION torchvision torchaudio pytorch-cuda -c pytorch -c nvidia
 else
-    mamba install -y pytorch=$PT_VERSION torchvision torchaudio -c pytorch -c nvidia
+    mamba install -y pytorch=$PT_VERSION torchvision torchaudio -c pytorch
 fi
