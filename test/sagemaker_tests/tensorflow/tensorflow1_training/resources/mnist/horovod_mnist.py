@@ -117,7 +117,6 @@ print("Test accuracy:", score[1])
 if hvd.rank() == 0:
     # Exports the keras model as TensorFlow Serving Saved Model
     with K.get_session() as session:
-
         init = tf.global_variables_initializer()
         session.run(init)
 

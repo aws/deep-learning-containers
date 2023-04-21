@@ -18,7 +18,6 @@ LOGGER.setLevel(logging.INFO)
 
 class DLCReleaseInformation:
     def __init__(self, dlc_account_id, dlc_region, dlc_repository, dlc_tag):
-
         if not all([dlc_account_id, dlc_tag, dlc_repository, dlc_region]):
             raise ValueError(
                 "One or multiple environment variables TARGET_ACCOUNT_ID_CLASSIC, TAG_WITH_DLC_VERSION, "
