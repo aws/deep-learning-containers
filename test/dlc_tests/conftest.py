@@ -618,9 +618,7 @@ def skip_s3plugin_test(request):
     if request.node.get_closest_marker("skip_s3plugin_test"):
         if Version(fw_ver) not in SpecifierSet("<=1.12.1,>=1.6.0"):
             pytest.skip(
-                "s3 plugin is only supported in PT 1.6.0 - 1.12.1, skipping this container with tag{}".format(
-                    fw_ver
-                )
+                f"s3 plugin is only supported in PT 1.6.0 - 1.12.1, skipping this container with tag {fw_ver}"
             )
 
 
@@ -636,9 +634,7 @@ def skip_inductor_test(request):
     if request.node.get_closest_marker("skip_inductor_test"):
         if Version(fw_ver) < Version("2.0.0"):
             pytest.skip(
-                "SM inductor test only support PT2.0 and above, skipping this container with tag{}".format(
-                    fw_ver
-                )
+                f"SM inductor test only support PT2.0 and above, skipping this container with tag {fw_ver}"
             )
 
 
