@@ -238,7 +238,6 @@ def _wait_for_transform_job(region, boto_session, sagemaker_client, model_name, 
     ]
     job_runtime = 0
     while status == "InProgress":
-
         logger.info("Waiting for batch transform job {} to finish".format(model_name))
         time.sleep(poll)
         job_runtime += poll
@@ -268,7 +267,6 @@ def _wait_for_transform_job(region, boto_session, sagemaker_client, model_name, 
 def run_batch_transform_job(
     region, boto_session, model_data, image_uri, sagemaker_client, model_name, instance_type
 ):
-
     with sagemaker_model(boto_session, sagemaker_client, image_uri, model_name, model_data):
         batch_input = find_or_put_model_data(region, boto_session, BATCH_CSV)
         bucket = _test_bucket(region, boto_session)

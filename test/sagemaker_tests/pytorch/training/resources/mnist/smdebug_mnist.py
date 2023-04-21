@@ -63,6 +63,7 @@ if Version(torchvision.__version__) < Version(TORCHVISION_VERSION):
         ),
     ]
 
+
 # Based on https://github.com/pytorch/examples/blob/master/mnist/main.py
 class Net(nn.Module):
     def __init__(self):

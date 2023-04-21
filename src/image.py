@@ -43,7 +43,6 @@ class DockerImage:
         additional_tags=[],
         target=None,
     ):
-
         # Meta-data about the image should go to info.
         # All keys in info are accessible as attributes
         # of this class
