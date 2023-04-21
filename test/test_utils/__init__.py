@@ -1619,6 +1619,7 @@ NEURONX_VERSION_MANIFEST = {
     "2.9.1": {
         "pytorch": {
             "1.13.0": "1.13.0.1.6.1",
+        }
     },
 }
 
