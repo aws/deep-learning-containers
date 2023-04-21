@@ -3,7 +3,7 @@ name: dlc_format_check
 on: [pull_request]
 
 jobs:
-  formatting:
+  python_formatting:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
