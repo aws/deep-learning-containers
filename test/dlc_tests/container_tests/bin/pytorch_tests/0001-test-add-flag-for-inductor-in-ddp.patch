@@ -1,5 +1,5 @@
 From df2e3e0ca569b2fdcb3e612d94df275af2f2e24e Mon Sep 17 00:00:00 2001
-From: Shibo Xing <shibox@amazon.com>
+From: Your Name <you@example.com>
 Date: Wed, 19 Apr 2023 16:13:26 +0000
 Subject: [PATCH] refactor: parametrize inductor, change batchsize for resnet
 
