@@ -9,6 +9,8 @@ ARG PT_SM_TRAINING_URL=https://aws-pytorch-unified-cicd-binaries.s3.us-west-2.am
 ARG PT_TORCHVISION_URL=https://download.pytorch.org/whl/cu117/torchvision-0.14.1%2Bcu117-cp39-cp39-linux_x86_64.whl
 ARG PT_TORCHAUDIO_URL=https://download.pytorch.org/whl/cu117/torchaudio-0.13.1%2Bcu117-cp39-cp39-linux_x86_64.whl
 ARG PT_TORCHDATA_URL=https://download.pytorch.org/whl/test/torchdata-0.5.1-cp39-cp39-manylinux_2_17_x86_64.manylinux2014_x86_64.whl
+# depended by the SMP binary
+ARG TRITON_VERSION=2.0.0.dev20221202 
 
 # SMD binaries
 ARG SMD_DATA_PARALLEL_URL=https://smdataparallel.s3.amazonaws.com/binary/pytorch/1.13.1/cu117/2023-01-09/smdistributed_dataparallel-1.7.0-cp39-cp39-linux_x86_64.whl
@@ -487,7 +489,7 @@ RUN pip install --no-cache-dir -U \
     sagemaker-experiments==0.* \
     sagemaker-pytorch-training \
     flash-attn==0.2.8 \
-    triton==2.0.0.dev20221202
+    triton==$TRITON_VERSION
 
 # Install smdebug from souce
 RUN cd /tmp \
