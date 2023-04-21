@@ -129,16 +129,6 @@ NIGHTLY_FIXTURES = {
     "feature_s3_plugin_present": {NightlyFeatureLabel.AWS_S3_PLUGIN_INSTALLED.value},
 }
 
-@pytest.fixture(autouse=True)
-def skip_s3plugin_test(request, pytorch_training):
-    if request.node.get_closest_marker("skip_s3plugin_test"):
-        if Version(pytorch_training) not in SpecifierSet("<=1.12.1,>=1.6.0"):
-            pytest.skip(
-                "s3 plugin is only supported in PT 1.6.0 - 1.12.1, skipping this container with tag{}".format(
-                    pytorch_training
-                )
-            )
-
 # Nightly fixtures
 @pytest.fixture(scope="session")
 def feature_smdebug_present():
@@ -614,6 +604,38 @@ def existing_ec2_instance_connection(request, ec2_key_file_name, ec2_user_name, 
     conn.run(f"mkdir -p $HOME/container_tests/logs && chmod -R +x $HOME/container_tests/*")
 
     return conn
+
+
+@pytest.fixture(autouse=True)
+def skip_s3plugin_test(request):
+    if "training" in request.fixturenames:
+        img_uri = request.getfixturevalue("training")
+    elif "pytorch_training" in request.fixturenames:
+        img_uri = request.getfixturevalue("pytorch_training")
+    else:
+        return
+    _, fw_ver = get_framework_and_version_from_tag(img_uri)
+    if request.node.get_closest_marker("skip_s3plugin_test"):
+        if Version(fw_ver) not in SpecifierSet("<=1.12.1,>=1.6.0"):
+            pytest.skip(
+                f"s3 plugin is only supported in PT 1.6.0 - 1.12.1, skipping this container with tag {fw_ver}"
+            )
+
+
+@pytest.fixture(autouse=True)
+def skip_inductor_test(request):    
+    if "training" in request.fixturenames:
+        img_uri = request.getfixturevalue("training")
+    elif "pytorch_training" in request.fixturenames:
+        img_uri = request.getfixturevalue("pytorch_training")
+    else:
+        return
+    _, fw_ver = get_framework_and_version_from_tag(img_uri)
+    if request.node.get_closest_marker("skip_inductor_test"):
+        if Version(fw_ver) < Version("2.0.0"):
+            pytest.skip(
+                f"SM inductor test only support PT2.0 and above, skipping this container with tag {fw_ver}"
+            )
 
 
 @pytest.fixture(scope="session")
