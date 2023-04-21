@@ -255,7 +255,9 @@ def test_pytorch_gloo_gpu(pytorch_training, ec2_connection, gpu_only, py3_only, 
     test_cmd = (
         os.path.join(CONTAINER_TESTS_PREFIX, "pytorch_tests", "testPyTorchGlooMpi") + " gloo 0"
     )  # backend, inductor flags
-    execute_ec2_training_test(ec2_connection, pytorch_training, test_cmd, large_shm=True, timeout=1500)
+    execute_ec2_training_test(
+        ec2_connection, pytorch_training, test_cmd, large_shm=True, timeout=1500
+    )
 
 
 @pytest.mark.usefixtures("sagemaker")
@@ -279,7 +281,9 @@ def test_pytorch_gloo_inductor_gpu(
     test_cmd = (
         os.path.join(CONTAINER_TESTS_PREFIX, "pytorch_tests", "testPyTorchGlooMpi") + " gloo 1"
     )  # backend, inductor flags
-    execute_ec2_training_test(ec2_connection, pytorch_training, test_cmd, large_shm=True, timeout=1500)
+    execute_ec2_training_test(
+        ec2_connection, pytorch_training, test_cmd, large_shm=True, timeout=1500
+    )
 
 
 @pytest.mark.usefixtures("sagemaker")
@@ -293,7 +297,9 @@ def test_pytorch_gloo_cpu(pytorch_training, ec2_connection, cpu_only, py3_only, 
     test_cmd = (
         os.path.join(CONTAINER_TESTS_PREFIX, "pytorch_tests", "testPyTorchGlooMpi") + " gloo 0"
     )  # backend, inductor flags
-    execute_ec2_training_test(ec2_connection, pytorch_training, test_cmd, large_shm=True, timeout=1500)
+    execute_ec2_training_test(
+        ec2_connection, pytorch_training, test_cmd, large_shm=True, timeout=1500
+    )
 
 
 @pytest.mark.usefixtures("sagemaker")

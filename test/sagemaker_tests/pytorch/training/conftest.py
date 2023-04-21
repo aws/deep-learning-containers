@@ -333,6 +333,7 @@ def fixture_dist_cpu_backend(request):
 def fixture_dist_gpu_backend(request):
     return request.param
 
+
 @pytest.fixture(autouse=True)
 def skip_by_device_type(request, instance_type):
     is_gpu = instance_type.lstrip("ml.")[0] in ["g", "p"]

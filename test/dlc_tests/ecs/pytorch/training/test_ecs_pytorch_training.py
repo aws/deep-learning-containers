@@ -52,7 +52,11 @@ def test_ecs_pytorch_training_mnist_cpu(
 @pytest.mark.parametrize("ecs_instance_type", ["trn1.2xlarge"], indirect=True)
 @pytest.mark.parametrize("ecs_ami", [ECS_AML2_NEURON_USWEST2], indirect=True)
 def test_ecs_pytorch_training_mnist_neuronx(
-    ecs_container_instance, pytorch_training_neuronx, training_cmd, ecs_cluster_name, ecs_num_neurons
+    ecs_container_instance,
+    pytorch_training_neuronx,
+    training_cmd,
+    ecs_cluster_name,
+    ecs_num_neurons,
 ):
     """
     Neuron MLP test for PyTorch Training
@@ -79,7 +83,11 @@ def test_ecs_pytorch_training_mnist_neuronx(
 @pytest.mark.parametrize("ecs_instance_type", ["inf2.xlarge"], indirect=True)
 @pytest.mark.parametrize("ecs_ami", [ECS_AML2_NEURON_USWEST2], indirect=True)
 def test_ecs_pytorch_training_mnist_neuronx_inf2(
-    ecs_container_instance, pytorch_training_neuronx, training_cmd, ecs_cluster_name, ecs_num_neurons
+    ecs_container_instance,
+    pytorch_training_neuronx,
+    training_cmd,
+    ecs_cluster_name,
+    ecs_num_neurons,
 ):
     """
     Neuron MLP test for PyTorch Training
