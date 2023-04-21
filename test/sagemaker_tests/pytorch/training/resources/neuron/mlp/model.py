@@ -1,6 +1,7 @@
 import torch.nn as nn
 import torch.nn.functional as F
 
+
 # Declare 3-layer MLP for MNIST dataset
 class MLP(nn.Module):
     def __init__(self, input_size=28 * 28, output_size=10, layers=[120, 84]):

@@ -76,14 +76,12 @@ def run_cleanup_job():
 
 
 def main():
-
     sts_client = boto3.client("sts")
     account_id = sts_client.get_caller_identity().get("Account")
     EKS_CLUSTER_MANAGER_ROLE = f"arn:aws:iam::{account_id}:role/{EKS_CLUSTER_MANAGER_ROLE_NAME}"
 
     # Loop through each EKS cluster and perform cleanup
     for cluster in EKS_CLUSTERS:
-
         # Login into the cluster
         run(
             f"eksctl utils write-kubeconfig --cluster {cluster} --authenticator-role-arn {EKS_CLUSTER_MANAGER_ROLE} --region {AWS_REGION}"
