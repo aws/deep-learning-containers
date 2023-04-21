@@ -8,7 +8,7 @@ HAS_CUDA=$(python -c "import torch; print(torch.version.cuda is not None)")
 
 # install OSS PyTorch
 conda remove -y --force pytorch torchvision torchaudio 
-if [ -n "$cuda_version" ]; then
+if [ -n "$HAS_CUDA" ]; then
     mamba install -y pytorch=$PT_VERSION torchvision torchaudio pytorch-cuda -c pytorch -c nvidia
 else
     mamba install -y pytorch=$PT_VERSION torchvision torchaudio -c pytorch
