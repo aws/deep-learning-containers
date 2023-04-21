@@ -172,54 +172,30 @@ def test_tfs_model(
 
 @pytest.mark.model("unknown_model")
 @pytest.mark.neuron_test
-def test_tfs_neuron_model(
-    boto_session,
-    sagemaker_client,
-    sagemaker_runtime_client,
-    model_name,
-    tfs_neuron_model,
-    image_uri,
-    instance_type,
-    accelerator_type,
-):
+def test_tfs_neuron_model(model_name, tfs_neuron_model, sagemaker_regions,
+                   image_uri, instance_type, accelerator_type):
     input_data = {"instances": [[[[1, 10], [2, 20]]]]}
-    util.create_and_invoke_endpoint(
-        boto_session,
-        sagemaker_client,
-        sagemaker_runtime_client,
-        model_name,
-        tfs_neuron_model,
-        image_uri,
-        instance_type,
-        accelerator_type,
-        input_data,
-    )
+    util.create_and_invoke_endpoint_helper(image_uri=image_uri, 
+                                        sagemaker_regions=sagemaker_regions,
+                                        model_name=model_name,
+                                        model_data=tfs_neuron_model,
+                                        instance_type=instance_type,
+                                        accelerator_type=accelerator_type,
+                                        input_data=input_data)
 
 
 @pytest.mark.model("unknown_model")
 @pytest.mark.neuronx_test
-def test_tfs_neuronx_model(
-    boto_session,
-    sagemaker_client,
-    sagemaker_runtime_client,
-    model_name,
-    tfs_neuronx_model,
-    image_uri,
-    instance_type,
-    accelerator_type,
-):
+def test_tfs_neuronx_model(model_name, tfs_neuronx_model, sagemaker_regions,
+                   image_uri, instance_type, accelerator_type):
     input_data = {"instances": [1.0, 2.0, 5.0]}
-    util.create_and_invoke_endpoint(
-        boto_session,
-        sagemaker_client,
-        sagemaker_runtime_client,
-        model_name,
-        tfs_neuronx_model,
-        image_uri,
-        instance_type,
-        accelerator_type,
-        input_data,
-    )
+    util.create_and_invoke_endpoint_helper(image_uri=image_uri, 
+                                        sagemaker_regions=sagemaker_regions,
+                                        model_name=model_name,
+                                        model_data=tfs_neuronx_model,
+                                        instance_type=instance_type,
+                                        accelerator_type=accelerator_type,
+                                        input_data=input_data)
 
 
 @pytest.mark.integration("batch_transform")

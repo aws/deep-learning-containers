@@ -13,6 +13,7 @@
 from __future__ import absolute_import
 import sagemaker
 import boto3
+from botocore.config import Config
 import re
 from test.test_utils.ecr import reupload_image_to_test_ecr
 
@@ -27,6 +28,9 @@ def get_sagemaker_session(region, default_bucket=None):
     return sagemaker.Session(
         boto_session=boto3.Session(region_name=region), default_bucket=default_bucket
     )
+
+def get_sagemaker_runtime_client(region):
+    return boto3.Session(region_name=region).client("runtime.sagemaker", config=Config(retries={"max_attempts": 10}))
 
 
 def get_unique_name_from_tag(image_uri):
