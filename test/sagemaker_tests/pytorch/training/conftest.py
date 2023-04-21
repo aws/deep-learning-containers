@@ -340,7 +340,7 @@ def skip_by_device_type(request, instance_type):
     # Skip a neuronx test that's not on an neuron instance or a test which
     # uses a neuron instance and is not a neuronx test
     is_neuronx_test = request.node.get_closest_marker("neuronx_test") is not None
-    is_neuronx_instance = instance_type.startswith("ml.trn1")
+    is_neuronx_instance = "trn1" in instance_type
     if is_neuronx_test != is_neuronx_instance:
         pytest.skip("Skipping because running on '{}' instance".format(instance_type))
 
