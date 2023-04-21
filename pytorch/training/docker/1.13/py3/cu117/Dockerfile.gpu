@@ -10,7 +10,6 @@ ARG PT_TORCHVISION_URL=https://download.pytorch.org/whl/cu117/torchvision-0.14.1
 ARG PT_TORCHAUDIO_URL=https://download.pytorch.org/whl/cu117/torchaudio-0.13.1%2Bcu117-cp39-cp39-linux_x86_64.whl
 ARG PT_TORCHDATA_URL=https://download.pytorch.org/whl/test/torchdata-0.5.1-cp39-cp39-manylinux_2_17_x86_64.manylinux2014_x86_64.whl
 # depended by the SMP binary
-ARG TRITON_VERSION=2.0.0.dev20221202 
 ARG FLASH_ATTN_VERION=0.2.8
 
 # SMD binaries
@@ -165,7 +164,7 @@ RUN ompi_info --parsable --all | grep mpi_built_with_cuda_support:value \
  && chmod +x ~/mambaforge.sh \
  && ~/mambaforge.sh -b -p /opt/conda \
  && rm ~/mambaforge.sh \
- && /opt/conda/bin/mamba install -y -c conda-forge \
+ && /opt/conda/bin/conda install -y -c conda-forge \
     python=$PYTHON_VERSION \
     cython \
     mkl \
@@ -181,9 +180,9 @@ RUN ompi_info --parsable --all | grep mpi_built_with_cuda_support:value \
     # needed by fastai.distributed
     accelerate \
  # pin dgl to 0.9.1 as upstream test has not caught up, currently having accuracy error
- && /opt/conda/bin/mamba install -c dglteam -y dgl-cuda11.7=0.9.1 \
- && /opt/conda/bin/mamba install -c pytorch -y magma-cuda117 \
- && /opt/conda/bin/mamba install -c fastai fastai \
+ && /opt/conda/bin/conda install -c dglteam -y dgl-cuda11.7=0.9.1 \
+ && /opt/conda/bin/conda install -c pytorch -y magma-cuda117 \
+ && /opt/conda/bin/conda install -c fastai fastai \
 # fastai conda has a dependency chain of fastai -> spacy -> pathy -> dataclasses
  # conda pathy installs dataclasses regardless of py version: https://github.com/conda-forge/pathy-feedstock/blob/1e6da43da5c8e11e09c063c79b09236bbacb7780/recipe/meta.yaml#L29
  # pypi solves this issue: https://github.com/justindujardin/pathy/blob/master/requirements.txt#L3
@@ -455,7 +454,7 @@ RUN mkdir -p /etc/pki/tls/certs && cp /etc/ssl/certs/ca-certificates.crt /etc/pk
 WORKDIR /
 
 # Install scikit-learn and pandas
-RUN mamba install -y -c conda-forge \
+RUN conda install -y -c conda-forge \
     scikit-learn \
     pandas
 
@@ -489,8 +488,7 @@ RUN pip install --no-cache-dir -U \
     "sagemaker>=2,<3" \
     sagemaker-experiments==0.* \
     sagemaker-pytorch-training \
-    flash-attn==$FLASH_ATTN_VERION \
-    triton==$TRITON_VERSION
+    flash-attn==$FLASH_ATTN_VERION 
 
 # Install smdebug from souce
 RUN cd /tmp \
