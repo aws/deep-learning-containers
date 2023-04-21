@@ -294,16 +294,20 @@ def test_pytorch_nccl(pytorch_training, ec2_connection, gpu_only, py3_only, ec2_
         pytest.skip(
             f"Image {pytorch_training} is incompatible with instance type {ec2_instance_type}"
         )
-    test_cmd = os.path.join(CONTAINER_TESTS_PREFIX, "pytorch_tests", "testPyTorchNccl") + " 0" # add inductor flag
+    test_cmd = (
+        os.path.join(CONTAINER_TESTS_PREFIX, "pytorch_tests", "testPyTorchNccl") + " 0"
+    )  # add inductor flag
     execute_ec2_training_test(ec2_connection, pytorch_training, test_cmd, large_shm=True)
-    
+
 
 @pytest.mark.usefixtures("sagemaker")
 @pytest.mark.integration("nccl")
 @pytest.mark.model("resnet18")
 @pytest.mark.parametrize("ec2_instance_type", PT_TRITON_INSTANCE_TYPE, indirect=True)
 @pytest.mark.skip_inductor_test
-def test_pytorch_nccl_inductor(pytorch_training, ec2_connection, gpu_only, py3_only, ec2_instance_type):
+def test_pytorch_nccl_inductor(
+    pytorch_training, ec2_connection, gpu_only, py3_only, ec2_instance_type
+):
     """
     Tests nccl backend
     """
@@ -313,7 +317,9 @@ def test_pytorch_nccl_inductor(pytorch_training, ec2_connection, gpu_only, py3_o
         pytest.skip(
             f"Image {pytorch_training} is incompatible with instance type {ec2_instance_type}"
         )
-    test_cmd = os.path.join(CONTAINER_TESTS_PREFIX, "pytorch_tests", "testPyTorchNccl") + " 1" # add inductor flag
+    test_cmd = (
+        os.path.join(CONTAINER_TESTS_PREFIX, "pytorch_tests", "testPyTorchNccl") + " 1"
+    )  # add inductor flag
     execute_ec2_training_test(ec2_connection, pytorch_training, test_cmd, large_shm=True)
 
 
