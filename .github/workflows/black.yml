@@ -1,9 +1,9 @@
-name: dlc_format_check
+name: dlc-format_-heck
 
 on: [pull_request]
 
 jobs:
-  python_formatting:
+  python-formatting:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
