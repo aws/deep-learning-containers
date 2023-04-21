@@ -43,7 +43,9 @@ def test_remote_function_divide(ecr_image, sagemaker_regions, instance_type):
         "instance_type": instance_type,
     }
 
-    invoke_pytorch_helper_function(ecr_image, sagemaker_regions, _test_remote_function_training, function_args)
+    invoke_pytorch_helper_function(
+        ecr_image, sagemaker_regions, _test_remote_function_training, function_args
+    )
 
 
 def _test_remote_function_training(ecr_image, sagemaker_session, instance_type):
@@ -52,7 +54,7 @@ def _test_remote_function_training(ecr_image, sagemaker_session, instance_type):
         image_uri=ecr_image,
         instance_type=instance_type,
         sagemaker_session=sagemaker_session,
-        dependencies=DEPENDENCIES_PATH
+        dependencies=DEPENDENCIES_PATH,
     )
     def dlc_remote_function_test_divide(x, y):
         return x / y
