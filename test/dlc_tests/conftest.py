@@ -976,7 +976,6 @@ def generate_unique_values_for_fixtures(
         "autogluon": "ag",
     }
     fixtures_parametrized = {}
-    print(f"imgs: {images_to_parametrize}, {metafunc_obj.fixturenames}")
     if images_to_parametrize:
         for key, new_fixture_name in values_to_generate_for_fixture.items():
             if key in metafunc_obj.fixturenames:
@@ -1057,7 +1056,6 @@ def pytest_generate_tests(metafunc):
         return
 
     # Parametrize framework specific tests
-    print("pytest_generate_tests:", metafunc.function.__name__)
     for fixture in FRAMEWORK_FIXTURES:
         if fixture in metafunc.fixturenames:
             lookup = fixture.replace("_", "-")
@@ -1168,7 +1166,6 @@ def pytest_generate_tests(metafunc):
             fixtures_parametrized = generate_unique_values_for_fixtures(
                 metafunc, images_to_parametrize, values_to_generate_for_fixture
             )
-            print("fixture_parametrized:", fixture, fixtures_parametrized,  metafunc.fixturenames)
             if fixtures_parametrized:
                 for new_fixture_name, test_parametrization in fixtures_parametrized.items():
                     metafunc.parametrize(f"{fixture},{new_fixture_name}", test_parametrization)

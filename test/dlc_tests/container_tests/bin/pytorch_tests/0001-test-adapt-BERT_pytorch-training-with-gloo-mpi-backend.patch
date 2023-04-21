@@ -1,5 +1,5 @@
 From f97dbc04afbaccd14bf27f23c3a3b066e44e456d Mon Sep 17 00:00:00 2001
-From: Shibo Xing <shibox@amazon.com>
+From: Your Name <you@example.com>
 Date: Wed, 19 Apr 2023 18:35:36 +0000
 Subject: [PATCH] refactor: add DDP with gloo backend to bert script
 
