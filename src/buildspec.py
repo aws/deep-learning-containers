@@ -101,7 +101,6 @@ class Buildspec:
         if node.anchor is not None:
             seq.anchor.value = node.anchor
         return seq
-        print("setting super long line to make sure black formatting check fails on things like this blah blah blah blah blah blah blah blah")
 
     def get(self, name, default=None):
         """
