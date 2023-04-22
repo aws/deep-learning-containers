@@ -22,7 +22,7 @@ import sagemaker
 import random
 import time
 from ..sagemaker import conftest
-from ...... import get_ecr_image, get_ecr_image_region, get_sagemaker_session, get_sagemaker_runtime_client
+from ...... import get_ecr_image, get_ecr_image_region, get_sagemaker_client, get_sagemaker_runtime_client
 
 logger = logging.getLogger(__name__)
 BATCH_CSV = os.path.join("data", "batch.csv")
@@ -359,7 +359,7 @@ def create_and_invoke_endpoint_helper(image_uri, sagemaker_regions, model_name, 
                                target_models = [], environment = {}, content_type = "application/json"):
     ecr_image_region = get_ecr_image_region(image_uri)
     for region in sagemaker_regions:
-        sagemaker_client = get_sagemaker_session(region)
+        sagemaker_client = get_sagemaker_client(region)
         boto_session = boto3.Session(region_name=region)
         sagemaker_runtime_client = get_sagemaker_runtime_client(region)
         try:
