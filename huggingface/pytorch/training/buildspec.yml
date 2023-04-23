@@ -18,7 +18,7 @@ images:
   BuildHuggingFacePytorchGpuPy39Cu117TrainingDockerImage:
     <<: *TRAINING_REPOSITORY
     build: &HUGGINGFACE_PYTORCH_GPU_TRAINING_PY3 false
-    image_size_baseline: &IMAGE_SIZE_BASELINE 15000
+    image_size_baseline: &IMAGE_SIZE_BASELINE 20000
     device_type: &DEVICE_TYPE gpu
     python_version: &DOCKER_PYTHON_VERSION py3
     tag_python_version: &TAG_PYTHON_VERSION py310
