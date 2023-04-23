@@ -34,6 +34,7 @@ def framework_version(pytorch_training):
     _, version = get_framework_and_version_from_tag(pytorch_training)
     return version
 
+
 @pytest.fixture(autouse=True)
 def inductor_support_gpu_only(framework_version, pytorch_training):
     if Version(framework_version) in SpecifierSet("<2.0.0"):
