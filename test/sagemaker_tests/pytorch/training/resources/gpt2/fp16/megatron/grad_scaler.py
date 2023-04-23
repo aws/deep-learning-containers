@@ -83,7 +83,6 @@ class DynamicGradScaler(MegatronGradScaler):
         self._hysteresis_tracker = self.hysteresis
 
     def update(self, found_inf):
-
         # If we have an inf/nan, growth tracker is set to 0
         # and hysterisis tracker is reduced by 1.
         if found_inf:

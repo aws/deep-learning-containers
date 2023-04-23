@@ -9,13 +9,15 @@ ARG PT_SM_TRAINING_URL=https://aws-pytorch-unified-cicd-binaries.s3.us-west-2.am
 ARG PT_TORCHVISION_URL=https://download.pytorch.org/whl/cu117/torchvision-0.14.1%2Bcu117-cp39-cp39-linux_x86_64.whl
 ARG PT_TORCHAUDIO_URL=https://download.pytorch.org/whl/cu117/torchaudio-0.13.1%2Bcu117-cp39-cp39-linux_x86_64.whl
 ARG PT_TORCHDATA_URL=https://download.pytorch.org/whl/test/torchdata-0.5.1-cp39-cp39-manylinux_2_17_x86_64.manylinux2014_x86_64.whl
+# depended by the SMP binary
+ARG FLASH_ATTN_VERION=0.2.8
 
 # SMD binaries
 ARG SMD_DATA_PARALLEL_URL=https://smdataparallel.s3.amazonaws.com/binary/pytorch/1.13.1/cu117/2023-01-09/smdistributed_dataparallel-1.7.0-cp39-cp39-linux_x86_64.whl
-ARG SMD_MODEL_PARALLEL_URL=https://sagemaker-distributed-model-parallel.s3.us-west-2.amazonaws.com/pytorch-1.13.1/build-artifacts/2023-01-19-18-35/smdistributed_modelparallel-1.14.0-cp39-cp39-linux_x86_64.whl
+ARG SMD_MODEL_PARALLEL_URL=https://sagemaker-distributed-model-parallel.s3.us-west-2.amazonaws.com/pytorch-1.13.1/build-artifacts/2023-04-17-15-49/smdistributed_modelparallel-1.15.0-cp39-cp39-linux_x86_64.whl
 
 # ZeRO-2D Binary
-ARG ZERO_2D_URL=https://aws-deepspeed-zero-2d-binaries.s3.us-west-2.amazonaws.com/r1.13.1/20230112-180452/06f2048e6bb27edb0deb662dd1fb663ef5b6803f/deepspeed-0.6.1%2B06f2048-py3-none-any.whl
+ARG ZERO_2D_URL=https://aws-deepspeed-zero-2d-binaries.s3.us-west-2.amazonaws.com/r1.13.1/20230412-070309/4c3ff1af262257f1636b4aafd497e0c332a1bc1d/deepspeed-0.6.1%2B4c3ff1a-py3-none-any.whl
 
 FROM nvidia/cuda:11.7.1-base-ubuntu20.04 AS base_image
 
@@ -206,7 +208,7 @@ RUN pip install --no-cache-dir -U \
     boto3 \
     "click==8.1.2,<9" \
     "cmake>=3.24.3,<3.25" \
-    cryptography \
+    "cryptography>39,<40" \
     ipython \
     "mpi4py>=3.1.4,<3.2" \
     "opencv-python>=4.6.0,<4.7" \
@@ -365,7 +367,7 @@ ARG RMM_VERSION=0.15.0
 
 # The smdebug pipeline relies for following format to perform string replace and trigger DLC pipeline for validating
 # the nightly builds. Therefore, while updating the smdebug version, please ensure that the format is not disturbed.
-ARG SMDEBUG_VERSION=1.0.25
+ARG SMDEBUG_VERSION=1.0.34
 
 ENV SAGEMAKER_TRAINING_MODULE=sagemaker_pytorch_container.training:main
 
@@ -486,7 +488,7 @@ RUN pip install --no-cache-dir -U \
     "sagemaker>=2,<3" \
     sagemaker-experiments==0.* \
     sagemaker-pytorch-training \
-    flash-attn==0.2.6.post1
+    flash-attn==$FLASH_ATTN_VERION 
 
 # Install smdebug from souce
 RUN cd /tmp \
@@ -541,6 +543,8 @@ RUN pip install --no-cache-dir -U ${SMD_MODEL_PARALLEL_URL}
 # Install SM Distributed DataParallel binary
 RUN SMDATAPARALLEL_PT=1 pip install --no-cache-dir ${SMD_DATA_PARALLEL_URL}
 
+# remove the default mamba installation
+RUN rm -rf /root/micromamba/
 ENV LD_LIBRARY_PATH="/opt/conda/lib/python${PYTHON_SHORT_VERSION}/site-packages/smdistributed/dataparallel/lib:$LD_LIBRARY_PATH"
 
 WORKDIR /

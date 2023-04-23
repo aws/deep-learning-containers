@@ -28,7 +28,6 @@ def model_fn(model_dir):
 
 
 def input_fn(request_body, request_content_type):
-
     print(
         "Type of request body is {} and content type is {}".format(
             type(request_body), request_content_type

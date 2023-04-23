@@ -230,7 +230,6 @@ def test_tfs_neuronx_model(
 def test_batch_transform(
     region, boto_session, sagemaker_client, model_name, tfs_model, image_uri, instance_type
 ):
-
     if "graviton" in image_uri:
         pytest.skip("Test not supported with Graviton test instance.")
 
@@ -259,7 +258,6 @@ def test_python_model_with_requirements(
     instance_type,
     accelerator_type,
 ):
-
     if "p3" in instance_type:
         pytest.skip("skip for p3 instance")
 
@@ -289,7 +287,6 @@ def test_python_model_with_lib(
     instance_type,
     accelerator_type,
 ):
-
     if "p3" in instance_type:
         pytest.skip("skip for p3 instance")
 
@@ -325,7 +322,6 @@ def test_mme1(
     accelerator_type,
     region,
 ):
-
     if "p3" in instance_type:
         pytest.skip("skip for p3 instance")
 
@@ -338,6 +334,7 @@ def test_mme1(
     custom_env = {
         "SAGEMAKER_MULTI_MODEL_UNIVERSAL_BUCKET": bucket,
         "SAGEMAKER_MULTI_MODEL_UNIVERSAL_PREFIX": "test-tfs/mme1/code/",
+        "SAGEMAKER_GUNICORN_WORKERS": "5",
     }
     outputs = util.create_and_invoke_endpoint(
         boto_session,
@@ -370,7 +367,6 @@ def test_mme2(
     accelerator_type,
     region,
 ):
-
     if "p3" in instance_type:
         pytest.skip("skip for p3 instance")
 
@@ -383,6 +379,7 @@ def test_mme2(
     custom_env = {
         "SAGEMAKER_MULTI_MODEL_UNIVERSAL_BUCKET": bucket,
         "SAGEMAKER_MULTI_MODEL_UNIVERSAL_PREFIX": "test-tfs/mme2/code/",
+        "SAGEMAKER_GUNICORN_WORKERS": "5",
     }
     outputs = util.create_and_invoke_endpoint(
         boto_session,
@@ -416,7 +413,6 @@ def test_mme3(
     accelerator_type,
     region,
 ):
-
     if "p3" in instance_type:
         pytest.skip("skip for p3 instance")
 
@@ -429,6 +425,7 @@ def test_mme3(
     custom_env = {
         "SAGEMAKER_MULTI_MODEL_UNIVERSAL_BUCKET": bucket,
         "SAGEMAKER_MULTI_MODEL_UNIVERSAL_PREFIX": "test-tfs/mme3/code/",
+        "SAGEMAKER_GUNICORN_WORKERS": "5",
     }
     outputs = util.create_and_invoke_endpoint(
         boto_session,
@@ -461,7 +458,6 @@ def test_mme4(
     instance_type,
     accelerator_type,
 ):
-
     if "p3" in instance_type:
         pytest.skip("skip for p3 instance")
 

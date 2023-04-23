@@ -200,7 +200,8 @@ def test_pytorch_with_horovod(pytorch_training, ec2_connection, gpu_only, ec2_in
 @pytest.mark.integration("horovod")
 @pytest.mark.integration("inductor")
 @pytest.mark.model("mnist")
-@pytest.mark.parametrize("ec2_instance_type", PT_EC2_GPU_INSTANCE_TYPE, indirect=True)
+@pytest.mark.parametrize("ec2_instance_type", PT_TRITON_INSTANCE_TYPE, indirect=True)
+@pytest.mark.skip_inductor_test
 def test_pytorch_with_horovod_inductor(
     pytorch_training, ec2_connection, gpu_only, ec2_instance_type
 ):
@@ -232,7 +233,9 @@ def test_pytorch_gloo_gpu(pytorch_training, ec2_connection, gpu_only, py3_only, 
     test_cmd = (
         os.path.join(CONTAINER_TESTS_PREFIX, "pytorch_tests", "testPyTorchGlooMpi") + " gloo 0"
     )  # backend, inductor flags
-    execute_ec2_training_test(ec2_connection, pytorch_training, test_cmd, large_shm=True, timeout=1500)
+    execute_ec2_training_test(
+        ec2_connection, pytorch_training, test_cmd, large_shm=True, timeout=1500
+    )
 
 
 @pytest.mark.usefixtures("sagemaker")
@@ -240,7 +243,7 @@ def test_pytorch_gloo_gpu(pytorch_training, ec2_connection, gpu_only, py3_only, 
 @pytest.mark.integration("inductor")
 @pytest.mark.model("resnet18")
 @pytest.mark.parametrize("ec2_instance_type", PT_TRITON_INSTANCE_TYPE, indirect=True)
-@pytest.mark.xfail  # currently both OSS and AWS-PyTorch fail on the gloo inductor test script, needs fixing
+@pytest.mark.skip_inductor_test
 def test_pytorch_gloo_inductor_gpu(
     pytorch_training, ec2_connection, gpu_only, py3_only, ec2_instance_type
 ):
@@ -256,7 +259,9 @@ def test_pytorch_gloo_inductor_gpu(
     test_cmd = (
         os.path.join(CONTAINER_TESTS_PREFIX, "pytorch_tests", "testPyTorchGlooMpi") + " gloo 1"
     )  # backend, inductor flags
-    execute_ec2_training_test(ec2_connection, pytorch_training, test_cmd, large_shm=True, timeout=1500)
+    execute_ec2_training_test(
+        ec2_connection, pytorch_training, test_cmd, large_shm=True, timeout=1500
+    )
 
 
 @pytest.mark.usefixtures("sagemaker")
@@ -270,7 +275,9 @@ def test_pytorch_gloo_cpu(pytorch_training, ec2_connection, cpu_only, py3_only, 
     test_cmd = (
         os.path.join(CONTAINER_TESTS_PREFIX, "pytorch_tests", "testPyTorchGlooMpi") + " gloo 0"
     )  # backend, inductor flags
-    execute_ec2_training_test(ec2_connection, pytorch_training, test_cmd, large_shm=True, timeout=1500)
+    execute_ec2_training_test(
+        ec2_connection, pytorch_training, test_cmd, large_shm=True, timeout=1500
+    )
 
 
 @pytest.mark.usefixtures("sagemaker")
@@ -287,7 +294,32 @@ def test_pytorch_nccl(pytorch_training, ec2_connection, gpu_only, py3_only, ec2_
         pytest.skip(
             f"Image {pytorch_training} is incompatible with instance type {ec2_instance_type}"
         )
-    test_cmd = os.path.join(CONTAINER_TESTS_PREFIX, "pytorch_tests", "testPyTorchNccl")
+    test_cmd = (
+        os.path.join(CONTAINER_TESTS_PREFIX, "pytorch_tests", "testPyTorchNccl") + " 0"
+    )  # add inductor flag
+    execute_ec2_training_test(ec2_connection, pytorch_training, test_cmd, large_shm=True)
+
+
+@pytest.mark.usefixtures("sagemaker")
+@pytest.mark.integration("nccl")
+@pytest.mark.model("resnet18")
+@pytest.mark.parametrize("ec2_instance_type", PT_TRITON_INSTANCE_TYPE, indirect=True)
+@pytest.mark.skip_inductor_test
+def test_pytorch_nccl_inductor(
+    pytorch_training, ec2_connection, gpu_only, py3_only, ec2_instance_type
+):
+    """
+    Tests nccl backend
+    """
+    if ec2_instance_type.startswith("g3"):
+        pytest.skip("skipping inductor related test on g3 instance")
+    if test_utils.is_image_incompatible_with_instance_type(pytorch_training, ec2_instance_type):
+        pytest.skip(
+            f"Image {pytorch_training} is incompatible with instance type {ec2_instance_type}"
+        )
+    test_cmd = (
+        os.path.join(CONTAINER_TESTS_PREFIX, "pytorch_tests", "testPyTorchNccl") + " 1"
+    )  # add inductor flag
     execute_ec2_training_test(ec2_connection, pytorch_training, test_cmd, large_shm=True)
 
 
@@ -356,6 +388,7 @@ def test_pytorch_mpi_gpu(
 @pytest.mark.integration("inductor")
 @pytest.mark.model("resnet18")
 @pytest.mark.parametrize("ec2_instance_type", PT_EC2_GPU_INSTANCE_TYPE, indirect=True)
+@pytest.mark.skip_inductor_test
 def test_pytorch_mpi_inductor_gpu(
     pytorch_training,
     ec2_connection,
@@ -442,6 +475,7 @@ def test_pytorch_amp(pytorch_training, ec2_connection, gpu_only, ec2_instance_ty
 @pytest.mark.integration("inductor")
 @pytest.mark.model("resnet50")
 @pytest.mark.parametrize("ec2_instance_type", PT_EC2_MULTI_GPU_INSTANCE_TYPE, indirect=True)
+@pytest.mark.skip_inductor_test
 def test_pytorch_amp_inductor(pytorch_training, ec2_connection, gpu_only, ec2_instance_type):
     _, image_framework_version = get_framework_and_version_from_tag(pytorch_training)
     if ec2_instance_type.startswith("g3"):
