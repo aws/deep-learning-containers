@@ -156,7 +156,7 @@ RUN pip install --no-cache-dir --upgrade pip --trusted-host pypi.org --trusted-h
     "awscli>1.27,<2" \	
     boto3 \	
     "click==8.1.2,<9" \	
-    cryptography \	
+    "cryptography>39,<40" \
     ipython \	
     "opencv-python>=4.6.0,<4.7" \	
     packaging \
@@ -245,7 +245,7 @@ ARG PYTHON
 
 # The smdebug pipeline relies for following format to perform string replace and trigger DLC pipeline for validating
 # the nightly builds. Therefore, while updating the smdebug version, please ensure that the format is not disturbed.
-ARG SMDEBUG_VERSION=1.0.25
+ARG SMDEBUG_VERSION=1.0.34
 
 ENV SAGEMAKER_TRAINING_MODULE=sagemaker_pytorch_container.training:main
 
