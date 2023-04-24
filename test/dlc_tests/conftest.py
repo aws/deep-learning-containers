@@ -131,11 +131,8 @@ NIGHTLY_FIXTURES = {
 
 
 @pytest.fixture(autouse=True)
-def skip_s3plugin_test(request):
-    if "pytorch_training" not in request.fixturenames:
-        return
+def skip_s3plugin_test_fx(request, pytorch_training):
     if request.node.get_closest_marker("skip_s3plugin_test"):
-        pytorch_training = request.getfuncargvalue("pytorch_training")
         if Version(pytorch_training) not in SpecifierSet("<=1.12.1,>=1.6.0"):
             pytest.skip(
                 "s3 plugin is only supported in PT 1.6.0 - 1.12.1, skipping this container with tag{}".format(
