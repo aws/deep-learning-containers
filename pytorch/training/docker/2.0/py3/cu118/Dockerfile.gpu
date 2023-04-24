@@ -387,8 +387,8 @@ RUN git clone https://github.com/NVIDIA/apex \
   && cd apex \
   # requested by Rubik. Will wait for resolution on the illegal mem access error
   && git checkout aa756ce \
-  && sed -i 's/from torch._six import string_classes//g' /opt/conda/lib/python3.10/site-packages/apex/amp/_initialize.py \
-  && sed -i 's/string_classes/str/g' /opt/conda/lib/python3.10/site-packages/apex/amp/_initialize.py \
+  && sed -i 's/from torch._six import string_classes//g' apex/amp/_initialize.py \
+  && sed -i 's/string_classes/str/g' apex/amp/_initialize.py \
   && pip install -v --no-cache-dir --global-option="--cpp_ext" --global-option="--cuda_ext" ./ \
   && cd .. \
   && rm -rf apex
