@@ -1045,17 +1045,12 @@ def wait_for_enhanced_scans_to_complete(ecr_client, image):
     """
     scan_status = None
     scan_status_description = ""
-    try:
-        scan_status, scan_status_description = ecr_utils.get_ecr_image_enhanced_scan_status(
-            ecr_client, image
-        )
-        if scan_status == "ACTIVE":
-            return scan_status, scan_status_description
-    except ecr_client.exceptions.ScanNotFoundException as e:
-        LOGGER.info(e.response)
-        LOGGER.info(
-            "It takes sometime for the newly uploaded image to show its scan status, hence the error handling"
-        )
+    scan_status, scan_status_description = ecr_utils.get_ecr_image_enhanced_scan_status(
+        ecr_client, image
+    )
+    if scan_status == "ACTIVE":
+        return scan_status, scan_status_description
+    else:
         raise StatusError
 
 
