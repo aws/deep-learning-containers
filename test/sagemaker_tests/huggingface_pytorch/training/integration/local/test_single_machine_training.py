@@ -26,7 +26,6 @@ from ...integration import ROLE, distrilbert_script
 def test_distilbert_base(
     docker_image, processor, instance_type, sagemaker_local_session, py_version
 ):
-
     # hyperparameters, which are passed into the training job
     hyperparameters = {
         "max_steps": 5,

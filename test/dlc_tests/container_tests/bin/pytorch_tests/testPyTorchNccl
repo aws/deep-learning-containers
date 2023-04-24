@@ -3,6 +3,8 @@
 set -e
 
 source /test/bin/pytorch_tests/setupPyTorchBackendTest
+export USE_INDUCTOR=$1
+echo testPyTorchNCCL: USE_INDUCTOR, $USE_INDUCTOR
 
 # run NCCL benchmarking with 2 GPUS and 1 local node (resnet will use torchvision)
 python userbenchmark/ddp_experiments/__init__.py \
@@ -15,12 +17,14 @@ python userbenchmark/ddp_experiments/__init__.py \
     --job_dir $AWS_LOG_DIR \
     --nccl-socket-ifname eth0
 
+
 # generate the result csv
 JOB_ID=$(ls $AWS_LOG_DIR | grep .out | head -n 1 | cut -d'_' -f 1)
 python userbenchmark/ddp_experiments/parse_ddp.py \
     --job_id $JOB_ID \
     --results_dir $AWS_LOG_DIR \
     --csv_out > $AWS_LOG_DIR/aws_res.csv
+echo testPyTorchNCCL: AWS-PyTorch test results && cat $AWS_LOG_DIR/aws_res.csv
 
 # get OSS perf data
 bash ${BIN_DIR}/pytorch_tests/installOSSPyTorch
@@ -42,6 +46,7 @@ python userbenchmark/ddp_experiments/parse_ddp.py \
     --job_id $JOB_ID \
     --results_dir $OSS_LOG_DIR \
     --csv_out > $OSS_LOG_DIR/oss_res.csv
+echo testPyTorchNCCL: OSS-PyTorch test results && cat $OSS_LOG_DIR/oss_res.csv
 
 # evaluate the performance
 bash ${BIN_DIR}/pytorch_tests/evaluateResults $AWS_LOG_DIR/aws_res.csv $OSS_LOG_DIR/oss_res.csv

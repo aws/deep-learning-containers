@@ -607,6 +607,38 @@ def existing_ec2_instance_connection(request, ec2_key_file_name, ec2_user_name, 
     return conn
 
 
+@pytest.fixture(autouse=True)
+def skip_s3plugin_test(request):
+    if "training" in request.fixturenames:
+        img_uri = request.getfixturevalue("training")
+    elif "pytorch_training" in request.fixturenames:
+        img_uri = request.getfixturevalue("pytorch_training")
+    else:
+        return
+    _, fw_ver = get_framework_and_version_from_tag(img_uri)
+    if request.node.get_closest_marker("skip_s3plugin_test"):
+        if Version(fw_ver) not in SpecifierSet("<=1.12.1,>=1.6.0"):
+            pytest.skip(
+                f"s3 plugin is only supported in PT 1.6.0 - 1.12.1, skipping this container with tag {fw_ver}"
+            )
+
+
+@pytest.fixture(autouse=True)
+def skip_inductor_test(request):
+    if "training" in request.fixturenames:
+        img_uri = request.getfixturevalue("training")
+    elif "pytorch_training" in request.fixturenames:
+        img_uri = request.getfixturevalue("pytorch_training")
+    else:
+        return
+    _, fw_ver = get_framework_and_version_from_tag(img_uri)
+    if request.node.get_closest_marker("skip_inductor_test"):
+        if Version(fw_ver) < Version("2.0.0"):
+            pytest.skip(
+                f"SM inductor test only support PT2.0 and above, skipping this container with tag {fw_ver}"
+            )
+
+
 @pytest.fixture(scope="session")
 def dlc_images(request):
     return request.config.getoption("--images")
@@ -941,13 +973,11 @@ def generate_unique_values_for_fixtures(
         "autogluon": "ag",
     }
     fixtures_parametrized = {}
-
     if images_to_parametrize:
         for key, new_fixture_name in values_to_generate_for_fixture.items():
             if key in metafunc_obj.fixturenames:
                 fixtures_parametrized[new_fixture_name] = []
                 for index, image in enumerate(images_to_parametrize):
-
                     # Tag fixtures with EC2 instance types if env variable is present
                     allowed_processors = ("gpu", "cpu", "eia", "neuronx", "neuron", "hpu")
                     instance_tag = ""
