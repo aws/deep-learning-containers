@@ -38,7 +38,6 @@ def test_eks_mxnet_multi_node_training_horovod_mnist(mxnet_training, example_onl
 def _run_eks_mxnet_multinode_training_horovod_mpijob(
     example_image_uri, cluster_size, eks_gpus_per_worker
 ):
-
     LOGGER.info("Starting run_eks_mxnet_multi_node_training on MNIST dataset using horovod")
     LOGGER.info("The test will run on an example image %s", example_image_uri)
 

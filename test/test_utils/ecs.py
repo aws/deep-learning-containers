@@ -784,7 +784,6 @@ def ecs_training_test_executor(
         if ecs_task_waiter(cluster_name, [task_arn], "tasks_stopped"):
             ret_codes = describe_ecs_task_exit_status(cluster_name, task_arn)
             if ret_codes:
-
                 # Assemble error message if we have nonzero return codes
                 error_msg = "Failures:\n"
                 for code in ret_codes:
