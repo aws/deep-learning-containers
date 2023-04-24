@@ -998,7 +998,6 @@ def lookup_condition(lookup, image):
     """
     # Extract ecr repo name from the image and check if it exactly matches the lookup (fixture name)
     repo_name = get_ecr_repo_name(image)
-    LOGGER.info(f"[logs-ABCD][Displaying] repo_name: {repo_name} lookup: {lookup} image: {image}")
 
     job_types = (
         "training",
@@ -1040,9 +1039,7 @@ def pytest_generate_tests(metafunc):
             lookup = fixture.replace("_", "-")
             images_to_parametrize = []
             for image in images:
-                LOGGER.info(f"[logs-ABCD][Checking] image:{image} lookup:{lookup}")
                 if lookup_condition(lookup, image):
-                    LOGGER.info(f"[logs-ABCD][True condition] image:{image} lookup:{lookup}")
                     is_example_lookup = (
                         "example_only" in metafunc.fixturenames and "example" in image
                     )
