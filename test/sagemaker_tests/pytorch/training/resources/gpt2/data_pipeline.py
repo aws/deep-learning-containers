@@ -73,7 +73,6 @@ class GPTPretrainingDataset(torch.utils.data.Dataset):
         self.__read_examples(self.input_paths)
 
     def __read_examples(self, paths: List[str]):
-
         self.input_data = []
         if self.zipped:
             if self.use_last_file_only:

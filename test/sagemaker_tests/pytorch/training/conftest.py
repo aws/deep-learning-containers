@@ -402,27 +402,33 @@ def skip_trcomp_containers(request, ecr_image):
             )
 
 
-@pytest.fixture(scope="session")
-def skip_inductor_test(request, framework_version):
+@pytest.fixture(autouse=True)
+def skip_inductor_test(request):
+    if "framework_version" in request.fixturenames:
+        fw_ver = request.getfixturevalue("framework_version")
+    elif "ecr_image" in request.fixturenames:
+        fw_ver = request.getfixturevalue("ecr_image")
+    else:
+        return
     if request.node.get_closest_marker("skip_inductor_test"):
-        if Version(framework_version) < Version("2.0.0"):
+        if Version(fw_ver) < Version("2.0.0"):
             pytest.skip(
-                "SM inductor test only support PT2.0 and above, skipping this container with tag{}".format(
-                    framework_version
-                )
+                f"SM inductor test only support PT2.0 and above, skipping this container with tag {fw_ver}"
             )
 
 
-@pytest.fixture(scope="session")
-def skip_s3plugin_test(request, framework_version):
+@pytest.fixture(autouse=True)
+def skip_s3plugin_test(request):
+    if "framework_version" in request.fixturenames:
+        fw_ver = request.getfixturevalue("framework_version")
+    elif "ecr_image" in request.fixturenames:
+        fw_ver = request.getfixturevalue("ecr_image")
+    else:
+        return
     if request.node.get_closest_marker("skip_s3plugin_test"):
-        if Version(framework_version) < Version("1.6.0") or Version(framework_version) > Version(
-            "1.12.1"
-        ):
+        if Version(fw_ver) not in SpecifierSet("<=1.12.1,>=1.6.0"):
             pytest.skip(
-                "s3 plugin is only supported in PT>=1.6.0,<=1.12.1, skipping this container with tag{}".format(
-                    framework_version
-                )
+                f"s3 plugin is only supported in PT 1.6.0 - 1.12.1, skipping this container with tag {fw_ver}"
             )
 
 

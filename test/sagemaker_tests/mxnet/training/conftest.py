@@ -211,7 +211,6 @@ def skip_by_device_type(request, processor):
 
 @pytest.fixture(autouse=True)
 def skip_gpu_instance_restricted_regions(region, instance_type):
-
     no_p2 = region in NO_P2_REGIONS and instance_type.startswith("ml.p2")
     no_p3 = region in NO_P3_REGIONS and instance_type.startswith("ml.p3")
     no_p4 = region in NO_P4_REGIONS and instance_type.startswith("ml.p4")

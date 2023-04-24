@@ -6,5 +6,6 @@ LOG_DIR=${HOME_DIR}/logs
 HOROVOD_VERSION=v0.16.4
 
 git clone -b ${HOROVOD_VERSION} https://github.com/horovod/horovod.git ${HOME_DIR}/artifacts/horovod
+pip uninstall -y smdistributed_modelparallel
 ${BIN_DIR}/pytorch_tests/testPTHVDHelper || exit 1
 exit 0
