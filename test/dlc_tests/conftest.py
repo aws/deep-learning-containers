@@ -129,6 +129,7 @@ NIGHTLY_FIXTURES = {
     "feature_s3_plugin_present": {NightlyFeatureLabel.AWS_S3_PLUGIN_INSTALLED.value},
 }
 
+
 # Nightly fixtures
 @pytest.fixture(scope="session")
 def feature_smdebug_present():
