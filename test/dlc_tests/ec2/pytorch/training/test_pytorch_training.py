@@ -56,10 +56,10 @@ PT_EC2_MULTI_GPU_INSTANCE_TYPE = get_ec2_instance_type(
 )
 PT_EC2_HPU_INSTANCE_TYPE = get_ec2_instance_type(default="dl1.24xlarge", processor="hpu")
 PT_EC2_NEURON_TRN1_INSTANCE_TYPE = get_ec2_instance_type(
-    default="trn1.2xlarge", processor="neuron", job_type="training"
+    default="trn1.2xlarge", processor="neuronx", job_type="training"
 )
 PT_EC2_NEURON_INF2_INSTANCE_TYPE = get_ec2_instance_type(
-    default="inf2.xlarge", processor="neuron", job_type="training"
+    default="inf2.xlarge", processor="neuronx", job_type="training"
 )
 
 
