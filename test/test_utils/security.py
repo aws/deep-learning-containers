@@ -1031,7 +1031,7 @@ class StatusError(Exception):
     pass
 
 
-@retry(stop=stop_after_attempt(1), wait=wait_fixed(1), retry=retry_if_exception_type(StatusError))
+@retry(stop=stop_after_attempt(30), wait=wait_fixed(120), retry=retry_if_exception_type(StatusError))
 def wait_for_enhanced_scans_to_complete(ecr_client, image):
     """
     For Continuous Enhanced scans, the images will go through `SCAN_ON_PUSH` when they are uploaded for the
