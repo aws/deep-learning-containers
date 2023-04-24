@@ -1,15 +1,15 @@
 ARG PYTHON=python3
 ARG PYTHON_VERSION=3.10.8
 ARG PYTHON_SHORT_VERSION=3.10
-ARG MAMBA_VERSION=22.11.1-4
+ARG MAMBA_VERSION=23.1.0-1
 ARG PYTORCH_VERSION=2.0.0
 
 # SMD binaries
-ARG SMD_DATA_PARALLEL_URL=https://smdataparallel.s3.amazonaws.com/binary/pytorch/1.13.1/cu117/2023-01-09/smdistributed_dataparallel-1.7.0-cp39-cp39-linux_x86_64.whl
-ARG SMD_MODEL_PARALLEL_URL=https://sagemaker-distributed-model-parallel.s3.us-west-2.amazonaws.com/pytorch-1.13.1/build-artifacts/2023-01-19-18-35/smdistributed_modelparallel-1.14.0-cp39-cp39-linux_x86_64.whl
+ARG SMD_DATA_PARALLEL_URL=https://smdataparallel.s3.amazonaws.com/binary/pytorch/2.0.0/cu118/2023-03-20/smdistributed_dataparallel-1.8.0-cp310-cp310-linux_x86_64.whl
+ARG SMD_MODEL_PARALLEL_URL=https://sagemaker-distributed-model-parallel.s3.us-west-2.amazonaws.com/pytorch-2.0.0/build-artifacts/2023-04-14-20-14/smdistributed_modelparallel-1.15.0-cp310-cp310-linux_x86_64.whl
 
 # ZeRO-2D Binary
-ARG ZERO_2D_URL=https://aws-deepspeed-zero-2d-binaries.s3.us-west-2.amazonaws.com/r1.13.1/20230112-180452/06f2048e6bb27edb0deb662dd1fb663ef5b6803f/deepspeed-0.6.1%2B06f2048-py3-none-any.whl
+ARG ZERO_2D_URL=https://aws-deepspeed-zero-2d-binaries.s3.us-west-2.amazonaws.com/r2.0.0/20230407-184728/1ea3d4b6aa41fe66277daacbb78b3743a310d85a/deepspeed-0.6.1%2B1ea3d4b-py3-none-any.whl
 
 FROM nvidia/cuda:11.8.0-base-ubuntu20.04 AS base_image
 
@@ -34,13 +34,13 @@ ARG MAMBA_VERSION
 
 ARG CUBLAS_VERSION=11.11.3.6
 ARG EFA_PATH=/opt/amazon/efa
-ARG CUDA_HOME=/usr/local/cuda
 
 # This arg required to stop docker build waiting for region configuration while installing tz data from ubuntu 20
 ARG DEBIAN_FRONTEND=noninteractive
 
 # Python won’t try to write .pyc or .pyo files on the import of source modules
 # Force stdin, stdout and stderr to be totally unbuffered. Good for logging
+ENV CUDA_HOME=/opt/conda/
 ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
 ENV LD_LIBRARY_PATH="/usr/local/lib:${LD_LIBRARY_PATH}"
@@ -54,9 +54,9 @@ ENV TORCH_NVCC_FLAGS="-Xfatbin -compress-all"
 
 ENV CUDNN_VERSION=8.7.0.84
 ENV NCCL_VERSION=2.16.2
-ENV HOROVOD_VERSION=0.27.0
+ENV HOROVOD_VERSION=0.26.1
 ENV EFA_VERSION=1.21.0
-ENV OMPI_VERSION=4.1.1
+ENV OMPI_VERSION=4.1.5
 ENV BRANCH_OFI=1.5.0-aws
 
 ENV CMAKE_PREFIX_PATH="$(dirname $(which conda))/../"
@@ -74,10 +74,10 @@ RUN apt-get update \
     build-essential \
     ca-certificates \
     cmake \
-    cuda-toolkit-11-8 \
-    cuda-command-line-tools-11-8 \
-    cuda-nvcc-11-8 \
-    libcudnn8=$CUDNN_VERSION-1+cuda11.8 \
+    # cuda-toolkit-11-8 \
+    # cuda-command-line-tools-11-8 \
+    # cuda-nvcc-11-8 \
+    # libcudnn8=$CUDNN_VERSION-1+cuda11.8 \
     curl \
     emacs \
     git \
@@ -103,14 +103,62 @@ RUN apt-get update \
     vim \
     wget \
     zlib1g-dev \
+    autoconf \
  && rm -rf /var/lib/apt/lists/* \
  && apt-get clean
+
+# for conda ssl verification
+ENV REQUESTS_CA_BUNDLE=/etc/ssl/certs/ca-certificates.crt
+RUN curl -L -o ~/mambaforge.sh https://github.com/conda-forge/miniforge/releases/download/${MAMBA_VERSION}/Mambaforge-${MAMBA_VERSION}-Linux-x86_64.sh \
+ && chmod +x ~/mambaforge.sh \
+ && ~/mambaforge.sh -b -p /opt/conda \
+ && rm ~/mambaforge.sh 
+
+# Install common conda packages
+RUN /opt/conda/bin/mamba install -y --override-channels \
+  -c https://aws-ml-conda-pre-prod-ec2.s3.us-west-2.amazonaws.com \
+  -c nvidia/label/cuda-11.8.0 \
+  pytorch-cuda=11.8 cuda-toolkit=11.8 \
+  && /opt/conda/bin/mamba install -y -c conda-forge \
+    pyopenssl \
+    requests \
+    libgcc \
+    pybind11 \
+    cmake \
+    python=$PYTHON_VERSION \
+    cython \
+    mkl \
+    mkl-include \
+    parso \
+    typing \
+    conda-content-trust \
+    charset-normalizer \
+    packaging \
+    opencv \
+    awscli \
+    boto3 \
+    pyyaml \
+    scipy \
+    click \
+    psutil \
+    ipython \
+    # patch CVE
+    "cryptography>39.0.0" \
+    # patch CVE
+    "pillow>=9.4" \
+    # force conda to install h5py with openmpi build, not mpich (rubik error)
+    # https://anaconda.org/conda-forge/h5py/files?page=2
+    "mpi4py>=3.1.4,<3.2" \
+    h5py \
+  && /opt/conda/bin/mamba install -y -c dglteam/label/cu118 dgl \
+  && /opt/conda/bin/mamba clean -afy \
+  && rm -rf /etc/apt/sources.list.d/*
 
 # Install NCCL
 RUN cd /tmp \
  && git clone https://github.com/NVIDIA/nccl.git -b v${NCCL_VERSION}-1 \
  && cd nccl \
- && make -j64 src.build BUILDDIR=/usr/local \
+ && make -j64 src.build BUILDDIR=/usr/local CUDA_LIB=${CUDA_HOME}/lib \
  && rm -rf /tmp/nccl
 
 # Install EFA alone without AWS OPEN_MPI
@@ -133,81 +181,16 @@ RUN mkdir /tmp/openmpi \
  && wget --quiet https://download.open-mpi.org/release/open-mpi/v4.1/openmpi-${OMPI_VERSION}.tar.gz \
  && tar zxf openmpi-${OMPI_VERSION}.tar.gz \
  && cd openmpi-${OMPI_VERSION} \
- && ./configure --enable-orterun-prefix-by-default --prefix=$OPEN_MPI_PATH --with-cuda \
+ && ./configure --enable-orterun-prefix-by-default --prefix=$OPEN_MPI_PATH --with-cuda=${CUDA_HOME} \
  && make -j $(nproc) all \
  && make install \
  && ldconfig \
  && cd / \
- && rm -rf /tmp/openmpi
+ && rm -rf /tmp/openmpi \
+ && ompi_info --parsable --all | grep mpi_built_with_cuda_support:value
 
 ENV PATH="$OPEN_MPI_PATH/bin:$PATH"
 ENV LD_LIBRARY_PATH=$OPEN_MPI_PATH/lib/:$EFA_PATH/lib/:$LD_LIBRARY_PATH
-
-# for conda ssl verification
-ENV REQUESTS_CA_BUNDLE=/etc/ssl/certs/ca-certificates.crt
-RUN ompi_info --parsable --all | grep mpi_built_with_cuda_support:value \
- && curl -L -o ~/mambaforge.sh https://github.com/conda-forge/miniforge/releases/download/${MAMBA_VERSION}/Mambaforge-${MAMBA_VERSION}-Linux-x86_64.sh \
- && chmod +x ~/mambaforge.sh \
- && ~/mambaforge.sh -b -p /opt/conda \
- && rm ~/mambaforge.sh 
-
-# Install core dependency conda packages
-RUN /opt/conda/bin/mamba install -y -c conda-forge \
-    # pin in PT2.0 to consume cryptography CVE fix
-    conda=23.1.0 \
-    # patch CVE
-    "cryptography>39.0.0" \
-    pyopenssl \
-    requests \
-    libgcc \
-    pybind11 \
-    cmake \
-    python=$PYTHON_VERSION \
-    cython \
-    # force conda to install h5py with openmpi build, not mpich (rubik error)
-    # https://anaconda.org/conda-forge/h5py/files?page=2
-    "mpi4py>=3.1.4,<3.2" \
-    h5py
-    
-# Install ec2 PyTorch
-RUN /opt/conda/bin/mamba install pytorch=${PYTORCH_VERSION} \
-  torchvision torchaudio torchtext aws-ofi-nccl-dlc pytorch-cuda=11.8 \
-  --override-channels \
-  -c https://aws-ml-conda-pre-prod-ec2.s3.us-west-2.amazonaws.com \
-  -c nvidia/label/cuda-11.8.0 -c conda-forge
-
-# Install common conda packages
-RUN /opt/conda/bin/mamba install -y -c conda-forge \
-    mkl \
-    mkl-include \
-    parso \
-    typing \
-    conda-content-trust \
-    charset-normalizer \
-    packaging \
-    opencv \
-    awscli \
-    boto3 \
-    pyyaml \
-    # needed by fastai.distributed
-    accelerate \ 
-    scipy \
-    click \
-    # patch CVE
-    "pillow>=9.4" \
-    psutil \
-    ipython \
-  && /opt/conda/bin/mamba install -y -c dglteam/label/cu118 dgl \
-  # waiting for inductor support: https://github.com/fastai/fastai/pull/3899
-  # && /opt/conda/bin/mamba install -y -c fastai fastai \
-  # fastai conda has a dependency chain of fastai -> spacy -> pathy -> dataclasses, use pip to remove dataclass for CVE
-  && pip uninstall -y dataclasses \
-  && pip install \
-    torchtnt \
-  # explicitly install triton needed by conda torchtriton, otherwise pypi dependencies cmake and lit would be missing
-    triton \
-  && /opt/conda/bin/mamba clean -afy \
-  && rm -rf /etc/apt/sources.list.d/*
 
 RUN pip install --no-cache-dir --upgrade pip --no-cache-dir --trusted-host pypi.org --trusted-host files.pythonhosted.org \
  && ln -s /opt/conda/bin/pip /usr/local/bin/pip3 
@@ -223,23 +206,6 @@ RUN mv $OPEN_MPI_PATH/bin/mpirun $OPEN_MPI_PATH/bin/mpirun.real \
  && echo "rmaps_base_mapping_policy = slot" >> $OPEN_MPI_PATH/etc/openmpi-mca-params.conf \
  && echo NCCL_DEBUG=INFO >> /etc/nccl.conf \
  && echo NCCL_SOCKET_IFNAME=^docker0 >> /etc/nccl.conf
-
-# Install AWS OFI NCCL plug-in
-RUN apt-get update && apt-get install -y autoconf
-RUN mkdir /tmp/efa-ofi-nccl \
- && cd /tmp/efa-ofi-nccl \
- && git clone https://github.com/aws/aws-ofi-nccl.git -b v${BRANCH_OFI} \
- && cd aws-ofi-nccl \
- && ./autogen.sh \
- && ./configure --with-libfabric=/opt/amazon/efa \
-  --with-mpi=/opt/amazon/openmpi \
-  --with-cuda=/usr/local/cuda \
-  --with-nccl=/usr/local --prefix=/usr/local \
- && make \
- && make install \
- && rm -rf /tmp/efa-ofi-nccl \
- && rm -rf /var/lib/apt/lists/* \
- && apt-get clean
 
 # Install OpenSSH for MPI to communicate between containers, allow OpenSSH to talk to containers without asking for confirmation
 RUN apt-get update \
@@ -263,12 +229,6 @@ RUN rm -rf /root/.ssh/ && \
  && printf "Host *\n StrictHostKeyChecking no\n" >> /root/.ssh/config
 
 RUN mkdir -p /etc/pki/tls/certs && cp /etc/ssl/certs/ca-certificates.crt /etc/pki/tls/certs/ca-bundle.crt
-
-# Install Horovod (needs pytorch)
-RUN pip uninstall -y horovod \
- && ldconfig /usr/local/cuda-11.8/targets/x86_64-linux/lib/stubs \
- && HOROVOD_GPU_ALLREDUCE=NCCL HOROVOD_CUDA_HOME=/usr/local/cuda-11.8 HOROVOD_WITH_PYTORCH=1 pip install --no-cache-dir horovod==${HOROVOD_VERSION} \
- && ldconfig
 
 RUN curl -o /license.txt https://aws-dlc-licenses.s3.amazonaws.com/pytorch-2.0/license.txt
 
@@ -304,6 +264,25 @@ ARG PT_TORCHDATA_URL
 
 WORKDIR /
 
+# Install ec2 PyTorch
+RUN /opt/conda/bin/mamba install -y pytorch=${PYTORCH_VERSION} \
+  torchvision torchaudio torchtext aws-ofi-nccl-dlc \
+  --override-channels \
+  -c https://aws-ml-conda-pre-prod-ec2.s3.us-west-2.amazonaws.com \
+  -c conda-forge
+
+# install PyTorch related python packages (depends on PyTorch)
+RUN /opt/conda/bin/mamba install -y -c conda-forge \
+  # needed by fastai.distributed
+  accelerate \ 
+  && /opt/conda/bin/mamba install -y -c fastai fastai \
+  # fastai conda strictly depends on dataclasses
+  && pip uninstall -y dataclasses \
+  && pip install torchtnt \
+# explicitly install triton build-time dependencies, which won't get installed by conda for some reason
+  cmake \
+  lit
+
 # Install Nvidia Apex (needs pytorch)
 ## Pin apex commit requested by sm-model-parallel team
 RUN git clone https://github.com/NVIDIA/apex \
@@ -313,6 +292,12 @@ RUN git clone https://github.com/NVIDIA/apex \
   && pip install -v --no-cache-dir --global-option="--cpp_ext" --global-option="--cuda_ext" ./ \
   && cd .. \
   && rm -rf apex
+
+# Install Horovod (needs pytorch)
+RUN pip uninstall -y horovod \
+#  && ldconfig /usr/local/cuda-11.8/targets/x86_64-linux/lib/stubs \
+ && HOROVOD_GPU_ALLREDUCE=NCCL HOROVOD_CUDA_HOME=${CUDA_HOME} HOROVOD_WITH_PYTORCH=1 pip install --no-cache-dir horovod==${HOROVOD_VERSION} \
+ && ldconfig
 
 RUN HOME_DIR=/root \
  && curl -o ${HOME_DIR}/oss_compliance.zip https://aws-dlinfra-utilities.s3.amazonaws.com/oss_compliance.zip \
@@ -358,7 +343,7 @@ ARG RMM_VERSION=0.15.0
 
 # The smdebug pipeline relies for following format to perform string replace and trigger DLC pipeline for validating
 # the nightly builds. Therefore, while updating the smdebug version, please ensure that the format is not disturbed.
-ARG SMDEBUG_VERSION=1.0.26
+ARG SMDEBUG_VERSION=1.0.34
 
 ENV SAGEMAKER_TRAINING_MODULE=sagemaker_pytorch_container.training:main
 
@@ -375,13 +360,24 @@ ARG PT_TORCHVISION_URL
 ARG PT_TORCHAUDIO_URL
 ARG PT_TORCHDATA_URL
 
-# force remove to prevent removing all packages depending on pytorch
-RUN /opt/conda/bin/conda remove --force pytorch \
-  && /opt/conda/bin/mamba install -y pytorch=${PYTORCH_VERSION} \
-  pytorch-cuda=11.8 \
+# Install sm PyTorch (force remove will increase docker image size drastically)
+RUN /opt/conda/bin/mamba install -y pytorch=${PYTORCH_VERSION} \
+  torchvision torchaudio torchtext aws-ofi-nccl-dlc \
   --override-channels \
-  -c https://aws-ml-conda-pre-prod-sm.s3.us-west-2.amazonaws.com \
+  -c https://aws-ml-conda-pre-prod-ec2.s3.us-west-2.amazonaws.com \
   -c conda-forge
+
+# install PyTorch related python packages (depends on PyTorch)
+RUN /opt/conda/bin/mamba install -y -c conda-forge \
+  # needed by fastai.distributed
+  accelerate \ 
+  && /opt/conda/bin/mamba install -y -c fastai fastai \
+  # fastai conda strictly depends on dataclasses
+  && pip uninstall -y dataclasses \
+  && pip install torchnet \
+# explicitly install triton build-time dependencies, which won't get installed by conda for some reason
+  cmake \
+  lit
 
 WORKDIR /
 
@@ -394,6 +390,12 @@ RUN git clone https://github.com/NVIDIA/apex \
   && pip install -v --no-cache-dir --global-option="--cpp_ext" --global-option="--cuda_ext" ./ \
   && cd .. \
   && rm -rf apex
+
+# Install Horovod (needs pytorch)
+RUN pip uninstall -y horovod \
+#  && ldconfig /usr/local/cuda-11.8/targets/x86_64-linux/lib/stubs \
+ && HOROVOD_GPU_ALLREDUCE=NCCL HOROVOD_CUDA_HOME=${CUDA_HOME} HOROVOD_WITH_PYTORCH=1 pip install --no-cache-dir horovod==${HOROVOD_VERSION} \
+ && ldconfig
 
 # Install libboost from source. This package is needed for smdataparallel functionality [for networking asynchronous IO].
 RUN wget https://sourceforge.net/projects/boost/files/boost/1.73.0/boost_1_73_0.tar.gz/download -O boost_1_73_0.tar.gz \
@@ -416,16 +418,23 @@ RUN chmod +x /usr/local/bin/start_with_right_hostname.sh
 
 WORKDIR /root
 
+# temporarily install fork of training toolkit as a workaround of the Rubik NCCL hang issue
+RUN cd /tmp \
+  && git clone https://github.com/yongyanrao/sagemaker-training-toolkit.git -b nccl_env_var\
+  && cd sagemaker-training-toolkit \
+  && pip install .
+
 RUN pip install --no-cache-dir -U \
     smclarify \
     "sagemaker>=2,<3" \
     "sagemaker-experiments<1" \
     sagemaker-pytorch-training \
-    flash-attn==0.2.6.post1
+    flash-attn==0.2.8 \
+    triton==2.0.0.dev20221202
 
-# Install smdebug from souce
+# Install smdebug from source
 RUN cd /tmp \
-  && git clone https://github.com/awslabs/sagemaker-debugger --branch ${SMDEBUG_VERSION} --depth 1 --single-branch \ 
+  && git clone https://github.com/awslabs/sagemaker-debugger --depth 1 --single-branch --branch ${SMDEBUG_VERSION} \ 
   && cd sagemaker-debugger \
   && pip install . \
   && rm -rf /tmp/*
@@ -473,10 +482,10 @@ RUN  wget -nv https://github.com/rapidsai/rmm/archive/v${RMM_VERSION}.tar.gz \
 RUN pip install --no-cache-dir -U ${ZERO_2D_URL}
 
 # Install SM Distributed Modelparallel binary
-# RUN pip install --no-cache-dir -U ${SMD_MODEL_PARALLEL_URL}
+RUN pip install --no-cache-dir -U ${SMD_MODEL_PARALLEL_URL}
 
 # Install SM Distributed DataParallel binary
-# RUN SMDATAPARALLEL_PT=1 pip install --no-cache-dir ${SMD_DATA_PARALLEL_URL}
+RUN SMDATAPARALLEL_PT=1 pip install --no-cache-dir ${SMD_DATA_PARALLEL_URL}
 
 ENV LD_LIBRARY_PATH="/opt/conda/lib/python${PYTHON_SHORT_VERSION}/site-packages/smdistributed/dataparallel/lib:$LD_LIBRARY_PATH"
 

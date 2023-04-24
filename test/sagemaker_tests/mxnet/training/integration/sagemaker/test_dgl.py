@@ -22,8 +22,8 @@ from ..... import invoke_sm_helper_function
 from ...integration import RESOURCE_PATH
 from .timeout import timeout
 
-DGL_DATA_PATH = os.path.join(RESOURCE_PATH, 'dgl_gcn')
-DGL_SCRIPT_PATH = os.path.join(DGL_DATA_PATH, 'gcn.py')
+DGL_DATA_PATH = os.path.join(RESOURCE_PATH, "dgl_gcn")
+DGL_SCRIPT_PATH = os.path.join(DGL_DATA_PATH, "gcn.py")
 
 
 @pytest.mark.skip(reason="Skip until DGL with cuda 11.0 is available")
@@ -31,19 +31,22 @@ DGL_SCRIPT_PATH = os.path.join(DGL_DATA_PATH, 'gcn.py')
 @pytest.mark.model("gcn")
 @pytest.mark.skip_py2_containers
 def test_dgl_training(ecr_image, sagemaker_regions, instance_type, framework_version):
-    invoke_sm_helper_function(ecr_image, sagemaker_regions, _test_dgl_training,
-                              instance_type, framework_version)
+    invoke_sm_helper_function(
+        ecr_image, sagemaker_regions, _test_dgl_training, instance_type, framework_version
+    )
 
 
 def _test_dgl_training(ecr_image, sagemaker_session, instance_type, framework_version):
-    dgl = MXNet(entry_point=DGL_SCRIPT_PATH,
-                role='SageMakerRole',
-                instance_count=1,
-                instance_type=instance_type,
-                sagemaker_session=sagemaker_session,
-                image_uri=ecr_image,
-                framework_version=framework_version)
+    dgl = MXNet(
+        entry_point=DGL_SCRIPT_PATH,
+        role="SageMakerRole",
+        instance_count=1,
+        instance_type=instance_type,
+        sagemaker_session=sagemaker_session,
+        image_uri=ecr_image,
+        framework_version=framework_version,
+    )
 
     with timeout(minutes=15):
-        job_name = utils.unique_name_from_base('test-dgl-image')
+        job_name = utils.unique_name_from_base("test-dgl-image")
         dgl.fit(job_name=job_name)

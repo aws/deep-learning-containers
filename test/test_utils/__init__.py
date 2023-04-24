@@ -52,28 +52,22 @@ def get_ami_id_ssm(region_name, parameter_path):
     """
     For a given region and parameter path, return the latest ami-id
     """
-    ami = boto3.client("ssm", region_name=region_name).get_parameter(
-        Name=parameter_path
-    )
+    ami = boto3.client("ssm", region_name=region_name).get_parameter(Name=parameter_path)
     ami_id = eval(ami["Parameter"]["Value"])["image_id"]
     return ami_id
 
 
 UBUNTU_18_BASE_DLAMI_US_WEST_2 = get_ami_id_boto3(
-    region_name="us-west-2",
-    ami_name_pattern="Deep Learning Base AMI (Ubuntu 18.04) Version ??.?",
+    region_name="us-west-2", ami_name_pattern="Deep Learning Base AMI (Ubuntu 18.04) Version ??.?"
 )
 UBUNTU_18_BASE_DLAMI_US_EAST_1 = get_ami_id_boto3(
-    region_name="us-east-1",
-    ami_name_pattern="Deep Learning Base AMI (Ubuntu 18.04) Version ??.?",
+    region_name="us-east-1", ami_name_pattern="Deep Learning Base AMI (Ubuntu 18.04) Version ??.?"
 )
 AML2_BASE_DLAMI_US_WEST_2 = get_ami_id_boto3(
-    region_name="us-west-2",
-    ami_name_pattern="Deep Learning Base AMI (Amazon Linux 2) Version ??.?",
+    region_name="us-west-2", ami_name_pattern="Deep Learning Base AMI (Amazon Linux 2) Version ??.?"
 )
 AML2_BASE_DLAMI_US_EAST_1 = get_ami_id_boto3(
-    region_name="us-east-1",
-    ami_name_pattern="Deep Learning Base AMI (Amazon Linux 2) Version ??.?",
+    region_name="us-east-1", ami_name_pattern="Deep Learning Base AMI (Amazon Linux 2) Version ??.?"
 )
 # We use the following DLAMI for MXNet and TensorFlow tests as well, but this is ok since we use custom DLC Graviton containers on top. We just need an ARM base DLAMI.
 UL20_CPU_ARM64_US_WEST_2 = get_ami_id_boto3(
@@ -89,15 +83,13 @@ UL20_BENCHMARK_CPU_ARM64_US_WEST_2 = get_ami_id_boto3(
     ami_name_pattern="Deep Learning AMI Graviton GPU TensorFlow 2.7.0 (Ubuntu 20.04) ????????",
 )
 AML2_CPU_ARM64_US_EAST_1 = get_ami_id_boto3(
-    region_name="us-east-1",
-    ami_name_pattern="Deep Learning Base AMI (Amazon Linux 2) Version ??.?",
+    region_name="us-east-1", ami_name_pattern="Deep Learning Base AMI (Amazon Linux 2) Version ??.?"
 )
 PT_GPU_PY3_BENCHMARK_IMAGENET_AMI_US_EAST_1 = "ami-0673bb31cc62485dd"
 PT_GPU_PY3_BENCHMARK_IMAGENET_AMI_US_WEST_2 = "ami-02d9a47bc61a31d43"
 # Since latest driver is not in public DLAMI yet, using a custom one
 NEURON_UBUNTU_18_BASE_DLAMI_US_WEST_2 = get_ami_id_boto3(
-    region_name="us-west-2",
-    ami_name_pattern="Deep Learning Base AMI (Ubuntu 18.04) Version ??.?",
+    region_name="us-west-2", ami_name_pattern="Deep Learning Base AMI (Ubuntu 18.04) Version ??.?"
 )
 UL20_PT_NEURON_US_WEST_2 = get_ami_id_boto3(
     region_name="us-west-2",
@@ -161,8 +153,7 @@ ECS_AML2_GRAVITON_CPU_USWEST2 = get_ami_id_ssm(
     parameter_path="/aws/service/ecs/optimized-ami/amazon-linux-2/arm64/recommended",
 )
 NEURON_AL2_DLAMI = get_ami_id_boto3(
-    region_name="us-west-2",
-    ami_name_pattern="Deep Learning AMI (Amazon Linux 2) Version ??.?",
+    region_name="us-west-2", ami_name_pattern="Deep Learning AMI (Amazon Linux 2) Version ??.?"
 )
 HPU_AL2_DLAMI = get_ami_id_boto3(
     region_name="us-west-2",
@@ -306,13 +297,11 @@ def get_dockerfile_path_for_image(image_uri):
 
     dockerfiles_list = [
         path
-        for path in glob(
-            os.path.join(python_version_path, "**", dockerfile_name), recursive=True
-        )
+        for path in glob(os.path.join(python_version_path, "**", dockerfile_name), recursive=True)
         if "example" not in path
     ]
 
-    if device_type in ["gpu", "hpu", "neuron"]:
+    if device_type in ["gpu", "hpu", "neuron", "neuronx"]:
         if len(dockerfiles_list) > 1:
             if device_type == "gpu" and not cuda_version:
                 raise LookupError(
@@ -326,7 +315,7 @@ def get_dockerfile_path_for_image(image_uri):
                     f"uniquely identify the right dockerfile:\n"
                     f"{dockerfiles_list}"
                 )
-            if device_type == "neuron" and not neuron_sdk_version:
+            if "neuron" in device_type and not neuron_sdk_version:
                 raise LookupError(
                     f"dockerfiles_list has more than one result, and needs neuron_sdk_version to be in image_uri to "
                     f"uniquely identify the right dockerfile:\n"
@@ -409,9 +398,7 @@ def is_tf_version(required_version, image_uri):
     :param image_uri: str ECR Image URI for the image to be validated
     :return: bool True if image_uri has same framework version as required_version, else False
     """
-    image_framework_name, image_framework_version = get_framework_and_version_from_tag(
-        image_uri
-    )
+    image_framework_name, image_framework_version = get_framework_and_version_from_tag(image_uri)
     required_version_specifier_set = SpecifierSet(f"=={required_version}.*")
     return (
         is_tf_based_framework(image_framework_name)
@@ -436,9 +423,7 @@ def is_below_framework_version(version_upper_bound, image_uri, framework):
     :param image_uri: str ECR Image URI for the image to be validated
     :return: bool True if image_uri has framework version less than version_upper_bound, else False
     """
-    image_framework_name, image_framework_version = get_framework_and_version_from_tag(
-        image_uri
-    )
+    image_framework_name, image_framework_version = get_framework_and_version_from_tag(image_uri)
     required_version_specifier_set = SpecifierSet(f"<{version_upper_bound}")
     return (
         image_framework_name == framework
@@ -481,9 +466,7 @@ def is_image_incompatible_with_instance_type(image_uri, ec2_instance_type):
         and get_processor_from_image_uri(image_uri) == "gpu"
         and ec2_instance_type in ["p2.8xlarge"]
     )
-    incompatible_conditions.append(
-        image_is_pytorch_1_11_on_incompatible_p2_instance_pytorch
-    )
+    incompatible_conditions.append(image_is_pytorch_1_11_on_incompatible_p2_instance_pytorch)
 
     return any(incompatible_conditions)
 
@@ -567,10 +550,7 @@ def is_covered_by_ec2_sm_split(image_uri):
         "mxnet": SpecifierSet(">=1.9.0"),
     }
     framework, version = get_framework_and_version_from_tag(image_uri)
-    return (
-        framework in ec2_sm_split_images
-        and Version(version) in ec2_sm_split_images[framework]
-    )
+    return framework in ec2_sm_split_images and Version(version) in ec2_sm_split_images[framework]
 
 
 def is_ec2_sm_in_same_dockerfile(image_uri):
@@ -671,10 +651,7 @@ def is_test_disabled(test_name, build_name, version):
     remote_override_build = remote_override_flags.get(build_name, {})
     if version in remote_override_build:
         return not remote_override_build[version] or any(
-            [
-                test_keyword in test_name
-                for test_keyword in remote_override_build[version]
-            ]
+            [test_keyword in test_name for test_keyword in remote_override_build[version]]
         )
     return False
 
@@ -710,9 +687,7 @@ def retry_if_result_is_false(result):
     wait_fixed=10000,
     retry_on_result=retry_if_result_is_false,
 )
-def request_mxnet_inference(
-    ip_address="127.0.0.1", port="80", connection=None, model="squeezenet"
-):
+def request_mxnet_inference(ip_address="127.0.0.1", port="80", connection=None, model="squeezenet"):
     """
     Send request to container to test inference on kitten.jpg
     :param ip_address:
@@ -725,13 +700,10 @@ def request_mxnet_inference(
     # Check if image already exists
     run_out = conn_run("[ -f kitten.jpg ]", warn=True)
     if run_out.return_code != 0:
-        conn_run(
-            "curl -O https://s3.amazonaws.com/model-server/inputs/kitten.jpg", hide=True
-        )
+        conn_run("curl -O https://s3.amazonaws.com/model-server/inputs/kitten.jpg", hide=True)
 
     run_out = conn_run(
-        f"curl -X POST http://{ip_address}:{port}/predictions/{model} -T kitten.jpg",
-        warn=True,
+        f"curl -X POST http://{ip_address}:{port}/predictions/{model} -T kitten.jpg", warn=True
     )
 
     # The run_out.return_code is not reliable, since sometimes predict request may succeed but the returned result
@@ -747,9 +719,7 @@ def request_mxnet_inference(
     wait_fixed=10000,
     retry_on_result=retry_if_result_is_false,
 )
-def request_mxnet_inference_gluonnlp(
-    ip_address="127.0.0.1", port="80", connection=None
-):
+def request_mxnet_inference_gluonnlp(ip_address="127.0.0.1", port="80", connection=None):
     """
     Send request to container to test inference for predicting sentiments.
     :param ip_address:
@@ -798,9 +768,7 @@ def request_pytorch_inference_densenet(
     # Check if image already exists
     run_out = conn_run("[ -f flower.jpg ]", warn=True)
     if run_out.return_code != 0:
-        conn_run(
-            "curl -O https://s3.amazonaws.com/model-server/inputs/flower.jpg", hide=True
-        )
+        conn_run("curl -O https://s3.amazonaws.com/model-server/inputs/flower.jpg", hide=True)
 
     run_out = conn_run(
         f"curl -X POST http://{ip_address}:{port}/predictions/{model_name} -T flower.jpg",
@@ -838,11 +806,7 @@ def request_pytorch_inference_densenet(
     return True
 
 
-@retry(
-    stop_max_attempt_number=20,
-    wait_fixed=10000,
-    retry_on_result=retry_if_result_is_false,
-)
+@retry(stop_max_attempt_number=20, wait_fixed=15000, retry_on_result=retry_if_result_is_false)
 def request_tensorflow_inference(
     model_name,
     ip_address="127.0.0.1",
@@ -940,6 +904,7 @@ def get_inference_run_command(image_uri, model_names, processor="cpu"):
             "pytorch-densenet": "https://torchserve.s3.amazonaws.com/mar_files/densenet161.mar",
             "pytorch-resnet-neuron": "https://aws-dlc-sample-models.s3.amazonaws.com/pytorch/Resnet50-neuron.mar",
             "pytorch-densenet-inductor": "https://aws-dlc-sample-models.s3.amazonaws.com/pytorch/densenet161-inductor.mar",
+            "pytorch-resnet-neuronx": "https://aws-dlc-pt-sample-models.s3.amazonaws.com/resnet50/resnet_neuronx.mar",
         }
     else:
         multi_model_location = {
@@ -954,13 +919,9 @@ def get_inference_run_command(image_uri, model_names, processor="cpu"):
 
     for model_name in model_names:
         if model_name not in multi_model_location:
-            raise Exception(
-                "No entry found for model {} in dictionary".format(model_name)
-            )
+            raise Exception("No entry found for model {} in dictionary".format(model_name))
 
-    parameters = [
-        "{}={}".format(name, multi_model_location[name]) for name in model_names
-    ]
+    parameters = ["{}={}".format(name, multi_model_location[name]) for name in model_names]
 
     if server_type == "ts":
         server_cmd = "torchserve"
@@ -1007,7 +968,7 @@ def get_tensorflow_model_name(processor, model_name):
             "eia": "albert",
         },
         "saved_model_half_plus_three": {"eia": "saved_model_half_plus_three"},
-        "simple": {"neuron": "simple"},
+        "simple": {"neuron": "simple", "neuronx": "simple_x"},
     }
     if model_name in tensorflow_models:
         return tensorflow_models[model_name][processor]
@@ -1085,9 +1046,7 @@ def get_dlc_images():
     elif is_canary_context():
         # TODO: Remove 'training' default once training-specific canaries are added
         image_type = get_image_type() or "training"
-        return parse_canary_images(
-            os.getenv("FRAMEWORK"), os.getenv("AWS_REGION"), image_type
-        )
+        return parse_canary_images(os.getenv("FRAMEWORK"), os.getenv("AWS_REGION"), image_type)
     test_env_file = os.path.join(
         os.getenv("CODEBUILD_SRC_DIR_DLC_IMAGES_JSON"), "test_type_images.json"
     )
@@ -1190,11 +1149,7 @@ def parse_canary_images(framework, region, image_type):
             ## Trcomp tags like v1.0-trcomp-hf-4.21.1-pt-1.11.0-tr-gpu-py38 cause incorrect image URIs to be processed
             ## durign HF PT canary runs. The `if` condition below will prevent any trcomp images to be picked during canary runs of
             ## huggingface_pytorch and huggingface_tensorflow images.
-            if (
-                "trcomp" in tag_str
-                and "trcomp" not in canary_type
-                and "huggingface" in canary_type
-            ):
+            if "trcomp" in tag_str and "trcomp" not in canary_type and "huggingface" in canary_type:
                 continue
             version = match.group(2)
             if not versions_counter.get(version):
@@ -1213,9 +1168,7 @@ def parse_canary_images(framework, region, image_type):
                 if python_version_extracted_through_regex:
                     if version not in pre_populated_py_version:
                         pre_populated_py_version[version] = set()
-                    pre_populated_py_version[version].add(
-                        python_version_extracted_through_regex
-                    )
+                    pre_populated_py_version[version].add(python_version_extracted_through_regex)
             except IndexError:
                 LOGGER.debug(
                     f"For Framework: {framework} we do not use regex to fetch python version"
@@ -1234,8 +1187,7 @@ def parse_canary_images(framework, region, image_type):
 
     # Sort ascending to descending, use lambda to ensure 2.2 < 2.15, for instance
     versions.sort(
-        key=lambda version_str: [int(point) for point in version_str.split(".")],
-        reverse=True,
+        key=lambda version_str: [int(point) for point in version_str.split(".")], reverse=True
     )
 
     registry = PUBLIC_DLC_REGISTRY
@@ -1352,18 +1304,14 @@ def setup_sm_benchmark_tf_train_env(resources_location, setup_tf1_env, setup_tf2
 
     for resource_dir in tf_resource_dir_list:
         with ctx.cd(os.path.join(resources_location, resource_dir)):
-            if not os.path.isdir(
-                os.path.join(resources_location, resource_dir, "horovod")
-            ):
+            if not os.path.isdir(os.path.join(resources_location, resource_dir, "horovod")):
                 # v0.19.4 is the last version for which horovod example tests are py2 compatible
                 ctx.run("git clone -b v0.19.4 https://github.com/horovod/horovod.git")
             if not os.path.isdir(
                 os.path.join(resources_location, resource_dir, "deep-learning-models")
             ):
                 # We clone branch tf2 for both 1.x and 2.x tests because tf2 branch contains all necessary files
-                ctx.run(
-                    f"git clone -b tf2 https://github.com/aws-samples/deep-learning-models.git"
-                )
+                ctx.run(f"git clone -b tf2 https://github.com/aws-samples/deep-learning-models.git")
 
     venv_dir = os.path.join(resources_location, "sm_benchmark_venv")
     if not os.path.isdir(venv_dir):
@@ -1378,9 +1326,7 @@ def setup_sm_benchmark_tf_train_env(resources_location, setup_tf1_env, setup_tf2
             ).stdout.strip("\n")
             system = ctx.run("uname -s").stdout.strip("\n")
             sed_input_arg = "'' " if system == "Darwin" else ""
-            ctx.run(
-                f"sed -i {sed_input_arg}'s/\[2, 1, 0\]/\[2, 1, 1\]/g' {estimator_location}"
-            )
+            ctx.run(f"sed -i {sed_input_arg}'s/\[2, 1, 0\]/\[2, 1, 1\]/g' {estimator_location}")
     return venv_dir
 
 
@@ -1433,9 +1379,7 @@ def get_region_from_image_uri(image_uri):
     :param image_uri: <str> ECR image URI
     :return: <str> AWS Region Name
     """
-    region_pattern = (
-        r"(us(-gov)?|ap|ca|cn|eu|sa)-(central|(north|south)?(east|west)?)-\d+"
-    )
+    region_pattern = r"(us(-gov)?|ap|ca|cn|eu|sa)-(central|(north|south)?(east|west)?)-\d+"
     region_search = re.search(region_pattern, image_uri)
     assert region_search, f"{image_uri} must have region that matches {region_pattern}"
     return region_search.group()
@@ -1677,6 +1621,17 @@ NEURON_VERSION_MANIFEST = {
     },
 }
 
+NEURONX_VERSION_MANIFEST = {
+    "2.9.0": {
+        "pytorch": {
+            "1.13.0": "1.13.0.1.6.0",
+        },
+        "tensorflow": {
+            "2.10.1": "2.10.1.2.0.0",
+        },
+    }
+}
+
 
 def get_neuron_sdk_version_from_tag(image_uri):
     """
@@ -1699,24 +1654,24 @@ def get_neuron_framework_and_version_from_tag(image_uri):
     :param image_uri: ECR image URI
     :return: framework version, expected framework version from neuron sdk version
     """
-    tested_framework, tag_framework_version = get_framework_and_version_from_tag(
-        image_uri
-    )
+    tested_framework, tag_framework_version = get_framework_and_version_from_tag(image_uri)
     neuron_sdk_version = get_neuron_sdk_version_from_tag(image_uri)
 
     if neuron_sdk_version is None:
         return tag_framework_version, None
 
-    if neuron_sdk_version not in NEURON_VERSION_MANIFEST:
+    neuron_version_manifest = (
+        NEURONX_VERSION_MANIFEST if "neuronx" in image_uri else NEURON_VERSION_MANIFEST
+    )
+
+    if neuron_sdk_version not in neuron_version_manifest:
         raise KeyError(f"Cannot find neuron sdk version {neuron_sdk_version} ")
 
     # Framework name may include huggingface
     if tested_framework.startswith("huggingface_"):
         tested_framework = tested_framework[len("huggingface_") :]
 
-    neuron_framework_versions = NEURON_VERSION_MANIFEST[neuron_sdk_version][
-        tested_framework
-    ]
+    neuron_framework_versions = neuron_version_manifest[neuron_sdk_version][tested_framework]
     neuron_tag_framework_version = neuron_framework_versions.get(tag_framework_version)
 
     return tested_framework, neuron_tag_framework_version
@@ -1832,9 +1787,7 @@ def get_synapseai_version_from_tag(image_uri):
 
     synapseai_str = ["synapseai", "hpu"]
     if all(keyword in image_uri for keyword in synapseai_str):
-        synapseai_version = re.search(r"synapseai(\d+(\.\d+){2})", image_uri).groups()[
-            0
-        ]
+        synapseai_version = re.search(r"synapseai(\d+(\.\d+){2})", image_uri).groups()[0]
 
     return synapseai_version
 
@@ -1886,7 +1839,7 @@ def get_processor_from_image_uri(image_uri):
     :param image_uri: ECR image URI
     :return: cpu, gpu, eia, neuron or hpu
     """
-    allowed_processors = ["eia", "neuron", "cpu", "gpu", "hpu"]
+    allowed_processors = ["eia", "neuronx", "neuron", "cpu", "gpu", "hpu"]
 
     for processor in allowed_processors:
         match = re.search(rf"-({processor})", image_uri)
@@ -1911,9 +1864,7 @@ def get_python_version_from_image_uri(image_uri):
     return "py36" if python_version == "py3" else python_version
 
 
-def construct_buildspec_path(
-    dlc_path, framework_path, buildspec, framework_version, job_type=""
-):
+def construct_buildspec_path(dlc_path, framework_path, buildspec, framework_version, job_type=""):
     """
     Construct a relative path to the buildspec yaml file by iterative checking on the existence of
     a specific version file for the framework being tested. Possible options include:
@@ -1932,9 +1883,7 @@ def construct_buildspec_path(
             versions_to_search = []
             for match in matched.groups():
                 if match:
-                    constructed_version = (
-                        f'{constructed_version}{match.replace(".","-")}'
-                    )
+                    constructed_version = f'{constructed_version}{match.replace(".","-")}'
                     versions_to_search.append(constructed_version)
 
             for version in reversed(versions_to_search):
@@ -1947,9 +1896,7 @@ def construct_buildspec_path(
             raise ValueError(f"Framework version {framework_version} was not matched.")
 
     # Only support buildspecs under "training/inference" - do not allow framework-level buildspecs anymore
-    buildspec_path = os.path.join(
-        dlc_path, framework_path, job_type, f"{buildspec}.yml"
-    )
+    buildspec_path = os.path.join(dlc_path, framework_path, job_type, f"{buildspec}.yml")
     if not os.path.exists(buildspec_path):
         raise ValueError("Could not construct a valid buildspec path.")
 
@@ -2022,21 +1969,16 @@ def uniquify_list_of_dict(list_of_dict):
     :param list_of_dict: List(dict)
     :return: List(dict)
     """
-    list_of_string = [
-        json.dumps(dict_element, sort_keys=True) for dict_element in list_of_dict
-    ]
+    list_of_string = [json.dumps(dict_element, sort_keys=True) for dict_element in list_of_dict]
     unique_list_of_string = list(set(list_of_string))
     unique_list_of_string.sort()
-    list_of_dict_to_return = [
-        json.loads(str_element) for str_element in unique_list_of_string
-    ]
+    list_of_dict_to_return = [json.loads(str_element) for str_element in unique_list_of_string]
     return list_of_dict_to_return
 
 
 def uniquify_list_of_complex_datatypes(list_of_complex_datatypes):
     assert all(
-        type(element) == type(list_of_complex_datatypes[0])
-        for element in list_of_complex_datatypes
+        type(element) == type(list_of_complex_datatypes[0]) for element in list_of_complex_datatypes
     ), f"{list_of_complex_datatypes} has multiple types"
     if list_of_complex_datatypes:
         if isinstance(list_of_complex_datatypes[0], dict):

@@ -47,7 +47,9 @@ def test_hub_model_gpu(sagemaker_session, framework_version, ecr_image, instance
         raise
 
 
-def _test_hub_model(sagemaker_session, framework_version, ecr_image, instance_type, model_dir, accelerator_type=None):
+def _test_hub_model(
+    sagemaker_session, framework_version, ecr_image, instance_type, model_dir, accelerator_type=None
+):
     endpoint_name = sagemaker.utils.unique_name_from_base("sagemaker-huggingface-serving-hub-model")
 
     env = {

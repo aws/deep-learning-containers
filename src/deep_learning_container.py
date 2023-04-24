@@ -24,7 +24,8 @@ import requests
 
 TIMEOUT_SECS = 5
 
-def requests_helper(url, headers = None, timeout = 0.1):
+
+def requests_helper(url, headers=None, timeout=0.1):
     """
     Requests to get instance metadata using imdsv1 and imdsv2
     :param url: str, url to get the request
@@ -43,7 +44,8 @@ def requests_helper(url, headers = None, timeout = 0.1):
 
     return response
 
-def requests_helper_imds(url, token = None):
+
+def requests_helper_imds(url, token=None):
     """
     Requests to get instance metadata using imdsv1 and imdsv2
     :param url: str, url to get the request
@@ -53,7 +55,7 @@ def requests_helper_imds(url, token = None):
     response = None
     headers = None
     if token:
-        headers={"X-aws-ec2-metadata-token": token}
+        headers = {"X-aws-ec2-metadata-token": token}
     timeout = 1
     try:
         while timeout <= 3:
@@ -98,6 +100,7 @@ def get_imdsv2_token():
 
     return token
 
+
 def _validate_instance_id(instance_id):
     """
     Validate instance ID
@@ -112,14 +115,14 @@ def _validate_instance_id(instance_id):
     return match.group(1)
 
 
-def _retrieve_instance_id(token = None):
+def _retrieve_instance_id(token=None):
     """
     Retrieve instance ID from instance metadata service
     """
     instance_id = None
     instance_url = "http://169.254.169.254/latest/meta-data/instance-id"
-    
-    if token: 
+
+    if token:
         instance_id = requests_helper_imds(instance_url, token)
     else:
         instance_id = requests_helper_imds(instance_url)
@@ -129,7 +132,8 @@ def _retrieve_instance_id(token = None):
 
     return instance_id
 
-def _retrieve_instance_region(token = None):
+
+def _retrieve_instance_region(token=None):
     """
     Retrieve instance region from instance metadata service
     """
@@ -160,7 +164,7 @@ def _retrieve_instance_region(token = None):
         response_text = requests_helper_imds(region_url, token)
     else:
         response_text = requests_helper_imds(region_url)
-    
+
     if response_text:
         response_json = json.loads(response_text)
 
@@ -212,9 +216,14 @@ def parse_args():
     """
     parser = argparse.ArgumentParser()
     parser.add_argument(
-        "--framework", choices=["tensorflow", "mxnet", "pytorch"], help="framework of container image.", required=True
+        "--framework",
+        choices=["tensorflow", "mxnet", "pytorch"],
+        help="framework of container image.",
+        required=True,
     )
-    parser.add_argument("--framework-version", help="framework version of container image.", required=True)
+    parser.add_argument(
+        "--framework-version", help="framework version of container image.", required=True
+    )
     parser.add_argument(
         "--container-type",
         choices=["training", "inference"],
@@ -246,7 +255,11 @@ def query_bucket(instance_id, region):
     """
     response = None
     args = parse_args()
-    framework, framework_version, container_type = args.framework, args.framework_version, args.container_type
+    framework, framework_version, container_type = (
+        args.framework,
+        args.framework_version,
+        args.container_type,
+    )
     py_version = sys.version.split(" ")[0]
 
     if instance_id is not None and region is not None:
@@ -271,7 +284,11 @@ def tag_instance(instance_id, region):
     Apply instance tag on the instance that is running the container using botocore
     """
     args = parse_args()
-    framework, framework_version, container_type = args.framework, args.framework_version, args.container_type
+    framework, framework_version, container_type = (
+        args.framework,
+        args.framework_version,
+        args.container_type,
+    )
     py_version = sys.version.split(" ")[0]
     device = _retrieve_device()
     cuda_version = f"_cuda{_retrieve_cuda()}" if device == "gpu" else ""

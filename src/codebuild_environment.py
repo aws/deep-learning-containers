@@ -63,6 +63,8 @@ def get_cloned_folder_path():
         if not codebuild_src_dir_env:
             codebuild_src_dir_env = root_dir_pattern.match(pwd).group(1)
     except AttributeError as e:
-        raise RuntimeError(f"Unable to find DLC root directory in path {pwd}, and no CODEBUILD_SRC_DIR set") from e
+        raise RuntimeError(
+            f"Unable to find DLC root directory in path {pwd}, and no CODEBUILD_SRC_DIR set"
+        ) from e
 
     return codebuild_src_dir_env

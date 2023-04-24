@@ -100,9 +100,7 @@ class OutputFormatter:
                 for image, thread in futures.items():
                     output[i] = image
                     if thread.done():
-                        output[i] += (
-                            "." * 10 + constants.STATUS_MESSAGE[futures[image].result()]
-                        )
+                        output[i] += "." * 10 + constants.STATUS_MESSAGE[futures[image].result()]
                         done[image] = True
                     else:
                         output[i] += "." * (num_iterations % 10)
@@ -120,7 +118,7 @@ class OutputFormatter:
         Print a table from dictionary
         rows = iter of tuples
         """
-        for (key, value) in rows:
+        for key, value in rows:
             # TODO: left and right align key and value
             line = f"{key}:{value}".ljust(self.max_line_length)
             print(f"{line}")

@@ -39,7 +39,6 @@ HEAVY_INSTANCE_LIST = ["p3dn.24xlarge", "p4d.24xlarge"]
 
 LOGGER = logging.getLogger(__name__)
 LOGGER.addHandler(logging.StreamHandler(sys.stdout))
-LOGGER.setLevel(logging.INFO)
 
 
 def filter_only_multi_gpu(instance_type_list):
@@ -70,12 +69,7 @@ def filter_not_heavy_instance_types(instance_type_list):
 
 
 def get_ec2_instance_type(
-    default,
-    processor,
-    filter_function=lambda x: x,
-    efa=False,
-    arch_type="",
-    job_type="",
+    default, processor, filter_function=lambda x: x, efa=False, arch_type="", job_type=""
 ):
     """
     Get EC2 instance type from associated EC2_[CPU|GPU]_INSTANCE_TYPE env variable, or set it to a default
@@ -90,7 +84,7 @@ def get_ec2_instance_type(
     :return: one item list of instance type -- this is used to parametrize tests, and parameter is required to be
     a list.
     """
-    allowed_processors = ("cpu", "gpu", "neuron", "hpu")
+    allowed_processors = ("cpu", "gpu", "neuronx", "neuron", "hpu")
     job_type_str = f"_{job_type.upper()}" if job_type else ""
     if processor not in allowed_processors:
         raise RuntimeError(
@@ -225,9 +219,7 @@ def launch_instance(
 
 
 def get_ec2_client(region):
-    return boto3.client(
-        "ec2", region_name=region, config=Config(retries={"max_attempts": 10})
-    )
+    return boto3.client("ec2", region_name=region, config=Config(retries={"max_attempts": 10}))
 
 
 def get_instance_from_id(instance_id, region=DEFAULT_REGION):
@@ -458,9 +450,7 @@ def get_instance_memory(instance_id, region=DEFAULT_REGION):
 
 
 @retry(stop=stop_after_attempt(30), wait=wait_fixed(10))
-def get_instance_num_inferentias(
-    instance_id=None, instance_type=None, region=DEFAULT_REGION
-):
+def get_instance_num_inferentias(instance_id=None, instance_type=None, region=DEFAULT_REGION):
     """
     Get total number of neurons on instance with given instance ID
     :param instance_id: Instance ID to be queried
@@ -468,9 +458,7 @@ def get_instance_num_inferentias(
     :param region: Region where query will be performed
     :return: <int> Number of neurons on instance with matching instance ID
     """
-    assert (
-        instance_id or instance_type
-    ), "Input must be either instance_id or instance_type"
+    assert instance_id or instance_type, "Input must be either instance_id or instance_type"
     instance_info = (
         get_instance_type_details(instance_type, region=region)
         if instance_type
@@ -492,9 +480,7 @@ def get_instance_num_gpus(instance_id=None, instance_type=None, region=DEFAULT_R
     :param region: Region where query will be performed
     :return: <int> Number of GPUs on instance with matching instance ID
     """
-    assert (
-        instance_id or instance_type
-    ), "Input must be either instance_id or instance_type"
+    assert instance_id or instance_type, "Input must be either instance_id or instance_type"
     instance_info = (
         get_instance_type_details(instance_type, region=region)
         if instance_type
@@ -523,9 +509,7 @@ def get_ec2_fabric_connection(instance_id, instance_pem_file, region):
 
 def get_ec2_instance_tags(instance_id, region=DEFAULT_REGION, ec2_client=None):
     ec2_client = ec2_client or get_ec2_client(region)
-    response = ec2_client.describe_tags(
-        Filters=[{"Name": "resource-id", "Values": [instance_id]}]
-    )
+    response = ec2_client.describe_tags(Filters=[{"Name": "resource-id", "Values": [instance_id]}])
     return {tag["Key"]: tag["Value"] for tag in response.get("Tags")}
 
 
@@ -636,9 +620,7 @@ def execute_asynchronus_testing_using_s3_bucket(
     :param s3_uri_for_saving_permanent_logs: Location where permanent s3 logs could be saved.
     :param hang_detection_window: int, This method detects a hang if length of log file does not change for hang_detection_window number of iterations.
     """
-    account_id = os.getenv(
-        "ACCOUNT_ID", boto3.client("sts").get_caller_identity()["Account"]
-    )
+    account_id = os.getenv("ACCOUNT_ID", boto3.client("sts").get_caller_identity()["Account"])
     s3_bucket_name = f"dlc-async-test-{account_id}"
     if not s3_uri_for_saving_permanent_logs:
         unique_id = str(uuid.uuid4())
@@ -646,9 +628,7 @@ def execute_asynchronus_testing_using_s3_bucket(
         s3_location = f"s3://{s3_bucket_name}/{unique_id_with_timestamp}.txt"
     else:
         s3_location = s3_uri_for_saving_permanent_logs
-    connection.run(
-        execution_command, hide=True, timeout=connection_timeout, asynchronous=True
-    )
+    connection.run(execution_command, hide=True, timeout=connection_timeout, asynchronous=True)
     start_time = int(time.time())
     loop_count = 0
     local_filename = s3_location.replace(":", "-").replace("/", "-")
@@ -660,8 +640,7 @@ def execute_asynchronus_testing_using_s3_bucket(
         time.sleep(5 * 60)
         loop_count += 1
         connection.run(
-            f"aws s3 cp {log_location_within_ec2} {s3_location}",
-            timeout=connection_timeout,
+            f"aws s3 cp {log_location_within_ec2} {s3_location}", timeout=connection_timeout
         )
         last_line_of_log = fetch_s3_file_and_get_last_line(s3_location, local_filename)
         number_of_lines_in_log_file = int(
@@ -672,9 +651,7 @@ def execute_asynchronus_testing_using_s3_bucket(
         if len(line_count_list) >= number_of_previous_line_counts_to_check:
             if all(
                 line_count == line_count_list[-1]
-                for line_count in line_count_list[
-                    -number_of_previous_line_counts_to_check:
-                ]
+                for line_count in line_count_list[-number_of_previous_line_counts_to_check:]
             ):
                 # If last 3 runs lead to same line number then it demonstrates no progress and hence we stop.
                 LOGGER.info(
@@ -703,9 +680,7 @@ def get_s3_uri_for_saving_permanent_logs(
     :param test_type: str, type of the test
     :param custom_filename: str, custom name of the file that will be prepended with unique id to create the s3 filepath
     """
-    commit_id = os.getenv(
-        "CODEBUILD_RESOLVED_SOURCE_VERSION", f"default-{int(time.time())}"
-    )
+    commit_id = os.getenv("CODEBUILD_RESOLVED_SOURCE_VERSION", f"default-{int(time.time())}")
     unique_id = str(uuid.uuid4())
     unique_id_with_timestamp = f"{unique_id}-{int(time.time())}"
     if custom_filename:
@@ -740,19 +715,13 @@ def execute_ec2_training_test(
     container_test_local_dir = os.path.join("$HOME", "container_tests")
     synapseai_version = get_synapseai_version_from_tag(ecr_uri)
     # Make sure we are logged into ECR so we can pull the image
-    connection.run(
-        f"$(aws ecr get-login --no-include-email --region {region})", hide=True
-    )
+    connection.run(f"$(aws ecr get-login --no-include-email --region {region})", hide=True)
 
     # Run training command
     shm_setting = '--shm-size="1g"' if large_shm else ""
     network = '--network="host" ' if host_network else ""
-    container_runtime = (
-        "--runtime=habana -e HABANA_VISIBLE_DEVICES=all" if "hpu" in ecr_uri else ""
-    )
-    ompi_mca_btl = (
-        "-e OMPI_MCA_btl_vader_single_copy_mechanism=none" if "hpu" in ecr_uri else ""
-    )
+    container_runtime = "--runtime=habana -e HABANA_VISIBLE_DEVICES=all" if "hpu" in ecr_uri else ""
+    ompi_mca_btl = "-e OMPI_MCA_btl_vader_single_copy_mechanism=none" if "hpu" in ecr_uri else ""
     cap_add = "--cap-add=sys_nice" if "hpu" in ecr_uri else ""
     ipc = "--ipc=host" if "hpu" in ecr_uri and "pytorch" in ecr_uri else ""
     hpu_env_vars = f"-e GIT_BRANCH={synapseai_version}" if "hpu" in ecr_uri else ""
@@ -762,9 +731,8 @@ def execute_ec2_training_test(
     neuron_device = "--device=/dev/neuron0" if "neuron" in ecr_uri else ""
     bin_bash_cmd = "--entrypoint /bin/bash " if bin_bash_entrypoint else ""
 
-    LOGGER.info(f"execute_ec2_training_test pulling {ecr_uri}")
+    LOGGER.info(f"execute_ec2_training_test pulling {ecr_uri}, with cmd {test_cmd}")
     connection.run(f"docker pull {ecr_uri}", hide="out")
-    LOGGER.info(f"execute_ec2_training_test running {ecr_uri}")
     connection.run(
         f"{docker_cmd} run --name {container_name} "
         f"{container_runtime} {ompi_mca_btl} {cap_add} {hpu_env_vars} "
@@ -774,14 +742,12 @@ def execute_ec2_training_test(
     )
 
     if "habana" in ecr_uri:
-        execution_command = f"{docker_cmd} exec --user root {container_name} {executable} -c '{test_cmd}'"
+        execution_command = (
+            f"{docker_cmd} exec --user root {container_name} {executable} -c '{test_cmd}'"
+        )
         required_log_ending = "Kudos!! Habana tests executed successfully"
         framework = (
-            "tensorflow"
-            if "tensorflow" in ecr_uri
-            else "pytorch"
-            if "pytorch" in ecr_uri
-            else None
+            "tensorflow" if "tensorflow" in ecr_uri else "pytorch" if "pytorch" in ecr_uri else None
         )
         test_type = "ec2"
         account_id_prefix = os.getenv(
@@ -805,9 +771,7 @@ def execute_ec2_training_test(
         else:
             run_output = connection.run(execution_command, hide=True, timeout=timeout)
             try:
-                connection.run(
-                    f"aws s3 cp ~/container_tests/logs.txt {s3_uri_permanent_logs}"
-                )
+                connection.run(f"aws s3 cp ~/container_tests/logs.txt {s3_uri_permanent_logs}")
                 LOGGER.info(f"Uploaded logs at: {s3_uri_permanent_logs}")
             except:
                 LOGGER.info(f"Could not upload the logs")
@@ -819,11 +783,14 @@ def execute_ec2_training_test(
     if "neuron" in ecr_uri:
         connection.run(f"sudo modprobe -r neuron  && sudo modprobe -i neuron")
 
-    return connection.run(
+    LOGGER.info(f"execute_ec2_training_test running {ecr_uri}, with cmd {test_cmd}")
+    ec2_res = connection.run(
         f"{docker_cmd} exec --user root {container_name} {executable} -c '{test_cmd}'",
         hide=True,
         timeout=timeout,
     )
+    LOGGER.info(f"execute_ec2_training_test completed {ecr_uri}, with cmd {test_cmd}")
+    return ec2_res
 
 
 def execute_ec2_inference_test(connection, ecr_uri, test_cmd, region=DEFAULT_REGION):
@@ -831,9 +798,7 @@ def execute_ec2_inference_test(connection, ecr_uri, test_cmd, region=DEFAULT_REG
     container_test_local_dir = os.path.join("$HOME", "container_tests")
 
     # Make sure we are logged into ECR so we can pull the image
-    connection.run(
-        f"$(aws ecr get-login --no-include-email --region {region})", hide=True
-    )
+    connection.run(f"$(aws ecr get-login --no-include-email --region {region})", hide=True)
 
     # Run training command
     connection.run(
@@ -861,13 +826,13 @@ def execute_ec2_training_performance_test(
     container_test_local_dir = os.path.join("$HOME", "container_tests")
 
     timestamp = time.strftime("%Y-%m-%d-%H-%M-%S")
-    log_name = f"{data_source}_results_{os.getenv('CODEBUILD_RESOLVED_SOURCE_VERSION')}_{timestamp}.txt"
+    log_name = (
+        f"{data_source}_results_{os.getenv('CODEBUILD_RESOLVED_SOURCE_VERSION')}_{timestamp}.txt"
+    )
     log_location = os.path.join(container_test_local_dir, "benchmark", "logs", log_name)
 
     # Make sure we are logged into ECR so we can pull the image
-    connection.run(
-        f"$(aws ecr get-login --no-include-email --region {region})", hide=True
-    )
+    connection.run(f"$(aws ecr get-login --no-include-email --region {region})", hide=True)
 
     connection.run(f"{docker_cmd} pull -q {ecr_uri}")
 
@@ -903,12 +868,12 @@ def execute_ec2_habana_training_performance_test(
     container_test_local_dir = os.path.join("$HOME", "container_tests")
 
     timestamp = time.strftime("%Y-%m-%d-%H-%M-%S")
-    log_name = f"{data_source}_results_{os.getenv('CODEBUILD_RESOLVED_SOURCE_VERSION')}_{timestamp}.txt"
+    log_name = (
+        f"{data_source}_results_{os.getenv('CODEBUILD_RESOLVED_SOURCE_VERSION')}_{timestamp}.txt"
+    )
     synapseai_version = get_synapseai_version_from_tag(ecr_uri)
     # Make sure we are logged into ECR so we can pull the image
-    connection.run(
-        f"$(aws ecr get-login --no-include-email --region {region})", hide=True
-    )
+    connection.run(f"$(aws ecr get-login --no-include-email --region {region})", hide=True)
 
     connection.run(f"{docker_cmd} pull -q {ecr_uri}")
 
@@ -928,11 +893,7 @@ def execute_ec2_habana_training_performance_test(
     )
 
     framework = (
-        "tensorflow"
-        if "tensorflow" in ecr_uri
-        else "pytorch"
-        if "pytorch" in ecr_uri
-        else None
+        "tensorflow" if "tensorflow" in ecr_uri else "pytorch" if "pytorch" in ecr_uri else None
     )
     account_id_prefix = os.getenv(
         "ACCOUNT_ID", boto3.client("sts").get_caller_identity()["Account"]
@@ -973,11 +934,11 @@ def execute_ec2_inference_performance_test(
     docker_cmd = "nvidia-docker" if "gpu" in ecr_uri else "docker"
     container_test_local_dir = os.path.join("$HOME", "container_tests")
     timestamp = time.strftime("%Y-%m-%d-%H-%M-%S")
-    log_name = f"{data_source}_results_{os.getenv('CODEBUILD_RESOLVED_SOURCE_VERSION')}_{timestamp}.txt"
-    # Make sure we are logged into ECR so we can pull the image
-    connection.run(
-        f"$(aws ecr get-login --no-include-email --region {region})", hide=True
+    log_name = (
+        f"{data_source}_results_{os.getenv('CODEBUILD_RESOLVED_SOURCE_VERSION')}_{timestamp}.txt"
     )
+    # Make sure we are logged into ECR so we can pull the image
+    connection.run(f"$(aws ecr get-login --no-include-email --region {region})", hide=True)
     connection.run(f"{docker_cmd} pull -q {ecr_uri}")
 
     # Run training command, display benchmark results to console
@@ -1013,11 +974,7 @@ def ec2_performance_upload_result_to_s3_and_validate(
     connection, ecr_uri, log_location, data_source, threshold, post_process, log_name
 ):
     framework = (
-        "tensorflow"
-        if "tensorflow" in ecr_uri
-        else "mxnet"
-        if "mxnet" in ecr_uri
-        else "pytorch"
+        "tensorflow" if "tensorflow" in ecr_uri else "mxnet" if "mxnet" in ecr_uri else "pytorch"
     )
     framework_version = re.search(r"\d+(\.\d+){2}", ecr_uri).group()
     py_version = "py2" if "py2" in ecr_uri else "py37" if "py37" in ecr_uri else "py3"
@@ -1043,9 +1000,7 @@ def ec2_performance_upload_result_to_s3_and_validate(
         else "ms"
         if work_type == "inference" and framework == "pytorch"
         else "s/epoch"
-        if work_type == "training"
-        and framework == "pytorch"
-        and data_source == "imagenet"
+        if work_type == "training" and framework == "pytorch" and data_source == "imagenet"
         else "images/sec"
     )
     description = "p99 latency " if unit == "s" or unit == "ms" else ""
@@ -1120,9 +1075,9 @@ def post_process_mxnet_ec2_performance(connection, log_location):
     n = 0
     for line in log_content:
         if "samples/sec" in line and "warmup" not in line:
-            throughput = re.search(
-                r"((?P<throughput>[0-9]+\.?[0-9]+)[ ]+samples/sec)", line
-            ).group("throughput")
+            throughput = re.search(r"((?P<throughput>[0-9]+\.?[0-9]+)[ ]+samples/sec)", line).group(
+                "throughput"
+            )
             total += float(throughput)
             n += 1
     if total and n:
@@ -1184,8 +1139,7 @@ def install_python_in_instance(context, python_version="3.9"):
     """
     if context.run("pyenv --version", warn=True, hide=True).failed:
         context.run(
-            """ls ~/.pyenv || git clone https://github.com/pyenv/pyenv.git ~/.pyenv""",
-            hide=True,
+            """ls ~/.pyenv || git clone https://github.com/pyenv/pyenv.git ~/.pyenv""", hide=True
         )
 
         # for images that do not have /etc/profile.d/dlami.sh, we will make it here
@@ -1201,16 +1155,13 @@ def install_python_in_instance(context, python_version="3.9"):
 
         context.run("sudo chmod 666 /etc/profile.d/dlami.sh", hide=True)
         context.run(
-            """echo 'export PYENV_ROOT="$HOME/.pyenv"' >> /etc/profile.d/dlami.sh""",
-            hide=True,
+            """echo 'export PYENV_ROOT="$HOME/.pyenv"' >> /etc/profile.d/dlami.sh""", hide=True
         )
         context.run(
             """echo 'command -v pyenv >/dev/null || export PATH="$PYENV_ROOT/bin:$PATH"' >> /etc/profile.d/dlami.sh""",
             hide=True,
         )
-        context.run(
-            """echo 'eval "$(pyenv init -)"' >> /etc/profile.d/dlami.sh""", hide=True
-        )
+        context.run("""echo 'eval "$(pyenv init -)"' >> /etc/profile.d/dlami.sh""", hide=True)
         context.run("sudo chmod 644 /etc/profile.d/dlami.sh", hide=True)
 
     kill_background_processes_and_run_apt_get_update(context)
@@ -1229,9 +1180,7 @@ def install_python_in_instance(context, python_version="3.9"):
 
     # Validate that installed python version is the same as requested python version
     python_version_response = context.run("python --version", hide=True)
-    python_version_match = re.search(
-        r"Python (\d+(\.\d+)+)", python_version_response.stdout
-    )
+    python_version_match = re.search(r"Python (\d+(\.\d+)+)", python_version_response.stdout)
     assert python_version_match, "Running 'python --version' returned None"
     installed_python_version = python_version_match.group(1)
     # Use SpecifierSet("=={python_version}.*") to accommodate python_version of the form X.Y as well as X.Y.Z
@@ -1268,9 +1217,7 @@ def put_metric_data(metric_name, namespace, unit, value, dimensions):
             ],
         )
     except ClientError as e:
-        LOGGER.error(
-            "Error: Cannot put data to cloudwatch metric: {}".format(metric_name)
-        )
+        LOGGER.error("Error: Cannot put data to cloudwatch metric: {}".format(metric_name))
         LOGGER.error("Exception: {}".format(e))
         raise e
 

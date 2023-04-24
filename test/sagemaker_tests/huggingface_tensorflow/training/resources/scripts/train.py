@@ -78,13 +78,12 @@ def get_datasets():
 
 
 if __name__ == "__main__":
-
     parser = argparse.ArgumentParser()
 
     # Hyperparameters sent by the client are passed as command-line arguments to the script.
     parser.add_argument("--epochs", type=int, default=1)
-    parser.add_argument("--train-batch-size", type=int, default=16)
-    parser.add_argument("--eval-batch-size", type=int, default=8)
+    parser.add_argument("--train_batch_size", type=int, default=16)
+    parser.add_argument("--eval_batch_size", type=int, default=8)
     parser.add_argument("--model_name", type=str)
     parser.add_argument("--learning_rate", type=str, default=5e-5)
     parser.add_argument("--do_train", type=bool, default=True)
@@ -107,6 +106,8 @@ if __name__ == "__main__":
         format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
     )
 
+    learning_rate = args.learning_rate
+
     if SDP_ENABLED:
         sdp.init()
 
@@ -116,6 +117,8 @@ if __name__ == "__main__":
         if gpus:
             tf.config.experimental.set_visible_devices(gpus[sdp.local_rank()], "GPU")
 
+        learning_rate = learning_rate * sdp.size()
+
     # Load model and tokenizer
     model = TFAutoModelForSequenceClassification.from_pretrained(args.model_name)
     tokenizer = AutoTokenizer.from_pretrained(args.model_name)
@@ -124,17 +127,22 @@ if __name__ == "__main__":
     tf_train_dataset, tf_test_dataset = get_datasets()
 
     # fine optimizer and loss
-    optimizer = tf.keras.optimizers.Adam(learning_rate=args.learning_rate)
+    optimizer = tf.keras.optimizers.Adam(learning_rate=learning_rate)
     loss = tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True)
     metrics = [tf.keras.metrics.SparseCategoricalAccuracy()]
     model.compile(optimizer=optimizer, loss=loss, metrics=metrics)
 
     # Training
     if args.do_train:
-
         # train_results = model.fit(tf_train_dataset, epochs=args.epochs, batch_size=args.train_batch_size)
         train_results = fit(
-            model, loss, optimizer, tf_train_dataset, args.epochs, args.train_batch_size, max_steps=None
+            model,
+            loss,
+            optimizer,
+            tf_train_dataset,
+            args.epochs,
+            args.train_batch_size,
+            max_steps=args.max_steps,
         )
         logger.info("*** Train ***")
 
@@ -150,7 +158,6 @@ if __name__ == "__main__":
 
     # Evaluation
     if args.do_eval and (not SDP_ENABLED or sdp.rank() == 0):
-
         result = model.evaluate(tf_test_dataset, batch_size=args.eval_batch_size, return_dict=True)
         logger.info("*** Evaluate ***")
 

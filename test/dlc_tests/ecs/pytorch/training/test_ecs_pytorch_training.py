@@ -2,7 +2,12 @@ import os
 
 import pytest
 
-from test.test_utils import ECS_AML2_CPU_USWEST2, ECS_AML2_GPU_USWEST2, ECS_AML2_NEURON_USWEST2, CONTAINER_TESTS_PREFIX
+from test.test_utils import (
+    ECS_AML2_CPU_USWEST2,
+    ECS_AML2_GPU_USWEST2,
+    ECS_AML2_NEURON_USWEST2,
+    CONTAINER_TESTS_PREFIX,
+)
 from test.test_utils import ecs as ecs_utils
 from test.test_utils import ec2 as ec2_utils
 
@@ -13,9 +18,11 @@ from packaging.specifiers import SpecifierSet
 PT_MNIST_TRAINING_SCRIPT = os.path.join(CONTAINER_TESTS_PREFIX, "pytorch_tests", "testPyTorch")
 PT_DGL_TRAINING_SCRIPT = os.path.join(CONTAINER_TESTS_PREFIX, "dgl_tests", "testPyTorchDGL")
 PT_S3_PLUGIN_CMD = os.path.join(CONTAINER_TESTS_PREFIX, "pytorch_tests", "testPyTorchS3Plugin")
-# For neuron the training script is called using torchrun. Since the trainind cmd is built based on 
+# For neuron the training script is called using torchrun. Since the trainind cmd is built based on
 # the training script, adding torchrun here.
-PT_MLP_NEURON_TRAINING_SCRIPT = f'torchrun --nproc_per_node=2 --nnodes=1 ' + os.path.join(CONTAINER_TESTS_PREFIX, "pytorch_tests", "testNeuronMlp")
+PT_MLP_NEURON_TRAINING_SCRIPT = f"torchrun --nproc_per_node=2 --nnodes=1 " + os.path.join(
+    CONTAINER_TESTS_PREFIX, "pytorch_tests", "testNeuronMlp"
+)
 
 
 @pytest.mark.model("mnist")
@@ -35,7 +42,10 @@ def test_ecs_pytorch_training_mnist_cpu(
     """
     instance_id, cluster_arn = ecs_container_instance
 
-    ecs_utils.ecs_training_test_executor(ecs_cluster_name, cluster_arn, training_cmd, pytorch_training, instance_id)
+    ecs_utils.ecs_training_test_executor(
+        ecs_cluster_name, cluster_arn, training_cmd, pytorch_training, instance_id
+    )
+
 
 @pytest.mark.model("mlp")
 @pytest.mark.parametrize("training_script", [PT_MLP_NEURON_TRAINING_SCRIPT], indirect=True)
@@ -55,8 +65,14 @@ def test_ecs_pytorch_training_mnist_neuron(
     instance_id, cluster_arn = ecs_container_instance
 
     ecs_utils.ecs_training_test_executor(
-        ecs_cluster_name, cluster_arn, training_cmd, pytorch_training_neuron, instance_id, num_neurons=ecs_num_neurons
+        ecs_cluster_name,
+        cluster_arn,
+        training_cmd,
+        pytorch_training_neuron,
+        instance_id,
+        num_neurons=ecs_num_neurons,
     )
+
 
 @pytest.mark.model("mnist")
 @pytest.mark.parametrize("training_script", [PT_MNIST_TRAINING_SCRIPT], indirect=True)
@@ -64,7 +80,12 @@ def test_ecs_pytorch_training_mnist_neuron(
 @pytest.mark.parametrize("ecs_ami", [ECS_AML2_GPU_USWEST2], indirect=True)
 @pytest.mark.parametrize("use_large_storage", [True], indirect=True)
 def test_ecs_pytorch_training_mnist_gpu(
-    gpu_only, use_large_storage, ecs_container_instance, pytorch_training, training_cmd, ecs_cluster_name
+    gpu_only,
+    use_large_storage,
+    ecs_container_instance,
+    pytorch_training,
+    training_cmd,
+    ecs_cluster_name,
 ):
     """
     GPU mnist test for PyTorch Training
@@ -79,7 +100,12 @@ def test_ecs_pytorch_training_mnist_gpu(
     num_gpus = ec2_utils.get_instance_num_gpus(instance_id)
 
     ecs_utils.ecs_training_test_executor(
-        ecs_cluster_name, cluster_arn, training_cmd, pytorch_training, instance_id, num_gpus=num_gpus
+        ecs_cluster_name,
+        cluster_arn,
+        training_cmd,
+        pytorch_training,
+        instance_id,
+        num_gpus=num_gpus,
     )
 
 
@@ -90,7 +116,12 @@ def test_ecs_pytorch_training_mnist_gpu(
 @pytest.mark.parametrize("ecs_instance_type", ["c5.9xlarge"], indirect=True)
 @pytest.mark.parametrize("ecs_ami", [ECS_AML2_CPU_USWEST2], indirect=True)
 def test_ecs_pytorch_s3_plugin_training_cpu(
-    cpu_only, ecs_container_instance, pytorch_training, training_cmd, ecs_cluster_name, outside_versions_skip
+    cpu_only,
+    ecs_container_instance,
+    pytorch_training,
+    training_cmd,
+    ecs_cluster_name,
+    outside_versions_skip,
 ):
     """
     CPU resnet18 test for PyTorch Training using S3 plugin
@@ -103,7 +134,9 @@ def test_ecs_pytorch_s3_plugin_training_cpu(
     outside_versions_skip(pytorch_training, "1.8.0", "1.12.1")
     instance_id, cluster_arn = ecs_container_instance
 
-    ecs_utils.ecs_training_test_executor(ecs_cluster_name, cluster_arn, training_cmd, pytorch_training, instance_id)
+    ecs_utils.ecs_training_test_executor(
+        ecs_cluster_name, cluster_arn, training_cmd, pytorch_training, instance_id
+    )
 
 
 @pytest.mark.usefixtures("feature_s3_plugin_present")
@@ -129,7 +162,12 @@ def test_ecs_pytorch_s3_plugin_training_gpu(
     num_gpus = ec2_utils.get_instance_num_gpus(instance_id)
 
     ecs_utils.ecs_training_test_executor(
-        ecs_cluster_name, cluster_arn, training_cmd, pytorch_training, instance_id, num_gpus=num_gpus
+        ecs_cluster_name,
+        cluster_arn,
+        training_cmd,
+        pytorch_training,
+        instance_id,
+        num_gpus=num_gpus,
     )
 
 
@@ -158,7 +196,9 @@ def test_ecs_pytorch_training_dgl_cpu(
         pytest.skip("ecs test for DGL gpu fails for pt 1.10")
     instance_id, cluster_arn = ecs_container_instance
 
-    ecs_utils.ecs_training_test_executor(ecs_cluster_name, cluster_arn, training_cmd, pytorch_training, instance_id)
+    ecs_utils.ecs_training_test_executor(
+        ecs_cluster_name, cluster_arn, training_cmd, pytorch_training, instance_id
+    )
 
 
 @pytest.mark.integration("dgl")
@@ -168,7 +208,13 @@ def test_ecs_pytorch_training_dgl_cpu(
 @pytest.mark.parametrize("ecs_ami", [ECS_AML2_GPU_USWEST2], indirect=True)
 @pytest.mark.parametrize("use_large_storage", [True], indirect=True)
 def test_ecs_pytorch_training_dgl_gpu(
-    gpu_only, py3_only, use_large_storage, ecs_container_instance, pytorch_training, training_cmd, ecs_cluster_name
+    gpu_only,
+    py3_only,
+    use_large_storage,
+    ecs_container_instance,
+    pytorch_training,
+    training_cmd,
+    ecs_cluster_name,
 ):
     """
     GPU DGL test for PyTorch Training
@@ -186,7 +232,10 @@ def test_ecs_pytorch_training_dgl_gpu(
     if Version(image_framework_version) == Version("1.6") and image_cuda_version == "cu110":
         pytest.skip("DGL does not suport CUDA 11 for PyTorch 1.6")
     # TODO: Remove when DGL gpu test on ecs get fixed
-    if Version(image_framework_version) in SpecifierSet("==1.10.*") and image_cuda_version == "cu113":
+    if (
+        Version(image_framework_version) in SpecifierSet("==1.10.*")
+        and image_cuda_version == "cu113"
+    ):
         pytest.skip("ecs test for DGL gpu fails for pt 1.10")
 
     instance_id, cluster_arn = ecs_container_instance
@@ -194,5 +243,10 @@ def test_ecs_pytorch_training_dgl_gpu(
     num_gpus = ec2_utils.get_instance_num_gpus(instance_id)
 
     ecs_utils.ecs_training_test_executor(
-        ecs_cluster_name, cluster_arn, training_cmd, pytorch_training, instance_id, num_gpus=num_gpus
+        ecs_cluster_name,
+        cluster_arn,
+        training_cmd,
+        pytorch_training,
+        instance_id,
+        num_gpus=num_gpus,
     )

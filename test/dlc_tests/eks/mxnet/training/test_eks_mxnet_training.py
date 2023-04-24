@@ -12,6 +12,7 @@ from test.test_utils import get_container_name, get_framework_and_version_from_t
 
 from packaging.version import Version
 
+
 @pytest.mark.model("mnist")
 def test_eks_mxnet_single_node_training(mxnet_training):
     """
@@ -31,11 +32,11 @@ def test_eks_mxnet_single_node_training(mxnet_training):
     pod_name = f"mxnet-single-node-training-{rand_int}"
 
     # Temporariy fix for 503 error while downloading MNIST dataset. See https://github.com/pytorch/vision/issues/3549
-    mnist_dataset_download_config = '''
+    mnist_dataset_download_config = """
       FROM="http:\/\/yann\.lecun\.com\/exdb\/mnist\/" &&
       TO="https:\/\/dlinfra-mnist-dataset\.s3-us-west-2\.amazonaws\.com\/mnist\/" &&
       sed -i -e "s/${FROM}/${TO}/g" /incubator-mxnet/example/image-classification/train_mnist.py
-    '''
+    """
     args = (
         f"git clone -b {framework_version} https://github.com/apache/incubator-mxnet.git && {mnist_dataset_download_config}  && python "
         f"/incubator-mxnet/example/image-classification/train_mnist.py"
@@ -78,7 +79,6 @@ def test_eks_mxnet_single_node_training(mxnet_training):
 @pytest.mark.integration("dgl")
 @pytest.mark.model("gcn")
 def test_eks_mxnet_dgl_single_node_training(mxnet_training, py3_only):
-
     """
     Function to create a pod using kubectl and given container image, and run
     DGL training with MXNet backend
@@ -88,7 +88,7 @@ def test_eks_mxnet_dgl_single_node_training(mxnet_training, py3_only):
 
     # TODO: remove/update this when DGL supports MXNet 1.9
     _, framework_version = get_framework_and_version_from_tag(mxnet_training)
-    if Version(framework_version) >= Version('1.9.0'):
+    if Version(framework_version) >= Version("1.9.0"):
         pytest.skip("Skipping DGL tests as DGL does not yet support MXNet 1.9")
 
     training_result = False
@@ -102,8 +102,10 @@ def test_eks_mxnet_dgl_single_node_training(mxnet_training, py3_only):
     container_name = get_container_name("dgl-mx", mxnet_training)
     ctx.run(f"docker run --name {container_name} -itd {mxnet_training}")
 
-    dgl_version = ctx.run(f"docker exec --user root {container_name} python -c 'import dgl; print(dgl.__version__)'").stdout.strip()
-    dgl_major_minor = re.search(r'(^\d+.\d+).', dgl_version).group(1)
+    dgl_version = ctx.run(
+        f"docker exec --user root {container_name} python -c 'import dgl; print(dgl.__version__)'"
+    ).stdout.strip()
+    dgl_major_minor = re.search(r"(^\d+.\d+).", dgl_version).group(1)
     dgl_branch = f"{dgl_major_minor}.x"
 
     args = (
@@ -150,7 +152,6 @@ def test_eks_mxnet_dgl_single_node_training(mxnet_training, py3_only):
 @pytest.mark.integration("gluonnlp")
 @pytest.mark.model("TextCNN")
 def test_eks_mxnet_gluonnlp_single_node_training(mxnet_training, py3_only):
-
     """
     Function to create a pod using kubectl and given container image, and run
     DGL training with MXNet backend
@@ -202,10 +203,14 @@ def test_eks_mxnet_gluonnlp_single_node_training(mxnet_training, py3_only):
                 accuracy = float(results.groups()[0])
 
                 if accuracy >= 0.75:
-                    eks_utils.LOGGER.info("GluonNLP EKS test succeeded with accuracy {} >= 0.75".format(accuracy))
+                    eks_utils.LOGGER.info(
+                        "GluonNLP EKS test succeeded with accuracy {} >= 0.75".format(accuracy)
+                    )
                     training_result = True
                 else:
-                    eks_utils.LOGGER.info("GluonNLP EKS test FAILED with accuracy {} < 0.75".format(accuracy))
+                    eks_utils.LOGGER.info(
+                        "GluonNLP EKS test FAILED with accuracy {} < 0.75".format(accuracy)
+                    )
                     eks_utils.LOGGER.debug(gluonnlp_out)
 
         assert training_result, f"Training failed"
