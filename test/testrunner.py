@@ -38,7 +38,9 @@ from test_utils.pytest_cache import PytestCache
 LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.DEBUG)
 LOGGER.addHandler(logging.StreamHandler(sys.stdout))
-pytest_cache_util = PytestCache(boto3.client("s3"), boto3.client("sts").get_caller_identity()["Account"])
+pytest_cache_util = PytestCache(
+    boto3.client("s3"), boto3.client("sts").get_caller_identity()["Account"]
+)
 
 
 def run_sagemaker_local_tests(images, pytest_cache_params):
@@ -58,11 +60,15 @@ def run_sagemaker_local_tests(images, pytest_cache_params):
         else os.path.join("test", "sagemaker_tests", "huggingface*")
     )
     sm_tests_tar_name = "sagemaker_tests.tar.gz"
-    run(f"tar -cz --exclude='*.pytest_cache' --exclude='__pycache__' -f {sm_tests_tar_name} {sm_tests_path}")
+    run(
+        f"tar -cz --exclude='*.pytest_cache' --exclude='__pycache__' -f {sm_tests_tar_name} {sm_tests_path}"
+    )
 
     pool_number = len(images)
     with Pool(pool_number) as p:
-        test_results = p.starmap(sm_utils.execute_local_tests, [[image, pytest_cache_params] for image in images])
+        test_results = p.starmap(
+            sm_utils.execute_local_tests, [[image, pytest_cache_params] for image in images]
+        )
     if not all(test_results):
         failed_images = [images[index] for index, result in enumerate(test_results) if not result]
         raise RuntimeError(
@@ -132,7 +138,9 @@ def send_scheduler_requests(requester, image):
         if test_status == "completed":
             LOGGER.info(f"Test for image {image} completed.")
             logs_response = requester.receive_logs(identifier)
-            LOGGER.info(f"Receive logs success for ticket {identifier.ticket_name}, report path: {report_path}")
+            LOGGER.info(
+                f"Receive logs success for ticket {identifier.ticket_name}, report path: {report_path}"
+            )
             print_log_stream(logs_response)
             metrics_utils.send_test_result_metrics(0)
             with open(report_path, "w") as xml_report:
@@ -150,7 +158,9 @@ def send_scheduler_requests(requester, image):
 
         elif test_status == "failed":
             metrics_utils.send_test_result_metrics(1)
-            raise Exception(f"Scheduling failed for image {image}. Reason: {query_status_response['reason']}")
+            raise Exception(
+                f"Scheduling failed for image {image}. Reason: {query_status_response['reason']}"
+            )
             break
 
 
@@ -177,9 +187,13 @@ def run_sagemaker_remote_tests(images, pytest_cache_params):
 
         # update in-progress pool, send the xml reports
         if test_succeeded:
-            log_return.update_pool("completed", instance_type, num_of_instances, job_type, test_report)
+            log_return.update_pool(
+                "completed", instance_type, num_of_instances, job_type, test_report
+            )
         else:
-            log_return.update_pool("runtimeError", instance_type, num_of_instances, job_type, test_report)
+            log_return.update_pool(
+                "runtimeError", instance_type, num_of_instances, job_type, test_report
+            )
         return
 
     elif use_scheduler:
@@ -189,7 +203,9 @@ def run_sagemaker_remote_tests(images, pytest_cache_params):
 
         job_requester = JobRequester()
         with concurrent.futures.ThreadPoolExecutor(max_workers=len(images)) as executor:
-            futures = [executor.submit(send_scheduler_requests, job_requester, image) for image in images]
+            futures = [
+                executor.submit(send_scheduler_requests, job_requester, image) for image in images
+            ]
             for future in futures:
                 future.result()
     else:
@@ -202,11 +218,15 @@ def run_sagemaker_remote_tests(images, pytest_cache_params):
             with Pool(pool_number) as p:
                 p.starmap(
                     sm_utils.execute_sagemaker_remote_tests,
-                    [[i, images[i], global_pytest_cache, pytest_cache_params] for i in range(pool_number)]
+                    [
+                        [i, images[i], global_pytest_cache, pytest_cache_params]
+                        for i in range(pool_number)
+                    ],
                 )
         finally:
-            pytest_cache_util.convert_cache_json_and_upload_to_s3(global_pytest_cache, **pytest_cache_params)
-
+            pytest_cache_util.convert_cache_json_and_upload_to_s3(
+                global_pytest_cache, **pytest_cache_params
+            )
 
 
 def pull_dlc_images(images):
@@ -223,8 +243,12 @@ def setup_sm_benchmark_env(dlc_images, test_path):
         resources_location = os.path.join(test_path, "huggingface", "inference", "resources")
         setup_sm_benchmark_hf_infer_env(resources_location)
     elif "tensorflow-training" in dlc_images:
-        tf1_images_in_list = re.search(r"tensorflow-training:(^ )*1(\.\d+){2}", dlc_images) is not None
-        tf2_images_in_list = re.search(r"tensorflow-training:(^ )*2(\.\d+){2}", dlc_images) is not None
+        tf1_images_in_list = (
+            re.search(r"tensorflow-training:(^ )*1(\.\d+){2}", dlc_images) is not None
+        )
+        tf2_images_in_list = (
+            re.search(r"tensorflow-training:(^ )*2(\.\d+){2}", dlc_images) is not None
+        )
         resources_location = os.path.join(test_path, "tensorflow", "training", "resources")
         setup_sm_benchmark_tf_train_env(resources_location, tf1_images_in_list, tf2_images_in_list)
     elif "mxnet-training" in dlc_images:
@@ -275,7 +299,9 @@ def main():
     is_all_images_list_eia = all("eia" in image_uri for image_uri in all_image_list)
     eks_cluster_name = None
     benchmark_mode = "benchmark" in test_type or is_benchmark_dev_context()
-    specific_test_type = re.sub("benchmark-", "", test_type) if "benchmark" in test_type else test_type
+    specific_test_type = (
+        re.sub("benchmark-", "", test_type) if "benchmark" in test_type else test_type
+    )
     build_context = get_build_context()
 
     # quick_checks tests don't have images in it. Using a placeholder here for jobs like that
@@ -297,7 +323,9 @@ def main():
     if specific_test_type == "sagemaker" and is_rc_test_context() and is_pr_context():
         specific_test_type = "release_candidate_integration"
 
-    test_path = os.path.join("benchmark", specific_test_type) if benchmark_mode else specific_test_type
+    test_path = (
+        os.path.join("benchmark", specific_test_type) if benchmark_mode else specific_test_type
+    )
 
     # Skipping non HuggingFace/AG specific tests to execute only sagemaker tests
     is_hf_image_present = any("huggingface" in image_uri for image_uri in all_image_list)
@@ -305,10 +333,20 @@ def main():
     is_trcomp_image_present = any("trcomp" in image_uri for image_uri in all_image_list)
     is_hf_image_present = is_hf_image_present and not is_trcomp_image_present
     is_hf_trcomp_image_present = is_hf_image_present and is_trcomp_image_present
-    if ((is_hf_image_present or is_ag_image_present) and specific_test_type in ("ecs", "ec2", "eks", "bai")) \
-            or (is_hf_trcomp_image_present and (specific_test_type in ("ecs", "eks", "bai", "release_candidate_integration") or benchmark_mode)):
+    if (
+        (is_hf_image_present or is_ag_image_present)
+        and specific_test_type in ("ecs", "ec2", "eks", "bai")
+    ) or (
+        is_hf_trcomp_image_present
+        and (
+            specific_test_type in ("ecs", "eks", "bai", "release_candidate_integration")
+            or benchmark_mode
+        )
+    ):
         # Creating an empty file for because codebuild job fails without it
-        LOGGER.info(f"NOTE: {specific_test_type} tests not supported on HF, AG or Trcomp. Skipping...")
+        LOGGER.info(
+            f"NOTE: {specific_test_type} tests not supported on HF, AG or Trcomp. Skipping..."
+        )
         report = os.path.join(os.getcwd(), "test", f"{test_type}.xml")
         sm_utils.generate_empty_report(report, test_type, "huggingface")
         return
@@ -340,7 +378,9 @@ def main():
             build_bai_docker_container()
         if specific_test_type == "eks" and not is_all_images_list_eia:
             frameworks_in_images = [
-                framework for framework in ("mxnet", "pytorch", "tensorflow") if framework in dlc_images
+                framework
+                for framework in ("mxnet", "pytorch", "tensorflow")
+                if framework in dlc_images
             ]
             if len(frameworks_in_images) != 1:
                 raise ValueError(
@@ -380,13 +420,25 @@ def main():
         # Execute separate cmd for canaries
         if specific_test_type in ("canary", "quick_checks"):
             pytest_cmds = [
-                ["-s", "-rA", f"--junitxml={report}", "-n=auto", f"--{specific_test_type}", "--ignore=container_tests/"]
+                [
+                    "-s",
+                    "-rA",
+                    f"--junitxml={report}",
+                    "-n=auto",
+                    f"--{specific_test_type}",
+                    "--ignore=container_tests/",
+                ]
             ]
             if specific_test_type == "canary":
                 # Add rerun flag to canaries to avoid flakiness
-                pytest_cmds = [pytest_cmd + ["--reruns=1", "--reruns-delay=10"] for pytest_cmd in pytest_cmds]
+                pytest_cmds = [
+                    pytest_cmd + ["--reruns=1", "--reruns-delay=10"] for pytest_cmd in pytest_cmds
+                ]
 
-        pytest_cmds = [pytest_cmd + ["--last-failed", "--last-failed-no-failures", "all"] for pytest_cmd in pytest_cmds]
+        pytest_cmds = [
+            pytest_cmd + ["--last-failed", "--last-failed-no-failures", "all"]
+            for pytest_cmd in pytest_cmds
+        ]
         pytest_cache_util.download_pytest_cache_from_s3_to_local(os.getcwd(), **pytest_cache_params)
 
         try:
@@ -399,12 +451,16 @@ def main():
                 LOGGER.warning("\nSuppressed Failed Nightly Tests")
                 for index, status in enumerate(cmd_exit_statuses):
                     if status != 0:
-                        LOGGER.warning(f'"{pytest_cmds[index]}" tests failed. Status code: {status}')
+                        LOGGER.warning(
+                            f'"{pytest_cmds[index]}" tests failed. Status code: {status}'
+                        )
                 sys.exit(0)
             else:
                 raise RuntimeError(pytest_cmds)
         finally:
-            pytest_cache_util.upload_pytest_cache_from_local_to_s3(os.getcwd(), **pytest_cache_params)
+            pytest_cache_util.upload_pytest_cache_from_local_to_s3(
+                os.getcwd(), **pytest_cache_params
+            )
             # Delete dangling EC2 KeyPairs
             if os.path.exists(KEYS_TO_DESTROY_FILE):
                 delete_key_pairs(KEYS_TO_DESTROY_FILE)
@@ -426,7 +482,15 @@ def main():
             os.chdir(os.path.join("test", "dlc_tests"))
 
             setup_sm_benchmark_env(dlc_images, test_path)
-            pytest_cmd = ["-s", "-rA", test_path, f"--junitxml={report}", "-n=auto", "-o", "norecursedirs=resources"]
+            pytest_cmd = [
+                "-s",
+                "-rA",
+                test_path,
+                f"--junitxml={report}",
+                "-n=auto",
+                "-o",
+                "norecursedirs=resources",
+            ]
             if not is_pr_context():
                 pytest_cmd += ["--efa"] if efa_dedicated else ["-m", "not efa"]
             status = pytest.main(pytest_cmd)
@@ -453,7 +517,7 @@ def main():
         sm_local_to_skip = {
             "habana": "Skipping SM tests because SM does not yet support Habana",
             "neuron": "Skipping - there are no local mode tests for Neuron",
-            "huggingface-tensorflow-training": "Skipping - there are no local mode tests for HF TF training"
+            "huggingface-tensorflow-training": "Skipping - there are no local mode tests for HF TF training",
         }
 
         for skip_condition, reason in sm_local_to_skip.items():
@@ -467,7 +531,11 @@ def main():
         testing_image_list = [
             image
             for image in standard_images_list
-            if not (("tensorflow-inference" in image and "py2" in image) or ("eia" in image) or (is_ec2_image(image)))
+            if not (
+                ("tensorflow-inference" in image and "py2" in image)
+                or ("eia" in image)
+                or (is_ec2_image(image))
+            )
         ]
         run_sagemaker_local_tests(testing_image_list, pytest_cache_params)
         # for EIA Images

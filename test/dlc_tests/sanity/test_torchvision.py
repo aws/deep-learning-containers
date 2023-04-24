@@ -22,14 +22,22 @@ def test_torchvision_nms_training(pytorch_training):
     """
     _, framework_version = get_framework_and_version_from_tag(pytorch_training)
     if Version(framework_version) >= Version("1.10.0"):
-        pytest.skip("Skipping this test for PT 1.10.0 and onward, since torch.ops.torchvision.nms api is outdated.")
-    if Version(framework_version) == Version("1.5.1") and get_processor_from_image_uri(pytorch_training) == "gpu":
+        pytest.skip(
+            "Skipping this test for PT 1.10.0 and onward, since torch.ops.torchvision.nms api is outdated."
+        )
+    if (
+        Version(framework_version) == Version("1.5.1")
+        and get_processor_from_image_uri(pytorch_training) == "gpu"
+    ):
         pytest.skip("Skipping this test for PT 1.5.1 GPU Training DLC images")
     ctx = Context()
     container_name = get_container_name("torchvision-nms", pytorch_training)
     start_container(container_name, pytorch_training, ctx)
     run_cmd_on_container(
-        container_name, ctx, f"import torch; import torchvision; print(torch.ops.torchvision.nms)", executable="python"
+        container_name,
+        ctx,
+        f"import torch; import torchvision; print(torch.ops.torchvision.nms)",
+        executable="python",
     )
 
 
@@ -43,8 +51,13 @@ def test_torchvision_nms_inference(pytorch_inference, non_huggingface_only):
     """
     _, framework_version = get_framework_and_version_from_tag(pytorch_inference)
     if Version(framework_version) >= Version("1.10.0"):
-        pytest.skip("Skipping this test for PT 1.10.0 and onward, since torch.ops.torchvision.nms api is outdated.")
-    if Version(framework_version) == Version("1.5.1") and get_processor_from_image_uri(pytorch_inference) == "gpu":
+        pytest.skip(
+            "Skipping this test for PT 1.10.0 and onward, since torch.ops.torchvision.nms api is outdated."
+        )
+    if (
+        Version(framework_version) == Version("1.5.1")
+        and get_processor_from_image_uri(pytorch_inference) == "gpu"
+    ):
         pytest.skip("Skipping this test for PT 1.5.1 GPU Inference DLC images")
     if "eia" in pytorch_inference and Version(framework_version) < Version("1.5.1"):
         pytest.skip("This test does not apply to PT EIA images for PT versions less than 1.5.1")
@@ -54,5 +67,8 @@ def test_torchvision_nms_inference(pytorch_inference, non_huggingface_only):
     container_name = get_container_name("torchvision-nms", pytorch_inference)
     start_container(container_name, pytorch_inference, ctx)
     run_cmd_on_container(
-        container_name, ctx, f"import torch; import torchvision; print(torch.ops.torchvision.nms)", executable="python"
+        container_name,
+        ctx,
+        f"import torch; import torchvision; print(torch.ops.torchvision.nms)",
+        executable="python",
     )

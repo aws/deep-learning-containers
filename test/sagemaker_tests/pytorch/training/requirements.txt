@@ -1,7 +1,7 @@
 botocore>1.0,<2.0
 boto3>1.0,<2.0
 awscli>=1.27.51
-protobuf>=3.20,<3.21
+protobuf
 sagemaker
 coverage==4.5.3
 docker-compose
@@ -11,11 +11,11 @@ mock==2.0.0
 pytest
 pytest-cov
 pytest-rerunfailures
-pytest-xdist==1.28.0
-PyYAML==5.4
-requests==2.24
-tox==3.7.0
-requests_mock==1.6.0
+pytest-xdist
+PyYAML
+requests
+tox
+requests_mock
 fabric
 retrying
 gitpython

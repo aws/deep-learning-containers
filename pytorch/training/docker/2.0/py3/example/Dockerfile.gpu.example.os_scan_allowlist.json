@@ -7,7 +7,7 @@
       "name": "GHSA-f62v-xpxf-3v68",
       "package_name": "org.apache.ant:ant",
       "package_details": {
-        "file_path": "usr/local/cuda-11.8/libnvvp/plugins/org.apache.ant_1.9.2.v201404171502/lib/ant.jar",
+        "file_path": "opt/conda/libnvvp/plugins/org.apache.ant_1.9.2.v201404171502/lib/ant.jar",
         "name": "org.apache.ant:ant",
         "package_manager": "JAR",
         "version": "1.9.2",

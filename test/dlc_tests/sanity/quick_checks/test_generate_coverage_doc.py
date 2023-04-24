@@ -37,7 +37,9 @@ def test_generate_coverage_doc():
     )
 
     # Ensure that the coverage report is created
-    assert os.path.exists(test_coverage_file), f"Cannot find test coverage report file {test_coverage_file}"
+    assert os.path.exists(
+        test_coverage_file
+    ), f"Cannot find test coverage report file {test_coverage_file}"
 
     # Write test coverage file to S3
     if is_mainline_context():
@@ -45,8 +47,12 @@ def test_generate_coverage_doc():
         with open(test_coverage_file, "rb") as test_file:
             try:
                 client.put_object(
-                    Bucket=TEST_COVERAGE_REPORT_BUCKET, Key=os.path.basename(test_coverage_file), Body=test_file
+                    Bucket=TEST_COVERAGE_REPORT_BUCKET,
+                    Key=os.path.basename(test_coverage_file),
+                    Body=test_file,
                 )
             except ClientError as e:
-                LOGGER.error(f"Unable to upload report to bucket {TEST_COVERAGE_REPORT_BUCKET}. Error: {e}")
+                LOGGER.error(
+                    f"Unable to upload report to bucket {TEST_COVERAGE_REPORT_BUCKET}. Error: {e}"
+                )
                 raise
