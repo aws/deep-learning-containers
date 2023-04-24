@@ -32,7 +32,7 @@ build_frameworks = []
 
 # By default we build both training and inference containers. Set true/false values to determine which to build.
 build_training = true
-build_inference = false
+build_inference = true
 
 # Set to false in order to remove datetime tag on PR builds
 datetime_tag = false
@@ -42,7 +42,7 @@ do_build = false
 
 [test]
 ### On by default
-sanity_tests = false
+sanity_tests = true
   safety_check_test = false
   ecr_scan_allowlist_feature = false
 ecs_tests = false
@@ -80,7 +80,7 @@ use_scheduler = false
 
 # Standard Framework Training
 dlc-pr-mxnet-training = ""
-dlc-pr-pytorch-training = "pytorch/training/buildspec.yml"
+dlc-pr-pytorch-training = ""
 dlc-pr-tensorflow-2-training = ""
 dlc-pr-autogluon-training = ""
 

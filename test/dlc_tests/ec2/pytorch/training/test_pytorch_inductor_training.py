@@ -17,22 +17,16 @@ PT_MNIST_INDUCTOR_CMD = os.path.join(
 PT_AMP_INDUCTOR_CMD = os.path.join(
     CONTAINER_TESTS_PREFIX, "pytorch_tests", "testPyTorchAMPwithInductor"
 )
-
-PT_EC2_GPU_INDUCTOR_INSTANCE_TYPES = []
-for instance_type in ["p3.2xlarge", "g5.4xlarge", "g4dn.4xlarge"]:
-    PT_EC2_GPU_INDUCTOR_INSTANCE_TYPES.extend(
-        get_ec2_instance_type(
-            default=instance_type,
-            processor="gpu",
-            filter_function=ec2_utils.filter_only_single_gpu,
-        )
-    )
+PT_EC2_INDUCTOR_SINGLEGPU_INSTANCE_TYPES = ["p3.2xlarge", "g5.4xlarge", "g4dn.4xlarge"]
+PT_EC2_INDUCTOR_MULTIGPU_INSTANCE_TYPES = ["p3.8xlarge"]
 
 
 @pytest.mark.usefixtures("sagemaker")
 @pytest.mark.model("mnist")
 @pytest.mark.integration("inductor")
-@pytest.mark.parametrize("ec2_instance_type", PT_EC2_GPU_INDUCTOR_INSTANCE_TYPES, indirect=True)
+@pytest.mark.parametrize(
+    "ec2_instance_type", PT_EC2_INDUCTOR_SINGLEGPU_INSTANCE_TYPES, indirect=True
+)
 def test_pytorch_train_mnist_inductor_gpu(
     pytorch_training, ec2_connection, gpu_only, ec2_instance_type
 ):
@@ -49,20 +43,25 @@ def test_pytorch_train_mnist_inductor_gpu(
 @pytest.mark.usefixtures("sagemaker")
 @pytest.mark.integration("nccl")
 @pytest.mark.model("resnet18")
-@pytest.mark.integration("inductor")
-@pytest.mark.parametrize("ec2_instance_type", PT_EC2_GPU_INDUCTOR_INSTANCE_TYPES, indirect=True)
-def test_pytorch_nccl(pytorch_training, ec2_connection, gpu_only, py3_only, ec2_instance_type):
+@pytest.mark.parametrize(
+    "ec2_instance_type", PT_EC2_INDUCTOR_MULTIGPU_INSTANCE_TYPES, indirect=True
+)
+@pytest.mark.skip_inductor_test
+def test_pytorch_nccl_inductor(
+    pytorch_training, ec2_connection, gpu_only, py3_only, ec2_instance_type
+):
     """
     Tests nccl backend
     """
-    _, image_framework_version = get_framework_and_version_from_tag(pytorch_training)
-    if Version(image_framework_version) < Version("2.0"):
-        pytest.skip("Torch inductor was introduced in PyTorch 2.0")
+    if ec2_instance_type.startswith("g3"):
+        pytest.skip("skipping inductor related test on g3 instance")
     if test_utils.is_image_incompatible_with_instance_type(pytorch_training, ec2_instance_type):
         pytest.skip(
             f"Image {pytorch_training} is incompatible with instance type {ec2_instance_type}"
         )
-    test_cmd = os.path.join(CONTAINER_TESTS_PREFIX, "pytorch_tests", "testPyTorchNccl")
+    test_cmd = (
+        os.path.join(CONTAINER_TESTS_PREFIX, "pytorch_tests", "testPyTorchNccl") + " 1"
+    )  # add inductor flag
     execute_ec2_training_test(ec2_connection, pytorch_training, test_cmd, large_shm=True)
 
 
@@ -70,7 +69,9 @@ def test_pytorch_nccl(pytorch_training, ec2_connection, gpu_only, py3_only, ec2_
 @pytest.mark.integration("horovod")
 @pytest.mark.integration("inductor")
 @pytest.mark.model("mnist")
-@pytest.mark.parametrize("ec2_instance_type", PT_EC2_GPU_INDUCTOR_INSTANCE_TYPES, indirect=True)
+@pytest.mark.parametrize(
+    "ec2_instance_type", PT_EC2_INDUCTOR_SINGLEGPU_INSTANCE_TYPES, indirect=True
+)
 def test_pytorch_with_horovod_inductor(
     pytorch_training, ec2_connection, gpu_only, ec2_instance_type
 ):
@@ -91,7 +92,9 @@ def test_pytorch_with_horovod_inductor(
 @pytest.mark.integration("gloo")
 @pytest.mark.integration("inductor")
 @pytest.mark.model("resnet18")
-@pytest.mark.parametrize("ec2_instance_type", PT_EC2_GPU_INDUCTOR_INSTANCE_TYPES, indirect=True)
+@pytest.mark.parametrize(
+    "ec2_instance_type", PT_EC2_INDUCTOR_MULTIGPU_INSTANCE_TYPES, indirect=True
+)
 def test_pytorch_gloo_inductor_gpu(
     pytorch_training, ec2_connection, gpu_only, py3_only, ec2_instance_type
 ):
@@ -115,7 +118,9 @@ def test_pytorch_gloo_inductor_gpu(
 @pytest.mark.integration("mpi")
 @pytest.mark.integration("inductor")
 @pytest.mark.model("resnet18")
-@pytest.mark.parametrize("ec2_instance_type", PT_EC2_GPU_INDUCTOR_INSTANCE_TYPES, indirect=True)
+@pytest.mark.parametrize(
+    "ec2_instance_type", PT_EC2_INDUCTOR_MULTIGPU_INSTANCE_TYPES, indirect=True
+)
 def test_pytorch_mpi_inductor_gpu(
     pytorch_training,
     ec2_connection,
