@@ -28,12 +28,12 @@ from ...utils import local_mode_utils
 
 @contextmanager
 def _predictor(image, framework_version, sagemaker_local_session, instance_type):
-    model_dir = os.path.join(RESOURCE_PATH, 'model')
-    source_dir = os.path.join(RESOURCE_PATH, 'scripts')
+    model_dir = os.path.join(RESOURCE_PATH, "model")
+    source_dir = os.path.join(RESOURCE_PATH, "scripts")
 
     versions_map = {
         # container version -> autogluon version
-        '0.3.2': '0.3.1',
+        "0.3.2": "0.3.1",
     }
     ag_framework_version = versions_map.get(framework_version, framework_version)
     model = MXNetModel(
@@ -43,7 +43,7 @@ def _predictor(image, framework_version, sagemaker_local_session, instance_type)
         sagemaker_session=sagemaker_local_session,
         source_dir=source_dir,
         entry_point="tabular_serve.py",
-        framework_version="1.9.0"
+        framework_version="1.9.0",
     )
     with local_mode_utils.lock():
         try:
@@ -57,16 +57,20 @@ def _assert_prediction(predictor):
     predictor.serializer = CSVSerializer()
     predictor.deserializer = JSONDeserializer()
 
-    data_path = os.path.join(RESOURCE_PATH, 'data')
-    data = pd.read_csv(f'{data_path}/data.csv')
+    data_path = os.path.join(RESOURCE_PATH, "data")
+    data = pd.read_csv(f"{data_path}/data.csv")
     assert 3 == len(data)
 
     preds = predictor.predict(data.values)
-    assert preds == [' <=50K', ' <=50K', ' <=50K']
+    assert preds == [" <=50K", " <=50K", " <=50K"]
 
 
 @pytest.mark.integration("ag_local")
 @pytest.mark.model("autogluon")
-def test_serve_json(docker_image, framework_version, sagemaker_local_session, instance_type):
-    with _predictor(docker_image, framework_version, sagemaker_local_session, instance_type) as predictor:
+def test_serve_json(
+    docker_image, framework_version, sagemaker_local_session, instance_type
+):
+    with _predictor(
+        docker_image, framework_version, sagemaker_local_session, instance_type
+    ) as predictor:
         _assert_prediction(predictor)

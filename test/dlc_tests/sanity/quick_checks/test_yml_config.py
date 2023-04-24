@@ -39,7 +39,9 @@ def _release_images_yml_verifier(image_type, excluded_image_type):
     while os.path.basename(dlc_base_dir) != "deep-learning-containers":
         dlc_base_dir = os.path.split(dlc_base_dir)[0]
 
-    release_images_yml_file = os.path.join(dlc_base_dir, f"release_images_{image_type}.yml")
+    release_images_yml_file = os.path.join(
+        dlc_base_dir, f"release_images_{image_type}.yml"
+    )
 
     # Define exclude regex
     exclude_pattern = re.compile(rf"{excluded_image_type}", re.IGNORECASE)

@@ -30,8 +30,19 @@ class DockerImage:
     The DockerImage class has the functions and attributes for building the dockerimage
     """
 
-    def __init__(self, info, dockerfile, repository, tag, to_build, stage, context=None, to_push=True, additional_tags=[], target=None):
-
+    def __init__(
+        self,
+        info,
+        dockerfile,
+        repository,
+        tag,
+        to_build,
+        stage,
+        context=None,
+        to_push=True,
+        additional_tags=[],
+        target=None,
+    ):
         # Meta-data about the image should go to info.
         # All keys in info are accessible as attributes
         # of this class
@@ -56,7 +67,9 @@ class DockerImage:
 
         self.to_build = to_build
         self.build_status = None
-        self.client = APIClient(base_url=constants.DOCKER_URL, timeout=constants.API_CLIENT_TIMEOUT)
+        self.client = APIClient(
+            base_url=constants.DOCKER_URL, timeout=constants.API_CLIENT_TIMEOUT
+        )
         self.log = []
         self._corresponding_common_stage_image = None
         self.target = target
@@ -69,11 +82,11 @@ class DockerImage:
         """
         If we require a base image URI, the image is a child image (where the base image is the parent)
         """
-        return bool(self.info.get('base_image_uri'))
+        return bool(self.info.get("base_image_uri"))
 
     @property
     def is_test_promotion_enabled(self):
-        return bool(self.info.get('enable_test_promotion'))
+        return bool(self.info.get("enable_test_promotion"))
 
     @property
     def corresponding_common_stage_image(self):
@@ -99,10 +112,16 @@ class DockerImage:
         """
         docker_client = DockerClient(base_url=constants.DOCKER_URL)
         command_responses = []
-        commands = ["pip list", "dpkg-query -Wf '${Installed-Size}\\t${Package}\\n'", "apt list --installed"]
+        commands = [
+            "pip list",
+            "dpkg-query -Wf '${Installed-Size}\\t${Package}\\n'",
+            "apt list --installed",
+        ]
         for command in commands:
             command_responses.append(f"\n{command}")
-            command_responses.append(bytes.decode(docker_client.containers.run(self.ecr_url, command)))
+            command_responses.append(
+                bytes.decode(docker_client.containers.run(self.ecr_url, command))
+            )
         docker_client.containers.prune()
         return command_responses
 
@@ -130,9 +149,9 @@ class DockerImage:
 
     def build(self):
         """
-        The build function sets the stage for starting the docker build process for a given image. 
+        The build function sets the stage for starting the docker build process for a given image.
 
-        :return: int, Build Status 
+        :return: int, Build Status
         """
         self.summary["start_time"] = datetime.now()
 
@@ -192,9 +211,13 @@ class DockerImage:
                 self.summary["status"] = constants.STATUS_MESSAGE[self.build_status]
                 self.summary["end_time"] = datetime.now()
 
-                LOGGER.info(f"Docker Build Logs: \n {self.get_tail_logs_in_pretty_format(100)}")
+                LOGGER.info(
+                    f"Docker Build Logs: \n {self.get_tail_logs_in_pretty_format(100)}"
+                )
                 LOGGER.error("ERROR during Docker BUILD")
-                LOGGER.error(f"Error message received for {self.dockerfile} while docker build: {line}")
+                LOGGER.error(
+                    f"Error message received for {self.dockerfile} while docker build: {line}"
+                )
 
                 return self.build_status
 
@@ -220,14 +243,20 @@ class DockerImage:
         :return: int, Build Status
         """
         response = [f"Starting image size check for {self.repository}:{self.tag}"]
-        self.summary["image_size"] = int(self.client.inspect_image(self.ecr_url)["Size"]) / (1024 * 1024)
+        self.summary["image_size"] = int(
+            self.client.inspect_image(self.ecr_url)["Size"]
+        ) / (1024 * 1024)
         if self.summary["image_size"] > self.info["image_size_baseline"] * 1.20:
             response.append("Image size baseline exceeded")
-            response.append(f"{self.summary['image_size']} > 1.2 * {self.info['image_size_baseline']}")
+            response.append(
+                f"{self.summary['image_size']} > 1.2 * {self.info['image_size_baseline']}"
+            )
             response += self.collect_installed_packages_information()
             self.build_status = constants.FAIL_IMAGE_SIZE_LIMIT
         else:
-            response.append(f"Image Size Check Succeeded for {self.repository}:{self.tag}")
+            response.append(
+                f"Image Size Check Succeeded for {self.repository}:{self.tag}"
+            )
             self.build_status = constants.SUCCESS
         self.log.append(response)
 
@@ -238,7 +267,7 @@ class DockerImage:
     def push_image(self, tag_value=None):
         """
         Pushes the Docker image to ECR using Docker low-level API client for docker.
-        
+
         :param tag_value: str, an optional variable to provide a different tag
         :return: int, states if the Push was successful or not
         """
@@ -255,9 +284,13 @@ class DockerImage:
                 self.summary["status"] = constants.STATUS_MESSAGE[self.build_status]
                 self.summary["end_time"] = datetime.now()
 
-                LOGGER.info(f"Docker Build Logs: \n {self.get_tail_logs_in_pretty_format(100)}")
+                LOGGER.info(
+                    f"Docker Build Logs: \n {self.get_tail_logs_in_pretty_format(100)}"
+                )
                 LOGGER.error("ERROR during Docker PUSH")
-                LOGGER.error(f"Error message received for {self.repository}:{tag} while docker push: {line}")
+                LOGGER.error(
+                    f"Error message received for {self.repository}:{tag} while docker push: {line}"
+                )
 
                 return self.build_status
             if line.get("stream") is not None:
@@ -280,22 +313,30 @@ class DockerImage:
     def push_image_with_additional_tags(self):
         """
         Pushes an already built Docker image by applying additional tags to it.
-        
+
         :return: int, states if the Push was successful or not
         """
         self.log.append([f"Started Tagging for {self.ecr_url}"])
         for additional_tag in self.additional_tags:
             response = [f"Tagging {self.ecr_url} as {self.repository}:{additional_tag}"]
-            tagging_successful = self.client.tag(self.ecr_url, self.repository, additional_tag)
+            tagging_successful = self.client.tag(
+                self.ecr_url, self.repository, additional_tag
+            )
             if not tagging_successful:
-                response.append(f"Tagging {self.ecr_url} with {additional_tag} unsuccessful.")
+                response.append(
+                    f"Tagging {self.ecr_url} with {additional_tag} unsuccessful."
+                )
                 self.log.append(response)
                 LOGGER.error("ERROR during Tagging")
-                LOGGER.error(f"Tagging {self.ecr_url} with {additional_tag} unsuccessful.")
+                LOGGER.error(
+                    f"Tagging {self.ecr_url} with {additional_tag} unsuccessful."
+                )
                 self.build_status = constants.FAIL
                 self.summary["status"] = constants.STATUS_MESSAGE[self.build_status]
                 return self.build_status
-            response.append(f"Tagged {self.ecr_url} succussefully as {self.repository}:{additional_tag}")
+            response.append(
+                f"Tagged {self.ecr_url} succussefully as {self.repository}:{additional_tag}"
+            )
             self.log.append(response)
 
             self.build_status = self.push_image(tag_value=additional_tag)
@@ -306,5 +347,7 @@ class DockerImage:
         self.summary["end_time"] = datetime.now()
         self.log.append([f"Completed Tagging for {self.ecr_url}"])
 
-        LOGGER.info(f"DOCKER TAG and PUSH LOGS: \n {self.get_tail_logs_in_pretty_format(5)}")
+        LOGGER.info(
+            f"DOCKER TAG and PUSH LOGS: \n {self.get_tail_logs_in_pretty_format(5)}"
+        )
         return self.build_status

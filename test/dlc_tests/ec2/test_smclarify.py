@@ -6,14 +6,23 @@ from packaging.version import Version
 
 from test.test_utils import CONTAINER_TESTS_PREFIX, LOGGER
 from test.test_utils import (
-    get_account_id_from_image_uri, get_cuda_version_from_tag, get_region_from_image_uri, login_to_ecr_registry,
+    get_account_id_from_image_uri,
+    get_cuda_version_from_tag,
+    get_region_from_image_uri,
+    login_to_ecr_registry,
 )
 from test.test_utils.ec2 import get_ec2_instance_type
 
-SMCLARIFY_SCRIPT = os.path.join(CONTAINER_TESTS_PREFIX, "test_smclarify_bias_metrics.py")
+SMCLARIFY_SCRIPT = os.path.join(
+    CONTAINER_TESTS_PREFIX, "test_smclarify_bias_metrics.py"
+)
 
-SMCLARIFY_EC2_GPU_INSTANCE_TYPE = get_ec2_instance_type(default="p3.2xlarge", processor="gpu")
-SMCLARIFY_EC2_CPU_INSTANCE_TYPE = get_ec2_instance_type(default="c4.2xlarge", processor="cpu")
+SMCLARIFY_EC2_GPU_INSTANCE_TYPE = get_ec2_instance_type(
+    default="p3.2xlarge", processor="gpu"
+)
+SMCLARIFY_EC2_CPU_INSTANCE_TYPE = get_ec2_instance_type(
+    default="c4.2xlarge", processor="cpu"
+)
 
 
 # Adding separate tests to run on cpu instance for cpu image and gpu instance for gpu image.
@@ -21,7 +30,9 @@ SMCLARIFY_EC2_CPU_INSTANCE_TYPE = get_ec2_instance_type(default="c4.2xlarge", pr
 @pytest.mark.usefixtures("sagemaker_only")
 @pytest.mark.integration("smclarify_cpu")
 @pytest.mark.model("N/A")
-@pytest.mark.parametrize("ec2_instance_type", SMCLARIFY_EC2_CPU_INSTANCE_TYPE, indirect=True)
+@pytest.mark.parametrize(
+    "ec2_instance_type", SMCLARIFY_EC2_CPU_INSTANCE_TYPE, indirect=True
+)
 def test_smclarify_metrics_cpu(
     training,
     ec2_connection,
@@ -38,7 +49,9 @@ def test_smclarify_metrics_cpu(
 @pytest.mark.usefixtures("sagemaker_only")
 @pytest.mark.integration("smclarify_gpu")
 @pytest.mark.model("N/A")
-@pytest.mark.parametrize("ec2_instance_type", SMCLARIFY_EC2_GPU_INSTANCE_TYPE, indirect=True)
+@pytest.mark.parametrize(
+    "ec2_instance_type", SMCLARIFY_EC2_GPU_INSTANCE_TYPE, indirect=True
+)
 def test_smclarify_metrics_gpu(
     training,
     ec2_connection,
@@ -52,7 +65,9 @@ def test_smclarify_metrics_gpu(
     image_cuda_version = get_cuda_version_from_tag(training)
     if Version(image_cuda_version.strip("cu")) < Version("110"):
         pytest.skip("SmClarify is currently installed in cuda 11 gpu images and above")
-    run_smclarify_bias_metrics(training, ec2_connection, ec2_instance_type, docker_executable="nvidia-docker")
+    run_smclarify_bias_metrics(
+        training, ec2_connection, ec2_instance_type, docker_executable="nvidia-docker"
+    )
 
 
 class SMClarifyTestFailure(Exception):

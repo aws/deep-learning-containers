@@ -8,17 +8,33 @@ from sagemaker.mxnet import MXNet
 
 
 parser = argparse.ArgumentParser()
-parser.add_argument("--framework-version", type=str, help="framework version in image to be used", required=True)
-parser.add_argument("--image-uri", type=str, help="Image URI of image to benchmark", required=True)
-parser.add_argument("--instance-type", type=str, help="instance type to use for test. Make sure to update processes_per_host according to the instance type.", required=True)
-parser.add_argument("--node-count", type=int, help="number of nodes to train", default=4)
+parser.add_argument(
+    "--framework-version",
+    type=str,
+    help="framework version in image to be used",
+    required=True,
+)
+parser.add_argument(
+    "--image-uri", type=str, help="Image URI of image to benchmark", required=True
+)
+parser.add_argument(
+    "--instance-type",
+    type=str,
+    help="instance type to use for test. Make sure to update processes_per_host according to the instance type.",
+    required=True,
+)
+parser.add_argument(
+    "--node-count", type=int, help="number of nodes to train", default=4
+)
 parser.add_argument("--python", help="python version", default="py3")
 parser.add_argument("--region", help="region in which to run test", default="us-west-2")
 parser.add_argument("--job-name", help="SageMaker Training Job Name", default=None)
 
 args = parser.parse_args()
 
-sagemaker_session = sagemaker.Session(boto_session=boto3.Session(region_name=args.region))
+sagemaker_session = sagemaker.Session(
+    boto_session=boto3.Session(region_name=args.region)
+)
 
 source_dir = "scripts"
 processor = "gpu" if "gpu" in args.image_uri else "cpu"
@@ -38,13 +54,8 @@ mx_estimator = MXNet(
     output_path=f"s3://dlc-bai-results-sagemaker-{args.region}",
     framework_version=args.framework_version,
     debugger_hook_config=False,
-    distribution={
-        "mpi": {
-          "enabled": True,
-          "processes_per_host": processes_per_host
-        }
-    },
-    **kwargs
+    distribution={"mpi": {"enabled": True, "processes_per_host": processes_per_host}},
+    **kwargs,
 )
 
 data = {

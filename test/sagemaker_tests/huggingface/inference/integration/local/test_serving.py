@@ -25,8 +25,9 @@ from ...utils import local_mode_utils
 
 
 @contextmanager
-def _predictor(model_dir, image, framework_version, sagemaker_local_session, instance_type):
-
+def _predictor(
+    model_dir, image, framework_version, sagemaker_local_session, instance_type
+):
     model_file = pt_model if "pytorch" in image else tf_model
 
     model = Model(
@@ -57,6 +58,14 @@ def _assert_prediction(predictor):
 
 
 @pytest.mark.model("tiny-distilbert")
-def test_serve_json(docker_image, framework_version, sagemaker_local_session, instance_type):
-    with _predictor(model_dir, docker_image, framework_version, sagemaker_local_session, instance_type) as predictor:
+def test_serve_json(
+    docker_image, framework_version, sagemaker_local_session, instance_type
+):
+    with _predictor(
+        model_dir,
+        docker_image,
+        framework_version,
+        sagemaker_local_session,
+        instance_type,
+    ) as predictor:
         _assert_prediction(predictor)

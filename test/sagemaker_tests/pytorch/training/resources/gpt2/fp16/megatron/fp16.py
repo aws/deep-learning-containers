@@ -86,10 +86,14 @@ def save_fp16_optimizer(args, model, optimizer, partial=True):
         state_dict["optimizer_state_dict"] = optimizer.local_state_dict()
         if args.shard_optimizer_state:
             if smp.rdp_rank() == 0:
-                print("With shard_optimizer_state=True, gather full fp32_from_fp16_groups for the rdp_group on rdp rank 0")
+                print(
+                    "With shard_optimizer_state=True, gather full fp32_from_fp16_groups for the rdp_group on rdp rank 0"
+                )
                 gathered_cpu_fp32_from_fp16_groups = [cpu_fp32_from_fp16_groups]
                 for src in range(1, smp.rdp_size()):
-                    gathered_cpu_fp32_from_fp16_groups.append(smp.recv_from(src, smp.RankType.RDP_RANK))
+                    gathered_cpu_fp32_from_fp16_groups.append(
+                        smp.recv_from(src, smp.RankType.RDP_RANK)
+                    )
                 state_dict["fp32_from_fp16"] = gathered_cpu_fp32_from_fp16_groups
             else:
                 smp.send(cpu_fp32_from_fp16_groups, 0, smp.RankType.RDP_RANK)
@@ -104,10 +108,16 @@ def save_fp16_optimizer(args, model, optimizer, partial=True):
     else:
         state_dict["optimizer_state_dict"] = optimizer.state_dict()
         if smp.tp_size() > 1 and not args.shard_optimizer_state:
-            tp_merged_fp32_from_fp16_groups, param_name_groups = get_tp_merged_fp32_from_fp16_param_groups(
+            (
+                tp_merged_fp32_from_fp16_groups,
+                param_name_groups,
+            ) = get_tp_merged_fp32_from_fp16_param_groups(
                 optimizer, cpu_fp32_from_fp16_groups
             )
-            pp_merged_fp32_from_fp16_groups, param_name_groups = get_pp_merged_fp32_from_fp16_param_groups(
+            (
+                pp_merged_fp32_from_fp16_groups,
+                param_name_groups,
+            ) = get_pp_merged_fp32_from_fp16_param_groups(
                 optimizer, tp_merged_fp32_from_fp16_groups, param_name_groups
             )
         else:
@@ -129,8 +139,12 @@ def load_fp16_optimizer(args, model, optimizer, state_dict, partial=True):
         optimizer.load_state_dict(opt_state_dict["optimizer_state_dict"])
         if partial:
             if args.shard_optimizer_state:
-                assert isinstance(opt_state_dict["fp32_from_fp16"], list), "Loading with shard_optimizer_state=True must use the checkpoint that was trained with shard_optimizer_state=True!"
-                optimizer.fp32_from_fp16 = opt_state_dict["fp32_from_fp16"][smp.rdp_rank()]
+                assert isinstance(
+                    opt_state_dict["fp32_from_fp16"], list
+                ), "Loading with shard_optimizer_state=True must use the checkpoint that was trained with shard_optimizer_state=True!"
+                optimizer.fp32_from_fp16 = opt_state_dict["fp32_from_fp16"][
+                    smp.rdp_rank()
+                ]
             else:
                 optimizer.fp32_from_fp16 = opt_state_dict["fp32_from_fp16"]
 
@@ -171,7 +185,9 @@ def load_fp16_optimizer(args, model, optimizer, state_dict, partial=True):
 
 
 class MegatronOptimizer(ABC):
-    def __init__(self, optimizer, clip_grad, log_num_zeros_in_grad, params_have_main_grad):
+    def __init__(
+        self, optimizer, clip_grad, log_num_zeros_in_grad, params_have_main_grad
+    ):
         """Input optimizer is the base optimizer for example Adam."""
         self.optimizer = optimizer
         assert self.optimizer, "no optimizer is provided."
@@ -260,8 +276,12 @@ class FP16_Module(nn.Module):
     def state_dict(self, destination=None, prefix="", keep_vars=False):
         return self.module.state_dict(destination, prefix, keep_vars)
 
-    def state_dict_for_save_checkpoint(self, destination=None, prefix="", keep_vars=False):
-        return self.module.state_dict_for_save_checkpoint(destination, prefix, keep_vars)
+    def state_dict_for_save_checkpoint(
+        self, destination=None, prefix="", keep_vars=False
+    ):
+        return self.module.state_dict_for_save_checkpoint(
+            destination, prefix, keep_vars
+        )
 
     def load_state_dict(self, state_dict, strict=True):
         self.module.load_state_dict(state_dict, strict=strict)
@@ -305,7 +325,6 @@ class Float16OptimizerWithFloat16Params(MegatronOptimizer):
         shard_optimizer_state=False,
         verbose=False,
     ):
-
         super(Float16OptimizerWithFloat16Params, self).__init__(
             optimizer, clip_grad, log_num_zeros_in_grad, params_have_main_grad
         )
@@ -426,7 +445,10 @@ class Float16OptimizerWithFloat16Params(MegatronOptimizer):
             for i, param in enumerate(param_group["params"]):
                 if param.requires_grad:
                     # float16 params:
-                    if param.type() in ["torch.cuda.HalfTensor", "torch.cuda.BFloat16Tensor"]:
+                    if param.type() in [
+                        "torch.cuda.HalfTensor",
+                        "torch.cuda.BFloat16Tensor",
+                    ]:
                         float16_params_this_group.append(param)
                         # Create a copy
                         with torch.no_grad():
@@ -442,7 +464,9 @@ class Float16OptimizerWithFloat16Params(MegatronOptimizer):
                         self.master_is_distributed[
                             main_param
                         ] = self.model.is_distributed_parameter(param)
-                        self.master_distribution_axis[id(main_param)] = get_distribution_axis(param)
+                        self.master_distribution_axis[
+                            id(main_param)
+                        ] = get_distribution_axis(param)
                         fp32_from_fp16_paramids_this_group.append(id(main_param))
                         if hasattr(param, "shared"):
                             main_param.shared = param.shared
@@ -452,7 +476,9 @@ class Float16OptimizerWithFloat16Params(MegatronOptimizer):
                         fp32_from_float16_params_this_group.append(main_param)
                         # Reset existing state dict key to the new main param.
                         if param in self.optimizer.state:
-                            self.optimizer.state[main_param] = self.optimizer.state.pop(param)
+                            self.optimizer.state[main_param] = self.optimizer.state.pop(
+                                param
+                            )
                         self.fp32paramid_from_fp16paramid[id(param)] = id(main_param)
 
                     # fp32 params.
@@ -471,7 +497,9 @@ class Float16OptimizerWithFloat16Params(MegatronOptimizer):
 
             self.float16_groups.append(float16_params_this_group)
             self.fp32_from_float16_groups.append(fp32_from_float16_params_this_group)
-            self.fp32_from_fp16_paramid_groups.append(fp32_from_fp16_paramids_this_group)
+            self.fp32_from_fp16_paramid_groups.append(
+                fp32_from_fp16_paramids_this_group
+            )
             self.fp32_from_fp32_groups.append(fp32_params_this_group)
 
         # Leverage state_dict() and load_state_dict() to
@@ -485,14 +513,22 @@ class Float16OptimizerWithFloat16Params(MegatronOptimizer):
 
     def zero_grad(self, set_grads_to_None=True):
         """We only need to zero the model related parameters, i.e.,
-                float16_groups & fp32_from_fp32_groups."""
+        float16_groups & fp32_from_fp32_groups."""
 
-        if self.shard_optimizer_state and set_grads_to_None and not self.warned_set_grads_to_none:
-            print("WARNING: Will not set fp16 gradients to None since shard_optimizer_state is enabled.")
+        if (
+            self.shard_optimizer_state
+            and set_grads_to_None
+            and not self.warned_set_grads_to_none
+        ):
+            print(
+                "WARNING: Will not set fp16 gradients to None since shard_optimizer_state is enabled."
+            )
             self.warned_set_grads_to_none = True
 
         for group in self.float16_groups:
-            _zero_grad_group_helper(group, set_grads_to_None and not self.shard_optimizer_state)
+            _zero_grad_group_helper(
+                group, set_grads_to_None and not self.shard_optimizer_state
+            )
         for group in self.fp32_from_fp32_groups:
             _zero_grad_group_helper(group, set_grads_to_None)
         for group in self.optimizer.param_groups:
@@ -511,7 +547,9 @@ class Float16OptimizerWithFloat16Params(MegatronOptimizer):
 
     def _copy_model_grads_to_main_grads(self):
         # This only needs to be done for the float16 group.
-        for model_group, main_group in zip(self.float16_groups, self.fp32_from_float16_groups):
+        for model_group, main_group in zip(
+            self.float16_groups, self.fp32_from_float16_groups
+        ):
             for model_param, main_param in zip(model_group, main_group):
                 if model_param.grad is not None:
                     # If gradient_as_bucket_view is True for DistributedModel, the grads will be in FP32
@@ -557,7 +595,9 @@ class Float16OptimizerWithFloat16Params(MegatronOptimizer):
                                      group=mpu.get_model_parallel_group())
         """
         torch.distributed.all_reduce(
-            self.found_inf, op=torch.distributed.ReduceOp.MAX, group=smp.get_mp_process_group()
+            self.found_inf,
+            op=torch.distributed.ReduceOp.MAX,
+            group=smp.get_mp_process_group(),
         )
 
         # Check for nan.
@@ -567,7 +607,9 @@ class Float16OptimizerWithFloat16Params(MegatronOptimizer):
     def _get_model_and_main_params_data_float16(self):
         model_data = []
         main_data = []
-        for model_group, main_group in zip(self.float16_groups, self.fp32_from_float16_groups):
+        for model_group, main_group in zip(
+            self.float16_groups, self.fp32_from_float16_groups
+        ):
             for model_param, main_param in zip(model_group, main_group):
                 model_data.append(model_param.data)
                 main_data.append(main_param.data)
@@ -592,14 +634,12 @@ class Float16OptimizerWithFloat16Params(MegatronOptimizer):
 
     @torch.no_grad()
     def step(self):
-
         # Copy gradients from model params to main params.
         self._copy_model_grads_to_main_grads()
 
         # Do unscale, check for inf, and update grad scaler only for
         # the case that grad scaler is provided.
         if self.grad_scaler:
-
             # Unscale and check for inf/nan.
             found_inf_flag = self._unscale_main_grads_and_check_for_nan()
 
@@ -651,7 +691,10 @@ class Float16OptimizerWithFloat16Params(MegatronOptimizer):
 
             # Grad scaler.
             if "grad_scaler" not in state_dict:
-                print("***WARNING*** found an old checkpoint, will not " "load grad scaler ...")
+                print(
+                    "***WARNING*** found an old checkpoint, will not "
+                    "load grad scaler ..."
+                )
             else:
                 if self.grad_scaler:
                     self.grad_scaler.load_state_dict(state_dict["grad_scaler"])

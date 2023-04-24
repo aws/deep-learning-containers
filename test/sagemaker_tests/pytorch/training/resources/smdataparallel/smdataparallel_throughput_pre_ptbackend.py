@@ -12,7 +12,7 @@
 # language governing permissions and limitations under the License.
 
 # This test file is run on PT<1.10 and comes from the commit b87590af021a4c3913b3669fa5f9fc10fbebe4e8
-# Link to the file from older commit: 
+# Link to the file from older commit:
 # https://github.com/aws/deep-learning-containers/blob/b87590af021a4c3913b3669fa5f9fc10fbebe4e8/test/sagemaker_tests/pytorch/training/resources/smdataparallel/smdataparallel_throughput.py
 
 import torch
@@ -25,38 +25,36 @@ import argparse
 THRESHOLD = 28.0
 
 parser = argparse.ArgumentParser()
-parser.add_argument("--size",
-                    type=int,
-                    default=1,
-                    help="Size of tensor to allreduce in MB")
-parser.add_argument("--iterations",
-                    type=int,
-                    default=100,
-                    help="Number of times to run allreduce")
-parser.add_argument("--num_tensors",
-                    type=int,
-                    default=512,
-                    help="How many tensors to allreduce on a single pass")
-parser.add_argument("--warmup",
-                    type=int,
-                    default=20,
-                    help="Number of times to run allreduce and ignore")
-parser.add_argument("--bucket_size",
-                    type=int,
-                    default=25,
-                    help="Number of times to run allreduce and ignore")
-parser.add_argument("--info",
-                    type=str,
-                    default="",
-                    help="Add info to test result printout")
-parser.add_argument('--fp32',
-                    dest='fp32',
-                    action='store_true',
-                    help="Data type as fp16 or fp32")
-parser.add_argument('--nccl',
-                    dest='nccl',
-                    action='store_true',
-                    help="Run nccl or herring")
+parser.add_argument(
+    "--size", type=int, default=1, help="Size of tensor to allreduce in MB"
+)
+parser.add_argument(
+    "--iterations", type=int, default=100, help="Number of times to run allreduce"
+)
+parser.add_argument(
+    "--num_tensors",
+    type=int,
+    default=512,
+    help="How many tensors to allreduce on a single pass",
+)
+parser.add_argument(
+    "--warmup", type=int, default=20, help="Number of times to run allreduce and ignore"
+)
+parser.add_argument(
+    "--bucket_size",
+    type=int,
+    default=25,
+    help="Number of times to run allreduce and ignore",
+)
+parser.add_argument(
+    "--info", type=str, default="", help="Add info to test result printout"
+)
+parser.add_argument(
+    "--fp32", dest="fp32", action="store_true", help="Data type as fp16 or fp32"
+)
+parser.add_argument(
+    "--nccl", dest="nccl", action="store_true", help="Run nccl or herring"
+)
 parser.set_defaults(fp32=False)
 parser.set_defaults(nccl=False)
 args, unknown = parser.parse_known_args()
@@ -68,18 +66,18 @@ if args.nccl:
         assert "SMDATAPARALLEL_SERVER_ADDR" in os.environ
         os.environ["MASTER_ADDR"] = os.environ["SMDATAPARALLEL_SERVER_ADDR"]
         os.environ["MASTER_PORT"] = str(
-            int(os.environ["SMDATAPARALLEL_SERVER_PORT"]) + 2)
+            int(os.environ["SMDATAPARALLEL_SERVER_PORT"]) + 2
+        )
     size = int(os.getenv("OMPI_COMM_WORLD_SIZE"))
     rank = int(os.getenv("OMPI_COMM_WORLD_RANK"))
     local_size = int(os.getenv("OMPI_COMM_WORLD_LOCAL_SIZE"))
     local_rank = int(os.getenv("OMPI_COMM_WORLD_LOCAL_RANK"))
 
     import torch.distributed as dist
-    dist.init_process_group("nccl",
-                            world_size=size,
-                            rank=rank,
-                            store=None,
-                            group_name='')
+
+    dist.init_process_group(
+        "nccl", world_size=size, rank=rank, store=None, group_name=""
+    )
 else:
     import smdistributed.dataparallel.torch.distributed as dist
     import smdistributed.dataparallel as h
@@ -98,8 +96,15 @@ else:
 torch.cuda.set_device(local_rank)
 
 if rank == 0:
-    print("NUM WORKERS", size, "WSIZE/RANK/LSIZE/LRANK:", size, rank,
-          local_size, local_rank)
+    print(
+        "NUM WORKERS",
+        size,
+        "WSIZE/RANK/LSIZE/LRANK:",
+        size,
+        rank,
+        local_size,
+        local_rank,
+    )
 
 DTYPE = torch.float16
 DTSIZE = 2
@@ -116,7 +121,8 @@ artime = []
 
 
 def test(warmup=False, size=104857600, num_tensors=100, iterations=1):
-    if rank == 0: print("Warmup  " if warmup else "\n", end="\t")
+    if rank == 0:
+        print("Warmup  " if warmup else "\n", end="\t")
 
     # SETUP
     device = torch.device("cuda", local_rank)
@@ -139,10 +145,16 @@ def test(warmup=False, size=104857600, num_tensors=100, iterations=1):
             if i < len(tests):
                 if not args.nccl:
                     results.append(
-                        hm.allReduce(test_array.data_ptr(),
-                                     test_array.data_ptr(), HDTYPE,
-                                     test_array.numel(), i, len(tests),
-                                     h._get_id_for_herring_task()).request)
+                        hm.allReduce(
+                            test_array.data_ptr(),
+                            test_array.data_ptr(),
+                            HDTYPE,
+                            test_array.numel(),
+                            i,
+                            len(tests),
+                            h._get_id_for_herring_task(),
+                        ).request
+                    )
                 else:
                     results.append(dist.all_reduce(test_array, async_op=True))
 
@@ -154,30 +166,34 @@ def test(warmup=False, size=104857600, num_tensors=100, iterations=1):
 
         torch.cuda.synchronize()  # ????^)*(&*&***??????
         if rank == 0:
-            tdif = (time.time() - before)
-            print("[%2d/%d %s %d %s]" %
-                  (k, iterations, "%5.3fs" % tdif, size, "%5.2fGB/s" %
-                   (size * num_tensors / 1024 / 1024 / 1024 /
-                    (time.time() - before))),
-                  end="\t" if k % 4 != 3 else "\n\t")
+            tdif = time.time() - before
+            print(
+                "[%2d/%d %s %d %s]"
+                % (
+                    k,
+                    iterations,
+                    "%5.3fs" % tdif,
+                    size,
+                    "%5.2fGB/s"
+                    % (
+                        size * num_tensors / 1024 / 1024 / 1024 / (time.time() - before)
+                    ),
+                ),
+                end="\t" if k % 4 != 3 else "\n\t",
+            )
             sys.stdout.flush()
-            if warmup: continue
-            bandwidth.append(size * num_tensors / 1024 / 1024 / 1024 /
-                             (time.time() - before))
+            if warmup:
+                continue
+            bandwidth.append(
+                size * num_tensors / 1024 / 1024 / 1024 / (time.time() - before)
+            )
             artime.append(tdif)
 
 
 get_size = lambda: int(args.size * 1024 * 1024)
-test(True,
-     size=get_size(),
-     num_tensors=args.num_tensors,
-     iterations=args.warmup)
-test(size=get_size(),
-     num_tensors=args.num_tensors,
-     iterations=args.iterations / 2)
-test(size=get_size(),
-     num_tensors=args.num_tensors,
-     iterations=args.iterations / 2)
+test(True, size=get_size(), num_tensors=args.num_tensors, iterations=args.warmup)
+test(size=get_size(), num_tensors=args.num_tensors, iterations=args.iterations / 2)
+test(size=get_size(), num_tensors=args.num_tensors, iterations=args.iterations / 2)
 
 # Report
 if rank == 0:
@@ -187,21 +203,34 @@ if rank == 0:
         SENDTIMES = 2
         if size == local_size:
             # single node
-            return (alg_throughput * BITPERBYTE * SENDTIMES * 1)
+            return alg_throughput * BITPERBYTE * SENDTIMES * 1
         else:
             # multi-node
-            return (alg_throughput * BITPERBYTE * SENDTIMES *
-                    (1 - (local_size / size)))
+            return alg_throughput * BITPERBYTE * SENDTIMES * (1 - (local_size / size))
 
     alg_mn, alg_mx = np.mean(bandwidth), np.max(bandwidth)
     net_mn, net_mx = net_throughput(alg_mn), net_throughput(alg_mx)
     print("\nFRAMEWORK TEST", str(args))
     print(
         "%s %s: %2d %s %20s [MEAN|MAX] net[%4.2f|%4.2f]GB/s alg[%4.3f|%4.3f]Gb/s time[%7.6f|%7.6f]s"
-        % (args.info, "PT.SMDATAPARALLEL" if not args.nccl else "PT.NCCL   ",
-           size, "fp32" if args.fp32 else "fp16", "[%dMB x%d]x%d iter" %
-           (args.size, args.num_tensors, args.iterations), net_mn, net_mx,
-           alg_mn, alg_mx, np.mean(artime), np.max(artime)))
+        % (
+            args.info,
+            "PT.SMDATAPARALLEL" if not args.nccl else "PT.NCCL   ",
+            size,
+            "fp32" if args.fp32 else "fp16",
+            "[%dMB x%d]x%d iter" % (args.size, args.num_tensors, args.iterations),
+            net_mn,
+            net_mx,
+            alg_mn,
+            alg_mx,
+            np.mean(artime),
+            np.max(artime),
+        )
+    )
 
     if net_mn < THRESHOLD:
-        assert False, "The network throughput value {} GB/s is below threshold {} GB/s".format(net_mn, THRESHOLD)
+        assert (
+            False
+        ), "The network throughput value {} GB/s is below threshold {} GB/s".format(
+            net_mn, THRESHOLD
+        )

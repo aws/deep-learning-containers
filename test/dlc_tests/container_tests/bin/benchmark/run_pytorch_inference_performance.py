@@ -15,21 +15,22 @@ import torchvision
 #      'InceptionV3': [torchvision.models.inception_v3, torch.rand(1,3,299,299)],
 #      'DeepLabV3_ResNet50': [torchvision.models.segmentation.deeplabv3_resnet50, torch.rand(10,3,224,224)],
 #      'FCN_ResNet50': [torchvision.models.segmentation.fcn_resnet50, torch.rand(10,3,224,224)]}
-models = {'ResNet18': [torchvision.models.resnet18, torch.rand(1, 3, 224, 224)],
-          'VGG13': [torchvision.models.vgg13, torch.rand(1, 3, 224, 224)],
-          'MobileNetV2': [torchvision.models.mobilenet_v2, torch.rand(1, 3, 224, 224)],
-          'GoogleNet': [torchvision.models.googlenet, torch.rand(1, 3, 224, 224)],
-          'DenseNet121': [torchvision.models.densenet121, torch.rand(1, 3, 224, 224)],
-          'InceptionV3': [torchvision.models.inception_v3, torch.rand(1, 3, 299, 299)]
-          }
+models = {
+    "ResNet18": [torchvision.models.resnet18, torch.rand(1, 3, 224, 224)],
+    "VGG13": [torchvision.models.vgg13, torch.rand(1, 3, 224, 224)],
+    "MobileNetV2": [torchvision.models.mobilenet_v2, torch.rand(1, 3, 224, 224)],
+    "GoogleNet": [torchvision.models.googlenet, torch.rand(1, 3, 224, 224)],
+    "DenseNet121": [torchvision.models.densenet121, torch.rand(1, 3, 224, 224)],
+    "InceptionV3": [torchvision.models.inception_v3, torch.rand(1, 3, 299, 299)],
+}
 
 
 def get_device(is_gpu):
     if is_gpu:
         print("Using GPU:")
-        return torch.device('cuda')
+        return torch.device("cuda")
     print("Using CPU:")
-    return torch.device('cpu')
+    return torch.device("cpu")
 
 
 def run_inference(model_name, iterations, is_gpu):
@@ -51,23 +52,37 @@ def run_inference(model_name, iterations, is_gpu):
     latency_mean = 0.0
 
     for percentile in [50, 90, 99]:
-        print('{}: p{} Latency: {} msec'.format(model_name, percentile, np.percentile(inference_times, percentile)))
+        print(
+            "{}: p{} Latency: {} msec".format(
+                model_name, percentile, np.percentile(inference_times, percentile)
+            )
+        )
 
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument('--iterations', '-i', help='How many iterations to run inference for', type=int, required=True)
-    parser.add_argument('--model', '-m', help='Which model to run', type=str, required=False)
-    parser.add_argument('--gpu', '-gpu', help='Toggle if running on GPU', action="store_true")
+    parser.add_argument(
+        "--iterations",
+        "-i",
+        help="How many iterations to run inference for",
+        type=int,
+        required=True,
+    )
+    parser.add_argument(
+        "--model", "-m", help="Which model to run", type=str, required=False
+    )
+    parser.add_argument(
+        "--gpu", "-gpu", help="Toggle if running on GPU", action="store_true"
+    )
     args = vars(parser.parse_args())
-    iterations = args['iterations']
-    model_name = args['model']
-    is_gpu = args['gpu']
+    iterations = args["iterations"]
+    model_name = args["model"]
+    is_gpu = args["gpu"]
 
     if not model_name:
         for model_name in models.keys():
             run_inference(model_name, iterations, is_gpu)
 
-    assert (model_name in models)
+    assert model_name in models
 
     run_inference(model_name, iterations, is_gpu)

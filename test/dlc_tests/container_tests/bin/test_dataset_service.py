@@ -11,16 +11,21 @@ FLAGS = flags.FLAGS
 
 def local_service():
     print("Starting Local Service")
-    dispatcher = tf.data.experimental.service.DispatchServer(tf.data.experimental.service.DispatcherConfig(port=50050))
+    dispatcher = tf.data.experimental.service.DispatchServer(
+        tf.data.experimental.service.DispatcherConfig(port=50050)
+    )
     dispatcher_address = dispatcher.target.split("://")[1]
-    worker = tf.data.experimental.service.WorkerServer(tf.data.experimental.service.WorkerConfig(
-        dispatcher_address=dispatcher_address))
+    worker = tf.data.experimental.service.WorkerServer(
+        tf.data.experimental.service.WorkerConfig(dispatcher_address=dispatcher_address)
+    )
     print("Dispatcher target is ", dispatcher.target)
     return dispatcher, worker, dispatcher.target
 
 
 def apply_transformations(ds_train):
-    ds_train = ds_train.map(normalize_img, num_parallel_calls=tf.data.experimental.AUTOTUNE)
+    ds_train = ds_train.map(
+        normalize_img, num_parallel_calls=tf.data.experimental.AUTOTUNE
+    )
     ds_train = ds_train.cache()
     ds_train = ds_train.shuffle(60000)
     ds_train = ds_train.batch(128)
@@ -56,7 +61,11 @@ else:
 # This will register the dataset with the tf.data service cluster so that
 # tf.data workers can run the dataset to produce elements. The dataset returned
 # from applying `distribute` will fetch elements produced by tf.data workers.
-dataset = dataset.apply(tf.data.experimental.service.distribute(processing_mode=processing_mode, service=service))
+dataset = dataset.apply(
+    tf.data.experimental.service.distribute(
+        processing_mode=processing_mode, service=service
+    )
+)
 
 for (x1, y1), (x2, y2) in zip(dataset, ds_train):
     np.allclose(x1, x2)

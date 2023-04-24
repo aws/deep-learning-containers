@@ -18,7 +18,10 @@ import pytest
 import sagemaker.huggingface
 from sagemaker.huggingface import HuggingFace, TrainingCompilerConfig
 
-from test.test_utils import get_framework_and_version_from_tag, get_cuda_version_from_tag
+from test.test_utils import (
+    get_framework_and_version_from_tag,
+    get_cuda_version_from_tag,
+)
 from packaging.version import Version
 from packaging.specifiers import SpecifierSet
 from ...integration import DEFAULT_TIMEOUT
@@ -49,7 +52,10 @@ hyperparameters = {
 metric_definitions = [
     {"Name": "train_runtime", "Regex": "'train_runtime':\D*([0-9,.]*?)"},
     {"Name": "device", "Regex": "Using\D*([a-zA-Z0-9:]*)\D*device"},
-    {"Name": "train_samples_per_second", "Regex": "train_samples_per_second.*=\D*(.*?)$"},
+    {
+        "Name": "train_samples_per_second",
+        "Regex": "train_samples_per_second.*=\D*(.*?)$",
+    },
     {"Name": "epoch", "Regex": "epoch.*=\D*(.*?)$"},
     {"Name": "f1", "Regex": "f1.*=\D*(.*?)$"},
     {"Name": "exact_match", "Regex": "exact_match.*=\D*(.*?)$"},
@@ -86,10 +92,9 @@ def num_gpus_per_instance(instance_type):
 
 @pytest.fixture
 def should_nccl_use_pcie(instance_type, instance_count, ecr_image):
-    """Should NCCL be explicitly forced to use PCIE when NVLINK is not available ? This is baked in from PyTorch 1.12.
-    """
+    """Should NCCL be explicitly forced to use PCIE when NVLINK is not available ? This is baked in from PyTorch 1.12."""
     pytorch_version = get_framework_and_version_from_tag(ecr_image)[1]
-    if 'g' in instance_type and ( Version(pytorch_version) in SpecifierSet("< 1.12") ):
+    if "g" in instance_type and (Version(pytorch_version) in SpecifierSet("< 1.12")):
         return True
     return False
 
@@ -149,7 +154,9 @@ class TestSingleNodeSingleGPU:
                 max_retry_attempts=15,
             )
             estimator.fit(
-                job_name=sagemaker.utils.unique_name_from_base("hf-pt-trcomp-SNSG-default"),
+                job_name=sagemaker.utils.unique_name_from_base(
+                    "hf-pt-trcomp-SNSG-default"
+                ),
                 logs=True,
             )
         captured = capsys.readouterr()
@@ -202,7 +209,9 @@ class TestSingleNodeSingleGPU:
                 max_retry_attempts=15,
             )
             estimator.fit(
-                job_name=sagemaker.utils.unique_name_from_base("hf-pt-trcomp-SNSG-enabled"),
+                job_name=sagemaker.utils.unique_name_from_base(
+                    "hf-pt-trcomp-SNSG-enabled"
+                ),
                 logs=True,
             )
         captured = capsys.readouterr()
@@ -255,7 +264,10 @@ class TestSingleNodeSingleGPU:
                 max_retry_attempts=15,
             )
             estimator.fit(
-                job_name=sagemaker.utils.unique_name_from_base("hf-pt-trcomp-SNSG-debug"), logs=True
+                job_name=sagemaker.utils.unique_name_from_base(
+                    "hf-pt-trcomp-SNSG-debug"
+                ),
+                logs=True,
             )
 
         captured = capsys.readouterr()
@@ -265,9 +277,13 @@ class TestSingleNodeSingleGPU:
         assert "Configuring SM Training Compiler" in logs
         assert "device: xla" in logs
 
-        debug_artifact_path = estimator.model_data.replace("model.tar.gz", "output.tar.gz")
+        debug_artifact_path = estimator.model_data.replace(
+            "model.tar.gz", "output.tar.gz"
+        )
         debug_artifact = os.path.join(tmpdir, "output.tar.gz")
-        subprocess.check_output(["aws", "s3", "cp", debug_artifact_path, debug_artifact])
+        subprocess.check_output(
+            ["aws", "s3", "cp", debug_artifact_path, debug_artifact]
+        )
         with tarfile.open(debug_artifact, "r:gz") as tarball:
             tarball.extractall(path=tmpdir)
         xla_metrics_file = os.path.join(tmpdir, "compiler", "XLA_METRICS_FILE.txt")
@@ -339,11 +355,15 @@ class TestSingleNodeMultiGPU:
                 hyperparameters=hyperparameters,
                 py_version=py_version,
                 max_retry_attempts=15,
-                distribution = {'pytorchxla': {'enabled': True}},
-                environment = {'NCCL_P2P_LEVEL': 'PXB'} if should_nccl_use_pcie else {}, #Temporary measure to enable communication through PCIe instead of NVLink 
+                distribution={"pytorchxla": {"enabled": True}},
+                environment={"NCCL_P2P_LEVEL": "PXB"}
+                if should_nccl_use_pcie
+                else {},  # Temporary measure to enable communication through PCIe instead of NVLink
             )
             estimator.fit(
-                job_name=sagemaker.utils.unique_name_from_base("hf-pt-trcomp-SNMG-default"),
+                job_name=sagemaker.utils.unique_name_from_base(
+                    "hf-pt-trcomp-SNMG-default"
+                ),
                 logs=True,
             )
         captured = capsys.readouterr()
@@ -424,11 +444,15 @@ class TestMultiNodeMultiGPU:
                 hyperparameters=hyperparameters,
                 py_version=py_version,
                 max_retry_attempts=15,
-                distribution = {'pytorchxla': {'enabled': True}},
-                environment = {'NCCL_P2P_LEVEL': 'PXB'} if should_nccl_use_pcie else {}, #Temporary measure to enable communication through PCIe instead of NVLink 
+                distribution={"pytorchxla": {"enabled": True}},
+                environment={"NCCL_P2P_LEVEL": "PXB"}
+                if should_nccl_use_pcie
+                else {},  # Temporary measure to enable communication through PCIe instead of NVLink
             )
             estimator.fit(
-                job_name=sagemaker.utils.unique_name_from_base("hf-pt-trcomp-MNMG-default"),
+                job_name=sagemaker.utils.unique_name_from_base(
+                    "hf-pt-trcomp-MNMG-default"
+                ),
                 logs=True,
             )
         captured = capsys.readouterr()

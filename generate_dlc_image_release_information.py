@@ -46,16 +46,19 @@ def upload_to_S3(local_file_path, bucket_name, bucket_key):
 
 
 def parse_args():
-    parser = argparse.ArgumentParser(description="Specify bucket name to upload release information for DLC")
+    parser = argparse.ArgumentParser(
+        description="Specify bucket name to upload release information for DLC"
+    )
     parser.add_argument("--artifact-bucket", type=str, required=True)
     return parser.parse_args()
 
 
 if __name__ == "__main__":
-
     args = parse_args()
     dlc_artifact_bucket = args.artifact_bucket
-    github_publishing_metadata_path = os.path.join(os.sep, "tmp", "github_publishing_metadata.dict")
+    github_publishing_metadata_path = os.path.join(
+        os.sep, "tmp", "github_publishing_metadata.dict"
+    )
 
     if not os.path.exists(github_publishing_metadata_path):
         LOGGER.error(
@@ -74,10 +77,14 @@ if __name__ == "__main__":
     dlc_region = os.getenv("REGION")
 
     if dlc_release_successful != "1":
-        LOGGER.error("Skipping generation of release information as the DLC release failed/skipped.")
+        LOGGER.error(
+            "Skipping generation of release information as the DLC release failed/skipped."
+        )
         sys.exit(0)
 
-    dlc_release_information = DLCReleaseInformation(dlc_account_id, dlc_region, dlc_repository, dlc_tag)
+    dlc_release_information = DLCReleaseInformation(
+        dlc_account_id, dlc_region, dlc_repository, dlc_tag
+    )
 
     # bom objects below are used to create .tar.gz file to be uploaded as an asset, 'imp' objects are used as release information
     release_info = {
@@ -111,15 +118,28 @@ if __name__ == "__main__":
     # Save the zip as <dlc_tag>_BOM.zip
     tarfile_name = f"{dlc_tag}_BOM.tar.gz"
     with tarfile.open(tarfile_name, "w:gz") as dlc_bom_tar:
-        dlc_bom_tar.add(bom_pip_packages_local_path, arcname=os.path.basename(bom_pip_packages_local_path))
-        dlc_bom_tar.add(bom_apt_packages_local_path, arcname=os.path.basename(bom_apt_packages_local_path))
-        dlc_bom_tar.add(bom_pipdeptree_local_path, arcname=os.path.basename(bom_pipdeptree_local_path))
+        dlc_bom_tar.add(
+            bom_pip_packages_local_path,
+            arcname=os.path.basename(bom_pip_packages_local_path),
+        )
+        dlc_bom_tar.add(
+            bom_apt_packages_local_path,
+            arcname=os.path.basename(bom_apt_packages_local_path),
+        )
+        dlc_bom_tar.add(
+            bom_pipdeptree_local_path,
+            arcname=os.path.basename(bom_pipdeptree_local_path),
+        )
 
     LOGGER.info(f"Created BOM zip: {tarfile_name}")
 
     s3BucketURI = f"s3://{dlc_artifact_bucket}/{dlc_folder}/{dlc_repository}:{dlc_tag}/"
 
-    upload_to_S3(tarfile_name, dlc_artifact_bucket, f"{dlc_folder}/{dlc_repository}:{dlc_tag}/{tarfile_name}")
+    upload_to_S3(
+        tarfile_name,
+        dlc_artifact_bucket,
+        f"{dlc_folder}/{dlc_repository}:{dlc_tag}/{tarfile_name}",
+    )
 
     release_info["bom_tar_s3_uri"] = f"{s3BucketURI}{tarfile_name}"
 
@@ -127,12 +147,16 @@ if __name__ == "__main__":
     write_to_file(dlc_release_info_json, json.dumps(release_info))
 
     upload_to_S3(
-        dlc_release_info_json, dlc_artifact_bucket, f"{dlc_folder}/{dlc_repository}:{dlc_tag}/dlc_release_info.json"
+        dlc_release_info_json,
+        dlc_artifact_bucket,
+        f"{dlc_folder}/{dlc_repository}:{dlc_tag}/dlc_release_info.json",
     )
 
     # Cleanup
     os.remove(tarfile_name)
     shutil.rmtree(directory)
 
-    LOGGER.info(f"Release Information collected for image: {dlc_release_information.image}")
+    LOGGER.info(
+        f"Release Information collected for image: {dlc_release_information.image}"
+    )
     LOGGER.info(f"Release information and BOM uploaded to: {s3BucketURI}")

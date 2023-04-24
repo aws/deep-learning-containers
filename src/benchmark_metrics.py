@@ -11,22 +11,42 @@ TENSORFLOW_TRAINING_GPU_IMAGENET_THRESHOLD = {"<2.0": 5000, ">=2.0": 7000}
 # p99 latency, unit: second
 TENSORFLOW_INFERENCE_CPU_THRESHOLD = {
     "<2.0": {
-        "INCEPTION": 0.06, "RCNN-Resnet101-kitti": 0.65, "Resnet50v2": 0.35, "MNIST": 0.00045, "SSDResnet50Coco": 0.4,
+        "INCEPTION": 0.06,
+        "RCNN-Resnet101-kitti": 0.65,
+        "Resnet50v2": 0.35,
+        "MNIST": 0.00045,
+        "SSDResnet50Coco": 0.4,
     },
     ">=2.0,<2.4": {
-        "INCEPTION": 0.06, "RCNN-Resnet101-kitti": 0.65, "Resnet50v2": 0.35, "MNIST": 0.00045, "SSDResnet50Coco": 0.4,
+        "INCEPTION": 0.06,
+        "RCNN-Resnet101-kitti": 0.65,
+        "Resnet50v2": 0.35,
+        "MNIST": 0.00045,
+        "SSDResnet50Coco": 0.4,
     },
     # Updated thresholds for TF 2.4.1 CPU from Vanilla TF 2.4
     ">=2.4": {
-        "INCEPTION": 0.11, "RCNN-Resnet101-kitti": 2.1, "Resnet50v2": 0.35, "MNIST": 0.001, "SSDResnet50Coco": 1.2,
+        "INCEPTION": 0.11,
+        "RCNN-Resnet101-kitti": 2.1,
+        "Resnet50v2": 0.35,
+        "MNIST": 0.001,
+        "SSDResnet50Coco": 1.2,
     },
 }
 TENSORFLOW_INFERENCE_GPU_THRESHOLD = {
     "<2.0": {
-        "INCEPTION": 0.04, "RCNN-Resnet101-kitti": 0.06, "Resnet50v2": 0.014, "MNIST": 0.0024, "SSDResnet50Coco": 0.1,
+        "INCEPTION": 0.04,
+        "RCNN-Resnet101-kitti": 0.06,
+        "Resnet50v2": 0.014,
+        "MNIST": 0.0024,
+        "SSDResnet50Coco": 0.1,
     },
     ">=2.0": {
-        "INCEPTION": 0.04, "RCNN-Resnet101-kitti": 0.06, "Resnet50v2": 0.014, "MNIST": 0.0024, "SSDResnet50Coco": 0.1,
+        "INCEPTION": 0.04,
+        "RCNN-Resnet101-kitti": 0.06,
+        "Resnet50v2": 0.014,
+        "MNIST": 0.0024,
+        "SSDResnet50Coco": 0.1,
     },
 }
 
@@ -82,55 +102,43 @@ PYTORCH_INFERENCE_GPU_THRESHOLD = {
 # Metric: SM Billable secs
 # Unit: secs
 TRCOMP_THRESHOLD = {
-    'tensorflow': {                 # framework
-        '2.9': {                    # framework version
-            'resnet101': {          # model name
-                'ml.p3.2xlarge': {  # instance
-                    1: {            # Num nodes
-                        224: 2500   # batch size : threshold
-                    }
+    "tensorflow": {  # framework
+        "2.9": {  # framework version
+            "resnet101": {  # model name
+                "ml.p3.2xlarge": {  # instance
+                    1: {224: 2500}  # Num nodes  # batch size : threshold
                 }
             },
-            'GPT-2': {          # model name
-                'ml.p3.2xlarge': {  # instance
-                    1: {            # Num nodes
-                        75: 2000   # batch size : threshold
-                    }
+            "GPT-2": {  # model name
+                "ml.p3.2xlarge": {  # instance
+                    1: {75: 2000}  # Num nodes  # batch size : threshold
                 }
-            }   
+            },
         },
-        '2.10': {                    # framework version
-            'resnet101': {          # model name
-                'ml.p3.2xlarge': {  # instance
-                    1: {            # Num nodes
-                        224: 2500   # batch size : threshold
-                    }
+        "2.10": {  # framework version
+            "resnet101": {  # model name
+                "ml.p3.2xlarge": {  # instance
+                    1: {224: 2500}  # Num nodes  # batch size : threshold
                 }
             },
-            'GPT-2': {          # model name
-                'ml.p3.2xlarge': {  # instance
-                    1: {            # Num nodes
-                        75: 2000   # batch size : threshold
-                    }
+            "GPT-2": {  # model name
+                "ml.p3.2xlarge": {  # instance
+                    1: {75: 2000}  # Num nodes  # batch size : threshold
                 }
-            }
+            },
         },
-        '2.11': {                    # framework version
-            'resnet101': {          # model name
-                'ml.p3.2xlarge': {  # instance
-                    1: {            # Num nodes
-                        224: 2500   # batch size : threshold
-                    }
+        "2.11": {  # framework version
+            "resnet101": {  # model name
+                "ml.p3.2xlarge": {  # instance
+                    1: {224: 2500}  # Num nodes  # batch size : threshold
                 }
             },
-            'GPT-2': {          # model name
-                'ml.p3.2xlarge': {  # instance
-                    1: {            # Num nodes
-                        75: 2000   # batch size : threshold
-                    }
+            "GPT-2": {  # model name
+                "ml.p3.2xlarge": {  # instance
+                    1: {75: 2000}  # Num nodes  # batch size : threshold
                 }
-            }
-        }
+            },
+        },
     }
 }
 

@@ -33,9 +33,13 @@ class MyModel(smp.DistributedModel):
     def __init__(self):
         super(MyModel, self).__init__()
         self.d1 = Dense(
-            4, activation="relu", kernel_initializer=tf.keras.initializers.GlorotNormal(seed=192)
+            4,
+            activation="relu",
+            kernel_initializer=tf.keras.initializers.GlorotNormal(seed=192),
         )
-        self.d2 = Dense(1, kernel_initializer=tf.keras.initializers.GlorotNormal(seed=126))
+        self.d2 = Dense(
+            1, kernel_initializer=tf.keras.initializers.GlorotNormal(seed=126)
+        )
 
     def first(self, x):
         with tf.name_scope("first"):
@@ -102,14 +106,17 @@ test_variable = tf.Variable(0.0)
 
 checkpoint_directory = "/tmp/tf2_ckpt_test/"
 
-checkpoint = tf.train.Checkpoint(optimizer=optimizer, model=model, test_var=test_variable)
+checkpoint = tf.train.Checkpoint(
+    optimizer=optimizer, model=model, test_var=test_variable
+)
 
 ckpt_manager = smp.CheckpointManager(checkpoint, checkpoint_directory)
 
 
 def test_saved_ckpt():
-
-    print("................................. Testing ckpt .......................................")
+    print(
+        "................................. Testing ckpt ......................................."
+    )
 
     ckpt_manager.restore(restore_prefix="ckpt-2")
 
@@ -131,7 +138,6 @@ def test_saved_ckpt():
 loss_list = []
 # running 5 step with same inputs and labels
 for step in range(5):
-
     if step == 1:
         ckpt_manager.restore(restore_prefix="ckpt-2")
 

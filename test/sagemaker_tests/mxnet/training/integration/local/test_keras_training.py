@@ -25,21 +25,32 @@ from ...integration import MODEL_SUCCESS_FILES, RESOURCE_PATH
 
 @pytest.mark.integration("keras")
 @pytest.mark.model("mnist")
-def test_keras_training(docker_image, sagemaker_local_session, local_instance_type,
-                        framework_version, tmpdir):
-    if Version(framework_version) >= Version('1.9.0'):
+def test_keras_training(
+    docker_image,
+    sagemaker_local_session,
+    local_instance_type,
+    framework_version,
+    tmpdir,
+):
+    if Version(framework_version) >= Version("1.9.0"):
         pytest.skip(f"Keras support has been deprecated MXNet 1.9.0 onwards")
 
-    keras_path = os.path.join(RESOURCE_PATH, 'keras')
-    script_path = os.path.join(keras_path, 'keras_mnist.py')
+    keras_path = os.path.join(RESOURCE_PATH, "keras")
+    script_path = os.path.join(keras_path, "keras_mnist.py")
 
-    mx = MXNet(entry_point=script_path, role='SageMakerRole', instance_count=1,
-               instance_type=local_instance_type, sagemaker_session=sagemaker_local_session,
-               image_uri=docker_image, framework_version=framework_version,
-               output_path='file://{}'.format(tmpdir))
+    mx = MXNet(
+        entry_point=script_path,
+        role="SageMakerRole",
+        instance_count=1,
+        instance_type=local_instance_type,
+        sagemaker_session=sagemaker_local_session,
+        image_uri=docker_image,
+        framework_version=framework_version,
+        output_path="file://{}".format(tmpdir),
+    )
 
-    train = 'file://{}'.format(os.path.join(keras_path, 'data'))
-    mx.fit({'train': train})
+    train = "file://{}".format(os.path.join(keras_path, "data"))
+    mx.fit({"train": train})
 
     for directory, files in MODEL_SUCCESS_FILES.items():
         local_mode_utils.assert_output_files_exist(str(tmpdir), directory, files)

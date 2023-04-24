@@ -22,12 +22,18 @@ def test_eks_tensorflow_multi_node_training_gpu(tensorflow_training, example_onl
     eks_cluster_size = "3"
     ec2_instance_type = "p3.16xlarge"
 
-    eks_gpus_per_worker = ec2_utils.get_instance_num_gpus(instance_type=ec2_instance_type)
+    eks_gpus_per_worker = ec2_utils.get_instance_num_gpus(
+        instance_type=ec2_instance_type
+    )
 
-    _run_eks_tensorflow_multinode_training_resnet50_mpijob(tensorflow_training, eks_cluster_size, eks_gpus_per_worker)
+    _run_eks_tensorflow_multinode_training_resnet50_mpijob(
+        tensorflow_training, eks_cluster_size, eks_gpus_per_worker
+    )
 
 
-def _run_eks_tensorflow_multinode_training_resnet50_mpijob(example_image_uri, cluster_size, eks_gpus_per_worker):
+def _run_eks_tensorflow_multinode_training_resnet50_mpijob(
+    example_image_uri, cluster_size, eks_gpus_per_worker
+):
     """
     Run Tensorflow distributed training on EKS using horovod docker images with synthetic dataset
     :param example_image_uri:
@@ -56,10 +62,16 @@ def _run_eks_tensorflow_multinode_training_resnet50_mpijob(example_image_uri, cl
     )
 
     local_template_file_path = os.path.join(
-        "eks", "eks_manifest_templates", "tensorflow", "training", "multi_node_gpu_training.yaml"
+        "eks",
+        "eks_manifest_templates",
+        "tensorflow",
+        "training",
+        "multi_node_gpu_training.yaml",
     )
 
-    remote_yaml_file_path = os.path.join(os.sep, "tmp", f"tensorflow_multi_node_training_{unique_tag}.yaml")
+    remote_yaml_file_path = os.path.join(
+        os.sep, "tmp", f"tensorflow_multi_node_training_{unique_tag}.yaml"
+    )
 
     replace_dict = {
         "<JOB_NAME>": job_name,
@@ -70,12 +82,18 @@ def _run_eks_tensorflow_multinode_training_resnet50_mpijob(example_image_uri, cl
         "<GPUS>": str(eks_gpus_per_worker),
     }
 
-    eks_utils.write_eks_yaml_file_from_template(local_template_file_path, remote_yaml_file_path, replace_dict)
+    eks_utils.write_eks_yaml_file_from_template(
+        local_template_file_path, remote_yaml_file_path, replace_dict
+    )
 
-    _run_eks_tensorflow_multi_node_training_mpijob(namespace, job_name, remote_yaml_file_path)
+    _run_eks_tensorflow_multi_node_training_mpijob(
+        namespace, job_name, remote_yaml_file_path
+    )
 
 
-def _run_eks_tensorflow_multi_node_training_mpijob(namespace, job_name, remote_yaml_file_path):
+def _run_eks_tensorflow_multi_node_training_mpijob(
+    namespace, job_name, remote_yaml_file_path
+):
     """
     Run Tensorflow distributed training on EKS using horovod docker images using MPIJob
     :param namespace:
@@ -91,9 +109,13 @@ def _run_eks_tensorflow_multi_node_training_mpijob(namespace, job_name, remote_y
         run(f"kubectl create namespace {namespace}")
 
     try:
-        training_job_start = run(f"kubectl create -f {remote_yaml_file_path} -n {namespace}", warn=True)
+        training_job_start = run(
+            f"kubectl create -f {remote_yaml_file_path} -n {namespace}", warn=True
+        )
         if training_job_start.return_code:
-            raise RuntimeError(f"Failed to start {job_name}:\n{training_job_start.stderr}")
+            raise RuntimeError(
+                f"Failed to start {job_name}:\n{training_job_start.stderr}"
+            )
 
         eks_utils.LOGGER.info("Check pods")
         run(f"kubectl get pods -n {namespace} -o wide")
@@ -101,12 +123,18 @@ def _run_eks_tensorflow_multi_node_training_mpijob(namespace, job_name, remote_y
         complete_pod_name = eks_utils.is_mpijob_launcher_pod_ready(namespace, job_name)
 
         _, pod_name = complete_pod_name.split("/")
-        eks_utils.LOGGER.info(f"The Pods have been created and the name of the launcher pod is {pod_name}")
+        eks_utils.LOGGER.info(
+            f"The Pods have been created and the name of the launcher pod is {pod_name}"
+        )
 
         eks_utils.LOGGER.info(f"Wait for the {job_name} job to complete")
-        if eks_utils.is_eks_multinode_training_complete(remote_yaml_file_path, namespace, pod_name, job_name):
+        if eks_utils.is_eks_multinode_training_complete(
+            remote_yaml_file_path, namespace, pod_name, job_name
+        ):
             eks_utils.LOGGER.info(f"Wait for the {pod_name} pod to reach completion")
-            distributed_out = run(f"kubectl logs -n {namespace} -f {complete_pod_name}").stdout
+            distributed_out = run(
+                f"kubectl logs -n {namespace} -f {complete_pod_name}"
+            ).stdout
             eks_utils.LOGGER.info(distributed_out)
     finally:
         eks_utils.eks_multinode_cleanup(remote_yaml_file_path, namespace)

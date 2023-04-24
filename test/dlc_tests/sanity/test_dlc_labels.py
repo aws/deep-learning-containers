@@ -22,7 +22,9 @@ def test_dlc_major_version_label(image, region):
     labels = test_utils.get_labels_from_ecr_image(image, region)
     major_version = labels.get("dlc_major_version", None)
 
-    assert major_version, f"{image} has no LABEL named 'dlc_major_version'. Please insert label."
+    assert (
+        major_version
+    ), f"{image} has no LABEL named 'dlc_major_version'. Please insert label."
 
     test_utils.LOGGER.info(f"{image} has 'dlc_major_version' = {major_version}")
 
@@ -31,19 +33,23 @@ def test_dlc_major_version_label(image, region):
 @pytest.mark.integration("dlc_labels")
 @pytest.mark.model("N/A")
 def test_dlc_standard_labels(image, region):
-    customer_type_label_prefix = "ec2" if test_utils.is_ec2_image(image) else "sagemaker"
+    customer_type_label_prefix = (
+        "ec2" if test_utils.is_ec2_image(image) else "sagemaker"
+    )
 
     framework, fw_version = test_utils.get_framework_and_version_from_tag(image)
-    framework = framework.replace('_', '-')
-    fw_version = fw_version.replace('.', '-')
+    framework = framework.replace("_", "-")
+    fw_version = fw_version.replace(".", "-")
     device_type = test_utils.get_processor_from_image_uri(image)
     if device_type == "gpu":
         cuda_verison = test_utils.get_cuda_version_from_tag(image)
         device_type = f"{device_type}.{cuda_verison}"
     python_version = test_utils.get_python_version_from_image_uri(image)
     job_type = test_utils.get_job_type_from_image(image)
-    transformers_version = test_utils.get_transformers_version_from_image_uri(image).replace('.', '-')
-    os_version = test_utils.get_os_version_from_image_uri(image).replace('.', '-')
+    transformers_version = test_utils.get_transformers_version_from_image_uri(
+        image
+    ).replace(".", "-")
+    os_version = test_utils.get_os_version_from_image_uri(image).replace(".", "-")
 
     # TODO: Add x86 env variable to check explicitly for x86, instead of assuming that everything not graviton is x86
     arch_type = "graviton" if test_utils.is_graviton_architecture() else "x86"
@@ -60,7 +66,9 @@ def test_dlc_standard_labels(image, region):
     ]
 
     if contributor:
-        expected_labels.append(f"com.amazonaws.ml.engines.{customer_type_label_prefix}.dlc.contributor.{contributor}")
+        expected_labels.append(
+            f"com.amazonaws.ml.engines.{customer_type_label_prefix}.dlc.contributor.{contributor}"
+        )
     if transformers_version:
         expected_labels.append(
             f"com.amazonaws.ml.engines.{customer_type_label_prefix}.dlc.lib.transformers.{transformers_version}"
@@ -76,13 +84,15 @@ def test_dlc_standard_labels(image, region):
 
     # TODO: Remove this when ec2 labels are added. For now, ensure they are not added.
     if customer_type_label_prefix == "ec2":
-        assert set(missing_labels) == set(expected_labels), \
-            f"EC2 labels are not supported yet, and should not be added to containers. " \
+        assert set(missing_labels) == set(expected_labels), (
+            f"EC2 labels are not supported yet, and should not be added to containers. "
             f"{set(expected_labels) - set(missing_labels)} should not be present."
+        )
     else:
-        assert not missing_labels, \
-            f"Labels {missing_labels} are expected in image {image}, but cannot be found. " \
+        assert not missing_labels, (
+            f"Labels {missing_labels} are expected in image {image}, but cannot be found. "
             f"All labels on image: {actual_labels}"
+        )
 
 
 @pytest.mark.usefixtures("sagemaker")
@@ -100,8 +110,10 @@ def test_max_sagemaker_labels(image, region):
             standard_labels.append(label)
 
     standard_label_count = len(standard_labels)
-    assert standard_label_count <= max_labels, f"Max of {max_labels} labels are supported. " \
-                                               f"Currently there are {standard_label_count}: {standard_labels}"
+    assert standard_label_count <= max_labels, (
+        f"Max of {max_labels} labels are supported. "
+        f"Currently there are {standard_label_count}: {standard_labels}"
+    )
 
 
 @pytest.mark.usefixtures("sagemaker")
@@ -123,7 +135,9 @@ def test_dlc_major_version_dockerfiles(image):
     # TODO: Expected dockerfiles does not properly handle multiple python versions. We will fix this separately, and skip for the
     # eia condition in the interim to unblock the release.
     if processor == "eia":
-        pytest.skip("Temporarily skip EIA because of lack of multiple python version support for the same framework version")
+        pytest.skip(
+            "Temporarily skip EIA because of lack of multiple python version support for the same framework version"
+        )
 
     # Assign a string of numbers associated with python version in tag. Python major version is not sufficient to
     # define DLC major version
@@ -132,13 +146,22 @@ def test_dlc_major_version_dockerfiles(image):
     root_dir = os.path.join(dlc_dir, framework, job_type, "docker")
 
     # Skip older FW versions that did not use this versioning scheme
-    references = {"tensorflow2": "2.2.0", "tensorflow1": "1.16.0", "mxnet": "1.7.0", "pytorch": "1.5.0"}
+    references = {
+        "tensorflow2": "2.2.0",
+        "tensorflow1": "1.16.0",
+        "mxnet": "1.7.0",
+        "pytorch": "1.5.0",
+    }
     excluded_versions = {
         "tensorflow2": [SpecifierSet("<2.2")],
         "tensorflow1": [SpecifierSet("<1.16")],
         "mxnet": [SpecifierSet("<1.7")],
-        # HACK Temporary exception PT 1.11 and PT 1.12 since they use different cuda versions for ec2 and SM 
-        "pytorch": [SpecifierSet("<1.5"), SpecifierSet("==1.11.*"), SpecifierSet("==1.12.*")],
+        # HACK Temporary exception PT 1.11 and PT 1.12 since they use different cuda versions for ec2 and SM
+        "pytorch": [
+            SpecifierSet("<1.5"),
+            SpecifierSet("==1.11.*"),
+            SpecifierSet("==1.12.*"),
+        ],
         # autogluon 0.3.1 and 0.3.2 DLCs are both v1, and are meant to exist in the repo simultaneously
         "autogluon": [SpecifierSet("==0.3.*")],
     }
@@ -157,14 +180,16 @@ def test_dlc_major_version_dockerfiles(image):
     # Find all Dockerfile.<processor> for this framework/job_type's Major.Minor version
     dockerfiles = []
     fw_version_major_minor = re.match(r"(\d+\.\d+)", fw_version).group(1)
-    dockerfiles_of_interest = test_utils.get_expected_dockerfile_filename(processor, image)
+    dockerfiles_of_interest = test_utils.get_expected_dockerfile_filename(
+        processor, image
+    )
     for root, dirnames, filenames in os.walk(root_dir):
         for filename in filenames:
             if filename == dockerfiles_of_interest:
                 dockerfile_path = os.path.join(root_dir, root, filename)
                 if f"{os.sep}{fw_version_major_minor}" in dockerfile_path:
                     if "neuron" in image:
-                        if 'sdk'+neuron_sdk_version == os.path.basename(root):
+                        if "sdk" + neuron_sdk_version == os.path.basename(root):
                             dockerfiles.append(dockerfile_path)
                     elif "example" not in dockerfile_path:
                         dockerfiles.append(dockerfile_path)
@@ -188,9 +213,13 @@ def test_dlc_major_version_dockerfiles(image):
 
             # Raise errors if dlc major version label and python version arg are not found in Dockerfile
             if not dlc_version:
-                raise DLCMajorVersionLabelNotFound(f"Cannot find dlc_major_version label in {dockerfile}")
+                raise DLCMajorVersionLabelNotFound(
+                    f"Cannot find dlc_major_version label in {dockerfile}"
+                )
             if not python_version:
-                raise DLCPythonVersionNotFound(f"Cannot find PYTHON_VERSION arg in {dockerfile}")
+                raise DLCPythonVersionNotFound(
+                    f"Cannot find PYTHON_VERSION arg in {dockerfile}"
+                )
             if python_version == python_major_minor_version:
                 versions[dockerfile] = dlc_version
 
@@ -198,7 +227,13 @@ def test_dlc_major_version_dockerfiles(image):
     actual_versions = sorted(versions.values())
 
     # Test case explicitly for TF2.3 gpu, since v1.0 is banned
-    if (framework, fw_version_major_minor, processor, python_major_minor_version, job_type) == (
+    if (
+        framework,
+        fw_version_major_minor,
+        processor,
+        python_major_minor_version,
+        job_type,
+    ) == (
         "tensorflow",
         "2.3",
         "gpu",
@@ -212,7 +247,13 @@ def test_dlc_major_version_dockerfiles(image):
         )
 
     # Test case explicitly for PyTorch 1.6.0 training gpu, since v2.0 is banned
-    if (framework, fw_version_major_minor, processor, python_major_minor_version, job_type) == (
+    if (
+        framework,
+        fw_version_major_minor,
+        processor,
+        python_major_minor_version,
+        job_type,
+    ) == (
         "pytorch",
         "1.6",
         "gpu",
@@ -236,7 +277,10 @@ def test_dlc_major_version_dockerfiles(image):
     )
 
 
-@pytest.mark.skipif(not test_utils.is_mainline_context(), reason="This test only applies to Release Candidate images")
+@pytest.mark.skipif(
+    not test_utils.is_mainline_context(),
+    reason="This test only applies to Release Candidate images",
+)
 @pytest.mark.usefixtures("sagemaker")
 @pytest.mark.integration("dlc_nightly_feature_label")
 @pytest.mark.model("N/A")
@@ -248,7 +292,9 @@ def test_dlc_nightly_feature_labels(image, region):
     """
     image_labels = test_utils.get_labels_from_ecr_image(image, region)
     nightly_labels_on_image = [
-        label.value for label in test_utils.NightlyFeatureLabel.__members__.values() if label.value in image_labels
+        label.value
+        for label in test_utils.NightlyFeatureLabel.__members__.values()
+        if label.value in image_labels
     ]
     assert not nightly_labels_on_image, (
         f"The labels {nightly_labels_on_image} must not be applied on images built to be release candidates.\n"

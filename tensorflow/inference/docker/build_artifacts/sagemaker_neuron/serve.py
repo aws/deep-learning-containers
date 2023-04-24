@@ -28,7 +28,9 @@ JS_PING = "js_content ping"
 JS_INVOCATIONS = "js_content invocations"
 GUNICORN_PING = "proxy_pass http://gunicorn_upstream/ping"
 GUNICORN_INVOCATIONS = "proxy_pass http://gunicorn_upstream/invocations"
-MULTI_MODEL = "s" if os.environ.get("SAGEMAKER_MULTI_MODEL", "False").lower() == "true" else ""
+MULTI_MODEL = (
+    "s" if os.environ.get("SAGEMAKER_MULTI_MODEL", "False").lower() == "true" else ""
+)
 MODEL_DIR = f"model{MULTI_MODEL}"
 CODE_DIR = "/opt/ml/{}/code".format(MODEL_DIR)
 PYTHON_LIB_PATH = os.path.join(CODE_DIR, "lib")
@@ -47,25 +49,30 @@ class ServiceManager(object):
         self._tfs_version = os.environ.get("SAGEMAKER_TFS_VERSION", "1.13")
         self._nginx_http_port = os.environ.get("SAGEMAKER_BIND_TO_PORT", "8080")
         self._nginx_loglevel = os.environ.get("SAGEMAKER_TFS_NGINX_LOGLEVEL", "error")
-        self._tfs_default_model_name = os.environ.get("SAGEMAKER_TFS_DEFAULT_MODEL_NAME", "None")
+        self._tfs_default_model_name = os.environ.get(
+            "SAGEMAKER_TFS_DEFAULT_MODEL_NAME", "None"
+        )
         self._sagemaker_port_range = os.environ.get("SAGEMAKER_SAFE_PORT_RANGE", None)
         self._gunicorn_workers = os.environ.get("SAGEMAKER_GUNICORN_WORKERS", None)
         self._gunicorn_threads = os.environ.get("SAGEMAKER_GUNICORN_THREADS", 1)
         self._tfs_config_path = "/sagemaker/model-config.cfg"
         self._tfs_batching_config_path = "/sagemaker/batching-config.cfg"
-        self._user_ncgs =  os.environ.get('NEURONCORE_GROUP_SIZES', None)
+        self._user_ncgs = os.environ.get("NEURONCORE_GROUP_SIZES", None)
         if self._user_ncgs is None:
-            os.environ['NEURONCORE_GROUP_SIZES'] = "1"
+            os.environ["NEURONCORE_GROUP_SIZES"] = "1"
             self._user_ncgs = 1
         if self._gunicorn_workers is None:
             num_host_cores = os.environ.get("NEURON_CORE_HOST_TOTAL")
             if num_host_cores is None:
                 self._gunicorn_workers = 1
             else:
-               self._gunicorn_workers = num_host_cores
-        _enable_batching = os.environ.get("SAGEMAKER_TFS_ENABLE_BATCHING", "false").lower()
-        _enable_multi_model_endpoint = os.environ.get("SAGEMAKER_MULTI_MODEL",
-                                                      "false").lower()
+                self._gunicorn_workers = num_host_cores
+        _enable_batching = os.environ.get(
+            "SAGEMAKER_TFS_ENABLE_BATCHING", "false"
+        ).lower()
+        _enable_multi_model_endpoint = os.environ.get(
+            "SAGEMAKER_MULTI_MODEL", "false"
+        ).lower()
 
         if _enable_multi_model_endpoint not in ["true", "false"]:
             raise ValueError("SAGEMAKER_MULTI_MODEL must be 'true' or 'false'")
@@ -82,15 +89,20 @@ class ServiceManager(object):
             raise ValueError("SAGEMAKER_MULTI_MODEL must be 'true' or 'false'")
         self._tfs_enable_multi_model_endpoint = _enable_multi_model_endpoint == "true"
 
-        self._use_gunicorn = self._enable_python_service or self._tfs_enable_multi_model_endpoint
+        self._use_gunicorn = (
+            self._enable_python_service or self._tfs_enable_multi_model_endpoint
+        )
 
         if self._sagemaker_port_range is not None:
             parts = self._sagemaker_port_range.split("-")
             low = int(parts[0])
             hi = int(parts[1])
             if low + 2 > hi:
-                raise ValueError("not enough ports available in SAGEMAKER_SAFE_PORT_RANGE ({})"
-                                 .format(self._sagemaker_port_range))
+                raise ValueError(
+                    "not enough ports available in SAGEMAKER_SAFE_PORT_RANGE ({})".format(
+                        self._sagemaker_port_range
+                    )
+                )
             self._tfs_grpc_port = str(low)
             self._tfs_rest_port = str(low + 1)
         else:
@@ -105,8 +117,9 @@ class ServiceManager(object):
     def _need_python_service(self):
         if os.path.exists(INFERENCE_PATH):
             self._enable_python_service = True
-        if os.environ.get("SAGEMAKER_MULTI_MODEL_UNIVERSAL_BUCKET") \
-                and os.environ.get("SAGEMAKER_MULTI_MODEL_UNIVERSAL_PREFIX"):
+        if os.environ.get("SAGEMAKER_MULTI_MODEL_UNIVERSAL_BUCKET") and os.environ.get(
+            "SAGEMAKER_MULTI_MODEL_UNIVERSAL_PREFIX"
+        ):
             self._enable_python_service = True
 
     def _create_tfs_config(self):
@@ -119,7 +132,9 @@ class ServiceManager(object):
             default_model = os.path.basename(models[0])
             if default_model:
                 self._tfs_default_model_name = default_model
-                log.info("using default model name: {}".format(self._tfs_default_model_name))
+                log.info(
+                    "using default model name: {}".format(self._tfs_default_model_name)
+                )
             else:
                 log.info("no default model detected")
 
@@ -167,8 +182,11 @@ class ServiceManager(object):
 
             if requirements_exists:
                 if lib_path_exists:
-                    log.warning("loading modules in '{}', ignoring requirements.txt"
-                                .format(PYTHON_LIB_PATH))
+                    log.warning(
+                        "loading modules in '{}', ignoring requirements.txt".format(
+                            PYTHON_LIB_PATH
+                        )
+                    )
                 else:
                     log.info("installing packages from requirements.txt...")
                     pip_install_cmd = "pip3 install -r {}".format(REQUIREMENTS_PATH)
@@ -183,10 +201,16 @@ class ServiceManager(object):
             "gunicorn -b unix:/tmp/gunicorn.sock -k gevent --chdir /sagemaker "
             "--workers {} --threads {} "
             "{}{} -e TFS_GRPC_PORT={} -e SAGEMAKER_MULTI_MODEL={} -e SAGEMAKER_SAFE_PORT_RANGE={} "
-            "python_service:app").format(self._gunicorn_workers, self._gunicorn_threads,
-                                         python_path_option, ",".join(python_path_content),
-                                         self._tfs_grpc_port, self._tfs_enable_multi_model_endpoint,
-                                         self._sagemaker_port_range)
+            "python_service:app"
+        ).format(
+            self._gunicorn_workers,
+            self._gunicorn_threads,
+            python_path_option,
+            ",".join(python_path_content),
+            self._tfs_grpc_port,
+            self._tfs_enable_multi_model_endpoint,
+            self._sagemaker_port_range,
+        )
 
         log.info("gunicorn command: {}".format(gunicorn_command))
         self._gunicorn_command = gunicorn_command
@@ -196,7 +220,9 @@ class ServiceManager(object):
         boto_session = boto3.session.Session()
         boto_region = boto_session.region_name
         if boto_region in ("us-iso-east-1", "us-gov-west-1"):
-            raise ValueError("Universal scripts is not supported in us-iso-east-1 or us-gov-west-1")
+            raise ValueError(
+                "Universal scripts is not supported in us-iso-east-1 or us-gov-west-1"
+            )
 
         log.info("downloading universal scripts ...")
         client = boto3.client("s3")
@@ -221,7 +247,8 @@ class ServiceManager(object):
             "NGINX_HTTP_PORT": self._nginx_http_port,
             "NGINX_LOG_LEVEL": self._nginx_loglevel,
             "FORWARD_PING_REQUESTS": GUNICORN_PING if self._use_gunicorn else JS_PING,
-            "FORWARD_INVOCATION_REQUESTS": GUNICORN_INVOCATIONS if self._use_gunicorn
+            "FORWARD_INVOCATION_REQUESTS": GUNICORN_INVOCATIONS
+            if self._use_gunicorn
             else JS_INVOCATIONS,
         }
 
@@ -240,7 +267,9 @@ class ServiceManager(object):
             return template
 
     def _start_tfs(self):
-        self._log_version("tensorflow_model_server_neuron --version", "tensorflow version info:")
+        self._log_version(
+            "tensorflow_model_server_neuron --version", "tensorflow version info:"
+        )
         cmd = tfs_utils.tfs_command(
             self._tfs_grpc_port,
             self._tfs_rest_port,
@@ -269,9 +298,11 @@ class ServiceManager(object):
 
     def _log_version(self, command, message):
         try:
-            output = subprocess.check_output(
-                command.split(),
-                stderr=subprocess.STDOUT).decode("utf-8", "backslashreplace").strip()
+            output = (
+                subprocess.check_output(command.split(), stderr=subprocess.STDOUT)
+                .decode("utf-8", "backslashreplace")
+                .strip()
+            )
             log.info("{}\n{}".format(message, output))
         except subprocess.CalledProcessError:
             log.warning("failed to run command: %s", command)
@@ -323,10 +354,12 @@ class ServiceManager(object):
         signal.signal(signal.SIGTERM, self._stop)
 
         if self._tfs_enable_multi_model_endpoint:
-            log.info("multi-model endpoint is enabled, TFS model servers will be started later")
+            log.info(
+                "multi-model endpoint is enabled, TFS model servers will be started later"
+            )
         else:
             self._create_tfs_config()
-            #Start TFS workers for each gunicorn worker
+            # Start TFS workers for each gunicorn worker
             for tf_worker_num in range(int(self._gunicorn_workers)):
                 self._start_tfs()
             print("all TFS PIDs {}".format(self._tfs))
@@ -354,18 +387,24 @@ class ServiceManager(object):
                 break
 
             if pid == self._nginx.pid:
-                log.warning("unexpected nginx exit (status: {}). restarting.".format(status))
+                log.warning(
+                    "unexpected nginx exit (status: {}). restarting.".format(status)
+                )
                 self._start_nginx()
 
             elif pid in self._tfs:
                 log.warning(
-                    "unexpected tensorflow serving exit (status: {}). restarting.".format(status))
+                    "unexpected tensorflow serving exit (status: {}). restarting.".format(
+                        status
+                    )
+                )
                 self._tfs.remove(pid)
                 self._start_tfs()
 
             elif self._gunicorn and pid == self._gunicorn.pid:
-                log.warning("unexpected gunicorn exit (status: {}). restarting."
-                            .format(status))
+                log.warning(
+                    "unexpected gunicorn exit (status: {}). restarting.".format(status)
+                )
                 self._start_gunicorn()
 
         self._stop()

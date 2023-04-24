@@ -1,7 +1,7 @@
 import os
 
 # Disable Autotune
-os.environ['MXNET_CUDNN_AUTOTUNE_DEFAULT'] = '0'
+os.environ["MXNET_CUDNN_AUTOTUNE_DEFAULT"] = "0"
 
 import argparse
 import logging
@@ -14,20 +14,29 @@ from mxnet import autograd, gluon
 from mxnet.test_utils import download
 
 # Training settings
-parser = argparse.ArgumentParser(description='MXNet MNIST Example')
+parser = argparse.ArgumentParser(description="MXNet MNIST Example")
 
-parser.add_argument('--batch-size', type=int, default=64,
-                    help='training batch size (default: 64)')
-parser.add_argument('--dtype', type=str, default='float32',
-                    help='training data type (default: float32)')
-parser.add_argument('--epochs', type=int, default=5,
-                    help='number of training epochs (default: 5)')
-parser.add_argument('--lr', type=float, default=0.002,
-                    help='learning rate (default: 0.01)')
-parser.add_argument('--momentum', type=float, default=0.9,
-                    help='SGD momentum (default: 0.9)')
-parser.add_argument('--no-cuda', action='store_true', default=False,
-                    help='disable training on GPU (default: False)')
+parser.add_argument(
+    "--batch-size", type=int, default=64, help="training batch size (default: 64)"
+)
+parser.add_argument(
+    "--dtype", type=str, default="float32", help="training data type (default: float32)"
+)
+parser.add_argument(
+    "--epochs", type=int, default=5, help="number of training epochs (default: 5)"
+)
+parser.add_argument(
+    "--lr", type=float, default=0.002, help="learning rate (default: 0.01)"
+)
+parser.add_argument(
+    "--momentum", type=float, default=0.9, help="SGD momentum (default: 0.9)"
+)
+parser.add_argument(
+    "--no-cuda",
+    action="store_true",
+    default=False,
+    help="disable training on GPU (default: False)",
+)
 args = parser.parse_args()
 
 # Disable CUDA if there are no GPUs.
@@ -43,8 +52,9 @@ def get_mnist_iterator(rank):
     data_dir = "data-%d" % rank
     if not os.path.isdir(data_dir):
         os.makedirs(data_dir)
-    zip_file_path = download('http://data.mxnet.io/mxnet/data/mnist.zip',
-                             dirname=data_dir)
+    zip_file_path = download(
+        "http://data.mxnet.io/mxnet/data/mnist.zip", dirname=data_dir
+    )
     with zipfile.ZipFile(zip_file_path) as zf:
         zf.extractall(data_dir)
 
@@ -59,7 +69,7 @@ def get_mnist_iterator(rank):
         shuffle=True,
         flat=False,
         num_parts=hvd.size(),
-        part_index=hvd.rank()
+        part_index=hvd.rank(),
     )
 
     val_iter = mx.io.MNISTIter(
@@ -77,9 +87,9 @@ def get_mnist_iterator(rank):
 def conv_nets():
     net = gluon.nn.HybridSequential()
     with net.name_scope():
-        net.add(gluon.nn.Conv2D(channels=20, kernel_size=5, activation='relu'))
+        net.add(gluon.nn.Conv2D(channels=20, kernel_size=5, activation="relu"))
         net.add(gluon.nn.MaxPool2D(pool_size=2, strides=2))
-        net.add(gluon.nn.Conv2D(channels=50, kernel_size=5, activation='relu'))
+        net.add(gluon.nn.Conv2D(channels=50, kernel_size=5, activation="relu"))
         net.add(gluon.nn.MaxPool2D(pool_size=2, strides=2))
         net.add(gluon.nn.Flatten())
         net.add(gluon.nn.Dense(512, activation="relu"))
@@ -116,13 +126,11 @@ model.cast(args.dtype)
 model.hybridize()
 
 # Create optimizer
-optimizer_params = {'momentum': args.momentum,
-                    'learning_rate': args.lr * hvd.size()}
-opt = mx.optimizer.create('sgd', **optimizer_params)
+optimizer_params = {"momentum": args.momentum, "learning_rate": args.lr * hvd.size()}
+opt = mx.optimizer.create("sgd", **optimizer_params)
 
 # Initialize parameters
-initializer = mx.init.Xavier(rnd_type='gaussian', factor_type="in",
-                             magnitude=2)
+initializer = mx.init.Xavier(rnd_type="gaussian", factor_type="in", magnitude=2)
 model.initialize(initializer, ctx=context)
 
 # Horovod: fetch and broadcast parameters
@@ -137,7 +145,7 @@ trainer = hvd.DistributedTrainer(params, opt)
 loss_fn = gluon.loss.SoftmaxCrossEntropyLoss()
 metric = mx.metric.Accuracy()
 
-logging.info('Training begins')
+logging.info("Training begins")
 
 # Train model
 for epoch in range(args.epochs):
@@ -156,23 +164,33 @@ for epoch in range(args.epochs):
 
         if nbatch % 10 == 0:
             name, acc = metric.get()
-            logging.info('[Epoch %d Batch %d] Training: %s=%f' %
-                         (epoch, nbatch, name, acc))
+            logging.info(
+                "[Epoch %d Batch %d] Training: %s=%f" % (epoch, nbatch, name, acc)
+            )
 
     if hvd.rank() == 0:
         elapsed = time.time() - tic
         speed = nbatch * args.batch_size * hvd.size() / elapsed
-        logging.info('Epoch[%d]\tSpeed=%.2f samples/s\tTime cost=%f',
-                     epoch, speed, elapsed)
+        logging.info(
+            "Epoch[%d]\tSpeed=%.2f samples/s\tTime cost=%f", epoch, speed, elapsed
+        )
 
     # Evaluate model accuracy
     _, train_acc = metric.get()
     name, val_acc = evaluate(model, val_data, context)
     if hvd.rank() == 0:
-        logging.info('Epoch[%d]\tTrain: %s=%f\tValidation: %s=%f', epoch, name,
-                     train_acc, name, val_acc)
+        logging.info(
+            "Epoch[%d]\tTrain: %s=%f\tValidation: %s=%f",
+            epoch,
+            name,
+            train_acc,
+            name,
+            val_acc,
+        )
 
     if hvd.rank() == 0 and epoch == args.epochs - 1:
-        assert val_acc > 0.96, "Achieved accuracy (%f) is lower than expected\
-                                (0.96)" % val_acc
-
+        assert val_acc > 0.96, (
+            "Achieved accuracy (%f) is lower than expected\
+                                (0.96)"
+            % val_acc
+        )

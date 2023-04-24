@@ -21,9 +21,11 @@ import requests
 import PIL
 from PIL.Image import core as _imaging
 
-Context = namedtuple('Context',
-                     'model_name, model_version, method, rest_uri, grpc_uri, '
-                     'custom_attributes, request_content_type, accept_header')
+Context = namedtuple(
+    "Context",
+    "model_name, model_version, method, rest_uri, grpc_uri, "
+    "custom_attributes, request_content_type, accept_header",
+)
 
 
 def handler(data, context):
@@ -38,31 +40,34 @@ def handler(data, context):
     """
 
     # use the imported library
-    print('pillow: {}\n{}'.format(PIL.__version__, dir(_imaging)))
+    print("pillow: {}\n{}".format(PIL.__version__, dir(_imaging)))
     processed_input = _process_input(data, context)
     response = requests.post(context.rest_uri, data=processed_input)
     return _process_output(response, context)
 
 
 def _process_input(data, context):
-    if context.request_content_type == 'application/json':
+    if context.request_content_type == "application/json":
         # pass through json (assumes it's correctly formed)
-        d = data.read().decode('utf-8')
-        return d if len(d) else ''
+        d = data.read().decode("utf-8")
+        return d if len(d) else ""
 
-    if context.request_content_type == 'text/csv':
+    if context.request_content_type == "text/csv":
         # very simple csv handler
-        return json.dumps({
-            'instances': [float(x) for x in data.read().decode('utf-8').split(',')]
-        })
+        return json.dumps(
+            {"instances": [float(x) for x in data.read().decode("utf-8").split(",")]}
+        )
 
-    raise ValueError('{{"error": "unsupported content type {}"}}'.format(
-        context.request_content_type or "unknown"))
+    raise ValueError(
+        '{{"error": "unsupported content type {}"}}'.format(
+            context.request_content_type or "unknown"
+        )
+    )
 
 
 def _process_output(data, context):
     if data.status_code != 200:
-        raise ValueError(data.content.decode('utf-8'))
+        raise ValueError(data.content.decode("utf-8"))
 
     response_content_type = context.accept_header
     prediction = data.content

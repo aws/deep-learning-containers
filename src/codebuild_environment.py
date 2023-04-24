@@ -33,7 +33,9 @@ def get_user_and_repo_name():
     """
     repo_url = get_github_repo_url()
     if not repo_url:
-        raise GitHubRepositoryURLNotFound("Environment did not contain GitHub Repository URL")
+        raise GitHubRepositoryURLNotFound(
+            "Environment did not contain GitHub Repository URL"
+        )
     _, user, repo_name = repo_url.rstrip(".git").rsplit("/", 2)
     return user, repo_name
 
@@ -63,6 +65,8 @@ def get_cloned_folder_path():
         if not codebuild_src_dir_env:
             codebuild_src_dir_env = root_dir_pattern.match(pwd).group(1)
     except AttributeError as e:
-        raise RuntimeError(f"Unable to find DLC root directory in path {pwd}, and no CODEBUILD_SRC_DIR set") from e
+        raise RuntimeError(
+            f"Unable to find DLC root directory in path {pwd}, and no CODEBUILD_SRC_DIR set"
+        ) from e
 
     return codebuild_src_dir_env

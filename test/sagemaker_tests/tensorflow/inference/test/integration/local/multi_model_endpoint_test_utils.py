@@ -29,9 +29,13 @@ def make_headers(content_type="application/json", method="predict", version=None
     }
 
 
-def make_invocation_request(data, model_name, content_type="application/json", version=None):
+def make_invocation_request(
+    data, model_name, content_type="application/json", version=None
+):
     headers = make_headers(content_type=content_type, method="predict", version=version)
-    response = requests.post(INVOCATION_URL.format(model_name), data=data, headers=headers)
+    response = requests.post(
+        INVOCATION_URL.format(model_name), data=data, headers=headers
+    )
     return response.status_code, response.content.decode("utf-8")
 
 
@@ -46,9 +50,7 @@ def make_get_model_request(model_name):
 
 
 def make_load_model_request(data, content_type="application/json"):
-    headers = {
-        "Content-Type": content_type
-    }
+    headers = {"Content-Type": content_type}
     response = requests.post(MODELS_URL, data=data, headers=headers)
     return response.status_code, response.content.decode("utf-8")
 

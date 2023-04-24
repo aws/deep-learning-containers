@@ -29,30 +29,35 @@ logging.basicConfig(level=logging.DEBUG)
 @pytest.mark.skip(reason="Serving part fails because of version mismatch.")
 @pytest.mark.integration("keras")
 @pytest.mark.model("inception")
-def test_keras_training(sagemaker_local_session, docker_image, tmpdir, framework_version):
-    entry_point = os.path.join(RESOURCE_PATH, 'keras_inception.py')
-    output_path = 'file://{}'.format(tmpdir)
+def test_keras_training(
+    sagemaker_local_session, docker_image, tmpdir, framework_version
+):
+    entry_point = os.path.join(RESOURCE_PATH, "keras_inception.py")
+    output_path = "file://{}".format(tmpdir)
 
     estimator = TensorFlow(
         entry_point=entry_point,
-        role='SageMakerRole',
+        role="SageMakerRole",
         instance_count=1,
-        instance_type='local',
+        instance_type="local",
         image_uri=docker_image,
         sagemaker_session=sagemaker_local_session,
-        model_dir='/opt/ml/model',
+        model_dir="/opt/ml/model",
         output_path=output_path,
         framework_version=framework_version,
-        py_version='py3')
+        py_version="py3",
+    )
 
     estimator.fit()
 
-    model = serving.Model(model_data=output_path,
-                          role='SageMakerRole',
-                          framework_version=framework_version,
-                          sagemaker_session=sagemaker_local_session)
+    model = serving.Model(
+        model_data=output_path,
+        role="SageMakerRole",
+        framework_version=framework_version,
+        sagemaker_session=sagemaker_local_session,
+    )
 
-    predictor = model.deploy(initial_instance_count=1, instance_type='local')
+    predictor = model.deploy(initial_instance_count=1, instance_type="local")
 
     assert predictor.predict(np.random.randn(4, 4, 4, 2) * 255)
 

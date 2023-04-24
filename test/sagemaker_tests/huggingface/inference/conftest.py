@@ -105,9 +105,15 @@ def pytest_addoption(parser):
     parser.addoption("--docker-base-name", default="huggingface_pytorch")
     parser.addoption("--region", default="us-west-2")
     parser.addoption("--framework-version", default="")
-    parser.addoption("--py-version", choices=["2", "3", "37", "38", "39"], default=str(sys.version_info.major))
+    parser.addoption(
+        "--py-version",
+        choices=["2", "3", "37", "38", "39"],
+        default=str(sys.version_info.major),
+    )
     # Processor is still "cpu" for EIA tests
-    parser.addoption("--processor", choices=["gpu", "cpu", "eia", 'neuron'], default="cpu")
+    parser.addoption(
+        "--processor", choices=["gpu", "cpu", "eia", "neuron"], default="cpu"
+    )
     # If not specified, will default to {framework-version}-{processor}-py{py-version}
     parser.addoption("--tag", default=None)
     parser.addoption(
@@ -122,7 +128,7 @@ def pytest_addoption(parser):
         default=False,
         help="Run only efa tests",
     )
-    parser.addoption('--sagemaker-regions', default='us-west-2')
+    parser.addoption("--sagemaker-regions", default="us-west-2")
 
 
 def pytest_configure(config):
@@ -141,7 +147,9 @@ def pytest_collection_modifyitems(session, config, items):
         from test.test_utils.test_reporting import TestReportGenerator
 
         report_generator = TestReportGenerator(items, is_sagemaker=True)
-        report_generator.generate_coverage_doc(framework="huggingface_pytorch", job_type="inference")
+        report_generator.generate_coverage_doc(
+            framework="huggingface_pytorch", job_type="inference"
+        )
 
 
 @pytest.fixture(scope="session", name="docker_base_name")
@@ -200,7 +208,9 @@ def fixture_use_gpu(processor):
 
 
 @pytest.fixture(scope="session", name="build_base_image", autouse=True)
-def fixture_build_base_image(request, framework_version, py_version, processor, tag, docker_base_name):
+def fixture_build_base_image(
+    request, framework_version, py_version, processor, tag, docker_base_name
+):
     build_base_image = request.config.getoption("--build-base-image")
     if build_base_image:
         return image_utils.build_base_image(
@@ -220,9 +230,9 @@ def fixture_sagemaker_session(region):
     return Session(boto_session=boto3.Session(region_name=region))
 
 
-@pytest.fixture(scope='session', name='sagemaker_regions')
+@pytest.fixture(scope="session", name="sagemaker_regions")
 def fixture_sagemaker_regions(request):
-    sagemaker_regions = request.config.getoption('--sagemaker-regions')
+    sagemaker_regions = request.config.getoption("--sagemaker-regions")
     return sagemaker_regions.split(",")
 
 
@@ -265,22 +275,27 @@ def skip_by_device_type(request, use_gpu, instance_type, accelerator_type):
     is_neuron = instance_type.startswith("ml.inf")
 
     # Separate out cases for clearer logic.
-    # When running Neuron test, skip CPU  and GPU test. 
-    if (request.node.get_closest_marker('neuron_test') and not is_neuron):
-        pytest.skip('Skipping because running on \'{}\' instance'.format(instance_type))
+    # When running Neuron test, skip CPU  and GPU test.
+    if request.node.get_closest_marker("neuron_test") and not is_neuron:
+        pytest.skip("Skipping because running on '{}' instance".format(instance_type))
 
     # When running GPU test, skip CPU  and neuron test. When running CPU test, skip GPU  and neuron test.
-    elif (request.node.get_closest_marker('gpu_test') and not is_gpu) or \
-            (request.node.get_closest_marker('cpu_test') and (is_gpu or is_neuron)):
-        pytest.skip('Skipping because running on \'{}\' instance'.format(instance_type))
+    elif (request.node.get_closest_marker("gpu_test") and not is_gpu) or (
+        request.node.get_closest_marker("cpu_test") and (is_gpu or is_neuron)
+    ):
+        pytest.skip("Skipping because running on '{}' instance".format(instance_type))
 
     # When running EIA test, skip the CPU, GPU and Neuron functions
-    elif (request.node.get_closest_marker('neuron_test') or request.node.get_closest_marker('gpu_test') or request.node.get_closest_marker('cpu_test')) and is_eia:
-        pytest.skip('Skipping because running on \'{}\' instance'.format(instance_type))
+    elif (
+        request.node.get_closest_marker("neuron_test")
+        or request.node.get_closest_marker("gpu_test")
+        or request.node.get_closest_marker("cpu_test")
+    ) and is_eia:
+        pytest.skip("Skipping because running on '{}' instance".format(instance_type))
 
     # When running CPU or GPU or Neuron test, skip EIA test.
-    elif request.node.get_closest_marker('eia_test') and not is_eia:
-        pytest.skip('Skipping because running on \'{}\' instance'.format(instance_type))
+    elif request.node.get_closest_marker("eia_test") and not is_eia:
+        pytest.skip("Skipping because running on '{}' instance".format(instance_type))
 
 
 @pytest.fixture(autouse=True)
@@ -316,7 +331,9 @@ def _get_remote_override_flags():
         s3_client = boto3.client("s3")
         sts_client = boto3.client("sts")
         account_id = sts_client.get_caller_identity().get("Account")
-        result = s3_client.get_object(Bucket=f"dlc-cicd-helper-{account_id}", Key="override_tests_flags.json")
+        result = s3_client.get_object(
+            Bucket=f"dlc-cicd-helper-{account_id}", Key="override_tests_flags.json"
+        )
         json_content = json.loads(result["Body"].read().decode("utf-8"))
     except ClientError as e:
         logger.warning("ClientError when performing S3/STS operation: {}".format(e))
@@ -345,7 +362,10 @@ def _is_test_disabled(test_name, build_name, version):
     remote_override_build = remote_override_flags.get(build_name, {})
     if version in remote_override_build:
         return not remote_override_build[version] or any(
-            [test_keyword in test_name for test_keyword in remote_override_build[version]]
+            [
+                test_keyword in test_name
+                for test_keyword in remote_override_build[version]
+            ]
         )
     return False
 
@@ -368,12 +388,15 @@ def skip_test_successfully_executed_before(request):
     "cache/lastfailed" contains information about failed tests only. We're running SM tests in separate threads for each image.
     So when we retry SM tests, successfully executed tests executed again because pytest doesn't have that info in /.cache.
     But the flag "--last-failed-no-failures all" requires pytest to execute all the available tests.
-    The only sign that a test passed last time - lastfailed file exists and the test name isn't in that file.  
+    The only sign that a test passed last time - lastfailed file exists and the test name isn't in that file.
     The method checks whether lastfailed file exists and the test name is not in it.
     """
     test_name = request.node.name
     lastfailed = request.config.cache.get("cache/lastfailed", None)
 
-    if lastfailed is not None \
-            and not any(test_name in failed_test_name for failed_test_name in lastfailed.keys()):
-        pytest.skip(f"Skipping {test_name} because it was successfully executed for this commit")
+    if lastfailed is not None and not any(
+        test_name in failed_test_name for failed_test_name in lastfailed.keys()
+    ):
+        pytest.skip(
+            f"Skipping {test_name} because it was successfully executed for this commit"
+        )

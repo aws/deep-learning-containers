@@ -20,20 +20,31 @@ from sagemaker.mxnet import MXNet
 from ...integration.local import local_mode_utils
 from ...integration import MODEL_SUCCESS_FILES, RESOURCE_PATH
 
-MNIST_PATH = os.path.join(RESOURCE_PATH, 'mnist')
-SCRIPT_PATH = os.path.join(MNIST_PATH, 'mnist.py')
+MNIST_PATH = os.path.join(RESOURCE_PATH, "mnist")
+SCRIPT_PATH = os.path.join(MNIST_PATH, "mnist.py")
 
-TRAIN_INPUT = 'file://{}'.format(os.path.join(MNIST_PATH, 'train'))
-TEST_INPUT = 'file://{}'.format(os.path.join(MNIST_PATH, 'test'))
+TRAIN_INPUT = "file://{}".format(os.path.join(MNIST_PATH, "train"))
+TEST_INPUT = "file://{}".format(os.path.join(MNIST_PATH, "test"))
 
 
 @pytest.mark.model("mnist")
-def test_single_machine(docker_image, sagemaker_local_session, local_instance_type,
-                        framework_version, tmpdir):
-    mx = MXNet(entry_point=SCRIPT_PATH, role='SageMakerRole', instance_count=1,
-               instance_type=local_instance_type, sagemaker_session=sagemaker_local_session,
-               image_uri=docker_image, framework_version=framework_version,
-               output_path='file://{}'.format(tmpdir))
+def test_single_machine(
+    docker_image,
+    sagemaker_local_session,
+    local_instance_type,
+    framework_version,
+    tmpdir,
+):
+    mx = MXNet(
+        entry_point=SCRIPT_PATH,
+        role="SageMakerRole",
+        instance_count=1,
+        instance_type=local_instance_type,
+        sagemaker_session=sagemaker_local_session,
+        image_uri=docker_image,
+        framework_version=framework_version,
+        output_path="file://{}".format(tmpdir),
+    )
 
     _train_and_assert_success(mx, str(tmpdir))
 
@@ -41,20 +52,28 @@ def test_single_machine(docker_image, sagemaker_local_session, local_instance_ty
 @pytest.mark.model("mnist")
 @pytest.mark.multinode(2)
 @pytest.mark.processor("cpu")
-def test_distributed(docker_image, sagemaker_local_session, framework_version, processor, tmpdir):
-    if processor == 'gpu':
-        pytest.skip('Local Mode does not support distributed training on GPU.')
+def test_distributed(
+    docker_image, sagemaker_local_session, framework_version, processor, tmpdir
+):
+    if processor == "gpu":
+        pytest.skip("Local Mode does not support distributed training on GPU.")
 
-    mx = MXNet(entry_point=SCRIPT_PATH, role='SageMakerRole', instance_count=2,
-               instance_type='local', sagemaker_session=sagemaker_local_session,
-               image_uri=docker_image, framework_version=framework_version,
-               output_path='file://{}'.format(tmpdir),
-               hyperparameters={'sagemaker_parameter_server_enabled': True})
+    mx = MXNet(
+        entry_point=SCRIPT_PATH,
+        role="SageMakerRole",
+        instance_count=2,
+        instance_type="local",
+        sagemaker_session=sagemaker_local_session,
+        image_uri=docker_image,
+        framework_version=framework_version,
+        output_path="file://{}".format(tmpdir),
+        hyperparameters={"sagemaker_parameter_server_enabled": True},
+    )
     _train_and_assert_success(mx, str(tmpdir))
 
 
 def _train_and_assert_success(estimator, output_path):
-    estimator.fit({'train': TRAIN_INPUT, 'test': TEST_INPUT})
+    estimator.fit({"train": TRAIN_INPUT, "test": TEST_INPUT})
 
     for directory, files in MODEL_SUCCESS_FILES.items():
         local_mode_utils.assert_output_files_exist(output_path, directory, files)

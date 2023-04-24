@@ -28,7 +28,7 @@ import tensorflow as tf
 # This file can be used in script mode to generate a single file or be used
 # as a module to generate files via build_record_file.
 
-_kmagic = 0xced7230a
+_kmagic = 0xCED7230A
 
 padding = {}
 for amount in range(4):
@@ -41,9 +41,9 @@ for amount in range(4):
 def write_recordio(f, data, header_flag=0):
     """Writes a single data point as a RecordIO record to the given file."""
     length = len(data)
-    f.write(struct.pack('I', _kmagic))
+    f.write(struct.pack("I", _kmagic))
     header = (header_flag << 29) | length
-    f.write(struct.pack('I', header))
+    f.write(struct.pack("I", header))
     pad = (((length + 3) >> 2) << 2) - length
     f.write(data)
     f.write(padding[pad])
@@ -55,8 +55,8 @@ def write_recordio_multipart(f, data):
     stride = int(length / 3)
 
     data_start = data[0:stride]
-    data_middle = data[stride:2 * stride]
-    data_end = data[2 * stride:]
+    data_middle = data[stride : 2 * stride]
+    data_end = data[2 * stride :]
 
     write_recordio(f, data_start, 1)
     write_recordio(f, data_middle, 2)
@@ -72,7 +72,7 @@ def label_feature(value):
 
 
 def write_numpy_array(f, feature_name, label, arr, multipart=False):
-    feature = {'labels': label_feature(label), feature_name: string_feature(arr)}
+    feature = {"labels": label_feature(label), feature_name: string_feature(arr)}
     example = tf.train.Example(features=tf.train.Features(feature=feature))
     if multipart:
         write_recordio_multipart(f, example.SerializeToString())
@@ -80,7 +80,14 @@ def write_numpy_array(f, feature_name, label, arr, multipart=False):
         write_recordio(f, example.SerializeToString())
 
 
-def build_record_file(filename, num_records, dimension, classes=2, data_feature_name='data', multipart=False):
+def build_record_file(
+    filename,
+    num_records,
+    dimension,
+    classes=2,
+    data_feature_name="data",
+    multipart=False,
+):
     """Builds a recordio encoded file of TF protobuf Example objects. Each object
     is a labeled numpy array. Each example has two field - a single int64 'label'
     field and a single bytes list field, containing a serialized numpy array.
@@ -99,46 +106,63 @@ def build_record_file(filename, num_records, dimension, classes=2, data_feature_
         data_feature_name - the name to give the numpy array in the Example object
         dimension - the size of each numpy array.
     """
-    with open(filename, 'wb') as f:
+    with open(filename, "wb") as f:
         for i in range(num_records):
             cur_class = i % classes
             loc = int(cur_class - (classes / 2))
-            write_numpy_array(f, data_feature_name, cur_class, np.random.normal(loc=loc, size=(dimension,)), multipart)
+            write_numpy_array(
+                f,
+                data_feature_name,
+                cur_class,
+                np.random.normal(loc=loc, size=(dimension,)),
+                multipart,
+            )
 
 
-def build_single_record_file(filename, dimension, classes=2, data_feature_name='data'):
+def build_single_record_file(filename, dimension, classes=2, data_feature_name="data"):
     cur_class = randint(0, classes - 1)
     loc = int(cur_class - (classes / 2))
 
     arr = np.random.normal(loc=loc, size=(dimension,))
-    feature = {'labels': label_feature(cur_class), data_feature_name: string_feature(arr)}
+    feature = {
+        "labels": label_feature(cur_class),
+        data_feature_name: string_feature(arr),
+    }
     example = tf.train.Example(features=tf.train.Features(feature=feature))
-    with open(filename, 'wb') as f:
+    with open(filename, "wb") as f:
         f.write(example.SerializeToString())
 
 
 def validate_record_file(filename, dimension):
-    data = open(filename, 'rb').read()
-    magic_number, length = struct.unpack('II', data[0:8])
-    encoded = data[8:8 + length]
+    data = open(filename, "rb").read()
+    magic_number, length = struct.unpack("II", data[0:8])
+    encoded = data[8 : 8 + length]
 
     features = {
-        'data': tf.io.FixedLenFeature([], tf.string),
-        'labels': tf.io.FixedLenFeature([], tf.int64),
+        "data": tf.io.FixedLenFeature([], tf.string),
+        "labels": tf.io.FixedLenFeature([], tf.int64),
     }
     parsed = tf.io.parse_single_example(encoded, features)
-    array = tf.io.decode_raw(parsed['data'], tf.float64)
+    array = tf.io.decode_raw(parsed["data"], tf.float64)
 
     assert array.shape[0] == dimension
 
 
-if __name__ == '__main__':
-    parser = argparse.ArgumentParser(description="Generate synthetic multi-class training data")
-    parser.add_argument('--dimension', default=65536, type=int)
-    parser.add_argument('--classes', default=2, type=int)
-    parser.add_argument('--num-records', default=4, type=int)
-    parser.add_argument('--data-feature-name', default='data')
-    parser.add_argument('filename', type=str)
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser(
+        description="Generate synthetic multi-class training data"
+    )
+    parser.add_argument("--dimension", default=65536, type=int)
+    parser.add_argument("--classes", default=2, type=int)
+    parser.add_argument("--num-records", default=4, type=int)
+    parser.add_argument("--data-feature-name", default="data")
+    parser.add_argument("filename", type=str)
     args = parser.parse_args()
-    build_record_file(args.filename, args.num_records, args.dimension, args.classes, args.data_feature_name)
+    build_record_file(
+        args.filename,
+        args.num_records,
+        args.dimension,
+        args.classes,
+        args.data_feature_name,
+    )
     validate_record_file(args.filename, args.dimension)

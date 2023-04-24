@@ -35,7 +35,7 @@ def parse_args():
     parser.add_argument(
         "--context",
         type=str,
-        default='cpu',
+        default="cpu",
         help="Context can be either cpu or gpu",
     )
 
@@ -47,7 +47,9 @@ def acc(output, label):
     return (output.argmax(axis=1) == label.astype("float32")).mean().asscalar()
 
 
-def train_model(batch_size, net, ctx, train_data, valid_data, lr, hook, num_epochs, num_steps=None):
+def train_model(
+    batch_size, net, ctx, train_data, valid_data, lr, hook, num_epochs, num_steps=None
+):
     net.initialize(init=init.Xavier(), ctx=ctx)
     softmax_cross_entropy = gluon.loss.SoftmaxCrossEntropyLoss()
     hook.register_hook(softmax_cross_entropy)
@@ -107,7 +109,9 @@ def prepare_data(batch_size):
         "ankle boot",
     ]
     X, y = mnist_train[0:10]
-    transformer = transforms.Compose([transforms.ToTensor(), transforms.Normalize(0.13, 0.31)])
+    transformer = transforms.Compose(
+        [transforms.ToTensor(), transforms.Normalize(0.13, 0.31)]
+    )
     mnist_train = mnist_train.transform_first(transformer)
     train_data = gluon.data.DataLoader(
         mnist_train, batch_size=batch_size, shuffle=True, num_workers=4
@@ -174,8 +178,6 @@ def main():
 
     hook = create_smdebug_hook(out_dir)
 
-
-
     # Register the hook to the top block.
     hook.register_hook(net)
 
@@ -183,46 +185,56 @@ def main():
     batch_size = opt.batch_size
     train_data, valid_data = prepare_data(batch_size)
 
-    context = mx.cpu() if opt.context.lower() == 'cpu' else mx.gpu()
+    context = mx.cpu() if opt.context.lower() == "cpu" else mx.gpu()
     # Start the training.
-    train_model(batch_size, net, context, train_data, valid_data, opt.learning_rate, hook, opt.epochs, opt.num_steps)
+    train_model(
+        batch_size,
+        net,
+        context,
+        train_data,
+        valid_data,
+        opt.learning_rate,
+        hook,
+        opt.epochs,
+        opt.num_steps,
+    )
 
-
-    print ("Training is complete")
-
+    print("Training is complete")
 
     from smdebug.trials import create_trial
+
     print("Created the trial with out_dir {0}".format(out_dir))
     tr = create_trial(out_dir)
     assert tr
-    print ("Train steps: "  + str(tr.steps(mode=modes.TRAIN)))
-    print ("Eval steps: " + str(tr.steps(mode=modes.EVAL)))
+    print("Train steps: " + str(tr.steps(mode=modes.TRAIN)))
+    print("Eval steps: " + str(tr.steps(mode=modes.EVAL)))
     assert len(tr.steps(mode=modes.TRAIN)) == 4
     assert len(tr.steps(mode=modes.EVAL)) == 4
 
     tnames = tr.tensor_names(regex="^conv._weight")
     print(tnames)
-    assert (len(tnames) == 2)
+    assert len(tnames) == 2
     tname = tnames[0]
 
     # The tensor values will be available for 8 steps (4 TRAIN anf 4 EVAL)
-    assert(len(tr.tensor(tname).steps()) == 8)
+    assert len(tr.tensor(tname).steps()) == 8
 
     loss_tensor_name = tr.tensor_names(regex="softmaxcrossentropyloss._output_.")[0]
     print("Obtained the loss tensor " + loss_tensor_name)
 
-    #We have only one loss block
-    assert (loss_tensor_name == 'softmaxcrossentropyloss0_output_0')
+    # We have only one loss block
+    assert loss_tensor_name == "softmaxcrossentropyloss0_output_0"
 
     # Number of elements in loss tensor should match the batch size.
     loss_tensor_value = tr.tensor(loss_tensor_name).value(step_num=2)
     assert len(loss_tensor_value) == batch_size
 
-    mean_loss_tensor_value = tr.tensor(loss_tensor_name).reduction_value(step_num=2, reduction_name="mean", abs=False)
+    mean_loss_tensor_value = tr.tensor(loss_tensor_name).reduction_value(
+        step_num=2, reduction_name="mean", abs=False
+    )
     print("Mean validation loss = " + str(mean_loss_tensor_value))
 
     print("Validation Complete")
-
 
 
 if __name__ == "__main__":

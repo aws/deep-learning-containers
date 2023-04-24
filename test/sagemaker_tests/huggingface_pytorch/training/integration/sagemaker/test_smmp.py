@@ -70,8 +70,17 @@ def get_transformers_version(ecr_image):
 @pytest.mark.skip_cpu
 @pytest.mark.skip_py2_containers
 @pytest.mark.skip_trcomp_containers
-def test_smmp_gpu(ecr_image, sagemaker_regions, instance_type, framework_version, py_version, dist_gpu_backend):
-    invoke_sm_helper_function(ecr_image, sagemaker_regions, _test_smmp_gpu_function, py_version, 1)
+def test_smmp_gpu(
+    ecr_image,
+    sagemaker_regions,
+    instance_type,
+    framework_version,
+    py_version,
+    dist_gpu_backend,
+):
+    invoke_sm_helper_function(
+        ecr_image, sagemaker_regions, _test_smmp_gpu_function, py_version, 1
+    )
 
 
 @pytest.mark.processor("gpu")
@@ -81,18 +90,31 @@ def test_smmp_gpu(ecr_image, sagemaker_regions, instance_type, framework_version
 @pytest.mark.skip_py2_containers
 @pytest.mark.multinode(2)
 @pytest.mark.skip_trcomp_containers
-def test_smmp_gpu_multinode(ecr_image, sagemaker_regions, instance_type, framework_version, py_version,
-                            dist_gpu_backend):
-    invoke_sm_helper_function(ecr_image, sagemaker_regions, _test_smmp_gpu_function, py_version, 2)
+def test_smmp_gpu_multinode(
+    ecr_image,
+    sagemaker_regions,
+    instance_type,
+    framework_version,
+    py_version,
+    dist_gpu_backend,
+):
+    invoke_sm_helper_function(
+        ecr_image, sagemaker_regions, _test_smmp_gpu_function, py_version, 2
+    )
 
 
-def _test_smmp_gpu_function(ecr_image, sagemaker_session, py_version, instances_quantity):
+def _test_smmp_gpu_function(
+    ecr_image, sagemaker_session, py_version, instances_quantity
+):
     instance_type = "ml.p3.16xlarge"
     instance_count = instances_quantity
     volume_size = 400
 
     transformers_version = get_transformers_version(ecr_image)
-    git_config = {"repo": "https://github.com/huggingface/transformers.git", "branch": "v" + transformers_version}
+    git_config = {
+        "repo": "https://github.com/huggingface/transformers.git",
+        "branch": "v" + transformers_version,
+    }
 
     huggingface_estimator = HuggingFace(
         entry_point="run_glue.py",
@@ -108,4 +130,6 @@ def _test_smmp_gpu_function(ecr_image, sagemaker_session, py_version, instances_
         hyperparameters=hyperparameters,
         sagemaker_session=sagemaker_session,
     )
-    huggingface_estimator.fit(job_name=sagemaker.utils.unique_name_from_base("test-hf-pt-qa-smmp"))
+    huggingface_estimator.fit(
+        job_name=sagemaker.utils.unique_name_from_base("test-hf-pt-qa-smmp")
+    )

@@ -21,12 +21,12 @@ from ...integration import data_dir, dist_operations_path, mnist_script, ROLE
 from ...utils.local_mode_utils import assert_files_exist
 
 MODEL_SUCCESS_FILES = {
-    'model': ['success'],
-    'output': ['success'],
+    "model": ["success"],
+    "output": ["success"],
 }
 
 
-@pytest.fixture(scope='session', name='dist_gpu_backend', params=['gloo'])
+@pytest.fixture(scope="session", name="dist_gpu_backend", params=["gloo"])
 def fixture_dist_gpu_backend(request):
     return request.param
 
@@ -34,16 +34,18 @@ def fixture_dist_gpu_backend(request):
 @pytest.mark.processor("cpu")
 @pytest.mark.model("unknown_model")
 @pytest.mark.skip_gpu
-def test_dist_operations_path_cpu(docker_image, dist_cpu_backend, sagemaker_local_session, tmpdir):
+def test_dist_operations_path_cpu(
+    docker_image, dist_cpu_backend, sagemaker_local_session, tmpdir
+):
     estimator = PyTorch(
         entry_point=dist_operations_path,
         role=ROLE,
         image_uri=docker_image,
         instance_count=2,
-        instance_type='local',
+        instance_type="local",
         sagemaker_session=sagemaker_local_session,
-        hyperparameters={'backend': dist_cpu_backend},
-        output_path='file://{}'.format(tmpdir),
+        hyperparameters={"backend": dist_cpu_backend},
+        output_path="file://{}".format(tmpdir),
     )
 
     _train_and_assert_success(estimator, str(tmpdir))
@@ -59,10 +61,10 @@ def test_dist_operations_path_gpu_nccl(docker_image, sagemaker_local_session, tm
         role=ROLE,
         image_uri=docker_image,
         instance_count=1,
-        instance_type='local_gpu',
+        instance_type="local_gpu",
         sagemaker_session=sagemaker_local_session,
-        hyperparameters={'backend': 'nccl'},
-        output_path='file://{}'.format(tmpdir),
+        hyperparameters={"backend": "nccl"},
+        output_path="file://{}".format(tmpdir),
     )
 
     _train_and_assert_success(estimator, str(tmpdir))
@@ -72,23 +74,27 @@ def test_dist_operations_path_gpu_nccl(docker_image, sagemaker_local_session, tm
 @pytest.mark.integration("nccl")
 @pytest.mark.model("mnist")
 @pytest.mark.skip_gpu
-@pytest.mark.skip("Skipping as NCCL is not installed on CPU image. Refer https://github.com/aws/deep-learning-containers/issues/1289")
+@pytest.mark.skip(
+    "Skipping as NCCL is not installed on CPU image. Refer https://github.com/aws/deep-learning-containers/issues/1289"
+)
 def test_cpu_nccl(docker_image, sagemaker_local_session, tmpdir):
     estimator = PyTorch(
         entry_point=mnist_script,
         role=ROLE,
         image_uri=docker_image,
         instance_count=2,
-        instance_type='local',
+        instance_type="local",
         sagemaker_session=sagemaker_local_session,
-        hyperparameters={'backend': 'nccl'},
-        output_path='file://{}'.format(tmpdir),
+        hyperparameters={"backend": "nccl"},
+        output_path="file://{}".format(tmpdir),
     )
 
     with pytest.raises(RuntimeError):
-        estimator.fit({'training': 'file://{}'.format(os.path.join(data_dir, 'training'))})
+        estimator.fit(
+            {"training": "file://{}".format(os.path.join(data_dir, "training"))}
+        )
 
-    failure_file = {'output': ['failure']}
+    failure_file = {"output": ["failure"]}
     assert_files_exist(str(tmpdir), failure_file)
 
 
@@ -101,19 +107,19 @@ def test_mnist_cpu(docker_image, dist_cpu_backend, sagemaker_local_session, tmpd
         role=ROLE,
         image_uri=docker_image,
         instance_count=2,
-        instance_type='local',
+        instance_type="local",
         sagemaker_session=sagemaker_local_session,
-        hyperparameters={'backend': dist_cpu_backend},
-        output_path='file://{}'.format(tmpdir),
+        hyperparameters={"backend": dist_cpu_backend},
+        output_path="file://{}".format(tmpdir),
     )
 
     success_files = {
-        'model': ['model.pth'],
-        'output': ['success'],
+        "model": ["model.pth"],
+        "output": ["success"],
     }
     _train_and_assert_success(estimator, str(tmpdir), success_files)
 
 
 def _train_and_assert_success(estimator, output_path, output_files=MODEL_SUCCESS_FILES):
-    estimator.fit({'training': 'file://{}'.format(os.path.join(data_dir, 'training'))})
+    estimator.fit({"training": "file://{}".format(os.path.join(data_dir, "training"))})
     assert_files_exist(output_path, output_files)

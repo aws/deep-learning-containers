@@ -27,9 +27,13 @@ MX_EC2_CPU_INSTANCE_TYPE = "c5.18xlarge"
 @pytest.mark.integration("imagenet dataset")
 @pytest.mark.model("resnet50_v2")
 @pytest.mark.parametrize("ec2_instance_type", [MX_EC2_GPU_INSTANCE_TYPE], indirect=True)
-def test_performance_ec2_mxnet_training_gpu(mxnet_training, ec2_connection, gpu_only, py3_only):
+def test_performance_ec2_mxnet_training_gpu(
+    mxnet_training, ec2_connection, gpu_only, py3_only
+):
     _, framework_version = get_framework_and_version_from_tag(mxnet_training)
-    threshold = get_threshold_for_image(framework_version, MXNET_TRAINING_GPU_IMAGENET_THRESHOLD)
+    threshold = get_threshold_for_image(
+        framework_version, MXNET_TRAINING_GPU_IMAGENET_THRESHOLD
+    )
     execute_ec2_training_performance_test(
         ec2_connection,
         mxnet_training,
@@ -45,7 +49,9 @@ def test_performance_ec2_mxnet_training_gpu(mxnet_training, ec2_connection, gpu_
 @pytest.mark.parametrize("ec2_instance_type", [MX_EC2_CPU_INSTANCE_TYPE], indirect=True)
 def test_performance_ec2_mxnet_training_cpu(mxnet_training, ec2_connection, cpu_only):
     _, framework_version = get_framework_and_version_from_tag(mxnet_training)
-    threshold = get_threshold_for_image(framework_version, MXNET_TRAINING_CPU_CIFAR_THRESHOLD)
+    threshold = get_threshold_for_image(
+        framework_version, MXNET_TRAINING_CPU_CIFAR_THRESHOLD
+    )
     execute_ec2_training_performance_test(
         ec2_connection,
         mxnet_training,

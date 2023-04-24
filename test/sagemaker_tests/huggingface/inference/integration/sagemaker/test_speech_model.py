@@ -30,12 +30,16 @@ from ...integration.sagemaker.timeout import timeout_and_delete_endpoint
 @pytest.mark.model("wav2vec2")
 @pytest.mark.processor("cpu")
 @pytest.mark.cpu_test
-def test_speech_model_cpu(sagemaker_session, framework_version, ecr_image, instance_type, region):
+def test_speech_model_cpu(
+    sagemaker_session, framework_version, ecr_image, instance_type, region
+):
     if "pytorch" in ecr_image and Version(framework_version) in SpecifierSet("==1.9.*"):
         pytest.skip("Skipping speech tests for PT1.9")
     instance_type = instance_type or "ml.m5.xlarge"
     try:
-        _test_speech_model(sagemaker_session, framework_version, ecr_image, instance_type, model_dir)
+        _test_speech_model(
+            sagemaker_session, framework_version, ecr_image, instance_type, model_dir
+        )
     except Exception as e:
         dump_logs_from_cloudwatch(e, region)
         raise
@@ -44,21 +48,32 @@ def test_speech_model_cpu(sagemaker_session, framework_version, ecr_image, insta
 @pytest.mark.model("wav2vec2")
 @pytest.mark.processor("gpu")
 @pytest.mark.gpu_test
-def test_speech_model_gpu(sagemaker_session, framework_version, ecr_image, instance_type, region):
+def test_speech_model_gpu(
+    sagemaker_session, framework_version, ecr_image, instance_type, region
+):
     if "pytorch" in ecr_image and Version(framework_version) in SpecifierSet("==1.9.*"):
         pytest.skip("Skipping speech tests for PT1.9")
     instance_type = instance_type or "ml.p3.2xlarge"
     try:
-        _test_speech_model(sagemaker_session, framework_version, ecr_image, instance_type, model_dir)
+        _test_speech_model(
+            sagemaker_session, framework_version, ecr_image, instance_type, model_dir
+        )
     except Exception as e:
         dump_logs_from_cloudwatch(e, region)
         raise
 
 
 def _test_speech_model(
-    sagemaker_session, framework_version, ecr_image, instance_type, model_dir, accelerator_type=None
+    sagemaker_session,
+    framework_version,
+    ecr_image,
+    instance_type,
+    model_dir,
+    accelerator_type=None,
 ):
-    endpoint_name = sagemaker.utils.unique_name_from_base("sagemaker-huggingface-serving-speech-model")
+    endpoint_name = sagemaker.utils.unique_name_from_base(
+        "sagemaker-huggingface-serving-speech-model"
+    )
 
     if "tensorflow" in ecr_image:
         # Zero-code deployments are currently not supported for TensorFlow

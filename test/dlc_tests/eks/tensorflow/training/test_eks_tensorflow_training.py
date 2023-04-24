@@ -22,7 +22,9 @@ def test_eks_tensorflow_single_node_training(tensorflow_training):
 
     rand_int = random.randint(4001, 6000)
 
-    yaml_path = os.path.join(os.sep, "tmp", f"tensorflow_single_node_training_{rand_int}.yaml")
+    yaml_path = os.path.join(
+        os.sep, "tmp", f"tensorflow_single_node_training_{rand_int}.yaml"
+    )
     pod_name = f"tensorflow-single-node-training-{rand_int}"
 
     args = (

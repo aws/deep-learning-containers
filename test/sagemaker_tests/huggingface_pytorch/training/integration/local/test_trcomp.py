@@ -26,13 +26,25 @@ import unittest.mock as mock
 @pytest.mark.skip_py2_containers
 @pytest.mark.skip_huggingface_containers
 @pytest.mark.skip(reason="WIP: Currently hangs")
-@mock.patch('sagemaker.huggingface.TrainingCompilerConfig.validate', return_value=None)
-def test_single_node_single_gpu_tcc_default(patched, docker_image, processor, instance_type, sagemaker_local_session, py_version, capsys):
-    '''
+@mock.patch("sagemaker.huggingface.TrainingCompilerConfig.validate", return_value=None)
+def test_single_node_single_gpu_tcc_default(
+    patched,
+    docker_image,
+    processor,
+    instance_type,
+    sagemaker_local_session,
+    py_version,
+    capsys,
+):
+    """
     Single GPU test that tests the local_gpu instance type with default TCC.
     All local mode tests (PT and TF) are run serially on a single instance.
-    '''
-    hyperparameters = {"max_steps": 3, "train_batch_size": 4, "model_name": "distilbert-base-uncased"}
+    """
+    hyperparameters = {
+        "max_steps": 3,
+        "train_batch_size": 4,
+        "model_name": "distilbert-base-uncased",
+    }
 
     estimator = HuggingFace(
         compiler_config=TrainingCompilerConfig(),
@@ -43,9 +55,10 @@ def test_single_node_single_gpu_tcc_default(patched, docker_image, processor, in
         instance_count=1,
         role=ROLE,
         hyperparameters=hyperparameters,
-        environment={'GPU_NUM_DEVICES':'1'}, #https://github.com/aws/sagemaker-training-toolkit/issues/107
+        environment={
+            "GPU_NUM_DEVICES": "1"
+        },  # https://github.com/aws/sagemaker-training-toolkit/issues/107
         py_version=py_version,
     )
 
     estimator.fit()
-

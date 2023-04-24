@@ -24,10 +24,17 @@ ROOT_DIR = os.path.abspath(os.path.join(os.getcwd(), os.pardir))
 DLC_TESTS_PREFIX = os.path.join(os.sep, ROOT_DIR, "dlc_tests")
 
 SINGLE_NODE_TRAINING_TEMPLATE_PATH = os.path.join(
-    os.sep, DLC_TESTS_PREFIX, "eks", "eks_manifest_templates", "training", "single_node_training.yaml",
+    os.sep,
+    DLC_TESTS_PREFIX,
+    "eks",
+    "eks_manifest_templates",
+    "training",
+    "single_node_training.yaml",
 )
 
-SINGLE_NODE_INFERENCE_TEMPLATE_PATH = os.path.join(os.sep, DLC_TESTS_PREFIX, "eks", "eks_manisfest_templates")
+SINGLE_NODE_INFERENCE_TEMPLATE_PATH = os.path.join(
+    os.sep, DLC_TESTS_PREFIX, "eks", "eks_manisfest_templates"
+)
 
 LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.DEBUG)
@@ -39,20 +46,30 @@ EKS_VERSION = "1.20.4"
 EKSCTL_VERSION = "0.53.0"
 KUBETAIL_VERSION = "1.6.7"
 
-def get_aws_secret_yml_path():
 
-    return os.path.join(os.sep, DLC_TESTS_PREFIX, "eks", "eks_manifest_templates", "aws_access", "secret.yaml",)
+def get_aws_secret_yml_path():
+    return os.path.join(
+        os.sep,
+        DLC_TESTS_PREFIX,
+        "eks",
+        "eks_manifest_templates",
+        "aws_access",
+        "secret.yaml",
+    )
 
 
 def get_single_node_training_template_path():
-
     return os.path.join(
-        os.sep, DLC_TESTS_PREFIX, "eks", "eks_manifest_templates", "training", "single_node_training.yaml",
+        os.sep,
+        DLC_TESTS_PREFIX,
+        "eks",
+        "eks_manifest_templates",
+        "training",
+        "single_node_training.yaml",
     )
 
 
 def get_single_node_inference_template_path(framework, processor):
-
     return os.path.join(
         os.sep,
         DLC_TESTS_PREFIX,
@@ -70,7 +87,9 @@ def retry_if_value_error(exception):
 
 
 @retry(
-    stop_max_attempt_number=360, wait_fixed=10000, retry_on_exception=retry_if_value_error,
+    stop_max_attempt_number=360,
+    wait_fixed=10000,
+    retry_on_exception=retry_if_value_error,
 )
 def is_eks_training_complete(pod_name):
     """Function to check if the pod status has reached 'Completion'
@@ -94,7 +113,9 @@ def is_eks_training_complete(pod_name):
                     # delete pod in case of error
                     run("kubectl delete pods {}".format(pod_name))
                     LOGGER.error(
-                        "ERROR: The container run threw an error and terminated. " "kubectl logs: %s", error_out,
+                        "ERROR: The container run threw an error and terminated. "
+                        "kubectl logs: %s",
+                        error_out,
                     )
                     raise AttributeError("Container Error!")
             elif (
@@ -105,17 +126,25 @@ def is_eks_training_complete(pod_name):
                 # delete pod in case of error
                 run("kubectl delete pods {}".format(pod_name))
                 LOGGER.error(
-                    "ERROR: The container run threw an error in waiting state. " "kubectl logs: %s", error_out,
+                    "ERROR: The container run threw an error in waiting state. "
+                    "kubectl logs: %s",
+                    error_out,
                 )
                 raise AttributeError("Error: CrashLoopBackOff!")
-            elif "waiting" in container_status["state"] or "running" in container_status["state"]:
-                LOGGER.info("IN-PROGRESS: Container is either Creating or Running. Waiting to complete...")
+            elif (
+                "waiting" in container_status["state"]
+                or "running" in container_status["state"]
+            ):
+                LOGGER.info(
+                    "IN-PROGRESS: Container is either Creating or Running. Waiting to complete..."
+                )
                 raise ValueError("IN-PROGRESS: Retry.")
     else:
         LOGGER.info(f"containerStatuses not available yet, retrying. Pod: {pod_name}")
         raise ValueError("IN-PROGRESS: Retry.")
 
     return False
+
 
 def setup_eksctl():
     run_out = run("eksctl version", echo=True, warn=True)
@@ -188,7 +217,10 @@ def eks_setup():
     run("kubectl version --short --client", echo=True)
     run("aws-iam-authenticator version", echo=True)
 
-def write_eks_yaml_file_from_template(local_template_file_path, remote_yaml_file_path, search_replace_dict):
+
+def write_eks_yaml_file_from_template(
+    local_template_file_path, remote_yaml_file_path, search_replace_dict
+):
     """Function that does a simple replace operation based on the search_replace_dict on the template file contents
     and writes the final yaml file to remote_yaml_path
     Args:
@@ -244,7 +276,9 @@ def eks_write_kubeconfig(eks_cluster_name, region="us-west-2"):
         eks_cluster_name, region: str
     """
     eks_role = get_eks_role()
-    eksctl_write_kubeconfig_command = f"eksctl utils write-kubeconfig --cluster {eks_cluster_name} --region {region}"
+    eksctl_write_kubeconfig_command = (
+        f"eksctl utils write-kubeconfig --cluster {eks_cluster_name} --region {region}"
+    )
 
     if eks_role:
         eksctl_write_kubeconfig_command += f" --authenticator-role-arn {eks_role} "
@@ -254,7 +288,9 @@ def eks_write_kubeconfig(eks_cluster_name, region="us-west-2"):
     run("cat /root/.kube/config", warn=True)
 
 
-def eks_forward_port_between_host_and_container(selector_name, host_port, container_port, namespace="default"):
+def eks_forward_port_between_host_and_container(
+    selector_name, host_port, container_port, namespace="default"
+):
     """Uses kubectl port-forward command to forward a port from the container pods to the host.
     Note: The 'host' in this case is the gateway host, and not the worker hosts.
     Args:
@@ -273,7 +309,11 @@ def eks_forward_port_between_host_and_container(selector_name, host_port, contai
     )
 
 
-@retry(stop_max_attempt_number=30, wait_fixed=30000, retry_on_exception=retry_if_value_error)
+@retry(
+    stop_max_attempt_number=30,
+    wait_fixed=30000,
+    retry_on_exception=retry_if_value_error,
+)
 def is_service_running(selector_name, namespace="default"):
     """Check if the service pod is running
     Args:
@@ -314,7 +354,11 @@ def eks_multinode_get_logs(namespace, pod_name):
     return run(f"kubectl logs -n {namespace} -f {pod_name}").stdout
 
 
-@retry(stop_max_attempt_number=120, wait_fixed=10000, retry_on_exception=retry_if_value_error)
+@retry(
+    stop_max_attempt_number=120,
+    wait_fixed=10000,
+    retry_on_exception=retry_if_value_error,
+)
 def is_mpijob_launcher_pod_ready(namespace, job_name):
     """Check if the MpiJob Launcher Pod is Ready
     Args:
@@ -331,8 +375,14 @@ def is_mpijob_launcher_pod_ready(namespace, job_name):
         raise ValueError("Launcher pod is not ready yet, try again.")
 
 
-@retry(stop_max_attempt_number=40, wait_fixed=60000, retry_on_exception=retry_if_value_error)
-def is_eks_multinode_training_complete(remote_yaml_file_path, namespace, pod_name, job_name):
+@retry(
+    stop_max_attempt_number=40,
+    wait_fixed=60000,
+    retry_on_exception=retry_if_value_error,
+)
+def is_eks_multinode_training_complete(
+    remote_yaml_file_path, namespace, pod_name, job_name
+):
     """Function to check if the pod status has reached 'Completion' for multinode training.
     A separate method is required because kubectl commands for logs and status are different with namespaces.
     Args:
@@ -373,8 +423,13 @@ def is_eks_multinode_training_complete(remote_yaml_file_path, namespace, pod_nam
                 )
                 eks_multinode_cleanup(remote_yaml_file_path, namespace)
                 raise AttributeError("Error: CrashLoopBackOff!")
-            elif "waiting" in container_status["state"] or "running" in container_status["state"]:
-                LOGGER.info("IN-PROGRESS: Container is either Creating or Running. Waiting to complete...")
+            elif (
+                "waiting" in container_status["state"]
+                or "running" in container_status["state"]
+            ):
+                LOGGER.info(
+                    "IN-PROGRESS: Container is either Creating or Running. Waiting to complete..."
+                )
                 raise ValueError("IN-PROGRESS: Retry.")
 
     return False
@@ -390,7 +445,11 @@ def get_dgl_branch(ctx, image_uri):
     """
     image_addition = image_uri.split("/")[-1].replace(":", "-")
     dgl_local_repo = f".dgl_branch-{image_addition}"
-    ctx.run(f"git clone https://github.com/dmlc/dgl.git {dgl_local_repo}", hide=True, warn=True)
+    ctx.run(
+        f"git clone https://github.com/dmlc/dgl.git {dgl_local_repo}",
+        hide=True,
+        warn=True,
+    )
     with ctx.cd(dgl_local_repo):
         branch = ctx.run("git branch -r", hide=True)
         branches = branch.stdout.split()

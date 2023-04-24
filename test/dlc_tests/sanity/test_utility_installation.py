@@ -7,7 +7,16 @@ from invoke.context import Context
 
 from test import test_utils
 
-UTILITY_PACKAGES_IMPORT = ["bokeh", "imageio", "plotly", "seaborn", "shap", "pandas", "cv2", "sagemaker"]
+UTILITY_PACKAGES_IMPORT = [
+    "bokeh",
+    "imageio",
+    "plotly",
+    "seaborn",
+    "shap",
+    "pandas",
+    "cv2",
+    "sagemaker",
+]
 
 
 # TODO: Need to be added to all DLC images in furture.
@@ -42,10 +51,14 @@ def test_utility_packages_using_import(training):
         pytest.skip("Skipping test for Habana images as SM is not yet supported")
 
     ctx = Context()
-    container_name = test_utils.get_container_name("utility_packages_using_import", training)
+    container_name = test_utils.get_container_name(
+        "utility_packages_using_import", training
+    )
     test_utils.start_container(container_name, training, ctx)
 
-    framework, framework_version = test_utils.get_framework_and_version_from_tag(training)
+    framework, framework_version = test_utils.get_framework_and_version_from_tag(
+        training
+    )
     framework = framework.replace("_trcomp", "")
     utility_package_minimum_framework_version = {
         "mxnet": "1.8",
@@ -57,19 +70,28 @@ def test_utility_packages_using_import(training):
     }
 
     if framework == "tensorflow":
-        framework = "tensorflow1" if framework_version.startswith("1.") else "tensorflow2"
+        framework = (
+            "tensorflow1" if framework_version.startswith("1.") else "tensorflow2"
+        )
 
-    if Version(framework_version) < Version(utility_package_minimum_framework_version[framework]):
+    if Version(framework_version) < Version(
+        utility_package_minimum_framework_version[framework]
+    ):
         pytest.skip("Extra utility packages will be added going forward.")
 
     packages_to_import = UTILITY_PACKAGES_IMPORT
 
     for package in packages_to_import:
         version = test_utils.run_cmd_on_container(
-            container_name, ctx, f"import {package}; print({package}.__version__)", executable="python"
+            container_name,
+            ctx,
+            f"import {package}; print({package}.__version__)",
+            executable="python",
         ).stdout.strip()
         if package == "sagemaker":
-            assert Version(version) > Version("2"), f"Sagemaker version should be > 2.0. Found version {version}"
+            assert Version(version) > Version(
+                "2"
+            ), f"Sagemaker version should be > 2.0. Found version {version}"
 
 
 @pytest.mark.usefixtures("sagemaker")
@@ -86,7 +108,9 @@ def test_boto3(mxnet_inference):
     container_name = test_utils.get_container_name("boto3", image)
     test_utils.start_container(container_name, image, ctx)
 
-    test_utils.run_cmd_on_container(container_name, ctx, "import boto3", executable="python")
+    test_utils.run_cmd_on_container(
+        container_name, ctx, "import boto3", executable="python"
+    )
 
 
 @pytest.mark.usefixtures("sagemaker")
@@ -111,10 +135,18 @@ def test_emacs(image):
 @pytest.mark.model("N/A")
 @pytest.mark.integration("sagemaker_studio_analytics_extension")
 @pytest.mark.parametrize(
-    "package_name", ["pyhive", "sparkmagic", "sagemaker-studio-sparkmagic-lib", "sagemaker-studio-analytics-extension"]
+    "package_name",
+    [
+        "pyhive",
+        "sparkmagic",
+        "sagemaker-studio-sparkmagic-lib",
+        "sagemaker-studio-analytics-extension",
+    ],
 )
 def test_sagemaker_studio_analytics_extension(training, package_name):
-    framework, framework_version = test_utils.get_framework_and_version_from_tag(training)
+    framework, framework_version = test_utils.get_framework_and_version_from_tag(
+        training
+    )
     utility_package_framework_version_limit = {
         "pytorch": SpecifierSet(">=1.7,<1.9"),
         "tensorflow": SpecifierSet(">=2.4,<2.7,!=2.5.*"),
@@ -122,23 +154,33 @@ def test_sagemaker_studio_analytics_extension(training, package_name):
 
     if (
         framework not in utility_package_framework_version_limit
-        or Version(framework_version) not in utility_package_framework_version_limit[framework]
+        or Version(framework_version)
+        not in utility_package_framework_version_limit[framework]
     ):
-        pytest.skip(f"sagemaker_studio_analytics_extension is not installed in {framework} {framework_version} DLCs")
+        pytest.skip(
+            f"sagemaker_studio_analytics_extension is not installed in {framework} {framework_version} DLCs"
+        )
 
     ctx = Context()
-    container_name = test_utils.get_container_name(f"sagemaker_studio_analytics_extension-{package_name}", training)
+    container_name = test_utils.get_container_name(
+        f"sagemaker_studio_analytics_extension-{package_name}", training
+    )
     test_utils.start_container(container_name, training, ctx)
 
     # Optionally add version validation in the following steps, rather than just printing it.
-    test_utils.run_cmd_on_container(container_name, ctx, f"pip list | grep -i {package_name}")
+    test_utils.run_cmd_on_container(
+        container_name, ctx, f"pip list | grep -i {package_name}"
+    )
     import_package = package_name.replace("-", "_")
     import_test_cmd = (
         f"import {import_package}"
-        if package_name in ["sagemaker-studio-sparkmagic-lib", "sagemaker-studio-analytics-extension"]
+        if package_name
+        in ["sagemaker-studio-sparkmagic-lib", "sagemaker-studio-analytics-extension"]
         else f"import {import_package}; print({import_package}.__version__)"
     )
-    test_utils.run_cmd_on_container(container_name, ctx, import_test_cmd, executable="python")
+    test_utils.run_cmd_on_container(
+        container_name, ctx, import_test_cmd, executable="python"
+    )
 
 
 @pytest.mark.usefixtures("sagemaker_only")
@@ -154,7 +196,9 @@ def test_ipykernel_presence(tensorflow_training):
         container_name = test_utils.get_container_name("ipykernel", image)
         test_utils.start_container(container_name, image, ctx)
         command = 'SYSTEM_PYTHON_PREFIX=$(python -c "from __future__ import print_function;import sys; print(sys.prefix)") && ls $SYSTEM_PYTHON_PREFIX/share/jupyter/kernels/python3/kernel.json'
-        command_output = test_utils.run_cmd_on_container(container_name, ctx, command, warn=True)
+        command_output = test_utils.run_cmd_on_container(
+            container_name, ctx, command, warn=True
+        )
         command_stdout = command_output.stdout.strip()
         if command_output.return_code == 0:
             raise RuntimeError(

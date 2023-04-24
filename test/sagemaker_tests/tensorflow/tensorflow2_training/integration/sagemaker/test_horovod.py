@@ -21,7 +21,11 @@ from sagemaker.instance_group import InstanceGroup
 from sagemaker.tensorflow import TensorFlow
 
 from ..... import invoke_sm_helper_function
-from ...integration.utils import processor, py_version, unique_name_from_base  # noqa: F401
+from ...integration.utils import (
+    processor,
+    py_version,
+    unique_name_from_base,
+)  # noqa: F401
 
 RESOURCE_PATH = os.path.join(os.path.dirname(__file__), "..", "..", "resources")
 
@@ -29,7 +33,9 @@ RESOURCE_PATH = os.path.join(os.path.dirname(__file__), "..", "..", "resources")
 @pytest.mark.integration("horovod")
 @pytest.mark.model("mnist")
 @pytest.mark.multinode(2)
-def test_distributed_training_horovod(ecr_image, sagemaker_regions, instance_type, tmpdir, framework_version):
+def test_distributed_training_horovod(
+    ecr_image, sagemaker_regions, instance_type, tmpdir, framework_version
+):
     invoke_sm_helper_function(
         ecr_image,
         sagemaker_regions,
@@ -40,7 +46,9 @@ def test_distributed_training_horovod(ecr_image, sagemaker_regions, instance_typ
     )
 
 
-def _test_distributed_training_horovod_function(ecr_image, sagemaker_session, instance_type, tmpdir, framework_version):
+def _test_distributed_training_horovod_function(
+    ecr_image, sagemaker_session, instance_type, tmpdir, framework_version
+):
     mpi_options = "-verbose -x orte_base_help_aggregate=0"
     estimator = TensorFlow(
         entry_point=os.path.join(RESOURCE_PATH, "mnist", "horovod_mnist.py"),
@@ -60,17 +68,22 @@ def _test_distributed_training_horovod_function(ecr_image, sagemaker_session, in
 
     estimator.fit(job_name=unique_name_from_base("test-tf-horovod"))
 
-    model_data_source = sagemaker.local.data.get_data_source_instance(estimator.model_data, sagemaker_session)
+    model_data_source = sagemaker.local.data.get_data_source_instance(
+        estimator.model_data, sagemaker_session
+    )
 
     for filename in model_data_source.get_file_list():
         assert os.path.basename(filename) == "model.tar.gz"
+
 
 @pytest.mark.integration("horovod")
 @pytest.mark.model("mnist")
 @pytest.mark.multinode(2)
 @pytest.mark.skip_cpu
-def test_hc_distributed_training_horovod(ecr_image, sagemaker_regions, instance_type, tmpdir, framework_version):
-    instance_type = instance_type or 'ml.p3.16xlarge'
+def test_hc_distributed_training_horovod(
+    ecr_image, sagemaker_regions, instance_type, tmpdir, framework_version
+):
+    instance_type = instance_type or "ml.p3.16xlarge"
     training_group = InstanceGroup("train_group_1", instance_type, 2)
     invoke_sm_helper_function(
         ecr_image,
@@ -82,7 +95,9 @@ def test_hc_distributed_training_horovod(ecr_image, sagemaker_regions, instance_
     )
 
 
-def _test_hc_distributed_training_horovod_function(ecr_image, sagemaker_session, instance_groups, tmpdir, framework_version):
+def _test_hc_distributed_training_horovod_function(
+    ecr_image, sagemaker_session, instance_groups, tmpdir, framework_version
+):
     mpi_options = "-verbose -x orte_base_help_aggregate=0"
     estimator = TensorFlow(
         entry_point=os.path.join(RESOURCE_PATH, "mnist", "horovod_mnist.py"),
@@ -101,10 +116,13 @@ def _test_hc_distributed_training_horovod_function(ecr_image, sagemaker_session,
 
     estimator.fit(job_name=unique_name_from_base("test-tf-hc-horovod"))
 
-    model_data_source = sagemaker.local.data.get_data_source_instance(estimator.model_data, sagemaker_session)
+    model_data_source = sagemaker.local.data.get_data_source_instance(
+        estimator.model_data, sagemaker_session
+    )
 
     for filename in model_data_source.get_file_list():
         assert os.path.basename(filename) == "model.tar.gz"
+
 
 @pytest.mark.integration("horovod")
 @pytest.mark.multinode(2)
