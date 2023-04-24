@@ -12,14 +12,7 @@ LOGGER.addHandler(logging.StreamHandler(sys.stdout))
 
 JOB_TIMEOUT = 3
 AWS_REGION = "us-west-2"
-EKS_CLUSTERS = [
-    "mxnet-PR",
-    "pytorch-PR",
-    "tensorflow-PR",
-    "mxnet-MAINLINE",
-    "pytorch-MAINLINE",
-    "tensorflow-MAINLINE",
-]
+EKS_CLUSTERS = ["mxnet-PR", "pytorch-PR", "tensorflow-PR", "mxnet-MAINLINE", "pytorch-MAINLINE", "tensorflow-MAINLINE"]
 EKS_CLUSTER_MANAGER_ROLE_NAME = "clusterManagerRole"
 
 
@@ -37,7 +30,7 @@ def get_run_time(creation_time):
 
 def delete_resources(list_item, k8s_api, job_type, namespace):
     """
-    Check the uptime for each resouce and delete if the uptime is greater than 3 hours
+    Check the uptime for each resouce and delete if the uptime is greater than 3 hours   
     """
 
     for item in list_item.items:
@@ -63,14 +56,12 @@ def delete_resources(list_item, k8s_api, job_type, namespace):
 
 def run_cleanup_job():
     """
-    List current deployments and pod and check if they are eligible for cleanup
+    List current deployments and pod and check if they are eligible for cleanup     
     """
     core_v1_api = client.CoreV1Api()
     apps_v1_api = client.AppsV1Api()
 
-    list_deployment_default = apps_v1_api.list_namespaced_deployment(
-        namespace="default"
-    )
+    list_deployment_default = apps_v1_api.list_namespaced_deployment(namespace="default")
     list_pod_default = core_v1_api.list_namespaced_pod(namespace="default")
 
     delete_resources(list_deployment_default, apps_v1_api, "deployment", "default")
@@ -78,14 +69,14 @@ def run_cleanup_job():
 
 
 def main():
+
     sts_client = boto3.client("sts")
     account_id = sts_client.get_caller_identity().get("Account")
-    EKS_CLUSTER_MANAGER_ROLE = (
-        f"arn:aws:iam::{account_id}:role/{EKS_CLUSTER_MANAGER_ROLE_NAME}"
-    )
+    EKS_CLUSTER_MANAGER_ROLE = f"arn:aws:iam::{account_id}:role/{EKS_CLUSTER_MANAGER_ROLE_NAME}"
 
     # Loop through each EKS cluster and perform cleanup
     for cluster in EKS_CLUSTERS:
+
         # Login into the cluster
         run(
             f"eksctl utils write-kubeconfig --cluster {cluster} --authenticator-role-arn {EKS_CLUSTER_MANAGER_ROLE} --region {AWS_REGION}"

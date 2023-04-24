@@ -27,9 +27,7 @@ from . import invoke_pytorch_estimator
 
 def validate_or_skip_pytorchddp(ecr_image):
     if not can_run_pytorchddp(ecr_image):
-        pytest.skip(
-            "PyTorch DDP distribution is supported on Python 3 on PyTorch v1.10 and above"
-        )
+        pytest.skip("PyTorch DDP distribution is supported on Python 3 on PyTorch v1.10 and above")
 
 
 def can_run_pytorchddp(ecr_image):
@@ -41,32 +39,24 @@ def can_run_pytorchddp(ecr_image):
 @pytest.mark.model("N/A")
 @pytest.mark.multinode(2)
 @pytest.mark.integration("pytorchddp")
-@pytest.mark.parametrize(
-    "efa_instance_type",
-    get_efa_test_instance_type(default=["ml.p4d.24xlarge"]),
-    indirect=True,
-)
+@pytest.mark.parametrize('efa_instance_type', get_efa_test_instance_type(default=["ml.p4d.24xlarge"]), indirect=True)
 @pytest.mark.skip_cpu
 @pytest.mark.skip_py2_containers
 @pytest.mark.skip_trcomp_containers
 @pytest.mark.efa()
-def test_pytorchddp_throughput_gpu(
-    framework_version, ecr_image, sagemaker_regions, efa_instance_type, tmpdir
-):
+def test_pytorchddp_throughput_gpu(framework_version, ecr_image, sagemaker_regions, efa_instance_type, tmpdir):
     with timeout(minutes=DEFAULT_TIMEOUT):
         validate_or_skip_pytorchddp(ecr_image)
-        distribution = {"pytorchddp": {"enabled": True}}
+        distribution = {'pytorchddp': {'enabled': True}}
         estimator_parameter = {
-            "entry_point": "pytorchddp_throughput_mnist.py",
-            "role": "SageMakerRole",
-            "instance_count": 2,
-            "instance_type": efa_instance_type,
-            "source_dir": mnist_path,
-            "framework_version": framework_version,
-            "distribution": distribution,
+            'entry_point': 'pytorchddp_throughput_mnist.py',
+            'role': 'SageMakerRole',
+            'instance_count': 2,
+            'instance_type': efa_instance_type,
+            'source_dir': mnist_path,
+            'framework_version': framework_version,
+            'distribution': distribution
         }
 
-        job_name = utils.unique_name_from_base("test-pytorchddp-throughput-gpu")
-        invoke_pytorch_estimator(
-            ecr_image, sagemaker_regions, estimator_parameter, job_name=job_name
-        )
+        job_name = utils.unique_name_from_base('test-pytorchddp-throughput-gpu')
+        invoke_pytorch_estimator(ecr_image, sagemaker_regions, estimator_parameter, job_name=job_name)

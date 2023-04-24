@@ -22,7 +22,7 @@ def _botocore_resolver():
     :return: endpoint object
     """
     loader = botocore.loaders.create_loader()
-    return botocore.regions.EndpointResolver(loader.load_data("endpoints"))
+    return botocore.regions.EndpointResolver(loader.load_data('endpoints'))
 
 
 def get_ecr_registry(account, region):
@@ -32,5 +32,5 @@ def get_ecr_registry(account, region):
     :param region: region where ECR repo exists
     :return: AWS ECR registry
     """
-    endpoint_data = _botocore_resolver().construct_endpoint("ecr", region)
-    return "{}.dkr.{}".format(account, endpoint_data["hostname"])
+    endpoint_data = _botocore_resolver().construct_endpoint('ecr', region)
+    return '{}.dkr.{}'.format(account, endpoint_data['hostname'])

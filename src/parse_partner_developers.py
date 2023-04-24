@@ -27,9 +27,7 @@ def get_args():
 
 def main():
     args = get_args()
-    partner_dev = parse_dlc_developer_configs(
-        "dev", "partner_developer", tomlfile=args.partner_toml
-    )
+    partner_dev = parse_dlc_developer_configs("dev", "partner_developer", tomlfile=args.partner_toml)
 
     if partner_dev:
         LOGGER.info(f"PARTNER_DEVELOPER: {partner_dev.upper()}")

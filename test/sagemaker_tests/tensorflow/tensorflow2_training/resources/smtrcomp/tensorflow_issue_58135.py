@@ -14,10 +14,9 @@ class Chooser(tf.keras.layers.Layer):
         result = tf.linalg.matmul(choices, options_input)
         return result
 
-
 def get_model():
-    options_input = tf.keras.layers.Input(shape=(10, 3), name="options")
-    choices_input = tf.keras.layers.Input(shape=(5, 10), name="choices")
+    options_input = tf.keras.layers.Input(shape=(10,3), name="options")
+    choices_input = tf.keras.layers.Input(shape=(5,10), name="choices")
 
     net = Chooser()(options_input, choices_input)
     net = tf.keras.layers.Flatten()(net)
@@ -27,7 +26,7 @@ def get_model():
 
 
 parser = argparse.ArgumentParser()
-parser.add_argument("--jit_compile", type=bool, default=False)
+parser.add_argument('--jit_compile', type=bool, default=False)
 args, unknown = parser.parse_known_args()
 
 
@@ -35,9 +34,8 @@ model = get_model()
 model.compile(
     optimizer=tf.keras.optimizers.Adam(0.001),
     loss=tf.keras.losses.MeanAbsoluteError(),
-    jit_compile=args.jit_compile,
+    jit_compile=args.jit_compile
 )
-
 
 def batch_gen():
     while True:
@@ -48,10 +46,7 @@ def batch_gen():
 
         yield {"options": o, "choices": c}, y
 
-
-dataset = tf.data.Dataset.from_generator(
-    batch_gen, output_types=({"options": tf.float32, "choices": tf.float32}, tf.float32)
-)
+dataset = tf.data.Dataset.from_generator(batch_gen, output_types=({"options": tf.float32, "choices": tf.float32}, tf.float32))
 dataset = dataset.batch(32)
 
 model.fit(dataset, steps_per_epoch=100, epochs=1)

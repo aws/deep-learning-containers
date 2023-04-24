@@ -128,9 +128,7 @@ def train(args, model, scaler, device, train_loader, optimizer, epoch):
 def test_step(model, data, target):
     output = model(data)
     loss = F.nll_loss(output, target, reduction="sum").item()  # sum up batch loss
-    pred = output.argmax(
-        dim=1, keepdim=True
-    )  # get the index of the max log-probability
+    pred = output.argmax(dim=1, keepdim=True)  # get the index of the max log-probability
     correct = pred.eq(target.view_as(pred)).sum().item()
     return loss, correct
 
@@ -184,18 +182,10 @@ def get_parser():
         help="input batch size for testing (default: 1000)",
     )
     parser.add_argument(
-        "--epochs",
-        type=int,
-        default=5,
-        metavar="N",
-        help="number of epochs to train (default: 14)",
+        "--epochs", type=int, default=5, metavar="N", help="number of epochs to train (default: 14)"
     )
     parser.add_argument(
-        "--lr",
-        type=float,
-        default=4.0,
-        metavar="LR",
-        help="learning rate (default: 1.0)",
+        "--lr", type=float, default=4.0, metavar="LR", help="learning rate (default: 1.0)"
     )
     parser.add_argument(
         "--gamma",
@@ -205,14 +195,9 @@ def get_parser():
         help="Learning rate step gamma (default: 0.7)",
     )
     parser.add_argument(
-        "--dry-run",
-        action="store_true",
-        default=False,
-        help="quickly check a single pass",
+        "--dry-run", action="store_true", default=False, help="quickly check a single pass"
     )
-    parser.add_argument(
-        "--seed", type=int, default=1, metavar="S", help="random seed (default: 1)"
-    )
+    parser.add_argument("--seed", type=int, default=1, metavar="S", help="random seed (default: 1)")
     parser.add_argument(
         "--log-interval",
         type=int,
@@ -227,10 +212,7 @@ def get_parser():
         "--full-checkpoint", type=str, default="", help="The checkpoint path to load"
     )
     parser.add_argument(
-        "--save-full-model",
-        action="store_true",
-        default=False,
-        help="For Saving the current Model",
+        "--save-full-model", action="store_true", default=False, help="For Saving the current Model"
     )
     parser.add_argument(
         "--save-partial-model",
@@ -243,7 +225,7 @@ def get_parser():
     parser.add_argument("--assert-losses", type=int, default=0)
     parser.add_argument("--data-dir", type=str, default=None)
     parser.add_argument("--ddp", type=int, default=0)
-    parser.add_argument("--mp_parameters", type=str, default="")
+    parser.add_argument('--mp_parameters', type=str, default='')
     return parser
 
 
@@ -253,6 +235,7 @@ def main():
     if not torch.cuda.is_available():
         raise ValueError("The script requires CUDA support, but CUDA not available")
     use_ddp = args.ddp > 0
+    
 
     # Fix seeds in order to get the same losses across runs
     random.seed(args.seed)
@@ -279,14 +262,10 @@ def main():
         # to download and extract at the same time
         args.data_dir = "../data"
         if smp.local_rank() == 0:
-            dataset1 = datasets.MNIST(
-                args.data_dir, train=True, download=True, transform=transform
-            )
+            dataset1 = datasets.MNIST(args.data_dir, train=True, download=True, transform=transform)
         smp.barrier()
 
-    dataset1 = datasets.MNIST(
-        args.data_dir, train=True, download=False, transform=transform
-    )
+    dataset1 = datasets.MNIST(args.data_dir, train=True, download=False, transform=transform)
 
     if (use_ddp) and smp.dp_size() > 1:
         partitions_dict = {f"{i}": 1 / smp.dp_size() for i in range(smp.dp_size())}
@@ -294,9 +273,7 @@ def main():
         dataset1.select(f"{smp.dp_rank()}")
 
     # Download and create dataloaders for train and test dataset
-    dataset2 = datasets.MNIST(
-        args.data_dir, train=False, download=False, transform=transform
-    )
+    dataset2 = datasets.MNIST(args.data_dir, train=False, download=False, transform=transform)
 
     train_loader = torch.utils.data.DataLoader(dataset1, **kwargs)
     test_loader = torch.utils.data.DataLoader(dataset2, **kwargs)

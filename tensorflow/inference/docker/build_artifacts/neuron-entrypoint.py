@@ -20,7 +20,7 @@ neuron_cmd = "/usr/local/bin/neuron-monitor.sh"
 subprocess.check_call(shlex.split(neuron_cmd))
 
 # Call the cmd that was passed on as part of docker run cmd
-subprocess.check_call(shlex.split(" ".join(sys.argv[1:])))
+subprocess.check_call(shlex.split(' '.join(sys.argv[1:])))
 
 # prevent docker exit
-subprocess.call(["tail", "-f", "/dev/null"])
+subprocess.call(['tail', '-f', '/dev/null'])

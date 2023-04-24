@@ -18,9 +18,7 @@ import os
 def model_fn(model_dir):
     lock_file = os.path.join(model_dir, "model_fn.lock.{}".format(os.getpid()))
     if os.path.exists(lock_file):
-        raise RuntimeError(
-            "model_fn called more than once (lock: {})".format(lock_file)
-        )
+        raise RuntimeError("model_fn called more than once (lock: {})".format(lock_file))
 
     open(lock_file, "a").close()
 

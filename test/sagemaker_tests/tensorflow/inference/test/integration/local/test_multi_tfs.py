@@ -29,8 +29,7 @@ def volume():
         model_dir = os.path.abspath("test/resources/models")
         subprocess.check_call(
             "docker volume create --name multi_tfs_model_volume --opt type=none "
-            "--opt device={} --opt o=bind".format(model_dir).split()
-        )
+            "--opt device={} --opt o=bind".format(model_dir).split())
         yield model_dir
     finally:
         subprocess.check_call("docker volume rm multi_tfs_model_volume".split())
@@ -52,14 +51,12 @@ def container(request, docker_base_name, tag, runtime_config):
             " -e SAGEMAKER_TFS_INSTANCE_COUNT=2"
             " -e SAGEMAKER_GUNICORN_WORKERS=4"
             " -e SAGEMAKER_TFS_INTER_OP_PARALLELISM=1"
-            " -e SAGEMAKER_TFS_INTRA_OP_PARALLELISM=1"
+            " -e SAGEMAKER_TFS_INTRA_OP_PARALLELISM=1"          
             " {}"
             " {}:{} serve"
         ).format(runtime_config, batching_config, docker_base_name, tag)
 
-        proc = subprocess.Popen(
-            command.split(), stdout=sys.stdout, stderr=subprocess.STDOUT
-        )
+        proc = subprocess.Popen(command.split(), stdout=sys.stdout, stderr=subprocess.STDOUT)
 
         attempts = 0
 
@@ -94,7 +91,9 @@ def make_request(data, content_type="application/json", method="predict", versio
 @pytest.mark.flaky(reruns=5, reruns_delay=25)
 @pytest.mark.model("half_plus_three")
 def test_predict():
-    x = {"instances": [1.0, 2.0, 5.0]}
+    x = {
+        "instances": [1.0, 2.0, 5.0]
+    }
 
     y = make_request(json.dumps(x))
     assert y == {"predictions": [3.5, 4.0, 5.5]}

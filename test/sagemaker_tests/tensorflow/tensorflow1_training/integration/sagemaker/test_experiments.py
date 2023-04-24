@@ -32,24 +32,14 @@ SCRIPT_PATH = os.path.join(DATA_PATH, "mnist_gluon_basic_hook_demo.py")
 @pytest.mark.model("mnist")
 @pytest.mark.integration("smexperiments")
 @pytest.mark.skip_py2_containers
-def test_training(
-    ecr_image, sagemaker_regions, instance_type, framework_version, py_version
-):
-    invoke_sm_helper_function(
-        ecr_image,
-        sagemaker_regions,
-        _test_training_function,
-        instance_type,
-        framework_version,
-        py_version,
-    )
+def test_training(ecr_image, sagemaker_regions, instance_type, framework_version, py_version):
+    invoke_sm_helper_function(ecr_image, sagemaker_regions, _test_training_function,
+                              instance_type, framework_version, py_version)
 
 
-def _test_training_function(
-    ecr_image, sagemaker_session, instance_type, framework_version, py_version
-):
-    if py_version is None or "2" in py_version:
-        pytest.skip("Skipping python2 {}".format(py_version))
+def _test_training_function(ecr_image, sagemaker_session, instance_type, framework_version, py_version):
+    if py_version is None or '2' in py_version:
+        pytest.skip('Skipping python2 {}'.format(py_version))
         return
 
     from smexperiments.experiment import Experiment
@@ -70,9 +60,7 @@ def _test_training_function(
 
     trial_name = f"tf-container-integ-test-{unique_id}-{int(time.time())}"
     trial = Trial.create(
-        experiment_name=experiment_name,
-        trial_name=trial_name,
-        sagemaker_boto_client=sm_client,
+        experiment_name=experiment_name, trial_name=trial_name, sagemaker_boto_client=sm_client
     )
 
     training_job_name = utils.unique_name_from_base("test-tf-experiments-mnist")
@@ -92,8 +80,7 @@ def _test_training_function(
             script_mode=True,
         )
         inputs = estimator.sagemaker_session.upload_data(
-            path=os.path.join(resource_path, "mnist", "data"),
-            key_prefix="scriptmode/mnist",
+            path=os.path.join(resource_path, "mnist", "data"), key_prefix="scriptmode/mnist"
         )
         estimator.fit(inputs, job_name=training_job_name)
 
@@ -102,9 +89,7 @@ def _test_training_function(
 
     # verify trial component auto created from the training job
     trial_components = list(
-        TrialComponent.list(
-            source_arn=training_job_arn, sagemaker_boto_client=sm_client
-        )
+        TrialComponent.list(source_arn=training_job_arn, sagemaker_boto_client=sm_client)
     )
 
     trial_component_summary = trial_components[0]

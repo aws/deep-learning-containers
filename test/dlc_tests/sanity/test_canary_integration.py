@@ -10,7 +10,7 @@ from test.test_utils import (
     login_to_ecr_registry,
     PR_ONLY_REASON,
     PUBLIC_DLC_REGISTRY,
-    LOGGER,
+    LOGGER
 )
 
 

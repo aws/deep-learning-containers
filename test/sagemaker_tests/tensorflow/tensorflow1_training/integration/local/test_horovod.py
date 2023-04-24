@@ -21,7 +21,7 @@ from sagemaker.tensorflow import TensorFlow
 
 from ...integration.utils import processor, py_version  # noqa: F401
 
-RESOURCE_PATH = os.path.join(os.path.dirname(__file__), "..", "..", "resources")
+RESOURCE_PATH = os.path.join(os.path.dirname(__file__), '..', '..', 'resources')
 
 
 @pytest.mark.processor("cpu")
@@ -30,20 +30,10 @@ RESOURCE_PATH = os.path.join(os.path.dirname(__file__), "..", "..", "resources")
 @pytest.mark.skip_gpu
 @pytest.mark.parametrize("instances, processes", [(1, 2)])
 def test_distributed_training_horovod_basic_singlenode(
-    instances,
-    processes,
-    sagemaker_local_session,
-    docker_image,
-    tmpdir,
-    framework_version,
+    instances, processes, sagemaker_local_session, docker_image, tmpdir, framework_version
 ):
     _run_distributed_training_horovod_basic(
-        instances,
-        processes,
-        sagemaker_local_session,
-        docker_image,
-        tmpdir,
-        framework_version,
+        instances, processes, sagemaker_local_session, docker_image, tmpdir, framework_version
     )
 
 
@@ -54,20 +44,10 @@ def test_distributed_training_horovod_basic_singlenode(
 @pytest.mark.skip_gpu
 @pytest.mark.parametrize("instances, processes", [(2, 1)])
 def test_distributed_training_horovod_basic_two_nodes(
-    instances,
-    processes,
-    sagemaker_local_session,
-    docker_image,
-    tmpdir,
-    framework_version,
+    instances, processes, sagemaker_local_session, docker_image, tmpdir, framework_version
 ):
     _run_distributed_training_horovod_basic(
-        instances,
-        processes,
-        sagemaker_local_session,
-        docker_image,
-        tmpdir,
-        framework_version,
+        instances, processes, sagemaker_local_session, docker_image, tmpdir, framework_version
     )
 
 
@@ -78,30 +58,15 @@ def test_distributed_training_horovod_basic_two_nodes(
 @pytest.mark.skip_gpu
 @pytest.mark.parametrize("instances, processes", [(2, 2)])
 def test_distributed_training_horovod_basic_two_nodes_two_processes(
-    instances,
-    processes,
-    sagemaker_local_session,
-    docker_image,
-    tmpdir,
-    framework_version,
+    instances, processes, sagemaker_local_session, docker_image, tmpdir, framework_version
 ):
     _run_distributed_training_horovod_basic(
-        instances,
-        processes,
-        sagemaker_local_session,
-        docker_image,
-        tmpdir,
-        framework_version,
+        instances, processes, sagemaker_local_session, docker_image, tmpdir, framework_version
     )
 
 
 def _run_distributed_training_horovod_basic(
-    instances,
-    processes,
-    sagemaker_local_session,
-    docker_image,
-    tmpdir,
-    framework_version,
+    instances, processes, sagemaker_local_session, docker_image, tmpdir, framework_version
 ):
     output_path = "file://%s" % tmpdir
     estimator = TensorFlow(
@@ -120,9 +85,7 @@ def _run_distributed_training_horovod_basic(
         },
     )
 
-    estimator.fit(
-        "file://{}".format(os.path.join(RESOURCE_PATH, "mnist", "data-distributed"))
-    )
+    estimator.fit("file://{}".format(os.path.join(RESOURCE_PATH, "mnist", "data-distributed")))
 
     tmp = str(tmpdir)
     extract_files(output_path.replace("file://", ""), tmp)
@@ -144,14 +107,14 @@ def read_json(file, tmp):
 
 
 def assert_files_exist_in_tar(output_path, files):
-    if output_path.startswith("file://"):
+    if output_path.startswith('file://'):
         output_path = output_path[7:]
-    model_file = os.path.join(output_path, "model.tar.gz")
+    model_file = os.path.join(output_path, 'model.tar.gz')
     with tarfile.open(model_file) as tar:
         for f in files:
             tar.getmember(f)
 
 
 def extract_files(output_path, tmpdir):
-    with tarfile.open(os.path.join(output_path, "model.tar.gz")) as tar:
+    with tarfile.open(os.path.join(output_path, 'model.tar.gz')) as tar:
         tar.extractall(tmpdir)

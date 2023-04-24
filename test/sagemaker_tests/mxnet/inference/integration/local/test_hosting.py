@@ -23,35 +23,29 @@ from ...integration.local import local_mode_utils
 from ...integration import RESOURCE_PATH
 
 
-HOSTING_RESOURCE_PATH = os.path.join(RESOURCE_PATH, "dummy_hosting")
-MODEL_PATH = os.path.join(HOSTING_RESOURCE_PATH, "model.tar.gz")
-SCRIPT_PATH = os.path.join(HOSTING_RESOURCE_PATH, "code", "dummy_hosting_module.py")
+HOSTING_RESOURCE_PATH = os.path.join(RESOURCE_PATH, 'dummy_hosting')
+MODEL_PATH = os.path.join(HOSTING_RESOURCE_PATH, 'model.tar.gz')
+SCRIPT_PATH = os.path.join(HOSTING_RESOURCE_PATH, 'code', 'dummy_hosting_module.py')
 
 
 # The image should use the model_fn and transform_fn defined
 # in the user-provided script when serving.
 @pytest.mark.integration("hosting")
 @pytest.mark.model("dummy_model")
-def test_hosting(
-    docker_image, sagemaker_local_session, local_instance_type, framework_version
-):
-    model = MXNetModel(
-        model_data="file://{}".format(MODEL_PATH),
-        image_uri=docker_image,
-        role="SageMakerRole",
-        entry_point=SCRIPT_PATH,
-        framework_version=framework_version,
-        sagemaker_session=sagemaker_local_session,
-    )
+def test_hosting(docker_image, sagemaker_local_session, local_instance_type, framework_version):
+    model = MXNetModel(model_data="file://{}".format(MODEL_PATH),
+                       image_uri=docker_image,
+                       role='SageMakerRole',
+                       entry_point=SCRIPT_PATH,
+                       framework_version=framework_version,
+                       sagemaker_session=sagemaker_local_session)
 
     with local_mode_utils.lock():
         try:
-            predictor = model.deploy(
-                1, local_instance_type, deserializer=StringDeserializer()
-            )
+            predictor = model.deploy(1, local_instance_type, deserializer=StringDeserializer())
 
-            input = "some data"
+            input = 'some data'
             output = predictor.predict(input)
-            assert '"' + input + '"' == output
+            assert '"'+input+'"' == output
         finally:
             predictor.delete_endpoint()

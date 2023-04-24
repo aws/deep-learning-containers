@@ -28,10 +28,8 @@ def get_target_url(project):
     """
     region = os.getenv("AWS_REGION")
     logpath = os.getenv("CODEBUILD_LOG_PATH")
-    return (
-        f"https://{region}.console.aws.amazon.com/codesuite/codebuild/projects/{project}/build/{project}%3A{logpath}"
-        f"/log?region={region}"
-    )
+    return f"https://{region}.console.aws.amazon.com/codesuite/codebuild/projects/{project}/build/{project}%3A{logpath}" \
+           f"/log?region={region}"
 
 
 def set_build_description(state, project):
@@ -79,7 +77,10 @@ def post_status(state):
 
     handler = GitHubHandler(user, repo_name)
     handler.set_status(
-        state=state, context=context, description=description, target_url=target_url
+        state=state,
+        context=context,
+        description=description,
+        target_url=target_url
     )
 
 

@@ -2,9 +2,7 @@ import os
 import re
 
 
-def execute_single_node_benchmark(
-    context, image_uri, framework, task, py_version, script_url
-):
+def execute_single_node_benchmark(context, image_uri, framework, task, py_version, script_url):
     """
     Shared code to execute single-node benchmarks
     :param context: Context() from callers
@@ -19,15 +17,11 @@ def execute_single_node_benchmark(
     benchmark_exec = os.getenv("BENCHMARK_EXEC")
     container_name = f"{framework}_single_node-{image_uri.split('/')[-1].replace('.', '-').replace(':', '-')}"
     bai_dir = os.path.join(os.getcwd(), "benchmark", "bai")
-    path_to_toml = os.path.join(
-        bai_dir, framework, "training", f"{framework}_single.toml"
-    )
+    path_to_toml = os.path.join(bai_dir, framework, "training", f"{framework}_single.toml")
     custom_toml_name = f"custom_{framework}_{py_version}.toml"
     write_image_to_toml(image_uri, path_to_toml, task, custom_toml_name)
     toml = os.path.join("test", framework, "training", custom_toml_name)
-    script_directory = (
-        re.search(r"[^/]+[A-Za-z0-9]+.git\Z", script_url).group().split(".")[0]
-    )
+    script_directory = re.search(r"[^/]+[A-Za-z0-9]+.git\Z", script_url).group().split(".")[0]
     context.run(
         f"docker run --name {container_name} -v {bai_dir}:{os.path.join(os.sep, 'test')} -itd bai_env_container",
         hide=True,
@@ -35,34 +29,18 @@ def execute_single_node_benchmark(
     execute_cmd_on_container(context, container_name, f"git clone {script_url}")
 
     execute_cmd_on_container(
-        context,
-        container_name,
-        f"curl http://{benchmark_endpoint}/api/tools/{benchmark_exec} "
-        f"-o {benchmark_exec}",
+        context, container_name, f"curl http://{benchmark_endpoint}/api/tools/{benchmark_exec} " f"-o {benchmark_exec}"
     )
     execute_cmd_on_container(context, container_name, f"chmod u+x {benchmark_exec}")
     execute_cmd_on_container(context, container_name, f"./{benchmark_exec} --env-setup")
-    execute_cmd_on_container(
-        context, container_name, f"./{benchmark_exec} --register {benchmark_endpoint}"
-    )
-    execute_cmd_on_container(
-        context,
-        container_name,
-        f"./{benchmark_exec} --set-client-id {benchmark_client_id}",
-    )
-    output = execute_cmd_on_container(
-        context, container_name, f"./{benchmark_exec} --get-client-id"
-    )
+    execute_cmd_on_container(context, container_name, f"./{benchmark_exec} --register {benchmark_endpoint}")
+    execute_cmd_on_container(context, container_name, f"./{benchmark_exec} --set-client-id {benchmark_client_id}")
+    output = execute_cmd_on_container(context, container_name, f"./{benchmark_exec} --get-client-id")
     assert benchmark_client_id in output.stdout, output.stdout
     execute_cmd_on_container(
-        context,
-        container_name,
-        f"./{benchmark_exec} --submit {toml} --script {script_directory}",
-        True,
+        context, container_name, f"./{benchmark_exec} --submit {toml} --script {script_directory}", True
     )
-    execute_cmd_on_container(
-        context, container_name, f"./{benchmark_exec} --watch --status --terminate"
-    )
+    execute_cmd_on_container(context, container_name, f"./{benchmark_exec} --watch --status --terminate")
 
 
 def execute_cmd_on_container(context, container_name, bash_command, warn=False):
@@ -74,11 +52,7 @@ def execute_cmd_on_container(context, container_name, bash_command, warn=False):
     :param warn: Default is False, if set to True will not cause codebuild to Fail when returned with a non-zero exit code
     :return: Returns result object of bash command, contains stdout, stderr....
     """
-    return context.run(
-        f"docker exec --user root {container_name} bash -c '{bash_command}'",
-        hide=True,
-        warn=warn,
-    )
+    return context.run(f"docker exec --user root {container_name} bash -c '{bash_command}'", hide=True, warn=warn)
 
 
 def write_image_to_toml(image_uri, path_to_toml, task, custom_toml_name):

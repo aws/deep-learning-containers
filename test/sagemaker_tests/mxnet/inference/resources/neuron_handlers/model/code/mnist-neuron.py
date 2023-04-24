@@ -11,16 +11,13 @@ from packaging import version
 import mxnet as mx
 import numpy as np
 
-
 def get_context():
     mxnet_version = version.parse(mx.__version__)
     if mxnet_version >= version.parse("1.8"):
         import mx_neuron as neuron
-
         return mx.cpu()
     else:
         return mx.neuron()
-
 
 ### NOTE: model_fn and transform_fn are used to load the model and serve inference
 def model_fn(model_dir):
@@ -31,9 +28,7 @@ def model_fn(model_dir):
 
     #     print("param {}".format(os.environ.get('MODEL_NAME_CUSTOM')))
     print("ctx {}".format(ctx))
-    sym, arg_params, aux_params = mx.model.load_checkpoint(
-        os.path.join(model_dir, "compiled"), 0
-    )
+    sym, arg_params, aux_params = mx.model.load_checkpoint(os.path.join(model_dir, "compiled"), 0)
     mod = mx.mod.Module(symbol=sym, context=ctx, label_names=None)
     for arg in arg_params:
         arg_params[arg] = arg_params[arg].astype(dtype)
@@ -42,9 +37,7 @@ def model_fn(model_dir):
         aux_params[arg] = aux_params[arg].astype(dtype)
 
     exe = mod.bind(
-        for_training=False,
-        data_shapes=[("data", (1, 28, 28))],
-        label_shapes=mod._label_shapes,
+        for_training=False, data_shapes=[("data", (1, 28, 28))], label_shapes=mod._label_shapes
     )
     mod.set_params(arg_params, aux_params, allow_missing=True)
     # run warm-up inference on empty data
@@ -54,11 +47,12 @@ def model_fn(model_dir):
 
 
 def transform_fn(mod, payload, input_content_type, output_content_type):
+
     logging.info("Invoking user-defined transform_fn")
     logging.info("input_content_type %s", input_content_type)
     Batch = namedtuple("Batch", ["data"])
     ctx = get_context()
-
+    
     print("payload {}".format(payload))
     data = np.array(json.loads(payload))
     print("shape {}".format(data.shape))

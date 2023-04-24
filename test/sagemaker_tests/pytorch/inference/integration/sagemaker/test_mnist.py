@@ -26,13 +26,7 @@ import time
 import json
 import logging
 
-from ...integration import (
-    model_cpu_dir,
-    mnist_cpu_script,
-    mnist_gpu_script,
-    model_eia_dir,
-    mnist_eia_script,
-)
+from ...integration import model_cpu_dir, mnist_cpu_script, mnist_gpu_script, model_eia_dir, mnist_eia_script
 from ...integration.sagemaker.timeout import timeout_and_delete_endpoint
 from .... import invoke_pytorch_helper_function
 
@@ -45,9 +39,7 @@ LOGGER.addHandler(logging.StreamHandler(sys.stdout))
 @pytest.mark.model("mnist")
 @pytest.mark.processor("cpu")
 @pytest.mark.cpu_test
-def test_mnist_distributed_cpu(
-    framework_version, ecr_image, instance_type, sagemaker_regions
-):
+def test_mnist_distributed_cpu(framework_version, ecr_image, instance_type, sagemaker_regions):
     instance_type = instance_type or "ml.c4.xlarge"
     model_dir = os.path.join(model_cpu_dir, "model_mnist.tar.gz")
     function_args = {
@@ -56,17 +48,13 @@ def test_mnist_distributed_cpu(
         "model_dir": model_dir,
         "mnist_script": mnist_cpu_script,
     }
-    invoke_pytorch_helper_function(
-        ecr_image, sagemaker_regions, _test_mnist_distributed, function_args
-    )
+    invoke_pytorch_helper_function(ecr_image, sagemaker_regions, _test_mnist_distributed, function_args)
 
 
 @pytest.mark.model("mnist")
 @pytest.mark.processor("gpu")
 @pytest.mark.gpu_test
-def test_mnist_distributed_gpu(
-    framework_version, ecr_image, instance_type, sagemaker_regions
-):
+def test_mnist_distributed_gpu(framework_version, ecr_image, instance_type, sagemaker_regions):
     instance_type = instance_type or "ml.p2.xlarge"
     model_dir = os.path.join(model_cpu_dir, "model_mnist.tar.gz")
     function_args = {
@@ -75,9 +63,7 @@ def test_mnist_distributed_gpu(
         "model_dir": model_dir,
         "mnist_script": mnist_gpu_script,
     }
-    invoke_pytorch_helper_function(
-        ecr_image, sagemaker_regions, _test_mnist_distributed, function_args
-    )
+    invoke_pytorch_helper_function(ecr_image, sagemaker_regions, _test_mnist_distributed, function_args)
 
 
 @pytest.mark.model("mnist")
@@ -90,7 +76,7 @@ def test_mnist_eia(
     instance_type,
     accelerator_type,
     sagemaker_regions,
-    verify_logs=False,
+    verify_logs=False
 ):
     instance_type = instance_type or "ml.c4.xlarge"
     # Scripted model is serialized with torch.jit.save().
@@ -104,9 +90,7 @@ def test_mnist_eia(
         "accelerator_type": accelerator_type,
         "verify_logs": verify_logs,
     }
-    invoke_pytorch_helper_function(
-        ecr_image, sagemaker_regions, _test_mnist_distributed, function_args
-    )
+    invoke_pytorch_helper_function(ecr_image, sagemaker_regions, _test_mnist_distributed, function_args)
 
 
 def _test_mnist_distributed(
@@ -173,15 +157,10 @@ def _check_for_cloudwatch_logs(endpoint_name, sagemaker_session):
     try:
         log_stream_name = identify_log_stream["logStreams"][0]["logStreamName"]
     except IndexError as e:
-        raise RuntimeError(
-            f"Unable to look up log streams for the log group {log_group_name}"
-        ) from e
+        raise RuntimeError(f"Unable to look up log streams for the log group {log_group_name}") from e
 
     log_events_response = client.get_log_events(
-        logGroupName=log_group_name,
-        logStreamName=log_stream_name,
-        limit=50,
-        startFromHead=True,
+        logGroupName=log_group_name, logStreamName=log_stream_name, limit=50, startFromHead=True
     )
 
     records_available = bool(log_events_response["events"])
@@ -201,4 +180,4 @@ def _check_for_cloudwatch_logs(endpoint_name, sagemaker_session):
             limit=10,
             interleaved=False,
         )
-        assert bool(check_for_torchserve_response["events"])
+        assert bool(check_for_torchserve_response["events"])           

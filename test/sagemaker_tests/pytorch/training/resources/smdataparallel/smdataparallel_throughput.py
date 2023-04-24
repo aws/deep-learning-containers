@@ -15,17 +15,16 @@ import subprocess
 import sys
 import torch
 from packaging.version import Version
-
 TORCH_VERSION = torch.__version__
 pre_ptbackend = Version(TORCH_VERSION) < Version("1.10")
 
 if pre_ptbackend:
-    script = "smdataparallel_throughput_pre_ptbackend.py"
+    script = 'smdataparallel_throughput_pre_ptbackend.py'
 else:
-    script = "smdataparallel_throughput_post_ptbackend.py"
-exe = "python"
+    script = 'smdataparallel_throughput_post_ptbackend.py'
+exe = 'python'
 
 cmd = [exe] + [script] + sys.argv[1:]
-cmd = " ".join(cmd)
+cmd = ' '.join(cmd)
 
 subprocess.run(cmd, shell=True)

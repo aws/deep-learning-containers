@@ -56,9 +56,7 @@ def get_ecr_image_scan_time(ecr_client, image_uri):
     """
     repository, tag = get_repository_and_tag_from_image_uri(image_uri)
     try:
-        scan_info = ecr_client.describe_image_scan_findings(
-            repositoryName=repository, imageId={"imageTag": tag}
-        )
+        scan_info = ecr_client.describe_image_scan_findings(repositoryName=repository, imageId={"imageTag": tag})
     except ecr_client.exceptions.ScanNotFoundException:
         return None
     return scan_info["imageScanFindings"]["imageScanCompletedAt"]
@@ -72,16 +70,12 @@ def start_ecr_image_scan(ecr_client, image_uri):
     """
     repository, tag = get_repository_and_tag_from_image_uri(image_uri)
     try:
-        scan_info = ecr_client.start_image_scan(
-            repositoryName=repository, imageId={"imageTag": tag}
-        )
+        scan_info = ecr_client.start_image_scan(repositoryName=repository, imageId={"imageTag": tag})
     except ecr_client.exceptions.LimitExceededException:
         LOGGER.warning("Scan has already been run on this image in the last 24 hours.")
         return
     if scan_info["imageScanStatus"]["status"] == "FAILED":
-        raise ECRScanFailedError(
-            f"ECR Scan failed and returned:\n{json.dumps(scan_info, indent=4)}"
-        )
+        raise ECRScanFailedError(f"ECR Scan failed and returned:\n{json.dumps(scan_info, indent=4)}")
     return
 
 
@@ -93,14 +87,10 @@ def get_ecr_image_scan_status(ecr_client, image_uri):
     :return: tuple<str, str> Scan Status, Status Description
     """
     repository, tag = get_repository_and_tag_from_image_uri(image_uri)
-    image_info = ecr_client.describe_images(
-        repositoryName=repository, imageIds=[{"imageTag": tag}]
-    )["imageDetails"][0]
+    image_info = ecr_client.describe_images(repositoryName=repository, imageIds=[{"imageTag": tag}])["imageDetails"][0]
     if "imageScanStatus" not in image_info.keys():
         return None, "Scan not started"
-    return image_info["imageScanStatus"]["status"], image_info["imageScanStatus"].get(
-        "description", "NO DESCRIPTION"
-    )
+    return image_info["imageScanStatus"]["status"], image_info["imageScanStatus"].get("description", "NO DESCRIPTION")
 
 
 def get_ecr_image_enhanced_scan_status(ecr_client, image_uri):
@@ -114,10 +104,7 @@ def get_ecr_image_enhanced_scan_status(ecr_client, image_uri):
     scan_info = ecr_client.describe_image_scan_findings(
         repositoryName=repository, imageId={"imageTag": tag}, maxResults=1
     )
-    return (
-        scan_info["imageScanStatus"]["status"],
-        scan_info["imageScanStatus"]["description"],
-    )
+    return scan_info["imageScanStatus"]["status"], scan_info["imageScanStatus"]["description"]
 
 
 def get_ecr_image_scan_severity_count(ecr_client, image_uri):
@@ -128,16 +115,12 @@ def get_ecr_image_scan_severity_count(ecr_client, image_uri):
     :return: dict ECR Scan Findings
     """
     repository, tag = get_repository_and_tag_from_image_uri(image_uri)
-    scan_info = ecr_client.describe_image_scan_findings(
-        repositoryName=repository, imageId={"imageTag": tag}
-    )
+    scan_info = ecr_client.describe_image_scan_findings(repositoryName=repository, imageId={"imageTag": tag})
     severity_counts = scan_info["imageScanFindings"]["findingSeverityCounts"]
     return severity_counts
 
 
-def get_all_ecr_image_scan_results(
-    ecr_client, image_uri, scan_info_finding_key="enhancedFindings"
-):
+def get_all_ecr_image_scan_results(ecr_client, image_uri, scan_info_finding_key="enhancedFindings"):
     """
     Get list of All vulnerabilities from ECR image scan results using pagination
     :param ecr_client: boto3 ecr client
@@ -147,21 +130,21 @@ def get_all_ecr_image_scan_results(
     scan_info_findings = []
     registry_id = get_account_id_from_image_uri(image_uri)
     repository, tag = get_repository_and_tag_from_image_uri(image_uri)
-    paginator = ecr_client.get_paginator("describe_image_scan_findings")
+    paginator = ecr_client.get_paginator('describe_image_scan_findings')
     response_iterator = paginator.paginate(
         registryId=registry_id,
         repositoryName=repository,
-        imageId={"imageTag": tag},
-        PaginationConfig={
-            "PageSize": 50,
+        imageId={
+            'imageTag': tag
         },
+        PaginationConfig={
+            'PageSize': 50,
+        }
     )
     for page in response_iterator:
         if scan_info_finding_key in page["imageScanFindings"]:
             scan_info_findings += page["imageScanFindings"][scan_info_finding_key]
-    LOGGER.info(
-        f"[TotalVulnsFound] For image_uri: {image_uri} {len(scan_info_findings)} vulnerabilities found in total."
-    )
+    LOGGER.info(f"[TotalVulnsFound] For image_uri: {image_uri} {len(scan_info_findings)} vulnerabilities found in total.")
     return scan_info_findings
 
 
@@ -174,9 +157,7 @@ def get_ecr_image_scan_results(ecr_client, image_uri, minimum_vulnerability="HIG
     :return: list<dict> Scan results
     """
     repository, tag = get_repository_and_tag_from_image_uri(image_uri)
-    scan_info = ecr_client.describe_image_scan_findings(
-        repositoryName=repository, imageId={"imageTag": tag}
-    )
+    scan_info = ecr_client.describe_image_scan_findings(repositoryName=repository, imageId={"imageTag": tag})
     scan_findings = [
         finding
         for finding in scan_info["imageScanFindings"]["findings"]
@@ -236,9 +217,7 @@ def delete_file(file_path):
     subprocess.check_output(f"rm -rf {file_path}", shell=True, executable="/bin/bash")
 
 
-def reupload_image_to_test_ecr(
-    source_image_uri, target_image_repo_name, target_region, pull_image=True
-):
+def reupload_image_to_test_ecr(source_image_uri, target_image_repo_name, target_region, pull_image=True):
     """
     Helper function to reupload an image owned by a another/same account to an ECR repo in this account to given region, so that
     this account can freely run tests without permission issues.
@@ -249,9 +228,7 @@ def reupload_image_to_test_ecr(
     :param pull_image: bool, specifies if the source_image needs to be pulled before reuploading
     :return: str New image URI for re-uploaded image
     """
-    ECR_PASSWORD_FILE_PATH = os.path.join(
-        "/tmp", f"{get_unique_name_from_tag(source_image_uri)}.txt"
-    )
+    ECR_PASSWORD_FILE_PATH = os.path.join("/tmp", f"{get_unique_name_from_tag(source_image_uri)}.txt")
     sts_client = boto3.client("sts", region_name=target_region)
     target_ecr_client = boto3.client("ecr", region_name=target_region)
     target_account_id = sts_client.get_caller_identity().get("Account")
@@ -282,15 +259,9 @@ def reupload_image_to_test_ecr(
             shell=True,
             executable="/bin/bash",
         )
-    subprocess.check_output(
-        f"docker tag {source_image_uri} {target_image_uri}",
-        shell=True,
-        executable="/bin/bash",
-    )
+    subprocess.check_output(f"docker tag {source_image_uri} {target_image_uri}", shell=True, executable="/bin/bash")
     delete_file(ECR_PASSWORD_FILE_PATH)
-    username, password = get_ecr_login_boto3(
-        target_ecr_client, target_account_id, target_region
-    )
+    username, password = get_ecr_login_boto3(target_ecr_client, target_account_id, target_region)
     save_credentials_to_file(ECR_PASSWORD_FILE_PATH, password)
     subprocess.check_output(
         f"cat {ECR_PASSWORD_FILE_PATH} | docker login -u {username} --password-stdin https://{target_account_id}.dkr.ecr.{target_region}.amazonaws.com && docker push {target_image_uri}",
@@ -331,34 +302,23 @@ def populate_ecr_scan_with_web_scraper_results(
     cve_list = list(set([cve["name"] for cve in ecr_scan_to_be_populated]))
     url_list = [prepend_url + cve_name for cve_name in cve_list]
     url_csv_string = ",".join(url_list)
-    simplified_image_uri = (
-        image_uri.replace(".", "-").replace("/", "-").replace(":", "-")
-    )
+    simplified_image_uri = image_uri.replace(".", "-").replace("/", "-").replace(":", "-")
     storage_file_path = os.path.join(
-        os.sep,
-        get_repository_local_path(),
-        "cve-data",
-        f"cve-data-{simplified_image_uri}.json",
+        os.sep, get_repository_local_path(), "cve-data", f"cve-data-{simplified_image_uri}.json"
     )
-    run_spider(
-        CveSpider, storage_file_path=storage_file_path, url_csv_string=url_csv_string
-    )
+    run_spider(CveSpider, storage_file_path=storage_file_path, url_csv_string=url_csv_string)
     f = open(storage_file_path, "r")
     scraped_data = json.load(f)
     scraped_data = process_scraped_data(scraped_data)
     for finding in ecr_scan_to_be_populated:
         cve_id = finding["name"]
         package_name = [
-            attribute["value"]
-            for attribute in finding["attributes"]
-            if attribute["key"] == "package_name"
+            attribute["value"] for attribute in finding["attributes"] if attribute["key"] == "package_name"
         ][0]
         if cve_id in scraped_data and package_name in scraped_data[cve_id]:
             finding["scraped_data"] = scraped_data[cve_id][package_name]
         else:
             finding["scraped_data"] = [
-                {
-                    "_comment": "Could Not be Processed. Webpage for this might not be in the required format."
-                }
+                {"_comment": "Could Not be Processed. Webpage for this might not be in the required format."}
             ]
     return ecr_scan_to_be_populated

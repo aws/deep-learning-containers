@@ -10,6 +10,7 @@ import os
 import torch
 
 if __name__ == "__main__":
+
     parser = argparse.ArgumentParser()
 
     # hyperparameters sent by the client are passed as command-line arguments to the script.
@@ -21,9 +22,7 @@ if __name__ == "__main__":
     parser.add_argument("--learning_rate", type=str, default=5e-5)
 
     # Data, model, and output directories
-    parser.add_argument(
-        "--output-data-dir", type=str, default=os.environ["SM_OUTPUT_DATA_DIR"]
-    )
+    parser.add_argument("--output-data-dir", type=str, default=os.environ["SM_OUTPUT_DATA_DIR"])
     parser.add_argument("--model-dir", type=str, default=os.environ["SM_MODEL_DIR"])
     parser.add_argument("--n_gpus", type=str, default=os.environ["SM_NUM_GPUS"])
 
@@ -51,17 +50,11 @@ if __name__ == "__main__":
 
     # load dataset
     train_dataset, test_dataset = load_dataset("imdb", split=["train", "test"])
-    test_dataset = test_dataset.shuffle().select(
-        range(100)
-    )  # smaller the size for test dataset to 10k
+    test_dataset = test_dataset.shuffle().select(range(100))  # smaller the size for test dataset to 10k
 
     # tokenize dataset
-    train_dataset = train_dataset.map(
-        tokenize, batched=True, batch_size=len(train_dataset)
-    )
-    test_dataset = test_dataset.map(
-        tokenize, batched=True, batch_size=len(test_dataset)
-    )
+    train_dataset = train_dataset.map(tokenize, batched=True, batch_size=len(train_dataset))
+    test_dataset = test_dataset.map(tokenize, batched=True, batch_size=len(test_dataset))
 
     # set format for pytorch
     train_dataset = train_dataset.rename_column("label", "labels")
@@ -76,9 +69,7 @@ if __name__ == "__main__":
     def compute_metrics(pred):
         labels = pred.label_ids
         preds = pred.predictions.argmax(-1)
-        precision, recall, f1, _ = precision_recall_fscore_support(
-            labels, preds, average="binary"
-        )
+        precision, recall, f1, _ = precision_recall_fscore_support(labels, preds, average="binary")
         acc = accuracy_score(labels, preds)
         return {"accuracy": acc, "f1": f1, "precision": precision, "recall": recall}
 

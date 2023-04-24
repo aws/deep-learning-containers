@@ -41,10 +41,7 @@ def test_requester():
 
     # sending requests
     with concurrent.futures.ThreadPoolExecutor(max_workers=threads) as executor:
-        futures = [
-            executor.submit(request_object.send_request, x, y, z)
-            for (x, y, z) in input_list
-        ]
+        futures = [executor.submit(request_object.send_request, x, y, z) for (x, y, z) in input_list]
 
     print("Created tickets......")
     for future in futures:
@@ -62,22 +59,15 @@ def test_requester():
     os.environ["CODEBUILD_BUILD_ARN"] = SAMPLE_CB_ARN
     for identifier in identifiers_list:
         os.environ["TICKET_KEY"] = f"folder/{identifier.ticket_name}"
-        log_return.update_pool(
-            "completed", identifier.instance_type, 3, identifier.job_type, report_path
-        )
+        log_return.update_pool("completed", identifier.instance_type, 3, identifier.job_type, report_path)
 
     # receiving logs
     with concurrent.futures.ThreadPoolExecutor(max_workers=threads) as executor:
-        logs = [
-            executor.submit(request_object.receive_logs, identifier)
-            for identifier in identifiers_list
-        ]
+        logs = [executor.submit(request_object.receive_logs, identifier) for identifier in identifiers_list]
 
     LOGGER.info("Receiving logs...")
     for log in logs:
-        assert (
-            "XML_REPORT" in log.result()
-        ), f"XML Report not found as part of the returned log message."
+        assert "XML_REPORT" in log.result(), f"XML Report not found as part of the returned log message."
 
     # clean up test artifacts
     S3 = boto3.client("s3")

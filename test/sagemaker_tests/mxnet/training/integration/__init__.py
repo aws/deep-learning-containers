@@ -14,9 +14,7 @@ from __future__ import absolute_import
 
 import os
 
-RESOURCE_PATH = os.path.abspath(
-    os.path.join(os.path.dirname(__file__), "..", "resources")
-)
+RESOURCE_PATH = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "resources"))
 
 # these regions have some p2 instances, but not enough for automated testing
 NO_P2_REGIONS = [

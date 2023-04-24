@@ -28,26 +28,27 @@ def model_fn(model_dir):
     """
     ctx = mx.cpu()
     bert, vocab = nlp.model.get_model(
-        "bert_12_768_12",
-        dataset_name="book_corpus_wiki_en_uncased",
+        'bert_12_768_12',
+        dataset_name='book_corpus_wiki_en_uncased',
         pretrained=False,
         ctx=ctx,
         use_pooler=True,
         use_decoder=False,
-        use_classifier=False,
-    )
+        use_classifier=False)
     tokenizer = nlp.data.BERTTokenizer(vocab, lower=True)
-    sentence_transform = nlp.data.BERTSentenceTransform(
-        tokenizer, max_seq_length=128, vocab=vocab, pad=True, pair=False
-    )
+    sentence_transform = nlp.data.BERTSentenceTransform(tokenizer,
+                                                        max_seq_length=128,
+                                                        vocab=vocab,
+                                                        pad=True,
+                                                        pair=False)
     batchify = nlp.data.batchify.Tuple(
-        nlp.data.batchify.Pad(axis=0, pad_val=vocab[vocab.padding_token]),  # input
+        nlp.data.batchify.Pad(axis=0,
+                              pad_val=vocab[vocab.padding_token]),  # input
         nlp.data.batchify.Stack(),  # length
-        nlp.data.batchify.Pad(axis=0, pad_val=0),
-    )  # segment
+        nlp.data.batchify.Pad(axis=0, pad_val=0))  # segment
     # Set dropout to non-zero, to match pretrained model parameter names
     net = nlp.model.BERTClassifier(bert, dropout=0.1)
-    net.load_parameters(os.path.join(model_dir, "bert_sst.params"), mx.cpu(0))
+    net.load_parameters(os.path.join(model_dir, 'bert_sst.params'), mx.cpu(0))
     net.hybridize()
 
     return net, sentence_transform, batchify
@@ -65,14 +66,14 @@ def transform_fn(model, data, input_content_type, output_content_type):
     net, sentence_transform, batchify = model
     batch = json.loads(data)
 
-    model_input = batchify([sentence_transform(sentence) for sentence in batch])
+    model_input = batchify(
+        [sentence_transform(sentence) for sentence in batch])
 
     inputs, valid_length, token_types = [
         arr.as_in_context(mx.cpu()) for arr in model_input
     ]
-    inference_output = net(inputs, token_types, valid_length.astype("float32"))
+    inference_output = net(inputs, token_types, valid_length.astype('float32'))
     inference_output = inference_output.as_in_context(mx.cpu())
 
-    return (
-        mx.nd.softmax(inference_output).argmax(axis=1).astype("int").asnumpy().tolist()
-    )
+    return mx.nd.softmax(inference_output).argmax(
+        axis=1).astype('int').asnumpy().tolist()

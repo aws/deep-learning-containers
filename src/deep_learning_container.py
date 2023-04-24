@@ -24,8 +24,7 @@ import requests
 
 TIMEOUT_SECS = 5
 
-
-def requests_helper(url, headers=None, timeout=0.1):
+def requests_helper(url, headers = None, timeout = 0.1):
     """
     Requests to get instance metadata using imdsv1 and imdsv2
     :param url: str, url to get the request
@@ -44,8 +43,7 @@ def requests_helper(url, headers=None, timeout=0.1):
 
     return response
 
-
-def requests_helper_imds(url, token=None):
+def requests_helper_imds(url, token = None):
     """
     Requests to get instance metadata using imdsv1 and imdsv2
     :param url: str, url to get the request
@@ -55,7 +53,7 @@ def requests_helper_imds(url, token=None):
     response = None
     headers = None
     if token:
-        headers = {"X-aws-ec2-metadata-token": token}
+        headers={"X-aws-ec2-metadata-token": token}
     timeout = 1
     try:
         while timeout <= 3:
@@ -100,7 +98,6 @@ def get_imdsv2_token():
 
     return token
 
-
 def _validate_instance_id(instance_id):
     """
     Validate instance ID
@@ -115,14 +112,14 @@ def _validate_instance_id(instance_id):
     return match.group(1)
 
 
-def _retrieve_instance_id(token=None):
+def _retrieve_instance_id(token = None):
     """
     Retrieve instance ID from instance metadata service
     """
     instance_id = None
     instance_url = "http://169.254.169.254/latest/meta-data/instance-id"
-
-    if token:
+    
+    if token: 
         instance_id = requests_helper_imds(instance_url, token)
     else:
         instance_id = requests_helper_imds(instance_url)
@@ -132,8 +129,7 @@ def _retrieve_instance_id(token=None):
 
     return instance_id
 
-
-def _retrieve_instance_region(token=None):
+def _retrieve_instance_region(token = None):
     """
     Retrieve instance region from instance metadata service
     """
@@ -164,7 +160,7 @@ def _retrieve_instance_region(token=None):
         response_text = requests_helper_imds(region_url, token)
     else:
         response_text = requests_helper_imds(region_url)
-
+    
     if response_text:
         response_json = json.loads(response_text)
 
@@ -216,16 +212,9 @@ def parse_args():
     """
     parser = argparse.ArgumentParser()
     parser.add_argument(
-        "--framework",
-        choices=["tensorflow", "mxnet", "pytorch"],
-        help="framework of container image.",
-        required=True,
+        "--framework", choices=["tensorflow", "mxnet", "pytorch"], help="framework of container image.", required=True
     )
-    parser.add_argument(
-        "--framework-version",
-        help="framework version of container image.",
-        required=True,
-    )
+    parser.add_argument("--framework-version", help="framework version of container image.", required=True)
     parser.add_argument(
         "--container-type",
         choices=["training", "inference"],
@@ -239,12 +228,8 @@ def parse_args():
 
     # PT 1.10 and above has +cpu or +cu113 string, so handle accordingly
     if args.framework == "pytorch":
-        pt_fw_version_pattern = (
-            r"(\d+(\.\d+){1,2}(-rc\d)?)((\+cpu)|(\+cu\d{3})|(a0\+git\w{7}))"
-        )
-        pt_fw_version_match = re.fullmatch(
-            pt_fw_version_pattern, args.framework_version
-        )
+        pt_fw_version_pattern = r"(\d+(\.\d+){1,2}(-rc\d)?)((\+cpu)|(\+cu\d{3})|(a0\+git\w{7}))"
+        pt_fw_version_match = re.fullmatch(pt_fw_version_pattern, args.framework_version)
         if pt_fw_version_match:
             args.framework_version = pt_fw_version_match.group(1)
     assert re.fullmatch(fw_version_pattern, args.framework_version), (
@@ -261,23 +246,14 @@ def query_bucket(instance_id, region):
     """
     response = None
     args = parse_args()
-    framework, framework_version, container_type = (
-        args.framework,
-        args.framework_version,
-        args.container_type,
-    )
+    framework, framework_version, container_type = args.framework, args.framework_version, args.container_type
     py_version = sys.version.split(" ")[0]
 
     if instance_id is not None and region is not None:
         url = (
             "https://aws-deep-learning-containers-{0}.s3.{0}.amazonaws.com"
             "/dlc-containers-{1}.txt?x-instance-id={1}&x-framework={2}&x-framework_version={3}&x-py_version={4}&x-container_type={5}".format(
-                region,
-                instance_id,
-                framework,
-                framework_version,
-                py_version,
-                container_type,
+                region, instance_id, framework, framework_version, py_version, container_type
             )
         )
         response = requests_helper(url, timeout=0.2)
@@ -295,11 +271,7 @@ def tag_instance(instance_id, region):
     Apply instance tag on the instance that is running the container using botocore
     """
     args = parse_args()
-    framework, framework_version, container_type = (
-        args.framework,
-        args.framework_version,
-        args.container_type,
-    )
+    framework, framework_version, container_type = args.framework, args.framework_version, args.container_type
     py_version = sys.version.split(" ")[0]
     device = _retrieve_device()
     cuda_version = f"_cuda{_retrieve_cuda()}" if device == "gpu" else ""
@@ -313,14 +285,10 @@ def tag_instance(instance_id, region):
         try:
             session = botocore.session.get_session()
             ec2_client = session.create_client("ec2", region_name=region)
-            response = ec2_client.create_tags(
-                Resources=[instance_id], Tags=[tag_struct]
-            )
+            response = ec2_client.create_tags(Resources=[instance_id], Tags=[tag_struct])
             request_status = response.get("ResponseMetadata").get("HTTPStatusCode")
             if os.environ.get("TEST_MODE") == str(1):
-                with open(
-                    os.path.join(os.sep, "tmp", "test_tag_request.txt"), "w+"
-                ) as rf:
+                with open(os.path.join(os.sep, "tmp", "test_tag_request.txt"), "w+") as rf:
                     rf.write(json.dumps(tag_struct, indent=4))
         except Exception as e:
             logging.error(f"Error. {e}")
@@ -350,12 +318,8 @@ def main():
         instance_id = _retrieve_instance_id()
         region = _retrieve_instance_region()
 
-    bucket_process = multiprocessing.Process(
-        target=query_bucket, args=(instance_id, region)
-    )
-    tag_process = multiprocessing.Process(
-        target=tag_instance, args=(instance_id, region)
-    )
+    bucket_process = multiprocessing.Process(target=query_bucket, args=(instance_id, region))
+    tag_process = multiprocessing.Process(target=tag_instance, args=(instance_id, region))
 
     bucket_process.start()
     tag_process.start()

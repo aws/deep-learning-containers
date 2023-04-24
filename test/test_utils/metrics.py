@@ -13,11 +13,7 @@ def construct_duration_metrics_data(start_time, test_path):
     :return: <dict>
     """
     duration = (datetime.now() - start_time).total_seconds()
-    data = {
-        "MetricName": "Test Duration",
-        "Dimensions": [{"Name": "Test Path", "Value": test_path}],
-        "Value": duration,
-    }
+    data = {"MetricName": "Test Duration", "Dimensions": [{"Name": "Test Path", "Value": test_path}], "Value": duration}
     return data
 
 
@@ -28,11 +24,7 @@ def construct_test_result_metrics_data(stdout, test_path):
     :param test_path: <string> With Scheduler/Without Scheduler
     :return: <dict>
     """
-    data = {
-        "MetricName": "Test Errors",
-        "Dimensions": [{"Name": "Test Path", "Value": test_path}],
-        "Value": stdout,
-    }
+    data = {"MetricName": "Test Errors", "Dimensions": [{"Name": "Test Path", "Value": test_path}], "Value": stdout}
     return data
 
 
@@ -49,9 +41,7 @@ def send_test_duration_metrics(start_time):
             metric_data = construct_duration_metrics_data(start_time, "With Scheduler")
 
         else:
-            metric_data = construct_duration_metrics_data(
-                start_time, "Without Scheduler"
-            )
+            metric_data = construct_duration_metrics_data(start_time, "Without Scheduler")
 
         cloudwatch_client.put_metric_data(Namespace="DLCCI", MetricData=[metric_data])
 
@@ -64,13 +54,11 @@ def send_test_result_metrics(stdout):
     cloudwatch_client = boto3.client("cloudwatch")
     use_scheduler = os.getenv("USE_SCHEDULER", "False").lower() == "true"
     executor_mode = os.getenv("EXECUTOR_MODE", "False").lower() == "true"
-    if not executor_mode:  # metrics should only be sent by the test CB
+    if not executor_mode: # metrics should only be sent by the test CB
         if use_scheduler:
             metric_data = construct_test_result_metrics_data(stdout, "With Scheduler")
 
         else:
-            metric_data = construct_test_result_metrics_data(
-                stdout, "Without Scheduler"
-            )
+            metric_data = construct_test_result_metrics_data(stdout, "Without Scheduler")
 
         cloudwatch_client.put_metric_data(Namespace="DLCCI", MetricData=[metric_data])

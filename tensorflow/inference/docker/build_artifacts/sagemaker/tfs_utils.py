@@ -38,9 +38,7 @@ Context = namedtuple(
 )
 
 
-def parse_request(
-    req, rest_port, grpc_port, default_model_name, model_name=None, channel=None
-):
+def parse_request(req, rest_port, grpc_port, default_model_name, model_name=None, channel=None):
     tfs_attributes = parse_tfs_custom_attributes(req)
     tfs_uri = make_tfs_uri(rest_port, tfs_attributes, default_model_name, model_name)
 
@@ -129,9 +127,7 @@ def tfs_command(
             get_tfs_batching_args(tfs_enable_batching, tfs_batching_config_file),
             get_tensorflow_intra_op_parallelism_args(tfs_intra_op_parallelism),
             get_tensorflow_inter_op_parallelism_args(tfs_inter_op_parallelism),
-            get_tfs_gpu_mem_args(
-                tfs_enable_gpu_memory_fraction, tfs_gpu_memory_fraction
-            ),
+            get_tfs_gpu_mem_args(tfs_enable_gpu_memory_fraction, tfs_gpu_memory_fraction),
         )
     )
     return cmd
@@ -169,9 +165,7 @@ def _find_saved_model_files(path):
 
 def get_tfs_batching_args(enable_batching, tfs_batching_config):
     if enable_batching:
-        return "--enable_batching=true " "--batching_parameters_file={}".format(
-            tfs_batching_config
-        )
+        return "--enable_batching=true " "--batching_parameters_file={}".format(tfs_batching_config)
     else:
         return ""
 
@@ -225,8 +219,7 @@ def create_batching_config(batching_config_file):
             "num_batch_threads",
             "SAGEMAKER_TFS_NUM_BATCH_THREADS",
             cpu_count,
-            "num_batch_threads defaulted to {},"
-            "the number of CPUs. Set {} to override default.",
+            "num_batch_threads defaulted to {}," "the number of CPUs. Set {} to override default.",
         ),
         _BatchingParameter(
             "max_enqueued_batches",
@@ -254,10 +247,7 @@ def create_batching_config(batching_config_file):
 
     config = ""
     for batching_parameter in batching_parameters:
-        config += "%s { value: %s }\n" % (
-            batching_parameter.key,
-            batching_parameter.value,
-        )
+        config += "%s { value: %s }\n" % (batching_parameter.key, batching_parameter.value)
 
     log.info("batching config: \n%s\n", config)
     with open(batching_config_file, "w", encoding="utf8") as f:
@@ -272,9 +262,7 @@ def wait_for_model(rest_port, model_name, timeout_seconds, wait_interval_seconds
             try:
                 session = requests.Session()
                 retries = Retry(total=9, backoff_factor=0.1)
-                session.mount(
-                    "http://", requests.adapters.HTTPAdapter(max_retries=retries)
-                )
+                session.mount("http://", requests.adapters.HTTPAdapter(max_retries=retries))
                 log.info("Trying to connect with model server: {}".format(tfs_url))
                 response = session.get(tfs_url)
                 log.info(response)

@@ -58,26 +58,16 @@ class MyModel(smp.DistributedModel):
     def __init__(self):
         super(MyModel, self).__init__()
         self.conv1 = Conv2D(
-            32,
-            3,
-            activation="relu",
-            kernel_initializer=tf.keras.initializers.GlorotNormal(seed=12),
+            32, 3, activation="relu", kernel_initializer=tf.keras.initializers.GlorotNormal(seed=12)
         )
         self.conv0 = Conv2D(
-            32,
-            3,
-            activation="relu",
-            kernel_initializer=tf.keras.initializers.GlorotNormal(seed=12),
+            32, 3, activation="relu", kernel_initializer=tf.keras.initializers.GlorotNormal(seed=12)
         )
         self.flatten = Flatten()
         self.d1 = Dense(
-            128,
-            activation="relu",
-            kernel_initializer=tf.keras.initializers.GlorotNormal(seed=192),
+            128, activation="relu", kernel_initializer=tf.keras.initializers.GlorotNormal(seed=192)
         )
-        self.d2 = Dense(
-            10, kernel_initializer=tf.keras.initializers.GlorotNormal(seed=126)
-        )
+        self.d2 = Dense(10, kernel_initializer=tf.keras.initializers.GlorotNormal(seed=126))
         self.bn = BatchNormalization()
 
     def first(self, x):

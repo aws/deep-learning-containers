@@ -57,8 +57,8 @@ IGNORE_SAFETY_IDS = {
                 "48551",
                 # for cryptography until we have 39.0.0 release
                 "51159",
-                # Keras 2.10.0 is latest, rc in place for 2.11.0+
-                "51516",
+                # Keras 2.10.0 is latest, rc in place for 2.11.0+ 
+                "51516"
             ],
         },
         "inference": {
@@ -638,12 +638,12 @@ IGNORE_SAFETY_IDS = {
                 "44849",
                 "44846",
                 "44872",
-                # Following are shipping neuron-cc that depends on numpy<1.20.0 (will be fixed in next release)
+                #Following are shipping neuron-cc that depends on numpy<1.20.0 (will be fixed in next release)
                 "43453",
                 "44715",
                 "44716",
                 "44717",
-                # Following is for neuron-cc that depends on protobuf<=3.20.1
+                #Following is for neuron-cc that depends on protobuf<=3.20.1
                 "51167",
             ],
         },
@@ -666,21 +666,22 @@ IGNORE_SAFETY_IDS = {
                 "42815",
             ],
         },
-        "training-neuron": {
-            "_comment": "py2 is deprecated",
-            "py2": [],
+        "training-neuron":{
+            "_comment":"py2 is deprecated",
+            "py2": [
+            ],
             "py3": [
                 # not possible for neuron-cc
                 "43453",
                 "44715",
                 "44717",
                 "44716",
-                # for releasing PT1.12 safety check tools might report a vulnerability for the package commonmarker,
-                # which is a dependency of deepspeed.
-                # This package is only used to build the documentation pages of deepspeed
-                # and won’t be used in the package that gets installed into the DLC.
-                # This security issue can be safely ignored
-                # and an attempt to upgrade deepspeed version to
+                # for releasing PT1.12 safety check tools might report a vulnerability for the package commonmarker, 
+                # which is a dependency of deepspeed. 
+                # This package is only used to build the documentation pages of deepspeed 
+                # and won’t be used in the package that gets installed into the DLC. 
+                # This security issue can be safely ignored 
+                # and an attempt to upgrade deepspeed version to 
                 # remediate it might have an inadvertent negative impact on the DLC components functionality.
                 "48298",
                 # for cryptography until e have 39.0.0 release
@@ -692,7 +693,7 @@ IGNORE_SAFETY_IDS = {
                 # Ignored- please check https://github.com/pytest-dev/py/issues/287
                 "51457",
                 # Sqlalchemy latest release is not there yet
-                "51668",
+                "51668"
             ],
         },
         "inference": {
@@ -985,7 +986,7 @@ IGNORE_SAFETY_IDS = {
                 "51358",
             ]
         },
-    },
+    }
 }
 
 
@@ -1017,9 +1018,7 @@ def _get_safety_ignore_list(image_uri):
     )
     python_version = "py2" if "py2" in image_uri else "py3"
 
-    return (
-        IGNORE_SAFETY_IDS.get(framework, {}).get(job_type, {}).get(python_version, [])
-    )
+    return IGNORE_SAFETY_IDS.get(framework, {}).get(job_type, {}).get(python_version, [])
 
 
 def _get_latest_package_version(package):
@@ -1040,12 +1039,11 @@ def _get_latest_package_version(package):
 @pytest.mark.usefixtures("sagemaker")
 @pytest.mark.model("N/A")
 @pytest.mark.canary("Run safety tests regularly on production images")
+@pytest.mark.skipif(not is_dlc_cicd_context(), reason="Skipping test because it is not running in dlc cicd infra")
 @pytest.mark.skipif(
-    not is_dlc_cicd_context(),
-    reason="Skipping test because it is not running in dlc cicd infra",
-)
-@pytest.mark.skipif(
-    not (is_safety_test_context()),
+    not (
+        is_safety_test_context()
+    ),
     reason=(
         "Skipping the test to decrease the number of calls to the Safety Check DB. "
         "Test will be executed in the 'mainline' pipeline and canaries pipeline."
@@ -1080,9 +1078,7 @@ def test_safety(image):
     )
     try:
         run(f"{docker_exec_cmd} pip install 'safety>=2.2.0' yolk3k ", hide=True)
-        json_str_safety_result = safety_check.run_safety_check_on_container(
-            docker_exec_cmd
-        )
+        json_str_safety_result = safety_check.run_safety_check_on_container(docker_exec_cmd)
         safety_result = json.loads(json_str_safety_result)["vulnerabilities"]
         for vulnerability in safety_result:
             package = vulnerability["package_name"]
@@ -1100,8 +1096,7 @@ def test_safety(image):
                 # https://packaging.pypa.io/en/latest/specifiers/
                 ignore_str += f" -i {vulnerability_id}"
         assert (
-            safety_check.run_safety_check_with_ignore_list(docker_exec_cmd, ignore_str)
-            == 0
+            safety_check.run_safety_check_with_ignore_list(docker_exec_cmd, ignore_str) == 0
         ), f"Safety test failed for {image}"
     finally:
         run(f"docker rm -f {container_name}", hide=True)

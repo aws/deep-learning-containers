@@ -19,14 +19,7 @@ class PytestCache:
         self.bucket_name = f"dlc-test-execution-results-{account_id}"
 
     def download_pytest_cache_from_s3_to_local(
-        self,
-        current_dir,
-        commit_id,
-        framework,
-        version,
-        build_context,
-        test_type,
-        custom_cache_directory="",
+        self, current_dir, commit_id, framework, version, build_context, test_type, custom_cache_directory=""
     ):
         """
         Download pytest cache file from directory in s3 to local box
@@ -46,9 +39,7 @@ class PytestCache:
             current_dir = os.path.join(current_dir, custom_cache_directory)
         local_file_dir = os.path.join(current_dir, ".pytest_cache", "v", "cache")
         local_file_path = os.path.join(local_file_dir, "lastfailed")
-        s3_file_dir = self.__make_s3_path(
-            commit_id, framework, version, build_context, test_type
-        )
+        s3_file_dir = self.__make_s3_path(commit_id, framework, version, build_context, test_type)
         s3_file_path = os.path.join(s3_file_dir, "lastfailed")
 
         if os.path.exists(local_file_path):
@@ -58,17 +49,10 @@ class PytestCache:
         self.__download_cache_from_s3(s3_file_path, local_file_path)
 
     def download_pytest_cache_from_s3_to_ec2(
-        self,
-        ec2_connection,
-        path,
-        commit_id,
-        framework,
-        version,
-        build_context,
-        test_type,
+        self, ec2_connection, path, commit_id, framework, version, build_context, test_type
     ):
         """
-        Copy pytest cache file from directory in s3 to ec2 instance. .pytest_cache directory will be created in
+        Copy pytest cache file from directory in s3 to ec2 instance. .pytest_cache directory will be created in 
         :param path ec2 directory.
 
                 Following parameters are required to create a path to cache file in s3:
@@ -81,9 +65,7 @@ class PytestCache:
         """
         local_file_dir = os.path.join(path, ".pytest_cache", "v", "cache")
         local_file_path = os.path.join(local_file_dir, "lastfailed")
-        s3_file_dir = self.__make_s3_path(
-            commit_id, framework, version, build_context, test_type
-        )
+        s3_file_dir = self.__make_s3_path(commit_id, framework, version, build_context, test_type)
         s3_file_path = os.path.join(s3_file_dir, "lastfailed")
         self.__delete_file_on_ec2(ec2_connection, local_file_path)
 
@@ -91,17 +73,10 @@ class PytestCache:
         self.__upload_cache_to_ec2(ec2_connection, "lastfailed", local_file_dir)
 
     def upload_pytest_cache_from_ec2_to_s3(
-        self,
-        ec2_connection,
-        path,
-        commit_id,
-        framework,
-        version,
-        build_context,
-        test_type,
+        self, ec2_connection, path, commit_id, framework, version, build_context, test_type
     ):
         """
-        Copy pytest cache file from ec2 instance to directory in s3. .pytest_cache directory will be copied from
+        Copy pytest cache file from ec2 instance to directory in s3. .pytest_cache directory will be copied from 
         :param path ec2 directory to s3 directory generated from parameters.
 
                 Following parameters are required to create a path to cache file in s3:
@@ -114,9 +89,7 @@ class PytestCache:
         """
         ec2_dir = os.path.join(path, ".pytest_cache", "v", "cache")
         ec2_file_path = os.path.join(ec2_dir, "lastfailed")
-        s3_file_dir = self.__make_s3_path(
-            commit_id, framework, version, build_context, test_type
-        )
+        s3_file_dir = self.__make_s3_path(commit_id, framework, version, build_context, test_type)
         s3_file_path = os.path.join(s3_file_dir, "lastfailed")
 
         # Since we run tests in parallel files from latests executions will overwrite existing file.
@@ -124,16 +97,14 @@ class PytestCache:
         # At the end of current execution there will be full file in s3
         tmp_file_name = "tmp"
         self.__download_cache_from_ec2(ec2_connection, ec2_file_path, tmp_file_name)
-        self.__merge_2_execution_caches_and_save(
-            tmp_file_name, "lastfailed", "lastfailed"
-        )
+        self.__merge_2_execution_caches_and_save(tmp_file_name, "lastfailed", "lastfailed")
         self.__upload_cache_to_s3("lastfailed", s3_file_path)
 
     def upload_pytest_cache_from_local_to_s3(
         self, current_dir, commit_id, framework, version, build_context, test_type
     ):
         """
-        Copy pytest cache file from local box to directory in s3. .pytest_cache directory will be copied from
+        Copy pytest cache file from local box to directory in s3. .pytest_cache directory will be copied from 
         :param current_dir ec2 directory to s3 directory generated from parameters.
 
                 Following parameters are required to create a path to cache file in s3:
@@ -146,17 +117,13 @@ class PytestCache:
         """
         local_file_dir = os.path.join(current_dir, ".pytest_cache", "v", "cache")
         local_file_path = os.path.join(local_file_dir, "lastfailed")
-        s3_file_dir = self.__make_s3_path(
-            commit_id, framework, version, build_context, test_type
-        )
+        s3_file_dir = self.__make_s3_path(commit_id, framework, version, build_context, test_type)
         s3_file_path = os.path.join(s3_file_dir, "lastfailed")
         self.__upload_cache_to_s3(local_file_path, s3_file_path)
 
-    def convert_cache_json_and_upload_to_s3(
-        self, cache_json, commit_id, framework, version, build_context, test_type
-    ):
+    def convert_cache_json_and_upload_to_s3(self, cache_json, commit_id, framework, version, build_context, test_type):
         """
-        Copy pytest cache from json and send to directory in s3.
+        Copy pytest cache from json and send to directory in s3. 
         :param cache_json - json object with pytest cache
                 Following parameters are required to create a path to cache file in s3:
         :param commit_id
@@ -168,9 +135,7 @@ class PytestCache:
         if not cache_json:
             LOGGER.info("No cache was generated. Skip uploading.")
             return
-        s3_file_dir = self.__make_s3_path(
-            commit_id, framework, version, build_context, test_type
-        )
+        s3_file_dir = self.__make_s3_path(commit_id, framework, version, build_context, test_type)
         s3_file_path = os.path.join(s3_file_dir, "lastfailed")
         tmp_file_for_cache_json = "tmp_file_for_cache_json"
         with open(tmp_file_for_cache_json, "w") as f:
@@ -178,6 +143,7 @@ class PytestCache:
         self.__upload_cache_to_s3(tmp_file_for_cache_json, s3_file_path)
 
     def convert_pytest_cache_file_to_json(self, current_dir, custom_cache_directory=""):
+
         if custom_cache_directory:
             current_dir = os.path.join(current_dir, custom_cache_directory)
         local_file_dir = os.path.join(current_dir, ".pytest_cache", "v", "cache")
@@ -200,7 +166,7 @@ class PytestCache:
 
     def __merge_2_execution_caches_and_save(self, cache_file_1, cache_file_2, save_to):
         """
-        Merges 2 JSON objects into one and safe on disk
+        Merges 2 JSON objects into one and safe on disk 
 
         :param cache_file_1
         :param cache_file_2
@@ -220,9 +186,7 @@ class PytestCache:
     def __download_cache_from_s3(self, s3_file, local_file):
         LOGGER.info(f"Downloading previous executions cache: {s3_file}")
         try:
-            self.s3_client.download_file(
-                self.bucket_name, f"{s3_file}", f"{local_file}"
-            )
+            self.s3_client.download_file(self.bucket_name, f"{s3_file}", f"{local_file}")
         except Exception as e:
             LOGGER.info(f"Cache file wasn't downloaded: {e}")
 

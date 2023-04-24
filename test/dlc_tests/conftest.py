@@ -42,7 +42,7 @@ from test.test_utils import (
 )
 from test.test_utils.imageutils import (
     are_image_labels_matched,
-    are_fixture_labels_enabled,
+    are_fixture_labels_enabled
 )
 from test.test_utils.test_reporting import TestReportGenerator
 
@@ -106,72 +106,67 @@ FRAMEWORK_FIXTURES = (
 NIGHTLY_FIXTURES = {
     "feature_smdebug_present": {
         NightlyFeatureLabel.AWS_FRAMEWORK_INSTALLED.value,
-        NightlyFeatureLabel.AWS_SMDEBUG_INSTALLED.value,
+        NightlyFeatureLabel.AWS_SMDEBUG_INSTALLED.value
     },
     "feature_smddp_present": {
         NightlyFeatureLabel.AWS_FRAMEWORK_INSTALLED.value,
-        NightlyFeatureLabel.AWS_SMDDP_INSTALLED.value,
+        NightlyFeatureLabel.AWS_SMDDP_INSTALLED.value
     },
-    "feature_smmp_present": {NightlyFeatureLabel.AWS_SMMP_INSTALLED.value},
+    "feature_smmp_present": {
+        NightlyFeatureLabel.AWS_SMMP_INSTALLED.value
+    },
     "feature_aws_framework_present": {
         NightlyFeatureLabel.AWS_FRAMEWORK_INSTALLED.value
     },
-    "feature_torchaudio_present": {
+    "feature_torchaudio_present":{
         NightlyFeatureLabel.PYTORCH_INSTALLED.value,
-        NightlyFeatureLabel.TORCHAUDIO_INSTALLED.value,
+        NightlyFeatureLabel.TORCHAUDIO_INSTALLED.value
     },
-    "feature_torchvision_present": {
+    "feature_torchvision_present":{
         NightlyFeatureLabel.PYTORCH_INSTALLED.value,
-        NightlyFeatureLabel.TORCHVISION_INSTALLED.value,
+        NightlyFeatureLabel.TORCHVISION_INSTALLED.value
     },
-    "feature_torchdata_present": {
+    "feature_torchdata_present":{
         NightlyFeatureLabel.PYTORCH_INSTALLED.value,
-        NightlyFeatureLabel.TORCHDATA_INSTALLED.value,
+        NightlyFeatureLabel.TORCHDATA_INSTALLED.value
     },
-    "feature_s3_plugin_present": {NightlyFeatureLabel.AWS_S3_PLUGIN_INSTALLED.value},
+    "feature_s3_plugin_present":{
+        NightlyFeatureLabel.AWS_S3_PLUGIN_INSTALLED.value
+    }
 }
-
 
 # Nightly fixtures
 @pytest.fixture(scope="session")
 def feature_smdebug_present():
     pass
 
-
 @pytest.fixture(scope="session")
 def feature_smddp_present():
     pass
-
 
 @pytest.fixture(scope="session")
 def feature_smmp_present():
     pass
 
-
 @pytest.fixture(scope="session")
 def feature_aws_framework_present():
     pass
-
 
 @pytest.fixture(scope="session")
 def feature_torchaudio_present():
     pass
 
-
 @pytest.fixture(scope="session")
 def feature_torchvision_present():
     pass
-
 
 @pytest.fixture(scope="session")
 def feature_torchdata_present():
     pass
 
-
 @pytest.fixture(scope="session")
 def feature_s3_plugin_present():
     pass
-
 
 # Ignore container_tests collection, as they will be called separately from test functions
 collect_ignore = [os.path.join("container_tests")]
@@ -181,40 +176,22 @@ def pytest_addoption(parser):
     default_images = test_utils.get_dlc_images()
     images = default_images.split(" ") if default_images else []
     parser.addoption(
-        "--images",
-        default=images,
-        nargs="+",
-        help="Specify image(s) to run",
+        "--images", default=images, nargs="+", help="Specify image(s) to run",
     )
     parser.addoption(
-        "--canary",
-        action="store_true",
-        default=False,
-        help="Run canary tests",
+        "--canary", action="store_true", default=False, help="Run canary tests",
     )
     parser.addoption(
-        "--generate-coverage-doc",
-        action="store_true",
-        default=False,
-        help="Generate a test coverage doc",
+        "--generate-coverage-doc", action="store_true", default=False, help="Generate a test coverage doc",
     )
     parser.addoption(
-        "--multinode",
-        action="store_true",
-        default=False,
-        help="Run only multi-node tests",
+        "--multinode", action="store_true", default=False, help="Run only multi-node tests",
     )
     parser.addoption(
-        "--efa",
-        action="store_true",
-        default=False,
-        help="Run only efa tests",
+        "--efa", action="store_true", default=False, help="Run only efa tests",
     )
     parser.addoption(
-        "--quick_checks",
-        action="store_true",
-        default=False,
-        help="Run quick check tests",
+        "--quick_checks", action="store_true", default=False, help="Run quick check tests",
     )
 
 
@@ -251,8 +228,7 @@ def region():
 @pytest.fixture(scope="session")
 def docker_client(region):
     test_utils.run_subprocess_cmd(
-        f"$(aws ecr get-login --no-include-email --region {region})",
-        failure="Failed to log into ECR.",
+        f"$(aws ecr get-login --no-include-email --region {region})", failure="Failed to log into ECR.",
     )
     return docker.from_env()
 
@@ -269,16 +245,12 @@ def sts_client(region):
 
 @pytest.fixture(scope="session")
 def ec2_client(region):
-    return boto3.client(
-        "ec2", region_name=region, config=Config(retries={"max_attempts": 10})
-    )
+    return boto3.client("ec2", region_name=region, config=Config(retries={"max_attempts": 10}))
 
 
 @pytest.fixture(scope="session")
 def ec2_resource(region):
-    return boto3.resource(
-        "ec2", region_name=region, config=Config(retries={"max_attempts": 10})
-    )
+    return boto3.resource("ec2", region_name=region, config=Config(retries={"max_attempts": 10}))
 
 
 @pytest.fixture(scope="function")
@@ -288,16 +260,12 @@ def ec2_instance_type(request):
 
 @pytest.fixture(scope="function")
 def ec2_instance_role_name(request):
-    return (
-        request.param if hasattr(request, "param") else ec2_utils.EC2_INSTANCE_ROLE_NAME
-    )
+    return request.param if hasattr(request, "param") else ec2_utils.EC2_INSTANCE_ROLE_NAME
 
 
 @pytest.fixture(scope="function")
 def ec2_instance_ami(request):
-    return (
-        request.param if hasattr(request, "param") else UBUNTU_18_BASE_DLAMI_US_WEST_2
-    )
+    return request.param if hasattr(request, "param") else UBUNTU_18_BASE_DLAMI_US_WEST_2
 
 
 @pytest.fixture(scope="function")
@@ -320,12 +288,8 @@ def ec2_instance(
 ):
     if ec2_instance_type == "p3dn.24xlarge":
         region = P3DN_REGION
-        ec2_client = boto3.client(
-            "ec2", region_name=region, config=Config(retries={"max_attempts": 10})
-        )
-        ec2_resource = boto3.resource(
-            "ec2", region_name=region, config=Config(retries={"max_attempts": 10})
-        )
+        ec2_client = boto3.client("ec2", region_name=region, config=Config(retries={"max_attempts": 10}))
+        ec2_resource = boto3.resource("ec2", region_name=region, config=Config(retries={"max_attempts": 10}))
         if ec2_instance_ami != PT_GPU_PY3_BENCHMARK_IMAGENET_AMI_US_EAST_1:
             ec2_instance_ami = (
                 AML2_BASE_DLAMI_US_EAST_1
@@ -352,18 +316,13 @@ def ec2_instance(
         "InstanceType": ec2_instance_type,
         "IamInstanceProfile": {"Name": ec2_instance_role_name},
         "TagSpecifications": [
-            {
-                "ResourceType": "instance",
-                "Tags": [{"Key": "Name", "Value": f"CI-CD {ec2_key_name}"}],
-            },
+            {"ResourceType": "instance", "Tags": [{"Key": "Name", "Value": f"CI-CD {ec2_key_name}"}]},
         ],
         "MaxCount": 1,
         "MinCount": 1,
     }
 
-    volume_name = (
-        "/dev/sda1" if ec2_instance_ami in test_utils.UL_AMI_LIST else "/dev/xvda"
-    )
+    volume_name = "/dev/sda1" if ec2_instance_ami in test_utils.UL_AMI_LIST else "/dev/xvda"
 
     if (
         "pytorch_training_habana" in request.fixturenames
@@ -373,22 +332,12 @@ def ec2_instance(
         user_data = """#!/bin/bash
         sudo apt-get update && sudo apt-get install -y awscli"""
         params["UserData"] = user_data
-        params["BlockDeviceMappings"] = [
-            {
-                "DeviceName": volume_name,
-                "Ebs": {
-                    "VolumeSize": 1000,
-                },
-            }
-        ]
+        params["BlockDeviceMappings"] = [{"DeviceName": volume_name, "Ebs": {"VolumeSize": 1000,},}]
     elif (
         (
             ("benchmark" in os.getenv("TEST_TYPE") or is_benchmark_dev_context())
             and (
-                (
-                    "mxnet_training" in request.fixturenames
-                    and "gpu_only" in request.fixturenames
-                )
+                ("mxnet_training" in request.fixturenames and "gpu_only" in request.fixturenames)
                 or "mxnet_inference" in request.fixturenames
             )
         )
@@ -398,58 +347,27 @@ def ec2_instance(
             and "gpu_only" in request.fixturenames
             and "horovod" in ec2_key_name
         )
-        or (
-            "tensorflow_inference" in request.fixturenames
-            and "graviton_compatible_only" in request.fixturenames
-        )
+        or ("tensorflow_inference" in request.fixturenames and "graviton_compatible_only" in request.fixturenames)
         or ("graviton" in request.fixturenames)
     ):
-        params["BlockDeviceMappings"] = [
-            {
-                "DeviceName": volume_name,
-                "Ebs": {
-                    "VolumeSize": 300,
-                },
-            }
-        ]
+        params["BlockDeviceMappings"] = [{"DeviceName": volume_name, "Ebs": {"VolumeSize": 300,},}]
     else:
-        params["BlockDeviceMappings"] = [
-            {
-                "DeviceName": volume_name,
-                "Ebs": {
-                    "VolumeSize": 500,
-                },
-            }
-        ]
+        params["BlockDeviceMappings"] = [{"DeviceName": volume_name, "Ebs": {"VolumeSize": 500,},}]
 
     # For TRN1 since we are using a private AMI that has some BERT data/tests, have a bifgger volume size
     # Once use DLAMI, this can be removed
     if ec2_instance_type == "trn1.32xlarge" or ec2_instance_type == "trn1.2xlarge":
-        params["BlockDeviceMappings"] = [
-            {
-                "DeviceName": volume_name,
-                "Ebs": {
-                    "VolumeSize": 1024,
-                },
-            }
-        ]
+        params["BlockDeviceMappings"] = [{"DeviceName": volume_name, "Ebs": {"VolumeSize": 1024,},}]
 
     # For neuron the current DLAMI does not have the latest drivers and compatibility
     # is failing. So reinstall the latest neuron driver
-    if "pytorch_inference_neuron" in request.fixturenames:
-        params["BlockDeviceMappings"] = [
-            {
-                "DeviceName": volume_name,
-                "Ebs": {
-                    "VolumeSize": 1024,
-                },
-            }
-        ]
+    if (
+        "pytorch_inference_neuron" in request.fixturenames
+    ):
+        params["BlockDeviceMappings"] = [{"DeviceName": volume_name, "Ebs": {"VolumeSize": 1024,},}]
 
     if ei_accelerator_type:
-        params["ElasticInferenceAccelerators"] = [
-            {"Type": ei_accelerator_type, "Count": 1}
-        ]
+        params["ElasticInferenceAccelerators"] = [{"Type": ei_accelerator_type, "Count": 1}]
         availability_zones = {
             "us-west-2": ["us-west-2a", "us-west-2b", "us-west-2c"],
             "us-east-1": ["us-east-1a", "us-east-1b", "us-east-1c"],
@@ -468,13 +386,9 @@ def ec2_instance(
             instances = ec2_resource.create_instances(**params)
         except ClientError as e:
             if e.response["Error"]["Code"] == "InsufficientInstanceCapacity":
-                LOGGER.warning(
-                    f"Failed to launch {ec2_instance_type} in {region} because of insufficient capacity"
-                )
+                LOGGER.warning(f"Failed to launch {ec2_instance_type} in {region} because of insufficient capacity")
                 if ec2_instance_type in ec2_utils.ICE_SKIP_INSTANCE_LIST:
-                    pytest.skip(
-                        f"Skipping test because {ec2_instance_type} instance could not be launched."
-                    )
+                    pytest.skip(f"Skipping test because {ec2_instance_type} instance could not be launched.")
             raise
     instance_id = instances[0].id
 
@@ -485,9 +399,7 @@ def ec2_instance(
     request.addfinalizer(terminate_ec2_instance)
 
     ec2_utils.check_instance_state(instance_id, state="running", region=region)
-    ec2_utils.check_system_state(
-        instance_id, system_status="ok", instance_status="ok", region=region
-    )
+    ec2_utils.check_system_state(instance_id, system_status="ok", instance_status="ok", region=region)
     return instance_id, key_filename
 
 
@@ -497,16 +409,8 @@ def is_neuron_image(fixtures):
     :param request.fixturenames: active fixtures in the request
     :return: bool
     """
-    neuron_fixtures = [
-        "tensorflow_inference_neuron",
-        "mxnet_inference_neuron",
-        "pytorch_inference_neuron",
-    ]
-    neuron_fixtures += [
-        "tensorflow_training_neuron",
-        "mxnet_training_neuron",
-        "pytorch_training_neuron",
-    ]
+    neuron_fixtures = ["tensorflow_inference_neuron", "mxnet_inference_neuron", "pytorch_inference_neuron"]
+    neuron_fixtures += ["tensorflow_training_neuron", "mxnet_training_neuron", "pytorch_training_neuron"]
 
     for fixture in neuron_fixtures:
         if fixture in fixtures:
@@ -533,10 +437,7 @@ def ec2_connection(request, ec2_instance, ec2_key_name, ec2_instance_type, regio
 
     LOGGER.info(f"Connecting to {user}@{ip_address}")
     conn = Connection(
-        user=user,
-        host=ip_address,
-        connect_kwargs={"key_filename": [instance_pem_file]},
-        connect_timeout=36000,
+        user=user, host=ip_address, connect_kwargs={"key_filename": [instance_pem_file]}, connect_timeout=36000,
     )
 
     random.seed(f"{datetime.datetime.now().strftime('%Y%m%d%H%M%S%f')}")
@@ -554,15 +455,11 @@ def ec2_connection(request, ec2_instance, ec2_key_name, ec2_instance_type, regio
     if is_neuron_image(request.fixturenames):
         # neuron still support tf1.15 and that is only there in py37 and less.
         # so use python3.7 for neuron
-        python_version = "3.7"
+        python_version="3.7"
     ec2_utils.install_python_in_instance(conn, python_version=python_version)
 
-    conn.run(
-        f"aws s3 cp --recursive {test_utils.TEST_TRANSFER_S3_BUCKET}/{artifact_folder} $HOME/container_tests"
-    )
-    conn.run(
-        f"mkdir -p $HOME/container_tests/logs && chmod -R +x $HOME/container_tests/*"
-    )
+    conn.run(f"aws s3 cp --recursive {test_utils.TEST_TRANSFER_S3_BUCKET}/{artifact_folder} $HOME/container_tests")
+    conn.run(f"mkdir -p $HOME/container_tests/logs && chmod -R +x $HOME/container_tests/*")
 
     # Log into ECR if we are in canary context
     if test_utils.is_canary_context():
@@ -586,9 +483,7 @@ def upload_habana_test_artifact(request, ec2_connection):
 
 
 @pytest.fixture(scope="function")
-def existing_ec2_instance_connection(
-    request, ec2_key_file_name, ec2_user_name, ec2_public_ip
-):
+def existing_ec2_instance_connection(request, ec2_key_file_name, ec2_user_name, ec2_public_ip):
     """
     Fixture to establish connection with EC2 instance if necessary
     :param request: pytest test request
@@ -597,11 +492,7 @@ def existing_ec2_instance_connection(
     :param ec2_public_ip: public ip address of the instance
     :return: Fabric connection object
     """
-    conn = Connection(
-        user=ec2_user_name,
-        host=ec2_public_ip,
-        connect_kwargs={"key_filename": [ec2_key_file_name]},
-    )
+    conn = Connection(user=ec2_user_name, host=ec2_public_ip, connect_kwargs={"key_filename": [ec2_key_file_name]},)
 
     random.seed(f"{datetime.datetime.now().strftime('%Y%m%d%H%M%S%f')}")
     unique_id = random.randint(1, 100000)
@@ -614,12 +505,8 @@ def existing_ec2_instance_connection(
 
     request.addfinalizer(delete_s3_artifact_copy)
 
-    conn.run(
-        f"aws s3 cp --recursive {test_utils.TEST_TRANSFER_S3_BUCKET}/{artifact_folder} $HOME/container_tests"
-    )
-    conn.run(
-        f"mkdir -p $HOME/container_tests/logs && chmod -R +x $HOME/container_tests/*"
-    )
+    conn.run(f"aws s3 cp --recursive {test_utils.TEST_TRANSFER_S3_BUCKET}/{artifact_folder} $HOME/container_tests")
+    conn.run(f"mkdir -p $HOME/container_tests/logs && chmod -R +x $HOME/container_tests/*")
 
     return conn
 
@@ -638,7 +525,6 @@ def pull_images(docker_client, dlc_images):
 @pytest.fixture(scope="session")
 def non_huggingface_only():
     pass
-
 
 @pytest.fixture(scope="session")
 def non_pytorch_trcomp_only():
@@ -759,7 +645,6 @@ def pt15_and_above_only():
 def pt14_and_above_only():
     pass
 
-
 @pytest.fixture(scope="session")
 def outside_versions_skip():
     def _outside_versions_skip(img_uri, start_ver, end_ver):
@@ -767,15 +652,9 @@ def outside_versions_skip():
         skip test if the image framework versios is not within the (start_ver, end_ver) range
         """
         _, image_framework_version = get_framework_and_version_from_tag(img_uri)
-        if Version(start_ver) > Version(image_framework_version) or Version(
-            end_ver
-        ) < Version(image_framework_version):
-            pytest.skip(
-                f"test has gone out of support, supported version range >{start_ver},<{end_ver}"
-            )
-
+        if Version(start_ver) > Version(image_framework_version) or Version(end_ver) < Version(image_framework_version):
+            pytest.skip(f"test has gone out of support, supported version range >{start_ver},<{end_ver}")
     return _outside_versions_skip
-
 
 @pytest.fixture(scope="session")
 def version_skip():
@@ -786,9 +665,7 @@ def version_skip():
         _, image_framework_version = get_framework_and_version_from_tag(img_uri)
         if Version(ver) == Version(image_framework_version):
             pytest.skip(f"test is not supported for version {ver}")
-
     return _version_skip
-
 
 def framework_version_within_limit(metafunc_obj, image):
     """
@@ -800,24 +677,18 @@ def framework_version_within_limit(metafunc_obj, image):
     """
     image_framework_name, _ = get_framework_and_version_from_tag(image)
     if image_framework_name in ("tensorflow", "huggingface_tensorflow_trcomp"):
-        tf2_requirement_failed = (
-            "tf2_only" in metafunc_obj.fixturenames and not is_tf_version("2", image)
+        tf2_requirement_failed = "tf2_only" in metafunc_obj.fixturenames and not is_tf_version("2", image)
+        tf25_requirement_failed = "tf25_and_above_only" in metafunc_obj.fixturenames and is_below_framework_version(
+            "2.5", image, image_framework_name
         )
-        tf25_requirement_failed = (
-            "tf25_and_above_only" in metafunc_obj.fixturenames
-            and is_below_framework_version("2.5", image, image_framework_name)
+        tf24_requirement_failed = "tf24_and_above_only" in metafunc_obj.fixturenames and is_below_framework_version(
+            "2.4", image, image_framework_name
         )
-        tf24_requirement_failed = (
-            "tf24_and_above_only" in metafunc_obj.fixturenames
-            and is_below_framework_version("2.4", image, image_framework_name)
+        tf23_requirement_failed = "tf23_and_above_only" in metafunc_obj.fixturenames and is_below_framework_version(
+            "2.3", image, image_framework_name
         )
-        tf23_requirement_failed = (
-            "tf23_and_above_only" in metafunc_obj.fixturenames
-            and is_below_framework_version("2.3", image, image_framework_name)
-        )
-        tf21_requirement_failed = (
-            "tf21_and_above_only" in metafunc_obj.fixturenames
-            and is_below_framework_version("2.1", image, image_framework_name)
+        tf21_requirement_failed = "tf21_and_above_only" in metafunc_obj.fixturenames and is_below_framework_version(
+            "2.1", image, image_framework_name
         )
         if (
             tf2_requirement_failed
@@ -828,70 +699,40 @@ def framework_version_within_limit(metafunc_obj, image):
         ):
             return False
     if image_framework_name == "mxnet":
-        mx18_requirement_failed = (
-            "mx18_and_above_only" in metafunc_obj.fixturenames
-            and is_below_framework_version("1.8", image, "mxnet")
+        mx18_requirement_failed = "mx18_and_above_only" in metafunc_obj.fixturenames and is_below_framework_version(
+            "1.8", image, "mxnet"
         )
         if mx18_requirement_failed:
             return False
-    if image_framework_name in (
-        "pytorch",
-        "huggingface_pytorch_trcomp",
-        "pytorch_trcomp",
-    ):
-        pt111_requirement_failed = (
-            "pt111_and_above_only" in metafunc_obj.fixturenames
-            and is_below_framework_version("1.11", image, image_framework_name)
+    if image_framework_name in ("pytorch", "huggingface_pytorch_trcomp", "pytorch_trcomp"):
+        pt111_requirement_failed = "pt111_and_above_only" in metafunc_obj.fixturenames and is_below_framework_version(
+            "1.11", image, image_framework_name
         )
-        pt17_requirement_failed = (
-            "pt17_and_above_only" in metafunc_obj.fixturenames
-            and is_below_framework_version("1.7", image, image_framework_name)
+        pt17_requirement_failed = "pt17_and_above_only" in metafunc_obj.fixturenames and is_below_framework_version(
+            "1.7", image, image_framework_name
         )
-        pt16_requirement_failed = (
-            "pt16_and_above_only" in metafunc_obj.fixturenames
-            and is_below_framework_version("1.6", image, image_framework_name)
+        pt16_requirement_failed = "pt16_and_above_only" in metafunc_obj.fixturenames and is_below_framework_version(
+            "1.6", image, image_framework_name
         )
-        pt15_requirement_failed = (
-            "pt15_and_above_only" in metafunc_obj.fixturenames
-            and is_below_framework_version("1.5", image, image_framework_name)
+        pt15_requirement_failed = "pt15_and_above_only" in metafunc_obj.fixturenames and is_below_framework_version(
+            "1.5", image, image_framework_name
         )
-        pt14_requirement_failed = (
-            "pt14_and_above_only" in metafunc_obj.fixturenames
-            and is_below_framework_version("1.4", image, image_framework_name)
+        pt14_requirement_failed = "pt14_and_above_only" in metafunc_obj.fixturenames and is_below_framework_version(
+            "1.4", image, image_framework_name
         )
-        if (
-            pt111_requirement_failed
-            or pt17_requirement_failed
-            or pt16_requirement_failed
-            or pt15_requirement_failed
-            or pt14_requirement_failed
-        ):
+        if pt111_requirement_failed or pt17_requirement_failed or pt16_requirement_failed or pt15_requirement_failed or pt14_requirement_failed:
             return False
     return True
 
 
 def pytest_configure(config):
     # register canary marker
-    config.addinivalue_line(
-        "markers", "canary(message): mark test to run as a part of canary tests."
-    )
-    config.addinivalue_line(
-        "markers",
-        "quick_checks(message): mark test to run as a part of quick check tests.",
-    )
-    config.addinivalue_line(
-        "markers", "integration(ml_integration): mark what the test is testing."
-    )
-    config.addinivalue_line(
-        "markers", "model(model_name): name of the model being tested"
-    )
-    config.addinivalue_line(
-        "markers",
-        "multinode(num_instances): number of instances the test is run on, if not 1",
-    )
-    config.addinivalue_line(
-        "markers", "processor(cpu/gpu/eia/hpu): explicitly mark which processor is used"
-    )
+    config.addinivalue_line("markers", "canary(message): mark test to run as a part of canary tests.")
+    config.addinivalue_line("markers", "quick_checks(message): mark test to run as a part of quick check tests.")
+    config.addinivalue_line("markers", "integration(ml_integration): mark what the test is testing.")
+    config.addinivalue_line("markers", "model(model_name): name of the model being tested")
+    config.addinivalue_line("markers", "multinode(num_instances): number of instances the test is run on, if not 1")
+    config.addinivalue_line("markers", "processor(cpu/gpu/eia/hpu): explicitly mark which processor is used")
     config.addinivalue_line("markers", "efa(): explicitly mark to run efa tests")
 
 
@@ -941,9 +782,7 @@ def pytest_collection_modifyitems(session, config, items):
         report_generator.generate_sagemaker_reports()
 
 
-def generate_unique_values_for_fixtures(
-    metafunc_obj, images_to_parametrize, values_to_generate_for_fixture
-):
+def generate_unique_values_for_fixtures(metafunc_obj, images_to_parametrize, values_to_generate_for_fixture):
     """
     Take a dictionary (values_to_generate_for_fixture), that maps a fixture name used in a test function to another
     fixture that needs to be parametrized, and parametrize to create unique resources for a test.
@@ -972,19 +811,16 @@ def generate_unique_values_for_fixtures(
             if key in metafunc_obj.fixturenames:
                 fixtures_parametrized[new_fixture_name] = []
                 for index, image in enumerate(images_to_parametrize):
+
                     # Tag fixtures with EC2 instance types if env variable is present
                     allowed_processors = ("gpu", "cpu", "eia", "neuron", "hpu")
                     instance_tag = ""
                     for processor in allowed_processors:
                         if processor in image:
                             if "graviton" in image:
-                                instance_type_env = (
-                                    f"EC2_{processor.upper()}_GRAVITON_INSTANCE_TYPE"
-                                )
+                                instance_type_env = f"EC2_{processor.upper()}_GRAVITON_INSTANCE_TYPE"
                             else:
-                                instance_type_env = (
-                                    f"EC2_{processor.upper()}_INSTANCE_TYPE"
-                                )
+                                instance_type_env = f"EC2_{processor.upper()}_INSTANCE_TYPE"
                             instance_type = os.getenv(instance_type_env)
                             if instance_type:
                                 instance_tag = f"-{instance_type.replace('.', '-')}"
@@ -1048,6 +884,7 @@ def pytest_generate_tests(metafunc):
     if not images:
         return
 
+
     # Parametrize framework specific tests
     for fixture in FRAMEWORK_FIXTURES:
         if fixture in metafunc.fixturenames:
@@ -1055,13 +892,11 @@ def pytest_generate_tests(metafunc):
             images_to_parametrize = []
             for image in images:
                 if lookup_condition(lookup, image):
-                    is_example_lookup = (
-                        "example_only" in metafunc.fixturenames and "example" in image
-                    )
+                    is_example_lookup = "example_only" in metafunc.fixturenames and "example" in image
                     is_huggingface_lookup = (
-                        "huggingface_only" in metafunc.fixturenames
-                        or "huggingface" in metafunc.fixturenames
-                    ) and "huggingface" in image
+                        ("huggingface_only" in metafunc.fixturenames or "huggingface" in metafunc.fixturenames)
+                        and "huggingface" in image
+                    )
                     is_trcomp_lookup = "trcomp" in image and all(
                         fixture_name not in metafunc.fixturenames
                         for fixture_name in ["example_only"]
@@ -1069,69 +904,34 @@ def pytest_generate_tests(metafunc):
                     is_standard_lookup = all(
                         fixture_name not in metafunc.fixturenames
                         for fixture_name in ["example_only", "huggingface_only"]
-                    ) and all(
-                        keyword not in image for keyword in ["example", "huggingface"]
-                    )
-                    if "sagemaker_only" in metafunc.fixturenames and is_ec2_image(
-                        image
-                    ):
-                        LOGGER.info(
-                            f"Not running EC2 image {image} on sagemaker_only test"
-                        )
+                    ) and all(keyword not in image for keyword in ["example", "huggingface"])
+                    if "sagemaker_only" in metafunc.fixturenames and is_ec2_image(image):
+                        LOGGER.info(f"Not running EC2 image {image} on sagemaker_only test")
                         continue
                     if is_sagemaker_image(image):
-                        if (
-                            "sagemaker_only" not in metafunc.fixturenames
-                            and "sagemaker" not in metafunc.fixturenames
-                        ):
+                        if "sagemaker_only" not in metafunc.fixturenames and "sagemaker" not in metafunc.fixturenames:
                             LOGGER.info(
                                 f"Skipping test, as this function is not marked as 'sagemaker_only' or 'sagemaker'"
                             )
                             continue
                     if not framework_version_within_limit(metafunc, image):
                         continue
-                    if (
-                        "non_huggingface_only" in metafunc.fixturenames
-                        and "huggingface" in image
-                    ):
+                    if "non_huggingface_only" in metafunc.fixturenames and "huggingface" in image:
                         continue
-                    if (
-                        "non_pytorch_trcomp_only" in metafunc.fixturenames
-                        and "pytorch-trcomp" in image
-                    ):
+                    if "non_pytorch_trcomp_only" in metafunc.fixturenames and "pytorch-trcomp" in image:
                         continue
-                    if (
-                        "non_autogluon_only" in metafunc.fixturenames
-                        and "autogluon" in image
-                    ):
+                    if "non_autogluon_only" in metafunc.fixturenames and "autogluon" in image:
                         continue
-                    if (
-                        "x86_compatible_only" in metafunc.fixturenames
-                        and "graviton" in image
-                    ):
+                    if "x86_compatible_only" in metafunc.fixturenames and "graviton" in image:
                         continue
-                    if "training_compiler_only" in metafunc.fixturenames and not (
-                        "trcomp" in image
-                    ):
+                    if "training_compiler_only" in metafunc.fixturenames and not ("trcomp" in image):
                         continue
-                    if (
-                        is_example_lookup
-                        or is_huggingface_lookup
-                        or is_standard_lookup
-                        or is_trcomp_lookup
-                    ):
-                        if (
-                            "cpu_only" in metafunc.fixturenames
-                            and "cpu" in image
-                            and "eia" not in image
-                        ):
+                    if is_example_lookup or is_huggingface_lookup or is_standard_lookup or is_trcomp_lookup:
+                        if "cpu_only" in metafunc.fixturenames and "cpu" in image and "eia" not in image:
                             images_to_parametrize.append(image)
                         elif "gpu_only" in metafunc.fixturenames and "gpu" in image:
                             images_to_parametrize.append(image)
-                        elif (
-                            "graviton_compatible_only" in metafunc.fixturenames
-                            and "graviton" in image
-                        ):
+                        elif "graviton_compatible_only" in metafunc.fixturenames and "graviton" in image:
                             images_to_parametrize.append(image)
                         elif (
                             "cpu_only" not in metafunc.fixturenames
@@ -1142,30 +942,18 @@ def pytest_generate_tests(metafunc):
 
             # Remove all images tagged as "py2" if py3_only is a fixture
             if images_to_parametrize and "py3_only" in metafunc.fixturenames:
-                images_to_parametrize = [
-                    py3_image
-                    for py3_image in images_to_parametrize
-                    if "py2" not in py3_image
-                ]
+                images_to_parametrize = [py3_image for py3_image in images_to_parametrize if "py2" not in py3_image]
 
             if is_nightly_context():
                 nightly_images_to_parametrize = []
                 # filter the nightly fixtures in the current functional context
-                func_nightly_fixtures = {
-                    key: value
-                    for (key, value) in NIGHTLY_FIXTURES.items()
-                    if key in metafunc.fixturenames
-                }
+                func_nightly_fixtures = {key: value for (key,value) in NIGHTLY_FIXTURES.items() if key in metafunc.fixturenames}
                 # iterate through image candidates and select images with labels that match all nightly fixture labels
                 for image_candidate in images_to_parametrize:
-                    if all(
-                        [
-                            are_fixture_labels_enabled(image_candidate, nightly_labels)
-                            for _, nightly_labels in func_nightly_fixtures.items()
-                        ]
-                    ):
+                    if all([are_fixture_labels_enabled(image_candidate, nightly_labels) for _, nightly_labels in func_nightly_fixtures.items()]):
                         nightly_images_to_parametrize.append(image_candidate)
                 images_to_parametrize = nightly_images_to_parametrize
+
 
             # Parametrize tests that spin up an ecs cluster or tests that spin up an EC2 instance with a unique name
             values_to_generate_for_fixture = {
@@ -1177,13 +965,8 @@ def pytest_generate_tests(metafunc):
                 metafunc, images_to_parametrize, values_to_generate_for_fixture
             )
             if fixtures_parametrized:
-                for (
-                    new_fixture_name,
-                    test_parametrization,
-                ) in fixtures_parametrized.items():
-                    metafunc.parametrize(
-                        f"{fixture},{new_fixture_name}", test_parametrization
-                    )
+                for new_fixture_name, test_parametrization in fixtures_parametrized.items():
+                    metafunc.parametrize(f"{fixture},{new_fixture_name}", test_parametrization)
             else:
                 metafunc.parametrize(fixture, images_to_parametrize)
 

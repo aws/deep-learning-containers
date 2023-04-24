@@ -40,54 +40,31 @@ class CommonStageImage(DockerImage):
         super(CommonStageImage, self).update_pre_build_configuration()
         # Generate safety scan report for the first stage image and add the file to artifacts
         pre_push_stage_image_uri = self.build_args["PRE_PUSH_IMAGE"]
-        processed_image_uri = (
-            pre_push_stage_image_uri.replace(".", "-")
-            .replace("/", "-")
-            .replace(":", "-")
-        )
+        processed_image_uri = pre_push_stage_image_uri.replace(".", "-").replace("/", "-").replace(":", "-")
         image_name = self.name
         tarfile_name_for_context = f"{processed_image_uri}-{image_name}"
         storage_file_path = os.path.join(
-            os.sep,
-            get_cloned_folder_path(),
-            "src",
-            f"{tarfile_name_for_context}_safety_report.json",
+            os.sep, get_cloned_folder_path(), "src", f"{tarfile_name_for_context}_safety_report.json"
         )
         generate_safety_report_for_image(
-            pre_push_stage_image_uri,
-            image_info=self.info,
-            storage_file_path=storage_file_path,
+            pre_push_stage_image_uri, image_info=self.info, storage_file_path=storage_file_path
         )
-        self.context = self.generate_common_stage_context(
-            storage_file_path, tarfile_name=tarfile_name_for_context
-        )
+        self.context = self.generate_common_stage_context(storage_file_path, tarfile_name=tarfile_name_for_context)
 
-    def generate_common_stage_context(
-        self, safety_report_path, tarfile_name="common-stage-file"
-    ):
+    def generate_common_stage_context(self, safety_report_path, tarfile_name="common-stage-file"):
         """
         For CommonStageImage, build context is built once the safety report is generated. This is because
         the Dockerfile.common uses this safety report to COPY the report into the image.
         """
         artifacts = {
-            "safety_report": {
-                "source": safety_report_path,
-                "target": "safety_report.json",
-            },
+            "safety_report": {"source": safety_report_path, "target": "safety_report.json"},
             "dockerfile": {
                 "source": os.path.join(
-                    os.sep,
-                    get_cloned_folder_path(),
-                    "miscellaneous_dockerfiles",
-                    "Dockerfile.common",
+                    os.sep, get_cloned_folder_path(), "miscellaneous_dockerfiles", "Dockerfile.common"
                 ),
                 "target": "Dockerfile",
             },
         }
 
         artifact_root = os.path.join(os.sep, get_cloned_folder_path(), "src")
-        return Context(
-            artifacts,
-            context_path=f"build/{tarfile_name}.tar.gz",
-            artifact_root=artifact_root,
-        )
+        return Context(artifacts, context_path=f"build/{tarfile_name}.tar.gz", artifact_root=artifact_root)

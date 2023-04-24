@@ -19,10 +19,8 @@ from mxnet.contrib import onnx as onnx_mxnet
 
 
 def model_fn(model_dir):
-    sym, arg_params, aux_params = onnx_mxnet.import_model(
-        os.path.join(model_dir, "model.onnx")
-    )
-    mod = mx.mod.Module(symbol=sym, data_names=["data"], label_names=None)
-    mod.bind(for_training=False, data_shapes=[("data", [100, 1, 28, 28])])
+    sym, arg_params, aux_params = onnx_mxnet.import_model(os.path.join(model_dir, 'model.onnx'))
+    mod = mx.mod.Module(symbol=sym, data_names=['data'], label_names=None)
+    mod.bind(for_training=False, data_shapes=[('data', [100, 1, 28, 28])])
     mod.set_params(arg_params=arg_params, aux_params=aux_params)
     return mod

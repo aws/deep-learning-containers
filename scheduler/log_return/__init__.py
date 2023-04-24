@@ -10,7 +10,6 @@ LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.DEBUG)
 LOGGER.addHandler(logging.StreamHandler(sys.stdout))
 
-
 def construct_log_content(report_path):
     """
     Create message that contains info allowing user to locate the logs
@@ -21,9 +20,7 @@ def construct_log_content(report_path):
     codebuild_arn = os.getenv("CODEBUILD_BUILD_ARN")
     log_group_name = "/aws/codebuild/DLCTestJobExecutor"
     log_stream_name = codebuild_arn.split(":")[-1]
-    log_events = logs_client.get_log_events(
-        logGroupName=log_group_name, logStreamName=log_stream_name
-    )
+    log_events = logs_client.get_log_events(logGroupName=log_group_name, logStreamName=log_stream_name)
     log_stream = "".join([event["message"] for event in log_events["events"]])
 
     try:
@@ -58,9 +55,7 @@ def update_pool(status, instance_type, num_of_instances, job_type, report_path=N
     ticket_name = os.getenv("TICKET_KEY").split("/")[-1].split(".")[0]
 
     if status not in {"preparing", "running", "completed", "runtimeError"}:
-        raise ValueError(
-            "Not a valid status. Test job status could be preparing, running, completed or runtimeError."
-        )
+        raise ValueError("Not a valid status. Test job status could be preparing, running, completed or runtimeError.")
 
     pool_ticket_content = {
         "REQUEST_TICKET_KEY": os.getenv("TICKET_KEY"),
@@ -75,9 +70,7 @@ def update_pool(status, instance_type, num_of_instances, job_type, report_path=N
 
     # find previous entry of the test job
     response = s3_client.list_objects(
-        Bucket="dlc-test-tickets",
-        MaxKeys=1,
-        Prefix=f"resource_pool/{instance_type}-{job_type}/{ticket_name}",
+        Bucket="dlc-test-tickets", MaxKeys=1, Prefix=f"resource_pool/{instance_type}-{job_type}/{ticket_name}"
     )
 
     # creating json file locally and upload to S3
@@ -86,11 +79,7 @@ def update_pool(status, instance_type, num_of_instances, job_type, report_path=N
         json.dump(pool_ticket_content, f)
 
     with open(filename, "rb") as data:
-        s3_client.upload_fileobj(
-            data,
-            "dlc-test-tickets",
-            f"resource_pool/{instance_type}-{job_type}/{filename}",
-        )
+        s3_client.upload_fileobj(data, "dlc-test-tickets", f"resource_pool/{instance_type}-{job_type}/{filename}")
 
     # delete previous entry of the test job. Note: the deletion is performed after uploading a new ticket to avoid
     # S3's Eventual Consistency causes any issues with finding the state of a ticket during a state-transition

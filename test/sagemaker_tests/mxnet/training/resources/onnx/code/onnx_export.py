@@ -24,33 +24,32 @@ import gluoncv
 import onnx
 from onnx import checker
 
-
 def _assert_onnx_validity(model_path):
     model_proto = onnx.load_model(model_path)
     checker.check_graph(model_proto.graph)
 
 
 def main():
-    prefix = "./resnet18_v2"
+    prefix = './resnet18_v2'
     # input shape and type
     in_shape = (1, 3, 224, 224)
-    in_dtype = "float32"
+    in_dtype = 'float32'
     # download mxnet model
-    gluon_model = gluoncv.model_zoo.get_model("resnet18_v2", pretrained=True)
+    gluon_model = gluoncv.model_zoo.get_model('resnet18_v2', pretrained=True)
     gluon_model.hybridize()
     # forward with dummy input and save model
     dummy_input = mxnet.nd.zeros(in_shape, dtype=in_dtype)
     gluon_model.forward(dummy_input)
     gluon_model.export(prefix, 0)
 
-    mx_sym = prefix + "-symbol.json"
-    mx_params = prefix + "-0000.params"
-    onnx_file = prefix + ".onnx"
+    mx_sym = prefix + '-symbol.json'
+    mx_params = prefix + '-0000.params'
+    onnx_file = prefix + '.onnx'
     in_shapes = [in_shape]
     in_dtypes = [in_dtype]
     onnx_mxnet.export_model(mx_sym, mx_params, [in_shape], [in_dtype], onnx_file)
     _assert_onnx_validity(onnx_file)
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     main()

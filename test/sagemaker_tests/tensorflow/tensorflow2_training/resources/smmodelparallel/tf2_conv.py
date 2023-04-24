@@ -48,11 +48,7 @@ x_train, x_test = x_train / 255.0, x_test / 255.0
 x_train = x_train[..., tf.newaxis]
 x_test = x_test[..., tf.newaxis]
 
-train_ds = (
-    tf.data.Dataset.from_tensor_slices((x_train, y_train))
-    .shuffle(10000, seed=123)
-    .batch(32)
-)
+train_ds = tf.data.Dataset.from_tensor_slices((x_train, y_train)).shuffle(10000, seed=123).batch(32)
 
 test_ds = tf.data.Dataset.from_tensor_slices((x_test, y_test)).batch(32)
 
@@ -61,29 +57,17 @@ class MyModel(smp.DistributedModel):
     def __init__(self):
         super(MyModel, self).__init__()
         self.conv1 = Conv2D(
-            32,
-            3,
-            activation="relu",
-            kernel_initializer=tf.keras.initializers.GlorotNormal(seed=12),
+            32, 3, activation="relu", kernel_initializer=tf.keras.initializers.GlorotNormal(seed=12)
         )
         self.conv0 = Conv2D(
-            32,
-            3,
-            activation="relu",
-            kernel_initializer=tf.keras.initializers.GlorotNormal(seed=12),
+            32, 3, activation="relu", kernel_initializer=tf.keras.initializers.GlorotNormal(seed=12)
         )
         self.flatten = Flatten()
         self.d1 = Dense(
-            128,
-            activation="relu",
-            kernel_initializer=tf.keras.initializers.GlorotNormal(seed=192),
+            128, activation="relu", kernel_initializer=tf.keras.initializers.GlorotNormal(seed=192)
         )
-        self.d2 = Dense(
-            10, kernel_initializer=tf.keras.initializers.GlorotNormal(seed=126)
-        )
-        self.last = Dense(
-            10, kernel_initializer=tf.keras.initializers.GlorotNormal(seed=129)
-        )
+        self.d2 = Dense(10, kernel_initializer=tf.keras.initializers.GlorotNormal(seed=126))
+        self.last = Dense(10, kernel_initializer=tf.keras.initializers.GlorotNormal(seed=129))
 
     def first(self, x):
         with tf.name_scope("first"):
@@ -246,9 +230,7 @@ if smp.rank() == 0:
         shutil.rmtree(save_path)
 
     # Test saved checkpoints
-    assert (
-        os.path.exists(checkpoint_directory) == True
-    ), f"Checkpoint directory  was not created"
+    assert os.path.exists(checkpoint_directory) == True, f"Checkpoint directory  was not created"
     assert (
         os.path.exists(os.path.join(checkpoint_directory, "mp_rank_0")) == True
     ), f" Rank 0 directory does not exist"

@@ -41,7 +41,7 @@ def download_s3_file(bucket_name, filepath, local_file_name):
     :param local_file_name: string
     :return:
     """
-    _s3 = boto3.Session().resource("s3")
+    _s3 = boto3.Session().resource('s3')
 
     try:
         _s3.Bucket(bucket_name).download_file(filepath, local_file_name)
@@ -64,7 +64,7 @@ def download_file(remote_url: str, link_type: str):
     LOGGER.info(f"basename: {file_name}")
 
     if link_type in ["s3"] and remote_url.startswith("s3://"):
-        match = re.match(r"s3:\/\/(.+?)\/(.+)", remote_url)
+        match = re.match(r's3:\/\/(.+?)\/(.+)', remote_url)
         if match:
             bucket_name = match.group(1)
             bucket_key = match.group(2)
@@ -109,18 +109,14 @@ def build_setup(framework, device_types=[], image_types=[], py_versions=[]):
         LOGGER.info(f"pr number: {pr_number}")
 
     if device_types:
-        to_build["device_types"] = constants.DEVICE_TYPES.intersection(
-            set(device_types)
-        )
+        to_build["device_types"] = constants.DEVICE_TYPES.intersection(set(device_types))
 
     if image_types:
         to_build["image_types"] = constants.IMAGE_TYPES.intersection(set(image_types))
 
     if py_versions:
-        to_build["py_versions"] = constants.PYTHON_VERSIONS.intersection(
-            set(py_versions)
-        )
-
+        to_build["py_versions"] = constants.PYTHON_VERSIONS.intersection(set(py_versions))
+        
     for device_type in to_build["device_types"]:
         for image_type in to_build["image_types"]:
             for py_version in to_build["py_versions"]:
@@ -142,15 +138,11 @@ def fetch_dlc_images_for_test_jobs(images, use_latest_additional_tag=False):
     for docker_image in images:
         if not docker_image.is_test_promotion_enabled:
             continue
-        use_preexisting_images = (
-            not build_enabled
-        ) and docker_image.build_status == constants.NOT_BUILT
+        use_preexisting_images = ((not build_enabled) and docker_image.build_status == constants.NOT_BUILT)
         if docker_image.build_status == constants.SUCCESS or use_preexisting_images:
             ecr_url_to_test = docker_image.ecr_url
             if use_latest_additional_tag and len(docker_image.additional_tags) > 0:
-                ecr_url_to_test = (
-                    f"{docker_image.repository}:{docker_image.additional_tags[-1]}"
-                )
+                ecr_url_to_test = f"{docker_image.repository}:{docker_image.additional_tags[-1]}"
 
             # Set up tests on all platforms
             for test_platform in DLC_IMAGES:
@@ -168,9 +160,7 @@ def write_to_json_file(file_name, content):
         json.dump(content, fp)
 
 
-def set_test_env(
-    images, use_latest_additional_tag=False, images_env="DLC_IMAGES", **kwargs
-):
+def set_test_env(images, use_latest_additional_tag=False, images_env="DLC_IMAGES", **kwargs):
     """
     Util function to write a file to be consumed by test env with necessary environment variables
 
@@ -183,9 +173,7 @@ def set_test_env(
     """
     test_envs = []
 
-    test_images_dict = fetch_dlc_images_for_test_jobs(
-        images, use_latest_additional_tag=use_latest_additional_tag
-    )
+    test_images_dict = fetch_dlc_images_for_test_jobs(images, use_latest_additional_tag=use_latest_additional_tag)
 
     # dumping the test_images to dict that can be used in src/start_testbuilds.py
     write_to_json_file(constants.TEST_TYPE_IMAGES_PATH, test_images_dict)
@@ -211,32 +199,24 @@ def get_safety_ignore_dict(image_uri, framework, python_version, job_type):
     """
     if job_type == "inference":
         job_type = (
-            "inference-eia"
-            if "eia" in image_uri
-            else "inference-neuron"
-            if "neuron" in image_uri
-            else "inference"
+            "inference-eia" if "eia" in image_uri else "inference-neuron" if "neuron" in image_uri else "inference"
         )
 
     if job_type == "training":
-        job_type = "training-neuron" if "neuron" in image_uri else "training"
+        job_type = (
+            "training-neuron" if "neuron" in image_uri else "training"
+        )
 
     if "habana" in image_uri:
         framework = f"habana_{framework}"
 
-    ignore_data_file = os.path.join(
-        os.sep, get_cloned_folder_path(), "data", "ignore_ids_safety_scan.json"
-    )
+    ignore_data_file = os.path.join(os.sep, get_cloned_folder_path(), "data", "ignore_ids_safety_scan.json")
     with open(ignore_data_file) as f:
         ignore_safety_ids = json.load(f)
-    ignore_dict = (
-        ignore_safety_ids.get(framework, {}).get(job_type, {}).get(python_version, {})
-    )
+    ignore_dict = ignore_safety_ids.get(framework, {}).get(job_type, {}).get(python_version, {})
 
     ## Find common vulnerabilites and add it to the ignore dict
-    common_ignore_list_file = os.path.join(
-        os.sep, get_cloned_folder_path(), "data", "common-safety-ignorelist.json"
-    )
+    common_ignore_list_file = os.path.join(os.sep, get_cloned_folder_path(), "data", "common-safety-ignorelist.json")
     with open(common_ignore_list_file) as f:
         common_ids_to_ignore = json.load(f)
     for common_id, reason in common_ids_to_ignore.items():
@@ -262,14 +242,9 @@ def generate_safety_report_for_image(image_uri, image_info, storage_file_path=No
     docker_exec_cmd = f"docker exec -i {container_id}"
     ctx.run(f"{docker_exec_cmd} {install_safety_cmd}", hide=True, warn=True)
     ignore_dict = get_safety_ignore_dict(
-        image_uri,
-        image_info["framework"],
-        image_info["python_version"],
-        image_info["image_type"],
+        image_uri, image_info["framework"], image_info["python_version"], image_info["image_type"]
     )
-    safety_scan_output = SafetyReportGenerator(
-        container_id, ignore_dict=ignore_dict
-    ).generate()
+    safety_scan_output = SafetyReportGenerator(container_id, ignore_dict=ignore_dict).generate()
     ctx.run(f"docker rm -f {container_id}", hide=True, warn=True)
     if storage_file_path:
         with open(storage_file_path, "w", encoding="utf-8") as f:

@@ -2,9 +2,7 @@ import json
 
 
 class Message:
-    def __init__(
-        self, ticket_bucket, ticket_name, image, instance_type, job_type, request_time
-    ):
+    def __init__(self, ticket_bucket, ticket_name, image, instance_type, job_type, request_time):
         self.image = image
         self.request_time = request_time
         self.ticket_bucket = ticket_bucket

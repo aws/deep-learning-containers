@@ -24,36 +24,23 @@ from ...integration import MODEL_SUCCESS_FILES, RESOURCE_PATH
 
 @pytest.mark.integration("linear_regression")
 @pytest.mark.model("linear_regression")
-def test_linear_regression(
-    docker_image,
-    sagemaker_local_session,
-    local_instance_type,
-    framework_version,
-    tmpdir,
-):
-    lr_path = os.path.join(RESOURCE_PATH, "linear_regression")
+def test_linear_regression(docker_image, sagemaker_local_session, local_instance_type,
+                           framework_version, tmpdir):
+    lr_path = os.path.join(RESOURCE_PATH, 'linear_regression')
 
-    mx = MXNet(
-        entry_point=os.path.join(lr_path, "linear_regression.py"),
-        role="SageMakerRole",
-        instance_count=1,
-        instance_type=local_instance_type,
-        sagemaker_session=sagemaker_local_session,
-        image_uri=docker_image,
-        framework_version=framework_version,
-        output_path="file://{}".format(tmpdir),
-    )
+    mx = MXNet(entry_point=os.path.join(lr_path, 'linear_regression.py'), role='SageMakerRole',
+               instance_count=1, instance_type=local_instance_type,
+               sagemaker_session=sagemaker_local_session, image_uri=docker_image,
+               framework_version=framework_version, output_path='file://{}'.format(tmpdir))
 
-    data_path = os.path.join(lr_path, "data")
-    s3_prefix = "integ-test-data/mxnet-linear-regression"
-    train_input = sagemaker_local_session.upload_data(
-        path=os.path.join(data_path, "training"), key_prefix=s3_prefix
-    )
-    eval_input = sagemaker_local_session.upload_data(
-        path=os.path.join(data_path, "evaluation"), key_prefix=s3_prefix
-    )
+    data_path = os.path.join(lr_path, 'data')
+    s3_prefix = 'integ-test-data/mxnet-linear-regression'
+    train_input = sagemaker_local_session.upload_data(path=os.path.join(data_path, 'training'),
+                                                      key_prefix=s3_prefix)
+    eval_input = sagemaker_local_session.upload_data(path=os.path.join(data_path, 'evaluation'),
+                                                     key_prefix=s3_prefix)
 
-    mx.fit({"training": train_input, "evaluation": eval_input})
+    mx.fit({'training': train_input, 'evaluation': eval_input})
 
     for directory, files in MODEL_SUCCESS_FILES.items():
         local_mode_utils.assert_output_files_exist(str(tmpdir), directory, files)

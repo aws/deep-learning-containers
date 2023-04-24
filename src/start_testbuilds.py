@@ -49,30 +49,18 @@ def run_test_job(commit, codebuild_project, images_str=""):
             # NIGHTLY_PR_TEST_MODE is passed as an env variable here because it is more convenient to set this in
             # dlc_developer_config, and imports during test execution are less complicated when there are fewer
             # cross-references between test and src code.
-            {
-                "name": "NIGHTLY_PR_TEST_MODE",
-                "value": str(config.is_nightly_pr_test_mode_enabled()),
-                "type": "PLAINTEXT",
-            },
+            {"name": "NIGHTLY_PR_TEST_MODE", "value": str(config.is_nightly_pr_test_mode_enabled()), "type": "PLAINTEXT"},
             # USE_SCHEDULER is passed as an env variable here because it is more convenient to set this in
             # dlc_developer_config, compared to having another config file under dlc/tests/.
-            {
-                "name": "USE_SCHEDULER",
-                "value": str(config.is_scheduler_enabled()),
-                "type": "PLAINTEXT",
-            },
+            {"name": "USE_SCHEDULER", "value": str(config.is_scheduler_enabled()), "type": "PLAINTEXT"},
             # If EFA_DEDICATED is True, only launch SM Remote EFA tests, else only launch standard/rc tests
-            {
-                "name": "EFA_DEDICATED",
-                "value": str(config.are_efa_tests_enabled()),
-                "type": "PLAINTEXT",
-            },
+            {"name": "EFA_DEDICATED", "value": str(config.are_efa_tests_enabled()), "type": "PLAINTEXT"},
             # SM_EFA_TEST_INSTANCE_TYPE is passed to SM test job to pick a matching instance type as defined by user
             {
                 "name": "SM_EFA_TEST_INSTANCE_TYPE",
                 "value": config.get_sagemaker_remote_efa_instance_type(),
                 "type": "PLAINTEXT",
-            },
+            }
         ]
     )
     LOGGER.debug(f"env_overrides dict: {env_overrides}")
@@ -132,24 +120,16 @@ def is_test_job_implemented_for_framework(images_str, test_type):
         LOGGER.debug(f"Skipping {test_type} test")
         return False
         # SM Training Compiler has EC2 tests implemented so don't skip
-    if is_huggingface_trcomp_image and (
-        test_type
-        in [
-            constants.ECS_TESTS,
-            constants.EKS_TESTS,
-        ]
-        or config.is_benchmark_mode_enabled()
-    ):
+    if is_huggingface_trcomp_image and (test_type in [
+        constants.ECS_TESTS,
+        constants.EKS_TESTS,
+    ] or config.is_benchmark_mode_enabled()):
         LOGGER.debug(f"Skipping {test_type} tests for huggingface trcomp containers")
         return False
 
-    if is_trcomp_image and (
-        test_type
-        in [
-            constants.EKS_TESTS,
-        ]
-        or config.is_benchmark_mode_enabled()
-    ):
+    if is_trcomp_image and (test_type in [
+        constants.EKS_TESTS,
+    ] or config.is_benchmark_mode_enabled()):
         LOGGER.debug(f"Skipping {test_type} tests for trcomp containers")
         return False
     return True
@@ -158,9 +138,7 @@ def is_test_job_implemented_for_framework(images_str, test_type):
 def main():
     build_context = os.getenv("BUILD_CONTEXT")
     if build_context != "PR":
-        LOGGER.info(
-            f"Not triggering test jobs from boto3, as BUILD_CONTEXT is {build_context}"
-        )
+        LOGGER.info(f"Not triggering test jobs from boto3, as BUILD_CONTEXT is {build_context}")
         return
 
     # load the images for all test_types to pass on to code build jobs
@@ -180,9 +158,7 @@ def main():
             # Maintaining separate codebuild project for graviton sanity test
             if "graviton" in images_str and test_type == "sanity":
                 pr_test_job += "-graviton"
-            if is_test_job_enabled(test_type) and is_test_job_implemented_for_framework(
-                images_str, test_type
-            ):
+            if is_test_job_enabled(test_type) and is_test_job_implemented_for_framework(images_str, test_type):
                 run_test_job(commit, pr_test_job, images_str)
 
             # Trigger sagemaker local test jobs when there are changes in sagemaker_tests

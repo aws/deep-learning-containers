@@ -15,56 +15,49 @@ from __future__ import absolute_import
 import os
 import re
 
-resources_path = os.path.abspath(
-    os.path.join(os.path.dirname(__file__), "..", "resources")
-)
-gpt2_path = os.path.join(resources_path, "gpt2")
-gpt2_script = os.path.join(gpt2_path, "train_gpt_simple.py")
-mnist_path = os.path.join(resources_path, "mnist")
-mnist_script = os.path.join(mnist_path, "mnist.py")
+resources_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'resources'))
+gpt2_path = os.path.join(resources_path, 'gpt2')
+gpt2_script = os.path.join(gpt2_path, 'train_gpt_simple.py')
+mnist_path = os.path.join(resources_path, 'mnist')
+mnist_script = os.path.join(mnist_path, 'mnist.py')
 throughput_path = os.path.join(resources_path, "smdataparallel")
-smdataparallel_mnist_script = os.path.join(
-    mnist_path, "smdataparallel_mnist_script_mode.sh"
-)
-fastai_path = os.path.join(resources_path, "fastai")
-fastai_cifar_script = os.path.join(fastai_path, "train_cifar.py")
-fastai_mnist_script = os.path.join(fastai_path, "mnist.py")
-resnet18_path = os.path.join(resources_path, "resnet18")
+smdataparallel_mnist_script = os.path.join(mnist_path, 'smdataparallel_mnist_script_mode.sh')
+fastai_path = os.path.join(resources_path, 'fastai')
+fastai_cifar_script = os.path.join(fastai_path, 'train_cifar.py')
+fastai_mnist_script = os.path.join(fastai_path, 'mnist.py')
+resnet18_path = os.path.join(resources_path, 'resnet18')
 
-data_dir = os.path.join(mnist_path, "data")
-training_dir = os.path.join(data_dir, "training")
-dist_operations_path = os.path.join(resources_path, "distributed_operations.py")
-neuron_allreduce_path = os.path.join(resources_path, "neuron", "all_reduce")
-neuron_mlp_path = os.path.join(resources_path, "neuron", "mlp")
-smdebug_mnist_script = os.path.join(mnist_path, "smdebug_mnist.py")
+data_dir = os.path.join(mnist_path, 'data')
+training_dir = os.path.join(data_dir, 'training')
+dist_operations_path = os.path.join(resources_path, 'distributed_operations.py')
+neuron_allreduce_path = os.path.join(resources_path, 'neuron', 'all_reduce')
+neuron_mlp_path = os.path.join(resources_path, 'neuron', 'mlp')
+smdebug_mnist_script = os.path.join(mnist_path, 'smdebug_mnist.py')
 
-mnist_1d_script = os.path.join(mnist_path, "mnist_1d.py")
-model_cpu_dir = os.path.join(mnist_path, "model_cpu")
-model_cpu_1d_dir = os.path.join(model_cpu_dir, "1d")
-model_gpu_dir = os.path.join(mnist_path, "model_gpu")
-model_gpu_1d_dir = os.path.join(model_gpu_dir, "1d")
-call_model_fn_once_script = os.path.join(resources_path, "call_model_fn_once.py")
+mnist_1d_script = os.path.join(mnist_path, 'mnist_1d.py')
+model_cpu_dir = os.path.join(mnist_path, 'model_cpu')
+model_cpu_1d_dir = os.path.join(model_cpu_dir, '1d')
+model_gpu_dir = os.path.join(mnist_path, 'model_gpu')
+model_gpu_1d_dir = os.path.join(model_gpu_dir, '1d')
+call_model_fn_once_script = os.path.join(resources_path, 'call_model_fn_once.py')
 
-ROLE = "dummy/unused-role"
+ROLE = 'dummy/unused-role'
 DEFAULT_TIMEOUT = 40
 
 
 def get_framework_from_image_uri(image_uri):
     return (
-        "huggingface_tensorflow_trcomp"
-        if "huggingface-tensorflow-trcomp" in image_uri
+        "huggingface_tensorflow_trcomp" 
+        if "huggingface-tensorflow-trcomp" in image_uri 
         else "huggingface_tensorflow"
         if "huggingface-tensorflow" in image_uri
-        else "huggingface_pytorch_trcomp"
-        if "huggingface-pytorch-trcomp" in image_uri
-        else "huggingface_pytorch"
-        if "huggingface-pytorch" in image_uri
-        else "mxnet"
-        if "mxnet" in image_uri
-        else "pytorch"
-        if "pytorch" in image_uri
-        else "tensorflow"
-        if "tensorflow" in image_uri
+        else "huggingface_pytorch_trcomp" 
+        if "huggingface-pytorch-trcomp" in image_uri 
+        else "huggingface_pytorch" 
+        if "huggingface-pytorch" in image_uri 
+        else "mxnet" if "mxnet" in image_uri
+        else "pytorch" if "pytorch" in image_uri
+        else "tensorflow" if "tensorflow" in image_uri
         else None
     )
 
@@ -84,13 +77,12 @@ def get_framework_and_version_from_tag(image_uri):
         "huggingface_pytorch",
         "tensorflow",
         "mxnet",
-        "pytorch",
+        "pytorch"
     )
 
     if not tested_framework:
         raise RuntimeError(
-            f"Cannot find framework in image uri {image_uri} "
-            f"from allowed frameworks {allowed_frameworks}"
+            f"Cannot find framework in image uri {image_uri} " f"from allowed frameworks {allowed_frameworks}"
         )
 
     tag_framework_version = re.search(r"(\d+(\.\d+){1,2})", image_uri).groups()[0]

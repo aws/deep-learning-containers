@@ -52,44 +52,33 @@ def get_datasets():
 
     # Preprocess train dataset
     train_dataset = train_dataset.map(
-        lambda e: tokenizer(e["text"], truncation=True, padding="max_length"),
-        batched=True,
+        lambda e: tokenizer(e["text"], truncation=True, padding="max_length"), batched=True
     )
-    train_dataset.set_format(
-        type="tensorflow", columns=["input_ids", "attention_mask", "label"]
-    )
+    train_dataset.set_format(type="tensorflow", columns=["input_ids", "attention_mask", "label"])
 
     train_features = {x: train_dataset[x] for x in ["input_ids", "attention_mask"]}
-    tf_train_dataset = tf.data.Dataset.from_tensor_slices(
-        (train_features, train_dataset["label"])
-    )
+    tf_train_dataset = tf.data.Dataset.from_tensor_slices((train_features, train_dataset["label"]))
 
     # Preprocess test dataset
     test_dataset = test_dataset.map(
-        lambda e: tokenizer(e["text"], truncation=True, padding="max_length"),
-        batched=True,
+        lambda e: tokenizer(e["text"], truncation=True, padding="max_length"), batched=True
     )
-    test_dataset.set_format(
-        type="tensorflow", columns=["input_ids", "attention_mask", "label"]
-    )
+    test_dataset.set_format(type="tensorflow", columns=["input_ids", "attention_mask", "label"])
 
     test_features = {x: test_dataset[x] for x in ["input_ids", "attention_mask"]}
-    tf_test_dataset = tf.data.Dataset.from_tensor_slices(
-        (test_features, test_dataset["label"])
-    )
+    tf_test_dataset = tf.data.Dataset.from_tensor_slices((test_features, test_dataset["label"]))
 
     if SDP_ENABLED:
         tf_train_dataset = tf_train_dataset.shard(sdp.size(), sdp.rank())
         tf_test_dataset = tf_test_dataset.shard(sdp.size(), sdp.rank())
-    tf_train_dataset = tf_train_dataset.batch(
-        args.train_batch_size, drop_remainder=True
-    )
+    tf_train_dataset = tf_train_dataset.batch(args.train_batch_size, drop_remainder=True)
     tf_test_dataset = tf_test_dataset.batch(args.eval_batch_size, drop_remainder=True)
 
     return tf_train_dataset, tf_test_dataset
 
 
 if __name__ == "__main__":
+
     parser = argparse.ArgumentParser()
 
     # Hyperparameters sent by the client are passed as command-line arguments to the script.
@@ -103,9 +92,7 @@ if __name__ == "__main__":
     parser.add_argument("--max_steps", type=int)
 
     # Data, model, and output directories
-    parser.add_argument(
-        "--output_data_dir", type=str, default=os.environ["SM_OUTPUT_DATA_DIR"]
-    )
+    parser.add_argument("--output_data_dir", type=str, default=os.environ["SM_OUTPUT_DATA_DIR"])
     parser.add_argument("--model_dir", type=str, default=os.environ["SM_MODEL_DIR"])
     parser.add_argument("--n_gpus", type=str, default=os.environ["SM_NUM_GPUS"])
 
@@ -144,15 +131,10 @@ if __name__ == "__main__":
 
     # Training
     if args.do_train:
+
         # train_results = model.fit(tf_train_dataset, epochs=args.epochs, batch_size=args.train_batch_size)
         train_results = fit(
-            model,
-            loss,
-            optimizer,
-            tf_train_dataset,
-            args.epochs,
-            args.train_batch_size,
-            max_steps=None,
+            model, loss, optimizer, tf_train_dataset, args.epochs, args.train_batch_size, max_steps=None
         )
         logger.info("*** Train ***")
 
@@ -168,9 +150,8 @@ if __name__ == "__main__":
 
     # Evaluation
     if args.do_eval and (not SDP_ENABLED or sdp.rank() == 0):
-        result = model.evaluate(
-            tf_test_dataset, batch_size=args.eval_batch_size, return_dict=True
-        )
+
+        result = model.evaluate(tf_test_dataset, batch_size=args.eval_batch_size, return_dict=True)
         logger.info("*** Evaluate ***")
 
         output_eval_file = os.path.join(args.output_data_dir, "eval_results.txt")

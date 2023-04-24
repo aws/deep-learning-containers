@@ -1,7 +1,6 @@
 import pytest
 import os
 
-
 @pytest.mark.processor("gpu")
 @pytest.mark.model("placeholder")
 @pytest.mark.skip_cpu

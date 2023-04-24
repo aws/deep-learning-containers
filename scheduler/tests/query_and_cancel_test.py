@@ -78,9 +78,7 @@ def clean_up_ticket(ticket_key):
     s3_client.delete_object(Bucket=BUCKET_NAME, Key=ticket_key)
 
 
-def test_query_and_cancel_queuing_tickets(
-    job_requester, request_queue_ticket_name, request_identifier
-):
+def test_query_and_cancel_queuing_tickets(job_requester, request_queue_ticket_name, request_identifier):
     """
     test querying and cancelling tickets that are yet to be scheduled
     :param job_requester: JobRequester object
@@ -88,9 +86,7 @@ def test_query_and_cancel_queuing_tickets(
     :param request_identifier: <Message object> identifier for the request sent
     """
     s3_client = boto3.client("s3")
-    put_ticket(
-        f"{REQUEST_TICKETS_FOLDER}/{request_queue_ticket_name}", REQUEST_TICKET_CONTENT
-    )
+    put_ticket(f"{REQUEST_TICKETS_FOLDER}/{request_queue_ticket_name}", REQUEST_TICKET_CONTENT)
     # check the response message is correct
     request_queue_response = job_requester.query_status(request_identifier)
     assert (
@@ -114,9 +110,7 @@ def test_query_and_cancel_queuing_tickets(
     LOGGER.info("Tests passed for querying and cancelling tickets on the queue.")
 
 
-def test_query_in_progress_tickets(
-    job_requester, in_progress_ticket_name, request_identifier
-):
+def test_query_in_progress_tickets(job_requester, in_progress_ticket_name, request_identifier):
     """
     test querying test jobs that are scheduled and running
     :param job_requester: JobRequester object
@@ -124,8 +118,7 @@ def test_query_in_progress_tickets(
     :param request_identifier: <Message object> identifier for the request sent
     """
     put_ticket(
-        f"{IN_PROGRESS_POOL_FOLDER}/{INSTANCE_TYPE}-{JOB_TYPE}/{in_progress_ticket_name}",
-        IN_PROGRESS_TICKET_CONTENT,
+        f"{IN_PROGRESS_POOL_FOLDER}/{INSTANCE_TYPE}-{JOB_TYPE}/{in_progress_ticket_name}", IN_PROGRESS_TICKET_CONTENT
     )
 
     in_progress_response = job_requester.query_status(request_identifier)
@@ -133,26 +126,19 @@ def test_query_in_progress_tickets(
         "status" in in_progress_response and in_progress_response["status"] == "running"
     ), f"Returned status incorrect: {in_progress_ticket_name}, should be running."
 
-    clean_up_ticket(
-        f"{IN_PROGRESS_POOL_FOLDER}/{INSTANCE_TYPE}-{JOB_TYPE}/{job_requester}"
-    )
+    clean_up_ticket(f"{IN_PROGRESS_POOL_FOLDER}/{INSTANCE_TYPE}-{JOB_TYPE}/{job_requester}")
 
     LOGGER.info("Tests passed for querying tickets on the in-progress pool.")
 
 
-def test_query_dead_letter_tickets(
-    job_requester, dead_letter_ticket_name, request_identifier
-):
+def test_query_dead_letter_tickets(job_requester, dead_letter_ticket_name, request_identifier):
     """
     test querying test jobs that are failed to be scheduled
     :param job_requester: JobRequester object
     :param request_queue_ticket_name: request ticket name
     :param request_identifier: <Message object> identifier for the request sent
     """
-    put_ticket(
-        f"{DEAD_LETTER_QUEUE_FOLDER}/{dead_letter_ticket_name}",
-        DEAD_LETTER_TICKET_CONTENT,
-    )
+    put_ticket(f"{DEAD_LETTER_QUEUE_FOLDER}/{dead_letter_ticket_name}", DEAD_LETTER_TICKET_CONTENT)
 
     dead_letter_response = job_requester.query_status(request_identifier)
     assert (
@@ -172,27 +158,17 @@ def main():
     request_ticket_prefix = f"testing-0_{REQUEST_TICKET_TIME}"
     # create identifier for the request ticket
     request_identifier = Message(
-        SQS_RETURN_QUEUE_URL,
-        BUCKET_NAME,
-        f"{request_ticket_prefix}.json",
-        TEST_ECR_URI,
-        REQUEST_TICKET_TIME,
+        SQS_RETURN_QUEUE_URL, BUCKET_NAME, f"{request_ticket_prefix}.json", TEST_ECR_URI, REQUEST_TICKET_TIME
     )
-    test_query_and_cancel_queuing_tickets(
-        job_requester_object, f"{request_ticket_prefix}.json", request_identifier
-    )
+    test_query_and_cancel_queuing_tickets(job_requester_object, f"{request_ticket_prefix}.json", request_identifier)
 
     # naming convention of in-progress pool tickets: {request ticket name}#{num of instances}-{status}.json
     in_progress_ticket_name = f"{request_ticket_prefix}#1-running.json"
-    test_query_in_progress_tickets(
-        job_requester_object, in_progress_ticket_name, request_identifier
-    )
+    test_query_in_progress_tickets(job_requester_object, in_progress_ticket_name, request_identifier)
 
     # naming convention of in-progress pool tickets: {request ticket name}-{failure reason}.json
     dead_letter_ticket_name = f"{request_ticket_prefix}-timeout.json"
-    test_query_dead_letter_tickets(
-        job_requester_object, dead_letter_ticket_name, request_identifier
-    )
+    test_query_dead_letter_tickets(job_requester_object, dead_letter_ticket_name, request_identifier)
 
     LOGGER.info("Tests passed.")
 

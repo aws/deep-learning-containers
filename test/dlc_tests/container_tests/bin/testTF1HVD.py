@@ -19,13 +19,10 @@ import tensorflow as tf
 import horovod.tensorflow as hvd
 import os
 
-parser = argparse.ArgumentParser(
-    description="TensorFlow Synthetic Benchmark",
-    formatter_class=argparse.ArgumentDefaultsHelpFormatter,
-)
-parser.add_argument(
-    "--no-cuda", action="store_true", default=False, help="disables CUDA training"
-)
+parser = argparse.ArgumentParser(description='TensorFlow Synthetic Benchmark',
+                                 formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+parser.add_argument('--no-cuda', action='store_true', default=False,
+                    help='disables CUDA training')
 
 args = parser.parse_args()
 args.cuda = not args.no_cuda
@@ -48,31 +45,27 @@ def conv_model(feature, target, mode):
     feature = tf.reshape(feature, [-1, 28, 28, 1])
 
     # First conv layer will compute 32 features for each 5x5 patch
-    with tf.variable_scope("conv_layer1"):
+    with tf.variable_scope('conv_layer1'):
         h_conv1 = layers.conv2d(
-            feature, 32, kernel_size=[5, 5], activation_fn=tf.nn.relu
-        )
+            feature, 32, kernel_size=[5, 5], activation_fn=tf.nn.relu)
         h_pool1 = tf.nn.max_pool(
-            h_conv1, ksize=[1, 2, 2, 1], strides=[1, 2, 2, 1], padding="SAME"
-        )
+            h_conv1, ksize=[1, 2, 2, 1], strides=[1, 2, 2, 1], padding='SAME')
 
     # Second conv layer will compute 64 features for each 5x5 patch.
-    with tf.variable_scope("conv_layer2"):
+    with tf.variable_scope('conv_layer2'):
         h_conv2 = layers.conv2d(
-            h_pool1, 64, kernel_size=[5, 5], activation_fn=tf.nn.relu
-        )
+            h_pool1, 64, kernel_size=[5, 5], activation_fn=tf.nn.relu)
         h_pool2 = tf.nn.max_pool(
-            h_conv2, ksize=[1, 2, 2, 1], strides=[1, 2, 2, 1], padding="SAME"
-        )
+            h_conv2, ksize=[1, 2, 2, 1], strides=[1, 2, 2, 1], padding='SAME')
         # reshape tensor into a batch of vectors
         h_pool2_flat = tf.reshape(h_pool2, [-1, 7 * 7 * 64])
 
     # Densely connected layer with 1024 neurons.
     h_fc1 = layers.dropout(
-        layers.fully_connected(h_pool2_flat, 1024, activation_fn=tf.nn.relu),
+        layers.fully_connected(
+            h_pool2_flat, 1024, activation_fn=tf.nn.relu),
         keep_prob=0.5,
-        is_training=mode == tf.contrib.learn.ModeKeys.TRAIN,
-    )
+        is_training=mode == tf.contrib.learn.ModeKeys.TRAIN)
 
     # Compute logits (1 per class) and compute loss.
     logits = layers.fully_connected(h_fc1, 10, activation_fn=None)
@@ -86,12 +79,12 @@ def main(_):
     hvd.init()
 
     # Download and load MNIST dataset.
-    mnist = learn.datasets.mnist.read_data_sets("MNIST-data-%d" % hvd.rank())
+    mnist = learn.datasets.mnist.read_data_sets('MNIST-data-%d' % hvd.rank())
 
     # Build model...
-    with tf.name_scope("input"):
-        image = tf.placeholder(tf.float32, [None, 784], name="image")
-        label = tf.placeholder(tf.float32, [None], name="label")
+    with tf.name_scope('input'):
+        image = tf.placeholder(tf.float32, [None, 784], name='image')
+        label = tf.placeholder(tf.float32, [None], name='label')
     predict, loss = conv_model(image, label, tf.contrib.learn.ModeKeys.TRAIN)
 
     # Horovod: adjust learning rate based on number of GPUs.
@@ -109,11 +102,12 @@ def main(_):
         # initialization of all workers when training is started with random weights
         # or restored from a checkpoint.
         hvd.BroadcastGlobalVariablesHook(0),
+
         # Horovod: adjust number of steps based on number of GPUs.
         tf.train.StopAtStepHook(last_step=100 // hvd.size()),
-        tf.train.LoggingTensorHook(
-            tensors={"step": global_step, "loss": loss}, every_n_iter=10
-        ),
+
+        tf.train.LoggingTensorHook(tensors={'step': global_step, 'loss': loss},
+                                   every_n_iter=10),
     ]
 
     # Horovod: pin GPU to be used to process local rank (one GPU per process)
@@ -124,18 +118,18 @@ def main(_):
     else:
         os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
         config.gpu_options.allow_growth = False
-        config.gpu_options.visible_device_list = ""
+        config.gpu_options.visible_device_list = ''
 
     # Horovod: save checkpoints only on worker 0 to prevent other workers from
     # corrupting them.
-    checkpoint_dir = "./checkpoints" if hvd.rank() == 0 else None
+    checkpoint_dir = './checkpoints' if hvd.rank() == 0 else None
 
     # The MonitoredTrainingSession takes care of session initialization,
     # restoring from a checkpoint, saving to a checkpoint, and closing when done
     # or an error occurs.
-    with tf.train.MonitoredTrainingSession(
-        checkpoint_dir=checkpoint_dir, hooks=hooks, config=config
-    ) as mon_sess:
+    with tf.train.MonitoredTrainingSession(checkpoint_dir=checkpoint_dir,
+                                           hooks=hooks,
+                                           config=config) as mon_sess:
         while not mon_sess.should_stop():
             # Run a training step synchronously.
             image_, label_ = mnist.train.next_batch(100)
@@ -144,3 +138,4 @@ def main(_):
 
 if __name__ == "__main__":
     tf.app.run()
+

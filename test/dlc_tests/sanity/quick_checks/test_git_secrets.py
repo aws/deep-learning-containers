@@ -34,20 +34,16 @@ def test_git_secrets():
             ctx.run("make install")
         ctx.run("git secrets --install")
         ctx.run("git secrets --register-aws")
-        # Custom pattern to catch credential in the format <username>:<password>@<host>
+        # Custom pattern to catch credential in the format <username>:<password>@<host> 
         ctx.run("git secrets --add '\w+:\w+@'")
         output = ctx.run("git secrets --list")
-        LOGGER.info(
-            f"\n--COMMAND--\n{output.command}\n"
-            f"--STDOUT--\n{output.stdout}\n"
-            f"--STDERR--\n{output.stderr}\n"
-            f"----------"
-        )
+        LOGGER.info(f"\n--COMMAND--\n{output.command}\n"
+                    f"--STDOUT--\n{output.stdout}\n"
+                    f"--STDERR--\n{output.stderr}\n"
+                    f"----------")
         scan_results = ctx.run("git secrets --scan", hide=True, warn=True)
-        LOGGER.info(
-            f"\n--COMMAND--\n{scan_results.command}\n"
-            f"--STDOUT--\n{scan_results.stdout}\n"
-            f"--STDERR--\n{scan_results.stderr}"
-            f"----------"
-        )
+        LOGGER.info(f"\n--COMMAND--\n{scan_results.command}\n"
+                    f"--STDOUT--\n{scan_results.stdout}\n"
+                    f"--STDERR--\n{scan_results.stderr}"
+                    f"----------")
     assert scan_results.ok, scan_results.stderr

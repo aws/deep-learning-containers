@@ -24,9 +24,7 @@ LOW_AVAILABILITY_INSTANCE_TYPES = ["ml.p4de.24xlarge"]
 
 
 def get_sagemaker_session(region, default_bucket=None):
-    return sagemaker.Session(
-        boto_session=boto3.Session(region_name=region), default_bucket=default_bucket
-    )
+    return sagemaker.Session(boto_session=boto3.Session(region_name=region), default_bucket=default_bucket)
 
 
 def get_unique_name_from_tag(image_uri):
@@ -36,7 +34,7 @@ def get_unique_name_from_tag(image_uri):
     :param image_uri: ECR image URI
     :return: unique name
     """
-    return re.sub("[^A-Za-z0-9]+", "", image_uri)
+    return re.sub('[^A-Za-z0-9]+', '', image_uri)
 
 
 def get_account_id_from_image_uri(image_uri):
@@ -51,10 +49,7 @@ def get_account_id_from_image_uri(image_uri):
 
 def get_ecr_image_region(ecr_image):
     ecr_registry, _ = ecr_image.split("/")
-    region_search = re.search(
-        r"(us(-gov)?|ap|ca|cn|eu|sa|me|af)-(central|(north|south)?(east|west)?)-\d+",
-        ecr_registry,
-    )
+    region_search = re.search(r"(us(-gov)?|ap|ca|cn|eu|sa|me|af)-(central|(north|south)?(east|west)?)-\d+", ecr_registry)
     return region_search.group()
 
 
@@ -65,15 +60,11 @@ def get_ecr_image(ecr_image, region):
     image_repo_uri, image_tag = ecr_image.split(":")
     _, image_repo_name = image_repo_uri.split("/")
     target_image_repo_name = f"{image_repo_name}"
-    regional_ecr_image = reupload_image_to_test_ecr(
-        ecr_image, target_image_repo_name, region
-    )
+    regional_ecr_image = reupload_image_to_test_ecr(ecr_image, target_image_repo_name, region)
     return regional_ecr_image
 
 
-def invoke_sm_helper_function(
-    ecr_image, sagemaker_regions, test_function, *test_function_args
-):
+def invoke_sm_helper_function(ecr_image, sagemaker_regions, test_function, *test_function_args):
     """
     Used to invoke SM job defined in the helper functions in respective test file. The ECR image and the sagemaker
     session are passed explicitly depending on the AWS region.
@@ -98,11 +89,7 @@ def invoke_sm_helper_function(
     for region in sagemaker_regions:
         sagemaker_session = get_sagemaker_session(region)
         # Reupload the image to test region if needed
-        tested_ecr_image = (
-            get_ecr_image(ecr_image, region)
-            if region != ecr_image_region
-            else ecr_image
-        )
+        tested_ecr_image = get_ecr_image(ecr_image, region) if region != ecr_image_region else ecr_image
         try:
             test_function(tested_ecr_image, sagemaker_session, *test_function_args)
             return

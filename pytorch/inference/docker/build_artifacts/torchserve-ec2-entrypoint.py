@@ -17,7 +17,7 @@ import subprocess
 import sys
 
 
-subprocess.check_call(shlex.split(" ".join(sys.argv[1:])))
+subprocess.check_call(shlex.split(' '.join(sys.argv[1:])))
 
 # prevent docker exit
-subprocess.call(["tail", "-f", "/dev/null"])
+subprocess.call(['tail', '-f', '/dev/null'])

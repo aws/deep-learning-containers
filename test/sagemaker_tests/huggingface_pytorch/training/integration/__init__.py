@@ -14,11 +14,9 @@ from __future__ import absolute_import
 
 import os
 
-resources_path = os.path.abspath(
-    os.path.join(os.path.dirname(__file__), "..", "resources")
-)
-scripts_path = os.path.join(resources_path, "scripts")
-distrilbert_script = os.path.join(scripts_path, "train.py")
+resources_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'resources'))
+scripts_path = os.path.join(resources_path, 'scripts')
+distrilbert_script = os.path.join(scripts_path, 'train.py')
 
-ROLE = "dummy/unused-role"
+ROLE = 'dummy/unused-role'
 DEFAULT_TIMEOUT = 60

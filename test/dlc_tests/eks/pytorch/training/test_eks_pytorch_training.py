@@ -11,10 +11,7 @@ from retrying import retry
 
 import test.test_utils.eks as eks_utils
 from test.test_utils import is_pr_context, SKIP_PR_REASON, is_below_framework_version
-from test.test_utils import (
-    get_framework_and_version_from_tag,
-    get_cuda_version_from_tag,
-)
+from test.test_utils import get_framework_and_version_from_tag, get_cuda_version_from_tag
 from packaging.version import Version
 from packaging.specifiers import SpecifierSet
 
@@ -38,12 +35,10 @@ def test_eks_pytorch_single_node_training(pytorch_training):
 
     rand_int = random.randint(4001, 6000)
 
-    yaml_path = os.path.join(
-        os.sep, "tmp", f"pytorch_single_node_training_{rand_int}.yaml"
-    )
+    yaml_path = os.path.join(os.sep, "tmp", f"pytorch_single_node_training_{rand_int}.yaml")
     pod_name = f"pytorch-single-node-training-{rand_int}"
     # Workaround for https://github.com/pytorch/vision/issues/1938 and https://github.com/pytorch/vision/issues/3549
-    mnist_dataset_download_config = """
+    mnist_dataset_download_config = '''
       FILE=new_main.py &&
       echo "from __future__ import print_function" > $FILE &&
       echo "from six.moves import urllib" >> $FILE &&
@@ -68,7 +63,7 @@ def test_eks_pytorch_single_node_training(pytorch_training):
       cat mnist/main.py >> $FILE &&
       rm mnist/main.py &&
       mv $FILE mnist/main.py
-    """
+    '''
 
     args = f"git clone https://github.com/pytorch/examples.git && cd examples && git reset --hard 5a06e9cac1728c860b53ebfc6792e0a0e21a5678 && {mnist_dataset_download_config}  && python mnist/main.py"
 
@@ -122,9 +117,7 @@ def test_eks_pt_s3_plugin_single_node_training(pytorch_training, outside_version
 
     rand_int = random.randint(4001, 6000)
 
-    yaml_path = os.path.join(
-        os.sep, "tmp", f"pytorch_s3_single_node_training_{rand_int}.yaml"
-    )
+    yaml_path = os.path.join(os.sep, "tmp", f"pytorch_s3_single_node_training_{rand_int}.yaml")
     pod_name = f"pytorch-s3-single-node-training-{rand_int}"
 
     args = f"git clone https://github.com/aws/amazon-s3-plugin-for-pytorch.git && python amazon-s3-plugin-for-pytorch/examples/s3_imagenet_example.py"
@@ -162,12 +155,11 @@ def test_eks_pt_s3_plugin_single_node_training(pytorch_training, outside_version
         run("kubectl delete pods {}".format(pod_name))
 
 
-@pytest.mark.skipif(
-    not is_pr_context(), reason="Skip this test. It is already tested under PR context"
-)
+@pytest.mark.skipif(not is_pr_context(), reason="Skip this test. It is already tested under PR context")
 @pytest.mark.integration("dgl")
 @pytest.mark.model("gcn")
 def test_eks_pytorch_dgl_single_node_training(pytorch_training, py3_only):
+
     """
     Function to create a pod using kubectl and given container image, and run
     DGL training with PyTorch backend
@@ -176,10 +168,7 @@ def test_eks_pytorch_dgl_single_node_training(pytorch_training, py3_only):
     """
     _, image_framework_version = get_framework_and_version_from_tag(pytorch_training)
     image_cuda_version = get_cuda_version_from_tag(pytorch_training)
-    if (
-        Version(image_framework_version) == Version("1.6")
-        and image_cuda_version == "cu110"
-    ):
+    if Version(image_framework_version) == Version("1.6") and image_cuda_version == "cu110":
         pytest.skip("DGL does not suport CUDA 11 for PyTorch 1.6")
     # TODO: Remove when DGL gpu test on ecs get fixed
     if Version(image_framework_version) in SpecifierSet("==1.10.*"):
@@ -188,9 +177,7 @@ def test_eks_pytorch_dgl_single_node_training(pytorch_training, py3_only):
     training_result = False
     rand_int = random.randint(4001, 6000)
 
-    yaml_path = os.path.join(
-        os.sep, "tmp", f"pytorch_single_node_training_dgl_{rand_int}.yaml"
-    )
+    yaml_path = os.path.join(os.sep, "tmp", f"pytorch_single_node_training_dgl_{rand_int}.yaml")
     pod_name = f"pytorch-single-node-training-dgl-{rand_int}"
 
     args = (
@@ -235,15 +222,13 @@ def test_eks_pytorch_dgl_single_node_training(pytorch_training, py3_only):
 @pytest.mark.multinode(4)
 def test_eks_pytorch_multinode_node_training(pytorch_training, example_only):
     """
-    Function to create mutliple pods using kubectl and given container image, and run Pytorch training
-    Args:
-        :param setup_utils: environment in which EKS tools are setup
-        :param pytorch_training: the ECR URI
-    """
+       Function to create mutliple pods using kubectl and given container image, and run Pytorch training
+       Args:
+           :param setup_utils: environment in which EKS tools are setup
+           :param pytorch_training: the ECR URI
+       """
     # TODO: Change hardcoded value to read a mapping from the EKS cluster instance.
-    random.seed(
-        f"{pytorch_training}-{datetime.datetime.now().strftime('%Y%m%d%H%M%S%f')}"
-    )
+    random.seed(f"{pytorch_training}-{datetime.datetime.now().strftime('%Y%m%d%H%M%S%f')}")
     unique_id = random.randint(1, 6000)
 
     namespace = "pytorch"
@@ -254,15 +239,9 @@ def test_eks_pytorch_multinode_node_training(pytorch_training, example_only):
     backend = "gloo"
     epochs = '"10"'
     local_template_file_path = os.path.join(
-        "eks",
-        "eks_manifest_templates",
-        "pytorch",
-        "training",
-        "multi_node_gpu_training.yaml",
+        "eks", "eks_manifest_templates", "pytorch", "training", "multi_node_gpu_training.yaml"
     )
-    remote_yaml_path = os.path.join(
-        os.sep, "tmp", f"pytorch_multinode_node_training_{unique_id}.yaml"
-    )
+    remote_yaml_path = os.path.join(os.sep, "tmp", f"pytorch_multinode_node_training_{unique_id}.yaml")
     replace_dict = {
         "<JOB_NAME>": job_name,
         "<NUM_MASTERS>": num_masters,
@@ -273,9 +252,7 @@ def test_eks_pytorch_multinode_node_training(pytorch_training, example_only):
         "<GPU_LIMIT>": gpu_limit,
     }
 
-    eks_utils.write_eks_yaml_file_from_template(
-        local_template_file_path, remote_yaml_path, replace_dict
-    )
+    eks_utils.write_eks_yaml_file_from_template(local_template_file_path, remote_yaml_path, replace_dict)
     run_eks_pytorch_multi_node_training(namespace, job_name, remote_yaml_path)
 
 
@@ -293,13 +270,9 @@ def run_eks_pytorch_multi_node_training(namespace, job_name, remote_yaml_file_pa
     try:
         run(f"kubectl delete -f {remote_yaml_file_path}", warn=True)
         run(f"kubectl create -f {remote_yaml_file_path} -n {namespace}")
-        training_result = is_pytorch_eks_multinode_training_complete(
-            job_name, namespace
-        )
+        training_result = is_pytorch_eks_multinode_training_complete(job_name, namespace)
         if training_result:
-            run_out = run(
-                f"kubectl logs {job_name}-master-0 -n {namespace}", warn=True
-            ).stdout
+            run_out = run(f"kubectl logs {job_name}-master-0 -n {namespace}", warn=True).stdout
             if "accuracy" in run_out:
                 training_result = True
             else:
@@ -315,20 +288,14 @@ def retry_if_value_error(exception):
     return isinstance(exception, ValueError)
 
 
-@retry(
-    stop_max_attempt_number=40,
-    wait_fixed=60000,
-    retry_on_exception=retry_if_value_error,
-)
+@retry(stop_max_attempt_number=40, wait_fixed=60000, retry_on_exception=retry_if_value_error)
 def is_pytorch_eks_multinode_training_complete(job_name, namespace):
     """Function to check job and pod status for multinode training.
     A separate method is required because kubectl commands for logs and status are different with namespaces.
     Args:
         job_name: str
     """
-    run_out = run(
-        f"kubectl get pytorchjobs -n {namespace} {job_name} -o json", warn=True
-    )
+    run_out = run(f"kubectl get pytorchjobs -n {namespace} {job_name} -o json", warn=True)
     if run_out.stdout is not None or run_out.stdout != "":
         job_info = json.loads(run_out.stdout)
         LOGGER.debug(f"Job info: {job_info}")

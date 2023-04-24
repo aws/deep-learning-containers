@@ -24,54 +24,46 @@ from sagemaker.tuner import ContinuousParameter, HyperparameterTuner
 from ...integration import RESOURCE_PATH
 from .timeout import timeout
 
-DATA_PATH = os.path.join(RESOURCE_PATH, "mnist")
-SCRIPT_PATH = os.path.join(DATA_PATH, "mnist.py")
+DATA_PATH = os.path.join(RESOURCE_PATH, 'mnist')
+SCRIPT_PATH = os.path.join(DATA_PATH, 'mnist.py')
 
 
 @pytest.mark.integration("hpo")
 @pytest.mark.model("mnist")
 def test_tuning(ecr_image, sagemaker_regions, instance_type, framework_version):
-    invoke_sm_helper_function(
-        ecr_image, sagemaker_regions, _test_tuning, instance_type, framework_version
-    )
+    invoke_sm_helper_function(ecr_image, sagemaker_regions, _test_tuning,
+                              instance_type, framework_version)
 
 
 def _test_tuning(ecr_image, sagemaker_session, instance_type, framework_version):
-    mx = MXNet(
-        entry_point=SCRIPT_PATH,
-        role="SageMakerRole",
-        instance_count=1,
-        instance_type=instance_type,
-        sagemaker_session=sagemaker_session,
-        image_uri=ecr_image,
-        framework_version=framework_version,
-        hyperparameters={"epochs": 1},
-    )
+    mx = MXNet(entry_point=SCRIPT_PATH,
+               role='SageMakerRole',
+               instance_count=1,
+               instance_type=instance_type,
+               sagemaker_session=sagemaker_session,
+               image_uri=ecr_image,
+               framework_version=framework_version,
+               hyperparameters={'epochs': 1})
 
-    hyperparameter_ranges = {"learning-rate": ContinuousParameter(0.01, 0.2)}
-    objective_metric_name = "Validation-accuracy"
+    hyperparameter_ranges = {'learning-rate': ContinuousParameter(0.01, 0.2)}
+    objective_metric_name = 'Validation-accuracy'
     metric_definitions = [
-        {"Name": "Validation-accuracy", "Regex": "Validation-accuracy=([0-9\\.]+)"}
-    ]
+        {'Name': 'Validation-accuracy', 'Regex': 'Validation-accuracy=([0-9\\.]+)'}]
 
-    tuner = HyperparameterTuner(
-        mx,
-        objective_metric_name,
-        hyperparameter_ranges,
-        metric_definitions,
-        max_jobs=2,
-        max_parallel_jobs=2,
-    )
+    tuner = HyperparameterTuner(mx,
+                                objective_metric_name,
+                                hyperparameter_ranges,
+                                metric_definitions,
+                                max_jobs=2,
+                                max_parallel_jobs=2)
 
     with timeout(minutes=20):
-        prefix = "mxnet_mnist/{}".format(utils.sagemaker_timestamp())
-        train_input = sagemaker_session.upload_data(
-            path=os.path.join(DATA_PATH, "train"), key_prefix=prefix + "/train"
-        )
-        test_input = sagemaker_session.upload_data(
-            path=os.path.join(DATA_PATH, "test"), key_prefix=prefix + "/test"
-        )
+        prefix = 'mxnet_mnist/{}'.format(utils.sagemaker_timestamp())
+        train_input = sagemaker_session.upload_data(path=os.path.join(DATA_PATH, 'train'),
+                                                       key_prefix=prefix + '/train')
+        test_input = sagemaker_session.upload_data(path=os.path.join(DATA_PATH, 'test'),
+                                                      key_prefix=prefix + '/test')
 
-        job_name = utils.unique_name_from_base("test-mxnet-image", max_length=32)
-        tuner.fit({"train": train_input, "test": test_input}, job_name=job_name)
+        job_name = utils.unique_name_from_base('test-mxnet-image', max_length=32)
+        tuner.fit({'train': train_input, 'test': test_input}, job_name=job_name)
         tuner.wait()

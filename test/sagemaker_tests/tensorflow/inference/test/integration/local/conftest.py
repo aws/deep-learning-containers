@@ -20,31 +20,23 @@ import pytest
 from botocore.exceptions import ClientError
 
 
-TFS_DOCKER_BASE_NAME = "sagemaker-tensorflow-serving"
+TFS_DOCKER_BASE_NAME = 'sagemaker-tensorflow-serving'
 
 
 def pytest_addoption(parser):
-    parser.addoption("--docker-base-name", default=TFS_DOCKER_BASE_NAME)
-    parser.addoption("--framework-version", required=True)
-    parser.addoption("--processor", default="cpu", choices=["cpu", "gpu"])
-    parser.addoption("--aws-id", default=None)
-    parser.addoption("--tag")
-    parser.addoption(
-        "--generate-coverage-doc",
-        default=False,
-        action="store_true",
-        help="use this option to generate test coverage doc",
-    )
-
+    parser.addoption('--docker-base-name', default=TFS_DOCKER_BASE_NAME)
+    parser.addoption('--framework-version', required=True)
+    parser.addoption('--processor', default='cpu', choices=['cpu', 'gpu'])
+    parser.addoption('--aws-id', default=None)
+    parser.addoption('--tag')
+    parser.addoption('--generate-coverage-doc', default=False, action='store_true',
+                     help='use this option to generate test coverage doc')
 
 def pytest_collection_modifyitems(session, config, items):
     if config.getoption("--generate-coverage-doc"):
         from test.test_utils.test_reporting import TestReportGenerator
-
         report_generator = TestReportGenerator(items, is_sagemaker=True)
-        report_generator.generate_coverage_doc(
-            framework="tensorflow", job_type="inference"
-        )
+        report_generator.generate_coverage_doc(framework="tensorflow", job_type="inference")
 
 
 # Nightly fixtures
@@ -53,55 +45,52 @@ def feature_aws_framework_present():
     pass
 
 
-@pytest.fixture(scope="module")
+@pytest.fixture(scope='module')
 def docker_base_name(request):
-    return request.config.getoption("--docker-base-name")
+    return request.config.getoption('--docker-base-name')
 
 
-@pytest.fixture(scope="module")
+@pytest.fixture(scope='module')
 def framework_version(request):
-    return request.config.getoption("--framework-version")
+    return request.config.getoption('--framework-version')
 
 
-@pytest.fixture(scope="module")
+@pytest.fixture(scope='module')
 def processor(request):
-    return request.config.getoption("--processor")
+    return request.config.getoption('--processor')
 
 
-@pytest.fixture(scope="module")
+@pytest.fixture(scope='module')
 def runtime_config(request, processor):
-    if processor == "gpu":
-        return "--runtime=nvidia "
+    if processor == 'gpu':
+        return '--runtime=nvidia '
     else:
-        return ""
+        return ''
 
 
-@pytest.fixture(scope="module")
+@pytest.fixture(scope='module')
 def tag(request, framework_version, processor):
-    image_tag = request.config.getoption("--tag")
+    image_tag = request.config.getoption('--tag')
     if not image_tag:
-        image_tag = "{}-{}".format(framework_version, processor)
+        image_tag = '{}-{}'.format(framework_version, processor)
     return image_tag
 
 
 @pytest.fixture(autouse=True)
 def skip_by_device_type(request, processor):
-    is_gpu = processor == "gpu"
-    if (request.node.get_closest_marker("skip_gpu") and is_gpu) or (
-        request.node.get_closest_marker("skip_cpu") and not is_gpu
-    ):
-        pytest.skip("Skipping because running on '{}' instance".format(processor))
+    is_gpu = processor == 'gpu'
+    if (request.node.get_closest_marker('skip_gpu') and is_gpu) or \
+            (request.node.get_closest_marker('skip_cpu') and not is_gpu):
+        pytest.skip('Skipping because running on \'{}\' instance'.format(processor))
 
 
 def _get_remote_override_flags():
     try:
-        s3_client = boto3.client("s3")
-        sts_client = boto3.client("sts")
-        account_id = sts_client.get_caller_identity().get("Account")
-        result = s3_client.get_object(
-            Bucket=f"dlc-cicd-helper-{account_id}", Key="override_tests_flags.json"
-        )
-        json_content = json.loads(result["Body"].read().decode("utf-8"))
+        s3_client = boto3.client('s3')
+        sts_client = boto3.client('sts')
+        account_id = sts_client.get_caller_identity().get('Account')
+        result = s3_client.get_object(Bucket=f"dlc-cicd-helper-{account_id}", Key="override_tests_flags.json")
+        json_content = json.loads(result["Body"].read().decode('utf-8'))
     except ClientError as e:
         print("ClientError when performing S3/STS operation: {}".format(e))
         json_content = {}
@@ -128,11 +117,9 @@ def _is_test_disabled(test_name, build_name, version):
     remote_override_flags = _get_remote_override_flags()
     remote_override_build = remote_override_flags.get(build_name, {})
     if version in remote_override_build:
-        return not remote_override_build[version] or any(
-            [
-                test_keyword in test_name
-                for test_keyword in remote_override_build[version]
-            ]
+        return (
+            not remote_override_build[version]
+            or any([test_keyword in test_name for test_keyword in remote_override_build[version]])
         )
     return False
 

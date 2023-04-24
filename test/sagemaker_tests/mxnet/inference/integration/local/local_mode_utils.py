@@ -20,14 +20,14 @@ import time
 
 from ...integration import RESOURCE_PATH
 
-LOCK_PATH = os.path.join(RESOURCE_PATH, "local_mode_lock")
+LOCK_PATH = os.path.join(RESOURCE_PATH, 'local_mode_lock')
 
 
 @contextmanager
 def lock():
     # Since Local Mode uses the same port for serving, we need a lock in order
     # to allow concurrent test execution.
-    local_mode_lock_fd = open(LOCK_PATH, "w")
+    local_mode_lock_fd = open(LOCK_PATH, 'w')
     local_mode_lock = local_mode_lock_fd.fileno()
 
     fcntl.lockf(local_mode_lock, fcntl.LOCK_EX)
@@ -40,6 +40,6 @@ def lock():
 
 
 def assert_output_files_exist(output_path, directory, files):
-    with tarfile.open(os.path.join(output_path, "{}.tar.gz".format(directory))) as tar:
+    with tarfile.open(os.path.join(output_path, '{}.tar.gz'.format(directory))) as tar:
         for f in files:
             tar.getmember(f)

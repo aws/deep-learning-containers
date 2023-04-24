@@ -14,9 +14,8 @@
 # Workaround for https://github.com/pytorch/vision/issues/1938
 from __future__ import print_function, absolute_import
 from six.moves import urllib
-
 opener = urllib.request.build_opener()
-opener.addheaders = [("User-agent", "Mozilla/5.0")]
+opener.addheaders = [('User-agent', 'Mozilla/5.0')]
 urllib.request.install_opener(opener)
 
 import argparse
@@ -45,24 +44,15 @@ logger.addHandler(logging.StreamHandler(sys.stdout))
 TORCHVISION_VERSION = "0.9.1"
 if Version(torchvision.__version__) < Version(TORCHVISION_VERSION):
     datasets.MNIST.resources = [
-        (
-            "https://dlinfra-mnist-dataset.s3-us-west-2.amazonaws.com/mnist/train-images-idx3-ubyte.gz",
-            "f68b3c2dcbeaaa9fbdd348bbdeb94873",
-        ),
-        (
-            "https://dlinfra-mnist-dataset.s3-us-west-2.amazonaws.com/mnist/train-labels-idx1-ubyte.gz",
-            "d53e105ee54ea40749a09fcbcd1e9432",
-        ),
-        (
-            "https://dlinfra-mnist-dataset.s3-us-west-2.amazonaws.com/mnist/t10k-images-idx3-ubyte.gz",
-            "9fb629c4189551a2d022fa330f9573f3",
-        ),
-        (
-            "https://dlinfra-mnist-dataset.s3-us-west-2.amazonaws.com/mnist/t10k-labels-idx1-ubyte.gz",
-            "ec29112dd5afa0611ce80d1b7f02629c",
-        ),
+        ('https://dlinfra-mnist-dataset.s3-us-west-2.amazonaws.com/mnist/train-images-idx3-ubyte.gz',
+         'f68b3c2dcbeaaa9fbdd348bbdeb94873'),
+        ('https://dlinfra-mnist-dataset.s3-us-west-2.amazonaws.com/mnist/train-labels-idx1-ubyte.gz',
+         'd53e105ee54ea40749a09fcbcd1e9432'),
+        ('https://dlinfra-mnist-dataset.s3-us-west-2.amazonaws.com/mnist/t10k-images-idx3-ubyte.gz',
+         '9fb629c4189551a2d022fa330f9573f3'),
+        ('https://dlinfra-mnist-dataset.s3-us-west-2.amazonaws.com/mnist/t10k-labels-idx1-ubyte.gz',
+         'ec29112dd5afa0611ce80d1b7f02629c')
     ]
-
 
 # Based on https://github.com/pytorch/examples/blob/master/mnist/main.py
 class Net(nn.Module):
@@ -89,7 +79,7 @@ class Net(nn.Module):
 def parse_args():
     parser = argparse.ArgumentParser(description="PyTorch MNIST Example")
 
-    parser.add_argument("--data_dir", type=str)
+    parser.add_argument('--data_dir', type=str)
     parser.add_argument("--batch-size", type=int, default=4, help="Batch size")
     parser.add_argument("--epochs", type=int, default=1, help="Number of Epochs")
     parser.add_argument(
@@ -106,17 +96,12 @@ def parse_args():
         type=int,
         default=50,
         help="Reduce the number of training "
-        "and evaluation steps to the give number if desired."
-        "If this is not passed, trains for one epoch "
-        "of training and validation data",
+             "and evaluation steps to the give number if desired."
+             "If this is not passed, trains for one epoch "
+             "of training and validation data",
     )
-    parser.add_argument(
-        "--log_interval",
-        type=int,
-        default=100,
-        metavar="N",
-        help="how many batches to wait before logging training status",
-    )
+    parser.add_argument('--log_interval', type=int, default=100, metavar='N',
+                        help='how many batches to wait before logging training status')
 
     opt = parser.parse_args()
     return opt
@@ -124,34 +109,22 @@ def parse_args():
 
 def _get_train_data_loader(batch_size, training_dir):
     logger.info("Get train data loader")
-    dataset = datasets.MNIST(
-        training_dir,
-        train=True,
-        download=True,
-        transform=transforms.Compose(
-            [transforms.ToTensor(), transforms.Normalize((0.1307,), (0.3081,))]
-        ),
-    )
-    return torch.utils.data.DataLoader(
-        dataset, batch_size=batch_size, shuffle=True, num_workers=4
-    )
+    dataset = datasets.MNIST(training_dir, train=True, download=True, transform=transforms.Compose([
+        transforms.ToTensor(),
+        transforms.Normalize((0.1307,), (0.3081,))
+    ]))
+    return torch.utils.data.DataLoader(dataset, batch_size=batch_size, shuffle=True,
+                                       num_workers=4)
 
 
 def _get_test_data_loader(test_batch_size, training_dir):
     logger.info("Get test data loader")
     return torch.utils.data.DataLoader(
-        datasets.MNIST(
-            training_dir,
-            train=False,
-            download=True,
-            transform=transforms.Compose(
-                [transforms.ToTensor(), transforms.Normalize((0.1307,), (0.3081,))]
-            ),
-        ),
-        batch_size=test_batch_size,
-        shuffle=False,
-        num_workers=4,
-    )
+        datasets.MNIST(training_dir, train=False, download=True, transform=transforms.Compose([
+            transforms.ToTensor(),
+            transforms.Normalize((0.1307,), (0.3081,))
+        ])),
+        batch_size=test_batch_size, shuffle=False, num_workers=4)
 
 
 def create_smdebug_hook(output_s3_uri):
@@ -187,15 +160,9 @@ def train(model, device, optimizer, hook, epochs, log_interval, training_dir):
             optimizer.step()
 
             if i % log_interval == 0:
-                logger.debug(
-                    "Train Epoch: {} [{}/{} ({:.0f}%)]\tLoss: {:.6f}".format(
-                        epoch,
-                        i * len(data),
-                        len(trainloader.sampler),
-                        100.0 * i / len(trainloader),
-                        loss.item(),
-                    )
-                )
+                logger.debug('Train Epoch: {} [{}/{} ({:.0f}%)]\tLoss: {:.6f}'.format(
+                    epoch, i * len(data), len(trainloader.sampler),
+                           100. * i / len(trainloader), loss.item()))
 
         test(model, hook, validloader, device, criterion)
 
@@ -210,20 +177,13 @@ def test(model, hook, test_loader, device, loss_fn):
             data, target = data.to(device), target.to(device)
             output = model(data)
             test_loss += loss_fn(output, target).item()  # sum up batch loss
-            pred = output.max(1, keepdim=True)[
-                1
-            ]  # get the index of the max log-probability
+            pred = output.max(1, keepdim=True)[1]  # get the index of the max log-probability
             correct += pred.eq(target.view_as(pred)).sum().item()
 
     test_loss /= len(test_loader.dataset)
-    logger.debug(
-        "Test set: Average loss: {:.4f}, Accuracy: {}/{} ({:.0f}%)\n".format(
-            test_loss,
-            correct,
-            len(test_loader.dataset),
-            100.0 * correct / len(test_loader.dataset),
-        )
-    )
+    logger.debug('Test set: Average loss: {:.4f}, Accuracy: {}/{} ({:.0f}%)\n'.format(
+        test_loss, correct, len(test_loader.dataset),
+        100. * correct / len(test_loader.dataset)))
 
 
 def main():
@@ -240,21 +200,20 @@ def main():
     hook = create_smdebug_hook(out_dir)
     model = Net().to(device)
     hook.register_hook(model)
-    optimizer = optim.SGD(
-        model.parameters(), lr=opt.learning_rate, momentum=opt.momentum
-    )
+    optimizer = optim.SGD(model.parameters(), lr=opt.learning_rate, momentum=opt.momentum)
     train(model, device, optimizer, hook, opt.epochs, opt.log_interval, training_dir)
     print("Training is complete")
 
     from smdebug.trials import create_trial
-
     print("Created the trial with out_dir {0}".format(out_dir))
     trial = create_trial(out_dir)
     assert trial
     print("Train steps: " + str(trial.steps(mode=modes.TRAIN)))
     print("Eval steps: " + str(trial.steps(mode=modes.EVAL)))
 
-    print(f"trial.tensor_names() = {trial.tensor_names()}")
+    print(
+        f"trial.tensor_names() = {trial.tensor_names()}"
+    )
     # if loss collection tensors not in in trial.tensor_names()
     # means they were not saved
 
@@ -272,10 +231,11 @@ def main():
     print(f"'losses' collection tensors = {losses_tensors}")
     assert len(losses_tensors) > 0
 
-    assert all([name in trial.tensor_names() for name in losses_tensors])
+    assert all(
+        [name in trial.tensor_names() for name in losses_tensors]
+    )
 
     print("Validation Complete")
-
 
 if __name__ == "__main__":
     main()

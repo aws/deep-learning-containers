@@ -42,9 +42,7 @@ def ecs_cluster(request, ecs_client, ecs_cluster_name, region):
     # Wait for cluster status to be active
     if ecs_utils.check_ecs_cluster_status(cluster_arn, "ACTIVE"):
         return cluster_arn
-    raise ecs_utils.ECSClusterCreationException(
-        f"Failed to create ECS cluster - {cluster_name}"
-    )
+    raise ecs_utils.ECSClusterCreationException(f'Failed to create ECS cluster - {cluster_name}')
 
 
 @pytest.fixture(scope="function")
@@ -67,9 +65,7 @@ def training_cmd(request, ecs_cluster_name, training_script):
 
     request.addfinalizer(delete_s3_artifact_copy)
 
-    return ecs_utils.build_ecs_training_command(
-        s3_test_artifact_location, training_script
-    )
+    return ecs_utils.build_ecs_training_command(s3_test_artifact_location, training_script)
 
 
 @pytest.fixture(scope="session")
@@ -89,7 +85,6 @@ def use_large_storage(request):
     else:
         return False
 
-
 @pytest.fixture(scope="session")
 def ecs_num_neurons(request, ecs_instance_type):
     # Set the num neurons based on instance_type
@@ -100,20 +95,9 @@ def ecs_num_neurons(request, ecs_instance_type):
 
     return None
 
-
 @pytest.mark.timeout(300)
 @pytest.fixture(scope="function")
-def ecs_container_instance(
-    request,
-    ecs_cluster,
-    ec2_client,
-    ecs_client,
-    ecs_instance_type,
-    ecs_ami,
-    region,
-    ei_accelerator_type,
-    use_large_storage,
-):
+def ecs_container_instance(request, ecs_cluster, ec2_client, ecs_client, ecs_instance_type, ecs_ami, region, ei_accelerator_type, use_large_storage):
     """
     Fixture to handle spin up and tear down of ECS container instance
 
@@ -139,29 +123,35 @@ def ecs_container_instance(
         "UserData": user_data,
         "IamInstanceProfile": {"Name": "ecsInstanceRole"},
         "TagSpecifications": [
-            {
-                "ResourceType": "instance",
-                "Tags": [{"Key": "Name", "Value": f"CI-CD ecs worker {cluster_name}"}],
-            },
+            {"ResourceType": "instance", "Tags": [{"Key": "Name", "Value": f"CI-CD ecs worker {cluster_name}"}]},
         ],
         "MaxCount": 1,
         "MinCount": 1,
     }
     if use_large_storage:
         params["BlockDeviceMappings"] = [
-            {"DeviceName": "/dev/xvda", "Ebs": {"VolumeSize": 60, "VolumeType": "gp2"}}
+            {
+                "DeviceName": "/dev/xvda",
+                "Ebs": {
+                    "VolumeSize": 60,
+                    "VolumeType": "gp2"
+                }
+            }
         ]
-
+        
     if ei_accelerator_type:
         params["ElasticInferenceAccelerators"] = [
-            {"Type": ei_accelerator_type, "Count": 1}
+            {
+                'Type': ei_accelerator_type,
+                'Count': 1
+            }
         ]
-        availability_zones = {
-            "us-west-2": ["us-west-2a", "us-west-2b", "us-west-2c"],
-            "us-east-1": ["us-east-1a", "us-east-1b", "us-east-1c"],
-        }
+        availability_zones = {"us-west-2": ["us-west-2a", "us-west-2b", "us-west-2c"],
+                              "us-east-1": ["us-east-1a", "us-east-1b", "us-east-1c"]}
         for a_zone in availability_zones[region]:
-            params["Placement"] = {"AvailabilityZone": a_zone}
+            params["Placement"] = {
+                'AvailabilityZone': a_zone
+            }
             try:
                 instances = ec2_client.run_instances(**params)
                 if instances:

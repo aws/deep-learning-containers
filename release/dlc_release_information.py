@@ -18,6 +18,7 @@ LOGGER.setLevel(logging.INFO)
 
 class DLCReleaseInformation:
     def __init__(self, dlc_account_id, dlc_region, dlc_repository, dlc_tag):
+
         if not all([dlc_account_id, dlc_tag, dlc_repository, dlc_region]):
             raise ValueError(
                 "One or multiple environment variables TARGET_ACCOUNT_ID_CLASSIC, TAG_WITH_DLC_VERSION, "
@@ -52,10 +53,7 @@ class DLCReleaseInformation:
 
         run(f"docker rm -f {container_name}", warn=True, hide=True)
 
-        run(
-            f"docker run -id --privileged --name {container_name} --entrypoint='/bin/bash' {self.image}",
-            hide=True,
-        )
+        run(f"docker run -id --privileged --name {container_name} --entrypoint='/bin/bash' {self.image}", hide=True)
 
         return container_name
 
@@ -81,9 +79,7 @@ class DLCReleaseInformation:
                 imageIds=[{"imageTag": self.dlc_tag}],
             )
         except ClientError as e:
-            LOGGER.error(
-                "ClientError when performing ECR operation. Exception: {}".format(e)
-            )
+            LOGGER.error("ClientError when performing ECR operation. Exception: {}".format(e))
 
         return response["imageDetails"][0]
 
@@ -122,11 +118,7 @@ class DLCReleaseInformation:
     @property
     def imp_pip_packages(self):
         imp_pip_packages = {}
-        container_pip_packages = json.loads(
-            self.get_container_command_output(
-                "pip list --disable-pip-version-check --format=json"
-            )
-        )
+        container_pip_packages = json.loads(self.get_container_command_output("pip list --disable-pip-version-check --format=json"))
 
         for pip_package in sorted(self.imp_packages_to_record["pip_packages"]):
             for package_entry in container_pip_packages:

@@ -46,11 +46,8 @@ class DefaultPytorchInferenceHandler(default_inference_handler.DefaultInferenceH
         """
         model_path = os.path.join(model_dir, DEFAULT_MODEL_FILENAME)
         if not os.path.exists(model_path):
-            raise FileNotFoundError(
-                "Failed to load model with default model_fn: missing file {}.".format(
-                    DEFAULT_MODEL_FILENAME
-                )
-            )
+            raise FileNotFoundError("Failed to load model with default model_fn: missing file {}."
+                                    .format(DEFAULT_MODEL_FILENAME))
         # Client-framework is CPU only. But model will run in Elastic Inference server with CUDA.
         model = torch.jit.load(model_path, map_location=device)
         model.eval()
@@ -72,11 +69,8 @@ class DefaultPytorchInferenceHandler(default_inference_handler.DefaultInferenceH
             depending if cuda is available.
         """
         np_array = decoder.decode(input_data, content_type)
-        tensor = (
-            torch.FloatTensor(np_array)
-            if content_type in content_types.UTF8_TYPES
-            else torch.from_numpy(np_array)
-        )
+        tensor = torch.FloatTensor(
+            np_array) if content_type in content_types.UTF8_TYPES else torch.from_numpy(np_array)
         return tensor.to(device)
 
     def default_predict_fn(self, data, model):

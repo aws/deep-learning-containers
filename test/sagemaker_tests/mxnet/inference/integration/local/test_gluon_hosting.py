@@ -22,27 +22,23 @@ from sagemaker.mxnet.model import MXNetModel
 from ...integration.local import local_mode_utils
 from ...integration import RESOURCE_PATH
 
-GLUON_PATH = os.path.join(RESOURCE_PATH, "gluon_hosting")
-MODEL_PATH = os.path.join(GLUON_PATH, "model", "model.tar.gz")
-SCRIPT_PATH = os.path.join(GLUON_PATH, "model", "code", "gluon.py")
+GLUON_PATH = os.path.join(RESOURCE_PATH, 'gluon_hosting')
+MODEL_PATH = os.path.join(GLUON_PATH, 'model', 'model.tar.gz')
+SCRIPT_PATH = os.path.join(GLUON_PATH, 'model', 'code', 'gluon.py')
 
 
 # The image should support serving Gluon-created models.
 @pytest.mark.integration("gluon")
 @pytest.mark.model("mnist")
-def test_gluon_hosting(
-    docker_image, sagemaker_local_session, local_instance_type, framework_version
-):
-    model = MXNetModel(
-        "file://{}".format(MODEL_PATH),
-        "SageMakerRole",
-        SCRIPT_PATH,
-        image_uri=docker_image,
-        framework_version=framework_version,
-        sagemaker_session=sagemaker_local_session,
-    )
+def test_gluon_hosting(docker_image, sagemaker_local_session, local_instance_type, framework_version):
+    model = MXNetModel('file://{}'.format(MODEL_PATH),
+                       'SageMakerRole',
+                       SCRIPT_PATH,
+                       image_uri=docker_image,
+                       framework_version=framework_version,
+                       sagemaker_session=sagemaker_local_session)
 
-    with open(os.path.join(RESOURCE_PATH, "mnist", "images", "04.json"), "r") as f:
+    with open(os.path.join(RESOURCE_PATH, 'mnist', 'images', '04.json'), 'r') as f:
         input = json.load(f)
 
     with local_mode_utils.lock():

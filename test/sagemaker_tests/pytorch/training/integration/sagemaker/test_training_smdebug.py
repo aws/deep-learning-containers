@@ -26,68 +26,58 @@ from . import invoke_pytorch_estimator
 @pytest.mark.integration("smdebug")
 @pytest.mark.model("mnist")
 @pytest.mark.skip_py2_containers
-def test_training_smdebug(
-    framework_version, ecr_image, sagemaker_regions, instance_type
-):
+def test_training_smdebug(framework_version, ecr_image, sagemaker_regions, instance_type):
     hyperparameters = {
-        "random_seed": True,
-        "num_steps": 50,
-        "smdebug_path": "/tmp/ml/output/tensors",
-        "epochs": 1,
-        "data_dir": training_dir,
+        'random_seed': True,
+        'num_steps': 50,
+        'smdebug_path': '/tmp/ml/output/tensors',
+        'epochs': 1,
+        'data_dir': training_dir,
     }
 
     with timeout(minutes=DEFAULT_TIMEOUT):
         estimator_parameter = {
-            "entry_point": smdebug_mnist_script,
-            "role": "SageMakerRole",
-            "instance_count": 1,
-            "instance_type": instance_type,
-            "framework_version": framework_version,
-            "hyperparameters": hyperparameters,
+            'entry_point': smdebug_mnist_script,
+            'role': 'SageMakerRole',
+            'instance_count': 1,
+            'instance_type': instance_type,
+            'framework_version': framework_version,
+            'hyperparameters': hyperparameters
         }
-        upload_s3_data_args = {"path": training_dir, "key_prefix": "pytorch/mnist"}
-        job_name = utils.unique_name_from_base("test-pt-smdebug-training")
-        invoke_pytorch_estimator(
-            ecr_image,
-            sagemaker_regions,
-            estimator_parameter,
-            upload_s3_data_args=upload_s3_data_args,
-            job_name=job_name,
-        )
+        upload_s3_data_args = {
+        'path': training_dir,
+        'key_prefix': 'pytorch/mnist'
+        }
+        job_name=utils.unique_name_from_base('test-pt-smdebug-training')
+        invoke_pytorch_estimator(ecr_image, sagemaker_regions, estimator_parameter, upload_s3_data_args=upload_s3_data_args, job_name=job_name)        
 
 
 @pytest.mark.usefixtures("feature_smdebug_present")
 @pytest.mark.integration("smdebug")
 @pytest.mark.model("mnist")
 @pytest.mark.skip_py2_containers
-def test_hc_training_smdebug(
-    framework_version, ecr_image, sagemaker_regions, instance_type
-):
+def test_hc_training_smdebug(framework_version, ecr_image, sagemaker_regions, instance_type):
     hyperparameters = {
-        "random_seed": True,
-        "num_steps": 50,
-        "smdebug_path": "/tmp/ml/output/tensors",
-        "epochs": 1,
-        "data_dir": training_dir,
+        'random_seed': True,
+        'num_steps': 50,
+        'smdebug_path': '/tmp/ml/output/tensors',
+        'epochs': 1,
+        'data_dir': training_dir,
     }
 
     with timeout(minutes=DEFAULT_TIMEOUT):
         instance_count = 1
-        training_group = InstanceGroup("train_group", instance_type, instance_count)
+        training_group = InstanceGroup('train_group', instance_type, instance_count)
         estimator_parameter = {
-            "entry_point": smdebug_mnist_script,
-            "role": "SageMakerRole",
-            "instance_groups": [training_group],
-            "framework_version": framework_version,
-            "hyperparameters": hyperparameters,
+            'entry_point': smdebug_mnist_script,
+            'role': 'SageMakerRole',
+            'instance_groups': [training_group],
+            'framework_version': framework_version,
+            'hyperparameters': hyperparameters
         }
-        upload_s3_data_args = {"path": training_dir, "key_prefix": "pytorch/mnist"}
-        job_name = utils.unique_name_from_base("test-pt-hc-smdebug-training")
-        invoke_pytorch_estimator(
-            ecr_image,
-            sagemaker_regions,
-            estimator_parameter,
-            upload_s3_data_args=upload_s3_data_args,
-            job_name=job_name,
-        )
+        upload_s3_data_args = {
+        'path': training_dir,
+        'key_prefix': 'pytorch/mnist'
+        }
+        job_name=utils.unique_name_from_base('test-pt-hc-smdebug-training')
+        invoke_pytorch_estimator(ecr_image, sagemaker_regions, estimator_parameter, upload_s3_data_args=upload_s3_data_args, job_name=job_name)        

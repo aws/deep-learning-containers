@@ -23,56 +23,37 @@ from ..... import invoke_sm_helper_function
 from ...integration import RESOURCE_PATH
 from ...integration.sagemaker import timeout
 
-GLUONNLP_PATH = os.path.join(RESOURCE_PATH, "gluonnlp")
-SCRIPT_PATH = os.path.join(GLUONNLP_PATH, "bert.py")
+GLUONNLP_PATH = os.path.join(RESOURCE_PATH, 'gluonnlp')
+SCRIPT_PATH = os.path.join(GLUONNLP_PATH, 'bert.py')
 
 
 @pytest.mark.integration("gluonnlp")
 @pytest.mark.model("bert_sst")
 @pytest.mark.skip_py2_containers
 @pytest.mark.skip_eia_containers
-def test_gluonnlp(
-    ecr_image,
-    sagemaker_regions,
-    instance_type,
-    framework_version,
-    skip_neuron_containers,
-):
-    invoke_sm_helper_function(
-        ecr_image,
-        sagemaker_regions,
-        _test_gluonnlp_function,
-        instance_type,
-        framework_version,
-    )
+def test_gluonnlp(ecr_image, sagemaker_regions, instance_type, framework_version, skip_neuron_containers):
+    invoke_sm_helper_function(ecr_image, sagemaker_regions, _test_gluonnlp_function,
+                                 instance_type, framework_version)
 
 
-def _test_gluonnlp_function(
-    ecr_image, sagemaker_session, instance_type, framework_version
-):
+def _test_gluonnlp_function(ecr_image, sagemaker_session, instance_type, framework_version):
     import urllib.request
-
     tmpdir = tempfile.mkdtemp()
-    tmpfile = os.path.join(tmpdir, "bert_sst.tar.gz")
-    urllib.request.urlretrieve(
-        "https://aws-dlc-sample-models.s3.amazonaws.com/bert_sst/bert_sst.tar.gz",
-        tmpfile,
-    )
+    tmpfile = os.path.join(tmpdir, 'bert_sst.tar.gz')
+    urllib.request.urlretrieve('https://aws-dlc-sample-models.s3.amazonaws.com/bert_sst/bert_sst.tar.gz', tmpfile)
 
-    prefix = "gluonnlp-serving/default-handlers"
+    prefix = 'gluonnlp-serving/default-handlers'
     model_data = sagemaker_session.upload_data(path=tmpfile, key_prefix=prefix)
 
-    model = MXNetModel(
-        model_data,
-        "SageMakerRole",
-        SCRIPT_PATH,
-        image_uri=ecr_image,
-        py_version="py3",
-        framework_version=framework_version,
-        sagemaker_session=sagemaker_session,
-    )
+    model = MXNetModel(model_data,
+                       'SageMakerRole',
+                       SCRIPT_PATH,
+                       image_uri=ecr_image,
+                       py_version="py3",
+                       framework_version=framework_version,
+                       sagemaker_session=sagemaker_session)
 
-    endpoint_name = utils.unique_name_from_base("test-mxnet-gluonnlp")
+    endpoint_name = utils.unique_name_from_base('test-mxnet-gluonnlp')
     with timeout.timeout_and_delete_endpoint_by_name(endpoint_name, sagemaker_session):
         predictor = model.deploy(1, instance_type, endpoint_name=endpoint_name)
 
