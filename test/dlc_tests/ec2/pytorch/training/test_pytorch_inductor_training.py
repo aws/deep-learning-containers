@@ -153,7 +153,9 @@ def test_pytorch_mpi_inductor_gpu(
 @pytest.mark.integration("amp")
 @pytest.mark.integration("inductor")
 @pytest.mark.model("resnet50")
-@pytest.mark.parametrize("ec2_instance_type", PT_EC2_GPU_INDUCTOR_INSTANCE_TYPES, indirect=True)
+@pytest.mark.parametrize(
+    "ec2_instance_type", PT_EC2_INDUCTOR_SINGLEGPU_INSTANCE_TYPES, indirect=True
+)
 def test_pytorch_amp_inductor(pytorch_training, ec2_connection, gpu_only, ec2_instance_type):
     _, image_framework_version = get_framework_and_version_from_tag(pytorch_training)
     if Version(image_framework_version) < Version("2.0"):
