@@ -16,7 +16,6 @@
 
 - [ ] Revision A: `sagemaker_remote_tests = "standard"`
 - [ ] Revision B: `sagemaker_remote_tests = "rc"`
-- [ ] Revision C: `sagemaker_remote_tests = "efa"`
 
 **Additionally, please run the sagemaker local tests in at least one revision:**
 - [ ] `sagemaker_local_tests = true`
