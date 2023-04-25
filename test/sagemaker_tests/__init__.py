@@ -29,11 +29,17 @@ def get_sagemaker_session(region, default_bucket=None):
         boto_session=boto3.Session(region_name=region), default_bucket=default_bucket
     )
 
+
 def get_sagemaker_client(region):
-    return boto3.Session(region_name=region).client("sagemaker", config=Config(retries={"max_attempts": 10}))
+    return boto3.Session(region_name=region).client(
+        "sagemaker", config=Config(retries={"max_attempts": 10})
+    )
+
 
 def get_sagemaker_runtime_client(region):
-    return boto3.Session(region_name=region).client("runtime.sagemaker", config=Config(retries={"max_attempts": 10}))
+    return boto3.Session(region_name=region).client(
+        "runtime.sagemaker", config=Config(retries={"max_attempts": 10})
+    )
 
 
 def get_unique_name_from_tag(image_uri):
