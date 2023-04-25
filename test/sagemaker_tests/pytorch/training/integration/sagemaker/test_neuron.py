@@ -68,10 +68,10 @@ def invoke_neuron_helper_function(
                 raise e
 
 
-@pytest.mark.processor("neuron")
+@pytest.mark.processor("neuronx")
 @pytest.mark.model("unknown_model")
 @pytest.mark.parametrize("instance_types", ["ml.trn1.32xlarge"])
-@pytest.mark.neuron_test
+@pytest.mark.neuronx_test
 def test_neuron_allreduce_distributed(
     framework_version, ecr_image, sagemaker_regions, instance_types
 ):
@@ -85,10 +85,10 @@ def test_neuron_allreduce_distributed(
     )
 
 
-@pytest.mark.processor("neuron")
+@pytest.mark.processor("neuronx")
 @pytest.mark.model("mlp")
 @pytest.mark.parametrize("instance_types", ["ml.trn1.32xlarge"])
-@pytest.mark.neuron_test
+@pytest.mark.neuronx_test
 def test_neuron_mlp_distributed(framework_version, ecr_image, sagemaker_regions, instance_types):
     function_args = {
         "framework_version": framework_version,
@@ -100,9 +100,9 @@ def test_neuron_mlp_distributed(framework_version, ecr_image, sagemaker_regions,
     )
 
 
-@pytest.mark.processor("neuron")
+@pytest.mark.processor("neuronx")
 @pytest.mark.model("unknown_model")
-@pytest.mark.neuron_test
+@pytest.mark.neuronx_test
 def test_neuron_allreduce_process(framework_version, ecr_image, sagemaker_regions, instance_type):
     function_args = {
         "framework_version": framework_version,
@@ -114,9 +114,9 @@ def test_neuron_allreduce_process(framework_version, ecr_image, sagemaker_region
     )
 
 
-@pytest.mark.processor("neuron")
+@pytest.mark.processor("neuronx")
 @pytest.mark.model("mlp")
-@pytest.mark.neuron_test
+@pytest.mark.neuronx_test
 def test_neuron_mlp_process(framework_version, ecr_image, sagemaker_regions, instance_type):
     function_args = {
         "framework_version": framework_version,
