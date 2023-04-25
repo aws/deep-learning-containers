@@ -171,7 +171,7 @@ TEST_TRANSFER_S3_BUCKET = "s3://dlinfra-tests-transfer-bucket"
 
 # S3 Bucket to use to record benchmark results for further retrieving
 BENCHMARK_RESULTS_S3_BUCKET = "s3://dlinfra-dlc-cicd-performance"
-BENCHMARK_RESULTS_S3_BUCKET_TRCOMP = (
+BENCHMARK_RESULTS_S3_BUCKET_INDUCTOR = (
     "s3://dlinfra-dlc-cicd-performance/pytorch/2.0.0/ec2/training/inductor"
 )
 

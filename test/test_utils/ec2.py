@@ -26,7 +26,7 @@ from . import (
     DEFAULT_REGION,
     UL_AMI_LIST,
     BENCHMARK_RESULTS_S3_BUCKET,
-    BENCHMARK_RESULTS_S3_BUCKET_TRCOMP,
+    BENCHMARK_RESULTS_S3_BUCKET_INDUCTOR,
 )
 
 EC2_INSTANCE_ROLE_NAME = "ec2TestInstanceRole"
@@ -1034,16 +1034,16 @@ def ec2_performance_upload_result_to_s3_and_validate(
         )
 
 
-def trcomp_perf_data_io(
+def perf_data_io(
     connection,
     local_pth,
     s3_key,
     fw="pytorch",
-    hopper_s3_prefix=BENCHMARK_RESULTS_S3_BUCKET_TRCOMP,
+    s3_prefix=BENCHMARK_RESULTS_S3_BUCKET_INDUCTOR,
     is_upload=True,
 ):
-    """Use to transfer hopper benchmark data between ec2 test instance, CB instance and s3"""
-    s3_pth = hopper_s3_prefix + fw + s3_key
+    """Use to transfer benchmark data between ec2 test instance, CB instance and s3"""
+    s3_pth = s3_prefix + fw + s3_key
     # if not os.path.exists(local_pth):
     #    connection.run(f"mkdir {local_pth}")
     if is_upload:

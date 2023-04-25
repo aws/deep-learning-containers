@@ -12,7 +12,7 @@ from test.test_utils import (
     DEFAULT_REGION,
     get_framework_and_version_from_tag,
     is_pr_context,
-    BENCHMARK_RESULTS_S3_BUCKET_TRCOMP,
+    BENCHMARK_RESULTS_S3_BUCKET_INDUCTOR,
 )
 
 from test.test_utils.ec2 import (
@@ -86,7 +86,7 @@ def execute_ec2_training_performance_test(
     _, image_framework_version = get_framework_and_version_from_tag(ecr_uri)
     timestamp = time.strftime("%Y-%m-%d-%H-%M-%S")
     s3_key = os.path.join(os.sep, model_suite, re.sub("\.", "-", ec2_instance_type), timestamp)
-    s3_pth = BENCHMARK_RESULTS_S3_BUCKET_TRCOMP + s3_key
+    s3_pth = BENCHMARK_RESULTS_S3_BUCKET_INDUCTOR + s3_key
     test_prefix = os.path.join(
         CONTAINER_TESTS_PREFIX,
         "benchmark",

@@ -13,7 +13,7 @@ from test.test_utils import (
 )
 from test.test_utils.ec2 import (
     execute_ec2_training_performance_test,
-    trcomp_perf_data_io,
+    perf_data_io,
     execute_ec2_habana_training_performance_test,
     get_ec2_instance_type,
 )
@@ -139,7 +139,7 @@ def execute_pytorch_gpu_py3_imagenet_ec2_training_performance_test(
             f"{ecr_uri} {os.path.join(os.sep, 'bin', 'bash')} -c {test_cmd}"
         )
     finally:
-        trcomp_perf_data_io(connection, log_location, s3_key=s3_key, fw=fw)
+        perf_data_io(connection, log_location, s3_key=s3_key, fw=fw)
         connection.run(f"docker rm -f {container_name}", warn=True, hide=True)
 
 
