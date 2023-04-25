@@ -74,7 +74,7 @@ def test_ec2_pytorch_inference_neuron(pytorch_inference_neuron, ec2_connection, 
 @pytest.mark.parametrize("ec2_instance_ami", [test_utils.UL20_PT_NEURON_US_WEST_2], indirect=True)
 @pytest.mark.parametrize(
     "ec2_instance_type",
-    [PT_EC2_NEURON_TRN1_INSTANCE_TYPE, PT_EC2_NEURON_INF2_INSTANCE_TYPE],
+    PT_EC2_NEURON_TRN1_INSTANCE_TYPE + PT_EC2_NEURON_INF2_INSTANCE_TYPE,
     indirect=True,
 )
 def test_ec2_pytorch_inference_neuronx(pytorch_inference_neuronx, ec2_connection, region):

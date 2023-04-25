@@ -41,7 +41,7 @@ def test_ec2_tensorflow_inference_neuron(tensorflow_inference_neuron, ec2_connec
 @pytest.mark.model("mnist")
 @pytest.mark.parametrize(
     "ec2_instance_type",
-    [TF_EC2_NEURONX_ACCELERATOR_TYPE, TF_EC2_NEURONX_INF2_ACCELERATOR_TYPE],
+    TF_EC2_NEURONX_ACCELERATOR_TYPE + TF_EC2_NEURONX_INF2_ACCELERATOR_TYPE,
     indirect=True,
 )
 # FIX ME: Sharing the AMI from neuron account to DLC account; use public DLAMI with inf1 support instead
