@@ -89,7 +89,7 @@ def use_large_storage(request):
 @pytest.fixture(scope="session")
 def ecs_num_neurons(request, ecs_instance_type):
     # Set the num neurons based on instance_type
-    if ecs_instance_type == "trn1.2xlarge":
+    if ecs_instance_type in ["trn1.2xlarge", "inf2.xlarge"]:
         return 1
     elif ecs_instance_type == "trn1.32xlarge":
         return 16
