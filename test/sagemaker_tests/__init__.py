@@ -71,7 +71,7 @@ def get_ecr_image_region(ecr_image):
 
 
 def get_model_data_region(model_data):
-    base = model_data.replace("s3://","").split("/")[0]
+    base = model_data.replace("s3://", "").split("/")[0]
     region_search = re.search(
         r"(us(-gov)?|ap|ca|cn|eu|sa|me|af)-(central|(north|south)?(east|west)?)-\d+", base
     )
