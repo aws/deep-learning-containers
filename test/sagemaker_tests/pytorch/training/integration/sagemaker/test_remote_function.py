@@ -27,6 +27,7 @@ from .... import invoke_pytorch_helper_function
 DEPENDENCIES_PATH = os.path.join(resources_path, "remote_function", "requirements.txt")
 
 
+@pytest.mark.model("N/A")
 @pytest.mark.integration("remote_function")
 @pytest.mark.skip_py2_containers
 def test_remote_function_divide(ecr_image, sagemaker_regions, instance_type):

@@ -28,6 +28,7 @@ DEPENDENCIES_PATH = os.path.join(RESOURCE_PATH, "remote_function", "requirements
 DEFAULT_TIMEOUT = 20
 
 
+@pytest.mark.model("N/A")
 @pytest.mark.integration("remote_function")
 @pytest.mark.skip_py2_containers
 def test_remote_function_divide(ecr_image, sagemaker_regions, instance_type):
