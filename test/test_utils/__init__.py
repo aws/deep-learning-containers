@@ -5,7 +5,6 @@ import re
 import subprocess
 import sys
 import time
-import pickle
 
 from enum import Enum
 
@@ -42,26 +41,11 @@ def get_ami_id_boto3(region_name, ami_name_pattern):
     """
     For a given region and ami name pattern, return the latest ami-id
     """
-    # get cross-process cached ami request result to reduce network request rate
-    amis_cache_file = "ami_ids.pkl"
-    if os.path.exists(amis_cache_file):
-        with open(amis_cache_file, "rb") as f:
-            ami_map = pickle.load(f)
-        if (ami_name_pattern, region_name) in ami_map:
-            return ami_map[(ami_name_pattern, region_name)]
-    else:
-        ami_map = {}
-
     ami_list = boto3.client("ec2", region_name=region_name).describe_images(
         Filters=[{"Name": "name", "Values": [ami_name_pattern]}], Owners=["amazon"]
     )
     ami = max(ami_list["Images"], key=lambda x: x["CreationDate"])
-    ami_map[(ami_name_pattern, region_name)] = ami["ImageId"]
-
-    # store ami cache shared across process
-    with open(amis_cache_file, "wb") as f: 
-        pickle.dump(ami_map, f)
-    return ami_map[(ami_name_pattern, region_name)]
+    return ami["ImageId"]
 
 
 def get_ami_id_ssm(region_name, parameter_path):
