@@ -131,9 +131,41 @@ def test_ecs_pytorch_inference_neuron(pytorch_inference_neuron, ecs_container_in
 
 
 @pytest.mark.model("resnet")
-@pytest.mark.parametrize("ecs_instance_type", ["trn1.2xlarge", "inf2.xlarge"], indirect=True)
+@pytest.mark.parametrize("ecs_instance_type", ["trn1.2xlarge"], indirect=True)
 @pytest.mark.parametrize("ecs_ami", [ECS_AML2_NEURON_USWEST2], indirect=True)
 def test_ecs_pytorch_inference_neuronx(pytorch_inference_neuronx, ecs_container_instance, region):
+    worker_instance_id, ecs_cluster_arn = ecs_container_instance
+    public_ip_address = ec2_utils.get_public_ip(worker_instance_id, region=region)
+    num_neurons = 1
+
+    model_name = "pytorch-resnet-neuronx"
+    service_name = task_family = revision = None
+    try:
+        service_name, task_family, revision = ecs_utils.setup_ecs_inference_service(
+            pytorch_inference_neuronx,
+            "pytorch",
+            ecs_cluster_arn,
+            model_name,
+            worker_instance_id,
+            num_neurons=num_neurons,
+            region=region,
+        )
+        server_type = get_inference_server_type(pytorch_inference_neuronx)
+        inference_result = request_pytorch_inference_densenet(
+            public_ip_address, server_type=server_type, model_name=model_name
+        )
+        assert inference_result, f"Failed to perform inference at IP address: {public_ip_address}"
+
+    finally:
+        ecs_utils.tear_down_ecs_inference_service(
+            ecs_cluster_arn, service_name, task_family, revision
+        )
+
+
+@pytest.mark.model("resnet")
+@pytest.mark.parametrize("ecs_instance_type", ["inf2.xlarge"], indirect=True)
+@pytest.mark.parametrize("ecs_ami", [ECS_AML2_NEURON_USWEST2], indirect=True)
+def test_ecs_pytorch_inference_neuronx_inf2(pytorch_inference_neuronx, ecs_container_instance, region):
     worker_instance_id, ecs_cluster_arn = ecs_container_instance
     public_ip_address = ec2_utils.get_public_ip(worker_instance_id, region=region)
     num_neurons = 1
