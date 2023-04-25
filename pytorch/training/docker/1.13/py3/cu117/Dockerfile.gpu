@@ -388,6 +388,7 @@ ARG PT_TORCHVISION_URL
 ARG PT_TORCHAUDIO_URL
 ARG PT_TORCHDATA_URL
 ARG FLASH_ATTN_VERSION
+ARG TRITON_VERSION
 
 # Install AWS-PyTorch and other torch packages
 RUN pip uninstall -y torch torchvision torchaudio torchdata \
