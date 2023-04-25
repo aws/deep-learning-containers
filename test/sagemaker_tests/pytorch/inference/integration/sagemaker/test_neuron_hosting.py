@@ -62,7 +62,7 @@ def test_neuron_hosting(framework_version, ecr_image, instance_type, sagemaker_r
 )
 @pytest.mark.model("resnet")
 @pytest.mark.processor("neuronx")
-@pytest.mark.neuron_test
+@pytest.mark.neuronx_test
 def test_neuron_hosting(framework_version, ecr_image, instance_type, sagemaker_regions):
     instance_type = "ml.trn1.2xlarge"
     model_dir = os.path.join(model_neuronx_dir, "model-resnet.tar.gz")
