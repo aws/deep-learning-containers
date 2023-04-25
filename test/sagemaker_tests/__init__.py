@@ -70,6 +70,19 @@ def get_ecr_image_region(ecr_image):
     return region_search.group()
 
 
+def get_model_data_region(model_data):
+    base = model_data.replace("s3://","").split("/")[0]
+    region_search = re.search(
+        r"(us(-gov)?|ap|ca|cn|eu|sa|me|af)-(central|(north|south)?(east|west)?)-\d+", base
+    )
+    return region_search.group()
+
+
+def get_model_data(model_data, region):
+    prev_region = get_model_data_region(model_data)
+    return model_data.replace(prev_region, region)
+
+
 def get_ecr_image(ecr_image, region):
     """
     It uploads image to the aws region and return image uri

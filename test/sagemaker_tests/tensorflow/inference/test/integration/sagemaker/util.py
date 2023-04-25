@@ -27,6 +27,7 @@ from ...... import (
     get_ecr_image_region,
     get_sagemaker_client,
     get_sagemaker_runtime_client,
+    get_model_data,
 )
 
 logger = logging.getLogger(__name__)
@@ -381,12 +382,13 @@ def create_and_invoke_endpoint_helper(
             tested_ecr_image = (
                 get_ecr_image(image_uri, region) if region != ecr_image_region else image_uri
             )
+            tested_model_data = get_model_data(model_data, region)
             result = create_and_invoke_endpoint(
                 boto_session=boto_session,
                 sagemaker_client=sagemaker_client,
                 sagemaker_runtime_client=sagemaker_runtime_client,
                 model_name=model_name,
-                model_data=model_data,
+                model_data=tested_model_data,
                 image_uri=tested_ecr_image,
                 instance_type=instance_type,
                 accelerator_type=accelerator_type,
