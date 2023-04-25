@@ -58,7 +58,7 @@ FRAMEWORK_FIXTURES = (
     "pytorch_inference_eia",
     "pytorch_inference_neuron",
     "pytorch_inference_neuronx",
-    "pytorch_training_neuron",
+    "pytorch_training_neuronx",
     "pytorch_inference_graviton",
     # TensorFlow
     "tensorflow_training",
@@ -426,7 +426,7 @@ def ec2_instance(
 
     # For neuron the current DLAMI does not have the latest drivers and compatibility
     # is failing. So reinstall the latest neuron driver
-    if "pytorch_inference_neuron" in request.fixturenames:
+    if "pytorch_inference_neuronx" in request.fixturenames:
         params["BlockDeviceMappings"] = [
             {
                 "DeviceName": volume_name,
@@ -494,7 +494,7 @@ def is_neuron_image(fixtures):
         # training
         "tensorflow_training_neuron",
         "mxnet_training_neuron",
-        "pytorch_training_neuron",
+        "pytorch_training_neuronx",
     ]
 
     for fixture in neuron_fixtures:
