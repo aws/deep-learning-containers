@@ -73,7 +73,7 @@ def test_pytorchddp_throughput_gpu(
 @pytest.mark.multinode(2)
 @pytest.mark.integration("pytorchddp")
 @pytest.mark.parametrize(
-    "efa_instance_type", get_efa_test_instance_type(default=["ml.p4d.24xlarge"]), indirect=True
+    "efa_instance_type", get_efa_test_instance_type(default=["ml.p3.16xlarge"]), indirect=True
 )
 @pytest.mark.skip_cpu
 @pytest.mark.skip_py2_containers
