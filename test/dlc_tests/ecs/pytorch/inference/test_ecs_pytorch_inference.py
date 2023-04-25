@@ -131,7 +131,7 @@ def test_ecs_pytorch_inference_neuron(pytorch_inference_neuron, ecs_container_in
 
 
 @pytest.mark.model("resnet")
-@pytest.mark.parametrize("ecs_instance_type", ["trn1.2xlarge"], indirect=True)
+@pytest.mark.parametrize("ecs_instance_type", ["trn1.2xlarge", "inf2.xlarge"], indirect=True)
 @pytest.mark.parametrize("ecs_ami", [ECS_AML2_NEURON_USWEST2], indirect=True)
 def test_ecs_pytorch_inference_neuronx(pytorch_inference_neuronx, ecs_container_instance, region):
     worker_instance_id, ecs_cluster_arn = ecs_container_instance
