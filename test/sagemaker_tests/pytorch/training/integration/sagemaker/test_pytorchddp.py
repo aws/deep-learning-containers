@@ -18,7 +18,7 @@ from packaging.version import Version
 from packaging.specifiers import SpecifierSet
 from sagemaker import utils
 
-from ...integration import DEFAULT_TIMEOUT, mnist_path
+from ...integration import mnist_path, apex_path
 from ...integration.sagemaker.timeout import timeout
 from ....training import get_efa_test_instance_type
 from test.test_utils import get_framework_and_version_from_tag
@@ -49,7 +49,7 @@ def can_run_pytorchddp(ecr_image):
 def test_pytorchddp_throughput_gpu(
     framework_version, ecr_image, sagemaker_regions, efa_instance_type, tmpdir
 ):
-    with timeout(minutes=DEFAULT_TIMEOUT):
+    with timeout(minutes=25):
         validate_or_skip_pytorchddp(ecr_image)
         distribution = {"pytorchddp": {"enabled": True}}
         estimator_parameter = {
@@ -66,3 +66,35 @@ def test_pytorchddp_throughput_gpu(
         invoke_pytorch_estimator(
             ecr_image, sagemaker_regions, estimator_parameter, job_name=job_name
         )
+
+@pytest.mark.processor("gpu")
+@pytest.mark.model("N/A")
+@pytest.mark.multinode(2)
+@pytest.mark.integration("pytorchddp")
+@pytest.mark.parametrize(
+    "efa_instance_type", get_efa_test_instance_type(default=["ml.p4d.24xlarge"]), indirect=True
+)
+@pytest.mark.skip_cpu
+@pytest.mark.skip_py2_containers
+@pytest.mark.skip_trcomp_containers
+@pytest.mark.efa()
+def test_apexddp_gpu(
+    framework_version, ecr_image, sagemaker_regions, efa_instance_type, tmpdir
+):
+        with timeout(minutes=25):
+            validate_or_skip_pytorchddp(ecr_image)
+            distribution = {"pytorchddp": {"enabled": True}}
+            estimator_parameter = {
+                "entry_point": "ddp_race_condition_test.py",
+                "role": "SageMakerRole",
+                "instance_count": 2,
+                "instance_type": efa_instance_type,
+                "source_dir": apex_path,
+                "framework_version": framework_version,
+                "distribution": distribution,
+            }
+
+            job_name = utils.unique_name_from_base("test-apexddp-gpu")
+            invoke_pytorch_estimator(
+                ecr_image, sagemaker_regions, estimator_parameter, job_name=job_name
+            )
