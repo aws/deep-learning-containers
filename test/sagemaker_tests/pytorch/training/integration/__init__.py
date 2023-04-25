@@ -19,6 +19,7 @@ resources_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "
 gpt2_path = os.path.join(resources_path, "gpt2")
 gpt2_script = os.path.join(gpt2_path, "train_gpt_simple.py")
 mnist_path = os.path.join(resources_path, "mnist")
+apex_path = os.path.join(resources_path, "apex")
 mnist_script = os.path.join(mnist_path, "mnist.py")
 throughput_path = os.path.join(resources_path, "smdataparallel")
 smdataparallel_mnist_script = os.path.join(mnist_path, "smdataparallel_mnist_script_mode.sh")
