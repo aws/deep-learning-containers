@@ -279,12 +279,12 @@ def skip_by_device_type(request, use_gpu, instance_type, accelerator_type):
     is_eia = accelerator_type is not None
 
     is_neuron_inst = instance_type.startswith("ml.inf1")
-    is_neuron_x_inst = instance_type.startswith("ml.trn1") or instance_type.startswith("ml.inf2")
+    is_neuronx_inst = instance_type.startswith("ml.trn1") or instance_type.startswith("ml.inf2")
 
     is_neuron_test = request.node.get_closest_marker("neuron_test") is not None
     is_neuronx_test = request.node.get_closest_marker("neuronx_test") is not None
 
-    if is_neuron_test != is_neuron_inst or is_neuron_x_test != is_neuron_x_inst:
+    if is_neuron_test != is_neuron_inst or is_neuronx_test != is_neuronx_inst:
         pytest.skip("Skipping because test running on '{}' instance".format(instance_type))
 
     # When running GPU test, skip CPU  and neuron test. When running CPU test, skip GPU  and neuron test.
