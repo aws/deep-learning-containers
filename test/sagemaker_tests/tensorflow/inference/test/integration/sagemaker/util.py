@@ -382,6 +382,7 @@ def create_and_invoke_endpoint_helper(
             tested_ecr_image = (
                 get_ecr_image(image_uri, region) if region != ecr_image_region else image_uri
             )
+            # update model uri to use correct region
             tested_model_data = get_model_data(model_data, region)
             result = create_and_invoke_endpoint(
                 boto_session=boto_session,

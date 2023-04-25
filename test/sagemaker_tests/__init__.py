@@ -71,6 +71,12 @@ def get_ecr_image_region(ecr_image):
 
 
 def get_model_data_region(model_data):
+    """
+    Extract the region from the given S3 model data URI
+
+    :param model_data: <str> S3 model data URI
+    :return: <str> AWS Region
+    """
     base = model_data.replace("s3://", "").split("/")[0]
     region_search = re.search(
         r"(us(-gov)?|ap|ca|cn|eu|sa|me|af)-(central|(north|south)?(east|west)?)-\d+", base
@@ -79,6 +85,13 @@ def get_model_data_region(model_data):
 
 
 def get_model_data(model_data, region):
+    """
+    Update the S3 model data URI with the given region
+
+    :param model_data: <str> S3 model data URI
+    :param region: <str> AWS Region to replace the current region in the model_data URI
+    :return: <str> Updated S3 model data URI with the specified region
+    """
     prev_region = get_model_data_region(model_data)
     return model_data.replace(prev_region, region)
 
