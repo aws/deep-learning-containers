@@ -269,14 +269,14 @@ COPY start_with_right_hostname.sh /usr/local/bin/start_with_right_hostname.sh
 
 RUN chmod +x /usr/local/bin/start_with_right_hostname.sh
 
-# temporarily install fork of training toolkit as a workaround of the Rubik NCCL hang issue
+# temporarily install fork of training toolkit as a workaround of the SMP NCCL hang issue
 RUN cd /tmp \
-  && git clone https://github.com/yongyanrao/sagemaker-training-toolkit.git -b nccl_env_var \
+  && git clone https://github.com/aws/sagemaker-training-toolkit \
   && cd sagemaker-training-toolkit \
   && pip install .
 
 RUN cd /tmp \
-  && git clone https://github.com/yongyanrao/sagemaker-pytorch-training-toolkit -b torch_version_env_var \
+  && git clone https://github.com/aws/sagemaker-pytorch-training-toolkit \
   && cd sagemaker-pytorch-training-toolkit \
   && pip install .
 
