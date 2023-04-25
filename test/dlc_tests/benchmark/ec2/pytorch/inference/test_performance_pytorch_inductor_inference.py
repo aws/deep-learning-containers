@@ -16,11 +16,10 @@ import logging
 import os
 import re
 import sys
-from test.test_utils import (BENCHMARK_RESULTS_S3_BUCKET, LOGGER,
+from test.test_utils import (BENCHMARK_RESULTS_S3_BUCKET,
+                             CONTAINER_TESTS_PREFIX, LOGGER,
                              UL20_CPU_ARM64_US_WEST_2,
-                             get_framework_and_version_from_tag,
-                             is_pr_context,
-                             )
+                             get_framework_and_version_from_tag, is_pr_context)
 
 import boto3
 import pandas as pd
@@ -278,23 +277,25 @@ def ec2_performance_pytorch_inference(
     log_location = os.path.join(container_test_local_dir, "benchmark", "logs", log_name)
 
     # Make sure we are logged into ECR so we can pull the image
-    ec2_connection.run(f"$(aws ecr get-login --no-include-email --region {region})", hide=True)
-    ec2_connection.run(f"{docker_cmd} pull {ecr_uri}", hide='out')
+    ec2_connection.run(
+        f"$(aws ecr get-login --no-include-email --region {region})", hide=True
+    )
+    ec2_connection.run(f"{docker_cmd} pull {ecr_uri}", hide="out")
 
     if is_gpu:
-        if suite == 'torchbench':
+        if suite == "torchbench":
             test_cmd = PT_PERFORMANCE_INFERENCE_GPU_INDUCTOR_TORCHBENCH_CMD
-        if suite == 'timm_models':
+        if suite == "timm_models":
             test_cmd = PT_PERFORMANCE_INFERENCE_GPU_INDUCTOR_TIMM_CMD
-        if suite == 'huggingface':
-                test_cmd = PT_PERFORMANCE_INFERENCE_GPU_INDUCTOR_HUGGINGFACE_CMD
-    else: 
-        if suite == 'torchbench':
+        if suite == "huggingface":
+            test_cmd = PT_PERFORMANCE_INFERENCE_GPU_INDUCTOR_HUGGINGFACE_CMD
+    else:
+        if suite == "torchbench":
             test_cmd = PT_PERFORMANCE_INFERENCE_CPU_INDUCTOR_TORCHBENCH_CMD
-        if suite == 'timm_models':
+        if suite == "timm_models":
             test_cmd = PT_PERFORMANCE_INFERENCE_CPU_INDUCTOR_TIMM_CMD
-        if suite == 'huggingface':
-                test_cmd = PT_PERFORMANCE_INFERENCE_CPU_INDUCTOR_HUGGINGFACE_CMD
+        if suite == "huggingface":
+            test_cmd = PT_PERFORMANCE_INFERENCE_CPU_INDUCTOR_HUGGINGFACE_CMD
 
     ec2_connection.run(
         f"{docker_cmd} run --user root "
