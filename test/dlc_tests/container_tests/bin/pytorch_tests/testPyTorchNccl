@@ -6,8 +6,8 @@ source /test/bin/pytorch_tests/setupPyTorchBackendTest
 export USE_INDUCTOR=$1
 echo testPyTorchNCCL: USE_INDUCTOR, $USE_INDUCTOR
 
-# may encounter cuda OOM if used too many processes
-export WORLD_SIZE=$(($NUM_GPUS < 4 ? $NUM_GPUS : 4))
+# may encounter cuda OOM if used too many processes. The benchmark repo hardcodes the batchsize for now. 
+export WORLD_SIZE=$(($NUM_GPUS < 4 ? $NUM_GPUS : 4)) 
 # run NCCL benchmarking with 2 GPUS and 1 local node (resnet will use torchvision)
 python userbenchmark/ddp_experiments/__init__.py \
     --ngpus $WORLD_SIZE \
