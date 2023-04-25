@@ -45,11 +45,11 @@ do_build = true
 
 [test]
 ### On by default
-sanity_tests = false
+sanity_tests = true
   safety_check_test = false
   ecr_scan_allowlist_feature = false
-ecs_tests = false
-eks_tests = false
+ecs_tests = true
+eks_tests = true
 ec2_tests = true
 
 ### SM specific tests
@@ -83,7 +83,7 @@ use_scheduler = false
 
 # Standard Framework Training
 dlc-pr-mxnet-training = ""
-dlc-pr-pytorch-training = "pytorch/training/buildspec.yml"
+dlc-pr-pytorch-training = ""
 dlc-pr-tensorflow-2-training = ""
 dlc-pr-autogluon-training = ""
 
