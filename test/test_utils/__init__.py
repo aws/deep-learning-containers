@@ -1058,8 +1058,10 @@ def get_canary_default_tag_py3_version(framework, version):
             return "py37"
         if Version("2.6") <= Version(version) < Version("2.8"):
             return "py38"
-        if Version(version) >= Version("2.8"):
+        if Version("2.8") <= Version(version) < Version("2.12"):
             return "py39"
+        if Version(version) >= Version("2.12"):
+            return "py310"
 
     if framework == "mxnet":
         if Version(version) == Version("1.8"):
