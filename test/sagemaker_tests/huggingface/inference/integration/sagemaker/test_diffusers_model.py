@@ -13,26 +13,37 @@
 from __future__ import absolute_import
 
 import os
+import random
+import shutil
+import tarfile
+from pathlib import Path
+
 import pytest
 import sagemaker
 from sagemaker.huggingface import HuggingFaceModel
-import random
-import tarfile
-import shutil
-from pathlib import Path
 
-
-from ...integration import model_dir, script_dir, pt_diffusers_script, dump_logs_from_cloudwatch
+from ...integration import (dump_logs_from_cloudwatch, model_dir,
+                            pt_diffusers_script, script_dir)
 from ...integration.sagemaker.timeout import timeout_and_delete_endpoint
 
 
 @pytest.mark.model("stable-diffusion")
 @pytest.mark.processor("gpu")
 @pytest.mark.gpu_test
-def test_diffusers_gpu(sagemaker_session, framework_version, ecr_image, instance_type, region, py_version):
+def test_diffusers_gpu(
+    sagemaker_session, framework_version, ecr_image, instance_type, region, py_version
+):
     instance_type = instance_type or "ml.g4dn.xlarge"
     try:
-        _test_diffusion_model(sagemaker_session, framework_version, ecr_image, instance_type, model_dir, script_dir, py_version)
+        _test_diffusion_model(
+            sagemaker_session,
+            framework_version,
+            ecr_image,
+            instance_type,
+            model_dir,
+            script_dir,
+            py_version,
+        )
     except Exception as e:
         dump_logs_from_cloudwatch(e, region)
         raise
@@ -50,17 +61,26 @@ def _compress(file_path, zip_file_path="asset.tar.gz"):
     return zip_file_path
 
 
-def _test_diffusion_model(sagemaker_session, framework_version, ecr_image, instance_type, model_dir, script_dir, py_version, accelerator_type=None):
+def _test_diffusion_model(
+    sagemaker_session,
+    framework_version,
+    ecr_image,
+    instance_type,
+    model_dir,
+    script_dir,
+    py_version,
+    accelerator_type=None,
+):
 
     endpoint_name = sagemaker.utils.unique_name_from_base(
-        "sagemaker-huggingface-serving-diffusion-model-serving""
+        "sagemaker-huggingface-serving-diffusion-model-serving"
     )
 
     if "pytorch" in ecr_image:
         entry_point = pt_diffusers_script
     else:
         raise ValueError(f"Unsupported framework for image: {ecr_image}")
-    
+
     compressed_path = _compress(os.path.join(script_dir, entry_point))
 
     model_data = sagemaker_session.upload_data(
@@ -87,12 +107,9 @@ def _test_diffusion_model(sagemaker_session, framework_version, ecr_image, insta
         )
         num_images_per_prompt = 1
 
-        prompt ="A dog trying catch a flying pizza art drawn by disney concept artists, golden colour, high quality, highly detailed, elegant, sharp focus"
+        prompt = "A dog trying catch a flying pizza art drawn by disney concept artists, golden colour, high quality, highly detailed, elegant, sharp focus"
         output = predictor.predict(
-            data={
-                "inputs": prompt,
-                "num_images_per_prompt" : num_images_per_prompt
-            }
+            data={"inputs": prompt, "num_images_per_prompt": num_images_per_prompt}
         )
 
         assert "generated_images" in output

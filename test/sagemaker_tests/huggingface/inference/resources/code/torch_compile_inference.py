@@ -1,12 +1,14 @@
 import os
-from transformers import AutoTokenizer, AutoModel, PretrainedConfig
-import torch
+
 import numpy as np
+import torch
 from sagemaker_huggingface_inference_toolkit import decoder_encoder
+from transformers import AutoModel, AutoTokenizer, PretrainedConfig
 
 model_id2label = {"0": "NEGATIVE", "1": "POSITIVE"}
 
 print("running Torch compiled... test")
+
 
 def model_fn(model_dir):
     tokenizer = AutoTokenizer.from_pretrained(model_dir)
@@ -31,4 +33,6 @@ def predict_fn(data, model):
     maxes = np.max(outputs, axis=-1, keepdims=True)
     shifted_exp = np.exp(outputs - maxes)
     scores = shifted_exp / shifted_exp.sum(axis=-1, keepdims=True)
-    return [{"label": model_id2label[str(item.argmax())], "score": item.max().item()} for item in scores]
+    return [
+        {"label": model_id2label[str(item.argmax())], "score": item.max().item()} for item in scores
+    ]
