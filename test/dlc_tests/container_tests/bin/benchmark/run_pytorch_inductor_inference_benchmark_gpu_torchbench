@@ -1,4 +1,5 @@
 #!/bin/bash
+set -ex
 
 PYTHON_VERSION=$(python -c 'import sys; print(sys.version_info[0])' | tr -d "'")
 if [ "$PYTHON_VERSION" -eq 2 ]
@@ -13,16 +14,18 @@ python -c "import sys;
 assert sys.version_info < (3, 7);"
 PYTHON_VERSION_CHECK=`echo $?`
 
-set -e
 rm -rf $BIN_DIR/pytorch
 git clone https://github.com/pytorch/pytorch.git --branch v2.0.0 --single-branch --depth 1  $BIN_DIR/pytorch
+
 
 
 pip install -U numpy
 pip install gitpython
 pip install tabulate==0.9.0
 
-TRAINING_LOG=${LOG_DIR}/pytorch_inductor_torchbench_benchmark.log
+ls -l ${HOME_DIR}
+
+INFERENCE_LOG=${LOG_DIR}/pytorch_inductor_torchbench_benchmark.log
 
 # install torchdata and torchtext before installing torchbench
 git clone --branch v0.6.0 https://github.com/pytorch/data.git $BIN_DIR/pytorch/torchdata
@@ -42,7 +45,7 @@ INFERENCE_LOG=${LOG_DIR}/pytorch_inductor_torchbench_benchmark.log
 
 cd $BIN_DIR/pytorch
 
-python benchmarks/dynamo/runner.py --training --suites=torchbench --dtypes=float32 --compilers=inductor --output-dir=huggingface_logs --extra-args='--output-directory=./' --device cuda --quick > $INFERENCE_LOG 2>&1
+python benchmarks/dynamo/runner.py --inference --suites=torchbench --dtypes=float32 --compilers=inductor --output-dir=huggingface_logs --extra-args='--output-directory=./' --device cuda --quick #> $INFERENCE_LOG 2>&1
 
 RETURN_VAL=`echo $?`
 set -e
@@ -51,7 +54,7 @@ if [ ${RETURN_VAL} -eq 0 ]; then
     echo "Training Torchbench Complete using PyTorch Inductor."
 else
     echo "Training Torchbench Failed using PyTorch Inductor."
-    cat $INFERENCE_LOG
+    #cat $INFERENCE_LOG
     exit 1
 fi
 
