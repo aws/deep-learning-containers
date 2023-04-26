@@ -31,6 +31,8 @@ script_dir = os.path.join(resources_path, "code")
 pt_neuron_script = "neuron_inference.py"
 pt_ipex_script = "ipex_inference.py"
 pt_diffusers_script = "diffusers_inference.py"
+pt_compile_script = "torch_compile_inference.py"
+
 
 audio_sample_file_path = os.path.join(resources_path, "audio", "sample1.wav")
 image_sample_file_path = os.path.join(resources_path, "image", "tiger.png")
