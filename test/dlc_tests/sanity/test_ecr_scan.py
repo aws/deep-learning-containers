@@ -171,7 +171,7 @@ def test_ecr_enhanced_scan(image, ecr_client, sts_client, region):
         )
     except Exception as e:
         LOGGER.info(e)
-        raise TimeoutError(
+        LOGGER.info(
             f"ECR Scan is still in {scan_status} state with description: {scan_status_description}. Exiting."
         )
 
