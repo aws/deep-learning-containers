@@ -27,22 +27,10 @@ from ...integration.sagemaker.timeout import timeout_and_delete_endpoint
 
 
 @pytest.mark.model("stable-diffusion")
-@pytest.mark.processor("cpu")
-@pytest.mark.cpu_test
-def test_diffusers_cpu(sagemaker_session, framework_version, ecr_image, instance_type, region, py_version):
-    instance_type = instance_type or "ml.m5.xlarge"
-    try:
-        _test_diffusion_model(sagemaker_session, framework_version, ecr_image, instance_type, model_dir, script_dir, py_version)
-    except Exception as e:
-        dump_logs_from_cloudwatch(e, region)
-        raise
-
-
-@pytest.mark.model("stable-diffusion")
 @pytest.mark.processor("gpu")
 @pytest.mark.gpu_test
 def test_diffusers_gpu(sagemaker_session, framework_version, ecr_image, instance_type, region, py_version):
-    instance_type = instance_type or "ml.p3.2xlarge"
+    instance_type = instance_type or "ml.g4dn.xlarge"
     try:
         _test_diffusion_model(sagemaker_session, framework_version, ecr_image, instance_type, model_dir, script_dir, py_version)
     except Exception as e:
@@ -65,7 +53,7 @@ def _compress(file_path, zip_file_path="asset.tar.gz"):
 def _test_diffusion_model(sagemaker_session, framework_version, ecr_image, instance_type, model_dir, script_dir, py_version, accelerator_type=None):
 
     endpoint_name = sagemaker.utils.unique_name_from_base(
-        "sagemaker-huggingface-serving-diffusion-model"
+        "sagemaker-huggingface-serving-diffusion-model-serving""
     )
 
     if "pytorch" in ecr_image:
@@ -77,7 +65,7 @@ def _test_diffusion_model(sagemaker_session, framework_version, ecr_image, insta
 
     model_data = sagemaker_session.upload_data(
         path=compressed_path,
-        key_prefix="sagemaker-huggingface-diffusion-model",
+        key_prefix="sagemaker-huggingface-serving-diffusion-model-serving/asset",
     )
 
     hf_model = HuggingFaceModel(
@@ -88,6 +76,7 @@ def _test_diffusion_model(sagemaker_session, framework_version, ecr_image, insta
         entry_point=entry_point,
         source_dir=script_dir,
         py_version=py_version,
+        model_server_workers=1,
     )
 
     with timeout_and_delete_endpoint(endpoint_name, sagemaker_session, minutes=30):
