@@ -281,7 +281,7 @@ def ec2_performance_pytorch_inference(
     ec2_connection.run(
         f"$(aws ecr get-login --no-include-email --region {region})", hide=True
     )
-    ec2_connection.run(f"{docker_cmd} pull {ecr_uri}", hide="out")
+    ec2_connection.run(f"{docker_cmd} pull {image_uri}", hide="out")
 
     if is_gpu:
         if suite == "torchbench":
