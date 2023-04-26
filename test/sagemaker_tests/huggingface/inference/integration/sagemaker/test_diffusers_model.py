@@ -29,7 +29,7 @@ from ...integration.sagemaker.timeout import timeout_and_delete_endpoint
 @pytest.mark.model("stable-diffusion")
 @pytest.mark.processor("cpu")
 @pytest.mark.cpu_test
-def test_diffusers_cpu(sagemaker_session, framework_version, ecr_image, instance_type, region):
+def test_diffusers_cpu(sagemaker_session, framework_version, ecr_image, instance_type, region, py_version):
     instance_type = instance_type or "ml.m5.xlarge"
     try:
         _test_diffusion_model(sagemaker_session, framework_version, ecr_image, instance_type, model_dir, script_dir, py_version)
@@ -41,10 +41,10 @@ def test_diffusers_cpu(sagemaker_session, framework_version, ecr_image, instance
 @pytest.mark.model("stable-diffusion")
 @pytest.mark.processor("gpu")
 @pytest.mark.gpu_test
-def test_diffusers_gpu(sagemaker_session, framework_version, ecr_image, instance_type, region):
+def test_diffusers_gpu(sagemaker_session, framework_version, ecr_image, instance_type, region, py_version):
     instance_type = instance_type or "ml.p3.2xlarge"
     try:
-        _test_diffusion_model(sagemaker_session, framework_version, ecr_image, instance_type, model_dir)
+        _test_diffusion_model(sagemaker_session, framework_version, ecr_image, instance_type, model_dir, script_dir, py_version)
     except Exception as e:
         dump_logs_from_cloudwatch(e, region)
         raise
@@ -62,22 +62,23 @@ def _compress(file_path, zip_file_path="asset.tar.gz"):
     return zip_file_path
 
 
-def _test_diffusion_model(sagemaker_session, framework_version, ecr_image, instance_type, model_dir, script_dir, accelerator_type=None):
+def _test_diffusion_model(sagemaker_session, framework_version, ecr_image, instance_type, model_dir, script_dir, py_version, accelerator_type=None):
+
     endpoint_name = sagemaker.utils.unique_name_from_base(
         "sagemaker-huggingface-serving-diffusion-model"
-    )
-
-    compressed_path = _compress(os.path.join(script_dir, entry_point))
-
-    model_data = sagemaker_session.upload_data(
-        path=compressed_path,
-        key_prefix="sagemaker-huggingface-diffusion-model",
     )
 
     if "pytorch" in ecr_image:
         entry_point = pt_diffusers_script
     else:
         raise ValueError(f"Unsupported framework for image: {ecr_image}")
+    
+    compressed_path = _compress(os.path.join(script_dir, entry_point))
+
+    model_data = sagemaker_session.upload_data(
+        path=compressed_path,
+        key_prefix="sagemaker-huggingface-diffusion-model",
+    )
 
     hf_model = HuggingFaceModel(
         model_data=model_data,
