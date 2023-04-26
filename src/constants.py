@@ -16,8 +16,15 @@ language governing permissions and limitations under the License.
 import os
 
 # Environment settings
-FRAMEWORKS = {"mxnet", "tensorflow", "pytorch", "huggingface_tensorflow", "huggingface_pytorch", "autogluon"}
-DEVICE_TYPES = {"cpu", "gpu", "hpu", "eia", "inf", "neuron"}
+FRAMEWORKS = {
+    "mxnet",
+    "tensorflow",
+    "pytorch",
+    "huggingface_tensorflow",
+    "huggingface_pytorch",
+    "autogluon",
+}
+DEVICE_TYPES = {"cpu", "gpu", "hpu", "eia", "inf"}
 IMAGE_TYPES = {"training", "inference"}
 PYTHON_VERSIONS = {"py2", "py3", "py36"}
 ALL = "all"
@@ -38,7 +45,12 @@ COMMON_STAGE = "common"
 # Docker connections
 DOCKER_URL = "unix://var/run/docker.sock"
 
-STATUS_MESSAGE = {SUCCESS: "Success", FAIL: "Failed", NOT_BUILT: "Not Built", FAIL_IMAGE_SIZE_LIMIT: "Build with invalid image size"}
+STATUS_MESSAGE = {
+    SUCCESS: "Success",
+    FAIL: "Failed",
+    NOT_BUILT: "Not Built",
+    FAIL_IMAGE_SIZE_LIMIT: "Build with invalid image size",
+}
 
 BUILD_CONTEXT = os.environ.get("BUILD_CONTEXT", "DEV")
 

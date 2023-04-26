@@ -27,32 +27,39 @@ from .integration.utils import get_ecr_registry
 
 
 logger = logging.getLogger(__name__)
-logging.getLogger('boto').setLevel(logging.INFO)
-logging.getLogger('botocore').setLevel(logging.INFO)
-logging.getLogger('factory.py').setLevel(logging.INFO)
-logging.getLogger('auth.py').setLevel(logging.INFO)
-logging.getLogger('connectionpool.py').setLevel(logging.INFO)
+logging.getLogger("boto").setLevel(logging.INFO)
+logging.getLogger("botocore").setLevel(logging.INFO)
+logging.getLogger("factory.py").setLevel(logging.INFO)
+logging.getLogger("auth.py").setLevel(logging.INFO)
+logging.getLogger("connectionpool.py").setLevel(logging.INFO)
 
 SCRIPT_PATH = os.path.dirname(os.path.realpath(__file__))
 
 
 def pytest_addoption(parser):
-    parser.addoption('--docker-base-name', default='preprod-mxnet')
-    parser.addoption('--region', default='us-west-2')
-    parser.addoption('--instance-count', default='1,2', choices=['1', '2', '1,2'])
-    parser.addoption('--framework-version', default='')
-    parser.addoption('--py-version', default='3', choices=['2', '3', '2,3', '37', '38'])
-    parser.addoption('--processor', default='cpu', choices=['gpu', 'cpu', 'cpu,gpu'])
-    parser.addoption('--aws-id', default=None)
-    parser.addoption('--instance-type', default=None)
+    parser.addoption("--docker-base-name", default="preprod-mxnet")
+    parser.addoption("--region", default="us-west-2")
+    parser.addoption("--instance-count", default="1,2", choices=["1", "2", "1,2"])
+    parser.addoption("--framework-version", default="")
+    parser.addoption("--py-version", default="3", choices=["2", "3", "2,3", "37", "38"])
+    parser.addoption("--processor", default="cpu", choices=["gpu", "cpu", "cpu,gpu"])
+    parser.addoption("--aws-id", default=None)
+    parser.addoption("--instance-type", default=None)
     # If not specified, will default to {framework-version}-{processor}-py{py-version}
-    parser.addoption('--tag', default=None)
-    parser.addoption('--generate-coverage-doc', default=False, action='store_true',
-                     help='use this option to generate test coverage doc')
+    parser.addoption("--tag", default=None)
     parser.addoption(
-        "--efa", action="store_true", default=False, help="Run only efa tests",
+        "--generate-coverage-doc",
+        default=False,
+        action="store_true",
+        help="use this option to generate test coverage doc",
     )
-    parser.addoption('--sagemaker-regions', default='us-west-2')
+    parser.addoption(
+        "--efa",
+        action="store_true",
+        default=False,
+        help="Run only efa tests",
+    )
+    parser.addoption("--sagemaker-regions", default="us-west-2")
 
 
 def pytest_configure(config):
@@ -69,22 +76,23 @@ def pytest_runtest_setup(item):
 def pytest_collection_modifyitems(session, config, items):
     if config.getoption("--generate-coverage-doc"):
         from test.test_utils.test_reporting import TestReportGenerator
+
         report_generator = TestReportGenerator(items, is_sagemaker=True)
         report_generator.generate_coverage_doc(framework="mxnet", job_type="training")
 
 
 def pytest_generate_tests(metafunc):
-    if 'instance_count' in metafunc.fixturenames:
-        ic_params = [int(x) for x in metafunc.config.getoption('--instance-count').split(',')]
-        metafunc.parametrize('instance_count', ic_params, scope='session')
+    if "instance_count" in metafunc.fixturenames:
+        ic_params = [int(x) for x in metafunc.config.getoption("--instance-count").split(",")]
+        metafunc.parametrize("instance_count", ic_params, scope="session")
 
-    if 'py_version' in metafunc.fixturenames:
-        py_version_params = ['py' + v for v in metafunc.config.getoption('--py-version').split(',')]
-        metafunc.parametrize('py_version', py_version_params, scope='session')
+    if "py_version" in metafunc.fixturenames:
+        py_version_params = ["py" + v for v in metafunc.config.getoption("--py-version").split(",")]
+        metafunc.parametrize("py_version", py_version_params, scope="session")
 
-    if 'processor' in metafunc.fixturenames:
-        processor_params = metafunc.config.getoption('--processor').split(',')
-        metafunc.parametrize('processor', processor_params, scope='session')
+    if "processor" in metafunc.fixturenames:
+        processor_params = metafunc.config.getoption("--processor").split(",")
+        metafunc.parametrize("processor", processor_params, scope="session")
 
 
 # Nightly fixtures
@@ -92,135 +100,141 @@ def pytest_generate_tests(metafunc):
 def feature_smdebug_present():
     pass
 
+
 @pytest.fixture(scope="session")
 def feature_smddp_present():
     pass
 
+
 @pytest.fixture(scope="session")
 def feature_smmp_present():
     pass
+
 
 @pytest.fixture(scope="session")
 def feature_aws_framework_present():
     pass
 
 
-@pytest.fixture(scope='session')
+@pytest.fixture(scope="session")
 def docker_base_name(request):
-    return request.config.getoption('--docker-base-name')
+    return request.config.getoption("--docker-base-name")
 
 
-@pytest.fixture(scope='session')
+@pytest.fixture(scope="session")
 def region(request):
-    return request.config.getoption('--region')
+    return request.config.getoption("--region")
 
 
-@pytest.fixture(scope='session')
+@pytest.fixture(scope="session")
 def framework_version(request):
-    return request.config.getoption('--framework-version')
+    return request.config.getoption("--framework-version")
 
 
-@pytest.fixture(scope='session')
+@pytest.fixture(scope="session")
 def aws_id(request):
-    return request.config.getoption('--aws-id')
+    return request.config.getoption("--aws-id")
 
 
-@pytest.fixture(scope='session')
+@pytest.fixture(scope="session")
 def tag(request, framework_version, processor, py_version):
-    provided_tag = request.config.getoption('--tag')
-    default_tag = '{}-{}-{}'.format(framework_version, processor, py_version)
+    provided_tag = request.config.getoption("--tag")
+    default_tag = "{}-{}-{}".format(framework_version, processor, py_version)
     return provided_tag if provided_tag is not None else default_tag
 
 
-@pytest.fixture(scope='session')
+@pytest.fixture(scope="session")
 def instance_type(request, processor):
-    provided_instance_type = request.config.getoption('--instance-type')
-    default_instance_type = 'ml.c4.xlarge' if processor == 'cpu' else 'ml.p2.xlarge'
+    provided_instance_type = request.config.getoption("--instance-type")
+    default_instance_type = "ml.c4.xlarge" if processor == "cpu" else "ml.p2.xlarge"
     return provided_instance_type if provided_instance_type is not None else default_instance_type
 
 
-@pytest.fixture(scope='session')
+@pytest.fixture(scope="session")
 def docker_image(docker_base_name, tag):
-    return '{}:{}'.format(docker_base_name, tag)
+    return "{}:{}".format(docker_base_name, tag)
 
 
-@pytest.fixture(scope='session')
+@pytest.fixture(scope="session")
 def ecr_image(aws_id, docker_base_name, tag, region):
     registry = get_ecr_registry(aws_id, region)
-    return '{}/{}:{}'.format(registry, docker_base_name, tag)
+    return "{}/{}:{}".format(registry, docker_base_name, tag)
 
 
-@pytest.fixture(scope='session')
+@pytest.fixture(scope="session")
 def image_uri(docker_base_name, tag):
-    return '{}:{}'.format(docker_base_name, tag)
+    return "{}:{}".format(docker_base_name, tag)
 
 
-@pytest.fixture(scope='session')
+@pytest.fixture(scope="session")
 def sagemaker_session(region):
     return Session(boto_session=boto3.Session(region_name=region))
 
 
-@pytest.fixture(scope='session')
+@pytest.fixture(scope="session")
 def efa_instance_type():
     default_instance_type = "ml.p3dn.24xlarge"
     return default_instance_type
 
 
-@pytest.fixture(scope='session')
+@pytest.fixture(scope="session")
 def sagemaker_local_session(region):
     return LocalSession(boto_session=boto3.Session(region_name=region))
 
 
-@pytest.fixture(scope='session')
+@pytest.fixture(scope="session")
 def local_instance_type(processor):
-    return 'local' if processor == 'cpu' else 'local_gpu'
+    return "local" if processor == "cpu" else "local_gpu"
 
 
-@pytest.fixture(scope='session', name='sagemaker_regions')
+@pytest.fixture(scope="session", name="sagemaker_regions")
 def sagemaker_regions(request):
-    sagemaker_regions = request.config.getoption('--sagemaker-regions')
+    sagemaker_regions = request.config.getoption("--sagemaker-regions")
     return sagemaker_regions.split(",")
 
 
 @pytest.fixture(autouse=True)
 def skip_test_in_region(request, region):
-    if request.node.get_closest_marker('skip_test_in_region'):
-        if region == 'me-south-1':
-            pytest.skip('Skipping SageMaker test in region {}'.format(region))
+    if request.node.get_closest_marker("skip_test_in_region"):
+        if region == "me-south-1":
+            pytest.skip("Skipping SageMaker test in region {}".format(region))
 
 
 @pytest.fixture(autouse=True)
 def skip_by_device_type(request, processor):
-    is_gpu = (processor == 'gpu')
-    if (request.node.get_closest_marker('skip_gpu') and is_gpu) or \
-            (request.node.get_closest_marker('skip_cpu') and not is_gpu):
-        pytest.skip('Skipping because running on \'{}\' instance'.format(processor))
+    is_gpu = processor == "gpu"
+    if (request.node.get_closest_marker("skip_gpu") and is_gpu) or (
+        request.node.get_closest_marker("skip_cpu") and not is_gpu
+    ):
+        pytest.skip("Skipping because running on '{}' instance".format(processor))
 
 
 @pytest.fixture(autouse=True)
 def skip_gpu_instance_restricted_regions(region, instance_type):
-
-    no_p2 = region in NO_P2_REGIONS and instance_type.startswith('ml.p2')
-    no_p3 = region in NO_P3_REGIONS and instance_type.startswith('ml.p3')
-    no_p4 = region in NO_P4_REGIONS and instance_type.startswith('ml.p4')
+    no_p2 = region in NO_P2_REGIONS and instance_type.startswith("ml.p2")
+    no_p3 = region in NO_P3_REGIONS and instance_type.startswith("ml.p3")
+    no_p4 = region in NO_P4_REGIONS and instance_type.startswith("ml.p4")
 
     if no_p2 or no_p3 or no_p4:
-        pytest.skip('Skipping GPU test in region {} to avoid insufficient capacity'.format(region))
+        pytest.skip("Skipping GPU test in region {} to avoid insufficient capacity".format(region))
+
 
 @pytest.fixture(autouse=True)
 def skip_py2_containers(request, tag):
-    if request.node.get_closest_marker('skip_py2_containers'):
-        if 'py2' in tag:
-            pytest.skip('Skipping python2 container with tag {}'.format(tag))
+    if request.node.get_closest_marker("skip_py2_containers"):
+        if "py2" in tag:
+            pytest.skip("Skipping python2 container with tag {}".format(tag))
 
 
 def _get_remote_override_flags():
     try:
-        s3_client = boto3.client('s3')
-        sts_client = boto3.client('sts')
-        account_id = sts_client.get_caller_identity().get('Account')
-        result = s3_client.get_object(Bucket=f"dlc-cicd-helper-{account_id}", Key="override_tests_flags.json")
-        json_content = json.loads(result["Body"].read().decode('utf-8'))
+        s3_client = boto3.client("s3")
+        sts_client = boto3.client("sts")
+        account_id = sts_client.get_caller_identity().get("Account")
+        result = s3_client.get_object(
+            Bucket=f"dlc-cicd-helper-{account_id}", Key="override_tests_flags.json"
+        )
+        json_content = json.loads(result["Body"].read().decode("utf-8"))
     except ClientError as e:
         logger.warning("ClientError when performing S3/STS operation: {}".format(e))
         json_content = {}
@@ -247,9 +261,8 @@ def _is_test_disabled(test_name, build_name, version):
     remote_override_flags = _get_remote_override_flags()
     remote_override_build = remote_override_flags.get(build_name, {})
     if version in remote_override_build:
-        return (
-            not remote_override_build[version]
-            or any([test_keyword in test_name for test_keyword in remote_override_build[version]])
+        return not remote_override_build[version] or any(
+            [test_keyword in test_name for test_keyword in remote_override_build[version]]
         )
     return False
 
@@ -278,6 +291,7 @@ def skip_test_successfully_executed_before(request):
     test_name = request.node.name
     lastfailed = request.config.cache.get("cache/lastfailed", None)
 
-    if lastfailed is not None \
-            and not any(test_name in failed_test_name for failed_test_name in lastfailed.keys()):
+    if lastfailed is not None and not any(
+        test_name in failed_test_name for failed_test_name in lastfailed.keys()
+    ):
         pytest.skip(f"Skipping {test_name} because it was successfully executed for this commit")

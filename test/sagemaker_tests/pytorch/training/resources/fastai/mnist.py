@@ -17,11 +17,11 @@
 from fastai.vision.all import *
 
 items = get_image_files(untar_data(URLs.MNIST))
-splits = GrandparentSplitter(train_name='training', valid_name='testing')(items)
+splits = GrandparentSplitter(train_name="training", valid_name="testing")(items)
 tds = Datasets(items, [PILImageBW.create, [parent_label, Categorize()]], splits=splits)
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     data = tds.dataloaders(bs=256, after_item=[ToTensor(), IntToFloatTensor()]).cuda()
-    learn = vision_learner(data, resnet18, metrics=accuracy, path='/opt/ml', model_dir='model')
+    learn = vision_learner(data, resnet18, metrics=accuracy, path="/opt/ml", model_dir="model")
     learn.fit_one_cycle(1, 1e-2)
-    learn.save('model')
+    learn.save("model")

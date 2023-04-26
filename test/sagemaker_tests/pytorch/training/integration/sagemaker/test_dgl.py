@@ -58,9 +58,12 @@ def test_dgl_gcn_training_cpu(ecr_image, sagemaker_regions, instance_type):
 def test_dgl_gcn_training_gpu(ecr_image, sagemaker_regions, instance_type):
     _, image_framework_version = get_framework_and_version_from_tag(ecr_image)
     image_cuda_version = get_cuda_version_from_tag(ecr_image)
-    
+
     # TODO: Remove when DGL gpu test on ecs get fixed
-    if Version(image_framework_version) in SpecifierSet("==1.10.*") and image_cuda_version == "cu113":
+    if (
+        Version(image_framework_version) in SpecifierSet("==1.10.*")
+        and image_cuda_version == "cu113"
+    ):
         pytest.skip("ecs test for DGL gpu fails for pt 1.10")
 
     if Version(image_framework_version) == Version("1.6") and image_cuda_version == "cu110":
@@ -72,9 +75,13 @@ def test_dgl_gcn_training_gpu(ecr_image, sagemaker_regions, instance_type):
     }
 
     if Version(image_framework_version) in SpecifierSet(">=1.11.0"):
-        invoke_pytorch_helper_function(ecr_image, sagemaker_regions, _test_dgl_training, function_args)
+        invoke_pytorch_helper_function(
+            ecr_image, sagemaker_regions, _test_dgl_training, function_args
+        )
     else:
-        invoke_pytorch_helper_function(ecr_image, sagemaker_regions, _test_dgl_LT_09x_training, function_args)
+        invoke_pytorch_helper_function(
+            ecr_image, sagemaker_regions, _test_dgl_LT_09x_training, function_args
+        )
 
 
 def _test_dgl_LT_09x_training(ecr_image, sagemaker_session, instance_type):
@@ -89,6 +96,7 @@ def _test_dgl_LT_09x_training(ecr_image, sagemaker_session, instance_type):
     with timeout(minutes=DEFAULT_TIMEOUT):
         job_name = utils.unique_name_from_base("test-pytorch-dgl-image")
         dgl.fit(job_name=job_name)
+
 
 def _test_dgl_training(ecr_image, sagemaker_session, instance_type):
     dgl = PyTorch(

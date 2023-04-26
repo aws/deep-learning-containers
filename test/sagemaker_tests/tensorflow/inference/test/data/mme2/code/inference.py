@@ -14,6 +14,7 @@
 import json
 import requests
 
+
 def handler(data, context):
     """A default inference request handler that directly send post request to TFS rest port with
     un-processed data and return un-processed response

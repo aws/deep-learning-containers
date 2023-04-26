@@ -21,14 +21,20 @@ import tfs_utils
 
 from contextlib import contextmanager
 
-logging.basicConfig(level=logging.INFO)
+logging.basicConfig(
+    format="%(process)d %(asctime)s %(levelname)-8s %(message)s", force=True, level=logging.INFO
+)
 log = logging.getLogger(__name__)
 
 JS_PING = "js_content tensorflowServing.ping"
 JS_INVOCATIONS = "js_content tensorflowServing.invocations"
 GUNICORN_PING = "proxy_pass http://gunicorn_upstream/ping"
 GUNICORN_INVOCATIONS = "proxy_pass http://gunicorn_upstream/invocations"
-CODE_DIR = "/opt/ml/code" if os.environ.get("SAGEMAKER_MULTI_MODEL", "False").lower() == "true" else "/opt/ml/model/code"
+CODE_DIR = (
+    "/opt/ml/code"
+    if os.environ.get("SAGEMAKER_MULTI_MODEL", "False").lower() == "true"
+    else "/opt/ml/model/code"
+)
 PYTHON_LIB_PATH = os.path.join(CODE_DIR, "lib")
 REQUIREMENTS_PATH = os.path.join(CODE_DIR, "requirements.txt")
 INFERENCE_PATH = os.path.join(CODE_DIR, "inference.py")
@@ -41,6 +47,7 @@ class ServiceManager(object):
         self._tfs = []
         self._gunicorn = None
         self._gunicorn_command = None
+        self._gunicorn_env = None
         self._enable_python_service = False
         self._tfs_version = os.environ.get("SAGEMAKER_TFS_VERSION", "1.13")
         self._nginx_http_port = os.environ.get("SAGEMAKER_BIND_TO_PORT", "8080")
@@ -58,7 +65,9 @@ class ServiceManager(object):
         # Use this to specify memory that is needed to initialize CUDA/cuDNN and other GPU libraries
         self._tfs_gpu_margin = float(os.environ.get("SAGEMAKER_TFS_FRACTIONAL_GPU_MEM_MARGIN", 0.2))
         self._tfs_instance_count = int(os.environ.get("SAGEMAKER_TFS_INSTANCE_COUNT", 1))
-        self._tfs_wait_time_seconds = int(os.environ.get("SAGEMAKER_TFS_WAIT_TIME_SECONDS", 300))
+        self._tfs_wait_time_seconds = int(
+            os.environ.get("SAGEMAKER_TFS_WAIT_TIME_SECONDS", 55 // self._tfs_instance_count)
+        )
         self._tfs_inter_op_parallelism = os.environ.get("SAGEMAKER_TFS_INTER_OP_PARALLELISM", 0)
         self._tfs_intra_op_parallelism = os.environ.get("SAGEMAKER_TFS_INTRA_OP_PARALLELISM", 0)
         self._gunicorn_worker_class = os.environ.get("SAGEMAKER_GUNICORN_WORKER_CLASS", "gevent")
@@ -66,7 +75,8 @@ class ServiceManager(object):
             os.environ.get("SAGEMAKER_GUNICORN_TIMEOUT_SECONDS", 30)
         )
         self._nginx_proxy_read_timeout_seconds = int(
-            os.environ.get("SAGEMAKER_NGINX_PROXY_READ_TIMEOUT_SECONDS", 60))
+            os.environ.get("SAGEMAKER_NGINX_PROXY_READ_TIMEOUT_SECONDS", 60)
+        )
 
         # Nginx proxy read timeout should not be less than the GUnicorn timeout. If it is, this
         # can result in upstream time out errors.
@@ -132,8 +142,11 @@ class ServiceManager(object):
         os.environ["TFS_REST_PORTS"] = self._tfs_rest_concat_ports
 
     def _need_python_service(self):
-        if (os.path.exists(INFERENCE_PATH) or os.path.exists(REQUIREMENTS_PATH)
-                or os.path.exists(PYTHON_LIB_PATH)):
+        if (
+            os.path.exists(INFERENCE_PATH)
+            or os.path.exists(REQUIREMENTS_PATH)
+            or os.path.exists(PYTHON_LIB_PATH)
+        ):
             self._enable_python_service = True
         if os.environ.get("SAGEMAKER_MULTI_MODEL_UNIVERSAL_BUCKET") and os.environ.get(
             "SAGEMAKER_MULTI_MODEL_UNIVERSAL_PREFIX"
@@ -217,33 +230,33 @@ class ServiceManager(object):
                         raise ChildProcessError("failed to install required packages.")
 
         gunicorn_command = (
-            "gunicorn -b unix:/tmp/gunicorn.sock -k {} --chdir /sagemaker "
+            "python3 /sagemaker/python_service.py -b unix:/tmp/gunicorn.sock -k {} --chdir /sagemaker "
             "--workers {} --threads {} --log-level {} --timeout {} "
-            "{}{} -e TFS_GRPC_PORTS={} -e TFS_REST_PORTS={} "
-            "-e SAGEMAKER_MULTI_MODEL={} -e SAGEMAKER_SAFE_PORT_RANGE={} "
-            "-e SAGEMAKER_TFS_WAIT_TIME_SECONDS={} "
-            "-e SAGEMAKER_TFS_INTER_OP_PARALLELISM={} "
-            "-e SAGEMAKER_TFS_INTRA_OP_PARALLELISM={} "
-            "python_service:app"
         ).format(
             self._gunicorn_worker_class,
             self._gunicorn_workers,
             self._gunicorn_threads,
             self._gunicorn_loglevel,
             self._gunicorn_timeout_seconds,
-            python_path_option,
-            ",".join(python_path_content),
-            self._tfs_grpc_concat_ports,
-            self._tfs_rest_concat_ports,
-            self._tfs_enable_multi_model_endpoint,
-            self._sagemaker_port_range,
-            self._tfs_wait_time_seconds,
-            self._tfs_inter_op_parallelism,
-            self._tfs_intra_op_parallelism,
         )
 
         log.info("gunicorn command: {}".format(gunicorn_command))
         self._gunicorn_command = gunicorn_command
+        gunicorn_env = {
+            "TFS_GRPC_PORTS": self._tfs_grpc_concat_ports,
+            "TFS_REST_PORTS": self._tfs_rest_concat_ports,
+            "SAGEMAKER_MULTI_MODEL": str(self._tfs_enable_multi_model_endpoint),
+            "SAGEMAKER_TFS_WAIT_TIME_SECONDS": str(self._tfs_wait_time_seconds),
+            "SAGEMAKER_TFS_INTER_OP_PARALLELISM": str(self._tfs_inter_op_parallelism),
+            "SAGEMAKER_TFS_INTRA_OP_PARALLELISM": str(self._tfs_intra_op_parallelism),
+            "SAGEMAKER_TFS_INSTANCE_COUNT": str(self._tfs_instance_count),
+            "PYTHONPATH": ":".join(python_path_content),
+            "SAGEMAKER_GUNICORN_WORKERS": str(self._gunicorn_workers),
+        }
+        if self._sagemaker_port_range is not None:
+            gunicorn_env["SAGEMAKER_SAFE_PORT_RANGE"] = self._sagemaker_port_range
+        log.info(f"gunicorn env: {gunicorn_env}")
+        self._gunicorn_env = gunicorn_env
 
     def _download_scripts(self, bucket, prefix):
         log.info("checking boto session region ...")
@@ -314,10 +327,10 @@ class ServiceManager(object):
     def _get_number_of_gpu_on_host(self):
         nvidia_smi_exist = os.path.exists("/usr/bin/nvidia-smi")
         if nvidia_smi_exist:
-            return len(subprocess.check_output(['nvidia-smi', '-L'])
-                       .decode('utf-8').strip().split('\n'))
+            return len(
+                subprocess.check_output(["nvidia-smi", "-L"]).decode("utf-8").strip().split("\n")
+            )
         return 0
-
 
     def _calculate_per_process_gpu_memory_fraction(self):
         return round((1 - self._tfs_gpu_margin) / float(self._tfs_instance_count), 4)
@@ -333,6 +346,7 @@ class ServiceManager(object):
         self._log_version("gunicorn --version", "gunicorn version info:")
         env = os.environ.copy()
         env["TFS_DEFAULT_MODEL_NAME"] = self._tfs_default_model_name
+        env.update(self._gunicorn_env)
         p = subprocess.Popen(self._gunicorn_command.split(), env=env)
         log.info("started gunicorn (pid: %d)", p.pid)
         self._gunicorn = p
@@ -436,9 +450,13 @@ class ServiceManager(object):
         if num_gpus > 1:
             # utilizing multi-gpu
             worker_env = os.environ.copy()
-            worker_env["CUDA_VISIBLE_DEVICES"] = str(instance_id%num_gpus)
+            worker_env["CUDA_VISIBLE_DEVICES"] = str(instance_id % num_gpus)
             p = subprocess.Popen(cmd.split(), env=worker_env)
-            log.info("started tensorflow serving (pid: {}) on GPU: {}".format(p.pid, instance_id%num_gpus))
+            log.info(
+                "started tensorflow serving (pid: {}) on GPU: {}".format(
+                    p.pid, instance_id % num_gpus
+                )
+            )
         else:
             # cpu and single gpu
             p = subprocess.Popen(cmd.split())

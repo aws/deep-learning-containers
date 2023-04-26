@@ -16,13 +16,15 @@ from collections import namedtuple
 
 import PIL
 
-Context = namedtuple('Context',
-                     'model_name, model_version, method, rest_uri, grpc_uri, '
-                     'custom_attributes, request_content_type, accept_header')
+Context = namedtuple(
+    "Context",
+    "model_name, model_version, method, rest_uri, grpc_uri, "
+    "custom_attributes, request_content_type, accept_header",
+)
 
 
 def input_handler(data, context):
-    """ Pre-process request input before it is sent to TensorFlow Serving REST API
+    """Pre-process request input before it is sent to TensorFlow Serving REST API
 
     Args:
         data (obj): the request data, in format of dict or string
@@ -31,19 +33,20 @@ def input_handler(data, context):
     Returns:
         (dict): a JSON-serializable dict that contains request body and headers
     """
-    if context.request_content_type == 'application/json':
+    if context.request_content_type == "application/json":
         # pass through json (assumes it's correctly formed)
-        d = data.read().decode('utf-8')
-        return d if len(d) else ''
+        d = data.read().decode("utf-8")
+        return d if len(d) else ""
 
-    if context.request_content_type == 'text/csv':
+    if context.request_content_type == "text/csv":
         # very simple csv handler
-        return json.dumps({
-            'instances': [float(x) for x in data.read().decode('utf-8').split(',')]
-        })
+        return json.dumps({"instances": [float(x) for x in data.read().decode("utf-8").split(",")]})
 
-    raise ValueError('{{"error": "unsupported content type {}"}}'.format(
-        context.request_content_type or "unknown"))
+    raise ValueError(
+        '{{"error": "unsupported content type {}"}}'.format(
+            context.request_content_type or "unknown"
+        )
+    )
 
 
 def output_handler(data, context):
@@ -57,7 +60,7 @@ def output_handler(data, context):
         (bytes, string): data to return to client, response content type
     """
     if data.status_code != 200:
-        raise ValueError(data.content.decode('utf-8'))
+        raise ValueError(data.content.decode("utf-8"))
 
     response_content_type = context.accept_header
     prediction = data.content

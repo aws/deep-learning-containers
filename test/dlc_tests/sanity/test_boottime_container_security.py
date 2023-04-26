@@ -2,6 +2,7 @@ import pytest
 
 from invoke import run
 
+
 @pytest.mark.usefixtures("sagemaker")
 @pytest.mark.model("N/A")
 @pytest.mark.canary("Run security test regularly on production images")
@@ -15,7 +16,7 @@ def test_security(image):
         f" --entrypoint='/bin/bash' "
         f"{image}",
         echo=True,
-        hide=True
+        hide=True,
     )
     try:
         docker_exec_cmd = f"docker exec -i {container_name}"

@@ -7,7 +7,13 @@ import test.test_utils as test_utils
 from packaging.version import Version
 from packaging.specifiers import SpecifierSet
 
-from test.test_utils import CONTAINER_TESTS_PREFIX, LOGGER, is_tf_version, get_framework_and_version_from_tag, is_nightly_context
+from test.test_utils import (
+    CONTAINER_TESTS_PREFIX,
+    LOGGER,
+    is_tf_version,
+    get_framework_and_version_from_tag,
+    is_nightly_context,
+)
 from test.test_utils.ec2 import get_ec2_instance_type
 
 
@@ -30,14 +36,20 @@ def test_smdebug_gpu(training, ec2_connection, region, ec2_instance_type, gpu_on
         pytest.skip(f"Image {training} is incompatible with instance type {ec2_instance_type}")
 
     _, image_framework_version = get_framework_and_version_from_tag(training)
-    if 'trcomp' in training and 'pytorch' in training and Version(image_framework_version) in SpecifierSet("<2.0"):
+    if (
+        "trcomp" in training
+        and "pytorch" in training
+        and Version(image_framework_version) in SpecifierSet("<2.0")
+    ):
         pytest.skip(f"Image {training} doesn't support s3. Hence test is skipped.")
     smdebug_test_timeout = 2400
     if is_tf_version("1", training):
         if is_nightly_context():
             smdebug_test_timeout = 7200
         else:
-            pytest.skip("TF1 gpu smdebug tests can take up to 2 hours, thus we are only running in nightly context")
+            pytest.skip(
+                "TF1 gpu smdebug tests can take up to 2 hours, thus we are only running in nightly context"
+            )
 
     run_smdebug_test(
         training,
@@ -57,14 +69,25 @@ def test_smdebug_gpu(training, ec2_connection, region, ec2_instance_type, gpu_on
 @pytest.mark.parametrize("ec2_instance_type", SMDEBUG_EC2_GPU_INSTANCE_TYPE, indirect=True)
 @pytest.mark.flaky(reruns=0)
 def test_smprofiler_gpu(
-    training, ec2_connection, region, ec2_instance_type, gpu_only, py3_only, tf23_and_above_only, pt16_and_above_only
+    training,
+    ec2_connection,
+    region,
+    ec2_instance_type,
+    gpu_only,
+    py3_only,
+    tf23_and_above_only,
+    pt16_and_above_only,
 ):
     # Running the profiler tests for pytorch and tensorflow2 frameworks only.
     # This code needs to be modified past reInvent 2020
     if test_utils.is_image_incompatible_with_instance_type(training, ec2_instance_type):
         pytest.skip(f"Image {training} is incompatible with instance type {ec2_instance_type}")
     _, image_framework_version = get_framework_and_version_from_tag(training)
-    if 'trcomp' in training and 'pytorch' in training and Version(image_framework_version) in SpecifierSet("<2.0"):
+    if (
+        "trcomp" in training
+        and "pytorch" in training
+        and Version(image_framework_version) in SpecifierSet("<2.0")
+    ):
         pytest.skip(f"Image {training} doesn't support s3. Hence test is skipped.")
     framework = get_framework_from_image_uri(training)
     if framework not in ["pytorch", "tensorflow2"]:
@@ -97,7 +120,16 @@ def test_smdebug_cpu(training, ec2_connection, region, ec2_instance_type, cpu_on
 @pytest.mark.integration("smdebug")
 @pytest.mark.model("mnist")
 @pytest.mark.parametrize("ec2_instance_type", SMDEBUG_EC2_CPU_INSTANCE_TYPE, indirect=True)
-def test_smprofiler_cpu(training, ec2_connection, region, ec2_instance_type, cpu_only, py3_only, tf23_and_above_only, pt16_and_above_only):
+def test_smprofiler_cpu(
+    training,
+    ec2_connection,
+    region,
+    ec2_instance_type,
+    cpu_only,
+    py3_only,
+    tf23_and_above_only,
+    pt16_and_above_only,
+):
     # Running the profiler tests for pytorch and tensorflow2 frameworks only.
     # This code needs to be modified past reInvent 2020
     framework = get_framework_from_image_uri(training)

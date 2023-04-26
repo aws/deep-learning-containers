@@ -19,11 +19,12 @@ import sys
 neuron_cmd = "/usr/local/bin/neuron-monitor.sh"
 subprocess.check_call(shlex.split(neuron_cmd))
 
-if sys.argv[1] == 'serve':
+if sys.argv[1] == "serve":
     from sagemaker_pytorch_serving_container import serving
+
     serving.main()
 else:
-    subprocess.check_call(shlex.split(' '.join(sys.argv[1:])))
+    subprocess.check_call(shlex.split(" ".join(sys.argv[1:])))
 
 # prevent docker exit
-subprocess.call(['tail', '-f', '/dev/null'])
+subprocess.call(["tail", "-f", "/dev/null"])
