@@ -158,7 +158,8 @@ RUN curl https://aws-dlc-licenses.s3.amazonaws.com/pytorch-1.13/license.txt -o /
 # install Hugging Face libraries and its dependencies
 RUN pip install --no-cache-dir \
     transformers[sentencepiece,audio,vision]==${TRANSFORMERS_VERSION} \
-    diffusers[torch]==${DIFFUSERS_VERSION} \
+    diffusers==${DIFFUSERS_VERSION} \
+    "accelerate>=0.11.0" \
     "protobuf>=3.19.5,<=3.20.2" \
     "numpy>=1.22.2,<1.23" \
     "sagemaker-huggingface-inference-toolkit<3"
