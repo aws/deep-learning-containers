@@ -13,18 +13,16 @@
 from __future__ import absolute_import
 
 import os
-
 import pytest
 import sagemaker
 from sagemaker.huggingface import HuggingFaceModel
-from distutils.dir_util import copy_tree
-from pathlib import Path
-from huggingface_hub import snapshot_download
 import random
 import tarfile
+import shutil
+from pathlib import Path
 
 
-from ...integration import script_dir, pt_diffusers_script, dump_logs_from_cloudwatch
+from ...integration import model_dir, script_dir, pt_diffusers_script, dump_logs_from_cloudwatch
 from ...integration.sagemaker.timeout import timeout_and_delete_endpoint
 
 
@@ -52,38 +50,28 @@ def test_diffusers_gpu(sagemaker_session, framework_version, ecr_image, instance
         raise
 
 
-# helper to create the model.tar.gz
-def _compress(tar_dir=None, output_file="model.tar.gz"):
-    parent_dir=os.getcwd()
-    os.chdir(tar_dir)
-    with tarfile.open(os.path.join(parent_dir, output_file), "w:gz") as tar:
-        for item in os.listdir('.'):
-          print(item)
-          tar.add(item, arcname=item)    
-    os.chdir(parent_dir)
+# helper to create a asset.tar.gz
+def _compress(file_path, zip_file_path="asset.tar.gz"):
+    asset_dest = Path(f"asset-{random.getrandbits(41)}/code")
+    asset_dest.mkdir(parents=True, exist_ok=True)
+    shutil.copy(file_path, asset_dest)
+    with tarfile.open(zip_file_path, "w:gz") as tar:
+        for item in os.listdir(asset_dest.parent):
+            tar.add(item, arcname=item)
+            print(item)
+    return zip_file_path
 
 
 def _test_diffusion_model(sagemaker_session, framework_version, ecr_image, instance_type, model_dir, script_dir, accelerator_type=None):
-    endpoint_name = sagemaker.utils.unique_name_from_base("sagemaker-huggingface-serving-diffusion-model")
-    
-    # download snapshot
-    HF_MODEL_ID="CompVis/stable-diffusion-v1-4"
-    snapshot_dir = snapshot_download(repo_id=HF_MODEL_ID,revision="fp16")
+    endpoint_name = sagemaker.utils.unique_name_from_base(
+        "sagemaker-huggingface-serving-diffusion-model"
+    )
 
-    # create model dir
-    model_tar = Path(f"model-{random.getrandbits(16)}")
-    model_tar.mkdir(exist_ok=True)
-
-    # copy snapshot to model dir
-    copy_tree(snapshot_dir, str(model_tar))
-
-    # compress the model
-    _compress(str(model_tar))
-    model_dir="model.tar.gz"
+    compressed_path = _compress(os.path.join(script_dir, entry_point))
 
     model_data = sagemaker_session.upload_data(
-        path=model_dir,
-        key_prefix="sagemaker-huggingface-serving-diffusion-model/models",
+        path=compressed_path,
+        key_prefix="sagemaker-huggingface-diffusion-model",
     )
 
     if "pytorch" in ecr_image:
@@ -99,9 +87,7 @@ def _test_diffusion_model(sagemaker_session, framework_version, ecr_image, insta
         entry_point=entry_point,
         source_dir=script_dir,
         py_version=py_version,
-        model_server_workers=1,
     )
-    hf_model._is_compiled_model = True
 
     with timeout_and_delete_endpoint(endpoint_name, sagemaker_session, minutes=30):
         predictor = hf_model.deploy(
