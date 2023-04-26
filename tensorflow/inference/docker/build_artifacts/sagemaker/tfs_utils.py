@@ -16,13 +16,14 @@ import multiprocessing
 import os
 import re
 import requests
-import time
 import json
+import time
 
 from multi_model_utils import timeout
 from urllib3.util.retry import Retry
 from urllib3.exceptions import NewConnectionError, MaxRetryError
 from collections import namedtuple
+from multi_model_utils import MultiModelException
 
 logging.basicConfig(level=logging.INFO)
 log = logging.getLogger(__name__)
@@ -254,29 +255,83 @@ def create_batching_config(batching_config_file):
         f.write(config)
 
 
-def wait_for_model(rest_port, model_name, timeout_seconds, wait_interval_seconds=5):
+def wait_for_model(rest_port, model_name, timeout_seconds, pid=None):
+    """
+    Notice:
+    The calculation for retry count based on timeout_seconds might introduce a small delta (0.1s) for each retry
+    which might cause total timeout longer than timeout_seconds
+    """
     tfs_url = "http://localhost:{}/v1/models/{}".format(rest_port, model_name)
+    start = time.time()
+    try:
+        session = requests.Session()
+        backoff_factor = 0.1
+        # sleep = {backoff factor} * (2 ^ ({number of retries so far} - 1))
+        retry_count = retry_from_timeout(timeout_seconds, backoff_factor)
+        retries = Retry(total=retry_count, backoff_factor=backoff_factor)
+        session.mount("http://", requests.adapters.HTTPAdapter(max_retries=retries))
+        log.info(
+            "Trying to connect with model server: {} with timeout : {} and retry : {}".format(
+                tfs_url, timeout_seconds, retry_count
+            )
+        )
+        response = session.get(tfs_url, timeout=0.1)
+        log.info(
+            f"tfs response status_code: {response.status_code} with content : {json.loads(response.content)}"
+        )
+        end = time.time()
+        if response.status_code == 200:
+            if is_model_ready(response):
+                return
+            elif wait_for_model_ready(tfs_url, timeout_seconds - int(end - start)):
+                return
 
-    with timeout(timeout_seconds):
-        while True:
-            try:
-                session = requests.Session()
-                retries = Retry(total=9, backoff_factor=0.1)
-                session.mount("http://", requests.adapters.HTTPAdapter(max_retries=retries))
-                log.info("Trying to connect with model server: {}".format(tfs_url))
-                response = session.get(tfs_url)
-                log.info(response)
-                if response.status_code == 200:
-                    versions = json.loads(response.content)["model_version_status"]
-                    if all(version["state"] == "AVAILABLE" for version in versions):
-                        break
-            except (
-                ConnectionRefusedError,
-                NewConnectionError,
-                MaxRetryError,
-                requests.exceptions.ConnectionError,
-            ):
-                log.warning("model: {} is not available yet ".format(tfs_url))
-                time.sleep(wait_interval_seconds)
+        raise MultiModelException(408, "Timed out after {} seconds".format(timeout_seconds), pid)
+    except (
+        ConnectionRefusedError,
+        NewConnectionError,
+        MaxRetryError,
+        requests.exceptions.ConnectionError,
+    ):
+        raise MultiModelException(408, "Timed out after {} seconds".format(timeout_seconds), pid)
 
-    log.info("model: {} is available now".format(tfs_url))
+
+def is_model_ready(response):
+    versions = json.loads(response.content)["model_version_status"]
+    if all(version["state"] == "AVAILABLE" for version in versions):
+        return True
+    return False
+
+
+def wait_for_model_ready(url, timeout_seconds):
+    try:
+        while timeout_seconds > 0:
+            response = requests.get(url, timeout=0.1)
+            log.info(
+                f"wait_for_model_ready response status_code : {response.status_code} "
+                f"response : {json.loads(response.content)} timeout in : {timeout_seconds}s"
+            )
+            if response.status_code != 200:
+                return False
+            if is_model_ready(response):
+                return True
+            timeout_seconds -= 1
+        return False
+    except requests.exceptions.RequestException:
+        return False
+
+
+def retry_from_timeout(timeout_seconds, backoff_factor):
+    retry_count = 1
+    retry_time = 0
+    while retry_time < timeout_seconds:
+        retry_count += 1
+        retry_time += backoff_factor * (2 ** (retry_count + 1))
+    return retry_count
+
+
+def get_cpu_memory_util():
+    total_memory, used_memory, free_memory = map(
+        int, os.popen("free -t -m").readlines()[-1].split()[1:]
+    )
+    return round((used_memory / total_memory) * 100, 2)

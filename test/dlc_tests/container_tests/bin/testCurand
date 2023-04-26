@@ -1,6 +1,16 @@
 #!/bin/bash
 
-if ls /usr/local/cuda/include | grep curand; then
+cuda_include_pth=/usr/local/cuda/include
+
+if python -c "import torch" &> /dev/null; then
+    PYTORCH_VERSION=$(python -c "import torch; print(torch.__version__)")
+fi
+
+if [[ ${PYTORCH_VERSION:0:1} -ge "2" ]]; then
+    cuda_include_pth=$CUDA_HOME/include
+fi
+
+if ls $cuda_include_pth | grep curand; then
     echo "Curand package is present in the Image"
 else
     echo "Curand package is not present in the Image"

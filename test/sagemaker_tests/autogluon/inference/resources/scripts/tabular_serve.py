@@ -20,7 +20,9 @@ def transform_fn(model, request_body, input_content_type, output_content_type="a
         num_cols = len(data.columns)
 
         if num_cols != len(column_names):
-            raise Exception(f"Invalid data format. Input data has {num_cols} while the model expects {len(column_names)}")
+            raise Exception(
+                f"Invalid data format. Input data has {num_cols} while the model expects {len(column_names)}"
+            )
 
         else:
             data.columns = column_names

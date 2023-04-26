@@ -30,7 +30,7 @@ from .multi_model_endpoint_test_utils import make_load_model_request, make_heade
 
 PING_URL = "http://localhost:8080/ping"
 INVOCATION_URL = "http://localhost:8080/models/{}/invoke"
-MODEL_NAMES = ["half_plus_three","half_plus_two"]
+MODEL_NAMES = ["half_plus_three", "half_plus_two"]
 
 
 @pytest.fixture(scope="session", autouse=True)
@@ -39,7 +39,8 @@ def volume():
         model_dir = os.path.abspath("test/resources/mme4")
         subprocess.check_call(
             "docker volume create --name model_volume_mme4 --opt type=none "
-            "--opt device={} --opt o=bind".format(model_dir).split())
+            "--opt device={} --opt o=bind".format(model_dir).split()
+        )
         yield model_dir
     finally:
         subprocess.check_call("docker volume rm model_volume_mme4".split())
@@ -55,6 +56,7 @@ def container(docker_base_name, tag, runtime_config):
             " -e SAGEMAKER_BIND_TO_PORT=8080"
             " -e SAGEMAKER_SAFE_PORT_RANGE=9000-9999"
             " -e SAGEMAKER_MULTI_MODEL=True"
+            " -e SAGEMAKER_GUNICORN_WORKERS=5"
             " {}:{} serve"
         ).format(runtime_config, docker_base_name, tag)
 
@@ -79,12 +81,10 @@ def container(docker_base_name, tag, runtime_config):
 @pytest.fixture
 def models():
     for MODEL_NAME in MODEL_NAMES:
-        model_data = {
-            "model_name": MODEL_NAME,
-            "url": "/opt/ml/models/{}/model".format(MODEL_NAME)
-        }
+        model_data = {"model_name": MODEL_NAME, "url": "/opt/ml/models/{}/model".format(MODEL_NAME)}
         make_load_model_request(json.dumps(model_data))
     return MODEL_NAMES
+
 
 @pytest.mark.processor("cpu")
 @pytest.mark.model("half_plus_three, half_plus_two")
@@ -94,19 +94,21 @@ def test_ping_service():
     response = requests.get(PING_URL)
     assert 200 == response.status_code
 
+
 @pytest.mark.processor("cpu")
 @pytest.mark.model("half_plus_three, half_plus_two")
 @pytest.mark.integration("mme")
 @pytest.mark.skip_gpu
 def test_predict_json(models):
     headers = make_headers()
-    data = "{\"instances\": [1.0, 2.0, 5.0]}"
+    data = '{"instances": [1.0, 2.0, 5.0]}'
     responses = []
     for model in models:
         response = requests.post(INVOCATION_URL.format(model), data=data, headers=headers).json()
         responses.append(response)
     assert responses[0] == {"predictions": [3.5, 4.0, 5.5]}
     assert responses[1] == {"predictions": [2.5, 3.0, 4.5]}
+
 
 @pytest.mark.processor("cpu")
 @pytest.mark.model("half_plus_three, half_plus_two")
@@ -119,11 +121,12 @@ def test_zero_content():
     for MODEL_NAME in MODEL_NAMES:
         response = requests.post(INVOCATION_URL.format(MODEL_NAME), data=x, headers=headers)
         responses.append(response)
-        print(MODEL_NAME,response)
+        print(MODEL_NAME, response)
     assert 500 == responses[0].status_code
     assert "document is empty" in responses[0].text
     assert 200 == responses[1].status_code
     assert "document is empty" in responses[1].text
+
 
 @pytest.mark.processor("cpu")
 @pytest.mark.model("half_plus_three, half_plus_two")
@@ -137,12 +140,15 @@ def test_large_input():
         headers = make_headers(content_type="text/csv")
         responses = []
         for MODEL_NAME in MODEL_NAMES:
-            response = requests.post(INVOCATION_URL.format(MODEL_NAME), data=x, headers=headers).json()
+            response = requests.post(
+                INVOCATION_URL.format(MODEL_NAME), data=x, headers=headers
+            ).json()
             responses.append(response)
         predictions = responses[0]["predictions"]
         assert len(predictions) == 753936
         error = responses[1]["error"]
         assert "document root must not be followed by other values" in error
+
 
 @pytest.mark.processor("cpu")
 @pytest.mark.model("half_plus_three, half_plus_two")
@@ -153,11 +159,14 @@ def test_csv_input():
     data = "1.0,2.0,5.0"
     responses = []
     for MODEL_NAME in MODEL_NAMES:
-        response = requests.post(INVOCATION_URL.format(MODEL_NAME), data=data, headers=headers).json()
+        response = requests.post(
+            INVOCATION_URL.format(MODEL_NAME), data=data, headers=headers
+        ).json()
         responses.append(response)
     assert responses[0] == {"predictions": [3.5, 4.0, 5.5]}
     error = responses[1]["error"]
     assert "document root must not be followed by other values" in error
+
 
 @pytest.mark.processor("cpu")
 @pytest.mark.model("half_plus_three, half_plus_two")
@@ -171,11 +180,12 @@ def test_specific_versions():
             response = requests.post(
                 INVOCATION_URL.format(MODEL_NAME), data=data, headers=headers
             ).json()
-            if MODEL_NAME == 'half_plus_three':
+            if MODEL_NAME == "half_plus_three":
                 assert response == {"predictions": [3.5, 4.0, 5.5]}
             else:
                 error = response["error"]
                 assert "document root must not be followed by other values" in error
+
 
 @pytest.mark.processor("cpu")
 @pytest.mark.model("half_plus_three, half_plus_two")

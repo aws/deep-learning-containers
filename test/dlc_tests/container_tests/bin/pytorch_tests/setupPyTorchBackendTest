@@ -6,9 +6,18 @@ set -e
 export HOME_DIR=/test
 export BIN_DIR=${HOME_DIR}/bin
 export LOG_DIR=${HOME_DIR}/logs
-export AWS_LOG_DIR=$LOG_DIR/aws_log/
-export OSS_LOG_DIR=$LOG_DIR/oss_log/
+export AWS_LOG_DIR=$LOG_DIR/aws_log
+export OSS_LOG_DIR=$LOG_DIR/oss_log
 mkdir -p $AWS_LOG_DIR $OSS_LOG_DIR
+
+# check GPU status
+if nvidia-smi &> /dev/null; then
+   DEVICE="cuda"
+   NUM_GPUS=$(nvidia-smi -L | wc -l)
+else
+   DEVICE="cpu"
+   NUM_GPUS=0
+fi
 
 git config --global user.email "you@example.com"
 git config --global user.name "Your Name"
@@ -20,15 +29,6 @@ source ~/.bashrc
 # setup benchmark repo
 git clone https://github.com/pytorch/benchmark
 pushd benchmark
-git reset --hard 0faa0142
+git reset --hard 78e54615
 git am -3 ${BIN_DIR}/pytorch_tests/0001-test-adapt-BERT_pytorch-training-with-gloo-mpi-backend.patch
 pip install -r requirements.txt
-
-# check GPU status
-if nvidia-smi &> /dev/null; then
-   DEVICE="cuda"
-   NUM_GPUS=$(nvidia-smi -L | wc -l)
-else
-   DEVICE="cpu"
-   NUM_GPUS=0
-fi

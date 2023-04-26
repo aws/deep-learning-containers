@@ -25,8 +25,16 @@ from sagemaker import serializers
 from sagemaker_inference import content_types
 from torchvision import datasets, transforms
 
-from ...integration import training_dir, mnist_script, mnist_1d_script, model_cpu_dir, \
-    model_gpu_dir, model_cpu_1d_dir, call_model_fn_once_script, ROLE
+from ...integration import (
+    training_dir,
+    mnist_script,
+    mnist_1d_script,
+    model_cpu_dir,
+    model_gpu_dir,
+    model_cpu_1d_dir,
+    call_model_fn_once_script,
+    ROLE,
+)
 from ...utils import local_mode_utils
 
 CONTENT_TYPE_TO_SERIALIZER_MAP = {
@@ -42,17 +50,25 @@ ACCEPT_TYPE_TO_DESERIALIZER_MAP = {
 }
 
 
-@pytest.fixture(name='test_loader')
+@pytest.fixture(name="test_loader")
 def fixture_test_loader():
     #  Largest batch size is only 300 because client_max_body_size is 5M
     return _get_test_data_loader(batch_size=300)
 
 
 @pytest.mark.model("mnist")
-def test_serve_json_npy(test_loader, use_gpu, docker_image, framework_version, sagemaker_local_session, instance_type):
+def test_serve_json_npy(
+    test_loader, use_gpu, docker_image, framework_version, sagemaker_local_session, instance_type
+):
     model_dir = model_gpu_dir if use_gpu else model_cpu_dir
     with _predictor(
-            model_dir, mnist_script, docker_image, framework_version, sagemaker_local_session, instance_type
+        model_dir,
+        mnist_script,
+        docker_image,
+        framework_version,
+        sagemaker_local_session,
+        instance_type,
+        1,
     ) as predictor:
         for content_type in (content_types.JSON, content_types.NPY):
             for accept in (content_types.JSON, content_types.CSV, content_types.NPY):
@@ -60,9 +76,16 @@ def test_serve_json_npy(test_loader, use_gpu, docker_image, framework_version, s
 
 
 @pytest.mark.model("mnist")
-def test_serve_csv(test_loader, use_gpu, docker_image, framework_version, sagemaker_local_session, instance_type):
+def test_serve_csv(
+    test_loader, use_gpu, docker_image, framework_version, sagemaker_local_session, instance_type
+):
     with _predictor(
-            model_cpu_1d_dir, mnist_1d_script, docker_image, framework_version, sagemaker_local_session, instance_type
+        model_cpu_1d_dir,
+        mnist_1d_script,
+        docker_image,
+        framework_version,
+        sagemaker_local_session,
+        instance_type,
     ) as predictor:
         for accept in (content_types.JSON, content_types.CSV, content_types.NPY):
             _assert_prediction_csv(predictor, test_loader, accept)
@@ -71,9 +94,16 @@ def test_serve_csv(test_loader, use_gpu, docker_image, framework_version, sagema
 @pytest.mark.model("mnist")
 @pytest.mark.processor("gpu")
 @pytest.mark.skip_cpu
-def test_serve_cpu_model_on_gpu(test_loader, docker_image, framework_version, sagemaker_local_session, instance_type):
+def test_serve_cpu_model_on_gpu(
+    test_loader, docker_image, framework_version, sagemaker_local_session, instance_type
+):
     with _predictor(
-            model_cpu_1d_dir, mnist_1d_script, docker_image, framework_version, sagemaker_local_session, instance_type
+        model_cpu_1d_dir,
+        mnist_1d_script,
+        docker_image,
+        framework_version,
+        sagemaker_local_session,
+        instance_type,
     ) as predictor:
         _assert_prediction_npy_json(predictor, test_loader, content_types.NPY, content_types.JSON)
 
@@ -81,31 +111,39 @@ def test_serve_cpu_model_on_gpu(test_loader, docker_image, framework_version, sa
 @pytest.mark.model("mnist")
 @pytest.mark.processor("cpu")
 @pytest.mark.skip_gpu_py2
-def test_serving_calls_model_fn_once(docker_image, framework_version, sagemaker_local_session, instance_type):
+def test_serving_calls_model_fn_once(
+    docker_image, framework_version, sagemaker_local_session, instance_type
+):
     with _predictor(
-            model_cpu_dir,
-            call_model_fn_once_script,
-            docker_image,
-            framework_version,
-            sagemaker_local_session,
-            instance_type,
-            model_server_workers=2,
+        model_cpu_dir,
+        call_model_fn_once_script,
+        docker_image,
+        framework_version,
+        sagemaker_local_session,
+        instance_type,
+        model_server_workers=2,
     ) as predictor:
         predictor.deserializer = deserializers.BytesDeserializer()
 
         # call enough times to ensure multiple requests to a worker
         for i in range(3):
             # will return 500 error if model_fn called during request handling
-            output = predictor.predict(b'input')
-            assert output == b'output'
+            output = predictor.predict(b"input")
+            assert output == b"output"
 
 
 @contextmanager
 def _predictor(
-        model_dir, script, image, framework_version, sagemaker_local_session, instance_type, model_server_workers=None
+    model_dir,
+    script,
+    image,
+    framework_version,
+    sagemaker_local_session,
+    instance_type,
+    model_server_workers=None,
 ):
     model = PyTorchModel(
-        'file://{}/model.tar.gz'.format(model_dir),
+        "file://{}/model.tar.gz".format(model_dir),
         ROLE,
         script,
         image_uri=image,
@@ -145,9 +183,13 @@ def _get_test_data_loader(batch_size):
         datasets.MNIST(
             training_dir,
             train=False,
-            transform=transforms.Compose([transforms.ToTensor(), transforms.Normalize((0.1307,), (0.3081,))]),
+            transform=transforms.Compose(
+                [transforms.ToTensor(), transforms.Normalize((0.1307,), (0.3081,))]
+            ),
         ),
-        batch_size=batch_size, shuffle=True)
+        batch_size=batch_size,
+        shuffle=True,
+    )
 
 
 def _get_mnist_batch(test_loader):

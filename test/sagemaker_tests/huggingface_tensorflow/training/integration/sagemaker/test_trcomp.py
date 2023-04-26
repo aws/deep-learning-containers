@@ -42,16 +42,17 @@ hyperparameters = {
 @pytest.mark.skip_py2_containers
 @pytest.mark.skip_huggingface_containers
 @pytest.mark.skip_cpu
-@mock.patch('sagemaker.huggingface.TrainingCompilerConfig.validate', return_value=None)
+@mock.patch("sagemaker.huggingface.TrainingCompilerConfig.validate", return_value=None)
 class TestSingleNodeSingleGPU:
-    '''
+    """
     All Single Node Single GPU tests go here.
-    '''
+    """
+
     @pytest.mark.model("distilbert-base")
     def test_trcomp_default(self, patched, sagemaker_session, ecr_image, tmpdir, capsys):
-        '''
+        """
         Tests the default configuration of SM trcomp
-        '''
+        """
         instance_type = "ml.p3.2xlarge"
         instance_count = 1
 
@@ -71,17 +72,16 @@ class TestSingleNodeSingleGPU:
         )
 
         estimator.fit(job_name=unique_name_from_base("hf-tf-trcomp-single-gpu-default"), logs=True)
-        
-        captured = capsys.readouterr()
-        logs = captured.out+captured.err
-        assert "Found configuration for Training Compiler" in logs
 
+        captured = capsys.readouterr()
+        logs = captured.out + captured.err
+        assert "Found configuration for Training Compiler" in logs
 
     @pytest.mark.model("distilbert-base")
     def test_trcomp_enabled(self, patched, sagemaker_session, ecr_image, tmpdir, capsys):
-        '''
+        """
         Tests the explicit enabled configuration of SM trcomp
-        '''
+        """
         instance_type = "ml.p3.2xlarge"
         instance_count = 1
 
@@ -101,17 +101,16 @@ class TestSingleNodeSingleGPU:
         )
 
         estimator.fit(job_name=unique_name_from_base("hf-tf-trcomp-single-gpu-enabled"), logs=True)
-        
-        captured = capsys.readouterr()
-        logs = captured.out+captured.err
-        assert "Found configuration for Training Compiler" in logs
 
+        captured = capsys.readouterr()
+        logs = captured.out + captured.err
+        assert "Found configuration for Training Compiler" in logs
 
     @pytest.mark.model("distilbert-base")
     def test_trcomp_debug(self, patched, sagemaker_session, ecr_image, tmpdir, capsys):
-        '''
+        """
         Tests the debug mode configuration of SM trcomp
-        '''
+        """
         instance_type = "ml.p3.2xlarge"
         instance_count = 1
 
@@ -131,10 +130,8 @@ class TestSingleNodeSingleGPU:
         )
 
         estimator.fit(job_name=unique_name_from_base("hf-tf-trcomp-single-gpu-debug"), logs=True)
-        
+
         captured = capsys.readouterr()
-        logs = captured.out+captured.err
+        logs = captured.out + captured.err
         assert "Found configuration for Training Compiler" in logs
         assert "Training Compiler set to debug mode" in logs
-
-

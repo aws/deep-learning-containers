@@ -56,7 +56,7 @@ def is_test_job_efa_dedicated():
 def assign_sagemaker_remote_job_instance_type(image):
     if "graviton" in image:
         return "ml.c6g.2xlarge"
-    elif "training-neuron" in image:
+    elif "neuronx" in image or "training-neuron" in image:
         return "ml.trn1.2xlarge"
     elif "inference-neuron" in image:
         return "ml.inf1.xlarge"
@@ -122,7 +122,9 @@ def launch_sagemaker_local_ec2_instance(image, ami_id, ec2_key_name, region):
     instance_id = instance["InstanceId"]
     public_ip_address = ec2_utils.get_public_ip(instance_id, region=region)
     ec2_utils.check_instance_state(instance_id, state="running", region=region)
-    ec2_utils.check_system_state(instance_id, system_status="ok", instance_status="ok", region=region)
+    ec2_utils.check_system_state(
+        instance_id, system_status="ok", instance_status="ok", region=region
+    )
     return instance_id, public_ip_address
 
 
@@ -158,7 +160,9 @@ def generate_sagemaker_pytest_cmd(image, sagemaker_test_type):
     framework_version_arg = "--framework-version"
     eia_arg = "ml.eia1.large"
     processor = (
-        "neuron"
+        "neuronx"
+        if "neuronx" in image
+        else "neuron"
         if "neuron" in image
         else "gpu"
         if "gpu" in image
@@ -174,6 +178,8 @@ def generate_sagemaker_pytest_cmd(image, sagemaker_test_type):
         if py_version == "py38"
         else "39"
         if py_version == "py39"
+        else "310"
+        if py_version == "py310"
         else "2"
         if py_version == "py27"
         else "3"
@@ -191,8 +197,11 @@ def generate_sagemaker_pytest_cmd(image, sagemaker_test_type):
             docker_base_arg = "--repo"
             instance_type_arg = "--instance-types"
             framework_version_arg = "--versions"
-            integration_path = os.path.join(integration_path, "test_tfs.py") if processor != "eia" else os.path.join(
-                integration_path, "test_ei.py")
+            integration_path = (
+                os.path.join(integration_path, "test_tfs.py")
+                if processor != "eia"
+                else os.path.join(integration_path, "test_ei.py")
+            )
 
     if framework == "tensorflow" and job_type == "training":
         aws_id_arg = "--account-id"
@@ -204,7 +213,7 @@ def generate_sagemaker_pytest_cmd(image, sagemaker_test_type):
     # "EFA_DEDICATED=True" must be configured so that those Actions only run the EFA tests.
     # This is change from the previous system where only setting env variable "DISABLE_EFA_TESTS=False" would enable
     # regular SM tests as well as SM EFA tests.
-    efa_flag = '--efa' if is_test_job_efa_dedicated() else '-m \"not efa\"'
+    efa_flag = "--efa" if is_test_job_efa_dedicated() else '-m "not efa"'
 
     region_list = (
         ",".join(SAGEMAKER_NEURON_EXECUTION_REGIONS)
@@ -223,28 +232,33 @@ def generate_sagemaker_pytest_cmd(image, sagemaker_test_type):
     if processor == "eia":
         remote_pytest_cmd += f" {accelerator_type_arg} {eia_arg}"
 
-    local_pytest_cmd = (f"pytest -s -v {integration_path} {docker_base_arg} "
-                        f"{sm_local_docker_repo_uri} --tag {tag} --framework-version {framework_version} "
-                        f"--processor {processor} {aws_id_arg} {account_id} --junitxml {local_test_report}")
+    local_pytest_cmd = (
+        f"pytest -s -v {integration_path} {docker_base_arg} "
+        f"{sm_local_docker_repo_uri} --tag {tag} --framework-version {framework_version} "
+        f"--processor {processor} {aws_id_arg} {account_id} --junitxml {local_test_report}"
+    )
 
     if framework == "tensorflow" and job_type != "inference":
-        local_pytest_cmd = f"{local_pytest_cmd} --py-version {sm_local_py_version} --region {region}"
+        local_pytest_cmd = (
+            f"{local_pytest_cmd} --py-version {sm_local_py_version} --region {region}"
+        )
     if framework == "tensorflow" and job_type == "training":
         path = os.path.join(os.path.dirname(path), f"{framework}{framework_major_version}_training")
     if "huggingface" in framework and job_type == "inference":
         path = os.path.join("test", "sagemaker_tests", "huggingface", "inference")
     if "trcomp" in framework:
-        path = os.path.join("test", "sagemaker_tests", framework.replace("-trcomp", ""), f"{job_type}")
+        path = os.path.join(
+            "test", "sagemaker_tests", framework.replace("-trcomp", ""), f"{job_type}"
+        )
 
     return (
-        remote_pytest_cmd if sagemaker_test_type == SAGEMAKER_REMOTE_TEST_TYPE else local_pytest_cmd,
+        remote_pytest_cmd
+        if sagemaker_test_type == SAGEMAKER_REMOTE_TEST_TYPE
+        else local_pytest_cmd,
         path,
         tag,
         job_type,
     )
-
-
-
 
 
 def execute_local_tests(image, pytest_cache_params):
@@ -257,8 +271,12 @@ def execute_local_tests(image, pytest_cache_params):
     test_success = False
     account_id = os.getenv("ACCOUNT_ID", boto3.client("sts").get_caller_identity()["Account"])
     pytest_cache_util = PytestCache(boto3.client("s3"), account_id)
-    ec2_client = boto3.client("ec2", config=Config(retries={"max_attempts": 10}), region_name=DEFAULT_REGION)
-    pytest_command, path, tag, job_type = generate_sagemaker_pytest_cmd(image, SAGEMAKER_LOCAL_TEST_TYPE)
+    ec2_client = boto3.client(
+        "ec2", config=Config(retries={"max_attempts": 10}), region_name=DEFAULT_REGION
+    )
+    pytest_command, path, tag, job_type = generate_sagemaker_pytest_cmd(
+        image, SAGEMAKER_LOCAL_TEST_TYPE
+    )
     pytest_command += " --last-failed --last-failed-no-failures all "
     print(pytest_command)
     framework, _ = get_framework_and_version_from_tag(image)
@@ -287,7 +305,9 @@ def execute_local_tests(image, pytest_cache_params):
         try:
             ec2_conn.run(f"docker pull {image}", timeout=600)
         except invoke.exceptions.CommandTimedOut as e:
-            output = ec2_conn.run(f"docker images {image} --format '{{.Repository}}:{{.Tag}}'").stdout.strip("\n")
+            output = ec2_conn.run(
+                f"docker images {image} --format '{{.Repository}}:{{.Tag}}'"
+            ).stdout.strip("\n")
             if output != image:
                 raise DLCSageMakerLocalTestFailure(
                     f"Image pull for {image} failed.\ndocker images output = {output}"
@@ -295,7 +315,9 @@ def execute_local_tests(image, pytest_cache_params):
         ec2_conn.run(f"tar -xzf {sm_tests_tar_name}")
         with ec2_conn.cd(path):
             ec2_conn.run(f"pip install -r requirements.txt")
-            pytest_cache_util.download_pytest_cache_from_s3_to_ec2(ec2_conn, path, **pytest_cache_params)
+            pytest_cache_util.download_pytest_cache_from_s3_to_ec2(
+                ec2_conn, path, **pytest_cache_params
+            )
             # Workaround for mxnet cpu training images as test distributed
             # causes an issue with fabric ec2_connection
             if framework == "mxnet" and job_type == "training" and "cpu" in image:
@@ -306,12 +328,20 @@ def execute_local_tests(image, pytest_cache_params):
                 finally:
                     print(f"Downloading Test reports for image: {image}")
                     ec2_conn.close()
-                    ec2_conn_new = ec2_utils.get_ec2_fabric_connection(instance_id, key_file, region)
-                    ec2_conn_new.get(ec2_test_report_path,
-                                     os.path.join("test", f"{job_type}_{tag}_sm_local.xml"))
-                    output = subprocess.check_output(f"cat test/{job_type}_{tag}_sm_local.xml", shell=True,
-                                                     executable="/bin/bash")
-                    pytest_cache_util.upload_pytest_cache_from_ec2_to_s3(ec2_conn_new, path, **pytest_cache_params)
+                    ec2_conn_new = ec2_utils.get_ec2_fabric_connection(
+                        instance_id, key_file, region
+                    )
+                    ec2_conn_new.get(
+                        ec2_test_report_path, os.path.join("test", f"{job_type}_{tag}_sm_local.xml")
+                    )
+                    output = subprocess.check_output(
+                        f"cat test/{job_type}_{tag}_sm_local.xml",
+                        shell=True,
+                        executable="/bin/bash",
+                    )
+                    pytest_cache_util.upload_pytest_cache_from_ec2_to_s3(
+                        ec2_conn_new, path, **pytest_cache_params
+                    )
                     if 'failures="0"' not in str(output):
                         if is_nightly_context():
                             print(f"\nSuppressed Failed Nightly Sagemaker Local Tests")
@@ -320,7 +350,9 @@ def execute_local_tests(image, pytest_cache_params):
             else:
                 res = ec2_conn.run(pytest_command, warn=True)
                 print(f"Downloading Test reports for image: {image}")
-                ec2_conn.get(ec2_test_report_path, os.path.join("test", f"{job_type}_{tag}_sm_local.xml"))
+                ec2_conn.get(
+                    ec2_test_report_path, os.path.join("test", f"{job_type}_{tag}_sm_local.xml")
+                )
                 if res.failed:
                     if is_nightly_context():
                         print(f"Suppressed Failed Nightly Sagemaker Tests")
@@ -337,7 +369,9 @@ def execute_local_tests(image, pytest_cache_params):
     finally:
         if ec2_conn:
             with ec2_conn.cd(path):
-                pytest_cache_util.upload_pytest_cache_from_ec2_to_s3(ec2_conn, path, **pytest_cache_params)
+                pytest_cache_util.upload_pytest_cache_from_ec2_to_s3(
+                    ec2_conn, path, **pytest_cache_params
+                )
         if instance_id:
             print(f"Terminating Instances for image: {image}")
             ec2_utils.terminate_instance(instance_id, region)
@@ -361,18 +395,24 @@ def execute_sagemaker_remote_tests(process_index, image, global_pytest_cache, py
     """
     account_id = os.getenv("ACCOUNT_ID", boto3.client("sts").get_caller_identity()["Account"])
     pytest_cache_util = PytestCache(boto3.client("s3"), account_id)
-    pytest_command, path, tag, job_type = generate_sagemaker_pytest_cmd(image, SAGEMAKER_REMOTE_TEST_TYPE)
+    pytest_command, path, tag, job_type = generate_sagemaker_pytest_cmd(
+        image, SAGEMAKER_REMOTE_TEST_TYPE
+    )
     context = Context()
     with context.cd(path):
         context.run(f"virtualenv {tag}")
         with context.prefix(f"source {tag}/bin/activate"):
             context.run("pip install -r requirements.txt", warn=True)
-            pytest_cache_util.download_pytest_cache_from_s3_to_local(path, **pytest_cache_params, custom_cache_directory=str(process_index))
+            pytest_cache_util.download_pytest_cache_from_s3_to_local(
+                path, **pytest_cache_params, custom_cache_directory=str(process_index)
+            )
             # adding -o cache_dir with a custom directory name
             pytest_command += f" -o cache_dir={os.path.join(str(process_index), '.pytest_cache')}"
             res = context.run(pytest_command, warn=True)
             metrics_utils.send_test_result_metrics(res.return_code)
-            cache_json = pytest_cache_util.convert_pytest_cache_file_to_json(path, custom_cache_directory=str(process_index))
+            cache_json = pytest_cache_util.convert_pytest_cache_file_to_json(
+                path, custom_cache_directory=str(process_index)
+            )
             global_pytest_cache.update(cache_json)
             if res.failed:
                 if is_nightly_context():
@@ -393,7 +433,7 @@ def generate_empty_report(report, test_type, case):
     :param report: CodeBuild Report
     Returns: None
     """
-    test_cases = [TestCase(test_type, case, 1, f"Skipped {test_type} on {case}", '')]
+    test_cases = [TestCase(test_type, case, 1, f"Skipped {test_type} on {case}", "")]
     ts = TestSuite(report, test_cases)
     with open(report, "w") as skip_file:
         TestSuite.to_file(skip_file, [ts], prettyprint=False)

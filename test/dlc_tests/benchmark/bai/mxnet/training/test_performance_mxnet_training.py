@@ -13,4 +13,6 @@ def test_performance_mxnet_cpu(mxnet_training, cpu_only):
     python_version = get_py_version(mxnet_training)
     task_name = f"mx_train_single_node_cpu_{python_version}_resnet18v2_cifar10"
     script_url = " https://github.com/awslabs/deeplearning-benchmark.git"
-    execute_single_node_benchmark(ctx, mxnet_training, "mxnet", task_name, python_version, script_url)
+    execute_single_node_benchmark(
+        ctx, mxnet_training, "mxnet", task_name, python_version, script_url
+    )
