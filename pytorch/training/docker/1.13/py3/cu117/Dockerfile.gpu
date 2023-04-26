@@ -10,7 +10,8 @@ ARG PT_TORCHVISION_URL=https://download.pytorch.org/whl/cu117/torchvision-0.14.1
 ARG PT_TORCHAUDIO_URL=https://download.pytorch.org/whl/cu117/torchaudio-0.13.1%2Bcu117-cp39-cp39-linux_x86_64.whl
 ARG PT_TORCHDATA_URL=https://download.pytorch.org/whl/test/torchdata-0.5.1-cp39-cp39-manylinux_2_17_x86_64.manylinux2014_x86_64.whl
 # depended by the SMP binary
-ARG FLASH_ATTN_VERION=0.2.8
+ARG FLASH_ATTN_VERSION=0.2.8
+ARG TRITON_VERSION=2.0.0.dev20221202
 
 # SMD binaries
 ARG SMD_DATA_PARALLEL_URL=https://smdataparallel.s3.amazonaws.com/binary/pytorch/1.13.1/cu117/2023-01-09/smdistributed_dataparallel-1.7.0-cp39-cp39-linux_x86_64.whl
@@ -190,6 +191,9 @@ RUN ompi_info --parsable --all | grep mpi_built_with_cuda_support:value \
  # install plainly will oversize the image
  && pip uninstall -y dataclasses \
  && /opt/conda/bin/conda clean -ya
+
+# remove the default mamba installation
+RUN rm -rf /root/micromamba/
 
 # Conda installs links for libtinfo.so.6 and libtinfo.so.6.2 both
 # Which causes "/opt/conda/lib/libtinfo.so.6: no version information available" warning
@@ -383,6 +387,8 @@ ARG PT_SM_TRAINING_URL
 ARG PT_TORCHVISION_URL
 ARG PT_TORCHAUDIO_URL
 ARG PT_TORCHDATA_URL
+ARG FLASH_ATTN_VERSION
+ARG TRITON_VERSION
 
 # Install AWS-PyTorch and other torch packages
 RUN pip uninstall -y torch torchvision torchaudio torchdata \
@@ -488,7 +494,8 @@ RUN pip install --no-cache-dir -U \
     "sagemaker>=2,<3" \
     sagemaker-experiments==0.* \
     sagemaker-pytorch-training \
-    flash-attn==$FLASH_ATTN_VERION 
+    flash-attn==$FLASH_ATTN_VERSION \
+    triton==$TRITON_VERSION
 
 # Install smdebug from souce
 RUN cd /tmp \
@@ -543,8 +550,6 @@ RUN pip install --no-cache-dir -U ${SMD_MODEL_PARALLEL_URL}
 # Install SM Distributed DataParallel binary
 RUN SMDATAPARALLEL_PT=1 pip install --no-cache-dir ${SMD_DATA_PARALLEL_URL}
 
-# remove the default mamba installation
-RUN rm -rf /root/micromamba/
 ENV LD_LIBRARY_PATH="/opt/conda/lib/python${PYTHON_SHORT_VERSION}/site-packages/smdistributed/dataparallel/lib:$LD_LIBRARY_PATH"
 
 WORKDIR /
