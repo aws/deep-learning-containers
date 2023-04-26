@@ -42,7 +42,7 @@ INFERENCE_LOG=${LOG_DIR}/pytorch_inductor_torchbench_benchmark.log
 
 cd $BIN_DIR/pytorch
 
-python benchmarks/dynamo/runner.py --training --suites=torchbench --dtypes=float32 --compilers=inductor --output-dir=huggingface_logs --extra-args='--output-directory=./' --device cpu > $INFERENCE_LOG 2>&1
+python benchmarks/dynamo/runner.py --training --suites=torchbench --dtypes=float32 --compilers=inductor --output-dir=huggingface_logs --extra-args='--output-directory=./' --device cpu --quick > $INFERENCE_LOG 2>&1
 
 RETURN_VAL=`echo $?`
 set -e

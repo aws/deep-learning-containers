@@ -303,7 +303,7 @@ def ec2_performance_pytorch_inference(
         f"-e LOG_FILE={os.path.join(os.sep, 'test', 'benchmark', 'logs', log_name)} "
         f"-e PR_CONTEXT={1 if is_pr_context() else 0} "
         f"-v {container_test_local_dir}:{os.path.join(os.sep, 'test')} {image_uri} "
-        f"{os.path.join(os.sep, 'bin', 'bash')} -c {test_cmd}"
+        f"{os.path.join(os.sep, 'bin', 'bash')} -cex {test_cmd}"
     )
     ec2_connection.run(f"docker rm -f {container_name}")
     LOGGER.info(f"To retrieve complete benchmark log, check {s3_location}")
