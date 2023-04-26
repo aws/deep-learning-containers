@@ -277,24 +277,25 @@ def fixture_ecr_image(docker_registry, docker_base_name, tag):
 def skip_by_device_type(request, use_gpu, instance_type, accelerator_type):
     is_gpu = use_gpu or instance_type[3] in ["g", "p"]
     is_eia = accelerator_type is not None
-    is_neuron = instance_type.startswith("ml.inf")
 
-    # Separate out cases for clearer logic.
-    # When running Neuron test, skip CPU  and GPU test.
-    if request.node.get_closest_marker("neuron_test") and not is_neuron:
-        pytest.skip("Skipping because running on '{}' instance".format(instance_type))
+    is_neuron_inst = instance_type.startswith("ml.inf1")
+    is_neuronx_inst = instance_type.startswith("ml.trn1") or instance_type.startswith("ml.inf2")
+
+    is_neuron_test = request.node.get_closest_marker("neuron_test") is not None
+    is_neuronx_test = request.node.get_closest_marker("neuronx_test") is not None
+
+    if is_neuron_test != is_neuron_inst or is_neuronx_test != is_neuronx_inst:
+        pytest.skip("Skipping because test running on '{}' instance".format(instance_type))
 
     # When running GPU test, skip CPU  and neuron test. When running CPU test, skip GPU  and neuron test.
     elif (request.node.get_closest_marker("gpu_test") and not is_gpu) or (
-        request.node.get_closest_marker("cpu_test") and (is_gpu or is_neuron)
+        request.node.get_closest_marker("cpu_test") and is_gpu
     ):
         pytest.skip("Skipping because running on '{}' instance".format(instance_type))
 
     # When running EIA test, skip the CPU, GPU and Neuron functions
     elif (
-        request.node.get_closest_marker("neuron_test")
-        or request.node.get_closest_marker("gpu_test")
-        or request.node.get_closest_marker("cpu_test")
+        request.node.get_closest_marker("gpu_test") or request.node.get_closest_marker("cpu_test")
     ) and is_eia:
         pytest.skip("Skipping because running on '{}' instance".format(instance_type))
 
