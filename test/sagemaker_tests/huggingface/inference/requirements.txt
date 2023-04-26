@@ -25,4 +25,6 @@ retrying==1.3.3
 fabric
 gitpython
 toml
-transformers==4.26.0
+transformers==4.28.1
+diffusers==0.15.1
+accelerate==0.18.0
