@@ -6,12 +6,11 @@ if [ "$PYTHON_VERSION" -eq 2 ]
 then
   exit 0
 fi
-HOME_DIR=/test/benchmark
+HOME_DIR=/test
 BIN_DIR=${HOME_DIR}/bin
 LOG_DIR=${HOME_DIR}/logs
 
-python -c "import sys;
-assert sys.version_info < (3, 7);"
+python -c "import sys; assert sys.version_info < (3, 7);"
 PYTHON_VERSION_CHECK=`echo $?`
 
 rm -rf $BIN_DIR/pytorch
@@ -28,24 +27,25 @@ ls -l ${HOME_DIR}
 INFERENCE_LOG=${LOG_DIR}/pytorch_inductor_torchbench_benchmark.log
 
 # install torchdata and torchtext before installing torchbench
-git clone --branch v0.6.0 https://github.com/pytorch/data.git $BIN_DIR/pytorch/torchdata
-cd $BIN_DIR/pytorch/data
-pip install .
+#git clone --branch v0.6.0 https://github.com/pytorch/data.git $BIN_DIR/pytorch/torchdata
+#cd $BIN_DIR/pytorch/data
+#pip install .
+#
+#git clone https://github.com/pytorch/text $BIN_DIR/pytorch/torchtext 
+#cd $BIN_DIR/pytorch/torchtext
+#git submodule update --init --recursive
+#FORCE_CUDA=1 python setup.py clean install
 
-git clone https://github.com/pytorch/text $BIN_DIR/pytorch/torchtext 
-cd $BIN_DIR/pytorch/torchtext
-git submodule update --init --recursive
-FORCE_CUDA=1 python setup.py clean install
-
-git clone https://github.com/pytorch/benchmark $BIN_DIR/pytorch/benchmark
-cd $BIN_DIR/pytorch/benchmark
+git clone https://github.com/pytorch/benchmark $BIN_DIR/benchmark
+cd $BIN_DIR/benchmark
 python install.py
 
 INFERENCE_LOG=${LOG_DIR}/pytorch_inductor_torchbench_benchmark.log
 
 cd $BIN_DIR/pytorch
+mkdir -p $BIN_DIR/pytorch/torchbench_logs
 
-python benchmarks/dynamo/runner.py --inference --suites=torchbench --dtypes=float32 --compilers=inductor --output-dir=huggingface_logs --extra-args='--output-directory=./' --device cuda --quick #> $INFERENCE_LOG 2>&1
+python benchmarks/dynamo/runner.py --inference --suites=torchbench --dtypes=float32 --compilers=inductor --output-dir=torchbench_logs --extra-args='--output-directory=./' --device cuda --quick #> $INFERENCE_LOG 2>&1
 
 RETURN_VAL=`echo $?`
 set -e

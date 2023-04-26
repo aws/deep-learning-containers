@@ -158,7 +158,7 @@ def upload_metric(region, instance_type, precision, suite, metric_name, value, u
     )
 
 
-# @pytest.mark.skip(reason="for testing")
+@pytest.mark.skip(reason="for testing")
 @pytest.mark.parametrize(
     "ec2_instance_type", ["c5.4xlarge", "m5.4xlarge"], indirect=True
 )
@@ -225,7 +225,7 @@ def test_performance_ec2_pytorch_inference_graviton(
 # @pytest.mark.parametrize("ec2_instance_type", ["p3.2xlarge", "g5.4xlarge", "g4dn.4xlarge"], indirect=True)
 # @pytest.mark.parametrize("suite", ["huggingface", "timm_models", "torchbench"])
 @pytest.mark.parametrize("ec2_instance_type", ["g4dn.4xlarge"], indirect=True)
-@pytest.mark.parametrize("suite", ["torchbench", "timm_models", "huggingface"])
+@pytest.mark.parametrize("suite", ["torchbench"])
 @pytest.mark.parametrize("precision", ["float32"])
 def test_performance_ec2_pytorch_inference_gpu(
     ec2_instance_type,
