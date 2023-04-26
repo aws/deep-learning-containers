@@ -253,6 +253,7 @@ def ec2_performance_pytorch_inference(
     image_uri, instance_type, ec2_connection, region, suite, precision
 ):
     import subprocess as sp
+    import time
 
     is_gpu = re.search(r"(p3|g4|g5)", instance_type)
     is_graviton = re.search(r"(c6g|c7g|m7g)", instance_type)

@@ -27,7 +27,7 @@ PT_EC2_GPU_INDUCTOR_INSTANCE_TYPE_P4D = ["p4d.24xlarge"]
 PT_EC2_GPU_INDUCTOR_INSTANCE_TYPE_G5 = ["g5.4xlarge"]
 PT_EC2_GPU_INDUCTOR_INSTANCE_TYPE_G4DN = ["g4dn.4xlarge"]
 
-
+@pytest.mark.skip("This file is currently under development and should not be run.")
 
 @pytest.mark.integration("inductor")
 @pytest.mark.model("huggingface")
