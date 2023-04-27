@@ -31,7 +31,7 @@ from ...integration.sagemaker.timeout import timeout_and_delete_endpoint
 
 @pytest.mark.model("tiny-distilbert")
 @pytest.mark.processor("neuronx")
-@pytest.mark.neuron_test
+@pytest.mark.neuronx_test
 def test_neuron_hosting(
     sagemaker_session, framework_version, ecr_image, instance_type, region, py_version
 ):
