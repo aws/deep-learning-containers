@@ -49,17 +49,33 @@ def test_diffusers_gpu(
         raise
 
 
-# helper to create a asset.tar.gz
-def _compress(file_path, zip_file_path="asset.tar.gz"):
-    asset_dest = Path(f"asset-{random.getrandbits(41)}/code")
-    asset_dest.mkdir(parents=True, exist_ok=True)
-    shutil.copy(file_path, asset_dest)
-    with tarfile.open(zip_file_path, "w:gz") as tar:
-        for item in os.listdir(asset_dest.parent):
-            tar.add(item, arcname=item)
-            print(item)
-    return zip_file_path
+# helper to compress diffusion model
+def _compress(tar_dir=None, output_file="model.tar.gz"):
+    parent_dir=os.getcwd()
+    os.chdir(tar_dir)
+    with tarfile.open(os.path.join(parent_dir, output_file), "w:gz") as tar:
+        for item in os.listdir('.'):
+          print(item)
+          tar.add(item, arcname=item)    
+    os.chdir(parent_dir)
 
+
+def _create_model(model_id, script_path, sagemaker_session):
+    snapshot_dir = snapshot_download(repo_id=model_id,revision="fp16")
+    model_tar = Path(f"model-{random.getrandbits(16)}")
+    model_tar.mkdir(exist_ok=True)
+    copy_tree(snapshot_dir, str(model_tar))
+
+    os.makedirs(str(model_tar.joinpath("code")), exist_ok=True)
+    shutil.copy(script_path, str(model_tar.joinpath("code/inference.py")))
+    _compress(str(model_tar))
+
+    model_data = sagemaker_session.upload_data(
+        path="model.tar.gz",
+        key_prefix="sagemaker-huggingface-serving-diffusion-model-serving",
+    )
+
+    return model_data
 
 def _test_diffusion_model(
     sagemaker_session,
@@ -72,6 +88,8 @@ def _test_diffusion_model(
     accelerator_type=None,
 ):
 
+    HF_MODEL_ID="CompVis/stable-diffusion-v1-4"
+
     endpoint_name = sagemaker.utils.unique_name_from_base(
         "sagemaker-huggingface-serving-diffusion-model-serving"
     )
@@ -81,11 +99,10 @@ def _test_diffusion_model(
     else:
         raise ValueError(f"Unsupported framework for image: {ecr_image}")
 
-    compressed_path = _compress(os.path.join(script_dir, entry_point))
-
-    model_data = sagemaker_session.upload_data(
-        path=compressed_path,
-        key_prefix="sagemaker-huggingface-serving-diffusion-model-serving/asset",
+    model_data = _create_model(
+        model_id=HF_MODEL_ID, 
+        script_path=os.path.join(script_dir, entry_point), 
+        sagemaker_session=sagemaker_session,
     )
 
     hf_model = HuggingFaceModel(

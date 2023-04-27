@@ -30,6 +30,7 @@ ARG TORCHAUDIO_URL=https://aws-pytorch-unified-cicd-binaries.s3.us-west-2.amazon
 # HF ARGS
 ARG TRANSFORMERS_VERSION
 ARG DIFFUSERS_VERSION
+ARG HUGGINGFACE_HUB=0.14.1
 
 # Set Debian interaction
 ARG DEBIAN_FRONTEND=noninteractive
@@ -196,6 +197,7 @@ RUN curl -o /license.txt  https://aws-dlc-licenses.s3.amazonaws.com/pytorch-1.13
 RUN pip install --no-cache-dir \
 	transformers[sentencepiece,audio,vision]==${TRANSFORMERS_VERSION} \
     diffusers==${DIFFUSERS_VERSION} \
+    huggingface_hub==${HUGGINGFACE_HUB} \
     "accelerate>=0.11.0" \
 	"protobuf>=3.19.5,<=3.20.2" \
 	"numpy>=1.22.2,<1.23" \
