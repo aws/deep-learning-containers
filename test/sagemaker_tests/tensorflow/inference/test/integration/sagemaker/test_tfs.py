@@ -192,7 +192,7 @@ def test_tfs_neuron_model(
 def test_tfs_neuronx_model(
     model_name, tfs_neuronx_model, sagemaker_regions, image_uri, instance_type, accelerator_type
 ):
-    input_data = {"instances": [1.0, 2.0, 5.0]}
+    input_data = {"instances": [[1.0, 2.0, 5.0]]}
     util.create_and_invoke_endpoint_helper(
         image_uri=image_uri,
         sagemaker_regions=sagemaker_regions,
