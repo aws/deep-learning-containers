@@ -10,13 +10,8 @@ HOME_DIR=/test
 BIN_DIR=${HOME_DIR}/bin
 LOG_DIR=${HOME_DIR}/logs
 
-python -c "import sys; assert sys.version_info < (3, 7);"
-PYTHON_VERSION_CHECK=`echo $?`
-
 rm -rf $BIN_DIR/pytorch
 git clone https://github.com/pytorch/pytorch.git --branch v2.0.0 --single-branch --depth 1  $BIN_DIR/pytorch
-
-
 
 pip install -U numpy
 pip install gitpython
