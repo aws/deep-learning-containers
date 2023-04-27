@@ -104,7 +104,7 @@ ENV REQUESTS_CA_BUNDLE=/etc/ssl/certs/ca-certificates.crt
 RUN curl -L -o ~/mambaforge.sh https://github.com/conda-forge/miniforge/releases/download/${MAMBA_VERSION}/Mambaforge-${MAMBA_VERSION}-Linux-x86_64.sh \
  && chmod +x ~/mambaforge.sh \
  && ~/mambaforge.sh -b -p /opt/conda \
- && rm ~/mambaforge.sh 
+ && rm ~/mambaforge.sh
 
 # install core conda dependency packages (and pin essential packages)
 RUN /opt/conda/bin/mamba install -y -c conda-forge \
@@ -165,7 +165,7 @@ RUN rm -rf /root/.cache | true
 # |_____\____|_____| |___|_| |_| |_|\__,_|\__, |\___|
 #                                         |___/
 #  ____           _
-# |  _ \ ___  ___(_)_ __   ___ 
+# |  _ \ ___  ___(_)_ __   ___
 # | |_) / _ \/ __| | '_ \ / _ \
 # |  _ <  __/ (__| | |_) |  __/
 # |_| \_\___|\___|_| .__/ \___|
@@ -192,7 +192,7 @@ RUN /opt/conda/bin/mamba install -y pytorch=${PYTORCH_VERSION} \
 # install fastai (depends on PyTorch)
 RUN /opt/conda/bin/mamba install -y -c conda-forge \
   # needed by fastai.distributed
-  accelerate \ 
+  accelerate \
   && /opt/conda/bin/mamba install -y -c fastai fastai \
   # fastai conda strictly depends on dataclasses
   && pip uninstall -y dataclasses
@@ -248,7 +248,7 @@ ARG PT_TORCHDATA_URL
 
 # Install SM AWS-PyTorch (force remove will increase the docker image size drastically)
 RUN /opt/conda/bin/mamba install -y pytorch=${PYTORCH_VERSION} \
-  torchvision torchaudio torchtext cpuonly aws-ofi-nccl-dlc \
+  torchvision torchaudio torchtext cpuonly \
   --override-channels \
   -c https://aws-ml-conda-pre-prod-sm.s3.us-west-2.amazonaws.com \
   -c conda-forge
@@ -256,7 +256,7 @@ RUN /opt/conda/bin/mamba install -y pytorch=${PYTORCH_VERSION} \
 # install fastai (depends on PyTorch)
 RUN /opt/conda/bin/mamba install -y -c conda-forge \
   # needed by fastai.distributed
-  accelerate \ 
+  accelerate \
   && /opt/conda/bin/mamba install -y -c fastai fastai \
   # fastai conda strictly depends on dataclasses
   && pip uninstall -y dataclasses
@@ -286,26 +286,26 @@ RUN pip install --no-cache-dir --upgrade pip --trusted-host pypi.org --trusted-h
     # smdebug==${SMDEBUG_VERSION} \
     smclarify \
     "sagemaker>=2,<3" \
-    "sagemaker-experiments<1" 
+    "sagemaker-experiments<1"
 
 # Install smdebug from source
 RUN cd /tmp \
-  && git clone https://github.com/awslabs/sagemaker-debugger --depth 1 --single-branch --branch ${SMDEBUG_VERSION} \ 
+  && git clone https://github.com/awslabs/sagemaker-debugger --depth 1 --single-branch --branch ${SMDEBUG_VERSION} \
   && cd sagemaker-debugger \
   && pip install . \
   && rm -rf /tmp/*
 
 # Install extra packages
 RUN /opt/conda/bin/mamba install -y -c conda-forge \
+  bokeh \
   imageio \
-  shap \    
-  scikit-learn \
+  numba \
   pandas \
-  && /opt/conda/bin/mamba install -y -c numba numba \
-  && /opt/conda/bin/mamba install -y -c anaconda seaborn \
-  && /opt/conda/bin/mamba install -y -c bokeh bokeh \
-  && /opt/conda/bin/mamba install -y -c plotly plotly \
-  && /opt/conda/bin/mamba clean -afy
+  plotly \
+  scikit-learn \
+  seaborn \
+  shap \
+ && /opt/conda/bin/mamba clean -afy
 
 
 RUN HOME_DIR=/root \
