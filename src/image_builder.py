@@ -175,7 +175,7 @@ def image_builder(buildspec, image_types=[], device_types=[]):
             elif str(image_config["image_type"]) == "training":
                 raise KeyError(
                     f"HuggingFace buildspec.yml must contain 'datasets_version' field for each image"
-                )          
+                )
 
         ARTIFACTS.update(
             {
@@ -263,7 +263,7 @@ def image_builder(buildspec, image_types=[], device_types=[]):
             "labels": labels,
             "extra_build_args": extra_build_args,
         }
-        
+
         # Create pre_push stage docker object
         pre_push_stage_image_object = DockerImage(
             info=info,
