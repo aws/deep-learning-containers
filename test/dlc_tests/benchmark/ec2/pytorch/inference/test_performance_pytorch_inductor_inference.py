@@ -298,12 +298,13 @@ def ec2_performance_pytorch_inference(
         if suite == "huggingface":
             test_cmd = PT_PERFORMANCE_INFERENCE_CPU_INDUCTOR_HUGGINGFACE_CMD
 
-    ec2_connection.run(
+    test_run_output = ec2_connection.run(
         f"{docker_cmd} run --user root "
         f"-e LOG_FILE={os.path.join(os.sep, 'test', 'benchmark', 'logs', log_name)} "
         f"-e PR_CONTEXT={1 if is_pr_context() else 0} "
         f"-v {container_test_local_dir}:{os.path.join(os.sep, 'test')} {image_uri} "
         f"{os.path.join(os.sep, 'bin', 'bash')} -cex {test_cmd}"
-    )
+    ).stdout.split("\n")
+    LOGGER.info("Output test run ======================= \n{test_run_output}")
     ec2_connection.run(f"docker rm -f {container_name}")
     LOGGER.info(f"To retrieve complete benchmark log, check {s3_location}")
