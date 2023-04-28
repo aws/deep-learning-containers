@@ -90,8 +90,6 @@ def image_builder(buildspec, image_types=[], device_types=[]):
         )
 
     for image_name, image_config in BUILDSPEC["images"].items():
-        print(f"[Logs-abcd][first] image_config['build']: {image_config['build']}")
-        
         # filter by image type if type is specified
         if image_types and not image_config["image_type"] in image_types:
             continue
@@ -164,7 +162,6 @@ def image_builder(buildspec, image_types=[], device_types=[]):
                 labels[f"{var}_URI"] = uri
 
         transformers_version = image_config.get("transformers_version")
-        optimum_neuron_version = image_config.get("optimum_neuron_version")
 
         if str(BUILDSPEC["framework"]).startswith("huggingface"):
             if transformers_version:
@@ -175,9 +172,10 @@ def image_builder(buildspec, image_types=[], device_types=[]):
                 )
             if "datasets_version" in image_config:
                 extra_build_args["DATASETS_VERSION"] = image_config.get("datasets_version")
-            elif str(image_config["image_type"]) == "training":            
-            if optimum_neuron_version:
-                extra_build_args["OPTIMUM_NEURON_VERSION"] = optimum_neuron_version
+            elif str(image_config["image_type"]) == "training":
+                raise KeyError(
+                    f"HuggingFace buildspec.yml must contain 'datasets_version' field for each image"
+                )          
 
         ARTIFACTS.update(
             {
@@ -265,8 +263,6 @@ def image_builder(buildspec, image_types=[], device_types=[]):
             "labels": labels,
             "extra_build_args": extra_build_args,
         }
-
-        print(f"[Logs-abcd][second] image_config['build']: {image_config['build']}")
         
         # Create pre_push stage docker object
         pre_push_stage_image_object = DockerImage(

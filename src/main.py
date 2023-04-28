@@ -151,9 +151,6 @@ def main():
     )
 
     buildspec_file = get_buildspec_override() or args.buildspec
-    print(f"[Logs-abcd] Buildspec File: {buildspec_file}")
-    print(f"[Logs-abcd] neuron_builder_enabled File: {neuron_builder_enabled}")
-    print(f"[Logs-abcd] frameworks_to_build:{frameworks_to_build} args-fw:{args.framework}")
 
     # Ensure that buildspec_file starts with buildspec and ends with yml
     buildspec_pattern = re.compile(r"buildspec\S*\.yml")
