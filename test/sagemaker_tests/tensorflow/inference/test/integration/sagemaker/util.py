@@ -16,12 +16,8 @@ import logging
 import os
 
 import botocore
-import boto3
-from botocore.config import Config
-import sagemaker
 import random
 import time
-from ..sagemaker import conftest
 
 logger = logging.getLogger(__name__)
 BATCH_CSV = os.path.join("data", "batch.csv")
