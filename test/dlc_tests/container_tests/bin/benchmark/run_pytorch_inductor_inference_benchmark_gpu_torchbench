@@ -6,7 +6,7 @@ if [ "$PYTHON_VERSION" -eq 2 ]
 then
   exit 0
 fi
-HOME_DIR=/test
+HOME_DIR=/test/benchmark
 BIN_DIR=${HOME_DIR}/bin
 LOG_DIR=${HOME_DIR}/logs
 
