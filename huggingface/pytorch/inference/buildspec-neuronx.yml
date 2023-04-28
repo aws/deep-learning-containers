@@ -5,15 +5,13 @@ framework: &FRAMEWORK !join [ "huggingface_", *BASE_FRAMEWORK]
 version: &VERSION 1.13.0
 short_version: &SHORT_VERSION "1.13"
 contributor: &CONTRIBUTOR huggingface
-image_type: &IMAGE_TYPE inference
-device_type: &DEVICE_TYPE neuronx
 arch_type: x86
 
 repository_info:
   inference_repository: &INFERENCE_REPOSITORY
-    image_type: &IMAGE_TYPE
+    image_type: &IMAGE_TYPE inference
     root: !join [ "huggingface/", *BASE_FRAMEWORK, "/", *IMAGE_TYPE ]
-    repository_name: &REPOSITORY_NAME !join ["pr", "-", *CONTRIBUTOR, "-", *BASE_FRAMEWORK, "-", *IMAGE_TYPE, "-", &DEVICE_TYPE]
+    repository_name: &REPOSITORY_NAME !join ["pr", "-", *CONTRIBUTOR, "-", *BASE_FRAMEWORK, "-", *IMAGE_TYPE, "-", "neuronx"]
     repository: &REPOSITORY !join [ *ACCOUNT_ID, .dkr.ecr., *REGION, .amazonaws.com/, *REPOSITORY_NAME ]
 
 context:
@@ -33,7 +31,7 @@ images:
     <<: *INFERENCE_REPOSITORY
     build: &HUGGINGFACE_PYTORCH_CPU_INFERENCE_PY3 false
     image_size_baseline: 14000
-    device_type: *DEVICE_TYPE
+    device_type: &DEVICE_TYPE neuronx
     python_version: &DOCKER_PYTHON_VERSION py3
     tag_python_version: &TAG_PYTHON_VERSION py38
     neuron_sdk_version: &NEURON_SDK_VERSION sdk2.9.1
