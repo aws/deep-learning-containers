@@ -50,15 +50,6 @@ metric_definitions = [
     {'Name': 'f1', 'Regex': "f1.*=\D*(.*?)$"},
     {'Name': 'exact_match', 'Regex': "exact_match.*=\D*(.*?)$"}]
 
-
-def get_optimum_neuron_version(ecr_image):
-    optimum_neuron_version_search = re.search(r"optimum(\d+(\.\d+){1,2})", ecr_image)
-    if optimum_neuron_version_search:
-        optimum_neuron_version = optimum_neuron_version_search.group(1)
-        return optimum_neuron_version
-    else:
-        raise LookupError("HF optimum-neuron version not found in image URI")
-
 # ValueError: Must setup local AWS configuration with a region supported by SageMaker.
 def retry_if_value_error(exception):
     """Return True if we should retry (in this case when it's an ValueError), False otherwise"""
@@ -98,21 +89,21 @@ def invoke_neuron_helper_function(ecr_image, sagemaker_regions, helper_function,
             else:
                 raise e
 
-@pytest.mark.processor("neuron")
-@pytest.mark.model("hf-pt-qa-neuron")
-@pytest.mark.neuron_test
+@pytest.mark.processor("neuronx")
+@pytest.mark.model("hf-pt-qa-neuronx")
+@pytest.mark.neuronx_test
 @pytest.mark.skip_py2_containers
-def test_neuron_question_answering(ecr_image, sagemaker_regions, py_version, instance_type):
+def test_neuronx_question_answering(ecr_image, sagemaker_regions, py_version, instance_type):
     function_args = {
         'py_version': py_version,
         'instance_type': instance_type,
         'instance_count': 1,
         'num_neuron_cores': 2,
     }
-    invoke_neuron_helper_function(ecr_image, sagemaker_regions, _test_neuron_question_answering_function, function_args)
+    invoke_neuron_helper_function(ecr_image, sagemaker_regions, _test_neuronx_question_answering_function, function_args)
 
-def _test_neuron_question_answering_function(ecr_image, sagemaker_session, py_version, instance_type= "ml.trn1.32xlarge", instance_count=1, num_neuron_cores=2):
-    optimum_neuron_version = get_optimum_neuron_version(ecr_image)
+def _test_neuronx_question_answering_function(ecr_image, sagemaker_session, py_version, instance_type= "ml.trn1.32xlarge", instance_count=1, num_neuron_cores=2):
+    optimum_neuron_version = "0.0.1"
     git_config = {'repo': 'https://github.com/huggingface/optimum-neuron.git', 'branch': 'v' + optimum_neuron_version}
 
     source_dir = "./examples/question-answering"
@@ -124,8 +115,7 @@ def _test_neuron_question_answering_function(ecr_image, sagemaker_session, py_ve
             source_dir=source_dir,
             git_config=git_config,
             metric_definitions=metric_definitions,
-            # role='SageMakerRole',
-            role=role,
+            role='SageMakerRole',
             image_uri=ecr_image,
             instance_count=instance_count,
             instance_type=instance_type,
@@ -134,4 +124,4 @@ def _test_neuron_question_answering_function(ecr_image, sagemaker_session, py_ve
             # distribution=distribution,  # Uncomment when it is enabled by HuggingFace Estimator
             hyperparameters={**hyperparameters, 'nproc_per_node': num_neuron_cores, 'nnodes': instance_count},
         )
-        estimator.fit(job_name=sagemaker.utils.unique_name_from_base('test-hf-pt-qa-neuron'))
+        estimator.fit(job_name=sagemaker.utils.unique_name_from_base('test-hf-pt-qa-neuronx'))
