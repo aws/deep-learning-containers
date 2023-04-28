@@ -34,7 +34,7 @@ images:
     device_type: &DEVICE_TYPE neuronx
     python_version: &DOCKER_PYTHON_VERSION py3
     tag_python_version: &TAG_PYTHON_VERSION py38
-    neuron_sdk_version: &NEURON_SDK_VERSION sdk2.9.0
+    neuron_sdk_version: &NEURON_SDK_VERSION sdk2.9.1
     os_version: &OS_VERSION ubuntu20.04
     transformers_version: &TRANSFORMERS_VERSION 4.28.1
     datasets_version: &DATASETS_VERSION 2.12.0
