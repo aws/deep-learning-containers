@@ -70,32 +70,6 @@ def get_ecr_image_region(ecr_image):
     return region_search.group()
 
 
-def get_model_data_region(model_data):
-    """
-    Extract the region from the given S3 model data URI
-
-    :param model_data: <str> S3 model data URI
-    :return: <str> AWS Region
-    """
-    base = model_data.replace("s3://", "").split("/")[0]
-    region_search = re.search(
-        r"(us(-gov)?|ap|ca|cn|eu|sa|me|af)-(central|(north|south)?(east|west)?)-\d+", base
-    )
-    return region_search.group()
-
-
-def get_model_data(model_data, region):
-    """
-    Update the S3 model data URI with the given region
-
-    :param model_data: <str> S3 model data URI
-    :param region: <str> AWS Region to replace the current region in the model_data URI
-    :return: <str> Updated S3 model data URI with the specified region
-    """
-    prev_region = get_model_data_region(model_data)
-    return model_data.replace(prev_region, region)
-
-
 def get_ecr_image(ecr_image, region):
     """
     It uploads image to the aws region and return image uri
@@ -137,6 +111,43 @@ def invoke_sm_helper_function(ecr_image, sagemaker_regions, test_function, *test
         )
         try:
             test_function(tested_ecr_image, sagemaker_session, *test_function_args)
+            return
+        except sagemaker.exceptions.UnexpectedStatusException as e:
+            if "CapacityError" in str(e):
+                continue
+            else:
+                raise e
+
+
+def invoke_sm_endpoint_helper_function(
+    ecr_image,
+    sagemaker_regions,
+    local_model_path,
+    model_helper,
+    test_function,
+    **test_function_args,
+):
+    ecr_image_region = get_ecr_image_region(ecr_image)
+    for region in sagemaker_regions:
+        sagemaker_client = get_sagemaker_client(region)
+        boto_session = boto3.Session(region_name=region)
+        sagemaker_runtime_client = get_sagemaker_runtime_client(region)
+        # Reupload the image to test region if needed
+        tested_ecr_image = (
+            get_ecr_image(ecr_image, region) if region != ecr_image_region else ecr_image
+        )
+        tested_model_data = model_helper(
+            region=region, boto_session=boto_session, local_path=local_model_path
+        )
+        try:
+            test_function(
+                image_uri=tested_ecr_image,
+                boto_session=boto_session,
+                sagemaker_client=sagemaker_client,
+                sagemaker_runtime_client=sagemaker_runtime_client,
+                model_data=tested_model_data,
+                **test_function_args,
+            )
             return
         except sagemaker.exceptions.UnexpectedStatusException as e:
             if "CapacityError" in str(e):

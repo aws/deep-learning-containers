@@ -23,11 +23,7 @@ import random
 import time
 from ..sagemaker import conftest
 from ...... import (
-    get_ecr_image,
-    get_ecr_image_region,
-    get_sagemaker_client,
-    get_sagemaker_runtime_client,
-    get_model_data,
+    invoke_sm_endpoint_helper_function,
 )
 
 logger = logging.getLogger(__name__)
@@ -363,7 +359,7 @@ def create_and_invoke_endpoint_helper(
     image_uri,
     sagemaker_regions,
     model_name,
-    model_data,
+    local_model_path,
     instance_type,
     accelerator_type,
     input_data,
@@ -372,36 +368,18 @@ def create_and_invoke_endpoint_helper(
     environment={},
     content_type="application/json",
 ):
-    ecr_image_region = get_ecr_image_region(image_uri)
-    for region in sagemaker_regions:
-        sagemaker_client = get_sagemaker_client(region)
-        boto_session = boto3.Session(region_name=region)
-        sagemaker_runtime_client = get_sagemaker_runtime_client(region)
-        try:
-            # Reupload the image to test region if needed
-            tested_ecr_image = (
-                get_ecr_image(image_uri, region) if region != ecr_image_region else image_uri
-            )
-            # update model uri to use correct region
-            tested_model_data = get_model_data(model_data, region)
-            result = create_and_invoke_endpoint(
-                boto_session=boto_session,
-                sagemaker_client=sagemaker_client,
-                sagemaker_runtime_client=sagemaker_runtime_client,
-                model_name=model_name,
-                model_data=tested_model_data,
-                image_uri=tested_ecr_image,
-                instance_type=instance_type,
-                accelerator_type=accelerator_type,
-                input_data=input_data,
-                is_multi_model_mode_enabled=is_multi_model_mode_enabled,
-                target_models=target_models,
-                environment=environment,
-                content_type=content_type,
-            )
-            return result
-        except sagemaker.exceptions.UnexpectedStatusException as e:
-            if "CapacityError" in str(e):
-                continue
-            else:
-                raise e
+    invoke_sm_endpoint_helper_function(
+        ecr_image=image_uri,
+        sagemaker_regions=sagemaker_regions,
+        local_model_path=local_model_path,
+        model_helper=find_or_put_model_data,
+        test_function=create_and_invoke_endpoint,
+        model_name=model_name,
+        instance_type=instance_type,
+        accelerator_type=accelerator_type,
+        input_data=input_data,
+        is_multi_model_mode_enabled=is_multi_model_mode_enabled,
+        target_models=target_models,
+        environment=environment,
+        content_type=content_type,
+    )

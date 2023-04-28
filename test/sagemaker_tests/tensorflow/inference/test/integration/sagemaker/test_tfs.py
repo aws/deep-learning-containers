@@ -26,6 +26,9 @@ NON_P3_REGIONS = [
     "us-west-1",
 ]
 
+TFS_NEURONX_MODEL_PATH = "data/tfs-neuronx-model.tar.gz"
+TFS_NEURON_MODEL_PATH = "data/tfs-neuronx-model.tar.gz"
+
 
 @pytest.fixture(params=os.environ["TEST_VERSIONS"].split(","))
 def version(request):
@@ -173,14 +176,14 @@ def test_tfs_model(
 @pytest.mark.model("unknown_model")
 @pytest.mark.neuron_test
 def test_tfs_neuron_model(
-    model_name, tfs_neuron_model, sagemaker_regions, image_uri, instance_type, accelerator_type
+    model_name, sagemaker_regions, image_uri, instance_type, accelerator_type
 ):
     input_data = {"instances": [[[[1, 10], [2, 20]]]]}
     util.create_and_invoke_endpoint_helper(
         image_uri=image_uri,
         sagemaker_regions=sagemaker_regions,
         model_name=model_name,
-        model_data=tfs_neuron_model,
+        local_model_path=TFS_NEURON_MODEL_PATH,
         instance_type=instance_type,
         accelerator_type=accelerator_type,
         input_data=input_data,
@@ -197,7 +200,7 @@ def test_tfs_neuronx_model(
         image_uri=image_uri,
         sagemaker_regions=sagemaker_regions,
         model_name=model_name,
-        model_data=tfs_neuronx_model,
+        local_model_path=TFS_NEURONX_MODEL_PATH,
         instance_type=instance_type,
         accelerator_type=accelerator_type,
         input_data=input_data,
