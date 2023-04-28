@@ -2,13 +2,13 @@
 # refer to the above page to pull latest Tensorflow image
 
 # docker image region us-west-2
-FROM 763104351884.dkr.ecr.us-west-2.amazonaws.com/pytorch-training-neuron:1.13.0-neuron-py38-sdk2.8.0-ubuntu20.04
+FROM 763104351884.dkr.ecr.us-west-2.amazonaws.com/pytorch-training-neuronx:1.13.0-neuronx-py38-sdk2.9.1-ubuntu20.04
 
 LABEL maintainer="Amazon AI"
 LABEL dlc_major_version="1"
 
 # version args
-ARG OPTIMUM_NEURON_VERSION
+ARG OPTIMUM_NEURON_VERSION=0.0.1
 ARG TRANSFORMERS_VERSION
 ARG DATASETS_VERSION
 ARG PYTHON=python3
