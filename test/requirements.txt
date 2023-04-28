@@ -1,5 +1,6 @@
 docker
 fabric
+invoke!=2.1.0
 junit-xml==1.9
 packaging==20.1
 pytest
