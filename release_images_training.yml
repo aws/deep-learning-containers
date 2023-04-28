@@ -39,3 +39,16 @@ release_images:
       example: False
       disable_sm_tag: False
       force_release: False
+  4:
+    framework: "pytorch"
+    version: "1.13.1"
+    arch_type: "x86"
+    customer_type: "sagemaker"
+    training:
+      device_types: [ "cpu", "gpu" ]
+      python_versions: [ "py39" ]
+      os_version: "ubuntu20.04"
+      cuda_version: "cu117"
+      example: False
+      disable_sm_tag: False # [Default: False] This option is not used by Example images
+      force_release: False
