@@ -15,6 +15,9 @@ import os
 import pytest
 
 from ..sagemaker import util
+from ...... import (
+    invoke_sm_endpoint_helper_function,
+)
 
 NON_P3_REGIONS = [
     "ap-southeast-1",
@@ -179,11 +182,13 @@ def test_tfs_neuron_model(
     model_name, sagemaker_regions, image_uri, instance_type, accelerator_type
 ):
     input_data = {"instances": [[[[1, 10], [2, 20]]]]}
-    util.create_and_invoke_endpoint_helper(
-        image_uri=image_uri,
+    invoke_sm_endpoint_helper_function(
+        ecr_image=image_uri,
         sagemaker_regions=sagemaker_regions,
-        model_name=model_name,
+        model_helper=util.find_or_put_model_data,
+        test_function=util.create_and_invoke_endpoint,
         local_model_path=TFS_NEURON_MODEL_PATH,
+        model_name=model_name,
         instance_type=instance_type,
         accelerator_type=accelerator_type,
         input_data=input_data,
@@ -196,11 +201,13 @@ def test_tfs_neuronx_model(
     model_name, tfs_neuronx_model, sagemaker_regions, image_uri, instance_type, accelerator_type
 ):
     input_data = {"instances": [[1.0, 2.0, 5.0]]}
-    util.create_and_invoke_endpoint_helper(
-        image_uri=image_uri,
+    invoke_sm_endpoint_helper_function(
+        ecr_image=image_uri,
         sagemaker_regions=sagemaker_regions,
-        model_name=model_name,
+        model_helper=util.find_or_put_model_data,
+        test_function=util.create_and_invoke_endpoint,
         local_model_path=TFS_NEURONX_MODEL_PATH,
+        model_name=model_name,
         instance_type=instance_type,
         accelerator_type=accelerator_type,
         input_data=input_data,
