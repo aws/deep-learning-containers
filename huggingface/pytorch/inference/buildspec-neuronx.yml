@@ -17,13 +17,13 @@ repository_info:
 context:
   inference_context: &INFERENCE_CONTEXT
     neuron-monitor:
-      source: docker/build_artifacts/neuron-monitor.sh
+      source: ../../build_artifacts/inference/neuron-monitor.sh
       target: neuron-monitor.sh
     neuron-entrypoint:
-      source: docker/build_artifacts/inference/neuron-entrypoint.py
+      source: ../../build_artifacts/inference/neuron-entrypoint.py
       target: neuron-entrypoint.py
     config:
-      source: docker/build_artifacts/inference/config.properties
+      source: ../../build_artifacts/inference/config.properties
       target: config.properties
 
 images:
