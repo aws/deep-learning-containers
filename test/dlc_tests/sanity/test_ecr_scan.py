@@ -154,6 +154,13 @@ def test_ecr_enhanced_scan(image, ecr_client, sts_client, region):
         append_tag="ENHSCAN",
     )
 
+    # ecr_enhanced_repo_uri for Huggingface Neuron images tends to be greater than 128 in length and leads to docker tag failures.
+    # The if condition below edits the tag to use short names instead of long ones.
+    if all(temp_string in image for temp_string in ["huggingface", "neuron"]):
+        ecr_enhanced_repo_uri = ecr_enhanced_repo_uri.replace("-huggingface-", "-hf-")
+        ecr_enhanced_repo_uri = ecr_enhanced_repo_uri.replace("-pytorch-", "-pt-")
+        ecr_enhanced_repo_uri = ecr_enhanced_repo_uri.replace("-tensorflow-", "-tf-")
+
     run(f"docker tag {image} {ecr_enhanced_repo_uri}", hide=True)
     ecr_utils.reupload_image_to_test_ecr(
         ecr_enhanced_repo_uri,
