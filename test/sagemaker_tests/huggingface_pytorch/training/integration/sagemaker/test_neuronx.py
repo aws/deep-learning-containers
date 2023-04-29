@@ -103,7 +103,7 @@ def test_neuronx_question_answering(ecr_image, sagemaker_regions, py_version, in
     invoke_neuron_helper_function(ecr_image, sagemaker_regions, _test_neuronx_question_answering_function, function_args)
 
 def _test_neuronx_question_answering_function(ecr_image, sagemaker_session, py_version, instance_type= "ml.trn1.32xlarge", instance_count=1, num_neuron_cores=2):
-    optimum_neuron_version = "0.0.1"
+    optimum_neuron_version = "0.0.3"
     git_config = {'repo': 'https://github.com/huggingface/optimum-neuron.git', 'branch': 'v' + optimum_neuron_version}
 
     source_dir = "./examples/question-answering"
