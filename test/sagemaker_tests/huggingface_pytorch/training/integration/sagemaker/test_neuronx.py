@@ -28,27 +28,14 @@ distribution = {"torch_distributed": {"enabled": True}}
 
 # hyperparameters, which are passed into the training job
 hyperparameters = {
-    'model_name_or_path': 'bert-large-uncased-whole-word-masking',
-    'dataset_name': 'squad',
+    'model_name_or_path': 'hf-internal-testing/tiny-random-BertModel',
+    'dataset_name': 'philschmid/emotion',
     'do_train': True,
-    'do_eval': True,
     'bf16': True,
     'per_device_train_batch_size': 4,
-    'per_device_eval_batch_size': 4,
     'num_train_epochs': 1,
-    'max_seq_length': 384,
-    'max_steps': 10,
-    'pad_to_max_length': True,
-    'doc_stride': 128,
     'output_dir': '/opt/ml/model'
 }
-# metric definition to extract the results
-metric_definitions = [
-    {"Name": "train_runtime", "Regex": "train_runtime.*=\D*(.*?)$"},
-    {'Name': 'train_samples_per_second', 'Regex': "train_samples_per_second.*=\D*(.*?)$"},
-    {'Name': 'epoch', 'Regex': "epoch.*=\D*(.*?)$"},
-    {'Name': 'f1', 'Regex': "f1.*=\D*(.*?)$"},
-    {'Name': 'exact_match', 'Regex': "exact_match.*=\D*(.*?)$"}]
 
 # ValueError: Must setup local AWS configuration with a region supported by SageMaker.
 def retry_if_value_error(exception):
@@ -106,15 +93,14 @@ def _test_neuronx_question_answering_function(ecr_image, sagemaker_session, py_v
     optimum_neuron_version = "0.0.3"
     git_config = {'repo': 'https://github.com/huggingface/optimum-neuron.git', 'branch': 'v' + optimum_neuron_version}
 
-    source_dir = "./examples/question-answering"
+    source_dir = "./examples/text-classification"
 
     role = get_execution_role()
     with timeout(minutes=DEFAULT_TIMEOUT):
         estimator = HuggingFace(
-            entry_point='run_qa.py',
+            entry_point='run_glue.py',
             source_dir=source_dir,
             git_config=git_config,
-            metric_definitions=metric_definitions,
             role='SageMakerRole',
             image_uri=ecr_image,
             instance_count=instance_count,
