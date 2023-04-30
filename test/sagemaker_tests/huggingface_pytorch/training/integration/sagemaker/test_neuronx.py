@@ -122,6 +122,6 @@ def _test_neuronx_question_answering_function(ecr_image, sagemaker_session, py_v
             sagemaker_session=sagemaker_session,
             py_version=py_version,
             # distribution=distribution,  # Uncomment when it is enabled by HuggingFace Estimator
-            hyperparameters={**hyperparameters, 'nproc_per_node': num_neuron_cores, 'nnodes': instance_count},
+            hyperparameters=hyperparameters,
         )
         estimator.fit(job_name=sagemaker.utils.unique_name_from_base('test-hf-pt-qa-neuronx'))
