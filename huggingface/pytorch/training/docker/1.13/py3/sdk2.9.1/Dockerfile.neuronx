@@ -23,6 +23,9 @@ RUN pip install --no-cache-dir \
 # Ping numpy version
 RUN pip install -U numpy==1.21.6
 
+# It is not required by HF, but comes from the base image and needs to be updated for this release - can be removed in the future
+RUN pip install -U sqlalchemy==2.*
+
 RUN apt-get update \
  # TODO: Remove upgrade statements once packages are updated in base image
  && apt-get -y upgrade --only-upgrade systemd openssl cryptsetup \
