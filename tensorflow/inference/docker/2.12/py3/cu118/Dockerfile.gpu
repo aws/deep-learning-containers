@@ -33,8 +33,8 @@ ARG PYTHON=python3.10
 ARG PYTHON_PIP=python3-pip
 ARG PIP=pip3
 ARG PYTHON_VERSION=3.10.10
-ARG TFS_URL=https://framework-binaries.s3.us-west-2.amazonaws.com/tensorflow_serving/r2.11_aws/gpu/2023-03-29-22-10/tensorflow_model_server
-ARG TFS_SHORT_VERSION=2.11
+ARG TFS_URL=https://framework-binaries.s3.us-west-2.amazonaws.com/tensorflow_serving/r2.12_aws/gpu/2023-04-29-23-48/tensorflow_model_server
+ARG TFS_SHORT_VERSION=2.12
 ARG CUDA_DASH=11-8
 
 # ENV variable to be pased to SageMaker stage
@@ -149,7 +149,7 @@ RUN ${PIP} install -U --no-cache-dir \
     packaging \
 # using --no-dependencies to avoid installing tensorflow binary
  && ${PIP} install --no-dependencies --no-cache-dir \
-    tensorflow-serving-api-gpu=="2.11.1"
+    tensorflow-serving-api-gpu=="2.12.0"
 
 RUN curl $TFS_URL -o /usr/bin/tensorflow_model_server \
  && chmod 555 /usr/bin/tensorflow_model_server
@@ -209,7 +209,7 @@ LABEL dlc_major_version="1"
 # https://docs.aws.amazon.com/sagemaker/latest/dg/inference-pipeline-real-time.html
 LABEL com.amazonaws.sagemaker.capabilities.accept-bind-to-port=true
 
-ARG TFS_SHORT_VERSION=2.11
+ARG TFS_SHORT_VERSION=2.12
 ENV SAGEMAKER_TFS_VERSION="${TFS_SHORT_VERSION}"
 ENV PATH="$PATH:/sagemaker"
 
@@ -240,5 +240,7 @@ RUN HOME_DIR=/root \
  && chmod +x ${HOME_DIR}/oss_compliance/generate_oss_compliance.sh \
  && ${HOME_DIR}/oss_compliance/generate_oss_compliance.sh ${HOME_DIR} ${PYTHON} \
  && rm -rf ${HOME_DIR}/oss_compliance*
+
+RUN rm -rf /tmp/*
 
 CMD ["/usr/bin/tf_serving_entrypoint.sh"]
