@@ -35,6 +35,7 @@ ARG PIP=pip3
 ARG PYTHON_VERSION=3.10.10
 ARG TFS_URL=https://framework-binaries.s3.us-west-2.amazonaws.com/tensorflow_serving/r2.11_aws/gpu/2023-03-29-22-10/tensorflow_model_server
 ARG TFS_SHORT_VERSION=2.11
+ARG CUDA_DASH=11-8
 
 # ENV variable to be pased to SageMaker stage
 ENV PIP=${PIP}
@@ -59,19 +60,19 @@ ENV DEBIAN_FRONTEND=noninteractive
 RUN apt-get update \
  && apt-get install -y --no-install-recommends --allow-unauthenticated --allow-downgrades\
     ca-certificates \
-    cuda-command-line-tools-11-2 \
-    cuda-nvrtc-11-2 \
-    cuda-nvrtc-dev-11-2 \
-    cuda-cudart-dev-11-2 \
-    libcufft-dev-11-2 \
-    libcurand-dev-11-2 \
-    libcusolver-dev-11-2 \
-    libcusparse-dev-11-2 \
+    cuda-command-line-tools-${CUDA_DASH} \
+    cuda-nvrtc-${CUDA_DASH} \
+    cuda-nvrtc-dev-${CUDA_DASH} \
+    cuda-cudart-dev-${CUDA_DASH} \
+    libcufft-dev-${CUDA_DASH} \
+    libcurand-dev-${CUDA_DASH} \
+    libcusolver-dev-${CUDA_DASH} \
+    libcusparse-dev-${CUDA_DASH} \
     libbz2-dev \
     liblzma-dev \
     #cuda-cublas-dev not available with 10-1, install libcublas instead
-    libcublas-11-2 \
-    libcublas-dev-11-2 \
+    libcublas-${CUDA_DASH} \
+    libcublas-dev-${CUDA_DASH} \
     libcudnn8=${CUDNN_VERSION} \
     libcudnn8-dev=${CUDNN_VERSION} \
     libnccl2=${NCCL_VERSION} \
