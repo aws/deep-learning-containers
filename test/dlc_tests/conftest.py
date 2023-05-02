@@ -242,8 +242,8 @@ def ec2_public_ip(request):
 
 
 @pytest.fixture(scope="session")
-def region():
-    return os.getenv("AWS_REGION", DEFAULT_REGION)
+def region(request):
+    return request.param if hasattr(request, "param") else os.getenv("AWS_REGION", DEFAULT_REGION)
 
 
 @pytest.fixture(scope="session")
@@ -291,13 +291,131 @@ def ec2_instance_role_name(request):
 
 
 @pytest.fixture(scope="function")
-def ec2_instance_ami(request):
-    return request.param if hasattr(request, "param") else UBUNTU_18_BASE_DLAMI_US_WEST_2
+def ec2_instance_ami(request, region):
+    return (
+        request.param
+        if hasattr(request, "param")
+        else UBUNTU_18_BASE_DLAMI_US_EAST_1
+        if region == "us-east-1"
+        else UBUNTU_18_BASE_DLAMI_US_WEST_2
+    )
 
 
 @pytest.fixture(scope="function")
 def ei_accelerator_type(request):
     return request.param if hasattr(request, "param") else None
+
+
+@pytest.mark.timeout(300)
+@pytest.fixture(scope="function")
+def efa_ec2_instances(
+    request,
+    ec2_client,
+    ec2_resource,
+    ec2_instance_type,
+    ec2_key_name,
+    ec2_instance_ami,
+    region,
+):
+    ec2_key_name = f"{ec2_key_name}-{str(uuid.uuid4())}"
+    print(f"Creating instance: CI-CD {ec2_key_name}")
+    key_filename = test_utils.generate_ssh_keypair(ec2_client, ec2_key_name)
+
+    def delete_ssh_keypair():
+        if test_utils.is_pr_context():
+            test_utils.destroy_ssh_keypair(ec2_client, key_filename)
+        else:
+            with open(KEYS_TO_DESTROY_FILE, "a") as destroy_keys:
+                destroy_keys.write(f"{key_filename}\n")
+
+    request.addfinalizer(delete_ssh_keypair)
+
+    az_options = ec2_utils.get_availability_zone_ids(ec2_client)
+    response = None
+    instance_name_prefix = f"CI-CD {ec2_key_name}"
+    for availability_zone in az_options:
+        try:
+            response = ec2_client.run_instances(
+                KeyName=ec2_key_name,
+                ImageId=ec2_instance_ami,
+                InstanceType=ec2_instance_type,
+                IamInstanceProfile={"Name": "ec2TestInstanceRole"},
+                TagSpecifications=[
+                    {
+                        "ResourceType": "instance",
+                        "Tags": [{"Key": "Name", "Value": instance_name_prefix}],
+                    }
+                ],
+                MaxCount=2,
+                MinCount=2,
+                BlockDeviceMappings=[
+                    {
+                        "DeviceName": "/dev/sda1",
+                        "Ebs": {
+                            "DeleteOnTermination": True,
+                            "VolumeSize": 150,
+                            "VolumeType": "gp3",
+                            "Iops": 3000,
+                            "Throughput": 125,
+                        },
+                    },
+                ],
+                NetworkInterfaces=ec2_utils.generate_network_interfaces(
+                    ec2_client, ec2_instance_type, availability_zone
+                ),
+            )
+            if response and response["Instances"]:
+                break
+        except ClientError as e:
+            LOGGER.error(f"Failed to launch in {availability_zone} due to {e}")
+            continue
+    if not (response and response["Instances"]):
+        raise RuntimeError(f"Unable to launch {ec2_instance_type} instances in {region}")
+
+    instances = response["Instances"]
+
+    def terminate_efa_instances():
+        ec2_client.terminate_instances(
+            InstanceIds=[i["InstanceId"] for i in instances]
+        )
+
+    request.addfinalizer(terminate_efa_instances)
+
+    master_instance_id = instances[0]["InstanceId"]
+    ec2_utils.check_instance_state(master_instance_id, state="running", region=region)
+    ec2_utils.check_system_state(
+        master_instance_id, system_status="ok", instance_status="ok", region=region
+    )
+    print(f"Master instance {master_instance_id} is ready")
+
+    if len(instances) > 1:
+        ec2_utils.create_name_tags_for_instance(
+            master_instance_id, f"{instance_name_prefix}_master", region
+        )
+        for i in range(1, len(instances)):
+            worker_instance_id = instances[i]["InstanceId"]
+            ec2_utils.create_name_tags_for_instance(
+                worker_instance_id, f"{instance_name_prefix}_worker_{i}", region
+            )
+            ec2_utils.check_instance_state(worker_instance_id, state="running", region=region)
+            ec2_utils.check_system_state(
+                worker_instance_id, system_status="ok", instance_status="ok", region=region
+            )
+            print(f"Worker instance {worker_instance_id} is ready")
+
+    if ec2_instance_type in ["p4d.24xlarge", "p4de.24xlarge", "trn1.32xlarge"]:
+        # p4d instances require attaching elastic ip to connect to them
+        elastic_ip_allocation_ids = []
+        # create and attach network interfaces and elastic ips to all instances
+        for instance in instances:
+            instance_id = instance["InstanceId"]
+
+            network_interface_id = ec2_utils.get_network_interface_id(instance_id, region)
+
+            elastic_ip_allocation_id = ec2_utils.attach_elastic_ip(network_interface_id, region)
+            elastic_ip_allocation_ids.append(elastic_ip_allocation_id)
+
+    return instances
 
 
 @pytest.mark.timeout(300)

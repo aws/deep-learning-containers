@@ -1158,3 +1158,128 @@ def install_python_in_instance(context, python_version="3.9"):
     assert Version(installed_python_version) in SpecifierSet(
         f"=={python_version}.*"
     ), f"Installed python version {installed_python_version} does not match required python_version {python_version}"
+
+
+def get_availability_zone_ids(ec2_client):
+    response = ec2_client.describe_availability_zones()
+    return [az["ZoneName"] for az in response["AvailabilityZones"]]
+
+
+def get_default_vpc_id(ec2_client):
+    response = ec2_client.describe_vpcs(Filters=[{"Name": "is-default", "Values": ["true"]}])
+    default_vpc_id = response["Vpcs"][0]["VpcId"]
+    return default_vpc_id
+
+
+def get_default_security_group_id(ec2_client):
+    default_vpc_id = get_default_vpc_id(ec2_client)
+    response = ec2_client.describe_security_groups(
+        GroupNames=["default"],
+        Filters=[{"Name": "vpc-id", "Values": [default_vpc_id]}],
+    )
+    default_security_group_id = response["SecurityGroups"][0]["GroupId"]
+    return default_security_group_id
+
+
+def get_efa_enabled_security_group_id(ec2_client):
+    default_vpc_id = get_default_vpc_id(ec2_client)
+    response = ec2_client.describe_security_groups(
+        GroupNames=["EFA-enabled"],
+        Filters=[{"Name": "vpc-id", "Values": [default_vpc_id]}],
+    )
+    efa_security_group_id = response["SecurityGroups"][0]["GroupId"]
+    return efa_security_group_id
+
+
+def get_default_subnet_for_az(ec2_client, availability_zone):
+    response = ec2_client.describe_subnets(
+        Filters=[
+            {"Name": "availability-zone", "Values": [availability_zone]},
+            {"Name": "default-for-az", "Values": ["true"]},
+        ]
+    )
+    az_subnet_id = response["Subnets"][0]["SubnetId"]
+    return az_subnet_id
+
+
+def generate_network_interfaces(ec2_client, ec2_instance_type, availability_zone):
+    instance_type = "p4d.24xlarge" if ec2_instance_type == "p4de.24xlarge" else ec2_instance_type
+    response = ec2_client.describe_instance_types(InstanceTypes=[instance_type])
+    num_efa_interfaces = (
+        response.get("InstanceTypes")[0]
+        .get("NetworkInfo", {})
+        .get("EfaInfo", {})
+        .get("MaximumEfaInterfaces")
+    )
+    if not num_efa_interfaces:
+        raise AttributeError(f"Unable to get number of EFA Interfaces for {ec2_instance_type}")
+
+    default_sg = get_default_security_group_id(ec2_client)
+    efa_sg = get_efa_enabled_security_group_id(ec2_client)
+    default_subnet_id = get_default_subnet_for_az(ec2_client, availability_zone)
+
+    network_interfaces = [
+        {
+            "DeviceIndex": 0 if i == 0 else 1,
+            "NetworkCardIndex": i,
+            "DeleteOnTermination": True,
+            "InterfaceType": "efa",
+            "Groups": default_sg + efa_sg,
+            "SubnetId": default_subnet_id,
+        }
+        for i in num_efa_interfaces
+    ]
+    return network_interfaces
+
+
+def get_network_interface_id(instance_id, region=DEFAULT_REGION):
+    """
+    Gets the network interface at index 0 from the instance_id. Meant to be used
+    with p4d instance with 4 efa devices
+    """
+    ec2_client = boto3.client("ec2", region_name=region)
+    arguments_dict = {"InstanceIds": [instance_id]}
+    result = ec2_client.describe_instances(**arguments_dict)
+    network_interfaces_info = result["Reservations"][0]["Instances"][0]["NetworkInterfaces"]
+    for device in network_interfaces_info:
+        if device["Attachment"]["DeviceIndex"] == 0:
+            return device["NetworkInterfaceId"]
+
+    raise Exception("Could not find network device 0, retry operation")
+
+
+def attach_elastic_ip(network_interface_id, region="us-east-1"):
+    """
+    Creates and attaches an elastic ip to a network interface which is already
+    attached to an efa enabled device. This is needed specifically for 4 efa devices
+    attached to a p4d instance. Having multiple network devices prevents automatic
+    public ip address assignment, so we must do it manually.
+    """
+    ec2_client = boto3.client("ec2", region_name=region)
+    arguments_dict = {
+        "Domain": "vpc",
+        "TagSpecifications": [
+            {
+                "ResourceType": "elastic-ip",
+                "Tags": [{"Key": "Name", "Value": f"elastic_ip_{network_interface_id}"}],
+            }
+        ],
+    }
+    elastic_ip = ec2_client.allocate_address(**arguments_dict)
+    elastic_ip_allocation_id = elastic_ip["AllocationId"]
+    response = ec2_client.associate_address(
+        AllocationId=elastic_ip_allocation_id, NetworkInterfaceId=network_interface_id
+    )
+    return elastic_ip_allocation_id
+
+
+def create_name_tags_for_instance(instance_id, name_tag, region):
+    ec2_client = boto3.client("ec2", region_name=region)
+    response = ec2_client.create_tags(
+        Resources=[instance_id],
+        Tags=[{"Key": "Name", "Value": name_tag}],
+    )
+    if not response:
+        raise Exception(
+            "Unable to create name tag {0} for the  instance {1}".format(name_tag, instance_id)
+        )
