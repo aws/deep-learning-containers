@@ -269,24 +269,14 @@ COPY start_with_right_hostname.sh /usr/local/bin/start_with_right_hostname.sh
 
 RUN chmod +x /usr/local/bin/start_with_right_hostname.sh
 
-# temporarily install fork of training toolkit as a workaround of the SMP NCCL hang issue
-RUN cd /tmp \
-  && git clone https://github.com/aws/sagemaker-training-toolkit \
-  && cd sagemaker-training-toolkit \
-  && pip install .
-
-RUN cd /tmp \
-  && git clone https://github.com/aws/sagemaker-pytorch-training-toolkit \
-  && cd sagemaker-pytorch-training-toolkit \
-  && pip install .
-
 RUN pip install --no-cache-dir --upgrade pip --trusted-host pypi.org --trusted-host files.pythonhosted.org \
  && pip install --no-cache-dir -U \
     # disable smdebug pip install until available stable smdebug releases
     # smdebug==${SMDEBUG_VERSION} \
     smclarify \
     "sagemaker>=2,<3" \
-    "sagemaker-experiments<1"
+    "sagemaker-experiments<1" \
+    sagemaker-pytorch-training
 
 # Install smdebug from source
 RUN cd /tmp \
