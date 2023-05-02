@@ -211,7 +211,7 @@ def get_safety_ignore_dict(image_uri, framework, python_version, job_type):
         )
 
     if job_type == "training":
-        job_type = "training-neuron" if "neuron" in image_uri else "training"
+        job_type = "training-neuronx" if "neuronx" in image_uri else "training-neuron" if "neuron" in image_uri else "training"
 
     if "habana" in image_uri:
         framework = f"habana_{framework}"
