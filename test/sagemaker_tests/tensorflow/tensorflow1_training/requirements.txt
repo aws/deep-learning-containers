@@ -21,7 +21,7 @@ botocore
 requests-mock
 awscli
 fabric==2.5.0
-invoke!=2.1.0
+invoke<2.1.0
 sagemaker-experiments==0.1.17
 retrying==1.3.3
 gitpython

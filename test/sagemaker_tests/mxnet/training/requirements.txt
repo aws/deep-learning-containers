@@ -17,7 +17,7 @@ botocore
 awscli
 requests_mock==1.7.0
 fabric
-invoke!=2.1.0
+invoke<2.1.0
 retrying
 gitpython
 toml

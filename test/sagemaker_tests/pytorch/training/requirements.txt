@@ -17,7 +17,7 @@ requests
 tox
 requests_mock
 fabric
-invoke!=2.1.0
+invoke<2.1.0
 retrying
 gitpython
 toml
