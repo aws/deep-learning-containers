@@ -18,11 +18,9 @@ import os
 import botocore
 import random
 import time
-import sys
 
 logger = logging.getLogger(__name__)
-logger.setLevel(logging.DEBUG)
-logger.addHandler(logging.StreamHandler(sys.stdout))
+BATCH_CSV = os.path.join("data", "batch.csv")
 
 
 def _botocore_resolver():
@@ -310,15 +308,12 @@ def invoke_endpoint(
             )
             result = json.loads(response["Body"].read().decode())
             results.append(result)
-        logger.info("endpoint result {}".format(result))
         return results
     else:
         response = sagemaker_runtime_client.invoke_endpoint(
             EndpointName=endpoint_name, ContentType=content_type, Body=json.dumps(input_data)
         )
-        logger.info("request body {}".format(json.dumps(input_data)))
         result = json.loads(response["Body"].read().decode())
-        logger.info("endpoint response {}".format(result))
         assert result["predictions"] is not None
         return result
 
@@ -338,7 +333,6 @@ def create_and_invoke_endpoint(
     environment={},
     content_type="application/json",
 ):
-    logger.info("create_and_invoke_endpoint with image_uri {}".format(image_uri))
     with sagemaker_model(
         boto_session,
         sagemaker_client,
