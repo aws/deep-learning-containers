@@ -26,7 +26,7 @@ ARG PYTHON_PIP=python3-pip
 ARG PIP=pip3
 ARG PYTHON_VERSION=3.10.9
 ARG TFS_API_VERSION=2.12.0
-ARG TFS_URL=https://framework-binaries.s3.us-west-2.amazonaws.com/tensorflow_serving/r2.9_aws/aarch64_test/tensorflow_model_server
+ARG TFS_URL=https://framework-binaries.s3.us-west-2.amazonaws.com/tensorflow_serving/r2.12_aws/cpu/2023-04-29-23-12/tensorflow_model_server
 
 # ENV variable to be passed to SageMaker stage
 ENV PIP=${PIP}
@@ -72,7 +72,7 @@ RUN apt-get update \
  && apt-get clean \
  && rm -rf /var/lib/apt/lists/*
 
-# Install python3.8
+# Install python3.10
 RUN wget https://www.python.org/ftp/python/$PYTHON_VERSION/Python-$PYTHON_VERSION.tgz \
  && tar -xvf Python-$PYTHON_VERSION.tgz \
  && cd Python-$PYTHON_VERSION \
