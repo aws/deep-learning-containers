@@ -24,7 +24,7 @@ LABEL dlc_major_version="1"
 ARG PYTHON=python3.10
 ARG PYTHON_PIP=python3-pip
 ARG PIP=pip3
-ARG PYTHON_VERSION=3.10.9
+ARG PYTHON_VERSION=3.10.10
 ARG TFS_API_VERSION=2.12.0
 ARG TFS_URL=https://framework-binaries.s3.us-west-2.amazonaws.com/tensorflow_serving/r2.12_aws/cpu/2023-04-29-23-12/tensorflow_model_server
 
@@ -87,13 +87,12 @@ RUN ${PIP} --no-cache-dir install --upgrade \
 RUN ${PIP} install --no-cache-dir \
     "awscli<2" \
     boto3 \
-    cython==0.29.21 \
-    falcon==3.1.0 \
-    gunicorn==20.1.0 \
-    gevent==21.1.1 \
-    requests==2.25.1 \
-    grpcio==1.34.1 \
+    cython==0.29.30 \
+    gevent==21.12.0 \
+    requests==2.27.1 \
+    grpcio==1.46.3 \
     "protobuf>=3.20.2,<3.21" \
+    packaging \
 # using --no-dependencies to avoid installing tensorflow binary
  && ${PIP} install --no-dependencies --no-cache-dir \
     tensorflow-serving-api==${TFS_API_VERSION}
