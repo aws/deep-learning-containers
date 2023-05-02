@@ -3,6 +3,8 @@ import os
 import logging
 import sys
 
+from test.test_utils import is_pr_context
+
 LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.DEBUG)
 LOGGER.addHandler(logging.StreamHandler(sys.stdout))
@@ -17,6 +19,9 @@ class PytestCache:
     def __init__(self, s3_client, account_id):
         self.s3_client = s3_client
         self.bucket_name = f"dlc-test-execution-results-{account_id}"
+        # Temporarily enable this feature only on PR context
+        # TODO: Enable remote caching on all contexts
+        self.enable_remote_caching = is_pr_context()
 
     def download_pytest_cache_from_s3_to_local(
         self,
@@ -162,6 +167,9 @@ class PytestCache:
         return os.path.join(commit_id, framework, version, build_context, test_type)
 
     def __upload_cache_to_s3(self, local_file, s3_file):
+        if not self.enable_remote_caching:
+            LOGGER.warning("DLC Pytest Remote Caching is disabled.")
+            return
         if os.path.exists(f"{local_file}"):
             LOGGER.info(f"Uploading current execution result to {s3_file}")
             try:
@@ -192,6 +200,9 @@ class PytestCache:
         return os.path.exists(file_path) and os.stat(file_path).st_size != 0
 
     def __download_cache_from_s3(self, s3_file, local_file):
+        if not self.enable_remote_caching:
+            LOGGER.warning("DLC Pytest Remote Caching is disabled.")
+            return
         LOGGER.info(f"Downloading previous executions cache: {s3_file}")
         try:
             self.s3_client.download_file(self.bucket_name, f"{s3_file}", f"{local_file}")

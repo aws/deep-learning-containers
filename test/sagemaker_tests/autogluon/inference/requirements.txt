@@ -18,5 +18,6 @@ requests==2.24
 tox==3.7.0
 requests_mock==1.6.0
 fabric
+invoke!=2.1.0
 retrying
 gitpython
