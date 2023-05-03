@@ -1630,7 +1630,7 @@ NEURONX_VERSION_MANIFEST = {
         "tensorflow": {
             "2.10.1": "2.10.1.2.1.0",
         },
-    }
+    },
 }
 
 
