@@ -22,6 +22,7 @@ from ...integration import DEFAULT_TIMEOUT
 from ...integration.sagemaker.timeout import timeout
 from retrying import retry
 from sagemaker import get_execution_role
+from packaging.specifiers import SpecifierSet
 
 # configuration for running training on torch distributed Data Parallel
 distribution = {"torch_distributed": {"enabled": True}}
@@ -42,6 +43,15 @@ hyperparameters = {
 def retry_if_value_error(exception):
     """Return True if we should retry (in this case when it's an ValueError), False otherwise"""
     return isinstance(exception, ValueError)
+
+
+def get_pytorch_version(ecr_image):
+    pytorch_version_search = re.search(r"(\d+(\.\d+){1,2})-transformers", ecr_image)
+    if pytorch_version_search:
+        pytorch_version = pytorch_version_search.group(1)
+        return pytorch_version
+    else:
+        raise LookupError("PyTorch version not found in image URI")
 
 
 # TBD. This function is mainly there to handle capacity issues now. Once trn1 capacaity issues
@@ -86,7 +96,7 @@ def invoke_neuron_helper_function(
 
 
 @pytest.mark.processor("neuronx")
-@pytest.mark.model("hf-pt-qa-neuronx")
+@pytest.mark.model("hf-pt-glue-neuronx")
 @pytest.mark.neuronx_test
 @pytest.mark.skip_py2_containers
 def test_neuronx_question_answering(ecr_image, sagemaker_regions, py_version, instance_type):
@@ -105,11 +115,16 @@ def _test_neuronx_question_answering_function(
     ecr_image,
     sagemaker_session,
     py_version,
-    instance_type="ml.trn1.32xlarge",
+    instance_type="ml.trn1.2xlarge",
     instance_count=1,
     num_neuron_cores=2,
 ):
-    optimum_neuron_version = "0.0.3"
+    pytorch_version = get_pytorch_version(ecr_image)
+    if pytorch_version in SpecifierSet("==1.13.*"):
+        optimum_neuron_version = "0.0.3"
+    else:
+        pytest.skip(f"No Optimum version found for PyTorch version {pytorch_version}.")
+
     git_config = {
         "repo": "https://github.com/huggingface/optimum-neuron.git",
         "branch": "v" + optimum_neuron_version,
