@@ -41,7 +41,7 @@ logging.getLogger("connectionpool.py").setLevel(logging.INFO)
 
 dir_path = os.path.dirname(os.path.realpath(__file__))
 
-NEURON_TRN1_INSTANCES = ["ml.trn1.2xlarge", "ml.trn1.32xlarge"]
+NEURONX_TRN1_INSTANCES = ["ml.trn1.2xlarge", "ml.trn1.32xlarge"]
 
 NO_P2_REGIONS = [
     "ap-east-1",
@@ -252,7 +252,7 @@ def fixture_dist_gpu_backend(request):
 @pytest.fixture(autouse=True)
 def skip_by_device_type(request, use_gpu, instance_type):
     is_gpu = use_gpu or instance_type[3] in ["g", "p"]
-    is_neuronx = instance_type in NEURON_TRN1_INSTANCES
+    is_neuronx = instance_type in NEURONX_TRN1_INSTANCES
 
     # If neuron run only tests marked as neuron
     if request.node.get_closest_marker("neuronx_test") and not is_neuronx:

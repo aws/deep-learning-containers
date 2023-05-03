@@ -37,6 +37,7 @@ hyperparameters = {
     "output_dir": "/opt/ml/model",
 }
 
+
 # ValueError: Must setup local AWS configuration with a region supported by SageMaker.
 def retry_if_value_error(exception):
     """Return True if we should retry (in this case when it's an ValueError), False otherwise"""
