@@ -38,7 +38,6 @@ def test_neuronx_hosting(
     instance_type = instance_type or "ml.inf2.xlarge"
     function_args = {
         "framework_version": framework_version,
-        "ecr_image": ecr_image,
         "instance_type": instance_type,
         "model_dir": model_dir,
         "script_dir": script_dir,
@@ -48,9 +47,9 @@ def test_neuronx_hosting(
 
 
 def _test_pt_neuronx(
+    ecr_image,
     sagemaker_session,
     framework_version,
-    ecr_image,
     instance_type,
     model_dir,
     script_dir,
