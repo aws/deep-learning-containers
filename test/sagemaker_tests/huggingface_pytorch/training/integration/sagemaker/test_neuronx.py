@@ -123,7 +123,9 @@ def _test_neuronx_text_classification_function(
     if pytorch_version in SpecifierSet("==1.13.*"):
         optimum_neuron_version = "0.0.3"
     else:
-        pytest.skip(f"`optimum_neuron_version` to be set for PyTorch version {pytorch_version}.")
+        raise ValueError(
+            f"`optimum_neuron_version` to be set for PyTorch version {pytorch_version}."
+        )
 
     git_config = {
         "repo": "https://github.com/huggingface/optimum-neuron.git",
