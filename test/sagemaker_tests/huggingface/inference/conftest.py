@@ -109,7 +109,9 @@ def pytest_addoption(parser):
         "--py-version", choices=["2", "3", "37", "38", "39"], default=str(sys.version_info.major)
     )
     # Processor is still "cpu" for EIA tests
-    parser.addoption("--processor", choices=["gpu", "cpu", "eia", "neuron", "neuronx"], default="cpu")
+    parser.addoption(
+        "--processor", choices=["gpu", "cpu", "eia", "neuron", "neuronx"], default="cpu"
+    )
     # If not specified, will default to {framework-version}-{processor}-py{py-version}
     parser.addoption("--tag", default=None)
     parser.addoption(
