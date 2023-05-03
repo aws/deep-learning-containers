@@ -20,19 +20,6 @@ def _setup_container(connection, docker_image, container_name):
     )
 
 
-def _setup_ssh_config_file(context, config_string):
-    """
-    creates config file in ~/.ssh/config to enable host forwarding
-    :param context:
-    :param config_string:
-    :return: None
-    """
-    ssh_config_file = "~/.ssh/config"
-    context.run(f"touch {ssh_config_file}")
-    context.run(f"echo $'{config_string}' > ~/.ssh/config")
-    context.run("chmod 600 ~/.ssh/config")
-
-
 @pytest.mark.parametrize("ec2_instance_type", ["p4d.24xlarge"])
 @pytest.mark.parametrize("region", ["us-west-2"])
 def test_efa(training, efa_ec2_instances, ec2_instance_type, region):
@@ -49,7 +36,7 @@ def test_efa(training, efa_ec2_instances, ec2_instance_type, region):
     _setup_container(master_connection, training, master_container_name)
 
     ssh_config_efa = "Host *\n   ForwardAgent yes \nHost *\n   StrictHostKeyChecking no"
-    _setup_ssh_config_file(master_connection, ssh_config_efa)
+    ec2_utils.setup_efa_ssh_config_file(master_connection, ssh_config_efa)
     slots = ec2_utils.get_instance_num_gpus(instance_type=ec2_instance_type)
     worker_instance_private_ips = [instance["PrivateIpAddress"] for instance in instances[1:]]
     create_mpi_hosts_file(master_connection, worker_instance_private_ips, slots)
@@ -59,7 +46,7 @@ def test_efa(training, efa_ec2_instances, ec2_instance_type, region):
         user=user_name, host=worker_public_ip, connect_kwargs={"key_filename": [KEY_FILE]},
         connect_timeout=18000
     )
-    _setup_ssh_config_file(worker_connection, ssh_config_efa)
+    ec2_utils.setup_efa_ssh_config_file(worker_connection, ssh_config_efa)
     setup_passwordless_host_ssh(master_connection, [worker_connection])
     worker_container_name = "worker_container"
     _setup_container(worker_connection, training, worker_container_name)

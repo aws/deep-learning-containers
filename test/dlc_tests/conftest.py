@@ -415,7 +415,7 @@ def efa_ec2_instances(
             elastic_ip_allocation_id = ec2_utils.attach_elastic_ip(network_interface_id, region)
             elastic_ip_allocation_ids.append(elastic_ip_allocation_id)
 
-    return [(instance_info, ec2) instances]
+    return [(instance_info["InstanceId"], key_filename) for instance_info in instances]
 
 
 @pytest.fixture(scope="function")
@@ -423,14 +423,54 @@ def efa_ec2_connections(request, efa_ec2_instances, ec2_key_name, ec2_instance_t
     """
     Fixture to establish connection with EC2 instance if necessary
     :param request: pytest test request
-    :param ec2_instance: ec2_instance pytest fixture
+    :param efa_ec2_instances: efa_ec2_instances pytest fixture
     :param ec2_key_name: unique key name
     :param ec2_instance_type: ec2_instance_type pytest fixture
     :param region: Region where ec2 instance is launched
     :return: Fabric connection object
     """
-    instance_id, instance_pem_file = ec2_instance
-    region = P3DN_REGION if ec2_instance_type == "p3dn.24xlarge" else region
+    master_instance_id, master_instance_pem_file = efa_ec2_instances[0]
+    worker_instances = [
+        {
+            "worker_instance_id": worker_instance_id,
+            "worker_instance_pem_file": worker_instance_pem_file,
+        }
+        for worker_instance_id, worker_instance_pem_file in efa_ec2_instances[1:]
+    ]
+
+    user_name = ec2_utils.get_instance_user(master_instance_id, region=region)
+    master_public_ip = ec2_utils.get_public_ip(master_instance_id, region)
+    master_connection = Connection(
+        user=user_name,
+        host=master_public_ip,
+        connect_kwargs={"key_filename": [master_instance_pem_file]},
+        connect_timeout=18000,
+    )
+
+    ssh_config_efa = "Host *\n   ForwardAgent yes \nHost *\n   StrictHostKeyChecking no"
+    ec2_utils.setup_efa_ssh_config_file(master_connection, ssh_config_efa)
+    slots = ec2_utils.get_instance_num_gpus(instance_type=ec2_instance_type)
+    worker_instance_private_ips = [
+        ec2_utils.get_private_ip(instance["worker_instance_id"])
+        for instance in worker_instances
+    ]
+    create_mpi_hosts_file(master_connection, worker_instance_private_ips, slots)
+
+    for instance in worker_instances:
+        worker_instance_id = instance["worker_instance_id"]
+        worker_instance_pem_file = instance["worker_instance_pem_file"]
+        worker_public_ip = ec2_utils.get_public_ip(worker_instance_id, region)
+        worker_connection = Connection(
+            user=user_name,
+            host=worker_public_ip,
+            connect_kwargs={"key_filename": [worker_instance_pem_file]},
+            connect_timeout=18000,
+        )
+        ec2_utils.setup_efa_ssh_config_file(worker_connection, ssh_config_efa)
+        setup_passwordless_host_ssh(master_connection, [worker_connection])
+
+
+
     ip_address = ec2_utils.get_public_ip(instance_id, region=region)
     LOGGER.info(f"Instance ip_address: {ip_address}")
     user = ec2_utils.get_instance_user(instance_id, region=region)

@@ -231,6 +231,20 @@ def get_instance_from_id(instance_id, region=DEFAULT_REGION):
 
 
 @retry(stop=stop_after_attempt(16), wait=wait_fixed(60))
+def get_private_ip(instance_id, region=DEFAULT_REGION):
+    """
+    Get Private IP of instance using instance ID
+    :param instance_id: Instance ID to be queried
+    :param region: Region where query will be performed
+    :return: <str> Private IP Address of instance with matching instance ID
+    """
+    instance = get_instance_from_id(instance_id, region)
+    if not instance["PrivateIpAddress"]:
+        raise Exception("Private IP address not yet available")
+    return instance["PrivateIpAddress"]
+
+
+@retry(stop=stop_after_attempt(16), wait=wait_fixed(60))
 def get_public_ip(instance_id, region=DEFAULT_REGION):
     """
     Get Public IP of instance using instance ID
@@ -470,6 +484,7 @@ def get_instance_num_gpus(instance_id=None, instance_type=None, region=DEFAULT_R
     :return: <int> Number of GPUs on instance with matching instance ID
     """
     assert instance_id or instance_type, "Input must be either instance_id or instance_type"
+    instance_type = "p4d.24xlarge" if instance_type == "p4de.24xlarge" else instance_type
     instance_info = (
         get_instance_type_details(instance_type, region=region)
         if instance_type
@@ -1289,3 +1304,16 @@ def get_efa_devices_on_instance(connection):
     response = connection.run("ls /dev/infiniband/uverbs*")
     devices = response.stdout.split()
     return devices
+
+
+def setup_efa_ssh_config_file(context, config_string):
+    """
+    creates config file in ~/.ssh/config to enable host forwarding
+    :param context:
+    :param config_string:
+    :return: None
+    """
+    ssh_config_file = "~/.ssh/config"
+    context.run(f"touch {ssh_config_file}")
+    context.run(f"echo $'{config_string}' > ~/.ssh/config")
+    context.run("chmod 600 ~/.ssh/config")
