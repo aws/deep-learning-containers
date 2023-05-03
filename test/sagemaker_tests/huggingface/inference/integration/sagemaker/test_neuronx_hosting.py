@@ -24,7 +24,7 @@ from ...integration import (
     pt_neuronx_model,
     script_dir,
     pt_neuron_script,
-    dump_logs_from_cloudwatch,
+    invoke_sm_helper_function,
 )
 from ...integration.sagemaker.timeout import timeout_and_delete_endpoint
 
@@ -32,23 +32,19 @@ from ...integration.sagemaker.timeout import timeout_and_delete_endpoint
 @pytest.mark.model("tiny-distilbert")
 @pytest.mark.processor("neuronx")
 @pytest.mark.neuronx_test
-def test_neuron_hosting(
-    sagemaker_session, framework_version, ecr_image, instance_type, region, py_version
+def test_neuronx_hosting(
+    framework_version, ecr_image, instance_type, sagemaker_regions, py_version
 ):
     instance_type = instance_type or "ml.inf2.xlarge"
-    try:
-        _test_pt_neuronx(
-            sagemaker_session,
-            framework_version,
-            ecr_image,
-            instance_type,
-            model_dir,
-            script_dir,
-            py_version,
-        )
-    except Exception as e:
-        dump_logs_from_cloudwatch(e, region)
-        raise
+    function_args = {
+        "framework_version": framework_version,
+        "ecr_image": ecr_image,
+        "instance_type": instance_type,
+        "model_dir": model_dir,
+        "script_dir": script_dir,
+        "py_version": py_version,
+    }
+    invoke_sm_helper_function(ecr_image, sagemaker_regions, _test_pt_neuronx, function_args)
 
 
 def _test_pt_neuronx(
