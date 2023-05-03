@@ -1283,3 +1283,9 @@ def create_name_tags_for_instance(instance_id, name_tag, region):
         raise Exception(
             "Unable to create name tag {0} for the  instance {1}".format(name_tag, instance_id)
         )
+
+
+def get_efa_devices_on_instance(connection):
+    response = connection.run("ls /dev/infiniband/uverbs*")
+    devices = response.stdout.split()
+    return devices

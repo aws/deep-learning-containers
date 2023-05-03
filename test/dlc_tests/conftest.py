@@ -415,7 +415,63 @@ def efa_ec2_instances(
             elastic_ip_allocation_id = ec2_utils.attach_elastic_ip(network_interface_id, region)
             elastic_ip_allocation_ids.append(elastic_ip_allocation_id)
 
-    return instances
+    return [(instance_info, ec2) instances]
+
+
+@pytest.fixture(scope="function")
+def efa_ec2_connections(request, efa_ec2_instances, ec2_key_name, ec2_instance_type, region):
+    """
+    Fixture to establish connection with EC2 instance if necessary
+    :param request: pytest test request
+    :param ec2_instance: ec2_instance pytest fixture
+    :param ec2_key_name: unique key name
+    :param ec2_instance_type: ec2_instance_type pytest fixture
+    :param region: Region where ec2 instance is launched
+    :return: Fabric connection object
+    """
+    instance_id, instance_pem_file = ec2_instance
+    region = P3DN_REGION if ec2_instance_type == "p3dn.24xlarge" else region
+    ip_address = ec2_utils.get_public_ip(instance_id, region=region)
+    LOGGER.info(f"Instance ip_address: {ip_address}")
+    user = ec2_utils.get_instance_user(instance_id, region=region)
+
+    LOGGER.info(f"Connecting to {user}@{ip_address}")
+    conn = Connection(
+        user=user,
+        host=ip_address,
+        connect_kwargs={"key_filename": [instance_pem_file]},
+        connect_timeout=18000,
+    )
+
+    random.seed(f"{datetime.datetime.now().strftime('%Y%m%d%H%M%S%f')}")
+    unique_id = random.randint(1, 100000)
+
+    artifact_folder = f"{ec2_key_name}-{unique_id}-folder"
+    s3_test_artifact_location = test_utils.upload_tests_to_s3(artifact_folder)
+
+    def delete_s3_artifact_copy():
+        test_utils.delete_uploaded_tests_from_s3(s3_test_artifact_location)
+
+    request.addfinalizer(delete_s3_artifact_copy)
+
+    python_version = "3.9"
+    if is_neuron_image(request.fixturenames):
+        # neuron still support tf1.15 and that is only there in py37 and less.
+        # so use python3.7 for neuron
+        python_version = "3.7"
+    ec2_utils.install_python_in_instance(conn, python_version=python_version)
+
+    conn.run(
+        f"aws s3 cp --recursive {test_utils.TEST_TRANSFER_S3_BUCKET}/{artifact_folder} $HOME/container_tests"
+    )
+    conn.run(f"mkdir -p $HOME/container_tests/logs && chmod -R +x $HOME/container_tests/*")
+
+    # Log into ECR if we are in canary context
+    if test_utils.is_canary_context():
+        public_registry = test_utils.PUBLIC_DLC_REGISTRY
+        test_utils.login_to_ecr_registry(conn, public_registry, region)
+
+    return conn
 
 
 @pytest.mark.timeout(300)

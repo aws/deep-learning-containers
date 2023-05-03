@@ -5,14 +5,8 @@ from fabric import Connection
 import test.test_utils.ec2 as ec2_utils
 
 
-def get_efa_devices_on_instance(connection):
-    response = connection.run("ls /dev/infiniband/uverbs*")
-    devices = response.stdout.split()
-    return devices
-
-
-def setup_container(connection, docker_image, container_name):
-    devices = get_efa_devices_on_instance(connection)
+def _setup_container(connection, docker_image, container_name):
+    devices = ec2_utils.get_efa_devices_on_instance(connection)
     docker_devices_args = [f"--device {device_location}" for device_location in devices]
     docker_all_devices_arg = " ".join(docker_devices_args)
     connection.run(
@@ -24,6 +18,19 @@ def setup_container(connection, docker_image, container_name):
         f"nvidia-docker run -id --name {container_name} --network host --ulimit memlock=-1:-1 {docker_all_devices_arg} "
         f"{docker_image} bash"
     )
+
+
+def _setup_ssh_config_file(context, config_string):
+    """
+    creates config file in ~/.ssh/config to enable host forwarding
+    :param context:
+    :param config_string:
+    :return: None
+    """
+    ssh_config_file = "~/.ssh/config"
+    context.run(f"touch {ssh_config_file}")
+    context.run(f"echo $'{config_string}' > ~/.ssh/config")
+    context.run("chmod 600 ~/.ssh/config")
 
 
 @pytest.mark.parametrize("ec2_instance_type", ["p4d.24xlarge"])
@@ -39,11 +46,11 @@ def test_efa(training, efa_ec2_instances, ec2_instance_type, region):
         connect_timeout=18000
     )
     master_container_name = "master_container"
-    setup_container(master_connection, training, master_container_name)
+    _setup_container(master_connection, training, master_container_name)
 
     ssh_config_efa = "Host *\n   ForwardAgent yes \nHost *\n   StrictHostKeyChecking no"
-    setup_ssh_config_file(master_connection, ssh_config_efa)
-    slots = get_instance_num_gpus(instance_type=INSTANCE_TYPE)
+    _setup_ssh_config_file(master_connection, ssh_config_efa)
+    slots = ec2_utils.get_instance_num_gpus(instance_type=ec2_instance_type)
     worker_instance_private_ips = [instance["PrivateIpAddress"] for instance in instances[1:]]
     create_mpi_hosts_file(master_connection, worker_instance_private_ips, slots)
 
@@ -52,7 +59,7 @@ def test_efa(training, efa_ec2_instances, ec2_instance_type, region):
         user=user_name, host=worker_public_ip, connect_kwargs={"key_filename": [KEY_FILE]},
         connect_timeout=18000
     )
-    setup_ssh_config_file(worker_connection, ssh_config_efa)
+    _setup_ssh_config_file(worker_connection, ssh_config_efa)
     setup_passwordless_host_ssh(master_connection, [worker_connection])
     worker_container_name = "worker_container"
-    setup_container(worker_connection, worker_container_name)
+    _setup_container(worker_connection, training, worker_container_name)
