@@ -28,13 +28,13 @@ distribution = {"torch_distributed": {"enabled": True}}
 
 # hyperparameters, which are passed into the training job
 hyperparameters = {
-    'model_name_or_path': 'hf-internal-testing/tiny-random-BertModel',
-    'dataset_name': 'philschmid/emotion',
-    'do_train': True,
-    'bf16': True,
-    'per_device_train_batch_size': 4,
-    'num_train_epochs': 1,
-    'output_dir': '/opt/ml/model'
+    "model_name_or_path": "hf-internal-testing/tiny-random-BertModel",
+    "dataset_name": "philschmid/emotion",
+    "do_train": True,
+    "bf16": True,
+    "per_device_train_batch_size": 4,
+    "num_train_epochs": 1,
+    "output_dir": "/opt/ml/model",
 }
 
 # ValueError: Must setup local AWS configuration with a region supported by SageMaker.
@@ -42,12 +42,17 @@ def retry_if_value_error(exception):
     """Return True if we should retry (in this case when it's an ValueError), False otherwise"""
     return isinstance(exception, ValueError)
 
+
 # TBD. This function is mainly there to handle capacity issues now. Once trn1 capacaity issues
 # are fixed, we can remove this function
 @retry(
-    stop_max_attempt_number=360, wait_fixed=10000, retry_on_exception=retry_if_value_error,
+    stop_max_attempt_number=360,
+    wait_fixed=10000,
+    retry_on_exception=retry_if_value_error,
 )
-def invoke_neuron_helper_function(ecr_image, sagemaker_regions, helper_function, helper_function_args):
+def invoke_neuron_helper_function(
+    ecr_image, sagemaker_regions, helper_function, helper_function_args
+):
     """
     Used to invoke SM job defined in the helper functions in respective test file. The ECR image and the sagemaker
     session are passed explicitly depending on the AWS region.
@@ -66,7 +71,9 @@ def invoke_neuron_helper_function(ecr_image, sagemaker_regions, helper_function,
     for region in sagemaker_regions:
         sagemaker_session = get_sagemaker_session(region)
         # Reupload the image to test region if needed
-        tested_ecr_image = get_ecr_image(ecr_image, region) if region != ecr_image_region else ecr_image
+        tested_ecr_image = (
+            get_ecr_image(ecr_image, region) if region != ecr_image_region else ecr_image
+        )
         try:
             helper_function(tested_ecr_image, sagemaker_session, **helper_function_args)
             return
@@ -76,32 +83,46 @@ def invoke_neuron_helper_function(ecr_image, sagemaker_regions, helper_function,
             else:
                 raise e
 
+
 @pytest.mark.processor("neuronx")
 @pytest.mark.model("hf-pt-qa-neuronx")
 @pytest.mark.neuronx_test
 @pytest.mark.skip_py2_containers
 def test_neuronx_question_answering(ecr_image, sagemaker_regions, py_version, instance_type):
     function_args = {
-        'py_version': py_version,
-        'instance_type': instance_type,
-        'instance_count': 1,
-        'num_neuron_cores': 2,
+        "py_version": py_version,
+        "instance_type": instance_type,
+        "instance_count": 1,
+        "num_neuron_cores": 2,
     }
-    invoke_neuron_helper_function(ecr_image, sagemaker_regions, _test_neuronx_question_answering_function, function_args)
+    invoke_neuron_helper_function(
+        ecr_image, sagemaker_regions, _test_neuronx_question_answering_function, function_args
+    )
 
-def _test_neuronx_question_answering_function(ecr_image, sagemaker_session, py_version, instance_type= "ml.trn1.32xlarge", instance_count=1, num_neuron_cores=2):
+
+def _test_neuronx_question_answering_function(
+    ecr_image,
+    sagemaker_session,
+    py_version,
+    instance_type="ml.trn1.32xlarge",
+    instance_count=1,
+    num_neuron_cores=2,
+):
     optimum_neuron_version = "0.0.3"
-    git_config = {'repo': 'https://github.com/huggingface/optimum-neuron.git', 'branch': 'v' + optimum_neuron_version}
+    git_config = {
+        "repo": "https://github.com/huggingface/optimum-neuron.git",
+        "branch": "v" + optimum_neuron_version,
+    }
 
     source_dir = "./examples/text-classification"
 
     role = get_execution_role()
     with timeout(minutes=DEFAULT_TIMEOUT):
         estimator = HuggingFace(
-            entry_point='run_glue.py',
+            entry_point="run_glue.py",
             source_dir=source_dir,
             git_config=git_config,
-            role='SageMakerRole',
+            role="SageMakerRole",
             image_uri=ecr_image,
             instance_count=instance_count,
             instance_type=instance_type,
@@ -110,4 +131,4 @@ def _test_neuronx_question_answering_function(ecr_image, sagemaker_session, py_v
             # distribution=distribution,  # Uncomment when it is enabled by HuggingFace Estimator
             hyperparameters=hyperparameters,
         )
-        estimator.fit(job_name=sagemaker.utils.unique_name_from_base('test-hf-pt-qa-neuronx'))
+        estimator.fit(job_name=sagemaker.utils.unique_name_from_base("test-hf-pt-qa-neuronx"))
