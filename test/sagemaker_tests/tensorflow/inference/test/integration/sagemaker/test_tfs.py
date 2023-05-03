@@ -15,6 +15,9 @@ import os
 import pytest
 
 from ..sagemaker import util
+from ...... import (
+    invoke_sm_endpoint_helper_function,
+)
 
 NON_P3_REGIONS = [
     "ap-southeast-1",
@@ -25,6 +28,9 @@ NON_P3_REGIONS = [
     "eu-west-2",
     "us-west-1",
 ]
+
+TFS_NEURONX_MODEL_PATH = "data/tfs-neuronx-model.tar.gz"
+TFS_NEURON_MODEL_PATH = "data/tfs-neuron-model.tar.gz"
 
 
 @pytest.fixture(params=os.environ["TEST_VERSIONS"].split(","))
@@ -69,16 +75,6 @@ def accelerator_type():
 @pytest.fixture(scope="session")
 def tfs_model(region, boto_session):
     return util.find_or_put_model_data(region, boto_session, "data/tfs-model.tar.gz")
-
-
-@pytest.fixture(scope="session")
-def tfs_neuron_model(region, boto_session):
-    return util.find_or_put_model_data(region, boto_session, "data/tfs-neuron-model.tar.gz")
-
-
-@pytest.fixture(scope="session")
-def tfs_neuronx_model(region, boto_session):
-    return util.find_or_put_model_data(region, boto_session, "test/data/tfs-neuronx-model.tar.gz")
 
 
 @pytest.fixture(scope="session")
@@ -173,55 +169,38 @@ def test_tfs_model(
 @pytest.mark.model("unknown_model")
 @pytest.mark.neuron_test
 def test_tfs_neuron_model(
-    boto_session,
-    sagemaker_client,
-    sagemaker_runtime_client,
-    model_name,
-    tfs_neuron_model,
-    image_uri,
-    instance_type,
-    accelerator_type,
+    model_name, sagemaker_regions, image_uri, instance_type, accelerator_type
 ):
     input_data = {"instances": [[[[1, 10], [2, 20]]]]}
-    util.create_and_invoke_endpoint(
-        boto_session,
-        sagemaker_client,
-        sagemaker_runtime_client,
-        model_name,
-        tfs_neuron_model,
-        image_uri,
-        instance_type,
-        accelerator_type,
-        input_data,
+    invoke_sm_endpoint_helper_function(
+        ecr_image=image_uri,
+        sagemaker_regions=sagemaker_regions,
+        model_helper=util.find_or_put_model_data,
+        test_function=util.create_and_invoke_endpoint,
+        local_model_path=TFS_NEURON_MODEL_PATH,
+        model_name=model_name,
+        instance_type=instance_type,
+        accelerator_type=accelerator_type,
+        input_data=input_data,
     )
 
 
-@pytest.mark.skip(
-    "CreateEndpointConfig doesn't support trn1: https://docs.aws.amazon.com/sagemaker/latest/APIReference/API_ProductionVariant.html#sagemaker-Type-ProductionVariant-InstanceType"
-)
 @pytest.mark.model("unknown_model")
 @pytest.mark.neuronx_test
 def test_tfs_neuronx_model(
-    boto_session,
-    sagemaker_client,
-    sagemaker_runtime_client,
-    model_name,
-    tfs_neuronx_model,
-    image_uri,
-    instance_type,
-    accelerator_type,
+    model_name, sagemaker_regions, image_uri, instance_type, accelerator_type
 ):
-    input_data = {"instances": [1.0, 2.0, 5.0]}
-    util.create_and_invoke_endpoint(
-        boto_session,
-        sagemaker_client,
-        sagemaker_runtime_client,
-        model_name,
-        tfs_neuronx_model,
-        image_uri,
-        instance_type,
-        accelerator_type,
-        input_data,
+    input_data = {"instances": [[1.0, 2.0, 5.0]]}
+    invoke_sm_endpoint_helper_function(
+        ecr_image=image_uri,
+        sagemaker_regions=sagemaker_regions,
+        model_helper=util.find_or_put_model_data,
+        test_function=util.create_and_invoke_endpoint,
+        local_model_path=TFS_NEURONX_MODEL_PATH,
+        model_name=model_name,
+        instance_type=instance_type,
+        accelerator_type=accelerator_type,
+        input_data=input_data,
     )
 
 
@@ -230,7 +209,6 @@ def test_tfs_neuronx_model(
 def test_batch_transform(
     region, boto_session, sagemaker_client, model_name, tfs_model, image_uri, instance_type
 ):
-
     if "graviton" in image_uri:
         pytest.skip("Test not supported with Graviton test instance.")
 
@@ -259,7 +237,6 @@ def test_python_model_with_requirements(
     instance_type,
     accelerator_type,
 ):
-
     if "p3" in instance_type:
         pytest.skip("skip for p3 instance")
 
@@ -289,7 +266,6 @@ def test_python_model_with_lib(
     instance_type,
     accelerator_type,
 ):
-
     if "p3" in instance_type:
         pytest.skip("skip for p3 instance")
 
@@ -325,7 +301,6 @@ def test_mme1(
     accelerator_type,
     region,
 ):
-
     if "p3" in instance_type:
         pytest.skip("skip for p3 instance")
 
@@ -371,7 +346,6 @@ def test_mme2(
     accelerator_type,
     region,
 ):
-
     if "p3" in instance_type:
         pytest.skip("skip for p3 instance")
 
@@ -418,7 +392,6 @@ def test_mme3(
     accelerator_type,
     region,
 ):
-
     if "p3" in instance_type:
         pytest.skip("skip for p3 instance")
 
@@ -464,7 +437,6 @@ def test_mme4(
     instance_type,
     accelerator_type,
 ):
-
     if "p3" in instance_type:
         pytest.skip("skip for p3 instance")
 

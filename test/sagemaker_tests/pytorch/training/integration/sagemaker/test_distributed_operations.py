@@ -493,7 +493,6 @@ def test_smmodelparallel_mnist_multigpu_multinode_efa(
     """
     validate_or_skip_smmodelparallel_efa(ecr_image)
     with timeout(minutes=DEFAULT_TIMEOUT):
-
         estimator_parameter = {
             "entry_point": test_script,
             "role": "SageMakerRole",

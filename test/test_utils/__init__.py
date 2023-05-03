@@ -191,7 +191,7 @@ PUBLIC_DLC_REGISTRY = "763104351884"
 
 SAGEMAKER_EXECUTION_REGIONS = ["us-west-2", "us-east-1", "eu-west-1"]
 # Before SM GA with Trn1, they support launch of ml.trn1 instance only in us-east-1. After SM GA this can be removed
-SAGEMAKER_NEURON_EXECUTION_REGIONS = ["us-west-2"]
+SAGEMAKER_NEURON_EXECUTION_REGIONS = ["us-east-1"]
 
 UPGRADE_ECR_REPO_NAME = "upgraded-image-ecr-scan-repo"
 ECR_SCAN_HELPER_BUCKET = f"""ecr-scan-helper-{boto3.client("sts", region_name=DEFAULT_REGION).get_caller_identity().get("Account")}"""
@@ -1058,8 +1058,10 @@ def get_canary_default_tag_py3_version(framework, version):
             return "py37"
         if Version("2.6") <= Version(version) < Version("2.8"):
             return "py38"
-        if Version(version) >= Version("2.8"):
+        if Version("2.8") <= Version(version) < Version("2.12"):
             return "py39"
+        if Version(version) >= Version("2.12"):
+            return "py310"
 
     if framework == "mxnet":
         if Version(version) == Version("1.8"):
@@ -1615,7 +1617,12 @@ NEURONX_VERSION_MANIFEST = {
         "tensorflow": {
             "2.10.1": "2.10.1.2.0.0",
         },
-    }
+    },
+    "2.9.1": {
+        "pytorch": {
+            "1.13.0": "1.13.0.1.6.1",
+        }
+    },
 }
 
 

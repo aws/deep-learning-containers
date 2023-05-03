@@ -186,8 +186,6 @@ RUN pip install --no-cache-dir --extra-index-url https://download.pytorch.org/wh
 # once conda fixes the issue: https://github.com/conda/conda/issues/9680
 RUN rm -rf /opt/conda/lib/libtinfo.so.6
 
-RUN pip install --no-cache-dir "sagemaker-pytorch-inference>=2"
-
 # add necessary certificate for aws sdk cpp download
 RUN mkdir -p /etc/pki/tls/certs && cp /etc/ssl/certs/ca-certificates.crt /etc/pki/tls/certs/ca-bundle.crt
 

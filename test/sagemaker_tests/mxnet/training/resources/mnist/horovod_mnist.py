@@ -23,7 +23,6 @@ from mxnet.test_utils import download
 
 
 def main():
-
     # Function to get mnist iterator given a rank
     def get_mnist_iterator(rank):
         data_dir = "data-%d" % rank

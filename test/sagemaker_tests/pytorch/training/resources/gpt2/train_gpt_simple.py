@@ -41,7 +41,6 @@ logger = logging.getLogger(__name__)
 
 
 def get_learning_rate_scheduler(optimizer, args):
-
     # Add linear learning rate scheduler.
     if args.lr_decay_iters is not None:
         num_iters = args.lr_decay_iters
@@ -1003,10 +1002,6 @@ def main():
 
     if args.smp_version < 110 and args.fp16:
         model = FP16_Module(model)
-
-    use_inductor = args.inductor == 1
-    if use_inductor:
-        model = torch.compile(model, backend="inductor", mode="default")
 
     if args.enable_memory_profiling > 0:
         memory_status_cpu(msg="after model creation")

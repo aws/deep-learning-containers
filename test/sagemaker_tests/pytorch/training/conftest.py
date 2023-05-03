@@ -125,7 +125,7 @@ def pytest_addoption(parser):
         choices=["2", "3", "37", "38", "39", "310"],
         default=str(sys.version_info.major),
     )
-    parser.addoption("--processor", choices=["gpu", "cpu", "neuron"], default="cpu")
+    parser.addoption("--processor", choices=["gpu", "cpu", "neuron", "neuronx"], default="cpu")
     # If not specified, will default to {framework-version}-{processor}-py{py-version}
     parser.addoption("--tag", default=None)
     parser.addoption(
@@ -335,20 +335,20 @@ def fixture_dist_gpu_backend(request):
 
 
 @pytest.fixture(autouse=True)
-def skip_by_device_type(request, use_gpu, instance_type):
-    is_gpu = use_gpu or instance_type[3] in ["g", "p"]
-    is_neuron = instance_type in NEURON_TRN1_INSTANCES
+def skip_by_device_type(request, instance_type):
+    is_gpu = instance_type.lstrip("ml.")[0] in ["g", "p"]
 
-    # If neuron run only tests marked as neuron
-    if is_neuron and not request.node.get_closest_marker("neuron_test"):
-        pytest.skip('Skipping because running on "{}" instance'.format(instance_type))
-    if request.node.get_closest_marker("neuron_test") and not is_neuron:
-        pytest.skip('Skipping because running on "{}" instance'.format(instance_type))
+    # Skip a neuronx test that's not on an neuron instance or a test which
+    # uses a neuron instance and is not a neuronx test
+    is_neuronx_test = request.node.get_closest_marker("neuronx_test") is not None
+    is_neuronx_instance = "trn1" in instance_type
+    if is_neuronx_test != is_neuronx_instance:
+        pytest.skip("Skipping because running on '{}' instance".format(instance_type))
 
     if (request.node.get_closest_marker("skip_gpu") and is_gpu) or (
         request.node.get_closest_marker("skip_cpu") and not is_gpu
     ):
-        pytest.skip("Skipping because running on '{}' instance".format(instance_type))
+        pytest.skip('Skipping because running on "{}" instance'.format(instance_type))
 
 
 @pytest.fixture(autouse=True)
@@ -403,26 +403,32 @@ def skip_trcomp_containers(request, ecr_image):
 
 
 @pytest.fixture(autouse=True)
-def skip_inductor_test(request, framework_version):
+def skip_inductor_test(request):
+    if "framework_version" in request.fixturenames:
+        fw_ver = request.getfixturevalue("framework_version")
+    elif "ecr_image" in request.fixturenames:
+        fw_ver = request.getfixturevalue("ecr_image")
+    else:
+        return
     if request.node.get_closest_marker("skip_inductor_test"):
-        if Version(framework_version) < Version("2.0.0"):
+        if Version(fw_ver) < Version("2.0.0"):
             pytest.skip(
-                "SM inductor test only support PT2.0 and above, skipping this container with tag{}".format(
-                    framework_version
-                )
+                f"SM inductor test only support PT2.0 and above, skipping this container with tag {fw_ver}"
             )
 
 
 @pytest.fixture(autouse=True)
-def skip_s3plugin_test(request, framework_version):
+def skip_s3plugin_test(request):
+    if "framework_version" in request.fixturenames:
+        fw_ver = request.getfixturevalue("framework_version")
+    elif "ecr_image" in request.fixturenames:
+        fw_ver = request.getfixturevalue("ecr_image")
+    else:
+        return
     if request.node.get_closest_marker("skip_s3plugin_test"):
-        if Version(framework_version) < Version("1.6.0") or Version(framework_version) > Version(
-            "1.12.1"
-        ):
+        if Version(fw_ver) not in SpecifierSet("<=1.12.1,>=1.6.0"):
             pytest.skip(
-                "s3 plugin is only supported in PT>=1.6.0,<=1.12.1, skipping this container with tag{}".format(
-                    framework_version
-                )
+                f"s3 plugin is only supported in PT 1.6.0 - 1.12.1, skipping this container with tag {fw_ver}"
             )
 
 
