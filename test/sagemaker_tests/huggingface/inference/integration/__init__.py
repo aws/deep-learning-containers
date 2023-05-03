@@ -100,7 +100,7 @@ def invoke_sm_helper_function(
 
     :return: None
     """
-    from .. import get_ecr_image_region, get_sagemaker_session, get_ecr_image
+    from .... import get_ecr_image_region, get_sagemaker_session, get_ecr_image
 
     ecr_image_region = get_ecr_image_region(ecr_image)
     for i, region in enumerate(sagemaker_regions):
