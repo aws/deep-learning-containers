@@ -31,9 +31,12 @@ from test_utils import (
     get_framework_and_version_from_tag,
     get_build_context,
     is_nightly_context,
+    get_ecr_repo_name
 )
 from test_utils import KEYS_TO_DESTROY_FILE, DEFAULT_REGION
 from test_utils.pytest_cache import PytestCache
+
+from ..src.codebuild_environment import get_codebuild_project_name
 
 LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.DEBUG)
@@ -310,13 +313,22 @@ def main():
     except:
         framework, version = "general_test", "none"
 
+    #handle retrevial of repo name and remove test type from it
+    dlc_flavor = get_ecr_repo_name(dlc_images[0]).replace("-training", "").replace("-inference", "")
+
+    #use get_codebuild_project_name for unique identifier in CI
     pytest_cache_params = {
+        "codebuild_project_name": get_codebuild_project_name(),
         "commit_id": commit_id,
-        "framework": framework,
+        "framework": dlc_flavor,
         "version": version,
         "build_context": build_context,
         "test_type": test_type,
     }
+
+    #handle new sub-test parameter for sagemaker
+    if test_type == "sagemaker" and efa_dedicated:
+        pytest_cache_params["sub_test_type"] = "efa"
 
     # In PR context, allow us to switch sagemaker tests to RC tests.
     # Do not allow them to be both enabled due to capacity issues.
