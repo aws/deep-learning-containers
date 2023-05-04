@@ -313,16 +313,9 @@ def main():
     except:
         framework, version = "general_test", "none"
 
-    # In PR context, allow us to switch sagemaker tests to RC tests.
-    # Do not allow them to be both enabled due to capacity issues.
-    if specific_test_type == "sagemaker" and is_rc_test_context() and is_pr_context():
-        specific_test_type = "release_candidate_integration"
-
-
     #handle retrevial of repo name and remove test type from it
     dlc_flavor = get_ecr_repo_name(dlc_images[0]).replace("-training", "").replace("-inference", "")
 
-    #use get_codebuild_project_name for unique identifier in CI
     pytest_cache_params = {
         "codebuild_project_name": get_codebuild_project_name(),
         "commit_id": commit_id,
@@ -331,6 +324,11 @@ def main():
         "build_context": build_context,
         "test_type": test_type,
     }
+
+    # In PR context, allow us to switch sagemaker tests to RC tests.
+    # Do not allow them to be both enabled due to capacity issues.
+    if specific_test_type == "sagemaker" and is_rc_test_context() and is_pr_context():
+        specific_test_type = "release_candidate_integration"
 
     test_path = (
         os.path.join("benchmark", specific_test_type) if benchmark_mode else specific_test_type
