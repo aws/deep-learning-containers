@@ -2,7 +2,6 @@ import os
 from transformers import AutoTokenizer, PretrainedConfig
 import torch
 import numpy as np
-import torch.neuron
 from sagemaker_huggingface_inference_toolkit import decoder_encoder
 
 AWS_NEURONX_TRACED_WEIGHTS_NAME = "neuronx_traced_model.pt"
