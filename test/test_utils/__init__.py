@@ -2146,3 +2146,8 @@ def get_labels_from_ecr_image(image_uri, region):
     labels = image_metadata["config"]["Labels"]
 
     return labels
+
+
+def generate_unique_dlc_name(image):
+    # handle retrevial of repo name and remove test type from it
+    return get_ecr_repo_name(image).replace("-training", "").replace("-inference", "")

@@ -32,6 +32,7 @@ from test_utils import (
     get_build_context,
     is_nightly_context,
     get_ecr_repo_name,
+    generate_unique_dlc_name,
 )
 from test_utils import KEYS_TO_DESTROY_FILE, DEFAULT_REGION
 from test_utils.pytest_cache import PytestCache
@@ -313,13 +314,10 @@ def main():
     except:
         framework, version = "general_test", "none"
 
-    # handle retrevial of repo name and remove test type from it
-    dlc_flavor = get_ecr_repo_name(dlc_images[0]).replace("-training", "").replace("-inference", "")
-
     pytest_cache_params = {
         "codebuild_project_name": get_codebuild_project_name(),
         "commit_id": commit_id,
-        "framework": dlc_flavor,
+        "framework": generate_unique_dlc_name(dlc_images[0]),
         "version": version,
         "build_context": build_context,
         "test_type": test_type,
