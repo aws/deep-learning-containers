@@ -9,14 +9,13 @@ gpu_count=$(nvidia-smi -L | wc -l)
 nodes=$(($gpu_count * $hosts))
 
 PRETTY_NAME=$(cat /etc/os-release | grep PRETTY_NAME)
-HOME_DIR=$(echo $PWD)
-TRAINING_LOG="${HOME_DIR}/src/logs/testEFA.log"
+TRAINING_LOG="/test/logs/testEFA.log"
 
-if [[ $PRETTY_NAME == *"Amazon Linux AMI 2018.03"* ]]; then
-    CUDA_VERSIONS=('10.0' '10.1' '10.2')
-else
-    CUDA_VERSIONS=('11.3')
-fi
+#if [[ $PRETTY_NAME == *"Amazon Linux AMI 2018.03"* ]]; then
+#    CUDA_VERSIONS=('10.0' '10.1' '10.2')
+#else
+#    CUDA_VERSIONS=('11.3')
+#fi
 
 if [[ $PRETTY_NAME == *"Ubuntu"* ]]; then
     open_mpi_lib_path=/opt/amazon/openmpi/lib
@@ -25,43 +24,35 @@ else
 fi
 
 check_ring_single_node(){
-    for CUDA_VERSION in "${CUDA_VERSIONS[@]}"
-    do
-        echo "Running ring for cuda version ${CUDA_VERSION}"
-        $openmpi_path_for_efa -n 3 --host localhost --oversubscribe \
-            -x RDMAV_FORK_SAFE=1 -x FI_EFA_USE_DEVICE_RDMA=1 -x NCCL_PROTO=simple --mca pml ^cm \
-            -x LD_LIBRARY_PATH=/usr/local/cuda-$CUDA_VERSION/efa/lib:/usr/local/cuda-$CUDA_VERSION/lib:/usr/local/cuda-$CUDA_VERSION/lib64:/usr/local/cuda-$CUDA_VERSION:$LD_LIBRARY_PATH \
-            /usr/local/bin/ring
-#            /usr/local/cuda-$CUDA_VERSION/efa/test-cuda-$CUDA_VERSION/ring
-        RETURN_VAL=`echo $?`
-        if [ ${RETURN_VAL} -eq 0 ]; then
-            echo "***************************** check_ring_single_node passed for cuda version ${CUDA_VERSION} *****************************"
-        else
-            echo "***************************** check_ring_single_node failed for cuda version ${CUDA_VERSION} *****************************"
-            exit 1
-        fi
-    done
+    echo "Running ring"
+    $openmpi_path_for_efa -n 3 --host localhost --oversubscribe \
+        -x RDMAV_FORK_SAFE=1 -x FI_EFA_USE_DEVICE_RDMA=1 -x NCCL_PROTO=simple --mca pml ^cm \
+        -x LD_LIBRARY_PATH=/usr/local/cuda/efa/lib:/usr/local/cuda/lib:/usr/local/cuda/lib64:/usr/local/cuda:$LD_LIBRARY_PATH \
+        /usr/local/bin/ring
+    RETURN_VAL=`echo $?`
+    if [ ${RETURN_VAL} -eq 0 ]; then
+        echo "***************************** check_ring_single_node passed *****************************"
+    else
+        echo "***************************** check_ring_single_node failed *****************************"
+        exit 1
+    fi
 }
 
 check_mutlinode_nccl_transfer() {
-    for CUDA_VERSION in "${CUDA_VERSIONS[@]}"
-    do
-        echo "Running nccl_message_transfer for cuda version ${CUDA_VERSION}"
-        $openmpi_path_for_efa \
-            -n $hosts -N 1 --hostfile $hosts_file \
-            -x LD_LIBRARY_PATH=/usr/local/cuda-$CUDA_VERSION/efa/lib:/usr/local/cuda-$CUDA_VERSION/lib:/usr/local/cuda-$CUDA_VERSION/lib64:/usr/local/cuda-$CUDA_VERSION:$open_mpi_lib_path:$LD_LIBRARY_PATH \
-            -x FI_EFA_USE_DEVICE_RDMA=1 -x NCCL_ALGO=ring -x NCCL_PROTO=simple -x RDMAV_FORK_SAFE=1 --mca pml ^cm \
-            -x FI_PROVIDER="efa" --mca btl tcp,self --mca btl_tcp_if_exclude lo,docker0 --bind-to none \
-            /usr/local/bin/nccl_message_transfer
-#            /usr/local/cuda-$CUDA_VERSION/efa/test-cuda-$CUDA_VERSION/nccl_message_transfer
-        RETURN_VAL=`echo $?`
-        if [ ${RETURN_VAL} -eq 0 ]; then
-            echo "***************************** check_mutlinode_nccl_transfer passed for cuda version ${CUDA_VERSION} *****************************"
-        else
-            echo "***************************** check_mutlinode_nccl_transfer failed for cuda version ${CUDA_VERSION} *****************************"
-            exit 1
-        fi
-    done
+    echo "Running nccl_message_transfer"
+    $openmpi_path_for_efa \
+        -n $hosts -N 1 --hostfile $hosts_file \
+        -x LD_LIBRARY_PATH=/usr/local/cuda/efa/lib:/usr/local/cuda/lib:/usr/local/cuda/lib64:/usr/local/cuda:$open_mpi_lib_path:$LD_LIBRARY_PATH \
+        -x FI_EFA_USE_DEVICE_RDMA=1 -x NCCL_ALGO=ring -x NCCL_PROTO=simple -x RDMAV_FORK_SAFE=1 --mca pml ^cm \
+        -x FI_PROVIDER="efa" --mca btl tcp,self --mca btl_tcp_if_exclude lo,docker0 --bind-to none \
+        /usr/local/bin/nccl_message_transfer
+    RETURN_VAL=`echo $?`
+    if [ ${RETURN_VAL} -eq 0 ]; then
+        echo "***************************** check_multinode_nccl_transfer passed *****************************"
+    else
+        echo "***************************** check_multinode_nccl_transfer failed *****************************"
+        exit 1
+    fi
 }
 
 check_efa_nccl_all_reduce_performance(){
@@ -103,6 +94,6 @@ check_efa_nccl_all_reduce(){
     done
 }
 
-#check_ring_single_node
+check_ring_single_node
 check_mutlinode_nccl_transfer
 #check_efa_nccl_all_reduce
