@@ -36,7 +36,7 @@ from test_utils import (
 from test_utils import KEYS_TO_DESTROY_FILE, DEFAULT_REGION
 from test_utils.pytest_cache import PytestCache
 
-from ..src.codebuild_environment import get_codebuild_project_name
+from src.codebuild_environment import get_codebuild_project_name
 
 LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.DEBUG)
@@ -332,11 +332,6 @@ def main():
         "test_type": test_type,
     }
 
-    #handle new sub-test parameter for sagemaker
-    if test_type == "sagemaker" and efa_dedicated:
-        pytest_cache_params["sub_test_type"] = "efa"
-
-    
     test_path = (
         os.path.join("benchmark", specific_test_type) if benchmark_mode else specific_test_type
     )
