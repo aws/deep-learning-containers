@@ -70,7 +70,7 @@ def _test_pt_neuronx(
 
     if "pytorch" in ecr_image:
         model_file = pt_neuronx_model
-        entry_point = pt_neuron_script
+        entry_point = pt_neuronx_script
     else:
         raise ValueError(f"Unsupported framework for image: {ecr_image}")
 
