@@ -6,10 +6,7 @@ partner_developer = "huggingface"
 ei_mode = false
 # Please only set it to true if you are preparing a NEURON related PR
 # Do remember to revert it back to false before merging any PR (including NEURON dedicated PR)
-neuron_mode = false
-# Please only set it to true if you are preparing a NEURONX related PR
-# Do remember to revert it back to false before merging any PR (including NEURONX dedicated PR)
-neuronx_mode = false
+neuron_mode = true
 # Please only set it to true if you are preparing a GRAVITON related PR
 # Do remember to revert it back to false before merging any PR (including GRAVITON dedicated PR)
 graviton_mode = false
@@ -122,7 +119,7 @@ dlc-pr-tensorflow-2-neuron-inference = ""
 # HuggingFace Inference
 dlc-pr-huggingface-tensorflow-inference = ""
 dlc-pr-huggingface-pytorch-inference = ""
-dlc-pr-huggingface-pytorch-neuron-inference = "huggingface/pytorch/inference/buildspec-neuron.yml"
+dlc-pr-huggingface-pytorch-neuron-inference = ""
 
 # Graviton Inference
 dlc-pr-mxnet-graviton-inference = ""
