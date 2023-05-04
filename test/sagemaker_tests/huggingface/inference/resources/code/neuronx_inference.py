@@ -1,6 +1,7 @@
 import os
-from transformers import AutoTokenizer, PretrainedConfig
+from transformers import AutoTokenizer
 import torch
+import torch_neuronx
 import numpy as np
 from sagemaker_huggingface_inference_toolkit import decoder_encoder
 
