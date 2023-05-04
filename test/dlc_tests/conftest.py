@@ -313,6 +313,7 @@ def efa_ec2_instances(
     ec2_client,
     ec2_resource,
     ec2_instance_type,
+    ec2_instance_role_name,
     ec2_key_name,
     ec2_instance_ami,
     region,
@@ -336,18 +337,6 @@ def efa_ec2_instances(
     for availability_zone in az_options:
         try:
             response = ec2_client.run_instances(
-                KeyName=ec2_key_name,
-                ImageId=ec2_instance_ami,
-                InstanceType=ec2_instance_type,
-                IamInstanceProfile={"Name": "ec2TestInstanceRole"},
-                TagSpecifications=[
-                    {
-                        "ResourceType": "instance",
-                        "Tags": [{"Key": "Name", "Value": instance_name_prefix}],
-                    }
-                ],
-                MaxCount=2,
-                MinCount=2,
                 BlockDeviceMappings=[
                     {
                         "DeviceName": "/dev/sda1",
@@ -360,9 +349,23 @@ def efa_ec2_instances(
                         },
                     },
                 ],
+                ImageId=ec2_instance_ami,
+                InstanceType=ec2_instance_type,
+                IamInstanceProfile={"Name": ec2_instance_role_name},
+                KeyName=ec2_key_name,
+                MaxCount=2,
+                MinCount=2,
+
                 NetworkInterfaces=ec2_utils.generate_network_interfaces(
                     ec2_client, ec2_instance_type, availability_zone
                 ),
+                Placement={"AvailabilityZone": availability_zone},
+                TagSpecifications=[
+                    {
+                        "ResourceType": "instance",
+                        "Tags": [{"Key": "Name", "Value": instance_name_prefix}],
+                    }
+                ],
             )
             if response and response["Instances"]:
                 break
@@ -415,6 +418,11 @@ def efa_ec2_instances(
             elastic_ip_allocation_id = ec2_utils.attach_elastic_ip(network_interface_id, region)
             elastic_ip_allocation_ids.append(elastic_ip_allocation_id)
 
+        def elastic_ips_finalizer():
+            ec2_utils.delete_elastic_ips(elastic_ip_allocation_ids, ec2_client)
+
+        request.addfinalizer(elastic_ips_finalizer)
+
     return [(instance_info["InstanceId"], key_filename) for instance_info in instances]
 
 
@@ -440,6 +448,7 @@ def efa_ec2_connections(request, efa_ec2_instances, ec2_key_name, ec2_instance_t
 
     user_name = ec2_utils.get_instance_user(master_instance_id, region=region)
     master_public_ip = ec2_utils.get_public_ip(master_instance_id, region)
+    LOGGER.info(f"Instance master_ip_address: {master_public_ip}")
     master_connection = Connection(
         user=user_name,
         host=master_public_ip,
@@ -447,41 +456,19 @@ def efa_ec2_connections(request, efa_ec2_instances, ec2_key_name, ec2_instance_t
         connect_timeout=18000,
     )
 
-    ssh_config_efa = "Host *\n   ForwardAgent yes \nHost *\n   StrictHostKeyChecking no"
-    ec2_utils.setup_efa_ssh_config_file(master_connection, ssh_config_efa)
-    slots = ec2_utils.get_instance_num_gpus(instance_type=ec2_instance_type)
-    worker_instance_private_ips = [
-        ec2_utils.get_private_ip(instance["worker_instance_id"])
-        for instance in worker_instances
-    ]
-    create_mpi_hosts_file(master_connection, worker_instance_private_ips, slots)
-
+    worker_instance_connections = []
     for instance in worker_instances:
         worker_instance_id = instance["worker_instance_id"]
         worker_instance_pem_file = instance["worker_instance_pem_file"]
         worker_public_ip = ec2_utils.get_public_ip(worker_instance_id, region)
+        LOGGER.info(f"Instance worker_ip_address: {worker_public_ip}")
         worker_connection = Connection(
             user=user_name,
             host=worker_public_ip,
             connect_kwargs={"key_filename": [worker_instance_pem_file]},
             connect_timeout=18000,
         )
-        ec2_utils.setup_efa_ssh_config_file(worker_connection, ssh_config_efa)
-        setup_passwordless_host_ssh(master_connection, [worker_connection])
-
-
-
-    ip_address = ec2_utils.get_public_ip(instance_id, region=region)
-    LOGGER.info(f"Instance ip_address: {ip_address}")
-    user = ec2_utils.get_instance_user(instance_id, region=region)
-
-    LOGGER.info(f"Connecting to {user}@{ip_address}")
-    conn = Connection(
-        user=user,
-        host=ip_address,
-        connect_kwargs={"key_filename": [instance_pem_file]},
-        connect_timeout=18000,
-    )
+        worker_instance_connections.append(worker_connection)
 
     random.seed(f"{datetime.datetime.now().strftime('%Y%m%d%H%M%S%f')}")
     unique_id = random.randint(1, 100000)
@@ -494,24 +481,14 @@ def efa_ec2_connections(request, efa_ec2_instances, ec2_key_name, ec2_instance_t
 
     request.addfinalizer(delete_s3_artifact_copy)
 
-    python_version = "3.9"
-    if is_neuron_image(request.fixturenames):
-        # neuron still support tf1.15 and that is only there in py37 and less.
-        # so use python3.7 for neuron
-        python_version = "3.7"
-    ec2_utils.install_python_in_instance(conn, python_version=python_version)
-
-    conn.run(
+    master_connection.run(
         f"aws s3 cp --recursive {test_utils.TEST_TRANSFER_S3_BUCKET}/{artifact_folder} $HOME/container_tests"
     )
-    conn.run(f"mkdir -p $HOME/container_tests/logs && chmod -R +x $HOME/container_tests/*")
+    master_connection.run(
+        f"mkdir -p $HOME/container_tests/logs && chmod -R +x $HOME/container_tests/*"
+    )
 
-    # Log into ECR if we are in canary context
-    if test_utils.is_canary_context():
-        public_registry = test_utils.PUBLIC_DLC_REGISTRY
-        test_utils.login_to_ecr_registry(conn, public_registry, region)
-
-    return conn
+    return [master_connection, *worker_instance_connections]
 
 
 @pytest.mark.timeout(300)

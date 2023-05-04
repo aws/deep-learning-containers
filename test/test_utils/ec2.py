@@ -1288,6 +1288,12 @@ def attach_elastic_ip(network_interface_id, region="us-east-1"):
     return elastic_ip_allocation_id
 
 
+def delete_elastic_ips(elastic_ip_allocation_ids, ec2_client):
+    """Deletes elastic ips created for efa p4d testing"""
+    for allocation_id in elastic_ip_allocation_ids:
+        ec2_client.release_address(AllocationId=allocation_id)
+
+
 def create_name_tags_for_instance(instance_id, name_tag, region):
     ec2_client = boto3.client("ec2", region_name=region)
     response = ec2_client.create_tags(
@@ -1304,16 +1310,3 @@ def get_efa_devices_on_instance(connection):
     response = connection.run("ls /dev/infiniband/uverbs*")
     devices = response.stdout.split()
     return devices
-
-
-def setup_efa_ssh_config_file(context, config_string):
-    """
-    creates config file in ~/.ssh/config to enable host forwarding
-    :param context:
-    :param config_string:
-    :return: None
-    """
-    ssh_config_file = "~/.ssh/config"
-    context.run(f"touch {ssh_config_file}")
-    context.run(f"echo $'{config_string}' > ~/.ssh/config")
-    context.run("chmod 600 ~/.ssh/config")

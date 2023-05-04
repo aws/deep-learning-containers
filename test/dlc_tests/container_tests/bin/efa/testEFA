@@ -1,0 +1,108 @@
+#!/bin/bash
+# Copyright 2020 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+
+hosts_file=$1
+openmpi_path_for_efa=$2
+hosts=2
+
+gpu_count=$(nvidia-smi -L | wc -l)
+nodes=$(($gpu_count * $hosts))
+
+PRETTY_NAME=$(cat /etc/os-release | grep PRETTY_NAME)
+HOME_DIR=$(echo $PWD)
+TRAINING_LOG="${HOME_DIR}/src/logs/testEFA.log"
+
+if [[ $PRETTY_NAME == *"Amazon Linux AMI 2018.03"* ]]; then
+    CUDA_VERSIONS=('10.0' '10.1' '10.2')
+else
+    CUDA_VERSIONS=('11.3')
+fi
+
+if [[ $PRETTY_NAME == *"Ubuntu"* ]]; then
+    open_mpi_lib_path=/opt/amazon/openmpi/lib
+else
+    open_mpi_lib_path=/opt/amazon/openmpi/lib64
+fi
+
+check_ring_single_node(){
+    for CUDA_VERSION in "${CUDA_VERSIONS[@]}"
+    do
+        echo "Running ring for cuda version ${CUDA_VERSION}"
+        $openmpi_path_for_efa -n 3 --host localhost --oversubscribe \
+            -x RDMAV_FORK_SAFE=1 -x FI_EFA_USE_DEVICE_RDMA=1 -x NCCL_PROTO=simple --mca pml ^cm \
+            -x LD_LIBRARY_PATH=/usr/local/cuda-$CUDA_VERSION/efa/lib:/usr/local/cuda-$CUDA_VERSION/lib:/usr/local/cuda-$CUDA_VERSION/lib64:/usr/local/cuda-$CUDA_VERSION:$LD_LIBRARY_PATH \
+            /usr/local/bin/ring
+#            /usr/local/cuda-$CUDA_VERSION/efa/test-cuda-$CUDA_VERSION/ring
+        RETURN_VAL=`echo $?`
+        if [ ${RETURN_VAL} -eq 0 ]; then
+            echo "***************************** check_ring_single_node passed for cuda version ${CUDA_VERSION} *****************************"
+        else
+            echo "***************************** check_ring_single_node failed for cuda version ${CUDA_VERSION} *****************************"
+            exit 1
+        fi
+    done
+}
+
+check_mutlinode_nccl_transfer() {
+    for CUDA_VERSION in "${CUDA_VERSIONS[@]}"
+    do
+        echo "Running nccl_message_transfer for cuda version ${CUDA_VERSION}"
+        $openmpi_path_for_efa \
+            -n $hosts -N 1 --hostfile $hosts_file \
+            -x LD_LIBRARY_PATH=/usr/local/cuda-$CUDA_VERSION/efa/lib:/usr/local/cuda-$CUDA_VERSION/lib:/usr/local/cuda-$CUDA_VERSION/lib64:/usr/local/cuda-$CUDA_VERSION:$open_mpi_lib_path:$LD_LIBRARY_PATH \
+            -x FI_EFA_USE_DEVICE_RDMA=1 -x NCCL_ALGO=ring -x NCCL_PROTO=simple -x RDMAV_FORK_SAFE=1 --mca pml ^cm \
+            -x FI_PROVIDER="efa" --mca btl tcp,self --mca btl_tcp_if_exclude lo,docker0 --bind-to none \
+            /usr/local/bin/nccl_message_transfer
+#            /usr/local/cuda-$CUDA_VERSION/efa/test-cuda-$CUDA_VERSION/nccl_message_transfer
+        RETURN_VAL=`echo $?`
+        if [ ${RETURN_VAL} -eq 0 ]; then
+            echo "***************************** check_mutlinode_nccl_transfer passed for cuda version ${CUDA_VERSION} *****************************"
+        else
+            echo "***************************** check_mutlinode_nccl_transfer failed for cuda version ${CUDA_VERSION} *****************************"
+            exit 1
+        fi
+    done
+}
+
+check_efa_nccl_all_reduce_performance(){
+    CUDA_VERSION=$1
+    benchmark=$(sudo cat $TRAINING_LOG | grep '1073741824' | tail -n1 | awk -F " " '{{print $11}}' | sed 's/ //' | sed  's/  5e-07//')
+    echo "Benchmark throughput: ${benchmark}"
+
+    # The standard throughput should be at least 41 for 2 p4d with 4 EFA devices and 7 for 2 p3dn with 1 EFA device.
+    # However, if the 2 instances are not in the same A-Z in the same region, performance can decrease.
+    # To account for this we need to modify thresholds dynamically based on where instances are.
+    # Temporarily setting these to be < 50% of optimal until AWS OFI NCCL team has concrete numbers for this.
+    PERFORMANCE_THRESHOLD="3"
+
+    if [[ $(echo "$benchmark $PERFORMANCE_THRESHOLD" | awk '{print $1 >= $2}') == 1 ]]; then
+        echo "***************************** check_efa_nccl_all_reduce_performance passed *****************************"
+    else
+        echo "***************************** check_efa_nccl_all_reduce_performance failed *****************************"
+        exit 1
+    fi
+}
+
+check_efa_nccl_all_reduce(){
+    for CUDA_VERSION in "${CUDA_VERSIONS[@]}"
+    do
+        echo "Running all_reduce_perf for cuda version ${CUDA_VERSION}"
+        $openmpi_path_for_efa \
+            -x FI_PROVIDER="efa" -n $nodes -N $gpu_count --hostfile $hosts_file \
+            -x NCCL_DEBUG=INFO -x FI_EFA_USE_DEVICE_RDMA=1 -x NCCL_PROTO=simple -x NCCL_ALGO=ring -x RDMAV_FORK_SAFE=1 \
+            -x LD_LIBRARY_PATH=/usr/local/cuda-$CUDA_VERSION/efa/lib:/usr/local/cuda-$CUDA_VERSION/lib:/usr/local/cuda-$CUDA_VERSION/lib64:/usr/local/cuda-$CUDA_VERSION:/opt/amazon/efa/lib64:$open_mpi_lib_path:$LD_LIBRARY_PATH \
+            --mca pml ^cm --mca btl tcp,self --mca btl_tcp_if_exclude lo,docker0 --bind-to none \
+            /usr/local/cuda-$CUDA_VERSION/efa/test-cuda-$CUDA_VERSION/all_reduce_perf -b 8 -e 1G -f 2 -g 1 -c 1 -n 100 2>&1 | tee "${TRAINING_LOG}"
+        RETURN_VAL=`echo $?`
+        if [ ${RETURN_VAL} -eq 0 ]; then
+            echo "***************************** check_efa_nccl_all_reduce passed for cuda version ${CUDA_VERSION} *****************************"
+        else
+            echo "***************************** check_efa_nccl_all_reduce failed for cuda version ${CUDA_VERSION} *****************************"
+        fi
+        check_efa_nccl_all_reduce_performance $CUDA_VERSION
+    done
+}
+
+#check_ring_single_node
+check_mutlinode_nccl_transfer
+#check_efa_nccl_all_reduce
