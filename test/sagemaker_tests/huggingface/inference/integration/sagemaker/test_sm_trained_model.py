@@ -26,10 +26,14 @@ from ...integration.sagemaker.timeout import timeout_and_delete_endpoint
 @pytest.mark.model("tiny-distilbert")
 @pytest.mark.processor("cpu")
 @pytest.mark.cpu_test
-def test_sm_trained_model_cpu(sagemaker_session, framework_version, ecr_image, instance_type, region):
+def test_sm_trained_model_cpu(
+    sagemaker_session, framework_version, ecr_image, instance_type, region
+):
     instance_type = instance_type or "ml.m5.xlarge"
     try:
-        _test_sm_trained_model(sagemaker_session, framework_version, ecr_image, instance_type, model_dir)
+        _test_sm_trained_model(
+            sagemaker_session, framework_version, ecr_image, instance_type, model_dir
+        )
     except Exception as e:
         dump_logs_from_cloudwatch(e, region)
         raise
@@ -38,10 +42,14 @@ def test_sm_trained_model_cpu(sagemaker_session, framework_version, ecr_image, i
 @pytest.mark.model("tiny-distilbert")
 @pytest.mark.processor("gpu")
 @pytest.mark.gpu_test
-def test_sm_trained_model_gpu(sagemaker_session, framework_version, ecr_image, instance_type, region):
+def test_sm_trained_model_gpu(
+    sagemaker_session, framework_version, ecr_image, instance_type, region
+):
     instance_type = instance_type or "ml.p3.2xlarge"
     try:
-        _test_sm_trained_model(sagemaker_session, framework_version, ecr_image, instance_type, model_dir)
+        _test_sm_trained_model(
+            sagemaker_session, framework_version, ecr_image, instance_type, model_dir
+        )
     except Exception as e:
         dump_logs_from_cloudwatch(e, region)
         raise
@@ -50,7 +58,9 @@ def test_sm_trained_model_gpu(sagemaker_session, framework_version, ecr_image, i
 def _test_sm_trained_model(
     sagemaker_session, framework_version, ecr_image, instance_type, model_dir, accelerator_type=None
 ):
-    endpoint_name = sagemaker.utils.unique_name_from_base("sagemaker-huggingface-serving-trained-model")
+    endpoint_name = sagemaker.utils.unique_name_from_base(
+        "sagemaker-huggingface-serving-trained-model"
+    )
 
     model_data = sagemaker_session.upload_data(
         path=model_dir,

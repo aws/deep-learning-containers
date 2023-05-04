@@ -3,6 +3,8 @@ import os
 import logging
 import sys
 
+from test.test_utils import is_pr_context
+
 LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.DEBUG)
 LOGGER.addHandler(logging.StreamHandler(sys.stdout))
@@ -17,9 +19,19 @@ class PytestCache:
     def __init__(self, s3_client, account_id):
         self.s3_client = s3_client
         self.bucket_name = f"dlc-test-execution-results-{account_id}"
+        # Temporarily enable this feature only on PR context
+        # TODO: Enable remote caching on all contexts
+        self.enable_remote_caching = is_pr_context()
 
     def download_pytest_cache_from_s3_to_local(
-        self, current_dir, commit_id, framework, version, build_context, test_type, custom_cache_directory=""
+        self,
+        current_dir,
+        commit_id,
+        framework,
+        version,
+        build_context,
+        test_type,
+        custom_cache_directory="",
     ):
         """
         Download pytest cache file from directory in s3 to local box
@@ -52,7 +64,7 @@ class PytestCache:
         self, ec2_connection, path, commit_id, framework, version, build_context, test_type
     ):
         """
-        Copy pytest cache file from directory in s3 to ec2 instance. .pytest_cache directory will be created in 
+        Copy pytest cache file from directory in s3 to ec2 instance. .pytest_cache directory will be created in
         :param path ec2 directory.
 
                 Following parameters are required to create a path to cache file in s3:
@@ -76,7 +88,7 @@ class PytestCache:
         self, ec2_connection, path, commit_id, framework, version, build_context, test_type
     ):
         """
-        Copy pytest cache file from ec2 instance to directory in s3. .pytest_cache directory will be copied from 
+        Copy pytest cache file from ec2 instance to directory in s3. .pytest_cache directory will be copied from
         :param path ec2 directory to s3 directory generated from parameters.
 
                 Following parameters are required to create a path to cache file in s3:
@@ -104,7 +116,7 @@ class PytestCache:
         self, current_dir, commit_id, framework, version, build_context, test_type
     ):
         """
-        Copy pytest cache file from local box to directory in s3. .pytest_cache directory will be copied from 
+        Copy pytest cache file from local box to directory in s3. .pytest_cache directory will be copied from
         :param current_dir ec2 directory to s3 directory generated from parameters.
 
                 Following parameters are required to create a path to cache file in s3:
@@ -121,9 +133,11 @@ class PytestCache:
         s3_file_path = os.path.join(s3_file_dir, "lastfailed")
         self.__upload_cache_to_s3(local_file_path, s3_file_path)
 
-    def convert_cache_json_and_upload_to_s3(self, cache_json, commit_id, framework, version, build_context, test_type):
+    def convert_cache_json_and_upload_to_s3(
+        self, cache_json, commit_id, framework, version, build_context, test_type
+    ):
         """
-        Copy pytest cache from json and send to directory in s3. 
+        Copy pytest cache from json and send to directory in s3.
         :param cache_json - json object with pytest cache
                 Following parameters are required to create a path to cache file in s3:
         :param commit_id
@@ -143,7 +157,6 @@ class PytestCache:
         self.__upload_cache_to_s3(tmp_file_for_cache_json, s3_file_path)
 
     def convert_pytest_cache_file_to_json(self, current_dir, custom_cache_directory=""):
-
         if custom_cache_directory:
             current_dir = os.path.join(current_dir, custom_cache_directory)
         local_file_dir = os.path.join(current_dir, ".pytest_cache", "v", "cache")
@@ -154,6 +167,9 @@ class PytestCache:
         return os.path.join(commit_id, framework, version, build_context, test_type)
 
     def __upload_cache_to_s3(self, local_file, s3_file):
+        if not self.enable_remote_caching:
+            LOGGER.warning("DLC Pytest Remote Caching is disabled.")
+            return
         if os.path.exists(f"{local_file}"):
             LOGGER.info(f"Uploading current execution result to {s3_file}")
             try:
@@ -166,7 +182,7 @@ class PytestCache:
 
     def __merge_2_execution_caches_and_save(self, cache_file_1, cache_file_2, save_to):
         """
-        Merges 2 JSON objects into one and safe on disk 
+        Merges 2 JSON objects into one and safe on disk
 
         :param cache_file_1
         :param cache_file_2
@@ -184,6 +200,9 @@ class PytestCache:
         return os.path.exists(file_path) and os.stat(file_path).st_size != 0
 
     def __download_cache_from_s3(self, s3_file, local_file):
+        if not self.enable_remote_caching:
+            LOGGER.warning("DLC Pytest Remote Caching is disabled.")
+            return
         LOGGER.info(f"Downloading previous executions cache: {s3_file}")
         try:
             self.s3_client.download_file(self.bucket_name, f"{s3_file}", f"{local_file}")

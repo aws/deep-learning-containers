@@ -95,10 +95,7 @@ class Buildspec:
             str
 
         """
-        seq = [
-            self.override(scalar_string)
-            for scalar_string in loader.construct_sequence(node)
-        ]
+        seq = [self.override(scalar_string) for scalar_string in loader.construct_sequence(node)]
         seq = "".join([str(scalar_string) for scalar_string in seq])
         seq = ruamel.yaml.scalarstring.PlainScalarString(seq)
         if node.anchor is not None:

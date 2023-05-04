@@ -20,30 +20,43 @@ import re
 import boto3
 import json
 
-CYAN_COLOR = '\033[36m'
-END_COLOR = '\033[0m'
+CYAN_COLOR = "\033[36m"
+END_COLOR = "\033[0m"
 
 
-def build_base_image(framework_name, framework_version, py_version,
-                     processor, base_image_tag, cwd='.'):
+def build_base_image(
+    framework_name, framework_version, py_version, processor, base_image_tag, cwd="."
+):
     base_image_uri = get_base_image_uri(framework_name, base_image_tag)
 
-    dockerfile_location = os.path.join('docker', framework_version, 'base',
-                                       'Dockerfile.{}'.format(processor))
+    dockerfile_location = os.path.join(
+        "docker", framework_version, "base", "Dockerfile.{}".format(processor)
+    )
 
-    subprocess.check_call(['docker', 'build', '-t', base_image_uri,
-                           '-f', dockerfile_location, '--build-arg',
-                           'py_version={}'.format(py_version[-1]), cwd], cwd=cwd)
-    print('created image {}'.format(base_image_uri))
+    subprocess.check_call(
+        [
+            "docker",
+            "build",
+            "-t",
+            base_image_uri,
+            "-f",
+            dockerfile_location,
+            "--build-arg",
+            "py_version={}".format(py_version[-1]),
+            cwd,
+        ],
+        cwd=cwd,
+    )
+    print("created image {}".format(base_image_uri))
     return base_image_uri
 
 
 def get_base_image_uri(framework_name, base_image_tag):
-    return '{}-base:{}'.format(framework_name, base_image_tag)
+    return "{}-base:{}".format(framework_name, base_image_tag)
 
 
 def get_image_uri(framework_name, tag):
-    return '{}:{}'.format(framework_name, tag)
+    return "{}:{}".format(framework_name, tag)
 
 
 def _check_call(cmd, *popenargs, **kwargs):
@@ -54,7 +67,7 @@ def _check_call(cmd, *popenargs, **kwargs):
 
 
 def _print_cmd(cmd):
-    print('executing docker command: {}{}{}'.format(CYAN_COLOR, ' '.join(cmd), END_COLOR))
+    print("executing docker command: {}{}{}".format(CYAN_COLOR, " ".join(cmd), END_COLOR))
     sys.stdout.flush()
 
 
@@ -118,7 +131,9 @@ def get_image_labels_with_manifest(client, repository, tag, account_id=None, man
     :return: dict All Docker Image Labels applied on the image
     """
     if not manifest_kwargs:
-        manifest_kwargs = {"acceptedMediaTypes": ["application/vnd.docker.distribution.manifest.v1+json"]}
+        manifest_kwargs = {
+            "acceptedMediaTypes": ["application/vnd.docker.distribution.manifest.v1+json"]
+        }
     if account_id:
         manifest_kwargs["registryId"] = account_id
 
@@ -142,13 +157,17 @@ def get_image_manifest(repository, tag, client, **kwargs):
     :param ecr_client: <boto3.client> ECR client object to be used for query
     :return: ECR image manifest as dict, or requested format if mentioned in kwargs.
     """
-    response = client.batch_get_image(repositoryName=repository, imageIds=[{"imageTag": tag}], **kwargs)
+    response = client.batch_get_image(
+        repositoryName=repository, imageIds=[{"imageTag": tag}], **kwargs
+    )
     if not response.get("images"):
         raise ValueError(
             f"Failed to get images through ecr_client.batch_get_image response for image {repository}:{tag}"
         )
     elif not response["images"][0].get("imageManifest"):
-        raise KeyError(f"imageManifest not found in ecr_client.batch_get_image response:\n{response['images']}")
+        raise KeyError(
+            f"imageManifest not found in ecr_client.batch_get_image response:\n{response['images']}"
+        )
     return response["images"][0]["imageManifest"]
 
 
@@ -156,7 +175,7 @@ def are_fixture_labels_enabled(image_uri, labels):
     """
     Returns False if a fixture label in the given image has value other than true
     Otherwise returns True
-    Example: 
+    Example:
     Expected fixture labels: [a,b,c]
     image labels: [] -> True
     image labels: [a=true] -> True # assumes [b=true, c=true]

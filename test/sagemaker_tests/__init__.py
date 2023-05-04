@@ -13,6 +13,7 @@
 from __future__ import absolute_import
 import sagemaker
 import boto3
+from botocore.config import Config
 import re
 from test.test_utils.ecr import reupload_image_to_test_ecr
 
@@ -24,7 +25,21 @@ LOW_AVAILABILITY_INSTANCE_TYPES = ["ml.p4de.24xlarge"]
 
 
 def get_sagemaker_session(region, default_bucket=None):
-    return sagemaker.Session(boto_session=boto3.Session(region_name=region), default_bucket=default_bucket)
+    return sagemaker.Session(
+        boto_session=boto3.Session(region_name=region), default_bucket=default_bucket
+    )
+
+
+def get_sagemaker_client(region):
+    return boto3.Session(region_name=region).client(
+        "sagemaker", config=Config(retries={"max_attempts": 10})
+    )
+
+
+def get_sagemaker_runtime_client(region):
+    return boto3.Session(region_name=region).client(
+        "runtime.sagemaker", config=Config(retries={"max_attempts": 10})
+    )
 
 
 def get_unique_name_from_tag(image_uri):
@@ -34,7 +49,7 @@ def get_unique_name_from_tag(image_uri):
     :param image_uri: ECR image URI
     :return: unique name
     """
-    return re.sub('[^A-Za-z0-9]+', '', image_uri)
+    return re.sub("[^A-Za-z0-9]+", "", image_uri)
 
 
 def get_account_id_from_image_uri(image_uri):
@@ -49,7 +64,9 @@ def get_account_id_from_image_uri(image_uri):
 
 def get_ecr_image_region(ecr_image):
     ecr_registry, _ = ecr_image.split("/")
-    region_search = re.search(r"(us(-gov)?|ap|ca|cn|eu|sa|me|af)-(central|(north|south)?(east|west)?)-\d+", ecr_registry)
+    region_search = re.search(
+        r"(us(-gov)?|ap|ca|cn|eu|sa|me|af)-(central|(north|south)?(east|west)?)-\d+", ecr_registry
+    )
     return region_search.group()
 
 
@@ -89,9 +106,48 @@ def invoke_sm_helper_function(ecr_image, sagemaker_regions, test_function, *test
     for region in sagemaker_regions:
         sagemaker_session = get_sagemaker_session(region)
         # Reupload the image to test region if needed
-        tested_ecr_image = get_ecr_image(ecr_image, region) if region != ecr_image_region else ecr_image
+        tested_ecr_image = (
+            get_ecr_image(ecr_image, region) if region != ecr_image_region else ecr_image
+        )
         try:
             test_function(tested_ecr_image, sagemaker_session, *test_function_args)
+            return
+        except sagemaker.exceptions.UnexpectedStatusException as e:
+            if "CapacityError" in str(e):
+                continue
+            else:
+                raise e
+
+
+def invoke_sm_endpoint_helper_function(
+    ecr_image,
+    sagemaker_regions,
+    local_model_path,
+    model_helper,
+    test_function,
+    **test_function_args,
+):
+    ecr_image_region = get_ecr_image_region(ecr_image)
+    for region in sagemaker_regions:
+        sagemaker_client = get_sagemaker_client(region)
+        boto_session = boto3.Session(region_name=region)
+        sagemaker_runtime_client = get_sagemaker_runtime_client(region)
+        # Reupload the image to test region if needed
+        tested_ecr_image = (
+            get_ecr_image(ecr_image, region) if region != ecr_image_region else ecr_image
+        )
+        tested_model_data = model_helper(
+            region=region, boto_session=boto_session, local_path=local_model_path
+        )
+        try:
+            test_function(
+                image_uri=tested_ecr_image,
+                boto_session=boto_session,
+                sagemaker_client=sagemaker_client,
+                sagemaker_runtime_client=sagemaker_runtime_client,
+                model_data=tested_model_data,
+                **test_function_args,
+            )
             return
         except sagemaker.exceptions.UnexpectedStatusException as e:
             if "CapacityError" in str(e):

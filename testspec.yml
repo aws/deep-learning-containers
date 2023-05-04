@@ -8,7 +8,7 @@ phases:
   pre_build:
     commands:
       - start-dockerd
-      - pip install -r src/requirements.txt
+      - for i in {1..3}; do pip install -r src/requirements.txt && break || sleep 30; done
       - python src/send_status.py --status 2
       - python src/parse_partner_developers.py
   build:

@@ -1,10 +1,10 @@
 {   
-    "operation": "create", # supports "create", "upgrade_cluster", "upgrade_nodegroup", "delete", "new_operation"
+    "operation": "create", # supports "create", "upgrade_cluster", "upgrade_nodegroup", "delete", "new_operation", "upgrade_kubeflow"
     "contexts":[
         "PR"               # supports "PR", "MAINLINE", "NIGHTLY"
     ],
     "eks_clusters":[
-        "mxnet"            # supports "tensorflow", "pytorch", "mxnet"
+        "dlc-mxnet"            # supports "dlc-tensorflow", "dlc-pytorch", "dlc-mxnet"
     ],
     "eks_version": "1.20", # EKS version
     "cluster_autoscalar_image_version": "v1.20.0" # docker image version compatible with eks version. Refer: https://github.com/kubernetes/autoscaler/releases

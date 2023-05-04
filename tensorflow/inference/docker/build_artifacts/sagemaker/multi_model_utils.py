@@ -46,7 +46,8 @@ def timeout(seconds=60):
 
 
 class MultiModelException(Exception):
-    def __init__(self, code, msg):
+    def __init__(self, code, msg, pid):
         Exception.__init__(self, code, msg)
+        self.pid = pid
         self.code = code
         self.msg = msg

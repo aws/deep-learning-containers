@@ -1,35 +1,54 @@
 #!/bin/bash
 
-HOME_DIR=/test
-BIN_DIR=${HOME_DIR}/bin
-LOG_DIR=${HOME_DIR}/logs
-
-${BIN_DIR}/pytorch_tests/setupPyTorchBackendTest || exit 1
-set -e
-cd ${HOME_DIR}
-source dlbs/scripts/environment.sh
-NUM_GPU=$(nvidia-smi -L | wc -l)
-export OMP_NUM_THREADS=${NUM_GPU}
-
-TRAINING_LOG=${LOG_DIR}/pytorch_train_nccl.log
-
-echo "Training resnet18 using PyTorch Nccl... This may take a few minutes. You can follow progress on the log file : $TRAINING_LOG"
-set +e
-
-python -m torch.distributed.launch --nproc_per_node=${NUM_GPU} \
-dlbs/python/pytorch_benchmarks/benchmarks.py \
---model resnet18 --batch_size=32 --device gpu --cudnn_fastest --dist_backend=nccl > $TRAINING_LOG 2>&1
-
-RETURN_VAL=`echo $?`
 set -e
 
-if [ ${RETURN_VAL} -eq 0 ]; then
-    echo "Training resnet18 Complete using PyTorch Nccl."
-else
-    echo "Training resnet18 Failed using PyTorch Nccl."
-    cat $TRAINING_LOG
-    exit 1
-fi
+source /test/bin/pytorch_tests/setupPyTorchBackendTest
+export USE_INDUCTOR=$1
+echo testPyTorchNCCL: USE_INDUCTOR, $USE_INDUCTOR
 
+# run NCCL benchmarking with 2 GPUS and 1 local node (resnet will use torchvision)
+python userbenchmark/ddp_experiments/__init__.py \
+    --ngpus $NUM_GPUS \
+    --distributed ddp \
+    --nodes 1 \
+    --cluster local \
+    --filter_models resnet50 \
+    --timeout 6 \
+    --job_dir $AWS_LOG_DIR \
+    --nccl-socket-ifname eth0
+
+
+# generate the result csv
+JOB_ID=$(ls $AWS_LOG_DIR | grep .out | head -n 1 | cut -d'_' -f 1)
+python userbenchmark/ddp_experiments/parse_ddp.py \
+    --job_id $JOB_ID \
+    --results_dir $AWS_LOG_DIR \
+    --csv_out > $AWS_LOG_DIR/aws_res.csv
+echo testPyTorchNCCL: AWS-PyTorch test results && cat $AWS_LOG_DIR/aws_res.csv
+
+# get OSS perf data
+bash ${BIN_DIR}/pytorch_tests/installOSSPyTorch
+
+# run NCCL benchmarking with 2 GPUS and 1 local node (resnet will use torchvision)
+python userbenchmark/ddp_experiments/__init__.py \
+    --ngpus $NUM_GPUS \
+    --distributed ddp \
+    --nodes 1 \
+    --cluster local \
+    --filter_models resnet50 \
+    --timeout 6 \
+    --job_dir $OSS_LOG_DIR \
+    --nccl-socket-ifname eth0
+
+# generate the result csv
+JOB_ID=$(ls $OSS_LOG_DIR | grep .out | head -n 1 | cut -d'_' -f 1)
+python userbenchmark/ddp_experiments/parse_ddp.py \
+    --job_id $JOB_ID \
+    --results_dir $OSS_LOG_DIR \
+    --csv_out > $OSS_LOG_DIR/oss_res.csv
+echo testPyTorchNCCL: OSS-PyTorch test results && cat $OSS_LOG_DIR/oss_res.csv
+
+# evaluate the performance
+bash ${BIN_DIR}/pytorch_tests/evaluateResults $AWS_LOG_DIR/aws_res.csv $OSS_LOG_DIR/oss_res.csv
 
 exit 0

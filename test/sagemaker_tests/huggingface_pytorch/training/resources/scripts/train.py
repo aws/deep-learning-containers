@@ -10,7 +10,6 @@ import os
 import torch
 
 if __name__ == "__main__":
-
     parser = argparse.ArgumentParser()
 
     # hyperparameters sent by the client are passed as command-line arguments to the script.
@@ -50,7 +49,9 @@ if __name__ == "__main__":
 
     # load dataset
     train_dataset, test_dataset = load_dataset("imdb", split=["train", "test"])
-    test_dataset = test_dataset.shuffle().select(range(100))  # smaller the size for test dataset to 10k
+    test_dataset = test_dataset.shuffle().select(
+        range(100)
+    )  # smaller the size for test dataset to 10k
 
     # tokenize dataset
     train_dataset = train_dataset.map(tokenize, batched=True, batch_size=len(train_dataset))

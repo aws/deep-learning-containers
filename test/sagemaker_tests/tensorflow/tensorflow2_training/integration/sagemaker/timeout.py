@@ -16,7 +16,7 @@ from contextlib import contextmanager
 import logging
 import signal
 
-LOGGER = logging.getLogger('timeout')
+LOGGER = logging.getLogger("timeout")
 
 
 class TimeoutError(Exception):
@@ -39,7 +39,7 @@ def timeout(seconds=0, minutes=0, hours=0):
     limit = seconds + 60 * minutes + 3600 * hours
 
     def handler(signum, frame):
-        raise TimeoutError('timed out after {} seconds'.format(limit))
+        raise TimeoutError("timed out after {} seconds".format(limit))
 
     try:
         signal.signal(signal.SIGALRM, handler)

@@ -18,8 +18,17 @@ import pytest
 from sagemaker.pytorch import PyTorch
 
 from ...utils.local_mode_utils import assert_files_exist
-from ...integration import data_dir, fastai_path, fastai_mnist_script, mnist_path, mnist_script, ROLE, get_framework_and_version_from_tag
+from ...integration import (
+    data_dir,
+    fastai_path,
+    fastai_mnist_script,
+    mnist_path,
+    mnist_script,
+    ROLE,
+    get_framework_and_version_from_tag,
+)
 from packaging.version import Version
+
 
 @pytest.mark.model("mnist")
 def test_mnist(docker_image, processor, instance_type, sagemaker_local_session, tmpdir):
@@ -30,11 +39,16 @@ def test_mnist(docker_image, processor, instance_type, sagemaker_local_session, 
         instance_count=1,
         instance_type=instance_type,
         sagemaker_session=sagemaker_local_session,
-        hyperparameters={'processor': processor},
-        output_path='file://{}'.format(tmpdir),
+        hyperparameters={"processor": processor},
+        output_path="file://{}".format(tmpdir),
     )
 
-    _train_and_assert_success(estimator, str(tmpdir), {'training': 'file://{}'.format(os.path.join(data_dir, 'training'))})
+    _train_and_assert_success(
+        estimator,
+        str(tmpdir),
+        {"training": "file://{}".format(os.path.join(data_dir, "training"))},
+        model_pth="model_0.pth",
+    )
 
 
 @pytest.mark.integration("fastai")
@@ -51,15 +65,15 @@ def test_fastai_mnist(docker_image, instance_type, py_version, sagemaker_local_s
         instance_count=1,
         instance_type=instance_type,
         sagemaker_session=sagemaker_local_session,
-        output_path='file://{}'.format(tmpdir),
+        output_path="file://{}".format(tmpdir),
     )
 
-    input_dir = os.path.join(fastai_path, 'mnist_tiny')
+    input_dir = os.path.join(fastai_path, "mnist_tiny")
     _train_and_assert_success(estimator, str(tmpdir))
 
 
-def _train_and_assert_success(estimator, output_path, fit_params={}):
+def _train_and_assert_success(estimator, output_path, fit_params={}, model_pth="model.pth"):
     estimator.fit(fit_params)
 
-    success_files = {'model': ['model.pth'], 'output': ['success']}
+    success_files = {"model": [model_pth], "output": ["success"]}
     assert_files_exist(output_path, success_files)

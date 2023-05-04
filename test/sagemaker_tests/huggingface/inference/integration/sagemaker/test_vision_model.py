@@ -37,7 +37,9 @@ def test_vision_model_cpu(sagemaker_session, framework_version, ecr_image, insta
         pytest.skip("Skipping vision tests for TF2.5")
     instance_type = instance_type or "ml.m5.xlarge"
     try:
-        _test_vision_model(sagemaker_session, framework_version, ecr_image, instance_type, model_dir)
+        _test_vision_model(
+            sagemaker_session, framework_version, ecr_image, instance_type, model_dir
+        )
     except Exception as e:
         dump_logs_from_cloudwatch(e, region)
         raise
@@ -53,7 +55,9 @@ def test_vision_model_gpu(sagemaker_session, framework_version, ecr_image, insta
         pytest.skip("Skipping vision tests for TF2.5")
     instance_type = instance_type or "ml.p3.2xlarge"
     try:
-        _test_vision_model(sagemaker_session, framework_version, ecr_image, instance_type, model_dir)
+        _test_vision_model(
+            sagemaker_session, framework_version, ecr_image, instance_type, model_dir
+        )
     except Exception as e:
         dump_logs_from_cloudwatch(e, region)
         raise
@@ -62,7 +66,9 @@ def test_vision_model_gpu(sagemaker_session, framework_version, ecr_image, insta
 def _test_vision_model(
     sagemaker_session, framework_version, ecr_image, instance_type, model_dir, accelerator_type=None
 ):
-    endpoint_name = sagemaker.utils.unique_name_from_base("sagemaker-huggingface-serving-vision-model")
+    endpoint_name = sagemaker.utils.unique_name_from_base(
+        "sagemaker-huggingface-serving-vision-model"
+    )
 
     env = {
         "HF_MODEL_ID": "hf-internal-testing/tiny-random-vit",

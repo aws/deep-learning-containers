@@ -1,13 +1,11 @@
 {
-    "operation": "delete",
+    "operation": "create",
     "contexts": [
         "PR",
         "MAINLINE"
     ],
     "eks_clusters": [
-        "mxnet",
-        "pytorch",
-        "tensorflow"
+        "dlc-mxnet"
     ],
     "eks_version": "1.25",
     "cluster_autoscalar_image_version": "v1.25.0"
