@@ -173,19 +173,22 @@ NVIDIA Triton Inference Containers (SM support only)
 
 Large Model Inference Containers
 ===============================
-| Framework                                                                                                          |Job Type	| Accelerator 	 | Python Version Options	 | Example URL																						                                                              |
-|--------------------------------------------------------------------------------------------------------------------|-----------|---------------|-------------------------|------------------------------------------------------------------------------------------------|
-| DJLServing 0.22.1 with Neuron SDK 2.9.0, TransformersNeuronX 2.8.0 and HuggingFace Transformers 4.28.1                                    |inference	| Neuron 		     | 3.8 (py38)			           | 763104351884.dkr.ecr.us-west-2.amazonaws.com/djl-inference:0.22.1-neuronx-sdk2.9.0 |
-| DJLServing 0.21.0 with FasterTransformer 5.3.0, HuggingFace Transformers 4.25.1, and HuggingFace Accelerate 0.15.0 |inference	| GPU 		        | 3.9 (py39)			           | 763104351884.dkr.ecr.us-west-2.amazonaws.com/djl-inference:0.21.0-fastertransformer5.3.0-cu117 |
-| DJLServing 0.21.0 with DeepSpeed 0.8.3, HuggingFace Transformers 4.26.0, and HuggingFace Accelerate 0.16.0         |inference	| GPU 		        | 3.9 (py39)			           | 763104351884.dkr.ecr.us-west-2.amazonaws.com/djl-inference:0.21.0-deepspeed0.8.3-cu117		       |
-| DJLServing 0.20.0 with DeepSpeed 0.7.5, HuggingFace Transformers 4.23.1, and HuggingFace Accelerate 0.13.2         |inference	| GPU 		        | 3.8 (py38)			           | 763104351884.dkr.ecr.us-west-2.amazonaws.com/djl-inference:0.20.0-deepspeed0.7.5-cu116		       |
+| Framework                                                                                                                   |Job Type	| Accelerator 	 | Python Version Options	 | Example URL																						                                                              |
+|-----------------------------------------------------------------------------------------------------------------------------|-----------|---------------|-------------------------|------------------------------------------------------------------------------------------------|
+| DJLServing 0.22.1 with FasterTransformer 5.3.0, HuggingFace Transformers 4.27.3, and HuggingFace Accelerate 0.17.1          |inference	| GPU 		        | 3.9 (py39)			           | 763104351884.dkr.ecr.us-west-2.amazonaws.com/djl-inference:0.22.1-fastertransformer5.3.0-cu118 |
+| DJLServing 0.22.1 with DeepSpeed 0.8.3, HuggingFace Transformers 4.27.4, Diffusers 0.14.0 and HuggingFace Accelerate 0.18.0 |inference	| GPU 		        | 3.9 (py39)			           | 763104351884.dkr.ecr.us-west-2.amazonaws.com/djl-inference:0.22.1-deepspeed0.8.3-cu118		       |
+| DJLServing 0.22.1 with Neuron SDK 2.9.0, TransformersNeuronX 2.8.0 and HuggingFace Transformers 4.28.1                      |inference	| Neuron 		     | 3.8 (py38)			           | 763104351884.dkr.ecr.us-west-2.amazonaws.com/djl-inference:0.22.1-neuronx-sdk2.9.0             |
+| DJLServing 0.21.0 with FasterTransformer 5.3.0, HuggingFace Transformers 4.25.1, and HuggingFace Accelerate 0.15.0          |inference	| GPU 		        | 3.9 (py39)			           | 763104351884.dkr.ecr.us-west-2.amazonaws.com/djl-inference:0.21.0-fastertransformer5.3.0-cu117 |
+| DJLServing 0.21.0 with DeepSpeed 0.8.3, HuggingFace Transformers 4.26.0, and HuggingFace Accelerate 0.16.0                  |inference	| GPU 		        | 3.9 (py39)			           | 763104351884.dkr.ecr.us-west-2.amazonaws.com/djl-inference:0.21.0-deepspeed0.8.3-cu117		       |
+| DJLServing 0.20.0 with DeepSpeed 0.7.5, HuggingFace Transformers 4.23.1, and HuggingFace Accelerate 0.13.2                  |inference	| GPU 		        | 3.8 (py38)			           | 763104351884.dkr.ecr.us-west-2.amazonaws.com/djl-inference:0.20.0-deepspeed0.7.5-cu116		       |
 
 
 DJL CPU Full Inference Containers
 ===============================
-| Framework                                     |Job Type	|CPU/GPU 	|Python Version Options	|Example URL																						|
-|-----------------------------------------------|-----------|-----------|-----------------------|---------------------------------------------------------------------------------------------------|
-|DJLServing 0.21.0   |inference	|CPU 		| 3.8 (py38)			|763104351884.dkr.ecr.us-west-2.amazonaws.com/djl-inference:0.21.0-cpu-full|
+| Framework         |Job Type	|CPU/GPU 	|Python Version Options	| Example URL																						                                          |
+|-------------------|-----------|-----------|-----------------------|----------------------------------------------------------------------------|
+| DJLServing 0.22.1 |inference	|CPU 		| 3.8 (py38)			| 763104351884.dkr.ecr.us-west-2.amazonaws.com/djl-inference:0.22.1-cpu-full |
+| DJLServing 0.21.0 |inference	|CPU 		| 3.8 (py38)			| 763104351884.dkr.ecr.us-west-2.amazonaws.com/djl-inference:0.21.0-cpu-full |
 
 Habana Training Containers
 ===============================
