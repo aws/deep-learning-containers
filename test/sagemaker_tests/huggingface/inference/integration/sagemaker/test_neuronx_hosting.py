@@ -23,7 +23,7 @@ from ...integration import (
     model_dir,
     pt_neuronx_model,
     script_dir,
-    pt_neuron_script,
+    pt_neuronx_script,
     dump_logs_from_cloudwatch,
 )
 from ...integration.sagemaker.timeout import timeout_and_delete_endpoint
