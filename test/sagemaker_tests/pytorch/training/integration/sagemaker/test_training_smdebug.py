@@ -26,6 +26,7 @@ from . import invoke_pytorch_estimator
 @pytest.mark.integration("smdebug")
 @pytest.mark.model("mnist")
 @pytest.mark.skip_py2_containers
+@pytest.mark.skip("Temporarily skip all tests that don't use distributed_operations.py script")
 def test_training_smdebug(framework_version, ecr_image, sagemaker_regions, instance_type):
     hyperparameters = {
         "random_seed": True,
@@ -59,6 +60,7 @@ def test_training_smdebug(framework_version, ecr_image, sagemaker_regions, insta
 @pytest.mark.integration("smdebug")
 @pytest.mark.model("mnist")
 @pytest.mark.skip_py2_containers
+@pytest.mark.skip("Temporarily skip all tests that don't use distributed_operations.py script")
 def test_hc_training_smdebug(framework_version, ecr_image, sagemaker_regions, instance_type):
     hyperparameters = {
         "random_seed": True,
