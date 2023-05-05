@@ -42,7 +42,8 @@ model = DDP(model, message_size=1, allreduce_trigger_params=[model.b], num_allre
 
 x = torch.cuda.FloatTensor(4096 * 4096)
 
-passed = True
+model_a_passed = True
+model_b_passed = True
 torch.cuda.cudart().cudaProfilerStart()
 for i in range(10):
     x.fill_(i + args.local_rank)  # fill x with new values every iteration for sanity
@@ -68,11 +69,14 @@ for i in range(10):
         )
         return expected == actual
 
-    if not info("model.a", model.module.a, 2.0):
-        passed = False
-    if not info("model.b", model.module.b, 1.0):
-        passed = False
+    model_a_passed = info("model.a", model.module.a, 2.0)
+    model_b_passed = info("model.b", model.module.b, 1.0)
+    if not model_a_passed or not model_b_passed:
+        break
     # torch.cuda.nvtx.range_pop()
 torch.cuda.cudart().cudaProfilerStop()
 
-print("passed = ", passed)
+assert model_a_passed and model_b_passed, (
+    "Failure: model.a success: {model_a_passed}, model.b success: {model_b_passed}"
+)
+print("Success on model.a and model.b")
