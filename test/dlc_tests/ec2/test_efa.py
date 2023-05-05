@@ -21,9 +21,13 @@ WORKER_CONTAINER_NAME = "worker_container"
 HOSTS_FILE_LOCATION = "/root/hosts"
 
 
+@pytest.mark.processor("gpu")
+@pytest.mark.model("N/A")
+@pytest.mark.integration("efa")
 @pytest.mark.usefixtures("sagemaker")
-@pytest.mark.parametrize("ec2_instance_type", ["p4d.24xlarge"])
+@pytest.mark.multinode(2)
 @pytest.mark.parametrize("region", ["us-west-2"])
+@pytest.mark.parametrize("ec2_instance_type", ["p4d.24xlarge"])
 def test_efa(pytorch_training, efa_ec2_instances, efa_ec2_connections, ec2_instance_type, gpu_only):
     _setup_multinode_efa_instances(
         pytorch_training, efa_ec2_instances, efa_ec2_connections, ec2_instance_type
@@ -37,9 +41,13 @@ def test_efa(pytorch_training, efa_ec2_instances, efa_ec2_connections, ec2_insta
     )
 
 
+@pytest.mark.processor("gpu")
+@pytest.mark.model("N/A")
+@pytest.mark.integration("efa")
 @pytest.mark.usefixtures("sagemaker")
-@pytest.mark.parametrize("ec2_instance_type", ["p4d.24xlarge"])
+@pytest.mark.multinode(2)
 @pytest.mark.parametrize("region", ["us-west-2"])
+@pytest.mark.parametrize("ec2_instance_type", ["p4d.24xlarge"])
 def test_efa_tensorflow(
     tensorflow_training, efa_ec2_instances, efa_ec2_connections, ec2_instance_type, gpu_only
 ):
