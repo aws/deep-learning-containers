@@ -29,11 +29,11 @@ def retry_if_value_error(exception):
 
 # TBD. This function is mainly there to handle capacity issues now. Once trn1 capacaity issues
 # are fixed, we can remove this function
-# @retry(
-#   stop_max_attempt_number=360,
-#    wait_fixed=10000,
-#    retry_on_exception=retry_if_value_error,
-#)
+@retry(
+    stop_max_attempt_number=5,
+    wait_fixed=60000,
+    retry_on_exception=retry_if_value_error,
+)
 def invoke_neuron_helper_function(
     ecr_image, sagemaker_regions, helper_function, helper_function_args
 ):
