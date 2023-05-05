@@ -76,7 +76,7 @@ for i in range(10):
     # torch.cuda.nvtx.range_pop()
 torch.cuda.cudart().cudaProfilerStop()
 
-assert model_a_passed and model_b_passed, (
-    "Failure: model.a success: {model_a_passed}, model.b success: {model_b_passed}"
-)
+assert (
+    model_a_passed and model_b_passed
+), "Failure: model.a success: {model_a_passed}, model.b success: {model_b_passed}"
 print("Success on model.a and model.b")
