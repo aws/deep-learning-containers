@@ -39,7 +39,6 @@ inductor_instance_types = ["ml.p3.8xlarge", "ml.g5.12xlarge", "ml.g4dn.12xlarge"
 @pytest.mark.skip_gpu
 @pytest.mark.skip_py2_containers
 @pytest.mark.skip_inductor_test
-@pytest.mark.skip("Temporarily skip all tests that don't use distributed_operations.py script")
 def test_dgl_gcn_training_cpu(ecr_image, sagemaker_regions, instance_type):
     instance_type = instance_type or "ml.c4.xlarge"
     function_args = {
@@ -54,7 +53,6 @@ def test_dgl_gcn_training_cpu(ecr_image, sagemaker_regions, instance_type):
 @pytest.mark.skip_cpu
 @pytest.mark.skip_py2_containers
 @pytest.mark.skip_inductor_test
-@pytest.mark.skip("Temporarily skip all tests that don't use distributed_operations.py script")
 @pytest.mark.parametrize("instance_type", inductor_instance_types, indirect=True)
 def test_dgl_gcn_training_gpu(ecr_image, sagemaker_regions, instance_type):
     instance_type = instance_type or "ml.p3.2xlarge"

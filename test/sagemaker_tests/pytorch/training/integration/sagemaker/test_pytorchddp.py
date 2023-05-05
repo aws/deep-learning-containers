@@ -46,7 +46,6 @@ def can_run_pytorchddp(ecr_image):
 @pytest.mark.skip_py2_containers
 @pytest.mark.skip_trcomp_containers
 @pytest.mark.efa()
-@pytest.mark.skip("Temporarily skip all tests that don't use distributed_operations.py script")
 def test_pytorchddp_throughput_gpu(
     framework_version, ecr_image, sagemaker_regions, efa_instance_type, tmpdir
 ):
@@ -80,7 +79,6 @@ def test_pytorchddp_throughput_gpu(
 @pytest.mark.skip_py2_containers
 @pytest.mark.skip_trcomp_containers
 @pytest.mark.efa()
-@pytest.mark.skip("Temporarily skip all tests that don't use distributed_operations.py script")
 def test_apexddp_gpu(framework_version, ecr_image, sagemaker_regions, efa_instance_type, tmpdir):
     with timeout(minutes=25):
         validate_or_skip_pytorchddp(ecr_image)

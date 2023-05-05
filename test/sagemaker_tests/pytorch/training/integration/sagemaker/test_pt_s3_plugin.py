@@ -39,7 +39,6 @@ RESOURCE_PATH = os.path.join(os.path.dirname(__file__), "..", "..", "resources")
 @pytest.mark.skip_cpu
 @pytest.mark.skip_py2_containers
 @pytest.mark.skip_s3plugin_test
-@pytest.mark.skip("Temporarily skip all tests that don't use distributed_operations.py script")
 def test_pt_s3_plugin_sm_gpu(framework_version, ecr_image, sagemaker_regions):
     with timeout(minutes=DEFAULT_TIMEOUT):
         estimator_parameter = {
@@ -64,7 +63,6 @@ def test_pt_s3_plugin_sm_gpu(framework_version, ecr_image, sagemaker_regions):
 @pytest.mark.skip_cpu
 @pytest.mark.skip_py2_containers
 @pytest.mark.skip_s3plugin_test
-@pytest.mark.skip("Temporarily skip all tests that don't use distributed_operations.py script")
 def test_hc_pt_s3_plugin_sm_gpu(framework_version, ecr_image, sagemaker_regions):
     training_group = InstanceGroup("train_group", MULTI_GPU_INSTANCE, 1)
     with timeout(minutes=DEFAULT_TIMEOUT):
@@ -89,7 +87,6 @@ def test_hc_pt_s3_plugin_sm_gpu(framework_version, ecr_image, sagemaker_regions)
 @pytest.mark.skip_gpu
 @pytest.mark.skip_py2_containers
 @pytest.mark.skip_s3plugin_test
-@pytest.mark.skip("Temporarily skip all tests that don't use distributed_operations.py script")
 def test_pt_s3_plugin_sm_cpu(framework_version, ecr_image, sagemaker_regions):
     with timeout(minutes=DEFAULT_TIMEOUT):
         estimator_parameter = {
@@ -113,7 +110,6 @@ def test_pt_s3_plugin_sm_cpu(framework_version, ecr_image, sagemaker_regions):
 @pytest.mark.skip_gpu
 @pytest.mark.skip_py2_containers
 @pytest.mark.skip_s3plugin_test
-@pytest.mark.skip("Temporarily skip all tests that don't use distributed_operations.py script")
 def test_hc_pt_s3_plugin_sm_cpu(framework_version, ecr_image, sagemaker_regions):
     training_group = InstanceGroup("train_group", CPU_INSTANCE, 1)
     with timeout(minutes=DEFAULT_TIMEOUT):

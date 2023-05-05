@@ -97,7 +97,6 @@ def test_cpu_nccl(docker_image, sagemaker_local_session, tmpdir):
 @pytest.mark.processor("cpu")
 @pytest.mark.model("mnist")
 @pytest.mark.skip_gpu
-@pytest.mark.skip("Temporarily skip all tests that don't use distributed_operations.py script")
 def test_mnist_cpu(docker_image, dist_cpu_backend, sagemaker_local_session, tmpdir):
     estimator = PyTorch(
         entry_point=mnist_script,
