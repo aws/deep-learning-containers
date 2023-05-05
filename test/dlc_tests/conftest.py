@@ -241,36 +241,27 @@ def ec2_public_ip(request):
     return request.param
 
 
-@pytest.fixture(scope="session")
+@pytest.fixture(scope="function")
 def region(request):
     return request.param if hasattr(request, "param") else os.getenv("AWS_REGION", DEFAULT_REGION)
 
 
-@pytest.fixture(scope="session")
-def docker_client(region):
-    test_utils.run_subprocess_cmd(
-        f"$(aws ecr get-login --no-include-email --region {region})",
-        failure="Failed to log into ECR.",
-    )
-    return docker.from_env()
-
-
-@pytest.fixture(scope="session")
+@pytest.fixture(scope="function")
 def ecr_client(region):
     return boto3.client("ecr", region_name=region)
 
 
-@pytest.fixture(scope="session")
+@pytest.fixture(scope="function")
 def sts_client(region):
     return boto3.client("sts", region_name=region)
 
 
-@pytest.fixture(scope="session")
+@pytest.fixture(scope="function")
 def ec2_client(region):
     return boto3.client("ec2", region_name=region, config=Config(retries={"max_attempts": 10}))
 
 
-@pytest.fixture(scope="session")
+@pytest.fixture(scope="function")
 def ec2_resource(region):
     return boto3.resource("ec2", region_name=region, config=Config(retries={"max_attempts": 10}))
 

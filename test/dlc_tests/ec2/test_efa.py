@@ -21,6 +21,7 @@ WORKER_CONTAINER_NAME = "worker_container"
 HOSTS_FILE_LOCATION = "$HOME/hosts"
 
 
+@pytest.mark.usefixtures("sagemaker")
 @pytest.mark.parametrize("ec2_instance_type", ["p4d.24xlarge"])
 @pytest.mark.parametrize("region", ["us-west-2"])
 def test_efa(pytorch_training, efa_ec2_instances, efa_ec2_connections, ec2_instance_type, gpu_only):
@@ -32,6 +33,7 @@ def test_efa(pytorch_training, efa_ec2_instances, efa_ec2_connections, ec2_insta
     run_cmd_on_container(MASTER_CONTAINER_NAME, master_connection, EFA_INTEGRATION_TEST_CMD)
 
 
+@pytest.mark.usefixtures("sagemaker")
 @pytest.mark.parametrize("ec2_instance_type", ["p4d.24xlarge"])
 @pytest.mark.parametrize("region", ["us-west-2"])
 def test_efa_tensorflow(
