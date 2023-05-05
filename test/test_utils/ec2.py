@@ -1239,10 +1239,10 @@ def generate_network_interfaces(ec2_client, ec2_instance_type, availability_zone
             "NetworkCardIndex": i,
             "DeleteOnTermination": True,
             "InterfaceType": "efa",
-            "Groups": default_sg + efa_sg,
+            "Groups": [default_sg, efa_sg],
             "SubnetId": default_subnet_id,
         }
-        for i in num_efa_interfaces
+        for i in range(num_efa_interfaces)
     ]
     return network_interfaces
 

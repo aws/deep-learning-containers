@@ -346,7 +346,6 @@ def efa_ec2_instances(
                 KeyName=ec2_key_name,
                 MaxCount=2,
                 MinCount=2,
-
                 NetworkInterfaces=ec2_utils.generate_network_interfaces(
                     ec2_client, ec2_instance_type, availability_zone
                 ),
@@ -1339,6 +1338,7 @@ def pytest_generate_tests(metafunc):
             # Parametrize tests that spin up an ecs cluster or tests that spin up an EC2 instance with a unique name
             values_to_generate_for_fixture = {
                 "ecs_container_instance": "ecs_cluster_name",
+                "efa_ec2_connections": "ec2_key_name",
                 "ec2_connection": "ec2_key_name",
             }
 
