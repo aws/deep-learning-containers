@@ -37,7 +37,7 @@ def test_efa(pytorch_training, efa_ec2_instances, efa_ec2_connections, ec2_insta
     run_cmd_on_container(
         MASTER_CONTAINER_NAME,
         master_connection,
-        f"{EFA_INTEGRATION_TEST_CMD} {HOSTS_FILE_LOCATION} /opt/amazon/openmpi/bin/mpirun"
+        f"{EFA_INTEGRATION_TEST_CMD} {HOSTS_FILE_LOCATION} /opt/amazon/openmpi/bin/mpirun",
     )
 
 
@@ -59,7 +59,7 @@ def test_efa_tensorflow(
     run_cmd_on_container(
         MASTER_CONTAINER_NAME,
         master_connection,
-        f"{EFA_INTEGRATION_TEST_CMD} {HOSTS_FILE_LOCATION} /opt/amazon/openmpi/bin/mpirun"
+        f"{EFA_INTEGRATION_TEST_CMD} {HOSTS_FILE_LOCATION} /opt/amazon/openmpi/bin/mpirun",
     )
 
 
