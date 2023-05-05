@@ -155,7 +155,7 @@ RUN mkdir /tmp/openmpi \
  && cd / \
  && rm -rf /tmp/openmpi
 
-ENV PATH="$OPEN_MPI_PATH/bin:$PATH"
+ENV PATH="$OPEN_MPI_PATH/bin:$EFA_PATH/bin:$PATH"
 ENV LD_LIBRARY_PATH=$OPEN_MPI_PATH/lib/:$EFA_PATH/lib/:$LD_LIBRARY_PATH
 
 # for conda ssl verification
@@ -180,6 +180,9 @@ RUN ompi_info --parsable --all | grep mpi_built_with_cuda_support:value \
     charset-normalizer \
     # needed by fastai.distributed
     accelerate \
+    # fix utility program segfaults by installing through conda \
+    curl \
+    procps-ng \
  # pin dgl to 0.9.1 as upstream test has not caught up, currently having accuracy error
  && /opt/conda/bin/conda install -c dglteam -y dgl-cuda11.7=0.9.1 \
  && /opt/conda/bin/conda install -c pytorch -y magma-cuda117 \
@@ -239,7 +242,7 @@ RUN rm -rf /root/.cache | true
 # |_____\____|_____| |___|_| |_| |_|\__,_|\__, |\___|
 #                                         |___/
 #  ____           _
-# |  _ \ ___  ___(_)_ __   ___ 
+# |  _ \ ___  ___(_)_ __   ___
 # | |_) / _ \/ __| | '_ \ / _ \
 # |  _ <  __/ (__| | |_) |  __/
 # |_| \_\___|\___|_| .__/ \___|

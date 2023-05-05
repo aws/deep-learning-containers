@@ -1291,6 +1291,7 @@ def attach_elastic_ip(network_interface_id, region="us-east-1"):
 def delete_elastic_ips(elastic_ip_allocation_ids, ec2_client):
     """Deletes elastic ips created for efa p4d testing"""
     for allocation_id in elastic_ip_allocation_ids:
+        LOGGER.info(f"Deleting elastic ip {allocation_id}")
         ec2_client.release_address(AllocationId=allocation_id)
 
 

@@ -223,6 +223,7 @@ def num_nodes(request):
 
 @pytest.fixture(scope="function")
 def ec2_key_name(request):
+    return "test_efa-pt-tr-1-13-1-gpu-py39-cu117-ubuntu20-04-sagemaker-benchmark-tested-2023-04-27-20-20-15-saimidu_test-0-3af0d89a-afbb-4ec9-9e79-87fa9103dbf4"
     return request.param
 
 
@@ -369,7 +370,7 @@ def efa_ec2_instances(
 
     def terminate_efa_instances():
         ec2_client.terminate_instances(
-            InstanceIds=[i["InstanceId"] for i in instances]
+            InstanceIds=[instance_info["InstanceId"] for instance_info in instances]
         )
 
     request.addfinalizer(terminate_efa_instances)
