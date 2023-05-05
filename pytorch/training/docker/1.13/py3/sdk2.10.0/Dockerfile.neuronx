@@ -144,13 +144,15 @@ RUN ${PIP} config set global.extra-index-url https://pip.repos.neuron.amazonaws.
 # protobuf neurox-cc<4 , sagemaker training <3.20,>=3.9.2
 # awscli 1.25.47 has requirement docutils<0.17,>=0.10
 # etcd for kubernetes installation
-# awscli 1.27.33 has requirement rsa<4.8,>=3.1.2, but you have rsa 4.9.
+# awscli 1.27.127 has requirement rsa<4.8,>=3.1.2, but you have rsa 4.9.
+# awscli 1.27.127 requires urllib3 < 1.27, python-etcd requires urllib3 >= 1.7, latest urllib3 release is 2.0.2
 RUN ${PIP} install --no-cache-dir -U \
-    'attrs>=20.3.0,<22.0.0' \
-    'protobuf>=2.9.2,<3.20' \
-    'docutils>=0.10,<0.17' \
-    'rsa<4.8,>=3.1.2' \
-    "python-etcd"
+    "attrs>=20.3.0,<22.0.0" \
+    "protobuf>=2.9.2,<3.20" \
+    "docutils>=0.10,<0.17" \
+    "rsa<4.8,>=3.1.2" \
+    "python-etcd" \
+    "urllib3<1.27"
 
 # Install extra packages needed by sagemaker (for passing test_utility_packages_using_import)
 RUN pip install --no-cache-dir -U \
