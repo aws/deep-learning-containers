@@ -86,7 +86,7 @@ def ec2_performance_tensorflow_inference(
     if is_graviton:
         # TF training binary is used that is compatible for graviton instance type
         ec2_connection.run(
-            (f"/usr/bin/pip3 install --user --upgrade awscli boto3 grpcio"), hide=True
+            (f"/usr/bin/pip3 install --user --upgrade awscli boto3 grpcio 'protobuf<3.21'"), hide=True
         )
         ec2_connection.run(
             (
