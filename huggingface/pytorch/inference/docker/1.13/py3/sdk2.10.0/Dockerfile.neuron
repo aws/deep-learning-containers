@@ -2,45 +2,56 @@ FROM ubuntu:20.04
 
 LABEL dlc_major_version="2"
 LABEL maintainer="Amazon AI"
-
-# Specify accept-bind-to-port LABEL for inference pipelines to use SAGEMAKER_BIND_TO_PORT
-# https://docs.aws.amazon.com/sagemaker/latest/dg/inference-pipeline-real-time.html
 LABEL com.amazonaws.sagemaker.capabilities.accept-bind-to-port=true
 
 ARG PYTHON=python3.8
 ARG PYTHON_VERSION=3.8.16
 ARG MMS_VERSION=1.1.8
 ARG MAMBA_VERSION=23.1.0-1
-# Pin torch neuron version to sdk2.5.0
-ARG TORCH_NEURON_VERSION=">=1.12.1,<1.12.2"
+
+# Neuron SDK components version numbers
+ARG NEURONX_TOOLS_VERSION=2.10.*
+ARG NEURON_CC_VERSION=1.15.*
+ARG TORCH_NEURON_VERSION=1.13.1.*
+
 # HF ARGS
 ARG TRANSFORMERS_VERSION
+ARG OPTIMUM_NEURON_VERSION=0.0.3
 
-ENV PYTHONDONTWRITEBYTECODE=1 \
-    PYTHONUNBUFFERED=1 \
-    LD_LIBRARY_PATH="/opt/conda/lib/:${LD_LIBRARY_PATH}:/usr/local/lib" \
-    PYTHONIOENCODING=UTF-8 \
-    LANG=C.UTF-8 \
-    LC_ALL=C.UTF-8 \
-    TEMP=/home/model-server/tmp \
-    DEBIAN_FRONTEND=noninteractive
-
-ENV PATH /opt/conda/bin:$PATH
+ENV LANG C.UTF-8
+ENV LD_LIBRARY_PATH /lib/x86_64-linux-gnu:/opt/conda/lib/:$LD_LIBRARY_PATH
+ENV PATH /opt/conda/bin:/opt/aws/neuron/bin:$PATH
+ENV SAGEMAKER_SERVING_MODULE sagemaker_pytorch_serving_container.serving:main
+ENV TEMP=/home/model-server/tmp
 
 RUN apt-get update \
+ && apt-get upgrade -y \
+ && apt-get install -y --no-install-recommends software-properties-common \
+ && add-apt-repository ppa:openjdk-r/ppa \
+ && apt-get update \
  && apt-get install -y --no-install-recommends \
-    ca-certificates \
     build-essential \
+    apt-transport-https \
+    ca-certificates \
     openssl \
-    openjdk-11-jdk-headless \
-    vim \
-    wget \
+    cmake \
     curl \
     emacs \
-    unzip \
     git \
-    gnupg2 \
+    jq \
+    libgl1-mesa-glx \
+    libglib2.0-0 \
+    libsm6 \
+    libxext6 \
+    libxrender-dev \
+    openjdk-11-jdk \
+    vim \
     wget \
+    unzip \
+    gnupg2 \
+    zlib1g-dev \
+    libcap-dev \
+    gpg-agent \
  && rm -rf /var/lib/apt/lists/* \
  && rm -rf /tmp/tmp* \
  && apt-get clean
@@ -48,52 +59,65 @@ RUN apt-get update \
 RUN echo "deb https://apt.repos.neuron.amazonaws.com bionic main" > /etc/apt/sources.list.d/neuron.list
 RUN wget -qO - https://apt.repos.neuron.amazonaws.com/GPG-PUB-KEY-AMAZON-AWS-NEURON.PUB | apt-key add -
 
-# Installing Neuron Tools
+# Install Neuronx tools
 RUN apt-get update \
- && apt-get install -y \
-      aws-neuron-tools \
+ && apt-get install -y aws-neuronx-tools=$NEURONX_TOOLS_VERSION \
  && rm -rf /var/lib/apt/lists/* \
  && rm -rf /tmp/tmp* \
  && apt-get clean
 
-# Sets up Path for Neuron tools
-ENV PATH="/opt/bin/:/opt/aws/neuron/bin:${PATH}"
+# https://github.com/docker-library/openjdk/issues/261 https://github.com/docker-library/openjdk/pull/263/files
+RUN keytool -importkeystore -srckeystore /etc/ssl/certs/java/cacerts -destkeystore /etc/ssl/certs/java/cacerts.jks -deststoretype JKS -srcstorepass changeit -deststorepass changeit -noprompt; \
+    mv /etc/ssl/certs/java/cacerts.jks /etc/ssl/certs/java/cacerts; \
+    /var/lib/dpkg/info/ca-certificates-java.postinst configure;
 
 RUN curl -L -o ~/mambaforge.sh https://github.com/conda-forge/miniforge/releases/download/${MAMBA_VERSION}/Mambaforge-${MAMBA_VERSION}-Linux-x86_64.sh \
  && chmod +x ~/mambaforge.sh \
  && ~/mambaforge.sh -b -p /opt/conda \
  && rm ~/mambaforge.sh \
- && /opt/conda/bin/conda install -c conda-forge \
+ && /opt/conda/bin/conda install -c conda-forge -y \
     python=$PYTHON_VERSION \
     cython \
     mkl-include \
     mkl \
     botocore \
+    parso \
+    scipy \
+    typing \
     # Below 2 are included in miniconda base, but not mamba so need to install
     conda-content-trust \
-    charset-normalizer
-# Upstream conda looks to have moved to 4.13 which is incompatible with mamba 0.22.1 and will fail the conda-forge installs.
-# having "conda update conda" before the "conda -c conda-forge" commands will automatically update conda to 4.13.
-# Moving conda update conda" after the "conda -c conda-forge" commands keep conda at 4.12 but will update other packages using
-# the current conda 4.12
-RUN /opt/conda/bin/conda update -y conda \
-   && /opt/conda/bin/conda clean -ya
+    charset-normalizer \
+ && /opt/conda/bin/conda update -y conda \
+ && /opt/conda/bin/conda clean -ya
 
-RUN pip install --upgrade pip --trusted-host pypi.org --trusted-host files.pythonhosted.org \
+RUN conda install -c conda-forge \
+    opencv \
+    h5py \
+    requests \
+ && conda clean -ya \
+ && pip install --upgrade pip --trusted-host pypi.org --trusted-host files.pythonhosted.org \
  && ln -s /opt/conda/bin/pip /usr/local/bin/pip3 \
- && pip install packaging==20.4 \
-    enum-compat==0.0.3 \
-    # pyOpenSSL requires cryptography>=2.3, but all versions <3.3 have vulnerabilities
-    "cryptography>=3.3.2"
+ && pip install packaging \
+    enum-compat \
+    ipython \
+    cryptography
+
+RUN pip install --no-cache-dir -U \
+    scipy \
+    six \
+    # install PyYAML>=5.4 to avoid conflict with latest awscli
+    "pyYAML>=5.4,<5.5" \
+    "pillow>=8.3" \
+    "awscli<2" \
+    pandas==1.* \
+    boto3
 
 # Install Neuron PyTorch
 # including neuron-cc to be able to compile
-RUN pip install \
-    torch-neuron$TORCH_NEURON_VERSION \
-   #  not installed since we assume model is already compiled
-   #  neuron-cc[tensorflow] \
-    --extra-index-url=https://pip.repos.neuron.amazonaws.com
-
+RUN pip install torch-neuron==$NEURONX_FRAMEWORK_VERSION --extra-index-url https://pip.repos.neuron.amazonaws.com \
+ && pip install neuronx-cc[tensorflow]==$NEURON_CC_VERSION --extra-index-url https://pip.repos.neuron.amazonaws.com \
+ && pip install "protobuf<4" \
+ && pip install --no-deps --no-cache-dir -U torchvision==0.14.*
 
 WORKDIR /
 
@@ -120,11 +144,12 @@ RUN chmod +x /usr/local/bin/deep_learning_container.py
 # Hugging Face specific section #
 #################################
 
-RUN curl https://aws-dlc-licenses.s3.amazonaws.com/pytorch-1.10/license.txt -o /license.txt
+RUN curl https://aws-dlc-licenses.s3.amazonaws.com/pytorch-1.13/license.txt -o /license.txt
 
 # install Hugging Face libraries and its dependencies
 RUN pip install --no-cache-dir \
 	transformers[sentencepiece]==${TRANSFORMERS_VERSION} \
+    optimum-neuron==${OPTIMUM_NEURON_VERSION} \
 	"protobuf>=3.19.5,<=3.20.2" \
 	"sagemaker-huggingface-inference-toolkit<3"
 
