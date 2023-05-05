@@ -223,8 +223,6 @@ def generate_sagemaker_pytest_cmd(image, sagemaker_test_type):
 
     sagemaker_regions_list = f"--sagemaker-regions {region_list}"
 
-    # Temporarily only run pytorch apexddp test
-    integration_path = os.path.join(integration_path, "test_pytorchddp.py::test_apexddp_gpu")
     remote_pytest_cmd = (
         f"pytest -rA {integration_path} --region {region} --processor {processor} {docker_base_arg} "
         f"{sm_remote_docker_base_name} --tag {tag} {framework_version_arg} {framework_version} "
