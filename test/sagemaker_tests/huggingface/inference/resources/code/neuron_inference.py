@@ -1,5 +1,5 @@
 import os
-from transformers import AutoTokenizer, PretrainedConfig
+from transformers import AutoTokenizer
 import torch
 import numpy as np
 import torch.neuron

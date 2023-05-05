@@ -8,9 +8,9 @@ LABEL maintainer="Amazon AI"
 LABEL com.amazonaws.sagemaker.capabilities.accept-bind-to-port=true
 
 ARG PYTHON=python3.8
-ARG PYTHON_VERSION=3.8.13
+ARG PYTHON_VERSION=3.8.16
 ARG MMS_VERSION=1.1.8
-ARG MAMBA_VERSION=4.12.0-2
+ARG MAMBA_VERSION=23.1.0-1
 # Pin torch neuron version to sdk2.5.0
 ARG TORCH_NEURON_VERSION=">=1.12.1,<1.12.2"
 # HF ARGS
