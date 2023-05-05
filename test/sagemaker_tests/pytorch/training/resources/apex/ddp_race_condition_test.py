@@ -78,5 +78,5 @@ torch.cuda.cudart().cudaProfilerStop()
 
 assert (
     model_a_passed and model_b_passed
-), "Failure: model.a success: {model_a_passed}, model.b success: {model_b_passed}"
+), f"Failure: model.a success: {model_a_passed}, model.b success: {model_b_passed}"
 print("Success on model.a and model.b")

@@ -92,9 +92,9 @@ def _broadcast(rank, rows, columns):
 
 def _all_reduce(rank, rows, columns):
     tensor = _get_tensor(rank, rows, columns)
-    # logger.debug("Rank: {},\nTensor BEFORE all_reduce: {}".format(rank, tensor))
+    logger.debug("Rank: {},\nTensor BEFORE all_reduce: {}".format(rank, tensor))
     dist.all_reduce(tensor, op=dist.reduce_op.SUM)
-    # logger.debug("Rank: {},\nTensor AFTER all_reduce: {}\n".format(rank, tensor))
+    logger.debug("Rank: {},\nTensor AFTER all_reduce: {}\n".format(rank, tensor))
 
     assert torch.equal(
         tensor, _get_tensors_sum(rows, columns)
@@ -106,10 +106,10 @@ def _all_reduce(rank, rows, columns):
 def _reduce(rank, rows, columns):
     dest = 0
     tensor = _get_tensor(rank, rows, columns)
-    # logger.debug("Rank: {},\nTensor BEFORE reduce: {}".format(rank, tensor))
+    logger.debug("Rank: {},\nTensor BEFORE reduce: {}".format(rank, tensor))
     # this is inplace operation
     dist.reduce(tensor, op=dist.reduce_op.SUM, dst=dest)
-    # logger.debug("Rank: {},\nTensor AFTER reduce: {}\n".format(rank, tensor))
+    logger.debug("Rank: {},\nTensor AFTER reduce: {}\n".format(rank, tensor))
 
     if rank == dest:
         assert torch.equal(
