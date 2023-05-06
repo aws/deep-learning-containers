@@ -78,14 +78,14 @@ RUN cd server && make install-flash-attention
 COPY server/Makefile-transformers server/Makefile
 RUN cd server && BUILD_EXTENSIONS="True" make install-transformers
 
-COPY server/Makefile server/Makefile
-
 # Install server
 COPY proto proto
 COPY server server
+COPY server/Makefile server/Makefile
 RUN cd server && \
     make gen-server && \
-    /opt/miniconda/envs/text-generation/bin/pip install ".[bnb]" --no-cache-dir
+    pip install -r requirements.txt && \
+    pip install ".[bnb]" --no-cache-dir
 RUN rm -r proto server
 
 # Install router
@@ -109,9 +109,3 @@ RUN HOME_DIR=/root && \
     rm -rf ${HOME_DIR}/oss_compliance*
 
 ENTRYPOINT ["./entrypoint.sh"]
-
-# Original image
-FROM base
-
-ENTRYPOINT ["text-generation-launcher"]
-CMD ["--json-output"]
