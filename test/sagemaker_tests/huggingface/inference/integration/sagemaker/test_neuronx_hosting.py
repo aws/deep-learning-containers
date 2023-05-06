@@ -77,9 +77,6 @@ def test_neuronx_hosting_trn(
     test_image_uri = ecr_utils.reupload_image_to_test_ecr(
         ecr_image, target_image_repo_name=image_repo_name, target_region=test_region
     )
-    print(
-        f"[TRSHANTA] {region} {test_region} {instance_type} {test_instance_type} {ecr_image} {test_sagemaker_session} {test_image_uri}"
-    )
     try:
         _test_pt_neuronx(
             test_sagemaker_session,

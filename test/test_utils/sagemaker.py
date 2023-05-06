@@ -57,8 +57,7 @@ def assign_sagemaker_remote_job_instance_type(image):
     if "graviton" in image:
         return "ml.c6g.2xlarge"
     elif "neuronx" in image or "training-neuron" in image:
-        ##TODO: Revert this
-        return "ml.inf2.xlarge"
+        return "ml.trn1.2xlarge"
     elif "inference-neuron" in image:
         return "ml.inf1.xlarge"
     elif "gpu" in image:
@@ -137,9 +136,6 @@ def generate_sagemaker_pytest_cmd(image, sagemaker_test_type):
     :return: <tuple> pytest command to be run, path where it should be executed, image tag
     """
     region = os.getenv("AWS_REGION", DEFAULT_REGION)
-    # Temporary condition to test HF PT Inference images on us-east-1 region
-    # if all([temp_substr in image for temp_substr in ["huggingface", "neuronx", "inference"]]):
-    #     region = "us-east-2"
     account_id = os.getenv("ACCOUNT_ID", image.split(".")[0])
     print("image name {}".format(image))
     sm_remote_docker_base_name, tag = image.split("/")[1].split(":")
