@@ -71,7 +71,6 @@ def invoke_neuron_helper_function(
 @pytest.mark.processor("neuronx")
 @pytest.mark.model("unknown_model")
 @pytest.mark.parametrize("instance_types", ["ml.trn1.32xlarge"])
-@pytest.mark.parametrize("sagemaker_regions", ["us-west-2"])
 @pytest.mark.neuronx_test
 def test_neuron_allreduce_distributed(
     framework_version, ecr_image, sagemaker_regions, instance_types
@@ -89,7 +88,6 @@ def test_neuron_allreduce_distributed(
 @pytest.mark.processor("neuronx")
 @pytest.mark.model("mlp")
 @pytest.mark.parametrize("instance_types", ["ml.trn1.32xlarge"])
-@pytest.mark.parametrize("sagemaker_regions", ["us-west-2"])
 @pytest.mark.neuronx_test
 def test_neuron_mlp_distributed(framework_version, ecr_image, sagemaker_regions, instance_types):
     function_args = {
