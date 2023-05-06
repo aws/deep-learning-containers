@@ -138,8 +138,8 @@ def generate_sagemaker_pytest_cmd(image, sagemaker_test_type):
     """
     region = os.getenv("AWS_REGION", DEFAULT_REGION)
     # Temporary condition to test HF PT Inference images on us-east-1 region
-    if all([temp_substr in image for temp_substr in ["huggingface", "neuronx", "inference"]]):
-        region = "us-east-2"
+    # if all([temp_substr in image for temp_substr in ["huggingface", "neuronx", "inference"]]):
+    #     region = "us-east-2"
     account_id = os.getenv("ACCOUNT_ID", image.split(".")[0])
     print("image name {}".format(image))
     sm_remote_docker_base_name, tag = image.split("/")[1].split(":")

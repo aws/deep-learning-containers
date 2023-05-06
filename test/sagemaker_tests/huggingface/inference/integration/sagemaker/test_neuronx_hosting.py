@@ -16,6 +16,11 @@ import os
 
 import pytest
 import sagemaker
+import boto3
+from test.test_utils import (
+    ecr as ecr_utils,
+    get_repository_and_tag_from_image_uri,
+)
 from sagemaker.huggingface import HuggingFaceModel
 
 
@@ -48,6 +53,45 @@ def test_neuron_hosting(
         )
     except Exception as e:
         dump_logs_from_cloudwatch(e, region)
+        raise
+
+
+## This version of the test is being added to test the neuronx inference images on multiple instances in the regions corresponding to their availability.
+## In future, we would like to configure the logic to run multiple `pytest` commands that can allow us to test multiple instances in multiple regions for each image.
+@pytest.mark.model("tiny-distilbert")
+@pytest.mark.processor("neuronx")
+@pytest.mark.parametrize(
+    "test_region,test_instance_type",
+    [("us-east-1", "ml.trn1.2xlarge"), ("us-east-2", "ml.inf2.xlarge")],
+)
+@pytest.mark.neuronx_test
+def test_neuronx_hosting_trn(
+    test_region, test_instance_type, region, instance_type, framework_version, ecr_image, py_version
+):
+    valid_instance_types_for_this_test = ["ml.trn1.2xlarge", "ml.inf2.xlarge"]
+    assert (
+        not instance_type or instance_type in valid_instance_types_for_this_test
+    ), f"Instance type value passed by pytest is {instance_type}. This method will only test instance types in {valid_instance_types_for_this_test}"
+    test_sagemaker_session = sagemaker.Session(boto_session=boto3.Session(region_name=test_region))
+    image_repo_name, _ = get_repository_and_tag_from_image_uri(ecr_image)
+    test_image_uri = ecr_utils.reupload_image_to_test_ecr(
+        ecr_image, target_image_repo_name=image_repo_name, target_region=test_region
+    )
+    print(
+        f"[TRSHANTA] {region} {test_region} {instance_type} {test_instance_type} {ecr_image} {test_sagemaker_session} {test_image_uri}"
+    )
+    try:
+        _test_pt_neuronx(
+            test_sagemaker_session,
+            framework_version,
+            test_image_uri,
+            test_instance_type,
+            model_dir,
+            script_dir,
+            py_version,
+        )
+    except Exception as e:
+        dump_logs_from_cloudwatch(e, test_region)
         raise
 
 
