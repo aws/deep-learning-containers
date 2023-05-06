@@ -58,7 +58,7 @@ def assign_sagemaker_remote_job_instance_type(image):
         return "ml.c6g.2xlarge"
     elif "neuronx" in image or "training-neuron" in image:
         ##TODO: Revert this
-        return "ml.inf1.2xlarge"
+        return "ml.inf2.xlarge"
     elif "inference-neuron" in image:
         return "ml.inf1.xlarge"
     elif "gpu" in image:
