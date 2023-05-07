@@ -121,15 +121,9 @@ def _get_endpoint_prefix_name(custom_prefix, region_name, image_uri):
     except:
         pass
 
-    ## TODO: Revert
-    raise ValueError(f"Value of CODEBUILD_RESOLVED_SOURCE_VERSION is: {os.getenv('CODEBUILD_RESOLVED_SOURCE_VERSION')}")
-    # if os.getenv("CODEBUILD_RESOLVED_SOURCE_VERSION"):
-    #     raise f""
-    #     endpoint_name_prefix = (
-    #         f"{endpoint_name_prefix}-{os.getenv('CODEBUILD_RESOLVED_SOURCE_VERSION')}"
-    #     )
-
-    # return endpoint_name_prefix
+    resolved_src_version = os.getenv("CODEBUILD_RESOLVED_SOURCE_VERSION", "temp")
+    endpoint_name_prefix = f"{endpoint_name_prefix}-{resolved_src_version}"
+    return endpoint_name_prefix
 
 
 def _test_pt_neuronx(
