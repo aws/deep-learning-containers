@@ -20,6 +20,7 @@ import boto3
 from test.test_utils import (
     ecr as ecr_utils,
     get_repository_and_tag_from_image_uri,
+    LOGGER,
 )
 from sagemaker.huggingface import HuggingFaceModel
 
@@ -138,6 +139,7 @@ def _test_pt_neuronx(
     )
     hf_model._is_compiled_model = True
 
+    LOGGER.info(f"Creating SM Hosting Endpoint name: {endpoint_name} for instance_type:{instance_type} in region {sagemaker_session.boto_region_name} ")
     with timeout_and_delete_endpoint(endpoint_name, sagemaker_session, minutes=30):
         predictor = hf_model.deploy(
             initial_instance_count=1,
