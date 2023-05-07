@@ -137,7 +137,7 @@ def _test_pt_neuronx(
     accelerator_type=None,
 ):
     endpoint_name_prefix = _get_endpoint_prefix_name(
-        custom_prefix="sagemaker-huggingface-neuronx-serving",
+        custom_prefix="sm-hf-neuronx-serving",
         region_name=sagemaker_session.boto_region_name,
         image_uri=ecr_image,
     )
