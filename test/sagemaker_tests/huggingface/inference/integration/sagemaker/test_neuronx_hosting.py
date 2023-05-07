@@ -116,7 +116,7 @@ def _get_endpoint_prefix_name(custom_prefix, region_name, image_uri):
     ## Image SHA returned looks like sha256:1abc.....
     ## We extract ID from that
     image_sha_id = image_sha.split(":")[-1]
-    endpoint_name_prefix = f"{endpoint_name_prefix}-{image_sha.split(image_sha_id[:10])}"
+    endpoint_name_prefix = f"{endpoint_name_prefix}-{image_sha_id[:10]}"
 
     if os.getenv("CODEBUILD_RESOLVED_SOURCE_VERSION"):
         endpoint_name_prefix = (
