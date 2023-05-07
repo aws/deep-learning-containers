@@ -139,7 +139,7 @@ def _test_pt_neuronx(
     )
     hf_model._is_compiled_model = True
 
-    LOGGER.info(f"Creating SM Hosting Endpoint name: {endpoint_name} for instance_type:{instance_type} in region {sagemaker_session.boto_region_name} ")
+    print(f"Creating SM Hosting Endpoint name: {endpoint_name} for instance_type:{instance_type} in region {sagemaker_session.boto_region_name} ")
     with timeout_and_delete_endpoint(endpoint_name, sagemaker_session, minutes=30):
         predictor = hf_model.deploy(
             initial_instance_count=1,
