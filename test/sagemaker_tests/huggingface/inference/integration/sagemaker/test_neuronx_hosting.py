@@ -110,20 +110,26 @@ def _get_endpoint_prefix_name(custom_prefix, region_name, image_uri):
     image_uri: str, URI of the image
     """
     endpoint_name_prefix = custom_prefix
-    image_sha = get_sha_of_an_image_from_ecr(
-        ecr_client=boto3.Session(region_name=region_name).client("ecr"), image_uri=image_uri
-    )
-    ## Image SHA returned looks like sha256:1abc.....
-    ## We extract ID from that
-    image_sha_id = image_sha.split(":")[-1]
-    endpoint_name_prefix = f"{endpoint_name_prefix}-{image_sha_id[:10]}"
-
-    if os.getenv("CODEBUILD_RESOLVED_SOURCE_VERSION"):
-        endpoint_name_prefix = (
-            f"{endpoint_name_prefix}-{os.getenv('CODEBUILD_RESOLVED_SOURCE_VERSION')}"
+    try:
+        image_sha = get_sha_of_an_image_from_ecr(
+            ecr_client=boto3.Session(region_name=region_name).client("ecr"), image_uri=image_uri
         )
+        ## Image SHA returned looks like sha256:1abc.....
+        ## We extract ID from that
+        image_sha_id = image_sha.split(":")[-1]
+        endpoint_name_prefix = f"{endpoint_name_prefix}-{image_sha_id[:10]}"
+    except:
+        pass
 
-    return endpoint_name_prefix
+    ## TODO: Revert
+    raise ValueError(f"Value of CODEBUILD_RESOLVED_SOURCE_VERSION is: {os.getenv('CODEBUILD_RESOLVED_SOURCE_VERSION')}")
+    # if os.getenv("CODEBUILD_RESOLVED_SOURCE_VERSION"):
+    #     raise f""
+    #     endpoint_name_prefix = (
+    #         f"{endpoint_name_prefix}-{os.getenv('CODEBUILD_RESOLVED_SOURCE_VERSION')}"
+    #     )
+
+    # return endpoint_name_prefix
 
 
 def _test_pt_neuronx(
