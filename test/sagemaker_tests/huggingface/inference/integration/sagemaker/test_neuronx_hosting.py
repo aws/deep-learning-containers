@@ -37,6 +37,13 @@ from ...integration.sagemaker.timeout import timeout_and_delete_endpoint
 @pytest.mark.model("tiny-distilbert")
 @pytest.mark.processor("neuronx")
 @pytest.mark.neuronx_test
+@pytest.mark.skip(
+    reason="""
+        This method tests ml.trn1.2xlarge instance which is derived from the pytest command. For Neuronx,
+        all the supported instances (including ml.trn1.2xlarge and ml.inf2.xlarge) are being covered
+        in the test_neuronx_hosting_all_instances below. Hence skipping this test.
+    """
+)
 def test_neuron_hosting(
     sagemaker_session, framework_version, ecr_image, instance_type, region, py_version
 ):
@@ -62,11 +69,14 @@ def test_neuron_hosting(
 @pytest.mark.processor("neuronx")
 @pytest.mark.parametrize(
     "test_region,test_instance_type",
-    [("us-east-1", "ml.trn1.2xlarge"), ("us-east-2", "ml.inf2.xlarge")],
+    [
+        ("us-east-1", "ml.trn1.2xlarge"), 
+        ("us-east-2", "ml.inf2.xlarge")
+    ],
 )
 @pytest.mark.neuronx_test
-def test_neuronx_hosting_trn(
-    test_region, test_instance_type, region, instance_type, framework_version, ecr_image, py_version
+def test_neuronx_hosting_all_instances(
+    test_region, test_instance_type, instance_type, framework_version, ecr_image, py_version
 ):
     valid_instance_types_for_this_test = ["ml.trn1.2xlarge", "ml.inf2.xlarge"]
     assert (
