@@ -20,7 +20,7 @@ import boto3
 from test.test_utils import (
     ecr as ecr_utils,
     get_repository_and_tag_from_image_uri,
-    LOGGER,
+    get_sha_of_an_image_from_ecr,
 )
 from sagemaker.huggingface import HuggingFaceModel
 
@@ -70,10 +70,7 @@ def test_neuron_hosting(
 @pytest.mark.processor("neuronx")
 @pytest.mark.parametrize(
     "test_region,test_instance_type",
-    [
-        ("us-east-1", "ml.trn1.2xlarge"), 
-        ("us-east-2", "ml.inf2.xlarge")
-    ],
+    [("us-east-1", "ml.trn1.2xlarge"), ("us-east-2", "ml.inf2.xlarge")],
 )
 @pytest.mark.neuronx_test
 def test_neuronx_hosting_all_instances(
@@ -103,6 +100,32 @@ def test_neuronx_hosting_all_instances(
         raise
 
 
+def _get_endpoint_prefix_name(custom_prefix, region_name, image_uri):
+    """
+    Creates an endpoint prefix name that has first 10 chars of image sha and the CODEBUILD_RESOLVED_SOURCE_VERSION
+    to allow tracking of SM Endpoint Logs.
+
+    custom_prefix: str, Initial prefix that the user wants to have in the endpoint name
+    region_name: str, region_name where image is located
+    image_uri: str, URI of the image
+    """
+    endpoint_name_prefix = custom_prefix
+    image_sha = get_sha_of_an_image_from_ecr(
+        ecr_client=boto3.Session(region_name=region_name).client("ecr"), image_uri=image_uri
+    )
+    ## Image SHA returned looks like sha256:1abc.....
+    ## We extract ID from that
+    image_sha_id = image_sha.split(":")[-1]
+    endpoint_name_prefix = f"{endpoint_name_prefix}-{image_sha.split(image_sha_id[:10])}"
+
+    if os.getenv("CODEBUILD_RESOLVED_SOURCE_VERSION"):
+        endpoint_name_prefix = (
+            f"{endpoint_name_prefix}-{os.getenv('CODEBUILD_RESOLVED_SOURCE_VERSION')}"
+        )
+
+    return endpoint_name_prefix
+
+
 def _test_pt_neuronx(
     sagemaker_session,
     framework_version,
@@ -113,7 +136,12 @@ def _test_pt_neuronx(
     py_version,
     accelerator_type=None,
 ):
-    endpoint_name = sagemaker.utils.unique_name_from_base("sagemaker-huggingface-neuronx-serving")
+    endpoint_name_prefix = _get_endpoint_prefix_name(
+        custom_prefix="sagemaker-huggingface-neuronx-serving",
+        region_name=sagemaker_session.boto_region_name,
+        image_uri=ecr_image,
+    )
+    endpoint_name = sagemaker.utils.unique_name_from_base(endpoint_name_prefix)
 
     model_data = sagemaker_session.upload_data(
         path=model_dir,
@@ -139,7 +167,6 @@ def _test_pt_neuronx(
     )
     hf_model._is_compiled_model = True
 
-    print(f"Creating SM Hosting Endpoint name: {endpoint_name} for instance_type:{instance_type} in region {sagemaker_session.boto_region_name} ")
     with timeout_and_delete_endpoint(endpoint_name, sagemaker_session, minutes=30):
         predictor = hf_model.deploy(
             initial_instance_count=1,
