@@ -1,0 +1,88 @@
+{
+   "golang.org/x/net":[
+      {
+         "description":"A maliciously crafted HTTP/2 stream could cause excessive CPU consumption in the HPACK decoder, sufficient to cause a denial of service from a small number of small requests.",
+         "vulnerability_id":"CVE-2022-41723",
+         "name":"CVE-2022-41723",
+         "package_name":"golang.org/x/net",
+         "package_details":{
+            "file_path":"opt/aws/neuron/bin/neuron-profile",
+            "name":"golang.org/x/net",
+            "package_manager":"GOBINARY",
+            "version":"v0.0.0-20210119194325-5f4716e94777",
+            "release":null
+         },
+         "remediation":{
+            "recommendation":{
+               "text":"None Provided"
+            }
+         },
+         "cvss_v3_score":7.5,
+         "cvss_v30_score":0.0,
+         "cvss_v31_score":7.5,
+         "cvss_v2_score":0.0,
+         "cvss_v3_severity":"HIGH",
+         "source_url":"https://nvd.nist.gov/vuln/detail/CVE-2022-41723",
+         "source":"NVD",
+         "severity":"HIGH",
+         "status":"ACTIVE",
+         "title":"CVE-2022-41723 - golang.org/x/net"
+      },
+      {
+         "description":"In net/http in Go before 1.18.6 and 1.19.x before 1.19.1, attackers can cause a denial of service because an HTTP/2 connection can hang during closing if shutdown were preempted by a fatal error.",
+         "vulnerability_id":"CVE-2022-27664",
+         "name":"CVE-2022-27664",
+         "package_name":"golang.org/x/net",
+         "package_details":{
+            "file_path":"opt/aws/neuron/bin/neuron-profile",
+            "name":"golang.org/x/net",
+            "package_manager":"GOBINARY",
+            "version":"v0.0.0-20210119194325-5f4716e94777",
+            "release":null
+         },
+         "remediation":{
+            "recommendation":{
+               "text":"None Provided"
+            }
+         },
+         "cvss_v3_score":7.5,
+         "cvss_v30_score":0.0,
+         "cvss_v31_score":7.5,
+         "cvss_v2_score":0.0,
+         "cvss_v3_severity":"HIGH",
+         "source_url":"https://nvd.nist.gov/vuln/detail/CVE-2022-27664",
+         "source":"NVD",
+         "severity":"HIGH",
+         "status":"ACTIVE",
+         "title":"CVE-2022-27664 - golang.org/x/net"
+      },
+      {
+         "description":"golang.org/x/net before v0.0.0-20210520170846-37e1c6afe023 allows attackers to cause a denial of service (infinite loop) via crafted ParseFragment input.",
+         "vulnerability_id":"CVE-2021-33194",
+         "name":"CVE-2021-33194",
+         "package_name":"golang.org/x/net",
+         "package_details":{
+            "file_path":"opt/aws/neuron/bin/neuron-profile",
+            "name":"golang.org/x/net",
+            "package_manager":"GOBINARY",
+            "version":"v0.0.0-20210119194325-5f4716e94777",
+            "release":null
+         },
+         "remediation":{
+            "recommendation":{
+               "text":"None Provided"
+            }
+         },
+         "cvss_v3_score":7.5,
+         "cvss_v30_score":0.0,
+         "cvss_v31_score":7.5,
+         "cvss_v2_score":5.0,
+         "cvss_v3_severity":"HIGH",
+         "source_url":"https://nvd.nist.gov/vuln/detail/CVE-2021-33194",
+         "source":"NVD",
+         "severity":"HIGH",
+         "status":"ACTIVE",
+         "title":"CVE-2021-33194 - golang.org/x/net"
+      }
+   ]
+}
