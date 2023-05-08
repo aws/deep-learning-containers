@@ -86,7 +86,9 @@ def ec2_performance_tensorflow_inference(
     if is_graviton:
         # TF training binary is used that is compatible for graviton instance type
         ec2_connection.run(
-            (f"/usr/bin/pip3 install --user --upgrade awscli boto3 grpcio 'protobuf<3.21'"),
+            (
+                f"/usr/bin/pip3 install --user --upgrade awscli boto3 grpcio 'protobuf<3.21' 'numpy<1.24'"
+            ),
             hide=True,
         )
         ec2_connection.run(
@@ -98,7 +100,7 @@ def ec2_performance_tensorflow_inference(
     else:
         ec2_connection.run(f"pip3 install -U pip")
         ec2_connection.run(
-            f"pip3 install --user boto3 grpcio 'protobuf<3.21' 'tensorflow-serving-api<={tf_api_version}'"
+            f"pip3 install --user --upgrade boto3 grpcio 'protobuf<3.21' 'numpy<1.24' 'tensorflow-serving-api<={tf_api_version}'"
         )
     time_str = time.strftime("%Y-%m-%d-%H-%M-%S")
     commit_info = os.getenv("CODEBUILD_RESOLVED_SOURCE_VERSION")
