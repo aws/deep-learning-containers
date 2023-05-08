@@ -51,18 +51,16 @@ def test_neuron_hosting(framework_version, ecr_image, instance_type, sagemaker_r
         "resnet_script": resnet_neuron_script,
         "resnet_neuron_input": resnet_neuron_input,
         "resnet_neuron_image_list": resnet_neuron_image_list,
+        "accelerator_type": "neuron",
     }
     invoke_pytorch_helper_function(
         ecr_image, sagemaker_regions, _test_resnet_distributed, function_args
     )
 
 
-@pytest.mark.skip(
-    "CreateEndpointConfig doesn't support trn1: https://docs.aws.amazon.com/sagemaker/latest/APIReference/API_ProductionVariant.html#sagemaker-Type-ProductionVariant-InstanceType"
-)
 @pytest.mark.model("resnet")
 @pytest.mark.processor("neuronx")
-@pytest.mark.neuron_test
+@pytest.mark.neuronx_test
 def test_neuron_hosting(framework_version, ecr_image, instance_type, sagemaker_regions):
     instance_type = "ml.trn1.2xlarge"
     model_dir = os.path.join(model_neuronx_dir, "model-resnet.tar.gz")
@@ -73,6 +71,7 @@ def test_neuron_hosting(framework_version, ecr_image, instance_type, sagemaker_r
         "resnet_script": resnet_neuronx_script,
         "resnet_neuron_input": resnet_neuronx_input,
         "resnet_neuron_image_list": resnet_neuronx_image_list,
+        "accelerator_type": "neuronx",
     }
     invoke_pytorch_helper_function(
         ecr_image, sagemaker_regions, _test_resnet_distributed, function_args
@@ -132,6 +131,11 @@ def _test_resnet_distributed(
 
         # Load names for ImageNet classes
         object_categories = {}
+        if accelerator_type == "neuronx":
+            with open(resnet_neuron_image_list, "r") as f:
+                object_categories = json.load(f)
+            assert "cat" in object_categories[str(np.argmax(result))][1]
+            return
         with open(resnet_neuron_image_list, "r") as f:
             for line in f:
                 key, val = line.strip().split(":")
