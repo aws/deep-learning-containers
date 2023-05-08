@@ -21,6 +21,7 @@ from pathlib import Path
 import pytest
 import sagemaker
 from sagemaker.huggingface import HuggingFaceModel
+from huggingface_hub import snapshot_download
 
 from ...integration import dump_logs_from_cloudwatch, model_dir, pt_diffusers_script, script_dir
 from ...integration.sagemaker.timeout import timeout_and_delete_endpoint
