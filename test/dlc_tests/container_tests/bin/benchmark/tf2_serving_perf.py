@@ -74,10 +74,10 @@ def print_helper(cmd):
 
 
 def download_test_image():
-    if not os.path.isfile("/tmp/data/Cute_grey_kitten.jpg"):
+    if not os.path.isfile("/tmp/data/angeldog.jpg"):
         os.system("wget https://upload.wikimedia.org/wikipedia/commons/7/75/Cute_grey_kitten.jpg")
         os.system("mkdir -p /tmp/data")
-        os.system("mv Cute_grey_kitten.jpg /tmp/data/Cute_grey_kitten.jpg")
+        os.system("mv Cute_grey_kitten.jpg /tmp/data/angeldog.jpg")
 
 
 def PickUnusedPort():
@@ -423,7 +423,7 @@ def saved_model_half_plus_two_input_fn():
 
 
 def Inception_input_fn():
-    f = open("/tmp/data/Cute_grey_kitten.jpg", "rb")
+    f = open("/tmp/data/angeldog.jpg", "rb")
     input_names = ["images"]
     input_shapes = [[1]]
     input_data = [f.read()]
