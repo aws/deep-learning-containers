@@ -6,14 +6,16 @@ source /test/bin/pytorch_tests/setupPyTorchBackendTest
 export USE_INDUCTOR=$1
 echo testPyTorchNCCL: USE_INDUCTOR, $USE_INDUCTOR
 
+# may encounter cuda OOM if used too many processes. The benchmark repo hardcodes the batchsize for now. 
+export WORLD_SIZE=$(($NUM_GPUS < 4 ? $NUM_GPUS : 4)) 
 # run NCCL benchmarking with 2 GPUS and 1 local node (resnet will use torchvision)
 python userbenchmark/ddp_experiments/__init__.py \
-    --ngpus $NUM_GPUS \
+    --ngpus $WORLD_SIZE \
     --distributed ddp \
     --nodes 1 \
     --cluster local \
     --filter_models resnet50 \
-    --timeout 6 \
+    --timeout 10 \
     --job_dir $AWS_LOG_DIR \
     --nccl-socket-ifname eth0
 
@@ -31,12 +33,12 @@ bash ${BIN_DIR}/pytorch_tests/installOSSPyTorch
 
 # run NCCL benchmarking with 2 GPUS and 1 local node (resnet will use torchvision)
 python userbenchmark/ddp_experiments/__init__.py \
-    --ngpus $NUM_GPUS \
+    --ngpus $WORLD_SIZE \
     --distributed ddp \
     --nodes 1 \
     --cluster local \
     --filter_models resnet50 \
-    --timeout 6 \
+    --timeout 10 \
     --job_dir $OSS_LOG_DIR \
     --nccl-socket-ifname eth0
 

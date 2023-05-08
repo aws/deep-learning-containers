@@ -1,30 +1,17 @@
 ---
 release_images:
   1:
-    framework: "tensorflow"
-    version: "2.10.1"
+    framework: "huggingface_pytorch"
+    version: "1.13.0"
     arch_type: "x86"
+    hf_transformers: "4.28.1"
     inference:
       device_types: [ "neuronx" ]
       python_versions: [ "py38" ]
       os_version: "ubuntu20.04"
-      neuron_sdk_version: "sdk2.10.0"
+      neuron_sdk_version: "sdk2.9.1"
       example: False        # [Default: False] Set to True to denote that this image is an Example image
-      disable_sm_tag: True  # [Default: False] Set to True to prevent SageMaker Abbreviated Tags from being attached
-                            # to images being published.
-      force_release: False  # [Default: False] Set to True to force images to be published even if the same image
-                            # has already been published. Re-released image will have minor version incremented by 1.
-  2:
-    framework: "pytorch"
-    version: "1.13.1"
-    arch_type: "x86"
-    inference:
-      device_types: [ "neuronx" ]
-      python_versions: [ "py38" ]
-      os_version: "ubuntu20.04"
-      neuron_sdk_version: "sdk2.10.0"
-      example: False        # [Default: False] Set to True to denote that this image is an Example image
-      disable_sm_tag: True  # [Default: False] Set to True to prevent SageMaker Abbreviated Tags from being attached
-                            # to images being published.
-      force_release: False  # [Default: False] Set to True to force images to be published even if the same image
-                            # has already been published. Re-released image will have minor version incremented by 1.
+      disable_sm_tag: True # [Default: False] Set to True to prevent SageMaker Abbreviated Tags from being attached
+      # to images being published.
+      force_release: False   # [Default: False] Set to True to force images to be published even if the same image
+      # has already been published. Re-released image will have minor version incremented by 1.
