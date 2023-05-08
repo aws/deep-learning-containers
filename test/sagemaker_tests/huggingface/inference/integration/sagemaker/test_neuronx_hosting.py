@@ -34,36 +34,6 @@ from ...integration import (
 )
 from ...integration.sagemaker.timeout import timeout_and_delete_endpoint
 
-
-@pytest.mark.model("tiny-distilbert")
-@pytest.mark.processor("neuronx")
-@pytest.mark.neuronx_test
-@pytest.mark.skip(
-    reason="""
-        This method tests ml.trn1.2xlarge instance which is derived from the pytest command. For Neuronx,
-        all the supported instances (including ml.trn1.2xlarge and ml.inf2.xlarge) are being covered
-        in the test_neuronx_hosting_all_instances below. Hence skipping this test.
-    """
-)
-def test_neuron_hosting(
-    sagemaker_session, framework_version, ecr_image, instance_type, region, py_version
-):
-    instance_type = instance_type or "ml.inf2.xlarge"
-    try:
-        _test_pt_neuronx(
-            sagemaker_session,
-            framework_version,
-            ecr_image,
-            instance_type,
-            model_dir,
-            script_dir,
-            py_version,
-        )
-    except Exception as e:
-        dump_logs_from_cloudwatch(e, region)
-        raise
-
-
 ## This version of the test is being added to test the neuronx inference images on multiple instances in the regions corresponding to their availability.
 ## In future, we would like to configure the logic to run multiple `pytest` commands that can allow us to test multiple instances in multiple regions for each image.
 @pytest.mark.model("tiny-distilbert")
