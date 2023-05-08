@@ -27,8 +27,8 @@ HOSTS_FILE_LOCATION = "/root/hosts"
 @pytest.mark.integration("efa")
 @pytest.mark.usefixtures("sagemaker")
 @pytest.mark.multinode(2)
-@pytest.mark.parametrize("region", ["us-west-2"])
-@pytest.mark.parametrize("ec2_instance_type", ["p4d.24xlarge"])
+@pytest.mark.parametrize("region", ["us-east-1"])
+@pytest.mark.parametrize("ec2_instance_type", ["p4de.24xlarge"])
 def test_efa(pytorch_training, efa_ec2_instances, efa_ec2_connections, ec2_instance_type, gpu_only):
     _setup_multinode_efa_instances(
         pytorch_training, efa_ec2_instances, efa_ec2_connections, ec2_instance_type
