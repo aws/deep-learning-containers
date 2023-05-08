@@ -13,6 +13,7 @@ ARG MAMBA_VERSION=23.1.0-1
 ARG NEURONX_TOOLS_VERSION=2.10.*
 ARG NEURON_CC_VERSION=1.15.*
 ARG TORCH_NEURON_VERSION=1.13.1.*
+ARG TORCHVISION_VERSION=0.14.*
 
 # HF ARGS
 ARG TRANSFORMERS_VERSION
@@ -114,10 +115,10 @@ RUN pip install --no-cache-dir -U \
 
 # Install Neuron PyTorch
 # including neuron-cc to be able to compile
-RUN pip install torch-neuron==$NEURONX_FRAMEWORK_VERSION --extra-index-url https://pip.repos.neuron.amazonaws.com \
+RUN pip install torch-neuron==$TORCH_NEURON_VERSION --extra-index-url https://pip.repos.neuron.amazonaws.com \
  && pip install neuronx-cc[tensorflow]==$NEURON_CC_VERSION --extra-index-url https://pip.repos.neuron.amazonaws.com \
  && pip install "protobuf<4" \
- && pip install --no-deps --no-cache-dir -U torchvision==0.14.*
+ && pip install --no-deps --no-cache-dir -U torchvision==$TORCHVISION_VERSION
 
 WORKDIR /
 
