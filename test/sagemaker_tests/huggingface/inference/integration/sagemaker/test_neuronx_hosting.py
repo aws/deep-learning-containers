@@ -34,6 +34,7 @@ from ...integration import (
 )
 from ...integration.sagemaker.timeout import timeout_and_delete_endpoint
 
+
 ## This version of the test is being added to test the neuronx inference images on multiple instances in the regions corresponding to their availability.
 ## In future, we would like to configure the logic to run multiple `pytest` commands that can allow us to test multiple instances in multiple regions for each image.
 @pytest.mark.model("tiny-distilbert")
