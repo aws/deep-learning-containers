@@ -43,7 +43,7 @@ resnet_neuron_image_list = os.path.join(model_neuron_dir, "imagenet1000_clsidx_t
 model_neuronx_dir = os.path.join(resnet_path, neuronx_sub_dir)
 resnet_neuronx_script = os.path.join(model_neuronx_dir, code_sub_dir, "resnet18.py")
 resnet_neuronx_input = resnet_neuron_input
-resnet_neuronx_image_list = resnet_neuron_image_list
+resnet_neuronx_image_list = os.path.join(model_neuronx_dir, "imagenet1000_clsidx_to_labels.txt")
 call_model_fn_once_script = os.path.join(resources_path, code_sub_dir, "call_model_fn_once.py")
 
 ROLE = "dummy/unused-role"
