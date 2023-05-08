@@ -115,15 +115,15 @@ RUN pip install --no-cache-dir -U \
 
 # Install Neuron PyTorch
 # including neuron-cc to be able to compile
-RUN pip install torch-neuron==$TORCH_NEURON_VERSION --extra-index-url https://pip.repos.neuron.amazonaws.com \
- && pip install neuronx-cc[tensorflow]==$NEURON_CC_VERSION --extra-index-url https://pip.repos.neuron.amazonaws.com \
+RUN pip install torch-neuron==${TORCH_NEURON_VERSION} --extra-index-url https://pip.repos.neuron.amazonaws.com \
+ && pip install neuron-cc[tensorflow]==${NEURON_CC_VERSION} --extra-index-url https://pip.repos.neuron.amazonaws.com \
  && pip install "protobuf<4" \
- && pip install --no-deps --no-cache-dir -U torchvision==$TORCHVISION_VERSION
+ && pip install --no-deps --no-cache-dir -U torchvision==${TORCHVISION_VERSION}
 
 WORKDIR /
 
 RUN pip install --no-cache-dir \
-    multi-model-server==$MMS_VERSION \
+    multi-model-server==${MMS_VERSION} \
     sagemaker-inference
 
 RUN useradd -m model-server \
