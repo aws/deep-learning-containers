@@ -245,9 +245,9 @@ HuggingFace Neuron Inference Containers
 
 HuggingFace Neuronx Training Containers
 ===============================
-|Framework                                  |Job Type   |Python Version Options |Example URL                                                                                                |
-|-------------------------------------------|-----------|-----------------------|-----------------------------------------------------------------------------------------------------------|
-|PyTorch 1.13.0 with Neuronx Training and HuggingFace transformers |training 	|3.8 (py38) 	        |763104351884.dkr.ecr.us-east-1.amazonaws.com/huggingface-pytorch-training-neuronx:1.13.0-transformers4.28.1-neuronx-py38-sdk2.9.1-ubuntu20.04        |
+|Framework                                                         |Neuron SDK Version |Job Type   |Supported EC2 Instance Type |Python Version Options |Example URL                                                                                                                                   |
+|------------------------------------------------------------------|-------------------|-----------|----------------------------|-----------------------|----------------------------------------------------------------------------------------------------------------------------------------------|
+|PyTorch 1.13.0 with Neuronx Training and HuggingFace transformers |Neuronx 2.9.1      |training  |trn1                        |3.8 (py38)             |763104351884.dkr.ecr.us-east-1.amazonaws.com/huggingface-pytorch-training-neuronx:1.13.0-transformers4.28.1-neuronx-py38-sdk2.9.1-ubuntu20.04 |
 
 SageMaker Training Compiler Containers
 ===============================
