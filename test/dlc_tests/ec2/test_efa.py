@@ -5,6 +5,7 @@ import pytest
 import test.test_utils.ec2 as ec2_utils
 from test.test_utils import (
     CONTAINER_TESTS_PREFIX,
+    LOGGER,
     get_account_id_from_image_uri,
     get_region_from_image_uri,
     login_to_ecr_registry,
@@ -100,7 +101,7 @@ def _setup_container(connection, docker_image, container_name):
     docker_all_devices_arg = " ".join(docker_devices_args)
 
     # Remove pre-existing containers if reusing an instance
-    connection.run(f"docker rm -f {container_name}")
+    connection.run(f"docker rm -f {container_name}", hide=True)
 
     # Run docker container with nvidia-docker to give access to all GPUs
     # Use network mode host, rather than the default "bridge" to allow direct access to container

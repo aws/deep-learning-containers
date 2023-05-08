@@ -361,7 +361,10 @@ def efa_ec2_instances(
             if response and response["Instances"]:
                 break
         except ClientError as e:
-            LOGGER.error(f"Failed to launch in {availability_zone} due to {e}")
+            LOGGER.warning(
+                f"Failed to launch in {availability_zone} due to {e}\n"
+                "Retrying in the next availability zone."
+            )
             continue
     if not (response and response["Instances"]):
         raise RuntimeError(f"Unable to launch {ec2_instance_type} instances in {region}")
@@ -414,7 +417,10 @@ def efa_ec2_instances(
 
         request.addfinalizer(elastic_ips_finalizer)
 
-    return [(instance_info["InstanceId"], key_filename) for instance_info in instances]
+    return_val = [(instance_info["InstanceId"], key_filename) for instance_info in instances]
+    LOGGER.info(f"Launched EFA Test instances - {[instance_id for instance_id, _ in return_val]}")
+
+    return return_val
 
 
 @pytest.fixture(scope="function")

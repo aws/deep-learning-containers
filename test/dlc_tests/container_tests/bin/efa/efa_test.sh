@@ -1,6 +1,8 @@
 #!/bin/bash
 # Copyright 2019 Amazon.com, Inc. or its affiliates. All Rights Reserved.
 
+set -ex
+
 # Script to run fi_pingpong locally over EFA to test connectivity.
 
 if ! command -v fi_info >/dev/null 2>&1 || ! command -v fi_pingpong >/dev/null 2>&1; then

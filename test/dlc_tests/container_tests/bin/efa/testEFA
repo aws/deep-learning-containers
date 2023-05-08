@@ -1,6 +1,8 @@
 #!/bin/bash
 # Copyright 2020 Amazon.com, Inc. or its affiliates. All Rights Reserved.
 
+set -ex
+
 hosts_file=$1
 openmpi_path_for_efa=$2
 hosts=2
