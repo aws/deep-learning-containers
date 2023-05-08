@@ -22,8 +22,7 @@ import pytest
 import sagemaker
 from sagemaker.huggingface import HuggingFaceModel
 
-from ...integration import (dump_logs_from_cloudwatch, model_dir,
-                            pt_diffusers_script, script_dir)
+from ...integration import dump_logs_from_cloudwatch, model_dir, pt_diffusers_script, script_dir
 from ...integration.sagemaker.timeout import timeout_and_delete_endpoint
 
 
@@ -51,17 +50,17 @@ def test_diffusers_gpu(
 
 # helper to compress diffusion model
 def _compress(tar_dir=None, output_file="model.tar.gz"):
-    parent_dir=os.getcwd()
+    parent_dir = os.getcwd()
     os.chdir(tar_dir)
     with tarfile.open(os.path.join(parent_dir, output_file), "w:gz") as tar:
-        for item in os.listdir('.'):
-          print(item)
-          tar.add(item, arcname=item)    
+        for item in os.listdir("."):
+            print(item)
+            tar.add(item, arcname=item)
     os.chdir(parent_dir)
 
 
 def _create_model(model_id, script_path, sagemaker_session):
-    snapshot_dir = snapshot_download(repo_id=model_id,revision="fp16")
+    snapshot_dir = snapshot_download(repo_id=model_id, revision="fp16")
     model_tar = Path(f"model-{random.getrandbits(16)}")
     model_tar.mkdir(exist_ok=True)
     copy_tree(snapshot_dir, str(model_tar))
@@ -77,6 +76,7 @@ def _create_model(model_id, script_path, sagemaker_session):
 
     return model_data
 
+
 def _test_diffusion_model(
     sagemaker_session,
     framework_version,
@@ -87,8 +87,7 @@ def _test_diffusion_model(
     py_version,
     accelerator_type=None,
 ):
-
-    HF_MODEL_ID="CompVis/stable-diffusion-v1-4"
+    HF_MODEL_ID = "CompVis/stable-diffusion-v1-4"
 
     endpoint_name = sagemaker.utils.unique_name_from_base(
         "sagemaker-huggingface-serving-diffusion-model-serving"
@@ -100,8 +99,8 @@ def _test_diffusion_model(
         raise ValueError(f"Unsupported framework for image: {ecr_image}")
 
     model_data = _create_model(
-        model_id=HF_MODEL_ID, 
-        script_path=os.path.join(script_dir, entry_point), 
+        model_id=HF_MODEL_ID,
+        script_path=os.path.join(script_dir, entry_point),
         sagemaker_session=sagemaker_session,
     )
 

@@ -14,7 +14,6 @@ def model_fn(model_dir):
 
 
 def predict_fn(data, pipe):
-
     # get prompt & parameters
     prompt = data.pop("inputs", data)
     # set valid HP for stable diffusion
