@@ -59,7 +59,7 @@ def timeout_and_delete_endpoint(endpoint_name, sagemaker_session, seconds=0, min
             yield [t]
         finally:
             try:
-                # sagemaker_session.delete_endpoint(endpoint_name)
+                sagemaker_session.delete_endpoint(endpoint_name)
                 LOGGER.info("deleted endpoint {}".format(endpoint_name))
             except ClientError as ce:
                 if ce.response["Error"]["Code"] == "ValidationException":
