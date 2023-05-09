@@ -93,7 +93,7 @@ def test_ec2_tensorflow_inference_gpu_tensorrt(
     test_results = test_utils.request_tensorflow_inference(
         model_name,
         connection=ec2_connection,
-        inference_string=f"""'{{"instances": [{str([i for i in range(784)])}]}}'""",
+        inference_string=f"""'{{"instances": [[{",".join([str([1]*28)]*28)}]]}}'""",
     )
     assert test_results, f"TensorRt test failed!"
 
