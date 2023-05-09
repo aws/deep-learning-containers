@@ -34,8 +34,7 @@ ENV LANG=C.UTF-8 \
     DEBIAN_FRONTEND=noninteractive \
     HUGGINGFACE_HUB_CACHE=/data \
     HF_HUB_ENABLE_HF_TRANSFER=1 \
-    HF_MODEL_ID=bigscience/bloom-560m \
-    MODEL_ID=$HF_MODEL_ID \
+    MODEL_ID=bigscience/bloom-560m \
     QUANTIZE=false \
     NUM_SHARD=1 \
     PORT=80 \
@@ -85,6 +84,7 @@ COPY --from=builder /usr/src/target/release/text-generation-launcher /usr/local/
 FROM base as sagemaker
 
 COPY --chmod=775 sagemaker-entrypoint.sh entrypoint.sh
+RUN sed -i '7 i export MODEL_ID="${HF_MODEL_ID}"' entrypoint.sh
 
 RUN HOME_DIR=/root && \
     pip install requests && \
