@@ -158,14 +158,14 @@ def instance_type(request, processor):
     return provided_instance_type if provided_instance_type is not None else default_instance_type
 
 
-@pytest.fixture(params=os.environ["TEST_PY_VERSIONS"].split(","))
+@pytest.fixture()
 def py_version(request):
-    return request.param
+    return request.config.getoption("--py-version")
 
 
-@pytest.fixture(params=os.environ["TEST_PROCESSORS"].split(","))
+@pytest.fixture()
 def processor(request):
-    return request.param
+    return request.config.getoption("--processor")
 
 
 @pytest.fixture(autouse=True)
