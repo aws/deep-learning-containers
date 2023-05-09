@@ -29,61 +29,34 @@ RUN cargo build --release
 
 FROM nvidia/cuda:11.8.0-devel-ubuntu22.04 as base
 
-ARG PYTORCH_VERSION=2.0.0
-ARG PYTHON_VERSION=3.9
-ARG CUDA_VERSION=11.8
-ARG MAMBA_VERSION=23.1.0-1
-ARG CUDA_CHANNEL=nvidia
-ARG INSTALL_CHANNEL=pytorch
-# Automatically set by buildx
-ARG TARGETPLATFORM
-
-ENV PATH /opt/conda/bin:$PATH
-
-WORKDIR /usr/src
-
-RUN apt-get update && apt-get install -y --no-install-recommends \
-        build-essential \
-        ca-certificates \
-        ccache \
-        curl \
-        libssl-dev \
-        unzip \
-        git && \
-        rm -rf /var/lib/apt/lists/*
-
-# Install conda
-# translating Docker's TARGETPLATFORM into mamba arches
-RUN case ${TARGETPLATFORM} in \
-         "linux/arm64")  MAMBA_ARCH=aarch64  ;; \
-         *)              MAMBA_ARCH=x86_64   ;; \
-    esac && \
-    curl -fsSL -v -o ~/mambaforge.sh -O  "https://github.com/conda-forge/miniforge/releases/download/${MAMBA_VERSION}/Mambaforge-${MAMBA_VERSION}-Linux-${MAMBA_ARCH}.sh"
-RUN chmod +x ~/mambaforge.sh && \
-    bash ~/mambaforge.sh -b -p /opt/conda && \
-    rm ~/mambaforge.sh
-
-# Conda env
-ENV PATH=/opt/conda/bin:$PATH \
-    CONDA_PREFIX=/opt/conda
-
-# Text Generation Inference base env
-ENV HUGGINGFACE_HUB_CACHE=/data \
+ENV LANG=C.UTF-8 \
+    LC_ALL=C.UTF-8 \
+    DEBIAN_FRONTEND=noninteractive \
+    HUGGINGFACE_HUB_CACHE=/data \
     HF_HUB_ENABLE_HF_TRANSFER=1 \
     HF_MODEL_ID=bigscience/bloom-560m \
     MODEL_ID=$HF_MODEL_ID \
     QUANTIZE=false \
     NUM_SHARD=1 \
-    PORT=80
+    PORT=80 \
+    CUDA_HOME=/usr/local/cuda \
+    LD_LIBRARY_PATH="/opt/miniconda/envs/text-generation/lib:/usr/local/cuda/lib64:/usr/local/cuda/extras/CUPTI/lib64:$LD_LIBRARY_PATH" \
+    CONDA_DEFAULT_ENV=text-generation \
+    PATH=$PATH:/opt/miniconda/envs/text-generation/bin:/opt/miniconda/bin:/usr/local/cuda/bin
 
-# Install pytorch
-# On arm64 we exit with an error code
-RUN case ${TARGETPLATFORM} in \
-         "linux/arm64")  exit 1 ;; \
-         *)              /opt/conda/bin/conda update -y conda &&  \
-                         /opt/conda/bin/conda install -c "${INSTALL_CHANNEL}" -c "${CUDA_CHANNEL}" -y "python=${PYTHON_VERSION}" pytorch==$PYTORCH_VERSION "pytorch-cuda=$(echo $CUDA_VERSION | cut -d'.' -f 1-2)"  ;; \
-    esac && \
-    /opt/conda/bin/conda clean -ya
+RUN apt-get update && apt-get install -y git curl libssl-dev unzip && rm -rf /var/lib/apt/lists/*
+
+RUN cd ~ && \
+    curl -L -O https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh && \
+    chmod +x Miniconda3-latest-Linux-x86_64.sh && \
+    bash ./Miniconda3-latest-Linux-x86_64.sh -bf -p /opt/miniconda && \
+    conda create -n text-generation python=3.9 -y && \
+    rm Miniconda3-latest-Linux-x86_64.sh
+
+WORKDIR /usr/src
+
+# Install torch
+RUN pip install torch --extra-index-url https://download.pytorch.org/whl/cu118 --no-cache-dir
 
 # Install specific version of flash attention
 COPY server/Makefile-flash-att server/Makefile
@@ -93,13 +66,14 @@ RUN cd server && make install-flash-attention
 COPY server/Makefile-transformers server/Makefile
 RUN cd server && BUILD_EXTENSIONS="True" make install-transformers
 
+COPY server/Makefile server/Makefile
+
 # Install server
 COPY proto proto
 COPY server server
-COPY server/Makefile server/Makefile
 RUN cd server && \
     make gen-server && \
-    pip install ".[bnb]" --no-cache-dir
+    /opt/miniconda/envs/text-generation/bin/pip install ".[bnb]" --no-cache-dir
 RUN rm -r proto server
 
 # Install router
@@ -123,3 +97,9 @@ RUN HOME_DIR=/root && \
     rm -rf ${HOME_DIR}/oss_compliance*
 
 ENTRYPOINT ["./entrypoint.sh"]
+
+# Original image
+FROM base
+
+ENTRYPOINT ["text-generation-launcher"]
+CMD ["--json-output"]
