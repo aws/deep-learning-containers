@@ -816,10 +816,12 @@ def request_tensorflow_inference(
     :return:
     """
     conn_run = connection.run if connection is not None else run
+    LOGGER.info("[trshanta] Initiating curl command")
     run_out = conn_run(
         f"curl -d {inference_string} -X POST  http://{ip_address}:{port}/v1/models/{model_name}:predict",
         warn=True,
     )
+    LOGGER.info(f"[trshanta] Curl command completed {run_out.stdout}")
 
     # The run_out.return_code is not reliable, since sometimes predict request may succeed but the returned result
     # is 404. Hence the extra check.
