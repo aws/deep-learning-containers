@@ -139,6 +139,8 @@ RUN /opt/conda/bin/mamba install -y -c conda-forge \
     "pillow>=9.4" \
     psutil \
     ipython \
+    # Adding package for studio kernels
+    ipkernel \
   && /opt/conda/bin/mamba install -y -c dglteam dgl \
   && /opt/conda/bin/mamba clean -afy
 
