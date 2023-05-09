@@ -84,18 +84,28 @@ def test_ec2_tensorflow_inference_gpu_tensorrt(
         f"--mount type=bind,source={model_path},target=/models/{model_name}/1 -e TEST_MODE=1 -e MODEL_NAME={model_name}"
         f" {tensorflow_inference}"
     )
+    tensorrt_test_failed = False
+    try:
+        ec2_connection.run(f"$(aws ecr get-login --no-include-email --region {region})", hide=True)
+        host_setup_for_tensorflow_inference(serving_folder_path, framework_version, ec2_connection)
+        sleep(2)
+        ec2_connection.run(docker_run_cmd, hide=True)
 
-    ec2_connection.run(f"$(aws ecr get-login --no-include-email --region {region})", hide=True)
-    host_setup_for_tensorflow_inference(serving_folder_path, framework_version, ec2_connection)
-    sleep(2)
-    ec2_connection.run(docker_run_cmd, hide=True)
-
-    test_results = test_utils.request_tensorflow_inference(
-        model_name,
-        connection=ec2_connection,
-        inference_string=f"""'{{"instances": [[{",".join([str([1]*28)]*28)}]]}}'""",
-    )
-    assert test_results, f"TensorRt test failed!"
+        test_results = test_utils.request_tensorflow_inference(
+            model_name,
+            connection=ec2_connection,
+            inference_string=f"""'{{"instances": [[{",".join([str([1]*28)]*28)}]]}}'""",
+        )
+        assert test_results, "TensorRt test failed!"
+    except:
+        tensorrt_test_failed = True
+        remote_out = ec2_connection.run(f"docker logs {container_name}", warn=True, hide=True)
+        LOGGER.info(
+            f"--- TF container logs ---\n--- STDOUT ---\n{remote_out.stdout}\n--- STDERR ---\n{remote_out.stderr}"
+        )
+    finally:
+        ec2_connection.run(f"docker rm -f {container_name}", warn=True, hide=True)
+    assert not tensorrt_test_failed, "TensorRt tests have failed - please take a look at the logs."
 
 
 @pytest.mark.model("mnist")
