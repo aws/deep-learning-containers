@@ -9,16 +9,14 @@ logging.basicConfig(stream=sys.stdout, level=logging.DEBUG)
 
 DEFAULT_REGION = "us-west-2"
 
-sagemaker_session = sagemaker.Session(
-        boto_session=boto3.Session(region_name=DEFAULT_REGION)
-    )
+sagemaker_session = sagemaker.Session(boto_session=boto3.Session(region_name=DEFAULT_REGION))
 
 
 @remote(
-        role="SageMakerRole",
-        instance_type="ml.m5.xlarge",
-        sagemaker_session=sagemaker_session,
-    )
+    role="SageMakerRole",
+    instance_type="ml.m5.xlarge",
+    sagemaker_session=sagemaker_session,
+)
 def dlc_remote_function_test_divide(x, y):
     return x / y
 
