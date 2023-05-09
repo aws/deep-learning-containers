@@ -96,7 +96,8 @@ def test_ec2_tensorflow_inference_gpu_tensorrt(
             connection=ec2_connection,
             inference_string=f"""'{{"instances": [[{",".join([str([1]*28)]*28)}]]}}'""",
         )
-        assert test_results, "TensorRt test failed!"
+        ##TODO: Revert this line and remove `not`. Adding teh `not` for just testing and seeing the logs. 
+        assert not test_results, "TensorRt test failed!"
     except:
         tensorrt_test_failed = True
         remote_out = ec2_connection.run(f"docker logs {container_name}", warn=True, hide=True)
