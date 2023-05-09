@@ -198,6 +198,24 @@ RUN /opt/conda/bin/conda config --set ssl_verify False \
  && pip install --upgrade pip --trusted-host pypi.org --trusted-host files.pythonhosted.org \
  && ln -s /opt/conda/bin/pip /usr/local/bin/pip3
 
+# Install aws-sdk-cpp s3;transfer modules for torchdata
+# pin aws-sdk-cpp modules
+COPY pin_git_modules.py .
+RUN git clone https://github.com/aws/aws-sdk-cpp --branch main
+RUN python pin_git_modules.py --src $(pwd)/aws-sdk-cpp --date 2022-03-17
+RUN rm pin_git_modules.py
+# add necessary flags
+RUN cd aws-sdk-cpp/ \
+ && export LD_LIBRARY_PATH="/usr/lib/x86_64-linux-gnu/:${LD_LIBRARY_PATH}" \
+ && mkdir sdk-build \
+ && cd sdk-build \
+ && cmake .. -DCMAKE_CXX_FLAGS="-lcurl" -DCMAKE_BUILD_TYPE=Release -DBUILD_ONLY="s3;transfer" -DAUTORUN_UNIT_TESTS=OFF \
+ && make \
+ && make install \
+ && cd ../.. \
+ && rm -rf aws-sdk-cpp
+
+
 WORKDIR /root
 
 # Install AWS-PyTorch, and other torch packages

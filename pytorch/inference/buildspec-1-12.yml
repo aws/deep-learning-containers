@@ -13,6 +13,9 @@ repository_info:
     repository: &REPOSITORY !join [ *ACCOUNT_ID, .dkr.ecr., *REGION, .amazonaws.com/, *REPOSITORY_NAME ]
 
 context:
+  pin_git_modules:
+    source: ../build_artifacts/pin_git_modules.py
+    target: pin_git_modules.py
   inference_context: &INFERENCE_CONTEXT
     torchserve-ec2-entrypoint:
       source: docker/build_artifacts/torchserve-ec2-entrypoint.py
