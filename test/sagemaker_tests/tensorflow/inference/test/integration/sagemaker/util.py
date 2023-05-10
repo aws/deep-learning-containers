@@ -205,7 +205,8 @@ def sagemaker_endpoint(sagemaker_client, model_name, instance_type, accelerator_
         yield model_name  # return the endpoint name
     finally:
         logger.info("deleting endpoint and endpoint config %s", model_name)
-        sagemaker_client.delete_endpoint(EndpointName=model_name)
+        ## TODO: Revert this
+        # sagemaker_client.delete_endpoint(EndpointName=model_name)
         sagemaker_client.delete_endpoint_config(EndpointConfigName=model_name)
 
 
