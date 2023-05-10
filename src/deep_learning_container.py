@@ -248,9 +248,9 @@ def parse_args():
     if (
         args.framework == "tensorflow"
         and args.container_type == "inference"
-        and args.framework_version == "2.12.0"
+        and args.framework_version == "2.12.1"
     ):
-        args.framework_version == "2.12.1"
+        args.framework_version == "2.12.0"
 
     return args
 
