@@ -190,6 +190,6 @@ RUN HOME_DIR=/root \
 # Removing the cache as it is needed for security verification
 RUN rm -iRf /root/.cache
 
-EXPOSE 8080 8081
-ENTRYPOINT ["python", "/usr/local/bin/dockerd-entrypoint.py"]
-CMD ["serve"]
+# EXPOSE 8080 8081
+# ENTRYPOINT ["python", "/usr/local/bin/dockerd-entrypoint.py"]
+# CMD ["serve"]

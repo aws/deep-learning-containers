@@ -32,11 +32,11 @@ from ...integration.sagemaker.timeout import timeout_and_delete_endpoint
 @pytest.mark.model("tiny-distilbert")
 @pytest.mark.processor("cpu")
 @pytest.mark.cpu_test
-@pytest.mark.skip(
-    reason="""
-        Skip IPEx test as no compatible package found working with PyTorch 2.0 
-    """
-)
+# @pytest.mark.skip(
+#     reason="""
+#         Skip IPEx test as no compatible package found working with PyTorch 2.0 
+#     """
+# )
 def test_ipex_hosting(
     sagemaker_session, framework_version, ecr_image, instance_type, region, py_version
 ):
