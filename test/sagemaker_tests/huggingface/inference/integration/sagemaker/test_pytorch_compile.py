@@ -30,8 +30,8 @@ from ...integration.sagemaker.timeout import timeout_and_delete_endpoint
 
 
 @pytest.mark.model("tiny-distilbert")
-@pytest.mark.processor("gpu")
-@pytest.mark.gpu_test
+@pytest.mark.processor("cpu")
+@pytest.mark.cpu_test
 def test_torch_compile_hosting(
     sagemaker_session, framework_version, ecr_image, instance_type, region, py_version
 ):

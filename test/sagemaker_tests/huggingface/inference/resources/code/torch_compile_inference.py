@@ -12,7 +12,7 @@ print("running Torch compiled... test")
 
 def model_fn(model_dir):
     tokenizer = AutoTokenizer.from_pretrained(model_dir)
-    model = AutoModel.from_pretrained(model_dir).to("cuda")
+    model = AutoModel.from_pretrained(model_dir)
     model = torch.compile(model)
     return {"model": model, "tokenizer": tokenizer}
 
