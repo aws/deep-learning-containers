@@ -700,9 +700,9 @@ def get_perf(results):
         if len(mean_results) > 1:
             mean_results = mean_results[1:]  # REmove the first inference
 
-        stats["p50"] = np.percentile(mean_results, 50, interpolation="nearest")
-        stats["p90"] = np.percentile(mean_results, 90, interpolation="nearest")
-        stats["p99"] = np.percentile(mean_results, 99, interpolation="nearest")
+        stats["p50"] = np.percentile(mean_results, 50, method="nearest")
+        stats["p90"] = np.percentile(mean_results, 90, method="nearest")
+        stats["p99"] = np.percentile(mean_results, 99, method="nearest")
         stats["mean"] = np.mean(mean_results)
         stats["min"] = np.min(mean_results)
         stats["max"] = np.max(mean_results)
