@@ -245,6 +245,12 @@ def parse_args():
         f"args.framework_version = {args.framework_version} does not match {fw_version_pattern}\n"
         f"Please specify framework version as X.Y.Z or X.Y."
     )
+    if (
+        args.framework == "tensorflow"
+        and args.container_type == "inference"
+        and args.framework_version == "2.12.0"
+    ):
+        args.framework_version == "2.12.1"
 
     return args
 
