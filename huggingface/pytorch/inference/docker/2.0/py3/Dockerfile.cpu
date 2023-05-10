@@ -172,6 +172,12 @@ RUN pip install --no-cache-dir \
     "sagemaker-huggingface-inference-toolkit<3"
     # intel_extension_for_pytorch==2.0.0+cpu -f https://developer.intel.com/ipex-whl-stable-cpu  # IPEx versioning is MAJOR.MINOR.PATCH * 100 (1.13.1 -> 1.13.100)
 
+# Attempt to install IPEx from source
+RUN git clone https://github.com/intel/intel-extension-for-pytorch --branch v2.0.0+cpu --single-branch /opt/ipex && \
+    cd /opt/ipex && \
+    python -m pip install . && \
+    rm -rf /opt/ipex
+
 RUN HOME_DIR=/root \
  && curl -o ${HOME_DIR}/oss_compliance.zip https://aws-dlinfra-utilities.s3.amazonaws.com/oss_compliance.zip \
  && unzip ${HOME_DIR}/oss_compliance.zip -d ${HOME_DIR}/ \
