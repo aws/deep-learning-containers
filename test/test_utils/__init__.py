@@ -191,7 +191,7 @@ PUBLIC_DLC_REGISTRY = "763104351884"
 
 SAGEMAKER_EXECUTION_REGIONS = ["us-west-2", "us-east-1", "eu-west-1"]
 # Before SM GA with Trn1, they support launch of ml.trn1 instance only in us-east-1. After SM GA this can be removed
-SAGEMAKER_NEURON_EXECUTION_REGIONS = ["us-east-1"]
+SAGEMAKER_NEURON_EXECUTION_REGIONS = ["us-west-2"]
 
 UPGRADE_ECR_REPO_NAME = "upgraded-image-ecr-scan-repo"
 ECR_SCAN_HELPER_BUCKET = f"""ecr-scan-helper-{boto3.client("sts", region_name=DEFAULT_REGION).get_caller_identity().get("Account")}"""
@@ -1753,6 +1753,26 @@ def get_all_the_tags_of_an_image_from_ecr(ecr_client, image_uri):
         ],
     )
     return response["imageDetails"][0]["imageTags"]
+
+
+def get_sha_of_an_image_from_ecr(ecr_client, image_uri):
+    """
+    Uses ecr describe to get SHA of an image.
+
+    :param ecr_client: boto3 Client for ECR
+    :param image_uri: str Image URI
+    :return: str, Image SHA that looks like sha256:1ab...
+    """
+    account_id = get_account_id_from_image_uri(image_uri)
+    image_repo_name, image_tag = get_repository_and_tag_from_image_uri(image_uri)
+    response = ecr_client.describe_images(
+        registryId=account_id,
+        repositoryName=image_repo_name,
+        imageIds=[
+            {"imageTag": image_tag},
+        ],
+    )
+    return response["imageDetails"][0]["imageDigest"]
 
 
 def get_cuda_version_from_tag(image_uri):
