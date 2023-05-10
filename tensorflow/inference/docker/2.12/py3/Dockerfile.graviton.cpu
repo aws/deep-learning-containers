@@ -91,7 +91,7 @@ RUN ${PIP} install --no-cache-dir \
     gevent==21.12.0 \
     requests==2.27.1 \
     grpcio==1.46.3 \
-    "protobuf>=3.19.5,<3.20" \
+    "protobuf>=3.19.5,<3.21" \
     packaging \
 # using --no-dependencies to avoid installing tensorflow binary
  && ${PIP} install --no-dependencies --no-cache-dir \
