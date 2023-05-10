@@ -245,12 +245,14 @@ def parse_args():
         f"args.framework_version = {args.framework_version} does not match {fw_version_pattern}\n"
         f"Please specify framework version as X.Y.Z or X.Y."
     )
+    # TFS 2.12.1 still uses TF 2.12.0 and breaks the telemetry check as it is checking TF version
+    # instead of TFS version. WE are forcing the version we want.
     if (
         args.framework == "tensorflow"
         and args.container_type == "inference"
-        and args.framework_version == "2.12.1"
+        and args.framework_version == "2.12.0"
     ):
-        args.framework_version == "2.12.0"
+        args.framework_version = "2.12.1"
 
     return args
 
