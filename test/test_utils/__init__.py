@@ -1622,7 +1622,15 @@ NEURONX_VERSION_MANIFEST = {
     "2.9.1": {
         "pytorch": {
             "1.13.0": "1.13.0.1.6.1",
-        }
+        },
+    },
+    "2.10.0": {
+        "pytorch": {
+            "1.13.1": "1.13.1.1.7.0",
+        },
+        "tensorflow": {
+            "2.10.1": "2.10.1.2.1.0",
+        },
     },
 }
 
@@ -1746,6 +1754,26 @@ def get_all_the_tags_of_an_image_from_ecr(ecr_client, image_uri):
         ],
     )
     return response["imageDetails"][0]["imageTags"]
+
+
+def get_sha_of_an_image_from_ecr(ecr_client, image_uri):
+    """
+    Uses ecr describe to get SHA of an image.
+
+    :param ecr_client: boto3 Client for ECR
+    :param image_uri: str Image URI
+    :return: str, Image SHA that looks like sha256:1ab...
+    """
+    account_id = get_account_id_from_image_uri(image_uri)
+    image_repo_name, image_tag = get_repository_and_tag_from_image_uri(image_uri)
+    response = ecr_client.describe_images(
+        registryId=account_id,
+        repositoryName=image_repo_name,
+        imageIds=[
+            {"imageTag": image_tag},
+        ],
+    )
+    return response["imageDetails"][0]["imageDigest"]
 
 
 def get_cuda_version_from_tag(image_uri):
@@ -2147,3 +2175,8 @@ def get_labels_from_ecr_image(image_uri, region):
     labels = image_metadata["config"]["Labels"]
 
     return labels
+
+
+def generate_unique_dlc_name(image):
+    # handle retrevial of repo name and remove test type from it
+    return get_ecr_repo_name(image).replace("-training", "").replace("-inference", "")

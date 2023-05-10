@@ -18,8 +18,11 @@ import os
 import botocore
 import random
 import time
+import sys
 
 logger = logging.getLogger(__name__)
+logger.setLevel(logging.DEBUG)
+logger.addHandler(logging.StreamHandler(sys.stdout))
 BATCH_CSV = os.path.join("data", "batch.csv")
 
 
@@ -314,7 +317,9 @@ def invoke_endpoint(
         response = sagemaker_runtime_client.invoke_endpoint(
             EndpointName=endpoint_name, ContentType=content_type, Body=json.dumps(input_data)
         )
+        logger.info("request body {}".format(json.dumps(input_data)))
         result = json.loads(response["Body"].read().decode())
+        logger.info("endpoint response {}".format(result))
         assert result["predictions"] is not None
         return result
 
