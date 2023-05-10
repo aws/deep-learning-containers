@@ -29,33 +29,57 @@ RUN cargo build --release
 
 FROM nvidia/cuda:11.8.0-devel-ubuntu22.04 as base
 
+ARG PYTORCH_VERSION=2.0.0
+ARG PYTHON_VERSION=3.9
+ARG MAMBA_VERSION=23.1.0-1
+
+# Automatically set by buildx
+ARG TARGETPLATFORM
+
 ENV LANG=C.UTF-8 \
     LC_ALL=C.UTF-8 \
     DEBIAN_FRONTEND=noninteractive \
-    HUGGINGFACE_HUB_CACHE=/data \
+    HUGGINGFACE_HUB_CACHE=/tmp \
     HF_HUB_ENABLE_HF_TRANSFER=1 \
     MODEL_ID=bigscience/bloom-560m \
     QUANTIZE=false \
     NUM_SHARD=1 \
     PORT=80 \
     CUDA_HOME=/usr/local/cuda \
-    LD_LIBRARY_PATH="/opt/miniconda/envs/text-generation/lib:/usr/local/cuda/lib64:/usr/local/cuda/extras/CUPTI/lib64:$LD_LIBRARY_PATH" \
-    CONDA_DEFAULT_ENV=text-generation \
-    PATH=$PATH:/opt/miniconda/envs/text-generation/bin:/opt/miniconda/bin:/usr/local/cuda/bin
+    PATH=$PATH:/opt/conda/bin:/usr/local/cuda/bin \
+    CONDA_PREFIX=/opt/conda
 
-RUN apt-get update && apt-get install -y git curl libssl-dev unzip && rm -rf /var/lib/apt/lists/*
+RUN apt-get update && apt-get install -y --no-install-recommends \
+        libssl-dev \
+        unzip \
+        build-essential \
+        ca-certificates \
+        ccache \
+        curl \
+        git && \
+        rm -rf /var/lib/apt/lists/*
 
-RUN cd ~ && \
-    curl -L -O https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh && \
-    chmod +x Miniconda3-latest-Linux-x86_64.sh && \
-    bash ./Miniconda3-latest-Linux-x86_64.sh -bf -p /opt/miniconda && \
-    conda create -n text-generation python=3.9 -y && \
-    rm Miniconda3-latest-Linux-x86_64.sh
+# Install conda
+# translating Docker's TARGETPLATFORM into mamba arches
+RUN case ${TARGETPLATFORM} in \
+         "linux/arm64")  MAMBA_ARCH=aarch64  ;; \
+         *)              MAMBA_ARCH=x86_64   ;; \
+    esac && \
+    curl -fsSL -v -o ~/mambaforge.sh -O  "https://github.com/conda-forge/miniforge/releases/download/${MAMBA_VERSION}/Mambaforge-${MAMBA_VERSION}-Linux-${MAMBA_ARCH}.sh"
+RUN chmod +x ~/mambaforge.sh && \
+    bash ~/mambaforge.sh -b -p /opt/conda && \
+    rm ~/mambaforge.sh
+
+# Install pytorch
+# On arm64 we exit with an error code
+RUN case ${TARGETPLATFORM} in \
+         "linux/arm64")  exit 1 ;; \
+         *)              /opt/conda/bin/conda update -y conda &&  \
+                         /opt/conda/bin/conda install -c "${INSTALL_CHANNEL}" -c "${CUDA_CHANNEL}" -y "python=${PYTHON_VERSION}" pytorch==$PYTORCH_VERSION "pytorch-cuda=$(echo $CUDA_VERSION | cut -d'.' -f 1-2)"  ;; \
+    esac && \
+    /opt/conda/bin/conda clean -ya
 
 WORKDIR /usr/src
-
-# Install torch
-RUN pip install torch --extra-index-url https://download.pytorch.org/whl/cu118 --no-cache-dir
 
 # Install specific version of flash attention
 COPY server/Makefile-flash-att server/Makefile
@@ -72,7 +96,7 @@ COPY proto proto
 COPY server server
 RUN cd server && \
     make gen-server && \
-    /opt/miniconda/envs/text-generation/bin/pip install ".[bnb]" --no-cache-dir
+    pip install ".[bnb]" --no-cache-dir
 RUN rm -r proto server
 
 # Install router
@@ -97,9 +121,3 @@ RUN HOME_DIR=/root && \
     rm -rf ${HOME_DIR}/oss_compliance*
 
 ENTRYPOINT ["./entrypoint.sh"]
-
-# Original image
-FROM base
-
-ENTRYPOINT ["text-generation-launcher"]
-CMD ["--json-output"]
