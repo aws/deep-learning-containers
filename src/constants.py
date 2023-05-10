@@ -24,7 +24,7 @@ FRAMEWORKS = {
     "huggingface_pytorch",
     "autogluon",
 }
-DEVICE_TYPES = {"cpu", "gpu", "hpu", "eia", "inf"}
+DEVICE_TYPES = {"cpu", "gpu", "hpu", "eia", "inf", "neuron", "neuronx"}
 IMAGE_TYPES = {"training", "inference"}
 PYTHON_VERSIONS = {"py2", "py3", "py36"}
 ALL = "all"
