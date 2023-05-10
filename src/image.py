@@ -169,6 +169,7 @@ class DockerImage:
             self.context.remove()
 
         if self.build_status != constants.SUCCESS:
+            LOGGER.info(f"Exiting with image build status {self.build_status} without image check.")
             return self.build_status
 
         if not self.to_push:
