@@ -173,10 +173,8 @@ RUN pip install --no-cache-dir \
     # intel_extension_for_pytorch==2.0.0+cpu -f https://developer.intel.com/ipex-whl-stable-cpu  # IPEx versioning is MAJOR.MINOR.PATCH * 100 (1.13.1 -> 1.13.100)
 
 # Attempt to install IPEx from source
-RUN git clone https://github.com/intel/intel-extension-for-pytorch --branch v2.0.0+cpu --single-branch /opt/ipex && \
-    cd /opt/ipex && \
-    python -m pip install . && \
-    rm -rf /opt/ipex
+RUN wget https://raw.githubusercontent.com/intel/intel-extension-for-pytorch/v2.0.0%2Bcpu/scripts/compile_bundle.sh &&
+    bash compile_bundle.sh
 
 RUN HOME_DIR=/root \
  && curl -o ${HOME_DIR}/oss_compliance.zip https://aws-dlinfra-utilities.s3.amazonaws.com/oss_compliance.zip \
