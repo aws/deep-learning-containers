@@ -16,9 +16,7 @@ LABEL maintainer="Amazon AI"
 LABEL dlc_major_version="1"
 
 # PYTORCH_SKIP_CUDNN_COMPATIBILITY_CHECK - see https://github.com/autogluon/autogluon/issues/2534
-ENV MXNET_CUDNN_LIB_CHECKING=0 \
-    MXNET_CUDNN_AUTOTUNE_DEFAULT=0 \
-    PYTORCH_SKIP_CUDNN_COMPATIBILITY_CHECK=1
+ENV PYTORCH_SKIP_CUDNN_COMPATIBILITY_CHECK=1
 
 RUN apt-get update \
  && apt-get -y upgrade \
@@ -27,31 +25,11 @@ RUN apt-get update \
  && apt-get clean \
  && rm -rf /var/lib/apt/lists/*
 
-# Install MMS
-
-ARG MMS_VERSION=1.1.8
-ARG MXNET_VERSION=1.9.1
-
-RUN pip install --no-cache-dir -U --trusted-host pypi.org --trusted-host files.pythonhosted.org pip \
- && pip install --no-cache-dir -U multi-model-server==${MMS_VERSION} sagemaker-mxnet-inference \
- && pip install --no-cache-dir -U mxnet-cu113==${MXNET_VERSION}
-
-RUN mkdir -p /home/model-server/tmp \
- && chown -R model-server /home/model-server
-
-COPY config.properties /home/model-server
-
-COPY deep_learning_container.py /usr/local/bin/deep_learning_container.py
-RUN chmod +x /usr/local/bin/deep_learning_container.py
-
-COPY mms-entrypoint.py /usr/local/bin/dockerd-entrypoint.py
-RUN chmod +x /usr/local/bin/dockerd-entrypoint.py
-
 # Install AutoGluon
-
 ARG AUTOGLUON_VERSION=0.7.0
 
 RUN pip install --no-cache-dir -U --trusted-host pypi.org --trusted-host files.pythonhosted.org pip \
+ && pip install --no-cache-dir -U sagemaker-pytorch-inference \
  && pip install --no-cache-dir -U setuptools wheel \
  && pip uninstall -y dataclasses \
  && pip install --no-cache-dir -U numpy numba \
@@ -66,6 +44,12 @@ RUN rm -rf /usr/local/lib/python3.9/dist-packages/gluonts/nursery/tsbench
 RUN rm -rf /usr/local/lib/python3.9/dist-packages/ray/jars \
  && rm -rf /opt/conda/lib/python3.9/site-packages/ray/jars
 
+# add TS entrypoint
+COPY config.properties /home/model-server
+
+COPY torchserve-entrypoint.py /usr/local/bin/dockerd-entrypoint.py
+RUN chmod +x /usr/local/bin/dockerd-entrypoint.py
+
 RUN HOME_DIR=/root \
  && curl -o ${HOME_DIR}/oss_compliance.zip https://aws-dlinfra-utilities.s3.amazonaws.com/oss_compliance.zip \
  && unzip ${HOME_DIR}/oss_compliance.zip -d ${HOME_DIR}/ \
@@ -79,4 +63,4 @@ RUN curl -o /licenses-autogluon.txt https://autogluon.s3.us-west-2.amazonaws.com
 
 EXPOSE 8080 8081
 ENTRYPOINT ["python", "/usr/local/bin/dockerd-entrypoint.py"]
-CMD ["multi-model-server", "--start", "--mms-config", "/home/model-server/config.properties"]
+CMD ["torchserve", "--start", "--ts-config", "/home/model-server/config.properties", "--model-store", "/home/model-server/"]

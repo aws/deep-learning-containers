@@ -32,7 +32,7 @@ RUN pip install --no-cache-dir -U --trusted-host pypi.org --trusted-host files.p
  && pip install --no-cache-dir -U numpy numba \
  && pip install --no-cache-dir -U autogluon==${AUTOGLUON_VERSION} \
  && mim install -q mmcv-full \
- && pip install --no-cache-dir -U mmdet 
+ && pip install --no-cache-dir -U mmdet
 
 # Removing GluonTS nursery/tsbench package - it is not used in training/inference and have security vulnerabilities
 RUN rm -rf /usr/local/lib/python3.9/dist-packages/gluonts/nursery/tsbench
