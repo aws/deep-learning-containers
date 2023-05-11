@@ -699,7 +699,8 @@ def get_perf(results):
 
         if len(mean_results) > 1:
             mean_results = mean_results[1:]  # REmove the first inference
-
+        # "interpolation" is being deprecated and throws warnings when used.
+        # "method" is the replacement.
         stats["p50"] = np.percentile(mean_results, 50, method="nearest")
         stats["p90"] = np.percentile(mean_results, 90, method="nearest")
         stats["p99"] = np.percentile(mean_results, 99, method="nearest")
