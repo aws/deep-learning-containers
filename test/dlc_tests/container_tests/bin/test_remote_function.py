@@ -22,7 +22,7 @@ def dlc_remote_function_test_divide(x, y):
 
 
 def main():
-    dlc_remote_function_test_divide(8, 4)
+    assert dlc_remote_function_test_divide(8, 4) == 2
     return 0
 
 
