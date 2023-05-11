@@ -183,7 +183,7 @@ def find_or_put_mme_model_data(region, boto_session, mme_folder_name, path_list)
 
 @contextlib.contextmanager
 def sagemaker_endpoint(sagemaker_client, model_name, instance_type, accelerator_type=None):
-    logger.info("creating endpoint %s", model_name)
+    logger.info("creating endpoint {}".format(model_name))
 
     # Add jitter so we can run tests in parallel without running into service side limits.
     delay = round(random.random() * 5, 3)
@@ -200,9 +200,18 @@ def sagemaker_endpoint(sagemaker_client, model_name, instance_type, accelerator_
     try:
         sagemaker_client.get_waiter("endpoint_in_service").wait(EndpointName=model_name)
     finally:
-        status = sagemaker_client.describe_endpoint(EndpointName=model_name)["EndpointStatus"]
-        if status != "InService":
-            raise ValueError("failed to create endpoint {}".format(model_name))
+        response = sagemaker_client.describe_endpoint(EndpointName=model_name)
+        status = response["EndpointStatus"]
+        if status == "Failed":
+            raise ValueError(
+                "failed to create endpoint {} with reason: {}".format(
+                    model_name, response["FailureReason"]
+                )
+            )
+        elif status != "InService":
+            raise ValueError(
+                "failed to create endpoint {} with status: {}".format(model_name, status)
+            )
 
     try:
         yield model_name  # return the endpoint name
