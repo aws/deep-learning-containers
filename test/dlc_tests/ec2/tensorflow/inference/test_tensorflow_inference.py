@@ -63,6 +63,7 @@ def test_ec2_tensorflow_inference_gpu(
     run_ec2_tensorflow_inference(tensorflow_inference, ec2_connection, "8500", region)
 
 
+@pytest.mark.model("N/A")
 @pytest.mark.parametrize("ec2_instance_type", TF_EC2_GPU_INSTANCE_TYPE, indirect=True)
 def test_ec2_tensorflow_inference_gpu_tensorrt(
     tensorflow_inference, ec2_connection, region, gpu_only, ec2_instance_type
