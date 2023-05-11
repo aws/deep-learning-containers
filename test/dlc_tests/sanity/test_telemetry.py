@@ -266,6 +266,7 @@ def _run_s3_query_bucket_success(image_uri, ec2_client, ec2_instance, ec2_connec
         expected_s3_url += "&x-img_type=training&x-pkg_type=conda"
     else:
         expected_s3_url += f"&x-container_type={container_type}"
+
     assert expected_s3_url == actual_output, f"S3 telemetry is not working"
 
 
