@@ -1,40 +1,38 @@
-from packaging.version import Version
-from packaging.specifiers import SpecifierSet
 import pytest
 
-from invoke import run
-from test.test_utils import get_python_version_from_image_uri
+from invoke.context import Context
+from test import test_utils
 
 
 @pytest.mark.usefixtures("sagemaker_only")
 @pytest.mark.model("N/A")
 @pytest.mark.integration("remote_function")
-def test_remote_function(image):
+def test_remote_function(training):
     """
     Test to check compatibility of sagemaker training images with sagemaker remote function.
     """
-    python_version = get_python_version_from_image_uri(image).replace("py", "")
+    python_version = test_utils.get_python_version_from_image_uri(training).replace("py", "")
     python_version = int(python_version)
 
-    if python_version < 37 or "training" not in image:
+    if python_version < 37:
         pytest.skip(
-            f"Skipping remote function compatibility test for {image}. Test only for training images with Python>3.6"
+            f"Skipping remote function compatibility test for {training}. Test only for training images with Python>3.6"
         )
 
-    repo_name, image_tag = image.split("/")[-1].split(":")
-    container_name = f"{repo_name}-{image_tag}-remote-function-test"
+    container_name = test_utils.get_container_name("remote-function-test", training)
+    ctx = Context()
 
-    run(
+    ctx.run(
         f"docker run -itd --name {container_name} "
         f"--mount type=bind,src=$(pwd)/container_tests,target=/test"
         f" --entrypoint='/bin/bash' "
-        f" --env SAGEMAKER_INTERNAL_IMAGE_URI={image}"
-        f"{image}",
-        echo=True,
+        f"--env SAGEMAKER_INTERNAL_IMAGE_URI={training} "
+        f"{training}",
         hide=True,
     )
     try:
-        docker_exec_cmd = f"docker exec -i {container_name}"
-        run(f"{docker_exec_cmd} python /test/bin/test_remote_function.py ", hide=True)
+        test_utils.run_cmd_on_container(
+            container_name, ctx, "python /test/bin/test_remote_function.py"
+        )
     finally:
-        run(f"docker rm -f {container_name}", hide=True)
+        test_utils.stop_and_remove_container(container_name, ctx)
