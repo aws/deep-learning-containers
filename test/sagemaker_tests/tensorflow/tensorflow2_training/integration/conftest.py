@@ -159,17 +159,13 @@ def instance_type(request, processor):
 
 
 @pytest.fixture()
-def py_version():
-    if "TEST_PY_VERSIONS" in os.environ:
-        return os.environ["TEST_PY_VERSIONS"].split(",")
-    return None
+def py_version(request):
+    return request.config.getoption("--py-version")
 
 
 @pytest.fixture()
-def processor():
-    if "TEST_PROCESSORS" in os.environ:
-        return os.environ["TEST_PROCESSORS"].split(",")
-    return None
+def processor(request):
+    return request.config.getoption("--processor")
 
 
 @pytest.fixture(autouse=True)
