@@ -84,7 +84,7 @@ RUN case ${TARGETPLATFORM} in \
 WORKDIR /usr/src
 
 RUN LIBSSL_DEB=libssl1.1_1.1.0g-2ubuntu4_amd64.deb && \
-    curl -O http://archive.ubuntu.com/ubuntu/pool/main/o/openssl/$LIBSSL_DEB && \
+    curl -OL http://archive.ubuntu.com/ubuntu/pool/main/o/openssl/$LIBSSL_DEB && \
     dpkg -i $LIBSSL_DEB && \
     rm -f $LIBSSL_DEB
 
