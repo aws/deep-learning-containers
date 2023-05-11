@@ -64,6 +64,7 @@ RUN apt-get update \
     cuda-nvrtc-${CUDA_DASH} \
     cuda-nvrtc-dev-${CUDA_DASH} \
     cuda-cudart-dev-${CUDA_DASH} \
+    cuda-nvcc-${CUDA_DASH} \
     libcufft-dev-${CUDA_DASH} \
     libcurand-dev-${CUDA_DASH} \
     libcusolver-dev-${CUDA_DASH} \
