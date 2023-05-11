@@ -24,8 +24,36 @@ from sagemaker.huggingface import HuggingFaceModel
 from distutils.dir_util import copy_tree
 from huggingface_hub import snapshot_download
 
-from ...integration import dump_logs_from_cloudwatch, model_dir, pt_diffusers_script, script_dir
+from ...integration import (
+    dump_logs_from_cloudwatch,
+    model_dir,
+    pt_model,
+    pt_diffusers_script,
+    script_dir,
+)
 from ...integration.sagemaker.timeout import timeout_and_delete_endpoint
+
+
+@pytest.mark.model("stable-diffusion")
+@pytest.mark.processor("cpu")
+@pytest.mark.cpu_test
+def test_diffusers_cpu(
+    sagemaker_session, framework_version, ecr_image, instance_type, region, py_version
+):
+    instance_type = instance_type or "ml.m5.xlarge"
+    try:
+        _test_diffusion_model(
+            sagemaker_session,
+            framework_version,
+            ecr_image,
+            instance_type,
+            model_dir,
+            script_dir,
+            py_version,
+        )
+    except Exception as e:
+        dump_logs_from_cloudwatch(e, region)
+        raise
 
 
 @pytest.mark.model("stable-diffusion")
@@ -50,33 +78,33 @@ def test_diffusers_gpu(
         raise
 
 
-# helper to compress diffusion model
-def _compress(tar_dir=None, output_file="model.tar.gz"):
-    parent_dir = os.getcwd()
-    os.chdir(tar_dir)
-    with tarfile.open(os.path.join(parent_dir, output_file), "w:gz") as tar:
-        for item in os.listdir("."):
-            print(item)
-            tar.add(item, arcname=item)
-    os.chdir(parent_dir)
+# # helper to compress diffusion model
+# def _compress(tar_dir=None, output_file="model.tar.gz"):
+#     parent_dir = os.getcwd()
+#     os.chdir(tar_dir)
+#     with tarfile.open(os.path.join(parent_dir, output_file), "w:gz") as tar:
+#         for item in os.listdir("."):
+#             print(item)
+#             tar.add(item, arcname=item)
+#     os.chdir(parent_dir)
 
 
-def _create_model(model_id, script_path, sagemaker_session):
-    snapshot_dir = snapshot_download(repo_id=model_id, revision="fp16")
-    model_tar = Path(f"model-{random.getrandbits(16)}")
-    model_tar.mkdir(exist_ok=True)
-    copy_tree(snapshot_dir, str(model_tar))
+# def _create_model(model_id, script_path, sagemaker_session):
+#     snapshot_dir = snapshot_download(repo_id=model_id, revision="fp16")
+#     model_tar = Path(f"model-{random.getrandbits(16)}")
+#     model_tar.mkdir(exist_ok=True)
+#     copy_tree(snapshot_dir, str(model_tar))
 
-    os.makedirs(str(model_tar.joinpath("code")), exist_ok=True)
-    shutil.copy(script_path, str(model_tar.joinpath("code/inference.py")))
-    _compress(str(model_tar))
+#     os.makedirs(str(model_tar.joinpath("code")), exist_ok=True)
+#     shutil.copy(script_path, str(model_tar.joinpath("code/inference.py")))
+#     _compress(str(model_tar))
 
-    model_data = sagemaker_session.upload_data(
-        path="model.tar.gz",
-        key_prefix="sagemaker-huggingface-serving-diffusion-model-serving",
-    )
+#     model_data = sagemaker_session.upload_data(
+#         path="model.tar.gz",
+#         key_prefix="sagemaker-huggingface-serving-diffusion-model-serving",
+#     )
 
-    return model_data
+#     return model_data
 
 
 def _test_diffusion_model(
@@ -94,23 +122,29 @@ def _test_diffusion_model(
         "sagemaker-huggingface-serving-diffusion-model-serving"
     )
 
+    model_data = sagemaker_session.upload_data(
+        path=model_dir,
+        key_prefix="sagemaker-huggingface-inference-diffusers-serving/models",
+    )
+
     if "pytorch" in ecr_image:
+        model_file = pt_model
         entry_point = pt_diffusers_script
     else:
         raise ValueError(f"Unsupported framework for image: {ecr_image}")
-    
-    HF_MODEL_ID = "CompVis/stable-diffusion-v1-4"
 
-    model_data = _create_model(
-        model_id=HF_MODEL_ID,
-        script_path=os.path.join(script_dir, entry_point),
-        sagemaker_session=sagemaker_session,
-    )
-    print(f"model data: {model_data}")
+    # HF_MODEL_ID = "CompVis/stable-diffusion-v1-4"
 
+    # model_data = _create_model(
+    #     model_id=HF_MODEL_ID,
+    #     script_path=os.path.join(script_dir, entry_point),
+    #     sagemaker_session=sagemaker_session,
+    # )
+    # print(f"model data: {model_data}")
 
     hf_model = HuggingFaceModel(
-        model_data=model_data,
+        # model_data=model_data,
+        model_data=f"{model_data}/{model_file}",
         role="SageMakerRole",
         image_uri=ecr_image,
         sagemaker_session=sagemaker_session,

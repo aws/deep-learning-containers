@@ -35,6 +35,28 @@ from ...integration.sagemaker.timeout import timeout_and_delete_endpoint
 def test_torch_compile_hosting(
     sagemaker_session, framework_version, ecr_image, instance_type, region, py_version
 ):
+    instance_type = instance_type or "ml.m5.xlarge"
+    try:
+        _test_pt_compile(
+            sagemaker_session,
+            framework_version,
+            ecr_image,
+            instance_type,
+            model_dir,
+            script_dir,
+            py_version,
+        )
+    except Exception as e:
+        dump_logs_from_cloudwatch(e, region)
+        raise
+
+
+@pytest.mark.model("tiny-distilbert")
+@pytest.mark.processor("gpu")
+@pytest.mark.gpu_test
+def test_torch_compile_hosting(
+    sagemaker_session, framework_version, ecr_image, instance_type, region, py_version
+):
     instance_type = instance_type or "ml.p3.2xlarge"
     try:
         _test_pt_compile(

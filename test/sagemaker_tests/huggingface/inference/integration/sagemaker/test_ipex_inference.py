@@ -34,7 +34,7 @@ from ...integration.sagemaker.timeout import timeout_and_delete_endpoint
 @pytest.mark.cpu_test
 # @pytest.mark.skip(
 #     reason="""
-#         Skip IPEx test as no compatible package found working with PyTorch 2.0 
+#         Skip IPEx test as no compatible package found working with PyTorch 2.0
 #     """
 # )
 def test_ipex_hosting(
