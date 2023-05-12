@@ -71,10 +71,9 @@ def test_ec2_tensorflow_inference_gpu_tensorrt(
     ## TensorRt models need to be built on the device type that we want to run them upon
     ## We have built the TensorRt Model only on g3.8xlarge and are skipping tests on other instances.
     ## https://github.com/NVIDIA/TensorRT/issues/564
-    #TODO Revert
-    if ec2_instance_type == "g3.8xlarge": 
+    if ec2_instance_type != "g3.8xlarge":
         pytest.skip("Skip the tests as the model is built on g3.8xlarge")
-    
+
     if test_utils.is_image_incompatible_with_instance_type(tensorflow_inference, ec2_instance_type):
         pytest.skip(
             f"Image {tensorflow_inference} is incompatible with instance type {ec2_instance_type}"
