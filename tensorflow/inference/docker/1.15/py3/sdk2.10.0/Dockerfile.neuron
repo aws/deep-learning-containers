@@ -122,7 +122,7 @@ RUN ln -s $(which python3) /usr/local/bin/python \
 
 # cython, falcon, gunicorn, grpc
 RUN ${PIP} install --no-cache-dir -U \
-    "awscli<2" \
+    awscli \
     boto3 \
     cython==0.29.21 \
     falcon==2.0.0 \
@@ -132,7 +132,8 @@ RUN ${PIP} install --no-cache-dir -U \
     "numpy>=1.19.5,<1.27.0" \
     protobuf==3.14.0 \
     "pyYAML>=5.4,<5.5" \
-    requests==2.25.1
+    requests==2.25.1 \
+    scipy
 
 # pip install statements have been separated out into multiple sequentially executed statements to
 # resolve package dependencies during installation.
