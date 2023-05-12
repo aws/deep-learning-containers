@@ -18,6 +18,7 @@ resources_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "
 scripts_path = os.path.join(resources_path, "scripts")
 distrilbert_script = os.path.join(scripts_path, "train.py")
 distrilbert_torch_compiled_script = os.path.join(scripts_path, "train_torch_compiled.py")
+diffusers_script = os.path.join(scripts_path, "diffusers_entrypoint.py")
 
 ROLE = "dummy/unused-role"
 DEFAULT_TIMEOUT = 60
