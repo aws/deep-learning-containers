@@ -24,7 +24,7 @@ images:
     tag_python_version: &TAG_PYTHON_VERSION py310
     cuda_version: &CUDA_VERSION cu118
     os_version: &OS_VERSION ubuntu20.04
-    transformers_version: &TRANSFORMERS_VERSION 4.28.1
+    transformers_version: &TRANSFORMERS_VERSION 4.29.1
     datasets_version: &DATASETS_VERSION 2.12.0
     tag: !join [ *VERSION, '-', 'transformers', *TRANSFORMERS_VERSION, '-', *DEVICE_TYPE, '-', *TAG_PYTHON_VERSION, '-',
                  *CUDA_VERSION, '-', *OS_VERSION ]
