@@ -12,18 +12,9 @@
 # language governing permissions and limitations under the License.
 from __future__ import absolute_import
 
-import os
-import random
-import shutil
-import tarfile
-from pathlib import Path
-
 import pytest
 import sagemaker
 from sagemaker.huggingface import HuggingFaceModel
-from distutils.dir_util import copy_tree
-from huggingface_hub import snapshot_download
-
 from ...integration import (
     dump_logs_from_cloudwatch,
     model_dir,
@@ -41,7 +32,7 @@ from ...integration.sagemaker.timeout import timeout_and_delete_endpoint
 def test_diffusers_gpu(
     sagemaker_session, framework_version, ecr_image, instance_type, region, py_version
 ):
-    instance_type = instance_type or "ml.g4dn.xlarge"
+    instance_type = instance_type or "ml.p3.2xlarge"
     try:
         _test_diffusion_model(
             sagemaker_session,
@@ -103,7 +94,10 @@ def _test_diffusion_model(
         )
         num_images_per_prompt = 1
 
-        prompt = "A dog trying catch a flying pizza art drawn by disney concept artists, golden colour, high quality, highly detailed, elegant, sharp focus"
+        prompt = (
+            "A dog trying catch a flying pizza art drawn by disney concept artists, golden colour,"
+            " high quality, highly detailed, elegant, sharp focus"
+        )
         output = predictor.predict(
             data={"inputs": prompt, "num_images_per_prompt": num_images_per_prompt}
         )

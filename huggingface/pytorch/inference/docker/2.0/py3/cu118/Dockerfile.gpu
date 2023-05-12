@@ -29,7 +29,7 @@ ARG TORCHAUDIO_URL=https://aws-pytorch-unified-cicd-binaries.s3.us-west-2.amazon
 
 # HF ARGS
 ARG TRANSFORMERS_VERSION
-ARG DIFFUSERS_VERSION
+ARG DIFFUSERS_VERSION=0.16.1
 ARG HUGGINGFACE_HUB=0.14.1
 
 # Set Debian interaction
