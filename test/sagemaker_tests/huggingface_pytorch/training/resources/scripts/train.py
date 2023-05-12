@@ -1,14 +1,16 @@
-from transformers import AutoModelForSequenceClassification, Trainer, TrainingArguments
-from datasets import load_dataset
-from transformers import AutoTokenizer
-import random
+import os
 import logging
 import sys
 import argparse
-import os
-import torch
 import evaluate
 import numpy as np
+from datasets import load_dataset
+from transformers import (
+    AutoModelForSequenceClassification,
+    AutoTokenizer,
+    Trainer,
+    TrainingArguments,
+)
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
@@ -72,7 +74,7 @@ if __name__ == "__main__":
     def compute_metrics(eval_pred):
         predictions, labels = eval_pred
         predictions = np.argmax(predictions, axis=1)
-        return accuracy.compute(predictions=predictions, references=labels)
+        return metric.compute(predictions=predictions, references=labels)
 
     # define training args
     training_args = TrainingArguments(
@@ -103,7 +105,7 @@ if __name__ == "__main__":
 
     # writes eval result to file which can be accessed later in s3 ouput
     with open(os.path.join(args.output_data_dir, "eval_results.txt"), "w") as writer:
-        print(f"***** Eval results *****")
+        print("***** Eval results *****")
         for key, value in sorted(eval_result.items()):
             writer.write(f"{key} = {value}\n")
 

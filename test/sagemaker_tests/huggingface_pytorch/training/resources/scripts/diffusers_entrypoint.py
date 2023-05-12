@@ -1,9 +1,7 @@
+import os
 import sys
 import argparse
 import logging
-import os
-import sys
-import subprocess
 import diffusers
 
 logger = logging.getLogger(__name__)
