@@ -576,7 +576,7 @@ def test_pip_check(image):
     # smclarify binaries have s3fs->aiobotocore dependency which uses older version of botocore. temporarily
     # allowing this to catch other issues
     allowed_tf_exception = re.compile(
-        rf"^tensorflow-serving-api{gpu_suffix} \d\.\d+\.\d+ requires tensorflow{gpu_suffix}, which is not installed.$"
+        rf"^tensorflow-serving-api{gpu_suffix} \d\.\d+\.\d+ requires tensorflow(|{gpu_suffix}), which is not installed.$"
     )
     allowed_exception_list.append(allowed_tf_exception)
 
