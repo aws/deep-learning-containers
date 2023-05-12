@@ -7,10 +7,7 @@ from diffusers import StableDiffusionPipeline
 
 def model_fn(model_dir):
     # Load stable diffusion and move it to the GPU
-    pipe = StableDiffusionPipeline.from_pretrained(
-        "CompVis/stable-diffusion-v1-4", torch_dtype=torch.float16
-    )
-    pipe = pipe.to("cuda")
+    pipe = StableDiffusionPipeline.from_pretrained("CompVis/stable-diffusion-v1-4")
 
     return pipe
 
