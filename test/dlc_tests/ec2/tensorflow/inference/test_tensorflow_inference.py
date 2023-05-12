@@ -1,5 +1,6 @@
 import os
 import re
+import json
 from time import sleep
 import pytest
 
@@ -60,6 +61,52 @@ def test_ec2_tensorflow_inference_gpu(
             f"Image {tensorflow_inference} is incompatible with instance type {ec2_instance_type}"
         )
     run_ec2_tensorflow_inference(tensorflow_inference, ec2_connection, "8500", region)
+
+
+@pytest.mark.model("N/A")
+@pytest.mark.parametrize("ec2_instance_type", TF_EC2_GPU_INSTANCE_TYPE, indirect=True)
+def test_ec2_tensorflow_inference_gpu_tensorrt(
+    tensorflow_inference, ec2_connection, region, gpu_only, ec2_instance_type
+):
+    if test_utils.is_image_incompatible_with_instance_type(tensorflow_inference, ec2_instance_type):
+        pytest.skip(
+            f"Image {tensorflow_inference} is incompatible with instance type {ec2_instance_type}"
+        )
+    framework_version = get_tensorflow_framework_version(tensorflow_inference)
+    home_dir = ec2_connection.run("echo $HOME").stdout.strip("\n")
+    serving_folder_path = os.path.join(home_dir, "serving")
+    container_name = "tensorrt-serving-container"
+    model_name = "tftrt_saved_model"
+    model_path = os.path.join(
+        serving_folder_path, "tensorflow_serving", "example", "built_models", model_name
+    )
+    docker_run_cmd = (
+        f"nvidia-docker run -id --name {container_name} -p 8501:8501 "
+        f"--mount type=bind,source={model_path},target=/models/{model_name}/1 -e TEST_MODE=1 -e MODEL_NAME={model_name}"
+        f" {tensorflow_inference}"
+    )
+    tensorrt_test_failed = False
+    try:
+        ec2_connection.run(f"$(aws ecr get-login --no-include-email --region {region})", hide=True)
+        host_setup_for_tensorflow_inference(serving_folder_path, framework_version, ec2_connection)
+        sleep(2)
+        ec2_connection.run(docker_run_cmd, hide=True)
+
+        test_results = test_utils.request_tensorflow_inference(
+            model_name,
+            connection=ec2_connection,
+            inference_string=f"""'{{"instances": [[{",".join([str([1]*28)]*28)}]]}}'""",
+        )
+        assert test_results, "TensorRt test failed!"
+    except:
+        tensorrt_test_failed = True
+        remote_out = ec2_connection.run(f"docker logs {container_name}", warn=True, hide=True)
+        LOGGER.info(
+            f"--- TF container logs ---\n--- STDOUT ---\n{remote_out.stdout}\n--- STDERR ---\n{remote_out.stderr}"
+        )
+    finally:
+        ec2_connection.run(f"docker rm -f {container_name}", warn=True, hide=True)
+    assert not tensorrt_test_failed, "TensorRt tests have failed - please take a look at the logs."
 
 
 @pytest.mark.model("mnist")
@@ -226,7 +273,12 @@ def train_mnist_model(serving_folder_path, ec2_connection):
 
 
 def host_setup_for_tensorflow_inference(
-    serving_folder_path, framework_version, ec2_connection, is_neuron, is_graviton, model_name
+    serving_folder_path,
+    framework_version,
+    ec2_connection,
+    is_neuron=False,
+    is_graviton=False,
+    model_name=None,
 ):
     # Wait for any existing apt-get calls to finish before moving on
     # TODO(Mike Schneider): Improve this by adding a check for running apt-get processes and wait for them to finish,
