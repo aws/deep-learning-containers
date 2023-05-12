@@ -4,6 +4,7 @@ import logging
 import os
 import sys
 import subprocess
+import diffusers
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
@@ -23,7 +24,7 @@ def main():
 
     args = parser.parse_args()
 
-    diffusers_version = "0.16.1"
+    diffusers_version = diffusers.__version__
 
     # download unconditional training script from diffusers
     branch = "v" + diffusers_version
