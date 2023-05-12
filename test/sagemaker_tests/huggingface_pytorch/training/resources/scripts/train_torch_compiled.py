@@ -1,5 +1,4 @@
 from transformers import AutoModelForSequenceClassification, Trainer, TrainingArguments
-from sklearn.metrics import accuracy_score, precision_recall_fscore_support
 from datasets import load_dataset
 from transformers import AutoTokenizer
 import random
@@ -8,6 +7,8 @@ import sys
 import argparse
 import os
 import torch
+import evaluate
+import numpy as np
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
@@ -70,12 +71,10 @@ if __name__ == "__main__":
     logger.info(f" loaded test_dataset length is: {len(test_dataset)}")
 
     # compute metrics function for binary classification
-    def compute_metrics(pred):
-        labels = pred.label_ids
-        preds = pred.predictions.argmax(-1)
-        precision, recall, f1, _ = precision_recall_fscore_support(labels, preds, average="binary")
-        acc = accuracy_score(labels, preds)
-        return {"accuracy": acc, "f1": f1, "precision": precision, "recall": recall}
+    def compute_metrics(eval_pred):
+        predictions, labels = eval_pred
+        predictions = np.argmax(predictions, axis=1)
+        return accuracy.compute(predictions=predictions, references=labels)
 
     # define training args
     training_args = TrainingArguments(
