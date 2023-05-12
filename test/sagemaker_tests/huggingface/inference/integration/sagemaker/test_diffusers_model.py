@@ -28,34 +28,13 @@ from ...integration import (
     dump_logs_from_cloudwatch,
     model_dir,
     pt_model,
-    pt_diffusers_script,
+    pt_diffusers_gpu_script,
     script_dir,
 )
 from ...integration.sagemaker.timeout import timeout_and_delete_endpoint
 
 
-@pytest.mark.model("stable-diffusion")
-@pytest.mark.processor("cpu")
-@pytest.mark.cpu_test
-def test_diffusers_cpu(
-    sagemaker_session, framework_version, ecr_image, instance_type, region, py_version
-):
-    instance_type = instance_type or "ml.m5.xlarge"
-    try:
-        _test_diffusion_model(
-            sagemaker_session,
-            framework_version,
-            ecr_image,
-            instance_type,
-            model_dir,
-            script_dir,
-            py_version,
-        )
-    except Exception as e:
-        dump_logs_from_cloudwatch(e, region)
-        raise
-
-
+# Only test for gpu as cpu time out
 @pytest.mark.model("stable-diffusion")
 @pytest.mark.processor("gpu")
 @pytest.mark.gpu_test
@@ -100,7 +79,7 @@ def _test_diffusion_model(
 
     if "pytorch" in ecr_image:
         model_file = pt_model
-        entry_point = pt_diffusers_script
+        entry_point = pt_diffusers_gpu_script
     else:
         raise ValueError(f"Unsupported framework for image: {ecr_image}")
 
