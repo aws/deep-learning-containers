@@ -46,6 +46,7 @@ if __name__ == "__main__":
 
     # load dataset
     dataset = load_dataset("imdb")
+    metric = evaluate.load("accuracy")
 
     # tokenizer helper function
     def tokenize(batch):
