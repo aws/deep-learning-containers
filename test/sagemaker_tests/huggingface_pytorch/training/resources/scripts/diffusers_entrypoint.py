@@ -38,13 +38,13 @@ def main():
     # create default accelerate config
     os.system("accelerate config default")
 
-    script_path = git_config["script"]
-
     # run accelerate command
-    accelerate_cmd = f"accelerate launch {script_path} --dataset_name={args.dataset_name}" \
-                    f" --resolution={args.resolution} --output_dir={args.output_dir}" \
-                    f" --train_batch_size={args.train_batch_size} --num_epochs={args.num_epochs}" \
-                    f" --gradient_accumulation_steps={args.gradient_accumulation_steps}"
+    accelerate_cmd = (
+        f"accelerate launch {script} --dataset_name={args.dataset_name}"
+        f" --resolution={args.resolution} --output_dir={args.output_dir}"
+        f" --train_batch_size={args.train_batch_size} --num_epochs={args.num_epochs}"
+        f" --gradient_accumulation_steps={args.gradient_accumulation_steps}"
+    )
 
     logger.info(f"Calling {accelerate_cmd}")
     os.system(accelerate_cmd)
