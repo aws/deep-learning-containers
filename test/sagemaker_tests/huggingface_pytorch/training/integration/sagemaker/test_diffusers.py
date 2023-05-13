@@ -38,7 +38,9 @@ def test_diffusers(ecr_image, sagemaker_regions, py_version, instance_type):
         "instance_type": instance_type,
         "instance_count": 1,
     }
-    invoke_sm_helper_function(ecr_image, sagemaker_regions, _test_diffusers_model, function_args)
+    invoke_sm_helper_function(
+        ecr_image, sagemaker_regions, _test_diffusers_model, py_version, instance_type, 1
+    )
 
 
 def _test_diffusers_model(
@@ -46,7 +48,7 @@ def _test_diffusers_model(
     sagemaker_session,
     py_version,
     instance_type,
-    instance_count=1,
+    instance_count,
 ):
     # hyperparameters, which are passed into the training job
     hyperparameters = {
@@ -57,11 +59,13 @@ def _test_diffusers_model(
         "num_epochs": 1,
         "gradient_accumulation_steps": 1,
     }
+    role = get_execution_role()
 
     with timeout(minutes=DEFAULT_TIMEOUT):
         estimator = HuggingFace(
             entry_point=diffusers_script,
-            role="SageMakerRole",
+            # role="SageMakerRole",
+            role=role,
             image_uri=ecr_image,
             instance_count=instance_count,
             instance_type=instance_type,
