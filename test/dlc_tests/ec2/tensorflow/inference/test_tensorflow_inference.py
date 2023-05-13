@@ -68,6 +68,7 @@ def test_ec2_tensorflow_inference_gpu(
 def test_ec2_tensorflow_inference_gpu_tensorrt(
     tensorflow_inference, ec2_connection, region, gpu_only, ec2_instance_type
 ):
+    ec2_instance_type = "p3.16xlarge"
     if test_utils.is_image_incompatible_with_instance_type(tensorflow_inference, ec2_instance_type):
         pytest.skip(
             f"Image {tensorflow_inference} is incompatible with instance type {ec2_instance_type}"
