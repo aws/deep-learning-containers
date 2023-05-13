@@ -64,7 +64,7 @@ def test_ec2_tensorflow_inference_gpu(
 
 
 @pytest.mark.model("N/A")
-@pytest.mark.parametrize("ec2_instance_type", ["p3.16xlarge"], indirect=True) ## TODO: Revert 
+@pytest.mark.parametrize("ec2_instance_type", TF_EC2_GPU_INSTANCE_TYPE, indirect=True)
 def test_ec2_tensorflow_inference_gpu_tensorrt(
     tensorflow_inference, ec2_connection, region, gpu_only, ec2_instance_type
 ):
@@ -95,8 +95,6 @@ def test_ec2_tensorflow_inference_gpu_tensorrt(
         f"--mount type=bind,source={model_path},target=/models/{model_name}/1 -e TEST_MODE=1 -e MODEL_NAME={model_name}"
         f" {tensorflow_inference}"
     )
-    LOGGER.info(f"[TRSHANTA] {docker_build_model_command}")
-    LOGGER.info(f"[TRSHANTA] {docker_run_server_cmd}")
 
     tensorrt_test_failed = False
     try:
