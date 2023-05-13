@@ -1,3 +1,5 @@
+## Resource Motivation: https://docs.nvidia.com/deeplearning/frameworks/tf-trt-user-guide/index.html
+
 import os
 import argparse
 import tensorflow as tf
