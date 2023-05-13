@@ -24,7 +24,6 @@ from ..... import invoke_sm_helper_function
 from ...integration import DEFAULT_TIMEOUT, diffusers_script
 from ...integration.sagemaker.timeout import timeout
 from retrying import retry
-from sagemaker import get_execution_role
 from packaging.specifiers import SpecifierSet
 
 
@@ -33,11 +32,6 @@ from packaging.specifiers import SpecifierSet
 @pytest.mark.gpu_test
 @pytest.mark.skip_py2_containers
 def test_diffusers(ecr_image, sagemaker_regions, py_version, instance_type):
-    function_args = {
-        "py_version": py_version,
-        "instance_type": instance_type,
-        "instance_count": 1,
-    }
     invoke_sm_helper_function(
         ecr_image, sagemaker_regions, _test_diffusers_model, py_version, instance_type, 1
     )
@@ -59,13 +53,11 @@ def _test_diffusers_model(
         "num_epochs": 1,
         "gradient_accumulation_steps": 1,
     }
-    role = get_execution_role()
 
     with timeout(minutes=DEFAULT_TIMEOUT):
         estimator = HuggingFace(
             entry_point=diffusers_script,
-            # role="SageMakerRole",
-            role=role,
+            role="SageMakerRole",
             image_uri=ecr_image,
             instance_count=instance_count,
             instance_type=instance_type,
