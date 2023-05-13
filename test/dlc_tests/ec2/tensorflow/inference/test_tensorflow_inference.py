@@ -68,12 +68,6 @@ def test_ec2_tensorflow_inference_gpu(
 def test_ec2_tensorflow_inference_gpu_tensorrt(
     tensorflow_inference, ec2_connection, region, gpu_only, ec2_instance_type
 ):
-    ## TensorRt models need to be built on the device type that we want to run them upon
-    ## We have built the TensorRt Model only on g3.8xlarge and are skipping tests on other instances.
-    ## https://github.com/NVIDIA/TensorRT/issues/564
-    if ec2_instance_type != "g3.8xlarge":
-        pytest.skip("Skip the tests as the model is built on g3.8xlarge")
-
     if test_utils.is_image_incompatible_with_instance_type(tensorflow_inference, ec2_instance_type):
         pytest.skip(
             f"Image {tensorflow_inference} is incompatible with instance type {ec2_instance_type}"
@@ -104,15 +98,16 @@ def test_ec2_tensorflow_inference_gpu_tensorrt(
     LOGGER.info(f"[TRSHANTA] {docker_build_model_command}")
     LOGGER.info(f"[TRSHANTA] {docker_run_server_cmd}")
 
-    ec2_connection.run(f"$(aws ecr get-login --no-include-email --region {region})", hide=True)
-    host_setup_for_tensorflow_inference(serving_folder_path, framework_version, ec2_connection)
-    sleep(2)
-
-    ## Build TensorRt Model
-    ec2_connection.run(docker_build_model_command, hide=True)
-
     tensorrt_test_failed = False
     try:
+        ec2_connection.run(f"$(aws ecr get-login --no-include-email --region {region})", hide=True)
+        host_setup_for_tensorflow_inference(serving_folder_path, framework_version, ec2_connection)
+        sleep(2)
+
+        ## Build TensorRt Model
+        ec2_connection.run(docker_build_model_command, hide=True)
+
+        ## Run Model Server
         ec2_connection.run(docker_run_server_cmd, hide=True)
         test_results = test_utils.request_tensorflow_inference(
             model_name,
