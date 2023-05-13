@@ -90,9 +90,9 @@ def test_ec2_tensorflow_inference_gpu_tensorrt(
     model_path = os.path.join(
         serving_folder_path, "tensorflow_serving", "example", "models", model_name
     )
-    vanilla_build_image_uri = f"""tensorflow/tensorflow:{"2.12.0" if framework_version=="2.12.1" else framework_version}-gpu"""
+    upstream_build_image_uri = f"""tensorflow/tensorflow:{"2.12.0" if framework_version=="2.12.1" else framework_version}-gpu"""
     docker_build_model_command = (
-        f"nvidia-docker run --rm --name {build_container_name} -v {model_creation_script_folder}:/script_folder/ -i {vanilla_build_image_uri} python /script_folder/create_tensorrt_model.py"
+        f"nvidia-docker run --rm --name {build_container_name} -v {model_creation_script_folder}:/script_folder/ -i {upstream_build_image_uri} python /script_folder/create_tensorrt_model.py"
     )
     docker_run_server_cmd = (
         f"nvidia-docker run -id --name {serving_container_name} -p 8501:8501 "
@@ -105,7 +105,7 @@ def test_ec2_tensorflow_inference_gpu_tensorrt(
     ec2_connection.run(f"$(aws ecr get-login --no-include-email --region {region})", hide=True)
     host_setup_for_tensorflow_inference(serving_folder_path, framework_version, ec2_connection)
     sleep(2)
-    ec2_connection.run(f"docker pull {vanilla_build_image_uri}", hide=True)
+    # ec2_connection.run(f"docker pull {upstream_build_image_uri}", hide=True)
     ec2_connection.run(docker_build_model_command)
     ec2_connection.run(docker_run_server_cmd)
     test_results = test_utils.request_tensorflow_inference(
@@ -113,6 +113,7 @@ def test_ec2_tensorflow_inference_gpu_tensorrt(
         connection=ec2_connection,
         inference_string=f"""'{{"instances": [[{",".join([str([1]*28)]*28)}]]}}'""",
     )
+    assert test_results, "TensorRt test failed!"
 
     # tensorrt_test_failed = False
     # try:
