@@ -12,19 +12,13 @@
 # language governing permissions and limitations under the License.
 from __future__ import absolute_import
 
-import os
-import re
-
 import pytest
 import sagemaker
-from sagemaker import utils
 from sagemaker.huggingface import HuggingFace
 
 from ..... import invoke_sm_helper_function
 from ...integration import DEFAULT_TIMEOUT, diffusers_script
 from ...integration.sagemaker.timeout import timeout
-from retrying import retry
-from packaging.specifiers import SpecifierSet
 
 
 @pytest.mark.processor("gpu")

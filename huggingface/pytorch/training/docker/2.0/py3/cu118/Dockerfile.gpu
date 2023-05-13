@@ -24,7 +24,6 @@ RUN pip install --no-cache-dir \
 	# tensorflow is necessary for `torch.utils.tensorboard`
 	tensorflow \
 	tensorboard \
-	# "protobuf>=3.20.3,<4" \
 	evaluate==${EVALUATE_VERSION} \
 	accelerate==${ACCELERATE_VERSION}
 
