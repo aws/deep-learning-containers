@@ -27,7 +27,7 @@ model.fit(x_train, y_train, epochs=1)
 model.evaluate(x_test,  y_test, verbose=2)
 
 # Save model in the saved_model format
-SAVED_MODEL_DIR="./models/native_saved_model"
+SAVED_MODEL_DIR="/script_folder/models/native_saved_model"
 model.save(SAVED_MODEL_DIR)
 
 from tensorflow.python.compiler.tensorrt import trt_convert as trt
@@ -50,5 +50,5 @@ def input_fn():
  
 converter.build(input_fn=input_fn)
 
-OUTPUT_SAVED_MODEL_DIR="./models/tftrt_saved_model"
+OUTPUT_SAVED_MODEL_DIR="/script_folder/models/tftrt_saved_model"
 converter.save(output_saved_model_dir=OUTPUT_SAVED_MODEL_DIR)

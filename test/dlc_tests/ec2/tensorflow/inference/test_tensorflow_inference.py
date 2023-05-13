@@ -92,7 +92,7 @@ def test_ec2_tensorflow_inference_gpu_tensorrt(
     )
     vanilla_build_image_uri = f"""tensorflow/tensorflow:{"2.12.0" if framework_version=="2.12.1" else framework_version}-gpu"""
     docker_build_model_command = (
-        f"nvidia-docker run --rm --name {build_container_name} -v {model_creation_script_folder}:/script_folder/ -it {vanilla_build_image_uri} python /script_folder/create_tensorrt_model.py"
+        f"nvidia-docker run --rm --name {build_container_name} -v {model_creation_script_folder}:/script_folder/ -i {vanilla_build_image_uri} python /script_folder/create_tensorrt_model.py"
     )
     docker_run_server_cmd = (
         f"nvidia-docker run -id --name {serving_container_name} -p 8501:8501 "
