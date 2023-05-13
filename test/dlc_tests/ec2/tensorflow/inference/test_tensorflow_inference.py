@@ -92,7 +92,9 @@ def test_ec2_tensorflow_inference_gpu_tensorrt(
     )
     upstream_build_image_uri = f"""tensorflow/tensorflow:{"2.12.0" if framework_version=="2.12.1" else framework_version}-gpu"""
     docker_build_model_command = (
-        f"nvidia-docker run --rm --name {build_container_name} -v {model_creation_script_folder}:/script_folder/ -i {upstream_build_image_uri} python /script_folder/create_tensorrt_model.py"
+        f"nvidia-docker run --rm --name {build_container_name} "
+        f"-v {model_creation_script_folder}:/script_folder/ -i {upstream_build_image_uri} "
+        f"python /script_folder/create_tensorrt_model.py"
     )
     docker_run_server_cmd = (
         f"nvidia-docker run -id --name {serving_container_name} -p 8501:8501 "
@@ -105,42 +107,30 @@ def test_ec2_tensorflow_inference_gpu_tensorrt(
     ec2_connection.run(f"$(aws ecr get-login --no-include-email --region {region})", hide=True)
     host_setup_for_tensorflow_inference(serving_folder_path, framework_version, ec2_connection)
     sleep(2)
-    # ec2_connection.run(f"docker pull {upstream_build_image_uri}", hide=True)
-    ec2_connection.run(docker_build_model_command)
-    ec2_connection.run(docker_run_server_cmd)
-    test_results = test_utils.request_tensorflow_inference(
-        model_name,
-        connection=ec2_connection,
-        inference_string=f"""'{{"instances": [[{",".join([str([1]*28)]*28)}]]}}'""",
-    )
-    assert test_results, "TensorRt test failed!"
 
-    # tensorrt_test_failed = False
-    # try:
-    #     ec2_connection.run(f"$(aws ecr get-login --no-include-email --region {region})", hide=True)
-    #     host_setup_for_tensorflow_inference(serving_folder_path, framework_version, ec2_connection)
-    #     sleep(2)
-        
-    #     ec2_connection.run("docker pull {vanilla_build_image_uri}", hide=True)
-        
+    ## Build TensorRt Model
+    ec2_connection.run(docker_build_model_command, hide=True)
 
-    #     ec2_connection.run(docker_run_cmd, hide=True)
-
-    #     test_results = test_utils.request_tensorflow_inference(
-    #         model_name,
-    #         connection=ec2_connection,
-    #         inference_string=f"""'{{"instances": [[{",".join([str([1]*28)]*28)}]]}}'""",
-    #     )
-    #     assert test_results, "TensorRt test failed!"
-    # except:
-    #     tensorrt_test_failed = True
-    #     remote_out = ec2_connection.run(f"docker logs {container_name}", warn=True, hide=True)
-    #     LOGGER.info(
-    #         f"--- TF container logs ---\n--- STDOUT ---\n{remote_out.stdout}\n--- STDERR ---\n{remote_out.stderr}"
-    #     )
-    # finally:
-    #     ec2_connection.run(f"docker rm -f {container_name}", warn=True, hide=True)
-    # assert not tensorrt_test_failed, "TensorRt tests have failed - please take a look at the logs."
+    tensorrt_test_failed = False
+    try:
+        ec2_connection.run(docker_run_server_cmd, hide=True)
+        test_results = test_utils.request_tensorflow_inference(
+            model_name,
+            connection=ec2_connection,
+            inference_string=f"""'{{"instances": [[{",".join([str([1]*28)]*28)}]]}}'""",
+        )
+        assert test_results, "TensorRt test failed!"
+    except:
+        tensorrt_test_failed = True
+        remote_out = ec2_connection.run(
+            f"docker logs {serving_container_name}", warn=True, hide=True
+        )
+        LOGGER.info(
+            f"--- TF container logs ---\n--- STDOUT ---\n{remote_out.stdout}\n--- STDERR ---\n{remote_out.stderr}"
+        )
+    finally:
+        ec2_connection.run(f"docker rm -f {serving_container_name}", warn=True, hide=True)
+    assert not tensorrt_test_failed, "TensorRt tests have failed - please take a look at the logs."
 
 
 @pytest.mark.model("mnist")
