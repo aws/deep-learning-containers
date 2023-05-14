@@ -12,8 +12,6 @@
 # language governing permissions and limitations under the License.
 from __future__ import absolute_import
 
-import os
-
 import pytest
 import sagemaker
 from sagemaker.huggingface import HuggingFaceModel
@@ -32,7 +30,7 @@ from ...integration.sagemaker.timeout import timeout_and_delete_endpoint
 @pytest.mark.model("tiny-distilbert")
 @pytest.mark.processor("cpu")
 @pytest.mark.cpu_test
-def test_torch_compile_hosting(
+def test_torch_compile_cpu_hosting(
     sagemaker_session, framework_version, ecr_image, instance_type, region, py_version
 ):
     instance_type = instance_type or "ml.m5.xlarge"
@@ -54,7 +52,7 @@ def test_torch_compile_hosting(
 @pytest.mark.model("tiny-distilbert")
 @pytest.mark.processor("gpu")
 @pytest.mark.gpu_test
-def test_torch_compile_hosting(
+def test_torch_compile_gpu_hosting(
     sagemaker_session, framework_version, ecr_image, instance_type, region, py_version
 ):
     instance_type = instance_type or "ml.p3.2xlarge"

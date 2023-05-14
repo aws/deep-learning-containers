@@ -1,9 +1,7 @@
-import os
-
 import numpy as np
 import torch
 from sagemaker_huggingface_inference_toolkit import decoder_encoder
-from transformers import AutoModel, AutoTokenizer, PretrainedConfig
+from transformers import AutoModel, AutoTokenizer
 
 model_id2label = {"0": "NEGATIVE", "1": "POSITIVE"}
 

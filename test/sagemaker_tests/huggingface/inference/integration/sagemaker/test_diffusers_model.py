@@ -75,7 +75,6 @@ def _test_diffusion_model(
         raise ValueError(f"Unsupported framework for image: {ecr_image}")
 
     hf_model = HuggingFaceModel(
-        # model_data=model_data,
         model_data=f"{model_data}/{model_file}",
         role="SageMakerRole",
         image_uri=ecr_image,

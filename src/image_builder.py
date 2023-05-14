@@ -176,8 +176,6 @@ def image_builder(buildspec, image_types=[], device_types=[]):
                 raise KeyError(
                     f"HuggingFace buildspec.yml must contain 'datasets_version' field for each image"
                 )
-            if "diffusers_version" in image_config:
-                extra_build_args["DIFFUSERS_VERSION"] = image_config.get("diffusers_version")
 
         ARTIFACTS.update(
             {
