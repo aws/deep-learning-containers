@@ -58,7 +58,6 @@ def _test_diffusion_model(
     py_version,
     accelerator_type=None,
 ):
-
     endpoint_name = sagemaker.utils.unique_name_from_base(
         "sagemaker-huggingface-serving-diffusion-model-serving"
     )
