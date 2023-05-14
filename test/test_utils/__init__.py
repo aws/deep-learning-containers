@@ -17,7 +17,7 @@ from botocore.exceptions import ClientError
 from glob import glob
 from invoke import run
 from invoke.context import Context
-from packaging.version import Version, parse
+from packaging.version import InvalidVersion, Version, parse
 from packaging.specifiers import SpecifierSet
 from datetime import date, datetime
 from retrying import retry
@@ -191,7 +191,7 @@ PUBLIC_DLC_REGISTRY = "763104351884"
 
 SAGEMAKER_EXECUTION_REGIONS = ["us-west-2", "us-east-1", "eu-west-1"]
 # Before SM GA with Trn1, they support launch of ml.trn1 instance only in us-east-1. After SM GA this can be removed
-SAGEMAKER_NEURON_EXECUTION_REGIONS = ["us-east-1"]
+SAGEMAKER_NEURON_EXECUTION_REGIONS = ["us-west-2"]
 
 UPGRADE_ECR_REPO_NAME = "upgraded-image-ecr-scan-repo"
 ECR_SCAN_HELPER_BUCKET = f"""ecr-scan-helper-{boto3.client("sts", region_name=DEFAULT_REGION).get_caller_identity().get("Account")}"""
@@ -479,10 +479,16 @@ def get_inference_server_type(image_uri):
     if "neuron" in image_uri:
         return "ts"
     image_tag = image_uri.split(":")[1]
-    pytorch_ver = parse(image_tag.split("-")[0])
-    from packaging.version import LegacyVersion
-
-    if isinstance(pytorch_ver, LegacyVersion) or pytorch_ver < Version("1.6"):
+    # recent changes to the packaging package
+    # updated parse function to return Version type
+    # and deprecated LegacyVersion
+    # attempt to parse pytorch version would raise an InvalidVersion exception
+    # return that as "mms"
+    try:
+        pytorch_ver = parse(image_tag.split("-")[0])
+        if pytorch_ver < Version("1.6"):
+            return "mms"
+    except InvalidVersion as e:
         return "mms"
     return "ts"
 
@@ -816,10 +822,11 @@ def request_tensorflow_inference(
     :return:
     """
     conn_run = connection.run if connection is not None else run
-    run_out = conn_run(
-        f"curl -d {inference_string} -X POST  http://{ip_address}:{port}/v1/models/{model_name}:predict",
-        warn=True,
-    )
+
+    curl_command = f"curl -d {inference_string} -X POST  http://{ip_address}:{port}/v1/models/{model_name}:predict"
+    LOGGER.info(f"Initiating curl command: {curl_command}")
+    run_out = conn_run(curl_command, warn=True)
+    LOGGER.info(f"Curl command completed with output: {run_out.stdout}")
 
     # The run_out.return_code is not reliable, since sometimes predict request may succeed but the returned result
     # is 404. Hence the extra check.
@@ -1588,6 +1595,11 @@ NEURON_VERSION_MANIFEST = {
             "2.10.1": "2.10.1.2.7.3.0",
         },
     },
+    "2.10.0": {
+        "pytorch": {
+            "1.13.1": "1.13.1.2.7.1.0",
+        },
+    },
     "1.19.1": {
         "pytorch": {
             "1.7.1": "1.7.1.2.3.0.0",
@@ -1753,6 +1765,26 @@ def get_all_the_tags_of_an_image_from_ecr(ecr_client, image_uri):
         ],
     )
     return response["imageDetails"][0]["imageTags"]
+
+
+def get_sha_of_an_image_from_ecr(ecr_client, image_uri):
+    """
+    Uses ecr describe to get SHA of an image.
+
+    :param ecr_client: boto3 Client for ECR
+    :param image_uri: str Image URI
+    :return: str, Image SHA that looks like sha256:1ab...
+    """
+    account_id = get_account_id_from_image_uri(image_uri)
+    image_repo_name, image_tag = get_repository_and_tag_from_image_uri(image_uri)
+    response = ecr_client.describe_images(
+        registryId=account_id,
+        repositoryName=image_repo_name,
+        imageIds=[
+            {"imageTag": image_tag},
+        ],
+    )
+    return response["imageDetails"][0]["imageDigest"]
 
 
 def get_cuda_version_from_tag(image_uri):
@@ -2154,3 +2186,8 @@ def get_labels_from_ecr_image(image_uri, region):
     labels = image_metadata["config"]["Labels"]
 
     return labels
+
+
+def generate_unique_dlc_name(image):
+    # handle retrevial of repo name and remove test type from it
+    return get_ecr_repo_name(image).replace("-training", "").replace("-inference", "")

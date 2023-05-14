@@ -335,8 +335,8 @@ def fixture_dist_gpu_backend(request):
 
 
 @pytest.fixture(autouse=True)
-def skip_by_device_type(request, instance_type):
-    is_gpu = instance_type.lstrip("ml.")[0] in ["g", "p"]
+def skip_by_device_type(request, use_gpu, instance_type):
+    is_gpu = use_gpu or instance_type.lstrip("ml.")[0] in ["g", "p"]
 
     # Skip a neuronx test that's not on an neuron instance or a test which
     # uses a neuron instance and is not a neuronx test

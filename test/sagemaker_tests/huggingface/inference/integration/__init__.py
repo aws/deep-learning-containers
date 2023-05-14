@@ -25,10 +25,12 @@ model_dir = os.path.join(resources_path, "tiny-distilbert-sst-2")
 pt_model = "pt_model.tar.gz"
 tf_model = "tf_model.tar.gz"
 pt_neuron_model = "pt_neuron_model.tar.gz"
+pt_neuronx_model = "pt_neuronx_model.tar.gz"
 # TODO: current local test, tests without custom script
 
 script_dir = os.path.join(resources_path, "code")
 pt_neuron_script = "neuron_inference.py"
+pt_neuronx_script = "neuronx_inference.py"
 pt_ipex_script = "ipex_inference.py"
 pt_diffusers_gpu_script = "diffusers_gpu_inference.py"
 pt_compile_script = "torch_compile_inference.py"
