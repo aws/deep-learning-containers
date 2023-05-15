@@ -16,7 +16,7 @@ from packaging.specifiers import SpecifierSet
 from tenacity import retry, stop_after_attempt, wait_fixed
 
 from test.test_utils import is_pr_context, is_mainline_context, get_synapseai_version_from_tag
-from . import DEFAULT_REGION, UL_AMI_LIST, BENCHMARK_RESULTS_S3_BUCKET
+from . import DEFAULT_REGION, P3DN_REGION, P4DE_REGION, UL_AMI_LIST, BENCHMARK_RESULTS_S3_BUCKET
 
 EC2_INSTANCE_ROLE_NAME = "ec2TestInstanceRole"
 
@@ -24,7 +24,7 @@ EC2_INSTANCE_ROLE_NAME = "ec2TestInstanceRole"
 ICE_SKIP_INSTANCE_LIST = ["p3dn.24xlarge"]
 
 # List of instance types which are too powerful for minor tests
-HEAVY_INSTANCE_LIST = ["p3dn.24xlarge", "p4d.24xlarge"]
+HEAVY_INSTANCE_LIST = ["p3dn.24xlarge", "p4d.24xlarge", "p4de.24xlarge"]
 
 LOGGER = logging.getLogger(__name__)
 LOGGER.addHandler(logging.StreamHandler(sys.stdout))
@@ -55,6 +55,36 @@ def filter_not_heavy_instance_types(instance_type_list):
         if instance_type not in HEAVY_INSTANCE_LIST
     ]
     return filtered_list
+
+
+def filter_efa_instance_type(instance_type_list):
+    filtered_list = [
+        instance_type
+        for instance_type in instance_type_list
+        if get_num_efa_interfaces_for_instance_type(instance_type)
+    ]
+    return filtered_list
+
+
+def get_cicd_instance_reserved_region(instance_type):
+    return (
+        P4DE_REGION
+        if instance_type in ["p4de.24xlarge"]
+        else P3DN_REGION
+        if instance_type in ["p3dn.24xlarge"]
+        else DEFAULT_REGION
+    )
+
+
+def get_efa_ec2_instance_type(default, filter_function=lambda x: x, job_type=""):
+    instance_list = get_ec2_instance_type(
+        default, "gpu", filter_function, efa=True, job_type=job_type
+    )
+    instance_list = [
+        (instance_type, get_cicd_instance_reserved_region(instance_type))
+        for instance_type in instance_list
+    ]
+    return instance_list
 
 
 def get_ec2_instance_type(
@@ -491,6 +521,15 @@ def get_instance_num_gpus(instance_id=None, instance_type=None, region=DEFAULT_R
         else get_instance_details(instance_id, region=region)
     )
     return sum(gpu_type["Count"] for gpu_type in instance_info["GpuInfo"]["Gpus"])
+
+
+@retry(stop=stop_after_attempt(30), wait=wait_fixed(10))
+def get_num_efa_interfaces_for_instance_type(instance_type, region=DEFAULT_REGION):
+    instance_info = get_instance_type_details(instance_type, region)
+    num_efa_interfaces = (
+        instance_info.get("NetworkInfo", {}).get("EfaInfo", {}).get("MaximumEfaInterfaces")
+    )
+    return num_efa_interfaces
 
 
 def get_ec2_fabric_connection(instance_id, instance_pem_file, region):
@@ -1218,14 +1257,7 @@ def get_default_subnet_for_az(ec2_client, availability_zone):
 
 
 def generate_network_interfaces(ec2_client, ec2_instance_type, availability_zone):
-    instance_type = "p4d.24xlarge" if ec2_instance_type == "p4de.24xlarge" else ec2_instance_type
-    response = ec2_client.describe_instance_types(InstanceTypes=[instance_type])
-    num_efa_interfaces = (
-        response.get("InstanceTypes")[0]
-        .get("NetworkInfo", {})
-        .get("EfaInfo", {})
-        .get("MaximumEfaInterfaces")
-    )
+    num_efa_interfaces = get_num_efa_interfaces_for_instance_type(ec2_instance_type)
     if not num_efa_interfaces:
         raise AttributeError(f"Unable to get number of EFA Interfaces for {ec2_instance_type}")
 

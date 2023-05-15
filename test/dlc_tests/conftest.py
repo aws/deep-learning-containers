@@ -248,6 +248,20 @@ def region(request):
 
 
 @pytest.fixture(scope="function")
+def availability_zone_options(ec2_client, ec2_instance_type, region):
+    allowed_availability_zones = None
+    if ec2_instance_type in ["p4de.24xlarge"]:
+        if region == "us-east-1":
+            allowed_availability_zones = ["us-east-1d"]
+    if ec2_instance_type in ["p4d.24xlarge"]:
+        if region == "us-west-2":
+            allowed_availability_zones = ["us-west-2b", "us-west-2c"]
+    if not allowed_availability_zones:
+        allowed_availability_zones = ec2_utils.get_availability_zone_ids(ec2_client)
+    return allowed_availability_zones
+
+
+@pytest.fixture(scope="function")
 def ecr_client(region):
     return boto3.client("ecr", region_name=region)
 
@@ -309,6 +323,7 @@ def efa_ec2_instances(
     ec2_key_name,
     ec2_instance_ami,
     region,
+    availability_zone_options,
 ):
     ec2_key_name = f"{ec2_key_name}-{str(uuid.uuid4())}"
     print(f"Creating instance: CI-CD {ec2_key_name}")
@@ -323,10 +338,9 @@ def efa_ec2_instances(
 
     request.addfinalizer(delete_ssh_keypair)
 
-    az_options = ec2_utils.get_availability_zone_ids(ec2_client)
     response = None
     instance_name_prefix = f"CI-CD {ec2_key_name}"
-    for availability_zone in az_options:
+    for availability_zone in availability_zone_options:
         try:
             response = ec2_client.run_instances(
                 BlockDeviceMappings=[

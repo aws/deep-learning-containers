@@ -23,6 +23,7 @@ from test_utils import (
     is_pr_context,
     is_benchmark_dev_context,
     is_rc_test_context,
+    is_efa_dedicated,
     is_ec2_image,
     destroy_ssh_keypair,
     setup_sm_benchmark_tf_train_env,
@@ -291,7 +292,7 @@ def main():
     start_time = datetime.now()
     test_type = os.getenv("TEST_TYPE")
 
-    efa_dedicated = os.getenv("EFA_DEDICATED", "False").lower() == "true"
+    efa_dedicated = is_efa_dedicated()
     executor_mode = os.getenv("EXECUTOR_MODE", "False").lower() == "true"
     dlc_images = os.getenv("DLC_IMAGE") if executor_mode else get_dlc_images()
     # Executing locally ona can provide commit_id or may ommit it. Assigning default value for local executions:

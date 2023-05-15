@@ -8,9 +8,12 @@ from test.test_utils import (
     LOGGER,
     get_account_id_from_image_uri,
     get_region_from_image_uri,
+    is_pr_context,
+    is_efa_dedicated,
     login_to_ecr_registry,
     run_cmd_on_container,
 )
+from test.test_utils.ec2 import get_efa_ec2_instance_type, filter_efa_instance_type
 
 EFA_SANITY_TEST_CMD = os.path.join(CONTAINER_TESTS_PREFIX, "efa", "testEFASanity")
 EFA_INTEGRATION_TEST_CMD = os.path.join(CONTAINER_TESTS_PREFIX, "efa", "testEFA")
@@ -21,17 +24,27 @@ MASTER_CONTAINER_NAME = "master_container"
 WORKER_CONTAINER_NAME = "worker_container"
 HOSTS_FILE_LOCATION = "/root/hosts"
 
+EC2_EFA_GPU_INSTANCE_TYPE_AND_REGION = get_efa_ec2_instance_type(
+    default="p4d.24xlarge",
+    filter_function=filter_efa_instance_type,
+)
+
 
 @pytest.mark.processor("gpu")
 @pytest.mark.model("N/A")
 @pytest.mark.integration("efa")
 @pytest.mark.usefixtures("sagemaker")
 @pytest.mark.multinode(2)
-@pytest.mark.parametrize("region", ["us-east-1"])
-@pytest.mark.parametrize("ec2_instance_type", ["p4de.24xlarge"])
-def test_efa(pytorch_training, efa_ec2_instances, efa_ec2_connections, ec2_instance_type, gpu_only):
+@pytest.mark.parametrize("ec2_instance_type,region", EC2_EFA_GPU_INSTANCE_TYPE_AND_REGION)
+@pytest.mark.skipif(
+    is_pr_context() and not is_efa_dedicated(),
+    "Skip EFA test in PR context unless explicitly enabled",
+)
+def test_efa_pytorch(
+    pytorch_training, efa_ec2_instances, efa_ec2_connections, ec2_instance_type, region, gpu_only
+):
     _setup_multinode_efa_instances(
-        pytorch_training, efa_ec2_instances, efa_ec2_connections, ec2_instance_type
+        pytorch_training, efa_ec2_instances, efa_ec2_connections, ec2_instance_type, region
     )
     master_connection = efa_ec2_connections[0]
     run_cmd_on_container(MASTER_CONTAINER_NAME, master_connection, EFA_SANITY_TEST_CMD)
@@ -47,13 +60,16 @@ def test_efa(pytorch_training, efa_ec2_instances, efa_ec2_connections, ec2_insta
 @pytest.mark.integration("efa")
 @pytest.mark.usefixtures("sagemaker")
 @pytest.mark.multinode(2)
-@pytest.mark.parametrize("region", ["us-west-2"])
-@pytest.mark.parametrize("ec2_instance_type", ["p4d.24xlarge"])
+@pytest.mark.parametrize("ec2_instance_type,region", EC2_EFA_GPU_INSTANCE_TYPE_AND_REGION)
+@pytest.mark.skipif(
+    is_pr_context() and not is_efa_dedicated(),
+    "Skip EFA test in PR context unless explicitly enabled",
+)
 def test_efa_tensorflow(
-    tensorflow_training, efa_ec2_instances, efa_ec2_connections, ec2_instance_type, gpu_only
+    tensorflow_training, efa_ec2_instances, efa_ec2_connections, ec2_instance_type, region, gpu_only
 ):
     _setup_multinode_efa_instances(
-        tensorflow_training, efa_ec2_instances, efa_ec2_connections, ec2_instance_type
+        tensorflow_training, efa_ec2_instances, efa_ec2_connections, ec2_instance_type, region
     )
     master_connection = efa_ec2_connections[0]
     run_cmd_on_container(MASTER_CONTAINER_NAME, master_connection, EFA_SANITY_TEST_CMD)
@@ -65,7 +81,7 @@ def test_efa_tensorflow(
 
 
 def _setup_multinode_efa_instances(
-    image, efa_ec2_instances, efa_ec2_connections, ec2_instance_type
+    image, efa_ec2_instances, efa_ec2_connections, ec2_instance_type, region
 ):
     # Configure master node container
     master_connection = efa_ec2_connections[0]
@@ -75,7 +91,7 @@ def _setup_multinode_efa_instances(
     _setup_master_efa_ssh_config(master_connection)
     # Create a hosts file that provides mpi with IP addresses and no. of GPUs in each node
     worker_instance_ids = [instance_id for instance_id, _ in efa_ec2_instances[1:]]
-    _create_master_mpi_hosts_file(master_connection, worker_instance_ids, ec2_instance_type)
+    _create_master_mpi_hosts_file(master_connection, worker_instance_ids, ec2_instance_type, region)
     # Obtain master node SSH public key for future use
     master_pub_key = run_cmd_on_container(
         MASTER_CONTAINER_NAME, master_connection, f"cat $HOME/.ssh/{MASTER_SSH_KEY_NAME}.pub"
@@ -142,10 +158,10 @@ def _setup_master_efa_ssh_config(connection):
     run_cmd_on_container(MASTER_CONTAINER_NAME, connection, "chmod -R 600 $HOME/.ssh/*")
 
 
-def _create_master_mpi_hosts_file(connection, worker_instance_ids, instance_type):
+def _create_master_mpi_hosts_file(connection, worker_instance_ids, instance_type, region):
     slots = ec2_utils.get_instance_num_gpus(instance_type=instance_type)
     worker_instance_private_ips = [
-        ec2_utils.get_private_ip(instance_id) for instance_id in worker_instance_ids
+        ec2_utils.get_private_ip(instance_id, region) for instance_id in worker_instance_ids
     ]
     # Configure MPI hosts file with IP addresses and slots for worker nodes
     hosts_string = f"localhost slots={slots} "

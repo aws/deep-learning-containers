@@ -35,6 +35,8 @@ LOGGER.addHandler(logging.StreamHandler(sys.stderr))
 DEFAULT_REGION = "us-west-2"
 # Constant to represent region where p3dn tests can be run
 P3DN_REGION = "us-east-1"
+# Constant to represent region where p4de tests can be run
+P4DE_REGION = "us-east-1"
 
 
 def get_ami_id_boto3(region_name, ami_name_pattern):
@@ -526,6 +528,10 @@ def is_graviton_architecture():
 
 def is_dlc_cicd_context():
     return os.getenv("BUILD_CONTEXT") in ["PR", "CANARY", "NIGHTLY", "MAINLINE"]
+
+
+def is_efa_dedicated():
+    return os.getenv("EFA_DEDICATED", "False").lower() == "true"
 
 
 def is_generic_image():
