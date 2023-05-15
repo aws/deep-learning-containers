@@ -248,6 +248,15 @@ def region(request):
 
 @pytest.fixture(scope="function")
 def availability_zone_options(ec2_client, ec2_instance_type, region):
+    """
+    Parametrize with a reduced list of availability zones for particular instance types for which
+    capacity has been reserved in that AZ. For other instance types, parametrize with list of all
+    AZs in the region.
+    :param ec2_client: boto3 Client for EC2
+    :param ec2_instance_type: str instance type for which AZs must be determined
+    :param region: str region in which instance must be created
+    :return: list of str AZ names
+    """
     allowed_availability_zones = None
     if ec2_instance_type in ["p4de.24xlarge"]:
         if region == "us-east-1":

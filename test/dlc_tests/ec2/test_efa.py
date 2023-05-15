@@ -38,7 +38,7 @@ EC2_EFA_GPU_INSTANCE_TYPE_AND_REGION = get_efa_ec2_instance_type(
 @pytest.mark.parametrize("ec2_instance_type,region", EC2_EFA_GPU_INSTANCE_TYPE_AND_REGION)
 @pytest.mark.skipif(
     is_pr_context() and not is_efa_dedicated(),
-    "Skip EFA test in PR context unless explicitly enabled",
+    reason="Skip EFA test in PR context unless explicitly enabled",
 )
 def test_efa_pytorch(
     pytorch_training, efa_ec2_instances, efa_ec2_connections, ec2_instance_type, region, gpu_only
@@ -63,7 +63,7 @@ def test_efa_pytorch(
 @pytest.mark.parametrize("ec2_instance_type,region", EC2_EFA_GPU_INSTANCE_TYPE_AND_REGION)
 @pytest.mark.skipif(
     is_pr_context() and not is_efa_dedicated(),
-    "Skip EFA test in PR context unless explicitly enabled",
+    reason="Skip EFA test in PR context unless explicitly enabled",
 )
 def test_efa_tensorflow(
     tensorflow_training, efa_ec2_instances, efa_ec2_connections, ec2_instance_type, region, gpu_only
@@ -83,6 +83,15 @@ def test_efa_tensorflow(
 def _setup_multinode_efa_instances(
     image, efa_ec2_instances, efa_ec2_connections, ec2_instance_type, region
 ):
+    """
+    Pull and start test image containers on both master and worker instances, and configure
+    password-less SSH between master and worker nodes.
+    :param image: str DLC image URI to be tested
+    :param efa_ec2_instances: list of tuples of instance_id, keypair_filepath for each instance
+    :param efa_ec2_connections: list of fabric connection objects
+    :param ec2_instance_type: str instance type being used
+    :param region: str region name in which test is being run
+    """
     # Configure master node container
     master_connection = efa_ec2_connections[0]
     # Run docker login, and pull and run container
@@ -107,6 +116,12 @@ def _setup_multinode_efa_instances(
 
 
 def _setup_container(connection, docker_image, container_name):
+    """
+    Pull and run tested image with all EFA devices made available to container
+    :param connection: Fabric Connection object
+    :param docker_image: str DLC image URI to be tested
+    :param container_name: str container name
+    """
     account_id = get_account_id_from_image_uri(docker_image)
     region = get_region_from_image_uri(docker_image)
     login_to_ecr_registry(connection, account_id, region)
@@ -131,6 +146,10 @@ def _setup_container(connection, docker_image, container_name):
 
 
 def _setup_master_efa_ssh_config(connection):
+    """
+    Set up SSH client config on master container to connect to worker
+    :param connection: Fabric Connection object
+    """
     run_cmd_on_container(
         MASTER_CONTAINER_NAME, connection, f"rm -rf $HOME/.ssh/{MASTER_SSH_KEY_NAME}*"
     )
@@ -159,6 +178,13 @@ def _setup_master_efa_ssh_config(connection):
 
 
 def _create_master_mpi_hosts_file(connection, worker_instance_ids, instance_type, region):
+    """
+    Create MPI Hosts file that contains private IP addresses of all hosts used in training job.
+    :param connection: Fabric Connection object
+    :param worker_instance_ids: list of str worker instance IDs
+    :param instance_type: str EC2 Instance Type being used
+    :param region: str region name in which test is run
+    """
     slots = ec2_utils.get_instance_num_gpus(instance_type=instance_type)
     worker_instance_private_ips = [
         ec2_utils.get_private_ip(instance_id, region) for instance_id in worker_instance_ids
@@ -173,6 +199,11 @@ def _create_master_mpi_hosts_file(connection, worker_instance_ids, instance_type
 
 
 def _setup_worker_efa_ssh_config(connection, master_pub_key):
+    """
+    Set up SSH server config on worker container to allow connections from master.
+    :param connection: Fabric Connection object
+    :param master_pub_key: str Master node public SSH key to allow password-less SSH access
+    """
     # Force SSH Daemon to use port 2022, since port 22 is already in use by the host instance
     run_cmd_on_container(
         WORKER_CONTAINER_NAME, connection, """echo "Port 2022" >> /etc/ssh/sshd_config"""
