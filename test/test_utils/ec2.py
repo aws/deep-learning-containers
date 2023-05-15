@@ -514,7 +514,6 @@ def get_instance_num_gpus(instance_id=None, instance_type=None, region=DEFAULT_R
     :return: <int> Number of GPUs on instance with matching instance ID
     """
     assert instance_id or instance_type, "Input must be either instance_id or instance_type"
-    instance_type = "p4d.24xlarge" if instance_type == "p4de.24xlarge" else instance_type
     instance_info = (
         get_instance_type_details(instance_type, region=region)
         if instance_type
@@ -1284,10 +1283,8 @@ def get_network_interface_id(instance_id, region=DEFAULT_REGION):
     Gets the network interface at index 0 from the instance_id. Meant to be used
     with p4d instance with 4 efa devices
     """
-    ec2_client = boto3.client("ec2", region_name=region)
-    arguments_dict = {"InstanceIds": [instance_id]}
-    result = ec2_client.describe_instances(**arguments_dict)
-    network_interfaces_info = result["Reservations"][0]["Instances"][0]["NetworkInterfaces"]
+    instance = get_instance_from_id(instance_id, region)
+    network_interfaces_info = instance["NetworkInterfaces"]
     for device in network_interfaces_info:
         if device["Attachment"]["DeviceIndex"] == 0:
             return device["NetworkInterfaceId"]
