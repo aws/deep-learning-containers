@@ -31,9 +31,13 @@ from test_utils import (
     get_framework_and_version_from_tag,
     get_build_context,
     is_nightly_context,
+    get_ecr_repo_name,
+    generate_unique_dlc_name,
 )
 from test_utils import KEYS_TO_DESTROY_FILE, DEFAULT_REGION
 from test_utils.pytest_cache import PytestCache
+
+from src.codebuild_environment import get_codebuild_project_name
 
 LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.DEBUG)
@@ -311,8 +315,9 @@ def main():
         framework, version = "general_test", "none"
 
     pytest_cache_params = {
+        "codebuild_project_name": get_codebuild_project_name(),
         "commit_id": commit_id,
-        "framework": framework,
+        "framework": generate_unique_dlc_name(dlc_images[0]),
         "version": version,
         "build_context": build_context,
         "test_type": test_type,

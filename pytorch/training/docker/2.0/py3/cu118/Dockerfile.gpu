@@ -142,6 +142,8 @@ RUN /opt/conda/bin/mamba install -y --override-channels \
     click \
     psutil \
     ipython \
+    # Adding package for studio kernels
+    ipykernel \
     # patch CVE
     "cryptography>39.0.0" \
     # patch CVE

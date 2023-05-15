@@ -570,7 +570,6 @@ def ec2_instance(
                 or "mxnet_inference" in request.fixturenames
             )
         )
-        or (is_neuron_image(request.fixturenames))
         or (
             "tensorflow_training" in request.fixturenames
             and "gpu_only" in request.fixturenames
@@ -587,6 +586,15 @@ def ec2_instance(
                 "DeviceName": volume_name,
                 "Ebs": {
                     "VolumeSize": 300,
+                },
+            }
+        ]
+    elif is_neuron_image(request.fixturenames):
+        params["BlockDeviceMappings"] = [
+            {
+                "DeviceName": volume_name,
+                "Ebs": {
+                    "VolumeSize": 512,
                 },
             }
         ]
