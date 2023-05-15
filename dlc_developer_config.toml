@@ -34,7 +34,7 @@ benchmark_mode = false
 build_frameworks = ["tensorflow"]
 
 # By default we build both training and inference containers. Set true/false values to determine which to build.
-build_training = fasle
+build_training = false
 build_inference = true
 
 # Set to false in order to remove datetime tag on PR builds
