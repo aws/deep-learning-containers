@@ -36,6 +36,5 @@ def predict_fn(data, model):
     shifted_exp = np.exp(outputs - maxes)
     scores = shifted_exp / shifted_exp.sum(axis=-1, keepdims=True)
     return [
-        {"label": model_id2label[str(item.argmax())], "score": item.max().item()}
-        for item in scores
+        {"label": model_id2label[str(item.argmax())], "score": item.max().item()} for item in scores
     ]

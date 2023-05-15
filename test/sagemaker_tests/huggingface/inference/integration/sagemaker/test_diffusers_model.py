@@ -19,17 +19,41 @@ from ...integration import (
     dump_logs_from_cloudwatch,
     model_dir,
     pt_model,
+    pt_diffusers_cpu_script,
     pt_diffusers_gpu_script,
     script_dir,
 )
 from ...integration.sagemaker.timeout import timeout_and_delete_endpoint
 
 
-# Only test for gpu as cpu time out
+@pytest.mark.model("tiny-stable-diffusion")
+@pytest.mark.processor("cpu")
+@pytest.mark.cpu_test
+def test_diffusers_cpu_hosting(
+    sagemaker_session, framework_version, ecr_image, instance_type, region, py_version
+):
+    instance_type = instance_type or "ml.m5.xlarge"
+    try:
+        _test_diffusion_model(
+            sagemaker_session,
+            framework_version,
+            ecr_image,
+            instance_type,
+            model_dir,
+            script_dir,
+            py_version,
+            processor="cpu",
+        )
+    except Exception as e:
+        dump_logs_from_cloudwatch(e, region)
+        raise
+
+
+# Only test normal size model for gpu as cpu time out
 @pytest.mark.model("stable-diffusion")
 @pytest.mark.processor("gpu")
 @pytest.mark.gpu_test
-def test_diffusers_gpu(
+def test_diffusers_gpu_hosting(
     sagemaker_session, framework_version, ecr_image, instance_type, region, py_version
 ):
     instance_type = instance_type or "ml.p3.2xlarge"
@@ -42,6 +66,7 @@ def test_diffusers_gpu(
             model_dir,
             script_dir,
             py_version,
+            processor="gpu",
         )
     except Exception as e:
         dump_logs_from_cloudwatch(e, region)
@@ -56,7 +81,7 @@ def _test_diffusion_model(
     model_dir,
     script_dir,
     py_version,
-    accelerator_type=None,
+    processor,
 ):
     endpoint_name = sagemaker.utils.unique_name_from_base(
         "sagemaker-huggingface-serving-diffusion-model-serving"
@@ -66,10 +91,14 @@ def _test_diffusion_model(
         path=model_dir,
         key_prefix="sagemaker-huggingface-inference-diffusers-serving/models",
     )
+    entry_script = {
+        "cpu": pt_diffusers_cpu_script,
+        "gpu": pt_diffusers_gpu_script,
+    }
 
     if "pytorch" in ecr_image:
         model_file = pt_model
-        entry_point = pt_diffusers_gpu_script
+        entry_point = entry_script[processor]
     else:
         raise ValueError(f"Unsupported framework for image: {ecr_image}")
 
