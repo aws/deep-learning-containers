@@ -68,12 +68,6 @@ def test_ec2_tensorflow_inference_gpu(
 def test_ec2_tensorflow_inference_gpu_tensorrt(
     tensorflow_inference, ec2_connection, region, gpu_only, ec2_instance_type
 ):
-    ## TensorRt models need to be built on the device type that we want to run them upon
-    ## We have built the TensorRt Model only on g3.8xlarge and are skipping tests on other instances.
-    ## https://github.com/NVIDIA/TensorRT/issues/564
-    if ec2_instance_type != "g3.8xlarge":
-        pytest.skip("Skip the tests as the model is built on g3.8xlarge")
-
     if test_utils.is_image_incompatible_with_instance_type(tensorflow_inference, ec2_instance_type):
         pytest.skip(
             f"Image {tensorflow_inference} is incompatible with instance type {ec2_instance_type}"
@@ -81,23 +75,38 @@ def test_ec2_tensorflow_inference_gpu_tensorrt(
     framework_version = get_tensorflow_framework_version(tensorflow_inference)
     home_dir = ec2_connection.run("echo $HOME").stdout.strip("\n")
     serving_folder_path = os.path.join(home_dir, "serving")
-    container_name = "tensorrt-serving-container"
+    build_container_name = "tensorrt-build-container"
+    serving_container_name = "tensorrt-serving-container"
     model_name = "tftrt_saved_model"
-    model_path = os.path.join(
-        serving_folder_path, "tensorflow_serving", "example", "built_models", model_name
+    model_creation_script_folder = os.path.join(
+        serving_folder_path, "tensorflow_serving", "example"
     )
-    docker_run_cmd = (
-        f"nvidia-docker run -id --name {container_name} -p 8501:8501 "
+    model_path = os.path.join(
+        serving_folder_path, "tensorflow_serving", "example", "models", model_name
+    )
+    upstream_build_image_uri = f"""tensorflow/tensorflow:{"2.12.0" if framework_version=="2.12.1" else framework_version}-gpu"""
+    docker_build_model_command = (
+        f"nvidia-docker run --rm --name {build_container_name} "
+        f"-v {model_creation_script_folder}:/script_folder/ -i {upstream_build_image_uri} "
+        f"python /script_folder/create_tensorrt_model.py"
+    )
+    docker_run_server_cmd = (
+        f"nvidia-docker run -id --name {serving_container_name} -p 8501:8501 "
         f"--mount type=bind,source={model_path},target=/models/{model_name}/1 -e TEST_MODE=1 -e MODEL_NAME={model_name}"
         f" {tensorflow_inference}"
     )
+
     tensorrt_test_failed = False
     try:
         ec2_connection.run(f"$(aws ecr get-login --no-include-email --region {region})", hide=True)
         host_setup_for_tensorflow_inference(serving_folder_path, framework_version, ec2_connection)
         sleep(2)
-        ec2_connection.run(docker_run_cmd, hide=True)
 
+        ## Build TensorRt Model
+        ec2_connection.run(docker_build_model_command, hide=True)
+
+        ## Run Model Server
+        ec2_connection.run(docker_run_server_cmd, hide=True)
         test_results = test_utils.request_tensorflow_inference(
             model_name,
             connection=ec2_connection,
@@ -106,12 +115,14 @@ def test_ec2_tensorflow_inference_gpu_tensorrt(
         assert test_results, "TensorRt test failed!"
     except:
         tensorrt_test_failed = True
-        remote_out = ec2_connection.run(f"docker logs {container_name}", warn=True, hide=True)
+        remote_out = ec2_connection.run(
+            f"docker logs {serving_container_name}", warn=True, hide=True
+        )
         LOGGER.info(
             f"--- TF container logs ---\n--- STDOUT ---\n{remote_out.stdout}\n--- STDERR ---\n{remote_out.stderr}"
         )
     finally:
-        ec2_connection.run(f"docker rm -f {container_name}", warn=True, hide=True)
+        ec2_connection.run(f"docker rm -f {serving_container_name}", warn=True, hide=True)
     assert not tensorrt_test_failed, "TensorRt tests have failed - please take a look at the logs."
 
 
