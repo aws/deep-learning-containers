@@ -295,8 +295,8 @@ def test_mme1(
     accelerator_type,
     region,
 ):
-    if "p3" in instance_type:
-        pytest.skip("skip for p3 instance")
+    if "gpu" in image_uri:
+        pytest.skip("MME is not supported on TF Inference GPU images")
 
     if "graviton" in image_uri:
         pytest.skip("MME test not supported with Graviton test instance.")
@@ -340,8 +340,8 @@ def test_mme2(
     accelerator_type,
     region,
 ):
-    if "p3" in instance_type:
-        pytest.skip("skip for p3 instance")
+    if "gpu" in image_uri:
+        pytest.skip("MME is not supported on TF Inference GPU images")
 
     if "graviton" in image_uri:
         pytest.skip("MME test not supported with Graviton test instance.")
@@ -386,8 +386,8 @@ def test_mme3(
     accelerator_type,
     region,
 ):
-    if "p3" in instance_type:
-        pytest.skip("skip for p3 instance")
+    if "gpu" in image_uri:
+        pytest.skip("MME is not supported on TF Inference GPU images")
 
     if "graviton" in image_uri:
         pytest.skip("MME test not supported with Graviton test instance.")
@@ -431,8 +431,8 @@ def test_mme4(
     instance_type,
     accelerator_type,
 ):
-    if "p3" in instance_type:
-        pytest.skip("skip for p3 instance")
+    if "gpu" in image_uri:
+        pytest.skip("MME is not supported on TF Inference GPU images")
 
     if "graviton" in image_uri:
         pytest.skip("MME test not supported with Graviton test instance.")
