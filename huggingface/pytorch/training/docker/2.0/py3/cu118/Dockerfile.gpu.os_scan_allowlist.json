@@ -24,5 +24,31 @@
       "status": "ACTIVE",
       "title": "CVE-2020-11979 - org.apache.ant:ant"
     }
+  ],
+  "tensorflow": [
+    {
+      "description": "## Overview\n[tensorflow](https://pypi.org/project/tensorflow/) is a machine learning framework.\n\nAffected versions of this package are vulnerable to Arbitrary File Write via Archive Extraction (Zip Slip) via a crafted archive when `tf.keras.utils.get_file` is used with `extract=True`.\r\n\r\nNOTE: This CVE is disputed as the vendor's position is that `tf.keras.utils.get_file` is not intended for untrusted archives. However, we feel this advisory is relevant as, as at the time of publication, there is no known security notice or documentation warning users of this behaviour.\n\n## Details\n\nIt is exploited using a specially crafted zip archive, that holds path traversal filenames. When exploited, a filename in a malicious archive is concatenated to the target extraction directory, which results in the final path ending up outside of the target folder. For instance, a zip may hold a file with a \"../../file.exe\" location and thus break out of the target folder. If an executable or a configuration file is overwritten wi",
+      "vulnerability_id": "SNYK-PYTHON-TENSORFLOW-1315149",
+      "name": "SNYK-PYTHON-TENSORFLOW-1315149",
+      "package_name": "tensorflow",
+      "package_details": {
+        "file_path": "opt/conda/lib/python3.10/site-packages/tensorflow-2.11.1.dist-info/METADATA",
+        "name": "tensorflow",
+        "package_manager": "PYTHONPKG",
+        "version": "2.11.1",
+        "release": null
+      },
+      "remediation": {"recommendation": {"text": "None Provided"}},
+      "cvss_v3_score": 9.1,
+      "cvss_v30_score": 0.0,
+      "cvss_v31_score": 9.1,
+      "cvss_v2_score": 0.0,
+      "cvss_v3_severity": "CRITICAL",
+      "source_url": "https://security.snyk.io/vuln/SNYK-PYTHON-TENSORFLOW-1315149",
+      "source": "SNYK",
+      "severity": "CRITICAL",
+      "status": "ACTIVE",
+      "title": "IN1-PYTHON-TENSORFLOW-1315149 - tensorflow"
+    }
   ]
 }
