@@ -167,8 +167,8 @@ RUN pip install --no-cache-dir \
     "accelerate>=0.11.0" \
     "protobuf>=3.19.5,<=3.20.2" \
     "numpy>=1.22.2,<1.23" \
-    "sagemaker-huggingface-inference-toolkit<3"
-    intel_extension_for_pytorch==2.0.100+cpu -f https://developer.intel.com/ipex-whl-stable-cpu  # IPEx versioning is MAJOR.MINOR.PATCH * 100 (1.13.1 -> 1.13.100)
+    "sagemaker-huggingface-inference-toolkit<3" \
+    "intel_extension_for_pytorch==2.0.100+cpu -f https://developer.intel.com/ipex-whl-stable-cpu"  # IPEx versioning is MAJOR.MINOR.PATCH * 100 (1.13.1 -> 1.13.100)
 
 # Install IPEx from source
 # This is a temporary solution, we are in touch with Intel to
