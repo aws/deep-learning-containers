@@ -77,10 +77,12 @@ function tfs_json_request(r, json) {
             body = body.replace("\\'instances\\'", "'instances'")
         }
 
-        var content_types = accept.trim().replace(" ", "").split(",")
-        if (content_types.includes('application/jsonlines') || content_types.includes('application/jsons' == accept)) {
-            body = body.replace(/\n/g, '')
-            r.headersOut['Content-Type'] = content_types[0]
+        if (accept != undefined) {
+            var content_types = accept.trim().replace(" ", "").split(",")
+            if (content_types.includes('application/jsonlines') || content_types.includes('application/json')) {
+                body = body.replace(/\n/g, '')
+                r.headersOut['Content-Type'] = content_types[0]
+            }
         }
         r.return(reply.status, body)
     }
@@ -138,10 +140,10 @@ function parse_custom_attributes(r) {
 function json_request(r) {
     var data = r.requestBody
 
-    if (is_json_lines(data)) {
-        json_lines_request(r, data)
-    } else if (is_tfs_json(data)) {
+    if (is_tfs_json(data)) {
         tfs_json_request(r, data)
+    } else if (is_json_lines(data)) {
+        json_lines_request(r, data)
     } else {
         generic_json_request(r, data)
     }
@@ -230,3 +232,8 @@ function csv_request(r) {
     builder.push(']}')
     tfs_json_request(r, builder.join(''))
 }
+
+export default {invocations, ping, ping_without_model, return_error,
+    tfs_json_request, make_tfs_uri, parse_custom_attributes,
+    json_request, is_tfs_json, is_json_lines, generic_json_request,
+    json_lines_request, csv_request};

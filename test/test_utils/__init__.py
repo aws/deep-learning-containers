@@ -17,7 +17,7 @@ from botocore.exceptions import ClientError
 from glob import glob
 from invoke import run
 from invoke.context import Context
-from packaging.version import Version, parse
+from packaging.version import InvalidVersion, Version, parse
 from packaging.specifiers import SpecifierSet
 from datetime import date, datetime
 from retrying import retry
@@ -479,10 +479,16 @@ def get_inference_server_type(image_uri):
     if "neuron" in image_uri:
         return "ts"
     image_tag = image_uri.split(":")[1]
-    pytorch_ver = parse(image_tag.split("-")[0])
-    from packaging.version import LegacyVersion
-
-    if isinstance(pytorch_ver, LegacyVersion) or pytorch_ver < Version("1.6"):
+    # recent changes to the packaging package
+    # updated parse function to return Version type
+    # and deprecated LegacyVersion
+    # attempt to parse pytorch version would raise an InvalidVersion exception
+    # return that as "mms"
+    try:
+        pytorch_ver = parse(image_tag.split("-")[0])
+        if pytorch_ver < Version("1.6"):
+            return "mms"
+    except InvalidVersion as e:
         return "mms"
     return "ts"
 
@@ -816,10 +822,11 @@ def request_tensorflow_inference(
     :return:
     """
     conn_run = connection.run if connection is not None else run
-    run_out = conn_run(
-        f"curl -d {inference_string} -X POST  http://{ip_address}:{port}/v1/models/{model_name}:predict",
-        warn=True,
-    )
+
+    curl_command = f"curl -d {inference_string} -X POST  http://{ip_address}:{port}/v1/models/{model_name}:predict"
+    LOGGER.info(f"Initiating curl command: {curl_command}")
+    run_out = conn_run(curl_command, warn=True)
+    LOGGER.info(f"Curl command completed with output: {run_out.stdout}")
 
     # The run_out.return_code is not reliable, since sometimes predict request may succeed but the returned result
     # is 404. Hence the extra check.
@@ -1586,6 +1593,14 @@ NEURON_VERSION_MANIFEST = {
     "2.9.0": {
         "tensorflow": {
             "2.10.1": "2.10.1.2.7.3.0",
+        },
+    },
+    "2.10.0": {
+        "tensorflow": {
+            "2.10.1": "2.10.1.2.8.1.0",
+        },
+        "pytorch": {
+            "1.13.1": "1.13.1.2.7.1.0",
         },
     },
     "1.19.1": {

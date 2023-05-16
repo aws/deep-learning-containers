@@ -86,7 +86,14 @@ def ec2_performance_tensorflow_inference(
     if is_graviton:
         # TF training binary is used that is compatible for graviton instance type
         ec2_connection.run(
-            (f"/usr/bin/pip3 install --user --upgrade awscli boto3 grpcio"), hide=True
+            (
+                # Protobuf is being pinned upgraded to <3.21 for compatibility with TFS 2.9 and TFS 2.12 the
+                # protobuf on the host is not compatible TFS 2.9 and failed benchmarks.
+                # Numpy is being updated to <1.24 to support both TFS 2.9 and TFS 2.12 as higher versions
+                # will fail with TFS 2.9.
+                f"/usr/bin/pip3 install --user --upgrade awscli boto3 grpcio 'protobuf<3.21' 'numpy<1.24'"
+            ),
+            hide=True,
         )
         ec2_connection.run(
             (
