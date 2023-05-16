@@ -170,7 +170,7 @@ RUN pip install --no-cache-dir \
     "sagemaker-huggingface-inference-toolkit<3"
 
 # Install IPEx from source
-# (mandatory for cutomized PyTorch binaries: https://github.com/intel/intel-extension-for-pytorch/issues/317)
+# mandatory for cutomized AWS PyTorch binaries: https://github.com/intel/intel-extension-for-pytorch/issues/317
 RUN cd /opt/ && mkdir -p ipex \
     cd /opt/ipex && \
     wget https://raw.githubusercontent.com/intel/intel-extension-for-pytorch/v2.0.100%2Bcpu/scripts/compile_bundle.sh && \
