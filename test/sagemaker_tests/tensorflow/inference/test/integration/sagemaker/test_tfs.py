@@ -284,6 +284,7 @@ def test_python_model_with_lib(
 
 @pytest.mark.integration("mme")
 @pytest.mark.model("unknown_model")
+@pytest.mark.skip_gpu
 def test_mme1(
     boto_session,
     sagemaker_client,
@@ -295,9 +296,6 @@ def test_mme1(
     accelerator_type,
     region,
 ):
-    if "gpu" in image_uri:
-        pytest.skip("MME is not supported on TF Inference GPU images")
-
     if "graviton" in image_uri:
         pytest.skip("MME test not supported with Graviton test instance.")
 
@@ -329,6 +327,7 @@ def test_mme1(
 
 @pytest.mark.integration("mme")
 @pytest.mark.model("unknown_model")
+@pytest.mark.skip_gpu
 def test_mme2(
     boto_session,
     sagemaker_client,
@@ -340,9 +339,6 @@ def test_mme2(
     accelerator_type,
     region,
 ):
-    if "gpu" in image_uri:
-        pytest.skip("MME is not supported on TF Inference GPU images")
-
     if "graviton" in image_uri:
         pytest.skip("MME test not supported with Graviton test instance.")
 
@@ -375,6 +371,7 @@ def test_mme2(
 
 @pytest.mark.integration("mme")
 @pytest.mark.model("unknown_model")
+@pytest.mark.skip_gpu
 def test_mme3(
     boto_session,
     sagemaker_client,
@@ -386,9 +383,6 @@ def test_mme3(
     accelerator_type,
     region,
 ):
-    if "gpu" in image_uri:
-        pytest.skip("MME is not supported on TF Inference GPU images")
-
     if "graviton" in image_uri:
         pytest.skip("MME test not supported with Graviton test instance.")
 
@@ -421,6 +415,7 @@ def test_mme3(
 
 @pytest.mark.integration("mme")
 @pytest.mark.model("unknown_model")
+@pytest.mark.skip_gpu
 def test_mme4(
     boto_session,
     sagemaker_client,
@@ -431,9 +426,6 @@ def test_mme4(
     instance_type,
     accelerator_type,
 ):
-    if "gpu" in image_uri:
-        pytest.skip("MME is not supported on TF Inference GPU images")
-
     if "graviton" in image_uri:
         pytest.skip("MME test not supported with Graviton test instance.")
 
