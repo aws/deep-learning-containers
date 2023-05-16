@@ -6,7 +6,7 @@ release_images:
     arch_type: "x86"
     inference:
       device_types: [ "neuronx" ]
-      python_versions: [ "py39" ]
+      python_versions: [ "py38" ]
       os_version: "ubuntu20.04"
       neuron_sdk_version: "sdk2.10.0"
       example: False        # [Default: False] Set to True to denote that this image is an Example image
