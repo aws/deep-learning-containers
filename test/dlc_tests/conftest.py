@@ -953,6 +953,7 @@ def pytest_collection_modifyitems(session, config, items):
     if config.getoption("--generate-coverage-doc"):
         report_generator = TestReportGenerator(items)
         report_generator.generate_coverage_doc()
+        report_generator.generate_sagemaker_reports()
 
 
 def generate_unique_values_for_fixtures(
