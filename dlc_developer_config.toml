@@ -48,6 +48,7 @@ do_build = true
 sanity_tests = true
   safety_check_test = false
   ecr_scan_allowlist_feature = false
+  canary_pull_test = false
 ecs_tests = true
 eks_tests = true
 ec2_tests = true

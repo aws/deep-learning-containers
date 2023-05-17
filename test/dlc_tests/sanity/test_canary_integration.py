@@ -4,6 +4,8 @@ import pytest
 
 from invoke.context import Context
 
+from src.config import is_canary_pull_test_enabled
+
 from test.test_utils import (
     parse_canary_images,
     is_pr_context,
@@ -15,7 +17,9 @@ from test.test_utils import (
 
 
 @pytest.mark.usefixtures("sagemaker")
-@pytest.mark.skipif(not is_pr_context(), reason=PR_ONLY_REASON)
+@pytest.mark.skipif(
+    not is_canary_pull_test_enabled(), reason="Test is meant for developing on canary logic"
+)
 @pytest.mark.model("N/A")
 def test_canary_images_pullable_training(region):
     """
@@ -25,7 +29,9 @@ def test_canary_images_pullable_training(region):
 
 
 @pytest.mark.usefixtures("sagemaker")
-@pytest.mark.skipif(not is_pr_context(), reason=PR_ONLY_REASON)
+@pytest.mark.skipif(
+    not is_canary_pull_test_enabled(), reason="Test is meant for developing on canary logic"
+)
 @pytest.mark.model("N/A")
 def test_canary_images_pullable_inference(region):
     """

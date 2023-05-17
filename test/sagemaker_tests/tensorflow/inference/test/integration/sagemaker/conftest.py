@@ -222,6 +222,21 @@ def skip_by_device_type(request, instance_type):
         pytest.skip('Skipping because running on "{}" instance'.format(instance_type))
 
 
+@pytest.fixture(autouse=True)
+def require_custom_markers(request):
+    """
+    Auto-used fixture to ensure that "model" and "integration" markers are added for purpose of test report generation.
+    """
+    model_marker = request.node.get_closest_marker("model")
+    integration_marker = request.node.get_closest_marker("integration")
+    assert (
+        model_marker
+    ), f"'model' pytest marker is required. Please add @pytest.mark.model('<some_model_or_N/A>) to your test function. Currently set to {model_marker}."
+    assert (
+        integration_marker
+    ), f"'integration' pytest marker is required. Please add @pytest.mark.integration('<some_integration>) to your test function. Currently set to {integration_marker}."
+
+
 def _get_remote_override_flags():
     try:
         s3_client = boto3.client("s3")

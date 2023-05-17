@@ -80,6 +80,10 @@ def is_ecr_scan_allowlist_feature_enabled():
     return parse_dlc_developer_configs("test", "ecr_scan_allowlist_feature")
 
 
+def is_canary_pull_test_enabled():
+    return parse_dlc_developer_configs("test", "canary_pull_test")
+
+
 class AllowedSMRemoteConfigValues(Enum):
     OFF = "off"
     RC = "rc"
