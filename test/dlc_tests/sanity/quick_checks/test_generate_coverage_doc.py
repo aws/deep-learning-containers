@@ -17,9 +17,8 @@ TEST_COVERAGE_REPORT_BUCKET = f"dlc-test-coverage-reports-{ACCOUNT_ID}"
 @pytest.mark.quick_checks
 @pytest.mark.integration("Generating this coverage doc")
 @pytest.mark.model("N/A")
-@pytest.mark.skipif(
-    (is_mainline_context() and is_graviton_architecture()),
-    reason="Skipping the test for Graviton image build in mainline context as ARM image is used as a base",
+@pytest.mark.skip(
+    reason="Test is deprecated in favor of fixture 'require_custom_markers'. Keeping test around as an example of usage.",
 )
 def test_generate_coverage_doc():
     """
