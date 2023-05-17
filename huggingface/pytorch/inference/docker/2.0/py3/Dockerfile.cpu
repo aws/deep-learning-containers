@@ -105,6 +105,7 @@ RUN curl -L -o ~/mambaforge.sh https://github.com/conda-forge/miniforge/releases
     cython \
     mkl \
     mkl-include \
+    libtbb-dev \
     botocore \
     parso \
     typing \
@@ -167,7 +168,8 @@ RUN pip install --no-cache-dir \
     "accelerate>=0.11.0" \
     "protobuf>=3.19.5,<=3.20.2" \
     "numpy>=1.22.2,<1.23" \
-    "sagemaker-huggingface-inference-toolkit<3"
+    "sagemaker-huggingface-inference-toolkit<3" \
+    intel-openmp
 
 # Install IPEx from source
 # mandatory for cutomized AWS PyTorch binaries: https://github.com/intel/intel-extension-for-pytorch/issues/317
