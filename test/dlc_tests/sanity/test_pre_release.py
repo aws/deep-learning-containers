@@ -360,7 +360,7 @@ def test_framework_and_neuron_sdk_version(neuron):
     # neuron tag is there in pytorch images for now. Once all frameworks have it, then this will
     # be removed
     if neuron_tag_framework_version is None:
-        if tested_framework is "pytorch":
+        if tested_framework == "pytorch":
             assert neuron_tag_framework_version != None
         else:
             pytest.skip(msg="Neuron SDK tag is not there as part of image")
@@ -576,7 +576,7 @@ def test_pip_check(image):
     # smclarify binaries have s3fs->aiobotocore dependency which uses older version of botocore. temporarily
     # allowing this to catch other issues
     allowed_tf_exception = re.compile(
-        rf"^tensorflow-serving-api{gpu_suffix} \d\.\d+\.\d+ requires tensorflow{gpu_suffix}, which is not installed.$"
+        rf"^tensorflow-serving-api{gpu_suffix} \d\.\d+\.\d+ requires tensorflow(|{gpu_suffix}), which is not installed.$"
     )
     allowed_exception_list.append(allowed_tf_exception)
 

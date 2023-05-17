@@ -678,6 +678,22 @@
                 "51668": "# Sqlalchemy latest release is not there yet"
             }
         },
+        "training-neuronx":{
+            "_comment":"py2 is deprecated",
+            "py2": {
+            },
+            "py3": {
+                "43453":"numpy > 1.22.0 is not available for py37",
+                "44715":"numpy > 1.22.0 is not available for py37",
+                "44717":"numpy > 1.22.0 is not available for py37",
+                "44716":"numpy > 1.22.0 is not available for py37",
+                "51159":"cryptography>38.0.1 does not exist yet",
+                "51358":"Safety is test pkg and not part of image",
+                "51499":"Wheel is needed by tensorboard but v0.38 is not there yet",
+                "51457":"Ignored- please check https://github.com/pytest-dev/py/issues/287",
+                "51668": "# Sqlalchemy latest release is not there yet"
+            }
+        },
         "inference": {
             "_comment":"py2 is deprecated",
             "py2": {
@@ -1059,6 +1075,16 @@
                 "44715":"for shipping numpy 1.21.5 - the last available version for py3.7",
                 "44716":"for shipping numpy 1.21.5 - the last available version for py3.7",
                 "44717":"for shipping numpy 1.21.5 - the last available version for py3.7"
+            }
+        },
+        "training-neuronx": {
+            "_comment":"py2 is deprecated",
+            "py2": {},
+            "py3": {
+                "51668":"Derived from the base container. Installed as a dependency of another package that does not allow the upgrade of SqlAlchemy to 2.",
+                "44715": "Neuronx Dependency wants version to be <=1.21.6",
+                "44716": "Neuronx Dependency wants version to be <=1.21.6",
+                "44717": "Neuronx Dependency wants version to be <=1.21.6"
             }
         }
     },

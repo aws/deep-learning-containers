@@ -51,8 +51,12 @@ def test_ecs_pytorch_training_mnist_cpu(
 @pytest.mark.parametrize("training_script", [PT_MLP_NEURON_TRAINING_SCRIPT], indirect=True)
 @pytest.mark.parametrize("ecs_instance_type", ["trn1.2xlarge"], indirect=True)
 @pytest.mark.parametrize("ecs_ami", [ECS_AML2_NEURON_USWEST2], indirect=True)
-def test_ecs_pytorch_training_mnist_neuron(
-    ecs_container_instance, pytorch_training_neuron, training_cmd, ecs_cluster_name, ecs_num_neurons
+def test_ecs_pytorch_training_mnist_neuronx(
+    ecs_container_instance,
+    pytorch_training_neuronx,
+    training_cmd,
+    ecs_cluster_name,
+    ecs_num_neurons,
 ):
     """
     Neuron MLP test for PyTorch Training
@@ -68,7 +72,38 @@ def test_ecs_pytorch_training_mnist_neuron(
         ecs_cluster_name,
         cluster_arn,
         training_cmd,
-        pytorch_training_neuron,
+        pytorch_training_neuronx,
+        instance_id,
+        num_neurons=ecs_num_neurons,
+    )
+
+
+@pytest.mark.model("mlp")
+@pytest.mark.parametrize("training_script", [PT_MLP_NEURON_TRAINING_SCRIPT], indirect=True)
+@pytest.mark.parametrize("ecs_instance_type", ["inf2.xlarge"], indirect=True)
+@pytest.mark.parametrize("ecs_ami", [ECS_AML2_NEURON_USWEST2], indirect=True)
+def test_ecs_pytorch_training_mnist_neuronx_inf2(
+    ecs_container_instance,
+    pytorch_training_neuronx,
+    training_cmd,
+    ecs_cluster_name,
+    ecs_num_neurons,
+):
+    """
+    Neuron MLP test for PyTorch Training
+
+    Instance Type - inf2.xlarge
+
+    Given above parameters, registers a task with family named after this test, runs the task, and waits for
+    the task to be stopped before doing teardown operations of instance and cluster.
+    """
+    instance_id, cluster_arn = ecs_container_instance
+
+    ecs_utils.ecs_training_test_executor(
+        ecs_cluster_name,
+        cluster_arn,
+        training_cmd,
+        pytorch_training_neuronx,
         instance_id,
         num_neurons=ecs_num_neurons,
     )

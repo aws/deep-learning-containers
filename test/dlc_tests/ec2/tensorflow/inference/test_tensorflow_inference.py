@@ -1,5 +1,6 @@
 import os
 import re
+import json
 from time import sleep
 import pytest
 
@@ -18,6 +19,9 @@ TF_EC2_CPU_INSTANCE_TYPE = get_ec2_instance_type(default="c5.4xlarge", processor
 TF_EC2_EIA_ACCELERATOR_TYPE = get_ec2_accelerator_type(default="eia1.large", processor="eia")
 TF_EC2_NEURON_ACCELERATOR_TYPE = get_ec2_instance_type(default="inf1.xlarge", processor="neuron")
 TF_EC2_NEURONX_ACCELERATOR_TYPE = get_ec2_instance_type(default="trn1.2xlarge", processor="neuronx")
+TF_EC2_NEURONX_INF2_ACCELERATOR_TYPE = get_ec2_instance_type(
+    default="inf2.xlarge", processor="neuronx"
+)
 TF_EC2_SINGLE_GPU_INSTANCE_TYPE = get_ec2_instance_type(
     default="p3.2xlarge",
     processor="gpu",
@@ -36,7 +40,11 @@ def test_ec2_tensorflow_inference_neuron(tensorflow_inference_neuron, ec2_connec
 
 
 @pytest.mark.model("mnist")
-@pytest.mark.parametrize("ec2_instance_type", TF_EC2_NEURONX_ACCELERATOR_TYPE, indirect=True)
+@pytest.mark.parametrize(
+    "ec2_instance_type",
+    TF_EC2_NEURONX_ACCELERATOR_TYPE + TF_EC2_NEURONX_INF2_ACCELERATOR_TYPE,
+    indirect=True,
+)
 # FIX ME: Sharing the AMI from neuron account to DLC account; use public DLAMI with inf1 support instead
 @pytest.mark.parametrize("ec2_instance_ami", [test_utils.UL20_PT_NEURON_US_WEST_2], indirect=True)
 def test_ec2_tensorflow_inference_neuronx(tensorflow_inference_neuronx, ec2_connection, region):
@@ -53,6 +61,69 @@ def test_ec2_tensorflow_inference_gpu(
             f"Image {tensorflow_inference} is incompatible with instance type {ec2_instance_type}"
         )
     run_ec2_tensorflow_inference(tensorflow_inference, ec2_connection, "8500", region)
+
+
+@pytest.mark.model("N/A")
+@pytest.mark.parametrize("ec2_instance_type", TF_EC2_GPU_INSTANCE_TYPE, indirect=True)
+def test_ec2_tensorflow_inference_gpu_tensorrt(
+    tensorflow_inference, ec2_connection, region, gpu_only, ec2_instance_type
+):
+    if test_utils.is_image_incompatible_with_instance_type(tensorflow_inference, ec2_instance_type):
+        pytest.skip(
+            f"Image {tensorflow_inference} is incompatible with instance type {ec2_instance_type}"
+        )
+    framework_version = get_tensorflow_framework_version(tensorflow_inference)
+    home_dir = ec2_connection.run("echo $HOME").stdout.strip("\n")
+    serving_folder_path = os.path.join(home_dir, "serving")
+    build_container_name = "tensorrt-build-container"
+    serving_container_name = "tensorrt-serving-container"
+    model_name = "tftrt_saved_model"
+    model_creation_script_folder = os.path.join(
+        serving_folder_path, "tensorflow_serving", "example"
+    )
+    model_path = os.path.join(
+        serving_folder_path, "tensorflow_serving", "example", "models", model_name
+    )
+    upstream_build_image_uri = f"""tensorflow/tensorflow:{"2.12.0" if framework_version=="2.12.1" else framework_version}-gpu"""
+    docker_build_model_command = (
+        f"nvidia-docker run --rm --name {build_container_name} "
+        f"-v {model_creation_script_folder}:/script_folder/ -i {upstream_build_image_uri} "
+        f"python /script_folder/create_tensorrt_model.py"
+    )
+    docker_run_server_cmd = (
+        f"nvidia-docker run -id --name {serving_container_name} -p 8501:8501 "
+        f"--mount type=bind,source={model_path},target=/models/{model_name}/1 -e TEST_MODE=1 -e MODEL_NAME={model_name}"
+        f" {tensorflow_inference}"
+    )
+
+    tensorrt_test_failed = False
+    try:
+        ec2_connection.run(f"$(aws ecr get-login --no-include-email --region {region})", hide=True)
+        host_setup_for_tensorflow_inference(serving_folder_path, framework_version, ec2_connection)
+        sleep(2)
+
+        ## Build TensorRt Model
+        ec2_connection.run(docker_build_model_command, hide=True)
+
+        ## Run Model Server
+        ec2_connection.run(docker_run_server_cmd, hide=True)
+        test_results = test_utils.request_tensorflow_inference(
+            model_name,
+            connection=ec2_connection,
+            inference_string=f"""'{{"instances": [[{",".join([str([1]*28)]*28)}]]}}'""",
+        )
+        assert test_results, "TensorRt test failed!"
+    except:
+        tensorrt_test_failed = True
+        remote_out = ec2_connection.run(
+            f"docker logs {serving_container_name}", warn=True, hide=True
+        )
+        LOGGER.info(
+            f"--- TF container logs ---\n--- STDOUT ---\n{remote_out.stdout}\n--- STDERR ---\n{remote_out.stderr}"
+        )
+    finally:
+        ec2_connection.run(f"docker rm -f {serving_container_name}", warn=True, hide=True)
+    assert not tensorrt_test_failed, "TensorRt tests have failed - please take a look at the logs."
 
 
 @pytest.mark.model("mnist")
@@ -219,7 +290,12 @@ def train_mnist_model(serving_folder_path, ec2_connection):
 
 
 def host_setup_for_tensorflow_inference(
-    serving_folder_path, framework_version, ec2_connection, is_neuron, is_graviton, model_name
+    serving_folder_path,
+    framework_version,
+    ec2_connection,
+    is_neuron=False,
+    is_graviton=False,
+    model_name=None,
 ):
     # Wait for any existing apt-get calls to finish before moving on
     # TODO(Mike Schneider): Improve this by adding a check for running apt-get processes and wait for them to finish,

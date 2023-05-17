@@ -112,7 +112,7 @@ ENV REQUESTS_CA_BUNDLE=/etc/ssl/certs/ca-certificates.crt
 RUN curl -L -o ~/mambaforge.sh https://github.com/conda-forge/miniforge/releases/download/${MAMBA_VERSION}/Mambaforge-${MAMBA_VERSION}-Linux-x86_64.sh \
  && chmod +x ~/mambaforge.sh \
  && ~/mambaforge.sh -b -p /opt/conda \
- && rm ~/mambaforge.sh 
+ && rm ~/mambaforge.sh
 
 # Install common conda packages
 RUN /opt/conda/bin/mamba install -y --override-channels \
@@ -142,6 +142,8 @@ RUN /opt/conda/bin/mamba install -y --override-channels \
     click \
     psutil \
     ipython \
+    # Adding package for studio kernels
+    ipykernel \
     # patch CVE
     "cryptography>39.0.0" \
     # patch CVE
@@ -193,7 +195,7 @@ ENV PATH="$OPEN_MPI_PATH/bin:$PATH"
 ENV LD_LIBRARY_PATH=$OPEN_MPI_PATH/lib/:$EFA_PATH/lib/:$LD_LIBRARY_PATH
 
 RUN pip install --no-cache-dir --upgrade pip --no-cache-dir --trusted-host pypi.org --trusted-host files.pythonhosted.org \
- && ln -s /opt/conda/bin/pip /usr/local/bin/pip3 
+ && ln -s /opt/conda/bin/pip /usr/local/bin/pip3
 
 WORKDIR /root
 
@@ -243,7 +245,7 @@ RUN rm -rf /root/.cache | true
 # |_____\____|_____| |___|_| |_| |_|\__,_|\__, |\___|
 #                                         |___/
 #  ____           _
-# |  _ \ ___  ___(_)_ __   ___ 
+# |  _ \ ___  ___(_)_ __   ___
 # | |_) / _ \/ __| | '_ \ / _ \
 # |  _ <  __/ (__| | |_) |  __/
 # |_| \_\___|\___|_| .__/ \___|
@@ -274,7 +276,7 @@ RUN /opt/conda/bin/mamba install -y pytorch=${PYTORCH_VERSION} \
 # install PyTorch related python packages (depends on PyTorch)
 RUN /opt/conda/bin/mamba install -y -c conda-forge \
   # needed by fastai.distributed
-  accelerate \ 
+  accelerate \
   && /opt/conda/bin/mamba install -y -c fastai fastai \
   # fastai conda strictly depends on dataclasses
   && pip uninstall -y dataclasses \
@@ -370,7 +372,7 @@ RUN /opt/conda/bin/mamba install -y pytorch=${PYTORCH_VERSION} \
 # install PyTorch related python packages (depends on PyTorch)
 RUN /opt/conda/bin/mamba install -y -c conda-forge \
   # needed by fastai.distributed
-  accelerate \ 
+  accelerate \
   && /opt/conda/bin/mamba install -y -c fastai fastai \
   # fastai conda strictly depends on dataclasses
   && pip uninstall -y dataclasses \
@@ -387,6 +389,8 @@ RUN git clone https://github.com/NVIDIA/apex \
   && cd apex \
   # requested by Rubik. Will wait for resolution on the illegal mem access error
   && git checkout aa756ce \
+  && sed -i 's/from torch._six import string_classes//g' apex/amp/_initialize.py \
+  && sed -i 's/string_classes/str/g' apex/amp/_initialize.py \
   && pip install -v --no-cache-dir --global-option="--cpp_ext" --global-option="--cuda_ext" ./ \
   && cd .. \
   && rm -rf apex
@@ -418,12 +422,6 @@ RUN chmod +x /usr/local/bin/start_with_right_hostname.sh
 
 WORKDIR /root
 
-# temporarily install fork of training toolkit as a workaround of the Rubik NCCL hang issue
-RUN cd /tmp \
-  && git clone https://github.com/yongyanrao/sagemaker-training-toolkit.git -b nccl_env_var\
-  && cd sagemaker-training-toolkit \
-  && pip install .
-
 RUN pip install --no-cache-dir -U \
     smclarify \
     "sagemaker>=2,<3" \
@@ -434,22 +432,22 @@ RUN pip install --no-cache-dir -U \
 
 # Install smdebug from source
 RUN cd /tmp \
-  && git clone https://github.com/awslabs/sagemaker-debugger --depth 1 --single-branch --branch ${SMDEBUG_VERSION} \ 
+  && git clone https://github.com/awslabs/sagemaker-debugger --depth 1 --single-branch --branch ${SMDEBUG_VERSION} \
   && cd sagemaker-debugger \
   && pip install . \
   && rm -rf /tmp/*
 
 # Install extra packages
 RUN /opt/conda/bin/mamba install -y -c conda-forge \
+  bokeh \
   imageio \
-  shap \    
-  scikit-learn \
+  numba \
   pandas \
-  && /opt/conda/bin/mamba install -y -c numba numba \
-  && /opt/conda/bin/mamba install -y -c anaconda seaborn \
-  && /opt/conda/bin/mamba install -y -c bokeh bokeh \
-  && /opt/conda/bin/mamba install -y -c plotly plotly \
-  && /opt/conda/bin/mamba clean -afy 
+  plotly \
+  shap \
+  scikit-learn \
+  seaborn \
+ && /opt/conda/bin/mamba clean -afy
 
 # install metis
 RUN rm -rf /etc/apt/sources.list.d/* \
@@ -490,7 +488,7 @@ RUN SMDATAPARALLEL_PT=1 pip install --no-cache-dir ${SMD_DATA_PARALLEL_URL}
 ENV LD_LIBRARY_PATH="/opt/conda/lib/python${PYTHON_SHORT_VERSION}/site-packages/smdistributed/dataparallel/lib:$LD_LIBRARY_PATH"
 
 WORKDIR /
- 
+
 RUN HOME_DIR=/root \
  && curl -o ${HOME_DIR}/oss_compliance.zip https://aws-dlinfra-utilities.s3.amazonaws.com/oss_compliance.zip \
  && unzip ${HOME_DIR}/oss_compliance.zip -d ${HOME_DIR}/ \
