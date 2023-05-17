@@ -21,8 +21,6 @@ RUN pip install --no-cache-dir \
 	datasets==${DATASETS_VERSION} \
 	diffusers==${DIFFUSERS_VERSION} \
 	Jinja2 \
-	# tensorflow is necessary for `torch.utils.tensorboard`
-	tensorflow \
 	tensorboard \
 	evaluate==${EVALUATE_VERSION} \
 	accelerate==${ACCELERATE_VERSION}
