@@ -16,39 +16,38 @@ import json
 import logging
 import os
 import subprocess
-import time
 import grpc
+import sys
+
 import falcon
 import requests
+import random
 
-from urllib3.util.retry import Retry
-
-from multi_model_utils import lock, timeout, MultiModelException
-from tensorflow_serving.apis import predict_pb2, prediction_service_pb2_grpc
+from multi_model_utils import lock, MultiModelException
 import tfs_utils
 
 SAGEMAKER_MULTI_MODEL_ENABLED = os.environ.get("SAGEMAKER_MULTI_MODEL", "false").lower() == "true"
-MODEL_DIR = "models" if SAGEMAKER_MULTI_MODEL_ENABLED else "model"
-INFERENCE_SCRIPT_PATH = f"/opt/ml/{MODEL_DIR}/code/inference.py"
+INFERENCE_SCRIPT_PATH = (
+    "/opt/ml/code/inference.py"
+    if SAGEMAKER_MULTI_MODEL_ENABLED
+    else "/opt/ml/model/code/inference.py"
+)
 
 SAGEMAKER_BATCHING_ENABLED = os.environ.get("SAGEMAKER_TFS_ENABLE_BATCHING", "false").lower()
 MODEL_CONFIG_FILE_PATH = "/sagemaker/model-config.cfg"
-TFS_GRPC_PORT = os.environ.get("TFS_GRPC_PORT")
-TFS_REST_PORT = os.environ.get("TFS_REST_PORT")
+TFS_GRPC_PORTS = os.environ.get("TFS_GRPC_PORTS")
+TFS_REST_PORTS = os.environ.get("TFS_REST_PORTS")
 SAGEMAKER_TFS_PORT_RANGE = os.environ.get("SAGEMAKER_SAFE_PORT_RANGE")
-
 
 logging.basicConfig(level=logging.INFO)
 log = logging.getLogger(__name__)
 
 CUSTOM_ATTRIBUTES_HEADER = "X-Amzn-SageMaker-Custom-Attributes"
-prediction_services = {}
 
 
 def default_handler(data, context):
     """A default inference request handler that directly send post request to TFS rest port with
     un-processed data and return un-processed response
-
     :param data: input data
     :param context: context instance that contains tfs_rest_uri
     :return: inference response from TFS model server
@@ -66,11 +65,21 @@ class PythonServiceResource:
             self._model_tfs_rest_port = {}
             self._model_tfs_grpc_port = {}
             self._model_tfs_pid = {}
-            self._tfs_ports = self._parse_sagemaker_port_range(SAGEMAKER_TFS_PORT_RANGE)
+            self._tfs_ports = self._parse_sagemaker_port_range_mme(SAGEMAKER_TFS_PORT_RANGE)
+            # If Multi-Model mode is enabled, dependencies/handlers will be imported
+            # during the _handle_load_model_post()
+            self.model_handlers = {}
         else:
-            self._tfs_grpc_port = TFS_GRPC_PORT
-            self._tfs_rest_port = TFS_REST_PORT
+            self._tfs_grpc_ports = self._parse_concat_ports(TFS_GRPC_PORTS)
+            self._tfs_rest_ports = self._parse_concat_ports(TFS_REST_PORTS)
 
+            self._channels = {}
+            for grpc_port in self._tfs_grpc_ports:
+                # Initialize grpc channel here so gunicorn worker could have mapping
+                # between each grpc port and channel
+                self._setup_channel(grpc_port)
+
+        self._default_handlers_enabled = False
         if os.path.exists(INFERENCE_SCRIPT_PATH):
             # Single-Model Mode & Multi-Model Mode both use one inference.py
             self._handler, self._input_handler, self._output_handler = self._import_handlers()
@@ -79,9 +88,13 @@ class PythonServiceResource:
             )
         else:
             self._handlers = default_handler
+            self._default_handlers_enabled = True
 
         self._tfs_enable_batching = SAGEMAKER_BATCHING_ENABLED == "true"
         self._tfs_default_model_name = os.environ.get("TFS_DEFAULT_MODEL_NAME", "None")
+        self._tfs_wait_time_seconds = int(os.environ.get("SAGEMAKER_TFS_WAIT_TIME_SECONDS", 300))
+        self._tfs_inter_op_parallelism = os.environ.get("SAGEMAKER_TFS_INTER_OP_PARALLELISM", 0)
+        self._tfs_intra_op_parallelism = os.environ.get("SAGEMAKER_TFS_INTRA_OP_PARALLELISM", 0)
 
     def on_post(self, req, res, model_name=None):
         if model_name or "invocations" in req.uri:
@@ -90,7 +103,13 @@ class PythonServiceResource:
             data = json.loads(req.stream.read().decode("utf-8"))
             self._handle_load_model_post(res, data)
 
-    def _parse_sagemaker_port_range(self, port_range):
+    def _parse_concat_ports(self, concat_ports):
+        return concat_ports.split(",")
+
+    def _pick_port(self, ports):
+        return random.choice(ports)
+
+    def _parse_sagemaker_port_range_mme(self, port_range):
         lower, upper = port_range.split("-")
         lower = int(lower)
         upper = lower + int((int(upper) - lower) * 0.9)  # only utilizing 90% of the ports
@@ -130,11 +149,12 @@ class PythonServiceResource:
         # validate model files are in the specified base_path
         if self.validate_model_dir(base_path):
             try:
+                self._import_custom_modules(model_name)
                 tfs_config = tfs_utils.create_tfs_config_individual_model(model_name, base_path)
                 tfs_config_file = "/sagemaker/tfs-config/{}/model-config.cfg".format(model_name)
                 log.info("tensorflow serving model config: \n%s\n", tfs_config)
                 os.makedirs(os.path.dirname(tfs_config_file))
-                with open(tfs_config_file, "w") as f:
+                with open(tfs_config_file, "w", encoding="utf8") as f:
                     f.write(tfs_config)
 
                 batching_config_file = "/sagemaker/batching/{}/batching-config.cfg".format(
@@ -149,9 +169,15 @@ class PythonServiceResource:
                     tfs_config_file,
                     self._tfs_enable_batching,
                     batching_config_file,
+                    tfs_intra_op_parallelism=self._tfs_intra_op_parallelism,
+                    tfs_inter_op_parallelism=self._tfs_inter_op_parallelism,
                 )
+                log.info("MME starts tensorflow serving with command: {}".format(cmd))
                 p = subprocess.Popen(cmd.split())
-                self._wait_for_model(model_name)
+
+                tfs_utils.wait_for_model(
+                    self._model_tfs_rest_port[model_name], model_name, self._tfs_wait_time_seconds
+                )
 
                 log.info("started tensorflow serving (pid: %d)", p.pid)
                 # update model name <-> tfs pid map
@@ -205,28 +231,41 @@ class PythonServiceResource:
                 }
             )
 
+    def _import_custom_modules(self, model_name):
+        inference_script_path = "/opt/ml/models/{}/model/code/inference.py".format(model_name)
+        python_lib_path = "/opt/ml/models/{}/model/code/lib".format(model_name)
+        if os.path.exists(python_lib_path):
+            log.info(
+                "Add Python code library for the model {} found at path {}.".format(
+                    model_name, python_lib_path
+                )
+            )
+            sys.path.append(python_lib_path)
+        else:
+            log.info(
+                "Python code library for the model {} not found at path {}.".format(
+                    model_name, python_lib_path
+                )
+            )
+        if os.path.exists(inference_script_path):
+            log.info(
+                "Importing handlers from model-specific inference script for the model {} found at path {}.".format(
+                    model_name, inference_script_path
+                )
+            )
+            handler, input_handler, output_handler = self._import_handlers(inference_script_path)
+            model_handlers = self._make_handler(handler, input_handler, output_handler)
+            self.model_handlers[model_name] = model_handlers
+        else:
+            log.info(
+                "Model-specific inference script for the model {} not found at path {}.".format(
+                    model_name, inference_script_path
+                )
+            )
+
     def _cleanup_config_file(self, config_file):
         if os.path.exists(config_file):
             os.remove(config_file)
-
-    def _wait_for_model(self, model_name):
-        url = "http://localhost:{}/v1/models/{}".format(
-            self._model_tfs_rest_port[model_name], model_name
-        )
-        with timeout():
-            while True:
-                time.sleep(0.5)
-                try:
-                    session = requests.Session()
-                    retries = Retry(total=9, backoff_factor=0.1)
-                    session.mount("http://", requests.adapters.HTTPAdapter(max_retries=retries))
-                    response = session.get(url)
-                    if response.status_code == 200:
-                        versions = json.loads(response.content)["model_version_status"]
-                        if all(version["state"] == "AVAILABLE" for version in versions):
-                            break
-                except ConnectionError:
-                    log.exception("Failed to load models.")
 
     def _handle_invocation_post(self, req, res, model_name=None):
         if SAGEMAKER_MULTI_MODEL_ENABLED:
@@ -244,28 +283,59 @@ class PythonServiceResource:
                     grpc_port = self._model_tfs_grpc_port[model_name]
                     log.info("grpc port: {}".format(str(self._model_tfs_grpc_port[model_name])))
                     data, context = tfs_utils.parse_request(
-                        req, rest_port, grpc_port, self._tfs_default_model_name, model_name
+                        req,
+                        rest_port,
+                        grpc_port,
+                        self._tfs_default_model_name,
+                        model_name=model_name,
                     )
             else:
                 res.status = falcon.HTTP_400
                 res.body = json.dumps({"error": "Invocation request does not contain model name."})
         else:
+            # Randomly pick port used for routing incoming request.
+            grpc_port = self._pick_port(self._tfs_grpc_ports)
+            rest_port = self._pick_port(self._tfs_rest_ports)
             data, context = tfs_utils.parse_request(
-                req, self._tfs_rest_port, self._tfs_grpc_port, self._tfs_default_model_name
+                req,
+                rest_port,
+                grpc_port,
+                self._tfs_default_model_name,
+                channel=self._channels[grpc_port],
             )
 
         try:
             res.status = falcon.HTTP_200
-
-            # with lock():
-            res.body, res.content_type = self._handlers(data, context)
+            handlers = self._handlers
+            if SAGEMAKER_MULTI_MODEL_ENABLED and model_name in self.model_handlers:
+                log.info(
+                    "Model-specific inference script for the model {} exists, importing handlers.".format(
+                        model_name
+                    )
+                )
+                handlers = self.model_handlers[model_name]
+            elif not self._default_handlers_enabled:
+                log.info(
+                    "Universal inference script exists at path {}, importing handlers.".format(
+                        INFERENCE_SCRIPT_PATH
+                    )
+                )
+            else:
+                log.info(
+                    "Model-specific inference script and universal inference script both do not exist, using default handlers."
+                )
+            res.body, res.content_type = handlers(data, context)
         except Exception as e:  # pylint: disable=broad-except
             log.exception("exception handling request: {}".format(e))
             res.status = falcon.HTTP_500
             res.body = json.dumps({"error": str(e)}).encode("utf-8")  # pylint: disable=E1101
 
-    def _import_handlers(self):
-        inference_script = INFERENCE_SCRIPT_PATH
+    def _setup_channel(self, grpc_port):
+        if grpc_port not in self._channels:
+            log.info("Creating grpc channel for port: %s", grpc_port)
+            self._channels[grpc_port] = grpc.insecure_channel("localhost:{}".format(grpc_port))
+
+    def _import_handlers(self, inference_script=INFERENCE_SCRIPT_PATH):
         spec = importlib.util.spec_from_file_location("inference", inference_script)
         inference = importlib.util.module_from_spec(spec)
         spec.loader.exec_module(inference)
@@ -287,14 +357,7 @@ class PythonServiceResource:
 
         def handler(data, context):
             processed_input = custom_input_handler(data, context)
-            if not context.grpc_port in prediction_services:
-                print("Creating service for port %s" % context.grpc_port)
-                channel = grpc.insecure_channel("localhost:{}".format(context.grpc_port))
-                prediction_services[
-                    context.grpc_port
-                ] = prediction_service_pb2_grpc.PredictionServiceStub(channel)
-
-            response = prediction_services[context.grpc_port].Predict(processed_input, 60.0)
+            response = requests.post(context.rest_uri, data=processed_input)
             return custom_output_handler(response, context)
 
         return handler
