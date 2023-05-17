@@ -1,74 +1,11 @@
 ---
 release_images:
   1:
-    framework: "pytorch"
-    version: "1.12.1"
-    arch_type: "x86"
-    customer_type: "ec2"
-    inference:
-      device_types: [ "cpu", "gpu" ]
-      python_versions: [ "py38" ]
-      os_version: "ubuntu20.04"
-      cuda_version: "cu116"
-      example: False
-      disable_sm_tag: False
-      force_release: False
-  2:
-    framework: "pytorch"
-    version: "1.12.1"
-    arch_type: "x86"
-    customer_type: "sagemaker"
-    inference:
-      device_types: [ "cpu", "gpu" ]
-      python_versions: [ "py38" ]
-      os_version: "ubuntu20.04"
-      cuda_version: "cu113"
-      example: False
-      disable_sm_tag: False
-      force_release: False
-  3:
-    framework: "pytorch"
-    version: "2.0.0"
-    arch_type: "graviton"
-    customer_type: "ec2"
-    inference:
-      device_types: [ "cpu" ]
-      python_versions: [ "py310" ]
-      os_version: "ubuntu20.04"
-      example: False
-      disable_sm_tag: False
-      force_release: False
-  4:
-    framework: "pytorch"
-    version: "2.0.0"
-    arch_type: "graviton"
-    customer_type: "sagemaker"
-    inference:
-      device_types: [ "cpu" ]
-      python_versions: [ "py310" ]
-      os_version: "ubuntu20.04"
-      example: False
-      disable_sm_tag: False
-      force_release: False
-  5:
-    framework: "tensorflow"
-    version: "2.12.1"
-    arch_type: "x86"
-    customer_type: "ec2"
-    inference:
-      device_types: [ "cpu", "gpu" ]
-      python_versions: [ "py310" ]
-      os_version: "ubuntu20.04"
-      cuda_version: "cu118"
-      example: False
-      disable_sm_tag: False
-      force_release: False
-  6:
-    framework: "pytorch"
-    version: "1.13.1"
+    framework: "djl"
+    version: "0.22.1"
     arch_type: "x86"
     inference:
-      device_types: [ "neuron" ]
+      device_types: [ "neuronx" ]
       python_versions: [ "py38" ]
       os_version: "ubuntu20.04"
       neuron_sdk_version: "sdk2.10.0"
