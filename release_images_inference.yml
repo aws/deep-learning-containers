@@ -3,13 +3,24 @@ release_images:
   1:
     framework: "tensorflow"
     version: "2.12.1"
-    arch_type: "x86"
-    customer_type: "sagemaker"
+    arch_type: "graviton"
+    customer_type: "ec2"
     inference:
-      device_types: [ "cpu", "gpu" ]
+      device_types: [ "cpu" ]
       python_versions: [ "py310" ]
       os_version: "ubuntu20.04"
-      cuda_version: "cu118"
+      example: False
+      disable_sm_tag: False
+      force_release: False
+  2:
+    framework: "tensorflow"
+    version: "2.12.1"
+    arch_type: "graviton"
+    customer_type: "sagemaker"
+    inference:
+      device_types: [ "cpu" ]
+      python_versions: [ "py310" ]
+      os_version: "ubuntu20.04"
       example: False
       disable_sm_tag: False
       force_release: False
