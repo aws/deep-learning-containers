@@ -34,6 +34,7 @@ EC2_EFA_GPU_INSTANCE_TYPE_AND_REGION = get_efa_ec2_instance_type(
 @pytest.mark.model("N/A")
 @pytest.mark.integration("efa")
 @pytest.mark.usefixtures("sagemaker")
+@pytest.mark.allow_p4de_use
 @pytest.mark.multinode(2)
 @pytest.mark.parametrize("ec2_instance_type,region", EC2_EFA_GPU_INSTANCE_TYPE_AND_REGION)
 @pytest.mark.skipif(
@@ -43,15 +44,17 @@ EC2_EFA_GPU_INSTANCE_TYPE_AND_REGION = get_efa_ec2_instance_type(
 def test_efa_pytorch(
     pytorch_training, efa_ec2_instances, efa_ec2_connections, ec2_instance_type, region, gpu_only
 ):
+    number_of_nodes = 2
     _setup_multinode_efa_instances(
         pytorch_training, efa_ec2_instances, efa_ec2_connections, ec2_instance_type, region
     )
     master_connection = efa_ec2_connections[0]
-    run_cmd_on_container(MASTER_CONTAINER_NAME, master_connection, EFA_SANITY_TEST_CMD)
+    run_cmd_on_container(MASTER_CONTAINER_NAME, master_connection, EFA_SANITY_TEST_CMD, hide=False)
     run_cmd_on_container(
         MASTER_CONTAINER_NAME,
         master_connection,
-        f"{EFA_INTEGRATION_TEST_CMD} {HOSTS_FILE_LOCATION} /opt/amazon/openmpi/bin/mpirun",
+        f"{EFA_INTEGRATION_TEST_CMD} {HOSTS_FILE_LOCATION} {number_of_nodes}",
+        hide=False,
     )
 
 
@@ -59,6 +62,7 @@ def test_efa_pytorch(
 @pytest.mark.model("N/A")
 @pytest.mark.integration("efa")
 @pytest.mark.usefixtures("sagemaker")
+@pytest.mark.allow_p4de_use
 @pytest.mark.multinode(2)
 @pytest.mark.parametrize("ec2_instance_type,region", EC2_EFA_GPU_INSTANCE_TYPE_AND_REGION)
 @pytest.mark.skipif(
@@ -68,15 +72,17 @@ def test_efa_pytorch(
 def test_efa_tensorflow(
     tensorflow_training, efa_ec2_instances, efa_ec2_connections, ec2_instance_type, region, gpu_only
 ):
+    number_of_nodes = 2
     _setup_multinode_efa_instances(
         tensorflow_training, efa_ec2_instances, efa_ec2_connections, ec2_instance_type, region
     )
     master_connection = efa_ec2_connections[0]
-    run_cmd_on_container(MASTER_CONTAINER_NAME, master_connection, EFA_SANITY_TEST_CMD)
+    run_cmd_on_container(MASTER_CONTAINER_NAME, master_connection, EFA_SANITY_TEST_CMD, hide=False)
     run_cmd_on_container(
         MASTER_CONTAINER_NAME,
         master_connection,
-        f"{EFA_INTEGRATION_TEST_CMD} {HOSTS_FILE_LOCATION} /opt/amazon/openmpi/bin/mpirun",
+        f"{EFA_INTEGRATION_TEST_CMD} {HOSTS_FILE_LOCATION} {number_of_nodes}",
+        hide=False,
     )
 
 

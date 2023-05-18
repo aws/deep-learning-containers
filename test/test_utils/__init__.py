@@ -1980,7 +1980,7 @@ def start_container(container_name, image_uri, context):
     )
 
 
-def run_cmd_on_container(container_name, context, cmd, executable="bash", warn=False):
+def run_cmd_on_container(container_name, context, cmd, executable="bash", warn=False, hide=True):
     """
     Helper function to run commands on a locally running container
     :param container_name: Name of the docker container
@@ -1988,6 +1988,7 @@ def run_cmd_on_container(container_name, context, cmd, executable="bash", warn=F
     :param cmd: Command to run on the container
     :param executable: Executable to run on the container (bash or python)
     :param warn: Whether to only warn as opposed to exit if command fails
+    :param hide: Hide some or all of the stdout/stderr from running the command
     :return: invoke output, can be used to parse stdout, etc
     """
     if executable not in ("bash", "python"):
@@ -1996,7 +1997,7 @@ def run_cmd_on_container(container_name, context, cmd, executable="bash", warn=F
         )
     return context.run(
         f"docker exec --user root {container_name} {executable} -c '{cmd}'",
-        hide=True,
+        hide=hide,
         warn=warn,
         timeout=60,
     )

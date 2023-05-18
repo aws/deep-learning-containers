@@ -289,6 +289,13 @@ def ec2_resource(region):
     return boto3.resource("ec2", region_name=region, config=Config(retries={"max_attempts": 10}))
 
 
+def _validate_p4de_usage(request, instance_type):
+    if instance_type in ["p4de.24xlarge"]:
+        if not request.node.get_closest_marker("allow_p4de_use"):
+            pytest.skip("Skip test because p4de instance usage is not allowed for this test")
+    return
+
+
 @pytest.fixture(scope="function")
 def ec2_instance_type(request):
     return request.param if hasattr(request, "param") else "g4dn.xlarge"
@@ -333,6 +340,7 @@ def efa_ec2_instances(
     region,
     availability_zone_options,
 ):
+    _validate_p4de_usage(request, ec2_instance_type)
     ec2_key_name = f"{ec2_key_name}-{str(uuid.uuid4())}"
     print(f"Creating instance: CI-CD {ec2_key_name}")
     key_filename = test_utils.generate_ssh_keypair(ec2_client, ec2_key_name)
@@ -422,7 +430,10 @@ def efa_ec2_instances(
             )
             print(f"Worker instance {worker_instance_id} is ready")
 
-    if ec2_instance_type in ["p4d.24xlarge", "p4de.24xlarge", "trn1.32xlarge"]:
+    num_efa_interfaces = ec2_utils.get_num_efa_interfaces_for_instance_type(
+        ec2_instance_type, region=region
+    )
+    if num_efa_interfaces > 1:
         # p4d instances require attaching elastic ip to connect to them
         elastic_ip_allocation_ids = []
         # create and attach network interfaces and elastic ips to all instances
@@ -523,6 +534,7 @@ def ec2_instance(
     region,
     ei_accelerator_type,
 ):
+    _validate_p4de_usage(request, ec2_instance_type)
     if ec2_instance_type == "p3dn.24xlarge":
         region = P3DN_REGION
         ec2_client = boto3.client(
@@ -1118,6 +1130,9 @@ def pytest_configure(config):
         "markers", "processor(cpu/gpu/eia/hpu): explicitly mark which processor is used"
     )
     config.addinivalue_line("markers", "efa(): explicitly mark to run efa tests")
+    config.addinivalue_line(
+        "markers", "allow_p4de_use(): explicitly mark to allow test to use p4de instance types"
+    )
 
 
 def pytest_runtest_setup(item):
