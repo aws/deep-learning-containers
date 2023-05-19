@@ -56,7 +56,7 @@ RUN apt-get update \
     emacs \
     unzip \
     git \
-    libtbb-dev \
+    # libtbb-dev \
     libsndfile1-dev \
     ffmpeg \
     cmake \
