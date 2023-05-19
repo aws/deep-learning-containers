@@ -176,6 +176,11 @@ RUN pip install --no-cache-dir \
 RUN cd /opt/ && mkdir -p ipex \
     cd /opt/ipex && \
     wget https://raw.githubusercontent.com/intel/intel-extension-for-pytorch/v2.0.100%2Bcpu/scripts/compile_bundle.sh && \
+    # Fix for: `OSError: libmkl_intel_lp64.so.2: cannot open shared object file: No such file or directory`
+    sed -i "49i ln -s /opt/conda/lib/libmkl_intel_lp64.so /opt/conda/lib/libmkl_intel_lp64.so.2" compile_bundle.sh && \
+    sed -i "50i ln -s /opt/conda/lib/libmkl_intel_thread.so /opt/conda/lib/libmkl_intel_thread.so.2" compile_bundle.sh && \
+    sed -i "51i ln -s /opt/conda/lib/libmkl_core.so /opt/conda/lib/libmkl_core.so.2" compile_bundle.sh && \
+    sed -i "52i ln -s /opt/conda/lib/libmkl_gnu_thread.so /opt/conda/lib/libmkl_gnu_thread.so.2" compile_bundle.sh && \
     bash compile_bundle.sh && \
     rm -rf /opt/ipex
 
