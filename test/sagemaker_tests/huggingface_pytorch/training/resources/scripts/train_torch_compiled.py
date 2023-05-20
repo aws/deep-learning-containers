@@ -28,6 +28,9 @@ if __name__ == "__main__":
     parser.add_argument("--model-dir", type=str, default=os.environ["SM_MODEL_DIR"])
     parser.add_argument("--n_gpus", type=str, default=os.environ["SM_NUM_GPUS"])
 
+    # torch compile ON/OFF
+    parser.add_argument("--disable-torch-compile", action="store_true")
+
     args, _ = parser.parse_known_args()
 
     # Set up logging
@@ -86,6 +89,7 @@ if __name__ == "__main__":
         evaluation_strategy="epoch",
         logging_dir=f"{args.output_data_dir}/logs",
         learning_rate=float(args.learning_rate),
+        torch_compile=not args.disable_torch_compile,  # optimizations
     )
 
     # create Trainer instance
