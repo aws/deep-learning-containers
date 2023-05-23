@@ -60,9 +60,9 @@ def test_neuron_hosting(framework_version, ecr_image, instance_type, sagemaker_r
 
 @pytest.mark.model("resnet")
 @pytest.mark.processor("neuronx")
+@pytest.parametrize("instance_type", ["ml.trn1.2xlarge", "ml.inf2.xlarge"])
 @pytest.mark.neuronx_test
-def test_neuron_hosting(framework_version, ecr_image, instance_type, sagemaker_regions):
-    instance_type = "ml.trn1.2xlarge"
+def test_neuronx_hosting(framework_version, ecr_image, instance_type, sagemaker_regions):
     model_dir = os.path.join(model_neuronx_dir, "model-resnet.tar.gz")
     function_args = {
         "framework_version": framework_version,
@@ -80,9 +80,9 @@ def test_neuron_hosting(framework_version, ecr_image, instance_type, sagemaker_r
 
 @pytest.mark.model("resnet")
 @pytest.mark.processor("neuronx")
+@pytest.parametrize("instance_type", ["ml.trn1.2xlarge", "ml.inf2.xlarge"])
 @pytest.mark.neuronx_test
-def test_neuron_hosting_no_script(framework_version, ecr_image, instance_type, sagemaker_regions):
-    instance_type = "ml.trn1.2xlarge"
+def test_neuronx_hosting_no_script(framework_version, ecr_image, instance_type, sagemaker_regions):
     model_dir = os.path.join(model_neuronx_dir, "model-resnet.tar.gz")
     function_args = {
         "framework_version": framework_version,
