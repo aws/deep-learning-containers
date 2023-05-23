@@ -78,6 +78,26 @@ def test_neuron_hosting(framework_version, ecr_image, instance_type, sagemaker_r
     )
 
 
+@pytest.mark.model("resnet")
+@pytest.mark.processor("neuronx")
+@pytest.mark.neuronx_test
+def test_neuron_hosting_no_script(framework_version, ecr_image, instance_type, sagemaker_regions):
+    instance_type = "ml.trn1.2xlarge"
+    model_dir = os.path.join(model_neuronx_dir, "model-resnet.tar.gz")
+    function_args = {
+        "framework_version": framework_version,
+        "instance_type": instance_type,
+        "model_dir": model_dir,
+        "resnet_script": None,
+        "resnet_neuron_input": resnet_neuronx_input,
+        "resnet_neuron_image_list": resnet_neuronx_image_list,
+        "accelerator_type": "neuronx",
+    }
+    invoke_pytorch_helper_function(
+        ecr_image, sagemaker_regions, _test_resnet_distributed, function_args
+    )
+
+
 def _test_resnet_distributed(
     ecr_image,
     sagemaker_session,

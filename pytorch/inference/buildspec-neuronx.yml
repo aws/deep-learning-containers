@@ -21,7 +21,7 @@ context:
       source: docker/build_artifacts/neuron-monitor.sh
       target: neuron-monitor.sh
     neuron-entrypoint:
-      source: docker/build_artifacts/neuron-entrypoint.py
+      source: docker/build_artifacts/neuronx-entrypoint.py
       target: neuron-entrypoint.py
     torchserve-neuron:
       source: docker/build_artifacts/torchserve-neuron.sh
