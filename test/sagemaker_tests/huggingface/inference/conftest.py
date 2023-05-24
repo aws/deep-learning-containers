@@ -106,7 +106,9 @@ def pytest_addoption(parser):
     parser.addoption("--region", default="us-west-2")
     parser.addoption("--framework-version", default="")
     parser.addoption(
-        "--py-version", choices=["2", "3", "37", "38", "39", "310"], default=str(sys.version_info.major)
+        "--py-version",
+        choices=["2", "3", "37", "38", "39", "310"],
+        default=str(sys.version_info.major),
     )
     # Processor is still "cpu" for EIA tests
     parser.addoption(
