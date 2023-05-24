@@ -57,10 +57,11 @@ def test_neuron_hosting(framework_version, ecr_image, instance_type, sagemaker_r
         ecr_image, sagemaker_regions, _test_resnet_distributed, function_args
     )
 
-
+# parametrize is temporary until trn1 and inf2 become available in the same region
 @pytest.mark.model("resnet")
 @pytest.mark.processor("neuronx")
-@pytest.mark.parametrize("instance_type", ["ml.trn1.2xlarge", "ml.inf2.xlarge"])
+@pytest.mark.parametrize("instance_type,sagemaker_regions",
+                         [("ml.trn1.2xlarge", ["us-east-1"]), ("ml.inf2.xlarge", ["us-east-2"])])
 @pytest.mark.neuronx_test
 def test_neuronx_hosting(framework_version, ecr_image, instance_type, sagemaker_regions):
     model_dir = os.path.join(model_neuronx_dir, "model-resnet.tar.gz")
@@ -78,9 +79,11 @@ def test_neuronx_hosting(framework_version, ecr_image, instance_type, sagemaker_
     )
 
 
+# parametrize is temporary until trn1 and inf2 become available in the same region
 @pytest.mark.model("resnet")
 @pytest.mark.processor("neuronx")
-@pytest.mark.parametrize("instance_type", ["ml.trn1.2xlarge", "ml.inf2.xlarge"])
+@pytest.mark.parametrize("instance_type,sagemaker_regions",
+                         [("ml.trn1.2xlarge", ["us-east-1"]), ("ml.inf2.xlarge", ["us-east-2"])])
 @pytest.mark.neuronx_test
 def test_neuronx_hosting_no_script(framework_version, ecr_image, instance_type, sagemaker_regions):
     model_dir = os.path.join(model_neuronx_dir, "model-resnet.tar.gz")
