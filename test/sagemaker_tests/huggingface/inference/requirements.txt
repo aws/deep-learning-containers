@@ -27,4 +27,4 @@ fabric
 invoke<2.1.0
 gitpython
 toml
-transformers==4.26.0
+transformers==4.28.1
