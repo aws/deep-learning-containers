@@ -134,7 +134,7 @@ def _test_resnet_distributed(
         model_server_workers=4,
         env={
             "AWS_NEURON_VISIBLE_DEVICES": "ALL",
-            "NEURON_RT_VISIBLE_CORES": "1",
+            "NEURON_RT_NUM_CORES": "1",
             "NEURON_RT_LOG_LEVEL": "5"
         },
     )
