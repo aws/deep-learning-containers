@@ -15,27 +15,26 @@ from __future__ import absolute_import
 import pytest
 import sagemaker
 from sagemaker.huggingface import HuggingFaceModel
-
-
 from ...integration import (
+    dump_logs_from_cloudwatch,
     model_dir,
     pt_model,
+    pt_diffusers_cpu_script,
+    pt_diffusers_gpu_script,
     script_dir,
-    pt_ipex_script,
-    dump_logs_from_cloudwatch,
 )
 from ...integration.sagemaker.timeout import timeout_and_delete_endpoint
 
 
-@pytest.mark.model("tiny-distilbert")
+@pytest.mark.model("tiny-stable-diffusion")
 @pytest.mark.processor("cpu")
 @pytest.mark.cpu_test
-def test_ipex_hosting(
+def test_diffusers_cpu_hosting(
     sagemaker_session, framework_version, ecr_image, instance_type, region, py_version
 ):
     instance_type = instance_type or "ml.m5.xlarge"
     try:
-        _test_pt_ipex(
+        _test_diffusion_model(
             sagemaker_session,
             framework_version,
             ecr_image,
@@ -43,13 +42,38 @@ def test_ipex_hosting(
             model_dir,
             script_dir,
             py_version,
+            processor="cpu",
         )
     except Exception as e:
         dump_logs_from_cloudwatch(e, region)
         raise
 
 
-def _test_pt_ipex(
+# Only test normal size model for gpu as cpu time out
+@pytest.mark.model("stable-diffusion")
+@pytest.mark.processor("gpu")
+@pytest.mark.gpu_test
+def test_diffusers_gpu_hosting(
+    sagemaker_session, framework_version, ecr_image, instance_type, region, py_version
+):
+    instance_type = instance_type or "ml.p3.2xlarge"
+    try:
+        _test_diffusion_model(
+            sagemaker_session,
+            framework_version,
+            ecr_image,
+            instance_type,
+            model_dir,
+            script_dir,
+            py_version,
+            processor="gpu",
+        )
+    except Exception as e:
+        dump_logs_from_cloudwatch(e, region)
+        raise
+
+
+def _test_diffusion_model(
     sagemaker_session,
     framework_version,
     ecr_image,
@@ -57,20 +81,24 @@ def _test_pt_ipex(
     model_dir,
     script_dir,
     py_version,
-    accelerator_type=None,
+    processor,
 ):
     endpoint_name = sagemaker.utils.unique_name_from_base(
-        "sagemaker-huggingface-inference-ipex-serving"
+        "sagemaker-huggingface-serving-diffusion-model-serving"
     )
 
     model_data = sagemaker_session.upload_data(
         path=model_dir,
-        key_prefix="sagemaker-huggingface-inference-ipex-serving/models",
+        key_prefix="sagemaker-huggingface-inference-diffusers-serving/models",
     )
+    entry_script = {
+        "cpu": pt_diffusers_cpu_script,
+        "gpu": pt_diffusers_gpu_script,
+    }
 
     if "pytorch" in ecr_image:
         model_file = pt_model
-        entry_point = pt_ipex_script
+        entry_point = entry_script[processor]
     else:
         raise ValueError(f"Unsupported framework for image: {ecr_image}")
 
@@ -84,7 +112,6 @@ def _test_pt_ipex(
         py_version=py_version,
         model_server_workers=1,
     )
-    hf_model._is_compiled_model = True
 
     with timeout_and_delete_endpoint(endpoint_name, sagemaker_session, minutes=30):
         predictor = hf_model.deploy(
@@ -92,10 +119,14 @@ def _test_pt_ipex(
             instance_type=instance_type,
             endpoint_name=endpoint_name,
         )
+        num_images_per_prompt = 1
 
-        data = {
-            "inputs": "Camera - You are awarded a SiPix Digital Camera! call 09061221066 fromm landline. Delivery within 28 days."
-        }
-        output = predictor.predict(data)
+        prompt = (
+            "A dog trying catch a flying pizza art drawn by disney concept artists, golden colour,"
+            " high quality, highly detailed, elegant, sharp focus"
+        )
+        output = predictor.predict(
+            data={"inputs": prompt, "num_images_per_prompt": num_images_per_prompt}
+        )
 
-        assert "score" in output[0]
+        assert "generated_images" in output

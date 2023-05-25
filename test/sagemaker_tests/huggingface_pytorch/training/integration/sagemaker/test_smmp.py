@@ -71,7 +71,11 @@ def get_transformers_version(ecr_image):
 @pytest.mark.skip_py2_containers
 @pytest.mark.skip_trcomp_containers
 def test_smmp_gpu(
-    ecr_image, sagemaker_regions, instance_type, framework_version, py_version, dist_gpu_backend
+    ecr_image,
+    sagemaker_regions,
+    instance_type,
+    framework_version,
+    py_version,
 ):
     invoke_sm_helper_function(ecr_image, sagemaker_regions, _test_smmp_gpu_function, py_version, 1)
 
@@ -84,7 +88,11 @@ def test_smmp_gpu(
 @pytest.mark.multinode(2)
 @pytest.mark.skip_trcomp_containers
 def test_smmp_gpu_multinode(
-    ecr_image, sagemaker_regions, instance_type, framework_version, py_version, dist_gpu_backend
+    ecr_image,
+    sagemaker_regions,
+    instance_type,
+    framework_version,
+    py_version,
 ):
     invoke_sm_helper_function(ecr_image, sagemaker_regions, _test_smmp_gpu_function, py_version, 2)
 
