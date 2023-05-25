@@ -15,7 +15,7 @@ ARG TORCHVISION_URL=https://aws-pytorch-unified-cicd-binaries.s3.us-west-2.amazo
 ARG TORCHAUDIO_URL=https://aws-pytorch-unified-cicd-binaries.s3.us-west-2.amazonaws.com/r2.0.0_inference/cu118_py310/torchaudio-2.0.1%2Bcu118-cp310-cp310-linux_x86_64.whl
 ARG TORCHTEXT_URL=https://aws-pytorch-unified-cicd-binaries.s3.us-west-2.amazonaws.com/r2.0.0_inference/cu118_py310/torchtext-0.15.1%2Bcu118-cp310-cp310-linux_x86_64.whl
 ARG TORCHDATA_URL=https://aws-pytorch-unified-cicd-binaries.s3.us-west-2.amazonaws.com/r2.0.0_inference/cu118_py310/torchdata-0.6.0%2Bcu118-cp310-cp310-linux_x86_64.whl
-ARG TORCHSERVE_VERSION=0.7.1
+ARG TORCHSERVE_VERSION=0.8.0
 ARG SM_TOOLKIT_VERSION=2.0.14
 
 ########################################################
@@ -276,6 +276,7 @@ ARG PYTHON
 ARG SM_TOOLKIT_VERSION
 
 ENV SAGEMAKER_SERVING_MODULE sagemaker_pytorch_serving_container.serving:main
+ENV TS_DISABLE_SYSTEM_METRICS=true
 
 # Install scikit-learn and pandas
 RUN conda install -y -c conda-forge \
