@@ -100,6 +100,7 @@ def test_neuronx_hosting_no_script(framework_version, ecr_image, instance_type, 
         "resnet_script": None,
         "resnet_neuron_input": resnet_neuronx_input,
         "resnet_neuron_image_list": resnet_neuronx_image_list,
+        "preprocess_image": True,
         "accelerator_type": "neuronx",
     }
     invoke_pytorch_helper_function(
@@ -116,6 +117,7 @@ def _test_resnet_distributed(
     resnet_script,
     resnet_neuron_input,
     resnet_neuron_image_list,
+    preprocess_image=False,
     accelerator_type=None,
 ):
     endpoint_name = sagemaker.utils.unique_name_from_base("sagemaker-pytorch-serving")
@@ -151,6 +153,26 @@ def _test_resnet_distributed(
 
         with open(resnet_neuron_input, "rb") as f:
             payload = f.read()
+
+        if preprocess_image:
+            import io
+            import torchvision.transforms as transforms
+            from PIL import Image
+
+            data = io.BytesIO(payload)
+            input_image = Image.open(data).convert("RGB")
+            preprocess = transforms.Compose(
+                [
+                    transforms.Resize(255),
+                    transforms.CenterCrop(224),
+                    transforms.ToTensor(),
+                    transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
+                ]
+            )
+            input_tensor = preprocess(input_image)
+            input_batch = input_tensor.unsqueeze(0)
+            payload = input_batch.tolist()
+
         output = predictor.predict(data=payload)
         print(output)
         result = json.loads(output.decode())
