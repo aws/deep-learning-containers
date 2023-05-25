@@ -131,7 +131,7 @@ def _test_resnet_distributed(
         framework_version=framework_version,
         image_uri=ecr_image,
         sagemaker_session=sagemaker_session,
-        model_server_workers=4,
+        model_server_workers=2,
         env={
             "AWS_NEURON_VISIBLE_DEVICES": "ALL",
             "NEURON_RT_NUM_CORES": "1",
