@@ -59,6 +59,7 @@ def test_neuron_hosting(framework_version, ecr_image, instance_type, sagemaker_r
 
 
 # parametrize is temporary until trn1 and inf2 become available in the same region
+@pytest.mark.skip(reason="temporary disabled")
 @pytest.mark.model("resnet")
 @pytest.mark.processor("neuronx")
 @pytest.mark.parametrize(

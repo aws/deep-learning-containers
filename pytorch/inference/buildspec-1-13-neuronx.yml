@@ -26,6 +26,9 @@ context:
     torchserve-neuron:
       source: docker/build_artifacts/torchserve-neuron.sh
       target: torchserve-neuron.sh
+    torchserve-neuronx-handler:
+      source: docker/build_artifacts/default_pytorch_inference_handler_neuronx.py
+      target: default_pytorch_inference_handler.py
     config:
       source: docker/build_artifacts/config.properties
       target: config.properties

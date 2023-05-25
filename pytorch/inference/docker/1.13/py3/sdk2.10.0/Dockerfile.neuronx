@@ -123,6 +123,7 @@ COPY neuron-entrypoint.py /usr/local/bin/dockerd-entrypoint.py
 COPY neuron-monitor.sh /usr/local/bin/neuron-monitor.sh
 COPY torchserve-neuron.sh /usr/local/bin/entrypoint.sh
 COPY config.properties /home/model-server
+COPY default_pytorch_inference_handler.py /root
 
 RUN chmod +x /usr/local/bin/dockerd-entrypoint.py \
  && chmod +x /usr/local/bin/neuron-monitor.sh \
@@ -136,8 +137,7 @@ RUN pip install --no-cache-dir "sagemaker-pytorch-inference==2.0.14"
 
 # patch default_pytorch_inference_handler.py to import torch_neuronx
 RUN DEST_DIR=$(python -c "import os.path, sagemaker_pytorch_serving_container; print(os.path.dirname(sagemaker_pytorch_serving_container.__file__))") \
- && DEST_FILE=${DEST_DIR}/default_pytorch_inference_handler.py \
- && sed -i "s/import torch/import torch, torch_neuronx/" ${DEST_FILE}
+ && cp /root/default_pytorch_inference_handler.py ${DEST_DIR}
 
 RUN HOME_DIR=/root \
  && curl -o ${HOME_DIR}/oss_compliance.zip https://aws-dlinfra-utilities.s3.amazonaws.com/oss_compliance.zip \
