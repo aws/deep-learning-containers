@@ -220,7 +220,7 @@ HuggingFace Training Containers
 
 | Framework                                     |Job Type	|CPU/GPU 	|Python Version Options	|Example URL                                                                                                                        |
 |-----------------------------------------------|-----------|-----------|-----------------------|-----------------------------------------------------------------------------------------------------------------------------------|
-|PyTorch 2.0.0 with HuggingFace transformers    |training	|GPU 		| 3.10 (py310)			|763104351884.dkr.ecr.us-west-2.amazonaws.com/huggingface-pytorch-training:2.0.0-transformers4.28.1-gpu-py310-cu118-ubuntu20.04     |
+|PyTorch 2.0.0 with HuggingFace transformers    |training	|GPU 		| 3.10 (py310)			|763104351884.dkr.ecr.us-east-1.amazonaws.com/huggingface-pytorch-training:2.0.0-transformers4.28.1-gpu-py310-cu118-ubuntu20.04     |
 |TensorFlow 2.6.3 with HuggingFace transformers |training	|GPU 		| 3.8 (py38)			|763104351884.dkr.ecr.us-east-1.amazonaws.com/huggingface-tensorflow-training:2.6.3-transformers4.17.0-gpu-py38-cu112-ubuntu20.04 	|
 
 
@@ -229,8 +229,8 @@ HuggingFace Inference Containers
 
 | Framework                                        |Job Type	|CPU/GPU 	|Python Version Options	|Example URL                                                                                                                        |
 |--------------------------------------------------|------------|-----------|-----------------------|-----------------------------------------------------------------------------------------------------------------------------------|
-|PyTorch 2.0.0 with HuggingFace transformers       |inference	|CPU 		| 3.10 (py310)			|763104351884.dkr.ecr.us-west-2.amazonaws.com/huggingface-pytorch-inference:2.0.0-transformers4.28.1-cpu-py310-ubuntu20.04		    |
-|PyTorch 2.0.0 with HuggingFace transformers       |inference	|GPU 		| 3.10 (py310)			|763104351884.dkr.ecr.us-west-2.amazonaws.com/huggingface-pytorch-inference:2.0.0-transformers4.28.1-gpu-py310-cu118-ubuntu20.04    |
+|PyTorch 2.0.0 with HuggingFace transformers       |inference	|CPU 		| 3.10 (py310)			|763104351884.dkr.ecr.us-east-1.amazonaws.com/huggingface-pytorch-inference:2.0.0-transformers4.28.1-cpu-py310-ubuntu20.04		    |
+|PyTorch 2.0.0 with HuggingFace transformers       |inference	|GPU 		| 3.10 (py310)			|763104351884.dkr.ecr.us-east-1.amazonaws.com/huggingface-pytorch-inference:2.0.0-transformers4.28.1-gpu-py310-cu118-ubuntu20.04    |
 |TensorFlow 2.11.1 with HuggingFace transformers   |inference	|CPU 		| 3.9 (py39)			|763104351884.dkr.ecr.us-east-1.amazonaws.com/huggingface-tensorflow-inference:2.11.1-transformers4.26.0-cpu-py39-ubuntu20.04		|
 |TensorFlow 2.11.1 with HuggingFace transformers   |inference	|GPU 		| 3.9 (py39)			|763104351884.dkr.ecr.us-east-1.amazonaws.com/huggingface-tensorflow-inference:2.11.1-transformers4.26.0-gpu-py39-cu112-ubuntu20.04	|
 
