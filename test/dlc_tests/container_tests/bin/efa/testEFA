@@ -108,5 +108,5 @@ check_efa_nccl_all_reduce(){
 }
 
 check_ring_single_node
-check_mutlinode_nccl_transfer
+check_multinode_nccl_transfer
 check_efa_nccl_all_reduce
