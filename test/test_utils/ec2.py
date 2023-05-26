@@ -13,7 +13,9 @@ from botocore.exceptions import ClientError
 from invoke import run
 from packaging.version import Version
 from packaging.specifiers import SpecifierSet
-from tenacity import retry, stop_after_attempt, wait_fixed
+from tenacity import (
+    retry, stop_after_attempt, stop_after_delay, wait_fixed, wait_random_exponential
+)
 
 from test.test_utils import is_pr_context, is_mainline_context, get_synapseai_version_from_tag
 from . import DEFAULT_REGION, P3DN_REGION, P4DE_REGION, UL_AMI_LIST, BENCHMARK_RESULTS_S3_BUCKET
@@ -246,6 +248,49 @@ def launch_instance(
         )
 
     return response["Instances"][0]
+
+
+@retry(
+    reraise=True,
+    stop=stop_after_delay(30 * 60),  # Keep retrying for 30 minutes
+    wait=wait_random_exponential(min=60, max=10 * 60),  # Retry after waiting 1-10 minutes
+)
+def launch_efa_instances_with_retry(
+    ec2_client, ec2_instance_type, availability_zone_options, ec2_run_instances_definition
+):
+    """
+    Helper function to launch EFA-capable EC2 instances with retry capability, to allow
+    multiple attempts when facing instance capacity issues.
+    :param ec2_client: boto3 EC2 Client object
+    :param ec2_instance_type: str EC2 Instance Type
+    :param availability_zone_options: list of availability zones in which to try to run instances
+    :param ec2_run_instances_definition: dict of parameters to pass to ec2_client.run_instances
+    :return: dict response from ec2_client.run_instances
+    """
+    response = None
+    region = ec2_client.meta.region_name
+    for availability_zone in availability_zone_options:
+        ec2_run_instances_definition.update(
+            {
+                "Placement": {"AvailabilityZone": availability_zone},
+                "NetworkInterfaces": generate_network_interfaces(
+                    ec2_client, ec2_instance_type, availability_zone
+                ),
+            }
+        )
+        try:
+            response = ec2_client.run_instances(**ec2_run_instances_definition)
+            if response and response["Instances"]:
+                break
+        except ClientError as e:
+            LOGGER.warning(
+                f"Failed to launch in {availability_zone} due to {e}\n"
+                "Retrying in the next availability zone."
+            )
+            continue
+    if not (response and response["Instances"]):
+        raise RuntimeError(f"Unable to launch {ec2_instance_type} instances in {region}")
+    return response
 
 
 def get_ec2_client(region):

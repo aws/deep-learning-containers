@@ -354,50 +354,33 @@ def efa_ec2_instances(
 
     request.addfinalizer(delete_ssh_keypair)
 
-    response = None
     instance_name_prefix = f"CI-CD {ec2_key_name}"
-    for availability_zone in availability_zone_options:
-        try:
-            response = ec2_client.run_instances(
-                BlockDeviceMappings=[
-                    {
-                        "DeviceName": "/dev/sda1",
-                        "Ebs": {
-                            "DeleteOnTermination": True,
-                            "VolumeSize": 150,
-                            "VolumeType": "gp3",
-                            "Iops": 3000,
-                            "Throughput": 125,
-                        },
-                    },
-                ],
-                ImageId=ec2_instance_ami,
-                InstanceType=ec2_instance_type,
-                IamInstanceProfile={"Name": ec2_instance_role_name},
-                KeyName=ec2_key_name,
-                MaxCount=2,
-                MinCount=2,
-                NetworkInterfaces=ec2_utils.generate_network_interfaces(
-                    ec2_client, ec2_instance_type, availability_zone
-                ),
-                Placement={"AvailabilityZone": availability_zone},
-                TagSpecifications=[
-                    {
-                        "ResourceType": "instance",
-                        "Tags": [{"Key": "Name", "Value": instance_name_prefix}],
-                    }
-                ],
-            )
-            if response and response["Instances"]:
-                break
-        except ClientError as e:
-            LOGGER.warning(
-                f"Failed to launch in {availability_zone} due to {e}\n"
-                "Retrying in the next availability zone."
-            )
-            continue
-    if not (response and response["Instances"]):
-        raise RuntimeError(f"Unable to launch {ec2_instance_type} instances in {region}")
+    ec2_run_instances_definition = {
+        "BlockDeviceMappings": [
+            {
+                "DeviceName": "/dev/sda1",
+                "Ebs": {
+                    "DeleteOnTermination": True,
+                    "VolumeSize": 150,
+                    "VolumeType": "gp3",
+                    "Iops": 3000,
+                    "Throughput": 125,
+                },
+            },
+        ],
+        "ImageId": ec2_instance_ami,
+        "InstanceType": ec2_instance_type,
+        "IamInstanceProfile": {"Name": ec2_instance_role_name},
+        "KeyName": ec2_key_name,
+        "MaxCount": 2,
+        "MinCount": 2,
+        "TagSpecifications": [
+            {"ResourceType": "instance", "Tags": [{"Key": "Name", "Value": instance_name_prefix}]}
+        ],
+    }
+    response = ec2_utils.launch_efa_instances_with_retry(
+        ec2_client, ec2_instance_type, availability_zone_options, ec2_run_instances_definition
+    )
 
     instances = response["Instances"]
 
