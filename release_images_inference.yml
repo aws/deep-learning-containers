@@ -8,7 +8,7 @@ release_images:
     inference:
       device_types: ["gpu"]
       python_versions: ["py39"]
-      os_version: "ubuntu22.04"
+      os_version: "ubuntu20.04"
       cuda_version: "cu118"
       example: False        
       disable_sm_tag: True  
