@@ -19,7 +19,7 @@ import json
 import pytest
 import sagemaker
 from sagemaker.pytorch import PyTorchModel
-from sagemaker.serializers import IdentitySerializer
+from sagemaker.serializers import IdentitySerializer, JSONSerializer
 from sagemaker.deserializers import BytesDeserializer
 
 from ...integration import (
@@ -58,11 +58,15 @@ def test_neuron_hosting(framework_version, ecr_image, instance_type, sagemaker_r
     )
 
 
+# parametrize is temporary until trn1 and inf2 become available in the same region
 @pytest.mark.model("resnet")
 @pytest.mark.processor("neuronx")
+@pytest.mark.parametrize(
+    "instance_type,sagemaker_regions",
+    [("ml.trn1.2xlarge", ["us-east-1"]), ("ml.inf2.xlarge", ["us-east-2"])],
+)
 @pytest.mark.neuronx_test
-def test_neuron_hosting(framework_version, ecr_image, instance_type, sagemaker_regions):
-    instance_type = "ml.trn1.2xlarge"
+def test_neuronx_hosting(framework_version, ecr_image, instance_type, sagemaker_regions):
     model_dir = os.path.join(model_neuronx_dir, "model-resnet.tar.gz")
     function_args = {
         "framework_version": framework_version,
@@ -71,6 +75,31 @@ def test_neuron_hosting(framework_version, ecr_image, instance_type, sagemaker_r
         "resnet_script": resnet_neuronx_script,
         "resnet_neuron_input": resnet_neuronx_input,
         "resnet_neuron_image_list": resnet_neuronx_image_list,
+        "accelerator_type": "neuronx",
+    }
+    invoke_pytorch_helper_function(
+        ecr_image, sagemaker_regions, _test_resnet_distributed, function_args
+    )
+
+
+# parametrize is temporary until trn1 and inf2 become available in the same region
+@pytest.mark.model("resnet")
+@pytest.mark.processor("neuronx")
+@pytest.mark.parametrize(
+    "instance_type,sagemaker_regions",
+    [("ml.trn1.2xlarge", ["us-east-1"]), ("ml.inf2.xlarge", ["us-east-2"])],
+)
+@pytest.mark.neuronx_test
+def test_neuronx_hosting_no_script(framework_version, ecr_image, instance_type, sagemaker_regions):
+    model_dir = os.path.join(model_neuronx_dir, "model-resnet.tar.gz")
+    function_args = {
+        "framework_version": framework_version,
+        "instance_type": instance_type,
+        "model_dir": model_dir,
+        "resnet_script": None,
+        "resnet_neuron_input": resnet_neuronx_input,
+        "resnet_neuron_image_list": resnet_neuronx_image_list,
+        "preprocess_image": True,
         "accelerator_type": "neuronx",
     }
     invoke_pytorch_helper_function(
@@ -87,6 +116,7 @@ def _test_resnet_distributed(
     resnet_script,
     resnet_neuron_input,
     resnet_neuron_image_list,
+    preprocess_image=False,
     accelerator_type=None,
 ):
     endpoint_name = sagemaker.utils.unique_name_from_base("sagemaker-pytorch-serving")
@@ -103,27 +133,48 @@ def _test_resnet_distributed(
         framework_version=framework_version,
         image_uri=ecr_image,
         sagemaker_session=sagemaker_session,
-        model_server_workers=4,
+        model_server_workers=2,
         env={
             "AWS_NEURON_VISIBLE_DEVICES": "ALL",
-            "NEURONCORE_GROUP_SIZES": "1",
-            "NEURON_RT_VISIBLE_CORES": "0",
+            "NEURON_RT_NUM_CORES": "1",
             "NEURON_RT_LOG_LEVEL": "5",
-            "NEURON_RTD_ADDRESS": "run",
         },
     )
 
     with timeout_and_delete_endpoint(endpoint_name, sagemaker_session, minutes=30):
+        serializer = IdentitySerializer()
+        if preprocess_image:
+            serializer = JSONSerializer()
         predictor = pytorch.deploy(
             initial_instance_count=1,
             instance_type=instance_type,
             endpoint_name=endpoint_name,
-            serializer=IdentitySerializer(),
+            serializer=serializer,
             deserializer=BytesDeserializer(),
         )
 
         with open(resnet_neuron_input, "rb") as f:
             payload = f.read()
+
+        if preprocess_image:
+            import io
+            import torchvision.transforms as transforms
+            from PIL import Image
+
+            data = io.BytesIO(payload)
+            input_image = Image.open(data).convert("RGB")
+            preprocess = transforms.Compose(
+                [
+                    transforms.Resize(255),
+                    transforms.CenterCrop(224),
+                    transforms.ToTensor(),
+                    transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
+                ]
+            )
+            input_tensor = preprocess(input_image)
+            input_batch = input_tensor.unsqueeze(0)
+            payload = input_batch.tolist()
+
         output = predictor.predict(data=payload)
         print(output)
         result = json.loads(output.decode())
