@@ -14,7 +14,11 @@ from invoke import run
 from packaging.version import Version
 from packaging.specifiers import SpecifierSet
 from tenacity import (
-    retry, stop_after_attempt, stop_after_delay, wait_fixed, wait_random_exponential
+    retry,
+    stop_after_attempt,
+    stop_after_delay,
+    wait_fixed,
+    wait_random_exponential,
 )
 
 from test.test_utils import is_pr_context, is_mainline_context, get_synapseai_version_from_tag
