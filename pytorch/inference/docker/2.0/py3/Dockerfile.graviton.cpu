@@ -4,11 +4,11 @@ ARG MAMBA_VERSION=22.11.1-4
 ARG OPEN_MPI_VERSION=4.1.5
 
 # PyTorch Graviton Binaries
-ARG TORCH_URL=https://aws-pytorch-unified-cicd-binaries.s3.us-west-2.amazonaws.com/r2.0.0_inference/graviton_py310/torch-2.0.0%2Bcpu-cp310-cp310-manylinux_2_31_aarch64.whl
-ARG TORCHVISION_URL=https://aws-pytorch-unified-cicd-binaries.s3.us-west-2.amazonaws.com/r2.0.0_inference/graviton_py310/torchvision-0.15.1%2Bcpu-cp310-cp310-linux_aarch64.whl
-ARG TORCHAUDIO_URL=https://aws-pytorch-unified-cicd-binaries.s3.us-west-2.amazonaws.com/r2.0.0_inference/graviton_py310/torchaudio-2.0.1%2Bcpu-cp310-cp310-linux_aarch64.whl
-ARG TORCHTEXT_URL=https://aws-pytorch-unified-cicd-binaries.s3.us-west-2.amazonaws.com/r2.0.0_inference/graviton_py310/torchtext-0.15.1%2Bcpu-cp310-cp310-linux_aarch64.whl
-ARG TORCHDATA_URL=https://aws-pytorch-unified-cicd-binaries.s3.us-west-2.amazonaws.com/r2.0.0_inference/graviton_py310/torchdata-0.6.0%2Bcpu-cp310-cp310-linux_aarch64.whl
+ARG TORCH_URL=https://framework-binaries.s3.us-west-2.amazonaws.com/pytorch/v2.0.1/graviton/2023-05-23-21-36/torch-2.0.1%2Bcpu-cp310-cp310-manylinux_2_31_aarch64.whl
+ARG TORCHVISION_URL=https://framework-binaries.s3.us-west-2.amazonaws.com/pytorch/v2.0.1/graviton/2023-05-23-21-36/torchvision-0.15.2%2Bcpu-cp310-cp310-linux_aarch64.whl
+ARG TORCHAUDIO_URL=https://framework-binaries.s3.us-west-2.amazonaws.com/pytorch/v2.0.1/graviton/2023-05-23-21-36/torchaudio-2.0.2%2Bcpu-cp310-cp310-linux_aarch64.whl
+ARG TORCHTEXT_URL=https://framework-binaries.s3.us-west-2.amazonaws.com/pytorch/v2.0.1/graviton/2023-05-23-21-36/torchtext-0.15.2%2Bcpu-cp310-cp310-linux_aarch64.whl
+ARG TORCHDATA_URL=https://framework-binaries.s3.us-west-2.amazonaws.com/pytorch/v2.0.1/graviton/2023-05-23-21-36/torchdata-0.6.1%2Bcpu-cp310-cp310-linux_aarch64.whl
 ARG TORCHSERVE_VERSION=0.8.0
 ARG SM_TOOLKIT_VERSION=2.0.14
 
