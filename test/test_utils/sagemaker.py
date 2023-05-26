@@ -24,6 +24,7 @@ from test_utils import (
     is_pr_context,
     SAGEMAKER_EXECUTION_REGIONS,
     SAGEMAKER_NEURON_EXECUTION_REGIONS,
+    SAGEMAKER_NEURONX_EXECUTION_REGIONS,
     UBUNTU_18_BASE_DLAMI_US_EAST_1,
     UBUNTU_18_BASE_DLAMI_US_WEST_2,
     UL20_CPU_ARM64_US_EAST_1,
@@ -215,13 +216,14 @@ def generate_sagemaker_pytest_cmd(image, sagemaker_test_type):
     # regular SM tests as well as SM EFA tests.
     efa_flag = "--efa" if is_test_job_efa_dedicated() else '-m "not efa"'
 
-    region_list = (
-        ",".join(SAGEMAKER_NEURON_EXECUTION_REGIONS)
-        if "neuron" in image
-        else ",".join(SAGEMAKER_EXECUTION_REGIONS)
-    )
+    region_list = SAGEMAKER_EXECUTION_REGIONS
+    if "neuronx" in image:
+        region_list = SAGEMAKER_NEURONX_EXECUTION_REGIONS
+    elif "neuron" in image:
+        region_list = SAGEMAKER_NEURON_EXECUTION_REGIONS
 
-    sagemaker_regions_list = f"--sagemaker-regions {region_list}"
+    region_list_str = ",".join(region_list)
+    sagemaker_regions_list = f"--sagemaker-regions {region_list_str}"
 
     remote_pytest_cmd = (
         f"pytest -rA {integration_path} --region {region} --processor {processor} {docker_base_arg} "
