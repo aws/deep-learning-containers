@@ -19,7 +19,7 @@ import json
 import pytest
 import sagemaker
 from sagemaker.pytorch import PyTorchModel
-from sagemaker.serializers import IdentitySerializer
+from sagemaker.serializers import IdentitySerializer, JSONSerializer
 from sagemaker.deserializers import BytesDeserializer
 
 from ...integration import (
@@ -143,11 +143,14 @@ def _test_resnet_distributed(
     )
 
     with timeout_and_delete_endpoint(endpoint_name, sagemaker_session, minutes=30):
+        serializer = IdentitySerializer()
+        if preprocess_image:
+            serializer = JSONSerializer()
         predictor = pytorch.deploy(
             initial_instance_count=1,
             instance_type=instance_type,
             endpoint_name=endpoint_name,
-            serializer=IdentitySerializer(),
+            serializer=serializer,
             deserializer=BytesDeserializer(),
         )
 
