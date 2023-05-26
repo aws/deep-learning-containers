@@ -137,7 +137,7 @@ def _test_resnet_distributed(
         env={
             "AWS_NEURON_VISIBLE_DEVICES": "ALL",
             "NEURON_RT_NUM_CORES": "1",
-            "NEURON_RT_LOG_LEVEL": "5"
+            "NEURON_RT_LOG_LEVEL": "5",
         },
     )
 
