@@ -15,6 +15,7 @@ from test.test_utils import (
 )
 from test.test_utils.ec2 import get_efa_ec2_instance_type, filter_efa_instance_type
 
+BUILD_ALL_REDUCE_PERF_CMD = os.path.join(CONTAINER_TESTS_PREFIX, "efa", "build_all_reduce_perf.sh")
 EFA_SANITY_TEST_CMD = os.path.join(CONTAINER_TESTS_PREFIX, "efa", "testEFASanity")
 EFA_INTEGRATION_TEST_CMD = os.path.join(CONTAINER_TESTS_PREFIX, "efa", "testEFA")
 
@@ -55,6 +56,7 @@ def test_efa_pytorch(
         master_connection,
         f"{EFA_INTEGRATION_TEST_CMD} {HOSTS_FILE_LOCATION} {number_of_nodes}",
         hide=False,
+        timeout=300,
     )
 
 
@@ -83,6 +85,7 @@ def test_efa_tensorflow(
         master_connection,
         f"{EFA_INTEGRATION_TEST_CMD} {HOSTS_FILE_LOCATION} {number_of_nodes}",
         hide=False,
+        timeout=300,
     )
 
 
@@ -98,10 +101,36 @@ def _setup_multinode_efa_instances(
     :param ec2_instance_type: str instance type being used
     :param region: str region name in which test is being run
     """
+    # Asynchronously pull docker image on all instances
+    _pull_image_on_all_instances(efa_ec2_connections, image)
     # Configure master node container
     master_connection = efa_ec2_connections[0]
-    # Run docker login, and pull and run container
+
+    build_all_reduce_perf_promises = []
+    # Run container
     _setup_container(master_connection, image, MASTER_CONTAINER_NAME)
+    # Build all_reduce_perf binary using nccl-tests
+    promise = run_cmd_on_container(
+        MASTER_CONTAINER_NAME,
+        master_connection,
+        BUILD_ALL_REDUCE_PERF_CMD,
+        timeout=180,
+        asynchronous=True,
+    )
+    build_all_reduce_perf_promises.append(promise)
+    for worker_connection in efa_ec2_connections[1:]:
+        # Run container
+        _setup_container(worker_connection, image, WORKER_CONTAINER_NAME)
+        # Build all_reduce_perf binary using nccl-tests
+        promise = run_cmd_on_container(
+            WORKER_CONTAINER_NAME,
+            worker_connection,
+            BUILD_ALL_REDUCE_PERF_CMD,
+            timeout=180,
+            asynchronous=True,
+        )
+        build_all_reduce_perf_promises.append(promise)
+
     # Configure master node SSH client-side configurations
     _setup_master_efa_ssh_config(master_connection)
     # Create a hosts file that provides mpi with IP addresses and no. of GPUs in each node
@@ -114,11 +143,30 @@ def _setup_multinode_efa_instances(
 
     # Configure worker node containers
     for worker_connection in efa_ec2_connections[1:]:
-        # Run docker login, and pull and run container
-        _setup_container(worker_connection, image, WORKER_CONTAINER_NAME)
         # Configure worker node SSH server-side configurations, launch SSH daemon, and allow
         # password-less SSH access from master to worker nodes.
         _setup_worker_efa_ssh_config(worker_connection, master_pub_key)
+
+    # Wait for all_reduce_perf binaries to be built in all containers
+    for promise in build_all_reduce_perf_promises:
+        promise.join()
+
+
+def _pull_image_on_all_instances(connections, docker_image):
+    """
+    Asynchronously pull tested image on all instances
+    :param connections: list of Fabric Connection objects
+    :param docker_image: str DLC image URI to be tested
+    """
+    account_id = get_account_id_from_image_uri(docker_image)
+    region = get_region_from_image_uri(docker_image)
+
+    for conn in connections:
+        login_to_ecr_registry(conn, account_id, region)
+
+    promises = [conn.run(f"docker pull {docker_image}", asynchronous=True) for conn in connections]
+    for prom in promises:
+        prom.join()
 
 
 def _setup_container(connection, docker_image, container_name):
@@ -128,11 +176,6 @@ def _setup_container(connection, docker_image, container_name):
     :param docker_image: str DLC image URI to be tested
     :param container_name: str container name
     """
-    account_id = get_account_id_from_image_uri(docker_image)
-    region = get_region_from_image_uri(docker_image)
-    login_to_ecr_registry(connection, account_id, region)
-    connection.run(f"docker pull {docker_image}", hide="out")
-
     devices = ec2_utils.get_efa_devices_on_instance(connection)
     docker_devices_args = [f"--device {device_location}" for device_location in devices]
     docker_all_devices_arg = " ".join(docker_devices_args)

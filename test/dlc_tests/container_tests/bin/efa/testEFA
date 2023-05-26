@@ -21,7 +21,7 @@ check_ring_single_node(){
     echo "Running ring"
     mpirun -n 3 --host localhost --oversubscribe \
         -x RDMAV_FORK_SAFE=1 -x FI_EFA_USE_DEVICE_RDMA=1 -x NCCL_PROTO=simple --mca pml ^cm \
-        -x LD_LIBRARY_PATH=/usr/local/cuda/lib:/usr/local/cuda/lib64:/usr/local/cuda:$LD_LIBRARY_PATH \
+        -x LD_LIBRARY_PATH=/usr/local/cuda/lib:/usr/local/cuda/lib64:$LD_LIBRARY_PATH \
         /usr/local/bin/ring
     RETURN_VAL=`echo $?`
     if [ ${RETURN_VAL} -eq 0 ]; then
@@ -59,7 +59,7 @@ validate_all_reduce_performance_logs(){
 }
 
 check_efa_nccl_all_reduce_performance(){
-    benchmark=$(sudo cat $TRAINING_LOG | grep '1073741824' | tail -n1 | awk -F " " '{{print $11}}' | sed 's/ //' | sed  's/  5e-07//')
+    benchmark=$(cat $TRAINING_LOG | grep '1073741824' | tail -n1 | awk -F " " '{{print $11}}' | sed 's/ //' | sed  's/  5e-07//')
     echo "Benchmark throughput: ${benchmark}"
 
     # The standard throughput should be at least 41 for 2 p4d with 4 EFA devices and 7 for 2 p3dn with 1 EFA device.
@@ -68,7 +68,7 @@ check_efa_nccl_all_reduce_performance(){
     # Temporarily setting these to be < 50% of optimal until AWS OFI NCCL team has concrete numbers for this.
     PERFORMANCE_THRESHOLD="3"
 
-    if [[ $(echo "$benchmark $PERFORMANCE_THRESHOLD" | awk '{print $1 >= $2}') == 1 ]]; then
+    if [[ $(echo "$benchmark $PERFORMANCE_THRESHOLD" | awk '{print ($1 >= $2)}') == 1 ]]; then
         echo "***************************** check_efa_nccl_all_reduce_performance passed *****************************"
     else
         echo "***************************** check_efa_nccl_all_reduce_performance failed *****************************"
@@ -76,28 +76,14 @@ check_efa_nccl_all_reduce_performance(){
     fi
 }
 
-build_all_reduce_perf(){
-    all_reduce_perf_location=$1
-    echo "Building all_reduce_perf from nccl-tests"
-    cd /tmp/
-    rm -rf nccl-tests/
-    git clone https://github.com/NVIDIA/nccl-tests.git
-    cd nccl-tests/
-    make MPI=1 MPI_HOME=/opt/amazon/openmpi NCCL_HOME=/usr/local/cuda CUDA_HOME=/usr/local/cuda
-    cp build/all_reduce_perf $all_reduce_perf_location
-    cd /tmp/
-    rm -rf nccl-tests/
-}
-
 check_efa_nccl_all_reduce(){
-    build_all_reduce_perf /all_reduce_perf
     echo "Running all_reduce_perf test"
     mpirun -x FI_PROVIDER="efa" -n $NODES -N $GPU_COUNT --hostfile $NUM_HOSTS_file \
         -x NCCL_DEBUG=INFO -x FI_EFA_USE_DEVICE_RDMA=1 -x NCCL_PROTO=simple -x NCCL_ALGO=ring -x RDMAV_FORK_SAFE=1 \
         -x LD_LIBRARY_PATH=/usr/local/cuda/lib:/usr/local/cuda/lib64:$LD_LIBRARY_PATH \
-        --mca pml ^cm --mca btl tcp,self --mca btl_tcp_if_exclude lo,docker0 --bind-to none \
+        -x NCCL_SOCKET_IFNAME=^lo --mca pml ^cm --mca btl tcp,self --mca btl_tcp_if_exclude lo,docker0 --bind-to none \
         /all_reduce_perf -b 8 -e 1G -f 2 -g 1 -c 1 -n 100 2>&1 | tee "${TRAINING_LOG}"
-    RETURN_VAL=`echo $?`
+    RETURN_VAL=${PIPESTATUS[0]}
     if [ ${RETURN_VAL} -eq 0 ]; then
         echo "***************************** check_efa_nccl_all_reduce passed *****************************"
     else

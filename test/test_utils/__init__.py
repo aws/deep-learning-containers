@@ -1980,7 +1980,16 @@ def start_container(container_name, image_uri, context):
     )
 
 
-def run_cmd_on_container(container_name, context, cmd, executable="bash", warn=False, hide=True):
+def run_cmd_on_container(
+    container_name,
+    context,
+    cmd,
+    executable="bash",
+    warn=False,
+    hide=True,
+    timeout=60,
+    asynchronous=False,
+):
     """
     Helper function to run commands on a locally running container
     :param container_name: Name of the docker container
@@ -1989,6 +1998,10 @@ def run_cmd_on_container(container_name, context, cmd, executable="bash", warn=F
     :param executable: Executable to run on the container (bash or python)
     :param warn: Whether to only warn as opposed to exit if command fails
     :param hide: Hide some or all of the stdout/stderr from running the command
+    :param timeout: Timeout in seconds for command to be executed
+    :param asynchronous: False by default, set to True if command should run asynchronously
+        Refer to https://docs.pyinvoke.org/en/latest/api/runners.html#invoke.runners.Runner.run for
+        more details on running asynchronous commands.
     :return: invoke output, can be used to parse stdout, etc
     """
     if executable not in ("bash", "python"):
@@ -1999,7 +2012,8 @@ def run_cmd_on_container(container_name, context, cmd, executable="bash", warn=F
         f"docker exec --user root {container_name} {executable} -c '{cmd}'",
         hide=hide,
         warn=warn,
-        timeout=60,
+        timeout=timeout,
+        asynchronous=asynchronous,
     )
 
 

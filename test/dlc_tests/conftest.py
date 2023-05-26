@@ -511,12 +511,21 @@ def efa_ec2_connections(request, efa_ec2_instances, ec2_key_name, ec2_instance_t
 
     request.addfinalizer(delete_s3_artifact_copy)
 
+    master_connection.run("rm -rf $HOME/container_tests")
     master_connection.run(
         f"aws s3 cp --recursive {test_utils.TEST_TRANSFER_S3_BUCKET}/{artifact_folder} $HOME/container_tests"
     )
     master_connection.run(
         f"mkdir -p $HOME/container_tests/logs && chmod -R +x $HOME/container_tests/*"
     )
+    for worker_connection in worker_instance_connections:
+        worker_connection.run("rm -rf $HOME/container_tests")
+        worker_connection.run(
+            f"aws s3 cp --recursive {test_utils.TEST_TRANSFER_S3_BUCKET}/{artifact_folder} $HOME/container_tests"
+        )
+        worker_connection.run(
+            f"mkdir -p $HOME/container_tests/logs && chmod -R +x $HOME/container_tests/*"
+        )
 
     return [master_connection, *worker_instance_connections]
 
