@@ -221,6 +221,9 @@ LABEL com.amazonaws.sagemaker.capabilities.multi-models=true
 
 ARG PYTHON
 ARG SM_TOOLKIT_VERSION
+ARG TORCHSERVE_VERSION
+
+LABEL com.amazonaws.ml.engines.sagemaker.dlc.inference-toolkit.${SM_TOOLKIT_VERSION}.torchserve.${TORCHSERVE_VERSION}="true"
 
 ENV SAGEMAKER_SERVING_MODULE sagemaker_pytorch_serving_container.serving:main
 
