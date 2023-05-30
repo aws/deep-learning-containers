@@ -19,10 +19,11 @@ TRAINING_LOG="/test/logs/testEFA.log"
 
 check_ring_single_node(){
     echo "Running ring"
+    # Not using full-paths of mpirun and other scripts because these paths can change across PyTorch versions.
     mpirun -n 3 --host localhost --oversubscribe \
         -x RDMAV_FORK_SAFE=1 -x FI_EFA_USE_DEVICE_RDMA=1 -x NCCL_PROTO=simple --mca pml ^cm \
         -x LD_LIBRARY_PATH=/usr/local/cuda/lib:/usr/local/cuda/lib64:$LD_LIBRARY_PATH \
-        /usr/local/bin/ring
+        ring
     RETURN_VAL=`echo $?`
     if [ ${RETURN_VAL} -eq 0 ]; then
         echo "***************************** check_ring_single_node passed *****************************"
@@ -34,11 +35,14 @@ check_ring_single_node(){
 
 check_multinode_nccl_transfer() {
     echo "Running nccl_message_transfer"
+    # Need to pass -x PATH because rank non-zero nodes seem to "forget" the value of PATH that is pre-configured into
+    # the container. Not using full-paths of mpirun and other executables because these paths can change across PyTorch
+    # versions in DLC images.
     mpirun -n $NUM_HOSTS -N 1 --hostfile $NUM_HOSTS_file \
-        -x LD_LIBRARY_PATH=/usr/local/cuda/lib:/usr/local/cuda/lib64:$LD_LIBRARY_PATH \
+        -x PATH -x LD_LIBRARY_PATH=/usr/local/cuda/lib:/usr/local/cuda/lib64:$LD_LIBRARY_PATH -x NCCL_DEBUG=INFO \
         -x FI_EFA_USE_DEVICE_RDMA=1 -x NCCL_ALGO=ring -x NCCL_PROTO=simple -x RDMAV_FORK_SAFE=1 --mca pml ^cm \
         -x FI_PROVIDER="efa" --mca btl tcp,self --mca btl_tcp_if_exclude lo,docker0 --bind-to none \
-        /usr/local/bin/nccl_message_transfer
+        nccl_message_transfer
     RETURN_VAL=`echo $?`
     if [ ${RETURN_VAL} -eq 0 ]; then
         echo "***************************** check_multinode_nccl_transfer passed *****************************"
@@ -78,9 +82,12 @@ check_efa_nccl_all_reduce_performance(){
 
 check_efa_nccl_all_reduce(){
     echo "Running all_reduce_perf test"
+    # Need to pass -x PATH because rank non-zero nodes seem to "forget" the value of PATH that is pre-configured into
+    # the container. Not using full-paths of mpirun and other executables because these paths can change across PyTorch
+    # versions in DLC images.
     mpirun -x FI_PROVIDER="efa" -n $NODES -N $GPU_COUNT --hostfile $NUM_HOSTS_file \
         -x NCCL_DEBUG=INFO -x FI_EFA_USE_DEVICE_RDMA=1 -x NCCL_PROTO=simple -x NCCL_ALGO=ring -x RDMAV_FORK_SAFE=1 \
-        -x LD_LIBRARY_PATH=/usr/local/cuda/lib:/usr/local/cuda/lib64:$LD_LIBRARY_PATH \
+        -x PATH -x LD_LIBRARY_PATH=/usr/local/cuda/lib:/usr/local/cuda/lib64:$LD_LIBRARY_PATH \
         -x NCCL_SOCKET_IFNAME=^lo --mca pml ^cm --mca btl tcp,self --mca btl_tcp_if_exclude lo,docker0 --bind-to none \
         /all_reduce_perf -b 8 -e 1G -f 2 -g 1 -c 1 -n 100 2>&1 | tee "${TRAINING_LOG}"
     RETURN_VAL=${PIPESTATUS[0]}
