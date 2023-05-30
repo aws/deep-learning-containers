@@ -2,7 +2,8 @@ ARG PYTHON=python3
 ARG PYTHON_VERSION=3.10.8
 ARG PYTHON_SHORT_VERSION=3.10
 ARG MAMBA_VERSION=23.1.0-1
-ARG PYTORCH_VERSION=2.0.0
+ARG PYTORCH_VERSION_EC2=2.0.1
+ARG PYTORCH_VERSION_SM=2.0.0
 
 # SMD binaries
 ARG SMD_DATA_PARALLEL_URL=https://smdataparallel.s3.amazonaws.com/binary/pytorch/2.0.0/cu118/2023-03-20/smdistributed_dataparallel-1.8.0-cp310-cp310-linux_x86_64.whl
@@ -267,7 +268,7 @@ ARG PT_TORCHDATA_URL
 WORKDIR /
 
 # Install ec2 PyTorch
-RUN /opt/conda/bin/mamba install -y pytorch=${PYTORCH_VERSION} \
+RUN /opt/conda/bin/mamba install -y pytorch=${PYTORCH_VERSION_EC2} \
   torchvision torchaudio torchtext aws-ofi-nccl-dlc \
   --override-channels \
   -c https://aws-ml-conda-pre-prod-ec2.s3.us-west-2.amazonaws.com \
@@ -363,7 +364,7 @@ ARG PT_TORCHAUDIO_URL
 ARG PT_TORCHDATA_URL
 
 # Install sm PyTorch (force remove will increase docker image size drastically)
-RUN /opt/conda/bin/mamba install -y pytorch=${PYTORCH_VERSION} \
+RUN /opt/conda/bin/mamba install -y pytorch=${PYTORCH_VERSION_SM} \
   torchvision torchaudio torchtext aws-ofi-nccl-dlc \
   --override-channels \
   -c https://aws-ml-conda-pre-prod-ec2.s3.us-west-2.amazonaws.com \
