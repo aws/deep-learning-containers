@@ -9,7 +9,7 @@ ei_mode = false
 neuron_mode = false
 # Please only set it to true if you are preparing a NEURONX related PR
 # Do remember to revert it back to false before merging any PR (including NEURONX dedicated PR)
-neuronx_mode = true
+neuronx_mode = false
 # Please only set it to true if you are preparing a GRAVITON related PR
 # Do remember to revert it back to false before merging any PR (including GRAVITON dedicated PR)
 graviton_mode = false
@@ -109,7 +109,7 @@ dlc-pr-tensorflow-2-habana-training = ""
 
 # Standard Framework Inference
 dlc-pr-mxnet-inference = ""
-dlc-pr-pytorch-inference = "pytorch/inference/buildspec-1-13.yml"
+dlc-pr-pytorch-inference = "pytorch/inference/buildspec-1-12.yml"
 dlc-pr-tensorflow-2-inference = ""
 dlc-pr-autogluon-inference = ""
 
