@@ -45,6 +45,20 @@ EC2_EFA_GPU_INSTANCE_TYPE_AND_REGION = get_efa_ec2_instance_type(
 def test_efa_pytorch(
     pytorch_training, efa_ec2_instances, efa_ec2_connections, ec2_instance_type, region, gpu_only
 ):
+    """
+    Run EFA Sanity tests on DLC, and then run NCCL Message Transfer and All Reduce tests using EFA
+    on multiple nodes using DLC images. The test scripts are agnostic to the framework and version
+    installed in the DLC image. The test also builds nccl-tests to create the all_reduce_perf
+    binary necessary for multinode tests, on each node.
+    Note: This test must be explicitly enabled on CI, and will only run on EFA-capable instances
+    on pipelines.
+    :param pytorch_training: str PyTorch Training DLC image URI
+    :param efa_ec2_instances: list of tuples of instance-ids and SSH-keys for EFA-enabled instances
+    :param efa_ec2_connections: list of Fabric Connection objects for EFA-enabled instances
+    :param ec2_instance_type: str Instance Type being tested
+    :param region: str Region in which EFA-enabled instances are launched
+    :param gpu_only: pytest fixture to limit test only to GPU DLCs
+    """
     number_of_nodes = 2
     _setup_multinode_efa_instances(
         pytorch_training, efa_ec2_instances, efa_ec2_connections, ec2_instance_type, region
@@ -74,6 +88,20 @@ def test_efa_pytorch(
 def test_efa_tensorflow(
     tensorflow_training, efa_ec2_instances, efa_ec2_connections, ec2_instance_type, region, gpu_only
 ):
+    """
+    Run EFA Sanity tests on DLC, and then run NCCL Message Transfer and All Reduce tests using EFA
+    on multiple nodes using DLC images. The test scripts are agnostic to the framework and version
+    installed in the DLC image. The test also builds nccl-tests to create the all_reduce_perf
+    binary necessary for multinode tests, on each node.
+    Note: This test must be explicitly enabled on CI, and will only run on EFA-capable instances
+    on pipelines.
+    :param tensorflow_training: str PyTorch Training DLC image URI
+    :param efa_ec2_instances: list of tuples of instance-ids and SSH-keys for EFA-enabled instances
+    :param efa_ec2_connections: list of Fabric Connection objects for EFA-enabled instances
+    :param ec2_instance_type: str Instance Type being tested
+    :param region: str Region in which EFA-enabled instances are launched
+    :param gpu_only: pytest fixture to limit test only to GPU DLCs
+    """
     number_of_nodes = 2
     _setup_multinode_efa_instances(
         tensorflow_training, efa_ec2_instances, efa_ec2_connections, ec2_instance_type, region
@@ -93,8 +121,9 @@ def _setup_multinode_efa_instances(
     image, efa_ec2_instances, efa_ec2_connections, ec2_instance_type, region
 ):
     """
-    Pull and start test image containers on both master and worker instances, and configure
-    password-less SSH between master and worker nodes.
+    Pull and start test image containers on both master and worker instances, configure
+    password-less SSH between master and worker nodes, and build all_reduce_perf binary on
+    master and worker nodes.
     :param image: str DLC image URI to be tested
     :param efa_ec2_instances: list of tuples of instance_id, keypair_filepath for each instance
     :param efa_ec2_connections: list of fabric connection objects
