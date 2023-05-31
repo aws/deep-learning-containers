@@ -67,7 +67,7 @@ def test_neuron_hosting(framework_version, ecr_image, instance_type, sagemaker_r
 )
 @pytest.mark.neuronx_test
 def test_neuronx_hosting(framework_version, ecr_image, instance_type, sagemaker_regions):
-    if "neuronx" not in ecr_image: 
+    if "neuronx" not in ecr_image:
         pytest.skip("Not a NeuronX DLC")
     model_dir = os.path.join(model_neuronx_dir, "model-resnet.tar.gz")
     function_args = {
@@ -93,7 +93,7 @@ def test_neuronx_hosting(framework_version, ecr_image, instance_type, sagemaker_
 )
 @pytest.mark.neuronx_test
 def test_neuronx_hosting_no_script(framework_version, ecr_image, instance_type, sagemaker_regions):
-    if "neuronx" not in ecr_image: 
+    if "neuronx" not in ecr_image:
         pytest.skip("Not a NeuronX DLC")
     model_dir = os.path.join(model_neuronx_dir, "model-resnet.tar.gz")
     function_args = {
