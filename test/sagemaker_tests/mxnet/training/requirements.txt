@@ -5,7 +5,7 @@ pytest==5.3.5
 pytest-cov
 pytest-rerunfailures==9.0
 pytest-xdist
-requests==2.25.1
+requests==2.31.0
 urllib3>=1.26.6
 mock
 sagemaker
