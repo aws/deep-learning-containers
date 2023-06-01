@@ -227,13 +227,6 @@ class TestReportGenerator:
                 venv = os.path.join(pytest_framework_path, f".{repo.replace('/', '-')}")
                 ctx.run(f"virtualenv {venv}")
                 with ctx.prefix(f"source {os.path.join(venv, 'bin', 'activate')}"):
-                    # Adding test/requirements.txt because coverage reporting tests all try to import
-                    # test.test_utils.ec2, and fail to import tenacity because it isn't a member of SM test
-                    # requirements.txt files.
-                    ctx.run(
-                        f"pip install -r {os.path.join(git_repo_path, 'test', 'requirements.txt')}",
-                        warn=True,
-                    )
                     ctx.run("pip install -r requirements.txt", warn=True)
                     # TF inference separates remote/local conftests, and must be handled differently
                     if framework == "tensorflow" and job_type == "inference":
@@ -259,13 +252,6 @@ class TestReportGenerator:
             with ctx.prefix(
                 f"source {os.path.join(tf_inf_path, '.tf_inference', 'bin', 'activate')}"
             ):
-                # Adding test/requirements.txt because coverage reporting tests all try to import
-                # test.test_utils.ec2, and fail to import tenacity because it isn't a member of SM test
-                # requirements.txt files.
-                ctx.run(
-                    f"pip install -r {os.path.join(git_repo_path, 'test', 'requirements.txt')}",
-                    warn=True,
-                )
                 ctx.run("pip install -r requirements.txt", warn=True)
                 with ctx.cd(os.path.join(tf_inf_path, "test", "integration")):
                     # Handle local tests
