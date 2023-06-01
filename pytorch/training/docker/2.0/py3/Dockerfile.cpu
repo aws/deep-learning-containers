@@ -189,8 +189,12 @@ ARG PT_TORCHDATA_URL
 RUN /opt/conda/bin/mamba install -y pytorch=${PYTORCH_VERSION_EC2} \
   torchvision torchaudio torchtext cpuonly \
   --override-channels \
-  -c https://aws-ml-conda-pre-prod-ec2.s3.us-west-2.amazonaws.com \
+  -c https://aws-ml-conda-ec2.s3.us-west-2.amazonaws.com \
   -c conda-forge
+
+RUN /opt/conda/bin/mamba install -y -c conda-forge \
+    # patch CVE
+    "pillow>=9.4"
 
 # install fastai (depends on PyTorch)
 RUN /opt/conda/bin/mamba install -y -c conda-forge \
