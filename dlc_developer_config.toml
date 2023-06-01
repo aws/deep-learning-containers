@@ -26,7 +26,7 @@ huggingface_trcomp_mode = false
 trcomp_mode = false
 # Please only set it to True if you are preparing a Benchmark related PR
 # Do remember to revert it back to False before merging any PR (including Benchmark dedicated PR)
-benchmark_mode = false
+benchmark_mode = true
 
 [build]
 # Add in frameworks you would like to build. By default, builds are disabled unless you specify building an image.
@@ -54,14 +54,14 @@ ec2_tests = true
 
 ### SM specific tests
 ### Off by default
-sagemaker_local_tests = true
+sagemaker_local_tests = false
 
 # SM remote test valid values:
 # "off" --> do not trigger sagemaker remote tests (default)
 # "standard" --> run standard sagemaker remote tests from test/sagemaker_tests
 # "rc" --> run release_candidate_integration tests
 # "efa" --> run efa sagemaker tests
-sagemaker_remote_tests = "standard"
+sagemaker_remote_tests = "off"
 
 # SM remote EFA test instance type
 sagemaker_remote_efa_instance_type = ""
