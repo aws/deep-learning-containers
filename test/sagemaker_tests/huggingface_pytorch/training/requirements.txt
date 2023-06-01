@@ -22,5 +22,6 @@ fabric
 #unpin when fabric releases v3.1 Related Issue https://github.com/fabric/fabric/issues/2263
 invoke<2.1.0
 retrying==1.3.3
+tenacity
 gitpython
 toml
