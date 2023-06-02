@@ -8,7 +8,7 @@ from test import test_utils
 import test.test_utils.ecs as ecs_utils
 
 
-@pytest.fixture(scope="session")
+@pytest.fixture(scope="function")
 def ecs_client(region):
     return boto3.client("ecs", region_name=region)
 
