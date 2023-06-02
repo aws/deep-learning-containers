@@ -108,7 +108,9 @@ RUN curl -L -o ~/mambaforge.sh https://github.com/conda-forge/miniforge/releases
  && rm ~/mambaforge.sh
 
 # install core conda dependency packages (and pin essential packages)
-RUN /opt/conda/bin/mamba install -y -c conda-forge \
+RUN /opt/conda/bin/mamba install -y --override-channels \
+    -c https://aws-ml-conda-ec2.s3.us-west-2.amazonaws.com \
+    -c conda-forge \
     conda=23.1.0 \
     "cryptography>39.0.0" \
     cmake \
@@ -187,7 +189,7 @@ ARG PT_TORCHDATA_URL
 
 # Install ec2 AWS-PyTorch
 RUN /opt/conda/bin/mamba install -y pytorch=${PYTORCH_VERSION_EC2} \
-  torchvision torchaudio torchtext cpuonly "pillow>=9.5" \
+  torchvision torchaudio torchtext cpuonly \
   --override-channels \
   -c https://aws-ml-conda-ec2.s3.us-west-2.amazonaws.com \
   -c conda-forge
