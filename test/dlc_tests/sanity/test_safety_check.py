@@ -664,6 +664,8 @@ IGNORE_SAFETY_IDS = {
                 "42772",
                 "42814",
                 "42815",
+                # Image dependencies needs pillow 9.2
+                "55182"
             ],
         },
         "training-neuron": {
