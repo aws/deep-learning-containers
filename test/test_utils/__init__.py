@@ -35,6 +35,8 @@ LOGGER.addHandler(logging.StreamHandler(sys.stderr))
 DEFAULT_REGION = "us-west-2"
 # Constant to represent region where p3dn tests can be run
 P3DN_REGION = "us-east-1"
+# Constant to represent region where p4de tests can be run
+P4DE_REGION = "us-east-1"
 
 
 def get_ami_id_boto3(region_name, ami_name_pattern):
@@ -527,6 +529,10 @@ def is_graviton_architecture():
 
 def is_dlc_cicd_context():
     return os.getenv("BUILD_CONTEXT") in ["PR", "CANARY", "NIGHTLY", "MAINLINE"]
+
+
+def is_efa_dedicated():
+    return os.getenv("EFA_DEDICATED", "False").lower() == "true"
 
 
 def is_generic_image():
@@ -1975,7 +1981,16 @@ def start_container(container_name, image_uri, context):
     )
 
 
-def run_cmd_on_container(container_name, context, cmd, executable="bash", warn=False):
+def run_cmd_on_container(
+    container_name,
+    context,
+    cmd,
+    executable="bash",
+    warn=False,
+    hide=True,
+    timeout=60,
+    asynchronous=False,
+):
     """
     Helper function to run commands on a locally running container
     :param container_name: Name of the docker container
@@ -1983,6 +1998,11 @@ def run_cmd_on_container(container_name, context, cmd, executable="bash", warn=F
     :param cmd: Command to run on the container
     :param executable: Executable to run on the container (bash or python)
     :param warn: Whether to only warn as opposed to exit if command fails
+    :param hide: Hide some or all of the stdout/stderr from running the command
+    :param timeout: Timeout in seconds for command to be executed
+    :param asynchronous: False by default, set to True if command should run asynchronously
+        Refer to https://docs.pyinvoke.org/en/latest/api/runners.html#invoke.runners.Runner.run for
+        more details on running asynchronous commands.
     :return: invoke output, can be used to parse stdout, etc
     """
     if executable not in ("bash", "python"):
@@ -1991,9 +2011,10 @@ def run_cmd_on_container(container_name, context, cmd, executable="bash", warn=F
         )
     return context.run(
         f"docker exec --user root {container_name} {executable} -c '{cmd}'",
-        hide=True,
+        hide=hide,
         warn=warn,
-        timeout=60,
+        timeout=timeout,
+        asynchronous=asynchronous,
     )
 
 

@@ -155,7 +155,7 @@ RUN mkdir /tmp/openmpi \
  && cd / \
  && rm -rf /tmp/openmpi
 
-ENV PATH="$OPEN_MPI_PATH/bin:$PATH"
+ENV PATH="$OPEN_MPI_PATH/bin:$EFA_PATH/bin:$PATH"
 ENV LD_LIBRARY_PATH=$OPEN_MPI_PATH/lib/:$EFA_PATH/lib/:$LD_LIBRARY_PATH
 
 # for conda ssl verification
@@ -239,7 +239,7 @@ RUN rm -rf /root/.cache | true
 # |_____\____|_____| |___|_| |_| |_|\__,_|\__, |\___|
 #                                         |___/
 #  ____           _
-# |  _ \ ___  ___(_)_ __   ___ 
+# |  _ \ ___  ___(_)_ __   ___
 # | |_) / _ \/ __| | '_ \ / _ \
 # |  _ <  __/ (__| | |_) |  __/
 # |_| \_\___|\___|_| .__/ \___|

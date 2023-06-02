@@ -241,38 +241,59 @@ def ec2_public_ip(request):
     return request.param
 
 
-@pytest.fixture(scope="session")
-def region():
-    return os.getenv("AWS_REGION", DEFAULT_REGION)
+@pytest.fixture(scope="function")
+def region(request):
+    return request.param if hasattr(request, "param") else os.getenv("AWS_REGION", DEFAULT_REGION)
 
 
-@pytest.fixture(scope="session")
-def docker_client(region):
-    test_utils.run_subprocess_cmd(
-        f"$(aws ecr get-login --no-include-email --region {region})",
-        failure="Failed to log into ECR.",
-    )
-    return docker.from_env()
+@pytest.fixture(scope="function")
+def availability_zone_options(ec2_client, ec2_instance_type, region):
+    """
+    Parametrize with a reduced list of availability zones for particular instance types for which
+    capacity has been reserved in that AZ. For other instance types, parametrize with list of all
+    AZs in the region.
+    :param ec2_client: boto3 Client for EC2
+    :param ec2_instance_type: str instance type for which AZs must be determined
+    :param region: str region in which instance must be created
+    :return: list of str AZ names
+    """
+    allowed_availability_zones = None
+    if ec2_instance_type in ["p4de.24xlarge"]:
+        if region == "us-east-1":
+            allowed_availability_zones = ["us-east-1d"]
+    if ec2_instance_type in ["p4d.24xlarge"]:
+        if region == "us-west-2":
+            allowed_availability_zones = ["us-west-2b", "us-west-2c"]
+    if not allowed_availability_zones:
+        allowed_availability_zones = ec2_utils.get_availability_zone_ids(ec2_client)
+    return allowed_availability_zones
 
 
-@pytest.fixture(scope="session")
+@pytest.fixture(scope="function")
 def ecr_client(region):
     return boto3.client("ecr", region_name=region)
 
 
-@pytest.fixture(scope="session")
+@pytest.fixture(scope="function")
 def sts_client(region):
     return boto3.client("sts", region_name=region)
 
 
-@pytest.fixture(scope="session")
+@pytest.fixture(scope="function")
 def ec2_client(region):
     return boto3.client("ec2", region_name=region, config=Config(retries={"max_attempts": 10}))
 
 
-@pytest.fixture(scope="session")
+@pytest.fixture(scope="function")
 def ec2_resource(region):
     return boto3.resource("ec2", region_name=region, config=Config(retries={"max_attempts": 10}))
+
+
+def _validate_p4de_usage(request, instance_type):
+    if instance_type in ["p4de.24xlarge"]:
+        if not request.node.get_closest_marker("allow_p4de_use"):
+            pytest.skip("Skip test because p4de instance usage is not allowed for this test")
+    return
 
 
 @pytest.fixture(scope="function")
@@ -291,13 +312,205 @@ def ec2_instance_role_name(request):
 
 
 @pytest.fixture(scope="function")
-def ec2_instance_ami(request):
-    return request.param if hasattr(request, "param") else UBUNTU_18_BASE_DLAMI_US_WEST_2
+def ec2_instance_ami(request, region):
+    return (
+        request.param
+        if hasattr(request, "param")
+        else UBUNTU_18_BASE_DLAMI_US_EAST_1
+        if region == "us-east-1"
+        else UBUNTU_18_BASE_DLAMI_US_WEST_2
+    )
 
 
 @pytest.fixture(scope="function")
 def ei_accelerator_type(request):
     return request.param if hasattr(request, "param") else None
+
+
+@pytest.mark.timeout(300)
+@pytest.fixture(scope="function")
+def efa_ec2_instances(
+    request,
+    ec2_client,
+    ec2_resource,
+    ec2_instance_type,
+    ec2_instance_role_name,
+    ec2_key_name,
+    ec2_instance_ami,
+    region,
+    availability_zone_options,
+):
+    _validate_p4de_usage(request, ec2_instance_type)
+    ec2_key_name = f"{ec2_key_name}-{str(uuid.uuid4())}"
+    print(f"Creating instance: CI-CD {ec2_key_name}")
+    key_filename = test_utils.generate_ssh_keypair(ec2_client, ec2_key_name)
+
+    def delete_ssh_keypair():
+        if test_utils.is_pr_context():
+            test_utils.destroy_ssh_keypair(ec2_client, key_filename)
+        else:
+            with open(KEYS_TO_DESTROY_FILE, "a") as destroy_keys:
+                destroy_keys.write(f"{key_filename}\n")
+
+    request.addfinalizer(delete_ssh_keypair)
+
+    instance_name_prefix = f"CI-CD {ec2_key_name}"
+    ec2_run_instances_definition = {
+        "BlockDeviceMappings": [
+            {
+                "DeviceName": "/dev/sda1",
+                "Ebs": {
+                    "DeleteOnTermination": True,
+                    "VolumeSize": 150,
+                    "VolumeType": "gp3",
+                    "Iops": 3000,
+                    "Throughput": 125,
+                },
+            },
+        ],
+        "ImageId": ec2_instance_ami,
+        "InstanceType": ec2_instance_type,
+        "IamInstanceProfile": {"Name": ec2_instance_role_name},
+        "KeyName": ec2_key_name,
+        "MaxCount": 2,
+        "MinCount": 2,
+        "TagSpecifications": [
+            {"ResourceType": "instance", "Tags": [{"Key": "Name", "Value": instance_name_prefix}]}
+        ],
+    }
+    response = ec2_utils.launch_efa_instances_with_retry(
+        ec2_client, ec2_instance_type, availability_zone_options, ec2_run_instances_definition
+    )
+
+    instances = response["Instances"]
+
+    def terminate_efa_instances():
+        ec2_client.terminate_instances(
+            InstanceIds=[instance_info["InstanceId"] for instance_info in instances]
+        )
+
+    request.addfinalizer(terminate_efa_instances)
+
+    master_instance_id = instances[0]["InstanceId"]
+    ec2_utils.check_instance_state(master_instance_id, state="running", region=region)
+    ec2_utils.check_system_state(
+        master_instance_id, system_status="ok", instance_status="ok", region=region
+    )
+    print(f"Master instance {master_instance_id} is ready")
+
+    if len(instances) > 1:
+        ec2_utils.create_name_tags_for_instance(
+            master_instance_id, f"{instance_name_prefix}_master", region
+        )
+        for i in range(1, len(instances)):
+            worker_instance_id = instances[i]["InstanceId"]
+            ec2_utils.create_name_tags_for_instance(
+                worker_instance_id, f"{instance_name_prefix}_worker_{i}", region
+            )
+            ec2_utils.check_instance_state(worker_instance_id, state="running", region=region)
+            ec2_utils.check_system_state(
+                worker_instance_id, system_status="ok", instance_status="ok", region=region
+            )
+            print(f"Worker instance {worker_instance_id} is ready")
+
+    num_efa_interfaces = ec2_utils.get_num_efa_interfaces_for_instance_type(
+        ec2_instance_type, region=region
+    )
+    if num_efa_interfaces > 1:
+        # p4d instances require attaching elastic ip to connect to them
+        elastic_ip_allocation_ids = []
+        # create and attach network interfaces and elastic ips to all instances
+        for instance in instances:
+            instance_id = instance["InstanceId"]
+
+            network_interface_id = ec2_utils.get_network_interface_id(instance_id, region)
+
+            elastic_ip_allocation_id = ec2_utils.attach_elastic_ip(network_interface_id, region)
+            elastic_ip_allocation_ids.append(elastic_ip_allocation_id)
+
+        def elastic_ips_finalizer():
+            ec2_utils.delete_elastic_ips(elastic_ip_allocation_ids, ec2_client)
+
+        request.addfinalizer(elastic_ips_finalizer)
+
+    return_val = [(instance_info["InstanceId"], key_filename) for instance_info in instances]
+    LOGGER.info(f"Launched EFA Test instances - {[instance_id for instance_id, _ in return_val]}")
+
+    return return_val
+
+
+@pytest.fixture(scope="function")
+def efa_ec2_connections(request, efa_ec2_instances, ec2_key_name, ec2_instance_type, region):
+    """
+    Fixture to establish connection with EC2 instance if necessary
+    :param request: pytest test request
+    :param efa_ec2_instances: efa_ec2_instances pytest fixture
+    :param ec2_key_name: unique key name
+    :param ec2_instance_type: ec2_instance_type pytest fixture
+    :param region: Region where ec2 instance is launched
+    :return: Fabric connection object
+    """
+    master_instance_id, master_instance_pem_file = efa_ec2_instances[0]
+    worker_instances = [
+        {
+            "worker_instance_id": worker_instance_id,
+            "worker_instance_pem_file": worker_instance_pem_file,
+        }
+        for worker_instance_id, worker_instance_pem_file in efa_ec2_instances[1:]
+    ]
+
+    user_name = ec2_utils.get_instance_user(master_instance_id, region=region)
+    master_public_ip = ec2_utils.get_public_ip(master_instance_id, region)
+    LOGGER.info(f"Instance master_ip_address: {master_public_ip}")
+    master_connection = Connection(
+        user=user_name,
+        host=master_public_ip,
+        connect_kwargs={"key_filename": [master_instance_pem_file]},
+        connect_timeout=18000,
+    )
+
+    worker_instance_connections = []
+    for instance in worker_instances:
+        worker_instance_id = instance["worker_instance_id"]
+        worker_instance_pem_file = instance["worker_instance_pem_file"]
+        worker_public_ip = ec2_utils.get_public_ip(worker_instance_id, region)
+        LOGGER.info(f"Instance worker_ip_address: {worker_public_ip}")
+        worker_connection = Connection(
+            user=user_name,
+            host=worker_public_ip,
+            connect_kwargs={"key_filename": [worker_instance_pem_file]},
+            connect_timeout=18000,
+        )
+        worker_instance_connections.append(worker_connection)
+
+    random.seed(f"{datetime.datetime.now().strftime('%Y%m%d%H%M%S%f')}")
+    unique_id = random.randint(1, 100000)
+
+    artifact_folder = f"{ec2_key_name}-{unique_id}-folder"
+    s3_test_artifact_location = test_utils.upload_tests_to_s3(artifact_folder)
+
+    def delete_s3_artifact_copy():
+        test_utils.delete_uploaded_tests_from_s3(s3_test_artifact_location)
+
+    request.addfinalizer(delete_s3_artifact_copy)
+
+    master_connection.run("rm -rf $HOME/container_tests")
+    master_connection.run(
+        f"aws s3 cp --recursive {test_utils.TEST_TRANSFER_S3_BUCKET}/{artifact_folder} $HOME/container_tests"
+    )
+    master_connection.run(
+        f"mkdir -p $HOME/container_tests/logs && chmod -R +x $HOME/container_tests/*"
+    )
+    for worker_connection in worker_instance_connections:
+        worker_connection.run("rm -rf $HOME/container_tests")
+        worker_connection.run(
+            f"aws s3 cp --recursive {test_utils.TEST_TRANSFER_S3_BUCKET}/{artifact_folder} $HOME/container_tests"
+        )
+        worker_connection.run(
+            f"mkdir -p $HOME/container_tests/logs && chmod -R +x $HOME/container_tests/*"
+        )
+
+    return [master_connection, *worker_instance_connections]
 
 
 @pytest.mark.timeout(300)
@@ -313,6 +526,7 @@ def ec2_instance(
     region,
     ei_accelerator_type,
 ):
+    _validate_p4de_usage(request, ec2_instance_type)
     if ec2_instance_type == "p3dn.24xlarge":
         region = P3DN_REGION
         ec2_client = boto3.client(
@@ -908,6 +1122,9 @@ def pytest_configure(config):
         "markers", "processor(cpu/gpu/eia/hpu): explicitly mark which processor is used"
     )
     config.addinivalue_line("markers", "efa(): explicitly mark to run efa tests")
+    config.addinivalue_line(
+        "markers", "allow_p4de_use(): explicitly mark to allow test to use p4de instance types"
+    )
 
 
 def pytest_runtest_setup(item):
@@ -1165,6 +1382,7 @@ def pytest_generate_tests(metafunc):
             # Parametrize tests that spin up an ecs cluster or tests that spin up an EC2 instance with a unique name
             values_to_generate_for_fixture = {
                 "ecs_container_instance": "ecs_cluster_name",
+                "efa_ec2_connections": "ec2_key_name",
                 "ec2_connection": "ec2_key_name",
             }
 
