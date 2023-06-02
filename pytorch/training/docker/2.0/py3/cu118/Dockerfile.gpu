@@ -122,7 +122,7 @@ RUN /opt/conda/bin/mamba install -y --override-channels \
   pytorch-cuda=11.8 cuda-toolkit=11.8 \
   && /opt/conda/bin/mamba install -y -c conda-forge \
     pyopenssl \
-    requests>=2.31.0  \
+    requests  \
     libgcc \
     pybind11 \
     cmake \
@@ -285,6 +285,12 @@ RUN /opt/conda/bin/mamba install -y -c conda-forge \
 # explicitly install triton build-time dependencies, which won't get installed by conda for some reason
   cmake \
   lit
+
+# Patches
+RUN /opt/conda/bin/mamba install -y -c conda-forge \
+  requests>=2.31.0
+
+RUN pip install "pillow>=9.5"
 
 # Install Nvidia Apex (needs pytorch)
 ## Pin apex commit requested by sm-model-parallel team

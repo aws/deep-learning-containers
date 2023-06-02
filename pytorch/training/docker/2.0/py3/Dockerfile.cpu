@@ -194,6 +194,12 @@ RUN /opt/conda/bin/mamba install -y pytorch=${PYTORCH_VERSION_EC2} \
   -c https://aws-ml-conda-ec2.s3.us-west-2.amazonaws.com \
   -c conda-forge
 
+# Patches
+RUN /opt/conda/bin/mamba install -y -c conda-forge \
+  requests>=2.31.0
+
+RUN pip install "pillow>=9.5"
+
 # install fastai (depends on PyTorch)
 RUN /opt/conda/bin/mamba install -y -c conda-forge \
   # needed by fastai.distributed
