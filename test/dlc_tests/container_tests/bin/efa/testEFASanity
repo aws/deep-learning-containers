@@ -1,0 +1,27 @@
+#!/bin/bash
+# Copyright 2020 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+
+set -ex
+
+export PATH=/opt/amazon/efa/bin:$PATH
+
+# check if efa components are correctly installed
+cat /opt/amazon/efa_installed_packages
+
+# check Libfabric EFA interfaces
+fi_info -p efa
+fi_info -p efa -t FI_EP_RDM | grep 'FI_EP_RDM'
+
+apt-get update && apt-get install -y kmod
+
+# check if ib_uverbs is present
+lsmod | grep ib_uverbs
+
+# ensure that the security group created is configured correctly
+/test/bin/efa/efa_test.sh
+
+# Queries local RDMA devices
+ibv_devinfo
+
+# check if gdr device is loaded
+grep -e '^1$' /sys/class/infiniband/**/device/gdr
