@@ -62,11 +62,13 @@ def test_neuron_hosting(framework_version, ecr_image, instance_type, sagemaker_r
 @pytest.mark.model("resnet")
 @pytest.mark.processor("neuronx")
 @pytest.mark.parametrize(
-    "instance_type,sagemaker_regions",
+    "instance_type, sagemaker_regions",
     [("ml.trn1.2xlarge", ["us-east-1"]), ("ml.inf2.xlarge", ["us-east-2"])],
 )
 @pytest.mark.neuronx_test
 def test_neuronx_hosting(framework_version, ecr_image, instance_type, sagemaker_regions):
+    if "neuronx" not in ecr_image:
+        pytest.skip("Not a NeuronX DLC")
     model_dir = os.path.join(model_neuronx_dir, "model-resnet.tar.gz")
     function_args = {
         "framework_version": framework_version,
@@ -86,11 +88,13 @@ def test_neuronx_hosting(framework_version, ecr_image, instance_type, sagemaker_
 @pytest.mark.model("resnet")
 @pytest.mark.processor("neuronx")
 @pytest.mark.parametrize(
-    "instance_type,sagemaker_regions",
+    "instance_type, sagemaker_regions",
     [("ml.trn1.2xlarge", ["us-east-1"]), ("ml.inf2.xlarge", ["us-east-2"])],
 )
 @pytest.mark.neuronx_test
 def test_neuronx_hosting_no_script(framework_version, ecr_image, instance_type, sagemaker_regions):
+    if "neuronx" not in ecr_image:
+        pytest.skip("Not a NeuronX DLC")
     model_dir = os.path.join(model_neuronx_dir, "model-resnet.tar.gz")
     function_args = {
         "framework_version": framework_version,
