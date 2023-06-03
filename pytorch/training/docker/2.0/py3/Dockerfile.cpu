@@ -195,10 +195,9 @@ RUN /opt/conda/bin/mamba install -y pytorch=${PYTORCH_VERSION_EC2} \
   -c conda-forge
 
 # Patches
-RUN /opt/conda/bin/mamba install -y -c conda-forge \
-  requests>=2.31.0
-
 RUN pip install "pillow>=9.5"
+RUN /opt/conda/bin/mamba install -y -c conda-forge \
+  requests==2.31.0
 
 # install fastai (depends on PyTorch)
 RUN /opt/conda/bin/mamba install -y -c conda-forge \

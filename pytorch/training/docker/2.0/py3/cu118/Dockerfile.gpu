@@ -287,10 +287,9 @@ RUN /opt/conda/bin/mamba install -y -c conda-forge \
   lit
 
 # Patches
-RUN /opt/conda/bin/mamba install -y -c conda-forge \
-  requests>=2.31.0
-
 RUN pip install "pillow>=9.5"
+RUN /opt/conda/bin/mamba install -y -c conda-forge \
+  requests==2.31.0
 
 # Install Nvidia Apex (needs pytorch)
 ## Pin apex commit requested by sm-model-parallel team
