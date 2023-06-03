@@ -24,6 +24,7 @@ def test_remote_function(training):
 
     ctx.run(
         f"docker run -itd --name {container_name} "
+        f"-v ~/.aws:/root/.aws "
         f"--mount type=bind,src=$(pwd)/container_tests,target=/test"
         f" --entrypoint='/bin/bash' "
         f"--env SAGEMAKER_INTERNAL_IMAGE_URI={training} "
@@ -32,7 +33,7 @@ def test_remote_function(training):
     )
     try:
         test_utils.run_cmd_on_container(
-            container_name, ctx, "python /test/bin/test_remote_function.py"
+            container_name, ctx, "python /test/bin/test_remote_function.py", timeout=240
         )
     finally:
         test_utils.stop_and_remove_container(container_name, ctx)
