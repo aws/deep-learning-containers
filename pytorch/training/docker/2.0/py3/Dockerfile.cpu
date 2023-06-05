@@ -109,7 +109,6 @@ RUN curl -L -o ~/mambaforge.sh https://github.com/conda-forge/miniforge/releases
 
 # install core conda dependency packages (and pin essential packages)
 RUN /opt/conda/bin/mamba install -y --override-channels \
-    -c https://aws-ml-conda-ec2.s3.us-west-2.amazonaws.com \
     -c conda-forge \
     conda=23.1.0 \
     "cryptography>39.0.0" \
@@ -138,8 +137,6 @@ RUN /opt/conda/bin/mamba install -y --override-channels \
     pyyaml \
     scipy \
     click \
-    # patch CVE
-    "pillow>=9.4" \
     psutil \
     ipython \
     # Adding package for studio kernels
@@ -197,7 +194,7 @@ RUN /opt/conda/bin/mamba install -y pytorch=${PYTORCH_VERSION_EC2} \
 # Patches
 RUN pip install "pillow>=9.5"
 RUN /opt/conda/bin/mamba install -y -c conda-forge \
-  requests==2.31.0
+  "requests>=2.31.0"
 
 # install fastai (depends on PyTorch)
 RUN /opt/conda/bin/mamba install -y -c conda-forge \
@@ -307,6 +304,10 @@ RUN /opt/conda/bin/mamba install -y -c conda-forge \
   shap \
  && /opt/conda/bin/mamba clean -afy
 
+# Patches
+RUN pip install "pillow>=9.5"
+RUN /opt/conda/bin/mamba install -y -c conda-forge \
+  "requests>=2.31.0"
 
 RUN HOME_DIR=/root \
  && curl -o ${HOME_DIR}/oss_compliance.zip https://aws-dlinfra-utilities.s3.amazonaws.com/oss_compliance.zip \
