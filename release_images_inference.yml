@@ -1,19 +1,6 @@
 ---
 release_images:
   1:
-    framework: "huggingface_pytorch"
-    version: "2.0.0"
-    arch_type: "x86"
-    hf_transformers: "4.28.1"
-    inference:
-      device_types: [ "cpu", "gpu" ]
-      python_versions: [ "py310" ]
-      os_version: "ubuntu20.04"
-      cuda_version: "cu118"
-      example: False
-      disable_sm_tag: False
-      force_release: True
-  2:
     framework: "pytorch"
     version: "2.0.1"
     customer_type: "ec2"
@@ -26,7 +13,7 @@ release_images:
       example: False
       disable_sm_tag: False
       force_release: False
-  3:
+  2:
     framework: "pytorch"
     version: "2.0.1"
     customer_type: "sagemaker"
@@ -39,7 +26,7 @@ release_images:
       example: False
       disable_sm_tag: False
       force_release: False
-  4:
+  3:
     framework: "pytorch"
     version: "2.0.1"
     customer_type: "ec2"
@@ -51,7 +38,7 @@ release_images:
       example: False
       disable_sm_tag: False
       force_release: False
-  5:
+  4:
     framework: "pytorch"
     version: "2.0.1"
     customer_type: "sagemaker"
