@@ -4,7 +4,7 @@ import re
 import pytest
 import yaml
 
-from test.test_utils import is_pr_context
+from test.test_utils import is_pr_context, get_repository_local_path
 
 
 @pytest.mark.quick_checks
@@ -34,10 +34,7 @@ def _release_images_yml_verifier(image_type, excluded_image_type):
     Simple test to ensure release images yml file is loadable
     Also test that excluded_image_type is not present in the release yml file
     """
-    # Look up the path until deep-learning-containers is our base directory
-    dlc_base_dir = os.getcwd()
-    while os.path.basename(dlc_base_dir) != "deep-learning-containers":
-        dlc_base_dir = os.path.split(dlc_base_dir)[0]
+    dlc_base_dir = get_repository_local_path()
 
     release_images_yml_file = os.path.join(dlc_base_dir, f"release_images_{image_type}.yml")
 
