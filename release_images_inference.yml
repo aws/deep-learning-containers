@@ -39,4 +39,4 @@ release_images:
       cuda_version: "cu118"
       example: False
       disable_sm_tag: False
-      force_release: False
+      force_release: True
