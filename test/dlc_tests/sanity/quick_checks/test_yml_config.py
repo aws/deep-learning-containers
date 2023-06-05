@@ -34,7 +34,6 @@ def _release_images_yml_verifier(image_type, excluded_image_type):
     Simple test to ensure release images yml file is loadable
     Also test that excluded_image_type is not present in the release yml file
     """
-    # Look up the path until deep-learning-containers is our base directory
     dlc_base_dir = get_repository_local_path()
 
     release_images_yml_file = os.path.join(dlc_base_dir, f"release_images_{image_type}.yml")
