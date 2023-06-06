@@ -4,10 +4,10 @@ docker-compose
 flake8==3.7.7
 Flask==1.1.1
 mock==2.0.0
-pytest==4.4.0
-pytest-cov==2.7.1
-pytest-rerunfailures==8.0
-pytest-xdist==1.28.0
+pytest
+pytest-cov
+pytest-rerunfailures
+pytest-xdist
 PyYAML==5.4
 sagemaker>=2,<3
 six==1.12.0
