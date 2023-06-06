@@ -24,7 +24,7 @@ def test_remote_function(training):
 
     ctx.run(
         f"docker run -itd --name {container_name} "
-        f"-v ~/.aws:/root/.aws "
+        f"-e AWS_DEFAULT_REGION -e AWS_CONTAINER_CREDENTIALS_RELATIVE_URI "
         f"--mount type=bind,src=$(pwd)/container_tests,target=/test"
         f" --entrypoint='/bin/bash' "
         f"--env SAGEMAKER_INTERNAL_IMAGE_URI={training} "
