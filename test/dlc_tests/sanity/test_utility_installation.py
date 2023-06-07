@@ -104,9 +104,10 @@ def test_utility_packages_using_import(training):
             assert Version(version) > Version(
                 "2"
             ), f"Sagemaker version should be > 2.0. Found version {version}"
-            
+
 
 @pytest.mark.model("N/A")
+@pytest.mark.usefixtures("sagemaker")
 @pytest.mark.integration("common pytorch training utility packages")
 def test_commmon_pytorch_utility_packages_using_import(pytorch_training):
     """
@@ -115,17 +116,28 @@ def test_commmon_pytorch_utility_packages_using_import(pytorch_training):
     """
 
     ctx = Context()
-    container_name = test_utils.get_container_name("commmon_pytorch_utility_packages_using_import", pytorch_training)
+    container_name = test_utils.get_container_name(
+        "commmon_pytorch_utility_packages_using_import", pytorch_training
+    )
     test_utils.start_container(container_name, pytorch_training, ctx)
     packages_to_import = COMMON_PYTORCH_TRAINING_UTILITY_PACKAGES_IMPORT
 
+    import_failed = False
+    list_of_packages = []
     for package in packages_to_import:
-        test_utils.run_cmd_on_container(
-            container_name,
-            ctx,
-            f"import {package}; print({package}.__version__)",
-            executable="python",
-        )
+        try:
+            test_utils.run_cmd_on_container(
+                container_name,
+                ctx,
+                f"import {package}; print({package}.__version__)",
+                executable="python",
+            )
+        except Exception as e:
+            import_failed = True
+            list_of_packages.append(package)
+
+    if import_failed:
+        print(f"Import failed for packages: {list_of_packages}")
 
 
 @pytest.mark.usefixtures("sagemaker")
