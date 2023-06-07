@@ -3,7 +3,7 @@ import re
 
 import pytest
 
-from test.test_utils import is_pr_context
+from test.test_utils import is_pr_context, get_repository_local_path
 
 
 @pytest.mark.quick_checks
@@ -22,10 +22,7 @@ def test_train_inference_buildspec():
 
     Framework buildspecs are expected to follow buildspec<any_chars>.yml
     """
-    # Look up the path until deep-learning-containers is our base directory
-    dlc_base_dir = os.getcwd()
-    while os.path.basename(dlc_base_dir) != "deep-learning-containers":
-        dlc_base_dir = os.path.split(dlc_base_dir)[0]
+    dlc_base_dir = get_repository_local_path()
 
     # Regex definitions for buildspec matching
     buildspec_pattern = re.compile(r"buildspec\S*\.yml")

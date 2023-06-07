@@ -40,6 +40,14 @@ def run_test_job(commit, codebuild_project, images_str=""):
     with open(test_env_file) as test_env_file:
         env_overrides = json.load(test_env_file)
 
+    # For SM tests, if EFA_DEDICATED is True, test job will only launch SM Remote EFA tests,
+    # or else will only launch standard/rc tests.
+    # For EC2 tests, if EFA_DEDICATED is True, test job will launch both EFA and non-EFA tests,
+    # or else will only launch non-EFA tests.
+    is_test_efa_dedicated = (
+        config.are_sm_efa_tests_enabled() and "sagemaker" in codebuild_project
+    ) or (config.is_ec2_efa_test_enabled() and "ec2" in codebuild_project)
+
     pr_num = os.getenv("PR_NUMBER")
     LOGGER.debug(f"pr_num {pr_num}")
     env_overrides.extend(
@@ -64,7 +72,7 @@ def run_test_job(commit, codebuild_project, images_str=""):
             # If EFA_DEDICATED is True, only launch SM Remote EFA tests, else only launch standard/rc tests
             {
                 "name": "EFA_DEDICATED",
-                "value": str(config.are_efa_tests_enabled()),
+                "value": str(is_test_efa_dedicated),
                 "type": "PLAINTEXT",
             },
             # SM_EFA_TEST_INSTANCE_TYPE is passed to SM test job to pick a matching instance type as defined by user

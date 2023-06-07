@@ -153,20 +153,20 @@ RUN rm -rf /root/micromamba/
 # once conda fixes the issue
 RUN rm -rf /opt/conda/lib/libtinfo.so.6
 
-RUN pip install --no-cache-dir --upgrade pip --trusted-host pypi.org --trusted-host files.pythonhosted.org \	
- && ln -s /opt/conda/bin/pip /usr/local/bin/pip3 \	
- && pip install --no-cache-dir -U \	
-    "awscli>1.27,<2" \	
-    boto3 \	
-    "click==8.1.2,<9" \	
+RUN pip install --no-cache-dir --upgrade pip --trusted-host pypi.org --trusted-host files.pythonhosted.org \
+ && ln -s /opt/conda/bin/pip /usr/local/bin/pip3 \
+ && pip install --no-cache-dir -U \
+    "awscli>1.27,<2" \
+    boto3 \
+    "click==8.1.2,<9" \
     "cryptography>39,<40" \
-    ipython \	
-    "opencv-python>=4.6.0,<4.7" \	
+    ipython \
+    "opencv-python>=4.6.0,<4.7" \
     packaging \
     Pillow \
-    "psutil>=5.9.4,<5.10" \	
-    "pyyaml>=5.4,<5.5" \	
-    "scipy>=1.9.3,<2"	
+    "psutil>=5.9.4,<5.10" \
+    "pyyaml>=5.4,<5.5" \
+    "scipy>=1.9.3,<2"
 
 COPY deep_learning_container.py /usr/local/bin/deep_learning_container.py
 
@@ -185,7 +185,7 @@ RUN rm -rf /root/.cache | true
 # |_____\____|_____| |___|_| |_| |_|\__,_|\__, |\___|
 #                                         |___/
 #  ____           _
-# |  _ \ ___  ___(_)_ __   ___ 
+# |  _ \ ___  ___(_)_ __   ___
 # | |_) / _ \/ __| | '_ \ / _ \
 # |  _ <  __/ (__| | |_) |  __/
 # |_| \_\___|\___|_| .__/ \___|
@@ -288,7 +288,7 @@ RUN pip install --no-cache-dir --upgrade pip --trusted-host pypi.org --trusted-h
 
 # Install smdebug from souce
 RUN cd /tmp \
-  && git clone https://github.com/awslabs/sagemaker-debugger --branch ${SMDEBUG_VERSION} --depth 1 --single-branch \ 
+  && git clone https://github.com/awslabs/sagemaker-debugger --branch ${SMDEBUG_VERSION} --depth 1 --single-branch \
   && cd sagemaker-debugger \
   && pip install . \
   && rm -rf /tmp/*

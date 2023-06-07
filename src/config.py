@@ -48,6 +48,10 @@ def is_ec2_test_enabled():
     return parse_dlc_developer_configs("test", "ec2_tests")
 
 
+def is_ec2_efa_test_enabled():
+    return parse_dlc_developer_configs("test", "ec2_efa_tests")
+
+
 def is_ecs_test_enabled():
     return parse_dlc_developer_configs("test", "ecs_tests")
 
@@ -121,7 +125,7 @@ def is_sm_remote_test_enabled():
     return False
 
 
-def are_efa_tests_enabled():
+def are_sm_efa_tests_enabled():
     sm_remote_value = get_sagemaker_remote_tests_config_value()
     return sm_remote_value == AllowedSMRemoteConfigValues.EFA.value
 
