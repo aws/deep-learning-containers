@@ -113,7 +113,7 @@ dlc-pr-tensorflow-2-habana-training = ""
 
 # Standard Framework Inference
 dlc-pr-mxnet-inference = ""
-dlc-pr-pytorch-inference = "stabilityai/pytorch/inference/buildspec-stabilityai.yml"
+dlc-pr-pytorch-inference = "stabilityai/pytorch/inference/buildspec.yml"
 dlc-pr-tensorflow-2-inference = ""
 dlc-pr-autogluon-inference = ""
 
