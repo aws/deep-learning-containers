@@ -242,7 +242,7 @@ HuggingFace Text Generation Inference Containers
 
 | Framework                          | Job Type   | CPU/GPU | Python Version Options | Example URL                                                                                                                |
 |------------------------------------|------------|---------|------------------------|----------------------------------------------------------------------------------------------------------------------------|
-| PyTorch 2.0.0 with HuggingFace TGI | inference  | GPU     | 3.9 (py39)             | 763104351884.dkr.ecr.us-east-1.amazonaws.com/huggingface-pytorch-tgi-inference:2.0.0-tgi0.6.0-gpu-py39-cu118-ubuntu20.04   |
+| PyTorch 2.0.0 with HuggingFace TGI | inference  | GPU     | 3.9 (py39)             | 763104351884.dkr.ecr.us-east-1.amazonaws.com/huggingface-pytorch-tgi-inference:2.0.0-tgi0.8.2-gpu-py39-cu118-ubuntu20.04   |
 
 HuggingFace Neuron/NeuronX Inference Containers
 ===============================
