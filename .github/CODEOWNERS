@@ -9,7 +9,7 @@
 
 
 # Common files that is managed by multiple owners
-available_images.md @aws/dl-containers @aws/dlc-autogluon-reviewers @aws/dlc-neuron-reviewers @aws/dlc-eia-reviewers @aws/dlc-trcomp-reviewers
+available_images.md @aws/dl-containers @aws/dlc-autogluon-reviewers @aws/dlc-neuron-reviewers @aws/dlc-eia-reviewers @aws/dlc-trcomp-reviewers @aws/dlc-lmi-reviewers
 release_images_inference.yml @aws/dl-containers @aws/dlc-autogluon-reviewers @aws/dlc-neuron-reviewers @aws/dlc-eia-reviewers @aws/dlc-trcomp-reviewers
 release_images_training.yml @aws/dl-containers @aws/dlc-autogluon-reviewers @aws/dlc-neuron-reviewers @aws/dlc-eia-reviewers @aws/dlc-trcomp-reviewers
 .release_images_template.yml @aws/dl-containers @aws/dlc-autogluon-reviewers @aws/dlc-neuron-reviewers @aws/dlc-eia-reviewers @aws/dlc-trcomp-reviewers
