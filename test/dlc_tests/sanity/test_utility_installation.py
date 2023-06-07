@@ -137,7 +137,7 @@ def test_commmon_pytorch_utility_packages_using_import(pytorch_training):
             list_of_packages.append(package)
 
     if import_failed:
-        print(f"Import failed for packages: {list_of_packages}")
+        raise f"Import failed for packages: {list_of_packages}"        
 
 
 @pytest.mark.usefixtures("sagemaker")
