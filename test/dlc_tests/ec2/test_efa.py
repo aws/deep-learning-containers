@@ -26,7 +26,7 @@ WORKER_CONTAINER_NAME = "worker_container"
 HOSTS_FILE_LOCATION = "/root/hosts"
 
 EC2_EFA_GPU_INSTANCE_TYPE_AND_REGION = get_efa_ec2_instance_type(
-    default="p3dn.24xlarge",
+    default="p4d.24xlarge",
     filter_function=filter_efa_instance_type,
 )
 
