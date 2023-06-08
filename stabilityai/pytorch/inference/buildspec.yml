@@ -1,6 +1,7 @@
 account_id: &ACCOUNT_ID <set-$ACCOUNT_ID-in-environment>
 region: &REGION <set-$REGION-in-environment>
-framework: &FRAMEWORK pytorch
+base_framework: &BASE_FRAMEWORK pytorch
+framework: &FRAMEWORK !join [ "stabilityai_", *BASE_FRAMEWORK]
 version: &VERSION 2.0.1
 short_version: &SHORT_VERSION "2.0"
 arch_type: x86
@@ -8,8 +9,8 @@ arch_type: x86
 repository_info:
   inference_repository: &INFERENCE_REPOSITORY
     image_type: &INFERENCE_IMAGE_TYPE inference
-    root: !join [ *FRAMEWORK, "/", *INFERENCE_IMAGE_TYPE ]
-    repository_name: &REPOSITORY_NAME !join [pr, "-", *FRAMEWORK, "-", *INFERENCE_IMAGE_TYPE]
+    root: !join [ "stabilityai/", *BASE_FRAMEWORK, "/", *INFERENCE_IMAGE_TYPE ]
+    repository_name: &REPOSITORY_NAME !join [pr, "-", "stabilityai", "-", *BASE_FRAMEWORK, "-", *INFERENCE_IMAGE_TYPE]
     repository: &REPOSITORY !join [ *ACCOUNT_ID, .dkr.ecr., *REGION, .amazonaws.com/, *REPOSITORY_NAME ]
 
 context:
