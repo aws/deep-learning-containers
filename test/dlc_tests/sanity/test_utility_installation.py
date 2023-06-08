@@ -109,18 +109,27 @@ def test_utility_packages_using_import(training):
 @pytest.mark.model("N/A")
 @pytest.mark.usefixtures("sagemaker")
 @pytest.mark.integration("common pytorch training utility packages")
-def test_commmon_pytorch_utility_packages_using_import(pytorch_training):
+def test_common_pytorch_utility_packages_using_import(pytorch_training):
     """
     Verify that common utility packages are installed in the Training DLC image
-    :param training: training ECR image URI
+    :param pytorch_training: training ECR image URI
     """
 
     ctx = Context()
     container_name = test_utils.get_container_name(
-        "commmon_pytorch_utility_packages_using_import", pytorch_training
+        "common_pytorch_utility_packages_using_import", pytorch_training
     )
     test_utils.start_container(container_name, pytorch_training, ctx)
-    packages_to_import = COMMON_PYTORCH_TRAINING_UTILITY_PACKAGES_IMPORT
+    packages_to_import = COMMON_PYTORCH_TRAINING_UTILITY_PACKAGES_IMPORT.copy()
+
+    # Exceptions for certain types of PyTorch Training DLCs
+    _, framework_version = test_utils.get_framework_and_version_from_tag(pytorch_training)
+    if Version(framework_version) < Version("2.0"):
+        # These packages are only installed for PT versions >=2.0
+        for package_name in ["torchtext", "ipykernel"]:
+            packages_to_import.remove(package_name)
+        if test_utils.get_processor_from_image_uri(pytorch_training) == "cpu":
+            packages_to_import.remove("pybind11")
 
     import_failed = False
     list_of_packages = []
