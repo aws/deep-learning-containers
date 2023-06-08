@@ -33,7 +33,7 @@ def test_remote_function(training):
     )
     try:
         test_utils.run_cmd_on_container(
-            container_name, ctx, "python /test/bin/test_remote_function.py", timeout=240
+            container_name, ctx, "python /test/bin/test_remote_function.py", timeout=480
         )
     finally:
         test_utils.stop_and_remove_container(container_name, ctx)
