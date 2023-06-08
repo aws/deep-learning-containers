@@ -59,7 +59,7 @@ images:
   #     <<: *INFERENCE_CONTEXT
   BuildStabilityaiPytorchCpuPy310InferenceDockerImage:
     <<: *INFERENCE_REPOSITORY
-    build: &PYTORCH_CPU_INFERENCE_PY3 false
+    build: &STABILITYAI_PYTORCH_CPU_INFERENCE_PY3 false
     image_size_baseline: 4900
     device_type: &DEVICE_TYPE cpu
     python_version: &DOCKER_PYTHON_VERSION py3
@@ -72,7 +72,7 @@ images:
       <<: *INFERENCE_CONTEXT
   BuildStabilityaiPytorchGpuPy310InferenceDockerImage:
     <<: *INFERENCE_REPOSITORY
-    build: &PYTORCH_GPU_INFERENCE_PY3 false
+    build: &STABILITYAI_PYTORCH_GPU_INFERENCE_PY3 false
     image_size_baseline: 14000
     device_type: &DEVICE_TYPE gpu
     python_version: &DOCKER_PYTHON_VERSION py3
