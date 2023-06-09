@@ -31,7 +31,7 @@ context:
 images:
   BuildStabilityaiPytorchCpuPy310TrainingDockerImage:
     <<: *TRAINING_REPOSITORY
-    build: &STABILITY_PYTORCH_CPU_TRAINING_PY3 false
+    build: &STABILITYAI_PYTORCH_CPU_TRAINING_PY3 false
     image_size_baseline: 6200
     device_type: &DEVICE_TYPE cpu
     python_version: &DOCKER_PYTHON_VERSION py3
@@ -44,7 +44,7 @@ images:
       <<: *TRAINING_CONTEXT
   BuildStabilityaiPytorchGpuPy310TrainingDockerImage:
     <<: *TRAINING_REPOSITORY
-    build: &STABILITY_PYTORCH_GPU_TRAINING_PY3 false
+    build: &STABILITYAI_PYTORCH_GPU_TRAINING_PY3 false
     image_size_baseline: 21500
     device_type: &DEVICE_TYPE gpu
     python_version: &DOCKER_PYTHON_VERSION py3
