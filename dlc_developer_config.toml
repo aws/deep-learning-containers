@@ -105,6 +105,9 @@ dlc-pr-mxnet-neuron-training = ""
 dlc-pr-pytorch-neuron-training = ""
 dlc-pr-tensorflow-2-neuron-training = ""
 
+# Stability AI Training
+dlc-pr-stabilityai-pytorch-training = ""
+
 # Habana Training
 dlc-pr-pytorch-habana-training = ""
 dlc-pr-tensorflow-2-habana-training = ""
@@ -113,7 +116,7 @@ dlc-pr-tensorflow-2-habana-training = ""
 
 # Standard Framework Inference
 dlc-pr-mxnet-inference = ""
-dlc-pr-pytorch-inference = "stabilityai/pytorch/inference/buildspec.yml"
+dlc-pr-pytorch-inference = ""
 dlc-pr-tensorflow-2-inference = ""
 dlc-pr-autogluon-inference = ""
 
@@ -127,6 +130,9 @@ dlc-pr-tensorflow-2-neuron-inference = ""
 dlc-pr-huggingface-tensorflow-inference = ""
 dlc-pr-huggingface-pytorch-inference = ""
 dlc-pr-huggingface-pytorch-neuron-inference = ""
+
+# Stability AI Inference
+dlc-pr-stabilityai-pytorch-inference = ""
 
 # Graviton Inference
 dlc-pr-mxnet-graviton-inference = ""
