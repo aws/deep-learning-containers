@@ -1,17 +1,28 @@
 ---
 release_images:
   1:
-    framework: "huggingface_pytorch"
-    version: "2.0.0"
+    framework: "pytorch"
+    version: "2.0.1"
     arch_type: "x86"
-    hf_transformers: "4.28.1"
+    customer_type: "ec2"
     training:
-      device_types: ["gpu"]
-      python_versions: ["py310"]
-      os_version: "ubuntu20.04"
+      device_types: [ "cpu", "gpu" ]
+      python_versions: [ "py310" ]
       cuda_version: "cu118"
-      example: False        # [Default: False] Set to True to denote that this image is an Example image
-      disable_sm_tag: False # [Default: False] Set to True to prevent SageMaker Abbreviated Tags from being attached
-                            # to images being published.
-      force_release: True   # [Default: False] Set to True to force images to be published even if the same image
-                            # has already been published. Re-released image will have minor version incremented by 1.
+      os_version: "ubuntu20.04"
+      example: False
+      disable_sm_tag: False
+      force_release: False
+  2:
+    framework: "pytorch"
+    version: "2.0.1"
+    arch_type: "x86"
+    customer_type: "ec2"
+    training:
+      device_types: [ "gpu" ]
+      python_versions: [ "py310" ]
+      cuda_version: "cu118"
+      os_version: "ubuntu20.04"
+      example: True
+      disable_sm_tag: False
+      force_release: False
