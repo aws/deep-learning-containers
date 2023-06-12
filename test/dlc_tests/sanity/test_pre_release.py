@@ -438,8 +438,8 @@ def test_framework_and_cuda_version_gpu(gpu, ec2_connection):
         ), f"Cannot find model server version {tag_framework_version} in {output}"
     else:
         # Framework name may include huggingface
-        if tested_framework.startswith("huggingface_"):
-            tested_framework = tested_framework[len("huggingface_") :]
+        if any([tested_framework.startswith(prefix) for prefix in ["huggingface_", "stabilityai_"]]):
+            tested_framework = "_".join(tested_framework.split("_")[1:])
             # Replace the trcomp string as it is extracted from ECR repo name
             tested_framework = tested_framework.replace("_trcomp", "")
         # Framework name may include trcomp
@@ -691,8 +691,9 @@ def test_cuda_paths(gpu):
 
     python_version = re.search(r"(py\d+)", image).group(1)
     short_python_version = None
+    # _, image_tag = get_repository_and_tag_from_image_uri(image)
     image_tag = re.search(
-        r":(\d+(\.\d+){2}(-transformers|diffuser\d+(\.\d+){2})?-(gpu)-(py\d+)(-cu\d+)-(ubuntu\d+\.\d+)((-ec2)?-example|-ec2|-sagemaker-lite|-sagemaker-full|-sagemaker)?)",
+        r":(\d+(\.\d+){2}(-(transformer|diffuser)\d+(\.\d+){2})?-(gpu)-(py\d+)(-cu\d+)-(ubuntu\d+\.\d+)((-ec2)?-example|-ec2|-sagemaker-lite|-sagemaker-full|-sagemaker)?)",
         image,
     ).group(1)
 
