@@ -260,8 +260,9 @@ def test_framework_version_cpu(image):
 
     tested_framework, tag_framework_version = get_framework_and_version_from_tag(image)
     # Framework name may include huggingface
-    if tested_framework.startswith("huggingface_"):
-        tested_framework = tested_framework[len("huggingface_") :]
+    if any([tested_framework.startswith(prefix) for prefix in ["huggingface_", "stabilityai_"]]):
+        #Remove the prefix till first underscore
+        tested_framework = "_".join(tested_framework.split("_")[1:])
     # Module name is torch
     if tested_framework == "pytorch":
         tested_framework = "torch"
