@@ -227,6 +227,7 @@ def _run_s3_query_bucket_success(image_uri, ec2_client, ec2_instance, ec2_connec
     image_region = test_utils.get_region_from_image_uri(image_uri)
     repo_name, image_tag = test_utils.get_repository_and_tag_from_image_uri(image_uri)
     framework, framework_version = test_utils.get_framework_and_version_from_tag(image_uri)
+    framework = framework.replace("stabilityai_", "")
     framework = framework.replace("_trcomp", "")
     job_type = test_utils.get_job_type_from_image(image_uri)
     processor = test_utils.get_processor_from_image_uri(image_uri)
