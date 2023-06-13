@@ -261,7 +261,7 @@ def test_framework_version_cpu(image):
     tested_framework, tag_framework_version = get_framework_and_version_from_tag(image)
     # Framework name may include huggingface
     if any([tested_framework.startswith(prefix) for prefix in ["huggingface_", "stabilityai_"]]):
-        #Remove the prefix till first underscore
+        # Remove the prefix till first underscore
         tested_framework = "_".join(tested_framework.split("_")[1:])
     # Module name is torch
     if tested_framework == "pytorch":
@@ -438,7 +438,9 @@ def test_framework_and_cuda_version_gpu(gpu, ec2_connection):
         ), f"Cannot find model server version {tag_framework_version} in {output}"
     else:
         # Framework name may include huggingface
-        if any([tested_framework.startswith(prefix) for prefix in ["huggingface_", "stabilityai_"]]):
+        if any(
+            [tested_framework.startswith(prefix) for prefix in ["huggingface_", "stabilityai_"]]
+        ):
             tested_framework = "_".join(tested_framework.split("_")[1:])
             # Replace the trcomp string as it is extracted from ECR repo name
             tested_framework = tested_framework.replace("_trcomp", "")
