@@ -65,7 +65,8 @@ def get_account_id_from_image_uri(image_uri):
 def get_ecr_image_region(ecr_image):
     ecr_registry, _ = ecr_image.split("/")
     region_search = re.search(
-        r"(us(-gov)?|ap|ca|cn|eu|sa|me|af)-(central|(north|south)?(east|west)?)-\d+", ecr_registry
+        r"(us(-gov)?|af|ap|ca|cn|eu|il|me|sa)-(central|(north|south)?(east|west)?)-\d+",
+        ecr_registry,
     )
     return region_search.group()
 
