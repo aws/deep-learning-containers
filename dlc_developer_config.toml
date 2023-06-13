@@ -31,26 +31,26 @@ benchmark_mode = false
 [build]
 # Add in frameworks you would like to build. By default, builds are disabled unless you specify building an image.
 # available frameworks - ["autogluon", "huggingface_tensorflow", "huggingface_pytorch", "huggingface_tensorflow_trcomp", "huggingface_pytorch_trcomp", "pytorch_trcomp", "tensorflow", "mxnet", "pytorch"]
-build_frameworks = ["tensorflow"]
+build_frameworks = []
 
 # By default we build both training and inference containers. Set true/false values to determine which to build.
 build_training = true
 build_inference = true
 
 # Set to false in order to remove datetime tag on PR builds
-datetime_tag = false
+datetime_tag = true
 # Note: Need to build the images at least once with datetime_tag = false
 # before disabling new builds, or tests will fail
 do_build = true
 
 [test]
 ### On by default
-sanity_tests = false
+sanity_tests = true
   safety_check_test = false
   ecr_scan_allowlist_feature = false
-ecs_tests = false
-eks_tests = false
-ec2_tests = false
+ecs_tests = true
+eks_tests = true
+ec2_tests = true
 
 ### EC2 EFA tests are run in EC2 test jobs, so ec2_tests must be true if ec2_efa_tests is true.
 ### Off by default
@@ -65,7 +65,7 @@ sagemaker_local_tests = false
 # "standard" --> run standard sagemaker remote tests from test/sagemaker_tests
 # "rc" --> run release_candidate_integration tests
 # "efa" --> run efa sagemaker tests
-sagemaker_remote_tests = "standard"
+sagemaker_remote_tests = "off"
 
 # SM remote EFA test instance type
 sagemaker_remote_efa_instance_type = ""
