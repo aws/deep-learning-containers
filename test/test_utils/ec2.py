@@ -257,7 +257,7 @@ def launch_instance(
 @retry(
     reraise=True,
     stop=stop_after_delay(30 * 60),  # Keep retrying for 30 minutes
-    wait=wait_random_exponential(min=60, max=10 * 60),  # Retry after waiting 1-10 minutes
+    wait=wait_random_exponential(min=60, max=5 * 60),  # Retry after waiting 1-10 minutes
 )
 def launch_efa_instances_with_retry(
     ec2_client, ec2_instance_type, availability_zone_options, ec2_run_instances_definition
@@ -287,7 +287,7 @@ def launch_efa_instances_with_retry(
             if response and response["Instances"]:
                 break
         except ClientError as e:
-            LOGGER.warning(
+            LOGGER.debug(
                 f"Failed to launch in {availability_zone} due to {e}\n"
                 "Retrying in the next availability zone."
             )

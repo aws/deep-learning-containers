@@ -1,7 +1,8 @@
 ARG PYTHON=python3
 ARG PYTHON_VERSION=3.10.8
 ARG MAMBA_VERSION=22.11.1-4
-ARG PYTORCH_VERSION=2.0.0
+ARG PYTORCH_VERSION_EC2=2.0.1
+ARG PYTORCH_VERSION_SM=2.0.0
 
 FROM ubuntu:20.04 AS base_image
 
@@ -107,7 +108,8 @@ RUN curl -L -o ~/mambaforge.sh https://github.com/conda-forge/miniforge/releases
  && rm ~/mambaforge.sh
 
 # install core conda dependency packages (and pin essential packages)
-RUN /opt/conda/bin/mamba install -y -c conda-forge \
+RUN /opt/conda/bin/mamba install -y --override-channels \
+    -c conda-forge \
     conda=23.1.0 \
     "cryptography>39.0.0" \
     cmake \
@@ -135,8 +137,6 @@ RUN /opt/conda/bin/mamba install -y -c conda-forge \
     pyyaml \
     scipy \
     click \
-    # patch CVE
-    "pillow>=9.4" \
     psutil \
     ipython \
     # Adding package for studio kernels
@@ -185,11 +185,16 @@ ARG PT_TORCHAUDIO_URL
 ARG PT_TORCHDATA_URL
 
 # Install ec2 AWS-PyTorch
-RUN /opt/conda/bin/mamba install -y pytorch=${PYTORCH_VERSION} \
+RUN /opt/conda/bin/mamba install -y pytorch=${PYTORCH_VERSION_EC2} \
   torchvision torchaudio torchtext cpuonly \
   --override-channels \
-  -c https://aws-ml-conda-pre-prod-ec2.s3.us-west-2.amazonaws.com \
+  -c https://aws-ml-conda-ec2.s3.us-west-2.amazonaws.com \
   -c conda-forge
+
+# Patches
+RUN pip install "pillow>=9.5"
+RUN /opt/conda/bin/mamba install -y -c conda-forge \
+  "requests>=2.31.0"
 
 # install fastai (depends on PyTorch)
 RUN /opt/conda/bin/mamba install -y -c conda-forge \
@@ -249,7 +254,7 @@ ARG PT_TORCHAUDIO_URL
 ARG PT_TORCHDATA_URL
 
 # Install SM AWS-PyTorch (force remove will increase the docker image size drastically)
-RUN /opt/conda/bin/mamba install -y pytorch=${PYTORCH_VERSION} \
+RUN /opt/conda/bin/mamba install -y pytorch=${PYTORCH_VERSION_SM} \
   torchvision torchaudio torchtext cpuonly \
   --override-channels \
   -c https://aws-ml-conda-pre-prod-ec2.s3.us-west-2.amazonaws.com \
@@ -299,6 +304,10 @@ RUN /opt/conda/bin/mamba install -y -c conda-forge \
   shap \
  && /opt/conda/bin/mamba clean -afy
 
+# Patches
+RUN pip install "pillow>=9.5"
+RUN /opt/conda/bin/mamba install -y -c conda-forge \
+  "requests>=2.31.0"
 
 RUN HOME_DIR=/root \
  && curl -o ${HOME_DIR}/oss_compliance.zip https://aws-dlinfra-utilities.s3.amazonaws.com/oss_compliance.zip \

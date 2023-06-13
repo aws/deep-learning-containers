@@ -7,7 +7,7 @@ from invoke.context import Context
 
 from test import test_utils
 
-UTILITY_PACKAGES_IMPORT = [
+SM_TRAINING_UTILITY_PACKAGES_IMPORT = [
     "bokeh",
     "imageio",
     "plotly",
@@ -16,6 +16,26 @@ UTILITY_PACKAGES_IMPORT = [
     "pandas",
     "cv2",
     "sagemaker",
+]
+
+COMMON_PYTORCH_TRAINING_UTILITY_PACKAGES_IMPORT = [
+    "torch",
+    "torchvision",
+    "torchtext",
+    "torchaudio",
+    "PIL",
+    "boto3",
+    "awscli",
+    "scipy",
+    "requests",
+    "IPython",
+    "ipykernel",
+    "cryptography",
+    "mpi4py",
+    "pybind11",
+    "click",
+    "psutil",
+    "cv2",
 ]
 
 
@@ -71,7 +91,7 @@ def test_utility_packages_using_import(training):
     if Version(framework_version) < Version(utility_package_minimum_framework_version[framework]):
         pytest.skip("Extra utility packages will be added going forward.")
 
-    packages_to_import = UTILITY_PACKAGES_IMPORT
+    packages_to_import = SM_TRAINING_UTILITY_PACKAGES_IMPORT
 
     for package in packages_to_import:
         version = test_utils.run_cmd_on_container(
@@ -84,6 +104,49 @@ def test_utility_packages_using_import(training):
             assert Version(version) > Version(
                 "2"
             ), f"Sagemaker version should be > 2.0. Found version {version}"
+
+
+@pytest.mark.model("N/A")
+@pytest.mark.usefixtures("sagemaker")
+@pytest.mark.integration("common pytorch training utility packages")
+def test_common_pytorch_utility_packages_using_import(pytorch_training):
+    """
+    Verify that common utility packages are installed in the Training DLC image
+    :param pytorch_training: training ECR image URI
+    """
+
+    ctx = Context()
+    container_name = test_utils.get_container_name(
+        "common_pytorch_utility_packages_using_import", pytorch_training
+    )
+    test_utils.start_container(container_name, pytorch_training, ctx)
+    packages_to_import = COMMON_PYTORCH_TRAINING_UTILITY_PACKAGES_IMPORT.copy()
+
+    # Exceptions for certain types of PyTorch Training DLCs
+    _, framework_version = test_utils.get_framework_and_version_from_tag(pytorch_training)
+    if Version(framework_version) < Version("2.0"):
+        # These packages are only installed for PT versions >=2.0
+        for package_name in ["torchtext", "ipykernel"]:
+            packages_to_import.remove(package_name)
+        if test_utils.get_processor_from_image_uri(pytorch_training) == "cpu":
+            packages_to_import.remove("pybind11")
+
+    import_failed = False
+    list_of_packages = []
+    for package in packages_to_import:
+        try:
+            test_utils.run_cmd_on_container(
+                container_name,
+                ctx,
+                f"import {package}; print({package}.__version__)",
+                executable="python",
+            )
+        except Exception as e:
+            import_failed = True
+            list_of_packages.append(package)
+
+    if import_failed:
+        raise ImportError(f"Import failed for packages: {list_of_packages}")
 
 
 @pytest.mark.usefixtures("sagemaker")

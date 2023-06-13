@@ -571,6 +571,15 @@ def test_pip_check(image):
     gpu_suffix = "-gpu" if "gpu" in image else ""
     allowed_exception_list = []
 
+    # SageMaker Python SDK updated its pyyaml requirement to 6.0, which is incompatible with the
+    # requirement from awscli. awscli only requires pyyaml for ecs/eks related invocations, while
+    # pyyaml usage seems to be more fundamental in sagemaker. Therefore, we are ignoring awscli's
+    # requirement in favor of sagemaker.
+    allowed_awscli_exception = re.compile(
+        r"^awscli \d+(\.\d+)* has requirement PyYAML<5\.5,>=3\.10, but you have pyyaml 6\.0.$"
+    )
+    allowed_exception_list.append(allowed_awscli_exception)
+
     # TF inference containers do not have core tensorflow installed by design. Allowing for this pip check error
     # to occur in order to catch other pip check issues that may be associated with TF inference
     # smclarify binaries have s3fs->aiobotocore dependency which uses older version of botocore. temporarily
