@@ -23,6 +23,7 @@ FRAMEWORKS = {
     "huggingface_tensorflow",
     "huggingface_pytorch",
     "autogluon",
+    "stabilityai_pytorch",
 }
 DEVICE_TYPES = {"cpu", "gpu", "hpu", "eia", "inf", "neuron", "neuronx"}
 IMAGE_TYPES = {"training", "inference"}
