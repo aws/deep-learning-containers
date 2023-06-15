@@ -1299,9 +1299,6 @@ def pytest_generate_tests(metafunc):
                         "huggingface_only" in metafunc.fixturenames
                         or "huggingface" in metafunc.fixturenames
                     ) and "huggingface" in image
-                    # is_stabilityai_lookup = (
-                    #     "stabilityai" in metafunc.fixturenames  and "stabilityai" in image
-                    # )
                     is_trcomp_lookup = "trcomp" in image and all(
                         fixture_name not in metafunc.fixturenames
                         for fixture_name in ["example_only"]
@@ -1347,7 +1344,6 @@ def pytest_generate_tests(metafunc):
                     if (
                         is_example_lookup
                         or is_huggingface_lookup
-                        # or is_stabilityai_lookup
                         or is_standard_lookup
                         or is_trcomp_lookup
                     ):

@@ -406,7 +406,7 @@ def test_framework_and_neuron_sdk_version(neuron):
     stop_and_remove_container(container_name, ctx)
 
 
-@pytest.mark.usefixtures("sagemaker", "huggingface")
+@pytest.mark.usefixtures("sagemaker", "huggingface", "stabilityai")
 @pytest.mark.model("N/A")
 @pytest.mark.parametrize("ec2_instance_type", ["p3.2xlarge"], indirect=True)
 def test_framework_and_cuda_version_gpu(gpu, ec2_connection):
@@ -666,7 +666,7 @@ def test_pip_check(image):
             ctx.run(f"docker run --entrypoint='' {image} pip check", hide=True)
 
 
-@pytest.mark.usefixtures("sagemaker", "huggingface")
+@pytest.mark.usefixtures("sagemaker", "huggingface", "stabilityai")
 @pytest.mark.model("N/A")
 def test_cuda_paths(gpu):
     """
@@ -852,7 +852,7 @@ def test_oss_compliance(image):
                     raise
 
 
-@pytest.mark.usefixtures("sagemaker_only")
+@pytest.mark.usefixtures("sagemaker_only", "stabilityai")
 @pytest.mark.model("N/A")
 def test_pytorch_training_sm_env_variables(pytorch_training):
     env_vars = {"SAGEMAKER_TRAINING_MODULE": "sagemaker_pytorch_container.training:main"}
@@ -864,7 +864,7 @@ def test_pytorch_training_sm_env_variables(pytorch_training):
     )
 
 
-@pytest.mark.usefixtures("sagemaker_only")
+@pytest.mark.usefixtures("sagemaker_only", "stabilityai")
 @pytest.mark.model("N/A")
 def test_pytorch_inference_sm_env_variables(pytorch_inference):
     env_vars = {"SAGEMAKER_SERVING_MODULE": "sagemaker_pytorch_serving_container.serving:main"}
