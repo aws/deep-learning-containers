@@ -1319,7 +1319,11 @@ def pytest_generate_tests(metafunc):
                                 f"Skipping test, as this function is not marked as 'sagemaker_only' or 'sagemaker'"
                             )
                             continue
-                    if "stabilityai" not in metafunc.fixturenames and "stabilityai" in image:
+                    if (
+                        "stabilityai" not in metafunc.fixturenames
+                        and "stabilityai" in image
+                        and os.getenv("TEST_TYPE") != "sanity"
+                    ):
                         LOGGER.info(
                             f"Skipping test, as this function is not marked as 'stabilityai'"
                         )
