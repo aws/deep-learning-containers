@@ -12,9 +12,6 @@ LABEL com.amazonaws.sagemaker.capabilities.multi-models=true
 LABEL maintainer="Amazon AI"
 LABEL dlc_major_version="2"
 
-# PYTORCH_SKIP_CUDNN_COMPATIBILITY_CHECK - see https://github.com/autogluon/autogluon/issues/2534
-ENV PYTORCH_SKIP_CUDNN_COMPATIBILITY_CHECK=1
-
 RUN apt-get update \
  && apt-get -y upgrade \
  && apt-get autoremove -y \

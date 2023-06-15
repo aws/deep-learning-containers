@@ -2,9 +2,6 @@ ARG PYTHON_VERSION=3.9.13
 
 FROM 763104351884.dkr.ecr.us-west-2.amazonaws.com/pytorch-inference:1.13.1-gpu-py39-cu117-ubuntu20.04-sagemaker
 
-# PYTORCH_SKIP_CUDNN_COMPATIBILITY_CHECK - see https://github.com/autogluon/autogluon/issues/2534
-ENV PYTORCH_SKIP_CUDNN_COMPATIBILITY_CHECK=1
-
 # Specify accept-bind-to-port LABEL for inference pipelines to use SAGEMAKER_BIND_TO_PORT
 # https://docs.aws.amazon.com/sagemaker/latest/dg/inference-pipeline-real-time.html
 LABEL com.amazonaws.sagemaker.capabilities.accept-bind-to-port=true
@@ -14,9 +11,6 @@ LABEL com.amazonaws.sagemaker.capabilities.multi-models=true
 
 LABEL maintainer="Amazon AI"
 LABEL dlc_major_version="2"
-
-# PYTORCH_SKIP_CUDNN_COMPATIBILITY_CHECK - see https://github.com/autogluon/autogluon/issues/2534
-ENV PYTORCH_SKIP_CUDNN_COMPATIBILITY_CHECK=1
 
 RUN apt-get update \
  && apt-get -y upgrade \
