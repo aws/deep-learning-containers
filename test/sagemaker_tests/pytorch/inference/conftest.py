@@ -277,6 +277,21 @@ def fixture_ecr_image(docker_registry, docker_base_name, tag):
 
 
 @pytest.fixture(autouse=True)
+def skip_based_on_image_and_marker_combination(request, ecr_image):
+    is_stabilityai_only_test = request.node.get_closest_marker("stabilityai_only") is not None
+    if is_stabilityai_only_test and "stabilityai" not in ecr_image:
+        pytest.skip(
+            f"Skipping because {ecr_image} is not StabilityAI image and the test is supposed to run for only stability images"
+        )
+
+    is_skip_stabilityai_test = request.node.get_closest_marker("skip_stabilityai") is not None
+    if is_skip_stabilityai_test and "stabilityai" in ecr_image:
+        pytest.skip(
+            f"Skipping because {ecr_image} is StabilityAI image and the test is not StabilityAI test."
+        )
+
+
+@pytest.fixture(autouse=True)
 def skip_by_device_type(request, use_gpu, instance_type, accelerator_type):
     is_gpu = use_gpu or instance_type[3] in ["g", "p"]
     is_eia = accelerator_type is not None
