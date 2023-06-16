@@ -206,7 +206,7 @@ ENV LD_LIBRARY_PATH=$OPEN_MPI_PATH/lib/:$EFA_PATH/lib/:$LD_LIBRARY_PATH
 RUN cd /tmp \
  && git clone https://github.com/NVIDIA/gdrcopy.git -b v${GDRCOPY_VERSION} \
  && cd gdrcopy \
- && sed -ie '12s@$@ -L /usr/local/cuda/lib64/stubs/@' tests/Makefile \
+ && sed -ie '12s@$@ -L /usr/local/cuda/compat/@' tests/Makefile \
  && make install
 
 RUN pip install --no-cache-dir --upgrade pip --no-cache-dir --trusted-host pypi.org --trusted-host files.pythonhosted.org \
