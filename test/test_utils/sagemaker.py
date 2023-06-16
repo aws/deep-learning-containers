@@ -210,10 +210,10 @@ def generate_sagemaker_pytest_cmd(image, sagemaker_test_type):
     test_report = os.path.join(os.getcwd(), "test", f"{job_type}_{tag}.xml")
     local_test_report = os.path.join(UBUNTU_HOME_DIR, "test", f"{job_type}_{tag}_sm_local.xml")
 
-    # In both CI Sagemaker Test CB jobs and DLC Build Pipeline Actions that run SM EFA tests, the env variable
-    # "EFA_DEDICATED=True" must be configured so that those Actions only run the EFA tests.
-    # This is change from the previous system where only setting env variable "DISABLE_EFA_TESTS=False" would enable
-    # regular SM tests as well as SM EFA tests.
+    # In both CI Sagemaker Test CB jobs and DLC Build Pipeline Actions that run SM EFA tests,
+    # the env variable "EFA_DEDICATED=True" must be configured so that those Actions only run
+    # the EFA tests. This is change from the previous system where only setting env variable
+    # "DISABLE_EFA_TESTS=False" would enable regular SM tests as well as SM EFA tests.
     efa_flag = "--efa" if is_test_job_efa_dedicated() else '-m "not efa"'
 
     region_list = SAGEMAKER_EXECUTION_REGIONS
@@ -226,9 +226,11 @@ def generate_sagemaker_pytest_cmd(image, sagemaker_test_type):
     sagemaker_regions_list = f"--sagemaker-regions {region_list_str}"
 
     remote_pytest_cmd = (
-        f"pytest -rA {integration_path} --region {region} --processor {processor} {docker_base_arg} "
-        f"{sm_remote_docker_base_name} --tag {tag} {framework_version_arg} {framework_version} "
-        f"{aws_id_arg} {account_id} {instance_type_arg} {instance_type} {efa_flag} {sagemaker_regions_list} --junitxml {test_report}"
+        f"pytest -s -n=auto -rA {integration_path} --region {region} --processor {processor} "
+        f"{docker_base_arg} {sm_remote_docker_base_name} --tag {tag} "
+        f"{framework_version_arg} {framework_version} {aws_id_arg} {account_id} "
+        f"{instance_type_arg} {instance_type} {efa_flag} {sagemaker_regions_list} "
+        f"--junitxml {test_report}"
     )
 
     if processor == "eia":
