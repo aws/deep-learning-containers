@@ -24,7 +24,7 @@ def test_mnist_distributed_gpu_stabilityai_one(
 @pytest.mark.model("mnist")
 @pytest.mark.processor("gpu")
 @pytest.mark.gpu_test
-@pytest.mark.skip_stabilityai
+@pytest.mark.stabilityai_only
 def test_mnist_distributed_gpu_stabilityai_two(
     framework_version, ecr_image, instance_type, sagemaker_regions
 ):
@@ -34,6 +34,7 @@ def test_mnist_distributed_gpu_stabilityai_two(
 @pytest.mark.model("mnist")
 @pytest.mark.processor("gpu")
 @pytest.mark.gpu_test
+@pytest.mark.stabilityai_only
 def test_mnist_distributed_gpu_stabilityai_three(
     framework_version, ecr_image, instance_type, sagemaker_regions
 ):

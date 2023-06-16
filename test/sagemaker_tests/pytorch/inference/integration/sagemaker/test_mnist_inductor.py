@@ -84,9 +84,11 @@ def test_mnist_distributed_graviton_inductor(
     )
 
 
+##TODO: Remove Skip stability from this
 @pytest.mark.model("mnist")
 @pytest.mark.processor("gpu")
 @pytest.mark.gpu_test
+@pytest.mark.skip_stabilityai
 @pytest.mark.parametrize("instance_type", SM_SINGLE_GPU_INSTANCE_TYPES)
 def test_mnist_distributed_gpu_inductor(
     framework_version, ecr_image, instance_type, sagemaker_regions
