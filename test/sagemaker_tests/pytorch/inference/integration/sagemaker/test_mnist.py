@@ -77,26 +77,6 @@ def test_mnist_distributed_gpu(framework_version, ecr_image, instance_type, sage
 
 
 @pytest.mark.model("mnist")
-@pytest.mark.processor("gpu")
-@pytest.mark.gpu_test
-@pytest.mark.stabilityai_only
-def test_mnist_distributed_gpu_stabilityai(
-    framework_version, ecr_image, instance_type, sagemaker_regions
-):
-    instance_type = instance_type or "ml.p2.xlarge"
-    model_dir = os.path.join(model_cpu_dir, "model_mnist.tar.gz")
-    function_args = {
-        "framework_version": framework_version,
-        "instance_type": instance_type,
-        "model_dir": model_dir,
-        "mnist_script": mnist_gpu_script,
-    }
-    invoke_pytorch_helper_function(
-        ecr_image, sagemaker_regions, _test_mnist_distributed, function_args
-    )
-
-
-@pytest.mark.model("mnist")
 @pytest.mark.integration("elastic_inference")
 @pytest.mark.processor("eia")
 @pytest.mark.eia_test
