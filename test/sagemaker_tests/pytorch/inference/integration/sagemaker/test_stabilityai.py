@@ -15,7 +15,7 @@ LOGGER.addHandler(logging.StreamHandler(sys.stdout))
 @pytest.mark.processor("gpu")
 @pytest.mark.gpu_test
 @pytest.mark.stabilityai_only
-def test_mnist_distributed_gpu_stabilityai(
+def test_mnist_distributed_gpu_stabilityai_one(
     framework_version, ecr_image, instance_type, sagemaker_regions
 ):
     raise Exception("Deliberate error 1")
@@ -25,7 +25,7 @@ def test_mnist_distributed_gpu_stabilityai(
 @pytest.mark.processor("gpu")
 @pytest.mark.gpu_test
 @pytest.mark.skip_stabilityai
-def test_mnist_distributed_gpu_stabilityai(
+def test_mnist_distributed_gpu_stabilityai_two(
     framework_version, ecr_image, instance_type, sagemaker_regions
 ):
     raise Exception("Deliberate error 2")
@@ -34,7 +34,7 @@ def test_mnist_distributed_gpu_stabilityai(
 @pytest.mark.model("mnist")
 @pytest.mark.processor("gpu")
 @pytest.mark.gpu_test
-def test_mnist_distributed_gpu_stabilityai(
+def test_mnist_distributed_gpu_stabilityai_three(
     framework_version, ecr_image, instance_type, sagemaker_regions
 ):
     raise Exception("Deliberate error 3")
