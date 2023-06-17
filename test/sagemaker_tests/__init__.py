@@ -96,7 +96,7 @@ def get_ecr_image(ecr_image, region):
     reraise=True,
     retry=retry_if_exception_type(SMInstanceCapacityError),
     stop=stop_after_delay(20 * 60),
-    wait=wait_fixed(60)
+    wait=wait_fixed(60),
 )
 def invoke_sm_helper_function(ecr_image, sagemaker_regions, test_function, *test_function_args):
     """
@@ -143,7 +143,7 @@ def invoke_sm_helper_function(ecr_image, sagemaker_regions, test_function, *test
     reraise=True,
     retry=retry_if_exception_type(SMInstanceCapacityError),
     stop=stop_after_delay(20 * 60),
-    wait=wait_fixed(60)
+    wait=wait_fixed(60),
 )
 def invoke_sm_endpoint_helper_function(
     ecr_image,

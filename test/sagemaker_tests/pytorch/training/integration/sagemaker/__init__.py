@@ -40,7 +40,7 @@ def upload_s3_data(estimator, path, key_prefix):
     reraise=True,
     retry=retry_if_exception_type(SMInstanceCapacityError),
     stop=stop_after_delay(20 * 60),
-    wait=wait_fixed(60)
+    wait=wait_fixed(60),
 )
 def invoke_pytorch_estimator(
     ecr_image,
@@ -73,9 +73,7 @@ def invoke_pytorch_estimator(
         sagemaker_session = get_sagemaker_session(test_region)
         # Reupload the image to test region if needed
         tested_ecr_image = (
-            get_ecr_image(ecr_image, test_region)
-            if test_region != ecr_image_region
-            else ecr_image
+            get_ecr_image(ecr_image, test_region) if test_region != ecr_image_region else ecr_image
         )
         if "environment" not in estimator_parameter:
             estimator_parameter["environment"] = {"AWS_REGION": test_region}
@@ -118,9 +116,7 @@ def invoke_pytorch_estimator(
     # to run due to ICE errors. In these cases, we are forced to xfail/skip the test, or end up
     # causing pipelines to fail forever. We have approval to skip the test when this type of ICE
     # error occurs for p4de. Will need approval for each new instance type to be added to this list.
-    if any(
-        instance_type in LOW_AVAILABILITY_INSTANCE_TYPES for instance_type in instance_types
-    ):
+    if any(instance_type in LOW_AVAILABILITY_INSTANCE_TYPES for instance_type in instance_types):
         # TODO: xfailed tests do not show up on CodeBuild Test Case Reports. Therefore using "skip"
         #       instead of xfail.
         pytest.skip(f"Failed to launch job due to low capacity on {instance_types}")

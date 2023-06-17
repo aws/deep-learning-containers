@@ -40,6 +40,7 @@ MME3_MODEL_PATHS = [
 ]
 MME4_MODEL_PATHS = ["test/data/mme4/half_plus_three.tar.gz", "test/data/mme4/half_plus_two.tar.gz"]
 
+
 @pytest.fixture(params=os.environ["TEST_VERSIONS"].split(","))
 def version(request):
     return request.param
@@ -86,9 +87,7 @@ def tfs_model(region, boto_session):
 
 @pytest.fixture(scope="session")
 def python_model_with_requirements(region, boto_session):
-    return util.find_or_put_model_data(
-        region, boto_session, MODEL_WITH_REQUIREMENTS_PATH
-    )
+    return util.find_or_put_model_data(region, boto_session, MODEL_WITH_REQUIREMENTS_PATH)
 
 
 @pytest.fixture(scope="session")
@@ -172,9 +171,7 @@ def test_tfs_neuronx_model(
 
 @pytest.mark.integration("batch_transform")
 @pytest.mark.model("unknown_model")
-def test_batch_transform(
-    sagemaker_regions, model_name, image_uri, instance_type
-):
+def test_batch_transform(sagemaker_regions, model_name, image_uri, instance_type):
     if "graviton" in image_uri:
         pytest.skip("Test not supported with Graviton test instance.")
 

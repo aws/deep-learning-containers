@@ -25,7 +25,7 @@ class SMInstanceCapacityError(Exception):
     reraise=True,
     retry=retry_if_exception_type(SMInstanceCapacityError),
     stop=stop_after_delay(20 * 60),
-    wait=wait_fixed(60)
+    wait=wait_fixed(60),
 )
 def invoke_pytorch_helper_function(
     ecr_image, sagemaker_regions, helper_function, helper_function_args
