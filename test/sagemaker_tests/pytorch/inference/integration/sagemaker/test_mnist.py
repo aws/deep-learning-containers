@@ -80,6 +80,7 @@ def test_mnist_distributed_gpu(framework_version, ecr_image, instance_type, sage
 @pytest.mark.integration("elastic_inference")
 @pytest.mark.processor("eia")
 @pytest.mark.eia_test
+@pytest.mark.skip_stabilityai
 def test_mnist_eia(
     framework_version,
     ecr_image,
