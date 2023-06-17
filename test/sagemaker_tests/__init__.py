@@ -18,6 +18,7 @@ import boto3
 import sagemaker
 
 from botocore.config import Config
+from sagemaker.session import Session
 from tenacity import retry, retry_if_exception_type, wait_fixed, stop_after_delay
 
 from test.test_utils.ecr import reupload_image_to_test_ecr
@@ -147,9 +148,9 @@ def invoke_sm_helper_function(ecr_image, sagemaker_regions, test_function, *test
 def invoke_sm_endpoint_helper_function(
     ecr_image,
     sagemaker_regions,
-    local_model_paths,
-    model_helper,
     test_function,
+    local_model_paths=None,
+    model_helper=None,
     mme_folder_name=None,
     **test_function_args,
 ):
@@ -159,21 +160,24 @@ def invoke_sm_endpoint_helper_function(
         sagemaker_client = get_sagemaker_client(region)
         boto_session = boto3.Session(region_name=region)
         sagemaker_runtime_client = get_sagemaker_runtime_client(region)
+        sagemaker_session = Session(boto_session=boto3.Session(region_name=region))
         # Reupload the image to test region if needed
         tested_ecr_image = (
             get_ecr_image(ecr_image, region) if region != ecr_image_region else ecr_image
         )
-        if mme_folder_name:
-            tested_model_data = model_helper(
-                region=region, boto_session=boto_session, local_path=local_model_paths[0]
-            )
-        else:
-            tested_model_data = model_helper(
-                region=region,
-                boto_session=boto_session,
-                mme_folder_name=mme_folder_name,
-                path_list=local_model_paths,
-            )
+        tested_model_data = None
+        if model_helper and local_model_paths:
+            if mme_folder_name:
+                tested_model_data = model_helper(
+                    region=region, boto_session=boto_session, local_path=local_model_paths[0]
+                )
+            else:
+                tested_model_data = model_helper(
+                    region=region,
+                    boto_session=boto_session,
+                    mme_folder_name=mme_folder_name,
+                    path_list=local_model_paths,
+                )
 
         try:
             return_value = test_function(
@@ -181,6 +185,7 @@ def invoke_sm_endpoint_helper_function(
                 boto_session=boto_session,
                 sagemaker_client=sagemaker_client,
                 sagemaker_runtime_client=sagemaker_runtime_client,
+                sagemaker_session=sagemaker_session,
                 model_data=tested_model_data,
                 region=region,
                 **test_function_args,

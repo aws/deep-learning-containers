@@ -409,6 +409,7 @@ def _mme_test_helper(
     accelerator_type,
     region,
     environment={},
+    **kwargs,
 ):
     # the python service needs to transform this to get a valid prediction
     input_data = {"instances": [1.0, 2.0, 5.0]}
