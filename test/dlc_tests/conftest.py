@@ -85,6 +85,9 @@ FRAMEWORK_FIXTURES = (
     "huggingface_mxnet_inference",
     "huggingface_tensorflow_trcomp_training",
     "huggingface_pytorch_trcomp_training",
+    # Stability
+    "stability_pytorch_inference",
+    "stability_pytorch_training",
     # PyTorch trcomp
     "pytorch_trcomp_training",
     # Autogluon
