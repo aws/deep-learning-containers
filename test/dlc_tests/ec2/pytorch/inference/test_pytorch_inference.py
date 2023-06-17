@@ -81,7 +81,7 @@ def test_ec2_pytorch_inference_neuronx(pytorch_inference_neuronx, ec2_connection
     ec2_pytorch_inference(pytorch_inference_neuronx, "neuronx", ec2_connection, region)
 
 
-@pytest.mark.usefixtures("sagemaker")
+@pytest.mark.usefixtures("sagemaker", "stabilityai")
 @pytest.mark.model("densenet")
 @pytest.mark.parametrize("ec2_instance_type", PT_EC2_GPU_INSTANCE_TYPE, indirect=True)
 def test_ec2_pytorch_inference_gpu(
