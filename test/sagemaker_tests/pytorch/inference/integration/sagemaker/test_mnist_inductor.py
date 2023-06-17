@@ -160,7 +160,7 @@ def _test_mnist_distributed(
 def _check_for_cloudwatch_logs(endpoint_name, sagemaker_session):
     client = sagemaker_session.boto_session.client("logs")
     log_group_name = f"/aws/sagemaker/Endpoints/{endpoint_name}"
-
+    time.sleep(30)
     identify_log_stream = client.describe_log_streams(
         logGroupName=log_group_name, orderBy="LastEventTime", descending=True, limit=5
     )
