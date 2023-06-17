@@ -85,13 +85,13 @@ def test_ec2_pytorch_inference_neuronx(pytorch_inference_neuronx, ec2_connection
 @pytest.mark.model("densenet")
 @pytest.mark.parametrize("ec2_instance_type", PT_EC2_GPU_INSTANCE_TYPE, indirect=True)
 def test_ec2_pytorch_inference_gpu(
-    stability_pytorch_inference, ec2_connection, region, gpu_only, ec2_instance_type
+    stabilityai_pytorch_inference, ec2_connection, region, gpu_only, ec2_instance_type
 ):
     if test_utils.is_image_incompatible_with_instance_type(stability_pytorch_inference, ec2_instance_type):
         pytest.skip(
-            f"Image {stability_pytorch_inference} is incompatible with instance type {ec2_instance_type}"
+            f"Image {stabilityai_pytorch_inference} is incompatible with instance type {ec2_instance_type}"
         )
-    ec2_pytorch_inference(stability_pytorch_inference, "gpu", ec2_connection, region)
+    ec2_pytorch_inference(stabilityai_pytorch_inference, "gpu", ec2_connection, region)
 
 
 @pytest.mark.model("densenet")
