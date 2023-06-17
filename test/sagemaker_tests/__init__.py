@@ -138,15 +138,23 @@ def invoke_sm_helper_function(ecr_image, sagemaker_regions, test_function, *test
     raise SMInstanceCapacityError from error
 
 
+@retry(
+    reraise=True,
+    retry=retry_if_exception_type(SMInstanceCapacityError),
+    stop=stop_after_delay(20 * 60),
+    wait=wait_fixed(60)
+)
 def invoke_sm_endpoint_helper_function(
     ecr_image,
     sagemaker_regions,
-    local_model_path,
+    local_model_paths,
     model_helper,
     test_function,
+    mme_folder_name=None,
     **test_function_args,
 ):
     ecr_image_region = get_ecr_image_region(ecr_image)
+    error = None
     for region in sagemaker_regions:
         sagemaker_client = get_sagemaker_client(region)
         boto_session = boto3.Session(region_name=region)
@@ -155,21 +163,33 @@ def invoke_sm_endpoint_helper_function(
         tested_ecr_image = (
             get_ecr_image(ecr_image, region) if region != ecr_image_region else ecr_image
         )
-        tested_model_data = model_helper(
-            region=region, boto_session=boto_session, local_path=local_model_path
-        )
+        if mme_folder_name:
+            tested_model_data = model_helper(
+                region=region, boto_session=boto_session, local_path=local_model_paths[0]
+            )
+        else:
+            tested_model_data = model_helper(
+                region=region,
+                boto_session=boto_session,
+                mme_folder_name=mme_folder_name,
+                path_list=local_model_paths,
+            )
+
         try:
-            test_function(
+            return_value = test_function(
                 image_uri=tested_ecr_image,
                 boto_session=boto_session,
                 sagemaker_client=sagemaker_client,
                 sagemaker_runtime_client=sagemaker_runtime_client,
                 model_data=tested_model_data,
+                region=region,
                 **test_function_args,
             )
-            return
+            return return_value
         except sagemaker.exceptions.UnexpectedStatusException as e:
             if "CapacityError" in str(e):
+                error = e
                 continue
             else:
-                raise SMInstanceCapacityError from e
+                raise e
+    raise SMInstanceCapacityError from error
