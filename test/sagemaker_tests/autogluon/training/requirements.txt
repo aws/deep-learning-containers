@@ -17,3 +17,4 @@ invoke
 retrying
 tenacity
 gitpython
+toml
