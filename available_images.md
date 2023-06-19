@@ -103,8 +103,8 @@ EC2 Framework Containers (Tested on EC2, ECS, and EKS only)
 
 | Framework        |Job Type	|Horovod Options|CPU/GPU 	|Python Version Options	| Example URL																						                                                                      |
 |------------------|-----------|---------------|-----------|-----------------------|--------------------------------------------------------------------------------------------------------|
-| PyTorch 2.0.0   |training	|Yes			|CPU 		| 3.10 (py310)			| 763104351884.dkr.ecr.us-east-1.amazonaws.com/pytorch-training:2.0.0-cpu-py310-ubuntu20.04-ec2             |
-| PyTorch 2.0.0   |training	|Yes			|GPU 		| 3.10 (py310)			| 763104351884.dkr.ecr.us-east-1.amazonaws.com/pytorch-training:2.0.0-gpu-py310-cu118-ubuntu20.04-ec2       |      |
+| PyTorch 2.0.1   |training	|Yes			|CPU 		| 3.10 (py310)			| 763104351884.dkr.ecr.us-east-1.amazonaws.com/pytorch-training:2.0.1-cpu-py310-ubuntu20.04-ec2             |
+| PyTorch 2.0.1   |training	|Yes			|GPU 		| 3.10 (py310)			| 763104351884.dkr.ecr.us-east-1.amazonaws.com/pytorch-training:2.0.1-gpu-py310-cu118-ubuntu20.04-ec2       |      |
 | PyTorch 2.0.1   |inference	|No			|CPU 		| 3.10 (py310)			| 763104351884.dkr.ecr.us-east-1.amazonaws.com/pytorch-inference:2.0.1-cpu-py310-ubuntu20.04-ec2             |
 | PyTorch 2.0.1   |inference	|No			|GPU 		| 3.10 (py310)			| 763104351884.dkr.ecr.us-east-1.amazonaws.com/pytorch-inference:2.0.1-gpu-py310-cu118-ubuntu20.04-ec2       |
 | TensorFlow 2.12.0 |training	|Yes			|CPU 		| 3.10 (py310)			| 763104351884.dkr.ecr.us-east-1.amazonaws.com/tensorflow-training:2.12.0-cpu-py310-ubuntu20.04-ec2		       |
@@ -175,7 +175,7 @@ Large Model Inference Containers
 | Framework                                                                                                                   |Job Type	| Accelerator 	 | Python Version Options	 | Example URL																						                                                              |
 |-----------------------------------------------------------------------------------------------------------------------------|-----------|---------------|-------------------------|------------------------------------------------------------------------------------------------|
 | DJLServing 0.22.1 with FasterTransformer 5.3.0, HuggingFace Transformers 4.27.3, and HuggingFace Accelerate 0.17.1          |inference	| GPU 		        | 3.9 (py39)			           | 763104351884.dkr.ecr.us-west-2.amazonaws.com/djl-inference:0.22.1-fastertransformer5.3.0-cu118 |
-| DJLServing 0.22.1 with DeepSpeed 0.8.3, HuggingFace Transformers 4.27.4, Diffusers 0.14.0 and HuggingFace Accelerate 0.18.0 |inference	| GPU 		        | 3.9 (py39)			           | 763104351884.dkr.ecr.us-west-2.amazonaws.com/djl-inference:0.22.1-deepspeed0.8.3-cu118		       |
+| DJLServing 0.22.1 with DeepSpeed 0.9.2, HuggingFace Transformers 4.29.2, Diffusers 0.15.0 and HuggingFace Accelerate 0.19.0 |inference	| GPU 		        | 3.9 (py39)			           | 763104351884.dkr.ecr.us-west-2.amazonaws.com/djl-inference:0.22.1-deepspeed0.9.2-cu118		       |
 | DJLServing 0.22.1 with Neuron SDK 2.10.0, TransformersNeuronX 0.3.0 and HuggingFace Transformers 4.28.1                     |inference	| Neuron 		     | 3.8 (py38)			           | 763104351884.dkr.ecr.us-west-2.amazonaws.com/djl-inference:0.22.1-neuronx-sdk2.10.0            |
 | DJLServing 0.21.0 with FasterTransformer 5.3.0, HuggingFace Transformers 4.25.1, and HuggingFace Accelerate 0.15.0          |inference	| GPU 		        | 3.9 (py39)			           | 763104351884.dkr.ecr.us-west-2.amazonaws.com/djl-inference:0.21.0-fastertransformer5.3.0-cu117 |
 | DJLServing 0.21.0 with DeepSpeed 0.8.3, HuggingFace Transformers 4.26.0, and HuggingFace Accelerate 0.16.0                  |inference	| GPU 		        | 3.9 (py39)			           | 763104351884.dkr.ecr.us-west-2.amazonaws.com/djl-inference:0.21.0-deepspeed0.8.3-cu117		       |
