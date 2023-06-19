@@ -12,6 +12,8 @@
 # language governing permissions and limitations under the License.
 from __future__ import absolute_import
 
+import time
+
 import sagemaker
 
 from tenacity import retry, retry_if_exception_type, wait_fixed, stop_after_delay
@@ -21,9 +23,13 @@ class SMInstanceCapacityError(Exception):
     pass
 
 
+class SMThrottlingError(Exception):
+    pass
+
+
 @retry(
     reraise=True,
-    retry=retry_if_exception_type(SMInstanceCapacityError),
+    retry=retry_if_exception_type((SMInstanceCapacityError, SMThrottlingError)),
     stop=stop_after_delay(20 * 60),
     wait=wait_fixed(60),
 )
@@ -56,9 +62,16 @@ def invoke_pytorch_helper_function(
             helper_function(tested_ecr_image, sagemaker_session, **helper_function_args)
             return
         except sagemaker.exceptions.UnexpectedStatusException as e:
+            error = e
             if "CapacityError" in str(e):
-                error = e
+                time.sleep(0.5)
+                continue
+            elif "ThrottlingException" in str(e):
+                time.sleep(5)
                 continue
             else:
                 raise e
-    raise SMInstanceCapacityError from error
+    if "CapacityError" in str(error):
+        raise SMInstanceCapacityError from error
+    else:
+        raise SMThrottlingError from error

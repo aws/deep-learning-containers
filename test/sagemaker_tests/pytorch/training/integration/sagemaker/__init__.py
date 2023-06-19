@@ -12,6 +12,8 @@
 # language governing permissions and limitations under the License.
 from __future__ import absolute_import
 
+import time
+
 import pytest
 import sagemaker
 
@@ -27,6 +29,7 @@ from ..... import (
     get_sagemaker_session,
     LOW_AVAILABILITY_INSTANCE_TYPES,
     SMInstanceCapacityError,
+    SMThrottlingError,
 )
 
 
@@ -38,7 +41,7 @@ def upload_s3_data(estimator, path, key_prefix):
 
 @retry(
     reraise=True,
-    retry=retry_if_exception_type(SMInstanceCapacityError),
+    retry=retry_if_exception_type((SMInstanceCapacityError, SMThrottlingError)),
     stop=stop_after_delay(20 * 60),
     wait=wait_fixed(60),
 )
@@ -98,8 +101,12 @@ def invoke_pytorch_estimator(
             return pytorch, sagemaker_session
 
         except sagemaker.exceptions.UnexpectedStatusException as e:
+            error = e
             if "CapacityError" in str(e):
-                error = e
+                time.sleep(0.5)
+                continue
+            elif "ThrottlingException" in str(e):
+                time.sleep(5)
                 continue
             else:
                 raise e
@@ -120,7 +127,10 @@ def invoke_pytorch_estimator(
         # TODO: xfailed tests do not show up on CodeBuild Test Case Reports. Therefore using "skip"
         #       instead of xfail.
         pytest.skip(f"Failed to launch job due to low capacity on {instance_types}")
-    raise SMInstanceCapacityError from error
+    if "CapacityError" in str(error):
+        raise SMInstanceCapacityError from error
+    else:
+        raise SMThrottlingError from error
 
 
 def _test_mnist_distributed(

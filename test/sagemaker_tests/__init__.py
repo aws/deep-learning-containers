@@ -13,6 +13,7 @@
 from __future__ import absolute_import
 
 import re
+import time
 
 import boto3
 import sagemaker
@@ -31,6 +32,10 @@ LOW_AVAILABILITY_INSTANCE_TYPES = ["ml.p4de.24xlarge"]
 
 
 class SMInstanceCapacityError(Exception):
+    pass
+
+
+class SMThrottlingError(Exception):
     pass
 
 
@@ -94,7 +99,7 @@ def get_ecr_image(ecr_image, region):
 
 @retry(
     reraise=True,
-    retry=retry_if_exception_type(SMInstanceCapacityError),
+    retry=retry_if_exception_type((SMInstanceCapacityError, SMThrottlingError)),
     stop=stop_after_delay(20 * 60),
     wait=wait_fixed(60),
 )
@@ -131,17 +136,24 @@ def invoke_sm_helper_function(ecr_image, sagemaker_regions, test_function, *test
             test_function(tested_ecr_image, sagemaker_session, *test_function_args)
             return
         except sagemaker.exceptions.UnexpectedStatusException as e:
+            error = e
             if "CapacityError" in str(e):
-                error = e
+                time.sleep(0.5)
+                continue
+            elif "ThrottlingException" in str(e):
+                time.sleep(5)
                 continue
             else:
                 raise e
-    raise SMInstanceCapacityError from error
+    if "CapacityError" in str(error):
+        raise SMInstanceCapacityError from error
+    else:
+        raise SMThrottlingError from error
 
 
 @retry(
     reraise=True,
-    retry=retry_if_exception_type(SMInstanceCapacityError),
+    retry=retry_if_exception_type((SMInstanceCapacityError, SMThrottlingError)),
     stop=stop_after_delay(20 * 60),
     wait=wait_fixed(60),
 )
@@ -167,7 +179,7 @@ def invoke_sm_endpoint_helper_function(
         )
         tested_model_data = None
         if model_helper and local_model_paths:
-            if mme_folder_name:
+            if not mme_folder_name:
                 tested_model_data = model_helper(
                     region=region, boto_session=boto_session, local_path=local_model_paths[0]
                 )
@@ -192,9 +204,16 @@ def invoke_sm_endpoint_helper_function(
             )
             return return_value
         except sagemaker.exceptions.UnexpectedStatusException as e:
+            error = e
             if "CapacityError" in str(e):
-                error = e
+                time.sleep(0.5)
+                continue
+            elif "ThrottlingException" in str(e):
+                time.sleep(5)
                 continue
             else:
                 raise e
-    raise SMInstanceCapacityError from error
+    if "CapacityError" in str(error):
+        raise SMInstanceCapacityError from error
+    else:
+        raise SMThrottlingError from error
