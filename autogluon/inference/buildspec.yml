@@ -14,9 +14,9 @@ repository_info:
 
 context:
   inference_context: &INFERENCE_CONTEXT
-    mms-entrypoint:
-      source: ../build_artifacts/inference/mms-entrypoint.py
-      target: mms-entrypoint.py
+    torchserve-entrypoint:
+      source: ../build_artifacts/inference/torchserve-entrypoint.py
+      target: torchserve-entrypoint.py
     config:
       source: ../build_artifacts/inference/config.properties
       target: config.properties
