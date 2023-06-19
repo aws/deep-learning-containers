@@ -16,7 +16,9 @@ import re
 import time
 
 import boto3
+import botocore.exceptions
 import sagemaker
+import sagemaker.exceptions
 
 from botocore.config import Config
 from sagemaker.session import Session
@@ -136,12 +138,14 @@ def invoke_sm_helper_function(ecr_image, sagemaker_regions, test_function, *test
             test_function(tested_ecr_image, sagemaker_session, *test_function_args)
             return
         except sagemaker.exceptions.UnexpectedStatusException as e:
-            error = e
             if "CapacityError" in str(e):
-                time.sleep(0.5)
+                error = e
                 continue
-            elif "ThrottlingException" in str(e):
-                time.sleep(5)
+            else:
+                raise e
+        except botocore.exceptions.ClientError as e:
+            if "ThrottlingException" in str(e):
+                error = e
                 continue
             else:
                 raise e
@@ -204,12 +208,14 @@ def invoke_sm_endpoint_helper_function(
             )
             return return_value
         except sagemaker.exceptions.UnexpectedStatusException as e:
-            error = e
             if "CapacityError" in str(e):
-                time.sleep(0.5)
+                error = e
                 continue
-            elif "ThrottlingException" in str(e):
-                time.sleep(5)
+            else:
+                raise e
+        except botocore.exceptions.ClientError as e:
+            if "ThrottlingException" in str(e):
+                error = e
                 continue
             else:
                 raise e

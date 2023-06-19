@@ -14,7 +14,9 @@ from __future__ import absolute_import
 
 import time
 
+import botocore.exceptions
 import sagemaker
+import sagemaker.exceptions
 
 from tenacity import retry, retry_if_exception_type, wait_fixed, stop_after_delay
 
@@ -62,12 +64,14 @@ def invoke_pytorch_helper_function(
             helper_function(tested_ecr_image, sagemaker_session, **helper_function_args)
             return
         except sagemaker.exceptions.UnexpectedStatusException as e:
-            error = e
             if "CapacityError" in str(e):
-                time.sleep(0.5)
+                error = e
                 continue
-            elif "ThrottlingException" in str(e):
-                time.sleep(5)
+            else:
+                raise e
+        except botocore.exceptions.ClientError as e:
+            if "ThrottlingException" in str(e):
+                error = e
                 continue
             else:
                 raise e

@@ -14,7 +14,9 @@ from __future__ import absolute_import
 
 import time
 
+import botocore.exceptions
 import pytest
+import sagemaker.exceptions
 import sagemaker
 
 from sagemaker.pytorch import PyTorch
@@ -101,12 +103,14 @@ def invoke_pytorch_estimator(
             return pytorch, sagemaker_session
 
         except sagemaker.exceptions.UnexpectedStatusException as e:
-            error = e
             if "CapacityError" in str(e):
-                time.sleep(0.5)
+                error = e
                 continue
-            elif "ThrottlingException" in str(e):
-                time.sleep(5)
+            else:
+                raise e
+        except botocore.exceptions.ClientError as e:
+            if "ThrottlingException" in str(e):
+                error = e
                 continue
             else:
                 raise e
