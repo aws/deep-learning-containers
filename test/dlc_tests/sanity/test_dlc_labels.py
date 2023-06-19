@@ -154,7 +154,7 @@ def test_dlc_major_version_dockerfiles(image):
         "mxnet": [SpecifierSet("<1.7")],
         # HACK Temporary exception PT 1.11 and PT 1.12 since they use different cuda versions for ec2 and SM
         "pytorch": [SpecifierSet("<1.5"), SpecifierSet("==1.11.*"), SpecifierSet("==1.12.*")],
-        # autogluon 0.7.0 has v1 and v2; v1 is security-vulnerable MMS serving fallback option; v2 is the main version based on torch-serve
+        # autogluon 0.7.0 has v1 and v2; v1 has deprecation-path MMS serving fallback option; v2 is the main version based on torch-serve
         "autogluon": [SpecifierSet("==0.7.*")],
     }
     if test_utils.is_tf_version("1", image):
