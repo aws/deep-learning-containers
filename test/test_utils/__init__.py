@@ -1381,7 +1381,7 @@ def get_region_from_image_uri(image_uri):
     :param image_uri: <str> ECR image URI
     :return: <str> AWS Region Name
     """
-    region_pattern = r"(us(-gov)?|ap|ca|cn|eu|sa)-(central|(north|south)?(east|west)?)-\d+"
+    region_pattern = r"(us(-gov)?|af|ap|ca|cn|eu|il|me|sa)-(central|(north|south)?(east|west)?)-\d+"
     region_search = re.search(region_pattern, image_uri)
     assert region_search, f"{image_uri} must have region that matches {region_pattern}"
     return region_search.group()
@@ -1409,6 +1409,7 @@ def get_framework_and_version_from_tag(image_uri):
         "huggingface_pytorch_trcomp",
         "huggingface_tensorflow",
         "huggingface_pytorch",
+        "stabilityai_pytorch",
         "pytorch_trcomp" "tensorflow",
         "mxnet",
         "pytorch",
@@ -1740,6 +1741,8 @@ def get_framework_from_image_uri(image_uri):
         if "pytorch-trcomp" in image_uri
         else "huggingface_pytorch"
         if "huggingface-pytorch" in image_uri
+        else "stabilityai_pytorch"
+        if "stabilityai-pytorch" in image_uri
         else "mxnet"
         if "mxnet" in image_uri
         else "pytorch"

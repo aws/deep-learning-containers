@@ -1,0 +1,61 @@
+account_id: &ACCOUNT_ID <set-$ACCOUNT_ID-in-environment>
+region: &REGION <set-$REGION-in-environment>
+base_framework: &BASE_FRAMEWORK pytorch
+framework: &FRAMEWORK !join [ "stabilityai_", *BASE_FRAMEWORK]
+version: &VERSION 2.0.0
+short_version: &SHORT_VERSION "2.0"
+arch_type: x86
+
+repository_info:
+  training_repository: &TRAINING_REPOSITORY
+    image_type: &TRAINING_IMAGE_TYPE training
+    root: !join [ *BASE_FRAMEWORK, "/", *TRAINING_IMAGE_TYPE ]
+    repository_name: &REPOSITORY_NAME !join [pr, "-", "stabilityai", "-", *BASE_FRAMEWORK, "-", *TRAINING_IMAGE_TYPE]
+    repository: &REPOSITORY !join [ *ACCOUNT_ID, .dkr.ecr., *REGION, .amazonaws.com/, *REPOSITORY_NAME ]
+
+context:
+  training_context: &TRAINING_CONTEXT
+    changehostname:
+      source: docker/build_artifacts/changehostname.c
+      target: changehostname.c
+    start_with_right_hostname:
+      source: docker/build_artifacts/start_with_right_hostname.sh
+      target: start_with_right_hostname.sh
+    example_mnist_file:
+      source: docker/build_artifacts/mnist.py
+      target: mnist.py
+    deep_learning_container:
+      source: ../../src/deep_learning_container.py
+      target: deep_learning_container.py
+
+images:
+  BuildStabilityaiPytorchCpuPy310TrainingDockerImage:
+    <<: *TRAINING_REPOSITORY
+    build: &STABILITYAI_PYTORCH_CPU_TRAINING_PY3 false
+    image_size_baseline: 6200
+    device_type: &DEVICE_TYPE cpu
+    python_version: &DOCKER_PYTHON_VERSION py3
+    tag_python_version: &TAG_PYTHON_VERSION py310
+    os_version: &OS_VERSION ubuntu20.04
+    diffusers_version: &DIFFUSERS_VERSION 1.2.3
+    tag: !join [ *VERSION, "-", 'diffusers',*DIFFUSERS_VERSION, '-', *DEVICE_TYPE, "-", *TAG_PYTHON_VERSION, "-", *OS_VERSION, "-sagemaker" ]
+    docker_file: !join [ docker/, *SHORT_VERSION, /, *DOCKER_PYTHON_VERSION, /Dockerfile., *DEVICE_TYPE ]
+    target: sagemaker
+    context:
+      <<: *TRAINING_CONTEXT
+  BuildStabilityaiPytorchGpuPy310TrainingDockerImage:
+    <<: *TRAINING_REPOSITORY
+    build: &STABILITYAI_PYTORCH_GPU_TRAINING_PY3 false
+    image_size_baseline: 21500
+    device_type: &DEVICE_TYPE gpu
+    python_version: &DOCKER_PYTHON_VERSION py3
+    tag_python_version: &TAG_PYTHON_VERSION py310
+    cuda_version: &CUDA_VERSION cu118
+    os_version: &OS_VERSION ubuntu20.04
+    diffusers_version: &DIFFUSERS_VERSION 1.2.3
+    tag: !join [ *VERSION, "-", 'diffusers',*DIFFUSERS_VERSION, '-', *DEVICE_TYPE, "-", *TAG_PYTHON_VERSION, "-", *CUDA_VERSION, "-", *OS_VERSION, "-sagemaker" ]
+    docker_file: !join [ docker/, *SHORT_VERSION, /, *DOCKER_PYTHON_VERSION, /, *CUDA_VERSION, /Dockerfile.,
+                         *DEVICE_TYPE ]
+    target: sagemaker
+    context:
+      <<: *TRAINING_CONTEXT

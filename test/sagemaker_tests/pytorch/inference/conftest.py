@@ -55,6 +55,7 @@ NO_P2_REGIONS = [
     "sa-east-1",
     "us-west-1",
     "cn-northwest-1",
+    "il-central-1",
 ]
 NO_P3_REGIONS = [
     "af-south-1",
@@ -76,6 +77,7 @@ NO_P3_REGIONS = [
     "sa-east-1",
     "us-west-1",
     "cn-northwest-1",
+    "il-central-1",
 ]
 NO_P4_REGIONS = [
     "af-south-1",
@@ -94,6 +96,7 @@ NO_P4_REGIONS = [
     "sa-east-1",
     "us-west-1",
     "cn-northwest-1",
+    "il-central-1",
 ]
 
 
@@ -271,6 +274,21 @@ def fixture_docker_registry(aws_id, region):
 @pytest.fixture(name="ecr_image", scope="session")
 def fixture_ecr_image(docker_registry, docker_base_name, tag):
     return "{}/{}:{}".format(docker_registry, docker_base_name, tag)
+
+
+@pytest.fixture(autouse=True)
+def skip_based_on_image_and_marker_combination(request, ecr_image):
+    is_stabilityai_only_test = request.node.get_closest_marker("stabilityai_only") is not None
+    if is_stabilityai_only_test and "stabilityai" not in ecr_image:
+        pytest.skip(
+            f"Skipping because {ecr_image} is not StabilityAI image and the test is supposed to run for only stability images"
+        )
+
+    is_skip_stabilityai_test = request.node.get_closest_marker("skip_stabilityai") is not None
+    if is_skip_stabilityai_test and "stabilityai" in ecr_image:
+        pytest.skip(
+            f"Skipping because {ecr_image} is StabilityAI image and the test is not StabilityAI test."
+        )
 
 
 @pytest.fixture(autouse=True)

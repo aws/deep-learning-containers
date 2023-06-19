@@ -946,6 +946,11 @@ def huggingface():
 
 
 @pytest.fixture(scope="session")
+def stabilityai():
+    pass
+
+
+@pytest.fixture(scope="session")
 def tf2_only():
     pass
 
@@ -1314,6 +1319,15 @@ def pytest_generate_tests(metafunc):
                                 f"Skipping test, as this function is not marked as 'sagemaker_only' or 'sagemaker'"
                             )
                             continue
+                    if (
+                        "stabilityai" not in metafunc.fixturenames
+                        and "stabilityai" in image
+                        and os.getenv("TEST_TYPE") != "sanity"
+                    ):
+                        LOGGER.info(
+                            f"Skipping test, as this function is not marked as 'stabilityai'"
+                        )
+                        continue
                     if not framework_version_within_limit(metafunc, image):
                         continue
                     if "non_huggingface_only" in metafunc.fixturenames and "huggingface" in image:

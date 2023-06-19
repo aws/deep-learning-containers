@@ -128,6 +128,13 @@ def test_build_version_override_configuration():
     )
 
     assert (
+        config.parse_dlc_developer_configs(
+            "buildspec_override", "dlc-pr-stabilityai-pytorch-training"
+        )
+        == ""
+    )
+
+    assert (
         config.parse_dlc_developer_configs("buildspec_override", "dlc-pr-pytorch-habana-training")
         == ""
     )
@@ -186,6 +193,12 @@ def test_build_version_override_configuration():
     assert (
         config.parse_dlc_developer_configs(
             "buildspec_override", "dlc-pr-huggingface-pytorch-neuron-inference"
+        )
+        == ""
+    )
+    assert (
+        config.parse_dlc_developer_configs(
+            "buildspec_override", "dlc-pr-stabilityai-pytorch-inference"
         )
         == ""
     )
