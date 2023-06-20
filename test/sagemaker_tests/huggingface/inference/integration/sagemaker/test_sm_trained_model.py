@@ -43,9 +43,7 @@ def test_sm_trained_model_cpu(framework_version, ecr_image, instance_type, sagem
 @pytest.mark.model("tiny-distilbert")
 @pytest.mark.processor("gpu")
 @pytest.mark.gpu_test
-def test_sm_trained_model_gpu(
-    framework_version, ecr_image, instance_type, sagemaker_regions
-):
+def test_sm_trained_model_gpu(framework_version, ecr_image, instance_type, sagemaker_regions):
     instance_type = instance_type or "ml.p3.2xlarge"
     invoke_sm_endpoint_helper_function(
         ecr_image=ecr_image,

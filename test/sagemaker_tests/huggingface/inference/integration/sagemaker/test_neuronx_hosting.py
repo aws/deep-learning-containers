@@ -55,9 +55,7 @@ def test_neuronx_hosting_all_instances(
     if "pytorch" not in framework:
         pytest.skip(f"Skipping test for non-pytorch image - {ecr_image}")
     valid_instance_types_for_this_test = ["ml.trn1.2xlarge", "ml.inf2.xlarge"]
-    assert (
-        not instance_type or instance_type in valid_instance_types_for_this_test
-    ), (
+    assert not instance_type or instance_type in valid_instance_types_for_this_test, (
         f"Instance type value passed by pytest is {instance_type}. "
         f"This method will only test instance types in {valid_instance_types_for_this_test}"
     )
@@ -76,8 +74,8 @@ def test_neuronx_hosting_all_instances(
 
 def _get_endpoint_prefix_name(custom_prefix, region_name, image_uri):
     """
-    Creates an endpoint prefix name that has first 10 chars of image sha and the CODEBUILD_RESOLVED_SOURCE_VERSION
-    to allow tracking of SM Endpoint Logs.
+    Creates an endpoint prefix name that has first 10 chars of image sha and the
+    CODEBUILD_RESOLVED_SOURCE_VERSION to allow tracking of SM Endpoint Logs.
 
     custom_prefix: str, Initial prefix that the user wants to have in the endpoint name
     region_name: str, region_name where image is located
