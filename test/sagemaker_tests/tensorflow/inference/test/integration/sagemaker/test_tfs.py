@@ -405,11 +405,15 @@ def _mme_test_helper(
     instance_type,
     accelerator_type,
     region,
-    environment={},
+    input_data,
+    target_models,
+    environment=None,
+    is_multi_model_mode_enabled=True,
+    content_type="application/json",
     **kwargs,
 ):
-    # the python service needs to transform this to get a valid prediction
-    input_data = {"instances": [1.0, 2.0, 5.0]}
+    if not environment:
+        environment = {}
     bucket = util._test_bucket(region, boto_session)
     if environment.get("SAGEMAKER_MULTI_MODEL_UNIVERSAL_BUCKET"):
         environment["SAGEMAKER_MULTI_MODEL_UNIVERSAL_BUCKET"] = bucket
@@ -424,9 +428,9 @@ def _mme_test_helper(
         accelerator_type,
         input_data,
         region=region,
-        is_multi_model_mode_enabled=True,
-        target_models=["half_plus_three.tar.gz", "half_plus_two.tar.gz"],
+        is_multi_model_mode_enabled=is_multi_model_mode_enabled,
+        target_models=target_models,
         environment=environment,
-        **kwargs,
+        content_type=content_type,
     )
     return outputs
