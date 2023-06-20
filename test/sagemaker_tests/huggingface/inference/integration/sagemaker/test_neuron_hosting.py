@@ -61,6 +61,7 @@ def _test_pt_neuron(
     script_dir,
     py_version,
     accelerator_type=None,
+    **kwargs,
 ):
     endpoint_name = sagemaker.utils.unique_name_from_base("sagemaker-huggingface-neuron-serving")
 

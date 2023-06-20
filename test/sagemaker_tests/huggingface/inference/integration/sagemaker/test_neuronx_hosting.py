@@ -107,6 +107,7 @@ def _test_pt_neuronx(
     script_dir,
     py_version,
     accelerator_type=None,
+    **kwargs,
 ):
     endpoint_name_prefix = _get_endpoint_prefix_name(
         custom_prefix="sm-hf-neuronx-serving",

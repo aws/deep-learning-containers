@@ -69,7 +69,13 @@ def test_vision_model_gpu(framework_version, ecr_image, instance_type, sagemaker
 
 
 def _test_vision_model(
-    sagemaker_session, framework_version, image_uri, instance_type, model_dir, accelerator_type=None
+    sagemaker_session,
+    framework_version,
+    image_uri,
+    instance_type,
+    model_dir,
+    accelerator_type=None,
+    **kwargs,
 ):
     endpoint_name = sagemaker.utils.unique_name_from_base(
         "sagemaker-huggingface-serving-vision-model"
