@@ -428,5 +428,4 @@ def _mme_test_helper(
         target_models=["half_plus_three.tar.gz", "half_plus_two.tar.gz"],
         environment=environment,
     )
-    assert outputs[0] == {"predictions": [3.5, 4.0, 5.5]}
-    assert outputs[1] == {"predictions": [2.5, 3.0, 4.5]}
+    return outputs
