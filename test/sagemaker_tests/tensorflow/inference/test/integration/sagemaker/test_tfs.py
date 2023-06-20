@@ -427,5 +427,6 @@ def _mme_test_helper(
         is_multi_model_mode_enabled=True,
         target_models=["half_plus_three.tar.gz", "half_plus_two.tar.gz"],
         environment=environment,
+        **kwargs,
     )
     return outputs
