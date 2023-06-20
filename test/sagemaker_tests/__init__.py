@@ -168,6 +168,7 @@ def invoke_sm_endpoint_helper_function(
     local_model_paths=None,
     model_helper=None,
     mme_folder_name=None,
+    dump_logs_from_cloudwatch=None,
     **test_function_args,
 ):
     ecr_image_region = get_ecr_image_region(ecr_image)
@@ -181,6 +182,8 @@ def invoke_sm_endpoint_helper_function(
         tested_ecr_image = (
             get_ecr_image(ecr_image, region) if region != ecr_image_region else ecr_image
         )
+
+        # Run model setup if needed
         tested_model_data = None
         if model_helper and local_model_paths:
             if not mme_folder_name:
@@ -195,6 +198,7 @@ def invoke_sm_endpoint_helper_function(
                     path_list=local_model_paths,
                 )
 
+        # Run test function
         try:
             return_value = test_function(
                 image_uri=tested_ecr_image,
@@ -212,13 +216,21 @@ def invoke_sm_endpoint_helper_function(
                 error = e
                 continue
             else:
+                if dump_logs_from_cloudwatch:
+                    dump_logs_from_cloudwatch(e, region)
                 raise e
         except botocore.exceptions.ClientError as e:
             if "ThrottlingException" in str(e):
                 error = e
                 continue
             else:
+                if dump_logs_from_cloudwatch:
+                    dump_logs_from_cloudwatch(e, region)
                 raise e
+        except Exception as e:
+            if dump_logs_from_cloudwatch:
+                dump_logs_from_cloudwatch(e, region)
+            raise
     if "CapacityError" in str(error):
         raise SMInstanceCapacityError from error
     else:
