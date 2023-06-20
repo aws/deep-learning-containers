@@ -31,11 +31,10 @@ RUN pip install --no-cache-dir -U --trusted-host pypi.org --trusted-host files.p
  && pip install --no-cache-dir -U mmdet
 
 # Removing GluonTS nursery/tsbench package - it is not used in training/inference and have security vulnerabilities
-RUN rm -rf /usr/local/lib/python3.9/dist-packages/gluonts/nursery/tsbench
-
 # Remove these to address security issues; these are not used if only python package is used
 # flask Flask-RESTful nvgpu are requirements for torch-serve only for GPU version
-RUN rm -rf /usr/local/lib/python3.9/dist-packages/ray/jars \
+RUN rm -rf /usr/local/lib/python3.9/dist-packages/gluonts/nursery/tsbench \
+ && rm -rf /usr/local/lib/python3.9/dist-packages/ray/jars \
  && rm -rf /opt/conda/lib/python3.9/site-packages/ray/jars \
  && pip uninstall -y flask Flask-RESTful nvgpu
 
