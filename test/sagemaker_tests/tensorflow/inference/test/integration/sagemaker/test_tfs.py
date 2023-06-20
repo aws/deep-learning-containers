@@ -423,6 +423,7 @@ def _mme_test_helper(
         instance_type,
         accelerator_type,
         input_data,
+        region=region,
         is_multi_model_mode_enabled=True,
         target_models=["half_plus_three.tar.gz", "half_plus_two.tar.gz"],
         environment=environment,

@@ -340,7 +340,7 @@ def create_and_invoke_endpoint(
     instance_type,
     accelerator_type,
     input_data,
-    region,
+    region=None,
     is_multi_model_mode_enabled=False,
     target_models=[],
     environment={},
