@@ -263,7 +263,7 @@ def test_mme1(
     outputs = invoke_sm_endpoint_helper_function(
         ecr_image=image_uri,
         sagemaker_regions=sagemaker_regions,
-        model_helper=util.find_or_put_model_data,
+        model_helper=util.find_or_put_mme_model_data,
         test_function=_mme_test_helper,
         mme_folder_name=mme_folder_name,
         local_model_paths=MME1_MODEL_PATHS,
@@ -303,7 +303,7 @@ def test_mme2(
     outputs = invoke_sm_endpoint_helper_function(
         ecr_image=image_uri,
         sagemaker_regions=sagemaker_regions,
-        model_helper=util.find_or_put_model_data,
+        model_helper=util.find_or_put_mme_model_data,
         test_function=_mme_test_helper,
         mme_folder_name=mme_folder_name,
         local_model_paths=MME2_MODEL_PATHS,
@@ -344,7 +344,7 @@ def test_mme3(
     outputs = invoke_sm_endpoint_helper_function(
         ecr_image=image_uri,
         sagemaker_regions=sagemaker_regions,
-        model_helper=util.find_or_put_model_data,
+        model_helper=util.find_or_put_mme_model_data,
         test_function=_mme_test_helper,
         mme_folder_name=mme_folder_name,
         local_model_paths=MME3_MODEL_PATHS,
@@ -380,7 +380,7 @@ def test_mme4(
     outputs = invoke_sm_endpoint_helper_function(
         ecr_image=image_uri,
         sagemaker_regions=sagemaker_regions,
-        model_helper=util.find_or_put_model_data,
+        model_helper=util.find_or_put_mme_model_data,
         test_function=_mme_test_helper,
         mme_folder_name=mme_folder_name,
         local_model_paths=MME4_MODEL_PATHS,
