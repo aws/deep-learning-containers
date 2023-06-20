@@ -2,9 +2,6 @@ ARG PYTHON_VERSION=3.9.13
 
 FROM 763104351884.dkr.ecr.us-west-2.amazonaws.com/pytorch-inference:1.13.1-gpu-py39-cu117-ubuntu20.04-sagemaker
 
-# PYTORCH_SKIP_CUDNN_COMPATIBILITY_CHECK - see https://github.com/autogluon/autogluon/issues/2534
-ENV PYTORCH_SKIP_CUDNN_COMPATIBILITY_CHECK=1
-
 # Specify accept-bind-to-port LABEL for inference pipelines to use SAGEMAKER_BIND_TO_PORT
 # https://docs.aws.amazon.com/sagemaker/latest/dg/inference-pipeline-real-time.html
 LABEL com.amazonaws.sagemaker.capabilities.accept-bind-to-port=true
@@ -13,12 +10,7 @@ LABEL com.amazonaws.sagemaker.capabilities.accept-bind-to-port=true
 LABEL com.amazonaws.sagemaker.capabilities.multi-models=true
 
 LABEL maintainer="Amazon AI"
-LABEL dlc_major_version="1"
-
-# PYTORCH_SKIP_CUDNN_COMPATIBILITY_CHECK - see https://github.com/autogluon/autogluon/issues/2534
-ENV MXNET_CUDNN_LIB_CHECKING=0 \
-    MXNET_CUDNN_AUTOTUNE_DEFAULT=0 \
-    PYTORCH_SKIP_CUDNN_COMPATIBILITY_CHECK=1
+LABEL dlc_major_version="2"
 
 RUN apt-get update \
  && apt-get -y upgrade \
@@ -27,28 +19,7 @@ RUN apt-get update \
  && apt-get clean \
  && rm -rf /var/lib/apt/lists/*
 
-# Install MMS
-
-ARG MMS_VERSION=1.1.8
-ARG MXNET_VERSION=1.9.1
-
-RUN pip install --no-cache-dir -U --trusted-host pypi.org --trusted-host files.pythonhosted.org pip \
- && pip install --no-cache-dir -U multi-model-server==${MMS_VERSION} sagemaker-mxnet-inference \
- && pip install --no-cache-dir -U mxnet-cu113==${MXNET_VERSION}
-
-RUN mkdir -p /home/model-server/tmp \
- && chown -R model-server /home/model-server
-
-COPY config.properties /home/model-server
-
-COPY deep_learning_container.py /usr/local/bin/deep_learning_container.py
-RUN chmod +x /usr/local/bin/deep_learning_container.py
-
-COPY mms-entrypoint.py /usr/local/bin/dockerd-entrypoint.py
-RUN chmod +x /usr/local/bin/dockerd-entrypoint.py
-
 # Install AutoGluon
-
 ARG AUTOGLUON_VERSION=0.7.0
 
 RUN pip install --no-cache-dir -U --trusted-host pypi.org --trusted-host files.pythonhosted.org pip \
@@ -63,8 +34,21 @@ RUN pip install --no-cache-dir -U --trusted-host pypi.org --trusted-host files.p
 RUN rm -rf /usr/local/lib/python3.9/dist-packages/gluonts/nursery/tsbench
 
 # Remove these to address security issues; these are not used if only python package is used
+# flask Flask-RESTful nvgpu are requirements for torch-serve
 RUN rm -rf /usr/local/lib/python3.9/dist-packages/ray/jars \
- && rm -rf /opt/conda/lib/python3.9/site-packages/ray/jars
+ && rm -rf /opt/conda/lib/python3.9/site-packages/ray/jars \
+ && pip install -U flask Flask-RESTful nvgpu \
+ && conda update -y requests \
+ && pip install -U botocore pyopenssl google-auth awscli \
+ && conda clean -y --all \
+ && rm -rf ~/.cache/conda \
+ && rm -rf ~/.cache/jedi
+
+# add TS entrypoint
+COPY config.properties /home/model-server
+
+COPY torchserve-entrypoint.py /usr/local/bin/dockerd-entrypoint.py
+RUN chmod +x /usr/local/bin/dockerd-entrypoint.py
 
 RUN HOME_DIR=/root \
  && curl -o ${HOME_DIR}/oss_compliance.zip https://aws-dlinfra-utilities.s3.amazonaws.com/oss_compliance.zip \
@@ -79,4 +63,4 @@ RUN curl -o /licenses-autogluon.txt https://autogluon.s3.us-west-2.amazonaws.com
 
 EXPOSE 8080 8081
 ENTRYPOINT ["python", "/usr/local/bin/dockerd-entrypoint.py"]
-CMD ["multi-model-server", "--start", "--mms-config", "/home/model-server/config.properties"]
+CMD ["torchserve", "--start", "--ts-config", "/home/model-server/config.properties", "--model-store", "/home/model-server/"]
