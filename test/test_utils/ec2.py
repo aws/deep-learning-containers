@@ -22,7 +22,10 @@ from tenacity import (
 )
 
 from test.test_utils import (
-    get_synapseai_version_from_tag, is_pr_context, is_mainline_context, is_efa_dedicated
+    get_synapseai_version_from_tag,
+    is_pr_context,
+    is_mainline_context,
+    is_efa_dedicated,
 )
 from . import DEFAULT_REGION, P3DN_REGION, P4DE_REGION, UL_AMI_LIST, BENCHMARK_RESULTS_S3_BUCKET
 
