@@ -31,6 +31,7 @@ from ..... import (
     get_sagemaker_session,
     LOW_AVAILABILITY_INSTANCE_TYPES,
     SMInstanceCapacityError,
+    SMResourceLimitExceededError,
     SMThrottlingError,
 )
 
@@ -43,7 +44,9 @@ def upload_s3_data(estimator, path, key_prefix):
 
 @retry(
     reraise=True,
-    retry=retry_if_exception_type((SMInstanceCapacityError, SMThrottlingError)),
+    retry=retry_if_exception_type(
+        (SMInstanceCapacityError, SMThrottlingError, SMResourceLimitExceededError)
+    ),
     stop=stop_after_delay(20 * 60),
     wait=wait_fixed(60),
 )
@@ -109,7 +112,7 @@ def invoke_pytorch_estimator(
             else:
                 raise e
         except botocore.exceptions.ClientError as e:
-            if "ThrottlingException" in str(e):
+            if "ThrottlingException" in str(e) or "ResourceLimitExceeded" in str(e):
                 error = e
                 continue
             else:
@@ -133,6 +136,8 @@ def invoke_pytorch_estimator(
         pytest.skip(f"Failed to launch job due to low capacity on {instance_types}")
     if "CapacityError" in str(error):
         raise SMInstanceCapacityError from error
+    elif "ResourceLimitExceeded" in str(error):
+        raise SMResourceLimitExceededError from error
     else:
         raise SMThrottlingError from error
 

@@ -44,6 +44,7 @@ def test_neuron_hosting(
         ecr_image=ecr_image,
         sagemaker_regions=sagemaker_regions,
         test_function=_test_pt_neuron,
+        framework_version=framework_version,
         instance_type=instance_type,
         model_dir=model_dir,
         script_dir=script_dir,

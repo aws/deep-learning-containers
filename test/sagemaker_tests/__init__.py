@@ -37,6 +37,10 @@ class SMInstanceCapacityError(Exception):
     pass
 
 
+class SMResourceLimitExceededError(Exception):
+    pass
+
+
 class SMThrottlingError(Exception):
     pass
 
@@ -101,7 +105,9 @@ def get_ecr_image(ecr_image, region):
 
 @retry(
     reraise=True,
-    retry=retry_if_exception_type((SMInstanceCapacityError, SMThrottlingError)),
+    retry=retry_if_exception_type(
+        (SMInstanceCapacityError, SMResourceLimitExceededError, SMThrottlingError)
+    ),
     stop=stop_after_delay(20 * 60),
     wait=wait_fixed(60),
 )
@@ -144,20 +150,24 @@ def invoke_sm_helper_function(ecr_image, sagemaker_regions, test_function, *test
             else:
                 raise e
         except botocore.exceptions.ClientError as e:
-            if "ThrottlingException" in str(e):
+            if "ThrottlingException" in str(e) or "ResourceLimitExceeded" in str(e):
                 error = e
                 continue
             else:
                 raise e
     if "CapacityError" in str(error):
         raise SMInstanceCapacityError from error
+    elif "ResourceLimitExceeded" in str(error):
+        raise SMResourceLimitExceededError from error
     else:
         raise SMThrottlingError from error
 
 
 @retry(
     reraise=True,
-    retry=retry_if_exception_type((SMInstanceCapacityError, SMThrottlingError)),
+    retry=retry_if_exception_type(
+        (SMInstanceCapacityError, SMResourceLimitExceededError, SMThrottlingError)
+    ),
     stop=stop_after_delay(20 * 60),
     wait=wait_fixed(60),
 )
@@ -220,7 +230,7 @@ def invoke_sm_endpoint_helper_function(
                     dump_logs_from_cloudwatch(e, region)
                 raise e
         except botocore.exceptions.ClientError as e:
-            if "ThrottlingException" in str(e):
+            if "ThrottlingException" in str(e) or "ResourceLimitExceeded" in str(e):
                 error = e
                 continue
             else:
@@ -233,5 +243,7 @@ def invoke_sm_endpoint_helper_function(
             raise
     if "CapacityError" in str(error):
         raise SMInstanceCapacityError from error
+    elif "ResourceLimitExceeded" in str(error):
+        raise SMResourceLimitExceededError from error
     else:
         raise SMThrottlingError from error
