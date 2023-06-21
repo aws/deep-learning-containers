@@ -226,8 +226,8 @@ def generate_sagemaker_pytest_cmd(image, sagemaker_test_type):
     sagemaker_regions_list = f"--sagemaker-regions {region_list_str}"
 
     remote_pytest_cmd = (
-        f"pytest -n=logical -rA {integration_path} --region {region} --processor {processor} "
-        f"{docker_base_arg} {sm_remote_docker_base_name} --tag {tag} "
+        f"pytest -n=logical --dist worksteal -rA {integration_path} --region {region} "
+        f"--processor {processor} {docker_base_arg} {sm_remote_docker_base_name} --tag {tag} "
         f"{framework_version_arg} {framework_version} {aws_id_arg} {account_id} "
         f"{instance_type_arg} {instance_type} {efa_flag} {sagemaker_regions_list} "
         f"--junitxml {test_report}"

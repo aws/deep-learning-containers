@@ -254,10 +254,12 @@ def fixture_dist_gpu_backend(request):
 @pytest.fixture(autouse=True)
 def skip_by_device_type(request, use_gpu, instance_type):
     is_gpu = use_gpu or instance_type[3] in ["g", "p"]
-    is_neuronx = instance_type in NEURONX_TRN1_INSTANCES
 
-    # If neuron run only tests marked as neuron
-    if request.node.get_closest_marker("neuronx_test") and not is_neuronx:
+    # Skip a neuronx test that's not on an neuron instance or a test which
+    # uses a neuron instance and is not a neuronx test
+    is_neuronx_test = request.node.get_closest_marker("neuronx_test") is not None
+    is_neuronx_instance = "trn1" in instance_type
+    if is_neuronx_test != is_neuronx_instance:
         pytest.skip('Skipping because running on "{}" instance'.format(instance_type))
     if (request.node.get_closest_marker("skip_gpu") and is_gpu) or (
         request.node.get_closest_marker("skip_cpu") and not is_gpu
