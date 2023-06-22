@@ -49,6 +49,7 @@ RUN apt-get update \
  && echo 'deb http://nginx.org/packages/ubuntu/ bionic nginx' >> /etc/apt/sources.list \
  && apt-get update \
  && apt-get -y install --no-install-recommends \
+    nghttp2 \
     nginx \
     nginx-module-njs \
     libbz2-dev \

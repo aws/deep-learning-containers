@@ -53,6 +53,7 @@ RUN apt-get update \
     libxext6 \
     libxrender-dev \
     libzmq5 \
+    nghttp2 \
     openjdk-8-jdk-headless \
     vim \
     wget \
