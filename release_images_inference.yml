@@ -2,7 +2,7 @@
 release_images:
   1:
     framework: "djl"
-    version: "0.21.0"
+    version: "0.22.1"
     arch_type: "x86"
     inference:
       device_types: [ "neuronx" ]
