@@ -19,7 +19,7 @@ ARG PYTHON=python3
 ARG PYTHON_VERSION=3.9.13
 ARG MAMBA_VERSION=22.9.0-1
 ARG OPEN_MPI_VERSION=4.1.4
-ARG MMS_VERSION=1.1.8
+ARG MMS_VERSION=1.1.11
 
 # HF ARGS
 ARG TORCH_URL=https://aws-pytorch-unified-cicd-binaries.s3.us-west-2.amazonaws.com/r1.13.1_ec2/20221217-194030/54406b8eed7fbd61be629cb06229dfb7b6b2954e/torch-1.13.1%2Bcpu-cp39-cp39-linux_x86_64.whl
