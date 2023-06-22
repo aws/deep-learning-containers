@@ -2,14 +2,13 @@
 release_images:
   1:
     framework: "djl"
-    version: "0.21.0"
+    version: "0.22.1"
     arch_type: "x86"
     inference:
-      device_types: [ "gpu" ]
-      python_versions: [ "py39" ]
+      device_types: [ "neuronx" ]
+      python_versions: [ "py38" ]
       os_version: "ubuntu20.04"
-      fastertransformer_version: "5.3.0"
-      cuda_version: "cu117"
+      neuron_sdk_version: "sdk2.10.0"
       example: False        # [Default: False] Set to True to denote that this image is an Example image
       disable_sm_tag: True # [Default: False] Set to True to prevent SageMaker Abbreviated Tags from being attached
       # to images being published.
