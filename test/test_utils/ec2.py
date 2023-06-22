@@ -125,7 +125,7 @@ def get_ec2_instance_type(
     required to be a list.
     """
     if is_pr_context():
-        if get_num_efa_interfaces_for_instance_type(default) > 0 and not is_efa_dedicated():
+        if get_num_efa_interfaces_for_instance_type(default) and not is_efa_dedicated():
             return []
         return [default]
 
