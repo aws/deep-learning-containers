@@ -213,7 +213,6 @@ RUN cd /tmp \
 RUN pip install --no-cache-dir --upgrade pip --no-cache-dir --trusted-host pypi.org --trusted-host files.pythonhosted.org \
  && ln -s /opt/conda/bin/pip /usr/local/bin/pip3
 
-
 WORKDIR /root
 
 # Configure Open MPI and configure NCCL parameters
