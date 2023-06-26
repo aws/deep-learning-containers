@@ -69,7 +69,6 @@ UBUNTU_18_BASE_DLAMI_US_EAST_1 = get_ami_id_boto3(
 UBUNTU_20_BASE_DLAMI_US_WEST_2 = get_ami_id_boto3(
     region_name="us-west-2", ami_name_pattern="Deep Learning Base AMI (Ubuntu 20.04) Version ??.?"
 )
-
 AML2_BASE_DLAMI_US_WEST_2 = get_ami_id_boto3(
     region_name="us-west-2", ami_name_pattern="Deep Learning Base AMI (Amazon Linux 2) Version ??.?"
 )
