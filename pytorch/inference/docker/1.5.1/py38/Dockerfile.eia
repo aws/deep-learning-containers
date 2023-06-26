@@ -16,8 +16,8 @@ ENV DEBCONF_NONINTERACTIVE_SEEN true
 # Add arguments to achieve the version, python and url
 ARG PYTHON=python3
 ARG PYTHON_VERSION=3.8.13
-ARG TORCH_VERSION=1.13.0
-ARG TORCHVISION_VERSION=0.14.0
+ARG PYTORCH_VERSION=1.5.1
+ARG TORCHVISION_VERSION=0.6.1
 ARG GRAPHVIZ_VERSION=0.13.2
 ARG MMS_VERSION=1.1.8
 ARG HEALTH_CHECK_VERSION=1.7.0
@@ -101,7 +101,7 @@ RUN conda install -y \
  && pip install --upgrade perl \
  && ln -s /opt/conda/bin/pip /usr/local/bin/pip3 \
  # Torchvision wheel must be installed first, so that PyTorch-EI framework is not overwritten.
- && pip install torch==2.0.0 torchvision==0.15.1 torchaudio==2.0.1 \
+ && pip install https://download.pytorch.org/whl/cpu/torchvision-0.6.1%2Bcpu-cp38-cp38-linux_x86_64.whl \
  && pip install https://amazonei-pytorcheia.s3.amazonaws.com/releases/torcheia-1.0.0-cp38-cp38-manylinux1_x86_64.whl \
  && pip install certifi \
  && pip install graphviz==$GRAPHVIZ_VERSION \
@@ -139,7 +139,7 @@ RUN HOME_DIR=/root \
  && ${HOME_DIR}/oss_compliance/generate_oss_compliance.sh ${HOME_DIR} ${PYTHON} \
  && rm -rf ${HOME_DIR}/oss_compliance*
 
-RUN curl https://aws-dlc-licenses.s3.amazonaws.com/pytorch-1.13.0/license.txt -o /license.txt
+RUN curl https://aws-dlc-licenses.s3.amazonaws.com/pytorch-1.5.1/license.txt -o /license.txt
 
 RUN conda install -y -c conda-forge "pyyaml>=5.4,<5.5" \
  && pip install -U \
