@@ -32,4 +32,6 @@ def test_gdrcopy(pytorch_training, ec2_connection, ec2_instance_type, region, gp
         )
     if test_utils.is_below_framework_version("1.13.1", pytorch_training, "pytorch"):
         pytest.skip(f"GDRCopy is not supported on Image {pytorch_training}")
-    execute_ec2_training_test(ec2_connection, pytorch_training, GDRCOPY_SANITY_TEST_CMD, enable_gdrcopy=True)
+    execute_ec2_training_test(
+        ec2_connection, pytorch_training, GDRCOPY_SANITY_TEST_CMD, enable_gdrcopy=True
+    )
