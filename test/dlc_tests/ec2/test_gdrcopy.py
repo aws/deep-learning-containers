@@ -1,6 +1,6 @@
 import os
-
 import pytest
+
 import test.test_utils as test_utils
 from test.test_utils import CONTAINER_TESTS_PREFIX, is_pr_context, is_efa_dedicated
 from test.test_utils.ec2 import (
@@ -8,7 +8,6 @@ from test.test_utils.ec2 import (
     filter_efa_instance_type,
     execute_ec2_training_test,
 )
-
 
 GDRCOPY_SANITY_TEST_CMD = os.path.join(CONTAINER_TESTS_PREFIX, "gdrcopy", "test_gdrcopy.sh")
 EC2_EFA_GPU_INSTANCE_TYPE_AND_REGION = get_efa_ec2_instance_type(
