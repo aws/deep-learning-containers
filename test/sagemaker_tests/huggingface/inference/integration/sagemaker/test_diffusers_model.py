@@ -32,6 +32,9 @@ from ...integration.sagemaker.timeout import timeout_and_delete_endpoint
 def test_diffusers_cpu_hosting(
     sagemaker_session, framework_version, ecr_image, instance_type, region, py_version
 ):
+    if "pytorch" in ecr_image and Version(framework_version) < Version("2.0"):
+        pytest.skip("Skipping speech tests for PT 1.X")
+
     instance_type = instance_type or "ml.m5.xlarge"
     try:
         _test_diffusion_model(
@@ -56,6 +59,9 @@ def test_diffusers_cpu_hosting(
 def test_diffusers_gpu_hosting(
     sagemaker_session, framework_version, ecr_image, instance_type, region, py_version
 ):
+    if "pytorch" in ecr_image and Version(framework_version) < Version("2.0"):
+        pytest.skip("Skipping speech tests for PT 1.X")
+
     instance_type = instance_type or "ml.p3.2xlarge"
     try:
         _test_diffusion_model(
