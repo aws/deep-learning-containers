@@ -209,6 +209,7 @@ RUN cd /tmp \
  && cd gdrcopy \
  && sed -ie '12s@$@ -L $(CUDA)/lib/stubs@' tests/Makefile \
  && CUDA=/opt/conda make install
+ && rm -rf /tmp/gdrcopy
 
 RUN pip install --no-cache-dir --upgrade pip --no-cache-dir --trusted-host pypi.org --trusted-host files.pythonhosted.org \
  && ln -s /opt/conda/bin/pip /usr/local/bin/pip3
