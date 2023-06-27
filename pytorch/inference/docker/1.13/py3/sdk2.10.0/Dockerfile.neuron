@@ -11,8 +11,8 @@ ARG MAMBA_VERSION=23.1.0-1
 
 # Neuron SDK components version numbers
 ARG NEURONX_TOOLS_VERSION=2.10.*
-ARG NEURON_FRAMEWORK_VERSION=1.13.1.2.7.*
-ARG NEURONX_CC_VERSION=2.6.*
+ARG NEURON_FRAMEWORK_VERSION=1.13.1.2.7.1.*
+ARG NEURON_CC_VERSION=1.15.*
 # See http://bugs.python.org/issue19846
 ENV LANG C.UTF-8
 ENV LD_LIBRARY_PATH /lib/x86_64-linux-gnu:/opt/conda/lib/:$LD_LIBRARY_PATH
@@ -106,7 +106,7 @@ RUN pip install --no-cache-dir -U \
     pandas==1.* \
     boto3
 
-RUN pip install neuronx-cc==$NEURONX_CC_VERSION --extra-index-url https://pip.repos.neuron.amazonaws.com \
+RUN pip install neuron-cc[tensorflow]==$NEURON_CC_VERSION --extra-index-url https://pip.repos.neuron.amazonaws.com \
  && pip install torch-neuron==$NEURON_FRAMEWORK_VERSION --extra-index-url https://pip.repos.neuron.amazonaws.com \
  && pip install "protobuf<4" \
  && pip install torchserve==$TS_VERSION \
