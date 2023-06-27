@@ -28,6 +28,35 @@
       "severity": "LOW",
       "status": "ACTIVE",
       "title": "CVE-2022-3996 - cryptography"
+    },
+    {
+      "reason_to_ignore": "There is currently no released fix version from cryptography",
+      "description":"Issue summary: Processing some specially crafted ASN.1 object identifiers or\ndata containing them may be very slow.\n\nImpact summary: Applications that use OBJ_obj2txt() directly, or use any of\nthe OpenSSL subsystems OCSP, PKCS7/SMIME, CMS, CMP/CRMF or TS with no message\nsize limit may experience notable to very long delays when processing those\nmessages, which may lead to a Denial of Service.\n\nAn OBJECT IDENTIFIER is composed of a series of numbers - sub-identifiers -\nmost of which have no size limit.  OBJ_obj2txt() may be used to translate\nan ASN.1 OBJECT IDENTIFIER given in DER encoding form (using the OpenSSL\ntype ASN1_OBJECT) to its canonical numeric text form, which are the\nsub-identifiers of the OBJECT IDENTIFIER in decimal form, separated by\nperiods.\n\nWhen one of the sub-identifiers in the OBJECT IDENTIFIER is very large\n(these are sizes that are seen as absurdly large, taking up tens or hundreds\nof KiBs), the translation to a decimal number in text may take a very long\ntime.  The time complexity is O(",
+      "vulnerability_id":"CVE-2023-2650",
+      "name":"CVE-2023-2650",
+      "package_name":"cryptography",
+      "package_details":{
+          "file_path":"opt/conda/lib/python3.8/site-packages/cryptography-39.0.1.dist-info/METADATA",
+          "name":"cryptography",
+          "package_manager":"PYTHONPKG",
+          "version":"39.0.1",
+          "release":null
+      },
+      "remediation":{
+          "recommendation":{
+            "text":"None Provided"
+          }
+      },
+      "cvss_v3_score":7.5,
+      "cvss_v30_score":0.0,
+      "cvss_v31_score":7.5,
+      "cvss_v2_score":0.0,
+      "cvss_v3_severity":"HIGH",
+      "source_url":"https://nvd.nist.gov/vuln/detail/CVE-2023-2650",
+      "source":"NVD",
+      "severity":"HIGH",
+      "status":"ACTIVE",
+      "title":"CVE-2023-2650 - cryptography"
     }
   ],
   "imagemagick": [
@@ -1466,5 +1495,35 @@
       "status":"ACTIVE",
       "title":"CVE-2022-45907 - torch"
    }
-  ]
+  ],
+  "py":[
+   {
+      "description":"The py library through 1.11.0 for Python allows remote attackers to conduct a ReDoS (Regular expression Denial of Service) attack via a Subversion repository with crafted info data, because the InfoSvnCommand argument is mishandled.",
+      "vulnerability_id":"CVE-2022-42969",
+      "name":"CVE-2022-42969",
+      "package_name":"py",
+      "package_details":{
+         "file_path":"opt/conda/lib/python3.8/site-packages/py-1.10.0.dist-info/METADATA",
+         "name":"py",
+         "package_manager":"PYTHONPKG",
+         "version":"1.10.0",
+         "release":null
+      },
+      "remediation":{
+         "recommendation":{
+            "text":"None Provided"
+         }
+      },
+      "cvss_v3_score":7.5,
+      "cvss_v30_score":0.0,
+      "cvss_v31_score":7.5,
+      "cvss_v2_score":0.0,
+      "cvss_v3_severity":"HIGH",
+      "source_url":"https://nvd.nist.gov/vuln/detail/CVE-2022-42969",
+      "source":"NVD",
+      "severity":"HIGH",
+      "status":"ACTIVE",
+      "title":"CVE-2022-42969 - py"
+   }
+]
 }
