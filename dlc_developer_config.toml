@@ -31,10 +31,10 @@ benchmark_mode = false
 [build]
 # Add in frameworks you would like to build. By default, builds are disabled unless you specify building an image.
 # available frameworks - ["autogluon", "huggingface_tensorflow", "huggingface_pytorch", "huggingface_tensorflow_trcomp", "huggingface_pytorch_trcomp", "pytorch_trcomp", "tensorflow", "mxnet", "pytorch", "stabilityai_pytorch"]
-build_frameworks = []
+build_frameworks = ["huggingface_pytorch"]
 
 # By default we build both training and inference containers. Set true/false values to determine which to build.
-build_training = true
+build_training = false
 build_inference = true
 
 # Set to false in order to remove datetime tag on PR builds
@@ -65,7 +65,7 @@ sagemaker_local_tests = false
 # "standard" --> run standard sagemaker remote tests from test/sagemaker_tests
 # "rc" --> run release_candidate_integration tests
 # "efa" --> run efa sagemaker tests
-sagemaker_remote_tests = "off"
+sagemaker_remote_tests = "standard"
 
 # SM remote EFA test instance type
 sagemaker_remote_efa_instance_type = ""
@@ -128,7 +128,7 @@ dlc-pr-tensorflow-2-neuron-inference = ""
 
 # HuggingFace Inference
 dlc-pr-huggingface-tensorflow-inference = ""
-dlc-pr-huggingface-pytorch-inference = ""
+dlc-pr-huggingface-pytorch-inference = "huggingface/pytorch/inference/buildspec-1-13-1.yml"
 dlc-pr-huggingface-pytorch-neuron-inference = ""
 
 # Stability AI Inference
