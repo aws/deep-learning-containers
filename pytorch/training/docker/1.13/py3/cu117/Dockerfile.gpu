@@ -170,7 +170,7 @@ RUN cd /tmp \
  && git clone https://github.com/NVIDIA/gdrcopy.git -b v${GDRCOPY_VERSION} \
  && cd gdrcopy \
  && sed -ie '12s@$@ -L /usr/local/cuda/lib64/stubs/@' tests/Makefile \
- && make install
+ && make install &&
  && rm -rf /tmp/gdrcopy
 
 # for conda ssl verification
