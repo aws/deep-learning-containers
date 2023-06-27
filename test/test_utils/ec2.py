@@ -898,11 +898,11 @@ def execute_ec2_training_test(
         f"{docker_cmd} exec --user root {container_name} {executable} -c '{test_cmd}'",
         hide=True,
         timeout=timeout,
-        asynchronous=asynchronous,
+        # asynchronous=asynchronous,
     )
-    if asynchronous:
-        LOGGER.info(f"execute_ec2_training_test command given for {ecr_uri}, with cmd {test_cmd}")
-        response.join()
+    # if asynchronous:
+    #     LOGGER.info(f"execute_ec2_training_test command given for {ecr_uri}, with cmd {test_cmd}")
+    #     response.join()
     LOGGER.info(f"execute_ec2_training_test completed {ecr_uri}, with cmd {test_cmd}")
     return response
 
