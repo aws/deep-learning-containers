@@ -13,7 +13,7 @@
 
 #!/usr/bin/env bash
 sanity | grep 'Failures: 0, Errors: 0' &> /dev/null
-if [ $? == 1 ]; then
+if [ $? != 0 ]; then
     echo "GDRCopy Sanity check failed!"
     exit 1
 fi

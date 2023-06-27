@@ -30,7 +30,7 @@ RESOURCE_PATH = os.path.join(os.path.dirname(__file__), "..", "..", "resources")
 
 def validate_or_skip_gdrcopy(ecr_image):
     if not can_run_gdrcopy(ecr_image):
-        pytest.skip("EFA is only supported on CUDA 11.7+, and on PyTorch 1.8.1 or higher")
+        pytest.skip("GDRCopy is only supported on CUDA 11.7+, and on PyTorch 1.13.1 or higher")
 
 
 def can_run_gdrcopy(ecr_image):
