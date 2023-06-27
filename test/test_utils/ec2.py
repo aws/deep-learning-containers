@@ -813,6 +813,7 @@ def execute_ec2_training_test(
     timeout=18000,
     bin_bash_entrypoint=False,
     enable_habana_async_execution=False,
+    asynchronous=False,
 ):
     if executable not in ("bash", "python"):
         raise RuntimeError(
@@ -893,13 +894,15 @@ def execute_ec2_training_test(
         connection.run(f"sudo modprobe -r neuron  && sudo modprobe -i neuron")
 
     LOGGER.info(f"execute_ec2_training_test running {ecr_uri}, with cmd {test_cmd}")
-    ec2_res = connection.run(
+    promise = connection.run(
         f"{docker_cmd} exec --user root {container_name} {executable} -c '{test_cmd}'",
         hide=True,
         timeout=timeout,
+        asynchronous=asynchronous,
     )
+    promise.join()
     LOGGER.info(f"execute_ec2_training_test completed {ecr_uri}, with cmd {test_cmd}")
-    return ec2_res
+    return
 
 
 def execute_ec2_inference_test(connection, ecr_uri, test_cmd, region=DEFAULT_REGION):
