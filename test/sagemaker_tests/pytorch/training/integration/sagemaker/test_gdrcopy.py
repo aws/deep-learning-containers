@@ -24,6 +24,8 @@ from ...integration import (
 )
 from ...integration.sagemaker.timeout import timeout
 from . import invoke_pytorch_estimator
+from ....training import get_efa_test_instance_type
+
 
 RESOURCE_PATH = os.path.join(os.path.dirname(__file__), "..", "..", "resources")
 
