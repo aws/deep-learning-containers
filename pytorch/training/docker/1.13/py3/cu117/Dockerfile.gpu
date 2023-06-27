@@ -171,6 +171,7 @@ RUN cd /tmp \
  && cd gdrcopy \
  && sed -ie '12s@$@ -L /usr/local/cuda/lib64/stubs/@' tests/Makefile \
  && make install
+ && rm -rf /tmp/gdrcopy
 
 # for conda ssl verification
 ENV REQUESTS_CA_BUNDLE=/etc/ssl/certs/ca-certificates.crt
