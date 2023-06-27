@@ -894,15 +894,17 @@ def execute_ec2_training_test(
         connection.run(f"sudo modprobe -r neuron  && sudo modprobe -i neuron")
 
     LOGGER.info(f"execute_ec2_training_test running {ecr_uri}, with cmd {test_cmd}")
-    promise = connection.run(
+    response = connection.run(
         f"{docker_cmd} exec --user root {container_name} {executable} -c '{test_cmd}'",
         hide=True,
         timeout=timeout,
         asynchronous=asynchronous,
     )
-    promise.join()
+    if asynchronous:
+        LOGGER.info(f"execute_ec2_training_test command given for {ecr_uri}, with cmd {test_cmd}")
+        response.join()
     LOGGER.info(f"execute_ec2_training_test completed {ecr_uri}, with cmd {test_cmd}")
-    return
+    return response
 
 
 def execute_ec2_inference_test(connection, ecr_uri, test_cmd, region=DEFAULT_REGION):
