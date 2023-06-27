@@ -1376,7 +1376,36 @@
       "severity": "MEDIUM",
       "status": "ACTIVE",
       "title": "CVE-2020-15166 - libzmq5"
-    }
+    },
+    {
+      "reason_to_ignore": "Latest version of the package is installed",
+      "description":"\n It was discovered that ZeroMQ incorrectly handled certain application metadata.\n A remote attacker could use this issue to cause ZeroMQ to crash, or possibly\n execute arbitrary code.",
+      "vulnerability_id":"CVE-2019-13132",
+      "name":"CVE-2019-13132",
+      "package_name":"libzmq5",
+      "package_details":{
+         "file_path":null,
+         "name":"libzmq5",
+         "package_manager":"OS",
+         "version":"4.3.2",
+         "release":"2ubuntu1"
+      },
+      "remediation":{
+         "recommendation":{
+            "text":"None Provided"
+         }
+      },
+      "cvss_v3_score":9.8,
+      "cvss_v30_score":0.0,
+      "cvss_v31_score":9.8,
+      "cvss_v2_score":7.5,
+      "cvss_v3_severity":"CRITICAL",
+      "source_url":"https://people.canonical.com/~ubuntu-security/cve/2019/CVE-2019-13132.html",
+      "source":"UBUNTU_CVE",
+      "severity":"HIGH",
+      "status":"ACTIVE",
+      "title":"CVE-2019-13132 - libzmq5"
+   }
   ],
   "torch": [
     {
@@ -1407,6 +1436,35 @@
       "severity": "MEDIUM",
       "status": "ACTIVE",
       "title": "CVE-2022-45907 - torch"
-    }
+    },
+    {
+      "reason_to_ignore": "No fix available",
+      "description":"In PyTorch before trunk/89695, torch.jit.annotations.parse_type_line can cause arbitrary code execution because eval is used unsafely.",
+      "vulnerability_id":"CVE-2022-45907",
+      "name":"CVE-2022-45907",
+      "package_name":"torch",
+      "package_details":{
+         "file_path":"opt/conda/lib/python3.8/site-packages/torch-1.5.1.dist-info/METADATA",
+         "name":"torch",
+         "package_manager":"PYTHONPKG",
+         "version":"1.5.1",
+         "release":null
+      },
+      "remediation":{
+         "recommendation":{
+            "text":"None Provided"
+         }
+      },
+      "cvss_v3_score":9.8,
+      "cvss_v30_score":0.0,
+      "cvss_v31_score":9.8,
+      "cvss_v2_score":0.0,
+      "cvss_v3_severity":"CRITICAL",
+      "source_url":"https://nvd.nist.gov/vuln/detail/CVE-2022-45907",
+      "source":"NVD",
+      "severity":"CRITICAL",
+      "status":"ACTIVE",
+      "title":"CVE-2022-45907 - torch"
+   }
   ]
 }
