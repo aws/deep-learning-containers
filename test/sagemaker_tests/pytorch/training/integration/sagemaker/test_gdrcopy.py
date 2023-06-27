@@ -24,13 +24,14 @@ from ...integration import (
 )
 from ...integration.sagemaker.timeout import timeout
 from . import invoke_pytorch_estimator
+from ....training import get_efa_test_instance_type
 
 RESOURCE_PATH = os.path.join(os.path.dirname(__file__), "..", "..", "resources")
 
 
 def validate_or_skip_gdrcopy(ecr_image):
     if not can_run_gdrcopy(ecr_image):
-        pytest.skip("EFA is only supported on CUDA 11.7+, and on PyTorch 1.8.1 or higher")
+        pytest.skip("GDRCopy is only supported on CUDA 11.7+, and on PyTorch 1.13.1 or higher")
 
 
 def can_run_gdrcopy(ecr_image):
@@ -48,6 +49,9 @@ def can_run_gdrcopy(ecr_image):
 @pytest.mark.skip_cpu
 @pytest.mark.skip_trcomp_containers
 @pytest.mark.gdrcopy()
+@pytest.mark.parametrize(
+    "efa_instance_type", get_efa_test_instance_type(default=["ml.p4d.24xlarge"]), indirect=True
+)
 def test_sanity_gdrcopy(ecr_image, efa_instance_type, sagemaker_regions):
     validate_or_skip_gdrcopy(ecr_image)
     gdrcopy_test_path = os.path.join(RESOURCE_PATH, "gdrcopy", "test_gdrcopy.sh")
