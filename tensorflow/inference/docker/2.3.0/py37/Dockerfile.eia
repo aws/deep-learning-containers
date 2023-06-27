@@ -49,7 +49,6 @@ RUN apt-get update \
  && echo 'deb http://nginx.org/packages/ubuntu/ bionic nginx' >> /etc/apt/sources.list \
  && apt-get update \
  && apt-get -y install --no-install-recommends \
-    nghttp2 \
     nginx \
     nginx-module-njs \
     libbz2-dev \
@@ -95,13 +94,13 @@ RUN ${PIP} install --no-cache-dir \
     falcon==2.0.0 \
     gunicorn==20.0.4 \
     gevent==21.1.1 \
-    requests==2.31.0 \
+    requests==2.28.1 \
     grpcio==1.31.0 \
     protobuf==4.21.7 \
     urllib3==1.26.12 \
 # using --no-dependencies to avoid installing tensorflow binary
  && ${PIP} install --no-dependencies --no-cache-dir \
-    tensorflow-serving-api==2.10.1
+    tensorflow-serving-api==2.3
 
 COPY sagemaker /sagemaker
 
