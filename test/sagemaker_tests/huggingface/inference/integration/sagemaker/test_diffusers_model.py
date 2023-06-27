@@ -13,6 +13,7 @@
 from __future__ import absolute_import
 
 import pytest
+from packaging.version import Version
 import sagemaker
 from sagemaker.huggingface import HuggingFaceModel
 from ...integration import (
