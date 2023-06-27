@@ -113,8 +113,6 @@ RUN conda install -y \
  && pip install cryptography==39.0.1 \
  && pip install pydantic==1.10.9 \
  && pip install starlette==0.28.0 \
- && pip install safety==2.3.5 \
-#  && pip install Scrapy==2.9.0 \
  && pip install mpmath==1.3.0 \
  && pip install --force-reinstall -v py==1.10.0 
 
