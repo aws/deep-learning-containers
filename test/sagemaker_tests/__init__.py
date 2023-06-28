@@ -20,7 +20,6 @@ import botocore.exceptions
 import sagemaker
 
 from botocore.config import Config
-from sagemaker.session import Session
 from tenacity import retry, retry_if_exception_type, wait_fixed, stop_after_delay
 
 from test.test_utils.ecr import reupload_image_to_test_ecr
@@ -186,7 +185,7 @@ def invoke_sm_endpoint_helper_function(
         sagemaker_client = get_sagemaker_client(region)
         boto_session = boto3.Session(region_name=region)
         sagemaker_runtime_client = get_sagemaker_runtime_client(region)
-        sagemaker_session = Session(boto_session=boto3.Session(region_name=region))
+        sagemaker_session = sagemaker.Session(boto_session=boto3.Session(region_name=region))
         # Reupload the image to test region if needed
         tested_ecr_image = (
             get_ecr_image(ecr_image, region) if region != ecr_image_region else ecr_image
