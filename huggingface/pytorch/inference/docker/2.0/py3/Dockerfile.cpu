@@ -167,7 +167,7 @@ RUN pip install --no-cache-dir \
     diffusers==${DIFFUSERS_VERSION} \
     "accelerate>=0.11.0" \
     "protobuf>=3.19.5,<=3.20.2" \
-    "numpy>=1.22.2,<1.23" \
+    "numpy<1.25" \
     "sagemaker-huggingface-inference-toolkit<3"
 
 # Install IPEx and its dependencies
