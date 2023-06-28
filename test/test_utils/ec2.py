@@ -813,6 +813,7 @@ def execute_ec2_training_test(
     timeout=18000,
     bin_bash_entrypoint=False,
     enable_habana_async_execution=False,
+    enable_gdrcopy=False,
 ):
     if executable not in ("bash", "python"):
         raise RuntimeError(
@@ -838,6 +839,7 @@ def execute_ec2_training_test(
         "-v ${HOME}/gaudi-test-suite:/gaudi-test-suite" if "hpu" in ecr_uri else ""
     )
     neuron_device = "--device=/dev/neuron0" if "neuron" in ecr_uri else ""
+    gdr_device = "--device=/dev/gdrdrv" if enable_gdrcopy else ""
     bin_bash_cmd = "--entrypoint /bin/bash " if bin_bash_entrypoint else ""
 
     LOGGER.info(f"execute_ec2_training_test pulling {ecr_uri}, with cmd {test_cmd}")
@@ -846,7 +848,7 @@ def execute_ec2_training_test(
         f"{docker_cmd} run --name {container_name} "
         f"{container_runtime} {ompi_mca_btl} {cap_add} {hpu_env_vars} "
         f"{ipc} {network}-v {container_test_local_dir}:{os.path.join(os.sep, 'test')} "
-        f"{habana_container_test_repo} {shm_setting} {neuron_device} -itd {bin_bash_cmd}{ecr_uri}",
+        f"{habana_container_test_repo} {shm_setting} {neuron_device} {gdr_device} -itd {bin_bash_cmd}{ecr_uri}",
         hide=True,
     )
 
