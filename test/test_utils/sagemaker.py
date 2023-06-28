@@ -225,6 +225,14 @@ def generate_sagemaker_pytest_cmd(image, sagemaker_test_type):
     region_list_str = ",".join(region_list)
     sagemaker_regions_list = f"--sagemaker-regions {region_list_str}"
 
+    # Auto vs logical, and test distribution algorithms -
+    #   https://pytest-xdist.readthedocs.io/en/stable/distribution.html
+    # Using -n=logical spawns num_cpu_cores * 2 worker processes, instead of -n=auto which spawns
+    # only num_cpu_cores worker processes. Note: CodeBuild already provides all CPU threads as
+    # vCPUs, so -n=logical behaves the same way as -n=auto on CodeBuild.
+    # The default --dist=load option splits all tests into queues between the available workers,
+    # and then lets them handle their own workload. --dist=worksteal allows any processes that
+    # finish their tests faster to steal tests from the queues for slower workers.
     remote_pytest_cmd = (
         f"pytest -n=logical --dist worksteal -rA {integration_path} --region {region} "
         f"--processor {processor} {docker_base_arg} {sm_remote_docker_base_name} --tag {tag} "
