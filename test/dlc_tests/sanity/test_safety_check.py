@@ -704,10 +704,15 @@ IGNORE_SAFETY_IDS = {
                 "44717",
                 # for cryptography until e have 39.0.0 release
                 "51159",
-                "51358",
+                "51358"
             ]
         },
-        "inference-eia": {"py3": []},
+        "inference-eia": {
+            "py3": [                
+                # Torch 1.5.1 is needed for PyTorch-EI 1.0.0
+                "54718",
+                ]
+            },
         "inference-neuron": {
             "py3": [
                 # 39409, 39408, 39407, 39406: TF 1.15.5 is on par with TF 2.0.4, 2.1.3, 2.2.2, 2.3.2 in security patches
