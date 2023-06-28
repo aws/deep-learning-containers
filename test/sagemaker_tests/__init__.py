@@ -148,7 +148,10 @@ def invoke_sm_helper_function(ecr_image, sagemaker_regions, test_function, *test
             else:
                 raise e
         except botocore.exceptions.ClientError as e:
-            if "ThrottlingException" in str(e) or "ResourceLimitExceeded" in str(e):
+            if any(
+                exception_type in str(e)
+                for exception_type in ["ThrottlingException", "ResourceLimitExceeded"]
+            ):
                 error = e
                 continue
             else:
@@ -228,7 +231,10 @@ def invoke_sm_endpoint_helper_function(
                     dump_logs_from_cloudwatch(e, region)
                 raise e
         except botocore.exceptions.ClientError as e:
-            if "ThrottlingException" in str(e) or "ResourceLimitExceeded" in str(e):
+            if any(
+                exception_type in str(e)
+                for exception_type in ["ThrottlingException", "ResourceLimitExceeded"]
+            ):
                 error = e
                 continue
             else:

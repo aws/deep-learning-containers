@@ -76,7 +76,10 @@ def invoke_pytorch_helper_function(
             else:
                 raise e
         except botocore.exceptions.ClientError as e:
-            if "ThrottlingException" in str(e) or "ResourceLimitExceeded" in str(e):
+            if any(
+                exception_type in str(e)
+                for exception_type in ["ThrottlingException", "ResourceLimitExceeded"]
+            ):
                 error = e
                 continue
             else:
