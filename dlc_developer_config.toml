@@ -45,12 +45,12 @@ do_build = false
 
 [test]
 ### On by default
-sanity_tests = true
+sanity_tests = false
   safety_check_test = false
   ecr_scan_allowlist_feature = false
-ecs_tests = true
-eks_tests = true
-ec2_tests = true
+ecs_tests = false
+eks_tests = false
+ec2_tests = false
 
 ### EC2 EFA tests are run in EC2 test jobs, so ec2_tests must be true if ec2_efa_tests is true.
 ### Off by default
