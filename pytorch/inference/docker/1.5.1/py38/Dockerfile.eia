@@ -116,8 +116,9 @@ RUN conda install -y \
  && pip install starlette==0.28.0 \
 #  && pip install safety==2.3.5 \
 #  && pip install scrapy==2.8.0 \
- && pip install mpmath==1.3.0 
-#  && pip install py==1.10.0 
+ && pip install mpmath==1.3.0 \
+ && pip install fastapi==0.98.0 \
+ && pip install multi-model-server==1.1.11
  
 RUN useradd -m model-server \
  && mkdir -p /home/model-server/tmp \
