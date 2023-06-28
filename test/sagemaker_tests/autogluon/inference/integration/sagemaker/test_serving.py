@@ -84,6 +84,7 @@ def test_sm_trained_model_cpu(sagemaker_regions, framework_version, ecr_image, i
         invoke_sm_endpoint_helper_function(
             ecr_image=ecr_image,
             sagemaker_regions=sagemaker_regions,
+            framework_version=framework_version,
             test_function=_test_sm_trained_model,
             instance_type=instance_type,
         )
