@@ -96,6 +96,8 @@ IGNORE_SAFETY_IDS = {
                 # CVE vulnerabilities in TF < 2.7.0 ignoring to be able to build TF containers
                 "42098",
                 "42062",
+                # Torch 1.5.1 is need for pytorch eia 1.0
+                "54718",
             ],
         },
         "inference-neuron": {
@@ -707,12 +709,7 @@ IGNORE_SAFETY_IDS = {
                 "51358",
             ]
         },
-        "inference-eia": {
-            "py3": [
-                # Torch 1.5.1 is needed for PyTorch-EI 1.0.0
-                "54718",
-            ]
-        },
+        "inference-eia": {"py3": []},
         "inference-neuron": {
             "py3": [
                 # 39409, 39408, 39407, 39406: TF 1.15.5 is on par with TF 2.0.4, 2.1.3, 2.2.2, 2.3.2 in security patches

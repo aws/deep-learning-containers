@@ -1494,70 +1494,12 @@
       "severity":"CRITICAL",
       "status":"ACTIVE",
       "title":"CVE-2022-45907 - torch"
-   },
-    {
-      "reason_to_ignore": "No fix available",
-      "description":"Torch 1.13.1 includes a fix for CVE-2022-45907: In PyTorch before trunk/89695, torch.jit.annotations.parse_type_line can cause arbitrary code execution because eval is used unsafely.\r\nhttps://github.com/pytorch/pytorch/issues/88868",
-      "vulnerability_id":"CVE-2022-45907",
-      "name":"CVE-2022-45907",
-      "package_name":"torch",
-      "package_details":{
-         "file_path":"opt/conda/lib/python3.8/site-packages/torch-1.5.1.dist-info/METADATA",
-         "name":"torch",
-         "package_manager":"PYTHONPKG",
-         "version":"1.5.1",
-         "release":null
-      },
-      "remediation":{
-         "recommendation":{
-            "text":"None Provided"
-         }
-      },
-      "cvss_v3_score":9.8,
-      "cvss_v30_score":0.0,
-      "cvss_v31_score":9.8,
-      "cvss_v2_score":0.0,
-      "cvss_v3_severity":"CRITICAL",
-      "source_url":"https://nvd.nist.gov/vuln/detail/CVE-2022-45907",
-      "source":"NVD",
-      "severity":"CRITICAL",
-      "status":"ACTIVE",
-      "title":"CVE-2022-45907 - torch"
    }
   ],
   "py":[
    {  
       "reason_to_ignore": "Installed 1.10.0 instead of 1.11.0",
       "description":"The py library through 1.11.0 for Python allows remote attackers to conduct a ReDoS (Regular expression Denial of Service) attack via a Subversion repository with crafted info data, because the InfoSvnCommand argument is mishandled.",
-      "vulnerability_id":"CVE-2022-42969",
-      "name":"CVE-2022-42969",
-      "package_name":"py",
-      "package_details":{
-         "file_path":"opt/conda/lib/python3.8/site-packages/py-1.10.0.dist-info/METADATA",
-         "name":"py",
-         "package_manager":"PYTHONPKG",
-         "version":"1.10.0",
-         "release":null
-      },
-      "remediation":{
-         "recommendation":{
-            "text":"None Provided"
-         }
-      },
-      "cvss_v3_score":7.5,
-      "cvss_v30_score":0.0,
-      "cvss_v31_score":7.5,
-      "cvss_v2_score":0.0,
-      "cvss_v3_severity":"HIGH",
-      "source_url":"https://nvd.nist.gov/vuln/detail/CVE-2022-42969",
-      "source":"NVD",
-      "severity":"HIGH",
-      "status":"ACTIVE",
-      "title":"CVE-2022-42969 - py"
-   },
-   {  
-      "reason_to_ignore": "Installed 1.10.0 instead of 1.11.0",
-      "description":"Py throughout 1.11.0 allows remote attackers to conduct a ReDoS (Regular expression Denial of Service) attack via a Subversion repository with crafted info data, because the InfoSvnCommand argument is mishandled.\r\nhttps://github.com/pytest-dev/py/issues/287",
       "vulnerability_id":"CVE-2022-42969",
       "name":"CVE-2022-42969",
       "package_name":"py",
