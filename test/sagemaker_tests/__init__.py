@@ -18,9 +18,9 @@ import time
 import boto3
 import botocore.exceptions
 import sagemaker
-import sagemaker.exceptions
 
 from botocore.config import Config
+from sagemaker.exceptions import UnexpectedStatusException
 from sagemaker.session import Session
 from tenacity import retry, retry_if_exception_type, wait_fixed, stop_after_delay
 
@@ -143,7 +143,7 @@ def invoke_sm_helper_function(ecr_image, sagemaker_regions, test_function, *test
         try:
             test_function(tested_ecr_image, sagemaker_session, *test_function_args)
             return
-        except sagemaker.exceptions.UnexpectedStatusException as e:
+        except UnexpectedStatusException as e:
             if "CapacityError" in str(e):
                 error = e
                 continue
@@ -221,7 +221,7 @@ def invoke_sm_endpoint_helper_function(
                 **test_function_args,
             )
             return return_value
-        except sagemaker.exceptions.UnexpectedStatusException as e:
+        except UnexpectedStatusException as e:
             if "CapacityError" in str(e):
                 error = e
                 continue
