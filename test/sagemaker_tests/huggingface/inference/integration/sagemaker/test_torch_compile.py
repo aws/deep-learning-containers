@@ -13,6 +13,7 @@
 from __future__ import absolute_import
 
 import pytest
+from packaging.version import Version
 import sagemaker
 from sagemaker.huggingface import HuggingFaceModel
 
@@ -37,6 +38,8 @@ def test_torch_compile_cpu_hosting(
     framework, _ = get_framework_and_version_from_tag(ecr_image)
     if "pytorch" not in framework:
         pytest.skip(f"Skipping test for non-pytorch image - {ecr_image}")
+    if Version(framework_version) < Version("2.0"):
+        pytest.skip("Skipping torch compile tests for PT 1.X")
     instance_type = instance_type or "ml.m5.xlarge"
     invoke_sm_endpoint_helper_function(
         ecr_image=ecr_image,
@@ -60,6 +63,8 @@ def test_torch_compile_gpu_hosting(
     framework, _ = get_framework_and_version_from_tag(ecr_image)
     if "pytorch" not in framework:
         pytest.skip(f"Skipping test for non-pytorch image - {ecr_image}")
+    if Version(framework_version) < Version("2.0"):
+        pytest.skip("Skipping torch compile tests for PT 1.X")
     instance_type = instance_type or "ml.p3.2xlarge"
     invoke_sm_endpoint_helper_function(
         ecr_image=ecr_image,
