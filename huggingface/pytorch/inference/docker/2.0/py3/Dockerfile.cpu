@@ -125,7 +125,7 @@ RUN pip uninstall -y torch torchvision torchaudio multi-model-server
 
 # Install AWS-PyTorch, and other torch packages
 RUN pip install --no-cache-dir --extra-index-url https://download.pytorch.org/whl/cpu -U \
-    "cryptography>=38.0.0,<40" \
+    "cryptography>=38.0.0" \
     enum-compat==0.0.3 \
     packaging \
     "Pillow>=9.0.0" \

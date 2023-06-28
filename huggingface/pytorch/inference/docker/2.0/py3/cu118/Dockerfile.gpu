@@ -149,7 +149,7 @@ RUN pip uninstall -y torch torchvision torchaudio model-archiver multi-model-ser
 RUN pip install --no-cache-dir --extra-index-url https://download.pytorch.org/whl/cu117 -U \
     "awscli<2" \
     boto3 \
-    "cryptography>=38.0.0,<40" \
+    "cryptography>=38.0.0" \
     enum-compat==0.0.3 \
     "numpy>=1.22.2,<1.23" \
     opencv-python \
