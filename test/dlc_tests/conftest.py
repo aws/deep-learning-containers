@@ -984,6 +984,11 @@ def mx18_and_above_only():
 
 
 @pytest.fixture(scope="session")
+def pt113_and_above_only():
+    pass
+
+
+@pytest.fixture(scope="session")
 def pt111_and_above_only():
     pass
 
@@ -1083,6 +1088,10 @@ def framework_version_within_limit(metafunc_obj, image):
         if mx18_requirement_failed:
             return False
     if image_framework_name in ("pytorch", "huggingface_pytorch_trcomp", "pytorch_trcomp"):
+        pt113_requirement_failed = (
+            "pt113_and_above_only" in metafunc_obj.fixturenames
+            and is_below_framework_version("1.13", image, image_framework_name)
+        )
         pt111_requirement_failed = (
             "pt111_and_above_only" in metafunc_obj.fixturenames
             and is_below_framework_version("1.11", image, image_framework_name)
@@ -1104,7 +1113,8 @@ def framework_version_within_limit(metafunc_obj, image):
             and is_below_framework_version("1.4", image, image_framework_name)
         )
         if (
-            pt111_requirement_failed
+            pt113_requirement_failed
+            or pt111_requirement_failed
             or pt17_requirement_failed
             or pt16_requirement_failed
             or pt15_requirement_failed
