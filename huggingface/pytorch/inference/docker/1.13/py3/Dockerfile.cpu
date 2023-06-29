@@ -19,13 +19,14 @@ ARG PYTHON=python3
 ARG PYTHON_VERSION=3.9.13
 ARG MAMBA_VERSION=22.9.0-1
 ARG OPEN_MPI_VERSION=4.1.4
-ARG MMS_VERSION=1.1.8
+ARG MMS_VERSION=1.1.11
 
 # HF ARGS
 ARG TORCH_URL=https://aws-pytorch-unified-cicd-binaries.s3.us-west-2.amazonaws.com/r1.13.1_ec2/20221217-194030/54406b8eed7fbd61be629cb06229dfb7b6b2954e/torch-1.13.1%2Bcpu-cp39-cp39-linux_x86_64.whl
 ARG TORCHVISION_VERSION=0.14.1+cpu
 ARG TORCHAUDIO_VERSION=0.13.1+cpu
 ARG TRANSFORMERS_VERSION
+ARG DIFFUSERS_VERSION=0.16.1
 
 # Set Debian interaction
 ARG DEBIAN_FRONTEND=noninteractive
@@ -161,6 +162,8 @@ RUN curl https://aws-dlc-licenses.s3.amazonaws.com/pytorch-1.13/license.txt -o /
 # install Hugging Face libraries and its dependencies
 RUN pip install --no-cache-dir \
     transformers[sentencepiece,audio,vision]==${TRANSFORMERS_VERSION} \
+    diffusers==${DIFFUSERS_VERSION} \
+    "accelerate>=0.11.0" \
     "protobuf>=3.19.5,<=3.20.2" \
     numpy>=1.21.5 \
     "sagemaker-huggingface-inference-toolkit<3" \

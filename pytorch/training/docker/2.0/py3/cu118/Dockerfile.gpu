@@ -59,6 +59,7 @@ ENV HOROVOD_VERSION=0.26.1
 ENV EFA_VERSION=1.21.0
 ENV OMPI_VERSION=4.1.5
 ENV BRANCH_OFI=1.5.0-aws
+ENV GDRCOPY_VERSION=2.3.1
 
 ENV CMAKE_PREFIX_PATH="$(dirname $(which conda))/../"
 ENV OPEN_MPI_PATH=/opt/amazon/openmpi
@@ -105,6 +106,10 @@ RUN apt-get update \
     wget \
     zlib1g-dev \
     autoconf \
+    pkg-config \
+    check \
+    libsubunit0 \
+    libsubunit-dev \
  && rm -rf /var/lib/apt/lists/* \
  && apt-get clean
 
@@ -194,6 +199,17 @@ RUN mkdir /tmp/openmpi \
 
 ENV PATH="$OPEN_MPI_PATH/bin:$EFA_PATH/bin:$PATH"
 ENV LD_LIBRARY_PATH=$OPEN_MPI_PATH/lib/:$EFA_PATH/lib/:$LD_LIBRARY_PATH
+
+# Install GDRCopy which is a dependency of SM Distributed DataParallel binary
+# The test binaries requires cuda driver library which could be found in conda
+# So update the linker path to point to it to avoid -Lcuda not found
+# Note that starting with 11.8, cuda relate lib are moved to conda instead /usr/local/cuda
+RUN cd /tmp \
+ && git clone https://github.com/NVIDIA/gdrcopy.git -b v${GDRCOPY_VERSION} \
+ && cd gdrcopy \
+ && sed -ie '12s@$@ -L $(CUDA)/lib/stubs@' tests/Makefile \
+ && CUDA=/opt/conda make install \
+ && rm -rf /tmp/gdrcopy
 
 RUN pip install --no-cache-dir --upgrade pip --no-cache-dir --trusted-host pypi.org --trusted-host files.pythonhosted.org \
  && ln -s /opt/conda/bin/pip /usr/local/bin/pip3
