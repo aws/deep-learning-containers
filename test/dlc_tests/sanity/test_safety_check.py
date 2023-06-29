@@ -96,7 +96,7 @@ IGNORE_SAFETY_IDS = {
                 # CVE vulnerabilities in TF < 2.7.0 ignoring to be able to build TF containers
                 "42098",
                 "42062",
-                # Torch 1.5.1 is need for pytorch eia 1.0
+                # Torch 1.5.1 is needed for torcheia-1.0.0
                 "54718",
             ],
         },
@@ -710,7 +710,7 @@ IGNORE_SAFETY_IDS = {
             ]
         },
         "inference-eia": {
-            "py3": [  # Torch 1.5.1 is need for pytorch eia 1.0
+            "py3": [  # Torch 1.5.1 is needed for torcheia-1.0.0
                 "54718",
             ]
         },

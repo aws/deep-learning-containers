@@ -1,18 +1,18 @@
 FROM ubuntu:20.04
- 
+
 RUN apt-get update \
  && apt-get upgrade -y \
  && apt-get clean \
  && rm -rf /var/lib/apt/lists/*
- 
+
 LABEL maintainer="Amazon AI"
 LABEL com.amazonaws.sagemaker.capabilities.accept-bind-to-port=true
 LABEL dlc_major_version="1"
- 
+
 # prevent stopping by user interaction
 ENV DEBIAN_FRONTEND noninteractive
 ENV DEBCONF_NONINTERACTIVE_SEEN true
- 
+
 # Add arguments to achieve the version, python and url
 ARG PYTHON=python3
 ARG PYTHON_VERSION=3.8.13
@@ -22,14 +22,14 @@ ARG GRAPHVIZ_VERSION=0.13.2
 ARG MMS_VERSION=1.1.8
 ARG HEALTH_CHECK_VERSION=1.7.0
 ARG MAMBA_VERSION=4.12.0-2
- 
+
 # See http://bugs.python.org/issue19846
 ENV LANG C.UTF-8
 ENV LD_LIBRARY_PATH /opt/conda/lib/:$LD_LIBRARY_PATH
 ENV PATH /opt/conda/bin:$PATH
 ENV SAGEMAKER_SERVING_MODULE sagemaker_pytorch_serving_container.serving:main
 ENV TEMP=/home/model-server/tmp
- 
+
 RUN apt-get update \
  && apt-get install -y --allow-downgrades --allow-change-held-packages --no-install-recommends \
     build-essential \
@@ -59,7 +59,7 @@ RUN apt-get update \
     wget \
     unzip \
     zlib1g-dev
- 
+
 # Install OpenSSH. Allow OpenSSH to talk to containers without asking for confirmation
 RUN apt-get install -y --no-install-recommends \
     openssh-client \
@@ -68,7 +68,7 @@ RUN apt-get install -y --no-install-recommends \
  && cat /etc/ssh/ssh_config | grep -v StrictHostKeyChecking > /etc/ssh/ssh_config.new \
  && echo "    StrictHostKeyChecking no" >> /etc/ssh/ssh_config.new \
  && mv /etc/ssh/ssh_config.new /etc/ssh/ssh_configs
- 
+
 RUN curl -L -o ~/mambaforge.sh https://github.com/conda-forge/miniforge/releases/download/${MAMBA_VERSION}/Mambaforge-${MAMBA_VERSION}-Linux-x86_64.sh \
  && chmod +x ~/mambaforge.sh \
  && ~/mambaforge.sh -b -p /opt/conda \
@@ -88,7 +88,7 @@ RUN curl -L -o ~/mambaforge.sh https://github.com/conda-forge/miniforge/releases
     charset-normalizer \
  && /opt/conda/bin/conda update -y conda \
  && /opt/conda/bin/conda clean -ya
- 
+
 RUN conda install -y \
     scikit-learn==1.1.1 \
     pandas==1.4.3 \
@@ -114,23 +114,21 @@ RUN conda install -y \
  && pip install cryptography==39.0.1 \
  && pip install pydantic==1.10.9 \
  && pip install starlette==0.28.0 \
-#  && pip install safety==2.3.5 \
-#  && pip install scrapy==2.8.0 \
  && pip install mpmath==1.3.0 \
  && pip install fastapi==0.98.0 \
  && pip install multi-model-server==1.1.11
- 
+
 RUN useradd -m model-server \
  && mkdir -p /home/model-server/tmp \
  && chown -R model-server /home/model-server
- 
+
 COPY mms-entrypoint.py /usr/local/bin/dockerd-entrypoint.py
 COPY config.properties /home/model-server
- 
+
 RUN chmod +x /usr/local/bin/dockerd-entrypoint.py
- 
+
 RUN pip install --no-cache-dir "sagemaker-pytorch-inference<2"
- 
+
 RUN HOME_DIR=/root \
  && curl -o ${HOME_DIR}/oss_compliance.zip https://aws-dlinfra-utilities.s3.amazonaws.com/oss_compliance.zip \
  && unzip ${HOME_DIR}/oss_compliance.zip -d ${HOME_DIR}/ \
@@ -139,13 +137,13 @@ RUN HOME_DIR=/root \
  && chmod +x ${HOME_DIR}/oss_compliance/generate_oss_compliance.sh \
  && ${HOME_DIR}/oss_compliance/generate_oss_compliance.sh ${HOME_DIR} ${PYTHON} \
  && rm -rf ${HOME_DIR}/oss_compliance*
- 
+
 RUN curl https://aws-dlc-licenses.s3.amazonaws.com/pytorch-1.5.1/license.txt -o /license.txt
- 
+
 RUN conda install -y -c conda-forge "pyyaml>=5.4,<5.5" \
  && pip install -U \
     "awscli<2"
- 
+
 RUN wget https://amazonei-tools.s3.amazonaws.com/v${HEALTH_CHECK_VERSION}/ei_tools_${HEALTH_CHECK_VERSION}.tar.gz -O /opt/ei_tools_${HEALTH_CHECK_VERSION}.tar.gz \
  && tar -xvf /opt/ei_tools_${HEALTH_CHECK_VERSION}.tar.gz -C /opt/ \
  && rm -rf /opt/ei_tools_${HEALTH_CHECK_VERSION}.tar.gz \
@@ -153,9 +151,9 @@ RUN wget https://amazonei-tools.s3.amazonaws.com/v${HEALTH_CHECK_VERSION}/ei_too
  && mkdir -p /opt/ei_health_check/bin \
  && ln -s /opt/ei_tools/bin/health_check /opt/ei_health_check/bin/health_check \
  && ln -s /opt/ei_tools/lib /opt/ei_health_check/lib
- 
+
 COPY default_inference_handler.py /opt/conda/lib/python3.8/site-packages/sagemaker_pytorch_serving_container/default_inference_handler.py
- 
+
 EXPOSE 8080 8081
 ENTRYPOINT ["python", "/usr/local/bin/dockerd-entrypoint.py"]
 CMD ["multi-model-server", "--start", "--mms-config", "/home/model-server/config.properties"]
