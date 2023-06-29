@@ -664,6 +664,8 @@ IGNORE_SAFETY_IDS = {
                 "42772",
                 "42814",
                 "42815",
+                # Fix for issue available in torch version 1.13.1
+                "54718",
             ],
         },
         "training-neuron": {
@@ -693,6 +695,8 @@ IGNORE_SAFETY_IDS = {
                 "51457",
                 # Sqlalchemy latest release is not there yet
                 "51668",
+                # Fix for issue available in torch version 1.13.1
+                "54718",
             ],
         },
         "inference": {
@@ -705,9 +709,15 @@ IGNORE_SAFETY_IDS = {
                 # for cryptography until e have 39.0.0 release
                 "51159",
                 "51358",
+                # Fix for issue available in torch version 1.13.1
+                "54718",
             ]
         },
-        "inference-eia": {"py3": []},
+        "inference-eia": {
+            "py3": [ # Fix for issue available in torch version 1.13.1
+            "54718"
+            ]
+        },
         "inference-neuron": {
             "py3": [
                 # 39409, 39408, 39407, 39406: TF 1.15.5 is on par with TF 2.0.4, 2.1.3, 2.2.2, 2.3.2 in security patches
@@ -965,6 +975,8 @@ IGNORE_SAFETY_IDS = {
                 "48647",
                 "48650",
                 "48551",
+                # Fix for issue available in torch version 1.13.1
+                "54718",
             ]
         },
     },
@@ -1016,6 +1028,7 @@ def _get_safety_ignore_list(image_uri):
         else "inference"
     )
     python_version = "py2" if "py2" in image_uri else "py3"
+    print("SHOW" + IGNORE_SAFETY_IDS.get(framework, {}).get(job_type, {}).get(python_version, []))
 
     return IGNORE_SAFETY_IDS.get(framework, {}).get(job_type, {}).get(python_version, [])
 
