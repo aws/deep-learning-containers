@@ -203,7 +203,6 @@ class DockerImage:
             labels=self.labels,
             target=self.target,
         ):
-            LOGGER.info(f"Docker Build Log for {line}: \n {self.get_tail_logs_in_pretty_format(100)}")
             if line.get("error") is not None:
                 response.append(line["error"])
                 self.log.append(response)
@@ -228,7 +227,7 @@ class DockerImage:
 
         self.log.append(response)
 
-        LOGGER.info(f"DOCKER BUILD LOGS: \n{self.get_tail_logs_in_pretty_format()}")
+        LOGGER.info(f"DOCKER BUILD LOGS: \n{self.log}")
         LOGGER.info(f"Completed Build for {self.repository}:{self.tag}")
 
         self.build_status = constants.SUCCESS
