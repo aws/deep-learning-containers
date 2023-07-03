@@ -5,7 +5,7 @@ release_images:
     version: "1.13.1"
     arch_type: "x86"
     hf_transformers: "4.26.0"
-    training:
+    inference:
       device_types: [ "gpu" ]
       python_versions: [ "py39" ]
       os_version: "ubuntu20.04"
