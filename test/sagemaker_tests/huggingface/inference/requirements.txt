@@ -9,7 +9,7 @@ pytest-cov
 pytest-rerunfailures
 pytest-xdist
 protobuf>=3.20,<=3.20.2
-sagemaker==2.168.0
+sagemaker>=2,<2.169.0
 six
 requests
 requests_mock
