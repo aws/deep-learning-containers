@@ -15,22 +15,30 @@ import os
 import pytest
 
 from ..sagemaker import util
-from ...... import (
-    invoke_sm_endpoint_helper_function,
-)
+from ...... import invoke_sm_endpoint_helper_function
 
-NON_P3_REGIONS = [
-    "ap-southeast-1",
-    "ap-southeast-2",
-    "ap-south-1",
-    "ca-central-1",
-    "eu-central-1",
-    "eu-west-2",
-    "us-west-1",
-]
 
+MODEL_WITH_REQUIREMENTS_PATH = "data/tfs-model_greater_than_equal_to_tf26.tar.gz"
+MODEL_WITH_LIB_PATH = "data/python-with-lib.tar.gz"
+TFS_MODEL_PATH = "data/tfs-model.tar.gz"
 TFS_NEURONX_MODEL_PATH = "data/tfs-neuronx-model.tar.gz"
 TFS_NEURON_MODEL_PATH = "data/tfs-neuron-model.tar.gz"
+MME1_MODEL_PATHS = [
+    "test/data/mme1/code/inference.py",
+    "test/data/mme1/half_plus_three.tar.gz",
+    "test/data/mme1/half_plus_two.tar.gz",
+]
+MME2_MODEL_PATHS = [
+    "test/data/mme2/code/inference.py",
+    "test/data/mme2/half_plus_three.tar.gz",
+    "test/data/mme2/half_plus_two.tar.gz",
+]
+MME3_MODEL_PATHS = [
+    "test/data/mme3/code/inference.py",
+    "test/data/mme3/half_plus_three.tar.gz",
+    "test/data/mme3/half_plus_two.tar.gz",
+]
+MME4_MODEL_PATHS = ["test/data/mme4/half_plus_three.tar.gz", "test/data/mme4/half_plus_two.tar.gz"]
 
 
 @pytest.fixture(params=os.environ["TEST_VERSIONS"].split(","))
@@ -74,95 +82,52 @@ def accelerator_type():
 
 @pytest.fixture(scope="session")
 def tfs_model(region, boto_session):
-    return util.find_or_put_model_data(region, boto_session, "data/tfs-model.tar.gz")
+    return util.find_or_put_model_data(region, boto_session, TFS_MODEL_PATH)
 
 
 @pytest.fixture(scope="session")
 def python_model_with_requirements(region, boto_session):
-    return util.find_or_put_model_data(
-        region, boto_session, "data/tfs-model_greater_than_equal_to_tf26.tar.gz"
-    )
+    return util.find_or_put_model_data(region, boto_session, MODEL_WITH_REQUIREMENTS_PATH)
 
 
 @pytest.fixture(scope="session")
 def python_model_with_lib(region, boto_session):
-    return util.find_or_put_model_data(region, boto_session, "data/python-with-lib.tar.gz")
+    return util.find_or_put_model_data(region, boto_session, MODEL_WITH_LIB_PATH)
 
 
 @pytest.fixture(scope="session")
 def mme1_models(region, boto_session):
-    return util.find_or_put_mme_model_data(
-        region,
-        boto_session,
-        "mme1",
-        [
-            "test/data/mme1/code/inference.py",
-            "test/data/mme1/half_plus_three.tar.gz",
-            "test/data/mme1/half_plus_two.tar.gz",
-        ],
-    )
+    return util.find_or_put_mme_model_data(region, boto_session, "mme1", MME1_MODEL_PATHS)
 
 
 @pytest.fixture(scope="session")
 def mme2_models(region, boto_session):
-    return util.find_or_put_mme_model_data(
-        region,
-        boto_session,
-        "mme2",
-        [
-            "test/data/mme2/code/inference.py",
-            "test/data/mme2/half_plus_three.tar.gz",
-            "test/data/mme2/half_plus_two.tar.gz",
-        ],
-    )
+    return util.find_or_put_mme_model_data(region, boto_session, "mme2", MME2_MODEL_PATHS)
 
 
 @pytest.fixture(scope="session")
 def mme3_models(region, boto_session):
-    return util.find_or_put_mme_model_data(
-        region,
-        boto_session,
-        "mme3",
-        [
-            "test/data/mme3/code/inference.py",
-            "test/data/mme3/half_plus_three.tar.gz",
-            "test/data/mme3/half_plus_two.tar.gz",
-        ],
-    )
+    return util.find_or_put_mme_model_data(region, boto_session, "mme3", MME3_MODEL_PATHS)
 
 
 @pytest.fixture(scope="session")
 def mme4_models(region, boto_session):
-    return util.find_or_put_mme_model_data(
-        region,
-        boto_session,
-        "mme4",
-        ["test/data/mme4/half_plus_three.tar.gz", "test/data/mme4/half_plus_two.tar.gz"],
-    )
+    return util.find_or_put_mme_model_data(region, boto_session, "mme4", MME4_MODEL_PATHS)
 
 
 @pytest.mark.model("unknown_model")
-def test_tfs_model(
-    boto_session,
-    sagemaker_client,
-    sagemaker_runtime_client,
-    model_name,
-    tfs_model,
-    image_uri,
-    instance_type,
-    accelerator_type,
-):
+def test_tfs_model(sagemaker_regions, model_name, image_uri, instance_type, accelerator_type):
     input_data = {"instances": [1.0, 2.0, 5.0]}
-    util.create_and_invoke_endpoint(
-        boto_session,
-        sagemaker_client,
-        sagemaker_runtime_client,
-        model_name,
-        tfs_model,
-        image_uri,
-        instance_type,
-        accelerator_type,
-        input_data,
+    invoke_sm_endpoint_helper_function(
+        ecr_image=image_uri,
+        sagemaker_regions=sagemaker_regions,
+        model_helper=util.find_or_put_model_data,
+        test_function=util.create_and_invoke_endpoint,
+        local_model_paths=[TFS_MODEL_PATH],
+        model_name=model_name,
+        instance_type=instance_type,
+        accelerator_type=accelerator_type,
+        input_data=input_data,
     )
 
 
@@ -177,7 +142,7 @@ def test_tfs_neuron_model(
         sagemaker_regions=sagemaker_regions,
         model_helper=util.find_or_put_model_data,
         test_function=util.create_and_invoke_endpoint,
-        local_model_path=TFS_NEURON_MODEL_PATH,
+        local_model_paths=[TFS_NEURON_MODEL_PATH],
         model_name=model_name,
         instance_type=instance_type,
         accelerator_type=accelerator_type,
@@ -196,7 +161,7 @@ def test_tfs_neuronx_model(
         sagemaker_regions=sagemaker_regions,
         model_helper=util.find_or_put_model_data,
         test_function=util.create_and_invoke_endpoint,
-        local_model_path=TFS_NEURONX_MODEL_PATH,
+        local_model_paths=[TFS_NEURONX_MODEL_PATH],
         model_name=model_name,
         instance_type=instance_type,
         accelerator_type=accelerator_type,
@@ -206,19 +171,17 @@ def test_tfs_neuronx_model(
 
 @pytest.mark.integration("batch_transform")
 @pytest.mark.model("unknown_model")
-def test_batch_transform(
-    region, boto_session, sagemaker_client, model_name, tfs_model, image_uri, instance_type
-):
+def test_batch_transform(sagemaker_regions, model_name, image_uri, instance_type):
     if "graviton" in image_uri:
         pytest.skip("Test not supported with Graviton test instance.")
 
-    results = util.run_batch_transform_job(
-        region=region,
-        boto_session=boto_session,
-        model_data=tfs_model,
-        image_uri=image_uri,
+    results = invoke_sm_endpoint_helper_function(
+        ecr_image=image_uri,
+        sagemaker_regions=sagemaker_regions,
+        model_helper=util.find_or_put_model_data,
+        test_function=util.run_batch_transform_job,
+        local_model_paths=[TFS_MODEL_PATH],
         model_name=model_name,
-        sagemaker_client=sagemaker_client,
         instance_type=instance_type,
     )
     assert len(results) == 10
@@ -228,53 +191,47 @@ def test_batch_transform(
 
 @pytest.mark.model("unknown_model")
 def test_python_model_with_requirements(
-    boto_session,
-    sagemaker_client,
-    sagemaker_runtime_client,
+    sagemaker_regions,
     model_name,
-    python_model_with_requirements,
     image_uri,
     instance_type,
     accelerator_type,
 ):
     # the python service needs to transform this to get a valid prediction
     input_data = {"instances": [[1.0, 2.0, 5.0]]}
-    output_data = util.create_and_invoke_endpoint(
-        boto_session,
-        sagemaker_client,
-        sagemaker_runtime_client,
-        model_name,
-        python_model_with_requirements,
-        image_uri,
-        instance_type,
-        accelerator_type,
-        input_data,
+    invoke_sm_endpoint_helper_function(
+        ecr_image=image_uri,
+        sagemaker_regions=sagemaker_regions,
+        model_helper=util.find_or_put_model_data,
+        test_function=util.create_and_invoke_endpoint,
+        local_model_paths=[MODEL_WITH_REQUIREMENTS_PATH],
+        model_name=model_name,
+        instance_type=instance_type,
+        accelerator_type=accelerator_type,
+        input_data=input_data,
     )
 
 
 @pytest.mark.model("unknown_model")
 def test_python_model_with_lib(
-    boto_session,
-    sagemaker_client,
-    sagemaker_runtime_client,
+    sagemaker_regions,
     model_name,
-    python_model_with_lib,
     image_uri,
     instance_type,
     accelerator_type,
 ):
     # the python service needs to transform this to get a valid prediction
     input_data = {"x": [1.0, 2.0, 5.0]}
-    output_data = util.create_and_invoke_endpoint(
-        boto_session,
-        sagemaker_client,
-        sagemaker_runtime_client,
-        model_name,
-        python_model_with_lib,
-        image_uri,
-        instance_type,
-        accelerator_type,
-        input_data,
+    output_data = invoke_sm_endpoint_helper_function(
+        ecr_image=image_uri,
+        sagemaker_regions=sagemaker_regions,
+        model_helper=util.find_or_put_model_data,
+        test_function=util.create_and_invoke_endpoint,
+        local_model_paths=[MODEL_WITH_LIB_PATH],
+        model_name=model_name,
+        instance_type=instance_type,
+        accelerator_type=accelerator_type,
+        input_data=input_data,
     )
 
     # python service adds this to tfs response
@@ -286,37 +243,34 @@ def test_python_model_with_lib(
 @pytest.mark.model("unknown_model")
 @pytest.mark.skip_gpu
 def test_mme1(
-    boto_session,
-    sagemaker_client,
-    sagemaker_runtime_client,
+    sagemaker_regions,
     model_name,
-    mme1_models,
     image_uri,
     instance_type,
     accelerator_type,
-    region,
 ):
     if "graviton" in image_uri:
         pytest.skip("MME test not supported with Graviton test instance.")
 
     # the python service needs to transform this to get a valid prediction
     input_data = {"instances": [1.0, 2.0, 5.0]}
-    bucket = util._test_bucket(region, boto_session)
+    mme_folder_name = "mme1"
     custom_env = {
-        "SAGEMAKER_MULTI_MODEL_UNIVERSAL_BUCKET": bucket,
-        "SAGEMAKER_MULTI_MODEL_UNIVERSAL_PREFIX": "test-tfs/mme1/code/",
+        "SAGEMAKER_MULTI_MODEL_UNIVERSAL_BUCKET": "placeholder_bucket",
+        "SAGEMAKER_MULTI_MODEL_UNIVERSAL_PREFIX": f"test-tfs/{mme_folder_name}/code/",
         "SAGEMAKER_GUNICORN_WORKERS": "5",
     }
-    outputs = util.create_and_invoke_endpoint(
-        boto_session,
-        sagemaker_client,
-        sagemaker_runtime_client,
-        model_name,
-        mme1_models,
-        image_uri,
-        instance_type,
-        accelerator_type,
-        input_data,
+    outputs = invoke_sm_endpoint_helper_function(
+        ecr_image=image_uri,
+        sagemaker_regions=sagemaker_regions,
+        model_helper=util.find_or_put_mme_model_data,
+        test_function=_mme_test_helper,
+        mme_folder_name=mme_folder_name,
+        local_model_paths=MME1_MODEL_PATHS,
+        model_name=model_name,
+        instance_type=instance_type,
+        accelerator_type=accelerator_type,
+        input_data=input_data,
         is_multi_model_mode_enabled=True,
         target_models=["half_plus_three.tar.gz", "half_plus_two.tar.gz"],
         environment=custom_env,
@@ -329,37 +283,34 @@ def test_mme1(
 @pytest.mark.model("unknown_model")
 @pytest.mark.skip_gpu
 def test_mme2(
-    boto_session,
-    sagemaker_client,
-    sagemaker_runtime_client,
+    sagemaker_regions,
     model_name,
-    mme2_models,
     image_uri,
     instance_type,
     accelerator_type,
-    region,
 ):
     if "graviton" in image_uri:
         pytest.skip("MME test not supported with Graviton test instance.")
 
     # the python service needs to transform this to get a valid prediction
     input_data = "1.0,2.0,5.0"
-    bucket = util._test_bucket(region, boto_session)
+    mme_folder_name = "mme2"
     custom_env = {
-        "SAGEMAKER_MULTI_MODEL_UNIVERSAL_BUCKET": bucket,
-        "SAGEMAKER_MULTI_MODEL_UNIVERSAL_PREFIX": "test-tfs/mme2/code/",
+        "SAGEMAKER_MULTI_MODEL_UNIVERSAL_BUCKET": "placeholder_bucket",
+        "SAGEMAKER_MULTI_MODEL_UNIVERSAL_PREFIX": f"test-tfs/{mme_folder_name}/code/",
         "SAGEMAKER_GUNICORN_WORKERS": "5",
     }
-    outputs = util.create_and_invoke_endpoint(
-        boto_session,
-        sagemaker_client,
-        sagemaker_runtime_client,
-        model_name,
-        mme2_models,
-        image_uri,
-        instance_type,
-        accelerator_type,
-        input_data,
+    outputs = invoke_sm_endpoint_helper_function(
+        ecr_image=image_uri,
+        sagemaker_regions=sagemaker_regions,
+        model_helper=util.find_or_put_mme_model_data,
+        test_function=_mme_test_helper,
+        mme_folder_name=mme_folder_name,
+        local_model_paths=MME2_MODEL_PATHS,
+        model_name=model_name,
+        instance_type=instance_type,
+        accelerator_type=accelerator_type,
+        input_data=input_data,
         is_multi_model_mode_enabled=True,
         target_models=["half_plus_three.tar.gz", "half_plus_two.tar.gz"],
         environment=custom_env,
@@ -373,37 +324,34 @@ def test_mme2(
 @pytest.mark.model("unknown_model")
 @pytest.mark.skip_gpu
 def test_mme3(
-    boto_session,
-    sagemaker_client,
-    sagemaker_runtime_client,
+    sagemaker_regions,
     model_name,
-    mme3_models,
     image_uri,
     instance_type,
     accelerator_type,
-    region,
 ):
     if "graviton" in image_uri:
         pytest.skip("MME test not supported with Graviton test instance.")
 
     # the python service needs to transform this to get a valid prediction
     input_data = "1.0,2.0,5.0"
-    bucket = util._test_bucket(region, boto_session)
+    mme_folder_name = "mme3"
     custom_env = {
-        "SAGEMAKER_MULTI_MODEL_UNIVERSAL_BUCKET": bucket,
-        "SAGEMAKER_MULTI_MODEL_UNIVERSAL_PREFIX": "test-tfs/mme3/code/",
+        "SAGEMAKER_MULTI_MODEL_UNIVERSAL_BUCKET": "placeholder_bucket",
+        "SAGEMAKER_MULTI_MODEL_UNIVERSAL_PREFIX": f"test-tfs/{mme_folder_name}/code/",
         "SAGEMAKER_GUNICORN_WORKERS": "5",
     }
-    outputs = util.create_and_invoke_endpoint(
-        boto_session,
-        sagemaker_client,
-        sagemaker_runtime_client,
-        model_name,
-        mme3_models,
-        image_uri,
-        instance_type,
-        accelerator_type,
-        input_data,
+    outputs = invoke_sm_endpoint_helper_function(
+        ecr_image=image_uri,
+        sagemaker_regions=sagemaker_regions,
+        model_helper=util.find_or_put_mme_model_data,
+        test_function=_mme_test_helper,
+        mme_folder_name=mme_folder_name,
+        local_model_paths=MME3_MODEL_PATHS,
+        model_name=model_name,
+        instance_type=instance_type,
+        accelerator_type=accelerator_type,
+        input_data=input_data,
         is_multi_model_mode_enabled=True,
         target_models=["half_plus_three.tar.gz", "half_plus_two.tar.gz"],
         environment=custom_env,
@@ -417,11 +365,8 @@ def test_mme3(
 @pytest.mark.model("unknown_model")
 @pytest.mark.skip_gpu
 def test_mme4(
-    boto_session,
-    sagemaker_client,
-    sagemaker_runtime_client,
+    sagemaker_regions,
     model_name,
-    mme4_models,
     image_uri,
     instance_type,
     accelerator_type,
@@ -431,18 +376,61 @@ def test_mme4(
 
     # the python service needs to transform this to get a valid prediction
     input_data = {"instances": [1.0, 2.0, 5.0]}
-    outputs = util.create_and_invoke_endpoint(
-        boto_session,
-        sagemaker_client,
-        sagemaker_runtime_client,
-        model_name,
-        mme4_models,
-        image_uri,
-        instance_type,
-        accelerator_type,
-        input_data,
+    mme_folder_name = "mme4"
+    outputs = invoke_sm_endpoint_helper_function(
+        ecr_image=image_uri,
+        sagemaker_regions=sagemaker_regions,
+        model_helper=util.find_or_put_mme_model_data,
+        test_function=_mme_test_helper,
+        mme_folder_name=mme_folder_name,
+        local_model_paths=MME4_MODEL_PATHS,
+        model_name=model_name,
+        instance_type=instance_type,
+        accelerator_type=accelerator_type,
+        input_data=input_data,
         is_multi_model_mode_enabled=True,
         target_models=["half_plus_three.tar.gz", "half_plus_two.tar.gz"],
     )
     assert outputs[0] == {"predictions": [3.5, 4.0, 5.5]}
     assert outputs[1] == {"predictions": [2.5, 3.0, 4.5]}
+
+
+def _mme_test_helper(
+    boto_session,
+    sagemaker_client,
+    sagemaker_runtime_client,
+    model_name,
+    model_data,
+    image_uri,
+    instance_type,
+    accelerator_type,
+    region,
+    input_data,
+    target_models,
+    environment=None,
+    is_multi_model_mode_enabled=True,
+    content_type="application/json",
+    **kwargs,
+):
+    if not environment:
+        environment = {}
+    bucket = util._test_bucket(region, boto_session)
+    if environment.get("SAGEMAKER_MULTI_MODEL_UNIVERSAL_BUCKET"):
+        environment["SAGEMAKER_MULTI_MODEL_UNIVERSAL_BUCKET"] = bucket
+    outputs = util.create_and_invoke_endpoint(
+        boto_session,
+        sagemaker_client,
+        sagemaker_runtime_client,
+        model_name,
+        model_data,
+        image_uri,
+        instance_type,
+        accelerator_type,
+        input_data,
+        region=region,
+        is_multi_model_mode_enabled=is_multi_model_mode_enabled,
+        target_models=target_models,
+        environment=environment,
+        content_type=content_type,
+    )
+    return outputs
