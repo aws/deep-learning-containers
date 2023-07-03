@@ -6,7 +6,7 @@ release_images:
     arch_type: "x86"
     hf_transformers: "4.26.0"
     inference:
-      device_types: [ "gpu" ]
+      device_types: [ "cpu" ]
       python_versions: [ "py39" ]
       os_version: "ubuntu20.04"
       cuda_version: "cu117"
