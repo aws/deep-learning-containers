@@ -32,6 +32,7 @@ from test.test_utils import (
     get_repository_and_tag_from_image_uri,
     get_python_version_from_image_uri,
     get_cuda_version_from_tag,
+    get_labels_from_ecr_image,
     construct_buildspec_path,
     is_tf_version,
     is_nightly_context,
@@ -232,6 +233,24 @@ def test_tf_serving_api_version(tensorflow_inference):
         raise
     finally:
         stop_and_remove_container(container_name, ctx)
+
+
+@pytest.mark.usefixtures("sagemaker_only")
+@pytest.mark.model("N/A")
+def test_sm_toolkit_and_ts_version_pytorch(pytorch_inference, region):
+    _test_sm_toolkit_and_ts_version(pytorch_inference, region)
+
+
+@pytest.mark.usefixtures("sagemaker_only")
+@pytest.mark.model("N/A")
+def test_sm_toolkit_and_ts_version_pytorch_graviton(pytorch_inference_graviton, region):
+    _test_sm_toolkit_and_ts_version(pytorch_inference_graviton, region)
+
+
+@pytest.mark.usefixtures("sagemaker_only")
+@pytest.mark.model("N/A")
+def test_sm_toolkit_and_ts_version_pytorch_neuron(pytorch_inference_neuron, region):
+    _test_sm_toolkit_and_ts_version(pytorch_inference_neuron, region)
 
 
 @pytest.mark.usefixtures("sagemaker", "huggingface")
@@ -777,6 +796,41 @@ def _assert_artifact_free(output, stray_artifacts):
         assert not re.search(
             artifact, output.stdout
         ), f"Matched {artifact} in {output.stdout} while running {output.command}"
+
+
+def _test_sm_toolkit_and_ts_version(image, region):
+    """
+    @param image: ECR image URI
+    Make sure SM inference toolkit and torchserve versions match docker image label.
+    """
+    cmd_smkit = "pip show sagemaker-pytorch-inference | grep -i Version"
+    cmd_ts = "torchserve --version"
+    ctx = Context()
+    container_name = get_container_name("pytorch-smtoolkit-ts-check", image)
+    start_container(container_name, image, ctx)
+
+    # Get inference tool kit and torchserve version from bash command.
+    output_smkit = run_cmd_on_container(container_name, ctx, cmd_smkit, executable="bash")
+    tk_match = re.search(r'(\d+\.\d+\.\d+)', str(output_smkit.stdout))
+    if tk_match:
+        toolkit_version_from_output = tk_match.group(0)
+    else:
+        raise RuntimeError(
+            f"Can not determine inference tool kit version from container output : {str(output_smkit.stdout)}")
+    output_ts = run_cmd_on_container(container_name, ctx, cmd_ts, executable="bash")
+    ts_match = re.search(r'(\d+\.\d+\.\d+)', str(output_ts.stdout))
+    if ts_match:
+        ts_version_from_output = ts_match.group(0)
+    else:
+        raise RuntimeError(
+            f"Can not determine torchserve version from container output : {str(output_ts.stdout)}")
+
+    # Verify image label
+    image_labels = get_labels_from_ecr_image(image, region)
+    expected_label = f"com.amazonaws.ml.engines.sagemaker.dlc.inference-toolkit.{toolkit_version_from_output}.torchserve.{ts_version_from_output}"
+    has_expected_label = image_labels.get(expected_label)
+    assert has_expected_label, \
+        f"The label {expected_label} which enforces compatability between sagemaker inference toolkit and torchserve seems to be invalid/missing for the image {image}"
 
 
 @pytest.mark.usefixtures("sagemaker")
