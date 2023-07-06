@@ -1666,7 +1666,7 @@ NEURONX_VERSION_MANIFEST = {
         "pytorch": {
             "1.13.1": "1.13.1.1.8.0",
         }
-    }
+    },
 }
 
 
