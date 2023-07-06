@@ -12,7 +12,7 @@ LABEL dlc_major_version="1"
 # https://docs.aws.amazon.com/sagemaker/latest/dg/inference-pipeline-real-time.html
 LABEL com.amazonaws.sagemaker.capabilities.accept-bind-to-port=true
 
-ARG MMS_VERSION=1.1.8
+ARG MMS_VERSION=1.1.11
 ARG PYTHON=python3
 ARG PYTHON_VERSION=3.9.13
 ARG MAMBA_VERSION=22.9.0-1
@@ -29,6 +29,7 @@ ARG TORCHAUDIO_VERSION=0.13.1+cu117
 
 # HF ARGS
 ARG TRANSFORMERS_VERSION
+ARG DIFFUSERS_VERSION=0.16.1
 
 # Set Debian interaction
 ARG DEBIAN_FRONTEND=noninteractive
@@ -220,6 +221,8 @@ RUN curl -o /license.txt  https://aws-dlc-licenses.s3.amazonaws.com/pytorch-1.13
 # install Hugging Face libraries and its dependencies
 RUN pip install --no-cache-dir \
 	transformers[sentencepiece,audio,vision]==${TRANSFORMERS_VERSION} \
+    diffusers==${DIFFUSERS_VERSION} \
+    "accelerate>=0.11.0" \
 	"protobuf>=3.19.5,<=3.20.2" \
 	numpy>=1.21.5 \
 	"sagemaker-huggingface-inference-toolkit<3"
