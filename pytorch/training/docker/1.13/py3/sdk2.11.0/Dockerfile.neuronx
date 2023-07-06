@@ -150,7 +150,7 @@ RUN ${PIP} config set global.extra-index-url https://pip.repos.neuron.amazonaws.
 # awscli 1.27.127 has requirement rsa<4.8,>=3.1.2, but you have rsa 4.9.
 # awscli 1.27.127 requires urllib3 < 1.27, python-etcd requires urllib3 >= 1.7, latest urllib3 release is 2.0.2
 RUN ${PIP} install --no-cache-dir -U \
-    "attrs>=22.2.0" \
+    "attrs>=22.2.0,<23.0.0" \
     "protobuf>=2.9.2,<3.20" \
     "docutils>=0.10,<0.17" \
     "rsa<4.8,>=3.1.2" \

@@ -1,2 +1,32 @@
 {
+  "cryptography": [
+    {
+      "description": "Issue summary: Processing some specially crafted ASN.1 object identifiers or\ndata containing them may be very slow.\n\nImpact summary: Applications that use OBJ_obj2txt() directly, or use any of\nthe OpenSSL subsystems OCSP, PKCS7/SMIME, CMS, CMP/CRMF or TS with no message\nsize limit may experience notable to very long delays when processing those\nmessages, which may lead to a Denial of Service.\n\nAn OBJECT IDENTIFIER is composed of a series of numbers - sub-identifiers -\nmost of which have no size limit.  OBJ_obj2txt() may be used to translate\nan ASN.1 OBJECT IDENTIFIER given in DER encoding form (using the OpenSSL\ntype ASN1_OBJECT) to its canonical numeric text form, which are the\nsub-identifiers of the OBJECT IDENTIFIER in decimal form, separated by\nperiods.\n\nWhen one of the sub-identifiers in the OBJECT IDENTIFIER is very large\n(these are sizes that are seen as absurdly large, taking up tens or hundreds\nof KiBs), the translation to a decimal number in text may take a very long\ntime.  The time complexity is O(",
+      "vulnerability_id": "CVE-2023-2650",
+      "name": "CVE-2023-2650",
+      "package_name": "cryptography",
+      "package_details": {
+        "file_path": "opt/conda/lib/python3.8/site-packages/cryptography-40.0.2.dist-info/METADATA",
+        "name": "cryptography",
+        "package_manager": "PYTHONPKG",
+        "version": "40.0.2",
+        "release": null
+      },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
+      "cvss_v3_score": 7.5,
+      "cvss_v30_score": 0,
+      "cvss_v31_score": 7.5,
+      "cvss_v2_score": 0,
+      "cvss_v3_severity": "HIGH",
+      "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2023-2650",
+      "source": "NVD",
+      "severity": "HIGH",
+      "status": "ACTIVE",
+      "title": "CVE-2023-2650 - cryptography"
+    }
+  ]
 }
