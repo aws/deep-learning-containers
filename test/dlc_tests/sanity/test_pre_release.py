@@ -811,26 +811,29 @@ def _test_sm_toolkit_and_ts_version(image, region):
 
     # Get inference tool kit and torchserve version from bash command.
     output_smkit = run_cmd_on_container(container_name, ctx, cmd_smkit, executable="bash")
-    tk_match = re.search(r'(\d+\.\d+\.\d+)', str(output_smkit.stdout))
+    tk_match = re.search(r"(\d+\.\d+\.\d+)", str(output_smkit.stdout))
     if tk_match:
         toolkit_version_from_output = tk_match.group(0)
     else:
         raise RuntimeError(
-            f"Can not determine inference tool kit version from container output : {str(output_smkit.stdout)}")
+            f"Can not determine inference tool kit version from container output : {str(output_smkit.stdout)}"
+        )
     output_ts = run_cmd_on_container(container_name, ctx, cmd_ts, executable="bash")
-    ts_match = re.search(r'(\d+\.\d+\.\d+)', str(output_ts.stdout))
+    ts_match = re.search(r"(\d+\.\d+\.\d+)", str(output_ts.stdout))
     if ts_match:
         ts_version_from_output = ts_match.group(0)
     else:
         raise RuntimeError(
-            f"Can not determine torchserve version from container output : {str(output_ts.stdout)}")
+            f"Can not determine torchserve version from container output : {str(output_ts.stdout)}"
+        )
 
     # Verify image label
     image_labels = get_labels_from_ecr_image(image, region)
     expected_label = f"com.amazonaws.ml.engines.sagemaker.dlc.inference-toolkit.{toolkit_version_from_output}.torchserve.{ts_version_from_output}"
     has_expected_label = image_labels.get(expected_label)
-    assert has_expected_label, \
-        f"The label {expected_label} which enforces compatability between sagemaker inference toolkit and torchserve seems to be invalid/missing for the image {image}"
+    assert (
+        has_expected_label
+    ), f"The label {expected_label} which enforces compatability between sagemaker inference toolkit and torchserve seems to be invalid/missing for the image {image}"
 
 
 @pytest.mark.usefixtures("sagemaker")
