@@ -13,7 +13,7 @@ ARG NEURONX_TOOLS_VERSION=2.11.*
 ARG NEURONX_FRAMEWORK_VERSION=1.13.1.1.8.*
 ARG NEURONX_CC_VERSION=2.7.*
 
-ARG OPEN_MPI_VERSION=4.1.5
+ARG OMPI_VERSION=4.1.5
 ARG PIP=pip3
 
 # This arg required to stop docker build waiting for region configuration while installing tz data from ubuntu 20
@@ -85,14 +85,17 @@ RUN apt-get update \
  && rm -rf /tmp/tmp* \
  && apt-get clean
 
-RUN wget https://www.open-mpi.org/software/ompi/v4.0/downloads/openmpi-$OPEN_MPI_VERSION.tar.gz \
- && gunzip -c openmpi-$OPEN_MPI_VERSION.tar.gz | tar xf - \
- && cd openmpi-$OPEN_MPI_VERSION \
- && ./configure --prefix=/home/.openmpi \
- && make all install \
- && cd .. \
- && rm openmpi-$OPEN_MPI_VERSION.tar.gz \
- && rm -rf openmpi-$OPEN_MPI_VERSION
+# Install Open MPI
+RUN mkdir -p /tmp/openmpi \
+ && cd /tmp/openmpi \
+ && wget --quiet https://download.open-mpi.org/release/open-mpi/v4.1/openmpi-${OMPI_VERSION}.tar.gz \
+ && tar zxf openmpi-${OMPI_VERSION}.tar.gz \
+ && cd openmpi-${OMPI_VERSION} \
+ && ./configure --enable-orterun-prefix-by-default \
+ && make -j $(nproc) all \
+ && make install \
+ && ldconfig \
+ && rm -rf /tmp/openmpi
 
 # install Python
 RUN wget -q https://www.python.org/ftp/python/$PYTHON_VERSION/Python-$PYTHON_VERSION.tgz \
