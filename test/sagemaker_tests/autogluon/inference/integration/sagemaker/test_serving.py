@@ -26,10 +26,13 @@ from sagemaker.serializers import CSVSerializer
 from test.sagemaker_tests.autogluon.training.integration import dump_logs_from_cloudwatch
 from .timeout import timeout_and_delete_endpoint
 from .. import RESOURCE_PATH
+from ..... import invoke_sm_endpoint_helper_function
 
 
 @contextmanager
-def _test_sm_trained_model(sagemaker_session, ecr_image, instance_type, framework_version):
+def _test_sm_trained_model(
+    sagemaker_session, image_uri, instance_type, framework_version, **kwargs
+):
     model_dir = os.path.join(RESOURCE_PATH, "model")
     source_dir = os.path.join(RESOURCE_PATH, "scripts")
 
@@ -49,7 +52,7 @@ def _test_sm_trained_model(sagemaker_session, ecr_image, instance_type, framewor
     model = MXNetModel(
         model_data=model_data,
         role="SageMakerRole",
-        image_uri=ecr_image,
+        image_uri=image_uri,
         sagemaker_session=sagemaker_session,
         source_dir=source_dir,
         entry_point="tabular_serve.py",
@@ -75,10 +78,16 @@ def _test_sm_trained_model(sagemaker_session, ecr_image, instance_type, framewor
 
 @pytest.mark.integration("smexperiments")
 @pytest.mark.model("autogluon")
-def test_sm_trained_model_cpu(sagemaker_session, framework_version, ecr_image, instance_type):
+def test_sm_trained_model_cpu(sagemaker_regions, framework_version, ecr_image, instance_type):
     instance_type = instance_type or "ml.m5.xlarge"
     try:
-        _test_sm_trained_model(sagemaker_session, ecr_image, instance_type, framework_version)
+        invoke_sm_endpoint_helper_function(
+            ecr_image=ecr_image,
+            sagemaker_regions=sagemaker_regions,
+            framework_version=framework_version,
+            test_function=_test_sm_trained_model,
+            instance_type=instance_type,
+        )
     except UnexpectedStatusException as e:
         dump_logs_from_cloudwatch(e)
         raise

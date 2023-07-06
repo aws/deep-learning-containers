@@ -268,7 +268,14 @@ def _wait_for_transform_job(region, boto_session, sagemaker_client, model_name, 
 
 
 def run_batch_transform_job(
-    region, boto_session, model_data, image_uri, sagemaker_client, model_name, instance_type
+    region,
+    boto_session,
+    model_data,
+    image_uri,
+    sagemaker_client,
+    model_name,
+    instance_type,
+    **kwargs,
 ):
     with sagemaker_model(boto_session, sagemaker_client, image_uri, model_name, model_data):
         batch_input = find_or_put_model_data(region, boto_session, BATCH_CSV)
@@ -333,10 +340,12 @@ def create_and_invoke_endpoint(
     instance_type,
     accelerator_type,
     input_data,
+    region=None,
     is_multi_model_mode_enabled=False,
     target_models=[],
     environment={},
     content_type="application/json",
+    **kwargs,
 ):
     with sagemaker_model(
         boto_session,

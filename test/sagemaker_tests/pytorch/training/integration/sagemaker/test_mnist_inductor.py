@@ -29,7 +29,7 @@ inductor_instance_types = ["ml.p3.8xlarge", "ml.g5.12xlarge", "ml.g4dn.12xlarge"
 @pytest.mark.integration("smexperiments")
 @pytest.mark.skip_gpu
 @pytest.mark.skip_inductor_test
-@pytest.mark.xfail(reason="known issue: https://github.com/pytorch/pytorch/issues/98436")
+@pytest.mark.skip(reason="known issue: https://github.com/pytorch/pytorch/issues/98436")
 def test_mnist_distributed_cpu(
     framework_version, ecr_image, sagemaker_regions, instance_type, dist_cpu_backend
 ):
@@ -53,7 +53,7 @@ def test_mnist_distributed_cpu(
 @pytest.mark.skip_cpu
 @pytest.mark.skip_inductor_test
 @pytest.mark.parametrize("instance_type", inductor_instance_types, indirect=True)
-@pytest.mark.xfail(reason="known issue: https://github.com/pytorch/pytorch/issues/99067")
+@pytest.mark.skip(reason="known issue: https://github.com/pytorch/pytorch/issues/99067")
 def test_mnist_distributed_gpu(
     framework_version, ecr_image, sagemaker_regions, instance_type, dist_gpu_backend
 ):
@@ -76,7 +76,7 @@ def test_mnist_distributed_gpu(
 @pytest.mark.integration("smexperiments")
 @pytest.mark.skip_gpu
 @pytest.mark.skip_inductor_test
-@pytest.mark.xfail(reason="known issue: https://github.com/pytorch/pytorch/issues/98436")
+@pytest.mark.skip(reason="known issue: https://github.com/pytorch/pytorch/issues/98436")
 def test_hc_mnist_distributed_cpu(
     framework_version, ecr_image, sagemaker_regions, instance_type, dist_cpu_backend
 ):
@@ -101,7 +101,7 @@ def test_hc_mnist_distributed_cpu(
 @pytest.mark.skip_cpu
 @pytest.mark.skip_inductor_test
 @pytest.mark.parametrize("instance_type", inductor_instance_types, indirect=True)
-@pytest.mark.xfail(reason="known issue: https://github.com/pytorch/pytorch/issues/99067")
+@pytest.mark.skip(reason="known issue: https://github.com/pytorch/pytorch/issues/99067")
 def test_hc_mnist_distributed_gpu(
     framework_version, ecr_image, sagemaker_regions, instance_type, dist_gpu_backend
 ):
