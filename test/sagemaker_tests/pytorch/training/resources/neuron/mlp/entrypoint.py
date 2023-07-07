@@ -53,7 +53,7 @@ def main():
 
     nccl_socket_ifname = args.nccl_socket_ifname
 
-    torchrun_cmd = f'NEURON_RT_LOG_LEVEL="INFO" FI_EFA_USE_DEVICE_RDMA="1" FI_PROVIDER="efa" NCCL_DEBUG="INFO" NCCL_INIT="INFO" NCCL_DEBUG_SUBSYS="ALL" NCCL_SOCKET_IFNAME={nccl_socket_ifname} torchrun  --nproc_per_node={args.nproc_per_node} --nnodes={args.nnodes} --node_rank={node_rank} --master_addr={master_addr} --master_port={master_port} train_torchrun.py'
+    torchrun_cmd = f'NEURON_RT_LOG_LEVEL="INFO" FI_EFA_FORK_SAFE="1" FI_EFA_USE_DEVICE_RDMA="1" FI_PROVIDER="efa" NCCL_DEBUG="INFO" NCCL_INIT="INFO" NCCL_DEBUG_SUBSYS="ALL" NCCL_SOCKET_IFNAME={nccl_socket_ifname} torchrun  --nproc_per_node={args.nproc_per_node} --nnodes={args.nnodes} --node_rank={node_rank} --master_addr={master_addr} --master_port={master_port} train_torchrun.py'
     logger.info(f"Calling {torchrun_cmd}")
     os.system(torchrun_cmd)
 
