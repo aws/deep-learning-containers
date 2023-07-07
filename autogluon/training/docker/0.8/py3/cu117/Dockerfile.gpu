@@ -27,6 +27,7 @@ ARG AUTOGLUON_VERSION=0.8.2
 RUN pip install --no-cache-dir -U --trusted-host pypi.org --trusted-host files.pythonhosted.org pip \
  && pip install --no-cache-dir -U setuptools wheel \
  && pip install --no-cache-dir -U numpy numba \
+ && pip install --no-cache-dir -U importlib<5.0 \
  && pip install --no-cache-dir -U autogluon==${AUTOGLUON_VERSION} \
  && mim install -q mmcv \
  && pip install --no-cache-dir -U mmdet>=3.0.0 \
