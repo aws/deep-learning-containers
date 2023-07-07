@@ -19,7 +19,6 @@ def _mp_fn():
     os.environ["NEURON_CC_FLAGS"] = (
         os.environ.get("NEURON_CC_FLAGS", "") + "--cache_dir=neff_cache2"
     )
-    os.environ["FI_EFA_FORK_SAFE"] = "1"
     os.environ["FI_EFA_USE_DEVICE_RDMA"] = "1"
     os.environ["FI_PROVIDER"] = "efa"
     os.environ["NCCL_DEBUG"] = "TRACE"
