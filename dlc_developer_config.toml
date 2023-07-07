@@ -46,7 +46,7 @@ do_build = true
 [test]
 ### On by default
 sanity_tests = true
-  safety_check_test = false
+  safety_check_test = true
   ecr_scan_allowlist_feature = false
 ecs_tests = true
 eks_tests = true
@@ -91,7 +91,7 @@ use_scheduler = false
 dlc-pr-mxnet-training = ""
 dlc-pr-pytorch-training = ""
 dlc-pr-tensorflow-2-training = ""
-dlc-pr-autogluon-training = ""
+dlc-pr-autogluon-training = "autogluon/training/buildspec.yml"
 
 # HuggingFace Training
 dlc-pr-huggingface-tensorflow-training = ""
