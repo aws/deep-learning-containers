@@ -77,6 +77,13 @@ def filter_efa_instance_type(instance_type_list):
     return filtered_list
 
 
+def filter_non_g3_instance_type(instance_type_list):
+    filtered_list = [
+        instance_type for instance_type in instance_type_list if not instance_type.startswith("g3.")
+    ]
+    return filtered_list
+
+
 def get_cicd_instance_reserved_region(instance_type):
     return (
         P4DE_REGION
@@ -817,7 +824,6 @@ def execute_ec2_training_test(
     bin_bash_entrypoint=False,
     enable_habana_async_execution=False,
     enable_gdrcopy=False,
-    asynchronous=False,
 ):
     if executable not in ("bash", "python"):
         raise RuntimeError(
@@ -899,17 +905,13 @@ def execute_ec2_training_test(
         connection.run(f"sudo modprobe -r neuron  && sudo modprobe -i neuron")
 
     LOGGER.info(f"execute_ec2_training_test running {ecr_uri}, with cmd {test_cmd}")
-    response = connection.run(
+    ec2_res = connection.run(
         f"{docker_cmd} exec --user root {container_name} {executable} -c '{test_cmd}'",
         hide=True,
         timeout=timeout,
-        # asynchronous=asynchronous,
     )
-    # if asynchronous:
-    #     LOGGER.info(f"execute_ec2_training_test command given for {ecr_uri}, with cmd {test_cmd}")
-    #     response.join()
     LOGGER.info(f"execute_ec2_training_test completed {ecr_uri}, with cmd {test_cmd}")
-    return response
+    return ec2_res
 
 
 def execute_ec2_inference_test(connection, ecr_uri, test_cmd, region=DEFAULT_REGION):

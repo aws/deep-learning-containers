@@ -420,6 +420,39 @@ def is_tf_based_framework(name):
     return "tensorflow" in name
 
 
+def is_equal_to_framework_version(version_required, image_uri, framework):
+    """
+    Validate that image_uri has framework version exactly equal to version_required
+
+    :param version_required: str Framework version that image_uri is required to be at
+    :param image_uri: str ECR Image URI for the image to be validated
+    :param framework: str Framework installed in image
+    :return: bool True if image_uri has framework version equal to version_required, else False
+    """
+    image_framework_name, image_framework_version = get_framework_and_version_from_tag(image_uri)
+    return (
+        image_framework_name == framework
+        and Version(image_framework_version) in SpecifierSet(f"=={version_required}")
+    )
+
+
+def is_above_framework_version(version_lower_bound, image_uri, framework):
+    """
+    Validate that image_uri has framework version strictly less than version_upper_bound
+
+    :param version_lower_bound: str Framework version that image_uri is required to be above
+    :param image_uri: str ECR Image URI for the image to be validated
+    :param framework: str Framework installed in image
+    :return: bool True if image_uri has framework version more than version_lower_bound, else False
+    """
+    image_framework_name, image_framework_version = get_framework_and_version_from_tag(image_uri)
+    required_version_specifier_set = SpecifierSet(f">{version_lower_bound}")
+    return (
+        image_framework_name == framework
+        and image_framework_version in required_version_specifier_set
+    )
+
+
 def is_below_framework_version(version_upper_bound, image_uri, framework):
     """
     Validate that image_uri has framework version strictly less than version_upper_bound

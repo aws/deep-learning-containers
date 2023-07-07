@@ -24,7 +24,9 @@ from test.test_utils import (
     get_framework_and_version_from_tag,
     get_job_type_from_image,
     is_tf_version,
+    is_above_framework_version,
     is_below_framework_version,
+    is_equal_to_framework_version,
     is_ec2_image,
     is_sagemaker_image,
     is_nightly_context,
@@ -984,12 +986,37 @@ def mx18_and_above_only():
 
 
 @pytest.fixture(scope="session")
+def skip_pt200():
+    pass
+
+
+@pytest.fixture(scope="session")
+def pt20_and_below_only():
+    pass
+
+
+@pytest.fixture(scope="session")
 def pt113_and_above_only():
     pass
 
 
 @pytest.fixture(scope="session")
+def below_pt113_only():
+    pass
+
+
+@pytest.fixture(scope="session")
 def pt111_and_above_only():
+    pass
+
+
+@pytest.fixture(scope="session")
+def skip_pt110():
+    pass
+
+
+@pytest.fixture(scope="session")
+def pt18_and_above_only():
     pass
 
 
@@ -1088,13 +1115,33 @@ def framework_version_within_limit(metafunc_obj, image):
         if mx18_requirement_failed:
             return False
     if image_framework_name in ("pytorch", "huggingface_pytorch_trcomp", "pytorch_trcomp"):
+        pt20_and_below_requirement_failed = (
+            "pt20_and_below_only" in metafunc_obj.fixturenames
+            and is_above_framework_version("2.0.0", image, image_framework_name)
+        )
+        not_pt200_requirement_failed = (
+            "skip_pt200" in metafunc_obj.fixturenames
+            and is_equal_to_framework_version("2.0.0", image, image_framework_name)
+        )
         pt113_requirement_failed = (
             "pt113_and_above_only" in metafunc_obj.fixturenames
             and is_below_framework_version("1.13", image, image_framework_name)
         )
+        below_pt113_requirement_failed = (
+            "below_pt113_only" in metafunc_obj.fixturenames
+            and not is_below_framework_version("1.13", image, image_framework_name)
+        )
         pt111_requirement_failed = (
             "pt111_and_above_only" in metafunc_obj.fixturenames
             and is_below_framework_version("1.11", image, image_framework_name)
+        )
+        not_pt110_requirement_failed = (
+            "skip_pt110" in metafunc_obj.fixturenames
+            and is_equal_to_framework_version("1.10.*", image, image_framework_name)
+        )
+        pt18_requirement_failed = (
+            "pt18_and_above_only" in metafunc_obj.fixturenames
+            and is_below_framework_version("1.8", image, image_framework_name)
         )
         pt17_requirement_failed = (
             "pt17_and_above_only" in metafunc_obj.fixturenames
@@ -1113,8 +1160,13 @@ def framework_version_within_limit(metafunc_obj, image):
             and is_below_framework_version("1.4", image, image_framework_name)
         )
         if (
-            pt113_requirement_failed
+            pt20_and_below_requirement_failed
+            or not_pt200_requirement_failed
+            or pt113_requirement_failed
+            or below_pt113_requirement_failed
             or pt111_requirement_failed
+            or not_pt110_requirement_failed
+            or pt18_requirement_failed
             or pt17_requirement_failed
             or pt16_requirement_failed
             or pt15_requirement_failed
