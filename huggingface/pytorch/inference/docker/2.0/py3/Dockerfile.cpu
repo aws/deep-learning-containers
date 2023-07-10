@@ -125,7 +125,7 @@ RUN pip uninstall -y torch torchvision torchaudio multi-model-server
 
 # Install AWS-PyTorch, and other torch packages
 RUN pip install --no-cache-dir --extra-index-url https://download.pytorch.org/whl/cpu -U \
-    "cryptography>=38.0.0,<40" \
+    "cryptography>=38.0.0" \
     enum-compat==0.0.3 \
     packaging \
     "Pillow>=9.0.0" \
@@ -167,7 +167,6 @@ RUN pip install --no-cache-dir \
     diffusers==${DIFFUSERS_VERSION} \
     "accelerate>=0.11.0" \
     "protobuf>=3.19.5,<=3.20.2" \
-    "numpy<1.25" \
     "sagemaker-huggingface-inference-toolkit<3"
 
 # Install IPEx and its dependencies
@@ -178,6 +177,9 @@ RUN cd /opt/ && mkdir -p ipex \
     wget https://raw.githubusercontent.com/intel/intel-extension-for-pytorch/v2.0.100%2Bcpu/scripts/compile_bundle.sh && \
     bash compile_bundle.sh && \
     rm -rf /opt/ipex
+
+
+RUN pip install --no-cache-dir  "numpy<1.25"
 
 RUN HOME_DIR=/root \
  && curl -o ${HOME_DIR}/oss_compliance.zip https://aws-dlinfra-utilities.s3.amazonaws.com/oss_compliance.zip \
