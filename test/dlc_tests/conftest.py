@@ -666,34 +666,19 @@ def ec2_instance(
             }
         ]
 
+    availability_zone_options = None
     if ei_accelerator_type:
         params["ElasticInferenceAccelerators"] = [{"Type": ei_accelerator_type, "Count": 1}]
         availability_zones = {
             "us-west-2": ["us-west-2a", "us-west-2b", "us-west-2c"],
             "us-east-1": ["us-east-1a", "us-east-1b", "us-east-1c"],
         }
-        for a_zone in availability_zones[region]:
-            params["Placement"] = {"AvailabilityZone": a_zone}
-            try:
-                instances = ec2_resource.create_instances(**params)
-                if instances:
-                    break
-            except ClientError as e:
-                LOGGER.error(f"Failed to launch in {a_zone} due to {e}")
-                continue
-    else:
-        try:
-            instances = ec2_resource.create_instances(**params)
-        except ClientError as e:
-            if e.response["Error"]["Code"] == "InsufficientInstanceCapacity":
-                LOGGER.warning(
-                    f"Failed to launch {ec2_instance_type} in {region} because of insufficient capacity"
-                )
-                if ec2_instance_type in ec2_utils.ICE_SKIP_INSTANCE_LIST:
-                    pytest.skip(
-                        f"Skipping test because {ec2_instance_type} instance could not be launched."
-                    )
-            raise
+        availability_zone_options = availability_zones[region]
+    instances = ec2_utils.launch_instances_with_retry(
+        ec2_resource=ec2_resource,
+        availability_zone_options=availability_zone_options,
+        ec2_create_instances_definition=params,
+    )
     instance_id = instances[0].id
 
     # Define finalizer to terminate instance after this fixture completes
