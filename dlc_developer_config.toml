@@ -52,11 +52,11 @@ ecs_tests = false
 eks_tests = false
 ec2_tests = true
 
-### Set ec2_efa_tests = true to be able to run any EC2 tests on any instance type that uses EFA-capable instances by
+### Set ec2_tests_on_heavy_instances = true to be able to run any EC2 tests that use large/expensive instance types by
 ### default. If false, these types of tests will be skipped while other tests will run as usual.
-### EC2 EFA tests are run in EC2 test jobs, so ec2_tests must be true if ec2_efa_tests is true.
+### These tests are run in EC2 test jobs, so ec2_tests must be true if ec2_tests_on_heavy_instances is true.
 ### Off by default (set to false)
-ec2_efa_tests = false
+ec2_tests_on_heavy_instances = false
 
 ### SM specific tests
 ### Off by default

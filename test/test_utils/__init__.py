@@ -573,6 +573,10 @@ def is_efa_dedicated():
     return os.getenv("EFA_DEDICATED", "False").lower() == "true"
 
 
+def are_heavy_instance_ec2_tests_enabled():
+    return os.getenv("HEAVY_INSTANCE_EC2_TESTS_ENABLED", "False").lower() == "true"
+
+
 def is_generic_image():
     return os.getenv("IS_GENERIC_IMAGE", "false").lower() == "true"
 

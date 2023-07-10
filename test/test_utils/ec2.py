@@ -25,7 +25,7 @@ from test.test_utils import (
     get_synapseai_version_from_tag,
     is_pr_context,
     is_mainline_context,
-    is_efa_dedicated,
+    are_heavy_instance_ec2_tests_enabled,
 )
 from . import DEFAULT_REGION, P3DN_REGION, P4DE_REGION, UL_AMI_LIST, BENCHMARK_RESULTS_S3_BUCKET
 
@@ -132,7 +132,9 @@ def get_ec2_instance_type(
     required to be a list.
     """
     if is_pr_context():
-        if get_num_efa_interfaces_for_instance_type(default) and not is_efa_dedicated():
+        # This condition filters out instance types that use resources with low-availability, or
+        # use very expensive instance types.
+        if not are_heavy_instance_ec2_tests_enabled() and default in HEAVY_INSTANCE_LIST:
             return []
         return [default]
 
