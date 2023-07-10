@@ -109,7 +109,6 @@ RUN curl -L -o ~/mambaforge.sh https://github.com/conda-forge/miniforge/releases
     botocore \
     parso \
     typing \
-    "numpy<1.25" \
     h5py \
     requests \
     # Below 2 are included in miniconda base, but not mamba so need to install
@@ -126,7 +125,7 @@ RUN pip uninstall -y torch torchvision torchaudio multi-model-server
 
 # Install AWS-PyTorch, and other torch packages
 RUN pip install --no-cache-dir --extra-index-url https://download.pytorch.org/whl/cpu -U \
-    "cryptography>=38.0.0" \
+    "cryptography>=38.0.0,<40" \
     enum-compat==0.0.3 \
     packaging \
     "Pillow>=9.0.0" \
@@ -168,6 +167,7 @@ RUN pip install --no-cache-dir \
     diffusers==${DIFFUSERS_VERSION} \
     "accelerate>=0.11.0" \
     "protobuf>=3.19.5,<=3.20.2" \
+    "numpy<1.25" \
     "sagemaker-huggingface-inference-toolkit<3"
 
 # Install IPEx and its dependencies
