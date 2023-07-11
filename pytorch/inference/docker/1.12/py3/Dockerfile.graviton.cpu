@@ -1,7 +1,3 @@
-# Changes to the below inputs require approval from TorchServe team
-ARG TS_VERSION=0.6.1
-ARG SM_TOOLKIT_VERSION=2.0.11
-
 ########################################################
 #  _____ ____ ____    ___
 # | ____/ ___|___ \  |_ _|_ __ ___   __ _  __ _  ___
@@ -28,7 +24,7 @@ ARG PT_XLA_INFERENCE_URL=https://aws-pytorch-unified-cicd-binaries.s3.us-west-2.
 ARG PT_TORCHDATA_URL=https://aws-pytorch-unified-cicd-binaries.s3.us-west-2.amazonaws.com/r1.12.1_graviton/torchdata-0.4.1%2B983e87a-py3-none-any.whl
 ARG PT_TORCHTEXT_URL=https://aws-pytorch-unified-cicd-binaries.s3.us-west-2.amazonaws.com/r1.12.1_graviton/torchtext-0.13.1a0%2B330201f-cp38-cp38-linux_aarch64.whl
 ARG OPEN_MPI_VERSION=4.1.4
-ARG TS_VERSION
+ARG TS_VERSION=0.6.1
 ARG MAMBA_VERSION=4.12.0-2
 ENV LANG C.UTF-8
 ENV LD_LIBRARY_PATH /opt/conda/lib/:$LD_LIBRARY_PATH
@@ -216,14 +212,10 @@ LABEL com.amazonaws.sagemaker.capabilities.multi-models=true
 
 ARG PYTHON=python3
 ARG PYTHON_VERSION=3.8.10
-ARG TS_VERSION
-ARG SM_TOOLKIT_VERSION
-
-LABEL com.amazonaws.ml.engines.sagemaker.dlc.inference-toolkit.${SM_TOOLKIT_VERSION}.torchserve.${TS_VERSION}="true"
 
 ENV SAGEMAKER_SERVING_MODULE sagemaker_pytorch_serving_container.serving:main
 
-RUN pip install --no-cache-dir "sagemaker-pytorch-inference==${SM_TOOLKIT_VERSION}"
+RUN pip install --no-cache-dir "sagemaker-pytorch-inference==2.0.11"
 
 COPY torchserve-entrypoint.py /usr/local/bin/dockerd-entrypoint.py
 

@@ -209,6 +209,8 @@ def image_builder(buildspec, image_types=[], device_types=[]):
         label_os_version = str(image_config.get("os_version")).replace(".", "-")
         label_contributor = str(BUILDSPEC.get("contributor"))
         label_transformers_version = str(transformers_version).replace(".", "-")
+        label_torchserve_version = str(BUILDSPEC.get("torch_serve_version"))
+        label_toolkit_version = str(BUILDSPEC.get("tool_kit_version"))
 
         # job_type will be either inference or training, based on the repo URI
         if "training" in image_repo_uri:
@@ -242,6 +244,9 @@ def image_builder(buildspec, image_types=[], device_types=[]):
                 labels[
                     f"com.amazonaws.ml.engines.{cx_type}.dlc.lib.transformers.{label_transformers_version}"
                 ] = "true"
+            if label_torchserve_version and label_toolkit_version:
+                labels[
+                    f"com.amazonaws.ml.engines.{cx_type}.dlc.inference-toolkit.{label_toolkit_version}.torchserve.{label_torchserve_version}"] = "true"
 
         """
         Override parameters from parent in child.

@@ -2,10 +2,6 @@ ARG PYTHON=python3
 ARG PYTHON_VERSION=3.8.13
 ARG MAMBA_VERSION=4.12.0-2
 
-# Changes to the below inputs require approval from TorchServe team
-ARG TS_VERSION=0.6.0
-ARG SM_TOOLKIT_VERSION=2.0.10
-
 # PyTorch Binaries
 ARG PT_INFERENCE_URL=https://aws-pytorch-unified-cicd-binaries.s3.us-west-2.amazonaws.com/r1.11.0_ec2/20221206-192811/6ead7f1c1f99d7cc5d15574e6698a855ddd7c823/torch-1.11.0%2Bcpu-cp38-cp38-linux_x86_64.whl
 ARG PT_TORCHVISION_URL=https://download.pytorch.org/whl/cpu/torchvision-0.12.0%2Bcpu-cp38-cp38-linux_x86_64.whl
@@ -54,7 +50,7 @@ ARG PT_TORCHVISION_URL
 ARG PT_TORCHAUDIO_URL
 ARG PT_TORCHDATA_URL
 
-ARG TS_VERSION
+ARG TS_VERSION=0.6.0
 
 ENV LANG=C.UTF-8
 ENV LD_LIBRARY_PATH="${LD_LIBRARY_PATH}:/opt/conda/lib"
@@ -242,10 +238,6 @@ LABEL com.amazonaws.sagemaker.capabilities.accept-bind-to-port=true
 LABEL com.amazonaws.sagemaker.capabilities.multi-models=true
 
 ARG PYTHON
-ARG TS_VERSION
-ARG SM_TOOLKIT_VERSION
-
-LABEL com.amazonaws.ml.engines.sagemaker.dlc.inference-toolkit.${SM_TOOLKIT_VERSION}.torchserve.${TS_VERSION}="true"
 
 ENV SAGEMAKER_SERVING_MODULE sagemaker_pytorch_serving_container.serving:main
 
@@ -254,7 +246,7 @@ RUN conda install -y -c conda-forge \
     scikit-learn \
     pandas
 
-RUN pip install --no-cache-dir "sagemaker-pytorch-inference==${SM_TOOLKIT_VERSION}"
+RUN pip install --no-cache-dir "sagemaker-pytorch-inference==2.0.10"
 
 COPY torchserve-entrypoint.py /usr/local/bin/dockerd-entrypoint.py
 

@@ -15,8 +15,8 @@ ARG TORCHVISION_URL=https://framework-binaries.s3.us-west-2.amazonaws.com/pytorc
 ARG TORCHAUDIO_URL=https://framework-binaries.s3.us-west-2.amazonaws.com/pytorch/v2.0.1/cu11.8.0/2023-05-24-03-41/torchaudio-2.0.2%2Bcu118-cp310-cp310-linux_x86_64.whl
 ARG TORCHTEXT_URL=https://framework-binaries.s3.us-west-2.amazonaws.com/pytorch/v2.0.1/cu11.8.0/2023-05-24-03-41/torchtext-0.15.2%2Bcu118-cp310-cp310-linux_x86_64.whl
 ARG TORCHDATA_URL=https://framework-binaries.s3.us-west-2.amazonaws.com/pytorch/v2.0.1/cu11.8.0/2023-05-24-03-41/torchdata-0.6.1%2Bcu118-cp310-cp310-linux_x86_64.whl
-ARG TORCHSERVE_VERSION=0.8.0
-ARG SM_TOOLKIT_VERSION=2.0.14
+ARG TORCHSERVE_VERSION
+ARG SM_TOOLKIT_VERSION
 
 ########################################################
 #  _____ ____ ____    ___
@@ -279,8 +279,6 @@ LABEL com.amazonaws.sagemaker.capabilities.multi-models=true
 ARG PYTHON
 ARG SM_TOOLKIT_VERSION
 ARG TORCHSERVE_VERSION
-
-LABEL com.amazonaws.ml.engines.sagemaker.dlc.inference-toolkit.${SM_TOOLKIT_VERSION}.torchserve.${TORCHSERVE_VERSION}="true"
 
 ENV SAGEMAKER_SERVING_MODULE sagemaker_pytorch_serving_container.serving:main
 ENV TS_DISABLE_SYSTEM_METRICS=true
