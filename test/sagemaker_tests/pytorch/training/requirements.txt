@@ -3,7 +3,7 @@ boto3>1.0,<2.0
 awscli>=1.27.51
 protobuf
 sagemaker
-coverage==4.5.3
+coverage
 docker-compose
 flake8==3.7.7
 Flask==1.1.1
