@@ -246,7 +246,8 @@ def image_builder(buildspec, image_types=[], device_types=[]):
                 ] = "true"
             if label_torchserve_version and label_toolkit_version:
                 labels[
-                    f"com.amazonaws.ml.engines.{cx_type}.dlc.inference-toolkit.{label_toolkit_version}.torchserve.{label_torchserve_version}"] = "true"
+                    f"com.amazonaws.ml.engines.{cx_type}.dlc.inference-toolkit.{label_toolkit_version}.torchserve.{label_torchserve_version}"
+                ] = "true"
 
         """
         Override parameters from parent in child.
