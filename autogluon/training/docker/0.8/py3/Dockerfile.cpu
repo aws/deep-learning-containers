@@ -24,6 +24,11 @@ ARG AUTOGLUON_VERSION=0.8.2
 
 # NOTE: reinstalling horovod with pytorch support because it is available in the container
 # Update requests >= 2.31.0: CVE-2023-32681
+# update cryptography >=41.0.0: CVE-2023-2650. This comes from the base image
+# update tornado >= 6.3.2: CVE-2023-28370. This comes from the base image
+# update pyOpenSSL 23.2.0 so cryptography can be updated
+# pin mmengine to avoid MultiModalPredictor import crashing
+# pin yapf to resolve importlib-metadata conflict with sagemaker==2.150.0
 RUN pip install --no-cache-dir -U --trusted-host pypi.org --trusted-host files.pythonhosted.org pip \
  && pip install --no-cache-dir -U setuptools wheel \
  && pip install --no-cache-dir -U numpy numba \
