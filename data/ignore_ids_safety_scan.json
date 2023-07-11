@@ -691,7 +691,8 @@
                 "51358":"Safety is test pkg and not part of image",
                 "51499":"Wheel is needed by tensorboard but v0.38 is not there yet",
                 "51457":"Ignored- please check https://github.com/pytest-dev/py/issues/287",
-                "51668": "# Sqlalchemy latest release is not there yet"
+                "51668":"# Sqlalchemy latest release is not there yet",
+                "59398":"Not a security issue"
             }
         },
         "inference": {
@@ -1005,7 +1006,8 @@
                 "53863":"Added in order to support tensorflow 1.15.5 and 2.10",
                 "53903":"Added in order to support tensorflow 1.15.5 and 2.10",
                 "53860":"Added in order to support tensorflow 1.15.5 and 2.10",
-                "53860":"Added in order to support tensorflow 1.15.5 and 2.10"
+                "53860":"Added in order to support tensorflow 1.15.5 and 2.10",
+                "59398":"Not a security issue"
             }
         }
     },
