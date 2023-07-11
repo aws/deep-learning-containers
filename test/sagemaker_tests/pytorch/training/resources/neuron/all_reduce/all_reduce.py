@@ -25,7 +25,6 @@ def _mp_fn():
     os.environ["NCCL_INIT"] = "TRACE"
     os.environ["NCCL_DEBUG_SUBSYS"] = "ALL"
     os.environ["NCCL_SOCKET_IFNAME"] = os.environ["SM_NETWORK_INTERFACE_NAME"]
-    os.environ["NEURON_RT_LOG_LEVEL"] = "INFO"
 
     world_size = xm.xrt_world_size()
     device = xm.xla_device()
