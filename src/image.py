@@ -227,7 +227,7 @@ class DockerImage:
 
         self.log.append(response)
 
-        LOGGER.info(f"DOCKER BUILD LOGS: \n{self.log}")
+        LOGGER.info(f"DOCKER BUILD LOGS: \n{self.get_tail_logs_in_pretty_format()}")
         LOGGER.info(f"Completed Build for {self.repository}:{self.tag}")
 
         self.build_status = constants.SUCCESS
