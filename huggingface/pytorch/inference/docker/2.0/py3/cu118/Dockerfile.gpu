@@ -12,7 +12,7 @@ LABEL dlc_major_version="1"
 # https://docs.aws.amazon.com/sagemaker/latest/dg/inference-pipeline-real-time.html
 LABEL com.amazonaws.sagemaker.capabilities.accept-bind-to-port=true
 
-ARG MMS_VERSION=1.1.8
+ARG MMS_VERSION=1.1.11
 ARG PYTHON=python3
 ARG PYTHON_VERSION=3.10.9
 ARG MAMBA_VERSION=22.11.1-4
@@ -146,10 +146,11 @@ WORKDIR /root
 RUN pip uninstall -y torch torchvision torchaudio model-archiver multi-model-server
 
 # Install AWS-PyTorch, and other torch packages
-RUN pip install --no-cache-dir --extra-index-url https://download.pytorch.org/whl/cu117 -U \
+RUN pip install --no-cache-dir -U \
     "awscli<2" \
     boto3 \
-    "cryptography>=38.0.0,<40" \
+    pyopenssl \
+    "cryptography>=38.0.0" \
     enum-compat==0.0.3 \
     "numpy>=1.22.2,<1.23" \
     opencv-python \
