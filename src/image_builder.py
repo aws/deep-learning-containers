@@ -177,8 +177,8 @@ def image_builder(buildspec, image_types=[], device_types=[]):
                     f"HuggingFace buildspec.yml must contain 'datasets_version' field for each image"
                 )
 
-        torchserve_version = str(BUILDSPEC.get("torch_serve_version"))
-        inference_toolkit_version = str(BUILDSPEC.get("tool_kit_version"))
+        torchserve_version = image_config.get("torch_serve_version")
+        inference_toolkit_version = image_config.get("tool_kit_version")
         if torchserve_version:
             extra_build_args["TORCHSERVE_VERSION"] = torchserve_version
         if inference_toolkit_version:
@@ -216,8 +216,6 @@ def image_builder(buildspec, image_types=[], device_types=[]):
         label_os_version = str(image_config.get("os_version")).replace(".", "-")
         label_contributor = str(BUILDSPEC.get("contributor"))
         label_transformers_version = str(transformers_version).replace(".", "-")
-        label_torchserve_version = str(BUILDSPEC.get("torch_serve_version"))
-        label_toolkit_version = str(BUILDSPEC.get("tool_kit_version"))
 
         # job_type will be either inference or training, based on the repo URI
         if "training" in image_repo_uri:
@@ -251,9 +249,9 @@ def image_builder(buildspec, image_types=[], device_types=[]):
                 labels[
                     f"com.amazonaws.ml.engines.{cx_type}.dlc.lib.transformers.{label_transformers_version}"
                 ] = "true"
-            if label_torchserve_version and label_toolkit_version:
+            if torchserve_version and inference_toolkit_version:
                 labels[
-                    f"com.amazonaws.ml.engines.{cx_type}.dlc.inference-toolkit.{label_toolkit_version}.torchserve.{label_torchserve_version}"
+                    f"com.amazonaws.ml.engines.{cx_type}.dlc.inference-toolkit.{inference_toolkit_version}.torchserve.{torchserve_version}"
                 ] = "true"
 
         """
