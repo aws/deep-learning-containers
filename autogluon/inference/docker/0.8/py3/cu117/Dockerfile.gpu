@@ -29,7 +29,9 @@ RUN pip install --no-cache-dir -U --trusted-host pypi.org --trusted-host files.p
  && pip install --no-cache-dir -U autogluon==${AUTOGLUON_VERSION} \
  && mim install -q mmcv \
  && pip install --no-cache-dir -U mmdet>=3.0.0 \
- && pip install --no-cache-dir -U "mmengine<0.8"
+ && pip install --no-cache-dir -U "mmengine<0.8" \
+ && pip install --no-cache-dir -U nvgpu==0.9.0 \
+ && pip install --no-cache-dir -U pynvml==11.4.1
 
 # Removing GluonTS nursery/tsbench package - it is not used in training/inference and have security vulnerabilities
 # Remove these to address security issues; these are not used if only python package is used
