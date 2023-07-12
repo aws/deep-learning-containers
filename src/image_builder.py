@@ -177,6 +177,13 @@ def image_builder(buildspec, image_types=[], device_types=[]):
                     f"HuggingFace buildspec.yml must contain 'datasets_version' field for each image"
                 )
 
+        torchserve_version = str(BUILDSPEC.get("torch_serve_version"))
+        inference_toolkit_version = str(BUILDSPEC.get("tool_kit_version"))
+        if torchserve_version:
+            extra_build_args["TORCHSERVE_VERSION"] = torchserve_version
+        if inference_toolkit_version:
+            extra_build_args["SM_TOOLKIT_VERSION"] = inference_toolkit_version
+
         ARTIFACTS.update(
             {
                 "dockerfile": {
