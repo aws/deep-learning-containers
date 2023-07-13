@@ -35,6 +35,7 @@ RUN pip install --no-cache-dir -U --trusted-host pypi.org --trusted-host files.p
  && pip install --no-cache-dir -U autogluon==${AUTOGLUON_VERSION} \
  && mim install -q mmcv \
  && pip install --no-cache-dir -U mmdet>=3.0.0 \
+ && pip install --no-cache-dir -U pymupdf<=1.21.1 \
  && pip install --no-cache-dir -U "mmengine<0.8" \
  && pip install --no-cache-dir -U "yapf<0.40.0" \
  && pip install --no-cache-dir -U "importlib-metadata<5.0" \
