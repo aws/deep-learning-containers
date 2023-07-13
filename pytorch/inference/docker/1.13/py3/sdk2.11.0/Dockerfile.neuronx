@@ -70,6 +70,7 @@ RUN curl -L -o ~/mambaforge.sh https://github.com/conda-forge/miniforge/releases
  && chmod +x ~/mambaforge.sh \
  && ~/mambaforge.sh -b -p /opt/conda \
  && rm ~/mambaforge.sh \
+ && /opt/conda/bin/conda update -y conda \
  && /opt/conda/bin/conda install -c conda-forge -y \
     pyopenssl \
     python=$PYTHON_VERSION \
@@ -83,7 +84,6 @@ RUN curl -L -o ~/mambaforge.sh https://github.com/conda-forge/miniforge/releases
     conda-content-trust \
     charset-normalizer \
 
- && /opt/conda/bin/conda update -y conda \
  && /opt/conda/bin/conda clean -ya
 
 RUN conda install -c conda-forge \

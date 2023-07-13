@@ -130,7 +130,7 @@ RUN ${PIP} install --no-cache-dir -U \
     "awscli<2" \
     scipy \
     click \
-    "cryptography>3.2" \
+    "cryptography" \
     "sagemaker>=2,<3" \
     "sagemaker-pytorch-training<3" \
     psutil==5.6.7 \
