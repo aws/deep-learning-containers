@@ -33,6 +33,8 @@
       python_version: &DOCKER_PYTHON_VERSION py38
       tag_python_version: &TAG_PYTHON_VERSION py38
       os_version: &OS_VERSION ubuntu20.04
+      torch_serve_version: &TORCHSERVE_VERSION 0.8.0
+      tool_kit_version: &SM_TOOLKIT_VERSION 2.0.14
       tag: !join [ *VERSION, "-", "cpu", "-", *TAG_PYTHON_VERSION, "-", *OS_VERSION ]
       docker_file: !join [ docker/, *VERSION, /, *DOCKER_PYTHON_VERSION, /Dockerfile., eia ]
       context:
