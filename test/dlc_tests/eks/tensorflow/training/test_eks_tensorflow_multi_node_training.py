@@ -19,6 +19,8 @@ from test.test_utils import is_pr_context, SKIP_PR_REASON
 @pytest.mark.model("resnet")
 @pytest.mark.multinode(3)
 def test_eks_tensorflow_multi_node_training_gpu(tensorflow_training, example_only):
+    if "2.13" in tensorflow_training:
+        pytest.skip(f"Image {tensorflow_training} does not include Horovod for this test")
     eks_cluster_size = "3"
     ec2_instance_type = "p3.16xlarge"
 
