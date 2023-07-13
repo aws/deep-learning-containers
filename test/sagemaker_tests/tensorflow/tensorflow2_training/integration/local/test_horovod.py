@@ -31,9 +31,7 @@ def test_distributed_training_horovod_basic_singlenode(
     instances, processes, sagemaker_local_session, docker_image, tmpdir, framework_version
 ):
     if framework_version >= "2.13":
-        pytest.skip(
-            f"{framework_version} does not include Horovod for this test"
-        )
+        pytest.skip(f"{framework_version} does not include Horovod for this test")
     _run_distributed_training_horovod_basic(
         instances, processes, sagemaker_local_session, docker_image, tmpdir, framework_version
     )
@@ -49,9 +47,7 @@ def test_distributed_training_horovod_basic_two_nodes(
     instances, processes, sagemaker_local_session, docker_image, tmpdir, framework_version
 ):
     if framework_version >= "2.13":
-        pytest.skip(
-            f"{framework_version} does not include Horovod for this test"
-        )
+        pytest.skip(f"{framework_version} does not include Horovod for this test")
     _run_distributed_training_horovod_basic(
         instances, processes, sagemaker_local_session, docker_image, tmpdir, framework_version
     )
@@ -67,9 +63,7 @@ def test_distributed_training_horovod_basic_two_nodes_two_processes(
     instances, processes, sagemaker_local_session, docker_image, tmpdir, framework_version
 ):
     if framework_version >= "2.13":
-        pytest.skip(
-            f"{framework_version} does not include Horovod for this test"
-        )
+        pytest.skip(f"{framework_version} does not include Horovod for this test")
     _run_distributed_training_horovod_basic(
         instances, processes, sagemaker_local_session, docker_image, tmpdir, framework_version
     )
