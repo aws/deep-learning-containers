@@ -96,8 +96,7 @@ RUN conda install -c conda-forge \
  && ln -s /opt/conda/bin/pip /usr/local/bin/pip3 \
  && pip install packaging \
     enum-compat \
-    ipython \
-    cryptography
+    ipython
 
 RUN pip install --no-cache-dir -U \
     scipy \
@@ -107,7 +106,9 @@ RUN pip install --no-cache-dir -U \
     "pillow>=8.3" \
     "awscli<2" \
     pandas==1.* \
-    boto3
+    boto3 \
+    numpy==1.21.6 \
+    cryptography
 
 RUN pip install neuronx-cc==$NEURONX_CC_VERSION --extra-index-url https://pip.repos.neuron.amazonaws.com \
  && pip install torch-neuronx==$NEURONX_FRAMEWORK_VERSION --extra-index-url https://pip.repos.neuron.amazonaws.com \
