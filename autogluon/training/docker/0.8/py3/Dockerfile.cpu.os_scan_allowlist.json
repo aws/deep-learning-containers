@@ -26,7 +26,8 @@
       "source": "NVD",
       "severity": "HIGH",
       "status": "ACTIVE",
-      "title": "CVE-2023-1428 - grpcio"
+      "title": "CVE-2023-1428 - grpcio",
+      "reason_to_ignore": "upgrading grpcio will cause multimodal hpo to crash; therefore breaking our functionality https://github.com/grpc/grpc/issues/32758"
     },
     {
       "description": "When gRPC HTTP2 stack raised a header size exceeded error, it skipped parsing the rest of the HPACK frame. This caused any HPACK table mutations to also be skipped, resulting in a desynchronization of HPACK tables between sender and receiver. If leveraged, say, between a proxy and a backend, this could lead to requests from the proxy being interpreted as containing headers from different proxy clients - leading to an information leak that can be used for privilege escalation or data exfiltration. We recommend upgrading beyond the commit contained in  https://github.com/grpc/grpc/pull/33005 https://github.com/grpc/grpc/pull/33005 \n",
@@ -54,7 +55,8 @@
       "source": "NVD",
       "severity": "HIGH",
       "status": "ACTIVE",
-      "title": "CVE-2023-32731 - grpcio"
+      "title": "CVE-2023-32731 - grpcio",
+      "reason_to_ignore": "upgrading grpcio will cause multimodal hpo to crash; therefore breaking our functionality https://github.com/grpc/grpc/issues/32758"
     }
   ]
 }

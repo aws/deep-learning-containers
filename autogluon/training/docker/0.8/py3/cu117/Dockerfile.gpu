@@ -3,9 +3,6 @@ ARG PYTHON_VERSION=3.9.16
 
 FROM 763104351884.dkr.ecr.us-west-2.amazonaws.com/pytorch-training:1.13.1-gpu-py39-cu117-ubuntu20.04-sagemaker
 
-# PYTORCH_SKIP_CUDNN_COMPATIBILITY_CHECK - see https://github.com/autogluon/autogluon/issues/2534
-ENV PYTORCH_SKIP_CUDNN_COMPATIBILITY_CHECK=1
-
 LABEL maintainer="Amazon AI"
 LABEL dlc_major_version="1"
 
