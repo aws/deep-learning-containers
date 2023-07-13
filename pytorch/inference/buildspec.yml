@@ -36,6 +36,7 @@ images:
     python_version: &DOCKER_PYTHON_VERSION py3
     tag_python_version: &TAG_PYTHON_VERSION py310
     os_version: &OS_VERSION ubuntu20.04
+    torch_serve_version: &TORCHSERVE_VERSION 0.8.0
     tag: !join [ *VERSION, "-", *DEVICE_TYPE, "-", *TAG_PYTHON_VERSION, "-", *OS_VERSION, "-ec2" ]
     docker_file: !join [ docker/, *SHORT_VERSION, /, *DOCKER_PYTHON_VERSION, /Dockerfile., *DEVICE_TYPE ]
     target: ec2
@@ -50,6 +51,7 @@ images:
     tag_python_version: &TAG_PYTHON_VERSION py310
     cuda_version: &CUDA_VERSION cu118
     os_version: &OS_VERSION ubuntu20.04
+    torch_serve_version: &TORCHSERVE_VERSION 0.8.0
     tag: !join [ *VERSION, "-", *DEVICE_TYPE, "-", *TAG_PYTHON_VERSION, "-", *CUDA_VERSION, "-", *OS_VERSION, "-ec2" ]
     docker_file: !join [ docker/, *SHORT_VERSION, /, *DOCKER_PYTHON_VERSION, /, *CUDA_VERSION, /Dockerfile.,
                          *DEVICE_TYPE ]
@@ -64,6 +66,8 @@ images:
     python_version: &DOCKER_PYTHON_VERSION py3
     tag_python_version: &TAG_PYTHON_VERSION py310
     os_version: &OS_VERSION ubuntu20.04
+    torch_serve_version: &TORCHSERVE_VERSION 0.8.0
+    tool_kit_version: &SM_TOOLKIT_VERSION 2.0.14
     tag: !join [ *VERSION, "-", *DEVICE_TYPE, "-", *TAG_PYTHON_VERSION, "-", *OS_VERSION, "-sagemaker" ]
     docker_file: !join [ docker/, *SHORT_VERSION, /, *DOCKER_PYTHON_VERSION, /Dockerfile., *DEVICE_TYPE ]
     target: sagemaker
@@ -78,6 +82,8 @@ images:
     tag_python_version: &TAG_PYTHON_VERSION py310
     cuda_version: &CUDA_VERSION cu118
     os_version: &OS_VERSION ubuntu20.04
+    torch_serve_version: &TORCHSERVE_VERSION 0.8.0
+    tool_kit_version: &SM_TOOLKIT_VERSION 2.0.14
     tag: !join [ *VERSION, "-", *DEVICE_TYPE, "-", *TAG_PYTHON_VERSION, "-", *CUDA_VERSION, "-", *OS_VERSION, "-sagemaker" ]
     docker_file: !join [ docker/, *SHORT_VERSION, /, *DOCKER_PYTHON_VERSION, /, *CUDA_VERSION, /Dockerfile.,
                          *DEVICE_TYPE ]
