@@ -94,12 +94,12 @@ RUN ${PIP} install --no-cache-dir \
     "awscli<2" \
     boto3 \
     cython==0.29.* \
-    falcon==2.0.0 \
-    gunicorn==20.0.4 \
-    gevent==21.1.1 \
-    requests==2.25.1 \
+    falcon==2.* \
+    gunicorn==20.1.* \
+    gevent==21.12.* \
+    requests \
     grpcio==1.56.0 \
-    protobuf==3.14.0 \
+    "protobuf<4" \
 # using --no-dependencies to avoid installing tensorflow binary
  && ${PIP} install --no-dependencies --no-cache-dir \
     tensorflow-serving-api==2.10.1
