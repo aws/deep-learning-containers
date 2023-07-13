@@ -6,7 +6,8 @@ LABEL com.amazonaws.sagemaker.capabilities.accept-bind-to-port=true
 
 ARG PYTHON=python3.8
 ARG PYTHON_VERSION=3.8.16
-ARG TS_VERSION=0.7.1
+ARG TORCHSERVE_VERSION
+ARG SM_TOOLKIT_VERSION
 ARG MAMBA_VERSION=23.1.0-1
 
 # Neuron SDK components version numbers
@@ -111,9 +112,9 @@ RUN pip install --no-cache-dir -U \
 RUN pip install neuronx-cc==$NEURONX_CC_VERSION --extra-index-url https://pip.repos.neuron.amazonaws.com \
  && pip install torch-neuronx==$NEURONX_FRAMEWORK_VERSION --extra-index-url https://pip.repos.neuron.amazonaws.com \
  && pip install "protobuf<4" \
- && pip install torchserve==$TS_VERSION \
+ && pip install torchserve==$TORCHSERVE_VERSION \
  && pip install --no-deps --no-cache-dir -U torchvision==0.14.* \
- && pip install torch-model-archiver==$TS_VERSION
+ && pip install torch-model-archiver==$TORCHSERVE_VERSION
 
 RUN useradd -m model-server \
  && mkdir -p /home/model-server/tmp /opt/ml/model \
@@ -132,7 +133,7 @@ ADD https://raw.githubusercontent.com/aws/deep-learning-containers/master/src/de
 
 RUN chmod +x /usr/local/bin/deep_learning_container.py
 
-RUN pip install --no-cache-dir "sagemaker-pytorch-inference==2.0.14"
+RUN pip install --no-cache-dir "sagemaker-pytorch-inference==${SM_TOOLKIT_VERSION}"
 
 RUN HOME_DIR=/root \
  && curl -o ${HOME_DIR}/oss_compliance.zip https://aws-dlinfra-utilities.s3.amazonaws.com/oss_compliance.zip \
