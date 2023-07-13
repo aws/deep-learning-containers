@@ -207,7 +207,7 @@ def _test_neuron_allreduce_distributed(
             framework_version=framework_version,
             distribution={"torch_distributed": {"enabled": True}},
             disable_profiler=True,
-            env={"FI_EFA_FORK_SAFE": "1"},
+            environment={"FI_EFA_FORK_SAFE": "1"},
         )
 
         pytorch.sagemaker_session.default_bucket()
@@ -236,7 +236,7 @@ def _test_neuron_mlp_distributed(
             framework_version=framework_version,
             distribution={"torch_distributed": {"enabled": True}},
             disable_profiler=True,
-            env={"FI_EFA_FORK_SAFE": "1"},
+            environment={"FI_EFA_FORK_SAFE": "1"},
         )
 
         pytorch.sagemaker_session.default_bucket()
