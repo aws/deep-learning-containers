@@ -66,7 +66,7 @@
             "name": "CVE-2022-1941",
             "package_name": "protobuf",
             "package_details": {
-                "file_path": "opt/conda/lib/python3.8/site-packages/protobuf-3.20.1.dist-info/METADATA",
+                "file_path": "opt/conda/lib/python3.10/site-packages/protobuf-3.20.1.dist-info/METADATA",
                 "name": "protobuf",
                 "package_manager": "PYTHONPKG",
                 "version": "3.20.1",
@@ -96,7 +96,7 @@
             "name": "CVE-2023-25658",
             "package_name": "tensorflow",
             "package_details": {
-                "file_path": "opt/conda/lib/python3.8/site-packages/tensorflow-1.15.5.dist-info/METADATA",
+                "file_path": "opt/conda/lib/python3.10/site-packages/tensorflow-1.15.5.dist-info/METADATA",
                 "name": "tensorflow",
                 "package_manager": "PYTHONPKG",
                 "version": "1.15.5",
@@ -124,7 +124,7 @@
             "name": "CVE-2023-25659",
             "package_name": "tensorflow",
             "package_details": {
-                "file_path": "opt/conda/lib/python3.8/site-packages/tensorflow-1.15.5.dist-info/METADATA",
+                "file_path": "opt/conda/lib/python3.10/site-packages/tensorflow-1.15.5.dist-info/METADATA",
                 "name": "tensorflow",
                 "package_manager": "PYTHONPKG",
                 "version": "1.15.5",
@@ -152,7 +152,7 @@
             "name": "CVE-2021-37676",
             "package_name": "tensorflow",
             "package_details": {
-                "file_path": "opt/conda/lib/python3.8/site-packages/tensorflow-1.15.5.dist-info/METADATA",
+                "file_path": "opt/conda/lib/python3.10/site-packages/tensorflow-1.15.5.dist-info/METADATA",
                 "name": "tensorflow",
                 "package_manager": "PYTHONPKG",
                 "version": "1.15.5",
@@ -180,7 +180,7 @@
             "name": "CVE-2021-29537",
             "package_name": "tensorflow",
             "package_details": {
-                "file_path": "opt/conda/lib/python3.8/site-packages/tensorflow-1.15.5.dist-info/METADATA",
+                "file_path": "opt/conda/lib/python3.10/site-packages/tensorflow-1.15.5.dist-info/METADATA",
                 "name": "tensorflow",
                 "package_manager": "PYTHONPKG",
                 "version": "1.15.5",
@@ -208,7 +208,7 @@
             "name": "CVE-2022-41887",
             "package_name": "tensorflow",
             "package_details": {
-                "file_path": "opt/conda/lib/python3.8/site-packages/tensorflow-1.15.5.dist-info/METADATA",
+                "file_path": "opt/conda/lib/python3.10/site-packages/tensorflow-1.15.5.dist-info/METADATA",
                 "name": "tensorflow",
                 "package_manager": "PYTHONPKG",
                 "version": "1.15.5",
@@ -236,7 +236,7 @@
             "name": "CVE-2021-29529",
             "package_name": "tensorflow",
             "package_details": {
-                "file_path": "opt/conda/lib/python3.8/site-packages/tensorflow-1.15.5.dist-info/METADATA",
+                "file_path": "opt/conda/lib/python3.10/site-packages/tensorflow-1.15.5.dist-info/METADATA",
                 "name": "tensorflow",
                 "package_manager": "PYTHONPKG",
                 "version": "1.15.5",
@@ -264,7 +264,7 @@
             "name": "CVE-2021-29560",
             "package_name": "tensorflow",
             "package_details": {
-                "file_path": "opt/conda/lib/python3.8/site-packages/tensorflow-1.15.5.dist-info/METADATA",
+                "file_path": "opt/conda/lib/python3.10/site-packages/tensorflow-1.15.5.dist-info/METADATA",
                 "name": "tensorflow",
                 "package_manager": "PYTHONPKG",
                 "version": "1.15.5",
@@ -292,7 +292,7 @@
             "name": "CVE-2021-37641",
             "package_name": "tensorflow",
             "package_details": {
-                "file_path": "opt/conda/lib/python3.8/site-packages/tensorflow-1.15.5.dist-info/METADATA",
+                "file_path": "opt/conda/lib/python3.10/site-packages/tensorflow-1.15.5.dist-info/METADATA",
                 "name": "tensorflow",
                 "package_manager": "PYTHONPKG",
                 "version": "1.15.5",
@@ -320,7 +320,7 @@
             "name": "CVE-2022-35993",
             "package_name": "tensorflow",
             "package_details": {
-                "file_path": "opt/conda/lib/python3.8/site-packages/tensorflow-1.15.5.dist-info/METADATA",
+                "file_path": "opt/conda/lib/python3.10/site-packages/tensorflow-1.15.5.dist-info/METADATA",
                 "name": "tensorflow",
                 "package_manager": "PYTHONPKG",
                 "version": "1.15.5",
@@ -348,7 +348,7 @@
             "name": "CVE-2022-41910",
             "package_name": "tensorflow",
             "package_details": {
-                "file_path": "opt/conda/lib/python3.8/site-packages/tensorflow-1.15.5.dist-info/METADATA",
+                "file_path": "opt/conda/lib/python3.10/site-packages/tensorflow-1.15.5.dist-info/METADATA",
                 "name": "tensorflow",
                 "package_manager": "PYTHONPKG",
                 "version": "1.15.5",
@@ -376,7 +376,7 @@
             "name": "CVE-2022-36004",
             "package_name": "tensorflow",
             "package_details": {
-                "file_path": "opt/conda/lib/python3.8/site-packages/tensorflow-1.15.5.dist-info/METADATA",
+                "file_path": "opt/conda/lib/python3.10/site-packages/tensorflow-1.15.5.dist-info/METADATA",
                 "name": "tensorflow",
                 "package_manager": "PYTHONPKG",
                 "version": "1.15.5",
@@ -404,7 +404,7 @@
             "name": "CVE-2022-36002",
             "package_name": "tensorflow",
             "package_details": {
-                "file_path": "opt/conda/lib/python3.8/site-packages/tensorflow-1.15.5.dist-info/METADATA",
+                "file_path": "opt/conda/lib/python3.10/site-packages/tensorflow-1.15.5.dist-info/METADATA",
                 "name": "tensorflow",
                 "package_manager": "PYTHONPKG",
                 "version": "1.15.5",
@@ -432,7 +432,7 @@
             "name": "CVE-2022-41899",
             "package_name": "tensorflow",
             "package_details": {
-                "file_path": "opt/conda/lib/python3.8/site-packages/tensorflow-1.15.5.dist-info/METADATA",
+                "file_path": "opt/conda/lib/python3.10/site-packages/tensorflow-1.15.5.dist-info/METADATA",
                 "name": "tensorflow",
                 "package_manager": "PYTHONPKG",
                 "version": "1.15.5",
@@ -460,7 +460,7 @@
             "name": "CVE-2023-25669",
             "package_name": "tensorflow",
             "package_details": {
-                "file_path": "opt/conda/lib/python3.8/site-packages/tensorflow-1.15.5.dist-info/METADATA",
+                "file_path": "opt/conda/lib/python3.10/site-packages/tensorflow-1.15.5.dist-info/METADATA",
                 "name": "tensorflow",
                 "package_manager": "PYTHONPKG",
                 "version": "1.15.5",
@@ -488,7 +488,7 @@
             "name": "CVE-2022-36012",
             "package_name": "tensorflow",
             "package_details": {
-                "file_path": "opt/conda/lib/python3.8/site-packages/tensorflow-1.15.5.dist-info/METADATA",
+                "file_path": "opt/conda/lib/python3.10/site-packages/tensorflow-1.15.5.dist-info/METADATA",
                 "name": "tensorflow",
                 "package_manager": "PYTHONPKG",
                 "version": "1.15.5",
@@ -516,7 +516,7 @@
             "name": "CVE-2021-29596",
             "package_name": "tensorflow",
             "package_details": {
-                "file_path": "opt/conda/lib/python3.8/site-packages/tensorflow-1.15.5.dist-info/METADATA",
+                "file_path": "opt/conda/lib/python3.10/site-packages/tensorflow-1.15.5.dist-info/METADATA",
                 "name": "tensorflow",
                 "package_manager": "PYTHONPKG",
                 "version": "1.15.5",
@@ -544,7 +544,7 @@
             "name": "CVE-2022-35939",
             "package_name": "tensorflow",
             "package_details": {
-                "file_path": "opt/conda/lib/python3.8/site-packages/tensorflow-1.15.5.dist-info/METADATA",
+                "file_path": "opt/conda/lib/python3.10/site-packages/tensorflow-1.15.5.dist-info/METADATA",
                 "name": "tensorflow",
                 "package_manager": "PYTHONPKG",
                 "version": "1.15.5",
@@ -572,7 +572,7 @@
             "name": "CVE-2022-41889",
             "package_name": "tensorflow",
             "package_details": {
-                "file_path": "opt/conda/lib/python3.8/site-packages/tensorflow-1.15.5.dist-info/METADATA",
+                "file_path": "opt/conda/lib/python3.10/site-packages/tensorflow-1.15.5.dist-info/METADATA",
                 "name": "tensorflow",
                 "package_manager": "PYTHONPKG",
                 "version": "1.15.5",
@@ -600,7 +600,7 @@
             "name": "CVE-2021-29597",
             "package_name": "tensorflow",
             "package_details": {
-                "file_path": "opt/conda/lib/python3.8/site-packages/tensorflow-1.15.5.dist-info/METADATA",
+                "file_path": "opt/conda/lib/python3.10/site-packages/tensorflow-1.15.5.dist-info/METADATA",
                 "name": "tensorflow",
                 "package_manager": "PYTHONPKG",
                 "version": "1.15.5",
@@ -628,7 +628,7 @@
             "name": "CVE-2022-41900",
             "package_name": "tensorflow",
             "package_details": {
-                "file_path": "opt/conda/lib/python3.8/site-packages/tensorflow-1.15.5.dist-info/METADATA",
+                "file_path": "opt/conda/lib/python3.10/site-packages/tensorflow-1.15.5.dist-info/METADATA",
                 "name": "tensorflow",
                 "package_manager": "PYTHONPKG",
                 "version": "1.15.5",
@@ -656,7 +656,7 @@
             "name": "CVE-2021-41211",
             "package_name": "tensorflow",
             "package_details": {
-                "file_path": "opt/conda/lib/python3.8/site-packages/tensorflow-1.15.5.dist-info/METADATA",
+                "file_path": "opt/conda/lib/python3.10/site-packages/tensorflow-1.15.5.dist-info/METADATA",
                 "name": "tensorflow",
                 "package_manager": "PYTHONPKG",
                 "version": "1.15.5",
@@ -684,7 +684,7 @@
             "name": "CVE-2021-29540",
             "package_name": "tensorflow",
             "package_details": {
-                "file_path": "opt/conda/lib/python3.8/site-packages/tensorflow-1.15.5.dist-info/METADATA",
+                "file_path": "opt/conda/lib/python3.10/site-packages/tensorflow-1.15.5.dist-info/METADATA",
                 "name": "tensorflow",
                 "package_manager": "PYTHONPKG",
                 "version": "1.15.5",
@@ -712,7 +712,7 @@
             "name": "CVE-2022-41908",
             "package_name": "tensorflow",
             "package_details": {
-                "file_path": "opt/conda/lib/python3.8/site-packages/tensorflow-1.15.5.dist-info/METADATA",
+                "file_path": "opt/conda/lib/python3.10/site-packages/tensorflow-1.15.5.dist-info/METADATA",
                 "name": "tensorflow",
                 "package_manager": "PYTHONPKG",
                 "version": "1.15.5",
@@ -740,7 +740,7 @@
             "name": "CVE-2021-29578",
             "package_name": "tensorflow",
             "package_details": {
-                "file_path": "opt/conda/lib/python3.8/site-packages/tensorflow-1.15.5.dist-info/METADATA",
+                "file_path": "opt/conda/lib/python3.10/site-packages/tensorflow-1.15.5.dist-info/METADATA",
                 "name": "tensorflow",
                 "package_manager": "PYTHONPKG",
                 "version": "1.15.5",
@@ -768,7 +768,7 @@
             "name": "CVE-2023-25670",
             "package_name": "tensorflow",
             "package_details": {
-                "file_path": "opt/conda/lib/python3.8/site-packages/tensorflow-1.15.5.dist-info/METADATA",
+                "file_path": "opt/conda/lib/python3.10/site-packages/tensorflow-1.15.5.dist-info/METADATA",
                 "name": "tensorflow",
                 "package_manager": "PYTHONPKG",
                 "version": "1.15.5",
@@ -796,7 +796,7 @@
             "name": "CVE-2021-37650",
             "package_name": "tensorflow",
             "package_details": {
-                "file_path": "opt/conda/lib/python3.8/site-packages/tensorflow-1.15.5.dist-info/METADATA",
+                "file_path": "opt/conda/lib/python3.10/site-packages/tensorflow-1.15.5.dist-info/METADATA",
                 "name": "tensorflow",
                 "package_manager": "PYTHONPKG",
                 "version": "1.15.5",
@@ -824,7 +824,7 @@
             "name": "CVE-2021-29576",
             "package_name": "tensorflow",
             "package_details": {
-                "file_path": "opt/conda/lib/python3.8/site-packages/tensorflow-1.15.5.dist-info/METADATA",
+                "file_path": "opt/conda/lib/python3.10/site-packages/tensorflow-1.15.5.dist-info/METADATA",
                 "name": "tensorflow",
                 "package_manager": "PYTHONPKG",
                 "version": "1.15.5",
@@ -852,7 +852,7 @@
             "name": "CVE-2020-15266",
             "package_name": "tensorflow",
             "package_details": {
-                "file_path": "opt/conda/lib/python3.8/site-packages/tensorflow-1.15.5.dist-info/METADATA",
+                "file_path": "opt/conda/lib/python3.10/site-packages/tensorflow-1.15.5.dist-info/METADATA",
                 "name": "tensorflow",
                 "package_manager": "PYTHONPKG",
                 "version": "1.15.5",
@@ -866,7 +866,7 @@
             "cvss_v3_score": 7.5,
             "cvss_v30_score": 0,
             "cvss_v31_score": 7.5,
-            "cvss_v2_score": 5.0,
+            "cvss_v2_score": 5,
             "cvss_v3_severity": "HIGH",
             "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2020-15266",
             "source": "NVD",
@@ -880,7 +880,7 @@
             "name": "CVE-2021-37659",
             "package_name": "tensorflow",
             "package_details": {
-                "file_path": "opt/conda/lib/python3.8/site-packages/tensorflow-1.15.5.dist-info/METADATA",
+                "file_path": "opt/conda/lib/python3.10/site-packages/tensorflow-1.15.5.dist-info/METADATA",
                 "name": "tensorflow",
                 "package_manager": "PYTHONPKG",
                 "version": "1.15.5",
@@ -908,7 +908,7 @@
             "name": "CVE-2022-29208",
             "package_name": "tensorflow",
             "package_details": {
-                "file_path": "opt/conda/lib/python3.8/site-packages/tensorflow-1.15.5.dist-info/METADATA",
+                "file_path": "opt/conda/lib/python3.10/site-packages/tensorflow-1.15.5.dist-info/METADATA",
                 "name": "tensorflow",
                 "package_manager": "PYTHONPKG",
                 "version": "1.15.5",
@@ -936,7 +936,7 @@
             "name": "CVE-2022-36026",
             "package_name": "tensorflow",
             "package_details": {
-                "file_path": "opt/conda/lib/python3.8/site-packages/tensorflow-1.15.5.dist-info/METADATA",
+                "file_path": "opt/conda/lib/python3.10/site-packages/tensorflow-1.15.5.dist-info/METADATA",
                 "name": "tensorflow",
                 "package_manager": "PYTHONPKG",
                 "version": "1.15.5",
@@ -964,7 +964,7 @@
             "name": "CVE-2022-23591",
             "package_name": "tensorflow",
             "package_details": {
-                "file_path": "opt/conda/lib/python3.8/site-packages/tensorflow-1.15.5.dist-info/METADATA",
+                "file_path": "opt/conda/lib/python3.10/site-packages/tensorflow-1.15.5.dist-info/METADATA",
                 "name": "tensorflow",
                 "package_manager": "PYTHONPKG",
                 "version": "1.15.5",
@@ -978,7 +978,7 @@
             "cvss_v3_score": 7.5,
             "cvss_v30_score": 0,
             "cvss_v31_score": 7.5,
-            "cvss_v2_score": 5.0,
+            "cvss_v2_score": 5,
             "cvss_v3_severity": "HIGH",
             "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2022-23591",
             "source": "NVD",
@@ -992,7 +992,7 @@
             "name": "CVE-2022-35972",
             "package_name": "tensorflow",
             "package_details": {
-                "file_path": "opt/conda/lib/python3.8/site-packages/tensorflow-1.15.5.dist-info/METADATA",
+                "file_path": "opt/conda/lib/python3.10/site-packages/tensorflow-1.15.5.dist-info/METADATA",
                 "name": "tensorflow",
                 "package_manager": "PYTHONPKG",
                 "version": "1.15.5",
@@ -1020,7 +1020,7 @@
             "name": "CVE-2021-29599",
             "package_name": "tensorflow",
             "package_details": {
-                "file_path": "opt/conda/lib/python3.8/site-packages/tensorflow-1.15.5.dist-info/METADATA",
+                "file_path": "opt/conda/lib/python3.10/site-packages/tensorflow-1.15.5.dist-info/METADATA",
                 "name": "tensorflow",
                 "package_manager": "PYTHONPKG",
                 "version": "1.15.5",
@@ -1048,7 +1048,7 @@
             "name": "CVE-2023-27579",
             "package_name": "tensorflow",
             "package_details": {
-                "file_path": "opt/conda/lib/python3.8/site-packages/tensorflow-1.15.5.dist-info/METADATA",
+                "file_path": "opt/conda/lib/python3.10/site-packages/tensorflow-1.15.5.dist-info/METADATA",
                 "name": "tensorflow",
                 "package_manager": "PYTHONPKG",
                 "version": "1.15.5",
@@ -1076,7 +1076,7 @@
             "name": "CVE-2022-35987",
             "package_name": "tensorflow",
             "package_details": {
-                "file_path": "opt/conda/lib/python3.8/site-packages/tensorflow-1.15.5.dist-info/METADATA",
+                "file_path": "opt/conda/lib/python3.10/site-packages/tensorflow-1.15.5.dist-info/METADATA",
                 "name": "tensorflow",
                 "package_manager": "PYTHONPKG",
                 "version": "1.15.5",
@@ -1104,7 +1104,7 @@
             "name": "CVE-2022-36015",
             "package_name": "tensorflow",
             "package_details": {
-                "file_path": "opt/conda/lib/python3.8/site-packages/tensorflow-1.15.5.dist-info/METADATA",
+                "file_path": "opt/conda/lib/python3.10/site-packages/tensorflow-1.15.5.dist-info/METADATA",
                 "name": "tensorflow",
                 "package_manager": "PYTHONPKG",
                 "version": "1.15.5",
@@ -1132,7 +1132,7 @@
             "name": "CVE-2021-29594",
             "package_name": "tensorflow",
             "package_details": {
-                "file_path": "opt/conda/lib/python3.8/site-packages/tensorflow-1.15.5.dist-info/METADATA",
+                "file_path": "opt/conda/lib/python3.10/site-packages/tensorflow-1.15.5.dist-info/METADATA",
                 "name": "tensorflow",
                 "package_manager": "PYTHONPKG",
                 "version": "1.15.5",
@@ -1160,7 +1160,7 @@
             "name": "CVE-2022-35937",
             "package_name": "tensorflow",
             "package_details": {
-                "file_path": "opt/conda/lib/python3.8/site-packages/tensorflow-1.15.5.dist-info/METADATA",
+                "file_path": "opt/conda/lib/python3.10/site-packages/tensorflow-1.15.5.dist-info/METADATA",
                 "name": "tensorflow",
                 "package_manager": "PYTHONPKG",
                 "version": "1.15.5",
@@ -1188,7 +1188,7 @@
             "name": "CVE-2021-37643",
             "package_name": "tensorflow",
             "package_details": {
-                "file_path": "opt/conda/lib/python3.8/site-packages/tensorflow-1.15.5.dist-info/METADATA",
+                "file_path": "opt/conda/lib/python3.10/site-packages/tensorflow-1.15.5.dist-info/METADATA",
                 "name": "tensorflow",
                 "package_manager": "PYTHONPKG",
                 "version": "1.15.5",
@@ -1216,7 +1216,7 @@
             "name": "CVE-2021-29585",
             "package_name": "tensorflow",
             "package_details": {
-                "file_path": "opt/conda/lib/python3.8/site-packages/tensorflow-1.15.5.dist-info/METADATA",
+                "file_path": "opt/conda/lib/python3.10/site-packages/tensorflow-1.15.5.dist-info/METADATA",
                 "name": "tensorflow",
                 "package_manager": "PYTHONPKG",
                 "version": "1.15.5",
@@ -1244,7 +1244,7 @@
             "name": "CVE-2021-29579",
             "package_name": "tensorflow",
             "package_details": {
-                "file_path": "opt/conda/lib/python3.8/site-packages/tensorflow-1.15.5.dist-info/METADATA",
+                "file_path": "opt/conda/lib/python3.10/site-packages/tensorflow-1.15.5.dist-info/METADATA",
                 "name": "tensorflow",
                 "package_manager": "PYTHONPKG",
                 "version": "1.15.5",
@@ -1272,7 +1272,7 @@
             "name": "CVE-2021-29553",
             "package_name": "tensorflow",
             "package_details": {
-                "file_path": "opt/conda/lib/python3.8/site-packages/tensorflow-1.15.5.dist-info/METADATA",
+                "file_path": "opt/conda/lib/python3.10/site-packages/tensorflow-1.15.5.dist-info/METADATA",
                 "name": "tensorflow",
                 "package_manager": "PYTHONPKG",
                 "version": "1.15.5",
@@ -1300,7 +1300,7 @@
             "name": "CVE-2021-29515",
             "package_name": "tensorflow",
             "package_details": {
-                "file_path": "opt/conda/lib/python3.8/site-packages/tensorflow-1.15.5.dist-info/METADATA",
+                "file_path": "opt/conda/lib/python3.10/site-packages/tensorflow-1.15.5.dist-info/METADATA",
                 "name": "tensorflow",
                 "package_manager": "PYTHONPKG",
                 "version": "1.15.5",
@@ -1328,7 +1328,7 @@
             "name": "SNYK-PYTHON-TENSORFLOW-3136512",
             "package_name": "tensorflow",
             "package_details": {
-                "file_path": "opt/conda/lib/python3.8/site-packages/tensorflow-1.15.5.dist-info/METADATA",
+                "file_path": "opt/conda/lib/python3.10/site-packages/tensorflow-1.15.5.dist-info/METADATA",
                 "name": "tensorflow",
                 "package_manager": "PYTHONPKG",
                 "version": "1.15.5",
@@ -1356,7 +1356,7 @@
             "name": "CVE-2021-29520",
             "package_name": "tensorflow",
             "package_details": {
-                "file_path": "opt/conda/lib/python3.8/site-packages/tensorflow-1.15.5.dist-info/METADATA",
+                "file_path": "opt/conda/lib/python3.10/site-packages/tensorflow-1.15.5.dist-info/METADATA",
                 "name": "tensorflow",
                 "package_manager": "PYTHONPKG",
                 "version": "1.15.5",
@@ -1384,7 +1384,7 @@
             "name": "CVE-2022-36011",
             "package_name": "tensorflow",
             "package_details": {
-                "file_path": "opt/conda/lib/python3.8/site-packages/tensorflow-1.15.5.dist-info/METADATA",
+                "file_path": "opt/conda/lib/python3.10/site-packages/tensorflow-1.15.5.dist-info/METADATA",
                 "name": "tensorflow",
                 "package_manager": "PYTHONPKG",
                 "version": "1.15.5",
@@ -1412,7 +1412,7 @@
             "name": "CVE-2022-41909",
             "package_name": "tensorflow",
             "package_details": {
-                "file_path": "opt/conda/lib/python3.8/site-packages/tensorflow-1.15.5.dist-info/METADATA",
+                "file_path": "opt/conda/lib/python3.10/site-packages/tensorflow-1.15.5.dist-info/METADATA",
                 "name": "tensorflow",
                 "package_manager": "PYTHONPKG",
                 "version": "1.15.5",
@@ -1440,7 +1440,7 @@
             "name": "CVE-2021-29546",
             "package_name": "tensorflow",
             "package_details": {
-                "file_path": "opt/conda/lib/python3.8/site-packages/tensorflow-1.15.5.dist-info/METADATA",
+                "file_path": "opt/conda/lib/python3.10/site-packages/tensorflow-1.15.5.dist-info/METADATA",
                 "name": "tensorflow",
                 "package_manager": "PYTHONPKG",
                 "version": "1.15.5",
@@ -1468,7 +1468,7 @@
             "name": "CVE-2022-41907",
             "package_name": "tensorflow",
             "package_details": {
-                "file_path": "opt/conda/lib/python3.8/site-packages/tensorflow-1.15.5.dist-info/METADATA",
+                "file_path": "opt/conda/lib/python3.10/site-packages/tensorflow-1.15.5.dist-info/METADATA",
                 "name": "tensorflow",
                 "package_manager": "PYTHONPKG",
                 "version": "1.15.5",
@@ -1496,7 +1496,7 @@
             "name": "CVE-2021-41219",
             "package_name": "tensorflow",
             "package_details": {
-                "file_path": "opt/conda/lib/python3.8/site-packages/tensorflow-1.15.5.dist-info/METADATA",
+                "file_path": "opt/conda/lib/python3.10/site-packages/tensorflow-1.15.5.dist-info/METADATA",
                 "name": "tensorflow",
                 "package_manager": "PYTHONPKG",
                 "version": "1.15.5",
@@ -1524,7 +1524,7 @@
             "name": "CVE-2021-29571",
             "package_name": "tensorflow",
             "package_details": {
-                "file_path": "opt/conda/lib/python3.8/site-packages/tensorflow-1.15.5.dist-info/METADATA",
+                "file_path": "opt/conda/lib/python3.10/site-packages/tensorflow-1.15.5.dist-info/METADATA",
                 "name": "tensorflow",
                 "package_manager": "PYTHONPKG",
                 "version": "1.15.5",
@@ -1552,7 +1552,7 @@
             "name": "CVE-2022-21728",
             "package_name": "tensorflow",
             "package_details": {
-                "file_path": "opt/conda/lib/python3.8/site-packages/tensorflow-1.15.5.dist-info/METADATA",
+                "file_path": "opt/conda/lib/python3.10/site-packages/tensorflow-1.15.5.dist-info/METADATA",
                 "name": "tensorflow",
                 "package_manager": "PYTHONPKG",
                 "version": "1.15.5",
@@ -1580,7 +1580,7 @@
             "name": "CVE-2022-35984",
             "package_name": "tensorflow",
             "package_details": {
-                "file_path": "opt/conda/lib/python3.8/site-packages/tensorflow-1.15.5.dist-info/METADATA",
+                "file_path": "opt/conda/lib/python3.10/site-packages/tensorflow-1.15.5.dist-info/METADATA",
                 "name": "tensorflow",
                 "package_manager": "PYTHONPKG",
                 "version": "1.15.5",
@@ -1608,7 +1608,7 @@
             "name": "CVE-2022-35979",
             "package_name": "tensorflow",
             "package_details": {
-                "file_path": "opt/conda/lib/python3.8/site-packages/tensorflow-1.15.5.dist-info/METADATA",
+                "file_path": "opt/conda/lib/python3.10/site-packages/tensorflow-1.15.5.dist-info/METADATA",
                 "name": "tensorflow",
                 "package_manager": "PYTHONPKG",
                 "version": "1.15.5",
@@ -1636,7 +1636,7 @@
             "name": "CVE-2021-37682",
             "package_name": "tensorflow",
             "package_details": {
-                "file_path": "opt/conda/lib/python3.8/site-packages/tensorflow-1.15.5.dist-info/METADATA",
+                "file_path": "opt/conda/lib/python3.10/site-packages/tensorflow-1.15.5.dist-info/METADATA",
                 "name": "tensorflow",
                 "package_manager": "PYTHONPKG",
                 "version": "1.15.5",
@@ -1664,7 +1664,7 @@
             "name": "CVE-2022-35934",
             "package_name": "tensorflow",
             "package_details": {
-                "file_path": "opt/conda/lib/python3.8/site-packages/tensorflow-1.15.5.dist-info/METADATA",
+                "file_path": "opt/conda/lib/python3.10/site-packages/tensorflow-1.15.5.dist-info/METADATA",
                 "name": "tensorflow",
                 "package_manager": "PYTHONPKG",
                 "version": "1.15.5",
@@ -1692,7 +1692,7 @@
             "name": "CVE-2022-41880",
             "package_name": "tensorflow",
             "package_details": {
-                "file_path": "opt/conda/lib/python3.8/site-packages/tensorflow-1.15.5.dist-info/METADATA",
+                "file_path": "opt/conda/lib/python3.10/site-packages/tensorflow-1.15.5.dist-info/METADATA",
                 "name": "tensorflow",
                 "package_manager": "PYTHONPKG",
                 "version": "1.15.5",
@@ -1720,7 +1720,7 @@
             "name": "CVE-2022-35965",
             "package_name": "tensorflow",
             "package_details": {
-                "file_path": "opt/conda/lib/python3.8/site-packages/tensorflow-1.15.5.dist-info/METADATA",
+                "file_path": "opt/conda/lib/python3.10/site-packages/tensorflow-1.15.5.dist-info/METADATA",
                 "name": "tensorflow",
                 "package_manager": "PYTHONPKG",
                 "version": "1.15.5",
@@ -1748,7 +1748,7 @@
             "name": "GHSA-43q8-3fv7-pr5x",
             "package_name": "tensorflow",
             "package_details": {
-                "file_path": "opt/conda/lib/python3.8/site-packages/tensorflow-1.15.5.dist-info/METADATA",
+                "file_path": "opt/conda/lib/python3.10/site-packages/tensorflow-1.15.5.dist-info/METADATA",
                 "name": "tensorflow",
                 "package_manager": "PYTHONPKG",
                 "version": "1.15.5",
@@ -1759,9 +1759,9 @@
                     "text": "None Provided"
                 }
             },
-            "cvss_v3_score": 7.0,
+            "cvss_v3_score": 7,
             "cvss_v30_score": 0,
-            "cvss_v31_score": 7.0,
+            "cvss_v31_score": 7,
             "cvss_v2_score": 0,
             "cvss_v3_severity": "HIGH",
             "source_url": "https://github.com/advisories/GHSA-43q8-3fv7-pr5x",
@@ -1776,7 +1776,7 @@
             "name": "CVE-2021-29559",
             "package_name": "tensorflow",
             "package_details": {
-                "file_path": "opt/conda/lib/python3.8/site-packages/tensorflow-1.15.5.dist-info/METADATA",
+                "file_path": "opt/conda/lib/python3.10/site-packages/tensorflow-1.15.5.dist-info/METADATA",
                 "name": "tensorflow",
                 "package_manager": "PYTHONPKG",
                 "version": "1.15.5",
@@ -1804,7 +1804,7 @@
             "name": "CVE-2022-35983",
             "package_name": "tensorflow",
             "package_details": {
-                "file_path": "opt/conda/lib/python3.8/site-packages/tensorflow-1.15.5.dist-info/METADATA",
+                "file_path": "opt/conda/lib/python3.10/site-packages/tensorflow-1.15.5.dist-info/METADATA",
                 "name": "tensorflow",
                 "package_manager": "PYTHONPKG",
                 "version": "1.15.5",
@@ -1832,7 +1832,7 @@
             "name": "CVE-2021-37663",
             "package_name": "tensorflow",
             "package_details": {
-                "file_path": "opt/conda/lib/python3.8/site-packages/tensorflow-1.15.5.dist-info/METADATA",
+                "file_path": "opt/conda/lib/python3.10/site-packages/tensorflow-1.15.5.dist-info/METADATA",
                 "name": "tensorflow",
                 "package_manager": "PYTHONPKG",
                 "version": "1.15.5",
@@ -1860,7 +1860,7 @@
             "name": "CVE-2021-29566",
             "package_name": "tensorflow",
             "package_details": {
-                "file_path": "opt/conda/lib/python3.8/site-packages/tensorflow-1.15.5.dist-info/METADATA",
+                "file_path": "opt/conda/lib/python3.10/site-packages/tensorflow-1.15.5.dist-info/METADATA",
                 "name": "tensorflow",
                 "package_manager": "PYTHONPKG",
                 "version": "1.15.5",
@@ -1888,7 +1888,7 @@
             "name": "CVE-2022-35994",
             "package_name": "tensorflow",
             "package_details": {
-                "file_path": "opt/conda/lib/python3.8/site-packages/tensorflow-1.15.5.dist-info/METADATA",
+                "file_path": "opt/conda/lib/python3.10/site-packages/tensorflow-1.15.5.dist-info/METADATA",
                 "name": "tensorflow",
                 "package_manager": "PYTHONPKG",
                 "version": "1.15.5",
@@ -1916,7 +1916,7 @@
             "name": "CVE-2023-25801",
             "package_name": "tensorflow",
             "package_details": {
-                "file_path": "opt/conda/lib/python3.8/site-packages/tensorflow-1.15.5.dist-info/METADATA",
+                "file_path": "opt/conda/lib/python3.10/site-packages/tensorflow-1.15.5.dist-info/METADATA",
                 "name": "tensorflow",
                 "package_manager": "PYTHONPKG",
                 "version": "1.15.5",
@@ -1944,7 +1944,7 @@
             "name": "CVE-2021-41226",
             "package_name": "tensorflow",
             "package_details": {
-                "file_path": "opt/conda/lib/python3.8/site-packages/tensorflow-1.15.5.dist-info/METADATA",
+                "file_path": "opt/conda/lib/python3.10/site-packages/tensorflow-1.15.5.dist-info/METADATA",
                 "name": "tensorflow",
                 "package_manager": "PYTHONPKG",
                 "version": "1.15.5",
@@ -1972,7 +1972,7 @@
             "name": "CVE-2022-23590",
             "package_name": "tensorflow",
             "package_details": {
-                "file_path": "opt/conda/lib/python3.8/site-packages/tensorflow-1.15.5.dist-info/METADATA",
+                "file_path": "opt/conda/lib/python3.10/site-packages/tensorflow-1.15.5.dist-info/METADATA",
                 "name": "tensorflow",
                 "package_manager": "PYTHONPKG",
                 "version": "1.15.5",
@@ -1986,7 +1986,7 @@
             "cvss_v3_score": 7.5,
             "cvss_v30_score": 0,
             "cvss_v31_score": 7.5,
-            "cvss_v2_score": 5.0,
+            "cvss_v2_score": 5,
             "cvss_v3_severity": "HIGH",
             "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2022-23590",
             "source": "NVD",
@@ -2000,7 +2000,7 @@
             "name": "CVE-2022-35986",
             "package_name": "tensorflow",
             "package_details": {
-                "file_path": "opt/conda/lib/python3.8/site-packages/tensorflow-1.15.5.dist-info/METADATA",
+                "file_path": "opt/conda/lib/python3.10/site-packages/tensorflow-1.15.5.dist-info/METADATA",
                 "name": "tensorflow",
                 "package_manager": "PYTHONPKG",
                 "version": "1.15.5",
@@ -2028,7 +2028,7 @@
             "name": "CVE-2022-35963",
             "package_name": "tensorflow",
             "package_details": {
-                "file_path": "opt/conda/lib/python3.8/site-packages/tensorflow-1.15.5.dist-info/METADATA",
+                "file_path": "opt/conda/lib/python3.10/site-packages/tensorflow-1.15.5.dist-info/METADATA",
                 "name": "tensorflow",
                 "package_manager": "PYTHONPKG",
                 "version": "1.15.5",
@@ -2056,7 +2056,7 @@
             "name": "CVE-2021-41206",
             "package_name": "tensorflow",
             "package_details": {
-                "file_path": "opt/conda/lib/python3.8/site-packages/tensorflow-1.15.5.dist-info/METADATA",
+                "file_path": "opt/conda/lib/python3.10/site-packages/tensorflow-1.15.5.dist-info/METADATA",
                 "name": "tensorflow",
                 "package_manager": "PYTHONPKG",
                 "version": "1.15.5",
@@ -2084,7 +2084,7 @@
             "name": "CVE-2022-35966",
             "package_name": "tensorflow",
             "package_details": {
-                "file_path": "opt/conda/lib/python3.8/site-packages/tensorflow-1.15.5.dist-info/METADATA",
+                "file_path": "opt/conda/lib/python3.10/site-packages/tensorflow-1.15.5.dist-info/METADATA",
                 "name": "tensorflow",
                 "package_manager": "PYTHONPKG",
                 "version": "1.15.5",
@@ -2112,7 +2112,7 @@
             "name": "CVE-2021-41225",
             "package_name": "tensorflow",
             "package_details": {
-                "file_path": "opt/conda/lib/python3.8/site-packages/tensorflow-1.15.5.dist-info/METADATA",
+                "file_path": "opt/conda/lib/python3.10/site-packages/tensorflow-1.15.5.dist-info/METADATA",
                 "name": "tensorflow",
                 "package_manager": "PYTHONPKG",
                 "version": "1.15.5",
@@ -2140,7 +2140,7 @@
             "name": "CVE-2023-25672",
             "package_name": "tensorflow",
             "package_details": {
-                "file_path": "opt/conda/lib/python3.8/site-packages/tensorflow-1.15.5.dist-info/METADATA",
+                "file_path": "opt/conda/lib/python3.10/site-packages/tensorflow-1.15.5.dist-info/METADATA",
                 "name": "tensorflow",
                 "package_manager": "PYTHONPKG",
                 "version": "1.15.5",
@@ -2168,7 +2168,7 @@
             "name": "CVE-2021-29588",
             "package_name": "tensorflow",
             "package_details": {
-                "file_path": "opt/conda/lib/python3.8/site-packages/tensorflow-1.15.5.dist-info/METADATA",
+                "file_path": "opt/conda/lib/python3.10/site-packages/tensorflow-1.15.5.dist-info/METADATA",
                 "name": "tensorflow",
                 "package_manager": "PYTHONPKG",
                 "version": "1.15.5",
@@ -2196,7 +2196,7 @@
             "name": "CVE-2022-35969",
             "package_name": "tensorflow",
             "package_details": {
-                "file_path": "opt/conda/lib/python3.8/site-packages/tensorflow-1.15.5.dist-info/METADATA",
+                "file_path": "opt/conda/lib/python3.10/site-packages/tensorflow-1.15.5.dist-info/METADATA",
                 "name": "tensorflow",
                 "package_manager": "PYTHONPKG",
                 "version": "1.15.5",
@@ -2224,7 +2224,7 @@
             "name": "CVE-2021-37655",
             "package_name": "tensorflow",
             "package_details": {
-                "file_path": "opt/conda/lib/python3.8/site-packages/tensorflow-1.15.5.dist-info/METADATA",
+                "file_path": "opt/conda/lib/python3.10/site-packages/tensorflow-1.15.5.dist-info/METADATA",
                 "name": "tensorflow",
                 "package_manager": "PYTHONPKG",
                 "version": "1.15.5",
@@ -2252,7 +2252,7 @@
             "name": "CVE-2022-21730",
             "package_name": "tensorflow",
             "package_details": {
-                "file_path": "opt/conda/lib/python3.8/site-packages/tensorflow-1.15.5.dist-info/METADATA",
+                "file_path": "opt/conda/lib/python3.10/site-packages/tensorflow-1.15.5.dist-info/METADATA",
                 "name": "tensorflow",
                 "package_manager": "PYTHONPKG",
                 "version": "1.15.5",
@@ -2280,7 +2280,7 @@
             "name": "CVE-2021-37639",
             "package_name": "tensorflow",
             "package_details": {
-                "file_path": "opt/conda/lib/python3.8/site-packages/tensorflow-1.15.5.dist-info/METADATA",
+                "file_path": "opt/conda/lib/python3.10/site-packages/tensorflow-1.15.5.dist-info/METADATA",
                 "name": "tensorflow",
                 "package_manager": "PYTHONPKG",
                 "version": "1.15.5",
@@ -2308,7 +2308,7 @@
             "name": "CVE-2022-35995",
             "package_name": "tensorflow",
             "package_details": {
-                "file_path": "opt/conda/lib/python3.8/site-packages/tensorflow-1.15.5.dist-info/METADATA",
+                "file_path": "opt/conda/lib/python3.10/site-packages/tensorflow-1.15.5.dist-info/METADATA",
                 "name": "tensorflow",
                 "package_manager": "PYTHONPKG",
                 "version": "1.15.5",
@@ -2336,7 +2336,7 @@
             "name": "CVE-2021-41208",
             "package_name": "tensorflow",
             "package_details": {
-                "file_path": "opt/conda/lib/python3.8/site-packages/tensorflow-1.15.5.dist-info/METADATA",
+                "file_path": "opt/conda/lib/python3.10/site-packages/tensorflow-1.15.5.dist-info/METADATA",
                 "name": "tensorflow",
                 "package_manager": "PYTHONPKG",
                 "version": "1.15.5",
@@ -2364,7 +2364,7 @@
             "name": "CVE-2021-37667",
             "package_name": "tensorflow",
             "package_details": {
-                "file_path": "opt/conda/lib/python3.8/site-packages/tensorflow-1.15.5.dist-info/METADATA",
+                "file_path": "opt/conda/lib/python3.10/site-packages/tensorflow-1.15.5.dist-info/METADATA",
                 "name": "tensorflow",
                 "package_manager": "PYTHONPKG",
                 "version": "1.15.5",
@@ -2392,7 +2392,7 @@
             "name": "CVE-2021-29600",
             "package_name": "tensorflow",
             "package_details": {
-                "file_path": "opt/conda/lib/python3.8/site-packages/tensorflow-1.15.5.dist-info/METADATA",
+                "file_path": "opt/conda/lib/python3.10/site-packages/tensorflow-1.15.5.dist-info/METADATA",
                 "name": "tensorflow",
                 "package_manager": "PYTHONPKG",
                 "version": "1.15.5",
@@ -2420,7 +2420,7 @@
             "name": "CVE-2021-29589",
             "package_name": "tensorflow",
             "package_details": {
-                "file_path": "opt/conda/lib/python3.8/site-packages/tensorflow-1.15.5.dist-info/METADATA",
+                "file_path": "opt/conda/lib/python3.10/site-packages/tensorflow-1.15.5.dist-info/METADATA",
                 "name": "tensorflow",
                 "package_manager": "PYTHONPKG",
                 "version": "1.15.5",
@@ -2448,7 +2448,7 @@
             "name": "CVE-2022-35935",
             "package_name": "tensorflow",
             "package_details": {
-                "file_path": "opt/conda/lib/python3.8/site-packages/tensorflow-1.15.5.dist-info/METADATA",
+                "file_path": "opt/conda/lib/python3.10/site-packages/tensorflow-1.15.5.dist-info/METADATA",
                 "name": "tensorflow",
                 "package_manager": "PYTHONPKG",
                 "version": "1.15.5",
@@ -2476,7 +2476,7 @@
             "name": "CVE-2021-29532",
             "package_name": "tensorflow",
             "package_details": {
-                "file_path": "opt/conda/lib/python3.8/site-packages/tensorflow-1.15.5.dist-info/METADATA",
+                "file_path": "opt/conda/lib/python3.10/site-packages/tensorflow-1.15.5.dist-info/METADATA",
                 "name": "tensorflow",
                 "package_manager": "PYTHONPKG",
                 "version": "1.15.5",
@@ -2504,7 +2504,7 @@
             "name": "CVE-2021-37678",
             "package_name": "tensorflow",
             "package_details": {
-                "file_path": "opt/conda/lib/python3.8/site-packages/tensorflow-1.15.5.dist-info/METADATA",
+                "file_path": "opt/conda/lib/python3.10/site-packages/tensorflow-1.15.5.dist-info/METADATA",
                 "name": "tensorflow",
                 "package_manager": "PYTHONPKG",
                 "version": "1.15.5",
@@ -2532,7 +2532,7 @@
             "name": "CVE-2021-41221",
             "package_name": "tensorflow",
             "package_details": {
-                "file_path": "opt/conda/lib/python3.8/site-packages/tensorflow-1.15.5.dist-info/METADATA",
+                "file_path": "opt/conda/lib/python3.10/site-packages/tensorflow-1.15.5.dist-info/METADATA",
                 "name": "tensorflow",
                 "package_manager": "PYTHONPKG",
                 "version": "1.15.5",
@@ -2560,7 +2560,7 @@
             "name": "CVE-2021-41210",
             "package_name": "tensorflow",
             "package_details": {
-                "file_path": "opt/conda/lib/python3.8/site-packages/tensorflow-1.15.5.dist-info/METADATA",
+                "file_path": "opt/conda/lib/python3.10/site-packages/tensorflow-1.15.5.dist-info/METADATA",
                 "name": "tensorflow",
                 "package_manager": "PYTHONPKG",
                 "version": "1.15.5",
@@ -2588,7 +2588,7 @@
             "name": "CVE-2021-29590",
             "package_name": "tensorflow",
             "package_details": {
-                "file_path": "opt/conda/lib/python3.8/site-packages/tensorflow-1.15.5.dist-info/METADATA",
+                "file_path": "opt/conda/lib/python3.10/site-packages/tensorflow-1.15.5.dist-info/METADATA",
                 "name": "tensorflow",
                 "package_manager": "PYTHONPKG",
                 "version": "1.15.5",
@@ -2616,7 +2616,7 @@
             "name": "CVE-2022-41894",
             "package_name": "tensorflow",
             "package_details": {
-                "file_path": "opt/conda/lib/python3.8/site-packages/tensorflow-1.15.5.dist-info/METADATA",
+                "file_path": "opt/conda/lib/python3.10/site-packages/tensorflow-1.15.5.dist-info/METADATA",
                 "name": "tensorflow",
                 "package_manager": "PYTHONPKG",
                 "version": "1.15.5",
@@ -2644,7 +2644,7 @@
             "name": "CVE-2022-35974",
             "package_name": "tensorflow",
             "package_details": {
-                "file_path": "opt/conda/lib/python3.8/site-packages/tensorflow-1.15.5.dist-info/METADATA",
+                "file_path": "opt/conda/lib/python3.10/site-packages/tensorflow-1.15.5.dist-info/METADATA",
                 "name": "tensorflow",
                 "package_manager": "PYTHONPKG",
                 "version": "1.15.5",
@@ -2672,7 +2672,7 @@
             "name": "CVE-2021-29592",
             "package_name": "tensorflow",
             "package_details": {
-                "file_path": "opt/conda/lib/python3.8/site-packages/tensorflow-1.15.5.dist-info/METADATA",
+                "file_path": "opt/conda/lib/python3.10/site-packages/tensorflow-1.15.5.dist-info/METADATA",
                 "name": "tensorflow",
                 "package_manager": "PYTHONPKG",
                 "version": "1.15.5",
@@ -2700,7 +2700,7 @@
             "name": "CVE-2022-41895",
             "package_name": "tensorflow",
             "package_details": {
-                "file_path": "opt/conda/lib/python3.8/site-packages/tensorflow-1.15.5.dist-info/METADATA",
+                "file_path": "opt/conda/lib/python3.10/site-packages/tensorflow-1.15.5.dist-info/METADATA",
                 "name": "tensorflow",
                 "package_manager": "PYTHONPKG",
                 "version": "1.15.5",
@@ -2728,7 +2728,7 @@
             "name": "CVE-2021-29535",
             "package_name": "tensorflow",
             "package_details": {
-                "file_path": "opt/conda/lib/python3.8/site-packages/tensorflow-1.15.5.dist-info/METADATA",
+                "file_path": "opt/conda/lib/python3.10/site-packages/tensorflow-1.15.5.dist-info/METADATA",
                 "name": "tensorflow",
                 "package_manager": "PYTHONPKG",
                 "version": "1.15.5",
@@ -2756,7 +2756,7 @@
             "name": "CVE-2022-36019",
             "package_name": "tensorflow",
             "package_details": {
-                "file_path": "opt/conda/lib/python3.8/site-packages/tensorflow-1.15.5.dist-info/METADATA",
+                "file_path": "opt/conda/lib/python3.10/site-packages/tensorflow-1.15.5.dist-info/METADATA",
                 "name": "tensorflow",
                 "package_manager": "PYTHONPKG",
                 "version": "1.15.5",
@@ -2784,7 +2784,7 @@
             "name": "SNYK-PYTHON-TENSORFLOW-1315149",
             "package_name": "tensorflow",
             "package_details": {
-                "file_path": "opt/conda/lib/python3.8/site-packages/tensorflow-1.15.5.dist-info/METADATA",
+                "file_path": "opt/conda/lib/python3.10/site-packages/tensorflow-1.15.5.dist-info/METADATA",
                 "name": "tensorflow",
                 "package_manager": "PYTHONPKG",
                 "version": "1.15.5",
@@ -2812,7 +2812,7 @@
             "name": "CVE-2022-41883",
             "package_name": "tensorflow",
             "package_details": {
-                "file_path": "opt/conda/lib/python3.8/site-packages/tensorflow-1.15.5.dist-info/METADATA",
+                "file_path": "opt/conda/lib/python3.10/site-packages/tensorflow-1.15.5.dist-info/METADATA",
                 "name": "tensorflow",
                 "package_manager": "PYTHONPKG",
                 "version": "1.15.5",
@@ -2840,7 +2840,7 @@
             "name": "CVE-2021-37656",
             "package_name": "tensorflow",
             "package_details": {
-                "file_path": "opt/conda/lib/python3.8/site-packages/tensorflow-1.15.5.dist-info/METADATA",
+                "file_path": "opt/conda/lib/python3.10/site-packages/tensorflow-1.15.5.dist-info/METADATA",
                 "name": "tensorflow",
                 "package_manager": "PYTHONPKG",
                 "version": "1.15.5",
@@ -2868,7 +2868,7 @@
             "name": "CVE-2022-36005",
             "package_name": "tensorflow",
             "package_details": {
-                "file_path": "opt/conda/lib/python3.8/site-packages/tensorflow-1.15.5.dist-info/METADATA",
+                "file_path": "opt/conda/lib/python3.10/site-packages/tensorflow-1.15.5.dist-info/METADATA",
                 "name": "tensorflow",
                 "package_manager": "PYTHONPKG",
                 "version": "1.15.5",
@@ -2896,7 +2896,7 @@
             "name": "CVE-2022-35988",
             "package_name": "tensorflow",
             "package_details": {
-                "file_path": "opt/conda/lib/python3.8/site-packages/tensorflow-1.15.5.dist-info/METADATA",
+                "file_path": "opt/conda/lib/python3.10/site-packages/tensorflow-1.15.5.dist-info/METADATA",
                 "name": "tensorflow",
                 "package_manager": "PYTHONPKG",
                 "version": "1.15.5",
@@ -2924,7 +2924,7 @@
             "name": "CVE-2022-23566",
             "package_name": "tensorflow",
             "package_details": {
-                "file_path": "opt/conda/lib/python3.8/site-packages/tensorflow-1.15.5.dist-info/METADATA",
+                "file_path": "opt/conda/lib/python3.10/site-packages/tensorflow-1.15.5.dist-info/METADATA",
                 "name": "tensorflow",
                 "package_manager": "PYTHONPKG",
                 "version": "1.15.5",
@@ -2952,7 +2952,7 @@
             "name": "CVE-2021-29582",
             "package_name": "tensorflow",
             "package_details": {
-                "file_path": "opt/conda/lib/python3.8/site-packages/tensorflow-1.15.5.dist-info/METADATA",
+                "file_path": "opt/conda/lib/python3.10/site-packages/tensorflow-1.15.5.dist-info/METADATA",
                 "name": "tensorflow",
                 "package_manager": "PYTHONPKG",
                 "version": "1.15.5",
@@ -2980,7 +2980,7 @@
             "name": "CVE-2022-35996",
             "package_name": "tensorflow",
             "package_details": {
-                "file_path": "opt/conda/lib/python3.8/site-packages/tensorflow-1.15.5.dist-info/METADATA",
+                "file_path": "opt/conda/lib/python3.10/site-packages/tensorflow-1.15.5.dist-info/METADATA",
                 "name": "tensorflow",
                 "package_manager": "PYTHONPKG",
                 "version": "1.15.5",
@@ -3008,7 +3008,7 @@
             "name": "CVE-2021-37665",
             "package_name": "tensorflow",
             "package_details": {
-                "file_path": "opt/conda/lib/python3.8/site-packages/tensorflow-1.15.5.dist-info/METADATA",
+                "file_path": "opt/conda/lib/python3.10/site-packages/tensorflow-1.15.5.dist-info/METADATA",
                 "name": "tensorflow",
                 "package_manager": "PYTHONPKG",
                 "version": "1.15.5",
@@ -3036,7 +3036,7 @@
             "name": "CVE-2021-37648",
             "package_name": "tensorflow",
             "package_details": {
-                "file_path": "opt/conda/lib/python3.8/site-packages/tensorflow-1.15.5.dist-info/METADATA",
+                "file_path": "opt/conda/lib/python3.10/site-packages/tensorflow-1.15.5.dist-info/METADATA",
                 "name": "tensorflow",
                 "package_manager": "PYTHONPKG",
                 "version": "1.15.5",
@@ -3064,7 +3064,7 @@
             "name": "CVE-2021-37635",
             "package_name": "tensorflow",
             "package_details": {
-                "file_path": "opt/conda/lib/python3.8/site-packages/tensorflow-1.15.5.dist-info/METADATA",
+                "file_path": "opt/conda/lib/python3.10/site-packages/tensorflow-1.15.5.dist-info/METADATA",
                 "name": "tensorflow",
                 "package_manager": "PYTHONPKG",
                 "version": "1.15.5",
@@ -3092,7 +3092,7 @@
             "name": "CVE-2021-29595",
             "package_name": "tensorflow",
             "package_details": {
-                "file_path": "opt/conda/lib/python3.8/site-packages/tensorflow-1.15.5.dist-info/METADATA",
+                "file_path": "opt/conda/lib/python3.10/site-packages/tensorflow-1.15.5.dist-info/METADATA",
                 "name": "tensorflow",
                 "package_manager": "PYTHONPKG",
                 "version": "1.15.5",
@@ -3120,7 +3120,7 @@
             "name": "CVE-2021-29536",
             "package_name": "tensorflow",
             "package_details": {
-                "file_path": "opt/conda/lib/python3.8/site-packages/tensorflow-1.15.5.dist-info/METADATA",
+                "file_path": "opt/conda/lib/python3.10/site-packages/tensorflow-1.15.5.dist-info/METADATA",
                 "name": "tensorflow",
                 "package_manager": "PYTHONPKG",
                 "version": "1.15.5",
@@ -3148,7 +3148,7 @@
             "name": "CVE-2022-36014",
             "package_name": "tensorflow",
             "package_details": {
-                "file_path": "opt/conda/lib/python3.8/site-packages/tensorflow-1.15.5.dist-info/METADATA",
+                "file_path": "opt/conda/lib/python3.10/site-packages/tensorflow-1.15.5.dist-info/METADATA",
                 "name": "tensorflow",
                 "package_manager": "PYTHONPKG",
                 "version": "1.15.5",
@@ -3176,7 +3176,7 @@
             "name": "CVE-2022-36013",
             "package_name": "tensorflow",
             "package_details": {
-                "file_path": "opt/conda/lib/python3.8/site-packages/tensorflow-1.15.5.dist-info/METADATA",
+                "file_path": "opt/conda/lib/python3.10/site-packages/tensorflow-1.15.5.dist-info/METADATA",
                 "name": "tensorflow",
                 "package_manager": "PYTHONPKG",
                 "version": "1.15.5",
@@ -3204,7 +3204,7 @@
             "name": "CVE-2022-36000",
             "package_name": "tensorflow",
             "package_details": {
-                "file_path": "opt/conda/lib/python3.8/site-packages/tensorflow-1.15.5.dist-info/METADATA",
+                "file_path": "opt/conda/lib/python3.10/site-packages/tensorflow-1.15.5.dist-info/METADATA",
                 "name": "tensorflow",
                 "package_manager": "PYTHONPKG",
                 "version": "1.15.5",
@@ -3232,7 +3232,7 @@
             "name": "CVE-2023-25660",
             "package_name": "tensorflow",
             "package_details": {
-                "file_path": "opt/conda/lib/python3.8/site-packages/tensorflow-1.15.5.dist-info/METADATA",
+                "file_path": "opt/conda/lib/python3.10/site-packages/tensorflow-1.15.5.dist-info/METADATA",
                 "name": "tensorflow",
                 "package_manager": "PYTHONPKG",
                 "version": "1.15.5",
@@ -3260,7 +3260,7 @@
             "name": "CVE-2021-41223",
             "package_name": "tensorflow",
             "package_details": {
-                "file_path": "opt/conda/lib/python3.8/site-packages/tensorflow-1.15.5.dist-info/METADATA",
+                "file_path": "opt/conda/lib/python3.10/site-packages/tensorflow-1.15.5.dist-info/METADATA",
                 "name": "tensorflow",
                 "package_manager": "PYTHONPKG",
                 "version": "1.15.5",
@@ -3288,7 +3288,7 @@
             "name": "CVE-2021-29609",
             "package_name": "tensorflow",
             "package_details": {
-                "file_path": "opt/conda/lib/python3.8/site-packages/tensorflow-1.15.5.dist-info/METADATA",
+                "file_path": "opt/conda/lib/python3.10/site-packages/tensorflow-1.15.5.dist-info/METADATA",
                 "name": "tensorflow",
                 "package_manager": "PYTHONPKG",
                 "version": "1.15.5",
@@ -3316,7 +3316,7 @@
             "name": "CVE-2023-25667",
             "package_name": "tensorflow",
             "package_details": {
-                "file_path": "opt/conda/lib/python3.8/site-packages/tensorflow-1.15.5.dist-info/METADATA",
+                "file_path": "opt/conda/lib/python3.10/site-packages/tensorflow-1.15.5.dist-info/METADATA",
                 "name": "tensorflow",
                 "package_manager": "PYTHONPKG",
                 "version": "1.15.5",
@@ -3344,7 +3344,7 @@
             "name": "CVE-2022-35973",
             "package_name": "tensorflow",
             "package_details": {
-                "file_path": "opt/conda/lib/python3.8/site-packages/tensorflow-1.15.5.dist-info/METADATA",
+                "file_path": "opt/conda/lib/python3.10/site-packages/tensorflow-1.15.5.dist-info/METADATA",
                 "name": "tensorflow",
                 "package_manager": "PYTHONPKG",
                 "version": "1.15.5",
@@ -3372,7 +3372,7 @@
             "name": "CVE-2022-35982",
             "package_name": "tensorflow",
             "package_details": {
-                "file_path": "opt/conda/lib/python3.8/site-packages/tensorflow-1.15.5.dist-info/METADATA",
+                "file_path": "opt/conda/lib/python3.10/site-packages/tensorflow-1.15.5.dist-info/METADATA",
                 "name": "tensorflow",
                 "package_manager": "PYTHONPKG",
                 "version": "1.15.5",
@@ -3400,7 +3400,7 @@
             "name": "CVE-2022-35964",
             "package_name": "tensorflow",
             "package_details": {
-                "file_path": "opt/conda/lib/python3.8/site-packages/tensorflow-1.15.5.dist-info/METADATA",
+                "file_path": "opt/conda/lib/python3.10/site-packages/tensorflow-1.15.5.dist-info/METADATA",
                 "name": "tensorflow",
                 "package_manager": "PYTHONPKG",
                 "version": "1.15.5",
@@ -3428,7 +3428,7 @@
             "name": "CVE-2021-41224",
             "package_name": "tensorflow",
             "package_details": {
-                "file_path": "opt/conda/lib/python3.8/site-packages/tensorflow-1.15.5.dist-info/METADATA",
+                "file_path": "opt/conda/lib/python3.10/site-packages/tensorflow-1.15.5.dist-info/METADATA",
                 "name": "tensorflow",
                 "package_manager": "PYTHONPKG",
                 "version": "1.15.5",
@@ -3456,7 +3456,7 @@
             "name": "CVE-2023-25666",
             "package_name": "tensorflow",
             "package_details": {
-                "file_path": "opt/conda/lib/python3.8/site-packages/tensorflow-1.15.5.dist-info/METADATA",
+                "file_path": "opt/conda/lib/python3.10/site-packages/tensorflow-1.15.5.dist-info/METADATA",
                 "name": "tensorflow",
                 "package_manager": "PYTHONPKG",
                 "version": "1.15.5",
@@ -3484,7 +3484,7 @@
             "name": "CVE-2021-37651",
             "package_name": "tensorflow",
             "package_details": {
-                "file_path": "opt/conda/lib/python3.8/site-packages/tensorflow-1.15.5.dist-info/METADATA",
+                "file_path": "opt/conda/lib/python3.10/site-packages/tensorflow-1.15.5.dist-info/METADATA",
                 "name": "tensorflow",
                 "package_manager": "PYTHONPKG",
                 "version": "1.15.5",
@@ -3512,7 +3512,7 @@
             "name": "CVE-2022-35989",
             "package_name": "tensorflow",
             "package_details": {
-                "file_path": "opt/conda/lib/python3.8/site-packages/tensorflow-1.15.5.dist-info/METADATA",
+                "file_path": "opt/conda/lib/python3.10/site-packages/tensorflow-1.15.5.dist-info/METADATA",
                 "name": "tensorflow",
                 "package_manager": "PYTHONPKG",
                 "version": "1.15.5",
@@ -3540,7 +3540,7 @@
             "name": "CVE-2022-23558",
             "package_name": "tensorflow",
             "package_details": {
-                "file_path": "opt/conda/lib/python3.8/site-packages/tensorflow-1.15.5.dist-info/METADATA",
+                "file_path": "opt/conda/lib/python3.10/site-packages/tensorflow-1.15.5.dist-info/METADATA",
                 "name": "tensorflow",
                 "package_manager": "PYTHONPKG",
                 "version": "1.15.5",
@@ -3568,7 +3568,7 @@
             "name": "CVE-2021-41216",
             "package_name": "tensorflow",
             "package_details": {
-                "file_path": "opt/conda/lib/python3.8/site-packages/tensorflow-1.15.5.dist-info/METADATA",
+                "file_path": "opt/conda/lib/python3.10/site-packages/tensorflow-1.15.5.dist-info/METADATA",
                 "name": "tensorflow",
                 "package_manager": "PYTHONPKG",
                 "version": "1.15.5",
@@ -3596,7 +3596,7 @@
             "name": "CVE-2023-25676",
             "package_name": "tensorflow",
             "package_details": {
-                "file_path": "opt/conda/lib/python3.8/site-packages/tensorflow-1.15.5.dist-info/METADATA",
+                "file_path": "opt/conda/lib/python3.10/site-packages/tensorflow-1.15.5.dist-info/METADATA",
                 "name": "tensorflow",
                 "package_manager": "PYTHONPKG",
                 "version": "1.15.5",
@@ -3624,7 +3624,7 @@
             "name": "CVE-2021-37638",
             "package_name": "tensorflow",
             "package_details": {
-                "file_path": "opt/conda/lib/python3.8/site-packages/tensorflow-1.15.5.dist-info/METADATA",
+                "file_path": "opt/conda/lib/python3.10/site-packages/tensorflow-1.15.5.dist-info/METADATA",
                 "name": "tensorflow",
                 "package_manager": "PYTHONPKG",
                 "version": "1.15.5",
@@ -3652,7 +3652,7 @@
             "name": "CVE-2021-37664",
             "package_name": "tensorflow",
             "package_details": {
-                "file_path": "opt/conda/lib/python3.8/site-packages/tensorflow-1.15.5.dist-info/METADATA",
+                "file_path": "opt/conda/lib/python3.10/site-packages/tensorflow-1.15.5.dist-info/METADATA",
                 "name": "tensorflow",
                 "package_manager": "PYTHONPKG",
                 "version": "1.15.5",
@@ -3680,7 +3680,7 @@
             "name": "CVE-2022-35998",
             "package_name": "tensorflow",
             "package_details": {
-                "file_path": "opt/conda/lib/python3.8/site-packages/tensorflow-1.15.5.dist-info/METADATA",
+                "file_path": "opt/conda/lib/python3.10/site-packages/tensorflow-1.15.5.dist-info/METADATA",
                 "name": "tensorflow",
                 "package_manager": "PYTHONPKG",
                 "version": "1.15.5",
@@ -3708,7 +3708,7 @@
             "name": "CVE-2021-37662",
             "package_name": "tensorflow",
             "package_details": {
-                "file_path": "opt/conda/lib/python3.8/site-packages/tensorflow-1.15.5.dist-info/METADATA",
+                "file_path": "opt/conda/lib/python3.10/site-packages/tensorflow-1.15.5.dist-info/METADATA",
                 "name": "tensorflow",
                 "package_manager": "PYTHONPKG",
                 "version": "1.15.5",
@@ -3736,7 +3736,7 @@
             "name": "CVE-2023-25662",
             "package_name": "tensorflow",
             "package_details": {
-                "file_path": "opt/conda/lib/python3.8/site-packages/tensorflow-1.15.5.dist-info/METADATA",
+                "file_path": "opt/conda/lib/python3.10/site-packages/tensorflow-1.15.5.dist-info/METADATA",
                 "name": "tensorflow",
                 "package_manager": "PYTHONPKG",
                 "version": "1.15.5",
@@ -3764,7 +3764,7 @@
             "name": "CVE-2021-29591",
             "package_name": "tensorflow",
             "package_details": {
-                "file_path": "opt/conda/lib/python3.8/site-packages/tensorflow-1.15.5.dist-info/METADATA",
+                "file_path": "opt/conda/lib/python3.10/site-packages/tensorflow-1.15.5.dist-info/METADATA",
                 "name": "tensorflow",
                 "package_manager": "PYTHONPKG",
                 "version": "1.15.5",
@@ -3792,7 +3792,7 @@
             "name": "CVE-2023-25668",
             "package_name": "tensorflow",
             "package_details": {
-                "file_path": "opt/conda/lib/python3.8/site-packages/tensorflow-1.15.5.dist-info/METADATA",
+                "file_path": "opt/conda/lib/python3.10/site-packages/tensorflow-1.15.5.dist-info/METADATA",
                 "name": "tensorflow",
                 "package_manager": "PYTHONPKG",
                 "version": "1.15.5",
@@ -3820,7 +3820,7 @@
             "name": "CVE-2022-41902",
             "package_name": "tensorflow",
             "package_details": {
-                "file_path": "opt/conda/lib/python3.8/site-packages/tensorflow-1.15.5.dist-info/METADATA",
+                "file_path": "opt/conda/lib/python3.10/site-packages/tensorflow-1.15.5.dist-info/METADATA",
                 "name": "tensorflow",
                 "package_manager": "PYTHONPKG",
                 "version": "1.15.5",
@@ -3848,7 +3848,7 @@
             "name": "CVE-2021-29570",
             "package_name": "tensorflow",
             "package_details": {
-                "file_path": "opt/conda/lib/python3.8/site-packages/tensorflow-1.15.5.dist-info/METADATA",
+                "file_path": "opt/conda/lib/python3.10/site-packages/tensorflow-1.15.5.dist-info/METADATA",
                 "name": "tensorflow",
                 "package_manager": "PYTHONPKG",
                 "version": "1.15.5",
@@ -3876,7 +3876,7 @@
             "name": "CVE-2023-25665",
             "package_name": "tensorflow",
             "package_details": {
-                "file_path": "opt/conda/lib/python3.8/site-packages/tensorflow-1.15.5.dist-info/METADATA",
+                "file_path": "opt/conda/lib/python3.10/site-packages/tensorflow-1.15.5.dist-info/METADATA",
                 "name": "tensorflow",
                 "package_manager": "PYTHONPKG",
                 "version": "1.15.5",
@@ -3904,7 +3904,7 @@
             "name": "CVE-2021-41214",
             "package_name": "tensorflow",
             "package_details": {
-                "file_path": "opt/conda/lib/python3.8/site-packages/tensorflow-1.15.5.dist-info/METADATA",
+                "file_path": "opt/conda/lib/python3.10/site-packages/tensorflow-1.15.5.dist-info/METADATA",
                 "name": "tensorflow",
                 "package_manager": "PYTHONPKG",
                 "version": "1.15.5",
@@ -3932,7 +3932,7 @@
             "name": "CVE-2021-41212",
             "package_name": "tensorflow",
             "package_details": {
-                "file_path": "opt/conda/lib/python3.8/site-packages/tensorflow-1.15.5.dist-info/METADATA",
+                "file_path": "opt/conda/lib/python3.10/site-packages/tensorflow-1.15.5.dist-info/METADATA",
                 "name": "tensorflow",
                 "package_manager": "PYTHONPKG",
                 "version": "1.15.5",
@@ -3960,7 +3960,7 @@
             "name": "CVE-2022-41898",
             "package_name": "tensorflow",
             "package_details": {
-                "file_path": "opt/conda/lib/python3.8/site-packages/tensorflow-1.15.5.dist-info/METADATA",
+                "file_path": "opt/conda/lib/python3.10/site-packages/tensorflow-1.15.5.dist-info/METADATA",
                 "name": "tensorflow",
                 "package_manager": "PYTHONPKG",
                 "version": "1.15.5",
@@ -3988,7 +3988,7 @@
             "name": "CVE-2021-29608",
             "package_name": "tensorflow",
             "package_details": {
-                "file_path": "opt/conda/lib/python3.8/site-packages/tensorflow-1.15.5.dist-info/METADATA",
+                "file_path": "opt/conda/lib/python3.10/site-packages/tensorflow-1.15.5.dist-info/METADATA",
                 "name": "tensorflow",
                 "package_manager": "PYTHONPKG",
                 "version": "1.15.5",
@@ -4016,7 +4016,7 @@
             "name": "CVE-2021-37657",
             "package_name": "tensorflow",
             "package_details": {
-                "file_path": "opt/conda/lib/python3.8/site-packages/tensorflow-1.15.5.dist-info/METADATA",
+                "file_path": "opt/conda/lib/python3.10/site-packages/tensorflow-1.15.5.dist-info/METADATA",
                 "name": "tensorflow",
                 "package_manager": "PYTHONPKG",
                 "version": "1.15.5",
@@ -4044,7 +4044,7 @@
             "name": "CVE-2022-35967",
             "package_name": "tensorflow",
             "package_details": {
-                "file_path": "opt/conda/lib/python3.8/site-packages/tensorflow-1.15.5.dist-info/METADATA",
+                "file_path": "opt/conda/lib/python3.10/site-packages/tensorflow-1.15.5.dist-info/METADATA",
                 "name": "tensorflow",
                 "package_manager": "PYTHONPKG",
                 "version": "1.15.5",
@@ -4072,7 +4072,7 @@
             "name": "CVE-2021-29613",
             "package_name": "tensorflow",
             "package_details": {
-                "file_path": "opt/conda/lib/python3.8/site-packages/tensorflow-1.15.5.dist-info/METADATA",
+                "file_path": "opt/conda/lib/python3.10/site-packages/tensorflow-1.15.5.dist-info/METADATA",
                 "name": "tensorflow",
                 "package_manager": "PYTHONPKG",
                 "version": "1.15.5",
@@ -4100,7 +4100,7 @@
             "name": "CVE-2022-23587",
             "package_name": "tensorflow",
             "package_details": {
-                "file_path": "opt/conda/lib/python3.8/site-packages/tensorflow-1.15.5.dist-info/METADATA",
+                "file_path": "opt/conda/lib/python3.10/site-packages/tensorflow-1.15.5.dist-info/METADATA",
                 "name": "tensorflow",
                 "package_manager": "PYTHONPKG",
                 "version": "1.15.5",
@@ -4128,7 +4128,7 @@
             "name": "CVE-2021-29568",
             "package_name": "tensorflow",
             "package_details": {
-                "file_path": "opt/conda/lib/python3.8/site-packages/tensorflow-1.15.5.dist-info/METADATA",
+                "file_path": "opt/conda/lib/python3.10/site-packages/tensorflow-1.15.5.dist-info/METADATA",
                 "name": "tensorflow",
                 "package_manager": "PYTHONPKG",
                 "version": "1.15.5",
@@ -4156,7 +4156,7 @@
             "name": "CVE-2022-35952",
             "package_name": "tensorflow",
             "package_details": {
-                "file_path": "opt/conda/lib/python3.8/site-packages/tensorflow-1.15.5.dist-info/METADATA",
+                "file_path": "opt/conda/lib/python3.10/site-packages/tensorflow-1.15.5.dist-info/METADATA",
                 "name": "tensorflow",
                 "package_manager": "PYTHONPKG",
                 "version": "1.15.5",
@@ -4184,7 +4184,7 @@
             "name": "CVE-2022-41911",
             "package_name": "tensorflow",
             "package_details": {
-                "file_path": "opt/conda/lib/python3.8/site-packages/tensorflow-1.15.5.dist-info/METADATA",
+                "file_path": "opt/conda/lib/python3.10/site-packages/tensorflow-1.15.5.dist-info/METADATA",
                 "name": "tensorflow",
                 "package_manager": "PYTHONPKG",
                 "version": "1.15.5",
@@ -4212,7 +4212,7 @@
             "name": "CVE-2022-23561",
             "package_name": "tensorflow",
             "package_details": {
-                "file_path": "opt/conda/lib/python3.8/site-packages/tensorflow-1.15.5.dist-info/METADATA",
+                "file_path": "opt/conda/lib/python3.10/site-packages/tensorflow-1.15.5.dist-info/METADATA",
                 "name": "tensorflow",
                 "package_manager": "PYTHONPKG",
                 "version": "1.15.5",
@@ -4240,7 +4240,7 @@
             "name": "CVE-2023-25671",
             "package_name": "tensorflow",
             "package_details": {
-                "file_path": "opt/conda/lib/python3.8/site-packages/tensorflow-1.15.5.dist-info/METADATA",
+                "file_path": "opt/conda/lib/python3.10/site-packages/tensorflow-1.15.5.dist-info/METADATA",
                 "name": "tensorflow",
                 "package_manager": "PYTHONPKG",
                 "version": "1.15.5",
@@ -4268,7 +4268,7 @@
             "name": "CVE-2022-36027",
             "package_name": "tensorflow",
             "package_details": {
-                "file_path": "opt/conda/lib/python3.8/site-packages/tensorflow-1.15.5.dist-info/METADATA",
+                "file_path": "opt/conda/lib/python3.10/site-packages/tensorflow-1.15.5.dist-info/METADATA",
                 "name": "tensorflow",
                 "package_manager": "PYTHONPKG",
                 "version": "1.15.5",
@@ -4296,7 +4296,7 @@
             "name": "CVE-2021-29513",
             "package_name": "tensorflow",
             "package_details": {
-                "file_path": "opt/conda/lib/python3.8/site-packages/tensorflow-1.15.5.dist-info/METADATA",
+                "file_path": "opt/conda/lib/python3.10/site-packages/tensorflow-1.15.5.dist-info/METADATA",
                 "name": "tensorflow",
                 "package_manager": "PYTHONPKG",
                 "version": "1.15.5",
@@ -4324,7 +4324,7 @@
             "name": "CVE-2022-23559",
             "package_name": "tensorflow",
             "package_details": {
-                "file_path": "opt/conda/lib/python3.8/site-packages/tensorflow-1.15.5.dist-info/METADATA",
+                "file_path": "opt/conda/lib/python3.10/site-packages/tensorflow-1.15.5.dist-info/METADATA",
                 "name": "tensorflow",
                 "package_manager": "PYTHONPKG",
                 "version": "1.15.5",
@@ -4352,7 +4352,7 @@
             "name": "CVE-2022-36001",
             "package_name": "tensorflow",
             "package_details": {
-                "file_path": "opt/conda/lib/python3.8/site-packages/tensorflow-1.15.5.dist-info/METADATA",
+                "file_path": "opt/conda/lib/python3.10/site-packages/tensorflow-1.15.5.dist-info/METADATA",
                 "name": "tensorflow",
                 "package_manager": "PYTHONPKG",
                 "version": "1.15.5",
@@ -4380,7 +4380,7 @@
             "name": "CVE-2021-29593",
             "package_name": "tensorflow",
             "package_details": {
-                "file_path": "opt/conda/lib/python3.8/site-packages/tensorflow-1.15.5.dist-info/METADATA",
+                "file_path": "opt/conda/lib/python3.10/site-packages/tensorflow-1.15.5.dist-info/METADATA",
                 "name": "tensorflow",
                 "package_manager": "PYTHONPKG",
                 "version": "1.15.5",
@@ -4408,7 +4408,7 @@
             "name": "CVE-2022-41891",
             "package_name": "tensorflow",
             "package_details": {
-                "file_path": "opt/conda/lib/python3.8/site-packages/tensorflow-1.15.5.dist-info/METADATA",
+                "file_path": "opt/conda/lib/python3.10/site-packages/tensorflow-1.15.5.dist-info/METADATA",
                 "name": "tensorflow",
                 "package_manager": "PYTHONPKG",
                 "version": "1.15.5",
@@ -4436,7 +4436,7 @@
             "name": "CVE-2022-41897",
             "package_name": "tensorflow",
             "package_details": {
-                "file_path": "opt/conda/lib/python3.8/site-packages/tensorflow-1.15.5.dist-info/METADATA",
+                "file_path": "opt/conda/lib/python3.10/site-packages/tensorflow-1.15.5.dist-info/METADATA",
                 "name": "tensorflow",
                 "package_manager": "PYTHONPKG",
                 "version": "1.15.5",
@@ -4464,7 +4464,7 @@
             "name": "CVE-2021-37652",
             "package_name": "tensorflow",
             "package_details": {
-                "file_path": "opt/conda/lib/python3.8/site-packages/tensorflow-1.15.5.dist-info/METADATA",
+                "file_path": "opt/conda/lib/python3.10/site-packages/tensorflow-1.15.5.dist-info/METADATA",
                 "name": "tensorflow",
                 "package_manager": "PYTHONPKG",
                 "version": "1.15.5",
@@ -4492,7 +4492,7 @@
             "name": "CVE-2021-29512",
             "package_name": "tensorflow",
             "package_details": {
-                "file_path": "opt/conda/lib/python3.8/site-packages/tensorflow-1.15.5.dist-info/METADATA",
+                "file_path": "opt/conda/lib/python3.10/site-packages/tensorflow-1.15.5.dist-info/METADATA",
                 "name": "tensorflow",
                 "package_manager": "PYTHONPKG",
                 "version": "1.15.5",
@@ -4520,7 +4520,7 @@
             "name": "CVE-2021-29569",
             "package_name": "tensorflow",
             "package_details": {
-                "file_path": "opt/conda/lib/python3.8/site-packages/tensorflow-1.15.5.dist-info/METADATA",
+                "file_path": "opt/conda/lib/python3.10/site-packages/tensorflow-1.15.5.dist-info/METADATA",
                 "name": "tensorflow",
                 "package_manager": "PYTHONPKG",
                 "version": "1.15.5",
@@ -4548,7 +4548,7 @@
             "name": "CVE-2021-41203",
             "package_name": "tensorflow",
             "package_details": {
-                "file_path": "opt/conda/lib/python3.8/site-packages/tensorflow-1.15.5.dist-info/METADATA",
+                "file_path": "opt/conda/lib/python3.10/site-packages/tensorflow-1.15.5.dist-info/METADATA",
                 "name": "tensorflow",
                 "package_manager": "PYTHONPKG",
                 "version": "1.15.5",
@@ -4576,7 +4576,7 @@
             "name": "CVE-2022-35990",
             "package_name": "tensorflow",
             "package_details": {
-                "file_path": "opt/conda/lib/python3.8/site-packages/tensorflow-1.15.5.dist-info/METADATA",
+                "file_path": "opt/conda/lib/python3.10/site-packages/tensorflow-1.15.5.dist-info/METADATA",
                 "name": "tensorflow",
                 "package_manager": "PYTHONPKG",
                 "version": "1.15.5",
@@ -4604,7 +4604,7 @@
             "name": "CVE-2021-37671",
             "package_name": "tensorflow",
             "package_details": {
-                "file_path": "opt/conda/lib/python3.8/site-packages/tensorflow-1.15.5.dist-info/METADATA",
+                "file_path": "opt/conda/lib/python3.10/site-packages/tensorflow-1.15.5.dist-info/METADATA",
                 "name": "tensorflow",
                 "package_manager": "PYTHONPKG",
                 "version": "1.15.5",
@@ -4632,7 +4632,7 @@
             "name": "CVE-2021-29587",
             "package_name": "tensorflow",
             "package_details": {
-                "file_path": "opt/conda/lib/python3.8/site-packages/tensorflow-1.15.5.dist-info/METADATA",
+                "file_path": "opt/conda/lib/python3.10/site-packages/tensorflow-1.15.5.dist-info/METADATA",
                 "name": "tensorflow",
                 "package_manager": "PYTHONPKG",
                 "version": "1.15.5",
@@ -4660,7 +4660,7 @@
             "name": "CVE-2022-35959",
             "package_name": "tensorflow",
             "package_details": {
-                "file_path": "opt/conda/lib/python3.8/site-packages/tensorflow-1.15.5.dist-info/METADATA",
+                "file_path": "opt/conda/lib/python3.10/site-packages/tensorflow-1.15.5.dist-info/METADATA",
                 "name": "tensorflow",
                 "package_manager": "PYTHONPKG",
                 "version": "1.15.5",
@@ -4688,7 +4688,7 @@
             "name": "CVE-2021-29601",
             "package_name": "tensorflow",
             "package_details": {
-                "file_path": "opt/conda/lib/python3.8/site-packages/tensorflow-1.15.5.dist-info/METADATA",
+                "file_path": "opt/conda/lib/python3.10/site-packages/tensorflow-1.15.5.dist-info/METADATA",
                 "name": "tensorflow",
                 "package_manager": "PYTHONPKG",
                 "version": "1.15.5",
@@ -4716,7 +4716,7 @@
             "name": "CVE-2022-35997",
             "package_name": "tensorflow",
             "package_details": {
-                "file_path": "opt/conda/lib/python3.8/site-packages/tensorflow-1.15.5.dist-info/METADATA",
+                "file_path": "opt/conda/lib/python3.10/site-packages/tensorflow-1.15.5.dist-info/METADATA",
                 "name": "tensorflow",
                 "package_manager": "PYTHONPKG",
                 "version": "1.15.5",
@@ -4744,7 +4744,7 @@
             "name": "CVE-2021-41228",
             "package_name": "tensorflow",
             "package_details": {
-                "file_path": "opt/conda/lib/python3.8/site-packages/tensorflow-1.15.5.dist-info/METADATA",
+                "file_path": "opt/conda/lib/python3.10/site-packages/tensorflow-1.15.5.dist-info/METADATA",
                 "name": "tensorflow",
                 "package_manager": "PYTHONPKG",
                 "version": "1.15.5",
@@ -4772,7 +4772,7 @@
             "name": "CVE-2022-41890",
             "package_name": "tensorflow",
             "package_details": {
-                "file_path": "opt/conda/lib/python3.8/site-packages/tensorflow-1.15.5.dist-info/METADATA",
+                "file_path": "opt/conda/lib/python3.10/site-packages/tensorflow-1.15.5.dist-info/METADATA",
                 "name": "tensorflow",
                 "package_manager": "PYTHONPKG",
                 "version": "1.15.5",
@@ -4800,7 +4800,7 @@
             "name": "CVE-2022-35991",
             "package_name": "tensorflow",
             "package_details": {
-                "file_path": "opt/conda/lib/python3.8/site-packages/tensorflow-1.15.5.dist-info/METADATA",
+                "file_path": "opt/conda/lib/python3.10/site-packages/tensorflow-1.15.5.dist-info/METADATA",
                 "name": "tensorflow",
                 "package_manager": "PYTHONPKG",
                 "version": "1.15.5",
@@ -4828,7 +4828,7 @@
             "name": "CVE-2021-29610",
             "package_name": "tensorflow",
             "package_details": {
-                "file_path": "opt/conda/lib/python3.8/site-packages/tensorflow-1.15.5.dist-info/METADATA",
+                "file_path": "opt/conda/lib/python3.10/site-packages/tensorflow-1.15.5.dist-info/METADATA",
                 "name": "tensorflow",
                 "package_manager": "PYTHONPKG",
                 "version": "1.15.5",
@@ -4856,7 +4856,7 @@
             "name": "CVE-2021-29603",
             "package_name": "tensorflow",
             "package_details": {
-                "file_path": "opt/conda/lib/python3.8/site-packages/tensorflow-1.15.5.dist-info/METADATA",
+                "file_path": "opt/conda/lib/python3.10/site-packages/tensorflow-1.15.5.dist-info/METADATA",
                 "name": "tensorflow",
                 "package_manager": "PYTHONPKG",
                 "version": "1.15.5",
@@ -4884,7 +4884,7 @@
             "name": "CVE-2021-29558",
             "package_name": "tensorflow",
             "package_details": {
-                "file_path": "opt/conda/lib/python3.8/site-packages/tensorflow-1.15.5.dist-info/METADATA",
+                "file_path": "opt/conda/lib/python3.10/site-packages/tensorflow-1.15.5.dist-info/METADATA",
                 "name": "tensorflow",
                 "package_manager": "PYTHONPKG",
                 "version": "1.15.5",
@@ -4912,7 +4912,7 @@
             "name": "CVE-2021-41205",
             "package_name": "tensorflow",
             "package_details": {
-                "file_path": "opt/conda/lib/python3.8/site-packages/tensorflow-1.15.5.dist-info/METADATA",
+                "file_path": "opt/conda/lib/python3.10/site-packages/tensorflow-1.15.5.dist-info/METADATA",
                 "name": "tensorflow",
                 "package_manager": "PYTHONPKG",
                 "version": "1.15.5",
@@ -4940,7 +4940,7 @@
             "name": "CVE-2021-29577",
             "package_name": "tensorflow",
             "package_details": {
-                "file_path": "opt/conda/lib/python3.8/site-packages/tensorflow-1.15.5.dist-info/METADATA",
+                "file_path": "opt/conda/lib/python3.10/site-packages/tensorflow-1.15.5.dist-info/METADATA",
                 "name": "tensorflow",
                 "package_manager": "PYTHONPKG",
                 "version": "1.15.5",
@@ -4968,7 +4968,7 @@
             "name": "CVE-2021-37666",
             "package_name": "tensorflow",
             "package_details": {
-                "file_path": "opt/conda/lib/python3.8/site-packages/tensorflow-1.15.5.dist-info/METADATA",
+                "file_path": "opt/conda/lib/python3.10/site-packages/tensorflow-1.15.5.dist-info/METADATA",
                 "name": "tensorflow",
                 "package_manager": "PYTHONPKG",
                 "version": "1.15.5",
@@ -4996,7 +4996,7 @@
             "name": "CVE-2023-25663",
             "package_name": "tensorflow",
             "package_details": {
-                "file_path": "opt/conda/lib/python3.8/site-packages/tensorflow-1.15.5.dist-info/METADATA",
+                "file_path": "opt/conda/lib/python3.10/site-packages/tensorflow-1.15.5.dist-info/METADATA",
                 "name": "tensorflow",
                 "package_manager": "PYTHONPKG",
                 "version": "1.15.5",
@@ -5024,7 +5024,7 @@
             "name": "CVE-2021-29598",
             "package_name": "tensorflow",
             "package_details": {
-                "file_path": "opt/conda/lib/python3.8/site-packages/tensorflow-1.15.5.dist-info/METADATA",
+                "file_path": "opt/conda/lib/python3.10/site-packages/tensorflow-1.15.5.dist-info/METADATA",
                 "name": "tensorflow",
                 "package_manager": "PYTHONPKG",
                 "version": "1.15.5",
@@ -5052,7 +5052,7 @@
             "name": "CVE-2020-15265",
             "package_name": "tensorflow",
             "package_details": {
-                "file_path": "opt/conda/lib/python3.8/site-packages/tensorflow-1.15.5.dist-info/METADATA",
+                "file_path": "opt/conda/lib/python3.10/site-packages/tensorflow-1.15.5.dist-info/METADATA",
                 "name": "tensorflow",
                 "package_manager": "PYTHONPKG",
                 "version": "1.15.5",
@@ -5066,7 +5066,7 @@
             "cvss_v3_score": 7.5,
             "cvss_v30_score": 0,
             "cvss_v31_score": 7.5,
-            "cvss_v2_score": 5.0,
+            "cvss_v2_score": 5,
             "cvss_v3_severity": "HIGH",
             "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2020-15265",
             "source": "NVD",
@@ -5080,7 +5080,7 @@
             "name": "CVE-2022-35981",
             "package_name": "tensorflow",
             "package_details": {
-                "file_path": "opt/conda/lib/python3.8/site-packages/tensorflow-1.15.5.dist-info/METADATA",
+                "file_path": "opt/conda/lib/python3.10/site-packages/tensorflow-1.15.5.dist-info/METADATA",
                 "name": "tensorflow",
                 "package_manager": "PYTHONPKG",
                 "version": "1.15.5",
@@ -5108,7 +5108,7 @@
             "name": "CVE-2022-35938",
             "package_name": "tensorflow",
             "package_details": {
-                "file_path": "opt/conda/lib/python3.8/site-packages/tensorflow-1.15.5.dist-info/METADATA",
+                "file_path": "opt/conda/lib/python3.10/site-packages/tensorflow-1.15.5.dist-info/METADATA",
                 "name": "tensorflow",
                 "package_manager": "PYTHONPKG",
                 "version": "1.15.5",
@@ -5136,7 +5136,7 @@
             "name": "CVE-2022-35968",
             "package_name": "tensorflow",
             "package_details": {
-                "file_path": "opt/conda/lib/python3.8/site-packages/tensorflow-1.15.5.dist-info/METADATA",
+                "file_path": "opt/conda/lib/python3.10/site-packages/tensorflow-1.15.5.dist-info/METADATA",
                 "name": "tensorflow",
                 "package_manager": "PYTHONPKG",
                 "version": "1.15.5",
@@ -5164,7 +5164,7 @@
             "name": "CVE-2021-29606",
             "package_name": "tensorflow",
             "package_details": {
-                "file_path": "opt/conda/lib/python3.8/site-packages/tensorflow-1.15.5.dist-info/METADATA",
+                "file_path": "opt/conda/lib/python3.10/site-packages/tensorflow-1.15.5.dist-info/METADATA",
                 "name": "tensorflow",
                 "package_manager": "PYTHONPKG",
                 "version": "1.15.5",
@@ -5192,7 +5192,7 @@
             "name": "CVE-2022-23562",
             "package_name": "tensorflow",
             "package_details": {
-                "file_path": "opt/conda/lib/python3.8/site-packages/tensorflow-1.15.5.dist-info/METADATA",
+                "file_path": "opt/conda/lib/python3.10/site-packages/tensorflow-1.15.5.dist-info/METADATA",
                 "name": "tensorflow",
                 "package_manager": "PYTHONPKG",
                 "version": "1.15.5",
@@ -5220,7 +5220,7 @@
             "name": "CVE-2022-41888",
             "package_name": "tensorflow",
             "package_details": {
-                "file_path": "opt/conda/lib/python3.8/site-packages/tensorflow-1.15.5.dist-info/METADATA",
+                "file_path": "opt/conda/lib/python3.10/site-packages/tensorflow-1.15.5.dist-info/METADATA",
                 "name": "tensorflow",
                 "package_manager": "PYTHONPKG",
                 "version": "1.15.5",
@@ -5248,7 +5248,7 @@
             "name": "CVE-2021-29614",
             "package_name": "tensorflow",
             "package_details": {
-                "file_path": "opt/conda/lib/python3.8/site-packages/tensorflow-1.15.5.dist-info/METADATA",
+                "file_path": "opt/conda/lib/python3.10/site-packages/tensorflow-1.15.5.dist-info/METADATA",
                 "name": "tensorflow",
                 "package_manager": "PYTHONPKG",
                 "version": "1.15.5",
@@ -5276,7 +5276,7 @@
             "name": "SNYK-PYTHON-TENSORFLOW-2848009",
             "package_name": "tensorflow",
             "package_details": {
-                "file_path": "opt/conda/lib/python3.8/site-packages/tensorflow-1.15.5.dist-info/METADATA",
+                "file_path": "opt/conda/lib/python3.10/site-packages/tensorflow-1.15.5.dist-info/METADATA",
                 "name": "tensorflow",
                 "package_manager": "PYTHONPKG",
                 "version": "1.15.5",
@@ -5304,7 +5304,7 @@
             "name": "CVE-2022-41896",
             "package_name": "tensorflow",
             "package_details": {
-                "file_path": "opt/conda/lib/python3.8/site-packages/tensorflow-1.15.5.dist-info/METADATA",
+                "file_path": "opt/conda/lib/python3.10/site-packages/tensorflow-1.15.5.dist-info/METADATA",
                 "name": "tensorflow",
                 "package_manager": "PYTHONPKG",
                 "version": "1.15.5",
@@ -5332,7 +5332,7 @@
             "name": "CVE-2022-41884",
             "package_name": "tensorflow",
             "package_details": {
-                "file_path": "opt/conda/lib/python3.8/site-packages/tensorflow-1.15.5.dist-info/METADATA",
+                "file_path": "opt/conda/lib/python3.10/site-packages/tensorflow-1.15.5.dist-info/METADATA",
                 "name": "tensorflow",
                 "package_manager": "PYTHONPKG",
                 "version": "1.15.5",
@@ -5360,7 +5360,7 @@
             "name": "CVE-2021-29612",
             "package_name": "tensorflow",
             "package_details": {
-                "file_path": "opt/conda/lib/python3.8/site-packages/tensorflow-1.15.5.dist-info/METADATA",
+                "file_path": "opt/conda/lib/python3.10/site-packages/tensorflow-1.15.5.dist-info/METADATA",
                 "name": "tensorflow",
                 "package_manager": "PYTHONPKG",
                 "version": "1.15.5",
@@ -5388,7 +5388,7 @@
             "name": "CVE-2022-41893",
             "package_name": "tensorflow",
             "package_details": {
-                "file_path": "opt/conda/lib/python3.8/site-packages/tensorflow-1.15.5.dist-info/METADATA",
+                "file_path": "opt/conda/lib/python3.10/site-packages/tensorflow-1.15.5.dist-info/METADATA",
                 "name": "tensorflow",
                 "package_manager": "PYTHONPKG",
                 "version": "1.15.5",
@@ -5416,7 +5416,7 @@
             "name": "CVE-2022-23573",
             "package_name": "tensorflow",
             "package_details": {
-                "file_path": "opt/conda/lib/python3.8/site-packages/tensorflow-1.15.5.dist-info/METADATA",
+                "file_path": "opt/conda/lib/python3.10/site-packages/tensorflow-1.15.5.dist-info/METADATA",
                 "name": "tensorflow",
                 "package_manager": "PYTHONPKG",
                 "version": "1.15.5",
@@ -5444,7 +5444,7 @@
             "name": "CVE-2022-21740",
             "package_name": "tensorflow",
             "package_details": {
-                "file_path": "opt/conda/lib/python3.8/site-packages/tensorflow-1.15.5.dist-info/METADATA",
+                "file_path": "opt/conda/lib/python3.10/site-packages/tensorflow-1.15.5.dist-info/METADATA",
                 "name": "tensorflow",
                 "package_manager": "PYTHONPKG",
                 "version": "1.15.5",
@@ -5472,7 +5472,7 @@
             "name": "CVE-2021-37658",
             "package_name": "tensorflow",
             "package_details": {
-                "file_path": "opt/conda/lib/python3.8/site-packages/tensorflow-1.15.5.dist-info/METADATA",
+                "file_path": "opt/conda/lib/python3.10/site-packages/tensorflow-1.15.5.dist-info/METADATA",
                 "name": "tensorflow",
                 "package_manager": "PYTHONPKG",
                 "version": "1.15.5",
@@ -5500,7 +5500,7 @@
             "name": "CVE-2021-29525",
             "package_name": "tensorflow",
             "package_details": {
-                "file_path": "opt/conda/lib/python3.8/site-packages/tensorflow-1.15.5.dist-info/METADATA",
+                "file_path": "opt/conda/lib/python3.10/site-packages/tensorflow-1.15.5.dist-info/METADATA",
                 "name": "tensorflow",
                 "package_manager": "PYTHONPKG",
                 "version": "1.15.5",
@@ -5528,7 +5528,7 @@
             "name": "CVE-2021-29583",
             "package_name": "tensorflow",
             "package_details": {
-                "file_path": "opt/conda/lib/python3.8/site-packages/tensorflow-1.15.5.dist-info/METADATA",
+                "file_path": "opt/conda/lib/python3.10/site-packages/tensorflow-1.15.5.dist-info/METADATA",
                 "name": "tensorflow",
                 "package_manager": "PYTHONPKG",
                 "version": "1.15.5",
@@ -5556,7 +5556,7 @@
             "name": "CVE-2022-36003",
             "package_name": "tensorflow",
             "package_details": {
-                "file_path": "opt/conda/lib/python3.8/site-packages/tensorflow-1.15.5.dist-info/METADATA",
+                "file_path": "opt/conda/lib/python3.10/site-packages/tensorflow-1.15.5.dist-info/METADATA",
                 "name": "tensorflow",
                 "package_manager": "PYTHONPKG",
                 "version": "1.15.5",
@@ -5584,7 +5584,7 @@
             "name": "CVE-2022-41886",
             "package_name": "tensorflow",
             "package_details": {
-                "file_path": "opt/conda/lib/python3.8/site-packages/tensorflow-1.15.5.dist-info/METADATA",
+                "file_path": "opt/conda/lib/python3.10/site-packages/tensorflow-1.15.5.dist-info/METADATA",
                 "name": "tensorflow",
                 "package_manager": "PYTHONPKG",
                 "version": "1.15.5",
@@ -5612,7 +5612,7 @@
             "name": "CVE-2022-41885",
             "package_name": "tensorflow",
             "package_details": {
-                "file_path": "opt/conda/lib/python3.8/site-packages/tensorflow-1.15.5.dist-info/METADATA",
+                "file_path": "opt/conda/lib/python3.10/site-packages/tensorflow-1.15.5.dist-info/METADATA",
                 "name": "tensorflow",
                 "package_manager": "PYTHONPKG",
                 "version": "1.15.5",
@@ -5640,7 +5640,7 @@
             "name": "CVE-2021-41201",
             "package_name": "tensorflow",
             "package_details": {
-                "file_path": "opt/conda/lib/python3.8/site-packages/tensorflow-1.15.5.dist-info/METADATA",
+                "file_path": "opt/conda/lib/python3.10/site-packages/tensorflow-1.15.5.dist-info/METADATA",
                 "name": "tensorflow",
                 "package_manager": "PYTHONPKG",
                 "version": "1.15.5",
@@ -5668,7 +5668,7 @@
             "name": "CVE-2021-37681",
             "package_name": "tensorflow",
             "package_details": {
-                "file_path": "opt/conda/lib/python3.8/site-packages/tensorflow-1.15.5.dist-info/METADATA",
+                "file_path": "opt/conda/lib/python3.10/site-packages/tensorflow-1.15.5.dist-info/METADATA",
                 "name": "tensorflow",
                 "package_manager": "PYTHONPKG",
                 "version": "1.15.5",
@@ -5696,7 +5696,7 @@
             "name": "CVE-2023-25673",
             "package_name": "tensorflow",
             "package_details": {
-                "file_path": "opt/conda/lib/python3.8/site-packages/tensorflow-1.15.5.dist-info/METADATA",
+                "file_path": "opt/conda/lib/python3.10/site-packages/tensorflow-1.15.5.dist-info/METADATA",
                 "name": "tensorflow",
                 "package_manager": "PYTHONPKG",
                 "version": "1.15.5",
@@ -5724,7 +5724,7 @@
             "name": "CVE-2022-21726",
             "package_name": "tensorflow",
             "package_details": {
-                "file_path": "opt/conda/lib/python3.8/site-packages/tensorflow-1.15.5.dist-info/METADATA",
+                "file_path": "opt/conda/lib/python3.10/site-packages/tensorflow-1.15.5.dist-info/METADATA",
                 "name": "tensorflow",
                 "package_manager": "PYTHONPKG",
                 "version": "1.15.5",
@@ -5752,7 +5752,7 @@
             "name": "CVE-2022-29216",
             "package_name": "tensorflow",
             "package_details": {
-                "file_path": "opt/conda/lib/python3.8/site-packages/tensorflow-1.15.5.dist-info/METADATA",
+                "file_path": "opt/conda/lib/python3.10/site-packages/tensorflow-1.15.5.dist-info/METADATA",
                 "name": "tensorflow",
                 "package_manager": "PYTHONPKG",
                 "version": "1.15.5",
@@ -5780,7 +5780,7 @@
             "name": "CVE-2023-25674",
             "package_name": "tensorflow",
             "package_details": {
-                "file_path": "opt/conda/lib/python3.8/site-packages/tensorflow-1.15.5.dist-info/METADATA",
+                "file_path": "opt/conda/lib/python3.10/site-packages/tensorflow-1.15.5.dist-info/METADATA",
                 "name": "tensorflow",
                 "package_manager": "PYTHONPKG",
                 "version": "1.15.5",
@@ -5808,7 +5808,7 @@
             "name": "CVE-2021-29518",
             "package_name": "tensorflow",
             "package_details": {
-                "file_path": "opt/conda/lib/python3.8/site-packages/tensorflow-1.15.5.dist-info/METADATA",
+                "file_path": "opt/conda/lib/python3.10/site-packages/tensorflow-1.15.5.dist-info/METADATA",
                 "name": "tensorflow",
                 "package_manager": "PYTHONPKG",
                 "version": "1.15.5",
@@ -5836,7 +5836,7 @@
             "name": "CVE-2022-35985",
             "package_name": "tensorflow",
             "package_details": {
-                "file_path": "opt/conda/lib/python3.8/site-packages/tensorflow-1.15.5.dist-info/METADATA",
+                "file_path": "opt/conda/lib/python3.10/site-packages/tensorflow-1.15.5.dist-info/METADATA",
                 "name": "tensorflow",
                 "package_manager": "PYTHONPKG",
                 "version": "1.15.5",
@@ -5864,7 +5864,7 @@
             "name": "CVE-2022-35941",
             "package_name": "tensorflow",
             "package_details": {
-                "file_path": "opt/conda/lib/python3.8/site-packages/tensorflow-1.15.5.dist-info/METADATA",
+                "file_path": "opt/conda/lib/python3.10/site-packages/tensorflow-1.15.5.dist-info/METADATA",
                 "name": "tensorflow",
                 "package_manager": "PYTHONPKG",
                 "version": "1.15.5",
@@ -5892,7 +5892,7 @@
             "name": "CVE-2021-37654",
             "package_name": "tensorflow",
             "package_details": {
-                "file_path": "opt/conda/lib/python3.8/site-packages/tensorflow-1.15.5.dist-info/METADATA",
+                "file_path": "opt/conda/lib/python3.10/site-packages/tensorflow-1.15.5.dist-info/METADATA",
                 "name": "tensorflow",
                 "package_manager": "PYTHONPKG",
                 "version": "1.15.5",
@@ -5920,7 +5920,7 @@
             "name": "CVE-2022-36016",
             "package_name": "tensorflow",
             "package_details": {
-                "file_path": "opt/conda/lib/python3.8/site-packages/tensorflow-1.15.5.dist-info/METADATA",
+                "file_path": "opt/conda/lib/python3.10/site-packages/tensorflow-1.15.5.dist-info/METADATA",
                 "name": "tensorflow",
                 "package_manager": "PYTHONPKG",
                 "version": "1.15.5",
@@ -5948,7 +5948,7 @@
             "name": "CVE-2021-29514",
             "package_name": "tensorflow",
             "package_details": {
-                "file_path": "opt/conda/lib/python3.8/site-packages/tensorflow-1.15.5.dist-info/METADATA",
+                "file_path": "opt/conda/lib/python3.10/site-packages/tensorflow-1.15.5.dist-info/METADATA",
                 "name": "tensorflow",
                 "package_manager": "PYTHONPKG",
                 "version": "1.15.5",
@@ -5976,7 +5976,7 @@
             "name": "CVE-2021-29586",
             "package_name": "tensorflow",
             "package_details": {
-                "file_path": "opt/conda/lib/python3.8/site-packages/tensorflow-1.15.5.dist-info/METADATA",
+                "file_path": "opt/conda/lib/python3.10/site-packages/tensorflow-1.15.5.dist-info/METADATA",
                 "name": "tensorflow",
                 "package_manager": "PYTHONPKG",
                 "version": "1.15.5",
@@ -6004,7 +6004,7 @@
             "name": "CVE-2022-23574",
             "package_name": "tensorflow",
             "package_details": {
-                "file_path": "opt/conda/lib/python3.8/site-packages/tensorflow-1.15.5.dist-info/METADATA",
+                "file_path": "opt/conda/lib/python3.10/site-packages/tensorflow-1.15.5.dist-info/METADATA",
                 "name": "tensorflow",
                 "package_manager": "PYTHONPKG",
                 "version": "1.15.5",
@@ -6032,7 +6032,7 @@
             "name": "CVE-2022-35971",
             "package_name": "tensorflow",
             "package_details": {
-                "file_path": "opt/conda/lib/python3.8/site-packages/tensorflow-1.15.5.dist-info/METADATA",
+                "file_path": "opt/conda/lib/python3.10/site-packages/tensorflow-1.15.5.dist-info/METADATA",
                 "name": "tensorflow",
                 "package_manager": "PYTHONPKG",
                 "version": "1.15.5",
@@ -6060,7 +6060,7 @@
             "name": "CVE-2022-23560",
             "package_name": "tensorflow",
             "package_details": {
-                "file_path": "opt/conda/lib/python3.8/site-packages/tensorflow-1.15.5.dist-info/METADATA",
+                "file_path": "opt/conda/lib/python3.10/site-packages/tensorflow-1.15.5.dist-info/METADATA",
                 "name": "tensorflow",
                 "package_manager": "PYTHONPKG",
                 "version": "1.15.5",
@@ -6088,7 +6088,7 @@
             "name": "CVE-2022-35940",
             "package_name": "tensorflow",
             "package_details": {
-                "file_path": "opt/conda/lib/python3.8/site-packages/tensorflow-1.15.5.dist-info/METADATA",
+                "file_path": "opt/conda/lib/python3.10/site-packages/tensorflow-1.15.5.dist-info/METADATA",
                 "name": "tensorflow",
                 "package_manager": "PYTHONPKG",
                 "version": "1.15.5",
@@ -6116,7 +6116,7 @@
             "name": "CVE-2021-29616",
             "package_name": "tensorflow",
             "package_details": {
-                "file_path": "opt/conda/lib/python3.8/site-packages/tensorflow-1.15.5.dist-info/METADATA",
+                "file_path": "opt/conda/lib/python3.10/site-packages/tensorflow-1.15.5.dist-info/METADATA",
                 "name": "tensorflow",
                 "package_manager": "PYTHONPKG",
                 "version": "1.15.5",
@@ -6144,7 +6144,7 @@
             "name": "CVE-2021-29530",
             "package_name": "tensorflow",
             "package_details": {
-                "file_path": "opt/conda/lib/python3.8/site-packages/tensorflow-1.15.5.dist-info/METADATA",
+                "file_path": "opt/conda/lib/python3.10/site-packages/tensorflow-1.15.5.dist-info/METADATA",
                 "name": "tensorflow",
                 "package_manager": "PYTHONPKG",
                 "version": "1.15.5",
@@ -6172,7 +6172,7 @@
             "name": "CVE-2022-35999",
             "package_name": "tensorflow",
             "package_details": {
-                "file_path": "opt/conda/lib/python3.8/site-packages/tensorflow-1.15.5.dist-info/METADATA",
+                "file_path": "opt/conda/lib/python3.10/site-packages/tensorflow-1.15.5.dist-info/METADATA",
                 "name": "tensorflow",
                 "package_manager": "PYTHONPKG",
                 "version": "1.15.5",
@@ -6200,7 +6200,7 @@
             "name": "CVE-2022-36017",
             "package_name": "tensorflow",
             "package_details": {
-                "file_path": "opt/conda/lib/python3.8/site-packages/tensorflow-1.15.5.dist-info/METADATA",
+                "file_path": "opt/conda/lib/python3.10/site-packages/tensorflow-1.15.5.dist-info/METADATA",
                 "name": "tensorflow",
                 "package_manager": "PYTHONPKG",
                 "version": "1.15.5",
@@ -6228,7 +6228,7 @@
             "name": "CVE-2022-21727",
             "package_name": "tensorflow",
             "package_details": {
-                "file_path": "opt/conda/lib/python3.8/site-packages/tensorflow-1.15.5.dist-info/METADATA",
+                "file_path": "opt/conda/lib/python3.10/site-packages/tensorflow-1.15.5.dist-info/METADATA",
                 "name": "tensorflow",
                 "package_manager": "PYTHONPKG",
                 "version": "1.15.5",
@@ -6256,7 +6256,7 @@
             "name": "CVE-2021-29607",
             "package_name": "tensorflow",
             "package_details": {
-                "file_path": "opt/conda/lib/python3.8/site-packages/tensorflow-1.15.5.dist-info/METADATA",
+                "file_path": "opt/conda/lib/python3.10/site-packages/tensorflow-1.15.5.dist-info/METADATA",
                 "name": "tensorflow",
                 "package_manager": "PYTHONPKG",
                 "version": "1.15.5",
@@ -6284,7 +6284,7 @@
             "name": "CVE-2022-35970",
             "package_name": "tensorflow",
             "package_details": {
-                "file_path": "opt/conda/lib/python3.8/site-packages/tensorflow-1.15.5.dist-info/METADATA",
+                "file_path": "opt/conda/lib/python3.10/site-packages/tensorflow-1.15.5.dist-info/METADATA",
                 "name": "tensorflow",
                 "package_manager": "PYTHONPKG",
                 "version": "1.15.5",
@@ -6312,7 +6312,7 @@
             "name": "CVE-2021-29574",
             "package_name": "tensorflow",
             "package_details": {
-                "file_path": "opt/conda/lib/python3.8/site-packages/tensorflow-1.15.5.dist-info/METADATA",
+                "file_path": "opt/conda/lib/python3.10/site-packages/tensorflow-1.15.5.dist-info/METADATA",
                 "name": "tensorflow",
                 "package_manager": "PYTHONPKG",
                 "version": "1.15.5",
@@ -6340,7 +6340,7 @@
             "name": "CVE-2022-35960",
             "package_name": "tensorflow",
             "package_details": {
-                "file_path": "opt/conda/lib/python3.8/site-packages/tensorflow-1.15.5.dist-info/METADATA",
+                "file_path": "opt/conda/lib/python3.10/site-packages/tensorflow-1.15.5.dist-info/METADATA",
                 "name": "tensorflow",
                 "package_manager": "PYTHONPKG",
                 "version": "1.15.5",
@@ -6368,7 +6368,7 @@
             "name": "CVE-2023-25664",
             "package_name": "tensorflow",
             "package_details": {
-                "file_path": "opt/conda/lib/python3.8/site-packages/tensorflow-1.15.5.dist-info/METADATA",
+                "file_path": "opt/conda/lib/python3.10/site-packages/tensorflow-1.15.5.dist-info/METADATA",
                 "name": "tensorflow",
                 "package_manager": "PYTHONPKG",
                 "version": "1.15.5",
@@ -6396,7 +6396,7 @@
             "name": "CVE-2022-35992",
             "package_name": "tensorflow",
             "package_details": {
-                "file_path": "opt/conda/lib/python3.8/site-packages/tensorflow-1.15.5.dist-info/METADATA",
+                "file_path": "opt/conda/lib/python3.10/site-packages/tensorflow-1.15.5.dist-info/METADATA",
                 "name": "tensorflow",
                 "package_manager": "PYTHONPKG",
                 "version": "1.15.5",
@@ -6424,7 +6424,7 @@
             "name": "CVE-2022-41901",
             "package_name": "tensorflow",
             "package_details": {
-                "file_path": "opt/conda/lib/python3.8/site-packages/tensorflow-1.15.5.dist-info/METADATA",
+                "file_path": "opt/conda/lib/python3.10/site-packages/tensorflow-1.15.5.dist-info/METADATA",
                 "name": "tensorflow",
                 "package_manager": "PYTHONPKG",
                 "version": "1.15.5",
@@ -6452,7 +6452,7 @@
             "name": "CVE-2023-25675",
             "package_name": "tensorflow",
             "package_details": {
-                "file_path": "opt/conda/lib/python3.8/site-packages/tensorflow-1.15.5.dist-info/METADATA",
+                "file_path": "opt/conda/lib/python3.10/site-packages/tensorflow-1.15.5.dist-info/METADATA",
                 "name": "tensorflow",
                 "package_manager": "PYTHONPKG",
                 "version": "1.15.5",
@@ -6480,7 +6480,7 @@
             "name": "CVE-2022-36018",
             "package_name": "tensorflow",
             "package_details": {
-                "file_path": "opt/conda/lib/python3.8/site-packages/tensorflow-1.15.5.dist-info/METADATA",
+                "file_path": "opt/conda/lib/python3.10/site-packages/tensorflow-1.15.5.dist-info/METADATA",
                 "name": "tensorflow",
                 "package_manager": "PYTHONPKG",
                 "version": "1.15.5",
@@ -6508,7 +6508,7 @@
             "name": "CVE-2021-37679",
             "package_name": "tensorflow",
             "package_details": {
-                "file_path": "opt/conda/lib/python3.8/site-packages/tensorflow-1.15.5.dist-info/METADATA",
+                "file_path": "opt/conda/lib/python3.10/site-packages/tensorflow-1.15.5.dist-info/METADATA",
                 "name": "tensorflow",
                 "package_manager": "PYTHONPKG",
                 "version": "1.15.5",
