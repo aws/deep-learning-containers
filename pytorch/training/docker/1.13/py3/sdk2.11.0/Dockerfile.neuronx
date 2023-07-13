@@ -3,8 +3,8 @@ FROM ubuntu:20.04
 LABEL maintainer="Amazon AI"
 LABEL dlc_major_version="1"
 
-ARG PYTHON=python3.8
-ARG PYTHON_VERSION=3.8.16
+ARG PYTHON=python3.10
+ARG PYTHON_VERSION=3.10.12
 
 # Neuron SDK components version numbers
 ARG NEURONX_RUNTIME_LIB_VERSION=2.14.*
