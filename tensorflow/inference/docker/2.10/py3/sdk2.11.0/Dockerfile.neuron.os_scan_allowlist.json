@@ -266,7 +266,7 @@
             "name": "CVE-2023-25670",
             "package_name": "tensorflow",
             "package_details": {
-                "file_path": "usr/local/lib/python3.8/site-packages/tensorflow-2.10.1.dist-info/METADATA",
+                "file_path": "usr/local/lib/python3.10/site-packages/tensorflow-2.10.1.dist-info/METADATA",
                 "name": "tensorflow",
                 "package_manager": "PYTHONPKG",
                 "version": "2.10.1",
@@ -770,7 +770,7 @@
             "name": "CVE-2023-25667",
             "package_name": "tensorflow",
             "package_details": {
-                "file_path": "usr/local/lib/python3.8/site-packages/tensorflow-2.10.1.dist-info/METADATA",
+                "file_path": "usr/local/lib/python3.10/site-packages/tensorflow-2.10.1.dist-info/METADATA",
                 "name": "tensorflow",
                 "package_manager": "PYTHONPKG",
                 "version": "2.10.1",
@@ -854,7 +854,7 @@
             "name": "CVE-2023-25664",
             "package_name": "tensorflow",
             "package_details": {
-                "file_path": "usr/local/lib/python3.8/site-packages/tensorflow-2.10.1.dist-info/METADATA",
+                "file_path": "usr/local/lib/python3.10/site-packages/tensorflow-2.10.1.dist-info/METADATA",
                 "name": "tensorflow",
                 "package_manager": "PYTHONPKG",
                 "version": "2.10.1",
@@ -966,7 +966,7 @@
             "name": "CVE-2023-25666",
             "package_name": "tensorflow",
             "package_details": {
-                "file_path": "usr/local/lib/python3.8/site-packages/tensorflow-2.10.1.dist-info/METADATA",
+                "file_path": "usr/local/lib/python3.10/site-packages/tensorflow-2.10.1.dist-info/METADATA",
                 "name": "tensorflow",
                 "package_manager": "PYTHONPKG",
                 "version": "2.10.1",
@@ -1358,7 +1358,7 @@
             "name": "CVE-2023-25671",
             "package_name": "tensorflow",
             "package_details": {
-                "file_path": "usr/local/lib/python3.8/site-packages/tensorflow-2.10.1.dist-info/METADATA",
+                "file_path": "usr/local/lib/python3.10/site-packages/tensorflow-2.10.1.dist-info/METADATA",
                 "name": "tensorflow",
                 "package_manager": "PYTHONPKG",
                 "version": "2.10.1",
@@ -1526,7 +1526,7 @@
             "name": "CVE-2023-25668",
             "package_name": "tensorflow",
             "package_details": {
-                "file_path": "usr/local/lib/python3.8/site-packages/tensorflow-2.10.1.dist-info/METADATA",
+                "file_path": "usr/local/lib/python3.10/site-packages/tensorflow-2.10.1.dist-info/METADATA",
                 "name": "tensorflow",
                 "package_manager": "PYTHONPKG",
                 "version": "2.10.1",
@@ -1890,7 +1890,7 @@
             "name": "CVE-2023-27579",
             "package_name": "tensorflow",
             "package_details": {
-                "file_path": "usr/local/lib/python3.8/site-packages/tensorflow-2.10.1.dist-info/METADATA",
+                "file_path": "usr/local/lib/python3.10/site-packages/tensorflow-2.10.1.dist-info/METADATA",
                 "name": "tensorflow",
                 "package_manager": "PYTHONPKG",
                 "version": "2.10.1",
@@ -2478,7 +2478,7 @@
             "name": "CVE-2023-25663",
             "package_name": "tensorflow",
             "package_details": {
-                "file_path": "usr/local/lib/python3.8/site-packages/tensorflow-2.10.1.dist-info/METADATA",
+                "file_path": "usr/local/lib/python3.10/site-packages/tensorflow-2.10.1.dist-info/METADATA",
                 "name": "tensorflow",
                 "package_manager": "PYTHONPKG",
                 "version": "2.10.1",
@@ -2730,7 +2730,7 @@
             "name": "CVE-2023-25674",
             "package_name": "tensorflow",
             "package_details": {
-                "file_path": "usr/local/lib/python3.8/site-packages/tensorflow-2.10.1.dist-info/METADATA",
+                "file_path": "usr/local/lib/python3.10/site-packages/tensorflow-2.10.1.dist-info/METADATA",
                 "name": "tensorflow",
                 "package_manager": "PYTHONPKG",
                 "version": "2.10.1",
@@ -2758,7 +2758,7 @@
             "name": "CVE-2023-25659",
             "package_name": "tensorflow",
             "package_details": {
-                "file_path": "usr/local/lib/python3.8/site-packages/tensorflow-2.10.1.dist-info/METADATA",
+                "file_path": "usr/local/lib/python3.10/site-packages/tensorflow-2.10.1.dist-info/METADATA",
                 "name": "tensorflow",
                 "package_manager": "PYTHONPKG",
                 "version": "2.10.1",
@@ -2982,7 +2982,7 @@
             "name": "CVE-2023-25676",
             "package_name": "tensorflow",
             "package_details": {
-                "file_path": "usr/local/lib/python3.8/site-packages/tensorflow-2.10.1.dist-info/METADATA",
+                "file_path": "usr/local/lib/python3.10/site-packages/tensorflow-2.10.1.dist-info/METADATA",
                 "name": "tensorflow",
                 "package_manager": "PYTHONPKG",
                 "version": "2.10.1",
@@ -3150,7 +3150,7 @@
             "name": "CVE-2023-25665",
             "package_name": "tensorflow",
             "package_details": {
-                "file_path": "usr/local/lib/python3.8/site-packages/tensorflow-2.10.1.dist-info/METADATA",
+                "file_path": "usr/local/lib/python3.10/site-packages/tensorflow-2.10.1.dist-info/METADATA",
                 "name": "tensorflow",
                 "package_manager": "PYTHONPKG",
                 "version": "2.10.1",
@@ -3374,7 +3374,7 @@
             "name": "CVE-2023-25672",
             "package_name": "tensorflow",
             "package_details": {
-                "file_path": "usr/local/lib/python3.8/site-packages/tensorflow-2.10.1.dist-info/METADATA",
+                "file_path": "usr/local/lib/python3.10/site-packages/tensorflow-2.10.1.dist-info/METADATA",
                 "name": "tensorflow",
                 "package_manager": "PYTHONPKG",
                 "version": "2.10.1",
@@ -3766,7 +3766,7 @@
             "name": "CVE-2023-25801",
             "package_name": "tensorflow",
             "package_details": {
-                "file_path": "usr/local/lib/python3.8/site-packages/tensorflow-2.10.1.dist-info/METADATA",
+                "file_path": "usr/local/lib/python3.10/site-packages/tensorflow-2.10.1.dist-info/METADATA",
                 "name": "tensorflow",
                 "package_manager": "PYTHONPKG",
                 "version": "2.10.1",
@@ -3962,7 +3962,7 @@
             "name": "CVE-2023-25669",
             "package_name": "tensorflow",
             "package_details": {
-                "file_path": "usr/local/lib/python3.8/site-packages/tensorflow-2.10.1.dist-info/METADATA",
+                "file_path": "usr/local/lib/python3.10/site-packages/tensorflow-2.10.1.dist-info/METADATA",
                 "name": "tensorflow",
                 "package_manager": "PYTHONPKG",
                 "version": "2.10.1",
@@ -4298,7 +4298,7 @@
             "name": "CVE-2023-25662",
             "package_name": "tensorflow",
             "package_details": {
-                "file_path": "usr/local/lib/python3.8/site-packages/tensorflow-2.10.1.dist-info/METADATA",
+                "file_path": "usr/local/lib/python3.10/site-packages/tensorflow-2.10.1.dist-info/METADATA",
                 "name": "tensorflow",
                 "package_manager": "PYTHONPKG",
                 "version": "2.10.1",
@@ -4410,7 +4410,7 @@
             "name": "CVE-2023-25658",
             "package_name": "tensorflow",
             "package_details": {
-                "file_path": "usr/local/lib/python3.8/site-packages/tensorflow-2.10.1.dist-info/METADATA",
+                "file_path": "usr/local/lib/python3.10/site-packages/tensorflow-2.10.1.dist-info/METADATA",
                 "name": "tensorflow",
                 "package_manager": "PYTHONPKG",
                 "version": "2.10.1",
@@ -4634,7 +4634,7 @@
             "name": "CVE-2023-25675",
             "package_name": "tensorflow",
             "package_details": {
-                "file_path": "usr/local/lib/python3.8/site-packages/tensorflow-2.10.1.dist-info/METADATA",
+                "file_path": "usr/local/lib/python3.10/site-packages/tensorflow-2.10.1.dist-info/METADATA",
                 "name": "tensorflow",
                 "package_manager": "PYTHONPKG",
                 "version": "2.10.1",
@@ -6286,7 +6286,7 @@
             "name": "CVE-2023-25673",
             "package_name": "tensorflow",
             "package_details": {
-                "file_path": "usr/local/lib/python3.8/site-packages/tensorflow-2.10.1.dist-info/METADATA",
+                "file_path": "usr/local/lib/python3.10/site-packages/tensorflow-2.10.1.dist-info/METADATA",
                 "name": "tensorflow",
                 "package_manager": "PYTHONPKG",
                 "version": "2.10.1",
@@ -6342,7 +6342,7 @@
             "name": "SNYK-PYTHON-TENSORFLOW-1315149",
             "package_name": "tensorflow",
             "package_details": {
-                "file_path": "usr/local/lib/python3.8/site-packages/tensorflow-2.10.1.dist-info/METADATA",
+                "file_path": "usr/local/lib/python3.10/site-packages/tensorflow-2.10.1.dist-info/METADATA",
                 "name": "tensorflow",
                 "package_manager": "PYTHONPKG",
                 "version": "2.10.1",
@@ -6370,7 +6370,7 @@
             "name": "CVE-2023-25660",
             "package_name": "tensorflow",
             "package_details": {
-                "file_path": "usr/local/lib/python3.8/site-packages/tensorflow-2.10.1.dist-info/METADATA",
+                "file_path": "usr/local/lib/python3.10/site-packages/tensorflow-2.10.1.dist-info/METADATA",
                 "name": "tensorflow",
                 "package_manager": "PYTHONPKG",
                 "version": "2.10.1",
