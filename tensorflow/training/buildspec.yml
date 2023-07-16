@@ -37,7 +37,7 @@ images:
     enable_test_promotion: true
     context:
       <<: *TRAINING_CONTEXT
-  BuildTensorflowEC2GpuCu112Py310TrainingDockerImage:
+  BuildTensorflowEC2GpuCu118Py310TrainingDockerImage:
     <<: *TRAINING_REPOSITORY
     build: &TENSORFLOW_GPU_TRAINING_PY3 false
     image_size_baseline: &IMAGE_SIZE_BASELINE 9307
@@ -58,7 +58,7 @@ images:
     <<: *TRAINING_REPOSITORY
     build: &TENSORFLOW_GPU_TRAINING_PY3 false
     image_size_baseline: &IMAGE_SIZE_BASELINE 9295
-    base_image_name: BuildTensorflowEC2GpuCu112Py39TrainingDockerImage
+    base_image_name: BuildTensorflowEC2GpuCu118Py310TrainingDockerImage
     device_type: &DEVICE_TYPE gpu
     python_version: &DOCKER_PYTHON_VERSION py3
     tag_python_version: &TAG_PYTHON_VERSION py310
