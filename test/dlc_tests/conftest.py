@@ -1077,9 +1077,9 @@ def framework_version_within_limit(metafunc_obj, image):
             "tf21_and_above_only" in metafunc_obj.fixturenames
             and is_below_framework_version("2.1", image, image_framework_name)
         )
-        tf2_horovod_requirement = (
+        tf213_requirement_failed = (
             "below_tf213_only" in metafunc_obj.fixturenames
-            and is_below_framework_version("2.13", image, image_framework_name)
+            and not is_below_framework_version("2.13", image, image_framework_name)
         )
         if (
             tf2_requirement_failed
@@ -1087,7 +1087,7 @@ def framework_version_within_limit(metafunc_obj, image):
             or tf24_requirement_failed
             or tf25_requirement_failed
             or tf23_requirement_failed
-            or not tf2_horovod_requirement
+            or tf213_requirement_failed
         ):
             return False
     if image_framework_name == "mxnet":
