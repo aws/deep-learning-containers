@@ -3,7 +3,7 @@ ARG PYTHON_VERSION=3.10.8
 ARG PYTHON_SHORT_VERSION=3.10
 ARG MAMBA_VERSION=23.1.0-1
 ARG PYTORCH_VERSION_EC2=2.0.1
-ARG PYTORCH_VERSION_SM=2.0.0
+ARG PYTORCH_VERSION_SM=2.0.1
 
 # SMD binaries
 ARG SMD_DATA_PARALLEL_URL=https://smdataparallel.s3.amazonaws.com/binary/pytorch/2.0.0/cu118/2023-03-20/smdistributed_dataparallel-1.8.0-cp310-cp310-linux_x86_64.whl
