@@ -28,10 +28,14 @@ RESOURCE_PATH = os.path.join(os.path.dirname(__file__), "..", "..", "resources")
 @pytest.mark.skip_gpu
 @pytest.mark.parametrize("instances, processes", [(1, 2)])
 def test_distributed_training_horovod_basic_singlenode(
-    instances, processes, sagemaker_local_session, docker_image, tmpdir, framework_version
+    instances,
+    processes,
+    sagemaker_local_session,
+    docker_image,
+    tmpdir,
+    framework_version,
+    sm_below_tf213_only,
 ):
-    if framework_version >= "2.13":
-        pytest.skip(f"{framework_version} does not include Horovod for this test")
     _run_distributed_training_horovod_basic(
         instances, processes, sagemaker_local_session, docker_image, tmpdir, framework_version
     )
@@ -44,10 +48,14 @@ def test_distributed_training_horovod_basic_singlenode(
 @pytest.mark.skip_gpu
 @pytest.mark.parametrize("instances, processes", [(2, 1)])
 def test_distributed_training_horovod_basic_two_nodes(
-    instances, processes, sagemaker_local_session, docker_image, tmpdir, framework_version
+    instances,
+    processes,
+    sagemaker_local_session,
+    docker_image,
+    tmpdir,
+    framework_version,
+    sm_below_tf213_only,
 ):
-    if framework_version >= "2.13":
-        pytest.skip(f"{framework_version} does not include Horovod for this test")
     _run_distributed_training_horovod_basic(
         instances, processes, sagemaker_local_session, docker_image, tmpdir, framework_version
     )
@@ -66,7 +74,7 @@ def test_distributed_training_horovod_basic_two_nodes_two_processes(
     docker_image,
     tmpdir,
     framework_version,
-    tf212_and_below_only,
+    below_tf213_only,
 ):
     _run_distributed_training_horovod_basic(
         instances, processes, sagemaker_local_session, docker_image, tmpdir, framework_version
