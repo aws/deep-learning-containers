@@ -91,14 +91,12 @@ def test_tensorflow_train_mnist_cpu(tensorflow_training, ec2_connection, cpu_onl
 @pytest.mark.model("resnet")
 @pytest.mark.parametrize("ec2_instance_type", TF_EC2_GPU_INSTANCE_TYPE, indirect=True)
 def test_tensorflow_with_horovod_gpu(
-    tensorflow_training, ec2_instance_type, ec2_connection, gpu_only, tf2_only
+    tensorflow_training, ec2_instance_type, ec2_connection, gpu_only, tf2_only, tf212_and_below_only
 ):
     if test_utils.is_image_incompatible_with_instance_type(tensorflow_training, ec2_instance_type):
         pytest.skip(
             f"Image {tensorflow_training} is incompatible with instance type {ec2_instance_type}"
         )
-    if not test_utils.is_below_framework_version("2.13", tensorflow_training, "tensorflow"):
-        pytest.skip(f"Image {tensorflow_training} does not include Horovod for this test")
     test_script = TF1_HVD_CMD if is_tf_version("1", tensorflow_training) else TF2_HVD_CMD
     execute_ec2_training_test(
         connection=ec2_connection,
@@ -112,10 +110,8 @@ def test_tensorflow_with_horovod_gpu(
 @pytest.mark.model("resnet")
 @pytest.mark.parametrize("ec2_instance_type", TF_EC2_CPU_INSTANCE_TYPE, indirect=True)
 def test_tensorflow_with_horovod_cpu(
-    tensorflow_training, ec2_connection, cpu_only, tf2_only, ec2_instance_type
+    tensorflow_training, ec2_connection, cpu_only, tf2_only, ec2_instance_type, tf212_and_below_only
 ):
-    if not test_utils.is_below_framework_version("2.13", tensorflow_training, "tensorflow"):
-        pytest.skip(f"Image {tensorflow_training} does not include Horovod for this test")
     container_name = "tf_hvd_cpu_test"
     test_script = TF1_HVD_CMD if is_tf_version("1", tensorflow_training) else TF2_HVD_CMD
     try:
@@ -186,14 +182,17 @@ def test_tensorflow_telemetry_cpu(tensorflow_training, ec2_connection, cpu_only)
 @pytest.mark.model("mnist")
 @pytest.mark.parametrize("ec2_instance_type", TF_EC2_GPU_INSTANCE_TYPE, indirect=True)
 def test_tensorflow_keras_horovod_amp(
-    tensorflow_training, ec2_connection, tf21_and_above_only, gpu_only, ec2_instance_type
+    tensorflow_training,
+    ec2_connection,
+    tf21_and_above_only,
+    gpu_only,
+    ec2_instance_type,
+    tf212_and_below_only,
 ):
     if test_utils.is_image_incompatible_with_instance_type(tensorflow_training, ec2_instance_type):
         pytest.skip(
             f"Image {tensorflow_training} is incompatible with instance type {ec2_instance_type}"
         )
-    if not test_utils.is_below_framework_version("2.13", tensorflow_training, "tensorflow"):
-        pytest.skip(f"Image {tensorflow_training} does not include Horovod for this test")
     execute_ec2_training_test(ec2_connection, tensorflow_training, TF_KERAS_HVD_CMD_AMP)
 
 
@@ -201,14 +200,12 @@ def test_tensorflow_keras_horovod_amp(
 @pytest.mark.model("mnist")
 @pytest.mark.parametrize("ec2_instance_type", TF_EC2_GPU_INSTANCE_TYPE, indirect=True)
 def test_tensorflow_keras_horovod_fp32(
-    tensorflow_training, ec2_connection, tf2_only, gpu_only, ec2_instance_type
+    tensorflow_training, ec2_connection, tf2_only, gpu_only, ec2_instance_type, tf212_and_below_only
 ):
     if test_utils.is_image_incompatible_with_instance_type(tensorflow_training, ec2_instance_type):
         pytest.skip(
             f"Image {tensorflow_training} is incompatible with instance type {ec2_instance_type}"
         )
-    if not test_utils.is_below_framework_version("2.13", tensorflow_training, "tensorflow"):
-        pytest.skip(f"Image {tensorflow_training} does not include Horovod for this test")
     execute_ec2_training_test(ec2_connection, tensorflow_training, TF_KERAS_HVD_CMD_FP32)
 
 

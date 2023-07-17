@@ -25,6 +25,7 @@ from test.test_utils import (
     get_job_type_from_image,
     is_tf_version,
     is_below_framework_version,
+    is_above_framework_version,
     is_ec2_image,
     is_sagemaker_image,
     is_nightly_context,
@@ -979,6 +980,11 @@ def tf21_and_above_only():
 
 
 @pytest.fixture(scope="session")
+def tf212_and_below_only():
+    pass
+
+
+@pytest.fixture(scope="session")
 def mx18_and_above_only():
     pass
 
@@ -1072,12 +1078,17 @@ def framework_version_within_limit(metafunc_obj, image):
             "tf21_and_above_only" in metafunc_obj.fixturenames
             and is_below_framework_version("2.1", image, image_framework_name)
         )
+        tf2_horovod_requirement_failed = (
+            "tf212_and_below_only" in metafunc_obj.fixturenames
+            and is_above_framework_version("2.12", image, image_framework_name)
+        )
         if (
             tf2_requirement_failed
             or tf21_requirement_failed
             or tf24_requirement_failed
             or tf25_requirement_failed
             or tf23_requirement_failed
+            or tf2_horovod_requirement_failed
         ):
             return False
     if image_framework_name == "mxnet":
