@@ -5,7 +5,8 @@ GIT_BRANCH="cnn_tf_v1.13_compatible"
 if [ "$TF_VERSION" -eq 2 ]
 then
   GIT_BRANCH="master"
-  GIT_COMMIT="19f4e7e5929fd53c84d5bd7ae7d767725f9fd89a"
+  GIT_COMMIT="907f501a9b164743b0788b2af9030df21927cf4b"
+  # GIT_COMMIT="19f4e7e5929fd53c84d5bd7ae7d767725f9fd89a"
 fi
 HOME_DIR=/test/benchmark
 BIN_DIR=${HOME_DIR}/bin
