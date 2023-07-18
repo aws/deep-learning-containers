@@ -18,6 +18,8 @@ import os
 
 import boto3
 import pytest
+from packaging.version import Version
+from packaging.specifiers import SpecifierSet
 
 from botocore.exceptions import ClientError
 from sagemaker import LocalSession, Session
@@ -196,6 +198,12 @@ def docker_image(docker_base_name, tag):
 def ecr_image(account_id, docker_base_name, tag, region):
     registry = get_ecr_registry(account_id, region)
     return "{}/{}:{}".format(registry, docker_base_name, tag)
+
+
+@pytest.fixture
+def sm_below_tf213_only(framework_version):
+    if Version(framework_version) in SpecifierSet(">=2.13"):
+        pytest.skip("Test only supports Tensorflow version below 2.13")
 
 
 @pytest.fixture(autouse=True)

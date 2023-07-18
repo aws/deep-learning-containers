@@ -15,7 +15,7 @@ LABEL maintainer="Amazon AI"
 LABEL dlc_major_version="1"
 
 # TensorFlow major.minor version
-ENV TF_VERSION=2.12
+ENV TF_VERSION=2.13
 
 # prevent stopping by user interaction
 ENV DEBIAN_FRONTEND noninteractive
@@ -37,18 +37,18 @@ ENV RDMAV_FORK_SAFE=1
 
 ARG PYTHON=python3.10
 ARG PIP=pip3
-ARG PYTHON_VERSION=3.10.10
+ARG PYTHON_VERSION=3.10.12
 
 ARG OPEN_MPI_PATH=/opt/amazon/openmpi
 ARG EFA_PATH=/opt/amazon/efa
-ARG EFA_VERSION=1.21.0
+ARG EFA_VERSION=1.24.0
 ARG OMPI_VERSION=4.1.5
 ARG BRANCH_OFI=1.5.0-aws
 
 
 ARG CUDA=11.8
 ARG CUDA_DASH=11-8
-ARG CUDNN=8.8.0.121-1
+ARG CUDNN=8.9.3.28-1
 ARG NCCL_VERSION=2.16.5
 
 # To be passed to ec2 and sagemaker stages
@@ -189,7 +189,8 @@ RUN wget https://www.python.org/ftp/python/$PYTHON_VERSION/Python-$PYTHON_VERSIO
 
 RUN ${PIP} --no-cache-dir install --upgrade \
    pip \
-   setuptools
+   setuptools \
+   wheel
 
 # Some TF tools expect a "python" binary
 RUN ln -s $(which ${PYTHON}) /usr/local/bin/python \
@@ -197,14 +198,13 @@ RUN ln -s $(which ${PYTHON}) /usr/local/bin/python \
 
 RUN apt-get update && apt-get -y install protobuf-compiler
 
-# install PyYAML==5.1.2 to avoid conflict with latest awscli
+# install PyYAML==>=5.4,<5.5 to avoid conflict with latest awscli
 RUN ${PIP} install --no-cache-dir -U \
    pybind11 \
    cmake \
    scipy \
    Pillow \
    python-dateutil \
-   "pyYAML>=5.4,<5.5" \
    requests \
    "awscli<2" \
    mpi4py \
@@ -261,17 +261,12 @@ RUN curl https://aws-dlc-licenses.s3.amazonaws.com/tensorflow-${TF_VERSION}/lice
 
 FROM common AS ec2
 
-ARG TF_URL=https://framework-binaries.s3.us-west-2.amazonaws.com/tensorflow/r2.12_aws/gpu/2023-03-23-00-34/tensorflow_gpu-2.12.0-cp310-cp310-manylinux_2_17_x86_64.manylinux2014_x86_64.whl
+ARG TF_URL=https://framework-binaries.s3.us-west-2.amazonaws.com/tensorflow/r2.13_aws/gpu/2023-07-13-03-50/tensorflow_gpu-2.13.0-cp310-cp310-manylinux_2_17_x86_64.manylinux2014_x86_64.whl
 
 RUN ${PIP} install --no-cache-dir -U \
    ${TF_URL} \
    tensorflow-io \
    tensorflow-datasets
-
-# Install Horovod, temporarily using CUDA stubs
-RUN ldconfig /usr/local/cuda-11.8/targets/x86_64-linux/lib/stubs \
- && HOROVOD_GPU_ALLREDUCE=NCCL HOROVOD_WITH_TENSORFLOW=1 HOROVOD_NCCL_LINK=SHARED ${PIP} install --no-cache-dir horovod==0.27.0 \
- && ldconfig
 
 RUN HOME_DIR=/root \
    && curl -o ${HOME_DIR}/oss_compliance.zip https://aws-dlinfra-utilities.s3.amazonaws.com/oss_compliance.zip \
@@ -307,7 +302,7 @@ FROM common AS sagemaker
 LABEL maintainer="Amazon AI"
 LABEL dlc_major_version="1"
 
-ARG TF_URL=https://framework-binaries.s3.us-west-2.amazonaws.com/tensorflow/r2.12_aws/gpu/2023-03-23-00-34/tensorflow_gpu-2.12.0-cp310-cp310-manylinux_2_17_x86_64.manylinux2014_x86_64.whl
+ARG TF_URL=https://framework-binaries.s3.us-west-2.amazonaws.com/tensorflow/r2.13_aws/gpu/2023-07-13-03-50/tensorflow_gpu-2.13.0-cp310-cp310-manylinux_2_17_x86_64.manylinux2014_x86_64.whl
 
 # sagemaker-specific environment variable
 ENV SAGEMAKER_TRAINING_MODULE sagemaker_tensorflow_container.training:main
@@ -315,19 +310,14 @@ ENV SAGEMAKER_TRAINING_MODULE sagemaker_tensorflow_container.training:main
 # https://github.com/tensorflow/models/issues/9267
 # tf-models does not respect existing installations of TF and always installs open source TF
 RUN ${PIP} install --no-cache-dir -U \
-    tf-models-official==2.12.0 \
-    tensorflow-text==2.12.0
+    tf-models-official==2.13.0 \
+    tensorflow-text==2.13.0
 
 RUN ${PIP} uninstall -y tensorflow tensorflow-gpu \
   ; ${PIP} install --no-cache-dir -U \
     ${TF_URL} \
     tensorflow-io \
     tensorflow-datasets
-
-# Install Horovod, temporarily using CUDA stubs
-RUN ldconfig /usr/local/cuda-11.8/targets/x86_64-linux/lib/stubs \
- && HOROVOD_GPU_ALLREDUCE=NCCL HOROVOD_WITH_TENSORFLOW=1 HOROVOD_NCCL_LINK=SHARED ${PIP} install --no-cache-dir horovod==0.27.0 \
- && ldconfig
 
 RUN $PYTHON -m pip install --no-cache-dir -U \
     numba \
@@ -356,23 +346,23 @@ RUN git clone https://github.com/awslabs/sagemaker-debugger.git \
     && $PYTHON setup.py install && cd .. && rm -rf sagemaker-debugger
 
 # install sagemaker-tensorflow from source
-ARG SAGEMAKER_TENSORFLOW_TAG=v1.18.0
-RUN git clone -b tf-2 https://github.com/aws/sagemaker-tensorflow-extensions.git \
-    && cd sagemaker-tensorflow-extensions \
-    && git checkout tags/$SAGEMAKER_TENSORFLOW_TAG -b $SAGEMAKER_TENSORFLOW_TAG \
-    && $PYTHON -m pip install . \
-    && cd .. && rm -rf sagemaker-tensorflow-extensions
+# ARG SAGEMAKER_TENSORFLOW_TAG=v1.18.0
+# RUN git clone -b tf-2 https://github.com/aws/sagemaker-tensorflow-extensions.git \
+#     && cd sagemaker-tensorflow-extensions \
+#     && git checkout tags/$SAGEMAKER_TENSORFLOW_TAG -b $SAGEMAKER_TENSORFLOW_TAG \
+#     && $PYTHON -m pip install . \
+#     && cd .. && rm -rf sagemaker-tensorflow-extensions
 
 # install boost
 # tensorflow is compiled with --cxxopt="-D_GLIBCXX_USE_CXX11_ABI=1"
-RUN wget https://sourceforge.net/projects/boost/files/boost/1.81.0/boost_1_81_0.tar.gz/download -O boost_1_81_0.tar.gz \
-   && tar -xzf boost_1_81_0.tar.gz \
-   && cd boost_1_81_0 \
+RUN wget https://sourceforge.net/projects/boost/files/boost/1.82.0/boost_1_82_0.tar.gz/download -O boost_1_82_0.tar.gz \
+   && tar -xzf boost_1_82_0.tar.gz \
+   && cd boost_1_82_0 \
    && ./bootstrap.sh \
    && ./b2 define=_GLIBCXX_USE_CXX11_ABI=1 threading=multi --prefix=/usr -j 64 cxxflags=-fPIC cflags=-fPIC install || true \
    && cd .. \
-   && rm -rf boost_1_81_0.tar.gz \
-   && rm -rf boost_1_81_0 \
+   && rm -rf boost_1_82_0.tar.gz \
+   && rm -rf boost_1_82_0 \
    && cd /usr/include/boost
 
 # Add NGC vars
