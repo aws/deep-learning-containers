@@ -133,6 +133,11 @@ RUN ${PIP} --no-cache-dir install --upgrade \
     pip \
     setuptools
 
+# this is added till awscli updates their version to support PyYaml>=6
+# ref: https://github.com/aws/aws-cli/issues/8036
+# Expected support to be in awscli>=1.29.4
+RUN pip install "Cython<3.0" "pyyaml<6" --no-build-isolation --no-cache-dir
+
 # Some TF tools expect a "python" binary
 RUN ln -s $(which ${PYTHON}) /usr/local/bin/python \
     && ln -s $(which ${PIP}) /usr/bin/pip
@@ -146,7 +151,6 @@ RUN ${PIP} install --no-cache-dir -U \
     scipy \
     Pillow \
     python-dateutil \
-    "pyYAML>=5.4,<5.5" \
     requests \
     "awscli<2" \
     mpi4py \
