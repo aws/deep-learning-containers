@@ -6,7 +6,7 @@ fabric
 flake8==3.7.7
 gitpython
 invoke
-mock==2.0.0
+mock
 numpy
 Pillow
 packaging
