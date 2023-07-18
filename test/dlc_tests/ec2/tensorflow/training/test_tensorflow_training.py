@@ -91,7 +91,7 @@ def test_tensorflow_train_mnist_cpu(tensorflow_training, ec2_connection, cpu_onl
 @pytest.mark.model("resnet")
 @pytest.mark.parametrize("ec2_instance_type", TF_EC2_GPU_INSTANCE_TYPE, indirect=True)
 def test_tensorflow_with_horovod_gpu(
-    tensorflow_training, ec2_instance_type, ec2_connection, gpu_only, tf2_only
+    tensorflow_training, ec2_instance_type, ec2_connection, gpu_only, tf2_only, below_tf213_only
 ):
     if test_utils.is_image_incompatible_with_instance_type(tensorflow_training, ec2_instance_type):
         pytest.skip(
@@ -110,7 +110,7 @@ def test_tensorflow_with_horovod_gpu(
 @pytest.mark.model("resnet")
 @pytest.mark.parametrize("ec2_instance_type", TF_EC2_CPU_INSTANCE_TYPE, indirect=True)
 def test_tensorflow_with_horovod_cpu(
-    tensorflow_training, ec2_connection, cpu_only, tf2_only, ec2_instance_type
+    tensorflow_training, ec2_connection, cpu_only, tf2_only, ec2_instance_type, below_tf213_only
 ):
     container_name = "tf_hvd_cpu_test"
     test_script = TF1_HVD_CMD if is_tf_version("1", tensorflow_training) else TF2_HVD_CMD
@@ -182,7 +182,12 @@ def test_tensorflow_telemetry_cpu(tensorflow_training, ec2_connection, cpu_only)
 @pytest.mark.model("mnist")
 @pytest.mark.parametrize("ec2_instance_type", TF_EC2_GPU_INSTANCE_TYPE, indirect=True)
 def test_tensorflow_keras_horovod_amp(
-    tensorflow_training, ec2_connection, tf21_and_above_only, gpu_only, ec2_instance_type
+    tensorflow_training,
+    ec2_connection,
+    tf21_and_above_only,
+    gpu_only,
+    ec2_instance_type,
+    below_tf213_only,
 ):
     if test_utils.is_image_incompatible_with_instance_type(tensorflow_training, ec2_instance_type):
         pytest.skip(
@@ -195,7 +200,7 @@ def test_tensorflow_keras_horovod_amp(
 @pytest.mark.model("mnist")
 @pytest.mark.parametrize("ec2_instance_type", TF_EC2_GPU_INSTANCE_TYPE, indirect=True)
 def test_tensorflow_keras_horovod_fp32(
-    tensorflow_training, ec2_connection, tf2_only, gpu_only, ec2_instance_type
+    tensorflow_training, ec2_connection, tf2_only, gpu_only, ec2_instance_type, below_tf213_only
 ):
     if test_utils.is_image_incompatible_with_instance_type(tensorflow_training, ec2_instance_type):
         pytest.skip(
