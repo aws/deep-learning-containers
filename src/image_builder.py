@@ -177,6 +177,13 @@ def image_builder(buildspec, image_types=[], device_types=[]):
                     f"HuggingFace buildspec.yml must contain 'datasets_version' field for each image"
                 )
 
+        torchserve_version = image_config.get("torch_serve_version")
+        inference_toolkit_version = image_config.get("tool_kit_version")
+        if torchserve_version:
+            extra_build_args["TORCHSERVE_VERSION"] = torchserve_version
+        if inference_toolkit_version:
+            extra_build_args["SM_TOOLKIT_VERSION"] = inference_toolkit_version
+
         ARTIFACTS.update(
             {
                 "dockerfile": {
@@ -241,6 +248,10 @@ def image_builder(buildspec, image_types=[], device_types=[]):
             if transformers_version:
                 labels[
                     f"com.amazonaws.ml.engines.{cx_type}.dlc.lib.transformers.{label_transformers_version}"
+                ] = "true"
+            if torchserve_version and inference_toolkit_version:
+                labels[
+                    f"com.amazonaws.ml.engines.{cx_type}.dlc.inference-toolkit.{inference_toolkit_version}.torchserve.{torchserve_version}"
                 ] = "true"
 
         """
