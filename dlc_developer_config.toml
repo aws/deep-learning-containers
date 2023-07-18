@@ -60,7 +60,7 @@ ec2_efa_tests = false
 
 ### SM specific tests
 ### Off by default
-sagemaker_local_tests = fakse
+sagemaker_local_tests = false
 
 # SM remote test valid values:
 # "off" --> do not trigger sagemaker remote tests (default)
