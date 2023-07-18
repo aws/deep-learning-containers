@@ -382,6 +382,7 @@ class TestMLWorkFlow:
         captured = capsys.readouterr()
         _assert_training_compiler_invoked(captured)
 
+    @pytest.mark.skip("Skipping this test on TF DLCs")
     @pytest.mark.model("distilbert")
     def test_BYOC_training(
         self,

@@ -4,16 +4,17 @@ LABEL dlc_major_version="1"
 LABEL maintainer="Amazon AI"
 LABEL com.amazonaws.sagemaker.capabilities.accept-bind-to-port=true
 
-ARG PYTHON=python3.8
-ARG PYTHON_VERSION=3.8.16
+ARG PYTHON=python3.10
+ARG PYTHON_VERSION=3.10.12
 ARG TORCHSERVE_VERSION
 ARG SM_TOOLKIT_VERSION
 ARG MAMBA_VERSION=23.1.0-1
 
 # Neuron SDK components version numbers
-ARG NEURONX_TOOLS_VERSION=2.10.*
-ARG NEURON_FRAMEWORK_VERSION=1.13.1.2.7.1.*
-ARG NEURON_CC_VERSION=1.15.*
+ARG NEURONX_RUNTIME_LIB_VERSION=2.14.*
+ARG NEURONX_TOOLS_VERSION=2.11.*
+ARG NEURONX_FRAMEWORK_VERSION=1.13.1.1.8.*
+ARG NEURONX_CC_VERSION=2.7.*
 # See http://bugs.python.org/issue19846
 ENV LANG C.UTF-8
 ENV LD_LIBRARY_PATH /lib/x86_64-linux-gnu:/opt/conda/lib/:$LD_LIBRARY_PATH
@@ -56,6 +57,7 @@ RUN wget -qO - https://apt.repos.neuron.amazonaws.com/GPG-PUB-KEY-AMAZON-AWS-NEU
 
 RUN apt-get update \
  && apt-get install -y aws-neuronx-tools=$NEURONX_TOOLS_VERSION \
+ && apt-get install -y aws-neuronx-runtime-lib=${NEURONX_RUNTIME_LIB_VERSION} \
  && rm -rf /var/lib/apt/lists/* \
  && rm -rf /tmp/tmp* \
  && apt-get clean
@@ -69,7 +71,9 @@ RUN curl -L -o ~/mambaforge.sh https://github.com/conda-forge/miniforge/releases
  && chmod +x ~/mambaforge.sh \
  && ~/mambaforge.sh -b -p /opt/conda \
  && rm ~/mambaforge.sh \
+ && /opt/conda/bin/conda update -y conda \
  && /opt/conda/bin/conda install -c conda-forge -y \
+    pyopenssl \
     python=$PYTHON_VERSION \
     cython \
     mkl-include \
@@ -81,7 +85,6 @@ RUN curl -L -o ~/mambaforge.sh https://github.com/conda-forge/miniforge/releases
     conda-content-trust \
     charset-normalizer \
 
- && /opt/conda/bin/conda update -y conda \
  && /opt/conda/bin/conda clean -ya
 
 RUN conda install -c conda-forge \
@@ -94,8 +97,7 @@ RUN conda install -c conda-forge \
  && ln -s /opt/conda/bin/pip /usr/local/bin/pip3 \
  && pip install packaging \
     enum-compat \
-    ipython \
-    cryptography
+    ipython
 
 RUN pip install --no-cache-dir -U \
     scipy \
@@ -105,14 +107,16 @@ RUN pip install --no-cache-dir -U \
     "pillow>=8.3" \
     "awscli<2" \
     pandas==1.* \
-    boto3
+    boto3 \
+    numpy==1.21.6 \
+    cryptography
 
-RUN pip install neuron-cc[tensorflow]==$NEURON_CC_VERSION --extra-index-url https://pip.repos.neuron.amazonaws.com \
- && pip install torch-neuron==$NEURON_FRAMEWORK_VERSION --extra-index-url https://pip.repos.neuron.amazonaws.com \
+RUN pip install neuronx-cc==$NEURONX_CC_VERSION --extra-index-url https://pip.repos.neuron.amazonaws.com \
+ && pip install torch-neuronx==$NEURONX_FRAMEWORK_VERSION --extra-index-url https://pip.repos.neuron.amazonaws.com \
  && pip install "protobuf<4" \
- && pip install torchserve==$TORCHSERVE_VERSION \
+ && pip install torchserve==${TORCHSERVE_VERSION} \
  && pip install --no-deps --no-cache-dir -U torchvision==0.14.* \
- && pip install torch-model-archiver==$TORCHSERVE_VERSION
+ && pip install torch-model-archiver==${TORCHSERVE_VERSION}
 
 RUN useradd -m model-server \
  && mkdir -p /home/model-server/tmp /opt/ml/model \
@@ -132,6 +136,11 @@ ADD https://raw.githubusercontent.com/aws/deep-learning-containers/master/src/de
 RUN chmod +x /usr/local/bin/deep_learning_container.py
 
 RUN pip install --no-cache-dir "sagemaker-pytorch-inference==${SM_TOOLKIT_VERSION}"
+
+# patch default_pytorch_inference_handler.py to import torch_neuronx
+RUN DEST_DIR=$(python -c "import os.path, sagemaker_pytorch_serving_container; print(os.path.dirname(sagemaker_pytorch_serving_container.__file__))") \
+ && DEST_FILE=${DEST_DIR}/default_pytorch_inference_handler.py \
+ && sed -i "s/import torch/import torch, torch_neuronx/" ${DEST_FILE}
 
 RUN HOME_DIR=/root \
  && curl -o ${HOME_DIR}/oss_compliance.zip https://aws-dlinfra-utilities.s3.amazonaws.com/oss_compliance.zip \
