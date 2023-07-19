@@ -34,7 +34,7 @@ benchmark_mode = false
 build_frameworks = []
 
 # By default we build both training and inference containers. Set true/false values to determine which to build.
-build_training = true
+build_training = false
 build_inference = true
 
 # Set to false in order to remove datetime tag on PR builds
@@ -46,7 +46,7 @@ do_build = true
 [test]
 ### On by default
 sanity_tests = true
-  safety_check_test = false
+  safety_check_test = true
   ecr_scan_allowlist_feature = false
 ecs_tests = true
 eks_tests = true
