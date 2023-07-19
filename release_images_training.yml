@@ -26,3 +26,15 @@ release_images:
       example: True
       disable_sm_tag: False
       force_release: False
+  3:
+    framework: "autogluon"
+    version: "0.8.2"
+    arch_type: "x86"
+    training:
+      device_types: ["cpu", "gpu"]
+      python_versions: ["py39"]
+      os_version: "ubuntu20.04"
+      cuda_version: "cu117"
+      example: False
+      disable_sm_tag: False  # [Default: False] This option is not used by Example images
+      force_release: False
