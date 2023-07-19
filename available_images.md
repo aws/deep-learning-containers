@@ -107,8 +107,8 @@ EC2 Framework Containers (Tested on EC2, ECS, and EKS only)
 | PyTorch 2.0.1   |training	|Yes			|GPU 		| 3.10 (py310)			| 763104351884.dkr.ecr.us-east-1.amazonaws.com/pytorch-training:2.0.1-gpu-py310-cu118-ubuntu20.04-ec2       |      |
 | PyTorch 2.0.1   |inference	|No			|CPU 		| 3.10 (py310)			| 763104351884.dkr.ecr.us-east-1.amazonaws.com/pytorch-inference:2.0.1-cpu-py310-ubuntu20.04-ec2             |
 | PyTorch 2.0.1   |inference	|No			|GPU 		| 3.10 (py310)			| 763104351884.dkr.ecr.us-east-1.amazonaws.com/pytorch-inference:2.0.1-gpu-py310-cu118-ubuntu20.04-ec2       |
-| TensorFlow 2.13.0 |training	|Yes			|CPU 		| 3.10 (py310)			| 763104351884.dkr.ecr.us-east-1.amazonaws.com/tensorflow-training:2.13.0-cpu-py310-ubuntu20.04-ec2		       |
-| TensorFlow 2.13.0 |training	|Yes			|GPU 		| 3.10 (py310)			| 763104351884.dkr.ecr.us-east-1.amazonaws.com/tensorflow-training:2.13.0-gpu-py310-cu118-ubuntu20.04-ec2	  |
+| TensorFlow 2.13.0 |training	|No			|CPU 		| 3.10 (py310)			| 763104351884.dkr.ecr.us-east-1.amazonaws.com/tensorflow-training:2.13.0-cpu-py310-ubuntu20.04-ec2		       |
+| TensorFlow 2.13.0 |training	|No			|GPU 		| 3.10 (py310)			| 763104351884.dkr.ecr.us-east-1.amazonaws.com/tensorflow-training:2.13.0-gpu-py310-cu118-ubuntu20.04-ec2	  |
 | TensorFlow 2.12.1 |inference	|No			|CPU 		| 3.10 (py310)			| 763104351884.dkr.ecr.us-east-1.amazonaws.com/tensorflow-inference:2.12.1-cpu-py310-ubuntu20.04-ec2		       |
 | TensorFlow 2.12.1 |inference	|No			|GPU 		| 3.10 (py310)			| 763104351884.dkr.ecr.us-east-1.amazonaws.com/tensorflow-inference:2.12.1-gpu-py310-cu118-ubuntu20.04-ec2	  |
 | MXNet 1.9.0      |training	|Yes			|CPU 		| 3.8 (py38)			| 763104351884.dkr.ecr.us-east-1.amazonaws.com/mxnet-training:1.9.0-cpu-py38-ubuntu20.04-ec2		            |
