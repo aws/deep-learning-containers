@@ -10,7 +10,7 @@ ag_fit_args:
   hyperparameters:
     GBM:
       num_boost_round: 20
-    NN:
+    NN_TORCH:
       num_epochs: 2
   num_bag_folds: 3
   num_bag_sets: 1
