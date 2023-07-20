@@ -48,8 +48,8 @@ do_build = true
 sanity_tests = true
   safety_check_test = true
   ecr_scan_allowlist_feature = true
-ecs_tests = true
-eks_tests = true
+ecs_tests = false
+eks_tests = false
 ec2_tests = true
 
 ### Set ec2_efa_tests = true to be able to run any EC2 tests on any instance type that uses EFA-capable instances by
