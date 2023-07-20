@@ -206,16 +206,16 @@ AutoGluon Training Containers
 
 | Framework       | AutoGluon Version  | Job Type | CPU/GPU | Python Version Options | Example URL                                                                                      |
 |-----------------|--------------------|----------|---------|------------------------|--------------------------------------------------------------------------------------------------|
-| AutoGluon 0.7.0 | 0.7.0              | training | GPU     | 3.9 (py39)             | 763104351884.dkr.ecr.us-east-1.amazonaws.com/autogluon-training:0.7.0-gpu-py39-cu117-ubuntu20.04 |
-| AutoGluon 0.7.0 | 0.7.0              | training | CPU     | 3.9 (py39)             | 763104351884.dkr.ecr.us-east-1.amazonaws.com/autogluon-training:0.7.0-cpu-py39-ubuntu20.04       |
+| AutoGluon 0.8.2 | 0.8.2              | training | GPU     | 3.9 (py39)             | 763104351884.dkr.ecr.us-west-2.amazonaws.com/autogluon-training:0.8.2-gpu-py39-cu117-ubuntu20.04 |
+| AutoGluon 0.8.2 | 0.8.2              | training | CPU     | 3.9 (py39)             | 763104351884.dkr.ecr.us-west-2.amazonaws.com/autogluon-training:0.8.2-cpu-py39-ubuntu20.04       |
 
 AutoGluon Inference Containers
 ===============================
 
 | Framework       | AutoGluon Version  | Job Type  | CPU/GPU | Python Version Options | Example URL                                                                                       |
 |-----------------|--------------------|-----------|---------|------------------------|---------------------------------------------------------------------------------------------------|
-| AutoGluon 0.7.0 | 0.7.0              | inference | GPU     | 3.9 (py39)             | 763104351884.dkr.ecr.us-east-1.amazonaws.com/autogluon-inference:0.7.0-gpu-py39-cu117-ubuntu20.04 |
-| AutoGluon 0.7.0 | 0.7.0              | inference | CPU     | 3.9 (py39)             | 763104351884.dkr.ecr.us-east-1.amazonaws.com/autogluon-inference:0.7.0-cpu-py39-ubuntu20.04       |
+| AutoGluon 0.8.2 | 0.8.2              | inference | GPU     | 3.9 (py39)             | 763104351884.dkr.ecr.us-west-2.amazonaws.com/autogluon-inference:0.8.2-gpu-py39-cu117-ubuntu20.04 |
+| AutoGluon 0.8.2 | 0.8.2              | inference | CPU     | 3.9 (py39)             | 763104351884.dkr.ecr.us-west-2.amazonaws.com/autogluon-inference:0.8.2-cpu-py39-ubuntu20.04       |
 
 HuggingFace Training Containers
 ===============================
