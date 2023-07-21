@@ -111,7 +111,7 @@ RUN curl -L -o ~/mambaforge.sh https://github.com/conda-forge/miniforge/releases
 RUN /opt/conda/bin/mamba install -y --override-channels \
     -c conda-forge \
     conda=23.1.0 \
-    "cryptography>39.0.0" \
+    "cryptography>=41.0.2"" \
     cmake \
     requests \
     pyopenssl \
