@@ -86,8 +86,8 @@ def run_test_job(commit, codebuild_project, images_str=""):
             {
                 "name": "HEAVY_INSTANCE_EC2_TESTS_ENABLED",
                 "value": str(are_heavy_instance_ec2_tests_enabled),
-                "type": "PLAINTEXT"
-            }
+                "type": "PLAINTEXT",
+            },
         ]
     )
     LOGGER.debug(f"env_overrides dict: {env_overrides}")

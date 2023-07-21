@@ -430,9 +430,8 @@ def is_equal_to_framework_version(version_required, image_uri, framework):
     :return: bool True if image_uri has framework version equal to version_required, else False
     """
     image_framework_name, image_framework_version = get_framework_and_version_from_tag(image_uri)
-    return (
-        image_framework_name == framework
-        and Version(image_framework_version) in SpecifierSet(f"=={version_required}")
+    return image_framework_name == framework and Version(image_framework_version) in SpecifierSet(
+        f"=={version_required}"
     )
 
 
