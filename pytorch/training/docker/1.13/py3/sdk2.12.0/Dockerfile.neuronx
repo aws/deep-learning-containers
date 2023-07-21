@@ -124,7 +124,6 @@ COPY changehostname.c /
 COPY start_with_right_hostname.sh /usr/local/bin/start_with_right_hostname.sh
 
 RUN ${PIP} install --no-cache-dir -U \
-    "pyyaml>=5.4,<5.5" \
     "bokeh>=2.3,<3" \
     "opencv-python>=4.6,<5" \
     "awscli<2" \

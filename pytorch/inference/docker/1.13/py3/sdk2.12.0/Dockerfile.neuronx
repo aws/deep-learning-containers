@@ -102,8 +102,6 @@ RUN conda install -c conda-forge \
 RUN pip install --no-cache-dir -U \
     scipy \
     six \
-    # install PyYAML>=5.4 to avoid conflict with latest awscli
-    "pyYAML>=5.4,<5.5" \
     "pillow>=8.3" \
     "awscli<2" \
     pandas==1.* \
