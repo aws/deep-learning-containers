@@ -165,8 +165,7 @@ RUN pip install --no-cache-dir -U \
     "seaborn>=0.11,<1" \
     "numba" \
     "shap>=0.39,<1" \
-    "numpy==1.21.6" \
-    "pyyaml>=5.4,<5.5"
+    "numpy==1.21.6"
 
 # EFA Installer does apt get. Make sure to run apt update before that
 RUN apt-get update
