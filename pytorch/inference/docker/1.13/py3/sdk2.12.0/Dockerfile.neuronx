@@ -8,7 +8,7 @@ ARG PYTHON=python3.10
 ARG PYTHON_VERSION=3.10.12
 ARG TORCHSERVE_VERSION
 ARG SM_TOOLKIT_VERSION
-ARG MAMBA_VERSION=23.1.0-1
+ARG MAMBA_VERSION=23.1.0-4
 
 # Neuron SDK components version numbers
 ARG NEURONX_RUNTIME_LIB_VERSION=2.15.*
@@ -73,8 +73,8 @@ RUN curl -L -o ~/mambaforge.sh https://github.com/conda-forge/miniforge/releases
  && rm ~/mambaforge.sh \
  && /opt/conda/bin/conda update -y conda \
  && /opt/conda/bin/conda install -c conda-forge -y \
-    pyopenssl \
     python=$PYTHON_VERSION \
+    pyopenssl \
     cython \
     mkl-include \
     mkl \

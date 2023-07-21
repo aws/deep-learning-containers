@@ -8,11 +8,11 @@ ARG PYTHON=python3.10
 ARG PYTHON_VERSION=3.10.12
 ARG TORCHSERVE_VERSION
 ARG SM_TOOLKIT_VERSION
-ARG MAMBA_VERSION=23.1.0-3
+ARG MAMBA_VERSION=23.1.0-4
 
 # Neuron SDK components version numbers
 ARG NEURONX_TOOLS_VERSION=2.12.*
-ARG NEURON_FRAMEWORK_VERSION=1.13.1.2.8.6.*
+ARG NEURON_FRAMEWORK_VERSION=1.13.1.2.8.9.*
 ARG NEURON_CC_VERSION=1.17.*
 # See http://bugs.python.org/issue19846
 ENV LANG C.UTF-8
@@ -71,8 +71,8 @@ RUN curl -L -o ~/mambaforge.sh https://github.com/conda-forge/miniforge/releases
  && rm ~/mambaforge.sh \
  && /opt/conda/bin/conda update -y conda \
  && /opt/conda/bin/conda install -c conda-forge -y \
-    pyopenssl \
     python=$PYTHON_VERSION \
+    pyopenssl \
     cython \
     mkl-include \
     mkl \
