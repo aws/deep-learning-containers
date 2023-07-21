@@ -13,6 +13,7 @@ import git
 import pytest
 
 import boto3
+from botocore.config import Config
 from botocore.exceptions import ClientError
 from glob import glob
 from invoke import run
@@ -43,7 +44,14 @@ def get_ami_id_boto3(region_name, ami_name_pattern):
     """
     For a given region and ami name pattern, return the latest ami-id
     """
-    ami_list = boto3.client("ec2", region_name=region_name).describe_images(
+    # Use max_attempts=10 because this function is used in global context, and all test jobs
+    # get AMI IDs for tests regardless of whether they are used in that job.
+    ec2_client = boto3.client(
+        "ec2",
+        region_name=region_name,
+        config=Config(retries={"max_attempts": 10, "mode": "standard"}),
+    )
+    ami_list = ec2_client.describe_images(
         Filters=[{"Name": "name", "Values": [ami_name_pattern]}], Owners=["amazon"]
     )
     ami = max(ami_list["Images"], key=lambda x: x["CreationDate"])
@@ -54,7 +62,14 @@ def get_ami_id_ssm(region_name, parameter_path):
     """
     For a given region and parameter path, return the latest ami-id
     """
-    ami = boto3.client("ssm", region_name=region_name).get_parameter(Name=parameter_path)
+    # Use max_attempts=10 because this function is used in global context, and all test jobs
+    # get AMI IDs for tests regardless of whether they are used in that job.
+    ssm_client = boto3.client(
+        "ssm",
+        region_name=region_name,
+        config=Config(retries={"max_attempts": 10, "mode": "standard"}),
+    )
+    ami = ssm_client.get_parameter(Name=parameter_path)
     ami_id = eval(ami["Parameter"]["Value"])["image_id"]
     return ami_id
 
