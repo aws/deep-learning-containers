@@ -12,8 +12,8 @@ ARG TORCH_URL=https://aws-pytorch-unified-cicd-binaries.s3.us-west-2.amazonaws.c
 ARG TORCHVISION_VERSION=0.14.1+cu117
 ARG TORCHAUDIO_VERSION=0.13.1+cu117
 ARG TORCHDATA_VERSION=0.5.1
-ARG TORCHSERVE_VERSION=0.7.1
-ARG SM_TOOLKIT_VERSION=2.0.14
+ARG TORCHSERVE_VERSION
+ARG SM_TOOLKIT_VERSION
 
 ########################################################
 #  _____ ____ ____    ___
@@ -288,6 +288,7 @@ LABEL com.amazonaws.sagemaker.capabilities.accept-bind-to-port=true
 
 ARG PYTHON
 ARG SM_TOOLKIT_VERSION
+ARG TORCHSERVE_VERSION
 
 ENV SAGEMAKER_SERVING_MODULE sagemaker_pytorch_serving_container.serving:main
 

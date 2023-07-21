@@ -19,7 +19,7 @@ ARG PYTHON=python3
 ARG PYTHON_VERSION=3.10.9
 ARG MAMBA_VERSION=22.11.1-4
 ARG OPEN_MPI_VERSION=4.1.5
-ARG MMS_VERSION=1.1.8
+ARG MMS_VERSION=1.1.11
 
 # PyTorch Binaries and versions.
 ARG TORCH_URL=https://aws-pytorch-unified-cicd-binaries.s3.us-west-2.amazonaws.com/r2.0.0_inference/cpu_py310/torch-2.0.0%2Bcpu-cp310-cp310-linux_x86_64.whl
@@ -125,7 +125,7 @@ RUN pip uninstall -y torch torchvision torchaudio multi-model-server
 
 # Install AWS-PyTorch, and other torch packages
 RUN pip install --no-cache-dir --extra-index-url https://download.pytorch.org/whl/cpu -U \
-    "cryptography>=38.0.0,<40" \
+    "cryptography>=38.0.0" \
     enum-compat==0.0.3 \
     packaging \
     "Pillow>=9.0.0" \
@@ -167,7 +167,6 @@ RUN pip install --no-cache-dir \
     diffusers==${DIFFUSERS_VERSION} \
     "accelerate>=0.11.0" \
     "protobuf>=3.19.5,<=3.20.2" \
-    "numpy>=1.22.2,<1.23" \
     "sagemaker-huggingface-inference-toolkit<3"
 
 # Install IPEx and its dependencies
@@ -176,13 +175,12 @@ RUN pip install --no-cache-dir intel-openmp tbb
 RUN cd /opt/ && mkdir -p ipex \
     cd /opt/ipex && \
     wget https://raw.githubusercontent.com/intel/intel-extension-for-pytorch/v2.0.100%2Bcpu/scripts/compile_bundle.sh && \
-    # Fix for: `OSError: libmkl_intel_lp64.so.2: cannot open shared object file: No such file or directory`
-    sed -i "49i ln -s /opt/conda/lib/libmkl_intel_lp64.so /opt/conda/lib/libmkl_intel_lp64.so.2" compile_bundle.sh && \
-    sed -i "50i ln -s /opt/conda/lib/libmkl_intel_thread.so /opt/conda/lib/libmkl_intel_thread.so.2" compile_bundle.sh && \
-    sed -i "51i ln -s /opt/conda/lib/libmkl_core.so /opt/conda/lib/libmkl_core.so.2" compile_bundle.sh && \
-    sed -i "52i ln -s /opt/conda/lib/libmkl_gnu_thread.so /opt/conda/lib/libmkl_gnu_thread.so.2" compile_bundle.sh && \
     bash compile_bundle.sh && \
     rm -rf /opt/ipex
+
+# IPEx installation installs the numpy==1.25.1. That causes a pip check failure due to incompatibility with numba.
+# Re-installing numpy after IPEx installation to get the appropriate numpy version and fix pip checks.
+RUN pip install --no-cache-dir  "numpy<1.25"
 
 RUN HOME_DIR=/root \
  && curl -o ${HOME_DIR}/oss_compliance.zip https://aws-dlinfra-utilities.s3.amazonaws.com/oss_compliance.zip \
