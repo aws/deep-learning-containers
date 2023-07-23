@@ -1,0 +1,51 @@
+#!/bin/bash
+
+echo "deb http://packages.cloud.google.com/apt cloud-sdk main" | tee -a /etc/apt/sources.list.d/google-cloud-sdk.list
+curl https://packages.cloud.google.com/apt/doc/apt-key.gpg | apt-key add -
+apt-get update && apt-get install -y --no-install-recommends libfreetype6-dev libhdf5-serial-dev libzmq3-dev libpng-dev pkg-config software-properties-common unzip lsb-core curl git ca-certificates wget htop zip google-cloud-sdk
+
+pip install \
+    google-cloud \
+    google-cloud-bigquery \
+    google-cloud-datastore \
+    mock \
+    wheel \
+    absl-py \
+    tfds-nightly \
+    scikit-learn \
+    dill \
+    tblib \
+    portpicker \
+    six \
+    "google-api-python-client>=1.6.7" \
+    "kaggle>=1.3.9" \
+    "numpy>=1.20" \
+    oauth2client \
+    "pandas>=0.22.0" \
+    "psutil>=5.4.3" \
+    "py-cpuinfo>=3.3.0" \
+    "scipy>=0.19.1" \
+    "tensorflow-hub>=0.6.0" \
+    "tensorflow-model-optimization>=0.4.1" \
+    "tensorflow-datasets" \
+    "gin-config" \
+    "tf_slim>=1.1.0" \
+    "Cython" \
+    "matplotlib" \
+    pyyaml \
+    opencv-python-headless \
+    Pillow \
+    pycocotools \
+    seqeval \
+    sentencepiece \
+    sacrebleu \
+    immutabledict \
+    "wrapt>=1.11.0,<1.15" \
+    tensorflow-text-nightly \
+    tf-estimator-nightly
+
+git clone https://github.com/tensorflow/benchmarks
+
+python3 /benchmarks/perfzero/lib/benchmark.py --git_repos="https://github.com/tensorflow/models.git;benchmark" --python_path=models --gcloud_key_file_url="" --benchmark_methods=official.benchmark.keras_cifar_benchmark.Resnet56KerasBenchmarkSynth.benchmark_1_gpu_no_dist_strat
+
+# Outputs are at /benchmarks/perfzero/workspace/output/
