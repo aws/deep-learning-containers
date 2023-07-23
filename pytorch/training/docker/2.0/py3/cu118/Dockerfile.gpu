@@ -137,7 +137,6 @@ RUN /opt/conda/bin/mamba install -y --override-channels \
     mkl-include \
     parso \
     typing \
-    conda-content-trust \
     charset-normalizer \
     packaging \
     opencv \
