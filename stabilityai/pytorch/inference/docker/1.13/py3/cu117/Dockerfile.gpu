@@ -1,4 +1,4 @@
-FROM 763104351884.dkr.ecr.us-west-2.amazonaws.com/pytorch-inference:1.13.1-gpu-py39-cu117-ubuntu20.04-sagemaker
+FROM 763104351884.dkr.ecr.us-west-2.amazonaws.com/pytorch-inference:1.13.1-gpu-py39-cu117-ubuntu20.04-sagemaker as sagemaker
 ARG SGM_VERSION=0.0.1
 
 # Install Stability Generative Models
