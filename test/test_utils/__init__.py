@@ -1364,8 +1364,6 @@ def setup_sm_benchmark_hf_infer_env(resources_location):
     venv_dir = os.path.join(resources_location, "sm_benchmark_hf_venv")
     if not os.path.isdir(venv_dir):
         ctx.run(f"python3 -m virtualenv {venv_dir}")
-        with ctx.prefix(f"source {venv_dir}/bin/activate"):
-            ctx.run("pip install sagemaker awscli boto3 botocore")
     return venv_dir
 
 
@@ -1616,6 +1614,14 @@ NEURON_VERSION_MANIFEST = {
             "1.13.1": "1.13.1.2.7.1.0",
         },
     },
+    "2.11.0": {
+        "pytorch": {
+            "1.13.1": "1.13.1.2.7.10.0",
+        },
+        "tensorflow": {
+            "2.10.1": "2.10.1.2.8.9.0",
+        },
+    },
     "1.19.1": {
         "pytorch": {
             "1.7.1": "1.7.1.2.3.0.0",
@@ -1654,6 +1660,14 @@ NEURONX_VERSION_MANIFEST = {
     "2.10.0": {
         "pytorch": {
             "1.13.1": "1.13.1.1.7.0",
+        },
+        "tensorflow": {
+            "2.10.1": "2.10.1.2.1.0",
+        },
+    },
+    "2.11.0": {
+        "pytorch": {
+            "1.13.1": "1.13.1.1.8.0",
         },
         "tensorflow": {
             "2.10.1": "2.10.1.2.1.0",

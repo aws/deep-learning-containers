@@ -17,7 +17,7 @@ from packaging.version import Version
 import sagemaker
 from sagemaker.huggingface import HuggingFaceModel
 
-
+from test.test_utils import get_framework_and_version_from_tag
 from ...integration import (
     model_dir,
     pt_model,
@@ -26,67 +26,69 @@ from ...integration import (
     dump_logs_from_cloudwatch,
 )
 from ...integration.sagemaker.timeout import timeout_and_delete_endpoint
+from ..... import invoke_sm_endpoint_helper_function
 
 
 @pytest.mark.model("tiny-distilbert")
 @pytest.mark.processor("cpu")
 @pytest.mark.cpu_test
 def test_torch_compile_cpu_hosting(
-    sagemaker_session, framework_version, ecr_image, instance_type, region, py_version
+    framework_version, ecr_image, instance_type, sagemaker_regions, py_version
 ):
-    if "pytorch" in ecr_image and Version(framework_version) < Version("2.0"):
+    framework, _ = get_framework_and_version_from_tag(ecr_image)
+    if "pytorch" not in framework:
+        pytest.skip(f"Skipping test for non-pytorch image - {ecr_image}")
+    if Version(framework_version) < Version("2.0"):
         pytest.skip("Skipping torch compile tests for PT 1.X")
-
     instance_type = instance_type or "ml.m5.xlarge"
-    try:
-        _test_pt_compile(
-            sagemaker_session,
-            framework_version,
-            ecr_image,
-            instance_type,
-            model_dir,
-            script_dir,
-            py_version,
-        )
-    except Exception as e:
-        dump_logs_from_cloudwatch(e, region)
-        raise
+    invoke_sm_endpoint_helper_function(
+        ecr_image=ecr_image,
+        sagemaker_regions=sagemaker_regions,
+        test_function=_test_pt_compile,
+        framework_version=framework_version,
+        instance_type=instance_type,
+        model_dir=model_dir,
+        script_dir=script_dir,
+        py_version=py_version,
+        dump_logs_from_cloudwatch=dump_logs_from_cloudwatch,
+    )
 
 
 @pytest.mark.model("tiny-distilbert")
 @pytest.mark.processor("gpu")
 @pytest.mark.gpu_test
 def test_torch_compile_gpu_hosting(
-    sagemaker_session, framework_version, ecr_image, instance_type, region, py_version
+    framework_version, ecr_image, instance_type, sagemaker_regions, py_version
 ):
-    if "pytorch" in ecr_image and Version(framework_version) < Version("2.0"):
+    framework, _ = get_framework_and_version_from_tag(ecr_image)
+    if "pytorch" not in framework:
+        pytest.skip(f"Skipping test for non-pytorch image - {ecr_image}")
+    if Version(framework_version) < Version("2.0"):
         pytest.skip("Skipping torch compile tests for PT 1.X")
-
     instance_type = instance_type or "ml.p3.2xlarge"
-    try:
-        _test_pt_compile(
-            sagemaker_session,
-            framework_version,
-            ecr_image,
-            instance_type,
-            model_dir,
-            script_dir,
-            py_version,
-        )
-    except Exception as e:
-        dump_logs_from_cloudwatch(e, region)
-        raise
+    invoke_sm_endpoint_helper_function(
+        ecr_image=ecr_image,
+        sagemaker_regions=sagemaker_regions,
+        test_function=_test_pt_compile,
+        framework_version=framework_version,
+        instance_type=instance_type,
+        model_dir=model_dir,
+        script_dir=script_dir,
+        py_version=py_version,
+        dump_logs_from_cloudwatch=dump_logs_from_cloudwatch,
+    )
 
 
 def _test_pt_compile(
     sagemaker_session,
     framework_version,
-    ecr_image,
+    image_uri,
     instance_type,
     model_dir,
     script_dir,
     py_version,
     accelerator_type=None,
+    **kwargs,
 ):
     endpoint_name = sagemaker.utils.unique_name_from_base(
         "sagemaker-huggingface-inference-torch-compile-serving"
@@ -97,16 +99,13 @@ def _test_pt_compile(
         key_prefix="sagemaker-huggingface-inference-torch-compile-serving/models",
     )
 
-    if "pytorch" in ecr_image:
-        model_file = pt_model
-        entry_point = pt_compile_script
-    else:
-        raise ValueError(f"Unsupported framework for image: {ecr_image}")
+    model_file = pt_model
+    entry_point = pt_compile_script
 
     hf_model = HuggingFaceModel(
         model_data=f"{model_data}/{model_file}",
         role="SageMakerRole",
-        image_uri=ecr_image,
+        image_uri=image_uri,
         sagemaker_session=sagemaker_session,
         entry_point=entry_point,
         source_dir=script_dir,
