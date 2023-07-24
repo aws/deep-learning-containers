@@ -154,10 +154,15 @@ SageMaker Framework Graviton Containers (SM support only)
 
 NVIDIA Triton Inference Containers (SM support only)
 ============================
-**Note**: The following versions of the 23.`<XY>` container are supported: `23.01, 23.02, 23.03`
+**Note**: 
+
+1. The following versions of the 23.`<XY>` container are supported: `23.01, 23.02, 23.03, 23.05`.
+2. SageMaker Triton Inference Container does not support Tensorflow1 as of version 23.05 onwards.
+
 | Framework         |Job Type	|Horovod Options|CPU/GPU 	|Python Version Options	|Example URL																						|
 |-------------------|-----------|---------------|-----------|-----------------------|---------------------------------------------------------------------------------------------------|
 |NVIDIA Triton Inference Server 23.`<XY>`    |inference	|No			|GPU 		| 3.8 (py38)			|007439368137.dkr.ecr.us-east-2.amazonaws.com/sagemaker-tritonserver:23.`<XY>`-py3		|
+|NVIDIA Triton Inference Server 23.`<XY>`    |inference	|No			|CPU 		| 3.8 (py38)			|007439368137.dkr.ecr.us-east-2.amazonaws.com/sagemaker-tritonserver:23.`<XY>`-py3-cpu		|
 
 **Note**: The following versions of the 22.`<XY>` container are supported:
 `22.05, 22.07, 22.08, 22.09, 22.10, 22.12`
