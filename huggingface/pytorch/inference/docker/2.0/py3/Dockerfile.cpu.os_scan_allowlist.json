@@ -32,6 +32,7 @@
   ],
   "scipy": [
     {
+        "reason_to_ignore": "According to the maintainer, this issue is not to be considered a vulnerability. The current version of Scipy installed is 1.11.1. Vulnerability requires version to be greater than 1.8.0.",
         "description":"## Overview\n\nAffected versions of this package are vulnerable to Use After Free via the `Py_FindObjects()` function.\r\n\r\n**Note:**\r\n\r\nAccording to the maintainer, this issue is not to be considered a vulnerability.\n## PoC\n```\r\nvoid f() {\r\n  PyObject *result = PyList_New(1); // <-- new reference returned (line 878)\r\n  assert(result);\r\n  printf(\"%ld\\n\", result->ob_refcnt); // 1\r\n\r\n  PyErr_NoMemory(); // <-- error happens, an exception is thrown (line 890)\r\n  Py_XDECREF(result); // <-- destruction here (line 924)\r\n  printf(\"%ld\\n\", result->ob_refcnt); // 0\r\n\r\n  if (PyErr_Occurred()) {\r\n    Py_XDECREF(result); // <-- use after free here (line 931)\r\n    printf(\"%ld\\n\", result->ob_refcnt); // -1\r\n  }\r\n}\r\n```\n## Remediation\nUpgrade `scipy` to version 1.8.0 or higher.\n## References\n- [GitHub Commit](https://github.com/scipy/scipy/commit/e32fc2329d3dd23298725153c5b2cc7fcd0f14f1)\n- [GitHub Issue](https://github.com/scipy/scipy/issues/14713)\n- [GitHub PR](https://github.com/scipy/scipy/pull/15013)\n- [GitHub Release](http",
         "vulnerability_id":"SNYK-PYTHON-SCIPY-5759266",
         "name":"SNYK-PYTHON-SCIPY-5759266",
