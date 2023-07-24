@@ -157,7 +157,8 @@ NVIDIA Triton Inference Containers (SM support only)
 **Note**: 
 
 1. The following versions of the 23.`<XY>` container are supported: `23.01, 23.02, 23.03, 23.05`.
-2. SageMaker Triton Inference Container does not support Tensorflow1 as of version 23.05 onwards.
+2. SageMaker Triton Inference Container does not support Tensorflow1 as of version 23.05 onwards, as upstream Triton container does not support 
+Tensorflow(v1) native backend from version 23.04 onwards.
 
 | Framework         |Job Type	|Horovod Options|CPU/GPU 	|Python Version Options	|Example URL																						|
 |-------------------|-----------|---------------|-----------|-----------------------|---------------------------------------------------------------------------------------------------|
