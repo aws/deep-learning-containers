@@ -25,20 +25,23 @@ ARG AUTOGLUON_VERSION=0.7.0
 
 # NOTE: reinstalling horovod with pytorch support because it is available in the container
 # pin protobuf <=3.20.3 to reosolve dependency conflict with sagemaker packages
-# update cryptography >=41.0.0: CVE-2023-2650
-# update pyOpenSSL 23.2.0 so cryptography can be updated
-# pin yapf to resolve importlib-metadata conflict with sagemaker==2.150.0
+# downgrade protobuf, importlib-metada, yapf to fix pip version conflict
+# upgrade requests, cryptography, tornado for vulnerabilities in base image
 RUN pip install --no-cache-dir -U --trusted-host pypi.org --trusted-host files.pythonhosted.org pip \
  && pip install --no-cache-dir -U setuptools wheel \
  && pip install --no-cache-dir -U numpy numba \
  && pip install --no-cache-dir -U autogluon==${AUTOGLUON_VERSION} \
  && mim install -q mmcv-full \
  && pip install --no-cache-dir -U mmdet \
- && pip install --no-cache-dir -U "protobuf<=3.20.3" \
+ && pip uninstall -y tensorboardX \
+ && pip install --no-cache-dir -U "protobuf<4.0" \
+ && pip install --no-cache-dir -U Werkzeug \
  && pip install --no-cache-dir -U "yapf<0.40.0" \
  && pip install --no-cache-dir -U "importlib-metadata<5.0" \
+ && pip install --no-cache-dir -U requests>=2.31.0 \
  && pip install --no-cache-dir -U pyOpenSSL>=23.2.0 \
- && pip install --no-cache-dir -U cryptography>=41.0.0
+ && pip install --no-cache-dir -U cryptography>=41.0.2 \
+ && pip install --no-cache-dir -U tornado>=6.3.2
 
 # Removing GluonTS nursery/tsbench package - it is not used in training/inference and have security vulnerabilities
 RUN rm -rf /usr/local/lib/python3.9/dist-packages/gluonts/nursery/tsbench \
