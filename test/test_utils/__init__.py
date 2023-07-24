@@ -1481,7 +1481,7 @@ def get_neuron_release_manifest(sdk_version):
 
     package_array = release["packages"]
     package_versions = {}
-    for package in package_versions:
+    for package in package_array:
         package_name = package["name"]
         package_version = package["version"]
         if package_name not in package_versions:
