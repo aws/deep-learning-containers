@@ -24,7 +24,6 @@ from test.test_utils import (
     get_container_name,
     get_framework_and_version_from_tag,
     get_neuron_sdk_version_from_tag,
-    get_neuron_framework_and_version_from_tag,
     get_neuron_release_manifest,
     is_canary_context,
     is_dlc_cicd_context,
