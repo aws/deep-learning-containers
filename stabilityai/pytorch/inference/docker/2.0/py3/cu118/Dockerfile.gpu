@@ -1,10 +1,17 @@
 FROM 763104351884.dkr.ecr.us-west-2.amazonaws.com/pytorch-inference:2.0.1-gpu-py310-cu118-ubuntu20.04-sagemaker as sagemaker
-ARG SGM_VERSION=0.0.1
+LABEL dlc_major_version="1"
 
-# Install Stability Generative Models
-RUN cd /tmp \
- && git clone https://github.com/stability-ai/generative-models -b palp/model-tests \
+ARG SGM_VERSION=0.0.1
+ARG XFORMERS_VERSION=0.0.20
+
+ # xformers must be installed from source due to the older version of python in the DLC
+ RUN pip install ninja \
+ && pip install -v -U git+https://github.com/facebookresearch/xformers.git@v${XFORMERS_VERSION}#egg=xformers
+
+# Install Stability Generative Models, at the moment the wheel install does not work so we need the full repo
+# TODO use a tag
+RUN mkdir -p /opt/ml/stability-ai \
+ && cd /opt/ml/stability-ai \
+ && git clone https://github.com/stability-ai/generative-models -b palp/model-tests \ 
  && cd generative-models \
- && pip install -r requirements_pt2.txt \
- && pip install . \
- && rm -rf /tmp/generative-models
+ && pip install -r requirements_pt2.txt
