@@ -26,6 +26,7 @@ ARG AUTOGLUON_VERSION=0.7.0
 # Need to install Werkzeug>2.2.2 to address security vulnerability SNYK-PYTHON-WERKZEUG-3319936
 # downgrade protobuf, importlib-metada, yapf to fix pip version conflict
 # upgrade requests, cryptography, tornado for vulnerabilities in base image
+# uninstall tensorboardx to resolve conflict for protobuf
 RUN pip install --no-cache-dir -U --trusted-host pypi.org --trusted-host files.pythonhosted.org pip \
  && pip install --no-cache-dir -U setuptools wheel \
  && pip install --no-cache-dir -U numpy numba \
