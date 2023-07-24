@@ -1455,6 +1455,8 @@ def get_neuron_release_manifest(sdk_version):
     NEURON_RELEASE_MANIFEST_URL = "https://raw.githubusercontent.com/aws-neuron/aws-neuron-sdk/master/src/helperscripts/n2-manifest.json"
 
     manifest = requests.get(NEURON_RELEASE_MANIFEST_URL)
+    assert manifest.text, f"Neuron manifest file at {NEURON_RELEASE_MANIFEST_URL} is empty"
+
     manifest_data = json.loads(manifest.text)
 
     if "neuron_releases" not in manifest_data:
