@@ -28,7 +28,9 @@ RUN pip install --no-cache-dir -U --trusted-host pypi.org --trusted-host files.p
  && pip install --no-cache-dir -U numpy numba \
  && pip install --no-cache-dir -U autogluon==${AUTOGLUON_VERSION} \
  && mim install -q mmcv-full \
- && pip install --no-cache-dir -U mmdet
+ && pip install --no-cache-dir -U mmdet \
+ && pip install --no-cache-dir -U "protobuf<4.0" \
+ && pip install --no-cache-dir -U cryptography>=41.0.2
 
 # Removing GluonTS nursery/tsbench package - it is not used in training/inference and have security vulnerabilities
 # Remove these to address security issues; these are not used if only python package is used
