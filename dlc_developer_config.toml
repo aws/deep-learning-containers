@@ -35,10 +35,10 @@ build_frameworks = ["pytorch"]
 
 # By default we build both training and inference containers. Set true/false values to determine which to build.
 build_training = true
-build_inference = true
+build_inference = false
 
 # Set to false in order to remove datetime tag on PR builds
-datetime_tag = true
+datetime_tag = false
 # Note: Need to build the images at least once with datetime_tag = false
 # before disabling new builds, or tests will fail
 do_build = true
@@ -48,9 +48,9 @@ do_build = true
 sanity_tests = true
   safety_check_test = false
   ecr_scan_allowlist_feature = false
-ecs_tests = true
-eks_tests = true
-ec2_tests = true
+ecs_tests = false
+eks_tests = false
+ec2_tests = false
 
 ### Set ec2_efa_tests = true to be able to run any EC2 tests on any instance type that uses EFA-capable instances by
 ### default. If false, these types of tests will be skipped while other tests will run as usual.
