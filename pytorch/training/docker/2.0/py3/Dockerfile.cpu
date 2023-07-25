@@ -252,6 +252,7 @@ ARG PT_SM_TRAINING_URL
 ARG PT_TORCHVISION_URL
 ARG PT_TORCHAUDIO_URL
 ARG PT_TORCHDATA_URL
+ARG PYTORCH_VERSION_SM
 
 # Install SM AWS-PyTorch (force remove will increase the docker image size drastically)
 RUN /opt/conda/bin/mamba install -y pytorch=${PYTORCH_VERSION_SM} \
