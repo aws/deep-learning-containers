@@ -307,6 +307,15 @@ ARG TF_URL=https://framework-binaries.s3.us-west-2.amazonaws.com/tensorflow/r2.1
 # sagemaker-specific environment variable
 ENV SAGEMAKER_TRAINING_MODULE sagemaker_tensorflow_container.training:main
 
+# Need to install wheel before we can fix the pyyaml issue below
+RUN pip install wheel
+    
+# https://github.com/yaml/pyyaml/issues/601
+# PyYaml less than 6.0.1 failes to build with cython v3 and above.
+# tf-models-official uses older versions, breaking the install.
+# going to install the older pyyaml and cython for the build.
+RUN pip install "cython<3" "pyyaml<6" --no-build-isolation
+
 # https://github.com/tensorflow/models/issues/9267
 # tf-models does not respect existing installations of TF and always installs open source TF
 RUN ${PIP} install --no-cache-dir -U \
