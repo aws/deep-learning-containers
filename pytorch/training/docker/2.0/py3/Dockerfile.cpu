@@ -258,7 +258,7 @@ ARG PYTORCH_VERSION_SM
 RUN /opt/conda/bin/mamba install -y pytorch=${PYTORCH_VERSION_SM} \
   torchvision torchaudio torchtext cpuonly \
   --override-channels \
-  -c https://aws-ml-conda-pre-prod-ec2.s3.us-west-2.amazonaws.com \
+  -c https://aws-ml-conda-ec2.s3.us-west-2.amazonaws.com \
   -c conda-forge
 
 # install fastai (depends on PyTorch)
