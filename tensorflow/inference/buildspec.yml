@@ -46,7 +46,7 @@ images:
   BuildEC2TensorflowGPUInferencePy3DockerImage:
     <<: *INFERENCE_REPOSITORY
     build: &TENSORFLOW_GPU_INFERENCE_PY3 false
-    image_size_baseline: &IMAGE_SIZE_BASELINE 10000
+    image_size_baseline: &IMAGE_SIZE_BASELINE 13100
     framework_version: &FRAMEWORK_VERSION 2.13.0
     device_type: &DEVICE_TYPE gpu
     python_version: &DOCKER_PYTHON_VERSION py3
@@ -77,7 +77,7 @@ images:
   BuildSageMakerTensorflowGPUInferencePy3DockerImage:
     <<: *INFERENCE_REPOSITORY
     build: &TENSORFLOW_GPU_INFERENCE_PY3 false
-    image_size_baseline: &IMAGE_SIZE_BASELINE 10000
+    image_size_baseline: &IMAGE_SIZE_BASELINE 13100
     framework_version: &FRAMEWORK_VERSION 2.13.0
     device_type: &DEVICE_TYPE gpu
     python_version: &DOCKER_PYTHON_VERSION py3
