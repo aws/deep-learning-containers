@@ -116,12 +116,12 @@ RUN ${PIP} --no-cache-dir install --upgrade \
 
 # Install TensorRT
 # see https://github.com/NVIDIA/TensorRT/blob/master/docker/ubuntu-20.04.Dockerfile
-RUN v="8.6.1.6-1+cuda11.8" && \
+RUN v="8.4.3-1+cuda11.6" && \
     apt-key adv --fetch-keys https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2004/x86_64/7fa2af80.pub &&\
     apt-get update &&\
     yes | apt-get install libnvinfer8=${v} libnvonnxparsers8=${v} libnvparsers8=${v} libnvinfer-plugin8=${v} \
         libnvinfer-dev=${v} libnvonnxparsers-dev=${v} libnvparsers-dev=${v} libnvinfer-plugin-dev=${v} \
-        python3-libnvinfer=${v} libnvinfer-headers-dev=${v} libnvinfer-headers-plugin-dev=${v} libnvinfer-vc-plugin8=${v}
+        python3-libnvinfer=${v}
 
 # Upgrade libsasl2-2 for fixing cyrus-sasl2 related CVE
 RUN apt-get install -y --only-upgrade libsasl2-2
