@@ -211,7 +211,6 @@ RUN pip install --no-cache-dir -U \
 RUN pip install --no-cache-dir -U -r https://raw.githubusercontent.com/pytorch/serve/v${TORCHSERVE_VERSION}/requirements/common.txt \
  && pip install --no-cache-dir -U \ 
     "numpy>=1.22.2,<1.23" \
-    "pyyaml>=5.4,<5.5" \
     torchserve==${TORCHSERVE_VERSION} \
     torch-model-archiver==${TORCHSERVE_VERSION}
 
