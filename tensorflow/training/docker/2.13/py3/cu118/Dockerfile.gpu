@@ -346,12 +346,12 @@ RUN git clone https://github.com/awslabs/sagemaker-debugger.git \
     && $PYTHON setup.py install && cd .. && rm -rf sagemaker-debugger
 
 # install sagemaker-tensorflow from source
-# ARG SAGEMAKER_TENSORFLOW_TAG=v1.18.0
-# RUN git clone -b tf-2 https://github.com/aws/sagemaker-tensorflow-extensions.git \
-#     && cd sagemaker-tensorflow-extensions \
-#     && git checkout tags/$SAGEMAKER_TENSORFLOW_TAG -b $SAGEMAKER_TENSORFLOW_TAG \
-#     && $PYTHON -m pip install . \
-#     && cd .. && rm -rf sagemaker-tensorflow-extensions
+ARG SAGEMAKER_TENSORFLOW_TAG=v1.19.0
+RUN git clone -b tf-2 https://github.com/aws/sagemaker-tensorflow-extensions.git \
+    && cd sagemaker-tensorflow-extensions \
+    && git checkout tags/$SAGEMAKER_TENSORFLOW_TAG -b $SAGEMAKER_TENSORFLOW_TAG \
+    && $PYTHON -m pip install . \
+    && cd .. && rm -rf sagemaker-tensorflow-extensions
 
 # install boost
 # tensorflow is compiled with --cxxopt="-D_GLIBCXX_USE_CXX11_ABI=1"

@@ -71,36 +71,36 @@ images:
     enable_test_promotion: true
     context:
       <<: *TRAINING_CONTEXT
-  # BuildTensorflowSageMakerCpuPy310TrainingDockerImage:
-  #   <<: *TRAINING_REPOSITORY
-  #   build: &TENSORFLOW_CPU_TRAINING_PY3 false
-  #   image_size_baseline: &IMAGE_SIZE_BASELINE 7500
-  #   device_type: &DEVICE_TYPE cpu
-  #   python_version: &DOCKER_PYTHON_VERSION py3
-  #   tag_python_version: &TAG_PYTHON_VERSION py310
-  #   os_version: &OS_VERSION ubuntu20.04
-  #   tag: !join [ *VERSION, "-", *DEVICE_TYPE, "-", *TAG_PYTHON_VERSION, "-", *OS_VERSION, "-sagemaker"
-  #   ]
-  #   docker_file: !join [ docker/, *SHORT_VERSION, /, *DOCKER_PYTHON_VERSION, /Dockerfile.,
-  #                        *DEVICE_TYPE ]
-  #   target: sagemaker
-  #   enable_test_promotion: true
-  #   context:
-  #     <<: *TRAINING_CONTEXT
-  # BuildTensorflowSageMakerGpuPy310Cu118TrainingDockerImage:
-  #   <<: *TRAINING_REPOSITORY
-  #   build: &TENSORFLOW_GPU_TRAINING_PY3 false
-  #   image_size_baseline: &IMAGE_SIZE_BASELINE 11998
-  #   device_type: &DEVICE_TYPE gpu
-  #   python_version: &DOCKER_PYTHON_VERSION py3
-  #   tag_python_version: &TAG_PYTHON_VERSION py310
-  #   cuda_version: &CUDA_VERSION cu118
-  #   os_version: &OS_VERSION ubuntu20.04
-  #   tag: !join [ *VERSION, "-", *DEVICE_TYPE, "-", *TAG_PYTHON_VERSION, "-", *CUDA_VERSION,
-  #                "-", *OS_VERSION, "-sagemaker" ]
-  #   docker_file: !join [ docker/, *SHORT_VERSION, /, *DOCKER_PYTHON_VERSION, /, *CUDA_VERSION,
-  #                        /Dockerfile., *DEVICE_TYPE ]
-  #   target: sagemaker
-  #   enable_test_promotion: true
-  #   context:
-  #     <<: *TRAINING_CONTEXT
+  BuildTensorflowSageMakerCpuPy310TrainingDockerImage:
+    <<: *TRAINING_REPOSITORY
+    build: &TENSORFLOW_CPU_TRAINING_PY3 false
+    image_size_baseline: &IMAGE_SIZE_BASELINE 7500
+    device_type: &DEVICE_TYPE cpu
+    python_version: &DOCKER_PYTHON_VERSION py3
+    tag_python_version: &TAG_PYTHON_VERSION py310
+    os_version: &OS_VERSION ubuntu20.04
+    tag: !join [ *VERSION, "-", *DEVICE_TYPE, "-", *TAG_PYTHON_VERSION, "-", *OS_VERSION, "-sagemaker"
+    ]
+    docker_file: !join [ docker/, *SHORT_VERSION, /, *DOCKER_PYTHON_VERSION, /Dockerfile.,
+                         *DEVICE_TYPE ]
+    target: sagemaker
+    enable_test_promotion: true
+    context:
+      <<: *TRAINING_CONTEXT
+  BuildTensorflowSageMakerGpuPy310Cu118TrainingDockerImage:
+    <<: *TRAINING_REPOSITORY
+    build: &TENSORFLOW_GPU_TRAINING_PY3 false
+    image_size_baseline: &IMAGE_SIZE_BASELINE 11998
+    device_type: &DEVICE_TYPE gpu
+    python_version: &DOCKER_PYTHON_VERSION py3
+    tag_python_version: &TAG_PYTHON_VERSION py310
+    cuda_version: &CUDA_VERSION cu118
+    os_version: &OS_VERSION ubuntu20.04
+    tag: !join [ *VERSION, "-", *DEVICE_TYPE, "-", *TAG_PYTHON_VERSION, "-", *CUDA_VERSION,
+                 "-", *OS_VERSION, "-sagemaker" ]
+    docker_file: !join [ docker/, *SHORT_VERSION, /, *DOCKER_PYTHON_VERSION, /, *CUDA_VERSION,
+                         /Dockerfile., *DEVICE_TYPE ]
+    target: sagemaker
+    enable_test_promotion: true
+    context:
+      <<: *TRAINING_CONTEXT
