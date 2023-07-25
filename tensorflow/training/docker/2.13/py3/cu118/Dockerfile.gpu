@@ -348,7 +348,7 @@ RUN $PYTHON -m pip install --no-cache-dir -U \
     smclarify
 
 # install smdebug directly the specific branch
-ARG SMDEBUG_TAG=1.0.33
+ARG SMDEBUG_TAG=1.0.34
 RUN git clone https://github.com/awslabs/sagemaker-debugger.git \
     && cd sagemaker-debugger \
     && git checkout tags/$SMDEBUG_TAG -b $SMDEBUG_TAG \
@@ -373,6 +373,10 @@ RUN wget https://sourceforge.net/projects/boost/files/boost/1.82.0/boost_1_82_0.
    && rm -rf boost_1_82_0.tar.gz \
    && rm -rf boost_1_82_0 \
    && cd /usr/include/boost
+
+
+# being done again here to deal with pipcheck
+RUN pip install "cython<3" "pyyaml<6" --no-build-isolation
 
 # Add NGC vars
 ENV TF_AUTOTUNE_THRESHOLD=2
