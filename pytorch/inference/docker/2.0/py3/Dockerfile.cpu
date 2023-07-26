@@ -129,7 +129,8 @@ RUN pip install --no-cache-dir --extra-index-url https://download.pytorch.org/wh
     boto3 \
     scipy \
     opencv-python \
-    "cryptography>=38.0.0,<40" \
+    pyOpenSSL \
+    cryptography \
     "ipython>=8.10.0,<9.0" \
     "awscli<2"
 
@@ -140,8 +141,6 @@ RUN pip install --no-cache-dir --extra-index-url https://download.pytorch.org/wh
 RUN pip uninstall -y torch torchvision torchaudio torchdata model-archiver multi-model-server
 
 # install pytorch wheels
-# -> Numpy is higer version as required by torch
-# -> PyYaml needs to be high pinned for awscli v1 (current v1 = 1.27.99)
 RUN pip install --no-cache-dir -U \
     ${TORCH_URL} \
     ${TORCHVISION_URL} \
@@ -151,6 +150,7 @@ RUN pip install --no-cache-dir -U \
 
 # Install TorchServe pypi dependencies directly from their requirements.txt file
 # NOTE: This also brings in unnecessary cpu dependencies like nvgpu
+# -> Numpy is higer version as required by torch
 RUN pip install --no-cache-dir -U -r https://raw.githubusercontent.com/pytorch/serve/v${TORCHSERVE_VERSION}/requirements/common.txt \
  && pip install --no-cache-dir -U \
     "numpy>=1.22.2,<1.23" \
