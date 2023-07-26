@@ -127,7 +127,6 @@ RUN curl -L -o ~/mambaforge.sh https://github.com/conda-forge/miniforge/releases
  && conda clean -ya
 
 # Install Common python packages
-# Pin Cryprography for pyopenssl
 RUN ln -s /opt/conda/bin/pip /usr/local/bin/pip3 \
  && pip install --upgrade pip --trusted-host pypi.org --trusted-host files.pythonhosted.org \
  && pip install \

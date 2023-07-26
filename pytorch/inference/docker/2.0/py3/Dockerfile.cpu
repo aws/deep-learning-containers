@@ -124,7 +124,6 @@ RUN pip install --upgrade pip --trusted-host pypi.org --trusted-host files.pytho
  && ln -s /opt/conda/bin/pip /usr/local/bin/pip3
 
 # Install Common python packages
-# Pin Cryprography for pyopenssl
 RUN pip install --no-cache-dir --extra-index-url https://download.pytorch.org/whl/cpu -U \
     boto3 \
     scipy \
