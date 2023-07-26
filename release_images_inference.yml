@@ -41,8 +41,8 @@ release_images:
       disable_sm_tag: False  # [Default: False] This option is not used by Example images
       force_release: False
   4:
-    framework: "pytorch"
-    version: "1.13.1"
+    framework: "tensorflow"
+    version: "2.10.1"
     arch_type: "x86"
     inference:
       device_types: [ "neuron" ]
@@ -55,8 +55,8 @@ release_images:
       force_release: False  # [Default: False] Set to True to force images to be published even if the same image
                             # has already been published. Re-released image will have minor version incremented by 1.
   5:
-    framework: "pytorch"
-    version: "1.13.1"
+    framework: "tensorflow"
+    version: "2.10.1"
     arch_type: "x86"
     inference:
       device_types: [ "neuronx" ]
