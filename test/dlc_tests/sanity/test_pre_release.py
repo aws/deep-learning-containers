@@ -3,6 +3,7 @@ import re
 import subprocess
 import botocore
 import boto3
+import json
 import time
 
 from packaging.version import Version
@@ -22,7 +23,8 @@ from test.test_utils import (
     ec2,
     get_container_name,
     get_framework_and_version_from_tag,
-    get_neuron_framework_and_version_from_tag,
+    get_neuron_sdk_version_from_tag,
+    get_neuron_release_manifest,
     is_canary_context,
     is_dlc_cicd_context,
     run_cmd_on_container,
@@ -373,36 +375,40 @@ def test_framework_and_neuron_sdk_version(neuron):
     """
     image = neuron
 
-    tested_framework, neuron_tag_framework_version = get_neuron_framework_and_version_from_tag(
-        image
-    )
+    tested_framework, tag_framework_version = get_framework_and_version_from_tag(image)
+    neuron_sdk_version = get_neuron_sdk_version_from_tag(image)
 
-    # neuron tag is there in pytorch images for now. Once all frameworks have it, then this will
-    # be removed
-    if neuron_tag_framework_version is None:
-        if tested_framework == "pytorch":
-            assert neuron_tag_framework_version != None
-        else:
-            pytest.skip(msg="Neuron SDK tag is not there as part of image")
+    assert neuron_sdk_version is not None, "missing Neuron SDK version"
+
+    release_manifest = get_neuron_release_manifest(neuron_sdk_version)
 
     # Framework name may include huggingface
     if tested_framework.startswith("huggingface_"):
         tested_framework = tested_framework[len("huggingface_") :]
 
+    package_name = None
     if tested_framework == "pytorch":
         if "training" in image or "neuronx" in image:
             tested_framework = "torch_neuronx"
+            package_name = "torch-neuronx"
         else:
             tested_framework = "torch_neuron"
+            package_name = "torch-neuron"
     elif tested_framework == "tensorflow":
         if "neuronx" in image:
             tested_framework = "tensorflow_neuronx"
+            package_name = "tensorflow-neuronx"
         else:
             tested_framework = "tensorflow_neuron"
+            package_name = "tensorflow-neuronx"
     elif tested_framework == "mxnet":
         tested_framework = "mxnet"
+        package_name = "mxnet_neuron"
 
     ctx = Context()
+    assert (
+        package_name in release_manifest
+    ), f"release_manifest does not contain package {package_name}:\n {json.dumps(release_manifest)}"
 
     container_name = get_container_name("framework-version-neuron", image)
     start_container(container_name, image, ctx)
@@ -413,15 +419,12 @@ def test_framework_and_neuron_sdk_version(neuron):
         executable="python",
     )
 
-    if tested_framework == "mxnet":
-        # TODO -For neuron the mx_neuron module does not support the __version__ yet and we
-        # can get the version of only the base mxnet model. The base mxnet model just
-        # has framework version and does not have the neuron semantic version yet. Till
-        # the mx_neuron supports __version__ do the minimal check and not exact match
-        _, tag_framework_version = get_framework_and_version_from_tag(image)
-        assert tag_framework_version == output.stdout.strip()
-    else:
-        assert neuron_tag_framework_version == output.stdout.strip()
+    installed_framework_version = output.stdout.strip()
+    assert installed_framework_version in release_manifest[package_name], (
+        f"framework {tested_framework} version {installed_framework_version} "
+        f"not found in released versions for that package: {release_manifest[package_name]}"
+    )
+
     stop_and_remove_container(container_name, ctx)
 
 
