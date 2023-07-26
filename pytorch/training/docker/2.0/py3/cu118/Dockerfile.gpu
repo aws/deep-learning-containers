@@ -449,6 +449,28 @@ RUN chmod +x /usr/local/bin/start_with_right_hostname.sh
 
 WORKDIR /root
 
+RUN git clone https://github.com/HazyResearch/flash-attention \
+    && cd flash-attention && git checkout v1.0.7 \
+    && cd csrc/ft_attention && ln=$(grep -wn "\-\-threads" ./setup.py | cut -d: -f1) \
+    && sed -i "${ln} s/4/1/" ./setup.py && cd ../../ \
+    && cd csrc/fused_softmax && ln=$(grep -wn "\-\-threads" ./setup.py | cut -d: -f1) \
+    && sed -i "${ln} s/4/1/" ./setup.py && cd ../../ \
+    && cd csrc/xentropy && ln=$(grep -wn "\-\-threads" ./setup.py | cut -d: -f1) \
+    && sed -i "${ln} s/4/1/" ./setup.py && cd ../../ \
+    && cd csrc/layer_norm && ln=$(grep -wn "\-\-threads" ./setup.py | cut -d: -f1) \
+    && sed -i "${ln} s/4/1/" ./setup.py && cd ../../ \
+    && cd csrc/rotary && ln=$(grep -wn "\-\-threads" ./setup.py | cut -d: -f1) \
+    && sed -i "${ln} s/4/1/" ./setup.py && cd ../../ \
+    && cd csrc/fused_dense_lib && ln=$(grep -wn "\-\-threads" ./setup.py | cut -d: -f1) \
+    && sed -i "${ln} s/4/1/" ./setup.py && cd ../../ \
+    && cd csrc/fused_softmax && pip install . && cd ../../ \
+    && cd csrc/rotary && pip install . && cd ../../ \
+    && cd csrc/xentropy && pip install . && cd ../../ \
+    && cd csrc/layer_norm && pip install . && cd ../../ \
+    && cd csrc/fused_dense_lib && pip install . && cd ../../ \
+    && cd csrc/ft_attention && pip install . && cd ../../ \
+    && cd .. && rm -rf flash-attention
+
 RUN pip install --no-cache-dir -U \
     smclarify \
     "sagemaker>=2,<3" \
