@@ -74,7 +74,7 @@ def test_distributed_training_horovod_basic_two_nodes_two_processes(
     docker_image,
     tmpdir,
     framework_version,
-    below_tf213_only,
+    sm_below_tf213_only,
 ):
     _run_distributed_training_horovod_basic(
         instances, processes, sagemaker_local_session, docker_image, tmpdir, framework_version

@@ -243,7 +243,10 @@ RUN pip install wheel
 # https://github.com/yaml/pyyaml/issues/601
 # PyYaml less than 6.0.1 failes to build with cython v3 and above.
 # tf-models-official uses older versions, breaking the install.
-# going to install the older pyyaml and cython for the build.
+# going to install the older pyyaml and cython to get tfd-models-official
+# the sagemaker package will revert pyyaml back to 6 for its requirement
+# and this is fine since sagemaker is more important than the models and
+# the models still work on pyyaml 6 in this context.
 RUN pip install "cython<3" "pyyaml<6" --no-build-isolation
 
 # https://github.com/tensorflow/models/issues/9267
@@ -252,8 +255,8 @@ RUN ${PIP} install --no-cache-dir -U \
     tf-models-official==2.13.0 \
     tensorflow-text==2.13.0
 
-RUN ${PIP} uninstall -y tensorflow tensorflow-gpu \
-    ; ${PIP} install --no-cache-dir -U \
+RUN ${PIP} uninstall -y tensorflow tensorflow-gpu
+RUN ${PIP} install --no-cache-dir -U \
     ${TF_URL} \
     tensorflow-io \
     tensorflow-datasets
@@ -277,13 +280,6 @@ RUN $PYTHON -m pip install --no-cache-dir -U \
     "sagemaker-studio-sparkmagic-lib<1" \
     smclarify
 
-# install smdebug directly the specific branch
-ARG SMDEBUG_TAG=1.0.34
-RUN git clone https://github.com/awslabs/sagemaker-debugger.git \
-    && cd sagemaker-debugger \
-    && git checkout tags/$SMDEBUG_TAG -b $SMDEBUG_TAG \
-    && $PYTHON setup.py install && cd .. && rm -rf sagemaker-debugger
-
 # install sagemaker-tensorflow from source
 ARG SAGEMAKER_TENSORFLOW_TAG=v1.19.0
 RUN git clone -b tf-2 https://github.com/aws/sagemaker-tensorflow-extensions.git \
@@ -291,9 +287,6 @@ RUN git clone -b tf-2 https://github.com/aws/sagemaker-tensorflow-extensions.git
     && git checkout tags/$SAGEMAKER_TENSORFLOW_TAG -b $SAGEMAKER_TENSORFLOW_TAG \
     && $PYTHON -m pip install . \
     && cd .. && rm -rf sagemaker-tensorflow-extensions
-
-# being done again here to deal with pipcheck
-RUN pip install "cython<3" "pyyaml<6" --no-build-isolation
 
 # Remove python kernel installed by sparkmagic
 RUN /usr/local/bin/jupyter-kernelspec remove -f python3
