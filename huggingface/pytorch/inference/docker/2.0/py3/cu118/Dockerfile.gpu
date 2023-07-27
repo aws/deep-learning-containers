@@ -156,7 +156,7 @@ RUN pip install --no-cache-dir -U \
     opencv-python \
     packaging \
     "Pillow>=9.0.0" \
-    "pyyaml>=5.4,<5.5" \
+    "pyyaml>=5.4" \
     captum \
     ${TORCH_URL} \
     ${TORCHVISION_URL} \
