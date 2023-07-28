@@ -65,6 +65,10 @@ def test_stray_files(image):
     # Running list of allowed files in the /tmp directory
     allowed_tmp_files = ["hsperfdata_root"]
 
+    # Allow cache dir for SAI images
+    if "stabilityai" in image:
+        allowed_tmp_files.append("cache")
+
     # Ensure stray artifacts are not in the tmp directory
     tmp = run_cmd_on_container(container_name, ctx, "ls -A /tmp")
     _assert_artifact_free(tmp, stray_artifacts)
