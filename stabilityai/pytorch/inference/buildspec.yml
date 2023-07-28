@@ -13,21 +13,6 @@ repository_info:
     repository_name: &REPOSITORY_NAME !join [pr, "-", "stabilityai", "-", *BASE_FRAMEWORK, "-", *INFERENCE_IMAGE_TYPE]
     repository: &REPOSITORY !join [ *ACCOUNT_ID, .dkr.ecr., *REGION, .amazonaws.com/, *REPOSITORY_NAME ]
 
-context:
-  inference_context: &INFERENCE_CONTEXT
-    torchserve-ec2-entrypoint:
-      source: ../../../pytorch/inference/docker/build_artifacts/torchserve-ec2-entrypoint.py
-      target: torchserve-ec2-entrypoint.py
-    torchserve-entrypoint:
-      source: ../../../pytorch/inference/docker/build_artifacts/torchserve-entrypoint.py
-      target: torchserve-entrypoint.py
-    config:
-      source: ../../../pytorch/inference/docker/build_artifacts/config.properties
-      target: config.properties
-    deep_learning_container:
-      source: ../../../src/deep_learning_container.py
-      target: deep_learning_container.py
-
 images:
   BuildStabilityaiPytorchGpuPy310InferenceDockerImage:
     <<: *INFERENCE_REPOSITORY
