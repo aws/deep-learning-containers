@@ -8,6 +8,9 @@ ARG XFORMERS_VERSION=0.0.20
 RUN pip install ninja \
   && pip install -v -U git+https://github.com/facebookresearch/xformers.git@v${XFORMERS_VERSION}#egg=xformers
 
+# Resolve pip check conflicts
+RUN pip install "awscli>=1.29.15" "boto3>=1.28.15"
+
 ARG SGM_VERSION=0.1.0
 
 # Install Stability Generative Models, at the moment the wheel install does not work so we need the full repo
