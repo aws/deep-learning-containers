@@ -21,6 +21,7 @@ from ...integration import (
     mnist_gpu_script
 )
 
+from .timeout import timeout_and_delete_endpoint
 from .... import invoke_pytorch_helper_function
 
 LOGGER = logging.getLogger(__name__)
