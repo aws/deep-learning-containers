@@ -16,10 +16,7 @@ import json
 import logging
 
 
-from ...integration import (
-    model_cpu_dir,
-    mnist_gpu_script
-)
+from ...integration import model_cpu_dir, mnist_gpu_script
 
 from .timeout import timeout_and_delete_endpoint
 from .... import invoke_pytorch_helper_function
@@ -47,6 +44,7 @@ def test_mnist_distributed_gpu_stabilityai_one(
     invoke_pytorch_helper_function(
         ecr_image, sagemaker_regions, _test_mnist_distributed, function_args
     )
+
 
 def _test_mnist_distributed(
     ecr_image,
