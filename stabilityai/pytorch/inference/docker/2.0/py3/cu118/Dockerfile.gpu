@@ -18,6 +18,16 @@ RUN cd /tmp \
   && pip install . \
   && rm -rf /tmp/generative-models
 
+# Configure Torchserve for large model loading
+ENV TS_DEFAULT_RESPONSE_TIMEOUT=1000
+
+# Copy custom entrypoint, which can unpack cache files
+ENV HUGGINGFACE_HUB_CACHE=/tmp/cache/huggingface/hub
+ENV TRANSFORMERS_CACHE=/tmp/cache/huggingface/transformers
+COPY torchserve-entrypoint.py /usr/local/bin/dockerd-entrypoint.py
+RUN mkdir -p /tmp/cache/huggingface \
+  && chmod +x /usr/local/bin/dockerd-entrypoint.py
+
 RUN HOME_DIR=/root \
   && curl -o ${HOME_DIR}/oss_compliance.zip https://aws-dlinfra-utilities.s3.amazonaws.com/oss_compliance.zip \
   && unzip ${HOME_DIR}/oss_compliance.zip -d ${HOME_DIR}/ \

@@ -11,10 +11,7 @@ from sagemaker.pytorch import PyTorchModel
 from sagemaker.serializers import JSONSerializer
 from sagemaker.deserializers import BytesDeserializer
 
-import boto3
-from datetime import datetime, timedelta
 import time
-import json
 import logging
 
 from ...integration import (
@@ -82,7 +79,7 @@ def _test_sdxl_v1_0(
         f'Downloading s3://{model_bucket}{model_prefix} to {sdxl_gpu_path}')
     sagemaker_session.download_data(
         path=sdxl_gpu_path, bucket=model_bucket, key_prefix=f'{model_prefix}/{model_file}')
-    
+
     model_data = sagemaker_session.upload_data(
         path=os.path.join(sdxl_gpu_path, model_file), key_prefix="sagemaker-pytorch-serving/models")
 
@@ -109,9 +106,9 @@ def _test_sdxl_v1_0(
             deserializer=BytesDeserializer(accept="image/png")
         )
 
-        # Model loading can take up to 10 min so we must wait
-        time.sleep(60*10)
-        
+        # Model loading can take up to 5 min so we must wait
+        time.sleep(60*5)
+
         output = predictor.predict(inference_request)
 
         image = Image.open(BytesIO(output))

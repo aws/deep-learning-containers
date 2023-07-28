@@ -13,6 +13,12 @@ repository_info:
     repository_name: &REPOSITORY_NAME !join [pr, "-", "stabilityai", "-", *BASE_FRAMEWORK, "-", *INFERENCE_IMAGE_TYPE]
     repository: &REPOSITORY !join [ *ACCOUNT_ID, .dkr.ecr., *REGION, .amazonaws.com/, *REPOSITORY_NAME ]
 
+context:
+  inference_context: &INFERENCE_CONTEXT
+    torchserve-entrypoint:
+      source: docker/build_artifacts/torchserve-stabilityai-entrypoint.py
+      target: torchserve-entrypoint.py
+
 images:
   BuildStabilityaiPytorchGpuPy310InferenceDockerImage:
     <<: *INFERENCE_REPOSITORY
@@ -27,3 +33,5 @@ images:
     tag: !join [ *VERSION, "-", 'sgm',*SGM_VERSION, '-', *DEVICE_TYPE, "-", *TAG_PYTHON_VERSION, "-", *CUDA_VERSION, "-", *OS_VERSION, "-sagemaker" ]
     docker_file: !join [ docker/, *SHORT_VERSION, /, *DOCKER_PYTHON_VERSION, /, *CUDA_VERSION, /Dockerfile.,
                          *DEVICE_TYPE ]
+    context:
+          <<: *INFERENCE_CONTEXT                         
