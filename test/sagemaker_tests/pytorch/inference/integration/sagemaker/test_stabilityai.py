@@ -1,13 +1,15 @@
 from __future__ import absolute_import
 
-
 import os
 import sys
 
-import numpy as np
+from io import BytesIO
+from PIL import Image
 import pytest
 import sagemaker
 from sagemaker.pytorch import PyTorchModel
+from sagemaker.serializers import JSONSerializer
+from sagemaker.deserializers import BytesDeserializer
 
 import boto3
 from datetime import datetime, timedelta
@@ -15,11 +17,11 @@ import time
 import json
 import logging
 
-
 from ...integration import (
-    model_cpu_dir,
-    mnist_gpu_script
+    sdxl_gpu_path,
+    sdxl_gpu_script
 )
+
 
 from .timeout import timeout_and_delete_endpoint
 from .... import invoke_pytorch_helper_function
@@ -29,72 +31,92 @@ LOGGER.setLevel(logging.INFO)
 LOGGER.addHandler(logging.StreamHandler(sys.stdout))
 
 
-@pytest.mark.model("mnist")
+@pytest.mark.model("sdxl")
 @pytest.mark.processor("gpu")
 @pytest.mark.gpu_test
 @pytest.mark.stabilityai_only
-def test_mnist_distributed_gpu_stabilityai_one(
+def test_sdxl_v1_0_gpu_stabilityai(
     framework_version, ecr_image, instance_type, sagemaker_regions
 ):
-    instance_type = instance_type or "ml.p2.xlarge"
-    model_dir = os.path.join(model_cpu_dir, "model_mnist.tar.gz")
+    instance_type = instance_type or "ml.g5.4xlarge"
+    model_bucket = "stabilityai-public-packages"
+    model_prefix = "model-packages/sdxl-v1-0-dlc"
+    model_file = "model.tar.gz"
+    inference_request = {
+        "text_prompts": [
+            {"text": "A wonderous machine creating images"}
+        ],
+        "height": 1024,
+        "width": 1024
+    }
     function_args = {
         "framework_version": framework_version,
         "instance_type": instance_type,
-        "model_dir": model_dir,
-        "mnist_script": mnist_gpu_script,
+        "model_bucket": model_bucket,
+        "model_prefix": model_prefix,
+        "model_file": model_file,
+        "sdxl_script": sdxl_gpu_script,
+        "inference_request": inference_request
     }
     invoke_pytorch_helper_function(
-        ecr_image, sagemaker_regions, _test_mnist_distributed, function_args
+        ecr_image, sagemaker_regions, _test_sdxl_v1_0, function_args
     )
 
-def _test_mnist_distributed(
+
+def _test_sdxl_v1_0(
     ecr_image,
     sagemaker_session,
     framework_version,
     instance_type,
-    model_dir,
-    mnist_script,
-    accelerator_type=None,
+    model_bucket,
+    model_prefix,
+    model_file,
+    sdxl_script,
+    inference_request,
     verify_logs=True,
 ):
-    endpoint_name = sagemaker.utils.unique_name_from_base("sagemaker-pytorch-serving")
+    endpoint_name = sagemaker.utils.unique_name_from_base(
+        "sagemaker-pytorch-serving")
 
+    LOGGER.info(
+        f'Downloading s3://{model_bucket}{model_prefix} to {sdxl_gpu_path}')
+    sagemaker_session.download_data(
+        path=sdxl_gpu_path, bucket=model_bucket, key_prefix=f'{model_prefix}/{model_file}')
+    
     model_data = sagemaker_session.upload_data(
-        path=model_dir,
-        key_prefix="sagemaker-pytorch-serving/models",
-    )
+        path=os.path.join(sdxl_gpu_path, model_file), key_prefix="sagemaker-pytorch-serving/models")
 
     pytorch = PyTorchModel(
         model_data=model_data,
         role="SageMakerRole",
-        entry_point=mnist_script,
         framework_version=framework_version,
         image_uri=ecr_image,
         sagemaker_session=sagemaker_session,
+        entry_point=sdxl_script,
+        env={
+            # TODO bake these into the container?
+            "TS_DEFAULT_RESPONSE_TIMEOUT": "1000",
+            "HUGGINGFACE_HUB_CACHE": "/tmp/cache/huggingface/hub"
+        }
     )
 
     with timeout_and_delete_endpoint(endpoint_name, sagemaker_session, minutes=30):
-        # Use accelerator type to differentiate EI vs. CPU and GPU. Don't use processor value
-        if accelerator_type is not None:
-            predictor = pytorch.deploy(
-                initial_instance_count=1,
-                instance_type=instance_type,
-                accelerator_type=accelerator_type,
-                endpoint_name=endpoint_name,
-            )
-        else:
-            predictor = pytorch.deploy(
-                initial_instance_count=1,
-                instance_type=instance_type,
-                endpoint_name=endpoint_name,
-            )
+        predictor = pytorch.deploy(
+            initial_instance_count=1,
+            instance_type=instance_type,
+            endpoint_name=endpoint_name,
+            serializer=JSONSerializer(),
+            deserializer=BytesDeserializer(accept="image/png")
+        )
 
-        batch_size = 100
-        data = np.random.rand(batch_size, 1, 28, 28).astype(np.float32)
-        output = predictor.predict(data)
+        # Model loading can take up to 10 min so we must wait
+        time.sleep(60*10)
+        
+        output = predictor.predict(inference_request)
 
-        assert output.shape == (batch_size, 10)
+        image = Image.open(BytesIO(output))
+        assert image.height == inference_request["height"]
+        assert image.width == inference_request["width"]
 
         #  Check for Cloudwatch logs
         if verify_logs:
