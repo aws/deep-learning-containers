@@ -30,7 +30,7 @@ LOGGER.addHandler(logging.StreamHandler(sys.stdout))
 @pytest.mark.gpu_test
 @pytest.mark.stabilityai_only
 def test_sdxl_v1_0_gpu_stabilityai(framework_version, ecr_image, instance_type, sagemaker_regions):
-    instance_type = instance_type or "ml.g5.4xlarge"
+    instance_type = "ml.g5.4xlarge"
     model_bucket = "stabilityai-public-packages"
     model_prefix = "model-packages/sdxl-v1-0-dlc"
     model_file = "model.tar.gz"
