@@ -42,6 +42,5 @@ images:
     tag: !join [ *VERSION, "-", 'sgm',*SGM_VERSION, '-', *DEVICE_TYPE, "-", *TAG_PYTHON_VERSION, "-", *CUDA_VERSION, "-", *OS_VERSION, "-sagemaker" ]
     docker_file: !join [ docker/, *SHORT_VERSION, /, *DOCKER_PYTHON_VERSION, /, *CUDA_VERSION, /Dockerfile.,
                          *DEVICE_TYPE ]
-    target: sagemaker
     context:
       <<: *INFERENCE_CONTEXT
