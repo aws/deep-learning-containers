@@ -48,7 +48,8 @@ def test_sdxl_v1_0_gpu_stabilityai(framework_version, ecr_image, instance_type, 
         "sdxl_script": sdxl_gpu_script,
         "inference_request": inference_request,
     }
-    invoke_pytorch_helper_function(ecr_image, sagemaker_regions, _test_sdxl_v1_0, function_args)
+    invoke_pytorch_helper_function(
+        ecr_image, sagemaker_regions, _test_sdxl_v1_0, function_args)
 
 
 def _test_sdxl_v1_0(
@@ -63,9 +64,11 @@ def _test_sdxl_v1_0(
     inference_request,
     verify_logs=True,
 ):
-    endpoint_name = sagemaker.utils.unique_name_from_base("sagemaker-pytorch-serving")
+    endpoint_name = sagemaker.utils.unique_name_from_base(
+        "sagemaker-pytorch-serving")
 
-    LOGGER.info(f"Downloading s3://{model_bucket}{model_prefix} to {sdxl_gpu_path}")
+    LOGGER.info(
+        f"Downloading s3://{model_bucket}{model_prefix} to {sdxl_gpu_path}")
     sagemaker_session.download_data(
         path=sdxl_gpu_path, bucket=model_bucket, key_prefix=f"{model_prefix}/{model_file}"
     )
@@ -80,12 +83,7 @@ def _test_sdxl_v1_0(
         framework_version=framework_version,
         image_uri=ecr_image,
         sagemaker_session=sagemaker_session,
-        entry_point=sdxl_script,
-        env={
-            # TODO bake these into the container?
-            "TS_DEFAULT_RESPONSE_TIMEOUT": "1000",
-            "HUGGINGFACE_HUB_CACHE": "/tmp/cache/huggingface/hub",
-        },
+        entry_point=sdxl_script
     )
 
     with timeout_and_delete_endpoint(endpoint_name, sagemaker_session, minutes=60):
