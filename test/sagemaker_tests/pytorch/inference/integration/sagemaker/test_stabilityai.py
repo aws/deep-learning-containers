@@ -88,7 +88,7 @@ def _test_sdxl_v1_0(
         },
     )
 
-    with timeout_and_delete_endpoint(endpoint_name, sagemaker_session, minutes=30):
+    with timeout_and_delete_endpoint(endpoint_name, sagemaker_session, minutes=60):
         predictor = pytorch.deploy(
             initial_instance_count=1,
             instance_type=instance_type,
