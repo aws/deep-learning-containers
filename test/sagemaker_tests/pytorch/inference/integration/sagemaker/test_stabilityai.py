@@ -14,10 +14,7 @@ from sagemaker.deserializers import BytesDeserializer
 import time
 import logging
 
-from ...integration import (
-    sdxl_gpu_path,
-    sdxl_gpu_script
-)
+from ...integration import sdxl_gpu_path, sdxl_gpu_script
 
 
 from .timeout import timeout_and_delete_endpoint
@@ -32,19 +29,15 @@ LOGGER.addHandler(logging.StreamHandler(sys.stdout))
 @pytest.mark.processor("gpu")
 @pytest.mark.gpu_test
 @pytest.mark.stabilityai_only
-def test_sdxl_v1_0_gpu_stabilityai(
-    framework_version, ecr_image, instance_type, sagemaker_regions
-):
+def test_sdxl_v1_0_gpu_stabilityai(framework_version, ecr_image, instance_type, sagemaker_regions):
     instance_type = instance_type or "ml.g5.4xlarge"
     model_bucket = "stabilityai-public-packages"
     model_prefix = "model-packages/sdxl-v1-0-dlc"
     model_file = "model.tar.gz"
     inference_request = {
-        "text_prompts": [
-            {"text": "A wonderous machine creating images"}
-        ],
+        "text_prompts": [{"text": "A wonderous machine creating images"}],
         "height": 1024,
-        "width": 1024
+        "width": 1024,
     }
     function_args = {
         "framework_version": framework_version,
@@ -53,11 +46,9 @@ def test_sdxl_v1_0_gpu_stabilityai(
         "model_prefix": model_prefix,
         "model_file": model_file,
         "sdxl_script": sdxl_gpu_script,
-        "inference_request": inference_request
+        "inference_request": inference_request,
     }
-    invoke_pytorch_helper_function(
-        ecr_image, sagemaker_regions, _test_sdxl_v1_0, function_args
-    )
+    invoke_pytorch_helper_function(ecr_image, sagemaker_regions, _test_sdxl_v1_0, function_args)
 
 
 def _test_sdxl_v1_0(
@@ -72,16 +63,16 @@ def _test_sdxl_v1_0(
     inference_request,
     verify_logs=True,
 ):
-    endpoint_name = sagemaker.utils.unique_name_from_base(
-        "sagemaker-pytorch-serving")
+    endpoint_name = sagemaker.utils.unique_name_from_base("sagemaker-pytorch-serving")
 
-    LOGGER.info(
-        f'Downloading s3://{model_bucket}{model_prefix} to {sdxl_gpu_path}')
+    LOGGER.info(f"Downloading s3://{model_bucket}{model_prefix} to {sdxl_gpu_path}")
     sagemaker_session.download_data(
-        path=sdxl_gpu_path, bucket=model_bucket, key_prefix=f'{model_prefix}/{model_file}')
+        path=sdxl_gpu_path, bucket=model_bucket, key_prefix=f"{model_prefix}/{model_file}"
+    )
 
     model_data = sagemaker_session.upload_data(
-        path=os.path.join(sdxl_gpu_path, model_file), key_prefix="sagemaker-pytorch-serving/models")
+        path=os.path.join(sdxl_gpu_path, model_file), key_prefix="sagemaker-pytorch-serving/models"
+    )
 
     pytorch = PyTorchModel(
         model_data=model_data,
@@ -93,8 +84,8 @@ def _test_sdxl_v1_0(
         env={
             # TODO bake these into the container?
             "TS_DEFAULT_RESPONSE_TIMEOUT": "1000",
-            "HUGGINGFACE_HUB_CACHE": "/tmp/cache/huggingface/hub"
-        }
+            "HUGGINGFACE_HUB_CACHE": "/tmp/cache/huggingface/hub",
+        },
     )
 
     with timeout_and_delete_endpoint(endpoint_name, sagemaker_session, minutes=30):
@@ -103,11 +94,11 @@ def _test_sdxl_v1_0(
             instance_type=instance_type,
             endpoint_name=endpoint_name,
             serializer=JSONSerializer(),
-            deserializer=BytesDeserializer(accept="image/png")
+            deserializer=BytesDeserializer(accept="image/png"),
         )
 
         # Model loading can take up to 5 min so we must wait
-        time.sleep(60*5)
+        time.sleep(60 * 5)
 
         output = predictor.predict(inference_request)
 

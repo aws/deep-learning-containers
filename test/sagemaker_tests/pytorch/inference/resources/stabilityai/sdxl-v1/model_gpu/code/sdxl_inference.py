@@ -19,8 +19,7 @@ import os
 
 def model_fn(model_dir, context=None):
     # Enable the refiner by default
-    disable_refiner = os.environ.get(
-        "SDXL_DISABLE_REFINER", "false").lower() == "true"
+    disable_refiner = os.environ.get("SDXL_DISABLE_REFINER", "false").lower() == "true"
 
     sgm_path = os.path.dirname(sgm.__file__)
     config_path = os.path.join(sgm_path, "configs/inference")
@@ -44,9 +43,7 @@ def input_fn(request_body, request_content_type):
     if request_content_type == "application/json":
         model_input = json.loads(request_body)
         if not "text_prompts" in model_input:
-            raise BaseInferenceToolkitError(
-                400, "Invalid Request", "text_prompts missing"
-            )
+            raise BaseInferenceToolkitError(400, "Invalid Request", "text_prompts missing")
         return model_input
     else:
         raise BaseInferenceToolkitError(
@@ -114,17 +111,12 @@ def predict_fn(data, model, context=None):
             init_image_bytes = BytesIO(base64.b64decode(data["init_image"]))
             init_image_bytes.seek(0)
             if init_image_bytes is not None:
-                init_image = get_input_image_tensor(
-                    Image.open(init_image_bytes))
+                init_image = get_input_image_tensor(Image.open(init_image_bytes))
         except Exception as e:
-            raise BaseInferenceToolkitError(
-                400, "Invalid Request", "Unable to decode init_image"
-            )
+            raise BaseInferenceToolkitError(400, "Invalid Request", "Unable to decode init_image")
 
     if model["refiner"] is None and use_pipeline:
-        raise BaseInferenceToolkitError(
-            400, "Invalid Request", "Pipeline is not available"
-        )
+        raise BaseInferenceToolkitError(400, "Invalid Request", "Pipeline is not available")
 
     try:
         if init_image is not None:
@@ -140,9 +132,7 @@ def predict_fn(data, model, context=None):
                 ),
                 image=init_image,
                 prompt=prompts[0],
-                negative_prompt=negative_prompts[0]
-                if len(negative_prompts) > 0
-                else "",
+                negative_prompt=negative_prompts[0] if len(negative_prompts) > 0 else "",
                 return_latents=use_pipeline,
             )
         else:
@@ -155,9 +145,7 @@ def predict_fn(data, model, context=None):
                     scale=cfg_scale,
                 ),
                 prompt=prompts[0],
-                negative_prompt=negative_prompts[0]
-                if len(negative_prompts) > 0
-                else "",
+                negative_prompt=negative_prompts[0] if len(negative_prompts) > 0 else "",
                 return_latents=use_pipeline,
             )
 
@@ -175,9 +163,7 @@ def predict_fn(data, model, context=None):
                 ),
                 image=samples_z,
                 prompt=prompts[0],
-                negative_prompt=negative_prompts[0]
-                if len(negative_prompts) > 0
-                else "",
+                negative_prompt=negative_prompts[0] if len(negative_prompts) > 0 else "",
             )
 
         samples = embed_watermark(samples)
@@ -185,8 +171,7 @@ def predict_fn(data, model, context=None):
         for sample in samples:
             sample = 255.0 * rearrange(sample.cpu().numpy(), "c h w -> h w c")
             image_bytes = BytesIO()
-            Image.fromarray(sample.astype(np.uint8)).save(
-                image_bytes, format="PNG")
+            Image.fromarray(sample.astype(np.uint8)).save(image_bytes, format="PNG")
             image_bytes.seek(0)
             images.append(image_bytes.read())
 
@@ -199,7 +184,5 @@ def predict_fn(data, model, context=None):
 def output_fn(prediction, accept):
     # This only returns a single image since that's all the example code supports
     if accept != "image/png":
-        raise BaseInferenceToolkitError(
-            400, "Invalid Request", "Accept header must be image/png"
-        )
+        raise BaseInferenceToolkitError(400, "Invalid Request", "Accept header must be image/png")
     return prediction[0], accept
