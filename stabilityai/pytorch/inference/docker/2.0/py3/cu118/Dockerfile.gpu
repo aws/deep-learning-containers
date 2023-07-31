@@ -8,8 +8,14 @@ ARG XFORMERS_VERSION=0.0.20
 RUN pip install ninja \
   && pip install -v -U git+https://github.com/facebookresearch/xformers.git@v${XFORMERS_VERSION}#egg=xformers
 
-# Resolve pip check conflicts
-RUN pip install "awscli>=1.29.15" "boto3>=1.28.15"
+# Resolve pip check conflicts and other issues
+RUN pip install --no-cache-dir -U \
+    "awscli>=1.29.15" \
+    "boto3>=1.28.15" \
+    "certifi>=2023.07.22" \
+    "pyopenssl>=23.2.0" \
+    "cryptography>=41.0.2"
+
 
 ARG SGM_VERSION=0.1.0
 
