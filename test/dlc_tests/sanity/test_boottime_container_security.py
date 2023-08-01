@@ -20,6 +20,6 @@ def test_security(image):
     )
     try:
         docker_exec_cmd = f"docker exec -i {container_name}"
-        run(f"{docker_exec_cmd} python /test/bin/security_checks.py ", hide=True)
+        run(f"{docker_exec_cmd} python /test/bin/security_checks.py --image_uri {image}", hide=True)
     finally:
         run(f"docker rm -f {container_name}", hide=True)
