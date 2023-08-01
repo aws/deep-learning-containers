@@ -210,6 +210,7 @@ class DockerImage:
                 self.summary["status"] = constants.STATUS_MESSAGE[self.build_status]
                 self.summary["end_time"] = datetime.now()
 
+                LOGGER.info(f"Docker Build Logs: \n {self.get_tail_logs_in_pretty_format(100)}")
                 LOGGER.error("ERROR during Docker BUILD")
                 LOGGER.error(
                     f"Error message received for {self.dockerfile} while docker build: {line}"
@@ -226,7 +227,7 @@ class DockerImage:
 
         self.log.append(response)
 
-        LOGGER.info(f"DOCKER BUILD LOGS: \n{self.log}")
+        LOGGER.info(f"DOCKER BUILD LOGS: \n{self.get_tail_logs_in_pretty_format()}")
         LOGGER.info(f"Completed Build for {self.repository}:{self.tag}")
 
         self.build_status = constants.SUCCESS
