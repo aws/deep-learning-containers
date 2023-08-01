@@ -142,7 +142,6 @@ RUN /opt/conda/bin/mamba install -y --override-channels \
     opencv \
     awscli \
     boto3 \
-    pyyaml \
     scipy \
     click \
     psutil \
@@ -211,7 +210,8 @@ RUN cd /tmp \
  && rm -rf /tmp/gdrcopy
 
 RUN pip install --no-cache-dir --upgrade pip --no-cache-dir --trusted-host pypi.org --trusted-host files.pythonhosted.org \
- && ln -s /opt/conda/bin/pip /usr/local/bin/pip3
+ && ln -s /opt/conda/bin/pip /usr/local/bin/pip3 \
+ && pip install --no-cache-dir -U "pyyaml>=6.0.1"
 
 WORKDIR /root
 

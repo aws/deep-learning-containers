@@ -133,7 +133,6 @@ RUN /opt/conda/bin/mamba install -y --override-channels \
     awscli \
     boto3 \
     pybind11 \
-    pyyaml \
     scipy \
     click \
     psutil \
@@ -142,6 +141,10 @@ RUN /opt/conda/bin/mamba install -y --override-channels \
     ipykernel \
   && /opt/conda/bin/mamba install -y -c dglteam dgl \
   && /opt/conda/bin/mamba clean -afy
+
+RUN pip install --no-cache-dir --upgrade pip --no-cache-dir --trusted-host pypi.org --trusted-host files.pythonhosted.org \
+ && ln -s /opt/conda/bin/pip /usr/local/bin/pip3 \
+ && pip install --no-cache-dir -U "pyyaml>=6.0.1"
 
 RUN curl -o /license.txt https://aws-dlc-licenses.s3.amazonaws.com/pytorch-2.0/license.txt
 
