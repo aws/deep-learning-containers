@@ -400,7 +400,7 @@ def test_framework_and_neuron_sdk_version(neuron):
             package_name = "tensorflow-neuronx"
         else:
             tested_framework = "tensorflow_neuron"
-            package_name = "tensorflow-neuronx"
+            package_name = "tensorflow-neuron"
     elif tested_framework == "mxnet":
         tested_framework = "mxnet"
         package_name = "mxnet_neuron"
