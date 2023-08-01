@@ -18,14 +18,24 @@ import subprocess
 import sys
 
 from sagemaker_inference import environment
-SAI_MODEL_CACHE_FILE = os.path.join(environment.model_dir, os.getenv(
-    "SAI_MODEL_CACHE_FILE", 'stabilityai-model-cache.tar'))
+
+SAI_MODEL_CACHE_FILE = os.path.join(
+    environment.model_dir, os.getenv("SAI_MODEL_CACHE_FILE", "stabilityai-model-cache.tar")
+)
 SAI_MODEL_CACHE_PATH = os.getenv("SAI_MODEL_CACHE_PATH", "/tmp/cache")
-SAI_MODEL_CACHE_STATUS_FILE = os.path.join(
-    SAI_MODEL_CACHE_PATH, ".model-cache-unpacked")
+SAI_MODEL_CACHE_STATUS_FILE = os.path.join(SAI_MODEL_CACHE_PATH, ".model-cache-unpacked")
 if os.path.exists(SAI_MODEL_CACHE_FILE) and not os.path.exists(SAI_MODEL_CACHE_STATUS_FILE):
-    subprocess.check_call(["tar", "-x", "-z" if SAI_MODEL_CACHE_FILE.endswith(
-        '.gz') else "", "-f", SAI_MODEL_CACHE_FILE, "-C", SAI_MODEL_CACHE_PATH])
+    subprocess.check_call(
+        [
+            "tar",
+            "-x",
+            "-z" if SAI_MODEL_CACHE_FILE.endswith(".gz") else "",
+            "-f",
+            SAI_MODEL_CACHE_FILE,
+            "-C",
+            SAI_MODEL_CACHE_PATH,
+        ]
+    )
 
 if sys.argv[1] == "serve":
     from sagemaker_pytorch_serving_container import serving

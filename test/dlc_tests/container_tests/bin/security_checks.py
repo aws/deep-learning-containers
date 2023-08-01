@@ -11,7 +11,7 @@ logging.basicConfig(stream=sys.stdout, level=logging.DEBUG)
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument("-i", "--image_uri", help = "Provide Image Uri", default="")
+    parser.add_argument("-i", "--image_uri", help="Provide Image Uri", default="")
     args = parser.parse_args()
     home_dir = os.path.expanduser("~")
     check_that_cache_dir_is_removed(home_dir)
