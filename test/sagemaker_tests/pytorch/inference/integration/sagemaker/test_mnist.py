@@ -14,17 +14,12 @@ from __future__ import absolute_import
 
 import os
 import sys
-import re
 
 import numpy as np
 import pytest
 import sagemaker
 from sagemaker.pytorch import PyTorchModel
 
-import boto3
-from datetime import datetime, timedelta
-import time
-import json
 import logging
 
 from ...integration import (
@@ -36,6 +31,7 @@ from ...integration import (
 )
 from ...integration.sagemaker.timeout import timeout_and_delete_endpoint
 from .... import invoke_pytorch_helper_function
+from ...utils import check_for_cloudwatch_logs
 
 
 LOGGER = logging.getLogger(__name__)
@@ -157,49 +153,4 @@ def _test_mnist_distributed(
 
         #  Check for Cloudwatch logs
         if verify_logs:
-            _check_for_cloudwatch_logs(endpoint_name, sagemaker_session)
-
-
-def _check_for_cloudwatch_logs(endpoint_name, sagemaker_session):
-    client = sagemaker_session.boto_session.client("logs")
-    log_group_name = f"/aws/sagemaker/Endpoints/{endpoint_name}"
-
-    time.sleep(30)
-    identify_log_stream = client.describe_log_streams(
-        logGroupName=log_group_name, orderBy="LogStreamName", limit=5
-    )
-
-    all_traffic_log_stream = ""
-    logs = identify_log_stream["logStreams"]
-
-    while logs and not all_traffic_log_stream:
-        log = logs.pop(0)
-        if re.search(r"^AllTraffic/i-\w+$", log["logStreamName"]):
-            all_traffic_log_stream = log["logStreamName"]
-    if not all_traffic_log_stream:
-        raise RuntimeError(
-            f"Unable to look up log streams for the log group {log_group_name}"
-        )
-
-    log_events_response = client.get_log_events(
-        logGroupName=log_group_name, logStreamName=all_traffic_log_stream, limit=50, startFromHead=True
-    )
-
-    records_available = bool(log_events_response["events"])
-
-    if not records_available:
-        raise RuntimeError(
-            f"records_available variable is false... No cloudwatch events getting logged for the group {log_group_name}"
-        )
-    else:
-        LOGGER.info(
-            f"Most recently logged events were found for the given log group {log_group_name} & log stream {all_traffic_log_stream}... Now verifying that TorchServe endpoint is logging on cloudwatch"
-        )
-        check_for_torchserve_response = client.filter_log_events(
-            logGroupName=log_group_name,
-            logStreamNames=[all_traffic_log_stream],
-            filterPattern="Torch worker started.",
-            limit=10,
-            interleaved=False,
-        )
-        assert bool(check_for_torchserve_response["events"])
+            check_for_cloudwatch_logs(endpoint_name, sagemaker_session)

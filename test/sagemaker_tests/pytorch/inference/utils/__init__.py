@@ -45,11 +45,19 @@ def get_ecr_registry(account, region):
 
 
 def check_for_cloudwatch_logs(endpoint_name, sagemaker_session):
+    """
+    Utility function to verify TS cloudwatch logs
+
+    Args:
+        endpoint_name: SM endpoint name
+        sagemaker_session: SM boto3 session
+    """
     client = sagemaker_session.boto_session.client("logs")
     log_group_name = f"/aws/sagemaker/Endpoints/{endpoint_name}"
+
     time.sleep(30)
     identify_log_stream = client.describe_log_streams(
-        logGroupName=log_group_name, orderBy="LastEventTime", descending=True, limit=5
+        logGroupName=log_group_name, orderBy="LogStreamName", limit=5
     )
 
     all_traffic_log_stream = ""

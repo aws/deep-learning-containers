@@ -30,6 +30,7 @@ import logging
 
 from ...integration import model_cpu_dir
 from ...integration.sagemaker.timeout import timeout_and_delete_endpoint
+from ...utils import check_for_cloudwatch_logs
 from .... import invoke_pytorch_helper_function
 
 
@@ -154,44 +155,4 @@ def _test_mnist_distributed(
 
         #  Check for Cloudwatch logs
         if verify_logs:
-            _check_for_cloudwatch_logs(endpoint_name, sagemaker_session)
-
-
-def _check_for_cloudwatch_logs(endpoint_name, sagemaker_session):
-    client = sagemaker_session.boto_session.client("logs")
-    log_group_name = f"/aws/sagemaker/Endpoints/{endpoint_name}"
-
-    time.sleep(30)
-    identify_log_stream = client.describe_log_streams(
-        logGroupName=log_group_name, orderBy="LogStreamName", limit=5
-    )
-
-    try:
-        log_stream_name = identify_log_stream["logStreams"][0]["logStreamName"]
-    except IndexError as e:
-        raise RuntimeError(
-            f"Unable to look up log streams for the log group {log_group_name}"
-        ) from e
-
-    log_events_response = client.get_log_events(
-        logGroupName=log_group_name, logStreamName=log_stream_name, limit=50, startFromHead=True
-    )
-
-    records_available = bool(log_events_response["events"])
-
-    if not records_available:
-        raise RuntimeError(
-            f"records_available variable is false... No cloudwatch events getting logged for the group {log_group_name}"
-        )
-    else:
-        LOGGER.info(
-            f"Most recently logged events were found for the given log group {log_group_name} & log stream {log_stream_name}... Now verifying that TorchServe endpoint is logging on cloudwatch"
-        )
-        check_for_torchserve_response = client.filter_log_events(
-            logGroupName=log_group_name,
-            logStreamNames=[log_stream_name],
-            filterPattern="Torch worker started.",
-            limit=10,
-            interleaved=False,
-        )
-        assert bool(check_for_torchserve_response["events"])
+            check_for_cloudwatch_logs(endpoint_name, sagemaker_session)
