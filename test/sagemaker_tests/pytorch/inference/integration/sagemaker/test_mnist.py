@@ -14,6 +14,7 @@ from __future__ import absolute_import
 
 import os
 import sys
+import re
 
 import numpy as np
 import pytest
@@ -167,15 +168,20 @@ def _check_for_cloudwatch_logs(endpoint_name, sagemaker_session):
         logGroupName=log_group_name, orderBy="LastEventTime", descending=True, limit=5
     )
 
-    try:
-        log_stream_name = identify_log_stream["logStreams"][0]["logStreamName"]
-    except IndexError as e:
+    all_traffic_log_stream = ""
+    logs = identify_log_stream["logStreams"]
+
+    while logs and not all_traffic_log_stream:
+        log = logs.pop(0)
+        if re.search(r"^AllTraffic/i-\w+$", log["logStreamName"]):
+            all_traffic_log_stream = log["logStreamName"]
+    if not all_traffic_log_stream:
         raise RuntimeError(
             f"Unable to look up log streams for the log group {log_group_name}"
-        ) from e
+        )
 
     log_events_response = client.get_log_events(
-        logGroupName=log_group_name, logStreamName=log_stream_name, limit=50, startFromHead=True
+        logGroupName=log_group_name, logStreamName=all_traffic_log_stream, limit=50, startFromHead=True
     )
 
     records_available = bool(log_events_response["events"])
@@ -186,11 +192,11 @@ def _check_for_cloudwatch_logs(endpoint_name, sagemaker_session):
         )
     else:
         LOGGER.info(
-            f"Most recently logged events were found for the given log group {log_group_name} & log stream {log_stream_name}... Now verifying that TorchServe endpoint is logging on cloudwatch"
+            f"Most recently logged events were found for the given log group {log_group_name} & log stream {all_traffic_log_stream}... Now verifying that TorchServe endpoint is logging on cloudwatch"
         )
         check_for_torchserve_response = client.filter_log_events(
             logGroupName=log_group_name,
-            logStreamNames=[log_stream_name],
+            logStreamNames=[all_traffic_log_stream],
             filterPattern="Torch worker started.",
             limit=10,
             interleaved=False,
