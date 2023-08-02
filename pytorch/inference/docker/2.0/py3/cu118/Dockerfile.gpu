@@ -15,8 +15,8 @@ ARG TORCHVISION_URL=https://framework-binaries.s3.us-west-2.amazonaws.com/pytorc
 ARG TORCHAUDIO_URL=https://framework-binaries.s3.us-west-2.amazonaws.com/pytorch/v2.0.1/cu11.8.0/2023-05-24-03-41/torchaudio-2.0.2%2Bcu118-cp310-cp310-linux_x86_64.whl
 ARG TORCHTEXT_URL=https://framework-binaries.s3.us-west-2.amazonaws.com/pytorch/v2.0.1/cu11.8.0/2023-05-24-03-41/torchtext-0.15.2%2Bcu118-cp310-cp310-linux_x86_64.whl
 ARG TORCHDATA_URL=https://framework-binaries.s3.us-west-2.amazonaws.com/pytorch/v2.0.1/cu11.8.0/2023-05-24-03-41/torchdata-0.6.1%2Bcu118-cp310-cp310-linux_x86_64.whl
-ARG TORCHSERVE_VERSION=0.8.0
-ARG SM_TOOLKIT_VERSION=2.0.14
+ARG TORCHSERVE_VERSION
+ARG SM_TOOLKIT_VERSION
 
 ########################################################
 #  _____ ____ ____    ___
@@ -176,7 +176,6 @@ RUN pip install --upgrade pip --trusted-host pypi.org --trusted-host files.pytho
  && ln -s /opt/conda/bin/pip /usr/local/bin/pip3
 
 # Install Common python packages
-# Pin Cryprography for pyopenssl
 RUN pip install --no-cache-dir -U \
     boto3 \
     scipy \
@@ -185,7 +184,8 @@ RUN pip install --no-cache-dir -U \
     # via ENV Variable "TS_DISABLE_SYSTEM_METRICS=true" in the SM section of this file.
     # due to incompatibility with SM hosts 
     nvgpu \
-    "cryptography>=38.0.0,<40" \
+    pyOpenSSL \
+    cryptography \
     "ipython>=8.10.0,<9.0" \
     "awscli<2"
 
@@ -207,11 +207,9 @@ RUN pip install --no-cache-dir -U \
 # Install TorchServe pypi dependencies directly from their requirements.txt file
 # NOTE: This also brings in unnecessary cpu dependencies like nvgpu
 # -> Numpy is higer version as required by torch
-# -> PyYaml needs to be high pinned for awscli v1 (current v1 = 1.27.99)
 RUN pip install --no-cache-dir -U -r https://raw.githubusercontent.com/pytorch/serve/v${TORCHSERVE_VERSION}/requirements/common.txt \
  && pip install --no-cache-dir -U \ 
     "numpy>=1.22.2,<1.23" \
-    "pyyaml>=5.4,<5.5" \
     torchserve==${TORCHSERVE_VERSION} \
     torch-model-archiver==${TORCHSERVE_VERSION}
 
@@ -278,6 +276,7 @@ LABEL com.amazonaws.sagemaker.capabilities.multi-models=true
 
 ARG PYTHON
 ARG SM_TOOLKIT_VERSION
+ARG TORCHSERVE_VERSION
 
 ENV SAGEMAKER_SERVING_MODULE sagemaker_pytorch_serving_container.serving:main
 ENV TS_DISABLE_SYSTEM_METRICS=true

@@ -1,0 +1,69 @@
+ARG PYTHON_VERSION=3.9.16
+
+FROM 763104351884.dkr.ecr.us-west-2.amazonaws.com/pytorch-training:1.13.1-cpu-py39-ubuntu20.04-sagemaker
+
+# PYTORCH_SKIP_CUDNN_COMPATIBILITY_CHECK - see https://github.com/autogluon/autogluon/issues/2534
+# ENV PYTORCH_SKIP_CUDNN_COMPATIBILITY_CHECK=1
+
+LABEL maintainer="Amazon AI"
+LABEL dlc_major_version="1"
+
+# Install dependencies
+RUN apt-get update \
+ && apt-get -y upgrade \
+ && apt-get install -y --no-install-recommends \
+ && apt-get autoremove -y \
+ # Install tesseract-ocr to support automm document classification
+ && apt-get install tesseract-ocr -y \
+ # Install rsync to support ray distributed training
+ && apt-get install rsync -y \
+ && apt-get clean \
+ && rm -rf /var/lib/apt/lists/*
+
+ARG AUTOGLUON_VERSION=0.8.2
+
+# NOTE: reinstalling horovod with pytorch support because it is available in the container
+# Update requests >= 2.31.0: CVE-2023-32681
+# update cryptography >=41.0.0: CVE-2023-2650. This comes from the base image
+# update tornado >= 6.3.2: CVE-2023-28370. This comes from the base image
+# update pyOpenSSL 23.2.0 so cryptography can be updated
+# pin mmengine to avoid MultiModalPredictor import crashing
+# pin yapf to resolve importlib-metadata conflict with sagemaker==2.150.0
+RUN pip install --no-cache-dir -U --trusted-host pypi.org --trusted-host files.pythonhosted.org pip \
+ && pip install --no-cache-dir -U setuptools wheel \
+ && pip install --no-cache-dir -U numpy numba \
+ && pip install --no-cache-dir -U autogluon==${AUTOGLUON_VERSION} \
+ && mim install -q mmcv \
+ && pip install --no-cache-dir -U mmdet>=3.0.0 \
+ && pip install --no-cache-dir -U "pymupdf<=1.21.1" \
+ && pip install --no-cache-dir -U "mmengine<0.8" \
+ && pip install --no-cache-dir -U "yapf<0.40.0" \
+ && pip install --no-cache-dir -U "importlib-metadata<5.0" \
+ && pip install --no-cache-dir -U requests>=2.31.0 \
+ && pip install --no-cache-dir -U pyOpenSSL>=23.2.0 \
+ && pip install --no-cache-dir -U cryptography>=41.0.0 \
+ && pip install --no-cache-dir -U tornado>=6.3.2
+
+# Removing GluonTS nursery/tsbench package - it is not used in training/inference and have security vulnerabilities
+RUN rm -rf /usr/local/lib/python3.9/dist-packages/gluonts/nursery/tsbench \
+ && rm -rf /opt/conda/lib/python3.9/dist-packages/gluonts/nursery/tsbench
+
+# Remove these JAR files to address security issues; these are not used if only python package is used
+RUN rm -rf /usr/local/lib/python3.9/dist-packages/ray/jars \
+ && rm -rf /opt/conda/lib/python3.9/site-packages/ray/jars
+
+# Removing cryptography from micromamba version of cryptography which is not used to address security vulnerabilities
+RUN rm -rf /root/micromamba/pkgs/cryptography-39.0.0-py310h34c0648_0/lib/python3.10/site-packages/
+
+RUN HOME_DIR=/root \
+ && curl -o ${HOME_DIR}/oss_compliance.zip https://aws-dlinfra-utilities.s3.amazonaws.com/oss_compliance.zip \
+ && unzip ${HOME_DIR}/oss_compliance.zip -d ${HOME_DIR}/ \
+ && cp ${HOME_DIR}/oss_compliance/test/testOSSCompliance /usr/local/bin/testOSSCompliance \
+ && chmod +x /usr/local/bin/testOSSCompliance \
+ && chmod +x ${HOME_DIR}/oss_compliance/generate_oss_compliance.sh \
+ && ${HOME_DIR}/oss_compliance/generate_oss_compliance.sh ${HOME_DIR} python \
+ && rm -rf ${HOME_DIR}/oss_compliance*
+
+RUN curl -o /licenses-autogluon.txt https://autogluon.s3.us-west-2.amazonaws.com/licenses/THIRD-PARTY-LICENSES.txt
+
+CMD ["/bin/bash"]
