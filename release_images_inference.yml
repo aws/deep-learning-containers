@@ -18,6 +18,7 @@ release_images:
   2:
     framework: "tensorflow"
     version: "2.13.0"
+    customer_type: "ec2"
     arch_type: "x86"
     inference:
       device_types: ["cpu","gpu"]
