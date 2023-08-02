@@ -133,7 +133,7 @@ def test_ec2_pytorch_inference_eia_gpu(
 
 
 @pytest.mark.usefixtures("feature_torchaudio_present")
-@pytest.mark.usefixtures("sagemaker")
+@pytest.mark.usefixtures("sagemaker", "stabilityai")
 @pytest.mark.integration("pt_torchaudio_gpu")
 @pytest.mark.model("N/A")
 @pytest.mark.parametrize("ec2_instance_type", PT_EC2_GPU_INSTANCE_TYPE, indirect=True)
@@ -163,7 +163,7 @@ def test_pytorch_inference_torchaudio_cpu(pytorch_inference, ec2_connection, cpu
 
 
 @pytest.mark.usefixtures("feature_torchdata_present")
-@pytest.mark.usefixtures("sagemaker")
+@pytest.mark.usefixtures("sagemaker", "stabilityai")
 @pytest.mark.integration("pt_torchdata_gpu")
 @pytest.mark.model("N/A")
 @pytest.mark.parametrize("ec2_instance_type", PT_EC2_GPU_INSTANCE_TYPE, indirect=True)
