@@ -143,8 +143,7 @@ RUN /opt/conda/bin/mamba install -y --override-channels \
   && /opt/conda/bin/mamba clean -afy
 
 RUN pip install --no-cache-dir --upgrade pip --no-cache-dir --trusted-host pypi.org --trusted-host files.pythonhosted.org \
- && ln -s /opt/conda/bin/pip /usr/local/bin/pip3 \
- && pip install --no-cache-dir -U "pyyaml>=6.0.1"
+ && ln -s /opt/conda/bin/pip /usr/local/bin/pip3
 
 RUN curl -o /license.txt https://aws-dlc-licenses.s3.amazonaws.com/pytorch-2.0/license.txt
 
@@ -194,7 +193,7 @@ RUN /opt/conda/bin/mamba install -y pytorch=${PYTORCH_VERSION_EC2} \
   -c conda-forge
 
 # Patches
-RUN pip install "pillow>=9.5"
+RUN pip install "pillow>=9.5" "pyyaml>=6.0.1"
 RUN /opt/conda/bin/mamba install -y -c conda-forge \
   "requests>=2.31.0"
 
@@ -308,7 +307,7 @@ RUN /opt/conda/bin/mamba install -y -c conda-forge \
  && /opt/conda/bin/mamba clean -afy
 
 # Patches
-RUN pip install "pillow>=9.5"
+RUN pip install "pillow>=9.5" "pyyaml>=6.0.1"
 RUN /opt/conda/bin/mamba install -y -c conda-forge \
   "requests>=2.31.0"
 

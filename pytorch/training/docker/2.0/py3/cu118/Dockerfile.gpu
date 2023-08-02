@@ -210,8 +210,7 @@ RUN cd /tmp \
  && rm -rf /tmp/gdrcopy
 
 RUN pip install --no-cache-dir --upgrade pip --no-cache-dir --trusted-host pypi.org --trusted-host files.pythonhosted.org \
- && ln -s /opt/conda/bin/pip /usr/local/bin/pip3 \
- && pip install --no-cache-dir -U "pyyaml>=6.0.1"
+ && ln -s /opt/conda/bin/pip /usr/local/bin/pip3
 
 WORKDIR /root
 
@@ -302,7 +301,7 @@ RUN /opt/conda/bin/mamba install -y -c conda-forge \
   lit
 
 # Patches
-RUN pip install "pillow>=9.5"
+RUN pip install "pillow>=9.5" "pyyaml>=6.0.1"
 RUN /opt/conda/bin/mamba install -y -c conda-forge \
   "requests>=2.31.0"
 
@@ -404,7 +403,7 @@ RUN /opt/conda/bin/mamba install -y -c conda-forge \
   lit
 
 # Patches
-RUN pip install "pillow>=9.5"
+RUN pip install "pillow>=9.5" "pyyaml>=6.0.1"
 RUN /opt/conda/bin/mamba install -y -c conda-forge \
   "requests>=2.31.0"
 
