@@ -139,7 +139,6 @@ RUN ln -s $(which ${PYTHON}) /usr/local/bin/python \
 
 RUN apt-get update && apt-get -y install protobuf-compiler
 
-# install PyYAML==5.1.2 to avoid conflict with latest awscli
 RUN ${PIP} install --no-cache-dir -U \
     pybind11 \
     cmake \
@@ -237,6 +236,17 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && apt-get install -y -qq krb5-user \
 && rm -rf /var/lib/apt/lists/*
 
+# Need to install wheel before we can fix the pyyaml issue below
+RUN pip install wheel
+    
+# https://github.com/yaml/pyyaml/issues/601
+# PyYaml less than 6.0.1 failes to build with cython v3 and above.
+# tf-models-official uses older versions, breaking the install.
+# going to install the older pyyaml and cython to get tfd-models-official
+# the sagemaker package will revert pyyaml back to 6 for its requirement
+# and this is fine since sagemaker is more important than the models and
+# the models still work on pyyaml 6 in this context.
+RUN pip install "cython<3" "pyyaml<6" --no-build-isolation
 
 # https://github.com/tensorflow/models/issues/9267
 # tf-models does not respect existing installations of TF and always installs open source TF
@@ -244,8 +254,8 @@ RUN ${PIP} install --no-cache-dir -U \
     tf-models-official==2.13.0 \
     tensorflow-text==2.13.0
 
-RUN ${PIP} uninstall -y tensorflow tensorflow-gpu \
-    ; ${PIP} install --no-cache-dir -U \
+RUN ${PIP} uninstall -y tensorflow tensorflow-gpu
+RUN ${PIP} install --no-cache-dir -U \
     ${TF_URL} \
     tensorflow-io \
     tensorflow-datasets
@@ -269,20 +279,13 @@ RUN $PYTHON -m pip install --no-cache-dir -U \
     "sagemaker-studio-sparkmagic-lib<1" \
     smclarify
 
-# install smdebug directly the specific branch
-ARG SMDEBUG_TAG=1.0.33
-RUN git clone https://github.com/awslabs/sagemaker-debugger.git \
-    && cd sagemaker-debugger \
-    && git checkout tags/$SMDEBUG_TAG -b $SMDEBUG_TAG \
-    && $PYTHON setup.py install && cd .. && rm -rf sagemaker-debugger
-
 # install sagemaker-tensorflow from source
-# ARG SAGEMAKER_TENSORFLOW_TAG=v1.18.0
-# RUN git clone -b tf-2 https://github.com/aws/sagemaker-tensorflow-extensions.git \
-#     && cd sagemaker-tensorflow-extensions \
-#     && git checkout tags/$SAGEMAKER_TENSORFLOW_TAG -b $SAGEMAKER_TENSORFLOW_TAG \
-#     && $PYTHON -m pip install . \
-#     && cd .. && rm -rf sagemaker-tensorflow-extensions
+ARG SAGEMAKER_TENSORFLOW_TAG=v1.19.0
+RUN git clone -b tf-2 https://github.com/aws/sagemaker-tensorflow-extensions.git \
+    && cd sagemaker-tensorflow-extensions \
+    && git checkout tags/$SAGEMAKER_TENSORFLOW_TAG -b $SAGEMAKER_TENSORFLOW_TAG \
+    && $PYTHON -m pip install . \
+    && cd .. && rm -rf sagemaker-tensorflow-extensions
 
 # Remove python kernel installed by sparkmagic
 RUN /usr/local/bin/jupyter-kernelspec remove -f python3
