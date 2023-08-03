@@ -214,7 +214,7 @@ def image_builder(buildspec, image_types=[], device_types=[]):
         label_arch = str(BUILDSPEC["arch_type"])
         label_python_version = str(image_config["tag_python_version"])
         label_os_version = str(image_config.get("os_version")).replace(".", "-")
-        label_contributor = str(BUILDSPEC.get("contributor"))
+        label_contributor = str(BUILDSPEC.get("contributor", ""))
         label_transformers_version = str(transformers_version).replace(".", "-")
 
         # job_type will be either inference or training, based on the repo URI
