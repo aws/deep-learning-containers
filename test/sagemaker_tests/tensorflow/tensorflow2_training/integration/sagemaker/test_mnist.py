@@ -414,7 +414,9 @@ def _test_tuning_function(ecr_image, sagemaker_session, instance_type, framework
 @pytest.mark.model("mnist")
 @pytest.mark.integration("smdebug")
 @pytest.mark.skip_py2_containers
-def test_smdebug(ecr_image, sagemaker_regions, instance_type, framework_version):
+def test_smdebug(
+    ecr_image, sagemaker_regions, instance_type, framework_version, sm_below_tf213_only
+):
     invoke_sm_helper_function(
         ecr_image, sagemaker_regions, _test_smdebug_function, instance_type, framework_version
     )

@@ -31,7 +31,9 @@ SMDEBUG_EC2_CPU_INSTANCE_TYPE = get_ec2_instance_type(default="c4.8xlarge", proc
 @pytest.mark.model("mnist")
 @pytest.mark.parametrize("ec2_instance_type", SMDEBUG_EC2_GPU_INSTANCE_TYPE, indirect=True)
 @pytest.mark.flaky(reruns=0)
-def test_smdebug_gpu(training, ec2_connection, region, ec2_instance_type, gpu_only, py3_only):
+def test_smdebug_gpu(
+    training, ec2_connection, region, ec2_instance_type, gpu_only, py3_only, below_tf213_only
+):
     if test_utils.is_image_incompatible_with_instance_type(training, ec2_instance_type):
         pytest.skip(f"Image {training} is incompatible with instance type {ec2_instance_type}")
 
@@ -77,6 +79,7 @@ def test_smprofiler_gpu(
     py3_only,
     tf23_and_above_only,
     pt16_and_above_only,
+    below_tf213_only,
 ):
     # Running the profiler tests for pytorch and tensorflow2 frameworks only.
     # This code needs to be modified past reInvent 2020
@@ -110,7 +113,9 @@ def test_smprofiler_gpu(
 @pytest.mark.integration("smdebug")
 @pytest.mark.model("mnist")
 @pytest.mark.parametrize("ec2_instance_type", SMDEBUG_EC2_CPU_INSTANCE_TYPE, indirect=True)
-def test_smdebug_cpu(training, ec2_connection, region, ec2_instance_type, cpu_only, py3_only):
+def test_smdebug_cpu(
+    training, ec2_connection, region, ec2_instance_type, cpu_only, py3_only, below_tf213_only
+):
     run_smdebug_test(training, ec2_connection, region, ec2_instance_type)
 
 
@@ -129,6 +134,7 @@ def test_smprofiler_cpu(
     py3_only,
     tf23_and_above_only,
     pt16_and_above_only,
+    below_tf213_only,
 ):
     # Running the profiler tests for pytorch and tensorflow2 frameworks only.
     # This code needs to be modified past reInvent 2020
