@@ -71,7 +71,7 @@ def can_run_smdataparallel_efa(ecr_image):
 @pytest.mark.skip_cpu
 @pytest.mark.skip_py2_containers
 def test_distributed_training_smdataparallel_script_mode(
-    ecr_image, sagemaker_regions, instance_type, tmpdir, framework_version
+    ecr_image, sagemaker_regions, instance_type, tmpdir, framework_version, sm_below_tf213_only
 ):
     invoke_sm_helper_function(
         ecr_image,
