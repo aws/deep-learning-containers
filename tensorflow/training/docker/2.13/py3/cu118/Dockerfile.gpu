@@ -198,7 +198,6 @@ RUN ln -s $(which ${PYTHON}) /usr/local/bin/python \
 
 RUN apt-get update && apt-get -y install protobuf-compiler
 
-# install PyYAML==>=5.4,<5.5 to avoid conflict with latest awscli
 RUN ${PIP} install --no-cache-dir -U \
    pybind11 \
    cmake \
