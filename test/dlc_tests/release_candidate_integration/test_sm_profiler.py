@@ -82,7 +82,7 @@ def test_sm_profiler_pt(pytorch_training):
 @pytest.mark.skipif(
     not is_mainline_context() and not is_rc_test_context(), reason="Mainline only test"
 )
-def test_sm_profiler_tf(tensorflow_training):
+def test_sm_profiler_tf(tensorflow_training, below_tf213_only):
     if is_tf_version("1", tensorflow_training):
         pytest.skip("Skipping test on TF1, since there are no smprofiler config files for TF1")
     processor = get_processor_from_image_uri(tensorflow_training)
