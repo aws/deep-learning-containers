@@ -116,7 +116,9 @@ def _test_distributed_training_smdataparallel_script_mode_function(
 @pytest.mark.skip_py2_containers
 @pytest.mark.efa()
 @pytest.mark.parametrize("instance_types", ["ml.p3.16xlarge", "ml.p4d.24xlarge"])
-def test_smdataparallel_mnist(ecr_image, sagemaker_regions, instance_types, py_version, tmpdir):
+def test_smdataparallel_mnist(
+    ecr_image, sagemaker_regions, instance_types, py_version, tmpdir, sm_below_tf213_only
+):
     invoke_sm_helper_function(
         ecr_image, sagemaker_regions, _test_smdataparallel_mnist_function, instance_types
     )
@@ -152,7 +154,9 @@ def _test_smdataparallel_mnist_function(ecr_image, sagemaker_session, instance_t
 @pytest.mark.skip_py2_containers
 @pytest.mark.efa()
 @pytest.mark.parametrize("instance_types", ["ml.p3.16xlarge", "ml.p4d.24xlarge"])
-def test_hc_smdataparallel_mnist(ecr_image, sagemaker_regions, instance_types, py_version, tmpdir):
+def test_hc_smdataparallel_mnist(
+    ecr_image, sagemaker_regions, instance_types, py_version, tmpdir, sm_below_tf213_only
+):
     training_group = InstanceGroup("train_group", instance_types, 2)
     invoke_sm_helper_function(
         ecr_image, sagemaker_regions, _test_hc_smdataparallel_mnist_function, [training_group]
@@ -192,7 +196,7 @@ def _test_hc_smdataparallel_mnist_function(ecr_image, sagemaker_session, instanc
 @pytest.mark.efa()
 @pytest.mark.parametrize("instance_types", ["ml.p4d.24xlarge"])
 def test_smdataparallel_throughput(
-    ecr_image, sagemaker_regions, instance_types, py_version, tmpdir
+    ecr_image, sagemaker_regions, instance_types, py_version, tmpdir, sm_below_tf213_only
 ):
     invoke_sm_helper_function(
         ecr_image, sagemaker_regions, _test_smdataparallel_throughput_function, instance_types
