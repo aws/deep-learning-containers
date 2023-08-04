@@ -2,39 +2,36 @@ import base64
 from io import BytesIO
 from einops import rearrange
 import json
+from pathlib import Path
 from PIL import Image
 from pytorch_lightning import seed_everything
 import numpy as np
 from sagemaker_inference.errors import BaseInferenceToolkitError
-import sgm
 from sgm.inference.api import (
     ModelArchitecture,
     SamplingParams,
     SamplingPipeline,
     Sampler,
+    get_sampler_config,
 )
-from sgm.inference.helpers import get_input_image_tensor, embed_watermark
+from sgm.inference.helpers import (
+    get_input_image_tensor,
+    embed_watermark,
+    do_img2img,
+    Img2ImgDiscretizationWrapper,
+)
 import os
 
 
 def model_fn(model_dir, context=None):
     # Enable the refiner by default
     disable_refiner = os.environ.get("SDXL_DISABLE_REFINER", "false").lower() == "true"
-
-    sgm_path = os.path.dirname(sgm.__file__)
-    config_path = os.path.join(sgm_path, "configs/inference")
-    base_pipeline = SamplingPipeline(
-        ModelArchitecture.SDXL_V1_BASE, model_path=model_dir, config_path=config_path
-    )
+    base_pipeline = SamplingPipeline(ModelArchitecture.SDXL_V1_BASE, model_path=model_dir)
     if disable_refiner:
         print("Refiner model disabled by SDXL_DISABLE_REFINER environment variable")
         refiner_pipeline = None
     else:
-        refiner_pipeline = SamplingPipeline(
-            ModelArchitecture.SDXL_V1_REFINER,
-            model_path=model_dir,
-            config_path=config_path,
-        )
+        refiner_pipeline = SamplingPipeline(ModelArchitecture.SDXL_V1_REFINER, model_path=model_dir)
 
     return {"base": base_pipeline, "refiner": refiner_pipeline}
 
@@ -84,10 +81,12 @@ def predict_fn(data, model, context=None):
     width = 1024
     sampler_name = "DPMPP2MSampler"
     cfg_scale = 7.0
-    steps = 50
-    use_pipeline = model["refiner"] is not None
+    steps = 40
+    use_refiner = model["refiner"] is not None
     init_image = None
     image_strength = 0.35
+    refiner_steps = 40
+    refiner_strength = 0.2
 
     if "height" in data:
         height = data["height"]
@@ -102,8 +101,13 @@ def predict_fn(data, model, context=None):
     if "seed" in data:
         seed = data["seed"]
         seed_everything(seed)
-    if "use_pipeline" in data:
-        use_pipeline = data["use_pipeline"]
+    if "use_refiner" in data:
+        use_refiner = data["use_refiner"]
+    if use_refiner:
+        if "refiner_steps" in data:
+            refiner_steps = data["refiner_steps"]
+        if "refiner_strength" in data:
+            refiner_strength = data["refiner_strength"]
     if "init_image" in data:
         if "image_strength" in data:
             image_strength = data["image_strength"]
@@ -115,7 +119,7 @@ def predict_fn(data, model, context=None):
         except Exception as e:
             raise BaseInferenceToolkitError(400, "Invalid Request", "Unable to decode init_image")
 
-    if model["refiner"] is None and use_pipeline:
+    if model["refiner"] is None and use_refiner:
         raise BaseInferenceToolkitError(400, "Invalid Request", "Pipeline is not available")
 
     try:
@@ -133,7 +137,7 @@ def predict_fn(data, model, context=None):
                 image=init_image,
                 prompt=prompts[0],
                 negative_prompt=negative_prompts[0] if len(negative_prompts) > 0 else "",
-                return_latents=use_pipeline,
+                return_latents=use_refiner,
             )
         else:
             output = model["base"].text_to_image(
@@ -146,7 +150,7 @@ def predict_fn(data, model, context=None):
                 ),
                 prompt=prompts[0],
                 negative_prompt=negative_prompts[0] if len(negative_prompts) > 0 else "",
-                return_latents=use_pipeline,
+                return_latents=use_refiner,
             )
 
         if isinstance(output, (tuple, list)):
@@ -155,11 +159,15 @@ def predict_fn(data, model, context=None):
             samples = output
             samples_z = None
 
-        if use_pipeline and samples_z is not None:
+        if use_refiner and samples_z is not None:
             print("Running Refinement Stage")
-            samples = model["refiner"].refiner(
+            samples = refiner(
+                model=model["refiner"].model,
                 params=SamplingParams(
-                    steps=50, sampler=Sampler.EULER_EDM, scale=5.0, img2img_strength=0.3
+                    steps=refiner_steps,
+                    sampler=Sampler.EULER_EDM,
+                    scale=5.0,
+                    img2img_strength=refiner_strength,
                 ),
                 image=samples_z,
                 prompt=prompts[0],
@@ -179,6 +187,54 @@ def predict_fn(data, model, context=None):
 
     except ValueError as e:
         raise BaseInferenceToolkitError(400, "Invalid Request", str(e))
+
+
+# fixed version of refiner function from sgm 0.1.1
+def wrap_discretization(discretization, strength=1.0):
+    if not isinstance(discretization, Img2ImgDiscretizationWrapper) and strength < 1.0:
+        return Img2ImgDiscretizationWrapper(discretization, strength=strength)
+    return discretization
+
+
+def refiner(
+    model,
+    image,
+    prompt: str,
+    negative_prompt: str = "",
+    params: SamplingParams = SamplingParams(
+        sampler=Sampler.EULER_EDM, steps=40, img2img_strength=0.2
+    ),
+    samples: int = 1,
+    return_latents: bool = False,
+):
+    sampler = get_sampler_config(params)
+    value_dict = {
+        "orig_width": image.shape[3] * 8,
+        "orig_height": image.shape[2] * 8,
+        "target_width": image.shape[3] * 8,
+        "target_height": image.shape[2] * 8,
+        "prompt": prompt,
+        "negative_prompt": negative_prompt,
+        "crop_coords_top": 0,
+        "crop_coords_left": 0,
+        "aesthetic_score": 6.0,
+        "negative_aesthetic_score": 2.5,
+    }
+
+    sampler.discretization = wrap_discretization(
+        sampler.discretization, strength=params.img2img_strength
+    )
+
+    return do_img2img(
+        image,
+        model,
+        sampler,
+        value_dict,
+        samples,
+        skip_encode=True,
+        return_latents=return_latents,
+        filter=None,
+    )
 
 
 def output_fn(prediction, accept):
