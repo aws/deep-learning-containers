@@ -34,6 +34,8 @@ def test_sm_profiler_pt(pytorch_training):
         pytest.skip(f"Processor {processor} not supported. Skipping test.")
 
     _, image_framework_version = get_framework_and_version_from_tag(pytorch_training)
+    if Version(image_framework_version) in SpecifierSet(">=2.0"):
+        pytest.skip("sm profiler is deprecated after Pytorch 2.0")
     if Version(image_framework_version) in SpecifierSet(">=1.10"):
         pytest.skip("sm profiler ZCC test is not supported in PT 1.10 and above")
 
@@ -88,6 +90,9 @@ def test_sm_profiler_tf(tensorflow_training, below_tf213_only):
     processor = get_processor_from_image_uri(tensorflow_training)
     if processor not in ("cpu", "gpu"):
         pytest.skip(f"Processor {processor} not supported. Skipping test.")
+    _, image_framework_version = get_framework_and_version_from_tag(tensorflow_training)
+    if Version(image_framework_version) in SpecifierSet(">=2.11"):
+        pytest.skip("sm profiler is deprecated after TensorFlow 2.11")
 
     ctx = Context()
 
