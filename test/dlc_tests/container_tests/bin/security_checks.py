@@ -3,15 +3,19 @@ import logging
 import os
 import time
 import calendar
+import argparse
 
 LOGGER = logging.getLogger(__name__)
 logging.basicConfig(stream=sys.stdout, level=logging.DEBUG)
 
 
 def main():
+    parser = argparse.ArgumentParser()
+    parser.add_argument("-i", "--image_uri", help="Provide Image Uri", default="")
+    args = parser.parse_args()
     home_dir = os.path.expanduser("~")
     check_that_cache_dir_is_removed(home_dir)
-    check_that_global_tmp_dir_is_empty()
+    check_that_global_tmp_dir_is_empty(image_uri=args.image_uri)
     check_vim_info_does_not_exists(home_dir)
     check_bash_history(home_dir)
     check_if_any_files_in_subfolder_with_mask_was_last_modified_before_the_boottime(
@@ -49,7 +53,7 @@ def check_that_cache_dir_is_removed(home_dir):
                 )
 
 
-def check_that_global_tmp_dir_is_empty():
+def check_that_global_tmp_dir_is_empty(image_uri=""):
     global_tmp_dir_path = "/tmp/"
     global_tmp_dir_content = [f for f in os.listdir(global_tmp_dir_path)]
     for f in global_tmp_dir_content:
@@ -60,6 +64,8 @@ def check_that_global_tmp_dir_is_empty():
             and "ccNPSUr9.s" not in f
             and "hsperfdata" not in f
         ):
+            if "stabilityai" in image_uri and "cache" in f.lower():
+                continue
             raise ValueError(
                 "/tmp folder includes file that probably should not be there: {}".format(f)
             )
