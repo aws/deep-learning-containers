@@ -51,15 +51,13 @@ release_images:
       disable_sm_tag: False
       force_release: False
   5:
-    framework: "huggingface_pytorch_tgi"
-    version: "2.0.1"
+    framework: "djl"
+    version: "0.23.0"
     arch_type: "x86"
-    hf_tgi: "0.9.3"
     inference:
-      device_types: [ "gpu" ]
-      python_versions: [ "py39" ]
+      device_types: [ "cpu" ]
+      python_versions: [ "py38" ]
       os_version: "ubuntu20.04"
-      cuda_version: "cu118"
       example: False
       disable_sm_tag: True
       force_release: False
