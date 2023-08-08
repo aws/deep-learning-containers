@@ -19,7 +19,7 @@ git clone $TORCHDATA_REPO \
 sed -i "s/awscli.*//g" data/test/requirements.txt
 
 echo "Installing pre-requisites."
-pip install -r data/test/requirements.txt
+pip install -r data/test/requirements.txt awscli==1.29.8 pyyaml==6
 
 echo "Running Torchdata S3 IO datapipe tests."
 pytest data/test/test_remote_io.py
