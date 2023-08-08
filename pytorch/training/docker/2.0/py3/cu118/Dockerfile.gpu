@@ -284,8 +284,14 @@ WORKDIR /
 RUN /opt/conda/bin/mamba install -y pytorch=${PYTORCH_VERSION_EC2} \
   torchvision torchaudio torchtext aws-ofi-nccl=1.7.1 \
   --override-channels \
+<<<<<<< HEAD
   -c https://aws-ml-conda-sm.s3.us-west-2.amazonaws.com \
   -c conda-forge
+=======
+  -c https://aws-ml-conda-pre-prod.s3.us-west-2.amazonaws.com \
+  -c conda-forge \
+  -c nvidia
+>>>>>>> 7dc20821 (more)
 
 # install PyTorch related python packages (depends on PyTorch)
 RUN /opt/conda/bin/mamba install -y -c conda-forge \
