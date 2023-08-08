@@ -56,9 +56,8 @@ ENV TORCH_NVCC_FLAGS="-Xfatbin -compress-all"
 ENV CUDNN_VERSION=8.7.0.84
 ENV NCCL_VERSION=2.16.2
 ENV HOROVOD_VERSION=0.26.1
-ENV EFA_VERSION=1.21.0
+ENV EFA_VERSION=1.24.1
 ENV OMPI_VERSION=4.1.5
-ENV BRANCH_OFI=1.5.0-aws
 ENV GDRCOPY_VERSION=2.3.1
 
 ENV CMAKE_PREFIX_PATH="$(dirname $(which conda))/../"
@@ -122,7 +121,7 @@ RUN curl -L -o ~/mambaforge.sh https://github.com/conda-forge/miniforge/releases
 
 # Install common conda packages
 RUN /opt/conda/bin/mamba install -y --override-channels \
-  -c https://aws-ml-conda-ec2.s3.us-west-2.amazonaws.com \
+  -c https://aws-ml-conda-pre-prod.s3.us-west-2.amazonaws.com \
   -c nvidia/label/cuda-11.8.0 \
   pytorch-cuda=11.8 cuda-toolkit=11.8 \
   && /opt/conda/bin/mamba install -y -c conda-forge \
