@@ -282,7 +282,7 @@ WORKDIR /
 
 # Install ec2 PyTorch
 RUN /opt/conda/bin/mamba install -y pytorch=${PYTORCH_VERSION_EC2} \
-  torchvision torchaudio torchtext aws-ofi-nccl-dlc \
+  torchvision torchaudio torchtext aws-ofi-nccl=1.7.1 \
   --override-channels \
   -c https://aws-ml-conda-sm.s3.us-west-2.amazonaws.com \
   -c conda-forge
