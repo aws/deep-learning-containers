@@ -10,8 +10,9 @@ jobs:
 
     steps:
     - uses: actions/checkout@v3
-    - name: URL Check
-      uses: urlstechie/urlchecker-action@master
+    - name: urlchecker-action
+      uses: urlstechie/urlchecker-action@0.0.34
+
       with:
 
         # A comma-separated list of file types to cover in the URL checks
