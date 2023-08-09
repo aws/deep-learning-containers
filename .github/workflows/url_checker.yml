@@ -13,8 +13,6 @@ jobs:
     - name: URL Check
       uses: urlstechie/urlchecker-action@master
       with:
-        # A subfolder or path to navigate to in the present or cloned repository
-        subfolder: docs
 
         # A comma-separated list of file types to cover in the URL checks
         file_types: .cpu,.gpu
