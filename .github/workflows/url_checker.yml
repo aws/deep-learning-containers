@@ -24,9 +24,10 @@ jobs:
         timeout: 10
 
         # How many times to retry a failed request (each is logged, defaults to 1)
-        retry_count: 5
+        retry_count: 3
 
         # choose if the force pass or not
         force_pass : false
         
         verbose : true
+        serial : true
