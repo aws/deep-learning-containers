@@ -1,0 +1,31 @@
+name: Check URLs
+on:
+  schedule:
+  - cron: '0 19 * * 0'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v3
+    - name: URL Check
+      uses: urlstechie/urlchecker-action@master
+      with:
+        # A subfolder or path to navigate to in the present or cloned repository
+        subfolder: docs
+
+        # A comma-separated list of file types to cover in the URL checks
+        file_types: .cpu,.gpu
+
+        # Choose whether to include file with no URLs in the prints.
+        print_all: false
+
+        # The timeout seconds to provide to requests, defaults to 5 seconds
+        timeout: 5
+
+        # How many times to retry a failed request (each is logged, defaults to 1)
+        retry_count: 3
+
+        # choose if the force pass or not
+        force_pass : false
