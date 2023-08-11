@@ -324,9 +324,9 @@ RUN /opt/conda/bin/mamba install -y -c conda-forge \
 #   && cd .. \
 #   && rm -rf apex
 
-# Install Horovod (needs pytorch)
+# # Install Horovod (needs pytorch)
 # RUN pip uninstall -y horovod \
-#  && ldconfig /usr/local/cuda-11.8/targets/x86_64-linux/lib/stubs \
+# #  && ldconfig /usr/local/cuda-11.8/targets/x86_64-linux/lib/stubs \
 #  && HOROVOD_GPU_ALLREDUCE=NCCL HOROVOD_CUDA_HOME=${CUDA_HOME} HOROVOD_WITH_PYTORCH=1 pip install --no-cache-dir horovod==${HOROVOD_VERSION} \
 #  && ldconfig
 
