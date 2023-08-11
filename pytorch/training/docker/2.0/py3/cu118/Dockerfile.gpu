@@ -316,13 +316,13 @@ RUN /opt/conda/bin/mamba install -y -c conda-forge \
 
 # Install Nvidia Apex (needs pytorch)
 ## Pin apex commit requested by sm-model-parallel team
-RUN git clone https://github.com/NVIDIA/apex \
-  && cd apex \
-  # recent commit, torch._six fix is included https://github.com/NVIDIA/apex/commit/a78ccf0b3e3f7130b3f157732dc8e8e651389922
-  && git checkout 27de66c \
-  && pip install -v --no-cache-dir --global-option="--cpp_ext" --global-option="--cuda_ext" ./ \
-  && cd .. \
-  && rm -rf apex
+# RUN git clone https://github.com/NVIDIA/apex \
+#   && cd apex \
+#   # recent commit, torch._six fix is included https://github.com/NVIDIA/apex/commit/a78ccf0b3e3f7130b3f157732dc8e8e651389922
+#   && git checkout 27de66c \
+#   && pip install -v --no-cache-dir --global-option="--cpp_ext" --global-option="--cuda_ext" ./ \
+#   && cd .. \
+#   && rm -rf apex
 
 # Install Horovod (needs pytorch)
 # RUN pip uninstall -y horovod \
