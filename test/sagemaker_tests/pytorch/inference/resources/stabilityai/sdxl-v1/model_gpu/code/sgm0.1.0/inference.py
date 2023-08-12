@@ -7,6 +7,7 @@ from PIL import Image
 from pytorch_lightning import seed_everything
 import numpy as np
 from sagemaker_inference.errors import BaseInferenceToolkitError
+import sgm
 from sgm.inference.api import (
     ModelArchitecture,
     SamplingParams,
@@ -26,12 +27,23 @@ import os
 def model_fn(model_dir, context=None):
     # Enable the refiner by default
     disable_refiner = os.environ.get("SDXL_DISABLE_REFINER", "false").lower() == "true"
-    base_pipeline = SamplingPipeline(ModelArchitecture.SDXL_V1_BASE, model_path=model_dir)
+
+    sgm_path = os.path.dirname(sgm.__file__)
+    config_path = os.path.join(sgm_path, "configs/inference")
+    if not os.path.exists(config_path):
+        config_path = os.path.join(sgm_path, "../configs/inference")
+    base_pipeline = SamplingPipeline(
+        ModelArchitecture.SDXL_V1_BASE, model_path=model_dir, config_path=config_path
+    )
     if disable_refiner:
         print("Refiner model disabled by SDXL_DISABLE_REFINER environment variable")
         refiner_pipeline = None
     else:
-        refiner_pipeline = SamplingPipeline(ModelArchitecture.SDXL_V1_REFINER, model_path=model_dir)
+        refiner_pipeline = SamplingPipeline(
+            ModelArchitecture.SDXL_V1_REFINER,
+            model_path=model_dir,
+            config_path=config_path,
+        )
 
     return {"base": base_pipeline, "refiner": refiner_pipeline}
 
