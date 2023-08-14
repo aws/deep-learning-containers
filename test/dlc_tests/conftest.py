@@ -1146,6 +1146,7 @@ def pytest_configure(config):
         "markers", "integration(ml_integration): mark what the test is testing."
     )
     config.addinivalue_line("markers", "model(model_name): name of the model being tested")
+    config.addinivalue_line("markers", "team(team_name): name of the model being tested")
     config.addinivalue_line(
         "markers", "multinode(num_instances): number of instances the test is run on, if not 1"
     )
@@ -1164,6 +1165,15 @@ def pytest_runtest_setup(item):
     """
     # Handle quick check tests
     quick_checks_opts = [mark for mark in item.iter_markers(name="quick_checks")]
+
+    # Append team marker into user_properties test output xml file
+    # print(f"item {item}")
+    # for marker in item.iter_markers(name="team"):
+    #     print(f"item {marker}")
+    #     team_name = marker.args[0]
+    #     item.user_properties.append(("team_marker", team_name))
+    #     print(f"item.user_properties {item.user_properties}")
+
     # On PR, skip quick check tests unless we are on quick_checks job
     test_type = os.getenv("TEST_TYPE", "UNDEFINED")
     quick_checks_test_type = "quick_checks"
@@ -1198,6 +1208,15 @@ def pytest_runtest_setup(item):
 
 
 def pytest_collection_modifyitems(session, config, items):
+
+    for item in items:
+        print(f"item {item}")
+        for marker in item.iter_markers(name="team"):
+            print(f"item {marker}")
+            team_name = marker.args[0]
+            item.user_properties.append(("team_marker", team_name))
+            print(f"item.user_properties {item.user_properties}")
+
     if config.getoption("--generate-coverage-doc"):
         report_generator = TestReportGenerator(items)
         report_generator.generate_coverage_doc()
