@@ -249,8 +249,8 @@ def test_mme1(
     instance_type,
     accelerator_type,
 ):
-    # if "graviton" in image_uri:
-    #     pytest.skip("MME test not supported with Graviton test instance.")
+    if "graviton" in image_uri:
+        pytest.skip("MME test not supported with Graviton test instance.")
 
     # the python service needs to transform this to get a valid prediction
     input_data = {"instances": [1.0, 2.0, 5.0]}
@@ -289,8 +289,8 @@ def test_mme2(
     instance_type,
     accelerator_type,
 ):
-    # if "graviton" in image_uri:
-    #     pytest.skip("MME test not supported with Graviton test instance.")
+    if "graviton" in image_uri:
+        pytest.skip("MME test not supported with Graviton test instance.")
 
     # the python service needs to transform this to get a valid prediction
     input_data = "1.0,2.0,5.0"
@@ -330,8 +330,8 @@ def test_mme3(
     instance_type,
     accelerator_type,
 ):
-    # if "graviton" in image_uri:
-    #     pytest.skip("MME test not supported with Graviton test instance.")
+    if "graviton" in image_uri:
+        pytest.skip("MME test not supported with Graviton test instance.")
 
     # the python service needs to transform this to get a valid prediction
     input_data = "1.0,2.0,5.0"
@@ -371,8 +371,8 @@ def test_mme4(
     instance_type,
     accelerator_type,
 ):
-    # if "graviton" in image_uri:
-    #     pytest.skip("MME test not supported with Graviton test instance.")
+    if "graviton" in image_uri:
+        pytest.skip("MME test not supported with Graviton test instance.")
 
     # the python service needs to transform this to get a valid prediction
     input_data = {"instances": [1.0, 2.0, 5.0]}
