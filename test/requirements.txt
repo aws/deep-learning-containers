@@ -19,3 +19,4 @@ toml
 scrapy
 crochet
 tenacity
+requests

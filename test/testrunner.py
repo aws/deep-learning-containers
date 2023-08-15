@@ -58,7 +58,7 @@ def run_sagemaker_local_tests(images, pytest_cache_params):
         return
     # Run sagemaker Local tests
     framework, _ = get_framework_and_version_from_tag(images[0])
-    framework = framework.replace("_trcomp", "")
+    framework = framework.replace("_trcomp", "").replace("stabilityai_", "")
     sm_tests_path = (
         os.path.join("test", "sagemaker_tests", framework)
         if "huggingface" not in framework

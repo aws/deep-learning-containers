@@ -22,6 +22,7 @@ RUN apt-get update \
 # Install AutoGluon
 ARG AUTOGLUON_VERSION=0.8.2
 
+# update cryptography >=41.0.2. This comes from the base image
 RUN pip install --no-cache-dir -U --trusted-host pypi.org --trusted-host files.pythonhosted.org pip \
  && pip install --no-cache-dir -U setuptools wheel \
  && pip uninstall -y dataclasses \
@@ -30,7 +31,8 @@ RUN pip install --no-cache-dir -U --trusted-host pypi.org --trusted-host files.p
  && mim install -q mmcv \
  && pip install --no-cache-dir -U mmdet>=3.0.0 \
  && pip install --no-cache-dir -U "PyMuPDF<=1.21.1" \
- && pip install --no-cache-dir -U "mmengine<0.8"
+ && pip install --no-cache-dir -U "mmengine<0.8" \
+ && pip install --no-cache-dir -U cryptography>=41.0.2
 
 # Removing GluonTS nursery/tsbench package - it is not used in training/inference and have security vulnerabilities
 # Remove these to address security issues; these are not used if only python package is used

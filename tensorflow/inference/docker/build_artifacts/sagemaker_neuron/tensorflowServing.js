@@ -17,10 +17,10 @@ function ping(r) {
     var uri = make_tfs_uri(r, false)
 
     function callback (reply) {
-        if (reply.status == 200 && reply.responseBody.includes('"AVAILABLE"')) {
+        if (reply.status == 200 && reply.responseText.includes('"AVAILABLE"')) {
             r.return(200)
         } else {
-            r.error('failed ping' + reply.responseBody)
+            r.error('failed ping' + reply.responseText)
             r.return(502)
         }
     }
@@ -43,10 +43,10 @@ function ping_without_model(r) {
 
     function callback (reply) {
         if (reply.status == 200 || reply.status == 400 ||
-        reply.responseBody.includes('Servable not found for request: Latest(None)')) {
+        reply.responseText.includes('Servable not found for request: Latest(None)')) {
             r.return(200)
         } else {
-            r.error('failed ping' + reply.responseBody)
+            r.error('failed ping' + reply.responseText)
             r.return(502)
         }
     }
@@ -71,7 +71,7 @@ function tfs_json_request(r, json) {
 
     var accept = r.headersIn.Accept
     function callback (reply) {
-        var body = reply.responseBody
+        var body = reply.responseText
         if (reply.status == 400) {
             // "fix" broken json escaping in \'instances\' message
             body = body.replace("\\'instances\\'", "'instances'")
@@ -138,7 +138,7 @@ function parse_custom_attributes(r) {
 }
 
 function json_request(r) {
-    var data = r.requestBody
+    var data = r.requestText
 
     if (is_tfs_json(data)) {
         tfs_json_request(r, data)
@@ -189,7 +189,7 @@ function json_lines_request(r, data) {
 }
 
 function csv_request(r) {
-    var data = r.requestBody
+    var data = r.requestText
     // look for initial quote or numeric-only data in 1st field
     var needs_quotes = data.search(/^\s*("|[\d.Ee+\-]+.*)/) != 0
     var lines = data.trim().split(/\r?\n/)

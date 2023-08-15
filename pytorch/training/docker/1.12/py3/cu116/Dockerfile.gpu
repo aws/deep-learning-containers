@@ -5,7 +5,7 @@ ARG MAMBA_VERSION=22.11.1-2
 
 # PyTorch Binaries
 ARG PT_EC2_TRAINING_URL=https://aws-pytorch-unified-cicd-binaries.s3.us-west-2.amazonaws.com/r1.12.1_ec2/20221208-234008/d3dae914337cde7e182d28544aed5efce29255c4/torch-1.12.1%2Bcu116-cp38-cp38-linux_x86_64.whl
-ARG PT_SM_TRAINING_URL=https://aws-pytorch-cicd-v3-binaries.s3.us-west-2.amazonaws.com/r1.11.0_v3_sm/20220404-193901/15c50b561b1a638dacc59db932cab0fcb8d60d10/gpu/torch-1.11.0%2Bcu113-cp38-cp38-linux_x86_64.whl
+ARG PT_SM_TRAINING_URL=https://aws-pytorch-unified-cicd-binaries.s3.us-west-2.amazonaws.com/r1.12.1_sm/20230106-042344/626f1a6ec58817e524705e0917dbab97c81b440e/torch-1.12.1%2Bcu113-cp38-cp38-linux_x86_64.whl
 ARG PT_TORCHVISION_URL=https://download.pytorch.org/whl/cu116/torchvision-0.13.1%2Bcu116-cp38-cp38-linux_x86_64.whl
 ARG PT_TORCHAUDIO_URL=https://download.pytorch.org/whl/cu116/torchaudio-0.12.1%2Bcu116-cp38-cp38-linux_x86_64.whl
 ARG PT_TORCHDATA_URL=https://download.pytorch.org/whl/test/torchdata-0.4.1-cp38-cp38-manylinux_2_17_x86_64.manylinux2014_x86_64.whl
@@ -227,7 +227,7 @@ RUN curl -o /license.txt  https://aws-dlc-licenses.s3.amazonaws.com/pytorch-1.12
 # |_____\____|_____| |___|_| |_| |_|\__,_|\__, |\___|
 #                                         |___/
 #  ____           _
-# |  _ \ ___  ___(_)_ __   ___ 
+# |  _ \ ___  ___(_)_ __   ___
 # | |_) / _ \/ __| | '_ \ / _ \
 # |  _ <  __/ (__| | |_) |  __/
 # |_| \_\___|\___|_| .__/ \___|
@@ -503,7 +503,7 @@ RUN pip install --no-cache-dir -U \
     "opencv-python>=4.3,<5" \
     "plotly>=5.1,<6" \
     "seaborn>=0.11,<1" \
-    "numba<0.54" 
+    "numba<0.54"
 
 # install metis
 RUN rm /etc/apt/sources.list.d/* \

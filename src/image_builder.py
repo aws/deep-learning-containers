@@ -82,6 +82,7 @@ def image_builder(buildspec, image_types=[], device_types=[]):
     if (
         "huggingface" in str(BUILDSPEC["framework"])
         or "autogluon" in str(BUILDSPEC["framework"])
+        or "stabilityai" in str(BUILDSPEC["framework"])
         or "trcomp" in str(BUILDSPEC["framework"])
     ):
         os.system("echo login into public ECR")
