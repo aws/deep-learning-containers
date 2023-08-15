@@ -44,8 +44,9 @@ ENV LC_ALL=C.UTF-8
 ENV PATH /opt/conda/bin:$PATH
 ENV TORCH_CUDA_ARCH_LIST="3.7 5.0 7.0+PTX 8.0"
 ENV TORCH_NVCC_FLAGS="-Xfatbin -compress-all"
-
+ENV CONDA_CHANNEL=https://aws-ml-conda-ec2-pre-prod.s3.us-west-2.amazonaws.com
 ENV CUDNN_VERSION=8.7.0.84
+ENV NCCL_VERSION=2.18.3
 ENV HOROVOD_VERSION=0.26.1
 ENV EFA_VERSION=1.24.1
 ENV OMPI_VERSION=4.1.5
@@ -107,7 +108,11 @@ RUN curl -L -o ~/mambaforge.sh https://github.com/conda-forge/miniforge/releases
  && rm ~/mambaforge.sh
 
 # Install common conda packages
-RUN /opt/conda/bin/mamba install -y -c conda-forge \
+RUN /opt/conda/bin/mamba install -y --override-channels \
+  -c ${CONDA_CHANNEL} \
+  -c nvidia \
+  python=${PYTHON_SHORT_VERSION} pytorch-cuda=12.1 cuda-toolkit=12.1 \
+  && /opt/conda/bin/mamba install -y -c conda-forge \
     pyopenssl \
     requests \
     libgcc \
@@ -143,7 +148,12 @@ RUN /opt/conda/bin/mamba install -y -c conda-forge \
   # && /opt/conda/bin/mamba install -y -c dglteam/label/cu118 dgl \
   && /opt/conda/bin/mamba clean -afy \
   && rm -rf /etc/apt/sources.list.d/*
-
+# Install NCCL
+RUN cd /tmp \
+ && git clone https://github.com/NVIDIA/nccl.git -b v${NCCL_VERSION}-1 \
+ && cd nccl \
+ && make -j64 src.build BUILDDIR=/usr/local CUDA_LIB=${CUDA_HOME}/lib \
+ && rm -rf /tmp/nccl
 # Install EFA alone without AWS OPEN_MPI
 RUN mkdir /tmp/efa \
  && cd /tmp/efa \
@@ -262,7 +272,7 @@ WORKDIR /
 RUN /opt/conda/bin/mamba install -y python=${PYTHON_SHORT_VERSION} pytorch=${PYTORCH_VERSION_EC2} \
   torchvision torchaudio torchtext aws-ofi-nccl-dlc=1.7.1 pytorch-cuda=12.1 cuda-toolkit=12.1 \
   --override-channels \
-  -c https://aws-ml-conda-ec2-pre-prod.s3.us-west-2.amazonaws.com \
+  -c ${CONDA_CHANNEL} \
   -c conda-forge \
   -c nvidia
 
