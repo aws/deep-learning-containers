@@ -262,7 +262,7 @@ WORKDIR /
 RUN /opt/conda/bin/mamba install -y python=${PYTHON_SHORT_VERSION} pytorch=${PYTORCH_VERSION_EC2} \
   torchvision torchaudio torchtext aws-ofi-nccl-dlc=1.7.1 pytorch-cuda=12.1 cuda-toolkit=12.1 \
   --override-channels \
-  -c https://aws-ml-conda-preview.s3.us-west-2.amazonaws.com \
+  -c https://aws-ml-conda-ec2-pre-prod.s3.us-west-2.amazonaws.com \
   -c conda-forge \
   -c nvidia
 
