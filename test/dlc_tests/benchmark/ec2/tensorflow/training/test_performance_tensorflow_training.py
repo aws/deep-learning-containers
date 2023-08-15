@@ -40,11 +40,34 @@ TF_PERFORMANCE_TRAINING_GPU_IMAGENET_CMD = os.path.join(
     "benchmark",
     "run_tensorflow_training_performance_gpu_imagenet",
 )
+TF_PERFORMANCE_TEST_NEW_CMD = os.path.join(
+    CONTAINER_TESTS_PREFIX,
+    "benchmark",
+    "run_tensorflow_training_benchmark",
+)
 
 TF_EC2_GPU_INSTANCE_TYPE = "p3.16xlarge"
 TF_EC2_CPU_INSTANCE_TYPE = "c5.18xlarge"
 TF_EC2_HPU_INSTANCE_TYPE = "dl1.24xlarge"
 
+@pytest.mark.parametrize("ec2_instance_type", [TF_EC2_CPU_INSTANCE_TYPE], indirect=True)
+def test_tensorflow_performance_new(tensorflow_training, ec2_connection):
+    '''
+    The new performance tests are smart and will automatically use the GPU is the GPU is available.
+    Otherwise, will use the CPU. This works for CPU, GPU, and Graviton.
+    '''
+    _, framework_version = get_framework_and_version_from_tag(tensorflow_training)
+    threshold = get_threshold_for_image(
+        framework_version, TENSORFLOW_TRAINING_CPU_SYNTHETIC_THRESHOLD
+    )
+    execute_ec2_training_performance_test(
+        ec2_connection,
+        tensorflow_training,
+        TF_PERFORMANCE_TEST_NEW_CMD,
+        post_process=post_process_tensorflow_training_performance,
+        data_source="synthetic",
+        threshold={"Throughput": threshold},
+    )
 
 @pytest.mark.integration("synthetic dataset")
 @pytest.mark.model("resnet50")

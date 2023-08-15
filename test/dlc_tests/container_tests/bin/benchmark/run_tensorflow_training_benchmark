@@ -46,6 +46,6 @@ pip install \
 
 git clone https://github.com/tensorflow/benchmarks
 
-python3 /benchmarks/perfzero/lib/benchmark.py --git_repos="https://github.com/tensorflow/models.git;benchmark" --python_path=models --gcloud_key_file_url="" --benchmark_methods=official.benchmark.keras_cifar_benchmark.Resnet56KerasBenchmarkSynth.benchmark_1_gpu_no_dist_strat
+python3 ./benchmarks/perfzero/lib/benchmark.py --git_repos="https://github.com/tensorflow/models.git;benchmark" --python_path=models --gcloud_key_file_url="" --benchmark_methods=official.benchmark.keras_cifar_benchmark.Resnet56KerasBenchmarkSynth.benchmark_1_gpu_no_dist_strat
 
 # Outputs are at /benchmarks/perfzero/workspace/output/
