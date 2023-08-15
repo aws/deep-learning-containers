@@ -10,7 +10,7 @@ LABEL com.amazonaws.sagemaker.capabilities.accept-bind-to-port=true
 # https://docs.aws.amazon.com/sagemaker/latest/dg/build-multi-model-build-container.html
 LABEL com.amazonaws.sagemaker.capabilities.multi-models=true
 
-ARG MMS_VERSION=1.1.8
+ARG MMS_VERSION=1.1.11
 ARG PYTHON=python3
 ARG PYTHON_VERSION=3.9.10
 ARG OPEN_MPI_VERSION=4.1.4
@@ -76,7 +76,7 @@ RUN pip install --upgrade pip --trusted-host pypi.org --trusted-host files.pytho
  && ln -s /opt/conda/bin/pip /usr/local/bin/pip3 \
  && pip install packaging \
     enum-compat==0.0.3 \
-    cryptography==39.0.2
+    "cryptography>=41.0.2"
 
 RUN wget https://download.open-mpi.org/release/open-mpi/v4.1/openmpi-${OPEN_MPI_VERSION}.tar.gz \
  && gunzip -c openmpi-$OPEN_MPI_VERSION.tar.gz | tar xf - \

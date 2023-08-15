@@ -65,6 +65,10 @@ def test_stray_files(image):
     # Running list of allowed files in the /tmp directory
     allowed_tmp_files = ["hsperfdata_root"]
 
+    # Allow cache dir for SAI images
+    if "stabilityai" in image:
+        allowed_tmp_files.append("cache")
+
     # Ensure stray artifacts are not in the tmp directory
     tmp = run_cmd_on_container(container_name, ctx, "ls -A /tmp")
     _assert_artifact_free(tmp, stray_artifacts)
@@ -649,10 +653,10 @@ def test_pip_check(image):
         framework_version
     ) in SpecifierSet(">=2.9.1"):
         exception_strings = []
-        models_versions = ["2.9.1", "2.9.2", "2.10.0", "2.11.0", "2.12.0"]
+        models_versions = ["2.9.1", "2.9.2", "2.10.0", "2.11.0", "2.12.0", "2.13.0"]
         for ex_ver in models_versions:
             exception_strings += [f"tf-models-official {ex_ver}".replace(".", "\.")]
-        text_versions = ["2.9.0", "2.10.0", "2.11.0", "2.12.0"]
+        text_versions = ["2.9.0", "2.10.0", "2.11.0", "2.12.0", "2.13.0"]
         for ex_ver in text_versions:
             exception_strings += [f"tensorflow-text {ex_ver}".replace(".", "\.")]
         allowed_tf_models_text_exception = re.compile(
@@ -716,7 +720,7 @@ def test_cuda_paths(gpu):
     python_version = re.search(r"(py\d+)", image).group(1)
     short_python_version = None
     image_tag = re.search(
-        r":(\d+(\.\d+){2}(-(transformers|diffusers)\d+(\.\d+){2})?-(gpu)-(py\d+)(-cu\d+)-(ubuntu\d+\.\d+)((-ec2)?-example|-ec2|-sagemaker-lite|-sagemaker-full|-sagemaker)?)",
+        r":(\d+(\.\d+){2}(-(transformers|diffusers|sgm)\d+(\.\d+){2})?-(gpu)-(py\d+)(-cu\d+)-(ubuntu\d+\.\d+)((-ec2)?-example|-ec2|-sagemaker-lite|-sagemaker-full|-sagemaker)?)",
         image,
     ).group(1)
 

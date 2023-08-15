@@ -49,7 +49,9 @@ TF_EC2_HPU_INSTANCE_TYPE = "dl1.24xlarge"
 @pytest.mark.integration("synthetic dataset")
 @pytest.mark.model("resnet50")
 @pytest.mark.parametrize("ec2_instance_type", [TF_EC2_CPU_INSTANCE_TYPE], indirect=True)
-def test_performance_tensorflow_cpu(tensorflow_training, ec2_connection, cpu_only):
+def test_performance_tensorflow_cpu(
+    tensorflow_training, ec2_connection, cpu_only, below_tf213_only
+):
     _, framework_version = get_framework_and_version_from_tag(tensorflow_training)
     threshold = get_threshold_for_image(
         framework_version, TENSORFLOW_TRAINING_CPU_SYNTHETIC_THRESHOLD
@@ -69,7 +71,7 @@ def test_performance_tensorflow_cpu(tensorflow_training, ec2_connection, cpu_onl
 @pytest.mark.model("resnet50")
 @pytest.mark.parametrize("ec2_instance_type", [TF_EC2_GPU_INSTANCE_TYPE], indirect=True)
 def test_performance_tensorflow_gpu_synthetic(
-    tensorflow_training, ec2_connection, gpu_only, tf2_only
+    tensorflow_training, ec2_connection, gpu_only, tf2_only, below_tf213_only
 ):
     _, framework_version = get_framework_and_version_from_tag(tensorflow_training)
     threshold = get_threshold_for_image(
@@ -90,7 +92,7 @@ def test_performance_tensorflow_gpu_synthetic(
 @pytest.mark.model("resnet50")
 @pytest.mark.parametrize("ec2_instance_type", [TF_EC2_GPU_INSTANCE_TYPE], indirect=True)
 def test_performance_tensorflow_gpu_imagenet(
-    tensorflow_training, ec2_connection, gpu_only, tf2_only
+    tensorflow_training, ec2_connection, gpu_only, tf2_only, below_tf213_only
 ):
     _, framework_version = get_framework_and_version_from_tag(tensorflow_training)
     threshold = get_threshold_for_image(
