@@ -56,8 +56,9 @@ ENV TORCH_NVCC_FLAGS="-Xfatbin -compress-all"
 ENV CUDNN_VERSION=8.7.0.84
 ENV NCCL_VERSION=2.16.2
 ENV HOROVOD_VERSION=0.26.1
-ENV EFA_VERSION=1.24.1
+ENV EFA_VERSION=1.21.0
 ENV OMPI_VERSION=4.1.5
+ENV BRANCH_OFI=1.5.0-aws
 ENV GDRCOPY_VERSION=2.3.1
 
 ENV CMAKE_PREFIX_PATH="$(dirname $(which conda))/../"
@@ -121,7 +122,7 @@ RUN curl -L -o ~/mambaforge.sh https://github.com/conda-forge/miniforge/releases
 
 # Install common conda packages
 RUN /opt/conda/bin/mamba install -y --override-channels \
-  -c https://aws-ml-conda-preview.s3.us-west-2.amazonaws.com \
+  -c https://aws-ml-conda-ec2.s3.us-west-2.amazonaws.com \
   -c nvidia/label/cuda-11.8.0 \
   pytorch-cuda=11.8 cuda-toolkit=11.8 \
   && /opt/conda/bin/mamba install -y -c conda-forge \
@@ -282,20 +283,10 @@ WORKDIR /
 
 # Install ec2 PyTorch
 RUN /opt/conda/bin/mamba install -y pytorch=${PYTORCH_VERSION_EC2} \
-  torchvision torchaudio torchtext aws-ofi-nccl-dlc=1.7.1 \
+  torchvision torchaudio torchtext aws-ofi-nccl-dlc \
   --override-channels \
-<<<<<<< HEAD
-<<<<<<< HEAD
   -c https://aws-ml-conda-sm.s3.us-west-2.amazonaws.com \
   -c conda-forge
-=======
-  -c https://aws-ml-conda-pre-prod.s3.us-west-2.amazonaws.com \
-=======
-  -c https://aws-ml-conda-preview.s3.us-west-2.amazonaws.com \
->>>>>>> 8cb2de44 (more)
-  -c conda-forge \
-  -c nvidia
->>>>>>> 7dc20821 (more)
 
 # install PyTorch related python packages (depends on PyTorch)
 RUN /opt/conda/bin/mamba install -y -c conda-forge \
@@ -316,17 +307,17 @@ RUN /opt/conda/bin/mamba install -y -c conda-forge \
 
 # Install Nvidia Apex (needs pytorch)
 ## Pin apex commit requested by sm-model-parallel team
-# RUN git clone https://github.com/NVIDIA/apex \
-#   && cd apex \
-#   # recent commit, torch._six fix is included https://github.com/NVIDIA/apex/commit/a78ccf0b3e3f7130b3f157732dc8e8e651389922
-#   && git checkout 27de66c \
-#   && pip install -v --no-cache-dir --global-option="--cpp_ext" --global-option="--cuda_ext" ./ \
-#   && cd .. \
-#   && rm -rf apex
+RUN git clone https://github.com/NVIDIA/apex \
+  && cd apex \
+  # recent commit, torch._six fix is included https://github.com/NVIDIA/apex/commit/a78ccf0b3e3f7130b3f157732dc8e8e651389922
+  && git checkout 27de66c \
+  && pip install -v --no-cache-dir --global-option="--cpp_ext" --global-option="--cuda_ext" ./ \
+  && cd .. \
+  && rm -rf apex
 
-# # Install Horovod (needs pytorch)
+# Install Horovod (needs pytorch)
 # RUN pip uninstall -y horovod \
-# #  && ldconfig /usr/local/cuda-11.8/targets/x86_64-linux/lib/stubs \
+#  && ldconfig /usr/local/cuda-11.8/targets/x86_64-linux/lib/stubs \
 #  && HOROVOD_GPU_ALLREDUCE=NCCL HOROVOD_CUDA_HOME=${CUDA_HOME} HOROVOD_WITH_PYTORCH=1 pip install --no-cache-dir horovod==${HOROVOD_VERSION} \
 #  && ldconfig
 
