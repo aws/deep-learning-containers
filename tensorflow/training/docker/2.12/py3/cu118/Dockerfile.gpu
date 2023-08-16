@@ -197,23 +197,28 @@ RUN ln -s $(which ${PYTHON}) /usr/local/bin/python \
 
 RUN apt-get update && apt-get -y install protobuf-compiler
 
-# install PyYAML==5.1.2 to avoid conflict with latest awscli
 RUN ${PIP} install --no-cache-dir -U \
    pybind11 \
    cmake \
    scipy \
    Pillow \
    python-dateutil \
-   "pyYAML>=5.4,<5.5" \
    requests \
-   "awscli<2" \
    mpi4py \
    h5py \
    absl-py \
    opencv-python \
    werkzeug \
    urllib3 \
-   "protobuf<4"
+   "protobuf<4" \
+    wheel
+
+# Use --no-build-isolation to force pyyaml 5.4.1 to be installed using Cython<3 to avoid installation errors
+# Force the installation of pyyaml<6 to prevent conflicts with tf-models-official
+RUN ${PIP} install --no-cache-dir --no-build-isolation \
+   "Cython<3" \
+   "pyYAML>=5.4.1,<6" \
+   "awscli<2"
 
 # Install AWS OFI NCCL plug-in
 RUN apt-get update && apt-get install -y autoconf

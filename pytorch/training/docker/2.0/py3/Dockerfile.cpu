@@ -192,7 +192,10 @@ RUN /opt/conda/bin/mamba install -y pytorch=${PYTORCH_VERSION_EC2} \
   -c conda-forge
 
 # Patches
-RUN pip install "pillow>=9.5"
+RUN pip install \
+    "pillow>=9.5" \
+    "cryptography>=41.0.1" \
+    "pyopenssl>=23.2"
 RUN /opt/conda/bin/mamba install -y -c conda-forge \
   "requests>=2.31.0"
 
@@ -305,7 +308,10 @@ RUN /opt/conda/bin/mamba install -y -c conda-forge \
  && /opt/conda/bin/mamba clean -afy
 
 # Patches
-RUN pip install "pillow>=9.5"
+RUN pip install \
+    "pillow>=9.5" \
+    "cryptography>=41.0.1" \
+    "pyopenssl>=23.2"
 RUN /opt/conda/bin/mamba install -y -c conda-forge \
   "requests>=2.31.0"
 
