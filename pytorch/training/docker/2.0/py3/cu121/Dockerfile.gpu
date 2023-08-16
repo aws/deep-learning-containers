@@ -259,6 +259,7 @@ FROM common AS ec2
 ARG PYTHON
 ARG PYTHON_VERSION
 ARG PYTHON_SHORT_VERSION
+ARG PYTORCH_VERSION_EC2
 
 # PyTorch Binaries
 ARG PT_EC2_TRAINING_URL
@@ -269,7 +270,7 @@ ARG PT_TORCHDATA_URL
 WORKDIR /
 
 # Install ec2 PyTorch
-RUN /opt/conda/bin/mamba install -y python=${PYTHON_SHORT_VERSION} pytorch=${PYTORCH_VERSION_EC2} \
+RUN /opt/conda/bin/mamba install -y python=${PYTHON_SHORT_VERSION} pytorch=2.0.1 \
   torchvision torchaudio torchtext aws-ofi-nccl-dlc=1.7.1 pytorch-cuda=12.1 cuda-toolkit=12.1 \
   --override-channels \
   -c ${CONDA_CHANNEL} \
