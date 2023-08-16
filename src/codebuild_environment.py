@@ -47,6 +47,14 @@ def get_codebuild_project_name():
     # Default value for codebuild project name is "local_test" when run outside CodeBuild
     return os.getenv("CODEBUILD_BUILD_ID", "local_test").split(":")[0]
 
+def get_codebuild_project_id():
+    """
+    Get env variable CODEBUILD_SOURCE_REPO_URL
+
+    :return: value, or "0" if not set
+    """
+    return os.getenv("CODEBUILD_BUILD_ID", "0").split(":")[-1]
+
 
 def get_cloned_folder_path():
     """
@@ -68,3 +76,16 @@ def get_cloned_folder_path():
         ) from e
 
     return codebuild_src_dir_env
+
+
+def get_codepipeline_url(pipeline_name):
+    """
+    Construct CodePipeline URL from pipeline name
+
+    :param pipeline_name: name of CodePipeline
+    :type pipeline_name: str
+
+    :return: str
+    """
+    region = os.getenv("AWS_REGION")
+    return f"https://{region}.console.aws.amazon.com/codesuite/codepipeline/pipelines/{pipeline_name}/view?region={region}"
