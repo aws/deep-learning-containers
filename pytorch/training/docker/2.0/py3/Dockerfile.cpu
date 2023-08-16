@@ -189,7 +189,7 @@ ARG PT_TORCHDATA_URL
 RUN /opt/conda/bin/mamba install -y pytorch=${PYTORCH_VERSION_EC2} \
   torchvision torchaudio torchtext cpuonly \
   --override-channels \
-  -c https://aws-ml-conda-ec2.s3.us-west-2.amazonaws.com \
+  -c https://aws-ml-conda-sm.s3.us-west-2.amazonaws.com \
   -c conda-forge
 
 # Patches
