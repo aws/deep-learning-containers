@@ -1,0 +1,16 @@
+---
+release_images:
+  1:
+    framework: "stabilityai_pytorch"
+    version: "2.0.1"
+    arch_type: "x86"
+    customer_type: "sagemaker"
+    inference:
+      device_types: ["gpu"]
+      python_versions: ["py310"]
+      os_version: "ubuntu20.04"
+      cuda_version: "cu118"
+      sgm_version: "0.1.0"
+      example: False        
+      disable_sm_tag: False
+      force_release: False
