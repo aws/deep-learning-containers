@@ -64,7 +64,6 @@ def get_platform_execution_details():
     codebuild_name = get_codebuild_project_name()
 
     platform_details["platform_info"] = {}
-
     platform_details["platform_info"]["build_context"] = build_context
     platform_details["platform_info"]["dlc_images"] = get_dlc_images(build_context)
     platform_details["platform_info"]["test_type"] = os.getenv("TEST_TYPE")
@@ -76,6 +75,7 @@ def get_platform_execution_details():
         pr_execution_details = get_pr_execution_details()
         platform_details["platform_info"]["PR"] = pr_execution_details
     elif build_context == "MAINLINE":
+        platform_details["platform_info"]["build_context"] = "BuildRCPipeline"
         mainline_execution_details = get_mainline_execution_details()
         platform_details["platform_info"]["MAINLINE"] = mainline_execution_details
 
