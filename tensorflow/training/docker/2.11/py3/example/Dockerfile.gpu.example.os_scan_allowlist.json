@@ -225,6 +225,370 @@
             "severity": "CRITICAL",
             "status": "ACTIVE",
             "title": "CVE-2023-25668 - tensorflow-gpu"
+        },
+        {
+            "description": "TensorFlow is an open source platform for machine learning. Prior to versions 2.12.0 and 2.11.1, if the parameter `indices` for `DynamicStitch` does not match the shape of the parameter `data`, it can trigger an stack OOB read. A fix is included in TensorFlow version 2.12.0 and version 2.11.1.",
+            "vulnerability_id": "CVE-2023-25659",
+            "name": "CVE-2023-25659",
+            "package_name": "tensorflow-gpu",
+            "package_details": {
+                "file_path": "usr/local/lib/python3.9/site-packages/tensorflow_gpu-2.11.1.dist-info/METADATA",
+                "name": "tensorflow-gpu",
+                "package_manager": "PYTHONPKG",
+                "version": "2.11.1",
+                "release": null
+            },
+            "remediation": {
+                "recommendation": {
+                    "text": "None Provided"
+                }
+            },
+            "cvss_v3_score": 7.5,
+            "cvss_v30_score": 0.0,
+            "cvss_v31_score": 7.5,
+            "cvss_v2_score": 0.0,
+            "cvss_v3_severity": "HIGH",
+            "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2023-25659",
+            "source": "NVD",
+            "severity": "HIGH",
+            "status": "ACTIVE",
+            "title": "CVE-2023-25659 - tensorflow-gpu"
+        },
+        {
+            "description": "TensorFlow is an open source machine learning platform. Versions prior to 2.12.0 and 2.11.1 have a null pointer error in RandomShuffle with XLA enabled. A fix is included in TensorFlow 2.12.0 and 2.11.1.",
+            "vulnerability_id": "CVE-2023-25674",
+            "name": "CVE-2023-25674",
+            "package_name": "tensorflow-gpu",
+            "package_details": {
+                "file_path": "usr/local/lib/python3.9/site-packages/tensorflow_gpu-2.11.1.dist-info/METADATA",
+                "name": "tensorflow-gpu",
+                "package_manager": "PYTHONPKG",
+                "version": "2.11.1",
+                "release": null
+            },
+            "remediation": {
+                "recommendation": {
+                    "text": "None Provided"
+                }
+            },
+            "cvss_v3_score": 7.5,
+            "cvss_v30_score": 0.0,
+            "cvss_v31_score": 7.5,
+            "cvss_v2_score": 0.0,
+            "cvss_v3_severity": "HIGH",
+            "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2023-25674",
+            "source": "NVD",
+            "severity": "HIGH",
+            "status": "ACTIVE",
+            "title": "CVE-2023-25674 - tensorflow-gpu"
+        },
+        {
+            "description": "TensorFlow is an end-to-end open source platform for machine learning. Constructing a tflite model with a paramater `filter_input_channel` of less than 1 gives a FPE. This issue has been patched in version 2.12. TensorFlow will also cherrypick the fix commit on TensorFlow 2.11.1.",
+            "vulnerability_id": "CVE-2023-27579",
+            "name": "CVE-2023-27579",
+            "package_name": "tensorflow-gpu",
+            "package_details": {
+                "file_path": "usr/local/lib/python3.9/site-packages/tensorflow_gpu-2.11.1.dist-info/METADATA",
+                "name": "tensorflow-gpu",
+                "package_manager": "PYTHONPKG",
+                "version": "2.11.1",
+                "release": null
+            },
+            "remediation": {
+                "recommendation": {
+                    "text": "None Provided"
+                }
+            },
+            "cvss_v3_score": 7.5,
+            "cvss_v30_score": 0.0,
+            "cvss_v31_score": 7.5,
+            "cvss_v2_score": 0.0,
+            "cvss_v3_severity": "HIGH",
+            "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2023-27579",
+            "source": "NVD",
+            "severity": "HIGH",
+            "status": "ACTIVE",
+            "title": "CVE-2023-27579 - tensorflow-gpu"
+        },
+        {
+            "description": "TensorFlow is an open source platform for machine learning. Versions prior to 2.12.0 and 2.11.1 are vulnerable to integer overflow in EditDistance. A fix is included in TensorFlow version 2.12.0 and version 2.11.1.",
+            "vulnerability_id": "CVE-2023-25662",
+            "name": "CVE-2023-25662",
+            "package_name": "tensorflow-gpu",
+            "package_details": {
+                "file_path": "usr/local/lib/python3.9/site-packages/tensorflow_gpu-2.11.1.dist-info/METADATA",
+                "name": "tensorflow-gpu",
+                "package_manager": "PYTHONPKG",
+                "version": "2.11.1",
+                "release": null
+            },
+            "remediation": {
+                "recommendation": {
+                    "text": "None Provided"
+                }
+            },
+            "cvss_v3_score": 7.5,
+            "cvss_v30_score": 0.0,
+            "cvss_v31_score": 7.5,
+            "cvss_v2_score": 0.0,
+            "cvss_v3_severity": "HIGH",
+            "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2023-25662",
+            "source": "NVD",
+            "severity": "HIGH",
+            "status": "ACTIVE",
+            "title": "CVE-2023-25662 - tensorflow-gpu"
+        },
+        {
+            "description": "TensorFlow is an open source platform for machine learning. Versions prior to 2.12.0 and 2.11.1 have a Floating Point Exception in TensorListSplit with XLA. A fix is included in TensorFlow version 2.12.0 and version 2.11.1.",
+            "vulnerability_id": "CVE-2023-25673",
+            "name": "CVE-2023-25673",
+            "package_name": "tensorflow-gpu",
+            "package_details": {
+                "file_path": "usr/local/lib/python3.9/site-packages/tensorflow_gpu-2.11.1.dist-info/METADATA",
+                "name": "tensorflow-gpu",
+                "package_manager": "PYTHONPKG",
+                "version": "2.11.1",
+                "release": null
+            },
+            "remediation": {
+                "recommendation": {
+                    "text": "None Provided"
+                }
+            },
+            "cvss_v3_score": 7.5,
+            "cvss_v30_score": 0.0,
+            "cvss_v31_score": 7.5,
+            "cvss_v2_score": 0.0,
+            "cvss_v3_severity": "HIGH",
+            "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2023-25673",
+            "source": "NVD",
+            "severity": "HIGH",
+            "status": "ACTIVE",
+            "title": "CVE-2023-25673 - tensorflow-gpu"
+        },
+        {
+            "description": "TensorFlow is an open source platform for machine learning. Prior to versions 2.12.0 and 2.11.1, if the stride and window size are not positive for `tf.raw_ops.AvgPoolGrad`, it can give a floating point exception. A fix is included in TensorFlow version 2.12.0 and version 2.11.1.",
+            "vulnerability_id": "CVE-2023-25669",
+            "name": "CVE-2023-25669",
+            "package_name": "tensorflow-gpu",
+            "package_details": {
+                "file_path": "usr/local/lib/python3.9/site-packages/tensorflow_gpu-2.11.1.dist-info/METADATA",
+                "name": "tensorflow-gpu",
+                "package_manager": "PYTHONPKG",
+                "version": "2.11.1",
+                "release": null
+            },
+            "remediation": {
+                "recommendation": {
+                    "text": "None Provided"
+                }
+            },
+            "cvss_v3_score": 7.5,
+            "cvss_v30_score": 0.0,
+            "cvss_v31_score": 7.5,
+            "cvss_v2_score": 0.0,
+            "cvss_v3_severity": "HIGH",
+            "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2023-25669",
+            "source": "NVD",
+            "severity": "HIGH",
+            "status": "ACTIVE",
+            "title": "CVE-2023-25669 - tensorflow-gpu"
+        },
+        {
+            "description": "TensorFlow is an open source platform for machine learning. Prior to versions 2.12.0 and 2.11.1, an out of bounds read is in GRUBlockCellGrad. A fix is included in TensorFlow 2.12.0 and 2.11.1.",
+            "vulnerability_id": "CVE-2023-25658",
+            "name": "CVE-2023-25658",
+            "package_name": "tensorflow-gpu",
+            "package_details": {
+                "file_path": "usr/local/lib/python3.9/site-packages/tensorflow_gpu-2.11.1.dist-info/METADATA",
+                "name": "tensorflow-gpu",
+                "package_manager": "PYTHONPKG",
+                "version": "2.11.1",
+                "release": null
+            },
+            "remediation": {
+                "recommendation": {
+                    "text": "None Provided"
+                }
+            },
+            "cvss_v3_score": 7.5,
+            "cvss_v30_score": 0.0,
+            "cvss_v31_score": 7.5,
+            "cvss_v2_score": 0.0,
+            "cvss_v3_severity": "HIGH",
+            "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2023-25658",
+            "source": "NVD",
+            "severity": "HIGH",
+            "status": "ACTIVE",
+            "title": "CVE-2023-25658 - tensorflow-gpu"
+        },
+        {
+            "description": "TensorFlow is an open source platform for machine learning. There is out-of-bounds access due to mismatched integer type sizes. A fix is included in TensorFlow version 2.12.0 and version 2.11.1.",
+            "vulnerability_id": "CVE-2023-25671",
+            "name": "CVE-2023-25671",
+            "package_name": "tensorflow-gpu",
+            "package_details": {
+                "file_path": "usr/local/lib/python3.9/site-packages/tensorflow_gpu-2.11.1.dist-info/METADATA",
+                "name": "tensorflow-gpu",
+                "package_manager": "PYTHONPKG",
+                "version": "2.11.1",
+                "release": null
+            },
+            "remediation": {
+                "recommendation": {
+                    "text": "None Provided"
+                }
+            },
+            "cvss_v3_score": 7.5,
+            "cvss_v30_score": 0.0,
+            "cvss_v31_score": 7.5,
+            "cvss_v2_score": 0.0,
+            "cvss_v3_severity": "HIGH",
+            "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2023-25671",
+            "source": "NVD",
+            "severity": "HIGH",
+            "status": "ACTIVE",
+            "title": "CVE-2023-25671 - tensorflow-gpu"
+        },
+        {
+            "description": "TensorFlow is an open source platform for machine learning. The function `tf.raw_ops.LookupTableImportV2` cannot handle scalars in the `values` parameter and gives an NPE. A fix is included in TensorFlow version 2.12.0 and version 2.11.1.",
+            "vulnerability_id": "CVE-2023-25672",
+            "name": "CVE-2023-25672",
+            "package_name": "tensorflow-gpu",
+            "package_details": {
+                "file_path": "usr/local/lib/python3.9/site-packages/tensorflow_gpu-2.11.1.dist-info/METADATA",
+                "name": "tensorflow-gpu",
+                "package_manager": "PYTHONPKG",
+                "version": "2.11.1",
+                "release": null
+            },
+            "remediation": {
+                "recommendation": {
+                    "text": "None Provided"
+                }
+            },
+            "cvss_v3_score": 7.5,
+            "cvss_v30_score": 0.0,
+            "cvss_v31_score": 7.5,
+            "cvss_v2_score": 0.0,
+            "cvss_v3_severity": "HIGH",
+            "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2023-25672",
+            "source": "NVD",
+            "severity": "HIGH",
+            "status": "ACTIVE",
+            "title": "CVE-2023-25672 - tensorflow-gpu"
+        },
+        {
+            "description": "TensorFlow is an open source platform for machine learning. Versions prior to 2.12.0 and 2.11.1 have a null point error in QuantizedMatMulWithBiasAndDequantize with MKL enabled. A fix is included in TensorFlow version 2.12.0 and version 2.11.1.",
+            "vulnerability_id": "CVE-2023-25670",
+            "name": "CVE-2023-25670",
+            "package_name": "tensorflow-gpu",
+            "package_details": {
+                "file_path": "usr/local/lib/python3.9/site-packages/tensorflow_gpu-2.11.1.dist-info/METADATA",
+                "name": "tensorflow-gpu",
+                "package_manager": "PYTHONPKG",
+                "version": "2.11.1",
+                "release": null
+            },
+            "remediation": {
+                "recommendation": {
+                    "text": "None Provided"
+                }
+            },
+            "cvss_v3_score": 7.5,
+            "cvss_v30_score": 0.0,
+            "cvss_v31_score": 7.5,
+            "cvss_v2_score": 0.0,
+            "cvss_v3_severity": "HIGH",
+            "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2023-25670",
+            "source": "NVD",
+            "severity": "HIGH",
+            "status": "ACTIVE",
+            "title": "CVE-2023-25670 - tensorflow-gpu"
+        },
+        {
+            "description": "TensorFlow is an open source platform for machine learning. Prior to versions 2.12.0 and 2.11.1, when the parameter `summarize` of `tf.raw_ops.Print` is zero, the new method `SummarizeArray<bool>` will reference to a nullptr, leading to a seg fault. A fix is included in TensorFlow version 2.12 and version 2.11.1.",
+            "vulnerability_id": "CVE-2023-25660",
+            "name": "CVE-2023-25660",
+            "package_name": "tensorflow-gpu",
+            "package_details": {
+                "file_path": "usr/local/lib/python3.9/site-packages/tensorflow_gpu-2.11.1.dist-info/METADATA",
+                "name": "tensorflow-gpu",
+                "package_manager": "PYTHONPKG",
+                "version": "2.11.1",
+                "release": null
+            },
+            "remediation": {
+                "recommendation": {
+                    "text": "None Provided"
+                }
+            },
+            "cvss_v3_score": 7.5,
+            "cvss_v30_score": 0.0,
+            "cvss_v31_score": 7.5,
+            "cvss_v2_score": 0.0,
+            "cvss_v3_severity": "HIGH",
+            "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2023-25660",
+            "source": "NVD",
+            "severity": "HIGH",
+            "status": "ACTIVE",
+            "title": "CVE-2023-25660 - tensorflow-gpu"
+        },
+        {
+            "description": "TensorFlow is an open source platform for machine learning. Prior to versions 2.12.0 and 2.11.1, when `ctx->step_containter()` is a null ptr, the Lookup function will be executed with a null pointer. A fix is included in TensorFlow 2.12.0 and 2.11.1.",
+            "vulnerability_id": "CVE-2023-25663",
+            "name": "CVE-2023-25663",
+            "package_name": "tensorflow-gpu",
+            "package_details": {
+                "file_path": "usr/local/lib/python3.9/site-packages/tensorflow_gpu-2.11.1.dist-info/METADATA",
+                "name": "tensorflow-gpu",
+                "package_manager": "PYTHONPKG",
+                "version": "2.11.1",
+                "release": null
+            },
+            "remediation": {
+                "recommendation": {
+                    "text": "None Provided"
+                }
+            },
+            "cvss_v3_score": 7.5,
+            "cvss_v30_score": 0.0,
+            "cvss_v31_score": 7.5,
+            "cvss_v2_score": 0.0,
+            "cvss_v3_severity": "HIGH",
+            "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2023-25663",
+            "source": "NVD",
+            "severity": "HIGH",
+            "status": "ACTIVE",
+            "title": "CVE-2023-25663 - tensorflow-gpu"
+        },
+        {
+            "description": "TensorFlow is an open source platform for machine learning. Prior to versions 2.12.0 and 2.11.1, integer overflow occurs when `2^31 <= num_frames * height * width * channels < 2^32`, for example Full HD screencast of at least 346 frames. A fix is included in TensorFlow version 2.12.0 and version 2.11.1.",
+            "vulnerability_id": "CVE-2023-25667",
+            "name": "CVE-2023-25667",
+            "package_name": "tensorflow-gpu",
+            "package_details": {
+                "file_path": "usr/local/lib/python3.9/site-packages/tensorflow_gpu-2.11.1.dist-info/METADATA",
+                "name": "tensorflow-gpu",
+                "package_manager": "PYTHONPKG",
+                "version": "2.11.1",
+                "release": null
+            },
+            "remediation": {
+                "recommendation": {
+                    "text": "None Provided"
+                }
+            },
+            "cvss_v3_score": 7.5,
+            "cvss_v30_score": 0.0,
+            "cvss_v31_score": 7.5,
+            "cvss_v2_score": 0.0,
+            "cvss_v3_severity": "HIGH",
+            "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2023-25667",
+            "source": "NVD",
+            "severity": "HIGH",
+            "status": "ACTIVE",
+            "title": "CVE-2023-25667 - tensorflow-gpu"
         }
     ]
 }
