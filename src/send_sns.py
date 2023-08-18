@@ -2,10 +2,14 @@ import os
 import xmltodict
 import json
 import boto3
-
 from send_status import get_target_url
 
-from codebuild_environment import get_codebuild_project_name, get_codebuild_project_id, get_codepipeline_url
+from codebuild_environment import (
+    get_codebuild_project_name,
+    get_codebuild_project_id,
+    get_codepipeline_url,
+)
+
 
 def get_pytest_output():
     """
@@ -13,11 +17,13 @@ def get_pytest_output():
     """
     pytest_result_directory = os.path.join(os.getcwd(), "test")
     # get all xml files in test directory
-    files = [os.path.join(pytest_result_directory, f) for f in os.listdir(pytest_result_directory) if f.endswith(".xml")]
-    #print(files)
+    files = [
+        os.path.join(pytest_result_directory, f)
+        for f in os.listdir(pytest_result_directory)
+        if f.endswith(".xml")
+    ]
     # parse xml files and save it to list
     pytest_output_dict = {}
-    #TODO: check fir multiple test xml files
     if files:
         for f in files:
             with open(f, "r") as xml_file:
@@ -27,9 +33,7 @@ def get_pytest_output():
 
 
 def get_test_details(name):
-
     test_name = name.split("[")[0]
-
     repo_instance_name = name.split("[")[1].replace("]", "")
 
     instance_name = repo_instance_name.split("-")[-1]
@@ -41,7 +45,6 @@ def get_test_details(name):
 def get_dlc_images(build_context):
     if build_context == "PR":
         return os.getenv("DLC_IMAGES")
-    
     if build_context == "MAINLINE":
         test_env_file = os.path.join(
             os.getenv("CODEBUILD_SRC_DIR_DLC_IMAGES_JSON"), "test_type_images.json"
@@ -55,7 +58,6 @@ def get_dlc_images(build_context):
 
 
 def get_platform_execution_details():
-
     platform_details = {}
     build_context = os.getenv("BUILD_CONTEXT")
     codebuild_name = get_codebuild_project_name()
@@ -85,7 +87,7 @@ def get_pr_execution_details():
     github_url = os.getenv("CODEBUILD_SOURCE_REPO_URL")
     pr_execution_details["pr_number"] = pr_number
     pr_execution_details["commit_id"] = os.getenv("CODEBUILD_RESOLVED_SOURCE_VERSION")
-    pr_execution_details["github_url"] =github_url
+    pr_execution_details["github_url"] = github_url
     pr_execution_details["pr_url"] = f"{github_url}/pull/{pr_number}"
     return pr_execution_details
 
@@ -118,14 +120,17 @@ def parse_pytest_data():
                 test_name, ecr_image, instance_name = get_test_details(test["@name"])
                 test_data["test_name"] = test_name
                 test_data["ecr_image"] = ecr_image
-                test_data[test["properties"]["property"]["@name"]] = test["properties"]["property"]["@value"]
+                test_data[test["properties"]["property"]["@name"]] = test["properties"]["property"][
+                    "@value"
+                ]
                 test_data["instance_name"] = instance_name
                 test_data["test_path"] = test["@classname"].replace(".", "/") + "/" + test_name
                 test_data["fail_message"] = test["failure"]["@message"]
-                test_data["fail_full_message"] = test["failure"]["#text"]
+                # test_data["fail_full_message"] = test["failure"]["#text"]
                 pytest_file_data["failed_tests"][team_name].append(test_data)
-        pytest_parsed_output.append(pytest_file_data)    
+        pytest_parsed_output.append(pytest_file_data)
     return pytest_parsed_output
+
 
 def generate_sns_message_body():
     """
@@ -135,23 +140,23 @@ def generate_sns_message_body():
     sns_message_body["pytest_output"] = parse_pytest_data()
     return sns_message_body
 
+
 def generate_sns_message():
     # Send SNS message to a topic
-    sns_client = boto3.Session(region_name="us-west-2").client('sns')
+    sns_client = boto3.Session(region_name="us-west-2").client("sns")
     print("publishing")
     sns_client.publish(
-        TopicArn='arn:aws:sns:us-west-2:332057208146:AsimovAutoCutTicket-Service-332057208146-AsimovAutoCutTicketTopic0CE1A907-0iEfow67RJrS',
+        TopicArn="arn:aws:sns:us-west-2:332057208146:AsimovAutoCutTicket-Service-332057208146-AsimovAutoCutTicketTopic0CE1A907-0iEfow67RJrS",
         Message=json.dumps(generate_sns_message_body()),
-        Subject='Test Results')
+        Subject="Test Results",
+    )
+
 
 def main():
     output = generate_sns_message_body()
-    #print(json.dumps(output, indent=4))
-    with open('sns-body.json', 'w') as f:
+    with open("sns-body.json", "w") as f:
         json.dump(output, f, indent=4)
-    #generate_sns_message()
 
 
 if __name__ == "__main__":
     main()
-
