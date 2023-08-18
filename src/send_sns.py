@@ -10,6 +10,7 @@ from codebuild_environment import (
     get_codepipeline_url,
 )
 
+DEFAULT_REGION = "us-west-2"
 
 def get_pytest_output():
     """
@@ -143,10 +144,11 @@ def generate_sns_message_body():
 
 def generate_sns_message():
     # Send SNS message to a topic
-    sns_client = boto3.Session(region_name="us-west-2").client("sns")
+    sns_client = boto3.Session(region_name=DEFAULT_REGION).client("sns")
+    account_id = os.getenv("ACCOUNT_ID", boto3.client("sts").get_caller_identity()["Account"])
     print("publishing")
     sns_client.publish(
-        TopicArn="arn:aws:sns:us-west-2:332057208146:AsimovAutoCutTicket-Service-332057208146-AsimovAutoCutTicketTopic0CE1A907-0iEfow67RJrS",
+        TopicArn=f"arn:aws:sns:{DEFAULT_REGION}:{account_id}:TriggerAutoCutTicketWorkflow",
         Message=json.dumps(generate_sns_message_body()),
         Subject="Test Results",
     )
