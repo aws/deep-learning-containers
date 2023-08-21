@@ -268,6 +268,13 @@ HuggingFace Neuronx Training Containers
 |------------------------------------------------------------------|-------------------|-----------|----------------------------|-----------------------|----------------------------------------------------------------------------------------------------------------------------------------------|
 |PyTorch 1.13.0 with Neuronx Training and HuggingFace transformers |Neuronx 2.9.1      |training  |trn1                        |3.8 (py38)             |763104351884.dkr.ecr.us-east-1.amazonaws.com/huggingface-pytorch-training-neuronx:1.13.0-transformers4.28.1-neuronx-py38-sdk2.9.1-ubuntu20.04 |
 
+StabilityAI Inference Containers
+===============================
+
+| Framework                                     |Job Type	|CPU/GPU 	|Python Version Options	|Example URL                                                                                                                        |
+|-----------------------------------------------|-----------|-----------|-----------------------|-----------------------------------------------------------------------------------------------------------------------------------|
+|PyTorch 2.0.1 with StabilityAI SGM    |inference	|GPU 		| 3.10 (py310)			|763104351884.dkr.ecr.us-east-1.amazonaws.com/stabilityai-pytorch-inference:2.0.1-sgm0.1.0-gpu-py310-cu118-ubuntu20.04-sagemaker     |
+
 SageMaker Training Compiler Containers
 ===============================
 
