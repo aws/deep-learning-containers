@@ -2,7 +2,7 @@ ARG PYTHON=python3
 ARG PYTHON_VERSION=3.10.8
 ARG MAMBA_VERSION=22.11.1-4
 ARG PYTORCH_VERSION_EC2=2.0.1
-ARG PYTORCH_VERSION_SM=2.0.0
+ARG PYTORCH_VERSION_SM=2.0.1
 
 FROM ubuntu:20.04 AS base_image
 
@@ -111,7 +111,7 @@ RUN curl -L -o ~/mambaforge.sh https://github.com/conda-forge/miniforge/releases
 RUN /opt/conda/bin/mamba install -y --override-channels \
     -c conda-forge \
     conda=23.1.0 \
-    "cryptography>39.0.0" \
+    "cryptography>=41.0.2" \
     cmake \
     requests \
     pyopenssl \
@@ -127,14 +127,12 @@ RUN /opt/conda/bin/mamba install -y --override-channels \
     parso \
     typing \
     # Below 2 are included in miniconda base, but not mamba so need to install
-    conda-content-trust \
     charset-normalizer \
     packaging \
     opencv \
     awscli \
     boto3 \
     pybind11 \
-    pyyaml \
     scipy \
     click \
     psutil \
@@ -143,6 +141,9 @@ RUN /opt/conda/bin/mamba install -y --override-channels \
     ipykernel \
   && /opt/conda/bin/mamba install -y -c dglteam dgl \
   && /opt/conda/bin/mamba clean -afy
+
+RUN pip install --no-cache-dir --upgrade pip --no-cache-dir --trusted-host pypi.org --trusted-host files.pythonhosted.org \
+ && ln -s /opt/conda/bin/pip /usr/local/bin/pip3
 
 RUN curl -o /license.txt https://aws-dlc-licenses.s3.amazonaws.com/pytorch-2.0/license.txt
 
@@ -188,14 +189,11 @@ ARG PT_TORCHDATA_URL
 RUN /opt/conda/bin/mamba install -y pytorch=${PYTORCH_VERSION_EC2} \
   torchvision torchaudio torchtext cpuonly \
   --override-channels \
-  -c https://aws-ml-conda-ec2.s3.us-west-2.amazonaws.com \
+  -c https://aws-ml-conda-sm.s3.us-west-2.amazonaws.com \
   -c conda-forge
 
 # Patches
-RUN pip install \
-    "pillow>=9.5" \
-    "cryptography>=41.0.1" \
-    "pyopenssl>=23.2"
+RUN pip install "pillow>=9.5" "pyyaml>=6.0.1"
 RUN /opt/conda/bin/mamba install -y -c conda-forge \
   "requests>=2.31.0"
 
@@ -255,12 +253,13 @@ ARG PT_SM_TRAINING_URL
 ARG PT_TORCHVISION_URL
 ARG PT_TORCHAUDIO_URL
 ARG PT_TORCHDATA_URL
+ARG PYTORCH_VERSION_SM
 
 # Install SM AWS-PyTorch (force remove will increase the docker image size drastically)
 RUN /opt/conda/bin/mamba install -y pytorch=${PYTORCH_VERSION_SM} \
   torchvision torchaudio torchtext cpuonly \
   --override-channels \
-  -c https://aws-ml-conda-pre-prod-ec2.s3.us-west-2.amazonaws.com \
+  -c https://aws-ml-conda-sm.s3.us-west-2.amazonaws.com \
   -c conda-forge
 
 # install fastai (depends on PyTorch)
@@ -308,10 +307,7 @@ RUN /opt/conda/bin/mamba install -y -c conda-forge \
  && /opt/conda/bin/mamba clean -afy
 
 # Patches
-RUN pip install \
-    "pillow>=9.5" \
-    "cryptography>=41.0.1" \
-    "pyopenssl>=23.2"
+RUN pip install "pillow>=9.5" "pyyaml>=6.0.1"
 RUN /opt/conda/bin/mamba install -y -c conda-forge \
   "requests>=2.31.0"
 
