@@ -34,7 +34,7 @@ images:
     image_size_baseline: 10000
     device_type: &DEVICE_TYPE cpu
     os_version: &OS_VERSION ubuntu20.04
-    torch_serve_version: &TORCHSERVE_VERSION 0.8.0
+    torch_serve_version: &TORCHSERVE_VERSION 0.8.1
     python_version: &DOCKER_PYTHON_VERSION py3
     tag_python_version: &TAG_PYTHON_VERSION py310
     tag: !join [ *VERSION, "-", *DEVICE_TYPE, "-", *TAG_PYTHON_VERSION, "-", *OS_VERSION , "-ec2"]
@@ -48,8 +48,8 @@ images:
     image_size_baseline: 10000
     device_type: &DEVICE_TYPE cpu
     os_version: &OS_VERSION ubuntu20.04
-    torch_serve_version: &TORCHSERVE_VERSION 0.8.0
-    tool_kit_version: &SM_TOOLKIT_VERSION 2.0.14
+    torch_serve_version: &TORCHSERVE_VERSION 0.8.1
+    tool_kit_version: &SM_TOOLKIT_VERSION 2.0.16
     python_version: &DOCKER_PYTHON_VERSION py3
     tag_python_version: &TAG_PYTHON_VERSION py310
     tag: !join [ *VERSION, "-", *DEVICE_TYPE, "-", *TAG_PYTHON_VERSION, "-", *OS_VERSION , "-sagemaker"]

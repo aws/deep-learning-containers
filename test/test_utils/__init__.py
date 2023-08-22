@@ -11,6 +11,7 @@ from enum import Enum
 import boto3
 import git
 import pytest
+import requests
 
 import boto3
 from botocore.config import Config
@@ -1481,252 +1482,6 @@ def get_framework_and_version_from_tag(image_uri):
     return tested_framework, tag_framework_version
 
 
-# for the time being have this static table. Need to figure out a way to get this from
-# neuron github once their version manifest file is updated to the latest
-# 1.15.2 etc represent the neuron sdk version
-# For each of the sdk version we have differen frameworks like pytoch, mxnet etc
-# For each of the frameworks it has the framework version mapping to the actual neuron framework version in the container
-# If the framework version does not exist then it means it is not supported for that neuron sdk version
-NEURON_VERSION_MANIFEST = {
-    "1.15.2": {
-        "pytorch": {
-            "1.5.1": "1.5.1.1.5.21.0",
-            "1.6.0": "1.6.0.1.5.21.0",
-            "1.7.1": "1.7.1.1.5.21.0",
-            "1.8.1": "1.8.1.1.5.21.0",
-        },
-        "tensorflow": {
-            "2.1.4": "2.1.4.1.6.10.0",
-            "2.2.3": "2.2.3.1.6.10.0",
-            "2.3.3": "2.3.3.1.6.10.0",
-            "2.4.2": "2.4.2.1.6.10.0",
-            "2.4.2": "2.4.2.1.6.10.0",
-            "2.5.0": "2.5.0.1.6.10.0",
-        },
-        "mxnet": {
-            "1.8.0": "1.8.0.1.3.4.0",
-        },
-    },
-    "1.16.0": {
-        "pytorch": {
-            "1.5.1": "1.5.1.2.0.318.0",
-            "1.7.1": "1.7.1.2.0.318.0",
-            "1.8.1": "1.8.1.2.0.318.0",
-            "1.9.1": "1.9.1.2.0.318.0",
-        },
-        "tensorflow": {
-            "2.1.4": "2.1.4.2.0.3.0",
-            "2.2.3": "2.2.3.2.0.3.0",
-            "2.3.4": "2.3.4.2.0.3.0",
-            "2.4.3": "2.4.3.2.0.3.0",
-            "2.5.1": "2.5.1.2.0.3.0",
-            "1.15.5": "1.15.5.2.0.3.0",
-        },
-        "mxnet": {
-            "1.8.0": "1.8.0.2.0.271.0",
-        },
-    },
-    "1.16.1": {
-        "pytorch": {
-            "1.5.1": "1.5.1.2.0.392.0",
-            "1.7.1": "1.7.1.2.0.392.0",
-            "1.8.1": "1.8.1.2.0.392.0",
-            "1.9.1": "1.9.1.2.0.392.0",
-        },
-        "tensorflow": {
-            "2.1.4": "2.1.4.2.0.4.0",
-            "2.2.3": "2.2.3.2.0.4.0",
-            "2.3.4": "2.3.4.2.0.4.0",
-            "2.4.3": "2.4.3.2.0.4.0",
-            "2.5.1": "2.5.1.2.0.4.0",
-            "1.15.5": "1.15.5.2.0.4.0",
-        },
-        "mxnet": {
-            "1.8.0": "1.8.0.2.0.276.0",
-        },
-    },
-    "1.17.0": {
-        "pytorch": {
-            "1.5.1": "1.5.1.2.1.7.0",
-            "1.7.1": "1.7.1.2.1.7.0",
-            "1.8.1": "1.8.1.2.1.7.0",
-            "1.9.1": "1.9.1.2.1.7.0",
-            "1.10.1": "1.10.1.2.1.7.0",
-        },
-        "tensorflow": {
-            "2.1.4": "2.1.4.2.0.4.0",
-            "2.2.3": "2.2.3.2.0.4.0",
-            "2.3.4": "2.3.4.2.0.4.0",
-            "2.4.3": "2.4.3.2.0.4.0",
-            "2.5.2": "2.5.2.2.1.6.0",
-            "1.15.5": "1.15.5.2.1.6.0",
-        },
-        "mxnet": {
-            "1.8.0": "1.8.0.2.1.5.0",
-        },
-    },
-    "1.17.1": {
-        "pytorch": {
-            "1.10.1": "1.10.1.2.1.7.0",
-        },
-        "tensorflow": {
-            "2.5.2": "2.5.2.2.1.13.0",
-            "1.15.5": "1.15.5.2.1.13.0",
-        },
-        "mxnet": {
-            "1.8.0": "1.8.0.2.1.5.0",
-        },
-    },
-    "1.18.0": {
-        "pytorch": {
-            "1.5.1": "1.5.1.2.2.0.0",
-            "1.7.1": "1.7.1.2.2.0.0",
-            "1.8.1": "1.8.1.2.2.0.0",
-            "1.9.1": "1.9.1.2.2.0.0",
-            "1.10.2": "1.10.1.2.2.0.0",
-        },
-        "tensorflow": {
-            "2.5.3": "2.5.3.2.2.0.0",
-            "2.6.3": "2.6.3.2.2.0.0",
-            "2.7.1": "2.7.1.2.2.0.0",
-            "1.15.5": "1.15.5.2.2.0.0",
-        },
-        "mxnet": {
-            "1.8.0": "1.8.0.2.2.2.0",
-        },
-    },
-    "1.19.0": {
-        "pytorch": {
-            "1.7.1": "1.7.1.2.3.0.0",
-            "1.8.1": "1.8.1.2.3.0.0",
-            "1.9.1": "1.9.1.2.3.0.0",
-            "1.10.2": "1.10.2.2.3.0.0",
-            "1.11.0": "1.11.0.2.3.0.0",
-        },
-        "tensorflow": {
-            "2.5.3": "2.5.3.2.3.0.0",
-            "2.6.3": "2.6.3.2.3.0.0",
-            "2.7.1": "2.7.1.2.3.0.0",
-            "2.8.0": "2.8.0.2.3.0.0",
-            "1.15.5": "1.15.5.2.3.0.0",
-        },
-        "mxnet": {
-            "1.8.0": "1.8.0.2.2.2.0",
-        },
-    },
-    "2.3.0": {
-        "pytorch": {
-            "1.11.0": "1.11.0.2.3.0.0",
-        },
-    },
-    "2.4.0": {
-        "pytorch": {
-            "1.11.0": "1.11.0.2.3.0.0",
-        },
-    },
-    "2.5.0": {
-        "tensorflow": {
-            "2.8.0": "2.8.0.2.3.0.0",
-            "1.15.5": "1.15.5.2.5.6.0",
-        },
-        "pytorch": {
-            "1.12.1": "1.12.1.2.5.8.0",
-        },
-        "mxnet": {
-            "1.8.0": "1.8.0.2.2.43.0",
-        },
-    },
-    "2.6.0": {
-        "pytorch": {
-            "1.12.0": "1.12.0.1.4.0",
-        },
-    },
-    "2.8.0": {
-        "pytorch": {
-            "1.13.0": "1.13.0.1.5.0",
-        },
-    },
-    "2.8.0": {
-        "tensorflow": {
-            "1.15.5": "1.15.5.2.6.5.0",
-            "2.10.1": "2.10.1.2.6.5.0",
-        },
-    },
-    "2.9.0": {
-        "tensorflow": {
-            "2.10.1": "2.10.1.2.7.3.0",
-        },
-    },
-    "2.10.0": {
-        "tensorflow": {
-            "2.10.1": "2.10.1.2.8.1.0",
-        },
-        "pytorch": {
-            "1.13.1": "1.13.1.2.7.1.0",
-        },
-    },
-    "2.11.0": {
-        "pytorch": {
-            "1.13.1": "1.13.1.2.7.10.0",
-        },
-        "tensorflow": {
-            "2.10.1": "2.10.1.2.8.9.0",
-        },
-    },
-    "1.19.1": {
-        "pytorch": {
-            "1.7.1": "1.7.1.2.3.0.0",
-            "1.8.1": "1.8.1.2.3.0.0",
-            "1.9.1": "1.9.1.2.3.0.0",
-            "1.10.2": "1.10.2.2.3.0.0",
-            "1.11.0": "1.11.0.2.3.0.0",
-        },
-        "tensorflow": {
-            "2.5.3": "2.5.3.2.3.0.0",
-            "2.6.3": "2.6.3.2.3.0.0",
-            "2.7.1": "2.7.1.2.3.0.0",
-            "2.8.0": "2.8.0.2.3.0.0",
-            "1.15.5": "1.15.5.2.3.0.0",
-        },
-        "mxnet": {
-            "1.8.0": "1.8.0.2.2.2.0",
-        },
-    },
-}
-
-NEURONX_VERSION_MANIFEST = {
-    "2.9.0": {
-        "pytorch": {
-            "1.13.0": "1.13.0.1.6.0",
-        },
-        "tensorflow": {
-            "2.10.1": "2.10.1.2.0.0",
-        },
-    },
-    "2.9.1": {
-        "pytorch": {
-            "1.13.0": "1.13.0.1.6.1",
-        },
-    },
-    "2.10.0": {
-        "pytorch": {
-            "1.13.1": "1.13.1.1.7.0",
-        },
-        "tensorflow": {
-            "2.10.1": "2.10.1.2.1.0",
-        },
-    },
-    "2.11.0": {
-        "pytorch": {
-            "1.13.1": "1.13.1.1.8.0",
-        },
-        "tensorflow": {
-            "2.10.1": "2.10.1.2.1.0",
-        },
-    },
-}
-
-
 def get_neuron_sdk_version_from_tag(image_uri):
     """
     Return the neuron sdk version from the image tag.
@@ -1741,34 +1496,52 @@ def get_neuron_sdk_version_from_tag(image_uri):
     return neuron_sdk_version
 
 
-def get_neuron_framework_and_version_from_tag(image_uri):
+def get_neuron_release_manifest(sdk_version):
     """
-    Return the framework version and expected framework version for the neuron tag from the image tag.
+    Returns a dictionary which maps a package name (e.g. "tensorflow-neuronx") to all the version numbers available in and SDK release
 
-    :param image_uri: ECR image URI
-    :return: framework version, expected framework version from neuron sdk version
+    :param sdk_version: Neuron SDK version
+    :return: { "tensorflow_neuronx": set(["15.5.1.1.1.1.1", "2.10.1.1.1.1.1", ...]), ... }
     """
-    tested_framework, tag_framework_version = get_framework_and_version_from_tag(image_uri)
-    neuron_sdk_version = get_neuron_sdk_version_from_tag(image_uri)
+    NEURON_RELEASE_MANIFEST_URL = "https://raw.githubusercontent.com/aws-neuron/aws-neuron-sdk/master/src/helperscripts/n2-manifest.json"
 
-    if neuron_sdk_version is None:
-        return tag_framework_version, None
+    manifest = requests.get(NEURON_RELEASE_MANIFEST_URL)
+    assert manifest.text, f"Neuron manifest file at {NEURON_RELEASE_MANIFEST_URL} is empty"
 
-    neuron_version_manifest = (
-        NEURONX_VERSION_MANIFEST if "neuronx" in image_uri else NEURON_VERSION_MANIFEST
-    )
+    manifest_data = json.loads(manifest.text)
 
-    if neuron_sdk_version not in neuron_version_manifest:
-        raise KeyError(f"Cannot find neuron sdk version {neuron_sdk_version} ")
+    if "neuron_releases" not in manifest_data:
+        raise KeyError(f"neuron_releases not found in manifest_data\n{json.dumps(manifest_data)}")
 
-    # Framework name may include huggingface
-    if tested_framework.startswith("huggingface_"):
-        tested_framework = tested_framework[len("huggingface_") :]
+    release_array = manifest_data["neuron_releases"]
+    release = None
 
-    neuron_framework_versions = neuron_version_manifest[neuron_sdk_version][tested_framework]
-    neuron_tag_framework_version = neuron_framework_versions.get(tag_framework_version)
+    for current_release in release_array:
+        if "neuron_version" not in current_release:
+            continue
+        if current_release["neuron_version"] == sdk_version:
+            release = current_release
+            break
 
-    return tested_framework, neuron_tag_framework_version
+    if release is None:
+        raise KeyError(
+            f"cannot find neuron neuron sdk version {neuron_sdk_version} "
+            f"in releases:\n{json.dumps(release_array)}"
+        )
+
+    if "packages" not in release:
+        raise KeyError(f"packages not found in release data\n{json.dumps(release)}")
+
+    package_array = release["packages"]
+    package_versions = {}
+    for package in package_array:
+        package_name = package["name"]
+        package_version = package["version"]
+        if package_name not in package_versions:
+            package_versions[package_name] = set()
+        package_versions[package_name].add(package_version)
+
+    return package_versions
 
 
 def get_transformers_version_from_image_uri(image_uri):

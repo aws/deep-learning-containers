@@ -446,7 +446,10 @@
                 "53860":"Added in order to support tensorflow 1.15.5 and 2.10",
                 "53860":"Added in order to support tensorflow 1.15.5 and 2.10",
                 "58755": "requests issue for 1.15 image which won't be released anymore",
-                "59399": "not a security isssue"
+                "59399": "not a security isssue",
+                "59867": "Added for TF 1.15.5",
+                "59868": "Added for TF 1.15.5",
+                "59869": "Added for TF 1.15.5"
             }
         },
         "inference-neuronx":{

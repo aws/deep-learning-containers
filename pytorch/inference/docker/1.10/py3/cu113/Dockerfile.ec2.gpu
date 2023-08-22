@@ -18,7 +18,7 @@ ARG PYTHON=python3
 ARG PYTHON_VERSION=3.8.10
 
 # PyTorch Binaries
-ARG PT_INFERENCE_URL=https://pytorch-ei-binaries.s3.us-west-2.amazonaws.com/r1.10.2_inference/20220211-013556/528b6ca3747ec951396383f2a70d1354283ad29f/gpu/torch-1.10.2%2Bcu113-cp38-cp38-manylinux1_x86_64.whl
+ARG PT_INFERENCE_URL=https://aws-pytorch-unified-cicd-binaries.s3.us-west-2.amazonaws.com/r1.10.2_sm/20220912-174939/7c6f3bc8e7456e1e0238ddf26011a9eebad5b43d/torch-1.10.2%2Bcu113-cp38-cp38-linux_x86_64.whl
 ARG PT_TORCHVISION_URL=https://framework-binaries.s3.us-west-2.amazonaws.com/pytorch/1.10.2/torchvision-0.11.3-cp38-cp38-linux_x86_64.whl
 
 ARG OPEN_MPI_VERSION=4.0.1
@@ -149,7 +149,7 @@ RUN curl -L -o ~/mambaforge.sh https://github.com/conda-forge/miniforge/releases
 # the current conda 4.12
 RUN /opt/conda/bin/conda update -y conda \
  && /opt/conda/bin/conda clean -ya
- 
+
 RUN conda install -c pytorch \
     magma-cuda113 \
  && conda install -c conda-forge \

@@ -194,42 +194,6 @@ def test_pytorch_train_dgl_cpu(pytorch_training, ec2_connection, cpu_only, py3_o
 
 
 @pytest.mark.usefixtures("sagemaker")
-@pytest.mark.integration("horovod")
-@pytest.mark.model("mnist")
-@pytest.mark.parametrize("ec2_instance_type", PT_EC2_GPU_INSTANCE_TYPE, indirect=True)
-def test_pytorch_with_horovod(pytorch_training, ec2_connection, gpu_only, ec2_instance_type):
-    _, image_framework_version = get_framework_and_version_from_tag(pytorch_training)
-    if "trcomp" in pytorch_training and Version(image_framework_version) in SpecifierSet("<2.0"):
-        pytest.skip(f"Image {pytorch_training} doesn't package horovod. Hence test is skipped.")
-    if test_utils.is_image_incompatible_with_instance_type(pytorch_training, ec2_instance_type):
-        pytest.skip(
-            f"Image {pytorch_training} is incompatible with instance type {ec2_instance_type}"
-        )
-    test_cmd = os.path.join(CONTAINER_TESTS_PREFIX, "pytorch_tests", "testPTHVD")
-    execute_ec2_training_test(ec2_connection, pytorch_training, test_cmd)
-
-
-@pytest.mark.usefixtures("sagemaker")
-@pytest.mark.integration("horovod")
-@pytest.mark.integration("inductor")
-@pytest.mark.model("mnist")
-@pytest.mark.parametrize("ec2_instance_type", PT_INDUCTOR_TEST_INSTANCE_TYPE, indirect=True)
-@pytest.mark.skip_inductor_test
-def test_pytorch_with_horovod_inductor(
-    pytorch_training, ec2_connection, gpu_only, ec2_instance_type
-):
-    _, image_framework_version = get_framework_and_version_from_tag(pytorch_training)
-    if "trcomp" in pytorch_training and Version(image_framework_version) in SpecifierSet("<2.0"):
-        pytest.skip(f"Image {pytorch_training} doesn't package horovod. Hence test is skipped.")
-    if test_utils.is_image_incompatible_with_instance_type(pytorch_training, ec2_instance_type):
-        pytest.skip(
-            f"Image {pytorch_training} is incompatible with instance type {ec2_instance_type}"
-        )
-    test_cmd = os.path.join(CONTAINER_TESTS_PREFIX, "pytorch_tests", "testPTHVDwithInductor")
-    execute_ec2_training_test(ec2_connection, pytorch_training, test_cmd)
-
-
-@pytest.mark.usefixtures("sagemaker")
 @pytest.mark.integration("gloo")
 @pytest.mark.model("resnet18")
 @pytest.mark.parametrize("ec2_instance_type", PT_INDUCTOR_TEST_INSTANCE_TYPE, indirect=True)

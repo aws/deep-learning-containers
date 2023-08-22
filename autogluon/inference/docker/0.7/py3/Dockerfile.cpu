@@ -22,13 +22,19 @@ RUN apt-get update \
 # Install AutoGluon
 ARG AUTOGLUON_VERSION=0.7.0
 
+# downgrade protobuf to fix pip version conflict
+# upgrade cryptography for vulnerabilities in base image
+# uninstall tensorboardx to resolve conflict for protobuf
 RUN pip install --no-cache-dir -U --trusted-host pypi.org --trusted-host files.pythonhosted.org pip \
  && pip install --no-cache-dir -U setuptools wheel \
  && pip uninstall -y dataclasses \
  && pip install --no-cache-dir -U numpy numba \
  && pip install --no-cache-dir -U autogluon==${AUTOGLUON_VERSION} \
  && mim install -q mmcv-full \
- && pip install --no-cache-dir -U mmdet
+ && pip install --no-cache-dir -U mmdet \
+ && pip uninstall -y tensorboardX \
+ && pip install --no-cache-dir -U "protobuf<4.0" \
+ && pip install --no-cache-dir -U cryptography>=41.0.2
 
 # Removing GluonTS nursery/tsbench package - it is not used in training/inference and have security vulnerabilities
 # Remove these to address security issues; these are not used if only python package is used
