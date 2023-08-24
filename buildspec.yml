@@ -28,12 +28,12 @@ phases:
       - python src/send_status.py --status $CODEBUILD_BUILD_SUCCEEDING
 artifacts:
   secondary-artifacts:
-    artifact1:
+    DLC_IMAGES_JSON:
       files:
         - $HOME/test_type_images.json
       name: DLC_IMAGES_JSON
       discard-paths: yes
-    artifact2:
+    DLC_BUILDSPEC_FILE:
       files:
         - $HOME/framework-buildspec.yml
       name: DLC_BUILDSPEC_FILE
