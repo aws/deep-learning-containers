@@ -41,7 +41,7 @@ ARG DEBIAN_FRONTEND=noninteractive
 
 # Python won’t try to write .pyc or .pyo files on the import of source modules
 # Force stdin, stdout and stderr to be totally unbuffered. Good for logging
-ENV CUDA_HOME=/usr/local/cuda
+ENV CUDA_HOME=/opt/conda/
 ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
 ENV LD_LIBRARY_PATH="/usr/local/lib:${LD_LIBRARY_PATH}"
