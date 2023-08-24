@@ -3,7 +3,7 @@ ARG PYTHON_VERSION=3.10.8
 ARG PYTHON_SHORT_VERSION=3.10
 ARG MAMBA_VERSION=23.1.0-1
 ARG PYTORCH_VERSION_EC2=2.0.1
-ARG CONDA_CHANNEL=https://aws-ml-conda-ec2-pre-prod.s3.us-west-2.amazonaws.com
+ARG CONDA_CHANNEL=https://aws-ml-conda-ec2.s3.us-west-2.amazonaws.com
 
 FROM nvidia/cuda:12.1.0-base-ubuntu20.04 AS base_image
 
@@ -19,7 +19,7 @@ RUN apt-get update \
 FROM base_image AS common
 
 LABEL maintainer="Amazon AI"
-LABEL dlc_major_version="1"
+LABEL dlc_major_version="2"
 
 ARG PYTHON
 ARG PYTHON_VERSION
@@ -135,6 +135,8 @@ RUN /opt/conda/bin/mamba install -y -c conda-forge \
     "cryptography>=41.0.2" \
     # patch CVE
     "pillow>=9.4" \
+    "mpi4py>=3.1.4,<3.2" \
+    h5py \
   && /opt/conda/bin/mamba clean -afy \
   && rm -rf /etc/apt/sources.list.d/*
 
@@ -229,6 +231,13 @@ RUN /opt/conda/bin/mamba install -y python=${PYTHON_SHORT_VERSION} pytorch=${PYT
   -c ${CONDA_CHANNEL} \
   -c nvidia \
   -c conda-forge
+
+# Install NCCL
+RUN cd /tmp \
+ && git clone https://github.com/NVIDIA/nccl.git -b v${NCCL_VERSION}-1 \
+ && cd nccl \
+ && make -j64 src.build BUILDDIR=/usr/local CUDA_LIB=${CUDA_HOME}/lib \
+ && rm -rf /tmp/nccl
 
 # install PyTorch related python packages (depends on PyTorch)
 RUN /opt/conda/bin/mamba install -y -c conda-forge \
