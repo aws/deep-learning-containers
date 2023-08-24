@@ -179,6 +179,19 @@ def test_pytorch_train_dgl_gpu(
     pytorch_training, ec2_connection, ec2_instance_type, gpu_only, py3_only, skip_pt110
 ):
     # DGL gpu ec2 test doesn't work on PT 1.10 DLC
+    _, image_framework_version = get_framework_and_version_from_tag(pytorch_training)
+    image_cuda_version = get_cuda_version_from_tag(pytorch_training)
+    # TODO: Remove when DGL gpu test on ec2 get fixed
+    if (
+        Version(image_framework_version) in SpecifierSet("==1.10.*")
+        and image_cuda_version == "cu113"
+    ):
+        pytest.skip("ecs test for DGL gpu fails for pt 1.10")
+    if (
+        Version(image_framework_version) in SpecifierSet(">=2.0.*")
+        and image_cuda_version == "cu121"
+    ):
+        pytest.skip("DGL not supported on PT2.0.1 with cuda12.1")
     if test_utils.is_image_incompatible_with_instance_type(pytorch_training, ec2_instance_type):
         pytest.skip(
             f"Image {pytorch_training} is incompatible with instance type {ec2_instance_type}"
