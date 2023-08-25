@@ -87,11 +87,12 @@ def test_eks_pytorch_single_node_training(pytorch_training):
 
         if eks_utils.is_eks_training_complete(pod_name):
             pytorch_out = run("kubectl logs {}".format(pod_name)).stdout
+            print(pytorch_out)
             if "Accuracy" in pytorch_out:
                 training_result = True
             else:
                 eks_utils.LOGGER.info("**** training output ****")
-                eks_utils.LOGGER.debug(pytorch_out)
+                eks_utils.LOGGER.info(pytorch_out)
         assert training_result, f"Training failed"
     finally:
         run("kubectl delete pods {}".format(pod_name))
