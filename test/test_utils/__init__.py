@@ -1704,15 +1704,25 @@ def get_python_version_from_image_uri(image_uri):
 
 def construct_buildspec_path(dlc_path, framework_path, buildspec, framework_version, job_type=""):
     """
-    Construct a relative path to the buildspec yaml file by iterative checking on the existence of
+    Get buildspec file that should be used in testing a particular DLC image. This file is normally
+    configured as an environment variable on PR and Mainline test jobs. If it isn't configured,
+    construct a relative path to the buildspec yaml file by iterative checking on the existence of
     a specific version file for the framework being tested. Possible options include:
     [buildspec-[Major]-[Minor]-[Patch].yml, buildspec-[Major]-[Minor].yml, buildspec-[Major].yml, buildspec.yml]
     :param dlc_path: path to the DLC test folder
     :param framework_path: Framework folder name
     :param buildspec: buildspec file name
     :param framework_version: default (long) framework version name
+    :param job_type: image job-type as one of ["training", "inference"]
     """
-    if framework_version:
+    if is_pr_context() and os.getenv("FRAMEWORK_BUILDSPEC_FILE"):
+        buildspec_path = os.path.join(dlc_path, os.getenv("FRAMEWORK_BUILDSPEC_FILE"))
+        return buildspec_path
+    elif os.getenv("CODEBUILD_SRC_DIR_DLC_BUILDSPEC_FILE"):
+        return os.path.join(
+            os.getenv("CODEBUILD_SRC_DIR_DLC_BUILDSPEC_FILE"), "framework-buildspec.yml"
+        )
+    elif framework_version:
         # pattern matches for example 0.3.2 or 22.3
         pattern = r"^(\d+)(\.\d+)?(\.\d+)?$"
         matched = re.search(pattern, framework_version)

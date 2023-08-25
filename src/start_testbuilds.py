@@ -81,6 +81,11 @@ def run_test_job(commit, codebuild_project, images_str=""):
                 "value": config.get_sagemaker_remote_efa_instance_type(),
                 "type": "PLAINTEXT",
             },
+            {
+                "name": "FRAMEWORK_BUILDSPEC_FILE",
+                "value": config.get_buildspec_override() or os.getenv("FRAMEWORK_BUILDSPEC_FILE"),
+                "type": "PLAINTEXT",
+            },
         ]
     )
     LOGGER.debug(f"env_overrides dict: {env_overrides}")
