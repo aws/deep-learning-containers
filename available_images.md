@@ -142,7 +142,7 @@ EC2 Framework Graviton Containers (EC2, ECS, and EKS support only)
 | Framework         |Job Type	|Horovod Options|CPU/GPU 	|Python Version Options	|Example URL																						|
 |-------------------|-----------|---------------|-----------|-----------------------|---------------------------------------------------------------------------------------------------|
 |PyTorch 2.0.1   |inference	|No			|CPU 		| 3.10 (py310)			|763104351884.dkr.ecr.us-east-1.amazonaws.com/pytorch-inference-graviton:2.0.1-cpu-py310-ubuntu20.04-ec2		|
-|TensorFlow 2.12.1   |inference	|No			|CPU 		| 3.10 (py310)			|763104351884.dkr.ecr.us-east-1.amazonaws.com/tensorflow-inference-graviton:2.12.1-cpu-py310-ubuntu20.04-ec2		|
+|TensorFlow 2.13.0   |inference	|No			|CPU 		| 3.10 (py310)			|763104351884.dkr.ecr.us-east-1.amazonaws.com/tensorflow-inference-graviton:2.13.0-cpu-py310-ubuntu20.04-ec2		|
 
 SageMaker Framework Graviton Containers (SM support only)
 ============================
@@ -150,15 +150,16 @@ SageMaker Framework Graviton Containers (SM support only)
 | Framework         | Job Type	| Horovod Options| CPU/GPU | Python Version Options	| Example URL																						              |
 |-------------------|-----------|----------------|---------|------------------------|-----------------------------------------------------------------------------------------------------------------|
 | PyTorch 2.0.1    | inference | No			 | CPU 	   | 3.10 (py310)			    | 763104351884.dkr.ecr.us-east-1.amazonaws.com/pytorch-inference-graviton:2.0.1-cpu-py310-ubuntu20.04-sagemaker   |
-| TensorFlow 2.12.1  | inference | No			 | CPU 	   | 3.10 (py310)			    | 763104351884.dkr.ecr.us-east-1.amazonaws.com/tensorflow-inference-graviton:2.12.1-cpu-py310-ubuntu20.04-sagemaker |
+| TensorFlow 2.13.0  | inference | No			 | CPU 	   | 3.10 (py310)			    | 763104351884.dkr.ecr.us-east-1.amazonaws.com/tensorflow-inference-graviton:2.13.0-cpu-py310-ubuntu20.04-sagemaker |
 
 NVIDIA Triton Inference Containers (SM support only)
 ============================
 **Note**: 
 
-1. The following versions of the 23.`<XY>` container are supported: `23.01, 23.02, 23.03, 23.05`.
+1. The following versions of the 23.`<XY>` container are supported: `23.01, 23.02, 23.03, 23.05, 23.06`.
 2. SageMaker Triton Inference Container does not support Tensorflow1 as of version 23.05 onwards, as upstream Triton container does not support 
 Tensorflow(v1) native backend from version 23.04 onwards.
+3. SageMaker Triton Inference Container does not ship with the FasterTransformer(FT) backend from version 23.06 onwards since the upstream FT library is undergoing re-structuring. It was previously available from versions v22.12 - v23.05, experimentally. This note will be updated after the restructuring is complete. 
 
 | Framework         |Job Type	|Horovod Options|CPU/GPU 	|Python Version Options	|Example URL																						|
 |-------------------|-----------|---------------|-----------|-----------------------|---------------------------------------------------------------------------------------------------|
@@ -268,6 +269,13 @@ HuggingFace Neuronx Training Containers
 |------------------------------------------------------------------|-------------------|-----------|----------------------------|-----------------------|----------------------------------------------------------------------------------------------------------------------------------------------|
 |PyTorch 1.13.0 with Neuronx Training and HuggingFace transformers |Neuronx 2.9.1      |training  |trn1                        |3.8 (py38)             |763104351884.dkr.ecr.us-east-1.amazonaws.com/huggingface-pytorch-training-neuronx:1.13.0-transformers4.28.1-neuronx-py38-sdk2.9.1-ubuntu20.04 |
 
+StabilityAI Inference Containers
+===============================
+
+| Framework                                     |Job Type	|CPU/GPU 	|Python Version Options	|Example URL                                                                                                                        |
+|-----------------------------------------------|-----------|-----------|-----------------------|-----------------------------------------------------------------------------------------------------------------------------------|
+|PyTorch 2.0.1 with StabilityAI SGM    |inference	|GPU 		| 3.10 (py310)			|763104351884.dkr.ecr.us-east-1.amazonaws.com/stabilityai-pytorch-inference:2.0.1-sgm0.1.0-gpu-py310-cu118-ubuntu20.04-sagemaker     |
+
 SageMaker Training Compiler Containers
 ===============================
 
@@ -372,15 +380,17 @@ Prior EC2 Framework Graviton Containers
 
 | Framework         |Job Type	|Horovod Options|CPU/GPU 	|Python Version Options	|Example URL																						|
 |-------------------|-----------|---------------|-----------|-----------------------|---------------------------------------------------------------------------------------------------|
-|PyTorch 1.12.1   |inference	|No			|CPU 		| 3.8 (py38)			|763104351884.dkr.ecr.us-east-1.amazonaws.com/pytorch-inference-graviton:1.12.1-cpu-py38-ubuntu20.04-ec2		|
+|PyTorch 1.12.1     |inference	|No			|CPU 		| 3.8 (py38)			|763104351884.dkr.ecr.us-east-1.amazonaws.com/pytorch-inference-graviton:1.12.1-cpu-py38-ubuntu20.04-ec2		|
+|TensorFlow 2.12.1  |inference	|No			|CPU 		| 3.10 (py310)			|763104351884.dkr.ecr.us-east-1.amazonaws.com/tensorflow-inference-graviton:2.12.1-cpu-py310-ubuntu20.04-ec2    |
 |TensorFlow 2.9.1   |inference	|No			|CPU 		| 3.8 (py38)			|763104351884.dkr.ecr.us-east-1.amazonaws.com/tensorflow-inference-graviton:2.9.1-cpu-py38-ubuntu20.04-ec2		|
 
 Prior SageMaker Framework Graviton Containers
 ============================
 | Framework         |Job Type	|Horovod Options|CPU/GPU 	|Python Version Options	|Example URL																						|
 |-------------------|-----------|---------------|-----------|-----------------------|---------------------------------------------------------------------------------------------------|
-| PyTorch 1.12.1    | inference | No			 | CPU 	   | 3.8 (py38)			    | 763104351884.dkr.ecr.us-east-1.amazonaws.com/pytorch-inference-graviton:1.12.1-cpu-py38-ubuntu20.04-sagemaker   |
-| TensorFlow 2.9.1  | inference | No			 | CPU 	   | 3.9 (py39)			    | 763104351884.dkr.ecr.us-east-1.amazonaws.com/tensorflow-inference-graviton:2.9.1-cpu-py38-ubuntu20.04-sagemaker |
+| PyTorch 1.12.1    | inference | No			 | CPU 	   | 3.8 (py38)			    | 763104351884.dkr.ecr.us-east-1.amazonaws.com/pytorch-inference-graviton:1.12.1-cpu-py38-ubuntu20.04-sagemaker     |
+| TensorFlow 2.12.1 | inference | No			 | CPU 	   | 3.10 (py310)			| 763104351884.dkr.ecr.us-east-1.amazonaws.com/tensorflow-inference-graviton:2.12.1-cpu-py310-ubuntu20.04-sagemaker |
+| TensorFlow 2.9.1  | inference | No			 | CPU 	   | 3.9 (py39)			    | 763104351884.dkr.ecr.us-east-1.amazonaws.com/tensorflow-inference-graviton:2.9.1-cpu-py38-ubuntu20.04-sagemaker   |
 
 Prior AutoGluon Training Containers
 ===============================

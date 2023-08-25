@@ -19,6 +19,7 @@ phases:
       - echo Build started on `date`
       - echo Building the Docker image...
       - python src/main.py --buildspec $FRAMEWORK_BUILDSPEC_FILE --framework $FRAMEWORK
+      - cp $FRAMEWORK_BUILDSPEC_FILE $HOME/framework-buildspec.yml
   post_build:
     commands:
       - echo Build step finished on `date`
@@ -26,7 +27,14 @@ phases:
       - python src/start_testbuilds.py
       - python src/send_status.py --status $CODEBUILD_BUILD_SUCCEEDING
 artifacts:
-  files:
-    - $HOME/test_type_images.json
-  name: DLC_IMAGES_JSON
-  discard-paths: yes
+  secondary-artifacts:
+    DLC_IMAGES_JSON:
+      files:
+        - $HOME/test_type_images.json
+      name: DLC_IMAGES_JSON
+      discard-paths: yes
+    DLC_BUILDSPEC_FILE:
+      files:
+        - $HOME/framework-buildspec.yml
+      name: DLC_BUILDSPEC_FILE
+      discard-paths: yes
