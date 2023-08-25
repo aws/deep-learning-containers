@@ -20,6 +20,7 @@ PT_STANDALONE_CMD = os.path.join(CONTAINER_TESTS_PREFIX, "pytorch_tests", "testP
 PT_MNIST_CMD = os.path.join(CONTAINER_TESTS_PREFIX, "pytorch_tests", "testPyTorch")
 PT_BERT_INDUCTOR_CMD = os.path.join(CONTAINER_TESTS_PREFIX, "pytorch_tests", "testPyTorch")
 PT_REGRESSION_CMD = os.path.join(CONTAINER_TESTS_PREFIX, "pytorch_tests", "testPyTorchRegression")
+PT_REGRESSION_CMD_REVISED = os.path.join(CONTAINER_TESTS_PREFIX, "pytorch_tests", "testPyTorchRegressionRevised")
 PT_DGL_CMD = os.path.join(CONTAINER_TESTS_PREFIX, "dgl_tests", "testPyTorchDGL")
 PT_APEX_CMD = os.path.join(CONTAINER_TESTS_PREFIX, "pytorch_tests", "testNVApex")
 PT_AMP_CMD = os.path.join(CONTAINER_TESTS_PREFIX, "pytorch_tests", "testPyTorchAMP")
@@ -161,7 +162,13 @@ def test_pytorch_linear_regression_gpu(
         pytest.skip(
             f"Image {pytorch_training} is incompatible with instance type {ec2_instance_type}"
         )
-    execute_ec2_training_test(ec2_connection, pytorch_training, PT_REGRESSION_CMD)
+    if (
+        Version(image_framework_version) in SpecifierSet(">=2.0")
+        and image_cuda_version == "cu121"
+    ):
+        execute_ec2_training_test(ec2_connection, pytorch_training, PT_REGRESSION_CMD_REVISED)
+    else:
+        execute_ec2_training_test(ec2_connection, pytorch_training, PT_REGRESSION_CMD)
 
 
 @pytest.mark.usefixtures("sagemaker")
@@ -188,10 +195,10 @@ def test_pytorch_train_dgl_gpu(
     ):
         pytest.skip("ecs test for DGL gpu fails for pt 1.10")
     if (
-        Version(image_framework_version) in SpecifierSet(">=2.0.*")
+        Version(image_framework_version) in SpecifierSet(">=2.0")
         and image_cuda_version == "cu121"
     ):
-        pytest.skip("DGL not supported on PT2.0.1 with cuda12.1")
+        pytest.skip("DGL not supported on PT2.0.1 for cuda 12.1")
     if test_utils.is_image_incompatible_with_instance_type(pytorch_training, ec2_instance_type):
         pytest.skip(
             f"Image {pytorch_training} is incompatible with instance type {ec2_instance_type}"
