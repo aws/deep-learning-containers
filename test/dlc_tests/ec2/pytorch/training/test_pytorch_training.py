@@ -162,6 +162,8 @@ def test_pytorch_linear_regression_gpu(
         pytest.skip(
             f"Image {pytorch_training} is incompatible with instance type {ec2_instance_type}"
         )
+    _, image_framework_version = get_framework_and_version_from_tag(pytorch_training)
+    image_cuda_version = get_cuda_version_from_tag(pytorch_training)
     if (
         Version(image_framework_version) in SpecifierSet(">=2.0")
         and image_cuda_version == "cu121"

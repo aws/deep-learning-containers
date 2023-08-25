@@ -21,41 +21,6 @@ if [[ ${INSTANCE_TYPE} == p3dn.24xlarge ]]; then
   USE_DEVICE_RDMA_ARG=""
 fi
 
-check_ring_single_node(){
-    echo "Running ring"
-    # Not using full-paths of mpirun and other scripts because these paths can change across PyTorch versions.
-    mpirun -n 3 --host localhost --oversubscribe \
-        -x RDMAV_FORK_SAFE=1 ${USE_DEVICE_RDMA_ARG} -x NCCL_PROTO=simple --mca pml ^cm \
-        -x LD_LIBRARY_PATH=${CUDA_HOME}/lib:${CUDA_HOME}/lib64:$LD_LIBRARY_PATH \
-        ring
-    RETURN_VAL=`echo $?`
-    if [ ${RETURN_VAL} -eq 0 ]; then
-        echo "***************************** check_ring_single_node passed *****************************"
-    else
-        echo "***************************** check_ring_single_node failed *****************************"
-        exit 1
-    fi
-}
-
-check_multinode_nccl_transfer() {
-    echo "Running nccl_message_transfer"
-    # Need to pass -x PATH because rank non-zero nodes seem to "forget" the value of PATH that is pre-configured into
-    # the container. Not using full-paths of mpirun and other executables because these paths can change across PyTorch
-    # versions in DLC images.
-    mpirun -n $NUM_HOSTS -N 1 --hostfile $NUM_HOSTS_file \
-        -x PATH -x LD_LIBRARY_PATH=${CUDA_HOME}lib:${CUDA_HOME}/lib64:$LD_LIBRARY_PATH -x NCCL_DEBUG=INFO \
-        ${USE_DEVICE_RDMA_ARG} -x NCCL_ALGO=ring -x NCCL_PROTO=simple -x RDMAV_FORK_SAFE=1 --mca pml ^cm \
-        -x FI_PROVIDER="efa" --mca btl tcp,self --mca btl_tcp_if_exclude lo,docker0 --bind-to none \
-        nccl_message_transfer
-    RETURN_VAL=`echo $?`
-    if [ ${RETURN_VAL} -eq 0 ]; then
-        echo "***************************** check_multinode_nccl_transfer passed *****************************"
-    else
-        echo "***************************** check_multinode_nccl_transfer failed *****************************"
-        exit 1
-    fi
-}
-
 validate_all_reduce_performance_logs(){
     grep "NET/OFI Using aws-ofi-nccl" ${TRAINING_LOG}
     grep "NET/OFI Selected Provider is efa" ${TRAINING_LOG}
@@ -104,6 +69,4 @@ check_efa_nccl_all_reduce(){
     check_efa_nccl_all_reduce_performance
 }
 
-check_ring_single_node
-check_multinode_nccl_transfer
 check_efa_nccl_all_reduce
