@@ -21,6 +21,8 @@ if [[ ${INSTANCE_TYPE} == p3dn.24xlarge ]]; then
   USE_DEVICE_RDMA_ARG=""
 fi
 
+mamba uninstall libhwloc -y
+
 validate_all_reduce_performance_logs(){
     grep "NET/OFI Using aws-ofi-nccl" ${TRAINING_LOG}
     grep "NET/OFI Selected Provider is efa" ${TRAINING_LOG}
