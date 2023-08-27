@@ -22,6 +22,7 @@ if [[ ${INSTANCE_TYPE} == p3dn.24xlarge ]]; then
 fi
 
 mamba uninstall libhwloc -y
+mamba list | grep libhwloc
 
 validate_all_reduce_performance_logs(){
     grep "NET/OFI Using aws-ofi-nccl" ${TRAINING_LOG}

@@ -73,6 +73,34 @@ def test_pytorch_nccl_tests_using_efa(
     run_cmd_on_container(
         MASTER_CONTAINER_NAME,
         master_connection,
+        "mamba uninstall libhwloc -y",
+        hide=False,
+        timeout=300,
+    )
+    run_cmd_on_container(
+        WORKER_CONTAINER_NAME,
+        master_connection,
+        "mamba uninstall libhwloc -y",
+        hide=False,
+        timeout=300,
+    )
+    run_cmd_on_container(
+        WORKER_CONTAINER_NAME,
+        master_connection,
+        "mamba list | grep libhwloc",
+        hide=False,
+        timeout=300,
+    )
+    run_cmd_on_container(
+        MASTER_CONTAINER_NAME,
+        master_connection,
+        "mamba list | grep libhwloc",
+        hide=False,
+        timeout=300,
+    )
+    run_cmd_on_container(
+        MASTER_CONTAINER_NAME,
+        master_connection,
         f"{EFA_NCCL_TESTS_TEST_CMD} {HOSTS_FILE_LOCATION} {number_of_nodes}",
         hide=False,
         timeout=300,
@@ -259,6 +287,7 @@ def _setup_container(connection, docker_image, container_name):
     devices = ec2_utils.get_efa_devices_on_instance(connection)
     docker_devices_args = [f"--device {device_location}" for device_location in devices]
     docker_all_devices_arg = " ".join(docker_devices_args)
+
 
     # Remove pre-existing containers if reusing an instance
     connection.run(f"docker rm -f {container_name}", hide=True)

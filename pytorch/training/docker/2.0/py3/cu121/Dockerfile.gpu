@@ -77,7 +77,6 @@ RUN apt-get update \
     libxrender-dev \
     libgomp1 \
     libibverbs-dev \
-    libhwloc-dev \
     libnuma1 \
     libnuma-dev \
     libssl1.1 \
