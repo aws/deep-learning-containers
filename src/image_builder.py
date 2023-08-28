@@ -436,6 +436,9 @@ def generate_common_stage_image_object(pre_push_stage_image_object, image_tag):
 
 
 def conduct_apatch_build_setup(image_name, image_tag, info, image_config, cx_type):
+    from invoke import run
+    run(f"""pip install -r {os.path.join(os.sep, get_cloned_folder_path(), "test", "requirements.txt")}""", hide=True)
+    
     released_image_list = parse_canary_images(
         info["framework"], info["region"], info["image_type"], customer_type=cx_type
     ).split(" ")
