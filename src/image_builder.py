@@ -33,7 +33,6 @@ from image import DockerImage
 from common_stage_image import CommonStageImage
 from buildspec import Buildspec
 from output import OutputFormatter
-from test.test_utils import parse_canary_images, get_framework_and_version_from_tag
 
 FORMATTER = OutputFormatter(constants.PADDING)
 build_context = os.getenv("BUILD_CONTEXT")
@@ -438,7 +437,8 @@ def generate_common_stage_image_object(pre_push_stage_image_object, image_tag):
 def conduct_apatch_build_setup(image_name, image_tag, info, image_config, cx_type):
     from invoke import run
     run(f"""pip install -r {os.path.join(os.sep, get_cloned_folder_path(), "test", "requirements.txt")}""", hide=True)
-    
+    from test.test_utils import parse_canary_images, get_framework_and_version_from_tag
+
     released_image_list = parse_canary_images(
         info["framework"], info["region"], info["image_type"], customer_type=cx_type
     ).split(" ")
