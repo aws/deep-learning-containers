@@ -19,6 +19,7 @@ phases:
       - echo Build started on `date`
       - echo Building the Docker image...
       - export APatch=True
+      - export PYTHONPATH=$(pwd)
       - python src/main.py --buildspec $FRAMEWORK_BUILDSPEC_FILE --framework $FRAMEWORK
       - cp $FRAMEWORK_BUILDSPEC_FILE $HOME/framework-buildspec.yml
   post_build:
