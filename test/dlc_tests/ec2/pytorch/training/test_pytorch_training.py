@@ -178,6 +178,7 @@ def test_pytorch_linear_regression_cpu(pytorch_training, ec2_connection, cpu_onl
 def test_pytorch_train_dgl_gpu(
     pytorch_training, ec2_connection, ec2_instance_type, gpu_only, py3_only, skip_pt110
 ):
+    # DGL gpu ec2 test doesn't work on PT 1.10 DLC
     if test_utils.is_image_incompatible_with_instance_type(pytorch_training, ec2_instance_type):
         pytest.skip(
             f"Image {pytorch_training} is incompatible with instance type {ec2_instance_type}"
@@ -190,6 +191,7 @@ def test_pytorch_train_dgl_gpu(
 @pytest.mark.model("gcn")
 @pytest.mark.parametrize("ec2_instance_type", PT_EC2_CPU_INSTANCE_TYPE, indirect=True)
 def test_pytorch_train_dgl_cpu(pytorch_training, ec2_connection, cpu_only, py3_only, skip_pt110):
+    # DGL cpu ec2 test doesn't work on PT 1.10 DLC
     execute_ec2_training_test(ec2_connection, pytorch_training, PT_DGL_CMD)
 
 
@@ -304,7 +306,7 @@ def test_pytorch_nccl_version(
     gpu_only,
     py3_only,
     pt17_and_above_only,
-    pt20_and_below_only,
+    pt200_and_below_only,
 ):
     """
     Tests nccl version
@@ -422,6 +424,7 @@ def test_nvapex(pytorch_training, ec2_connection, gpu_only, ec2_instance_type):
 def test_pytorch_amp(
     pytorch_training, ec2_connection, gpu_only, ec2_instance_type, pt16_and_above_only
 ):
+    # Native AMP was introduced in PyTorch 1.6
     if test_utils.is_image_incompatible_with_instance_type(pytorch_training, ec2_instance_type):
         pytest.skip(
             f"Image {pytorch_training} is incompatible with instance type {ec2_instance_type}"
@@ -438,6 +441,7 @@ def test_pytorch_amp(
 def test_pytorch_amp_inductor(
     pytorch_training, ec2_connection, gpu_only, ec2_instance_type, pt16_and_above_only
 ):
+    # Native AMP was introduced in PyTorch 1.6
     if test_utils.is_image_incompatible_with_instance_type(pytorch_training, ec2_instance_type):
         pytest.skip(
             f"Image {pytorch_training} is incompatible with instance type {ec2_instance_type}"
@@ -457,7 +461,7 @@ def test_pytorch_s3_plugin_gpu(
     gpu_only,
     ec2_instance_type,
     pt18_and_above_only,
-    below_pt113_only,
+    below_pt113_only,  # PyTorch S3 Plugin has been deprecated for PT 1.13 and above
 ):
     _, image_framework_version = get_framework_and_version_from_tag(pytorch_training)
     if "trcomp" in pytorch_training and Version(image_framework_version) in SpecifierSet("<2.0"):
@@ -481,7 +485,7 @@ def test_pytorch_s3_plugin_cpu(
     cpu_only,
     ec2_instance_type,
     pt18_and_above_only,
-    below_pt113_only,
+    below_pt113_only,  # PyTorch S3 Plugin has been deprecated for PT 1.13 and above
 ):
     if test_utils.is_image_incompatible_with_instance_type(pytorch_training, ec2_instance_type):
         pytest.skip(

@@ -45,7 +45,8 @@ def run_test_job(commit, codebuild_project, images_str=""):
     is_test_efa_dedicated = config.are_sm_efa_tests_enabled() and "sagemaker" in codebuild_project
 
     # For EC2 tests, if HEAVY_INSTANCE_EC2_TESTS_ENABLED is True, the test job will run tests on
-    # large/expensive instance types. If False, it will only run tests on small/regular instances.
+    # large/expensive instance types as well as small/regular instance types, based on the config of
+    # the test function. If False, the test job will only run tests on small/regular instance types.
     are_heavy_instance_ec2_tests_enabled = (
         config.are_heavy_instance_ec2_tests_enabled() and "ec2" in codebuild_project
     )

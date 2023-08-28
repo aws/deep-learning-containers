@@ -981,7 +981,7 @@ def skip_pt200():
 
 
 @pytest.fixture(scope="session")
-def pt20_and_below_only():
+def pt200_and_below_only():
     pass
 
 
@@ -1111,7 +1111,7 @@ def framework_version_within_limit(metafunc_obj, image):
             return False
     if image_framework_name in ("pytorch", "huggingface_pytorch_trcomp", "pytorch_trcomp"):
         pt20_and_below_requirement_failed = (
-            "pt20_and_below_only" in metafunc_obj.fixturenames
+            "pt200_and_below_only" in metafunc_obj.fixturenames
             and is_above_framework_version("2.0.0", image, image_framework_name)
         )
         not_pt200_requirement_failed = (
