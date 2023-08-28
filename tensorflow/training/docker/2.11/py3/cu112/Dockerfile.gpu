@@ -228,7 +228,7 @@ RUN ${PIP} install --no-cache-dir -U \
    "werkzeug>=2.0.2,<3" \
    "urllib3>1.26.0<1.27.0" \
     # The Following Issues Require the Upper Bound Set on Protobuf:
-    #    -  https://github.com/tensorflow/tensorflow/issues/53234  
+    #    -  https://github.com/tensorflow/tensorflow/issues/53234
     #    -  https://github.com/protocolbuffers/protobuf/issues/9954
     #    -  https://github.com/tensorflow/tensorflow/issues/56077
     # Reference setup.py protobuf upper limit here:
@@ -430,5 +430,5 @@ RUN HOME_DIR=/root \
    && chmod +x ${HOME_DIR}/oss_compliance/generate_oss_compliance.sh \
    && ${HOME_DIR}/oss_compliance/generate_oss_compliance.sh ${HOME_DIR} ${PYTHON} \
    && rm -rf ${HOME_DIR}/oss_compliance*
-   
+
 CMD ["/bin/bash"]

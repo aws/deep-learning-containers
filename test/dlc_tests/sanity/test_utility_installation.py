@@ -129,7 +129,8 @@ def test_common_pytorch_utility_packages_using_import(pytorch_training):
         for package_name in ["torchtext", "ipykernel"]:
             packages_to_import.remove(package_name)
         if test_utils.get_processor_from_image_uri(pytorch_training) == "cpu":
-            packages_to_import.remove("pybind11")
+            for package_name in ["pybind11", "mpi4py"]:
+                packages_to_import.remove(package_name)
 
     import_failed = False
     list_of_packages = []
