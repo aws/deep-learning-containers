@@ -49,6 +49,14 @@ def is_nightly_build_context():
     )
 
 
+def is_APatch_build():
+    """
+    Returns True if image builder is working for image patch.
+    :return: <bool> True or False
+    """
+    return os.getenv("APatch", "False").lower() == "true"
+
+
 def _find_image_object(images_list, image_name):
     """
     Find and return an image object from images_list with a name that matches image_name
@@ -85,7 +93,7 @@ def image_builder(buildspec, image_types=[], device_types=[]):
         or "autogluon" in str(BUILDSPEC["framework"])
         or "stabilityai" in str(BUILDSPEC["framework"])
         or "trcomp" in str(BUILDSPEC["framework"])
-        or os.getenv("APatch","False").lower()=="true"
+        or is_APatch_build()
     ):
         os.system("echo login into public ECR")
         os.system(
@@ -277,35 +285,16 @@ def image_builder(buildspec, image_types=[], device_types=[]):
             "labels": labels,
             "extra_build_args": extra_build_args,
         }
-        
-        print(info["device_type"], info["version"])
-        if os.getenv("APatch","False").lower()=="true":
-            released_image_list = parse_canary_images(info["framework"],info["region"],info["image_type"], customer_type=cx_type).split(" ")
-            
-            filtered_list = []
-            for released_image_uri in released_image_list:
-                print(released_image_uri)
-                _, released_image_version = get_framework_and_version_from_tag(image_uri=released_image_uri)
-                if released_image_version in info["version"] and info["device_type"] in released_image_uri:
-                    filtered_list.append(released_image_uri)
-            assert len(filtered_list) == 1, f"Filter list for {image_name} {image_tag} does not exist"
-            image_config["docker_file"] = os.path.join(
-                os.sep, get_cloned_folder_path(), "miscellaneous_dockerfiles", "Dockerfile.apatch"
-            )
-            image_config["target"] = None
-            info["extra_build_args"].update(
-                {"RELEASED_IMAGE": filtered_list[0]}
+
+        if is_APatch_build():
+            context, ARTIFACTS = conduct_apatch_build_setup(
+                image_name=image_name,
+                image_tag=image_tag,
+                info=info,
+                image_config=image_config,
+                cx_type=cx_type,
             )
 
-            ARTIFACTS={
-                    "dockerfile": {
-                        "source": image_config["docker_file"],
-                        "target": "Dockerfile",
-                    }
-                }
-            context = Context(ARTIFACTS, f"build/{image_name}.tar.gz", os.path.join(os.sep, get_cloned_folder_path(), "src"))
-
-        print(image_config)
         # Create pre_push stage docker object
         pre_push_stage_image_object = DockerImage(
             info=info,
@@ -444,6 +433,38 @@ def generate_common_stage_image_object(pre_push_stage_image_object, image_tag):
     pre_push_stage_image_object.to_push = False
     pre_push_stage_image_object.corresponding_common_stage_image = common_stage_image_object
     return common_stage_image_object
+
+
+def conduct_apatch_build_setup(image_name, image_tag, info, image_config, cx_type):
+    released_image_list = parse_canary_images(
+        info["framework"], info["region"], info["image_type"], customer_type=cx_type
+    ).split(" ")
+
+    filtered_list = []
+    for released_image_uri in released_image_list:
+        print(released_image_uri)
+        _, released_image_version = get_framework_and_version_from_tag(image_uri=released_image_uri)
+        if released_image_version in info["version"] and info["device_type"] in released_image_uri:
+            filtered_list.append(released_image_uri)
+    assert len(filtered_list) == 1, f"Filter list for {image_name} {image_tag} does not exist"
+    image_config["docker_file"] = os.path.join(
+        os.sep, get_cloned_folder_path(), "miscellaneous_dockerfiles", "Dockerfile.apatch"
+    )
+    image_config["target"] = None
+    info["extra_build_args"].update({"RELEASED_IMAGE": filtered_list[0]})
+
+    apatch_artifacts = {
+        "dockerfile": {
+            "source": image_config["docker_file"],
+            "target": "Dockerfile",
+        }
+    }
+    context = Context(
+        apatch_artifacts,
+        f"build/{image_name}.tar.gz",
+        os.path.join(os.sep, get_cloned_folder_path(), "src"),
+    )
+    return context, apatch_artifacts
 
 
 def show_build_info(images):
