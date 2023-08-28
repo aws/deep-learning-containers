@@ -70,22 +70,6 @@ def test_pytorch_nccl_tests_using_efa(
     )
     master_connection = efa_ec2_connections[0]
     run_cmd_on_container(MASTER_CONTAINER_NAME, master_connection, EFA_SANITY_TEST_CMD, hide=False)
-    run_cmd_on_container(
-        MASTER_CONTAINER_NAME,
-        master_connection,
-        "mamba uninstall libhwloc -y",
-        hide=False,
-        timeout=300,
-    )
-    
-    for worker_connection in efa_ec2_connections[1:]:
-        run_cmd_on_container(
-            WORKER_CONTAINER_NAME,
-            worker_connection,
-            "mamba uninstall libhwloc -y",
-            hide=False,
-            timeout=300,
-        )
 
     run_cmd_on_container(
         MASTER_CONTAINER_NAME,
