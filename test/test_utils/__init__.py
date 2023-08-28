@@ -1100,7 +1100,7 @@ def get_canary_default_tag_py3_version(framework, version):
     return "py3"
 
 
-def parse_canary_images(framework, region, image_type):
+def parse_canary_images(framework, region, image_type, customer_type=None):
     """
     Return which canary images to run canary tests on for a given framework and AWS region
 
@@ -1109,7 +1109,7 @@ def parse_canary_images(framework, region, image_type):
     :param image_type: training or inference
     :return: dlc_images string (space separated string of image URIs)
     """
-    customer_type = get_customer_type()
+    customer_type = customer_type or get_customer_type()
     customer_type_tag = f"-{customer_type}" if customer_type else ""
 
     allowed_image_types = ("training", "inference")
@@ -1414,7 +1414,8 @@ def get_framework_and_version_from_tag(image_uri):
         "huggingface_tensorflow",
         "huggingface_pytorch",
         "stabilityai_pytorch",
-        "pytorch_trcomp" "tensorflow",
+        "pytorch_trcomp",
+        "tensorflow",
         "mxnet",
         "pytorch",
         "autogluon",

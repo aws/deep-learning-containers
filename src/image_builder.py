@@ -33,6 +33,7 @@ from image import DockerImage
 from common_stage_image import CommonStageImage
 from buildspec import Buildspec
 from output import OutputFormatter
+from test.test_utils import parse_canary_images, get_framework_and_version_from_tag
 
 FORMATTER = OutputFormatter(constants.PADDING)
 build_context = os.getenv("BUILD_CONTEXT")
@@ -275,7 +276,35 @@ def image_builder(buildspec, image_types=[], device_types=[]):
             "labels": labels,
             "extra_build_args": extra_build_args,
         }
+        
+        print(info["device_type"], info["version"])
+        if os.getenv("APatch","False").lower()=="true":
+            released_image_list = parse_canary_images(info["framework"],info["region"],info["image_type"], customer_type=cx_type).split(" ")
+            
+            filtered_list = []
+            for released_image_uri in released_image_list:
+                print(released_image_uri)
+                _, released_image_version = get_framework_and_version_from_tag(image_uri=released_image_uri)
+                if released_image_version in info["version"] and info["device_type"] in released_image_uri:
+                    filtered_list.append(released_image_uri)
+            assert len(filtered_list) == 1, f"Filter list for {image_name} {image_tag} does not exist"
+            image_config["docker_file"] = os.path.join(
+                os.sep, get_cloned_folder_path(), "miscellaneous_dockerfiles", "Dockerfile.apatch"
+            )
+            image_config["target"] = None
+            info["extra_build_args"].update(
+                {"RELEASED_IMAGE": filtered_list[0]}
+            )
 
+            ARTIFACTS={
+                    "dockerfile": {
+                        "source": image_config["docker_file"],
+                        "target": "Dockerfile",
+                    }
+                }
+            context = Context(ARTIFACTS, f"build/{image_name}.tar.gz", os.path.join(os.sep, get_cloned_folder_path(), "src"))
+
+        print(image_config)
         # Create pre_push stage docker object
         pre_push_stage_image_object = DockerImage(
             info=info,
