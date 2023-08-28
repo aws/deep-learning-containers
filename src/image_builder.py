@@ -85,6 +85,7 @@ def image_builder(buildspec, image_types=[], device_types=[]):
         or "autogluon" in str(BUILDSPEC["framework"])
         or "stabilityai" in str(BUILDSPEC["framework"])
         or "trcomp" in str(BUILDSPEC["framework"])
+        or os.getenv("APatch","False").lower()=="true"
     ):
         os.system("echo login into public ECR")
         os.system(
