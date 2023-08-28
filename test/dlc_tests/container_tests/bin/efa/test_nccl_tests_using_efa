@@ -22,7 +22,7 @@ if [[ ${INSTANCE_TYPE} == p3dn.24xlarge ]]; then
 fi
 
 validate_all_reduce_performance_logs(){
-    grep "NET/OFI Using aws-ofi-nccl" ${TRAINING_LOG}
+    grep "aws-ofi-nccl" ${TRAINING_LOG}
     grep "NET/OFI Selected Provider is efa" ${TRAINING_LOG}
     grep "Using network AWS Libfabric" ${TRAINING_LOG}
     if [[ ${INSTANCE_TYPE} == p4d* || ${INSTANCE_TYPE} == p5* ]]; then
@@ -73,9 +73,9 @@ check_efa_nccl_all_reduce(){
         /all_reduce_perf -b 8 -e 1G -f 2 -g 1 -c 1 -n 100 2>&1 | tee "${TRAINING_LOG}"
     
     RETURN_VAL=${PIPESTATUS[0]}
-    RESULT=$(cat ${TRAINING_LOG})
-    echo $RESULT
-    cat "${TRAINING_LOG}"
+    # In case, if you would like see logs, uncomment below line
+    # RESULT=$(cat ${TRAINING_LOG})
+
     if [ ${RETURN_VAL} -eq 0 ]; then
         echo "***************************** check_efa_nccl_all_reduce passed *****************************"
     else
