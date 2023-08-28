@@ -25,7 +25,7 @@ validate_all_reduce_performance_logs(){
     grep "NET/OFI Using aws-ofi-nccl" ${TRAINING_LOG}
     grep "NET/OFI Selected Provider is efa" ${TRAINING_LOG}
     grep "Using network AWS Libfabric" ${TRAINING_LOG}
-    if [[ ${INSTANCE_TYPE} == p4d* ]]; then
+    if [[ ${INSTANCE_TYPE} == p4d* || ${INSTANCE_TYPE} == p5* ]]; then
         grep "Setting NCCL_TOPO_FILE environment variable to" ${TRAINING_LOG}
         grep "NET/AWS Libfabric/0/GDRDMA" ${TRAINING_LOG}
     fi
@@ -34,12 +34,24 @@ validate_all_reduce_performance_logs(){
 check_efa_nccl_all_reduce_performance(){
     benchmark=$(cat $TRAINING_LOG | grep '1073741824' | tail -n1 | awk -F " " '{{print $11}}' | sed 's/ //' | sed  's/  5e-07//')
     echo "Benchmark throughput: ${benchmark}"
+    if [[ -z "${benchmark}" ]]; then
+        echo "benchmark variable is empty"
+        exit 1
+    fi
 
     # The standard throughput should be at least 41 for 2 p4d with 4 EFA devices and 7 for 2 p3dn with 1 EFA device.
     # However, if the 2 instances are not in the same A-Z in the same region, performance can decrease.
     # To account for this we need to modify thresholds dynamically based on where instances are.
     # Temporarily setting these to be < 50% of optimal until AWS OFI NCCL team has concrete numbers for this.
-    PERFORMANCE_THRESHOLD="3"
+    if [[ ${INSTANCE_TYPE} == "p4d.24xlarge" ]]; then
+        PERFORMANCE_THRESHOLD="15"
+    elif [[ ${INSTANCE_TYPE} == "p4de.24xlarge" ]]; then
+        PERFORMANCE_THRESHOLD="18"
+    elif [[ ${INSTANCE_TYPE} == "p5.48xlarge" ]]; then
+        PERFORMANCE_THRESHOLD="230"
+    else
+        PERFORMANCE_THRESHOLD="3"
+    fi
 
     if [[ $(echo "$benchmark $PERFORMANCE_THRESHOLD" | awk '{print ($1 >= $2)}') == 1 ]]; then
         echo "***************************** check_efa_nccl_all_reduce_performance passed *****************************"
