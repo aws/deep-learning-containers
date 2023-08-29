@@ -1,7 +1,7 @@
 ARG PYTHON=python3
 ARG PYTHON_VERSION=3.10.8
 ARG PYTHON_SHORT_VERSION=3.10
-ARG MAMBA_VERSION=23.3.1-0
+ARG MAMBA_VERSION=23.1.0-1
 ARG PYTORCH_VERSION_EC2=2.0.1
 ARG CONDA_CHANNEL=https://aws-ml-conda-ec2.s3.us-west-2.amazonaws.com
 
@@ -265,7 +265,7 @@ RUN cd /tmp \
 # Install Nvidia Apex (needs pytorch)
 RUN git clone https://github.com/NVIDIA/apex \
   && cd apex \
-  && git checkout 23.08 -b apex
+  && git checkout 23.08 -b apex \
   && pip install -v --no-cache-dir --global-option="--cpp_ext" --global-option="--cuda_ext" ./ \
   && cd .. \
   && rm -rf apex
