@@ -22,6 +22,7 @@ from test import test_utils
 from test.test_utils import (
     is_benchmark_dev_context,
     get_framework_and_version_from_tag,
+    get_cuda_version_from_tag,
     get_job_type_from_image,
     is_tf_version,
     is_above_framework_version,
@@ -851,6 +852,26 @@ def skip_inductor_test(request):
         if Version(fw_ver) < Version("2.0.0"):
             pytest.skip(
                 f"SM inductor test only support PT2.0 and above, skipping this container with tag {fw_ver}"
+            )
+
+
+@pytest.fixture(autouse=True)
+def skip_dgl_test(request):
+    if "training" in request.fixturenames:
+        img_uri = request.getfixturevalue("training")
+    elif "pytorch_training" in request.fixturenames:
+        img_uri = request.getfixturevalue("pytorch_training")
+    else:
+        return
+    _, image_framework_version = get_framework_and_version_from_tag(img_uri)
+    image_cuda_version = get_cuda_version_from_tag(img_uri)
+    if request.node.get_closest_marker("skip_dgl_test"):
+        if (
+            Version(image_framework_version) in SpecifierSet(">=2.0") and Version( 
+            image_cuda_version.strip("cu")) >= Version("121")
+        ):
+            pytest.skip(
+                f"DGL doesn't support cuda12.x for now, so skipping this container with tag {fw_ver}"
             )
 
 
