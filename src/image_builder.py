@@ -33,6 +33,7 @@ from image import DockerImage
 from common_stage_image import CommonStageImage
 from buildspec import Buildspec
 from output import OutputFormatter
+from invoke import run
 
 FORMATTER = OutputFormatter(constants.PADDING)
 build_context = os.getenv("BUILD_CONTEXT")
@@ -433,9 +434,17 @@ def generate_common_stage_image_object(pre_push_stage_image_object, image_tag):
     pre_push_stage_image_object.corresponding_common_stage_image = common_stage_image_object
     return common_stage_image_object
 
+def trigger_apatch(image_uri, s3_downloaded_path):
+    run(f"docker pull {image_uri}", hide=True)
+    mount_path = os.path.join(os.sep, s3_downloaded_path)
+    docker_run_cmd = f"docker run -v {mount_path}:/patch-dlc -id --entrypoint='/bin/bash' {image_uri} "
+    container_id = run(f"{docker_run_cmd}").stdout.strip()
+    docker_exec_cmd = f"docker exec -i {container_id}"
+    script_run_cmd = f"bash /patch-dlc/script.sh {image_uri}"
+    run(f"{docker_exec_cmd} {script_run_cmd}", hide=True)
+    run(f"docker rm -f {container_id}", hide=True, warn=True)
 
 def conduct_apatch_build_setup(image_name, image_tag, info, image_config, cx_type):
-    from invoke import run
     run(f"""pip install -r {os.path.join(os.sep, get_cloned_folder_path(), "test", "requirements.txt")}""", hide=True)
     from test.test_utils import parse_canary_images, get_framework_and_version_from_tag
 
@@ -450,6 +459,12 @@ def conduct_apatch_build_setup(image_name, image_tag, info, image_config, cx_typ
         if released_image_version in info["version"] and info["device_type"] in released_image_uri:
             filtered_list.append(released_image_uri)
     assert len(filtered_list) == 1, f"Filter list for {image_name} {image_tag} does not exist"
+
+    folder_path_outside_clone = os.path.join(os.sep, *get_cloned_folder_path().split(os.sep)[:-1])
+    download_path = os.path.join(os.sep, folder_path_outside_clone, "patch-dlc")
+    run(f"aws s3 cp s3://patch-dlc {download_path} --recursive")
+    trigger_apatch(image_uri=filtered_list[0], s3_downloaded_path=download_path)
+
     image_config["docker_file"] = os.path.join(
         os.sep, get_cloned_folder_path(), "miscellaneous_dockerfiles", "Dockerfile.apatch"
     )
