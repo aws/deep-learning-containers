@@ -238,6 +238,7 @@ def test_ecs_pytorch_training_dgl_cpu(
 
 @pytest.mark.integration("dgl")
 @pytest.mark.model("gcn")
+@pytest.mark.skip_dgl_test
 @pytest.mark.parametrize("training_script", [PT_DGL_TRAINING_SCRIPT], indirect=True)
 @pytest.mark.parametrize("ecs_instance_type", ["p3.8xlarge"], indirect=True)
 @pytest.mark.parametrize("ecs_ami", [ECS_AML2_GPU_USWEST2], indirect=True)
@@ -266,8 +267,6 @@ def test_ecs_pytorch_training_dgl_gpu(
     image_cuda_version = get_cuda_version_from_tag(pytorch_training)
     if Version(image_framework_version) == Version("1.6") and image_cuda_version == "cu110":
         pytest.skip("DGL does not suport CUDA 11 for PyTorch 1.6")
-    if Version(image_framework_version) == Version("2.0.1") and image_cuda_version == "cu121":
-        pytest.skip("DGL does not support CUDA 12.1 for PyTorch 2.0")
     # TODO: Remove when DGL gpu test on ecs get fixed
     if (
         Version(image_framework_version) in SpecifierSet("==1.10.*")

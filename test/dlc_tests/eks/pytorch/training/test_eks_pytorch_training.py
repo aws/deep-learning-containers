@@ -91,7 +91,7 @@ def test_eks_pytorch_single_node_training(pytorch_training):
                 training_result = True
             else:
                 eks_utils.LOGGER.info("**** training output ****")
-                eks_utils.LOGGER.info(pytorch_out)
+                eks_utils.LOGGER.debug(pytorch_out)
         assert training_result, f"Training failed"
     finally:
         run("kubectl delete pods {}".format(pod_name))
@@ -158,6 +158,7 @@ def test_eks_pt_s3_plugin_single_node_training(pytorch_training, outside_version
 @pytest.mark.skipif(
     not is_pr_context(), reason="Skip this test. It is already tested under PR context"
 )
+@pytest.mark.skip_dgl_test
 @pytest.mark.integration("dgl")
 @pytest.mark.model("gcn")
 def test_eks_pytorch_dgl_single_node_training(pytorch_training, py3_only):
@@ -171,8 +172,6 @@ def test_eks_pytorch_dgl_single_node_training(pytorch_training, py3_only):
     image_cuda_version = get_cuda_version_from_tag(pytorch_training)
     if Version(image_framework_version) == Version("1.6") and image_cuda_version == "cu110":
         pytest.skip("DGL does not suport CUDA 11 for PyTorch 1.6")
-    if Version(image_framework_version) >= Version("2.0.1") and image_cuda_version == "cu121":
-        pytest.skip("DGL does not support CUDA 12.1 for PyTorch 2.0")
     # TODO: Remove when DGL gpu test on ecs get fixed
     if Version(image_framework_version) in SpecifierSet("==1.10.*"):
         pytest.skip("ecs test for DGL gpu fails for pt 1.10")

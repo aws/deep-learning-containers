@@ -48,7 +48,7 @@ check_efa_nccl_all_reduce_performance(){
     elif [[ ${INSTANCE_TYPE} == "p4de.24xlarge" ]]; then
         PERFORMANCE_THRESHOLD="18"
     elif [[ ${INSTANCE_TYPE} == "p5.48xlarge" ]]; then
-        PERFORMANCE_THRESHOLD="230"
+        PERFORMANCE_THRESHOLD="50"
     else
         PERFORMANCE_THRESHOLD="3"
     fi

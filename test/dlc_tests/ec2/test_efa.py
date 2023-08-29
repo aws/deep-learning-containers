@@ -22,7 +22,9 @@ from test.test_utils.ec2 import get_efa_ec2_instance_type, filter_efa_instance_t
 BUILD_ALL_REDUCE_PERF_CMD = os.path.join(CONTAINER_TESTS_PREFIX, "efa", "build_all_reduce_perf.sh")
 EFA_SANITY_TEST_CMD = os.path.join(CONTAINER_TESTS_PREFIX, "efa", "testEFASanity")
 EFA_NCCL_TESTS_TEST_CMD = os.path.join(CONTAINER_TESTS_PREFIX, "efa", "test_nccl_tests_using_efa")
-EFA_AWS_OFI_NCCL_PLUGIN_TEST_CMD = os.path.join(CONTAINER_TESTS_PREFIX, "efa", "test_aws_ofi_nccl_plugin_using_efa")
+EFA_AWS_OFI_NCCL_PLUGIN_TEST_CMD = os.path.join(
+    CONTAINER_TESTS_PREFIX, "efa", "test_aws_ofi_nccl_plugin_using_efa"
+)
 
 MASTER_SSH_KEY_NAME = "master_id_rsa"
 WORKER_SSH_KEY_NAME = "worker_id_rsa"
@@ -64,20 +66,6 @@ def test_pytorch_nccl_tests_using_efa(
     :param region: str Region in which EFA-enabled instances are launched
     :param gpu_only: pytest fixture to limit test only to GPU DLCs
     """
-    number_of_nodes = 2
-    _setup_multinode_efa_instances(
-        pytorch_training, efa_ec2_instances, efa_ec2_connections, ec2_instance_type, region
-    )
-    master_connection = efa_ec2_connections[0]
-    run_cmd_on_container(MASTER_CONTAINER_NAME, master_connection, EFA_SANITY_TEST_CMD, hide=False)
-
-    run_cmd_on_container(
-        MASTER_CONTAINER_NAME,
-        master_connection,
-        f"{EFA_NCCL_TESTS_TEST_CMD} {HOSTS_FILE_LOCATION} {number_of_nodes}",
-        hide=False,
-        timeout=300,
-    )
 
 
 @pytest.mark.processor("gpu")
@@ -108,22 +96,33 @@ def test_pytorch_aws_ofi_nccl_plugin_using_efa(
     :param region: str Region in which EFA-enabled instances are launched
     :param gpu_only: pytest fixture to limit test only to GPU DLCs
     """
-    _, image_framework_version = get_framework_and_version_from_tag(pytorch_training)
-    if (Version(image_framework_version) in SpecifierSet(">=2.0")):
-        pytest.skip(f"Image {pytorch_training} doesn't support this test. Hence test is skipped.")
     number_of_nodes = 2
     _setup_multinode_efa_instances(
         pytorch_training, efa_ec2_instances, efa_ec2_connections, ec2_instance_type, region
     )
     master_connection = efa_ec2_connections[0]
     run_cmd_on_container(MASTER_CONTAINER_NAME, master_connection, EFA_SANITY_TEST_CMD, hide=False)
+
     run_cmd_on_container(
         MASTER_CONTAINER_NAME,
         master_connection,
-        f"{EFA_AWS_OFI_NCCL_PLUGIN_TEST_CMD} {HOSTS_FILE_LOCATION} {number_of_nodes}",
+        f"{EFA_NCCL_TESTS_TEST_CMD} {HOSTS_FILE_LOCATION} {number_of_nodes}",
         hide=False,
         timeout=300,
     )
+
+    _, image_framework_version = get_framework_and_version_from_tag(pytorch_training)
+    if Version(image_framework_version) in SpecifierSet("<2.0"):
+        run_cmd_on_container(
+            MASTER_CONTAINER_NAME, master_connection, EFA_SANITY_TEST_CMD, hide=False
+        )
+        run_cmd_on_container(
+            MASTER_CONTAINER_NAME,
+            master_connection,
+            f"{EFA_AWS_OFI_NCCL_PLUGIN_TEST_CMD} {HOSTS_FILE_LOCATION} {number_of_nodes}",
+            hide=False,
+            timeout=300,
+        )
 
 
 @pytest.mark.processor("gpu")
@@ -260,7 +259,6 @@ def _setup_container(connection, docker_image, container_name):
     devices = ec2_utils.get_efa_devices_on_instance(connection)
     docker_devices_args = [f"--device {device_location}" for device_location in devices]
     docker_all_devices_arg = " ".join(docker_devices_args)
-
 
     # Remove pre-existing containers if reusing an instance
     connection.run(f"docker rm -f {container_name}", hide=True)
