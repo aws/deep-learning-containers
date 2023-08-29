@@ -42,11 +42,14 @@ def run_test_job(commit, codebuild_project, images_str=""):
 
     # For SM tests, if EFA_DEDICATED is True, test job will only launch SM Remote EFA tests,
     # or else will only launch standard/rc tests.
-    # For EC2 tests, if EFA_DEDICATED is True, test job will launch both EFA and non-EFA tests,
-    # or else will only launch non-EFA tests.
-    is_test_efa_dedicated = (
-        config.are_sm_efa_tests_enabled() and "sagemaker" in codebuild_project
-    ) or (config.is_ec2_efa_test_enabled() and "ec2" in codebuild_project)
+    is_test_efa_dedicated = config.are_sm_efa_tests_enabled() and "sagemaker" in codebuild_project
+
+    # For EC2 tests, if HEAVY_INSTANCE_EC2_TESTS_ENABLED is True, the test job will run tests on
+    # large/expensive instance types as well as small/regular instance types, based on the config of
+    # the test function. If False, the test job will only run tests on small/regular instance types.
+    are_heavy_instance_ec2_tests_enabled = (
+        config.are_heavy_instance_ec2_tests_enabled() and "ec2" in codebuild_project
+    )
 
     pr_num = os.getenv("PR_NUMBER")
     LOGGER.debug(f"pr_num {pr_num}")
@@ -79,6 +82,11 @@ def run_test_job(commit, codebuild_project, images_str=""):
             {
                 "name": "SM_EFA_TEST_INSTANCE_TYPE",
                 "value": config.get_sagemaker_remote_efa_instance_type(),
+                "type": "PLAINTEXT",
+            },
+            {
+                "name": "HEAVY_INSTANCE_EC2_TESTS_ENABLED",
+                "value": str(are_heavy_instance_ec2_tests_enabled),
                 "type": "PLAINTEXT",
             },
         ]

@@ -48,8 +48,8 @@ def is_ec2_test_enabled():
     return parse_dlc_developer_configs("test", "ec2_tests")
 
 
-def is_ec2_efa_test_enabled():
-    return parse_dlc_developer_configs("test", "ec2_efa_tests")
+def are_heavy_instance_ec2_tests_enabled():
+    return parse_dlc_developer_configs("test", "ec2_tests_on_heavy_instances")
 
 
 def is_ecs_test_enabled():
