@@ -21,9 +21,7 @@ from test.test_utils.ec2 import get_efa_ec2_instance_type, filter_efa_instance_t
 
 BUILD_ALL_REDUCE_PERF_CMD = os.path.join(CONTAINER_TESTS_PREFIX, "efa", "build_all_reduce_perf.sh")
 EFA_SANITY_TEST_CMD = os.path.join(CONTAINER_TESTS_PREFIX, "efa", "testEFASanity")
-EFA_INTEGRATION_TEST_CMD = os.path.join(
-    CONTAINER_TESTS_PREFIX, "efa", "testEFA"
-)
+EFA_INTEGRATION_TEST_CMD = os.path.join(CONTAINER_TESTS_PREFIX, "efa", "testEFA")
 
 MASTER_SSH_KEY_NAME = "master_id_rsa"
 WORKER_SSH_KEY_NAME = "worker_id_rsa"
@@ -109,6 +107,7 @@ def test_pytorch_efa(
         hide=False,
         timeout=300,
     )
+
 
 @pytest.mark.processor("gpu")
 @pytest.mark.model("N/A")
