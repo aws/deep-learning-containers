@@ -5,7 +5,7 @@ ARG MAMBA_VERSION=23.1.0-1
 ARG PYTORCH_VERSION_EC2=2.0.1
 ARG CONDA_CHANNEL=https://aws-ml-conda-ec2.s3.us-west-2.amazonaws.com
 
-FROM nvidia/cuda:12.1.0-base-ubuntu20.04 AS base_image
+FROM ubuntu:20.04 AS base_image
 
 ENV DEBIAN_FRONTEND=noninteractive \
     LD_LIBRARY_PATH="${LD_LIBRARY_PATH}:/usr/local/lib"
@@ -264,9 +264,12 @@ RUN cd /tmp \
 
 # Install Nvidia Apex (needs pytorch)
 RUN pip install packaging \
+  # older archs are not supported on CUDA12.1 like 3.7 for P2 instance
+  # 5.2 is G3 EC2 instance, 7.5 is G4, 7.0 is p3*, 8.0 is P4* and 9.0 is P5*
+  && export TORCH_CUDA_ARCH_LIST="5.2;7.0;7.5;8.0;9.0"
   && git clone https://github.com/NVIDIA/apex \
   && cd apex \
-  && git checkout 23.05 -b apex \
+  && git checkout 23.08 -b apex \
   && pip install -v --no-cache-dir --global-option="--cpp_ext" --global-option="--cuda_ext" ./ \
   && cd .. \
   && rm -rf apex

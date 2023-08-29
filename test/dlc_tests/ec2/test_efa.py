@@ -21,9 +21,8 @@ from test.test_utils.ec2 import get_efa_ec2_instance_type, filter_efa_instance_t
 
 BUILD_ALL_REDUCE_PERF_CMD = os.path.join(CONTAINER_TESTS_PREFIX, "efa", "build_all_reduce_perf.sh")
 EFA_SANITY_TEST_CMD = os.path.join(CONTAINER_TESTS_PREFIX, "efa", "testEFASanity")
-EFA_NCCL_TESTS_TEST_CMD = os.path.join(CONTAINER_TESTS_PREFIX, "efa", "test_nccl_tests_using_efa")
-EFA_AWS_OFI_NCCL_PLUGIN_TEST_CMD = os.path.join(
-    CONTAINER_TESTS_PREFIX, "efa", "test_aws_ofi_nccl_plugin_using_efa"
+EFA_INTEGRATION_TEST_CMD = os.path.join(
+    CONTAINER_TESTS_PREFIX, "efa", "testEFA"
 )
 
 MASTER_SSH_KEY_NAME = "master_id_rsa"
@@ -79,7 +78,7 @@ def test_pytorch_nccl_tests_using_efa(
     is_pr_context() and not is_efa_dedicated(),
     reason="Skip EFA test in PR context unless explicitly enabled",
 )
-def test_pytorch_aws_ofi_nccl_plugin_using_efa(
+def test_pytorch_efa(
     pytorch_training, efa_ec2_instances, efa_ec2_connections, ec2_instance_type, region, gpu_only
 ):
     """
@@ -106,24 +105,10 @@ def test_pytorch_aws_ofi_nccl_plugin_using_efa(
     run_cmd_on_container(
         MASTER_CONTAINER_NAME,
         master_connection,
-        f"{EFA_NCCL_TESTS_TEST_CMD} {HOSTS_FILE_LOCATION} {number_of_nodes}",
+        f"{EFA_INTEGRATION_TEST_CMD} {HOSTS_FILE_LOCATION} {number_of_nodes}",
         hide=False,
         timeout=300,
     )
-
-    _, image_framework_version = get_framework_and_version_from_tag(pytorch_training)
-    if Version(image_framework_version) in SpecifierSet("<2.0"):
-        run_cmd_on_container(
-            MASTER_CONTAINER_NAME, master_connection, EFA_SANITY_TEST_CMD, hide=False
-        )
-        run_cmd_on_container(
-            MASTER_CONTAINER_NAME,
-            master_connection,
-            f"{EFA_AWS_OFI_NCCL_PLUGIN_TEST_CMD} {HOSTS_FILE_LOCATION} {number_of_nodes}",
-            hide=False,
-            timeout=300,
-        )
-
 
 @pytest.mark.processor("gpu")
 @pytest.mark.model("N/A")
