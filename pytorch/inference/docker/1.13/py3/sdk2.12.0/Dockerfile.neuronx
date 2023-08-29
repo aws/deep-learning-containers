@@ -12,12 +12,14 @@ ARG MAMBA_VERSION=23.1.0-4
 
 # Neuron SDK components version numbers
 ARG NEURONX_RUNTIME_LIB_VERSION=2.15.*
+ARG NEURONX_COLLECTIVES_LIB_VERSION=2.12.*
 ARG NEURONX_TOOLS_VERSION=2.12.*
 ARG NEURONX_FRAMEWORK_VERSION=1.13.1.1.9.*
 ARG NEURONX_CC_VERSION=2.8.*
 # See http://bugs.python.org/issue19846
 ENV LANG C.UTF-8
 ENV LD_LIBRARY_PATH /lib/x86_64-linux-gnu:/opt/conda/lib/:$LD_LIBRARY_PATH
+ENV LD_LIBRARY_PATH="${LD_LIBRARY_PATH}:/opt/aws/neuron/lib"
 ENV PATH /opt/conda/bin:/opt/aws/neuron/bin:$PATH
 ENV SAGEMAKER_SERVING_MODULE sagemaker_pytorch_serving_container.serving:main
 ENV TEMP=/home/model-server/tmp
@@ -56,8 +58,10 @@ RUN echo "deb https://apt.repos.neuron.amazonaws.com focal main" > /etc/apt/sour
 RUN wget -qO - https://apt.repos.neuron.amazonaws.com/GPG-PUB-KEY-AMAZON-AWS-NEURON.PUB | apt-key add -
 
 RUN apt-get update \
- && apt-get install -y aws-neuronx-tools=$NEURONX_TOOLS_VERSION \
- && apt-get install -y aws-neuronx-runtime-lib=${NEURONX_RUNTIME_LIB_VERSION} \
+ && apt-get install -y \
+    aws-neuronx-tools=$NEURONX_TOOLS_VERSION \
+    aws-neuronx-collectives=$NEURONX_COLLECTIVES_LIB_VERSION \
+    aws-neuronx-runtime-lib=$NEURONX_RUNTIME_LIB_VERSION \
  && rm -rf /var/lib/apt/lists/* \
  && rm -rf /tmp/tmp* \
  && apt-get clean
