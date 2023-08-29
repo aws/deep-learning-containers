@@ -1,11 +1,14 @@
 import os
 import time
 import re
-from inspect import signature
-import boto3
 import logging
 import sys
 import uuid
+
+from inspect import signature
+
+import boto3
+import pytest
 
 from fabric import Connection
 from botocore.config import Config
@@ -25,7 +28,7 @@ from test.test_utils import (
     get_synapseai_version_from_tag,
     is_pr_context,
     is_mainline_context,
-    is_efa_dedicated,
+    are_heavy_instance_ec2_tests_enabled,
 )
 from . import DEFAULT_REGION, P3DN_REGION, P4DE_REGION, UL_AMI_LIST, BENCHMARK_RESULTS_S3_BUCKET
 
@@ -73,6 +76,13 @@ def filter_efa_instance_type(instance_type_list):
         instance_type
         for instance_type in instance_type_list
         if get_num_efa_interfaces_for_instance_type(instance_type)
+    ]
+    return filtered_list
+
+
+def filter_non_g3_instance_type(instance_type_list):
+    filtered_list = [
+        instance_type for instance_type in instance_type_list if not instance_type.startswith("g3.")
     ]
     return filtered_list
 
@@ -125,7 +135,9 @@ def get_ec2_instance_type(
     required to be a list.
     """
     if is_pr_context():
-        if get_num_efa_interfaces_for_instance_type(default) and not is_efa_dedicated():
+        # This condition filters out instance types that use resources with low-availability, or
+        # use very expensive instance types.
+        if not are_heavy_instance_ec2_tests_enabled() and default in HEAVY_INSTANCE_LIST:
             return []
         return [default]
 
@@ -255,6 +267,43 @@ def launch_instance(
         )
 
     return response["Instances"][0]
+
+
+@retry(
+    reraise=True,
+    stop=stop_after_delay(30 * 60),  # Keep retrying for 30 minutes
+    wait=wait_random_exponential(min=60, max=5 * 60),  # Retry after waiting 1-5 minutes
+)
+def launch_instances_with_retry(
+    ec2_resource, availability_zone_options, ec2_create_instances_definition
+):
+    """
+    Helper function to launch EC2 instances with retry capability, to allow multiple attempts
+    when facing instance capacity issues.
+    :param ec2_resource: boto3 EC2 Service Resource object
+    :param availability_zone_options: list of availability zones in which to try to run instances
+    :param ec2_create_instances_definition: dict of parameters to pass to
+        ec2_resource.create_instances
+    :return: list of EC2 Instance Resource objects for instances launched
+    """
+    instances = None
+    if availability_zone_options:
+        error = None
+        for a_zone in availability_zone_options:
+            ec2_create_instances_definition["Placement"] = {"AvailabilityZone": a_zone}
+            try:
+                instances = ec2_resource.create_instances(**ec2_create_instances_definition)
+                if instances:
+                    break
+            except ClientError as e:
+                LOGGER.error(f"Failed to launch in {a_zone} due to {e}")
+                error = e
+                continue
+        if not instances:
+            raise error
+    else:
+        instances = ec2_resource.create_instances(**ec2_create_instances_definition)
+    return instances
 
 
 @retry(
