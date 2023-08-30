@@ -1753,7 +1753,7 @@ def get_python_version_from_image_uri(image_uri):
     return "py36" if python_version == "py3" else python_version
 
 
-def construct_buildspec_path(dlc_path):
+def get_buildspec_path(dlc_path):
     """
     Get buildspec file that should be used in testing a particular DLC image. This file is normally
     configured as an environment variable on PR and Mainline test jobs. If it isn't configured,

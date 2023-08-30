@@ -35,7 +35,7 @@ from test.test_utils import (
     get_python_version_from_image_uri,
     get_cuda_version_from_tag,
     get_labels_from_ecr_image,
-    construct_buildspec_path,
+    get_buildspec_path,
     is_tf_version,
     is_nightly_context,
     get_processor_from_image_uri,
@@ -744,7 +744,7 @@ def test_cuda_paths(gpu):
     image_tag_in_buildspec = False
     dockerfile_spec_abs_path = None
 
-    buildspec_path = construct_buildspec_path(dlc_path)
+    buildspec_path = get_buildspec_path(dlc_path)
     buildspec_def = Buildspec()
     buildspec_def.load(buildspec_path)
 
