@@ -533,6 +533,34 @@ RUN pip install --no-cache-dir -U ${SMD_MODEL_PARALLEL_URL}
 # Install SM Distributed DataParallel binary
 RUN SMDATAPARALLEL_PT=1 pip install --no-cache-dir ${SMD_DATA_PARALLEL_URL}
 
+# Install NCCL-tests
+RUN git clone https://github.com/NVIDIA/nccl-tests.git ${HOME}/nccl-tests \
+    && cd ${HOME}/nccl-tests \
+    && git checkout \
+    && make MPI=1 MPI_HOME=/opt/amazon/openmpi/ CUDA_HOME=/opt/conda NCCL_HOME=/opt/nccl/lib \
+    && cp /root/nccl-tests/build/all_gather_perf /usr/bin \
+    && cp /root/nccl-tests/build/all_reduce_perf /usr/bin \
+    && cp /root/nccl-tests/build/alltoall_perf /usr/bin \
+    && cp /root/nccl-tests/build/broadcast_perf /usr/bin \
+    && cp /root/nccl-tests/build/gather_perf /usr/bin \
+    && cp /root/nccl-tests/build/hypercube_perf /usr/bin \
+    && cp /root/nccl-tests/build/reduce_perf /usr/bin \
+    && cp /root/nccl-tests/build/reduce_scatter_perf /usr/bin \
+    && cp /root/nccl-tests/build/scatter_perf /usr/bin \
+    && cp /root/nccl-tests/build/sendrecv_perf /usr/bin
+
+# Install Nvidia DCGM
+RUN curl -O https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2204/x86_64/datacenter-gpu-manager_3.2.5_amd64.deb
+COPY ./datacenter-gpu-manager_3.2.5_amd64.deb /tmp
+RUN dpkg -i /tmp/datacenter-gpu-manager_3.2.5_amd64.deb && rm -f /tmp/datacenter-gpu-manager_3.2.5_amd64.deb
+
+# Install EFA checker
+RUN wget --content-disposition ${EFA_CHECKER_DLC_SINGLE_NODE_URL}
+RUN wget --content-disposition ${EFA_CHECKER_DLC_MULTI_NODE_URL}
+RUN chmod 555 efa_checker_*
+RUN mv efa_checker_single_node_dlc_with_mpi /usr/bin/efa_checker_single_node
+RUN mv efa_checker_multi_node_dlc_with_mpi /usr/bin/efa_checker_multi_node
+
 ENV LD_LIBRARY_PATH="/opt/conda/lib/python${PYTHON_SHORT_VERSION}/site-packages/smdistributed/dataparallel/lib:$LD_LIBRARY_PATH"
 
 WORKDIR /
