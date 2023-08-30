@@ -75,15 +75,12 @@ def get_ami_id_ssm(region_name, parameter_path):
     return ami_id
 
 
-UBUNTU_18_BASE_DLAMI_US_WEST_2 = get_ami_id_boto3(
-    region_name="us-west-2", ami_name_pattern="Deep Learning Base AMI (Ubuntu 18.04) Version ??.?"
-)
-UBUNTU_18_BASE_DLAMI_US_EAST_1 = get_ami_id_boto3(
-    region_name="us-east-1", ami_name_pattern="Deep Learning Base AMI (Ubuntu 18.04) Version ??.?"
-)
 # The Ubuntu 20.04 AMI which adds GDRCopy is used only for GDRCopy feature that is supported on PT1.13 and PT2.0
 UBUNTU_20_BASE_DLAMI_US_WEST_2 = get_ami_id_boto3(
     region_name="us-west-2", ami_name_pattern="Deep Learning Base GPU AMI (Ubuntu 20.04) ????????"
+)
+UBUNTU_20_BASE_DLAMI_US_EAST_1 = get_ami_id_boto3(
+    region_name="us-east-1", ami_name_pattern="Deep Learning Base GPU AMI (Ubuntu 20.04) ????????"
 )
 AML2_BASE_DLAMI_US_WEST_2 = get_ami_id_boto3(
     region_name="us-west-2", ami_name_pattern="Deep Learning Base AMI (Amazon Linux 2) Version ??.?"
@@ -142,9 +139,8 @@ NEURON_INF1_AMI_US_WEST_2 = "ami-06a5a60d3801a57b7"
 UBUNTU_18_HPU_DLAMI_US_WEST_2 = "ami-03cdcfc91a96a8f92"
 UBUNTU_18_HPU_DLAMI_US_EAST_1 = "ami-0d83d7487f322545a"
 UL_AMI_LIST = [
-    UBUNTU_18_BASE_DLAMI_US_EAST_1,
-    UBUNTU_18_BASE_DLAMI_US_WEST_2,
     UBUNTU_20_BASE_DLAMI_US_WEST_2,
+    UBUNTU_20_BASE_DLAMI_US_EAST_1,
     UBUNTU_18_HPU_DLAMI_US_WEST_2,
     UBUNTU_18_HPU_DLAMI_US_EAST_1,
     PT_GPU_PY3_BENCHMARK_IMAGENET_AMI_US_EAST_1,

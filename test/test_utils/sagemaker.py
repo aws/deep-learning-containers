@@ -25,8 +25,8 @@ from test_utils import (
     SAGEMAKER_EXECUTION_REGIONS,
     SAGEMAKER_NEURON_EXECUTION_REGIONS,
     SAGEMAKER_NEURONX_EXECUTION_REGIONS,
-    UBUNTU_18_BASE_DLAMI_US_EAST_1,
-    UBUNTU_18_BASE_DLAMI_US_WEST_2,
+    UBUNTU_20_BASE_DLAMI_US_EAST_1,
+    UBUNTU_20_BASE_DLAMI_US_WEST_2,
     UL20_CPU_ARM64_US_EAST_1,
     UL20_CPU_ARM64_US_WEST_2,
     SAGEMAKER_LOCAL_TEST_TYPE,
@@ -93,9 +93,9 @@ def assign_sagemaker_local_test_ami(image, region):
             return UL20_CPU_ARM64_US_WEST_2
     else:
         if region == "us-east-1":
-            return UBUNTU_18_BASE_DLAMI_US_EAST_1
+            return UBUNTU_20_BASE_DLAMI_US_EAST_1
         else:
-            return UBUNTU_18_BASE_DLAMI_US_WEST_2
+            return UBUNTU_20_BASE_DLAMI_US_WEST_2
 
 
 def launch_sagemaker_local_ec2_instance(image, ami_id, ec2_key_name, region):
