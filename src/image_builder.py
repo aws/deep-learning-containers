@@ -465,7 +465,8 @@ def conduct_apatch_build_setup(image_name, image_tag, info, image_config, cx_typ
 
     folder_path_outside_clone = os.path.join(os.sep, *get_cloned_folder_path().split(os.sep)[:-1])
     download_path = os.path.join(os.sep, folder_path_outside_clone, "patch-dlc")
-    run(f"aws s3 cp s3://patch-dlc {download_path} --recursive")
+    if not os.path.exists(download_path):
+        run(f"aws s3 cp s3://patch-dlc {download_path} --recursive")
     install_cmd = trigger_apatch(image_uri=filtered_list[0], s3_downloaded_path=download_path)
     print(f"INSTALL CMD: {install_cmd}")
 
