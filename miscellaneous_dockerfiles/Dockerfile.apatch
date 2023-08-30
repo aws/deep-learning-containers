@@ -2,8 +2,5 @@ ARG RELEASED_IMAGE=""
 
 FROM $RELEASED_IMAGE
 
-RUN apt-get update \
- && apt-get upgrade -y \
- && apt-get autoremove -y \
- && apt-get clean \
- && rm -rf /var/lib/apt/lists/*
+COPY patch-details /opt/aws/dlc/patch-details
+RUN chmod +x /opt/aws/dlc/patch-details/install_script.sh && /opt/aws/dlc/patch-details/install_script.sh

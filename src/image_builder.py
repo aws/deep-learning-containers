@@ -441,8 +441,11 @@ def trigger_apatch(image_uri, s3_downloaded_path):
     container_id = run(f"{docker_run_cmd}").stdout.strip()
     docker_exec_cmd = f"docker exec -i {container_id}"
     script_run_cmd = f"bash /patch-dlc/script.sh {image_uri}"
-    run(f"{docker_exec_cmd} {script_run_cmd}", hide=True)
+    result = run(f"{docker_exec_cmd} {script_run_cmd}", hide=True)
+    new_cmd = result.stdout.strip().split("\n")[-1]
+    print(f"For {image_uri} => {new_cmd}")
     run(f"docker rm -f {container_id}", hide=True, warn=True)
+    return new_cmd
 
 def conduct_apatch_build_setup(image_name, image_tag, info, image_config, cx_type):
     run(f"""pip install -r {os.path.join(os.sep, get_cloned_folder_path(), "test", "requirements.txt")}""", hide=True)
@@ -463,18 +466,24 @@ def conduct_apatch_build_setup(image_name, image_tag, info, image_config, cx_typ
     folder_path_outside_clone = os.path.join(os.sep, *get_cloned_folder_path().split(os.sep)[:-1])
     download_path = os.path.join(os.sep, folder_path_outside_clone, "patch-dlc")
     run(f"aws s3 cp s3://patch-dlc {download_path} --recursive")
-    trigger_apatch(image_uri=filtered_list[0], s3_downloaded_path=download_path)
+    install_cmd = trigger_apatch(image_uri=filtered_list[0], s3_downloaded_path=download_path)
+    print(f"INSTALL CMD: {install_cmd}")
 
     image_config["docker_file"] = os.path.join(
         os.sep, get_cloned_folder_path(), "miscellaneous_dockerfiles", "Dockerfile.apatch"
     )
     image_config["target"] = None
     info["extra_build_args"].update({"RELEASED_IMAGE": filtered_list[0]})
+    patch_details_path = os.path.join(os.sep, download_path, filtered_list[0].replace("/","_"))
 
     apatch_artifacts = {
         "dockerfile": {
             "source": image_config["docker_file"],
             "target": "Dockerfile",
+        },
+        "patch-details": {
+            "source": patch_details_path,
+            "target": "patch-details",
         }
     }
     context = Context(
