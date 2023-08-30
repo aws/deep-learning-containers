@@ -151,7 +151,7 @@ RUN /opt/conda/bin/mamba install -y --override-channels \
     # patch CVE
     "cryptography>=41.0.2" \
     # patch CVE
-    "pillow>=9.4" \
+    "pillow>=9.4,<9.5.0" \
     # force conda to install h5py with openmpi build, not mpich (rubik error)
     # https://anaconda.org/conda-forge/h5py/files?page=2
     "mpi4py>=3.1.4,<3.2" \
