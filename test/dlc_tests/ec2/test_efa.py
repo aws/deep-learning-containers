@@ -34,6 +34,7 @@ EC2_EFA_GPU_INSTANCE_TYPE_AND_REGION = get_efa_ec2_instance_type(
     filter_function=filter_efa_instance_type,
 )
 
+
 @pytest.mark.processor("gpu")
 @pytest.mark.model("N/A")
 @pytest.mark.integration("efa")
