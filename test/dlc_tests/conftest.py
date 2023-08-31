@@ -870,7 +870,7 @@ def skip_dgl_test(request):
             image_cuda_version.strip("cu")
         ) >= Version("121"):
             pytest.skip(
-                f"DGL doesn't support cuda12.x for now, so skipping this container with tag {fw_ver}"
+                f"DGL doesn't support cuda12.x for now, so skipping this container with tag {image_framework_version}"
             )
 
 
