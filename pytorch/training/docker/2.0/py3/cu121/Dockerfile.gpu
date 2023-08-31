@@ -136,6 +136,17 @@ RUN /opt/conda/bin/mamba install -y -c conda-forge \
   && /opt/conda/bin/mamba clean -afy \
   && rm -rf /etc/apt/sources.list.d/*
 
+RUN mkdir /tmp/efa \
+ && cd /tmp/efa \
+ && curl -O https://s3-us-west-2.amazonaws.com/aws-efa-installer/aws-efa-installer-${EFA_VERSION}.tar.gz \
+ && tar -xf aws-efa-installer-${EFA_VERSION}.tar.gz \
+ && cd aws-efa-installer \
+ && apt-get update \
+ && ./efa_installer.sh -y --skip-kmod -g \
+ && rm -rf /tmp/efa \
+ && rm -rf /tmp/aws-efa-installer-${EFA_VERSION}.tar.gz \
+ && rm -rf /var/lib/apt/lists/* \
+ && apt-get clean
 
 ENV PATH="$OPEN_MPI_PATH/bin:$EFA_PATH/bin:$PATH"
 ENV LD_LIBRARY_PATH=$OPEN_MPI_PATH/lib/:$EFA_PATH/lib/:$LD_LIBRARY_PATH
@@ -144,6 +155,37 @@ RUN pip install --no-cache-dir --upgrade pip --no-cache-dir --trusted-host pypi.
  && ln -s /opt/conda/bin/pip /usr/local/bin/pip3
 
 WORKDIR /root
+
+# Configure Open MPI and configure NCCL parameters
+RUN mv $OPEN_MPI_PATH/bin/mpirun $OPEN_MPI_PATH/bin/mpirun.real \
+ && echo '#!/bin/bash' > $OPEN_MPI_PATH/bin/mpirun \
+ && echo "${OPEN_MPI_PATH}/bin/mpirun.real --allow-run-as-root \"\$@\"" >> $OPEN_MPI_PATH/bin/mpirun \
+ && chmod a+x $OPEN_MPI_PATH/bin/mpirun \
+ && echo "hwloc_base_binding_policy = none" >> $OPEN_MPI_PATH/etc/openmpi-mca-params.conf \
+ && echo "rmaps_base_mapping_policy = slot" >> $OPEN_MPI_PATH/etc/openmpi-mca-params.conf \
+ && echo NCCL_DEBUG=INFO >> /etc/nccl.conf \
+ && echo NCCL_SOCKET_IFNAME=^docker0 >> /etc/nccl.conf
+
+# Install OpenSSH for MPI to communicate between containers, allow OpenSSH to talk to containers without asking for confirmation
+RUN apt-get update \
+ && apt-get install -y  --allow-downgrades --allow-change-held-packages --no-install-recommends \
+ && apt-get install -y --no-install-recommends openssh-client openssh-server \
+ && mkdir -p /var/run/sshd \
+ && cat /etc/ssh/ssh_config | grep -v StrictHostKeyChecking > /etc/ssh/ssh_config.new \
+ && echo "    StrictHostKeyChecking no" >> /etc/ssh/ssh_config.new \
+ && mv /etc/ssh/ssh_config.new /etc/ssh/ssh_config \
+ && rm -rf /var/lib/apt/lists/* \
+ && apt-get clean
+
+# Configure OpenSSH so that nodes can communicate with each other
+RUN mkdir -p /var/run/sshd && \
+ sed 's@session\s*required\s*pam_loginuid.so@session optional pam_loginuid.so@g' -i /etc/pam.d/sshd
+
+RUN rm -rf /root/.ssh/ && \
+ mkdir -p /root/.ssh/ && \
+ ssh-keygen -q -t rsa -N '' -f /root/.ssh/id_rsa && \
+ cp /root/.ssh/id_rsa.pub /root/.ssh/authorized_keys \
+ && printf "Host *\n StrictHostKeyChecking no\n" >> /root/.ssh/config
 
 RUN mkdir -p /etc/pki/tls/certs && cp /etc/ssl/certs/ca-certificates.crt /etc/pki/tls/certs/ca-bundle.crt
 
@@ -186,6 +228,40 @@ RUN /opt/conda/bin/mamba install -y python=${PYTHON_SHORT_VERSION} pytorch=${PYT
   -c ${CONDA_CHANNEL} \
   -c nvidia \
   -c conda-forge
+
+# Install NCCL
+RUN cd /tmp \
+ && git clone https://github.com/NVIDIA/nccl.git -b v${NCCL_VERSION}-1 \
+ && cd nccl \
+ && make -j64 src.build BUILDDIR=/usr/local CUDA_LIB=${CUDA_HOME}/lib \
+ && rm -rf /tmp/nccl
+
+# install PyTorch related python packages (depends on PyTorch)
+RUN /opt/conda/bin/mamba install -y -c conda-forge \
+  # needed by fastai.distributed
+  accelerate \
+  && /opt/conda/bin/mamba install -y -c fastai fastai \
+  # fastai conda strictly depends on dataclasses
+  && pip uninstall -y dataclasses \
+  && pip install torchtnt \
+# explicitly install triton build-time dependencies, which won't get installed by conda for some reason
+  cmake \
+  lit
+
+# Patches
+RUN pip install "pillow>=9.5" opencv-python
+RUN /opt/conda/bin/mamba install -y -c conda-forge \
+  "requests>=2.31.0"
+
+# Install GDRCopy which is a dependency of SM Distributed DataParallel binary
+# The test binaries requires cuda driver library which could be found in conda
+# So update the linker path to point to it to avoid -Lcuda not found
+RUN cd /tmp \
+ && git clone https://github.com/NVIDIA/gdrcopy.git -b v${GDRCOPY_VERSION} \
+ && cd gdrcopy \
+ && sed -ie '12s@$@ -L $(CUDA)/lib/stubs@' tests/Makefile \
+ && CUDA=${CUDA_HOME} make install \
+ && rm -rf /tmp/gdrcopy
 
 # Install Nvidia Apex (needs pytorch)
 RUN pip install packaging \
