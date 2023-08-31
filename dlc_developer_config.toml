@@ -56,18 +56,18 @@ ec2_tests = true
 ### default. If false, these types of tests will be skipped while other tests will run as usual.
 ### EC2 EFA tests are run in EC2 test jobs, so ec2_tests must be true if ec2_efa_tests is true.
 ### Off by default (set to false)
-ec2_efa_tests = false
+ec2_efa_tests = true
 
 ### SM specific tests
 ### Off by default
-sagemaker_local_tests = false
+sagemaker_local_tests = true
 
 # SM remote test valid values:
 # "off" --> do not trigger sagemaker remote tests (default)
 # "standard" --> run standard sagemaker remote tests from test/sagemaker_tests
 # "rc" --> run release_candidate_integration tests
 # "efa" --> run efa sagemaker tests
-sagemaker_remote_tests = "off"
+sagemaker_remote_tests = "standard"
 
 # SM remote EFA test instance type
 sagemaker_remote_efa_instance_type = ""
