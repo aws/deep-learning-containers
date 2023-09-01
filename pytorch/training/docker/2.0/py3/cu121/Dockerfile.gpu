@@ -93,6 +93,8 @@ RUN apt-get update \
     check \
     libsubunit0 \
     libsubunit-dev \
+    # ninja is needed for apex to speed up the build
+    ninja-build
  && rm -rf /var/lib/apt/lists/* \
  && apt-get clean
 
@@ -265,8 +267,6 @@ RUN cd /tmp \
 
 # Install Nvidia Apex (needs pytorch)
 RUN pip install packaging \
-  && apt-get update \
-  && apt-get install -y ninja-build \
   && git clone https://github.com/NVIDIA/apex \
   && cd apex \
   && git checkout 23.08 -b apex \
