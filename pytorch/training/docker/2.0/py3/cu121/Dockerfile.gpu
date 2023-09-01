@@ -94,7 +94,7 @@ RUN apt-get update \
     libsubunit0 \
     libsubunit-dev \
     # ninja is needed for apex to speed up the build
-    ninja-build
+    ninja-build \
  && rm -rf /var/lib/apt/lists/* \
  && apt-get clean
 
