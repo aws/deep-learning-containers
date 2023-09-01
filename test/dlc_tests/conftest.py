@@ -550,8 +550,6 @@ def ec2_instance(
                 if ec2_instance_ami == AML2_BASE_DLAMI_US_WEST_2
                 else UBUNTU_20_BASE_DLAMI_US_EAST_1
             )
-    if ec2_instance_type == "p5.48xlarge":
-        ec2_instance_ami = UBUNTU_20_BASE_DLAMI_US_WEST_2
     ec2_key_name = f"{ec2_key_name}-{str(uuid.uuid4())}"
     print(f"Creating instance: CI-CD {ec2_key_name}")
     key_filename = test_utils.generate_ssh_keypair(ec2_client, ec2_key_name)
