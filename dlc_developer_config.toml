@@ -46,10 +46,10 @@ do_build = false
 [test]
 ### On by default
 sanity_tests = true
-  safety_check_test = false
-  ecr_scan_allowlist_feature = false
-ecs_tests = true
-eks_tests = true
+  safety_check_test = true
+  ecr_scan_allowlist_feature = true
+ecs_tests = false
+eks_tests = false
 ec2_tests = true
 
 ### Set ec2_tests_on_heavy_instances = true to be able to run any EC2 tests that use large/expensive instance types by

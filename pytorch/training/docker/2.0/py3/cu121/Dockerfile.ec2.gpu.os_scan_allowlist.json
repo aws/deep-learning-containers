@@ -24,6 +24,8 @@
       "status": "ACTIVE",
       "title": "CVE-2020-11979 - org.apache.ant:ant"
     },
+  ],
+  "torch": [
     {
       "description": "Overview\n[torch](https://pypi.org/project/torch) is a Tensors and Dynamic neural networks in Python with strong GPU acceleration\n\nAffected versions of this package are vulnerable to Arbitrary Code Injection through `filter-test-configs` in the `pull_request_target-triggered` workflow, allowing an attacker to use a malicious branch name to gain command execution and potentially leak secrets.",
       "vulnerability_id": "SNYK-PYTHON-TORCH-5876728",
