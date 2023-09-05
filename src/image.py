@@ -192,7 +192,7 @@ class DockerImage:
         :return: int, Build Status
         """
         response = [f"Starting the Build Process for {self.repository}:{self.tag}"]
-        LOGGER.info(f"BUILD TARGE FOR {self.repository}:{self.tag} is {self.target}")
+        print(f"BUILD TARGET FOR {self.repository}:{self.tag} is {self.target}")
         for line in self.client.build(
             fileobj=fileobj,
             path=self.dockerfile,
