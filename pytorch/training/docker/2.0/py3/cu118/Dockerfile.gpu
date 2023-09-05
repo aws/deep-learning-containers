@@ -267,75 +267,75 @@ RUN rm -rf /root/.cache | true
 #                  |_|
 ########################################################
 
-FROM common AS ec2
+# FROM common AS ec2
 
-ARG PYTHON
-ARG PYTHON_VERSION
-ARG PYTHON_SHORT_VERSION
+# ARG PYTHON
+# ARG PYTHON_VERSION
+# ARG PYTHON_SHORT_VERSION
 
-# PyTorch Binaries
-ARG PT_EC2_TRAINING_URL
-ARG PT_TORCHVISION_URL
-ARG PT_TORCHAUDIO_URL
-ARG PT_TORCHDATA_URL
+# # PyTorch Binaries
+# ARG PT_EC2_TRAINING_URL
+# ARG PT_TORCHVISION_URL
+# ARG PT_TORCHAUDIO_URL
+# ARG PT_TORCHDATA_URL
 
-WORKDIR /
+# WORKDIR /
 
-# Install ec2 PyTorch
-RUN /opt/conda/bin/mamba install -y pytorch=${PYTORCH_VERSION_EC2} \
-  torchvision torchaudio torchtext aws-ofi-nccl-dlc \
-  --override-channels \
-  -c https://aws-ml-conda-sm.s3.us-west-2.amazonaws.com \
-  -c conda-forge
+# # Install ec2 PyTorch
+# RUN /opt/conda/bin/mamba install -y pytorch=${PYTORCH_VERSION_EC2} \
+#   torchvision torchaudio torchtext aws-ofi-nccl-dlc \
+#   --override-channels \
+#   -c https://aws-ml-conda-sm.s3.us-west-2.amazonaws.com \
+#   -c conda-forge
 
-# install PyTorch related python packages (depends on PyTorch)
-RUN /opt/conda/bin/mamba install -y -c conda-forge \
-  # needed by fastai.distributed
-  accelerate \
-  && /opt/conda/bin/mamba install -y -c fastai fastai \
-  # fastai conda strictly depends on dataclasses
-  && pip uninstall -y dataclasses \
-  && pip install torchtnt \
-# explicitly install triton build-time dependencies, which won't get installed by conda for some reason
-  cmake \
-  lit
+# # install PyTorch related python packages (depends on PyTorch)
+# RUN /opt/conda/bin/mamba install -y -c conda-forge \
+#   # needed by fastai.distributed
+#   accelerate \
+#   && /opt/conda/bin/mamba install -y -c fastai fastai \
+#   # fastai conda strictly depends on dataclasses
+#   && pip uninstall -y dataclasses \
+#   && pip install torchtnt \
+# # explicitly install triton build-time dependencies, which won't get installed by conda for some reason
+#   cmake \
+#   lit
 
-# Patches
-RUN pip install "pillow>=9.5" "pyyaml>=6.0.1"
-RUN /opt/conda/bin/mamba install -y -c conda-forge \
-  "requests>=2.31.0"
+# # Patches
+# RUN pip install "pillow>=9.5" "pyyaml>=6.0.1"
+# RUN /opt/conda/bin/mamba install -y -c conda-forge \
+#   "requests>=2.31.0"
 
-# Install Nvidia Apex (needs pytorch)
-## Pin apex commit requested by sm-model-parallel team
-RUN git clone https://github.com/NVIDIA/apex \
-  && cd apex \
-  # recent commit, torch._six fix is included https://github.com/NVIDIA/apex/commit/a78ccf0b3e3f7130b3f157732dc8e8e651389922
-  && git checkout 27de66c \
-  && pip install -v --no-cache-dir --global-option="--cpp_ext" --global-option="--cuda_ext" ./ \
-  && cd .. \
-  && rm -rf apex
+# # Install Nvidia Apex (needs pytorch)
+# ## Pin apex commit requested by sm-model-parallel team
+# RUN git clone https://github.com/NVIDIA/apex \
+#   && cd apex \
+#   # recent commit, torch._six fix is included https://github.com/NVIDIA/apex/commit/a78ccf0b3e3f7130b3f157732dc8e8e651389922
+#   && git checkout 27de66c \
+#   && pip install -v --no-cache-dir --global-option="--cpp_ext" --global-option="--cuda_ext" ./ \
+#   && cd .. \
+#   && rm -rf apex
 
-# Install Horovod (needs pytorch)
-# RUN pip uninstall -y horovod \
-#  && ldconfig /usr/local/cuda-11.8/targets/x86_64-linux/lib/stubs \
-#  && HOROVOD_GPU_ALLREDUCE=NCCL HOROVOD_CUDA_HOME=${CUDA_HOME} HOROVOD_WITH_PYTORCH=1 pip install --no-cache-dir horovod==${HOROVOD_VERSION} \
-#  && ldconfig
+# # Install Horovod (needs pytorch)
+# # RUN pip uninstall -y horovod \
+# #  && ldconfig /usr/local/cuda-11.8/targets/x86_64-linux/lib/stubs \
+# #  && HOROVOD_GPU_ALLREDUCE=NCCL HOROVOD_CUDA_HOME=${CUDA_HOME} HOROVOD_WITH_PYTORCH=1 pip install --no-cache-dir horovod==${HOROVOD_VERSION} \
+# #  && ldconfig
 
-RUN HOME_DIR=/root \
- && curl -o ${HOME_DIR}/oss_compliance.zip https://aws-dlinfra-utilities.s3.amazonaws.com/oss_compliance.zip \
- && unzip ${HOME_DIR}/oss_compliance.zip -d ${HOME_DIR}/ \
- && cp ${HOME_DIR}/oss_compliance/test/testOSSCompliance /usr/local/bin/testOSSCompliance \
- && chmod +x /usr/local/bin/testOSSCompliance \
- && chmod +x ${HOME_DIR}/oss_compliance/generate_oss_compliance.sh \
- && ${HOME_DIR}/oss_compliance/generate_oss_compliance.sh ${HOME_DIR} ${PYTHON} \
- && rm -rf ${HOME_DIR}/oss_compliance* \
- && rm -rf /tmp/tmp*
+# RUN HOME_DIR=/root \
+#  && curl -o ${HOME_DIR}/oss_compliance.zip https://aws-dlinfra-utilities.s3.amazonaws.com/oss_compliance.zip \
+#  && unzip ${HOME_DIR}/oss_compliance.zip -d ${HOME_DIR}/ \
+#  && cp ${HOME_DIR}/oss_compliance/test/testOSSCompliance /usr/local/bin/testOSSCompliance \
+#  && chmod +x /usr/local/bin/testOSSCompliance \
+#  && chmod +x ${HOME_DIR}/oss_compliance/generate_oss_compliance.sh \
+#  && ${HOME_DIR}/oss_compliance/generate_oss_compliance.sh ${HOME_DIR} ${PYTHON} \
+#  && rm -rf ${HOME_DIR}/oss_compliance* \
+#  && rm -rf /tmp/tmp*
 
-# Removing the cache as it is needed for security verification
-RUN rm -rf /root/.cache | true
+# # Removing the cache as it is needed for security verification
+# RUN rm -rf /root/.cache | true
 
-# Starts framework
-CMD ["/bin/bash"]
+# # Starts framework
+# CMD ["/bin/bash"]
 
 #################################################################
 #  ____                   __  __       _
