@@ -38,7 +38,7 @@ build_training = false
 build_inference = true
 
 # Set to false in order to remove datetime tag on PR builds
-datetime_tag = true
+datetime_tag = false
 # Note: Need to build the images at least once with datetime_tag = false
 # before disabling new builds, or tests will fail
 do_build = true
@@ -49,8 +49,8 @@ sanity_tests = true
   safety_check_test = false
   ecr_scan_allowlist_feature = false
 ecs_tests = true
-eks_tests = true
-ec2_tests = true
+eks_tests = false
+ec2_tests = false
 
 ### Set ec2_tests_on_heavy_instances = true to be able to run any EC2 tests that use large/expensive instance types by
 ### default. If false, these types of tests will be skipped while other tests will run as usual.
@@ -67,7 +67,7 @@ sagemaker_local_tests = true
 # "standard" --> run standard sagemaker remote tests from test/sagemaker_tests
 # "rc" --> run release_candidate_integration tests
 # "efa" --> run efa sagemaker tests
-sagemaker_remote_tests = "standard"
+sagemaker_remote_tests = "off"
 
 # SM remote EFA test instance type
 sagemaker_remote_efa_instance_type = ""
