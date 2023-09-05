@@ -121,7 +121,7 @@ RUN curl -L -o ~/mambaforge.sh https://github.com/conda-forge/miniforge/releases
  && rm ~/mambaforge.sh
 
 # Install common conda packages
-RUN /opt/conda/bin/mamba install -y --override-channels \
+RUN sudo /opt/conda1/bin/mamba install -y --override-channels \
   -c https://aws-ml-conda-ec2.s3.us-west-2.amazonaws.com \
   -c nvidia/label/cuda-11.8.0 \
   pytorch-cuda=11.8 cuda-toolkit=11.8 \
@@ -238,12 +238,6 @@ RUN apt-get update \
 # Configure OpenSSH so that nodes can communicate with each other
 RUN mkdir -p /var/run/sshd && \
  sed 's@session\s*required\s*pam_loginuid.so@session optional pam_loginuid.so@g' -i /etc/pam.d/sshd
-
-RUN rm -rf /root/.ssh/ && \
- mkdir -p /root/.ssh/ && \
- ssh-keygen -q -t rsa -N '' -f /root/.ssh/id_rsa && \
- cp /root/.ssh/id_rsa.pub /root/.ssh/authorized_keys \
- && printf "Host *\n StrictHostKeyChecking no\n" >> /root/.ssh/config
 
 RUN mkdir -p /etc/pki/tls/certs && cp /etc/ssl/certs/ca-certificates.crt /etc/pki/tls/certs/ca-bundle.crt
 
