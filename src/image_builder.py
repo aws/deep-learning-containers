@@ -277,6 +277,7 @@ def image_builder(buildspec, image_types=[], device_types=[]):
         }
 
         # Create pre_push stage docker object
+        print(f"Docker Target for {image_tag} is {image_config.get('target')}")
         pre_push_stage_image_object = DockerImage(
             info=info,
             dockerfile=image_config["docker_file"],
