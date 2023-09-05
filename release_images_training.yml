@@ -1,14 +1,14 @@
 ---
 release_images:
   1:
-    framework: "tensorflow"
-    version: "2.13.0"
+    framework: "pytorch"
+    version: "2.0.1"
     arch_type: "x86"
-    customer_type: "sagemaker"
+    customer_type: "ec2"
     training:
-      device_types: [ "cpu", "gpu" ]
+      device_types: ["gpu" ]
       python_versions: [ "py310" ]
-      cuda_version: "cu118"
+      cuda_version: "cu121"
       os_version: "ubuntu20.04"
       example: False
       disable_sm_tag: False
@@ -17,13 +17,12 @@ release_images:
     framework: "pytorch"
     version: "2.0.1"
     arch_type: "x86"
-    customer_type: "sagemaker"
+    customer_type: "ec2"
     training:
-      device_types: [ "cpu", "gpu" ]
+      device_types: ["gpu" ]
       python_versions: [ "py310" ]
-      cuda_version: "cu118"
+      cuda_version: "cu121"
       os_version: "ubuntu20.04"
-      example: False
+      example: True
       disable_sm_tag: False
       force_release: False
-
