@@ -11,7 +11,7 @@ from test.test_utils.ec2 import (
 
 GDRCOPY_SANITY_TEST_CMD = os.path.join(CONTAINER_TESTS_PREFIX, "gdrcopy", "test_gdrcopy.sh")
 EC2_EFA_GPU_INSTANCE_TYPE_AND_REGION = get_efa_ec2_instance_type(
-    default="p4d.24xlarge",
+    default="p5.48xlarge",
     filter_function=filter_efa_instance_type,
 )
 
