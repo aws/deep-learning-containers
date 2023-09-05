@@ -178,7 +178,7 @@ def test_smmodelparallel_gpt2_multigpu_singlenode(
     framework, framework_version = get_framework_and_version_from_tag(ecr_image)
     if framework == "pytorch" and Version(framework_version) in SpecifierSet("==1.9.*"):
         pytest.skip("Skipping the test for PT1.9")
-    instance_type = "ml.p4d.24xlarge"
+    instance_type = "ml.p5.48xlarge"
     smp_version = (
         110
         if framework == "pytorch" and Version(framework_version) in SpecifierSet(">=1.11.0")
@@ -276,7 +276,7 @@ def test_smmodelparallel_gpt2_multigpu_singlenode_flashattn(
     framework, framework_version = get_framework_and_version_from_tag(ecr_image)
     if Version(framework_version) in SpecifierSet("<1.12.0"):
         pytest.skip("Skipping the test for older than PT 1.12")
-    instance_type = "ml.p4d.24xlarge"
+    instance_type = "ml.p5.48xlarge"
     smp_version = (
         110
         if framework == "pytorch" and Version(framework_version) in SpecifierSet(">=1.11.0")

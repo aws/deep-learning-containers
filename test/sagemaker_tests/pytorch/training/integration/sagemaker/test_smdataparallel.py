@@ -62,7 +62,7 @@ def can_run_smdataparallel_efa(ecr_image):
 @pytest.mark.multinode(2)
 @pytest.mark.integration("smdataparallel")
 @pytest.mark.parametrize(
-    "efa_instance_type", get_efa_test_instance_type(default=["ml.p4d.24xlarge"]), indirect=True
+    "efa_instance_type", get_efa_test_instance_type(default=["ml.p5.48xlarge"]), indirect=True
 )
 @pytest.mark.skip_cpu
 @pytest.mark.skip_trcomp_containers
@@ -141,7 +141,7 @@ def test_smdataparallel_mnist_script_mode_multigpu(
 @pytest.mark.skip_trcomp_containers
 @pytest.mark.parametrize(
     "efa_instance_type",
-    get_efa_test_instance_type(default=["ml.p3.16xlarge", "ml.p4d.24xlarge"]),
+    get_efa_test_instance_type(default=["ml.p3.16xlarge", "ml.p5.48xlarge"]),
     indirect=True,
 )
 def test_smdataparallel_mnist(ecr_image, sagemaker_regions, efa_instance_type, tmpdir):
