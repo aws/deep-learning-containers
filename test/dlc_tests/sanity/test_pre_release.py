@@ -35,7 +35,7 @@ from test.test_utils import (
     get_python_version_from_image_uri,
     get_cuda_version_from_tag,
     get_labels_from_ecr_image,
-    construct_buildspec_path,
+    get_buildspec_path,
     is_tf_version,
     is_nightly_context,
     get_processor_from_image_uri,
@@ -741,20 +741,10 @@ def test_cuda_paths(gpu):
         short_python_version = python_version[:3]
 
     # Check buildspec for cuda version
-    buildspec = "buildspec"
-    if is_tf_version("1", image):
-        buildspec = "buildspec-tf1"
-    if "trcomp" in image:
-        buildspec = "buildspec-trcomp"
-    if "sagemaker-lite" in image:
-        buildspec = "buildspec-sagemaker-lite"
-
     image_tag_in_buildspec = False
     dockerfile_spec_abs_path = None
 
-    buildspec_path = construct_buildspec_path(
-        dlc_path, framework_path, buildspec, framework_version, job_type
-    )
+    buildspec_path = get_buildspec_path(dlc_path)
     buildspec_def = Buildspec()
     buildspec_def.load(buildspec_path)
 
