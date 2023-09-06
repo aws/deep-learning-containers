@@ -22,6 +22,7 @@ from test import test_utils
 from test.test_utils import (
     is_benchmark_dev_context,
     get_framework_and_version_from_tag,
+    get_cuda_version_from_tag,
     get_job_type_from_image,
     is_tf_version,
     is_above_framework_version,
@@ -32,8 +33,8 @@ from test.test_utils import (
     is_nightly_context,
     DEFAULT_REGION,
     P3DN_REGION,
-    UBUNTU_18_BASE_DLAMI_US_EAST_1,
-    UBUNTU_18_BASE_DLAMI_US_WEST_2,
+    UBUNTU_20_BASE_DLAMI_US_EAST_1,
+    UBUNTU_20_BASE_DLAMI_US_WEST_2,
     PT_GPU_PY3_BENCHMARK_IMAGENET_AMI_US_EAST_1,
     AML2_BASE_DLAMI_US_WEST_2,
     AML2_BASE_DLAMI_US_EAST_1,
@@ -324,9 +325,9 @@ def ec2_instance_ami(request, region):
     return (
         request.param
         if hasattr(request, "param")
-        else UBUNTU_18_BASE_DLAMI_US_EAST_1
+        else UBUNTU_20_BASE_DLAMI_US_EAST_1
         if region == "us-east-1"
-        else UBUNTU_18_BASE_DLAMI_US_WEST_2
+        else UBUNTU_20_BASE_DLAMI_US_WEST_2
     )
 
 
@@ -547,7 +548,7 @@ def ec2_instance(
             ec2_instance_ami = (
                 AML2_BASE_DLAMI_US_EAST_1
                 if ec2_instance_ami == AML2_BASE_DLAMI_US_WEST_2
-                else UBUNTU_18_BASE_DLAMI_US_EAST_1
+                else UBUNTU_20_BASE_DLAMI_US_EAST_1
             )
 
     ec2_key_name = f"{ec2_key_name}-{str(uuid.uuid4())}"
@@ -851,6 +852,25 @@ def skip_inductor_test(request):
         if Version(fw_ver) < Version("2.0.0"):
             pytest.skip(
                 f"SM inductor test only support PT2.0 and above, skipping this container with tag {fw_ver}"
+            )
+
+
+@pytest.fixture(autouse=True)
+def skip_dgl_test(request):
+    if "training" in request.fixturenames:
+        img_uri = request.getfixturevalue("training")
+    elif "pytorch_training" in request.fixturenames:
+        img_uri = request.getfixturevalue("pytorch_training")
+    else:
+        return
+    _, image_framework_version = get_framework_and_version_from_tag(img_uri)
+    image_cuda_version = get_cuda_version_from_tag(img_uri)
+    if request.node.get_closest_marker("skip_dgl_test"):
+        if Version(image_framework_version) in SpecifierSet(">=2.0") and Version(
+            image_cuda_version.strip("cu")
+        ) >= Version("121"):
+            pytest.skip(
+                f"DGL doesn't support cuda12.x for now, so skipping this container with tag {image_framework_version}"
             )
 
 
