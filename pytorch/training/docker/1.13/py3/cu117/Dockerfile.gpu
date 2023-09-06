@@ -326,12 +326,6 @@ RUN apt-get update \
 RUN mkdir -p /var/run/sshd && \
  sed 's@session\s*required\s*pam_loginuid.so@session optional pam_loginuid.so@g' -i /etc/pam.d/sshd
 
-RUN rm -rf /root/.ssh/ && \
- mkdir -p /root/.ssh/ && \
- ssh-keygen -q -t rsa -N '' -f /root/.ssh/id_rsa && \
- cp /root/.ssh/id_rsa.pub /root/.ssh/authorized_keys \
- && printf "Host *\n StrictHostKeyChecking no\n" >> /root/.ssh/config
-
 # Install Horovod (needs pytorch)
 RUN pip uninstall -y horovod \
  && ldconfig /usr/local/cuda-11.7/targets/x86_64-linux/lib/stubs \
@@ -457,12 +451,6 @@ RUN apt-get update \
 # Configure OpenSSH so that nodes can communicate with each other
 RUN mkdir -p /var/run/sshd && \
  sed 's@session\s*required\s*pam_loginuid.so@session optional pam_loginuid.so@g' -i /etc/pam.d/sshd
-
-RUN rm -rf /root/.ssh/ && \
- mkdir -p /root/.ssh/ && \
- ssh-keygen -q -t rsa -N '' -f /root/.ssh/id_rsa && \
- cp /root/.ssh/id_rsa.pub /root/.ssh/authorized_keys \
- && printf "Host *\n StrictHostKeyChecking no\n" >> /root/.ssh/config
 
 # Install Horovod (needs pytorch)
 RUN pip uninstall -y horovod \
