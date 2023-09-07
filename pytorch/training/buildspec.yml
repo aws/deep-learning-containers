@@ -50,7 +50,7 @@ images:
     tag_python_version: &TAG_PYTHON_VERSION py310
     cuda_version: &CUDA_VERSION cu121
     os_version: &OS_VERSION ubuntu20.04
-    tag: !join [ "2.0.1", "-", *DEVICE_TYPE, "-", *TAG_PYTHON_VERSION, "-", *CUDA_VERSION, "-", *OS_VERSION, "-ec2" ]
+    tag: !join [ *VERSION, "-", *DEVICE_TYPE, "-", *TAG_PYTHON_VERSION, "-", *CUDA_VERSION, "-", *OS_VERSION, "-ec2" ]
     docker_file: !join [ docker/, *SHORT_VERSION, /, *DOCKER_PYTHON_VERSION, /, *CUDA_VERSION, /Dockerfile.,
                          *DEVICE_TYPE ]
     target: ec2
@@ -94,7 +94,7 @@ images:
     tag_python_version: &TAG_PYTHON_VERSION py310
     cuda_version: &CUDA_VERSION cu121
     os_version: &OS_VERSION ubuntu20.04
-    tag: !join [ "2.0.1", "-", *DEVICE_TYPE, "-", *TAG_PYTHON_VERSION, "-", *CUDA_VERSION, "-", *OS_VERSION,
+    tag: !join [ *VERSION, "-", *DEVICE_TYPE, "-", *TAG_PYTHON_VERSION, "-", *CUDA_VERSION, "-", *OS_VERSION,
                  "-ec2-example" ]
     docker_file: !join [ docker/, *SHORT_VERSION, /, *DOCKER_PYTHON_VERSION, /example, /Dockerfile., *DEVICE_TYPE ]
     context:
