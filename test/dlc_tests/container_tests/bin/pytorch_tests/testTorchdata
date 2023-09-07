@@ -17,6 +17,7 @@ git clone $TORCHDATA_REPO \
 
 # removing awscli requirement as it should already be installed, and is causing dependency issues
 sed -i "s/awscli.*//g" data/test/requirements.txt
+sed -i "s/adlfs.*//g" data/test/requirements.txt
 
 echo "Installing pre-requisites."
 pip install -r data/test/requirements.txt
