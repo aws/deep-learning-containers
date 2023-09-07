@@ -168,6 +168,10 @@ def pytest_collection_modifyitems(session, config, items):
 
 # Nightly image fixture dictionary, maps nightly fixtures to set of image labels
 NIGHTLY_FIXTURES = {
+    "feature_smppy_present": {
+        NightlyFeatureLabel.AWS_FRAMEWORK_INSTALLED.value,
+        NightlyFeatureLabel.AWS_SMPPY_INSTALLED.value,
+    },
     "feature_smdebug_present": {
         NightlyFeatureLabel.AWS_FRAMEWORK_INSTALLED.value,
         NightlyFeatureLabel.AWS_SMDEBUG_INSTALLED.value,
@@ -180,6 +184,12 @@ NIGHTLY_FIXTURES = {
     "feature_aws_framework_present": {NightlyFeatureLabel.AWS_FRAMEWORK_INSTALLED.value},
     "feature_s3_plugin_present": {NightlyFeatureLabel.AWS_S3_PLUGIN_INSTALLED.value},
 }
+
+
+# Nightly fixtures
+@pytest.fixture(scope="session")
+def feature_smppy_present():
+    pass
 
 
 # Nightly fixtures
