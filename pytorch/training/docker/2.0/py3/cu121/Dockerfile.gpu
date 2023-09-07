@@ -154,6 +154,9 @@ ENV LD_LIBRARY_PATH=$OPEN_MPI_PATH/lib/:$EFA_PATH/lib/:$LD_LIBRARY_PATH
 RUN pip install --no-cache-dir --upgrade pip --no-cache-dir --trusted-host pypi.org --trusted-host files.pythonhosted.org \
  && ln -s /opt/conda/bin/pip /usr/local/bin/pip3
 
+# Install NVIDIA transformer engine
+RUN pip install git+https://github.com/NVIDIA/TransformerEngine.git@stable
+
 WORKDIR /root
 
 # Configure Open MPI and configure NCCL parameters
