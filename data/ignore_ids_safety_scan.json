@@ -687,7 +687,8 @@
                 "53903":"Added in order to support tensorflow 1.15.5 and 2.10",
                 "53860":"Added in order to support tensorflow 1.15.5 and 2.10",
                 "53860":"Added in order to support tensorflow 1.15.5 and 2.10",
-                "59399": "not a security isssue"
+                "59398":"Added in order to support tensorflow 1.15.5 and 2.10",
+                "59399":"Added in order to support tensorflow 1.15.5 and 2.10",
             }
         }
     },
