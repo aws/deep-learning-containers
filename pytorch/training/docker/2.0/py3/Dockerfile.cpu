@@ -178,12 +178,13 @@ ARG PT_EC2_TRAINING_URL
 ARG PT_TORCHVISION_URL
 ARG PT_TORCHAUDIO_URL
 ARG PT_TORCHDATA_URL
+ARG PYTORCH_VERSION_EC2
 
 # Install ec2 AWS-PyTorch
 RUN /opt/conda/bin/mamba install -y pytorch=${PYTORCH_VERSION_EC2} \
   torchvision torchaudio torchtext cpuonly \
   --override-channels \
-  -c https://aws-ml-conda-sm.s3.us-west-2.amazonaws.com \
+  -c https://aws-ml-conda-ec2.s3.us-west-2.amazonaws.com \
   -c conda-forge
 
 # Patches
