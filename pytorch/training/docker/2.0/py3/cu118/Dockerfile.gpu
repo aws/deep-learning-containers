@@ -125,7 +125,7 @@ RUN curl -L -o ~/mambaforge.sh https://github.com/conda-forge/miniforge/releases
 RUN /opt/conda/bin/mamba install -y --override-channels \
   -c https://aws-ml-conda-ec2.s3.us-west-2.amazonaws.com \
   -c nvidia \
-  pytorch-cuda=11.8 cuda-toolkit=11.8 cuda-nvcc=11.8.* \
+  pytorch-cuda=11.8 cuda-toolkit=11.8 \
   && /opt/conda/bin/mamba install -y -c conda-forge \
     pyopenssl \
     requests \
@@ -279,7 +279,7 @@ WORKDIR /
 
 # Install ec2 PyTorch
 RUN /opt/conda/bin/mamba install -y pytorch=${PYTORCH_VERSION_EC2} \
-  pytorch-cuda=${CUDA_VERSION} cuda-toolkit=${CUDA_VERSION} cuda-nvcc=${CUDA_VERSION}.* torchvision torchaudio torchtext aws-ofi-nccl-dlc \
+  pytorch-cuda=${CUDA_VERSION} cuda-toolkit=${CUDA_VERSION} torchvision torchaudio torchtext aws-ofi-nccl-dlc \
   --override-channels \
   -c https://aws-ml-conda-ec2.s3.us-west-2.amazonaws.com \
   -c conda-forge \
@@ -383,7 +383,7 @@ ARG PYTORCH_VERSION_SM
 
 # Install sm PyTorch (force remove will increase docker image size drastically)
 RUN /opt/conda/bin/mamba install -y pytorch=${PYTORCH_VERSION_SM} \
-  pytorch-cuda=${CUDA_VERSION} cuda-toolkit=${CUDA_VERSION} cuda-nvcc=${CUDA_VERSION}.* torchvision torchaudio torchtext aws-ofi-nccl-dlc \
+  pytorch-cuda=${CUDA_VERSION} cuda-toolkit=${CUDA_VERSION} torchvision torchaudio torchtext aws-ofi-nccl-dlc \
   --override-channels \
   -c https://aws-ml-conda-sm.s3.us-west-2.amazonaws.com \
   -c conda-forge \
