@@ -41,7 +41,7 @@ images:
   #   target: ec2
   #   context:
   #     <<: *TRAINING_CONTEXT
-  BuildEC2GPUPTTrainPy3DockerImage:
+  BuildEC2GPUPTTrainPy3cu121DockerImage:
     <<: *TRAINING_REPOSITORY
     build: &PYTORCH_GPU_TRAINING_PY3 false
     image_size_baseline: 19700
@@ -56,7 +56,7 @@ images:
     target: ec2
     context:
       <<: *TRAINING_CONTEXT
-  # BuildEC2GPUPTTrainPy3DockerImage:
+  # BuildEC2GPUPTTrainPy3cu118DockerImage:
   #   <<: *TRAINING_REPOSITORY
   #   build: &PYTORCH_GPU_TRAINING_PY3 false
   #   image_size_baseline: 19700
@@ -99,7 +99,7 @@ images:
   #   target: sagemaker
   #   context:
   #     <<: *TRAINING_CONTEXT
-  BuildPyTorchExampleGPUTrainPy3DockerImage:
+  BuildPyTorchExampleGPUTrainPy3cu121DockerImage:
     <<: *TRAINING_REPOSITORY
     build: &PYTORCH_GPU_TRAINING_PY3 false
     image_size_baseline: 19700
@@ -114,7 +114,7 @@ images:
     docker_file: !join [ docker/, *SHORT_VERSION, /, *DOCKER_PYTHON_VERSION, /example, /Dockerfile., *DEVICE_TYPE ]
     context:
       <<: *TRAINING_CONTEXT
-  # BuildPyTorchExampleGPUTrainPy3DockerImage:
+  # BuildPyTorchExampleGPUTrainPy3cu118DockerImage:
   #   <<: *TRAINING_REPOSITORY
   #   build: &PYTORCH_GPU_TRAINING_PY3 false
   #   image_size_baseline: 19700
