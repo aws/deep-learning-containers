@@ -158,13 +158,13 @@ RUN ${PIP} install --no-cache-dir -U \
 
 # Install extra packages needed by sagemaker (for passing test_utility_packages_using_import)
 RUN pip install --no-cache-dir -U \
-    "bokeh>=2.3,<3" \
-    "imageio>=2.9,<3" \
-    "opencv-python>=4.3,<5" \
-    "plotly>=5.1,<6" \
-    "seaborn>=0.11,<1" \
+    "bokeh>=3.0.1,<4" \
+    "imageio>=2.22,<3" \
+    "opencv-python>=4.6,<5" \
+    "plotly>=5.11,<6" \
+    "seaborn>=0.12,<1" \
     "numba" \
-    "shap>=0.39,<1" \
+    "shap>=0.41,<1" \
     "numpy==1.21.6"
 
 # EFA Installer does apt get. Make sure to run apt update before that

@@ -36,7 +36,7 @@
             "name": "SNYK-PYTHON-TORCH-5876728",
             "package_name": "torch",
             "package_details": {
-                "file_path": "opt/conda/lib/python3.10/site-packages/torch-1.13.1.dist-info/METADATA",
+                "file_path": "usr/local/lib/python3.10/site-packages/torch-1.13.1.dist-info/METADATA",
                 "name": "torch",
                 "package_manager": "PYTHONPKG",
                 "version": "1.13.1",
