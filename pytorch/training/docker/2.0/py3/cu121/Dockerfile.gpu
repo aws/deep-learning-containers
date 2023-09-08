@@ -154,9 +154,6 @@ ENV LD_LIBRARY_PATH=$OPEN_MPI_PATH/lib/:$EFA_PATH/lib/:$LD_LIBRARY_PATH
 RUN pip install --no-cache-dir --upgrade pip --no-cache-dir --trusted-host pypi.org --trusted-host files.pythonhosted.org \
  && ln -s /opt/conda/bin/pip /usr/local/bin/pip3
 
-# Install NVIDIA transformer engine
-RUN pip install git+https://github.com/NVIDIA/TransformerEngine.git@stable
-
 WORKDIR /root
 
 # Configure Open MPI and configure NCCL parameters
@@ -268,6 +265,9 @@ RUN pip install packaging \
   && pip install -v --disable-pip-version-check --no-cache-dir --no-build-isolation --config-settings "--build-option=--cpp_ext" --config-settings "--build-option=--cuda_ext" ./ \
   && cd .. \
   && rm -rf apex
+
+# Install NVIDIA transformer engine
+RUN pip install git+https://github.com/NVIDIA/TransformerEngine.git@stable
 
 RUN HOME_DIR=/root \
  && curl -o ${HOME_DIR}/oss_compliance.zip https://aws-dlinfra-utilities.s3.amazonaws.com/oss_compliance.zip \
