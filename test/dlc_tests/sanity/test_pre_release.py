@@ -428,9 +428,13 @@ def test_framework_and_neuron_sdk_version(neuron):
         )
 
         installed_framework_version = output.stdout.strip()
-        assert installed_framework_version in release_manifest[package_name], (
+        version_list = release_manifest[package_name]
+        # temporary hack because transformers_neuronx reports its version as 0.6.x
+        if package_name == "transformers-neuronx":
+            version_list = [".".join(entry.split(".")[:-1]) + ".x" for entry in release_manifest[package_name]]
+        assert installed_framework_version in version_list, (
             f"framework {framework} version {installed_framework_version} "
-            f"not found in released versions for that package: {release_manifest[package_name]}"
+            f"not found in released versions for that package: {version_list}"
         )
 
     stop_and_remove_container(container_name, ctx)
