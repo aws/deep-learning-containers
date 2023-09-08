@@ -394,9 +394,11 @@ def test_framework_and_neuron_sdk_version(neuron):
     if tested_framework == "pytorch":
         if "training" in image or "neuronx" in image:
             package_names = {
-                "torch-neuronx": "torch_neuronx",
-                "transformers-neuronx": "transformers_neuronx",
+                "torch-neuronx": "torch_neuronx"
             }
+            # transformers is only available for the inference image
+            if "training" not in image:
+                package_names["transformers-neuronx"] = "transformers_neuronx"
         else:
             package_names = {"torch-neuron": "torch_neuron"}
     elif tested_framework == "tensorflow":
