@@ -163,9 +163,9 @@ RUN pip install --no-cache-dir -U \
     "opencv-python>=4.6,<5" \
     "plotly>=5.11,<6" \
     "seaborn>=0.12,<1" \
-    "numba" \
+    "numba>=0.56.4,<0.57" \
     "shap>=0.41,<1" \
-    "numpy==1.25.2"
+    "numpy>=1.20,<=1.25.2"
 
 # EFA Installer does apt get. Make sure to run apt update before that
 RUN apt-get update
