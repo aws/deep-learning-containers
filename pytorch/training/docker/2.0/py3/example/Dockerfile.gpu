@@ -1,5 +1,5 @@
 # Expecting base image to be the Deep Learning Container image built by ../cu117/Dockerfile.ec2.gpu
-ARG BASE_IMAGE="../cu118/Dockerfile.gpu"
+ARG BASE_IMAGE="../cu121/Dockerfile.gpu"
 
 FROM $BASE_IMAGE
 
