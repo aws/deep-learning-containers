@@ -1497,7 +1497,7 @@ def get_neuron_release_manifest(sdk_version):
     Returns a dictionary which maps a package name (e.g. "tensorflow-neuronx") to all the version numbers available in and SDK release
 
     :param sdk_version: Neuron SDK version
-    :return: { "tensorflow_neuronx": set(["15.5.1.1.1.1.1", "2.10.1.1.1.1.1", ...]), ... }
+    :return: { "tensorflow_neuronx": ["15.5.1.1.1.1.1", "2.10.1.1.1.1.1", ...], ... }
     """
     NEURON_RELEASE_MANIFEST_URL = "https://raw.githubusercontent.com/aws-neuron/aws-neuron-sdk/master/src/helperscripts/n2-manifest.json"
 
@@ -1534,8 +1534,8 @@ def get_neuron_release_manifest(sdk_version):
         package_name = package["name"]
         package_version = package["version"]
         if package_name not in package_versions:
-            package_versions[package_name] = set()
-        package_versions[package_name].add(package_version)
+            package_versions[package_name] = []
+        package_versions[package_name].append(package_version)
 
     return package_versions
 
