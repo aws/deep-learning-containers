@@ -15,6 +15,7 @@ ARG TFS_SHORT_VERSION=2.10
 
 # Neuron SDK components version numbers
 ARG NEURONX_RUNTIME_LIB_VERSION=2.16.*
+ARG NEURONX_COLLECTIVES_LIB_VERSION=2.16.*
 ARG NEURONX_TOOLS_VERSION=2.13.*
 ARG NEURONX_FRAMEWORK_VERSION=2.10.1.2.1.*
 ARG NEURONX_TF_MODEL_SERVER_VERSION=2.10.1.2.10.1.*
@@ -27,7 +28,7 @@ ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
 ENV SAGEMAKER_TFS_VERSION="${TFS_SHORT_VERSION}"
 ENV PATH="/opt/aws/neuron/bin:$PATH:/sagemaker"
-ENV LD_LIBRARY_PATH='/usr/local/lib:$LD_LIBRARY_PATH'
+ENV LD_LIBRARY_PATH='/opt/aws/neuron/lib:/usr/local/lib:$LD_LIBRARY_PATH'
 ENV MODEL_BASE_PATH=/models
 # The only required piece is the model name in order to differentiate endpoints
 ENV MODEL_NAME=model
@@ -85,6 +86,7 @@ RUN apt-get update
 RUN apt-get install -y \
     tensorflow-model-server-neuronx=${NEURONX_TF_MODEL_SERVER_VERSION} \
     aws-neuronx-tools=${NEURONX_TOOLS_VERSION} \
+    aws-neuronx-collectives=${NEURONX_COLLECTIVES_LIB_VERSION} \
     aws-neuronx-runtime-lib=${NEURONX_RUNTIME_LIB_VERSION} \
  && apt-get clean \
  && rm -rf /var/lib/apt/lists/*
