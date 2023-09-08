@@ -160,7 +160,7 @@ RUN ${PIP} install --no-cache-dir -U \
 RUN pip install --no-cache-dir -U \
     "bokeh>=3.0.1,<4" \
     "imageio>=2.22,<3" \
-    "opencv-python<5" \
+    "opencv-python<4.8" \
     "plotly>=5.11,<6" \
     "seaborn>=0.12,<1" \
     "numba>=0.56.4,<0.57" \
