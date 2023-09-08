@@ -395,7 +395,7 @@ def test_framework_and_neuron_sdk_version(neuron):
         if "training" in image or "neuronx" in image:
             package_names = {
                 "torch-neuronx": "torch_neuronx",
-                "transformers-neuronx": "transformers_neuronx"
+                "transformers-neuronx": "transformers_neuronx",
             }
         else:
             package_names = {"torch-neuron": "torch_neuron"}
