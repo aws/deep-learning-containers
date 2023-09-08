@@ -131,7 +131,7 @@ RUN ${PIP} install --no-cache-dir -U \
     click \
     "cryptography" \
     "sagemaker>=2,<3" \
-    "sagemaker-pytorch-training<3" \
+    "sagemaker-pytorch-training" \
     psutil==5.6.7 \
     dataset \
     transformers \
@@ -165,7 +165,7 @@ RUN pip install --no-cache-dir -U \
     "seaborn>=0.12,<1" \
     "numba>=0.56.4,<0.57" \
     "shap>=0.41,<1" \
-    "numpy>=1.20,<=1.25.2"
+    "numpy>=1.20,<=1.21.6"
 
 # EFA Installer does apt get. Make sure to run apt update before that
 RUN apt-get update
