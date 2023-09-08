@@ -6616,5 +6616,35 @@
             "status": "ACTIVE",
             "title": "CVE-2020-15266 - tensorflow"
         }
+    ],
+    "grpcio": [
+        {
+            "description": "gRPC contains a vulnerability that allows hpack table accounting errors could lead to unwanted disconnects between clients and servers in exceptional cases/\u00a0Three vectors were found that allow the following DOS attacks:\n\n- Unbounded memory buffering in the HPACK parser\n- Unbounded CPU consumption in the HPACK parser\n\nThe unbounded CPU consumption is down to a copy that occurred per-input-block in the parser, and because that could be unbounded due to the memory copy bug we end up with an O(n^2) parsing loop, with n selected by the client.\n\nThe unbounded memory buffering bugs:\n\n- The header size limit check was behind the string reading code, so we needed to first buffer up to a 4 gigabyte string before rejecting it as longer than 8 or 16kb.\n- HPACK varints have an encoding quirk whereby an infinite number of 0\u2019s can be added at the start of an integer. gRPC\u2019s hpack parser needed to read all of them before concluding a parse.\n- gRPC\u2019s metadata overflow check was performed per frame, so that the following seque",
+            "vulnerability_id": "CVE-2023-33953",
+            "name": "CVE-2023-33953",
+            "package_name": "grpcio",
+            "package_details": {
+                "file_path": "usr/local/lib/python3.10/site-packages/grpcio-1.56.0.dist-info/METADATA",
+                "name": "grpcio",
+                "package_manager": "PYTHONPKG",
+                "version": "1.56.0",
+                "release": null
+            },
+            "remediation": {
+                "recommendation": {
+                    "text": "None Provided"
+                }
+            },
+            "cvss_v3_score": 7.5,
+            "cvss_v30_score": 0,
+            "cvss_v31_score": 7.5,
+            "cvss_v2_score": 0,
+            "cvss_v3_severity": "HIGH",
+            "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2023-33953",
+            "source": "NVD",
+            "severity": "HIGH",
+            "status": "ACTIVE",
+            "title": "CVE-2023-33953 - grpcio"
+        }
     ]
 }
