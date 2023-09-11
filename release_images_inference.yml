@@ -116,3 +116,16 @@ release_images:
       example: False
       disable_sm_tag: False
       force_release: False
+  10:
+    framework: "huggingface_pytorch_tgi"
+    version: "2.0.1"
+    arch_type: "x86"
+    hf_tgi: "1.0.3"
+    inference:
+      device_types: [ "gpu" ]
+      python_versions: [ "py39" ]
+      os_version: "ubuntu20.04"
+      cuda_version: "cu118"
+      example: False
+      disable_sm_tag: True
+      force_release: False
