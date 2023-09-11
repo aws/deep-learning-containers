@@ -99,7 +99,7 @@ def test_utility_packages_using_import(training):
             ctx,
             f"import {package}; print({package}.__version__)",
             executable="python",
-        ).stdout.strip()
+        ).stdout.strip().strip().split()[-1]
         if package == "sagemaker":
             assert Version(version) > Version(
                 "2"

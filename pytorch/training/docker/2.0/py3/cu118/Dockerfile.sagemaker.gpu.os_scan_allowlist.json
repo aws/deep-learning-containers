@@ -24,5 +24,36 @@
       "status": "ACTIVE",
       "title": "CVE-2020-11979 - org.apache.ant:ant"
     }
-  ]
+  ],
+   "torch":[
+      {
+         "reason_to_ignore": "Latest version of DLC/package is 2.0.1 itself.",
+         "description":"## Overview\n[torch](https://pypi.org/project/torch) is a Tensors and Dynamic neural networks in Python with strong GPU acceleration\n\nAffected versions of this package are vulnerable to Arbitrary Code Injection through `filter-test-configs` in the `pull_request_target-triggered` workflow, allowing an attacker to use a malicious branch name to gain command execution and potentially leak secrets.\r\n\r\n**Mitigation:**\r\n\r\nUse an intermediate environment variable for potentially attacker-controlled values such as `github.event.workflow_run.head_branch`:\r\n\r\n```\r\n- name: Select all requested test configurations\r\n  shell: bash\r\n  env:\r\n    GITHUB_TOKEN: ${{ inputs.github-token }}\r\n    JOB_NAME: ${{ steps.get-job-name.outputs.job-name }}\r\n    HEAD_BRANCH: ${{ github.event.workflow_run.head_branch }}\r\n  id: filter\r\n  run: |\r\n    ...\r\n    python3 \"${GITHUB_ACTION_PATH}/../../scripts/filter_test_configs.py\" \\\r\n      ...\r\n      --branch \"$HEAD_BRANCH\"\r\n```\n## Remediation\nThere is no fixed version for `torch`.\n## References\n-",
+         "vulnerability_id":"SNYK-PYTHON-TORCH-5876728",
+         "name":"SNYK-PYTHON-TORCH-5876728",
+         "package_name":"torch",
+         "package_details":{
+            "file_path":"opt/conda/lib/python3.10/site-packages/torch-2.0.1-py3.10.egg-info/PKG-INFO",
+            "name":"torch",
+            "package_manager":"PYTHONPKG",
+            "version":"2.0.1",
+            "release":null
+         },
+         "remediation":{
+            "recommendation":{
+               "text":"None Provided"
+            }
+         },
+         "cvss_v3_score":9.8,
+         "cvss_v30_score":0.0,
+         "cvss_v31_score":9.8,
+         "cvss_v2_score":0.0,
+         "cvss_v3_severity":"CRITICAL",
+         "source_url":"https://security.snyk.io/vuln/SNYK-PYTHON-TORCH-5876728",
+         "source":"SNYK",
+         "severity":"CRITICAL",
+         "status":"ACTIVE",
+         "title":"IN1-PYTHON-TORCH-5876728 - torch"
+      }
+   ]
 }
