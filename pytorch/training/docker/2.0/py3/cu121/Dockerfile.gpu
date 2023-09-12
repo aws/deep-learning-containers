@@ -93,6 +93,8 @@ RUN apt-get update \
     check \
     libsubunit0 \
     libsubunit-dev \
+    # ninja is needed for apex to speed up the build
+    ninja-build \
  && rm -rf /var/lib/apt/lists/* \
  && apt-get clean
 
@@ -217,7 +219,14 @@ WORKDIR /
 
 # Install ec2 PyTorch
 RUN /opt/conda/bin/mamba install -y python=${PYTHON_SHORT_VERSION} pytorch=${PYTORCH_VERSION_EC2} \
-  pytorch-cuda=12.1 cuda-toolkit=12.1 cuda-nvcc=12.1.* torchvision torchaudio torchtext aws-ofi-nccl-dlc=1.7.1 \
+  pytorch-cuda=12.1 cuda-nvcc=12.1.* torchvision torchaudio torchtext aws-ofi-nccl-dlc=1.7.1 \
+  --override-channels \
+  -c ${CONDA_CHANNEL} \
+  -c nvidia \
+  -c conda-forge
+
+RUN /opt/conda/bin/mamba install -y python=${PYTHON_SHORT_VERSION} pytorch=${PYTORCH_VERSION_EC2} \
+  cuda-libraries-dev=12.1 cuda-libraries-static=12.1 cuda-compiler=12.1 \
   --override-channels \
   -c ${CONDA_CHANNEL} \
   -c nvidia \
@@ -275,6 +284,8 @@ RUN HOME_DIR=/root \
  && ${HOME_DIR}/oss_compliance/generate_oss_compliance.sh ${HOME_DIR} ${PYTHON} \
  && rm -rf ${HOME_DIR}/oss_compliance* \
  && rm -rf /tmp/tmp*
+
+RUN /opt/conda/bin/mamba clean --all -y
 
 # Removing the cache as it is needed for security verification
 RUN rm -rf /root/.cache | true
