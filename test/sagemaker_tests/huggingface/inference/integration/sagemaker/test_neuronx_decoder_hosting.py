@@ -13,27 +13,24 @@
 from __future__ import absolute_import
 
 import os
-
 import pytest
 import sagemaker
 import boto3
 from test.test_utils import (
-    ecr as ecr_utils,
     get_framework_and_version_from_tag,
-    get_repository_and_tag_from_image_uri,
     get_sha_of_an_image_from_ecr,
 )
 from sagemaker.huggingface import HuggingFaceModel
 
 
-from ...integration import (
+from .. import (
     model_dir,
-    pt_neuronx_model,
+    pt_model,
     script_dir,
-    pt_neuronx_script,
+    pt_neuronx_decoder_script,
     dump_logs_from_cloudwatch,
 )
-from ...integration.sagemaker.timeout import timeout_and_delete_endpoint
+from .timeout import timeout_and_delete_endpoint
 from ..... import invoke_sm_endpoint_helper_function
 
 
@@ -41,7 +38,7 @@ from ..... import invoke_sm_endpoint_helper_function
 # instances in the regions corresponding to their availability.
 # In future, we would like to configure the logic to run multiple `pytest` commands that can allow
 # us to test multiple instances in multiple regions for each image.
-@pytest.mark.model("tiny-distilbert")
+@pytest.mark.model("tiny-gpt2")
 @pytest.mark.processor("neuronx")
 @pytest.mark.parametrize(
     "test_region,test_instance_type",
@@ -110,19 +107,21 @@ def _test_pt_neuronx(
     **kwargs,
 ):
     endpoint_name_prefix = _get_endpoint_prefix_name(
-        custom_prefix="sm-hf-neuronx-serving",
+        custom_prefix="sm-hf-neuronx-decoder-serving",
         region_name=sagemaker_session.boto_region_name,
         image_uri=image_uri,
     )
     endpoint_name = sagemaker.utils.unique_name_from_base(endpoint_name_prefix)
 
+    # dummy pytorch model, not used for the test
     model_data = sagemaker_session.upload_data(
         path=model_dir,
-        key_prefix="sagemaker-huggingface-neuronx-serving/models",
+        key_prefix="sagemaker-huggingface-neuronx-decoder-serving/models",
     )
+    model_file = pt_model
 
-    model_file = pt_neuronx_model
-    entry_point = pt_neuronx_script
+    # test script using `optimum-neuron`
+    entry_point = pt_neuronx_decoder_script
 
     hf_model = HuggingFaceModel(
         model_data=f"{model_data}/{model_file}",
@@ -144,9 +143,7 @@ def _test_pt_neuronx(
             endpoint_name=endpoint_name,
         )
 
-        data = {
-            "inputs": "Camera - You are awarded a SiPix Digital Camera! call 09061221066 fromm landline. Delivery within 28 days."
-        }
+        data = {"inputs": "I really wish "}
         output = predictor.predict(data)
 
-        assert "score" in output[0]
+        assert "generated_text" in output
