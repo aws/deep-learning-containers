@@ -27,7 +27,7 @@ context:
       target: deep_learning_container.py
 
 images:
-  BuildNeuronHFPytorchPy38TrainingDockerImage:
+  BuildNeuronHFPytorchPy310TrainingDockerImage:
     <<: *TRAINING_REPOSITORY
     build: &HUGGINGFACE_PYTORCH_INF_TRAINING_PY3 false
     image_size_baseline: 14000
