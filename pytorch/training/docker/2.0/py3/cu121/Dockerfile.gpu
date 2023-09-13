@@ -231,16 +231,19 @@ RUN /opt/conda/bin/mamba install -y python=${PYTHON_SHORT_VERSION} pytorch=${PYT
   --override-channels \
   -c ${CONDA_CHANNEL} \
   -c nvidia \
-  -c conda-forge
+  -c conda-forge \
+  && /opt/conda/bin/mamba clean -afy
 
 # CUDA libraries should be installed after pytorch installation command to reduce memory size of single layer.
-# If single layer is huge in size (like 17 GB), then ECR pull can timeout on smaller EC2 instances like P3.2x
+# If single layer is huge in size (like 17 GB), then ECR pull can timeout on smaller EC2 instances like P3.2x.
+# Have added python and pytorch again in below command to make sure pytorch version wont be changed.
 RUN /opt/conda/bin/mamba install -y python=${PYTHON_SHORT_VERSION} pytorch=${PYTORCH_VERSION_EC2} \
   cuda-libraries-dev=12.1 cuda-libraries-static=12.1 cuda-compiler=12.1 \
   --override-channels \
   -c ${CONDA_CHANNEL} \
   -c nvidia \
-  -c conda-forge
+  -c conda-forge \
+  && /opt/conda/bin/mamba clean -afy
 
 # Install NCCL
 RUN cd /tmp \
@@ -259,7 +262,8 @@ RUN /opt/conda/bin/mamba install -y -c conda-forge \
   && pip install torchtnt \
 # explicitly install triton build-time dependencies, which won't get installed by conda for some reason
   cmake \
-  lit
+  lit \
+  && /opt/conda/bin/mamba clean -afy
 
 # Patches
 RUN pip install "pillow>=9.5" opencv-python
@@ -294,8 +298,6 @@ RUN HOME_DIR=/root \
  && ${HOME_DIR}/oss_compliance/generate_oss_compliance.sh ${HOME_DIR} ${PYTHON} \
  && rm -rf ${HOME_DIR}/oss_compliance* \
  && rm -rf /tmp/tmp*
-
-RUN /opt/conda/bin/mamba clean --all -y
 
 # Removing the cache as it is needed for security verification
 RUN rm -rf /root/.cache | true
