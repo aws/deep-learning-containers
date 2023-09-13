@@ -8,11 +8,15 @@ from test.test_utils import (
     LOGGER,
     get_account_id_from_image_uri,
     get_region_from_image_uri,
+    get_framework_and_version_from_tag,
     is_pr_context,
     is_efa_dedicated,
     login_to_ecr_registry,
     run_cmd_on_container,
 )
+from packaging.version import Version
+from packaging.specifiers import SpecifierSet
+
 from test.test_utils.ec2 import get_efa_ec2_instance_type, filter_efa_instance_type
 
 BUILD_ALL_REDUCE_PERF_CMD = os.path.join(CONTAINER_TESTS_PREFIX, "efa", "build_all_reduce_perf.sh")
@@ -42,7 +46,7 @@ EC2_EFA_GPU_INSTANCE_TYPE_AND_REGION = get_efa_ec2_instance_type(
     is_pr_context() and not is_efa_dedicated(),
     reason="Skip EFA test in PR context unless explicitly enabled",
 )
-def test_efa_pytorch(
+def test_pytorch_efa(
     pytorch_training, efa_ec2_instances, efa_ec2_connections, ec2_instance_type, region, gpu_only
 ):
     """
@@ -65,6 +69,7 @@ def test_efa_pytorch(
     )
     master_connection = efa_ec2_connections[0]
     run_cmd_on_container(MASTER_CONTAINER_NAME, master_connection, EFA_SANITY_TEST_CMD, hide=False)
+
     run_cmd_on_container(
         MASTER_CONTAINER_NAME,
         master_connection,

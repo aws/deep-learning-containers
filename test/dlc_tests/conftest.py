@@ -22,16 +22,19 @@ from test import test_utils
 from test.test_utils import (
     is_benchmark_dev_context,
     get_framework_and_version_from_tag,
+    get_cuda_version_from_tag,
     get_job_type_from_image,
     is_tf_version,
+    is_above_framework_version,
     is_below_framework_version,
+    is_equal_to_framework_version,
     is_ec2_image,
     is_sagemaker_image,
     is_nightly_context,
     DEFAULT_REGION,
     P3DN_REGION,
-    UBUNTU_18_BASE_DLAMI_US_EAST_1,
-    UBUNTU_18_BASE_DLAMI_US_WEST_2,
+    UBUNTU_20_BASE_DLAMI_US_EAST_1,
+    UBUNTU_20_BASE_DLAMI_US_WEST_2,
     PT_GPU_PY3_BENCHMARK_IMAGENET_AMI_US_EAST_1,
     AML2_BASE_DLAMI_US_WEST_2,
     AML2_BASE_DLAMI_US_EAST_1,
@@ -322,9 +325,9 @@ def ec2_instance_ami(request, region):
     return (
         request.param
         if hasattr(request, "param")
-        else UBUNTU_18_BASE_DLAMI_US_EAST_1
+        else UBUNTU_20_BASE_DLAMI_US_EAST_1
         if region == "us-east-1"
-        else UBUNTU_18_BASE_DLAMI_US_WEST_2
+        else UBUNTU_20_BASE_DLAMI_US_WEST_2
     )
 
 
@@ -545,7 +548,7 @@ def ec2_instance(
             ec2_instance_ami = (
                 AML2_BASE_DLAMI_US_EAST_1
                 if ec2_instance_ami == AML2_BASE_DLAMI_US_WEST_2
-                else UBUNTU_18_BASE_DLAMI_US_EAST_1
+                else UBUNTU_20_BASE_DLAMI_US_EAST_1
             )
 
     ec2_key_name = f"{ec2_key_name}-{str(uuid.uuid4())}"
@@ -664,34 +667,19 @@ def ec2_instance(
             }
         ]
 
+    availability_zone_options = None
     if ei_accelerator_type:
         params["ElasticInferenceAccelerators"] = [{"Type": ei_accelerator_type, "Count": 1}]
         availability_zones = {
             "us-west-2": ["us-west-2a", "us-west-2b", "us-west-2c"],
             "us-east-1": ["us-east-1a", "us-east-1b", "us-east-1c"],
         }
-        for a_zone in availability_zones[region]:
-            params["Placement"] = {"AvailabilityZone": a_zone}
-            try:
-                instances = ec2_resource.create_instances(**params)
-                if instances:
-                    break
-            except ClientError as e:
-                LOGGER.error(f"Failed to launch in {a_zone} due to {e}")
-                continue
-    else:
-        try:
-            instances = ec2_resource.create_instances(**params)
-        except ClientError as e:
-            if e.response["Error"]["Code"] == "InsufficientInstanceCapacity":
-                LOGGER.warning(
-                    f"Failed to launch {ec2_instance_type} in {region} because of insufficient capacity"
-                )
-                if ec2_instance_type in ec2_utils.ICE_SKIP_INSTANCE_LIST:
-                    pytest.skip(
-                        f"Skipping test because {ec2_instance_type} instance could not be launched."
-                    )
-            raise
+        availability_zone_options = availability_zones[region]
+    instances = ec2_utils.launch_instances_with_retry(
+        ec2_resource=ec2_resource,
+        availability_zone_options=availability_zone_options,
+        ec2_create_instances_definition=params,
+    )
     instance_id = instances[0].id
 
     # Define finalizer to terminate instance after this fixture completes
@@ -867,6 +855,25 @@ def skip_inductor_test(request):
             )
 
 
+@pytest.fixture(autouse=True)
+def skip_dgl_test(request):
+    if "training" in request.fixturenames:
+        img_uri = request.getfixturevalue("training")
+    elif "pytorch_training" in request.fixturenames:
+        img_uri = request.getfixturevalue("pytorch_training")
+    else:
+        return
+    _, image_framework_version = get_framework_and_version_from_tag(img_uri)
+    image_cuda_version = get_cuda_version_from_tag(img_uri)
+    if request.node.get_closest_marker("skip_dgl_test"):
+        if Version(image_framework_version) in SpecifierSet(">=2.0") and Version(
+            image_cuda_version.strip("cu")
+        ) >= Version("121"):
+            pytest.skip(
+                f"DGL doesn't support cuda12.x for now, so skipping this container with tag {image_framework_version}"
+            )
+
+
 @pytest.fixture(scope="session")
 def dlc_images(request):
     return request.config.getoption("--images")
@@ -989,12 +996,37 @@ def mx18_and_above_only():
 
 
 @pytest.fixture(scope="session")
+def skip_pt200():
+    pass
+
+
+@pytest.fixture(scope="session")
+def pt200_and_below_only():
+    pass
+
+
+@pytest.fixture(scope="session")
 def pt113_and_above_only():
     pass
 
 
 @pytest.fixture(scope="session")
+def below_pt113_only():
+    pass
+
+
+@pytest.fixture(scope="session")
 def pt111_and_above_only():
+    pass
+
+
+@pytest.fixture(scope="session")
+def skip_pt110():
+    pass
+
+
+@pytest.fixture(scope="session")
+def pt18_and_above_only():
     pass
 
 
@@ -1098,13 +1130,33 @@ def framework_version_within_limit(metafunc_obj, image):
         if mx18_requirement_failed:
             return False
     if image_framework_name in ("pytorch", "huggingface_pytorch_trcomp", "pytorch_trcomp"):
+        pt20_and_below_requirement_failed = (
+            "pt200_and_below_only" in metafunc_obj.fixturenames
+            and is_above_framework_version("2.0.0", image, image_framework_name)
+        )
+        not_pt200_requirement_failed = (
+            "skip_pt200" in metafunc_obj.fixturenames
+            and is_equal_to_framework_version("2.0.0", image, image_framework_name)
+        )
         pt113_requirement_failed = (
             "pt113_and_above_only" in metafunc_obj.fixturenames
             and is_below_framework_version("1.13", image, image_framework_name)
         )
+        below_pt113_requirement_failed = (
+            "below_pt113_only" in metafunc_obj.fixturenames
+            and not is_below_framework_version("1.13", image, image_framework_name)
+        )
         pt111_requirement_failed = (
             "pt111_and_above_only" in metafunc_obj.fixturenames
             and is_below_framework_version("1.11", image, image_framework_name)
+        )
+        not_pt110_requirement_failed = (
+            "skip_pt110" in metafunc_obj.fixturenames
+            and is_equal_to_framework_version("1.10.*", image, image_framework_name)
+        )
+        pt18_requirement_failed = (
+            "pt18_and_above_only" in metafunc_obj.fixturenames
+            and is_below_framework_version("1.8", image, image_framework_name)
         )
         pt17_requirement_failed = (
             "pt17_and_above_only" in metafunc_obj.fixturenames
@@ -1123,8 +1175,13 @@ def framework_version_within_limit(metafunc_obj, image):
             and is_below_framework_version("1.4", image, image_framework_name)
         )
         if (
-            pt113_requirement_failed
+            pt20_and_below_requirement_failed
+            or not_pt200_requirement_failed
+            or pt113_requirement_failed
+            or below_pt113_requirement_failed
             or pt111_requirement_failed
+            or not_pt110_requirement_failed
+            or pt18_requirement_failed
             or pt17_requirement_failed
             or pt16_requirement_failed
             or pt15_requirement_failed
