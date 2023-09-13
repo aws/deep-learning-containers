@@ -8,10 +8,10 @@ print("running neuronx decoder test...")
 def model_fn(model_dir):
     model_id = "hf-internal-testing/tiny-random-gpt2"
     tokenizer = AutoTokenizer.from_pretrained(model_id)
-    model = model = NeuronModelForCausalLM.from_pretrained(
+    model = NeuronModelForCausalLM.from_pretrained(
         model_id=model_id,
         export=True,
-        batch_size=2,
+        batch_size=1,
     )
     tokenizer.pad_token_id = tokenizer.eos_token_id
 

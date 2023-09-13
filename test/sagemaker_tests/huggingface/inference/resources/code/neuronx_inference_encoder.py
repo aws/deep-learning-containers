@@ -9,7 +9,7 @@ def model_fn(model_dir):
     tokenizer = AutoTokenizer.from_pretrained(model_id)
     input_shapes = {"batch_size": 1, "sequence_length": 64}
     compiler_args = {"auto_cast": "matmul", "auto_cast_type": "bf16"}
-    model = model = NeuronModelForSequenceClassification.from_pretrained(
+    model = NeuronModelForSequenceClassification.from_pretrained(
         model_id=model_id,
         export=True,
         **compiler_args,
