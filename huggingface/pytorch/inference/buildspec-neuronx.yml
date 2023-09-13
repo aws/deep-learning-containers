@@ -27,7 +27,7 @@ context:
       target: config.properties
 
 images:
-  BuildNeuronXHFPytorchPy310InfDockerImage:
+  BuildNeuronXHFPytorchPy310InferencefDockerImage:
     <<: *INFERENCE_REPOSITORY
     build: &HUGGINGFACE_PYTORCH_CPU_INFERENCE_PY3 false
     image_size_baseline: 20000

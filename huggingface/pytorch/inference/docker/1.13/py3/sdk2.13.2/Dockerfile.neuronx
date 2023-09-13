@@ -16,6 +16,7 @@ ARG NEURONX_TOOLS_VERSION=2.13.*
 ARG NEURONX_FRAMEWORK_VERSION=1.13.1.1.10.*
 ARG NEURONX_TRANSFORMERS_VERSION=0.6.106
 ARG NEURONX_CC_VERSION=2.9.*
+ARG NEURONX_DIST_VERSION=0.3.0
 
 # HF ARGS
 ARG TRANSFORMERS_VERSION
@@ -124,6 +125,7 @@ RUN pip install --no-cache-dir -U \
 # Install Neuronx-cc and PyTorch
 RUN pip install --extra-index-url https://pip.repos.neuron.amazonaws.com \
     neuronx-cc==$NEURONX_CC_VERSION \
+    neuronx_distributed==$NEURONX_DIST_VERSION \
     torch-neuronx==$NEURONX_FRAMEWORK_VERSION \
     transformers-neuronx==$NEURONX_TRANSFORMERS_VERSION \
  && pip install "protobuf<4" \
