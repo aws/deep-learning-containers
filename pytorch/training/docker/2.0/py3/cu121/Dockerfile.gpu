@@ -3,8 +3,14 @@ ARG PYTHON_VERSION=3.10.8
 ARG PYTHON_SHORT_VERSION=3.10
 ARG MAMBA_VERSION=23.3.1-0
 ARG PYTORCH_VERSION_EC2=2.0.1
-ARG PYTORCH_VERSION_SM=2.0.1
 ARG CONDA_CHANNEL=https://aws-ml-conda-ec2.s3.us-west-2.amazonaws.com
+
+# SMD binaries
+ARG SMD_DATA_PARALLEL_URL=TO_BE_ADDED
+ARG SMD_MODEL_PARALLEL_URL=TO_BE_ADDED
+
+# ZeRO-2D Binary
+ARG ZERO_2D_URL=TO_BE_ADDED
 
 FROM nvidia/cuda:12.1.0-base-ubuntu20.04 AS base_image
 
@@ -58,6 +64,9 @@ ENV DGLBACKEND=pytorch
 ENV MANUAL_BUILD=0
 ENV RDMAV_FORK_SAFE=1
 ENV DLC_CONTAINER_TYPE=training
+
+#Set NCCL_ASYNC_ERROR_HANDLING=1 for PyTorch to timeout on NCCL errors https://github.com/pytorch/elastic/issues/136
+ENV NCCL_ASYNC_ERROR_HANDLING=1
 
 RUN apt-get update \
  # TODO: Remove systemd upgrade once it is updated in base image
@@ -192,6 +201,61 @@ RUN rm -rf /root/.ssh/ && \
 
 RUN mkdir -p /etc/pki/tls/certs && cp /etc/ssl/certs/ca-certificates.crt /etc/pki/tls/certs/ca-bundle.crt
 
+# Install ec2 PyTorch
+RUN /opt/conda/bin/mamba install -y python=${PYTHON_SHORT_VERSION} pytorch=${PYTORCH_VERSION_EC2} \
+  pytorch-cuda=12.1 cuda-nvcc=12.1.* torchvision torchaudio torchtext aws-ofi-nccl-dlc=1.7.2 \
+  --override-channels \
+  -c ${CONDA_CHANNEL} \
+  -c nvidia \
+  -c conda-forge \
+  && /opt/conda/bin/mamba clean -afy
+
+# CUDA libraries should be installed after pytorch installation command to reduce memory size of single layer.
+# If single layer is huge in size (like 17 GB), then ECR pull can timeout on smaller EC2 instances like P3.2x.
+# Have added python and pytorch again in below command to make sure pytorch version wont be changed.
+RUN /opt/conda/bin/mamba install -y python=${PYTHON_SHORT_VERSION} pytorch=${PYTORCH_VERSION_EC2} \
+  cuda-libraries-dev=12.1 cuda-libraries-static=12.1 cuda-compiler=12.1 \
+  --override-channels \
+  -c ${CONDA_CHANNEL} \
+  -c nvidia \
+  -c conda-forge \
+  && /opt/conda/bin/mamba clean -afy
+
+# Install NCCL
+RUN cd /tmp \
+ && git clone https://github.com/NVIDIA/nccl.git -b v${NCCL_VERSION}-1 \
+ && cd nccl \
+ && make -j64 src.build BUILDDIR=/usr/local CUDA_LIB=${CUDA_HOME}/lib \
+ && rm -rf /tmp/nccl
+
+# install PyTorch related python packages (depends on PyTorch)
+RUN /opt/conda/bin/mamba install -y -c conda-forge \
+  # needed by fastai.distributed
+  accelerate \
+  && /opt/conda/bin/mamba install -y -c fastai fastai \
+  # fastai conda strictly depends on dataclasses
+  && pip uninstall -y dataclasses \
+  && pip install torchtnt \
+# explicitly install triton build-time dependencies, which won't get installed by conda for some reason
+  cmake \
+  lit \
+  && /opt/conda/bin/mamba clean -afy
+
+# Patches
+RUN pip install "pillow>=9.5" opencv-python
+RUN /opt/conda/bin/mamba install -y -c conda-forge \
+  "requests>=2.31.0"
+
+# Install GDRCopy needed for EC2 and also a dependency of SM Distributed DataParallel binary
+# The test binaries requires cuda driver library which could be found in conda
+# So update the linker path to point to it to avoid -Lcuda not found
+RUN cd /tmp \
+ && git clone https://github.com/NVIDIA/gdrcopy.git -b v${GDRCOPY_VERSION} \
+ && cd gdrcopy \
+ && sed -ie '12s@$@ -L $(CUDA)/lib/stubs@' tests/Makefile \
+ && CUDA=${CUDA_HOME} make install \
+ && rm -rf /tmp/gdrcopy
+
 RUN curl -o /license.txt https://aws-dlc-licenses.s3.amazonaws.com/pytorch-2.0/license.txt
 
 # Removing the cache as it is needed for security verification
@@ -221,50 +285,9 @@ ARG PYTORCH_VERSION_EC2
 ARG CONDA_CHANNEL
 ARG CUDA_HOME
 ARG TORCH_CUDA_ARCH_LIST
+ARG NCCL_ASYNC_ERROR_HANDLING
 
 WORKDIR /
-
-# Install ec2 PyTorch
-RUN /opt/conda/bin/mamba install -y python=${PYTHON_SHORT_VERSION} pytorch=${PYTORCH_VERSION_EC2} \
-  pytorch-cuda=12.1 cuda-toolkit=12.1 cuda-nvcc=12.1.* torchvision torchaudio torchtext aws-ofi-nccl-dlc=1.7.1 \
-  --override-channels \
-  -c ${CONDA_CHANNEL} \
-  -c nvidia \
-  -c conda-forge
-
-# Install NCCL
-RUN cd /tmp \
- && git clone https://github.com/NVIDIA/nccl.git -b v${NCCL_VERSION}-1 \
- && cd nccl \
- && make -j64 src.build BUILDDIR=/usr/local CUDA_LIB=${CUDA_HOME}/lib \
- && rm -rf /tmp/nccl
-
-# install PyTorch related python packages (depends on PyTorch)
-RUN /opt/conda/bin/mamba install -y -c conda-forge \
-  # needed by fastai.distributed
-  accelerate \
-  && /opt/conda/bin/mamba install -y -c fastai fastai \
-  # fastai conda strictly depends on dataclasses
-  && pip uninstall -y dataclasses \
-  && pip install torchtnt \
-# explicitly install triton build-time dependencies, which won't get installed by conda for some reason
-  cmake \
-  lit
-
-# Patches
-RUN pip install "pillow>=9.5" opencv-python
-RUN /opt/conda/bin/mamba install -y -c conda-forge \
-  "requests>=2.31.0"
-
-# Install GDRCopy which is a dependency of SM Distributed DataParallel binary
-# The test binaries requires cuda driver library which could be found in conda
-# So update the linker path to point to it to avoid -Lcuda not found
-RUN cd /tmp \
- && git clone https://github.com/NVIDIA/gdrcopy.git -b v${GDRCOPY_VERSION} \
- && cd gdrcopy \
- && sed -ie '12s@$@ -L $(CUDA)/lib/stubs@' tests/Makefile \
- && CUDA=${CUDA_HOME} make install \
- && rm -rf /tmp/gdrcopy
 
 # Install Nvidia Apex (needs pytorch)
 RUN pip install packaging \
@@ -290,6 +313,7 @@ RUN rm -rf /root/.cache | true
 
 # Starts framework
 CMD ["/bin/bash"]
+
 
 #################################################################
 #  ____                   __  __       _
@@ -318,6 +342,8 @@ ARG PYTHON_SHORT_VERSION
 ARG SMD_DATA_PARALLEL_URL
 ARG SMD_MODEL_PARALLEL_URL
 ARG RMM_VERSION=0.15.0
+# ZeRO-2D Binary
+ARG ZERO_2D_URL
 
 ARG PYTORCH_VERSION_SM
 ARG CONDA_CHANNEL
@@ -325,48 +351,6 @@ ARG CUDA_HOME
 ARG TORCH_CUDA_ARCH_LIST
 
 WORKDIR /
-
-# Install ec2 PyTorch
-RUN /opt/conda/bin/mamba install -y python=${PYTHON_SHORT_VERSION} pytorch=${PYTORCH_VERSION_SM} \
-  pytorch-cuda=12.1 cuda-toolkit=12.1 cuda-nvcc=12.1.* torchvision torchaudio torchtext aws-ofi-nccl-dlc=1.7.1 \
-  --override-channels \
-  -c ${CONDA_CHANNEL} \
-  -c nvidia \
-  -c conda-forge
-
-# Install NCCL
-RUN cd /tmp \
- && git clone https://github.com/NVIDIA/nccl.git -b v${NCCL_VERSION}-1 \
- && cd nccl \
- && make -j64 src.build BUILDDIR=/usr/local CUDA_LIB=${CUDA_HOME}/lib \
- && rm -rf /tmp/nccl
-
-# install PyTorch related python packages (depends on PyTorch)
-RUN /opt/conda/bin/mamba install -y -c conda-forge \
-  # needed by fastai.distributed
-  accelerate \
-  && /opt/conda/bin/mamba install -y -c fastai fastai \
-  # fastai conda strictly depends on dataclasses
-  && pip uninstall -y dataclasses \
-  && pip install torchtnt \
-# explicitly install triton build-time dependencies, which won't get installed by conda for some reason
-  cmake \
-  lit
-
-# Patches
-RUN pip install "pillow>=9.5" opencv-python
-RUN /opt/conda/bin/mamba install -y -c conda-forge \
-  "requests>=2.31.0"
-
-# Install GDRCopy which is a dependency of SM Distributed DataParallel binary
-# The test binaries requires cuda driver library which could be found in conda
-# So update the linker path to point to it to avoid -Lcuda not found
-RUN cd /tmp \
- && git clone https://github.com/NVIDIA/gdrcopy.git -b v${GDRCOPY_VERSION} \
- && cd gdrcopy \
- && sed -ie '12s@$@ -L $(CUDA)/lib/stubs@' tests/Makefile \
- && CUDA=${CUDA_HOME} make install \
- && rm -rf /tmp/gdrcopy
 
 # Install Nvidia Apex (needs pytorch)
 ## Pin apex commit requested by sm-model-parallel team
@@ -470,6 +454,17 @@ RUN  wget -nv https://github.com/rapidsai/rmm/archive/v${RMM_VERSION}.tar.gz \
  && cd .. \
  && rm -rf v${RMM_VERSION}.tar* \
  && rm -rf rmm-${RMM_VERSION}
+
+# # Install ZeRO-2D Binary
+# RUN pip install --no-cache-dir -U ${ZERO_2D_URL}
+
+# # Install SM Distributed Modelparallel binary
+# RUN pip install --no-cache-dir -U ${SMD_MODEL_PARALLEL_URL}
+
+# # Install SM Distributed DataParallel binary
+# RUN SMDATAPARALLEL_PT=1 pip install --no-cache-dir ${SMD_DATA_PARALLEL_URL}
+
+# ENV LD_LIBRARY_PATH="/opt/conda/lib/python${PYTHON_SHORT_VERSION}/site-packages/smdistributed/dataparallel/lib:$LD_LIBRARY_PATH"
 
  WORKDIR /
 
