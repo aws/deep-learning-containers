@@ -20,6 +20,7 @@ ARG NEURONX_DIST_VERSION=0.3.0
 
 # HF ARGS
 ARG TRANSFORMERS_VERSION
+ARG DIFFUSERS_VERSION=0.20.2
 ARG OPTIMUM_NEURON_VERSION=0.0.11
 
 # See http://bugs.python.org/issue19846
@@ -161,7 +162,8 @@ RUN curl https://aws-dlc-licenses.s3.amazonaws.com/pytorch-1.13/license.txt -o /
 # install Hugging Face libraries and its dependencies
 RUN pip install --no-cache-dir \
 	transformers[sklearn,sentencepiece,audio,vision]==${TRANSFORMERS_VERSION} \
-    optimum-neuron[neuronx,diffusers]==${OPTIMUM_NEURON_VERSION} \
+    diffusers==${DIFFUSERS_VERSION} \
+    optimum-neuron[neuronx]==${OPTIMUM_NEURON_VERSION} \
 	"protobuf>=3.19.5,<=3.20.2" \
 	"sagemaker-huggingface-inference-toolkit<3"
 
