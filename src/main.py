@@ -36,6 +36,7 @@ def main():
     # create the empty json file for images
     build_context = os.getenv("BUILD_CONTEXT")
     ei_dedicated = os.getenv("EIA_DEDICATED", "false").lower() == "true"
+    intel_dedicated = os.getenv("INTEL_DEDICATED", "false").lower() == "true"
     neuron_dedicated = os.getenv("NEURON_DEDICATED", "false").lower() == "true"
     neuronx_dedicated = os.getenv("NEURONX_DEDICATED", "false").lower() == "true"
     graviton_dedicated = os.getenv("GRAVITON_DEDICATED", "false").lower() == "true"
@@ -51,6 +52,7 @@ def main():
     training_enabled = parse_dlc_developer_configs("build", "build_training")
     inference_enabled = parse_dlc_developer_configs("build", "build_inference")
     ei_build_mode = parse_dlc_developer_configs("dev", "ei_mode")
+    intel_build_mode = parse_dlc_developer_configs("dev", "intel_mode")
     neuron_build_mode = parse_dlc_developer_configs("dev", "neuron_mode")
     neuronx_build_mode = parse_dlc_developer_configs("dev", "neuronx_mode")
     graviton_build_mode = parse_dlc_developer_configs("dev", "graviton_mode")
@@ -79,6 +81,7 @@ def main():
     # A general will work if in non-EI, non-NEURON and non-GRAVITON mode and its framework not been disabled
     general_builder_enabled = (
         not ei_dedicated
+        and not intel_dedicated
         and not neuron_dedicated
         and not neuronx_dedicated
         and not graviton_dedicated
@@ -99,6 +102,15 @@ def main():
     ei_builder_enabled = (
         ei_dedicated
         and ei_build_mode
+        and args.framework in frameworks_to_build
+        and train_or_inf_enabled
+    )
+
+    # An INTEL dedicated builder will work if in INTEL mode and its framework has not been disabled
+    intel_builder_enabled = (
+        intel_dedicated
+        and intel_build_mode
+        and "cpu" in device_types
         and args.framework in frameworks_to_build
         and train_or_inf_enabled
     )
@@ -162,6 +174,7 @@ def main():
     if (
         general_builder_enabled
         or ei_builder_enabled
+        or intel_builder_enabled
         or neuron_builder_enabled
         or neuronx_builder_enabled
         or graviton_builder_enabled

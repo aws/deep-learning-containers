@@ -4,6 +4,9 @@ partner_developer = ""
 # Please only set it to true if you are preparing an EI related PR
 # Do remember to revert it back to false before merging any PR (including EI dedicated PR)
 ei_mode = false
+# Please only set it to true if you are preparing an INTEL related PR
+# Do remember to revert it back to false before merging any PR (including INTEL dedicated PR)
+intel_mode = false
 # Please only set it to true if you are preparing a NEURON related PR
 # Do remember to revert it back to false before merging any PR (including NEURON dedicated PR)
 neuron_mode = false
@@ -83,6 +86,7 @@ use_scheduler = false
 # For example:
 # dlc-pr-tensorflow-2-habana-training = "habana/tensorflow/training/buildspec-2-10.yml"
 # dlc-pr-pytorch-inference = "pytorch/inference/buildspec-1-12.yml"
+# dlc-pr-pytorch-intel-inference = "pytorch/inference/buildspec-intel.yml"
 # Setting the buildspec file path to "" allows the image builder to choose the default buildspec file.
 
 ### TRAINING PR JOBS ###
@@ -121,6 +125,9 @@ dlc-pr-mxnet-inference = ""
 dlc-pr-pytorch-inference = ""
 dlc-pr-tensorflow-2-inference = ""
 dlc-pr-autogluon-inference = ""
+
+# Intel Inference
+dlc-pr-pytorch-intel-inference = ""
 
 # Neuron Inference
 dlc-pr-mxnet-neuron-inference = ""

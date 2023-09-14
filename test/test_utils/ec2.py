@@ -173,8 +173,10 @@ def get_ec2_instance_type(
         instance_type = os.getenv(
             f"EC2_{processor.upper()}_{arch_type.upper()}{job_type_str}_INSTANCE_TYPE"
         )
-    if not instance_type:
+    if not instance_type and not default:
         return []
+    elif not instance_type and default:
+        return [default]
 
     instance_list = filter_function([instance_type] if instance_type else [])
     return instance_list
