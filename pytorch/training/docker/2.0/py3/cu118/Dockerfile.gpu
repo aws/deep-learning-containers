@@ -163,7 +163,9 @@ RUN /opt/conda/bin/mamba install -y -c conda-forge \
 
 # Below libraries are needed to build NCCL, APEX, OPENMPI, GDRCopy
 RUN /opt/conda/bin/mamba install -y \
-  cuda-runtime=11.8 cuda-nvcc=11.8.89 cuda-libraries=11.8 cuda-compiler=11.8 cuda-cudart=11.8.89 cuda-cudart-dev=11.8.89 cuda-libraries-dev=11.8 \
+  cudatoolkit=11.8 cuda-runtime=11.8 cuda-nvcc=11.8.89 cuda-libraries=11.8 \
+  cuda-compiler=11.8 cuda-cudart=11.8.89 cuda-cudart-dev=11.8.89 \
+  cuda-libraries-dev=11.8 \
   --override-channels \
   -c https://aws-ml-conda-ec2.s3.us-west-2.amazonaws.com \
   -c conda-forge \
