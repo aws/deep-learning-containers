@@ -104,7 +104,7 @@ def test_utility_packages_using_import(training):
                 executable="python",
             ).stdout
         ).group()
-        print(f"The SM Version is {version}")
+        test_utils.LOGGER.info(f"The Sagemaker Version is {version}")
         if package == "sagemaker":
             assert Version(version) > Version(
                 "2"
