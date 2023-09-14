@@ -1009,6 +1009,9 @@ def pt200_and_below_only():
 def pt113_and_above_only():
     pass
 
+@pytest.fixture(scope="session")
+def pt201_and_above_only():
+    pass
 
 @pytest.fixture(scope="session")
 def below_pt113_only():
@@ -1174,6 +1177,10 @@ def framework_version_within_limit(metafunc_obj, image):
             "pt14_and_above_only" in metafunc_obj.fixturenames
             and is_below_framework_version("1.4", image, image_framework_name)
         )
+        pt201_requirement_failed = (
+            "pt201_and_above_only" in metafunc_obj.fixturenames
+            and is_below_framework_version("2.0.1", image, image_framework_name)
+        )
         if (
             pt20_and_below_requirement_failed
             or not_pt200_requirement_failed
@@ -1186,6 +1193,7 @@ def framework_version_within_limit(metafunc_obj, image):
             or pt16_requirement_failed
             or pt15_requirement_failed
             or pt14_requirement_failed
+            or pt201_requirement_failed
         ):
             return False
     return True

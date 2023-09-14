@@ -17,6 +17,7 @@ NCCL_LOCAL_TEST_CMD = os.path.join(CONTAINER_TESTS_PREFIX, "healthcheck_tests", 
 
 @pytest.mark.usefixtures("sagemaker_only")
 @pytest.mark.usefixtures("gpu_only")
+@pytest.mark.usefixtures("pt201_and_above_only")
 @pytest.mark.model("N/A")
 @pytest.mark.integration("health_check")
 def test_health_check_dcgm(pytorch_training):
@@ -39,6 +40,7 @@ def test_health_check_dcgm(pytorch_training):
 
 @pytest.mark.usefixtures("sagemaker_only")
 @pytest.mark.usefixtures("gpu_only")
+@pytest.mark.usefixtures("pt201_and_above_only")
 @pytest.mark.model("N/A")
 @pytest.mark.integration("health_check")
 def test_health_check_local_nccl(pytorch_training):
@@ -61,6 +63,7 @@ def test_health_check_local_nccl(pytorch_training):
 
 @pytest.mark.usefixtures("sagemaker_only")
 @pytest.mark.usefixtures("gpu_only")
+@pytest.mark.usefixtures("pt201_and_above_only")
 @pytest.mark.model("N/A")
 @pytest.mark.integration("health_check")
 def test_health_check_local_efa(pytorch_training):
