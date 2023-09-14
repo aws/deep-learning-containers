@@ -148,7 +148,6 @@ RUN /opt/conda/bin/mamba install -y -c conda-forge \
   && /opt/conda/bin/mamba clean -afy \
   && rm -rf /etc/apt/sources.list.d/*
 
-# Install EFA alone without AWS OPEN_MPI
 RUN mkdir /tmp/efa \
  && cd /tmp/efa \
  && curl -O https://s3-us-west-2.amazonaws.com/aws-efa-installer/aws-efa-installer-${EFA_VERSION}.tar.gz \
@@ -156,25 +155,10 @@ RUN mkdir /tmp/efa \
  && cd aws-efa-installer \
  && apt-get update \
  && ./efa_installer.sh -y --skip-kmod -g \
- && rm -rf $OPEN_MPI_PATH \
  && rm -rf /tmp/efa \
  && rm -rf /tmp/aws-efa-installer-${EFA_VERSION}.tar.gz \
  && rm -rf /var/lib/apt/lists/* \
  && apt-get clean
-
-# Install OpenMPI without libfabric support
-RUN mkdir /tmp/openmpi \
- && cd /tmp/openmpi \
- && wget --quiet https://download.open-mpi.org/release/open-mpi/v4.1/openmpi-${OMPI_VERSION}.tar.gz \
- && tar zxf openmpi-${OMPI_VERSION}.tar.gz \
- && cd openmpi-${OMPI_VERSION} \
- && ./configure --enable-orterun-prefix-by-default --prefix=$OPEN_MPI_PATH --with-cuda=${CUDA_HOME} \
- && make -j $(nproc) all \
- && make install \
- && ldconfig \
- && cd / \
- && rm -rf /tmp/openmpi \
- && ompi_info --parsable --all | grep mpi_built_with_cuda_support:value
 
 ENV PATH="$OPEN_MPI_PATH/bin:$EFA_PATH/bin:$PATH"
 ENV LD_LIBRARY_PATH=$OPEN_MPI_PATH/lib/:$EFA_PATH/lib/:$LD_LIBRARY_PATH
@@ -365,6 +349,8 @@ ARG PYTORCH_VERSION_SM
 ARG CONDA_CHANNEL
 ARG CUDA_HOME
 ARG TORCH_CUDA_ARCH_LIST
+
+ENV SAGEMAKER_TRAINING_MODULE=sagemaker_pytorch_container.training:main
 
 WORKDIR /
 

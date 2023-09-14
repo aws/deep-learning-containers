@@ -874,6 +874,44 @@ def skip_dgl_test(request):
             )
 
 
+@pytest.fixture(autouse=True)
+def skip_smdebug_test(request):
+    if "training" in request.fixturenames:
+        img_uri = request.getfixturevalue("training")
+    elif "pytorch_training" in request.fixturenames:
+        img_uri = request.getfixturevalue("pytorch_training")
+    else:
+        return
+    _, image_framework_version = get_framework_and_version_from_tag(img_uri)
+    image_cuda_version = get_cuda_version_from_tag(img_uri)
+    if request.node.get_closest_marker("skip_smdebug_test"):
+        if Version(image_framework_version) in SpecifierSet(">=2.0") and Version(
+            image_cuda_version.strip("cu")
+        ) >= Version("121"):
+            pytest.skip(
+                f"SM Debugger doesn't support cuda12.x for now, so skipping this container with tag {image_framework_version}"
+            )
+
+
+@pytest.fixture(autouse=True)
+def skip_smprofiler_test(request):
+    if "training" in request.fixturenames:
+        img_uri = request.getfixturevalue("training")
+    elif "pytorch_training" in request.fixturenames:
+        img_uri = request.getfixturevalue("pytorch_training")
+    else:
+        return
+    _, image_framework_version = get_framework_and_version_from_tag(img_uri)
+    image_cuda_version = get_cuda_version_from_tag(img_uri)
+    if request.node.get_closest_marker("skip_smprofiler_test"):
+        if Version(image_framework_version) in SpecifierSet(">=2.0") and Version(
+            image_cuda_version.strip("cu")
+        ) >= Version("121"):
+            pytest.skip(
+                f"SM Profiler doesn't support cuda12.x for now, so skipping this container with tag {image_framework_version}"
+            )
+
+
 @pytest.fixture(scope="session")
 def dlc_images(request):
     return request.config.getoption("--images")

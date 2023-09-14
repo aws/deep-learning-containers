@@ -41,15 +41,15 @@ build_inference = false
 datetime_tag = false
 # Note: Need to build the images at least once with datetime_tag = false
 # before disabling new builds, or tests will fail
-do_build = true
+do_build = false
 
 [test]
 ### On by default
 sanity_tests = true
   safety_check_test = false
   ecr_scan_allowlist_feature = false
-ecs_tests = true
-eks_tests = true
+ecs_tests = false
+eks_tests = false
 ec2_tests = true
 
 ### Set ec2_tests_on_heavy_instances = true to be able to run any EC2 tests that use large/expensive instance types by
@@ -60,7 +60,7 @@ ec2_tests_on_heavy_instances = false
 
 ### SM specific tests
 ### Off by default
-sagemaker_local_tests = true
+sagemaker_local_tests = false
 
 # SM remote test valid values:
 # "off" --> do not trigger sagemaker remote tests (default)
