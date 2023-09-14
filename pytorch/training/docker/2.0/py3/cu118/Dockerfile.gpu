@@ -161,6 +161,15 @@ RUN /opt/conda/bin/mamba install -y -c conda-forge \
   && /opt/conda/bin/mamba clean -afy \
   && rm -rf /etc/apt/sources.list.d/*
 
+# Below libraries are needed to build NCCL, APEX, OPENMPI, GDRCopy
+RUN /opt/conda/bin/mamba install -y \
+  cuda-runtime=11.8 cuda-libraries=11.8 cuda-compiler=11.8 cuda-cudart=11.8.89 cuda-cudart-dev=11.8.89 cuda-libraries-dev=11.8 \
+  --override-channels \
+  -c https://aws-ml-conda-ec2.s3.us-west-2.amazonaws.com \
+  -c conda-forge \
+  -c nvidia \
+  && /opt/conda/bin/mamba clean -afy
+
 # Install EFA alone without AWS OPEN_MPI
 RUN mkdir /tmp/efa \
  && cd /tmp/efa \
@@ -228,6 +237,25 @@ RUN rm -rf /root/.ssh/ && \
  cp /root/.ssh/id_rsa.pub /root/.ssh/authorized_keys \
  && printf "Host *\n StrictHostKeyChecking no\n" >> /root/.ssh/config
 
+# Install NCCL
+RUN cd /tmp \
+ && git clone https://github.com/NVIDIA/nccl.git -b v${NCCL_VERSION}-1 \
+ && cd nccl \
+ && make -j64 src.build BUILDDIR=/usr/local CUDA_LIB=${CUDA_HOME}/lib \
+ && rm -rf /tmp/nccl
+
+# Install GDRCopy which is a dependency of SM Distributed DataParallel binary
+# The test binaries requires cuda driver library which could be found in conda
+# So update the linker path to point to it to avoid -Lcuda not found
+# Note that starting with 11.8, cuda relate lib are moved to conda instead /usr/local/cuda
+RUN cd /tmp \
+ && git clone https://github.com/NVIDIA/gdrcopy.git -b v${GDRCOPY_VERSION} \
+ && cd gdrcopy \
+ && sed -ie '12s@$@ -L $(CUDA)/lib/stubs@' tests/Makefile \
+ && CUDA=/opt/conda make install \
+ && rm -rf /tmp/gdrcopy
+
+
 RUN mkdir -p /etc/pki/tls/certs && cp /etc/ssl/certs/ca-certificates.crt /etc/pki/tls/certs/ca-bundle.crt
 
 RUN curl -o /license.txt https://aws-dlc-licenses.s3.amazonaws.com/pytorch-2.0/license.txt
@@ -274,17 +302,6 @@ RUN /opt/conda/bin/mamba install -y pytorch=${PYTORCH_VERSION_EC2} \
   -c nvidia \
   && /opt/conda/bin/mamba clean -afy
 
-# CUDA libraries should be installed after pytorch installation command to reduce memory size of single layer.
-# If single layer is huge in size (like 17 GB), then ECR pull can timeout on smaller EC2 instances like P3.2x.
-# Have added pytorch again in below command to make sure pytorch version wont be changed.
-RUN /opt/conda/bin/mamba install -y pytorch=${PYTORCH_VERSION_EC2} \
-  cuda-libraries-dev=11.8 cuda-compiler=11.8 \
-  --override-channels \
-  -c https://aws-ml-conda-ec2.s3.us-west-2.amazonaws.com \
-  -c conda-forge \
-  -c nvidia \
-  && /opt/conda/bin/mamba clean -afy
-
 # install PyTorch related python packages (depends on PyTorch)
 RUN /opt/conda/bin/mamba install -y -c conda-forge \
   # needed by fastai.distributed
@@ -303,24 +320,6 @@ RUN pip install "pillow>=9.5" "pyyaml>=6.0.1"
 RUN /opt/conda/bin/mamba install -y -c conda-forge \
   "requests>=2.31.0" \
   && /opt/conda/bin/mamba clean -afy
-
-# Install NCCL
-RUN cd /tmp \
- && git clone https://github.com/NVIDIA/nccl.git -b v${NCCL_VERSION}-1 \
- && cd nccl \
- && make -j64 src.build BUILDDIR=/usr/local CUDA_LIB=${CUDA_HOME}/lib \
- && rm -rf /tmp/nccl
-
-# Install GDRCopy which is a dependency of SM Distributed DataParallel binary
-# The test binaries requires cuda driver library which could be found in conda
-# So update the linker path to point to it to avoid -Lcuda not found
-# Note that starting with 11.8, cuda relate lib are moved to conda instead /usr/local/cuda
-RUN cd /tmp \
- && git clone https://github.com/NVIDIA/gdrcopy.git -b v${GDRCOPY_VERSION} \
- && cd gdrcopy \
- && sed -ie '12s@$@ -L $(CUDA)/lib/stubs@' tests/Makefile \
- && CUDA=/opt/conda make install \
- && rm -rf /tmp/gdrcopy
 
 # Install Nvidia Apex (needs pytorch)
 ## Pin apex commit requested by sm-model-parallel team
@@ -410,17 +409,6 @@ RUN /opt/conda/bin/mamba install -y pytorch=${PYTORCH_VERSION_SM} \
   -c nvidia \
   && /opt/conda/bin/mamba clean -afy
 
-# CUDA libraries should be installed after pytorch installation command to reduce memory size of single layer.
-# If single layer is huge in size (like 17 GB), then ECR pull can timeout on smaller EC2 instances like P3.2x.
-# Have added pytorch again in below command to make sure pytorch version wont be changed.
-RUN /opt/conda/bin/mamba install -y pytorch=${PYTORCH_VERSION_EC2} \
-  cuda-libraries-dev=11.8 cuda-compiler=11.8 \
-  --override-channels \
-  -c https://aws-ml-conda-sm.s3.us-west-2.amazonaws.com \
-  -c conda-forge \
-  -c nvidia \
-  && /opt/conda/bin/mamba clean -afy
-
 # install PyTorch related python packages (depends on PyTorch)
 RUN /opt/conda/bin/mamba install -y -c conda-forge \
   # needed by fastai.distributed
@@ -441,24 +429,6 @@ RUN /opt/conda/bin/mamba install -y -c conda-forge \
   && /opt/conda/bin/mamba clean -afy
 
 WORKDIR /
-
-# Install NCCL
-RUN cd /tmp \
- && git clone https://github.com/NVIDIA/nccl.git -b v${NCCL_VERSION}-1 \
- && cd nccl \
- && make -j64 src.build BUILDDIR=/usr/local CUDA_LIB=${CUDA_HOME}/lib \
- && rm -rf /tmp/nccl
-
-# Install GDRCopy which is a dependency of SM Distributed DataParallel binary
-# The test binaries requires cuda driver library which could be found in conda
-# So update the linker path to point to it to avoid -Lcuda not found
-# Note that starting with 11.8, cuda relate lib are moved to conda instead /usr/local/cuda
-RUN cd /tmp \
- && git clone https://github.com/NVIDIA/gdrcopy.git -b v${GDRCOPY_VERSION} \
- && cd gdrcopy \
- && sed -ie '12s@$@ -L $(CUDA)/lib/stubs@' tests/Makefile \
- && CUDA=/opt/conda make install \
- && rm -rf /tmp/gdrcopy
 
 # Install Nvidia Apex (needs pytorch)
 ## Pin apex commit requested by sm-model-parallel team
