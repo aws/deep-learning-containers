@@ -113,6 +113,11 @@ RUN pip install --no-cache-dir -U \
     intel-openmp \
     intel-extension-for-pytorch==2.0.100
 
+RUN pip install --no-cache-dir -U \
+    transformers \
+    diffusers \
+    accelerate
+
 # Install TorchServe pypi dependencies directly from their requirements.txt file
 # NOTE: This also brings in unnecessary cpu dependencies like nvgpu
 RUN pip install --no-cache-dir -U -r https://raw.githubusercontent.com/pytorch/serve/v${TORCHSERVE_VERSION}/requirements/common.txt \
