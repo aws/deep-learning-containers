@@ -69,6 +69,9 @@ ENV MANUAL_BUILD=0
 ENV RDMAV_FORK_SAFE=1
 ENV DLC_CONTAINER_TYPE=training
 
+#Set NCCL_ASYNC_ERROR_HANDLING=1 for PyTorch to timeout on NCCL errors https://github.com/pytorch/elastic/issues/136
+ENV NCCL_ASYNC_ERROR_HANDLING=1
+
 RUN apt-get update \
  # TODO: Remove systemd upgrade once it is updated in base image
  && apt-get -y upgrade --only-upgrade systemd \
@@ -110,6 +113,8 @@ RUN apt-get update \
     check \
     libsubunit0 \
     libsubunit-dev \
+    # ninja is needed for apex to speed up the build
+    ninja-build \
  && rm -rf /var/lib/apt/lists/* \
  && apt-get clean
 
@@ -121,11 +126,7 @@ RUN curl -L -o ~/mambaforge.sh https://github.com/conda-forge/miniforge/releases
  && rm ~/mambaforge.sh
 
 # Install common conda packages
-RUN /opt/conda/bin/mamba install -y --override-channels \
-  -c https://aws-ml-conda-ec2.s3.us-west-2.amazonaws.com \
-  -c nvidia/label/cuda-11.8.0 \
-  pytorch-cuda=11.8 cuda-toolkit=11.8 \
-  && /opt/conda/bin/mamba install -y -c conda-forge \
+RUN /opt/conda/bin/mamba install -y -c conda-forge \
     pyopenssl \
     requests \
     libgcc \
@@ -151,7 +152,7 @@ RUN /opt/conda/bin/mamba install -y --override-channels \
     # patch CVE
     "cryptography>=41.0.2" \
     # patch CVE
-    "pillow>=9.4" \
+    "pillow>=9.4,<9.5.0" \
     # force conda to install h5py with openmpi build, not mpich (rubik error)
     # https://anaconda.org/conda-forge/h5py/files?page=2
     "mpi4py>=3.1.4,<3.2" \
@@ -159,6 +160,17 @@ RUN /opt/conda/bin/mamba install -y --override-channels \
   && /opt/conda/bin/mamba install -y -c dglteam/label/cu118 dgl \
   && /opt/conda/bin/mamba clean -afy \
   && rm -rf /etc/apt/sources.list.d/*
+
+# Below libraries are needed to build NCCL, APEX, OPENMPI, GDRCopy
+RUN /opt/conda/bin/mamba install -y \
+  cudatoolkit=11.8 cuda-runtime=11.8 cuda-nvcc=11.8.89 cuda-libraries=11.8 \
+  cuda-compiler=11.8 cuda-cudart=11.8.89 cuda-cudart-dev=11.8.89 \
+  cuda-libraries-dev=11.8 \
+  --override-channels \
+  -c https://aws-ml-conda-ec2.s3.us-west-2.amazonaws.com \
+  -c conda-forge \
+  -c nvidia \
+  && /opt/conda/bin/mamba clean -afy
 
 # Install NCCL
 RUN cd /tmp \
@@ -272,21 +284,24 @@ FROM common AS ec2
 ARG PYTHON
 ARG PYTHON_VERSION
 ARG PYTHON_SHORT_VERSION
-
+ARG PYTORCH_VERSION_EC2
 # PyTorch Binaries
 ARG PT_EC2_TRAINING_URL
 ARG PT_TORCHVISION_URL
 ARG PT_TORCHAUDIO_URL
-ARG PT_TORCHDATA_URL
+ARG PT_TORCHDATA_URL 
+ARG NCCL_ASYNC_ERROR_HANDLING
 
 WORKDIR /
 
 # Install ec2 PyTorch
 RUN /opt/conda/bin/mamba install -y pytorch=${PYTORCH_VERSION_EC2} \
-  torchvision torchaudio torchtext aws-ofi-nccl-dlc \
+  pytorch-cuda=11.8 cuda-nvcc=11.8.89 torchvision torchaudio torchtext aws-ofi-nccl-dlc \
   --override-channels \
-  -c https://aws-ml-conda-sm.s3.us-west-2.amazonaws.com \
-  -c conda-forge
+  -c https://aws-ml-conda-ec2.s3.us-west-2.amazonaws.com \
+  -c conda-forge \
+  -c nvidia \
+  && /opt/conda/bin/mamba clean -afy
 
 # install PyTorch related python packages (depends on PyTorch)
 RUN /opt/conda/bin/mamba install -y -c conda-forge \
@@ -298,12 +313,14 @@ RUN /opt/conda/bin/mamba install -y -c conda-forge \
   && pip install torchtnt \
 # explicitly install triton build-time dependencies, which won't get installed by conda for some reason
   cmake \
-  lit
+  lit \
+  && /opt/conda/bin/mamba clean -afy
 
 # Patches
 RUN pip install "pillow>=9.5" "pyyaml>=6.0.1"
 RUN /opt/conda/bin/mamba install -y -c conda-forge \
-  "requests>=2.31.0"
+  "requests>=2.31.0" \
+  && /opt/conda/bin/mamba clean -afy
 
 # Install Nvidia Apex (needs pytorch)
 ## Pin apex commit requested by sm-model-parallel team
@@ -382,13 +399,16 @@ ARG PT_TORCHVISION_URL
 ARG PT_TORCHAUDIO_URL
 ARG PT_TORCHDATA_URL
 ARG PYTORCH_VERSION_SM
+ARG NCCL_ASYNC_ERROR_HANDLING
 
 # Install sm PyTorch (force remove will increase docker image size drastically)
 RUN /opt/conda/bin/mamba install -y pytorch=${PYTORCH_VERSION_SM} \
-  torchvision torchaudio torchtext aws-ofi-nccl-dlc \
+  pytorch-cuda=11.8 cuda-nvcc=11.8.89 torchvision torchaudio torchtext aws-ofi-nccl-dlc \
   --override-channels \
   -c https://aws-ml-conda-sm.s3.us-west-2.amazonaws.com \
-  -c conda-forge
+  -c conda-forge \
+  -c nvidia \
+  && /opt/conda/bin/mamba clean -afy
 
 # install PyTorch related python packages (depends on PyTorch)
 RUN /opt/conda/bin/mamba install -y -c conda-forge \
@@ -400,12 +420,14 @@ RUN /opt/conda/bin/mamba install -y -c conda-forge \
   && pip install torchnet \
 # explicitly install triton build-time dependencies, which won't get installed by conda for some reason
   cmake \
-  lit
+  lit \
+  && /opt/conda/bin/mamba clean -afy
 
 # Patches
 RUN pip install "pillow>=9.5" "pyyaml>=6.0.1"
 RUN /opt/conda/bin/mamba install -y -c conda-forge \
-  "requests>=2.31.0"
+  "requests>=2.31.0" \
+  && /opt/conda/bin/mamba clean -afy
 
 WORKDIR /
 
