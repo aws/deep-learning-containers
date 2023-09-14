@@ -390,44 +390,54 @@ def test_framework_and_neuron_sdk_version(neuron):
     if tested_framework.startswith("huggingface_"):
         tested_framework = tested_framework[len("huggingface_") :]
 
-    package_name = None
+    package_names = {}  # maps a package name to a framework name
     if tested_framework == "pytorch":
         if "training" in image or "neuronx" in image:
-            tested_framework = "torch_neuronx"
-            package_name = "torch-neuronx"
+            package_names = {"torch-neuronx": "torch_neuronx"}
+            # transformers is only available for the inference image
+            if "training" not in image:
+                package_names["transformers-neuronx"] = "transformers_neuronx"
         else:
-            tested_framework = "torch_neuron"
-            package_name = "torch-neuron"
+            package_names = {"torch-neuron": "torch_neuron"}
     elif tested_framework == "tensorflow":
         if "neuronx" in image:
-            tested_framework = "tensorflow_neuronx"
-            package_name = "tensorflow-neuronx"
+            package_names = {"tensorflow-neuronx": "tensorflow_neuronx"}
         else:
-            tested_framework = "tensorflow_neuron"
-            package_name = "tensorflow-neuron"
+            package_names = {"tensorflow-neuron": "tensorflow_neuron"}
     elif tested_framework == "mxnet":
-        tested_framework = "mxnet"
-        package_name = "mxnet_neuron"
+        package_names = {"mxnet_neuron": "mxnet"}
 
-    ctx = Context()
-    assert (
-        package_name in release_manifest
-    ), f"release_manifest does not contain package {package_name}:\n {json.dumps(release_manifest)}"
+    container_name = None
+    ctx = None
 
-    container_name = get_container_name("framework-version-neuron", image)
-    start_container(container_name, image, ctx)
-    output = run_cmd_on_container(
-        container_name,
-        ctx,
-        f"import {tested_framework}; print({tested_framework}.__version__)",
-        executable="python",
-    )
+    for package_name, framework in package_names.items():
+        assert (
+            package_name in release_manifest
+        ), f"release_manifest does not contain package {package_name}:\n {json.dumps(release_manifest)}"
 
-    installed_framework_version = output.stdout.strip()
-    assert installed_framework_version in release_manifest[package_name], (
-        f"framework {tested_framework} version {installed_framework_version} "
-        f"not found in released versions for that package: {release_manifest[package_name]}"
-    )
+        if not container_name:
+            container_name = get_container_name("framework-version-neuron", image)
+            ctx = Context()
+            start_container(container_name, image, ctx)
+
+        output = run_cmd_on_container(
+            container_name,
+            ctx,
+            f"import {framework}; print({framework}.__version__)",
+            executable="python",
+        )
+
+        installed_framework_version = output.stdout.strip()
+        version_list = release_manifest[package_name]
+        # temporary hack because transformers_neuronx reports its version as 0.6.x
+        if package_name == "transformers-neuronx":
+            version_list = [
+                ".".join(entry.split(".")[:-1]) + ".x" for entry in release_manifest[package_name]
+            ]
+        assert installed_framework_version in version_list, (
+            f"framework {framework} version {installed_framework_version} "
+            f"not found in released versions for that package: {version_list}"
+        )
 
     stop_and_remove_container(container_name, ctx)
 
