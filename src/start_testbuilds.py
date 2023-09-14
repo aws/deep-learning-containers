@@ -89,6 +89,11 @@ def run_test_job(commit, codebuild_project, images_str=""):
                 "value": str(are_heavy_instance_ec2_tests_enabled),
                 "type": "PLAINTEXT",
             },
+            {
+                "name": "FRAMEWORK_BUILDSPEC_FILE",
+                "value": config.get_buildspec_override() or os.getenv("FRAMEWORK_BUILDSPEC_FILE"),
+                "type": "PLAINTEXT",
+            },
         ]
     )
     LOGGER.debug(f"env_overrides dict: {env_overrides}")
