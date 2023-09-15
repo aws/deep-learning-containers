@@ -395,13 +395,13 @@ ARG PYTORCH_VERSION_SM
 ARG NCCL_ASYNC_ERROR_HANDLING
 
 # Install ec2 PyTorch
-RUN /opt/conda/bin/mamba install -y pytorch=${PYTORCH_VERSION_EC2} \
+RUN /opt/conda/bin/mamba install -y pytorch=${PYTORCH_VERSION_SM} \
   pytorch-cuda=11.8 cuda-nvcc=11.8.89 torchvision torchaudio torchtext aws-ofi-nccl-dlc \
   cudatoolkit=11.8 cuda-runtime=11.8 cuda-libraries=11.8 \
   cuda-compiler=11.8 cuda-cudart=11.8.89 cuda-cudart-dev=11.8.89 \
   cuda-libraries-dev=11.8 \
   --override-channels \
-  -c https://aws-ml-conda-ec2.s3.us-west-2.amazonaws.com \
+  -c https://aws-ml-conda-sm.s3.us-west-2.amazonaws.com \
   -c conda-forge \
   -c nvidia \
   && /opt/conda/bin/mamba clean -afy
