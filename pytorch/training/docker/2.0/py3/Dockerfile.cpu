@@ -41,9 +41,6 @@ ENV PATH=/opt/conda/bin:$PATH
 ENV DGLBACKEND=pytorch
 ENV DLC_CONTAINER_TYPE=training
 
-#Set NCCL_ASYNC_ERROR_HANDLING=1 for PyTorch to timeout on NCCL errors https://github.com/pytorch/elastic/issues/136
-ENV NCCL_ASYNC_ERROR_HANDLING=1
-
 WORKDIR /
 
 RUN apt-get update \
@@ -187,23 +184,18 @@ ARG PT_EC2_TRAINING_URL
 ARG PT_TORCHVISION_URL
 ARG PT_TORCHAUDIO_URL
 ARG PT_TORCHDATA_URL
-ARG PYTORCH_VERSION_EC2
-ARG NCCL_ASYNC_ERROR_HANDLING
 
 # Install ec2 AWS-PyTorch
 RUN /opt/conda/bin/mamba install -y pytorch=${PYTORCH_VERSION_EC2} \
   torchvision torchaudio torchtext cpuonly \
   --override-channels \
-  -c https://aws-ml-conda-ec2.s3.us-west-2.amazonaws.com \
-  -c conda-forge \
-  -c nvidia \
-  && /opt/conda/bin/mamba clean -afy
+  -c https://aws-ml-conda-sm.s3.us-west-2.amazonaws.com \
+  -c conda-forge
 
 # Patches
 RUN pip install "pillow>=9.5" "pyyaml>=6.0.1"
 RUN /opt/conda/bin/mamba install -y -c conda-forge \
-  "requests>=2.31.0" \
-  && /opt/conda/bin/mamba clean -afy
+  "requests>=2.31.0"
 
 # install fastai (depends on PyTorch)
 RUN /opt/conda/bin/mamba install -y -c conda-forge \
@@ -211,8 +203,7 @@ RUN /opt/conda/bin/mamba install -y -c conda-forge \
   accelerate \
   && /opt/conda/bin/mamba install -y -c fastai fastai \
   # fastai conda strictly depends on dataclasses
-  && pip uninstall -y dataclasses \
-  && /opt/conda/bin/mamba clean -afy
+  && pip uninstall -y dataclasses
 
 RUN HOME_DIR=/root \
  && curl -o ${HOME_DIR}/oss_compliance.zip https://aws-dlinfra-utilities.s3.amazonaws.com/oss_compliance.zip \
@@ -263,16 +254,13 @@ ARG PT_TORCHVISION_URL
 ARG PT_TORCHAUDIO_URL
 ARG PT_TORCHDATA_URL
 ARG PYTORCH_VERSION_SM
-ARG NCCL_ASYNC_ERROR_HANDLING
 
 # Install SM AWS-PyTorch (force remove will increase the docker image size drastically)
 RUN /opt/conda/bin/mamba install -y pytorch=${PYTORCH_VERSION_SM} \
   torchvision torchaudio torchtext cpuonly \
   --override-channels \
-  -c https://aws-ml-conda-ec2.s3.us-west-2.amazonaws.com \
-  -c conda-forge \
-  -c nvidia \
-  && /opt/conda/bin/mamba clean -afy
+  -c https://aws-ml-conda-sm.s3.us-west-2.amazonaws.com \
+  -c conda-forge
 
 # install fastai (depends on PyTorch)
 RUN /opt/conda/bin/mamba install -y -c conda-forge \
@@ -280,8 +268,7 @@ RUN /opt/conda/bin/mamba install -y -c conda-forge \
   accelerate \
   && /opt/conda/bin/mamba install -y -c fastai fastai \
   # fastai conda strictly depends on dataclasses
-  && pip uninstall -y dataclasses \
-  && /opt/conda/bin/mamba clean -afy
+  && pip uninstall -y dataclasses
 
 WORKDIR /
 
@@ -322,8 +309,7 @@ RUN /opt/conda/bin/mamba install -y -c conda-forge \
 # Patches
 RUN pip install "pillow>=9.5" "pyyaml>=6.0.1"
 RUN /opt/conda/bin/mamba install -y -c conda-forge \
-  "requests>=2.31.0" \
-  && /opt/conda/bin/mamba clean -afy
+  "requests>=2.31.0"
 
 RUN HOME_DIR=/root \
  && curl -o ${HOME_DIR}/oss_compliance.zip https://aws-dlinfra-utilities.s3.amazonaws.com/oss_compliance.zip \
