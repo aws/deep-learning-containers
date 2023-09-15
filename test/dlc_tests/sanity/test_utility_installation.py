@@ -2,6 +2,7 @@ from packaging.version import Version
 from packaging.specifiers import SpecifierSet
 
 import pytest
+import re
 
 from invoke.context import Context
 
@@ -94,14 +95,17 @@ def test_utility_packages_using_import(training):
     packages_to_import = SM_TRAINING_UTILITY_PACKAGES_IMPORT
 
     for package in packages_to_import:
-        version = test_utils.run_cmd_on_container(
-            container_name,
-            ctx,
-            f"import {package}; print({package}.__version__)",
-            executable="python",
-        ).stdout.strip()
+        version = re.search(
+            r"\d+(\.\d+)+",
+            test_utils.run_cmd_on_container(
+                container_name,
+                ctx,
+                f"import {package}; print({package}.__version__)",
+                executable="python",
+            ).stdout,
+        ).group()
+        test_utils.LOGGER.info(f"The {package} Version is {version}")
         if package == "sagemaker":
-            version = version.splitlines()[-1]
             assert Version(version) > Version(
                 "2"
             ), f"Sagemaker version should be > 2.0. Found version {version}"
