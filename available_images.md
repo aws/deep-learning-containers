@@ -140,6 +140,22 @@ SageMaker Framework Graviton Containers (SM support only)
 | PyTorch 2.1.0    | inference | No			 | CPU 	   | 3.10 (py310)			    | 763104351884.dkr.ecr.us-east-1.amazonaws.com/pytorch-inference-graviton:2.1.0-cpu-py310-ubuntu20.04-sagemaker   |
 | TensorFlow 2.13.0  | inference | No			 | CPU 	   | 3.10 (py310)			    | 763104351884.dkr.ecr.us-east-1.amazonaws.com/tensorflow-inference-graviton:2.13.0-cpu-py310-ubuntu20.04-sagemaker |
 
+EC2 Framework Intel CPU Containers (EC2, ECS, and EKS support only)
+============================
+
+| Framework         |Job Type	|Horovod Options|CPU/GPU 	|Python Version Options	|Example URL																						|
+|-------------------|-----------|---------------|-----------|-----------------------|---------------------------------------------------------------------------------------------------|
+|PyTorch 2.0.1(+ IPEX)   |inference	|No			|CPU 		| 3.10 (py310)			|TBD		|
+
+
+SageMaker Framework Intel CPU Containers (SM support only)
+============================
+
+| Framework         | Job Type	| Horovod Options| CPU/GPU | Python Version Options	| Example URL																						              |
+|-------------------|-----------|----------------|---------|------------------------|-----------------------------------------------------------------------------------------------------------------|
+| PyTorch 2.0.1(+ IPEX)    | inference | No			 | CPU 	   | 3.10 (py310)			    | TBD   |
+
+
 NVIDIA Triton Inference Containers (SM support only)
 ============================
 **Note**:
