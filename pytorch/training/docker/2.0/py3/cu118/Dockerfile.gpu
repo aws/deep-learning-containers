@@ -394,7 +394,7 @@ ARG PT_TORCHDATA_URL
 ARG PYTORCH_VERSION_SM
 ARG NCCL_ASYNC_ERROR_HANDLING
 
-# Install ec2 PyTorch
+# Install sm PyTorch
 RUN /opt/conda/bin/mamba install -y pytorch=${PYTORCH_VERSION_SM} \
   pytorch-cuda=11.8 cuda-nvcc=11.8.89 torchvision torchaudio torchtext aws-ofi-nccl-dlc \
   cudatoolkit=11.8 cuda-runtime=11.8 cuda-libraries=11.8 \
