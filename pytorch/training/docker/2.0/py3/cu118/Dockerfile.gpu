@@ -103,7 +103,6 @@ RUN apt-get update \
     libssl-dev \
     libtool \
     openssl \
-    python3-dev \
     unzip \
     vim \
     wget \
@@ -123,7 +122,8 @@ ENV REQUESTS_CA_BUNDLE=/etc/ssl/certs/ca-certificates.crt
 RUN curl -L -o ~/mambaforge.sh https://github.com/conda-forge/miniforge/releases/download/${MAMBA_VERSION}/Mambaforge-${MAMBA_VERSION}-Linux-x86_64.sh \
  && chmod +x ~/mambaforge.sh \
  && ~/mambaforge.sh -b -p /opt/conda \
- && rm ~/mambaforge.sh
+ && rm ~/mambaforge.sh \
+ && /opt/conda/bin/mamba clean -afy
 
 # Install common conda packages
 RUN /opt/conda/bin/mamba install -y -c conda-forge \
@@ -162,7 +162,8 @@ RUN /opt/conda/bin/mamba install -y -c conda-forge \
   && rm -rf /etc/apt/sources.list.d/*
 
 RUN pip install --no-cache-dir --upgrade pip --no-cache-dir --trusted-host pypi.org --trusted-host files.pythonhosted.org \
- && ln -s /opt/conda/bin/pip /usr/local/bin/pip3
+ && ln -s /opt/conda/bin/pip /usr/local/bin/pip3 \
+ && ln -s /opt/conda/bin/python3 /usr/local/bin/python3
 
 WORKDIR /root
 
