@@ -299,7 +299,7 @@ RUN cd /tmp \
 # install PyTorch related python packages (depends on PyTorch)
 RUN /opt/conda/bin/mamba install -y -c conda-forge \
   # needed by fastai.distributed
-  accelerate \
+  accelerate=0.22.0 \
   && /opt/conda/bin/mamba install -y -c fastai fastai \
   # fastai conda strictly depends on dataclasses
   && pip uninstall -y dataclasses \
@@ -468,7 +468,7 @@ RUN cd /tmp \
 # install PyTorch related python packages (depends on PyTorch)
 RUN /opt/conda/bin/mamba install -y -c conda-forge \
   # needed by fastai.distributed
-  accelerate \
+  accelerate=0.22.0 \
   && /opt/conda/bin/mamba install -y -c fastai fastai \
   # fastai conda strictly depends on dataclasses
   && pip uninstall -y dataclasses \
