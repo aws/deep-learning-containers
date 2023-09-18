@@ -62,6 +62,10 @@ RUN apt-get update \
  && rm -rf /tmp/tmp* \
  && apt-get clean
 
+# Solve `GLIBCXX_3.4.29' not found
+RUN add-apt-repository ppa:ubuntu-toolchain-r/test -y \
+ && apt-get upgrade -y libstdc++6
+
 RUN echo "deb https://apt.repos.neuron.amazonaws.com focal main" > /etc/apt/sources.list.d/neuron.list
 RUN wget -qO - https://apt.repos.neuron.amazonaws.com/GPG-PUB-KEY-AMAZON-AWS-NEURON.PUB | apt-key add -
 
@@ -178,6 +182,6 @@ RUN HOME_DIR=/root \
  # conda leaves an empty /root/.cache/conda/notices.cache file which is not removed by conda clean -ya
  && rm -rf ${HOME_DIR}/.cache/conda
 
-EXPOSE 8080 8081
-ENTRYPOINT ["python", "/usr/local/bin/dockerd-entrypoint.py"]
-CMD ["serve"]
+# EXPOSE 8080 8081
+# ENTRYPOINT ["python", "/usr/local/bin/dockerd-entrypoint.py"]
+# CMD ["serve"]
