@@ -33,7 +33,7 @@ def test_health_check_dcgm(pytorch_training):
         command_stdout = command_output.stdout.strip()
         if command_output.return_code != 0:
             raise RuntimeError(
-                f"Image {image} DCGM test failed: {command_stdout} "
+                f"Image {image} DCGM test {DCGM_TEST_CMD} failed: {command_output} "
             )
     finally:
         test_utils.stop_and_remove_container(container_name, ctx)
@@ -56,7 +56,7 @@ def test_health_check_local_nccl(pytorch_training):
         command_stdout = command_output.stdout.strip()
         if command_output.return_code != 0:
             raise RuntimeError(
-                f"Image {image} local NCCL test failed: {command_stdout} "
+                f"Image {image} local NCCL test {NCCL_LOCAL_TEST_CMD} failed: {command_output} "
             )
     finally:
         test_utils.stop_and_remove_container(container_name, ctx)
@@ -79,7 +79,7 @@ def test_health_check_local_efa(pytorch_training):
         command_stdout = command_output.stdout.strip()
         if command_output.return_code != 0:
             raise RuntimeError(
-                f"Image {image} local EFA test failed: {command_stdout} "
+                f"Image {image} local EFA test {EFA_LOCAL_TEST_CMD} failed: {command_output} "
             )
     finally:
         test_utils.stop_and_remove_container(container_name, ctx)
