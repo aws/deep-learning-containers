@@ -71,7 +71,7 @@ check_efa_nccl_all_reduce(){
     
     RETURN_VAL=${PIPESTATUS[0]}
     # In case, if you would like see logs, uncomment below line
-    # RESULT=$(cat ${TRAINING_LOG})
+    RESULT=$(cat ${TRAINING_LOG})
 
     if [ ${RETURN_VAL} -eq 0 ]; then
         echo "***************************** check_efa_nccl_all_reduce passed *****************************"
