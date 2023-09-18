@@ -20,6 +20,6 @@ def model_fn(model_dir):
 
 def predict_fn(data, model):
     inputs = model["tokenizer"](data["inputs"], return_tensors="pt")
-    logits = model(**inputs).logits
+    logits = model["model"](**inputs).logits
 
     return {"label": model.config.id2label[logits.argmax().item()]}

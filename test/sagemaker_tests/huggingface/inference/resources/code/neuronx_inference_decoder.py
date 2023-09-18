@@ -21,7 +21,7 @@ def model_fn(model_dir):
 def predict_fn(data, model):
     inputs = model["tokenizer"](data["inputs"], return_tensors="pt")
     with torch.inference_mode():
-        sample_output = model.generate(
+        sample_output = model["model"].generate(
             **inputs,
             do_sample=True,
             min_length=128,
