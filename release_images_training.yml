@@ -8,11 +8,11 @@ release_images:
     training:
       device_types: ["gpu" ]
       python_versions: [ "py310" ]
-      cuda_version: "cu118"
+      cuda_version: "cu121"
       os_version: "ubuntu20.04"
       example: False
-      disable_sm_tag: False
-      force_release: True
+      disable_sm_tag: True
+      force_release: False
   2:
     framework: "pytorch"
     version: "2.0.1"
@@ -21,8 +21,8 @@ release_images:
     training:
       device_types: ["gpu" ]
       python_versions: [ "py310" ]
-      cuda_version: "cu118"
+      cuda_version: "cu121"
       os_version: "ubuntu20.04"
       example: True
-      disable_sm_tag: False
-      force_release: True
+      disable_sm_tag: True
+      force_release: False

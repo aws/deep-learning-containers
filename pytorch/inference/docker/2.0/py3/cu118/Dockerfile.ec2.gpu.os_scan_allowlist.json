@@ -32,10 +32,10 @@
       "name": "SNYK-PYTHON-TORCH-5876728", 
       "package_name": "torch", 
       "package_details": {
-        "file_path": "opt/conda/lib/python3.10/site-packages/torch-2.0.1-py3.10.egg-info/PKG-INFO", 
+        "file_path": "opt/conda/lib/python3.10/site-packages/torch-2.0.1+cu118.dist-info/METADATA", 
         "name": "torch", 
         "package_manager": "PYTHONPKG", 
-        "version": "2.0.1", 
+        "version": "2.0.1+cu118", 
         "release": null
       }, 
       "remediation": {"recommendation": {"text": "None Provided"}},

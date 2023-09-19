@@ -59,6 +59,9 @@ ENV MANUAL_BUILD=0
 ENV RDMAV_FORK_SAFE=1
 ENV DLC_CONTAINER_TYPE=training
 
+#Set NCCL_ASYNC_ERROR_HANDLING=1 for PyTorch to timeout on NCCL errors https://github.com/pytorch/elastic/issues/136
+ENV NCCL_ASYNC_ERROR_HANDLING=1
+
 RUN apt-get update \
  # TODO: Remove systemd upgrade once it is updated in base image
  && apt-get -y upgrade --only-upgrade systemd \
@@ -95,6 +98,8 @@ RUN apt-get update \
     check \
     libsubunit0 \
     libsubunit-dev \
+    # ninja is needed for apex to speed up the build
+    ninja-build \
  && rm -rf /var/lib/apt/lists/* \
  && apt-get clean
 
@@ -183,6 +188,12 @@ RUN apt-get update \
 RUN mkdir -p /var/run/sshd && \
  sed 's@session\s*required\s*pam_loginuid.so@session optional pam_loginuid.so@g' -i /etc/pam.d/sshd
 
+RUN rm -rf /root/.ssh/ && \
+ mkdir -p /root/.ssh/ && \
+ ssh-keygen -q -t rsa -N '' -f /root/.ssh/id_rsa && \
+ cp /root/.ssh/id_rsa.pub /root/.ssh/authorized_keys \
+ && printf "Host *\n StrictHostKeyChecking no\n" >> /root/.ssh/config
+
 RUN mkdir -p /etc/pki/tls/certs && cp /etc/ssl/certs/ca-certificates.crt /etc/pki/tls/certs/ca-bundle.crt
 
 RUN curl -o /license.txt https://aws-dlc-licenses.s3.amazonaws.com/pytorch-2.0/license.txt
@@ -214,16 +225,29 @@ ARG PYTORCH_VERSION_EC2
 ARG CONDA_CHANNEL
 ARG CUDA_HOME
 ARG TORCH_CUDA_ARCH_LIST
+ARG NCCL_ASYNC_ERROR_HANDLING
 
 WORKDIR /
 
 # Install ec2 PyTorch
 RUN /opt/conda/bin/mamba install -y python=${PYTHON_SHORT_VERSION} pytorch=${PYTORCH_VERSION_EC2} \
-  pytorch-cuda=12.1 cuda-toolkit=12.1 cuda-nvcc=12.1.* torchvision torchaudio torchtext aws-ofi-nccl-dlc=1.7.1 \
+  pytorch-cuda=12.1 cuda-nvcc=12.1.* torchvision torchaudio torchtext aws-ofi-nccl-dlc=1.7.2 \
   --override-channels \
   -c ${CONDA_CHANNEL} \
   -c nvidia \
-  -c conda-forge
+  -c conda-forge \
+  && /opt/conda/bin/mamba clean -afy
+
+# CUDA libraries should be installed after pytorch installation command to reduce memory size of single layer.
+# If single layer is huge in size (like 17 GB), then ECR pull can timeout on smaller EC2 instances like P3.2x.
+# Have added python and pytorch again in below command to make sure pytorch version wont be changed.
+RUN /opt/conda/bin/mamba install -y python=${PYTHON_SHORT_VERSION} pytorch=${PYTORCH_VERSION_EC2} \
+  cuda-libraries-dev=12.1 cuda-libraries-static=12.1 cuda-compiler=12.1 \
+  --override-channels \
+  -c ${CONDA_CHANNEL} \
+  -c nvidia \
+  -c conda-forge \
+  && /opt/conda/bin/mamba clean -afy
 
 # Install NCCL
 RUN cd /tmp \
@@ -242,12 +266,14 @@ RUN /opt/conda/bin/mamba install -y -c conda-forge \
   && pip install torchtnt \
 # explicitly install triton build-time dependencies, which won't get installed by conda for some reason
   cmake \
-  lit
+  lit \
+  && /opt/conda/bin/mamba clean -afy
 
 # Patches
 RUN pip install "pillow>=9.5" opencv-python
 RUN /opt/conda/bin/mamba install -y -c conda-forge \
-  "requests>=2.31.0"
+  "requests>=2.31.0" \
+  && /opt/conda/bin/mamba clean -afy
 
 # Install GDRCopy which is a dependency of SM Distributed DataParallel binary
 # The test binaries requires cuda driver library which could be found in conda
