@@ -26,6 +26,7 @@ from ...utils.local_mode_utils import assert_files_exist
 @pytest.mark.integration("smppy")
 @pytest.mark.model("mnist")
 @pytest.mark.skip_py2_containers
+@pytest.mark.skip_cpu
 def test_smppy_mnist_local(docker_image, sagemaker_local_session, tmpdir):
     estimator = PyTorch(
         entry_point=smppy_mnist_script,
