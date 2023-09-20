@@ -70,6 +70,7 @@ RUN apt-get update \
     ca-certificates \
     cmake \
     libcudnn8=$CUDNN_VERSION-1+cuda12.1 \
+    libcudnn8-dev=$CUDNN_VERSION-1+cuda12.1 \
     curl \
     emacs \
     git \
@@ -296,7 +297,7 @@ RUN pip install packaging \
 
 ENV NVTE_FRAMEWORK=pytorch
 # Install NVIDIA transformer engine
-RUN pip install git+https://github.com/NVIDIA/TransformerEngine.git@stable
+# RUN pip install git+https://github.com/NVIDIA/TransformerEngine.git@stable
 
 RUN HOME_DIR=/root \
  && curl -o ${HOME_DIR}/oss_compliance.zip https://aws-dlinfra-utilities.s3.amazonaws.com/oss_compliance.zip \
