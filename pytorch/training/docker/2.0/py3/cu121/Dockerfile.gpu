@@ -294,6 +294,7 @@ RUN pip install packaging \
   && cd .. \
   && rm -rf apex
 
+ENV NVTE_FRAMEWORK=pytorch
 # Install NVIDIA transformer engine
 RUN pip install git+https://github.com/NVIDIA/TransformerEngine.git@stable
 
