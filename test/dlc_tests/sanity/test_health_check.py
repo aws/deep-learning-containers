@@ -19,7 +19,7 @@ NCCL_LOCAL_TEST_CMD = os.path.join(CONTAINER_TESTS_PREFIX, "healthcheck_tests", 
 @pytest.mark.usefixtures("sagemaker_only")
 @pytest.mark.usefixtures("pt201_and_above_only")
 @pytest.mark.processor("gpu")
-@pytest.mark.parametrize("ec2_instance_type", ["p3.2xlarge"], indirect=True)
+@pytest.mark.parametrize("ec2_instance_type", ["g3.8xlarge"], indirect=True)
 @pytest.mark.model("N/A")
 @pytest.mark.timeout(1200)
 @pytest.mark.integration("health_check")
@@ -41,7 +41,7 @@ def test_health_check_dcgm(gpu, ec2_connection):
     ec2_connection.run(
         f"{docker_cmd} run --name {container_name} "
         f"-v {CONTAINER_TESTS_PREFIX}:healthcheck_tests",
-        hide=True,
+        hide=False,
     )
 
     LOGGER.info(f"test_health_check_dcgm run {DCGM_TEST_CMD} on container")
@@ -49,7 +49,7 @@ def test_health_check_dcgm(gpu, ec2_connection):
         f"{docker_cmd} exec --user root {container_name} bash '{DCGM_TEST_CMD}'"
     )
 
-    run_output = ec2_connection.run(execution_command, hide=True, timeout=dcgm_l1_timeout)
+    run_output = ec2_connection.run(execution_command, hide=False, timeout=dcgm_l1_timeout)
     if not run_output.ok:
         raise RuntimeError(
             f"Image {image} DCGM test {DCGM_TEST_CMD} failed: {run_output}"
@@ -80,7 +80,7 @@ def test_health_check_local_nccl(gpu, ec2_connection):
     ec2_connection.run(
         f"{docker_cmd} run --name {container_name} "
         f"-v {CONTAINER_TESTS_PREFIX}:healthcheck_tests",
-        hide=True,
+        hide=False,
     )
 
     LOGGER.info(f"test_health_check_local_nccl run {NCCL_LOCAL_TEST_CMD} on container")
@@ -88,7 +88,7 @@ def test_health_check_local_nccl(gpu, ec2_connection):
         f"{docker_cmd} exec --user root {container_name} bash '{NCCL_LOCAL_TEST_CMD}'"
     )
 
-    run_output = ec2_connection.run(execution_command, hide=True, timeout=local_nccl_timeout)
+    run_output = ec2_connection.run(execution_command, hide=False, timeout=local_nccl_timeout)
     if not run_output.ok:
         raise RuntimeError(
             f"Image {image} NCCL test {NCCL_LOCAL_TEST_CMD} failed: {run_output}"
@@ -119,7 +119,7 @@ def test_health_check_local_efa(gpu, ec2_connection):
     ec2_connection.run(
         f"{docker_cmd} run --name {container_name} "
         f"-v {CONTAINER_TESTS_PREFIX}:healthcheck_tests",
-        hide=True,
+        hide=False,
     )
 
     LOGGER.info(f"test_health_check_local_efa run {EFA_LOCAL_TEST_CMD} on container")
@@ -127,7 +127,7 @@ def test_health_check_local_efa(gpu, ec2_connection):
         f"{docker_cmd} exec --user root {container_name} bash '{EFA_LOCAL_TEST_CMD}'"
     )
 
-    run_output = ec2_connection.run(execution_command, hide=True, timeout=local_efa_timeout)
+    run_output = ec2_connection.run(execution_command, hide=False, timeout=local_efa_timeout)
     if not run_output.ok:
         raise RuntimeError(
             f"Image {image} EFA test {EFA_LOCAL_TEST_CMD} failed: {run_output} "
