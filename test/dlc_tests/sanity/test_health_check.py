@@ -30,24 +30,30 @@ def test_health_check_dcgm(gpu, ec2_connection):
     docker_cmd = "nvidia-docker"
     account_id = test_utils.get_account_id_from_image_uri(gpu)
     image_region = test_utils.get_region_from_image_uri(gpu)
+    dcgm_l1_timeout = 300
     LOGGER.info(f"test_health_check_dcgm pulling image: {gpu}")
     test_utils.login_to_ecr_registry(ec2_connection, account_id, image_region)
     ec2_connection.run(f"{docker_cmd} pull {gpu}", hide="out")
 
-    try:
-        image = gpu
-        ctx = Context()
-        container_name = test_utils.get_container_name("health_check", image)
-        LOGGER.info(f"test_health_check_dcgm starting docker image: {gpu}")
-        test_utils.start_container(container_name, image, ctx)
-        LOGGER.info(f"test_health_check_dcgm run {DCGM_TEST_CMD} on container")
-        command_output = test_utils.run_cmd_on_container(container_name, ctx, DCGM_TEST_CMD, warn=True)
-        if command_output.return_code != 0:
-            raise RuntimeError(
-                f"Image {image} DCGM test {DCGM_TEST_CMD} failed: {command_output} "
-            )
-    finally:
-        test_utils.stop_and_remove_container(container_name, ctx)
+    image = gpu
+    container_name = test_utils.get_container_name("health_check", image)
+    LOGGER.info(f"test_health_check_dcgm starting docker image: {gpu}")
+    ec2_connection.run(
+        f"{docker_cmd} run --name {container_name} "
+        f"-v {CONTAINER_TESTS_PREFIX}:healthcheck_tests",
+        hide=True,
+    )
+
+    LOGGER.info(f"test_health_check_dcgm run {DCGM_TEST_CMD} on container")
+    execution_command = (
+        f"{docker_cmd} exec --user root {container_name} bash '{DCGM_TEST_CMD}'"
+    )
+
+    run_output = ec2_connection.run(execution_command, hide=True, timeout=dcgm_l1_timeout)
+    if not run_output.ok:
+        raise RuntimeError(
+            f"Image {image} DCGM test {DCGM_TEST_CMD} failed: {run_output}"
+        )
 
 @pytest.mark.usefixtures("sagemaker_only")
 @pytest.mark.usefixtures("pt201_and_above_only")
@@ -63,25 +69,30 @@ def test_health_check_local_nccl(gpu, ec2_connection):
     docker_cmd = "nvidia-docker"
     account_id = test_utils.get_account_id_from_image_uri(gpu)
     image_region = test_utils.get_region_from_image_uri(gpu)
+    local_nccl_timeout = 240
     LOGGER.info(f"test_health_check_local_nccl pulling image: {gpu}")
     test_utils.login_to_ecr_registry(ec2_connection, account_id, image_region)
     ec2_connection.run(f"{docker_cmd} pull {gpu}", hide="out")
 
-    try:
-        image = gpu
-        ctx = Context()
-        container_name = test_utils.get_container_name("health_check", image)
-        LOGGER.info(f"test_health_check_local_nccl starting docker image: {gpu}")
-        test_utils.start_container(container_name, image, ctx)
-        LOGGER.info(f"test_health_check_local_nccl run {NCCL_LOCAL_TEST_CMD} on container")
-        command_output = test_utils.run_cmd_on_container(container_name, ctx, NCCL_LOCAL_TEST_CMD, warn=True)
-        if command_output.return_code != 0:
-            raise RuntimeError(
-                f"Image {image} NCCL test {NCCL_LOCAL_TEST_CMD} failed: {command_output} "
-            )
-    finally:
-        test_utils.stop_and_remove_container(container_name, ctx)
+    image = gpu
+    container_name = test_utils.get_container_name("health_check", image)
+    LOGGER.info(f"test_health_check_local_nccl starting docker image: {gpu}")
+    ec2_connection.run(
+        f"{docker_cmd} run --name {container_name} "
+        f"-v {CONTAINER_TESTS_PREFIX}:healthcheck_tests",
+        hide=True,
+    )
 
+    LOGGER.info(f"test_health_check_local_nccl run {NCCL_LOCAL_TEST_CMD} on container")
+    execution_command = (
+        f"{docker_cmd} exec --user root {container_name} bash '{NCCL_LOCAL_TEST_CMD}'"
+    )
+
+    run_output = ec2_connection.run(execution_command, hide=True, timeout=local_nccl_timeout)
+    if not run_output.ok:
+        raise RuntimeError(
+            f"Image {image} NCCL test {NCCL_LOCAL_TEST_CMD} failed: {run_output}"
+        )
 
 @pytest.mark.usefixtures("sagemaker_only")
 @pytest.mark.usefixtures("pt201_and_above_only")
@@ -97,21 +108,27 @@ def test_health_check_local_efa(gpu, ec2_connection):
     docker_cmd = "nvidia-docker"
     account_id = test_utils.get_account_id_from_image_uri(gpu)
     image_region = test_utils.get_region_from_image_uri(gpu)
+    local_efa_timeout = 120
     LOGGER.info(f"test_health_check_local_efa pulling image: {gpu}")
     test_utils.login_to_ecr_registry(ec2_connection, account_id, image_region)
     ec2_connection.run(f"{docker_cmd} pull {gpu}", hide="out")
 
-    try:
-        image = gpu
-        ctx = Context()
-        container_name = test_utils.get_container_name("health_check", image)
-        LOGGER.info(f"test_health_check_local_efa starting docker image: {gpu}")
-        test_utils.start_container(container_name, image, ctx)
-        LOGGER.info(f"test_health_check_local_efa run {EFA_LOCAL_TEST_CMD} on container")
-        command_output = test_utils.run_cmd_on_container(container_name, ctx, EFA_LOCAL_TEST_CMD, warn=True)
-        if command_output.return_code != 0:
-            raise RuntimeError(
-                f"Image {image} EFA test {EFA_LOCAL_TEST_CMD} failed: {command_output} "
-            )
-    finally:
-        test_utils.stop_and_remove_container(container_name, ctx)
+    image = gpu
+    container_name = test_utils.get_container_name("health_check", image)
+    LOGGER.info(f"test_health_check_local_efa starting docker image: {gpu}")
+    ec2_connection.run(
+        f"{docker_cmd} run --name {container_name} "
+        f"-v {CONTAINER_TESTS_PREFIX}:healthcheck_tests",
+        hide=True,
+    )
+
+    LOGGER.info(f"test_health_check_local_efa run {EFA_LOCAL_TEST_CMD} on container")
+    execution_command = (
+        f"{docker_cmd} exec --user root {container_name} bash '{EFA_LOCAL_TEST_CMD}'"
+    )
+
+    run_output = ec2_connection.run(execution_command, hide=True, timeout=local_efa_timeout)
+    if not run_output.ok:
+        raise RuntimeError(
+            f"Image {image} EFA test {EFA_LOCAL_TEST_CMD} failed: {run_output} "
+        )
