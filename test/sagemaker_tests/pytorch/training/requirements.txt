@@ -2,7 +2,7 @@ botocore>1.0,<2.0
 boto3>1.0,<2.0
 awscli>=1.27.51
 protobuf
-sagemaker>=2.187.0
+sagemaker>=2.180.0
 coverage
 docker-compose
 flake8==3.7.7
