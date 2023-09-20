@@ -297,7 +297,9 @@ RUN pip install packaging \
 
 ENV NVTE_FRAMEWORK=pytorch
 # Install NVIDIA transformer engine
-# RUN pip install git+https://github.com/NVIDIA/TransformerEngine.git@stable
+RUN pip install flash-attn==2.0.4
+RUN pip install git+https://github.com/NVIDIA/TransformerEngine.git@stable
+ENV NCCL_ASYNC_ERROR_HANDLING=1
 
 RUN HOME_DIR=/root \
  && curl -o ${HOME_DIR}/oss_compliance.zip https://aws-dlinfra-utilities.s3.amazonaws.com/oss_compliance.zip \
