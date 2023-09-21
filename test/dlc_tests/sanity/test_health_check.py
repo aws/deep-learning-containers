@@ -37,10 +37,11 @@ def test_health_check_dcgm(gpu, ec2_connection):
 
     image = gpu
     container_name = test_utils.get_container_name("health_check", image)
+    container_test_local_dir = os.path.join("$HOME", "container_tests")
     LOGGER.info(f"test_health_check_dcgm starting docker image: {gpu}")
     ec2_connection.run(
         f"{docker_cmd} run --name {container_name} "
-        f"-v {CONTAINER_TESTS_PREFIX}:healthcheck_tests {gpu}",
+        f"-v {container_test_local_dir}:{os.path.join(os.sep, 'test')} {gpu}",
         hide=False,
     )
 
@@ -76,11 +77,11 @@ def test_health_check_local_nccl(gpu, ec2_connection):
 
     image = gpu
     container_name = test_utils.get_container_name("health_check", image)
-    bin_bash_cmd = "--entrypoint /bin/bash "
+    container_test_local_dir = os.path.join("$HOME", "container_tests")
     LOGGER.info(f"test_health_check_local_nccl starting docker image: {gpu}")
     ec2_connection.run(
         f"{docker_cmd} run --name {container_name} "
-        f"-v {CONTAINER_TESTS_PREFIX}:healthcheck_tests {gpu}",
+        f"-v {container_test_local_dir}:{os.path.join(os.sep, 'test')} {gpu}",
         hide=False,
     )
 
@@ -104,7 +105,7 @@ def test_health_check_local_nccl(gpu, ec2_connection):
 @pytest.mark.integration("health_check")
 def test_health_check_local_efa(gpu, ec2_connection):
     """
-    Run local DCGM test on Pytorch DLC
+    Run local EFA test on Pytorch DLC
     """
     docker_cmd = "nvidia-docker"
     account_id = test_utils.get_account_id_from_image_uri(gpu)
@@ -116,10 +117,11 @@ def test_health_check_local_efa(gpu, ec2_connection):
 
     image = gpu
     container_name = test_utils.get_container_name("health_check", image)
+    container_test_local_dir = os.path.join("$HOME", "container_tests")
     LOGGER.info(f"test_health_check_local_efa starting docker image: {gpu}")
     ec2_connection.run(
         f"{docker_cmd} run --name {container_name} "
-        f"-v {CONTAINER_TESTS_PREFIX}:healthcheck_tests {gpu}",
+        f"-v {container_test_local_dir}:{os.path.join(os.sep, 'test')} {gpu}",
         hide=False,
     )
 
