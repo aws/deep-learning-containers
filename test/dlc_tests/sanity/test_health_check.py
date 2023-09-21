@@ -109,9 +109,7 @@ def test_health_check_local_nccl(gpu, ec2_connection):
 @pytest.mark.timeout(1200)
 @pytest.mark.integration("health_check")
 def test_health_check_local_efa(gpu, ec2_connection):
-    """
-    Run local EFA test on Pytorch DLC
-    """
+    # Run local EFA test on Pytorch DLC
     docker_cmd = "nvidia-docker"
     account_id = test_utils.get_account_id_from_image_uri(gpu)
     image_region = test_utils.get_region_from_image_uri(gpu)
