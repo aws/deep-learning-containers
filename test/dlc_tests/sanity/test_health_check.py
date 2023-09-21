@@ -38,16 +38,18 @@ def test_health_check_dcgm(gpu, ec2_connection):
     image = gpu
     container_name = test_utils.get_container_name("health_check", image)
     container_test_local_dir = os.path.join("$HOME", "container_tests")
+    bin_bash_cmd = "--entrypoint /bin/bash "
     LOGGER.info(f"test_health_check_dcgm starting docker image: {gpu}")
     ec2_connection.run(
         f"{docker_cmd} run --name {container_name} "
-        f"-v {container_test_local_dir}:{os.path.join(os.sep, 'test')} {gpu}",
+        f"-v {container_test_local_dir}:{os.path.join(os.sep, 'test')} -itd {bin_bash_cmd}{gpu}",
         hide=False,
     )
 
     LOGGER.info(f"test_health_check_dcgm run {DCGM_TEST_CMD} on container")
+    executable = os.path.join(os.sep, "bin", "bash")
     execution_command = (
-        f"{docker_cmd} exec --user root {container_name} bash '{DCGM_TEST_CMD}'"
+        f"{docker_cmd} exec --user root {container_name} {executable} -c '{DCGM_TEST_CMD}'"
     )
 
     run_output = ec2_connection.run(execution_command, hide=False, timeout=dcgm_l1_timeout)
@@ -78,16 +80,18 @@ def test_health_check_local_nccl(gpu, ec2_connection):
     image = gpu
     container_name = test_utils.get_container_name("health_check", image)
     container_test_local_dir = os.path.join("$HOME", "container_tests")
+    bin_bash_cmd = "--entrypoint /bin/bash "
     LOGGER.info(f"test_health_check_local_nccl starting docker image: {gpu}")
     ec2_connection.run(
         f"{docker_cmd} run --name {container_name} "
-        f"-v {container_test_local_dir}:{os.path.join(os.sep, 'test')} {gpu}",
+        f"-v {container_test_local_dir}:{os.path.join(os.sep, 'test')} -itd {bin_bash_cmd}{gpu}",
         hide=False,
     )
 
     LOGGER.info(f"test_health_check_local_nccl run {NCCL_LOCAL_TEST_CMD} on container")
+    executable = os.path.join(os.sep, "bin", "bash")
     execution_command = (
-        f"{docker_cmd} exec --user root {container_name} bash '{NCCL_LOCAL_TEST_CMD}'"
+        f"{docker_cmd} exec --user root {container_name} {executable} -c '{NCCL_LOCAL_TEST_CMD}'"
     )
 
     run_output = ec2_connection.run(execution_command, hide=False, timeout=local_nccl_timeout)
@@ -118,16 +122,18 @@ def test_health_check_local_efa(gpu, ec2_connection):
     image = gpu
     container_name = test_utils.get_container_name("health_check", image)
     container_test_local_dir = os.path.join("$HOME", "container_tests")
+    bin_bash_cmd = "--entrypoint /bin/bash "
     LOGGER.info(f"test_health_check_local_efa starting docker image: {gpu}")
     ec2_connection.run(
         f"{docker_cmd} run --name {container_name} "
-        f"-v {container_test_local_dir}:{os.path.join(os.sep, 'test')} {gpu}",
+        f"-v {container_test_local_dir}:{os.path.join(os.sep, 'test')} -itd {bin_bash_cmd}{gpu}",
         hide=False,
     )
 
     LOGGER.info(f"test_health_check_local_efa run {EFA_LOCAL_TEST_CMD} on container")
+    executable = os.path.join(os.sep, "bin", "bash")
     execution_command = (
-        f"{docker_cmd} exec --user root {container_name} bash '{EFA_LOCAL_TEST_CMD}'"
+        f"{docker_cmd} exec --user root {container_name} {executable} -c '{EFA_LOCAL_TEST_CMD}'"
     )
 
     run_output = ec2_connection.run(execution_command, hide=False, timeout=local_efa_timeout)
