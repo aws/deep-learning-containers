@@ -10,18 +10,24 @@ from test.test_utils import (
     get_container_name,
     run_cmd_on_container,
     start_container,
+    ec2 as ec2_utils,
 )
 
 DCGM_TEST_CMD = os.path.join(CONTAINER_TESTS_PREFIX, "healthcheck_tests", "dcgm_test.sh")
 EFA_LOCAL_TEST_CMD = os.path.join(CONTAINER_TESTS_PREFIX, "healthcheck_tests", "efa_checker_test.sh")
 NCCL_LOCAL_TEST_CMD = os.path.join(CONTAINER_TESTS_PREFIX, "healthcheck_tests", "nccl_test.sh")
+PT_EC2_MULTI_GPU_INSTANCE_TYPE = ec2_utils.get_ec2_instance_type(
+    default="g3.8xlarge",
+    processor="gpu",
+    filter_function=ec2_utils.filter_only_multi_gpu,
+)
 
 @pytest.mark.usefixtures("sagemaker_only")
 @pytest.mark.usefixtures("pt201_and_above_only")
 @pytest.mark.processor("gpu")
-@pytest.mark.parametrize("ec2_instance_type", ["g3.8xlarge"], indirect=True)
+@pytest.mark.parametrize("ec2_instance_type", PT_EC2_MULTI_GPU_INSTANCE_TYPE, indirect=True)
 @pytest.mark.model("N/A")
-@pytest.mark.timeout(1200)
+@pytest.mark.timeout(1500)
 @pytest.mark.integration("health_check")
 def test_health_check_dcgm(gpu, ec2_connection):
     """
@@ -33,7 +39,7 @@ def test_health_check_dcgm(gpu, ec2_connection):
     dcgm_l1_timeout = 300
     LOGGER.info(f"test_health_check_dcgm pulling image: {gpu}")
     test_utils.login_to_ecr_registry(ec2_connection, account_id, image_region)
-    ec2_connection.run(f"{docker_cmd} pull {gpu}", hide="out")
+    ec2_connection.run(f"{docker_cmd} pull {gpu}", hide="out", timeout=1200)
 
     image = gpu
     container_name = test_utils.get_container_name("health_check", image)
@@ -61,7 +67,7 @@ def test_health_check_dcgm(gpu, ec2_connection):
 @pytest.mark.usefixtures("sagemaker_only")
 @pytest.mark.usefixtures("pt201_and_above_only")
 @pytest.mark.processor("gpu")
-@pytest.mark.parametrize("ec2_instance_type", ["g3.8xlarge"], indirect=True)
+@pytest.mark.parametrize("ec2_instance_type", "p3.2xlarge", indirect=True)
 @pytest.mark.model("N/A")
 @pytest.mark.timeout(1500)
 @pytest.mark.integration("health_check")
@@ -104,7 +110,7 @@ def test_health_check_local_nccl(gpu, ec2_connection):
 @pytest.mark.usefixtures("sagemaker_only")
 @pytest.mark.usefixtures("pt201_and_above_only")
 @pytest.mark.processor("gpu")
-@pytest.mark.parametrize("ec2_instance_type", ["g3.8xlarge"], indirect=True)
+@pytest.mark.parametrize("ec2_instance_type", ["p3.2xlarge"], indirect=True)
 @pytest.mark.model("N/A")
 @pytest.mark.timeout(1200)
 @pytest.mark.integration("health_check")
