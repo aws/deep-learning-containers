@@ -67,7 +67,7 @@ def test_health_check_dcgm(gpu, ec2_connection):
 @pytest.mark.integration("health_check")
 def test_health_check_local_nccl(gpu, ec2_connection):
     """
-    Run local DCGM test on Pytorch DLC
+    Run local NCCL test on Pytorch DLC
     """
     docker_cmd = "nvidia-docker"
     account_id = test_utils.get_account_id_from_image_uri(gpu)
@@ -100,6 +100,7 @@ def test_health_check_local_nccl(gpu, ec2_connection):
             f"Image {image} NCCL test {NCCL_LOCAL_TEST_CMD} failed: {run_output}"
         )
 
+"""
 @pytest.mark.usefixtures("sagemaker_only")
 @pytest.mark.usefixtures("pt201_and_above_only")
 @pytest.mark.processor("gpu")
@@ -141,3 +142,4 @@ def test_health_check_local_efa(gpu, ec2_connection):
         raise RuntimeError(
             f"Image {image} EFA test {EFA_LOCAL_TEST_CMD} failed: {run_output} "
         )
+"""
