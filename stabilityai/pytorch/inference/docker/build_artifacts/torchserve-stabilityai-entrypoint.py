@@ -31,11 +31,11 @@ if os.path.exists(SAI_MODEL_CACHE_FILE) and not os.path.exists(SAI_MODEL_CACHE_S
         [
             "tar",
             "x",
-            "-z" if SAI_MODEL_CACHE_FILE.endswith(".gz") else "",
             "-f",
             SAI_MODEL_CACHE_FILE,
             "-C",
             SAI_MODEL_CACHE_PATH,
+            "-z" if SAI_MODEL_CACHE_FILE.endswith(".gz") else "",
         ]
     )
     Path(SAI_MODEL_CACHE_STATUS_FILE).touch()
