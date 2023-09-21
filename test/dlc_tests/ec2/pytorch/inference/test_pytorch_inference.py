@@ -107,12 +107,20 @@ def test_ec2_pytorch_inference_cpu(pytorch_inference, ec2_connection, region, cp
 @pytest.mark.model("densenet")
 @pytest.mark.parametrize("ec2_instance_type", PT_EC2_CPU_INSTANCE_TYPE, indirect=True)
 def test_ec2_pytorch_inference_intel_cpu(pytorch_inference, ec2_connection, region, cpu_only):
-    ec2_pytorch_inference(pytorch_inference, "intel.cpu", ec2_connection, region)
+    ec2_pytorch_inference(pytorch_inference, "intel_cpu", ec2_connection, region)
+
 
 @pytest.mark.model("stable-diffusion")
 @pytest.mark.parametrize("ec2_instance_type", PT_EC2_CPU_INSTANCE_TYPE, indirect=True)
 def test_ec2_pytorch_inference_intel_cpu_sd(pytorch_inference, ec2_connection, region, cpu_only):
-    ec2_pytorch_inference(pytorch_inference, "intel.cpu-sd", ec2_connection, region)
+    ec2_pytorch_inference(pytorch_inference, "intel_cpu-sd", ec2_connection, region)
+
+
+@pytest.mark.model("bert")
+@pytest.mark.parametrize("ec2_instance_type", PT_EC2_CPU_INSTANCE_TYPE, indirect=True)
+def test_ec2_pytorch_inference_intel_cpu_bert(pytorch_inference, ec2_connection, region, cpu_only):
+    ec2_pytorch_inference(pytorch_inference, "intel_cpu-bert", ec2_connection, region)
+
 
 @pytest.mark.usefixtures("sagemaker")
 @pytest.mark.model("densenet")
@@ -226,10 +234,12 @@ def ec2_pytorch_inference(image_uri, processor, ec2_connection, region):
         model_name = "pytorch-resnet-neuron"
     if processor == "neuronx":
         model_name = "pytorch-resnet-neuronx"
-    if processor == "intel.cpu":
+    if processor == "intel_cpu":
         model_name = "pytorch-densenet-ipex"
-    if processor == "intel.cpu-sd":
+    if processor == "intel_cpu-sd":
         model_name = "pytorch-stable-diffusion-ipex"
+    if processor == "intel_cpu-bert":
+        model_name = "pytorch-bert-ipex"
     processor_is_neuron = "neuron" in processor
     processor_is_intel = "intel" in processor
 
@@ -244,15 +254,9 @@ def ec2_pytorch_inference(image_uri, processor, ec2_connection, region):
             f" --env NEURON_MONITOR_CW_REGION={region}"
             f" {image_uri} {inference_cmd}"
         )
-    elif processor_is_intel:
-        docker_run_cmd = (
-            f"{docker_cmd} run --privileged -itd --name {container_name}"
-            f" -p 80:8080 -p 8081:8081"
-            f" {image_uri} {inference_cmd}"
-        )
     else:
         docker_run_cmd = (
-            f"{docker_cmd} run -itd --name {container_name}"
+            f"{docker_cmd} run --privileged -itd --name {container_name}"
             f" -p 80:8080 -p 8081:8081"
             f" {image_uri} {inference_cmd}"
         )
