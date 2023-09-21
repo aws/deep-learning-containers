@@ -40,7 +40,7 @@ def test_health_check_dcgm(gpu, ec2_connection):
     LOGGER.info(f"test_health_check_dcgm starting docker image: {gpu}")
     ec2_connection.run(
         f"{docker_cmd} run --name {container_name} "
-        f"-v {CONTAINER_TESTS_PREFIX}:healthcheck_tests",
+        f"-v {CONTAINER_TESTS_PREFIX}:healthcheck_tests {gpu}",
         hide=False,
     )
 
@@ -76,10 +76,11 @@ def test_health_check_local_nccl(gpu, ec2_connection):
 
     image = gpu
     container_name = test_utils.get_container_name("health_check", image)
+    bin_bash_cmd = "--entrypoint /bin/bash "
     LOGGER.info(f"test_health_check_local_nccl starting docker image: {gpu}")
     ec2_connection.run(
         f"{docker_cmd} run --name {container_name} "
-        f"-v {CONTAINER_TESTS_PREFIX}:healthcheck_tests",
+        f"-v {CONTAINER_TESTS_PREFIX}:healthcheck_tests {gpu}",
         hide=False,
     )
 
@@ -118,7 +119,7 @@ def test_health_check_local_efa(gpu, ec2_connection):
     LOGGER.info(f"test_health_check_local_efa starting docker image: {gpu}")
     ec2_connection.run(
         f"{docker_cmd} run --name {container_name} "
-        f"-v {CONTAINER_TESTS_PREFIX}:healthcheck_tests",
+        f"-v {CONTAINER_TESTS_PREFIX}:healthcheck_tests {gpu}",
         hide=False,
     )
 
