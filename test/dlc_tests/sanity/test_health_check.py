@@ -63,7 +63,7 @@ def test_health_check_dcgm(gpu, ec2_connection):
 @pytest.mark.processor("gpu")
 @pytest.mark.parametrize("ec2_instance_type", ["g3.8xlarge"], indirect=True)
 @pytest.mark.model("N/A")
-@pytest.mark.timeout(600)
+@pytest.mark.timeout(1500)
 @pytest.mark.integration("health_check")
 def test_health_check_local_nccl(gpu, ec2_connection):
     """
@@ -75,7 +75,7 @@ def test_health_check_local_nccl(gpu, ec2_connection):
     local_nccl_timeout = 240
     LOGGER.info(f"test_health_check_local_nccl pulling image: {gpu}")
     test_utils.login_to_ecr_registry(ec2_connection, account_id, image_region)
-    ec2_connection.run(f"{docker_cmd} pull {gpu}", hide="out")
+    ec2_connection.run(f"{docker_cmd} pull {gpu}", hide="out", timeout=1200)
 
     image = gpu
     container_name = test_utils.get_container_name("health_check", image)
