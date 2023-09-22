@@ -51,6 +51,7 @@ PT_INDUCTOR_TEST_INSTANCE_TYPE = get_ec2_instance_type(
     default="g4dn.12xlarge", processor="gpu", filter_function=ec2_utils.filter_non_g3_instance_type
 )
 PT_EC2_GPU_INSTANCE_TYPE = get_ec2_instance_type(default="g3.8xlarge", processor="gpu")
+PT_EC2_GPU_INSTANCE_TYPE_DEFAULT_P = get_ec2_instance_type(default="p3.8xlarge", processor="gpu")
 PT_EC2_CPU_INSTANCE_TYPE = get_ec2_instance_type(default="c5.9xlarge", processor="cpu")
 PT_EC2_SINGLE_GPU_INSTANCE_TYPE = get_ec2_instance_type(
     default="p3.2xlarge",
@@ -140,7 +141,7 @@ def test_pytorch_healthcheck_dcgm(pytorch_training, ec2_connection, gpu_only, ec
 @pytest.mark.usefixtures("pt201_and_above_only")
 @pytest.mark.integration("pytorch_sanity_healthcheck_test")
 @pytest.mark.model("N/A")
-@pytest.mark.parametrize("ec2_instance_type", PT_EC2_SINGLE_GPU_INSTANCE_TYPE, indirect=True)
+@pytest.mark.parametrize("ec2_instance_type", PT_EC2_GPU_INSTANCE_TYPE_DEFAULT_P, indirect=True)
 def test_pytorch_healthcheck_nccl(pytorch_training, ec2_connection, gpu_only, ec2_instance_type):
     if test_utils.is_image_incompatible_with_instance_type(pytorch_training, ec2_instance_type):
         pytest.skip(
