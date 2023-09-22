@@ -22,6 +22,7 @@ PT_EC2_MULTI_GPU_INSTANCE_TYPE = ec2_utils.get_ec2_instance_type(
     filter_function=ec2_utils.filter_only_multi_gpu,
 )
 
+
 @pytest.mark.usefixtures("sagemaker_only")
 @pytest.mark.usefixtures("pt201_and_above_only")
 @pytest.mark.processor("gpu")
@@ -64,47 +65,47 @@ def test_health_check_dcgm(gpu, ec2_connection):
             f"Image {image} DCGM test {DCGM_TEST_CMD} failed: {run_output}"
         )
 
-@pytest.mark.usefixtures("sagemaker_only")
-@pytest.mark.usefixtures("pt201_and_above_only")
-@pytest.mark.processor("gpu")
-@pytest.mark.parametrize("ec2_instance_type", "p3.2xlarge", indirect=True)
-@pytest.mark.model("N/A")
-@pytest.mark.timeout(1500)
-@pytest.mark.integration("health_check")
-def test_health_check_local_nccl(gpu, ec2_connection):
-    """
-    Run local NCCL test on Pytorch DLC
-    """
-    docker_cmd = "nvidia-docker"
-    account_id = test_utils.get_account_id_from_image_uri(gpu)
-    image_region = test_utils.get_region_from_image_uri(gpu)
-    local_nccl_timeout = 240
-    LOGGER.info(f"test_health_check_local_nccl pulling image: {gpu}")
-    test_utils.login_to_ecr_registry(ec2_connection, account_id, image_region)
-    ec2_connection.run(f"{docker_cmd} pull {gpu}", hide="out", timeout=1200)
+# @pytest.mark.usefixtures("sagemaker_only")
+# @pytest.mark.usefixtures("pt201_and_above_only")
+# @pytest.mark.processor("gpu")
+# @pytest.mark.parametrize("ec2_instance_type", "p3.2xlarge", indirect=True)
+# @pytest.mark.model("N/A")
+# @pytest.mark.timeout(1500)
+# @pytest.mark.integration("health_check")
+# def test_health_check_local_nccl(gpu, ec2_connection):
+#     """
+#     Run local NCCL test on Pytorch DLC
+#     """
+#     docker_cmd = "nvidia-docker"
+#     account_id = test_utils.get_account_id_from_image_uri(gpu)
+#     image_region = test_utils.get_region_from_image_uri(gpu)
+#     local_nccl_timeout = 240
+#     LOGGER.info(f"test_health_check_local_nccl pulling image: {gpu}")
+#     test_utils.login_to_ecr_registry(ec2_connection, account_id, image_region)
+#     ec2_connection.run(f"{docker_cmd} pull {gpu}", hide="out", timeout=1200)
 
-    image = gpu
-    container_name = test_utils.get_container_name("health_check", image)
-    container_test_local_dir = os.path.join("$HOME", "container_tests")
-    bin_bash_cmd = "--entrypoint /bin/bash "
-    LOGGER.info(f"test_health_check_local_nccl starting docker image: {gpu}")
-    ec2_connection.run(
-        f"{docker_cmd} run --name {container_name} "
-        f"-v {container_test_local_dir}:{os.path.join(os.sep, 'test')} -itd {bin_bash_cmd}{gpu}",
-        hide=False,
-    )
+#     image = gpu
+#     container_name = test_utils.get_container_name("health_check", image)
+#     container_test_local_dir = os.path.join("$HOME", "container_tests")
+#     bin_bash_cmd = "--entrypoint /bin/bash "
+#     LOGGER.info(f"test_health_check_local_nccl starting docker image: {gpu}")
+#     ec2_connection.run(
+#         f"{docker_cmd} run --name {container_name} "
+#         f"-v {container_test_local_dir}:{os.path.join(os.sep, 'test')} -itd {bin_bash_cmd}{gpu}",
+#         hide=False,
+#     )
 
-    LOGGER.info(f"test_health_check_local_nccl run {NCCL_LOCAL_TEST_CMD} on container")
-    executable = os.path.join(os.sep, "bin", "bash")
-    execution_command = (
-        f"{docker_cmd} exec --user root {container_name} {executable} -c '{NCCL_LOCAL_TEST_CMD}'"
-    )
+#     LOGGER.info(f"test_health_check_local_nccl run {NCCL_LOCAL_TEST_CMD} on container")
+#     executable = os.path.join(os.sep, "bin", "bash")
+#     execution_command = (
+#         f"{docker_cmd} exec --user root {container_name} {executable} -c '{NCCL_LOCAL_TEST_CMD}'"
+#     )
 
-    run_output = ec2_connection.run(execution_command, hide=False, timeout=local_nccl_timeout)
-    if not run_output.ok:
-        raise RuntimeError(
-            f"Image {image} NCCL test {NCCL_LOCAL_TEST_CMD} failed: {run_output}"
-        )
+#     run_output = ec2_connection.run(execution_command, hide=False, timeout=local_nccl_timeout)
+#     if not run_output.ok:
+#         raise RuntimeError(
+#             f"Image {image} NCCL test {NCCL_LOCAL_TEST_CMD} failed: {run_output}"
+#         )
 
 """
 @pytest.mark.usefixtures("sagemaker_only")

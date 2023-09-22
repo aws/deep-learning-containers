@@ -24,6 +24,7 @@ PT_REGRESSION_CMD_REVISED = os.path.join(
     CONTAINER_TESTS_PREFIX, "pytorch_tests", "testPyTorchRegressionRevised"
 )
 PT_DCGM_TEST_CMD = os.path.join(CONTAINER_TESTS_PREFIX, "healthcheck_tests", "dcgm_test.sh")
+PT_NCCL_LOCAL_TEST_CMD = os.path.join(CONTAINER_TESTS_PREFIX, "healthcheck_tests", "nccl_test.sh")
 PT_DGL_CMD = os.path.join(CONTAINER_TESTS_PREFIX, "dgl_tests", "testPyTorchDGL")
 PT_APEX_CMD = os.path.join(CONTAINER_TESTS_PREFIX, "pytorch_tests", "testNVApex")
 PT_AMP_CMD = os.path.join(CONTAINER_TESTS_PREFIX, "pytorch_tests", "testPyTorchAMP")
@@ -128,6 +129,19 @@ def test_pytorch_healthcheck_dcgm(pytorch_training, ec2_connection, gpu_only, ec
             f"Image {pytorch_training} is incompatible with instance type {ec2_instance_type}"
         )
     execute_ec2_training_test(ec2_connection, pytorch_training, PT_DCGM_TEST_CMD)
+
+
+@pytest.mark.usefixtures("sagemaker_only")
+@pytest.mark.usefixtures("pt201_and_above_only")
+@pytest.mark.integration("pytorch_sanity_healthcheck_test")
+@pytest.mark.model("N/A")
+@pytest.mark.parametrize("ec2_instance_type", PT_EC2_SINGLE_GPU_INSTANCE_TYPE, indirect=True)
+def test_pytorch_healthcheck_nccl(pytorch_training, ec2_connection, gpu_only, ec2_instance_type):
+    if test_utils.is_image_incompatible_with_instance_type(pytorch_training, ec2_instance_type):
+        pytest.skip(
+            f"Image {pytorch_training} is incompatible with instance type {ec2_instance_type}"
+        )
+    execute_ec2_training_test(ec2_connection, pytorch_training, PT_NCCL_LOCAL_TEST_CMD)
 
 
 @pytest.mark.usefixtures("sagemaker")
