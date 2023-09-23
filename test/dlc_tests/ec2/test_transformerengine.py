@@ -13,7 +13,9 @@ from packaging.specifiers import SpecifierSet
 
 from test.test_utils.ec2 import get_efa_ec2_instance_type, filter_efa_instance_type
 
-PT_TE_TESTS_CMD = os.path.join(CONTAINER_TESTS_PREFIX, "transformerengine", "testPTTransformerEngine")
+PT_TE_TESTS_CMD = os.path.join(
+    CONTAINER_TESTS_PREFIX, "transformerengine", "testPTTransformerEngine"
+)
 
 
 EC2_EFA_GPU_INSTANCE_TYPE_AND_REGION = get_efa_ec2_instance_type(
