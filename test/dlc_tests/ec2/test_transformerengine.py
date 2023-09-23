@@ -28,10 +28,10 @@ EC2_EFA_GPU_INSTANCE_TYPE_AND_REGION = get_efa_ec2_instance_type(
 @pytest.mark.usefixtures("sagemaker")
 @pytest.mark.allow_p4de_use
 @pytest.mark.parametrize("ec2_instance_type,region", EC2_EFA_GPU_INSTANCE_TYPE_AND_REGION)
-@pytest.mark.skipif(
-    is_pr_context() and not is_efa_dedicated(),
-    reason="Skip EFA test in PR context unless explicitly enabled",
-)
+# @pytest.mark.skipif(
+#     is_pr_context() and not is_efa_dedicated(),
+#     reason="Skip EFA test in PR context unless explicitly enabled",
+# )
 def test_pytorch_transformerengine(
     pytorch_training, ec2_connection, region, ec2_instance_type, gpu_only, py3_only
 ):
