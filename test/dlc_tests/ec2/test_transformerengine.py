@@ -5,12 +5,7 @@ import pytest
 import test.test_utils.ec2 as ec2_utils
 from test.test_utils import (
     CONTAINER_TESTS_PREFIX,
-    is_pr_context,
-    is_efa_dedicated,
 )
-from packaging.version import Version
-from packaging.specifiers import SpecifierSet
-
 from test.test_utils.ec2 import get_efa_ec2_instance_type, filter_efa_instance_type
 
 PT_TE_TESTS_CMD = os.path.join(
