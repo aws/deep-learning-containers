@@ -296,9 +296,9 @@ RUN pip install packaging \
   && rm -rf apex
 
 ENV NVTE_FRAMEWORK=pytorch
-# Install NVIDIA transformer engine
-RUN pip install flash-attn==2.0.4
-RUN pip install git+https://github.com/NVIDIA/TransformerEngine.git@stable
+# Install flash attn and NVIDIA transformer engine
+RUN MAX_JOBS=4 pip install flash-attn==2.0.4 --no-build-isolation
+RUN pip install git+https://github.com/NVIDIA/TransformerEngine.git@release_v0.11
 ENV NCCL_ASYNC_ERROR_HANDLING=1
 
 RUN HOME_DIR=/root \

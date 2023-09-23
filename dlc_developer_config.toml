@@ -38,7 +38,7 @@ build_training = true
 build_inference = false
 
 # Set to false in order to remove datetime tag on PR builds
-datetime_tag = true
+datetime_tag = false
 # Note: Need to build the images at least once with datetime_tag = false
 # before disabling new builds, or tests will fail
 do_build = true
@@ -56,7 +56,7 @@ ec2_tests = true
 ### default. If false, these types of tests will be skipped while other tests will run as usual.
 ### These tests are run in EC2 test jobs, so ec2_tests must be true if ec2_tests_on_heavy_instances is true.
 ### Off by default (set to false)
-ec2_tests_on_heavy_instances = false
+ec2_tests_on_heavy_instances = true
 
 ### SM specific tests
 ### Off by default
