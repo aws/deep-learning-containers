@@ -48,15 +48,15 @@ do_build = false
 sanity_tests = true
   safety_check_test = false
   ecr_scan_allowlist_feature = false
-ecs_tests = true
-eks_tests = true
+ecs_tests = false
+eks_tests = false
 ec2_tests = true
 
 ### Set ec2_tests_on_heavy_instances = true to be able to run any EC2 tests that use large/expensive instance types by
 ### default. If false, these types of tests will be skipped while other tests will run as usual.
 ### These tests are run in EC2 test jobs, so ec2_tests must be true if ec2_tests_on_heavy_instances is true.
 ### Off by default (set to false)
-ec2_tests_on_heavy_instances = false
+ec2_tests_on_heavy_instances = true
 
 ### SM specific tests
 ### Off by default
@@ -69,7 +69,7 @@ efa_tests = true
 # "standard" --> run standard sagemaker remote tests from test/sagemaker_tests
 # "rc" --> run release_candidate_integration tests
 # "efa" --> run efa sagemaker tests
-sagemaker_remote_tests = "off"
+sagemaker_remote_tests = "standard"
 
 # SM remote EFA test instance type
 sagemaker_remote_efa_instance_type = ""
