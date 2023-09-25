@@ -620,3 +620,24 @@ def test_pytorch_standalone_hpu(
         container_name="ec2_training_habana_pytorch_container",
         enable_habana_async_execution=True,
     )
+
+
+@pytest.mark.usefixtures("feature_aws_framework_present")
+@pytest.mark.usefixtures("sagemaker")
+@pytest.mark.integration("telemetry")
+@pytest.mark.model("N/A")
+@pytest.mark.parametrize("ec2_instance_type", PT_EC2_SINGLE_GPU_INSTANCE_TYPE, indirect=True)
+def test_pytorch_cudnn_match_gpu(
+    pytorch_training, ec2_connection, gpu_only, ec2_instance_type, pt15_and_above_only
+):
+    major = ec2_connection.run("")
+    minor = ec2_connection.run("")
+    patch = ec2_connection.run("")
+
+    cudnn_from_torch = ec2_connection.run("")
+
+    if len(patch) == 1:
+        patch = f"0{patch}"
+
+    system_cudnn = f"{major}{minor}{patch}"
+    assert system_cudnn == cudnn_from_torch, f"System CUDNN {system_cudnn} and torch cudnn {cudnn_from_torch} do not match. Please downgrade system CUDNN or recompile torch with correct CUDNN verson."
