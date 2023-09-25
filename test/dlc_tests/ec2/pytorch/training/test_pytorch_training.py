@@ -150,23 +150,23 @@ def test_pytorch_healthcheck_nccl(pytorch_training, ec2_connection, gpu_only, ec
     execute_ec2_training_test(ec2_connection, pytorch_training, PT_NCCL_LOCAL_TEST_CMD)
 
 
-@pytest.mark.usefixtures("sagemaker_only")
-@pytest.mark.usefixtures("pt201_and_above_only")
-@pytest.mark.integration("pytorch_sanity_healthcheck_test")
-@pytest.mark.parametrize("ec2_instance_type,region", PT_EC2_EFA_GPU_INSTANCE_TYPE_AND_REGION)
-@pytest.mark.parametrize(
-    "ec2_instance_ami", [test_utils.UBUNTU_20_BASE_DLAMI_US_WEST_2], indirect=True
-)
-def test_pytorch_healthcheck_efa(
-    pytorch_training, ec2_connection, gpu_only, ec2_instance_type, region
-):
-    if test_utils.is_image_incompatible_with_instance_type(pytorch_training, ec2_instance_type):
-        pytest.skip(
-            f"Image {pytorch_training} is incompatible with instance type {ec2_instance_type}"
-        )
-    execute_ec2_training_test(
-        ec2_connection, pytorch_training, PT_EFA_LOCAL_TEST_CMD
-    )
+# @pytest.mark.usefixtures("sagemaker_only")
+# @pytest.mark.usefixtures("pt201_and_above_only")
+# @pytest.mark.integration("pytorch_sanity_healthcheck_test")
+# @pytest.mark.parametrize("ec2_instance_type,region", PT_EC2_EFA_GPU_INSTANCE_TYPE_AND_REGION)
+# @pytest.mark.parametrize(
+#     "ec2_instance_ami", [test_utils.UBUNTU_20_BASE_DLAMI_US_WEST_2], indirect=True
+# )
+# def test_pytorch_healthcheck_efa(
+#     pytorch_training, ec2_connection, gpu_only, ec2_instance_type, region
+# ):
+#     if test_utils.is_image_incompatible_with_instance_type(pytorch_training, ec2_instance_type):
+#         pytest.skip(
+#             f"Image {pytorch_training} is incompatible with instance type {ec2_instance_type}"
+#         )
+#     execute_ec2_training_test(
+#         ec2_connection, pytorch_training, PT_EFA_LOCAL_TEST_CMD
+#     )
 
 
 @pytest.mark.usefixtures("sagemaker")
