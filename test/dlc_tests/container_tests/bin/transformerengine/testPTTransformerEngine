@@ -1,6 +1,6 @@
 #!/bin/bash
 
-git clone --branch release_v0.11 https://github.com/NVIDIA/TransformerEngine.git
+git clone --branch release_v0.12 https://github.com/NVIDIA/TransformerEngine.git
 cd TransformerEngine/tests/pytorch
 
 pip install pytest==6.2.5 onnxruntime==1.13.1 onnx
