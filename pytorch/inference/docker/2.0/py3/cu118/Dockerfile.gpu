@@ -288,6 +288,12 @@ RUN conda install -y -c conda-forge \
 
 RUN pip install --no-cache-dir sagemaker-pytorch-inference==${SM_TOOLKIT_VERSION}
 
+RUN pip uninstall torchserve -y && \
+    pip uninstall sagemaker_inference -y && \
+    pip uninstall sagemaker_pytorch_inference -y
+
+RUN pip-install --no-cache-dir sagemaker-pytorch-inference-test
+
 COPY torchserve-entrypoint.py /usr/local/bin/dockerd-entrypoint.py
 
 RUN chmod +x /usr/local/bin/dockerd-entrypoint.py
