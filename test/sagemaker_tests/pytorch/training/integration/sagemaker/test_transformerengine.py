@@ -42,7 +42,7 @@ def can_run_te_tests(ecr_image):
     ) >= Version("121")
 
 
-@pytest.mark.integration("smdataparallel")
+@pytest.mark.integration("transformer_engine")
 @pytest.mark.model("N/A")
 @pytest.mark.processor("gpu")
 @pytest.mark.skip_cpu
