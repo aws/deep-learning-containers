@@ -102,7 +102,7 @@ def test_utility_packages_using_import(training):
                 ctx,
                 f"import {package}; print({package}.__version__)",
                 executable="python",
-            ).stdout
+            ).stdout,
         ).group()
         test_utils.LOGGER.info(f"The {package} Version is {version}")
         if package == "sagemaker":

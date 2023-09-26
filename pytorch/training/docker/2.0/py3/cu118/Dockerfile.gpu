@@ -69,6 +69,9 @@ ENV MANUAL_BUILD=0
 ENV RDMAV_FORK_SAFE=1
 ENV DLC_CONTAINER_TYPE=training
 
+#Set NCCL_ASYNC_ERROR_HANDLING=1 for PyTorch to timeout on NCCL errors https://github.com/pytorch/elastic/issues/136
+ENV NCCL_ASYNC_ERROR_HANDLING=1
+
 RUN apt-get update \
  # TODO: Remove systemd upgrade once it is updated in base image
  && apt-get -y upgrade --only-upgrade systemd \
@@ -100,7 +103,6 @@ RUN apt-get update \
     libssl-dev \
     libtool \
     openssl \
-    python3-dev \
     unzip \
     vim \
     wget \
@@ -110,6 +112,8 @@ RUN apt-get update \
     check \
     libsubunit0 \
     libsubunit-dev \
+    # ninja is needed for apex to speed up the build
+    ninja-build \
  && rm -rf /var/lib/apt/lists/* \
  && apt-get clean
 
@@ -118,14 +122,11 @@ ENV REQUESTS_CA_BUNDLE=/etc/ssl/certs/ca-certificates.crt
 RUN curl -L -o ~/mambaforge.sh https://github.com/conda-forge/miniforge/releases/download/${MAMBA_VERSION}/Mambaforge-${MAMBA_VERSION}-Linux-x86_64.sh \
  && chmod +x ~/mambaforge.sh \
  && ~/mambaforge.sh -b -p /opt/conda \
- && rm ~/mambaforge.sh
+ && rm ~/mambaforge.sh \
+ && /opt/conda/bin/mamba clean -afy
 
 # Install common conda packages
-RUN /opt/conda/bin/mamba install -y --override-channels \
-  -c https://aws-ml-conda-ec2.s3.us-west-2.amazonaws.com \
-  -c nvidia/label/cuda-11.8.0 \
-  pytorch-cuda=11.8 cuda-toolkit=11.8 \
-  && /opt/conda/bin/mamba install -y -c conda-forge \
+RUN /opt/conda/bin/mamba install -y -c conda-forge \
     pyopenssl \
     requests \
     libgcc \
@@ -160,69 +161,11 @@ RUN /opt/conda/bin/mamba install -y --override-channels \
   && /opt/conda/bin/mamba clean -afy \
   && rm -rf /etc/apt/sources.list.d/*
 
-# Install NCCL
-RUN cd /tmp \
- && git clone https://github.com/NVIDIA/nccl.git -b v${NCCL_VERSION}-1 \
- && cd nccl \
- && make -j64 src.build BUILDDIR=/usr/local CUDA_LIB=${CUDA_HOME}/lib \
- && rm -rf /tmp/nccl
-
-# Install EFA alone without AWS OPEN_MPI
-RUN mkdir /tmp/efa \
- && cd /tmp/efa \
- && curl -O https://s3-us-west-2.amazonaws.com/aws-efa-installer/aws-efa-installer-${EFA_VERSION}.tar.gz \
- && tar -xf aws-efa-installer-${EFA_VERSION}.tar.gz \
- && cd aws-efa-installer \
- && apt-get update \
- && ./efa_installer.sh -y --skip-kmod -g \
- && rm -rf $OPEN_MPI_PATH \
- && rm -rf /tmp/efa \
- && rm -rf /tmp/aws-efa-installer-${EFA_VERSION}.tar.gz \
- && rm -rf /var/lib/apt/lists/* \
- && apt-get clean
-
-# Install OpenMPI without libfabric support
-RUN mkdir /tmp/openmpi \
- && cd /tmp/openmpi \
- && wget --quiet https://download.open-mpi.org/release/open-mpi/v4.1/openmpi-${OMPI_VERSION}.tar.gz \
- && tar zxf openmpi-${OMPI_VERSION}.tar.gz \
- && cd openmpi-${OMPI_VERSION} \
- && ./configure --enable-orterun-prefix-by-default --prefix=$OPEN_MPI_PATH --with-cuda=${CUDA_HOME} \
- && make -j $(nproc) all \
- && make install \
- && ldconfig \
- && cd / \
- && rm -rf /tmp/openmpi \
- && ompi_info --parsable --all | grep mpi_built_with_cuda_support:value
-
-ENV PATH="$OPEN_MPI_PATH/bin:$EFA_PATH/bin:$PATH"
-ENV LD_LIBRARY_PATH=$OPEN_MPI_PATH/lib/:$EFA_PATH/lib/:$LD_LIBRARY_PATH
-
-# Install GDRCopy which is a dependency of SM Distributed DataParallel binary
-# The test binaries requires cuda driver library which could be found in conda
-# So update the linker path to point to it to avoid -Lcuda not found
-# Note that starting with 11.8, cuda relate lib are moved to conda instead /usr/local/cuda
-RUN cd /tmp \
- && git clone https://github.com/NVIDIA/gdrcopy.git -b v${GDRCOPY_VERSION} \
- && cd gdrcopy \
- && sed -ie '12s@$@ -L $(CUDA)/lib/stubs@' tests/Makefile \
- && CUDA=/opt/conda make install \
- && rm -rf /tmp/gdrcopy
-
 RUN pip install --no-cache-dir --upgrade pip --no-cache-dir --trusted-host pypi.org --trusted-host files.pythonhosted.org \
- && ln -s /opt/conda/bin/pip /usr/local/bin/pip3
+ && ln -s /opt/conda/bin/pip /usr/local/bin/pip3 \
+ && ln -s /opt/conda/bin/python3 /usr/local/bin/python3
 
 WORKDIR /root
-
-# Configure Open MPI and configure NCCL parameters
-RUN mv $OPEN_MPI_PATH/bin/mpirun $OPEN_MPI_PATH/bin/mpirun.real \
- && echo '#!/bin/bash' > $OPEN_MPI_PATH/bin/mpirun \
- && echo "${OPEN_MPI_PATH}/bin/mpirun.real --allow-run-as-root \"\$@\"" >> $OPEN_MPI_PATH/bin/mpirun \
- && chmod a+x $OPEN_MPI_PATH/bin/mpirun \
- && echo "hwloc_base_binding_policy = none" >> $OPEN_MPI_PATH/etc/openmpi-mca-params.conf \
- && echo "rmaps_base_mapping_policy = slot" >> $OPEN_MPI_PATH/etc/openmpi-mca-params.conf \
- && echo NCCL_DEBUG=INFO >> /etc/nccl.conf \
- && echo NCCL_SOCKET_IFNAME=^docker0 >> /etc/nccl.conf
 
 # Install OpenSSH for MPI to communicate between containers, allow OpenSSH to talk to containers without asking for confirmation
 RUN apt-get update \
@@ -272,38 +215,106 @@ FROM common AS ec2
 ARG PYTHON
 ARG PYTHON_VERSION
 ARG PYTHON_SHORT_VERSION
-
+ARG PYTORCH_VERSION_EC2
 # PyTorch Binaries
 ARG PT_EC2_TRAINING_URL
 ARG PT_TORCHVISION_URL
 ARG PT_TORCHAUDIO_URL
-ARG PT_TORCHDATA_URL
+ARG PT_TORCHDATA_URL 
+ARG NCCL_ASYNC_ERROR_HANDLING
 
 WORKDIR /
 
 # Install ec2 PyTorch
-RUN /opt/conda/bin/mamba install -y pytorch=${PYTORCH_VERSION_EC2} \
-  torchvision torchaudio torchtext aws-ofi-nccl-dlc \
+RUN /opt/conda/bin/mamba install -y python=${PYTHON_VERSION} pytorch=${PYTORCH_VERSION_EC2} \
+  pytorch-cuda=11.8 cuda-nvcc=11.8.89 torchvision torchaudio torchtext aws-ofi-nccl-dlc \
+  cudatoolkit=11.8 cuda-runtime=11.8 cuda-libraries=11.8 \
+  cuda-compiler=11.8 cuda-cudart=11.8.89 cuda-cudart-dev=11.8.89 \
+  cuda-libraries-dev=11.8 \
   --override-channels \
-  -c https://aws-ml-conda-sm.s3.us-west-2.amazonaws.com \
-  -c conda-forge
+  -c https://aws-ml-conda-ec2.s3.us-west-2.amazonaws.com \
+  -c conda-forge \
+  -c nvidia \
+  && /opt/conda/bin/mamba clean -afy
+
+# Install NCCL
+RUN cd /tmp \
+ && git clone https://github.com/NVIDIA/nccl.git -b v${NCCL_VERSION}-1 \
+ && cd nccl \
+ && make -j64 src.build BUILDDIR=/usr/local CUDA_LIB=${CUDA_HOME}/lib \
+ && rm -rf /tmp/nccl
+
+# Install EFA alone without AWS OPEN_MPI
+RUN mkdir /tmp/efa \
+ && cd /tmp/efa \
+ && curl -O https://s3-us-west-2.amazonaws.com/aws-efa-installer/aws-efa-installer-${EFA_VERSION}.tar.gz \
+ && tar -xf aws-efa-installer-${EFA_VERSION}.tar.gz \
+ && cd aws-efa-installer \
+ && apt-get update \
+ && ./efa_installer.sh -y --skip-kmod -g \
+ && rm -rf $OPEN_MPI_PATH \
+ && rm -rf /tmp/efa \
+ && rm -rf /tmp/aws-efa-installer-${EFA_VERSION}.tar.gz \
+ && rm -rf /var/lib/apt/lists/* \
+ && apt-get clean
+
+# Install OpenMPI without libfabric support
+RUN mkdir /tmp/openmpi \
+ && cd /tmp/openmpi \
+ && wget --quiet https://download.open-mpi.org/release/open-mpi/v4.1/openmpi-${OMPI_VERSION}.tar.gz \
+ && tar zxf openmpi-${OMPI_VERSION}.tar.gz \
+ && cd openmpi-${OMPI_VERSION} \
+ && ./configure --enable-orterun-prefix-by-default --prefix=$OPEN_MPI_PATH --with-cuda=${CUDA_HOME} \
+ && make -j $(nproc) all \
+ && make install \
+ && ldconfig \
+ && cd / \
+ && rm -rf /tmp/openmpi \
+ && ompi_info --parsable --all | grep mpi_built_with_cuda_support:value
+
+# Configure Open MPI and configure NCCL parameters
+RUN mv $OPEN_MPI_PATH/bin/mpirun $OPEN_MPI_PATH/bin/mpirun.real \
+ && echo '#!/bin/bash' > $OPEN_MPI_PATH/bin/mpirun \
+ && echo "${OPEN_MPI_PATH}/bin/mpirun.real --allow-run-as-root \"\$@\"" >> $OPEN_MPI_PATH/bin/mpirun \
+ && chmod a+x $OPEN_MPI_PATH/bin/mpirun \
+ && echo "hwloc_base_binding_policy = none" >> $OPEN_MPI_PATH/etc/openmpi-mca-params.conf \
+ && echo "rmaps_base_mapping_policy = slot" >> $OPEN_MPI_PATH/etc/openmpi-mca-params.conf \
+ && echo NCCL_DEBUG=INFO >> /etc/nccl.conf \
+ && echo NCCL_SOCKET_IFNAME=^docker0 >> /etc/nccl.conf
+
+ENV PATH="$OPEN_MPI_PATH/bin:$EFA_PATH/bin:$PATH"
+ENV LD_LIBRARY_PATH=$OPEN_MPI_PATH/lib/:$EFA_PATH/lib/:$LD_LIBRARY_PATH
+
+# Install GDRCopy which is a dependency of SM Distributed DataParallel binary
+# The test binaries requires cuda driver library which could be found in conda
+# So update the linker path to point to it to avoid -Lcuda not found
+# Note that starting with 11.8, cuda relate lib are moved to conda instead /usr/local/cuda
+RUN cd /tmp \
+ && git clone https://github.com/NVIDIA/gdrcopy.git -b v${GDRCOPY_VERSION} \
+ && cd gdrcopy \
+ && sed -ie '12s@$@ -L $(CUDA)/lib/stubs@' tests/Makefile \
+ && CUDA=/opt/conda make install \
+ && rm -rf /tmp/gdrcopy
 
 # install PyTorch related python packages (depends on PyTorch)
 RUN /opt/conda/bin/mamba install -y -c conda-forge \
   # needed by fastai.distributed
-  accelerate \
+  # pin accelerate to 0.22.0 as newer version gives error "0.23.0 requires huggingface-hub, which is not installed."
+  accelerate=0.22.0 \
   && /opt/conda/bin/mamba install -y -c fastai fastai \
   # fastai conda strictly depends on dataclasses
   && pip uninstall -y dataclasses \
   && pip install torchtnt \
 # explicitly install triton build-time dependencies, which won't get installed by conda for some reason
   cmake \
-  lit
+  lit \
+  && /opt/conda/bin/mamba clean -afy
 
 # Patches
 RUN pip install "pillow>=9.5" "pyyaml>=6.0.1"
 RUN /opt/conda/bin/mamba install -y -c conda-forge \
-  "requests>=2.31.0"
+  "requests>=2.31.0" \
+  && /opt/conda/bin/mamba clean -afy
 
 # Install Nvidia Apex (needs pytorch)
 ## Pin apex commit requested by sm-model-parallel team
@@ -389,30 +400,98 @@ ARG PT_TORCHVISION_URL
 ARG PT_TORCHAUDIO_URL
 ARG PT_TORCHDATA_URL
 ARG PYTORCH_VERSION_SM
+ARG NCCL_ASYNC_ERROR_HANDLING
 
-# Install sm PyTorch (force remove will increase docker image size drastically)
-RUN /opt/conda/bin/mamba install -y pytorch=${PYTORCH_VERSION_SM} \
-  torchvision torchaudio torchtext aws-ofi-nccl-dlc \
+# Install sm PyTorch
+RUN /opt/conda/bin/mamba install -y python=${PYTHON_VERSION} pytorch=${PYTORCH_VERSION_SM} \
+  pytorch-cuda=11.8 cuda-nvcc=11.8.89 torchvision torchaudio torchtext aws-ofi-nccl-dlc \
+  cudatoolkit=11.8 cuda-runtime=11.8 cuda-libraries=11.8 \
+  cuda-compiler=11.8 cuda-cudart=11.8.89 cuda-cudart-dev=11.8.89 \
+  cuda-libraries-dev=11.8 \
   --override-channels \
   -c https://aws-ml-conda-sm.s3.us-west-2.amazonaws.com \
-  -c conda-forge
+  -c conda-forge \
+  -c nvidia \
+  && /opt/conda/bin/mamba clean -afy
+
+# Install NCCL
+RUN cd /tmp \
+ && git clone https://github.com/NVIDIA/nccl.git -b v${NCCL_VERSION}-1 \
+ && cd nccl \
+ && make -j64 src.build BUILDDIR=/usr/local CUDA_LIB=${CUDA_HOME}/lib \
+ && rm -rf /tmp/nccl
+
+# Install EFA alone without AWS OPEN_MPI
+RUN mkdir /tmp/efa \
+ && cd /tmp/efa \
+ && curl -O https://s3-us-west-2.amazonaws.com/aws-efa-installer/aws-efa-installer-${EFA_VERSION}.tar.gz \
+ && tar -xf aws-efa-installer-${EFA_VERSION}.tar.gz \
+ && cd aws-efa-installer \
+ && apt-get update \
+ && ./efa_installer.sh -y --skip-kmod -g \
+ && rm -rf $OPEN_MPI_PATH \
+ && rm -rf /tmp/efa \
+ && rm -rf /tmp/aws-efa-installer-${EFA_VERSION}.tar.gz \
+ && rm -rf /var/lib/apt/lists/* \
+ && apt-get clean
+
+# Install OpenMPI without libfabric support
+RUN mkdir /tmp/openmpi \
+ && cd /tmp/openmpi \
+ && wget --quiet https://download.open-mpi.org/release/open-mpi/v4.1/openmpi-${OMPI_VERSION}.tar.gz \
+ && tar zxf openmpi-${OMPI_VERSION}.tar.gz \
+ && cd openmpi-${OMPI_VERSION} \
+ && ./configure --enable-orterun-prefix-by-default --prefix=$OPEN_MPI_PATH --with-cuda=${CUDA_HOME} \
+ && make -j $(nproc) all \
+ && make install \
+ && ldconfig \
+ && cd / \
+ && rm -rf /tmp/openmpi \
+ && ompi_info --parsable --all | grep mpi_built_with_cuda_support:value
+
+# Configure Open MPI and configure NCCL parameters
+RUN mv $OPEN_MPI_PATH/bin/mpirun $OPEN_MPI_PATH/bin/mpirun.real \
+ && echo '#!/bin/bash' > $OPEN_MPI_PATH/bin/mpirun \
+ && echo "${OPEN_MPI_PATH}/bin/mpirun.real --allow-run-as-root \"\$@\"" >> $OPEN_MPI_PATH/bin/mpirun \
+ && chmod a+x $OPEN_MPI_PATH/bin/mpirun \
+ && echo "hwloc_base_binding_policy = none" >> $OPEN_MPI_PATH/etc/openmpi-mca-params.conf \
+ && echo "rmaps_base_mapping_policy = slot" >> $OPEN_MPI_PATH/etc/openmpi-mca-params.conf \
+ && echo NCCL_DEBUG=INFO >> /etc/nccl.conf \
+ && echo NCCL_SOCKET_IFNAME=^docker0 >> /etc/nccl.conf
+
+ENV PATH="$OPEN_MPI_PATH/bin:$EFA_PATH/bin:$PATH"
+ENV LD_LIBRARY_PATH=$OPEN_MPI_PATH/lib/:$EFA_PATH/lib/:$LD_LIBRARY_PATH
+
+# Install GDRCopy which is a dependency of SM Distributed DataParallel binary
+# The test binaries requires cuda driver library which could be found in conda
+# So update the linker path to point to it to avoid -Lcuda not found
+# Note that starting with 11.8, cuda relate lib are moved to conda instead /usr/local/cuda
+RUN cd /tmp \
+ && git clone https://github.com/NVIDIA/gdrcopy.git -b v${GDRCOPY_VERSION} \
+ && cd gdrcopy \
+ && sed -ie '12s@$@ -L $(CUDA)/lib/stubs@' tests/Makefile \
+ && CUDA=/opt/conda make install \
+ && rm -rf /tmp/gdrcopy
 
 # install PyTorch related python packages (depends on PyTorch)
 RUN /opt/conda/bin/mamba install -y -c conda-forge \
   # needed by fastai.distributed
-  accelerate \
+  # pin accelerate to 0.22.0 as newer version gives error "0.23.0 requires huggingface-hub, which is not installed."
+  accelerate=0.22.0 \
   && /opt/conda/bin/mamba install -y -c fastai fastai \
   # fastai conda strictly depends on dataclasses
   && pip uninstall -y dataclasses \
   && pip install torchnet \
 # explicitly install triton build-time dependencies, which won't get installed by conda for some reason
   cmake \
-  lit
+  lit \
+  && /opt/conda/bin/mamba clean -afy
 
 # Patches
 RUN pip install "pillow>=9.5" "pyyaml>=6.0.1"
 RUN /opt/conda/bin/mamba install -y -c conda-forge \
-  "requests>=2.31.0"
+  "requests>=2.31.0" \
+  && /opt/conda/bin/mamba clean -afy
 
 WORKDIR /
 
