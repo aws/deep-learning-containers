@@ -295,11 +295,13 @@ RUN pip install packaging \
   && cd .. \
   && rm -rf apex
 
-ENV NVTE_FRAMEWORK=pytorch
 # Install flash attn and NVIDIA transformer engine
+ENV NVTE_FRAMEWORK=pytorch
+# Install flash-attn using instructions from https://github.com/Dao-AILab/flash-attention#installation-and-features
+# Set MAX_JOBS=4 to avoid OOM issues in installation process
 RUN MAX_JOBS=4 pip install flash-attn==2.0.4 --no-build-isolation
+# Install TE using instructions from https://docs.nvidia.com/deeplearning/transformer-engine/user-guide/installation.html
 RUN pip install git+https://github.com/NVIDIA/TransformerEngine.git@release_v0.12
-ENV NCCL_ASYNC_ERROR_HANDLING=1
 
 RUN HOME_DIR=/root \
  && curl -o ${HOME_DIR}/oss_compliance.zip https://aws-dlinfra-utilities.s3.amazonaws.com/oss_compliance.zip \
