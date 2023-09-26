@@ -1,5 +1,7 @@
 #!/bin/bash
 
+set -ex
+
 git clone --branch release_v0.12 https://github.com/NVIDIA/TransformerEngine.git
 cd TransformerEngine/tests/pytorch
 
