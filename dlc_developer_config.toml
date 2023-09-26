@@ -89,7 +89,7 @@ use_scheduler = false
 
 # Standard Framework Training
 dlc-pr-mxnet-training = ""
-dlc-pr-pytorch-training = ""
+dlc-pr-pytorch-training = "pytorch/training/buildspec-1-13.yml"
 dlc-pr-tensorflow-2-training = ""
 dlc-pr-autogluon-training = ""
 
