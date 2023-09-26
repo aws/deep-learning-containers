@@ -1,0 +1,10 @@
+#!/usr/bin/env bash
+
+set -ex
+
+git clone --branch release_v0.12 https://github.com/NVIDIA/TransformerEngine.git
+cd TransformerEngine/tests/pytorch
+
+pip install pytest==6.2.5 onnxruntime==1.13.1
+pytest -v -s test_sanity.py
+PYTORCH_JIT=0 NVTE_ALLOW_NONDETERMINISTIC_ALGO=0 pytest -v -s test_numerics.py
