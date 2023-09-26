@@ -22,7 +22,7 @@ from test.test_utils.ec2 import get_efa_ec2_instance_type, filter_efa_instance_t
 BUILD_ALL_REDUCE_PERF_CMD = os.path.join(CONTAINER_TESTS_PREFIX, "efa", "build_all_reduce_perf.sh")
 EFA_SANITY_TEST_CMD = os.path.join(CONTAINER_TESTS_PREFIX, "efa", "testEFASanity")
 EFA_INTEGRATION_TEST_CMD = os.path.join(CONTAINER_TESTS_PREFIX, "efa", "testEFA")
-EFA_PYTORCH_HEALTHCHECK_TEST_CMD = os.path.join(CONTAINER_TESTS_PREFIX, "healthcheck_tests", "efa_checker_test.sh")
+EFA_PYTORCH_HEALTHCHECK_TEST_CMD = os.path.join(CONTAINER_TESTS_PREFIX, "healthcheck_tests", "efa_checker_single_node.sh")
 
 MASTER_SSH_KEY_NAME = "master_id_rsa"
 WORKER_SSH_KEY_NAME = "worker_id_rsa"
