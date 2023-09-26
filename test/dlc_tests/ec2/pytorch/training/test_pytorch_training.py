@@ -624,17 +624,25 @@ def test_pytorch_standalone_hpu(
 
 @pytest.mark.usefixtures("feature_aws_framework_present")
 @pytest.mark.usefixtures("sagemaker")
-@pytest.mark.integration("telemetry")
+@pytest.mark.integration("cudnn")
 @pytest.mark.model("N/A")
 @pytest.mark.parametrize("ec2_instance_type", PT_EC2_SINGLE_GPU_INSTANCE_TYPE, indirect=True)
 def test_pytorch_cudnn_match_gpu(
-    pytorch_training, ec2_connection, gpu_only, ec2_instance_type, pt15_and_above_only
+    pytorch_training, ec2_connection, gpu_only, ec2_instance_type, pt21_and_above_only
 ):
-    major = ec2_connection.run("")
-    minor = ec2_connection.run("")
-    patch = ec2_connection.run("")
+    """
+    PT 2.1 reintroduces a dependency on CUDNN. This test is to ensure that torch CUDNN matches system CUDNN in the container.
+    """
+    container_name = "pt_cudnn_test"
+    ec2_connection.run(f"nvidia-docker run --name {container_name} -itd {pytorch_training}")
+    major_cmd = "cat /usr/include/cudnn_version.h | grep '#define CUDNN_MAJOR'"
+    minor_cmd = "cat /usr/include/cudnn_version.h | grep '#define CUDNN_MINOR'"
+    patch_cmd = "cat /usr/include/cudnn_version.h | grep '#define CUDNN_PATCHLEVEL'"
+    major = ec2_connection.run(f"nvidia-docker exec --user root {container_name} bash -c '{major_cmd}'").stdout.split()[-1]
+    minor = ec2_connection.run(f"nvidia-docker exec --user root {container_name} bash -c '{minor_cmd}'").stdout.split()[-1]
+    patch = ec2_connection.run(f"nvidia-docker exec --user root {container_name} bash -c '{patch_cmd}'").stdout.split()[-1]
 
-    cudnn_from_torch = ec2_connection.run("")
+    cudnn_from_torch = ec2_connection.run(f"nvidia-docker exec --user root {container_name} python -c 'from torch.backends import cudnn; print(cudnn.version())'").stdout.strip()
 
     if len(patch) == 1:
         patch = f"0{patch}"
