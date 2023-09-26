@@ -631,7 +631,7 @@ def test_pytorch_cudnn_match_gpu(
     pytorch_training, ec2_connection, gpu_only, ec2_instance_type, pt21_and_above_only
 ):
     """
-    PT 2.1 reintroduces a dependency on CUDNN. This test is to ensure that torch CUDNN matches system CUDNN in the container.
+    PT 2.1 reintroduces a dependency on CUDNN to support NVDA TransformerEngine. This test is to ensure that torch CUDNN matches system CUDNN in the container.
     """
     container_name = "pt_cudnn_test"
     ec2_connection.run(
