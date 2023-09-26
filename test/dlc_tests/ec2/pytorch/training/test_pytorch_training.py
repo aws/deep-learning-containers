@@ -628,13 +628,14 @@ def test_pytorch_standalone_hpu(
 @pytest.mark.model("N/A")
 @pytest.mark.parametrize("ec2_instance_type", PT_EC2_SINGLE_GPU_INSTANCE_TYPE, indirect=True)
 def test_pytorch_cudnn_match_gpu(
-    pytorch_training, ec2_connection, gpu_only, ec2_instance_type, pt21_and_above_only
+    pytorch_training, ec2_connection, region, gpu_only, ec2_instance_type, pt21_and_above_only
 ):
     """
     PT 2.1 reintroduces a dependency on CUDNN to support NVDA TransformerEngine. This test is to ensure that torch CUDNN matches system CUDNN in the container.
     """
     container_name = "pt_cudnn_test"
-    ec2_connection.run(f"docker pull {pytorch_training}", hide=True)
+    ec2_connection.run(f"$(aws ecr get-login --no-include-email --region {region})", hide=True)
+    ec2_connection.run(f"docker pull -q {pytorch_training}", hide=True)
     ec2_connection.run(
         f"nvidia-docker run --name {container_name} -itd {pytorch_training}", hide=True
     )
