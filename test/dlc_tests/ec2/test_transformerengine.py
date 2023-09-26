@@ -6,7 +6,13 @@ from packaging.version import Version
 from packaging.specifiers import SpecifierSet
 
 import test.test_utils.ec2 as ec2_utils
-from test.test_utils import CONTAINER_TESTS_PREFIX, is_pr_context, is_efa_dedicated, get_framework_and_version_from_tag, get_cuda_version_from_tag
+from test.test_utils import (
+    CONTAINER_TESTS_PREFIX,
+    is_pr_context,
+    is_efa_dedicated,
+    get_framework_and_version_from_tag,
+    get_cuda_version_from_tag,
+)
 from test.test_utils.ec2 import get_efa_ec2_instance_type, filter_efa_instance_type
 
 PT_TE_TESTS_CMD = os.path.join(
@@ -35,7 +41,9 @@ def test_pytorch_transformerengine(
 ):
     _, image_framework_version = get_framework_and_version_from_tag(pytorch_training)
     image_cuda_version = get_cuda_version_from_tag(pytorch_training)
-    if not (Version(image_framework_version) in SpecifierSet(">=2.0") and image_cuda_version >= "cu121"):
+    if not (
+        Version(image_framework_version) in SpecifierSet(">=2.0") and image_cuda_version >= "cu121"
+    ):
         pytest.skip("Test requires CUDA12 and PT 2.0 or greater")
-        
+
     ec2_utils.execute_ec2_training_test(ec2_connection, pytorch_training, PT_TE_TESTS_CMD)
