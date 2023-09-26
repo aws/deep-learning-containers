@@ -288,9 +288,9 @@ RUN conda install -y -c conda-forge \
 
 RUN pip install --no-cache-dir sagemaker-pytorch-inference==${SM_TOOLKIT_VERSION}
 
-RUN pip uninstall torchserve -y && \
-    pip uninstall sagemaker_inference -y && \
-    pip uninstall sagemaker_pytorch_inference -y
+RUN pip uninstall sagemaker_inference -y && \
+    pip uninstall sagemaker_pytorch_inference -y && \
+    pip uninstall torchserve -y 
 
 RUN pip install --no-cache-dir sagemaker-pytorch-inference-test
 
