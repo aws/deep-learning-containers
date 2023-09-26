@@ -638,14 +638,24 @@ def test_pytorch_cudnn_match_gpu(
     major_cmd = "cat /usr/include/cudnn_version.h | grep '#define CUDNN_MAJOR'"
     minor_cmd = "cat /usr/include/cudnn_version.h | grep '#define CUDNN_MINOR'"
     patch_cmd = "cat /usr/include/cudnn_version.h | grep '#define CUDNN_PATCHLEVEL'"
-    major = ec2_connection.run(f"nvidia-docker exec --user root {container_name} bash -c '{major_cmd}'").stdout.split()[-1]
-    minor = ec2_connection.run(f"nvidia-docker exec --user root {container_name} bash -c '{minor_cmd}'").stdout.split()[-1]
-    patch = ec2_connection.run(f"nvidia-docker exec --user root {container_name} bash -c '{patch_cmd}'").stdout.split()[-1]
+    major = ec2_connection.run(
+        f"nvidia-docker exec --user root {container_name} bash -c '{major_cmd}'"
+    ).stdout.split()[-1]
+    minor = ec2_connection.run(
+        f"nvidia-docker exec --user root {container_name} bash -c '{minor_cmd}'"
+    ).stdout.split()[-1]
+    patch = ec2_connection.run(
+        f"nvidia-docker exec --user root {container_name} bash -c '{patch_cmd}'"
+    ).stdout.split()[-1]
 
-    cudnn_from_torch = ec2_connection.run(f"nvidia-docker exec --user root {container_name} python -c 'from torch.backends import cudnn; print(cudnn.version())'").stdout.strip()
+    cudnn_from_torch = ec2_connection.run(
+        f"nvidia-docker exec --user root {container_name} python -c 'from torch.backends import cudnn; print(cudnn.version())'"
+    ).stdout.strip()
 
     if len(patch) == 1:
         patch = f"0{patch}"
 
     system_cudnn = f"{major}{minor}{patch}"
-    assert system_cudnn == cudnn_from_torch, f"System CUDNN {system_cudnn} and torch cudnn {cudnn_from_torch} do not match. Please downgrade system CUDNN or recompile torch with correct CUDNN verson."
+    assert (
+        system_cudnn == cudnn_from_torch
+    ), f"System CUDNN {system_cudnn} and torch cudnn {cudnn_from_torch} do not match. Please downgrade system CUDNN or recompile torch with correct CUDNN verson."
