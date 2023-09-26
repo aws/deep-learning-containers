@@ -107,7 +107,7 @@ def test_health_check_dcgm(gpu, ec2_connection):
 #             f"Image {image} NCCL test {NCCL_LOCAL_TEST_CMD} failed: {run_output}"
 #         )
 
-"""
+
 @pytest.mark.usefixtures("sagemaker_only")
 @pytest.mark.usefixtures("pt201_and_above_only")
 @pytest.mark.processor("gpu")
@@ -147,4 +147,3 @@ def test_health_check_local_efa(gpu, ec2_connection):
         raise RuntimeError(
             f"Image {image} EFA test {EFA_LOCAL_TEST_CMD} failed: {run_output} "
         )
-"""
