@@ -8,7 +8,6 @@ from test.test_utils import (
     LOGGER,
     get_account_id_from_image_uri,
     get_region_from_image_uri,
-    get_framework_and_version_from_tag,
     is_pr_context,
     is_efa_dedicated,
     login_to_ecr_registry,
