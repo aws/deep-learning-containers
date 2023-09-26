@@ -1159,8 +1159,8 @@ def framework_version_within_limit(metafunc_obj, image):
             "skip_pt110" in metafunc_obj.fixturenames
             and is_equal_to_framework_version("1.10.*", image, image_framework_name)
         )
-        pt21_requirement_faied = (
-            "pt21_and_abov_only" in metafunc_obj.fixturenames
+        pt21_requirement_failed = (
+            "pt21_and_above_only" in metafunc_obj.fixturenames
             and is_below_framework_version("2.1", image, image_framework_name)
         )
         pt18_requirement_failed = (
@@ -1190,7 +1190,7 @@ def framework_version_within_limit(metafunc_obj, image):
             or below_pt113_requirement_failed
             or pt111_requirement_failed
             or not_pt110_requirement_failed
-            or pt21_requirement_faied
+            or pt21_requirement_failed
             or pt18_requirement_failed
             or pt17_requirement_failed
             or pt16_requirement_failed
