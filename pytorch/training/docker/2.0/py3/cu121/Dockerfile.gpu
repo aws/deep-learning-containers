@@ -295,7 +295,8 @@ RUN pip install packaging \
   && cd .. \
   && rm -rf apex
 
-# Install flash attn and NVIDIA transformer engine
+# Install flash attn and NVIDIA transformer engine.
+# Optionally set NVTE_FRAMEWORK to avoid bringing in additional frameworks during TE install
 ENV NVTE_FRAMEWORK=pytorch
 # Install flash-attn using instructions from https://github.com/Dao-AILab/flash-attention#installation-and-features
 # Set MAX_JOBS=4 to avoid OOM issues in installation process
