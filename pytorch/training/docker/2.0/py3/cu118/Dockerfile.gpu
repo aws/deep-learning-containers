@@ -410,7 +410,7 @@ RUN /opt/conda/bin/mamba install -y python=${PYTHON_VERSION} pytorch=${PYTORCH_V
   cuda-compiler=11.8 cuda-cudart=11.8.89 cuda-cudart-dev=11.8.89 \
   cuda-libraries-dev=11.8 \
   --override-channels \
-  -c https://aws-ml-conda-sm.s3.us-west-2.amazonaws.com \
+  -c https://aws-ml-conda-ec2.s3.us-west-2.amazonaws.com \
   -c conda-forge \
   -c nvidia \
   && /opt/conda/bin/mamba clean -afy
