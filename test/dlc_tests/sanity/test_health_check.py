@@ -13,7 +13,9 @@ from test.test_utils import (
     ec2 as ec2_utils,
 )
 
-EFA_LOCAL_TEST_CMD = os.path.join(CONTAINER_TESTS_PREFIX, "healthcheck_tests", "efa_checker_test.sh")
+EFA_LOCAL_TEST_CMD = os.path.join(
+    CONTAINER_TESTS_PREFIX, "healthcheck_tests", "efa_checker_test.sh"
+)
 NCCL_LOCAL_TEST_CMD = os.path.join(CONTAINER_TESTS_PREFIX, "healthcheck_tests", "nccl_test.sh")
 PT_EC2_MULTI_GPU_INSTANCE_TYPE = ec2_utils.get_ec2_instance_type(
     default="g3.8xlarge",
@@ -58,6 +60,4 @@ def test_health_check_local_efa(gpu, ec2_connection):
 
     run_output = ec2_connection.run(execution_command, hide=False, timeout=local_efa_timeout)
     if not run_output.ok:
-        raise RuntimeError(
-            f"Image {image} EFA test {EFA_LOCAL_TEST_CMD} failed: {run_output} "
-        )
+        raise RuntimeError(f"Image {image} EFA test {EFA_LOCAL_TEST_CMD} failed: {run_output} ")

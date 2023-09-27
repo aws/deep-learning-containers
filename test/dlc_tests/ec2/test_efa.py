@@ -22,7 +22,9 @@ from test.test_utils.ec2 import get_efa_ec2_instance_type, filter_efa_instance_t
 BUILD_ALL_REDUCE_PERF_CMD = os.path.join(CONTAINER_TESTS_PREFIX, "efa", "build_all_reduce_perf.sh")
 EFA_SANITY_TEST_CMD = os.path.join(CONTAINER_TESTS_PREFIX, "efa", "testEFASanity")
 EFA_INTEGRATION_TEST_CMD = os.path.join(CONTAINER_TESTS_PREFIX, "efa", "testEFA")
-EFA_PYTORCH_HEALTHCHECK_TEST_CMD = os.path.join(CONTAINER_TESTS_PREFIX, "healthcheck_tests", "efa_checker_single_node.sh")
+EFA_PYTORCH_HEALTHCHECK_TEST_CMD = os.path.join(
+    CONTAINER_TESTS_PREFIX, "healthcheck_tests", "efa_checker_single_node.sh"
+)
 
 MASTER_SSH_KEY_NAME = "master_id_rsa"
 WORKER_SSH_KEY_NAME = "worker_id_rsa"
@@ -34,6 +36,7 @@ EC2_EFA_GPU_INSTANCE_TYPE_AND_REGION = get_efa_ec2_instance_type(
     default="p4d.24xlarge",
     filter_function=filter_efa_instance_type,
 )
+
 
 @pytest.mark.processor("gpu")
 @pytest.mark.model("N/A")
@@ -78,6 +81,7 @@ def test_pytorch_efa(
         timeout=300,
     )
 
+
 @pytest.mark.processor("gpu")
 @pytest.mark.model("N/A")
 @pytest.mark.integration("efa")
@@ -120,6 +124,7 @@ def test_efa_tensorflow(
         timeout=300,
     )
 
+
 @pytest.mark.processor("gpu")
 @pytest.mark.model("N/A")
 @pytest.mark.integration("efa")
@@ -132,7 +137,12 @@ def test_efa_tensorflow(
     reason="Skip EFA test in PR context unless explicitly enabled",
 )
 def test_pytorch_efa_healthcheck(
-    pytorch_training, efa_ec2_instances, efa_ec2_connections, ec2_instance_type, region, gpu_only, 
+    pytorch_training,
+    efa_ec2_instances,
+    efa_ec2_connections,
+    ec2_instance_type,
+    region,
+    gpu_only,
 ):
     """
     Run EFA Health Check tests on DLC.

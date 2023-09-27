@@ -13,7 +13,11 @@ from test.test_utils import (
     get_framework_and_version_from_tag,
     get_cuda_version_from_tag,
 )
-from test.test_utils.ec2 import execute_ec2_training_test, get_ec2_instance_type, get_efa_ec2_instance_type
+from test.test_utils.ec2 import (
+    execute_ec2_training_test,
+    get_ec2_instance_type,
+    get_efa_ec2_instance_type,
+)
 
 
 PT_STANDALONE_CMD = os.path.join(CONTAINER_TESTS_PREFIX, "pytorch_tests", "testPyTorchStandalone")
@@ -74,6 +78,7 @@ PT_EC2_EFA_GPU_INSTANCE_TYPE_AND_REGION = get_efa_ec2_instance_type(
     default="p4d.24xlarge",
     filter_function=ec2_utils.filter_efa_instance_type,
 )
+
 
 @pytest.mark.parametrize("ec2_instance_ami", [test_utils.UL20_PT_NEURON_US_WEST_2], indirect=True)
 @pytest.mark.parametrize("ec2_instance_type", PT_EC2_NEURON_TRN1_INSTANCE_TYPE, indirect=True)
@@ -147,6 +152,7 @@ def test_pytorch_healthcheck_nccl(pytorch_training, ec2_connection, gpu_only, ec
             f"Image {pytorch_training} is incompatible with instance type {ec2_instance_type}"
         )
     execute_ec2_training_test(ec2_connection, pytorch_training, PT_NCCL_LOCAL_TEST_CMD)
+
 
 @pytest.mark.usefixtures("sagemaker")
 @pytest.mark.integration("pytorch_sanity_test")
