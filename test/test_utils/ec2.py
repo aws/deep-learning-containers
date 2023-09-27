@@ -53,6 +53,16 @@ def filter_only_multi_gpu(instance_type_list):
     return filtered_list
 
 
+def filter_only_multi_gpu_and_no_g_type(instance_type_list):
+    filtered_list = [
+        instance_type
+        for instance_type in instance_type_list
+        if get_instance_num_gpus(instance_type=instance_type) > 1
+        and not instance_type.startswith("g")
+    ]
+    return filtered_list
+
+
 def filter_only_single_gpu(instance_type_list):
     filtered_list = [
         instance_type
@@ -76,6 +86,16 @@ def filter_efa_instance_type(instance_type_list):
         instance_type
         for instance_type in instance_type_list
         if get_num_efa_interfaces_for_instance_type(instance_type)
+    ]
+    return filtered_list
+
+
+def filter_efa_no_p5_instance_type(instance_type_list):
+    filtered_list = [
+        instance_type
+        for instance_type in instance_type_list
+        if get_num_efa_interfaces_for_instance_type(instance_type)
+        and not instance_type.startswith("p5")
     ]
     return filtered_list
 
