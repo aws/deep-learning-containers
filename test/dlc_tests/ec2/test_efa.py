@@ -127,10 +127,10 @@ def test_efa_tensorflow(
 @pytest.mark.usefixtures("pt201_and_above_only")
 @pytest.mark.allow_p4de_use
 @pytest.mark.parametrize("ec2_instance_type,region", EC2_EFA_GPU_INSTANCE_TYPE_AND_REGION)
-# @pytest.mark.skipif(
-#     is_pr_context() and not is_efa_dedicated(),
-#     reason="Skip EFA test in PR context unless explicitly enabled",
-# )
+@pytest.mark.skipif(
+    is_pr_context() and not is_efa_dedicated(),
+    reason="Skip EFA test in PR context unless explicitly enabled",
+)
 def test_pytorch_efa_healthcheck(
     pytorch_training, efa_ec2_instances, efa_ec2_connections, ec2_instance_type, region, gpu_only, 
 ):
@@ -143,7 +143,6 @@ def test_pytorch_efa_healthcheck(
     :param region: str Region in which EFA-enabled instances are launched
     :param gpu_only: pytest fixture to limit test only to GPU DLCs
     """
-    number_of_nodes = 1
     _setup_multinode_efa_instances(
         pytorch_training, efa_ec2_instances, efa_ec2_connections, ec2_instance_type, region
     )
