@@ -47,9 +47,9 @@ def can_run_te_tests(ecr_image):
 @pytest.mark.processor("gpu")
 @pytest.mark.skip_cpu
 @pytest.mark.skip_trcomp_containers
-@pytest.mark.parametrize(
-    "efa_instance_type", get_efa_test_instance_type(default=["ml.p4d.24xlarge"]), indirect=True
-)
+# @pytest.mark.parametrize(
+#     "efa_instance_type", get_efa_test_instance_type(default=["ml.p4d.24xlarge"]), indirect=True
+# )
 def test_sanity_transformerengine(ecr_image, efa_instance_type, sagemaker_regions):
     validate_or_skip_te_tests(ecr_image)
     te_test_path = os.path.join(RESOURCE_PATH, "transformerengine", "testPTTransformerEngine")
