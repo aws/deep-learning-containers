@@ -2,7 +2,9 @@
 
 set -ex
 
-git clone --branch release_v0.12 https://github.com/NVIDIA/TransformerEngine.git
+TE_VERSION=$(pip show transformer_engine | awk '/^Version:/ {split($2, v, "."); print v[1] "." v[2]}')
+
+git clone --branch release_$TE_VERSION https://github.com/NVIDIA/TransformerEngine.git
 cd TransformerEngine/tests/pytorch
 
 pip install pytest==6.2.5 onnxruntime==1.13.1

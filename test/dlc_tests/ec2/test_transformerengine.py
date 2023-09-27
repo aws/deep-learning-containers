@@ -47,13 +47,4 @@ def test_pytorch_transformerengine(
     ):
         pytest.skip("Test requires CUDA12 and PT 2.0 or greater")
 
-    # Map pytorch to TE version
-    te_version_map = {
-        "2.0": "0.12"
-    }
-
-    # Error out if te_version is not specified
-    te_version = te_version_map[f'{image_framework_version.major}{image_framework_version.minor}']
-
-    cmd = f"{PT_TE_TESTS_CMD} {te_version}"
-    ec2_utils.execute_ec2_training_test(ec2_connection, pytorch_training, cmd)
+    ec2_utils.execute_ec2_training_test(ec2_connection, pytorch_training, PT_TE_TESTS_CMD)
