@@ -19,7 +19,7 @@ from packaging.specifiers import SpecifierSet
 from test.test_utils.ec2 import (
     get_efa_ec2_instance_type,
     filter_efa_instance_type,
-    filter_efa_no_p5_instance_type,
+    filter_efa_only_p4_instance_type,
 )
 
 BUILD_ALL_REDUCE_PERF_CMD = os.path.join(CONTAINER_TESTS_PREFIX, "efa", "build_all_reduce_perf.sh")
@@ -40,9 +40,9 @@ EC2_EFA_GPU_INSTANCE_TYPE_AND_REGION = get_efa_ec2_instance_type(
     filter_function=filter_efa_instance_type,
 )
 
-EC2_EFA_GPU_NO_P5_INSTANCE_TYPE_AND_REGION = get_efa_ec2_instance_type(
+EC2_EFA_GPU_ONLY_P4_INSTANCE_TYPE_AND_REGION = get_efa_ec2_instance_type(
     default="p4d.24xlarge",
-    filter_function=filter_efa_no_p5_instance_type,
+    filter_function=filter_efa_only_p4_instance_type,
 )
 
 
@@ -139,7 +139,7 @@ def test_efa_tensorflow(
 @pytest.mark.usefixtures("sagemaker_only")
 @pytest.mark.usefixtures("pt201_and_above_only")
 @pytest.mark.allow_p4de_use
-@pytest.mark.parametrize("ec2_instance_type,region", EC2_EFA_GPU_NO_P5_INSTANCE_TYPE_AND_REGION)
+@pytest.mark.parametrize("ec2_instance_type,region", EC2_EFA_GPU_ONLY_P4_INSTANCE_TYPE_AND_REGION)
 @pytest.mark.skipif(
     is_pr_context() and not is_efa_dedicated(),
     reason="Skip EFA test in PR context unless explicitly enabled",
