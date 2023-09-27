@@ -90,12 +90,12 @@ def filter_efa_instance_type(instance_type_list):
     return filtered_list
 
 
-def filter_efa_no_p5_instance_type(instance_type_list):
+def filter_efa_only_p4_instance_type(instance_type_list):
     filtered_list = [
         instance_type
         for instance_type in instance_type_list
         if get_num_efa_interfaces_for_instance_type(instance_type)
-        and not instance_type.startswith("p5")
+        and instance_type.startswith("p4")
     ]
     return filtered_list
 
