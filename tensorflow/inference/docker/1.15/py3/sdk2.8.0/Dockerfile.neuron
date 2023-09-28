@@ -126,7 +126,7 @@ RUN ${PIP} install --no-cache-dir -U \
     gunicorn==20.0.4 \
     gevent==21.1.1 \
     requests==2.25.1 \
-    grpcio==1.34.1 \
+    grpcio==1.56.2 \
     protobuf==3.14.0
 
 # pip install statements have been separated out into multiple sequentially executed statements to
