@@ -1049,6 +1049,11 @@ def pt113_and_above_only():
 
 
 @pytest.fixture(scope="session")
+def pt201_and_above_only():
+    pass
+
+
+@pytest.fixture(scope="session")
 def below_pt113_only():
     pass
 
@@ -1060,6 +1065,11 @@ def pt111_and_above_only():
 
 @pytest.fixture(scope="session")
 def skip_pt110():
+    pass
+
+
+@pytest.fixture(scope="session")
+def pt21_and_above_only():
     pass
 
 
@@ -1192,6 +1202,10 @@ def framework_version_within_limit(metafunc_obj, image):
             "skip_pt110" in metafunc_obj.fixturenames
             and is_equal_to_framework_version("1.10.*", image, image_framework_name)
         )
+        pt21_requirement_failed = (
+            "pt21_and_above_only" in metafunc_obj.fixturenames
+            and is_below_framework_version("2.1", image, image_framework_name)
+        )
         pt18_requirement_failed = (
             "pt18_and_above_only" in metafunc_obj.fixturenames
             and is_below_framework_version("1.8", image, image_framework_name)
@@ -1212,6 +1226,10 @@ def framework_version_within_limit(metafunc_obj, image):
             "pt14_and_above_only" in metafunc_obj.fixturenames
             and is_below_framework_version("1.4", image, image_framework_name)
         )
+        pt201_requirement_failed = (
+            "pt201_and_above_only" in metafunc_obj.fixturenames
+            and is_below_framework_version("2.0.1", image, image_framework_name)
+        )
         if (
             pt20_and_below_requirement_failed
             or not_pt200_requirement_failed
@@ -1219,11 +1237,13 @@ def framework_version_within_limit(metafunc_obj, image):
             or below_pt113_requirement_failed
             or pt111_requirement_failed
             or not_pt110_requirement_failed
+            or pt21_requirement_failed
             or pt18_requirement_failed
             or pt17_requirement_failed
             or pt16_requirement_failed
             or pt15_requirement_failed
             or pt14_requirement_failed
+            or pt201_requirement_failed
         ):
             return False
     return True

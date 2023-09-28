@@ -4,6 +4,9 @@ LABEL dlc_major_version="1"
 ARG PYTHON=python3
 ARG XFORMERS_VERSION=0.0.20
 
+RUN apt-get update \
+ && apt-get -y upgrade --only-upgrade libwebp6
+
 # xformers must be installed from source due to the older version of python in the DLC
 RUN pip install ninja \
   && pip install -v -U git+https://github.com/facebookresearch/xformers.git@v${XFORMERS_VERSION}#egg=xformers
