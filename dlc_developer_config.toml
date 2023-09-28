@@ -9,7 +9,7 @@ ei_mode = false
 neuron_mode = true
 # Please only set it to true if you are preparing a NEURONX related PR
 # Do remember to revert it back to false before merging any PR (including NEURONX dedicated PR)
-neuronx_mode = false
+neuronx_mode = true
 # Please only set it to true if you are preparing a GRAVITON related PR
 # Do remember to revert it back to false before merging any PR (including GRAVITON dedicated PR)
 graviton_mode = false
@@ -34,7 +34,7 @@ benchmark_mode = false
 build_frameworks = ["pytorch"]
 
 # By default we build both training and inference containers. Set true/false values to determine which to build.
-build_training = false
+build_training = true
 build_inference = true
 
 # Set to false in order to remove datetime tag on PR builds
