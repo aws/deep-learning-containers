@@ -40,13 +40,12 @@ def can_run_pytorchddp(ecr_image):
 @pytest.mark.multinode(2)
 @pytest.mark.integration("pytorchddp")
 @pytest.mark.parametrize(
-    "efa_instance_type", get_efa_test_instance_type(default=["ml.p5.48xlarge"]), indirect=True
+    "efa_instance_type", get_efa_test_instance_type(default=["ml.p4d.48xlarge"]), indirect=True
 )
 @pytest.mark.skip_cpu
 @pytest.mark.skip_py2_containers
 @pytest.mark.efa()
 @pytest.mark.skip_inductor_test
-@pytest.mark.xfail(reason="known issue: https://github.com/pytorch/pytorch/issues/99074")
 def test_pytorchddp_throughput_gpu(
     framework_version, ecr_image, sagemaker_regions, efa_instance_type, tmpdir
 ):

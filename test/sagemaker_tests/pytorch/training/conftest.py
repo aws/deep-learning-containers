@@ -297,7 +297,7 @@ def fixture_efa_instance_type(request):
     try:
         return request.param
     except AttributeError:
-        return get_efa_test_instance_type(default=["ml.p5.48xlarge"])[0]
+        return get_efa_test_instance_type(default=["ml.p4d.48xlarge"])[0]
 
 
 @pytest.fixture(scope="session", name="sagemaker_local_session")

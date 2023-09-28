@@ -34,23 +34,33 @@ def can_run_pytorchddp(ecr_image):
     _, image_framework_version = get_framework_and_version_from_tag(ecr_image)
     return Version(image_framework_version) in SpecifierSet(">=1.10")
 
+def validate_or_skip_pytorchddp_cuda121(ecr_image):
+    _, image_framework_version = get_framework_and_version_from_tag(ecr_image)
+    image_cuda_version = get_cuda_version_from_tag(ecr_image)
+    if Version(image_framework_version) in SpecifierSet("==2.0.1") and Version(
+        image_cuda_version.strip("cu")
+    ) == Version("121"):
+        pytest.skip("PyTorch 2.0 + CUDA12.1 image doesn't support pytorchddp")
+
 
 @pytest.mark.processor("gpu")
 @pytest.mark.model("N/A")
 @pytest.mark.multinode(2)
 @pytest.mark.integration("pytorchddp")
 @pytest.mark.parametrize(
-    "efa_instance_type", get_efa_test_instance_type(default=["ml.p5.48xlarge"]), indirect=True
+    "efa_instance_type", get_efa_test_instance_type(default=["ml.p4d.48xlarge"]), indirect=True
 )
 @pytest.mark.skip_cpu
 @pytest.mark.skip_py2_containers
 @pytest.mark.skip_trcomp_containers
 @pytest.mark.efa()
+@pytest.mark.skip_inductor_test
 def test_pytorchddp_throughput_gpu(
     framework_version, ecr_image, sagemaker_regions, efa_instance_type, tmpdir
 ):
     with timeout(minutes=25):
         validate_or_skip_pytorchddp(ecr_image)
+        validate_or_skip_pytorchddp_cuda121(ecr_image)
         distribution = {"pytorchddp": {"enabled": True}}
         estimator_parameter = {
             "entry_point": "pytorchddp_throughput_mnist.py",
