@@ -68,6 +68,7 @@ def can_run_smmodelparallel_efa(ecr_image):
         image_cuda_version.strip("cu")
     ) >= Version("110")
 
+
 def validate_or_skip_distributed_operations_cuda121(ecr_image):
     _, image_framework_version = get_framework_and_version_from_tag(ecr_image)
     image_cuda_version = get_cuda_version_from_tag(ecr_image)
@@ -75,6 +76,7 @@ def validate_or_skip_distributed_operations_cuda121(ecr_image):
         image_cuda_version.strip("cu")
     ) == Version("121"):
         pytest.skip("PyTorch 2.0 + CUDA12.1 image doesn't support distributed_operations")
+
 
 @pytest.mark.processor("cpu")
 @pytest.mark.multinode(3)

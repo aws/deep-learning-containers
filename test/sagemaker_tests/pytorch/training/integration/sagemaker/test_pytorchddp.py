@@ -34,6 +34,7 @@ def can_run_pytorchddp(ecr_image):
     _, image_framework_version = get_framework_and_version_from_tag(ecr_image)
     return Version(image_framework_version) in SpecifierSet(">=1.10")
 
+
 def validate_or_skip_pytorchddp_cuda121(ecr_image):
     _, image_framework_version = get_framework_and_version_from_tag(ecr_image)
     image_cuda_version = get_cuda_version_from_tag(ecr_image)
