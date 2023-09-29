@@ -4,9 +4,9 @@ release_images:
     framework: "pytorch"
     version: "2.0.1"
     arch_type: "x86"
-    customer_type: "ec2"
+    customer_type: "sagemaker"
     training:
-      device_types: ["gpu" ]
+      device_types: [ "gpu" ]
       python_versions: [ "py310" ]
       cuda_version: "cu118"
       os_version: "ubuntu20.04"
