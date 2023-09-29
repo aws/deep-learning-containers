@@ -45,6 +45,26 @@ def test_mnist_distributed_cpu(
 @pytest.mark.multinode(2)
 @pytest.mark.integration("smexperiments")
 @pytest.mark.skip_cpu
+@pytest.mark.skip_pt20_cuda121_tests
+def test_mnist_distributed_gpu(
+    framework_version, ecr_image, sagemaker_regions, instance_type, dist_gpu_backend
+):
+    instance_type = instance_type or "ml.g4dn.12xlarge"
+    function_args = {
+        "framework_version": framework_version,
+        "instance_type": instance_type,
+        "dist_backend": dist_gpu_backend,
+    }
+
+    invoke_pytorch_helper_function(
+        ecr_image, sagemaker_regions, _test_mnist_distributed, function_args
+    )
+
+
+@pytest.mark.processor("gpu")
+@pytest.mark.model("mnist")
+@pytest.mark.integration("smexperiments")
+@pytest.mark.skip_cpu
 def test_mnist_distributed_gpu(
     framework_version, ecr_image, sagemaker_regions, instance_type, dist_gpu_backend
 ):
@@ -86,11 +106,32 @@ def test_hc_mnist_distributed_cpu(
 @pytest.mark.multinode(2)
 @pytest.mark.integration("smexperiments")
 @pytest.mark.skip_cpu
+@pytest.mark.skip_pt20_cuda121_tests
 def test_hc_mnist_distributed_gpu(
     framework_version, ecr_image, sagemaker_regions, instance_type, dist_gpu_backend
 ):
     instance_type = instance_type or "ml.g4dn.12xlarge"
     training_group = InstanceGroup("train_group", instance_type, 2)
+    function_args = {
+        "framework_version": framework_version,
+        "instance_groups": [training_group],
+        "dist_backend": dist_gpu_backend,
+    }
+
+    invoke_pytorch_helper_function(
+        ecr_image, sagemaker_regions, _test_mnist_distributed, function_args
+    )
+
+
+@pytest.mark.processor("gpu")
+@pytest.mark.model("mnist")
+@pytest.mark.integration("smexperiments")
+@pytest.mark.skip_cpu
+def test_hc_mnist_distributed_gpu(
+    framework_version, ecr_image, sagemaker_regions, instance_type, dist_gpu_backend
+):
+    instance_type = instance_type or "ml.g4dn.12xlarge"
+    training_group = InstanceGroup("train_group", instance_type, 1)
     function_args = {
         "framework_version": framework_version,
         "instance_groups": [training_group],

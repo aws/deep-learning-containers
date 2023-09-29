@@ -69,15 +69,6 @@ def can_run_smmodelparallel_efa(ecr_image):
     ) >= Version("110")
 
 
-def validate_or_skip_distributed_operations_cuda121(ecr_image):
-    _, image_framework_version = get_framework_and_version_from_tag(ecr_image)
-    image_cuda_version = get_cuda_version_from_tag(ecr_image)
-    if Version(image_framework_version) in SpecifierSet("==2.0.1") and Version(
-        image_cuda_version.strip("cu")
-    ) == Version("121"):
-        pytest.skip("PyTorch 2.0 + CUDA12.1 image doesn't support distributed_operations")
-
-
 @pytest.mark.processor("cpu")
 @pytest.mark.multinode(3)
 @pytest.mark.model("unknown_model")
@@ -103,6 +94,7 @@ def test_dist_operations_cpu(
 @pytest.mark.model("unknown_model")
 @pytest.mark.skip_cpu
 @pytest.mark.deploy_test
+@pytest.mark.skip_pt20_cuda121_tests
 def test_dist_operations_gpu(
     framework_version, instance_type, ecr_image, sagemaker_regions, dist_gpu_backend
 ):
@@ -177,6 +169,7 @@ def test_dist_operations_fastai_gpu(framework_version, ecr_image, sagemaker_regi
 @pytest.mark.skip_cpu
 @pytest.mark.skip_py2_containers
 @pytest.mark.skip_trcomp_containers
+@pytest.mark.skip_pt20_cuda121_tests
 @pytest.mark.parametrize("test_script, num_processes", [("train_gpt_simple.py", 8)])
 def test_smmodelparallel_gpt2_multigpu_singlenode(
     ecr_image, instance_type, sagemaker_regions, test_script, num_processes
@@ -187,7 +180,7 @@ def test_smmodelparallel_gpt2_multigpu_singlenode(
     framework, framework_version = get_framework_and_version_from_tag(ecr_image)
     if framework == "pytorch" and Version(framework_version) in SpecifierSet("==1.9.*"):
         pytest.skip("Skipping the test for PT1.9")
-    instance_type = "ml.p4d.48xlarge"
+    instance_type = "ml.p4d.24xlarge"
     smp_version = (
         110
         if framework == "pytorch" and Version(framework_version) in SpecifierSet(">=1.11.0")
@@ -275,6 +268,7 @@ def test_smmodelparallel_gpt2_multigpu_singlenode(
 @pytest.mark.skip_cpu
 @pytest.mark.skip_py2_containers
 @pytest.mark.skip_trcomp_containers
+@pytest.mark.skip_pt20_cuda121_tests
 @pytest.mark.parametrize("test_script, num_processes", [("train_gpt_simple.py", 8)])
 def test_smmodelparallel_gpt2_multigpu_singlenode_flashattn(
     ecr_image, instance_type, sagemaker_regions, test_script, num_processes
@@ -285,7 +279,7 @@ def test_smmodelparallel_gpt2_multigpu_singlenode_flashattn(
     framework, framework_version = get_framework_and_version_from_tag(ecr_image)
     if Version(framework_version) in SpecifierSet("<1.12.0"):
         pytest.skip("Skipping the test for older than PT 1.12")
-    instance_type = "ml.p4d.48xlarge"
+    instance_type = "ml.p4d.24xlarge"
     smp_version = (
         110
         if framework == "pytorch" and Version(framework_version) in SpecifierSet(">=1.11.0")
@@ -376,6 +370,7 @@ def test_smmodelparallel_gpt2_multigpu_singlenode_flashattn(
 @pytest.mark.skip_cpu
 @pytest.mark.skip_py2_containers
 @pytest.mark.skip_trcomp_containers
+@pytest.mark.skip_pt20_cuda121_tests
 @pytest.mark.parametrize("test_script, num_processes", [("smmodelparallel_pt_mnist.py", 8)])
 def test_smmodelparallel_mnist_multigpu_multinode(
     ecr_image, instance_type, sagemaker_regions, test_script, num_processes
@@ -494,6 +489,7 @@ def test_hc_smmodelparallel_mnist_multigpu_multinode(
 @pytest.mark.skip_trcomp_containers
 @pytest.mark.parametrize("test_script, num_processes", [("smmodelparallel_pt_mnist.py", 8)])
 @pytest.mark.efa()
+@pytest.mark.skip_pt20_cuda121_tests
 def test_smmodelparallel_mnist_multigpu_multinode_efa(
     ecr_image, efa_instance_type, sagemaker_regions, test_script, num_processes
 ):
@@ -501,7 +497,6 @@ def test_smmodelparallel_mnist_multigpu_multinode_efa(
     Tests pt mnist command via script mode
     """
     validate_or_skip_smmodelparallel_efa(ecr_image)
-    validate_or_skip_distributed_operations_cuda121(ecr_image)
     with timeout(minutes=DEFAULT_TIMEOUT):
         estimator_parameter = {
             "entry_point": test_script,
@@ -551,13 +546,13 @@ def test_smmodelparallel_mnist_multigpu_multinode_efa(
 @pytest.mark.skip_trcomp_containers
 @pytest.mark.parametrize("test_script, num_processes", [("train_gpt_simple.py", 8)])
 @pytest.mark.efa()
+@pytest.mark.skip_pt20_cuda121_tests
 def test_smmodelparallel_gpt2_sdp_multinode_efa(
     ecr_image, efa_instance_type, sagemaker_regions, test_script, num_processes
 ):
     """
     Tests pt gpt2 command via script mode
     """
-    validate_or_skip_distributed_operations_cuda121(ecr_image)
     framework, framework_version = get_framework_and_version_from_tag(ecr_image)
     if framework == "pytorch" and Version(framework_version) in SpecifierSet("<1.12.0"):
         pytest.skip("Skipping the test for PT version before 1.12")
@@ -644,12 +639,12 @@ def test_smmodelparallel_gpt2_sdp_multinode_efa(
 @pytest.mark.skip_cpu
 @pytest.mark.efa()
 @pytest.mark.skip_py2_containers
+@pytest.mark.skip_pt20_cuda121_tests
 def test_sanity_efa(ecr_image, efa_instance_type, sagemaker_regions):
     """
     Tests pt mnist command via script mode
     """
     validate_or_skip_smmodelparallel_efa(ecr_image)
-    validate_or_skip_distributed_operations_cuda121(ecr_image)
     efa_test_path = os.path.join(RESOURCE_PATH, "efa", "test_efa.sh")
     with timeout(minutes=DEFAULT_TIMEOUT):
         estimator_parameter = {

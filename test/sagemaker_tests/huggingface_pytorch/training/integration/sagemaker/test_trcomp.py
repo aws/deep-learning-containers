@@ -77,7 +77,7 @@ def instance_count():
 
 @pytest.fixture
 def num_gpus_per_instance(instance_type):
-    if instance_type in ["ml.p3.16xlarge", "ml.p4d.48xlarge"]:
+    if instance_type in ["ml.p3.16xlarge", "ml.p4d.24xlarge"]:
         return 8
     elif instance_type in ["ml.g4dn.12xlarge", "ml.g5.12xlarge"]:
         return 4
@@ -373,7 +373,7 @@ class TestMultiNodeMultiGPU:
         "instance_type, instance_count",
         [
             ("ml.p3.16xlarge", 2),
-            ("ml.p4d.48xlarge", 2),
+            ("ml.p4d.24xlarge", 2),
             ("ml.g4dn.12xlarge", 2),
             ("ml.g5.12xlarge", 2),
         ],
