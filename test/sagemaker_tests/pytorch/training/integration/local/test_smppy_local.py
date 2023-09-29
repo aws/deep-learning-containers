@@ -12,7 +12,8 @@
 # permissions and limitations under the License.
 from __future__ import absolute_import
 
-import os
+import os, sys
+import subprocess
 
 import pytest
 from sagemaker.pytorch import PyTorch
@@ -20,6 +21,8 @@ from sagemaker.pytorch import PyTorch
 from ...integration import ROLE, data_dir, smppy_mnist_script
 from ...utils.local_mode_utils import assert_files_exist
 
+# only the latest version of sagemaker supports profiler
+subprocess.check_call([sys.executable, "-m", "pip", "install", "sagemaker>=2.180.0"])
 
 @pytest.mark.usefixtures("feature_smppy_present")
 @pytest.mark.processor("gpu")
