@@ -12,6 +12,9 @@ ARG SMD_MODEL_PARALLEL_URL=https://sagemaker-distributed-model-parallel.s3.us-we
 # ZeRO-2D Binary
 ARG ZERO_2D_URL=https://aws-deepspeed-zero-2d-binaries.s3.us-west-2.amazonaws.com/r2.0.0/20230407-184728/1ea3d4b6aa41fe66277daacbb78b3743a310d85a/deepspeed-0.6.1%2B1ea3d4b-py3-none-any.whl
 
+# SageMaker Profiler Binary
+ARG SMP_URL=https://smppy.s3.amazonaws.com/pytorch/cu118/smppy-0.3.325-cp310-cp310-linux_x86_64.whl
+
 FROM nvidia/cuda:11.8.0-base-ubuntu20.04 AS base_image
 
 ENV DEBIAN_FRONTEND=noninteractive \
@@ -620,6 +623,10 @@ RUN pip install --no-cache-dir -U ${SMD_MODEL_PARALLEL_URL}
 
 # Install SM Distributed DataParallel binary
 RUN SMDATAPARALLEL_PT=1 pip install --no-cache-dir ${SMD_DATA_PARALLEL_URL}
+
+# Install SageMaker Profiler Binary
+RUN apt-get update && apt-get install -y libunwind-dev && apt-get clean \
+ && pip install --no-cache-dir -U ${SMP_URL}
 
 # Install NCCL-tests (needed for Sagemaker provided health check)
 RUN git clone https://github.com/NVIDIA/nccl-tests.git ${HOME}/nccl-tests \
