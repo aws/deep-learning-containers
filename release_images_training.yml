@@ -17,7 +17,7 @@ release_images:
     framework: "pytorch"
     version: "1.13.1"
     arch_type: "x86"
-    inference:
+    training:
       device_types: [ "neuronx" ]
       python_versions: [ "py310" ]
       os_version: "ubuntu20.04"
