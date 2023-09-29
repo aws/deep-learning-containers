@@ -1,103 +1,82 @@
 FROM ubuntu:20.04
 
 LABEL maintainer="Amazon AI"
+#SDK 1.17.1 has version 1. We skipped 1.18.0.
 LABEL dlc_major_version="1"
-# Specify LABEL for inference pipelines to use SAGEMAKER_BIND_TO_PORT
+# Specify accept-bind-to-port LABEL for inference pipelines to use SAGEMAKER_BIND_TO_PORT
 # https://docs.aws.amazon.com/sagemaker/latest/dg/inference-pipeline-real-time.html
 LABEL com.amazonaws.sagemaker.capabilities.accept-bind-to-port=true
 
-
-# Define framework-related package sources
-ARG PYTHON=python3
+ARG PYTHON=python3.10
 ARG PYTHON_PIP=python3-pip
 ARG PIP=pip3
-ARG PYTHON_VERSION=3.8.16
-ARG TFS_SHORT_VERSION=1.15.5
-ARG TF_S3_URL=https://tensorflow-aws.s3-us-west-2.amazonaws.com
+ARG PYTHON_VERSION=3.10.12
+ARG TFS_SHORT_VERSION=2.10
 
-# Prevent docker build get stopped by requesting user interaction
-ENV DEBIAN_FRONTEND=noninteractive
-ENV DEBCONF_NONINTERACTIVE_SEEN=true
-# Set environment variables for MKL
-# https://www.tensorflow.org/performance/performance_guide#tensorflow_with_intel%C2%AE_mkl_dnn
-ENV KMP_AFFINITY=granularity=fine,compact,1,0
-ENV KMP_BLOCKTIME=1
-ENV KMP_SETTINGS=0
+# Neuron SDK components version numbers
+ARG NEURONX_RUNTIME_LIB_VERSION=2.17.*
+ARG NEURONX_COLLECTIVES_LIB_VERSION=2.17.*
+ARG NEURONX_TOOLS_VERSION=2.14.*
+ARG NEURONX_FRAMEWORK_VERSION=2.10.1.2.1.*
+ARG NEURONX_TF_MODEL_SERVER_VERSION=2.10.1.2.10.1.*
+ARG NEURONX_CC_VERSION=2.10.*
+
+# See http://bugs.python.org/issue19846
+ENV LANG=C.UTF-8
 # Python won’t try to write .pyc or .pyo files on the import of source modules
 ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
-# See http://bugs.python.org/issue19846
-ENV PYTHONIOENCODING=UTF-8
-ENV LANG=C.UTF-8
-ENV LC_ALL=C.UTF-8
-# Specify the location of module that contains the training logic for SageMaker
-# https://docs.aws.amazon.com/sagemaker/latest/dg/docker-container-environmental-variables-entrypoint.html
 ENV SAGEMAKER_TFS_VERSION="${TFS_SHORT_VERSION}"
-ENV PATH="$PATH:/sagemaker"
-ENV LD_LIBRARY_PATH='/usr/local/lib:$LD_LIBRARY_PATH'
+ENV PATH="/opt/aws/neuron/bin:$PATH:/sagemaker"
+ENV LD_LIBRARY_PATH='/opt/aws/neuron/lib:/usr/local/lib:$LD_LIBRARY_PATH'
 ENV MODEL_BASE_PATH=/models
 # The only required piece is the model name in order to differentiate endpoints
 ENV MODEL_NAME=model
+ENV DEBIAN_FRONTEND=noninteractive
 
+# nginx + njs
 RUN apt-get update \
  && apt-get upgrade -y \
- && apt-get install -y --no-install-recommends \
-    build-essential \
-    ca-certificates \
+ && apt-get -y upgrade --only-upgrade systemd \
+ && apt-get -y install --no-install-recommends \
     curl \
+    gnupg2 \
+    ca-certificates \
     emacs \
     git \
-    gnupg2 \
-    libssl1.1 \
-    openssh-client \
-    openssh-server \
-    openssl \
-    vim \
-    wget \
     unzip \
+    wget \
+    vim \
+    libbz2-dev \
+    liblzma-dev \
+    libffi-dev \
+    build-essential \
     zlib1g-dev \
+    openssl \
+    libssl1.1 \
+    libreadline-gplv2-dev \
+    libncursesw5-dev \
+    libssl-dev \
+    libsqlite3-dev \
+    tk-dev \
+    libgdbm-dev \
+    libcap-dev \
+    libc6-dev \
  && curl -s http://nginx.org/keys/nginx_signing.key | apt-key add - \
  && echo 'deb http://nginx.org/packages/ubuntu/ focal nginx' >> /etc/apt/sources.list \
  && apt-get update \
  && apt-get -y install --no-install-recommends \
     nginx=1.20.1* \
     nginx-module-njs=1.20.1* \
- && rm -rf /var/lib/apt/lists/* \
- && apt-get clean
+ && apt-get clean \
+ && rm -rf /var/lib/apt/lists/*
 
-# SSH login fix. Otherwise user is kicked off after login
-RUN sed 's@session\s*required\s*pam_loginuid.so@session optional pam_loginuid.so@g' -i /etc/pam.d/sshd
-
-# Create SSH key.
-RUN mkdir -p /root/.ssh/ \
- && mkdir -p /var/run/sshd \
- && ssh-keygen -q -t rsa -N '' -f /root/.ssh/id_rsa \
- && cp /root/.ssh/id_rsa.pub /root/.ssh/authorized_keys \
- && printf "Host *\n  StrictHostKeyChecking no\n" >> /root/.ssh/config
-
-WORKDIR /
-
-RUN apt-get update \
- && apt-get install -y --no-install-recommends \
-    libbz2-dev \
-    libc6-dev \
-    libffi-dev \
-    libgdbm-dev \
-    libncursesw5-dev \
-    libreadline-gplv2-dev \
-    libsqlite3-dev \
-    libssl-dev \
-    libcap-dev \
-    tk-dev \
-    python3-venv \
-    && rm -rf /var/lib/apt/lists/* \
-    && apt-get clean
-
+# Install python3.10
 RUN wget https://www.python.org/ftp/python/$PYTHON_VERSION/Python-$PYTHON_VERSION.tgz \
  && tar -xvf Python-$PYTHON_VERSION.tgz \
  && cd Python-$PYTHON_VERSION \
  && ./configure && make && make install \
- && make && make install && rm -rf ../Python-$PYTHON_VERSION* \
+ && rm -rf ../Python-$PYTHON_VERSION* \
  && rm -rf /tmp/tmp*
 
 RUN echo "deb https://apt.repos.neuron.amazonaws.com focal main" > /etc/apt/sources.list.d/neuron.list
@@ -105,44 +84,46 @@ RUN wget -qO - https://apt.repos.neuron.amazonaws.com/GPG-PUB-KEY-AMAZON-AWS-NEU
 RUN apt-get update
 
 RUN apt-get install -y \
-    tensorflow-model-server-neuron=1.15.* \
-    aws-neuronx-tools
+    tensorflow-model-server-neuronx=${NEURONX_TF_MODEL_SERVER_VERSION} \
+    aws-neuronx-tools=${NEURONX_TOOLS_VERSION} \
+    aws-neuronx-collectives=${NEURONX_COLLECTIVES_LIB_VERSION} \
+    aws-neuronx-runtime-lib=${NEURONX_RUNTIME_LIB_VERSION} \
+ && apt-get clean \
+ && rm -rf /var/lib/apt/lists/*
 
 RUN ${PIP} --no-cache-dir install --upgrade \
     pip \
     setuptools
 
-# Some TF tools expect a "python" binary
-RUN ln -s $(which python3) /usr/local/bin/python \
- && ln -s $(which pip3) /usr/bin/pip
-
 # cython, falcon, gunicorn, grpc
-RUN ${PIP} install --no-cache-dir -U \
+RUN ${PIP} install --no-cache-dir \
     "awscli<2" \
-    "pyYAML>=5.4,<5.5" \
     boto3 \
-    cython==0.29.21 \
-    falcon==2.0.0 \
-    gunicorn==20.0.4 \
-    gevent==21.1.1 \
-    requests==2.25.1 \
+    cython==0.29.* \
+    falcon==2.* \
+    gunicorn==20.1.* \
+    gevent==21.12.* \
+    requests \
     grpcio==1.56.2 \
-    protobuf==3.14.0
+    "urllib3<1.27,>=1.25.4" \
+    "protobuf<4" \
+# using --no-dependencies to avoid installing tensorflow binary
+ && ${PIP} install --no-dependencies --no-cache-dir \
+    tensorflow-serving-api==2.10.1
 
 # pip install statements have been separated out into multiple sequentially executed statements to
 # resolve package dependencies during installation.
-RUN ${PIP} install tensorflow_serving_api==1.15 --no-deps --extra-index-url https://pip.repos.neuron.amazonaws.com \
- && ${PIP} install "tensorboard-neuron>=1.15,<1.16" --extra-index-url https://pip.repos.neuron.amazonaws.com \
- && ${PIP} install neuron-cc==1.13.* --extra-index-url https://pip.repos.neuron.amazonaws.com \
- && ${PIP} install tensorflow-neuron==1.15.5.2.6.* --extra-index-url https://pip.repos.neuron.amazonaws.com
-
+RUN ${PIP} install neuronx-cc==${NEURONX_CC_VERSION} tensorflow-neuronx==${NEURONX_FRAMEWORK_VERSION} --extra-index-url https://pip.repos.neuron.amazonaws.com \
+ && ${PIP} install tensorboard-plugin-neuron --extra-index-url https://pip.repos.neuron.amazonaws.com
 
 COPY ./sagemaker /sagemaker
 
+# Some TF tools expect a "python" binary
+RUN ln -s $(which ${PYTHON}) /usr/local/bin/python \
+ && ln -s $(which ${PIP}) /usr/bin/pip
 
-RUN curl ${TF_S3_URL}/MKL-Libraries/libiomp5.so -o /usr/local/lib/libiomp5.so \
- && curl ${TF_S3_URL}/MKL-Libraries/libmklml_intel.so -o /usr/local/lib/libmklml_intel.so
-
+RUN curl https://tensorflow-aws.s3-us-west-2.amazonaws.com/MKL-Libraries/libiomp5.so -o /usr/local/lib/libiomp5.so
+RUN curl https://tensorflow-aws.s3-us-west-2.amazonaws.com/MKL-Libraries/libmklml_intel.so -o /usr/local/lib/libmklml_intel.so
 
 # Expose ports
 # gRPC and REST
@@ -157,7 +138,6 @@ RUN echo '#!/bin/bash \n\n' > /usr/local/bin/entrypoint.sh \
  && echo '/usr/local/bin/tensorflow_model_server_neuron --port=8500 --rest_api_port=8501 --model_name=${MODEL_NAME} --model_base_path=${MODEL_BASE_PATH}/${MODEL_NAME} "$@"' >> /usr/local/bin/entrypoint.sh \
  && chmod +x /usr/local/bin/entrypoint.sh
 
-
 COPY deep_learning_container.py /usr/local/bin/deep_learning_container.py
 
 RUN chmod +x /usr/local/bin/deep_learning_container.py
@@ -171,7 +151,7 @@ RUN HOME_DIR=/root \
  && ${HOME_DIR}/oss_compliance/generate_oss_compliance.sh ${HOME_DIR} ${PYTHON} \
  && rm -rf ${HOME_DIR}/oss_compliance*
 
-RUN curl https://aws-dlc-licenses.s3.amazonaws.com/tensorflow/license.txt -o /license.txt
+RUN curl https://aws-dlc-licenses.s3.amazonaws.com/tensorflow-$TFS_SHORT_VERSION/license.txt -o /license.txt
 
 COPY neuron-entrypoint.py /usr/local/bin/dockerd-entrypoint.py
 COPY neuron-monitor.sh /usr/local/bin/neuron-monitor.sh
