@@ -104,6 +104,7 @@ RUN pip install --no-cache-dir -U \
     "awscli<2" \
     pandas==1.* \
     boto3 \
+    numpy==1.21.6 \
     cryptography
 
 RUN pip install neuron-cc[tensorflow]==$NEURON_CC_VERSION --extra-index-url https://pip.repos.neuron.amazonaws.com \
