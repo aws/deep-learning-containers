@@ -439,7 +439,7 @@ def skip_s3plugin_test(request):
 def skip_pt20_cuda121_tests(request, ecr_image):
     _, image_framework_version = get_framework_and_version_from_tag(ecr_image)
     image_cuda_version = get_cuda_version_from_tag(ecr_image)
-    if request.node.get_closest_marker("skip_s3plugin_test"):
+    if request.node.get_closest_marker("skip_pt20_cuda121_tests"):
         if Version(image_framework_version) in SpecifierSet("==2.0.1") and Version(
             image_cuda_version.strip("cu")
         ) == Version("121"):
