@@ -110,7 +110,7 @@ RUN pip install --no-cache-dir -U \
     "awscli<2" \
     pandas==1.* \
     boto3 \
-    numpy==1.21.6 \
+    numpy \
     cryptography
 
 RUN pip install --extra-index-url https://pip.repos.neuron.amazonaws.com \
