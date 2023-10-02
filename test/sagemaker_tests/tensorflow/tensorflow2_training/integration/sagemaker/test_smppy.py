@@ -14,6 +14,10 @@ from __future__ import absolute_import
 
 import os, sys
 import subprocess
+
+# only the latest version of sagemaker supports profiler
+subprocess.check_call([sys.executable, "-m", "pip", "install", "sagemaker>=2.180.0"])
+
 import time
 from test.test_utils import get_cuda_version_from_tag, get_framework_and_version_from_tag
 
@@ -35,9 +39,6 @@ INSTANCE_TYPE = "ml.g4dn.12xlarge"
 WAIT_TIME = 60
 NUM_CHECKS = 5
 
-
-# only the latest version of sagemaker supports profiler
-subprocess.check_call([sys.executable, "-m", "pip", "install", "sagemaker>=2.180.0"])
 
 @pytest.mark.processor("gpu")
 @pytest.mark.integration("smppy")
