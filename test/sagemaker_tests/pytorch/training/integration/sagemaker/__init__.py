@@ -187,6 +187,7 @@ def _test_mnist(
     instance_groups=None,
     use_inductor=False,
 ):
+    dist_method = "pytorchddp" if dist_backend.lower() == "nccl" else "torch_distributed"
     est_params = {
         "entry_point": mnist_script,
         "role": "SageMakerRole",
