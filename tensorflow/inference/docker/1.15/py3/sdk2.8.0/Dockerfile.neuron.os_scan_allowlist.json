@@ -11185,6 +11185,34 @@
             "severity": "HIGH",
             "status": "ACTIVE",
             "title": "CVE-2023-1428 - grpcio"
+        },
+        {
+            "description": "gRPC contains a vulnerability that allows hpack table accounting errors could lead to unwanted disconnects between clients and servers in exceptional cases/\u00a0Three vectors were found that allow the following DOS attacks:\n\n- Unbounded memory buffering in the HPACK parser\n- Unbounded CPU consumption in the HPACK parser\n\nThe unbounded CPU consumption is down to a copy that occurred per-input-block in the parser, and because that could be unbounded due to the memory copy bug we end up with an O(n^2) parsing loop, with n selected by the client.\n\nThe unbounded memory buffering bugs:\n\n- The header size limit check was behind the string reading code, so we needed to first buffer up to a 4 gigabyte string before rejecting it as longer than 8 or 16kb.\n- HPACK varints have an encoding quirk whereby an infinite number of 0\u2019s can be added at the start of an integer. gRPC\u2019s hpack parser needed to read all of them before concluding a parse.\n- gRPC\u2019s metadata overflow check was performed per frame, so that the following seque",
+            "vulnerability_id": "CVE-2023-33953",
+            "name": "CVE-2023-33953",
+            "package_name": "grpcio",
+            "package_details": {
+                "file_path": "usr/local/lib/python3.8/site-packages/grpcio-1.34.1.dist-info/METADATA",
+                "name": "grpcio",
+                "package_manager": "PYTHONPKG",
+                "version": "1.34.1",
+                "release": null
+            },
+            "remediation": {
+                "recommendation": {
+                    "text": "None Provided"
+                }
+            },
+            "cvss_v3_score": 7.5,
+            "cvss_v30_score": 0,
+            "cvss_v31_score": 7.5,
+            "cvss_v2_score": 0,
+            "cvss_v3_severity": "HIGH",
+            "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2023-33953",
+            "source": "NVD",
+            "severity": "HIGH",
+            "status": "ACTIVE",
+            "title": "CVE-2023-33953 - grpcio"
         }
     ],
     "scipy": [
@@ -11215,6 +11243,36 @@
             "severity": "HIGH",
             "status": "ACTIVE",
             "title": "IN1-PYTHON-SCIPY-5759266 - scipy"
+        }
+    ],
+    "gevent": [
+        {
+            "description": "An issue in Gevent Gevent before version 23.9.1 allows a remote attacker to escalate privileges via a crafted script to the WSGIServer component.",
+            "vulnerability_id": "CVE-2023-41419",
+            "name": "CVE-2023-41419",
+            "package_name": "gevent",
+            "package_details": {
+                "file_path": "usr/local/lib/python3.8/site-packages/gevent-21.1.1.dist-info/METADATA",
+                "name": "gevent",
+                "package_manager": "PYTHONPKG",
+                "version": "21.1.1",
+                "release": null
+            },
+            "remediation": {
+                "recommendation": {
+                    "text": "None Provided"
+                }
+            },
+            "cvss_v3_score": 9.8,
+            "cvss_v30_score": 0,
+            "cvss_v31_score": 9.8,
+            "cvss_v2_score": 0,
+            "cvss_v3_severity": "CRITICAL",
+            "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2023-41419",
+            "source": "NVD",
+            "severity": "CRITICAL",
+            "status": "ACTIVE",
+            "title": "CVE-2023-41419 - gevent"
         }
     ]
 }
