@@ -14,8 +14,11 @@ from __future__ import absolute_import
 
 import os, sys
 import subprocess
-import time
 
+# only the latest version of sagemaker supports profiler
+subprocess.check_call([sys.executable, "-m", "pip", "install", "sagemaker>=2.180.0"])
+
+import time
 import boto3
 import pytest
 from sagemaker import utils, ProfilerConfig, Profiler
@@ -27,9 +30,6 @@ from .test_pytorchddp import validate_or_skip_pytorchddp
 
 INSTANCE_TYPE = "ml.g4dn.12xlarge"
 
-
-# only the latest version of sagemaker supports profiler
-subprocess.check_call([sys.executable, "-m", "pip", "install", "sagemaker>=2.180.0"])
 
 @pytest.mark.usefixtures("feature_smppy_present")
 @pytest.mark.processor("gpu")
