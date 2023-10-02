@@ -195,7 +195,7 @@ def _test_mnist(
         "image_uri": ecr_image,
         "hyperparameters": {"backend": dist_backend, "epochs": 1, "inductor": int(use_inductor)},
         "framework_version": framework_version,
-        "distribution": {dist_method: {"enabled": False}},
+        "distribution": {dist_method: {"enabled": True}},
     }
     if not instance_groups:
         est_params["instance_type"] = instance_type

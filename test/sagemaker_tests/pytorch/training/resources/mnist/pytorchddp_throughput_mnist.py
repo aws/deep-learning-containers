@@ -175,6 +175,9 @@ def main():
 
     args = parser.parse_args()
     args.world_size = int(os.environ["WORLD_SIZE"])
+    if "MASTER_ADDR" not in os.environ:
+        os.environ["MASTER_ADDR"] = os.environ["SM_HOSTS"][0]
+        os.environ["MASTER_PORT"] = "55555"
     args.lr = 1.0
     args.batch_size //= args.world_size // 8
     args.batch_size = max(args.batch_size, 1)
