@@ -17,7 +17,7 @@ from sagemaker.instance_group import InstanceGroup
 from sagemaker.pytorch import PyTorch
 
 from .... import invoke_pytorch_helper_function
-from . import _test_mnist_distributed
+from . import _test_mnist_distributed, _test_mnist
 
 
 @pytest.mark.processor("cpu")
@@ -65,7 +65,7 @@ def test_mnist_distributed_gpu(
 @pytest.mark.model("mnist")
 @pytest.mark.integration("smexperiments")
 @pytest.mark.skip_cpu
-def test_mnist_distributed_gpu(
+def test_mnist_gpu(
     framework_version, ecr_image, sagemaker_regions, instance_type, dist_gpu_backend
 ):
     instance_type = instance_type or "ml.g4dn.12xlarge"
@@ -75,9 +75,7 @@ def test_mnist_distributed_gpu(
         "dist_backend": dist_gpu_backend,
     }
 
-    invoke_pytorch_helper_function(
-        ecr_image, sagemaker_regions, _test_mnist_distributed, function_args
-    )
+    invoke_pytorch_helper_function(ecr_image, sagemaker_regions, _test_mnist, function_args)
 
 
 @pytest.mark.processor("cpu")
@@ -127,7 +125,7 @@ def test_hc_mnist_distributed_gpu(
 @pytest.mark.model("mnist")
 @pytest.mark.integration("smexperiments")
 @pytest.mark.skip_cpu
-def test_hc_mnist_distributed_gpu(
+def test_hc_mnist_gpu(
     framework_version, ecr_image, sagemaker_regions, instance_type, dist_gpu_backend
 ):
     instance_type = instance_type or "ml.g4dn.12xlarge"
@@ -138,6 +136,4 @@ def test_hc_mnist_distributed_gpu(
         "dist_backend": dist_gpu_backend,
     }
 
-    invoke_pytorch_helper_function(
-        ecr_image, sagemaker_regions, _test_mnist_distributed, function_args
-    )
+    invoke_pytorch_helper_function(ecr_image, sagemaker_regions, _test_mnist, function_args)

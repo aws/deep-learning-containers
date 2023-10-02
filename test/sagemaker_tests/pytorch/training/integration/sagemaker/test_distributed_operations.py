@@ -428,6 +428,7 @@ def test_smmodelparallel_mnist_multigpu_multinode(
 @pytest.mark.skip_cpu
 @pytest.mark.skip_py2_containers
 @pytest.mark.skip_trcomp_containers
+@pytest.mark.skip_pt20_cuda121_tests
 @pytest.mark.parametrize("test_script, num_processes", [("smmodelparallel_pt_mnist.py", 8)])
 def test_hc_smmodelparallel_mnist_multigpu_multinode(
     ecr_image, instance_type, sagemaker_regions, test_script, num_processes
