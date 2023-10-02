@@ -124,29 +124,20 @@ def conduct_preprocessing_of_images_before_running_ecr_scans(image, ecr_client, 
     return image
 
 
-@pytest.mark.usefixtures("sagemaker")
-@pytest.mark.model("N/A")
-@pytest.mark.integration("ECR Enhanced Scans on Images")
-def test_ecr_enhanced_scan(image, ecr_client, sts_client, region):
+def helper_function_for_leftover_vulnerabilities_from_enhanced_scanning(image):
     """
-    Run ECR Enhanced Scan Tool on an image being tested, and raise Error if vulnerabilities found
+    Acts as a helper function that conducts enhanced scan on an image URI and then returns the list of leftover vulns
+    after removing the allowlisted vulns.
     1. Upload image to the ECR Enhanced Scanning Testing Repo.
     2. Wait for the scans to complete - takes approx 10 minutes for big images. Once the scan is complete,
         the scan status changes to ACTIVE
     3. If the status does not turn to ACTIVE, raise a TimeOut Error
     4. Read the ecr_scan_results and remove the allowlisted vulnerabilities from it
-    5. In case any vulnerability is remaining after removal, raise an error
+    5. Return the leftover list
 
     :param image: str Image URI for image to be tested
-    :param ecr_client: boto3 Client for ECR
-    :param sts_client: boto3 Client for STS
-    :param region: str Name of region where test is executed
+    :return: ECREnhancedScanVulnerabilityList Object with leftover vulnerability data
     """
-    LOGGER.info(f"Running test_ecr_enhanced_scan for image {image}")
-    image = conduct_preprocessing_of_images_before_running_ecr_scans(
-        image, ecr_client, sts_client, region
-    )
-
     ecr_enhanced_repo_uri = get_target_image_uri_using_current_uri_and_target_repo(
         image,
         target_repository_name=ECR_ENHANCED_SCANNING_REPO_NAME,
@@ -212,7 +203,29 @@ def test_ecr_enhanced_scan(image, ecr_client, sts_client, region):
 
     remaining_vulnerabilities = ecr_image_vulnerability_list - image_scan_allowlist
     LOGGER.info(f"ECR Enhanced Scanning test completed for image: {image}")
+    return remaining_vulnerabilities
 
+
+@pytest.mark.usefixtures("sagemaker")
+@pytest.mark.model("N/A")
+@pytest.mark.integration("ECR Enhanced Scans on Images")
+def test_ecr_enhanced_scan(image, ecr_client, sts_client, region):
+    """
+    Run ECR Enhanced Scan Tool on an image being tested, and raise Error if vulnerabilities found
+    1. Use helper_function_for_leftover_vulnerabilities_from_enhanced_scanning to get the list of vulnerabilities
+    2. In case any vulnerability is remaining after removal, raise an error
+
+    :param image: str Image URI for image to be tested
+    :param ecr_client: boto3 Client for ECR
+    :param sts_client: boto3 Client for STS
+    :param region: str Name of region where test is executed
+    """
+    LOGGER.info(f"Running test_ecr_enhanced_scan for image {image}")
+    image = conduct_preprocessing_of_images_before_running_ecr_scans(
+        image, ecr_client, sts_client, region
+    )
+
+    remaining_vulnerabilities = helper_function_for_leftover_vulnerabilities_from_enhanced_scanning(image)
     if remaining_vulnerabilities:
         ## TODO: Revert these changes before merging into Master
         LOGGER.info(
