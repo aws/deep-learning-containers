@@ -333,4 +333,8 @@ if __name__ == "__main__":
     parser.add_argument("--data-dir", type=str, default=env.channel_input_dirs["training"])
     parser.add_argument("--num-gpus", type=int, default=env.num_gpus)
 
+    if "MASTER_ADDR" not in os.environ:
+        os.environ["MASTER_ADDR"] = args.hosts[0]
+        os.environ["MASTER_PORT"] = "55555"
+
     train(parser.parse_args())
