@@ -13,6 +13,7 @@
 from __future__ import absolute_import
 
 import os
+from pathlib import Path
 import shlex
 import subprocess
 import sys
@@ -25,17 +26,19 @@ SAI_MODEL_CACHE_FILE = os.path.join(
 SAI_MODEL_CACHE_PATH = os.getenv("SAI_MODEL_CACHE_PATH", "/tmp/cache")
 SAI_MODEL_CACHE_STATUS_FILE = os.path.join(SAI_MODEL_CACHE_PATH, ".model-cache-unpacked")
 if os.path.exists(SAI_MODEL_CACHE_FILE) and not os.path.exists(SAI_MODEL_CACHE_STATUS_FILE):
+    os.makedirs(SAI_MODEL_CACHE_PATH, exist_ok=True)
     subprocess.check_call(
         [
             "tar",
-            "-x",
-            "-z" if SAI_MODEL_CACHE_FILE.endswith(".gz") else "",
+            "x",
             "-f",
             SAI_MODEL_CACHE_FILE,
             "-C",
             SAI_MODEL_CACHE_PATH,
+            "-z" if SAI_MODEL_CACHE_FILE.endswith(".gz") else "",
         ]
     )
+    Path(SAI_MODEL_CACHE_STATUS_FILE).touch()
 
 if sys.argv[1] == "serve":
     from sagemaker_pytorch_serving_container import serving

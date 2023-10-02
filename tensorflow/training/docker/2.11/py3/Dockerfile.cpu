@@ -161,7 +161,7 @@ RUN ${PIP} install --no-cache-dir -U \
     psutil==5.7.2 \
     "urllib3>1.26.0<1.27.0" \
     # The Following Issues Require the Upper Bound Set on Protobuf:
-    #    -  https://github.com/tensorflow/tensorflow/issues/53234  
+    #    -  https://github.com/tensorflow/tensorflow/issues/53234
     #    -  https://github.com/protocolbuffers/protobuf/issues/9954
     #    -  https://github.com/tensorflow/tensorflow/issues/56077
     # Reference setup.py protobuf upper limit here:
@@ -262,7 +262,7 @@ RUN ${PIP} uninstall -y tensorflow tensorflow-gpu \
     ${TF_URL} \
     tensorflow-io==0.27.0 \
     tensorflow-datasets==4.7.0
-    
+
 # Install Horovod with TensorFlow
 RUN HOROVOD_WITH_MPI=1 \
    && HOROVOD_WITH_TENSORFLOW=1 HOROVOD_WITHOUT_MXNET=1 HOROVOD_WITHOUT_PYTORCH=1 \

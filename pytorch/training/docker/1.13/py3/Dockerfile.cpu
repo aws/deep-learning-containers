@@ -159,7 +159,7 @@ RUN pip install --no-cache-dir --upgrade pip --trusted-host pypi.org --trusted-h
     "awscli>1.27,<2" \
     boto3 \
     "click==8.1.2,<9" \
-    "cryptography>39,<40" \
+    "cryptography>41,<42" \
     ipython \
     "opencv-python>=4.6.0,<4.7" \
     packaging \

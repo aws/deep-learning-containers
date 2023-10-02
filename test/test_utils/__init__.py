@@ -14,6 +14,7 @@ import pytest
 import requests
 
 import boto3
+from botocore.config import Config
 from botocore.exceptions import ClientError
 from glob import glob
 from invoke import run
@@ -44,7 +45,14 @@ def get_ami_id_boto3(region_name, ami_name_pattern):
     """
     For a given region and ami name pattern, return the latest ami-id
     """
-    ami_list = boto3.client("ec2", region_name=region_name).describe_images(
+    # Use max_attempts=10 because this function is used in global context, and all test jobs
+    # get AMI IDs for tests regardless of whether they are used in that job.
+    ec2_client = boto3.client(
+        "ec2",
+        region_name=region_name,
+        config=Config(retries={"max_attempts": 10, "mode": "standard"}),
+    )
+    ami_list = ec2_client.describe_images(
         Filters=[{"Name": "name", "Values": [ami_name_pattern]}], Owners=["amazon"]
     )
     ami = max(ami_list["Images"], key=lambda x: x["CreationDate"])
@@ -55,20 +63,24 @@ def get_ami_id_ssm(region_name, parameter_path):
     """
     For a given region and parameter path, return the latest ami-id
     """
-    ami = boto3.client("ssm", region_name=region_name).get_parameter(Name=parameter_path)
+    # Use max_attempts=10 because this function is used in global context, and all test jobs
+    # get AMI IDs for tests regardless of whether they are used in that job.
+    ssm_client = boto3.client(
+        "ssm",
+        region_name=region_name,
+        config=Config(retries={"max_attempts": 10, "mode": "standard"}),
+    )
+    ami = ssm_client.get_parameter(Name=parameter_path)
     ami_id = eval(ami["Parameter"]["Value"])["image_id"]
     return ami_id
 
 
-UBUNTU_18_BASE_DLAMI_US_WEST_2 = get_ami_id_boto3(
-    region_name="us-west-2", ami_name_pattern="Deep Learning Base AMI (Ubuntu 18.04) Version ??.?"
-)
-UBUNTU_18_BASE_DLAMI_US_EAST_1 = get_ami_id_boto3(
-    region_name="us-east-1", ami_name_pattern="Deep Learning Base AMI (Ubuntu 18.04) Version ??.?"
-)
 # The Ubuntu 20.04 AMI which adds GDRCopy is used only for GDRCopy feature that is supported on PT1.13 and PT2.0
 UBUNTU_20_BASE_DLAMI_US_WEST_2 = get_ami_id_boto3(
     region_name="us-west-2", ami_name_pattern="Deep Learning Base GPU AMI (Ubuntu 20.04) ????????"
+)
+UBUNTU_20_BASE_DLAMI_US_EAST_1 = get_ami_id_boto3(
+    region_name="us-east-1", ami_name_pattern="Deep Learning Base GPU AMI (Ubuntu 20.04) ????????"
 )
 AML2_BASE_DLAMI_US_WEST_2 = get_ami_id_boto3(
     region_name="us-west-2", ami_name_pattern="Deep Learning Base AMI (Amazon Linux 2) Version ??.?"
@@ -127,9 +139,8 @@ NEURON_INF1_AMI_US_WEST_2 = "ami-06a5a60d3801a57b7"
 UBUNTU_18_HPU_DLAMI_US_WEST_2 = "ami-03cdcfc91a96a8f92"
 UBUNTU_18_HPU_DLAMI_US_EAST_1 = "ami-0d83d7487f322545a"
 UL_AMI_LIST = [
-    UBUNTU_18_BASE_DLAMI_US_EAST_1,
-    UBUNTU_18_BASE_DLAMI_US_WEST_2,
     UBUNTU_20_BASE_DLAMI_US_WEST_2,
+    UBUNTU_20_BASE_DLAMI_US_EAST_1,
     UBUNTU_18_HPU_DLAMI_US_WEST_2,
     UBUNTU_18_HPU_DLAMI_US_EAST_1,
     PT_GPU_PY3_BENCHMARK_IMAGENET_AMI_US_EAST_1,
@@ -421,6 +432,38 @@ def is_tf_based_framework(name):
     return "tensorflow" in name
 
 
+def is_equal_to_framework_version(version_required, image_uri, framework):
+    """
+    Validate that image_uri has framework version exactly equal to version_required
+
+    :param version_required: str Framework version that image_uri is required to be at
+    :param image_uri: str ECR Image URI for the image to be validated
+    :param framework: str Framework installed in image
+    :return: bool True if image_uri has framework version equal to version_required, else False
+    """
+    image_framework_name, image_framework_version = get_framework_and_version_from_tag(image_uri)
+    return image_framework_name == framework and Version(image_framework_version) in SpecifierSet(
+        f"=={version_required}"
+    )
+
+
+def is_above_framework_version(version_lower_bound, image_uri, framework):
+    """
+    Validate that image_uri has framework version strictly less than version_upper_bound
+
+    :param version_lower_bound: str Framework version that image_uri is required to be above
+    :param image_uri: str ECR Image URI for the image to be validated
+    :param framework: str Framework installed in image
+    :return: bool True if image_uri has framework version more than version_lower_bound, else False
+    """
+    image_framework_name, image_framework_version = get_framework_and_version_from_tag(image_uri)
+    required_version_specifier_set = SpecifierSet(f">{version_lower_bound}")
+    return (
+        image_framework_name == framework
+        and image_framework_version in required_version_specifier_set
+    )
+
+
 def is_below_framework_version(version_upper_bound, image_uri, framework):
     """
     Validate that image_uri has framework version strictly less than version_upper_bound
@@ -539,6 +582,10 @@ def is_dlc_cicd_context():
 
 def is_efa_dedicated():
     return os.getenv("EFA_DEDICATED", "False").lower() == "true"
+
+
+def are_heavy_instance_ec2_tests_enabled():
+    return os.getenv("HEAVY_INSTANCE_EC2_TESTS_ENABLED", "False").lower() == "true"
 
 
 def is_generic_image():
@@ -1450,7 +1497,7 @@ def get_neuron_release_manifest(sdk_version):
     Returns a dictionary which maps a package name (e.g. "tensorflow-neuronx") to all the version numbers available in and SDK release
 
     :param sdk_version: Neuron SDK version
-    :return: { "tensorflow_neuronx": set(["15.5.1.1.1.1.1", "2.10.1.1.1.1.1", ...]), ... }
+    :return: { "tensorflow_neuronx": ["15.5.1.1.1.1.1", "2.10.1.1.1.1.1", ...], ... }
     """
     NEURON_RELEASE_MANIFEST_URL = "https://raw.githubusercontent.com/aws-neuron/aws-neuron-sdk/master/src/helperscripts/n2-manifest.json"
 
@@ -1487,8 +1534,8 @@ def get_neuron_release_manifest(sdk_version):
         package_name = package["name"]
         package_version = package["version"]
         if package_name not in package_versions:
-            package_versions[package_name] = set()
-        package_versions[package_name].add(package_version)
+            package_versions[package_name] = []
+        package_versions[package_name].append(package_version)
 
     return package_versions
 
@@ -1702,41 +1749,24 @@ def get_python_version_from_image_uri(image_uri):
     return "py36" if python_version == "py3" else python_version
 
 
-def construct_buildspec_path(dlc_path, framework_path, buildspec, framework_version, job_type=""):
+def get_buildspec_path(dlc_path):
     """
-    Construct a relative path to the buildspec yaml file by iterative checking on the existence of
+    Get buildspec file that should be used in testing a particular DLC image. This file is normally
+    configured as an environment variable on PR and Mainline test jobs. If it isn't configured,
+    construct a relative path to the buildspec yaml file by iterative checking on the existence of
     a specific version file for the framework being tested. Possible options include:
     [buildspec-[Major]-[Minor]-[Patch].yml, buildspec-[Major]-[Minor].yml, buildspec-[Major].yml, buildspec.yml]
     :param dlc_path: path to the DLC test folder
-    :param framework_path: Framework folder name
-    :param buildspec: buildspec file name
-    :param framework_version: default (long) framework version name
     """
-    if framework_version:
-        # pattern matches for example 0.3.2 or 22.3
-        pattern = r"^(\d+)(\.\d+)?(\.\d+)?$"
-        matched = re.search(pattern, framework_version)
-        if matched:
-            constructed_version = ""
-            versions_to_search = []
-            for match in matched.groups():
-                if match:
-                    constructed_version = f'{constructed_version}{match.replace(".","-")}'
-                    versions_to_search.append(constructed_version)
+    buildspec_path = None
+    if is_pr_context() and os.getenv("FRAMEWORK_BUILDSPEC_FILE"):
+        buildspec_path = os.path.join(dlc_path, os.getenv("FRAMEWORK_BUILDSPEC_FILE"))
+    elif os.getenv("CODEBUILD_SRC_DIR_DLC_BUILDSPEC_FILE"):
+        buildspec_path = os.path.join(
+            os.getenv("CODEBUILD_SRC_DIR_DLC_BUILDSPEC_FILE"), "framework-buildspec.yml"
+        )
 
-            for version in reversed(versions_to_search):
-                buildspec_path = os.path.join(
-                    dlc_path, framework_path, job_type, f"{buildspec}-{version}.yml"
-                )
-                if os.path.exists(buildspec_path):
-                    return buildspec_path
-        else:
-            raise ValueError(f"Framework version {framework_version} was not matched.")
-
-    # Only support buildspecs under "training/inference" - do not allow framework-level buildspecs anymore
-    buildspec_path = os.path.join(dlc_path, framework_path, job_type, f"{buildspec}.yml")
-    if not os.path.exists(buildspec_path):
-        raise ValueError("Could not construct a valid buildspec path.")
+    assert os.path.exists(buildspec_path), f"buildspec_path - {buildspec_path} - is invalid"
 
     return buildspec_path
 

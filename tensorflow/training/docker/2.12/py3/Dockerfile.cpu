@@ -139,16 +139,13 @@ RUN ln -s $(which ${PYTHON}) /usr/local/bin/python \
 
 RUN apt-get update && apt-get -y install protobuf-compiler
 
-# install PyYAML==5.1.2 to avoid conflict with latest awscli
 RUN ${PIP} install --no-cache-dir -U \
     pybind11 \
     cmake \
     scipy \
     Pillow \
     python-dateutil \
-    "pyYAML>=5.4,<5.5" \
     requests \
-    "awscli<2" \
     mpi4py \
     # Let's install TensorFlow separately in the end to avoid
     # the library version to be overwritten
@@ -159,7 +156,15 @@ RUN ${PIP} install --no-cache-dir -U \
     werkzeug \
     psutil \
     urllib3 \
-    "protobuf<4"
+    "protobuf<4" \
+    wheel
+
+# Use --no-build-isolation to force pyyaml 5.4.1 to be installed using Cython<3 to avoid installation errors
+# Force the installation of pyyaml<6 to prevent conflicts with tf-models-official
+RUN ${PIP} install --no-cache-dir --no-build-isolation \
+   "Cython<3" \
+   "pyYAML>=5.4.1,<6" \
+   "awscli<2"
 
 ADD https://raw.githubusercontent.com/aws/deep-learning-containers/master/src/deep_learning_container.py /usr/local/bin/deep_learning_container.py
 

@@ -2,6 +2,7 @@ from packaging.version import Version
 from packaging.specifiers import SpecifierSet
 
 import pytest
+import re
 
 from invoke.context import Context
 
@@ -94,12 +95,16 @@ def test_utility_packages_using_import(training):
     packages_to_import = SM_TRAINING_UTILITY_PACKAGES_IMPORT
 
     for package in packages_to_import:
-        version = test_utils.run_cmd_on_container(
-            container_name,
-            ctx,
-            f"import {package}; print({package}.__version__)",
-            executable="python",
-        ).stdout.strip()
+        version = re.search(
+            r"\d+(\.\d+)+",
+            test_utils.run_cmd_on_container(
+                container_name,
+                ctx,
+                f"import {package}; print({package}.__version__)",
+                executable="python",
+            ).stdout,
+        ).group()
+        test_utils.LOGGER.info(f"The {package} Version is {version}")
         if package == "sagemaker":
             assert Version(version) > Version(
                 "2"
@@ -129,7 +134,8 @@ def test_common_pytorch_utility_packages_using_import(pytorch_training):
         for package_name in ["torchtext", "ipykernel"]:
             packages_to_import.remove(package_name)
         if test_utils.get_processor_from_image_uri(pytorch_training) == "cpu":
-            packages_to_import.remove("pybind11")
+            for package_name in ["pybind11", "mpi4py"]:
+                packages_to_import.remove(package_name)
 
     import_failed = False
     list_of_packages = []
