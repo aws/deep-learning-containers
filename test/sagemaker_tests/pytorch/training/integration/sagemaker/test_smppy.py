@@ -12,7 +12,8 @@
 # permissions and limitations under the License.
 from __future__ import absolute_import
 
-import os
+import os, sys
+import subprocess
 import time
 
 import boto3
@@ -26,6 +27,9 @@ from .test_pytorchddp import validate_or_skip_pytorchddp
 
 INSTANCE_TYPE = "ml.g4dn.12xlarge"
 
+
+# only the latest version of sagemaker supports profiler
+subprocess.check_call([sys.executable, "-m", "pip", "install", "sagemaker>=2.180.0"])
 
 @pytest.mark.usefixtures("feature_smppy_present")
 @pytest.mark.processor("gpu")
