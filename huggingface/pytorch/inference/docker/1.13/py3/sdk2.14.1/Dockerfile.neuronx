@@ -168,8 +168,13 @@ RUN pip install --no-cache-dir \
 	transformers[sentencepiece,audio,vision]==${TRANSFORMERS_VERSION} \
     diffusers==${DIFFUSERS_VERSION} \
     optimum-neuron[neuronx]==${OPTIMUM_NEURON_VERSION} \
-	"protobuf>=3.19.5,<=3.20.2" \
 	"sagemaker-huggingface-inference-toolkit<3"
+
+# test
+Run pip uninstall numpy scikit-learn
+RUN pip install --no-cache-dir -U \
+    "numpy>=1.18.5, <=1.21.6" \
+    scikit-learn
 
 RUN HOME_DIR=/root \
  && curl -o ${HOME_DIR}/oss_compliance.zip https://aws-dlinfra-utilities.s3.amazonaws.com/oss_compliance.zip \
