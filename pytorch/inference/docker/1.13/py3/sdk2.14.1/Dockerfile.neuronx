@@ -103,7 +103,7 @@ RUN conda install -c conda-forge \
     ipython
 
 RUN pip install --no-cache-dir -U \
-    opencv-python \
+    "opencv-python>=4.8.1.78" \
     scipy \
     six \
     "pillow>=10.0.1" \
