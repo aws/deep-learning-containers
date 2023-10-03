@@ -125,7 +125,7 @@ COPY start_with_right_hostname.sh /usr/local/bin/start_with_right_hostname.sh
 
 RUN ${PIP} install --no-cache-dir -U \
     "bokeh>=2.3,<3" \
-    "opencv-python>=4.6,<5" \
+    "opencv-python>=4.8.1.78,<5" \
     "awscli<2" \
     scipy \
     click \
