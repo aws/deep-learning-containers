@@ -92,7 +92,6 @@ RUN curl -L -o ~/mambaforge.sh https://github.com/conda-forge/miniforge/releases
  && /opt/conda/bin/conda clean -ya
 
 RUN conda install -c conda-forge \
-    opencv \
     scikit-learn \
     h5py \
     requests \
@@ -104,9 +103,10 @@ RUN conda install -c conda-forge \
     ipython
 
 RUN pip install --no-cache-dir -U \
+    opencv-python \
     scipy \
     six \
-    "pillow>=8.3" \
+    "pillow>=10.0.1" \
     "awscli<2" \
     pandas==1.* \
     boto3 \
