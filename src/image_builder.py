@@ -284,16 +284,8 @@ def image_builder(buildspec, image_types=[], device_types=[]):
             "enable_test_promotion": image_config.get("enable_test_promotion", True),
             "labels": labels,
             "extra_build_args": extra_build_args,
+            "cx_type": cx_type,
         }
-
-        if is_APatch_build():
-            context, ARTIFACTS = conduct_apatch_build_setup(
-                image_name=image_name,
-                image_tag=image_tag,
-                info=info,
-                image_config=image_config,
-                cx_type=cx_type,
-            )
 
         # Create pre_push stage docker object
         pre_push_stage_image_object = DockerImage(
@@ -319,6 +311,11 @@ def image_builder(buildspec, image_types=[], device_types=[]):
 
         PRE_PUSH_STAGE_IMAGES.append(pre_push_stage_image_object)
         FORMATTER.separator()
+
+    if is_APatch_build():
+        FORMATTER.banner("APATCH-PREP")
+        for pre_push_image_object in PRE_PUSH_STAGE_IMAGES:
+            conduct_apatch_build_setup(pre_push_image_object)
 
     FORMATTER.banner("DLC")
 
@@ -447,7 +444,12 @@ def trigger_apatch(image_uri, s3_downloaded_path):
     run(f"docker rm -f {container_id}", hide=True, warn=True)
     return new_cmd
 
-def conduct_apatch_build_setup(image_name, image_tag, info, image_config, cx_type):
+def conduct_apatch_build_setup(pre_push_image_object: DockerImage):
+    info = pre_push_image_object.info
+    cx_type = info.get("cx_type")
+    image_name = info.get("name")
+    image_tag = info.get("image_tag")
+
     run(f"""pip install -r {os.path.join(os.sep, get_cloned_folder_path(), "test", "requirements.txt")}""", hide=True)
     from test.test_utils import parse_canary_images, get_framework_and_version_from_tag
 
@@ -470,16 +472,17 @@ def conduct_apatch_build_setup(image_name, image_tag, info, image_config, cx_typ
     install_cmd = trigger_apatch(image_uri=filtered_list[0], s3_downloaded_path=download_path)
     print(f"INSTALL CMD: {install_cmd}")
 
-    image_config["docker_file"] = os.path.join(
+    pre_push_image_object.dockerfile = os.path.join(
         os.sep, get_cloned_folder_path(), "miscellaneous_dockerfiles", "Dockerfile.apatch"
     )
-    image_config["target"] = None
+
+    pre_push_image_object.target = None
     info["extra_build_args"].update({"RELEASED_IMAGE": filtered_list[0]})
     patch_details_path = os.path.join(os.sep, download_path, filtered_list[0].replace("/","_"))
 
     apatch_artifacts = {
         "dockerfile": {
-            "source": image_config["docker_file"],
+            "source": pre_push_image_object.dockerfile,
             "target": "Dockerfile",
         },
         "patch-details": {
@@ -492,7 +495,9 @@ def conduct_apatch_build_setup(image_name, image_tag, info, image_config, cx_typ
         f"build/{image_name}.tar.gz",
         os.path.join(os.sep, get_cloned_folder_path(), "src"),
     )
-    return context, apatch_artifacts
+    pre_push_image_object.info = info
+    pre_push_image_object.context = context
+    return pre_push_image_object
 
 
 def show_build_info(images):
