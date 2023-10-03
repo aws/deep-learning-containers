@@ -84,7 +84,6 @@ RUN curl -L -o ~/mambaforge.sh https://github.com/conda-forge/miniforge/releases
     mkl-include \
     mkl \
     parso \
-    scipy \
     typing \
     # Below 2 are included in miniconda base, but not mamba so need to install
     conda-content-trust \
@@ -111,7 +110,7 @@ RUN pip install --no-cache-dir -U \
     "awscli<2" \
     pandas==1.* \
     boto3 \
-    numpy==1.21.6 \
+    numpy \
     cryptography
 
 RUN pip install --extra-index-url https://pip.repos.neuron.amazonaws.com \
