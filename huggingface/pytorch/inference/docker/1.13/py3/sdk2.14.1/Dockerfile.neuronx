@@ -171,7 +171,7 @@ RUN pip install --no-cache-dir \
 	"sagemaker-huggingface-inference-toolkit<3"
 
 # test
-RUN pip uninstall numpy scikit-learn
+RUN pip uninstall numpy scikit-learn -y
 RUN pip install --no-cache-dir -U \
     "numpy>=1.18.5, <=1.21.6" \
     scikit-learn
