@@ -165,7 +165,7 @@ RUN curl https://aws-dlc-licenses.s3.amazonaws.com/pytorch-1.13/license.txt -o /
 
 # install Hugging Face libraries and its dependencies
 RUN pip install --no-cache-dir \
-	transformers[sklearn,sentencepiece,audio,vision]==${TRANSFORMERS_VERSION} \
+	transformers[sentencepiece,audio,vision]==${TRANSFORMERS_VERSION} \
     diffusers==${DIFFUSERS_VERSION} \
     optimum-neuron[neuronx]==${OPTIMUM_NEURON_VERSION} \
 	"protobuf>=3.19.5,<=3.20.2" \
