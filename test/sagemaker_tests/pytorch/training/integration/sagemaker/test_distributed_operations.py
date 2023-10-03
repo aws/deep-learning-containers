@@ -94,7 +94,6 @@ def test_dist_operations_cpu(
 @pytest.mark.model("unknown_model")
 @pytest.mark.skip_cpu
 @pytest.mark.deploy_test
-@pytest.mark.skip_pt20_cuda121_tests
 def test_dist_operations_gpu(
     framework_version, instance_type, ecr_image, sagemaker_regions, dist_gpu_backend
 ):

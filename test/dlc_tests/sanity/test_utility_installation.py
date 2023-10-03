@@ -106,7 +106,6 @@ def test_utility_packages_using_import(training):
         ).group()
         test_utils.LOGGER.info(f"The {package} Version is {version}")
         if package == "sagemaker":
-            version = version.splitlines()[-1]
             assert Version(version) > Version(
                 "2"
             ), f"Sagemaker version should be > 2.0. Found version {version}"
