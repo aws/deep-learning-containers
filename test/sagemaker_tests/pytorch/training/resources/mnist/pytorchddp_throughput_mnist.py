@@ -174,10 +174,22 @@ def main():
     parser.add_argument("--inductor", type=int, default=0, help="pytorch with inductor")
 
     args = parser.parse_args()
+
+    hosts = os.environ["SM_HOSTS"]
+    current_host = os.environ["SM_CURRENT_HOST"]
+
+    if not os.getenv("WORLD_SIZE"):
+        os.environ["WORLD_SIZE"] = str(len(hosts))
+
     args.world_size = int(os.environ["WORLD_SIZE"])
-    if "MASTER_ADDR" not in os.environ:
+
+    if not os.getenv("RANK"):
+        os.environ["RANK"] = str(hosts.index(current_host))
+
+    if not os.getenv("MASTER_ADDR"):
         os.environ["MASTER_ADDR"] = os.environ["SM_HOSTS"][0]
         os.environ["MASTER_PORT"] = "55555"
+    print("os.environ['MASTER_ADDR']")
     args.lr = 1.0
     args.batch_size //= args.world_size // 8
     args.batch_size = max(args.batch_size, 1)
