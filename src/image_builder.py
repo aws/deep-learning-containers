@@ -454,7 +454,7 @@ def trigger_enhanced_scan(image_uri, patch_details_path, python_version=None):
             if cve.package_details.package_manager == "OS":
                 packages_to_be_patched.add(package_name)
     if packages_to_be_patched:
-        run(f"""echo  "apt-get update && apt-get install -y --only-upgrade {" ".join(packages_to_be_patched)}" | sudo tee -a {patch_details_path}/install_script_second.sh""")
+        run(f"""echo  "apt-get update && apt-get install -y --only-upgrade {" ".join(packages_to_be_patched)}" | tee -a {patch_details_path}/install_script_second.sh""")
     else:
         run(f"""echo  NA | tee -a  {patch_details_path}/install_script_second.sh""")
     return list(packages_to_be_patched)
