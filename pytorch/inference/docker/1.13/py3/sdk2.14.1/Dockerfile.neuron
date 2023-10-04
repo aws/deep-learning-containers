@@ -96,14 +96,14 @@ RUN conda install -c conda-forge \
     ipython
 
 RUN pip install --no-cache-dir -U \
-    "opencv-python>=4.8.1.78" \
+    opencv-python==4.8.0.74 \
+    numpy==1.21.6 \
     "scipy==1.11.2" \
     six \
     "pillow>=10.0.1" \
     "awscli<2" \
     pandas==1.* \
     boto3 \
-    numpy==1.21.6 \
     cryptography
 
 RUN pip install neuron-cc[tensorflow]==$NEURON_CC_VERSION --extra-index-url https://pip.repos.neuron.amazonaws.com \

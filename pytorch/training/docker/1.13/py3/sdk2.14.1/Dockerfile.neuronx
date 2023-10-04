@@ -125,7 +125,8 @@ COPY start_with_right_hostname.sh /usr/local/bin/start_with_right_hostname.sh
 
 RUN ${PIP} install --no-cache-dir -U \
     "bokeh>=2.3,<3" \
-    "opencv-python>=4.8.1.78,<5" \
+    opencv-python==4.8.0.74 \
+    numpy==1.21.6 \
     "awscli<2" \
     scipy \
     click \
@@ -163,8 +164,7 @@ RUN pip install --no-cache-dir -U \
     "plotly>=5.11,<6" \
     "seaborn>=0.12,<1" \
     "numba>=0.56.4,<0.57" \
-    "shap>=0.41,<1" \
-    "numpy==1.21.6"
+    "shap>=0.41,<1"
 
 # EFA Installer does apt get. Make sure to run apt update before that
 RUN apt-get update
