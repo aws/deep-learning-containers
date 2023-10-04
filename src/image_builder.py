@@ -453,10 +453,14 @@ def trigger_enhanced_scan(image_uri, patch_details_path, python_version=None):
         for cve in package_cve_list:
             if cve.package_details.package_manager == "OS":
                 packages_to_be_patched.add(package_name)
+    echo_cmd = """ echo "echo NA" """
+    file_concat_cmd = f"tee -a {patch_details_path}/install_script_second.sh"
     if packages_to_be_patched:
-        run(f"""echo  "apt-get update && apt-get install -y --only-upgrade {" ".join(packages_to_be_patched)}" | tee -a {patch_details_path}/install_script_second.sh""")
-    else:
-        run(f"""echo  NA | tee -a  {patch_details_path}/install_script_second.sh""")
+        echo_cmd = f"""echo  "apt-get update && apt-get install -y --only-upgrade {" ".join(packages_to_be_patched)}" """
+    if os.getenv("IS_CODEBUILD_IMAGE") is None:
+        file_concat_cmd = f"sudo {file_concat_cmd}"
+    complete_command = f"{echo_cmd} | {file_concat_cmd}"
+    run(complete_command)
     return list(packages_to_be_patched)
 
 
