@@ -100,7 +100,7 @@ RUN conda install -c conda-forge \
     ipython
 
 RUN pip install --no-cache-dir -U \
-    opencv-python==4.8.1.76 \
+    opencv-python==4.8.1.78 \
     numpy==1.26.0 \
     "scipy==1.11.2" \
     six \
