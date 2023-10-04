@@ -124,7 +124,7 @@ def conduct_preprocessing_of_images_before_running_ecr_scans(image, ecr_client, 
     return image
 
 
-def helper_function_for_leftover_vulnerabilities_from_enhanced_scanning(image):
+def helper_function_for_leftover_vulnerabilities_from_enhanced_scanning(image, python_version=None):
     """
     Acts as a helper function that conducts enhanced scan on an image URI and then returns the list of leftover vulns
     after removing the allowlisted vulns.
@@ -136,7 +136,9 @@ def helper_function_for_leftover_vulnerabilities_from_enhanced_scanning(image):
     5. Return the leftover list
 
     :param image: str Image URI for image to be tested
+    :param python_version: str, This parameter is used for extracting allowlist for canary image uris that do not have a python version in it.
     :return: ECREnhancedScanVulnerabilityList Object with leftover vulnerability data
+    :return: ecr_enhanced_repo_uri, String for the image uri in the enhanced scanning repo
     """
     ecr_enhanced_repo_uri = get_target_image_uri_using_current_uri_and_target_repo(
         image,
@@ -189,7 +191,7 @@ def helper_function_for_leftover_vulnerabilities_from_enhanced_scanning(image):
         if is_generic_image():
             image_scan_allowlist_path = get_allowlist_path_for_enhanced_scan_from_env_variable()
         else:
-            image_scan_allowlist_path = get_ecr_scan_allowlist_path(image)
+            image_scan_allowlist_path = get_ecr_scan_allowlist_path(image, python_version=python_version)
         LOGGER.info(f"[Allowlist] Trying to locate Allowlist at PATH: {image_scan_allowlist_path}")
         # Check if image Scan Allowlist Path exists
         if os.path.exists(image_scan_allowlist_path):
@@ -203,7 +205,7 @@ def helper_function_for_leftover_vulnerabilities_from_enhanced_scanning(image):
 
     remaining_vulnerabilities = ecr_image_vulnerability_list - image_scan_allowlist
     LOGGER.info(f"ECR Enhanced Scanning test completed for image: {image}")
-    return remaining_vulnerabilities
+    return remaining_vulnerabilities, ecr_enhanced_repo_uri
 
 
 @pytest.mark.usefixtures("sagemaker")
@@ -225,7 +227,7 @@ def test_ecr_enhanced_scan(image, ecr_client, sts_client, region):
         image, ecr_client, sts_client, region
     )
 
-    remaining_vulnerabilities = helper_function_for_leftover_vulnerabilities_from_enhanced_scanning(image)
+    remaining_vulnerabilities, _ = helper_function_for_leftover_vulnerabilities_from_enhanced_scanning(image)
     if remaining_vulnerabilities:
         ## TODO: Revert these changes before merging into Master
         LOGGER.info(

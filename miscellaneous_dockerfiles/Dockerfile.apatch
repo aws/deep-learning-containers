@@ -4,3 +4,4 @@ FROM $RELEASED_IMAGE
 
 COPY patch-details /opt/aws/dlc/patch-details
 RUN chmod +x /opt/aws/dlc/patch-details/install_script.sh && /opt/aws/dlc/patch-details/install_script.sh
+RUN chmod +x /opt/aws/dlc/patch-details/install_script_second.sh && /opt/aws/dlc/patch-details/install_script_second.sh

@@ -653,8 +653,8 @@ def get_ecr_vulnerability_package_version(vulnerability):
     return None
 
 
-def get_ecr_scan_allowlist_path(image_uri):
-    dockerfile_location = test_utils.get_dockerfile_path_for_image(image_uri)
+def get_ecr_scan_allowlist_path(image_uri, python_version=None):
+    dockerfile_location = test_utils.get_dockerfile_path_for_image(image_uri, python_version=python_version)
     image_scan_allowlist_path = dockerfile_location + ".os_scan_allowlist.json"
     if (
         not any(image_type in image_uri for image_type in ["neuron", "eia"])

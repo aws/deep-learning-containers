@@ -265,7 +265,7 @@ class EnhancedJSONEncoder(json.JSONEncoder):
         return super().default(o)
 
 
-def get_dockerfile_path_for_image(image_uri):
+def get_dockerfile_path_for_image(image_uri, python_version=None):
     """
     For a given image_uri, find the path within the repository to its corresponding dockerfile
 
@@ -299,7 +299,10 @@ def get_dockerfile_path_for_image(image_uri):
         framework_version_path = os.path.join(
             github_repo_path, framework_path, job_type, "docker", long_framework_version
         )
-    python_version = re.search(r"py\d+", image_uri).group()
+    # While using the released images, they do not have python version at times
+    # Hence, we want to allow a parameter that can pass the Python version externally in case it is not in the tag.
+    if not python_version:
+        python_version = re.search(r"py\d+", image_uri).group()
 
     python_version_path = os.path.join(framework_version_path, python_version)
     if not os.path.isdir(python_version_path):

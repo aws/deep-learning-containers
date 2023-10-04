@@ -444,6 +444,22 @@ def trigger_apatch(image_uri, s3_downloaded_path):
     run(f"docker rm -f {container_id}", hide=True, warn=True)
     return new_cmd
 
+
+def trigger_enhanced_scan(image_uri, patch_details_path, python_version=None):
+    from test.dlc_tests.sanity.test_ecr_scan import helper_function_for_leftover_vulnerabilities_from_enhanced_scanning
+    remaining_vulnerabilities, _ = helper_function_for_leftover_vulnerabilities_from_enhanced_scanning(image_uri, python_version=python_version)
+    packages_to_be_patched = set()
+    for package_name, package_cve_list in remaining_vulnerabilities.vulnerability_list.items():
+        for cve in package_cve_list:
+            if cve.package_details.package_manager == "OS":
+                packages_to_be_patched.add(package_name)
+    if packages_to_be_patched:
+        run(f"""echo  "apt-get update && apt-get install -y --only-upgrade {" ".join(packages_to_be_patched)}" | sudo tee -a {patch_details_path}/install_script_second.sh""")
+    else:
+        run(f"""echo  NA | sudo tee -a  {patch_details_path}/install_script_second.sh""")
+    return list(packages_to_be_patched)
+
+
 def conduct_apatch_build_setup(pre_push_image_object: DockerImage):
     info = pre_push_image_object.info
     cx_type = info.get("cx_type")
@@ -468,9 +484,13 @@ def conduct_apatch_build_setup(pre_push_image_object: DockerImage):
     folder_path_outside_clone = os.path.join(os.sep, *get_cloned_folder_path().split(os.sep)[:-1])
     download_path = os.path.join(os.sep, folder_path_outside_clone, "patch-dlc")
     if not os.path.exists(download_path):
-        run(f"aws s3 cp s3://patch-dlc {download_path} --recursive")
+        run(f"aws s3 cp s3://patch-dlc {download_path} --recursive", hide=True)
+    patch_details_path = os.path.join(os.sep, download_path, filtered_list[0].replace("/","_"))
+    if not os.path.exists(patch_details_path):
+        run(f"mkdir {patch_details_path}")
     install_cmd = trigger_apatch(image_uri=filtered_list[0], s3_downloaded_path=download_path)
     print(f"INSTALL CMD: {install_cmd}")
+    trigger_enhanced_scan(image_uri=filtered_list[0], patch_details_path=patch_details_path,python_version=info.get("python_version"))
 
     pre_push_image_object.dockerfile = os.path.join(
         os.sep, get_cloned_folder_path(), "miscellaneous_dockerfiles", "Dockerfile.apatch"
@@ -478,7 +498,6 @@ def conduct_apatch_build_setup(pre_push_image_object: DockerImage):
 
     pre_push_image_object.target = None
     info["extra_build_args"].update({"RELEASED_IMAGE": filtered_list[0]})
-    patch_details_path = os.path.join(os.sep, download_path, filtered_list[0].replace("/","_"))
 
     apatch_artifacts = {
         "dockerfile": {
