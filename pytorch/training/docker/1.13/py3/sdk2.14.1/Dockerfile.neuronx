@@ -170,7 +170,7 @@ RUN pip install --no-cache-dir -U \
 
 # create a virtual env for neuronx-cc (which has its own numpy)
 RUN python -m venv $NEURONX_CC_VENV
-RUN source ${NEURONX_CC_VENV}/bin/activate \
+RUN . ${NEURONX_CC_VENV}/bin/activate \
  && pip install neuronx-cc==$NEURONX_CC_VERSION --extra-index-url https://pip.repos.neuron.amazonaws.com
 
 # create a neuronx-cc executable script which runs the neuronx-cc from the virtual env

@@ -118,7 +118,7 @@ RUN pip install torch-neuron==$NEURON_FRAMEWORK_VERSION --extra-index-url https:
 
 # create a virtual env for neuron-cc (which has its own numpy)
 RUN python -m venv $NEURON_CC_VENV
-RUN source ${NEURON_CC_VENV}/bin/activate \
+RUN . ${NEURON_CC_VENV}/bin/activate \
  && pip install neuron-cc[tensorflow]==$NEURON_CC_VERSION --extra-index-url https://pip.repos.neuron.amazonaws.com
 
 # create a neuron-cc executable script which runs the neuron-cc from the virtual env
