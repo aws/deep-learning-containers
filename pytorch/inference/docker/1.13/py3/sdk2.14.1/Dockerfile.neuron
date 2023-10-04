@@ -14,6 +14,10 @@ ARG MAMBA_VERSION=23.1.0-4
 ARG NEURONX_TOOLS_VERSION=2.14.*
 ARG NEURON_FRAMEWORK_VERSION=1.13.1.2.9.1.*
 ARG NEURON_CC_VERSION=1.19.*
+
+ARG NEURON_CC_VENV=/root/neuron_cc_venv
+ARG NEURON_CC_BIN=/usr/local/bin/neuron-cc
+
 # See http://bugs.python.org/issue19846
 ENV LANG C.UTF-8
 ENV LD_LIBRARY_PATH /lib/x86_64-linux-gnu:/opt/conda/lib/:$LD_LIBRARY_PATH
@@ -96,8 +100,8 @@ RUN conda install -c conda-forge \
     ipython
 
 RUN pip install --no-cache-dir -U \
-    opencv-python==4.8.0.74 \
-    numpy==1.21.6 \
+    opencv-python==4.8.1.76 \
+    numpy==1.26.0 \
     "scipy==1.11.2" \
     six \
     "pillow>=10.0.1" \
@@ -106,12 +110,30 @@ RUN pip install --no-cache-dir -U \
     boto3 \
     cryptography
 
-RUN pip install neuron-cc[tensorflow]==$NEURON_CC_VERSION --extra-index-url https://pip.repos.neuron.amazonaws.com \
- && pip install torch-neuron==$NEURON_FRAMEWORK_VERSION --extra-index-url https://pip.repos.neuron.amazonaws.com \
+RUN pip install torch-neuron==$NEURON_FRAMEWORK_VERSION --extra-index-url https://pip.repos.neuron.amazonaws.com \
  && pip install "protobuf<4" \
  && pip install torchserve==${TORCHSERVE_VERSION} \
  && pip install --no-deps --no-cache-dir -U torchvision==0.14.* \
  && pip install torch-model-archiver==${TORCHSERVE_VERSION}
+
+# create a virtual env for neuron-cc (which has its own numpy)
+RUN python -m venv $NEURON_CC_VENV
+RUN source ${NEURON_CC_VENV}/bin/activate \
+ && pip install neuron-cc[tensorflow]==$NEURON_CC_VERSION --extra-index-url https://pip.repos.neuron.amazonaws.com
+
+# create a neuron-cc executable script which runs the neuron-cc from the virtual env
+RUN echo '#!/bin/bash' > $NEURON_CC_BIN \
+ && echo "source ${NEURON_CC_VENV}/bin/activate" >> $NEURON_CC_BIN \
+ && echo 'neuron-cc $@' >> $NEURON_CC_BIN \
+ && echo 'deactivate' >> $NEURON_CC_BIN \
+ && chmod +x $NEURON_CC_BIN
+
+# create a fake default neuroncc python package which only provides the version and
+# which is used by Neuron frameworks running in the default environment
+# and use the version file from the actual installed package in the virtual env
+RUN mkdir -p /usr/local/lib/${PYTHON}/site-packages/neuroncc \
+ && echo "from neuroncc.version import __version__" > /usr/local/lib/${PYTHON}/site-packages/neuroncc/__init__.py \
+ && ln -s ${NEURON_CC_VENV}/lib/${PYTHON}/site-packages/neuroncc/version /usr/local/lib/${PYTHON}/site-packages/neuroncc/version
 
 RUN useradd -m model-server \
  && mkdir -p /home/model-server/tmp /opt/ml/model \

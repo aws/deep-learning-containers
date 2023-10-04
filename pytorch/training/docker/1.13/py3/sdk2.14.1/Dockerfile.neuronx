@@ -13,6 +13,9 @@ ARG NEURONX_TOOLS_VERSION=2.14.*
 ARG NEURONX_FRAMEWORK_VERSION=1.13.1.1.11.*
 ARG NEURONX_CC_VERSION=2.10.*
 
+ARG NEURONX_CC_VENV=/root/neuronx_cc_venv
+ARG NEURONX_CC_BIN=/usr/local/bin/neuronx-cc
+
 ARG OMPI_VERSION=4.1.5
 ARG PIP=pip3
 
@@ -125,8 +128,8 @@ COPY start_with_right_hostname.sh /usr/local/bin/start_with_right_hostname.sh
 
 RUN ${PIP} install --no-cache-dir -U \
     "bokeh>=2.3,<3" \
-    opencv-python==4.8.0.74 \
-    numpy==1.21.6 \
+    opencv-python==4.8.1.76 \
+    numpy==1.26.0 \
     "awscli<2" \
     scipy \
     click \
@@ -140,11 +143,10 @@ RUN ${PIP} install --no-cache-dir -U \
 
 RUN mkdir -p /etc/pki/tls/certs && cp /etc/ssl/certs/ca-certificates.crt /etc/pki/tls/certs/ca-bundle.crt
 RUN ${PIP} config set global.extra-index-url https://pip.repos.neuron.amazonaws.com \
- && ${PIP} install --force-reinstall torch-neuronx==$NEURONX_FRAMEWORK_VERSION --extra-index-url https://pip.repos.neuron.amazonaws.com \
-    && ${PIP} install --force-reinstall neuronx-cc==$NEURONX_CC_VERSION --extra-index-url https://pip.repos.neuron.amazonaws.com
+ && ${PIP} install --force-reinstall torch-neuronx==$NEURONX_FRAMEWORK_VERSION --extra-index-url https://pip.repos.neuron.amazonaws.com
 
-# attrs, neuronx-cc required: >=19.2.0, sagemaker <24,>=23.1.0
-# protobuf neuronx-cc<4, sagemaker-training >=3.9.2,<=3.20.3
+# attrs required by sagemaker <24,>=23.1.0
+# protobuf sagemaker-training >=3.9.2,<=3.20.3
 # awscli 1.25.47 has requirement docutils<0.17,>=0.10
 # etcd for kubernetes installation
 # awscli 1.27.127 has requirement rsa<4.8,>=3.1.2, but you have rsa 4.9.
@@ -165,6 +167,25 @@ RUN pip install --no-cache-dir -U \
     "seaborn>=0.12,<1" \
     "numba>=0.56.4,<0.57" \
     "shap>=0.41,<1"
+
+# create a virtual env for neuronx-cc (which has its own numpy)
+RUN python -m venv $NEURONX_CC_VENV
+RUN source ${NEURONX_CC_VENV}/bin/activate \
+ && pip install neuronx-cc==$NEURONX_CC_VERSION --extra-index-url https://pip.repos.neuron.amazonaws.com
+
+# create a neuronx-cc executable script which runs the neuronx-cc from the virtual env
+RUN echo '#!/bin/bash' > $NEURONX_CC_BIN \
+ && echo "source ${NEURONX_CC_VENV}/bin/activate" >> $NEURONX_CC_BIN \
+ && echo 'neuronx-cc $@' >> $NEURONX_CC_BIN \
+ && echo 'deactivate' >> $NEURONX_CC_BIN \
+ && chmod +x $NEURONX_CC_BIN
+
+# create a fake default neuronxcc python package which only provides the version and
+# which is used by Neuron frameworks running in the default environment
+# and use the version file from the actual installed package in the virtual env
+RUN mkdir -p /usr/local/lib/${PYTHON}/site-packages/neuronxcc \
+ && echo "from neuronxcc.version import __version__" > /usr/local/lib/${PYTHON}/site-packages/neuronxcc/__init__.py \
+ && ln -s ${NEURONX_CC_VENV}/lib/${PYTHON}/site-packages/neuronxcc/version /usr/local/lib/${PYTHON}/site-packages/neuronxcc/version
 
 # EFA Installer does apt get. Make sure to run apt update before that
 RUN apt-get update

@@ -25,6 +25,9 @@ ENV PATH /opt/conda/bin:/opt/aws/neuron/bin:$PATH
 ENV SAGEMAKER_SERVING_MODULE sagemaker_pytorch_serving_container.serving:main
 ENV TEMP=/home/model-server/tmp
 
+ARG NEURONX_CC_VENV=/root/neuronx_cc_venv
+ARG NEURONX_CC_BIN=/usr/local/bin/neuronx-cc
+
 RUN apt-get update \
  && apt-get upgrade -y \
  && apt-get install -y --no-install-recommends software-properties-common \
@@ -88,7 +91,6 @@ RUN curl -L -o ~/mambaforge.sh https://github.com/conda-forge/miniforge/releases
     # Below 2 are included in miniconda base, but not mamba so need to install
     conda-content-trust \
     charset-normalizer \
-
  && /opt/conda/bin/conda clean -ya
 
 RUN conda install -c conda-forge \
@@ -103,8 +105,8 @@ RUN conda install -c conda-forge \
     ipython
 
 RUN pip install --no-cache-dir -U \
-    opencv-python==4.8.0.74 \
-    numpy==1.21.6 \
+    opencv-python==4.8.1.76 \
+    numpy==1.26.0 \
     scipy \
     six \
     "pillow>=10.0.1" \
@@ -114,13 +116,31 @@ RUN pip install --no-cache-dir -U \
     cryptography
 
 RUN pip install --extra-index-url https://pip.repos.neuron.amazonaws.com \
-    neuronx-cc==$NEURONX_CC_VERSION \
     torch-neuronx==$NEURONX_FRAMEWORK_VERSION \
     transformers-neuronx==$NEURONX_TRANSFORMERS_VERSION \
  && pip install "protobuf<4" \
  && pip install torchserve==${TORCHSERVE_VERSION} \
  && pip install --no-deps --no-cache-dir -U torchvision==0.14.* \
  && pip install torch-model-archiver==${TORCHSERVE_VERSION}
+
+# create a virtual env for neuronx-cc (which has its own numpy)
+RUN python -m venv $NEURONX_CC_VENV
+RUN source ${NEURONX_CC_VENV}/bin/activate \
+ && pip install neuronx-cc==$NEURONX_CC_VERSION --extra-index-url https://pip.repos.neuron.amazonaws.com
+
+# create a neuronx-cc executable script which runs the neuronx-cc from the virtual env
+RUN echo '#!/bin/bash' > $NEURONX_CC_BIN \
+ && echo "source ${NEURONX_CC_VENV}/bin/activate" >> $NEURONX_CC_BIN \
+ && echo 'neuronx-cc $@' >> $NEURONX_CC_BIN \
+ && echo 'deactivate' >> $NEURONX_CC_BIN \
+ && chmod +x $NEURONX_CC_BIN
+
+# create a fake default neuronxcc python package which only provides the version and
+# which is used by Neuron frameworks running in the default environment
+# and use the version file from the actual installed package in the virtual env
+RUN mkdir -p /usr/local/lib/${PYTHON}/site-packages/neuronxcc \
+ && echo "from neuronxcc.version import __version__" > /usr/local/lib/${PYTHON}/site-packages/neuronxcc/__init__.py \
+ && ln -s ${NEURONX_CC_VENV}/lib/${PYTHON}/site-packages/neuronxcc/version /usr/local/lib/${PYTHON}/site-packages/neuronxcc/version
 
 RUN useradd -m model-server \
  && mkdir -p /home/model-server/tmp /opt/ml/model \
