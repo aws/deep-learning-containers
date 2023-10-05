@@ -41,7 +41,7 @@ build_inference = false
 datetime_tag = false
 # Note: Need to build the images at least once with datetime_tag = false
 # before disabling new builds, or tests will fail
-do_build = true
+do_build = false
 
 [test]
 ### On by default
@@ -56,7 +56,7 @@ ec2_tests = true
 ### default. If false, these types of tests will be skipped while other tests will run as usual.
 ### These tests are run in EC2 test jobs, so ec2_tests must be true if ec2_tests_on_heavy_instances is true.
 ### Off by default (set to false)
-ec2_tests_on_heavy_instances = false
+ec2_tests_on_heavy_instances = true
 
 ### SM specific tests
 ### Off by default
@@ -67,7 +67,7 @@ sagemaker_local_tests = false
 # "standard" --> run standard sagemaker remote tests from test/sagemaker_tests
 # "rc" --> run release_candidate_integration tests
 # "efa" --> run efa sagemaker tests
-sagemaker_remote_tests = "standard"
+sagemaker_remote_tests = "efa"
 
 # SM remote EFA test instance type
 sagemaker_remote_efa_instance_type = ""
