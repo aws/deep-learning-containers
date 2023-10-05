@@ -173,7 +173,7 @@ def main():
     )
     parser.add_argument("--inductor", type=int, default=0, help="pytorch with inductor")
     parser.add_argument("--use_mpi", type=str, default=False, help="run pytorch using mpi")
-    
+
     args = parser.parse_args()
 
     if use_mpi:
@@ -186,7 +186,7 @@ def main():
         if not os.getenv("MASTER_ADDR"):
             os.environ["MASTER_ADDR"] = os.environ["SM_HOSTS"][0]
             os.environ["MASTER_PORT"] = "55555"
-            
+
         if not local_rank:
             args.local_rank = int(os.getenv("OMPI_COMM_WORLD_LOCAL_RANK"))
 
@@ -201,7 +201,7 @@ def main():
     local_rank = args.local_rank
 
     torch.cuda.set_device(local_rank)
-    
+
     if args.verbose:
         print(
             "Hello from rank",

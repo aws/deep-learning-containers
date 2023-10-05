@@ -449,7 +449,7 @@ RUN pip install --no-cache-dir -U \
     "sagemaker>=2,<3" \
     "sagemaker-experiments<1" \
     sagemaker-pytorch-training \
-    triton==2.0.0.dev20221202
+    triton==2.0.0
 
 # Install extra packages
 RUN /opt/conda/bin/mamba install -y -c conda-forge \
@@ -489,19 +489,6 @@ RUN  wget -nv https://github.com/rapidsai/rmm/archive/v${RMM_VERSION}.tar.gz \
  && cd .. \
  && rm -rf v${RMM_VERSION}.tar* \
  && rm -rf rmm-${RMM_VERSION}
-
-
-
-# # Install ZeRO-2D Binary
-# RUN pip install --no-cache-dir -U ${ZERO_2D_URL}
-
-# # Install SM Distributed Modelparallel binary
-# RUN pip install --no-cache-dir -U ${SMD_MODEL_PARALLEL_URL}
-
-# # Install SM Distributed DataParallel binary
-# RUN SMDATAPARALLEL_PT=1 pip install --no-cache-dir ${SMD_DATA_PARALLEL_URL}
-
-# ENV LD_LIBRARY_PATH="/opt/conda/lib/python${PYTHON_SHORT_VERSION}/site-packages/smdistributed/dataparallel/lib:$LD_LIBRARY_PATH"
 
 WORKDIR /
 
