@@ -47,7 +47,7 @@ PT_PERFORMANCE_TRAINING_GPU_INDUCTOR_CMD = os.path.join(
 
 PT_EC2_GPU_SYNTHETIC_INSTANCE_TYPE = "p3.16xlarge"
 PT_EC2_GPU_IMAGENET_INSTANCE_TYPE = "p3.16xlarge"
-PT_EC2_GPU_INDUCTOR_INSTANCE_TYPES = ("p3.16xlarge", "p5.48xlarge", "g5.48xlarge")
+PT_EC2_GPU_INDUCTOR_INSTANCE_TYPES = ("p3.16xlarge", "p4d.24xlarge", "g5.48xlarge")
 PT_EC2_HPU_INSTANCE_TYPE = "dl1.24xlarge"
 PT_EC2_GPU_INSTANCE_TYPE = get_ec2_instance_type(default="g3.8xlarge", processor="gpu")
 

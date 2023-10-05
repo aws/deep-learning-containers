@@ -144,6 +144,10 @@ def train(args):
     if is_distributed:
         # Initialize the distributed environment.
         if use_mpi:
+            if not os.getenv("MASTER_ADDR"):
+                os.environ["MASTER_ADDR"] = os.environ["SM_HOSTS"][0]
+                os.environ["MASTER_PORT"] = "55555"
+                args.hosts = os.environ["SM_HOSTS"]
             if not os.getenv("RANK") and args.backend == "nccl":
                 os.environ["RANK"] = str(os.getenv("OMPI_COMM_WORLD_RANK"))
 
@@ -344,10 +348,5 @@ if __name__ == "__main__":
     parser.add_argument("--num-gpus", type=int, default=env.num_gpus)
 
     args = parser.parse_args()
-
-    if not os.getenv("MASTER_ADDR"):
-        os.environ["MASTER_ADDR"] = os.environ["SM_HOSTS"][0]
-        os.environ["MASTER_PORT"] = "55555"
-        args.hosts = os.environ["SM_HOSTS"]
 
     train(args)
