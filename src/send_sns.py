@@ -75,7 +75,6 @@ def get_platform_execution_details():
         pr_execution_details = get_pr_execution_details()
         platform_details["platform_info"]["PR"] = pr_execution_details
     elif build_context == "MAINLINE":
-        platform_details["platform_info"]["build_context"] = "BuildRCPipeline"
         mainline_execution_details = get_mainline_execution_details()
         platform_details["platform_info"]["MAINLINE"] = mainline_execution_details
 
@@ -99,7 +98,7 @@ def get_mainline_execution_details():
     mainline_execution_details["codepipeline_name"] = codepipeline_name
     mainline_execution_details["codepipeline_execution_id"] = os.getenv("CODEPIPELINE_EXECUTION_ID")
     mainline_execution_details["code_pipeline_url"] = get_codepipeline_url(codepipeline_name)
-
+    return mainline_execution_details
 
 def parse_pytest_data():
     """
@@ -153,12 +152,3 @@ def generate_sns_message():
         Subject="Test Results",
     )
 
-
-def main():
-    output = generate_sns_message_body()
-    with open("sns-body.json", "w") as f:
-        json.dump(output, f, indent=4)
-
-
-if __name__ == "__main__":
-    main()
