@@ -144,7 +144,7 @@ RUN ${PIP} install --no-cache-dir -U \
 RUN mkdir -p /etc/pki/tls/certs && cp /etc/ssl/certs/ca-certificates.crt /etc/pki/tls/certs/ca-bundle.crt
 RUN ${PIP} config set global.extra-index-url https://pip.repos.neuron.amazonaws.com \
  && ${PIP} install --force-reinstall torch-neuronx==$NEURONX_FRAMEWORK_VERSION --extra-index-url https://pip.repos.neuron.amazonaws.com \
- && ${PIP} uninstall neuronx-cc
+ && ${PIP} uninstall -y neuronx-cc
 
 # attrs required by sagemaker <24,>=23.1.0
 # protobuf sagemaker-training >=3.9.2,<=3.20.3

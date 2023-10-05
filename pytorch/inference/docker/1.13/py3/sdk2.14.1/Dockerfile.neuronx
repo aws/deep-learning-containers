@@ -118,7 +118,7 @@ RUN pip install --no-cache-dir -U \
 RUN pip install --extra-index-url https://pip.repos.neuron.amazonaws.com \
     torch-neuronx==$NEURONX_FRAMEWORK_VERSION \
     transformers-neuronx==$NEURONX_TRANSFORMERS_VERSION \
- && pip uninstall neuronx-cc \
+ && pip uninstall -y neuronx-cc \
  && pip install "protobuf<4" \
  && pip install torchserve==${TORCHSERVE_VERSION} \
  && pip install --no-deps --no-cache-dir -U torchvision==0.14.* \
