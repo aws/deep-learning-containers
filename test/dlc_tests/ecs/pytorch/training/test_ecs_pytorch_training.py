@@ -238,7 +238,7 @@ def test_ecs_pytorch_training_dgl_cpu(
 
 @pytest.mark.integration("dgl")
 @pytest.mark.model("gcn")
-@pytest.mark.skip_dgl_test
+@pytest.mark.skip_pt20_cuda121_tests
 @pytest.mark.parametrize("training_script", [PT_DGL_TRAINING_SCRIPT], indirect=True)
 @pytest.mark.parametrize("ecs_instance_type", ["p3.8xlarge"], indirect=True)
 @pytest.mark.parametrize("ecs_ami", [ECS_AML2_GPU_USWEST2], indirect=True)

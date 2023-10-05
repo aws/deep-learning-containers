@@ -31,7 +31,7 @@ SMDEBUG_EC2_CPU_INSTANCE_TYPE = get_ec2_instance_type(default="c4.8xlarge", proc
 @pytest.mark.model("mnist")
 @pytest.mark.parametrize("ec2_instance_type", SMDEBUG_EC2_GPU_INSTANCE_TYPE, indirect=True)
 @pytest.mark.flaky(reruns=0)
-@pytest.mark.skip_smdebug_test
+@pytest.mark.skip_pt20_cuda121_tests
 def test_smdebug_gpu(
     training, ec2_connection, region, ec2_instance_type, gpu_only, py3_only, below_tf213_only
 ):
@@ -71,7 +71,7 @@ def test_smdebug_gpu(
 @pytest.mark.model("mnist")
 @pytest.mark.parametrize("ec2_instance_type", SMDEBUG_EC2_GPU_INSTANCE_TYPE, indirect=True)
 @pytest.mark.flaky(reruns=0)
-@pytest.mark.skip_smprofiler_test
+@pytest.mark.skip_pt20_cuda121_tests
 def test_smprofiler_gpu(
     training,
     ec2_connection,

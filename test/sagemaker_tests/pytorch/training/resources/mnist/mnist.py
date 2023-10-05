@@ -143,17 +143,17 @@ def train(args):
 
     if is_distributed:
         # Initialize the distributed environment.
-        if not os.getenv("RANK"):  # for local dist job
-            os.environ["RANK"] = str(args.hosts.index(args.current_host))
-        if not os.getenv("WORLD_SIZE"):  # for local dist job
-            os.environ["WORLD_SIZE"] = str(len(args.hosts))
-
         if use_mpi:
             if not os.getenv("RANK") and args.backend == "nccl":
                 os.environ["RANK"] = str(os.getenv("OMPI_COMM_WORLD_RANK"))
 
             if not os.getenv("WORLD_SIZE") and args.backend == "nccl":
                 os.environ["WORLD_SIZE"] = str(os.getenv("OMPI_COMM_WORLD_SIZE"))
+
+        if not os.getenv("RANK"):  # for local dist job
+            os.environ["RANK"] = str(args.hosts.index(args.current_host))
+        if not os.getenv("WORLD_SIZE"):  # for local dist job
+            os.environ["WORLD_SIZE"] = str(len(args.hosts))
 
         dist.init_process_group(backend=args.backend)
         logger.info(

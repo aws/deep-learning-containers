@@ -75,7 +75,7 @@ def test_pytorchddp_throughput_gpu(
 @pytest.mark.multinode(2)
 @pytest.mark.integration("pytorchddp")
 @pytest.mark.parametrize(
-    "efa_instance_type", get_efa_test_instance_type(default=["ml.p4de.24xlarge"]), indirect=True
+    "efa_instance_type", get_efa_test_instance_type(default=["ml.p4d.24xlarge"]), indirect=True
 )
 @pytest.mark.skip_cpu
 @pytest.mark.skip_py2_containers
@@ -98,7 +98,7 @@ def test_pytorchddp_throughput_gpu_mpi(
             "distribution": distribution,
         }
 
-        job_name = utils.unique_name_from_base("test-pytorchddp-throughput-gpu")
+        job_name = utils.unique_name_from_base("test-pytorchddp-throughput-gpu-mpi")
         invoke_pytorch_estimator(
             ecr_image, sagemaker_regions, estimator_parameter, job_name=job_name
         )
