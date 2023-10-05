@@ -133,8 +133,11 @@ RUN echo '#!/bin/bash' > $NEURON_CC_BIN \
 # and use the version file from the actual installed package in the virtual env
 RUN mkdir -p /opt/conda/lib/${PYTHON}/site-packages/neuroncc \
  && echo "from neuroncc.version import __version__" > /opt/conda/lib/${PYTHON}/site-packages/neuroncc/__init__.py \
- && ln -s ${NEURON_CC_VENV}/lib/${PYTHON}/site-packages/neuroncc/version /opt/conda/lib/${PYTHON}/site-packages/neuroncc/version \
- && ln -s ${NEURON_CC_VENV}/lib/${PYTHON}/site-packages/neuron_cc-* /opt/conda/lib/${PYTHON}/site-packages/
+ && ln -s ${NEURON_CC_VENV}/lib/${PYTHON}/site-packages/neuroncc/version /opt/conda/lib/${PYTHON}/site-packages/neuroncc/version
+
+# create a fake default tensorflow package since torch_neuron checks if its installed and verifies its version
+RUN mkdir -p /opt/conda/lib/${PYTHON}/site-packages/tensorflow \
+ && echo "__version__ = \"1.15.5\"" > /opt/conda/lib/${PYTHON}/site-packages/tensorflow/__init__.py
 
 RUN useradd -m model-server \
  && mkdir -p /home/model-server/tmp /opt/ml/model \

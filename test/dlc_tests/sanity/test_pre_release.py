@@ -433,7 +433,7 @@ def test_framework_and_neuron_sdk_version(neuron):
 
         if package_name in ["neuron-cc", "neuronx-cc"]:
             output = run_cmd_on_container(container_name, ctx, f"{package_name} --version")
-            version_line = output.splitlines()[0]
+            version_line = output.stdout.splitlines()[0]
             assert (
                 installed_framework_version in version_line
             ), f"Unexpected Neuron compiler version output: {output}"
