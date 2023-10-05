@@ -47,12 +47,47 @@ def can_run_pytorchddp(ecr_image):
 @pytest.mark.skip_trcomp_containers
 @pytest.mark.efa()
 @pytest.mark.skip_inductor_test
+@pytest.mark.skip_pt20_cuda121_tests
 def test_pytorchddp_throughput_gpu(
     framework_version, ecr_image, sagemaker_regions, efa_instance_type, tmpdir
 ):
     with timeout(minutes=25):
         validate_or_skip_pytorchddp(ecr_image)
         distribution = {"pytorchddp": {"enabled": True}}
+        estimator_parameter = {
+            "entry_point": "pytorchddp_throughput_mnist.py",
+            "role": "SageMakerRole",
+            "instance_count": 2,
+            "instance_type": efa_instance_type,
+            "source_dir": mnist_path,
+            "framework_version": framework_version,
+            "distribution": distribution,
+        }
+
+        job_name = utils.unique_name_from_base("test-pytorchddp-throughput-gpu")
+        invoke_pytorch_estimator(
+            ecr_image, sagemaker_regions, estimator_parameter, job_name=job_name
+        )
+
+
+@pytest.mark.processor("gpu")
+@pytest.mark.model("N/A")
+@pytest.mark.multinode(2)
+@pytest.mark.integration("pytorchddp")
+@pytest.mark.parametrize(
+    "efa_instance_type", get_efa_test_instance_type(default=["ml.p4de.24xlarge"]), indirect=True
+)
+@pytest.mark.skip_cpu
+@pytest.mark.skip_py2_containers
+@pytest.mark.skip_trcomp_containers
+@pytest.mark.efa()
+@pytest.mark.skip_inductor_test
+def test_pytorchddp_throughput_gpu_mpi(
+    framework_version, ecr_image, sagemaker_regions, efa_instance_type, tmpdir
+):
+    with timeout(minutes=25):
+        validate_or_skip_pytorchddp(ecr_image)
+        distribution = {"mpi": {"enabled": True}}
         estimator_parameter = {
             "entry_point": "pytorchddp_throughput_mnist.py",
             "role": "SageMakerRole",

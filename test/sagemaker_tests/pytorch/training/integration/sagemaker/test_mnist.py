@@ -17,7 +17,7 @@ from sagemaker.instance_group import InstanceGroup
 from sagemaker.pytorch import PyTorch
 
 from .... import invoke_pytorch_helper_function
-from . import _test_mnist_distributed, _test_mnist
+from . import _test_mnist_distributed
 
 
 @pytest.mark.processor("cpu")
@@ -63,9 +63,10 @@ def test_mnist_distributed_gpu(
 
 @pytest.mark.processor("gpu")
 @pytest.mark.model("mnist")
+@pytest.mark.multinode(2)
 @pytest.mark.integration("smexperiments")
 @pytest.mark.skip_cpu
-def test_mnist_gpu(
+def test_mnist_distributed_gpu_mpi(
     framework_version, ecr_image, sagemaker_regions, instance_type, dist_gpu_backend
 ):
     instance_type = instance_type or "ml.g4dn.12xlarge"
@@ -73,9 +74,12 @@ def test_mnist_gpu(
         "framework_version": framework_version,
         "instance_type": instance_type,
         "dist_backend": dist_gpu_backend,
+        "use_mpi": True,
     }
 
-    invoke_pytorch_helper_function(ecr_image, sagemaker_regions, _test_mnist, function_args)
+    invoke_pytorch_helper_function(
+        ecr_image, sagemaker_regions, _test_mnist_distributed, function_args
+    )
 
 
 @pytest.mark.processor("cpu")
@@ -123,17 +127,21 @@ def test_hc_mnist_distributed_gpu(
 
 @pytest.mark.processor("gpu")
 @pytest.mark.model("mnist")
+@pytest.mark.multinode(2)
 @pytest.mark.integration("smexperiments")
 @pytest.mark.skip_cpu
-def test_hc_mnist_gpu(
+def test_hc_mnist_distributed_gpu_mpi(
     framework_version, ecr_image, sagemaker_regions, instance_type, dist_gpu_backend
 ):
     instance_type = instance_type or "ml.g4dn.12xlarge"
-    training_group = InstanceGroup("train_group", instance_type, 1)
+    training_group = InstanceGroup("train_group", instance_type, 2)
     function_args = {
         "framework_version": framework_version,
         "instance_groups": [training_group],
         "dist_backend": dist_gpu_backend,
+        "use_mpi": True,
     }
 
-    invoke_pytorch_helper_function(ecr_image, sagemaker_regions, _test_mnist, function_args)
+    invoke_pytorch_helper_function(
+        ecr_image, sagemaker_regions, _test_mnist_distributed, function_args
+    )

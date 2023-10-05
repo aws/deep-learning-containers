@@ -142,7 +142,7 @@ def main():
     parser.add_argument(
         "--local_rank",
         type=int,
-        default=os.getenv("LOCAL_RANK", -1),
+        default=os.getenv("LOCAL_RANK"),
         metavar="S",
         help="random seed (default: 1)",
     )
@@ -175,8 +175,22 @@ def main():
 
     args = parser.parse_args()
 
+    hosts = os.environ["SM_HOSTS"]
+
+    if not os.getenv("WORLD_SIZE"):
+        os.environ["WORLD_SIZE"] = str(os.getenv("OMPI_COMM_WORLD_SIZE"))
+        # os.environ["WORLD_SIZE"] = str(len(hosts))
+
     args.world_size = int(os.environ["WORLD_SIZE"])
 
+    if not os.getenv("RANK"):
+        os.environ["RANK"] = str(os.getenv("OMPI_COMM_WORLD_RANK"))
+        # os.environ["RANK"] = str(hosts.index(os.environ["SM_CURRENT_HOST"]))
+
+    if not os.getenv("MASTER_ADDR"):
+        os.environ["MASTER_ADDR"] = os.environ["SM_HOSTS"][0]
+        os.environ["MASTER_PORT"] = "55555"
+    print(f"{os.environ['MASTER_ADDR']}")
     args.lr = 1.0
     args.batch_size //= args.world_size // 8
     args.batch_size = max(args.batch_size, 1)
@@ -184,8 +198,22 @@ def main():
     dist.init_process_group(backend="nccl")
     rank = dist.get_rank()
     local_rank = args.local_rank
-    torch.cuda.set_device(local_rank)
 
+    if not local_rank:
+        local_rank = int(os.getenv("OMPI_COMM_WORLD_LOCAL_RANK"))
+
+    # if not local_size:
+    #     local_size = int(os.getenv("OMPI_COMM_WORLD_LOCAL_SIZE"))
+
+    torch.cuda.set_device(local_rank)
+    print(
+        "Hello from rank",
+        rank,
+        "of local_rank",
+        local_rank,
+        "in world size of",
+        args.world_size,
+    )
     if args.verbose:
         print(
             "Hello from rank",

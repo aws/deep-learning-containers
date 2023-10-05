@@ -153,14 +153,23 @@ def _test_mnist_distributed(
     instance_type=None,
     instance_groups=None,
     use_inductor=False,
+    use_mpi=False,
 ):
-    dist_method = "pytorchddp" if dist_backend.lower() == "nccl" else "torch_distributed"
+    if use_mpi:
+        dist_method = "mpi" if dist_backend.lower() == "nccl" else "torch_distributed"
+    else:
+        dist_method = "pytorchddp" if dist_backend.lower() == "nccl" else "torch_distributed"
     est_params = {
         "entry_point": mnist_script,
         "role": "SageMakerRole",
         "sagemaker_session": sagemaker_session,
         "image_uri": ecr_image,
-        "hyperparameters": {"backend": dist_backend, "epochs": 1, "inductor": int(use_inductor)},
+        "hyperparameters": {
+            "backend": dist_backend,
+            "epochs": 1,
+            "inductor": int(use_inductor),
+            "use_mpi": use_mpi,
+        },
         "framework_version": framework_version,
         "distribution": {dist_method: {"enabled": True}},
     }
@@ -170,39 +179,6 @@ def _test_mnist_distributed(
     else:
         est_params["instance_groups"] = instance_groups
     job_name = "test-pt-hc-mnist-distributed" if instance_groups else "test-pt-mnist-distributed"
-    with timeout(minutes=DEFAULT_TIMEOUT):
-        pytorch = PyTorch(**est_params)
-        training_input = pytorch.sagemaker_session.upload_data(
-            path=training_dir, key_prefix="pytorch/mnist"
-        )
-        pytorch.fit({"training": training_input}, job_name=utils.unique_name_from_base(job_name))
-
-
-def _test_mnist(
-    ecr_image,
-    sagemaker_session,
-    framework_version,
-    dist_backend,
-    instance_type=None,
-    instance_groups=None,
-    use_inductor=False,
-):
-    dist_method = "pytorchddp" if dist_backend.lower() == "nccl" else "torch_distributed"
-    est_params = {
-        "entry_point": mnist_script,
-        "role": "SageMakerRole",
-        "sagemaker_session": sagemaker_session,
-        "image_uri": ecr_image,
-        "hyperparameters": {"backend": dist_backend, "epochs": 1, "inductor": int(use_inductor)},
-        "framework_version": framework_version,
-        "distribution": {dist_method: {"enabled": True}},
-    }
-    if not instance_groups:
-        est_params["instance_type"] = instance_type
-        est_params["instance_count"] = 1
-    else:
-        est_params["instance_groups"] = instance_groups
-    job_name = "test-pt-hc-mnist" if instance_groups else "test-pt-mnist"
     with timeout(minutes=DEFAULT_TIMEOUT):
         pytorch = PyTorch(**est_params)
         training_input = pytorch.sagemaker_session.upload_data(
