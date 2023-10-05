@@ -118,7 +118,7 @@ RUN pip install --no-cache-dir -U \
 RUN pip install --extra-index-url https://pip.repos.neuron.amazonaws.com \
     torch-neuronx==$NEURONX_FRAMEWORK_VERSION \
     transformers-neuronx==$NEURONX_TRANSFORMERS_VERSION \
- && pip uninstall neuronx-cc
+ && pip uninstall neuronx-cc \
  && pip install "protobuf<4" \
  && pip install torchserve==${TORCHSERVE_VERSION} \
  && pip install --no-deps --no-cache-dir -U torchvision==0.14.* \
@@ -141,7 +141,7 @@ RUN echo '#!/bin/bash' > $NEURONX_CC_BIN \
 # and use the version file from the actual installed package in the virtual env
 RUN mkdir -p /usr/local/lib/${PYTHON}/site-packages/neuronxcc \
  && echo "from neuronxcc.version import __version__" > /usr/local/lib/${PYTHON}/site-packages/neuronxcc/__init__.py \
- && ln -s ${NEURONX_CC_VENV}/lib/${PYTHON}/site-packages/neuronxcc/version /usr/local/lib/${PYTHON}/site-packages/neuronxcc/version
+ && ln -s ${NEURONX_CC_VENV}/lib/${PYTHON}/site-packages/neuronxcc/version /usr/local/lib/${PYTHON}/site-packages/neuronxcc/version \
  && ln -s ${NEURONX_CC_VENV}/lib/${PYTHON}/site-packages/neuronx_cc-*  /usr/local/lib/${PYTHON}/site-packages/
 
 RUN useradd -m model-server \
