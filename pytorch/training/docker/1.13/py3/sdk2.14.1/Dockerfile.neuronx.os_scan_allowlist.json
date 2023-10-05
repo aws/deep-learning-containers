@@ -6,7 +6,7 @@
             "name": "SNYK-PYTHON-SCIPY-5759266",
             "package_name": "scipy",
             "package_details": {
-                "file_path": "usr/local/lib/python3.10/site-packages/scipy-1.7.3.dist-info/METADATA",
+                "file_path": "root/neuronx_cc_venv/lib/python3.10/site-packages/scipy-1.7.3.dist-info/METADATA",
                 "name": "scipy",
                 "package_manager": "PYTHONPKG",
                 "version": "1.7.3",
@@ -26,7 +26,7 @@
             "source": "SNYK",
             "severity": "HIGH",
             "status": "ACTIVE",
-            "title": "IN1-PYTHON-SCIPY-5759266 - scipy"
+            "title": "IN1-PYTHON-SCIPY-5759266 - scipy, scipy"
         }
     ],
     "torch": [
