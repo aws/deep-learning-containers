@@ -395,7 +395,7 @@ RUN /opt/conda/bin/mamba install -y -c conda-forge \
   && /opt/conda/bin/mamba clean -afy
 
 # Patches
-RUN pip install "pillow>=9.5" opencv-python
+RUN pip install "pillow>=9.5" opencv-python huggingface_hub
 RUN /opt/conda/bin/mamba install -y -c conda-forge \
   "requests>=2.31.0" \
   && /opt/conda/bin/mamba clean -afy
@@ -444,34 +444,11 @@ RUN chmod +x /usr/local/bin/start_with_right_hostname.sh
 
 WORKDIR /root
 
-RUN git clone https://github.com/HazyResearch/flash-attention \
-    && cd flash-attention && git checkout v1.0.7 \
-    && cd csrc/ft_attention && ln=$(grep -wn "\-\-threads" ./setup.py | cut -d: -f1) \
-    && sed -i "${ln} s/4/1/" ./setup.py && cd ../../ \
-    && cd csrc/fused_softmax && ln=$(grep -wn "\-\-threads" ./setup.py | cut -d: -f1) \
-    && sed -i "${ln} s/4/1/" ./setup.py && cd ../../ \
-    && cd csrc/xentropy && ln=$(grep -wn "\-\-threads" ./setup.py | cut -d: -f1) \
-    && sed -i "${ln} s/4/1/" ./setup.py && cd ../../ \
-    && cd csrc/layer_norm && ln=$(grep -wn "\-\-threads" ./setup.py | cut -d: -f1) \
-    && sed -i "${ln} s/4/1/" ./setup.py && cd ../../ \
-    && cd csrc/rotary && ln=$(grep -wn "\-\-threads" ./setup.py | cut -d: -f1) \
-    && sed -i "${ln} s/4/1/" ./setup.py && cd ../../ \
-    && cd csrc/fused_dense_lib && ln=$(grep -wn "\-\-threads" ./setup.py | cut -d: -f1) \
-    && sed -i "${ln} s/4/1/" ./setup.py && cd ../../ \
-    && cd csrc/fused_softmax && pip install . && cd ../../ \
-    && cd csrc/rotary && pip install . && cd ../../ \
-    && cd csrc/xentropy && pip install . && cd ../../ \
-    && cd csrc/layer_norm && pip install . && cd ../../ \
-    && cd csrc/fused_dense_lib && pip install . && cd ../../ \
-    && cd csrc/ft_attention && pip install . && cd ../../ \
-    && cd .. && rm -rf flash-attention
-
 RUN pip install --no-cache-dir -U \
     smclarify \
     "sagemaker>=2,<3" \
     "sagemaker-experiments<1" \
     sagemaker-pytorch-training \
-    flash-attn==0.2.8 \
     triton==2.0.0.dev20221202
 
 # Install extra packages
@@ -513,6 +490,8 @@ RUN  wget -nv https://github.com/rapidsai/rmm/archive/v${RMM_VERSION}.tar.gz \
  && rm -rf v${RMM_VERSION}.tar* \
  && rm -rf rmm-${RMM_VERSION}
 
+
+
 # # Install ZeRO-2D Binary
 # RUN pip install --no-cache-dir -U ${ZERO_2D_URL}
 
@@ -524,7 +503,16 @@ RUN  wget -nv https://github.com/rapidsai/rmm/archive/v${RMM_VERSION}.tar.gz \
 
 # ENV LD_LIBRARY_PATH="/opt/conda/lib/python${PYTHON_SHORT_VERSION}/site-packages/smdistributed/dataparallel/lib:$LD_LIBRARY_PATH"
 
- WORKDIR /
+WORKDIR /
+
+# Install flash attn and NVIDIA transformer engine.
+# Optionally set NVTE_FRAMEWORK to avoid bringing in additional frameworks during TE install
+ENV NVTE_FRAMEWORK=pytorch
+# Install flash-attn using instructions from https://github.com/Dao-AILab/flash-attention#installation-and-features
+# Set MAX_JOBS=4 to avoid OOM issues in installation process
+RUN MAX_JOBS=4 pip install flash-attn==2.0.4 --no-build-isolation
+# Install TE using instructions from https://docs.nvidia.com/deeplearning/transformer-engine/user-guide/installation.html
+RUN pip install git+https://github.com/NVIDIA/TransformerEngine.git@release_v0.12
 
 RUN HOME_DIR=/root \
  && curl -o ${HOME_DIR}/oss_compliance.zip https://aws-dlinfra-utilities.s3.amazonaws.com/oss_compliance.zip \
