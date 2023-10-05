@@ -1,8 +1,9 @@
 import os
 import xmltodict
 import json
-import boto3
+import config
 from send_status import get_target_url
+from dlc.ticket_notification_handler import TicketNotificationHandler
 
 from codebuild_environment import (
     get_codebuild_project_name,
@@ -10,7 +11,6 @@ from codebuild_environment import (
     get_codepipeline_url,
 )
 
-DEFAULT_REGION = "us-west-2"
 
 def get_pytest_output():
     """
@@ -89,6 +89,10 @@ def get_pr_execution_details():
     pr_execution_details["commit_id"] = os.getenv("CODEBUILD_RESOLVED_SOURCE_VERSION")
     pr_execution_details["github_url"] = github_url
     pr_execution_details["pr_url"] = f"{github_url}/pull/{pr_number}"
+
+    if config.is_notify_test_failures_enabled:
+        pr_execution_details["notification_severity"] = config.get_notification_severity()
+
     return pr_execution_details
 
 
@@ -99,6 +103,7 @@ def get_mainline_execution_details():
     mainline_execution_details["codepipeline_execution_id"] = os.getenv("CODEPIPELINE_EXECUTION_ID")
     mainline_execution_details["code_pipeline_url"] = get_codepipeline_url(codepipeline_name)
     return mainline_execution_details
+
 
 def parse_pytest_data():
     """
@@ -132,23 +137,20 @@ def parse_pytest_data():
     return pytest_parsed_output
 
 
-def generate_sns_message_body():
+def generate_test_execution_data():
     """
-    Generate SNS message body.
+    Generate test execution data.
     """
-    sns_message_body = get_platform_execution_details()
-    sns_message_body["pytest_output"] = parse_pytest_data()
-    return sns_message_body
+    test_execution_data = get_platform_execution_details()
+    test_execution_data["pytest_output"] = parse_pytest_data()
+    return test_execution_data
 
 
-def generate_sns_message():
-    # Send SNS message to a topic
-    sns_client = boto3.Session(region_name=DEFAULT_REGION).client("sns")
-    account_id = os.getenv("ACCOUNT_ID", boto3.client("sts").get_caller_identity()["Account"])
-    print("publishing")
-    sns_client.publish(
-        TopicArn=f"arn:aws:sns:{DEFAULT_REGION}:{account_id}:TriggerAutoCutTicketWorkflow",
-        Message=json.dumps(generate_sns_message_body()),
-        Subject="Test Results",
-    )
+def main():
+    test_execution_data = generate_test_execution_data()
+    handler = TicketNotificationHandler()
+    handler.publish_notification(test_execution_data)
 
+
+if __name__ == "__main__":
+    main()

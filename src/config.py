@@ -84,6 +84,37 @@ def is_ecr_scan_allowlist_feature_enabled():
     return parse_dlc_developer_configs("test", "ecr_scan_allowlist_feature")
 
 
+def is_notify_test_failures_enabled():
+    return parse_dlc_developer_configs("notify", "notify_test_failures")
+
+
+class AllowedNotificationSeverity(Enum):
+    MEDIUM = "medium"
+    HIGH = "high"
+
+
+def get_notification_severity():
+    notification_severity = parse_dlc_developer_configs("notify", "notification_severity")
+    allowed_values = [cfg_opt.value for cfg_opt in AllowedNotificationSeverity]
+
+    if isinstance(notification_severity, str):
+        notification_severity = notification_severity.lower().strip()
+
+    if notification_severity in {
+        AllowedNotificationSeverity.HIGH.value,
+        AllowedNotificationSeverity.MEDIUM.value,
+    }:
+        return notification_severity
+
+    if notification_severity != "":
+        LOGGER.warning(
+            f"Unrecognized notification_severity setting {notification_severity}. "
+            f"Please choose one of {allowed_values}. Using medium severity for notification"
+        )
+
+    return AllowedNotificationSeverity.MEDIUM.value
+
+
 class AllowedSMRemoteConfigValues(Enum):
     OFF = "off"
     RC = "rc"

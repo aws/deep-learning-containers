@@ -41,6 +41,9 @@ def test_developer_configuration():
     assert config.parse_dlc_developer_configs("test", "safety_check_test") is False
     assert config.parse_dlc_developer_configs("test", "ecr_scan_allowlist_feature") is False
 
+    # Check notify settings
+    assert config.parse_dlc_developer_configs("notify", "notify_on_failure") is False
+    assert config.parse_dlc_developer_configs("notify", "notification_severity") == ""
 
 @pytest.mark.quick_checks
 @pytest.mark.model("N/A")
@@ -63,6 +66,8 @@ def test_developer_config_wrappers_defaults():
     assert config.is_scheduler_enabled() is False
     assert config.is_safety_check_test_enabled() is False
     assert config.is_ecr_scan_allowlist_feature_enabled() is False
+    assert config.is_notify_test_failures_enabled() is False
+    assert config.get_notification_severity() == ""
 
 
 @pytest.mark.quick_checks

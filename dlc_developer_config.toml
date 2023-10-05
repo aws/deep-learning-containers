@@ -43,6 +43,13 @@ datetime_tag = true
 # before disabling new builds, or tests will fail
 do_build = true
 
+[notify]
+### Notify on test failures
+### Off by default
+notify_test_failures = false
+  # Valid values: medium or high 
+  notification_severity = ""
+
 [test]
 ### On by default
 sanity_tests = true
