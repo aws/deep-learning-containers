@@ -129,9 +129,9 @@ COPY start_with_right_hostname.sh /usr/local/bin/start_with_right_hostname.sh
 RUN ${PIP} install --no-cache-dir -U \
     "bokeh>=2.3,<3" \
     opencv-python==4.8.1.78 \
-    numpy==1.26.0 \
+    "numpy<1.24,>1.21" \
     "awscli<2" \
-    scipy \
+    "scipy>=1.8.0" \
     click \
     "cryptography" \
     "sagemaker>=2,<2.184" \
@@ -143,7 +143,8 @@ RUN ${PIP} install --no-cache-dir -U \
 
 RUN mkdir -p /etc/pki/tls/certs && cp /etc/ssl/certs/ca-certificates.crt /etc/pki/tls/certs/ca-bundle.crt
 RUN ${PIP} config set global.extra-index-url https://pip.repos.neuron.amazonaws.com \
- && ${PIP} install --force-reinstall torch-neuronx==$NEURONX_FRAMEWORK_VERSION --extra-index-url https://pip.repos.neuron.amazonaws.com
+ && ${PIP} install --force-reinstall torch-neuronx==$NEURONX_FRAMEWORK_VERSION --extra-index-url https://pip.repos.neuron.amazonaws.com \
+ && ${PIP} uninstall neuronx-cc
 
 # attrs required by sagemaker <24,>=23.1.0
 # protobuf sagemaker-training >=3.9.2,<=3.20.3
@@ -186,6 +187,7 @@ RUN echo '#!/bin/bash' > $NEURONX_CC_BIN \
 RUN mkdir -p /usr/local/lib/${PYTHON}/site-packages/neuronxcc \
  && echo "from neuronxcc.version import __version__" > /usr/local/lib/${PYTHON}/site-packages/neuronxcc/__init__.py \
  && ln -s ${NEURONX_CC_VENV}/lib/${PYTHON}/site-packages/neuronxcc/version /usr/local/lib/${PYTHON}/site-packages/neuronxcc/version
+ && ln -s ${NEURONX_CC_VENV}/lib/${PYTHON}/site-packages/neuronx_cc-*  /usr/local/lib/${PYTHON}/site-packages/
 
 # EFA Installer does apt get. Make sure to run apt update before that
 RUN apt-get update

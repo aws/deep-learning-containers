@@ -393,12 +393,12 @@ def test_framework_and_neuron_sdk_version(neuron):
     package_names = {}  # maps a package name to a framework name
     if tested_framework == "pytorch":
         if "training" in image or "neuronx" in image:
-            package_names = {"torch-neuronx": "torch_neuronx"}
+            package_names = {"torch-neuronx": "torch_neuronx", "neuronx-cc": "neuronxcc"}
             # transformers is only available for the inference image
             if "training" not in image:
                 package_names["transformers-neuronx"] = "transformers_neuronx"
         else:
-            package_names = {"torch-neuron": "torch_neuron"}
+            package_names = {"torch-neuron": "torch_neuron", "neuron-cc": "neuroncc"}
     elif tested_framework == "tensorflow":
         if "neuronx" in image:
             package_names = {"tensorflow-neuronx": "tensorflow_neuronx"}
@@ -428,6 +428,16 @@ def test_framework_and_neuron_sdk_version(neuron):
         )
 
         installed_framework_version = output.stdout.strip()
+        if "+" in installed_framework_version:
+            installed_framework_version = installed_framework_version.split("+")[0]
+
+        if package_name in ["neuron-cc", "neuronx-cc"]:
+            output = run_cmd_on_container(container_name, ctx, f"{package_name} --version")
+            version_line = output.splitlines()[0]
+            assert (
+                installed_framework_version in version_line
+            ), f"Unexpected Neuron compiler version output: {output}"
+
         version_list = release_manifest[package_name]
         # temporary hack because transformers_neuronx reports its version as 0.6.x
         if package_name == "transformers-neuronx":
