@@ -139,10 +139,10 @@ RUN echo '#!/bin/bash' > $NEURONX_CC_BIN \
 # create a fake default neuronxcc python package which only provides the version and
 # which is used by Neuron frameworks running in the default environment
 # and use the version file from the actual installed package in the virtual env
-RUN mkdir -p /usr/local/lib/${PYTHON}/site-packages/neuronxcc \
- && echo "from neuronxcc.version import __version__" > /usr/local/lib/${PYTHON}/site-packages/neuronxcc/__init__.py \
- && ln -s ${NEURONX_CC_VENV}/lib/${PYTHON}/site-packages/neuronxcc/version /usr/local/lib/${PYTHON}/site-packages/neuronxcc/version \
- && ln -s ${NEURONX_CC_VENV}/lib/${PYTHON}/site-packages/neuronx_cc-*  /usr/local/lib/${PYTHON}/site-packages/
+RUN mkdir -p /opt/conda/lib/${PYTHON}/site-packages/neuronxcc \
+ && echo "from neuronxcc.version import __version__" > /opt/conda/lib/${PYTHON}/site-packages/neuronxcc/__init__.py \
+ && ln -s ${NEURONX_CC_VENV}/lib/${PYTHON}/site-packages/neuronxcc/version /opt/conda/lib/${PYTHON}/site-packages/neuronxcc/version \
+ && ln -s ${NEURONX_CC_VENV}/lib/${PYTHON}/site-packages/neuronx_cc-*  /opt/conda/lib/${PYTHON}/site-packages/
 
 RUN useradd -m model-server \
  && mkdir -p /home/model-server/tmp /opt/ml/model \
