@@ -108,7 +108,7 @@ def is_test_job_enabled(test_type):
         return True
     if test_type == constants.SAGEMAKER_RC_TESTS and config.is_sm_rc_test_enabled:
         return True
-    if test_type == constants.SAGEMAKER_BENCHMARK_TESTS and config.is_sm_benchmark_tests_enabled:
+    if test_type == constants.SAGEMAKER_BENCHMARK_TESTS and config.is_sm_benchmark_test_enabled:
         return True
     if test_type == constants.EC2_TESTS and config.is_ec2_test_enabled():
         return True
