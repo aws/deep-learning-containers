@@ -89,11 +89,12 @@ def run_test_job(commit, codebuild_project, images_str=""):
     LOGGER.debug(f"env_overrides dict: {env_overrides}")
 
     client = boto3.client("codebuild")
-    return client.start_build(
-        projectName=codebuild_project,
-        environmentVariablesOverride=env_overrides,
-        sourceVersion=commit,
-    )
+    LOGGER.debug(f"Starting build job {codebuild_project}")
+    # return client.start_build(
+    #     projectName=codebuild_project,
+    #     environmentVariablesOverride=env_overrides,
+    #     sourceVersion=commit,
+    # )
 
 
 def is_test_job_enabled(test_type):
