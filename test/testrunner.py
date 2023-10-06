@@ -19,7 +19,6 @@ from test_utils import metrics as metrics_utils
 from test_utils import (
     get_dlc_images,
     is_pr_context,
-    is_benchmark_dev_context,
     is_efa_dedicated,
     is_ec2_image,
     destroy_ssh_keypair,
@@ -299,7 +298,7 @@ def main():
     # Do not create EKS cluster for when EIA Only Images are present
     is_all_images_list_eia = all("eia" in image_uri for image_uri in all_image_list)
     eks_cluster_name = None
-    benchmark_mode = "benchmark" in test_type or is_benchmark_dev_context()
+    benchmark_mode = "benchmark" in test_type
     specific_test_type = (
         re.sub("benchmark-", "", test_type) if "benchmark" in test_type else test_type
     )
