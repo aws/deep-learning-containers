@@ -47,6 +47,7 @@ def get_codebuild_project_name():
     # Default value for codebuild project name is "local_test" when run outside CodeBuild
     return os.getenv("CODEBUILD_BUILD_ID", "local_test").split(":")[0]
 
+
 def get_codebuild_project_id():
     """
     Get env variable CODEBUILD_SOURCE_REPO_URL
@@ -89,3 +90,18 @@ def get_codepipeline_url(pipeline_name):
     """
     region = os.getenv("AWS_REGION")
     return f"https://{region}.console.aws.amazon.com/codesuite/codepipeline/pipelines/{pipeline_name}/view?region={region}"
+
+
+def get_cloudwatch_url(project):
+    """
+    Construct CloudWatch URL from project ID
+
+    :param codebuild_project_id: ID of CodeBuild project
+    :type codebuild_project_id: str
+
+    :return: str
+    """
+    region = os.getenv("AWS_REGION")
+    logpath = os.getenv("CODEBUILD_LOG_PATH")
+
+    return f"https://{region}.console.aws.amazon.com/cloudwatch/home?region={region}#logEventViewer:group=/aws/codebuild/{project};stream={logpath}"

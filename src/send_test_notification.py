@@ -9,6 +9,7 @@ from codebuild_environment import (
     get_codebuild_project_name,
     get_codebuild_project_id,
     get_codepipeline_url,
+    get_cloudwatch_url,
 )
 
 
@@ -70,7 +71,7 @@ def get_platform_execution_details():
     platform_details["platform_info"]["codebuild_name"] = codebuild_name
     platform_details["platform_info"]["codebuild_id"] = get_codebuild_project_id()
     platform_details["platform_info"]["codebuild_url"] = get_target_url(codebuild_name)
-
+    platform_details["platform_info"]["cloudwatch_logs_url"] = get_cloudwatch_url(codebuild_name)
     if build_context == "PR":
         pr_execution_details = get_pr_execution_details()
         platform_details["platform_info"]["PR"] = pr_execution_details
