@@ -7,8 +7,6 @@ import re
 import time
 import uuid
 import boto3
-from botocore.exceptions import ClientError
-import docker
 import pytest
 
 from packaging.version import Version
@@ -20,7 +18,6 @@ import test.test_utils.ec2 as ec2_utils
 
 from test import test_utils
 from test.test_utils import (
-    is_benchmark_dev_context,
     get_framework_and_version_from_tag,
     get_cuda_version_from_tag,
     get_job_type_from_image,
@@ -599,7 +596,7 @@ def ec2_instance(
         ]
     elif (
         (
-            ("benchmark" in os.getenv("TEST_TYPE") or is_benchmark_dev_context())
+            ("benchmark" in os.getenv("TEST_TYPE"))
             and (
                 ("mxnet_training" in request.fixturenames and "gpu_only" in request.fixturenames)
                 or "mxnet_inference" in request.fixturenames
