@@ -17,6 +17,7 @@ import concurrent.futures
 import datetime
 import os
 import re
+import json
 
 from copy import deepcopy
 
@@ -445,23 +446,42 @@ def trigger_apatch(image_uri, s3_downloaded_path):
     return new_cmd
 
 
-def trigger_enhanced_scan(image_uri, patch_details_path, python_version=None):
+def trigger_enhanced_scan(image_uri, patch_details_path, s3_downloaded_path, python_version=None):
+    ## TODO: Clean up, try single path instead of multiple ##
     from test.dlc_tests.sanity.test_ecr_scan import helper_function_for_leftover_vulnerabilities_from_enhanced_scanning
     remaining_vulnerabilities, _ = helper_function_for_leftover_vulnerabilities_from_enhanced_scanning(image_uri, python_version=python_version)
-    packages_to_be_patched = set()
+    impacted_packages = set()
     for package_name, package_cve_list in remaining_vulnerabilities.vulnerability_list.items():
         for cve in package_cve_list:
             if cve.package_details.package_manager == "OS":
-                packages_to_be_patched.add(package_name)
+                impacted_packages.add(package_name)
+    run(f"docker pull {image_uri}", hide=True)
+    mount_path_1 = os.path.join(os.sep, get_cloned_folder_path())
+    mount_path_2 = os.path.join(os.sep, s3_downloaded_path)
+    docker_run_cmd = f"docker run -v {mount_path_1}:/deep-learning-containers -v {mount_path_2}:/patch-dlc  -id --entrypoint='/bin/bash' {image_uri} "
+    container_id = run(f"{docker_run_cmd}").stdout.strip()
+    docker_exec_cmd = f"docker exec -i {container_id}"
+    container_setup_cmd = "pip install invoke"
+    run(f"{docker_exec_cmd} {container_setup_cmd}")
+    container_setup_cmd = "apt-get update"
+    run(f"{docker_exec_cmd} {container_setup_cmd}")
+    save_file_name = "save_temp.json"
+    script_run_cmd = f"""python /deep-learning-containers/miscellaneous_scripts/extract_apt_patch_data.py --impacted-packages {",".join(impacted_packages)} --save-result-path /patch-dlc/{image_uri.replace("/","_")}/{save_file_name}"""
+    result = run(f"{docker_exec_cmd} {script_run_cmd}")
+    print(result)
+    with open(os.path.join(os.sep, patch_details_path, save_file_name), "r") as readfile:
+        saved_json_data = json.load(readfile)
+    print(saved_json_data)
+    patch_package_list = saved_json_data["patch_package_list"]
     echo_cmd = """ echo "echo NA" """
     file_concat_cmd = f"tee -a {patch_details_path}/install_script_second.sh"
-    if packages_to_be_patched:
-        echo_cmd = f"""echo  "apt-get update && apt-get install -y --only-upgrade {" ".join(packages_to_be_patched)}" """
+    if patch_package_list:
+        echo_cmd = f"""echo  "apt-get update && apt-get install -y --only-upgrade {" ".join(patch_package_list)}" """
     if os.getenv("IS_CODEBUILD_IMAGE") is None:
         file_concat_cmd = f"sudo {file_concat_cmd}"
     complete_command = f"{echo_cmd} | {file_concat_cmd}"
     run(complete_command)
-    return list(packages_to_be_patched)
+    return patch_package_list
 
 
 def conduct_apatch_build_setup(pre_push_image_object: DockerImage):
@@ -494,7 +514,7 @@ def conduct_apatch_build_setup(pre_push_image_object: DockerImage):
         run(f"mkdir {patch_details_path}")
     install_cmd = trigger_apatch(image_uri=filtered_list[0], s3_downloaded_path=download_path)
     print(f"INSTALL CMD: {install_cmd}")
-    trigger_enhanced_scan(image_uri=filtered_list[0], patch_details_path=patch_details_path,python_version=info.get("python_version"))
+    trigger_enhanced_scan(image_uri=filtered_list[0], patch_details_path=patch_details_path, s3_downloaded_path=download_path, python_version=info.get("python_version"))
 
     pre_push_image_object.dockerfile = os.path.join(
         os.sep, get_cloned_folder_path(), "miscellaneous_dockerfiles", "Dockerfile.apatch"
