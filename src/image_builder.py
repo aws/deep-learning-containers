@@ -293,10 +293,10 @@ def image_builder(buildspec, image_types=[], device_types=[]):
         # If for a pre_push stage image we create a common stage image, then we do not push the pre_push stage image
         # to the repository. Instead, we just push its common stage image to the repository. Therefore,
         # inside function get_common_stage_image_object we make pre_push_stage_image_object non pushable.
-        # common_stage_image_object = generate_common_stage_image_object(
-        #     pre_push_stage_image_object, image_tag
-        # )
-        #COMMON_STAGE_IMAGES.append(common_stage_image_object)
+        common_stage_image_object = generate_common_stage_image_object(
+            pre_push_stage_image_object, image_tag
+        )
+        COMMON_STAGE_IMAGES.append(common_stage_image_object)
 
         PRE_PUSH_STAGE_IMAGES.append(pre_push_stage_image_object)
         FORMATTER.separator()
@@ -307,7 +307,7 @@ def image_builder(buildspec, image_types=[], device_types=[]):
     # Child images use one of the parent images as their base image
     parent_images = [image for image in PRE_PUSH_STAGE_IMAGES if not image.is_child_image]
     child_images = [image for image in PRE_PUSH_STAGE_IMAGES if image.is_child_image]
-    ALL_IMAGES = PRE_PUSH_STAGE_IMAGES
+    ALL_IMAGES = PRE_PUSH_STAGE_IMAGES + COMMON_STAGE_IMAGES
     IMAGES_TO_PUSH = [image for image in ALL_IMAGES if image.to_push and image.to_build]
 
     pushed_images = []
