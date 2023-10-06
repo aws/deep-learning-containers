@@ -141,6 +141,7 @@ def _test_pt_neuronx(
             initial_instance_count=1,
             instance_type=instance_type,
             endpoint_name=endpoint_name,
+            volume_size = 100,
         )
 
         data = {"inputs": "I really wish "}
