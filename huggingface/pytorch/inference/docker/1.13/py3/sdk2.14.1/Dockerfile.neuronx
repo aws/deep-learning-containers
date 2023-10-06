@@ -26,7 +26,7 @@ ARG OPTIMUM_NEURON_VERSION=0.0.11
 # See http://bugs.python.org/issue19846
 ENV LANG C.UTF-8
 ENV LD_LIBRARY_PATH /opt/aws/neuron/lib:/lib/x86_64-linux-gnu:/opt/conda/lib/:$LD_LIBRARY_PATH
-ENV PATH /opt/conda/bin:/opt/aws/neuron/bin:$PATH
+ENV PATH /opt/conda/bin:/opt/aws/neuron/bin:/opt/ml/model:$PATH
 ENV SAGEMAKER_SERVING_MODULE sagemaker_pytorch_serving_container.serving:main
 ENV TEMP=/home/model-server/tmp
 
