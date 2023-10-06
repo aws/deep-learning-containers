@@ -35,6 +35,7 @@ def can_run_pytorchddp(ecr_image):
     return Version(image_framework_version) in SpecifierSet(">=1.10")
 
 
+# Skip due to known issue: https://github.com/pytorch/pytorch/issues/99074
 @pytest.mark.processor("gpu")
 @pytest.mark.model("N/A")
 @pytest.mark.multinode(2)
