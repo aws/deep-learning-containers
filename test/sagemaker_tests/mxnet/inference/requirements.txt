@@ -10,8 +10,7 @@ pytest-xdist
 requests==2.25.1
 urllib3>=1.26.6
 mock
-sagemaker
-docker-compose
+sagemaker>=2,<3
 awslogs
 requests_mock==1.7.0
 fabric

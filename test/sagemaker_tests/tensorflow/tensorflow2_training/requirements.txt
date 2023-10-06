@@ -18,7 +18,6 @@ pytest-rerunfailures
 pytest-xdist
 requests
 mock
-docker-compose
 six
 python-dateutil>=2.1,<2.8.1
 requests-mock

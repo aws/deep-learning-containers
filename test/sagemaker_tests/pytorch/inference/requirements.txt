@@ -1,6 +1,5 @@
 boto3
 coverage
-docker-compose
 Flask==1.1.1
 fabric
 flake8==3.7.7
