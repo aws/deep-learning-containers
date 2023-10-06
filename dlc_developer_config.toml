@@ -24,9 +24,6 @@ huggingface_trcomp_mode = false
 # Do remember to revert it back to False before merging any PR (including TRCOMP dedicated PR)
 # This mode is used to build PT1.12 and above DLC
 trcomp_mode = false
-# Please only set it to True if you are preparing a Benchmark related PR
-# Do remember to revert it back to False before merging any PR (including Benchmark dedicated PR)
-benchmark_mode = false
 
 [build]
 # Add in frameworks you would like to build. By default, builds are disabled unless you specify building an image.
@@ -51,6 +48,8 @@ sanity_tests = true
 ecs_tests = true
 eks_tests = true
 ec2_tests = true
+# Please only set it to True if you are preparing a Benchmark related PR
+ec2_benchmark_tests = false
 
 ### Set ec2_tests_on_heavy_instances = true to be able to run any EC2 tests that use large/expensive instance types by
 ### default. If false, these types of tests will be skipped while other tests will run as usual.
@@ -62,12 +61,14 @@ ec2_tests_on_heavy_instances = false
 ### Off by default
 sagemaker_local_tests = false
 
-# SM remote test valid values:
-# "off" --> do not trigger sagemaker remote tests (default)
-# "standard" --> run standard sagemaker remote tests from test/sagemaker_tests
-# "rc" --> run release_candidate_integration tests
-# "efa" --> run efa sagemaker tests
-sagemaker_remote_tests = "off"
+# run standard sagemaker remote tests from test/sagemaker_tests
+sagemaker_remote_tests = false
+# run efa sagemaker tests
+sagemaker_efa_tests = false
+# run release_candidate_integration tests
+sagemaker_rc_tests = false
+
+sagemaker_benchmark_tests = false
 
 # SM remote EFA test instance type
 sagemaker_remote_efa_instance_type = ""

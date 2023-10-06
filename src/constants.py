@@ -82,9 +82,13 @@ LINK_TYPE = ["s3", "pypi"]
 ARTIFACT_DOWNLOAD_PATH = os.path.join(os.sep, "docker", "build_artifacts")
 
 # Test types for running code build test jobs
-SAGEMAKER_TESTS = "sagemaker"
+SAGEMAKER_REMOTE_TESTS = "sagemaker"
+SAGEMAKER_EFA_TESTS = "sagemaker-efa"
+SAGEMAKER_RC_TESTS = "sagemaker-rc"
+SAGEMAKER_BENCHMARK_TESTS = "sagemaker-benchmark"
 SANITY_TESTS = "sanity"
 EC2_TESTS = "ec2"
+EC2_BENCHMARK_TESTS = "ec2-benchmark"
 ECS_TESTS = "ecs"
 EKS_TESTS = "eks"
 ALL_TESTS = ["sagemaker", "ec2", "eks", "ecs"]

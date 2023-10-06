@@ -131,7 +131,17 @@ def fetch_dlc_images_for_test_jobs(images, use_latest_additional_tag=False):
     :param images: list
     :return: dictionary
     """
-    DLC_IMAGES = {"sagemaker": [], "ecs": [], "eks": [], "ec2": [], "sanity": []}
+    DLC_IMAGES = {
+        "sagemaker": [],
+        "sagemaker-efa": [],
+        "sagemaker-rc": [],
+        "sagemaker-benchmark": [],
+        "ecs": [],
+        "eks": [],
+        "ec2": [],
+        "ec2-benchmark": [],
+        "sanity": [],
+    }
 
     build_enabled = is_build_enabled()
 

@@ -596,13 +596,8 @@ def get_allowlist_path_for_enhanced_scan_from_env_variable():
     return os.getenv("ALLOWLIST_PATH_ENHSCAN")
 
 
-def is_benchmark_dev_context():
-    return config.is_benchmark_mode_enabled()
-
-
 def is_rc_test_context():
-    sm_remote_tests_val = config.get_sagemaker_remote_tests_config_value()
-    return sm_remote_tests_val == config.AllowedSMRemoteConfigValues.RC.value
+    return config.is_sm_rc_test_enabled()
 
 
 def is_covered_by_ec2_sm_split(image_uri):

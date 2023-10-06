@@ -1,11 +1,9 @@
 import json
 import os
-import random
 import sys
 import logging
 import re
 
-from junit_xml import TestSuite, TestCase
 from multiprocessing import Pool, Manager
 from datetime import datetime
 
@@ -22,7 +20,6 @@ from test_utils import (
     get_dlc_images,
     is_pr_context,
     is_benchmark_dev_context,
-    is_rc_test_context,
     is_efa_dedicated,
     is_ec2_image,
     destroy_ssh_keypair,
@@ -32,10 +29,9 @@ from test_utils import (
     get_framework_and_version_from_tag,
     get_build_context,
     is_nightly_context,
-    get_ecr_repo_name,
     generate_unique_dlc_name,
 )
-from test_utils import KEYS_TO_DESTROY_FILE, DEFAULT_REGION
+from test_utils import KEYS_TO_DESTROY_FILE
 from test_utils.pytest_cache import PytestCache
 
 from src.codebuild_environment import get_codebuild_project_name
@@ -324,11 +320,6 @@ def main():
         "test_type": test_type,
     }
 
-    # In PR context, allow us to switch sagemaker tests to RC tests.
-    # Do not allow them to be both enabled due to capacity issues.
-    if specific_test_type == "sagemaker" and is_rc_test_context() and is_pr_context():
-        specific_test_type = "release_candidate_integration"
-
     test_path = (
         os.path.join("benchmark", specific_test_type) if benchmark_mode else specific_test_type
     )
@@ -496,8 +487,9 @@ def main():
                 "-o",
                 "norecursedirs=resources",
             ]
-            if not is_pr_context():
-                pytest_cmd += ["--efa"] if efa_dedicated else ["-m", "not efa"]
+
+            pytest_cmd += ["--efa"] if efa_dedicated else ["-m", "not efa"]
+
             status = pytest.main(pytest_cmd)
             if is_nightly_context() and status != 0:
                 LOGGER.warning("\nSuppressed Failed Nightly Tests")
