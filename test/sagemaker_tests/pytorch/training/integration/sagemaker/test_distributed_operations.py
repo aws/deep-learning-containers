@@ -639,7 +639,6 @@ def test_smmodelparallel_gpt2_sdp_multinode_efa(
 @pytest.mark.skip_cpu
 @pytest.mark.efa()
 @pytest.mark.skip_py2_containers
-@pytest.mark.skip_pt20_cuda121_tests
 def test_sanity_efa(ecr_image, efa_instance_type, sagemaker_regions):
     """
     Tests pt mnist command via script mode

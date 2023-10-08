@@ -400,7 +400,7 @@ RUN /opt/conda/bin/mamba install -y -c conda-forge \
   "requests>=2.31.0" \
   && /opt/conda/bin/mamba clean -afy
 
-# Install GDRCopy which is a dependency of SM Distributed DataParallel binary
+# Install GDRCopy which is need to improve EFA performance.
 # The test binaries requires cuda driver library which could be found in conda
 # So update the linker path to point to it to avoid -Lcuda not found
 RUN cd /tmp \
@@ -411,28 +411,15 @@ RUN cd /tmp \
  && rm -rf /tmp/gdrcopy
 
 # Install Nvidia Apex (needs pytorch)
-## Pin apex commit requested by sm-model-parallel team
 RUN pip install packaging \
   && git clone https://github.com/NVIDIA/apex \
   && cd apex \
-  # requested by Rubik. Will wait for resolution on the illegal mem access error
   && git checkout aa756ce \
   && sed -i 's/from torch._six import string_classes//g' apex/amp/_initialize.py \
   && sed -i 's/string_classes/str/g' apex/amp/_initialize.py \
   && pip install -v --no-cache-dir --global-option="--cpp_ext" --global-option="--cuda_ext" ./ \
   && cd .. \
   && rm -rf apex
-
-# Install libboost from source. This package is needed for smdataparallel functionality [for networking asynchronous IO].
-RUN wget https://sourceforge.net/projects/boost/files/boost/1.73.0/boost_1_73_0.tar.gz/download -O boost_1_73_0.tar.gz \
- && tar -xzf boost_1_73_0.tar.gz \
- && cd boost_1_73_0 \
- && ./bootstrap.sh \
- && ./b2 threading=multi --prefix=/opt/conda -j 64 cxxflags=-fPIC cflags=-fPIC install || true \
- && cd .. \
- && rm -rf boost_1_73_0.tar.gz \
- && rm -rf boost_1_73_0 \
- && cd /opt/conda/include/boost
 
 WORKDIR /opt/pytorch
 
@@ -462,33 +449,6 @@ RUN /opt/conda/bin/mamba install -y -c conda-forge \
   scikit-learn \
   seaborn \
  && /opt/conda/bin/mamba clean -afy
-
-# install metis
-RUN rm -rf /etc/apt/sources.list.d/* \
- && git clone https://github.com/KarypisLab/GKlib \
- && cd GKlib \
- && make config \
- && make \
- && make install \
- && cd .. \
- && git clone https://github.com/KarypisLab/METIS.git \
- && cd METIS \
- && make config shared=1 cc=gcc prefix=/root/local \
- && make install \
- && cd .. \
- && rm -rf METIS GKlib \
- && rm -rf /var/lib/apt/lists/* \
- && apt-get clean
-
-# Install RAPIDSMemoryManager.
-# Requires cmake>=3.14.
-RUN  wget -nv https://github.com/rapidsai/rmm/archive/v${RMM_VERSION}.tar.gz \
- && tar -xvf v${RMM_VERSION}.tar.gz \
- && cd rmm-${RMM_VERSION} \
- && INSTALL_PREFIX=/usr/local ./build.sh librmm \
- && cd .. \
- && rm -rf v${RMM_VERSION}.tar* \
- && rm -rf rmm-${RMM_VERSION}
 
 WORKDIR /
 

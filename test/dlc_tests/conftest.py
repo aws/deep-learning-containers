@@ -855,7 +855,6 @@ def skip_inductor_test(request):
             )
 
 
-@pytest.fixture(autouse=True)
 def skip_pt20_cuda121_tests(request):
     if "training" in request.fixturenames:
         img_uri = request.getfixturevalue("training")
