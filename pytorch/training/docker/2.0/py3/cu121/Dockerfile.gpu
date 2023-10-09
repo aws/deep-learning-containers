@@ -144,13 +144,17 @@ RUN /opt/conda/bin/mamba install -y -c conda-forge \
   && /opt/conda/bin/mamba clean -afy \
   && rm -rf /etc/apt/sources.list.d/*
 
+# For EFA, below flags are needed to install EFA on docker image
+#  -n, --no-verify	Skip EFA device verification and test
+#  -l, --skip-limit-conf	Skip EFA limit configuration
+#  -k, --skip-kmod	Skip EFA kmod installation
 RUN mkdir /tmp/efa \
  && cd /tmp/efa \
  && curl -O https://s3-us-west-2.amazonaws.com/aws-efa-installer/aws-efa-installer-${EFA_VERSION}.tar.gz \
  && tar -xf aws-efa-installer-${EFA_VERSION}.tar.gz \
  && cd aws-efa-installer \
  && apt-get update \
- && ./efa_installer.sh -y --skip-kmod -g \
+ && ./efa_installer.sh -y --skip-kmod --skip-limit-conf --no-verify \
  && rm -rf /tmp/efa \
  && rm -rf /tmp/aws-efa-installer-${EFA_VERSION}.tar.gz \
  && rm -rf /var/lib/apt/lists/* \
