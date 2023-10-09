@@ -494,16 +494,12 @@ def trigger_enhanced_scan(image_uri, patch_details_path, python_version=None):
     return patch_package_list
 
 
-def conduct_apatch_build_setup(pre_push_image_object: DockerImage):
+def conduct_apatch_build_setup(pre_push_image_object: DockerImage, download_path:str):
     info = pre_push_image_object.info
     cx_type = info.get("cx_type")
     image_name = info.get("name")
     image_tag = info.get("image_tag")
 
-    run(
-        f"""pip install -r {os.path.join(os.sep, get_cloned_folder_path(), "test", "requirements.txt")}""",
-        hide=True,
-    )
     from test.test_utils import parse_canary_images, get_framework_and_version_from_tag
 
     released_image_list = parse_canary_images(
@@ -518,10 +514,6 @@ def conduct_apatch_build_setup(pre_push_image_object: DockerImage):
             filtered_list.append(released_image_uri)
     assert len(filtered_list) == 1, f"Filter list for {image_name} {image_tag} does not exist"
 
-    folder_path_outside_clone = os.path.join(os.sep, *get_cloned_folder_path().split(os.sep)[:-1])
-    download_path = os.path.join(os.sep, folder_path_outside_clone, "patch-dlc")
-    if not os.path.exists(download_path):
-        run(f"aws s3 cp s3://patch-dlc {download_path} --recursive", hide=True)
     patch_details_path = os.path.join(
         os.sep, download_path, filtered_list[0].replace("/", "_").replace(":", "_")
     )
@@ -562,6 +554,16 @@ def conduct_apatch_build_setup(pre_push_image_object: DockerImage):
     return constants.SUCCESS
 
 def initiate_multithreaded_apatch_prep(PRE_PUSH_STAGE_IMAGES, make_dummy_boto_client = True):
+    # Few initial steps before initiating multi-threading
+    run(
+        f"""pip install -r {os.path.join(os.sep, get_cloned_folder_path(), "test", "requirements.txt")}""",
+        hide=True,
+    )
+    folder_path_outside_clone = os.path.join(os.sep, *get_cloned_folder_path().split(os.sep)[:-1])
+    download_path = os.path.join(os.sep, folder_path_outside_clone, "patch-dlc")
+    if not os.path.exists(download_path):
+        run(f"aws s3 cp s3://patch-dlc {download_path} --recursive", hide=True)
+
     THREADS = {}
     # In the context of the ThreadPoolExecutor each instance of image.build submitted
     # to it is executed concurrently in a separate thread.
@@ -570,7 +572,7 @@ def initiate_multithreaded_apatch_prep(PRE_PUSH_STAGE_IMAGES, make_dummy_boto_cl
         if make_dummy_boto_client:
             get_dummy_boto_client()
         for pre_push_image_object in PRE_PUSH_STAGE_IMAGES:
-            THREADS[pre_push_image_object.name] = executor.submit(conduct_apatch_build_setup, pre_push_image_object)
+            THREADS[pre_push_image_object.name] = executor.submit(conduct_apatch_build_setup, pre_push_image_object, download_path)
     # the FORMATTER.progress(THREADS) function call also waits until all threads have completed
     FORMATTER.progress(THREADS)
     # for pre_push_image_object in PRE_PUSH_STAGE_IMAGES:
