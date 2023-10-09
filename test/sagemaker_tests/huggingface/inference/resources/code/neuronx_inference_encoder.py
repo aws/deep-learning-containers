@@ -26,4 +26,4 @@ def predict_fn(data, model):
     inputs = model["tokenizer"](data["inputs"], return_tensors="pt")
     logits = model["model"](**inputs).logits
 
-    return {"label": model.config.id2label[logits.argmax().item()]}
+    return {"label": model["model"].config.id2label[logits.argmax().item()]}
