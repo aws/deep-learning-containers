@@ -472,16 +472,15 @@ def trigger_enhanced_scan(image_uri, patch_details_path, python_version=None):
     container_id = run(f"{docker_run_cmd}").stdout.strip()
     docker_exec_cmd = f"docker exec -i {container_id}"
     container_setup_cmd = "pip install invoke"
-    run(f"{docker_exec_cmd} {container_setup_cmd}")
+    run(f"{docker_exec_cmd} {container_setup_cmd}", hide=True)
     container_setup_cmd = "apt-get update"
-    run(f"{docker_exec_cmd} {container_setup_cmd}")
+    run(f"{docker_exec_cmd} {container_setup_cmd}", hide=True)
     save_file_name = "save_temp.json"
     script_run_cmd = f"""python /deep-learning-containers/miscellaneous_scripts/extract_apt_patch_data.py --impacted-packages {",".join(impacted_packages)} --save-result-path /image-specific-patch-folder/{save_file_name}"""
-    result = run(f"{docker_exec_cmd} {script_run_cmd}")
-    print(result)
+    run(f"{docker_exec_cmd} {script_run_cmd}")
     with open(os.path.join(os.sep, patch_details_path, save_file_name), "r") as readfile:
         saved_json_data = json.load(readfile)
-    print(saved_json_data)
+    print(f"For {image_uri} => {saved_json_data}")
     patch_package_list = saved_json_data["patch_package_list"]
     echo_cmd = """ echo "echo NA" """
     file_concat_cmd = f"tee -a {patch_details_path}/install_script_second.sh"
@@ -490,7 +489,8 @@ def trigger_enhanced_scan(image_uri, patch_details_path, python_version=None):
     if os.getenv("IS_CODEBUILD_IMAGE") is None:
         file_concat_cmd = f"sudo {file_concat_cmd}"
     complete_command = f"{echo_cmd} | {file_concat_cmd}"
-    run(complete_command)
+    print(f"For {image_uri} => {complete_command}")
+    run(complete_command, hide=True)
     return constants.SUCCESS
 
 
@@ -525,21 +525,13 @@ def conduct_apatch_build_setup(pre_push_image_object: DockerImage, download_path
     THREADS = {}
     # In the context of the ThreadPoolExecutor each instance of image.build submitted
     # to it is executed concurrently in a separate thread.
-    with concurrent.futures.ThreadPoolExecutor(max_workers=10) as executor:
+    with concurrent.futures.ThreadPoolExecutor(max_workers=2) as executor:
         #### TODO: Remove this entire if block when get_dummy_boto_client is removed ####
         get_dummy_boto_client()
-        THREADS["trigger_apatch"] = executor.submit(trigger_apatch, image_uri=filtered_list[0], s3_downloaded_path=download_path)
-        THREADS["trigger_enhanced_scan"] = executor.submit(trigger_enhanced_scan, image_uri=filtered_list[0], patch_details_path=patch_details_path, python_version=info.get("python_version"))
+        THREADS[f"trigger_apatch-{filtered_list[0]}"] = executor.submit(trigger_apatch, image_uri=filtered_list[0], s3_downloaded_path=download_path)
+        THREADS[f"trigger_enhanced_scan-{filtered_list[0]}"] = executor.submit(trigger_enhanced_scan, image_uri=filtered_list[0], patch_details_path=patch_details_path, python_version=info.get("python_version"))
     # the FORMATTER.progress(THREADS) function call also waits until all threads have completed
     FORMATTER.progress(THREADS)
-
-    # install_cmd = trigger_apatch(image_uri=filtered_list[0], s3_downloaded_path=download_path)
-    # print(f"INSTALL CMD: {install_cmd}")
-    # trigger_enhanced_scan(
-    #     image_uri=filtered_list[0],
-    #     patch_details_path=patch_details_path,
-    #     python_version=info.get("python_version"),
-    # )
 
     pre_push_image_object.dockerfile = os.path.join(
         os.sep, get_cloned_folder_path(), "miscellaneous_dockerfiles", "Dockerfile.apatch"
