@@ -25,7 +25,7 @@ from sagemaker.huggingface import HuggingFaceModel
 
 from .. import (
     model_dir,
-    pt_model,
+    pt_neuronx_model,
     script_dir,
     pt_neuronx_encoder_script,
     dump_logs_from_cloudwatch,
@@ -118,7 +118,7 @@ def _test_pt_neuronx(
         path=model_dir,
         key_prefix="sagemaker-huggingface-neuronx-encoder-serving/models",
     )
-    model_file = pt_model
+    model_file = pt_neuronx_model
 
     # test script using `optimum-neuron`
     entry_point = pt_neuronx_encoder_script
@@ -141,7 +141,6 @@ def _test_pt_neuronx(
             initial_instance_count=1,
             instance_type=instance_type,
             endpoint_name=endpoint_name,
-            volume_size=100,
         )
 
         data = {"inputs": "Hamilton is considered to be the best musical of human history."}

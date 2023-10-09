@@ -38,6 +38,9 @@ from ..... import invoke_sm_endpoint_helper_function
 # instances in the regions corresponding to their availability.
 # In future, we would like to configure the logic to run multiple `pytest` commands that can allow
 # us to test multiple instances in multiple regions for each image.
+@pytest.mark.skip(
+    reason="transformers-neuronx does not support the serialization, test will fail without the writable access of neuronx-cc."
+)
 @pytest.mark.model("tiny-gpt2")
 @pytest.mark.processor("neuronx")
 @pytest.mark.parametrize(
@@ -141,7 +144,6 @@ def _test_pt_neuronx(
             initial_instance_count=1,
             instance_type=instance_type,
             endpoint_name=endpoint_name,
-            volume_size=100,
         )
 
         data = {"inputs": "I really wish "}

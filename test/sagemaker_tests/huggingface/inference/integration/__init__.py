@@ -22,9 +22,11 @@ resources_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "
 
 
 model_dir = os.path.join(resources_path, "tiny-distilbert-sst-2")
+model_dir_sdxl = os.path.join(resources_path, "tiny-sdxl")
 pt_model = "pt_model.tar.gz"
 tf_model = "tf_model.tar.gz"
 pt_neuron_model = "pt_neuron_model.tar.gz"
+pt_neuronx_model = "pt_neuronx_model.tar.gz"
 # TODO: current local test, tests without custom script
 
 script_dir = os.path.join(resources_path, "code")

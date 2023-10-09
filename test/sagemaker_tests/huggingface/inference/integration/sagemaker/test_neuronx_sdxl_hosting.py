@@ -24,8 +24,8 @@ from sagemaker.huggingface import HuggingFaceModel
 
 
 from ...integration import (
-    model_dir,
-    pt_model,
+    model_dir_sdxl,
+    pt_neuronx_model,
     script_dir,
     pt_neuronx_sdxl_script,
     dump_logs_from_cloudwatch,
@@ -62,7 +62,7 @@ def test_neuronx_hosting_all_instances(
         test_function=_test_pt_neuronx,
         framework_version=framework_version,
         instance_type=test_instance_type,
-        model_dir=model_dir,
+        model_dir=model_dir_sdxl,
         script_dir=script_dir,
         py_version=py_version,
         dump_logs_from_cloudwatch=dump_logs_from_cloudwatch,
@@ -118,7 +118,7 @@ def _test_pt_neuronx(
         path=model_dir,
         key_prefix="sagemaker-huggingface-neuronx-serving/models",
     )
-    model_file = pt_model
+    model_file = pt_neuronx_model
 
     # test script using `optimum-neuron`
     entry_point = pt_neuronx_sdxl_script
