@@ -21,7 +21,6 @@ import boto3
 
 import constants
 import config
-from botocore.exceptions import ClientError
 
 
 LOGGER = logging.getLogger(__name__)
@@ -90,16 +89,11 @@ def run_test_job(commit, codebuild_project, images_str=""):
     LOGGER.debug(f"env_overrides dict: {env_overrides}")
 
     client = boto3.client("codebuild")
-    LOGGER.debug(f"Starting build job {codebuild_project}")
-
-    try:
-        client.start_build(
-            projectName=codebuild_project,
-            environmentVariablesOverride=env_overrides,
-            sourceVersion=commit,
-        )
-    except ClientError as e:
-        LOGGER.error("Exception: {}".format(e))
+    return client.start_build(
+        projectName=codebuild_project,
+        environmentVariablesOverride=env_overrides,
+        sourceVersion=commit,
+    )
 
 
 def is_test_job_enabled(test_type):
