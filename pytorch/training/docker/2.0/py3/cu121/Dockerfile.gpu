@@ -46,6 +46,7 @@ ENV PATH /opt/conda/bin:$PATH
 # 5.2 is G3 EC2 instance, 7.5 is G4*, 7.0 is p3*, 8.0 is P4*, 8.6 is G5* and 9.0 is P5*
 ENV TORCH_CUDA_ARCH_LIST="5.2;7.0+PTX;7.5;8.0;8.6;9.0"
 ENV TORCH_NVCC_FLAGS="-Xfatbin -compress-all"
+ENV CUDNN_VERSION=8.9.3.28
 ENV NCCL_VERSION=2.18.3
 ENV EFA_VERSION=1.24.1
 ENV GDRCOPY_VERSION=2.3.1
@@ -58,6 +59,9 @@ ENV MANUAL_BUILD=0
 ENV RDMAV_FORK_SAFE=1
 ENV DLC_CONTAINER_TYPE=training
 
+#Set NCCL_ASYNC_ERROR_HANDLING=1 for PyTorch to timeout on NCCL errors https://github.com/pytorch/elastic/issues/136
+ENV NCCL_ASYNC_ERROR_HANDLING=1
+
 RUN apt-get update \
  # TODO: Remove systemd upgrade once it is updated in base image
  && apt-get -y upgrade --only-upgrade systemd \
@@ -65,6 +69,8 @@ RUN apt-get update \
     build-essential \
     ca-certificates \
     cmake \
+    libcudnn8=$CUDNN_VERSION-1+cuda12.1 \
+    libcudnn8-dev=$CUDNN_VERSION-1+cuda12.1 \
     curl \
     emacs \
     git \
@@ -93,6 +99,8 @@ RUN apt-get update \
     check \
     libsubunit0 \
     libsubunit-dev \
+    # ninja is needed for apex to speed up the build
+    ninja-build \
  && rm -rf /var/lib/apt/lists/* \
  && apt-get clean
 
@@ -128,7 +136,7 @@ RUN /opt/conda/bin/mamba install -y -c conda-forge \
     # Adding package for studio kernels 
     ipykernel \
     # patch CVE
-    "cryptography>=41.0.2" \
+    "cryptography>=41.0.4" \
     # patch CVE
     "pillow>=9.4" \
     "mpi4py>=3.1.4,<3.2" \
@@ -181,6 +189,12 @@ RUN apt-get update \
 RUN mkdir -p /var/run/sshd && \
  sed 's@session\s*required\s*pam_loginuid.so@session optional pam_loginuid.so@g' -i /etc/pam.d/sshd
 
+RUN rm -rf /root/.ssh/ && \
+ mkdir -p /root/.ssh/ && \
+ ssh-keygen -q -t rsa -N '' -f /root/.ssh/id_rsa && \
+ cp /root/.ssh/id_rsa.pub /root/.ssh/authorized_keys \
+ && printf "Host *\n StrictHostKeyChecking no\n" >> /root/.ssh/config
+
 RUN mkdir -p /etc/pki/tls/certs && cp /etc/ssl/certs/ca-certificates.crt /etc/pki/tls/certs/ca-bundle.crt
 
 RUN curl -o /license.txt https://aws-dlc-licenses.s3.amazonaws.com/pytorch-2.0/license.txt
@@ -212,16 +226,29 @@ ARG PYTORCH_VERSION_EC2
 ARG CONDA_CHANNEL
 ARG CUDA_HOME
 ARG TORCH_CUDA_ARCH_LIST
+ARG NCCL_ASYNC_ERROR_HANDLING
 
 WORKDIR /
 
 # Install ec2 PyTorch
 RUN /opt/conda/bin/mamba install -y python=${PYTHON_SHORT_VERSION} pytorch=${PYTORCH_VERSION_EC2} \
-  pytorch-cuda=12.1 cuda-toolkit=12.1 cuda-nvcc=12.1.* torchvision torchaudio torchtext aws-ofi-nccl-dlc=1.7.1 \
+  pytorch-cuda=12.1 cuda-nvcc=12.1.* torchvision torchaudio torchtext aws-ofi-nccl-dlc=1.7.2 \
   --override-channels \
   -c ${CONDA_CHANNEL} \
   -c nvidia \
-  -c conda-forge
+  -c conda-forge \
+  && /opt/conda/bin/mamba clean -afy
+
+# CUDA libraries should be installed after pytorch installation command to reduce memory size of single layer.
+# If single layer is huge in size (like 17 GB), then ECR pull can timeout on smaller EC2 instances like P3.2x.
+# Have added python and pytorch again in below command to make sure pytorch version wont be changed.
+RUN /opt/conda/bin/mamba install -y python=${PYTHON_SHORT_VERSION} pytorch=${PYTORCH_VERSION_EC2} \
+  cuda-libraries-dev=12.1 cuda-libraries-static=12.1 cuda-compiler=12.1 \
+  --override-channels \
+  -c ${CONDA_CHANNEL} \
+  -c nvidia \
+  -c conda-forge \
+  && /opt/conda/bin/mamba clean -afy
 
 # Install NCCL
 RUN cd /tmp \
@@ -240,12 +267,14 @@ RUN /opt/conda/bin/mamba install -y -c conda-forge \
   && pip install torchtnt \
 # explicitly install triton build-time dependencies, which won't get installed by conda for some reason
   cmake \
-  lit
+  lit \
+  && /opt/conda/bin/mamba clean -afy
 
 # Patches
-RUN pip install "pillow>=9.5" opencv-python
+RUN pip install "pillow>=9.5" opencv-python huggingface_hub
 RUN /opt/conda/bin/mamba install -y -c conda-forge \
-  "requests>=2.31.0"
+  "requests>=2.31.0" \
+  && /opt/conda/bin/mamba clean -afy
 
 # Install GDRCopy which is a dependency of SM Distributed DataParallel binary
 # The test binaries requires cuda driver library which could be found in conda
@@ -265,6 +294,15 @@ RUN pip install packaging \
   && pip install -v --disable-pip-version-check --no-cache-dir --no-build-isolation --config-settings "--build-option=--cpp_ext" --config-settings "--build-option=--cuda_ext" ./ \
   && cd .. \
   && rm -rf apex
+
+# Install flash attn and NVIDIA transformer engine.
+# Optionally set NVTE_FRAMEWORK to avoid bringing in additional frameworks during TE install
+ENV NVTE_FRAMEWORK=pytorch
+# Install flash-attn using instructions from https://github.com/Dao-AILab/flash-attention#installation-and-features
+# Set MAX_JOBS=4 to avoid OOM issues in installation process
+RUN MAX_JOBS=4 pip install flash-attn==2.0.4 --no-build-isolation
+# Install TE using instructions from https://docs.nvidia.com/deeplearning/transformer-engine/user-guide/installation.html
+RUN pip install git+https://github.com/NVIDIA/TransformerEngine.git@release_v0.12
 
 RUN HOME_DIR=/root \
  && curl -o ${HOME_DIR}/oss_compliance.zip https://aws-dlinfra-utilities.s3.amazonaws.com/oss_compliance.zip \

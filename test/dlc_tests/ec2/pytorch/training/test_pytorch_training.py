@@ -13,7 +13,11 @@ from test.test_utils import (
     get_framework_and_version_from_tag,
     get_cuda_version_from_tag,
 )
-from test.test_utils.ec2 import execute_ec2_training_test, get_ec2_instance_type
+from test.test_utils.ec2 import (
+    execute_ec2_training_test,
+    get_ec2_instance_type,
+    get_efa_ec2_instance_type,
+)
 
 
 PT_STANDALONE_CMD = os.path.join(CONTAINER_TESTS_PREFIX, "pytorch_tests", "testPyTorchStandalone")
@@ -23,6 +27,8 @@ PT_REGRESSION_CMD = os.path.join(CONTAINER_TESTS_PREFIX, "pytorch_tests", "testP
 PT_REGRESSION_CMD_REVISED = os.path.join(
     CONTAINER_TESTS_PREFIX, "pytorch_tests", "testPyTorchRegressionRevised"
 )
+PT_DCGM_TEST_CMD = os.path.join(CONTAINER_TESTS_PREFIX, "healthcheck_tests", "dcgm_test.sh")
+PT_NCCL_LOCAL_TEST_CMD = os.path.join(CONTAINER_TESTS_PREFIX, "healthcheck_tests", "nccl_test.sh")
 PT_DGL_CMD = os.path.join(CONTAINER_TESTS_PREFIX, "dgl_tests", "testPyTorchDGL")
 PT_APEX_CMD = os.path.join(CONTAINER_TESTS_PREFIX, "pytorch_tests", "testNVApex")
 PT_AMP_CMD = os.path.join(CONTAINER_TESTS_PREFIX, "pytorch_tests", "testPyTorchAMP")
@@ -48,6 +54,11 @@ PT_INDUCTOR_TEST_INSTANCE_TYPE = get_ec2_instance_type(
     default="g4dn.12xlarge", processor="gpu", filter_function=ec2_utils.filter_non_g3_instance_type
 )
 PT_EC2_GPU_INSTANCE_TYPE = get_ec2_instance_type(default="g3.8xlarge", processor="gpu")
+PT_EC2_MULTI_GPU_NO_G_INSTANCE_TYPE = get_ec2_instance_type(
+    default="p3.8xlarge",
+    processor="gpu",
+    filter_function=ec2_utils.filter_only_multi_gpu_and_no_g_type,
+)
 PT_EC2_CPU_INSTANCE_TYPE = get_ec2_instance_type(default="c5.9xlarge", processor="cpu")
 PT_EC2_SINGLE_GPU_INSTANCE_TYPE = get_ec2_instance_type(
     default="p3.2xlarge",
@@ -65,6 +76,11 @@ PT_EC2_NEURON_TRN1_INSTANCE_TYPE = get_ec2_instance_type(
 )
 PT_EC2_NEURON_INF2_INSTANCE_TYPE = get_ec2_instance_type(
     default="inf2.xlarge", processor="neuronx", job_type="training"
+)
+
+PT_EC2_EFA_GPU_INSTANCE_TYPE_AND_REGION = get_efa_ec2_instance_type(
+    default="p4d.24xlarge",
+    filter_function=ec2_utils.filter_efa_instance_type,
 )
 
 
@@ -114,6 +130,32 @@ def test_pytorch_standalone_gpu(pytorch_training, ec2_connection, gpu_only, ec2_
             f"Image {pytorch_training} is incompatible with instance type {ec2_instance_type}"
         )
     execute_ec2_training_test(ec2_connection, pytorch_training, PT_STANDALONE_CMD)
+
+
+@pytest.mark.usefixtures("sagemaker_only")
+@pytest.mark.usefixtures("pt201_and_above_only")
+@pytest.mark.integration("pytorch_sanity_healthcheck_test")
+@pytest.mark.model("N/A")
+@pytest.mark.parametrize("ec2_instance_type", PT_EC2_GPU_INSTANCE_TYPE, indirect=True)
+def test_pytorch_healthcheck_dcgm(pytorch_training, ec2_connection, gpu_only, ec2_instance_type):
+    if test_utils.is_image_incompatible_with_instance_type(pytorch_training, ec2_instance_type):
+        pytest.skip(
+            f"Image {pytorch_training} is incompatible with instance type {ec2_instance_type}"
+        )
+    execute_ec2_training_test(ec2_connection, pytorch_training, PT_DCGM_TEST_CMD)
+
+
+@pytest.mark.usefixtures("sagemaker_only")
+@pytest.mark.usefixtures("pt201_and_above_only")
+@pytest.mark.integration("pytorch_sanity_healthcheck_test")
+@pytest.mark.model("N/A")
+@pytest.mark.parametrize("ec2_instance_type", PT_EC2_MULTI_GPU_NO_G_INSTANCE_TYPE, indirect=True)
+def test_pytorch_healthcheck_nccl(pytorch_training, ec2_connection, gpu_only, ec2_instance_type):
+    if test_utils.is_image_incompatible_with_instance_type(pytorch_training, ec2_instance_type):
+        pytest.skip(
+            f"Image {pytorch_training} is incompatible with instance type {ec2_instance_type}"
+        )
+    execute_ec2_training_test(ec2_connection, pytorch_training, PT_NCCL_LOCAL_TEST_CMD)
 
 
 @pytest.mark.usefixtures("sagemaker")
@@ -620,3 +662,47 @@ def test_pytorch_standalone_hpu(
         container_name="ec2_training_habana_pytorch_container",
         enable_habana_async_execution=True,
     )
+
+
+@pytest.mark.usefixtures("feature_aws_framework_present")
+@pytest.mark.usefixtures("sagemaker")
+@pytest.mark.integration("cudnn")
+@pytest.mark.model("N/A")
+@pytest.mark.parametrize("ec2_instance_type", PT_EC2_SINGLE_GPU_INSTANCE_TYPE, indirect=True)
+def test_pytorch_cudnn_match_gpu(
+    pytorch_training, ec2_connection, region, gpu_only, ec2_instance_type, pt21_and_above_only
+):
+    """
+    PT 2.1 reintroduces a dependency on CUDNN to support NVDA TransformerEngine. This test is to ensure that torch CUDNN matches system CUDNN in the container.
+    """
+    container_name = "pt_cudnn_test"
+    ec2_connection.run(f"$(aws ecr get-login --no-include-email --region {region})", hide=True)
+    ec2_connection.run(f"docker pull -q {pytorch_training}", hide=True)
+    ec2_connection.run(
+        f"nvidia-docker run --name {container_name} -itd {pytorch_training}", hide=True
+    )
+    major_cmd = "cat /usr/include/cudnn_version.h | grep '#define CUDNN_MAJOR'"
+    minor_cmd = "cat /usr/include/cudnn_version.h | grep '#define CUDNN_MINOR'"
+    patch_cmd = "cat /usr/include/cudnn_version.h | grep '#define CUDNN_PATCHLEVEL'"
+    major = ec2_connection.run(
+        f"nvidia-docker exec --user root {container_name} bash -c '{major_cmd}'", hide=True
+    ).stdout.split()[-1]
+    minor = ec2_connection.run(
+        f"nvidia-docker exec --user root {container_name} bash -c '{minor_cmd}'", hide=True
+    ).stdout.split()[-1]
+    patch = ec2_connection.run(
+        f"nvidia-docker exec --user root {container_name} bash -c '{patch_cmd}'", hide=True
+    ).stdout.split()[-1]
+
+    cudnn_from_torch = ec2_connection.run(
+        f"nvidia-docker exec --user root {container_name} python -c 'from torch.backends import cudnn; print(cudnn.version())'",
+        hide=True,
+    ).stdout.strip()
+
+    if len(patch) == 1:
+        patch = f"0{patch}"
+
+    system_cudnn = f"{major}{minor}{patch}"
+    assert (
+        system_cudnn == cudnn_from_torch
+    ), f"System CUDNN {system_cudnn} and torch cudnn {cudnn_from_torch} do not match. Please downgrade system CUDNN or recompile torch with correct CUDNN verson."
