@@ -5,10 +5,9 @@ print("running neuronx encoder test...")
 
 
 def model_fn(model_dir):
-    model_id = "hf-internal-testing/tiny-random-DistilBertModel"
-    tokenizer = AutoTokenizer.from_pretrained(model_id)
-
     # TODO: Compile during the test, not possible without neuronx-cc writable access.
+    # model_id = "hf-internal-testing/tiny-random-DistilBertModel"
+    # tokenizer = AutoTokenizer.from_pretrained(model_id)
     # input_shapes = {"batch_size": 1, "sequence_length": 64}
     # compiler_args = {"auto_cast": "matmul", "auto_cast_type": "bf16"}
     # model = NeuronModelForSequenceClassification.from_pretrained(
@@ -19,6 +18,7 @@ def model_fn(model_dir):
     # )
 
     model = NeuronModelForSequenceClassification.from_pretrained(model_dir)
+    tokenizer = AutoTokenizer.from_pretrained(model_dir)
     return {"model": model, "tokenizer": tokenizer}
 
 
