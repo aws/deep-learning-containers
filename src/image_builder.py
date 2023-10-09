@@ -433,7 +433,7 @@ def generate_common_stage_image_object(pre_push_stage_image_object, image_tag):
 
 
 def trigger_apatch(image_uri, s3_downloaded_path):
-    run(f"docker pull {image_uri}", hide=True)
+    # Note: Image should have already been pulled
     mount_path = os.path.join(os.sep, s3_downloaded_path)
     docker_run_cmd = (
         f"docker run -v {mount_path}:/patch-dlc -id --entrypoint='/bin/bash' {image_uri} "
@@ -449,6 +449,7 @@ def trigger_apatch(image_uri, s3_downloaded_path):
 
 
 def trigger_enhanced_scan(image_uri, patch_details_path, python_version=None):
+    # Note: Image should have already been pulled
     ## TODO: Clean up, try single path instead of multiple ##
     from test.dlc_tests.sanity.test_ecr_scan import (
         helper_function_for_leftover_vulnerabilities_from_enhanced_scanning,
@@ -465,7 +466,6 @@ def trigger_enhanced_scan(image_uri, patch_details_path, python_version=None):
         for cve in package_cve_list:
             if cve.package_details.package_manager == "OS":
                 impacted_packages.add(package_name)
-    run(f"docker pull {image_uri}", hide=True)
     mount_path_1 = os.path.join(os.sep, get_cloned_folder_path())
     mount_path_2 = os.path.join(os.sep, patch_details_path)
     docker_run_cmd = f"docker run -v {mount_path_1}:/deep-learning-containers -v {mount_path_2}:/image-specific-patch-folder  -id --entrypoint='/bin/bash' {image_uri} "
@@ -519,6 +519,8 @@ def conduct_apatch_build_setup(pre_push_image_object: DockerImage, download_path
     )
     if not os.path.exists(patch_details_path):
         run(f"mkdir {patch_details_path}")
+    
+    run(f"docker pull {filtered_list[0]}", hide=True)
 
     THREADS = {}
     # In the context of the ThreadPoolExecutor each instance of image.build submitted
