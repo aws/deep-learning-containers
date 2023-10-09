@@ -420,6 +420,7 @@ def execute_sagemaker_remote_tests(process_index, image, global_pytest_cache, py
             )
             # adding -o cache_dir with a custom directory name
             pytest_command += f" -o cache_dir={os.path.join(str(process_index), '.pytest_cache')}"
+            print(f"pytest_command {pytest_command}")
             res = context.run(pytest_command, warn=True)
             metrics_utils.send_test_result_metrics(res.return_code)
             cache_json = pytest_cache_util.convert_pytest_cache_file_to_json(

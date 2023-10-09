@@ -485,6 +485,7 @@ def main():
                 "-n=auto",
                 "-o",
                 "norecursedirs=resources",
+                "--collect-only",
             ]
 
             pytest_cmd += ["--efa"] if efa_dedicated else ["-m", "not efa"]
