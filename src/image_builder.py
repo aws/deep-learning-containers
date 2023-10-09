@@ -315,8 +315,7 @@ def image_builder(buildspec, image_types=[], device_types=[]):
 
     if is_APatch_build():
         FORMATTER.banner("APATCH-PREP")
-        for pre_push_image_object in PRE_PUSH_STAGE_IMAGES:
-            conduct_apatch_build_setup(pre_push_image_object)
+        initiate_multithreaded_apatch_prep(PRE_PUSH_STAGE_IMAGES)
 
     FORMATTER.banner("DLC")
 
@@ -560,7 +559,22 @@ def conduct_apatch_build_setup(pre_push_image_object: DockerImage):
     )
     pre_push_image_object.info = info
     pre_push_image_object.context = context
-    return pre_push_image_object
+    return constants.SUCCESS
+
+def initiate_multithreaded_apatch_prep(PRE_PUSH_STAGE_IMAGES, make_dummy_boto_client = True):
+    THREADS = {}
+    # In the context of the ThreadPoolExecutor each instance of image.build submitted
+    # to it is executed concurrently in a separate thread.
+    with concurrent.futures.ThreadPoolExecutor(max_workers=10) as executor:
+        #### TODO: Remove this entire if block when get_dummy_boto_client is removed ####
+        if make_dummy_boto_client:
+            get_dummy_boto_client()
+        for pre_push_image_object in PRE_PUSH_STAGE_IMAGES:
+            THREADS[pre_push_image_object.name] = executor.submit(conduct_apatch_build_setup, pre_push_image_object)
+    # the FORMATTER.progress(THREADS) function call also waits until all threads have completed
+    FORMATTER.progress(THREADS)
+    # for pre_push_image_object in PRE_PUSH_STAGE_IMAGES:
+    #     conduct_apatch_build_setup(pre_push_image_object)
 
 
 def show_build_info(images):
