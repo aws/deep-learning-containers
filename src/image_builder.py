@@ -445,7 +445,7 @@ def trigger_apatch(image_uri, s3_downloaded_path):
     new_cmd = result.stdout.strip().split("\n")[-1]
     print(f"For {image_uri} => {new_cmd}")
     run(f"docker rm -f {container_id}", hide=True, warn=True)
-    return new_cmd
+    return constants.SUCCESS
 
 
 def trigger_enhanced_scan(image_uri, patch_details_path, python_version=None):
@@ -491,7 +491,7 @@ def trigger_enhanced_scan(image_uri, patch_details_path, python_version=None):
         file_concat_cmd = f"sudo {file_concat_cmd}"
     complete_command = f"{echo_cmd} | {file_concat_cmd}"
     run(complete_command)
-    return patch_package_list
+    return constants.SUCCESS
 
 
 def conduct_apatch_build_setup(pre_push_image_object: DockerImage, download_path:str):
@@ -519,13 +519,25 @@ def conduct_apatch_build_setup(pre_push_image_object: DockerImage, download_path
     )
     if not os.path.exists(patch_details_path):
         run(f"mkdir {patch_details_path}")
-    install_cmd = trigger_apatch(image_uri=filtered_list[0], s3_downloaded_path=download_path)
-    print(f"INSTALL CMD: {install_cmd}")
-    trigger_enhanced_scan(
-        image_uri=filtered_list[0],
-        patch_details_path=patch_details_path,
-        python_version=info.get("python_version"),
-    )
+
+    THREADS = {}
+    # In the context of the ThreadPoolExecutor each instance of image.build submitted
+    # to it is executed concurrently in a separate thread.
+    with concurrent.futures.ThreadPoolExecutor(max_workers=10) as executor:
+        #### TODO: Remove this entire if block when get_dummy_boto_client is removed ####
+        get_dummy_boto_client()
+        THREADS["trigger_apatch"] = executor.submit(trigger_apatch, image_uri=filtered_list[0], s3_downloaded_path=download_path)
+        THREADS["trigger_enhanced_scan"] = executor.submit(trigger_enhanced_scan, image_uri=filtered_list[0], patch_details_path=patch_details_path, python_version=info.get("python_version"))
+    # the FORMATTER.progress(THREADS) function call also waits until all threads have completed
+    FORMATTER.progress(THREADS)
+
+    # install_cmd = trigger_apatch(image_uri=filtered_list[0], s3_downloaded_path=download_path)
+    # print(f"INSTALL CMD: {install_cmd}")
+    # trigger_enhanced_scan(
+    #     image_uri=filtered_list[0],
+    #     patch_details_path=patch_details_path,
+    #     python_version=info.get("python_version"),
+    # )
 
     pre_push_image_object.dockerfile = os.path.join(
         os.sep, get_cloned_folder_path(), "miscellaneous_dockerfiles", "Dockerfile.apatch"
@@ -575,8 +587,6 @@ def initiate_multithreaded_apatch_prep(PRE_PUSH_STAGE_IMAGES, make_dummy_boto_cl
             THREADS[pre_push_image_object.name] = executor.submit(conduct_apatch_build_setup, pre_push_image_object, download_path)
     # the FORMATTER.progress(THREADS) function call also waits until all threads have completed
     FORMATTER.progress(THREADS)
-    # for pre_push_image_object in PRE_PUSH_STAGE_IMAGES:
-    #     conduct_apatch_build_setup(pre_push_image_object)
 
 
 def show_build_info(images):
