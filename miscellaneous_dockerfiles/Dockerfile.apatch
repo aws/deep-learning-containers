@@ -2,6 +2,19 @@ ARG RELEASED_IMAGE=""
 
 FROM $RELEASED_IMAGE
 
+# If patch-details-archive is not present, create it for the first time and add first_image_sha.txt
+RUN if !(( $([ -d /opt/aws/dlc/patch-details-archive ]) )) ; then \
+        mkdir /opt/aws/dlc/patch-details-archive && \
+        echo "123" >> /opt/aws/dlc/patch-details-archive/first_image_sha.txt ; \
+    fi
+
+# If patch-details is present, move it to patch-details-archive and add image_sha to the folder
+RUN if [ -d /opt/aws/dlc/patch-details ] ; then \
+        patch_count=$(ls /opt/aws/dlc/patch-details-archive | wc -l) && \
+        mv /opt/aws/dlc/patch-details /opt/aws/dlc/patch-details-archive/patch-details-$patch_count && \
+        echo "123" >> /opt/aws/dlc/patch-details-archive/patch-details-$patch_count/image_sha.txt ; \
+    fi
+
 COPY patch-details /opt/aws/dlc/patch-details
 RUN chmod +x /opt/aws/dlc/patch-details/install_script.sh && /opt/aws/dlc/patch-details/install_script.sh
 RUN chmod +x /opt/aws/dlc/patch-details/install_script_second.sh && /opt/aws/dlc/patch-details/install_script_second.sh

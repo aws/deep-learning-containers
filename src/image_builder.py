@@ -476,6 +476,7 @@ def trigger_enhanced_scan(image_uri, patch_details_path, python_version=None):
     container_setup_cmd = "apt-get update"
     run(f"{docker_exec_cmd} {container_setup_cmd}", hide=True)
     save_file_name = "save_temp.json"
+    ## TODO: Handle if none impacted packages
     script_run_cmd = f"""python /deep-learning-containers/miscellaneous_scripts/extract_apt_patch_data.py --impacted-packages {",".join(impacted_packages)} --save-result-path /image-specific-patch-folder/{save_file_name}"""
     run(f"{docker_exec_cmd} {script_run_cmd}")
     with open(os.path.join(os.sep, patch_details_path, save_file_name), "r") as readfile:
