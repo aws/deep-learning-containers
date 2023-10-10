@@ -1,5 +1,5 @@
 {
-    "operation": "upgrade_nodegroup",
+    "operation": "delete",
     "contexts": [
         "PR",
         "MAINLINE"
