@@ -538,10 +538,18 @@ def conduct_apatch_build_setup(pre_push_image_object: DockerImage, download_path
         os.sep, get_cloned_folder_path(), "miscellaneous_dockerfiles", "Dockerfile.apatch"
     )
 
+    derive_history_script_path = os.path.join(
+        os.sep, get_cloned_folder_path(), "miscellaneous_scripts", "derive_history.py"
+    )
+
     pre_push_image_object.target = None
     info["extra_build_args"].update({"RELEASED_IMAGE": filtered_list[0]})
 
     apatch_artifacts = {
+        "derive_history": {
+            "source": derive_history_script_path, 
+            "target": "derive_history.py"
+        },
         "dockerfile": {
             "source": pre_push_image_object.dockerfile,
             "target": "Dockerfile",

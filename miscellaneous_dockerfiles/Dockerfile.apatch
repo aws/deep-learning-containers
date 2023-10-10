@@ -16,5 +16,7 @@ RUN if [ -d /opt/aws/dlc/patch-details ] ; then \
     fi
 
 COPY patch-details /opt/aws/dlc/patch-details
+COPY derive_history.py /opt/aws/dlc/derive_history.py
 RUN chmod +x /opt/aws/dlc/patch-details/install_script.sh && /opt/aws/dlc/patch-details/install_script.sh
 RUN chmod +x /opt/aws/dlc/patch-details/install_script_second.sh && /opt/aws/dlc/patch-details/install_script_second.sh
+RUN python /opt/aws/dlc/derive_history.py
