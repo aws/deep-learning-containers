@@ -119,7 +119,7 @@ RUN conda install -c conda-forge \
 RUN pip install --no-cache-dir -U \
     scipy \
     six \
-    "pillow>=8.3" \
+    "pillow>=10.0.1" \
     "awscli<2" \
     pandas==1.* \
     boto3 \
