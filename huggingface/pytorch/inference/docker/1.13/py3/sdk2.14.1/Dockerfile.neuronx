@@ -107,7 +107,6 @@ RUN curl -L -o ~/mambaforge.sh https://github.com/conda-forge/miniforge/releases
 
 RUN conda install -c conda-forge \
     opencv \
-    scikit-learn \
     h5py \
     requests \
  && conda clean -ya \
@@ -124,7 +123,8 @@ RUN pip install --no-cache-dir -U \
     "awscli<2" \
     pandas==1.* \
     boto3 \
-    numpy==1.21.6 \
+    "numpy>=1.18.5, <=1.21.6" \
+    scikit-learn \
     cryptography
 
 # Install Neuronx-cc and PyTorch
@@ -170,11 +170,11 @@ RUN pip install --no-cache-dir \
     optimum-neuron[neuronx]==${OPTIMUM_NEURON_VERSION} \
 	"sagemaker-huggingface-inference-toolkit<3"
 
-# test
-RUN pip uninstall numpy scikit-learn -y
-RUN pip install --no-cache-dir -U \
-    "numpy>=1.18.5, <=1.21.6" \
-    scikit-learn
+# # test
+# RUN pip uninstall numpy scikit-learn -y
+# RUN pip install --no-cache-dir -U \
+#     "numpy>=1.18.5, <=1.21.6" \
+#     scikit-learn
 
 RUN HOME_DIR=/root \
  && curl -o ${HOME_DIR}/oss_compliance.zip https://aws-dlinfra-utilities.s3.amazonaws.com/oss_compliance.zip \
