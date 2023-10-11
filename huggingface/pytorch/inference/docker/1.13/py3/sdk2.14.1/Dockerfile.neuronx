@@ -170,6 +170,8 @@ RUN pip install --no-cache-dir \
     optimum-neuron[neuronx]==${OPTIMUM_NEURON_VERSION} \
 	"sagemaker-huggingface-inference-toolkit<3"
 
+RUN pip install --no-cache-dir -U "pillow>=10.0.1"
+
 RUN HOME_DIR=/root \
  && curl -o ${HOME_DIR}/oss_compliance.zip https://aws-dlinfra-utilities.s3.amazonaws.com/oss_compliance.zip \
  && unzip ${HOME_DIR}/oss_compliance.zip -d ${HOME_DIR}/ \
