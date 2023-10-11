@@ -1,8 +1,8 @@
 ARG PYTHON=python3
-ARG PYTHON_VERSION=3.10.8
-ARG MAMBA_VERSION=22.11.1-4
-ARG PYTORCH_VERSION_EC2=2.0.1
-ARG PYTORCH_VERSION_SM=2.0.1
+ARG PYTHON_VERSION=3.10.13
+ARG MAMBA_VERSION=23.3.1-1
+ARG PYTORCH_VERSION_EC2=2.1.0
+ARG PYTORCH_VERSION_SM=2.1.0
 
 FROM ubuntu:20.04 AS base_image
 
@@ -193,7 +193,7 @@ RUN /opt/conda/bin/mamba install -y pytorch=${PYTORCH_VERSION_EC2} \
   -c conda-forge
 
 # Patches
-RUN pip install "pillow>=9.5" "pyyaml>=6.0.1"
+RUN pip install pillow "pyyaml>=6.0.1"
 RUN /opt/conda/bin/mamba install -y -c conda-forge \
   "requests>=2.31.0"
 
@@ -307,7 +307,7 @@ RUN /opt/conda/bin/mamba install -y -c conda-forge \
  && /opt/conda/bin/mamba clean -afy
 
 # Patches
-RUN pip install "pillow>=9.5" "pyyaml>=6.0.1"
+RUN pip install pillow "pyyaml>=6.0.1"
 RUN /opt/conda/bin/mamba install -y -c conda-forge \
   "requests>=2.31.0"
 

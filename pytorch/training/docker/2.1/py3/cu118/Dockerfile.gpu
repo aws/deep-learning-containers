@@ -1,9 +1,10 @@
 ARG PYTHON=python3
-ARG PYTHON_VERSION=3.10.8
+ARG PYTHON_VERSION=3.10.13
 ARG PYTHON_SHORT_VERSION=3.10
-ARG MAMBA_VERSION=23.1.0-1
-ARG PYTORCH_VERSION_EC2=2.0.1
-ARG PYTORCH_VERSION_SM=2.0.1
+ARG MAMBA_VERSION=23.1.1-1
+ARG PYTORCH_VERSION_EC2=2.1.0
+ARG PYTORCH_VERSION_SM=2.1.0
+ARG CONDA_CHANNEL=https://aws-ml-conda-ec2.s3.us-west-2.amazonaws.com
 
 # SMD binaries
 ARG SMD_DATA_PARALLEL_URL=https://smdataparallel.s3.amazonaws.com/binary/pytorch/2.0.1/cu118/2023-08-09/smdistributed_dataparallel-1.8.1-cp310-cp310-linux_x86_64.whl
@@ -32,6 +33,7 @@ ARG PYTHON
 ARG PYTHON_VERSION
 ARG PYTHON_SHORT_VERSION
 ARG MAMBA_VERSION
+ARG CONDA_CHANNEL
 
 ARG CUBLAS_VERSION=11.11.3.6
 ARG EFA_PATH=/opt/amazon/efa
@@ -54,11 +56,10 @@ ENV TORCH_CUDA_ARCH_LIST="3.7 5.0 7.0+PTX 8.0"
 ENV TORCH_NVCC_FLAGS="-Xfatbin -compress-all"
 
 ENV CUDNN_VERSION=8.7.0.84
-ENV NCCL_VERSION=2.16.2
+ENV NCCL_VERSION=2.18.5
 ENV HOROVOD_VERSION=0.26.1
-ENV EFA_VERSION=1.21.0
+ENV EFA_VERSION=1.27.0
 ENV OMPI_VERSION=4.1.5
-ENV BRANCH_OFI=1.5.0-aws
 ENV GDRCOPY_VERSION=2.3.1
 
 ENV CMAKE_PREFIX_PATH="$(dirname $(which conda))/../"
@@ -152,7 +153,7 @@ RUN /opt/conda/bin/mamba install -y -c conda-forge \
     # patch CVE
     "cryptography>=41.0.2" \
     # patch CVE
-    "pillow>=9.4,<9.5.0" \
+    pillow \
     # force conda to install h5py with openmpi build, not mpich (rubik error)
     # https://anaconda.org/conda-forge/h5py/files?page=2
     "mpi4py>=3.1.4,<3.2" \
@@ -169,7 +170,7 @@ WORKDIR /root
 
 # Install OpenSSH for MPI to communicate between containers, allow OpenSSH to talk to containers without asking for confirmation
 RUN apt-get update \
- && apt-get install -y  --allow-downgrades --allow-change-held-packages --no-install-recommends \
+ && apt-get install -y --allow-downgrades --allow-change-held-packages --no-install-recommends \
  && apt-get install -y --no-install-recommends openssh-client openssh-server \
  && mkdir -p /var/run/sshd \
  && cat /etc/ssh/ssh_config | grep -v StrictHostKeyChecking > /etc/ssh/ssh_config.new \
@@ -218,21 +219,19 @@ ARG PYTHON_SHORT_VERSION
 ARG PYTORCH_VERSION_EC2
 # PyTorch Binaries
 ARG PT_EC2_TRAINING_URL
-ARG PT_TORCHVISION_URL
-ARG PT_TORCHAUDIO_URL
-ARG PT_TORCHDATA_URL 
+ARG CONDA_CHANNEL
 ARG NCCL_ASYNC_ERROR_HANDLING
 
 WORKDIR /
 
 # Install ec2 PyTorch
 RUN /opt/conda/bin/mamba install -y python=${PYTHON_VERSION} pytorch=${PYTORCH_VERSION_EC2} \
-  pytorch-cuda=11.8 cuda-nvcc=11.8.89 torchvision torchaudio torchtext aws-ofi-nccl-dlc \
+  pytorch-cuda=11.8 cuda-nvcc=11.8.89 torchvision torchaudio torchtext aws-ofi-nccl-dlc ffmpeg \
   cudatoolkit=11.8 cuda-runtime=11.8 cuda-libraries=11.8 \
   cuda-compiler=11.8 cuda-cudart=11.8.89 cuda-cudart-dev=11.8.89 \
   cuda-libraries-dev=11.8 \
   --override-channels \
-  -c https://aws-ml-conda-ec2.s3.us-west-2.amazonaws.com \
+  -c ${CONDA_CHANNEL} \
   -c conda-forge \
   -c nvidia \
   && /opt/conda/bin/mamba clean -afy
@@ -312,7 +311,7 @@ RUN /opt/conda/bin/mamba install -y -c conda-forge \
   && /opt/conda/bin/mamba clean -afy
 
 # Patches
-RUN pip install "pillow>=9.5" "pyyaml>=6.0.1"
+RUN pip install pillow "pyyaml>=6.0.1"
 RUN /opt/conda/bin/mamba install -y -c conda-forge \
   "requests>=2.31.0" \
   && /opt/conda/bin/mamba clean -afy
@@ -326,12 +325,6 @@ RUN git clone https://github.com/NVIDIA/apex \
   && pip install -v --no-cache-dir --global-option="--cpp_ext" --global-option="--cuda_ext" ./ \
   && cd .. \
   && rm -rf apex
-
-# Install Horovod (needs pytorch)
-# RUN pip uninstall -y horovod \
-#  && ldconfig /usr/local/cuda-11.8/targets/x86_64-linux/lib/stubs \
-#  && HOROVOD_GPU_ALLREDUCE=NCCL HOROVOD_CUDA_HOME=${CUDA_HOME} HOROVOD_WITH_PYTORCH=1 pip install --no-cache-dir horovod==${HOROVOD_VERSION} \
-#  && ldconfig
 
 RUN HOME_DIR=/root \
  && curl -o ${HOME_DIR}/oss_compliance.zip https://aws-dlinfra-utilities.s3.amazonaws.com/oss_compliance.zip \
@@ -405,12 +398,12 @@ ARG NCCL_ASYNC_ERROR_HANDLING
 
 # Install sm PyTorch
 RUN /opt/conda/bin/mamba install -y python=${PYTHON_VERSION} pytorch=${PYTORCH_VERSION_SM} \
-  pytorch-cuda=11.8 cuda-nvcc=11.8.89 torchvision torchaudio torchtext aws-ofi-nccl-dlc \
+  pytorch-cuda=11.8 cuda-nvcc=11.8.89 torchvision torchaudio torchtext aws-ofi-nccl-dlc ffmpeg \
   cudatoolkit=11.8 cuda-runtime=11.8 cuda-libraries=11.8 \
   cuda-compiler=11.8 cuda-cudart=11.8.89 cuda-cudart-dev=11.8.89 \
   cuda-libraries-dev=11.8 \
   --override-channels \
-  -c https://aws-ml-conda-ec2.s3.us-west-2.amazonaws.com \
+  -c ${CONDA_CHANNEL} \
   -c conda-forge \
   -c nvidia \
   && /opt/conda/bin/mamba clean -afy
@@ -490,7 +483,7 @@ RUN /opt/conda/bin/mamba install -y -c conda-forge \
   && /opt/conda/bin/mamba clean -afy
 
 # Patches
-RUN pip install "pillow>=9.5" "pyyaml>=6.0.1"
+RUN pip install pillow "pyyaml>=6.0.1"
 RUN /opt/conda/bin/mamba install -y -c conda-forge \
   "requests>=2.31.0" \
   && /opt/conda/bin/mamba clean -afy
@@ -508,12 +501,6 @@ RUN git clone https://github.com/NVIDIA/apex \
   && pip install -v --no-cache-dir --global-option="--cpp_ext" --global-option="--cuda_ext" ./ \
   && cd .. \
   && rm -rf apex
-
-# Install Horovod (needs pytorch)
-# RUN pip uninstall -y horovod \
-#  && ldconfig /usr/local/cuda-11.8/targets/x86_64-linux/lib/stubs \
-#  && HOROVOD_GPU_ALLREDUCE=NCCL HOROVOD_CUDA_HOME=${CUDA_HOME} HOROVOD_WITH_PYTORCH=1 pip install --no-cache-dir horovod==${HOROVOD_VERSION} \
-#  && ldconfig
 
 # Install libboost from source. This package is needed for smdataparallel functionality [for networking asynchronous IO].
 RUN wget https://sourceforge.net/projects/boost/files/boost/1.73.0/boost_1_73_0.tar.gz/download -O boost_1_73_0.tar.gz \
@@ -536,7 +523,7 @@ RUN chmod +x /usr/local/bin/start_with_right_hostname.sh
 
 WORKDIR /root
 
-RUN git clone https://github.com/HazyResearch/flash-attention \
+RUN git clone https://github.com/Dao-AILab/flash-attention.git \
     && cd flash-attention && git checkout v1.0.7 \
     && cd csrc/ft_attention && ln=$(grep -wn "\-\-threads" ./setup.py | cut -d: -f1) \
     && sed -i "${ln} s/4/1/" ./setup.py && cd ../../ \
@@ -564,7 +551,7 @@ RUN pip install --no-cache-dir -U \
     "sagemaker-experiments<1" \
     sagemaker-pytorch-training \
     flash-attn==0.2.8 \
-    triton==2.0.0.dev20221202
+    triton==2.1.0.dev20221202
 
 # Install smdebug from source
 RUN cd /tmp \
