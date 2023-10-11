@@ -60,7 +60,7 @@ ENV NCCL_VERSION=2.18.5
 ENV HOROVOD_VERSION=0.26.1
 ENV EFA_VERSION=1.27.0
 ENV OMPI_VERSION=4.1.5
-ENV GDRCOPY_VERSION=2.3.1
+ENV GDRCOPY_VERSION=2.4
 
 ENV CMAKE_PREFIX_PATH="$(dirname $(which conda))/../"
 ENV OPEN_MPI_PATH=/opt/amazon/openmpi
@@ -524,7 +524,7 @@ RUN chmod +x /usr/local/bin/start_with_right_hostname.sh
 WORKDIR /root
 
 RUN git clone https://github.com/Dao-AILab/flash-attention.git \
-    && cd flash-attention && git checkout v1.0.7 \
+    && cd flash-attention && git checkout v2.0.4 \
     && cd csrc/ft_attention && ln=$(grep -wn "\-\-threads" ./setup.py | cut -d: -f1) \
     && sed -i "${ln} s/4/1/" ./setup.py && cd ../../ \
     && cd csrc/fused_softmax && ln=$(grep -wn "\-\-threads" ./setup.py | cut -d: -f1) \
