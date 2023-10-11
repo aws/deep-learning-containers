@@ -6,7 +6,7 @@ LABEL com.amazonaws.sagemaker.capabilities.accept-bind-to-port=true
 
 ARG PYTHON=python3.10
 ARG PYTHON_VERSION=3.10.12
-ARG MMS_VERSION=1.1.8
+ARG MMS_VERSION=1.1.11
 ARG MAMBA_VERSION=23.1.0-4
 
 # Neuron SDK components version numbers
