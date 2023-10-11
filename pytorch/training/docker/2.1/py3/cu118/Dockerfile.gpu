@@ -551,7 +551,7 @@ RUN pip install --no-cache-dir -U \
     "sagemaker-experiments<1" \
     sagemaker-pytorch-training \
     flash-attn==0.2.8 \
-    triton==2.1.0.dev20221202
+    triton==2.1.0
 
 # Install smdebug from source
 RUN cd /tmp \
