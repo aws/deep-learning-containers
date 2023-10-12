@@ -3,6 +3,7 @@ from datetime import datetime
 
 import json
 import os
+import utils
 
 
 class SafetyReportGenerator:
@@ -38,6 +39,7 @@ class SafetyReportGenerator:
         self.ctx = Context()
         self.docker_exec_cmd = f"docker exec -i {container_id}"
         self.safety_check_output = None
+        self.future_ignore_dict = {}
 
     def insert_vulnerabilites_into_report(self, scanned_vulnerabilities):
         """
@@ -120,6 +122,16 @@ class SafetyReportGenerator:
                     "date": self.timestamp,
                 }
 
+    def get_dumped_ignore_dict_of_packages(self):
+        dumped_ignore_list_command = f"{self.docker_exec_cmd} cat /opt/aws/dlc/patch-details/vuln_deactivation_data.json"
+        return_data = {}
+        try:
+            run_out = self.ctx.run(dumped_ignore_list_command, hide=True)
+            return_data = json.loads(run_out.stdout.strip())
+        except:
+            pass
+        return return_data
+
     def process_report(self):
         """
         Once all the packages (safe and unsafe both) have been inserted in the vulnerability_dict, this method is called.
@@ -134,7 +146,21 @@ class SafetyReportGenerator:
                 ):
                     package_scan_results["scan_status"] = "IGNORED"
                 else:
+                    ## If apatch, confirm if the package is not deactivated. If it is, add it to future_ignore_dict and call it IGNORED
+                    ## else call the package as failed itself
                     package_scan_results["scan_status"] = "FAILED"
+                    if utils.is_APatch_build():
+                        ignored_package_dict = self.get_dumped_ignore_dict_of_packages()
+                        print(f"TRSHANTA ignored_package_dict: {ignored_package_dict}")
+                        ignore_message = f"[Package: {package}] Conflicts for: {ignored_package_dict.get(package).keys()}"
+                        if package in ignored_package_dict:
+                            package_scan_results["scan_status"] = "IGNORED"
+                            for vulnerability in package_scan_results["vulnerabilities"]:
+                                if vulnerability["reason_to_ignore"] == "N/A":
+                                    vulnerability["reason_to_ignore"] = ignore_message
+                                    self.future_ignore_dict[vulnerability["vulnerability_id"]] = ignore_message
+
+            
             self.vulnerability_list.append(package_scan_results)
 
     def run_safety_check_in_non_cb_context(self):

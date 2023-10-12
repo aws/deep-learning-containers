@@ -283,3 +283,11 @@ def get_label_prefix_customer_type(image_tag):
 
     # Older images are not tagged with ec2 or sagemaker. Assuming that lack of ec2 tag implies sagemaker.
     return "sagemaker"
+
+
+def is_APatch_build():
+    """
+    Returns True if image builder is working for image patch.
+    :return: <bool> True or False
+    """
+    return os.getenv("APatch", "False").lower() == "true"

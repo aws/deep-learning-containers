@@ -50,14 +50,6 @@ def is_nightly_build_context():
     )
 
 
-def is_APatch_build():
-    """
-    Returns True if image builder is working for image patch.
-    :return: <bool> True or False
-    """
-    return os.getenv("APatch", "False").lower() == "true"
-
-
 def _find_image_object(images_list, image_name):
     """
     Find and return an image object from images_list with a name that matches image_name
@@ -94,7 +86,7 @@ def image_builder(buildspec, image_types=[], device_types=[]):
         or "autogluon" in str(BUILDSPEC["framework"])
         or "stabilityai" in str(BUILDSPEC["framework"])
         or "trcomp" in str(BUILDSPEC["framework"])
-        or is_APatch_build()
+        or utils.is_APatch_build()
     ):
         os.system("echo login into public ECR")
         os.system(
@@ -313,7 +305,7 @@ def image_builder(buildspec, image_types=[], device_types=[]):
         PRE_PUSH_STAGE_IMAGES.append(pre_push_stage_image_object)
         FORMATTER.separator()
 
-    if is_APatch_build():
+    if utils.is_APatch_build():
         FORMATTER.banner("APATCH-PREP")
         initiate_multithreaded_apatch_prep(PRE_PUSH_STAGE_IMAGES)
 
