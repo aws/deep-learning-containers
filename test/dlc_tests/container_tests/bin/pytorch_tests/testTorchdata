@@ -12,7 +12,7 @@ echo "Fetch Torchdata S3 IO test script."
 TORCHDATA_RELEASE_TAG=$(python -c "import torchdata as td; print(td.__version__.split('+')[0])")
 git clone $TORCHDATA_REPO \
     && pushd data \
-    && git checkout tags/v${TORCHDATA_RELEASE_TAG} -b ${TORCHDATA_RELEASE_TAG} \
+    && git checkout ce075397428c90be312f87b60d4701b2e3ff3700 \
     && popd
 
 # removing awscli requirement as it should already be installed, and is causing dependency issues
