@@ -10,6 +10,8 @@ TORCHDATA_TEST_SCRIPT="data/test/test_remote_io.py"
 
 echo "Fetch Torchdata S3 IO test script."
 TORCHDATA_RELEASE_TAG=$(python -c "import torchdata as td; print(td.__version__.split('+')[0])")
+# checkout latest commit on main branch as of 10/12/23, as it has been tested to work on PT 2.0.1 and PT 2.1.0. 
+# torchdata is no longer being maintained, so the test script most likely will not be updated after this.
 git clone $TORCHDATA_REPO \
     && pushd data \
     && git checkout ce075397428c90be312f87b60d4701b2e3ff3700 \
