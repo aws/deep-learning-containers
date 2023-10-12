@@ -139,6 +139,7 @@ RUN /opt/conda/bin/mamba install -y --override-channels \
     click \
     psutil \
     ipython \
+    fsspec \
     # Adding package for studio kernels
     ipykernel \
   && /opt/conda/bin/mamba install -y -c dglteam dgl \
@@ -199,6 +200,9 @@ RUN /opt/conda/bin/mamba install -y -c conda-forge \
 
 # install fastai (depends on PyTorch)
 RUN /opt/conda/bin/mamba install -y -c conda-forge \
+  # needed by accelerate
+  huggingface_hub \
+  && /opt/conda/bin/mamba install -y -c conda-forge \
   # needed by fastai.distributed
   accelerate \
   && /opt/conda/bin/mamba install -y -c fastai fastai \

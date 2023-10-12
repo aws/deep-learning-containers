@@ -260,6 +260,7 @@ RUN cd /tmp \
 RUN /opt/conda/bin/mamba install -y -c conda-forge \
   # needed by accelerate
   huggingface_hub \
+  && /opt/conda/bin/mamba install -y -c conda-forge \
   # needed by fastai.distributed
   accelerate \
   && /opt/conda/bin/mamba install -y -c fastai fastai \
