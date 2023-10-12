@@ -232,7 +232,7 @@ WORKDIR /
 
 # Install ec2 PyTorch
 RUN /opt/conda/bin/mamba install -y python=${PYTHON_SHORT_VERSION} pytorch=${PYTORCH_VERSION_EC2} \
-  pytorch-cuda=12.1 cuda-nvcc=12.1.* torchvision torchaudio torchtext aws-ofi-nccl-dlc ffmpeg \
+  pytorch-cuda=12.1 cuda-nvcc=12.1.* torchvision torchaudio torchtext aws-ofi-nccl-dlc \
   --override-channels \
   -c ${CONDA_CHANNEL} \
   -c nvidia \
@@ -259,15 +259,14 @@ RUN cd /tmp \
 
 # install PyTorch related python packages (depends on PyTorch)
 RUN /opt/conda/bin/mamba install -y -c conda-forge \
+  # needed by accelerate
+  huggingface_hub \
   # needed by fastai.distributed
   accelerate \
   && /opt/conda/bin/mamba install -y -c fastai fastai \
   # fastai conda strictly depends on dataclasses
   && pip uninstall -y dataclasses \
   && pip install torchtnt \
-# explicitly install triton build-time dependencies, which won't get installed by conda for some reason
-  cmake \
-  lit \
   && /opt/conda/bin/mamba clean -afy
 
 # Patches

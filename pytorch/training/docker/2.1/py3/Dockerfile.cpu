@@ -3,8 +3,7 @@ ARG PYTHON_VERSION=3.10.12
 ARG MAMBA_VERSION=23.3.1-1
 ARG PYTORCH_VERSION_EC2=2.1.0
 ARG PYTORCH_VERSION_SM=2.1.0
-ARG EC2_CONDA_CHANNEL=https://aws-ml-conda-ec2.s3.us-west-2.amazonaws.com
-ARG SM_CONDA_CHANNEL=https://aws-ml-conda-sm.s3.us-west-2.amazonaws.com
+ARG CONDA_CHANNEL=https://aws-ml-conda-ec2.s3.us-west-2.amazonaws.com
 
 FROM ubuntu:20.04 AS base_image
 
@@ -26,8 +25,7 @@ ARG PYTHON
 ARG PYTHON_VERSION
 ARG OPEN_MPI_VERSION=4.1.5
 ARG MAMBA_VERSION
-ARG EC2_CONDA_CHANNEL
-ARG SM_CONDA_CHANNEL
+ARG CONDA_CHANNEL
 
 # This arg required to stop docker build waiting for region configuration while installing tz data from ubuntu 20
 ARG DEBIAN_FRONTEND=noninteractive
@@ -185,13 +183,13 @@ ARG PYTHON
 
 # PyTorch Binaries
 ARG PYTORCH_VERSION_EC2
-ARG EC2_CONDA_CHANNEL
+ARG CONDA_CHANNEL
 
 # Install ec2 AWS-PyTorch
 RUN /opt/conda/bin/mamba install -y pytorch=${PYTORCH_VERSION_EC2} \
   torchvision torchaudio torchtext cpuonly \
   --override-channels \
-  -c ${EC2_CONDA_CHANNEL} \
+  -c ${CONDA_CHANNEL} \
   -c conda-forge
 
 # Patches
@@ -252,13 +250,13 @@ ARG SMDEBUG_VERSION=1.0.34
 ENV SAGEMAKER_TRAINING_MODULE=sagemaker_pytorch_container.training:main
 
 ARG PYTORCH_VERSION_SM
-ARG SM_CONDA_CHANNEL
+ARG CONDA_CHANNEL
 
 # Install SM AWS-PyTorch (force remove will increase the docker image size drastically)
 RUN /opt/conda/bin/mamba install -y pytorch=${PYTORCH_VERSION_SM} \
   torchvision torchaudio torchtext cpuonly \
   --override-channels \
-  -c ${SM_CONDA_CHANNEL} \
+  -c ${CONDA_CHANNEL} \
   -c conda-forge
 
 # install fastai (depends on PyTorch)
