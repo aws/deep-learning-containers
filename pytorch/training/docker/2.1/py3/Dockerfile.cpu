@@ -148,7 +148,7 @@ RUN /opt/conda/bin/mamba install -y --override-channels \
 RUN pip install --no-cache-dir --upgrade pip --no-cache-dir --trusted-host pypi.org --trusted-host files.pythonhosted.org \
  && ln -s /opt/conda/bin/pip /usr/local/bin/pip3
 
-RUN curl -o /license.txt https://aws-dlc-licenses.s3.amazonaws.com/pytorch-2.0/license.txt
+RUN curl -o /license.txt https://aws-dlc-licenses.s3.amazonaws.com/pytorch-2.1/license.txt
 
 # The ENV variables declared below are changed in the previous section
 # Grouping these ENV variables in the first section causes

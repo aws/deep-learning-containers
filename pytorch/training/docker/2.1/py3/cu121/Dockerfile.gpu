@@ -196,7 +196,7 @@ RUN rm -rf /root/.ssh/ && \
 
 RUN mkdir -p /etc/pki/tls/certs && cp /etc/ssl/certs/ca-certificates.crt /etc/pki/tls/certs/ca-bundle.crt
 
-RUN curl -o /license.txt https://aws-dlc-licenses.s3.amazonaws.com/pytorch-2.0/license.txt
+RUN curl -o /license.txt https://aws-dlc-licenses.s3.amazonaws.com/pytorch-2.1/license.txt
 
 # Removing the cache as it is needed for security verification
 RUN rm -rf /root/.cache | true
