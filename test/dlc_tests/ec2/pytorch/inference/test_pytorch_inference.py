@@ -162,7 +162,6 @@ def test_pytorch_inference_torchaudio_cpu(pytorch_inference, ec2_connection, cpu
     execute_ec2_inference_test(ec2_connection, pytorch_inference, PT_TORCHAUDIO_CMD)
 
 
-@pytest.mark.skip(reason="torchdata is no longer actively maintained on github")
 @pytest.mark.usefixtures("feature_torchdata_present")
 @pytest.mark.usefixtures("sagemaker", "stabilityai")
 @pytest.mark.integration("pt_torchdata_gpu")
@@ -182,7 +181,6 @@ def test_pytorch_inference_torchdata_gpu(
         execute_ec2_inference_test(ec2_connection, pytorch_inference, PT_TORCHDATA_CMD)
 
 
-@pytest.mark.skip(reason="torchdata is no longer actively maintained on github")
 @pytest.mark.usefixtures("feature_torchdata_present")
 @pytest.mark.usefixtures("sagemaker")
 @pytest.mark.integration("pt_torchdata_cpu")
