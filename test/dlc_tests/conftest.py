@@ -868,9 +868,11 @@ def skip_dgl_test(request):
     image_cuda_version = get_cuda_version_from_tag(img_uri)
     image_processor = get_processor_from_image_uri(img_uri)
     if request.node.get_closest_marker("skip_dgl_test"):
-        if image_processor == "gpu" and Version(image_framework_version) in SpecifierSet(">=2.0") and Version(
-            image_cuda_version.strip("cu")
-        ) >= Version("121"):
+        if (
+            image_processor == "gpu"
+            and Version(image_framework_version) in SpecifierSet(">=2.0")
+            and Version(image_cuda_version.strip("cu")) >= Version("121")
+        ):
             pytest.skip(
                 f"DGL doesn't support cuda12.x for now, so skipping this container with tag {image_framework_version}"
             )
