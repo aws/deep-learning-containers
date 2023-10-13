@@ -1353,9 +1353,7 @@
                 "48547":"Latest version of rdflib is being installed",
                 "51159":"cryptography>38.0.1 does not exist yet",
                 "51450": "This bug is in Jax/Flax backend that would need Transformers 4.23 for fix.",
-                "51396": "Protobuf is only a runtime dependency of transformers. Current version of Protobuf installed in the image is not vulnerable.",
-                "59398": "scipy bug - according to maintainer, not a vulnerability",
-                "59399": "scipy bug - no CVE attached"
+                "51396": "Protobuf is only a runtime dependency of transformers. Current version of Protobuf installed in the image is not vulnerable."
             }
         },
         "inference-neuron": {
@@ -1364,7 +1362,9 @@
             "py3": {
                 "44715":"for shipping numpy 1.21.5 - the last available version for py3.7",
                 "44716":"for shipping numpy 1.21.5 - the last available version for py3.7",
-                "44717":"for shipping numpy 1.21.5 - the last available version for py3.7"
+                "44717":"for shipping numpy 1.21.5 - the last available version for py3.7",
+                "59398": "scipy bug - according to maintainer, not a vulnerability",
+                "59399": "scipy bug - no CVE attached"
             }
         },
         "training-neuronx": {
