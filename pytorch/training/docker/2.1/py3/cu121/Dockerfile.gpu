@@ -258,11 +258,9 @@ RUN cd /tmp \
 
 # install PyTorch related python packages (depends on PyTorch)
 RUN /opt/conda/bin/mamba install -y -c conda-forge \
-  # needed by accelerate
-  huggingface_hub \
-  && /opt/conda/bin/mamba install -y -c conda-forge \
   # needed by fastai.distributed
-  accelerate \
+  # pin accelerate to 0.22.0 as newer version gives error "0.23.0 requires huggingface-hub, which is not installed."
+  "accelerate=0.22.0" \
   && /opt/conda/bin/mamba install -y -c fastai fastai \
   # fastai conda strictly depends on dataclasses
   && pip uninstall -y dataclasses \

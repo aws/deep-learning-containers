@@ -200,8 +200,9 @@ RUN /opt/conda/bin/mamba install -y -c conda-forge \
 
 # install fastai (depends on PyTorch)
 RUN /opt/conda/bin/mamba install -y -c conda-forge \
-  # needed by accelerate
-  huggingface_hub \
+  # needed by fastai.distributed
+  # pin accelerate to 0.22.0 as newer version gives error "0.23.0 requires huggingface-hub, which is not installed."
+  "accelerate=0.22.0" \
   && /opt/conda/bin/mamba install -y -c conda-forge \
   # needed by fastai.distributed
   accelerate \
