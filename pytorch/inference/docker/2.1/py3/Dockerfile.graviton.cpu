@@ -1,13 +1,14 @@
 ARG PYTHON=python3
-ARG PYTHON_VERSION=3.9.13
-ARG MAMBA_VERSION=22.9.0-1
-ARG OPEN_MPI_VERSION=4.1.4
+ARG PYTHON_VERSION=3.10.9
+ARG MAMBA_VERSION=22.11.1-4
+ARG OPEN_MPI_VERSION=4.1.5
 
-# PyTorch Binaries
-ARG TORCH_URL=https://aws-pytorch-unified-cicd-binaries.s3.us-west-2.amazonaws.com/r1.13.1_ec2/20221217-194030/54406b8eed7fbd61be629cb06229dfb7b6b2954e/torch-1.13.1%2Bcpu-cp39-cp39-linux_x86_64.whl
-ARG TORCHVISION_VERSION=0.14.1+cpu
-ARG TORCHAUDIO_VERSION=0.13.1+cpu
-ARG TORCHDATA_VERSION=0.5.1
+# PyTorch Graviton Binaries
+ARG TORCH_URL=https://framework-binaries.s3.us-west-2.amazonaws.com/pytorch/v2.1.0/graviton/torch-2.1.0%2Bcpu-cp310-cp310-manylinux_2_31_aarch64.whl
+ARG TORCHVISION_URL=https://framework-binaries.s3.us-west-2.amazonaws.com/pytorch/v2.1.0/graviton/torchvision-0.16.0%2Bcpu-cp310-cp310-linux_aarch64.whl
+ARG TORCHAUDIO_URL=https://framework-binaries.s3.us-west-2.amazonaws.com/pytorch/v2.1.0/graviton/torchaudio-2.1.0%2Bcpu-cp310-cp310-linux_aarch64.whl
+ARG TORCHTEXT_URL=https://framework-binaries.s3.us-west-2.amazonaws.com/pytorch/v2.1.0/graviton/torchtext-0.16.0%2Bcpu-cp310-cp310-linux_aarch64.whl
+ARG TORCHDATA_URL=https://framework-binaries.s3.us-west-2.amazonaws.com/pytorch/v2.1.0/graviton/torchdata-0.7.0%2B7c7597b-cp310-cp310-linux_aarch64.whl
 ARG TORCHSERVE_VERSION
 ARG SM_TOOLKIT_VERSION
 
@@ -25,76 +26,75 @@ ARG SM_TOOLKIT_VERSION
 # |_| \_\___|\___|_| .__/ \___|
 #                  |_|
 ########################################################
-
-FROM ubuntu:20.04 AS base_image
-
-ENV DEBIAN_FRONTEND=noninteractive \
-    LD_LIBRARY_PATH="${LD_LIBRARY_PATH}:/usr/local/lib"
-
-FROM base_image AS ec2
+FROM arm64v8/ubuntu:20.04 as ec2
 
 LABEL maintainer="Amazon AI"
 LABEL dlc_major_version="1"
 
 ARG PYTHON
 ARG PYTHON_VERSION
-ARG MAMBA_VERSION
 ARG OPEN_MPI_VERSION
+ARG MAMBA_VERSION
 
 # PyTorch Passed arguments (URLs and Versions)
 ARG TORCH_URL
-ARG TORCHVISION_VERSION
-ARG TORCHAUDIO_VERSION
-ARG TORCHDATA_VERSION
+ARG TORCHVISION_URL
+ARG TORCHAUDIO_URL
+ARG TORCHTEXT_URL
+ARG TORCHDATA_URL
 ARG TORCHSERVE_VERSION
 
-# Set Debian interaction
-ARG DEBIAN_FRONTEND=noninteractive
-
-# See http://bugs.python.org/issue19846
-ENV LANG=C.UTF-8
-ENV LD_LIBRARY_PATH="/opt/conda/lib:${LD_LIBRARY_PATH}"
-ENV PATH=/opt/conda/bin:$PATH
-ENV TEMP=/home/model-server/tmp
-# Set MKL_THREADING_LAYER=GNU to prevent issues between torch and numpy/mkl
-ENV MKL_THREADING_LAYER=GNU
-ENV DLC_CONTAINER_TYPE=inference
+### Common ENV Variables
+ENV DEBIAN_FRONTEND=noninteractive \
+    LD_LIBRARY_PATH="${LD_LIBRARY_PATH}:/usr/local/lib" \
+    LANG=C.UTF-8 \
+    LD_LIBRARY_PATH=/opt/conda/lib/:$LD_LIBRARY_PATH \
+    PATH=/opt/conda/bin:$PATH \
+    TEMP=/home/model-server/tmp \
+    ### Graviton Optimizaation ENV Variables
+    LRU_CACHE_CAPACITY=1024 \
+    THP_MEM_ALLOC_ENABLE=1 \
+    DNNL_DEFAULT_FPMATH_MODE=BF16
 
 RUN apt-get update \
  && apt-get -y upgrade \
- && apt-get install -y --no-install-recommends software-properties-common \
- # && add-apt-repository ppa:openjdk-r/ppa \
- && apt-get update \
  && apt-get install -y --no-install-recommends \
     build-essential \
     ca-certificates \
     cmake \
     curl \
     emacs \
+    # adding GCC 10 for graviton compile support
+    gfortran-10 \
+    g++-10 \
+    gcc-10 \
     git \
     jq \
-    libcurl4-openssl-dev \
     libgl1-mesa-glx \
     libglib2.0-0 \
     libsm6 \
-    libssl-dev \
     libxext6 \
     libxrender-dev \
-    openjdk-11-jdk \
+    openjdk-17-jdk \
     openssl \
-    unzip \
+    scons \
     vim \
     wget \
+    unzip \
     zlib1g-dev \
+    libjpeg-dev \
+    libpng-dev \
+ && apt-get autoremove -y \
  && rm -rf /var/lib/apt/lists/* \
  && apt-get clean
 
-# https://github.com/docker-library/openjdk/issues/261 https://github.com/docker-library/openjdk/pull/263/files
-RUN keytool -importkeystore -srckeystore /etc/ssl/certs/java/cacerts -destkeystore /etc/ssl/certs/java/cacerts.jks -deststoretype JKS -srcstorepass changeit -deststorepass changeit -noprompt; \
-    mv /etc/ssl/certs/java/cacerts.jks /etc/ssl/certs/java/cacerts; \
-    /var/lib/dpkg/info/ca-certificates-java.postinst configure;
+ # Set default gcc, python and pip versions
+RUN update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-10 1 && \
+    update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-10 1 && \
+    update-alternatives --install /usr/bin/gfortran gfortran /usr/bin/gfortran-10 1
 
-RUN wget https://download.open-mpi.org/release/open-mpi/v4.1/openmpi-${OPEN_MPI_VERSION}.tar.gz \
+# Install OpenMPI
+RUN wget https://www.open-mpi.org/software/ompi/v4.1/downloads/openmpi-$OPEN_MPI_VERSION.tar.gz \
  && gunzip -c openmpi-$OPEN_MPI_VERSION.tar.gz | tar xf - \
  && cd openmpi-$OPEN_MPI_VERSION \
  && ./configure --prefix=/home/.openmpi \
@@ -111,73 +111,69 @@ ENV LD_LIBRARY_PATH="$LD_LIBRARY_PATH:/home/.openmpi/lib/"
 RUN ompi_info --parsable --all | grep mpi_built_with_cuda_support:value
 
 # Install CondaForge miniconda
-# Note: SSD Verification disabled as it breaks installs due to downgrading from py3.10 to py3.9
-RUN curl -L -o ~/mambaforge.sh https://github.com/conda-forge/miniforge/releases/download/${MAMBA_VERSION}/Mambaforge-${MAMBA_VERSION}-Linux-x86_64.sh \
+RUN curl -L -o ~/mambaforge.sh https://github.com/conda-forge/miniforge/releases/download/${MAMBA_VERSION}/Mambaforge-${MAMBA_VERSION}-Linux-aarch64.sh \
  && chmod +x ~/mambaforge.sh \
  && ~/mambaforge.sh -b -p /opt/conda \
  && rm ~/mambaforge.sh \
- && /opt/conda/bin/conda config --set ssl_verify False \
- && /opt/conda/bin/conda update -y conda \
- && /opt/conda/bin/conda install -c conda-forge \
-    python=${PYTHON_VERSION} \
+ && /opt/conda/bin/conda install -c conda-forge -y python=$PYTHON_VERSION \
+    ruamel_yaml \
     cython \
-    mkl \
-    mkl-include \
+    ipython \
     parso \
-    typing \
-    h5py \
-    requests \
     # Below 2 are included in miniconda base, but not mamba so need to install
     conda-content-trust \
     charset-normalizer \
- && /opt/conda/bin/conda clean -ya
+    requests \
+ && conda clean -ya
 
-# symlink pip for OS use
-RUN pip install --upgrade pip --trusted-host pypi.org --trusted-host files.pythonhosted.org \
- && ln -s /opt/conda/bin/pip /usr/local/bin/pip3
-
-# Ensure PyTorch did not get installed from Conda
-RUN pip uninstall -y torch torchvision torchaudio torchdata model-archiver multi-model-server
-
-# Install AWS-PyTorch, and other torch packages
-RUN pip install --no-cache-dir --extra-index-url https://download.pytorch.org/whl/cpu -U \
+# Install Common python packages
+RUN ln -s /opt/conda/bin/pip /usr/local/bin/pip3 \
+ && pip install --upgrade pip --trusted-host pypi.org --trusted-host files.pythonhosted.org \
+ && pip install \
     boto3 \
-    enum-compat==0.0.3 \
-    opencv-python \
     scipy \
-    "cryptography>3.2" \
+    opencv-python \
+    "pyOpenSSL>=23.2.0" \
+    "cryptography>=41.0.2" \
     "ipython>=8.10.0,<9.0" \
     "awscli<2" \
-    "pillow>=10.0.1" \
+    "urllib3==1.26.17"
+
+# Ensure PyTorch did not get installed from Conda or pip, prior to now
+RUN pip uninstall -y torch torchvision torchaudio torchdata model-archiver multi-model-server
+
+# install pytorch wheels
+RUN pip install --no-cache-dir -U \
     ${TORCH_URL} \
-    torchaudio==${TORCHAUDIO_VERSION} \
-    torchvision==${TORCHVISION_VERSION} \
-    torchdata==${TORCHDATA_VERSION}
+    ${TORCHVISION_URL} \
+    ${TORCHAUDIO_URL} \
+    ${TORCHTEXT_URL} \
+    ${TORCHDATA_URL}
 
 # Install TorchServe pypi dependencies directly from their requirements.txt file
 # NOTE: This also brings in unnecessary cpu dependencies like nvgpu
 # -> Numpy is higer version as required by torch
-# -> PyYaml needs to be high pinned for awscli v1 (current v1 = 1.27.99)
 RUN pip install --no-cache-dir -U -r https://raw.githubusercontent.com/pytorch/serve/v${TORCHSERVE_VERSION}/requirements/common.txt \
+ && pip install --no-cache-dir -U \
     "numpy>=1.22.2,<1.23" \
-    "pyyaml>=6.0" \
     torchserve==${TORCHSERVE_VERSION} \
     torch-model-archiver==${TORCHSERVE_VERSION}
 
 # add necessary certificate for aws sdk cpp download
 RUN mkdir -p /etc/pki/tls/certs && cp /etc/ssl/certs/ca-certificates.crt /etc/pki/tls/certs/ca-bundle.crt
 
+# create user and folders
 RUN useradd -m model-server \
  && mkdir -p /home/model-server/tmp /opt/ml/model \
  && chown -R model-server /home/model-server /opt/ml/model
 
+# add TS entrypoint
 COPY torchserve-ec2-entrypoint.py /usr/local/bin/dockerd-entrypoint.py
-COPY config.properties /home/model-server
-
+COPY config.properties /home/model-server/config.properties
 RUN chmod +x /usr/local/bin/dockerd-entrypoint.py
 
+# add telemetry
 COPY deep_learning_container.py /usr/local/bin/deep_learning_container.py
-
 RUN chmod +x /usr/local/bin/deep_learning_container.py
 
 RUN HOME_DIR=/root \
@@ -187,17 +183,19 @@ RUN HOME_DIR=/root \
  && chmod +x /usr/local/bin/testOSSCompliance \
  && chmod +x ${HOME_DIR}/oss_compliance/generate_oss_compliance.sh \
  && ${HOME_DIR}/oss_compliance/generate_oss_compliance.sh ${HOME_DIR} ${PYTHON} \
- && rm -rf ${HOME_DIR}/oss_compliance* \
- && rm -rf /tmp/tmp*
+ && cp ${HOME_DIR}/oss_compliance/build_from_source_packages/BUILD_FROM_SOURCE_PACKAGES_LICENCES_AARCH64_IMAGES ${HOME_DIR} \
+ && rm -rf ${HOME_DIR}/oss_compliance*
 
-RUN curl -o /license.txt  https://aws-dlc-licenses.s3.amazonaws.com/pytorch-1.13/license.txt
+RUN curl https://aws-dlc-licenses.s3.amazonaws.com/pytorch-2.0/license.txt -o /license.txt
 
-# Removing the cache as it is needed for security verification
-RUN rm -iRf /root/.cache
+## Cleanup ##
+RUN pip cache purge \
+ && rm -rf /tmp/tmp* \
+ && rm -iRf /root/.cache
 
 EXPOSE 8080 8081
 ENTRYPOINT ["python", "/usr/local/bin/dockerd-entrypoint.py"]
-CMD ["torchserve", "--start", "--ts-config", "/home/model-server/config.properties", "--model-store", "/home/model-server/"]
+CMD ["torchserve", "--start", "--ts-config", "/home/model-server/config.properties"]
 
 #################################################################
 #  ____                   __  __       _
@@ -212,6 +210,8 @@ CMD ["torchserve", "--start", "--ts-config", "/home/model-server/config.properti
 #  | || | | | | | (_| | (_| |  __/ |  _ <  __/ (__| | |_) |  __/
 # |___|_| |_| |_|\__,_|\__, |\___| |_| \_\___|\___|_| .__/ \___|
 #                      |___/                        |_|
+#
+# NOTE: This ImageRecipe is still under development
 #################################################################
 
 FROM ec2 AS sagemaker
@@ -247,8 +247,9 @@ RUN HOME_DIR=/root \
  && ${HOME_DIR}/oss_compliance/generate_oss_compliance.sh ${HOME_DIR} ${PYTHON} \
  && rm -rf ${HOME_DIR}/oss_compliance*
 
-# Removing the cache as it is needed for security verification
-RUN rm -iRf /root/.cache
+## Cleanup ##
+RUN rm -rf /tmp/tmp* \
+ &&rm -iRf /root/.cache
 
 EXPOSE 8080 8081
 ENTRYPOINT ["python", "/usr/local/bin/dockerd-entrypoint.py"]

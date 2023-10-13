@@ -1,8 +1,8 @@
 account_id: &ACCOUNT_ID <set-$ACCOUNT_ID-in-environment>
 region: &REGION <set-$REGION-in-environment>
 framework: &FRAMEWORK pytorch
-version: &VERSION 1.13.1
-short_version: &SHORT_VERSION "1.13"
+version: &VERSION 2.0.1
+short_version: &SHORT_VERSION "2.0"
 arch_type: x86
 
 repository_info:
@@ -31,10 +31,10 @@ images:
   BuildEC2CPUPTInferencePy3DockerImage:
     <<: *INFERENCE_REPOSITORY
     build: &PYTORCH_CPU_INFERENCE_PY3 false
-    image_size_baseline: 4899
+    image_size_baseline: 4900
     device_type: &DEVICE_TYPE cpu
     python_version: &DOCKER_PYTHON_VERSION py3
-    tag_python_version: &TAG_PYTHON_VERSION py39
+    tag_python_version: &TAG_PYTHON_VERSION py310
     os_version: &OS_VERSION ubuntu20.04
     torch_serve_version: &TORCHSERVE_VERSION 0.8.2
     tag: !join [ *VERSION, "-", *DEVICE_TYPE, "-", *TAG_PYTHON_VERSION, "-", *OS_VERSION, "-ec2" ]
@@ -48,8 +48,8 @@ images:
     image_size_baseline: 14000
     device_type: &DEVICE_TYPE gpu
     python_version: &DOCKER_PYTHON_VERSION py3
-    tag_python_version: &TAG_PYTHON_VERSION py39
-    cuda_version: &CUDA_VERSION cu117
+    tag_python_version: &TAG_PYTHON_VERSION py310
+    cuda_version: &CUDA_VERSION cu118
     os_version: &OS_VERSION ubuntu20.04
     torch_serve_version: &TORCHSERVE_VERSION 0.8.2
     tag: !join [ *VERSION, "-", *DEVICE_TYPE, "-", *TAG_PYTHON_VERSION, "-", *CUDA_VERSION, "-", *OS_VERSION, "-ec2" ]
@@ -61,10 +61,10 @@ images:
   BuildSageMakerCPUPTInferencePy3DockerImage:
     <<: *INFERENCE_REPOSITORY
     build: &PYTORCH_CPU_INFERENCE_PY3 false
-    image_size_baseline: 4899
+    image_size_baseline: 4900
     device_type: &DEVICE_TYPE cpu
     python_version: &DOCKER_PYTHON_VERSION py3
-    tag_python_version: &TAG_PYTHON_VERSION py39
+    tag_python_version: &TAG_PYTHON_VERSION py310
     os_version: &OS_VERSION ubuntu20.04
     torch_serve_version: &TORCHSERVE_VERSION 0.8.2
     tool_kit_version: &SM_TOOLKIT_VERSION 2.0.16
@@ -79,8 +79,8 @@ images:
     image_size_baseline: 14000
     device_type: &DEVICE_TYPE gpu
     python_version: &DOCKER_PYTHON_VERSION py3
-    tag_python_version: &TAG_PYTHON_VERSION py39
-    cuda_version: &CUDA_VERSION cu117
+    tag_python_version: &TAG_PYTHON_VERSION py310
+    cuda_version: &CUDA_VERSION cu118
     os_version: &OS_VERSION ubuntu20.04
     torch_serve_version: &TORCHSERVE_VERSION 0.8.2
     tool_kit_version: &SM_TOOLKIT_VERSION 2.0.16

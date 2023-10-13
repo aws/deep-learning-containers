@@ -11244,5 +11244,35 @@
             "status": "ACTIVE",
             "title": "IN1-PYTHON-SCIPY-5759266 - scipy"
         }
+    ],
+    "gevent": [
+        {
+            "description": "An issue in Gevent Gevent before version 23.9.1 allows a remote attacker to escalate privileges via a crafted script to the WSGIServer component.",
+            "vulnerability_id": "CVE-2023-41419",
+            "name": "CVE-2023-41419",
+            "package_name": "gevent",
+            "package_details": {
+                "file_path": "usr/local/lib/python3.8/site-packages/gevent-21.1.1.dist-info/METADATA",
+                "name": "gevent",
+                "package_manager": "PYTHONPKG",
+                "version": "21.1.1",
+                "release": null
+            },
+            "remediation": {
+                "recommendation": {
+                    "text": "None Provided"
+                }
+            },
+            "cvss_v3_score": 9.8,
+            "cvss_v30_score": 0,
+            "cvss_v31_score": 9.8,
+            "cvss_v2_score": 0,
+            "cvss_v3_severity": "CRITICAL",
+            "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2023-41419",
+            "source": "NVD",
+            "severity": "CRITICAL",
+            "status": "ACTIVE",
+            "title": "CVE-2023-41419 - gevent"
+        }
     ]
 }

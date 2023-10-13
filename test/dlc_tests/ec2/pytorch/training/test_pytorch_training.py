@@ -13,7 +13,11 @@ from test.test_utils import (
     get_framework_and_version_from_tag,
     get_cuda_version_from_tag,
 )
-from test.test_utils.ec2 import execute_ec2_training_test, get_ec2_instance_type
+from test.test_utils.ec2 import (
+    execute_ec2_training_test,
+    get_ec2_instance_type,
+    get_efa_ec2_instance_type,
+)
 
 
 PT_STANDALONE_CMD = os.path.join(CONTAINER_TESTS_PREFIX, "pytorch_tests", "testPyTorchStandalone")
@@ -23,6 +27,8 @@ PT_REGRESSION_CMD = os.path.join(CONTAINER_TESTS_PREFIX, "pytorch_tests", "testP
 PT_REGRESSION_CMD_REVISED = os.path.join(
     CONTAINER_TESTS_PREFIX, "pytorch_tests", "testPyTorchRegressionRevised"
 )
+PT_DCGM_TEST_CMD = os.path.join(CONTAINER_TESTS_PREFIX, "healthcheck_tests", "dcgm_test.sh")
+PT_NCCL_LOCAL_TEST_CMD = os.path.join(CONTAINER_TESTS_PREFIX, "healthcheck_tests", "nccl_test.sh")
 PT_DGL_CMD = os.path.join(CONTAINER_TESTS_PREFIX, "dgl_tests", "testPyTorchDGL")
 PT_APEX_CMD = os.path.join(CONTAINER_TESTS_PREFIX, "pytorch_tests", "testNVApex")
 PT_AMP_CMD = os.path.join(CONTAINER_TESTS_PREFIX, "pytorch_tests", "testPyTorchAMP")
@@ -48,6 +54,11 @@ PT_INDUCTOR_TEST_INSTANCE_TYPE = get_ec2_instance_type(
     default="g4dn.12xlarge", processor="gpu", filter_function=ec2_utils.filter_non_g3_instance_type
 )
 PT_EC2_GPU_INSTANCE_TYPE = get_ec2_instance_type(default="g3.8xlarge", processor="gpu")
+PT_EC2_MULTI_GPU_NO_G_INSTANCE_TYPE = get_ec2_instance_type(
+    default="p3.8xlarge",
+    processor="gpu",
+    filter_function=ec2_utils.filter_only_multi_gpu_and_no_g_type,
+)
 PT_EC2_CPU_INSTANCE_TYPE = get_ec2_instance_type(default="c5.9xlarge", processor="cpu")
 PT_EC2_SINGLE_GPU_INSTANCE_TYPE = get_ec2_instance_type(
     default="p3.2xlarge",
@@ -65,6 +76,11 @@ PT_EC2_NEURON_TRN1_INSTANCE_TYPE = get_ec2_instance_type(
 )
 PT_EC2_NEURON_INF2_INSTANCE_TYPE = get_ec2_instance_type(
     default="inf2.xlarge", processor="neuronx", job_type="training"
+)
+
+PT_EC2_EFA_GPU_INSTANCE_TYPE_AND_REGION = get_efa_ec2_instance_type(
+    default="p4d.24xlarge",
+    filter_function=ec2_utils.filter_efa_instance_type,
 )
 
 
@@ -114,6 +130,32 @@ def test_pytorch_standalone_gpu(pytorch_training, ec2_connection, gpu_only, ec2_
             f"Image {pytorch_training} is incompatible with instance type {ec2_instance_type}"
         )
     execute_ec2_training_test(ec2_connection, pytorch_training, PT_STANDALONE_CMD)
+
+
+@pytest.mark.usefixtures("sagemaker_only")
+@pytest.mark.usefixtures("pt201_and_above_only")
+@pytest.mark.integration("pytorch_sanity_healthcheck_test")
+@pytest.mark.model("N/A")
+@pytest.mark.parametrize("ec2_instance_type", PT_EC2_GPU_INSTANCE_TYPE, indirect=True)
+def test_pytorch_healthcheck_dcgm(pytorch_training, ec2_connection, gpu_only, ec2_instance_type):
+    if test_utils.is_image_incompatible_with_instance_type(pytorch_training, ec2_instance_type):
+        pytest.skip(
+            f"Image {pytorch_training} is incompatible with instance type {ec2_instance_type}"
+        )
+    execute_ec2_training_test(ec2_connection, pytorch_training, PT_DCGM_TEST_CMD)
+
+
+@pytest.mark.usefixtures("sagemaker_only")
+@pytest.mark.usefixtures("pt201_and_above_only")
+@pytest.mark.integration("pytorch_sanity_healthcheck_test")
+@pytest.mark.model("N/A")
+@pytest.mark.parametrize("ec2_instance_type", PT_EC2_MULTI_GPU_NO_G_INSTANCE_TYPE, indirect=True)
+def test_pytorch_healthcheck_nccl(pytorch_training, ec2_connection, gpu_only, ec2_instance_type):
+    if test_utils.is_image_incompatible_with_instance_type(pytorch_training, ec2_instance_type):
+        pytest.skip(
+            f"Image {pytorch_training} is incompatible with instance type {ec2_instance_type}"
+        )
+    execute_ec2_training_test(ec2_connection, pytorch_training, PT_NCCL_LOCAL_TEST_CMD)
 
 
 @pytest.mark.usefixtures("sagemaker")

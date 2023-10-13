@@ -16,11 +16,18 @@ from test.test_utils import (
 from packaging.version import Version
 from packaging.specifiers import SpecifierSet
 
-from test.test_utils.ec2 import get_efa_ec2_instance_type, filter_efa_instance_type
+from test.test_utils.ec2 import (
+    get_efa_ec2_instance_type,
+    filter_efa_instance_type,
+    filter_efa_only_p4_instance_type,
+)
 
 BUILD_ALL_REDUCE_PERF_CMD = os.path.join(CONTAINER_TESTS_PREFIX, "efa", "build_all_reduce_perf.sh")
 EFA_SANITY_TEST_CMD = os.path.join(CONTAINER_TESTS_PREFIX, "efa", "testEFASanity")
 EFA_INTEGRATION_TEST_CMD = os.path.join(CONTAINER_TESTS_PREFIX, "efa", "testEFA")
+EFA_PYTORCH_HEALTHCHECK_TEST_CMD = os.path.join(
+    CONTAINER_TESTS_PREFIX, "healthcheck_tests", "efa_checker_single_node.sh"
+)
 
 MASTER_SSH_KEY_NAME = "master_id_rsa"
 WORKER_SSH_KEY_NAME = "worker_id_rsa"
@@ -31,6 +38,11 @@ HOSTS_FILE_LOCATION = "/root/hosts"
 EC2_EFA_GPU_INSTANCE_TYPE_AND_REGION = get_efa_ec2_instance_type(
     default="p4d.24xlarge",
     filter_function=filter_efa_instance_type,
+)
+
+EC2_EFA_GPU_ONLY_P4_INSTANCE_TYPE_AND_REGION = get_efa_ec2_instance_type(
+    default="p4d.24xlarge",
+    filter_function=filter_efa_only_p4_instance_type,
 )
 
 
@@ -116,6 +128,48 @@ def test_efa_tensorflow(
         MASTER_CONTAINER_NAME,
         master_connection,
         f"{EFA_INTEGRATION_TEST_CMD} {HOSTS_FILE_LOCATION} {number_of_nodes}",
+        hide=False,
+        timeout=300,
+    )
+
+
+@pytest.mark.processor("gpu")
+@pytest.mark.model("N/A")
+@pytest.mark.integration("efa")
+@pytest.mark.usefixtures("sagemaker_only")
+@pytest.mark.usefixtures("pt201_and_above_only")
+@pytest.mark.allow_p4de_use
+@pytest.mark.parametrize("ec2_instance_type,region", EC2_EFA_GPU_ONLY_P4_INSTANCE_TYPE_AND_REGION)
+@pytest.mark.skipif(
+    is_pr_context() and not is_efa_dedicated(),
+    reason="Skip EFA test in PR context unless explicitly enabled",
+)
+def test_pytorch_efa_healthcheck(
+    pytorch_training,
+    efa_ec2_instances,
+    efa_ec2_connections,
+    ec2_instance_type,
+    region,
+    gpu_only,
+):
+    """
+    Run EFA Health Check tests on DLC.
+    :param pytorch_training: str PyTorch Training DLC image URI
+    :param efa_ec2_instances: list of tuples of instance-ids and SSH-keys for EFA-enabled instances
+    :param efa_ec2_connections: list of Fabric Connection objects for EFA-enabled instances
+    :param ec2_instance_type: str Instance Type being tested
+    :param region: str Region in which EFA-enabled instances are launched
+    :param gpu_only: pytest fixture to limit test only to GPU DLCs
+    """
+    _setup_multinode_efa_instances(
+        pytorch_training, efa_ec2_instances, efa_ec2_connections, ec2_instance_type, region
+    )
+    master_connection = efa_ec2_connections[0]
+    run_cmd_on_container(MASTER_CONTAINER_NAME, master_connection, EFA_SANITY_TEST_CMD, hide=False)
+    run_cmd_on_container(
+        MASTER_CONTAINER_NAME,
+        master_connection,
+        f"{EFA_PYTORCH_HEALTHCHECK_TEST_CMD}",
         hide=False,
         timeout=300,
     )
