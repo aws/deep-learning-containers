@@ -4,6 +4,8 @@ ARG PYTHON_SHORT_VERSION=3.10
 ARG MAMBA_VERSION=23.3.1-0
 ARG PYTORCH_VERSION_EC2=2.0.1
 ARG CONDA_CHANNEL=https://aws-ml-conda-ec2.s3.us-west-2.amazonaws.com
+# SageMaker Profiler Binary
+ARG SMP_URL=https://smppy.s3.amazonaws.com/pytorch/cu121/smppy-0.3.325-cp310-cp310-linux_x86_64.whl
 
 FROM nvidia/cuda:12.1.0-base-ubuntu20.04 AS base_image
 
@@ -163,6 +165,10 @@ RUN pip install --no-cache-dir --upgrade pip --no-cache-dir --trusted-host pypi.
  && ln -s /opt/conda/bin/pip /usr/local/bin/pip3
 
 WORKDIR /root
+
+# Install SageMaker Profiler Binary
+RUN apt-get update && apt-get install -y libunwind-dev && apt-get clean \
+ && pip install --no-cache-dir -U ${SMP_URL}
 
 # Configure Open MPI and configure NCCL parameters
 RUN mv $OPEN_MPI_PATH/bin/mpirun $OPEN_MPI_PATH/bin/mpirun.real \
