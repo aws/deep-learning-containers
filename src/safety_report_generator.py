@@ -152,8 +152,8 @@ class SafetyReportGenerator:
                     if utils.is_APatch_build():
                         ignored_package_dict = self.get_dumped_ignore_dict_of_packages()
                         print(f"TRSHANTA ignored_package_dict: {ignored_package_dict}")
-                        ignore_message = f"[Package: {package}] Conflicts for: {ignored_package_dict.get(package).keys()}"
                         if package in ignored_package_dict:
+                            ignore_message = f"[Package: {package}] Conflicts for: {ignored_package_dict.get(package).keys()}"
                             package_scan_results["scan_status"] = "IGNORED"
                             for vulnerability in package_scan_results["vulnerabilities"]:
                                 if vulnerability["reason_to_ignore"] == "N/A":
@@ -161,7 +161,7 @@ class SafetyReportGenerator:
                                     self.future_ignore_dict[vulnerability["vulnerability_id"]] = ignore_message
 
             
-            self.vulnerability_list.append(package_scan_results)
+            self.vulnerability_list.append(package_scan_results), self.future_ignore_dict
 
     def run_safety_check_in_non_cb_context(self):
         """
