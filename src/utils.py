@@ -233,9 +233,6 @@ def get_safety_ignore_dict(image_uri, framework, python_version, job_type):
         ignore_safety_ids = json.load(f)
     ignore_dict = ignore_safety_ids.get(framework, {}).get(job_type, {}).get(python_version, {})
 
-    print(f"get_safety_ignore_dict using framework \"{framework}\" job_type \"{job_type}\" python_version \"{python_version}\"\n"
-          f"json_content:\n{json.dumps(ignore_dict)}")
-
     ## Find common vulnerabilites and add it to the ignore dict
     common_ignore_list_file = os.path.join(
         os.sep, get_cloned_folder_path(), "data", "common-safety-ignorelist.json"
