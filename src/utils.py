@@ -26,7 +26,6 @@ from invoke.context import Context
 from codebuild_environment import get_cloned_folder_path
 from config import is_build_enabled
 from safety_report_generator import SafetyReportGenerator
-from test.test_utils import get_ecr_scan_allowlist_path
 
 LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.DEBUG)
@@ -199,6 +198,7 @@ def get_safety_scan_allowlist_path(image_uri):
     :param image_uri: str, consists of f"{image_repo}:{image_tag}"
     :return: string, safety scan allowlist path for the image
     """
+    from test.test_utils import get_ecr_scan_allowlist_path
     os_scan_allowlist_path = get_ecr_scan_allowlist_path(image_uri)
     safety_scan_allowlist_path = os_scan_allowlist_path.replace(".os_",".py_")
     return safety_scan_allowlist_path
