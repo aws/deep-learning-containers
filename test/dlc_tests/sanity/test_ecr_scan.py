@@ -28,6 +28,7 @@ from test.test_utils import (
     ECR_ENHANCED_REPO_REGION,
     is_generic_image,
     get_allowlist_path_for_enhanced_scan_from_env_variable,
+    get_ecr_scan_allowlist_path,
 )
 from test.test_utils import ecr as ecr_utils
 from test.test_utils.security import (
@@ -40,7 +41,6 @@ from test.test_utils.security import (
     fetch_other_vulnerability_lists,
     get_target_image_uri_using_current_uri_and_target_repo,
     wait_for_enhanced_scans_to_complete,
-    get_ecr_scan_allowlist_path,
 )
 from src.config import is_ecr_scan_allowlist_feature_enabled
 
