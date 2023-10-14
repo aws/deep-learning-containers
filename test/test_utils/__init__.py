@@ -23,6 +23,7 @@ from packaging.version import InvalidVersion, Version, parse
 from packaging.specifiers import SpecifierSet
 from datetime import date, datetime
 from retrying import retry
+from pathlib import Path
 import dataclasses
 
 # from security import EnhancedJSONEncoder
@@ -310,6 +311,7 @@ def get_dockerfile_path_for_image(image_uri, python_version=None):
 
     device_type = get_processor_from_image_uri(image_uri)
     cuda_version = get_cuda_version_from_tag(image_uri)
+    LOGGER.info(f"TRSHANTA CudaVersion: {cuda_version}")
     synapseai_version = get_synapseai_version_from_tag(image_uri)
     neuron_sdk_version = get_neuron_sdk_version_from_tag(image_uri)
 
@@ -1653,7 +1655,12 @@ def get_cuda_version_from_tag(image_uri):
     cuda_str = ["cu", "gpu"]
     image_region = get_region_from_image_uri(image_uri)
     ecr_client = boto3.Session(region_name=image_region).client("ecr")
-    all_image_tags = get_all_the_tags_of_an_image_from_ecr(ecr_client, image_uri)
+    _, local_image_tag = get_repository_and_tag_from_image_uri(image_uri)
+    all_image_tags = [local_image_tag]
+    try:
+        all_image_tags = get_all_the_tags_of_an_image_from_ecr(ecr_client, image_uri)
+    except ecr_client.exceptions.ImageNotFoundException as e:
+        LOGGER.info(f"Image {image_uri} not found in ECR - this is expected when the image is not pushed yet. Client Logs: {e}")
 
     for image_tag in all_image_tags:
         if all(keyword in image_tag for keyword in cuda_str):
@@ -2045,3 +2052,37 @@ def get_labels_from_ecr_image(image_uri, region):
 def generate_unique_dlc_name(image):
     # handle retrevial of repo name and remove test type from it
     return get_ecr_repo_name(image).replace("-training", "").replace("-inference", "")
+
+
+def get_ecr_scan_allowlist_path(image_uri, python_version=None):
+    dockerfile_location = get_dockerfile_path_for_image(image_uri, python_version=python_version)
+    image_scan_allowlist_path = dockerfile_location + ".os_scan_allowlist.json"
+    if (
+        not any(image_type in image_uri for image_type in ["neuron", "eia"])
+        and is_covered_by_ec2_sm_split(image_uri)
+        and is_ec2_sm_in_same_dockerfile(image_uri)
+    ):
+        if is_ec2_image(image_uri):
+            image_scan_allowlist_path = image_scan_allowlist_path.replace(
+                "Dockerfile", "Dockerfile.ec2"
+            )
+        else:
+            image_scan_allowlist_path = image_scan_allowlist_path.replace(
+                "Dockerfile", "Dockerfile.sagemaker"
+            )
+
+    # Each example image (tied to CUDA version/OS version/other variants) can have its own list of vulnerabilities,
+    # which means that we cannot have just a single allowlist for all example images for any framework version.
+    if "example" in image_uri:
+        # The extracted dockerfile_location in case of example image points to the base gpu image on top of which the
+        # example image was built. The dockerfile_location looks like
+        # tensorflow/training/docker/2.7/py3/cu112/Dockerfile.ec2.gpu.example.os_scan_allowlist.json
+        # We want to change the parent folder such that it points from cu112 folder to example folder and
+        # looks like tensorflow/training/docker/2.7/py3/example/Dockerfile.gpu.example.os_scan_allowlist.json
+        dockerfile_location = dockerfile_location.replace(".ec2.", ".")
+        base_gpu_image_path = Path(dockerfile_location)
+        image_scan_allowlist_path = os.path.join(
+            str(base_gpu_image_path.parent.parent), "example", base_gpu_image_path.name
+        )
+        image_scan_allowlist_path += ".example.os_scan_allowlist.json"
+    return image_scan_allowlist_path

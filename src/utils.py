@@ -26,6 +26,7 @@ from invoke.context import Context
 from codebuild_environment import get_cloned_folder_path
 from config import is_build_enabled
 from safety_report_generator import SafetyReportGenerator
+from test.test_utils import get_ecr_scan_allowlist_path
 
 LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.DEBUG)
@@ -191,6 +192,36 @@ def set_test_env(images, use_latest_additional_tag=False, images_env="DLC_IMAGES
     write_to_json_file(constants.TEST_ENV_PATH, test_envs)
 
 
+def get_safety_scan_allowlist_path(image_uri):
+    """
+    Retrieves the safety_scan_allowlist_path for each image_uri.
+    
+    :param image_uri: str, consists of f"{image_repo}:{image_tag}"
+    :return: string, safety scan allowlist path for the image
+    """
+    os_scan_allowlist_path = get_ecr_scan_allowlist_path(image_uri)
+    safety_scan_allowlist_path = os_scan_allowlist_path.replace(".os_",".py_")
+    return safety_scan_allowlist_path
+
+
+def get_safety_ignore_dict_from_image_specific_safety_allowlists(image_uri):
+    """
+    Image specific safety allowlists exist parallel to the os_scan_allowlists and allow us to allowlist vulnerabilities
+    in a more granular way. This method helps fetch the contents of the image specific allowlist and ignore them during
+    safety scans.
+
+    :param image_uri: str, consists of f"{image_repo}:{image_tag}"
+    :return: dict[str,str], image specific safety scan allowlist which is a key-value pair of "vulnerability_id" and "reason"
+    """
+    safety_scan_allowlist_path = get_safety_scan_allowlist_path(image_uri)
+    if not os.path.exists(safety_scan_allowlist_path):
+        LOGGER.info(f"No image specific safety scan allowlist found at {safety_scan_allowlist_path}")
+        return {}
+    with open(safety_scan_allowlist_path, "r") as f:
+        ignore_dict_from_image_specific_allowlist = json.load(f)
+    return ignore_dict_from_image_specific_allowlist
+
+
 def get_safety_ignore_dict(image_uri, framework, python_version, job_type):
     """
     Get a dict of known safety check issue IDs to ignore, if specified in file ../data/ignore_ids_safety_scan.json.
@@ -242,6 +273,8 @@ def get_safety_ignore_dict(image_uri, framework, python_version, job_type):
         if common_id not in ignore_dict:
             ignore_dict[common_id] = reason
 
+    ignore_dict_from_image_specific_allowlist = get_safety_ignore_dict_from_image_specific_safety_allowlists(image_uri)
+    ignore_dict.update(ignore_dict_from_image_specific_allowlist)
     return ignore_dict
 
 

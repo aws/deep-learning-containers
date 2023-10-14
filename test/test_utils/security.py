@@ -13,7 +13,6 @@ from test.test_utils import LOGGER, ecr as ecr_utils
 import dataclasses
 from dataclasses import dataclass
 from typing import Any, List
-from pathlib import Path
 
 
 @dataclass
@@ -653,40 +652,6 @@ def get_ecr_vulnerability_package_version(vulnerability):
     return None
 
 
-def get_ecr_scan_allowlist_path(image_uri, python_version=None):
-    dockerfile_location = test_utils.get_dockerfile_path_for_image(image_uri, python_version=python_version)
-    image_scan_allowlist_path = dockerfile_location + ".os_scan_allowlist.json"
-    if (
-        not any(image_type in image_uri for image_type in ["neuron", "eia"])
-        and test_utils.is_covered_by_ec2_sm_split(image_uri)
-        and test_utils.is_ec2_sm_in_same_dockerfile(image_uri)
-    ):
-        if test_utils.is_ec2_image(image_uri):
-            image_scan_allowlist_path = image_scan_allowlist_path.replace(
-                "Dockerfile", "Dockerfile.ec2"
-            )
-        else:
-            image_scan_allowlist_path = image_scan_allowlist_path.replace(
-                "Dockerfile", "Dockerfile.sagemaker"
-            )
-
-    # Each example image (tied to CUDA version/OS version/other variants) can have its own list of vulnerabilities,
-    # which means that we cannot have just a single allowlist for all example images for any framework version.
-    if "example" in image_uri:
-        # The extracted dockerfile_location in case of example image points to the base gpu image on top of which the
-        # example image was built. The dockerfile_location looks like
-        # tensorflow/training/docker/2.7/py3/cu112/Dockerfile.ec2.gpu.example.os_scan_allowlist.json
-        # We want to change the parent folder such that it points from cu112 folder to example folder and
-        # looks like tensorflow/training/docker/2.7/py3/example/Dockerfile.gpu.example.os_scan_allowlist.json
-        dockerfile_location = dockerfile_location.replace(".ec2.", ".")
-        base_gpu_image_path = Path(dockerfile_location)
-        image_scan_allowlist_path = os.path.join(
-            str(base_gpu_image_path.parent.parent), "example", base_gpu_image_path.name
-        )
-        image_scan_allowlist_path += ".example.os_scan_allowlist.json"
-    return image_scan_allowlist_path
-
-
 def _save_lists_in_s3(save_details, s3_bucket_name):
     """
     This method takes in a list of filenames and the data corresponding to each filename and stores it in
@@ -918,7 +883,7 @@ def conduct_failure_routine(
             image, ecr_image_vulnerability_list, "current-ecr-scanlist", s3_bucket_for_storage
         )
     )
-    original_filepath_for_allowlist = get_ecr_scan_allowlist_path(image)
+    original_filepath_for_allowlist = test_utils.get_ecr_scan_allowlist_path(image)
     edited_files = [
         {
             "s3_filename": s3_filename_for_allowlist,
@@ -1092,7 +1057,7 @@ def fetch_other_vulnerability_lists(image, ecr_client, minimum_sev_threshold):
     image_scan_allowlist = ECRBasicScanVulnerabilityList(
         minimum_severity=CVESeverity[minimum_sev_threshold]
     )
-    image_scan_allowlist_path = get_ecr_scan_allowlist_path(image)
+    image_scan_allowlist_path = test_utils.get_ecr_scan_allowlist_path(image)
     if os.path.exists(image_scan_allowlist_path):
         image_scan_allowlist.construct_allowlist_from_file(image_scan_allowlist_path)
     return upgraded_image_vulnerability_list, image_scan_allowlist
