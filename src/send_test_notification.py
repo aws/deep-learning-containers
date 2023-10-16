@@ -35,13 +35,17 @@ def get_pytest_output():
 
 
 def get_test_details(name):
+    test_type = os.getenv("TEST_TYPE")
     test_name = name.split("[")[0]
-    repo_instance_name = name.split("[")[1].replace("]", "")
+    if "ec2" in test_type.lower():
+        repo_instance_name = name.split("[")[1].replace("]", "")
 
-    instance_name = repo_instance_name.split("-")[-1]
-    ecr_image = repo_instance_name.replace(f"-{instance_name}", "")
+        instance_name = repo_instance_name.split("-")[-1]
+        ecr_image = repo_instance_name.replace(f"-{instance_name}", "")
 
-    return test_name, ecr_image, instance_name
+        return test_name, ecr_image, instance_name
+    else:
+        return test_name, None, None
 
 
 def get_dlc_images(build_context):
@@ -125,16 +129,20 @@ def parse_pytest_data():
                 test_data = {}
                 test_name, ecr_image, instance_name = get_test_details(test["@name"])
                 test_data["test_name"] = test_name
-                test_data["ecr_image"] = ecr_image
+                if ecr_image is not None:
+                    test_data["ecr_image"] = ecr_image
+                if instance_name is not None:
+                    test_data["instance_name"] = instance_name
                 test_data[test["properties"]["property"]["@name"]] = test["properties"]["property"][
                     "@value"
                 ]
-                test_data["instance_name"] = instance_name
                 test_data["test_path"] = test["@classname"].replace(".", "/") + "/" + test_name
                 test_data["fail_message"] = test["failure"]["@message"]
                 # test_data["fail_full_message"] = test["failure"]["#text"]
                 pytest_file_data["failed_tests"][team_name].append(test_data)
-        pytest_parsed_output.append(pytest_file_data)
+
+        if pytest_file_data["failed_tests"]:
+            pytest_parsed_output.append(pytest_file_data)
     return pytest_parsed_output
 
 
@@ -148,9 +156,13 @@ def generate_test_execution_data():
 
 
 def main():
-    test_execution_data = generate_test_execution_data()
-    handler = TicketNotificationHandler()
-    handler.publish_notification(test_execution_data)
+    if config.is_notify_test_failures_enabled():
+        print("Sending test notification...")
+        test_execution_data = generate_test_execution_data()
+        handler = TicketNotificationHandler()
+        handler.publish_notification(test_execution_data)
+    else:
+        print("Test notification is disabled.")
 
 
 if __name__ == "__main__":
