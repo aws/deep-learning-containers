@@ -463,18 +463,17 @@ def trigger_enhanced_scan(image_uri, patch_details_path, python_version=None):
     docker_run_cmd = f"docker run -v {mount_path_1}:/deep-learning-containers -v {mount_path_2}:/image-specific-patch-folder  -id --entrypoint='/bin/bash' {image_uri} "
     container_id = run(f"{docker_run_cmd}").stdout.strip()
     docker_exec_cmd = f"docker exec -i {container_id}"
-    container_setup_cmd = "pip install invoke"
-    run(f"{docker_exec_cmd} {container_setup_cmd}", hide=True)
     container_setup_cmd = "apt-get update"
     run(f"{docker_exec_cmd} {container_setup_cmd}", hide=True)
-    save_file_name = "save_temp.json"
+    save_file_name = "os_summary.json"
     ## TODO: Handle if none impacted packages
-    script_run_cmd = f"""python /deep-learning-containers/miscellaneous_scripts/extract_apt_patch_data.py --impacted-packages {",".join(impacted_packages)} --save-result-path /image-specific-patch-folder/{save_file_name}"""
+    script_run_cmd = f"""python /deep-learning-containers/miscellaneous_scripts/extract_apt_patch_data.py --impacted-packages {",".join(impacted_packages)} --save-result-path /image-specific-patch-folder/{save_file_name} --mode_type generate"""
     run(f"{docker_exec_cmd} {script_run_cmd}")
     with open(os.path.join(os.sep, patch_details_path, save_file_name), "r") as readfile:
         saved_json_data = json.load(readfile)
     print(f"For {image_uri} => {saved_json_data}")
-    patch_package_list = saved_json_data["patch_package_list"]
+    patch_package_dict = saved_json_data["patch_package_dict"]
+    patch_package_list = list(patch_package_dict.keys())
     echo_cmd = """ echo "echo NA" """
     file_concat_cmd = f"tee -a {patch_details_path}/install_script_second.sh"
     if patch_package_list:
@@ -530,17 +529,17 @@ def conduct_apatch_build_setup(pre_push_image_object: DockerImage, download_path
         os.sep, get_cloned_folder_path(), "miscellaneous_dockerfiles", "Dockerfile.apatch"
     )
 
-    derive_history_script_path = os.path.join(
-        os.sep, get_cloned_folder_path(), "miscellaneous_scripts", "derive_history.py"
+    miscellaneous_scripts_path = os.path.join(
+        os.sep, get_cloned_folder_path(), "miscellaneous_scripts"
     )
 
     pre_push_image_object.target = None
     info["extra_build_args"].update({"RELEASED_IMAGE": filtered_list[0]})
 
     apatch_artifacts = {
-        "derive_history": {
-            "source": derive_history_script_path, 
-            "target": "derive_history.py"
+        "miscellaneous_scripts": {
+            "source": miscellaneous_scripts_path, 
+            "target": "miscellaneous_scripts"
         },
         "dockerfile": {
             "source": pre_push_image_object.dockerfile,
