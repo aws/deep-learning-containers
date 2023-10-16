@@ -186,7 +186,7 @@ RUN HOME_DIR=/root \
  && cp ${HOME_DIR}/oss_compliance/build_from_source_packages/BUILD_FROM_SOURCE_PACKAGES_LICENCES_AARCH64_IMAGES ${HOME_DIR} \
  && rm -rf ${HOME_DIR}/oss_compliance*
 
-RUN curl https://aws-dlc-licenses.s3.amazonaws.com/pytorch-2.0/license.txt -o /license.txt
+RUN curl https://aws-dlc-licenses.s3.amazonaws.com/pytorch-2.1/license.txt -o /license.txt
 
 ## Cleanup ##
 RUN pip cache purge \
