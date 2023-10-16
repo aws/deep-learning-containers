@@ -681,9 +681,9 @@ def test_pytorch_cudnn_match_gpu(
     ec2_connection.run(
         f"nvidia-docker run --name {container_name} -itd {pytorch_training}", hide=True
     )
-    major_cmd = "cat /usr/include/cudnn_version.h | grep '#define CUDNN_MAJOR'"
-    minor_cmd = "cat /usr/include/cudnn_version.h | grep '#define CUDNN_MINOR'"
-    patch_cmd = "cat /usr/include/cudnn_version.h | grep '#define CUDNN_PATCHLEVEL'"
+    major_cmd = 'cat /usr/include/cudnn_version.h | grep "#define CUDNN_MAJOR"'
+    minor_cmd = 'cat /usr/include/cudnn_version.h | grep "#define CUDNN_MINOR"'
+    patch_cmd = 'cat /usr/include/cudnn_version.h | grep "#define CUDNN_PATCHLEVEL"'
     major = ec2_connection.run(
         f"nvidia-docker exec --user root {container_name} bash -c '{major_cmd}'", hide=True
     ).stdout.split()[-1]
