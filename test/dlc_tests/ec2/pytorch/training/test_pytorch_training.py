@@ -88,6 +88,7 @@ PT_EC2_EFA_GPU_INSTANCE_TYPE_AND_REGION = get_efa_ec2_instance_type(
 @pytest.mark.parametrize("ec2_instance_type", PT_EC2_NEURON_TRN1_INSTANCE_TYPE, indirect=True)
 @pytest.mark.integration("pytorch_neuronx_sanity_test")
 @pytest.mark.neuronx_test
+@pytest.mark.team("neuron")
 @pytest.mark.model("xla")
 def test_pytorch_allreduce_neuronx(pytorch_training_neuronx, ec2_connection):
     execute_ec2_training_test(ec2_connection, pytorch_training_neuronx, PT_NEURON_ALLREDUCE_CMD)
@@ -97,6 +98,7 @@ def test_pytorch_allreduce_neuronx(pytorch_training_neuronx, ec2_connection):
 @pytest.mark.parametrize("ec2_instance_type", PT_EC2_NEURON_TRN1_INSTANCE_TYPE, indirect=True)
 @pytest.mark.integration("pytorch_neuronx_sanity_test")
 @pytest.mark.neuronx_test
+@pytest.mark.team("neuron")
 @pytest.mark.model("mlp")
 def test_pytorch_train_mlp_neuronx(pytorch_training_neuronx, ec2_connection):
     execute_ec2_training_test(ec2_connection, pytorch_training_neuronx, PT_NEURON_MLP_CMD)
@@ -106,6 +108,7 @@ def test_pytorch_train_mlp_neuronx(pytorch_training_neuronx, ec2_connection):
 @pytest.mark.parametrize("ec2_instance_type", PT_EC2_NEURON_INF2_INSTANCE_TYPE, indirect=True)
 @pytest.mark.integration("pytorch_neuronx_sanity_test")
 @pytest.mark.neuronx_test
+@pytest.mark.team("neuron")
 @pytest.mark.model("xla")
 def test_pytorch_allreduce_neuronx_inf2(pytorch_training_neuronx, ec2_connection):
     execute_ec2_training_test(ec2_connection, pytorch_training_neuronx, PT_NEURON_ALLREDUCE_CMD)
@@ -115,6 +118,7 @@ def test_pytorch_allreduce_neuronx_inf2(pytorch_training_neuronx, ec2_connection
 @pytest.mark.parametrize("ec2_instance_type", PT_EC2_NEURON_INF2_INSTANCE_TYPE, indirect=True)
 @pytest.mark.integration("pytorch_neuronx_sanity_test")
 @pytest.mark.neuronx_test
+@pytest.mark.team("neuron")
 @pytest.mark.model("mlp")
 def test_pytorch_train_mlp_neuronx_inf2(pytorch_training_neuronx, ec2_connection):
     execute_ec2_training_test(ec2_connection, pytorch_training_neuronx, PT_NEURON_MLP_CMD)
