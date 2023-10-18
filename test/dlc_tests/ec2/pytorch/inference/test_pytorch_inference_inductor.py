@@ -24,6 +24,7 @@ PT_EC2_SINGLE_GPU_INSTANCE_TYPES = ["p3.2xlarge", "g4dn.4xlarge", "g5.4xlarge"]
 
 @pytest.mark.model("densenet")
 @pytest.mark.parametrize("ec2_instance_type", PT_EC2_SINGLE_GPU_INSTANCE_TYPES, indirect=True)
+@pytest.mark.team("conda")
 def test_ec2_pytorch_inference_gpu_inductor(
     pytorch_inference, ec2_connection, region, gpu_only, ec2_instance_type
 ):
@@ -39,6 +40,7 @@ def test_ec2_pytorch_inference_gpu_inductor(
 
 @pytest.mark.model("densenet")
 @pytest.mark.parametrize("ec2_instance_type", PT_EC2_CPU_INSTANCE_TYPE, indirect=True)
+@pytest.mark.team("conda")
 def test_ec2_pytorch_inference_cpu_compilation(pytorch_inference, ec2_connection, region, cpu_only):
     _, image_framework_version = get_framework_and_version_from_tag(pytorch_inference)
     if Version(image_framework_version) in SpecifierSet("<2.0"):
@@ -49,6 +51,7 @@ def test_ec2_pytorch_inference_cpu_compilation(pytorch_inference, ec2_connection
 @pytest.mark.model("densenet")
 @pytest.mark.parametrize("ec2_instance_type", PT_EC2_GRAVITON_INSTANCE_TYPES, indirect=True)
 @pytest.mark.parametrize("ec2_instance_ami", [UL20_CPU_ARM64_US_WEST_2], indirect=True)
+@pytest.mark.team("conda")
 def test_ec2_pytorch_inference_cpu_compilation(
     pytorch_inference_graviton, ec2_connection, region, cpu_only
 ):

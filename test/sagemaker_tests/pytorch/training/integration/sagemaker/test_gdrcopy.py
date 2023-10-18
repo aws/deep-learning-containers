@@ -52,6 +52,7 @@ def can_run_gdrcopy(ecr_image):
 @pytest.mark.parametrize(
     "efa_instance_type", get_efa_test_instance_type(default=["ml.p4d.24xlarge"]), indirect=True
 )
+@pytest.mark.team("conda")
 def test_sanity_gdrcopy(ecr_image, efa_instance_type, sagemaker_regions):
     validate_or_skip_gdrcopy(ecr_image)
     gdrcopy_test_path = os.path.join(RESOURCE_PATH, "gdrcopy", "test_gdrcopy.sh")

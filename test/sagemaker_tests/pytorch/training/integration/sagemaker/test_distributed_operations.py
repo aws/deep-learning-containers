@@ -75,6 +75,7 @@ def can_run_smmodelparallel_efa(ecr_image):
 @pytest.mark.skip_gpu
 @pytest.mark.deploy_test
 @pytest.mark.skip_test_in_region
+@pytest.mark.team("conda")
 def test_dist_operations_cpu(
     framework_version, ecr_image, sagemaker_regions, instance_type, dist_cpu_backend
 ):
@@ -94,6 +95,7 @@ def test_dist_operations_cpu(
 @pytest.mark.model("unknown_model")
 @pytest.mark.skip_cpu
 @pytest.mark.deploy_test
+@pytest.mark.team("conda")
 def test_dist_operations_gpu(
     framework_version, instance_type, ecr_image, sagemaker_regions, dist_gpu_backend
 ):
@@ -114,6 +116,7 @@ def test_dist_operations_gpu(
 @pytest.mark.processor("gpu")
 @pytest.mark.model("unknown_model")
 @pytest.mark.skip_cpu
+@pytest.mark.team("conda")
 def test_dist_operations_multi_gpu(
     framework_version, ecr_image, sagemaker_regions, dist_gpu_backend
 ):
@@ -137,6 +140,7 @@ def test_dist_operations_multi_gpu(
 @pytest.mark.skip_cpu
 @pytest.mark.skip_py2_containers
 @pytest.mark.skip_trcomp_containers
+@pytest.mark.team("conda")
 def test_dist_operations_fastai_gpu(framework_version, ecr_image, sagemaker_regions):
     _, image_framework_version = get_framework_and_version_from_tag(ecr_image)
     if Version("1.9") <= Version(image_framework_version) < Version("1.13"):
@@ -633,6 +637,7 @@ def test_smmodelparallel_gpt2_sdp_multinode_efa(
 @pytest.mark.skip_cpu
 @pytest.mark.efa()
 @pytest.mark.skip_py2_containers
+@pytest.mark.team("conda")
 def test_sanity_efa(ecr_image, efa_instance_type, sagemaker_regions):
     """
     Tests pt mnist command via script mode

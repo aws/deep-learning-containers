@@ -47,6 +47,7 @@ def can_run_pytorchddp(ecr_image):
 @pytest.mark.efa()
 @pytest.mark.skip_inductor_test
 @pytest.mark.xfail(reason="known issue: https://github.com/pytorch/pytorch/issues/99074")
+@pytest.mark.team("conda")
 def test_pytorchddp_throughput_gpu(
     framework_version, ecr_image, sagemaker_regions, efa_instance_type, tmpdir
 ):
