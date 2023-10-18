@@ -63,9 +63,8 @@ def get_dlc_images(build_context):
         raise RuntimeError(f"Cannot find any images for in {test_images}")
 
 
-def get_platform_execution_details():
+def get_platform_execution_details(build_context):
     platform_details = {}
-    build_context = os.getenv("BUILD_CONTEXT")
     codebuild_name = get_codebuild_project_name()
 
     platform_details["platform_info"] = {}
@@ -146,19 +145,22 @@ def parse_pytest_data():
     return pytest_parsed_output
 
 
-def generate_test_execution_data():
+def generate_test_execution_data(build_context):
     """
     Generate test execution data.
     """
-    test_execution_data = get_platform_execution_details()
+    test_execution_data = get_platform_execution_details(build_context)
     test_execution_data["pytest_output"] = parse_pytest_data()
     return test_execution_data
 
 
 def main():
-    if config.is_notify_test_failures_enabled():
+    build_context = os.getenv("BUILD_CONTEXT")
+    if build_context == "MAINLINE" or (
+        build_context == "PR" and config.is_notify_test_failures_enabled()
+    ):
         print("Sending test notification...")
-        test_execution_data = generate_test_execution_data()
+        test_execution_data = generate_test_execution_data(build_context)
         handler = TicketNotificationHandler()
         handler.publish_notification(test_execution_data)
     else:
