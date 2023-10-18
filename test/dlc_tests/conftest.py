@@ -1243,14 +1243,6 @@ def pytest_runtest_setup(item):
     # Handle quick check tests
     quick_checks_opts = [mark for mark in item.iter_markers(name="quick_checks")]
 
-    # Append team marker into user_properties test output xml file
-    # print(f"item {item}")
-    # for marker in item.iter_markers(name="team"):
-    #     print(f"item {marker}")
-    #     team_name = marker.args[0]
-    #     item.user_properties.append(("team_marker", team_name))
-    #     print(f"item.user_properties {item.user_properties}")
-
     # On PR, skip quick check tests unless we are on quick_checks job
     test_type = os.getenv("TEST_TYPE", "UNDEFINED")
     quick_checks_test_type = "quick_checks"
@@ -1285,7 +1277,6 @@ def pytest_runtest_setup(item):
 
 
 def pytest_collection_modifyitems(session, config, items):
-
     for item in items:
         print(f"item {item}")
         for marker in item.iter_markers(name="team"):

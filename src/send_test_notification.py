@@ -20,16 +20,16 @@ def get_pytest_output():
     pytest_result_directory = os.path.join(os.getcwd(), "test")
     # get all xml files in test directory
     files = [
-        os.path.join(pytest_result_directory, f)
-        for f in os.listdir(pytest_result_directory)
-        if f.endswith(".xml")
+        os.path.join(pytest_result_directory, file)
+        for file in os.listdir(pytest_result_directory)
+        if file.endswith(".xml")
     ]
     # parse xml files and save it to list
     pytest_output_dict = {}
     if files:
-        for f in files:
-            with open(f, "r") as xml_file:
-                pytest_output_dict[f] = xmltodict.parse(xml_file.read())
+        for file in files:
+            with open(file, "r") as xml_file:
+                pytest_output_dict[file] = xmltodict.parse(xml_file.read())
 
     return pytest_output_dict
 
@@ -65,9 +65,18 @@ def get_dlc_images(build_context):
 
 def get_platform_execution_details(build_context):
     platform_details = {}
+    platform_details["platform_info"] = {}
     codebuild_name = get_codebuild_project_name()
 
-    platform_details["platform_info"] = {}
+    if build_context == "PR":
+        pr_execution_details = get_pr_execution_details()
+        platform_details["platform_info"]["PR"] = pr_execution_details
+    elif build_context == "MAINLINE":
+        mainline_execution_details = get_mainline_execution_details()
+        platform_details["platform_info"]["MAINLINE"] = mainline_execution_details
+    else:
+        raise RuntimeError(f"Invalid build context {build_context}")
+
     platform_details["platform_info"]["build_context"] = build_context
     platform_details["platform_info"]["dlc_images"] = get_dlc_images(build_context)
     platform_details["platform_info"]["test_type"] = os.getenv("TEST_TYPE")
@@ -75,12 +84,6 @@ def get_platform_execution_details(build_context):
     platform_details["platform_info"]["codebuild_id"] = get_codebuild_project_id()
     platform_details["platform_info"]["codebuild_url"] = get_target_url(codebuild_name)
     platform_details["platform_info"]["cloudwatch_logs_url"] = get_cloudwatch_url(codebuild_name)
-    if build_context == "PR":
-        pr_execution_details = get_pr_execution_details()
-        platform_details["platform_info"]["PR"] = pr_execution_details
-    elif build_context == "MAINLINE":
-        mainline_execution_details = get_mainline_execution_details()
-        platform_details["platform_info"]["MAINLINE"] = mainline_execution_details
 
     return platform_details
 
@@ -116,11 +119,11 @@ def parse_pytest_data():
     pytest_raw_data = get_pytest_output()
     pytest_parsed_output = []
 
-    for f in pytest_raw_data:
+    for file in pytest_raw_data:
         pytest_file_data = {}
-        pytest_file_data["file_name"] = f
+        pytest_file_data["file_name"] = file
         pytest_file_data["failed_tests"] = {}
-        for test in pytest_raw_data[f]["testsuites"]["testsuite"]["testcase"]:
+        for test in pytest_raw_data[file]["testsuites"]["testsuite"]["testcase"]:
             if "failure" in test:
                 team_name = test["properties"]["property"]["@value"]
                 if team_name not in pytest_file_data["failed_tests"]:
