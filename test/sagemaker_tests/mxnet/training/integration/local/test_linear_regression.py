@@ -24,6 +24,7 @@ from ...integration import MODEL_SUCCESS_FILES, RESOURCE_PATH
 
 @pytest.mark.integration("linear_regression")
 @pytest.mark.model("linear_regression")
+@pytest.mark.team("training-toolkit")
 def test_linear_regression(
     docker_image, sagemaker_local_session, local_instance_type, framework_version, tmpdir
 ):

@@ -27,6 +27,7 @@ RESOURCE_PATH = os.path.join(os.path.dirname(__file__), "..", "..", "resources")
 @pytest.mark.model("mnist")
 @pytest.mark.skip_gpu
 @pytest.mark.parametrize("instances, processes", [(1, 2)])
+@pytest.mark.team("training-toolkit")
 def test_distributed_training_horovod_basic_singlenode(
     instances,
     processes,
@@ -47,6 +48,7 @@ def test_distributed_training_horovod_basic_singlenode(
 @pytest.mark.model("mnist")
 @pytest.mark.skip_gpu
 @pytest.mark.parametrize("instances, processes", [(2, 1)])
+@pytest.mark.team("training-toolkit")
 def test_distributed_training_horovod_basic_two_nodes(
     instances,
     processes,
@@ -67,6 +69,7 @@ def test_distributed_training_horovod_basic_two_nodes(
 @pytest.mark.model("mnist")
 @pytest.mark.skip_gpu
 @pytest.mark.parametrize("instances, processes", [(2, 2)])
+@pytest.mark.team("training-toolkit")
 def test_distributed_training_horovod_basic_two_nodes_two_processes(
     instances,
     processes,

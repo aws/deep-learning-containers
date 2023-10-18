@@ -31,6 +31,7 @@ from packaging.version import Version
 
 
 @pytest.mark.model("mnist")
+@pytest.mark.team("training-toolkit")
 def test_mnist(docker_image, processor, instance_type, sagemaker_local_session, tmpdir):
     estimator = PyTorch(
         entry_point=mnist_script,
@@ -54,6 +55,7 @@ def test_mnist(docker_image, processor, instance_type, sagemaker_local_session, 
 @pytest.mark.integration("fastai")
 @pytest.mark.model("mnist")
 @pytest.mark.skip_py2_containers
+@pytest.mark.team("training-toolkit")
 def test_fastai_mnist(docker_image, instance_type, py_version, sagemaker_local_session, tmpdir):
     _, image_framework_version = get_framework_and_version_from_tag(docker_image)
     if Version("1.9") <= Version(image_framework_version) < Version("1.13"):

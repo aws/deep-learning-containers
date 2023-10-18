@@ -27,6 +27,7 @@ SCRIPT_PATH = os.path.join(ONNX_PATH, "code", "onnx_export.py")
 
 @pytest.mark.integration("onnx")
 @pytest.mark.model("onnx_model")
+@pytest.mark.team("training-toolkit")
 def test_onnx_export(
     docker_image, sagemaker_local_session, local_instance_type, framework_version, tmpdir
 ):

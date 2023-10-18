@@ -26,6 +26,7 @@ from ...integration import RESOURCE_PATH
 @pytest.mark.processor("gpu")
 @pytest.mark.skip_cpu
 @pytest.mark.skip_generic
+@pytest.mark.team("training-toolkit")
 def test_distributed_training_horovod_gpu(
     sagemaker_local_session, image_uri, tmpdir, framework_version
 ):
@@ -39,6 +40,7 @@ def test_distributed_training_horovod_gpu(
 @pytest.mark.processor("cpu")
 @pytest.mark.skip_gpu
 @pytest.mark.parametrize("instances, processes", [(1, 2), (2, 1), (2, 2), (5, 2)])
+@pytest.mark.team("training-toolkit")
 def test_distributed_training_horovod_cpu(
     instances, processes, sagemaker_local_session, image_uri, tmpdir, framework_version
 ):
