@@ -59,7 +59,7 @@ ENV CUDNN_VERSION=8.7.0.84
 ENV NCCL_VERSION=2.18.5
 ENV EFA_VERSION=1.27.0
 ENV OMPI_VERSION=4.1.5
-ENV GDRCOPY_VERSION=2.4
+ENV GDRCOPY_VERSION=2.3.1
 
 ENV CMAKE_PREFIX_PATH="$(dirname $(which conda))/../"
 ENV OPEN_MPI_PATH=/opt/amazon/openmpi
@@ -523,7 +523,7 @@ ENV NVTE_FRAMEWORK=pytorch
 # Set MAX_JOBS=4 to avoid OOM issues in installation process
 RUN MAX_JOBS=4 pip install flash-attn==2.0.4 --no-build-isolation
 # Install TE using instructions from https://docs.nvidia.com/deeplearning/transformer-engine/user-guide/installation.html
-RUN pip install git+https://github.com/NVIDIA/TransformerEngine.git@release_v0.13
+RUN pip install git+https://github.com/NVIDIA/TransformerEngine.git@release_v0.12
 
 RUN pip install --no-cache-dir -U \
     smclarify \
