@@ -1,8 +1,8 @@
 account_id: &ACCOUNT_ID <set-$ACCOUNT_ID-in-environment>
 region: &REGION <set-$REGION-in-environment>
 framework: &FRAMEWORK pytorch
-version: &VERSION 2.0.1
-short_version: &SHORT_VERSION "2.0"
+version: &VERSION 2.1.0
+short_version: &SHORT_VERSION "2.1"
 arch_type: graviton
 
 repository_info:

@@ -6560,5 +6560,35 @@
             "status": "ACTIVE",
             "title": "IN1-PYTHON-TORCH-5876728 - torch"
         }
+    ],
+    "opencv-python": [
+        {
+            "description": "Heap buffer overflow in libwebp in Google Chrome prior to 116.0.5845.187 and libwebp 1.3.2 allowed a remote attacker to perform an out of bounds memory write via a crafted HTML page. (Chromium security severity: Critical)",
+            "vulnerability_id": "CVE-2023-4863",
+            "name": "CVE-2023-4863",
+            "package_name": "opencv-python",
+            "package_details": {
+                "file_path": "opt/conda/lib/python3.10/site-packages/opencv_python-4.8.1.dist-info/METADATA",
+                "name": "opencv-python",
+                "package_manager": "PYTHONPKG",
+                "version": "4.8.1",
+                "release": null
+            },
+            "remediation": {
+                "recommendation": {
+                    "text": "None Provided"
+                }
+            },
+            "cvss_v3_score": 8.8,
+            "cvss_v30_score": 0,
+            "cvss_v31_score": 8.8,
+            "cvss_v2_score": 0,
+            "cvss_v3_severity": "HIGH",
+            "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2023-4863",
+            "source": "NVD",
+            "severity": "HIGH",
+            "status": "ACTIVE",
+            "title": "CVE-2023-4863 - opencv-python"
+        }
     ]
 }
