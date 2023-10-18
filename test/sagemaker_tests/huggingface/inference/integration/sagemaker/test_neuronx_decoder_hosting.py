@@ -48,6 +48,7 @@ from ..... import invoke_sm_endpoint_helper_function
     [("us-east-1", "ml.trn1.2xlarge"), ("us-east-2", "ml.inf2.xlarge")],
 )
 @pytest.mark.neuronx_test
+@pytest.mark.team("sagemaker-1p-algorithms")
 def test_neuronx_hosting_all_instances(
     test_region, test_instance_type, instance_type, framework_version, ecr_image, py_version
 ):

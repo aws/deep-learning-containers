@@ -42,6 +42,7 @@ hyperparameters = {
 @pytest.mark.skip_py2_containers
 @pytest.mark.skip_huggingface_containers
 @pytest.mark.skip_cpu
+@pytest.mark.team("sagemaker-1p-algorithms")
 @mock.patch("sagemaker.huggingface.TrainingCompilerConfig.validate", return_value=None)
 class TestSingleNodeSingleGPU:
     """
