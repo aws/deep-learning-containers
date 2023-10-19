@@ -19,7 +19,7 @@ RUN apt-get update \
 FROM base_image AS common
 
 LABEL maintainer="Amazon AI"
-LABEL dlc_major_version="2"
+LABEL dlc_major_version="1"
 
 ARG PYTHON
 ARG PYTHON_VERSION
@@ -268,7 +268,7 @@ RUN /opt/conda/bin/mamba install -y -c conda-forge \
   && /opt/conda/bin/mamba clean -afy
 
 # Patches
-RUN pip install pillow opencv-python
+RUN pip install pillow opencv-python "urllib3>=1.26.18,<2"
 RUN /opt/conda/bin/mamba install -y -c conda-forge \
   "requests>=2.31.0" \
   && /opt/conda/bin/mamba clean -afy
