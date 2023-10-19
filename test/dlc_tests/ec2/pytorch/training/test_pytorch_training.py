@@ -123,6 +123,7 @@ def test_pytorch_train_mlp_neuronx_inf2(pytorch_training_neuronx, ec2_connection
 @pytest.mark.usefixtures("sagemaker")
 @pytest.mark.integration("pytorch_sanity_test")
 @pytest.mark.model("N/A")
+@pytest.mark.deep_canary
 @pytest.mark.parametrize("ec2_instance_type", PT_EC2_GPU_INSTANCE_TYPE, indirect=True)
 def test_pytorch_standalone_gpu(pytorch_training, ec2_connection, gpu_only, ec2_instance_type):
     if test_utils.is_image_incompatible_with_instance_type(pytorch_training, ec2_instance_type):
@@ -161,6 +162,7 @@ def test_pytorch_healthcheck_nccl(pytorch_training, ec2_connection, gpu_only, ec
 @pytest.mark.usefixtures("sagemaker")
 @pytest.mark.integration("pytorch_sanity_test")
 @pytest.mark.model("N/A")
+@pytest.mark.deep_canary
 @pytest.mark.parametrize("ec2_instance_type", PT_EC2_CPU_INSTANCE_TYPE, indirect=True)
 def test_pytorch_standalone_cpu(pytorch_training, ec2_connection, cpu_only):
     execute_ec2_training_test(ec2_connection, pytorch_training, PT_STANDALONE_CMD)

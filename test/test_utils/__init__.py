@@ -384,6 +384,12 @@ def get_expected_dockerfile_filename(device_type, image_uri):
     return f"Dockerfile.{device_type}"
 
 
+def get_canary_helper_bucket_name():
+    bucket_name = os.getenv("CANARY_HELPER_BUCKET")
+    assert bucket_name, "Unable to find bucket name in CANARY_HELPER_BUCKET env variable"
+    return bucket_name
+
+
 def get_customer_type():
     return os.getenv("CUSTOMER_TYPE")
 
@@ -393,6 +399,13 @@ def get_image_type():
     Env variable should return training or inference
     """
     return os.getenv("IMAGE_TYPE")
+
+
+def get_test_job_arch_type():
+    """
+    Env variable should return graviton, x86, or None
+    """
+    return os.getenv("ARCH_TYPE", "x86")
 
 
 def get_ecr_repo_name(image_uri):
@@ -559,6 +572,13 @@ def is_canary_context():
 
 def is_mainline_context():
     return os.getenv("BUILD_CONTEXT") == "MAINLINE"
+
+
+def is_deep_canary_context():
+    return os.getenv("BUILD_CONTEXT") == "DEEP_CANARY" or (
+        os.getenv("BUILD_CONTEXT") == "PR"
+        and os.getenv("DEEP_CANARY_MODE", "false").lower() == "true"
+    )
 
 
 def is_nightly_context():
@@ -1100,15 +1120,55 @@ def get_dlc_images():
         # TODO: Remove 'training' default once training-specific canaries are added
         image_type = get_image_type() or "training"
         return parse_canary_images(os.getenv("FRAMEWORK"), os.getenv("AWS_REGION"), image_type)
-    test_env_file = os.path.join(
-        os.getenv("CODEBUILD_SRC_DIR_DLC_IMAGES_JSON"), "test_type_images.json"
-    )
-    with open(test_env_file) as test_env:
-        test_images = json.load(test_env)
-    for dlc_test_type, images in test_images.items():
-        if dlc_test_type == "sanity":
-            return " ".join(images)
-    raise RuntimeError(f"Cannot find any images for in {test_images}")
+    elif is_deep_canary_context():
+        deep_canary_images = get_deep_canary_images(
+            canary_framework=os.getenv("FRAMEWORK"),
+            canary_image_type=get_image_type(),
+            canary_arch_type=get_test_job_arch_type(),
+            canary_region=os.getenv("AWS_REGION"),
+        )
+        return " ".join(deep_canary_images)
+    elif is_mainline_context():
+        test_env_file = os.path.join(
+            os.getenv("CODEBUILD_SRC_DIR_DLC_IMAGES_JSON"), "test_type_images.json"
+        )
+        with open(test_env_file) as test_env:
+            test_images = json.load(test_env)
+        for dlc_test_type, images in test_images.items():
+            if dlc_test_type == "sanity":
+                return " ".join(images)
+        raise RuntimeError(f"Cannot find any images for in {test_images}")
+    return None
+
+
+def get_deep_canary_images(canary_framework, canary_image_type, canary_arch_type, canary_region):
+    all_images = get_canary_image_uris_from_bucket()
+    matching_images = []
+    for image_uri in all_images:
+        image_framework = get_framework_from_image_uri(image_uri)
+        image_type = get_image_type_from_tag(image_uri)
+        image_arch_type = get_image_arch_type_from_tag(image_uri)
+        image_region = get_region_from_image_uri(image_uri)
+        if (
+            canary_framework == image_framework
+            and canary_image_type == image_type
+            and canary_arch_type == image_arch_type
+        ):
+            matching_images.append(image_uri.replace(image_region, canary_region))
+    return matching_images
+
+
+def get_canary_image_uris_from_bucket():
+    """
+    Helper function to get canary-tested DLC Image URIs
+
+    :return: list of [str<DLC Image URI>]
+    """
+    canary_helper_bucket = get_canary_helper_bucket_name()
+    s3_client = boto3.client("s3", region_name=DEFAULT_REGION)
+    response = s3_client.get_object(Bucket=canary_helper_bucket, Key="images.json")
+    image_uris = json.loads(response["Body"].read().decode("utf-8"))
+    return image_uris
 
 
 def get_canary_default_tag_py3_version(framework, version):
@@ -1447,6 +1507,18 @@ def get_unique_name_from_tag(image_uri):
     return re.sub("[^A-Za-z0-9]+", "", image_uri)
 
 
+def get_image_type_from_tag(image_uri):
+    valid_image_types = ["training", "inference"]
+    image_type_match = [keyword for keyword in valid_image_types if keyword in image_uri]
+    if len(image_type_match) != 1:
+        raise LookupError(f"Failed to find whether {image_uri} is training or inference")
+    return image_type_match[0]
+
+
+def get_image_arch_type_from_tag(image_uri):
+    return "graviton" if "graviton" in image_uri else "x86"
+
+
 def get_framework_and_version_from_tag(image_uri):
     """
     Return the framework and version from the image tag.
@@ -1461,7 +1533,8 @@ def get_framework_and_version_from_tag(image_uri):
         "huggingface_tensorflow",
         "huggingface_pytorch",
         "stabilityai_pytorch",
-        "pytorch_trcomp" "tensorflow",
+        "pytorch_trcomp",
+        "tensorflow",
         "mxnet",
         "pytorch",
         "autogluon",
@@ -1521,7 +1594,7 @@ def get_neuron_release_manifest(sdk_version):
 
     if release is None:
         raise KeyError(
-            f"cannot find neuron neuron sdk version {neuron_sdk_version} "
+            f"cannot find neuron neuron sdk version {sdk_version} "
             f"in releases:\n{json.dumps(release_array)}"
         )
 

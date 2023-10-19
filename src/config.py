@@ -36,6 +36,14 @@ def get_buildspec_override():
     return parse_dlc_developer_configs("buildspec_override", build_project_name)
 
 
+def is_deep_canary_mode_enabled():
+    return parse_dlc_developer_configs("dev", "deep_canary_mode")
+
+
+def is_graviton_mode_enabled():
+    return parse_dlc_developer_configs("dev", "graviton_mode")
+
+
 def is_benchmark_mode_enabled():
     return parse_dlc_developer_configs("dev", "benchmark_mode")
 

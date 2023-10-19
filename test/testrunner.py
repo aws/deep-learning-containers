@@ -318,7 +318,7 @@ def main():
     pytest_cache_params = {
         "codebuild_project_name": get_codebuild_project_name(),
         "commit_id": commit_id,
-        "framework": generate_unique_dlc_name(dlc_images[0]),
+        "framework": generate_unique_dlc_name(all_image_list[0]),
         "version": version,
         "build_context": build_context,
         "test_type": test_type,
@@ -367,6 +367,8 @@ def main():
         "quick_checks",
         "release_candidate_integration",
     ):
+        pytest_rerun_arg = "--reruns=1"
+        pytest_rerun_delay_arg = "--reruns-delay=10"
         report = os.path.join(os.getcwd(), "test", f"{test_type}.xml")
         # The following two report files will only be used by EKS tests, as eks_train.xml and eks_infer.xml.
         # This is to sequence the tests and prevent one set of tests from waiting too long to be scheduled.
@@ -411,7 +413,7 @@ def main():
                 context.run("git clone https://github.com/HabanaAI/gaudi-test-suite.git")
                 context.run("tar -c -f gaudi-test-suite.tar.gz gaudi-test-suite")
             else:
-                pytest_cmd += ["--reruns=1", "--reruns-delay=10"]
+                pytest_cmd += [pytest_rerun_arg, pytest_rerun_delay_arg]
 
         if is_pr_context():
             if specific_test_type == "eks":
@@ -424,7 +426,7 @@ def main():
 
         pytest_cmds = [pytest_cmd]
         # Execute separate cmd for canaries
-        if specific_test_type in ("canary", "quick_checks"):
+        if specific_test_type in ["canary", "deep-canary", "quick_checks"]:
             pytest_cmds = [
                 [
                     "-s",
@@ -435,11 +437,15 @@ def main():
                     "--ignore=container_tests/",
                 ]
             ]
-            if specific_test_type == "canary":
+            if specific_test_type in ["canary", "deep-canary"]:
                 # Add rerun flag to canaries to avoid flakiness
                 pytest_cmds = [
                     pytest_cmd + ["--reruns=1", "--reruns-delay=10"] for pytest_cmd in pytest_cmds
                 ]
+            if specific_test_type == "deep-canary":
+                # Force pytest to collect only deep-canary tests, and prevent wastage of threads
+                # in the skipping of non-deep-canary tests.
+                pytest_cmds = [pytest_cmd + ["-m", "deep_canary"] for pytest_cmd in pytest_cmds]
 
         pytest_cmds = [
             pytest_cmd + ["--last-failed", "--last-failed-no-failures", "all"]

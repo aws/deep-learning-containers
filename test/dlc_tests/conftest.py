@@ -198,6 +198,12 @@ def pytest_addoption(parser):
         help="Run canary tests",
     )
     parser.addoption(
+        "--deep-canary",
+        action="store_true",
+        default=False,
+        help="Run Deep Canary tests",
+    )
+    parser.addoption(
         "--generate-coverage-doc",
         action="store_true",
         default=False,
@@ -600,7 +606,7 @@ def ec2_instance(
         ]
     elif (
         (
-            ("benchmark" in os.getenv("TEST_TYPE") or is_benchmark_dev_context())
+            ("benchmark" in os.getenv("TEST_TYPE", "UNDEFINED") or is_benchmark_dev_context())
             and (
                 ("mxnet_training" in request.fixturenames and "gpu_only" in request.fixturenames)
                 or "mxnet_inference" in request.fixturenames
@@ -1237,6 +1243,30 @@ def pytest_configure(config):
     config.addinivalue_line(
         "markers", "allow_p4de_use(): explicitly mark to allow test to use p4de instance types"
     )
+    config.addinivalue_line(
+        "markers", "p3(): choose trcomp perf tests running on p3 instance type"
+    )
+    config.addinivalue_line(
+        "markers", "single_gpu(): choose trcomp perf tests that run on single-gpu instance types"
+    )
+    config.addinivalue_line(
+        "markers", "neuronx_test(): mark as neuronx integration test"
+    )
+    config.addinivalue_line(
+        "markers", "skip_dgl_test(): mark test to be skipped due to dlc being incompatible"
+    )
+    config.addinivalue_line(
+        "markers", "skip_inductor_test(): mark test to be skipped due to dlc being incompatible"
+    )
+    config.addinivalue_line(
+        "markers", "skip_trcomp_containers(): mark test to be skipped on trcomp dlcs"
+    )
+    config.addinivalue_line(
+        "markers", "skip_s3plugin_test(): mark test to be skipped due to dlc being incompatible"
+    )
+    config.addinivalue_line(
+        "markers", "deep_canary(): explicitly mark to run as deep canary test"
+    )
 
 
 def pytest_runtest_setup(item):
@@ -1264,6 +1294,11 @@ def pytest_runtest_setup(item):
         canary_opts = [mark for mark in item.iter_markers(name="canary")]
         if not canary_opts:
             pytest.skip("Skipping non-canary tests")
+
+    if item.config.getoption("--deep-canary"):
+        deep_canary_opts = [mark for mark in item.iter_markers(name="deep_canary")]
+        if not deep_canary_opts:
+            pytest.skip("Skipping non-deep-canary tests")
 
     # Handle multinode conditional skipping
     if item.config.getoption("--multinode"):

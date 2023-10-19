@@ -26,9 +26,13 @@ from tenacity import (
 
 from test.test_utils import (
     get_synapseai_version_from_tag,
+    get_account_id_from_image_uri,
+    get_region_from_image_uri,
+    is_deep_canary_context,
     is_pr_context,
     is_mainline_context,
     are_heavy_instance_ec2_tests_enabled,
+    login_to_ecr_registry,
 )
 from . import DEFAULT_REGION, P3DN_REGION, P4DE_REGION, UL_AMI_LIST, BENCHMARK_RESULTS_S3_BUCKET
 
@@ -154,7 +158,7 @@ def get_ec2_instance_type(
     :return: one item list of instance type -- this is used to parametrize tests, and parameter is
     required to be a list.
     """
-    if is_pr_context():
+    if is_pr_context() or is_deep_canary_context():
         # This condition filters out instance types that use resources with low-availability, or
         # use very expensive instance types.
         if not are_heavy_instance_ec2_tests_enabled() and default in HEAVY_INSTANCE_LIST:
@@ -896,9 +900,10 @@ def execute_ec2_training_test(
     docker_cmd = "nvidia-docker" if "gpu" in ecr_uri else "docker"
     container_test_local_dir = os.path.join("$HOME", "container_tests")
     synapseai_version = get_synapseai_version_from_tag(ecr_uri)
-    # Make sure we are logged into ECR so we can pull the image
-    connection.run(f"$(aws ecr get-login --no-include-email --region {region})", hide=True)
-
+    # Make sure we are logged into ECR, so we can pull the image
+    image_account_id = get_account_id_from_image_uri(ecr_uri)
+    image_region = get_region_from_image_uri(ecr_uri)
+    login_to_ecr_registry(connection, image_account_id, image_region)
     # Run training command
     shm_setting = '--shm-size="1g"' if large_shm else ""
     network = '--network="host" ' if host_network else ""

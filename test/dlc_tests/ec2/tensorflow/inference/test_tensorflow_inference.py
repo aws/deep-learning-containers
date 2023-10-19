@@ -53,6 +53,7 @@ def test_ec2_tensorflow_inference_neuronx(tensorflow_inference_neuronx, ec2_conn
 
 @pytest.mark.usefixtures("sagemaker")
 @pytest.mark.model("mnist")
+@pytest.mark.deep_canary
 @pytest.mark.parametrize("ec2_instance_type", TF_EC2_GPU_INSTANCE_TYPE, indirect=True)
 def test_ec2_tensorflow_inference_gpu(
     tensorflow_inference, ec2_connection, region, gpu_only, ec2_instance_type
@@ -130,6 +131,7 @@ def test_ec2_tensorflow_inference_gpu_tensorrt(
 
 @pytest.mark.usefixtures("sagemaker")
 @pytest.mark.model("mnist")
+@pytest.mark.deep_canary
 @pytest.mark.parametrize("ec2_instance_type", TF_EC2_CPU_INSTANCE_TYPE, indirect=True)
 def test_ec2_tensorflow_inference_cpu(tensorflow_inference, ec2_connection, region, cpu_only):
     run_ec2_tensorflow_inference(tensorflow_inference, ec2_connection, "8500", region)
@@ -180,6 +182,7 @@ def test_ec2_tensorflow_inference_cpu_telemetry(
 
 
 @pytest.mark.model("mnist")
+@pytest.mark.deep_canary
 @pytest.mark.parametrize("ec2_instance_type", TF_EC2_GRAVITON_INSTANCE_TYPE, indirect=True)
 @pytest.mark.parametrize("ec2_instance_ami", [test_utils.UL20_CPU_ARM64_US_WEST_2], indirect=True)
 def test_ec2_tensorflow_inference_graviton_cpu(

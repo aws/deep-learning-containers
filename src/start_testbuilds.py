@@ -51,10 +51,23 @@ def run_test_job(commit, codebuild_project, images_str=""):
         config.are_heavy_instance_ec2_tests_enabled() and "ec2" in codebuild_project
     )
 
+    if config.is_deep_canary_mode_enabled():
+        env_overrides.append({"name": "DEEP_CANARY_MODE", "value": "true", "type": "PLAINTEXT"})
+
     pr_num = os.getenv("PR_NUMBER")
     LOGGER.debug(f"pr_num {pr_num}")
     env_overrides.extend(
         [
+            # Adding FRAMEWORK to env variables to enable simulation of deep canary tests in PR
+            {"name": "FRAMEWORK", "value": os.getenv("FRAMEWORK", ""), "type": "PLAINTEXT"},
+            # Adding IMAGE_TYPE to env variables to enable simulation of deep canary tests in PR
+            {"name": "IMAGE_TYPE", "value": os.getenv("IMAGE_TYPE", ""), "type": "PLAINTEXT"},
+            # Adding ARCH_TYPE to env variables to enable simulation of deep canary tests in PR
+            {
+                "name": "ARCH_TYPE",
+                "value": "graviton" if config.is_graviton_mode_enabled() else "x86",
+                "type": "PLAINTEXT",
+            },
             {"name": "DLC_IMAGES", "value": images_str, "type": "PLAINTEXT"},
             {"name": "PR_NUMBER", "value": pr_num, "type": "PLAINTEXT"},
             # NIGHTLY_PR_TEST_MODE is passed as an env variable here because it is more convenient to set this in
@@ -182,13 +195,22 @@ def main():
         LOGGER.info(f"Not triggering test jobs from boto3, as BUILD_CONTEXT is {build_context}")
         return
 
+    commit = os.getenv("CODEBUILD_RESOLVED_SOURCE_VERSION")
+
+    if config.is_deep_canary_mode_enabled():
+        test_type = "deep-canary"
+        LOGGER.debug(f"test_type : {test_type}")
+        pr_test_job = f"dlc-pr-{test_type}-test"
+        if config.is_graviton_mode_enabled():
+            pr_test_job += "-graviton"
+        run_test_job(commit, pr_test_job)
+        return
+
     # load the images for all test_types to pass on to code build jobs
     with open(constants.TEST_TYPE_IMAGES_PATH) as json_file:
         test_images = json.load(json_file)
 
     # Run necessary PR test jobs
-    commit = os.getenv("CODEBUILD_RESOLVED_SOURCE_VERSION")
-
     for test_type, images in test_images.items():
         # only run the code build test jobs when the images are present
         LOGGER.debug(f"test_type : {test_type}")
