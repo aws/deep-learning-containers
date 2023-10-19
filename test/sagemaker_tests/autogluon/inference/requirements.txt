@@ -4,7 +4,7 @@ sagemaker>=2.31,<3
 coverage
 docker-compose
 flake8==3.7.7
-Flask==1.1.1
+Flask==2.2.5
 mock
 pytest
 pytest-cov
