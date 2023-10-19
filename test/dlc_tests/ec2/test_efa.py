@@ -140,10 +140,10 @@ def test_efa_tensorflow(
 @pytest.mark.usefixtures("pt201_and_above_only")
 @pytest.mark.allow_p4de_use
 @pytest.mark.parametrize("ec2_instance_type,region", EC2_EFA_GPU_ONLY_P4_INSTANCE_TYPE_AND_REGION)
-@pytest.mark.skipif(
-    is_pr_context() and not is_efa_dedicated(),
-    reason="Skip EFA test in PR context unless explicitly enabled",
-)
+# @pytest.mark.skipif(
+#     is_pr_context() and not is_efa_dedicated(),
+#     reason="Skip EFA test in PR context unless explicitly enabled",
+# )
 def test_pytorch_efa_healthcheck(
     pytorch_training,
     efa_ec2_instances,
