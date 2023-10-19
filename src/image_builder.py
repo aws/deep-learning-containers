@@ -36,7 +36,6 @@ from buildspec import Buildspec
 from output import OutputFormatter
 from invoke import run
 
-from test.test_utils import get_sha_of_an_image_from_ecr
 
 FORMATTER = OutputFormatter(constants.PADDING)
 build_context = os.getenv("BUILD_CONTEXT")
@@ -494,7 +493,7 @@ def conduct_apatch_build_setup(pre_push_image_object: DockerImage, download_path
     image_name = info.get("name")
     image_tag = info.get("image_tag")
 
-    from test.test_utils import parse_canary_images, get_framework_and_version_from_tag
+    from test.test_utils import parse_canary_images, get_framework_and_version_from_tag, get_sha_of_an_image_from_ecr
 
     released_image_list = parse_canary_images(
         info["framework"], info["region"], info["image_type"], customer_type=cx_type
