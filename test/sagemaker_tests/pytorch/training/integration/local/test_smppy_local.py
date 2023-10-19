@@ -16,13 +16,23 @@ import os, sys
 import subprocess
 
 import pytest
+from packaging.specifiers import SpecifierSet
+from packaging.version import Version
 from sagemaker.pytorch import PyTorch
 
+from test.test_utils import get_framework_and_version_from_tag
 from ...integration import ROLE, data_dir, smppy_mnist_script
 from ...utils.local_mode_utils import assert_files_exist
 
 # only the latest version of sagemaker supports profiler
 subprocess.check_call([sys.executable, "-m", "pip", "install", "sagemaker>=2.180.0"])
+
+
+def _skip_if_image_is_not_compatible_with_smppy(image_uri):
+    _, framework_version = get_framework_and_version_from_tag(image_uri)
+    compatible_versions = SpecifierSet("==1.13.*")
+    if Version(framework_version) not in compatible_versions:
+        pytest.skip(f"This test only works for PT versions in {compatible_versions}")
 
 
 @pytest.mark.usefixtures("feature_smppy_present")
@@ -32,6 +42,7 @@ subprocess.check_call([sys.executable, "-m", "pip", "install", "sagemaker>=2.180
 @pytest.mark.skip_py2_containers
 @pytest.mark.skip_cpu
 def test_smppy_mnist_local(docker_image, sagemaker_local_session, tmpdir):
+    _skip_if_image_is_not_compatible_with_smppy(docker_image)
     estimator = PyTorch(
         entry_point=smppy_mnist_script,
         role=ROLE,

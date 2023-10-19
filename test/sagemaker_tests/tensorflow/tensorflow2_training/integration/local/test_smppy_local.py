@@ -16,7 +16,11 @@ import os, sys
 import subprocess
 
 import pytest
+from packaging.specifiers import SpecifierSet
+from packaging.version import Version
 from sagemaker.tensorflow import TensorFlow
+
+from test.test_utils import get_framework_and_version_from_tag
 
 RESOURCE_PATH = os.path.join(os.path.dirname(__file__), "..", "..", "resources")
 MNIST_PATH = os.path.join(RESOURCE_PATH, "mnist")
@@ -25,12 +29,21 @@ MNIST_PATH = os.path.join(RESOURCE_PATH, "mnist")
 subprocess.check_call([sys.executable, "-m", "pip", "install", "sagemaker>=2.180.0"])
 
 
+def _skip_if_image_is_not_compatible_with_smppy(image_uri):
+    _, framework_version = get_framework_and_version_from_tag(image_uri)
+    compatible_versions = SpecifierSet("==2.11.*")
+    if Version(framework_version) not in compatible_versions:
+        pytest.skip(f"This test only works for TF versions in {compatible_versions}")
+
+
 @pytest.mark.processor("gpu")
 @pytest.mark.integration("smppy")
 @pytest.mark.model("mnist")
 @pytest.mark.skip_cpu
 @pytest.mark.skip_py2_containers
 def test_smppy_mnist_local(docker_image, sagemaker_local_session, tmpdir):
+    _skip_if_image_is_not_compatible_with_smppy(docker_image)
+
     script = os.path.join(MNIST_PATH, "mnist_smppy.py")
     estimator = TensorFlow(
         entry_point=script,

@@ -21,14 +21,24 @@ subprocess.check_call([sys.executable, "-m", "pip", "install", "sagemaker>=2.180
 import time
 import boto3
 import pytest
+from packaging.specifiers import SpecifierSet
+from packaging.version import Version
 from sagemaker import utils, ProfilerConfig, Profiler
 
+from test.test_utils import get_framework_and_version_from_tag
 from ...integration import DEFAULT_TIMEOUT, smppy_mnist_script, training_dir
 from ...integration.sagemaker.timeout import timeout
 from . import invoke_pytorch_estimator
 from .test_pytorchddp import validate_or_skip_pytorchddp
 
 INSTANCE_TYPE = "ml.g4dn.12xlarge"
+
+
+def _skip_if_image_is_not_compatible_with_smppy(image_uri):
+    _, framework_version = get_framework_and_version_from_tag(image_uri)
+    compatible_versions = SpecifierSet("==1.13.*")
+    if Version(framework_version) not in compatible_versions:
+        pytest.skip(f"This test only works for PT versions in {compatible_versions}")
 
 
 @pytest.mark.usefixtures("feature_smppy_present")
@@ -38,6 +48,7 @@ INSTANCE_TYPE = "ml.g4dn.12xlarge"
 @pytest.mark.skip_cpu
 @pytest.mark.skip_py2_containers
 def test_training_smppy(framework_version, ecr_image, sagemaker_regions):
+    _skip_if_image_is_not_compatible_with_smppy(ecr_image)
     with timeout(minutes=DEFAULT_TIMEOUT):
         estimator_parameters = {
             "entry_point": smppy_mnist_script,
@@ -69,6 +80,7 @@ def test_training_smppy(framework_version, ecr_image, sagemaker_regions):
 @pytest.mark.skip_cpu
 @pytest.mark.skip_py2_containers
 def test_training_smppy_distributed(framework_version, ecr_image, sagemaker_regions):
+    _skip_if_image_is_not_compatible_with_smppy(ecr_image)
     with timeout(minutes=DEFAULT_TIMEOUT):
         validate_or_skip_pytorchddp(ecr_image)
         distribution = {"pytorchddp": {"enabled": True}}
