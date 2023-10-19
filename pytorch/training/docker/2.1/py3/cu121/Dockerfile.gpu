@@ -114,8 +114,6 @@ RUN curl -L -o ~/mambaforge.sh https://github.com/conda-forge/miniforge/releases
 # Install common conda packages
 RUN /opt/conda/bin/mamba install -y -c conda-forge \
     pyopenssl \
-    # patch CVE
-    "urllib3>=1.26.18,<2" \
     requests \
     libgcc \
     pybind11 \
@@ -270,7 +268,7 @@ RUN /opt/conda/bin/mamba install -y -c conda-forge \
   && /opt/conda/bin/mamba clean -afy
 
 # Patches
-RUN pip install pillow opencv-python
+RUN pip install pillow opencv-python "urllib3>=1.26.18,<2"
 RUN /opt/conda/bin/mamba install -y -c conda-forge \
   "requests>=2.31.0" \
   && /opt/conda/bin/mamba clean -afy
