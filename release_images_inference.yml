@@ -19,10 +19,9 @@ release_images:
     version: "0.24.0"
     arch_type: "x86"
     inference:
-      device_types: [ "neuronx" ]
+      device_types: [ "cpu" ]
       python_versions: [ "py38" ]
       os_version: "ubuntu20.04"
-      neuron_sdk_version: "sdk2.14.1"
       example: False        # [Default: False] Set to True to denote that this image is an Example image
       disable_sm_tag: True # [Default: False] Set to True to prevent SageMaker Abbreviated Tags from being attached
       # to images being published.
@@ -43,7 +42,7 @@ release_images:
       force_release: False
   4:
     framework: "pytorch"
-    version: "2.0.1"
+    version: "2.1.0"
     arch_type: "x86"
     customer_type: "ec2"
     inference:
@@ -56,7 +55,7 @@ release_images:
       force_release: False
   5:
     framework: "pytorch"
-    version: "2.0.1"
+    version: "2.1.0"
     arch_type: "x86"
     customer_type: "sagemaker"
     inference:
