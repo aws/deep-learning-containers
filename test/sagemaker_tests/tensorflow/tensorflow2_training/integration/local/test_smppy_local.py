@@ -24,6 +24,7 @@ MNIST_PATH = os.path.join(RESOURCE_PATH, "mnist")
 # only the latest version of sagemaker supports profiler
 subprocess.check_call([sys.executable, "-m", "pip", "install", "sagemaker>=2.180.0"])
 
+
 @pytest.mark.processor("gpu")
 @pytest.mark.integration("smppy")
 @pytest.mark.model("mnist")
