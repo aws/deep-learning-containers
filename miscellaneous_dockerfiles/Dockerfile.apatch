@@ -2,17 +2,19 @@ ARG RELEASED_IMAGE=""
 
 FROM $RELEASED_IMAGE
 
+ARG RELEASED_IMAGE_SHA=""
+
 # If patch-details-archive is not present, create it for the first time and add first_image_sha.txt
 RUN if !(( $([ -d /opt/aws/dlc/patch-details-archive ]) )) ; then \
         mkdir /opt/aws/dlc/patch-details-archive && \
-        echo "123" >> /opt/aws/dlc/patch-details-archive/first_image_sha.txt ; \
+        echo $RELEASED_IMAGE_SHA >> /opt/aws/dlc/patch-details-archive/first_image_sha.txt ; \
     fi
 
 # If patch-details is present, move it to patch-details-archive and add image_sha to the folder
 RUN if [ -d /opt/aws/dlc/patch-details ] ; then \
         patch_count=$(ls /opt/aws/dlc/patch-details-archive | wc -l) && \
         mv /opt/aws/dlc/patch-details /opt/aws/dlc/patch-details-archive/patch-details-$patch_count && \
-        echo "123" >> /opt/aws/dlc/patch-details-archive/patch-details-$patch_count/image_sha.txt ; \
+        echo $RELEASED_IMAGE_SHA >> /opt/aws/dlc/patch-details-archive/patch-details-$patch_count/image_sha.txt ; \
     fi
 
 COPY patch-details /opt/aws/dlc/patch-details

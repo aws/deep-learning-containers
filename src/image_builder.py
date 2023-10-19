@@ -36,6 +36,8 @@ from buildspec import Buildspec
 from output import OutputFormatter
 from invoke import run
 
+from test.test_utils import get_sha_of_an_image_from_ecr
+
 FORMATTER = OutputFormatter(constants.PADDING)
 build_context = os.getenv("BUILD_CONTEXT")
 
@@ -534,7 +536,11 @@ def conduct_apatch_build_setup(pre_push_image_object: DockerImage, download_path
     )
 
     pre_push_image_object.target = None
+    ecr_client = boto3.client("ecr", region_name=os.getenv("REGION"))
+    released_image_sha = get_sha_of_an_image_from_ecr(ecr_client=ecr_client, image_uri=filtered_list[0])
+
     info["extra_build_args"].update({"RELEASED_IMAGE": filtered_list[0]})
+    info["extra_build_args"].update({"RELEASED_IMAGE_SHA": released_image_sha})
 
     apatch_artifacts = {
         "miscellaneous_scripts": {
