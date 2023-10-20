@@ -196,7 +196,6 @@ RUN /opt/conda/bin/mamba install -y pytorch=${PYTORCH_VERSION_EC2} \
 
 # Patches
 RUN pip install pillow "pyyaml>=6.0.1" opencv-python "urllib3>=1.26.18,<2"
-
 RUN /opt/conda/bin/mamba install -y -c conda-forge \
   "requests>=2.31.0" \
   && /opt/conda/bin/mamba clean -afy
@@ -269,7 +268,8 @@ RUN /opt/conda/bin/mamba install -y pytorch=${PYTORCH_VERSION_SM} \
 # install fastai (depends on PyTorch)
 RUN /opt/conda/bin/mamba install -y -c conda-forge \
   # needed by fastai.distributed
-  accelerate \
+  # pin accelerate to 0.22.0 as newer version gives error "0.23.0 requires huggingface-hub, which is not installed."
+  "accelerate=0.22.0" \
   && /opt/conda/bin/mamba install -y -c fastai fastai \
   # fastai conda strictly depends on dataclasses
   && pip uninstall -y dataclasses \
@@ -312,7 +312,7 @@ RUN /opt/conda/bin/mamba install -y -c conda-forge \
  && /opt/conda/bin/mamba clean -afy
 
 # Patches
-RUN pip install pillow "pyyaml>=6.0.1"
+RUN pip install pillow "pyyaml>=6.0.1" opencv-python "urllib3>=1.26.18,<2"
 RUN /opt/conda/bin/mamba install -y -c conda-forge \
   "requests>=2.31.0" \
   && /opt/conda/bin/mamba clean -afy

@@ -148,6 +148,9 @@ def pytest_addoption(parser):
 
 def pytest_configure(config):
     config.addinivalue_line("markers", "efa(): explicitly mark to run efa tests")
+    config.addinivalue_line(
+        "markers", "skip_dgl_test(): skip dgl tests"
+    )
 
 
 def pytest_runtest_setup(item):
@@ -534,3 +537,17 @@ def skip_test_successfully_executed_before(request):
         test_name in failed_test_name for failed_test_name in lastfailed.keys()
     ):
         pytest.skip(f"Skipping {test_name} because it was successfully executed for this commit")
+
+@pytest.fixture(autouse=True)
+def skip_dgl_test(request):
+    if "framework_version" in request.fixturenames:
+        fw_ver = request.getfixturevalue("framework_version")
+    elif "ecr_image" in request.fixturenames:
+        fw_ver = request.getfixturevalue("ecr_image")
+    else:
+        return
+    if request.node.get_closest_marker("skip_dgl_test"):
+        if Version(fw_ver) in SpecifierSet(">2.0"):
+            pytest.skip(
+                f"DGL doesn't support cuda12.x and PT2.1 for now, so skipping this container with tag {fw_ver}"
+            )
