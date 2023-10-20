@@ -125,10 +125,6 @@ RUN mkdir /tmp/openmpi \
  && ldconfig \
  && rm -rf /tmp/openmpi
 
-###########################################################################
-# Horovod & its dependencies
-###########################################################################
-
 # Create a wrapper for OpenMPI to allow running as root by default
 RUN mv $OPEN_MPI_PATH/bin/mpirun $OPEN_MPI_PATH/bin/mpirun.real \
  && echo '#!/bin/bash' > $OPEN_MPI_PATH/bin/mpirun \
@@ -260,7 +256,7 @@ RUN curl https://aws-dlc-licenses.s3.amazonaws.com/tensorflow-${TF_VERSION}/lice
 
 FROM common AS ec2
 
-ARG TF_URL=s3://framework-binaries/tensorflow/r2.14_aws/gpu/2023-10-19-17-56/tensorflow_gpu-2.14.0-cp310-cp310-linux_x86_64.whl
+ARG TF_URL=https://framework-binaries.s3.us-west-2.amazonaws.com/tensorflow/r2.14_aws/gpu/2023-10-19-17-56/tensorflow_gpu-2.14.0-cp310-cp310-linux_x86_64.whl
 
 RUN ${PIP} install --no-cache-dir -U \
    ${TF_URL} \
