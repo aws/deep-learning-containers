@@ -68,6 +68,7 @@ class AllowListFormatVulnerabilityForEnhancedScan:
     severity: str
     status: str
     title: str
+    reason_to_ignore: str
 
     def __init__(
         self,
@@ -132,6 +133,7 @@ class AllowListFormatVulnerabilityForEnhancedScan:
             if packageVulnerabilityDetails
             else kwargs["cvss_v3_severity"]
         )
+        self.reason_to_ignore = kwargs.get("reason_to_ignore", "N/A")
 
     def __eq__(self, other):
         assert type(self) == type(other), f"Types {type(self)} and {type(other)} mismatch!!"
@@ -147,7 +149,7 @@ class AllowListFormatVulnerabilityForEnhancedScan:
             return test_utils.check_if_two_dictionaries_are_equal(
                 dataclasses.asdict(self),
                 dataclasses.asdict(other),
-                ignore_keys=["package_details", "title"],
+                ignore_keys=["package_details", "title", "reason_to_ignore"],
             )
         return False
 

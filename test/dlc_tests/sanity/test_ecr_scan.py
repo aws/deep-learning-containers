@@ -5,6 +5,7 @@ import boto3
 
 import pytest
 import traceback
+import copy
 
 from invoke import run, Context
 from packaging.version import Version
@@ -191,7 +192,9 @@ def helper_function_for_leftover_vulnerabilities_from_enhanced_scanning(image, p
         if is_generic_image():
             image_scan_allowlist_path = get_allowlist_path_for_enhanced_scan_from_env_variable()
         else:
-            image_scan_allowlist_path = get_ecr_scan_allowlist_path(image, python_version=python_version)
+            image_scan_allowlist_path = get_ecr_scan_allowlist_path(
+                image, python_version=python_version
+            )
         LOGGER.info(f"[Allowlist] Trying to locate Allowlist at PATH: {image_scan_allowlist_path}")
         # Check if image Scan Allowlist Path exists
         if os.path.exists(image_scan_allowlist_path):
@@ -205,58 +208,142 @@ def helper_function_for_leftover_vulnerabilities_from_enhanced_scanning(image, p
 
     remaining_vulnerabilities = ecr_image_vulnerability_list - image_scan_allowlist
     LOGGER.info(f"ECR Enhanced Scanning test completed for image: {image}")
+    generate_future_allowlist(
+        ecr_image_vulnerability_list,
+        image_scan_allowlist,
+        remaining_vulnerabilities,
+        image_uri=ecr_enhanced_repo_uri,
+    )
     return remaining_vulnerabilities, ecr_enhanced_repo_uri
 
 
-def get_ignorable_vulnerabilities(vulnerability_list_object: ECREnhancedScanVulnerabilityList, image_uri: str):
-    ## For every OS vulnerability, see if an attempt was made to fix that package - this data can be received from upgradable dict
-    ## Check if none of the underlying packages is upgradable and then add to the allowlist (confirm if recommended version will have esm in it)
-    ## If any of the package is upgradable, check if an attempt was made to upgrade it and if the upgrade successful.
-    impacted_os_packages = set()
-    impacted_py_packages = set()
+def generate_future_allowlist(
+    ecr_image_vulnerability_list: ECREnhancedScanVulnerabilityList,
+    image_scan_allowlist: ECREnhancedScanVulnerabilityList,
+    remaining_vulnerabilities: ECREnhancedScanVulnerabilityList,
+    image_uri: str,
+):
+    non_relevant_allowlist_vulnerabilities = image_scan_allowlist - ecr_image_vulnerability_list
+    extract_non_patchable_vulnerabilities(remaining_vulnerabilities, image_uri)
+
+
+def segregate_impacted_package_names_based_on_manager(
+    vulnerability_list_object: ECREnhancedScanVulnerabilityList,
+):
+    segregated_package_names = {}
+    segregated_package_names["os_packages"] = set()
+    segregated_package_names["py_packages"] = set()
     for package_name, package_cve_list in vulnerability_list_object.vulnerability_list.items():
         for cve in package_cve_list:
             if cve.package_details.package_manager == "OS":
-                impacted_os_packages.add(package_name)
+                segregated_package_names["os_packages"].add(package_name)
             elif cve.package_details.package_manager == "PYTHONPKG":
-                impacted_py_packages.add(package_name)
-    
-    docker_run_cmd = f"docker run -v {get_repository_local_path()}:/deep-learning-containers  -id --entrypoint='/bin/bash' {image_uri} "
-    container_id = run(f"{docker_run_cmd}").stdout.strip()
-    docker_exec_cmd = f"docker exec -i {container_id}"
-    container_setup_cmd = "apt-get update"
-    run(f"{docker_exec_cmd} {container_setup_cmd}", hide=True)
+                segregated_package_names["py_packages"].add(package_name)
+    return segregated_package_names
+
+
+def run_patch_evaluation_script_to_reevaluate_package_status(
+    docker_exec_cmd, image_uri, impacted_os_packages
+):
     save_file_name = f"""{image_uri.replace("/","_").replace(":","_")}-apt-results.json"""
     ## TODO: Remove
     impacted_os_packages.add("imagemagick")
     script_run_cmd = f"""python /deep-learning-containers/miscellaneous_scripts/extract_apt_patch_data.py --impacted-packages {",".join(list(impacted_os_packages))} --save-result-path /deep-learning-containers/{save_file_name} --mode_type generate"""
     run(f"{docker_exec_cmd} {script_run_cmd}", hide=True)
     new_apt_patch_evaluation_data = {}
-    new_apt_patch_evaluation_data_location = os.path.join(get_repository_local_path(), save_file_name)
+    new_apt_patch_evaluation_data_location = os.path.join(
+        get_repository_local_path(), save_file_name
+    )
     if os.path.exists:
         with open(new_apt_patch_evaluation_data_location, "r") as readfile:
             new_apt_patch_evaluation_data = json.load(readfile)
+    return new_apt_patch_evaluation_data
+
+
+def get_package_upgradable_status(
+    package: str, new_apt_patch_evaluation_data: dict, embedded_apt_patch_evaluation_data: dict
+):
+    is_package_upgradable = True
+    ignore_message = ""
+    if package not in new_apt_patch_evaluation_data.get(
+        "upgradable_packages_data_for_impacted_packages", {}
+    ):
+        is_package_upgradable = False
+        ignore_message = "Package and its binaries cannot be upgraded further."
+        if package in embedded_apt_patch_evaluation_data.get(
+            "upgradable_packages_data_for_impacted_packages", {}
+        ):
+            package_related_binaries = sorted(
+                embedded_apt_patch_evaluation_data[
+                    "upgradable_packages_data_for_impacted_packages"
+                ][package]
+            )
+            ignore_message = f"""{ignore_message} Packages: {",".join(package_related_binaries)} have been upgraded."""
+    return is_package_upgradable, ignore_message
+
+
+def extract_non_patchable_vulnerabilities(
+    vulnerability_list_object: ECREnhancedScanVulnerabilityList, image_uri: str
+):
+    ## For every OS vulnerability, see if an attempt was made to fix that package - this data can be received from upgradable dict
+    ## Check if none of the underlying packages is upgradable and then add to the allowlist (confirm if recommended version will have esm in it)
+    ## If any of the package is upgradable, check if an attempt was made to upgrade it and if the upgrade successful.
+
+    ## Also add remaining_vuln, allowlist to the input parameters
+    ## Find Old vulns by allowlist - ecr_scan
+    ## Find relevant_allowlist_vulns = allowlist - OS
+    ## Make duplicate of remaining_vuln, go through each and add the ignore list
+    ## Thereafter create flattened lists to generate the allowlist file
+    ## Save that file locally
+    segregated_package_names = segregate_impacted_package_names_based_on_manager(
+        vulnerability_list_object
+    )
+    impacted_os_packages = segregated_package_names["os_packages"]
+    impacted_py_packages = segregated_package_names["py_packages"]
+
+    docker_run_cmd = f"docker run -v {get_repository_local_path()}:/deep-learning-containers  -id --entrypoint='/bin/bash' {image_uri} "
+    container_id = run(f"{docker_run_cmd}").stdout.strip()
+    docker_exec_cmd = f"docker exec -i {container_id}"
+    container_setup_cmd = "apt-get update"
+    run(f"{docker_exec_cmd} {container_setup_cmd}", hide=True)
+    new_apt_patch_evaluation_data = run_patch_evaluation_script_to_reevaluate_package_status(
+        docker_exec_cmd=docker_exec_cmd,
+        image_uri=image_uri,
+        impacted_os_packages=impacted_os_packages,
+    )
     embedded_apt_patch_evaluation_data = {}
     display_embdedded_patch_eval_data_cmd = "cat /opt/aws/dlc/patch-details/os_summary.json"
     display_output = run(f"{docker_exec_cmd} {display_embdedded_patch_eval_data_cmd}", warn=True)
     if display_output.ok:
         embedded_apt_patch_evaluation_data = json.loads(display_output.stdout.strip())
 
-    ignore_package_data_message = {}
-    for package in impacted_os_packages:
-        if package not in new_apt_patch_evaluation_data.get("upgradable_packages_data_for_impacted_packages", {}):
-            ignore_package_data_message[package] = "Package and its binaries cannot be upgraded further."
-            if package in embedded_apt_patch_evaluation_data.get("upgradable_packages_data_for_impacted_packages", {}):
-                package_related_binaries = sorted(embedded_apt_patch_evaluation_data["upgradable_packages_data_for_impacted_packages"][package])
-                ignore_package_data_message[package] = f"""{ignore_package_data_message[package]} Packages: {",".join(package_related_binaries)} have been upgraded."""
+    non_patchable_vulnerabilities_with_reason = copy.deepcopy(vulnerability_list_object)
+    print(non_patchable_vulnerabilities_with_reason.vulnerability_list)
+    packages_to_remove = []
+    for (
+        package_name,
+        vulnerabilities,
+    ) in non_patchable_vulnerabilities_with_reason.vulnerability_list.items():
+        package_manager = vulnerabilities[0].package_details.package_manager
+        ##TODO: Revert
+        if package_manager not in ["OS", "PYTHONPKG"] or package_name == "urllib3":
+            packages_to_remove.append(package_name)
+            continue
+        is_package_upgradable, ignore_msg = get_package_upgradable_status(
+            package_name, new_apt_patch_evaluation_data, embedded_apt_patch_evaluation_data
+        )
+        if is_package_upgradable:
+            packages_to_remove.append(package_name)
+            continue
+        for package_vulnerability in vulnerabilities:
+            package_vulnerability.reason_to_ignore = ignore_msg
 
-    print("*****")
-    print(impacted_os_packages)
-    print(impacted_py_packages)
-    print(new_apt_patch_evaluation_data)
-    print(embedded_apt_patch_evaluation_data)
-    print(ignore_package_data_message)
-    print("*****")
+    non_patchable_vulnerabilities_with_reason.vulnerability_list = {
+        k: v
+        for k, v in non_patchable_vulnerabilities_with_reason.vulnerability_list.items()
+        if k not in packages_to_remove
+    }
+    return non_patchable_vulnerabilities_with_reason
 
 
 @pytest.mark.usefixtures("sagemaker")
@@ -278,18 +365,16 @@ def test_ecr_enhanced_scan(image, ecr_client, sts_client, region):
         image, ecr_client, sts_client, region
     )
 
-    remaining_vulnerabilities, _ = helper_function_for_leftover_vulnerabilities_from_enhanced_scanning(image)
+    (
+        remaining_vulnerabilities,
+        _,
+    ) = helper_function_for_leftover_vulnerabilities_from_enhanced_scanning(image)
     if remaining_vulnerabilities:
         ## TODO: Revert these changes before merging into Master
         LOGGER.info(
             f"Total of {len(remaining_vulnerabilities.vulnerability_list)} vulnerabilities need to be fixed on {image}:\n"
             f"{json.dumps(remaining_vulnerabilities.vulnerability_list, cls= test_utils.EnhancedJSONEncoder)}"
         )
-        get_ignorable_vulnerabilities(remaining_vulnerabilities, image)
-        # assert (
-        #     "PYTHONPKG"
-        #     not in f"{json.dumps(remaining_vulnerabilities.vulnerability_list, cls= test_utils.EnhancedJSONEncoder)}"
-        # ), "PYTHONPKG vulnerability exists."
 
         assert not remaining_vulnerabilities.vulnerability_list, (
             f"Total of {len(remaining_vulnerabilities.vulnerability_list)} vulnerabilities need to be fixed on {image}:\n"
