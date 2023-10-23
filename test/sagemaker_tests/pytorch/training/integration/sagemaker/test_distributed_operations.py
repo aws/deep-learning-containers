@@ -168,6 +168,7 @@ def test_dist_operations_fastai_gpu(framework_version, ecr_image, sagemaker_regi
 @pytest.mark.skip_cpu
 @pytest.mark.skip_py2_containers
 @pytest.mark.skip_trcomp_containers
+@pytest.mark.team("smmodelparallel")
 @pytest.mark.parametrize("test_script, num_processes", [("train_gpt_simple.py", 8)])
 def test_smmodelparallel_gpt2_multigpu_singlenode(
     ecr_image, instance_type, sagemaker_regions, test_script, num_processes
@@ -266,6 +267,7 @@ def test_smmodelparallel_gpt2_multigpu_singlenode(
 @pytest.mark.skip_cpu
 @pytest.mark.skip_py2_containers
 @pytest.mark.skip_trcomp_containers
+@pytest.mark.team("smmodelparallel")
 @pytest.mark.parametrize("test_script, num_processes", [("train_gpt_simple.py", 8)])
 def test_smmodelparallel_gpt2_multigpu_singlenode_flashattn(
     ecr_image, instance_type, sagemaker_regions, test_script, num_processes
@@ -367,6 +369,7 @@ def test_smmodelparallel_gpt2_multigpu_singlenode_flashattn(
 @pytest.mark.skip_cpu
 @pytest.mark.skip_py2_containers
 @pytest.mark.skip_trcomp_containers
+@pytest.mark.team("smmodelparallel")
 @pytest.mark.parametrize("test_script, num_processes", [("smmodelparallel_pt_mnist.py", 8)])
 def test_smmodelparallel_mnist_multigpu_multinode(
     ecr_image, instance_type, sagemaker_regions, test_script, num_processes
@@ -424,6 +427,7 @@ def test_smmodelparallel_mnist_multigpu_multinode(
 @pytest.mark.skip_cpu
 @pytest.mark.skip_py2_containers
 @pytest.mark.skip_trcomp_containers
+@pytest.mark.team("smmodelparallel")
 @pytest.mark.parametrize("test_script, num_processes", [("smmodelparallel_pt_mnist.py", 8)])
 def test_hc_smmodelparallel_mnist_multigpu_multinode(
     ecr_image, instance_type, sagemaker_regions, test_script, num_processes
@@ -483,6 +487,7 @@ def test_hc_smmodelparallel_mnist_multigpu_multinode(
 @pytest.mark.skip_cpu
 @pytest.mark.skip_py2_containers
 @pytest.mark.skip_trcomp_containers
+@pytest.mark.team("smmodelparallel")
 @pytest.mark.parametrize("test_script, num_processes", [("smmodelparallel_pt_mnist.py", 8)])
 @pytest.mark.efa()
 def test_smmodelparallel_mnist_multigpu_multinode_efa(
@@ -539,6 +544,7 @@ def test_smmodelparallel_mnist_multigpu_multinode_efa(
 @pytest.mark.skip_cpu
 @pytest.mark.skip_py2_containers
 @pytest.mark.skip_trcomp_containers
+@pytest.mark.team("smmodelparallel")
 @pytest.mark.parametrize("test_script, num_processes", [("train_gpt_simple.py", 8)])
 @pytest.mark.efa()
 def test_smmodelparallel_gpt2_sdp_multinode_efa(
@@ -633,6 +639,7 @@ def test_smmodelparallel_gpt2_sdp_multinode_efa(
 @pytest.mark.skip_cpu
 @pytest.mark.efa()
 @pytest.mark.skip_py2_containers
+@pytest.mark.team("smmodelparallel")
 def test_sanity_efa(ecr_image, efa_instance_type, sagemaker_regions):
     """
     Tests pt mnist command via script mode

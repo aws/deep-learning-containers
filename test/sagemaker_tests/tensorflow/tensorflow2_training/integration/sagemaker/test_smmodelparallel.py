@@ -60,6 +60,7 @@ def can_run_smmodelparallel_efa(ecr_image):
 @pytest.mark.model("mnist")
 @pytest.mark.skip_cpu
 @pytest.mark.skip_py2_containers
+@pytest.mark.team("smmodelparallel")
 @pytest.mark.parametrize(
     "test_script, num_processes",
     [
@@ -134,6 +135,7 @@ def _test_smmodelparallel_efa_function(
 @pytest.mark.multinode(2)
 @pytest.mark.skip_cpu
 @pytest.mark.skip_py2_containers
+@pytest.mark.team("smmodelparallel")
 @pytest.mark.parametrize(
     "test_script, num_processes", [("smmodelparallel_hvd2_conv_multinode.py", 2)]
 )
@@ -200,6 +202,7 @@ def _test_smmodelparallel_multinode_efa_function(
 @pytest.mark.model("mnist")
 @pytest.mark.skip_cpu
 @pytest.mark.skip_py2_containers
+@pytest.mark.team("smmodelparallel")
 @pytest.mark.parametrize(
     "test_script, num_processes",
     [
@@ -274,6 +277,7 @@ def _test_smmodelparallel_function(
 @pytest.mark.multinode(2)
 @pytest.mark.skip_cpu
 @pytest.mark.skip_py2_containers
+@pytest.mark.team("smmodelparallel")
 @pytest.mark.parametrize(
     "test_script, num_processes", [("smmodelparallel_hvd2_conv_multinode.py", 2)]
 )
