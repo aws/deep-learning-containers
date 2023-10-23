@@ -18,6 +18,7 @@ import botocore
 
 class NightlyFeatureLabel(Enum):
     AWS_FRAMEWORK_INSTALLED = "aws_framework_installed"
+    AWS_SMPPY_INSTALLED = "aws_smppy_installed"
     AWS_SMDEBUG_INSTALLED = "aws_smdebug_installed"
     AWS_SMDDP_INSTALLED = "aws_smddp_installed"
     AWS_SMMP_INSTALLED = "aws_smmp_installed"

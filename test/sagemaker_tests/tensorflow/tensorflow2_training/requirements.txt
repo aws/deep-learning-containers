@@ -1,7 +1,7 @@
 botocore>1.0,<2.0
 boto3>1.0,<2.0
 awscli<2
-sagemaker>=2,<3
+sagemaker>=2.180.0
 smdebug>=1
 sagemaker-experiments
 numpy
@@ -18,7 +18,6 @@ pytest-rerunfailures
 pytest-xdist
 requests
 mock
-docker-compose
 six
 python-dateutil>=2.1,<2.8.1
 requests-mock
