@@ -127,7 +127,9 @@ def conduct_preprocessing_of_images_before_running_ecr_scans(image, ecr_client, 
     return image
 
 
-def helper_function_for_leftover_vulnerabilities_from_enhanced_scanning(image, python_version=None, remove_non_patchable_vulns=False):
+def helper_function_for_leftover_vulnerabilities_from_enhanced_scanning(
+    image, python_version=None, remove_non_patchable_vulns=False
+):
     """
     Acts as a helper function that conducts enhanced scan on an image URI and then returns the list of leftover vulns
     after removing the allowlisted vulns.
@@ -212,15 +214,21 @@ def helper_function_for_leftover_vulnerabilities_from_enhanced_scanning(image, p
     LOGGER.info(f"ECR Enhanced Scanning test completed for image: {image}")
 
     if remove_non_patchable_vulns:
-        non_patchable_vulnerabilities = extract_non_patchable_vulnerabilities(remaining_vulnerabilities, ecr_enhanced_repo_uri)
+        non_patchable_vulnerabilities = extract_non_patchable_vulnerabilities(
+            remaining_vulnerabilities, ecr_enhanced_repo_uri
+        )
         future_allowlist = generate_future_allowlist(
             ecr_image_vulnerability_list=ecr_image_vulnerability_list,
             image_scan_allowlist=image_scan_allowlist,
             non_patchable_vulnerabilities=non_patchable_vulnerabilities,
         )
         remaining_vulnerabilities = remaining_vulnerabilities - non_patchable_vulnerabilities
-        LOGGER.info(f"[FutureAllowlist] {json.dumps(future_allowlist.vulnerability_list, cls= test_utils.EnhancedJSONEncoder)}")
-        LOGGER.info(f"[NonPatchableVulns] {json.dumps(non_patchable_vulnerabilities.vulnerability_list, cls= test_utils.EnhancedJSONEncoder)}")
+        LOGGER.info(
+            f"[FutureAllowlist][image_uri:{ecr_enhanced_repo_uri}] {json.dumps(future_allowlist.vulnerability_list, cls= test_utils.EnhancedJSONEncoder)}"
+        )
+        LOGGER.info(
+            f"[NonPatchableVulns] [image_uri:{ecr_enhanced_repo_uri}] {json.dumps(non_patchable_vulnerabilities.vulnerability_list, cls= test_utils.EnhancedJSONEncoder)}"
+        )
     ## TODO: Upload future_allowlist.vulnerability_list
     return remaining_vulnerabilities, ecr_enhanced_repo_uri
 
@@ -248,7 +256,9 @@ def test_ecr_enhanced_scan(image, ecr_client, sts_client, region):
     (
         remaining_vulnerabilities,
         _,
-    ) = helper_function_for_leftover_vulnerabilities_from_enhanced_scanning(image, remove_non_patchable_vulns=True)
+    ) = helper_function_for_leftover_vulnerabilities_from_enhanced_scanning(
+        image, remove_non_patchable_vulns=True
+    )
     if remaining_vulnerabilities:
         LOGGER.info(
             f"Total of {len(remaining_vulnerabilities.vulnerability_list)} vulnerabilities need to be fixed on {image}:\n"

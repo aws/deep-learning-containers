@@ -9,7 +9,7 @@ from invoke import run, Context
 from time import sleep, time
 from enum import IntEnum
 from test import test_utils
-from test.test_utils import LOGGER, ecr as ecr_utils
+from test.test_utils import LOGGER, EnhancedJSONEncoder, ecr as ecr_utils
 import dataclasses
 from dataclasses import dataclass
 from typing import Any, List
@@ -1065,7 +1065,6 @@ def fetch_other_vulnerability_lists(image, ecr_client, minimum_sev_threshold):
     return upgraded_image_vulnerability_list, image_scan_allowlist
 
 
-
 def generate_future_allowlist(
     ecr_image_vulnerability_list: ECREnhancedScanVulnerabilityList,
     image_scan_allowlist: ECREnhancedScanVulnerabilityList,
@@ -1113,7 +1112,7 @@ def run_patch_evaluation_script_to_reevaluate_package_status(
     return new_apt_patch_evaluation_data
 
 
-def get_package_upgradable_status(
+def get_os_package_upgradable_status(
     package: str, new_apt_patch_evaluation_data: dict, embedded_apt_patch_evaluation_data: dict
 ):
     is_package_upgradable = True
@@ -1133,6 +1132,35 @@ def get_package_upgradable_status(
             )
             ignore_message = f"""{ignore_message} Packages: {",".join(package_related_binaries)} have been upgraded."""
     return is_package_upgradable, ignore_message
+
+
+def check_if_python_vulnerability_is_non_patchable_and_get_ignore_message(
+    docker_exec_command: str, vulnerability: AllowListFormatVulnerabilityForEnhancedScan
+):
+    assert (
+        vulnerability.package_details.package_manager == "PYTHONPKG"
+    ), f"Vulnerability: {json.dumps(vulnerability, cls=EnhancedJSONEncoder)} is not PythonPkg managed."
+    ##TODO: Revert
+    if vulnerability.package_name == "urllib3":
+        return False, ""
+    return True, "Custom Ignore Message - 123"
+
+
+def get_non_patchable_python_vulnerabilities(
+    docker_exec_command: str, vulnerability_list: List[AllowListFormatVulnerabilityForEnhancedScan]
+):
+    non_patchable_list = []
+    for vulnerability in vulnerability_list:
+        (
+            is_python_vulnerability_non_patchable,
+            ignore_msg,
+        ) = check_if_python_vulnerability_is_non_patchable_and_get_ignore_message(
+            docker_exec_command, vulnerability
+        )
+        if is_python_vulnerability_non_patchable:
+            vulnerability.reason_to_ignore = ignore_msg
+            non_patchable_list.append(vulnerability)
+    return non_patchable_list
 
 
 def extract_non_patchable_vulnerabilities(
@@ -1178,18 +1206,28 @@ def extract_non_patchable_vulnerabilities(
         vulnerabilities,
     ) in non_patchable_vulnerabilities_with_reason.vulnerability_list.items():
         package_manager = vulnerabilities[0].package_details.package_manager
-        ##TODO: Revert
-        if package_manager not in ["OS", "PYTHONPKG"] or package_name == "urllib3":
+        if package_manager not in ["OS", "PYTHONPKG"]:
             packages_to_remove.append(package_name)
             continue
-        is_package_upgradable, ignore_msg = get_package_upgradable_status(
-            package_name, new_apt_patch_evaluation_data, embedded_apt_patch_evaluation_data
-        )
-        if is_package_upgradable:
-            packages_to_remove.append(package_name)
-            continue
-        for package_vulnerability in vulnerabilities:
-            package_vulnerability.reason_to_ignore = ignore_msg
+        if package_manager == "OS":
+            is_package_upgradable, ignore_msg = get_os_package_upgradable_status(
+                package_name, new_apt_patch_evaluation_data, embedded_apt_patch_evaluation_data
+            )
+            if is_package_upgradable:
+                packages_to_remove.append(package_name)
+                continue
+            for package_vulnerability in vulnerabilities:
+                package_vulnerability.reason_to_ignore = ignore_msg
+        elif package_manager == "PYTHONPKG":
+            allowlistable_python_vulns = get_non_patchable_python_vulnerabilities(
+                docker_exec_cmd, vulnerabilities
+            )
+            if allowlistable_python_vulns:
+                non_patchable_vulnerabilities_with_reason.vulnerability_list[
+                    package_name
+                ] = allowlistable_python_vulns
+            else:
+                packages_to_remove.append(package_name)
 
     non_patchable_vulnerabilities_with_reason.vulnerability_list = {
         k: v
