@@ -30,6 +30,7 @@ SCRIPT_PATH = os.path.join(GLUON_PATH, "model", "code", "gluon.py")
 # The image should support serving Gluon-created models.
 @pytest.mark.integration("gluon")
 @pytest.mark.model("mnist")
+@pytest.mark.team("inference-toolkit")
 def test_gluon_hosting(
     docker_image, sagemaker_local_session, local_instance_type, framework_version
 ):
