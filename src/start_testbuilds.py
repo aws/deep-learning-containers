@@ -21,6 +21,9 @@ import boto3
 
 import constants
 import config
+import utils
+
+from codebuild_environment import get_codebuild_project_name
 
 
 LOGGER = logging.getLogger(__name__)
@@ -198,12 +201,22 @@ def main():
     commit = os.getenv("CODEBUILD_RESOLVED_SOURCE_VERSION")
 
     if config.is_deep_canary_mode_enabled():
-        test_type = "deep-canary"
-        LOGGER.debug(f"test_type : {test_type}")
-        pr_test_job = f"dlc-pr-{test_type}-test"
-        if config.is_graviton_mode_enabled():
-            pr_test_job += "-graviton"
-        run_test_job(commit, pr_test_job)
+        frameworks_to_build = config.parse_dlc_developer_configs("build", "build_frameworks")
+        # Write BUILD_CONTEXT and TEST_TRIGGER to TEST_ENV_PATH because image_builder wasn't run.
+        test_env_variables = [
+            {"name": "BUILD_CONTEXT", "value": os.getenv("BUILD_CONTEXT"), "type": "PLAINTEXT"},
+            {"name": "TEST_TRIGGER", "value": get_codebuild_project_name(), "type": "PLAINTEXT"},
+        ]
+        utils.write_to_json_file(constants.TEST_ENV_PATH, test_env_variables)
+        # Only run deep-canary tests if this framework is mentioned in build_frameworks
+        if os.getenv("FRAMEWORK") in frameworks_to_build:
+            test_type = "deep-canary"
+            LOGGER.debug(f"test_type : {test_type}")
+            pr_test_job = f"dlc-pr-{test_type}-test"
+            if config.is_graviton_mode_enabled():
+                pr_test_job += "-graviton"
+            run_test_job(commit, pr_test_job)
+        # Skip all other tests on this PR if deep_canary_mode is true
         return
 
     # load the images for all test_types to pass on to code build jobs
