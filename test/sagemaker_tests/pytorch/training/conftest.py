@@ -435,6 +435,7 @@ def skip_s3plugin_test(request):
             )
 
 
+@pytest.fixture(autouse=True)
 def skip_pt20_cuda121_tests(request, ecr_image):
     _, image_framework_version = get_framework_and_version_from_tag(ecr_image)
     image_cuda_version = get_cuda_version_from_tag(ecr_image)

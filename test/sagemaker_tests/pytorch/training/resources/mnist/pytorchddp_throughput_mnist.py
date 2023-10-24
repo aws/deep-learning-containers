@@ -176,7 +176,7 @@ def main():
 
     args = parser.parse_args()
 
-    if use_mpi:
+    if args.use_mpi:
         if not os.getenv("WORLD_SIZE"):
             os.environ["WORLD_SIZE"] = str(os.getenv("OMPI_COMM_WORLD_SIZE"))
 
