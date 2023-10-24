@@ -4,6 +4,7 @@ import json
 import copy, collections
 import boto3
 import json
+import requests
 
 from invoke import run, Context
 from time import sleep, time
@@ -1134,20 +1135,62 @@ def get_os_package_upgradable_status(
     return is_package_upgradable, ignore_message
 
 
+def get_installed_python_packages_with_version(docker_exec_command: str):
+    package_version_dict = {}
+
+    python_cmd_to_extract_package_set = """ python -c "import pkg_resources; \
+        import json; \
+        print(json.dumps([{'name':d.key, 'version':d.version} for d in pkg_resources.working_set]))" """
+    
+    run_output = run(f"{docker_exec_command} {python_cmd_to_extract_package_set}")
+    list_of_package_data_dicts = json.loads(run_output.stdout)
+
+    for package_data_dict in list_of_package_data_dicts:
+        package_name = package_data_dict["name"].lower()
+        if package_name in package_version_dict:
+            raise Exception(f""" Package {package_name} existing multiple times in {list_of_package_data_dicts}""")
+        package_version_dict[package_name] = package_data_dict["version"]
+    
+    print(f"TRSHANTA RESULT: {package_version_dict}")
+    print({len(list(package_version_dict.keys()))})
+
+    return package_version_dict
+
+
 def check_if_python_vulnerability_is_non_patchable_and_get_ignore_message(
-    docker_exec_command: str, vulnerability: AllowListFormatVulnerabilityForEnhancedScan
+    docker_exec_command: str, vulnerability: AllowListFormatVulnerabilityForEnhancedScan, package_version_dict: dict
 ):
     assert (
         vulnerability.package_details.package_manager == "PYTHONPKG"
     ), f"Vulnerability: {json.dumps(vulnerability, cls=EnhancedJSONEncoder)} is not PythonPkg managed."
-    ##TODO: Revert
-    if vulnerability.package_name == "urllib3":
+
+    package_name = vulnerability.package_name.lower()
+    if package_name not in package_version_dict:
+        # To begin with, we will not allowlist package names that are not present in the installed list and show up in the vulnerability.
+        # However based on the observed behavior, or such scenarios occuring in the future, we will start to allowlist this vulnerability.
+        LOGGER.info(f"Package {package_name} not found!")
         return False, ""
-    return True, "Custom Ignore Message - 123"
+    
+    installed_package_version = package_version_dict.get(package_name)
+    vulnerability_package_version = vulnerability.package_details.version
+    if installed_package_version != vulnerability_package_version:
+        return True, f"Installed package version is {installed_package_version} which is not equal to the one shown in vulnerability."
+
+    ## 2. Check if the package is already in the latest version, if not then allowlist
+    response = requests.get(f'https://pypi.org/pypi/{package_name}/json')
+    latest_version = response.json()['info']['version']
+    if installed_package_version == latest_version:
+        return True, f"Installed package version {installed_package_version} is the latest version"
+
+
+    ##TODO: Revert
+    if vulnerability.package_name == "gevent":
+        return True, "Custom Ignore Message - 123"
+    return False, "" 
 
 
 def get_non_patchable_python_vulnerabilities(
-    docker_exec_command: str, vulnerability_list: List[AllowListFormatVulnerabilityForEnhancedScan]
+    docker_exec_command: str, vulnerability_list: List[AllowListFormatVulnerabilityForEnhancedScan], package_version_dict: dict
 ):
     non_patchable_list = []
     for vulnerability in vulnerability_list:
@@ -1155,7 +1198,7 @@ def get_non_patchable_python_vulnerabilities(
             is_python_vulnerability_non_patchable,
             ignore_msg,
         ) = check_if_python_vulnerability_is_non_patchable_and_get_ignore_message(
-            docker_exec_command, vulnerability
+            docker_exec_command, vulnerability, package_version_dict
         )
         if is_python_vulnerability_non_patchable:
             vulnerability.reason_to_ignore = ignore_msg
@@ -1197,6 +1240,8 @@ def extract_non_patchable_vulnerabilities(
     display_output = run(f"{docker_exec_cmd} {display_embdedded_patch_eval_data_cmd}", warn=True)
     if display_output.ok:
         embedded_apt_patch_evaluation_data = json.loads(display_output.stdout.strip())
+    
+    package_version_dict = get_installed_python_packages_with_version(docker_exec_command=docker_exec_cmd)
 
     non_patchable_vulnerabilities_with_reason = copy.deepcopy(vulnerability_list_object)
     print(non_patchable_vulnerabilities_with_reason.vulnerability_list)
@@ -1220,7 +1265,7 @@ def extract_non_patchable_vulnerabilities(
                 package_vulnerability.reason_to_ignore = ignore_msg
         elif package_manager == "PYTHONPKG":
             allowlistable_python_vulns = get_non_patchable_python_vulnerabilities(
-                docker_exec_cmd, vulnerabilities
+                docker_exec_cmd, vulnerabilities, package_version_dict
             )
             if allowlistable_python_vulns:
                 non_patchable_vulnerabilities_with_reason.vulnerability_list[
