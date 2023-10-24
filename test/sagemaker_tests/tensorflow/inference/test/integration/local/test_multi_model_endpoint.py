@@ -78,6 +78,7 @@ def container(request, docker_base_name, tag, runtime_config):
 @pytest.mark.processor("cpu")
 @pytest.mark.model("cifar, half_plus_three, half_plus_two")
 @pytest.mark.skip_gpu
+@pytest.mark.team("inference-toolkit")
 def test_ping():
     res = requests.get(PING_URL)
     assert res.status_code == 200
@@ -86,6 +87,7 @@ def test_ping():
 @pytest.mark.processor("cpu")
 @pytest.mark.model("half_plus_three")
 @pytest.mark.skip_gpu
+@pytest.mark.team("inference-toolkit")
 def test_container_start_invocation_fail():
     x = {"instances": [1.0, 2.0, 5.0]}
     code, y = make_invocation_request(json.dumps(x), "half_plus_three")
@@ -97,6 +99,7 @@ def test_container_start_invocation_fail():
 @pytest.mark.processor("cpu")
 @pytest.mark.model("cifar, half_plus_three, half_plus_two")
 @pytest.mark.skip_gpu
+@pytest.mark.team("inference-toolkit")
 def test_list_models_empty():
     code, res = make_list_model_request()
     res = json.loads(res)
@@ -107,6 +110,7 @@ def test_list_models_empty():
 @pytest.mark.processor("cpu")
 @pytest.mark.model("non_existing_model")
 @pytest.mark.skip_gpu
+@pytest.mark.team("inference-toolkit")
 def test_delete_unloaded_model():
     # unloads the given model/version, no-op if not loaded
     model_name = "non-existing-model"
@@ -119,6 +123,7 @@ def test_delete_unloaded_model():
 @pytest.mark.model("half_plus_three")
 @pytest.mark.processor("cpu")
 @pytest.mark.skip_gpu
+@pytest.mark.team("inference-toolkit")
 def test_delete_model():
     model_name = "half_plus_three"
     model_data = {"model_name": model_name, "url": "/opt/ml/models/half_plus_three"}
@@ -143,6 +148,7 @@ def test_delete_model():
 @pytest.mark.model("half_plus_three, half_plus_two")
 @pytest.mark.processor("cpu")
 @pytest.mark.skip_gpu
+@pytest.mark.team("inference-toolkit")
 def test_load_two_models():
     model_name_1 = "half_plus_two"
     model_data_1 = {"model_name": model_name_1, "url": "/opt/ml/models/half_plus_two"}
@@ -178,6 +184,7 @@ def test_load_two_models():
 @pytest.mark.model("cifar")
 @pytest.mark.processor("cpu")
 @pytest.mark.skip_gpu
+@pytest.mark.team("inference-toolkit")
 def test_load_one_model_two_times():
     model_name = "cifar"
     model_data = {"model_name": model_name, "url": "/opt/ml/models/cifar"}
@@ -193,6 +200,7 @@ def test_load_one_model_two_times():
 @pytest.mark.model("non_existing_model")
 @pytest.mark.processor("cpu")
 @pytest.mark.skip_gpu
+@pytest.mark.team("inference-toolkit")
 def test_load_non_existing_model():
     model_name = "non-existing"
     base_path = "/opt/ml/models/non-existing"
@@ -207,6 +215,7 @@ def test_load_non_existing_model():
 @pytest.mark.model("non_existing_model")
 @pytest.mark.processor("cpu")
 @pytest.mark.skip_gpu
+@pytest.mark.team("inference-toolkit")
 def test_bad_model_request():
     bad_model_data = {"model_name": "model_name", "uri": "/opt/ml/models/non-existing"}
     code, _ = make_load_model_request(json.dumps(bad_model_data))
@@ -216,6 +225,7 @@ def test_bad_model_request():
 @pytest.mark.model("invalid_version_model")
 @pytest.mark.processor("cpu")
 @pytest.mark.skip_gpu
+@pytest.mark.team("inference-toolkit")
 def test_invalid_model_version():
     model_name = "invalid_version"
     base_path = "/opt/ml/models/invalid_version"

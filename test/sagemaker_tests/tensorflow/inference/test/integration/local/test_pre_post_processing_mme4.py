@@ -90,6 +90,7 @@ def models():
 @pytest.mark.model("half_plus_three, half_plus_two")
 @pytest.mark.integration("mme")
 @pytest.mark.skip_gpu
+@pytest.mark.team("inference-toolkit")
 def test_ping_service():
     response = requests.get(PING_URL)
     assert 200 == response.status_code
@@ -99,6 +100,7 @@ def test_ping_service():
 @pytest.mark.model("half_plus_three, half_plus_two")
 @pytest.mark.integration("mme")
 @pytest.mark.skip_gpu
+@pytest.mark.team("inference-toolkit")
 def test_predict_json(models):
     headers = make_headers()
     data = '{"instances": [1.0, 2.0, 5.0]}'
@@ -114,6 +116,7 @@ def test_predict_json(models):
 @pytest.mark.model("half_plus_three, half_plus_two")
 @pytest.mark.integration("mme")
 @pytest.mark.skip_gpu
+@pytest.mark.team("inference-toolkit")
 def test_zero_content():
     headers = make_headers()
     x = ""
@@ -132,6 +135,7 @@ def test_zero_content():
 @pytest.mark.model("half_plus_three, half_plus_two")
 @pytest.mark.integration("mme")
 @pytest.mark.skip_gpu
+@pytest.mark.team("inference-toolkit")
 def test_large_input():
     data_file = "test/resources/inputs/test-large.csv"
 
@@ -154,6 +158,7 @@ def test_large_input():
 @pytest.mark.model("half_plus_three, half_plus_two")
 @pytest.mark.integration("mme")
 @pytest.mark.skip_gpu
+@pytest.mark.team("inference-toolkit")
 def test_csv_input():
     headers = make_headers(content_type="text/csv")
     data = "1.0,2.0,5.0"
@@ -172,6 +177,7 @@ def test_csv_input():
 @pytest.mark.model("half_plus_three, half_plus_two")
 @pytest.mark.integration("mme")
 @pytest.mark.skip_gpu
+@pytest.mark.team("inference-toolkit")
 def test_specific_versions():
     for MODEL_NAME in MODEL_NAMES:
         for version in ("123", "124"):
@@ -191,6 +197,7 @@ def test_specific_versions():
 @pytest.mark.model("half_plus_three, half_plus_two")
 @pytest.mark.integration("mme")
 @pytest.mark.skip_gpu
+@pytest.mark.team("inference-toolkit")
 def test_unsupported_content_type():
     headers = make_headers("unsupported-type", "predict")
     data = "aW1hZ2UgYnl0ZXM="
