@@ -65,12 +65,6 @@ def run_test_job(commit, codebuild_project, images_str=""):
             {"name": "FRAMEWORK", "value": os.getenv("FRAMEWORK", ""), "type": "PLAINTEXT"},
             # Adding IMAGE_TYPE to env variables to enable simulation of deep canary tests in PR
             {"name": "IMAGE_TYPE", "value": os.getenv("IMAGE_TYPE", ""), "type": "PLAINTEXT"},
-            # Adding ARCH_TYPE to env variables to enable simulation of deep canary tests in PR
-            {
-                "name": "ARCH_TYPE",
-                "value": "graviton" if config.is_graviton_mode_enabled() else "x86",
-                "type": "PLAINTEXT",
-            },
             {"name": "DLC_IMAGES", "value": images_str, "type": "PLAINTEXT"},
             {"name": "PR_NUMBER", "value": pr_num, "type": "PLAINTEXT"},
             # NIGHTLY_PR_TEST_MODE is passed as an env variable here because it is more convenient to set this in
@@ -202,9 +196,8 @@ def main():
 
     if config.is_deep_canary_mode_enabled():
         frameworks_to_build = config.parse_dlc_developer_configs("build", "build_frameworks")
-        # Write BUILD_CONTEXT and TEST_TRIGGER to TEST_ENV_PATH because image_builder wasn't run.
+        # Write TEST_TRIGGER to TEST_ENV_PATH because image_builder wasn't run.
         test_env_variables = [
-            {"name": "BUILD_CONTEXT", "value": os.getenv("BUILD_CONTEXT"), "type": "PLAINTEXT"},
             {"name": "TEST_TRIGGER", "value": get_codebuild_project_name(), "type": "PLAINTEXT"},
         ]
         utils.write_to_json_file(constants.TEST_ENV_PATH, test_env_variables)
