@@ -20,8 +20,9 @@ RUN pip install --no-cache-dir \
 	datasets==${DATASETS_VERSION} \
 	optimum-neuron[neuronx]==${OPTIMUM_NEURON_VERSION}
 
-# Ping numpy version
-RUN pip install -U numpy==1.21.6
+# Pin numpy and Pillow version
+RUN pip install -U numpy==1.21.6 \
+	"Pillow>=10.0.1"
 
 RUN apt-get update \
  # TODO: Remove upgrade statements once packages are updated in base image
@@ -38,4 +39,3 @@ RUN HOME_DIR=/root \
  && chmod +x ${HOME_DIR}/oss_compliance/generate_oss_compliance.sh \
  && ${HOME_DIR}/oss_compliance/generate_oss_compliance.sh ${HOME_DIR} ${PYTHON} \
  && rm -rf ${HOME_DIR}/oss_compliance*
- 
