@@ -20,9 +20,11 @@ RUN pip install --no-cache-dir \
 	datasets==${DATASETS_VERSION} \
 	optimum-neuron[neuronx]==${OPTIMUM_NEURON_VERSION}
 
-# Pin numpy and Pillow version
+# Pin numpy to version required by neuronx-cc
+# Update Pillow and urllib version to fix high and critical vulnerabilities
 RUN pip install -U numpy==1.21.6 \
-	"Pillow>=10.0.1"
+	"Pillow>=10.0.1" \
+	"urllib3>=1.26.17"
 
 RUN apt-get update \
  # TODO: Remove upgrade statements once packages are updated in base image
