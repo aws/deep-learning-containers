@@ -6,7 +6,7 @@ import utils
 import constants
 
 from codebuild_environment import get_codebuild_project_name
-from config import parse_dlc_developer_configs, get_buildspec_override
+from config import parse_dlc_developer_configs, get_buildspec_override, is_deep_canary_mode_enabled
 from image_builder import image_builder
 
 
@@ -57,6 +57,7 @@ def main():
     habana_build_mode = parse_dlc_developer_configs("dev", "habana_mode")
     trcomp_build_mode = parse_dlc_developer_configs("dev", "trcomp_mode")
     hf_trcomp_build_mode = parse_dlc_developer_configs("dev", "huggingface_trcomp_mode")
+    deep_canary_mode = is_deep_canary_mode_enabled()
 
     # Condition to check whether training or inference dedicated/enabled
     # If image_type is empty, assume this is not a training or inference specific job, and allow 'True' state
@@ -92,6 +93,7 @@ def main():
         and not habana_build_mode
         and not hf_trcomp_build_mode
         and not trcomp_build_mode
+        and not deep_canary_mode
         and args.framework in frameworks_to_build
         and train_or_inf_enabled
     )
@@ -123,6 +125,7 @@ def main():
         graviton_dedicated
         and graviton_build_mode
         and args.framework in frameworks_to_build
+        and not deep_canary_mode
         and train_or_inf_enabled
     )
 
