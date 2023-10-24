@@ -1243,15 +1243,11 @@ def pytest_configure(config):
     config.addinivalue_line(
         "markers", "allow_p4de_use(): explicitly mark to allow test to use p4de instance types"
     )
-    config.addinivalue_line(
-        "markers", "p3(): choose trcomp perf tests running on p3 instance type"
-    )
+    config.addinivalue_line("markers", "p3(): choose trcomp perf tests running on p3 instance type")
     config.addinivalue_line(
         "markers", "single_gpu(): choose trcomp perf tests that run on single-gpu instance types"
     )
-    config.addinivalue_line(
-        "markers", "neuronx_test(): mark as neuronx integration test"
-    )
+    config.addinivalue_line("markers", "neuronx_test(): mark as neuronx integration test")
     config.addinivalue_line(
         "markers", "skip_dgl_test(): mark test to be skipped due to dlc being incompatible"
     )
@@ -1264,9 +1260,7 @@ def pytest_configure(config):
     config.addinivalue_line(
         "markers", "skip_s3plugin_test(): mark test to be skipped due to dlc being incompatible"
     )
-    config.addinivalue_line(
-        "markers", "deep_canary(): explicitly mark to run as deep canary test"
-    )
+    config.addinivalue_line("markers", "deep_canary(): explicitly mark to run as deep canary test")
 
 
 def pytest_runtest_setup(item):
