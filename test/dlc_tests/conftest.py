@@ -24,6 +24,7 @@ from test.test_utils import (
     get_framework_and_version_from_tag,
     get_cuda_version_from_tag,
     get_job_type_from_image,
+    get_processor_from_image_uri,
     is_tf_version,
     is_above_framework_version,
     is_below_framework_version,
@@ -865,10 +866,13 @@ def skip_dgl_test(request):
         return
     _, image_framework_version = get_framework_and_version_from_tag(img_uri)
     image_cuda_version = get_cuda_version_from_tag(img_uri)
+    image_processor = get_processor_from_image_uri(img_uri)
     if request.node.get_closest_marker("skip_dgl_test"):
-        if Version(image_framework_version) in SpecifierSet(">=2.0") and Version(
-            image_cuda_version.strip("cu")
-        ) >= Version("121"):
+        if (
+            image_processor == "gpu"
+            and Version(image_framework_version) in SpecifierSet(">=2.0")
+            and Version(image_cuda_version.strip("cu")) >= Version("121")
+        ):
             pytest.skip(
                 f"DGL doesn't support cuda12.x for now, so skipping this container with tag {image_framework_version}"
             )
@@ -1011,6 +1015,11 @@ def pt113_and_above_only():
 
 
 @pytest.fixture(scope="session")
+def pt201_and_above_only():
+    pass
+
+
+@pytest.fixture(scope="session")
 def below_pt113_only():
     pass
 
@@ -1022,6 +1031,11 @@ def pt111_and_above_only():
 
 @pytest.fixture(scope="session")
 def skip_pt110():
+    pass
+
+
+@pytest.fixture(scope="session")
+def pt21_and_above_only():
     pass
 
 
@@ -1154,6 +1168,10 @@ def framework_version_within_limit(metafunc_obj, image):
             "skip_pt110" in metafunc_obj.fixturenames
             and is_equal_to_framework_version("1.10.*", image, image_framework_name)
         )
+        pt21_requirement_failed = (
+            "pt21_and_above_only" in metafunc_obj.fixturenames
+            and is_below_framework_version("2.1", image, image_framework_name)
+        )
         pt18_requirement_failed = (
             "pt18_and_above_only" in metafunc_obj.fixturenames
             and is_below_framework_version("1.8", image, image_framework_name)
@@ -1174,6 +1192,10 @@ def framework_version_within_limit(metafunc_obj, image):
             "pt14_and_above_only" in metafunc_obj.fixturenames
             and is_below_framework_version("1.4", image, image_framework_name)
         )
+        pt201_requirement_failed = (
+            "pt201_and_above_only" in metafunc_obj.fixturenames
+            and is_below_framework_version("2.0.1", image, image_framework_name)
+        )
         if (
             pt20_and_below_requirement_failed
             or not_pt200_requirement_failed
@@ -1181,11 +1203,13 @@ def framework_version_within_limit(metafunc_obj, image):
             or below_pt113_requirement_failed
             or pt111_requirement_failed
             or not_pt110_requirement_failed
+            or pt21_requirement_failed
             or pt18_requirement_failed
             or pt17_requirement_failed
             or pt16_requirement_failed
             or pt15_requirement_failed
             or pt14_requirement_failed
+            or pt201_requirement_failed
         ):
             return False
     return True
