@@ -1372,7 +1372,9 @@
                 "51668":"Derived from the base container. Installed as a dependency of another package that does not allow the upgrade of SqlAlchemy to 2.",
                 "44715": "Neuronx Dependency wants version to be <=1.21.6",
                 "44716": "Neuronx Dependency wants version to be <=1.21.6",
-                "44717": "Neuronx Dependency wants version to be <=1.21.6"
+                "44717": "Neuronx Dependency wants version to be <=1.21.6",
+                "59398": "scipy bug - according to maintainer, not a vulnerability",
+                "59399": "scipy bug - no CVE attached"
             }
         }
     },
