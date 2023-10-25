@@ -181,9 +181,7 @@ def does_dev_config_enable_any_build_modes():
     dev_config_enables_neuronx_build_mode = parse_dlc_developer_configs("dev", "neuronx_mode")
     dev_config_enables_graviton_build_mode = parse_dlc_developer_configs("dev", "graviton_mode")
     dev_config_enables_habana_build_mode = parse_dlc_developer_configs("dev", "habana_mode")
-    dev_config_enables_hf_trcomp_build_mode = parse_dlc_developer_configs(
-        "dev", "hf_trcomp_mode"
-    )
+    dev_config_enables_hf_trcomp_build_mode = parse_dlc_developer_configs("dev", "hf_trcomp_mode")
     dev_config_enables_trcomp_build_mode = parse_dlc_developer_configs("dev", "trcomp_mode")
 
     return (
