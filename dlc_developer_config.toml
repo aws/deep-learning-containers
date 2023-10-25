@@ -41,16 +41,16 @@ build_inference = false
 datetime_tag = false
 # Note: Need to build the images at least once with datetime_tag = false
 # before disabling new builds, or tests will fail
-do_build = false
+do_build = true
 
 [test]
 ### On by default
-sanity_tests = false
+sanity_tests = true
   safety_check_test = false
   ecr_scan_allowlist_feature = false
-ecs_tests = false
-eks_tests = false
-ec2_tests = false
+ecs_tests = true
+eks_tests = true
+ec2_tests = true
 
 ### Set ec2_tests_on_heavy_instances = true to be able to run any EC2 tests that use large/expensive instance types by
 ### default. If false, these types of tests will be skipped while other tests will run as usual.
