@@ -92,3 +92,5 @@ ALL_TESTS = ["sagemaker", "ec2", "eks", "ecs"]
 # Timeout in seconds for Docker API client.
 API_CLIENT_TIMEOUT = 600
 MAX_WORKER_COUNT_FOR_PUSHING_IMAGES = 3
+
+PR_CREATION_DATA_HELPER_BUCKET="pr-creation-data-helper"

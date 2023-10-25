@@ -308,7 +308,13 @@ def generate_safety_report_for_image(image_uri, image_info, storage_file_path=No
         if safety_report_generator_object.new_ignored_vulnerabilities:
             future_ignore_dict.update(safety_report_generator_object.new_ignored_vulnerabilities)
             LOGGER.info(f"[Safety Allowlist] Future Ignore Dict: {future_ignore_dict} for {image_uri}")
-            ## TODO: Add logic to upload to s3
+            tag_set = [
+                {
+                    'Key': 'upload_path',
+                    'Value': get_safety_scan_allowlist_path(image_uri),
+                },
+            ]
+            process_data_upload_to_pr_creation_bucket(image_uri=image_uri, json_upload_data=future_ignore_dict, tag_set=tag_set)
         
     return safety_scan_output
 
@@ -333,3 +339,42 @@ def is_APatch_build():
     :return: <bool> True or False
     """
     return os.getenv("APatch", "False").lower() == "true"
+
+
+def process_data_upload_to_pr_creation_bucket(image_uri, json_upload_data, tag_set=None):
+    """
+    This method uploads the given `json_upload_data` to the s3 path obtained from get_unique_s3_path_for_uploading_data_to_pr_creation_bucket method.
+    It also attaches the TagSet to the object as specified by tag_set argument that looks like:
+        tag_set = [
+                {
+                    'Key': 'upload_path',
+                    'Value': 'abcd123',
+                },
+            ]
+
+    :param image_uri: str, image uri
+    :param json_upload_data: dict/list, JSON format data that can be uploaded to the s3 object
+    :param tag_set: List[Dict], as described above
+    :return: str, s3 file path
+    """
+    s3_filepath = get_unique_s3_path_for_uploading_data_to_pr_creation_bucket(image_uri)
+    s3_resource = boto3.resource('s3')
+    s3object = s3_resource.Object(constants.PR_CREATION_DATA_HELPER_BUCKET, s3_filepath)
+    s3_client = s3_resource.meta.client
+    s3object.put(
+        Body=(bytes(json.dumps(json_upload_data).encode('UTF-8')))
+    )
+    if tag_set:
+        s3_client.put_object_tagging(
+            Bucket=constants.PR_CREATION_DATA_HELPER_BUCKET,
+            Key=s3_filepath,
+            Tagging={
+                'TagSet': tag_set
+            },
+        )
+
+
+def get_unique_s3_path_for_uploading_data_to_pr_creation_bucket(image_uri: str):
+    commit = os.getenv("CODEBUILD_RESOLVED_SOURCE_VERSION", "temp")
+    object_name = image_uri.replace(":","-").replace("/", "-")
+    return f"{commit}/{object_name}.json"
