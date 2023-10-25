@@ -116,8 +116,6 @@ RUN /opt/conda/bin/mamba install -y --override-channels \
     "pillow>=9.4,<9.5.0" \
     cmake \
     requests \
-    # Install urllib3 (dependency of requests) as a separate package to force upgrade to latest secure version
-    urllib3 \
     pyopenssl \
     python=$PYTHON_VERSION \
     cython \
@@ -133,7 +131,6 @@ RUN /opt/conda/bin/mamba install -y --override-channels \
     # Below 2 are included in miniconda base, but not mamba so need to install
     charset-normalizer \
     packaging \
-    opencv \
     awscli \
     boto3 \
     pybind11 \
@@ -194,14 +191,16 @@ RUN /opt/conda/bin/mamba install -y pytorch=${PYTORCH_VERSION_EC2} \
   torchvision torchaudio torchtext cpuonly \
   --override-channels \
   -c https://aws-ml-conda-ec2.s3.us-west-2.amazonaws.com \
-  -c conda-forge
+  -c conda-forge \
+  && /opt/conda/bin/mamba clean -afy
 
 # Patches
-RUN pip install "pillow>=9.5" "pyyaml>=6.0.1"
+RUN pip install "pillow>=9.5" "pyyaml>=6.0.1" "opencv-python>=4.8.1"
 RUN /opt/conda/bin/mamba install -y -c conda-forge \
   "requests>=2.31.0" \
   # Install urllib3 (dependency of requests) as a separate package to force upgrade to latest secure version
-  urllib3
+  "urllib3>=1.26.18" \
+  && /opt/conda/bin/mamba clean -afy
 
 # install fastai (depends on PyTorch)
 RUN /opt/conda/bin/mamba install -y -c conda-forge \
@@ -209,7 +208,8 @@ RUN /opt/conda/bin/mamba install -y -c conda-forge \
   accelerate \
   && /opt/conda/bin/mamba install -y -c fastai fastai \
   # fastai conda strictly depends on dataclasses
-  && pip uninstall -y dataclasses
+  && pip uninstall -y dataclasses \
+  && /opt/conda/bin/mamba clean -afy
 
 RUN HOME_DIR=/root \
  && curl -o ${HOME_DIR}/oss_compliance.zip https://aws-dlinfra-utilities.s3.amazonaws.com/oss_compliance.zip \
@@ -266,7 +266,8 @@ RUN /opt/conda/bin/mamba install -y pytorch=${PYTORCH_VERSION_SM} \
   torchvision torchaudio torchtext cpuonly \
   --override-channels \
   -c https://aws-ml-conda-ec2.s3.us-west-2.amazonaws.com \
-  -c conda-forge
+  -c conda-forge \
+  && /opt/conda/bin/mamba clean -afy
 
 # install fastai (depends on PyTorch)
 RUN /opt/conda/bin/mamba install -y -c conda-forge \
@@ -274,7 +275,8 @@ RUN /opt/conda/bin/mamba install -y -c conda-forge \
   accelerate \
   && /opt/conda/bin/mamba install -y -c fastai fastai \
   # fastai conda strictly depends on dataclasses
-  && pip uninstall -y dataclasses
+  && pip uninstall -y dataclasses \
+  && /opt/conda/bin/mamba clean -afy
 
 WORKDIR /
 
@@ -313,11 +315,12 @@ RUN /opt/conda/bin/mamba install -y -c conda-forge \
  && /opt/conda/bin/mamba clean -afy
 
 # Patches
-RUN pip install "pillow>=9.5" "pyyaml>=6.0.1"
+RUN pip install "pillow>=9.5" "pyyaml>=6.0.1" "opencv-python>=4.8.1"
 RUN /opt/conda/bin/mamba install -y -c conda-forge \
   "requests>=2.31.0" \
   # Install urllib3 (dependency of requests) as a separate package to force upgrade to latest secure version
-  urllib3
+  "urllib3>=1.26.18" \
+  && /opt/conda/bin/mamba clean -afy
 
 RUN HOME_DIR=/root \
  && curl -o ${HOME_DIR}/oss_compliance.zip https://aws-dlinfra-utilities.s3.amazonaws.com/oss_compliance.zip \
