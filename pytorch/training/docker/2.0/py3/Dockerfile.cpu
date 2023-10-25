@@ -191,16 +191,14 @@ RUN /opt/conda/bin/mamba install -y pytorch=${PYTORCH_VERSION_EC2} \
   torchvision torchaudio torchtext cpuonly \
   --override-channels \
   -c https://aws-ml-conda-ec2.s3.us-west-2.amazonaws.com \
-  -c conda-forge \
-  && /opt/conda/bin/mamba clean -afy
+  -c conda-forge
 
 # Patches
 RUN pip install "pillow>=9.5" "pyyaml>=6.0.1" "opencv-python>=4.8.1"
 RUN /opt/conda/bin/mamba install -y -c conda-forge \
   "requests>=2.31.0" \
   # Install urllib3 (dependency of requests) as a separate package to force upgrade to latest secure version
-  "urllib3>=1.26.18" \
-  && /opt/conda/bin/mamba clean -afy
+  "urllib3>=1.26.18"
 
 # install fastai (depends on PyTorch)
 RUN /opt/conda/bin/mamba install -y -c conda-forge \
@@ -208,8 +206,7 @@ RUN /opt/conda/bin/mamba install -y -c conda-forge \
   accelerate \
   && /opt/conda/bin/mamba install -y -c fastai fastai \
   # fastai conda strictly depends on dataclasses
-  && pip uninstall -y dataclasses \
-  && /opt/conda/bin/mamba clean -afy
+  && pip uninstall -y dataclasses
 
 RUN HOME_DIR=/root \
  && curl -o ${HOME_DIR}/oss_compliance.zip https://aws-dlinfra-utilities.s3.amazonaws.com/oss_compliance.zip \
@@ -266,8 +263,7 @@ RUN /opt/conda/bin/mamba install -y pytorch=${PYTORCH_VERSION_SM} \
   torchvision torchaudio torchtext cpuonly \
   --override-channels \
   -c https://aws-ml-conda-ec2.s3.us-west-2.amazonaws.com \
-  -c conda-forge \
-  && /opt/conda/bin/mamba clean -afy
+  -c conda-forge
 
 # install fastai (depends on PyTorch)
 RUN /opt/conda/bin/mamba install -y -c conda-forge \
@@ -275,8 +271,7 @@ RUN /opt/conda/bin/mamba install -y -c conda-forge \
   accelerate \
   && /opt/conda/bin/mamba install -y -c fastai fastai \
   # fastai conda strictly depends on dataclasses
-  && pip uninstall -y dataclasses \
-  && /opt/conda/bin/mamba clean -afy
+  && pip uninstall -y dataclasses
 
 WORKDIR /
 
@@ -319,8 +314,7 @@ RUN pip install "pillow>=9.5" "pyyaml>=6.0.1" "opencv-python>=4.8.1"
 RUN /opt/conda/bin/mamba install -y -c conda-forge \
   "requests>=2.31.0" \
   # Install urllib3 (dependency of requests) as a separate package to force upgrade to latest secure version
-  "urllib3>=1.26.18" \
-  && /opt/conda/bin/mamba clean -afy
+  "urllib3>=1.26.18"
 
 RUN HOME_DIR=/root \
  && curl -o ${HOME_DIR}/oss_compliance.zip https://aws-dlinfra-utilities.s3.amazonaws.com/oss_compliance.zip \
