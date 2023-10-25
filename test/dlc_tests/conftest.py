@@ -871,7 +871,6 @@ def skip_dgl_test(request):
         if (
             image_processor == "gpu"
             and Version(image_framework_version) in SpecifierSet(">=2.0")
-            and Version(image_framework_version) in SpecifierSet("<2.1")
             and Version(image_cuda_version.strip("cu")) >= Version("121")
         ):
             pytest.skip(

@@ -132,14 +132,16 @@ RUN /opt/conda/bin/mamba install -y --override-channels \
     # Below 2 are included in miniconda base, but not mamba so need to install
     charset-normalizer \
     packaging \
-    awscli \
     boto3 \
+    awscli \
     pybind11 \
     scipy \
     click \
     psutil \
     ipython \
     fsspec \
+    # patch CVE
+    "urllib3>=1.26.18,<2" \
     # Adding package for studio kernels
     ipykernel \
   && /opt/conda/bin/mamba install -y -c dglteam dgl \
@@ -195,7 +197,7 @@ RUN /opt/conda/bin/mamba install -y pytorch=${PYTORCH_VERSION_EC2} \
   && /opt/conda/bin/mamba clean -afy
 
 # Patches
-RUN pip install pillow "pyyaml>=6.0.1" opencv-python "urllib3>=1.26.18,<2"
+RUN pip install pillow "pyyaml>=6.0.1" opencv-python
 RUN /opt/conda/bin/mamba install -y -c conda-forge \
   "requests>=2.31.0" \
   && /opt/conda/bin/mamba clean -afy
@@ -285,12 +287,11 @@ RUN chmod +x /usr/local/bin/start_with_right_hostname.sh
 
 RUN pip install --no-cache-dir --upgrade pip --trusted-host pypi.org --trusted-host files.pythonhosted.org \
  && pip install --no-cache-dir -U \
-    # disable smdebug pip install until available stable smdebug releases
-    # smdebug==${SMDEBUG_VERSION} \
     smclarify \
     "sagemaker>=2,<3" \
     "sagemaker-experiments<1" \
-    sagemaker-pytorch-training
+    sagemaker-pytorch-training \
+    sagemaker-training
 
 # Install smdebug from source
 RUN cd /tmp \
@@ -312,7 +313,7 @@ RUN /opt/conda/bin/mamba install -y -c conda-forge \
  && /opt/conda/bin/mamba clean -afy
 
 # Patches
-RUN pip install pillow "pyyaml>=6.0.1" opencv-python "urllib3>=1.26.18,<2"
+RUN pip install pillow "pyyaml>=6.0.1" opencv-python
 RUN /opt/conda/bin/mamba install -y -c conda-forge \
   "requests>=2.31.0" \
   && /opt/conda/bin/mamba clean -afy
