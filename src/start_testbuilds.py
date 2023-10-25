@@ -193,37 +193,23 @@ def main():
         return
 
     commit = os.getenv("CODEBUILD_RESOLVED_SOURCE_VERSION")
+    build_framework = os.getenv("FRAMEWORK")
 
-    if config.is_deep_canary_mode_enabled():
-        frameworks_to_build = config.parse_dlc_developer_configs("build", "build_frameworks")
-        training_enabled = config.parse_dlc_developer_configs("build", "build_training")
-        inference_enabled = config.parse_dlc_developer_configs("build", "build_inference")
-        image_type = os.getenv("IMAGE_TYPE", "").lower()
-        training_dedicated = image_type == "training"
-        inference_dedicated = image_type == "inference"
-        # Condition to check whether framework for this job is enabled
-        framework_enabled = os.getenv("FRAMEWORK") in frameworks_to_build
-        # Condition to check whether training or inference dedicated/enabled
-        # If image_type is empty, assume this is not a training or inference specific job,
-        # and allow 'True' state
-        train_or_inf_enabled = (
-            (training_dedicated and training_enabled)
-            or (inference_dedicated and inference_enabled)
-            or (image_type == "")
-        )
+    if config.is_deep_canary_mode_enabled() and (
+        config.is_general_builder_enabled_for_this_pr_build(build_framework)
+        or config.is_graviton_builder_enabled_for_this_pr_build(build_framework)
+    ):
         # Write TEST_TRIGGER to TEST_ENV_PATH because image_builder wasn't run.
         test_env_variables = [
             {"name": "TEST_TRIGGER", "value": get_codebuild_project_name(), "type": "PLAINTEXT"},
         ]
         utils.write_to_json_file(constants.TEST_ENV_PATH, test_env_variables)
-        # Only run deep-canary tests if this framework is mentioned in build_frameworks
-        if framework_enabled and train_or_inf_enabled:
-            test_type = "deep-canary"
-            LOGGER.debug(f"test_type : {test_type}")
-            pr_test_job = f"dlc-pr-{test_type}-test"
-            if config.is_graviton_mode_enabled():
-                pr_test_job += "-graviton"
-            run_test_job(commit, pr_test_job)
+        test_type = "deep-canary"
+        LOGGER.debug(f"test_type : {test_type}")
+        pr_test_job = f"dlc-pr-{test_type}-test"
+        if config.is_graviton_mode_enabled():
+            pr_test_job += "-graviton"
+        run_test_job(commit, pr_test_job)
         # Skip all other tests on this PR if deep_canary_mode is true
         return
 

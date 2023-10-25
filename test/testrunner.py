@@ -363,6 +363,7 @@ def main():
         "ec2",
         "eks",
         "canary",
+        "deep-canary",
         "bai",
         "quick_checks",
         "release_candidate_integration",
