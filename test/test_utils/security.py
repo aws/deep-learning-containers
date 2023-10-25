@@ -210,6 +210,7 @@ class ECRScanFailureException(Exception):
 
 
 class CVESeverity(IntEnum):
+    UNTRIAGED = 0
     UNDEFINED = 0
     INFORMATIONAL = 1
     LOW = 2
