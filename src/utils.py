@@ -296,11 +296,20 @@ def generate_safety_report_for_image(image_uri, image_info, storage_file_path=No
     ignore_dict = get_safety_ignore_dict(
         image_uri, image_info["framework"], image_info["python_version"], image_info["image_type"]
     )
-    safety_scan_output = SafetyReportGenerator(container_id, ignore_dict=ignore_dict).generate()
+    safety_report_generator_object = SafetyReportGenerator(container_id, ignore_dict=ignore_dict)
+    safety_scan_output = safety_report_generator_object.generate()
     ctx.run(f"docker rm -f {container_id}", hide=True, warn=True)
     if storage_file_path:
         with open(storage_file_path, "w", encoding="utf-8") as f:
             json.dump(safety_scan_output, f, indent=4)
+    if is_APatch_build():
+        ignore_dict_from_image_specific_allowlist = get_safety_ignore_dict_from_image_specific_safety_allowlists(image_uri)
+        future_ignore_dict = ignore_dict_from_image_specific_allowlist
+        if safety_report_generator_object.new_ignored_vulnerabilities:
+            future_ignore_dict.update(safety_report_generator_object.new_ignored_vulnerabilities)
+            LOGGER.info(f"[Safety Allowlist] Future Ignore Dict: {future_ignore_dict} for {image_uri}")
+            ## TODO: Add logic to upload to s3
+        
     return safety_scan_output
 
 
