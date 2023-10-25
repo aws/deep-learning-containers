@@ -24,7 +24,7 @@ RUN pip install --no-cache-dir \
 # Update Pillow and urllib version to fix high and critical vulnerabilities
 RUN pip install -U numpy==1.21.6 \
 	"Pillow>=10.0.1" \
-	"urllib3>=1.26.17"
+	"urllib3>=1.26.17,<1.27"
 
 RUN apt-get update \
  # TODO: Remove upgrade statements once packages are updated in base image
