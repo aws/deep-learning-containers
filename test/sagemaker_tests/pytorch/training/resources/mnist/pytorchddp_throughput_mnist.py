@@ -189,11 +189,11 @@ def main():
         os.environ["MASTER_ADDR"] = os.environ["SM_HOSTS"][0]
         os.environ["MASTER_PORT"] = "55555"
 
-    if not local_rank:
+    if not args.local_rank:
         args.local_rank = int(os.getenv("OMPI_COMM_WORLD_LOCAL_RANK"))
 
     args.world_size = int(os.environ["WORLD_SIZE"])
-
+    print(args.world_size)
     args.lr = 1.0
     args.batch_size //= args.world_size // 8
     args.batch_size = max(args.batch_size, 1)
