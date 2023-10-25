@@ -155,21 +155,13 @@ def _test_mnist_distributed(
     use_inductor=False,
     use_mpi=False,
 ):
-    if use_mpi:
-        dist_method = "mpi" if dist_backend.lower() == "nccl" else "torch_distributed"
-    else:
-        dist_method = "pytorchddp" if dist_backend.lower() == "nccl" else "torch_distributed"
+    dist_method = "pytorchddp" if dist_backend.lower() == "nccl" else "torch_distributed"
     est_params = {
         "entry_point": mnist_script,
         "role": "SageMakerRole",
         "sagemaker_session": sagemaker_session,
         "image_uri": ecr_image,
-        "hyperparameters": {
-            "backend": dist_backend,
-            "epochs": 1,
-            "inductor": int(use_inductor),
-            "use_mpi": use_mpi,
-        },
+        "hyperparameters": {"backend": dist_backend, "epochs": 1, "inductor": int(use_inductor)},
         "framework_version": framework_version,
         "distribution": {dist_method: {"enabled": True}},
     }

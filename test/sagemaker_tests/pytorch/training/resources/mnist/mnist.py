@@ -139,7 +139,6 @@ def train(args):
     kwargs = {"num_workers": 1, "pin_memory": True} if use_cuda else {}
     device = torch.device("cuda" if use_cuda else "cpu")
     use_inductor = args.inductor == 1
-    use_mpi = args.use_mpi
 
     if is_distributed:
         # Initialize the distributed environment.
@@ -336,7 +335,6 @@ if __name__ == "__main__":
         "--processor", type=str, default="cpu", help="backend for distributed training"
     )
     parser.add_argument("--inductor", type=int, default=0, help="pytorch with inductor")
-    parser.add_argument("--use_mpi", type=str, default=False, help="run pytorch using mpi")
 
     # Container environment
     env = sagemaker_training.environment.Environment()

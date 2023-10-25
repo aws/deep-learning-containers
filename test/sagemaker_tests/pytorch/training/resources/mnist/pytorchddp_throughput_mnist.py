@@ -172,13 +172,12 @@ def main():
         "--data-path", type=str, default="/tmp/data", help="Path for downloading the MNIST dataset"
     )
     parser.add_argument("--inductor", type=int, default=0, help="pytorch with inductor")
-    parser.add_argument("--use_mpi", type=str, default=False, help="run pytorch using mpi")
 
     args = parser.parse_args()
 
     # print("open mpi var:")
     # print(os.getenv("OMPI_COMM_WORLD_SIZE"))
-    
+
     if not os.getenv("WORLD_SIZE"):
         os.environ["WORLD_SIZE"] = str(os.getenv("OMPI_COMM_WORLD_SIZE"))
 
