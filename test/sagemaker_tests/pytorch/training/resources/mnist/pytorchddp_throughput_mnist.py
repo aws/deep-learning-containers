@@ -176,8 +176,8 @@ def main():
 
     args = parser.parse_args()
 
-    print("open mpi var:")
-    print(os.getenv("OMPI_COMM_WORLD_SIZE"))
+    # print("open mpi var:")
+    # print(os.getenv("OMPI_COMM_WORLD_SIZE"))
     
     if not os.getenv("WORLD_SIZE"):
         os.environ["WORLD_SIZE"] = str(os.getenv("OMPI_COMM_WORLD_SIZE"))
@@ -193,7 +193,7 @@ def main():
         args.local_rank = int(os.getenv("OMPI_COMM_WORLD_LOCAL_RANK"))
 
     args.world_size = int(os.environ["WORLD_SIZE"])
-    print(args.world_size)
+    # print(args.world_size)
     args.lr = 1.0
     args.batch_size //= args.world_size // 8
     args.batch_size = max(args.batch_size, 1)
