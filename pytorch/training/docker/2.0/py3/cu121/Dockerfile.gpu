@@ -440,6 +440,8 @@ RUN pip install --no-cache-dir -U \
     "sagemaker>=2,<3" \
     "sagemaker-experiments<1" \
     sagemaker-pytorch-training \
+    # temp change to update sm toolkit
+    sagemaker-training==4.7.3 \
     triton==2.0.0
 
 # Install extra packages
