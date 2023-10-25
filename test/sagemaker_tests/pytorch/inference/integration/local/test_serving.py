@@ -51,12 +51,14 @@ ACCEPT_TYPE_TO_DESERIALIZER_MAP = {
 
 
 @pytest.fixture(name="test_loader")
+@pytest.mark.team("inference-toolkit")
 def fixture_test_loader():
     #  Largest batch size is only 300 because client_max_body_size is 5M
     return _get_test_data_loader(batch_size=300)
 
 
 @pytest.mark.model("mnist")
+@pytest.mark.team("inference-toolkit")
 def test_serve_json_npy(
     test_loader, use_gpu, docker_image, framework_version, sagemaker_local_session, instance_type
 ):
@@ -76,6 +78,7 @@ def test_serve_json_npy(
 
 
 @pytest.mark.model("mnist")
+@pytest.mark.team("inference-toolkit")
 def test_serve_csv(
     test_loader, use_gpu, docker_image, framework_version, sagemaker_local_session, instance_type
 ):
@@ -93,6 +96,7 @@ def test_serve_csv(
 
 @pytest.mark.model("mnist")
 @pytest.mark.processor("gpu")
+@pytest.mark.team("inference-toolkit")
 @pytest.mark.skip_cpu
 def test_serve_cpu_model_on_gpu(
     test_loader, docker_image, framework_version, sagemaker_local_session, instance_type
@@ -110,6 +114,7 @@ def test_serve_cpu_model_on_gpu(
 
 @pytest.mark.model("mnist")
 @pytest.mark.processor("cpu")
+@pytest.mark.team("inference-toolkit")
 @pytest.mark.skip_gpu_py2
 def test_serving_calls_model_fn_once(
     docker_image, framework_version, sagemaker_local_session, instance_type

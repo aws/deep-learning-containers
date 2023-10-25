@@ -87,6 +87,7 @@ def make_headers(content_type, method):
 
 
 @pytest.mark.model("half_plus_three")
+@pytest.mark.team("inference-toolkit")
 def test_predict_json():
     headers = make_headers("application/json", "predict")
     data = '{"instances": [1.0, 2.0, 5.0]}'
@@ -95,6 +96,7 @@ def test_predict_json():
 
 
 @pytest.mark.model("half_plus_three")
+@pytest.mark.team("inference-toolkit")
 def test_zero_content():
     headers = make_headers("application/json", "predict")
     data = ""
@@ -104,6 +106,7 @@ def test_zero_content():
 
 
 @pytest.mark.model("half_plus_three")
+@pytest.mark.team("inference-toolkit")
 def test_large_input():
     headers = make_headers("text/csv", "predict")
     data_file = "test/resources/inputs/test-large.csv"
@@ -116,6 +119,7 @@ def test_large_input():
 
 
 @pytest.mark.model("half_plus_three")
+@pytest.mark.team("inference-toolkit")
 def test_csv_input():
     headers = make_headers("text/csv", "predict")
     data = "1.0,2.0,5.0"
@@ -124,6 +128,7 @@ def test_csv_input():
 
 
 @pytest.mark.model("half_plus_three")
+@pytest.mark.team("inference-toolkit")
 def test_unsupported_content_type():
     headers = make_headers("unsupported-type", "predict")
     data = "aW1hZ2UgYnl0ZXM="
@@ -133,6 +138,7 @@ def test_unsupported_content_type():
 
 
 @pytest.mark.model("half_plus_three")
+@pytest.mark.team("inference-toolkit")
 def test_ping_service():
     response = requests.get(PING_URL)
     assert 200 == response.status_code
