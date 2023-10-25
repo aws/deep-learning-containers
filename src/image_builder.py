@@ -425,15 +425,22 @@ def generate_common_stage_image_object(pre_push_stage_image_object, image_tag):
     return common_stage_image_object
 
 
-def trigger_apatch(image_uri, s3_downloaded_path):
+def trigger_apatch(image_uri, s3_downloaded_path, python_version=None):
     # Note: Image should have already been pulled
-    mount_path = os.path.join(os.sep, s3_downloaded_path)
+    mount_path_1 = os.path.join(os.sep, s3_downloaded_path)
+    mount_path_2 = os.path.join(os.sep, get_cloned_folder_path())
     docker_run_cmd = (
-        f"docker run -v {mount_path}:/patch-dlc -id --entrypoint='/bin/bash' {image_uri} "
+        f"docker run -v {mount_path_1}:/patch-dlc -v {mount_path_2}:/deep-learning-containers -id --entrypoint='/bin/bash' {image_uri} "
     )
+    print(f"TRSHANTA docker_run_cmd : {docker_run_cmd}")
     container_id = run(f"{docker_run_cmd}").stdout.strip()
     docker_exec_cmd = f"docker exec -i {container_id}"
-    script_run_cmd = f"bash /patch-dlc/script.sh {image_uri}"
+    absolute_core_package_path = utils.get_core_packages_path(image_uri, python_version)
+    core_package_path_within_dlc_repo = ""
+    if os.path.exists(absolute_core_package_path):
+        core_package_path_within_dlc_repo = absolute_core_package_path.replace(mount_path_2, os.path.join(os.sep, "deep-learning-containers"))
+    script_run_cmd = f"bash /patch-dlc/script.sh {image_uri} {core_package_path_within_dlc_repo}"
+    print(f"TRSHANTA script_run_cmd : {script_run_cmd}")
     result = run(f"{docker_exec_cmd} {script_run_cmd}", hide=True)
     new_cmd = result.stdout.strip().split("\n")[-1]
     print(f"For {image_uri} => {new_cmd}")
@@ -521,7 +528,7 @@ def conduct_apatch_build_setup(pre_push_image_object: DockerImage, download_path
     with concurrent.futures.ThreadPoolExecutor(max_workers=2) as executor:
         #### TODO: Remove this entire if block when get_dummy_boto_client is removed ####
         get_dummy_boto_client()
-        THREADS[f"trigger_apatch-{filtered_list[0]}"] = executor.submit(trigger_apatch, image_uri=filtered_list[0], s3_downloaded_path=download_path)
+        THREADS[f"trigger_apatch-{filtered_list[0]}"] = executor.submit(trigger_apatch, image_uri=filtered_list[0], s3_downloaded_path=download_path, python_version=info.get("python_version"))
         THREADS[f"trigger_enhanced_scan-{filtered_list[0]}"] = executor.submit(trigger_enhanced_scan, image_uri=filtered_list[0], patch_details_path=patch_details_path, python_version=info.get("python_version"))
     # the FORMATTER.progress(THREADS) function call also waits until all threads have completed
     FORMATTER.progress(THREADS)

@@ -311,7 +311,6 @@ def get_dockerfile_path_for_image(image_uri, python_version=None):
 
     device_type = get_processor_from_image_uri(image_uri)
     cuda_version = get_cuda_version_from_tag(image_uri)
-    LOGGER.info(f"TRSHANTA CudaVersion: {cuda_version}")
     synapseai_version = get_synapseai_version_from_tag(image_uri)
     neuron_sdk_version = get_neuron_sdk_version_from_tag(image_uri)
 

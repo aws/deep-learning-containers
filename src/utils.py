@@ -378,3 +378,16 @@ def get_unique_s3_path_for_uploading_data_to_pr_creation_bucket(image_uri: str):
     commit = os.getenv("CODEBUILD_RESOLVED_SOURCE_VERSION", "temp")
     object_name = image_uri.replace(":","-").replace("/", "-")
     return f"{commit}/{object_name}.json"
+
+
+def get_core_packages_path(image_uri, python_version=None):
+    """
+    Retrieves the safety_scan_allowlist_path for each image_uri.
+    
+    :param image_uri: str, consists of f"{image_repo}:{image_tag}"
+    :return: string, safety scan allowlist path for the image
+    """
+    from test.test_utils import get_ecr_scan_allowlist_path
+    os_scan_allowlist_path = get_ecr_scan_allowlist_path(image_uri, python_version)
+    core_packages_path = os_scan_allowlist_path.replace(".os_scan_allowlist.",".core_packages.")
+    return core_packages_path
