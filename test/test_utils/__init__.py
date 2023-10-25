@@ -1114,13 +1114,7 @@ def delete_uploaded_tests_from_s3(s3_test_location):
 
 
 def get_dlc_images():
-    if is_pr_context() or is_empty_build_context():
-        return os.getenv("DLC_IMAGES")
-    elif is_canary_context():
-        # TODO: Remove 'training' default once training-specific canaries are added
-        image_type = get_image_type() or "training"
-        return parse_canary_images(os.getenv("FRAMEWORK"), os.getenv("AWS_REGION"), image_type)
-    elif is_deep_canary_context():
+    if is_deep_canary_context():
         deep_canary_images = get_deep_canary_images(
             canary_framework=os.getenv("FRAMEWORK"),
             canary_image_type=get_image_type(),
@@ -1128,6 +1122,12 @@ def get_dlc_images():
             canary_region=os.getenv("AWS_REGION"),
         )
         return " ".join(deep_canary_images)
+    elif is_pr_context() or is_empty_build_context():
+        return os.getenv("DLC_IMAGES")
+    elif is_canary_context():
+        # TODO: Remove 'training' default once training-specific canaries are added
+        image_type = get_image_type() or "training"
+        return parse_canary_images(os.getenv("FRAMEWORK"), os.getenv("AWS_REGION"), image_type)
     elif is_mainline_context():
         test_env_file = os.path.join(
             os.getenv("CODEBUILD_SRC_DIR_DLC_IMAGES_JSON"), "test_type_images.json"
