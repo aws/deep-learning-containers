@@ -142,7 +142,7 @@ def main():
     parser.add_argument(
         "--local_rank",
         type=int,
-        default=os.getenv("LOCAL_RANK", -1),
+        default=os.getenv("LOCAL_RANK"),
         metavar="S",
         help="random seed (default: 1)",
     )
