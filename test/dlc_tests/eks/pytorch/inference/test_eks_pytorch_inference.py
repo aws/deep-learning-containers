@@ -61,6 +61,7 @@ def __run_pytorch_neuron_inference(image, model_name, model_url, processor):
 
 
 @pytest.mark.model("resnet")
+@pytest.mark.team("neuron")
 def test_eks_pytorch_neuron_inference(pytorch_inference_neuron):
     __run_pytorch_neuron_inference(
         pytorch_inference_neuron,
@@ -72,6 +73,7 @@ def test_eks_pytorch_neuron_inference(pytorch_inference_neuron):
 
 @pytest.mark.skip("No trn1 in the EKS cluster, disabled temporarily")
 @pytest.mark.model("resnet")
+@pytest.mark.team("neuron")
 def test_eks_pytorch_neuronx_inference(pytorch_inference_neuronx):
     __run_pytorch_neuron_inference(
         pytorch_inference_neuronx,
