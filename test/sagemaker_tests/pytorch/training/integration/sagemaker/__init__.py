@@ -153,7 +153,6 @@ def _test_mnist_distributed(
     instance_type=None,
     instance_groups=None,
     use_inductor=False,
-    use_mpi=False,
 ):
     dist_method = "pytorchddp" if dist_backend.lower() == "nccl" else "torch_distributed"
     est_params = {
