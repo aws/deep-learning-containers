@@ -439,9 +439,12 @@ RUN pip install --no-cache-dir -U \
     smclarify \
     "sagemaker>=2,<3" \
     "sagemaker-experiments<1" \
+    # installing sm toolkit version explicitly as sm pytorch training package pulls older sm toolkit
+    # once newer version is released, then this can be removed
     sagemaker-pytorch-training \
-    # temp change to update sm toolkit
-    sagemaker-training==4.7.3 \
+    sagemaker-training>=4.7.3 \
+    # have added awscli version here to match the pip check requirements, else it fails
+    awscli \
     triton==2.0.0
 
 # Install extra packages
