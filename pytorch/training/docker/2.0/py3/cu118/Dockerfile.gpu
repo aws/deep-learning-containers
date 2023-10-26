@@ -125,6 +125,10 @@ RUN curl -L -o ~/mambaforge.sh https://github.com/conda-forge/miniforge/releases
  && rm ~/mambaforge.sh \
  && /opt/conda/bin/mamba clean -afy
 
+# Install zstandard on system python to prevent conda installation errors
+# Reference https://github.com/conda/conda-libmamba-solver/issues/241
+RUN pip install "zstandard>=0.21.0"
+
 # Install common conda packages
 RUN /opt/conda/bin/mamba install -y -c conda-forge \
     pyopenssl \
@@ -314,10 +318,12 @@ RUN /opt/conda/bin/mamba install -y -c conda-forge \
 RUN pip install \
   "pillow>=9.5" \
   "pyyaml>=6.0.1" \
-  "opencv-python>=4.8.1" \
+  "opencv-python>=4.8.1"
+RUN /opt/conda/bin/mamba install -y -c conda-forge \
   "requests>=2.31.0" \
   # Install urllib3 (dependency of requests) as a separate package to force upgrade to latest secure version
-  "urllib3>=1.26.18"
+  "urllib3>=1.26.18" \
+  && /opt/conda/bin/mamba clean -afy
 
 # Install Nvidia Apex (needs pytorch)
 ## Pin apex commit requested by sm-model-parallel team
@@ -495,10 +501,12 @@ RUN /opt/conda/bin/mamba install -y -c conda-forge \
 RUN pip install \
   "pillow>=9.5" \
   "pyyaml>=6.0.1" \
-  "opencv-python>=4.8.1" \
+  "opencv-python>=4.8.1"
+RUN /opt/conda/bin/mamba install -y -c conda-forge \
   "requests>=2.31.0" \
   # Install urllib3 (dependency of requests) as a separate package to force upgrade to latest secure version
-  "urllib3>=1.26.18"
+  "urllib3>=1.26.18" \
+  && /opt/conda/bin/mamba clean -afy
 
 WORKDIR /
 
