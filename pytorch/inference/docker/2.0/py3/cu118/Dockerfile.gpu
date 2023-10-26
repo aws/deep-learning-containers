@@ -26,7 +26,7 @@ ARG SM_TOOLKIT_VERSION
 # |_____\____|_____| |___|_| |_| |_|\__,_|\__, |\___|
 #                                         |___/
 #  ____           _
-# |  _ \ ___  ___(_)_ __   ___ 
+# |  _ \ ___  ___(_)_ __   ___
 # | |_) / _ \/ __| | '_ \ / _ \
 # |  _ <  __/ (__| | |_) |  __/
 # |_| \_\___|\___|_| .__/ \___|
@@ -164,6 +164,8 @@ RUN curl -L -o ~/mambaforge.sh https://github.com/conda-forge/miniforge/releases
     typing \
     h5py \
     requests \
+    # Install urllib3 (dependency of requests) as a separate package to force upgrade to latest secure version
+    urllib3 \
     libgcc \
     # Below 2 are included in miniconda base, but not mamba so need to install
     conda-content-trust \
@@ -182,7 +184,7 @@ RUN pip install --no-cache-dir -U \
     opencv-python \
     # "nvgpu" is a dependency of TS but is disabled in SM DLC build,
     # via ENV Variable "TS_DISABLE_SYSTEM_METRICS=true" in the SM section of this file.
-    # due to incompatibility with SM hosts 
+    # due to incompatibility with SM hosts
     nvgpu \
     pyOpenSSL \
     cryptography \
@@ -208,7 +210,7 @@ RUN pip install --no-cache-dir -U \
 # NOTE: This also brings in unnecessary cpu dependencies like nvgpu
 # -> Numpy is higer version as required by torch
 RUN pip install --no-cache-dir -U -r https://raw.githubusercontent.com/pytorch/serve/v${TORCHSERVE_VERSION}/requirements/common.txt \
- && pip install --no-cache-dir -U \ 
+ && pip install --no-cache-dir -U \
     "numpy>=1.22.2,<1.23" \
     torchserve==${TORCHSERVE_VERSION} \
     torch-model-archiver==${TORCHSERVE_VERSION}
