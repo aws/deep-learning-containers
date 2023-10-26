@@ -348,7 +348,6 @@ def test_pytorch_nccl(pytorch_training, ec2_connection, gpu_only, py3_only, ec2_
 @pytest.mark.model("resnet18")
 @pytest.mark.parametrize("ec2_instance_type", PT_INDUCTOR_TEST_INSTANCE_TYPE, indirect=True)
 @pytest.mark.skip_inductor_test
-@pytest.mark.team("conda")
 def test_pytorch_nccl_inductor(
     pytorch_training, ec2_connection, gpu_only, py3_only, ec2_instance_type
 ):
