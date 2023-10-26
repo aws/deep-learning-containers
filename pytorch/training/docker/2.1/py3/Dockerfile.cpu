@@ -255,6 +255,8 @@ ENV SAGEMAKER_TRAINING_MODULE=sagemaker_pytorch_container.training:main
 ARG PYTORCH_VERSION_SM
 ARG CONDA_CHANNEL
 
+WORKDIR /
+
 # Install SM AWS-PyTorch
 RUN /opt/conda/bin/mamba install -y pytorch=${PYTORCH_VERSION_SM} \
   torchvision torchaudio torchtext cpuonly \
@@ -273,7 +275,11 @@ RUN /opt/conda/bin/mamba install -y -c conda-forge \
   && pip uninstall -y dataclasses \
   && /opt/conda/bin/mamba clean -afy
 
-WORKDIR /
+# Patches
+RUN pip install pillow "pyyaml>=6.0.1" opencv-python
+RUN /opt/conda/bin/mamba install -y -c conda-forge \
+  "requests>=2.31.0" \
+  && /opt/conda/bin/mamba clean -afy
 
 # Copy workaround script for incorrect hostname
 COPY changehostname.c /
@@ -281,6 +287,9 @@ COPY start_with_right_hostname.sh /usr/local/bin/start_with_right_hostname.sh
 
 RUN chmod +x /usr/local/bin/start_with_right_hostname.sh
 
+WORKDIR /root
+
+# install SM packages
 RUN pip install --no-cache-dir --upgrade pip --trusted-host pypi.org --trusted-host files.pythonhosted.org \
  && pip install --no-cache-dir -U \
     smclarify \
@@ -303,11 +312,7 @@ RUN /opt/conda/bin/mamba install -y -c conda-forge \
   shap \
  && /opt/conda/bin/mamba clean -afy
 
-# Patches
-RUN pip install pillow "pyyaml>=6.0.1" opencv-python
-RUN /opt/conda/bin/mamba install -y -c conda-forge \
-  "requests>=2.31.0" \
-  && /opt/conda/bin/mamba clean -afy
+ WORKDIR /
 
 RUN HOME_DIR=/root \
  && curl -o ${HOME_DIR}/oss_compliance.zip https://aws-dlinfra-utilities.s3.amazonaws.com/oss_compliance.zip \

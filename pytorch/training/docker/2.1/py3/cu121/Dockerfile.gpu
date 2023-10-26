@@ -354,7 +354,6 @@ ARG CONDA_CHANNEL
 ARG CUDA_HOME
 ARG TORCH_CUDA_ARCH_LIST
 ARG NCCL_ASYNC_ERROR_HANDLING
-ARG RMM_VERSION=0.15.0
 
 WORKDIR /
 
@@ -440,6 +439,8 @@ COPY start_with_right_hostname.sh /usr/local/bin/start_with_right_hostname.sh
 
 RUN chmod +x /usr/local/bin/start_with_right_hostname.sh
 
+WORKDIR /root
+
 # install SM packages
 RUN pip install --no-cache-dir -U \
     smclarify \
@@ -462,32 +463,7 @@ RUN /opt/conda/bin/mamba install -y -c conda-forge \
   seaborn \
  && /opt/conda/bin/mamba clean -afy
 
-# install metis
-RUN rm -rf /etc/apt/sources.list.d/* \
- && git clone https://github.com/KarypisLab/GKlib \
- && cd GKlib \
- && make config \
- && make \
- && make install \
- && cd .. \
- && git clone https://github.com/KarypisLab/METIS.git \
- && cd METIS \
- && make config shared=1 cc=gcc prefix=/root/local \
- && make install \
- && cd .. \
- && rm -rf METIS GKlib \
- && rm -rf /var/lib/apt/lists/* \
- && apt-get clean
-
-# Install RAPIDSMemoryManager.
-# Requires cmake>=3.14.
-RUN  wget -nv https://github.com/rapidsai/rmm/archive/v${RMM_VERSION}.tar.gz \
- && tar -xvf v${RMM_VERSION}.tar.gz \
- && cd rmm-${RMM_VERSION} \
- && INSTALL_PREFIX=/usr/local ./build.sh librmm \
- && cd .. \
- && rm -rf v${RMM_VERSION}.tar* \
- && rm -rf rmm-${RMM_VERSION}
+WORKDIR /
 
 RUN HOME_DIR=/root \
  && curl -o ${HOME_DIR}/oss_compliance.zip https://aws-dlinfra-utilities.s3.amazonaws.com/oss_compliance.zip \
