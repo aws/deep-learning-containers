@@ -203,6 +203,7 @@ class TestDistributedTraining:
     @pytest.mark.skip(reason="Trcomp behavior with SMDP is undefined")
     @pytest.mark.model("toy")
     @pytest.mark.integration("smdataparallel")
+    @pytest.mark.team("smdataparallel")
     def test_smdp(
         self, sagemaker_session, ecr_image, framework_version, instance_count, tmpdir, capsys
     ):
@@ -229,6 +230,7 @@ class TestDistributedTraining:
         reason="SMMP is only supported on CUDA 11 on TensorFlow version between v2.3.1(inclusive) and v2.7.0(exclusive)"
     )
     @pytest.mark.model("toy")
+    @pytest.mark.team("smmodelparallel")
     @pytest.mark.integration("smmodelparallel")
     def test_smmp(
         self,
@@ -271,6 +273,7 @@ class TestDistributedTraining:
     )
     @pytest.mark.model("toy")
     @pytest.mark.integration("horovod")
+    @pytest.mark.team("smmodelparallel")
     @pytest.mark.integration("smmodelparallel")
     def test_smmp_with_horovod(
         self,
