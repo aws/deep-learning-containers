@@ -49,6 +49,7 @@ def can_run_gdrcopy(ecr_image):
 @pytest.mark.skip_cpu
 @pytest.mark.skip_trcomp_containers
 @pytest.mark.gdrcopy()
+@pytest.mark.team("smdataparallel")
 @pytest.mark.parametrize(
     "efa_instance_type", get_efa_test_instance_type(default=["ml.p4d.24xlarge"]), indirect=True
 )

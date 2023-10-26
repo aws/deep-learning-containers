@@ -86,6 +86,7 @@ def make_request(data, content_type="application/json", method="predict"):
 
 @pytest.mark.flaky(reruns=5, reruns_delay=25)
 @pytest.mark.model("half_plus_three")
+@pytest.mark.team("inference-toolkit")
 def test_predict():
     x = {"instances": [1.0, 2.0, 5.0]}
 
@@ -95,6 +96,7 @@ def test_predict():
 
 @pytest.mark.flaky(reruns=5, reruns_delay=25)
 @pytest.mark.model("half_plus_three")
+@pytest.mark.team("inference-toolkit")
 def test_predict_twice():
     x = {"instances": [1.0, 2.0, 5.0]}
 
@@ -106,6 +108,7 @@ def test_predict_twice():
 
 @pytest.mark.flaky(reruns=5, reruns_delay=25)
 @pytest.mark.model("half_plus_three")
+@pytest.mark.team("inference-toolkit")
 def test_predict_two_instances():
     x = {"instances": [[1.0, 2.0, 5.0], [1.0, 2.0, 5.0]]}
 
@@ -115,6 +118,7 @@ def test_predict_two_instances():
 
 @pytest.mark.flaky(reruns=5, reruns_delay=25)
 @pytest.mark.model("half_plus_three")
+@pytest.mark.team("inference-toolkit")
 def test_predict_instance_jsonlines_input_error():
     """
     Test with input that previously triggered jsonlines code in tensorflowServing.js
@@ -129,6 +133,7 @@ def test_predict_instance_jsonlines_input_error():
 
 @pytest.mark.flaky(reruns=5, reruns_delay=25)
 @pytest.mark.model("half_plus_three")
+@pytest.mark.team("inference-toolkit")
 def test_predict_jsons_json_content_type():
     x = "[1.0, 2.0, 5.0]\n[1.0, 2.0, 5.0]"
     y = make_request(x)
@@ -137,6 +142,7 @@ def test_predict_jsons_json_content_type():
 
 @pytest.mark.flaky(reruns=5, reruns_delay=25)
 @pytest.mark.model("half_plus_three")
+@pytest.mark.team("inference-toolkit")
 def test_predict_jsonlines():
     x = "[1.0, 2.0, 5.0]\n[1.0, 2.0, 5.0]"
     y = make_request(x, "application/jsonlines")
@@ -145,6 +151,7 @@ def test_predict_jsonlines():
 
 @pytest.mark.flaky(reruns=5, reruns_delay=25)
 @pytest.mark.model("half_plus_three")
+@pytest.mark.team("inference-toolkit")
 def test_predict_jsons():
     x = "[1.0, 2.0, 5.0]\n[1.0, 2.0, 5.0]"
     y = make_request(x, "application/jsons")
@@ -161,6 +168,7 @@ def test_predict_jsons_2():
 
 @pytest.mark.flaky(reruns=5, reruns_delay=25)
 @pytest.mark.model("half_plus_three")
+@pytest.mark.team("inference-toolkit")
 def test_predict_generic_json():
     x = [1.0, 2.0, 5.0]
     y = make_request(json.dumps(x))
@@ -169,6 +177,7 @@ def test_predict_generic_json():
 
 @pytest.mark.flaky(reruns=5, reruns_delay=25)
 @pytest.mark.model("half_plus_three")
+@pytest.mark.team("inference-toolkit")
 def test_predict_generic_json_two_instances():
     x = [[1.0, 2.0, 5.0], [1.0, 2.0, 5.0]]
     y = make_request(json.dumps(x))
@@ -177,6 +186,7 @@ def test_predict_generic_json_two_instances():
 
 @pytest.mark.flaky(reruns=5, reruns_delay=25)
 @pytest.mark.model("half_plus_three")
+@pytest.mark.team("inference-toolkit")
 def test_predict_csv():
     x = "1.0"
     y = make_request(x, "text/csv")
@@ -185,6 +195,7 @@ def test_predict_csv():
 
 @pytest.mark.flaky(reruns=5, reruns_delay=25)
 @pytest.mark.model("half_plus_three")
+@pytest.mark.team("inference-toolkit")
 def test_predict_csv_with_zero():
     x = "0.0"
     y = make_request(x, "text/csv")
@@ -193,6 +204,7 @@ def test_predict_csv_with_zero():
 
 @pytest.mark.flaky(reruns=5, reruns_delay=25)
 @pytest.mark.model("half_plus_three")
+@pytest.mark.team("inference-toolkit")
 def test_predict_csv_one_instance_three_values_with_zero():
     x = "0.0,2.0,5.0"
     y = make_request(x, "text/csv")
@@ -201,6 +213,7 @@ def test_predict_csv_one_instance_three_values_with_zero():
 
 @pytest.mark.flaky(reruns=5, reruns_delay=25)
 @pytest.mark.model("half_plus_three")
+@pytest.mark.team("inference-toolkit")
 def test_predict_csv_one_instance_three_values():
     x = "1.0,2.0,5.0"
     y = make_request(x, "text/csv")
@@ -209,6 +222,7 @@ def test_predict_csv_one_instance_three_values():
 
 @pytest.mark.flaky(reruns=5, reruns_delay=25)
 @pytest.mark.model("half_plus_three")
+@pytest.mark.team("inference-toolkit")
 def test_predict_csv_two_instances_three_values():
     x = "1.0,2.0,5.0\n1.0,2.0,5.0"
     y = make_request(x, "text/csv")
@@ -217,6 +231,7 @@ def test_predict_csv_two_instances_three_values():
 
 @pytest.mark.flaky(reruns=5, reruns_delay=25)
 @pytest.mark.model("half_plus_three")
+@pytest.mark.team("inference-toolkit")
 def test_predict_csv_three_instances():
     x = "1.0\n2.0\n5.0"
     y = make_request(x, "text/csv")
@@ -225,6 +240,7 @@ def test_predict_csv_three_instances():
 
 @pytest.mark.flaky(reruns=5, reruns_delay=25)
 @pytest.mark.model("half_plus_three")
+@pytest.mark.team("inference-toolkit")
 def test_predict_csv_wide_categorical_input():
     x = (
         "0.0,1.0,0.0,1.0,0.0,1.0,0.0,1.0,0.0,1.0,1.0,0.0,1.0,0.0,1.0,0.0,1.0,0.0,1.0,0.0,0.0,1.0,0.0,1.0,0.0,1.0,0.0,1.0,0.0,0.0\n"  # noqa
@@ -242,6 +258,7 @@ def test_predict_csv_wide_categorical_input():
 
 @pytest.mark.flaky(reruns=5, reruns_delay=25)
 @pytest.mark.model("half_plus_three")
+@pytest.mark.team("inference-toolkit")
 def test_regress():
     x = {"signature_name": "tensorflow/serving/regress", "examples": [{"x": 1.0}, {"x": 2.0}]}
 
@@ -251,6 +268,7 @@ def test_regress():
 
 @pytest.mark.flaky(reruns=5, reruns_delay=25)
 @pytest.mark.model("half_plus_three")
+@pytest.mark.team("inference-toolkit")
 def test_regress_one_instance():
     # tensorflow serving docs indicate response should have 'result' key,
     # but it is actually 'results'
@@ -263,6 +281,7 @@ def test_regress_one_instance():
 
 @pytest.mark.flaky(reruns=5, reruns_delay=25)
 @pytest.mark.model("half_plus_three")
+@pytest.mark.team("inference-toolkit")
 def test_predict_bad_input():
     y = make_request("whatever")
     assert "error" in y
@@ -270,6 +289,7 @@ def test_predict_bad_input():
 
 @pytest.mark.flaky(reruns=5, reruns_delay=25)
 @pytest.mark.model("half_plus_three")
+@pytest.mark.team("inference-toolkit")
 def test_predict_bad_input_instances():
     x = json.dumps({"junk": "data"})
     y = make_request(x)
@@ -278,6 +298,7 @@ def test_predict_bad_input_instances():
 
 @pytest.mark.flaky(reruns=5, reruns_delay=25)
 @pytest.mark.model("half_plus_three")
+@pytest.mark.team("inference-toolkit")
 def test_predict_no_custom_attributes_header():
     x = {"instances": [1.0, 2.0, 5.0]}
 
@@ -290,6 +311,7 @@ def test_predict_no_custom_attributes_header():
 
 @pytest.mark.flaky(reruns=5, reruns_delay=25)
 @pytest.mark.model("half_plus_three")
+@pytest.mark.team("inference-toolkit")
 def test_predict_with_jsonlines():
     x = {"instances": [1.0, 2.0, 5.0]}
 

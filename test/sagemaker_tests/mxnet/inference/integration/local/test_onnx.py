@@ -30,6 +30,7 @@ SCRIPT_PATH = os.path.join(MODEL_PATH, "code", "onnx_import.py")
 
 @pytest.mark.integration("onnx")
 @pytest.mark.model("onnx_model")
+@pytest.mark.team("inference-toolkit")
 def test_onnx_import(docker_image, sagemaker_local_session, local_instance_type, framework_version):
     model = MXNetModel(
         "file://{}".format(MODEL_FILE),
