@@ -28,6 +28,7 @@ def test_ecs_tensorflow_inference_cpu(
 @pytest.mark.model("half_plus_two")
 @pytest.mark.parametrize("ecs_instance_type", ["c6g.4xlarge"], indirect=True)
 @pytest.mark.parametrize("ecs_ami", [ECS_AML2_GRAVITON_CPU_USWEST2], indirect=True)
+@pytest.mark.team("graviton")
 def test_ecs_tensorflow_inference_graviton_cpu(
     tensorflow_inference_graviton, ecs_container_instance, region, cpu_only
 ):
@@ -248,6 +249,7 @@ def test_ecs_tensorflow_inference_cpu_nlp(
 @pytest.mark.model("albert")
 @pytest.mark.parametrize("ecs_instance_type", ["c6g.4xlarge"], indirect=True)
 @pytest.mark.parametrize("ecs_ami", [ECS_AML2_GRAVITON_CPU_USWEST2], indirect=True)
+@pytest.mark.team("graviton")
 def test_ecs_tensorflow_inference_graviton_cpu_nlp(
     tensorflow_inference_graviton, ecs_container_instance, region, cpu_only
 ):

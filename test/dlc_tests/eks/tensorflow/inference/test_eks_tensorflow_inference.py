@@ -128,6 +128,7 @@ def test_eks_tensorflow_half_plus_two_inference(tensorflow_inference):
 
 
 @pytest.mark.model("half_plus_two")
+@pytest.mark.team("graviton")
 def test_eks_tensorflow_half_plus_two_inference_graviton(tensorflow_inference_graviton):
     __test_eks_tensorflow_half_plus_two_inference(tensorflow_inference_graviton)
 
@@ -191,6 +192,7 @@ def test_eks_tensorflow_albert(tensorflow_inference):
 
 
 @pytest.mark.model("albert")
+@pytest.mark.team("graviton")
 def test_eks_tensorflow_albert_graviton(tensorflow_inference_graviton):
     __test_eks_tensorflow_albert(tensorflow_inference_graviton)
 

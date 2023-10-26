@@ -60,6 +60,7 @@ def test_performance_ec2_pytorch_inference_cpu(pytorch_inference, ec2_connection
 @pytest.mark.model("resnet18, VGG13, MobileNetV2, GoogleNet, DenseNet121, InceptionV3")
 @pytest.mark.parametrize("ec2_instance_type", ["c6g.4xlarge"], indirect=True)
 @pytest.mark.parametrize("ec2_instance_ami", [UL20_CPU_ARM64_US_WEST_2], indirect=True)
+@pytest.mark.team("graviton")
 def test_performance_ec2_pytorch_inference_graviton_cpu(
     pytorch_inference_graviton, ec2_connection, region, cpu_only
 ):

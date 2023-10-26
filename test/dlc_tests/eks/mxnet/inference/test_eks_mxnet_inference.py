@@ -62,6 +62,7 @@ def test_eks_mxnet_squeezenet_inference(mxnet_inference):
 
 
 @pytest.mark.model("squeezenet")
+@pytest.mark.team("graviton")
 def test_eks_mxnet_squeezenet_inference_graviton(mxnet_inference_graviton):
     __test_eks_mxnet_squeezenet_inference(mxnet_inference_graviton)
 
@@ -130,6 +131,7 @@ def test_eks_mxnet_gluonnlp_inference(mxnet_inference, py3_only):
 )
 @pytest.mark.integration("gluonnlp")
 @pytest.mark.model("bert_sst")
+@pytest.mark.team("graviton")
 def test_eks_mxnet_gluonnlp_inference_graviton(mxnet_inference_graviton):
     __test_eks_mxnet_gluonnlp_inference(mxnet_inference_graviton)
 
