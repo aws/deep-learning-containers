@@ -10,7 +10,7 @@ from invoke import run, Context
 from time import sleep, time
 from enum import IntEnum
 from test import test_utils
-from test.test_utils import LOGGER, EnhancedJSONEncoder, ecr as ecr_utils
+from test.test_utils import LOGGER, EnhancedJSONEncoder, ecr as ecr_utils, get_installed_python_packages_with_version
 import dataclasses
 from dataclasses import dataclass
 from typing import Any, List
@@ -1134,28 +1134,6 @@ def get_os_package_upgradable_status(
             )
             ignore_message = f"""{ignore_message} Packages: {",".join(package_related_binaries)} have been upgraded."""
     return is_package_upgradable, ignore_message
-
-
-def get_installed_python_packages_with_version(docker_exec_command: str):
-    package_version_dict = {}
-
-    python_cmd_to_extract_package_set = """ python -c "import pkg_resources; \
-        import json; \
-        print(json.dumps([{'name':d.key, 'version':d.version} for d in pkg_resources.working_set]))" """
-    
-    run_output = run(f"{docker_exec_command} {python_cmd_to_extract_package_set}")
-    list_of_package_data_dicts = json.loads(run_output.stdout)
-
-    for package_data_dict in list_of_package_data_dicts:
-        package_name = package_data_dict["name"].lower()
-        if package_name in package_version_dict:
-            raise Exception(f""" Package {package_name} existing multiple times in {list_of_package_data_dicts}""")
-        package_version_dict[package_name] = package_data_dict["version"]
-    
-    print(f"TRSHANTA RESULT: {package_version_dict}")
-    print({len(list(package_version_dict.keys()))})
-
-    return package_version_dict
 
 
 def check_if_python_vulnerability_is_non_patchable_and_get_ignore_message(

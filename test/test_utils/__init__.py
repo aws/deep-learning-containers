@@ -2085,3 +2085,25 @@ def get_ecr_scan_allowlist_path(image_uri, python_version=None):
         )
         image_scan_allowlist_path += ".example.os_scan_allowlist.json"
     return image_scan_allowlist_path
+
+
+def get_installed_python_packages_with_version(docker_exec_command: str):
+    package_version_dict = {}
+
+    python_cmd_to_extract_package_set = """ python -c "import pkg_resources; \
+        import json; \
+        print(json.dumps([{'name':d.key, 'version':d.version} for d in pkg_resources.working_set]))" """
+    
+    run_output = run(f"{docker_exec_command} {python_cmd_to_extract_package_set}")
+    list_of_package_data_dicts = json.loads(run_output.stdout)
+
+    for package_data_dict in list_of_package_data_dicts:
+        package_name = package_data_dict["name"].lower()
+        if package_name in package_version_dict:
+            raise Exception(f""" Package {package_name} existing multiple times in {list_of_package_data_dicts}""")
+        package_version_dict[package_name] = package_data_dict["version"]
+    
+    print(f"TRSHANTA RESULT: {package_version_dict}")
+    print({len(list(package_version_dict.keys()))})
+
+    return package_version_dict
