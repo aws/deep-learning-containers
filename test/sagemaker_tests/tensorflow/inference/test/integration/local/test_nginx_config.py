@@ -32,6 +32,7 @@ def volume():
 
 @pytest.mark.model("N/A")
 @pytest.mark.integration("nginx-config")
+@pytest.mark.team("inference-toolkit")
 def test_run_nginx_with_default_parameters(docker_base_name, tag, runtime_config):
     try:
         command = (
@@ -63,6 +64,7 @@ def test_run_nginx_with_default_parameters(docker_base_name, tag, runtime_config
 
 @pytest.mark.model("N/A")
 @pytest.mark.integration("nginx-config")
+@pytest.mark.team("inference-toolkit")
 def test_run_nginx_with_env_var_parameters(docker_base_name, tag, runtime_config):
     try:
         command = (
@@ -96,6 +98,7 @@ def test_run_nginx_with_env_var_parameters(docker_base_name, tag, runtime_config
 
 @pytest.mark.model("N/A")
 @pytest.mark.integration("nginx-config")
+@pytest.mark.team("inference-toolkit")
 def test_run_nginx_with_higher_gunicorn_parameter(docker_base_name, tag, runtime_config):
     try:
         command = (

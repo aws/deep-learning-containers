@@ -84,6 +84,7 @@ def test_eks_pytorch_neuronx_inference(pytorch_inference_neuronx):
 
 
 @pytest.mark.model("densenet")
+@pytest.mark.team("conda")
 def test_eks_pytorch_densenet_inference(pytorch_inference):
     __test_eks_pytorch_densenet_inference(pytorch_inference)
 

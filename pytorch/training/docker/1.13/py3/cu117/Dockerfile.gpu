@@ -20,6 +20,9 @@ ARG SMD_MODEL_PARALLEL_URL=https://sagemaker-distributed-model-parallel.s3.us-we
 # ZeRO-2D Binary
 ARG ZERO_2D_URL=https://aws-deepspeed-zero-2d-binaries.s3.us-west-2.amazonaws.com/r1.13.1/20230412-070309/4c3ff1af262257f1636b4aafd497e0c332a1bc1d/deepspeed-0.6.1%2B4c3ff1a-py3-none-any.whl
 
+# SageMaker Profiler Binary
+ARG SMP_URL=https://smppy.s3.amazonaws.com/pytorch/cu117/smppy-0.3.325-cp39-cp39-linux_x86_64.whl
+
 FROM nvidia/cuda:11.7.1-base-ubuntu20.04 AS base_image
 
 ENV DEBIAN_FRONTEND=noninteractive \
@@ -397,6 +400,9 @@ ARG SMD_MODEL_PARALLEL_URL
 # ZeRO-2D Binary
 ARG ZERO_2D_URL
 
+# SageMaker Profiler Binary
+ARG SMP_URL
+
 # PyTorch Binaries
 ARG PT_SM_TRAINING_URL
 ARG PT_TORCHVISION_URL
@@ -558,6 +564,10 @@ RUN  wget -nv https://github.com/rapidsai/rmm/archive/v${RMM_VERSION}.tar.gz \
 
 # Install ZeRO-2D Binary
 RUN pip install --no-cache-dir -U ${ZERO_2D_URL}
+
+# Install SageMaker Profiler Binary
+RUN apt-get update && apt-get install -y libunwind-dev && apt-get clean \
+ && pip install --no-cache-dir -U ${SMP_URL}
 
 # Install SM Distributed Modelparallel binary
 RUN pip install --no-cache-dir -U ${SMD_MODEL_PARALLEL_URL}

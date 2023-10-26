@@ -24,6 +24,7 @@ SMCLARIFY_EC2_CPU_INSTANCE_TYPE = get_ec2_instance_type(default="c4.2xlarge", pr
 @pytest.mark.usefixtures("sagemaker_only")
 @pytest.mark.integration("smclarify_cpu")
 @pytest.mark.model("N/A")
+@pytest.mark.team("smclarify")
 @pytest.mark.parametrize("ec2_instance_type", SMCLARIFY_EC2_CPU_INSTANCE_TYPE, indirect=True)
 def test_smclarify_metrics_cpu(
     training,
@@ -41,6 +42,7 @@ def test_smclarify_metrics_cpu(
 @pytest.mark.usefixtures("sagemaker_only")
 @pytest.mark.integration("smclarify_gpu")
 @pytest.mark.model("N/A")
+@pytest.mark.team("smclarify")
 @pytest.mark.parametrize("ec2_instance_type", SMCLARIFY_EC2_GPU_INSTANCE_TYPE, indirect=True)
 def test_smclarify_metrics_gpu(
     training,

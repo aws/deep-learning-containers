@@ -32,6 +32,7 @@ SCRIPT_PATH = os.path.join(HOSTING_RESOURCE_PATH, "code", "dummy_hosting_module.
 # in the user-provided script when serving.
 @pytest.mark.integration("hosting")
 @pytest.mark.model("dummy_model")
+@pytest.mark.team("inference-toolkit")
 def test_hosting(docker_image, sagemaker_local_session, local_instance_type, framework_version):
     model = MXNetModel(
         model_data="file://{}".format(MODEL_PATH),
