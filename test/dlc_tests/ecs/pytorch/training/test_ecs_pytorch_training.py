@@ -52,6 +52,7 @@ def test_ecs_pytorch_training_mnist_cpu(
 @pytest.mark.parametrize("training_script", [PT_MLP_NEURON_TRAINING_SCRIPT], indirect=True)
 @pytest.mark.parametrize("ecs_instance_type", ["trn1.2xlarge"], indirect=True)
 @pytest.mark.parametrize("ecs_ami", [ECS_AML2_NEURON_USWEST2], indirect=True)
+@pytest.mark.team("neuron")
 def test_ecs_pytorch_training_mnist_neuronx(
     ecs_container_instance,
     pytorch_training_neuronx,
@@ -83,6 +84,7 @@ def test_ecs_pytorch_training_mnist_neuronx(
 @pytest.mark.parametrize("training_script", [PT_MLP_NEURON_TRAINING_SCRIPT], indirect=True)
 @pytest.mark.parametrize("ecs_instance_type", ["inf2.xlarge"], indirect=True)
 @pytest.mark.parametrize("ecs_ami", [ECS_AML2_NEURON_USWEST2], indirect=True)
+@pytest.mark.team("neuron")
 def test_ecs_pytorch_training_mnist_neuronx_inf2(
     ecs_container_instance,
     pytorch_training_neuronx,
