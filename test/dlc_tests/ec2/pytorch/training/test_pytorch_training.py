@@ -186,7 +186,6 @@ def test_pytorch_train_mnist_gpu(pytorch_training, ec2_connection, gpu_only, ec2
 @pytest.mark.model("bert")
 @pytest.mark.integration("inductor")
 @pytest.mark.parametrize("ec2_instance_type", PT_EC2_GPU_INSTANCE_TYPE, indirect=True)
-@pytest.mark.team("conda")
 def test_pytorch_train_bert_gpu(pytorch_training, ec2_connection, gpu_only, ec2_instance_type):
     if test_utils.is_image_incompatible_with_instance_type(pytorch_training, ec2_instance_type):
         pytest.skip(
@@ -235,7 +234,6 @@ def test_pytorch_linear_regression_cpu(pytorch_training, ec2_connection, cpu_onl
 @pytest.mark.model("gcn")
 @pytest.mark.skip_dgl_test
 @pytest.mark.parametrize("ec2_instance_type", PT_EC2_GPU_INSTANCE_TYPE, indirect=True)
-@pytest.mark.team("conda")
 def test_pytorch_train_dgl_gpu(
     pytorch_training, ec2_connection, ec2_instance_type, gpu_only, py3_only, skip_pt110
 ):
@@ -259,7 +257,6 @@ def test_pytorch_train_dgl_gpu(
 @pytest.mark.integration("dgl")
 @pytest.mark.model("gcn")
 @pytest.mark.parametrize("ec2_instance_type", PT_EC2_CPU_INSTANCE_TYPE, indirect=True)
-@pytest.mark.team("conda")
 def test_pytorch_train_dgl_cpu(pytorch_training, ec2_connection, cpu_only, py3_only, skip_pt110):
     # DGL cpu ec2 test doesn't work on PT 1.10 DLC
     execute_ec2_training_test(ec2_connection, pytorch_training, PT_DGL_CMD)
@@ -291,7 +288,6 @@ def test_pytorch_gloo_gpu(pytorch_training, ec2_connection, gpu_only, py3_only, 
 @pytest.mark.integration("inductor")
 @pytest.mark.model("resnet18")
 @pytest.mark.parametrize("ec2_instance_type", PT_INDUCTOR_TEST_INSTANCE_TYPE, indirect=True)
-@pytest.mark.team("conda")
 @pytest.mark.skip_inductor_test
 def test_pytorch_gloo_inductor_gpu(
     pytorch_training, ec2_connection, gpu_only, py3_only, ec2_instance_type
@@ -433,7 +429,6 @@ def test_pytorch_mpi_gpu(
 @pytest.mark.integration("inductor")
 @pytest.mark.model("resnet18")
 @pytest.mark.parametrize("ec2_instance_type", PT_INDUCTOR_TEST_INSTANCE_TYPE, indirect=True)
-@pytest.mark.team("conda")
 @pytest.mark.skip_inductor_test
 def test_pytorch_mpi_inductor_gpu(
     pytorch_training,
@@ -518,7 +513,6 @@ def test_pytorch_amp(
 @pytest.mark.integration("inductor")
 @pytest.mark.model("resnet50")
 @pytest.mark.parametrize("ec2_instance_type", PT_INDUCTOR_TEST_INSTANCE_TYPE, indirect=True)
-@pytest.mark.team("conda")
 @pytest.mark.skip_inductor_test
 def test_pytorch_amp_inductor(
     pytorch_training, ec2_connection, gpu_only, ec2_instance_type, pt16_and_above_only

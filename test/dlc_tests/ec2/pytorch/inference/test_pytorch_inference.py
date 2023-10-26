@@ -106,7 +106,6 @@ def test_ec2_pytorch_inference_cpu(pytorch_inference, ec2_connection, region, cp
 @pytest.mark.model("densenet")
 @pytest.mark.parametrize("ec2_instance_type", PT_EC2_GRAVITON_INSTANCE_TYPE, indirect=True)
 @pytest.mark.parametrize("ec2_instance_ami", [test_utils.UL20_CPU_ARM64_US_WEST_2], indirect=True)
-@pytest.mark.team("conda")
 def test_ec2_pytorch_inference_graviton_cpu(
     pytorch_inference_graviton, ec2_connection, region, cpu_only
 ):
@@ -284,7 +283,6 @@ def test_pytorch_inference_telemetry_cpu(
 @pytest.mark.model("N/A")
 @pytest.mark.parametrize("ec2_instance_type", PT_EC2_GRAVITON_INSTANCE_TYPE, indirect=True)
 @pytest.mark.parametrize("ec2_instance_ami", [test_utils.UL20_CPU_ARM64_US_WEST_2], indirect=True)
-@pytest.mark.team("conda")
 def test_pytorch_inference_telemetry_graviton_cpu(
     pytorch_inference_graviton, ec2_connection, cpu_only
 ):

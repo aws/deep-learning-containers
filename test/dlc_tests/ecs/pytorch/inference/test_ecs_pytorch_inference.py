@@ -26,7 +26,6 @@ def test_ecs_pytorch_inference_cpu(pytorch_inference, ecs_container_instance, re
 @pytest.mark.model("densenet")
 @pytest.mark.parametrize("ecs_instance_type", ["c6g.4xlarge"], indirect=True)
 @pytest.mark.parametrize("ecs_ami", [ECS_AML2_GRAVITON_CPU_USWEST2], indirect=True)
-@pytest.mark.team("conda")
 def test_ecs_pytorch_inference_graviton_cpu(
     pytorch_inference_graviton, ecs_container_instance, region, cpu_only
 ):

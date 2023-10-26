@@ -45,7 +45,6 @@ def sagemaker_session(region):
 @pytest.mark.model("huggingface")
 @pytest.mark.parametrize("instance_type", instance_types, indirect=True)
 @pytest.mark.skip  # skip for now due to pending design decision
-@pytest.mark.team("conda")
 def test_inductor_huggingface(
     framework_version, pytorch_training, region, sagemaker_session, instance_type
 ):
@@ -60,7 +59,6 @@ def test_inductor_huggingface(
 @pytest.mark.model("timm")
 @pytest.mark.parametrize("instance_type", instance_types, indirect=True)
 @pytest.mark.skip  # skip for now due to pending design decision
-@pytest.mark.team("conda")
 def test_inductor_timm(
     framework_version, pytorch_training, region, sagemaker_session, instance_type
 ):
@@ -75,7 +73,6 @@ def test_inductor_timm(
 @pytest.mark.model("torchbench")
 @pytest.mark.parametrize("instance_type", instance_types, indirect=True)
 @pytest.mark.skip  # skip for now due to pending design decision
-@pytest.mark.team("conda")
 def test_inductor_torchbench(
     framework_version, pytorch_training, region, sagemaker_session, instance_type
 ):
