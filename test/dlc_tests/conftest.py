@@ -1413,11 +1413,6 @@ def lookup_condition(lookup, image):
 
 def pytest_generate_tests(metafunc):
     images = metafunc.config.getoption("--images")
-    LOGGER.info(f"tested images = {images}")
-
-    # Don't parametrize if there are no images to parametrize
-    if not images:
-        return
 
     # Parametrize framework specific tests
     for fixture in FRAMEWORK_FIXTURES:
