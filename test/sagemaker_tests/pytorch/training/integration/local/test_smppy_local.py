@@ -20,7 +20,9 @@ from packaging.specifiers import SpecifierSet
 from packaging.version import Version
 from sagemaker.pytorch import PyTorch
 
-from ......test_utils import get_framework_and_version_from_tag
+# add path to let the script find test module due to unexpected import error
+sys.path.append(".......")
+from test.test_utils import get_framework_and_version_from_tag
 from ...integration import ROLE, data_dir, smppy_mnist_script
 from ...utils.local_mode_utils import assert_files_exist
 
