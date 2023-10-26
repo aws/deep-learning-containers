@@ -250,10 +250,6 @@ LABEL dlc_major_version="1"
 
 ARG PYTHON
 
-# The smdebug pipeline relies for following format to perform string replace and trigger DLC pipeline for validating
-# the nightly builds. Therefore, while updating the smdebug version, please ensure that the format is not disturbed.
-ARG SMDEBUG_VERSION=1.0.34
-
 ENV SAGEMAKER_TRAINING_MODULE=sagemaker_pytorch_container.training:main
 
 ARG PYTORCH_VERSION_SM
@@ -291,14 +287,9 @@ RUN pip install --no-cache-dir --upgrade pip --trusted-host pypi.org --trusted-h
     "sagemaker>=2,<3" \
     "sagemaker-experiments<1" \
     sagemaker-pytorch-training \
-    "sagemaker-training>=4.7.3"
-
-# Install smdebug from source
-RUN cd /tmp \
-  && git clone https://github.com/awslabs/sagemaker-debugger --depth 1 --single-branch --branch ${SMDEBUG_VERSION} \
-  && cd sagemaker-debugger \
-  && pip install . \
-  && rm -rf /tmp/*
+    # pin botocore and sm-training until version requirement from those sm-pytorch-training is fixed
+    sagemaker-training \
+    "botocore>=1.31.70"
 
 # Install extra packages
 RUN /opt/conda/bin/mamba install -y -c conda-forge \
@@ -310,8 +301,6 @@ RUN /opt/conda/bin/mamba install -y -c conda-forge \
   scikit-learn \
   seaborn \
   shap \
-  # pin botocore version due to awscli requirement
-  "botocore>=1.31.70" \
  && /opt/conda/bin/mamba clean -afy
 
 # Patches
