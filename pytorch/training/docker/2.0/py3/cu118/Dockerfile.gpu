@@ -231,7 +231,7 @@ WORKDIR /
 # Install ec2 PyTorch
 RUN /opt/conda/bin/mamba install -y python=${PYTHON_VERSION} pytorch=${PYTORCH_VERSION_EC2} \
   pytorch-cuda=11.8 cuda-nvcc=11.8.89 torchvision torchaudio torchtext aws-ofi-nccl-dlc \
-  cuda-runtime=11.8 cuda-libraries=11.8 \
+  cudatoolkit=11.8 cuda-runtime=11.8 cuda-libraries=11.8 \
   cuda-compiler=11.8 cuda-cudart=11.8.89 cuda-cudart-dev=11.8.89 \
   cuda-libraries-dev=11.8 \
   --override-channels \
@@ -414,7 +414,7 @@ ARG NCCL_ASYNC_ERROR_HANDLING
 # Install sm PyTorch
 RUN /opt/conda/bin/mamba install -y python=${PYTHON_VERSION} pytorch=${PYTORCH_VERSION_SM} \
   pytorch-cuda=11.8 cuda-nvcc=11.8.89 torchvision torchaudio torchtext aws-ofi-nccl-dlc \
-  cuda-runtime=11.8 cuda-libraries=11.8 \
+  cudatoolkit=11.8 cuda-runtime=11.8 cuda-libraries=11.8 \
   cuda-compiler=11.8 cuda-cudart=11.8.89 cuda-cudart-dev=11.8.89 \
   cuda-libraries-dev=11.8 \
   --override-channels \
