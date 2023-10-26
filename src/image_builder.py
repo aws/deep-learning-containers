@@ -439,7 +439,9 @@ def trigger_apatch(image_uri, s3_downloaded_path, python_version=None):
     core_package_path_within_dlc_repo = ""
     if os.path.exists(absolute_core_package_path):
         core_package_path_within_dlc_repo = absolute_core_package_path.replace(mount_path_2, os.path.join(os.sep, "deep-learning-containers"))
-    script_run_cmd = f"bash /patch-dlc/script.sh {image_uri} {core_package_path_within_dlc_repo}"
+    script_run_cmd = f"bash /patch-dlc/script.sh {image_uri}"
+    if core_package_path_within_dlc_repo:
+        script_run_cmd = f"{script_run_cmd} {core_package_path_within_dlc_repo}"
     print(f"TRSHANTA script_run_cmd : {script_run_cmd}")
     result = run(f"{docker_exec_cmd} {script_run_cmd}", hide=True)
     new_cmd = result.stdout.strip().split("\n")[-1]
