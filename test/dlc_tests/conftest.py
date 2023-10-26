@@ -863,12 +863,13 @@ def skip_pt20_cuda121_tests(request):
         img_uri = request.getfixturevalue("pytorch_training")
     else:
         return
-    _, image_framework_version = get_framework_and_version_from_tag(img_uri)
-    image_cuda_version = get_cuda_version_from_tag(img_uri)
-    if Version(image_framework_version) in SpecifierSet("==2.0.1") and Version(
-        image_cuda_version.strip("cu")
-    ) == Version("121"):
-        pytest.skip("PyTorch 2.0 + CUDA12.1 image doesn't support current test")
+    if request.node.get_closest_marker("skip_pt20_cuda121_tests"):
+        _, image_framework_version = get_framework_and_version_from_tag(img_uri)
+        image_cuda_version = get_cuda_version_from_tag(img_uri)
+        if Version(image_framework_version) in SpecifierSet("==2.0.1") and Version(
+            image_cuda_version.strip("cu")
+        ) == Version("121"):
+            pytest.skip("PyTorch 2.0 + CUDA12.1 image doesn't support current test")
 
 
 @pytest.fixture(scope="session")
