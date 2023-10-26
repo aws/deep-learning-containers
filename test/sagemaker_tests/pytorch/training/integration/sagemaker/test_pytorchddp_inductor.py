@@ -46,6 +46,7 @@ def can_run_pytorchddp(ecr_image):
 @pytest.mark.skip_py2_containers
 @pytest.mark.efa()
 @pytest.mark.skip_inductor_test
+@pytest.mark.team("training-compiler")
 @pytest.mark.xfail(reason="known issue: https://github.com/pytorch/pytorch/issues/99074")
 def test_pytorchddp_throughput_gpu(
     framework_version, ecr_image, sagemaker_regions, efa_instance_type, tmpdir

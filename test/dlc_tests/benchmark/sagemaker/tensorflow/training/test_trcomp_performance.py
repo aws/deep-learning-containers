@@ -122,6 +122,7 @@ def pytest_generate_tests(metafunc):
 
 @pytest.mark.flaky(reruns=1)
 @pytest.mark.usefixtures("sagemaker_only")
+@pytest.mark.team("training-compiler")
 class TestImageClassification:
     @pytest.mark.model("resnet101")
     def test_resnet101_at_fp16(
@@ -211,6 +212,7 @@ class TestImageClassification:
 
 @pytest.mark.flaky(reruns=1)
 @pytest.mark.usefixtures("sagemaker_only")
+@pytest.mark.team("training-compiler")
 class TestNLPModels:
     @pytest.mark.model("GPT-2")
     def test_gpt2(

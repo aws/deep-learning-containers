@@ -90,6 +90,7 @@ def test_performance_pytorch_gpu_imagenet(pytorch_training, ec2_connection, gpu_
 )
 @pytest.mark.parametrize("ec2_instance_type", [PT_EC2_GPU_INDUCTOR_INSTANCE_TYPES], indirect=True)
 @pytest.mark.skip  # skipping inductor benchmarking test for now due to incomplete implementation
+@pytest.mark.team("training-compiler")
 def test_performance_pytorch_gpu_inductor(pytorch_training, ec2_connection, gpu_only, py3_only):
     execute_pytorch_gpu_py3_imagenet_ec2_training_performance_test(
         ec2_connection, pytorch_training, PT_PERFORMANCE_TRAINING_GPU_INDUCTOR_CMD
