@@ -14,7 +14,9 @@ from test.test_utils import (
     CONTAINER_TESTS_PREFIX,
     get_framework_and_version_from_tag,
     get_inference_server_type,
-    get_cuda_version_from_tag,
+    get_account_id_from_image_uri,
+    get_region_from_image_uri,
+    login_to_ecr_registry,
 )
 from test.test_utils.ec2 import (
     get_ec2_instance_type,
@@ -231,7 +233,11 @@ def ec2_pytorch_inference(image_uri, processor, ec2_connection, region):
             f" {image_uri} {inference_cmd}"
         )
     try:
-        ec2_connection.run(f"$(aws ecr get-login --no-include-email --region {region})", hide=True)
+        image_account_id = get_account_id_from_image_uri(image_uri)
+        image_region = get_region_from_image_uri(image_uri)
+        login_to_ecr_registry(ec2_connection, image_account_id, image_region)
+        LOGGER.info(f"ec2_pytorch_inference pulling {image_uri}")
+        ec2_connection.run(f"docker pull {image_uri}", hide="out")
         LOGGER.info(docker_run_cmd)
         ec2_connection.run(docker_run_cmd, hide=True)
         server_type = get_inference_server_type(image_uri)

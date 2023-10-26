@@ -985,8 +985,12 @@ def execute_ec2_inference_test(connection, ecr_uri, test_cmd, region=DEFAULT_REG
     docker_cmd = "nvidia-docker" if "gpu" in ecr_uri else "docker"
     container_test_local_dir = os.path.join("$HOME", "container_tests")
 
-    # Make sure we are logged into ECR so we can pull the image
-    connection.run(f"$(aws ecr get-login --no-include-email --region {region})", hide=True)
+    # Make sure we are logged into ECR, so we can pull the image
+    image_account_id = get_account_id_from_image_uri(ecr_uri)
+    image_region = get_region_from_image_uri(ecr_uri)
+    login_to_ecr_registry(connection, image_account_id, image_region)
+    LOGGER.info(f"execute_ec2_inference_test pulling {ecr_uri}")
+    connection.run(f"docker pull {ecr_uri}", hide="out")
 
     # Run training command
     connection.run(
