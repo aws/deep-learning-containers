@@ -33,6 +33,7 @@ dist_operations_path = os.path.join(resources_path, "distributed_operations.py")
 neuron_allreduce_path = os.path.join(resources_path, "neuron", "all_reduce")
 neuron_mlp_path = os.path.join(resources_path, "neuron", "mlp")
 smdebug_mnist_script = os.path.join(mnist_path, "smdebug_mnist.py")
+smppy_mnist_script = os.path.join(mnist_path, "smppy_mnist.py")
 
 mnist_1d_script = os.path.join(mnist_path, "mnist_1d.py")
 model_cpu_dir = os.path.join(mnist_path, "model_cpu")
