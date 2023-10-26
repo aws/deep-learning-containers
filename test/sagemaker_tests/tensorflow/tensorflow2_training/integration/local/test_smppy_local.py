@@ -20,7 +20,7 @@ from packaging.specifiers import SpecifierSet
 from packaging.version import Version
 from sagemaker.tensorflow import TensorFlow
 
-from test.test_utils import get_framework_and_version_from_tag
+from ...integration import get_framework_and_version_from_tag
 
 RESOURCE_PATH = os.path.join(os.path.dirname(__file__), "..", "..", "resources")
 MNIST_PATH = os.path.join(RESOURCE_PATH, "mnist")
