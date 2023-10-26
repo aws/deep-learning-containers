@@ -137,6 +137,7 @@ def test_pytorch_standalone_gpu(pytorch_training, ec2_connection, gpu_only, ec2_
 @pytest.mark.integration("pytorch_sanity_healthcheck_test")
 @pytest.mark.model("N/A")
 @pytest.mark.parametrize("ec2_instance_type", PT_EC2_GPU_INSTANCE_TYPE, indirect=True)
+@pytest.mark.skip_pt21_test
 def test_pytorch_healthcheck_dcgm(pytorch_training, ec2_connection, gpu_only, ec2_instance_type):
     if test_utils.is_image_incompatible_with_instance_type(pytorch_training, ec2_instance_type):
         pytest.skip(
@@ -150,6 +151,7 @@ def test_pytorch_healthcheck_dcgm(pytorch_training, ec2_connection, gpu_only, ec
 @pytest.mark.integration("pytorch_sanity_healthcheck_test")
 @pytest.mark.model("N/A")
 @pytest.mark.parametrize("ec2_instance_type", PT_EC2_MULTI_GPU_NO_G_INSTANCE_TYPE, indirect=True)
+@pytest.mark.skip_pt21_test
 def test_pytorch_healthcheck_nccl(pytorch_training, ec2_connection, gpu_only, ec2_instance_type):
     if test_utils.is_image_incompatible_with_instance_type(pytorch_training, ec2_instance_type):
         pytest.skip(
@@ -226,6 +228,7 @@ def test_pytorch_linear_regression_cpu(pytorch_training, ec2_connection, cpu_onl
 @pytest.mark.model("gcn")
 @pytest.mark.skip_dgl_test
 @pytest.mark.parametrize("ec2_instance_type", PT_EC2_GPU_INSTANCE_TYPE, indirect=True)
+@pytest.mark.skip_pt21_test
 def test_pytorch_train_dgl_gpu(
     pytorch_training, ec2_connection, ec2_instance_type, gpu_only, py3_only, skip_pt110
 ):
@@ -249,6 +252,7 @@ def test_pytorch_train_dgl_gpu(
 @pytest.mark.integration("dgl")
 @pytest.mark.model("gcn")
 @pytest.mark.parametrize("ec2_instance_type", PT_EC2_CPU_INSTANCE_TYPE, indirect=True)
+@pytest.mark.skip_pt21_test
 def test_pytorch_train_dgl_cpu(pytorch_training, ec2_connection, cpu_only, py3_only, skip_pt110):
     # DGL cpu ec2 test doesn't work on PT 1.10 DLC
     execute_ec2_training_test(ec2_connection, pytorch_training, PT_DGL_CMD)

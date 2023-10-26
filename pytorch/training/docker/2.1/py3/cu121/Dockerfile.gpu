@@ -449,7 +449,7 @@ RUN pip install --no-cache-dir -U \
     sagemaker-pytorch-training \
     # pin botocore and sm-training until version requirement from those sm-pytorch-training is fixed
     sagemaker-training \
-    "botocore>=1.31.70"
+    "botocore==1.31.71"
 
 # Install extra packages
 RUN /opt/conda/bin/mamba install -y -c conda-forge \

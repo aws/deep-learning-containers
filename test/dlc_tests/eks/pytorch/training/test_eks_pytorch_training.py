@@ -161,6 +161,7 @@ def test_eks_pt_s3_plugin_single_node_training(pytorch_training, outside_version
 @pytest.mark.skip_dgl_test
 @pytest.mark.integration("dgl")
 @pytest.mark.model("gcn")
+@pytest.mark.skip_pt21_test
 def test_eks_pytorch_dgl_single_node_training(pytorch_training, py3_only):
     """
     Function to create a pod using kubectl and given container image, and run
