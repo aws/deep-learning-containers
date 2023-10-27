@@ -20,8 +20,7 @@ from packaging.specifiers import SpecifierSet
 from packaging.version import Version
 from sagemaker.pytorch import PyTorch
 
-from test.test_utils import get_framework_and_version_from_tag
-from ...integration import ROLE, data_dir, smppy_mnist_script
+from ...integration import ROLE, data_dir, smppy_mnist_script, get_framework_and_version_from_tag
 from ...utils.local_mode_utils import assert_files_exist
 
 # only the latest version of sagemaker supports profiler

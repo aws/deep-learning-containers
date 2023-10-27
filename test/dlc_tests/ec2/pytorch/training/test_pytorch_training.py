@@ -88,6 +88,7 @@ PT_EC2_EFA_GPU_INSTANCE_TYPE_AND_REGION = get_efa_ec2_instance_type(
 @pytest.mark.parametrize("ec2_instance_type", PT_EC2_NEURON_TRN1_INSTANCE_TYPE, indirect=True)
 @pytest.mark.integration("pytorch_neuronx_sanity_test")
 @pytest.mark.neuronx_test
+@pytest.mark.team("neuron")
 @pytest.mark.model("xla")
 def test_pytorch_allreduce_neuronx(pytorch_training_neuronx, ec2_connection):
     execute_ec2_training_test(ec2_connection, pytorch_training_neuronx, PT_NEURON_ALLREDUCE_CMD)
@@ -97,6 +98,7 @@ def test_pytorch_allreduce_neuronx(pytorch_training_neuronx, ec2_connection):
 @pytest.mark.parametrize("ec2_instance_type", PT_EC2_NEURON_TRN1_INSTANCE_TYPE, indirect=True)
 @pytest.mark.integration("pytorch_neuronx_sanity_test")
 @pytest.mark.neuronx_test
+@pytest.mark.team("neuron")
 @pytest.mark.model("mlp")
 def test_pytorch_train_mlp_neuronx(pytorch_training_neuronx, ec2_connection):
     execute_ec2_training_test(ec2_connection, pytorch_training_neuronx, PT_NEURON_MLP_CMD)
@@ -106,6 +108,7 @@ def test_pytorch_train_mlp_neuronx(pytorch_training_neuronx, ec2_connection):
 @pytest.mark.parametrize("ec2_instance_type", PT_EC2_NEURON_INF2_INSTANCE_TYPE, indirect=True)
 @pytest.mark.integration("pytorch_neuronx_sanity_test")
 @pytest.mark.neuronx_test
+@pytest.mark.team("neuron")
 @pytest.mark.model("xla")
 def test_pytorch_allreduce_neuronx_inf2(pytorch_training_neuronx, ec2_connection):
     execute_ec2_training_test(ec2_connection, pytorch_training_neuronx, PT_NEURON_ALLREDUCE_CMD)
@@ -115,6 +118,7 @@ def test_pytorch_allreduce_neuronx_inf2(pytorch_training_neuronx, ec2_connection
 @pytest.mark.parametrize("ec2_instance_type", PT_EC2_NEURON_INF2_INSTANCE_TYPE, indirect=True)
 @pytest.mark.integration("pytorch_neuronx_sanity_test")
 @pytest.mark.neuronx_test
+@pytest.mark.team("neuron")
 @pytest.mark.model("mlp")
 def test_pytorch_train_mlp_neuronx_inf2(pytorch_training_neuronx, ec2_connection):
     execute_ec2_training_test(ec2_connection, pytorch_training_neuronx, PT_NEURON_MLP_CMD)
@@ -123,6 +127,7 @@ def test_pytorch_train_mlp_neuronx_inf2(pytorch_training_neuronx, ec2_connection
 @pytest.mark.usefixtures("sagemaker")
 @pytest.mark.integration("pytorch_sanity_test")
 @pytest.mark.model("N/A")
+@pytest.mark.team("conda")
 @pytest.mark.parametrize("ec2_instance_type", PT_EC2_GPU_INSTANCE_TYPE, indirect=True)
 def test_pytorch_standalone_gpu(pytorch_training, ec2_connection, gpu_only, ec2_instance_type):
     if test_utils.is_image_incompatible_with_instance_type(pytorch_training, ec2_instance_type):
@@ -136,7 +141,11 @@ def test_pytorch_standalone_gpu(pytorch_training, ec2_connection, gpu_only, ec2_
 @pytest.mark.usefixtures("pt201_and_above_only")
 @pytest.mark.integration("pytorch_sanity_healthcheck_test")
 @pytest.mark.model("N/A")
+<<<<<<< HEAD
 @pytest.mark.skip_pt20_cuda121_tests
+=======
+@pytest.mark.team("conda")
+>>>>>>> aws/master
 @pytest.mark.parametrize("ec2_instance_type", PT_EC2_GPU_INSTANCE_TYPE, indirect=True)
 def test_pytorch_healthcheck_dcgm(pytorch_training, ec2_connection, gpu_only, ec2_instance_type):
     if test_utils.is_image_incompatible_with_instance_type(pytorch_training, ec2_instance_type):
@@ -150,7 +159,11 @@ def test_pytorch_healthcheck_dcgm(pytorch_training, ec2_connection, gpu_only, ec
 @pytest.mark.usefixtures("pt201_and_above_only")
 @pytest.mark.integration("pytorch_sanity_healthcheck_test")
 @pytest.mark.model("N/A")
+<<<<<<< HEAD
 @pytest.mark.skip_pt20_cuda121_tests
+=======
+@pytest.mark.team("conda")
+>>>>>>> aws/master
 @pytest.mark.parametrize("ec2_instance_type", PT_EC2_MULTI_GPU_NO_G_INSTANCE_TYPE, indirect=True)
 def test_pytorch_healthcheck_nccl(pytorch_training, ec2_connection, gpu_only, ec2_instance_type):
     if test_utils.is_image_incompatible_with_instance_type(pytorch_training, ec2_instance_type):
@@ -163,6 +176,7 @@ def test_pytorch_healthcheck_nccl(pytorch_training, ec2_connection, gpu_only, ec
 @pytest.mark.usefixtures("sagemaker")
 @pytest.mark.integration("pytorch_sanity_test")
 @pytest.mark.model("N/A")
+@pytest.mark.team("conda")
 @pytest.mark.parametrize("ec2_instance_type", PT_EC2_CPU_INSTANCE_TYPE, indirect=True)
 def test_pytorch_standalone_cpu(pytorch_training, ec2_connection, cpu_only):
     execute_ec2_training_test(ec2_connection, pytorch_training, PT_STANDALONE_CMD)
@@ -171,6 +185,7 @@ def test_pytorch_standalone_cpu(pytorch_training, ec2_connection, cpu_only):
 @pytest.mark.usefixtures("sagemaker")
 @pytest.mark.model("mnist")
 @pytest.mark.parametrize("ec2_instance_type", PT_EC2_GPU_INSTANCE_TYPE, indirect=True)
+@pytest.mark.team("conda")
 def test_pytorch_train_mnist_gpu(pytorch_training, ec2_connection, gpu_only, ec2_instance_type):
     if test_utils.is_image_incompatible_with_instance_type(pytorch_training, ec2_instance_type):
         pytest.skip(
@@ -194,6 +209,7 @@ def test_pytorch_train_bert_gpu(pytorch_training, ec2_connection, gpu_only, ec2_
 @pytest.mark.usefixtures("sagemaker")
 @pytest.mark.model("mnist")
 @pytest.mark.parametrize("ec2_instance_type", PT_EC2_CPU_INSTANCE_TYPE, indirect=True)
+@pytest.mark.team("conda")
 def test_pytorch_train_mnist_cpu(pytorch_training, ec2_connection, cpu_only):
     execute_ec2_training_test(ec2_connection, pytorch_training, PT_MNIST_CMD)
 
@@ -201,6 +217,7 @@ def test_pytorch_train_mnist_cpu(pytorch_training, ec2_connection, cpu_only):
 @pytest.mark.usefixtures("sagemaker")
 @pytest.mark.model("linear_regression")
 @pytest.mark.parametrize("ec2_instance_type", PT_EC2_GPU_INSTANCE_TYPE, indirect=True)
+@pytest.mark.team("conda")
 def test_pytorch_linear_regression_gpu(
     pytorch_training, ec2_connection, gpu_only, ec2_instance_type
 ):
@@ -219,6 +236,7 @@ def test_pytorch_linear_regression_gpu(
 @pytest.mark.usefixtures("sagemaker")
 @pytest.mark.model("linear_regression")
 @pytest.mark.parametrize("ec2_instance_type", PT_EC2_CPU_INSTANCE_TYPE, indirect=True)
+@pytest.mark.team("conda")
 def test_pytorch_linear_regression_cpu(pytorch_training, ec2_connection, cpu_only):
     execute_ec2_training_test(ec2_connection, pytorch_training, PT_REGRESSION_CMD)
 
@@ -260,6 +278,7 @@ def test_pytorch_train_dgl_cpu(pytorch_training, ec2_connection, cpu_only, py3_o
 @pytest.mark.integration("gloo")
 @pytest.mark.model("resnet18")
 @pytest.mark.parametrize("ec2_instance_type", PT_INDUCTOR_TEST_INSTANCE_TYPE, indirect=True)
+@pytest.mark.team("conda")
 def test_pytorch_gloo_gpu(pytorch_training, ec2_connection, gpu_only, py3_only, ec2_instance_type):
     """
     Tests gloo backend
@@ -304,6 +323,7 @@ def test_pytorch_gloo_inductor_gpu(
 @pytest.mark.integration("gloo")
 @pytest.mark.model("resnet18")
 @pytest.mark.parametrize("ec2_instance_type", PT_EC2_CPU_INSTANCE_TYPE, indirect=True)
+@pytest.mark.team("conda")
 def test_pytorch_gloo_cpu(pytorch_training, ec2_connection, cpu_only, py3_only, ec2_instance_type):
     """
     Tests gloo backend
@@ -320,6 +340,7 @@ def test_pytorch_gloo_cpu(pytorch_training, ec2_connection, cpu_only, py3_only, 
 @pytest.mark.integration("nccl")
 @pytest.mark.model("resnet18")
 @pytest.mark.parametrize("ec2_instance_type", PT_INDUCTOR_TEST_INSTANCE_TYPE, indirect=True)
+@pytest.mark.team("conda")
 def test_pytorch_nccl(pytorch_training, ec2_connection, gpu_only, py3_only, ec2_instance_type):
     """
     Tests nccl backend
@@ -359,6 +380,7 @@ def test_pytorch_nccl_inductor(
 @pytest.mark.integration("nccl")
 @pytest.mark.model("N/A")
 @pytest.mark.parametrize("ec2_instance_type", PT_EC2_GPU_INSTANCE_TYPE, indirect=True)
+@pytest.mark.team("conda")
 @pytest.mark.skip_trcomp_containers
 def test_pytorch_nccl_version(
     pytorch_training,
@@ -388,6 +410,7 @@ def test_pytorch_nccl_version(
 @pytest.mark.integration("mpi")
 @pytest.mark.model("resnet18")
 @pytest.mark.parametrize("ec2_instance_type", PT_EC2_GPU_INSTANCE_TYPE, indirect=True)
+@pytest.mark.team("conda")
 def test_pytorch_mpi_gpu(
     pytorch_training,
     ec2_connection,
@@ -446,6 +469,7 @@ def test_pytorch_mpi_inductor_gpu(
 @pytest.mark.integration("mpi")
 @pytest.mark.model("resnet18")
 @pytest.mark.parametrize("ec2_instance_type", PT_EC2_CPU_INSTANCE_TYPE, indirect=True)
+@pytest.mark.team("conda")
 def test_pytorch_mpi_cpu(
     pytorch_training,
     ec2_connection,
@@ -470,6 +494,7 @@ def test_pytorch_mpi_cpu(
 @pytest.mark.integration("nvidia_apex")
 @pytest.mark.model("N/A")
 @pytest.mark.parametrize("ec2_instance_type", PT_EC2_GPU_INSTANCE_TYPE, indirect=True)
+@pytest.mark.team("conda")
 def test_nvapex(pytorch_training, ec2_connection, gpu_only, ec2_instance_type):
     if test_utils.is_image_incompatible_with_instance_type(pytorch_training, ec2_instance_type):
         pytest.skip(
@@ -482,6 +507,7 @@ def test_nvapex(pytorch_training, ec2_connection, gpu_only, ec2_instance_type):
 @pytest.mark.integration("amp")
 @pytest.mark.model("resnet50")
 @pytest.mark.parametrize("ec2_instance_type", PT_EC2_MULTI_GPU_INSTANCE_TYPE, indirect=True)
+@pytest.mark.team("conda")
 def test_pytorch_amp(
     pytorch_training, ec2_connection, gpu_only, ec2_instance_type, pt16_and_above_only
 ):
@@ -515,6 +541,7 @@ def test_pytorch_amp_inductor(
 @pytest.mark.integration("pt_s3_plugin_gpu")
 @pytest.mark.model("N/A")
 @pytest.mark.parametrize("ec2_instance_type", PT_EC2_GPU_INSTANCE_TYPE, indirect=True)
+@pytest.mark.team("conda")
 @pytest.mark.skip_s3plugin_test
 def test_pytorch_s3_plugin_gpu(
     pytorch_training,
@@ -539,6 +566,7 @@ def test_pytorch_s3_plugin_gpu(
 @pytest.mark.integration("pt_s3_plugin_cpu")
 @pytest.mark.model("N/A")
 @pytest.mark.parametrize("ec2_instance_type", PT_EC2_CPU_INSTANCE_TYPE, indirect=True)
+@pytest.mark.team("conda")
 @pytest.mark.skip_s3plugin_test
 def test_pytorch_s3_plugin_cpu(
     pytorch_training,
@@ -560,6 +588,7 @@ def test_pytorch_s3_plugin_cpu(
 @pytest.mark.integration("pt_torchaudio_gpu")
 @pytest.mark.model("N/A")
 @pytest.mark.parametrize("ec2_instance_type", PT_EC2_GPU_INSTANCE_TYPE, indirect=True)
+@pytest.mark.team("conda")
 def test_pytorch_training_torchaudio_gpu(
     pytorch_training, ec2_connection, gpu_only, ec2_instance_type, pt111_and_above_only
 ):
@@ -575,6 +604,7 @@ def test_pytorch_training_torchaudio_gpu(
 @pytest.mark.integration("pt_torchaudio_cpu")
 @pytest.mark.model("N/A")
 @pytest.mark.parametrize("ec2_instance_type", PT_EC2_CPU_INSTANCE_TYPE, indirect=True)
+@pytest.mark.team("conda")
 def test_pytorch_training_torchaudio_cpu(
     pytorch_training, ec2_connection, cpu_only, ec2_instance_type, pt111_and_above_only
 ):
@@ -590,6 +620,7 @@ def test_pytorch_training_torchaudio_cpu(
 @pytest.mark.integration("pt_torchdata_gpu")
 @pytest.mark.model("N/A")
 @pytest.mark.parametrize("ec2_instance_type", PT_EC2_GPU_INSTANCE_TYPE, indirect=True)
+@pytest.mark.team("conda")
 def test_pytorch_training_torchdata_gpu(
     pytorch_training, ec2_connection, gpu_only, ec2_instance_type, pt111_and_above_only
 ):
@@ -612,6 +643,7 @@ def test_pytorch_training_torchdata_gpu(
 @pytest.mark.integration("pt_torchdata_cpu")
 @pytest.mark.model("N/A")
 @pytest.mark.parametrize("ec2_instance_type", PT_EC2_CPU_INSTANCE_TYPE, indirect=True)
+@pytest.mark.team("conda")
 def test_pytorch_training_torchdata_cpu(
     pytorch_training, ec2_connection, cpu_only, ec2_instance_type, pt111_and_above_only
 ):
@@ -632,6 +664,7 @@ def test_pytorch_training_torchdata_cpu(
 @pytest.mark.integration("telemetry")
 @pytest.mark.model("N/A")
 @pytest.mark.parametrize("ec2_instance_type", PT_EC2_SINGLE_GPU_INSTANCE_TYPE, indirect=True)
+@pytest.mark.team("conda")
 def test_pytorch_telemetry_gpu(
     pytorch_training, ec2_connection, gpu_only, ec2_instance_type, pt15_and_above_only
 ):
@@ -646,6 +679,7 @@ def test_pytorch_telemetry_gpu(
 @pytest.mark.integration("telemetry")
 @pytest.mark.model("N/A")
 @pytest.mark.parametrize("ec2_instance_type", PT_EC2_CPU_INSTANCE_TYPE, indirect=True)
+@pytest.mark.team("conda")
 def test_pytorch_telemetry_cpu(pytorch_training, ec2_connection, cpu_only, pt15_and_above_only):
     execute_ec2_training_test(ec2_connection, pytorch_training, PT_TELEMETRY_CMD, timeout=900)
 
@@ -671,6 +705,7 @@ def test_pytorch_standalone_hpu(
 @pytest.mark.integration("cudnn")
 @pytest.mark.model("N/A")
 @pytest.mark.parametrize("ec2_instance_type", PT_EC2_SINGLE_GPU_INSTANCE_TYPE, indirect=True)
+@pytest.mark.team("conda")
 def test_pytorch_cudnn_match_gpu(
     pytorch_training, ec2_connection, region, gpu_only, ec2_instance_type, pt21_and_above_only
 ):

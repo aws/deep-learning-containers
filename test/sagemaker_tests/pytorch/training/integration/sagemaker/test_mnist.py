@@ -25,6 +25,7 @@ from . import _test_mnist_distributed
 @pytest.mark.multinode(2)
 @pytest.mark.integration("smexperiments")
 @pytest.mark.skip_gpu
+@pytest.mark.team("conda")
 def test_mnist_distributed_cpu(
     framework_version, ecr_image, sagemaker_regions, instance_type, dist_cpu_backend
 ):
@@ -45,6 +46,7 @@ def test_mnist_distributed_cpu(
 @pytest.mark.multinode(2)
 @pytest.mark.integration("smexperiments")
 @pytest.mark.skip_cpu
+@pytest.mark.team("conda")
 def test_mnist_distributed_gpu(
     framework_version, ecr_image, sagemaker_regions, instance_type, dist_gpu_backend
 ):
@@ -65,6 +67,7 @@ def test_mnist_distributed_gpu(
 @pytest.mark.multinode(2)
 @pytest.mark.integration("smexperiments")
 @pytest.mark.skip_gpu
+@pytest.mark.team("conda")
 def test_hc_mnist_distributed_cpu(
     framework_version, ecr_image, sagemaker_regions, instance_type, dist_cpu_backend
 ):
@@ -87,6 +90,7 @@ def test_hc_mnist_distributed_cpu(
 @pytest.mark.integration("smexperiments")
 @pytest.mark.skip_cpu
 @pytest.mark.skip_pt20_cuda121_tests
+@pytest.mark.team("conda")
 def test_hc_mnist_distributed_gpu(
     framework_version, ecr_image, sagemaker_regions, instance_type, dist_gpu_backend
 ):
