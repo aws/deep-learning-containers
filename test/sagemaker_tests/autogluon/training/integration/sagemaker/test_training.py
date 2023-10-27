@@ -26,6 +26,7 @@ from ...integration import RESOURCE_PATH, DEFAULT_TIMEOUT
 @pytest.mark.model("autogluon")
 @pytest.mark.integration("smexperiments")
 @pytest.mark.skip_test_in_region
+@pytest.mark.team("autogluon")
 def test_training(ecr_image, sagemaker_regions, instance_type, framework_version):
     invoke_sm_helper_function(
         ecr_image, sagemaker_regions, _test_training_function, instance_type, framework_version
