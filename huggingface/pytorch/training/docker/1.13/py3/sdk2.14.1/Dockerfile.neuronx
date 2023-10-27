@@ -9,7 +9,7 @@ LABEL dlc_major_version="1"
 
 # version args
 ARG OPTIMUM_NEURON_VERSION=0.0.12.1
-ARG TRANSFORMERS_VERSION
+ARG TRANSFORMERS_VERSION 
 ARG DATASETS_VERSION
 ARG PYTHON=python3
 
@@ -28,7 +28,7 @@ RUN pip install -U numpy==1.21.6 \
 
 RUN apt-get update \
  # TODO: Remove upgrade statements once packages are updated in base image
- && apt-get -y upgrade --only-upgrade systemd openssl cryptsetup \
+ #  && apt-get -y upgrade --only-upgrade systemd openssl cryptsetup \
  && apt install -y git-lfs \
  && apt-get clean \
  && rm -rf /var/lib/apt/lists/*
