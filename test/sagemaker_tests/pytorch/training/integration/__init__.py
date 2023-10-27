@@ -14,6 +14,7 @@ from __future__ import absolute_import
 
 import os
 import re
+import boto3
 
 resources_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "resources"))
 gpt2_path = os.path.join(resources_path, "gpt2")
