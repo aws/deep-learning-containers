@@ -142,7 +142,7 @@ def main():
     parser.add_argument(
         "--local_rank",
         type=int,
-        default=os.getenv("LOCAL_RANK", -1),
+        default=os.getenv("LOCAL_RANK"),
         metavar="S",
         help="random seed (default: 1)",
     )
@@ -174,6 +174,23 @@ def main():
     parser.add_argument("--inductor", type=int, default=0, help="pytorch with inductor")
 
     args = parser.parse_args()
+
+    # print("open mpi var:")
+    # print(os.getenv("OMPI_COMM_WORLD_SIZE"))
+
+    if not os.getenv("WORLD_SIZE"):
+        os.environ["WORLD_SIZE"] = str(os.getenv("OMPI_COMM_WORLD_SIZE"))
+
+    if not os.getenv("RANK"):
+        os.environ["RANK"] = str(os.getenv("OMPI_COMM_WORLD_RANK"))
+
+    if not os.getenv("MASTER_ADDR"):
+        os.environ["MASTER_ADDR"] = os.environ["SM_HOSTS"][0]
+        os.environ["MASTER_PORT"] = "55555"
+
+    if not args.local_rank:
+        args.local_rank = int(os.getenv("OMPI_COMM_WORLD_LOCAL_RANK"))
+
     args.world_size = int(os.environ["WORLD_SIZE"])
     args.lr = 1.0
     args.batch_size //= args.world_size // 8
@@ -182,6 +199,7 @@ def main():
     dist.init_process_group(backend="nccl")
     rank = dist.get_rank()
     local_rank = args.local_rank
+
     torch.cuda.set_device(local_rank)
 
     if args.verbose:
