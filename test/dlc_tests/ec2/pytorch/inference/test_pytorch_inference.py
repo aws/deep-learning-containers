@@ -104,24 +104,6 @@ def test_ec2_pytorch_inference_cpu(pytorch_inference, ec2_connection, region, cp
     ec2_pytorch_inference(pytorch_inference, "cpu", ec2_connection, region)
 
 
-@pytest.mark.model("densenet")
-@pytest.mark.parametrize("ec2_instance_type", PT_EC2_CPU_INSTANCE_TYPE, indirect=True)
-def test_ec2_pytorch_inference_intel_cpu(pytorch_inference, ec2_connection, region, cpu_only):
-    ec2_pytorch_inference(pytorch_inference, "intel_cpu", ec2_connection, region)
-
-
-@pytest.mark.model("stable-diffusion")
-@pytest.mark.parametrize("ec2_instance_type", PT_EC2_CPU_INSTANCE_TYPE, indirect=True)
-def test_ec2_pytorch_inference_intel_cpu_sd(pytorch_inference, ec2_connection, region, cpu_only):
-    ec2_pytorch_inference(pytorch_inference, "intel_cpu-sd", ec2_connection, region)
-
-
-@pytest.mark.model("bert")
-@pytest.mark.parametrize("ec2_instance_type", PT_EC2_CPU_INSTANCE_TYPE, indirect=True)
-def test_ec2_pytorch_inference_intel_cpu_bert(pytorch_inference, ec2_connection, region, cpu_only):
-    ec2_pytorch_inference(pytorch_inference, "intel_cpu-bert", ec2_connection, region)
-
-
 @pytest.mark.usefixtures("sagemaker")
 @pytest.mark.model("densenet")
 @pytest.mark.parametrize("ec2_instance_type", PT_EC2_GRAVITON_INSTANCE_TYPE, indirect=True)
@@ -234,14 +216,7 @@ def ec2_pytorch_inference(image_uri, processor, ec2_connection, region):
         model_name = "pytorch-resnet-neuron"
     if processor == "neuronx":
         model_name = "pytorch-resnet-neuronx"
-    if processor == "intel_cpu":
-        model_name = "pytorch-densenet-ipex"
-    if processor == "intel_cpu-sd":
-        model_name = "pytorch-stable-diffusion-ipex"
-    if processor == "intel_cpu-bert":
-        model_name = "pytorch-bert-ipex"
     processor_is_neuron = "neuron" in processor
-    processor_is_intel = "intel" in processor
 
     inference_cmd = test_utils.get_inference_run_command(image_uri, model_name, processor)
     docker_cmd = "nvidia-docker" if "gpu" in image_uri else "docker"

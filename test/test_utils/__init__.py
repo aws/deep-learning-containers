@@ -8,7 +8,6 @@ import time
 
 from enum import Enum
 
-import boto3
 import git
 import pytest
 import requests
@@ -824,92 +823,43 @@ def request_pytorch_inference_densenet(
     :return: <bool> True/False based on result of inference
     """
     conn_run = connection.run if connection is not None else run
+    # Check if image already exists
+    run_out = conn_run("[ -f flower.jpg ]", warn=True)
+    if run_out.return_code != 0:
+        conn_run("curl -O https://s3.amazonaws.com/model-server/inputs/flower.jpg", hide=True)
 
-    if model_name == "pytorch-bert-ipex":
-        run_out = conn_run("[ -f sample_text.txt ]", warn=True)
-        if run_out.return_code != 0:
-            conn_run("aws s3 cp s3://<a_place_to_find_sample_text>/sample_text.txt .", hide=True)
+    run_out = conn_run(
+        f"curl -X POST http://{ip_address}:{port}/predictions/{model_name} -T flower.jpg",
+        hide=True,
+        warn=True,
+    )
+
+    # The run_out.return_code is not reliable, since sometimes predict request may succeed but the returned result
+    # is 404. Hence the extra check.
+    if run_out.return_code != 0:
+        LOGGER.error("run_out.return_code != 0")
+        return False
     else:
-        # Check if image already exists
-        run_out = conn_run("[ -f flower.jpg ]", warn=True)
-        if run_out.return_code != 0:
-            conn_run("curl -O https://s3.amazonaws.com/model-server/inputs/flower.jpg", hide=True)
-
-    if model_name == "pytorch-bert-ipex":
-        run_out = conn_run(
-            f"curl -X POST http://{ip_address}:{port}/predictions/{model_name} -T sample_text.txt",
-            hide=True,
-            warn=True,
-            timeout=1800
-        )
-
-        if run_out.return_code != 0:
-            LOGGER.error("run_out.return_code != 0")
+        inference_output = json.loads(run_out.stdout.strip("\n"))
+        if not (
+            (
+                "neuron" in model_name
+                and isinstance(inference_output, list)
+                and len(inference_output) == 3
+            )
+            or (
+                server_type == "ts"
+                and isinstance(inference_output, dict)
+                and len(inference_output) == 5
+            )
+            or (
+                server_type == "mms"
+                and isinstance(inference_output, list)
+                and len(inference_output) == 5
+            )
+        ):
             return False
-        else:
-            if run_out.stdout != "scientific study of algorithms and statistical models that computer systems use to progressively":
-                return False
-            LOGGER.info(f"Inference Output = {run_out.stdout}")
-    elif model_name == "pytorch-stable-diffusion-ipex":
-        run_out = conn_run(
-            f"curl -X POST http://{ip_address}:{port}/predictions/{model_name} -H \"Content-Type: text/plain\" --data \"corgi playing on a guitar in style of da vinci\"",
-            hide=True,
-            warn=True,
-            timeout=1800
-        )
-
-        if run_out.return_code != 0:
-            LOGGER.error("run_out.return_code != 0")
-            return False
-        else:
-            try:
-                import base64
-                from PIL import Image
-                with open("output.jpg", "wb") as f:
-                    f.write(base64.b64decode(run_out.stdout))
-
-                with Image.open("output.jpg") as im:
-                    if im.size == (768, 768) and im.mode == "RGB":
-                        return True
-            except:
-                return False
-
-            os.remove("output.jpg")
-            LOGGER.info(f"Inference Output = {run_out.stdout}")
-    else:
-        run_out = conn_run(
-            f"curl -X POST http://{ip_address}:{port}/predictions/{model_name} -T flower.jpg",
-            hide=True,
-            warn=True,
-            timeout=1800
-        )
-
-        # The run_out.return_code is not reliable, since sometimes predict request may succeed but the returned result
-        # is 404. Hence the extra check.
-        if run_out.return_code != 0:
-            LOGGER.error("run_out.return_code != 0")
-            return False
-        else:
-            inference_output = json.loads(run_out.stdout.strip("\n"))
-            if not (
-                (
-                    "neuron" in model_name
-                    and isinstance(inference_output, list)
-                    and len(inference_output) == 3
-                )
-                or (
-                    server_type == "ts"
-                    and isinstance(inference_output, dict)
-                    and len(inference_output) == 5
-                )
-                or (
-                    server_type == "mms"
-                    and isinstance(inference_output, list)
-                    and len(inference_output) == 5
-                )
-            ):
-                return False
-            LOGGER.info(f"Inference Output = {json.dumps(inference_output, indent=4)}")
+        LOGGER.info(f"Inference Output = {json.dumps(inference_output, indent=4)}")
 
     return True
 
@@ -1004,9 +954,6 @@ def get_inference_run_command(image_uri, model_names, processor="cpu"):
         multi_model_location = {
             "squeezenet": "https://torchserve.s3.amazonaws.com/mar_files/squeezenet1_1.mar",
             "pytorch-densenet": "https://torchserve.s3.amazonaws.com/mar_files/densenet161.mar",
-            "pytorch-bert-ipex": "", # will be under aws dlc sample, will be confirmed during pr review
-            "pytorch-densenet-ipex": "", # will be under aws dlc sample, will be confirmed during pr review
-            "pytorch-stable-diffusion-ipex": "", # will be under aws dlc sample, will be confirmed during pr review
             "pytorch-resnet-neuron": "https://aws-dlc-sample-models.s3.amazonaws.com/pytorch/Resnet50-neuron.mar",
             "pytorch-densenet-inductor": "https://aws-dlc-sample-models.s3.amazonaws.com/pytorch/densenet161-inductor.mar",
             "pytorch-resnet-neuronx": "https://aws-dlc-pt-sample-models.s3.amazonaws.com/resnet50/resnet_neuronx.mar",
