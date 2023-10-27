@@ -121,6 +121,9 @@ def image_builder(buildspec, image_types=[], device_types=[]):
             else image_config["tag"]
         )
 
+        if utils.is_APatch_build():
+            image_tag = append_tag(image_tag, "autopatch")
+
         additional_image_tags = []
         if is_nightly_build_context():
             additional_image_tags.append(tag_image_with_date(image_tag))
