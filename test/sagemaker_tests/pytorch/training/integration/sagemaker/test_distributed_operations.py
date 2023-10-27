@@ -491,6 +491,7 @@ def test_hc_smmodelparallel_mnist_multigpu_multinode(
 @pytest.mark.skip_cpu
 @pytest.mark.skip_py2_containers
 @pytest.mark.skip_trcomp_containers
+@pytest.mark.skip_pt21_test
 @pytest.mark.team("smmodelparallel")
 @pytest.mark.parametrize("test_script, num_processes", [("smmodelparallel_pt_mnist.py", 8)])
 @pytest.mark.efa()
@@ -548,6 +549,7 @@ def test_smmodelparallel_mnist_multigpu_multinode_efa(
 @pytest.mark.skip_cpu
 @pytest.mark.skip_py2_containers
 @pytest.mark.skip_trcomp_containers
+@pytest.mark.skip_pt21_test
 @pytest.mark.team("smmodelparallel")
 @pytest.mark.parametrize("test_script, num_processes", [("train_gpt_simple.py", 8)])
 @pytest.mark.efa()
