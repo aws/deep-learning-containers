@@ -156,9 +156,9 @@ def test_dist_operations_fastai_gpu(framework_version, ecr_image, sagemaker_regi
             "framework_version": framework_version,
         }
 
-        job_name = utils.unique_name_from_base("test-pt-fastai")
+        job_name_prefix = "test-pt-fastai"
         pytorch, sagemaker_session = invoke_pytorch_estimator(
-            ecr_image, sagemaker_regions, estimator_parameter, job_name=job_name
+            ecr_image, sagemaker_regions, estimator_parameter, job_name=job_name_prefix
         )
 
     model_s3_url = pytorch.create_model().model_data
@@ -259,9 +259,13 @@ def test_smmodelparallel_gpt2_multigpu_singlenode(
                 },
             },
         }
-        job_name = utils.unique_name_from_base("test-pt-smdmp-gpt2-singlenode")
+        job_name_prefix = "test-pt-smdmp-gpt2-singlenode"
         invoke_pytorch_estimator(
-            ecr_image, sagemaker_regions, estimator_parameter, inputs=inputs, job_name=job_name
+            ecr_image,
+            sagemaker_regions,
+            estimator_parameter,
+            inputs=inputs,
+            job_name=job_name_prefix,
         )
 
 
@@ -361,9 +365,13 @@ def test_smmodelparallel_gpt2_multigpu_singlenode_flashattn(
                 },
             },
         }
-        job_name = utils.unique_name_from_base("test-pt-smdmp-gpt2-singlenode-flashattn")
+        job_name_prefix = "test-pt-smdmp-gpt2-singlenode-flashattn"
         invoke_pytorch_estimator(
-            ecr_image, sagemaker_regions, estimator_parameter, inputs=inputs, job_name=job_name
+            ecr_image,
+            sagemaker_regions,
+            estimator_parameter,
+            inputs=inputs,
+            job_name=job_name_prefix,
         )
 
 
@@ -420,9 +428,9 @@ def test_smmodelparallel_mnist_multigpu_multinode(
                 },
             },
         }
-        job_name = utils.unique_name_from_base("test-pt-smdmp-multinode")
+        job_name_prefix = "test-pt-smdmp-multinode"
         invoke_pytorch_estimator(
-            ecr_image, sagemaker_regions, estimator_parameter, job_name=job_name
+            ecr_image, sagemaker_regions, estimator_parameter, job_name=job_name_prefix
         )
 
 
@@ -481,9 +489,9 @@ def test_hc_smmodelparallel_mnist_multigpu_multinode(
                 "instance_groups": [training_group],
             },
         }
-        job_name = utils.unique_name_from_base("test-pt-hc-smdmp-multinode")
+        job_name_prefix = "test-pt-hc-smdmp-multinode"
         invoke_pytorch_estimator(
-            ecr_image, sagemaker_regions, estimator_parameter, job_name=job_name
+            ecr_image, sagemaker_regions, estimator_parameter, job_name=job_name_prefix
         )
 
 
@@ -540,9 +548,9 @@ def test_smmodelparallel_mnist_multigpu_multinode_efa(
                 },
             },
         }
-        job_name = utils.unique_name_from_base("test-pt-smdmp-multinode-efa")
+        job_name_prefix = "test-pt-smdmp-multinode-efa"
         invoke_pytorch_estimator(
-            ecr_image, sagemaker_regions, estimator_parameter, job_name=job_name
+            ecr_image, sagemaker_regions, estimator_parameter, job_name=job_name_prefix
         )
 
 
@@ -637,9 +645,13 @@ def test_smmodelparallel_gpt2_sdp_multinode_efa(
                 },
             },
         }
-        job_name = utils.unique_name_from_base("test-pt-smdmp-gpt2-sdp-multinode")
+        job_name_prefix = "test-pt-smdmp-gpt2-sdp-multinode"
         invoke_pytorch_estimator(
-            ecr_image, sagemaker_regions, estimator_parameter, inputs=inputs, job_name=job_name
+            ecr_image,
+            sagemaker_regions,
+            estimator_parameter,
+            inputs=inputs,
+            job_name=job_name_prefix,
         )
 
 
@@ -666,9 +678,9 @@ def test_sanity_efa(ecr_image, efa_instance_type, sagemaker_regions):
                 "mpi": {"enabled": True, "processes_per_host": 1},
             },
         }
-        job_name = utils.unique_name_from_base("test-pt-efa-sanity")
+        job_name_prefix = "test-pt-efa-sanity"
         invoke_pytorch_estimator(
-            ecr_image, sagemaker_regions, estimator_parameter, job_name=job_name
+            ecr_image, sagemaker_regions, estimator_parameter, job_name=job_name_prefix
         )
 
 

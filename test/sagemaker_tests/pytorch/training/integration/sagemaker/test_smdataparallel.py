@@ -94,9 +94,9 @@ def test_smdataparallel_throughput(
             "distribution": distribution,
         }
 
-        job_name = utils.unique_name_from_base("test-pt-smddp-throughput")
+        job_name_prefix = "test-pt-smddp-throughput"
         invoke_pytorch_estimator(
-            ecr_image, sagemaker_regions, estimator_parameter, job_name=job_name
+            ecr_image, sagemaker_regions, estimator_parameter, job_name=job_name_prefix
         )
 
 
@@ -127,9 +127,9 @@ def test_smdataparallel_mnist_script_mode_multigpu(
             "instance_type": instance_type,
             "distribution": distribution,
         }
-        job_name = utils.unique_name_from_base("test-pt-smddp-mnist-script-mode")
+        job_name_prefix = "test-pt-smddp-mnist-script-mode"
         invoke_pytorch_estimator(
-            ecr_image, sagemaker_regions, estimator_parameter, job_name=job_name
+            ecr_image, sagemaker_regions, estimator_parameter, job_name=job_name_prefix
         )
 
 
@@ -165,9 +165,9 @@ def test_smdataparallel_mnist(ecr_image, sagemaker_regions, efa_instance_type, t
             "distribution": distribution,
         }
 
-        job_name = utils.unique_name_from_base("test-pt-smddp-mnist")
+        job_name_prefix = "test-pt-smddp-mnist"
         invoke_pytorch_estimator(
-            ecr_image, sagemaker_regions, estimator_parameter, job_name=job_name
+            ecr_image, sagemaker_regions, estimator_parameter, job_name=job_name_prefix
         )
 
 
@@ -205,9 +205,9 @@ def test_hc_smdataparallel_mnist(ecr_image, sagemaker_regions, efa_instance_type
             "distribution": distribution,
         }
 
-        job_name = utils.unique_name_from_base("test-pt-hc-smddp-mnist")
+        job_name_prefix = "test-pt-hc-smddp-mnist"
         invoke_pytorch_estimator(
-            ecr_image, sagemaker_regions, estimator_parameter, job_name=job_name
+            ecr_image, sagemaker_regions, estimator_parameter, job_name=job_name_prefix
         )
 
 
@@ -248,11 +248,11 @@ def test_smmodelparallel_smdataparallel_mnist(
             "instance_count": 1,
             "instance_type": instance_types,
         }
-        job_name = utils.unique_name_from_base("test-pt-smdmp-smddp-mnist")
+        job_name_prefix = "test-pt-smdmp-smddp-mnist"
         invoke_pytorch_estimator(
             ecr_image,
             sagemaker_regions,
             estimator_parameter,
             disable_sm_profiler=True,
-            job_name=job_name,
+            job_name=job_name_prefix,
         )
