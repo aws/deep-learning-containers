@@ -149,24 +149,22 @@ def pytest_addoption(parser):
 def pytest_configure(config):
     config.addinivalue_line("markers", "efa(): explicitly mark to run efa tests")
     config.addinivalue_line("markers", "skip_py2_containers(): skip testing py2 containers")
-    config.addinivalue_line("model", "model(): note the model being tested")
-    config.addinivalue_line("integration", "integration(): note the feature being tested")
-    config.addinivalue_line("skip_cpu", "skip_cpu(): skip cpu images on test")
-    config.addinivalue_line("skip_gpu", "skip_gpu(): skip gpu images on test")
-    config.addinivalue_line("multinode", "multinode(): mark as multi-node test")
-    config.addinivalue_line("processor", "processor(): note the processor type being tested")
-    config.addinivalue_line("team", "team(): note the team responsible for the test")
+    config.addinivalue_line("markers", "model(): note the model being tested")
+    config.addinivalue_line("markers", "integration(): note the feature being tested")
+    config.addinivalue_line("markers", "skip_cpu(): skip cpu images on test")
+    config.addinivalue_line("markers", "skip_gpu(): skip gpu images on test")
+    config.addinivalue_line("markers", "multinode(): mark as multi-node test")
+    config.addinivalue_line("markers", "processor(): note the processor type being tested")
+    config.addinivalue_line("markers", "team(): note the team responsible for the test")
+    config.addinivalue_line("markers", "skip_trcomp_containers(): skip trcomp images on test")
     config.addinivalue_line(
-        "skip_trcomp_containers", "skip_trcomp_containers(): skip trcomp images on test"
+        "markers", "skip_inductor_test(): skip inductor test on incompatible images"
     )
     config.addinivalue_line(
-        "skip_inductor_test", "skip_inductor_test(): skip inductor test on incompatible images"
+        "markers", "skip_s3plugin_test(): skip s3plugin test on incompatible images"
     )
-    config.addinivalue_line(
-        "skip_s3plugin_test", "skip_s3plugin_test(): skip s3plugin test on incompatible images"
-    )
-    config.addinivalue_line("neuronx_test", "neuronx_test(): mark as neuronx image test")
-    config.addinivalue_line("gdrcopy", "gdrcopy(): mark as gdrcopy integration test")
+    config.addinivalue_line("markers", "neuronx_test(): mark as neuronx image test")
+    config.addinivalue_line("markers", "gdrcopy(): mark as gdrcopy integration test")
 
 
 def pytest_runtest_setup(item):
