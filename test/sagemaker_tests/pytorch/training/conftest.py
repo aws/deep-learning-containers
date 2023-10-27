@@ -544,8 +544,8 @@ def skip_pt21_test(request):
         fw_ver = request.getfixturevalue("ecr_image")
     else:
         return
-    if request.node.get_closest_marker("skip_dgl_test"):
-        if Version(fw_ver) == Version("2.1.0"):
+    if request.node.get_closest_marker("skip_pt21_test"):
+        if Version(fw_ver) in SpecifierSet("==2.1"):
             pytest.skip(
                 f"PT2.1 SM DLC doesn't support Rubik and Herring for now, so skipping this container with tag {fw_ver}"
             )

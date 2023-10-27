@@ -887,7 +887,7 @@ def skip_pt21_test(request):
     else:
         return
     _, image_framework_version = get_framework_and_version_from_tag(img_uri)
-    if request.node.get_closest_marker("skip_dgl_test"):
+    if request.node.get_closest_marker("skip_pt21_test"):
         if Version(image_framework_version) in SpecifierSet("==2.1"):
             pytest.skip(
                 f"PT2.1 SM DLC doesn't support Rubik and Herring for now, so skipping this container with tag {image_framework_version}"
