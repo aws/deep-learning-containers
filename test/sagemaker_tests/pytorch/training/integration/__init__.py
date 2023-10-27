@@ -94,6 +94,62 @@ def get_framework_and_version_from_tag(image_uri):
 
     return tested_framework, tag_framework_version
 
+
+def get_region_from_image_uri(image_uri):
+    """
+    Find the region where the image is located
+
+    :param image_uri: <str> ECR image URI
+    :return: <str> AWS Region Name
+    """
+    region_pattern = r"(us(-gov)?|af|ap|ca|cn|eu|il|me|sa)-(central|(north|south)?(east|west)?)-\d+"
+    region_search = re.search(region_pattern, image_uri)
+    assert region_search, f"{image_uri} must have region that matches {region_pattern}"
+    return region_search.group()
+
+
+def get_account_id_from_image_uri(image_uri):
+    """
+    Find the account ID where the image is located
+
+    :param image_uri: <str> ECR image URI
+    :return: <str> AWS Account ID
+    """
+    return image_uri.split(".")[0]
+
+
+def get_repository_and_tag_from_image_uri(image_uri):
+    """
+    Return the name of the repository holding the image
+
+    :param image_uri: URI of the image
+    :return: <str> repository name
+    """
+    repository_uri, tag = image_uri.split(":")
+    _, repository_name = repository_uri.split("/")
+    return repository_name, tag
+
+
+def get_all_the_tags_of_an_image_from_ecr(ecr_client, image_uri):
+    """
+    Uses ecr describe to generate all the tags of an image.
+
+    :param ecr_client: boto3 Client for ECR
+    :param image_uri: str Image URI
+    :return: list, All the image tags
+    """
+    account_id = get_account_id_from_image_uri(image_uri)
+    image_repo_name, image_tag = get_repository_and_tag_from_image_uri(image_uri)
+    response = ecr_client.describe_images(
+        registryId=account_id,
+        repositoryName=image_repo_name,
+        imageIds=[
+            {"imageTag": image_tag},
+        ],
+    )
+    return response["imageDetails"][0]["imageTags"]
+
+
 def get_cuda_version_from_tag(image_uri):
     """
     Return the cuda version from the image tag as cuXXX
