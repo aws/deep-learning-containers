@@ -67,7 +67,7 @@ def test_sanity_gdrcopy(ecr_image, efa_instance_type, sagemaker_regions):
                 "mpi": {"enabled": True, "processes_per_host": 1},
             },
         }
-        job_name = utils.unique_name_from_base("test-pt-gdrcopy-sanity")
+        job_name_prefix = "test-pt-gdrcopy-sanity"
         invoke_pytorch_estimator(
-            ecr_image, sagemaker_regions, estimator_parameter, job_name=job_name
+            ecr_image, sagemaker_regions, estimator_parameter, job_name=job_name_prefix
         )
