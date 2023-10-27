@@ -295,9 +295,11 @@ RUN pip install --no-cache-dir --upgrade pip --trusted-host pypi.org --trusted-h
     "sagemaker>=2,<3" \
     "sagemaker-experiments<1" \
     sagemaker-pytorch-training \
-    # pin botocore and sm-training until version requirement from those sm-pytorch-training is fixed
     sagemaker-training \
-    "botocore==1.31.71"
+    # as sagemaker toolkit package has pinned botocore as per commit https://github.com/aws/sagemaker-training-toolkit/pull/201/files#diff-60f61ab7a8d1910d86d9fda2261620314edcae5894d5aaa236b821c7256badd7R46
+    # adding this here explicitly to resolve pip check errors
+    awscli \
+    boto3
 
 # Install extra packages
 RUN /opt/conda/bin/mamba install -y -c conda-forge \
