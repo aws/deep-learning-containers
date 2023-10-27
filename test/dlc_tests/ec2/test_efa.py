@@ -1,4 +1,4 @@
-rc os
+import os
 
 import pytest
 
