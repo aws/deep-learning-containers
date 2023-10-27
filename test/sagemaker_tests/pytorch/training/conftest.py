@@ -30,7 +30,7 @@ from sagemaker.pytorch import PyTorch
 from . import get_efa_test_instance_type
 
 from .utils import get_ecr_registry, NightlyFeatureLabel, is_nightly_context
-from test.test_utils import get_framework_and_version_from_tag, get_cuda_version_from_tag
+from .integration import get_framework_and_version_from_tag, get_cuda_version_from_tag
 from .utils.image_utils import build_base_image, are_fixture_labels_enabled
 
 from packaging.version import Version

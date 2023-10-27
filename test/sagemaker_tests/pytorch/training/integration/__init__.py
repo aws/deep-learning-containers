@@ -93,3 +93,25 @@ def get_framework_and_version_from_tag(image_uri):
     tag_framework_version = re.search(r"(\d+(\.\d+){1,2})", image_uri).groups()[0]
 
     return tested_framework, tag_framework_version
+
+def get_cuda_version_from_tag(image_uri):
+    """
+    Return the cuda version from the image tag as cuXXX
+    :param image_uri: ECR image URI
+    :return: cuda version as cuXXX
+    """
+    cuda_framework_version = None
+    cuda_str = ["cu", "gpu"]
+    image_region = get_region_from_image_uri(image_uri)
+    ecr_client = boto3.Session(region_name=image_region).client("ecr")
+    all_image_tags = get_all_the_tags_of_an_image_from_ecr(ecr_client, image_uri)
+
+    for image_tag in all_image_tags:
+        if all(keyword in image_tag for keyword in cuda_str):
+            cuda_framework_version = re.search(r"(cu\d+)-", image_tag).groups()[0]
+            return cuda_framework_version
+
+    if "gpu" in image_uri:
+        raise CudaVersionTagNotFoundException()
+    else:
+        return None
