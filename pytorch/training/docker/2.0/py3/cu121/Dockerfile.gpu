@@ -439,6 +439,10 @@ RUN pip install --no-cache-dir -U \
     "sagemaker-experiments<1" \
     sagemaker-pytorch-training \
     sagemaker-training \
+    # as sagemaker toolkit package has pinned botocore as per commit https://github.com/aws/sagemaker-training-toolkit/pull/201/files#diff-60f61ab7a8d1910d86d9fda2261620314edcae5894d5aaa236b821c7256badd7R46
+    # adding this here explicitly to resolve pip check errors
+    awscli \
+    boto3 \
     triton==2.0.0
 
 # Install extra packages
