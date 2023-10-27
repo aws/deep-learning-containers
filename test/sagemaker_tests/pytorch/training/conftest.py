@@ -148,6 +148,8 @@ def pytest_addoption(parser):
 
 def pytest_configure(config):
     config.addinivalue_line("markers", "efa(): explicitly mark to run efa tests")
+    config.addinivalue_line("markers", "deploy_test(): mark to run deploy tests")
+    config.addinivalue_line("markers", "skip_test_in_region(): mark to skip test in some regions")
     config.addinivalue_line("markers", "skip_py2_containers(): skip testing py2 containers")
     config.addinivalue_line("markers", "model(): note the model being tested")
     config.addinivalue_line("markers", "integration(): note the feature being tested")
