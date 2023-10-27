@@ -348,9 +348,7 @@ ARG PYTHON
 ARG PYTHON_VERSION
 ARG PYTHON_SHORT_VERSION
 
-ARG RMM_VERSION=0.15.0
-
-ARG PYTORCH_VERSION_SM
+ARG PYTORCH_VERSION_EC2
 ARG CONDA_CHANNEL
 ARG CUDA_HOME
 ARG TORCH_CUDA_ARCH_LIST
@@ -361,7 +359,7 @@ WORKDIR /
 
 # Install ec2 PyTorch
 RUN /opt/conda/bin/mamba install -y python=${PYTHON_SHORT_VERSION} pytorch=${PYTORCH_VERSION_EC2} \
-  pytorch-cuda=12.1 cuda-nvcc=12.1.* torchvision torchaudio torchtext aws-ofi-nccl-dlc=1.7.2 \
+  pytorch-cuda=12.1 cuda-nvcc=12.1.* torchvision torchaudio torchtext aws-ofi-nccl-dlc=1.7.3 \
   --override-channels \
   -c ${CONDA_CHANNEL} \
   -c nvidia \
