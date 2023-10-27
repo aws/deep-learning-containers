@@ -1,0 +1,25 @@
+version: 0.2
+env:
+  git-credential-helper: yes
+phases:
+  install:
+    runtime-versions:
+      docker: 18
+  pre_build:
+    commands:
+      - for i in {1..3}; do pip install -r src/requirements.txt && break || sleep 30; done
+  build:
+    commands:
+      - echo Logging in to Amazon ECR...
+      - for i in {1..3}; pip install -r test/requirements.txt && break || sleep 30; done
+      - echo Running pytest $TEST_TYPE tests on $DLC_IMAGES...
+      - export PYTHONPATH=$PYTHONPATH:$(pwd)/src
+      - python test/testrunner.py
+  post_build:
+    commands:
+      - echo "Done running canary tests"
+reports:
+  test_reports:
+    files:
+      - test/*.xml
+    file-format: JunitXml
