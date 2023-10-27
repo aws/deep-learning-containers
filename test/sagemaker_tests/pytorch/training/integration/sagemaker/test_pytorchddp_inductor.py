@@ -64,7 +64,7 @@ def test_pytorchddp_throughput_gpu(
             "hyperparameters": {"inductor": 1},
         }
 
-        job_name = utils.unique_name_from_base("test-pytorchddp-throughput-gpu")
+        job_name_prefix = "test-pytorchddp-throughput-gpu"
         invoke_pytorch_estimator(
-            ecr_image, sagemaker_regions, estimator_parameter, job_name=job_name
+            ecr_image, sagemaker_regions, estimator_parameter, job_name=job_name_prefix
         )
