@@ -34,7 +34,7 @@ benchmark_mode = false
 build_frameworks = ["pytorch"]
 
 # By default we build both training and inference containers. Set true/false values to determine which to build.
-build_training = true
+build_training = false
 build_inference = false
 
 # Set to false in order to remove datetime tag on PR builds
@@ -45,7 +45,7 @@ do_build = true
 
 [test]
 ### On by default
-sanity_tests = true
+sanity_tests = false
   safety_check_test = true
   ecr_scan_allowlist_feature = true
 ecs_tests = false
@@ -60,7 +60,7 @@ ec2_tests_on_heavy_instances = false
 
 ### SM specific tests
 ### Off by default
-sagemaker_local_tests = false
+sagemaker_local_tests = true
 
 # SM remote test valid values:
 # "off" --> do not trigger sagemaker remote tests (default)
