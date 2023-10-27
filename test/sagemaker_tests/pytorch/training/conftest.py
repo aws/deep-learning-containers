@@ -148,7 +148,6 @@ def pytest_addoption(parser):
 
 def pytest_configure(config):
     config.addinivalue_line("markers", "efa(): explicitly mark to run efa tests")
-    config.addinivalue_line("markers", "skip_dgl_test(): skip dgl tests")
 
 
 def pytest_runtest_setup(item):
