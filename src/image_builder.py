@@ -282,11 +282,13 @@ def image_builder(buildspec, image_types=[], device_types=[]):
             "labels": labels,
             "extra_build_args": extra_build_args,
             "cx_type": cx_type,
-            "release_image_uri": ""
+            "release_image_uri": "",
         }
-        
+
         if BUILDSPEC.get("prod_account_id") and utils.is_APatch_build():
-            info["release_image_uri"] = f"""{str(image_config.get("release_repository"))}:{str(image_config.get("latest_release_tag"))}"""
+            info[
+                "release_image_uri"
+            ] = f"""{str(image_config.get("release_repository"))}:{str(image_config.get("latest_release_tag"))}"""
 
         # Create pre_push stage docker object
         pre_push_stage_image_object = DockerImage(
@@ -315,7 +317,7 @@ def image_builder(buildspec, image_types=[], device_types=[]):
 
     if utils.is_APatch_build():
         FORMATTER.banner("APATCH-PREP")
-        initiate_multithreaded_apatch_prep(PRE_PUSH_STAGE_IMAGES)
+        initiate_multithreaded_autopatch_prep(PRE_PUSH_STAGE_IMAGES, make_dummy_boto_client=True)
 
     FORMATTER.banner("DLC")
 
@@ -432,20 +434,27 @@ def generate_common_stage_image_object(pre_push_stage_image_object, image_tag):
     return common_stage_image_object
 
 
-def trigger_apatch(image_uri, s3_downloaded_path, python_version=None):
-    # Note: Image should have already been pulled
+def trigger_language_patching(image_uri, s3_downloaded_path, python_version=None):
+    """
+    This method initiates the processing for language packages.
+
+    :param image_uri: str, image_uri
+    :param s3_downloaded_path: str, Path where the relevant data is downloaded
+    :param python_version: str, python_version
+    :return: str, Returns constants.SUCCESS to allow the multi-threaded caller to know that the method has succeeded.
+    """
     mount_path_1 = os.path.join(os.sep, s3_downloaded_path)
     mount_path_2 = os.path.join(os.sep, get_cloned_folder_path())
-    docker_run_cmd = (
-        f"docker run -v {mount_path_1}:/patch-dlc -v {mount_path_2}:/deep-learning-containers -id --entrypoint='/bin/bash' {image_uri} "
-    )
+    docker_run_cmd = f"docker run -v {mount_path_1}:/patch-dlc -v {mount_path_2}:/deep-learning-containers -id --entrypoint='/bin/bash' {image_uri} "
     print(f"TRSHANTA docker_run_cmd : {docker_run_cmd}")
     container_id = run(f"{docker_run_cmd}").stdout.strip()
     docker_exec_cmd = f"docker exec -i {container_id}"
     absolute_core_package_path = utils.get_core_packages_path(image_uri, python_version)
     core_package_path_within_dlc_repo = ""
     if os.path.exists(absolute_core_package_path):
-        core_package_path_within_dlc_repo = absolute_core_package_path.replace(mount_path_2, os.path.join(os.sep, "deep-learning-containers"))
+        core_package_path_within_dlc_repo = absolute_core_package_path.replace(
+            mount_path_2, os.path.join(os.sep, "deep-learning-containers")
+        )
     script_run_cmd = f"bash /patch-dlc/script.sh {image_uri}"
     if core_package_path_within_dlc_repo:
         script_run_cmd = f"{script_run_cmd} {core_package_path_within_dlc_repo}"
@@ -457,9 +466,18 @@ def trigger_apatch(image_uri, s3_downloaded_path, python_version=None):
     return constants.SUCCESS
 
 
-def trigger_enhanced_scan(image_uri, patch_details_path, python_version=None):
-    # Note: Image should have already been pulled
-    ## TODO: Clean up, try single path instead of multiple ##
+def trigger_enhanced_scan_patching(image_uri, patch_details_path, python_version=None):
+    """
+    This method initiates the processing for enhanced scan patching of the images. It trigger the enhanced scanning for the
+    image and then gets the result to find the impacted packages. These impacted packages are then sent to the extract_apt_patch_data.py
+    script that executes in the GENERATE mode to get the list of all the impacted packages that can be upgraded and their version in the
+    released image. This data is then used to create the apt upgrade command and is dumped in the form of install_script_second.sh .
+
+    :param image_uri: str, image_uri
+    :param s3_downloaded_path: str, Path where the relevant data is downloaded
+    :param python_version: str, python_version
+    :return: str, Returns constants.SUCCESS to allow the multi-threaded caller to know that the method has succeeded.
+    """
     from test.dlc_tests.sanity.test_ecr_scan import (
         helper_function_for_leftover_vulnerabilities_from_enhanced_scanning,
     )
@@ -503,11 +521,18 @@ def trigger_enhanced_scan(image_uri, patch_details_path, python_version=None):
     return constants.SUCCESS
 
 
-def conduct_apatch_build_setup(pre_push_image_object: DockerImage, download_path:str):
+def conduct_autopatch_build_setup(pre_push_image_object: DockerImage, download_path: str):
+    """
+    This method conducts the setup for the AutoPatch builds. It pulls the already released image and then triggers the autopatching
+    procedures on the image to get the packages that need to be modified. Thereafter, it modifies pre_push_image_object to make changes
+    to the original build process such that it starts to utilize miscellaneous_dockerfiles/Dockerfile.apatch Dockerfile for building the image.
+
+    :param pre_push_image_object: Object of type DockerImage, The original DockerImage object that gets modified by this method.
+    :param download_path: str, Path of the file where the relevant scripts have alread been downloaded.
+    :return: str, Returns constants.SUCCESS to allow the multi-threaded caller to know that the method has succeeded.
+    """
     info = pre_push_image_object.info
-    cx_type = info.get("cx_type")
     image_name = info.get("name")
-    image_tag = info.get("image_tag")
     released_image_uri = info.get("release_image_uri")
 
     from test.test_utils import get_sha_of_an_image_from_ecr
@@ -517,18 +542,24 @@ def conduct_apatch_build_setup(pre_push_image_object: DockerImage, download_path
     )
     if not os.path.exists(patch_details_path):
         run(f"mkdir {patch_details_path}")
-    
+
     run(f"docker pull {released_image_uri}", hide=True)
 
     THREADS = {}
-    # In the context of the ThreadPoolExecutor each instance of image.build submitted
-    # to it is executed concurrently in a separate thread.
     with concurrent.futures.ThreadPoolExecutor(max_workers=2) as executor:
-        #### TODO: Remove this entire if block when get_dummy_boto_client is removed ####
         get_dummy_boto_client()
-        THREADS[f"trigger_apatch-{released_image_uri}"] = executor.submit(trigger_apatch, image_uri=released_image_uri, s3_downloaded_path=download_path, python_version=info.get("python_version"))
-        THREADS[f"trigger_enhanced_scan-{released_image_uri}"] = executor.submit(trigger_enhanced_scan, image_uri=released_image_uri, patch_details_path=patch_details_path, python_version=info.get("python_version"))
-    # the FORMATTER.progress(THREADS) function call also waits until all threads have completed
+        THREADS[f"trigger_language_patching-{released_image_uri}"] = executor.submit(
+            trigger_language_patching,
+            image_uri=released_image_uri,
+            s3_downloaded_path=download_path,
+            python_version=info.get("python_version"),
+        )
+        THREADS[f"trigger_enhanced_scan_patching-{released_image_uri}"] = executor.submit(
+            trigger_enhanced_scan_patching,
+            image_uri=released_image_uri,
+            patch_details_path=patch_details_path,
+            python_version=info.get("python_version"),
+        )
     FORMATTER.progress(THREADS)
 
     pre_push_image_object.dockerfile = os.path.join(
@@ -541,15 +572,17 @@ def conduct_apatch_build_setup(pre_push_image_object: DockerImage, download_path
 
     pre_push_image_object.target = None
     ecr_client = boto3.client("ecr", region_name=os.getenv("REGION"))
-    released_image_sha = get_sha_of_an_image_from_ecr(ecr_client=ecr_client, image_uri=released_image_uri)
+    released_image_sha = get_sha_of_an_image_from_ecr(
+        ecr_client=ecr_client, image_uri=released_image_uri
+    )
 
     info["extra_build_args"].update({"RELEASED_IMAGE": released_image_uri})
     info["extra_build_args"].update({"RELEASED_IMAGE_SHA": released_image_sha})
 
     apatch_artifacts = {
         "miscellaneous_scripts": {
-            "source": miscellaneous_scripts_path, 
-            "target": "miscellaneous_scripts"
+            "source": miscellaneous_scripts_path,
+            "target": "miscellaneous_scripts",
         },
         "dockerfile": {
             "source": pre_push_image_object.dockerfile,
@@ -569,8 +602,15 @@ def conduct_apatch_build_setup(pre_push_image_object: DockerImage, download_path
     pre_push_image_object.context = context
     return constants.SUCCESS
 
-def initiate_multithreaded_apatch_prep(PRE_PUSH_STAGE_IMAGES, make_dummy_boto_client = True):
-    # Few initial steps before initiating multi-threading
+
+def initiate_multithreaded_autopatch_prep(PRE_PUSH_STAGE_IMAGES, make_dummy_boto_client=False):
+    """
+    This method executes a few pre-requisites before initiating multi-threading for conduct_autopatch_build_setup
+
+    :param PRE_PUSH_STAGE_IMAGES: List[DockerImage], Consists the list of all the pre_push_image_objects that would be eventually
+                                  modified by the conduct_autopatch_build_setup method.
+    :param make_dummy_boto_client: bool, specifies if a dummy client should be declared or not.
+    """
     run(
         f"""pip install -r {os.path.join(os.sep, get_cloned_folder_path(), "test", "requirements.txt")}""",
         hide=True,
@@ -588,7 +628,9 @@ def initiate_multithreaded_apatch_prep(PRE_PUSH_STAGE_IMAGES, make_dummy_boto_cl
         if make_dummy_boto_client:
             get_dummy_boto_client()
         for pre_push_image_object in PRE_PUSH_STAGE_IMAGES:
-            THREADS[pre_push_image_object.name] = executor.submit(conduct_apatch_build_setup, pre_push_image_object, download_path)
+            THREADS[pre_push_image_object.name] = executor.submit(
+                conduct_autopatch_build_setup, pre_push_image_object, download_path
+            )
     # the FORMATTER.progress(THREADS) function call also waits until all threads have completed
     FORMATTER.progress(THREADS)
 
