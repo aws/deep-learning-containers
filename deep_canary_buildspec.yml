@@ -11,7 +11,7 @@ phases:
   build:
     commands:
       - echo Logging in to Amazon ECR...
-      - for i in {1..3}; pip install -r test/requirements.txt && break || sleep 30; done
+      - for i in {1..3}; do pip install -r test/requirements.txt && break || sleep 30; done
       - echo Running pytest $TEST_TYPE tests on $DLC_IMAGES...
       - export PYTHONPATH=$PYTHONPATH:$(pwd)/src
       - python test/testrunner.py
