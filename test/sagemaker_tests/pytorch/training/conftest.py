@@ -565,6 +565,7 @@ def skip_test_successfully_executed_before(request):
     ):
         pytest.skip(f"Skipping {test_name} because it was successfully executed for this commit")
 
+
 @pytest.fixture(autouse=True)
 def skip_pt21_test(request):
     if "framework_version" in request.fixturenames:
