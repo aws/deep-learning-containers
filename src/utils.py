@@ -194,13 +194,14 @@ def set_test_env(images, use_latest_additional_tag=False, images_env="DLC_IMAGES
 def get_safety_scan_allowlist_path(image_uri):
     """
     Retrieves the safety_scan_allowlist_path for each image_uri.
-    
+
     :param image_uri: str, consists of f"{image_repo}:{image_tag}"
     :return: string, safety scan allowlist path for the image
     """
     from test.test_utils import get_ecr_scan_allowlist_path
+
     os_scan_allowlist_path = get_ecr_scan_allowlist_path(image_uri)
-    safety_scan_allowlist_path = os_scan_allowlist_path.replace(".os_",".py_")
+    safety_scan_allowlist_path = os_scan_allowlist_path.replace(".os_", ".py_")
     return safety_scan_allowlist_path
 
 
@@ -215,7 +216,9 @@ def get_safety_ignore_dict_from_image_specific_safety_allowlists(image_uri):
     """
     safety_scan_allowlist_path = get_safety_scan_allowlist_path(image_uri)
     if not os.path.exists(safety_scan_allowlist_path):
-        LOGGER.info(f"No image specific safety scan allowlist found at {safety_scan_allowlist_path}")
+        LOGGER.info(
+            f"No image specific safety scan allowlist found at {safety_scan_allowlist_path}"
+        )
         return {}
     with open(safety_scan_allowlist_path, "r") as f:
         ignore_dict_from_image_specific_allowlist = json.load(f)
@@ -273,7 +276,9 @@ def get_safety_ignore_dict(image_uri, framework, python_version, job_type):
         if common_id not in ignore_dict:
             ignore_dict[common_id] = reason
 
-    ignore_dict_from_image_specific_allowlist = get_safety_ignore_dict_from_image_specific_safety_allowlists(image_uri)
+    ignore_dict_from_image_specific_allowlist = (
+        get_safety_ignore_dict_from_image_specific_safety_allowlists(image_uri)
+    )
     ignore_dict.update(ignore_dict_from_image_specific_allowlist)
     return ignore_dict
 
@@ -303,19 +308,25 @@ def generate_safety_report_for_image(image_uri, image_info, storage_file_path=No
         with open(storage_file_path, "w", encoding="utf-8") as f:
             json.dump(safety_scan_output, f, indent=4)
     if is_APatch_build():
-        ignore_dict_from_image_specific_allowlist = get_safety_ignore_dict_from_image_specific_safety_allowlists(image_uri)
+        ignore_dict_from_image_specific_allowlist = (
+            get_safety_ignore_dict_from_image_specific_safety_allowlists(image_uri)
+        )
         future_ignore_dict = ignore_dict_from_image_specific_allowlist
         if safety_report_generator_object.new_ignored_vulnerabilities:
             future_ignore_dict.update(safety_report_generator_object.new_ignored_vulnerabilities)
-            LOGGER.info(f"[Safety Allowlist] Future Ignore Dict: {future_ignore_dict} for {image_uri}")
+            LOGGER.info(
+                f"[Safety Allowlist] Future Ignore Dict: {future_ignore_dict} for {image_uri}"
+            )
             tag_set = [
                 {
-                    'Key': 'upload_path',
-                    'Value': get_safety_scan_allowlist_path(image_uri),
+                    "Key": "upload_path",
+                    "Value": get_safety_scan_allowlist_path(image_uri),
                 },
             ]
-            process_data_upload_to_pr_creation_bucket(image_uri=image_uri, json_upload_data=future_ignore_dict, tag_set=tag_set)
-        
+            process_data_upload_to_pr_creation_bucket(
+                image_uri=image_uri, json_upload_data=future_ignore_dict, tag_set=tag_set
+            )
+
     return safety_scan_output
 
 
@@ -358,36 +369,36 @@ def process_data_upload_to_pr_creation_bucket(image_uri, json_upload_data, tag_s
     :return: str, s3 file path
     """
     s3_filepath = get_unique_s3_path_for_uploading_data_to_pr_creation_bucket(image_uri)
-    s3_resource = boto3.resource('s3')
+    s3_resource = boto3.resource("s3")
     s3object = s3_resource.Object(constants.PR_CREATION_DATA_HELPER_BUCKET, s3_filepath)
     s3_client = s3_resource.meta.client
-    s3object.put(
-        Body=(bytes(json.dumps(json_upload_data).encode('UTF-8')))
-    )
+    s3object.put(Body=(bytes(json.dumps(json_upload_data).encode("UTF-8"))))
     if tag_set:
         s3_client.put_object_tagging(
             Bucket=constants.PR_CREATION_DATA_HELPER_BUCKET,
             Key=s3_filepath,
-            Tagging={
-                'TagSet': tag_set
-            },
+            Tagging={"TagSet": tag_set},
         )
 
 
 def get_unique_s3_path_for_uploading_data_to_pr_creation_bucket(image_uri: str):
+    """
+    Uses the current commit id and the image_uri to form the unique s3 path for uploading the data to the pr-creation-bucket
+    """
     commit = os.getenv("CODEBUILD_RESOLVED_SOURCE_VERSION", "temp")
-    object_name = image_uri.replace(":","-").replace("/", "-")
+    object_name = image_uri.replace(":", "-").replace("/", "-")
     return f"{commit}/{object_name}.json"
 
 
 def get_core_packages_path(image_uri, python_version=None):
     """
     Retrieves the safety_scan_allowlist_path for each image_uri.
-    
+
     :param image_uri: str, consists of f"{image_repo}:{image_tag}"
     :return: string, safety scan allowlist path for the image
     """
     from test.test_utils import get_ecr_scan_allowlist_path
+
     os_scan_allowlist_path = get_ecr_scan_allowlist_path(image_uri, python_version)
-    core_packages_path = os_scan_allowlist_path.replace(".os_scan_allowlist.",".core_packages.")
+    core_packages_path = os_scan_allowlist_path.replace(".os_scan_allowlist.", ".core_packages.")
     return core_packages_path

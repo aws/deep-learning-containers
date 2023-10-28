@@ -44,7 +44,7 @@ from test.test_utils import (
     UL20_CPU_ARM64_US_WEST_2,
     UBUNTU_18_HPU_DLAMI_US_WEST_2,
     NEURON_UBUNTU_18_BASE_DLAMI_US_WEST_2,
-    get_installed_python_packages_with_version
+    get_installed_python_packages_with_version,
 )
 
 
@@ -987,6 +987,10 @@ def test_mxnet_training_sm_env_variables(mxnet_training):
 @pytest.mark.usefixtures("sagemaker")
 @pytest.mark.model("N/A")
 def test_core_package_version(image):
+    """
+    In this test, we ensure that if a core_packages.json file exists for an image, the packages installed in the image
+    satisfy the version constraints specified in the core_packages.json file.
+    """
     core_packages_path = src_utils.get_core_packages_path(image)
     if not os.path.exists(core_packages_path):
         pytest.skip(f"Core packages file {core_packages_path} does not exist for {image}")
@@ -1002,13 +1006,19 @@ def test_core_package_version(image):
     installed_package_version_dict = get_installed_python_packages_with_version(docker_exec_command)
 
     violation_data = {}
-    
+
     for package_name, specs in core_packages.items():
         if package_name not in installed_package_version_dict:
-            violation_data[package_name] = f"Package: {package_name} not installed in {installed_package_version_dict}"
+            violation_data[
+                package_name
+            ] = f"Package: {package_name} not installed in {installed_package_version_dict}"
         installed_version = Version(installed_package_version_dict[package_name])
         if installed_version not in SpecifierSet(specs.get("version_specifier")):
-            violation_data[package_name] = f"Package: {package_name} not installed in {installed_package_version_dict}"
-    
+            violation_data[
+                package_name
+            ] = f"Package: {package_name} not installed in {installed_package_version_dict}"
+
     stop_and_remove_container(container_name, ctx)
-    assert not violation_data, f"Few packages violate the core_package specifications: {violation_data}"
+    assert (
+        not violation_data
+    ), f"Few packages violate the core_package specifications: {violation_data}"

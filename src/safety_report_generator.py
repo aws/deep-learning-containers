@@ -123,7 +123,12 @@ class SafetyReportGenerator:
                 }
 
     def get_dumped_ignore_dict_of_packages(self):
-        dumped_ignore_list_command = f"{self.docker_exec_cmd} cat /opt/aws/dlc/patch-details/vuln_deactivation_data.json"
+        """
+        This method extracts the dumped ignore lists within the DLCs.
+        """
+        dumped_ignore_list_command = (
+            f"{self.docker_exec_cmd} cat /opt/aws/dlc/patch-details/vuln_deactivation_data.json"
+        )
         return_data = {}
         try:
             run_out = self.ctx.run(dumped_ignore_list_command, hide=True)
@@ -159,9 +164,10 @@ class SafetyReportGenerator:
                             for vulnerability in package_scan_results["vulnerabilities"]:
                                 if vulnerability["reason_to_ignore"] == "N/A":
                                     vulnerability["reason_to_ignore"] = ignore_message
-                                    self.new_ignored_vulnerabilities[vulnerability["vulnerability_id"]] = ignore_message
+                                    self.new_ignored_vulnerabilities[
+                                        vulnerability["vulnerability_id"]
+                                    ] = ignore_message
 
-            
             self.vulnerability_list.append(package_scan_results)
 
     def run_safety_check_in_non_cb_context(self):

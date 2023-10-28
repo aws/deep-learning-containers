@@ -1659,7 +1659,9 @@ def get_cuda_version_from_tag(image_uri):
     try:
         all_image_tags = get_all_the_tags_of_an_image_from_ecr(ecr_client, image_uri)
     except ecr_client.exceptions.ImageNotFoundException as e:
-        LOGGER.info(f"Image {image_uri} not found in ECR - this is expected when the image is not pushed yet. Client Logs: {e}")
+        LOGGER.info(
+            f"Image {image_uri} not found in ECR - this is expected when the image is not pushed yet. Client Logs: {e}"
+        )
 
     for image_tag in all_image_tags:
         if all(keyword in image_tag for keyword in cuda_str):
@@ -2054,6 +2056,14 @@ def generate_unique_dlc_name(image):
 
 
 def get_ecr_scan_allowlist_path(image_uri, python_version=None):
+    """
+    This method has the logic to extract the ecr scan allowlist path for each image. This method earlier existed in another file and
+    has simply been relocated to this one.
+
+    :param image_uri: str, Image URI
+    :param python_version: str, python_version
+    :return: str, ecr_scan_allowlist path
+    """
     dockerfile_location = get_dockerfile_path_for_image(image_uri, python_version=python_version)
     image_scan_allowlist_path = dockerfile_location + ".os_scan_allowlist.json"
     if (
@@ -2088,21 +2098,29 @@ def get_ecr_scan_allowlist_path(image_uri, python_version=None):
 
 
 def get_installed_python_packages_with_version(docker_exec_command: str):
+    """
+    This method extracts all the installed python packages and their versions from a DLC.
+
+    :param docker_exec_command: str, The Docker exec command for an already running container.
+    :return: Dict, Dictionary with key=package_name and value=package_version
+    """
     package_version_dict = {}
 
     python_cmd_to_extract_package_set = """ python -c "import pkg_resources; \
         import json; \
         print(json.dumps([{'name':d.key, 'version':d.version} for d in pkg_resources.working_set]))" """
-    
+
     run_output = run(f"{docker_exec_command} {python_cmd_to_extract_package_set}")
     list_of_package_data_dicts = json.loads(run_output.stdout)
 
     for package_data_dict in list_of_package_data_dicts:
         package_name = package_data_dict["name"].lower()
         if package_name in package_version_dict:
-            raise Exception(f""" Package {package_name} existing multiple times in {list_of_package_data_dicts}""")
+            raise Exception(
+                f""" Package {package_name} existing multiple times in {list_of_package_data_dicts}"""
+            )
         package_version_dict[package_name] = package_data_dict["version"]
-    
+
     print(f"TRSHANTA RESULT: {package_version_dict}")
     print({len(list(package_version_dict.keys()))})
 
