@@ -30,7 +30,7 @@ from sagemaker.pytorch import PyTorch
 from . import get_efa_test_instance_type
 
 from .utils import get_ecr_registry, NightlyFeatureLabel, is_nightly_context
-
+from .integration import get_framework_and_version_from_tag, get_cuda_version_from_tag
 from .utils.image_utils import build_base_image, are_fixture_labels_enabled
 
 from packaging.version import Version
@@ -462,6 +462,17 @@ def skip_s3plugin_test(request):
             pytest.skip(
                 f"s3 plugin is only supported in PT 1.6.0 - 1.12.1, skipping this container with tag {fw_ver}"
             )
+
+
+@pytest.fixture(autouse=True)
+def skip_pt20_cuda121_tests(request, ecr_image):
+    if request.node.get_closest_marker("skip_pt20_cuda121_tests"):
+        _, image_framework_version = get_framework_and_version_from_tag(ecr_image)
+        image_cuda_version = get_cuda_version_from_tag(ecr_image)
+        if Version(image_framework_version) in SpecifierSet("==2.0.1") and Version(
+            image_cuda_version.strip("cu")
+        ) == Version("121"):
+            pytest.skip("PyTorch 2.0 + CUDA12.1 image doesn't support current test")
 
 
 def _get_remote_override_flags():
