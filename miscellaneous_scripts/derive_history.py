@@ -9,6 +9,14 @@ overall_history_dump_location = os.path.join(
 
 
 def process_patch_folders_and_add_contents(folder_path, overall_history, release_count):
+    """
+    In this method we look into the install scripts within the patch-details folder and extract the contents of the install
+    scripts that are appended to the overall_history.txt
+
+    :param folder_path: str, Path of the patch-details folder
+    :param overall_history: list, contains contents that will finally be dumped into the overall_history.txt file
+    :param release_count: int, stores the release number after the first manual release
+    """
     if archive_folder_path in folder_path:
         f = open(os.path.join(os.sep, folder_path, "image_sha.txt"), "r")
         overall_history.append(f"#### Release {release_count}: {f.read().strip()} ####")
@@ -21,6 +29,11 @@ def process_patch_folders_and_add_contents(folder_path, overall_history, release
 
 
 def main():
+    """
+    This script is run during the build phase of the AutoPatch DLC and is used by the AutoPatch dockerfile.
+    The script looks into the entire patch history starting from the first release and put the data in the
+    overall_history.txt file.
+    """
     overall_history = []
     f = open(os.path.join(os.sep, archive_folder_path, "first_image_sha.txt"), "r")
     first_image_sha = f.read().strip()
