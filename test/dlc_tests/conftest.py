@@ -335,6 +335,11 @@ def ec2_instance_ami(request, region):
         else UBUNTU_20_BASE_DLAMI_US_EAST_1
         if region == "us-east-1"
         else UBUNTU_20_BASE_DLAMI_US_WEST_2
+        if region == "us-west-2"
+        else test_utils.get_ami_id_boto3(
+            region_name=region,
+            ami_name_pattern="Deep Learning Base GPU AMI (Ubuntu 20.04) ????????",
+        )
     )
 
 
