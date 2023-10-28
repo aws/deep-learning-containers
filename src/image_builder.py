@@ -282,7 +282,11 @@ def image_builder(buildspec, image_types=[], device_types=[]):
             "labels": labels,
             "extra_build_args": extra_build_args,
             "cx_type": cx_type,
+            "release_image_uri": ""
         }
+        
+        if BUILDSPEC.get("prod_account_id") and utils.is_APatch_build():
+            info["release_image_uri"] = f"""{str(image_config.get("release_repository"))}:{str(image_config.get("latest_release_tag"))}"""
 
         # Create pre_push stage docker object
         pre_push_stage_image_object = DockerImage(
@@ -504,28 +508,17 @@ def conduct_apatch_build_setup(pre_push_image_object: DockerImage, download_path
     cx_type = info.get("cx_type")
     image_name = info.get("name")
     image_tag = info.get("image_tag")
+    released_image_uri = info.get("release_image_uri")
 
-    from test.test_utils import parse_canary_images, get_framework_and_version_from_tag, get_sha_of_an_image_from_ecr
-
-    released_image_list = parse_canary_images(
-        info["framework"], info["region"], info["image_type"], customer_type=cx_type
-    ).split(" ")
-
-    filtered_list = []
-    for released_image_uri in released_image_list:
-        print(released_image_uri)
-        _, released_image_version = get_framework_and_version_from_tag(image_uri=released_image_uri)
-        if released_image_version in info["version"] and info["device_type"] in released_image_uri:
-            filtered_list.append(released_image_uri)
-    assert len(filtered_list) == 1, f"Filter list for {image_name} {image_tag} does not exist"
+    from test.test_utils import get_sha_of_an_image_from_ecr
 
     patch_details_path = os.path.join(
-        os.sep, download_path, filtered_list[0].replace("/", "_").replace(":", "_")
+        os.sep, download_path, released_image_uri.replace("/", "_").replace(":", "_")
     )
     if not os.path.exists(patch_details_path):
         run(f"mkdir {patch_details_path}")
     
-    run(f"docker pull {filtered_list[0]}", hide=True)
+    run(f"docker pull {released_image_uri}", hide=True)
 
     THREADS = {}
     # In the context of the ThreadPoolExecutor each instance of image.build submitted
@@ -533,8 +526,8 @@ def conduct_apatch_build_setup(pre_push_image_object: DockerImage, download_path
     with concurrent.futures.ThreadPoolExecutor(max_workers=2) as executor:
         #### TODO: Remove this entire if block when get_dummy_boto_client is removed ####
         get_dummy_boto_client()
-        THREADS[f"trigger_apatch-{filtered_list[0]}"] = executor.submit(trigger_apatch, image_uri=filtered_list[0], s3_downloaded_path=download_path, python_version=info.get("python_version"))
-        THREADS[f"trigger_enhanced_scan-{filtered_list[0]}"] = executor.submit(trigger_enhanced_scan, image_uri=filtered_list[0], patch_details_path=patch_details_path, python_version=info.get("python_version"))
+        THREADS[f"trigger_apatch-{released_image_uri}"] = executor.submit(trigger_apatch, image_uri=released_image_uri, s3_downloaded_path=download_path, python_version=info.get("python_version"))
+        THREADS[f"trigger_enhanced_scan-{released_image_uri}"] = executor.submit(trigger_enhanced_scan, image_uri=released_image_uri, patch_details_path=patch_details_path, python_version=info.get("python_version"))
     # the FORMATTER.progress(THREADS) function call also waits until all threads have completed
     FORMATTER.progress(THREADS)
 
@@ -548,9 +541,9 @@ def conduct_apatch_build_setup(pre_push_image_object: DockerImage, download_path
 
     pre_push_image_object.target = None
     ecr_client = boto3.client("ecr", region_name=os.getenv("REGION"))
-    released_image_sha = get_sha_of_an_image_from_ecr(ecr_client=ecr_client, image_uri=filtered_list[0])
+    released_image_sha = get_sha_of_an_image_from_ecr(ecr_client=ecr_client, image_uri=released_image_uri)
 
-    info["extra_build_args"].update({"RELEASED_IMAGE": filtered_list[0]})
+    info["extra_build_args"].update({"RELEASED_IMAGE": released_image_uri})
     info["extra_build_args"].update({"RELEASED_IMAGE_SHA": released_image_sha})
 
     apatch_artifacts = {
