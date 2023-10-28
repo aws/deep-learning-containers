@@ -55,6 +55,7 @@ def test_dgl_gcn_training_cpu(ecr_image, sagemaker_regions, instance_type):
 @pytest.mark.skip_py2_containers
 @pytest.mark.skip_inductor_test
 @pytest.mark.skip_pt21_test
+@pytest.mark.skip_pt20_cuda121_tests
 @pytest.mark.parametrize("instance_type", inductor_instance_types, indirect=True)
 def test_dgl_gcn_training_gpu(ecr_image, sagemaker_regions, instance_type):
     instance_type = instance_type or "ml.p3.2xlarge"

@@ -24,6 +24,7 @@ from .. import RESOURCE_PATH
 @pytest.mark.integration("ag_local")
 @pytest.mark.processor("cpu")
 @pytest.mark.model("autogluon")
+@pytest.mark.team("autogluon")
 def test_autogluon_local_cpu(
     docker_image, sagemaker_local_session, instance_type, framework_version, tmpdir
 ):
@@ -36,6 +37,7 @@ def test_autogluon_local_cpu(
 @pytest.mark.processor("gpu")
 @pytest.mark.model("autogluon")
 @pytest.mark.skip_cpu
+@pytest.mark.team("autogluon")
 def test_autogluon_local_gpu(
     docker_image, sagemaker_local_session, instance_type, framework_version, tmpdir
 ):
@@ -48,6 +50,7 @@ def test_autogluon_local_gpu(
 @pytest.mark.processor("gpu")
 @pytest.mark.model("autogluon")
 @pytest.mark.skip_cpu
+@pytest.mark.team("autogluon")
 def test_autogluon_local_vision_gpu(
     docker_image, sagemaker_local_session, instance_type, framework_version, tmpdir
 ):

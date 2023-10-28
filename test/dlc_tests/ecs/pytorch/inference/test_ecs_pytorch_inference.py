@@ -18,6 +18,7 @@ from test.test_utils import (
 @pytest.mark.model("densenet")
 @pytest.mark.parametrize("ecs_instance_type", ["c5.4xlarge"], indirect=True)
 @pytest.mark.parametrize("ecs_ami", [ECS_AML2_CPU_USWEST2], indirect=True)
+@pytest.mark.team("conda")
 def test_ecs_pytorch_inference_cpu(pytorch_inference, ecs_container_instance, region, cpu_only):
     __ecs_pytorch_inference_cpu(pytorch_inference, ecs_container_instance, region)
 
@@ -101,6 +102,7 @@ def test_ecs_pytorch_inference_eia(
 @pytest.mark.model("resnet")
 @pytest.mark.parametrize("ecs_instance_type", ["inf1.2xlarge"], indirect=True)
 @pytest.mark.parametrize("ecs_ami", [ECS_AML2_NEURON_USWEST2], indirect=True)
+@pytest.mark.team("neuron")
 def test_ecs_pytorch_inference_neuron(pytorch_inference_neuron, ecs_container_instance, region):
     worker_instance_id, ecs_cluster_arn = ecs_container_instance
     public_ip_address = ec2_utils.get_public_ip(worker_instance_id, region=region)
@@ -133,6 +135,7 @@ def test_ecs_pytorch_inference_neuron(pytorch_inference_neuron, ecs_container_in
 @pytest.mark.model("resnet")
 @pytest.mark.parametrize("ecs_instance_type", ["trn1.2xlarge"], indirect=True)
 @pytest.mark.parametrize("ecs_ami", [ECS_AML2_NEURON_USWEST2], indirect=True)
+@pytest.mark.team("neuron")
 def test_ecs_pytorch_inference_neuronx(pytorch_inference_neuronx, ecs_container_instance, region):
     worker_instance_id, ecs_cluster_arn = ecs_container_instance
     public_ip_address = ec2_utils.get_public_ip(worker_instance_id, region=region)
@@ -165,6 +168,7 @@ def test_ecs_pytorch_inference_neuronx(pytorch_inference_neuronx, ecs_container_
 @pytest.mark.model("resnet")
 @pytest.mark.parametrize("ecs_instance_type", ["inf2.xlarge"], indirect=True)
 @pytest.mark.parametrize("ecs_ami", [ECS_AML2_NEURON_USWEST2], indirect=True)
+@pytest.mark.team("neuron")
 def test_ecs_pytorch_inference_neuronx_inf2(
     pytorch_inference_neuronx, ecs_container_instance, region
 ):
@@ -199,6 +203,7 @@ def test_ecs_pytorch_inference_neuronx_inf2(
 @pytest.mark.model("densenet")
 @pytest.mark.parametrize("ecs_instance_type", ["p3.8xlarge"], indirect=True)
 @pytest.mark.parametrize("ecs_ami", [ECS_AML2_GPU_USWEST2], indirect=True)
+@pytest.mark.team("conda")
 def test_ecs_pytorch_inference_gpu(pytorch_inference, ecs_container_instance, region, gpu_only):
     worker_instance_id, ecs_cluster_arn = ecs_container_instance
     public_ip_address = ec2_utils.get_public_ip(worker_instance_id, region=region)

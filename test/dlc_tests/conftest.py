@@ -857,25 +857,23 @@ def skip_inductor_test(request):
 
 
 @pytest.fixture(autouse=True)
-def skip_dgl_test(request):
+def skip_pt20_cuda121_tests(request):
     if "training" in request.fixturenames:
         img_uri = request.getfixturevalue("training")
     elif "pytorch_training" in request.fixturenames:
         img_uri = request.getfixturevalue("pytorch_training")
     else:
         return
-    _, image_framework_version = get_framework_and_version_from_tag(img_uri)
-    image_cuda_version = get_cuda_version_from_tag(img_uri)
-    image_processor = get_processor_from_image_uri(img_uri)
-    if request.node.get_closest_marker("skip_dgl_test"):
+    if request.node.get_closest_marker("skip_pt20_cuda121_tests"):
+        _, image_framework_version = get_framework_and_version_from_tag(img_uri)
+        image_processor = get_processor_from_image_uri(img_uri)
+        image_cuda_version = get_cuda_version_from_tag(img_uri)
         if (
-            image_processor == "gpu"
-            and Version(image_framework_version) in SpecifierSet(">=2.0")
-            and Version(image_cuda_version.strip("cu")) >= Version("121")
+            Version(image_framework_version) in SpecifierSet("==2.0.1")
+            and Version(image_cuda_version.strip("cu")) == Version("121")
+            and image_processor == "gpu"
         ):
-            pytest.skip(
-                f"DGL doesn't support cuda12.x and PT2.1 for now, so skipping this container with tag {image_framework_version}"
-            )
+            pytest.skip("PyTorch 2.0 + CUDA12.1 image doesn't support current test")
 
 
 @pytest.fixture(autouse=True)

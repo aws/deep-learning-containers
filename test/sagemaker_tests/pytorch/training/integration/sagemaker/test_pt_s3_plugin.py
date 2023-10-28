@@ -39,6 +39,7 @@ RESOURCE_PATH = os.path.join(os.path.dirname(__file__), "..", "..", "resources")
 @pytest.mark.skip_cpu
 @pytest.mark.skip_py2_containers
 @pytest.mark.skip_s3plugin_test
+@pytest.mark.team("conda")
 def test_pt_s3_plugin_sm_gpu(framework_version, ecr_image, sagemaker_regions):
     with timeout(minutes=DEFAULT_TIMEOUT):
         estimator_parameter = {
@@ -50,9 +51,9 @@ def test_pt_s3_plugin_sm_gpu(framework_version, ecr_image, sagemaker_regions):
             "framework_version": framework_version,
         }
 
-        job_name = utils.unique_name_from_base("test-pytorch-s3-plugin-gpu")
+        job_name_prefix = "test-pytorch-s3-plugin-gpu"
         invoke_pytorch_estimator(
-            ecr_image, sagemaker_regions, estimator_parameter, job_name=job_name
+            ecr_image, sagemaker_regions, estimator_parameter, job_name=job_name_prefix
         )
 
 
@@ -63,6 +64,7 @@ def test_pt_s3_plugin_sm_gpu(framework_version, ecr_image, sagemaker_regions):
 @pytest.mark.skip_cpu
 @pytest.mark.skip_py2_containers
 @pytest.mark.skip_s3plugin_test
+@pytest.mark.team("conda")
 def test_hc_pt_s3_plugin_sm_gpu(framework_version, ecr_image, sagemaker_regions):
     training_group = InstanceGroup("train_group", MULTI_GPU_INSTANCE, 1)
     with timeout(minutes=DEFAULT_TIMEOUT):
@@ -74,9 +76,9 @@ def test_hc_pt_s3_plugin_sm_gpu(framework_version, ecr_image, sagemaker_regions)
             "framework_version": framework_version,
         }
 
-        job_name = utils.unique_name_from_base("test-pytorch-hc-s3-plugin-gpu")
+        job_name_prefix = "test-pytorch-hc-s3-plugin-gpu"
         invoke_pytorch_estimator(
-            ecr_image, sagemaker_regions, estimator_parameter, job_name=job_name
+            ecr_image, sagemaker_regions, estimator_parameter, job_name=job_name_prefix
         )
 
 
@@ -87,6 +89,7 @@ def test_hc_pt_s3_plugin_sm_gpu(framework_version, ecr_image, sagemaker_regions)
 @pytest.mark.skip_gpu
 @pytest.mark.skip_py2_containers
 @pytest.mark.skip_s3plugin_test
+@pytest.mark.team("conda")
 def test_pt_s3_plugin_sm_cpu(framework_version, ecr_image, sagemaker_regions):
     with timeout(minutes=DEFAULT_TIMEOUT):
         estimator_parameter = {
@@ -97,9 +100,9 @@ def test_pt_s3_plugin_sm_cpu(framework_version, ecr_image, sagemaker_regions):
             "instance_type": CPU_INSTANCE,
             "framework_version": framework_version,
         }
-        job_name = utils.unique_name_from_base("test-pytorch-s3-plugin-cpu")
+        job_name_prefix = "test-pytorch-s3-plugin-cpu"
         invoke_pytorch_estimator(
-            ecr_image, sagemaker_regions, estimator_parameter, job_name=job_name
+            ecr_image, sagemaker_regions, estimator_parameter, job_name=job_name_prefix
         )
 
 
@@ -110,6 +113,7 @@ def test_pt_s3_plugin_sm_cpu(framework_version, ecr_image, sagemaker_regions):
 @pytest.mark.skip_gpu
 @pytest.mark.skip_py2_containers
 @pytest.mark.skip_s3plugin_test
+@pytest.mark.team("conda")
 def test_hc_pt_s3_plugin_sm_cpu(framework_version, ecr_image, sagemaker_regions):
     training_group = InstanceGroup("train_group", CPU_INSTANCE, 1)
     with timeout(minutes=DEFAULT_TIMEOUT):
@@ -120,7 +124,7 @@ def test_hc_pt_s3_plugin_sm_cpu(framework_version, ecr_image, sagemaker_regions)
             "instance_groups": [training_group],
             "framework_version": framework_version,
         }
-        job_name = utils.unique_name_from_base("test-pytorch-hc-s3-plugin-cpu")
+        job_name_prefix = "test-pytorch-hc-s3-plugin-cpu"
         invoke_pytorch_estimator(
-            ecr_image, sagemaker_regions, estimator_parameter, job_name=job_name
+            ecr_image, sagemaker_regions, estimator_parameter, job_name=job_name_prefix
         )

@@ -61,6 +61,7 @@ def can_run_smdataparallel_efa(ecr_image):
 @pytest.mark.model("N/A")
 @pytest.mark.multinode(2)
 @pytest.mark.integration("smdataparallel")
+@pytest.mark.team("smdataparallel")
 @pytest.mark.parametrize(
     "efa_instance_type", get_efa_test_instance_type(default=["ml.p4d.24xlarge"]), indirect=True
 )
@@ -68,6 +69,7 @@ def can_run_smdataparallel_efa(ecr_image):
 @pytest.mark.skip_trcomp_containers
 @pytest.mark.efa()
 @pytest.mark.skip_pt21_test
+@pytest.mark.skip_pt20_cuda121_tests
 def test_smdataparallel_throughput(
     framework_version, ecr_image, sagemaker_regions, efa_instance_type, tmpdir
 ):
@@ -93,9 +95,9 @@ def test_smdataparallel_throughput(
             "distribution": distribution,
         }
 
-        job_name = utils.unique_name_from_base("test-pt-smddp-throughput")
+        job_name_prefix = "test-pt-smddp-throughput"
         invoke_pytorch_estimator(
-            ecr_image, sagemaker_regions, estimator_parameter, job_name=job_name
+            ecr_image, sagemaker_regions, estimator_parameter, job_name=job_name_prefix
         )
 
 
@@ -107,6 +109,8 @@ def test_smdataparallel_throughput(
 @pytest.mark.skip_py2_containers
 @pytest.mark.skip_trcomp_containers
 @pytest.mark.skip_pt21_test
+@pytest.mark.skip_pt20_cuda121_tests
+@pytest.mark.team("smdataparallel")
 def test_smdataparallel_mnist_script_mode_multigpu(
     ecr_image, sagemaker_regions, instance_type, tmpdir
 ):
@@ -114,7 +118,6 @@ def test_smdataparallel_mnist_script_mode_multigpu(
     Tests SM Distributed DataParallel single-node via script mode
     """
     validate_or_skip_smdataparallel(ecr_image)
-
     instance_type = "ml.p3.16xlarge"
     distribution = {"smdistributed": {"dataparallel": {"enabled": True}}}
     with timeout(minutes=DEFAULT_TIMEOUT):
@@ -126,9 +129,9 @@ def test_smdataparallel_mnist_script_mode_multigpu(
             "instance_type": instance_type,
             "distribution": distribution,
         }
-        job_name = utils.unique_name_from_base("test-pt-smddp-mnist-script-mode")
+        job_name_prefix = "test-pt-smddp-mnist-script-mode"
         invoke_pytorch_estimator(
-            ecr_image, sagemaker_regions, estimator_parameter, job_name=job_name
+            ecr_image, sagemaker_regions, estimator_parameter, job_name=job_name_prefix
         )
 
 
@@ -142,6 +145,8 @@ def test_smdataparallel_mnist_script_mode_multigpu(
 @pytest.mark.efa()
 @pytest.mark.skip_trcomp_containers
 @pytest.mark.skip_pt21_test
+@pytest.mark.skip_pt20_cuda121_tests
+@pytest.mark.team("smdataparallel")
 @pytest.mark.parametrize(
     "efa_instance_type",
     get_efa_test_instance_type(default=["ml.p3.16xlarge", "ml.p4d.24xlarge"]),
@@ -163,9 +168,9 @@ def test_smdataparallel_mnist(ecr_image, sagemaker_regions, efa_instance_type, t
             "distribution": distribution,
         }
 
-        job_name = utils.unique_name_from_base("test-pt-smddp-mnist")
+        job_name_prefix = "test-pt-smddp-mnist"
         invoke_pytorch_estimator(
-            ecr_image, sagemaker_regions, estimator_parameter, job_name=job_name
+            ecr_image, sagemaker_regions, estimator_parameter, job_name=job_name_prefix
         )
 
 
@@ -179,9 +184,11 @@ def test_smdataparallel_mnist(ecr_image, sagemaker_regions, efa_instance_type, t
 @pytest.mark.efa()
 @pytest.mark.skip_trcomp_containers
 @pytest.mark.skip_pt21_test
+@pytest.mark.skip_pt20_cuda121_tests
 @pytest.mark.parametrize(
     "efa_instance_type", get_efa_test_instance_type(default=["ml.p3.16xlarge"]), indirect=True
 )
+@pytest.mark.team("smdataparallel")
 def test_hc_smdataparallel_mnist(ecr_image, sagemaker_regions, efa_instance_type, tmpdir):
     """
     Tests smddprun command via Estimator API distribution parameter
@@ -202,9 +209,9 @@ def test_hc_smdataparallel_mnist(ecr_image, sagemaker_regions, efa_instance_type
             "distribution": distribution,
         }
 
-        job_name = utils.unique_name_from_base("test-pt-hc-smddp-mnist")
+        job_name_prefix = "test-pt-hc-smddp-mnist"
         invoke_pytorch_estimator(
-            ecr_image, sagemaker_regions, estimator_parameter, job_name=job_name
+            ecr_image, sagemaker_regions, estimator_parameter, job_name=job_name_prefix
         )
 
 
@@ -217,6 +224,8 @@ def test_hc_smdataparallel_mnist(ecr_image, sagemaker_regions, efa_instance_type
 @pytest.mark.integration("smdataparallel_smmodelparallel")
 @pytest.mark.model("mnist")
 @pytest.mark.parametrize("instance_types", ["ml.p3.16xlarge"])
+@pytest.mark.skip_pt20_cuda121_tests
+@pytest.mark.team("smdataparallel")
 def test_smmodelparallel_smdataparallel_mnist(
     instance_types, ecr_image, sagemaker_regions, py_version, tmpdir
 ):
@@ -244,11 +253,11 @@ def test_smmodelparallel_smdataparallel_mnist(
             "instance_count": 1,
             "instance_type": instance_types,
         }
-        job_name = utils.unique_name_from_base("test-pt-smdmp-smddp-mnist")
+        job_name_prefix = "test-pt-smdmp-smddp-mnist"
         invoke_pytorch_estimator(
             ecr_image,
             sagemaker_regions,
             estimator_parameter,
             disable_sm_profiler=True,
-            job_name=job_name,
+            job_name=job_name_prefix,
         )

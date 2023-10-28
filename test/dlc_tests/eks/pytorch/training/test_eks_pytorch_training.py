@@ -23,6 +23,7 @@ LOGGER = eks_utils.LOGGER
     reason="Skip this test. It is already tested under PR context and we do not have enough resouces to test it again on mainline pipeline",
 )
 @pytest.mark.model("mnist")
+@pytest.mark.team("conda")
 def test_eks_pytorch_single_node_training(pytorch_training):
     """
     Function to create a pod using kubectl and given container image, and run MXNet training
@@ -104,6 +105,7 @@ def test_eks_pytorch_single_node_training(pytorch_training):
 )
 @pytest.mark.model("resnet18")
 @pytest.mark.integration("pt_s3_plugin")
+@pytest.mark.team("conda")
 def test_eks_pt_s3_plugin_single_node_training(pytorch_training, outside_versions_skip):
     """
     Function to create a pod using kubectl and given container image, and run MXNet training
@@ -158,7 +160,7 @@ def test_eks_pt_s3_plugin_single_node_training(pytorch_training, outside_version
 @pytest.mark.skipif(
     not is_pr_context(), reason="Skip this test. It is already tested under PR context"
 )
-@pytest.mark.skip_dgl_test
+@pytest.mark.skip_pt20_cuda121_tests
 @pytest.mark.integration("dgl")
 @pytest.mark.model("gcn")
 @pytest.mark.skip_pt21_test
@@ -223,6 +225,7 @@ def test_eks_pytorch_dgl_single_node_training(pytorch_training, py3_only):
 @pytest.mark.skipif(is_pr_context(), reason=SKIP_PR_REASON)
 @pytest.mark.model("mnist")
 @pytest.mark.multinode(4)
+@pytest.mark.team("conda")
 def test_eks_pytorch_multinode_node_training(pytorch_training, example_only):
     """
     Function to create mutliple pods using kubectl and given container image, and run Pytorch training

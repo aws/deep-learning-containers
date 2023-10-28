@@ -203,6 +203,7 @@ class TestDistributedTraining:
     @pytest.mark.skip(reason="Trcomp behavior with SMDP is undefined")
     @pytest.mark.model("toy")
     @pytest.mark.integration("smdataparallel")
+    @pytest.mark.team("smdataparallel")
     def test_smdp(
         self, sagemaker_session, ecr_image, framework_version, instance_count, tmpdir, capsys
     ):
