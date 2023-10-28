@@ -252,12 +252,11 @@ def test_ecr_enhanced_scan(image, ecr_client, sts_client, region):
         image, ecr_client, sts_client, region
     )
 
-    ## TODO: remove_non_patchable_vulns=True should use the image uri to make the decision
     (
         remaining_vulnerabilities,
         _,
     ) = helper_function_for_leftover_vulnerabilities_from_enhanced_scanning(
-        image, remove_non_patchable_vulns=True
+        image, remove_non_patchable_vulns="autopatch" in image
     )
     if remaining_vulnerabilities:
         LOGGER.info(
