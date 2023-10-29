@@ -12,21 +12,22 @@
 # language governing permissions and limitations under the License.
 
 # Workaround for https://github.com/pytorch/vision/issues/1938
-from __future__ import print_function, absolute_import
+from __future__ import absolute_import, print_function
+
 from six.moves import urllib
 
 opener = urllib.request.build_opener()
 opener.addheaders = [("User-agent", "Mozilla/5.0")]
 urllib.request.install_opener(opener)
-from packaging.version import Version
-
 import argparse
+import glob
 import logging
 import os
 import sys
 
 import cv2 as cv
 import sagemaker_training.environment
+import smppy
 import torch
 import torch.distributed as dist
 import torch.nn as nn
@@ -34,8 +35,8 @@ import torch.nn.functional as F
 import torch.optim as optim
 import torch.utils.data
 import torch.utils.data.distributed
-
 import torchvision
+from packaging.version import Version
 from torchvision import datasets, transforms
 
 # from torchvision 0.9.1, 2 candidate mirror website links will be added before "resources" items automatically
@@ -125,113 +126,69 @@ def _get_test_data_loader(test_batch_size, training_dir, **kwargs):
     )
 
 
-def _average_gradients(model):
-    # Gradient averaging.
-    size = float(dist.get_world_size())
-    for param in model.parameters():
-        dist.all_reduce(param.grad.data, op=dist.ReduceOp.SUM)
-        param.grad.data /= size
-
-
 def train(args):
     is_distributed = args.backend is not None
-    use_cuda = (args.processor == "gpu") or (args.num_gpus > 0)
-    kwargs = {"num_workers": 1, "pin_memory": True} if use_cuda else {}
-    device = torch.device("cuda" if use_cuda else "cpu")
-    use_inductor = args.inductor == 1
+    logger.debug("Distributed training - {}".format(is_distributed))
+    kwargs = {"num_workers": 1, "pin_memory": True}
+    device = torch.device("cuda")
 
     if is_distributed:
         # Initialize the distributed environment.
-        if not os.getenv("MASTER_ADDR"):
-            os.environ["MASTER_ADDR"] = os.environ["SM_HOSTS"][0]
-            os.environ["MASTER_PORT"] = "55555"
-            args.hosts = os.environ["SM_HOSTS"]
-        if not os.getenv("RANK") and args.backend == "nccl":
-            os.environ["RANK"] = str(os.getenv("OMPI_COMM_WORLD_RANK"))
-
-        if not os.getenv("WORLD_SIZE") and args.backend == "nccl":
-            os.environ["WORLD_SIZE"] = str(os.getenv("OMPI_COMM_WORLD_SIZE"))
-
         if not os.getenv("RANK"):  # for local dist job
             os.environ["RANK"] = str(args.hosts.index(args.current_host))
         if not os.getenv("WORLD_SIZE"):  # for local dist job
             os.environ["WORLD_SIZE"] = str(len(args.hosts))
-
         dist.init_process_group(backend=args.backend)
-        logger.info(
-            "Initialized the distributed environment: '{}' backend on {} processes. ".format(
-                args.backend, dist.get_world_size()
-            )
-            + "Current rank is {}, Current host is: {}, Number of gpus: {}, device used: {}".format(
-                dist.get_rank(), args.current_host, args.num_gpus, device
-            )
-        )
 
     # set the seed for generating random numbers
     torch.manual_seed(args.seed)
-    if use_cuda:
-        torch.cuda.manual_seed(args.seed)
+    torch.cuda.manual_seed(args.seed)
 
     train_loader = _get_train_data_loader(args.batch_size, args.data_dir, is_distributed, **kwargs)
     test_loader = _get_test_data_loader(args.test_batch_size, args.data_dir, **kwargs)
 
-    # TODO: assert the logs when we move to the SDK local mode
-    logger.debug(
-        "Processes {}/{} ({:.0f}%) of train data".format(
-            len(train_loader.sampler),
-            len(train_loader.dataset),
-            100.0 * len(train_loader.sampler) / len(train_loader.dataset),
-        )
-    )
-
-    logger.debug(
-        "Processes {}/{} ({:.0f}%) of test data".format(
-            len(test_loader.sampler),
-            len(test_loader.dataset),
-            100.0 * len(test_loader.sampler) / len(test_loader.dataset),
-        )
-    )
-
     model = Net()
-
     if is_distributed:
-        if use_cuda:
-            device_id = dist.get_rank() % torch.cuda.device_count()
-            device = torch.device(f"cuda:{device_id}")
-            # multi-machine multi-gpu case
-            logger.debug("Multi-machine multi-gpu cuda: using DistributedDataParallel.")
-        # for multiprocessing distributed, the DDP constructor should always set
-        # the single device scope. otherwise, DDP will use all available devices.
+        device_id = dist.get_rank() % torch.cuda.device_count()
+        device = torch.device(f"cuda:{device_id}")
+        logger.debug("Multi-machine smppy test: using DistributedDataParallel.")
         for name, param in model.named_parameters():
             print(f"{dist.get_rank()} model parameters {name}: {param.size()}")
         model = torch.nn.parallel.DistributedDataParallel(model.to(device))
     else:
         model = model.to(device)
 
-    if use_inductor:
-        logger.debug("Inductor: using Inductor.")
-        model = torch.compile(model, backend="inductor", mode="default")
-
     optimizer = optim.SGD(model.parameters(), lr=args.lr, momentum=args.momentum)
 
+    # for SM local mode
+    os.makedirs("/opt/ml/output/profiler/framework", exist_ok=True)
+
+    smp = smppy.SMProfiler.instance()
+    config = smppy.Config()
+    config.profiler = {
+        "EnableCuda": "1",
+    }
+    smp.configure(config)
+
+    smp.start_profiling()
     for epoch in range(1, args.epochs + 1):
         model.train()
         for batch_idx, (data, target) in enumerate(train_loader, 1):
-            if is_distributed and use_cuda:
-                # multi-machine multi-gpu case - allow asynchrous GPU copies of the data
+            if is_distributed:
                 data, target = data.to(device, non_blocking=True), target.to(
                     device, non_blocking=True
                 )
             else:
                 data, target = data.to(device), target.to(device)
             optimizer.zero_grad()
-            output = model(data)
-            loss = F.nll_loss(output, target)
-            loss.backward()
-            if is_distributed and not use_cuda:
-                # average gradients manually for multi-machine cpu case only
-                _average_gradients(model)
-            optimizer.step()
+            with smppy.annotate("Forward"):
+                output = model(data)
+            with smppy.annotate("Loss"):
+                loss = F.nll_loss(output, target)
+            with smppy.annotate("Backward"):
+                loss.backward()
+            with smppy.annotate("Optimizer"):
+                optimizer.step()
             if batch_idx % args.log_interval == 0:
                 logger.debug(
                     "Train Epoch: {} [{}/{} ({:.0f}%)]\tLoss: {:.6f}".format(
@@ -243,10 +200,7 @@ def train(args):
                     )
                 )
         test(model, test_loader, device)
-    save_model(model, args.model_dir, args)
-
-    if len(args.hosts) == 1 or os.environ["RANK"] == 0:
-        assert_can_track_sagemaker_experiments()
+    smp.stop_profiling()
 
 
 def test(model, test_loader, device):
@@ -269,28 +223,7 @@ def test(model, test_loader, device):
     )
 
 
-def save_model(model, model_dir, args):
-    model_pth = f"model_{args.hosts.index(args.current_host)}.pth"
-    logger.info(f"Saving the model: {model_pth}")
-    path = os.path.join(model_dir, model_pth)
-    # recommended way from http://pytorch.org/docs/master/notes/serialization.html
-    torch.save(model.state_dict(), path)
-
-
-def assert_can_track_sagemaker_experiments():
-    in_sagemaker_training = "TRAINING_JOB_ARN" in os.environ
-    in_python_three = sys.version_info[0] == 3
-
-    if in_sagemaker_training and in_python_three:
-        import smexperiments.tracker
-
-        with smexperiments.tracker.Tracker.load() as tracker:
-            tracker.log_parameter("param", 1)
-            tracker.log_metric("metric", 1.0)
-
-
 if __name__ == "__main__":
-    print("sys.argv: ", sys.argv)
     # test opencv
     print(cv.__version__)
 
@@ -324,17 +257,13 @@ if __name__ == "__main__":
     parser.add_argument(
         "--log-interval",
         type=int,
-        default=10000,
+        default=100,
         metavar="N",
         help="how many batches to wait before logging training status",
     )
     parser.add_argument(
         "--backend", type=str, default=None, help="backend for distributed training"
     )
-    parser.add_argument(
-        "--processor", type=str, default="cpu", help="backend for distributed training"
-    )
-    parser.add_argument("--inductor", type=int, default=0, help="pytorch with inductor")
 
     # Container environment
     env = sagemaker_training.environment.Environment()
@@ -344,6 +273,11 @@ if __name__ == "__main__":
     parser.add_argument("--data-dir", type=str, default=env.channel_input_dirs["training"])
     parser.add_argument("--num-gpus", type=int, default=env.num_gpus)
 
-    args = parser.parse_args()
+    train(parser.parse_args())
 
-    train(args)
+    smp_files = glob.glob("/opt/ml/output/profiler/framework/*.smpraw")
+    assert (
+        len(smp_files) > 0
+    ), f"The local output folder doesn't contain any sagemaker profiler files"
+    for f in smp_files:
+        assert os.path.getsize(f) > 0, f"sagemaker profiler file has size 0"

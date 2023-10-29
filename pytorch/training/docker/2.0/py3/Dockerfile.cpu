@@ -107,11 +107,17 @@ RUN curl -L -o ~/mambaforge.sh https://github.com/conda-forge/miniforge/releases
  && ~/mambaforge.sh -b -p /opt/conda \
  && rm ~/mambaforge.sh
 
+# Install zstandard on system python to prevent conda installation errors
+# Reference https://github.com/conda/conda-libmamba-solver/issues/241
+RUN pip install "zstandard>=0.21.0"
+
 # install core conda dependency packages (and pin essential packages)
 RUN /opt/conda/bin/mamba install -y --override-channels \
     -c conda-forge \
     conda=23.1.0 \
     "cryptography>=41.0.2" \
+    # patch CVE
+    "pillow>=9.4,<9.5.0" \
     cmake \
     requests \
     pyopenssl \
@@ -129,7 +135,6 @@ RUN /opt/conda/bin/mamba install -y --override-channels \
     # Below 2 are included in miniconda base, but not mamba so need to install
     charset-normalizer \
     packaging \
-    opencv \
     awscli \
     boto3 \
     pybind11 \
@@ -189,21 +194,30 @@ ARG PT_TORCHDATA_URL
 RUN /opt/conda/bin/mamba install -y pytorch=${PYTORCH_VERSION_EC2} \
   torchvision torchaudio torchtext cpuonly \
   --override-channels \
-  -c https://aws-ml-conda-sm.s3.us-west-2.amazonaws.com \
-  -c conda-forge
+  -c https://aws-ml-conda-ec2.s3.us-west-2.amazonaws.com \
+  -c conda-forge \
+  && /opt/conda/bin/mamba clean -afy
 
 # Patches
-RUN pip install "pillow>=9.5" "pyyaml>=6.0.1"
+RUN pip install \
+  "pillow>=9.5" \
+  "pyyaml>=6.0.1" \
+  "opencv-python>=4.8.1"
 RUN /opt/conda/bin/mamba install -y -c conda-forge \
-  "requests>=2.31.0"
+  "requests>=2.31.0" \
+  # Install urllib3 (dependency of requests) as a separate package to force upgrade to latest secure version
+  "urllib3>=1.26.18" \
+  && /opt/conda/bin/mamba clean -afy
 
 # install fastai (depends on PyTorch)
 RUN /opt/conda/bin/mamba install -y -c conda-forge \
   # needed by fastai.distributed
-  accelerate \
+  # pin accelerate to 0.22.0 as newer version gives error "0.23.0 requires huggingface-hub, which is not installed."
+  accelerate=0.22.0 \
   && /opt/conda/bin/mamba install -y -c fastai fastai \
   # fastai conda strictly depends on dataclasses
-  && pip uninstall -y dataclasses
+  && pip uninstall -y dataclasses \
+  && /opt/conda/bin/mamba clean -afy
 
 RUN HOME_DIR=/root \
  && curl -o ${HOME_DIR}/oss_compliance.zip https://aws-dlinfra-utilities.s3.amazonaws.com/oss_compliance.zip \
@@ -259,16 +273,19 @@ ARG PYTORCH_VERSION_SM
 RUN /opt/conda/bin/mamba install -y pytorch=${PYTORCH_VERSION_SM} \
   torchvision torchaudio torchtext cpuonly \
   --override-channels \
-  -c https://aws-ml-conda-sm.s3.us-west-2.amazonaws.com \
-  -c conda-forge
+  -c https://aws-ml-conda-ec2.s3.us-west-2.amazonaws.com \
+  -c conda-forge \
+  && /opt/conda/bin/mamba clean -afy
 
 # install fastai (depends on PyTorch)
 RUN /opt/conda/bin/mamba install -y -c conda-forge \
   # needed by fastai.distributed
-  accelerate \
+  # pin accelerate to 0.22.0 as newer version gives error "0.23.0 requires huggingface-hub, which is not installed."
+  accelerate=0.22.0 \
   && /opt/conda/bin/mamba install -y -c fastai fastai \
   # fastai conda strictly depends on dataclasses
-  && pip uninstall -y dataclasses
+  && pip uninstall -y dataclasses \
+  && /opt/conda/bin/mamba clean -afy
 
 WORKDIR /
 
@@ -307,9 +324,15 @@ RUN /opt/conda/bin/mamba install -y -c conda-forge \
  && /opt/conda/bin/mamba clean -afy
 
 # Patches
-RUN pip install "pillow>=9.5" "pyyaml>=6.0.1"
+RUN pip install \
+  "pillow>=9.5" \
+  "pyyaml>=6.0.1" \
+  "opencv-python>=4.8.1"
 RUN /opt/conda/bin/mamba install -y -c conda-forge \
-  "requests>=2.31.0"
+  "requests>=2.31.0" \
+  # Install urllib3 (dependency of requests) as a separate package to force upgrade to latest secure version
+  "urllib3>=1.26.18" \
+  && /opt/conda/bin/mamba clean -afy
 
 RUN HOME_DIR=/root \
  && curl -o ${HOME_DIR}/oss_compliance.zip https://aws-dlinfra-utilities.s3.amazonaws.com/oss_compliance.zip \

@@ -1,0 +1,55 @@
+{
+  "org.apache.ant:ant": [
+    {
+      "description": "As mitigation for CVE-2020-1945 Apache Ant 1.10.8 changed the permissions of temporary files it created so that only the current user was allowed to access them. Unfortunately the fixcrlf task deleted the temporary file and created a new one without said protection, effectively nullifying the effort. This would still allow an attacker to inject modified source files into the build process.",
+      "vulnerability_id": "CVE-2020-11979",
+      "name": "CVE-2020-11979",
+      "package_name": "org.apache.ant:ant",
+      "package_details": {
+        "file_path": "opt/conda/libnvvp/plugins/org.apache.ant_1.9.2.v201404171502/lib/ant.jar",
+        "name": "org.apache.ant:ant",
+        "package_manager": "JAR",
+        "version": "1.9.2",
+        "release": null
+      },
+      "remediation": { "recommendation": { "text": "None Provided" } },
+      "cvss_v3_score": 7.5,
+      "cvss_v30_score": 0.0,
+      "cvss_v31_score": 7.5,
+      "cvss_v2_score": 5.0,
+      "cvss_v3_severity": "HIGH",
+      "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2020-11979",
+      "source": "NVD",
+      "severity": "HIGH",
+      "status": "ACTIVE",
+      "title": "CVE-2020-11979 - org.apache.ant:ant"
+    }
+  ],
+  "torch": [
+    {
+      "description": "## Overview\n[torch](https://pypi.org/project/torch) is a Tensors and Dynamic neural networks in Python with strong GPU acceleration\n\nAffected versions of this package are vulnerable to Arbitrary Code Injection through `filter-test-configs` in the `pull_request_target-triggered` workflow, allowing an attacker to use a malicious branch name to gain command execution and potentially leak secrets.\r\n\r\n**Mitigation:**\r\n\r\nUse an intermediate environment variable for potentially attacker-controlled values such as `github.event.workflow_run.head_branch`:\r\n\r\n```\r\n- name: Select all requested test configurations\r\n  shell: bash\r\n  env:\r\n    GITHUB_TOKEN: ${{ inputs.github-token }}\r\n    JOB_NAME: ${{ steps.get-job-name.outputs.job-name }}\r\n    HEAD_BRANCH: ${{ github.event.workflow_run.head_branch }}\r\n  id: filter\r\n  run: |\r\n    ...\r\n    python3 \"${GITHUB_ACTION_PATH}/../../scripts/filter_test_configs.py\" \\\r\n      ...\r\n      --branch \"$HEAD_BRANCH\"\r\n```\n## Remediation\nThere is no fixed version for `torch`.\n## References\n-", 
+      "vulnerability_id": "SNYK-PYTHON-TORCH-5876728", 
+      "name": "SNYK-PYTHON-TORCH-5876728", 
+      "package_name": "torch", 
+      "package_details": {
+        "file_path": "opt/conda/lib/python3.10/site-packages/torch-2.0.1-py3.10.egg-info/PKG-INFO", 
+        "name": "torch", 
+        "package_manager": "PYTHONPKG", 
+        "version": "2.0.1", 
+        "release": null
+      }, 
+      "remediation": {"recommendation": {"text": "None Provided"}},
+      "cvss_v3_score": 9.8, 
+      "cvss_v30_score": 0.0, 
+      "cvss_v31_score": 9.8, 
+      "cvss_v2_score": 0.0, 
+      "cvss_v3_severity": 
+      "CRITICAL", 
+      "source_url": "https://security.snyk.io/vuln/SNYK-PYTHON-TORCH-5876728", 
+      "source": "SNYK", 
+      "severity": "CRITICAL", 
+      "status": "ACTIVE", 
+      "title": "IN1-PYTHON-TORCH-5876728 - torch"
+    }
+  ]
+}
