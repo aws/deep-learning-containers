@@ -106,7 +106,6 @@ RUN curl -L -o ~/mambaforge.sh https://github.com/conda-forge/miniforge/releases
  && /opt/conda/bin/conda clean -ya
 
 RUN conda install -c conda-forge \
-    opencv \
     h5py \
     requests \
  && conda clean -ya \
@@ -125,7 +124,8 @@ RUN pip install --no-cache-dir -U \
     boto3 \
     "numpy>=1.22.2, <=1.25.2" \
     scikit-learn \
-    cryptography
+    cryptography \
+    "opencv-python>=4.8.1.78"
 
 # Install Neuronx-cc and PyTorch
 RUN pip install --extra-index-url https://pip.repos.neuron.amazonaws.com \
