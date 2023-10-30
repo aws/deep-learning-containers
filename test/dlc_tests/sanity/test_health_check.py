@@ -31,6 +31,7 @@ PT_EC2_MULTI_GPU_INSTANCE_TYPE = ec2_utils.get_ec2_instance_type(
 @pytest.mark.model("N/A")
 @pytest.mark.timeout(1200)
 @pytest.mark.integration("health_check")
+@pytest.mark.skip_pt20_cuda121_tests
 def test_health_check_local_efa(pytorch_training, ec2_connection, gpu_only):
     # Run local EFA test on Pytorch DLC
     docker_cmd = "nvidia-docker"
