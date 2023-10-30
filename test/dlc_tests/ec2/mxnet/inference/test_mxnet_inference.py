@@ -44,6 +44,7 @@ MX_TELEMETRY_CMD = os.path.join(CONTAINER_TESTS_PREFIX, "test_mx_dlc_telemetry_t
     "ec2_instance_ami", [test_utils.NEURON_UBUNTU_18_BASE_DLAMI_US_WEST_2], indirect=True
 )
 @pytest.mark.parametrize("ec2_instance_type", MX_EC2_NEURON_INSTANCE_TYPE, indirect=True)
+@pytest.mark.team("neuron")
 def test_ec2_mxnet_inference_neuron(mxnet_inference_neuron, ec2_connection, region):
     run_ec2_mxnet_inference(
         mxnet_inference_neuron,
