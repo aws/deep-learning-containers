@@ -138,6 +138,7 @@ RUN /opt/conda/bin/mamba install -y -c conda-forge \
     # patch CVE
     "cryptography>=41.0.4" \
     # patch CVE
+    "urllib3>=1.26.18,<2" \
     "pillow>=9.4" \
     "mpi4py>=3.1.4,<3.2" \
     h5py \
