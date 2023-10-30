@@ -113,14 +113,14 @@ RUN pip install --no-cache-dir -U \
     boto3 \
     cryptography
 
-RUN pip install --extra-index-url https://pip.repos.neuron.amazonaws.com \
+RUN pip install -U --extra-index-url https://pip.repos.neuron.amazonaws.com \
     neuronx-cc==$NEURONX_CC_VERSION \
     torch-neuronx==$NEURONX_FRAMEWORK_VERSION \
     transformers-neuronx==$NEURONX_TRANSFORMERS_VERSION \
- && pip install "protobuf<4" \
- && pip install torchserve==${TORCHSERVE_VERSION} \
- && pip install --no-deps --no-cache-dir -U torchvision==0.14.* \
- && pip install torch-model-archiver==${TORCHSERVE_VERSION}
+ && pip install -U "protobuf>=3.18.3,<4" \
+    torchserve==${TORCHSERVE_VERSION} \
+    torch-model-archiver==${TORCHSERVE_VERSION} \
+ && pip install --no-deps --no-cache-dir -U torchvision==0.14.*
 
 RUN useradd -m model-server \
  && mkdir -p /home/model-server/tmp /opt/ml/model \

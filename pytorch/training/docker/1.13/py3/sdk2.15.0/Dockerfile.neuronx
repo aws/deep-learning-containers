@@ -149,7 +149,7 @@ RUN ${PIP} config set global.extra-index-url https://pip.repos.neuron.amazonaws.
 # awscli 1.27.127 requires urllib3 < 1.27, python-etcd requires urllib3 >= 1.7, latest urllib3 release is 2.0.2
 RUN ${PIP} install --no-cache-dir -U \
     "attrs<24,>=23.1.0" \
-    "protobuf>=3.9.2,<=3.20.3" \
+    "protobuf>=3.18.3,<=3.20.3" \
     "docutils>=0.10,<0.17" \
     "rsa<4.8,>=3.1.2" \
     "python-etcd" \

@@ -107,11 +107,11 @@ RUN pip install --no-cache-dir -U \
     cryptography
 
 RUN pip install neuron-cc==$NEURON_CC_VERSION --extra-index-url https://pip.repos.neuron.amazonaws.com \
- && pip install torch-neuron==$NEURON_FRAMEWORK_VERSION --extra-index-url https://pip.repos.neuron.amazonaws.com \
- && pip install "protobuf<4" \
- && pip install torchserve==${TORCHSERVE_VERSION} \
- && pip install --no-deps --no-cache-dir -U torchvision==0.14.* \
- && pip install torch-model-archiver==${TORCHSERVE_VERSION}
+    torch-neuron==$NEURON_FRAMEWORK_VERSION \
+ && pip install -U "protobuf>=3.18.3,<4" \
+    torchserve==${TORCHSERVE_VERSION} \
+    torch-model-archiver==${TORCHSERVE_VERSION} \
+ && pip install --no-deps --no-cache-dir -U torchvision==0.14.*
 
 RUN useradd -m model-server \
  && mkdir -p /home/model-server/tmp /opt/ml/model \
