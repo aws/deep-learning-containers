@@ -885,11 +885,13 @@ def skip_p5_tests(request, ec2_instance_type):
     else:
         return
     if "p5." in ec2_instance_type:
-        _, image_framework_version = get_framework_and_version_from_tag(img_uri)
+        framework, image_framework_version = get_framework_and_version_from_tag(img_uri)
+        if "pytorch" not in framework:
+            pytest.skip("Current image doesn't support P5 EC2 instance.")
         image_processor = get_processor_from_image_uri(img_uri)
         image_cuda_version = get_cuda_version_from_tag(img_uri)
         if Version(image_framework_version) in SpecifierSet("<2.0.1"):
-            pytest.skip("Images less than PyTorch 2.0.1 image doesn't support P5 Ec2 instance.")
+            pytest.skip("Images less than PyTorch 2.0.1 image doesn't support P5 EC2 instance.")
 
 
 @pytest.fixture(scope="session")
