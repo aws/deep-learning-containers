@@ -466,6 +466,12 @@ def skip_s3plugin_test(request):
 
 @pytest.fixture(autouse=True)
 def skip_pt20_cuda121_tests(request, ecr_image):
+    if "training" in request.fixturenames:
+        img_uri = request.getfixturevalue("training")
+    elif "pytorch_training" in request.fixturenames:
+        img_uri = request.getfixturevalue("pytorch_training")
+    else:
+        return
     if request.node.get_closest_marker("skip_pt20_cuda121_tests"):
         _, image_framework_version = get_framework_and_version_from_tag(ecr_image)
         image_cuda_version = get_cuda_version_from_tag(ecr_image)
@@ -473,6 +479,22 @@ def skip_pt20_cuda121_tests(request, ecr_image):
             image_cuda_version.strip("cu")
         ) == Version("121"):
             pytest.skip("PyTorch 2.0 + CUDA12.1 image doesn't support current test")
+
+
+@pytest.fixture(autouse=True)
+def skip_p5_tests(request, instance_type):
+    if "training" in request.fixturenames:
+        img_uri = request.getfixturevalue("training")
+    elif "pytorch_training" in request.fixturenames:
+        img_uri = request.getfixturevalue("pytorch_training")
+    else:
+        return
+    if "p5." in instance_type:
+        _, image_framework_version = get_framework_and_version_from_tag(img_uri)
+        image_processor = get_processor_from_image_uri(img_uri)
+        image_cuda_version = get_cuda_version_from_tag(img_uri)
+        if Version(image_framework_version) in SpecifierSet("<2.0.1"):
+            pytest.skip("Images less than PyTorch 2.0.1 image doesn't support P5 Ec2 instance.")
 
 
 def _get_remote_override_flags():
