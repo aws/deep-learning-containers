@@ -488,13 +488,19 @@ def skip_p5_tests(request, instance_type):
     elif "pytorch_training" in request.fixturenames:
         img_uri = request.getfixturevalue("pytorch_training")
     else:
-        return
-    if "p5." in instance_type:
-        _, image_framework_version = get_framework_and_version_from_tag(img_uri)
+        pytest.skip("Inference Images doesn't support P5 EC2 instance.")
+
+    framework, image_framework_version = get_framework_and_version_from_tag(img_uri)
+    if "pytorch" not in framework:
+        pytest.skip("Current image doesn't support P5 EC2 instance.")
+
+    if "p5." in ec2_instance_type:
         image_processor = get_processor_from_image_uri(img_uri)
         image_cuda_version = get_cuda_version_from_tag(img_uri)
-        if Version(image_framework_version) in SpecifierSet("<2.0.1"):
-            pytest.skip("Images less than PyTorch 2.0.1 image doesn't support P5 Ec2 instance.")
+        if Version(image_framework_version) in SpecifierSet("<2.0.1") or Version(
+            image_cuda_version.strip("cu")
+        ) < Version("121"):
+            pytest.skip("Images less than PyTorch 2.0.1 image doesn't support P5 EC2 instance.")
 
 
 def _get_remote_override_flags():
