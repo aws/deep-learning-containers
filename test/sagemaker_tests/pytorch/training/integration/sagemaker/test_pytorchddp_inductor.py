@@ -47,7 +47,6 @@ def can_run_pytorchddp(ecr_image):
 @pytest.mark.skip_py2_containers
 @pytest.mark.efa()
 @pytest.mark.skip_inductor_test
-@pytest.mark.xfail(reason="known issue: https://github.com/pytorch/pytorch/issues/99074")
 @pytest.mark.skip_pt21_test
 @pytest.mark.skip_pt20_cuda121_tests
 def test_pytorchddp_throughput_gpu(
