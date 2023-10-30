@@ -108,7 +108,7 @@ RUN pip install --no-cache-dir -U \
 
 RUN pip install neuron-cc==$NEURON_CC_VERSION --extra-index-url https://pip.repos.neuron.amazonaws.com \
     torch-neuron==$NEURON_FRAMEWORK_VERSION \
- && pip install -U "protobuf>=3.18.3,<4" \
+ && pip install -U "protobuf>=3.18.3,<=3.20.1" \
     torchserve==${TORCHSERVE_VERSION} \
     torch-model-archiver==${TORCHSERVE_VERSION} \
  && pip install --no-deps --no-cache-dir -U torchvision==0.14.*
