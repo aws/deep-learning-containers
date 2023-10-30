@@ -3,6 +3,7 @@ import xmltodict
 import json
 import config
 from send_status import get_target_url
+from codebuild_environment import get_cloned_folder_path
 from dlc.ticket_notification_handler import TicketNotificationHandler
 
 from codebuild_environment import (
@@ -112,6 +113,24 @@ def get_mainline_execution_details():
     return mainline_execution_details
 
 
+def get_allowlisted_test_exception():    
+    test_exception_allowlist_file = os.path.join(
+        os.sep, get_cloned_folder_path(), "data", "test-exception-allowlist.json"
+    )
+
+    with open(test_exception_allowlist_file) as f:
+        allowlisted_exception = json.load(f)
+    
+    return allowlisted_exception.get("infrastructure_exceptions", [])
+
+
+def check_for_infrastructure_exceptions(fail_message):
+    allowlisted_exceptions = get_allowlisted_test_exception()
+    for exception in allowlisted_exceptions:
+        if exception in fail_message:
+            return True
+    return False
+
 def parse_pytest_data():
     """
     Parse pytest output to get test results.
@@ -140,8 +159,12 @@ def parse_pytest_data():
                 ]
                 test_data["test_path"] = test["@classname"].replace(".", "/") + "/" + test_name
                 test_data["fail_message"] = test["failure"]["@message"]
-                # test_data["fail_full_message"] = test["failure"]["#text"]
-                pytest_file_data["failed_tests"][team_name].append(test_data)
+
+                fail_full_message = test["failure"]["#text"]
+                if check_for_infrastructure_exceptions(fail_full_message):
+                    print("Infrastructure failure found in the test. Skipping test details")
+                else:
+                    pytest_file_data["failed_tests"][team_name].append(test_data)
 
         if pytest_file_data["failed_tests"]:
             pytest_parsed_output.append(pytest_file_data)
