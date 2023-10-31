@@ -25,6 +25,7 @@ from . import invoke_pytorch_estimator
 @pytest.mark.usefixtures("feature_smdebug_present")
 @pytest.mark.integration("smdebug")
 @pytest.mark.model("mnist")
+@pytest.mark.team("smdebug")
 @pytest.mark.skip_py2_containers
 @pytest.mark.skip_pt20_cuda121_tests
 def test_training_smdebug(framework_version, ecr_image, sagemaker_regions, instance_type):
@@ -59,6 +60,7 @@ def test_training_smdebug(framework_version, ecr_image, sagemaker_regions, insta
 @pytest.mark.usefixtures("feature_smdebug_present")
 @pytest.mark.integration("smdebug")
 @pytest.mark.model("mnist")
+@pytest.mark.team("smdebug")
 @pytest.mark.skip_py2_containers
 @pytest.mark.skip_pt20_cuda121_tests
 def test_hc_training_smdebug(framework_version, ecr_image, sagemaker_regions, instance_type):
