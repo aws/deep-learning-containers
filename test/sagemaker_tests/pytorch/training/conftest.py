@@ -481,12 +481,12 @@ def skip_pt20_cuda121_tests(request, ecr_image):
 
 @pytest.fixture(autouse=True)
 def skip_p5_tests(request, ecr_image, instance_type):
-    framework, image_framework_version = get_framework_and_version_from_tag(ecr_image)
-    job_type = get_job_type_from_image(ecr_image)
-    if "pytorch" not in framework or "inference" in job_type:
-        pytest.skip("Current image doesn't support P5 EC2 instance.")
+    if "p5." in instance_type:
+        framework, image_framework_version = get_framework_and_version_from_tag(ecr_image)
+        job_type = get_job_type_from_image(ecr_image)
+        if "pytorch" not in framework or "inference" in job_type:
+            pytest.skip("Current image doesn't support P5 EC2 instance.")
 
-    if "p5." in ec2_instance_type:
         image_cuda_version = get_cuda_version_from_tag(ecr_image)
         if Version(image_framework_version) in SpecifierSet("<2.0.1") or Version(
             image_cuda_version.strip("cu")
