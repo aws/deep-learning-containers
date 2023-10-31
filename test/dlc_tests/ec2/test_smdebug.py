@@ -29,7 +29,7 @@ SMDEBUG_EC2_CPU_INSTANCE_TYPE = get_ec2_instance_type(default="c4.8xlarge", proc
 @pytest.mark.usefixtures("sagemaker_only")
 @pytest.mark.integration("smdebug")
 @pytest.mark.model("mnist")
-@pytest.mark.parametrize("ec2_instance_type", SMDEBUG_EC2_GPU_INSTANCE_TYPE, indirect=True)
+@pytest.mark.parametrize("ec2_instance_type", ["p5.48xlarge"], indirect=True)
 @pytest.mark.flaky(reruns=0)
 @pytest.mark.skip_pt20_cuda121_tests
 def test_smdebug_gpu(
@@ -69,7 +69,7 @@ def test_smdebug_gpu(
 @pytest.mark.usefixtures("sagemaker_only")
 @pytest.mark.integration("smprofiler")
 @pytest.mark.model("mnist")
-@pytest.mark.parametrize("ec2_instance_type", SMDEBUG_EC2_GPU_INSTANCE_TYPE, indirect=True)
+@pytest.mark.parametrize("ec2_instance_type", ["p5.48xlarge"], indirect=True)
 @pytest.mark.flaky(reruns=0)
 @pytest.mark.skip_pt20_cuda121_tests
 def test_smprofiler_gpu(
