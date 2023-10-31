@@ -2,7 +2,13 @@ from invoke.context import Context
 from datetime import datetime
 
 import json
+import logging
 import os
+
+LOGGER = logging.getLogger(__name__)
+LOGGER.setLevel(logging.DEBUG)
+LOGGER.addHandler(logging.StreamHandler(sys.stdout))
+LOGGER.addHandler(logging.StreamHandler(sys.stderr))
 
 
 class SafetyReportGenerator:
@@ -175,6 +181,7 @@ class SafetyReportGenerator:
             self.safety_check_output = self.run_safety_check_in_cb_context()
         # In case of errors, json.loads command will fail. We want the failure to occur to ensure that
         # build process fails in case the safety report cannot be generated properly.
+        LOGGER.error(f"Safety output is \"{self.safety_check_output}\"")
         scanned_vulnerabilities = json.loads(self.safety_check_output)
         self.insert_vulnerabilites_into_report(scanned_vulnerabilities)
         packages = self.get_package_set_from_container()
