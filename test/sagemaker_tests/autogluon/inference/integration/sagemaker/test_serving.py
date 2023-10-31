@@ -78,6 +78,7 @@ def _test_sm_trained_model(
 
 @pytest.mark.integration("smexperiments")
 @pytest.mark.model("autogluon")
+@pytest.mark.team("autogluon")
 def test_sm_trained_model_cpu(sagemaker_regions, framework_version, ecr_image, instance_type):
     instance_type = instance_type or "ml.m5.xlarge"
     try:

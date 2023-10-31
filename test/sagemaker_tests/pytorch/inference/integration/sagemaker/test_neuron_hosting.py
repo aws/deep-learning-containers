@@ -42,6 +42,7 @@ from .... import invoke_pytorch_helper_function
 @pytest.mark.processor("neuron")
 @pytest.mark.neuron_test
 @pytest.mark.skip_stabilityai
+@pytest.mark.team("neuron")
 def test_neuron_hosting(framework_version, ecr_image, instance_type, sagemaker_regions):
     instance_type = instance_type or "ml.inf1.xlarge"
     model_dir = os.path.join(model_neuron_dir, "model-resnet.tar.gz")
@@ -66,6 +67,7 @@ def test_neuron_hosting(framework_version, ecr_image, instance_type, sagemaker_r
     "instance_type, sagemaker_regions",
     [("ml.trn1.2xlarge", ["us-east-1"]), ("ml.inf2.xlarge", ["us-east-2"])],
 )
+@pytest.mark.team("neuron")
 @pytest.mark.neuronx_test
 @pytest.mark.skip_stabilityai
 def test_neuronx_hosting(framework_version, ecr_image, instance_type, sagemaker_regions):
@@ -93,6 +95,7 @@ def test_neuronx_hosting(framework_version, ecr_image, instance_type, sagemaker_
     "instance_type, sagemaker_regions",
     [("ml.trn1.2xlarge", ["us-east-1"]), ("ml.inf2.xlarge", ["us-east-2"])],
 )
+@pytest.mark.team("neuron")
 @pytest.mark.neuronx_test
 @pytest.mark.skip_stabilityai
 def test_neuronx_hosting_no_script(framework_version, ecr_image, instance_type, sagemaker_regions):
