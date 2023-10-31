@@ -96,6 +96,32 @@ def get_framework_and_version_from_tag(image_uri):
     return tested_framework, tag_framework_version
 
 
+def get_job_type_from_image(image_uri):
+    """
+    Return the Job type from the image tag.
+
+    :param image_uri: ECR image URI
+    :return: Job Type
+    """
+    tested_job_type = None
+    allowed_job_types = ("training", "inference")
+    for job_type in allowed_job_types:
+        if job_type in image_uri:
+            tested_job_type = job_type
+            break
+
+    if not tested_job_type and "eia" in image_uri:
+        tested_job_type = "inference"
+
+    if not tested_job_type:
+        raise RuntimeError(
+            f"Cannot find Job Type in image uri {image_uri} "
+            f"from allowed frameworks {allowed_job_types}"
+        )
+
+    return tested_job_type
+
+
 def get_region_from_image_uri(image_uri):
     """
     Find the region where the image is located
