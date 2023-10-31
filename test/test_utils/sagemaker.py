@@ -238,7 +238,7 @@ def generate_sagemaker_pytest_cmd(image, sagemaker_test_type):
         f"--processor {processor} {docker_base_arg} {sm_remote_docker_base_name} --tag {tag} "
         f"{framework_version_arg} {framework_version} {aws_id_arg} {account_id} "
         f"{instance_type_arg} {instance_type} {efa_flag} {sagemaker_regions_list} "
-        f"--junitxml {test_report} --collect-only"
+        f"--junitxml {test_report}"
     )
 
     if processor == "eia":
@@ -247,7 +247,7 @@ def generate_sagemaker_pytest_cmd(image, sagemaker_test_type):
     local_pytest_cmd = (
         f"pytest -s -v {integration_path} {docker_base_arg} "
         f"{sm_local_docker_repo_uri} --tag {tag} --framework-version {framework_version} "
-        f"--processor {processor} {aws_id_arg} {account_id} --junitxml {local_test_report} --collect-only"
+        f"--processor {processor} {aws_id_arg} {account_id} --junitxml {local_test_report}"
     )
 
     if framework == "tensorflow" and job_type != "inference":
@@ -420,7 +420,6 @@ def execute_sagemaker_remote_tests(process_index, image, global_pytest_cache, py
             )
             # adding -o cache_dir with a custom directory name
             pytest_command += f" -o cache_dir={os.path.join(str(process_index), '.pytest_cache')}"
-            print(f"pytest_command {pytest_command}")
             res = context.run(pytest_command, warn=True)
             metrics_utils.send_test_result_metrics(res.return_code)
             cache_json = pytest_cache_util.convert_pytest_cache_file_to_json(
