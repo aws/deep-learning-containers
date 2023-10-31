@@ -89,6 +89,7 @@ def smtrcomp_only(framework_version, ecr_image, request):
 
 @pytest.mark.multinode(2)
 @pytest.mark.integration("trcomp")
+@pytest.mark.team("training-compiler")
 class TestDistributedTraining:
     @pytest.fixture()
     def instance_type(self):
@@ -312,6 +313,7 @@ class TestDistributedTraining:
 
 
 @pytest.mark.integration("trcomp")
+@pytest.mark.team("training-compiler")
 class TestMLWorkFlow:
     @pytest.fixture()
     def instance_type(self):
@@ -579,6 +581,7 @@ class TestMLWorkFlow:
 
 
 @pytest.mark.integration("trcomp")
+@pytest.mark.team("training-compiler")
 class TestUserExperience:
     @pytest.fixture()
     def instance_type(self):
