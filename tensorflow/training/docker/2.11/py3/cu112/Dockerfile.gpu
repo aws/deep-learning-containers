@@ -411,6 +411,11 @@ ARG SMDATAPARALLEL_BINARY=https://smdataparallel.s3.amazonaws.com/binary/tensorf
 # Install SMD DP binary
 RUN SMDATAPARALLEL_TF=1 ${PYTHON} -m pip install --no-cache-dir ${SMDATAPARALLEL_BINARY}
 
+# Install SMP binary
+ARG SMP_URL=https://smppy.s3.amazonaws.com/tensorflow/cu112/smppy-0.3.325-cp39-cp39-linux_x86_64.whl
+RUN apt-get update && apt-get install -y libunwind-dev && apt-get clean \
+ && ${PYTHON} -m pip install --no-cache-dir ${SMP_URL}
+
 # Add NGC vars
 ENV TF_AUTOTUNE_THRESHOLD=2
 

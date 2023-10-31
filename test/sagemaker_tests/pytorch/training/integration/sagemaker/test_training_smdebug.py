@@ -27,6 +27,7 @@ from . import invoke_pytorch_estimator
 @pytest.mark.model("mnist")
 @pytest.mark.team("smdebug")
 @pytest.mark.skip_py2_containers
+@pytest.mark.skip_pt20_cuda121_tests
 def test_training_smdebug(framework_version, ecr_image, sagemaker_regions, instance_type):
     hyperparameters = {
         "random_seed": True,
@@ -46,13 +47,13 @@ def test_training_smdebug(framework_version, ecr_image, sagemaker_regions, insta
             "hyperparameters": hyperparameters,
         }
         upload_s3_data_args = {"path": training_dir, "key_prefix": "pytorch/mnist"}
-        job_name = utils.unique_name_from_base("test-pt-smdebug-training")
+        job_name_prefix = "test-pt-smdebug-training"
         invoke_pytorch_estimator(
             ecr_image,
             sagemaker_regions,
             estimator_parameter,
             upload_s3_data_args=upload_s3_data_args,
-            job_name=job_name,
+            job_name=job_name_prefix,
         )
 
 
@@ -61,6 +62,7 @@ def test_training_smdebug(framework_version, ecr_image, sagemaker_regions, insta
 @pytest.mark.model("mnist")
 @pytest.mark.team("smdebug")
 @pytest.mark.skip_py2_containers
+@pytest.mark.skip_pt20_cuda121_tests
 def test_hc_training_smdebug(framework_version, ecr_image, sagemaker_regions, instance_type):
     hyperparameters = {
         "random_seed": True,
@@ -81,11 +83,11 @@ def test_hc_training_smdebug(framework_version, ecr_image, sagemaker_regions, in
             "hyperparameters": hyperparameters,
         }
         upload_s3_data_args = {"path": training_dir, "key_prefix": "pytorch/mnist"}
-        job_name = utils.unique_name_from_base("test-pt-hc-smdebug-training")
+        job_name_prefix = "test-pt-hc-smdebug-training"
         invoke_pytorch_estimator(
             ecr_image,
             sagemaker_regions,
             estimator_parameter,
             upload_s3_data_args=upload_s3_data_args,
-            job_name=job_name,
+            job_name=job_name_prefix,
         )

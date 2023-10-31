@@ -22,6 +22,7 @@ import unittest.mock as mock
 @pytest.mark.model("hf_bert")
 @pytest.mark.integration("sagemaker-training-compiler")
 @pytest.mark.processor("gpu")
+@pytest.mark.team("training-compiler")
 @pytest.mark.skip_cpu
 @pytest.mark.skip_py2_containers
 @pytest.mark.skip_huggingface_containers
