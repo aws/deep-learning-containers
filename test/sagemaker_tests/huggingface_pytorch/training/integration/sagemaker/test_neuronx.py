@@ -35,6 +35,7 @@ hyperparameters = {
     "bf16": True,
     "per_device_train_batch_size": 4,
     "num_train_epochs": 1,
+    "logging_steps": 1,
     "output_dir": "/opt/ml/model",
 }
 
