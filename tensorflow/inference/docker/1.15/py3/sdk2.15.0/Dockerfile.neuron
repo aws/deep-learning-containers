@@ -127,7 +127,7 @@ RUN ${PIP} install --no-cache-dir -U \
     "gevent>=23.9.0" \
     requests \
     grpcio==1.56.2 \
-    "protobuf<4"
+    protobuf==3.19.5
 
 # pip install statements have been separated out into multiple sequentially executed statements to
 # resolve package dependencies during installation.
