@@ -193,6 +193,7 @@ def test_pytorch_train_mnist_gpu(pytorch_training, ec2_connection, gpu_only, ec2
 @pytest.mark.usefixtures("sagemaker")
 @pytest.mark.model("bert")
 @pytest.mark.integration("inductor")
+@pytest.mark.team("training-compiler")
 @pytest.mark.parametrize("ec2_instance_type", PT_EC2_GPU_INSTANCE_TYPE, indirect=True)
 def test_pytorch_train_bert_gpu(pytorch_training, ec2_connection, gpu_only, ec2_instance_type):
     if test_utils.is_image_incompatible_with_instance_type(pytorch_training, ec2_instance_type):
@@ -297,6 +298,7 @@ def test_pytorch_gloo_gpu(pytorch_training, ec2_connection, gpu_only, py3_only, 
 @pytest.mark.integration("gloo")
 @pytest.mark.integration("inductor")
 @pytest.mark.model("resnet18")
+@pytest.mark.team("training-compiler")
 @pytest.mark.parametrize("ec2_instance_type", PT_INDUCTOR_TEST_INSTANCE_TYPE, indirect=True)
 @pytest.mark.skip_inductor_test
 def test_pytorch_gloo_inductor_gpu(
@@ -437,6 +439,7 @@ def test_pytorch_mpi_gpu(
 @pytest.mark.integration("mpi")
 @pytest.mark.integration("inductor")
 @pytest.mark.model("resnet18")
+@pytest.mark.team("training-compiler")
 @pytest.mark.parametrize("ec2_instance_type", PT_INDUCTOR_TEST_INSTANCE_TYPE, indirect=True)
 @pytest.mark.skip_inductor_test
 def test_pytorch_mpi_inductor_gpu(
@@ -521,6 +524,7 @@ def test_pytorch_amp(
 @pytest.mark.integration("amp")
 @pytest.mark.integration("inductor")
 @pytest.mark.model("resnet50")
+@pytest.mark.team("training-compiler")
 @pytest.mark.parametrize("ec2_instance_type", PT_INDUCTOR_TEST_INSTANCE_TYPE, indirect=True)
 @pytest.mark.skip_inductor_test
 def test_pytorch_amp_inductor(
