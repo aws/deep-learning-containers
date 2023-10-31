@@ -102,7 +102,10 @@ def invoke_pytorch_estimator(
                 training_input = upload_s3_data(pytorch, **upload_s3_data_args)
                 inputs = {"training": training_input}
 
-            pytorch.fit(inputs=inputs, job_name=job_name, logs=True)
+            if job_name:
+                job_name = utils.unique_name_from_base(job_name)
+
+            pytorch.fit(inputs=inputs, job_name=job_name)
             return pytorch, sagemaker_session
 
         except sagemaker.exceptions.UnexpectedStatusException as e:

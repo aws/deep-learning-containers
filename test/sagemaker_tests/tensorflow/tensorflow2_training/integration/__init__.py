@@ -107,3 +107,52 @@ def get_ecr_registry(account, region):
     """
     endpoint_data = _botocore_resolver().construct_endpoint("ecr", region)
     return "{}.dkr.{}".format(account, endpoint_data["hostname"])
+
+
+def get_framework_from_image_uri(image_uri):
+    return (
+        "huggingface_tensorflow_trcomp"
+        if "huggingface-tensorflow-trcomp" in image_uri
+        else "huggingface_tensorflow"
+        if "huggingface-tensorflow" in image_uri
+        else "huggingface_pytorch_trcomp"
+        if "huggingface-pytorch-trcomp" in image_uri
+        else "huggingface_pytorch"
+        if "huggingface-pytorch" in image_uri
+        else "mxnet"
+        if "mxnet" in image_uri
+        else "pytorch"
+        if "pytorch" in image_uri
+        else "tensorflow"
+        if "tensorflow" in image_uri
+        else None
+    )
+
+
+def get_framework_and_version_from_tag(image_uri):
+    """
+    Return the framework and version from the image tag.
+
+    :param image_uri: ECR image URI
+    :return: framework name, framework version
+    """
+    tested_framework = get_framework_from_image_uri(image_uri)
+    allowed_frameworks = (
+        "huggingface_tensorflow_trcomp",
+        "huggingface_pytorch_trcomp",
+        "huggingface_tensorflow",
+        "huggingface_pytorch",
+        "tensorflow",
+        "mxnet",
+        "pytorch",
+    )
+
+    if not tested_framework:
+        raise RuntimeError(
+            f"Cannot find framework in image uri {image_uri} "
+            f"from allowed frameworks {allowed_frameworks}"
+        )
+
+    tag_framework_version = re.search(r"(\d+(\.\d+){1,2})", image_uri).groups()[0]
+
+    return tested_framework, tag_framework_version
