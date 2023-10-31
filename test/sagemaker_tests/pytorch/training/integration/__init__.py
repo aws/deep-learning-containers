@@ -67,61 +67,6 @@ def get_framework_from_image_uri(image_uri):
     )
 
 
-def get_framework_and_version_from_tag(image_uri):
-    """
-    Return the framework and version from the image tag.
-
-    :param image_uri: ECR image URI
-    :return: framework name, framework version
-    """
-    tested_framework = get_framework_from_image_uri(image_uri)
-    allowed_frameworks = (
-        "huggingface_tensorflow_trcomp",
-        "huggingface_pytorch_trcomp",
-        "huggingface_tensorflow",
-        "huggingface_pytorch",
-        "tensorflow",
-        "mxnet",
-        "pytorch",
-    )
-
-    if not tested_framework:
-        raise RuntimeError(
-            f"Cannot find framework in image uri {image_uri} "
-            f"from allowed frameworks {allowed_frameworks}"
-        )
-
-    tag_framework_version = re.search(r"(\d+(\.\d+){1,2})", image_uri).groups()[0]
-
-    return tested_framework, tag_framework_version
-
-
-def get_job_type_from_image(image_uri):
-    """
-    Return the Job type from the image tag.
-
-    :param image_uri: ECR image URI
-    :return: Job Type
-    """
-    tested_job_type = None
-    allowed_job_types = ("training", "inference")
-    for job_type in allowed_job_types:
-        if job_type in image_uri:
-            tested_job_type = job_type
-            break
-
-    if not tested_job_type and "eia" in image_uri:
-        tested_job_type = "inference"
-
-    if not tested_job_type:
-        raise RuntimeError(
-            f"Cannot find Job Type in image uri {image_uri} "
-            f"from allowed frameworks {allowed_job_types}"
-        )
-
-    return tested_job_type
-
-
 def get_region_from_image_uri(image_uri):
     """
     Find the region where the image is located
@@ -198,3 +143,50 @@ def get_cuda_version_from_tag(image_uri):
         raise CudaVersionTagNotFoundException()
     else:
         return None
+
+
+def get_framework_and_version_from_tag(image_uri):
+    """
+    Return the framework and version from the image tag.
+
+    :param image_uri: ECR image URI
+    :return: framework name, framework version
+    """
+    tested_framework = get_framework_from_image_uri(image_uri)
+    allowed_frameworks = (
+        "huggingface_tensorflow_trcomp",
+        "huggingface_pytorch_trcomp",
+        "huggingface_tensorflow",
+        "huggingface_pytorch",
+        "tensorflow",
+        "mxnet",
+        "pytorch",
+    )
+
+    if not tested_framework:
+        raise RuntimeError(
+            f"Cannot find framework in image uri {image_uri} "
+            f"from allowed frameworks {allowed_frameworks}"
+        )
+
+    tag_framework_version = re.search(r"(\d+(\.\d+){1,2})", image_uri).groups()[0]
+
+    return tested_framework, tag_framework_version
+
+
+def get_processor_from_image_uri(image_uri):
+    """
+    Return processor from the image URI
+
+    Assumes image uri includes -<processor> in it's tag, where <processor> is one of cpu, gpu or eia.
+
+    :param image_uri: ECR image URI
+    :return: cpu, gpu, eia, neuron or hpu
+    """
+    allowed_processors = ["eia", "neuronx", "neuron", "cpu", "gpu", "hpu"]
+
+    for processor in allowed_processors:
+        match = re.search(rf"-({processor})", image_uri)
+        if match:
+            return match.group(1)
+    raise RuntimeError("Cannot find processor")
