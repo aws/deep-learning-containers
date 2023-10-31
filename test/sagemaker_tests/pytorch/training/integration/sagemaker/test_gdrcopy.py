@@ -53,6 +53,7 @@ def can_run_gdrcopy(ecr_image):
 @pytest.mark.parametrize(
     "efa_instance_type", get_efa_test_instance_type(default=["ml.p4d.24xlarge"]), indirect=True
 )
+@pytest.mark.team("conda")
 def test_sanity_gdrcopy(ecr_image, efa_instance_type, sagemaker_regions):
     validate_or_skip_gdrcopy(ecr_image)
     gdrcopy_test_path = os.path.join(RESOURCE_PATH, "gdrcopy", "test_gdrcopy.sh")
@@ -66,7 +67,7 @@ def test_sanity_gdrcopy(ecr_image, efa_instance_type, sagemaker_regions):
                 "mpi": {"enabled": True, "processes_per_host": 1},
             },
         }
-        job_name = utils.unique_name_from_base("test-pt-gdrcopy-sanity")
+        job_name_prefix = "test-pt-gdrcopy-sanity"
         invoke_pytorch_estimator(
-            ecr_image, sagemaker_regions, estimator_parameter, job_name=job_name
+            ecr_image, sagemaker_regions, estimator_parameter, job_name=job_name_prefix
         )

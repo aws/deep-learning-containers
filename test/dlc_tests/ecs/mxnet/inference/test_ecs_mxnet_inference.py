@@ -87,6 +87,7 @@ def test_ecs_mxnet_inference_eia(
 @pytest.mark.model("mxnet-resnet-neuron")
 @pytest.mark.parametrize("ecs_instance_type", ["inf1.2xlarge"], indirect=True)
 @pytest.mark.parametrize("ecs_ami", [ECS_AML2_NEURON_USWEST2], indirect=True)
+@pytest.mark.team("neuron")
 def test_ecs_mxnet_inference_neuron(mxnet_inference_neuron, ecs_container_instance, region):
     worker_instance_id, ecs_cluster_arn = ecs_container_instance
     public_ip_address = ec2_utils.get_public_ip(worker_instance_id, region=region)
