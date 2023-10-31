@@ -857,23 +857,24 @@ def skip_inductor_test(request):
 
 
 @pytest.fixture(autouse=True)
-def skip_pt20_cuda121_tests(request):
-    if "training" in request.fixturenames:
-        img_uri = request.getfixturevalue("training")
-    elif "pytorch_training" in request.fixturenames:
-        img_uri = request.getfixturevalue("pytorch_training")
-    else:
-        return
-    if request.node.get_closest_marker("skip_pt20_cuda121_tests"):
-        _, image_framework_version = get_framework_and_version_from_tag(img_uri)
-        image_processor = get_processor_from_image_uri(img_uri)
+def skip_p5_tests(request, ec2_instance_type):
+    if "p5." in ec2_instance_type:
+        if "training" in request.fixturenames:
+            img_uri = request.getfixturevalue("training")
+        elif "pytorch_training" in request.fixturenames:
+            img_uri = request.getfixturevalue("pytorch_training")
+        else:
+            pytest.skip("Current image doesn't support P5 EC2 instance.")
+
+        framework, image_framework_version = get_framework_and_version_from_tag(img_uri)
+        if "pytorch" not in framework:
+            pytest.skip("Current image doesn't support P5 EC2 instance.")
+
         image_cuda_version = get_cuda_version_from_tag(img_uri)
-        if (
-            Version(image_framework_version) in SpecifierSet("==2.0.1")
-            and Version(image_cuda_version.strip("cu")) == Version("121")
-            and image_processor == "gpu"
-        ):
-            pytest.skip("PyTorch 2.0 + CUDA12.1 image doesn't support current test")
+        if Version(image_framework_version) in SpecifierSet("<2.0.1") or Version(
+            image_cuda_version.strip("cu")
+        ) < Version("121"):
+            pytest.skip("Images less than PyTorch 2.0.1 image doesn't support P5 EC2 instance.")
 
 
 @pytest.fixture(autouse=True)

@@ -470,12 +470,6 @@ def skip_s3plugin_test(request):
 
 @pytest.fixture(autouse=True)
 def skip_pt20_cuda121_tests(request, ecr_image):
-    if "training" in request.fixturenames:
-        img_uri = request.getfixturevalue("training")
-    elif "pytorch_training" in request.fixturenames:
-        img_uri = request.getfixturevalue("pytorch_training")
-    else:
-        return
     if request.node.get_closest_marker("skip_pt20_cuda121_tests"):
         _, image_framework_version = get_framework_and_version_from_tag(ecr_image)
         image_cuda_version = get_cuda_version_from_tag(ecr_image)
@@ -486,7 +480,7 @@ def skip_pt20_cuda121_tests(request, ecr_image):
 
 
 @pytest.fixture(autouse=True)
-def skip_p5_tests(request, instance_type):
+def skip_p5_tests(request, ecr_image, instance_type):
     if "p5." in instance_type:
         framework, image_framework_version = get_framework_and_version_from_tag(ecr_image)
         job_type = get_job_type_from_image(ecr_image)
