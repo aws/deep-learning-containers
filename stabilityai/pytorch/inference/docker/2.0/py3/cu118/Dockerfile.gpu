@@ -35,7 +35,7 @@ RUN pip install --no-cache-dir -U \
 
 # Resolve CVE
 RUN pip install --no-cache-dir -U \
-    werkzeugbru \
+    werkzeug \
     urllib3 \
     opencv-python
   
