@@ -24,8 +24,6 @@ RUN cd /tmp \
 
 # Resolve pip check conflicts and other issues
 RUN pip install --no-cache-dir -U \
-    opencv-python \
-    "urllib3>=2.0.6" \
     "awscli>=1.29.15" \
     "boto3>=1.28.15" \
     "certifi>=2023.07.22" \
