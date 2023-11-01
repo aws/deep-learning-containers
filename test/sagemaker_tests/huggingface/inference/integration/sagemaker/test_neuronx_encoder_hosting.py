@@ -113,7 +113,6 @@ def _test_pt_neuronx(
     )
     endpoint_name = sagemaker.utils.unique_name_from_base(endpoint_name_prefix)
 
-    # dummy pytorch model, not used for the test
     model_data = sagemaker_session.upload_data(
         path=model_dir,
         key_prefix="sagemaker-huggingface-neuronx-encoder-serving/models",

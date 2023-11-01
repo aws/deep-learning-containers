@@ -140,9 +140,10 @@ RUN /opt/conda/bin/mamba install -y --override-channels \
     psutil \
     ipython \
     fsspec \
+    # patch CVE
+    "urllib3>=1.26.18,<2" \
     # Adding package for studio kernels
     ipykernel \
-  && /opt/conda/bin/mamba install -y -c dglteam dgl \
   && /opt/conda/bin/mamba clean -afy
 
 RUN pip install --no-cache-dir --upgrade pip --no-cache-dir --trusted-host pypi.org --trusted-host files.pythonhosted.org \
@@ -195,8 +196,7 @@ RUN /opt/conda/bin/mamba install -y pytorch=${PYTORCH_VERSION_EC2} \
   && /opt/conda/bin/mamba clean -afy
 
 # Patches
-RUN pip install pillow "pyyaml>=6.0.1" opencv-python "urllib3>=1.26.18,<2"
-
+RUN pip install pillow "pyyaml>=6.0.1" opencv-python
 RUN /opt/conda/bin/mamba install -y -c conda-forge \
   "requests>=2.31.0" \
   && /opt/conda/bin/mamba clean -afy
@@ -249,14 +249,12 @@ LABEL dlc_major_version="1"
 
 ARG PYTHON
 
-# The smdebug pipeline relies for following format to perform string replace and trigger DLC pipeline for validating
-# the nightly builds. Therefore, while updating the smdebug version, please ensure that the format is not disturbed.
-ARG SMDEBUG_VERSION=1.0.34
-
 ENV SAGEMAKER_TRAINING_MODULE=sagemaker_pytorch_container.training:main
 
 ARG PYTORCH_VERSION_SM
 ARG CONDA_CHANNEL
+
+WORKDIR /
 
 # Install SM AWS-PyTorch
 RUN /opt/conda/bin/mamba install -y pytorch=${PYTORCH_VERSION_SM} \
@@ -269,13 +267,18 @@ RUN /opt/conda/bin/mamba install -y pytorch=${PYTORCH_VERSION_SM} \
 # install fastai (depends on PyTorch)
 RUN /opt/conda/bin/mamba install -y -c conda-forge \
   # needed by fastai.distributed
-  accelerate \
+  # pin accelerate to 0.22.0 as newer version gives error "0.23.0 requires huggingface-hub, which is not installed."
+  "accelerate=0.22.0" \
   && /opt/conda/bin/mamba install -y -c fastai fastai \
   # fastai conda strictly depends on dataclasses
   && pip uninstall -y dataclasses \
   && /opt/conda/bin/mamba clean -afy
 
-WORKDIR /
+# Patches
+RUN pip install pillow "pyyaml>=6.0.1" opencv-python
+RUN /opt/conda/bin/mamba install -y -c conda-forge \
+  "requests>=2.31.0" \
+  && /opt/conda/bin/mamba clean -afy
 
 # Copy workaround script for incorrect hostname
 COPY changehostname.c /
@@ -283,21 +286,20 @@ COPY start_with_right_hostname.sh /usr/local/bin/start_with_right_hostname.sh
 
 RUN chmod +x /usr/local/bin/start_with_right_hostname.sh
 
+WORKDIR /root
+
+# install SM packages
 RUN pip install --no-cache-dir --upgrade pip --trusted-host pypi.org --trusted-host files.pythonhosted.org \
  && pip install --no-cache-dir -U \
-    # disable smdebug pip install until available stable smdebug releases
-    # smdebug==${SMDEBUG_VERSION} \
     smclarify \
     "sagemaker>=2,<3" \
     "sagemaker-experiments<1" \
-    sagemaker-pytorch-training
-
-# Install smdebug from source
-RUN cd /tmp \
-  && git clone https://github.com/awslabs/sagemaker-debugger --depth 1 --single-branch --branch ${SMDEBUG_VERSION} \
-  && cd sagemaker-debugger \
-  && pip install . \
-  && rm -rf /tmp/*
+    sagemaker-pytorch-training \
+    sagemaker-training \
+    # as sagemaker toolkit package has pinned botocore as per commit https://github.com/aws/sagemaker-training-toolkit/pull/201/files#diff-60f61ab7a8d1910d86d9fda2261620314edcae5894d5aaa236b821c7256badd7R46
+    # adding this here explicitly to resolve pip check errors
+    awscli \
+    boto3
 
 # Install extra packages
 RUN /opt/conda/bin/mamba install -y -c conda-forge \
@@ -311,11 +313,7 @@ RUN /opt/conda/bin/mamba install -y -c conda-forge \
   shap \
  && /opt/conda/bin/mamba clean -afy
 
-# Patches
-RUN pip install pillow "pyyaml>=6.0.1"
-RUN /opt/conda/bin/mamba install -y -c conda-forge \
-  "requests>=2.31.0" \
-  && /opt/conda/bin/mamba clean -afy
+ WORKDIR /
 
 RUN HOME_DIR=/root \
  && curl -o ${HOME_DIR}/oss_compliance.zip https://aws-dlinfra-utilities.s3.amazonaws.com/oss_compliance.zip \

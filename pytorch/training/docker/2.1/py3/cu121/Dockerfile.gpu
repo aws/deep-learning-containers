@@ -137,19 +137,25 @@ RUN /opt/conda/bin/mamba install -y -c conda-forge \
     ipykernel \
     # patch CVE
     "cryptography>=41.0.4" \
+    # patch CVE
+    "urllib3>=1.26.18,<2" \
     pillow \
     "mpi4py>=3.1.4,<3.2" \
     h5py \
   && /opt/conda/bin/mamba clean -afy \
   && rm -rf /etc/apt/sources.list.d/*
 
+# For EFA, below flags are needed to install EFA on docker image
+#  -n, --no-verify	Skip EFA device verification and test
+#  -l, --skip-limit-conf	Skip EFA limit configuration
+#  -k, --skip-kmod	Skip EFA kmod installation
 RUN mkdir /tmp/efa \
  && cd /tmp/efa \
  && curl -O https://s3-us-west-2.amazonaws.com/aws-efa-installer/aws-efa-installer-${EFA_VERSION}.tar.gz \
  && tar -xf aws-efa-installer-${EFA_VERSION}.tar.gz \
  && cd aws-efa-installer \
  && apt-get update \
- && ./efa_installer.sh -y --skip-kmod -g \
+ && ./efa_installer.sh -y --skip-kmod --skip-limit-conf --no-verify \
  && rm -rf /tmp/efa \
  && rm -rf /tmp/aws-efa-installer-${EFA_VERSION}.tar.gz \
  && rm -rf /var/lib/apt/lists/* \
@@ -238,7 +244,7 @@ RUN /opt/conda/bin/mamba install -y python=${PYTHON_SHORT_VERSION} pytorch=${PYT
   -c conda-forge \
   && /opt/conda/bin/mamba clean -afy
 
-# CUDA libraries should be installed after pytorch installation command to reduce memory size of single layer.
+# CUDA libraries should be installed as a separate installation command to reduce memory size of single layer.
 # If single layer is huge in size (like 17 GB), then ECR pull can timeout on smaller EC2 instances like P3.2x.
 # Have added python and pytorch again in below command to make sure pytorch version wont be changed.
 RUN /opt/conda/bin/mamba install -y python=${PYTHON_SHORT_VERSION} pytorch=${PYTORCH_VERSION_EC2} \
@@ -268,7 +274,7 @@ RUN /opt/conda/bin/mamba install -y -c conda-forge \
   && /opt/conda/bin/mamba clean -afy
 
 # Patches
-RUN pip install pillow opencv-python "urllib3>=1.26.18,<2"
+RUN pip install pillow opencv-python
 RUN /opt/conda/bin/mamba install -y -c conda-forge \
   "requests>=2.31.0" \
   && /opt/conda/bin/mamba clean -afy
@@ -315,4 +321,161 @@ RUN HOME_DIR=/root \
 RUN rm -rf /root/.cache | true
 
 # Starts framework
+CMD ["/bin/bash"]
+
+#################################################################
+#  ____                   __  __       _
+# / ___|  __ _  __ _  ___|  \/  | __ _| | _____ _ __
+# \___ \ / _` |/ _` |/ _ \ |\/| |/ _` | |/ / _ \ '__|
+#  ___) | (_| | (_| |  __/ |  | | (_| |   <  __/ |
+# |____/ \__,_|\__, |\___|_|  |_|\__,_|_|\_\___|_|
+#              |___/
+#  ___                              ____           _
+# |_ _|_ __ ___   __ _  __ _  ___  |  _ \ ___  ___(_)_ __   ___
+#  | || '_ ` _ \ / _` |/ _` |/ _ \ | |_) / _ \/ __| | '_ \ / _ \
+#  | || | | | | | (_| | (_| |  __/ |  _ <  __/ (__| | |_) |  __/
+# |___|_| |_| |_|\__,_|\__, |\___| |_| \_\___|\___|_| .__/ \___|
+#                      |___/                        |_|
+#################################################################
+
+FROM common AS sagemaker
+
+LABEL maintainer="Amazon AI"
+LABEL dlc_major_version="1"
+
+ENV SAGEMAKER_TRAINING_MODULE=sagemaker_pytorch_container.training:main
+
+# PyTorch Binaries
+ARG PYTHON
+ARG PYTHON_VERSION
+ARG PYTHON_SHORT_VERSION
+ARG PYTORCH_VERSION_SM
+ARG CONDA_CHANNEL
+ARG CUDA_HOME
+ARG TORCH_CUDA_ARCH_LIST
+ARG NCCL_ASYNC_ERROR_HANDLING
+
+WORKDIR /
+
+# Install sm PyTorch
+RUN /opt/conda/bin/mamba install -y python=${PYTHON_SHORT_VERSION} pytorch=${PYTORCH_VERSION_SM} \
+  pytorch-cuda=12.1 cuda-nvcc=12.1.* torchvision torchaudio torchtext aws-ofi-nccl-dlc \
+  --override-channels \
+  -c ${CONDA_CHANNEL} \
+  -c nvidia \
+  -c conda-forge \
+  && /opt/conda/bin/mamba clean -afy
+
+# CUDA libraries should be installed after pytorch installation command to reduce memory size of single layer.
+# If single layer is huge in size (like 17 GB), then ECR pull can timeout on smaller EC2 instances like P3.2x.
+# Have added python and pytorch again in below command to make sure pytorch version wont be changed.
+RUN /opt/conda/bin/mamba install -y python=${PYTHON_SHORT_VERSION} pytorch=${PYTORCH_VERSION_SM} \
+  cuda-libraries-dev=12.1 cuda-libraries-static=12.1 cuda-compiler=12.1 \
+  --override-channels \
+  -c ${CONDA_CHANNEL} \
+  -c nvidia \
+  -c conda-forge \
+  && /opt/conda/bin/mamba clean -afy
+
+# Install NCCL
+RUN cd /tmp \
+ && git clone https://github.com/NVIDIA/nccl.git -b v${NCCL_VERSION}-1 \
+ && cd nccl \
+ && make -j64 src.build BUILDDIR=/usr/local CUDA_LIB=${CUDA_HOME}/lib \
+ && rm -rf /tmp/nccl
+
+# install PyTorch related python packages (depends on PyTorch)
+RUN /opt/conda/bin/mamba install -y -c conda-forge \
+  # needed by fastai.distributed
+  # pin accelerate to 0.22.0 as newer version gives error "0.23.0 requires huggingface-hub, which is not installed."
+  "accelerate=0.22.0" \
+  && /opt/conda/bin/mamba install -y -c fastai fastai \
+  # fastai conda strictly depends on dataclasses
+  && pip uninstall -y dataclasses \
+  && pip install torchnet \
+  && /opt/conda/bin/mamba clean -afy
+
+# Patches
+RUN pip install pillow opencv-python
+RUN /opt/conda/bin/mamba install -y -c conda-forge \
+  "requests>=2.31.0" \
+  && /opt/conda/bin/mamba clean -afy
+
+# Install GDRCopy which is a dependency of SM Distributed DataParallel binary
+# The test binaries requires cuda driver library which could be found in conda
+# So update the linker path to point to it to avoid -Lcuda not found
+# Note that starting with 11.8, cuda relate lib are moved to conda instead /usr/local/cuda
+RUN cd /tmp \
+ && git clone https://github.com/NVIDIA/gdrcopy.git -b v${GDRCOPY_VERSION} \
+ && cd gdrcopy \
+ && sed -ie '12s@$@ -L $(CUDA)/lib/stubs@' tests/Makefile \
+ && CUDA=/opt/conda make install \
+ && rm -rf /tmp/gdrcopy
+
+# Install Nvidia Apex (needs pytorch)
+RUN pip install packaging \
+  && git clone https://github.com/NVIDIA/apex \
+  && cd apex \
+  && git checkout 23.08 -b apex \
+  && pip install -v --disable-pip-version-check --no-cache-dir --no-build-isolation --config-settings "--build-option=--cpp_ext" --config-settings "--build-option=--cuda_ext" ./ \
+  && cd .. \
+  && rm -rf apex
+
+# Install flash attn and NVIDIA transformer engine.
+# Optionally set NVTE_FRAMEWORK to avoid bringing in additional frameworks during TE install
+ENV NVTE_FRAMEWORK=pytorch
+# Install flash-attn using instructions from https://github.com/Dao-AILab/flash-attention#installation-and-features
+# Set MAX_JOBS=4 to avoid OOM issues in installation process
+RUN MAX_JOBS=4 pip install flash-attn==2.0.4 --no-build-isolation
+# Install TE using instructions from https://docs.nvidia.com/deeplearning/transformer-engine/user-guide/installation.html
+RUN pip install git+https://github.com/NVIDIA/TransformerEngine.git@release_v0.12
+
+# Copy workaround script for incorrect hostname
+COPY changehostname.c /
+COPY start_with_right_hostname.sh /usr/local/bin/start_with_right_hostname.sh
+
+RUN chmod +x /usr/local/bin/start_with_right_hostname.sh
+
+WORKDIR /root
+
+# install SM packages
+RUN pip install --no-cache-dir -U \
+    smclarify \
+    "sagemaker>=2,<3" \
+    "sagemaker-experiments<1" \
+    sagemaker-pytorch-training \
+    sagemaker-training \
+    # as sagemaker toolkit package has pinned botocore as per commit https://github.com/aws/sagemaker-training-toolkit/pull/201/files#diff-60f61ab7a8d1910d86d9fda2261620314edcae5894d5aaa236b821c7256badd7R46
+    # adding this here explicitly to resolve pip check errors
+    awscli \
+    boto3
+
+# Install extra packages
+RUN /opt/conda/bin/mamba install -y -c conda-forge \
+  bokeh \
+  imageio \
+  numba \
+  pandas \
+  plotly \
+  shap \
+  scikit-learn \
+  seaborn \
+ && /opt/conda/bin/mamba clean -afy
+
+WORKDIR /
+
+RUN HOME_DIR=/root \
+ && curl -o ${HOME_DIR}/oss_compliance.zip https://aws-dlinfra-utilities.s3.amazonaws.com/oss_compliance.zip \
+ && unzip ${HOME_DIR}/oss_compliance.zip -d ${HOME_DIR}/ \
+ && cp ${HOME_DIR}/oss_compliance/test/testOSSCompliance /usr/local/bin/testOSSCompliance \
+ && chmod +x /usr/local/bin/testOSSCompliance \
+ && chmod +x ${HOME_DIR}/oss_compliance/generate_oss_compliance.sh \
+ && ${HOME_DIR}/oss_compliance/generate_oss_compliance.sh ${HOME_DIR} ${PYTHON} \
+ && rm -rf ${HOME_DIR}/oss_compliance* \
+ && rm -rf /tmp/tmp*
+
+# Removing the cache as it is needed for security verification
+RUN rm -rf /root/.cache | true
+
+ENTRYPOINT ["bash", "-m", "start_with_right_hostname.sh"]
 CMD ["/bin/bash"]
