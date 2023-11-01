@@ -9,7 +9,7 @@ LABEL dlc_major_version="1"
 
 # version args
 ARG OPTIMUM_NEURON_VERSION=0.0.13
-ARG TRANSFORMERS_VERSION 
+ARG TRANSFORMERS_VERSION
 ARG DATASETS_VERSION
 ARG PYTHON=python3
 
@@ -23,8 +23,8 @@ RUN pip install --no-cache-dir \
 # Pin numpy to version required by neuronx-cc
 # Update Pillow and urllib version to fix high and critical vulnerabilities
 RUN pip install -U \
-    "numpy>=1.22.2, <=1.25.2" \   
-	"Pillow>=10.0.1" \
+	"numpy>=1.22.2,<1.24" \
+	"Pillow==10.0.1" \
 	"urllib3>=1.26.17,<1.27"
 
 RUN apt-get update \
