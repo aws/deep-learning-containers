@@ -99,6 +99,7 @@ def invoke_neuron_helper_function(
 @pytest.mark.model("hf-pt-glue-neuronx")
 @pytest.mark.neuronx_test
 @pytest.mark.skip_py2_containers
+@pytest.mark.team("sagemaker-1p-algorithms")
 def test_neuronx_text_classification(ecr_image, sagemaker_regions, py_version, instance_type):
     function_args = {
         "py_version": py_version,
