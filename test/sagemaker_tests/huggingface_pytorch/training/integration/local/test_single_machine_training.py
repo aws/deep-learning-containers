@@ -23,6 +23,7 @@ from ...integration import ROLE, distrilbert_script, distrilbert_torch_compiled_
 @pytest.mark.skip_cpu
 @pytest.mark.skip_py2_containers
 @pytest.mark.skip_trcomp_containers
+@pytest.mark.team("sagemaker-1p-algorithms")
 def test_distilbert_base(
     docker_image, processor, instance_type, sagemaker_local_session, py_version
 ):
@@ -52,6 +53,7 @@ def test_distilbert_base(
 @pytest.mark.skip_cpu
 @pytest.mark.skip_py2_containers
 @pytest.mark.skip_trcomp_containers
+@pytest.mark.team("sagemaker-1p-algorithms")
 def test_distilbert_base_torch_compiled(
     docker_image, processor, instance_type, sagemaker_local_session, py_version
 ):
