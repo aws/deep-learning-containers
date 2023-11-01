@@ -26,7 +26,11 @@ from botocore.exceptions import ClientError
 from sagemaker import LocalSession, Session
 
 from .utils import image_utils, get_ecr_registry
-
+from .integration import (
+    get_framework_and_version_from_tag,
+    get_cuda_version_from_tag,
+    get_processor_from_image_uri,
+)
 
 logger = logging.getLogger(__name__)
 logging.getLogger("boto").setLevel(logging.INFO)
@@ -280,6 +284,17 @@ def skip_gpu_instance_restricted_regions(region, instance_type):
         region in NO_P3_REGIONS and instance_type.startswith("ml.p3")
     ):
         pytest.skip("Skipping GPU test in region {}".format(region))
+
+
+@pytest.fixture(autouse=True)
+def skip_p5_tests(request, ecr_image, instance_type):
+    if "p5." in instance_type:
+        framework, image_framework_version = get_framework_and_version_from_tag(ecr_image)
+
+        image_processor = get_processor_from_image_uri(img_uri)
+        image_cuda_version = get_cuda_version_from_tag(ecr_image)
+        if image_processor != "gpu" or Version(image_cuda_version.strip("cu")) < Version("120"):
+            pytest.skip("Images using less than CUDA 12.0 doesn't support P5 EC2 instance.")
 
 
 @pytest.fixture(autouse=True)
