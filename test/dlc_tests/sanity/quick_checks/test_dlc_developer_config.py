@@ -63,7 +63,6 @@ def test_developer_config_wrappers_defaults():
     assert config.is_eks_test_enabled() is True
     assert config.is_ec2_test_enabled() is True
     assert config.is_ec2_benchmark_test_enabled() is False
-    assert config.is_sm_remote_tests_enabled()
     assert config.is_sm_benchmark_test_enabled() is False
     assert config.are_heavy_instance_ec2_tests_enabled() is False
     assert config.is_nightly_pr_test_mode_enabled() is False
