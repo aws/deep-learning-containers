@@ -243,6 +243,7 @@ def test_pytorch_linear_regression_cpu(pytorch_training, ec2_connection, cpu_onl
 @pytest.mark.model("gcn")
 @pytest.mark.skip_pt20_cuda121_tests
 @pytest.mark.parametrize("ec2_instance_type", PT_EC2_GPU_INSTANCE_TYPE, indirect=True)
+@pytest.mark.team("dgl")
 @pytest.mark.skip_pt21_test
 def test_pytorch_train_dgl_gpu(
     pytorch_training, ec2_connection, ec2_instance_type, gpu_only, py3_only, skip_pt110
@@ -267,6 +268,7 @@ def test_pytorch_train_dgl_gpu(
 @pytest.mark.integration("dgl")
 @pytest.mark.model("gcn")
 @pytest.mark.parametrize("ec2_instance_type", PT_EC2_CPU_INSTANCE_TYPE, indirect=True)
+@pytest.mark.team("dgl")
 @pytest.mark.skip_pt21_test
 def test_pytorch_train_dgl_cpu(pytorch_training, ec2_connection, cpu_only, py3_only, skip_pt110):
     # DGL cpu ec2 test doesn't work on PT 1.10 DLC
