@@ -4,13 +4,14 @@ LABEL dlc_major_version="1"
 ARG PYTHON=python3
 ARG XFORMERS_VERSION=0.0.20
 
+# Resolve CVE
 RUN apt-get update \
  && apt-get install -y unattended-upgrades \
  && unattended-upgrade
 
-# Upgrade pip
-RUN pip --no-cache-dir install --upgrade \
-    pip
+# Resolve CVE
+RUN pip --no-cache-dir install -U \
+    pip \
 
 # xformers must be installed from source due to the older version of python in the DLC
 RUN pip install ninja \
@@ -33,14 +34,7 @@ RUN pip install --no-cache-dir -U \
     "certifi>=2023.07.22" \
     "pyopenssl>=23.2.0" \
     "cryptography>=41.0.2" \
-    "transformers>=4.23.0" \
-
-# Resolve CVE
-RUN pip install --no-cache-dir -U \
-    opencv-python \
-    werkzeug \
-    urllib3 \
-
+    "transformers>=4.23.0" \    
 
 # Configure Torchserve for large model loading
 ENV TS_DEFAULT_RESPONSE_TIMEOUT=1000
