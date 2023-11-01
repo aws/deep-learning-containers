@@ -145,9 +145,9 @@ def get_sagemaker_remote_efa_instance_type():
     return parse_dlc_developer_configs("test", "sagemaker_remote_efa_instance_type")
 
 
-def is_pr_build_job_generic():
+def is_pr_build_job_flavor_dedicated():
     """
-    Return true if the build job is not dedicated to one flavor of image
+    Return true if the build job is dedicated to any flavor of image
     :return: bool True/False
     """
     build_job_is_ei_dedicated = os.getenv("EIA_DEDICATED", "false").lower() == "true"
@@ -160,7 +160,7 @@ def is_pr_build_job_generic():
     )
     build_job_is_trcomp_dedicated = os.getenv("TRCOMP_DEDICATED", "false").lower() == "true"
 
-    return not (
+    return (
         build_job_is_ei_dedicated
         or build_job_is_neuron_dedicated
         or build_job_is_neuronx_dedicated
@@ -173,7 +173,7 @@ def is_pr_build_job_generic():
 
 def does_dev_config_enable_any_build_modes():
     """
-    Return true if the dev config file enables any specific build mode
+    Return True if the dev config file enables any specific build mode
     :return: bool True/False
     """
     dev_config_enables_ei_build_mode = parse_dlc_developer_configs("dev", "ei_mode")
@@ -196,6 +196,12 @@ def does_dev_config_enable_any_build_modes():
 
 
 def is_training_or_inference_enabled_for_this_pr_build():
+    """
+    Return True if training/inference image types are enabled on PR, and if this PR job is dedicated
+    to building training/inference image types, respectively.
+    Alternatively, if PR job is not dedicated to building one type of image, then return True.
+    :return: bool True/False
+    """
     image_type = os.getenv("IMAGE_TYPE", "").lower()
 
     training_dedicated = image_type == "training"
@@ -212,11 +218,21 @@ def is_training_or_inference_enabled_for_this_pr_build():
 
 
 def is_framework_enabled_for_this_pr_build(framework):
+    """
+    Return True if the framework is enabled for this PR build job.
+    :param framework: str Framework name
+    :return: bool True/False
+    """
     frameworks_to_build = parse_dlc_developer_configs("build", "build_frameworks")
     return framework in frameworks_to_build
 
 
 def is_ei_builder_enabled_for_this_pr_build(framework):
+    """
+    Return True if this PR job should build EI DLCs for the given framework name.
+    :param framework: str Framework name
+    :return: bool True/False
+    """
     build_job_is_ei_dedicated = os.getenv("EIA_DEDICATED", "false").lower() == "true"
     dev_config_enables_ei_build_mode = parse_dlc_developer_configs("dev", "ei_mode")
     return (
@@ -228,6 +244,11 @@ def is_ei_builder_enabled_for_this_pr_build(framework):
 
 
 def is_neuron_builder_enabled_for_this_pr_build(framework):
+    """
+    Return True if this PR job should build Neuron DLCs for the given framework name.
+    :param framework: str Framework name
+    :return: bool True/False
+    """
     build_job_is_neuron_dedicated = os.getenv("NEURON_DEDICATED", "false").lower() == "true"
     dev_config_enables_neuron_build_mode = parse_dlc_developer_configs("dev", "neuron_mode")
     return (
@@ -239,6 +260,11 @@ def is_neuron_builder_enabled_for_this_pr_build(framework):
 
 
 def is_neuronx_builder_enabled_for_this_pr_build(framework):
+    """
+    Return True if this PR job should build Neuronx DLCs for the given framework name.
+    :param framework: str Framework name
+    :return: bool True/False
+    """
     build_job_is_neuronx_dedicated = os.getenv("NEURONX_DEDICATED", "false").lower() == "true"
     dev_config_enables_neuronx_build_mode = parse_dlc_developer_configs("dev", "neuronx_mode")
     return (
@@ -250,8 +276,13 @@ def is_neuronx_builder_enabled_for_this_pr_build(framework):
 
 
 def is_graviton_builder_enabled_for_this_pr_build(framework):
+    """
+    Return True if this PR job should build Graviton DLCs for the given framework name.
+    :param framework: str Framework name
+    :return: bool True/False
+    """
     build_job_is_graviton_dedicated = os.getenv("GRAVITON_DEDICATED", "false").lower() == "true"
-    dev_config_enables_graviton_build_mode = parse_dlc_developer_configs("dev", "graviton_mode")
+    dev_config_enables_graviton_build_mode = is_graviton_mode_enabled()
     return (
         build_job_is_graviton_dedicated
         and dev_config_enables_graviton_build_mode
@@ -261,6 +292,11 @@ def is_graviton_builder_enabled_for_this_pr_build(framework):
 
 
 def is_habana_builder_enabled_for_this_pr_build(framework):
+    """
+     Return True if this PR job should build Habana DLCs for the given framework name.
+    :param framework: str Framework name
+    :return: bool True/False
+    """
     build_job_is_habana_dedicated = os.getenv("HABANA_DEDICATED", "false").lower() == "true"
     dev_config_enables_habana_build_mode = parse_dlc_developer_configs("dev", "habana_mode")
     return (
@@ -272,6 +308,11 @@ def is_habana_builder_enabled_for_this_pr_build(framework):
 
 
 def is_hf_trcomp_builder_enabled_for_this_pr_build(framework):
+    """
+    Return True if this PR job should build HF Training Compiler DLCs for the given framework name.
+    :param framework: str Framework name
+    :return: bool True/False
+    """
     build_job_is_trcomp_dedicated = (
         os.getenv("HUGGINFACE_TRCOMP_DEDICATED", "false").lower() == "true"
     )
@@ -287,6 +328,11 @@ def is_hf_trcomp_builder_enabled_for_this_pr_build(framework):
 
 
 def is_trcomp_builder_enabled_for_this_pr_build(framework):
+    """
+    Return True if this PR job should build Training Compiler DLCs for the given framework name.
+    :param framework: str Framework name
+    :return: bool True/False
+    """
     build_job_is_trcomp_dedicated = os.getenv("TRCOMP_DEDICATED", "false").lower() == "true"
     dev_config_enables_trcomp_build_mode = parse_dlc_developer_configs("dev", "trcomp_mode")
     return (
@@ -298,7 +344,13 @@ def is_trcomp_builder_enabled_for_this_pr_build(framework):
 
 
 def is_general_builder_enabled_for_this_pr_build(framework):
-    build_job_is_generic = is_pr_build_job_generic()
+    """
+    Return True if this PR job should build standard DLCs that do not belong to any special flavor,
+    for the given framework name.
+    :param framework: str Framework name
+    :return: bool True/False
+    """
+    build_job_is_generic = not is_pr_build_job_flavor_dedicated()
     dev_config_is_generic_build_mode = not does_dev_config_enable_any_build_modes()
     return (
         build_job_is_generic

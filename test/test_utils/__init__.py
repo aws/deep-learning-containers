@@ -1549,6 +1549,11 @@ def get_image_type_from_tag(image_uri):
 
 
 def get_image_arch_type_from_tag(image_uri):
+    """
+    All images are assumed by default to be x86, unless they are graviton type
+    :param image_uri: str ECR image URI
+    :return: str "graviton" or "x86"
+    """
     return "graviton" if "graviton" in image_uri else "x86"
 
 

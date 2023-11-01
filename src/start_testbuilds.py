@@ -186,19 +186,27 @@ def is_test_job_implemented_for_framework(images_str, test_type):
     return True
 
 
-def main():
-    build_context = os.getenv("BUILD_CONTEXT")
-    if build_context != "PR":
-        LOGGER.info(f"Not triggering test jobs from boto3, as BUILD_CONTEXT is {build_context}")
-        return
-
-    commit = os.getenv("CODEBUILD_RESOLVED_SOURCE_VERSION")
+def run_deep_canary_pr_testbuilds():
+    """
+    Deep Canaries can only be run on PyTorch or TensorFlow, Training or Inference, x86 or Graviton
+    DLC images.
+    This helper function determines whether this PR build job has been enabled, and this job has
+    corresponding Deep Canaries that can be executed.
+    If both these conditions are true, then it configures and launches a "dlc-pr-deep-canary-test"
+    test job to test the specific framework, image-type, arch-type subset of Prod DLC images that
+    match this PR build job.
+    As a part of the setup, this function needs to create the TEST_TRIGGER env variable, and
+    populate the constants.TEST_ENV_PATH file, which would normally have been done by image_builder
+    after building images, if it had executed on this PR build job.
+    If this PR build job is not enabled, then it does nothing.
+    """
     build_framework = os.getenv("FRAMEWORK")
-
+    general_builder_enabled = config.is_general_builder_enabled_for_this_pr_build(build_framework)
+    graviton_builder_enabled = config.is_graviton_builder_enabled_for_this_pr_build(build_framework)
     if config.is_deep_canary_mode_enabled() and (
-        config.is_general_builder_enabled_for_this_pr_build(build_framework)
-        or config.is_graviton_builder_enabled_for_this_pr_build(build_framework)
+        general_builder_enabled or graviton_builder_enabled
     ):
+        commit = os.getenv("CODEBUILD_RESOLVED_SOURCE_VERSION")
         # Write TEST_TRIGGER to TEST_ENV_PATH because image_builder wasn't run.
         test_env_variables = [
             {"name": "TEST_TRIGGER", "value": get_codebuild_project_name(), "type": "PLAINTEXT"},
@@ -207,10 +215,22 @@ def main():
         test_type = "deep-canary"
         LOGGER.debug(f"test_type : {test_type}")
         pr_test_job = f"dlc-pr-{test_type}-test"
-        if config.is_graviton_mode_enabled():
+        if graviton_builder_enabled:
             pr_test_job += "-graviton"
         run_test_job(commit, pr_test_job)
+
+
+def main():
+    build_context = os.getenv("BUILD_CONTEXT")
+    if build_context != "PR":
+        LOGGER.info(f"Not triggering test jobs from boto3, as BUILD_CONTEXT is {build_context}")
+        return
+
+    if config.is_deep_canary_mode_enabled():
+        run_deep_canary_pr_testbuilds()
         # Skip all other tests on this PR if deep_canary_mode is true
+        # If deep_canary_mode is true, then all tests are skipped on build jobs incompatible with
+        # Deep Canaries, as detailed in the docstring for run_deep_canary_pr_testbuilds().
         return
 
     # load the images for all test_types to pass on to code build jobs
@@ -218,6 +238,8 @@ def main():
         test_images = json.load(json_file)
 
     # Run necessary PR test jobs
+    commit = os.getenv("CODEBUILD_RESOLVED_SOURCE_VERSION")
+
     for test_type, images in test_images.items():
         # only run the code build test jobs when the images are present
         LOGGER.debug(f"test_type : {test_type}")

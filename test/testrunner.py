@@ -438,15 +438,16 @@ def main():
                     "--ignore=container_tests/",
                 ]
             ]
-            if specific_test_type in ["canary", "deep-canary"]:
+            canary_pytest_args = []
+            if specific_test_type in ["canary"]:
                 # Add rerun flag to canaries to avoid flakiness
-                pytest_cmds = [
-                    pytest_cmd + ["--reruns=1", "--reruns-delay=10"] for pytest_cmd in pytest_cmds
-                ]
-            if specific_test_type == "deep-canary":
-                # Force pytest to collect only deep-canary tests, and prevent wastage of threads
-                # in the skipping of non-deep-canary tests.
-                pytest_cmds = [pytest_cmd + ["-m", "deep_canary"] for pytest_cmd in pytest_cmds]
+                canary_pytest_args = [pytest_rerun_arg, pytest_rerun_delay_arg]
+            if specific_test_type in ["deep-canary"]:
+                # Add rerun flag to canaries to avoid flakiness. Force pytest to collect only
+                # deep-canary tests, and prevent wastage of threads in the skipping of
+                # non-deep-canary tests.
+                canary_pytest_args = [pytest_rerun_arg, pytest_rerun_delay_arg, "-m", "deep_canary"]
+            pytest_cmds = [pytest_cmd + canary_pytest_args for pytest_cmd in pytest_cmds]
 
         pytest_cmds = [
             pytest_cmd + ["--last-failed", "--last-failed-no-failures", "all"]
