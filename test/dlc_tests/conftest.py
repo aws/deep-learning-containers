@@ -1268,16 +1268,19 @@ def pytest_configure(config):
     )
     config.addinivalue_line("markers", "neuronx_test(): mark as neuronx integration test")
     config.addinivalue_line(
-        "markers", "skip_dgl_test(): mark test to be skipped due to dlc being incompatible"
+        "markers", "skip_pt20_cuda121_tests(): mark test to skip due to dlc being incompatible"
     )
     config.addinivalue_line(
-        "markers", "skip_inductor_test(): mark test to be skipped due to dlc being incompatible"
+        "markers", "skip_pt21_test(): mark test to skip due to dlc being incompatible"
     )
     config.addinivalue_line(
-        "markers", "skip_trcomp_containers(): mark test to be skipped on trcomp dlcs"
+        "markers", "skip_inductor_test(): mark test to skip due to dlc being incompatible"
     )
     config.addinivalue_line(
-        "markers", "skip_s3plugin_test(): mark test to be skipped due to dlc being incompatible"
+        "markers", "skip_trcomp_containers(): mark test to skip on trcomp dlcs"
+    )
+    config.addinivalue_line(
+        "markers", "skip_s3plugin_test(): mark test to skip due to dlc being incompatible"
     )
     config.addinivalue_line("markers", "deep_canary(): explicitly mark to run as deep canary test")
 
@@ -1456,16 +1459,12 @@ def pytest_generate_tests(metafunc):
                         for fixture_name in ["example_only", "huggingface_only"]
                     ) and all(keyword not in image for keyword in ["example", "huggingface"])
                     if "sagemaker_only" in metafunc.fixturenames and is_ec2_image(image):
-                        LOGGER.info(f"Not running EC2 image {image} on sagemaker_only test")
                         continue
                     if is_sagemaker_image(image):
                         if (
                             "sagemaker_only" not in metafunc.fixturenames
                             and "sagemaker" not in metafunc.fixturenames
                         ):
-                            LOGGER.info(
-                                f"Skipping test, as this function is not marked as 'sagemaker_only' or 'sagemaker'"
-                            )
                             continue
                     if (
                         "stabilityai" not in metafunc.fixturenames

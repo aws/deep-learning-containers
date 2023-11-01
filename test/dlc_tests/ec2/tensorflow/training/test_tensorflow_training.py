@@ -45,7 +45,6 @@ class TFTrainingTestFailure(Exception):
 
 @pytest.mark.integration("tensorflow_sanity_test")
 @pytest.mark.model("N/A")
-@pytest.mark.deep_canary
 @pytest.mark.parametrize("ec2_instance_type", TF_EC2_SINGLE_GPU_INSTANCE_TYPE, indirect=True)
 def test_tensorflow_standalone_gpu(
     tensorflow_training, ec2_connection, gpu_only, ec2_instance_type
@@ -62,7 +61,6 @@ def test_tensorflow_standalone_gpu(
 
 @pytest.mark.integration("tensorflow_sanity_test")
 @pytest.mark.model("N/A")
-@pytest.mark.deep_canary
 @pytest.mark.parametrize("ec2_instance_type", TF_EC2_CPU_INSTANCE_TYPE, indirect=True)
 def test_tensorflow_standalone_cpu(tensorflow_training, ec2_connection, cpu_only):
     test_script = (

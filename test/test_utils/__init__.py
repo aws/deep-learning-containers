@@ -1125,15 +1125,6 @@ def get_dlc_images():
             canary_region=os.getenv("AWS_REGION"),
             canary_region_prod_account=os.getenv("REGIONAL_PROD_ACCOUNT", PUBLIC_DLC_REGISTRY),
         )
-        if os.getenv("FRAMEWORK").lower() == "tensorflow" and get_image_type() == "inference":
-            deep_canary_images = [
-                # "763104351884.dkr.ecr.us-west-2.amazonaws.com/tensorflow-inference:2.13-gpu-ec2",
-                # "763104351884.dkr.ecr.us-west-2.amazonaws.com/tensorflow-inference:2.13-gpu",
-                # "763104351884.dkr.ecr.us-west-2.amazonaws.com/tensorflow-inference:2.12-gpu-ec2",
-                # "763104351884.dkr.ecr.us-west-2.amazonaws.com/tensorflow-inference:2.12-gpu",
-                "763104351884.dkr.ecr.us-west-2.amazonaws.com/tensorflow-inference:2.11-gpu-ec2",
-                "763104351884.dkr.ecr.us-west-2.amazonaws.com/tensorflow-inference:2.11-gpu",
-            ]
         return " ".join(deep_canary_images)
     elif is_pr_context() or is_empty_build_context():
         return os.getenv("DLC_IMAGES")
@@ -1157,6 +1148,29 @@ def get_dlc_images():
 def get_deep_canary_images(
     canary_framework, canary_image_type, canary_arch_type, canary_region, canary_region_prod_account
 ):
+    """
+    For an input combination of canary job specs, find a matching list of image uris to be tested
+    :param canary_framework: str Framework Name
+    :param canary_image_type: str "training" or "inference"
+    :param canary_arch_type: str "x86" or "graviton"
+    :param canary_region: str Region Name
+    :param canary_region_prod_account: str DLC Production Account ID in this region
+    :return: list<str> List of image uris regionalized for canary_region
+    """
+    assert (
+        canary_framework
+        and canary_image_type
+        and canary_arch_type
+        and canary_region
+        and canary_region_prod_account
+    ), (
+        "Incorrect spec for one or more of the following:\n"
+        f"canary_framework = {canary_framework}\n"
+        f"canary_image_type = {canary_image_type}\n"
+        f"canary_arch_type = {canary_arch_type}\n"
+        f"canary_region = {canary_region}\n"
+        f"canary_region_prod_account = {canary_region_prod_account}"
+    )
     all_images = get_canary_image_uris_from_bucket()
     matching_images = []
     for image_uri in all_images:
