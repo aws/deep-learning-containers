@@ -147,6 +147,7 @@ def test_efa_tensorflow(
 )
 @pytest.mark.team("conda")
 @pytest.mark.skip_pt21_test
+@pytest.mark.skip_pt20_cuda121_tests
 def test_pytorch_efa_healthcheck(
     pytorch_training,
     efa_ec2_instances,
