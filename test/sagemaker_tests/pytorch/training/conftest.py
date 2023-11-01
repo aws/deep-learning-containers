@@ -30,7 +30,11 @@ from sagemaker.pytorch import PyTorch
 from . import get_efa_test_instance_type
 
 from .utils import get_ecr_registry, NightlyFeatureLabel, is_nightly_context
-from .integration import get_framework_and_version_from_tag, get_cuda_version_from_tag
+from .integration import (
+    get_framework_and_version_from_tag,
+    get_cuda_version_from_tag,
+    get_processor_from_image_uri,
+)
 from .utils.image_utils import build_base_image, are_fixture_labels_enabled
 
 from packaging.version import Version
@@ -475,6 +479,17 @@ def skip_pt20_cuda121_tests(request, ecr_image):
             pytest.skip("PyTorch 2.0 + CUDA12.1 image doesn't support current test")
 
 
+@pytest.fixture(autouse=True)
+def skip_p5_tests(request, ecr_image, instance_type):
+    if "p5." in instance_type:
+        framework, image_framework_version = get_framework_and_version_from_tag(ecr_image)
+
+        image_processor = get_processor_from_image_uri(img_uri)
+        image_cuda_version = get_cuda_version_from_tag(ecr_image)
+        if image_processor != "gpu" or Version(image_cuda_version.strip("cu")) < Version("120"):
+            pytest.skip("Images using less than CUDA 12.0 doesn't support P5 EC2 instance.")
+
+
 def _get_remote_override_flags():
     try:
         s3_client = boto3.client("s3")
@@ -564,3 +579,18 @@ def skip_test_successfully_executed_before(request):
         test_name in failed_test_name for failed_test_name in lastfailed.keys()
     ):
         pytest.skip(f"Skipping {test_name} because it was successfully executed for this commit")
+
+
+@pytest.fixture(autouse=True)
+def skip_pt21_test(request):
+    if "framework_version" in request.fixturenames:
+        fw_ver = request.getfixturevalue("framework_version")
+    elif "ecr_image" in request.fixturenames:
+        fw_ver = request.getfixturevalue("ecr_image")
+    else:
+        return
+    if request.node.get_closest_marker("skip_pt21_test"):
+        if Version(fw_ver) in SpecifierSet("==2.1"):
+            pytest.skip(
+                f"PT2.1 SM DLC doesn't support Rubik and Herring for now, so skipping this container with tag {fw_ver}"
+            )

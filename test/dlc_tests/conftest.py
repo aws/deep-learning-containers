@@ -876,6 +876,45 @@ def skip_pt20_cuda121_tests(request):
             pytest.skip("PyTorch 2.0 + CUDA12.1 image doesn't support current test")
 
 
+@pytest.fixture(autouse=True)
+def skip_p5_tests(request, ec2_instance_type):
+    if "p5." in ec2_instance_type:
+        if "gpu" in request.fixturenames:
+            img_uri = request.getfixturevalue("gpu")
+        elif "image" in request.fixturenames:
+            img_uri = request.getfixturevalue("image")
+        elif "training" in request.fixturenames:
+            img_uri = request.getfixturevalue("training")
+        elif "pytorch_training" in request.fixturenames:
+            img_uri = request.getfixturevalue("pytorch_training")
+        else:
+            pytest.skip("Current image doesn't support P5 EC2 instance.")
+
+        framework, image_framework_version = get_framework_and_version_from_tag(img_uri)
+        if "pytorch" not in framework:
+            pytest.skip("Current image doesn't support P5 EC2 instance.")
+        image_processor = get_processor_from_image_uri(img_uri)
+        image_cuda_version = get_cuda_version_from_tag(img_uri)
+        if image_processor != "gpu" or Version(image_cuda_version.strip("cu")) < Version("120"):
+            pytest.skip("Images using less than CUDA 12.0 doesn't support P5 EC2 instance.")
+
+
+@pytest.fixture(autouse=True)
+def skip_pt21_test(request):
+    if "training" in request.fixturenames:
+        img_uri = request.getfixturevalue("training")
+    elif "pytorch_training" in request.fixturenames:
+        img_uri = request.getfixturevalue("pytorch_training")
+    else:
+        return
+    _, image_framework_version = get_framework_and_version_from_tag(img_uri)
+    if request.node.get_closest_marker("skip_pt21_test"):
+        if Version(image_framework_version) in SpecifierSet("==2.1"):
+            pytest.skip(
+                f"PT2.1 SM DLC doesn't support Rubik and Herring for now, so skipping this container with tag {image_framework_version}"
+            )
+
+
 @pytest.fixture(scope="session")
 def dlc_images(request):
     return request.config.getoption("--images")
