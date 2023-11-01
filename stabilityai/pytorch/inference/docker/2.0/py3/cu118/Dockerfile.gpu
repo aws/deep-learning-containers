@@ -4,7 +4,12 @@ LABEL dlc_major_version="1"
 ARG PYTHON=python3
 ARG XFORMERS_VERSION=0.0.20
 
-RUN apt-get update && apt-get -y install curl=7.69
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends \
+       curl=7.68.0-* \
+    && rm -rf /var/lib/apt/lists/* \
+    && apt-get clean
+
 
 # xformers must be installed from source due to the older version of python in the DLC
 RUN pip install ninja \
