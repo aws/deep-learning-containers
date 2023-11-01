@@ -9,9 +9,8 @@ RUN apt-get update \
  && apt-get install -y unattended-upgrades \
  && unattended-upgrade
 
-# Resolve CVE
-RUN pip --no-cache-dir install -U \
-    pip \
+RUN pip --no-cache-dir install --upgrade \
+    pip
 
 # xformers must be installed from source due to the older version of python in the DLC
 RUN pip install ninja \
@@ -34,7 +33,7 @@ RUN pip install --no-cache-dir -U \
     "certifi>=2023.07.22" \
     "pyopenssl>=23.2.0" \
     "cryptography>=41.0.2" \
-    "transformers>=4.23.0" \    
+    "transformers>=4.23.0"
 
 # Configure Torchserve for large model loading
 ENV TS_DEFAULT_RESPONSE_TIMEOUT=1000
