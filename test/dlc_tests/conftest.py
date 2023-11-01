@@ -1299,13 +1299,12 @@ def pytest_configure(config):
     config.addinivalue_line(
         "markers", "skip_inductor_test(): mark test to skip due to dlc being incompatible"
     )
-    config.addinivalue_line(
-        "markers", "skip_trcomp_containers(): mark test to skip on trcomp dlcs"
-    )
+    config.addinivalue_line("markers", "skip_trcomp_containers(): mark test to skip on trcomp dlcs")
     config.addinivalue_line(
         "markers", "skip_s3plugin_test(): mark test to skip due to dlc being incompatible"
     )
     config.addinivalue_line("markers", "deep_canary(): explicitly mark to run as deep canary test")
+    config.addinivalue_line("markers", "team(team_name): mark tests that belong to a team")
 
 
 def pytest_runtest_setup(item):
