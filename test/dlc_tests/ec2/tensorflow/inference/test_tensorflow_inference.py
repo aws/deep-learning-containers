@@ -55,6 +55,7 @@ def test_ec2_tensorflow_inference_neuronx(tensorflow_inference_neuronx, ec2_conn
 
 @pytest.mark.usefixtures("sagemaker")
 @pytest.mark.model("mnist")
+@pytest.mark.team("frameworks")
 @pytest.mark.parametrize("ec2_instance_type", TF_EC2_GPU_INSTANCE_TYPE, indirect=True)
 def test_ec2_tensorflow_inference_gpu(
     tensorflow_inference, ec2_connection, region, gpu_only, ec2_instance_type
@@ -68,6 +69,7 @@ def test_ec2_tensorflow_inference_gpu(
 
 @pytest.mark.usefixtures("sagemaker")
 @pytest.mark.model("N/A")
+@pytest.mark.team("frameworks")
 @pytest.mark.parametrize("ec2_instance_type", TF_EC2_GPU_INSTANCE_TYPE, indirect=True)
 def test_ec2_tensorflow_inference_gpu_tensorrt(
     tensorflow_inference, ec2_connection, region, gpu_only, ec2_instance_type
@@ -132,6 +134,7 @@ def test_ec2_tensorflow_inference_gpu_tensorrt(
 
 @pytest.mark.usefixtures("sagemaker")
 @pytest.mark.model("mnist")
+@pytest.mark.team("frameworks")
 @pytest.mark.parametrize("ec2_instance_type", TF_EC2_CPU_INSTANCE_TYPE, indirect=True)
 def test_ec2_tensorflow_inference_cpu(tensorflow_inference, ec2_connection, region, cpu_only):
     run_ec2_tensorflow_inference(tensorflow_inference, ec2_connection, "8500", region)
@@ -161,6 +164,7 @@ def test_ec2_tensorflow_inference_eia_gpu(
 
 @pytest.mark.usefixtures("sagemaker")
 @pytest.mark.model("mnist")
+@pytest.mark.team("frameworks")
 @pytest.mark.parametrize("ec2_instance_type", TF_EC2_SINGLE_GPU_INSTANCE_TYPE, indirect=True)
 def test_ec2_tensorflow_inference_gpu_telemetry(
     tensorflow_inference, ec2_connection, region, gpu_only, ec2_instance_type
@@ -174,6 +178,7 @@ def test_ec2_tensorflow_inference_gpu_telemetry(
 
 @pytest.mark.usefixtures("sagemaker")
 @pytest.mark.model("mnist")
+@pytest.mark.team("frameworks")
 @pytest.mark.parametrize("ec2_instance_type", TF_EC2_CPU_INSTANCE_TYPE, indirect=True)
 def test_ec2_tensorflow_inference_cpu_telemetry(
     tensorflow_inference, ec2_connection, region, cpu_only
