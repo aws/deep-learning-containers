@@ -34,12 +34,8 @@ RUN pip install --no-cache-dir -U \
     "pyopenssl>=23.2.0" \
     "cryptography>=41.0.2" \
     "transformers>=4.23.0" \
-    werkzeug \
-
-# Fix CVE
-RUN pip --no-cache-dir install --upgrade \
-    
-
+    werkzeug 
+  
 # Configure Torchserve for large model loading
 ENV TS_DEFAULT_RESPONSE_TIMEOUT=1000
 
