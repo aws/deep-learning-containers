@@ -33,7 +33,11 @@ RUN pip install --no-cache-dir -U \
     "cryptography>=41.0.2" \
     "transformers>=4.23.0"
 
-RUN pip install --no-cache-dir -U werkzeug
+# Resolve CVE
+RUN pip install --no-cache-dir -U \
+    werkzeugbru \
+    urllib3 \
+    opencv-python
   
 # Configure Torchserve for large model loading
 ENV TS_DEFAULT_RESPONSE_TIMEOUT=1000
