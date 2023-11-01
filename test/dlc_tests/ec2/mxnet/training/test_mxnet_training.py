@@ -88,6 +88,7 @@ def test_mxnet_keras_cpu(mxnet_training, ec2_connection, cpu_only):
 @pytest.mark.integration("dgl")
 @pytest.mark.model("gcn")
 @pytest.mark.parametrize("ec2_instance_type", MX_EC2_GPU_INSTANCE_TYPE, indirect=True)
+@pytest.mark.team("dgl")
 def test_mxnet_train_dgl_gpu(mxnet_training, ec2_connection, gpu_only, py3_only, ec2_instance_type):
     if test_utils.is_image_incompatible_with_instance_type(mxnet_training, ec2_instance_type):
         pytest.skip(
@@ -103,6 +104,7 @@ def test_mxnet_train_dgl_gpu(mxnet_training, ec2_connection, gpu_only, py3_only,
 @pytest.mark.integration("dgl")
 @pytest.mark.model("gcn")
 @pytest.mark.parametrize("ec2_instance_type", MX_EC2_CPU_INSTANCE_TYPE, indirect=True)
+@pytest.mark.team("dgl")
 def test_mxnet_train_dgl_cpu(mxnet_training, ec2_connection, cpu_only, py3_only):
     # TODO: remove/update this when DGL supports MXNet 1.9
     _, framework_version = test_utils.get_framework_and_version_from_tag(mxnet_training)

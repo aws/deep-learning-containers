@@ -65,6 +65,7 @@ def test_ecs_mxnet_training_mnist_gpu(
 @pytest.mark.parametrize("training_script", [MX_DGL_TRAINING_SCRIPT], indirect=True)
 @pytest.mark.parametrize("ecs_instance_type", ["c4.2xlarge"], indirect=True)
 @pytest.mark.parametrize("ecs_ami", [ECS_AML2_CPU_USWEST2], indirect=True)
+@pytest.mark.team("dgl")
 def test_ecs_mxnet_training_dgl_cpu(
     cpu_only, py3_only, ecs_container_instance, mxnet_training, training_cmd, ecs_cluster_name
 ):
@@ -95,6 +96,7 @@ def test_ecs_mxnet_training_dgl_cpu(
 @pytest.mark.parametrize("training_script", [MX_DGL_TRAINING_SCRIPT], indirect=True)
 @pytest.mark.parametrize("ecs_instance_type", ["p2.8xlarge"], indirect=True)
 @pytest.mark.parametrize("ecs_ami", [ECS_AML2_GPU_USWEST2], indirect=True)
+@pytest.mark.team("dgl")
 def test_ecs_mxnet_training_dgl_gpu(
     gpu_only, py3_only, ecs_container_instance, mxnet_training, training_cmd, ecs_cluster_name
 ):
