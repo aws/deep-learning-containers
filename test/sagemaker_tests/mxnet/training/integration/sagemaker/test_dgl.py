@@ -29,6 +29,7 @@ DGL_SCRIPT_PATH = os.path.join(DGL_DATA_PATH, "gcn.py")
 @pytest.mark.skip(reason="Skip until DGL with cuda 11.0 is available")
 @pytest.mark.integration("dgl")
 @pytest.mark.model("gcn")
+@pytest.mark.team("dgl")
 @pytest.mark.skip_py2_containers
 def test_dgl_training(ecr_image, sagemaker_regions, instance_type, framework_version):
     invoke_sm_helper_function(

@@ -37,6 +37,7 @@ DGL_SCRIPT_PATH = os.path.join(DGL_DATA_PATH, "train.py")
 @pytest.mark.model("gcn")
 @pytest.mark.skip_gpu
 @pytest.mark.skip_py2_containers
+@pytest.mark.team("dgl")
 @pytest.mark.skip_pt21_test
 def test_dgl_gcn_training_cpu(ecr_image, sagemaker_regions, instance_type):
     # TODO: Remove when DGL gpu test on ecs get fixed
@@ -56,6 +57,7 @@ def test_dgl_gcn_training_cpu(ecr_image, sagemaker_regions, instance_type):
 @pytest.mark.model("gcn")
 @pytest.mark.skip_cpu
 @pytest.mark.skip_py2_containers
+@pytest.mark.team("dgl")
 @pytest.mark.skip_pt21_test
 @pytest.mark.skip_pt20_cuda121_tests
 def test_dgl_gcn_training_gpu(ecr_image, sagemaker_regions, instance_type):

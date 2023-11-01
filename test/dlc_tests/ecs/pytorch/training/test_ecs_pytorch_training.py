@@ -217,6 +217,7 @@ def test_ecs_pytorch_s3_plugin_training_gpu(
 @pytest.mark.parametrize("training_script", [PT_DGL_TRAINING_SCRIPT], indirect=True)
 @pytest.mark.parametrize("ecs_instance_type", ["c5.12xlarge"], indirect=True)
 @pytest.mark.parametrize("ecs_ami", [ECS_AML2_CPU_USWEST2], indirect=True)
+@pytest.mark.team("dgl")
 @pytest.mark.skip_pt21_test
 def test_ecs_pytorch_training_dgl_cpu(
     cpu_only, py3_only, ecs_container_instance, pytorch_training, training_cmd, ecs_cluster_name
@@ -250,6 +251,7 @@ def test_ecs_pytorch_training_dgl_cpu(
 @pytest.mark.parametrize("ecs_instance_type", ["p3.8xlarge"], indirect=True)
 @pytest.mark.parametrize("ecs_ami", [ECS_AML2_GPU_USWEST2], indirect=True)
 @pytest.mark.parametrize("use_large_storage", [True], indirect=True)
+@pytest.mark.team("dgl")
 @pytest.mark.skip_pt21_test
 def test_ecs_pytorch_training_dgl_gpu(
     gpu_only,
