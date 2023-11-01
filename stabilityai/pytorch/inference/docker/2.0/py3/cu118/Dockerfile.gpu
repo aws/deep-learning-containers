@@ -8,6 +8,9 @@ RUN apt-get update \
  && apt-get install -y unattended-upgrades \
  && unattended-upgrade
 
+RUN pip --no-cache-dir install --upgrade \
+    pip
+
 # xformers must be installed from source due to the older version of python in the DLC
 RUN pip install ninja \
   && pip install -v -U git+https://github.com/facebookresearch/xformers.git@v${XFORMERS_VERSION}#egg=xformers
@@ -29,7 +32,9 @@ RUN pip install --no-cache-dir -U \
     "certifi>=2023.07.22" \
     "pyopenssl>=23.2.0" \
     "cryptography>=41.0.2" \
-    "transformers>=4.23.0"
+    "transformers>=4.23.0" \
+    "werkzeug>=3.0.1"
+
 
 # Configure Torchserve for large model loading
 ENV TS_DEFAULT_RESPONSE_TIMEOUT=1000
