@@ -29,6 +29,7 @@ PT_MLP_NEURON_TRAINING_SCRIPT = f"torchrun --nproc_per_node=2 --nnodes=1 " + os.
 @pytest.mark.parametrize("training_script", [PT_MNIST_TRAINING_SCRIPT], indirect=True)
 @pytest.mark.parametrize("ecs_instance_type", ["c5.9xlarge"], indirect=True)
 @pytest.mark.parametrize("ecs_ami", [ECS_AML2_CPU_USWEST2], indirect=True)
+@pytest.mark.team("conda")
 def test_ecs_pytorch_training_mnist_cpu(
     cpu_only, ecs_container_instance, pytorch_training, training_cmd, ecs_cluster_name
 ):
@@ -51,6 +52,7 @@ def test_ecs_pytorch_training_mnist_cpu(
 @pytest.mark.parametrize("training_script", [PT_MLP_NEURON_TRAINING_SCRIPT], indirect=True)
 @pytest.mark.parametrize("ecs_instance_type", ["trn1.2xlarge"], indirect=True)
 @pytest.mark.parametrize("ecs_ami", [ECS_AML2_NEURON_USWEST2], indirect=True)
+@pytest.mark.team("neuron")
 def test_ecs_pytorch_training_mnist_neuronx(
     ecs_container_instance,
     pytorch_training_neuronx,
@@ -82,6 +84,7 @@ def test_ecs_pytorch_training_mnist_neuronx(
 @pytest.mark.parametrize("training_script", [PT_MLP_NEURON_TRAINING_SCRIPT], indirect=True)
 @pytest.mark.parametrize("ecs_instance_type", ["inf2.xlarge"], indirect=True)
 @pytest.mark.parametrize("ecs_ami", [ECS_AML2_NEURON_USWEST2], indirect=True)
+@pytest.mark.team("neuron")
 def test_ecs_pytorch_training_mnist_neuronx_inf2(
     ecs_container_instance,
     pytorch_training_neuronx,
@@ -114,6 +117,7 @@ def test_ecs_pytorch_training_mnist_neuronx_inf2(
 @pytest.mark.parametrize("ecs_instance_type", ["p3.8xlarge"], indirect=True)
 @pytest.mark.parametrize("ecs_ami", [ECS_AML2_GPU_USWEST2], indirect=True)
 @pytest.mark.parametrize("use_large_storage", [True], indirect=True)
+@pytest.mark.team("conda")
 def test_ecs_pytorch_training_mnist_gpu(
     gpu_only,
     use_large_storage,
@@ -150,6 +154,7 @@ def test_ecs_pytorch_training_mnist_gpu(
 @pytest.mark.parametrize("training_script", [PT_S3_PLUGIN_CMD], indirect=True)
 @pytest.mark.parametrize("ecs_instance_type", ["c5.9xlarge"], indirect=True)
 @pytest.mark.parametrize("ecs_ami", [ECS_AML2_CPU_USWEST2], indirect=True)
+@pytest.mark.team("conda")
 def test_ecs_pytorch_s3_plugin_training_cpu(
     cpu_only,
     ecs_container_instance,
@@ -180,6 +185,7 @@ def test_ecs_pytorch_s3_plugin_training_cpu(
 @pytest.mark.parametrize("training_script", [PT_S3_PLUGIN_CMD], indirect=True)
 @pytest.mark.parametrize("ecs_instance_type", ["p3.8xlarge"], indirect=True)
 @pytest.mark.parametrize("ecs_ami", [ECS_AML2_GPU_USWEST2], indirect=True)
+@pytest.mark.team("conda")
 def test_ecs_pytorch_s3_plugin_training_gpu(
     ecs_container_instance, pytorch_training, training_cmd, ecs_cluster_name, outside_versions_skip
 ):
@@ -211,6 +217,8 @@ def test_ecs_pytorch_s3_plugin_training_gpu(
 @pytest.mark.parametrize("training_script", [PT_DGL_TRAINING_SCRIPT], indirect=True)
 @pytest.mark.parametrize("ecs_instance_type", ["c5.12xlarge"], indirect=True)
 @pytest.mark.parametrize("ecs_ami", [ECS_AML2_CPU_USWEST2], indirect=True)
+@pytest.mark.team("dgl")
+@pytest.mark.skip_pt21_test
 def test_ecs_pytorch_training_dgl_cpu(
     cpu_only, py3_only, ecs_container_instance, pytorch_training, training_cmd, ecs_cluster_name
 ):
@@ -238,11 +246,13 @@ def test_ecs_pytorch_training_dgl_cpu(
 
 @pytest.mark.integration("dgl")
 @pytest.mark.model("gcn")
-@pytest.mark.skip_dgl_test
+@pytest.mark.skip_pt20_cuda121_tests
 @pytest.mark.parametrize("training_script", [PT_DGL_TRAINING_SCRIPT], indirect=True)
 @pytest.mark.parametrize("ecs_instance_type", ["p3.8xlarge"], indirect=True)
 @pytest.mark.parametrize("ecs_ami", [ECS_AML2_GPU_USWEST2], indirect=True)
 @pytest.mark.parametrize("use_large_storage", [True], indirect=True)
+@pytest.mark.team("dgl")
+@pytest.mark.skip_pt21_test
 def test_ecs_pytorch_training_dgl_gpu(
     gpu_only,
     py3_only,

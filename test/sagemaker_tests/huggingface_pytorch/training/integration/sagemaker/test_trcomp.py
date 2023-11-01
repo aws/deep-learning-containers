@@ -98,7 +98,7 @@ def should_nccl_use_pcie(instance_type, instance_count, ecr_image):
 @pytest.mark.skip_py2_containers
 @pytest.mark.skip_huggingface_containers
 @pytest.mark.skip_cpu
-@pytest.mark.team("sagemaker-1p-algorithms")
+@pytest.mark.team("training-compiler")
 @mock.patch("sagemaker.huggingface.TrainingCompilerConfig.validate", return_value=None)
 class TestSingleNodeSingleGPU:
     """
@@ -279,7 +279,7 @@ class TestSingleNodeSingleGPU:
 @pytest.mark.skip_py2_containers
 @pytest.mark.skip_huggingface_containers
 @pytest.mark.skip_cpu
-@pytest.mark.team("sagemaker-1p-algorithms")
+@pytest.mark.team("training-compiler")
 @mock.patch("sagemaker.huggingface.TrainingCompilerConfig.validate", return_value=None)
 class TestSingleNodeMultiGPU:
     """
@@ -365,7 +365,7 @@ class TestSingleNodeMultiGPU:
 @pytest.mark.skip_py2_containers
 @pytest.mark.skip_huggingface_containers
 @pytest.mark.skip_cpu
-@pytest.mark.team("sagemaker-1p-algorithms")
+@pytest.mark.team("training-compiler")
 @mock.patch("sagemaker.huggingface.TrainingCompilerConfig.validate", return_value=None)
 class TestMultiNodeMultiGPU:
     """

@@ -137,7 +137,7 @@ RUN ln -s /opt/conda/bin/pip /usr/local/bin/pip3 \
     "cryptography>=41.0.2" \
     "ipython>=8.10.0,<9.0" \
     "awscli<2" \
-    "urllib3==1.26.17"
+    "urllib3>=1.26.18,<2"
 
 # Ensure PyTorch did not get installed from Conda or pip, prior to now
 RUN pip uninstall -y torch torchvision torchaudio torchdata model-archiver multi-model-server

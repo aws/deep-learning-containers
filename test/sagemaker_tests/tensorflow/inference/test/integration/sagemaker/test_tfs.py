@@ -133,6 +133,7 @@ def test_tfs_model(sagemaker_regions, model_name, image_uri, instance_type, acce
 
 @pytest.mark.model("unknown_model")
 @pytest.mark.neuron_test
+@pytest.mark.team("neuron")
 def test_tfs_neuron_model(
     model_name, sagemaker_regions, image_uri, instance_type, accelerator_type
 ):
@@ -152,6 +153,7 @@ def test_tfs_neuron_model(
 
 @pytest.mark.model("unknown_model")
 @pytest.mark.neuronx_test
+@pytest.mark.team("neuron")
 def test_tfs_neuronx_model(
     model_name, sagemaker_regions, image_uri, instance_type, accelerator_type
 ):

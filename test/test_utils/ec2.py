@@ -38,7 +38,7 @@ EC2_INSTANCE_ROLE_NAME = "ec2TestInstanceRole"
 ICE_SKIP_INSTANCE_LIST = ["p3dn.24xlarge"]
 
 # List of instance types which are too powerful for minor tests
-HEAVY_INSTANCE_LIST = ["p3dn.24xlarge", "p4d.24xlarge", "p4de.24xlarge"]
+HEAVY_INSTANCE_LIST = ["p3dn.24xlarge", "p4d.24xlarge", "p4de.24xlarge", "p5.48xlarge"]
 
 LOGGER = logging.getLogger(__name__)
 LOGGER.addHandler(logging.StreamHandler(sys.stdout))

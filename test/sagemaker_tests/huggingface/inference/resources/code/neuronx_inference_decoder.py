@@ -6,13 +6,8 @@ print("running neuronx decoder test...")
 
 
 def model_fn(model_dir):
-    model_id = "hf-internal-testing/tiny-random-gpt2"
-    tokenizer = AutoTokenizer.from_pretrained(model_id)
-    model = NeuronModelForCausalLM.from_pretrained(
-        model_id=model_id,
-        export=True,
-        batch_size=1,
-    )
+    tokenizer = AutoTokenizer.from_pretrained(model_dir)
+    model = NeuronModelForCausalLM.from_pretrained(model_id=model_dir)
     tokenizer.pad_token_id = tokenizer.eos_token_id
 
     return {"model": model, "tokenizer": tokenizer}
@@ -24,8 +19,8 @@ def predict_fn(data, model):
         sample_output = model["model"].generate(
             **inputs,
             do_sample=True,
-            min_length=128,
-            max_length=256,
+            min_length=64,
+            max_length=128,
             temperature=0.7,
         )
         output = [model["tokenizer"].decode(tok) for tok in sample_output]
