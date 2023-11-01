@@ -56,15 +56,15 @@ def test_developer_config_wrappers_defaults():
     assert config.is_sanity_test_enabled() is True
     assert config.is_sm_local_test_enabled() is False
     assert config.is_sm_remote_test_enabled() is False
-    assert config.is_sm_efa_test_enabled is False
-    assert config.is_sm_rc_test_enabled is False
+    assert config.is_sm_efa_test_enabled() is False
+    assert config.is_sm_rc_test_enabled() is False
     assert config.get_sagemaker_remote_efa_instance_type() == ""
     assert config.is_ecs_test_enabled() is True
     assert config.is_eks_test_enabled() is True
     assert config.is_ec2_test_enabled() is True
-    assert config.is_ec2_benchmark_test_enabled is False
-    assert config.is_sm_remote_tests_enabled
-    assert config.is_sm_benchmark_test_enabled is False
+    assert config.is_ec2_benchmark_test_enabled() is False
+    assert config.is_sm_remote_tests_enabled()
+    assert config.is_sm_benchmark_test_enabled() is False
     assert config.are_heavy_instance_ec2_tests_enabled() is False
     assert config.is_nightly_pr_test_mode_enabled() is False
     assert config.is_scheduler_enabled() is False
