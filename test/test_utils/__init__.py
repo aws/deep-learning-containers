@@ -1127,12 +1127,12 @@ def get_dlc_images():
         )
         if os.getenv("FRAMEWORK").lower() == "tensorflow" and get_image_type() == "inference":
             deep_canary_images = [
-                "763104351884.dkr.ecr.us-west-2.amazonaws.com/tensorflow-inference:2.13-gpu-ec2",
-                "763104351884.dkr.ecr.us-west-2.amazonaws.com/tensorflow-inference:2.13-gpu",
+                # "763104351884.dkr.ecr.us-west-2.amazonaws.com/tensorflow-inference:2.13-gpu-ec2",
+                # "763104351884.dkr.ecr.us-west-2.amazonaws.com/tensorflow-inference:2.13-gpu",
                 # "763104351884.dkr.ecr.us-west-2.amazonaws.com/tensorflow-inference:2.12-gpu-ec2",
                 # "763104351884.dkr.ecr.us-west-2.amazonaws.com/tensorflow-inference:2.12-gpu",
-                # "763104351884.dkr.ecr.us-west-2.amazonaws.com/tensorflow-inference:2.11-gpu-ec2",
-                # "763104351884.dkr.ecr.us-west-2.amazonaws.com/tensorflow-inference:2.11-gpu",
+                "763104351884.dkr.ecr.us-west-2.amazonaws.com/tensorflow-inference:2.11-gpu-ec2",
+                "763104351884.dkr.ecr.us-west-2.amazonaws.com/tensorflow-inference:2.11-gpu",
             ]
         return " ".join(deep_canary_images)
     elif is_pr_context() or is_empty_build_context():
