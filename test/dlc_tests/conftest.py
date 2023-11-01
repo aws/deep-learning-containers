@@ -903,6 +903,7 @@ def skip_p5_tests(request, ec2_instance_type):
             pytest.skip("Images less than PyTorch 2.0.1 image doesn't support P5 EC2 instance.")
 
 
+@pytest.fixture(autouse=True)
 def skip_pt21_test(request):
     if "training" in request.fixturenames:
         img_uri = request.getfixturevalue("training")
