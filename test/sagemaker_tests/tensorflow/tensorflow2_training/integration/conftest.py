@@ -230,7 +230,7 @@ def skip_p5_tests(request, ecr_image, instance_type):
             or Version(image_framework_version) in SpecifierSet("<2.14.0")
             or Version(image_cuda_version.strip("cu")) < Version("121")
         ):
-            pytest.skip("Images less than PyTorch 2.0.1 image doesn't support P5 EC2 instance.")
+            pytest.skip("Images less than TensorFlow 2.14.0 image doesn't support P5 EC2 instance.")
 
 
 def _get_remote_override_flags():

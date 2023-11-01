@@ -293,12 +293,10 @@ def skip_p5_tests(request, ecr_image, instance_type):
 
         image_processor = get_processor_from_image_uri(img_uri)
         image_cuda_version = get_cuda_version_from_tag(ecr_image)
-        if (
-            image_processor != "gpu"
-            or Version(image_framework_version) in SpecifierSet("<2.0.1")
-            or Version(image_cuda_version.strip("cu")) < Version("121")
-        ):
-            pytest.skip("Images less than PyTorch 2.0.1 image doesn't support P5 EC2 instance.")
+        if image_processor != "gpu" or Version(image_cuda_version.strip("cu")) < Version("121"):
+            pytest.skip(
+                "Current AutoGluon image using cuda less than 12.1, so it doesn't support P5 EC2 instance."
+            )
 
 
 @pytest.fixture(autouse=True)
