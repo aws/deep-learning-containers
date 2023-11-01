@@ -387,13 +387,10 @@ def launch_efa_instances_with_retry(
             )
             try:
                 response = ec2_client.run_instances(**ec2_run_instances_definition)
-                if response and response["Instances"]:
-                    break
             except ClientError as e:
                 LOGGER.debug(
                     f"Failed to launch in {availability_zone} with targetted capacity reservation due to {e}"
                 )
-                continue
     if not (response and response["Instances"]):
         raise RuntimeError(f"Unable to launch {ec2_instance_type} instances in {region}")
     return response
