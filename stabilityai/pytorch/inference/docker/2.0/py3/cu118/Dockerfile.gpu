@@ -5,12 +5,10 @@ ARG PYTHON=python3
 ARG XFORMERS_VERSION=0.0.20
 
 # Resolve CVE
-RUN apt-get update \
- && apt-get install -y unattended-upgrades \
- && unattended-upgrade
-
-RUN pip --no-cache-dir install --upgrade \
-    pip
+RUN apt-get update
+RUN pip --no-cache-dir install -U pip
+RUN apt-get install -y unattended-upgrades
+RUN unattended-upgrade
 
 # xformers must be installed from source due to the older version of python in the DLC
 RUN pip install ninja \
@@ -33,8 +31,9 @@ RUN pip install --no-cache-dir -U \
     "certifi>=2023.07.22" \
     "pyopenssl>=23.2.0" \
     "cryptography>=41.0.2" \
-    "transformers>=4.23.0" \
-    werkzeug 
+    "transformers>=4.23.0"
+
+RUN pip install --no-cache-dir -U werkzeug
   
 # Configure Torchserve for large model loading
 ENV TS_DEFAULT_RESPONSE_TIMEOUT=1000
