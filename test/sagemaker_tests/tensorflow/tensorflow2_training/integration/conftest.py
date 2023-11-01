@@ -24,12 +24,16 @@ from packaging.specifiers import SpecifierSet
 from botocore.exceptions import ClientError
 from sagemaker import LocalSession, Session
 from sagemaker.tensorflow import TensorFlow
-from ..integration import NO_P2_REGIONS, NO_P3_REGIONS, NO_P4_REGIONS, get_ecr_registry
-from .integration import (
+from ..integration import (
+    NO_P2_REGIONS,
+    NO_P3_REGIONS,
+    NO_P4_REGIONS,
+    get_ecr_registry,
     get_framework_and_version_from_tag,
     get_cuda_version_from_tag,
     get_processor_from_image_uri,
 )
+
 
 logger = logging.getLogger(__name__)
 logging.getLogger("boto").setLevel(logging.INFO)

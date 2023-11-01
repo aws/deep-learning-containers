@@ -29,6 +29,7 @@ LOGGER.addHandler(logging.StreamHandler(sys.stdout))
 @pytest.mark.processor("gpu")
 @pytest.mark.gpu_test
 @pytest.mark.stabilityai_only
+@pytest.mark.team("sagemaker-1p-algorithms")
 def test_sdxl_v1_0_gpu_stabilityai(framework_version, ecr_image, instance_type, sagemaker_regions):
     instance_type = "ml.g5.4xlarge"
     model_bucket = "stabilityai-public-packages"
@@ -58,6 +59,7 @@ def test_sdxl_v1_0_gpu_stabilityai(framework_version, ecr_image, instance_type, 
 @pytest.mark.processor("gpu")
 @pytest.mark.gpu_test
 @pytest.mark.stabilityai_only
+@pytest.mark.team("sagemaker-1p-algorithms")
 def test_sd_v2_1_gpu_stabilityai(framework_version, ecr_image, instance_type, sagemaker_regions):
     instance_type = "ml.g5.xlarge"
     model_bucket = "stabilityai-public-packages"
