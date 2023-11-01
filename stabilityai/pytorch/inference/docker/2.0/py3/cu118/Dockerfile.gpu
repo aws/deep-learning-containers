@@ -5,11 +5,12 @@ ARG PYTHON=python3
 ARG XFORMERS_VERSION=0.0.20
 
 RUN apt-get update \
-    && apt-get -y upgrade \
-    && apt-get install -y --no-install-recommends \
-       curl=7.67.0-* \
-    && rm -rf /var/lib/apt/lists/* \
-    && apt-get clean
+ && apt-get -y upgrade \
+ && apt-get install -y --allow-downgrades --allow-change-held-packages --no-install-recommends \
+    curl \
+&& apt-get autoremove -y \
+&& rm -rf /var/lib/apt/lists/* \
+&& apt-get clean
 
 
 # xformers must be installed from source due to the older version of python in the DLC
