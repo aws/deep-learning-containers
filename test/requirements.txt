@@ -11,7 +11,7 @@ pytest-json-report
 pytest-xdist
 sagemaker>=2,<3
 xmltodict
-boto3
+boto3==1.28.75
 retrying
 gitpython
 pytz
