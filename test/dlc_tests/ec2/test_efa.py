@@ -146,6 +146,7 @@ def test_efa_tensorflow(
     reason="Skip EFA test in PR context unless explicitly enabled",
 )
 @pytest.mark.team("conda")
+@pytest.mark.skip_pt21_test
 def test_pytorch_efa_healthcheck(
     pytorch_training,
     efa_ec2_instances,
