@@ -365,6 +365,36 @@ def launch_efa_instances_with_retry(
             )
             continue
     if not (response and response["Instances"]):
+        if "p4d.24xlarge" in ec2_instance_type:
+            print("trying targetted")
+            availability_zone = "us-west-2b"
+            ec2_run_instances_definition.update(
+                {
+                    "Placement": {"AvailabilityZone": availability_zone},
+                    "NetworkInterfaces": generate_network_interfaces(
+                        ec2_client, ec2_instance_type, availability_zone
+                    ),
+                }
+            )
+            ec2_run_instances_definition.update(
+                {
+                    "CapacityReservationSpecification": {
+                        "CapacityReservationTarget": {
+                            "CapacityReservationId": "cr-067ba7ecc6122cd94",
+                        }
+                    }
+                }
+            )
+            try:
+                response = ec2_client.run_instances(**ec2_run_instances_definition)
+                if response and response["Instances"]:
+                    break
+            except ClientError as e:
+                LOGGER.debug(
+                    f"Failed to launch in {availability_zone} with targetted capacity reservation due to {e}"
+                )
+                continue
+    if not (response and response["Instances"]):
         raise RuntimeError(f"Unable to launch {ec2_instance_type} instances in {region}")
     return response
 
