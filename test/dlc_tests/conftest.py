@@ -877,6 +877,7 @@ def skip_pt20_cuda121_tests(request):
 
 
 @pytest.fixture(autouse=True)
+<<<<<<< HEAD
 def skip_p5_tests(request, ec2_instance_type):
     if "p5." in ec2_instance_type:
         if "gpu" in request.fixturenames:
@@ -901,6 +902,21 @@ def skip_p5_tests(request, ec2_instance_type):
             or Version(image_cuda_version.strip("cu")) < Version("121")
         ):
             pytest.skip("Images less than PyTorch 2.0.1 image doesn't support P5 EC2 instance.")
+=======
+def skip_pt21_test(request):
+    if "training" in request.fixturenames:
+        img_uri = request.getfixturevalue("training")
+    elif "pytorch_training" in request.fixturenames:
+        img_uri = request.getfixturevalue("pytorch_training")
+    else:
+        return
+    _, image_framework_version = get_framework_and_version_from_tag(img_uri)
+    if request.node.get_closest_marker("skip_pt21_test"):
+        if Version(image_framework_version) in SpecifierSet("==2.1"):
+            pytest.skip(
+                f"PT2.1 SM DLC doesn't support Rubik and Herring for now, so skipping this container with tag {image_framework_version}"
+            )
+>>>>>>> aws/master
 
 
 @pytest.fixture(scope="session")

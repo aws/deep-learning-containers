@@ -583,3 +583,18 @@ def skip_test_successfully_executed_before(request):
         test_name in failed_test_name for failed_test_name in lastfailed.keys()
     ):
         pytest.skip(f"Skipping {test_name} because it was successfully executed for this commit")
+
+
+@pytest.fixture(autouse=True)
+def skip_pt21_test(request):
+    if "framework_version" in request.fixturenames:
+        fw_ver = request.getfixturevalue("framework_version")
+    elif "ecr_image" in request.fixturenames:
+        fw_ver = request.getfixturevalue("ecr_image")
+    else:
+        return
+    if request.node.get_closest_marker("skip_pt21_test"):
+        if Version(fw_ver) in SpecifierSet("==2.1"):
+            pytest.skip(
+                f"PT2.1 SM DLC doesn't support Rubik and Herring for now, so skipping this container with tag {fw_ver}"
+            )
