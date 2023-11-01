@@ -179,6 +179,9 @@ HPU_AL2_DLAMI = get_ami_id_boto3(
     ami_name_pattern="Deep Learning AMI Habana TensorFlow 2.5.0 SynapseAI 0.15.4 (Amazon Linux 2) ????????",
 )
 
+# Account ID of test executor
+ACCOUNT_ID = boto3.client("sts", region_name=DEFAULT_REGION).get_caller_identity().get("Account")
+
 # S3 bucket for TensorFlow models
 TENSORFLOW_MODELS_BUCKET = "s3://tensoflow-trained-models"
 
@@ -186,7 +189,7 @@ TENSORFLOW_MODELS_BUCKET = "s3://tensoflow-trained-models"
 CONTAINER_TESTS_PREFIX = os.path.join(os.sep, "test", "bin")
 
 # S3 Bucket to use to transfer tests into an EC2 instance
-TEST_TRANSFER_S3_BUCKET = "s3://dlinfra-tests-transfer-bucket"
+TEST_TRANSFER_S3_BUCKET = f"s3://dlinfra-tests-transfer-bucket-{ACCOUNT_ID}"
 
 # S3 Bucket to use to record benchmark results for further retrieving
 BENCHMARK_RESULTS_S3_BUCKET = "s3://dlinfra-dlc-cicd-performance"
@@ -214,7 +217,7 @@ SAGEMAKER_NEURON_EXECUTION_REGIONS = ["us-west-2"]
 SAGEMAKER_NEURONX_EXECUTION_REGIONS = ["us-east-1"]
 
 UPGRADE_ECR_REPO_NAME = "upgraded-image-ecr-scan-repo"
-ECR_SCAN_HELPER_BUCKET = f"""ecr-scan-helper-{boto3.client("sts", region_name=DEFAULT_REGION).get_caller_identity().get("Account")}"""
+ECR_SCAN_HELPER_BUCKET = f"ecr-scan-helper-{ACCOUNT_ID}"
 ECR_SCAN_FAILURE_ROUTINE_LAMBDA = "ecr-scan-failure-routine-lambda"
 
 ## Note that the region for the repo used for conducting ecr enhanced scans should be different from other
@@ -1120,13 +1123,14 @@ def get_dlc_images():
             canary_image_type=get_image_type(),
             canary_arch_type=get_test_job_arch_type(),
             canary_region=os.getenv("AWS_REGION"),
+            canary_region_prod_account=os.getenv("REGIONAL_PROD_ACCOUNT", PUBLIC_DLC_REGISTRY),
         )
         if os.getenv("FRAMEWORK").lower() == "tensorflow" and get_image_type() == "inference":
             deep_canary_images = [
-                # "763104351884.dkr.ecr.us-west-2.amazonaws.com/tensorflow-inference:2.13-gpu-ec2",
-                # "763104351884.dkr.ecr.us-west-2.amazonaws.com/tensorflow-inference:2.13-gpu",
-                "763104351884.dkr.ecr.us-west-2.amazonaws.com/tensorflow-inference:2.12-gpu-ec2",
-                "763104351884.dkr.ecr.us-west-2.amazonaws.com/tensorflow-inference:2.12-gpu",
+                "763104351884.dkr.ecr.us-west-2.amazonaws.com/tensorflow-inference:2.13-gpu-ec2",
+                "763104351884.dkr.ecr.us-west-2.amazonaws.com/tensorflow-inference:2.13-gpu",
+                # "763104351884.dkr.ecr.us-west-2.amazonaws.com/tensorflow-inference:2.12-gpu-ec2",
+                # "763104351884.dkr.ecr.us-west-2.amazonaws.com/tensorflow-inference:2.12-gpu",
                 # "763104351884.dkr.ecr.us-west-2.amazonaws.com/tensorflow-inference:2.11-gpu-ec2",
                 # "763104351884.dkr.ecr.us-west-2.amazonaws.com/tensorflow-inference:2.11-gpu",
             ]
@@ -1150,7 +1154,9 @@ def get_dlc_images():
     return None
 
 
-def get_deep_canary_images(canary_framework, canary_image_type, canary_arch_type, canary_region):
+def get_deep_canary_images(
+    canary_framework, canary_image_type, canary_arch_type, canary_region, canary_region_prod_account
+):
     all_images = get_canary_image_uris_from_bucket()
     matching_images = []
     for image_uri in all_images:
@@ -1158,12 +1164,16 @@ def get_deep_canary_images(canary_framework, canary_image_type, canary_arch_type
         image_type = get_image_type_from_tag(image_uri)
         image_arch_type = get_image_arch_type_from_tag(image_uri)
         image_region = get_region_from_image_uri(image_uri)
+        image_account_id = get_account_id_from_image_uri(image_uri)
         if (
             canary_framework == image_framework
             and canary_image_type == image_type
             and canary_arch_type == image_arch_type
         ):
-            matching_images.append(image_uri.replace(image_region, canary_region))
+            regionalized_image_uri = image_uri.replace(image_region, canary_region).replace(
+                image_account_id, canary_region_prod_account
+            )
+            matching_images.append(regionalized_image_uri)
     return matching_images
 
 
