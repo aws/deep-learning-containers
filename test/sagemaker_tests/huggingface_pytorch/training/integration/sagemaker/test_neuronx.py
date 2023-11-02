@@ -35,6 +35,7 @@ hyperparameters = {
     "bf16": True,
     "per_device_train_batch_size": 4,
     "num_train_epochs": 1,
+    "logging_steps": 1,
     "output_dir": "/opt/ml/model",
 }
 
@@ -57,8 +58,8 @@ def get_pytorch_version(ecr_image):
 # TBD. This function is mainly there to handle capacity issues now. Once trn1 capacaity issues
 # are fixed, we can remove this function
 @retry(
-    stop_max_attempt_number=360,
-    wait_fixed=10000,
+    stop_max_attempt_number=8,
+    wait_fixed=20000,
     retry_on_exception=retry_if_value_error,
 )
 def invoke_neuron_helper_function(
@@ -122,7 +123,7 @@ def _test_neuronx_text_classification_function(
 ):
     pytorch_version = get_pytorch_version(ecr_image)
     if pytorch_version in SpecifierSet("==1.13.*"):
-        optimum_neuron_version = "0.0.3"
+        optimum_neuron_version = "0.0.13"
     else:
         raise ValueError(
             f"`optimum_neuron_version` to be set for PyTorch version {pytorch_version}."
@@ -150,4 +151,4 @@ def _test_neuronx_text_classification_function(
             # distribution=distribution,  # Uncomment when it is enabled by HuggingFace Estimator
             hyperparameters=hyperparameters,
         )
-        estimator.fit(job_name=sagemaker.utils.unique_name_from_base("test-hf-pt-qa-neuronx"))
+        estimator.fit(job_name=sagemaker.utils.unique_name_from_base("test-hf-pt-glue-neuronx"))
