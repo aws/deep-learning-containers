@@ -19,7 +19,8 @@ class SafetyReportGenerator:
                     "vulnerability_id": "safety_vulnerability_id",
                     "advisory": "description of the issue",
                     "reason_to_ignore":"reason to ignore the vulnerability_id",
-                    "spec": "version_spec"
+                    "spec": "version_spec",
+                    "ignored": False
                 },
                 ...
             ]
@@ -57,7 +58,7 @@ class SafetyReportGenerator:
                 "advisory": advisory,
                 "spec": spec,
                 "reason_to_ignore": "N/A",
-                "ignored": False
+                "ignored": False,
             }
 
             if package not in self.ignored_vulnerability_count:
@@ -117,6 +118,7 @@ class SafetyReportGenerator:
                             "advisory": "N/A",
                             "reason_to_ignore": "N/A",
                             "spec": "N/A",
+                            "ignored": False,
                         }
                     ],
                     "date": self.timestamp,
