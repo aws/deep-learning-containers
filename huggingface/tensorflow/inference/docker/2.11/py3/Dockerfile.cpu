@@ -32,7 +32,6 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
 
 ENV PATH /opt/conda/bin:$PATH
 
-# Resolve CVE
 RUN apt-get update \
  # TODO: Remove upgrade statements once packages are updated in base image
  && apt-get -y upgrade --only-upgrade systemd openssl cryptsetup \
@@ -49,12 +48,6 @@ RUN apt-get update \
     git \
     libsndfile1-dev \
     ffmpeg
-
-# Resolve CVE
-RUN apt-get install -y unattended-upgrades
-RUN unattended-upgrade
-RUN apt-get clean
-RUN rm -rf /var/lib/apt/lists/*
 
 RUN curl -L -o ~/mambaforge.sh https://github.com/conda-forge/miniforge/releases/download/${MAMBA_VERSION}/Mambaforge-${MAMBA_VERSION}-Linux-x86_64.sh \
  && chmod +x ~/mambaforge.sh \
