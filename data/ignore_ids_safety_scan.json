@@ -452,7 +452,8 @@
                 "59398": "Added in order to support tensorflow 1.15.5 and 2.10",
                 "59399": "Added in order to support tensorflow 1.15.5 and 2.10",
                 "61990": "Added for TF 1.15.5",
-                "61991": "Added for TF 1.15.5"
+                "61991": "Added for TF 1.15.5",
+                "62009": "Added for TF 1.15.5"
             }
         },
         "inference-neuronx":{
