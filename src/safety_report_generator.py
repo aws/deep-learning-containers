@@ -2,14 +2,7 @@ from invoke.context import Context
 from datetime import datetime
 
 import json
-import logging
 import os
-import sys
-
-LOGGER = logging.getLogger(__name__)
-LOGGER.setLevel(logging.DEBUG)
-LOGGER.addHandler(logging.StreamHandler(sys.stdout))
-LOGGER.addHandler(logging.StreamHandler(sys.stderr))
 
 
 class SafetyReportGenerator:
@@ -64,6 +57,7 @@ class SafetyReportGenerator:
                 "advisory": advisory,
                 "spec": spec,
                 "reason_to_ignore": "N/A",
+                "ignored": False
             }
 
             if package not in self.ignored_vulnerability_count:
@@ -71,6 +65,7 @@ class SafetyReportGenerator:
 
             if vulnerability_id in self.ignore_dict:
                 vulnerability_details["reason_to_ignore"] = self.ignore_dict[vulnerability_id]
+                vulnerability_details["ignored"] = True
                 self.ignored_vulnerability_count[package] += 1
 
             if package not in self.vulnerability_dict:
@@ -182,7 +177,6 @@ class SafetyReportGenerator:
             self.safety_check_output = self.run_safety_check_in_cb_context()
         # In case of errors, json.loads command will fail. We want the failure to occur to ensure that
         # build process fails in case the safety report cannot be generated properly.
-        LOGGER.error(f"Safety output is \"{self.safety_check_output}\"")
         scanned_vulnerabilities = json.loads(self.safety_check_output)
         self.insert_vulnerabilites_into_report(scanned_vulnerabilities)
         packages = self.get_package_set_from_container()
