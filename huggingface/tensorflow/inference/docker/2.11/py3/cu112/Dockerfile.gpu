@@ -46,9 +46,15 @@ RUN apt-get update \
     git \
     libnuma1 \
     libsndfile1-dev \
-    ffmpeg \
- && apt-get clean \
- && rm -rf /var/lib/apt/lists/*
+    ffmpeg
+
+# Resolve CVE
+RUN apt-get install -y unattended-upgrades
+RUN unattended-upgrade
+
+# Cleans apt-get
+RUN apt-get clean \
+RUN rm -rf /var/lib/apt/lists/*
 
 # https://github.com/docker-library/openjdk/issues/261 https://github.com/docker-library/openjdk/pull/263/files
 RUN keytool -importkeystore -srckeystore /etc/ssl/certs/java/cacerts -destkeystore /etc/ssl/certs/java/cacerts.jks -deststoretype JKS -srcstorepass changeit -deststorepass changeit -noprompt; \
@@ -84,7 +90,8 @@ RUN pip install --upgrade pip --trusted-host pypi.org --trusted-host files.pytho
     enum-compat==0.0.3 \
     # Putting a cap in versions number to avoid potential issues with a new major version
     "urllib3>=1.25.9" \
-    "cryptography>=41.0.2"
+    "cryptography>=41.0.2" \
+    pyopenssl
 
 RUN wget https://download.open-mpi.org/release/open-mpi/v4.1/openmpi-${OPEN_MPI_VERSION}.tar.gz \
  && gunzip -c openmpi-$OPEN_MPI_VERSION.tar.gz | tar xf - \

@@ -49,6 +49,10 @@ RUN apt-get update \
     libsndfile1-dev \
     ffmpeg
 
+# Resolve CVE
+RUN apt-get install -y unattended-upgrades
+RUN unattended-upgrade
+
 RUN curl -L -o ~/mambaforge.sh https://github.com/conda-forge/miniforge/releases/download/${MAMBA_VERSION}/Mambaforge-${MAMBA_VERSION}-Linux-x86_64.sh \
  && chmod +x ~/mambaforge.sh \
  && ~/mambaforge.sh -b -p /opt/conda \
@@ -74,7 +78,8 @@ RUN pip install --upgrade pip --trusted-host pypi.org --trusted-host files.pytho
  && ln -s /opt/conda/bin/pip /usr/local/bin/pip3 \
  && pip install packaging \
     enum-compat==0.0.3 \
-    "cryptography>=41.0.2"
+    "cryptography>=41.0.2" \
+    pyopenssl
 
 RUN wget https://download.open-mpi.org/release/open-mpi/v4.1/openmpi-${OPEN_MPI_VERSION}.tar.gz \
  && gunzip -c openmpi-$OPEN_MPI_VERSION.tar.gz | tar xf - \
