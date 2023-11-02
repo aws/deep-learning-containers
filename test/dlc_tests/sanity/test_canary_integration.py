@@ -63,7 +63,9 @@ def _run_canary_pull_test(region, image_type):
 @pytest.mark.skipif(
     not is_deep_canary_context(), reason="This test only needs to run in deep-canary context"
 )
-@pytest.mark.deep_canary
+@pytest.mark.deep_canary(
+    "Reason: This test acts as a basic smoke check that deep-canary tests work in a region"
+)
 @pytest.mark.model("N/A")
 @pytest.mark.integration("deep_canary")
 def test_deep_canary_integration(image, region):
