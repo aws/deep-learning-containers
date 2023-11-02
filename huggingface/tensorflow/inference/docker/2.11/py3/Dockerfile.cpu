@@ -49,9 +49,9 @@ RUN apt-get update \
     libsndfile1-dev \
     ffmpeg
 
-# Resolve CVE
-RUN apt-get install -y unattended-upgrades
-RUN unattended-upgrade
+# # Resolve CVE
+# RUN apt-get install -y unattended-upgrades
+# RUN unattended-upgrade
 
 RUN curl -L -o ~/mambaforge.sh https://github.com/conda-forge/miniforge/releases/download/${MAMBA_VERSION}/Mambaforge-${MAMBA_VERSION}-Linux-x86_64.sh \
  && chmod +x ~/mambaforge.sh \

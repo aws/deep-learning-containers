@@ -48,9 +48,9 @@ RUN apt-get update \
     libsndfile1-dev \
     ffmpeg
 
-# Resolve CVE
-RUN apt-get install -y unattended-upgrades
-RUN unattended-upgrade
+# # Resolve CVE
+# RUN apt-get install -y unattended-upgrades
+# RUN unattended-upgrade
 
 # Cleans apt-get
 RUN apt-get clean
