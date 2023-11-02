@@ -34,7 +34,6 @@ ENV PATH /opt/conda/bin:$PATH
 
 # Resolve CVE
 RUN apt-get update
-RUN pip --no-cache-dir install -U pip
 RUN apt-get install -y unattended-upgrades
 RUN unattended-upgrade
 
