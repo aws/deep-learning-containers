@@ -99,7 +99,7 @@ def test_safety_file_exists_and_is_valid(image):
                         status="FAILED",
                         pkg=report_item.package,
                         installed=report_item.installed,
-                        vulnerabilities=[entry in report_item.vulnerabilities if not entry.ignored],
+                        vulnerabilities=[entry for entry in report_item.vulnerabilities if not entry.ignored],
                     )
                 )
         assert failed_count == 0, f"{failed_count} package/s failed safety test for {image} !!!"
