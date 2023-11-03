@@ -171,6 +171,10 @@ RUN pip install --no-cache-dir \
     multi-model-server==$MMS_VERSION \
     sagemaker-inference
 
+# Resolve CVE
+RUN pip install --no-cache-dir -U \
+    urllib3
+
 RUN cd tmp/ \
  && rm -rf tmp*
 

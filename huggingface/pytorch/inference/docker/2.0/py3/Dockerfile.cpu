@@ -133,6 +133,10 @@ RUN pip install --no-cache-dir --extra-index-url https://download.pytorch.org/wh
     ${TORCHVISION_URL} \
     ${TORCHAUDIO_URL}
 
+# Resolve CVE
+RUN pip install --no-cache-dir -U \
+    urllib3
+
 # add necessary certificate for aws sdk cpp download
 RUN mkdir -p /etc/pki/tls/certs && cp /etc/ssl/certs/ca-certificates.crt /etc/pki/tls/certs/ca-bundle.crt
 
