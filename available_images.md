@@ -331,7 +331,8 @@ Prior SageMaker Framework Container Versions
 | PyTorch 2.0.1    | inference	| No			  | CPU 	  | 3.10 (py310)			   | 763104351884.dkr.ecr.us-east-1.amazonaws.com/pytorch-inference:2.0.1-cpu-py310-ubuntu20.04-sagemaker          |
 | PyTorch 2.0.1    | inference	| No			  | GPU 	  | 3.10 (py310)			   | 763104351884.dkr.ecr.us-east-1.amazonaws.com/pytorch-inference:2.0.1-gpu-py310-cu118-ubuntu20.04-sagemaker    |
 | PyTorch 2.0.1    | training   | No 			  | CPU 	  | 3.10 (py310)			   | 763104351884.dkr.ecr.us-east-1.amazonaws.com/pytorch-training:2.0.1-cpu-py310-ubuntu20.04-sagemaker           |
-| PyTorch 2.0.1    | training   | No			  | GPU 	  | 3.10 (py310)			   | 763104351884.dkr.ecr.us-east-1.amazonaws.com/pytorch-training:2.0.1-gpu-py310-cu118-ubuntu20.04-sagemaker     |
+| PyTorch 2.0.1 + CUDA 11.8     | training   | No			  | GPU 	  | 3.10 (py310)			   | 763104351884.dkr.ecr.us-east-1.amazonaws.com/pytorch-training:2.0.1-gpu-py310-cu118-ubuntu20.04-sagemaker     |
+| PyTorch 2.0.1 + CUDA 12.1     | training   | No			  | GPU 	  | 3.10 (py310)			   | 763104351884.dkr.ecr.us-east-1.amazonaws.com/pytorch-training:2.0.1-gpu-py310-cu121-ubuntu20.04-sagemaker     |
 | PyTorch 1.13.1    | inference	| No			  | CPU 	  | 3.9 (py39)			   | 763104351884.dkr.ecr.us-east-1.amazonaws.com/pytorch-inference:1.13.1-cpu-py39-ubuntu20.04-sagemaker          |
 | PyTorch 1.13.1    | inference	| No			  | GPU 	  | 3.9 (py39)			   | 763104351884.dkr.ecr.us-east-1.amazonaws.com/pytorch-inference:1.13.1-gpu-py39-cu117-ubuntu20.04-sagemaker    |
 | PyTorch 1.13.1    | training	| No			  | CPU 	  | 3.9 (py39)			   | 763104351884.dkr.ecr.us-east-1.amazonaws.com/pytorch-training:1.13.1-cpu-py39-ubuntu20.04-sagemaker          |
