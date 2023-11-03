@@ -101,7 +101,8 @@ WORKDIR /
 
 RUN pip install --no-cache-dir \
     multi-model-server==$MMS_VERSION \
-    sagemaker-inference
+    sagemaker-inference \
+    sagemaker-tensorflow
 
 RUN useradd -m model-server \
  && mkdir -p /home/model-server/tmp \
