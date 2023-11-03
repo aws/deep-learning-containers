@@ -53,6 +53,10 @@ RUN apt-get update \
 # RUN apt-get install -y unattended-upgrades
 # RUN unattended-upgrade
 
+# Cleans apt-get
+RUN apt-get clean
+RUN rm -rf /var/lib/apt/lists/*
+
 RUN curl -L -o ~/mambaforge.sh https://github.com/conda-forge/miniforge/releases/download/${MAMBA_VERSION}/Mambaforge-${MAMBA_VERSION}-Linux-x86_64.sh \
  && chmod +x ~/mambaforge.sh \
  && ~/mambaforge.sh -b -p /opt/conda \
