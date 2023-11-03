@@ -109,8 +109,7 @@ WORKDIR /
 
 RUN pip install --no-cache-dir \
     multi-model-server==$MMS_VERSION \
-    sagemaker-inference \
-    sagemaker-tensorflow
+    sagemaker-inference
 
 RUN useradd -m model-server \
  && mkdir -p /home/model-server/tmp \
@@ -129,9 +128,6 @@ RUN chmod +x /usr/local/bin/deep_learning_container.py
 # Hugging Face specific section #
 #################################
 
-# Install TF Binary
-RUN pip install --no-cache-dir -U ${TF_URL}
-
 # We need TF_FORCE_GPU_ALLOW_GROWTH=true to prevent TF from overusing GPU memory when loading models
 ENV TF_FORCE_GPU_ALLOW_GROWTH=true
 
@@ -141,6 +137,9 @@ RUN pip install --no-cache-dir \
    "protobuf>=3.19.5,<3.20" \
    "numpy>=1.21.5" \
    "sagemaker-huggingface-inference-toolkit<3"
+
+# Install TF Binary
+RUN pip install --no-cache-dir -U ${TF_URL}
 
 RUN HOME_DIR=/root \
  && curl -o ${HOME_DIR}/oss_compliance.zip https://aws-dlinfra-utilities.s3.amazonaws.com/oss_compliance.zip \
