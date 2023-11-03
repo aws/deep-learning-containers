@@ -32,7 +32,7 @@ benchmark_mode = false
 # regardless of whether they are enabled or disabled below.
 # Set graviton_mode to true to run Deep Canaries on Graviton images.
 # Do remember to revert it back to false before merging any PR.
-deep_canary_mode = true
+deep_canary_mode = false
 
 [build]
 # Add in frameworks you would like to build. By default, builds are disabled unless you specify building an image.
