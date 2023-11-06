@@ -15,7 +15,6 @@ from test.test_utils import (
     get_framework_and_version_from_tag,
     get_inference_server_type,
     get_cuda_version_from_tag,
-    is_mainline_context
 )
 from test.test_utils.ec2 import (
     get_ec2_instance_type,
@@ -48,7 +47,7 @@ PT_EC2_GRAVITON_INSTANCE_TYPE = get_ec2_instance_type(
     default="c6g.4xlarge", processor="cpu", arch_type="graviton"
 )
 PT_EC2_NEURON_TRN1_INSTANCE_TYPE = get_ec2_instance_type(
-    default="trn1.2xlarge", processor="neuron", job_type="training"
+    default="trn1.2xlarge", processor="neuronx", job_type="inference"
 )
 PT_EC2_NEURON_INF2_INSTANCE_TYPE = get_ec2_instance_type(
     default="inf2.xlarge", processor="neuronx", job_type="inference"
@@ -75,10 +74,9 @@ def test_ec2_pytorch_inference_neuron(pytorch_inference_neuron, ec2_connection, 
 @pytest.mark.model("resnet")
 @pytest.mark.parametrize("ec2_instance_ami", [test_utils.UL20_PT_NEURON_US_WEST_2], indirect=True)
 @pytest.mark.team("neuron")
-@pytest.mark.skipif(is_mainline_context and os.getenv("EC2_NEURON_TRAINING_INSTANCE_TYPE") != "trn1.2xlarge")
 @pytest.mark.parametrize(
     "ec2_instance_type",
-    ["trn1.2xlarge", "inf2.xlarge"],
+    PT_EC2_NEURON_TRN1_INSTANCE_TYPE + PT_EC2_NEURON_INF2_INSTANCE_TYPE,
     indirect=True,
 )
 def test_ec2_pytorch_inference_neuronx(pytorch_inference_neuronx, ec2_connection, region):
