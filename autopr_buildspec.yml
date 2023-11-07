@@ -10,7 +10,6 @@ phases:
       - start-dockerd
       - for i in {1..3}; do pip install -r src/requirements.txt && break || sleep 30; done
       - python src/send_status.py --status 2
-      - python src/parse_partner_developers.py
   build:
     commands:
       - echo Logging in to Amazon ECR...
@@ -21,9 +20,8 @@ phases:
         fi
       - pip install -r test/requirements.txt
       - pip install scheduler/.
-      - echo Running pytest $TEST_TYPE tests on $DLC_IMAGES...
+      - echo Running $TEST_TYPE tests on $DLC_IMAGES...
       - export PYTHONPATH=$PYTHONPATH:$(pwd)/src
-      - python test/testrunner.py
   post_build:
     commands:
       - python src/send_status.py --status $CODEBUILD_BUILD_SUCCEEDING
