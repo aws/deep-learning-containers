@@ -13,7 +13,6 @@ ANY KIND, either express or implied. See the License for the specific
 language governing permissions and limitations under the License.
 """
 import time
-import sys
 import shutil
 import logging
 from collections import defaultdict
@@ -86,8 +85,6 @@ class OutputFormatter:
         """
 
         done = defaultdict(bool)
-
-        isatty = sys.stdout.isatty()
 
         with reprint.output(
             output_type="list", initial_len=len(futures.items()), interval=0

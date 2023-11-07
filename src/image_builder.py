@@ -16,7 +16,6 @@ language governing permissions and limitations under the License.
 import concurrent.futures
 import datetime
 import os
-import re
 
 from copy import deepcopy
 
@@ -92,11 +91,11 @@ def image_builder(buildspec, image_types=[], device_types=[]):
 
     for image_name, image_config in BUILDSPEC["images"].items():
         # filter by image type if type is specified
-        if image_types and not image_config["image_type"] in image_types:
+        if image_types and image_config["image_type"] not in image_types:
             continue
 
         # filter by device type if type is specified
-        if device_types and not image_config["device_type"] in device_types:
+        if device_types and image_config["device_type"] not in device_types:
             continue
 
         ARTIFACTS = deepcopy(BUILDSPEC["context"]) if BUILDSPEC.get("context") else {}
@@ -169,13 +168,13 @@ def image_builder(buildspec, image_types=[], device_types=[]):
                 extra_build_args["TRANSFORMERS_VERSION"] = transformers_version
             else:
                 raise KeyError(
-                    f"HuggingFace buildspec.yml must contain 'transformers_version' field for each image"
+                    "HuggingFace buildspec.yml must contain 'transformers_version' field for each image"
                 )
             if "datasets_version" in image_config:
                 extra_build_args["DATASETS_VERSION"] = image_config.get("datasets_version")
             elif str(image_config["image_type"]) == "training":
                 raise KeyError(
-                    f"HuggingFace buildspec.yml must contain 'datasets_version' field for each image"
+                    "HuggingFace buildspec.yml must contain 'datasets_version' field for each image"
                 )
 
         torchserve_version = image_config.get("torch_serve_version")

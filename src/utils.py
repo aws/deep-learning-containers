@@ -72,7 +72,7 @@ def download_file(remote_url: str, link_type: str):
             LOGGER.info(f"bucket_key: {bucket_key}")
             download_s3_file(bucket_name, bucket_key, file_name)
         else:
-            raise ValueError(f"Regex matching on s3 URI failed.")
+            raise ValueError("Regex matching on s3 URI failed.")
     else:
         ctx = Context()
         ctx.run(f"curl -O {remote_url}")

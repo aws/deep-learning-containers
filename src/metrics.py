@@ -1,6 +1,5 @@
 import boto3
 import constants
-import random
 
 
 class Metrics(object):

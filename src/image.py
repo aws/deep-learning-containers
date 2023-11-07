@@ -19,7 +19,6 @@ from docker import DockerClient
 
 import constants
 import logging
-import json
 
 LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.DEBUG)
