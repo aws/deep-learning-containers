@@ -322,9 +322,12 @@ def generate_safety_report_for_image(image_uri, image_info, storage_file_path=No
                     "Key": "upload_path",
                     "Value": get_safety_scan_allowlist_path(image_uri),
                 },
+                {"Key": "image_uri", "Value": image_uri.replace("-pre-push", "")},
             ]
             process_data_upload_to_pr_creation_bucket(
-                image_uri=image_uri, json_upload_data=future_ignore_dict, tag_set=tag_set
+                image_uri=image_uri.replace("-pre-push", ""),
+                json_upload_data=future_ignore_dict,
+                tag_set=tag_set,
             )
 
     return safety_scan_output
