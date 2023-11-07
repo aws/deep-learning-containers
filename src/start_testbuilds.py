@@ -206,7 +206,7 @@ def main():
 
             ## TODO: Merge with the above condition
             if test_type == "autopr":
-                run_test_job(commit, pr_test_job, images_str)
+                run_test_job(commit, f"dlc-pr-{test_type}", images_str)
 
             # Trigger sagemaker local test jobs when there are changes in sagemaker_tests
             # sagemaker local test is not supported in benchmark dev mode
