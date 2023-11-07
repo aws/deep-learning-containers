@@ -366,7 +366,9 @@ def launch_efa_instances_with_retry(
     #         continue
     # if not (response and response["Instances"]):
     if "p4d.24xlarge" in ec2_instance_type:
-        print("trying targetted")
+        LOGGER.info(
+                "using targeted capacity"
+            )
         availability_zone = "us-west-2b"
         ec2_run_instances_definition.update(
             {
