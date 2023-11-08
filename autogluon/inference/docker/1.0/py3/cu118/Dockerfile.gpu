@@ -1,22 +1,21 @@
 ARG PYTHON_VERSION=3.10.8
 
-FROM 763104351884.dkr.ecr.us-west-2.amazonaws.com/pytorch-training:2.0.1-cpu-py310-ubuntu20.04-sagemaker
+FROM 763104351884.dkr.ecr.us-west-2.amazonaws.com/pytorch-inference:2.0.1-gpu-py310-ubuntu20.04-sagemaker
 
-# PYTORCH_SKIP_CUDNN_COMPATIBILITY_CHECK - see https://github.com/autogluon/autogluon/issues/2534
-# ENV PYTORCH_SKIP_CUDNN_COMPATIBILITY_CHECK=1
+# Specify accept-bind-to-port LABEL for inference pipelines to use SAGEMAKER_BIND_TO_PORT
+# https://docs.aws.amazon.com/sagemaker/latest/dg/inference-pipeline-real-time.html
+LABEL com.amazonaws.sagemaker.capabilities.accept-bind-to-port=true
+# Specify multi-models LABEL to indicate container is capable of loading and serving multiple models concurrently
+# https://docs.aws.amazon.com/sagemaker/latest/dg/build-multi-model-build-container.html
+LABEL com.amazonaws.sagemaker.capabilities.multi-models=true
 
 LABEL maintainer="Amazon AI"
 LABEL dlc_major_version="1"
 
-# Install dependencies
 RUN apt-get update \
  && apt-get -y upgrade \
- && apt-get install -y --no-install-recommends \
  && apt-get autoremove -y \
- # Install tesseract-ocr to support automm document classification
  && apt-get install tesseract-ocr -y \
- # Install rsync to support ray distributed training
- && apt-get install rsync -y \
  && apt-get clean \
  && rm -rf /var/lib/apt/lists/*
 
@@ -26,22 +25,20 @@ RUN pip install --no-cache-dir autogluon==0.8.3b20231106 \
   # Removing GluonTS nursery/tsbench package - it is not used in training/inference and have security vulnerabilities
   && rm -rf /opt/conda/lib/python3.10/dist-packages/gluonts/nursery/tsbench \
   # Remove JAR files to address security issues; these are not used if only python package is used
-  && rm -rf /opt/conda/lib/python3.10/site-packages/ray/jars
+  && rm -rf /opt/conda/lib/python3.10/site-packages/ray/jars \
+  && pip uninstall -y flask Flask-RESTful nvgpu
+
 # `safety check` recommendations, caused by openxlab
 # these also cause `pip check` to complain, since openxlab has too tightly pinned dependencies
 RUN pip install --no-cache-dir \
   "setuptools>=65.5.1" \
   "requests>=2.31.0"
 
- # && pip install requests>=2.31.0
- # && mim install -q mmcv \
- # && pip install --no-cache-dir -U mmdet>=3.0.0 \
- # && pip install --no-cache-dir -U pymupdf<=1.21.1 \
- # && pip install --no-cache-dir -U mmengine<0.8 \
- # && pip install --no-cache-dir -U yapf<0.40.0 \
- # && pip install --no-cache-dir -U importlib-metadata<5.0 \
+# add TS entrypoint
+COPY config.properties /home/model-server
 
-
+COPY torchserve-entrypoint.py /usr/local/bin/dockerd-entrypoint.py
+RUN chmod +x /usr/local/bin/dockerd-entrypoint.py
 
 RUN HOME_DIR=/root \
  && curl -o ${HOME_DIR}/oss_compliance.zip https://aws-dlinfra-utilities.s3.amazonaws.com/oss_compliance.zip \
@@ -54,4 +51,6 @@ RUN HOME_DIR=/root \
 
 RUN curl -o /licenses-autogluon.txt https://autogluon.s3.us-west-2.amazonaws.com/licenses/THIRD-PARTY-LICENSES.txt
 
-CMD ["/bin/bash"]
+EXPOSE 8080 8081
+ENTRYPOINT ["python", "/usr/local/bin/dockerd-entrypoint.py"]
+CMD ["torchserve", "--start", "--ts-config", "/home/model-server/config.properties", "--model-store", "/home/model-server/"]
