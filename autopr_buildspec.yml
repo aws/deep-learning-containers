@@ -14,14 +14,13 @@ phases:
     commands:
       - echo Logging in to Amazon ECR...
       - $(aws ecr get-login --no-include-email --region $AWS_DEFAULT_REGION)
-      - |
-        if expr "${TEST_TYPE}" : "canary" >/dev/null; then
-          $(aws ecr get-login --no-include-email --region $AWS_DEFAULT_REGION --registry-ids 763104351884)
-        fi
+      - export PYTHONPATH=$PYTHONPATH:$(pwd)
+      - export PYTHONPATH=$PYTHONPATH:$(pwd)/src
+      - pip install -r src/requirements.txt
       - pip install -r test/requirements.txt
       - pip install scheduler/.
       - echo Running $TEST_TYPE tests on $DLC_IMAGES...
-      - export PYTHONPATH=$PYTHONPATH:$(pwd)/src
+      - python src/autopr_caller.py
   post_build:
     commands:
       - python src/send_status.py --status $CODEBUILD_BUILD_SUCCEEDING
