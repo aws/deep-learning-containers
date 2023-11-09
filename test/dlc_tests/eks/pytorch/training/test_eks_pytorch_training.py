@@ -160,9 +160,11 @@ def test_eks_pt_s3_plugin_single_node_training(pytorch_training, outside_version
 @pytest.mark.skipif(
     not is_pr_context(), reason="Skip this test. It is already tested under PR context"
 )
-@pytest.mark.skip_dgl_test
+@pytest.mark.skip_pt20_cuda121_tests
 @pytest.mark.integration("dgl")
 @pytest.mark.model("gcn")
+@pytest.mark.team("dgl")
+@pytest.mark.skip_pt21_test
 def test_eks_pytorch_dgl_single_node_training(pytorch_training, py3_only):
     """
     Function to create a pod using kubectl and given container image, and run

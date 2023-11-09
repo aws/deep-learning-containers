@@ -61,13 +61,13 @@ def test_training_smppy(framework_version, ecr_image, sagemaker_regions):
             "debug_hook_config": False,
         }
         upload_s3_data_args = {"path": training_dir, "key_prefix": "pytorch/mnist"}
-        job_name = utils.unique_name_from_base("test-pt-smppy-training")
+        job_name_prefix = "test-pt-smppy-training"
         pytorch, _ = invoke_pytorch_estimator(
             ecr_image,
             sagemaker_regions,
             estimator_parameters,
             upload_s3_data_args=upload_s3_data_args,
-            job_name=job_name,
+            job_name=job_name_prefix,
         )
         _check_and_cleanup_s3_output(pytorch, 40)
 
@@ -96,13 +96,13 @@ def test_training_smppy_distributed(framework_version, ecr_image, sagemaker_regi
             "debug_hook_config": False,
         }
         upload_s3_data_args = {"path": training_dir, "key_prefix": "pytorch/mnist"}
-        job_name = utils.unique_name_from_base("test-pt-smppy-training-distributed")
+        job_name_prefix = "test-pt-smppy-training-distributed"
         pytorch, _ = invoke_pytorch_estimator(
             ecr_image,
             sagemaker_regions,
             estimator_parameters,
             upload_s3_data_args=upload_s3_data_args,
-            job_name=job_name,
+            job_name=job_name_prefix,
         )
         _check_and_cleanup_s3_output(pytorch, 60)
 

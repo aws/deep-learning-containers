@@ -51,9 +51,9 @@ def test_pt_s3_plugin_sm_gpu(framework_version, ecr_image, sagemaker_regions):
             "framework_version": framework_version,
         }
 
-        job_name = utils.unique_name_from_base("test-pytorch-s3-plugin-gpu")
+        job_name_prefix = "test-pytorch-s3-plugin-gpu"
         invoke_pytorch_estimator(
-            ecr_image, sagemaker_regions, estimator_parameter, job_name=job_name
+            ecr_image, sagemaker_regions, estimator_parameter, job_name=job_name_prefix
         )
 
 
@@ -76,9 +76,9 @@ def test_hc_pt_s3_plugin_sm_gpu(framework_version, ecr_image, sagemaker_regions)
             "framework_version": framework_version,
         }
 
-        job_name = utils.unique_name_from_base("test-pytorch-hc-s3-plugin-gpu")
+        job_name_prefix = "test-pytorch-hc-s3-plugin-gpu"
         invoke_pytorch_estimator(
-            ecr_image, sagemaker_regions, estimator_parameter, job_name=job_name
+            ecr_image, sagemaker_regions, estimator_parameter, job_name=job_name_prefix
         )
 
 
@@ -100,9 +100,9 @@ def test_pt_s3_plugin_sm_cpu(framework_version, ecr_image, sagemaker_regions):
             "instance_type": CPU_INSTANCE,
             "framework_version": framework_version,
         }
-        job_name = utils.unique_name_from_base("test-pytorch-s3-plugin-cpu")
+        job_name_prefix = "test-pytorch-s3-plugin-cpu"
         invoke_pytorch_estimator(
-            ecr_image, sagemaker_regions, estimator_parameter, job_name=job_name
+            ecr_image, sagemaker_regions, estimator_parameter, job_name=job_name_prefix
         )
 
 
@@ -124,7 +124,7 @@ def test_hc_pt_s3_plugin_sm_cpu(framework_version, ecr_image, sagemaker_regions)
             "instance_groups": [training_group],
             "framework_version": framework_version,
         }
-        job_name = utils.unique_name_from_base("test-pytorch-hc-s3-plugin-cpu")
+        job_name_prefix = "test-pytorch-hc-s3-plugin-cpu"
         invoke_pytorch_estimator(
-            ecr_image, sagemaker_regions, estimator_parameter, job_name=job_name
+            ecr_image, sagemaker_regions, estimator_parameter, job_name=job_name_prefix
         )

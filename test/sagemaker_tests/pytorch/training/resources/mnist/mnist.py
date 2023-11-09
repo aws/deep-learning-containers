@@ -142,10 +142,21 @@ def train(args):
 
     if is_distributed:
         # Initialize the distributed environment.
+        if not os.getenv("MASTER_ADDR"):
+            os.environ["MASTER_ADDR"] = os.environ["SM_HOSTS"][0]
+            os.environ["MASTER_PORT"] = "55555"
+            args.hosts = os.environ["SM_HOSTS"]
+        if not os.getenv("RANK") and args.backend == "nccl":
+            os.environ["RANK"] = str(os.getenv("OMPI_COMM_WORLD_RANK"))
+
+        if not os.getenv("WORLD_SIZE") and args.backend == "nccl":
+            os.environ["WORLD_SIZE"] = str(os.getenv("OMPI_COMM_WORLD_SIZE"))
+
         if not os.getenv("RANK"):  # for local dist job
             os.environ["RANK"] = str(args.hosts.index(args.current_host))
         if not os.getenv("WORLD_SIZE"):  # for local dist job
             os.environ["WORLD_SIZE"] = str(len(args.hosts))
+
         dist.init_process_group(backend=args.backend)
         logger.info(
             "Initialized the distributed environment: '{}' backend on {} processes. ".format(
@@ -333,4 +344,6 @@ if __name__ == "__main__":
     parser.add_argument("--data-dir", type=str, default=env.channel_input_dirs["training"])
     parser.add_argument("--num-gpus", type=int, default=env.num_gpus)
 
-    train(parser.parse_args())
+    args = parser.parse_args()
+
+    train(args)

@@ -78,6 +78,7 @@ def test_eks_mxnet_single_node_training(mxnet_training):
 
 @pytest.mark.integration("dgl")
 @pytest.mark.model("gcn")
+@pytest.mark.team("dgl")
 def test_eks_mxnet_dgl_single_node_training(mxnet_training, py3_only):
     """
     Function to create a pod using kubectl and given container image, and run
