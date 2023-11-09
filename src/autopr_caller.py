@@ -1,6 +1,8 @@
 import json
 import boto3
 import os
+import logging
+import sys
 
 from enum import Enum
 from datetime import datetime
@@ -8,6 +10,10 @@ from datetime import datetime
 AUTOPR_PROD_QUEUE = "autopr-prod-queue"
 S3_BUCKET = "pr-creation-data-helper"
 QUEUE_REGION = "us-west-2"
+
+LOGGER = logging.getLogger(__name__)
+LOGGER.addHandler(logging.StreamHandler(sys.stdout))
+LOGGER.setLevel(logging.INFO)
 
 
 class ImageType(str, Enum):
@@ -94,9 +100,17 @@ def extract_image_specs_from_image_uri(image_uri):
 
 
 def get_pr_body():
+    from test import test_utils
+
     now = datetime.now()
     dt_string = now.strftime("%m/%d/%Y %H:%M:%S")
     message = f"Update on {dt_string}"
+    if test_utils.is_pr_context():
+        message = f"""{message} from PR: {os.getenv("PR_NUMBER", "N/A")}"""
+    elif test_utils.is_mainline_context():
+        message = (
+            f"""{message} from COMMIT_ID: {os.getenv("CODEBUILD_RESOLVED_SOURCE_VERSION", "N/A")}"""
+        )
     return message
 
 
@@ -152,8 +166,8 @@ def generate_edited_files_data(image_list, bucket=S3_BUCKET, folder="temp"):
     return edited_files_data
 
 
-def send_message_to_queue(queue_name, message_body_string):
-    sqs = boto3.resource("sqs", region_name=QUEUE_REGION)
+def send_message_to_queue(queue_name, queue_region, message_body_string):
+    sqs = boto3.resource("sqs", region_name=queue_region)
     queue = sqs.get_queue_by_name(QueueName=queue_name)
     queue.send_message(MessageBody=message_body_string)
 
@@ -164,11 +178,12 @@ def main():
     dlc_images = test_utils.get_dlc_images()
     image_list = dlc_images.split(" ")
     if not image_list:
-        print(f"No image in image_list: {image_list}")
+        LOGGER.info(f"No image in image_list: {image_list}")
         return
     edited_files_data = generate_edited_files_data(
         image_list=image_list, folder=os.getenv("CODEBUILD_RESOLVED_SOURCE_VERSION", "temp")
     )
+    ## TODO: Skip in case of no edited files
     common_image_specs = get_common_image_specs_for_all_images(image_list=image_list)
     branch_name_prefix = generate_branch_name_prefix(common_image_specs)
     pr_title = get_pr_title(common_image_specs)
@@ -182,14 +197,14 @@ def main():
         repo_owner="dummyUser812",
         repo_name="deep-learning-containers",
     )
-    print(edited_files_data)
-    print(branch_name_prefix)
-    print(common_image_specs)
-    print(pr_title)
-    print(message_body_to_be_sent_to_autopr_queue)
+    LOGGER.info(f"Common Image Specs: {common_image_specs}")
+    LOGGER.info(
+        f"Message body to be sent to AutoPR Queue: {json.dumps(message_body_to_be_sent_to_autopr_queue)}"
+    )
     ## TODO: only allow pr creation on mainline
     send_message_to_queue(
         queue_name=AUTOPR_PROD_QUEUE,
+        queue_region=QUEUE_REGION,
         message_body_string=json.dumps(message_body_to_be_sent_to_autopr_queue),
     )
 
