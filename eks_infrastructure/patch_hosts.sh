@@ -1,5 +1,5 @@
 #!/bin/bash
-#/ Usage: ./build.sh
+#/ Usage: ./patch_hosts.sh
 
 set -ex
 source ./helper.sh
@@ -19,7 +19,6 @@ fi
 
 
 # Parse parameters from build_param.json config file
-OPERATION=$(jq -r '.operation' build_param.json)
 EKS_VERSION=$(jq -r '.eks_version' build_param.json)
 CLUSTER_AUTOSCALAR_IMAGE_VERSION=$(jq -r '.cluster_autoscalar_image_version' build_param.json)
 
@@ -29,36 +28,8 @@ if [ "${CONTEXTS}" = "BETA" ] && [ "${OPERATION}" != "create" ]; then
   create_cluster
 fi
 
-
-case ${OPERATION} in
-
-create)
-  create_cluster
-  ;;
-
-upgrade_cluster)
-  upgrade_cluster
-  ;;
-
-upgrade_nodegroup)
-  upgrade_nodegroup
-  ;;
-
-upgrade_kubeflow)
-  upgrade_kubeflow
-  ;;
-
-delete)
-  delete_cluster
-  ;;
-
-new_operation)
-  new_operation
-  ;;
-*)
-  echo "Specify valid operation"
-  ;;
-esac
+# Upgrade hosts to latest ami
+upgrade_nodegroup
 
 # Cleanup the EKS cluster if the context is BETA
 if [ "${CONTEXT}" = "BETA" ]; then

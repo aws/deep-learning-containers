@@ -1,0 +1,14 @@
+version: 0.2
+
+phases:
+  install:
+    runtime-versions:
+      docker: 18
+  pre_build:
+    commands:
+      - cd eks_infrastructure
+      - bash env_setup.sh
+      - bash patch_hosts.sh staging-cluster BETA
+  build:
+    commands:
+      - bash patch_hosts.sh
