@@ -4,21 +4,9 @@
 set -ex
 source ./helper.sh
 
-# Check for input arguments
-if [ -z "$1" ]; then
-  EKS_CLUSTERS=($(jq -r '.eks_clusters[]' build_param.json))
-else
-  EKS_CLUSTERS=${1}-`date +%s`
-fi
-
-if [ -z "$2" ]; then
-  CONTEXTS=($(jq -r '.contexts[]' build_param.json))
-else
-  CONTEXTS=${2}
-fi
-
-
 # Parse parameters from build_param.json config file
+EKS_CLUSTERS=($(jq -r '.eks_clusters[]' build_param.json))
+CONTEXTS=($(jq -r '.contexts[]' build_param.json))
 EKS_VERSION=$(jq -r '.eks_version' build_param.json)
 CLUSTER_AUTOSCALAR_IMAGE_VERSION=$(jq -r '.cluster_autoscalar_image_version' build_param.json)
 
