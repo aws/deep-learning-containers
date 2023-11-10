@@ -128,7 +128,7 @@ def test_efa_tensorflow(
     run_cmd_on_container(
         MASTER_CONTAINER_NAME,
         master_connection,
-        f"{EFA_INTEGRATION_TEST_CMD} {HOSTS_FILE_LOCATION} {number_of_nodes}",
+        f"export CUDA_HOME='/usr/local/cuda'; {EFA_INTEGRATION_TEST_CMD} {HOSTS_FILE_LOCATION} {number_of_nodes}",
         hide=False,
         timeout=300,
     )
