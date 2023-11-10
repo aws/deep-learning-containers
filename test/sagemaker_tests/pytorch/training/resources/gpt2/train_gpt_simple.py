@@ -1041,8 +1041,10 @@ def main():
     if args.manual_partition:
         print("Manual partition enabled")
         if args.partition_assignment != "":
+
             def get_num_layers(x):
                 return int(partition_assignment[x])
+
             total_layers = sum([get_num_layers(pp_rank) for pp_rank in range(smp.pp_size())])
             assert (
                 total_layers == args.num_layers
@@ -1050,8 +1052,10 @@ def main():
         else:
             # evenly distribute layers across all partitions
             div, rem = divmod(args.num_layers, smp.pp_size())
+
             def get_num_layers(x):
                 return div + 1 if x >= smp.pp_size() - rem else div
+
         assignments = []
         # (TODO) This is required for 175B otherwise a hang for partition "8,17,17,18,18,18"
         # Need further investigation

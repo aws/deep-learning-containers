@@ -436,8 +436,22 @@ def make_dataset(
         ds = ds.interleave(tf.data.TFRecordDataset, cycle_length=num_readers, block_length=1)
         counter = tf.data.Dataset.range(sys.maxsize)
         ds = tf.data.Dataset.zip((ds, counter))
+
         def preproc_func(record, counter_):
-            return parse_and_preprocess_image_record(record, counter_, height, width, brightness, contrast, saturation, hue, distort=training, nsummary=nsummary if training else 0, increased_aug=increased_aug)
+            return parse_and_preprocess_image_record(
+                record,
+                counter_,
+                height,
+                width,
+                brightness,
+                contrast,
+                saturation,
+                hue,
+                distort=training,
+                nsummary=nsummary if training else 0,
+                increased_aug=increased_aug,
+            )
+
         ds = ds.map(preproc_func, num_parallel_calls=num_threads)
         if training:
             ds = ds.apply(

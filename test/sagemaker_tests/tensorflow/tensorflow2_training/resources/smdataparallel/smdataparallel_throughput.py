@@ -98,7 +98,6 @@ def test(warmup=False, tensor_size_bytes=104857600, num_tensors=100, iterations=
 
     # RUN
     for k in range(int(iterations)):
-
         before = time.time()
         if args.nccl:
             hvd_one_iteration(grad_list)
@@ -127,6 +126,8 @@ def test(warmup=False, tensor_size_bytes=104857600, num_tensors=100, iterations=
 
 def get_size():
     return int(args.size * 1024 * 1024)
+
+
 test(True, tensor_size_bytes=get_size(), num_tensors=args.num_tensors, iterations=args.warmup)
 test(tensor_size_bytes=get_size(), num_tensors=args.num_tensors, iterations=args.iterations / 2)
 test(tensor_size_bytes=get_size(), num_tensors=args.num_tensors, iterations=args.iterations / 2)

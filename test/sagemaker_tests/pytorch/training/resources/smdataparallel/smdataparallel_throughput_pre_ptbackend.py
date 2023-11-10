@@ -157,6 +157,8 @@ def test(warmup=False, size=104857600, num_tensors=100, iterations=1):
 
 def get_size():
     return int(args.size * 1024 * 1024)
+
+
 test(True, size=get_size(), num_tensors=args.num_tensors, iterations=args.warmup)
 test(size=get_size(), num_tensors=args.num_tensors, iterations=args.iterations / 2)
 test(size=get_size(), num_tensors=args.num_tensors, iterations=args.iterations / 2)

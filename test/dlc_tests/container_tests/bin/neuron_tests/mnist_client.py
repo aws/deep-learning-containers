@@ -32,7 +32,6 @@ import sys
 import threading
 
 
-
 # This is a placeholder for a Google-internal import.
 
 import grpc

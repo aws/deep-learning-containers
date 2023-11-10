@@ -11,7 +11,6 @@ import numpy as np
 def get_context():
     mxnet_version = version.parse(mx.__version__)
     if mxnet_version >= version.parse("1.8"):
-
         return mx.cpu()
     else:
         return mx.neuron()
