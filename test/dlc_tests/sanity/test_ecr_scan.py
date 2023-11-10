@@ -213,7 +213,7 @@ def helper_function_for_leftover_vulnerabilities_from_enhanced_scanning(
     remaining_vulnerabilities = ecr_image_vulnerability_list - image_scan_allowlist
     LOGGER.info(f"ECR Enhanced Scanning test completed for image: {image}")
 
-    if remove_non_patchable_vulns:
+    if remove_non_patchable_vulns and remaining_vulnerabilities:
         non_patchable_vulnerabilities = extract_non_patchable_vulnerabilities(
             remaining_vulnerabilities, ecr_enhanced_repo_uri
         )
