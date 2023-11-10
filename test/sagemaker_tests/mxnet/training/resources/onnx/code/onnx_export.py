@@ -12,14 +12,10 @@
 # language governing permissions and limitations under the License.
 from __future__ import absolute_import
 
-import argparse
-import json
-import os
 
 # test the new mxnet-onnx module that released since mxnet 1.9.0
 import mxnet
 from mxnet import onnx as onnx_mxnet
-import numpy as np
 import gluoncv
 import onnx
 from onnx import checker
@@ -46,8 +42,6 @@ def main():
     mx_sym = prefix + "-symbol.json"
     mx_params = prefix + "-0000.params"
     onnx_file = prefix + ".onnx"
-    in_shapes = [in_shape]
-    in_dtypes = [in_dtype]
     onnx_mxnet.export_model(mx_sym, mx_params, [in_shape], [in_dtype], onnx_file)
     _assert_onnx_validity(onnx_file)
 

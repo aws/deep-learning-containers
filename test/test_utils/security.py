@@ -1,7 +1,7 @@
 from abc import abstractmethod
 import os
 import json
-import copy, collections
+import copy
 import boto3
 import json
 

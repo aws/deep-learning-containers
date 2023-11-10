@@ -16,7 +16,6 @@ import pytest
 
 from packaging.version import Version
 from packaging.specifiers import SpecifierSet
-from sagemaker import utils
 
 from ...integration import DEFAULT_TIMEOUT, mnist_path
 from ...integration.sagemaker.timeout import timeout

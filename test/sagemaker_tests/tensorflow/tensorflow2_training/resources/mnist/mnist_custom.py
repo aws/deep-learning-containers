@@ -18,7 +18,7 @@ import tensorflow as tf
 
 tf_major, tf_minor, _ = tf.__version__.split(".")
 if int(tf_major) > 2 or (int(tf_major) == 2 and int(tf_minor) >= 6):
-    import tensorflow_io as tfio
+    pass
 from tensorflow.keras.layers import Conv2D, BatchNormalization, Dense, Flatten
 
 """

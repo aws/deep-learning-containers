@@ -14,7 +14,6 @@ from __future__ import absolute_import
 
 import os
 
-import boto3
 import botocore
 
 RESOURCE_PATH = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "resources"))

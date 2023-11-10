@@ -13,10 +13,7 @@
 from __future__ import absolute_import
 
 import pytest
-import os
-from sagemaker import utils
 from sagemaker.instance_group import InstanceGroup
-from sagemaker.pytorch import PyTorch
 
 from packaging.version import Version
 from packaging.specifiers import SpecifierSet
@@ -24,7 +21,6 @@ from ...integration import DEFAULT_TIMEOUT, mnist_path, throughput_path
 from ...integration.sagemaker.timeout import timeout
 from ...integration.sagemaker.test_distributed_operations import (
     can_run_smmodelparallel,
-    _disable_sm_profiler,
 )
 from ....training import get_efa_test_instance_type
 from test.test_utils import get_framework_and_version_from_tag, get_cuda_version_from_tag

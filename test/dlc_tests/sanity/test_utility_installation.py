@@ -147,7 +147,7 @@ def test_common_pytorch_utility_packages_using_import(pytorch_training):
                 f"import {package}; print({package}.__version__)",
                 executable="python",
             )
-        except Exception as e:
+        except Exception:
             import_failed = True
             list_of_packages.append(package)
 

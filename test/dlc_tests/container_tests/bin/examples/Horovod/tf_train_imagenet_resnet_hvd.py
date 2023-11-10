@@ -35,19 +35,15 @@ import tensorflow as tf
 import numpy as np
 from tensorflow.contrib.image.python.ops import distort_image_ops
 from tensorflow.python.ops import data_flow_ops
-from tensorflow.contrib.data.python.ops import interleave_ops
-from tensorflow.contrib.data.python.ops import batching
 import horovod.tensorflow as hvd
 import os
 import sys
 import time
 import argparse
-import random
 import shutil
 import logging
 import math
 import re
-from glob import glob
 from operator import itemgetter
 from tensorflow.python.util import nest
 
@@ -440,19 +436,8 @@ def make_dataset(
         ds = ds.interleave(tf.data.TFRecordDataset, cycle_length=num_readers, block_length=1)
         counter = tf.data.Dataset.range(sys.maxsize)
         ds = tf.data.Dataset.zip((ds, counter))
-        preproc_func = lambda record, counter_: parse_and_preprocess_image_record(
-            record,
-            counter_,
-            height,
-            width,
-            brightness,
-            contrast,
-            saturation,
-            hue,
-            distort=training,
-            nsummary=nsummary if training else 0,
-            increased_aug=increased_aug,
-        )
+        def preproc_func(record, counter_):
+            return parse_and_preprocess_image_record(record, counter_, height, width, brightness, contrast, saturation, hue, distort=training, nsummary=nsummary if training else 0, increased_aug=increased_aug)
         ds = ds.map(preproc_func, num_parallel_calls=num_threads)
         if training:
             ds = ds.apply(
@@ -805,7 +790,7 @@ def cnn_model_function(features, labels, mode, params):
         reg_losses = tf.get_collection(tf.GraphKeys.REGULARIZATION_LOSSES)
         total_loss = tf.add_n([loss] + reg_losses, name="total_loss")
 
-        batch_size = tf.shape(inputs)[0]
+        tf.shape(inputs)[0]
 
         global_step = tf.train.get_global_step()
 
@@ -863,7 +848,7 @@ def get_num_records(filenames):
 def add_bool_argument(cmdline, shortname, longname=None, default=False, help=None):
     if longname is None:
         shortname, longname = None, shortname
-    elif default == True:
+    elif default is True:
         raise ValueError(
             """Boolean arguments that are True by default should not have short names."""
         )

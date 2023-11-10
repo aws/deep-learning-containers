@@ -22,7 +22,6 @@ from ...integration import (
     data_dir,
     fastai_path,
     fastai_mnist_script,
-    mnist_path,
     mnist_script,
     ROLE,
     get_framework_and_version_from_tag,
@@ -68,7 +67,7 @@ def test_fastai_mnist(docker_image, instance_type, py_version, sagemaker_local_s
         output_path="file://{}".format(tmpdir),
     )
 
-    input_dir = os.path.join(fastai_path, "mnist_tiny")
+    os.path.join(fastai_path, "mnist_tiny")
     _train_and_assert_success(estimator, str(tmpdir))
 
 

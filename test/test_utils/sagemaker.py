@@ -4,7 +4,6 @@ import subprocess
 import random
 import re
 
-from time import sleep
 
 import boto3
 import invoke
@@ -21,7 +20,6 @@ from test_utils import (
     generate_ssh_keypair,
     get_framework_and_version_from_tag,
     get_job_type_from_image,
-    is_pr_context,
     SAGEMAKER_EXECUTION_REGIONS,
     SAGEMAKER_NEURON_EXECUTION_REGIONS,
     SAGEMAKER_NEURONX_EXECUTION_REGIONS,
@@ -146,7 +144,7 @@ def generate_sagemaker_pytest_cmd(image, sagemaker_test_type):
     instance_type = assign_sagemaker_remote_job_instance_type(image)
 
     # Get path to test directory
-    find_path = sm_remote_docker_base_name.split("-")
+    sm_remote_docker_base_name.split("-")
 
     # NOTE: We are relying on the fact that repos are defined as <context>-<framework>-<job_type> in our infrastructure
     framework, framework_version = get_framework_and_version_from_tag(image)
@@ -326,7 +324,7 @@ def execute_local_tests(image, pytest_cache_params):
                 ) from e
         ec2_conn.run(f"tar -xzf {sm_tests_tar_name}")
         with ec2_conn.cd(path):
-            ec2_conn.run(f"pip install -r requirements.txt")
+            ec2_conn.run("pip install -r requirements.txt")
             pytest_cache_util.download_pytest_cache_from_s3_to_ec2(
                 ec2_conn, path, **pytest_cache_params
             )
@@ -356,7 +354,7 @@ def execute_local_tests(image, pytest_cache_params):
                     )
                     if 'failures="0"' not in str(output):
                         if is_nightly_context():
-                            print(f"\nSuppressed Failed Nightly Sagemaker Local Tests")
+                            print("\nSuppressed Failed Nightly Sagemaker Local Tests")
                         else:
                             raise ValueError(f"Sagemaker Local tests failed for {image}")
             else:
@@ -367,7 +365,7 @@ def execute_local_tests(image, pytest_cache_params):
                 )
                 if res.failed:
                     if is_nightly_context():
-                        print(f"Suppressed Failed Nightly Sagemaker Tests")
+                        print("Suppressed Failed Nightly Sagemaker Tests")
                         print(f"{pytest_command} failed with error code: {res.return_code}\n")
                         print(f"Traceback:\n{res.stderr}")
                     else:
@@ -428,7 +426,7 @@ def execute_sagemaker_remote_tests(process_index, image, global_pytest_cache, py
             global_pytest_cache.update(cache_json)
             if res.failed:
                 if is_nightly_context():
-                    print(f"Suppressed Failed Nightly Sagemaker Tests")
+                    print("Suppressed Failed Nightly Sagemaker Tests")
                     print(f"{pytest_command} failed with error code: {res.return_code}\n")
                     print(f"Traceback:\n{res.stdout}")
                 else:

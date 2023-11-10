@@ -13,7 +13,6 @@
 from __future__ import absolute_import
 
 import os
-import re
 import boto3
 import pytest
 from packaging.specifiers import SpecifierSet

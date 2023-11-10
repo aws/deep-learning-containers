@@ -1,9 +1,7 @@
 import gzip
 import json
-import os
 import h5py
 from typing import List, Tuple
-import random
 
 import numpy as np
 import smdistributed.modelparallel.torch as smp
@@ -154,7 +152,7 @@ def create_pretraining_dataloader(
         elif data_type == "BERT":
             if len(input_paths) > 1:
                 print(
-                    f"BERT data only support single file when calling create_pretraining_dataloader, reading the first file instead.."
+                    "BERT data only support single file when calling create_pretraining_dataloader, reading the first file instead.."
                 )
             data = BertPretrainingDataset(
                 input_file=input_paths[0], max_pred_length=max_sequence_length

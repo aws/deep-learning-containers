@@ -71,7 +71,7 @@ def test_mxnet_keras_gpu(mxnet_training, ec2_connection, gpu_only, ec2_instance_
         )
     _, framework_version = test_utils.get_framework_and_version_from_tag(mxnet_training)
     if Version(framework_version) >= Version("1.9.0"):
-        pytest.skip(f"Keras support has been deprecated MXNet 1.9.0 onwards")
+        pytest.skip("Keras support has been deprecated MXNet 1.9.0 onwards")
     execute_ec2_training_test(ec2_connection, mxnet_training, MX_KERAS_CMD)
 
 
@@ -81,7 +81,7 @@ def test_mxnet_keras_gpu(mxnet_training, ec2_connection, gpu_only, ec2_instance_
 def test_mxnet_keras_cpu(mxnet_training, ec2_connection, cpu_only):
     _, framework_version = test_utils.get_framework_and_version_from_tag(mxnet_training)
     if Version(framework_version) >= Version("1.9.0"):
-        pytest.skip(f"Keras support has been deprecated MXNet 1.9.0 onwards")
+        pytest.skip("Keras support has been deprecated MXNet 1.9.0 onwards")
     execute_ec2_training_test(ec2_connection, mxnet_training, MX_KERAS_CMD)
 
 

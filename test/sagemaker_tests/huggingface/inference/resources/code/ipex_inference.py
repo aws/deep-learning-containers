@@ -1,5 +1,4 @@
-import os
-from transformers import AutoTokenizer, AutoModel, PretrainedConfig
+from transformers import AutoTokenizer, AutoModel
 import torch
 import numpy as np
 import intel_extension_for_pytorch as ipex

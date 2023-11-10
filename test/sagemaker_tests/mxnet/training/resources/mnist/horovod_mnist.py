@@ -18,7 +18,7 @@ import time
 
 import mxnet as mx
 import horovod.mxnet as hvd
-from mxnet import autograd, gluon, nd
+from mxnet import autograd, gluon
 from mxnet.test_utils import download
 
 

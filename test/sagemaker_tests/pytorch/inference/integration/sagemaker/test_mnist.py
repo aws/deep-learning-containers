@@ -20,10 +20,7 @@ import pytest
 import sagemaker
 from sagemaker.pytorch import PyTorchModel
 
-import boto3
-from datetime import datetime, timedelta
 import time
-import json
 import logging
 
 from ...integration import (

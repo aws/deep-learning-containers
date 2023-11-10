@@ -178,7 +178,7 @@ if smp.mp_rank() == 1:
 
 if smp.dp_rank() == 0 and smp.mp_rank() == 0:
     # testing saved model.
-    assert os.path.exists(save_path) == True, save_path + " does not exist."
+    assert os.path.exists(save_path) is True, save_path + " does not exist."
     loaded = tf.keras.models.load_model(save_path)
     infer = loaded.signatures["serving_default"]
     pred = None

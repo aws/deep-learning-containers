@@ -10,7 +10,6 @@ from test.test_utils import (
     CONTAINER_TESTS_PREFIX,
     get_framework_and_version_from_tag,
     UL20_CPU_ARM64_US_WEST_2,
-    LOGGER,
 )
 from test.test_utils.ec2 import (
     ec2_performance_upload_result_to_s3_and_validate,

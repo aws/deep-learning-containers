@@ -25,7 +25,6 @@ import pytest
 
 from botocore.exceptions import ClientError
 from sagemaker import LocalSession, Session
-from sagemaker.pytorch import PyTorch
 
 from . import get_efa_test_instance_type
 

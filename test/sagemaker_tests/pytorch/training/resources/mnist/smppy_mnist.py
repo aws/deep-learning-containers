@@ -278,6 +278,6 @@ if __name__ == "__main__":
     smp_files = glob.glob("/opt/ml/output/profiler/framework/*.smpraw")
     assert (
         len(smp_files) > 0
-    ), f"The local output folder doesn't contain any sagemaker profiler files"
+    ), "The local output folder doesn't contain any sagemaker profiler files"
     for f in smp_files:
-        assert os.path.getsize(f) > 0, f"sagemaker profiler file has size 0"
+        assert os.path.getsize(f) > 0, "sagemaker profiler file has size 0"

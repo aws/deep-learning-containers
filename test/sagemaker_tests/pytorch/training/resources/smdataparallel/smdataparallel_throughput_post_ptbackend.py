@@ -16,7 +16,6 @@ import time
 import os
 import sys
 import argparse
-import smdistributed.dataparallel.torch.torch_smddp
 
 THRESHOLD = 28.0
 NUM_LOCAL_GPUS = 8
@@ -122,7 +121,8 @@ def test(warmup=False, size=104857600, num_tensors=100, iterations=1):
         artime.append(tdif)
 
 
-get_size = lambda: int(args.size * 1024 * 1024)
+def get_size():
+    return int(args.size * 1024 * 1024)
 test(True, size=get_size(), num_tensors=args.num_tensors, iterations=1)
 test(True, size=get_size(), num_tensors=args.num_tensors, iterations=args.warmup)
 test(size=get_size(), num_tensors=args.num_tensors, iterations=args.iterations / 2)

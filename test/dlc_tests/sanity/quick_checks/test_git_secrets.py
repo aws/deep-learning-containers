@@ -24,8 +24,6 @@ def test_git_secrets():
     LOGGER.info(f"repository_path = {repository_path}")
 
     # Replace the regex pattern below with a matching string to run test that makes scan fail:
-    SOME_FAKE_CREDENTIALS = "ASIA[A-Z0-9]{16}"
-    WHITELISTED_CREDENTIALS = "AKIAIOSFODNN7EXAMPLE"
     # End of Test Section
 
     with ctx.cd(repository_path):

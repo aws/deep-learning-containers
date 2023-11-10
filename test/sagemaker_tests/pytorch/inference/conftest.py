@@ -25,7 +25,6 @@ import pytest
 
 from botocore.exceptions import ClientError
 from sagemaker import LocalSession, Session
-from sagemaker.pytorch import PyTorch
 
 from .utils import image_utils, get_ecr_registry
 

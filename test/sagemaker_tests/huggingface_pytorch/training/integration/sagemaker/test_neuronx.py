@@ -12,11 +12,9 @@
 # language governing permissions and limitations under the License.
 from __future__ import absolute_import
 
-import os
 import re
 import pytest
 import sagemaker
-from sagemaker import utils
 from sagemaker.huggingface import HuggingFace
 from ...integration import DEFAULT_TIMEOUT
 from ...integration.sagemaker.timeout import timeout
@@ -136,7 +134,7 @@ def _test_neuronx_text_classification_function(
 
     source_dir = "./examples/text-classification"
 
-    role = get_execution_role()
+    get_execution_role()
     with timeout(minutes=DEFAULT_TIMEOUT):
         estimator = HuggingFace(
             entry_point="run_glue.py",

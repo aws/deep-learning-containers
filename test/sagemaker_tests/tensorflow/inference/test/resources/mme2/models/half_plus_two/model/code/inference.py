@@ -14,7 +14,6 @@
 import json
 from collections import namedtuple
 
-import PIL
 
 Context = namedtuple(
     "Context",

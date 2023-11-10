@@ -58,6 +58,6 @@ def test_eks_tensorflow_single_node_training(tensorflow_training):
                 eks_utils.LOGGER.info("**** training output ****")
                 eks_utils.LOGGER.debug(tensorflow_out)
 
-        assert training_result, f"Training failed"
+        assert training_result, "Training failed"
     finally:
         run("kubectl delete pods {}".format(pod_name))

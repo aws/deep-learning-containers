@@ -18,7 +18,7 @@ import pytest
 import sagemaker.huggingface
 from sagemaker.huggingface import HuggingFace, TrainingCompilerConfig
 
-from test.test_utils import get_framework_and_version_from_tag, get_cuda_version_from_tag
+from test.test_utils import get_framework_and_version_from_tag
 from packaging.version import Version
 from packaging.specifiers import SpecifierSet
 from ...integration import DEFAULT_TIMEOUT

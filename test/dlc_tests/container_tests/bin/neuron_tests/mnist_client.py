@@ -31,7 +31,6 @@ from __future__ import print_function
 import sys
 import threading
 
-import subprocess
 
 
 # This is a placeholder for a Google-internal import.

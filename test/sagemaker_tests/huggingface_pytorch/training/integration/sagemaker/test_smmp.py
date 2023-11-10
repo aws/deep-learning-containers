@@ -12,14 +12,11 @@
 # language governing permissions and limitations under the License.
 from __future__ import absolute_import
 
-import os
 import re
 import pytest
 
 from ..... import invoke_sm_helper_function
-from ...integration import DEFAULT_TIMEOUT
 from sagemaker.huggingface import HuggingFace
-from ...integration.sagemaker.timeout import timeout
 import sagemaker
 
 # hyperparameters, which are passed into the training job

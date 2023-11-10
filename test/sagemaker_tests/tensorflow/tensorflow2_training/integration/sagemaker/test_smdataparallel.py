@@ -15,7 +15,6 @@ from __future__ import absolute_import
 import os
 
 import pytest
-import sagemaker
 
 from packaging.version import Version
 from sagemaker.instance_group import InstanceGroup

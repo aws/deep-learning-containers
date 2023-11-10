@@ -1,6 +1,5 @@
 import os
 import re
-import subprocess
 import botocore
 import boto3
 import json
@@ -10,16 +9,13 @@ from packaging.version import Version
 from packaging.specifiers import SpecifierSet
 
 import pytest
-import requests
 
-from urllib3.util.retry import Retry
 from invoke.context import Context
 from botocore.exceptions import ClientError
 
 from src.buildspec import Buildspec
 from test.test_utils import (
     LOGGER,
-    CONTAINER_TESTS_PREFIX,
     ec2,
     get_container_name,
     get_framework_and_version_from_tag,
@@ -36,13 +32,8 @@ from test.test_utils import (
     get_cuda_version_from_tag,
     get_labels_from_ecr_image,
     get_buildspec_path,
-    is_tf_version,
     is_nightly_context,
-    get_processor_from_image_uri,
     execute_env_variables_test,
-    UL20_CPU_ARM64_US_WEST_2,
-    UBUNTU_18_HPU_DLAMI_US_WEST_2,
-    NEURON_UBUNTU_18_BASE_DLAMI_US_WEST_2,
 )
 
 
@@ -467,7 +458,7 @@ def test_framework_and_cuda_version_gpu(gpu, ec2_connection):
     # Framework Version Check #
     # For tf inference containers, check TF model server version
     if re.fullmatch(r"(pr-|beta-|nightly-)?tensorflow-inference(-eia|-graviton)?", image_repo_name):
-        cmd = f"tensorflow_model_server --version"
+        cmd = "tensorflow_model_server --version"
         output = ec2.execute_ec2_training_test(ec2_connection, image, cmd, executable="bash").stdout
         assert re.match(
             rf"TensorFlow ModelServer: {tag_framework_version}(\D+)?", output
@@ -636,7 +627,7 @@ def test_pip_check(image):
 
     # The v0.22 version of tensorflow-io has a bug fixed in v0.23 https://github.com/tensorflow/io/releases/tag/v0.23.0
     allowed_habana_tf_exception = re.compile(
-        rf"^tensorflow-io 0.22.0 requires tensorflow, which is not installed.$"
+        r"^tensorflow-io 0.22.0 requires tensorflow, which is not installed.$"
     )
     allowed_exception_list.append(allowed_habana_tf_exception)
 
@@ -652,7 +643,7 @@ def test_pip_check(image):
         ">=2.6.3,<2.7"
     ):
         allowed_tf263_exception = re.compile(
-            rf"^tensorflow-io 0.21.0 requires tensorflow, which is not installed.$"
+            r"^tensorflow-io 0.21.0 requires tensorflow, which is not installed.$"
         )
         allowed_exception_list.append(allowed_tf263_exception)
 
@@ -675,7 +666,7 @@ def test_pip_check(image):
         allowed_exception_list.append(allowed_tf_models_text_exception)
 
         allowed_tf_models_text_compatibility_exception = re.compile(
-            rf"tf-models-official 2.9.2 has requirement tensorflow-text~=2.9.0, but you have tensorflow-text 2.10.0."
+            r"tf-models-official 2.9.2 has requirement tensorflow-text~=2.9.0, but you have tensorflow-text 2.10.0."
         )
         allowed_exception_list.append(allowed_tf_models_text_compatibility_exception)
 

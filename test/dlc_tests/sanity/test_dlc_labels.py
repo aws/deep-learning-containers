@@ -142,12 +142,6 @@ def test_dlc_major_version_dockerfiles(image):
     root_dir = os.path.join(dlc_dir, framework, job_type, "docker")
 
     # Skip older FW versions that did not use this versioning scheme
-    references = {
-        "tensorflow2": "2.2.0",
-        "tensorflow1": "1.16.0",
-        "mxnet": "1.7.0",
-        "pytorch": "1.5.0",
-    }
     excluded_versions = {
         "tensorflow2": [SpecifierSet("<2.2")],
         "tensorflow1": [SpecifierSet("<1.16")],

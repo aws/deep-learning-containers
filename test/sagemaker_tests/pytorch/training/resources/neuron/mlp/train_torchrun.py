@@ -15,7 +15,6 @@ import torch_xla.distributed.parallel_loader as pl
 from torch.utils.data.distributed import DistributedSampler
 
 # Initialize XLA process group for torchrun
-import torch_xla.distributed.xla_backend
 
 torch.distributed.init_process_group("xla")
 

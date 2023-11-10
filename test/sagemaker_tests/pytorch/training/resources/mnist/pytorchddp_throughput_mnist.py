@@ -11,19 +11,16 @@
 from __future__ import print_function
 import os
 import argparse
-import time
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
 import torch.optim as optim
-import torchvision
 from torchvision import datasets, transforms
 from torch.optim.lr_scheduler import StepLR
 from torch.nn.parallel import DistributedDataParallel as DDP
 import torch.distributed as dist
 
 # import smdistributed.dataparallel.torch.torch_smddp
-from torch.distributed import Backend
 
 """
 For EC2 conda env, in controller node run 'source /shared/pytorch_env/bin/activate', then launch the training using:

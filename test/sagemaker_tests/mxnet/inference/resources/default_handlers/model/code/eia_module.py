@@ -12,7 +12,6 @@
 #  permissions and limitations under the License.
 
 import mxnet as mx
-import eimx
 import logging
 import os
 
@@ -23,7 +22,7 @@ def model_fn(model_dir):
     sym, arg_params, aux_params = mx.model.load_checkpoint(os.path.join(model_dir, "model"), 0)
     sym = sym.optimize_for("EIA")
     mod = mx.mod.Module(symbol=sym, context=mx.cpu(), label_names=None)
-    exe = mod.bind(
+    mod.bind(
         for_training=False, data_shapes=[("data", (1, 2))], label_shapes=mod._label_shapes
     )
     mod.set_params(arg_params, aux_params, allow_missing=True)

@@ -23,7 +23,6 @@ from packaging.specifiers import SpecifierSet
 
 from botocore.exceptions import ClientError
 from sagemaker import LocalSession, Session
-from sagemaker.tensorflow import TensorFlow
 from ..integration import (
     NO_P2_REGIONS,
     NO_P3_REGIONS,

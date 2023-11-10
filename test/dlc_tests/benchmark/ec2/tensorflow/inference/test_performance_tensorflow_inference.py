@@ -91,7 +91,7 @@ def ec2_performance_tensorflow_inference(
                 # protobuf on the host is not compatible TFS 2.9 and failed benchmarks.
                 # Numpy is being updated to <1.24 to support both TFS 2.9 and TFS 2.12 as higher versions
                 # will fail with TFS 2.9.
-                f"/usr/bin/pip3 install --user --upgrade awscli boto3 grpcio 'protobuf<3.21' 'numpy<1.24'"
+                "/usr/bin/pip3 install --user --upgrade awscli boto3 grpcio 'protobuf<3.21' 'numpy<1.24'"
             ),
             hide=True,
         )
@@ -102,7 +102,7 @@ def ec2_performance_tensorflow_inference(
             hide=True,
         )
     else:
-        ec2_connection.run(f"pip3 install -U pip")
+        ec2_connection.run("pip3 install -U pip")
         ec2_connection.run(
             f"pip3 install --user boto3 grpcio 'tensorflow-serving-api<={tf_api_version}'"
         )

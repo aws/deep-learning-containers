@@ -6,11 +6,10 @@ import datetime
 import pytest
 
 from invoke import run
-from invoke.context import Context
 from retrying import retry
 
 import test.test_utils.eks as eks_utils
-from test.test_utils import is_pr_context, SKIP_PR_REASON, is_below_framework_version
+from test.test_utils import is_pr_context, SKIP_PR_REASON
 from test.test_utils import get_framework_and_version_from_tag, get_cuda_version_from_tag
 from packaging.version import Version
 from packaging.specifiers import SpecifierSet
@@ -93,7 +92,7 @@ def test_eks_pytorch_single_node_training(pytorch_training):
             else:
                 eks_utils.LOGGER.info("**** training output ****")
                 eks_utils.LOGGER.debug(pytorch_out)
-        assert training_result, f"Training failed"
+        assert training_result, "Training failed"
     finally:
         run("kubectl delete pods {}".format(pod_name))
 
@@ -122,7 +121,7 @@ def test_eks_pt_s3_plugin_single_node_training(pytorch_training, outside_version
     yaml_path = os.path.join(os.sep, "tmp", f"pytorch_s3_single_node_training_{rand_int}.yaml")
     pod_name = f"pytorch-s3-single-node-training-{rand_int}"
 
-    args = f"git clone https://github.com/aws/amazon-s3-plugin-for-pytorch.git && python amazon-s3-plugin-for-pytorch/examples/s3_imagenet_example.py"
+    args = "git clone https://github.com/aws/amazon-s3-plugin-for-pytorch.git && python amazon-s3-plugin-for-pytorch/examples/s3_imagenet_example.py"
 
     # TODO: Change hardcoded value to read a mapping from the EKS cluster instance.
     cpu_limit = 96
@@ -152,7 +151,7 @@ def test_eks_pt_s3_plugin_single_node_training(pytorch_training, outside_version
             else:
                 eks_utils.LOGGER.info("**** training output ****")
                 eks_utils.LOGGER.debug(pytorch_out)
-        assert training_result, f"Training failed"
+        assert training_result, "Training failed"
     finally:
         run("kubectl delete pods {}".format(pod_name))
 
@@ -187,9 +186,9 @@ def test_eks_pytorch_dgl_single_node_training(pytorch_training, py3_only):
     pod_name = f"pytorch-single-node-training-dgl-{rand_int}"
 
     args = (
-        f"dgl_branch=$(python -c \"import dgl; dgl_versions = dgl.__version__.split('.'); print(dgl_versions[0] + '.' + dgl_versions[1] + '.x')\") && "
-        f"git clone -b $dgl_branch https://github.com/dmlc/dgl.git && "
-        f"cd /dgl/examples/pytorch/gcn/ && DGLBACKEND=pytorch python train.py --dataset cora"
+        "dgl_branch=$(python -c \"import dgl; dgl_versions = dgl.__version__.split('.'); print(dgl_versions[0] + '.' + dgl_versions[1] + '.x')\") && "
+        "git clone -b $dgl_branch https://github.com/dmlc/dgl.git && "
+        "cd /dgl/examples/pytorch/gcn/ && DGLBACKEND=pytorch python train.py --dataset cora"
     )
 
     # TODO: Change hardcoded value to read a mapping from the EKS cluster instance.
@@ -218,7 +217,7 @@ def test_eks_pytorch_dgl_single_node_training(pytorch_training, py3_only):
                 eks_utils.LOGGER.info("**** training output ****")
                 eks_utils.LOGGER.debug(dgl_out)
 
-        assert training_result, f"Training failed"
+        assert training_result, "Training failed"
     finally:
         run("kubectl delete pods {}".format(pod_name))
 
@@ -289,7 +288,7 @@ def run_eks_pytorch_multi_node_training(namespace, job_name, remote_yaml_file_pa
             else:
                 eks_utils.LOGGER.info("**** training output ****")
                 eks_utils.LOGGER.debug(run_out)
-        assert training_result, f"Training for eks pytorch multinode failed"
+        assert training_result, "Training for eks pytorch multinode failed"
     finally:
         eks_utils.eks_multinode_cleanup(remote_yaml_file_path, namespace)
 

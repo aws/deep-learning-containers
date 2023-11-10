@@ -219,11 +219,11 @@ class PytestCache:
             LOGGER.info(f"Uploading current execution result to {s3_file}")
             try:
                 self.s3_client.upload_file(local_file, self.bucket_name, s3_file)
-                LOGGER.info(f"Cache file uploaded")
+                LOGGER.info("Cache file uploaded")
             except Exception as e:
                 LOGGER.info(f"Cache file wasn't uploaded because of error: {e}")
         else:
-            LOGGER.info(f"No cache file was created")
+            LOGGER.info("No cache file was created")
 
     def __merge_2_execution_caches_and_save(self, cache_file_1, cache_file_2, save_to):
         """
@@ -258,7 +258,7 @@ class PytestCache:
             LOGGER.info(f"Cache file wasn't uploaded: {e}")
 
     def __download_cache_from_ec2(self, ec2_connection, ec2_file, local_file):
-        LOGGER.info(f"Downloading executions cache from ec2 instance")
+        LOGGER.info("Downloading executions cache from ec2 instance")
         try:
             ec2_connection.get(f"{ec2_file}", local_file)
         except Exception as e:

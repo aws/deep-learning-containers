@@ -94,18 +94,6 @@ def prepare_data(batch_size):
     mnist_train = datasets.FashionMNIST(train=True)
     X, y = mnist_train[0]
     ("X shape: ", X.shape, "X dtype", X.dtype, "y:", y)
-    text_labels = [
-        "t-shirt",
-        "trouser",
-        "pullover",
-        "dress",
-        "coat",
-        "sandal",
-        "shirt",
-        "sneaker",
-        "bag",
-        "ankle boot",
-    ]
     X, y = mnist_train[0:10]
     transformer = transforms.Compose([transforms.ToTensor(), transforms.Normalize(0.13, 0.31)])
     mnist_train = mnist_train.transform_first(transformer)

@@ -15,14 +15,10 @@ from __future__ import absolute_import
 import os
 
 import pytest
-import sagemaker
-import sagemaker.huggingface
 from sagemaker.huggingface import HuggingFace, TrainingCompilerConfig
 
-from packaging.version import Version
 
 from ...integration.utils import processor, py_version, unique_name_from_base  # noqa: F401
-from test.test_utils import get_framework_and_version_from_tag, get_cuda_version_from_tag
 
 import unittest.mock as mock
 

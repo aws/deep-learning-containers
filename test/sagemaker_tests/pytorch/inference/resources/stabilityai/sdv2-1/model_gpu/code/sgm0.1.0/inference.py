@@ -2,7 +2,6 @@ import base64
 from io import BytesIO
 from einops import rearrange
 import json
-from pathlib import Path
 from PIL import Image
 from pytorch_lightning import seed_everything
 import numpy as np
@@ -37,7 +36,7 @@ def model_fn(model_dir, context=None):
 def input_fn(request_body, request_content_type):
     if request_content_type == "application/json":
         model_input = json.loads(request_body)
-        if not "text_prompts" in model_input:
+        if "text_prompts" not in model_input:
             raise BaseInferenceToolkitError(400, "Invalid Request", "text_prompts missing")
         return model_input
     else:
@@ -104,7 +103,7 @@ def predict_fn(data, model, context=None):
             init_image_bytes.seek(0)
             if init_image_bytes is not None:
                 init_image = get_input_image_tensor(Image.open(init_image_bytes))
-        except Exception as e:
+        except Exception:
             raise BaseInferenceToolkitError(400, "Invalid Request", "Unable to decode init_image")
 
     try:
@@ -140,7 +139,6 @@ def predict_fn(data, model, context=None):
             samples, samples_z = output
         else:
             samples = output
-            samples_z = None
 
         samples = embed_watermark(samples)
         images = []

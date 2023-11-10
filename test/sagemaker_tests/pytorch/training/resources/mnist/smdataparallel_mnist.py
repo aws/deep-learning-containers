@@ -17,7 +17,6 @@ urllib.request.install_opener(opener)
 
 import argparse
 import os
-import time
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
@@ -37,7 +36,6 @@ if Version(TORCH_VERSION) < Version("1.10"):
 else:
     from torch.nn.parallel import DistributedDataParallel as DDP
     import torch.distributed as dist
-    import smdistributed.dataparallel.torch.torch_smddp
 
     # set default instance type to p3.16
     if "SAGEMAKER_INSTANCE_TYPE" not in os.environ:

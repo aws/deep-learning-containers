@@ -16,9 +16,8 @@ import pytest
 
 from packaging.version import Version
 from packaging.specifiers import SpecifierSet
-from sagemaker import utils
 
-from ...integration import DEFAULT_TIMEOUT, mnist_path
+from ...integration import mnist_path
 from ...integration.sagemaker.timeout import timeout
 from ....training import get_efa_test_instance_type
 from test.test_utils import get_framework_and_version_from_tag

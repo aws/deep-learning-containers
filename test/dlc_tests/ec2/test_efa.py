@@ -5,7 +5,6 @@ import pytest
 import test.test_utils.ec2 as ec2_utils
 from test.test_utils import (
     CONTAINER_TESTS_PREFIX,
-    LOGGER,
     get_account_id_from_image_uri,
     get_region_from_image_uri,
     is_pr_context,
@@ -13,8 +12,6 @@ from test.test_utils import (
     login_to_ecr_registry,
     run_cmd_on_container,
 )
-from packaging.version import Version
-from packaging.specifiers import SpecifierSet
 
 from test.test_utils.ec2 import (
     get_efa_ec2_instance_type,

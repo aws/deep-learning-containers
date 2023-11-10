@@ -43,8 +43,8 @@ def test_telemetry_instance_tag_failure_cpu(
 def test_telemetry_instance_tag_failure_graviton_cpu(
     cpu, ec2_client, ec2_instance, ec2_connection, graviton_compatible_only
 ):
-    ec2_connection.run(f"sudo apt-get update -y")
-    ec2_connection.run(f"sudo apt-get install -y net-tools")
+    ec2_connection.run("sudo apt-get update -y")
+    ec2_connection.run("sudo apt-get install -y net-tools")
     _run_tag_failure_IMDSv1_disabled(cpu, ec2_client, ec2_instance, ec2_connection)
     _run_tag_failure_IMDSv2_disabled_as_hop_limit_1(cpu, ec2_client, ec2_instance, ec2_connection)
 
@@ -268,7 +268,7 @@ def _run_s3_query_bucket_success(image_uri, ec2_client, ec2_instance, ec2_connec
     else:
         expected_s3_url += f"&x-container_type={container_type}"
 
-    assert expected_s3_url == actual_output, f"S3 telemetry is not working"
+    assert expected_s3_url == actual_output, "S3 telemetry is not working"
 
 
 def _run_tag_failure_IMDSv1_disabled(image_uri, ec2_client, ec2_instance, ec2_connection):
@@ -304,9 +304,9 @@ def _run_tag_failure_IMDSv1_disabled(image_uri, ec2_client, ec2_instance, ec2_co
         ec2_client.delete_tags(Resources=[ec2_instance_id], Tags=[{"Key": expected_tag_key}])
 
     # Disable access to EC2 instance metadata
-    ec2_connection.run(f"sudo apt-get update -y")
-    ec2_connection.run(f"sudo apt-get install -y net-tools")
-    ec2_connection.run(f"sudo route add -host 169.254.169.254 reject")
+    ec2_connection.run("sudo apt-get update -y")
+    ec2_connection.run("sudo apt-get install -y net-tools")
+    ec2_connection.run("sudo route add -host 169.254.169.254 reject")
 
     invoke_telemetry_call(
         image_uri, container_name, docker_cmd, framework, job_type, ec2_connection
@@ -319,7 +319,7 @@ def _run_tag_failure_IMDSv1_disabled(image_uri, ec2_client, ec2_instance, ec2_co
         "EC2 create_tags went through even though it should not have"
     )
     # Enable access to EC2 instance metadata, so other tests can be run on same EC2 instance
-    ec2_connection.run(f"sudo route del -host 169.254.169.254 reject")
+    ec2_connection.run("sudo route del -host 169.254.169.254 reject")
 
 
 def _run_tag_success_IMDSv1(image_uri, ec2_client, ec2_instance, ec2_connection):

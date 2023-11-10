@@ -8,7 +8,6 @@ import uuid
 from inspect import signature
 
 import boto3
-import pytest
 
 from fabric import Connection
 from botocore.config import Config
@@ -889,7 +888,7 @@ def execute_ec2_training_test(
 ):
     if executable not in ("bash", "python"):
         raise RuntimeError(
-            f"This function only supports executing bash or python commands on containers"
+            "This function only supports executing bash or python commands on containers"
         )
     if executable == "bash":
         executable = os.path.join(os.sep, "bin", "bash")
@@ -940,7 +939,7 @@ def execute_ec2_training_test(
         s3_uri_permanent_logs = get_s3_uri_for_saving_permanent_logs(
             framework, s3_bucket=s3_bucket_for_permanent_logs, test_type=test_type
         )
-        if enable_habana_async_execution == True:
+        if enable_habana_async_execution is True:
             execute_asynchronus_testing_using_s3_bucket(
                 connection,
                 execution_command,
@@ -957,14 +956,14 @@ def execute_ec2_training_test(
                 connection.run(f"aws s3 cp ~/container_tests/logs.txt {s3_uri_permanent_logs}")
                 LOGGER.info(f"Uploaded logs at: {s3_uri_permanent_logs}")
             except:
-                LOGGER.info(f"Could not upload the logs")
+                LOGGER.info("Could not upload the logs")
             return run_output
 
     # Hack not sure why but see the following. since not using latest driver yet in the AMI, doing this for now
     # [  214.939271] Neuron Driver Started with Version:2.x.381.0-b70a76a18efb5e89ffed987461e9a1009d8b6f1e
     # [  214.939619] neuron-driver 0000:00:1e.0: BAR 4: can't reserve [mem 0x1000000000-0x17ffffffff 64bit pref]
     if "neuron" in ecr_uri:
-        connection.run(f"sudo modprobe -r neuron  && sudo modprobe -i neuron")
+        connection.run("sudo modprobe -r neuron  && sudo modprobe -i neuron")
 
     LOGGER.info(f"execute_ec2_training_test running {ecr_uri}, with cmd {test_cmd}")
     ec2_res = connection.run(
@@ -1486,7 +1485,7 @@ def attach_elastic_ip(network_interface_id, region="us-east-1"):
     }
     elastic_ip = ec2_client.allocate_address(**arguments_dict)
     elastic_ip_allocation_id = elastic_ip["AllocationId"]
-    response = ec2_client.associate_address(
+    ec2_client.associate_address(
         AllocationId=elastic_ip_allocation_id, NetworkInterfaceId=network_interface_id
     )
     return elastic_ip_allocation_id

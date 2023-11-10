@@ -16,7 +16,6 @@
 # !/usr/bin/env python2.7
 """Tests for tensorflow_model_server."""
 
-import atexit
 import os
 import shlex
 import socket
@@ -27,33 +26,21 @@ import pickle
 import shutil
 import boto3
 import botocore
-import marshal
 import argparse
-import logging
-import pprint
 from multiprocessing.dummy import Pool
 
 # This is a placeholder for a Google-internal import.
 
 import grpc
-from grpc.beta import implementations
-from grpc.beta import interfaces as beta_interfaces
-from grpc.framework.interfaces.face import face
 import tensorflow as tf
 import numpy as np
 
-from tensorflow.core.framework import types_pb2
 from tensorflow.python.platform import flags
-from tensorflow_serving.apis import classification_pb2
 
 # from tensorflow_serving.apis import get_model_status_pb2
 # from tensorflow_serving.apis import model_service_pb2_grpc
 from tensorflow_serving.apis import predict_pb2
 from tensorflow_serving.apis import prediction_service_pb2_grpc
-from tensorflow_serving.apis import regression_pb2
-from tensorflow_serving.apis import inference_pb2
-from tensorflow.python.saved_model import signature_constants
-from tensorflow.python.estimator import model_fn as model_fn_lib
 
 FLAGS = flags.FLAGS
 
@@ -198,7 +185,7 @@ class TensorflowModelServerTester(object):
 
         for ii in range(len(input_names)):  # Goverened by the input_names'
             print(input_shapes)
-            if input_types[ii] != None:
+            if input_types[ii] is not None:
                 request.inputs[input_names[ii]].CopyFrom(
                     tf.compat.v1.make_tensor_proto(
                         input_data[ii], shape=input_shapes[ii], dtype=input_types[ii]
@@ -315,7 +302,6 @@ def download_file(bucket_name, s3, key):
         metadata = pickle.loads(metadata_read)
 
     # Process input fn
-    from types import FunctionType
 
     input_fn = metadata["input_fn"]
 

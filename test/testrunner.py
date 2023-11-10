@@ -1,11 +1,9 @@
 import json
 import os
-import random
 import sys
 import logging
 import re
 
-from junit_xml import TestSuite, TestCase
 from multiprocessing import Pool, Manager
 from datetime import datetime
 
@@ -32,10 +30,9 @@ from test_utils import (
     get_framework_and_version_from_tag,
     get_build_context,
     is_nightly_context,
-    get_ecr_repo_name,
     generate_unique_dlc_name,
 )
-from test_utils import KEYS_TO_DESTROY_FILE, DEFAULT_REGION
+from test_utils import KEYS_TO_DESTROY_FILE
 from test_utils.pytest_cache import PytestCache
 
 from src.codebuild_environment import get_codebuild_project_name
@@ -370,9 +367,9 @@ def main():
         report = os.path.join(os.getcwd(), "test", f"{test_type}.xml")
         # The following two report files will only be used by EKS tests, as eks_train.xml and eks_infer.xml.
         # This is to sequence the tests and prevent one set of tests from waiting too long to be scheduled.
-        report_train = os.path.join(os.getcwd(), "test", f"{test_type}_train.xml")
-        report_infer = os.path.join(os.getcwd(), "test", f"{test_type}_infer.xml")
-        report_multinode_train = os.path.join(os.getcwd(), "test", f"eks_multinode_train.xml")
+        os.path.join(os.getcwd(), "test", f"{test_type}_train.xml")
+        os.path.join(os.getcwd(), "test", f"{test_type}_infer.xml")
+        os.path.join(os.getcwd(), "test", "eks_multinode_train.xml")
 
         # PyTest must be run in this directory to avoid conflicting w/ sagemaker_tests conftests
         os.chdir(os.path.join("test", "dlc_tests"))

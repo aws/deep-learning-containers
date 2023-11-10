@@ -211,7 +211,7 @@ if smp.rank() == 0:
     assert loss_scalar < 0.016
 
     # testing saved model.
-    assert os.path.exists(save_path) == True, save_path + " does not exist."
+    assert os.path.exists(save_path) is True, save_path + " does not exist."
     loaded = tf.keras.models.load_model(save_path)
     infer = loaded.signatures["serving_default"]
     pred = None
@@ -230,19 +230,19 @@ if smp.rank() == 0:
         shutil.rmtree(save_path)
 
     # Test saved checkpoints
-    assert os.path.exists(checkpoint_directory) == True, f"Checkpoint directory  was not created"
+    assert os.path.exists(checkpoint_directory) is True, "Checkpoint directory  was not created"
     assert (
-        os.path.exists(os.path.join(checkpoint_directory, "mp_rank_0")) == True
-    ), f" Rank 0 directory does not exist"
+        os.path.exists(os.path.join(checkpoint_directory, "mp_rank_0")) is True
+    ), " Rank 0 directory does not exist"
     assert (
-        os.path.exists(os.path.join(checkpoint_directory, "mp_rank_1")) == True
-    ), f" Rank 1 directory does not exist"
+        os.path.exists(os.path.join(checkpoint_directory, "mp_rank_1")) is True
+    ), " Rank 1 directory does not exist"
     assert os.path.exists(
         os.path.join(checkpoint_directory, "mp_rank_0", "checkpoint")
-    ), f" No checkpoint file found"
+    ), " No checkpoint file found"
     assert os.path.exists(
         os.path.join(checkpoint_directory, "mp_rank_1", "checkpoint")
-    ), f" No checkpoint file found"
+    ), " No checkpoint file found"
 
     if os.path.exists(checkpoint_directory):
         shutil.rmtree(checkpoint_directory)

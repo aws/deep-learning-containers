@@ -1,4 +1,3 @@
-import re
 import pytest
 
 from invoke.context import Context

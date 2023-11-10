@@ -13,7 +13,6 @@
 from __future__ import absolute_import, print_function
 
 import os
-import subprocess
 
 from tensorflow import keras
 from tensorflow.keras.datasets import mnist

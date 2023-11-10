@@ -1,11 +1,8 @@
 import os
-import subprocess
 import torch_xla.core.xla_model as xm
 import torch
-import torch_xla.distributed.xla_backend
 
 torch.distributed.init_process_group("xla")
-import torch_xla.distributed.xla_multiprocessing as xmp
 import logging
 import os
 import sys

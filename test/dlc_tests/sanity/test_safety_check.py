@@ -14,8 +14,6 @@ from invoke import run
 from test.test_utils import (
     CONTAINER_TESTS_PREFIX,
     is_dlc_cicd_context,
-    is_canary_context,
-    is_mainline_context,
     is_safety_test_context,
 )
 
@@ -1068,7 +1066,7 @@ def test_safety(image):
 
     container_name = f"{repo_name}-{image_tag}-safety"
     docker_exec_cmd = f"docker exec -i {container_name}"
-    test_file_path = os.path.join(CONTAINER_TESTS_PREFIX, "testSafety")
+    os.path.join(CONTAINER_TESTS_PREFIX, "testSafety")
 
     # Add null entrypoint to ensure command exits immediately
     run(

@@ -1,7 +1,6 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-import dgl
 import dgl.nn as dglnn
 from dgl.data import CoraGraphDataset, CiteseerGraphDataset, PubmedGraphDataset
 from dgl import AddSelfLoop
@@ -63,7 +62,7 @@ if __name__ == "__main__":
     )
     parser.add_argument("--inductor", type=int, default=0, help="pytorch with inductor")
     args = parser.parse_args()
-    print(f"Training with DGL built-in GraphConv module.")
+    print("Training with DGL built-in GraphConv module.")
 
     # load and preprocess dataset
     transform = AddSelfLoop()  # by default, it will first remove self-loops to prevent duplication

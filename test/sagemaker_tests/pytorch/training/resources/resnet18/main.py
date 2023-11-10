@@ -16,7 +16,6 @@
 import argparse
 import os
 import random
-import shutil
 import time
 import warnings
 
@@ -32,13 +31,12 @@ import torch.utils.data.distributed
 import torchvision.transforms as transforms
 
 # import torchvision.datasets as datasets
-from torch.utils.data import IterableDataset, DataLoader
+from torch.utils.data import IterableDataset
 from awsio.python.lib.io.s3.s3dataset import S3IterableDataset
 
 import torchvision.models as models
 from PIL import Image
 import io
-from itertools import islice
 
 model_names = sorted(
     name

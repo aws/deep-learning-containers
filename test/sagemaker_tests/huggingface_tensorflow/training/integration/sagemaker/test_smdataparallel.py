@@ -17,7 +17,6 @@ import os
 import pytest
 from sagemaker.huggingface import HuggingFace
 
-from packaging.version import Version
 
 from ..... import invoke_sm_helper_function
 from ...integration.utils import processor, py_version, unique_name_from_base  # noqa: F401
@@ -96,7 +95,7 @@ def _test_hf_smdp_function(
     instance_count,
 ):
     _, image_framework_version = get_framework_and_version_from_tag(ecr_image)
-    image_cuda_version = get_cuda_version_from_tag(ecr_image)
+    get_cuda_version_from_tag(ecr_image)
 
     instance_type = "ml.p3.16xlarge"
     distribution = {"smdistributed": {"dataparallel": {"enabled": True}}}

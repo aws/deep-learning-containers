@@ -19,14 +19,13 @@ import subprocess
 subprocess.check_call([sys.executable, "-m", "pip", "install", "sagemaker>=2.180.0"])
 
 import time
-from test.test_utils import get_cuda_version_from_tag, get_framework_and_version_from_tag
+from test.test_utils import get_framework_and_version_from_tag
 
 import boto3
 import pytest
 from packaging.specifiers import SpecifierSet
 from packaging.version import Version
 from sagemaker import ProfilerConfig, Profiler
-from sagemaker.instance_group import InstanceGroup
 from sagemaker.tensorflow import TensorFlow
 
 from ..... import invoke_sm_helper_function
@@ -97,7 +96,7 @@ def _test_smppy_mnist_function(ecr_image, sagemaker_session):
             len(postproc_contents) > 0
         ), f"The prefix {prefix} doesn't contain any sagemaker profiler files"
         for file in postproc_contents:
-            assert file.get("Size") > 0, f"sagemaker profiler file has size 0"
+            assert file.get("Size") > 0, "sagemaker profiler file has size 0"
 
     finally:
         _cleanup_s3_output(bucket, name)
@@ -155,7 +154,7 @@ def _test_smppy_mnist_multinode_function(ecr_image, sagemaker_session):
             len(postproc_contents) > 0
         ), f"The prefix {prefix} doesn't contain any sagemaker profiler files"
         for file in postproc_contents:
-            assert file.get("Size") > 0, f"sagemaker profiler file has size 0"
+            assert file.get("Size") > 0, "sagemaker profiler file has size 0"
 
     finally:
         _cleanup_s3_output(bucket, name)

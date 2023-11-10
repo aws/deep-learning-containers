@@ -37,7 +37,6 @@ def fit(model, loss, opt, train_dataset, epochs, train_batch_size, max_steps=Non
             if i == 0:
                 sdp.broadcast_variables(model.variables, root_rank=0)
                 sdp.broadcast_variables(opt.variables(), root_rank=0)
-                first_batch = False
 
         if max_steps and i >= max_steps:
             break

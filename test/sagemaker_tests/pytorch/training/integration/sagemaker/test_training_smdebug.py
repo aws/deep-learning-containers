@@ -13,9 +13,7 @@
 from __future__ import absolute_import
 
 import pytest
-from sagemaker import utils
 from sagemaker.instance_group import InstanceGroup
-from sagemaker.pytorch import PyTorch
 
 from ...integration import training_dir, smdebug_mnist_script, DEFAULT_TIMEOUT
 from ...integration.sagemaker.timeout import timeout

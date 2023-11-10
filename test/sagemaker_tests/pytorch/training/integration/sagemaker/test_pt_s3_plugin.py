@@ -14,16 +14,10 @@ from __future__ import absolute_import
 
 import os
 
-import boto3
 import pytest
 from sagemaker.instance_group import InstanceGroup
-from sagemaker.pytorch import PyTorch
-from sagemaker import utils
-from packaging.version import Version
-from packaging.specifiers import SpecifierSet
 from ...integration import DEFAULT_TIMEOUT, resnet18_path
 from ...integration.sagemaker.timeout import timeout
-from test.test_utils import get_framework_and_version_from_tag
 from . import invoke_pytorch_estimator
 
 MULTI_GPU_INSTANCE = "ml.p3.8xlarge"

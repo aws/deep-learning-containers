@@ -65,7 +65,7 @@ def load_fp16_optimizer_finetuning(model, optimizer, state_dict):
         return param_index_to_param
 
     def hook_fn(model, optimizer):
-        print(f"Inside hook_fn, loading for finetuning")
+        print("Inside hook_fn, loading for finetuning")
         from functools import partial
 
         optimizer.param_name_to_index = partial(param_name_to_index, optimizer)

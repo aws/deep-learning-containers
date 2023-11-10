@@ -3,12 +3,8 @@ import os
 import logging
 import random
 import sys
-import re
-import time
 import uuid
 import boto3
-from botocore.exceptions import ClientError
-import docker
 import pytest
 
 from packaging.version import Version
@@ -45,7 +41,7 @@ from test.test_utils import (
     UBUNTU_HOME_DIR,
     NightlyFeatureLabel,
 )
-from test.test_utils.imageutils import are_image_labels_matched, are_fixture_labels_enabled
+from test.test_utils.imageutils import are_fixture_labels_enabled
 from test.test_utils.test_reporting import TestReportGenerator
 
 LOGGER = logging.getLogger(__name__)
@@ -509,7 +505,7 @@ def efa_ec2_connections(request, efa_ec2_instances, ec2_key_name, ec2_instance_t
         f"aws s3 cp --recursive {test_utils.TEST_TRANSFER_S3_BUCKET}/{artifact_folder} $HOME/container_tests"
     )
     master_connection.run(
-        f"mkdir -p $HOME/container_tests/logs && chmod -R +x $HOME/container_tests/*"
+        "mkdir -p $HOME/container_tests/logs && chmod -R +x $HOME/container_tests/*"
     )
     for worker_connection in worker_instance_connections:
         worker_connection.run("rm -rf $HOME/container_tests")
@@ -517,7 +513,7 @@ def efa_ec2_connections(request, efa_ec2_instances, ec2_key_name, ec2_instance_t
             f"aws s3 cp --recursive {test_utils.TEST_TRANSFER_S3_BUCKET}/{artifact_folder} $HOME/container_tests"
         )
         worker_connection.run(
-            f"mkdir -p $HOME/container_tests/logs && chmod -R +x $HOME/container_tests/*"
+            "mkdir -p $HOME/container_tests/logs && chmod -R +x $HOME/container_tests/*"
         )
 
     return [master_connection, *worker_instance_connections]
@@ -766,7 +762,7 @@ def ec2_connection(request, ec2_instance, ec2_key_name, ec2_instance_type, regio
     conn.run(
         f"aws s3 cp --recursive {test_utils.TEST_TRANSFER_S3_BUCKET}/{artifact_folder} $HOME/container_tests"
     )
-    conn.run(f"mkdir -p $HOME/container_tests/logs && chmod -R +x $HOME/container_tests/*")
+    conn.run("mkdir -p $HOME/container_tests/logs && chmod -R +x $HOME/container_tests/*")
 
     # Log into ECR if we are in canary context
     if test_utils.is_canary_context():
@@ -819,7 +815,7 @@ def existing_ec2_instance_connection(request, ec2_key_file_name, ec2_user_name, 
     conn.run(
         f"aws s3 cp --recursive {test_utils.TEST_TRANSFER_S3_BUCKET}/{artifact_folder} $HOME/container_tests"
     )
-    conn.run(f"mkdir -p $HOME/container_tests/logs && chmod -R +x $HOME/container_tests/*")
+    conn.run("mkdir -p $HOME/container_tests/logs && chmod -R +x $HOME/container_tests/*")
 
     return conn
 
@@ -1457,7 +1453,7 @@ def pytest_generate_tests(metafunc):
                             and "sagemaker" not in metafunc.fixturenames
                         ):
                             LOGGER.info(
-                                f"Skipping test, as this function is not marked as 'sagemaker_only' or 'sagemaker'"
+                                "Skipping test, as this function is not marked as 'sagemaker_only' or 'sagemaker'"
                             )
                             continue
                     if (
@@ -1466,7 +1462,7 @@ def pytest_generate_tests(metafunc):
                         and os.getenv("TEST_TYPE") != "sanity"
                     ):
                         LOGGER.info(
-                            f"Skipping test, as this function is not marked as 'stabilityai'"
+                            "Skipping test, as this function is not marked as 'stabilityai'"
                         )
                         continue
                     if not framework_version_within_limit(metafunc, image):
@@ -1482,9 +1478,7 @@ def pytest_generate_tests(metafunc):
                         continue
                     if "x86_compatible_only" in metafunc.fixturenames and "graviton" in image:
                         continue
-                    if "training_compiler_only" in metafunc.fixturenames and not (
-                        "trcomp" in image
-                    ):
+                    if "training_compiler_only" in metafunc.fixturenames and "trcomp" not in image:
                         continue
                     if (
                         is_example_lookup

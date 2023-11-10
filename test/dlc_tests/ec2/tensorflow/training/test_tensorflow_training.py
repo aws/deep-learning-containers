@@ -256,9 +256,9 @@ def test_tensorflow_addons_cpu(tensorflow_training, ec2_connection, tf2_only, cp
 # Helper function to test data service
 def run_data_service_test(ec2_connection, tensorflow_training, cmd):
     _, tensorflow_version = test_utils.get_framework_and_version_from_tag(tensorflow_training)
-    ec2_connection.run(f"python -m pip install --upgrade pip")
+    ec2_connection.run("python -m pip install --upgrade pip")
     ec2_connection.run(f"python -m pip install tensorflow=={tensorflow_version}")
-    ec2_connection.run(f"python -m pip install 'protobuf<4'")
+    ec2_connection.run("python -m pip install 'protobuf<4'")
     container_test_local_dir = os.path.join("$HOME", "container_tests")
     ec2_connection.run(
         f"cd {container_test_local_dir}/bin && screen -d -m python start_dataservice.py"

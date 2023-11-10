@@ -1,4 +1,3 @@
-from transformers import AutoTokenizer
 from optimum.neuron import NeuronStableDiffusionXLPipeline
 
 print("running neuronx sdxl test...")

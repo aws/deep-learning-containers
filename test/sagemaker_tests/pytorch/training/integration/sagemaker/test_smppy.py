@@ -23,7 +23,7 @@ import boto3
 import pytest
 from packaging.specifiers import SpecifierSet
 from packaging.version import Version
-from sagemaker import utils, ProfilerConfig, Profiler
+from sagemaker import ProfilerConfig, Profiler
 
 from test.test_utils import get_framework_and_version_from_tag
 from ...integration import DEFAULT_TIMEOUT, smppy_mnist_script, training_dir
@@ -126,7 +126,7 @@ def _check_and_cleanup_s3_output(estimator, wait_interval, num_checks=5):
         len(postproc_contents) > 0
     ), f"The prefix {prefix} doesn't contain any sagemaker profiler files"
     for file in postproc_contents:
-        assert file.get("Size") > 0, f"sagemaker profiler file has size 0"
+        assert file.get("Size") > 0, "sagemaker profiler file has size 0"
 
     all_contents = s3.list_objects_v2(
         Bucket=bucket, Prefix=os.path.join(estimator.latest_training_job.name, "")

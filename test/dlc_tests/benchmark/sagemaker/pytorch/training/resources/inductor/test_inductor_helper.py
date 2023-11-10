@@ -1,5 +1,4 @@
 import boto3
-from botocore.config import Config
 from botocore.exceptions import ClientError
 import datetime
 import pandas as pd
@@ -34,7 +33,7 @@ def put_metric_data(metric_name, namespace, unit, value, dimensions):
     cloudwatch_client = get_cloudwatch_client()
     current_timestamp = datetime.datetime.utcnow()
     try:
-        response = cloudwatch_client.put_metric_data(
+        cloudwatch_client.put_metric_data(
             Namespace=namespace,
             MetricData=[
                 {

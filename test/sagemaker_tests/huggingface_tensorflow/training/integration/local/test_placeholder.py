@@ -1,5 +1,4 @@
 import pytest
-import os
 
 
 @pytest.mark.processor("gpu")

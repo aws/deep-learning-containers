@@ -1,6 +1,5 @@
 import os
 import torch
-import torch_neuronx
 import io
 import torchvision.transforms as transforms
 from PIL import Image

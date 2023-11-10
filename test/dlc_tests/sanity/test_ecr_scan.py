@@ -17,9 +17,6 @@ from test.test_utils import (
     get_account_id_from_image_uri,
     get_framework_and_version_from_tag,
     get_repository_and_tag_from_image_uri,
-    get_repository_local_path,
-    ECR_SCAN_HELPER_BUCKET,
-    is_canary_context,
     get_all_the_tags_of_an_image_from_ecr,
     is_image_available_locally,
     login_to_ecr_registry,
@@ -32,17 +29,11 @@ from test.test_utils import (
 from test.test_utils import ecr as ecr_utils
 from test.test_utils.security import (
     CVESeverity,
-    ECRBasicScanVulnerabilityList,
     ECREnhancedScanVulnerabilityList,
-    conduct_failure_routine,
-    process_failure_routine_summary_and_store_data_in_s3,
-    run_scan,
-    fetch_other_vulnerability_lists,
     get_target_image_uri_using_current_uri_and_target_repo,
     wait_for_enhanced_scans_to_complete,
     get_ecr_scan_allowlist_path,
 )
-from src.config import is_ecr_scan_allowlist_feature_enabled
 
 ALLOWLIST_FEATURE_ENABLED_IMAGES = {"mxnet": SpecifierSet(">=1.8.0,<1.9.0")}
 

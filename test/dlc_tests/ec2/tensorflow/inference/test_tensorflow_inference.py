@@ -1,6 +1,5 @@
 import os
 import re
-import json
 from time import sleep
 import pytest
 
@@ -305,15 +304,15 @@ def host_setup_for_tensorflow_inference(
     # Wait for any existing apt-get calls to finish before moving on
     # TODO(Mike Schneider): Improve this by adding a check for running apt-get processes and wait for them to finish,
     # then timeout after a given amount of time if other apt-get calls are taking too long.
-    ec2_connection.run((f"sleep 180"), hide=True)
+    ec2_connection.run(("sleep 180"), hide=True)
 
     # Install PIP so we can test
-    ec2_connection.run((f"sudo apt-get update && sudo apt-get install -y python3-pip"), hide=True)
+    ec2_connection.run(("sudo apt-get update && sudo apt-get install -y python3-pip"), hide=True)
 
     # Attempting a pin will result in pip not finding the version. The internal repo only has a custom Tensorflow 2.6
     # which is not compatible with TF 2.9+ and this is the recommended action.
     if is_graviton:
-        ec2_connection.run(f"pip install --no-cache-dir -U tensorflow-cpu-aws", hide=True)
+        ec2_connection.run("pip install --no-cache-dir -U tensorflow-cpu-aws", hide=True)
         ec2_connection.run(
             (
                 f"pip install --no-dependencies --no-cache-dir "

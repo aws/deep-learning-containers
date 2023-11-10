@@ -15,7 +15,7 @@ import torch.nn as nn
 import torch.utils.data
 import transformers
 from data_pipeline import create_pretraining_dataloader
-from fp16 import FP16_Module, FP16_Optimizer, load_fp16_optimizer, save_fp16_optimizer
+from fp16 import FP16_Module, FP16_Optimizer, save_fp16_optimizer
 from learning_rates import AnnealingLR
 from memory_tracker import memory_status, memory_status_cpu
 from smdistributed.modelparallel.torch.nn import FusedLayerNorm as LayerNorm
@@ -26,13 +26,8 @@ from smdistributed.modelparallel.torch.nn.huggingface.gpt2 import (
 from torch import optim
 from torch.nn.parallel.distributed import DistributedDataParallel
 from transformers import (
-    CONFIG_MAPPING,
-    MODEL_FOR_CAUSAL_LM_MAPPING,
-    AutoConfig,
     AutoModelForCausalLM,
-    AutoTokenizer,
     GPT2Config,
-    default_data_collator,
     set_seed,
 )
 from transformers.trainer_utils import is_main_process
@@ -247,7 +242,7 @@ def load_model_and_optimizer(
     if load_optimizer:
 
         def opt_load_hook(mod, opt):
-            load_fn = load_fp16_optimizer
+            pass
 
         checkpoint = (
             checkpoint if args.gather_if_shard > 0 or smp.rdp_rank() == 0 else opt_checkpoint
@@ -303,7 +298,7 @@ def delete_oldest_ckpt(args, delete_on_rank0_only=False):
 
         if paths_per_step:
             oldest_step = sorted(paths_per_step.keys())[0]
-            num_parts = len(paths_per_step[oldest_step])
+            len(paths_per_step[oldest_step])
             if len(paths_per_step) >= args.num_kept_checkpoints:
                 # delete oldest step to save the new one
                 for p in paths_per_step[oldest_step]:
@@ -582,7 +577,7 @@ def train(
             if not (total_steps % args.checkpoint_freq):
                 base_path = f"trained_gpt_nparams-{num_params}_steps-{total_steps}.pt"
                 out_path = os.path.join(args.checkpoint_dir, base_path)
-                total_ckpts = total_steps // args.checkpoint_freq
+                total_steps // args.checkpoint_freq
 
                 delete_oldest_ckpt(args, delete_on_rank0_only=args.use_fsx > 0)
 
@@ -615,7 +610,7 @@ def train(
 
         if args.parallel_proc_data_processing:
             s = time.time()
-            train_dataloader = dataset_future.result(timeout=None)
+            dataset_future.result(timeout=None)
             wait_time = time.time() - s
             if wait_time > 1:
                 # TODO if this happens, we should try num_workers>1 in dataloader
@@ -623,7 +618,7 @@ def train(
                     f"[{smp.rank()}] Waited {wait_time} for data loader to be ready. Please check if dataloader performance can be improved to avoid these waits."
                 )
         else:
-            train_dataloader = create_pretraining_dataloader(
+            create_pretraining_dataloader(
                 [train_paths[next_train_path_index]],
                 args.train_batch_size,
                 args.max_context_width,
@@ -927,7 +922,7 @@ def main():
 
     if args.save_final_full_model and smp.rank() == 0:
         print(
-            f"[Warning] Note that save_final_full_model only saves the final model at the end of all steps. It does not save optimizer state. Optimizer state is only saved with partial models which are saved at checkpointing_freq during training. If you want to restart training you need partial checkpoints."
+            "[Warning] Note that save_final_full_model only saves the final model at the end of all steps. It does not save optimizer state. Optimizer state is only saved with partial models which are saved at checkpointing_freq during training. If you want to restart training you need partial checkpoints."
         )
 
     if args.partition_assignment != "":
@@ -1013,7 +1008,7 @@ def main():
     # smdistributed: Set the device to the GPU ID used by the current process.
     # Input tensors should be transferred to this device.
     torch.cuda.set_device(smp.local_rank())
-    device = torch.device("cuda")
+    torch.device("cuda")
 
     if not args.same_seed:
         # Set seed by tp_rank to prevent weights from being the same on different tp_ranks
@@ -1044,9 +1039,10 @@ def main():
             transformer_layers = m.transformer.h
 
     if args.manual_partition:
-        print(f"Manual partition enabled")
+        print("Manual partition enabled")
         if args.partition_assignment != "":
-            get_num_layers = lambda x: int(partition_assignment[x])
+            def get_num_layers(x):
+                return int(partition_assignment[x])
             total_layers = sum([get_num_layers(pp_rank) for pp_rank in range(smp.pp_size())])
             assert (
                 total_layers == args.num_layers
@@ -1054,7 +1050,8 @@ def main():
         else:
             # evenly distribute layers across all partitions
             div, rem = divmod(args.num_layers, smp.pp_size())
-            get_num_layers = lambda x: (div + 1 if x >= smp.pp_size() - rem else div)
+            def get_num_layers(x):
+                return div + 1 if x >= smp.pp_size() - rem else div
         assignments = []
         # (TODO) This is required for 175B otherwise a hang for partition "8,17,17,18,18,18"
         # Need further investigation

@@ -12,7 +12,6 @@
 # language governing permissions and limitations under the License.
 
 
-import json
 from collections import namedtuple
 
 import requests

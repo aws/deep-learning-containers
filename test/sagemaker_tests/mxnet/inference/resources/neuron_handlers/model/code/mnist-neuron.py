@@ -1,10 +1,6 @@
-import argparse
-import gzip
-import io
 import json
 import logging
 import os
-import struct
 from collections import namedtuple
 from packaging import version
 
@@ -15,7 +11,6 @@ import numpy as np
 def get_context():
     mxnet_version = version.parse(mx.__version__)
     if mxnet_version >= version.parse("1.8"):
-        import mx_neuron as neuron
 
         return mx.cpu()
     else:
@@ -39,7 +34,7 @@ def model_fn(model_dir):
     for arg in aux_params:
         aux_params[arg] = aux_params[arg].astype(dtype)
 
-    exe = mod.bind(
+    mod.bind(
         for_training=False, data_shapes=[("data", (1, 28, 28))], label_shapes=mod._label_shapes
     )
     mod.set_params(arg_params, aux_params, allow_missing=True)
@@ -53,7 +48,7 @@ def transform_fn(mod, payload, input_content_type, output_content_type):
     logging.info("Invoking user-defined transform_fn")
     logging.info("input_content_type %s", input_content_type)
     Batch = namedtuple("Batch", ["data"])
-    ctx = get_context()
+    get_context()
 
     print("payload {}".format(payload))
     data = np.array(json.loads(payload))

@@ -6,14 +6,11 @@ import os
 import sys
 import json
 import logging
-import random
 import re
 
-import boto3
 
-from botocore.exceptions import ClientError
 from retrying import retry
-from invoke import run, Context
+from invoke import run
 
 DEFAULT_REGION = "us-west-2"
 

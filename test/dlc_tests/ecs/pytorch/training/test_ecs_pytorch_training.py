@@ -20,7 +20,7 @@ PT_DGL_TRAINING_SCRIPT = os.path.join(CONTAINER_TESTS_PREFIX, "dgl_tests", "test
 PT_S3_PLUGIN_CMD = os.path.join(CONTAINER_TESTS_PREFIX, "pytorch_tests", "testPyTorchS3Plugin")
 # For neuron the training script is called using torchrun. Since the trainind cmd is built based on
 # the training script, adding torchrun here.
-PT_MLP_NEURON_TRAINING_SCRIPT = f"torchrun --nproc_per_node=2 --nnodes=1 " + os.path.join(
+PT_MLP_NEURON_TRAINING_SCRIPT = "torchrun --nproc_per_node=2 --nnodes=1 " + os.path.join(
     CONTAINER_TESTS_PREFIX, "pytorch_tests", "testNeuronMlp"
 )
 

@@ -318,7 +318,7 @@ def main():
             opt_dict = optimizer.local_state_dict()
             smp.save(
                 {"model_state_dict": model_dict, "optimizer_state_dict": opt_dict},
-                f"./pt_mnist_checkpoint.pt",
+                "./pt_mnist_checkpoint.pt",
                 partial=True,
             )
 

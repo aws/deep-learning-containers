@@ -3,7 +3,6 @@
 import os
 import argparse
 import tensorflow as tf
-from tensorflow import keras
 
 
 def run_training(model_save_folder_path=os.path.join("script_folder", "models")):
@@ -48,7 +47,7 @@ def run_training(model_save_folder_path=os.path.join("script_folder", "models"))
     )
 
     # Convert the model into TRT compatible segments
-    trt_func = converter.convert()
+    converter.convert()
     converter.summary()
 
     MAX_BATCH_SIZE = 128

@@ -248,7 +248,7 @@ class TestReportGenerator:
 
         with ctx.cd(tf_inf_path):
             # Install TF inference pip requirements
-            ctx.run(f"virtualenv .tf_inference")
+            ctx.run("virtualenv .tf_inference")
             with ctx.prefix(
                 f"source {os.path.join(tf_inf_path, '.tf_inference', 'bin', 'activate')}"
             ):

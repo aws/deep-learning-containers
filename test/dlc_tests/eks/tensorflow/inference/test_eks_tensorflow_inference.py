@@ -44,7 +44,7 @@ def test_eks_tensorflow_neuron_inference(tensorflow_inference_neuron):
         search_replace_dict,
     )
 
-    secret_yml_path = eks_utils.get_aws_secret_yml_path()
+    eks_utils.get_aws_secret_yml_path()
 
     try:
         run("kubectl apply -f {}".format(yaml_path))
@@ -101,7 +101,7 @@ def test_eks_tensorflow_neuronx_inference(tensorflow_inference_neuronx):
         search_replace_dict,
     )
 
-    secret_yml_path = eks_utils.get_aws_secret_yml_path()
+    eks_utils.get_aws_secret_yml_path()
 
     try:
         run("kubectl apply -f {}".format(yaml_path))
@@ -202,7 +202,7 @@ def __test_eks_tensorflow_albert(tensorflow_inference):
 
     processor = "gpu" if "gpu" in tensorflow_inference else "cpu"
 
-    model_name = f"albert"
+    model_name = "albert"
     yaml_path = os.path.join(
         os.sep, "tmp", f"tensorflow_single_node_{processor}_inference_{rand_int}.yaml"
     )

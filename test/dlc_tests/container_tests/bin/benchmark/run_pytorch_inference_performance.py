@@ -49,7 +49,6 @@ def run_inference(model_name, iterations, is_gpu):
             end = time.time()
             inference_times.append(end - start)
 
-    latency_mean = 0.0
 
     for percentile in [50, 90, 99]:
         print(

@@ -205,7 +205,7 @@ def ecr_repo_exists(ecr_client, repo_name, account_id=None):
         query["registryId"] = account_id
     try:
         ecr_client.describe_repositories(**query)
-    except ecr_client.exceptions.RepositoryNotFoundException as e:
+    except ecr_client.exceptions.RepositoryNotFoundException:
         return False
     return True
 

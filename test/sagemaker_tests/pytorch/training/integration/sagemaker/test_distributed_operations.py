@@ -20,17 +20,13 @@ import sagemaker
 from sagemaker import utils
 from sagemaker.instance_group import InstanceGroup
 from sagemaker.pytorch import PyTorch
-from sagemaker import Session
 from six.moves.urllib.parse import urlparse
 from test.test_utils import get_framework_and_version_from_tag, get_cuda_version_from_tag
 from packaging.version import Version
 from packaging.specifiers import SpecifierSet
-from ....training import get_efa_test_instance_type
 from ...integration import (
-    data_dir,
     dist_operations_path,
     fastai_path,
-    mnist_script,
     DEFAULT_TIMEOUT,
     mnist_path,
     gpt2_path,

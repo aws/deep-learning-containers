@@ -71,7 +71,7 @@ def test_eks_mxnet_single_node_training(mxnet_training):
                 eks_utils.LOGGER.info("**** training output ****")
                 eks_utils.LOGGER.debug(mxnet_out)
 
-        assert training_result, f"Training failed"
+        assert training_result, "Training failed"
     finally:
         run("kubectl delete pods {}".format(pod_name))
 
@@ -145,7 +145,7 @@ def test_eks_mxnet_dgl_single_node_training(mxnet_training, py3_only):
                 eks_utils.LOGGER.info("**** training output ****")
                 eks_utils.LOGGER.debug(dgl_out)
 
-        assert training_result, f"Training failed"
+        assert training_result, "Training failed"
     finally:
         run("kubectl delete pods {}".format(pod_name))
 
@@ -214,6 +214,6 @@ def test_eks_mxnet_gluonnlp_single_node_training(mxnet_training, py3_only):
                     )
                     eks_utils.LOGGER.debug(gluonnlp_out)
 
-        assert training_result, f"Training failed"
+        assert training_result, "Training failed"
     finally:
         run("kubectl delete pods {}".format(pod_name))

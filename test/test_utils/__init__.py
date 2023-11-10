@@ -540,7 +540,7 @@ def get_inference_server_type(image_uri):
         pytorch_ver = parse(image_tag.split("-")[0])
         if pytorch_ver < Version("1.6"):
             return "mms"
-    except InvalidVersion as e:
+    except InvalidVersion:
         return "mms"
     return "ts"
 
@@ -995,7 +995,7 @@ def get_inference_run_command(image_uri, model_names, processor="cpu"):
             )
         else:
             mms_command = (
-                f"/usr/local/bin/entrypoint.sh -t /home/model-server/config.properties -m "
+                "/usr/local/bin/entrypoint.sh -t /home/model-server/config.properties -m "
                 + " ".join(parameters)
             )
 
@@ -1366,7 +1366,7 @@ def setup_sm_benchmark_tf_train_env(resources_location, setup_tf1_env, setup_tf2
                 os.path.join(resources_location, resource_dir, "deep-learning-models")
             ):
                 # We clone branch tf2 for both 1.x and 2.x tests because tf2 branch contains all necessary files
-                ctx.run(f"git clone -b tf2 https://github.com/aws-samples/deep-learning-models.git")
+                ctx.run("git clone -b tf2 https://github.com/aws-samples/deep-learning-models.git")
 
     venv_dir = os.path.join(resources_location, "sm_benchmark_venv")
     if not os.path.isdir(venv_dir):
@@ -1905,7 +1905,7 @@ def get_tensorflow_model_base_path(image_uri):
     if is_below_framework_version("2.7", image_uri, "tensorflow"):
         model_base_path = TENSORFLOW_MODELS_BUCKET
     else:
-        model_base_path = f"/tensorflow_model/"
+        model_base_path = "/tensorflow_model/"
     return model_base_path
 
 
