@@ -122,7 +122,3 @@ function new_operation() {
 function check_cluster_status() {
   aws eks describe-cluster --name ${1} --region ${AWS_REGION} --query cluster.status --out text | grep -q ACTIVE
 }
-
-function lol(){
-  echo "lol"
-}
