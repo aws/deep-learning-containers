@@ -1,0 +1,14 @@
+# This template should maintain all existing contexts and eks clusters that should be automatically patched
+# Any additional or update to the contexts, eks_clusters, or eks_version added to build_param.json file
+# should also be added to both patch_hosts.json for maintenance and patch_hosts.template file for documentation.
+{
+    "contexts":[
+        "PR"
+        "MAINLINE"
+    ],
+    "eks_clusters":[
+        "dlc-pytorch"
+        "dlc-tensorflow"
+    ],
+    "eks_version": "1.25"
+}
