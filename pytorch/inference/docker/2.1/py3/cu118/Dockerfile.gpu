@@ -178,7 +178,7 @@ RUN pip install --no-cache-dir -U \
     ${TORCHTEXT_URL} \
     ${TORCHDATA_URL}
 
-# ARG TORCHSERVE_VERSION=0.8.2
+ARG TORCHSERVE_VERSION=0.8.2
 
 # Install TorchServe pypi dependencies directly from their requirements.txt file
 # NOTE: This also brings in unnecessary cpu dependencies like nvgpu
