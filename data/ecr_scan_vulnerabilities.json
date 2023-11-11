@@ -1,0 +1,12 @@
+{
+    "gevent":[
+       {
+          "cve":"CVE-2023-41419",
+          "id": "ECR-SCAN_CVE-2023-41419",
+          "specs":[
+             "<=23.9.0"
+          ],
+          "advisory":"An issue in Gevent before version 23.9.0 allows a remote attacker to escalate privileges via a crafted script to the WSGIServer component."
+       }
+    ]
+ }
