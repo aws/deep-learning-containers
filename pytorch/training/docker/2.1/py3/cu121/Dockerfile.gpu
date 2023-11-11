@@ -207,22 +207,7 @@ RUN curl -o /license.txt https://aws-dlc-licenses.s3.amazonaws.com/pytorch-2.1/l
 # Removing the cache as it is needed for security verification
 RUN rm -rf /root/.cache | true
 
-########################################################
-#  _____ ____ ____    ___
-# | ____/ ___|___ \  |_ _|_ __ ___   __ _  __ _  ___
-# |  _|| |     __) |  | || '_ ` _ \ / _` |/ _` |/ _ \
-# | |__| |___ / __/   | || | | | | | (_| | (_| |  __/
-# |_____\____|_____| |___|_| |_| |_|\__,_|\__, |\___|
-#                                         |___/
-#  ____           _
-# |  _ \ ___  ___(_)_ __   ___
-# | |_) / _ \/ __| | '_ \ / _ \
-# |  _ <  __/ (__| | |_) |  __/
-# |_| \_\___|\___|_| .__/ \___|
-#                  |_|
-########################################################
-
-FROM common AS ec2
+FROM common AS ec2_init
 
 ARG PYTHON
 ARG PYTHON_VERSION
@@ -319,6 +304,46 @@ RUN HOME_DIR=/root \
 
 # Removing the cache as it is needed for security verification
 RUN rm -rf /root/.cache | true
+
+# Starts framework
+CMD ["/bin/bash"]
+
+########################################################
+#  _____ ____ ____    ___
+# | ____/ ___|___ \  |_ _|_ __ ___   __ _  __ _  ___
+# |  _|| |     __) |  | || '_ ` _ \ / _` |/ _` |/ _ \
+# | |__| |___ / __/   | || | | | | | (_| | (_| |  __/
+# |_____\____|_____| |___|_| |_| |_|\__,_|\__, |\___|
+#                                         |___/
+#  ____           _
+# |  _ \ ___  ___(_)_ __   ___
+# | |_) / _ \/ __| | '_ \ / _ \
+# |  _ <  __/ (__| | |_) |  __/
+# |_| \_\___|\___|_| .__/ \___|
+#                  |_|
+########################################################
+
+FROM nvidia/cuda:11.8.0-base-ubuntu20.04 AS ec2
+
+ARG OPEN_MPI_PATH
+ARG EFA_PATH
+ARG PYTHON
+ARG PYTHON_VERSION
+ARG PYTHON_SHORT_VERSION
+ARG PYTORCH_VERSION_SM
+ARG CONDA_CHANNEL
+ARG CUDA_HOME
+ARG TORCH_CUDA_ARCH_LIST
+ARG NCCL_ASYNC_ERROR_HANDLING
+
+COPY --from=ec2_init /usr/local/ /usr/local/
+COPY --from=ec2_init /opt/conda/ /opt/conda/
+COPY --from=ec2_init /opt/amazon/ /opt/amazon/
+
+ENV LD_LIBRARY_PATH="${LD_LIBRARY_PATH}:/usr/local/lib"
+ENV LD_LIBRARY_PATH="${LD_LIBRARY_PATH}:/usr/conda/lib"
+ENV PATH="$OPEN_MPI_PATH/bin:$EFA_PATH/bin:$PATH"
+ENV LD_LIBRARY_PATH=$OPEN_MPI_PATH/lib/:$EFA_PATH/lib/:$LD_LIBRARY_PATH
 
 # Starts framework
 CMD ["/bin/bash"]
