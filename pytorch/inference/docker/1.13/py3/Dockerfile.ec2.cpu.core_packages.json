@@ -14,7 +14,7 @@
    "torchvision":{
       "version_specifier":"==0.14.1+cpu",
       "skip":"True"
-   }
+   },
    "torchserve":{
       "version_specifier":"==0.8.2"
    },
