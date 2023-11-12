@@ -249,12 +249,19 @@ CMD ["torchserve", "--start", "--ts-config", "/home/model-server/config.properti
 
 FROM nvidia/cuda:11.8.0-base-ubuntu20.04 AS ec2
 
-COPY --from=ec2_init /usr/local/ /usr/local/
-COPY --from=ec2_init /home/.openmpi/ /home/.openmpi/
+COPY --from=ec2_init /usr/local/cuda* /usr/local/
+COPY --from=ec2_init /usr/local/bin /usr/local/bin
+COPY --from=ec2_init /usr/local/etc   /usr/local/etc
+COPY --from=ec2_init /usr/local/src   /usr/local/src
+COPY --from=ec2_init /usr/local/include   /usr/local/include
+COPY --from=ec2_init /usr/local/lib   /usr/local/lib
+COPY --from=ec2_init /usr/lib/ /usr/lib/
 
-ENV LD_LIBRARY_PATH="${LD_LIBRARY_PATH}:/usr/local/lib"
-ENV PATH="$PATH:/home/.openmpi/bin"
-ENV LD_LIBRARY_PATH="$LD_LIBRARY_PATH:/home/.openmpi/lib/"
+COPY --from=ec2_init /home/.openmpi/ /home/.openmpi/
+COPY --from=ec2_init /root /root
+
+ENV LD_LIBRARY_PATH="${LD_LIBRARY_PATH}:/usr/lib/:/usr/local/lib:/usr/local/cuda/lib:/home/.openmpi/lib/"
+ENV PATH "$PATH:/usr/bin/:/usr/local/bin:/usr/local/cuda/bin:/home/.openmpi/bin"
 
 EXPOSE 8080 8081
 ENTRYPOINT ["python", "/usr/local/bin/dockerd-entrypoint.py"]
