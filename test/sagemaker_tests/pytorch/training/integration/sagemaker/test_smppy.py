@@ -36,7 +36,7 @@ INSTANCE_TYPE = "ml.g4dn.12xlarge"
 
 def _skip_if_image_is_not_compatible_with_smppy(image_uri):
     _, framework_version = get_framework_and_version_from_tag(image_uri)
-    compatible_versions = SpecifierSet("==1.13.*")
+    compatible_versions = SpecifierSet("==1.13.*,==2.0.*")
     if Version(framework_version) not in compatible_versions:
         pytest.skip(f"This test only works for PT versions in {compatible_versions}")
 

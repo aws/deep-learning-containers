@@ -468,6 +468,11 @@ RUN MAX_JOBS=4 pip install flash-attn==2.0.4 --no-build-isolation
 # Install TE using instructions from https://docs.nvidia.com/deeplearning/transformer-engine/user-guide/installation.html
 RUN pip install git+https://github.com/NVIDIA/TransformerEngine.git@release_v0.12
 
+# Install SageMaker Profiler Binary
+ARG SMP_URL=https://smppy.s3.amazonaws.com/pytorch/cu121/smppy-0.3.325-cp310-cp310-linux_x86_64.whl
+RUN apt-get update && apt-get install -y libunwind-dev && apt-get clean \
+ && pip install --no-cache-dir -U ${SMP_URL}
+
 RUN HOME_DIR=/root \
  && curl -o ${HOME_DIR}/oss_compliance.zip https://aws-dlinfra-utilities.s3.amazonaws.com/oss_compliance.zip \
  && unzip ${HOME_DIR}/oss_compliance.zip -d ${HOME_DIR}/ \
