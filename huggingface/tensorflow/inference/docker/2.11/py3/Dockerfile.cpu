@@ -47,9 +47,13 @@ RUN apt-get update \
     unzip \
     git \
     libsndfile1-dev \
-    ffmpeg \
- && apt-get clean \
- && rm -rf /var/lib/apt/lists/*
+    ffmpeg
+
+RUN apt-get update
+RUN apt-get install -y unattended-upgrades
+RUN unattended-upgrade
+RUN apt-get clean
+RUN rm -rf /var/lib/apt/lists/*
 
 RUN curl -L -o ~/mambaforge.sh https://github.com/conda-forge/miniforge/releases/download/${MAMBA_VERSION}/Mambaforge-${MAMBA_VERSION}-Linux-x86_64.sh \
  && chmod +x ~/mambaforge.sh \
