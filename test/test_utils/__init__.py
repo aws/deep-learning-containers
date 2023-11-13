@@ -171,13 +171,6 @@ ECS_AML2_GRAVITON_CPU_USWEST2 = get_ami_id_ssm(
     region_name="us-west-2",
     parameter_path="/aws/service/ecs/optimized-ami/amazon-linux-2/arm64/recommended",
 )
-NEURON_AL2_DLAMI = get_ami_id_boto3(
-    region_name="us-west-2", ami_name_pattern="Deep Learning AMI (Amazon Linux 2) Version ??.?"
-)
-HPU_AL2_DLAMI = get_ami_id_boto3(
-    region_name="us-west-2",
-    ami_name_pattern="Deep Learning AMI Habana TensorFlow 2.5.0 SynapseAI 0.15.4 (Amazon Linux 2) ????????",
-)
 
 # S3 bucket for TensorFlow models
 TENSORFLOW_MODELS_BUCKET = "s3://tensoflow-trained-models"
