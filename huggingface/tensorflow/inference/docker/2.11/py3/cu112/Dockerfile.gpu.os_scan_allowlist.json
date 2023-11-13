@@ -1,4 +1,34 @@
 {
+  "tensorflow-gpu": [
+    {
+      "description": "TensorFlow is an open source platform for machine learning. Versions prior to 2.12.0 and 2.11.1 have a Floating Point Exception in TensorListSplit with XLA. A fix is included in TensorFlow version 2.12.0 and version 2.11.1.\n",
+      "vulnerability_id": "CVE-2023-25673", 
+      "name": "CVE-2023-25673", 
+      "package_name": "tensorflow-gpu", 
+      "package_details": {
+        "file_path": "opt/conda/lib/python3.9/site-packages/tensorflow_gpu-2.11.1.dist-info/METADATA", 
+        "name": "tensorflow-gpu", 
+        "package_manager": "PYTHONPKG", 
+        "version": "2.11.1", 
+        "release": null
+      }, 
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+          }
+      }, 
+      "cvss_v3_score": 7.5, 
+      "cvss_v30_score": 0.0, 
+      "cvss_v31_score": 7.5, 
+      "cvss_v2_score": 0.0, 
+      "cvss_v3_severity": "HIGH", 
+      "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2023-25673", 
+      "source": "NVD", 
+      "severity": "HIGH", 
+      "status": "ACTIVE", 
+      "title": "CVE-2023-25673 - tensorflow-gpu"
+    }
+  ],
   "transformers": [
     {
       "reason_to_ignore": "Need guidance from HF team on how to upgrade as it's breaking the image. Temporarily ignoring to patch other CVEs.",
