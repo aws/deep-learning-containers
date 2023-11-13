@@ -29,7 +29,7 @@
       "status": "ACTIVE",
       "title": "CVE-2023-2800 - transformers"
     }
-  ]
+  ],
   "libzmq5": [
     {
       "reason_to_ignore": "The current version is marked as a fix version in the CVE notes, and this is the latest version.",
