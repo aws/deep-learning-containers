@@ -607,39 +607,33 @@ def test_pip_check(image):
     :param image: ECR image URI
     """
 
-    ctx = Context()
-    gpu_suffix = "-gpu" if "gpu" in image else ""
-    allowed_exception_list = []
+    allowed_exceptions = []
 
     # SageMaker Python SDK updated its pyyaml requirement to 6.0, which is incompatible with the
     # requirement from awscli. awscli only requires pyyaml for ecs/eks related invocations, while
     # pyyaml usage seems to be more fundamental in sagemaker. Therefore, we are ignoring awscli's
     # requirement in favor of sagemaker.
-    allowed_awscli_exception = re.compile(
+    allowed_exceptions.append(
         r"^awscli \d+(\.\d+)* has requirement PyYAML<5\.5,>=3\.10, but you have pyyaml 6\.0.$"
     )
-    allowed_exception_list.append(allowed_awscli_exception)
 
     # TF inference containers do not have core tensorflow installed by design. Allowing for this pip check error
     # to occur in order to catch other pip check issues that may be associated with TF inference
     # smclarify binaries have s3fs->aiobotocore dependency which uses older version of botocore. temporarily
     # allowing this to catch other issues
-    allowed_tf_exception = re.compile(
+    gpu_suffix = "-gpu" if "gpu" in image else ""
+    allowed_exceptions.append(
         rf"^tensorflow-serving-api{gpu_suffix} \d\.\d+\.\d+ requires tensorflow(|{gpu_suffix}), which is not installed.$"
     )
-    allowed_exception_list.append(allowed_tf_exception)
 
-    allowed_smclarify_exception = re.compile(
-        r"^aiobotocore \d+(\.\d+)* has requirement botocore<\d+(\.\d+)*,>=\d+(\.\d+)*, "
-        r"but you have botocore \d+(\.\d+)*\.$"
+    allowed_exceptions.append(
+        r"^aiobotocore \d+(\.\d+)* has requirement botocore<\d+(\.\d+)*,>=\d+(\.\d+)*, but you have botocore \d+(\.\d+)*\.$"
     )
-    allowed_exception_list.append(allowed_smclarify_exception)
 
     # The v0.22 version of tensorflow-io has a bug fixed in v0.23 https://github.com/tensorflow/io/releases/tag/v0.23.0
-    allowed_habana_tf_exception = re.compile(
+    allowed_exceptions.append(
         rf"^tensorflow-io 0.22.0 requires tensorflow, which is not installed.$"
     )
-    allowed_exception_list.append(allowed_habana_tf_exception)
 
     framework, framework_version = get_framework_and_version_from_tag(image)
     # The v0.21 version of tensorflow-io has a bug fixed in v0.23 https://github.com/tensorflow/io/releases/tag/v0.23.0
@@ -652,10 +646,9 @@ def test_pip_check(image):
     if framework in tf263_io21_issue_framework_list or Version(framework_version) in SpecifierSet(
         ">=2.6.3,<2.7"
     ):
-        allowed_tf263_exception = re.compile(
+        allowed_exceptions.append(
             rf"^tensorflow-io 0.21.0 requires tensorflow, which is not installed.$"
         )
-        allowed_exception_list.append(allowed_tf263_exception)
 
     # TF2.9 sagemaker containers introduce tf-models-official which has a known bug where in it does not respect the
     # existing TF installation. https://github.com/tensorflow/models/issues/9267. This package in turn brings in
@@ -664,32 +657,31 @@ def test_pip_check(image):
         framework_version
     ) in SpecifierSet(">=2.9.1"):
         exception_strings = []
-        models_versions = ["2.9.1", "2.9.2", "2.10.0", "2.11.0", "2.12.0", "2.13.0"]
-        for ex_ver in models_versions:
-            exception_strings += [f"tf-models-official {ex_ver}".replace(".", "\.")]
-        text_versions = ["2.9.0", "2.10.0", "2.11.0", "2.12.0", "2.13.0"]
-        for ex_ver in text_versions:
-            exception_strings += [f"tensorflow-text {ex_ver}".replace(".", "\.")]
-        allowed_tf_models_text_exception = re.compile(
+
+        for ex_ver in ["2.9.1", "2.9.2", "2.10.0", "2.11.0", "2.12.0", "2.13.0"]:
+            exception_strings += [f"tf-models-official {ex_ver}".replace(".", r"\.")]
+
+        for ex_ver in ["2.9.0", "2.10.0", "2.11.0", "2.12.0", "2.13.0"]:
+            exception_strings += [f"tensorflow-text {ex_ver}".replace(".", r"\.")]
+
+        allowed_exceptions.append(
             rf"^({'|'.join(exception_strings)}) requires tensorflow, which is not installed."
         )
-        allowed_exception_list.append(allowed_tf_models_text_exception)
 
-        allowed_tf_models_text_compatibility_exception = re.compile(
+        allowed_exceptions.append(
             rf"tf-models-official 2.9.2 has requirement tensorflow-text~=2.9.0, but you have tensorflow-text 2.10.0."
         )
-        allowed_exception_list.append(allowed_tf_models_text_compatibility_exception)
 
     if "pytorch" in image and "trcomp" in image:
-        allowed_exception_list.append(
-            re.compile(r"torch-xla \d+(\.\d+)* requires absl-py, which is not installed.")
-        )
-        allowed_exception_list.append(
-            re.compile(r"torch-xla \d+(\.\d+)* requires cloud-tpu-client, which is not installed.")
+        allowed_exceptions.extend(
+            [
+                r"torch-xla \d+(\.\d+)* requires absl-py, which is not installed.",
+                r"torch-xla \d+(\.\d+)* requires cloud-tpu-client, which is not installed.",
+            ]
         )
 
     if "autogluon" in image:
-        allowed_exception_list.extend(
+        allowed_exceptions.extend(
             [
                 r"openxlab \d+\.\d+\.\d+ has requirement requests~=\d+\.\d+\.\d+, but you have requests .*",
                 r"openxlab \d+\.\d+\.\d+ has requirement setuptools~=\d+\.\d+\.\d+, but you have setuptools .*",
@@ -697,13 +689,14 @@ def test_pip_check(image):
         )
 
     # Add null entrypoint to ensure command exits immediately
+    ctx = Context()
     output = ctx.run(f"docker run --entrypoint='' {image} pip check", hide=True, warn=True)
     if output.return_code != 0:
         if not (
             any(
                 [
-                    allowed_exception.findall(output.stdout)
-                    for allowed_exception in allowed_exception_list
+                    re.findall(allowed_exception, output.stdout)
+                    for allowed_exception in allowed_exceptions
                 ]
             )
         ):

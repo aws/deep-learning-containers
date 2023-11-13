@@ -7,7 +7,7 @@ from autogluon.tabular import TabularPredictor
 
 def model_fn(model_dir):
     """loads model from previously saved artifact"""
-    model = TabularPredictor.load(model_dir)
+    model = TabularPredictor.load(model_dir, require_version_match=False)
     globals()["column_names"] = model.feature_metadata_in.get_features()
 
     return model
