@@ -103,7 +103,6 @@ def test_python_version(image):
     :param image: ECR image URI
     """
     ctx = Context()
-    container_name = get_container_name("py-version", image)
 
     py_version = ""
     for tag_split in image.split("-"):
@@ -112,6 +111,8 @@ def test_python_version(image):
                 py_version = f"Python {tag_split[2]}.{tag_split[3]}"
             else:
                 py_version = f"Python {tag_split[2]}"
+
+    container_name = get_container_name("py-version", image)
     start_container(container_name, image, ctx)
     output = run_cmd_on_container(container_name, ctx, "python --version")
 
@@ -685,6 +686,14 @@ def test_pip_check(image):
         )
         allowed_exception_list.append(
             re.compile(r"torch-xla \d+(\.\d+)* requires cloud-tpu-client, which is not installed.")
+        )
+
+    if "autogluon" in image:
+        allowed_exception_list.extend(
+            [
+                r"openxlab \d+\.\d+\.\d+ has requirement requests~=\d+\.\d+\.\d+, but you have requests .*",
+                r"openxlab \d+\.\d+\.\d+ has requirement setuptools~=\d+\.\d+\.\d+, but you have setuptools .*",
+            ]
         )
 
     # Add null entrypoint to ensure command exits immediately
