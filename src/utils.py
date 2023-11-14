@@ -428,7 +428,7 @@ def derive_prod_image_uri_using_image_config_from_buildspec(
     This method is invoked to extract the image uri of released image using the image_config that in turn is extracted from the
     Buildspec of a particular image. The function verifies if the buildspec has `release_repository` and the `latest_release_tag`
     present in it. If it has these keys present in the Buildspec, it concats them to return the desired value. If `release_repository`
-    is not present, it uses `derive_prod_repository_using_image_config_from_buildspec` method to derive the prod repo. If 
+    is not present, it uses `derive_prod_repository_using_image_config_from_buildspec` method to derive the prod repo. If
     `latest_release_tag` is not present in the buildspec, it uses `tag` itself.
 
     :param image_config: Dict, Extracted from buildspec - should have following keys = (tag, repository and image_type)
@@ -450,8 +450,8 @@ def derive_prod_repository_using_image_config_from_buildspec(
 ):
     """
     This method is invoked to extract the repository of the released image using the image_config that in turn is extracted from the
-    Buildspec of a particular image. This function is only called when `release_repository` key is not present in Buildspec. 
-    The function extracts `repository` key from the image_config and accordingly removes the PR/Mainline/AutoPatch/Nightly prefixes 
+    Buildspec of a particular image. This function is only called when `release_repository` key is not present in Buildspec.
+    The function extracts `repository` key from the image_config and accordingly removes the PR/Mainline/AutoPatch/Nightly prefixes
     from that. In case it is not able to remove any of the above mentioned prefixes, it verifies that the code is executing in the
     local mode and then forms a repository name as {image_framework}-{image_type}.
 
@@ -459,7 +459,7 @@ def derive_prod_repository_using_image_config_from_buildspec(
     :param framework: str, Framework for eg. tensorflow, pytorch
     :param new_account_id: str, Account ID of the prod repo
     :return: str, image_uri
-    """   
+    """
     release_repository = image_config.get("repository")
     if constants.PR_REPO_PREFIX in release_repository:
         release_repository = release_repository.replace(constants.PR_REPO_PREFIX, "")
@@ -487,3 +487,14 @@ def derive_prod_repository_using_image_config_from_buildspec(
         release_repository = ".".join(release_repo_splitted)
 
     return release_repository
+
+
+def get_dummy_boto_client():
+    """
+    Makes a dummy boto3 client to ensure that boto3 clients behave in a thread safe manner.
+    In absence of this method, the behaviour documented in https://github.com/boto/boto3/issues/1592 is observed.
+    Once https://github.com/boto/boto3/issues/1592 is resolved, this method can be removed.
+
+    :return: BotocoreClientSTS
+    """
+    return boto3.client("sts", region_name=os.getenv("REGION"))
