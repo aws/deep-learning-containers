@@ -23,7 +23,10 @@ RUN pip install --no-cache-dir \
 	Jinja2 \
 	tensorboard \
 	evaluate==${EVALUATE_VERSION} \
-	accelerate==${ACCELERATE_VERSION}
+	accelerate==${ACCELERATE_VERSION} \
+	# Fix CVE
+	gevent==23.9.1 \
+	certifi==2023.7.22
 
 RUN apt-get update \
  # TODO: Remove upgrade statements once packages are updated in base image

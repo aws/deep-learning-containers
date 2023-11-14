@@ -186,8 +186,7 @@ RUN cd /opt/ && mkdir -p ipex \
 RUN pip install --no-cache-dir  "numpy<1.25"
 
 # Resolve CVE
-RUN pip install --no-cache-dir -U \
-    "scipy>=1.8.0" \
+RUN pip install --no-cache-dir -U "scipy>=1.8.0"
 
 
 RUN HOME_DIR=/root \
