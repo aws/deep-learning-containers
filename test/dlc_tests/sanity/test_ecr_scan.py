@@ -46,6 +46,7 @@ from test.test_utils.security import (
     generate_future_allowlist,
 )
 from src.config import is_ecr_scan_allowlist_feature_enabled
+from src import utils as src_utils
 
 ALLOWLIST_FEATURE_ENABLED_IMAGES = {"mxnet": SpecifierSet(">=1.8.0,<1.9.0")}
 
@@ -222,6 +223,24 @@ def helper_function_for_leftover_vulnerabilities_from_enhanced_scanning(
             image_scan_allowlist=image_scan_allowlist,
             non_patchable_vulnerabilities=non_patchable_vulnerabilities,
         )
+
+        # Note that ecr_enhanced_repo_uri will point to enhanced scan repo, thus we use image in the unique_s3 function below
+        # as we want to upload the allowlist to the location that has repo of the actual image.
+        future_allowlist_upload_path = (
+            src_utils.get_unique_s3_path_for_uploading_data_to_pr_creation_bucket(
+                image_uri=image, file_name="future_os_scan_allowlist.json"
+            )
+        )
+        upload_tag_set = [
+            {"Key": "upload_path", "Value": image_scan_allowlist_path},
+            {"Key": "image_uri", "Value": image},
+        ]
+        src_utils.process_data_upload_to_pr_creation_bucket(
+            image_uri=image,
+            upload_data=json.dumps(future_allowlist.vulnerability_list, indent=4),
+            s3_filepath=future_allowlist_upload_path,
+            tag_set=upload_tag_set,
+        )
         remaining_vulnerabilities = remaining_vulnerabilities - non_patchable_vulnerabilities
         LOGGER.info(
             f"[FutureAllowlist][image_uri:{ecr_enhanced_repo_uri}] {json.dumps(future_allowlist.vulnerability_list, cls= test_utils.EnhancedJSONEncoder)}"
@@ -229,7 +248,6 @@ def helper_function_for_leftover_vulnerabilities_from_enhanced_scanning(
         LOGGER.info(
             f"[NonPatchableVulns] [image_uri:{ecr_enhanced_repo_uri}] {json.dumps(non_patchable_vulnerabilities.vulnerability_list, cls= test_utils.EnhancedJSONEncoder)}"
         )
-    ## TODO: Upload future_allowlist.vulnerability_list
     return remaining_vulnerabilities, ecr_enhanced_repo_uri
 
 
