@@ -205,6 +205,22 @@ def get_safety_scan_allowlist_path(image_uri):
     return safety_scan_allowlist_path
 
 
+def get_overall_history_path(image_uri):
+    """
+    Retrieves the overall_history_path for each image_uri.
+
+    :param image_uri: str, consists of f"{image_repo}:{image_tag}"
+    :return: string, safety scan allowlist path for the image
+    """
+    from test.test_utils import get_ecr_scan_allowlist_path
+
+    os_scan_allowlist_path = get_ecr_scan_allowlist_path(image_uri)
+    overall_history_path = os_scan_allowlist_path.replace(
+        ".os_scan_allowlist.json", ".overall_history.txt"
+    )
+    return overall_history_path
+
+
 def get_safety_ignore_dict_from_image_specific_safety_allowlists(image_uri):
     """
     Image specific safety allowlists exist parallel to the os_scan_allowlists and allow us to allowlist vulnerabilities
@@ -324,9 +340,14 @@ def generate_safety_report_for_image(image_uri, image_info, storage_file_path=No
                 },
                 {"Key": "image_uri", "Value": image_uri.replace("-pre-push", "")},
             ]
+            upload_path = get_unique_s3_path_for_uploading_data_to_pr_creation_bucket(
+                image_uri=image_uri.replace("-pre-push", ""),
+                file_name="future_safety_allowlist.json",
+            )
             process_data_upload_to_pr_creation_bucket(
                 image_uri=image_uri.replace("-pre-push", ""),
-                json_upload_data=future_ignore_dict,
+                upload_data=json.dumps(future_ignore_dict, indent=4),
+                s3_filepath=upload_path,
                 tag_set=tag_set,
             )
 
@@ -355,9 +376,11 @@ def is_APatch_build():
     return os.getenv("APatch", "False").lower() == "true"
 
 
-def process_data_upload_to_pr_creation_bucket(image_uri, json_upload_data, tag_set=None):
+def process_data_upload_to_pr_creation_bucket(
+    image_uri: str, upload_data: str, s3_filepath: str, tag_set=None
+):
     """
-    This method uploads the given `json_upload_data` to the s3 path obtained from get_unique_s3_path_for_uploading_data_to_pr_creation_bucket method.
+    This method uploads the given `upload_data` to the s3 path obtained from get_unique_s3_path_for_uploading_data_to_pr_creation_bucket method.
     It also attaches the TagSet to the object as specified by tag_set argument that looks like:
         tag_set = [
                 {
@@ -367,15 +390,14 @@ def process_data_upload_to_pr_creation_bucket(image_uri, json_upload_data, tag_s
             ]
 
     :param image_uri: str, image uri
-    :param json_upload_data: dict/list, JSON format data that can be uploaded to the s3 object
+    :param upload_data: str, Data that can be uploaded to the s3 object
     :param tag_set: List[Dict], as described above
     :return: str, s3 file path
     """
-    s3_filepath = get_unique_s3_path_for_uploading_data_to_pr_creation_bucket(image_uri)
     s3_resource = boto3.resource("s3")
     s3object = s3_resource.Object(constants.PR_CREATION_DATA_HELPER_BUCKET, s3_filepath)
     s3_client = s3_resource.meta.client
-    s3object.put(Body=(bytes(json.dumps(json_upload_data).encode("UTF-8"))))
+    s3object.put(Body=(bytes(upload_data.encode("UTF-8"))))
     if tag_set:
         s3_client.put_object_tagging(
             Bucket=constants.PR_CREATION_DATA_HELPER_BUCKET,
@@ -384,13 +406,13 @@ def process_data_upload_to_pr_creation_bucket(image_uri, json_upload_data, tag_s
         )
 
 
-def get_unique_s3_path_for_uploading_data_to_pr_creation_bucket(image_uri: str):
+def get_unique_s3_path_for_uploading_data_to_pr_creation_bucket(image_uri: str, file_name: str):
     """
     Uses the current commit id and the image_uri to form the unique s3 path for uploading the data to the pr-creation-bucket
     """
     commit = os.getenv("CODEBUILD_RESOLVED_SOURCE_VERSION", "temp")
     object_name = image_uri.replace(":", "-").replace("/", "-")
-    return f"{commit}/{object_name}.json"
+    return f"{commit}/{object_name}/{file_name}"
 
 
 def get_core_packages_path(image_uri, python_version=None):

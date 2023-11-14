@@ -398,6 +398,11 @@ def process_images(pre_push_image_list, pre_push_image_type="Pre-push"):
     FORMATTER.banner(f"{pre_push_image_type} Push Images")
     all_images = pre_push_image_list + common_stage_image_list
     images_to_push = [image for image in all_images if image.to_push and image.to_build]
+
+    if utils.is_APatch_build():
+        for image in images_to_push:
+            retrive_autopatched_image_history_and_upload_to_s3(image_uri=image.ecr_url)
+
     push_images(images_to_push)
 
     FORMATTER.banner(f"{pre_push_image_type} Retagging")
@@ -510,7 +515,7 @@ def trigger_enhanced_scan_patching(image_uri, patch_details_path, python_version
     patch_package_dict = saved_json_data["patch_package_dict"]
     patch_package_list = list(patch_package_dict.keys())
     echo_cmd = """ echo "echo NA" """
-    file_concat_cmd = f"tee -a {patch_details_path}/install_script_second.sh"
+    file_concat_cmd = f"tee {patch_details_path}/install_script_second.sh"
     if patch_package_list:
         echo_cmd = f"""echo  "apt-get update && apt-get install -y --only-upgrade {" ".join(patch_package_list)}" """
     if os.getenv("IS_CODEBUILD_IMAGE") is None:
@@ -634,6 +639,35 @@ def initiate_multithreaded_autopatch_prep(PRE_PUSH_STAGE_IMAGES, make_dummy_boto
             )
     # the FORMATTER.progress(THREADS) function call also waits until all threads have completed
     FORMATTER.progress(THREADS)
+
+
+def retrive_autopatched_image_history_and_upload_to_s3(image_uri):
+    """
+    In this method , we extract the overall_history.txt file from the image and then upload it to the s3 bucket.
+    The extracted data is also returned by this function.
+
+    :param image_uri: str, Image URI
+    :return: str, overall_history.txt data
+    """
+    docker_run_cmd = f"docker run -id --entrypoint='/bin/bash' {image_uri} "
+    container_id = run(f"{docker_run_cmd}").stdout.strip()
+    docker_exec_cmd = f"docker exec -i {container_id}"
+    history_retrieval_command = f"cat /opt/aws/dlc/patch-details/overall_history.txt"
+    data = run(f"{docker_exec_cmd} {history_retrieval_command}", hide=True)
+    upload_path = utils.get_unique_s3_path_for_uploading_data_to_pr_creation_bucket(
+        image_uri=image_uri.replace("-multistage-common", ""), file_name="overall_history.txt"
+    )
+    tag_set = [
+        {
+            "Key": "upload_path",
+            "Value": utils.get_overall_history_path(image_uri.replace("-multistage-common", "")),
+        },
+        {"Key": "image_uri", "Value": image_uri.replace("-multistage-common", "")},
+    ]
+    utils.process_data_upload_to_pr_creation_bucket(
+        image_uri=image_uri, upload_data=data.stdout, s3_filepath=upload_path, tag_set=tag_set
+    )
+    return data.stdout
 
 
 def show_build_info(images):
