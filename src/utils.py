@@ -427,3 +427,71 @@ def get_core_packages_path(image_uri, python_version=None):
     os_scan_allowlist_path = get_ecr_scan_allowlist_path(image_uri, python_version)
     core_packages_path = os_scan_allowlist_path.replace(".os_scan_allowlist.", ".core_packages.")
     return core_packages_path
+
+
+def derive_prod_image_uri_using_image_config_from_buildspec(
+    image_config: dict, framework: str, new_account_id: str = ""
+):
+    """
+    This method is invoked to extract the image uri of released image using the image_config that in turn is extracted from the
+    Buildspec of a particular image. The function verifies if the buildspec has `release_repository` and the `latest_release_tag`
+    present in it. If it has these keys present in the Buildspec, it concats them to return the desired value. If `release_repository`
+    is not present, it uses `derive_prod_repository_using_image_config_from_buildspec` method to derive the prod repo. If 
+    `latest_release_tag` is not present in the buildspec, it uses `tag` itself.
+
+    :param image_config: Dict, Extracted from buildspec - should have following keys = (tag, repository and image_type)
+    :param framework: str, Framework for eg. tensorflow, pytorch
+    :param new_account_id: str, Account ID of the prod repo
+    :return: str, image_uri
+    """
+    prod_repo = image_config.get(
+        "release_repository"
+    ) or derive_prod_repository_using_image_config_from_buildspec(
+        image_config=image_config, framework=framework, new_account_id=new_account_id
+    )
+    prod_tag = image_config.get("latest_release_tag") or image_config.get("tag")
+    return f"{prod_repo}:{prod_tag}"
+
+
+def derive_prod_repository_using_image_config_from_buildspec(
+    image_config: dict, framework: str, new_account_id: str = ""
+):
+    """
+    This method is invoked to extract the repository of the released image using the image_config that in turn is extracted from the
+    Buildspec of a particular image. This function is only called when `release_repository` key is not present in Buildspec. 
+    The function extracts `repository` key from the image_config and accordingly removes the PR/Mainline/AutoPatch/Nightly prefixes 
+    from that. In case it is not able to remove any of the above mentioned prefixes, it verifies that the code is executing in the
+    local mode and then forms a repository name as {image_framework}-{image_type}.
+
+    :param image_config: Dict, Extracted from buildspec - should have following keys = (repository and image_type)
+    :param framework: str, Framework for eg. tensorflow, pytorch
+    :param new_account_id: str, Account ID of the prod repo
+    :return: str, image_uri
+    """   
+    release_repository = image_config.get("repository")
+    if constants.PR_REPO_PREFIX in release_repository:
+        release_repository = release_repository.replace(constants.PR_REPO_PREFIX, "")
+    elif constants.MAINLINE_REPO_PREFIX in release_repository:
+        release_repository = release_repository.replace(constants.MAINLINE_REPO_PREFIX, "")
+    elif constants.AUTOPATCH_PREFIX in release_repository:
+        release_repository = release_repository.replace(constants.AUTOPATCH_PREFIX, "")
+    elif constants.NIGHTLY_REPO_PREFIX in release_repository:
+        release_repository = release_repository.replace(constants.NIGHTLY_REPO_PREFIX, "")
+    elif not os.getenv("BUILD_CONTEXT") == "PR" and not os.getenv("BUILD_CONTEXT") == "MAINLINE":
+        # This is mostly when we run locally, in which we have some prefix to the actual repo name, for eg. abcd-tensorflow-inference
+        # We retrive the prod repo name using the buildspec and get rid of the additional prefix i.e. "abcd".
+        image_type = image_config.get("image_type")
+        desired_prod_repo_name = f"{framework}-{image_type}"
+        current_repo_name = release_repository.split("/")[-1]
+        release_repository = release_repository.replace(current_repo_name, desired_prod_repo_name)
+    else:
+        raise ValueError(
+            f"Release repository cannot be found out in this scenario! Value of image_config: {image_config}"
+        )
+
+    if new_account_id:
+        release_repo_splitted = release_repository.split(".")
+        release_repo_splitted[0] = new_account_id
+        release_repository = ".".join(release_repo_splitted)
+
+    return release_repository

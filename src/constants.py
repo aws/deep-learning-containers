@@ -66,6 +66,7 @@ DEBUG = 3
 MAINLINE_REPO_PREFIX = "beta-"
 NIGHTLY_REPO_PREFIX = "nightly-"
 PR_REPO_PREFIX = "pr-"
+AUTOPATCH_PREFIX="autopatch-"
 
 # Env variables for the code build PR jobs
 JOB_FRAMEWORK = os.environ.get("FRAMEWORK")
@@ -94,3 +95,5 @@ API_CLIENT_TIMEOUT = 600
 MAX_WORKER_COUNT_FOR_PUSHING_IMAGES = 3
 
 PR_CREATION_DATA_HELPER_BUCKET="pr-creation-data-helper"
+
+PUBLIC_DLC_REGISTRY = "763104351884"

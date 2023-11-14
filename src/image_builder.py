@@ -109,6 +109,13 @@ def image_builder(buildspec, image_types=[], device_types=[]):
         labels = {}
         enable_datetime_tag = parse_dlc_developer_configs("build", "datetime_tag")
 
+        prod_repo_uri = ""
+        if utils.is_APatch_build():
+            prod_repo_uri = utils.derive_prod_image_uri_using_image_config_from_buildspec(
+                image_config=image_config, framework=BUILDSPEC["framework"], new_account_id=constants.PUBLIC_DLC_REGISTRY
+            )
+            FORMATTER.print(f"""[PROD_URI for {image_config["repository"]}:{image_config["tag"]}] {prod_repo_uri}""")
+
         if image_config.get("version") is not None:
             if BUILDSPEC["version"] != image_config.get("version"):
                 continue
@@ -282,13 +289,8 @@ def image_builder(buildspec, image_types=[], device_types=[]):
             "labels": labels,
             "extra_build_args": extra_build_args,
             "cx_type": cx_type,
-            "release_image_uri": "",
+            "release_image_uri": prod_repo_uri,
         }
-
-        if BUILDSPEC.get("prod_account_id") and utils.is_APatch_build():
-            info[
-                "release_image_uri"
-            ] = f"""{str(image_config.get("release_repository"))}:{str(image_config.get("latest_release_tag"))}"""
 
         # Create pre_push stage docker object
         pre_push_stage_image_object = DockerImage(
