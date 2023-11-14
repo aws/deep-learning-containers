@@ -174,10 +174,6 @@ ECS_AML2_GRAVITON_CPU_USWEST2 = get_ami_id_ssm(
 NEURON_AL2_DLAMI = get_ami_id_boto3(
     region_name="us-west-2", ami_name_pattern="Deep Learning AMI (Amazon Linux 2) Version ??.?"
 )
-HPU_AL2_DLAMI = get_ami_id_boto3(
-    region_name="us-west-2",
-    ami_name_pattern="Deep Learning AMI Habana TensorFlow 2.5.0 SynapseAI 0.15.4 (Amazon Linux 2) ????????",
-)
 
 # Account ID of test executor
 ACCOUNT_ID = boto3.client("sts", region_name=DEFAULT_REGION).get_caller_identity().get("Account")
