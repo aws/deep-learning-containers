@@ -22,9 +22,13 @@ RUN pip install --no-cache-dir \
 RUN apt-get update \
  # TODO: Remove upgrade statements once packages are updated in base image
  && apt-get -y upgrade --only-upgrade systemd openssl cryptsetup\
- && apt install -y git-lfs \
- && apt-get clean \
- && rm -rf /var/lib/apt/lists/*
+ && apt install -y git-lfs
+ 
+RUN apt-get update
+RUN apt-get install -y unattended-upgrades
+RUN unattended-upgrade
+RUN apt-get clean
+RUN rm -rf /var/lib/apt/lists/*
 
 RUN HOME_DIR=/root \
  && curl -o ${HOME_DIR}/oss_compliance.zip https://aws-dlinfra-utilities.s3.amazonaws.com/oss_compliance.zip \
