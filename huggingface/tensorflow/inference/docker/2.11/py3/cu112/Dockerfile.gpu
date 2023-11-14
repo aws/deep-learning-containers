@@ -89,8 +89,7 @@ RUN pip install --upgrade pip --trusted-host pypi.org --trusted-host files.pytho
     enum-compat==0.0.3 \
     # Putting a cap in versions number to avoid potential issues with a new major version
     "urllib3>=1.25.9" \
-    "cryptography>=41.0.2" \
-    "tensorflow-gpu>=2.12.0"
+    "cryptography>=41.0.2"
 
 RUN wget https://download.open-mpi.org/release/open-mpi/v4.1/openmpi-${OPEN_MPI_VERSION}.tar.gz \
  && gunzip -c openmpi-$OPEN_MPI_VERSION.tar.gz | tar xf - \
@@ -128,6 +127,7 @@ RUN chmod +x /usr/local/bin/deep_learning_container.py
 #################################
 
 # Install TF Binary
+RUN pip uninstall -y tensorflow-gpu
 RUN pip install --no-cache-dir -U ${TF_URL}
 
 # We need TF_FORCE_GPU_ALLOW_GROWTH=true to prevent TF from overusing GPU memory when loading models
