@@ -454,26 +454,30 @@ def trigger_language_patching(image_uri, s3_downloaded_path, python_version=None
     :param python_version: str, python_version
     :return: str, Returns constants.SUCCESS to allow the multi-threaded caller to know that the method has succeeded.
     """
-    mount_path_1 = os.path.join(os.sep, s3_downloaded_path)
-    mount_path_2 = os.path.join(os.sep, get_cloned_folder_path())
-    docker_run_cmd = f"docker run -v {mount_path_1}:/patch-dlc -v {mount_path_2}:/deep-learning-containers -id --entrypoint='/bin/bash' {image_uri} "
+    patch_dlc_folder_mount = os.path.join(os.sep, s3_downloaded_path)
+    dlc_repo_folder_mount = os.path.join(os.sep, get_cloned_folder_path())
+    docker_run_cmd = f"docker run -v {patch_dlc_folder_mount}:/patch-dlc -v {dlc_repo_folder_mount}:/deep-learning-containers -id --entrypoint='/bin/bash' {image_uri} "
     print(f"TRSHANTA docker_run_cmd : {docker_run_cmd}")
     container_id = run(f"{docker_run_cmd}").stdout.strip()
     docker_exec_cmd = f"docker exec -i {container_id}"
-    absolute_core_package_path = utils.get_core_packages_path(image_uri, python_version)
-    core_package_path_within_dlc_repo = ""
-    if os.path.exists(absolute_core_package_path):
-        core_package_path_within_dlc_repo = absolute_core_package_path.replace(
-            mount_path_2, os.path.join(os.sep, "deep-learning-containers")
-        )
-    script_run_cmd = f"bash /patch-dlc/script.sh {image_uri}"
-    if core_package_path_within_dlc_repo:
-        script_run_cmd = f"{script_run_cmd} {core_package_path_within_dlc_repo}"
-    print(f"TRSHANTA script_run_cmd : {script_run_cmd}")
-    result = run(f"{docker_exec_cmd} {script_run_cmd}", hide=True)
-    new_cmd = result.stdout.strip().split("\n")[-1]
-    print(f"For {image_uri} => {new_cmd}")
-    run(f"docker rm -f {container_id}", hide=True, warn=True)
+
+    try:
+        absolute_core_package_path = utils.get_core_packages_path(image_uri, python_version)
+        core_package_path_within_dlc_repo = ""
+        if os.path.exists(absolute_core_package_path):
+            core_package_path_within_dlc_repo = absolute_core_package_path.replace(
+                dlc_repo_folder_mount, os.path.join(os.sep, "deep-learning-containers")
+            )
+        script_run_cmd = f"bash /patch-dlc/script.sh {image_uri}"
+        if core_package_path_within_dlc_repo:
+            script_run_cmd = f"{script_run_cmd} {core_package_path_within_dlc_repo}"
+        print(f"TRSHANTA script_run_cmd : {script_run_cmd}")
+        result = run(f"{docker_exec_cmd} {script_run_cmd}", hide=True)
+        new_cmd = result.stdout.strip().split("\n")[-1]
+        print(f"For {image_uri} => {new_cmd}")
+    finally:
+        run(f"docker rm -f {container_id}", hide=True, warn=True)
+
     return constants.SUCCESS
 
 
@@ -504,31 +508,36 @@ def trigger_enhanced_scan_patching(image_uri, patch_details_path, python_version
         for cve in package_cve_list:
             if cve.package_details.package_manager == "OS":
                 impacted_packages.add(package_name)
-    mount_path_1 = os.path.join(os.sep, get_cloned_folder_path())
-    mount_path_2 = os.path.join(os.sep, patch_details_path)
-    docker_run_cmd = f"docker run -v {mount_path_1}:/deep-learning-containers -v {mount_path_2}:/image-specific-patch-folder  -id --entrypoint='/bin/bash' {image_uri} "
+    dlc_repo_folder_mount = os.path.join(os.sep, get_cloned_folder_path())  # dlc_repo_folder_mount
+    image_specific_patch_folder = os.path.join(
+        os.sep, patch_details_path
+    )  # image_specific_patch_folder
+    docker_run_cmd = f"docker run -v {dlc_repo_folder_mount}:/deep-learning-containers -v {image_specific_patch_folder}:/image-specific-patch-folder  -id --entrypoint='/bin/bash' {image_uri} "
     container_id = run(f"{docker_run_cmd}").stdout.strip()
-    docker_exec_cmd = f"docker exec -i {container_id}"
-    container_setup_cmd = "apt-get update"
-    run(f"{docker_exec_cmd} {container_setup_cmd}", hide=True)
-    save_file_name = "os_summary.json"
-    ## TODO: Handle if none impacted packages
-    script_run_cmd = f"""python /deep-learning-containers/miscellaneous_scripts/extract_apt_patch_data.py --impacted-packages {",".join(impacted_packages)} --save-result-path /image-specific-patch-folder/{save_file_name} --mode_type generate"""
-    run(f"{docker_exec_cmd} {script_run_cmd}")
-    with open(os.path.join(os.sep, patch_details_path, save_file_name), "r") as readfile:
-        saved_json_data = json.load(readfile)
-    print(f"For {image_uri} => {saved_json_data}")
-    patch_package_dict = saved_json_data["patch_package_dict"]
-    patch_package_list = list(patch_package_dict.keys())
-    echo_cmd = """ echo "echo NA" """
-    file_concat_cmd = f"tee {patch_details_path}/install_script_second.sh"
-    if patch_package_list:
-        echo_cmd = f"""echo  "apt-get update && apt-get install -y --only-upgrade {" ".join(patch_package_list)}" """
-    if os.getenv("IS_CODEBUILD_IMAGE") is None:
-        file_concat_cmd = f"sudo {file_concat_cmd}"
-    complete_command = f"{echo_cmd} | {file_concat_cmd}"
-    print(f"For {image_uri} => {complete_command}")
-    run(complete_command, hide=True)
+    try:
+        docker_exec_cmd = f"docker exec -i {container_id}"
+        container_setup_cmd = "apt-get update"
+        run(f"{docker_exec_cmd} {container_setup_cmd}", hide=True)
+        save_file_name = "os_summary.json"
+        ## TODO: Handle if none impacted packages
+        script_run_cmd = f"""python /deep-learning-containers/miscellaneous_scripts/extract_apt_patch_data.py --impacted-packages {",".join(impacted_packages)} --save-result-path /image-specific-patch-folder/{save_file_name} --mode_type generate"""
+        run(f"{docker_exec_cmd} {script_run_cmd}")
+        with open(os.path.join(os.sep, patch_details_path, save_file_name), "r") as readfile:
+            saved_json_data = json.load(readfile)
+        print(f"For {image_uri} => {saved_json_data}")
+        patch_package_dict = saved_json_data["patch_package_dict"]
+        patch_package_list = list(patch_package_dict.keys())
+        echo_cmd = """ echo "echo NA" """
+        file_concat_cmd = f"tee {patch_details_path}/install_script_second.sh"
+        if patch_package_list:
+            echo_cmd = f"""echo  "apt-get update && apt-get install -y --only-upgrade {" ".join(patch_package_list)}" """
+        if os.getenv("IS_CODEBUILD_IMAGE") is None:
+            file_concat_cmd = f"sudo {file_concat_cmd}"
+        complete_command = f"{echo_cmd} | {file_concat_cmd}"
+        print(f"For {image_uri} => {complete_command}")
+        run(complete_command, hide=True)
+    finally:
+        run(f"docker rm -f {container_id}", hide=True, warn=True)
     return constants.SUCCESS
 
 
@@ -657,22 +666,27 @@ def retrive_autopatched_image_history_and_upload_to_s3(image_uri):
     """
     docker_run_cmd = f"docker run -id --entrypoint='/bin/bash' {image_uri} "
     container_id = run(f"{docker_run_cmd}").stdout.strip()
-    docker_exec_cmd = f"docker exec -i {container_id}"
-    history_retrieval_command = f"cat /opt/aws/dlc/patch-details/overall_history.txt"
-    data = run(f"{docker_exec_cmd} {history_retrieval_command}", hide=True)
-    upload_path = utils.get_unique_s3_path_for_uploading_data_to_pr_creation_bucket(
-        image_uri=image_uri.replace("-multistage-common", ""), file_name="overall_history.txt"
-    )
-    tag_set = [
-        {
-            "Key": "upload_path",
-            "Value": utils.get_overall_history_path(image_uri.replace("-multistage-common", "")),
-        },
-        {"Key": "image_uri", "Value": image_uri.replace("-multistage-common", "")},
-    ]
-    utils.process_data_upload_to_pr_creation_bucket(
-        image_uri=image_uri, upload_data=data.stdout, s3_filepath=upload_path, tag_set=tag_set
-    )
+    try:
+        docker_exec_cmd = f"docker exec -i {container_id}"
+        history_retrieval_command = f"cat /opt/aws/dlc/patch-details/overall_history.txt"
+        data = run(f"{docker_exec_cmd} {history_retrieval_command}", hide=True)
+        upload_path = utils.get_unique_s3_path_for_uploading_data_to_pr_creation_bucket(
+            image_uri=image_uri.replace("-multistage-common", ""), file_name="overall_history.txt"
+        )
+        tag_set = [
+            {
+                "Key": "upload_path",
+                "Value": utils.get_overall_history_path(
+                    image_uri.replace("-multistage-common", "")
+                ),
+            },
+            {"Key": "image_uri", "Value": image_uri.replace("-multistage-common", "")},
+        ]
+        utils.process_data_upload_to_pr_creation_bucket(
+            image_uri=image_uri, upload_data=data.stdout, s3_filepath=upload_path, tag_set=tag_set
+        )
+    finally:
+        run(f"docker rm -f {container_id}", hide=True, warn=True)
     return data.stdout
 
 
