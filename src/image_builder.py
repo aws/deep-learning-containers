@@ -447,7 +447,8 @@ def generate_common_stage_image_object(pre_push_stage_image_object, image_tag):
 
 def trigger_language_patching(image_uri, s3_downloaded_path, python_version=None):
     """
-    This method initiates the processing for language packages.
+    This method initiates the processing for language packages. It creates a patch dump specific for each container that has the
+    patched package details.
 
     :param image_uri: str, image_uri
     :param s3_downloaded_path: str, Path where the relevant data is downloaded
@@ -481,18 +482,15 @@ def trigger_language_patching(image_uri, s3_downloaded_path, python_version=None
     return constants.SUCCESS
 
 
-def trigger_enhanced_scan_patching(image_uri, patch_details_path, python_version=None):
+def get_impacted_os_packages(image_uri, python_version=None):
     """
-    This method initiates the processing for enhanced scan patching of the images. It trigger the enhanced scanning for the
-    image and then gets the result to find the impacted packages. These impacted packages are then sent to the extract_apt_patch_data.py
-    script that executes in the GENERATE mode to get the list of all the impacted packages that can be upgraded and their version in the
-    released image. This data is then used to create the apt upgrade command and is dumped in the form of install_script_second.sh .
+    Runs Enhanced Scan on the image and returns the impacted OS packages.
 
     :param image_uri: str, image_uri
-    :param s3_downloaded_path: str, Path where the relevant data is downloaded
     :param python_version: str, python_version
-    :return: str, Returns constants.SUCCESS to allow the multi-threaded caller to know that the method has succeeded.
+    :return: set, impacted OS packages
     """
+    # Lazy import is done over here to prevent circular dependencies. In general, it is a good practice to have lazy imports.
     from test.dlc_tests.sanity.test_ecr_scan import (
         helper_function_for_leftover_vulnerabilities_from_enhanced_scanning,
     )
@@ -508,7 +506,25 @@ def trigger_enhanced_scan_patching(image_uri, patch_details_path, python_version
         for cve in package_cve_list:
             if cve.package_details.package_manager == "OS":
                 impacted_packages.add(package_name)
-    dlc_repo_folder_mount = os.path.join(os.sep, get_cloned_folder_path())  # dlc_repo_folder_mount
+    return impacted_packages
+
+
+def trigger_enhanced_scan_patching(image_uri, patch_details_path, python_version=None):
+    """
+    This method initiates the processing for enhanced scan patching of the images. It triggers the enhanced scanning for the
+    image and then gets the result to find the impacted packages. These impacted packages are then sent to the extract_apt_patch_data.py
+    script that executes in the GENERATE mode to get the list of all the impacted packages that can be upgraded and their version in the
+    released image. This data is then used to create the apt upgrade command and is dumped in the form of install_script_second.sh.
+
+    Note: We need to do a targeted package upgrade to upgrade the impacted packages to esnure that the image does not inflate.
+
+    :param image_uri: str, image_uri
+    :param s3_downloaded_path: str, Path where the relevant data is downloaded
+    :param python_version: str, python_version
+    :return: str, Returns constants.SUCCESS to allow the multi-threaded caller to know that the method has succeeded.
+    """
+    impacted_packages = get_impacted_os_packages(image_uri=image_uri, python_version=python_version)
+    dlc_repo_folder_mount = os.path.join(os.sep, get_cloned_folder_path())
     image_specific_patch_folder = os.path.join(
         os.sep, patch_details_path
     )  # image_specific_patch_folder
