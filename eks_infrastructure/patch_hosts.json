@@ -6,6 +6,5 @@
     "eks_clusters": [
         "dlc-pytorch",
         "dlc-tensorflow"
-    ],
-    "eks_version": "1.25"
+    ]
 }
