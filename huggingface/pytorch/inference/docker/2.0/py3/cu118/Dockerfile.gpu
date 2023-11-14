@@ -90,14 +90,10 @@ RUN apt-get update \
     libsndfile1-dev \
     ffmpeg \
     openssh-client \
-    openssh-server
-    
-RUN apt-get update
-RUN apt-get install -y unattended-upgrades
-RUN unattended-upgrade
-RUN apt-get autoremove -y
-RUN apt-get clean
-RUN rm -rf /var/lib/apt/lists/*
+    openssh-server \
+ && apt-get autoremove -y \
+ && rm -rf /var/lib/apt/lists/* \
+ && apt-get clean
 
 # Install NCCL
 RUN cd /tmp \
