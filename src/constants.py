@@ -66,7 +66,7 @@ DEBUG = 3
 MAINLINE_REPO_PREFIX = "beta-"
 NIGHTLY_REPO_PREFIX = "nightly-"
 PR_REPO_PREFIX = "pr-"
-AUTOPATCH_PREFIX="autopatch-"
+AUTOPATCH_REPO_PREFIX="autopatch-"
 
 # Env variables for the code build PR jobs
 JOB_FRAMEWORK = os.environ.get("FRAMEWORK")

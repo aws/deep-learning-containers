@@ -44,6 +44,10 @@ def is_build_enabled():
     return parse_dlc_developer_configs("build", "do_build")
 
 
+def is_autopatch_build_enabled():
+    return parse_dlc_developer_configs("build", "autopatch_build") or os.getenv("AUTOPATCH")
+
+
 def is_ec2_test_enabled():
     return parse_dlc_developer_configs("test", "ec2_tests")
 

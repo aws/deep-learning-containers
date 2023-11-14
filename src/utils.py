@@ -24,7 +24,7 @@ from botocore.exceptions import ClientError
 from invoke.context import Context
 
 from codebuild_environment import get_cloned_folder_path
-from config import is_build_enabled
+from config import is_build_enabled, is_autopatch_build_enabled
 from safety_report_generator import SafetyReportGenerator
 
 LOGGER = logging.getLogger(__name__)
@@ -323,7 +323,7 @@ def generate_safety_report_for_image(image_uri, image_info, storage_file_path=No
     if storage_file_path:
         with open(storage_file_path, "w", encoding="utf-8") as f:
             json.dump(safety_scan_output, f, indent=4)
-    if is_APatch_build():
+    if is_autopatch_build_enabled():
         ignore_dict_from_image_specific_allowlist = (
             get_safety_ignore_dict_from_image_specific_safety_allowlists(image_uri)
         )
@@ -366,14 +366,6 @@ def get_label_prefix_customer_type(image_tag):
 
     # Older images are not tagged with ec2 or sagemaker. Assuming that lack of ec2 tag implies sagemaker.
     return "sagemaker"
-
-
-def is_APatch_build():
-    """
-    Returns True if image builder is working for image patch.
-    :return: <bool> True or False
-    """
-    return os.getenv("APatch", "False").lower() == "true"
 
 
 def process_data_upload_to_pr_creation_bucket(
@@ -473,8 +465,8 @@ def derive_prod_repository_using_image_config_from_buildspec(
         release_repository = release_repository.replace(constants.PR_REPO_PREFIX, "")
     elif constants.MAINLINE_REPO_PREFIX in release_repository:
         release_repository = release_repository.replace(constants.MAINLINE_REPO_PREFIX, "")
-    elif constants.AUTOPATCH_PREFIX in release_repository:
-        release_repository = release_repository.replace(constants.AUTOPATCH_PREFIX, "")
+    elif constants.AUTOPATCH_REPO_PREFIX in release_repository:
+        release_repository = release_repository.replace(constants.AUTOPATCH_REPO_PREFIX, "")
     elif constants.NIGHTLY_REPO_PREFIX in release_repository:
         release_repository = release_repository.replace(constants.NIGHTLY_REPO_PREFIX, "")
     elif not os.getenv("BUILD_CONTEXT") == "PR" and not os.getenv("BUILD_CONTEXT") == "MAINLINE":

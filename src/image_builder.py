@@ -27,7 +27,7 @@ import boto3
 import itertools
 
 from codebuild_environment import get_codebuild_project_name, get_cloned_folder_path
-from config import parse_dlc_developer_configs, is_build_enabled
+from config import parse_dlc_developer_configs, is_build_enabled, is_autopatch_build_enabled
 from context import Context
 from metrics import Metrics
 from image import DockerImage
@@ -87,7 +87,7 @@ def image_builder(buildspec, image_types=[], device_types=[]):
         or "autogluon" in str(BUILDSPEC["framework"])
         or "stabilityai" in str(BUILDSPEC["framework"])
         or "trcomp" in str(BUILDSPEC["framework"])
-        or utils.is_APatch_build()
+        or is_autopatch_build_enabled()
     ):
         os.system("echo login into public ECR")
         os.system(
@@ -110,11 +110,15 @@ def image_builder(buildspec, image_types=[], device_types=[]):
         enable_datetime_tag = parse_dlc_developer_configs("build", "datetime_tag")
 
         prod_repo_uri = ""
-        if utils.is_APatch_build():
+        if is_autopatch_build_enabled():
             prod_repo_uri = utils.derive_prod_image_uri_using_image_config_from_buildspec(
-                image_config=image_config, framework=BUILDSPEC["framework"], new_account_id=constants.PUBLIC_DLC_REGISTRY
+                image_config=image_config,
+                framework=BUILDSPEC["framework"],
+                new_account_id=constants.PUBLIC_DLC_REGISTRY,
             )
-            FORMATTER.print(f"""[PROD_URI for {image_config["repository"]}:{image_config["tag"]}] {prod_repo_uri}""")
+            FORMATTER.print(
+                f"""[PROD_URI for {image_config["repository"]}:{image_config["tag"]}] {prod_repo_uri}"""
+            )
 
         if image_config.get("version") is not None:
             if BUILDSPEC["version"] != image_config.get("version"):
@@ -128,7 +132,7 @@ def image_builder(buildspec, image_types=[], device_types=[]):
             else image_config["tag"]
         )
 
-        if utils.is_APatch_build():
+        if is_autopatch_build_enabled():
             image_tag = append_tag(image_tag, "autopatch")
 
         additional_image_tags = []
@@ -317,7 +321,7 @@ def image_builder(buildspec, image_types=[], device_types=[]):
         PRE_PUSH_STAGE_IMAGES.append(pre_push_stage_image_object)
         FORMATTER.separator()
 
-    if utils.is_APatch_build():
+    if is_autopatch_build_enabled():
         FORMATTER.banner("APATCH-PREP")
         initiate_multithreaded_autopatch_prep(PRE_PUSH_STAGE_IMAGES, make_dummy_boto_client=True)
 
@@ -401,7 +405,7 @@ def process_images(pre_push_image_list, pre_push_image_type="Pre-push"):
     all_images = pre_push_image_list + common_stage_image_list
     images_to_push = [image for image in all_images if image.to_push and image.to_build]
 
-    if utils.is_APatch_build():
+    if is_autopatch_build_enabled():
         for image in images_to_push:
             retrive_autopatched_image_history_and_upload_to_s3(image_uri=image.ecr_url)
 
@@ -847,9 +851,14 @@ def modify_repository_name_for_context(image_repo_uri, build_context):
     repo_uri_values = image_repo_uri.split("/")
     repo_name = repo_uri_values[-1]
     if build_context == "MAINLINE":
-        repo_uri_values[-1] = repo_name.replace(
-            constants.PR_REPO_PREFIX, constants.MAINLINE_REPO_PREFIX
-        )
+        if is_autopatch_build_enabled():
+            repo_uri_values[-1] = repo_name.replace(
+                constants.PR_REPO_PREFIX, constants.AUTOPATCH_REPO_PREFIX
+            )
+        else:
+            repo_uri_values[-1] = repo_name.replace(
+                constants.PR_REPO_PREFIX, constants.MAINLINE_REPO_PREFIX
+            )
     elif build_context == "NIGHTLY":
         repo_uri_values[-1] = repo_name.replace(
             constants.PR_REPO_PREFIX, constants.NIGHTLY_REPO_PREFIX
