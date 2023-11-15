@@ -2104,7 +2104,7 @@ def get_installed_python_packages_with_version(docker_exec_command: str):
     This method extracts all the installed python packages and their versions from a DLC.
 
     :param docker_exec_command: str, The Docker exec command for an already running container.
-    :return: Dict, Dictionary with key=package_name and value=package_version
+    :return: Dict, Dictionary with key=package_name and value=package_version in str
     """
     package_version_dict = {}
 

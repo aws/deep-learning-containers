@@ -19,6 +19,13 @@ from test.test_utils import (
 import dataclasses
 from dataclasses import dataclass
 from typing import Any, List
+from packaging.version import Version
+
+from tenacity import (
+    retry,
+    stop_after_delay,
+    wait_random_exponential,
+)
 
 
 @dataclass
@@ -1186,6 +1193,21 @@ def get_os_package_upgradable_status(
             ignore_message = f"""{ignore_message} Packages: {",".join(package_related_binaries)} have been upgraded."""
     return is_package_upgradable, ignore_message
 
+@retry(
+    reraise=True,
+    stop=stop_after_delay(20 * 60),  # Keep retrying for 20 minutes
+    wait=wait_random_exponential(min=30, max=2 * 60),  # Retry after waiting 30 secsonds - 2 minutes
+)
+def get_latest_version_of_a_python_package(package_name:str):
+    """
+    Get the latest version of a python package. Calls PyPi to extract the same.
+
+    :return: str, version of the package
+    """
+    response = requests.get(f"https://pypi.org/pypi/{package_name}/json")
+    latest_version = response.json()["info"]["version"]
+    return latest_version
+
 
 def check_if_python_vulnerability_is_non_patchable_and_get_ignore_message(
     vulnerability: AllowListFormatVulnerabilityForEnhancedScan,
@@ -1224,9 +1246,8 @@ def check_if_python_vulnerability_is_non_patchable_and_get_ignore_message(
         )
 
     ## 2. Check if the package is already in the latest version, if not then allowlist
-    response = requests.get(f"https://pypi.org/pypi/{package_name}/json")
-    latest_version = response.json()["info"]["version"]
-    if installed_package_version == latest_version:
+    latest_version = get_latest_version_of_a_python_package(package_name=package_name)
+    if Version(installed_package_version) == Version(latest_version):
         return True, f"Installed package version {installed_package_version} is the latest version"
 
     ##TODO: Revert
