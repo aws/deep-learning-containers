@@ -8,7 +8,7 @@ OVERALL_HISTORY_DUMP_LOCATION = os.path.join(
 )
 
 
-def generate_overall_history(folder_path, overall_history, release_count):
+def generate_overall_history(folder_path, overall_history, release_count=0):
     """
     In this method we look into the install scripts within the patch-details folder and extract the contents of the install
     scripts that are appended to the overall_history.txt
@@ -47,18 +47,15 @@ def main():
     patch_details_folder_names = sorted(
         patch_details_folder_names, key=lambda x: int(x.split("-")[-1])
     )
-    release_count = 0
-    for patch_details_folder_name in patch_details_folder_names:
+
+    for release_count, patch_details_folder_name in enumerate(patch_details_folder_names):
         patch_details_folder_path = os.path.join(
             os.sep, ARCHIVE_FOLDER_PATH, patch_details_folder_name
         )
-        release_count += 1
         generate_overall_history(
             patch_details_folder_path, overall_history, release_count
         )
-    generate_overall_history(
-        LATEST_PATCH_DETAILS_FOLDER_PATH, overall_history, release_count
-    )
+    generate_overall_history(LATEST_PATCH_DETAILS_FOLDER_PATH, overall_history)
 
     with open(OVERALL_HISTORY_DUMP_LOCATION, "w") as f:
         for line in overall_history:

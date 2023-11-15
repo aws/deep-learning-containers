@@ -1220,7 +1220,8 @@ def check_if_python_vulnerability_is_non_patchable_and_get_ignore_message(
     2. Check if the package is already in the latest version, if not declare it as non-patchable/allowlistable
 
     :param vulnerability: Object of type AllowListFormatVulnerabilityForEnhancedScan, vuln that we need to check patchability for.
-    :param installed_python_package_version_dict: Dict, key = package name and value = package version
+    :param installed_python_package_version_dict: Dict, key = package name and value = package version. This is the list of packages
+                                                        that are installed in the image being currently tested.
     :param docker_exec_command: str, Docker exec command to run additional commands on the container
     :return: [bool, str], returns 2 values, the first says True if the vulnerability/package is non-patchable and the second one stores the ignore message
              in case the vulnerability is non-patchable. This ignore message is used to insert into the allowlist.
@@ -1332,14 +1333,14 @@ def extract_non_patchable_vulnerabilities(
 
     non_patchable_vulnerabilities_with_reason = copy.deepcopy(vulnerability_list_object)
     print(non_patchable_vulnerabilities_with_reason.vulnerability_list)
-    packages_to_remove = []
+    patchable_packages = []
     for (
         package_name,
         vulnerabilities,
     ) in non_patchable_vulnerabilities_with_reason.vulnerability_list.items():
         package_manager = vulnerabilities[0].package_details.package_manager
         if package_manager not in ["OS", "PYTHONPKG"]:
-            packages_to_remove.append(package_name)
+            patchable_packages.append(package_name)
             continue
         if package_manager == "OS":
             # Using the new and the embedded patch evaluation data, we decipher if the package is upgradable anymore or not.
@@ -1348,7 +1349,7 @@ def extract_non_patchable_vulnerabilities(
             )
             if is_package_upgradable:
                 # If it is upgradable, we remove it from non_patchable_vulnerabilities_with_reason Object since it can be patched
-                packages_to_remove.append(package_name)
+                patchable_packages.append(package_name)
                 continue
             for package_vulnerability in vulnerabilities:
                 package_vulnerability.reason_to_ignore = ignore_msg
@@ -1365,12 +1366,12 @@ def extract_non_patchable_vulnerabilities(
                     package_name
                 ] = allowlistable_python_vulns
             else:
-                packages_to_remove.append(package_name)
+                patchable_packages.append(package_name)
 
     # In the end, any patchable package is removed from the non_patchable_vulnerabilities_with_reason object.
     non_patchable_vulnerabilities_with_reason.vulnerability_list = {
         k: v
         for k, v in non_patchable_vulnerabilities_with_reason.vulnerability_list.items()
-        if k not in packages_to_remove
+        if k not in patchable_packages
     }
     return non_patchable_vulnerabilities_with_reason
