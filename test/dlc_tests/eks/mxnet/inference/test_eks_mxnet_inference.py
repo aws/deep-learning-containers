@@ -58,6 +58,7 @@ def test_eks_mxnet_neuron_inference(mxnet_inference_neuron):
 
 
 @pytest.mark.model("squeezenet")
+@pytest.mark.team("frameworks")
 def test_eks_mxnet_squeezenet_inference(mxnet_inference):
     __test_eks_mxnet_squeezenet_inference(mxnet_inference)
 
@@ -121,6 +122,7 @@ def __test_eks_mxnet_squeezenet_inference(mxnet_inference):
 )
 @pytest.mark.integration("gluonnlp")
 @pytest.mark.model("bert_sst")
+@pytest.mark.team("frameworks")
 def test_eks_mxnet_gluonnlp_inference(mxnet_inference, py3_only):
     __test_eks_mxnet_gluonnlp_inference(mxnet_inference)
 

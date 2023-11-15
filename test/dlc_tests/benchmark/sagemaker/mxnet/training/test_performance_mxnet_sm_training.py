@@ -21,6 +21,7 @@ from test.test_utils import (
 # test ends.
 @pytest.mark.usefixtures("sagemaker_only")
 @pytest.mark.model("resnet50")
+@pytest.mark.team("frameworks")
 @pytest.mark.parametrize("num_nodes", [4], indirect=True)
 def test_mxnet_sagemaker_training_performance(
     mxnet_training, num_nodes, region, gpu_only, py3_only
