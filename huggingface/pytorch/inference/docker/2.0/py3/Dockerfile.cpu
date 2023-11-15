@@ -185,7 +185,8 @@ RUN cd /opt/ && mkdir -p ipex \
 # Re-installing numpy after IPEx installation to get the appropriate numpy version and fix pip checks.
 RUN pip install --no-cache-dir  "numpy<1.25" \
     # Resolve CVE
-    scipy==1.8.0
+    scipy==1.10.0 \
+    urllib3==1.26.18
 
 
 RUN HOME_DIR=/root \

@@ -91,9 +91,12 @@ RUN apt-get update \
     ffmpeg \
     openssh-client \
     openssh-server \
+    unattended-upgrades \
  && apt-get autoremove -y \
  && rm -rf /var/lib/apt/lists/* \
  && apt-get clean
+
+RUN unattended-upgrade
 
 # Install NCCL
 RUN cd /tmp \
@@ -200,7 +203,10 @@ RUN pip install --no-cache-dir \
     "accelerate>=0.11.0" \
 	"protobuf>=3.19.5,<=3.20.2" \
 	"numpy>=1.22.2,<1.23" \
-	"sagemaker-huggingface-inference-toolkit<3"
+	"sagemaker-huggingface-inference-toolkit<3" \
+    # CVE
+    scipy==1.10.0 \
+    urllib3==1.26.18
 
 
 RUN HOME_DIR=/root \
