@@ -183,10 +183,9 @@ RUN cd /opt/ && mkdir -p ipex \
 
 # IPEx installation installs the numpy==1.25.1. That causes a pip check failure due to incompatibility with numba.
 # Re-installing numpy after IPEx installation to get the appropriate numpy version and fix pip checks.
-RUN pip install --no-cache-dir  "numpy<1.25"
-
-# Resolve CVE
-RUN pip install --no-cache-dir -U "scipy>=1.8.0"
+RUN pip install --no-cache-dir  "numpy<1.25" \
+    # Resolve CVE
+    scipy==1.8.0
 
 
 RUN HOME_DIR=/root \

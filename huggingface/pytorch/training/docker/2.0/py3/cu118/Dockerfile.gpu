@@ -26,7 +26,8 @@ RUN pip install --no-cache-dir \
 	accelerate==${ACCELERATE_VERSION} \
 	# Fix CVE
 	gevent==23.9.1 \
-	certifi==2023.7.22
+	certifi==2023.7.22 \
+	scipy==1.8.0
 
 RUN apt-get update \
  # TODO: Remove upgrade statements once packages are updated in base image
