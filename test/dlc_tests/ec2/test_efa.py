@@ -129,7 +129,7 @@ def test_efa_tensorflow(
     run_cmd_on_container(
         MASTER_CONTAINER_NAME,
         master_connection,
-        f"{EFA_INTEGRATION_TEST_CMD} {HOSTS_FILE_LOCATION} {number_of_nodes}",
+        f"export CUDA_HOME='/usr/local/cuda'; {EFA_INTEGRATION_TEST_CMD} {HOSTS_FILE_LOCATION} {number_of_nodes}",
         hide=False,
         timeout=300,
     )
@@ -147,6 +147,8 @@ def test_efa_tensorflow(
     reason="Skip EFA test in PR context unless explicitly enabled",
 )
 @pytest.mark.team("conda")
+@pytest.mark.skip_pt21_test
+@pytest.mark.skip_pt20_cuda121_tests
 def test_pytorch_efa_healthcheck(
     pytorch_training,
     efa_ec2_instances,

@@ -198,6 +198,12 @@ def pytest_addoption(parser):
         help="Run canary tests",
     )
     parser.addoption(
+        "--deep-canary",
+        action="store_true",
+        default=False,
+        help="Run Deep Canary tests",
+    )
+    parser.addoption(
         "--generate-coverage-doc",
         action="store_true",
         default=False,
@@ -329,6 +335,11 @@ def ec2_instance_ami(request, region):
         else UBUNTU_20_BASE_DLAMI_US_EAST_1
         if region == "us-east-1"
         else UBUNTU_20_BASE_DLAMI_US_WEST_2
+        if region == "us-west-2"
+        else test_utils.get_ami_id_boto3(
+            region_name=region,
+            ami_name_pattern="Deep Learning Base GPU AMI (Ubuntu 20.04) ????????",
+        )
     )
 
 
@@ -600,7 +611,7 @@ def ec2_instance(
         ]
     elif (
         (
-            ("benchmark" in os.getenv("TEST_TYPE") or is_benchmark_dev_context())
+            ("benchmark" in os.getenv("TEST_TYPE", "UNDEFINED") or is_benchmark_dev_context())
             and (
                 ("mxnet_training" in request.fixturenames and "gpu_only" in request.fixturenames)
                 or "mxnet_inference" in request.fixturenames
@@ -874,6 +885,29 @@ def skip_pt20_cuda121_tests(request):
             and image_processor == "gpu"
         ):
             pytest.skip("PyTorch 2.0 + CUDA12.1 image doesn't support current test")
+
+
+@pytest.fixture(autouse=True)
+def skip_p5_tests(request, ec2_instance_type):
+    if "p5." in ec2_instance_type:
+        if "gpu" in request.fixturenames:
+            img_uri = request.getfixturevalue("gpu")
+        elif "image" in request.fixturenames:
+            img_uri = request.getfixturevalue("image")
+        elif "training" in request.fixturenames:
+            img_uri = request.getfixturevalue("training")
+        elif "pytorch_training" in request.fixturenames:
+            img_uri = request.getfixturevalue("pytorch_training")
+        else:
+            pytest.skip("Current image doesn't support P5 EC2 instance.")
+
+        framework, image_framework_version = get_framework_and_version_from_tag(img_uri)
+        if "pytorch" not in framework:
+            pytest.skip("Current image doesn't support P5 EC2 instance.")
+        image_processor = get_processor_from_image_uri(img_uri)
+        image_cuda_version = get_cuda_version_from_tag(img_uri)
+        if image_processor != "gpu" or Version(image_cuda_version.strip("cu")) < Version("120"):
+            pytest.skip("Images using less than CUDA 12.0 doesn't support P5 EC2 instance.")
 
 
 @pytest.fixture(autouse=True)
@@ -1251,6 +1285,26 @@ def pytest_configure(config):
     config.addinivalue_line(
         "markers", "allow_p4de_use(): explicitly mark to allow test to use p4de instance types"
     )
+    config.addinivalue_line("markers", "p3(): choose trcomp perf tests running on p3 instance type")
+    config.addinivalue_line(
+        "markers", "single_gpu(): choose trcomp perf tests that run on single-gpu instance types"
+    )
+    config.addinivalue_line("markers", "neuronx_test(): mark as neuronx integration test")
+    config.addinivalue_line(
+        "markers", "skip_pt20_cuda121_tests(): mark test to skip due to dlc being incompatible"
+    )
+    config.addinivalue_line(
+        "markers", "skip_pt21_test(): mark test to skip due to dlc being incompatible"
+    )
+    config.addinivalue_line(
+        "markers", "skip_inductor_test(): mark test to skip due to dlc being incompatible"
+    )
+    config.addinivalue_line("markers", "skip_trcomp_containers(): mark test to skip on trcomp dlcs")
+    config.addinivalue_line(
+        "markers", "skip_s3plugin_test(): mark test to skip due to dlc being incompatible"
+    )
+    config.addinivalue_line("markers", "deep_canary(): explicitly mark to run as deep canary test")
+    config.addinivalue_line("markers", "team(team_name): mark tests that belong to a team")
 
 
 def pytest_runtest_setup(item):
@@ -1278,6 +1332,11 @@ def pytest_runtest_setup(item):
         canary_opts = [mark for mark in item.iter_markers(name="canary")]
         if not canary_opts:
             pytest.skip("Skipping non-canary tests")
+
+    if item.config.getoption("--deep-canary"):
+        deep_canary_opts = [mark for mark in item.iter_markers(name="deep_canary")]
+        if not deep_canary_opts:
+            pytest.skip("Skipping non-deep-canary tests")
 
     # Handle multinode conditional skipping
     if item.config.getoption("--multinode"):
@@ -1399,10 +1458,6 @@ def lookup_condition(lookup, image):
 def pytest_generate_tests(metafunc):
     images = metafunc.config.getoption("--images")
 
-    # Don't parametrize if there are no images to parametrize
-    if not images:
-        return
-
     # Parametrize framework specific tests
     for fixture in FRAMEWORK_FIXTURES:
         if fixture in metafunc.fixturenames:
@@ -1426,16 +1481,12 @@ def pytest_generate_tests(metafunc):
                         for fixture_name in ["example_only", "huggingface_only"]
                     ) and all(keyword not in image for keyword in ["example", "huggingface"])
                     if "sagemaker_only" in metafunc.fixturenames and is_ec2_image(image):
-                        LOGGER.info(f"Not running EC2 image {image} on sagemaker_only test")
                         continue
                     if is_sagemaker_image(image):
                         if (
                             "sagemaker_only" not in metafunc.fixturenames
                             and "sagemaker" not in metafunc.fixturenames
                         ):
-                            LOGGER.info(
-                                f"Skipping test, as this function is not marked as 'sagemaker_only' or 'sagemaker'"
-                            )
                             continue
                     if (
                         "stabilityai" not in metafunc.fixturenames

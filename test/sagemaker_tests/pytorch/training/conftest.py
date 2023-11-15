@@ -30,7 +30,11 @@ from sagemaker.pytorch import PyTorch
 from . import get_efa_test_instance_type
 
 from .utils import get_ecr_registry, NightlyFeatureLabel, is_nightly_context
-from .integration import get_framework_and_version_from_tag, get_cuda_version_from_tag
+from .integration import (
+    get_framework_and_version_from_tag,
+    get_cuda_version_from_tag,
+    get_processor_from_image_uri,
+)
 from .utils.image_utils import build_base_image, are_fixture_labels_enabled
 
 from packaging.version import Version
@@ -473,6 +477,17 @@ def skip_pt20_cuda121_tests(request, ecr_image):
             image_cuda_version.strip("cu")
         ) == Version("121"):
             pytest.skip("PyTorch 2.0 + CUDA12.1 image doesn't support current test")
+
+
+@pytest.fixture(autouse=True)
+def skip_p5_tests(request, ecr_image, instance_type):
+    if "p5." in instance_type:
+        framework, image_framework_version = get_framework_and_version_from_tag(ecr_image)
+
+        image_processor = get_processor_from_image_uri(img_uri)
+        image_cuda_version = get_cuda_version_from_tag(ecr_image)
+        if image_processor != "gpu" or Version(image_cuda_version.strip("cu")) < Version("120"):
+            pytest.skip("Images using less than CUDA 12.0 doesn't support P5 EC2 instance.")
 
 
 def _get_remote_override_flags():

@@ -84,6 +84,7 @@ def get_transformers_version(ecr_image):
 @pytest.mark.skip_cpu
 @pytest.mark.skip_py2_containers
 @pytest.mark.skip_trcomp_containers
+@pytest.mark.team("sagemaker-1p-algorithms")
 def test_smdp_question_answering(ecr_image, sagemaker_regions, py_version):
     """
     Tests SM Distributed DataParallel single-node via script mode
@@ -100,6 +101,7 @@ def test_smdp_question_answering(ecr_image, sagemaker_regions, py_version):
 @pytest.mark.skip_cpu
 @pytest.mark.skip_py2_containers
 @pytest.mark.skip_trcomp_containers
+@pytest.mark.team("sagemaker-1p-algorithms")
 def test_smdp_question_answering_multinode(ecr_image, sagemaker_regions, py_version):
     """
     Tests SM Distributed DataParallel single-node via script mode
