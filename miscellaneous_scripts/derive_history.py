@@ -53,7 +53,7 @@ def main():
             os.sep, ARCHIVE_FOLDER_PATH, patch_details_folder_name
         )
         generate_overall_history(
-            patch_details_folder_path, overall_history, release_count
+            patch_details_folder_path, overall_history, release_count + 1
         )
     generate_overall_history(LATEST_PATCH_DETAILS_FOLDER_PATH, overall_history)
 
