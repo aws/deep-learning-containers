@@ -36,7 +36,7 @@ def trigger_language_patching(image_uri, s3_downloaded_path, python_version=None
     dlc_repo_folder_mount = os.path.join(os.sep, get_cloned_folder_path())
     docker_run_cmd = f"docker run -v {patch_dlc_folder_mount}:/patch-dlc -v {dlc_repo_folder_mount}:/deep-learning-containers -id --entrypoint='/bin/bash' {image_uri} "
     FORMATTER.print(f"[trigger_language] docker_run_cmd : {docker_run_cmd}")
-    container_id = run(f"{docker_run_cmd}").stdout.strip()
+    container_id = run(f"{docker_run_cmd}", hide=True).stdout.strip()
     docker_exec_cmd = f"docker exec -i {container_id}"
 
     try:
@@ -107,7 +107,7 @@ def trigger_enhanced_scan_patching(image_uri, patch_details_path, python_version
         os.sep, patch_details_path
     )  # image_specific_patch_folder
     docker_run_cmd = f"docker run -v {dlc_repo_folder_mount}:/deep-learning-containers -v {image_specific_patch_folder}:/image-specific-patch-folder  -id --entrypoint='/bin/bash' {image_uri} "
-    container_id = run(f"{docker_run_cmd}").stdout.strip()
+    container_id = run(f"{docker_run_cmd}", hide=True).stdout.strip()
     try:
         docker_exec_cmd = f"docker exec -i {container_id}"
         container_setup_cmd = "apt-get update"
@@ -118,7 +118,7 @@ def trigger_enhanced_scan_patching(image_uri, patch_details_path, python_version
             script_run_cmd = (
                 f"""{script_run_cmd} --impacted-packages {",".join(impacted_packages)}"""
             )
-        run(f"{docker_exec_cmd} {script_run_cmd}")
+        run(f"{docker_exec_cmd} {script_run_cmd}", hide=True)
         with open(os.path.join(os.sep, patch_details_path, save_file_name), "r") as readfile:
             saved_json_data = json.load(readfile)
         print(f"For {image_uri} => {saved_json_data}")
@@ -158,7 +158,7 @@ def conduct_autopatch_build_setup(pre_push_image_object: DockerImage, download_p
         os.sep, download_path, released_image_uri.replace("/", "_").replace(":", "_")
     )
     if not os.path.exists(patch_details_path):
-        run(f"mkdir {patch_details_path}")
+        run(f"mkdir {patch_details_path}", hide=True)
 
     run(f"docker pull {released_image_uri}", hide=True)
 
@@ -262,7 +262,7 @@ def retrive_autopatched_image_history_and_upload_to_s3(image_uri):
     :return: str, overall_history.txt data
     """
     docker_run_cmd = f"docker run -id --entrypoint='/bin/bash' {image_uri} "
-    container_id = run(f"{docker_run_cmd}").stdout.strip()
+    container_id = run(f"{docker_run_cmd}", hide=True).stdout.strip()
     try:
         docker_exec_cmd = f"docker exec -i {container_id}"
         history_retrieval_command = f"cat /opt/aws/dlc/patch-details/overall_history.txt"
