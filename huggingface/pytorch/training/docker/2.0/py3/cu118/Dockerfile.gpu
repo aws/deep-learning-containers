@@ -30,7 +30,7 @@ RUN pip install --no-cache-dir \
 	scipy==1.8.0 \
 	pydantic==1.10.13 \
 	urllib3==1.26.18 \
-	wekzeug==3.0.1 \
+	wekzeug==2.3.8 \
 	fonttols==4.43.0
 
 RUN apt-get update \
