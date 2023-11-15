@@ -384,9 +384,7 @@ def get_label_prefix_customer_type(image_tag):
     return "sagemaker"
 
 
-def upload_data_to_pr_creation_s3_bucket(
-    upload_data: str, s3_filepath: str, tag_set=None
-):
+def upload_data_to_pr_creation_s3_bucket(upload_data: str, s3_filepath: str, tag_set=None):
     """
     This method uploads the given `upload_data` to the s3 path provided in the parameter.
     It also attaches the TagSet to the object as specified by tag_set argument that looks like:

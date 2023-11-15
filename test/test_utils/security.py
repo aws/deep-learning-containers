@@ -1193,12 +1193,13 @@ def get_os_package_upgradable_status(
             ignore_message = f"""{ignore_message} Packages: {",".join(package_related_binaries)} have been upgraded."""
     return is_package_upgradable, ignore_message
 
+
 @retry(
     reraise=True,
     stop=stop_after_delay(20 * 60),  # Keep retrying for 20 minutes
     wait=wait_random_exponential(min=30, max=2 * 60),  # Retry after waiting 30 secsonds - 2 minutes
 )
-def get_latest_version_of_a_python_package(package_name:str):
+def get_latest_version_of_a_python_package(package_name: str):
     """
     Get the latest version of a python package. Calls PyPi to extract the same.
 

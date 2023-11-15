@@ -19,7 +19,9 @@ def generate_overall_history(folder_path, overall_history, release_count=0):
     """
     if ARCHIVE_FOLDER_PATH in folder_path:
         f = open(os.path.join(os.sep, folder_path, "image_sha.txt"), "r")
-        overall_history.append(f"#### Patch contents for patch-{release_count}: {f.read().strip()} ####")
+        overall_history.append(
+            f"#### Patch contents for patch-{release_count}: {f.read().strip()} ####"
+        )
     elif LATEST_PATCH_DETAILS_FOLDER_PATH in folder_path:
         overall_history.append("#### Current Patch contents ####")
     f = open(os.path.join(os.sep, folder_path, "install_script_language.sh"), "r")
@@ -52,9 +54,7 @@ def main():
         patch_details_folder_path = os.path.join(
             os.sep, ARCHIVE_FOLDER_PATH, patch_details_folder_name
         )
-        generate_overall_history(
-            patch_details_folder_path, overall_history, release_count + 1
-        )
+        generate_overall_history(patch_details_folder_path, overall_history, release_count + 1)
     generate_overall_history(LATEST_PATCH_DETAILS_FOLDER_PATH, overall_history)
 
     with open(OVERALL_HISTORY_DUMP_LOCATION, "w") as f:
