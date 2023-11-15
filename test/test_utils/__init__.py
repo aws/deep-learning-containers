@@ -742,6 +742,7 @@ def is_test_disabled(test_name, build_name, version):
 
 def run_subprocess_cmd(cmd, failure="Command failed"):
     import pytest
+
     command = subprocess.run(cmd, stdout=subprocess.PIPE, shell=True)
     if command.returncode:
         pytest.fail(f"{failure}. Error log:\n{command.stdout.decode()}")
@@ -1249,6 +1250,7 @@ def parse_canary_images(framework, region, image_type, customer_type=None):
     :return: dlc_images string (space separated string of image URIs)
     """
     import git
+
     customer_type = customer_type or get_customer_type()
     customer_type_tag = f"-{customer_type}" if customer_type else ""
 
