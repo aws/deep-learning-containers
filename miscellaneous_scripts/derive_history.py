@@ -22,9 +22,9 @@ def generate_overall_history(folder_path, overall_history, release_count=0):
         overall_history.append(f"#### Patch contents for patch-{release_count}: {f.read().strip()} ####")
     elif LATEST_PATCH_DETAILS_FOLDER_PATH in folder_path:
         overall_history.append("#### Current Patch contents ####")
-    f = open(os.path.join(os.sep, folder_path, "install_script.sh"), "r")
+    f = open(os.path.join(os.sep, folder_path, "install_script_language.sh"), "r")
     overall_history.append(f"{f.read().strip()}")
-    f = open(os.path.join(os.sep, folder_path, "install_script_second.sh"), "r")
+    f = open(os.path.join(os.sep, folder_path, "install_script_os.sh"), "r")
     overall_history.append(f"{f.read().strip()}")
 
 

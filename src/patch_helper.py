@@ -92,7 +92,7 @@ def trigger_enhanced_scan_patching(image_uri, patch_details_path, python_version
     This method initiates the processing for enhanced scan patching of the images. It triggers the enhanced scanning for the
     image and then gets the result to find the impacted packages. These impacted packages are then sent to the extract_apt_patch_data.py
     script that executes in the GENERATE mode to get the list of all the impacted packages that can be upgraded and their version in the
-    released image. This data is then used to create the apt upgrade command and is dumped in the form of install_script_second.sh.
+    released image. This data is then used to create the apt upgrade command and is dumped in the form of install_script_os.sh.
 
     Note: We need to do a targeted package upgrade to upgrade the impacted packages to esnure that the image does not inflate.
 
@@ -125,7 +125,7 @@ def trigger_enhanced_scan_patching(image_uri, patch_details_path, python_version
         patch_package_dict = saved_json_data["patch_package_dict"]
         patch_package_list = list(patch_package_dict.keys())
         echo_cmd = """ echo "echo N/A" """
-        file_concat_cmd = f"tee {patch_details_path}/install_script_second.sh"
+        file_concat_cmd = f"tee {patch_details_path}/install_script_os.sh"
         if patch_package_list:
             echo_cmd = f"""echo  "apt-get update && apt-get install -y --only-upgrade {" ".join(patch_package_list)}" """
         if os.getenv("IS_CODEBUILD_IMAGE") is None:
