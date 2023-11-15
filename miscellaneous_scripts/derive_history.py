@@ -1,14 +1,14 @@
 import os
 
-archive_folder_path = "/opt/aws/dlc/patch-details-archive"
-latest_patch_details_folder_path = "/opt/aws/dlc/patch-details"
-contents_within_archive_folder = os.listdir(archive_folder_path)
-overall_history_dump_location = os.path.join(
-    os.sep, latest_patch_details_folder_path, "overall_history.txt"
+ARCHIVE_FOLDER_PATH = "/opt/aws/dlc/patch-details-archive"
+LATEST_PATCH_DETAILS_FOLDER_PATH = "/opt/aws/dlc/patch-details"
+CONTENTS_WITHIN_ARCHIVE_FOLDER = os.listdir(ARCHIVE_FOLDER_PATH)
+OVERALL_HISTORY_DUMP_LOCATION = os.path.join(
+    os.sep, LATEST_PATCH_DETAILS_FOLDER_PATH, "overall_history.txt"
 )
 
 
-def process_patch_folders_and_add_contents(folder_path, overall_history, release_count):
+def generate_overall_history(folder_path, overall_history, release_count):
     """
     In this method we look into the install scripts within the patch-details folder and extract the contents of the install
     scripts that are appended to the overall_history.txt
@@ -17,11 +17,11 @@ def process_patch_folders_and_add_contents(folder_path, overall_history, release
     :param overall_history: list, contains contents that will finally be dumped into the overall_history.txt file
     :param release_count: int, stores the release number after the first manual release
     """
-    if archive_folder_path in folder_path:
+    if ARCHIVE_FOLDER_PATH in folder_path:
         f = open(os.path.join(os.sep, folder_path, "image_sha.txt"), "r")
-        overall_history.append(f"#### Release {release_count}: {f.read().strip()} ####")
-    elif latest_patch_details_folder_path in folder_path:
-        overall_history.append("#### Latest Release ####")
+        overall_history.append(f"#### Patch contents for patch-{release_count}: {f.read().strip()} ####")
+    elif LATEST_PATCH_DETAILS_FOLDER_PATH in folder_path:
+        overall_history.append("#### Current Patch contents ####")
     f = open(os.path.join(os.sep, folder_path, "install_script.sh"), "r")
     overall_history.append(f"{f.read().strip()}")
     f = open(os.path.join(os.sep, folder_path, "install_script_second.sh"), "r")
@@ -35,13 +35,13 @@ def main():
     overall_history.txt file.
     """
     overall_history = []
-    f = open(os.path.join(os.sep, archive_folder_path, "first_image_sha.txt"), "r")
+    f = open(os.path.join(os.sep, ARCHIVE_FOLDER_PATH, "first_image_sha.txt"), "r")
     first_image_sha = f.read().strip()
     overall_history.append(f"#### First image: {first_image_sha} ####")
     patch_details_folder_names = [
         artifact_name
-        for artifact_name in contents_within_archive_folder
-        if os.path.isdir(os.path.join(os.sep, archive_folder_path, artifact_name))
+        for artifact_name in CONTENTS_WITHIN_ARCHIVE_FOLDER
+        if os.path.isdir(os.path.join(os.sep, ARCHIVE_FOLDER_PATH, artifact_name))
         and artifact_name.startswith("patch-details-")
     ]
     patch_details_folder_names = sorted(
@@ -50,17 +50,17 @@ def main():
     release_count = 0
     for patch_details_folder_name in patch_details_folder_names:
         patch_details_folder_path = os.path.join(
-            os.sep, archive_folder_path, patch_details_folder_name
+            os.sep, ARCHIVE_FOLDER_PATH, patch_details_folder_name
         )
         release_count += 1
-        process_patch_folders_and_add_contents(
+        generate_overall_history(
             patch_details_folder_path, overall_history, release_count
         )
-    process_patch_folders_and_add_contents(
-        latest_patch_details_folder_path, overall_history, release_count
+    generate_overall_history(
+        LATEST_PATCH_DETAILS_FOLDER_PATH, overall_history, release_count
     )
 
-    with open(overall_history_dump_location, "w") as f:
+    with open(OVERALL_HISTORY_DUMP_LOCATION, "w") as f:
         for line in overall_history:
             f.write(f"{line}\n")
 
