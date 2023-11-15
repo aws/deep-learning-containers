@@ -35,7 +35,7 @@ def trigger_language_patching(image_uri, s3_downloaded_path, python_version=None
     patch_dlc_folder_mount = os.path.join(os.sep, s3_downloaded_path)
     dlc_repo_folder_mount = os.path.join(os.sep, get_cloned_folder_path())
     docker_run_cmd = f"docker run -v {patch_dlc_folder_mount}:/patch-dlc -v {dlc_repo_folder_mount}:/deep-learning-containers -id --entrypoint='/bin/bash' {image_uri} "
-    print(f"TRSHANTA docker_run_cmd : {docker_run_cmd}")
+    FORMATTER.print(f"[trigger_language] docker_run_cmd : {docker_run_cmd}")
     container_id = run(f"{docker_run_cmd}").stdout.strip()
     docker_exec_cmd = f"docker exec -i {container_id}"
 
@@ -49,7 +49,7 @@ def trigger_language_patching(image_uri, s3_downloaded_path, python_version=None
         script_run_cmd = f"bash /patch-dlc/script.sh {image_uri}"
         if core_package_path_within_dlc_repo:
             script_run_cmd = f"{script_run_cmd} {core_package_path_within_dlc_repo}"
-        print(f"TRSHANTA script_run_cmd : {script_run_cmd}")
+        FORMATTER.print(f"[trigger_language] script_run_cmd : {script_run_cmd}")
         result = run(f"{docker_exec_cmd} {script_run_cmd}", hide=True)
         new_cmd = result.stdout.strip().split("\n")[-1]
         print(f"For {image_uri} => {new_cmd}")

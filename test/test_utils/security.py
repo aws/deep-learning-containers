@@ -1251,10 +1251,7 @@ def check_if_python_vulnerability_is_non_patchable_and_get_ignore_message(
     latest_version = get_latest_version_of_a_python_package(package_name=package_name)
     if Version(installed_package_version) == Version(latest_version):
         return True, f"Installed package version {installed_package_version} is the latest version"
-
-    ##TODO: Revert
-    if vulnerability.package_name == "gevent":
-        return True, "Custom Ignore Message - Trshanta"
+    
     return False, ""
 
 

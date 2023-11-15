@@ -157,7 +157,6 @@ class SafetyReportGenerator:
                     package_scan_results["scan_status"] = "FAILED"
                     if is_autopatch_build_enabled():
                         ignored_package_dict = self.get_autopatched_dumped_ignore_dict_of_packages()
-                        print(f"TRSHANTA ignored_package_dict: {ignored_package_dict}")
                         if package in ignored_package_dict:
                             ignore_message = f"""[Package: {package}] Conflicts for: {",".join(ignored_package_dict.get(package).keys())}"""
                             package_scan_results["scan_status"] = "IGNORED"

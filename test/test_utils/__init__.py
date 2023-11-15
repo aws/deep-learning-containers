@@ -2229,7 +2229,4 @@ def get_installed_python_packages_with_version(docker_exec_command: str):
             )
         package_version_dict[package_name] = package_data_dict["version"]
 
-    print(f"TRSHANTA RESULT: {package_version_dict}")
-    print({len(list(package_version_dict.keys()))})
-
     return package_version_dict
