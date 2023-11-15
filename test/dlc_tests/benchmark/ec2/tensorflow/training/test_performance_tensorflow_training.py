@@ -48,6 +48,7 @@ TF_EC2_HPU_INSTANCE_TYPE = "dl1.24xlarge"
 
 @pytest.mark.integration("synthetic dataset")
 @pytest.mark.model("resnet50")
+@pytest.mark.team("frameworks")
 @pytest.mark.parametrize("ec2_instance_type", [TF_EC2_CPU_INSTANCE_TYPE], indirect=True)
 def test_performance_tensorflow_cpu(
     tensorflow_training, ec2_connection, cpu_only, below_tf213_only
@@ -69,6 +70,7 @@ def test_performance_tensorflow_cpu(
 # TODO: Enable TF1 by removing "tf2_only" fixture once infrastructure issues have been resolved.
 @pytest.mark.integration("synthetic dataset")
 @pytest.mark.model("resnet50")
+@pytest.mark.team("frameworks")
 @pytest.mark.parametrize("ec2_instance_type", [TF_EC2_GPU_INSTANCE_TYPE], indirect=True)
 def test_performance_tensorflow_gpu_synthetic(
     tensorflow_training, ec2_connection, gpu_only, tf2_only, below_tf213_only
@@ -90,6 +92,7 @@ def test_performance_tensorflow_gpu_synthetic(
 # TODO: Enable TF1 by removing "tf2_only" fixture once infrastructure issues have been resolved.
 @pytest.mark.integration("imagenet dataset")
 @pytest.mark.model("resnet50")
+@pytest.mark.team("frameworks")
 @pytest.mark.parametrize("ec2_instance_type", [TF_EC2_GPU_INSTANCE_TYPE], indirect=True)
 def test_performance_tensorflow_gpu_imagenet(
     tensorflow_training, ec2_connection, gpu_only, tf2_only, below_tf213_only

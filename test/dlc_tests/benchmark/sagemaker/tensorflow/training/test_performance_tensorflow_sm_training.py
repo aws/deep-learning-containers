@@ -27,6 +27,7 @@ from test.test_utils import (
 @pytest.mark.integration("imagenet dataset")
 @pytest.mark.multinode(4)
 @pytest.mark.model("resnet50")
+@pytest.mark.team("frameworks")
 def test_tensorflow_sagemaker_training_performance_multinode(
     tensorflow_training, region, below_tf213_only
 ):
@@ -36,6 +37,7 @@ def test_tensorflow_sagemaker_training_performance_multinode(
 @pytest.mark.usefixtures("sagemaker_only")
 @pytest.mark.integration("imagenet dataset")
 @pytest.mark.model("resnet50")
+@pytest.mark.team("frameworks")
 def test_tensorflow_sagemaker_training_performance_singlenode(
     tensorflow_training, region, below_tf213_only
 ):
