@@ -299,6 +299,41 @@ def get_safety_ignore_dict(image_uri, framework, python_version, job_type):
     return ignore_dict
 
 
+def derive_future_safety_allowlist_and_upload_to_s3(
+    safety_report_generator_object: SafetyReportGenerator, image_uri: str
+):
+    """
+    This method derives the future safety allowlist and uploads it to s3 bucket. It fetches the safety ignore dict from image specific safety
+    allowlist and updates it with `vulnerabilities_to_be_added_to_ignore_list` data that is extracted from the safety_report_generator_object.
+    """
+    ignore_dict_from_image_specific_allowlist = (
+        get_safety_ignore_dict_from_image_specific_safety_allowlists(image_uri)
+    )
+    future_ignore_dict = ignore_dict_from_image_specific_allowlist
+    if safety_report_generator_object.vulnerabilities_to_be_added_to_ignore_list:
+        future_ignore_dict.update(
+            safety_report_generator_object.vulnerabilities_to_be_added_to_ignore_list
+        )
+        LOGGER.info(f"[Safety Allowlist] Future Ignore Dict: {future_ignore_dict} for {image_uri}")
+        tag_set = [
+            {
+                "Key": "upload_path",
+                "Value": get_safety_scan_allowlist_path(image_uri),
+            },
+            {"Key": "image_uri", "Value": image_uri.replace("-pre-push", "")},
+        ]
+        upload_path = get_unique_s3_path_for_uploading_data_to_pr_creation_bucket(
+            image_uri=image_uri.replace("-pre-push", ""),
+            file_name="future_safety_allowlist.json",
+        )
+        process_data_upload_to_pr_creation_bucket(
+            image_uri=image_uri.replace("-pre-push", ""),
+            upload_data=json.dumps(future_ignore_dict, indent=4),
+            s3_filepath=upload_path,
+            tag_set=tag_set,
+        )
+
+
 def generate_safety_report_for_image(image_uri, image_info, storage_file_path=None):
     """
     Generate safety scan reports for an image and store it at the location specified
@@ -324,32 +359,9 @@ def generate_safety_report_for_image(image_uri, image_info, storage_file_path=No
         with open(storage_file_path, "w", encoding="utf-8") as f:
             json.dump(safety_scan_output, f, indent=4)
     if is_autopatch_build_enabled():
-        ignore_dict_from_image_specific_allowlist = (
-            get_safety_ignore_dict_from_image_specific_safety_allowlists(image_uri)
+        derive_future_safety_allowlist_and_upload_to_s3(
+            safety_report_generator_object=safety_report_generator_object, image_uri=image_uri
         )
-        future_ignore_dict = ignore_dict_from_image_specific_allowlist
-        if safety_report_generator_object.new_ignored_vulnerabilities:
-            future_ignore_dict.update(safety_report_generator_object.new_ignored_vulnerabilities)
-            LOGGER.info(
-                f"[Safety Allowlist] Future Ignore Dict: {future_ignore_dict} for {image_uri}"
-            )
-            tag_set = [
-                {
-                    "Key": "upload_path",
-                    "Value": get_safety_scan_allowlist_path(image_uri),
-                },
-                {"Key": "image_uri", "Value": image_uri.replace("-pre-push", "")},
-            ]
-            upload_path = get_unique_s3_path_for_uploading_data_to_pr_creation_bucket(
-                image_uri=image_uri.replace("-pre-push", ""),
-                file_name="future_safety_allowlist.json",
-            )
-            process_data_upload_to_pr_creation_bucket(
-                image_uri=image_uri.replace("-pre-push", ""),
-                upload_data=json.dumps(future_ignore_dict, indent=4),
-                s3_filepath=upload_path,
-                tag_set=tag_set,
-            )
 
     return safety_scan_output
 

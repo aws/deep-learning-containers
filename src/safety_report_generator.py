@@ -40,7 +40,7 @@ class SafetyReportGenerator:
         self.ctx = Context()
         self.docker_exec_cmd = f"docker exec -i {container_id}"
         self.safety_check_output = None
-        self.new_ignored_vulnerabilities = {}
+        self.vulnerabilities_to_be_added_to_ignore_list = {}
 
     def insert_vulnerabilites_into_report(self, scanned_vulnerabilities):
         """
@@ -123,9 +123,9 @@ class SafetyReportGenerator:
                     "date": self.timestamp,
                 }
 
-    def get_dumped_ignore_dict_of_packages(self):
+    def get_autopatched_dumped_ignore_dict_of_packages(self):
         """
-        This method extracts the dumped ignore lists within the DLCs.
+        This method extracts the dumped ignore lists within the DLCs that have been dumped by the autopatch procedure.
         """
         dumped_ignore_list_command = (
             f"{self.docker_exec_cmd} cat /opt/aws/dlc/patch-details/vuln_deactivation_data.json"
@@ -152,11 +152,11 @@ class SafetyReportGenerator:
                 ):
                     package_scan_results["scan_status"] = "IGNORED"
                 else:
-                    ## If autopatch, confirm if the package is not deactivated. If it is, add it to new_ignored_vulnerabilities and call it IGNORED
+                    ## If autopatch, confirm if the package is not deactivated. If it is, add it to vulnerabilities_to_be_added_to_ignore_list and call it IGNORED
                     ## else call the package as failed itself
                     package_scan_results["scan_status"] = "FAILED"
                     if is_autopatch_build_enabled():
-                        ignored_package_dict = self.get_dumped_ignore_dict_of_packages()
+                        ignored_package_dict = self.get_autopatched_dumped_ignore_dict_of_packages()
                         print(f"TRSHANTA ignored_package_dict: {ignored_package_dict}")
                         if package in ignored_package_dict:
                             ignore_message = f"""[Package: {package}] Conflicts for: {",".join(ignored_package_dict.get(package).keys())}"""
@@ -165,7 +165,7 @@ class SafetyReportGenerator:
                             for vulnerability in package_scan_results["vulnerabilities"]:
                                 if vulnerability["reason_to_ignore"] == "N/A":
                                     vulnerability["reason_to_ignore"] = ignore_message
-                                    self.new_ignored_vulnerabilities[
+                                    self.vulnerabilities_to_be_added_to_ignore_list[
                                         vulnerability["vulnerability_id"]
                                     ] = ignore_message
 
