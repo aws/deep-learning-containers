@@ -235,8 +235,7 @@ def helper_function_for_leftover_vulnerabilities_from_enhanced_scanning(
             {"Key": "upload_path", "Value": image_scan_allowlist_path},
             {"Key": "image_uri", "Value": image},
         ]
-        src_utils.process_data_upload_to_pr_creation_bucket(
-            image_uri=image,
+        src_utils.upload_data_to_pr_creation_s3_bucket(
             upload_data=json.dumps(future_allowlist.vulnerability_list, indent=4),
             s3_filepath=future_allowlist_upload_path,
             tag_set=upload_tag_set,

@@ -292,6 +292,8 @@ def get_safety_ignore_dict(image_uri, framework, python_version, job_type):
         if common_id not in ignore_dict:
             ignore_dict[common_id] = reason
 
+    # While retrieving the allowlist for the image, we update the central allowlist data present in the data folder
+    # with the image specific allowlist data corresponding to the image being scanned.
     ignore_dict_from_image_specific_allowlist = (
         get_safety_ignore_dict_from_image_specific_safety_allowlists(image_uri)
     )
@@ -306,6 +308,8 @@ def derive_future_safety_allowlist_and_upload_to_s3(
     This method derives the future safety allowlist and uploads it to s3 bucket. It fetches the safety ignore dict from image specific safety
     allowlist and updates it with `vulnerabilities_to_be_added_to_ignore_list` data that is extracted from the safety_report_generator_object.
     """
+    # While deriving the future allowlist, we update the image specific allowlist data with the `vulnerabilities_to_be_added_to_ignore_list`
+    # data that is obtained by running autopatching procedure.
     ignore_dict_from_image_specific_allowlist = (
         get_safety_ignore_dict_from_image_specific_safety_allowlists(image_uri)
     )
@@ -326,8 +330,7 @@ def derive_future_safety_allowlist_and_upload_to_s3(
             image_uri=image_uri.replace("-pre-push", ""),
             file_name="future_safety_allowlist.json",
         )
-        process_data_upload_to_pr_creation_bucket(
-            image_uri=image_uri.replace("-pre-push", ""),
+        upload_data_to_pr_creation_s3_bucket(
             upload_data=json.dumps(future_ignore_dict, indent=4),
             s3_filepath=upload_path,
             tag_set=tag_set,
@@ -380,11 +383,11 @@ def get_label_prefix_customer_type(image_tag):
     return "sagemaker"
 
 
-def process_data_upload_to_pr_creation_bucket(
-    image_uri: str, upload_data: str, s3_filepath: str, tag_set=None
+def upload_data_to_pr_creation_s3_bucket(
+    upload_data: str, s3_filepath: str, tag_set=None
 ):
     """
-    This method uploads the given `upload_data` to the s3 path obtained from get_unique_s3_path_for_uploading_data_to_pr_creation_bucket method.
+    This method uploads the given `upload_data` to the s3 path provided in the parameter.
     It also attaches the TagSet to the object as specified by tag_set argument that looks like:
         tag_set = [
                 {

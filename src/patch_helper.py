@@ -11,7 +11,7 @@ from image import DockerImage
 
 from utils import (
     get_dummy_boto_client,
-    process_data_upload_to_pr_creation_bucket,
+    upload_data_to_pr_creation_s3_bucket,
     get_core_packages_path,
     get_unique_s3_path_for_uploading_data_to_pr_creation_bucket,
     get_overall_history_path,
@@ -277,8 +277,8 @@ def retrive_autopatched_image_history_and_upload_to_s3(image_uri):
             },
             {"Key": "image_uri", "Value": image_uri.replace("-multistage-common", "")},
         ]
-        process_data_upload_to_pr_creation_bucket(
-            image_uri=image_uri, upload_data=data.stdout, s3_filepath=upload_path, tag_set=tag_set
+        upload_data_to_pr_creation_s3_bucket(
+            upload_data=data.stdout, s3_filepath=upload_path, tag_set=tag_set
         )
     finally:
         run(f"docker rm -f {container_id}", hide=True, warn=True)
