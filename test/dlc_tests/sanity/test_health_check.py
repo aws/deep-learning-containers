@@ -31,24 +31,26 @@ PT_EC2_MULTI_GPU_INSTANCE_TYPE = ec2_utils.get_ec2_instance_type(
 @pytest.mark.model("N/A")
 @pytest.mark.timeout(1200)
 @pytest.mark.integration("health_check")
-def test_health_check_local_efa(gpu, ec2_connection):
+@pytest.mark.skip_pt21_test
+@pytest.mark.skip_pt20_cuda121_tests
+def test_health_check_local_efa(pytorch_training, ec2_connection, gpu_only):
     # Run local EFA test on Pytorch DLC
     docker_cmd = "nvidia-docker"
-    account_id = test_utils.get_account_id_from_image_uri(gpu)
-    image_region = test_utils.get_region_from_image_uri(gpu)
+    account_id = test_utils.get_account_id_from_image_uri(pytorch_training)
+    image_region = test_utils.get_region_from_image_uri(pytorch_training)
     local_efa_timeout = 120
-    LOGGER.info(f"test_health_check_local_efa pulling image: {gpu}")
+    LOGGER.info(f"test_health_check_local_efa pulling image: {pytorch_training}")
     test_utils.login_to_ecr_registry(ec2_connection, account_id, image_region)
-    ec2_connection.run(f"{docker_cmd} pull {gpu}", hide="out")
+    ec2_connection.run(f"{docker_cmd} pull {pytorch_training}", hide="out")
 
-    image = gpu
+    image = pytorch_training
     container_name = test_utils.get_container_name("health_check", image)
     container_test_local_dir = os.path.join("$HOME", "container_tests")
     bin_bash_cmd = "--entrypoint /bin/bash "
-    LOGGER.info(f"test_health_check_local_efa starting docker image: {gpu}")
+    LOGGER.info(f"test_health_check_local_efa starting docker image: {pytorch_training}")
     ec2_connection.run(
         f"{docker_cmd} run --name {container_name} "
-        f"-v {container_test_local_dir}:{os.path.join(os.sep, 'test')} -itd {bin_bash_cmd}{gpu}",
+        f"-v {container_test_local_dir}:{os.path.join(os.sep, 'test')} -itd {bin_bash_cmd}{pytorch_training}",
         hide=False,
     )
 

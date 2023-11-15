@@ -176,11 +176,8 @@ NEURON_AL2_DLAMI = get_ami_id_boto3(
     region_name="us-west-2", ami_name_pattern="Deep Learning AMI (Amazon Linux 2) Version ??.?"
 )
 
-## TODO: Undo this change
-# HPU_AL2_DLAMI = get_ami_id_boto3(
-#     region_name="us-west-2",
-#     ami_name_pattern="Deep Learning AMI Habana TensorFlow 2.5.0 SynapseAI 0.15.4 (Amazon Linux 2) ????????",
-# )
+# Account ID of test executor
+ACCOUNT_ID = boto3.client("sts", region_name=DEFAULT_REGION).get_caller_identity().get("Account")
 
 # S3 bucket for TensorFlow models
 TENSORFLOW_MODELS_BUCKET = "s3://tensoflow-trained-models"
@@ -189,7 +186,7 @@ TENSORFLOW_MODELS_BUCKET = "s3://tensoflow-trained-models"
 CONTAINER_TESTS_PREFIX = os.path.join(os.sep, "test", "bin")
 
 # S3 Bucket to use to transfer tests into an EC2 instance
-TEST_TRANSFER_S3_BUCKET = "s3://dlinfra-tests-transfer-bucket"
+TEST_TRANSFER_S3_BUCKET = f"s3://dlinfra-tests-transfer-bucket-{ACCOUNT_ID}"
 
 # S3 Bucket to use to record benchmark results for further retrieving
 BENCHMARK_RESULTS_S3_BUCKET = "s3://dlinfra-dlc-cicd-performance"
@@ -217,7 +214,7 @@ SAGEMAKER_NEURON_EXECUTION_REGIONS = ["us-west-2"]
 SAGEMAKER_NEURONX_EXECUTION_REGIONS = ["us-east-1"]
 
 UPGRADE_ECR_REPO_NAME = "upgraded-image-ecr-scan-repo"
-ECR_SCAN_HELPER_BUCKET = f"""ecr-scan-helper-{boto3.client("sts", region_name=DEFAULT_REGION).get_caller_identity().get("Account")}"""
+ECR_SCAN_HELPER_BUCKET = f"ecr-scan-helper-{ACCOUNT_ID}"
 ECR_SCAN_FAILURE_ROUTINE_LAMBDA = "ecr-scan-failure-routine-lambda"
 
 ## Note that the region for the repo used for conducting ecr enhanced scans should be different from other
@@ -390,6 +387,12 @@ def get_expected_dockerfile_filename(device_type, image_uri):
     return f"Dockerfile.{device_type}"
 
 
+def get_canary_helper_bucket_name():
+    bucket_name = os.getenv("CANARY_HELPER_BUCKET")
+    assert bucket_name, "Unable to find bucket name in CANARY_HELPER_BUCKET env variable"
+    return bucket_name
+
+
 def get_customer_type():
     return os.getenv("CUSTOMER_TYPE")
 
@@ -399,6 +402,13 @@ def get_image_type():
     Env variable should return training or inference
     """
     return os.getenv("IMAGE_TYPE")
+
+
+def get_test_job_arch_type():
+    """
+    Env variable should return graviton, x86, or None
+    """
+    return os.getenv("ARCH_TYPE", "x86")
 
 
 def get_ecr_repo_name(image_uri):
@@ -565,6 +575,13 @@ def is_canary_context():
 
 def is_mainline_context():
     return os.getenv("BUILD_CONTEXT") == "MAINLINE"
+
+
+def is_deep_canary_context():
+    return os.getenv("BUILD_CONTEXT") == "DEEP_CANARY" or (
+        os.getenv("BUILD_CONTEXT") == "PR"
+        and os.getenv("DEEP_CANARY_MODE", "false").lower() == "true"
+    )
 
 
 def is_nightly_context():
@@ -1100,21 +1117,91 @@ def delete_uploaded_tests_from_s3(s3_test_location):
 
 
 def get_dlc_images():
-    if is_pr_context() or is_empty_build_context():
+    if is_deep_canary_context():
+        deep_canary_images = get_deep_canary_images(
+            canary_framework=os.getenv("FRAMEWORK"),
+            canary_image_type=get_image_type(),
+            canary_arch_type=get_test_job_arch_type(),
+            canary_region=os.getenv("AWS_REGION"),
+            canary_region_prod_account=os.getenv("REGIONAL_PROD_ACCOUNT", PUBLIC_DLC_REGISTRY),
+        )
+        return " ".join(deep_canary_images)
+    elif is_pr_context() or is_empty_build_context():
         return os.getenv("DLC_IMAGES")
     elif is_canary_context():
         # TODO: Remove 'training' default once training-specific canaries are added
         image_type = get_image_type() or "training"
         return parse_canary_images(os.getenv("FRAMEWORK"), os.getenv("AWS_REGION"), image_type)
-    test_env_file = os.path.join(
-        os.getenv("CODEBUILD_SRC_DIR_DLC_IMAGES_JSON"), "test_type_images.json"
+    elif is_mainline_context():
+        test_env_file = os.path.join(
+            os.getenv("CODEBUILD_SRC_DIR_DLC_IMAGES_JSON"), "test_type_images.json"
+        )
+        with open(test_env_file) as test_env:
+            test_images = json.load(test_env)
+        for dlc_test_type, images in test_images.items():
+            if dlc_test_type == "sanity":
+                return " ".join(images)
+        raise RuntimeError(f"Cannot find any images for in {test_images}")
+    return None
+
+
+def get_deep_canary_images(
+    canary_framework, canary_image_type, canary_arch_type, canary_region, canary_region_prod_account
+):
+    """
+    For an input combination of canary job specs, find a matching list of image uris to be tested
+    :param canary_framework: str Framework Name
+    :param canary_image_type: str "training" or "inference"
+    :param canary_arch_type: str "x86" or "graviton"
+    :param canary_region: str Region Name
+    :param canary_region_prod_account: str DLC Production Account ID in this region
+    :return: list<str> List of image uris regionalized for canary_region
+    """
+    assert (
+        canary_framework
+        and canary_image_type
+        and canary_arch_type
+        and canary_region
+        and canary_region_prod_account
+    ), (
+        "Incorrect spec for one or more of the following:\n"
+        f"canary_framework = {canary_framework}\n"
+        f"canary_image_type = {canary_image_type}\n"
+        f"canary_arch_type = {canary_arch_type}\n"
+        f"canary_region = {canary_region}\n"
+        f"canary_region_prod_account = {canary_region_prod_account}"
     )
-    with open(test_env_file) as test_env:
-        test_images = json.load(test_env)
-    for dlc_test_type, images in test_images.items():
-        if dlc_test_type == "sanity":
-            return " ".join(images)
-    raise RuntimeError(f"Cannot find any images for in {test_images}")
+    all_images = get_canary_image_uris_from_bucket()
+    matching_images = []
+    for image_uri in all_images:
+        image_framework = get_framework_from_image_uri(image_uri)
+        image_type = get_image_type_from_tag(image_uri)
+        image_arch_type = get_image_arch_type_from_tag(image_uri)
+        image_region = get_region_from_image_uri(image_uri)
+        image_account_id = get_account_id_from_image_uri(image_uri)
+        if (
+            canary_framework == image_framework
+            and canary_image_type == image_type
+            and canary_arch_type == image_arch_type
+        ):
+            regionalized_image_uri = image_uri.replace(image_region, canary_region).replace(
+                image_account_id, canary_region_prod_account
+            )
+            matching_images.append(regionalized_image_uri)
+    return matching_images
+
+
+def get_canary_image_uris_from_bucket():
+    """
+    Helper function to get canary-tested DLC Image URIs
+
+    :return: list of [str<DLC Image URI>]
+    """
+    canary_helper_bucket = get_canary_helper_bucket_name()
+    s3_client = boto3.client("s3", region_name=DEFAULT_REGION)
+    response = s3_client.get_object(Bucket=canary_helper_bucket, Key="images.json")
+    image_uris = json.loads(response["Body"].read().decode("utf-8"))
+    return image_uris
 
 
 def get_canary_default_tag_py3_version(framework, version):
@@ -1453,6 +1540,23 @@ def get_unique_name_from_tag(image_uri):
     return re.sub("[^A-Za-z0-9]+", "", image_uri)
 
 
+def get_image_type_from_tag(image_uri):
+    valid_image_types = ["training", "inference"]
+    image_type_match = [keyword for keyword in valid_image_types if keyword in image_uri]
+    if len(image_type_match) != 1:
+        raise LookupError(f"Failed to find whether {image_uri} is training or inference")
+    return image_type_match[0]
+
+
+def get_image_arch_type_from_tag(image_uri):
+    """
+    All images are assumed by default to be x86, unless they are graviton type
+    :param image_uri: str ECR image URI
+    :return: str "graviton" or "x86"
+    """
+    return "graviton" if "graviton" in image_uri else "x86"
+
+
 def get_framework_and_version_from_tag(image_uri):
     """
     Return the framework and version from the image tag.
@@ -1528,7 +1632,7 @@ def get_neuron_release_manifest(sdk_version):
 
     if release is None:
         raise KeyError(
-            f"cannot find neuron neuron sdk version {neuron_sdk_version} "
+            f"cannot find neuron neuron sdk version {sdk_version} "
             f"in releases:\n{json.dumps(release_array)}"
         )
 

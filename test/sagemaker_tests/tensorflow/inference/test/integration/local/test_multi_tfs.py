@@ -92,6 +92,7 @@ def make_request(data, content_type="application/json", method="predict", versio
 
 @pytest.mark.flaky(reruns=5, reruns_delay=25)
 @pytest.mark.model("half_plus_three")
+@pytest.mark.team("inference-toolkit")
 def test_predict():
     x = {"instances": [1.0, 2.0, 5.0]}
 
