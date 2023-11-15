@@ -23,6 +23,7 @@ from test.test_utils.ec2 import (
 
 @pytest.mark.model("inception, RCNN-Resnet101-kitti, resnet50_v2, mnist, SSDResnet50Coco")
 @pytest.mark.parametrize("ec2_instance_type", ["p3.16xlarge"], indirect=True)
+@pytest.mark.team("frameworks")
 def test_performance_ec2_tensorflow_inference_gpu(
     tensorflow_inference, ec2_connection, ec2_instance_ami, region, gpu_only
 ):
@@ -35,6 +36,7 @@ def test_performance_ec2_tensorflow_inference_gpu(
 
 @pytest.mark.model("inception, RCNN-Resnet101-kitti, resnet50_v2, mnist, SSDResnet50Coco")
 @pytest.mark.parametrize("ec2_instance_type", ["c5.18xlarge"], indirect=True)
+@pytest.mark.team("frameworks")
 # TODO: Unskip this test for TF 2.4.x Inference CPU images
 def test_performance_ec2_tensorflow_inference_cpu(
     tensorflow_inference, ec2_connection, ec2_instance_ami, region, cpu_only
