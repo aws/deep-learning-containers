@@ -155,7 +155,6 @@ def execute_generative_mode_type(args):
     In the ends, it dumps the data at save_result_path location.
     """
     impacted_packages = args.impacted_packages
-    assert impacted_packages, "Impacted packages need to be passed for generative mode."
     installed_packages = get_package_list_using_command(run_command="apt list --installed")
     upgradable_packages = get_package_list_using_command(run_command="apt list --upgradable")
 

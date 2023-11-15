@@ -12,7 +12,9 @@ RUN if !(( $([ -d /opt/aws/dlc/patch-details-archive ]) )) ; then \
 
 # If patch-details is present, move it to patch-details-archive and add image_sha to the folder
 RUN if [ -d /opt/aws/dlc/patch-details ] ; then \
-        patch_count=$(ls /opt/aws/dlc/patch-details-archive | wc -l) && \
+        existing_file_count=$(ls -l /opt/aws/dlc/patch-details-archive | wc -l) && \
+        reduce_count_value=1 && \
+        patch_count=$((existing_file_count-reduce_count_value)) && \
         mv /opt/aws/dlc/patch-details /opt/aws/dlc/patch-details-archive/patch-details-$patch_count && \
         echo $RELEASED_IMAGE_SHA >> /opt/aws/dlc/patch-details-archive/patch-details-$patch_count/image_sha.txt ; \
     fi

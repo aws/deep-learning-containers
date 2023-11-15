@@ -79,10 +79,11 @@ def get_impacted_os_packages(image_uri, python_version=None):
         image_uri, python_version=python_version
     )
     impacted_packages = set()
-    for package_name, package_cve_list in remaining_vulnerabilities.vulnerability_list.items():
-        for cve in package_cve_list:
-            if cve.package_details.package_manager == "OS":
-                impacted_packages.add(package_name)
+    if remaining_vulnerabilities:
+        for package_name, package_cve_list in remaining_vulnerabilities.vulnerability_list.items():
+            for cve in package_cve_list:
+                if cve.package_details.package_manager == "OS":
+                    impacted_packages.add(package_name)
     return impacted_packages
 
 
@@ -112,15 +113,18 @@ def trigger_enhanced_scan_patching(image_uri, patch_details_path, python_version
         container_setup_cmd = "apt-get update"
         run(f"{docker_exec_cmd} {container_setup_cmd}", hide=True)
         save_file_name = "os_summary.json"
-        ## TODO: Handle if none impacted packages
-        script_run_cmd = f"""python /deep-learning-containers/miscellaneous_scripts/extract_apt_patch_data.py --impacted-packages {",".join(impacted_packages)} --save-result-path /image-specific-patch-folder/{save_file_name} --mode_type generate"""
+        script_run_cmd = f"""python /deep-learning-containers/miscellaneous_scripts/extract_apt_patch_data.py --save-result-path /image-specific-patch-folder/{save_file_name} --mode_type generate"""
+        if impacted_packages:
+            script_run_cmd = (
+                f"""{script_run_cmd} --impacted-packages {",".join(impacted_packages)}"""
+            )
         run(f"{docker_exec_cmd} {script_run_cmd}")
         with open(os.path.join(os.sep, patch_details_path, save_file_name), "r") as readfile:
             saved_json_data = json.load(readfile)
         print(f"For {image_uri} => {saved_json_data}")
         patch_package_dict = saved_json_data["patch_package_dict"]
         patch_package_list = list(patch_package_dict.keys())
-        echo_cmd = """ echo "echo NA" """
+        echo_cmd = """ echo "echo N/A" """
         file_concat_cmd = f"tee {patch_details_path}/install_script_second.sh"
         if patch_package_list:
             echo_cmd = f"""echo  "apt-get update && apt-get install -y --only-upgrade {" ".join(patch_package_list)}" """
@@ -138,7 +142,7 @@ def conduct_autopatch_build_setup(pre_push_image_object: DockerImage, download_p
     """
     This method conducts the setup for the AutoPatch builds. It pulls the already released image and then triggers the autopatching
     procedures on the image to get the packages that need to be modified. Thereafter, it modifies pre_push_image_object to make changes
-    to the original build process such that it starts to utilize miscellaneous_dockerfiles/Dockerfile.apatch Dockerfile for building the image.
+    to the original build process such that it starts to utilize miscellaneous_dockerfiles/Dockerfile.autopatch Dockerfile for building the image.
 
     :param pre_push_image_object: Object of type DockerImage, The original DockerImage object that gets modified by this method.
     :param download_path: str, Path of the file where the relevant scripts have alread been downloaded.
@@ -176,7 +180,7 @@ def conduct_autopatch_build_setup(pre_push_image_object: DockerImage, download_p
     FORMATTER.progress(THREADS)
 
     pre_push_image_object.dockerfile = os.path.join(
-        os.sep, get_cloned_folder_path(), "miscellaneous_dockerfiles", "Dockerfile.apatch"
+        os.sep, get_cloned_folder_path(), "miscellaneous_dockerfiles", "Dockerfile.autopatch"
     )
 
     miscellaneous_scripts_path = os.path.join(
@@ -192,7 +196,7 @@ def conduct_autopatch_build_setup(pre_push_image_object: DockerImage, download_p
     info["extra_build_args"].update({"RELEASED_IMAGE": released_image_uri})
     info["extra_build_args"].update({"RELEASED_IMAGE_SHA": released_image_sha})
 
-    apatch_artifacts = {
+    autopatch_artifacts = {
         "miscellaneous_scripts": {
             "source": miscellaneous_scripts_path,
             "target": "miscellaneous_scripts",
@@ -207,7 +211,7 @@ def conduct_autopatch_build_setup(pre_push_image_object: DockerImage, download_p
         },
     }
     context = Context(
-        apatch_artifacts,
+        autopatch_artifacts,
         f"build/{image_name}.tar.gz",
         os.path.join(os.sep, get_cloned_folder_path(), "src"),
     )

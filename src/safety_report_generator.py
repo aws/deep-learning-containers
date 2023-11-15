@@ -4,6 +4,7 @@ from datetime import datetime
 import json
 import os
 import utils
+from config import is_autopatch_build_enabled
 
 
 class SafetyReportGenerator:
@@ -151,10 +152,10 @@ class SafetyReportGenerator:
                 ):
                     package_scan_results["scan_status"] = "IGNORED"
                 else:
-                    ## If apatch, confirm if the package is not deactivated. If it is, add it to new_ignored_vulnerabilities and call it IGNORED
+                    ## If autopatch, confirm if the package is not deactivated. If it is, add it to new_ignored_vulnerabilities and call it IGNORED
                     ## else call the package as failed itself
                     package_scan_results["scan_status"] = "FAILED"
-                    if utils.is_APatch_build():
+                    if is_autopatch_build_enabled():
                         ignored_package_dict = self.get_dumped_ignore_dict_of_packages()
                         print(f"TRSHANTA ignored_package_dict: {ignored_package_dict}")
                         if package in ignored_package_dict:
