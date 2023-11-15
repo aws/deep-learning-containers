@@ -29,9 +29,7 @@ RUN pip install --no-cache-dir \
 	certifi==2023.7.22 \
 	scipy==1.10.0 \
 	pydantic==1.10.13 \
-	urllib3==1.26.18 \
-	wekzeug==2.3.8 \
-	fonttols==4.43.0
+	urllib3==1.26.18
 
 RUN apt-get update \
  # TODO: Remove upgrade statements once packages are updated in base image
