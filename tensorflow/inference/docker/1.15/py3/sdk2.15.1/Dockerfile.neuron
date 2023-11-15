@@ -15,6 +15,11 @@ ARG PYTHON_VERSION=3.8.16
 ARG TFS_SHORT_VERSION=1.15.5
 ARG TF_S3_URL=https://tensorflow-aws.s3-us-west-2.amazonaws.com
 
+# Neuron SDK components version numbers
+ARG NEURON_TOOLS_VERSION=2.15.*
+ARG NEURON_FRAMEWORK_VERSION=1.15.5.2.9.*
+ARG NEURON_CC_VERSION=1.20.*
+
 # Prevent docker build get stopped by requesting user interaction
 ENV DEBIAN_FRONTEND=noninteractive
 ENV DEBCONF_NONINTERACTIVE_SEEN=true
@@ -106,7 +111,7 @@ RUN apt-get update
 
 RUN apt-get install -y \
     tensorflow-model-server-neuron=1.15.* \
-    aws-neuronx-tools
+    aws-neuronx-tools=$NEURON_TOOLS_VERSION
 
 RUN ${PIP} --no-cache-dir install --upgrade \
     pip \
@@ -133,8 +138,8 @@ RUN ${PIP} install --no-cache-dir -U \
 # resolve package dependencies during installation.
 RUN ${PIP} install tensorflow_serving_api==1.15 --no-deps --extra-index-url https://pip.repos.neuron.amazonaws.com \
  && ${PIP} install "tensorboard-neuron>=1.15,<1.16" --extra-index-url https://pip.repos.neuron.amazonaws.com \
- && ${PIP} install neuron-cc==1.20.* --extra-index-url https://pip.repos.neuron.amazonaws.com \
- && ${PIP} install tensorflow-neuron==1.15.5.2.9.* --extra-index-url https://pip.repos.neuron.amazonaws.com
+ && ${PIP} install neuron-cc==$NEURON_CC_VERSION --extra-index-url https://pip.repos.neuron.amazonaws.com \
+ && ${PIP} install tensorflow-neuron==$NEURON_FRAMEWORK_VERSION --extra-index-url https://pip.repos.neuron.amazonaws.com
 
 
 COPY ./sagemaker /sagemaker

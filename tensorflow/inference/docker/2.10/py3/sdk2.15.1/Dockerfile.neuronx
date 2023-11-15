@@ -20,6 +20,7 @@ ARG NEURONX_TOOLS_VERSION=2.15.*
 ARG NEURONX_FRAMEWORK_VERSION=2.10.1.2.1.*
 ARG NEURONX_TF_MODEL_SERVER_VERSION=2.10.1.2.10.2.*
 ARG NEURONX_CC_VERSION=2.11.*
+ARG NEURONX_TENSORBOARD_PLUGIN_VERSION=2.5.43.*
 
 # See http://bugs.python.org/issue19846
 ENV LANG=C.UTF-8
@@ -114,7 +115,7 @@ RUN ${PIP} install --no-cache-dir \
 # pip install statements have been separated out into multiple sequentially executed statements to
 # resolve package dependencies during installation.
 RUN ${PIP} install neuronx-cc==${NEURONX_CC_VERSION} tensorflow-neuronx==${NEURONX_FRAMEWORK_VERSION} --extra-index-url https://pip.repos.neuron.amazonaws.com \
- && ${PIP} install tensorboard-plugin-neuron --extra-index-url https://pip.repos.neuron.amazonaws.com
+ && ${PIP} install tensorboard-plugin-neuronx==${NEURONX_TENSORBOARD_PLUGIN_VERSION} --extra-index-url https://pip.repos.neuron.amazonaws.com
 
 COPY ./sagemaker /sagemaker
 

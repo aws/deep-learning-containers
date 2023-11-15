@@ -16,6 +16,7 @@ ARG TFS_SHORT_VERSION=2.10
 # Neuron SDK components version numbers
 ARG NEURON_TOOLS_VERSION=2.15.*
 ARG NEURON_FRAMEWORK_VERSION=2.10.1.2.10.2.*
+ARG NEURON_TENSORBOARD_PLUGIN_VERSION=2.4.6.*
 
 # See http://bugs.python.org/issue19846
 ENV LANG=C.UTF-8
@@ -107,8 +108,8 @@ RUN ${PIP} install --no-cache-dir \
 
 # pip install statements have been separated out into multiple sequentially executed statements to
 # resolve package dependencies during installation.
-RUN ${PIP} install "tensorflow-neuron[cc]==${NEURON_FRAMEWORK_VERSION}" --extra-index-url https://pip.repos.neuron.amazonaws.com \
- && ${PIP} install tensorboard-plugin-neuron --extra-index-url https://pip.repos.neuron.amazonaws.com
+RUN ${PIP} install tensorflow-neuron[cc]==${NEURON_FRAMEWORK_VERSION} --extra-index-url https://pip.repos.neuron.amazonaws.com \
+ && ${PIP} install tensorboard-plugin-neuron==${NEURON_TENSORBOARD_PLUGIN_VERSION} --extra-index-url https://pip.repos.neuron.amazonaws.com
 
 COPY ./sagemaker /sagemaker
 
