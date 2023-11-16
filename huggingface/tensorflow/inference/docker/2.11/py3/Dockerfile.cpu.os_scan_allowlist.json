@@ -53,10 +53,10 @@
       "cvss_v30_score": 4.7,
       "cvss_v31_score": 4.7,
       "cvss_v2_score": 4.7,
-      "cvss_v3_severity": "Medium",
+      "cvss_v3_severity": "MEDIUM",
       "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2023-2800",
       "source": "NVD",
-      "severity": "Medium",
+      "severity": "MEDIUM",
       "status": "ACTIVE",
       "title": "CVE-2023-2800 - transformers"
     }
