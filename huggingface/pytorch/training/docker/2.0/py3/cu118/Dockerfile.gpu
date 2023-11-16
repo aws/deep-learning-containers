@@ -36,7 +36,7 @@ RUN pip install --no-cache-dir \
 	tensorboard \
 	evaluate==${EVALUATE_VERSION} \
 	accelerate==${ACCELERATE_VERSION} \
-	scipy==1.10.0 \
+	scipy==1.10.0 
 
 RUN apt-get update \
  # TODO: Remove upgrade statements once packages are updated in base image
