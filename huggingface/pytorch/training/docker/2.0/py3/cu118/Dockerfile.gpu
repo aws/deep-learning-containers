@@ -15,6 +15,18 @@ ARG EVALUATE_VERSION=0.4.0
 ARG ACCELERATE_VERSION=0.19.0
 ARG PYTHON=python3
 
+# Resolve CVE
+RUN pip install --no-cache-dir -U \
+	pip==23.3 \
+    werkzeug \
+	gevent \
+	certifi \ 
+    urllib3 \
+	pydantic \
+	tornado \ 
+	fonttools \ 
+    opencv-python
+
 # install Hugging Face libraries and its dependencies
 RUN pip install --no-cache-dir \
 	transformers[sklearn,sentencepiece,audio,vision]==${TRANSFORMERS_VERSION} \
@@ -24,12 +36,7 @@ RUN pip install --no-cache-dir \
 	tensorboard \
 	evaluate==${EVALUATE_VERSION} \
 	accelerate==${ACCELERATE_VERSION} \
-	# Fix CVE
-	gevent==23.9.1 \
-	certifi==2023.7.22 \
 	scipy==1.10.0 \
-	pydantic==1.10.13 \
-	urllib3==1.26.18
 
 RUN apt-get update \
  # TODO: Remove upgrade statements once packages are updated in base image
