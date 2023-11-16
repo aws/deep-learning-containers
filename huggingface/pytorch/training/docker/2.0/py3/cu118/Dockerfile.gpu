@@ -24,8 +24,7 @@ RUN pip install --no-cache-dir -U \
     urllib3 \
 	pydantic \
 	tornado \ 
-	fonttools \ 
-    opencv-python
+	fonttools
 
 # install Hugging Face libraries and its dependencies
 RUN pip install --no-cache-dir \
