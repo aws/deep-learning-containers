@@ -5,6 +5,7 @@ import boto3
 
 import pytest
 import traceback
+import copy
 
 from invoke import run, Context
 from packaging.version import Version
@@ -28,6 +29,7 @@ from test.test_utils import (
     ECR_ENHANCED_REPO_REGION,
     is_generic_image,
     get_allowlist_path_for_enhanced_scan_from_env_variable,
+    get_ecr_scan_allowlist_path,
 )
 from test.test_utils import ecr as ecr_utils
 from test.test_utils.security import (
@@ -40,9 +42,11 @@ from test.test_utils.security import (
     fetch_other_vulnerability_lists,
     get_target_image_uri_using_current_uri_and_target_repo,
     wait_for_enhanced_scans_to_complete,
-    get_ecr_scan_allowlist_path,
+    extract_non_patchable_vulnerabilities,
+    generate_future_allowlist,
 )
 from src.config import is_ecr_scan_allowlist_feature_enabled
+from src import utils as src_utils
 
 ALLOWLIST_FEATURE_ENABLED_IMAGES = {"mxnet": SpecifierSet(">=1.8.0,<1.9.0")}
 
@@ -124,29 +128,24 @@ def conduct_preprocessing_of_images_before_running_ecr_scans(image, ecr_client, 
     return image
 
 
-@pytest.mark.usefixtures("sagemaker")
-@pytest.mark.model("N/A")
-@pytest.mark.integration("ECR Enhanced Scans on Images")
-def test_ecr_enhanced_scan(image, ecr_client, sts_client, region):
+def helper_function_for_leftover_vulnerabilities_from_enhanced_scanning(
+    image, python_version=None, remove_non_patchable_vulns=False
+):
     """
-    Run ECR Enhanced Scan Tool on an image being tested, and raise Error if vulnerabilities found
+    Acts as a helper function that conducts enhanced scan on an image URI and then returns the list of leftover vulns
+    after removing the allowlisted vulns.
     1. Upload image to the ECR Enhanced Scanning Testing Repo.
     2. Wait for the scans to complete - takes approx 10 minutes for big images. Once the scan is complete,
         the scan status changes to ACTIVE
     3. If the status does not turn to ACTIVE, raise a TimeOut Error
     4. Read the ecr_scan_results and remove the allowlisted vulnerabilities from it
-    5. In case any vulnerability is remaining after removal, raise an error
+    5. Return the leftover list
 
     :param image: str Image URI for image to be tested
-    :param ecr_client: boto3 Client for ECR
-    :param sts_client: boto3 Client for STS
-    :param region: str Name of region where test is executed
+    :param python_version: str, This parameter is used for extracting allowlist for canary image uris that do not have a python version in it.
+    :return: ECREnhancedScanVulnerabilityList Object with leftover vulnerability data
+    :return: ecr_enhanced_repo_uri, String for the image uri in the enhanced scanning repo
     """
-    LOGGER.info(f"Running test_ecr_enhanced_scan for image {image}")
-    image = conduct_preprocessing_of_images_before_running_ecr_scans(
-        image, ecr_client, sts_client, region
-    )
-
     ecr_enhanced_repo_uri = get_target_image_uri_using_current_uri_and_target_repo(
         image,
         target_repository_name=ECR_ENHANCED_SCANNING_REPO_NAME,
@@ -198,7 +197,9 @@ def test_ecr_enhanced_scan(image, ecr_client, sts_client, region):
         if is_generic_image():
             image_scan_allowlist_path = get_allowlist_path_for_enhanced_scan_from_env_variable()
         else:
-            image_scan_allowlist_path = get_ecr_scan_allowlist_path(image)
+            image_scan_allowlist_path = get_ecr_scan_allowlist_path(
+                image, python_version=python_version
+            )
         LOGGER.info(f"[Allowlist] Trying to locate Allowlist at PATH: {image_scan_allowlist_path}")
         # Check if image Scan Allowlist Path exists
         if os.path.exists(image_scan_allowlist_path):
@@ -213,7 +214,75 @@ def test_ecr_enhanced_scan(image, ecr_client, sts_client, region):
     remaining_vulnerabilities = ecr_image_vulnerability_list - image_scan_allowlist
     LOGGER.info(f"ECR Enhanced Scanning test completed for image: {image}")
 
+    if remove_non_patchable_vulns and remaining_vulnerabilities:
+        non_patchable_vulnerabilities = extract_non_patchable_vulnerabilities(
+            remaining_vulnerabilities, ecr_enhanced_repo_uri
+        )
+        future_allowlist = generate_future_allowlist(
+            ecr_image_vulnerability_list=ecr_image_vulnerability_list,
+            image_scan_allowlist=image_scan_allowlist,
+            non_patchable_vulnerabilities=non_patchable_vulnerabilities,
+        )
+
+        # Note that ecr_enhanced_repo_uri will point to enhanced scan repo, thus we use image in the unique_s3 function below
+        # as we want to upload the allowlist to the location that has repo of the actual image.
+        future_allowlist_upload_path = (
+            src_utils.get_unique_s3_path_for_uploading_data_to_pr_creation_bucket(
+                image_uri=image, file_name="future_os_scan_allowlist.json"
+            )
+        )
+        upload_tag_set = [
+            {"Key": "upload_path", "Value": image_scan_allowlist_path},
+            {"Key": "image_uri", "Value": image},
+        ]
+        src_utils.upload_data_to_pr_creation_s3_bucket(
+            upload_data=json.dumps(
+                future_allowlist.vulnerability_list, indent=4, cls=test_utils.EnhancedJSONEncoder
+            ),
+            s3_filepath=future_allowlist_upload_path,
+            tag_set=upload_tag_set,
+        )
+        remaining_vulnerabilities = remaining_vulnerabilities - non_patchable_vulnerabilities
+        LOGGER.info(
+            f"[FutureAllowlist][image_uri:{ecr_enhanced_repo_uri}] {json.dumps(future_allowlist.vulnerability_list, cls= test_utils.EnhancedJSONEncoder)}"
+        )
+        LOGGER.info(
+            f"[NonPatchableVulns] [image_uri:{ecr_enhanced_repo_uri}] {json.dumps(non_patchable_vulnerabilities.vulnerability_list, cls= test_utils.EnhancedJSONEncoder)}"
+        )
+    return remaining_vulnerabilities, ecr_enhanced_repo_uri
+
+
+@pytest.mark.usefixtures("sagemaker")
+@pytest.mark.model("N/A")
+@pytest.mark.integration("ECR Enhanced Scans on Images")
+def test_ecr_enhanced_scan(image, ecr_client, sts_client, region):
+    """
+    Run ECR Enhanced Scan Tool on an image being tested, and raise Error if vulnerabilities found
+    1. Use helper_function_for_leftover_vulnerabilities_from_enhanced_scanning to get the list of vulnerabilities
+    2. In case any vulnerability is remaining after removal, raise an error
+
+    :param image: str Image URI for image to be tested
+    :param ecr_client: boto3 Client for ECR
+    :param sts_client: boto3 Client for STS
+    :param region: str Name of region where test is executed
+    """
+    LOGGER.info(f"Running test_ecr_enhanced_scan for image {image}")
+    image = conduct_preprocessing_of_images_before_running_ecr_scans(
+        image, ecr_client, sts_client, region
+    )
+
+    (
+        remaining_vulnerabilities,
+        _,
+    ) = helper_function_for_leftover_vulnerabilities_from_enhanced_scanning(
+        image, remove_non_patchable_vulns="autopatch" in image
+    )
     if remaining_vulnerabilities:
+        LOGGER.info(
+            f"Total of {len(remaining_vulnerabilities.vulnerability_list)} vulnerabilities need to be fixed on {image}:\n"
+            f"{json.dumps(remaining_vulnerabilities.vulnerability_list, cls= test_utils.EnhancedJSONEncoder)}"
+        )
+
         assert not remaining_vulnerabilities.vulnerability_list, (
             f"Total of {len(remaining_vulnerabilities.vulnerability_list)} vulnerabilities need to be fixed on {image}:\n"
             f"{json.dumps(remaining_vulnerabilities.vulnerability_list, cls= test_utils.EnhancedJSONEncoder)}"

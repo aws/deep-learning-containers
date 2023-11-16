@@ -110,6 +110,7 @@ def run_test(
 
 @pytest.mark.integration("pipemode")
 @pytest.mark.model("N/A")
+@pytest.mark.team("frameworks")
 def test_single_record(ecr_image, sagemaker_regions, instance_type, framework_version):
     invoke_sm_helper_function(
         ecr_image,
@@ -124,6 +125,7 @@ def test_single_record(ecr_image, sagemaker_regions, instance_type, framework_ve
 
 @pytest.mark.integration("pipemode")
 @pytest.mark.model("N/A")
+@pytest.mark.team("frameworks")
 def test_multi_records(ecr_image, sagemaker_regions, instance_type, framework_version):
     invoke_sm_helper_function(
         ecr_image,
