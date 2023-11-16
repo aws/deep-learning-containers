@@ -4,16 +4,28 @@ import json
 import copy, collections
 import boto3
 import json
+import requests
 
 from invoke import run, Context
 from time import sleep, time
 from enum import IntEnum
 from test import test_utils
-from test.test_utils import LOGGER, ecr as ecr_utils
+from test.test_utils import (
+    LOGGER,
+    EnhancedJSONEncoder,
+    ecr as ecr_utils,
+    get_installed_python_packages_with_version,
+)
 import dataclasses
 from dataclasses import dataclass
 from typing import Any, List
-from pathlib import Path
+from packaging.version import Version
+
+from tenacity import (
+    retry,
+    stop_after_delay,
+    wait_random_exponential,
+)
 
 
 @dataclass
@@ -69,6 +81,7 @@ class AllowListFormatVulnerabilityForEnhancedScan:
     severity: str
     status: str
     title: str
+    reason_to_ignore: str
 
     def __init__(
         self,
@@ -133,6 +146,7 @@ class AllowListFormatVulnerabilityForEnhancedScan:
             if packageVulnerabilityDetails
             else kwargs["cvss_v3_severity"]
         )
+        self.reason_to_ignore = kwargs.get("reason_to_ignore", "N/A")
 
     def __eq__(self, other):
         assert type(self) == type(other), f"Types {type(self)} and {type(other)} mismatch!!"
@@ -148,7 +162,7 @@ class AllowListFormatVulnerabilityForEnhancedScan:
             return test_utils.check_if_two_dictionaries_are_equal(
                 dataclasses.asdict(self),
                 dataclasses.asdict(other),
-                ignore_keys=["package_details", "title"],
+                ignore_keys=["package_details", "title", "reason_to_ignore"],
             )
         return False
 
@@ -208,6 +222,7 @@ class ECRScanFailureException(Exception):
 
 
 class CVESeverity(IntEnum):
+    UNTRIAGED = 0
     UNDEFINED = 0
     INFORMATIONAL = 1
     LOW = 2
@@ -653,40 +668,6 @@ def get_ecr_vulnerability_package_version(vulnerability):
     return None
 
 
-def get_ecr_scan_allowlist_path(image_uri):
-    dockerfile_location = test_utils.get_dockerfile_path_for_image(image_uri)
-    image_scan_allowlist_path = dockerfile_location + ".os_scan_allowlist.json"
-    if (
-        not any(image_type in image_uri for image_type in ["neuron", "eia"])
-        and test_utils.is_covered_by_ec2_sm_split(image_uri)
-        and test_utils.is_ec2_sm_in_same_dockerfile(image_uri)
-    ):
-        if test_utils.is_ec2_image(image_uri):
-            image_scan_allowlist_path = image_scan_allowlist_path.replace(
-                "Dockerfile", "Dockerfile.ec2"
-            )
-        else:
-            image_scan_allowlist_path = image_scan_allowlist_path.replace(
-                "Dockerfile", "Dockerfile.sagemaker"
-            )
-
-    # Each example image (tied to CUDA version/OS version/other variants) can have its own list of vulnerabilities,
-    # which means that we cannot have just a single allowlist for all example images for any framework version.
-    if "example" in image_uri:
-        # The extracted dockerfile_location in case of example image points to the base gpu image on top of which the
-        # example image was built. The dockerfile_location looks like
-        # tensorflow/training/docker/2.7/py3/cu112/Dockerfile.ec2.gpu.example.os_scan_allowlist.json
-        # We want to change the parent folder such that it points from cu112 folder to example folder and
-        # looks like tensorflow/training/docker/2.7/py3/example/Dockerfile.gpu.example.os_scan_allowlist.json
-        dockerfile_location = dockerfile_location.replace(".ec2.", ".")
-        base_gpu_image_path = Path(dockerfile_location)
-        image_scan_allowlist_path = os.path.join(
-            str(base_gpu_image_path.parent.parent), "example", base_gpu_image_path.name
-        )
-        image_scan_allowlist_path += ".example.os_scan_allowlist.json"
-    return image_scan_allowlist_path
-
-
 def _save_lists_in_s3(save_details, s3_bucket_name):
     """
     This method takes in a list of filenames and the data corresponding to each filename and stores it in
@@ -918,7 +899,7 @@ def conduct_failure_routine(
             image, ecr_image_vulnerability_list, "current-ecr-scanlist", s3_bucket_for_storage
         )
     )
-    original_filepath_for_allowlist = get_ecr_scan_allowlist_path(image)
+    original_filepath_for_allowlist = test_utils.get_ecr_scan_allowlist_path(image)
     edited_files = [
         {
             "s3_filename": s3_filename_for_allowlist,
@@ -1092,7 +1073,303 @@ def fetch_other_vulnerability_lists(image, ecr_client, minimum_sev_threshold):
     image_scan_allowlist = ECRBasicScanVulnerabilityList(
         minimum_severity=CVESeverity[minimum_sev_threshold]
     )
-    image_scan_allowlist_path = get_ecr_scan_allowlist_path(image)
+    image_scan_allowlist_path = test_utils.get_ecr_scan_allowlist_path(image)
     if os.path.exists(image_scan_allowlist_path):
         image_scan_allowlist.construct_allowlist_from_file(image_scan_allowlist_path)
     return upgraded_image_vulnerability_list, image_scan_allowlist
+
+
+def generate_future_allowlist(
+    ecr_image_vulnerability_list: ECREnhancedScanVulnerabilityList,
+    image_scan_allowlist: ECREnhancedScanVulnerabilityList,
+    non_patchable_vulnerabilities: ECREnhancedScanVulnerabilityList,
+):
+    """
+    This method helps in generating the future allowlist. It takes 2 vulnerability_list objects as input, namely - ecr_image_vulnerability_list (consists
+    of the vulnerabilities found in latest ECR Scan), image_scan_allowlist (consists of the allowlist vulns that exist on git repo) and
+    non_patchable_vulnerabilities (consits of the non-patchable vulns that are extract from extract_non_patchable_vulnerabilities).
+
+    1. It finds the old/redundant vulnerabilities that are existing in the allowlist. This is done by removing all the image_scan_allowlist that are not
+       shown on the latest scan.
+    2. Then, it removes these non-relevant vulns from the image_scan_allowlist and stores this in future_allowlist
+    3. In the end, it add the non_patchable vulns to the future_allowlist generated in step 2
+
+    :return: Object of type ECREnhancedScanVulnerabilityList, this is the new/future allowlist that will be used by pr-generator.
+    """
+    non_relevant_allowlist_vulnerabilities = image_scan_allowlist - ecr_image_vulnerability_list
+    future_allowlist = image_scan_allowlist - non_relevant_allowlist_vulnerabilities
+    if future_allowlist:
+        future_allowlist = future_allowlist + non_patchable_vulnerabilities
+    else:
+        future_allowlist = copy.deepcopy(non_patchable_vulnerabilities)
+    return future_allowlist
+
+
+def segregate_impacted_package_names_based_on_manager(
+    vulnerability_list_object: ECREnhancedScanVulnerabilityList,
+):
+    """
+    This method takes the latest ECREnhancedScanVulnerabilityList and segregates the impacted packages based on their package managers.
+
+    :param vulnerability_list_object: Object of type ECREnhancedScanVulnerabilityList
+    :return: Dict[key=package_manager_type, value=set of package names]
+    """
+    segregated_package_names = {}
+    segregated_package_names["os_packages"] = set()
+    segregated_package_names["py_packages"] = set()
+    for package_name, package_cve_list in vulnerability_list_object.vulnerability_list.items():
+        for cve in package_cve_list:
+            if cve.package_details.package_manager == "OS":
+                segregated_package_names["os_packages"].add(package_name)
+            elif cve.package_details.package_manager == "PYTHONPKG":
+                segregated_package_names["py_packages"].add(package_name)
+    return segregated_package_names
+
+
+def run_patch_evaluation_script_to_reevaluate_package_status(
+    docker_exec_cmd, image_uri, impacted_os_packages
+):
+    """
+    This method runs the miscellaneous_scripts/extract_apt_patch_data.py on the DLC based on the latest impacted packages and returns the generated data.
+
+    :param docker_exec_cmd: str, docker_exec_cmd
+    :param image_uri: str, Image URI
+    :param impacted_os_packages: set, Consists of the latest impacted packages
+    :return new_apt_patch_evaluation_data: dict, this is the data generated by extract_apt_patch_data.py script and looks like
+        {
+            "patch_package_dict": [List of packages],
+            "upgradable_packages_data_for_impacted_packages": Dict[key=source_package_name, value=List of all packages that have the source as key]
+        }
+    """
+    save_file_name = f"""{image_uri.replace("/","_").replace(":","_")}-apt-results.json"""
+    ## TODO: Remove
+    impacted_os_packages.add("imagemagick")
+    script_run_cmd = f"""python /deep-learning-containers/miscellaneous_scripts/extract_apt_patch_data.py --impacted-packages {",".join(list(impacted_os_packages))} --save-result-path /deep-learning-containers/{save_file_name} --mode_type generate"""
+    run(f"{docker_exec_cmd} {script_run_cmd}", hide=True)
+    new_apt_patch_evaluation_data = {}
+    new_apt_patch_evaluation_data_location = os.path.join(
+        test_utils.get_repository_local_path(), save_file_name
+    )
+    if os.path.exists:
+        with open(new_apt_patch_evaluation_data_location, "r") as readfile:
+            new_apt_patch_evaluation_data = json.load(readfile)
+    return new_apt_patch_evaluation_data
+
+
+def get_os_package_upgradable_status(
+    package: str, new_apt_patch_evaluation_data: dict, embedded_apt_patch_evaluation_data: dict
+):
+    """
+    Checks if the OS package is upgradable or not. It uses the new_apt_patch_evaluation_data that has been generated by running the miscellaneous_scripts/extract_apt_patch_data.py on the
+    newly built DLC. The new_apt_patch_evaluation_data has the data retrieved on evaluating the DLC against the latest vulnerabilities found in it after patching. It also uses the embedded_apt_patch_evaluation_data
+    that was generated on the old DLC during the build time. The embedded_apt_patch_evaluation_data had evaluated the DLC against the vulnerabilities that existed with old package configurations.
+
+    To check upgradability, we see if the package or any of its binaries are existing in the new_apt_patch_evaluation_data["upgradable_packages_data_for_impacted_packages"].
+    If they do not exist, then there is no scope for upgrading the package and we declare the package as non-upgradable. While declaring the package as
+    non-upgradable, we see if the package or its binaries were upgraded during the build time using embedded_apt_patch_evaluation_data and add that info
+    to the message for better information.
+
+    :param pacakge: str, name of package
+    :param new_apt_patch_evaluation_data: dict, The new_apt_patch_evaluation_data has the data retrieved on evaluating the DLC against the latest vulnerabilities found in it after patching.
+    :param embedded_apt_patch_evaluation_data: dict, The embedded_apt_patch_evaluation_data has the evaluation data of the old DLC against the vulnerabilities that existed with old package configurations.
+    :return: [bool, str], returns 2 values, the first says True if the vulnerability/package is non-upgradable and the second one stores the ignore message
+             in case the vulnerability is non-upgradable. This ignore message is used to insert into the allowlist.
+    """
+    is_package_upgradable = True
+    ignore_message = ""
+    if package not in new_apt_patch_evaluation_data.get(
+        "upgradable_packages_data_for_impacted_packages", {}
+    ):
+        is_package_upgradable = False
+        ignore_message = "Package and its binaries cannot be upgraded further."
+        if package in embedded_apt_patch_evaluation_data.get(
+            "upgradable_packages_data_for_impacted_packages", {}
+        ):
+            package_related_binaries = sorted(
+                embedded_apt_patch_evaluation_data[
+                    "upgradable_packages_data_for_impacted_packages"
+                ][package]
+            )
+            ignore_message = f"""{ignore_message} Packages: {",".join(package_related_binaries)} have been upgraded."""
+    return is_package_upgradable, ignore_message
+
+
+@retry(
+    reraise=True,
+    stop=stop_after_delay(20 * 60),  # Keep retrying for 20 minutes
+    wait=wait_random_exponential(min=30, max=2 * 60),  # Retry after waiting 30 secsonds - 2 minutes
+)
+def get_latest_version_of_a_python_package(package_name: str):
+    """
+    Get the latest version of a python package. Calls PyPi to extract the same.
+
+    :return: str, version of the package
+    """
+    response = requests.get(f"https://pypi.org/pypi/{package_name}/json")
+    latest_version = response.json()["info"]["version"]
+    return latest_version
+
+
+def check_if_python_vulnerability_is_non_patchable_and_get_ignore_message(
+    vulnerability: AllowListFormatVulnerabilityForEnhancedScan,
+    installed_python_package_version_dict: dict,
+    docker_exec_command: str,
+):
+    """
+    This method takes in the vulnerability Object and checks if it is non-patchable (or allowlistable in other words). It makes the following checks:
+    1. Check if the installed package version is same as the one being shown by scanner, if not declare it as non-patchable/allowlistable
+    2. Check if the package is already in the latest version, if not declare it as non-patchable/allowlistable
+
+    :param vulnerability: Object of type AllowListFormatVulnerabilityForEnhancedScan, vuln that we need to check patchability for.
+    :param installed_python_package_version_dict: Dict, key = package name and value = package version. This is the list of packages
+                                                        that are installed in the image being currently tested.
+    :param docker_exec_command: str, Docker exec command to run additional commands on the container
+    :return: [bool, str], returns 2 values, the first says True if the vulnerability/package is non-patchable and the second one stores the ignore message
+             in case the vulnerability is non-patchable. This ignore message is used to insert into the allowlist.
+    """
+    assert (
+        vulnerability.package_details.package_manager == "PYTHONPKG"
+    ), f"Vulnerability: {json.dumps(vulnerability, cls=EnhancedJSONEncoder)} is not PythonPkg managed."
+
+    package_name = vulnerability.package_name.lower()
+    if package_name not in installed_python_package_version_dict:
+        # To begin with, we will not allowlist package names that are not present in the installed list and show up in the vulnerability.
+        # However based on the observed behavior, or such scenarios occuring in the future, we will start to allowlist this vulnerability.
+        LOGGER.info(f"Package {package_name} not found!")
+        return False, ""
+
+    ## 1. Check if the installed package version is same as the one being shown by scanner
+    installed_package_version = installed_python_package_version_dict.get(package_name)
+    vulnerability_package_version = vulnerability.package_details.version
+    if installed_package_version != vulnerability_package_version:
+        return (
+            True,
+            f"Installed package version is {installed_package_version} which is not equal to the one shown in vulnerability.",
+        )
+
+    ## 2. Check if the package is already in the latest version, if not then allowlist
+    latest_version = get_latest_version_of_a_python_package(package_name=package_name)
+    if Version(installed_package_version) == Version(latest_version):
+        return True, f"Installed package version {installed_package_version} is the latest version"
+
+    return False, ""
+
+
+def get_non_patchable_python_vulnerabilities(
+    vulnerability_list: List[AllowListFormatVulnerabilityForEnhancedScan],
+    installed_python_package_version_dict: dict,
+    docker_exec_command: str,
+):
+    """
+    This method looks into all the vulnerabilities associated with a Python package and then iterates through each vulnerability to see
+    if it is non-patchable or not. It uses check_if_python_vulnerability_is_non_patchable_and_get_ignore_message method to check the same.
+    Thereafter, it returns the list of all the vulns that are non-patchable and can be added to the allowlist.
+
+    :param vulnerability_list: List[AllowListFormatVulnerabilityForEnhancedScan], The list of all the vulns found for a package
+    :param installed_python_package_version_dict: dict, Dictionary with package name as keys and their values as version.
+    :param docker_exec_command: str, The docker exec command
+    :return: List[AllowListFormatVulnerabilityForEnhancedScan], list of all the non-patchable vulns
+    """
+    non_patchable_list = []
+    for vulnerability in vulnerability_list:
+        (
+            is_python_vulnerability_non_patchable,
+            ignore_msg,
+        ) = check_if_python_vulnerability_is_non_patchable_and_get_ignore_message(
+            vulnerability=vulnerability,
+            installed_python_package_version_dict=installed_python_package_version_dict,
+            docker_exec_command=docker_exec_command,
+        )
+        if is_python_vulnerability_non_patchable:
+            vulnerability.reason_to_ignore = ignore_msg
+            non_patchable_list.append(vulnerability)
+    return non_patchable_list
+
+
+def extract_non_patchable_vulnerabilities(
+    vulnerability_list_object: ECREnhancedScanVulnerabilityList, image_uri: str
+):
+    """
+    This method takes a vulnerability_list_object for an image_uri and finds all the non-patchable packages in it. vulnerability_list_object consists of
+    the vulnerabilities found in the latest scan for the image. It uses this object to see if there is any impacted package. It then invokes the methods
+    that help determine if the packages are not patchable anymore. Based on this, it return a ECREnhancedScanVulnerabilityList object that only has
+    non-patchable vulnerabilities with appropriate reasons in it.
+
+    :param vulnerability_list_object: Object of type ECREnhancedScanVulnerabilityList, it consists of the vulns found in the latest scan
+    :param image_uri: str, URI of the image
+    :return: Object of type ECREnhancedScanVulnerabilityList, object that only non-patchable vulnerabilities with appropriate reasons in it.
+    """
+    assert vulnerability_list_object, "`vulnerability_list_object` cannot be None."
+    segregated_package_names = segregate_impacted_package_names_based_on_manager(
+        vulnerability_list_object
+    )
+    impacted_os_packages = segregated_package_names["os_packages"]
+
+    docker_run_cmd = f"docker run -v {test_utils.get_repository_local_path()}:/deep-learning-containers  -id --entrypoint='/bin/bash' {image_uri} "
+    container_id = run(f"{docker_run_cmd}").stdout.strip()
+    docker_exec_cmd = f"docker exec -i {container_id}"
+    container_setup_cmd = "apt-get update"
+    run(f"{docker_exec_cmd} {container_setup_cmd}", hide=True)
+
+    # Using the latest impact packages, we re-run miscellaneous_scripts/extract_apt_patch_data.py to see if there is any latest package that
+    # can still be patched.
+    new_apt_patch_evaluation_data = run_patch_evaluation_script_to_reevaluate_package_status(
+        docker_exec_cmd=docker_exec_cmd,
+        image_uri=image_uri,
+        impacted_os_packages=impacted_os_packages,
+    )
+    # We then extract the patch evaluation data that was embedded in the DLC at the time of build.
+    embedded_apt_patch_evaluation_data = {}
+    display_embdedded_patch_eval_data_cmd = "cat /opt/aws/dlc/patch-details/os_summary.json"
+    display_output = run(f"{docker_exec_cmd} {display_embdedded_patch_eval_data_cmd}", warn=True)
+    if display_output.ok:
+        embedded_apt_patch_evaluation_data = json.loads(display_output.stdout.strip())
+
+    installed_python_package_version_dict = get_installed_python_packages_with_version(
+        docker_exec_command=docker_exec_cmd
+    )
+
+    non_patchable_vulnerabilities_with_reason = copy.deepcopy(vulnerability_list_object)
+    print(non_patchable_vulnerabilities_with_reason.vulnerability_list)
+    patchable_packages = []
+    for (
+        package_name,
+        vulnerabilities,
+    ) in non_patchable_vulnerabilities_with_reason.vulnerability_list.items():
+        package_manager = vulnerabilities[0].package_details.package_manager
+        if package_manager not in ["OS", "PYTHONPKG"]:
+            patchable_packages.append(package_name)
+            continue
+        if package_manager == "OS":
+            # Using the new and the embedded patch evaluation data, we decipher if the package is upgradable anymore or not.
+            is_package_upgradable, ignore_msg = get_os_package_upgradable_status(
+                package_name, new_apt_patch_evaluation_data, embedded_apt_patch_evaluation_data
+            )
+            if is_package_upgradable:
+                # If it is upgradable, we remove it from non_patchable_vulnerabilities_with_reason Object since it can be patched
+                patchable_packages.append(package_name)
+                continue
+            for package_vulnerability in vulnerabilities:
+                package_vulnerability.reason_to_ignore = ignore_msg
+        elif package_manager == "PYTHONPKG":
+            # Similary, for python packages, we filter the vulnerabilities that are allowlistable i.e. non-patchable and let the non-patchable
+            # ones remain in the non_patchable_vulnerabilities_with_reason Object.
+            allowlistable_python_vulns = get_non_patchable_python_vulnerabilities(
+                vulnerability_list=vulnerabilities,
+                installed_python_package_version_dict=installed_python_package_version_dict,
+                docker_exec_command=docker_exec_cmd,
+            )
+            if allowlistable_python_vulns:
+                non_patchable_vulnerabilities_with_reason.vulnerability_list[
+                    package_name
+                ] = allowlistable_python_vulns
+            else:
+                patchable_packages.append(package_name)
+
+    # In the end, any patchable package is removed from the non_patchable_vulnerabilities_with_reason object.
+    non_patchable_vulnerabilities_with_reason.vulnerability_list = {
+        k: v
+        for k, v in non_patchable_vulnerabilities_with_reason.vulnerability_list.items()
+        if k not in patchable_packages
+    }
+    return non_patchable_vulnerabilities_with_reason

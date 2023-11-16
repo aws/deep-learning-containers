@@ -8,61 +8,6 @@
         "packageVulnerabilityDetails": {
             "cvss": [
                 {
-                    "baseScore": 7.7,
-                    "scoringVector": "CVSS:3.1/AV:N/AC:H/PR:H/UI:N/S:C/C:H/I:N/A:H",
-                    "source": "SNYK",
-                    "version": "3.1"
-                }
-            ],
-            "referenceUrls": [],
-            "relatedVulnerabilities": [],
-            "source": "SNYK",
-            "sourceUrl": "https://temp-url",
-            "vendorCreatedAt": "2020-10-01T16:24:00+00:00",
-            "vendorSeverity": "high",
-            "vulnerabilityId": "CVE-123",
-            "vulnerablePackages": [
-                {
-                    "epoch": 0,
-                    "filePath": "usr/lib",
-                    "name": "package1",
-                    "packageManager": "PYTHONPKG",
-                    "sourceLayerHash": "temp",
-                    "version": "1.2"
-                }
-            ]
-        },
-        "remediation": {
-            "recommendation": {
-                "text": "None Provided"
-            }
-        },
-        "resources": [],
-        "score": 7.7,
-        "scoreDetails": {
-            "cvss": {
-                "adjustments": [],
-                "score": 7.7,
-                "scoreSource": "SNYK",
-                "scoringVector": "CVSS:3.1/AV:N/AC:H/PR:H/UI:N/S:C/C:H/I:N/A:H",
-                "version": "3.1"
-            }
-        },
-        "severity": "HIGH",
-        "status": "ACTIVE",
-        "title": "CVE-123 - package1",
-        "type": "PACKAGE_VULNERABILITY",
-        "updatedAt": "2022-08-01T21:55:36.625000+00:00"
-    },
-    {
-        "awsAccountId": "abcd",
-        "description": "temp-description",
-        "findingArn": "arn",
-        "firstObservedAt": "2022-08-01T21:55:36.625000+00:00",
-        "lastObservedAt": "2022-08-01T21:55:36.625000+00:00",
-        "packageVulnerabilityDetails": {
-            "cvss": [
-                {
                     "baseScore": 9.1,
                     "scoringVector": "CVSS:3.1/AV:N/AC:H/PR:H/UI:N/S:C/C:H/I:N/A:H",
                     "source": "SNYK",
@@ -245,7 +190,7 @@
             "referenceUrls": [],
             "relatedVulnerabilities": [],
             "source": "SNYK",
-            "sourceUrl": "https://temp-url",
+            "sourceUrl": "https://temp-url-pkg6",
             "vendorCreatedAt": "2020-10-01T16:24:00+00:00",
             "vendorSeverity": "critical",
             "vulnerabilityId": "CVE-A234",
@@ -321,7 +266,7 @@
             }
         },
         "resources": [],
-        "score": 9.4,
+        "score": 9.8,
         "scoreDetails": {
             "cvss": {
                 "adjustments": [],
@@ -334,6 +279,116 @@
         "severity": "CRITICAL",
         "status": "ACTIVE",
         "title": "CVE-ABC123 - package7",
+        "type": "PACKAGE_VULNERABILITY",
+        "updatedAt": "2022-08-01T21:55:36.625000+00:00"
+    },
+    {
+        "awsAccountId": "abcd",
+        "description": "temp-description",
+        "findingArn": "arn",
+        "firstObservedAt": "2022-08-01T21:55:36.625000+00:00",
+        "lastObservedAt": "2022-08-01T21:55:36.625000+00:00",
+        "packageVulnerabilityDetails": {
+            "cvss": [
+                {
+                    "baseScore": 9.1,
+                    "scoringVector": "CVSS:3.1/AV:N/AC:H/PR:H/UI:N/S:C/C:H/I:N/A:H",
+                    "source": "SNYK",
+                    "version": "3.1"
+                }
+            ],
+            "referenceUrls": [],
+            "relatedVulnerabilities": [],
+            "source": "SNYK",
+            "sourceUrl": "https://temp-url",
+            "vendorCreatedAt": "2020-10-01T16:24:00+00:00",
+            "vendorSeverity": "critical",
+            "vulnerabilityId": "CVE-ABC345",
+            "vulnerablePackages": [
+                {
+                    "epoch": 0,
+                    "filePath": "usr/lib",
+                    "name": "package8",
+                    "packageManager": "PYTHONPKG",
+                    "sourceLayerHash": "temp",
+                    "version": "1.34"
+                }
+            ]
+        },
+        "remediation": {
+            "recommendation": {
+                "text": "None Provided"
+            }
+        },
+        "resources": [],
+        "score": 9.1,
+        "scoreDetails": {
+            "cvss": {
+                "adjustments": [],
+                "score": 9.1,
+                "scoreSource": "SNYK",
+                "scoringVector": "CVSS:3.1/AV:N/AC:H/PR:H/UI:N/S:C/C:H/I:N/A:H",
+                "version": "3.1"
+            }
+        },
+        "severity": "CRITICAL",
+        "status": "ACTIVE",
+        "title": "CVE-ABC345 - package8",
+        "type": "PACKAGE_VULNERABILITY",
+        "updatedAt": "2022-08-01T21:55:36.625000+00:00"
+    },
+    {
+        "awsAccountId": "abcd",
+        "description": "temp-description",
+        "findingArn": "arn",
+        "firstObservedAt": "2022-08-01T21:55:36.625000+00:00",
+        "lastObservedAt": "2022-08-01T21:55:36.625000+00:00",
+        "packageVulnerabilityDetails": {
+            "cvss": [
+                {
+                    "baseScore": 9.7,
+                    "scoringVector": "CVSS:3.1/AV:N/AC:H/PR:H/UI:N/S:C/C:H/I:N/A:H",
+                    "source": "SNYK",
+                    "version": "3.1"
+                }
+            ],
+            "referenceUrls": [],
+            "relatedVulnerabilities": [],
+            "source": "SNYK",
+            "sourceUrl": "https://temp-url",
+            "vendorCreatedAt": "2020-10-01T16:24:00+00:00",
+            "vendorSeverity": "critical",
+            "vulnerabilityId": "CVE-ABC678",
+            "vulnerablePackages": [
+                {
+                    "epoch": 0,
+                    "filePath": "usr/lib",
+                    "name": "package9",
+                    "packageManager": "PYTHONPKG",
+                    "sourceLayerHash": "temp",
+                    "version": "1.34"
+                }
+            ]
+        },
+        "remediation": {
+            "recommendation": {
+                "text": "None Provided"
+            }
+        },
+        "resources": [],
+        "score": 9.7,
+        "scoreDetails": {
+            "cvss": {
+                "adjustments": [],
+                "score": 9.7,
+                "scoreSource": "SNYK",
+                "scoringVector": "CVSS:3.1/AV:N/AC:H/PR:H/UI:N/S:C/C:H/I:N/A:H",
+                "version": "3.1"
+            }
+        },
+        "severity": "CRITICAL",
+        "status": "ACTIVE",
+        "title": "CVE-ABC678 - package9",
         "type": "PACKAGE_VULNERABILITY",
         "updatedAt": "2022-08-01T21:55:36.625000+00:00"
     }

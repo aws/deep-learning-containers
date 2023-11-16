@@ -17,6 +17,7 @@ import concurrent.futures
 import datetime
 import os
 import re
+import json
 
 from copy import deepcopy
 
@@ -24,15 +25,19 @@ import constants
 import utils
 import boto3
 import itertools
+import patch_helper
 
 from codebuild_environment import get_codebuild_project_name, get_cloned_folder_path
-from config import parse_dlc_developer_configs, is_build_enabled
+from config import parse_dlc_developer_configs, is_build_enabled, is_autopatch_build_enabled
 from context import Context
 from metrics import Metrics
 from image import DockerImage
 from common_stage_image import CommonStageImage
 from buildspec import Buildspec
 from output import OutputFormatter
+from invoke import run
+from utils import get_dummy_boto_client
+
 
 FORMATTER = OutputFormatter(constants.PADDING)
 build_context = os.getenv("BUILD_CONTEXT")
@@ -84,6 +89,7 @@ def image_builder(buildspec, image_types=[], device_types=[]):
         or "autogluon" in str(BUILDSPEC["framework"])
         or "stabilityai" in str(BUILDSPEC["framework"])
         or "trcomp" in str(BUILDSPEC["framework"])
+        or is_autopatch_build_enabled()
     ):
         os.system("echo login into public ECR")
         os.system(
@@ -105,6 +111,17 @@ def image_builder(buildspec, image_types=[], device_types=[]):
         labels = {}
         enable_datetime_tag = parse_dlc_developer_configs("build", "datetime_tag")
 
+        prod_repo_uri = ""
+        if is_autopatch_build_enabled():
+            prod_repo_uri = utils.derive_prod_image_uri_using_image_config_from_buildspec(
+                image_config=image_config,
+                framework=BUILDSPEC["framework"],
+                new_account_id=constants.PUBLIC_DLC_REGISTRY,
+            )
+            FORMATTER.print(
+                f"""[PROD_URI for {image_config["repository"]}:{image_config["tag"]}] {prod_repo_uri}"""
+            )
+
         if image_config.get("version") is not None:
             if BUILDSPEC["version"] != image_config.get("version"):
                 continue
@@ -116,6 +133,9 @@ def image_builder(buildspec, image_types=[], device_types=[]):
             if build_context == "PR"
             else image_config["tag"]
         )
+
+        if is_autopatch_build_enabled():
+            image_tag = append_tag(image_tag, "autopatch")
 
         additional_image_tags = []
         if is_nightly_build_context():
@@ -274,6 +294,8 @@ def image_builder(buildspec, image_types=[], device_types=[]):
             "enable_test_promotion": image_config.get("enable_test_promotion", True),
             "labels": labels,
             "extra_build_args": extra_build_args,
+            "cx_type": cx_type,
+            "release_image_uri": prod_repo_uri,
         }
 
         # Create pre_push stage docker object
@@ -300,6 +322,12 @@ def image_builder(buildspec, image_types=[], device_types=[]):
 
         PRE_PUSH_STAGE_IMAGES.append(pre_push_stage_image_object)
         FORMATTER.separator()
+
+    if is_autopatch_build_enabled():
+        FORMATTER.banner("APATCH-PREP")
+        patch_helper.initiate_multithreaded_autopatch_prep(
+            PRE_PUSH_STAGE_IMAGES, make_dummy_boto_client=True
+        )
 
     FORMATTER.banner("DLC")
 
@@ -380,6 +408,11 @@ def process_images(pre_push_image_list, pre_push_image_type="Pre-push"):
     FORMATTER.banner(f"{pre_push_image_type} Push Images")
     all_images = pre_push_image_list + common_stage_image_list
     images_to_push = [image for image in all_images if image.to_push and image.to_build]
+
+    if is_autopatch_build_enabled():
+        for image in images_to_push:
+            patch_helper.retrive_autopatched_image_history_and_upload_to_s3(image_uri=image.ecr_url)
+
     push_images(images_to_push)
 
     FORMATTER.banner(f"{pre_push_image_type} Retagging")
@@ -520,18 +553,6 @@ def build_images(images, make_dummy_boto_client=False):
     FORMATTER.progress(THREADS)
 
 
-#### TODO: Remove this entire method when https://github.com/boto/boto3/issues/1592 is resolved ####
-def get_dummy_boto_client():
-    """
-    Makes a dummy boto3 client to ensure that boto3 clients behave in a thread safe manner.
-    In absence of this method, the behaviour documented in https://github.com/boto/boto3/issues/1592 is observed.
-    Once https://github.com/boto/boto3/issues/1592 is resolved, this method can be removed.
-
-    :return: BotocoreClientSTS
-    """
-    return boto3.client("sts", region_name=os.getenv("REGION"))
-
-
 def push_images(images):
     """
     Takes a list of images and PUSHES them to ECR concurrently.
@@ -591,9 +612,14 @@ def modify_repository_name_for_context(image_repo_uri, build_context):
     repo_uri_values = image_repo_uri.split("/")
     repo_name = repo_uri_values[-1]
     if build_context == "MAINLINE":
-        repo_uri_values[-1] = repo_name.replace(
-            constants.PR_REPO_PREFIX, constants.MAINLINE_REPO_PREFIX
-        )
+        if is_autopatch_build_enabled():
+            repo_uri_values[-1] = repo_name.replace(
+                constants.PR_REPO_PREFIX, constants.AUTOPATCH_REPO_PREFIX
+            )
+        else:
+            repo_uri_values[-1] = repo_name.replace(
+                constants.PR_REPO_PREFIX, constants.MAINLINE_REPO_PREFIX
+            )
     elif build_context == "NIGHTLY":
         repo_uri_values[-1] = repo_name.replace(
             constants.PR_REPO_PREFIX, constants.NIGHTLY_REPO_PREFIX
