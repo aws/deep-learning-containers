@@ -2205,6 +2205,20 @@ def get_ecr_scan_allowlist_path(image_uri, python_version=None):
     return image_scan_allowlist_path
 
 
+def get_git_path_for_ecr_scan_allowlist(image_uri):
+    """
+    Get the path of os_scan_allowlist.json file as on Git Repo. Separate function for git path is required
+    because the path of the file during execution could be different from that on git, based on CODEBUILD_SRC_DIR.
+    """
+    from src.codebuild_environment import get_cloned_folder_path
+
+    ecr_allowlist_path_on_codebuild = get_ecr_scan_allowlist_path(image_uri)
+    ecr_allowlist_path_on_github_repo = ecr_allowlist_path_on_codebuild.replace(
+        get_cloned_folder_path(), "/deep-learning-containers"
+    )
+    return ecr_allowlist_path_on_github_repo
+
+
 def get_installed_python_packages_with_version(docker_exec_command: str):
     """
     This method extracts all the installed python packages and their versions from a DLC.

@@ -14,7 +14,7 @@ from utils import (
     upload_data_to_pr_creation_s3_bucket,
     get_core_packages_path,
     get_unique_s3_path_for_uploading_data_to_pr_creation_bucket,
-    get_overall_history_path,
+    get_git_path_for_overall_history,
 )
 from codebuild_environment import get_cloned_folder_path
 from context import Context
@@ -273,7 +273,7 @@ def retrive_autopatched_image_history_and_upload_to_s3(image_uri):
         tag_set = [
             {
                 "Key": "upload_path",
-                "Value": get_overall_history_path(image_uri.replace("-multistage-common", "")),
+                "Value": get_git_path_for_overall_history(image_uri.replace("-multistage-common", "")),
             },
             {"Key": "image_uri", "Value": image_uri.replace("-multistage-common", "")},
         ]

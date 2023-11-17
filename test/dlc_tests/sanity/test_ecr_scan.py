@@ -30,6 +30,7 @@ from test.test_utils import (
     is_generic_image,
     get_allowlist_path_for_enhanced_scan_from_env_variable,
     get_ecr_scan_allowlist_path,
+    get_git_path_for_ecr_scan_allowlist,
 )
 from test.test_utils import ecr as ecr_utils
 from test.test_utils.security import (
@@ -232,7 +233,7 @@ def helper_function_for_leftover_vulnerabilities_from_enhanced_scanning(
             )
         )
         upload_tag_set = [
-            {"Key": "upload_path", "Value": image_scan_allowlist_path},
+            {"Key": "upload_path", "Value": get_git_path_for_ecr_scan_allowlist(image)},
             {"Key": "image_uri", "Value": image},
         ]
         src_utils.upload_data_to_pr_creation_s3_bucket(
