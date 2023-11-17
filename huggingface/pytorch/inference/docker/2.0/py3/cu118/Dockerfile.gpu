@@ -205,7 +205,8 @@ RUN pip install --no-cache-dir \
 	"numpy>=1.22.2,<1.23" \
 	"sagemaker-huggingface-inference-toolkit<3" \
     # CVE
-    urllib3==1.26.18
+    urllib3==1.26.18 \
+    mkl
 
 
 RUN HOME_DIR=/root \

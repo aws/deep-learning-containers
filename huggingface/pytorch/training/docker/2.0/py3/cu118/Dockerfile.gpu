@@ -24,16 +24,15 @@ RUN pip install --no-cache-dir \
 	tensorboard \
 	evaluate==${EVALUATE_VERSION} \
 	accelerate==${ACCELERATE_VERSION} \
-	scipy==1.10.0 
+	mkl
 
 # Resolve CVE
 RUN pip install --no-cache-dir -U \
-	pip==23.3 \
-	pyyaml==3.10 \
+	pip \ 
+	pyyaml \
     werkzeug \
 	gevent \
 	certifi \ 
-    urllib3==1.25.4 \
 	tornado \ 
 	fonttools
 
