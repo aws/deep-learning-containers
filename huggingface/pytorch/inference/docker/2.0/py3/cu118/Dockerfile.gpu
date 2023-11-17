@@ -205,7 +205,6 @@ RUN pip install --no-cache-dir \
 	"numpy>=1.22.2,<1.23" \
 	"sagemaker-huggingface-inference-toolkit<3" \
     # CVE
-    scipy==1.10.0 \
     urllib3==1.26.18
 
 

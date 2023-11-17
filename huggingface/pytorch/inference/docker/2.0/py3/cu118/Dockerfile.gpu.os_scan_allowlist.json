@@ -60,6 +60,37 @@
          "title":"CVE-2023-5678 - cryptography"
       }
    ],
+   "scipy":[
+      {
+         "reason_to_ignore":"Temporarily ignoring to fix CRITICALs",
+         "description":"A use-after-free issue was discovered in Py_FindObjects() function in SciPy versions prior to 1.8.0. NOTE: the vendor and discoverer indicate that this is not a security issue.",
+         "vulnerability_id":"CVE-2023-29824",
+         "name":"CVE-2023-29824",
+         "package_name":"scipy",
+         "package_details":{
+            "file_path":"opt/llvm-project/libcxx/utils/google-benchmark/requirements.txt",
+            "name":"scipy",
+            "package_manager":"PIP",
+            "version":"1.5.4",
+            "release":null
+         },
+         "remediation":{
+            "recommendation":{
+               "text":"None Provided"
+            }
+         },
+         "cvss_v3_score":9.8,
+         "cvss_v30_score":0.0,
+         "cvss_v31_score":9.8,
+         "cvss_v2_score":0.0,
+         "cvss_v3_severity":"CRITICAL",
+         "source_url":"https://nvd.nist.gov/vuln/detail/CVE-2023-29824",
+         "source":"NVD",
+         "severity":"CRITICAL",
+         "status":"ACTIVE",
+         "title":"CVE-2023-29824 - scipy"
+      }
+   ],
   "transformers": [
     {
       "reason_to_ignore": "Need guidance from HF team on how to upgrade as it's breaking the image. Temporarily ignoring to patch other CVEs.",
