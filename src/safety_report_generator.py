@@ -168,6 +168,7 @@ class SafetyReportGenerator:
                             for vulnerability in package_scan_results["vulnerabilities"]:
                                 if vulnerability["reason_to_ignore"] == "N/A":
                                     vulnerability["reason_to_ignore"] = ignore_message
+                                    vulnerability["ignored"] = True
                                     self.vulnerabilities_to_be_added_to_ignore_list[
                                         vulnerability["vulnerability_id"]
                                     ] = ignore_message
