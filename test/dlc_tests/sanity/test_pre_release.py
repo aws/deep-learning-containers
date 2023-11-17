@@ -181,9 +181,9 @@ def test_tf_serving_version_cpu(tensorflow_inference):
 
     image_repo_name, _ = get_repository_and_tag_from_image_uri(image)
 
-    if re.fullmatch(r"(pr-|beta-|nightly-)?tensorflow-inference", image_repo_name) and Version(
-        tag_framework_version
-    ) == Version("2.6.3"):
+    if re.fullmatch(
+        r"(pr-|beta-|autopatch-|nightly-)?tensorflow-inference", image_repo_name
+    ) and Version(tag_framework_version) == Version("2.6.3"):
         pytest.skip(
             "Skipping this test for TF 2.6.3 inference as the v2.6.3 version is already on production"
         )
@@ -280,7 +280,9 @@ def test_framework_version_cpu(image):
             "Neuron images will have their framework version tested in test_framework_and_neuron_sdk_version"
         )
     image_repo_name, _ = get_repository_and_tag_from_image_uri(image)
-    if re.fullmatch(r"(pr-|beta-|nightly-)?tensorflow-inference(-eia|-graviton)?", image_repo_name):
+    if re.fullmatch(
+        r"(pr-|beta-|autopatch-|nightly-)?tensorflow-inference(-eia|-graviton)?", image_repo_name
+    ):
         pytest.skip(
             "Non-gpu tensorflow-inference images will be tested in test_tf_serving_version_cpu."
         )
@@ -459,16 +461,18 @@ def test_framework_and_cuda_version_gpu(gpu, ec2_connection):
 
     image_repo_name, _ = get_repository_and_tag_from_image_uri(image)
 
-    if re.fullmatch(r"(pr-|beta-|nightly-)?tensorflow-inference", image_repo_name) and Version(
-        tag_framework_version
-    ) == Version("2.6.3"):
+    if re.fullmatch(
+        r"(pr-|beta-|autopatch-|nightly-)?tensorflow-inference", image_repo_name
+    ) and Version(tag_framework_version) == Version("2.6.3"):
         pytest.skip(
             "Skipping this test for TF 2.6.3 inference as the v2.6.3 version is already on production"
         )
 
     # Framework Version Check #
     # For tf inference containers, check TF model server version
-    if re.fullmatch(r"(pr-|beta-|nightly-)?tensorflow-inference(-eia|-graviton)?", image_repo_name):
+    if re.fullmatch(
+        r"(pr-|beta-|autopatch-|nightly-)?tensorflow-inference(-eia|-graviton)?", image_repo_name
+    ):
         cmd = f"tensorflow_model_server --version"
         output = ec2.execute_ec2_training_test(ec2_connection, image, cmd, executable="bash").stdout
         assert re.match(
