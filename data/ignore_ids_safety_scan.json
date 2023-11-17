@@ -1338,7 +1338,8 @@
                 "42815":"for shipping bokeh<=2.3.3 - the last available version for py3.6",
                 "45521":"pytorch-lightning is never installed as a dependency of transformers",
                 "44715":"False positive for numpy. Was fixed in 1.22.2",
-                "48547":"Latest version of rdflib is being installed"
+                "48547":"Latest version of rdflib is being installed",
+                "60235": "Temporarily ignoring to patch CRITICAL vulnerabilties at SEV2 pace"
             }
         },
         "inference": {
@@ -1353,7 +1354,8 @@
                 "48547":"Latest version of rdflib is being installed",
                 "51159":"cryptography>38.0.1 does not exist yet",
                 "51450": "This bug is in Jax/Flax backend that would need Transformers 4.23 for fix.",
-                "51396": "Protobuf is only a runtime dependency of transformers. Current version of Protobuf installed in the image is not vulnerable."
+                "51396": "Protobuf is only a runtime dependency of transformers. Current version of Protobuf installed in the image is not vulnerable.",
+                "60235": "Temporarily ignoring to patch CRITICAL vulnerabilties at SEV2 pace"
             }
         },
         "inference-neuron": {
