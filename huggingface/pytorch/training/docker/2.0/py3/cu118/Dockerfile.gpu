@@ -29,6 +29,8 @@ RUN pip install --no-cache-dir \
 # Resolve CVE
 RUN pip install --no-cache-dir -U \
 	pip \ 
+	# install PyYAML<5.5,>=3.10 to avoid conflict with latest awscli
+    "pyYAML>=3.10,<5.5" \
     werkzeug \
 	gevent \
 	certifi \ 
