@@ -30,6 +30,7 @@ RUN pip install --no-cache-dir \
 # install PyYAML<5.5,>=5.4 to avoid conflict with latest awscli
 RUN pip install --no-cache-dir --user -U \
 	pip \ 
+	"cython<3.0.0" \
  	"pyyaml>=5.4,<5.5" \
     werkzeug \
 	gevent \
