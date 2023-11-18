@@ -1339,7 +1339,10 @@
                 "45521":"pytorch-lightning is never installed as a dependency of transformers",
                 "44715":"False positive for numpy. Was fixed in 1.22.2",
                 "48547":"Latest version of rdflib is being installed",
-                "60235": "Temporarily ignoring to patch CRITICAL vulnerabilties at SEV2 pace"
+                "60235": "Temporarily ignoring to patch CRITICAL vulnerabilties at SEV2 pace",
+                "61601": "Temporarily ignoring to patch CRITICAL vulnerabilties at SEV2 pace",
+                "61416": "Temporarily ignoring to patch CRITICAL vulnerabilties at SEV2 pace",
+                "61893": "Temporarily ignoring to patch CRITICAL vulnerabilties at SEV2 pace"
             }
         },
         "inference": {
