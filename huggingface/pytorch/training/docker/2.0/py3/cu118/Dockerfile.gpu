@@ -29,7 +29,6 @@ RUN pip install --no-cache-dir \
 # Resolve CVE
 RUN pip install --no-cache-dir -U \
 	pip \ 
-	pyyaml \
     werkzeug \
 	gevent \
 	certifi \ 

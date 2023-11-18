@@ -28,7 +28,7 @@ ARG TORCHAUDIO_URL=https://aws-pytorch-unified-cicd-binaries.s3.us-west-2.amazon
 
 # HF ARGS
 ARG TRANSFORMERS_VERSION
-ARG DIFFUSERS_VERSION=0.16.1
+ARG DIFFUSERS_VERSION=0.23.1
 
 # Set Debian interaction
 ARG DEBIAN_FRONTEND=noninteractive
@@ -170,8 +170,7 @@ RUN pip install --no-cache-dir \
     diffusers==${DIFFUSERS_VERSION} \
     "accelerate>=0.11.0" \
     "protobuf>=3.19.5,<=3.20.2" \
-    "sagemaker-huggingface-inference-toolkit>=2.3.0" \
-    "diffusers>=0.23.0"
+    "sagemaker-huggingface-inference-toolkit>=2.3.0" 
 
 # Install IPEx and its dependencies
 # from source is mandatory for cutomized AWS PyTorch binaries: https://github.com/intel/intel-extension-for-pytorch/issues/317
