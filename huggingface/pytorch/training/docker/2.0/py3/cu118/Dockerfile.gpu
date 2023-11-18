@@ -27,16 +27,18 @@ RUN pip install --no-cache-dir \
 	mkl
 
 # Resolve CVE
-# install PyYAML<5.5,>=5.4 to avoid conflict with latest awscli
 RUN pip install --no-cache-dir --user -U \
 	pip \ 
-	"cython<3.0.0" \
- 	"pyyaml>=5.4,<5.5" \
     werkzeug \
 	gevent \
 	certifi \ 
 	tornado \ 
 	fonttools
+
+# install PyYAML<5.5,>=5.4 to avoid conflict with latest awscli
+# Use --no-build-isolation to force pyyaml 5.4.1 to be installed using Cython<3 to avoid installation errors
+RUN pip install --no-cache-dir "cython<3.0.0" \
+&& pip install --no-build-isolation "pyyaml>=5.4,<5.5"
 
 RUN apt-get update \
  # TODO: Remove upgrade statements once packages are updated in base image
