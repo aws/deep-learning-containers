@@ -386,7 +386,13 @@ def test_framework_and_neuron_sdk_version(neuron):
 
     assert neuron_sdk_version is not None, "missing Neuron SDK version"
 
-    release_manifest = get_neuron_release_manifest(neuron_sdk_version)
+    release_manifest = None
+    if tested_framework == "tensorflow" and tag_framework_version == "1.15.5":
+        release_manifest = get_neuron_release_manifest(
+            "2.12.2"
+        )  # last release where tf 1.15 has been listed
+    else:
+        release_manifest = get_neuron_release_manifest(neuron_sdk_version)
 
     # Framework name may include huggingface
     if tested_framework.startswith("huggingface_"):
