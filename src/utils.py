@@ -24,7 +24,7 @@ from botocore.exceptions import ClientError
 from invoke.context import Context
 
 from codebuild_environment import get_cloned_folder_path
-from config import is_build_enabled
+from config import is_build_enabled, is_autopatch_build_enabled
 from safety_report_generator import SafetyReportGenerator
 
 LOGGER = logging.getLogger(__name__)
@@ -131,7 +131,7 @@ def fetch_dlc_images_for_test_jobs(images, use_latest_additional_tag=False):
     :param images: list
     :return: dictionary
     """
-    DLC_IMAGES = {"sagemaker": [], "ecs": [], "eks": [], "ec2": [], "sanity": []}
+    DLC_IMAGES = {"sagemaker": [], "ecs": [], "eks": [], "ec2": [], "sanity": [], "autopr": []}
 
     build_enabled = is_build_enabled()
 
@@ -191,6 +191,56 @@ def set_test_env(images, use_latest_additional_tag=False, images_env="DLC_IMAGES
     write_to_json_file(constants.TEST_ENV_PATH, test_envs)
 
 
+def get_safety_scan_allowlist_path(image_uri):
+    """
+    Retrieves the safety_scan_allowlist_path for each image_uri.
+
+    :param image_uri: str, consists of f"{image_repo}:{image_tag}"
+    :return: string, safety scan allowlist path for the image
+    """
+    from test.test_utils import get_ecr_scan_allowlist_path
+
+    os_scan_allowlist_path = get_ecr_scan_allowlist_path(image_uri)
+    safety_scan_allowlist_path = os_scan_allowlist_path.replace(".os_", ".py_")
+    return safety_scan_allowlist_path
+
+
+def get_overall_history_path(image_uri):
+    """
+    Retrieves the overall_history_path for each image_uri.
+
+    :param image_uri: str, consists of f"{image_repo}:{image_tag}"
+    :return: string, safety scan allowlist path for the image
+    """
+    from test.test_utils import get_ecr_scan_allowlist_path
+
+    os_scan_allowlist_path = get_ecr_scan_allowlist_path(image_uri)
+    overall_history_path = os_scan_allowlist_path.replace(
+        ".os_scan_allowlist.json", ".overall_history.txt"
+    )
+    return overall_history_path
+
+
+def get_safety_ignore_dict_from_image_specific_safety_allowlists(image_uri):
+    """
+    Image specific safety allowlists exist parallel to the os_scan_allowlists and allow us to allowlist vulnerabilities
+    in a more granular way. This method helps fetch the contents of the image specific allowlist and ignore them during
+    safety scans.
+
+    :param image_uri: str, consists of f"{image_repo}:{image_tag}"
+    :return: dict[str,str], image specific safety scan allowlist which is a key-value pair of "vulnerability_id" and "reason"
+    """
+    safety_scan_allowlist_path = get_safety_scan_allowlist_path(image_uri)
+    if not os.path.exists(safety_scan_allowlist_path):
+        LOGGER.info(
+            f"No image specific safety scan allowlist found at {safety_scan_allowlist_path}"
+        )
+        return {}
+    with open(safety_scan_allowlist_path, "r") as f:
+        ignore_dict_from_image_specific_allowlist = json.load(f)
+    return ignore_dict_from_image_specific_allowlist
+
+
 def get_safety_ignore_dict(image_uri, framework, python_version, job_type):
     """
     Get a dict of known safety check issue IDs to ignore, if specified in file ../data/ignore_ids_safety_scan.json.
@@ -243,7 +293,49 @@ def get_safety_ignore_dict(image_uri, framework, python_version, job_type):
         if common_id not in ignore_dict:
             ignore_dict[common_id] = reason
 
+    # While retrieving the allowlist for the image, we update the central allowlist data present in the data folder
+    # with the image specific allowlist data corresponding to the image being scanned.
+    ignore_dict_from_image_specific_allowlist = (
+        get_safety_ignore_dict_from_image_specific_safety_allowlists(image_uri)
+    )
+    ignore_dict.update(ignore_dict_from_image_specific_allowlist)
     return ignore_dict
+
+
+def derive_future_safety_allowlist_and_upload_to_s3(
+    safety_report_generator_object: SafetyReportGenerator, image_uri: str
+):
+    """
+    This method derives the future safety allowlist and uploads it to s3 bucket. It fetches the safety ignore dict from image specific safety
+    allowlist and updates it with `vulnerabilities_to_be_added_to_ignore_list` data that is extracted from the safety_report_generator_object.
+    """
+    # While deriving the future allowlist, we update the image specific allowlist data with the `vulnerabilities_to_be_added_to_ignore_list`
+    # data that is obtained by running autopatching procedure.
+    ignore_dict_from_image_specific_allowlist = (
+        get_safety_ignore_dict_from_image_specific_safety_allowlists(image_uri)
+    )
+    future_ignore_dict = ignore_dict_from_image_specific_allowlist
+    if safety_report_generator_object.vulnerabilities_to_be_added_to_ignore_list:
+        future_ignore_dict.update(
+            safety_report_generator_object.vulnerabilities_to_be_added_to_ignore_list
+        )
+        LOGGER.info(f"[Safety Allowlist] Future Ignore Dict: {future_ignore_dict} for {image_uri}")
+        tag_set = [
+            {
+                "Key": "upload_path",
+                "Value": get_safety_scan_allowlist_path(image_uri),
+            },
+            {"Key": "image_uri", "Value": image_uri.replace("-pre-push", "")},
+        ]
+        upload_path = get_unique_s3_path_for_uploading_data_to_pr_creation_bucket(
+            image_uri=image_uri.replace("-pre-push", ""),
+            file_name="future_safety_allowlist.json",
+        )
+        upload_data_to_pr_creation_s3_bucket(
+            upload_data=json.dumps(future_ignore_dict, indent=4),
+            s3_filepath=upload_path,
+            tag_set=tag_set,
+        )
 
 
 def generate_safety_report_for_image(image_uri, image_info, storage_file_path=None):
@@ -264,11 +356,17 @@ def generate_safety_report_for_image(image_uri, image_info, storage_file_path=No
     ignore_dict = get_safety_ignore_dict(
         image_uri, image_info["framework"], image_info["python_version"], image_info["image_type"]
     )
-    safety_scan_output = SafetyReportGenerator(container_id, ignore_dict=ignore_dict).generate()
+    safety_report_generator_object = SafetyReportGenerator(container_id, ignore_dict=ignore_dict)
+    safety_scan_output = safety_report_generator_object.generate()
     ctx.run(f"docker rm -f {container_id}", hide=True, warn=True)
     if storage_file_path:
         with open(storage_file_path, "w", encoding="utf-8") as f:
             json.dump(safety_scan_output, f, indent=4)
+    if is_autopatch_build_enabled():
+        derive_future_safety_allowlist_and_upload_to_s3(
+            safety_report_generator_object=safety_report_generator_object, image_uri=image_uri
+        )
+
     return safety_scan_output
 
 
@@ -284,3 +382,133 @@ def get_label_prefix_customer_type(image_tag):
 
     # Older images are not tagged with ec2 or sagemaker. Assuming that lack of ec2 tag implies sagemaker.
     return "sagemaker"
+
+
+def upload_data_to_pr_creation_s3_bucket(upload_data: str, s3_filepath: str, tag_set=None):
+    """
+    This method uploads the given `upload_data` to the s3 path provided in the parameter.
+    It also attaches the TagSet to the object as specified by tag_set argument that looks like:
+        tag_set = [
+                {
+                    'Key': 'upload_path',
+                    'Value': 'abcd123',
+                },
+            ]
+
+    :param image_uri: str, image uri
+    :param upload_data: str, Data that can be uploaded to the s3 object
+    :param tag_set: List[Dict], as described above
+    :return: str, s3 file path
+    """
+    s3_resource = boto3.resource("s3")
+    s3object = s3_resource.Object(constants.PR_CREATION_DATA_HELPER_BUCKET, s3_filepath)
+    s3_client = s3_resource.meta.client
+    s3object.put(Body=(bytes(upload_data.encode("UTF-8"))))
+    if tag_set:
+        s3_client.put_object_tagging(
+            Bucket=constants.PR_CREATION_DATA_HELPER_BUCKET,
+            Key=s3_filepath,
+            Tagging={"TagSet": tag_set},
+        )
+
+
+def get_unique_s3_path_for_uploading_data_to_pr_creation_bucket(image_uri: str, file_name: str):
+    """
+    Uses the current commit id and the image_uri to form the unique s3 path for uploading the data to the pr-creation-bucket
+    """
+    commit = os.getenv("CODEBUILD_RESOLVED_SOURCE_VERSION", "temp")
+    object_name = image_uri.replace(":", "-").replace("/", "-")
+    return f"{commit}/{object_name}/{file_name}"
+
+
+def get_core_packages_path(image_uri, python_version=None):
+    """
+    Retrieves the safety_scan_allowlist_path for each image_uri.
+
+    :param image_uri: str, consists of f"{image_repo}:{image_tag}"
+    :return: string, safety scan allowlist path for the image
+    """
+    from test.test_utils import get_ecr_scan_allowlist_path
+
+    os_scan_allowlist_path = get_ecr_scan_allowlist_path(image_uri, python_version)
+    core_packages_path = os_scan_allowlist_path.replace(".os_scan_allowlist.", ".core_packages.")
+    return core_packages_path
+
+
+def derive_prod_image_uri_using_image_config_from_buildspec(
+    image_config: dict, framework: str, new_account_id: str = ""
+):
+    """
+    This method is invoked to extract the image uri of released image using the image_config that in turn is extracted from the
+    Buildspec of a particular image. The function verifies if the buildspec has `release_repository` and the `latest_release_tag`
+    present in it. If it has these keys present in the Buildspec, it concats them to return the desired value. If `release_repository`
+    is not present, it uses `derive_prod_repository_using_image_config_from_buildspec` method to derive the prod repo. If
+    `latest_release_tag` is not present in the buildspec, it uses `tag` itself.
+
+    :param image_config: Dict, Extracted from buildspec - should have following keys = (tag, repository and image_type)
+    :param framework: str, Framework for eg. tensorflow, pytorch
+    :param new_account_id: str, Account ID of the prod repo
+    :return: str, image_uri
+    """
+    prod_repo = image_config.get(
+        "release_repository"
+    ) or derive_prod_repository_using_image_config_from_buildspec(
+        image_config=image_config, framework=framework, new_account_id=new_account_id
+    )
+    prod_tag = image_config.get("latest_release_tag") or image_config.get("tag")
+    return f"{prod_repo}:{prod_tag}"
+
+
+def derive_prod_repository_using_image_config_from_buildspec(
+    image_config: dict, framework: str, new_account_id: str = ""
+):
+    """
+    This method is invoked to extract the repository of the released image using the image_config that in turn is extracted from the
+    Buildspec of a particular image. This function is only called when `release_repository` key is not present in Buildspec.
+    The function extracts `repository` key from the image_config and accordingly removes the PR/Mainline/AutoPatch/Nightly prefixes
+    from that. In case it is not able to remove any of the above mentioned prefixes, it verifies that the code is executing in the
+    local mode and then forms a repository name as {image_framework}-{image_type}.
+
+    :param image_config: Dict, Extracted from buildspec - should have following keys = (repository and image_type)
+    :param framework: str, Framework for eg. tensorflow, pytorch
+    :param new_account_id: str, Account ID of the prod repo
+    :return: str, image_uri
+    """
+    release_repository = image_config.get("repository")
+    if constants.PR_REPO_PREFIX in release_repository:
+        release_repository = release_repository.replace(constants.PR_REPO_PREFIX, "")
+    elif constants.MAINLINE_REPO_PREFIX in release_repository:
+        release_repository = release_repository.replace(constants.MAINLINE_REPO_PREFIX, "")
+    elif constants.AUTOPATCH_REPO_PREFIX in release_repository:
+        release_repository = release_repository.replace(constants.AUTOPATCH_REPO_PREFIX, "")
+    elif constants.NIGHTLY_REPO_PREFIX in release_repository:
+        release_repository = release_repository.replace(constants.NIGHTLY_REPO_PREFIX, "")
+    elif not os.getenv("BUILD_CONTEXT") == "PR" and not os.getenv("BUILD_CONTEXT") == "MAINLINE":
+        # This is mostly when we run locally, in which we have some prefix to the actual repo name, for eg. abcd-tensorflow-inference
+        # We retrive the prod repo name using the buildspec and get rid of the additional prefix i.e. "abcd".
+        image_type = image_config.get("image_type")
+        desired_prod_repo_name = f"{framework}-{image_type}"
+        current_repo_name = release_repository.split("/")[-1]
+        release_repository = release_repository.replace(current_repo_name, desired_prod_repo_name)
+    else:
+        raise ValueError(
+            f"Release repository cannot be found out in this scenario! Value of image_config: {image_config}"
+        )
+
+    if new_account_id:
+        release_repo_splitted = release_repository.split(".")
+        release_repo_splitted[0] = new_account_id
+        release_repository = ".".join(release_repo_splitted)
+
+    return release_repository
+
+
+def get_dummy_boto_client():
+    """
+    Makes a dummy boto3 client to ensure that boto3 clients behave in a thread safe manner.
+    In absence of this method, the behaviour documented in https://github.com/boto/boto3/issues/1592 is observed.
+    Once https://github.com/boto/boto3/issues/1592 is resolved, this method can be removed.
+
+    :return: BotocoreClientSTS
+    """
+    return boto3.client("sts", region_name=os.getenv("REGION"))

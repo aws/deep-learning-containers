@@ -27,6 +27,12 @@ trcomp_mode = false
 # Please only set it to True if you are preparing a Benchmark related PR
 # Do remember to revert it back to False before merging any PR (including Benchmark dedicated PR)
 benchmark_mode = false
+# Set deep_canary_mode to true to simulate Deep Canary Test conditions on PR for all frameworks in the
+# build_frameworks list below. This will cause all image builds and non-deep-canary tests on the PR to be skipped,
+# regardless of whether they are enabled or disabled below.
+# Set graviton_mode to true to run Deep Canaries on Graviton images.
+# Do remember to revert it back to false before merging any PR.
+deep_canary_mode = false
 
 [build]
 # Add in frameworks you would like to build. By default, builds are disabled unless you specify building an image.
@@ -42,6 +48,7 @@ datetime_tag = true
 # Note: Need to build the images at least once with datetime_tag = false
 # before disabling new builds, or tests will fail
 do_build = true
+autopatch_build = false
 
 [test]
 ### On by default
