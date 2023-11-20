@@ -14,6 +14,7 @@ from packaging.version import Version
 
 
 @pytest.mark.model("mnist")
+@pytest.mark.team("frameworks")
 def test_eks_mxnet_single_node_training(mxnet_training):
     """
     Function to create a pod using kubectl and given container image, and run MXNet training
@@ -78,6 +79,7 @@ def test_eks_mxnet_single_node_training(mxnet_training):
 
 @pytest.mark.integration("dgl")
 @pytest.mark.model("gcn")
+@pytest.mark.team("dgl")
 def test_eks_mxnet_dgl_single_node_training(mxnet_training, py3_only):
     """
     Function to create a pod using kubectl and given container image, and run
@@ -151,6 +153,7 @@ def test_eks_mxnet_dgl_single_node_training(mxnet_training, py3_only):
 
 @pytest.mark.integration("gluonnlp")
 @pytest.mark.model("TextCNN")
+@pytest.mark.team("frameworks")
 def test_eks_mxnet_gluonnlp_single_node_training(mxnet_training, py3_only):
     """
     Function to create a pod using kubectl and given container image, and run

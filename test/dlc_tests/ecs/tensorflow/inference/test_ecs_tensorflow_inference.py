@@ -17,6 +17,7 @@ from test.test_utils import (
 
 
 @pytest.mark.model("half_plus_two")
+@pytest.mark.team("frameworks")
 @pytest.mark.parametrize("ecs_instance_type", ["c5.4xlarge"], indirect=True)
 @pytest.mark.parametrize("ecs_ami", [ECS_AML2_CPU_USWEST2], indirect=True)
 def test_ecs_tensorflow_inference_cpu(
@@ -95,6 +96,7 @@ def test_ecs_tensorflow_inference_eia(
 @pytest.mark.model("simple")
 @pytest.mark.parametrize("ecs_instance_type", ["inf1.2xlarge"], indirect=True)
 @pytest.mark.parametrize("ecs_ami", [ECS_AML2_NEURON_USWEST2], indirect=True)
+@pytest.mark.team("neuron")
 def test_ecs_tensorflow_inference_neuron(
     tensorflow_inference_neuron, ecs_container_instance, region
 ):
@@ -131,6 +133,7 @@ def test_ecs_tensorflow_inference_neuron(
 @pytest.mark.model("simple")
 @pytest.mark.parametrize("ecs_instance_type", ["trn1.2xlarge"], indirect=True)
 @pytest.mark.parametrize("ecs_ami", [ECS_AML2_NEURON_USWEST2], indirect=True)
+@pytest.mark.team("neuron")
 def test_ecs_tensorflow_inference_neuronx(
     tensorflow_inference_neuronx, ecs_container_instance, region
 ):
@@ -167,6 +170,7 @@ def test_ecs_tensorflow_inference_neuronx(
 @pytest.mark.model("simple")
 @pytest.mark.parametrize("ecs_instance_type", ["inf2.xlarge"], indirect=True)
 @pytest.mark.parametrize("ecs_ami", [ECS_AML2_NEURON_USWEST2], indirect=True)
+@pytest.mark.team("neuron")
 def test_ecs_tensorflow_inference_neuronx_inf2(
     tensorflow_inference_neuronx, ecs_container_instance, region
 ):
@@ -201,6 +205,7 @@ def test_ecs_tensorflow_inference_neuronx_inf2(
 
 
 @pytest.mark.model("half_plus_two")
+@pytest.mark.team("frameworks")
 @pytest.mark.parametrize("ecs_instance_type", ["p3.8xlarge"], indirect=True)
 @pytest.mark.parametrize("ecs_ami", [ECS_AML2_GPU_USWEST2], indirect=True)
 def test_ecs_tensorflow_inference_gpu(
@@ -236,6 +241,7 @@ def test_ecs_tensorflow_inference_gpu(
     not is_nightly_context(), reason="Running additional model in nightly context only"
 )
 @pytest.mark.model("albert")
+@pytest.mark.team("frameworks")
 @pytest.mark.parametrize("ecs_instance_type", ["c5.4xlarge"], indirect=True)
 @pytest.mark.parametrize("ecs_ami", [ECS_AML2_CPU_USWEST2], indirect=True)
 def test_ecs_tensorflow_inference_cpu_nlp(
@@ -287,6 +293,7 @@ def __ecs_tensorflow_inference_cpu_nlp(tensorflow_inference, ecs_container_insta
     not is_nightly_context(), reason="Running additional model in nightly context only"
 )
 @pytest.mark.model("albert")
+@pytest.mark.team("frameworks")
 @pytest.mark.parametrize("ecs_instance_type", ["p3.8xlarge"], indirect=True)
 @pytest.mark.parametrize("ecs_ami", [ECS_AML2_GPU_USWEST2], indirect=True)
 def test_ecs_tensorflow_inference_gpu_nlp(
