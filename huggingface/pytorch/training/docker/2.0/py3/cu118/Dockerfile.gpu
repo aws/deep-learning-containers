@@ -27,7 +27,7 @@ RUN pip install --no-cache-dir \
 	mkl
 
 # Resolve CVE
-RUN pip install --no-cache-dir --user -U \
+RUN pip install --no-cache-dir -U \
 	pip \ 
     werkzeug \
 	gevent \
