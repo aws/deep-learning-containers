@@ -204,5 +204,35 @@
          "status":"ACTIVE",
          "title":"CVE-2023-43804 - urllib3"
       }
+   ],
+   "pyarrow":[
+      {
+         "description":"Deserialization of untrusted data in IPC and Parquet readers in PyArrow versions 0.14.0 to 14.0.0 allows arbitrary code execution. An application is vulnerable if it reads Arrow IPC, Feather or Parquet data from untrusted sources (for example user-supplied input files).\n\nThis vulnerability only affects PyArrow, not other Apache Arrow implementations or bindings.\n\nIt is recommended that users of PyArrow upgrade to 14.0.1. Similarly, it is recommended that downstream libraries upgrade their dependency requirements to PyArrow 14.0.1 or later. PyPI packages are already available, and we hope that conda-forge packages will be available soon.\n\nIf it is not possible to upgrade, we provide a separate package `pyarrow-hotfix` that disables the vulnerability on older PyArrow versions. See  https://pypi.org/project/pyarrow-hotfix/  for instructions.\n\n",
+         "vulnerability_id":"CVE-2023-47248",
+         "name":"CVE-2023-47248",
+         "package_name":"pyarrow",
+         "package_details":{
+            "file_path":"opt/conda/lib/python3.10/site-packages/pyarrow-12.0.1.dist-info/METADATA",
+            "name":"pyarrow",
+            "package_manager":"PYTHONPKG",
+            "version":"12.0.1",
+            "release":null
+         },
+         "remediation":{
+            "recommendation":{
+               "text":"None Provided"
+            }
+         },
+         "cvss_v3_score":9.8,
+         "cvss_v30_score":0.0,
+         "cvss_v31_score":9.8,
+         "cvss_v2_score":0.0,
+         "cvss_v3_severity":"CRITICAL",
+         "source_url":"https://nvd.nist.gov/vuln/detail/CVE-2023-47248",
+         "source":"NVD",
+         "severity":"CRITICAL",
+         "status":"ACTIVE",
+         "title":"CVE-2023-47248 - pyarrow"
+      }
    ]
 }
