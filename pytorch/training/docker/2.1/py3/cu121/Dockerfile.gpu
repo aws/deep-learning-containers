@@ -462,11 +462,6 @@ RUN /opt/conda/bin/mamba install -y -c conda-forge \
   seaborn \
  && /opt/conda/bin/mamba clean -afy
 
-# Install SageMaker Profiler Binary
-ARG SMP_URL=https://smppy.s3.amazonaws.com/pytorch/cu121/smppy-0.3.325-cp310-cp310-linux_x86_64.whl
-RUN apt-get update && apt-get install -y libunwind-dev && apt-get clean \
- && pip install --no-cache-dir -U ${SMP_URL}
-
 WORKDIR /
 
 RUN HOME_DIR=/root \
