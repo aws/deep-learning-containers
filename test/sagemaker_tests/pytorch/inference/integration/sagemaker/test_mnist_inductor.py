@@ -45,6 +45,7 @@ SM_GRAVITON_C7G = ["ml.c7g.4xlarge"]
 @pytest.mark.model("mnist")
 @pytest.mark.processor("cpu")
 @pytest.mark.cpu_test
+@pytest.mark.team("training-compiler")
 def test_mnist_distributed_cpu_inductor(
     framework_version, ecr_image, instance_type, sagemaker_regions
 ):
@@ -66,6 +67,7 @@ def test_mnist_distributed_cpu_inductor(
 @pytest.mark.processor("cpu")
 @pytest.mark.cpu_test
 @pytest.mark.parametrize("instance_type", SM_GRAVITON_C7G)
+@pytest.mark.team("training-compiler")
 def test_mnist_distributed_graviton_inductor(
     framework_version, ecr_image, instance_type, sagemaker_regions
 ):
@@ -88,6 +90,7 @@ def test_mnist_distributed_graviton_inductor(
 @pytest.mark.processor("gpu")
 @pytest.mark.gpu_test
 @pytest.mark.parametrize("instance_type", SM_SINGLE_GPU_INSTANCE_TYPES)
+@pytest.mark.team("training-compiler")
 def test_mnist_distributed_gpu_inductor(
     framework_version, ecr_image, instance_type, sagemaker_regions
 ):
@@ -160,9 +163,10 @@ def _test_mnist_distributed(
 def _check_for_cloudwatch_logs(endpoint_name, sagemaker_session):
     client = sagemaker_session.boto_session.client("logs")
     log_group_name = f"/aws/sagemaker/Endpoints/{endpoint_name}"
+
     time.sleep(30)
     identify_log_stream = client.describe_log_streams(
-        logGroupName=log_group_name, orderBy="LastEventTime", descending=True, limit=5
+        logGroupName=log_group_name, orderBy="LogStreamName", limit=5
     )
 
     try:

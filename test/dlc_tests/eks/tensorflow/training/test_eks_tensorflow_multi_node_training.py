@@ -17,8 +17,11 @@ from test.test_utils import is_pr_context, SKIP_PR_REASON
 @pytest.mark.skipif(is_pr_context(), reason=SKIP_PR_REASON)
 @pytest.mark.integration("horovod")
 @pytest.mark.model("resnet")
+@pytest.mark.team("frameworks")
 @pytest.mark.multinode(3)
-def test_eks_tensorflow_multi_node_training_gpu(tensorflow_training, example_only):
+def test_eks_tensorflow_multi_node_training_gpu(
+    tensorflow_training, example_only, below_tf213_only
+):
     eks_cluster_size = "3"
     ec2_instance_type = "p3.16xlarge"
 

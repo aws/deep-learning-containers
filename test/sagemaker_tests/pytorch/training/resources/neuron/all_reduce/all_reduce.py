@@ -19,13 +19,13 @@ def _mp_fn():
     os.environ["NEURON_CC_FLAGS"] = (
         os.environ.get("NEURON_CC_FLAGS", "") + "--cache_dir=neff_cache2"
     )
+    os.environ["FI_EFA_FORK_SAFE"] = "1"
     os.environ["FI_EFA_USE_DEVICE_RDMA"] = "1"
     os.environ["FI_PROVIDER"] = "efa"
     os.environ["NCCL_DEBUG"] = "TRACE"
     os.environ["NCCL_INIT"] = "TRACE"
     os.environ["NCCL_DEBUG_SUBSYS"] = "ALL"
     os.environ["NCCL_SOCKET_IFNAME"] = os.environ["SM_NETWORK_INTERFACE_NAME"]
-    os.environ["NEURON_RT_LOG_LEVEL"] = "INFO"
 
     world_size = xm.xrt_world_size()
     device = xm.xla_device()

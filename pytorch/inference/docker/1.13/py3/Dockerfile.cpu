@@ -8,8 +8,8 @@ ARG TORCH_URL=https://aws-pytorch-unified-cicd-binaries.s3.us-west-2.amazonaws.c
 ARG TORCHVISION_VERSION=0.14.1+cpu
 ARG TORCHAUDIO_VERSION=0.13.1+cpu
 ARG TORCHDATA_VERSION=0.5.1
-ARG TORCHSERVE_VERSION=0.7.1
-ARG SM_TOOLKIT_VERSION=2.0.14
+ARG TORCHSERVE_VERSION
+ARG SM_TOOLKIT_VERSION
 
 ########################################################
 #  _____ ____ ____    ___
@@ -148,6 +148,7 @@ RUN pip install --no-cache-dir --extra-index-url https://download.pytorch.org/wh
     "cryptography>3.2" \
     "ipython>=8.10.0,<9.0" \
     "awscli<2" \
+    "pillow>=10.0.1" \
     ${TORCH_URL} \
     torchaudio==${TORCHAUDIO_VERSION} \
     torchvision==${TORCHVISION_VERSION} \
@@ -159,7 +160,7 @@ RUN pip install --no-cache-dir --extra-index-url https://download.pytorch.org/wh
 # -> PyYaml needs to be high pinned for awscli v1 (current v1 = 1.27.99)
 RUN pip install --no-cache-dir -U -r https://raw.githubusercontent.com/pytorch/serve/v${TORCHSERVE_VERSION}/requirements/common.txt \
     "numpy>=1.22.2,<1.23" \
-    "pyyaml>=5.4,<5.5" \
+    "pyyaml>=6.0" \
     torchserve==${TORCHSERVE_VERSION} \
     torch-model-archiver==${TORCHSERVE_VERSION}
 
@@ -222,6 +223,7 @@ LABEL com.amazonaws.sagemaker.capabilities.multi-models=true
 
 ARG PYTHON
 ARG SM_TOOLKIT_VERSION
+ARG TORCHSERVE_VERSION
 
 ENV SAGEMAKER_SERVING_MODULE sagemaker_pytorch_serving_container.serving:main
 

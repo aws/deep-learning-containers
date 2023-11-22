@@ -46,6 +46,7 @@ def can_run_pytorchddp(ecr_image):
 @pytest.mark.skip_py2_containers
 @pytest.mark.skip_trcomp_containers
 @pytest.mark.efa()
+@pytest.mark.team("conda")
 def test_pytorchddp_throughput_gpu(
     framework_version, ecr_image, sagemaker_regions, efa_instance_type, tmpdir
 ):
@@ -62,7 +63,7 @@ def test_pytorchddp_throughput_gpu(
             "distribution": distribution,
         }
 
-        job_name = utils.unique_name_from_base("test-pytorchddp-throughput-gpu")
+        job_name_prefix = "test-pytorchddp-throughput-gpu"
         invoke_pytorch_estimator(
-            ecr_image, sagemaker_regions, estimator_parameter, job_name=job_name
+            ecr_image, sagemaker_regions, estimator_parameter, job_name=job_name_prefix
         )

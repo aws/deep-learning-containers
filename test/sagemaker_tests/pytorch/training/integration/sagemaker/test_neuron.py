@@ -72,6 +72,7 @@ def invoke_neuron_helper_function(
 @pytest.mark.model("unknown_model")
 @pytest.mark.parametrize("instance_types", ["ml.trn1.32xlarge"])
 @pytest.mark.neuronx_test
+@pytest.mark.team("neuron")
 def test_neuron_allreduce_distributed(
     framework_version, ecr_image, sagemaker_regions, instance_types
 ):
@@ -89,6 +90,7 @@ def test_neuron_allreduce_distributed(
 @pytest.mark.model("mlp")
 @pytest.mark.parametrize("instance_types", ["ml.trn1.32xlarge"])
 @pytest.mark.neuronx_test
+@pytest.mark.team("neuron")
 def test_neuron_mlp_distributed(framework_version, ecr_image, sagemaker_regions, instance_types):
     function_args = {
         "framework_version": framework_version,
@@ -103,6 +105,7 @@ def test_neuron_mlp_distributed(framework_version, ecr_image, sagemaker_regions,
 @pytest.mark.processor("neuronx")
 @pytest.mark.model("unknown_model")
 @pytest.mark.neuronx_test
+@pytest.mark.team("neuron")
 def test_neuron_allreduce_process(framework_version, ecr_image, sagemaker_regions, instance_type):
     function_args = {
         "framework_version": framework_version,
@@ -117,6 +120,7 @@ def test_neuron_allreduce_process(framework_version, ecr_image, sagemaker_region
 @pytest.mark.processor("neuronx")
 @pytest.mark.model("mlp")
 @pytest.mark.neuronx_test
+@pytest.mark.team("neuron")
 def test_neuron_mlp_process(framework_version, ecr_image, sagemaker_regions, instance_type):
     function_args = {
         "framework_version": framework_version,
@@ -146,7 +150,6 @@ def _test_neuron_allreduce(
             framework_version=framework_version,
             hyperparameters={"nproc-per-node": num_neuron_cores, "nnodes": instance_count},
             disable_profiler=True,
-            env={"NEURON_RT_LOG_LEVEL": "DEBUG"},
         )
 
         pytorch.sagemaker_session.default_bucket()
@@ -180,7 +183,6 @@ def _test_neuron_mlp(
             framework_version=framework_version,
             hyperparameters={"nproc-per-node": num_neuron_cores, "nnodes": instance_count},
             disable_profiler=True,
-            env={"NEURON_RT_LOG_LEVEL": "DEBUG"},
         )
 
         pytorch.sagemaker_session.default_bucket()
@@ -209,7 +211,7 @@ def _test_neuron_allreduce_distributed(
             framework_version=framework_version,
             distribution={"torch_distributed": {"enabled": True}},
             disable_profiler=True,
-            env={"NEURON_RT_LOG_LEVEL": "DEBUG"},
+            environment={"FI_EFA_FORK_SAFE": "1"},
         )
 
         pytorch.sagemaker_session.default_bucket()
@@ -238,7 +240,7 @@ def _test_neuron_mlp_distributed(
             framework_version=framework_version,
             distribution={"torch_distributed": {"enabled": True}},
             disable_profiler=True,
-            env={"NEURON_RT_LOG_LEVEL": "DEBUG"},
+            environment={"FI_EFA_FORK_SAFE": "1"},
         )
 
         pytorch.sagemaker_session.default_bucket()

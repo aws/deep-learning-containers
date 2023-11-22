@@ -19,6 +19,10 @@ def test_developer_configuration():
     assert config.parse_dlc_developer_configs("dev", "benchmark_mode") is False
     assert config.parse_dlc_developer_configs("dev", "habana_mode") is False
     assert config.parse_dlc_developer_configs("dev", "trcomp_mode") is False
+    assert config.parse_dlc_developer_configs("dev", "deep_canary_mode") is False
+
+    assert config.is_deep_canary_mode_enabled() is False
+    assert config.is_deep_canary_mode_enabled() is False
 
     # Check build settings
     assert config.parse_dlc_developer_configs("build", "build_frameworks") == []
@@ -26,6 +30,7 @@ def test_developer_configuration():
     assert config.parse_dlc_developer_configs("build", "build_inference") is True
     assert config.parse_dlc_developer_configs("build", "datetime_tag") is True
     assert config.parse_dlc_developer_configs("build", "do_build") is True
+    assert config.parse_dlc_developer_configs("build", "autopatch_build") is False
 
     # Check test settings
     assert config.parse_dlc_developer_configs("test", "sanity_tests") is True
@@ -35,7 +40,7 @@ def test_developer_configuration():
     assert config.parse_dlc_developer_configs("test", "ecs_tests") is True
     assert config.parse_dlc_developer_configs("test", "eks_tests") is True
     assert config.parse_dlc_developer_configs("test", "ec2_tests") is True
-    assert config.parse_dlc_developer_configs("test", "ec2_efa_tests") is False
+    assert config.parse_dlc_developer_configs("test", "ec2_tests_on_heavy_instances") is False
     assert config.parse_dlc_developer_configs("test", "nightly_pr_test_mode") is False
     assert config.parse_dlc_developer_configs("test", "use_scheduler") is False
     assert config.parse_dlc_developer_configs("test", "safety_check_test") is False
@@ -58,7 +63,7 @@ def test_developer_config_wrappers_defaults():
     assert config.is_ecs_test_enabled() is True
     assert config.is_eks_test_enabled() is True
     assert config.is_ec2_test_enabled() is True
-    assert config.is_ec2_efa_test_enabled() is False
+    assert config.are_heavy_instance_ec2_tests_enabled() is False
     assert config.is_nightly_pr_test_mode_enabled() is False
     assert config.is_scheduler_enabled() is False
     assert config.is_safety_check_test_enabled() is False

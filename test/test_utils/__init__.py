@@ -9,10 +9,10 @@ import time
 from enum import Enum
 
 import boto3
-import git
-import pytest
+import requests
 
 import boto3
+from botocore.config import Config
 from botocore.exceptions import ClientError
 from glob import glob
 from invoke import run
@@ -21,6 +21,7 @@ from packaging.version import InvalidVersion, Version, parse
 from packaging.specifiers import SpecifierSet
 from datetime import date, datetime
 from retrying import retry
+from pathlib import Path
 import dataclasses
 
 # from security import EnhancedJSONEncoder
@@ -43,7 +44,14 @@ def get_ami_id_boto3(region_name, ami_name_pattern):
     """
     For a given region and ami name pattern, return the latest ami-id
     """
-    ami_list = boto3.client("ec2", region_name=region_name).describe_images(
+    # Use max_attempts=10 because this function is used in global context, and all test jobs
+    # get AMI IDs for tests regardless of whether they are used in that job.
+    ec2_client = boto3.client(
+        "ec2",
+        region_name=region_name,
+        config=Config(retries={"max_attempts": 10, "mode": "standard"}),
+    )
+    ami_list = ec2_client.describe_images(
         Filters=[{"Name": "name", "Values": [ami_name_pattern]}], Owners=["amazon"]
     )
     ami = max(ami_list["Images"], key=lambda x: x["CreationDate"])
@@ -54,20 +62,24 @@ def get_ami_id_ssm(region_name, parameter_path):
     """
     For a given region and parameter path, return the latest ami-id
     """
-    ami = boto3.client("ssm", region_name=region_name).get_parameter(Name=parameter_path)
+    # Use max_attempts=10 because this function is used in global context, and all test jobs
+    # get AMI IDs for tests regardless of whether they are used in that job.
+    ssm_client = boto3.client(
+        "ssm",
+        region_name=region_name,
+        config=Config(retries={"max_attempts": 10, "mode": "standard"}),
+    )
+    ami = ssm_client.get_parameter(Name=parameter_path)
     ami_id = eval(ami["Parameter"]["Value"])["image_id"]
     return ami_id
 
 
-UBUNTU_18_BASE_DLAMI_US_WEST_2 = get_ami_id_boto3(
-    region_name="us-west-2", ami_name_pattern="Deep Learning Base AMI (Ubuntu 18.04) Version ??.?"
-)
-UBUNTU_18_BASE_DLAMI_US_EAST_1 = get_ami_id_boto3(
-    region_name="us-east-1", ami_name_pattern="Deep Learning Base AMI (Ubuntu 18.04) Version ??.?"
-)
 # The Ubuntu 20.04 AMI which adds GDRCopy is used only for GDRCopy feature that is supported on PT1.13 and PT2.0
 UBUNTU_20_BASE_DLAMI_US_WEST_2 = get_ami_id_boto3(
     region_name="us-west-2", ami_name_pattern="Deep Learning Base GPU AMI (Ubuntu 20.04) ????????"
+)
+UBUNTU_20_BASE_DLAMI_US_EAST_1 = get_ami_id_boto3(
+    region_name="us-east-1", ami_name_pattern="Deep Learning Base GPU AMI (Ubuntu 20.04) ????????"
 )
 AML2_BASE_DLAMI_US_WEST_2 = get_ami_id_boto3(
     region_name="us-west-2", ami_name_pattern="Deep Learning Base AMI (Amazon Linux 2) Version ??.?"
@@ -126,9 +138,8 @@ NEURON_INF1_AMI_US_WEST_2 = "ami-06a5a60d3801a57b7"
 UBUNTU_18_HPU_DLAMI_US_WEST_2 = "ami-03cdcfc91a96a8f92"
 UBUNTU_18_HPU_DLAMI_US_EAST_1 = "ami-0d83d7487f322545a"
 UL_AMI_LIST = [
-    UBUNTU_18_BASE_DLAMI_US_EAST_1,
-    UBUNTU_18_BASE_DLAMI_US_WEST_2,
     UBUNTU_20_BASE_DLAMI_US_WEST_2,
+    UBUNTU_20_BASE_DLAMI_US_EAST_1,
     UBUNTU_18_HPU_DLAMI_US_WEST_2,
     UBUNTU_18_HPU_DLAMI_US_EAST_1,
     PT_GPU_PY3_BENCHMARK_IMAGENET_AMI_US_EAST_1,
@@ -162,10 +173,9 @@ ECS_AML2_GRAVITON_CPU_USWEST2 = get_ami_id_ssm(
 NEURON_AL2_DLAMI = get_ami_id_boto3(
     region_name="us-west-2", ami_name_pattern="Deep Learning AMI (Amazon Linux 2) Version ??.?"
 )
-HPU_AL2_DLAMI = get_ami_id_boto3(
-    region_name="us-west-2",
-    ami_name_pattern="Deep Learning AMI Habana TensorFlow 2.5.0 SynapseAI 0.15.4 (Amazon Linux 2) ????????",
-)
+
+# Account ID of test executor
+ACCOUNT_ID = boto3.client("sts", region_name=DEFAULT_REGION).get_caller_identity().get("Account")
 
 # S3 bucket for TensorFlow models
 TENSORFLOW_MODELS_BUCKET = "s3://tensoflow-trained-models"
@@ -174,7 +184,7 @@ TENSORFLOW_MODELS_BUCKET = "s3://tensoflow-trained-models"
 CONTAINER_TESTS_PREFIX = os.path.join(os.sep, "test", "bin")
 
 # S3 Bucket to use to transfer tests into an EC2 instance
-TEST_TRANSFER_S3_BUCKET = "s3://dlinfra-tests-transfer-bucket"
+TEST_TRANSFER_S3_BUCKET = f"s3://dlinfra-tests-transfer-bucket-{ACCOUNT_ID}"
 
 # S3 Bucket to use to record benchmark results for further retrieving
 BENCHMARK_RESULTS_S3_BUCKET = "s3://dlinfra-dlc-cicd-performance"
@@ -202,7 +212,7 @@ SAGEMAKER_NEURON_EXECUTION_REGIONS = ["us-west-2"]
 SAGEMAKER_NEURONX_EXECUTION_REGIONS = ["us-east-1"]
 
 UPGRADE_ECR_REPO_NAME = "upgraded-image-ecr-scan-repo"
-ECR_SCAN_HELPER_BUCKET = f"""ecr-scan-helper-{boto3.client("sts", region_name=DEFAULT_REGION).get_caller_identity().get("Account")}"""
+ECR_SCAN_HELPER_BUCKET = f"ecr-scan-helper-{ACCOUNT_ID}"
 ECR_SCAN_FAILURE_ROUTINE_LAMBDA = "ecr-scan-failure-routine-lambda"
 
 ## Note that the region for the repo used for conducting ecr enhanced scans should be different from other
@@ -253,7 +263,7 @@ class EnhancedJSONEncoder(json.JSONEncoder):
         return super().default(o)
 
 
-def get_dockerfile_path_for_image(image_uri):
+def get_dockerfile_path_for_image(image_uri, python_version=None):
     """
     For a given image_uri, find the path within the repository to its corresponding dockerfile
 
@@ -287,7 +297,10 @@ def get_dockerfile_path_for_image(image_uri):
         framework_version_path = os.path.join(
             github_repo_path, framework_path, job_type, "docker", long_framework_version
         )
-    python_version = re.search(r"py\d+", image_uri).group()
+    # While using the released images, they do not have python version at times
+    # Hence, we want to allow a parameter that can pass the Python version externally in case it is not in the tag.
+    if not python_version:
+        python_version = re.search(r"py\d+", image_uri).group()
 
     python_version_path = os.path.join(framework_version_path, python_version)
     if not os.path.isdir(python_version_path):
@@ -372,6 +385,12 @@ def get_expected_dockerfile_filename(device_type, image_uri):
     return f"Dockerfile.{device_type}"
 
 
+def get_canary_helper_bucket_name():
+    bucket_name = os.getenv("CANARY_HELPER_BUCKET")
+    assert bucket_name, "Unable to find bucket name in CANARY_HELPER_BUCKET env variable"
+    return bucket_name
+
+
 def get_customer_type():
     return os.getenv("CUSTOMER_TYPE")
 
@@ -381,6 +400,13 @@ def get_image_type():
     Env variable should return training or inference
     """
     return os.getenv("IMAGE_TYPE")
+
+
+def get_test_job_arch_type():
+    """
+    Env variable should return graviton, x86, or None
+    """
+    return os.getenv("ARCH_TYPE", "x86")
 
 
 def get_ecr_repo_name(image_uri):
@@ -418,6 +444,38 @@ def is_tf_based_framework(name):
     E.g. "huggingface-tensorflow" or "huggingface-tensorflow-trcomp"
     """
     return "tensorflow" in name
+
+
+def is_equal_to_framework_version(version_required, image_uri, framework):
+    """
+    Validate that image_uri has framework version exactly equal to version_required
+
+    :param version_required: str Framework version that image_uri is required to be at
+    :param image_uri: str ECR Image URI for the image to be validated
+    :param framework: str Framework installed in image
+    :return: bool True if image_uri has framework version equal to version_required, else False
+    """
+    image_framework_name, image_framework_version = get_framework_and_version_from_tag(image_uri)
+    return image_framework_name == framework and Version(image_framework_version) in SpecifierSet(
+        f"=={version_required}"
+    )
+
+
+def is_above_framework_version(version_lower_bound, image_uri, framework):
+    """
+    Validate that image_uri has framework version strictly less than version_upper_bound
+
+    :param version_lower_bound: str Framework version that image_uri is required to be above
+    :param image_uri: str ECR Image URI for the image to be validated
+    :param framework: str Framework installed in image
+    :return: bool True if image_uri has framework version more than version_lower_bound, else False
+    """
+    image_framework_name, image_framework_version = get_framework_and_version_from_tag(image_uri)
+    required_version_specifier_set = SpecifierSet(f">{version_lower_bound}")
+    return (
+        image_framework_name == framework
+        and image_framework_version in required_version_specifier_set
+    )
 
 
 def is_below_framework_version(version_upper_bound, image_uri, framework):
@@ -517,6 +575,13 @@ def is_mainline_context():
     return os.getenv("BUILD_CONTEXT") == "MAINLINE"
 
 
+def is_deep_canary_context():
+    return os.getenv("BUILD_CONTEXT") == "DEEP_CANARY" or (
+        os.getenv("BUILD_CONTEXT") == "PR"
+        and os.getenv("DEEP_CANARY_MODE", "false").lower() == "true"
+    )
+
+
 def is_nightly_context():
     return (
         os.getenv("BUILD_CONTEXT") == "NIGHTLY"
@@ -538,6 +603,10 @@ def is_dlc_cicd_context():
 
 def is_efa_dedicated():
     return os.getenv("EFA_DEDICATED", "False").lower() == "true"
+
+
+def are_heavy_instance_ec2_tests_enabled():
+    return os.getenv("HEAVY_INSTANCE_EC2_TESTS_ENABLED", "False").lower() == "true"
 
 
 def is_generic_image():
@@ -672,6 +741,8 @@ def is_test_disabled(test_name, build_name, version):
 
 
 def run_subprocess_cmd(cmd, failure="Command failed"):
+    import pytest
+
     command = subprocess.run(cmd, stdout=subprocess.PIPE, shell=True)
     if command.returncode:
         pytest.fail(f"{failure}. Error log:\n{command.stdout.decode()}")
@@ -1046,21 +1117,91 @@ def delete_uploaded_tests_from_s3(s3_test_location):
 
 
 def get_dlc_images():
-    if is_pr_context() or is_empty_build_context():
+    if is_deep_canary_context():
+        deep_canary_images = get_deep_canary_images(
+            canary_framework=os.getenv("FRAMEWORK"),
+            canary_image_type=get_image_type(),
+            canary_arch_type=get_test_job_arch_type(),
+            canary_region=os.getenv("AWS_REGION"),
+            canary_region_prod_account=os.getenv("REGIONAL_PROD_ACCOUNT", PUBLIC_DLC_REGISTRY),
+        )
+        return " ".join(deep_canary_images)
+    elif is_pr_context() or is_empty_build_context():
         return os.getenv("DLC_IMAGES")
     elif is_canary_context():
         # TODO: Remove 'training' default once training-specific canaries are added
         image_type = get_image_type() or "training"
         return parse_canary_images(os.getenv("FRAMEWORK"), os.getenv("AWS_REGION"), image_type)
-    test_env_file = os.path.join(
-        os.getenv("CODEBUILD_SRC_DIR_DLC_IMAGES_JSON"), "test_type_images.json"
+    elif is_mainline_context():
+        test_env_file = os.path.join(
+            os.getenv("CODEBUILD_SRC_DIR_DLC_IMAGES_JSON"), "test_type_images.json"
+        )
+        with open(test_env_file) as test_env:
+            test_images = json.load(test_env)
+        for dlc_test_type, images in test_images.items():
+            if dlc_test_type == "sanity":
+                return " ".join(images)
+        raise RuntimeError(f"Cannot find any images for in {test_images}")
+    return None
+
+
+def get_deep_canary_images(
+    canary_framework, canary_image_type, canary_arch_type, canary_region, canary_region_prod_account
+):
+    """
+    For an input combination of canary job specs, find a matching list of image uris to be tested
+    :param canary_framework: str Framework Name
+    :param canary_image_type: str "training" or "inference"
+    :param canary_arch_type: str "x86" or "graviton"
+    :param canary_region: str Region Name
+    :param canary_region_prod_account: str DLC Production Account ID in this region
+    :return: list<str> List of image uris regionalized for canary_region
+    """
+    assert (
+        canary_framework
+        and canary_image_type
+        and canary_arch_type
+        and canary_region
+        and canary_region_prod_account
+    ), (
+        "Incorrect spec for one or more of the following:\n"
+        f"canary_framework = {canary_framework}\n"
+        f"canary_image_type = {canary_image_type}\n"
+        f"canary_arch_type = {canary_arch_type}\n"
+        f"canary_region = {canary_region}\n"
+        f"canary_region_prod_account = {canary_region_prod_account}"
     )
-    with open(test_env_file) as test_env:
-        test_images = json.load(test_env)
-    for dlc_test_type, images in test_images.items():
-        if dlc_test_type == "sanity":
-            return " ".join(images)
-    raise RuntimeError(f"Cannot find any images for in {test_images}")
+    all_images = get_canary_image_uris_from_bucket()
+    matching_images = []
+    for image_uri in all_images:
+        image_framework = get_framework_from_image_uri(image_uri)
+        image_type = get_image_type_from_tag(image_uri)
+        image_arch_type = get_image_arch_type_from_tag(image_uri)
+        image_region = get_region_from_image_uri(image_uri)
+        image_account_id = get_account_id_from_image_uri(image_uri)
+        if (
+            canary_framework == image_framework
+            and canary_image_type == image_type
+            and canary_arch_type == image_arch_type
+        ):
+            regionalized_image_uri = image_uri.replace(image_region, canary_region).replace(
+                image_account_id, canary_region_prod_account
+            )
+            matching_images.append(regionalized_image_uri)
+    return matching_images
+
+
+def get_canary_image_uris_from_bucket():
+    """
+    Helper function to get canary-tested DLC Image URIs
+
+    :return: list of [str<DLC Image URI>]
+    """
+    canary_helper_bucket = get_canary_helper_bucket_name()
+    s3_client = boto3.client("s3", region_name=DEFAULT_REGION)
+    response = s3_client.get_object(Bucket=canary_helper_bucket, Key="images.json")
+    image_uris = json.loads(response["Body"].read().decode("utf-8"))
+    return image_uris
 
 
 def get_canary_default_tag_py3_version(framework, version):
@@ -1099,7 +1240,7 @@ def get_canary_default_tag_py3_version(framework, version):
     return "py3"
 
 
-def parse_canary_images(framework, region, image_type):
+def parse_canary_images(framework, region, image_type, customer_type=None):
     """
     Return which canary images to run canary tests on for a given framework and AWS region
 
@@ -1108,7 +1249,9 @@ def parse_canary_images(framework, region, image_type):
     :param image_type: training or inference
     :return: dlc_images string (space separated string of image URIs)
     """
-    customer_type = get_customer_type()
+    import git
+
+    customer_type = customer_type or get_customer_type()
     customer_type_tag = f"-{customer_type}" if customer_type else ""
 
     allowed_image_types = ("training", "inference")
@@ -1399,6 +1542,23 @@ def get_unique_name_from_tag(image_uri):
     return re.sub("[^A-Za-z0-9]+", "", image_uri)
 
 
+def get_image_type_from_tag(image_uri):
+    valid_image_types = ["training", "inference"]
+    image_type_match = [keyword for keyword in valid_image_types if keyword in image_uri]
+    if len(image_type_match) != 1:
+        raise LookupError(f"Failed to find whether {image_uri} is training or inference")
+    return image_type_match[0]
+
+
+def get_image_arch_type_from_tag(image_uri):
+    """
+    All images are assumed by default to be x86, unless they are graviton type
+    :param image_uri: str ECR image URI
+    :return: str "graviton" or "x86"
+    """
+    return "graviton" if "graviton" in image_uri else "x86"
+
+
 def get_framework_and_version_from_tag(image_uri):
     """
     Return the framework and version from the image tag.
@@ -1413,7 +1573,8 @@ def get_framework_and_version_from_tag(image_uri):
         "huggingface_tensorflow",
         "huggingface_pytorch",
         "stabilityai_pytorch",
-        "pytorch_trcomp" "tensorflow",
+        "pytorch_trcomp",
+        "tensorflow",
         "mxnet",
         "pytorch",
         "autogluon",
@@ -1430,236 +1591,6 @@ def get_framework_and_version_from_tag(image_uri):
     return tested_framework, tag_framework_version
 
 
-# for the time being have this static table. Need to figure out a way to get this from
-# neuron github once their version manifest file is updated to the latest
-# 1.15.2 etc represent the neuron sdk version
-# For each of the sdk version we have differen frameworks like pytoch, mxnet etc
-# For each of the frameworks it has the framework version mapping to the actual neuron framework version in the container
-# If the framework version does not exist then it means it is not supported for that neuron sdk version
-NEURON_VERSION_MANIFEST = {
-    "1.15.2": {
-        "pytorch": {
-            "1.5.1": "1.5.1.1.5.21.0",
-            "1.6.0": "1.6.0.1.5.21.0",
-            "1.7.1": "1.7.1.1.5.21.0",
-            "1.8.1": "1.8.1.1.5.21.0",
-        },
-        "tensorflow": {
-            "2.1.4": "2.1.4.1.6.10.0",
-            "2.2.3": "2.2.3.1.6.10.0",
-            "2.3.3": "2.3.3.1.6.10.0",
-            "2.4.2": "2.4.2.1.6.10.0",
-            "2.4.2": "2.4.2.1.6.10.0",
-            "2.5.0": "2.5.0.1.6.10.0",
-        },
-        "mxnet": {
-            "1.8.0": "1.8.0.1.3.4.0",
-        },
-    },
-    "1.16.0": {
-        "pytorch": {
-            "1.5.1": "1.5.1.2.0.318.0",
-            "1.7.1": "1.7.1.2.0.318.0",
-            "1.8.1": "1.8.1.2.0.318.0",
-            "1.9.1": "1.9.1.2.0.318.0",
-        },
-        "tensorflow": {
-            "2.1.4": "2.1.4.2.0.3.0",
-            "2.2.3": "2.2.3.2.0.3.0",
-            "2.3.4": "2.3.4.2.0.3.0",
-            "2.4.3": "2.4.3.2.0.3.0",
-            "2.5.1": "2.5.1.2.0.3.0",
-            "1.15.5": "1.15.5.2.0.3.0",
-        },
-        "mxnet": {
-            "1.8.0": "1.8.0.2.0.271.0",
-        },
-    },
-    "1.16.1": {
-        "pytorch": {
-            "1.5.1": "1.5.1.2.0.392.0",
-            "1.7.1": "1.7.1.2.0.392.0",
-            "1.8.1": "1.8.1.2.0.392.0",
-            "1.9.1": "1.9.1.2.0.392.0",
-        },
-        "tensorflow": {
-            "2.1.4": "2.1.4.2.0.4.0",
-            "2.2.3": "2.2.3.2.0.4.0",
-            "2.3.4": "2.3.4.2.0.4.0",
-            "2.4.3": "2.4.3.2.0.4.0",
-            "2.5.1": "2.5.1.2.0.4.0",
-            "1.15.5": "1.15.5.2.0.4.0",
-        },
-        "mxnet": {
-            "1.8.0": "1.8.0.2.0.276.0",
-        },
-    },
-    "1.17.0": {
-        "pytorch": {
-            "1.5.1": "1.5.1.2.1.7.0",
-            "1.7.1": "1.7.1.2.1.7.0",
-            "1.8.1": "1.8.1.2.1.7.0",
-            "1.9.1": "1.9.1.2.1.7.0",
-            "1.10.1": "1.10.1.2.1.7.0",
-        },
-        "tensorflow": {
-            "2.1.4": "2.1.4.2.0.4.0",
-            "2.2.3": "2.2.3.2.0.4.0",
-            "2.3.4": "2.3.4.2.0.4.0",
-            "2.4.3": "2.4.3.2.0.4.0",
-            "2.5.2": "2.5.2.2.1.6.0",
-            "1.15.5": "1.15.5.2.1.6.0",
-        },
-        "mxnet": {
-            "1.8.0": "1.8.0.2.1.5.0",
-        },
-    },
-    "1.17.1": {
-        "pytorch": {
-            "1.10.1": "1.10.1.2.1.7.0",
-        },
-        "tensorflow": {
-            "2.5.2": "2.5.2.2.1.13.0",
-            "1.15.5": "1.15.5.2.1.13.0",
-        },
-        "mxnet": {
-            "1.8.0": "1.8.0.2.1.5.0",
-        },
-    },
-    "1.18.0": {
-        "pytorch": {
-            "1.5.1": "1.5.1.2.2.0.0",
-            "1.7.1": "1.7.1.2.2.0.0",
-            "1.8.1": "1.8.1.2.2.0.0",
-            "1.9.1": "1.9.1.2.2.0.0",
-            "1.10.2": "1.10.1.2.2.0.0",
-        },
-        "tensorflow": {
-            "2.5.3": "2.5.3.2.2.0.0",
-            "2.6.3": "2.6.3.2.2.0.0",
-            "2.7.1": "2.7.1.2.2.0.0",
-            "1.15.5": "1.15.5.2.2.0.0",
-        },
-        "mxnet": {
-            "1.8.0": "1.8.0.2.2.2.0",
-        },
-    },
-    "1.19.0": {
-        "pytorch": {
-            "1.7.1": "1.7.1.2.3.0.0",
-            "1.8.1": "1.8.1.2.3.0.0",
-            "1.9.1": "1.9.1.2.3.0.0",
-            "1.10.2": "1.10.2.2.3.0.0",
-            "1.11.0": "1.11.0.2.3.0.0",
-        },
-        "tensorflow": {
-            "2.5.3": "2.5.3.2.3.0.0",
-            "2.6.3": "2.6.3.2.3.0.0",
-            "2.7.1": "2.7.1.2.3.0.0",
-            "2.8.0": "2.8.0.2.3.0.0",
-            "1.15.5": "1.15.5.2.3.0.0",
-        },
-        "mxnet": {
-            "1.8.0": "1.8.0.2.2.2.0",
-        },
-    },
-    "2.3.0": {
-        "pytorch": {
-            "1.11.0": "1.11.0.2.3.0.0",
-        },
-    },
-    "2.4.0": {
-        "pytorch": {
-            "1.11.0": "1.11.0.2.3.0.0",
-        },
-    },
-    "2.5.0": {
-        "tensorflow": {
-            "2.8.0": "2.8.0.2.3.0.0",
-            "1.15.5": "1.15.5.2.5.6.0",
-        },
-        "pytorch": {
-            "1.12.1": "1.12.1.2.5.8.0",
-        },
-        "mxnet": {
-            "1.8.0": "1.8.0.2.2.43.0",
-        },
-    },
-    "2.6.0": {
-        "pytorch": {
-            "1.12.0": "1.12.0.1.4.0",
-        },
-    },
-    "2.8.0": {
-        "pytorch": {
-            "1.13.0": "1.13.0.1.5.0",
-        },
-    },
-    "2.8.0": {
-        "tensorflow": {
-            "1.15.5": "1.15.5.2.6.5.0",
-            "2.10.1": "2.10.1.2.6.5.0",
-        },
-    },
-    "2.9.0": {
-        "tensorflow": {
-            "2.10.1": "2.10.1.2.7.3.0",
-        },
-    },
-    "2.10.0": {
-        "tensorflow": {
-            "2.10.1": "2.10.1.2.8.1.0",
-        },
-        "pytorch": {
-            "1.13.1": "1.13.1.2.7.1.0",
-        },
-    },
-    "1.19.1": {
-        "pytorch": {
-            "1.7.1": "1.7.1.2.3.0.0",
-            "1.8.1": "1.8.1.2.3.0.0",
-            "1.9.1": "1.9.1.2.3.0.0",
-            "1.10.2": "1.10.2.2.3.0.0",
-            "1.11.0": "1.11.0.2.3.0.0",
-        },
-        "tensorflow": {
-            "2.5.3": "2.5.3.2.3.0.0",
-            "2.6.3": "2.6.3.2.3.0.0",
-            "2.7.1": "2.7.1.2.3.0.0",
-            "2.8.0": "2.8.0.2.3.0.0",
-            "1.15.5": "1.15.5.2.3.0.0",
-        },
-        "mxnet": {
-            "1.8.0": "1.8.0.2.2.2.0",
-        },
-    },
-}
-
-NEURONX_VERSION_MANIFEST = {
-    "2.9.0": {
-        "pytorch": {
-            "1.13.0": "1.13.0.1.6.0",
-        },
-        "tensorflow": {
-            "2.10.1": "2.10.1.2.0.0",
-        },
-    },
-    "2.9.1": {
-        "pytorch": {
-            "1.13.0": "1.13.0.1.6.1",
-        },
-    },
-    "2.10.0": {
-        "pytorch": {
-            "1.13.1": "1.13.1.1.7.0",
-        },
-        "tensorflow": {
-            "2.10.1": "2.10.1.2.1.0",
-        },
-    },
-}
-
-
 def get_neuron_sdk_version_from_tag(image_uri):
     """
     Return the neuron sdk version from the image tag.
@@ -1674,34 +1605,52 @@ def get_neuron_sdk_version_from_tag(image_uri):
     return neuron_sdk_version
 
 
-def get_neuron_framework_and_version_from_tag(image_uri):
+def get_neuron_release_manifest(sdk_version):
     """
-    Return the framework version and expected framework version for the neuron tag from the image tag.
+    Returns a dictionary which maps a package name (e.g. "tensorflow-neuronx") to all the version numbers available in and SDK release
 
-    :param image_uri: ECR image URI
-    :return: framework version, expected framework version from neuron sdk version
+    :param sdk_version: Neuron SDK version
+    :return: { "tensorflow_neuronx": ["15.5.1.1.1.1.1", "2.10.1.1.1.1.1", ...], ... }
     """
-    tested_framework, tag_framework_version = get_framework_and_version_from_tag(image_uri)
-    neuron_sdk_version = get_neuron_sdk_version_from_tag(image_uri)
+    NEURON_RELEASE_MANIFEST_URL = "https://raw.githubusercontent.com/aws-neuron/aws-neuron-sdk/master/src/helperscripts/n2-manifest.json"
 
-    if neuron_sdk_version is None:
-        return tag_framework_version, None
+    manifest = requests.get(NEURON_RELEASE_MANIFEST_URL)
+    assert manifest.text, f"Neuron manifest file at {NEURON_RELEASE_MANIFEST_URL} is empty"
 
-    neuron_version_manifest = (
-        NEURONX_VERSION_MANIFEST if "neuronx" in image_uri else NEURON_VERSION_MANIFEST
-    )
+    manifest_data = json.loads(manifest.text)
 
-    if neuron_sdk_version not in neuron_version_manifest:
-        raise KeyError(f"Cannot find neuron sdk version {neuron_sdk_version} ")
+    if "neuron_releases" not in manifest_data:
+        raise KeyError(f"neuron_releases not found in manifest_data\n{json.dumps(manifest_data)}")
 
-    # Framework name may include huggingface
-    if tested_framework.startswith("huggingface_"):
-        tested_framework = tested_framework[len("huggingface_") :]
+    release_array = manifest_data["neuron_releases"]
+    release = None
 
-    neuron_framework_versions = neuron_version_manifest[neuron_sdk_version][tested_framework]
-    neuron_tag_framework_version = neuron_framework_versions.get(tag_framework_version)
+    for current_release in release_array:
+        if "neuron_version" not in current_release:
+            continue
+        if current_release["neuron_version"] == sdk_version:
+            release = current_release
+            break
 
-    return tested_framework, neuron_tag_framework_version
+    if release is None:
+        raise KeyError(
+            f"cannot find neuron neuron sdk version {sdk_version} "
+            f"in releases:\n{json.dumps(release_array)}"
+        )
+
+    if "packages" not in release:
+        raise KeyError(f"packages not found in release data\n{json.dumps(release)}")
+
+    package_array = release["packages"]
+    package_versions = {}
+    for package in package_array:
+        package_name = package["name"]
+        package_version = package["version"]
+        if package_name not in package_versions:
+            package_versions[package_name] = []
+        package_versions[package_name].append(package_version)
+
+    return package_versions
 
 
 def get_transformers_version_from_image_uri(image_uri):
@@ -1813,7 +1762,14 @@ def get_cuda_version_from_tag(image_uri):
     cuda_str = ["cu", "gpu"]
     image_region = get_region_from_image_uri(image_uri)
     ecr_client = boto3.Session(region_name=image_region).client("ecr")
-    all_image_tags = get_all_the_tags_of_an_image_from_ecr(ecr_client, image_uri)
+    _, local_image_tag = get_repository_and_tag_from_image_uri(image_uri)
+    all_image_tags = [local_image_tag]
+    try:
+        all_image_tags = get_all_the_tags_of_an_image_from_ecr(ecr_client, image_uri)
+    except ecr_client.exceptions.ImageNotFoundException as e:
+        LOGGER.info(
+            f"Image {image_uri} not found in ECR - this is expected when the image is not pushed yet. Client Logs: {e}"
+        )
 
     for image_tag in all_image_tags:
         if all(keyword in image_tag for keyword in cuda_str):
@@ -1913,41 +1869,24 @@ def get_python_version_from_image_uri(image_uri):
     return "py36" if python_version == "py3" else python_version
 
 
-def construct_buildspec_path(dlc_path, framework_path, buildspec, framework_version, job_type=""):
+def get_buildspec_path(dlc_path):
     """
-    Construct a relative path to the buildspec yaml file by iterative checking on the existence of
+    Get buildspec file that should be used in testing a particular DLC image. This file is normally
+    configured as an environment variable on PR and Mainline test jobs. If it isn't configured,
+    construct a relative path to the buildspec yaml file by iterative checking on the existence of
     a specific version file for the framework being tested. Possible options include:
     [buildspec-[Major]-[Minor]-[Patch].yml, buildspec-[Major]-[Minor].yml, buildspec-[Major].yml, buildspec.yml]
     :param dlc_path: path to the DLC test folder
-    :param framework_path: Framework folder name
-    :param buildspec: buildspec file name
-    :param framework_version: default (long) framework version name
     """
-    if framework_version:
-        # pattern matches for example 0.3.2 or 22.3
-        pattern = r"^(\d+)(\.\d+)?(\.\d+)?$"
-        matched = re.search(pattern, framework_version)
-        if matched:
-            constructed_version = ""
-            versions_to_search = []
-            for match in matched.groups():
-                if match:
-                    constructed_version = f'{constructed_version}{match.replace(".","-")}'
-                    versions_to_search.append(constructed_version)
+    buildspec_path = None
+    if is_pr_context() and os.getenv("FRAMEWORK_BUILDSPEC_FILE"):
+        buildspec_path = os.path.join(dlc_path, os.getenv("FRAMEWORK_BUILDSPEC_FILE"))
+    elif os.getenv("CODEBUILD_SRC_DIR_DLC_BUILDSPEC_FILE"):
+        buildspec_path = os.path.join(
+            os.getenv("CODEBUILD_SRC_DIR_DLC_BUILDSPEC_FILE"), "framework-buildspec.yml"
+        )
 
-            for version in reversed(versions_to_search):
-                buildspec_path = os.path.join(
-                    dlc_path, framework_path, job_type, f"{buildspec}-{version}.yml"
-                )
-                if os.path.exists(buildspec_path):
-                    return buildspec_path
-        else:
-            raise ValueError(f"Framework version {framework_version} was not matched.")
-
-    # Only support buildspecs under "training/inference" - do not allow framework-level buildspecs anymore
-    buildspec_path = os.path.join(dlc_path, framework_path, job_type, f"{buildspec}.yml")
-    if not os.path.exists(buildspec_path):
-        raise ValueError("Could not construct a valid buildspec path.")
+    assert os.path.exists(buildspec_path), f"buildspec_path - {buildspec_path} - is invalid"
 
     return buildspec_path
 
@@ -2222,3 +2161,72 @@ def get_labels_from_ecr_image(image_uri, region):
 def generate_unique_dlc_name(image):
     # handle retrevial of repo name and remove test type from it
     return get_ecr_repo_name(image).replace("-training", "").replace("-inference", "")
+
+
+def get_ecr_scan_allowlist_path(image_uri, python_version=None):
+    """
+    This method has the logic to extract the ecr scan allowlist path for each image. This method earlier existed in another file and
+    has simply been relocated to this one.
+
+    :param image_uri: str, Image URI
+    :param python_version: str, python_version
+    :return: str, ecr_scan_allowlist path
+    """
+    dockerfile_location = get_dockerfile_path_for_image(image_uri, python_version=python_version)
+    image_scan_allowlist_path = dockerfile_location + ".os_scan_allowlist.json"
+    if (
+        not any(image_type in image_uri for image_type in ["neuron", "eia"])
+        and is_covered_by_ec2_sm_split(image_uri)
+        and is_ec2_sm_in_same_dockerfile(image_uri)
+    ):
+        if is_ec2_image(image_uri):
+            image_scan_allowlist_path = image_scan_allowlist_path.replace(
+                "Dockerfile", "Dockerfile.ec2"
+            )
+        else:
+            image_scan_allowlist_path = image_scan_allowlist_path.replace(
+                "Dockerfile", "Dockerfile.sagemaker"
+            )
+
+    # Each example image (tied to CUDA version/OS version/other variants) can have its own list of vulnerabilities,
+    # which means that we cannot have just a single allowlist for all example images for any framework version.
+    if "example" in image_uri:
+        # The extracted dockerfile_location in case of example image points to the base gpu image on top of which the
+        # example image was built. The dockerfile_location looks like
+        # tensorflow/training/docker/2.7/py3/cu112/Dockerfile.ec2.gpu.example.os_scan_allowlist.json
+        # We want to change the parent folder such that it points from cu112 folder to example folder and
+        # looks like tensorflow/training/docker/2.7/py3/example/Dockerfile.gpu.example.os_scan_allowlist.json
+        dockerfile_location = dockerfile_location.replace(".ec2.", ".")
+        base_gpu_image_path = Path(dockerfile_location)
+        image_scan_allowlist_path = os.path.join(
+            str(base_gpu_image_path.parent.parent), "example", base_gpu_image_path.name
+        )
+        image_scan_allowlist_path += ".example.os_scan_allowlist.json"
+    return image_scan_allowlist_path
+
+
+def get_installed_python_packages_with_version(docker_exec_command: str):
+    """
+    This method extracts all the installed python packages and their versions from a DLC.
+
+    :param docker_exec_command: str, The Docker exec command for an already running container.
+    :return: Dict, Dictionary with key=package_name and value=package_version in str
+    """
+    package_version_dict = {}
+
+    python_cmd_to_extract_package_set = """ python -c "import pkg_resources; \
+        import json; \
+        print(json.dumps([{'name':d.key, 'version':d.version} for d in pkg_resources.working_set]))" """
+
+    run_output = run(f"{docker_exec_command} {python_cmd_to_extract_package_set}")
+    list_of_package_data_dicts = json.loads(run_output.stdout)
+
+    for package_data_dict in list_of_package_data_dicts:
+        package_name = package_data_dict["name"].lower()
+        if package_name in package_version_dict:
+            raise Exception(
+                f""" Package {package_name} existing multiple times in {list_of_package_data_dicts}"""
+            )
+        package_version_dict[package_name] = package_data_dict["version"]
+
+    return package_version_dict

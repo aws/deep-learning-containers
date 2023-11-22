@@ -22,16 +22,20 @@ from test import test_utils
 from test.test_utils import (
     is_benchmark_dev_context,
     get_framework_and_version_from_tag,
+    get_cuda_version_from_tag,
     get_job_type_from_image,
+    get_processor_from_image_uri,
     is_tf_version,
+    is_above_framework_version,
     is_below_framework_version,
+    is_equal_to_framework_version,
     is_ec2_image,
     is_sagemaker_image,
     is_nightly_context,
     DEFAULT_REGION,
     P3DN_REGION,
-    UBUNTU_18_BASE_DLAMI_US_EAST_1,
-    UBUNTU_18_BASE_DLAMI_US_WEST_2,
+    UBUNTU_20_BASE_DLAMI_US_EAST_1,
+    UBUNTU_20_BASE_DLAMI_US_WEST_2,
     PT_GPU_PY3_BENCHMARK_IMAGENET_AMI_US_EAST_1,
     AML2_BASE_DLAMI_US_WEST_2,
     AML2_BASE_DLAMI_US_EAST_1,
@@ -194,6 +198,12 @@ def pytest_addoption(parser):
         help="Run canary tests",
     )
     parser.addoption(
+        "--deep-canary",
+        action="store_true",
+        default=False,
+        help="Run Deep Canary tests",
+    )
+    parser.addoption(
         "--generate-coverage-doc",
         action="store_true",
         default=False,
@@ -322,9 +332,14 @@ def ec2_instance_ami(request, region):
     return (
         request.param
         if hasattr(request, "param")
-        else UBUNTU_18_BASE_DLAMI_US_EAST_1
+        else UBUNTU_20_BASE_DLAMI_US_EAST_1
         if region == "us-east-1"
-        else UBUNTU_18_BASE_DLAMI_US_WEST_2
+        else UBUNTU_20_BASE_DLAMI_US_WEST_2
+        if region == "us-west-2"
+        else test_utils.get_ami_id_boto3(
+            region_name=region,
+            ami_name_pattern="Deep Learning Base GPU AMI (Ubuntu 20.04) ????????",
+        )
     )
 
 
@@ -545,7 +560,7 @@ def ec2_instance(
             ec2_instance_ami = (
                 AML2_BASE_DLAMI_US_EAST_1
                 if ec2_instance_ami == AML2_BASE_DLAMI_US_WEST_2
-                else UBUNTU_18_BASE_DLAMI_US_EAST_1
+                else UBUNTU_20_BASE_DLAMI_US_EAST_1
             )
 
     ec2_key_name = f"{ec2_key_name}-{str(uuid.uuid4())}"
@@ -596,7 +611,7 @@ def ec2_instance(
         ]
     elif (
         (
-            ("benchmark" in os.getenv("TEST_TYPE") or is_benchmark_dev_context())
+            ("benchmark" in os.getenv("TEST_TYPE", "UNDEFINED") or is_benchmark_dev_context())
             and (
                 ("mxnet_training" in request.fixturenames and "gpu_only" in request.fixturenames)
                 or "mxnet_inference" in request.fixturenames
@@ -664,34 +679,19 @@ def ec2_instance(
             }
         ]
 
+    availability_zone_options = None
     if ei_accelerator_type:
         params["ElasticInferenceAccelerators"] = [{"Type": ei_accelerator_type, "Count": 1}]
         availability_zones = {
             "us-west-2": ["us-west-2a", "us-west-2b", "us-west-2c"],
             "us-east-1": ["us-east-1a", "us-east-1b", "us-east-1c"],
         }
-        for a_zone in availability_zones[region]:
-            params["Placement"] = {"AvailabilityZone": a_zone}
-            try:
-                instances = ec2_resource.create_instances(**params)
-                if instances:
-                    break
-            except ClientError as e:
-                LOGGER.error(f"Failed to launch in {a_zone} due to {e}")
-                continue
-    else:
-        try:
-            instances = ec2_resource.create_instances(**params)
-        except ClientError as e:
-            if e.response["Error"]["Code"] == "InsufficientInstanceCapacity":
-                LOGGER.warning(
-                    f"Failed to launch {ec2_instance_type} in {region} because of insufficient capacity"
-                )
-                if ec2_instance_type in ec2_utils.ICE_SKIP_INSTANCE_LIST:
-                    pytest.skip(
-                        f"Skipping test because {ec2_instance_type} instance could not be launched."
-                    )
-            raise
+        availability_zone_options = availability_zones[region]
+    instances = ec2_utils.launch_instances_with_retry(
+        ec2_resource=ec2_resource,
+        availability_zone_options=availability_zone_options,
+        ec2_create_instances_definition=params,
+    )
     instance_id = instances[0].id
 
     # Define finalizer to terminate instance after this fixture completes
@@ -867,6 +867,65 @@ def skip_inductor_test(request):
             )
 
 
+@pytest.fixture(autouse=True)
+def skip_pt20_cuda121_tests(request):
+    if "training" in request.fixturenames:
+        img_uri = request.getfixturevalue("training")
+    elif "pytorch_training" in request.fixturenames:
+        img_uri = request.getfixturevalue("pytorch_training")
+    else:
+        return
+    if request.node.get_closest_marker("skip_pt20_cuda121_tests"):
+        _, image_framework_version = get_framework_and_version_from_tag(img_uri)
+        image_processor = get_processor_from_image_uri(img_uri)
+        image_cuda_version = get_cuda_version_from_tag(img_uri)
+        if (
+            Version(image_framework_version) in SpecifierSet("==2.0.1")
+            and Version(image_cuda_version.strip("cu")) == Version("121")
+            and image_processor == "gpu"
+        ):
+            pytest.skip("PyTorch 2.0 + CUDA12.1 image doesn't support current test")
+
+
+@pytest.fixture(autouse=True)
+def skip_p5_tests(request, ec2_instance_type):
+    if "p5." in ec2_instance_type:
+        if "gpu" in request.fixturenames:
+            img_uri = request.getfixturevalue("gpu")
+        elif "image" in request.fixturenames:
+            img_uri = request.getfixturevalue("image")
+        elif "training" in request.fixturenames:
+            img_uri = request.getfixturevalue("training")
+        elif "pytorch_training" in request.fixturenames:
+            img_uri = request.getfixturevalue("pytorch_training")
+        else:
+            pytest.skip("Current image doesn't support P5 EC2 instance.")
+
+        framework, image_framework_version = get_framework_and_version_from_tag(img_uri)
+        if "pytorch" not in framework:
+            pytest.skip("Current image doesn't support P5 EC2 instance.")
+        image_processor = get_processor_from_image_uri(img_uri)
+        image_cuda_version = get_cuda_version_from_tag(img_uri)
+        if image_processor != "gpu" or Version(image_cuda_version.strip("cu")) < Version("120"):
+            pytest.skip("Images using less than CUDA 12.0 doesn't support P5 EC2 instance.")
+
+
+@pytest.fixture(autouse=True)
+def skip_pt21_test(request):
+    if "training" in request.fixturenames:
+        img_uri = request.getfixturevalue("training")
+    elif "pytorch_training" in request.fixturenames:
+        img_uri = request.getfixturevalue("pytorch_training")
+    else:
+        return
+    _, image_framework_version = get_framework_and_version_from_tag(img_uri)
+    if request.node.get_closest_marker("skip_pt21_test"):
+        if Version(image_framework_version) in SpecifierSet("==2.1"):
+            pytest.skip(
+                f"PT2.1 SM DLC doesn't support Rubik and Herring for now, so skipping this container with tag {image_framework_version}"
+            )
+
+
 @pytest.fixture(scope="session")
 def dlc_images(request):
     return request.config.getoption("--images")
@@ -979,7 +1038,22 @@ def tf21_and_above_only():
 
 
 @pytest.fixture(scope="session")
+def below_tf213_only():
+    pass
+
+
+@pytest.fixture(scope="session")
 def mx18_and_above_only():
+    pass
+
+
+@pytest.fixture(scope="session")
+def skip_pt200():
+    pass
+
+
+@pytest.fixture(scope="session")
+def pt200_and_below_only():
     pass
 
 
@@ -989,7 +1063,32 @@ def pt113_and_above_only():
 
 
 @pytest.fixture(scope="session")
+def pt201_and_above_only():
+    pass
+
+
+@pytest.fixture(scope="session")
+def below_pt113_only():
+    pass
+
+
+@pytest.fixture(scope="session")
 def pt111_and_above_only():
+    pass
+
+
+@pytest.fixture(scope="session")
+def skip_pt110():
+    pass
+
+
+@pytest.fixture(scope="session")
+def pt21_and_above_only():
+    pass
+
+
+@pytest.fixture(scope="session")
+def pt18_and_above_only():
     pass
 
 
@@ -1072,12 +1171,17 @@ def framework_version_within_limit(metafunc_obj, image):
             "tf21_and_above_only" in metafunc_obj.fixturenames
             and is_below_framework_version("2.1", image, image_framework_name)
         )
+        tf213_requirement_failed = (
+            "below_tf213_only" in metafunc_obj.fixturenames
+            and not is_below_framework_version("2.13", image, image_framework_name)
+        )
         if (
             tf2_requirement_failed
             or tf21_requirement_failed
             or tf24_requirement_failed
             or tf25_requirement_failed
             or tf23_requirement_failed
+            or tf213_requirement_failed
         ):
             return False
     if image_framework_name == "mxnet":
@@ -1088,13 +1192,37 @@ def framework_version_within_limit(metafunc_obj, image):
         if mx18_requirement_failed:
             return False
     if image_framework_name in ("pytorch", "huggingface_pytorch_trcomp", "pytorch_trcomp"):
+        pt20_and_below_requirement_failed = (
+            "pt200_and_below_only" in metafunc_obj.fixturenames
+            and is_above_framework_version("2.0.0", image, image_framework_name)
+        )
+        not_pt200_requirement_failed = (
+            "skip_pt200" in metafunc_obj.fixturenames
+            and is_equal_to_framework_version("2.0.0", image, image_framework_name)
+        )
         pt113_requirement_failed = (
             "pt113_and_above_only" in metafunc_obj.fixturenames
             and is_below_framework_version("1.13", image, image_framework_name)
         )
+        below_pt113_requirement_failed = (
+            "below_pt113_only" in metafunc_obj.fixturenames
+            and not is_below_framework_version("1.13", image, image_framework_name)
+        )
         pt111_requirement_failed = (
             "pt111_and_above_only" in metafunc_obj.fixturenames
             and is_below_framework_version("1.11", image, image_framework_name)
+        )
+        not_pt110_requirement_failed = (
+            "skip_pt110" in metafunc_obj.fixturenames
+            and is_equal_to_framework_version("1.10.*", image, image_framework_name)
+        )
+        pt21_requirement_failed = (
+            "pt21_and_above_only" in metafunc_obj.fixturenames
+            and is_below_framework_version("2.1", image, image_framework_name)
+        )
+        pt18_requirement_failed = (
+            "pt18_and_above_only" in metafunc_obj.fixturenames
+            and is_below_framework_version("1.8", image, image_framework_name)
         )
         pt17_requirement_failed = (
             "pt17_and_above_only" in metafunc_obj.fixturenames
@@ -1112,13 +1240,24 @@ def framework_version_within_limit(metafunc_obj, image):
             "pt14_and_above_only" in metafunc_obj.fixturenames
             and is_below_framework_version("1.4", image, image_framework_name)
         )
+        pt201_requirement_failed = (
+            "pt201_and_above_only" in metafunc_obj.fixturenames
+            and is_below_framework_version("2.0.1", image, image_framework_name)
+        )
         if (
-            pt113_requirement_failed
+            pt20_and_below_requirement_failed
+            or not_pt200_requirement_failed
+            or pt113_requirement_failed
+            or below_pt113_requirement_failed
             or pt111_requirement_failed
+            or not_pt110_requirement_failed
+            or pt21_requirement_failed
+            or pt18_requirement_failed
             or pt17_requirement_failed
             or pt16_requirement_failed
             or pt15_requirement_failed
             or pt14_requirement_failed
+            or pt201_requirement_failed
         ):
             return False
     return True
@@ -1146,6 +1285,26 @@ def pytest_configure(config):
     config.addinivalue_line(
         "markers", "allow_p4de_use(): explicitly mark to allow test to use p4de instance types"
     )
+    config.addinivalue_line("markers", "p3(): choose trcomp perf tests running on p3 instance type")
+    config.addinivalue_line(
+        "markers", "single_gpu(): choose trcomp perf tests that run on single-gpu instance types"
+    )
+    config.addinivalue_line("markers", "neuronx_test(): mark as neuronx integration test")
+    config.addinivalue_line(
+        "markers", "skip_pt20_cuda121_tests(): mark test to skip due to dlc being incompatible"
+    )
+    config.addinivalue_line(
+        "markers", "skip_pt21_test(): mark test to skip due to dlc being incompatible"
+    )
+    config.addinivalue_line(
+        "markers", "skip_inductor_test(): mark test to skip due to dlc being incompatible"
+    )
+    config.addinivalue_line("markers", "skip_trcomp_containers(): mark test to skip on trcomp dlcs")
+    config.addinivalue_line(
+        "markers", "skip_s3plugin_test(): mark test to skip due to dlc being incompatible"
+    )
+    config.addinivalue_line("markers", "deep_canary(): explicitly mark to run as deep canary test")
+    config.addinivalue_line("markers", "team(team_name): mark tests that belong to a team")
 
 
 def pytest_runtest_setup(item):
@@ -1173,6 +1332,11 @@ def pytest_runtest_setup(item):
         canary_opts = [mark for mark in item.iter_markers(name="canary")]
         if not canary_opts:
             pytest.skip("Skipping non-canary tests")
+
+    if item.config.getoption("--deep-canary"):
+        deep_canary_opts = [mark for mark in item.iter_markers(name="deep_canary")]
+        if not deep_canary_opts:
+            pytest.skip("Skipping non-deep-canary tests")
 
     # Handle multinode conditional skipping
     if item.config.getoption("--multinode"):
@@ -1294,10 +1458,6 @@ def lookup_condition(lookup, image):
 def pytest_generate_tests(metafunc):
     images = metafunc.config.getoption("--images")
 
-    # Don't parametrize if there are no images to parametrize
-    if not images:
-        return
-
     # Parametrize framework specific tests
     for fixture in FRAMEWORK_FIXTURES:
         if fixture in metafunc.fixturenames:
@@ -1321,16 +1481,12 @@ def pytest_generate_tests(metafunc):
                         for fixture_name in ["example_only", "huggingface_only"]
                     ) and all(keyword not in image for keyword in ["example", "huggingface"])
                     if "sagemaker_only" in metafunc.fixturenames and is_ec2_image(image):
-                        LOGGER.info(f"Not running EC2 image {image} on sagemaker_only test")
                         continue
                     if is_sagemaker_image(image):
                         if (
                             "sagemaker_only" not in metafunc.fixturenames
                             and "sagemaker" not in metafunc.fixturenames
                         ):
-                            LOGGER.info(
-                                f"Skipping test, as this function is not marked as 'sagemaker_only' or 'sagemaker'"
-                            )
                             continue
                     if (
                         "stabilityai" not in metafunc.fixturenames

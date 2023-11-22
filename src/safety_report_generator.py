@@ -3,6 +3,8 @@ from datetime import datetime
 
 import json
 import os
+import utils
+from config import is_autopatch_build_enabled
 
 
 class SafetyReportGenerator:
@@ -19,7 +21,8 @@ class SafetyReportGenerator:
                     "vulnerability_id": "safety_vulnerability_id",
                     "advisory": "description of the issue",
                     "reason_to_ignore":"reason to ignore the vulnerability_id",
-                    "spec": "version_spec"
+                    "spec": "version_spec",
+                    "ignored": False
                 },
                 ...
             ]
@@ -38,6 +41,7 @@ class SafetyReportGenerator:
         self.ctx = Context()
         self.docker_exec_cmd = f"docker exec -i {container_id}"
         self.safety_check_output = None
+        self.vulnerabilities_to_be_added_to_ignore_list = {}
 
     def insert_vulnerabilites_into_report(self, scanned_vulnerabilities):
         """
@@ -57,6 +61,7 @@ class SafetyReportGenerator:
                 "advisory": advisory,
                 "spec": spec,
                 "reason_to_ignore": "N/A",
+                "ignored": False,
             }
 
             if package not in self.ignored_vulnerability_count:
@@ -64,6 +69,7 @@ class SafetyReportGenerator:
 
             if vulnerability_id in self.ignore_dict:
                 vulnerability_details["reason_to_ignore"] = self.ignore_dict[vulnerability_id]
+                vulnerability_details["ignored"] = True
                 self.ignored_vulnerability_count[package] += 1
 
             if package not in self.vulnerability_dict:
@@ -115,10 +121,26 @@ class SafetyReportGenerator:
                             "advisory": "N/A",
                             "reason_to_ignore": "N/A",
                             "spec": "N/A",
+                            "ignored": False,
                         }
                     ],
                     "date": self.timestamp,
                 }
+
+    def get_autopatched_dumped_ignore_dict_of_packages(self):
+        """
+        This method extracts the dumped ignore lists within the DLCs that have been dumped by the autopatch procedure.
+        """
+        dumped_ignore_list_command = (
+            f"{self.docker_exec_cmd} cat /opt/aws/dlc/patch-details/vuln_deactivation_data.json"
+        )
+        return_data = {}
+        try:
+            run_out = self.ctx.run(dumped_ignore_list_command, hide=True)
+            return_data = json.loads(run_out.stdout.strip())
+        except:
+            pass
+        return return_data
 
     def process_report(self):
         """
@@ -134,7 +156,23 @@ class SafetyReportGenerator:
                 ):
                     package_scan_results["scan_status"] = "IGNORED"
                 else:
+                    ## If autopatch, confirm if the package is not deactivated. If it is, add it to vulnerabilities_to_be_added_to_ignore_list and call it IGNORED
+                    ## else call the package as failed itself
                     package_scan_results["scan_status"] = "FAILED"
+                    if is_autopatch_build_enabled():
+                        ignored_package_dict = self.get_autopatched_dumped_ignore_dict_of_packages()
+                        if package in ignored_package_dict:
+                            ignore_message = f"""[Package: {package}] Conflicts for: {",".join(ignored_package_dict.get(package).keys())}"""
+                            package_scan_results["scan_status"] = "IGNORED"
+                            print(f"Failed Package: {package} is being ALLOWLISTED")
+                            for vulnerability in package_scan_results["vulnerabilities"]:
+                                if vulnerability["reason_to_ignore"] == "N/A":
+                                    vulnerability["reason_to_ignore"] = ignore_message
+                                    vulnerability["ignored"] = True
+                                    self.vulnerabilities_to_be_added_to_ignore_list[
+                                        vulnerability["vulnerability_id"]
+                                    ] = ignore_message
+
             self.vulnerability_list.append(package_scan_results)
 
     def run_safety_check_in_non_cb_context(self):

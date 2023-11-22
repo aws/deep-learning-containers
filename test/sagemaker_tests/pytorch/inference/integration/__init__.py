@@ -46,6 +46,15 @@ resnet_neuronx_input = resnet_neuron_input
 resnet_neuronx_image_list = os.path.join(model_neuronx_dir, "imagenet1000_clsidx_to_labels.txt")
 call_model_fn_once_script = os.path.join(resources_path, code_sub_dir, "call_model_fn_once.py")
 
+stabilityai_path = os.path.join(resources_path, "stabilityai")
+sdxl_path = os.path.join(stabilityai_path, "sdxl-v1")
+sdxl_gpu_path = os.path.join(sdxl_path, gpu_sub_dir)
+sdxl_gpu_code_path = os.path.join(sdxl_gpu_path, code_sub_dir)
+sd21_path = os.path.join(stabilityai_path, "sdv2-1")
+sd21_gpu_path = os.path.join(sd21_path, gpu_sub_dir)
+sd21_gpu_code_path = os.path.join(sd21_gpu_path, code_sub_dir)
+
+
 ROLE = "dummy/unused-role"
 DEFAULT_TIMEOUT = 20
 

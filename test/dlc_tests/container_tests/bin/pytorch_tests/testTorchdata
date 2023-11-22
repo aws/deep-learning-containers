@@ -15,6 +15,11 @@ git clone $TORCHDATA_REPO \
     && git checkout tags/v${TORCHDATA_RELEASE_TAG} -b ${TORCHDATA_RELEASE_TAG} \
     && popd
 
+# removing awscli requirement as it should already be installed, and is causing dependency issues
+sed -i "s/awscli.*//g" data/test/requirements.txt
+# removing adlfs requirement as it is a library for Azure, and is causing dependency issues
+sed -i "s/adlfs.*//g" data/test/requirements.txt
+
 echo "Installing pre-requisites."
 pip install -r data/test/requirements.txt
 

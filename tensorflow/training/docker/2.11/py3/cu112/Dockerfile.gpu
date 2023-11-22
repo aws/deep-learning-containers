@@ -228,7 +228,7 @@ RUN ${PIP} install --no-cache-dir -U \
    "werkzeug>=2.0.2,<3" \
    "urllib3>1.26.0<1.27.0" \
     # The Following Issues Require the Upper Bound Set on Protobuf:
-    #    -  https://github.com/tensorflow/tensorflow/issues/53234  
+    #    -  https://github.com/tensorflow/tensorflow/issues/53234
     #    -  https://github.com/protocolbuffers/protobuf/issues/9954
     #    -  https://github.com/tensorflow/tensorflow/issues/56077
     # Reference setup.py protobuf upper limit here:
@@ -411,6 +411,11 @@ ARG SMDATAPARALLEL_BINARY=https://smdataparallel.s3.amazonaws.com/binary/tensorf
 # Install SMD DP binary
 RUN SMDATAPARALLEL_TF=1 ${PYTHON} -m pip install --no-cache-dir ${SMDATAPARALLEL_BINARY}
 
+# Install SMP binary
+ARG SMP_URL=https://smppy.s3.amazonaws.com/tensorflow/cu112/smppy-0.3.325-cp39-cp39-linux_x86_64.whl
+RUN apt-get update && apt-get install -y libunwind-dev && apt-get clean \
+ && ${PYTHON} -m pip install --no-cache-dir ${SMP_URL}
+
 # Add NGC vars
 ENV TF_AUTOTUNE_THRESHOLD=2
 
@@ -430,5 +435,5 @@ RUN HOME_DIR=/root \
    && chmod +x ${HOME_DIR}/oss_compliance/generate_oss_compliance.sh \
    && ${HOME_DIR}/oss_compliance/generate_oss_compliance.sh ${HOME_DIR} ${PYTHON} \
    && rm -rf ${HOME_DIR}/oss_compliance*
-   
+
 CMD ["/bin/bash"]

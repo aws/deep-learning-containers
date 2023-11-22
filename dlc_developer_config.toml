@@ -27,6 +27,12 @@ trcomp_mode = false
 # Please only set it to True if you are preparing a Benchmark related PR
 # Do remember to revert it back to False before merging any PR (including Benchmark dedicated PR)
 benchmark_mode = false
+# Set deep_canary_mode to true to simulate Deep Canary Test conditions on PR for all frameworks in the
+# build_frameworks list below. This will cause all image builds and non-deep-canary tests on the PR to be skipped,
+# regardless of whether they are enabled or disabled below.
+# Set graviton_mode to true to run Deep Canaries on Graviton images.
+# Do remember to revert it back to false before merging any PR.
+deep_canary_mode = false
 
 [build]
 # Add in frameworks you would like to build. By default, builds are disabled unless you specify building an image.
@@ -42,6 +48,7 @@ datetime_tag = true
 # Note: Need to build the images at least once with datetime_tag = false
 # before disabling new builds, or tests will fail
 do_build = true
+autopatch_build = false
 
 [test]
 ### On by default
@@ -52,11 +59,11 @@ ecs_tests = true
 eks_tests = true
 ec2_tests = true
 
-### Set ec2_efa_tests = true to be able to run any EC2 tests on any instance type that uses EFA-capable instances by
+### Set ec2_tests_on_heavy_instances = true to be able to run any EC2 tests that use large/expensive instance types by
 ### default. If false, these types of tests will be skipped while other tests will run as usual.
-### EC2 EFA tests are run in EC2 test jobs, so ec2_tests must be true if ec2_efa_tests is true.
+### These tests are run in EC2 test jobs, so ec2_tests must be true if ec2_tests_on_heavy_instances is true.
 ### Off by default (set to false)
-ec2_efa_tests = false
+ec2_tests_on_heavy_instances = false
 
 ### SM specific tests
 ### Off by default

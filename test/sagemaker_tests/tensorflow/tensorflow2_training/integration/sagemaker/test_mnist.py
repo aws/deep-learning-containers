@@ -44,6 +44,7 @@ RESOURCE_PATH = os.path.join(os.path.dirname(__file__), "..", "..", "resources")
 
 @pytest.mark.skipif(is_pr_context(), reason=SKIP_PR_REASON)
 @pytest.mark.model("mnist")
+@pytest.mark.team("frameworks")
 @pytest.mark.deploy_test
 def test_mnist(ecr_image, sagemaker_regions, instance_type, framework_version):
     invoke_sm_helper_function(
@@ -74,6 +75,7 @@ def _test_mnist_function(ecr_image, sagemaker_session, instance_type, framework_
 
 
 @pytest.mark.model("mnist")
+@pytest.mark.team("frameworks")
 @pytest.mark.deploy_test
 @pytest.mark.skip_gpu
 def test_hc_mnist(ecr_image, sagemaker_regions, instance_type, framework_version):
@@ -109,6 +111,7 @@ def _test_mnist_hc_function(ecr_image, sagemaker_session, instance_groups, frame
 
 @pytest.mark.skipif(is_pr_context(), reason=SKIP_PR_REASON)
 @pytest.mark.model("mnist")
+@pytest.mark.team("frameworks")
 @pytest.mark.multinode(2)
 @pytest.mark.integration("no parameter server")
 def test_distributed_mnist_no_ps(ecr_image, sagemaker_regions, instance_type, framework_version):
@@ -145,6 +148,7 @@ def _test_distributed_mnist_no_ps_function(
 @pytest.mark.model("mnist")
 @pytest.mark.multinode(2)
 @pytest.mark.integration("parameter server")
+@pytest.mark.team("frameworks")
 def test_distributed_mnist_ps(ecr_image, sagemaker_regions, instance_type, framework_version):
     validate_or_skip_test(ecr_image=ecr_image)
     print("ecr image used for training", ecr_image)
@@ -183,6 +187,7 @@ def _test_distributed_mnist_ps_function(
 @pytest.mark.model("mnist")
 @pytest.mark.multinode(2)
 @pytest.mark.integration("parameter server")
+@pytest.mark.team("frameworks")
 @pytest.mark.skip_cpu
 def test_hc_distributed_mnist_ps(ecr_image, sagemaker_regions, instance_type, framework_version):
     from sagemaker.instance_group import InstanceGroup
@@ -225,6 +230,7 @@ def _test_hc_distributed_mnist_ps_function(
 @pytest.mark.model("mnist")
 @pytest.mark.multinode(2)
 @pytest.mark.integration("parameter server")
+@pytest.mark.team("frameworks")
 def test_distributed_mnist_custom_ps(
     ecr_image, sagemaker_regions, instance_type, framework_version
 ):
@@ -264,6 +270,7 @@ def _test_distributed_mnist_custom_ps(
 @pytest.mark.skipif(is_pr_context(), reason=SKIP_PR_REASON)
 @pytest.mark.model("mnist")
 @pytest.mark.integration("s3 plugin")
+@pytest.mark.team("frameworks")
 def test_s3_plugin(ecr_image, sagemaker_regions, instance_type, framework_version):
     invoke_sm_helper_function(
         ecr_image, sagemaker_regions, _test_s3_plugin_function, instance_type, framework_version
@@ -311,6 +318,7 @@ def _test_s3_plugin_function(ecr_image, sagemaker_session, instance_type, framew
 
 @pytest.mark.model("mnist")
 @pytest.mark.integration("s3 plugin")
+@pytest.mark.team("frameworks")
 @pytest.mark.skip_gpu
 def test_hc_s3_plugin(ecr_image, sagemaker_regions, instance_type, framework_version):
     from sagemaker.instance_group import InstanceGroup
@@ -367,6 +375,7 @@ def _test_hc_s3_plugin_function(ecr_image, sagemaker_session, instance_group, fr
 @pytest.mark.skipif(is_pr_context(), reason=SKIP_PR_REASON)
 @pytest.mark.model("mnist")
 @pytest.mark.integration("hpo")
+@pytest.mark.team("frameworks")
 def test_tuning(ecr_image, sagemaker_regions, instance_type, framework_version):
     invoke_sm_helper_function(
         ecr_image, sagemaker_regions, _test_tuning_function, instance_type, framework_version
@@ -413,8 +422,11 @@ def _test_tuning_function(ecr_image, sagemaker_session, instance_type, framework
 @pytest.mark.usefixtures("feature_smdebug_present")
 @pytest.mark.model("mnist")
 @pytest.mark.integration("smdebug")
+@pytest.mark.team("smdebug")
 @pytest.mark.skip_py2_containers
-def test_smdebug(ecr_image, sagemaker_regions, instance_type, framework_version):
+def test_smdebug(
+    ecr_image, sagemaker_regions, instance_type, framework_version, sm_below_tf213_only
+):
     invoke_sm_helper_function(
         ecr_image, sagemaker_regions, _test_smdebug_function, instance_type, framework_version
     )
@@ -446,6 +458,7 @@ def _test_smdebug_function(ecr_image, sagemaker_session, instance_type, framewor
 @pytest.mark.integration("smdataparallel_smmodelparallel")
 @pytest.mark.processor("gpu")
 @pytest.mark.model("mnist")
+@pytest.mark.team("frameworks")
 @pytest.mark.skip_cpu
 @pytest.mark.skip_py2_containers
 def test_smdataparallel_smmodelparallel_mnist(

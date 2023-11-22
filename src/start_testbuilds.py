@@ -21,6 +21,9 @@ import boto3
 
 import constants
 import config
+import utils
+
+from codebuild_environment import get_codebuild_project_name
 
 
 LOGGER = logging.getLogger(__name__)
@@ -42,16 +45,26 @@ def run_test_job(commit, codebuild_project, images_str=""):
 
     # For SM tests, if EFA_DEDICATED is True, test job will only launch SM Remote EFA tests,
     # or else will only launch standard/rc tests.
-    # For EC2 tests, if EFA_DEDICATED is True, test job will launch both EFA and non-EFA tests,
-    # or else will only launch non-EFA tests.
-    is_test_efa_dedicated = (
-        config.are_sm_efa_tests_enabled() and "sagemaker" in codebuild_project
-    ) or (config.is_ec2_efa_test_enabled() and "ec2" in codebuild_project)
+    is_test_efa_dedicated = config.are_sm_efa_tests_enabled() and "sagemaker" in codebuild_project
+
+    # For EC2 tests, if HEAVY_INSTANCE_EC2_TESTS_ENABLED is True, the test job will run tests on
+    # large/expensive instance types as well as small/regular instance types, based on the config of
+    # the test function. If False, the test job will only run tests on small/regular instance types.
+    are_heavy_instance_ec2_tests_enabled = (
+        config.are_heavy_instance_ec2_tests_enabled() and "ec2" in codebuild_project
+    )
+
+    if config.is_deep_canary_mode_enabled():
+        env_overrides.append({"name": "DEEP_CANARY_MODE", "value": "true", "type": "PLAINTEXT"})
 
     pr_num = os.getenv("PR_NUMBER")
     LOGGER.debug(f"pr_num {pr_num}")
     env_overrides.extend(
         [
+            # Adding FRAMEWORK to env variables to enable simulation of deep canary tests in PR
+            {"name": "FRAMEWORK", "value": os.getenv("FRAMEWORK", ""), "type": "PLAINTEXT"},
+            # Adding IMAGE_TYPE to env variables to enable simulation of deep canary tests in PR
+            {"name": "IMAGE_TYPE", "value": os.getenv("IMAGE_TYPE", ""), "type": "PLAINTEXT"},
             {"name": "DLC_IMAGES", "value": images_str, "type": "PLAINTEXT"},
             {"name": "PR_NUMBER", "value": pr_num, "type": "PLAINTEXT"},
             # NIGHTLY_PR_TEST_MODE is passed as an env variable here because it is more convenient to set this in
@@ -79,6 +92,16 @@ def run_test_job(commit, codebuild_project, images_str=""):
             {
                 "name": "SM_EFA_TEST_INSTANCE_TYPE",
                 "value": config.get_sagemaker_remote_efa_instance_type(),
+                "type": "PLAINTEXT",
+            },
+            {
+                "name": "HEAVY_INSTANCE_EC2_TESTS_ENABLED",
+                "value": str(are_heavy_instance_ec2_tests_enabled),
+                "type": "PLAINTEXT",
+            },
+            {
+                "name": "FRAMEWORK_BUILDSPEC_FILE",
+                "value": config.get_buildspec_override() or os.getenv("FRAMEWORK_BUILDSPEC_FILE"),
                 "type": "PLAINTEXT",
             },
         ]
@@ -163,10 +186,51 @@ def is_test_job_implemented_for_framework(images_str, test_type):
     return True
 
 
+def run_deep_canary_pr_testbuilds():
+    """
+    Deep Canaries can only be run on PyTorch or TensorFlow, Training or Inference, x86 or Graviton
+    DLC images.
+    This helper function determines whether this PR build job has been enabled, and this job has
+    corresponding Deep Canaries that can be executed.
+    If both these conditions are true, then it configures and launches a "dlc-pr-deep-canary-test"
+    test job to test the specific framework, image-type, arch-type subset of Prod DLC images that
+    match this PR build job.
+    As a part of the setup, this function needs to create the TEST_TRIGGER env variable, and
+    populate the constants.TEST_ENV_PATH file, which would normally have been done by image_builder
+    after building images, if it had executed on this PR build job.
+    If this PR build job is not enabled, then it does nothing.
+    """
+    build_framework = os.getenv("FRAMEWORK")
+    general_builder_enabled = config.is_general_builder_enabled_for_this_pr_build(build_framework)
+    graviton_builder_enabled = config.is_graviton_builder_enabled_for_this_pr_build(build_framework)
+    if config.is_deep_canary_mode_enabled() and (
+        general_builder_enabled or graviton_builder_enabled
+    ):
+        commit = os.getenv("CODEBUILD_RESOLVED_SOURCE_VERSION")
+        # Write TEST_TRIGGER to TEST_ENV_PATH because image_builder wasn't run.
+        test_env_variables = [
+            {"name": "TEST_TRIGGER", "value": get_codebuild_project_name(), "type": "PLAINTEXT"},
+        ]
+        utils.write_to_json_file(constants.TEST_ENV_PATH, test_env_variables)
+        test_type = "deep-canary"
+        LOGGER.debug(f"test_type : {test_type}")
+        pr_test_job = f"dlc-pr-{test_type}-test"
+        if graviton_builder_enabled:
+            pr_test_job += "-graviton"
+        run_test_job(commit, pr_test_job)
+
+
 def main():
     build_context = os.getenv("BUILD_CONTEXT")
     if build_context != "PR":
         LOGGER.info(f"Not triggering test jobs from boto3, as BUILD_CONTEXT is {build_context}")
+        return
+
+    if config.is_deep_canary_mode_enabled():
+        run_deep_canary_pr_testbuilds()
+        # Skip all other tests on this PR if deep_canary_mode is true
+        # If deep_canary_mode is true, then all tests are skipped on build jobs incompatible with
+        # Deep Canaries, as detailed in the docstring for run_deep_canary_pr_testbuilds().
         return
 
     # load the images for all test_types to pass on to code build jobs
@@ -190,6 +254,10 @@ def main():
                 images_str, test_type
             ):
                 run_test_job(commit, pr_test_job, images_str)
+
+            ## TODO: Merge with the above condition
+            if test_type == "autopr":
+                run_test_job(commit, f"dlc-pr-{test_type}", images_str)
 
             # Trigger sagemaker local test jobs when there are changes in sagemaker_tests
             # sagemaker local test is not supported in benchmark dev mode

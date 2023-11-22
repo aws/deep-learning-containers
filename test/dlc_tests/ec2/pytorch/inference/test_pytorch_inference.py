@@ -65,6 +65,7 @@ PT_TORCHDATA_DEV_CMD = os.path.join(CONTAINER_TESTS_PREFIX, "pytorch_tests", "te
 @pytest.mark.model("resnet")
 @pytest.mark.parametrize("ec2_instance_ami", [test_utils.NEURON_INF1_AMI_US_WEST_2], indirect=True)
 @pytest.mark.parametrize("ec2_instance_type", PT_EC2_NEURON_INSTANCE_TYPE, indirect=True)
+@pytest.mark.team("neuron")
 def test_ec2_pytorch_inference_neuron(pytorch_inference_neuron, ec2_connection, region):
     ec2_pytorch_inference(pytorch_inference_neuron, "neuron", ec2_connection, region)
 
@@ -72,6 +73,7 @@ def test_ec2_pytorch_inference_neuron(pytorch_inference_neuron, ec2_connection, 
 @pytest.mark.usefixtures("sagemaker")
 @pytest.mark.model("resnet")
 @pytest.mark.parametrize("ec2_instance_ami", [test_utils.UL20_PT_NEURON_US_WEST_2], indirect=True)
+@pytest.mark.team("neuron")
 @pytest.mark.parametrize(
     "ec2_instance_type",
     PT_EC2_NEURON_TRN1_INSTANCE_TYPE + PT_EC2_NEURON_INF2_INSTANCE_TYPE,
@@ -84,6 +86,7 @@ def test_ec2_pytorch_inference_neuronx(pytorch_inference_neuronx, ec2_connection
 @pytest.mark.usefixtures("sagemaker", "stabilityai")
 @pytest.mark.model("densenet")
 @pytest.mark.parametrize("ec2_instance_type", PT_EC2_GPU_INSTANCE_TYPE, indirect=True)
+@pytest.mark.team("conda")
 def test_ec2_pytorch_inference_gpu(
     pytorch_inference, ec2_connection, region, gpu_only, ec2_instance_type
 ):
@@ -96,6 +99,7 @@ def test_ec2_pytorch_inference_gpu(
 
 @pytest.mark.model("densenet")
 @pytest.mark.parametrize("ec2_instance_type", PT_EC2_CPU_INSTANCE_TYPE, indirect=True)
+@pytest.mark.team("conda")
 def test_ec2_pytorch_inference_cpu(pytorch_inference, ec2_connection, region, cpu_only):
     ec2_pytorch_inference(pytorch_inference, "cpu", ec2_connection, region)
 
@@ -133,10 +137,11 @@ def test_ec2_pytorch_inference_eia_gpu(
 
 
 @pytest.mark.usefixtures("feature_torchaudio_present")
-@pytest.mark.usefixtures("sagemaker")
+@pytest.mark.usefixtures("sagemaker", "stabilityai")
 @pytest.mark.integration("pt_torchaudio_gpu")
 @pytest.mark.model("N/A")
 @pytest.mark.parametrize("ec2_instance_type", PT_EC2_GPU_INSTANCE_TYPE, indirect=True)
+@pytest.mark.team("conda")
 def test_pytorch_inference_torchaudio_gpu(
     pytorch_inference, ec2_connection, gpu_only, ec2_instance_type
 ):
@@ -155,6 +160,7 @@ def test_pytorch_inference_torchaudio_gpu(
 @pytest.mark.integration("pt_torchaudio_cpu")
 @pytest.mark.model("N/A")
 @pytest.mark.parametrize("ec2_instance_type", PT_EC2_CPU_INSTANCE_TYPE, indirect=True)
+@pytest.mark.team("conda")
 def test_pytorch_inference_torchaudio_cpu(pytorch_inference, ec2_connection, cpu_only):
     _, image_framework_version = get_framework_and_version_from_tag(pytorch_inference)
     if Version(image_framework_version) not in SpecifierSet("!=1.9.*,!=1.10.*"):
@@ -163,10 +169,11 @@ def test_pytorch_inference_torchaudio_cpu(pytorch_inference, ec2_connection, cpu
 
 
 @pytest.mark.usefixtures("feature_torchdata_present")
-@pytest.mark.usefixtures("sagemaker")
+@pytest.mark.usefixtures("sagemaker", "stabilityai")
 @pytest.mark.integration("pt_torchdata_gpu")
 @pytest.mark.model("N/A")
 @pytest.mark.parametrize("ec2_instance_type", PT_EC2_GPU_INSTANCE_TYPE, indirect=True)
+@pytest.mark.team("conda")
 def test_pytorch_inference_torchdata_gpu(
     pytorch_inference, ec2_connection, gpu_only, ec2_instance_type, pt111_and_above_only
 ):
@@ -186,6 +193,7 @@ def test_pytorch_inference_torchdata_gpu(
 @pytest.mark.integration("pt_torchdata_cpu")
 @pytest.mark.model("N/A")
 @pytest.mark.parametrize("ec2_instance_type", PT_EC2_CPU_INSTANCE_TYPE, indirect=True)
+@pytest.mark.team("conda")
 def test_pytorch_inference_torchdata_cpu(
     pytorch_inference, ec2_connection, cpu_only, pt111_and_above_only
 ):
@@ -246,10 +254,11 @@ def ec2_pytorch_inference(image_uri, processor, ec2_connection, region):
         ec2_connection.run(f"docker rm -f {container_name}", warn=True, hide=True)
 
 
-@pytest.mark.usefixtures("sagemaker")
+@pytest.mark.usefixtures("sagemaker", "stabilityai")
 @pytest.mark.integration("telemetry")
 @pytest.mark.model("N/A")
 @pytest.mark.parametrize("ec2_instance_type", PT_EC2_SINGLE_GPU_INSTANCE_TYPE, indirect=True)
+@pytest.mark.team("conda")
 def test_pytorch_inference_telemetry_gpu(
     pytorch_inference, ec2_connection, gpu_only, ec2_instance_type, pt15_and_above_only
 ):
@@ -264,6 +273,7 @@ def test_pytorch_inference_telemetry_gpu(
 @pytest.mark.integration("telemetry")
 @pytest.mark.model("N/A")
 @pytest.mark.parametrize("ec2_instance_type", PT_EC2_CPU_INSTANCE_TYPE, indirect=True)
+@pytest.mark.team("conda")
 def test_pytorch_inference_telemetry_cpu(
     pytorch_inference, ec2_connection, cpu_only, pt15_and_above_only
 ):

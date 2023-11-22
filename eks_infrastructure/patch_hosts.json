@@ -1,0 +1,10 @@
+{
+    "contexts": [
+        "PR",
+        "MAINLINE"
+    ],
+    "eks_clusters": [
+        "dlc-pytorch",
+        "dlc-tensorflow"
+    ]
+}

@@ -31,6 +31,7 @@ MX_EC2_GRAVITON_INSTANCE_TYPE = "c6g.4xlarge"
 
 @pytest.mark.integration("imagenet dataset")
 @pytest.mark.model("resnet50_v2")
+@pytest.mark.team("frameworks")
 @pytest.mark.parametrize("ec2_instance_type", [MX_EC2_GPU_INSTANCE_TYPE], indirect=True)
 def test_performance_ec2_mxnet_inference_gpu(mxnet_inference, ec2_connection, gpu_only, py3_only):
     _, framework_version = get_framework_and_version_from_tag(mxnet_inference)
@@ -47,6 +48,7 @@ def test_performance_ec2_mxnet_inference_gpu(mxnet_inference, ec2_connection, gp
 
 @pytest.mark.integration("imagenet dataset")
 @pytest.mark.model("resnet50_v2")
+@pytest.mark.team("frameworks")
 @pytest.mark.parametrize("ec2_instance_type", [MX_EC2_CPU_INSTANCE_TYPE], indirect=True)
 def test_performance_ec2_mxnet_inference_cpu(mxnet_inference, ec2_connection, cpu_only, py3_only):
     _, framework_version = get_framework_and_version_from_tag(mxnet_inference)

@@ -3,6 +3,7 @@ import re
 import subprocess
 import botocore
 import boto3
+import json
 import time
 
 from packaging.version import Version
@@ -16,13 +17,15 @@ from invoke.context import Context
 from botocore.exceptions import ClientError
 
 from src.buildspec import Buildspec
+import src.utils as src_utils
 from test.test_utils import (
     LOGGER,
     CONTAINER_TESTS_PREFIX,
     ec2,
     get_container_name,
     get_framework_and_version_from_tag,
-    get_neuron_framework_and_version_from_tag,
+    get_neuron_sdk_version_from_tag,
+    get_neuron_release_manifest,
     is_canary_context,
     is_dlc_cicd_context,
     run_cmd_on_container,
@@ -32,7 +35,8 @@ from test.test_utils import (
     get_repository_and_tag_from_image_uri,
     get_python_version_from_image_uri,
     get_cuda_version_from_tag,
-    construct_buildspec_path,
+    get_labels_from_ecr_image,
+    get_buildspec_path,
     is_tf_version,
     is_nightly_context,
     get_processor_from_image_uri,
@@ -40,6 +44,7 @@ from test.test_utils import (
     UL20_CPU_ARM64_US_WEST_2,
     UBUNTU_18_HPU_DLAMI_US_WEST_2,
     NEURON_UBUNTU_18_BASE_DLAMI_US_WEST_2,
+    get_installed_python_packages_with_version,
 )
 
 
@@ -61,6 +66,10 @@ def test_stray_files(image):
 
     # Running list of allowed files in the /tmp directory
     allowed_tmp_files = ["hsperfdata_root"]
+
+    # Allow cache dir for SAI images
+    if "stabilityai" in image:
+        allowed_tmp_files.append("cache")
 
     # Ensure stray artifacts are not in the tmp directory
     tmp = run_cmd_on_container(container_name, ctx, "ls -A /tmp")
@@ -234,6 +243,24 @@ def test_tf_serving_api_version(tensorflow_inference):
         stop_and_remove_container(container_name, ctx)
 
 
+@pytest.mark.usefixtures("sagemaker_only")
+@pytest.mark.model("N/A")
+def test_sm_toolkit_and_ts_version_pytorch(pytorch_inference, region):
+    _test_sm_toolkit_and_ts_version(pytorch_inference, region)
+
+
+@pytest.mark.usefixtures("sagemaker_only")
+@pytest.mark.model("N/A")
+def test_sm_toolkit_and_ts_version_pytorch_graviton(pytorch_inference_graviton, region):
+    _test_sm_toolkit_and_ts_version(pytorch_inference_graviton, region)
+
+
+@pytest.mark.usefixtures("sagemaker_only")
+@pytest.mark.model("N/A")
+def test_sm_toolkit_and_ts_version_pytorch_neuron(pytorch_inference_neuron, region):
+    _test_sm_toolkit_and_ts_version(pytorch_inference_neuron, region)
+
+
 @pytest.mark.usefixtures("sagemaker", "huggingface")
 @pytest.mark.model("N/A")
 @pytest.mark.canary("Run non-gpu framework version test regularly on production images")
@@ -354,55 +381,72 @@ def test_framework_and_neuron_sdk_version(neuron):
     """
     image = neuron
 
-    tested_framework, neuron_tag_framework_version = get_neuron_framework_and_version_from_tag(
-        image
-    )
+    tested_framework, tag_framework_version = get_framework_and_version_from_tag(image)
+    neuron_sdk_version = get_neuron_sdk_version_from_tag(image)
 
-    # neuron tag is there in pytorch images for now. Once all frameworks have it, then this will
-    # be removed
-    if neuron_tag_framework_version is None:
-        if tested_framework == "pytorch":
-            assert neuron_tag_framework_version != None
-        else:
-            pytest.skip(msg="Neuron SDK tag is not there as part of image")
+    assert neuron_sdk_version is not None, "missing Neuron SDK version"
+
+    release_manifest = None
+    if tested_framework == "tensorflow" and tag_framework_version == "1.15.5":
+        release_manifest = get_neuron_release_manifest(
+            "2.12.2"
+        )  # last release where tf 1.15 has been listed
+    else:
+        release_manifest = get_neuron_release_manifest(neuron_sdk_version)
 
     # Framework name may include huggingface
     if tested_framework.startswith("huggingface_"):
         tested_framework = tested_framework[len("huggingface_") :]
 
+    package_names = {}  # maps a package name to a framework name
     if tested_framework == "pytorch":
         if "training" in image or "neuronx" in image:
-            tested_framework = "torch_neuronx"
+            package_names = {"torch-neuronx": "torch_neuronx"}
+            # transformers is only available for the inference image
+            if "training" not in image:
+                package_names["transformers-neuronx"] = "transformers_neuronx"
         else:
-            tested_framework = "torch_neuron"
+            package_names = {"torch-neuron": "torch_neuron"}
     elif tested_framework == "tensorflow":
         if "neuronx" in image:
-            tested_framework = "tensorflow_neuronx"
+            package_names = {"tensorflow-neuronx": "tensorflow_neuronx"}
         else:
-            tested_framework = "tensorflow_neuron"
+            package_names = {"tensorflow-neuron": "tensorflow_neuron"}
     elif tested_framework == "mxnet":
-        tested_framework = "mxnet"
+        package_names = {"mxnet_neuron": "mxnet"}
 
-    ctx = Context()
+    container_name = None
+    ctx = None
 
-    container_name = get_container_name("framework-version-neuron", image)
-    start_container(container_name, image, ctx)
-    output = run_cmd_on_container(
-        container_name,
-        ctx,
-        f"import {tested_framework}; print({tested_framework}.__version__)",
-        executable="python",
-    )
+    for package_name, framework in package_names.items():
+        assert (
+            package_name in release_manifest
+        ), f"release_manifest does not contain package {package_name}:\n {json.dumps(release_manifest)}"
 
-    if tested_framework == "mxnet":
-        # TODO -For neuron the mx_neuron module does not support the __version__ yet and we
-        # can get the version of only the base mxnet model. The base mxnet model just
-        # has framework version and does not have the neuron semantic version yet. Till
-        # the mx_neuron supports __version__ do the minimal check and not exact match
-        _, tag_framework_version = get_framework_and_version_from_tag(image)
-        assert tag_framework_version == output.stdout.strip()
-    else:
-        assert neuron_tag_framework_version == output.stdout.strip()
+        if not container_name:
+            container_name = get_container_name("framework-version-neuron", image)
+            ctx = Context()
+            start_container(container_name, image, ctx)
+
+        output = run_cmd_on_container(
+            container_name,
+            ctx,
+            f"import {framework}; print({framework}.__version__)",
+            executable="python",
+        )
+
+        installed_framework_version = output.stdout.strip()
+        version_list = release_manifest[package_name]
+        # temporary hack because transformers_neuronx reports its version as 0.6.x
+        if package_name == "transformers-neuronx":
+            version_list = [
+                ".".join(entry.split(".")[:-1]) + ".x" for entry in release_manifest[package_name]
+            ]
+        assert installed_framework_version in version_list, (
+            f"framework {framework} version {installed_framework_version} "
+            f"not found in released versions for that package: {version_list}"
+        )
+
     stop_and_remove_container(container_name, ctx)
 
 
@@ -627,10 +671,10 @@ def test_pip_check(image):
         framework_version
     ) in SpecifierSet(">=2.9.1"):
         exception_strings = []
-        models_versions = ["2.9.1", "2.9.2", "2.10.0", "2.11.0", "2.12.0"]
+        models_versions = ["2.9.1", "2.9.2", "2.10.0", "2.11.0", "2.12.0", "2.13.0"]
         for ex_ver in models_versions:
             exception_strings += [f"tf-models-official {ex_ver}".replace(".", "\.")]
-        text_versions = ["2.9.0", "2.10.0", "2.11.0", "2.12.0"]
+        text_versions = ["2.9.0", "2.10.0", "2.11.0", "2.12.0", "2.13.0"]
         for ex_ver in text_versions:
             exception_strings += [f"tensorflow-text {ex_ver}".replace(".", "\.")]
         allowed_tf_models_text_exception = re.compile(
@@ -694,7 +738,7 @@ def test_cuda_paths(gpu):
     python_version = re.search(r"(py\d+)", image).group(1)
     short_python_version = None
     image_tag = re.search(
-        r":(\d+(\.\d+){2}(-(transformers|diffusers)\d+(\.\d+){2})?-(gpu)-(py\d+)(-cu\d+)-(ubuntu\d+\.\d+)((-ec2)?-example|-ec2|-sagemaker-lite|-sagemaker-full|-sagemaker)?)",
+        r":(\d+(\.\d+){2}(-(transformers|diffusers|sgm)\d+(\.\d+){2})?-(gpu)-(py\d+)(-cu\d+)-(ubuntu\d+\.\d+)((-ec2)?-example|-ec2|-sagemaker-lite|-sagemaker-full|-sagemaker)?)",
         image,
     ).group(1)
 
@@ -715,20 +759,10 @@ def test_cuda_paths(gpu):
         short_python_version = python_version[:3]
 
     # Check buildspec for cuda version
-    buildspec = "buildspec"
-    if is_tf_version("1", image):
-        buildspec = "buildspec-tf1"
-    if "trcomp" in image:
-        buildspec = "buildspec-trcomp"
-    if "sagemaker-lite" in image:
-        buildspec = "buildspec-sagemaker-lite"
-
     image_tag_in_buildspec = False
     dockerfile_spec_abs_path = None
 
-    buildspec_path = construct_buildspec_path(
-        dlc_path, framework_path, buildspec, framework_version, job_type
-    )
+    buildspec_path = get_buildspec_path(dlc_path)
     buildspec_def = Buildspec()
     buildspec_def.load(buildspec_path)
 
@@ -777,6 +811,44 @@ def _assert_artifact_free(output, stray_artifacts):
         assert not re.search(
             artifact, output.stdout
         ), f"Matched {artifact} in {output.stdout} while running {output.command}"
+
+
+def _test_sm_toolkit_and_ts_version(image, region):
+    """
+    @param image: ECR image URI
+    Make sure SM inference toolkit and torchserve versions match docker image label.
+    """
+    cmd_smkit = "pip show sagemaker-pytorch-inference | grep -i Version"
+    cmd_ts = "torchserve --version"
+    ctx = Context()
+    container_name = get_container_name("pytorch-smtoolkit-ts-check", image)
+    start_container(container_name, image, ctx)
+
+    # Get inference tool kit and torchserve version from bash command.
+    output_smkit = run_cmd_on_container(container_name, ctx, cmd_smkit, executable="bash")
+    tk_match = re.search(r"(\d+\.\d+\.\d+)", str(output_smkit.stdout))
+    if tk_match:
+        toolkit_version_from_output = tk_match.group(0)
+    else:
+        raise RuntimeError(
+            f"Can not determine inference tool kit version from container output : {str(output_smkit.stdout)}"
+        )
+    output_ts = run_cmd_on_container(container_name, ctx, cmd_ts, executable="bash")
+    ts_match = re.search(r"(\d+\.\d+\.\d+)", str(output_ts.stdout))
+    if ts_match:
+        ts_version_from_output = ts_match.group(0)
+    else:
+        raise RuntimeError(
+            f"Can not determine torchserve version from container output : {str(output_ts.stdout)}"
+        )
+
+    # Verify image label
+    image_labels = get_labels_from_ecr_image(image, region)
+    expected_label = f"com.amazonaws.ml.engines.sagemaker.dlc.inference-toolkit.{toolkit_version_from_output}.torchserve.{ts_version_from_output}"
+    has_expected_label = image_labels.get(expected_label)
+    assert (
+        has_expected_label
+    ), f"The label {expected_label} which enforces compatability between sagemaker inference toolkit and torchserve seems to be invalid/missing for the image {image}"
 
 
 @pytest.mark.usefixtures("sagemaker")
@@ -916,3 +988,43 @@ def test_mxnet_training_sm_env_variables(mxnet_training):
         env_vars_to_test=env_vars,
         container_name_prefix=container_name_prefix,
     )
+
+
+@pytest.mark.usefixtures("sagemaker")
+@pytest.mark.model("N/A")
+def test_core_package_version(image):
+    """
+    In this test, we ensure that if a core_packages.json file exists for an image, the packages installed in the image
+    satisfy the version constraints specified in the core_packages.json file.
+    """
+    core_packages_path = src_utils.get_core_packages_path(image)
+    if not os.path.exists(core_packages_path):
+        pytest.skip(f"Core packages file {core_packages_path} does not exist for {image}")
+    LOGGER.info(f"Core packages file {core_packages_path} for {image}")
+
+    with open(core_packages_path, "r") as f:
+        core_packages = json.load(f)
+
+    ctx = Context()
+    container_name = get_container_name("test_core_package_version", image)
+    start_container(container_name, image, ctx)
+    docker_exec_command = f"""docker exec --user root {container_name}"""
+    installed_package_version_dict = get_installed_python_packages_with_version(docker_exec_command)
+
+    violation_data = {}
+
+    for package_name, specs in core_packages.items():
+        if package_name not in installed_package_version_dict:
+            violation_data[
+                package_name
+            ] = f"Package: {package_name} not installed in {installed_package_version_dict}"
+        installed_version = Version(installed_package_version_dict[package_name])
+        if installed_version not in SpecifierSet(specs.get("version_specifier")):
+            violation_data[
+                package_name
+            ] = f"Package: {package_name} not installed in {installed_package_version_dict}"
+
+    stop_and_remove_container(container_name, ctx)
+    assert (
+        not violation_data
+    ), f"Few packages violate the core_package specifications: {violation_data}"

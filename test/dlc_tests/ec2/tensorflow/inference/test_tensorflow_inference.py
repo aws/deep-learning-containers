@@ -35,6 +35,7 @@ TF_EC2_GRAVITON_INSTANCE_TYPE = get_ec2_instance_type(
 @pytest.mark.model("mnist")
 @pytest.mark.parametrize("ec2_instance_type", TF_EC2_NEURON_ACCELERATOR_TYPE, indirect=True)
 @pytest.mark.parametrize("ec2_instance_ami", [test_utils.UL20_TF_NEURON_US_WEST_2], indirect=True)
+@pytest.mark.team("neuron")
 def test_ec2_tensorflow_inference_neuron(tensorflow_inference_neuron, ec2_connection, region):
     run_ec2_tensorflow_inference(tensorflow_inference_neuron, ec2_connection, "8500", region)
 
@@ -45,6 +46,7 @@ def test_ec2_tensorflow_inference_neuron(tensorflow_inference_neuron, ec2_connec
     TF_EC2_NEURONX_ACCELERATOR_TYPE + TF_EC2_NEURONX_INF2_ACCELERATOR_TYPE,
     indirect=True,
 )
+@pytest.mark.team("neuron")
 # FIX ME: Sharing the AMI from neuron account to DLC account; use public DLAMI with inf1 support instead
 @pytest.mark.parametrize("ec2_instance_ami", [test_utils.UL20_PT_NEURON_US_WEST_2], indirect=True)
 def test_ec2_tensorflow_inference_neuronx(tensorflow_inference_neuronx, ec2_connection, region):
@@ -53,6 +55,7 @@ def test_ec2_tensorflow_inference_neuronx(tensorflow_inference_neuronx, ec2_conn
 
 @pytest.mark.usefixtures("sagemaker")
 @pytest.mark.model("mnist")
+@pytest.mark.team("frameworks")
 @pytest.mark.parametrize("ec2_instance_type", TF_EC2_GPU_INSTANCE_TYPE, indirect=True)
 def test_ec2_tensorflow_inference_gpu(
     tensorflow_inference, ec2_connection, region, gpu_only, ec2_instance_type
@@ -66,6 +69,7 @@ def test_ec2_tensorflow_inference_gpu(
 
 @pytest.mark.usefixtures("sagemaker")
 @pytest.mark.model("N/A")
+@pytest.mark.team("frameworks")
 @pytest.mark.parametrize("ec2_instance_type", TF_EC2_GPU_INSTANCE_TYPE, indirect=True)
 def test_ec2_tensorflow_inference_gpu_tensorrt(
     tensorflow_inference, ec2_connection, region, gpu_only, ec2_instance_type
@@ -74,7 +78,7 @@ def test_ec2_tensorflow_inference_gpu_tensorrt(
         pytest.skip(
             f"Image {tensorflow_inference} is incompatible with instance type {ec2_instance_type}"
         )
-    framework_version = get_tensorflow_framework_version(tensorflow_inference)
+    _, framework_version = test_utils.get_framework_and_version_from_tag(tensorflow_inference)
     home_dir = ec2_connection.run("echo $HOME").stdout.strip("\n")
     serving_folder_path = os.path.join(home_dir, "serving")
     build_container_name = "tensorrt-build-container"
@@ -130,6 +134,7 @@ def test_ec2_tensorflow_inference_gpu_tensorrt(
 
 @pytest.mark.usefixtures("sagemaker")
 @pytest.mark.model("mnist")
+@pytest.mark.team("frameworks")
 @pytest.mark.parametrize("ec2_instance_type", TF_EC2_CPU_INSTANCE_TYPE, indirect=True)
 def test_ec2_tensorflow_inference_cpu(tensorflow_inference, ec2_connection, region, cpu_only):
     run_ec2_tensorflow_inference(tensorflow_inference, ec2_connection, "8500", region)
@@ -159,6 +164,7 @@ def test_ec2_tensorflow_inference_eia_gpu(
 
 @pytest.mark.usefixtures("sagemaker")
 @pytest.mark.model("mnist")
+@pytest.mark.team("frameworks")
 @pytest.mark.parametrize("ec2_instance_type", TF_EC2_SINGLE_GPU_INSTANCE_TYPE, indirect=True)
 def test_ec2_tensorflow_inference_gpu_telemetry(
     tensorflow_inference, ec2_connection, region, gpu_only, ec2_instance_type
@@ -172,6 +178,7 @@ def test_ec2_tensorflow_inference_gpu_telemetry(
 
 @pytest.mark.usefixtures("sagemaker")
 @pytest.mark.model("mnist")
+@pytest.mark.team("frameworks")
 @pytest.mark.parametrize("ec2_instance_type", TF_EC2_CPU_INSTANCE_TYPE, indirect=True)
 def test_ec2_tensorflow_inference_cpu_telemetry(
     tensorflow_inference, ec2_connection, region, cpu_only
@@ -204,7 +211,7 @@ def run_ec2_tensorflow_inference(
 ):
     repo_name, image_tag = image_uri.split("/")[-1].split(":")
     container_name = f"{repo_name}-{image_tag}-ec2"
-    framework_version = get_tensorflow_framework_version(image_uri)
+    _, framework_version = test_utils.get_framework_and_version_from_tag(image_uri)
     home_dir = ec2_connection.run("echo $HOME").stdout.strip("\n")
     serving_folder_path = os.path.join(home_dir, "serving")
     model_name = "mnist"
@@ -280,10 +287,6 @@ def run_ec2_tensorflow_inference(
     finally:
         ec2_connection.run(f"docker rm -f {container_name}", warn=True, hide=True)
     assert inference_test_failed is False, "tensorflow inference test failed"
-
-
-def get_tensorflow_framework_version(image_uri):
-    return re.findall(r"[1-2]\.[0-9][\d|\.]+", image_uri)[0]
 
 
 def train_mnist_model(serving_folder_path, ec2_connection):

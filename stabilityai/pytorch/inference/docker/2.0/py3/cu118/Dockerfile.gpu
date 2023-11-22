@@ -1,0 +1,59 @@
+FROM 763104351884.dkr.ecr.us-west-2.amazonaws.com/pytorch-inference:2.0.1-gpu-py310-cu118-ubuntu20.04-sagemaker
+
+LABEL dlc_major_version="1"
+ARG PYTHON=python3
+ARG XFORMERS_VERSION=0.0.20
+
+# Resolve CVE
+RUN apt-get update
+RUN pip --no-cache-dir install -U pip
+RUN apt-get install -y unattended-upgrades
+RUN unattended-upgrade
+
+# xformers must be installed from source due to the older version of python in the DLC
+RUN pip install ninja \
+  && pip install -v -U git+https://github.com/facebookresearch/xformers.git@v${XFORMERS_VERSION}#egg=xformers
+
+ARG SGM_VERSION=0.1.0
+
+# Install Stability Generative Models, at the moment the wheel install does not work so we need the full repo
+RUN cd /tmp \
+  && git clone https://github.com/stability-ai/generative-models -b ${SGM_VERSION} \
+  && cd generative-models \ 
+  && pip install -r requirements/pt2.txt \
+  && pip install . \
+  && rm -rf /tmp/generative-models
+
+# Resolve pip check conflicts and other issues
+RUN pip install --no-cache-dir -U \
+    "awscli>=1.29.15" \
+    "boto3>=1.28.15" \
+    "certifi>=2023.07.22" \
+    "pyopenssl>=23.2.0" \
+    "cryptography>=41.0.2" \
+    "transformers>=4.23.0"
+
+# Resolve CVE
+RUN pip install --no-cache-dir -U \
+    werkzeug \
+    urllib3 \
+    opencv-python
+  
+# Configure Torchserve for large model loading
+ENV TS_DEFAULT_RESPONSE_TIMEOUT=1000
+
+# Copy custom entrypoint, which can unpack cache files
+ENV HUGGINGFACE_HUB_CACHE=/tmp/cache/huggingface/hub
+ENV TRANSFORMERS_CACHE=/tmp/cache/huggingface/transformers
+COPY torchserve-entrypoint.py /usr/local/bin/dockerd-entrypoint.py
+RUN mkdir -p /tmp/cache/huggingface \
+  && chmod +x /usr/local/bin/dockerd-entrypoint.py
+
+RUN HOME_DIR=/root \
+  && curl -o ${HOME_DIR}/oss_compliance.zip https://aws-dlinfra-utilities.s3.amazonaws.com/oss_compliance.zip \
+  && unzip ${HOME_DIR}/oss_compliance.zip -d ${HOME_DIR}/ \
+  && cp ${HOME_DIR}/oss_compliance/test/testOSSCompliance /usr/local/bin/testOSSCompliance \
+  && chmod +x /usr/local/bin/testOSSCompliance \
+  && chmod +x ${HOME_DIR}/oss_compliance/generate_oss_compliance.sh \
+  && ${HOME_DIR}/oss_compliance/generate_oss_compliance.sh ${HOME_DIR} ${PYTHON} \
+  && rm -rf ${HOME_DIR}/oss_compliance*

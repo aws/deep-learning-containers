@@ -22,10 +22,12 @@ import unittest.mock as mock
 @pytest.mark.model("hf_bert")
 @pytest.mark.integration("sagemaker-training-compiler")
 @pytest.mark.processor("gpu")
+@pytest.mark.team("training-compiler")
 @pytest.mark.skip_cpu
 @pytest.mark.skip_py2_containers
 @pytest.mark.skip_huggingface_containers
 @pytest.mark.skip(reason="WIP: Currently hangs")
+@pytest.mark.team("sagemaker-1p-algorithms")
 @mock.patch("sagemaker.huggingface.TrainingCompilerConfig.validate", return_value=None)
 def test_single_node_single_gpu_tcc_default(
     patched, docker_image, processor, instance_type, sagemaker_local_session, py_version, capsys

@@ -9,13 +9,20 @@
 
 
 # Common files that is managed by multiple owners
-available_images.md @aws/dl-containers @aws/dlc-autogluon-reviewers @aws/dlc-neuron-reviewers @aws/dlc-eia-reviewers @aws/dlc-trcomp-reviewers @aws/dlc-lmi-reviewers
-release_images_inference.yml @aws/dl-containers @aws/dlc-autogluon-reviewers @aws/dlc-neuron-reviewers @aws/dlc-eia-reviewers @aws/dlc-trcomp-reviewers
-release_images_training.yml @aws/dl-containers @aws/dlc-autogluon-reviewers @aws/dlc-neuron-reviewers @aws/dlc-eia-reviewers @aws/dlc-trcomp-reviewers
-.release_images_template.yml @aws/dl-containers @aws/dlc-autogluon-reviewers @aws/dlc-neuron-reviewers @aws/dlc-eia-reviewers @aws/dlc-trcomp-reviewers
+available_images.md @aws/dl-containers @aws/dlc-autogluon-reviewers @aws/dlc-neuron-reviewers @aws/dlc-eia-reviewers @aws/dlc-trcomp-reviewers @aws/dlc-lmi-reviewers @aws/sagemaker-1p-algorithms @aws/dlc-pytorch-reviewers
+release_images_inference.yml @aws/dl-containers @aws/dlc-autogluon-reviewers @aws/dlc-neuron-reviewers @aws/dlc-eia-reviewers @aws/dlc-trcomp-reviewers @aws/dlc-lmi-reviewers @aws/sagemaker-1p-algorithms @aws/dlc-pytorch-reviewers
+release_images_training.yml @aws/dl-containers @aws/dlc-autogluon-reviewers @aws/dlc-neuron-reviewers @aws/dlc-eia-reviewers @aws/dlc-trcomp-reviewers @aws/sagemaker-1p-algorithms @aws/dlc-pytorch-reviewers
+.release_images_template.yml @aws/dl-containers @aws/dlc-autogluon-reviewers @aws/dlc-neuron-reviewers @aws/dlc-eia-reviewers @aws/dlc-trcomp-reviewers @aws/dlc-pytorch-reviewers
 # Any files modified under autogluon/ will be assigned to the autogluon reviewer team
 autogluon/ @aws/dlc-autogluon-reviewers
 test/sagemaker_tests/autogluon @aws/dlc-autogluon-reviewers
+
+# Files under stabilityai/ and huggingface/ directories can be directly reviewed by below teams
+stabilityai/ @aws/sagemaker-1p-algorithms
+huggingface/ @aws/sagemaker-1p-algorithms
+
+# Any PR with a file with "pytorch" in it will be assigned to the conda reviewer team
+*pytorch* @aws/dlc-pytorch-reviewers
 
 # Any PR with a file with "smdebug" in it will be assigned to the smdebug reviewer team
 *smdebug* @aws/dlc-smdebug-reviewers
