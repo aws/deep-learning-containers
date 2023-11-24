@@ -265,7 +265,7 @@ def retrive_autopatched_image_history_and_upload_to_s3(image_uri):
     container_id = run(f"{docker_run_cmd}", hide=True).stdout.strip()
     try:
         docker_exec_cmd = f"docker exec -i {container_id}"
-        history_retrieval_command = f"cat /opt/aws/dlc/patch-details/overall_history.txt"
+        history_retrieval_command = f"cat /opt/aws/dlc/patching-info/patch-details/overall_history.txt"
         data = run(f"{docker_exec_cmd} {history_retrieval_command}", hide=True)
         upload_path = get_unique_s3_path_for_uploading_data_to_pr_creation_bucket(
             image_uri=image_uri.replace("-multistage-common", ""), file_name="overall_history.txt"

@@ -1320,7 +1320,7 @@ def extract_non_patchable_vulnerabilities(
     )
     # We then extract the patch evaluation data that was embedded in the DLC at the time of build.
     embedded_apt_patch_evaluation_data = {}
-    display_embdedded_patch_eval_data_cmd = "cat /opt/aws/dlc/patch-details/os_summary.json"
+    display_embdedded_patch_eval_data_cmd = "cat /opt/aws/dlc/patching-info/patch-details/os_summary.json"
     display_output = run(f"{docker_exec_cmd} {display_embdedded_patch_eval_data_cmd}", warn=True)
     if display_output.ok:
         embedded_apt_patch_evaluation_data = json.loads(display_output.stdout.strip())
