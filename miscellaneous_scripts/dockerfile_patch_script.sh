@@ -19,8 +19,8 @@ if [ -d $patching_info_path/patch-details ] ; then \
     echo $RELEASED_IMAGE_SHA >> $patching_info_path/patch-details-archive/patch-details-$patch_count/image_sha.txt ; \
 fi
 
-# Rename the patch-details-latest folder to patch-details
-mv $patching_info_path/patch-details-latest $patching_info_path/patch-details
+# Rename the patch-details-current folder to patch-details
+mv $patching_info_path/patch-details-current $patching_info_path/patch-details
 
 # Install packages and derive history and package diff data
 chmod +x $patching_info_path/patch-details/install_script_language.sh && \

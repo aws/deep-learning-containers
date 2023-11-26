@@ -15,6 +15,8 @@ from utils import (
     get_core_packages_path,
     get_unique_s3_path_for_uploading_data_to_pr_creation_bucket,
     get_overall_history_path,
+    get_folder_size_in_bytes,
+    check_if_folder_contents_are_valid,
 )
 from codebuild_environment import get_cloned_folder_path
 from context import Context
@@ -154,13 +156,28 @@ def conduct_autopatch_build_setup(pre_push_image_object: DockerImage, download_p
 
     from test.test_utils import get_sha_of_an_image_from_ecr
 
-    patch_details_path = os.path.join(
+    current_patch_details_path = os.path.join(
         os.sep, download_path, released_image_uri.replace("/", "_").replace(":", "_")
     )
-    if not os.path.exists(patch_details_path):
-        run(f"mkdir {patch_details_path}", hide=True)
+    if not os.path.exists(current_patch_details_path):
+        run(f"mkdir {current_patch_details_path}", hide=True)
+
+    FORMATTER.print(f"[current_patch_details_path] {current_patch_details_path}")
 
     run(f"docker pull {released_image_uri}", hide=True)
+
+    complete_patching_info_dump_location = os.path.join(
+        os.sep,
+        get_cloned_folder_path(),
+        f"""{released_image_uri.replace("/", "_").replace(":", "_")}_patch-dump""",
+    )
+
+    if not os.path.exists(complete_patching_info_dump_location):
+        run(f"mkdir {complete_patching_info_dump_location}", hide=True)
+
+    extract_relevant_data_from_latest_released_image(
+        image_uri=released_image_uri, extraction_location=complete_patching_info_dump_location
+    )
 
     THREADS = {}
     with concurrent.futures.ThreadPoolExecutor(max_workers=2) as executor:
@@ -174,10 +191,14 @@ def conduct_autopatch_build_setup(pre_push_image_object: DockerImage, download_p
         THREADS[f"trigger_enhanced_scan_patching-{released_image_uri}"] = executor.submit(
             trigger_enhanced_scan_patching,
             image_uri=released_image_uri,
-            patch_details_path=patch_details_path,
+            patch_details_path=current_patch_details_path,
             python_version=info.get("python_version"),
         )
     FORMATTER.progress(THREADS)
+
+    run(
+        f"cp -r {current_patch_details_path}/. {complete_patching_info_dump_location}/patch-details-current"
+    )
 
     pre_push_image_object.dockerfile = os.path.join(
         os.sep, get_cloned_folder_path(), "miscellaneous_dockerfiles", "Dockerfile.autopatch"
@@ -185,6 +206,11 @@ def conduct_autopatch_build_setup(pre_push_image_object: DockerImage, download_p
 
     miscellaneous_scripts_path = os.path.join(
         os.sep, get_cloned_folder_path(), "miscellaneous_scripts"
+    )
+
+    verify_artifact_contents_for_patch_builds(
+        patching_info_folder_path=complete_patching_info_dump_location,
+        miscellaneous_scripts_path=miscellaneous_scripts_path,
     )
 
     pre_push_image_object.target = None
@@ -205,9 +231,9 @@ def conduct_autopatch_build_setup(pre_push_image_object: DockerImage, download_p
             "source": pre_push_image_object.dockerfile,
             "target": "Dockerfile",
         },
-        "patch-details": {
-            "source": patch_details_path,
-            "target": "patch-details",
+        "patching-info": {
+            "source": complete_patching_info_dump_location,
+            "target": "patching-info",
         },
     }
     context = Context(
@@ -265,7 +291,9 @@ def retrive_autopatched_image_history_and_upload_to_s3(image_uri):
     container_id = run(f"{docker_run_cmd}", hide=True).stdout.strip()
     try:
         docker_exec_cmd = f"docker exec -i {container_id}"
-        history_retrieval_command = f"cat /opt/aws/dlc/patching-info/patch-details/overall_history.txt"
+        history_retrieval_command = (
+            f"cat /opt/aws/dlc/patching-info/patch-details/overall_history.txt"
+        )
         data = run(f"{docker_exec_cmd} {history_retrieval_command}", hide=True)
         upload_path = get_unique_s3_path_for_uploading_data_to_pr_creation_bucket(
             image_uri=image_uri.replace("-multistage-common", ""), file_name="overall_history.txt"
@@ -283,3 +311,75 @@ def retrive_autopatched_image_history_and_upload_to_s3(image_uri):
     finally:
         run(f"docker rm -f {container_id}", hide=True, warn=True)
     return data.stdout
+
+
+def extract_relevant_data_from_latest_released_image(image_uri, extraction_location):
+    dlc_repo_folder_mount = os.path.join(os.sep, get_cloned_folder_path())
+    docker_run_cmd = f"docker run -v {extraction_location}:/dlc-extraction-folder -id --entrypoint='/bin/bash' {image_uri} "
+    FORMATTER.print(f"[extract_relevant_data] docker_run_cmd : {docker_run_cmd}")
+    container_id = run(f"{docker_run_cmd}", hide=True).stdout.strip()
+    docker_exec_cmd = f"docker exec -i {container_id}"
+    first_image_sha = get_first_image_sha_from_latest_released_image(docker_exec_cmd)
+    ## TODO Uncomment
+    # if not first_image_sha:
+    #     return first_image_sha
+    extract_previous_patching_info(docker_exec_cmd=docker_exec_cmd)
+
+
+def extract_previous_patching_info(docker_exec_cmd):
+    extraction_cmd = """bash -c "if [ -d /opt/aws/dlc/patching-info ] ; then cp -r /opt/aws/dlc/patching-info/. /dlc-extraction-folder ; fi" """
+    FORMATTER.print(f"Extraction Command: {docker_exec_cmd} {extraction_cmd}")
+    result = run(f"{docker_exec_cmd} {extraction_cmd}")
+
+
+def get_first_image_sha_from_latest_released_image(docker_exec_cmd):
+    sha_file_path = "/opt/aws/dlc/patching-info/patch-details-archive/first_image_sha.txt"
+    image_sha_extraction_cmd = (
+        f"""bash -c "if [ -f {sha_file_path} ]; then cat {sha_file_path}; else echo ''; fi" """
+    )
+    docker_extraction_cmd = f"{docker_exec_cmd} {image_sha_extraction_cmd}"
+    FORMATTER.print(f"[extract_sha_cmd] {docker_extraction_cmd}")
+    result = run(docker_extraction_cmd)
+    first_image_sha = result.stdout.strip()
+    return first_image_sha
+
+
+def verify_artifact_contents_for_patch_builds(patching_info_folder_path, miscellaneous_scripts_path):
+    folder_size_in_bytes = get_folder_size_in_bytes(folder_path=patching_info_folder_path)
+    folder_size_in_megabytes = folder_size_in_bytes / (1024.0 * 1024.0)
+    assert (
+        folder_size_in_megabytes <= 0.5
+    ), f"Folder size for {patching_info_folder_path} is {folder_size_in_megabytes} MB which is more that 0.5 MB."
+
+    assert check_if_folder_contents_are_valid(
+        folder_path=patching_info_folder_path,
+        hidden_files_allowed=False,
+        subdirs_allowed=True,
+        only_acceptable_file_types=[".sh", ".txt", ".json"],
+    ), f"Root folder {patching_info_folder_path} contents are invalid"
+
+    patch_details_current_folder_path = os.path.join(
+        os.sep, patching_info_folder_path, "patch-details-current"
+    )
+    if os.path.exists(patch_details_current_folder_path):
+        assert check_if_folder_contents_are_valid(
+            folder_path=patch_details_current_folder_path,
+            hidden_files_allowed=False,
+            subdirs_allowed=False,
+            only_acceptable_file_types=[".sh", ".txt", ".json"],
+        ), f"{patch_details_current_folder_path} contents are invalid"
+
+    patch_details_folder_path = os.path.join(os.sep, patching_info_folder_path, "patch-details")
+    if os.path.exists(patch_details_folder_path):
+        assert check_if_folder_contents_are_valid(
+            folder_path=patch_details_folder_path,
+            hidden_files_allowed=False,
+            subdirs_allowed=False,
+            only_acceptable_file_types=[".sh", ".txt", ".json"],
+        ), f"{patch_details_folder_path} contents are invalid"
+
+    folder_size_in_bytes = get_folder_size_in_bytes(folder_path=miscellaneous_scripts_path)
+    folder_size_in_megabytes = folder_size_in_bytes / (1024.0 * 1024.0)
+    assert (
+        folder_size_in_megabytes <= 0.5
+    ), f"Folder size for {miscellaneous_scripts_path} is {folder_size_in_megabytes} MB which is more that 0.5 MB."

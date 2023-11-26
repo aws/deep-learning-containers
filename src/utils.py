@@ -512,3 +512,41 @@ def get_dummy_boto_client():
     :return: BotocoreClientSTS
     """
     return boto3.client("sts", region_name=os.getenv("REGION"))
+
+
+def get_folder_size_in_bytes(folder_path):
+    size_in_bytes = 0.0
+    for dir_path, dir_names, file_names in os.walk(folder_path):
+        for file_name in file_names:
+            file_path = os.path.join(dir_path, file_name)
+            size_in_bytes += os.path.getsize(file_path)
+    LOGGER.info(f"Folder {folder_path} has size {size_in_bytes/(1024*1024)} MB")
+    return size_in_bytes
+
+
+def check_if_folder_contents_are_valid(
+    folder_path, hidden_files_allowed=True, subdirs_allowed=True, only_acceptable_file_types=[]
+):
+    validity_flag = True
+    level_count = 0
+    violating_content = []
+    for dir_path, dir_names, file_names in os.walk(folder_path):
+        level_count += 1
+        if not subdirs_allowed and dir_names:
+            violating_content += dir_names
+            validity_flag = False
+        for file_name in file_names:
+            print(file_name)
+            if not hidden_files_allowed and file_name.startswith("."):
+                violating_content.append(file_name)
+                validity_flag = False
+            if only_acceptable_file_types:
+                if not any(
+                    [file_name.endswith(file_type) for file_type in only_acceptable_file_types]
+                ):
+                    violating_content.append(file_name)
+                    validity_flag = False
+    if not subdirs_allowed and level_count > 1:
+        validity_flag = False
+    LOGGER.info(f"Violation Contents in {folder_path} are {violating_content}")
+    return validity_flag

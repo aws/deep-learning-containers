@@ -4,7 +4,7 @@ FROM $RELEASED_IMAGE
 
 ARG RELEASED_IMAGE_SHA=""
 
-COPY patch-details /opt/aws/dlc/patching-info/patch-details-latest
+COPY patching-info /opt/aws/dlc/patching-info
 COPY miscellaneous_scripts /opt/aws/dlc/miscellaneous_scripts
 
 RUN chmod +x /opt/aws/dlc/miscellaneous_scripts/dockerfile_patch_script.sh && \
