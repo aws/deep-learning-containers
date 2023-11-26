@@ -270,6 +270,7 @@ def fixture_py_version(request):
 def fixture_processor(request):
     return request.config.getoption("--processor")
 
+
 @pytest.fixture(scope="session", name="sagemaker_regions")
 def fixture_sagemaker_regions(request):
     sagemaker_regions = request.config.getoption("--sagemaker-regions")
@@ -372,6 +373,7 @@ def fixture_dist_cpu_backend(request):
 @pytest.fixture(scope="session", name="dist_gpu_backend", params=["gloo", "nccl"])
 def fixture_dist_gpu_backend(request):
     return request.param
+
 
 @pytest.fixture(scope="session", name="cuda_version")
 def fixture_cuda_version(processor, ecr_image):
