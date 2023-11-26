@@ -118,6 +118,11 @@ NO_P4_REGIONS = [
     "il-central-1",
 ]
 
+P5_AVAIL_REGIONS = [
+    "us-east-1",
+    "us-west-2",
+]
+
 
 def pytest_addoption(parser):
     parser.addoption("--build-image", "-D", action="store_true")
@@ -411,6 +416,8 @@ def skip_gpu_instance_restricted_regions(region, instance_type):
         (region in NO_P2_REGIONS and instance_type.startswith("ml.p2"))
         or (region in NO_P3_REGIONS and instance_type.startswith("ml.p3"))
         or (region in NO_P4_REGIONS and instance_type.startswith("ml.p4"))
+        # NOTE P5 list is for *available* regions
+        or (region not in P5_AVAIL_REGIONS and instance_type.startswith("ml.p5"))
     ):
         pytest.skip("Skipping GPU test in region {}".format(region))
 
