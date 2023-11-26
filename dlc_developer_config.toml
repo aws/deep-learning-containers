@@ -126,7 +126,7 @@ dlc-pr-tensorflow-2-habana-training = ""
 # Standard Framework Inference
 dlc-pr-mxnet-inference = ""
 dlc-pr-pytorch-inference = "pytorch/inference/buildspec-1-13.yml"
-dlc-pr-tensorflow-2-inference = ""
+dlc-pr-tensorflow-2-inference = "tensorflow/inference/buildspec-2-12.yml"
 dlc-pr-autogluon-inference = ""
 
 # Neuron Inference

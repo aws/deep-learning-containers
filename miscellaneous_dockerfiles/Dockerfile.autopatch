@@ -1,11 +1,11 @@
-ARG RELEASED_IMAGE=""
+ARG BASE_IMAGE_FOR_PATCH_BUILD=""
 
-FROM $RELEASED_IMAGE
+FROM $BASE_IMAGE_FOR_PATCH_BUILD
 
-ARG RELEASED_IMAGE_SHA=""
+ARG LATEST_RELEASED_IMAGE_SHA=""
 
 COPY patching-info /opt/aws/dlc/patching-info
 COPY miscellaneous_scripts /opt/aws/dlc/miscellaneous_scripts
 
 RUN chmod +x /opt/aws/dlc/miscellaneous_scripts/dockerfile_patch_script.sh && \
-    /opt/aws/dlc/miscellaneous_scripts/dockerfile_patch_script.sh $RELEASED_IMAGE_SHA
+    /opt/aws/dlc/miscellaneous_scripts/dockerfile_patch_script.sh $LATEST_RELEASED_IMAGE_SHA

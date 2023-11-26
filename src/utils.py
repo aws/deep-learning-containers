@@ -536,7 +536,6 @@ def check_if_folder_contents_are_valid(
             violating_content += dir_names
             validity_flag = False
         for file_name in file_names:
-            print(file_name)
             if not hidden_files_allowed and file_name.startswith("."):
                 violating_content.append(file_name)
                 validity_flag = False
