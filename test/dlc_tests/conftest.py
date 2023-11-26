@@ -279,7 +279,7 @@ def availability_zone_options(ec2_client, ec2_instance_type, region):
             allowed_availability_zones = ["us-west-2b", "us-west-2c"]
     if ec2_instance_type in ["p3dn.24xlarge"]:
         if region == "us-east-1":
-            allowed_availability_zones = ["us-east-1b"]
+            allowed_availability_zones = ["us-east-1a"]
     if not allowed_availability_zones:
         allowed_availability_zones = ec2_utils.get_availability_zone_ids(ec2_client)
     return allowed_availability_zones
