@@ -58,9 +58,11 @@ def can_run_smmodelparallel(ecr_image):
     ) >= Version("110")
 
 
-def validate_or_skip_smmodelparallel_efa(ecr_image):
+def validate_or_skip_smmodelparallel_efa(ecr_image, instance_type):
     if not can_run_smmodelparallel_efa(ecr_image):
         pytest.skip("EFA is only supported on CUDA 11, and on PyTorch 1.8.1 or higher")
+    if instance_type.startswith("ml.p5"):
+        pytest.skip(f"{instance_type} is not supported by smdataparallel")
 
 
 def can_run_smmodelparallel_efa(ecr_image):
