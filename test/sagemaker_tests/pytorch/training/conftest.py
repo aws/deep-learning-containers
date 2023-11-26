@@ -270,7 +270,6 @@ def fixture_py_version(request):
 def fixture_processor(request):
     return request.config.getoption("--processor")
 
-
 @pytest.fixture(scope="session", name="sagemaker_regions")
 def fixture_sagemaker_regions(request):
     sagemaker_regions = request.config.getoption("--sagemaker-regions")
@@ -373,6 +372,11 @@ def fixture_dist_cpu_backend(request):
 @pytest.fixture(scope="session", name="dist_gpu_backend", params=["gloo", "nccl"])
 def fixture_dist_gpu_backend(request):
     return request.param
+
+@pytest.fixture(scope="session", name="cuda_version")
+def fixture_cuda_version(processor, ecr_image):
+    if processor == "gpu":
+        return get_cuda_version_from_tag(ecr_image)
 
 
 @pytest.fixture(autouse=True)
@@ -487,13 +491,9 @@ def skip_pt20_cuda121_tests(request, ecr_image):
 
 
 @pytest.fixture(autouse=True)
-def skip_p5_tests(request, ecr_image, instance_type):
+def skip_p5_tests(request, instance_type, processor, cuda_version):
     if "p5." in instance_type:
-        framework, image_framework_version = get_framework_and_version_from_tag(ecr_image)
-
-        image_processor = get_processor_from_image_uri(ecr_image)
-        image_cuda_version = get_cuda_version_from_tag(ecr_image)
-        if image_processor != "gpu" or Version(image_cuda_version.strip("cu")) < Version("120"):
+        if processor != "gpu" or Version(cuda_version.strip("cu")) < Version("120"):
             pytest.skip("Images using less than CUDA 12.0 doesn't support P5 EC2 instance.")
 
 
