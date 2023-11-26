@@ -172,21 +172,3 @@ def get_framework_and_version_from_tag(image_uri):
     tag_framework_version = re.search(r"(\d+(\.\d+){1,2})", image_uri).groups()[0]
 
     return tested_framework, tag_framework_version
-
-
-def get_processor_from_image_uri(image_uri):
-    """
-    Return processor from the image URI
-
-    Assumes image uri includes -<processor> in it's tag, where <processor> is one of cpu, gpu or eia.
-
-    :param image_uri: ECR image URI
-    :return: cpu, gpu, eia, neuron or hpu
-    """
-    allowed_processors = ["eia", "neuronx", "neuron", "cpu", "gpu", "hpu"]
-
-    for processor in allowed_processors:
-        match = re.search(rf"-({processor})", image_uri)
-        if match:
-            return match.group(1)
-    raise RuntimeError("Cannot find processor")
