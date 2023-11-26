@@ -17,6 +17,7 @@ from utils import (
     get_overall_history_path,
     get_folder_size_in_bytes,
     check_if_folder_contents_are_valid,
+    verify_if_child_image_is_built_on_top_of_base_image,
 )
 from codebuild_environment import get_cloned_folder_path
 from context import Context
@@ -165,8 +166,9 @@ def conduct_autopatch_build_setup(pre_push_image_object: DockerImage, download_p
         latest_released_image_uri=latest_released_image_uri, first_image_sha=first_image_sha
     )
 
-    ## TODO: Complete
-    # verify_latest_image_is_built_on_first_image_itself()
+    assert verify_if_child_image_is_built_on_top_of_base_image(
+        base_image_uri=base_image_uri_for_patch_builds, child_image_uri=latest_released_image_uri
+    ), f"Child image {latest_released_image_uri} is not built on {base_image_uri_for_patch_builds}"
 
     ecr_client = boto3.client("ecr", region_name=os.getenv("REGION"))
     latest_released_image_sha = get_sha_of_an_image_from_ecr(

@@ -549,3 +549,25 @@ def check_if_folder_contents_are_valid(
         validity_flag = False
     LOGGER.info(f"Violation Contents in {folder_path} are {violating_content}")
     return validity_flag
+
+
+def get_image_layers(image_uri):
+    ctx = Context()
+    layer_retrieval_command = """docker image inspect --format='{{json .RootFS.Layers}}' """
+    layer_retrieval_command += image_uri
+    run_output = ctx.run(layer_retrieval_command, hide=True)
+    layer_list_str = run_output.stdout.strip()
+    layer_list = json.loads(layer_list_str)
+    return layer_list
+
+
+def verify_if_child_image_is_built_on_top_of_base_image(base_image_uri, child_image_uri):
+    base_image_layers = get_image_layers(image_uri=base_image_uri)
+    child_image_layers = get_image_layers(image_uri=child_image_uri)
+    if len(base_image_layers) > len(child_image_layers):
+        return False
+    for i, base_layer_sha in enumerate(base_image_layers):
+        child_layer_sha = child_image_layers[i]
+        if base_layer_sha != child_layer_sha:
+            return False
+    return True
