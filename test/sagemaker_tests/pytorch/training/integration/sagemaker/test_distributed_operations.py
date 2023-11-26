@@ -43,9 +43,11 @@ MULTI_GPU_INSTANCE = "ml.p3.8xlarge"
 RESOURCE_PATH = os.path.join(os.path.dirname(__file__), "..", "..", "resources")
 
 
-def validate_or_skip_smmodelparallel(ecr_image):
+def validate_or_skip_smmodelparallel(ecr_image, instance_type):
     if not can_run_smmodelparallel(ecr_image):
         pytest.skip("Model Parallelism is supported on CUDA 11 on PyTorch v1.6 and above")
+    if instance_type.startswith("ml.p5"):
+        pytest.skip(f"{instance_type} is not supported by smdataparallel")
 
 
 def can_run_smmodelparallel(ecr_image):
