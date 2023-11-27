@@ -33,7 +33,6 @@ from .utils import get_ecr_registry, NightlyFeatureLabel, is_nightly_context
 from .integration import (
     get_framework_and_version_from_tag,
     get_cuda_version_from_tag,
-    get_processor_from_image_uri,
 )
 from .utils.image_utils import build_base_image, are_fixture_labels_enabled
 
@@ -375,6 +374,12 @@ def fixture_dist_gpu_backend(request):
     return request.param
 
 
+@pytest.fixture(scope="session", name="cuda_version")
+def fixture_cuda_version(processor, ecr_image):
+    if processor == "gpu":
+        return get_cuda_version_from_tag(ecr_image)
+
+
 @pytest.fixture(autouse=True)
 def skip_by_device_type(request, use_gpu, instance_type):
     is_gpu = use_gpu or instance_type.lstrip("ml.")[0] in ["g", "p"]
@@ -487,13 +492,9 @@ def skip_pt20_cuda121_tests(request, ecr_image):
 
 
 @pytest.fixture(autouse=True)
-def skip_p5_tests(request, ecr_image, instance_type):
+def skip_p5_tests(instance_type, processor, cuda_version):
     if "p5." in instance_type:
-        framework, image_framework_version = get_framework_and_version_from_tag(ecr_image)
-
-        image_processor = get_processor_from_image_uri(img_uri)
-        image_cuda_version = get_cuda_version_from_tag(ecr_image)
-        if image_processor != "gpu" or Version(image_cuda_version.strip("cu")) < Version("120"):
+        if processor != "gpu" or Version(cuda_version.strip("cu")) < Version("120"):
             pytest.skip("Images using less than CUDA 12.0 doesn't support P5 EC2 instance.")
 
 
