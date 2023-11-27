@@ -299,7 +299,7 @@ CMD ["/bin/bash"]
 FROM common AS sagemaker
 
 # Install SageMaker Profiler binary
-ARG SMP_URL=https://smppy.s3.amazonaws.com/tensorflow/cu118/smprof-0.3.331-cp310-cp310-linux_x86_64.whl
+ARG SMP_URL=https://smppy.s3.amazonaws.com/tensorflow/cu118/smprof-0.3.332-cp310-cp310-linux_x86_64.whl
 RUN apt-get update && apt-get install -y libunwind-dev && apt-get clean \
  && ${PYTHON} -m pip install --no-cache-dir ${SMP_URL}
 

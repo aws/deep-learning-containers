@@ -469,7 +469,7 @@ RUN MAX_JOBS=4 pip install flash-attn==2.0.4 --no-build-isolation
 RUN pip install git+https://github.com/NVIDIA/TransformerEngine.git@release_v0.12
 
 # Install SageMaker Profiler Binary
-ARG SMP_URL=https://smppy.s3.amazonaws.com/pytorch/cu121/smprof-0.3.331-cp310-cp310-linux_x86_64.whl
+ARG SMP_URL=https://smppy.s3.amazonaws.com/pytorch/cu121/smprof-0.3.332-cp310-cp310-linux_x86_64.whl
 RUN apt-get update && apt-get install -y libunwind-dev && apt-get clean \
  && pip install --no-cache-dir -U ${SMP_URL}
 
