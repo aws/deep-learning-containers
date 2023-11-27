@@ -47,6 +47,7 @@ def validate_or_skip_smmodelparallel(ecr_image):
     if not can_run_smmodelparallel(ecr_image):
         pytest.skip("Model Parallelism is supported on CUDA 11 on PyTorch v1.6 and above")
 
+
 def can_run_smmodelparallel(ecr_image):
     _, image_framework_version = get_framework_and_version_from_tag(ecr_image)
     image_cuda_version = get_cuda_version_from_tag(ecr_image)
@@ -58,6 +59,7 @@ def can_run_smmodelparallel(ecr_image):
 def validate_or_skip_smmodelparallel_efa(ecr_image):
     if not can_run_smmodelparallel_efa(ecr_image):
         pytest.skip("EFA is only supported on CUDA 11, and on PyTorch 1.8.1 or higher")
+
 
 def skip_unsupported_instances_smmodelparallel(instance_type):
     if instance_type.startswith("ml.p5"):

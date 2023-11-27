@@ -43,6 +43,7 @@ def can_run_smdataparallel(ecr_image):
         image_cuda_version.strip("cu")
     ) >= Version("110")
 
+
 def skip_unsupported_instances_smmodelparallel(instance_type):
     if instance_type.startswith("ml.p5"):
         pytest.skip(f"{instance_type} is not supported by smdataparallel")
