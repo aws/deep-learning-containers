@@ -416,7 +416,8 @@ def skip_test_in_region(request, region):
 
 
 @pytest.fixture(autouse=True)
-def skip_gpu_instance_restricted_regions(region, instance_type):
+def skip_gpu_instance_restricted_regions(region, instance_type, efa_instance_type):
+    instance_type = instance_type or efa_instance_type
     if (
         (region in NO_P2_REGIONS and instance_type.startswith("ml.p2"))
         or (region in NO_P3_REGIONS and instance_type.startswith("ml.p3"))
