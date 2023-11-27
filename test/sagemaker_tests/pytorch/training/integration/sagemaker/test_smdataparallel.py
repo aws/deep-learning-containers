@@ -44,7 +44,7 @@ def can_run_smdataparallel(ecr_image):
     ) >= Version("110")
 
 
-def skip_unsupported_instances_smmodelparallel(instance_type):
+def skip_unsupported_instances_smdataparallel(instance_type):
     if instance_type.startswith("ml.p5"):
         pytest.skip(f"{instance_type} is not supported by smdataparallel")
 
@@ -80,7 +80,7 @@ def test_smdataparallel_throughput(
 ):
     with timeout(minutes=DEFAULT_TIMEOUT):
         validate_or_skip_smdataparallel_efa(ecr_image)
-        skip_unsupported_instances_smmodelparallel(efa_instance_type)
+        skip_unsupported_instances_smdataparallel(efa_instance_type)
         hyperparameters = {
             "size": 64,
             "num_tensors": 20,
@@ -164,7 +164,7 @@ def test_smdataparallel_mnist(ecr_image, sagemaker_regions, efa_instance_type, t
     """
     with timeout(minutes=DEFAULT_TIMEOUT):
         validate_or_skip_smdataparallel_efa(ecr_image)
-        skip_unsupported_instances_smmodelparallel(efa_instance_type)
+        skip_unsupported_instances_smdataparallel(efa_instance_type)
         distribution = {"smdistributed": {"dataparallel": {"enabled": True}}}
         estimator_parameter = {
             "entry_point": "smdataparallel_mnist.py",
@@ -202,7 +202,7 @@ def test_hc_smdataparallel_mnist(ecr_image, sagemaker_regions, efa_instance_type
     """
     with timeout(minutes=DEFAULT_TIMEOUT):
         validate_or_skip_smdataparallel_efa(ecr_image)
-        skip_unsupported_instances_smmodelparallel(efa_instance_type)
+        skip_unsupported_instances_smdataparallel(efa_instance_type)
         instance_count = 2
         training_group = InstanceGroup("train_group", efa_instance_type, instance_count)
         distribution = {
