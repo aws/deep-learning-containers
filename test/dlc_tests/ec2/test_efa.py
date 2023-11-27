@@ -102,6 +102,7 @@ def test_pytorch_efa(
     is_pr_context() and not is_efa_dedicated(),
     reason="Skip EFA test in PR context unless explicitly enabled",
 )
+@pytest.mark.team("frameworks")
 def test_efa_tensorflow(
     tensorflow_training, efa_ec2_instances, efa_ec2_connections, ec2_instance_type, region, gpu_only
 ):
@@ -128,7 +129,7 @@ def test_efa_tensorflow(
     run_cmd_on_container(
         MASTER_CONTAINER_NAME,
         master_connection,
-        f"{EFA_INTEGRATION_TEST_CMD} {HOSTS_FILE_LOCATION} {number_of_nodes}",
+        f"export CUDA_HOME='/usr/local/cuda'; {EFA_INTEGRATION_TEST_CMD} {HOSTS_FILE_LOCATION} {number_of_nodes}",
         hide=False,
         timeout=300,
     )

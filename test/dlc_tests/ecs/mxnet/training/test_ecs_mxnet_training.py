@@ -15,6 +15,7 @@ MX_GLUON_NLP_TRAINING_SCRIPT = os.path.join(CONTAINER_TESTS_PREFIX, "gluonnlp_te
 
 
 @pytest.mark.model("mnist")
+@pytest.mark.team("frameworks")
 @pytest.mark.parametrize("training_script", [MX_MNIST_TRAINING_SCRIPT], indirect=True)
 @pytest.mark.parametrize("ecs_instance_type", ["c4.8xlarge"], indirect=True)
 @pytest.mark.parametrize("ecs_ami", [ECS_AML2_CPU_USWEST2], indirect=True)
@@ -37,6 +38,7 @@ def test_ecs_mxnet_training_mnist_cpu(
 
 
 @pytest.mark.model("mnist")
+@pytest.mark.team("frameworks")
 @pytest.mark.parametrize("training_script", [MX_MNIST_TRAINING_SCRIPT], indirect=True)
 @pytest.mark.parametrize("ecs_instance_type", ["p3.8xlarge"], indirect=True)
 @pytest.mark.parametrize("ecs_ami", [ECS_AML2_GPU_USWEST2], indirect=True)
@@ -126,6 +128,7 @@ def test_ecs_mxnet_training_dgl_gpu(
 
 @pytest.mark.integration("gluonnlp")
 @pytest.mark.model("TextCNN")
+@pytest.mark.team("frameworks")
 @pytest.mark.parametrize("training_script", [MX_GLUON_NLP_TRAINING_SCRIPT], indirect=True)
 @pytest.mark.parametrize("ecs_instance_type", ["c5.9xlarge"], indirect=True)
 @pytest.mark.parametrize("ecs_ami", [ECS_AML2_CPU_USWEST2], indirect=True)
@@ -152,6 +155,7 @@ def test_ecs_mxnet_training_gluonnlp_cpu(
 
 @pytest.mark.integration("gluonnlp")
 @pytest.mark.model("TextCNN")
+@pytest.mark.team("frameworks")
 @pytest.mark.parametrize("training_script", [MX_GLUON_NLP_TRAINING_SCRIPT], indirect=True)
 @pytest.mark.parametrize("ecs_instance_type", ["p3.16xlarge"], indirect=True)
 @pytest.mark.parametrize("ecs_ami", [ECS_AML2_GPU_USWEST2], indirect=True)
