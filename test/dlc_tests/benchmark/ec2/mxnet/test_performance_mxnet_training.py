@@ -26,6 +26,7 @@ MX_EC2_CPU_INSTANCE_TYPE = "c5.18xlarge"
 
 @pytest.mark.integration("imagenet dataset")
 @pytest.mark.model("resnet50_v2")
+@pytest.mark.team("frameworks")
 @pytest.mark.parametrize("ec2_instance_type", [MX_EC2_GPU_INSTANCE_TYPE], indirect=True)
 def test_performance_ec2_mxnet_training_gpu(mxnet_training, ec2_connection, gpu_only, py3_only):
     _, framework_version = get_framework_and_version_from_tag(mxnet_training)
@@ -42,6 +43,7 @@ def test_performance_ec2_mxnet_training_gpu(mxnet_training, ec2_connection, gpu_
 
 @pytest.mark.integration("cifar10 dataset")
 @pytest.mark.model("resnet18_v2")
+@pytest.mark.team("frameworks")
 @pytest.mark.parametrize("ec2_instance_type", [MX_EC2_CPU_INSTANCE_TYPE], indirect=True)
 def test_performance_ec2_mxnet_training_cpu(mxnet_training, ec2_connection, cpu_only):
     _, framework_version = get_framework_and_version_from_tag(mxnet_training)

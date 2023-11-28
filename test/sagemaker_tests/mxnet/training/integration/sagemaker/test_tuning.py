@@ -30,6 +30,7 @@ SCRIPT_PATH = os.path.join(DATA_PATH, "mnist.py")
 
 @pytest.mark.integration("hpo")
 @pytest.mark.model("mnist")
+@pytest.mark.team("frameworks")
 def test_tuning(ecr_image, sagemaker_regions, instance_type, framework_version):
     invoke_sm_helper_function(
         ecr_image, sagemaker_regions, _test_tuning, instance_type, framework_version
