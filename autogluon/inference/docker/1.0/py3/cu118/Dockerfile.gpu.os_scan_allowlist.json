@@ -1,1 +1,122 @@
-{}
+{
+  "linux": [
+    {
+      "description": "\n Alon Zahavi discovered that the NVMe-oF/TCP subsystem in the Linux kernel\n did not properly handle queue initialization failures in certain\n situations, leading to a use-after-free vulnerability. A remote attacker\n could use this to cause a denial of service (system crash) or possibly\n execute arbitrary code.",
+      "vulnerability_id": "CVE-2023-5178",
+      "name": "CVE-2023-5178",
+      "package_name": "linux",
+      "package_details": {
+        "file_path": null,
+        "name": "linux",
+        "package_manager": "OS",
+        "version": "5.4.0",
+        "release": "167.184"
+      },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
+      "cvss_v3_score": 8.8,
+      "cvss_v30_score": 0.0,
+      "cvss_v31_score": 8.8,
+      "cvss_v2_score": 0.0,
+      "cvss_v3_severity": "HIGH",
+      "source_url": "https://people.canonical.com/~ubuntu-security/cve/2023/CVE-2023-5178.html",
+      "source": "UBUNTU_CVE",
+      "severity": "HIGH",
+      "status": "ACTIVE",
+      "title": "CVE-2023-5178 - linux",
+      "reason_to_ignore": "N/A"
+    }
+  ],
+  "ray": [
+    {
+      "description": "LFI in Ray's log API endpoint allows attackers to read any file on the server without authentication.",
+      "vulnerability_id": "CVE-2023-6021",
+      "name": "CVE-2023-6021",
+      "package_name": "ray",
+      "package_details": {
+        "file_path": "opt/conda/lib/python3.10/site-packages/ray-2.6.3.dist-info/METADATA",
+        "name": "ray",
+        "package_manager": "PYTHONPKG",
+        "version": "2.6.3",
+        "release": null
+      },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
+      "cvss_v3_score": 7.5,
+      "cvss_v30_score": 0.0,
+      "cvss_v31_score": 7.5,
+      "cvss_v2_score": 0.0,
+      "cvss_v3_severity": "HIGH",
+      "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2023-6021",
+      "source": "NVD",
+      "severity": "HIGH",
+      "status": "ACTIVE",
+      "title": "CVE-2023-6021 - ray",
+      "reason_to_ignore": "N/A"
+    },
+    {
+      "description": "LFI in Ray's /static/ directory allows attackers to read any file on the server without authentication.",
+      "vulnerability_id": "CVE-2023-6020",
+      "name": "CVE-2023-6020",
+      "package_name": "ray",
+      "package_details": {
+        "file_path": "opt/conda/lib/python3.10/site-packages/ray-2.6.3.dist-info/METADATA",
+        "name": "ray",
+        "package_manager": "PYTHONPKG",
+        "version": "2.6.3",
+        "release": null
+      },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
+      "cvss_v3_score": 7.5,
+      "cvss_v30_score": 0.0,
+      "cvss_v31_score": 7.5,
+      "cvss_v2_score": 0.0,
+      "cvss_v3_severity": "HIGH",
+      "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2023-6020",
+      "source": "NVD",
+      "severity": "HIGH",
+      "status": "ACTIVE",
+      "title": "CVE-2023-6020 - ray",
+      "reason_to_ignore": "N/A"
+    },
+    {
+      "description": "A command injection exists in Ray's cpu_profile URL parameter allowing attackers to execute os commands on the system running the ray dashboard remotely without authentication.",
+      "vulnerability_id": "CVE-2023-6019",
+      "name": "CVE-2023-6019",
+      "package_name": "ray",
+      "package_details": {
+        "file_path": "opt/conda/lib/python3.10/site-packages/ray-2.6.3.dist-info/METADATA",
+        "name": "ray",
+        "package_manager": "PYTHONPKG",
+        "version": "2.6.3",
+        "release": null
+      },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
+      "cvss_v3_score": 9.8,
+      "cvss_v30_score": 0.0,
+      "cvss_v31_score": 9.8,
+      "cvss_v2_score": 0.0,
+      "cvss_v3_severity": "CRITICAL",
+      "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2023-6019",
+      "source": "NVD",
+      "severity": "CRITICAL",
+      "status": "ACTIVE",
+      "title": "CVE-2023-6019 - ray",
+      "reason_to_ignore": "N/A"
+    }
+  ]
+}
