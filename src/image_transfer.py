@@ -192,7 +192,12 @@ def main():
     image_transfer_override_flags = get_image_transfer_override_flags_from_s3()
 
     for autopatch_image in image_list:
-        print(autopatch_image)
+        autopatch_repo = autopatch_image.split(":")[0]
+        autopatch_repo_name = autopatch_repo.split("/")[1]
+        assert autopatch_repo_name.startswith(
+            "autopatch-"
+        ), f"Image {autopatch_image} is not an AutoPatch image."
+
         autopatch_image_tag_list = pull_image_locally_with_all_its_tags_attached(
             image_uri=autopatch_image
         )
