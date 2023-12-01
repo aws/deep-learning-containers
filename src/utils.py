@@ -527,6 +527,17 @@ def get_folder_size_in_bytes(folder_path):
 def check_if_folder_contents_are_valid(
     folder_path, hidden_files_allowed=True, subdirs_allowed=True, only_acceptable_file_types=[]
 ):
+    """
+    This method checks if the contents of a folder are valid based on the provided arguments and returns True if they are
+    valid, otherwise False. The arguments guide this method to make decisions if the folder contents are valid or not.
+
+    :param hidden_files_allowed: boolean, If the `hidden_files_allowed` argument is set to True, it would consider hidden files within the folder as valid files.
+    :param subdirs_allowed: boolean, If the `subdirs_allowed` argument is set to True, it would allow the folder to have sub-directories.
+    :param only_acceptable_file_types: list, Is a list of valid file types - foe eg. ".py"(Python), ".txt"(Text), ".json"(JSON). If
+        it is empty, all the file types would be considered valid. Otherwise, only the file types mentioned in the list would be
+        considered valid.
+    :return: boolean, True if the folder matches all the criterions, False otherwise.
+    """
     validity_flag = True
     level_count = 0
     violating_content = []
@@ -552,6 +563,12 @@ def check_if_folder_contents_are_valid(
 
 
 def get_image_layers(image_uri):
+    """
+    Extracts the layers of an image.
+
+    :param image_uri: str, Image URI
+    :return: List, List of all the layers in the image
+    """
     ctx = Context()
     layer_retrieval_command = """docker image inspect --format='{{json .RootFS.Layers}}' """
     layer_retrieval_command += image_uri
@@ -562,6 +579,14 @@ def get_image_layers(image_uri):
 
 
 def verify_if_child_image_is_built_on_top_of_base_image(base_image_uri, child_image_uri):
+    """
+    This method verifies if a child image is built on top of the base image, by ensure that all the base image layers are present
+    in the child image.
+
+    :param base_image_uri: str, Image URI of base image
+    :param child_image_uri: str, Image URI of child image
+    :return: boolean, True if child is built on base image. False otherwise.
+    """
     base_image_layers = get_image_layers(image_uri=base_image_uri)
     child_image_layers = get_image_layers(image_uri=child_image_uri)
     if len(base_image_layers) > len(child_image_layers):
