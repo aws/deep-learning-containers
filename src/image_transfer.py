@@ -22,7 +22,7 @@ def pull_image_locally_with_all_its_tags_attached(image_uri):
     """
     from test import test_utils
 
-    run(f"docker pull {image_uri}")
+    run(f"docker pull {image_uri}", hide=True)
     image_region = test_utils.get_region_from_image_uri(image_uri=image_uri)
     ecr_client = boto3.client("ecr", region_name=image_region)
     image_repo = image_uri.split(":")[0]
@@ -30,8 +30,27 @@ def pull_image_locally_with_all_its_tags_attached(image_uri):
         ecr_client=ecr_client, image_uri=image_uri
     )
     for tag in tag_list:
-        run(f"docker tag {image_uri} {image_repo}:{tag}")
+        run(f"docker tag {image_uri} {image_repo}:{tag}", hide=True)
     return tag_list
+
+
+def is_latest_benchmark_tested_beta_image_an_autopatch_image_itself(beta_image_uri):
+    """
+    Checks if the latest benchmark_tested_beta_image is an autopatch image itself. It pulls the tags
+    attached to the beta_benchmark_tested_image and checks for the presence of "-autopatch" in any of
+    the tags.
+
+    :param beta_image_uri: str, Image URI of beta benchmark tested image
+    :return: boolean, True if beta benchmark image is an autopatch image itself. False otherwise.
+    """
+    from test import test_utils
+
+    image_region = test_utils.get_region_from_image_uri(image_uri=beta_image_uri)
+    ecr_client = boto3.client("ecr", region_name=image_region)
+    tag_list = test_utils.get_all_the_tags_of_an_image_from_ecr(
+        ecr_client=ecr_client, image_uri=beta_image_uri
+    )
+    return any(["-autopatch" in tag for tag in tag_list])
 
 
 def get_push_time_of_image_from_ecr(image_uri):
@@ -137,23 +156,22 @@ def transfer_image(autopatch_image_repo, autopatch_image_tag_list, beta_repo):
     :param beta_repo: str, Beta Repo
     """
     for autopatch_tag in autopatch_image_tag_list:
-        ## TODO: Remove this condition before merging.
-        if "benchmark-tested" in autopatch_tag:
-            continue
         beta_tag = autopatch_tag.replace("-autopatch", "")
-        print(f"docker tag {autopatch_image_repo}:{autopatch_tag} {beta_repo}:{beta_tag}")
-        run(f"docker tag {autopatch_image_repo}:{autopatch_tag} {beta_repo}:{beta_tag}")
-        run(f"docker push {beta_repo}:{beta_tag}")
+        run(f"docker tag {autopatch_image_repo}:{autopatch_tag} {beta_repo}:{beta_tag}", hide=True)
+        run(f"docker push {beta_repo}:{beta_tag}", hide=True)
         if "benchmark-tested" not in autopatch_tag:
-            run(f"docker tag {autopatch_image_repo}:{autopatch_tag} {beta_repo}:{autopatch_tag}")
-            run(f"docker push {beta_repo}:{autopatch_tag}")
+            run(
+                f"docker tag {autopatch_image_repo}:{autopatch_tag} {beta_repo}:{autopatch_tag}",
+                hide=True,
+            )
+            run(f"docker push {beta_repo}:{autopatch_tag}", hide=True)
 
 
 def is_image_transferable(autopatch_image_uri, beta_image_uri, image_transfer_override_flags):
     """
     Checks if an image is transferable or not. It first checks if the image_transfer_flag has been enabled. In case
     yes, it trasfers the image. In case not, it checks if the latest benchmark image in the Beta ECR is stale for more
-    than 3 days. If yes, conducts the transfer. If not, does not conduct the transfer.
+    than 5 days. If yes, conducts the transfer. If not, does not conduct the transfer.
 
     :param autopatch_image_uri: str, Image URI of the AutoPatch image
     :param beta_image_uri: str, Image URI of the Beta image
@@ -169,10 +187,17 @@ def is_image_transferable(autopatch_image_uri, beta_image_uri, image_transfer_ov
     time_difference = current_time - beta_image_push_time
     LOGGER.info(f"Beta image was built {time_difference} ago.")
     total_time_difference_in_seconds = time_difference.total_seconds()
-    if total_time_difference_in_seconds >= 3 * 24 * 60 * 60:
-        # If Beta image was built more than 3 days ago
-        ## TODO: Change this to True in future. As of now, only transfer if the flag exists in the override Flags
-        return False
+    if total_time_difference_in_seconds >= 5 * 24 * 60 * 60:
+        # If Beta image was built more than 5 days ago
+        return True
+    elif is_latest_benchmark_tested_beta_image_an_autopatch_image_itself(
+        beta_image_uri=beta_image_uri
+    ):
+        # If the latest benchmark tested image is autopatch image itself, transfer the image
+        LOGGER.info(
+            f"{autopatch_image_uri} is transferable since {beta_image_uri} is autopatch image itself."
+        )
+        return True
 
     return False
 
@@ -219,6 +244,7 @@ def main():
                 autopatch_image_tag_list=autopatch_image_tag_list,
                 beta_repo=beta_image_repo,
             )
+            LOGGER.info(f"Transferred image {autopatch_image}")
         else:
             LOGGER.info(f"Image {autopatch_image} cannot be transferred.")
 
