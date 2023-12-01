@@ -159,12 +159,16 @@ def conduct_autopatch_build_setup(pre_push_image_object: DockerImage, download_p
 
     run(f"docker pull {latest_released_image_uri}", hide=True)
 
-    first_image_sha = extract_first_image_sha_from_latest_released_image(
+    first_image_sha = extract_first_image_sha_using_patching_info_contents_of_given_image(
         image_uri=latest_released_image_uri
     )
-    base_image_uri_for_patch_builds = get_base_image_uri_for_patch_builds(
-        latest_released_image_uri=latest_released_image_uri, first_image_sha=first_image_sha
-    )
+    base_image_uri_for_patch_builds = latest_released_image_uri
+    if first_image_sha:
+        # In case the latest released image is an autopatched image first_image_sha will not be None
+        # In those cases, pull the first image using the SHA and use that as base
+        base_image_uri_for_patch_builds = pull_base_image_uri_for_patch_builds_and_get_the_tag(
+            latest_released_image_uri=latest_released_image_uri, first_image_sha=first_image_sha
+        )
 
     assert verify_if_child_image_is_built_on_top_of_base_image(
         base_image_uri=base_image_uri_for_patch_builds, child_image_uri=latest_released_image_uri
@@ -194,7 +198,7 @@ def conduct_autopatch_build_setup(pre_push_image_object: DockerImage, download_p
         f"[complete_patching_info_dump_location] {complete_patching_info_dump_location}"
     )
 
-    extract_relevant_data_from_latest_released_image(
+    extract_patching_relevant_data_from_latest_released_image(
         image_uri=latest_released_image_uri,
         extraction_location=complete_patching_info_dump_location,
     )
@@ -331,29 +335,17 @@ def retrive_autopatched_image_history_and_upload_to_s3(image_uri):
     return data.stdout
 
 
-def extract_first_image_sha_from_latest_released_image(image_uri):
+def extract_first_image_sha_using_patching_info_contents_of_given_image(image_uri):
+    """
+    This method takes an image_uri and looks into the patching-info/patch-details-archive/first_image_sha.txt file of the
+    image to get the SHA of the first manually released image. In case the SHA is not found, it returns None.
+
+    :param image_uri: str, URI of the image
+    :return: str, SHA of the first image or None in case the SHA is not found.
+    """
     docker_run_cmd = f"docker run -id --entrypoint='/bin/bash' {image_uri} "
     container_id = run(f"{docker_run_cmd}").stdout.strip()
     docker_exec_cmd = f"docker exec -i {container_id}"
-    first_image_sha = get_first_image_sha_from_latest_released_image(docker_exec_cmd)
-    return first_image_sha
-
-
-def extract_relevant_data_from_latest_released_image(image_uri, extraction_location):
-    docker_run_cmd = f"docker run -v {extraction_location}:/dlc-extraction-folder -id --entrypoint='/bin/bash' {image_uri} "
-    FORMATTER.print(f"[extract_relevant_data] docker_run_cmd : {docker_run_cmd}")
-    container_id = run(f"{docker_run_cmd}", hide=True).stdout.strip()
-    docker_exec_cmd = f"docker exec -i {container_id}"
-    extract_previous_patching_info(docker_exec_cmd=docker_exec_cmd)
-
-
-def extract_previous_patching_info(docker_exec_cmd):
-    extraction_cmd = """bash -c "if [ -d /opt/aws/dlc/patching-info ] ; then cp -r /opt/aws/dlc/patching-info/. /dlc-extraction-folder ; fi" """
-    FORMATTER.print(f"Extraction Command: {docker_exec_cmd} {extraction_cmd}")
-    run(f"{docker_exec_cmd} {extraction_cmd}")
-
-
-def get_first_image_sha_from_latest_released_image(docker_exec_cmd):
     sha_file_path = "/opt/aws/dlc/patching-info/patch-details-archive/first_image_sha.txt"
     image_sha_extraction_cmd = (
         f"""bash -c "if [ -f {sha_file_path} ]; then cat {sha_file_path}; else echo ''; fi" """
@@ -365,9 +357,32 @@ def get_first_image_sha_from_latest_released_image(docker_exec_cmd):
     return first_image_sha
 
 
+def extract_patching_relevant_data_from_latest_released_image(image_uri, extraction_location):
+    """
+    Extracts the patching-info data from the given image-uri and dumps it in a folder that is then put into the new DLC.
+
+    param image_uri: str, URI of the image
+    """
+    docker_run_cmd = f"docker run -v {extraction_location}:/dlc-extraction-folder -id --entrypoint='/bin/bash' {image_uri} "
+    FORMATTER.print(f"[extract_relevant_data] docker_run_cmd : {docker_run_cmd}")
+    container_id = run(f"{docker_run_cmd}", hide=True).stdout.strip()
+    docker_exec_cmd = f"docker exec -i {container_id}"
+    extraction_cmd = """bash -c "if [ -d /opt/aws/dlc/patching-info ] ; then cp -r /opt/aws/dlc/patching-info/. /dlc-extraction-folder ; fi" """
+    FORMATTER.print(f"Extraction Command: {docker_exec_cmd} {extraction_cmd}")
+    run(f"{docker_exec_cmd} {extraction_cmd}")
+
+
 def verify_artifact_contents_for_patch_builds(
     patching_info_folder_path, miscellaneous_scripts_path
 ):
+    """
+    This method ensures that the folder being copied into the new DLC meets size requirements and that the contents within the
+    folder are of specific type.
+
+    :param patching_info_folder_path: str, Local path of the patching-info dump that will be onboarded to the new DLC.
+    :param miscellaneous_scripts_path: str, Path of the miscellaneous_scripts folder that is present on Github.
+    :return: boolean, Returns True in case the size and content conditions are met. Otherwise, returns False.
+    """
     folder_size_in_bytes = get_folder_size_in_bytes(folder_path=patching_info_folder_path)
     folder_size_in_megabytes = folder_size_in_bytes / (1024.0 * 1024.0)
     assert (
@@ -408,11 +423,16 @@ def verify_artifact_contents_for_patch_builds(
     ), f"Folder size for {miscellaneous_scripts_path} is {folder_size_in_megabytes} MB which is more that 0.5 MB."
 
 
-def get_base_image_uri_for_patch_builds(latest_released_image_uri, first_image_sha):
-    if not first_image_sha:
-        FORMATTER.print("Latest released images is the first image itself.")
-        return latest_released_image_uri
+def pull_base_image_uri_for_patch_builds_and_get_the_tag(
+    latest_released_image_uri, first_image_sha
+):
+    """
+    Pulls Base image from ECR using the SHA and LOCALLY tags it using the tag of the latest released image uri appended with -FIMG.
 
+    :param latest_released_image_uri: str, Image URI of the latest released image.
+    :param first_image_sha: str, SHA of the first non-autopatched image that would be used as base.
+    :return: str, Base Image URI that would be used for building the new image.
+    """
     FORMATTER.print(
         f"Latest released image is different from the first image that has sha: {first_image_sha}"
     )
