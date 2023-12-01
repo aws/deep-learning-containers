@@ -70,6 +70,14 @@ def is_image_transfer_enabled_by_override_flags(image_uri, image_transfer_overri
     return False
 
 
+def transfer_image(autopatch_image_repo, autopatch_image_tag_list, beta_repo):
+    for autopatch_tag in autopatch_image_tag_list:
+        beta_tag = autopatch_tag.replace("-autopatch","")
+        print(f"docker tag {autopatch_image_repo}:{autopatch_tag} {beta_repo}:{beta_tag}")
+        run(f"docker tag {autopatch_image_repo}:{autopatch_tag} {beta_repo}:{beta_tag}")
+        # run(f"docker push {beta_repo}:{beta_tag}")
+
+
 def is_image_transferable(autopatch_image_uri, beta_image_uri, image_transfer_override_flags):
     if is_image_transfer_enabled_by_override_flags(image_uri=autopatch_image_uri, image_transfer_override_flags=image_transfer_override_flags):
         return True
@@ -80,7 +88,8 @@ def is_image_transferable(autopatch_image_uri, beta_image_uri, image_transfer_ov
     total_time_difference_in_seconds = time_difference.total_seconds()
     if total_time_difference_in_seconds >= 3 * 24 * 60 * 60:
         # If Beta image was built more than 3 days ago
-        return True
+        ## TODO: Change this to True in future. As of now, only transfer if the flag exists in the override Flags
+        return False
 
     return False
 
@@ -98,11 +107,16 @@ def main():
         benchmark_tag_in_beta = get_benchmark_tag_attached_to_the_latest_image_in_beta(autopatch_image_tag_list=autopatch_image_tag_list)
         beta_latest_benchmark_image_uri = get_benchmark_tested_image_uri_for_beta_image(autopatch_image_uri=autopatch_image, benchmark_tag_in_beta=benchmark_tag_in_beta)
         beta_image_push_time = get_push_time_of_image_from_ecr(image_uri=beta_latest_benchmark_image_uri)
-        retval = is_image_transferable(autopatch_image_uri=autopatch_image, beta_image_uri=beta_latest_benchmark_image_uri, image_transfer_override_flags=image_transfer_override_flags)
+        if is_image_transferable(autopatch_image_uri=autopatch_image, beta_image_uri=beta_latest_benchmark_image_uri, image_transfer_override_flags=image_transfer_override_flags):
+            autopatch_image_repo = autopatch_image.split(":")[0]
+            beta_image_repo = beta_latest_benchmark_image_uri.split(":")[0]
+            transfer_image(autopatch_image_repo=autopatch_image_repo, autopatch_image_tag_list=autopatch_image_tag_list, beta_repo=beta_image_repo)
+        else:
+            LOGGER.info(f"Image {autopatch_image} cannot be transferred.")
+
         print(benchmark_tag_in_beta)
         print(beta_image_push_time)
         print(type(beta_image_push_time))
-        print(retval)
 
 
 if __name__ == "__main__":
