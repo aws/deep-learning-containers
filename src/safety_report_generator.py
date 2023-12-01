@@ -21,7 +21,8 @@ class SafetyReportGenerator:
                     "vulnerability_id": "safety_vulnerability_id",
                     "advisory": "description of the issue",
                     "reason_to_ignore":"reason to ignore the vulnerability_id",
-                    "spec": "version_spec"
+                    "spec": "version_spec",
+                    "ignored": False
                 },
                 ...
             ]
@@ -60,6 +61,7 @@ class SafetyReportGenerator:
                 "advisory": advisory,
                 "spec": spec,
                 "reason_to_ignore": "N/A",
+                "ignored": False,
             }
 
             if package not in self.ignored_vulnerability_count:
@@ -67,6 +69,7 @@ class SafetyReportGenerator:
 
             if vulnerability_id in self.ignore_dict:
                 vulnerability_details["reason_to_ignore"] = self.ignore_dict[vulnerability_id]
+                vulnerability_details["ignored"] = True
                 self.ignored_vulnerability_count[package] += 1
 
             if package not in self.vulnerability_dict:
@@ -118,6 +121,7 @@ class SafetyReportGenerator:
                             "advisory": "N/A",
                             "reason_to_ignore": "N/A",
                             "spec": "N/A",
+                            "ignored": False,
                         }
                     ],
                     "date": self.timestamp,
@@ -164,6 +168,7 @@ class SafetyReportGenerator:
                             for vulnerability in package_scan_results["vulnerabilities"]:
                                 if vulnerability["reason_to_ignore"] == "N/A":
                                     vulnerability["reason_to_ignore"] = ignore_message
+                                    vulnerability["ignored"] = True
                                     self.vulnerabilities_to_be_added_to_ignore_list[
                                         vulnerability["vulnerability_id"]
                                     ] = ignore_message
