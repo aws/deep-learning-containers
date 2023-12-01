@@ -374,12 +374,6 @@ def fixture_dist_gpu_backend(request):
     return request.param
 
 
-@pytest.fixture(scope="session", name="cuda_version")
-def fixture_cuda_version(processor, ecr_image):
-    if processor == "gpu":
-        return get_cuda_version_from_tag(ecr_image)
-
-
 @pytest.fixture(autouse=True)
 def skip_by_device_type(request, use_gpu, instance_type):
     is_gpu = use_gpu or instance_type.lstrip("ml.")[0] in ["g", "p"]
@@ -421,9 +415,14 @@ def skip_gpu_instance_restricted_regions(region, instance_type):
         (region in NO_P2_REGIONS and instance_type.startswith("ml.p2"))
         or (region in NO_P3_REGIONS and instance_type.startswith("ml.p3"))
         or (region in NO_P4_REGIONS and instance_type.startswith("ml.p4"))
-        # NOTE P5 list is for *available* regions
-        or (region not in P5_AVAIL_REGIONS and instance_type.startswith("ml.p5"))
     ):
+        pytest.skip("Skipping GPU test in region {}".format(region))
+
+
+@pytest.fixture(autouse=True)
+def skip_gpu_instance_restricted_regions_efa(region, efa_instance_type):
+    # NOTE list for P5 instances is *available* regions
+    if region not in P5_AVAIL_REGIONS and efa_instance_type.startswith("ml.p5"):
         pytest.skip("Skipping GPU test in region {}".format(region))
 
 
@@ -481,8 +480,12 @@ def skip_s3plugin_test(request):
 
 
 @pytest.fixture(autouse=True)
-def skip_pt20_cuda121_tests(request, ecr_image):
-    if request.node.get_closest_marker("skip_pt20_cuda121_tests"):
+def skip_pt20_cuda121_tests(
+    request,
+    processor,
+    ecr_image,
+):
+    if request.node.get_closest_marker("skip_pt20_cuda121_tests") and processor == "gpu":
         _, image_framework_version = get_framework_and_version_from_tag(ecr_image)
         image_cuda_version = get_cuda_version_from_tag(ecr_image)
         if Version(image_framework_version) in SpecifierSet("==2.0.1") and Version(
@@ -492,9 +495,10 @@ def skip_pt20_cuda121_tests(request, ecr_image):
 
 
 @pytest.fixture(autouse=True)
-def skip_p5_tests(instance_type, processor, cuda_version):
+def skip_p5_tests(instance_type, processor, ecr_image):
     if "p5." in instance_type:
-        if processor != "gpu" or Version(cuda_version.strip("cu")) < Version("120"):
+        image_cuda_version = get_cuda_version_from_tag(ecr_image)
+        if processor != "gpu" or Version(image_cuda_version.strip("cu")) < Version("120"):
             pytest.skip("Images using less than CUDA 12.0 doesn't support P5 EC2 instance.")
 
 

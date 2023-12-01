@@ -43,11 +43,9 @@ MULTI_GPU_INSTANCE = "ml.p3.8xlarge"
 RESOURCE_PATH = os.path.join(os.path.dirname(__file__), "..", "..", "resources")
 
 
-def validate_or_skip_smmodelparallel(ecr_image, instance_type):
+def validate_or_skip_smmodelparallel(ecr_image):
     if not can_run_smmodelparallel(ecr_image):
         pytest.skip("Model Parallelism is supported on CUDA 11 on PyTorch v1.6 and above")
-    if instance_type.startswith("ml.p5"):
-        pytest.skip(f"{instance_type} is not supported by smdataparallel")
 
 
 def can_run_smmodelparallel(ecr_image):
@@ -58,9 +56,12 @@ def can_run_smmodelparallel(ecr_image):
     ) >= Version("110")
 
 
-def validate_or_skip_smmodelparallel_efa(ecr_image, instance_type):
+def validate_or_skip_smmodelparallel_efa(ecr_image):
     if not can_run_smmodelparallel_efa(ecr_image):
         pytest.skip("EFA is only supported on CUDA 11, and on PyTorch 1.8.1 or higher")
+
+
+def skip_unsupported_instances_smmodelparallel(instance_type):
     if instance_type.startswith("ml.p5"):
         pytest.skip(f"{instance_type} is not supported by smdataparallel")
 
@@ -523,6 +524,7 @@ def test_smmodelparallel_mnist_multigpu_multinode_efa(
     Tests pt mnist command via script mode
     """
     validate_or_skip_smmodelparallel_efa(ecr_image)
+    skip_unsupported_instances_smmodelparallel(efa_instance_type)
     with timeout(minutes=DEFAULT_TIMEOUT):
         estimator_parameter = {
             "entry_point": test_script,
@@ -618,6 +620,7 @@ def test_smmodelparallel_gpt2_sdp_multinode_efa(
     )
     inputs = {"train": train, "test": train}
     validate_or_skip_smmodelparallel(ecr_image)
+    skip_unsupported_instances_smmodelparallel(efa_instance_type)
     mp_params = {
         "partitions": 1,
         "tensor_parallel_degree": 1,
@@ -677,6 +680,7 @@ def test_sanity_efa(ecr_image, efa_instance_type, sagemaker_regions):
     Tests pt mnist command via script mode
     """
     validate_or_skip_smmodelparallel_efa(ecr_image)
+    skip_unsupported_instances_smmodelparallel(efa_instance_type)
     efa_test_path = os.path.join(RESOURCE_PATH, "efa", "test_efa.sh")
     with timeout(minutes=DEFAULT_TIMEOUT):
         estimator_parameter = {
