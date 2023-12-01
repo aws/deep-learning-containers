@@ -1743,7 +1743,7 @@ def get_image_push_time_from_ecr(ecr_client, image_uri):
 
     :param ecr_client: boto3 Client for ECR
     :param image_uri: str Image URI
-    :return: list, All the image tags
+    :return: datetime.datetime Object, Returns time 
     """
     account_id = get_account_id_from_image_uri(image_uri)
     image_repo_name, image_tag = get_repository_and_tag_from_image_uri(image_uri)

@@ -14,37 +14,77 @@ LOGGER.setLevel(logging.INFO)
 
 
 def pull_image_locally_with_all_its_tags_attached(image_uri):
+    """
+    Pulls the image locally and fetches all its tags and tags the image on the local host as well.
+
+    :param image_uri: str, Image URI
+    :return: List, List of all the tags attached to the image on the ECR
+    """
     from test import test_utils
+
     run(f"docker pull {image_uri}")
     image_region = test_utils.get_region_from_image_uri(image_uri=image_uri)
     ecr_client = boto3.client("ecr", region_name=image_region)
     image_repo = image_uri.split(":")[0]
-    tag_list = test_utils.get_all_the_tags_of_an_image_from_ecr(ecr_client=ecr_client, image_uri=image_uri)
+    tag_list = test_utils.get_all_the_tags_of_an_image_from_ecr(
+        ecr_client=ecr_client, image_uri=image_uri
+    )
     for tag in tag_list:
         run(f"docker tag {image_uri} {image_repo}:{tag}")
     return tag_list
 
 
 def get_push_time_of_image_from_ecr(image_uri):
+    """
+    This method uses the ERC boto3 client to get the push time of an image.
+
+    :param image_uri: str, Image URI
+    :return: datetime.datetime Object, Time of the Push
+    """
     from test import test_utils
+
     image_region = test_utils.get_region_from_image_uri(image_uri=image_uri)
     ecr_client = boto3.client("ecr", region_name=image_region)
     return test_utils.get_image_push_time_from_ecr(ecr_client=ecr_client, image_uri=image_uri)
 
 
 def get_benchmark_tag_attached_to_the_latest_image_in_beta(autopatch_image_tag_list):
-    benchmark_tag_list = [tag for tag in autopatch_image_tag_list if tag.endswith("-benchmark-tested")]
-    assert len(benchmark_tag_list) == 1, f"{benchmark_tag_list} has multiple or no benchmark tested image tag"
-    return benchmark_tag_list[0].replace("-autopatch","")
+    """
+    Iterates through all the tags attached to the autopatch benchmark tested image. Filters out only the benchmark
+    tested tags from the tag list and removes "-autopatch" from the tags to derive the benchmar-tested tag of Beta
+    ECR.
+
+    :param autopatch_image_tag_list: List, List of Tags attached to the AutoPatch image in the AutoPatch ECR
+    :return: str, Benchmark Tag as it would look on the latest benchmark tagged image in BETA ECR.
+    """
+    benchmark_tag_list = [
+        tag for tag in autopatch_image_tag_list if tag.endswith("-benchmark-tested")
+    ]
+    assert (
+        len(benchmark_tag_list) == 1
+    ), f"{benchmark_tag_list} has multiple or no benchmark tested image tag"
+    return benchmark_tag_list[0].replace("-autopatch", "")
 
 
 def get_benchmark_tested_image_uri_for_beta_image(autopatch_image_uri, benchmark_tag_in_beta):
-    ap_image_repo = autopatch_image_uri.split(":")[0]
-    beta_image_repo = ap_image_repo.replace("/autopatch-", "/beta-")
+    """
+    Uses autopatch_image_uri to derive the repo for the Beta image. Appends benchmark_tag_in_beta to the beta repo
+    and to form the image uri of the latest `benchmark-tested` tag image in beta repo and returns it.
+
+    :param autopatch_image_uri: str, Image URI of AutoPatch image
+    :param benchmark_tag_in_beta: str, Represents benchmark-tested tag of Beta ECRs.
+    """
+    autopatch_image_repo = autopatch_image_uri.split(":")[0]
+    beta_image_repo = autopatch_image_repo.replace("/autopatch-", "/beta-")
     return f"{beta_image_repo}:{benchmark_tag_in_beta}"
 
 
 def get_image_transfer_override_flags_from_s3():
+    """
+    Fetches the image_transfer_override_flags.json from the s3 bucket and returns its content.
+
+    :return: dict, Contents of the image_transfer_override_flags.json
+    """
     try:
         s3_client = boto3.client("s3")
         sts_client = boto3.client("sts")
@@ -60,9 +100,23 @@ def get_image_transfer_override_flags_from_s3():
 
 
 def is_image_transfer_enabled_by_override_flags(image_uri, image_transfer_override_flags):
+    """
+    Checks the image_transfer_override_flags to see if the current Commit ID exists as a key in the dictionary. In case
+    the current commit id exists, it checks the value corresponding to the `commit-id` key and checks if it is an empty
+    list or not. If it is an empty list, it means that all the images can be transferred. Thus, if the list is empty, it
+    returns True - stating that the image can be transferred. However, if the list has image URIs in it, it checks if the
+    image_uri passed in this method's argument is a part of thatl list or not. If it is a part of that list, returns True,
+    otherwise False.
+
+    :param image_uri: str, Image URI
+    :param image_transfer_override_flags: dict, Image Override flags derived from the s3 Bucket
+    """
     commit_id = os.getenv("CODEBUILD_RESOLVED_SOURCE_VERSION", "default")
     if commit_id in image_transfer_override_flags:
-        if not image_transfer_override_flags[commit_id] or image_uri in image_transfer_override_flags[commit_id]:
+        if (
+            not image_transfer_override_flags[commit_id]
+            or image_uri in image_transfer_override_flags[commit_id]
+        ):
             # If the list corresponding to the commit ID is empty, then return True. Otherwise, check if image uri
             # is present in the list and return True if it is present.
             LOGGER.info(f"[Override Enabled] Transfer override enabled for the image {image_uri}")
@@ -71,15 +125,44 @@ def is_image_transfer_enabled_by_override_flags(image_uri, image_transfer_overri
 
 
 def transfer_image(autopatch_image_repo, autopatch_image_tag_list, beta_repo):
+    """
+    Transfers the image from the AutoPatch ECR to the Beta ECR. This method iterates through all the tags attached
+    in the AutoPatch image and removes "-autopatch" from those tags to form the appropriate beta_tag for the beta repository.
+    It then tags the image with {beta_repo}:{beta_tag} and pushes the image. It also attaches the autopatch tags to the beta image.
+    In other words, it tags the image wit {beta_repo}:{autopatch_tag} and pushes the image to ensure that autopatch tags are
+    preserved with the image as well. It DOES NOT transfer those autopatch_tags to the beta repo that have "benchmark-tested" in it.
+
+    :param autopatch_image_repo: str, Image URI of the AutoPatch Image.
+    :param autopatch_image_tag_list: list, List of all the image tags that were attached to the image in autopatch ECR
+    :param beta_repo: str, Beta Repo
+    """
     for autopatch_tag in autopatch_image_tag_list:
-        beta_tag = autopatch_tag.replace("-autopatch","")
+        ## TODO: Remove this condition before merging.
+        if "benchmark-tested" in autopatch_tag:
+            continue
+        beta_tag = autopatch_tag.replace("-autopatch", "")
         print(f"docker tag {autopatch_image_repo}:{autopatch_tag} {beta_repo}:{beta_tag}")
         run(f"docker tag {autopatch_image_repo}:{autopatch_tag} {beta_repo}:{beta_tag}")
-        # run(f"docker push {beta_repo}:{beta_tag}")
+        run(f"docker push {beta_repo}:{beta_tag}")
+        if "benchmark-tested" not in autopatch_tag:
+            run(f"docker tag {autopatch_image_repo}:{autopatch_tag} {beta_repo}:{autopatch_tag}")
+            run(f"docker push {beta_repo}:{autopatch_tag}")
 
 
 def is_image_transferable(autopatch_image_uri, beta_image_uri, image_transfer_override_flags):
-    if is_image_transfer_enabled_by_override_flags(image_uri=autopatch_image_uri, image_transfer_override_flags=image_transfer_override_flags):
+    """
+    Checks if an image is transferable or not. It first checks if the image_transfer_flag has been enabled. In case
+    yes, it trasfers the image. In case not, it checks if the latest benchmark image in the Beta ECR is stale for more
+    than 3 days. If yes, conducts the transfer. If not, does not conduct the transfer.
+
+    :param autopatch_image_uri: str, Image URI of the AutoPatch image
+    :param beta_image_uri: str, Image URI of the Beta image
+    :param image_transfer_override_flags: dict, Image Override flags derived from the s3 Bucket
+    :return: boolean, True if the transfer can happen, False otherwise.
+    """
+    if is_image_transfer_enabled_by_override_flags(
+        image_uri=autopatch_image_uri, image_transfer_override_flags=image_transfer_override_flags
+    ):
         return True
     beta_image_push_time = get_push_time_of_image_from_ecr(image_uri=beta_image_uri)
     current_time = datetime.now(timezone.utc)
@@ -93,7 +176,14 @@ def is_image_transferable(autopatch_image_uri, beta_image_uri, image_transfer_ov
 
     return False
 
+
 def main():
+    """
+    Driver function that handles the transfer of all the images from autopatch to beta ECRs.
+
+    Gets the list of Image URIs that need to be transferred. Iterates through the list to check if an
+    image can be transferred or not. Transfers the image in case it can be transferred.
+    """
     from test import test_utils
 
     dlc_images = test_utils.get_dlc_images()
@@ -103,20 +193,29 @@ def main():
 
     for autopatch_image in image_list:
         print(autopatch_image)
-        autopatch_image_tag_list = pull_image_locally_with_all_its_tags_attached(image_uri=autopatch_image)
-        benchmark_tag_in_beta = get_benchmark_tag_attached_to_the_latest_image_in_beta(autopatch_image_tag_list=autopatch_image_tag_list)
-        beta_latest_benchmark_image_uri = get_benchmark_tested_image_uri_for_beta_image(autopatch_image_uri=autopatch_image, benchmark_tag_in_beta=benchmark_tag_in_beta)
-        beta_image_push_time = get_push_time_of_image_from_ecr(image_uri=beta_latest_benchmark_image_uri)
-        if is_image_transferable(autopatch_image_uri=autopatch_image, beta_image_uri=beta_latest_benchmark_image_uri, image_transfer_override_flags=image_transfer_override_flags):
+        autopatch_image_tag_list = pull_image_locally_with_all_its_tags_attached(
+            image_uri=autopatch_image
+        )
+        benchmark_tag_in_beta = get_benchmark_tag_attached_to_the_latest_image_in_beta(
+            autopatch_image_tag_list=autopatch_image_tag_list
+        )
+        beta_latest_benchmark_image_uri = get_benchmark_tested_image_uri_for_beta_image(
+            autopatch_image_uri=autopatch_image, benchmark_tag_in_beta=benchmark_tag_in_beta
+        )
+        if is_image_transferable(
+            autopatch_image_uri=autopatch_image,
+            beta_image_uri=beta_latest_benchmark_image_uri,
+            image_transfer_override_flags=image_transfer_override_flags,
+        ):
             autopatch_image_repo = autopatch_image.split(":")[0]
             beta_image_repo = beta_latest_benchmark_image_uri.split(":")[0]
-            transfer_image(autopatch_image_repo=autopatch_image_repo, autopatch_image_tag_list=autopatch_image_tag_list, beta_repo=beta_image_repo)
+            transfer_image(
+                autopatch_image_repo=autopatch_image_repo,
+                autopatch_image_tag_list=autopatch_image_tag_list,
+                beta_repo=beta_image_repo,
+            )
         else:
             LOGGER.info(f"Image {autopatch_image} cannot be transferred.")
-
-        print(benchmark_tag_in_beta)
-        print(beta_image_push_time)
-        print(type(beta_image_push_time))
 
 
 if __name__ == "__main__":
