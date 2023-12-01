@@ -40,7 +40,7 @@ P3DN_REGION = "us-east-1"
 P4DE_REGION = "us-east-1"
 
 
-def get_ami_id_boto3(region_name, ami_name_pattern):
+def get_ami_id_boto3(region_name, ami_name_pattern, IncludeDeprecated=False):
     """
     For a given region and ami name pattern, return the latest ami-id
     """
@@ -52,7 +52,9 @@ def get_ami_id_boto3(region_name, ami_name_pattern):
         config=Config(retries={"max_attempts": 10, "mode": "standard"}),
     )
     ami_list = ec2_client.describe_images(
-        Filters=[{"Name": "name", "Values": [ami_name_pattern]}], Owners=["amazon"]
+        Filters=[{"Name": "name", "Values": [ami_name_pattern]}],
+        Owners=["amazon"],
+        IncludeDeprecated=IncludeDeprecated,
     )
     ami = max(ami_list["Images"], key=lambda x: x["CreationDate"])
     return ami["ImageId"]
@@ -88,14 +90,24 @@ AML2_BASE_DLAMI_US_EAST_1 = get_ami_id_boto3(
     region_name="us-east-1", ami_name_pattern="Deep Learning Base AMI (Amazon Linux 2) Version ??.?"
 )
 # We use the following DLAMI for MXNet and TensorFlow tests as well, but this is ok since we use custom DLC Graviton containers on top. We just need an ARM base DLAMI.
-
-##TODO: Revert this
-UL20_CPU_ARM64_US_WEST_2 = "abcd"
-UL20_CPU_ARM64_US_EAST_1 = "efgh"
-UL20_BENCHMARK_CPU_ARM64_US_WEST_2 = "ijkl"
-AML2_CPU_ARM64_US_EAST_1 = "mno"
-
-
+UL20_CPU_ARM64_US_WEST_2 = get_ami_id_boto3(
+    region_name="us-west-2",
+    ami_name_pattern="Deep Learning AMI Graviton GPU CUDA 11.4.2 (Ubuntu 20.04) ????????",
+    IncludeDeprecated=True,
+)
+UL20_CPU_ARM64_US_EAST_1 = get_ami_id_boto3(
+    region_name="us-east-1",
+    ami_name_pattern="Deep Learning AMI Graviton GPU CUDA 11.4.2 (Ubuntu 20.04) ????????",
+    IncludeDeprecated=True,
+)
+UL20_BENCHMARK_CPU_ARM64_US_WEST_2 = get_ami_id_boto3(
+    region_name="us-west-2",
+    ami_name_pattern="Deep Learning AMI Graviton GPU TensorFlow 2.7.0 (Ubuntu 20.04) ????????",
+    IncludeDeprecated=True,
+)
+AML2_CPU_ARM64_US_EAST_1 = get_ami_id_boto3(
+    region_name="us-east-1", ami_name_pattern="Deep Learning Base AMI (Amazon Linux 2) Version ??.?"
+)
 PT_GPU_PY3_BENCHMARK_IMAGENET_AMI_US_EAST_1 = "ami-0673bb31cc62485dd"
 PT_GPU_PY3_BENCHMARK_IMAGENET_AMI_US_WEST_2 = "ami-02d9a47bc61a31d43"
 # Since latest driver is not in public DLAMI yet, using a custom one
