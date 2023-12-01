@@ -26,8 +26,13 @@ mv $patching_info_path/patch-details-current $patching_info_path/patch-details
 chmod +x $patching_info_path/patch-details/install_script_language.sh && \
 $patching_info_path/patch-details/install_script_language.sh
 
+pip cache purge
+
 chmod +x $patching_info_path/patch-details/install_script_os.sh && \
 $patching_info_path/patch-details/install_script_os.sh
+
+rm -rf /var/lib/apt/lists/* && \
+  apt-get clean
 
 python /opt/aws/dlc/miscellaneous_scripts/derive_history.py
 
