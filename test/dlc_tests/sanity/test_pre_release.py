@@ -49,6 +49,8 @@ from test.test_utils import (
     get_account_id_from_image_uri,
     get_region_from_image_uri,
     DockerImagePullException,
+    get_installed_python_packages_with_version,
+    get_installed_python_packages_using_image_uri,
 )
 
 
@@ -1049,10 +1051,17 @@ def test_package_version_regression_in_image(image):
     for _, image_spec in buildspec_def["images"].items():
         if image_tag.startswith(image_spec["tag"]):
             if corresponding_image_spec:
-                raise ValueError(f"""Mutliple tags - {corresponding_image_spec["tag"]}, {image_spec["tag"]} found for the image {image}""")
+                raise ValueError(
+                    f"""Mutliple tags - {corresponding_image_spec["tag"]}, {image_spec["tag"]} found for the image {image}"""
+                )
             corresponding_image_spec = image_spec
 
-    if any([expected_key not in corresponding_image_spec for expected_key in ["latest_release_tag", "release_repository"]]):
+    if any(
+        [
+            expected_key not in corresponding_image_spec
+            for expected_key in ["latest_release_tag", "release_repository"]
+        ]
+    ):
         pytest.skip(f"Image {image} does not have `latest_release_tag` in its buildspec.")
 
     previous_released_image_uri = f"""{corresponding_image_spec["release_repository"]}:{corresponding_image_spec["latest_release_tag"]}"""
@@ -1066,5 +1075,32 @@ def test_package_version_regression_in_image(image):
     run_output = ctx.run(f"docker pull {previous_released_image_uri}", warn=True, hide=True)
     if not run_output.ok:
         if "requested image not found" in run_output.stderr.lower():
-            pytest.skip(f"Previous image: {previous_released_image_uri} for Image: {image} has not been released yet")
-        raise DockerImagePullException(f"{run_output.stderr} when pulling {previous_released_image_uri}")
+            pytest.skip(
+                f"Previous image: {previous_released_image_uri} for Image: {image} has not been released yet"
+            )
+        raise DockerImagePullException(
+            f"{run_output.stderr} when pulling {previous_released_image_uri}"
+        )
+
+    current_image_package_version_dict = get_installed_python_packages_using_image_uri(
+        context=ctx, image_uri=image
+    )
+    released_image_package_version_dict = get_installed_python_packages_using_image_uri(
+        context=ctx, image_uri=previous_released_image_uri
+    )
+    violating_packages = {}
+    for package_name, version_in_released_image in released_image_package_version_dict.items():
+        if package_name not in current_image_package_version_dict:
+            violating_packages[
+                package_name
+            ] = "Not present in the image that is being currently built."
+            continue
+        version_in_current_image = current_image_package_version_dict[package_name]
+        if Version(version_in_released_image) > Version(version_in_current_image):
+            violating_packages[
+                package_name
+            ] = f"Version in already relased image: {version_in_released_image} is greater that version in current image: {version_in_current_image}"
+
+    assert (
+        not violating_packages
+    ), f"Package regression observed between already released image: {previous_released_image_uri} and current image: {image}. Violating packages: {json.dumps(violating_packages)}"

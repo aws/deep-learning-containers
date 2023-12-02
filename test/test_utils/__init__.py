@@ -23,6 +23,7 @@ from datetime import date, datetime
 from retrying import retry
 from pathlib import Path
 import dataclasses
+import uuid
 
 # from security import EnhancedJSONEncoder
 
@@ -2231,7 +2232,7 @@ def get_installed_python_packages_with_version(docker_exec_command: str):
         import json; \
         print(json.dumps([{'name':d.key, 'version':d.version} for d in pkg_resources.working_set]))" """
 
-    run_output = run(f"{docker_exec_command} {python_cmd_to_extract_package_set}")
+    run_output = run(f"{docker_exec_command} {python_cmd_to_extract_package_set}", hide=True)
     list_of_package_data_dicts = json.loads(run_output.stdout)
 
     for package_data_dict in list_of_package_data_dicts:
@@ -2243,3 +2244,16 @@ def get_installed_python_packages_with_version(docker_exec_command: str):
         package_version_dict[package_name] = package_data_dict["version"]
 
     return package_version_dict
+
+
+def get_installed_python_packages_using_image_uri(context, image_uri, container_name=""):
+    container_name = container_name or get_container_name(
+        f"py-version-extraction-{uuid.uuid4()}", image_uri
+    )
+    start_container(container_name, image_uri, context)
+    docker_exec_command_for_current_image = f"""docker exec --user root {container_name}"""
+    current_image_package_version_dict = get_installed_python_packages_with_version(
+        docker_exec_command=docker_exec_command_for_current_image
+    )
+    stop_and_remove_container(container_name=container_name, context=context)
+    return current_image_package_version_dict
