@@ -51,6 +51,7 @@ from test.test_utils import (
     DockerImagePullException,
     get_installed_python_packages_with_version,
     get_installed_python_packages_using_image_uri,
+    get_image_spec_from_buildspec,
 )
 
 
@@ -1038,23 +1039,14 @@ def test_core_package_version(image):
 
 @pytest.mark.model("N/A")
 def test_package_version_regression_in_image(image):
+    """
+    This test verifies if the python package versions in the already released image are not being downgraded/deleted in the
+    new released. This test would be skipped for images whose BuildSpec does not have `latest_release_tag` or `release_repository`
+    keys in the buildspec - as these keys are used to extract the released image uri. Additionally, if the image is not already
+    released, this test would be skipped.
+    """
     dlc_path = os.getcwd().split("/test/")[0]
-    LOGGER.info("Here")
-    LOGGER.info(dlc_path)
-    image_repo, image_tag = get_repository_and_tag_from_image_uri(image)
-    buildspec_path = get_buildspec_path(dlc_path)
-    buildspec_def = Buildspec()
-    buildspec_def.load(buildspec_path)
-    corresponding_image_spec = None
-    print(image_tag)
-
-    for _, image_spec in buildspec_def["images"].items():
-        if image_tag.startswith(image_spec["tag"]):
-            if corresponding_image_spec:
-                raise ValueError(
-                    f"""Mutliple tags - {corresponding_image_spec["tag"]}, {image_spec["tag"]} found for the image {image}"""
-                )
-            corresponding_image_spec = image_spec
+    corresponding_image_spec = get_image_spec_from_buildspec(image_uri=image, dlc_folder_path=dlc_path)
 
     if any(
         [
@@ -1066,8 +1058,10 @@ def test_package_version_regression_in_image(image):
 
     previous_released_image_uri = f"""{corresponding_image_spec["release_repository"]}:{corresponding_image_spec["latest_release_tag"]}"""
 
-    LOGGER.info(corresponding_image_spec)
+    LOGGER.info(f"Image spec for {image}: {json.dumps(corresponding_image_spec)}")
     ctx = Context()
+
+    # Pull previous_released_image_uri
     prod_account_id = get_account_id_from_image_uri(image_uri=previous_released_image_uri)
     prod_image_region = get_region_from_image_uri(image_uri=previous_released_image_uri)
     login_to_ecr_registry(context=ctx, account_id=prod_account_id, region=prod_image_region)
@@ -1082,6 +1076,7 @@ def test_package_version_regression_in_image(image):
             f"{run_output.stderr} when pulling {previous_released_image_uri}"
         )
 
+    # Get the installed python package versions and find any regressions
     current_image_package_version_dict = get_installed_python_packages_using_image_uri(
         context=ctx, image_uri=image
     )

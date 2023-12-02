@@ -2247,6 +2247,16 @@ def get_installed_python_packages_with_version(docker_exec_command: str):
 
 
 def get_installed_python_packages_using_image_uri(context, image_uri, container_name=""):
+    """
+    This method returns the python package versions that are installed within and image_uri. This method
+    handles all the overhead of creating a container for the image and then running the command on top of
+    it and then removing the container.
+
+    :param context: Invoke context object
+    :param image_uri: str, Image URI
+    :param container_name: str, Custom name for the container
+    :return: Dict, Dictionary with key=package_name and value=package_version in str
+    """
     container_name = container_name or get_container_name(
         f"py-version-extraction-{uuid.uuid4()}", image_uri
     )
@@ -2257,3 +2267,30 @@ def get_installed_python_packages_using_image_uri(context, image_uri, container_
     )
     stop_and_remove_container(container_name=container_name, context=context)
     return current_image_package_version_dict
+
+
+def get_image_spec_from_buildspec(image_uri, dlc_folder_path):
+    """
+    This method reads the BuildSpec file for the given image_uri and returns that image_spec within the BuildSpec file that corresponds
+    to the given image_uri.
+
+    :param image_uri: str, Image URI
+    :param dlc_folder_path: str, Path of the DLC folder on the current host
+    :return: dict, the image_spec dictionary corresponding to the given image
+    """
+    from src.buildspec import Buildspec
+    _, image_tag = get_repository_and_tag_from_image_uri(image_uri)
+    buildspec_path = get_buildspec_path(dlc_folder_path)
+    buildspec_def = Buildspec()
+    buildspec_def.load(buildspec_path)
+    corresponding_image_spec = None
+
+    for _, image_spec in buildspec_def["images"].items():
+        if image_tag.startswith(image_spec["tag"]):
+            if corresponding_image_spec:
+                raise ValueError(
+                    f"""Mutliple tags - {corresponding_image_spec["tag"]}, {image_spec["tag"]} found for the image {image_uri}"""
+                )
+            corresponding_image_spec = image_spec
+
+    return corresponding_image_spec
