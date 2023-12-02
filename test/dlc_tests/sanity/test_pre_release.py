@@ -45,6 +45,10 @@ from test.test_utils import (
     UBUNTU_18_HPU_DLAMI_US_WEST_2,
     NEURON_UBUNTU_18_BASE_DLAMI_US_WEST_2,
     get_installed_python_packages_with_version,
+    login_to_ecr_registry,
+    get_account_id_from_image_uri,
+    get_region_from_image_uri,
+    DockerImagePullException,
 )
 
 
@@ -1028,3 +1032,39 @@ def test_core_package_version(image):
     assert (
         not violation_data
     ), f"Few packages violate the core_package specifications: {violation_data}"
+
+
+@pytest.mark.model("N/A")
+def test_package_version_regression_in_image(image):
+    dlc_path = os.getcwd().split("/test/")[0]
+    LOGGER.info("Here")
+    LOGGER.info(dlc_path)
+    image_repo, image_tag = get_repository_and_tag_from_image_uri(image)
+    buildspec_path = get_buildspec_path(dlc_path)
+    buildspec_def = Buildspec()
+    buildspec_def.load(buildspec_path)
+    corresponding_image_spec = None
+    print(image_tag)
+
+    for _, image_spec in buildspec_def["images"].items():
+        if image_tag.startswith(image_spec["tag"]):
+            if corresponding_image_spec:
+                raise ValueError(f"""Mutliple tags - {corresponding_image_spec["tag"]}, {image_spec["tag"]} found for the image {image}""")
+            corresponding_image_spec = image_spec
+
+    if any([expected_key not in corresponding_image_spec for expected_key in ["latest_release_tag", "release_repository"]]):
+        pytest.skip(f"Image {image} does not have `latest_release_tag` in its buildspec.")
+
+    previous_released_image_uri = f"""{corresponding_image_spec["release_repository"]}:{corresponding_image_spec["latest_release_tag"]}"""
+
+    LOGGER.info(corresponding_image_spec)
+    ctx = Context()
+    prod_account_id = get_account_id_from_image_uri(image_uri=previous_released_image_uri)
+    prod_image_region = get_region_from_image_uri(image_uri=previous_released_image_uri)
+    login_to_ecr_registry(context=ctx, account_id=prod_account_id, region=prod_image_region)
+    previous_released_image_uri = f"{previous_released_image_uri}"
+    run_output = ctx.run(f"docker pull {previous_released_image_uri}", warn=True, hide=True)
+    if not run_output.ok:
+        if "requested image not found" in run_output.stderr.lower():
+            pytest.skip(f"Previous image: {previous_released_image_uri} for Image: {image} has not been released yet")
+        raise DockerImagePullException(f"{run_output.stderr} when pulling {previous_released_image_uri}")

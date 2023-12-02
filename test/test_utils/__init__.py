@@ -255,6 +255,14 @@ class CudaVersionTagNotFoundException(Exception):
     pass
 
 
+class DockerImagePullException(Exception):
+    """
+    When a docker image could not be pulled from ECR
+    """
+
+    pass
+
+
 class EnhancedJSONEncoder(json.JSONEncoder):
     """
     EnhancedJSONEncoder is required to dump dataclass objects as JSON.
