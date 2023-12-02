@@ -20,7 +20,6 @@ phases:
       - pip install -r test/requirements.txt
       - pip install scheduler/.
       - echo Running $TEST_TYPE tests on $DLC_IMAGES...
-      ## TODO: revert
       - python src/image_transfer.py
   post_build:
     commands:

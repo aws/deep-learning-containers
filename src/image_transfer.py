@@ -158,13 +158,15 @@ def transfer_image(autopatch_image_repo, autopatch_image_tag_list, beta_repo):
     for autopatch_tag in autopatch_image_tag_list:
         beta_tag = autopatch_tag.replace("-autopatch", "")
         run(f"docker tag {autopatch_image_repo}:{autopatch_tag} {beta_repo}:{beta_tag}", hide=True)
-        run(f"docker push {beta_repo}:{beta_tag}", hide=True)
+        # TODO: Revert
+        # run(f"docker push {beta_repo}:{beta_tag}", hide=True)
         if "benchmark-tested" not in autopatch_tag:
             run(
                 f"docker tag {autopatch_image_repo}:{autopatch_tag} {beta_repo}:{autopatch_tag}",
                 hide=True,
             )
-            run(f"docker push {beta_repo}:{autopatch_tag}", hide=True)
+            # TODO: Revert
+            # run(f"docker push {beta_repo}:{autopatch_tag}", hide=True)
 
 
 def is_image_transferable(autopatch_image_uri, beta_image_uri, image_transfer_override_flags):
@@ -202,6 +204,27 @@ def is_image_transferable(autopatch_image_uri, beta_image_uri, image_transfer_ov
     return False
 
 
+def conduct_initial_verification_to_confirm_if_image_should_be_transferred(
+    autopatch_image_uri, autopatch_image_tag_list
+):
+    """
+    This method conducts initial verification on the AutoPatch image to confirm if it belongs to AutoPatch ECR and that it
+    is benchmark tested image or not.
+
+    :param autopatch_image_uri: str, Image URI
+    :param autopatch_image_tag_list: List, List of Image Tags
+    """
+    autopatch_repo = autopatch_image_uri.split(":")[0]
+    autopatch_repo_name = autopatch_repo.split("/")[1]
+    assert autopatch_repo_name.startswith(
+        "autopatch-"
+    ), f"Image {autopatch_image_uri} is not an AutoPatch image."
+
+    assert any(
+        [tag for tag in autopatch_image_tag_list if tag.endswith("-benchmark-tested")]
+    ), f"Image {autopatch_image_uri} is not yet benchmark tested."
+
+
 def main():
     """
     Driver function that handles the transfer of all the images from autopatch to beta ECRs.
@@ -217,14 +240,11 @@ def main():
     image_transfer_override_flags = get_image_transfer_override_flags_from_s3()
 
     for autopatch_image in image_list:
-        autopatch_repo = autopatch_image.split(":")[0]
-        autopatch_repo_name = autopatch_repo.split("/")[1]
-        assert autopatch_repo_name.startswith(
-            "autopatch-"
-        ), f"Image {autopatch_image} is not an AutoPatch image."
-
         autopatch_image_tag_list = pull_image_locally_with_all_its_tags_attached(
             image_uri=autopatch_image
+        )
+        conduct_initial_verification_to_confirm_if_image_should_be_transferred(
+            autopatch_image_uri=autopatch_image, autopatch_image_tag_list=autopatch_image_tag_list
         )
         benchmark_tag_in_beta = get_benchmark_tag_attached_to_the_latest_image_in_beta(
             autopatch_image_tag_list=autopatch_image_tag_list
