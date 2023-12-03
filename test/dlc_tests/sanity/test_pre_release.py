@@ -1046,7 +1046,9 @@ def test_package_version_regression_in_image(image):
     released, this test would be skipped.
     """
     dlc_path = os.getcwd().split("/test/")[0]
-    corresponding_image_spec = get_image_spec_from_buildspec(image_uri=image, dlc_folder_path=dlc_path)
+    corresponding_image_spec = get_image_spec_from_buildspec(
+        image_uri=image, dlc_folder_path=dlc_path
+    )
 
     if any(
         [

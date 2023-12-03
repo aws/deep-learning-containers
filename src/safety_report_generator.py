@@ -131,9 +131,7 @@ class SafetyReportGenerator:
         """
         This method extracts the dumped ignore lists within the DLCs that have been dumped by the autopatch procedure.
         """
-        dumped_ignore_list_command = (
-            f"{self.docker_exec_cmd} cat /opt/aws/dlc/patching-info/patch-details/vuln_deactivation_data.json"
-        )
+        dumped_ignore_list_command = f"{self.docker_exec_cmd} cat /opt/aws/dlc/patching-info/patch-details/vuln_deactivation_data.json"
         return_data = {}
         try:
             run_out = self.ctx.run(dumped_ignore_list_command, hide=True)

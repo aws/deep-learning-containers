@@ -2279,6 +2279,7 @@ def get_image_spec_from_buildspec(image_uri, dlc_folder_path):
     :return: dict, the image_spec dictionary corresponding to the given image
     """
     from src.buildspec import Buildspec
+
     _, image_tag = get_repository_and_tag_from_image_uri(image_uri)
     buildspec_path = get_buildspec_path(dlc_folder_path)
     buildspec_def = Buildspec()
