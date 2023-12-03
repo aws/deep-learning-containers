@@ -162,16 +162,14 @@ def transfer_image(autopatch_image_repo, autopatch_image_tag_list, beta_repo):
         beta_tag = autopatch_tag.replace("-autopatch", "")
         run(f"docker tag {autopatch_image_repo}:{autopatch_tag} {beta_repo}:{beta_tag}", hide=True)
         LOGGER.info(f"docker push {beta_repo}:{beta_tag}")
-        # TODO: Revert
-        # run(f"docker push {beta_repo}:{beta_tag}", hide=True)
+        run(f"docker push {beta_repo}:{beta_tag}", hide=True)
         if "benchmark-tested" not in autopatch_tag:
             run(
                 f"docker tag {autopatch_image_repo}:{autopatch_tag} {beta_repo}:{autopatch_tag}",
                 hide=True,
             )
             LOGGER.info(f"docker push {beta_repo}:{autopatch_tag}")
-            # TODO: Revert
-            # run(f"docker push {beta_repo}:{autopatch_tag}", hide=True)
+            run(f"docker push {beta_repo}:{autopatch_tag}", hide=True)
 
 
 def is_image_transferable(autopatch_image_uri, beta_image_uri, image_transfer_override_flags):
