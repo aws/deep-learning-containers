@@ -12,6 +12,15 @@ LOGGER = logging.getLogger(__name__)
 LOGGER.addHandler(logging.StreamHandler(sys.stdout))
 LOGGER.setLevel(logging.INFO)
 
+from test import test_utils
+
+
+def get_repository_uri(image_uri):
+    """
+    Returns the repository URI in the format <ACCOUNT_ID>.dkr.ecr.<REGION>.amazonaws.com/<REPOSITORY_NAME>
+    """
+    return image_uri.split(":")[0]
+
 
 def pull_image_locally_with_all_its_tags_attached(image_uri):
     """
@@ -20,8 +29,6 @@ def pull_image_locally_with_all_its_tags_attached(image_uri):
     :param image_uri: str, Image URI
     :return: List, List of all the tags attached to the image on the ECR
     """
-    from test import test_utils
-
     run(f"docker pull {image_uri}", hide=True)
     image_region = test_utils.get_region_from_image_uri(image_uri=image_uri)
     ecr_client = boto3.client("ecr", region_name=image_region)
@@ -43,8 +50,6 @@ def is_latest_benchmark_tested_beta_image_an_autopatch_image_itself(beta_image_u
     :param beta_image_uri: str, Image URI of beta benchmark tested image
     :return: boolean, True if beta benchmark image is an autopatch image itself. False otherwise.
     """
-    from test import test_utils
-
     image_region = test_utils.get_region_from_image_uri(image_uri=beta_image_uri)
     ecr_client = boto3.client("ecr", region_name=image_region)
     tag_list = test_utils.get_all_the_tags_of_an_image_from_ecr(
@@ -60,8 +65,6 @@ def get_push_time_of_image_from_ecr(image_uri):
     :param image_uri: str, Image URI
     :return: datetime.datetime Object, Time of the Push
     """
-    from test import test_utils
-
     image_region = test_utils.get_region_from_image_uri(image_uri=image_uri)
     ecr_client = boto3.client("ecr", region_name=image_region)
     return test_utils.get_image_push_time_from_ecr(ecr_client=ecr_client, image_uri=image_uri)
@@ -93,7 +96,7 @@ def get_benchmark_tested_image_uri_for_beta_image(autopatch_image_uri, benchmark
     :param autopatch_image_uri: str, Image URI of AutoPatch image
     :param benchmark_tag_in_beta: str, Represents benchmark-tested tag of Beta ECRs.
     """
-    autopatch_image_repo = autopatch_image_uri.split(":")[0]
+    autopatch_image_repo = get_repository_uri(image_uri=autopatch_image_uri)
     beta_image_repo = autopatch_image_repo.replace("/autopatch-", "/beta-")
     return f"{beta_image_repo}:{benchmark_tag_in_beta}"
 
@@ -158,6 +161,7 @@ def transfer_image(autopatch_image_repo, autopatch_image_tag_list, beta_repo):
     for autopatch_tag in autopatch_image_tag_list:
         beta_tag = autopatch_tag.replace("-autopatch", "")
         run(f"docker tag {autopatch_image_repo}:{autopatch_tag} {beta_repo}:{beta_tag}", hide=True)
+        LOGGER.info(f"docker push {beta_repo}:{beta_tag}")
         # TODO: Revert
         # run(f"docker push {beta_repo}:{beta_tag}", hide=True)
         if "benchmark-tested" not in autopatch_tag:
@@ -165,6 +169,7 @@ def transfer_image(autopatch_image_repo, autopatch_image_tag_list, beta_repo):
                 f"docker tag {autopatch_image_repo}:{autopatch_tag} {beta_repo}:{autopatch_tag}",
                 hide=True,
             )
+            LOGGER.info(f"docker push {beta_repo}:{autopatch_tag}")
             # TODO: Revert
             # run(f"docker push {beta_repo}:{autopatch_tag}", hide=True)
 
@@ -214,8 +219,9 @@ def conduct_initial_verification_to_confirm_if_image_should_be_transferred(
     :param autopatch_image_uri: str, Image URI
     :param autopatch_image_tag_list: List, List of Image Tags
     """
-    autopatch_repo = autopatch_image_uri.split(":")[0]
-    autopatch_repo_name = autopatch_repo.split("/")[1]
+    autopatch_repo_name, _ = test_utils.get_repository_and_tag_from_image_uri(
+        image_uri=autopatch_image_uri
+    )
     assert autopatch_repo_name.startswith(
         "autopatch-"
     ), f"Image {autopatch_image_uri} is not in AutoPatch ECR."
@@ -232,14 +238,15 @@ def main():
     Gets the list of Image URIs that need to be transferred. Iterates through the list to check if an
     image can be transferred or not. Transfers the image in case it can be transferred.
     """
-    from test import test_utils
 
     dlc_images = test_utils.get_dlc_images()
     image_list = dlc_images.split(" ")
 
     ##TODO Revert:
     temp_image_repo = image_list[0].split(":")[0]
-    temp_image_repo = temp_image_repo.replace("/pr-","/autopatch-").replace("/trshanta-","/autopatch-")
+    temp_image_repo = temp_image_repo.replace("/pr-", "/autopatch-").replace(
+        "/trshanta-", "/autopatch-"
+    )
     temp_image_tag = "2.12.1-gpu-py310-cu118-ubuntu20.04-sagemaker-autopatch-benchmark-tested-2023-11-17-22-14-00"
     image_list = [f"{temp_image_repo}:{temp_image_tag}"]
     print(image_list)
@@ -247,6 +254,7 @@ def main():
     image_transfer_override_flags = get_image_transfer_override_flags_from_s3()
 
     for autopatch_image in image_list:
+        LOGGER.info(f"[Processing] Image: {autopatch_image}")
         autopatch_image_tag_list = pull_image_locally_with_all_its_tags_attached(
             image_uri=autopatch_image
         )
@@ -264,8 +272,8 @@ def main():
             beta_image_uri=beta_latest_benchmark_image_uri,
             image_transfer_override_flags=image_transfer_override_flags,
         ):
-            autopatch_image_repo = autopatch_image.split(":")[0]
-            beta_image_repo = beta_latest_benchmark_image_uri.split(":")[0]
+            autopatch_image_repo = get_repository_uri(image_uri=autopatch_image)
+            beta_image_repo = get_repository_uri(image_uri=beta_latest_benchmark_image_uri)
             transfer_image(
                 autopatch_image_repo=autopatch_image_repo,
                 autopatch_image_tag_list=autopatch_image_tag_list,
