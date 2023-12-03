@@ -129,7 +129,11 @@ def conduct_preprocessing_of_images_before_running_ecr_scans(image, ecr_client, 
 
 
 def helper_function_for_leftover_vulnerabilities_from_enhanced_scanning(
-    image, python_version=None, remove_non_patchable_vulns=False
+    image,
+    python_version=None,
+    remove_non_patchable_vulns=False,
+    minimum_sev_threshold=None,
+    allowlist_removal_enabled=True,
 ):
     """
     Acts as a helper function that conducts enhanced scan on an image URI and then returns the list of leftover vulns
@@ -143,6 +147,8 @@ def helper_function_for_leftover_vulnerabilities_from_enhanced_scanning(
 
     :param image: str Image URI for image to be tested
     :param python_version: str, This parameter is used for extracting allowlist for canary image uris that do not have a python version in it.
+    :param minimum_sev_threshold: str, If minimum_sev_threshold is set vulnerabilities with severity < minimum_sev_threshold will not be taken into consideration.
+    :param allowlist_removal_enabled: boolean, Value of this parameter decides if we should remove allowlisted vulnearbilities from the scanner results.
     :return: ECREnhancedScanVulnerabilityList Object with leftover vulnerability data
     :return: ecr_enhanced_repo_uri, String for the image uri in the enhanced scanning repo
     """
@@ -182,7 +188,7 @@ def helper_function_for_leftover_vulnerabilities_from_enhanced_scanning(
     )
     scan_results = json.loads(json.dumps(scan_results, cls=EnhancedJSONEncoder))
 
-    minimum_sev_threshold = get_minimum_sev_threshold_level(image)
+    minimum_sev_threshold = minimum_sev_threshold or get_minimum_sev_threshold_level(image)
     ecr_image_vulnerability_list = ECREnhancedScanVulnerabilityList(
         minimum_severity=CVESeverity[minimum_sev_threshold]
     )
@@ -202,7 +208,7 @@ def helper_function_for_leftover_vulnerabilities_from_enhanced_scanning(
             )
         LOGGER.info(f"[Allowlist] Trying to locate Allowlist at PATH: {image_scan_allowlist_path}")
         # Check if image Scan Allowlist Path exists
-        if os.path.exists(image_scan_allowlist_path):
+        if os.path.exists(image_scan_allowlist_path) and allowlist_removal_enabled:
             image_scan_allowlist.construct_allowlist_from_file(image_scan_allowlist_path)
             LOGGER.info(
                 f"[Allowlist] Using allowlist at location {image_scan_allowlist_path} to skip {image_scan_allowlist.get_summarized_info()}"

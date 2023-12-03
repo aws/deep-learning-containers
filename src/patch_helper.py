@@ -79,7 +79,10 @@ def get_impacted_os_packages(image_uri, python_version=None):
         remaining_vulnerabilities,
         _,
     ) = helper_function_for_leftover_vulnerabilities_from_enhanced_scanning(
-        image_uri, python_version=python_version
+        image_uri,
+        python_version=python_version,
+        minimum_sev_threshold="LOW",
+        allowlist_removal_enabled=False,
     )
     impacted_packages = set()
     if remaining_vulnerabilities:
