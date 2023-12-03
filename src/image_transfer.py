@@ -218,7 +218,7 @@ def conduct_initial_verification_to_confirm_if_image_should_be_transferred(
     autopatch_repo_name = autopatch_repo.split("/")[1]
     assert autopatch_repo_name.startswith(
         "autopatch-"
-    ), f"Image {autopatch_image_uri} is not an AutoPatch image."
+    ), f"Image {autopatch_image_uri} is not in AutoPatch ECR."
 
     assert any(
         [tag for tag in autopatch_image_tag_list if tag.endswith("-benchmark-tested")]
@@ -236,6 +236,13 @@ def main():
 
     dlc_images = test_utils.get_dlc_images()
     image_list = dlc_images.split(" ")
+
+    ##TODO Revert:
+    temp_image_repo = image_list[0].split(":")[0]
+    temp_image_repo = temp_image_repo.replace("/pr-","/autopatch-").replace("/trshanta-","/autopatch-")
+    temp_image_tag = "2.12.1-gpu-py310-cu118-ubuntu20.04-sagemaker-autopatch-benchmark-tested-2023-11-17-22-14-00"
+    image_list = [f"{temp_image_repo}:{temp_image_tag}"]
+    print(image_list)
 
     image_transfer_override_flags = get_image_transfer_override_flags_from_s3()
 
