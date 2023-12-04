@@ -10,11 +10,14 @@ if [ ! -d $patching_info_path/patch-details-archive ] ; then \
     echo $RELEASED_IMAGE_SHA >> $patching_info_path/patch-details-archive/first_image_sha.txt ; \
 fi
 
+## We use > instead of >> since we want to override the contents of the previous file.
+echo $RELEASED_IMAGE_SHA > $patching_info_path/patch-details-archive/last_released_image_sha.txt
+
 # If patch-details is present, move it to patch-details-archive and add image_sha to the folder
 if [ -d $patching_info_path/patch-details ] ; then \
-    existing_file_count=$(ls -l $patching_info_path/patch-details-archive | wc -l) && \
-    reduce_count_value=1 && \
-    patch_count=$((existing_file_count-reduce_count_value)) && \
+    existing_file_count=$(ls -ld $patching_info_path/patch-details-archive/patch-details-*/ | wc -l) && \
+    add_count_value=1 && \
+    patch_count=$((existing_file_count+add_count_value)) && \
     mv $patching_info_path/patch-details $patching_info_path/patch-details-archive/patch-details-$patch_count && \
     echo $RELEASED_IMAGE_SHA >> $patching_info_path/patch-details-archive/patch-details-$patch_count/image_sha.txt ; \
 fi
