@@ -66,6 +66,7 @@ DEBUG = 3
 MAINLINE_REPO_PREFIX = "beta-"
 NIGHTLY_REPO_PREFIX = "nightly-"
 PR_REPO_PREFIX = "pr-"
+AUTOPATCH_REPO_PREFIX = "autopatch-"
 
 # Env variables for the code build PR jobs
 JOB_FRAMEWORK = os.environ.get("FRAMEWORK")
@@ -92,3 +93,8 @@ ALL_TESTS = ["sagemaker", "ec2", "eks", "ecs"]
 # Timeout in seconds for Docker API client.
 API_CLIENT_TIMEOUT = 600
 MAX_WORKER_COUNT_FOR_PUSHING_IMAGES = 3
+
+## TODO: Make this account specific: pr-creation-data-helper-<12_digit_account_id>
+PR_CREATION_DATA_HELPER_BUCKET = "pr-creation-data-helper"
+
+PUBLIC_DLC_REGISTRY = "763104351884"

@@ -29,6 +29,7 @@ SCRIPT_PATH = os.path.join(DEFAULT_HANDLER_PATH, "model", "code", "empty_module.
 
 
 @pytest.mark.integration("hosting")
+@pytest.mark.team("frameworks")
 @pytest.mark.model("linear_regression")
 def test_hosting(
     ecr_image, sagemaker_regions, instance_type, framework_version, skip_neuron_containers

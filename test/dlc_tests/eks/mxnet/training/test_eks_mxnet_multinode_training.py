@@ -19,6 +19,7 @@ LOGGER = eks_utils.LOGGER
 
 @pytest.mark.skipif(is_pr_context(), reason=SKIP_PR_REASON)
 @pytest.mark.integration("horovod")
+@pytest.mark.team("frameworks")
 @pytest.mark.model("mnist")
 @pytest.mark.multinode(3)
 def test_eks_mxnet_multi_node_training_horovod_mnist(mxnet_training, example_only):
@@ -79,6 +80,7 @@ def _run_eks_mxnet_multinode_training_horovod_mpijob(
 @pytest.mark.skipif(is_pr_context(), reason=SKIP_PR_REASON)
 @pytest.mark.integration("parameter server")
 @pytest.mark.model("mnist")
+@pytest.mark.team("frameworks")
 @pytest.mark.multinode(3)
 def test_eks_mxnet_multinode_training(mxnet_training, example_only):
     """

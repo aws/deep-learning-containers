@@ -35,6 +35,7 @@ SCRIPT_PATH = os.path.join(DATA_PATH, "mnist_gluon_basic_hook_demo.py")
 
 @pytest.mark.model("mnist")
 @pytest.mark.integration("smexperiments")
+@pytest.mark.team("frameworks")
 @pytest.mark.skip_py2_containers
 def test_training(ecr_image, sagemaker_regions, instance_type, framework_version):
     invoke_sm_helper_function(
