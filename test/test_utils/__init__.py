@@ -2294,4 +2294,7 @@ def get_image_spec_from_buildspec(image_uri, dlc_folder_path):
                 )
             corresponding_image_spec = image_spec
 
+    if not corresponding_image_spec:
+        raise ValueError(f"No corresponding entry found for {image_uri} in {buildspec_path}")
+
     return corresponding_image_spec

@@ -1096,7 +1096,7 @@ def test_package_version_regression_in_image(image):
         if Version(version_in_released_image) > Version(version_in_current_image):
             violating_packages[
                 package_name
-            ] = f"Version in already relased image: {version_in_released_image} is greater that version in current image: {version_in_current_image}"
+            ] = f"Version in already released image: {version_in_released_image} is greater that version in current image: {version_in_current_image}"
 
     assert (
         not violating_packages

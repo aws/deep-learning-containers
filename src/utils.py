@@ -515,6 +515,12 @@ def get_dummy_boto_client():
 
 
 def get_folder_size_in_bytes(folder_path):
+    """
+    Calculates the size of the given folder and return the size in bytes.
+
+    :param folder_path: str, Path of the folder
+    :return: float, Size of the folder in bytes
+    """
     size_in_bytes = 0.0
     for dir_path, dir_names, file_names in os.walk(folder_path):
         for file_name in file_names:
