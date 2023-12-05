@@ -1,17 +1,17 @@
 #!/bin/bash
 set -e
 
-RELEASED_IMAGE_SHA=$1
+LATEST_RELEASED_IMAGE_SHA=$1
 patching_info_path=/opt/aws/dlc/patching-info
 
 # If patch-details-archive is not present, create it for the first time and add first_image_sha.txt
 if [ ! -d $patching_info_path/patch-details-archive ] ; then \
     mkdir $patching_info_path/patch-details-archive && \
-    echo $RELEASED_IMAGE_SHA >> $patching_info_path/patch-details-archive/first_image_sha.txt ; \
+    echo $LATEST_RELEASED_IMAGE_SHA >> $patching_info_path/patch-details-archive/first_image_sha.txt ; \
 fi
 
 ## We use > instead of >> since we want to override the contents of the previous file.
-echo $RELEASED_IMAGE_SHA > $patching_info_path/patch-details-archive/last_released_image_sha.txt
+echo $LATEST_RELEASED_IMAGE_SHA > $patching_info_path/patch-details-archive/last_released_image_sha.txt
 
 # If patch-details is present, move it to patch-details-archive and add image_sha to the folder
 if [ -d $patching_info_path/patch-details ] ; then \
@@ -19,7 +19,7 @@ if [ -d $patching_info_path/patch-details ] ; then \
     add_count_value=1 && \
     patch_count=$((existing_file_count+add_count_value)) && \
     mv $patching_info_path/patch-details $patching_info_path/patch-details-archive/patch-details-$patch_count && \
-    echo $RELEASED_IMAGE_SHA >> $patching_info_path/patch-details-archive/patch-details-$patch_count/image_sha.txt ; \
+    echo $LATEST_RELEASED_IMAGE_SHA >> $patching_info_path/patch-details-archive/patch-details-$patch_count/image_sha.txt ; \
 fi
 
 # Rename the patch-details-current folder to patch-details

@@ -22,6 +22,8 @@ from utils import (
 from codebuild_environment import get_cloned_folder_path
 from context import Context
 
+from src.constants import PATCHING_INFO_PATH_WITHIN_DLC
+
 FORMATTER = OutputFormatter(constants.PADDING)
 
 
@@ -196,11 +198,6 @@ def conduct_autopatch_build_setup(pre_push_image_object: DockerImage, download_p
     if not os.path.exists(complete_patching_info_dump_location):
         run(f"mkdir {complete_patching_info_dump_location}", hide=True)
 
-    FORMATTER.print(f"[current_patch_details_path] {current_patch_details_path}")
-    FORMATTER.print(
-        f"[complete_patching_info_dump_location] {complete_patching_info_dump_location}"
-    )
-
     extract_patching_relevant_data_from_latest_released_image(
         image_uri=latest_released_image_uri,
         extraction_location=complete_patching_info_dump_location,
@@ -317,7 +314,7 @@ def retrive_autopatched_image_history_and_upload_to_s3(image_uri):
     try:
         docker_exec_cmd = f"docker exec -i {container_id}"
         history_retrieval_command = (
-            f"cat /opt/aws/dlc/patching-info/patch-details/overall_history.txt"
+            f"cat {PATCHING_INFO_PATH_WITHIN_DLC}/patch-details/overall_history.txt"
         )
         data = run(f"{docker_exec_cmd} {history_retrieval_command}", hide=True)
         upload_path = get_unique_s3_path_for_uploading_data_to_pr_creation_bucket(
@@ -349,13 +346,13 @@ def extract_first_image_sha_using_patching_info_contents_of_given_image(image_ur
     docker_run_cmd = f"docker run -id --entrypoint='/bin/bash' {image_uri} "
     container_id = run(f"{docker_run_cmd}").stdout.strip()
     docker_exec_cmd = f"docker exec -i {container_id}"
-    sha_file_path = "/opt/aws/dlc/patching-info/patch-details-archive/first_image_sha.txt"
+    sha_file_path = f"{PATCHING_INFO_PATH_WITHIN_DLC}/patch-details-archive/first_image_sha.txt"
     image_sha_extraction_cmd = (
         f"""bash -c "if [ -f {sha_file_path} ]; then cat {sha_file_path}; else echo ''; fi" """
     )
     docker_extraction_cmd = f"{docker_exec_cmd} {image_sha_extraction_cmd}"
     FORMATTER.print(f"[extract_sha_cmd] {docker_extraction_cmd}")
-    result = run(docker_extraction_cmd)
+    result = run(docker_extraction_cmd, hide=True)
     first_image_sha = result.stdout.strip()
     return first_image_sha
 
@@ -370,7 +367,7 @@ def extract_patching_relevant_data_from_latest_released_image(image_uri, extract
     FORMATTER.print(f"[extract_relevant_data] docker_run_cmd : {docker_run_cmd}")
     container_id = run(f"{docker_run_cmd}", hide=True).stdout.strip()
     docker_exec_cmd = f"docker exec -i {container_id}"
-    extraction_cmd = """bash -c "if [ -d /opt/aws/dlc/patching-info ] ; then cp -r /opt/aws/dlc/patching-info/. /dlc-extraction-folder ; fi" """
+    extraction_cmd = f"""bash -c "if [ -d {PATCHING_INFO_PATH_WITHIN_DLC} ] ; then cp -r {PATCHING_INFO_PATH_WITHIN_DLC}/. /dlc-extraction-folder ; fi" """
     FORMATTER.print(f"Extraction Command: {docker_exec_cmd} {extraction_cmd}")
     run(f"{docker_exec_cmd} {extraction_cmd}")
 

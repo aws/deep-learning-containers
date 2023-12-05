@@ -1299,6 +1299,8 @@ def extract_non_patchable_vulnerabilities(
     :param image_uri: str, URI of the image
     :return: Object of type ECREnhancedScanVulnerabilityList, object that only non-patchable vulnerabilities with appropriate reasons in it.
     """
+    from src import constants
+
     assert vulnerability_list_object, "`vulnerability_list_object` cannot be None."
     segregated_package_names = segregate_impacted_package_names_based_on_manager(
         vulnerability_list_object
@@ -1321,7 +1323,7 @@ def extract_non_patchable_vulnerabilities(
     # We then extract the patch evaluation data that was embedded in the DLC at the time of build.
     embedded_apt_patch_evaluation_data = {}
     display_embdedded_patch_eval_data_cmd = (
-        "cat /opt/aws/dlc/patching-info/patch-details/os_summary.json"
+        f"cat {constants.PATCHING_INFO_PATH_WITHIN_DLC}/patch-details/os_summary.json"
     )
     display_output = run(f"{docker_exec_cmd} {display_embdedded_patch_eval_data_cmd}", warn=True)
     if display_output.ok:
