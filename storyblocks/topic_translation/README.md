@@ -10,7 +10,7 @@ bash init_local_dev.sh ENV SRC_TYPE TGT_TYPE
 
 where `ENV`, `SRC_TYPE`, and `TGT_TYPE` are related to the values used to create the topic translation arrays. e.g.
 `ENV = prod`, `SRC_TYPE = video`, and `TGT_TYPE = audio` would refer to the topic translation matrices saved at
-`s3://videoblocks-ml/models/topic-tran/storyblocks/prod/video-audio-arrays`
+`s3://storyblocks-ml/models/topic-tran/storyblocks/prod/video-audio-arrays`
 
 this init script will download those arrays into `model/code/{SRC_TYPE}-{TGT_TYPE}-arrays`.
 
@@ -129,7 +129,7 @@ env = {'SAGEMAKER_PROGRAM': 'inference.py',
 # UPDATE THESE!
 framework_version = '1.10'
 py_version = 'py38'
-s3_model_archive = 's3://videoblocks-ml/models/topic-tran/storyblocks/prod/video-audio-20220405T171430/model.tar.gz'
+s3_model_archive = 's3://storyblocks-ml/models/topic-tran/storyblocks/prod/video-audio-20220405T171430/model.tar.gz'
 
 model = PyTorchModel(model_data=s3_model_archive,
                      framework_version=framework_version,

@@ -16,7 +16,7 @@ LOCAL_ARRAY_DIR=${CODE_DIR}/${ARRAY_SUB_DIR}
 # download the items using aws
 mkdir -p ${LOCAL_ARRAY_DIR}
 rm -f ${LOCAL_ARRAY_DIR}/*.npy
-aws s3 cp --recursive s3://videoblocks-ml/models/topic-tran/storyblocks/${ENV}/${ARRAY_SUB_DIR} ${LOCAL_ARRAY_DIR}
+aws s3 cp --recursive s3://storyblocks-ml/models/topic-tran/storyblocks/${ENV}/${ARRAY_SUB_DIR} ${LOCAL_ARRAY_DIR}
 cd "${HERE}" || exit
 
 exit $?

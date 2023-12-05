@@ -41,8 +41,8 @@ where
 
 ```shell script
 # definitely must work
-curl localhost:8080/invocations -H "Content-Type: text/csv" -d "videoblocks-ml/data/object-detection-research/videoblocks/dev/sampled-items/jpg/fps-method-01/000023419/000216-9.0090.jpg"
-curl localhost:8080/invocations -H "Content-Type: application/json" -d '{"bucket":"videoblocks-ml","key":"data/object-detection-research/videoblocks/dev/sampled-items/jpg/fps-method-01/000023419/000216-9.0090.jpg"}'
+curl localhost:8080/invocations -H "Content-Type: text/csv" -d "storyblocks-ml/data/object-detection-research/videoblocks/dev/sampled-items/jpg/fps-method-01/000023419/000216-9.0090.jpg"
+curl localhost:8080/invocations -H "Content-Type: application/json" -d '{"bucket":"storyblocks-ml","key":"data/object-detection-research/videoblocks/dev/sampled-items/jpg/fps-method-01/000023419/000216-9.0090.jpg"}'
 ```
 
 ## how I deployed a live endpoint
@@ -92,7 +92,7 @@ env = {'SAGEMAKER_PROGRAM': 'inference.py',
 # UPDATE THESE!
 framework_version = '1.4.0'
 py_version = 'py3'
-s3_model_archive = 's3://videoblocks-ml/models/retinaface/videoblocks/dev/20201204T164853/model.tar.gz'
+s3_model_archive = 's3://storyblocks-ml/models/retinaface/videoblocks/dev/20201204T164853/model.tar.gz'
 
 model = PyTorchModel(model_data=s3_model_archive,
                      framework_version=framework_version,
@@ -110,7 +110,7 @@ import boto3
 import json
 
 runtime = boto3.client('runtime.sagemaker')
-bucket = 'videoblocks-ml'
+bucket = 'storyblocks-ml'
 key = 'data/object-detection-research/videoblocks/dev/sampled-items/jpg/fps-method-01/000023419/000216-9.0090.jpg'
 
 # csv test
