@@ -4,6 +4,8 @@ ARG PYTHON_SHORT_VERSION=3.10
 ARG MAMBA_VERSION=23.3.1-1
 ARG PYTORCH_VERSION_EC2=2.1.0
 ARG CONDA_CHANNEL=https://aws-ml-conda-ec2.s3.us-west-2.amazonaws.com
+# SageMaker Profiler Binary
+ARG SMP_URL=https://smppy.s3.amazonaws.com/pytorch/cu121/smprof-0.3.332-cp310-cp310-linux_x86_64.whl
 
 FROM nvidia/cuda:12.1.0-base-ubuntu20.04 AS base_image
 
@@ -354,6 +356,7 @@ ARG CONDA_CHANNEL
 ARG CUDA_HOME
 ARG TORCH_CUDA_ARCH_LIST
 ARG NCCL_ASYNC_ERROR_HANDLING
+ARG SMP_URL
 
 WORKDIR /
 
@@ -365,6 +368,11 @@ RUN /opt/conda/bin/mamba install -y python=${PYTHON_SHORT_VERSION} pytorch=${PYT
   -c nvidia \
   -c conda-forge \
   && /opt/conda/bin/mamba clean -afy
+
+
+# Install SageMaker Profiler Binary
+RUN apt-get update && apt-get install -y libunwind-dev && apt-get clean \
+ && pip install --no-cache-dir -U ${SMP_URL}
 
 # CUDA libraries should be installed after pytorch installation command to reduce memory size of single layer.
 # If single layer is huge in size (like 17 GB), then ECR pull can timeout on smaller EC2 instances like P3.2x.
