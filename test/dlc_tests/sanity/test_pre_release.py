@@ -56,8 +56,8 @@ def derive_regex_for_skipping_tensorflow_inference_tests(
     tests if required. This method takes a base regex "(pr-|beta-|autopatch-|nightly-)?tensorflow-inference" and uses the input arguments
     to derive additional pattern that needs to be appended to base regex.
 
-    :param is_eia_enabled: boolean, appends -eia? to the base regex if set to True
-    :param is_graviton_enabled: boolean, appends -graviton? to the base regex if set to True
+    :param is_eia_enabled: boolean, appends `-eia` to the base regex if set to True
+    :param is_graviton_enabled: boolean, appends `-graviton` to the base regex if set to True
     :return: str, derived regex
     """
     base_regex_string = "(pr-|beta-|autopatch-|nightly-)?tensorflow-inference"
