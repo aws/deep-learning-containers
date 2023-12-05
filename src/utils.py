@@ -205,18 +205,6 @@ def get_safety_scan_allowlist_path(image_uri):
     return safety_scan_allowlist_path
 
 
-def get_git_path_for_safety_scan_allowlist(image_uri):
-    """
-    Get the path of py_scan_allowlist.json file as on Git Repo. Separate function for git path is required
-    because, based on CODEBUILD_SRC_DIR, the path of the file during execution could be different from that on git.
-    """
-    safety_allowlist_path_on_codebuild = get_safety_scan_allowlist_path(image_uri)
-    safety_allowlist_path_on_github_repo = safety_allowlist_path_on_codebuild.replace(
-        get_cloned_folder_path(), "/deep-learning-containers"
-    )
-    return safety_allowlist_path_on_github_repo
-
-
 def get_overall_history_path(image_uri):
     """
     Retrieves the overall_history_path for each image_uri.
@@ -231,18 +219,6 @@ def get_overall_history_path(image_uri):
         ".os_scan_allowlist.json", ".overall_history.txt"
     )
     return overall_history_path
-
-
-def get_git_path_for_overall_history(image_uri):
-    """
-    Get the path of overall_history.txt file as on Git Repo. Separate function for git path is required
-    because the path of the file during execution could be different from that on git, based on CODEBUILD_SRC_DIR.
-    """
-    history_path_on_codebuild = get_overall_history_path(image_uri)
-    history_path_on_github_repo = history_path_on_codebuild.replace(
-        get_cloned_folder_path(), "/deep-learning-containers"
-    )
-    return history_path_on_github_repo
 
 
 def remove_repo_root_folder_path_from_the_given_path(given_path: str):

@@ -30,7 +30,6 @@ from test.test_utils import (
     is_generic_image,
     get_allowlist_path_for_enhanced_scan_from_env_variable,
     get_ecr_scan_allowlist_path,
-    get_git_path_for_ecr_scan_allowlist,
 )
 from test.test_utils import ecr as ecr_utils
 from test.test_utils.security import (
