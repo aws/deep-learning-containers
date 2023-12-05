@@ -245,6 +245,20 @@ def get_git_path_for_overall_history(image_uri):
     return history_path_on_github_repo
 
 
+def remove_repo_root_folder_path_from_the_given_path(given_path: str):
+    """
+    Takes the given path and removes the get_cloned_folder_path string from it to ensure that the exact path
+    of a file/folder within the DLC repo can be retrieved. The get_cloned_folder_path() returns a string that
+    looks like "/home/deep-learning-containers" (without a `/` at the end). However, while removing the root folder path
+    this method ensures it removes f"{get_cloned_folder_path()}/" (with a `/`) from the given_path.
+
+    :param given_path: str, Given path
+    :return: str, Path with repo root folder removed
+    """
+    cloned_folder_path_with_appended_seperator = f"{get_cloned_folder_path()}{os.sep}"
+    return given_path.replace(cloned_folder_path_with_appended_seperator, "")
+
+
 def get_safety_ignore_dict_from_image_specific_safety_allowlists(image_uri):
     """
     Image specific safety allowlists exist parallel to the os_scan_allowlists and allow us to allowlist vulnerabilities
@@ -347,7 +361,9 @@ def derive_future_safety_allowlist_and_upload_to_s3(
         tag_set = [
             {
                 "Key": "upload_path",
-                "Value": get_git_path_for_safety_scan_allowlist(image_uri),
+                "Value": remove_repo_root_folder_path_from_the_given_path(
+                    given_path=get_safety_scan_allowlist_path(image_uri)
+                ),
             },
             {"Key": "image_uri", "Value": image_uri.replace("-pre-push", "")},
         ]
