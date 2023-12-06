@@ -28,7 +28,7 @@ ARG TORCHAUDIO_URL=https://aws-pytorch-unified-cicd-binaries.s3.us-west-2.amazon
 
 # HF ARGS
 ARG TRANSFORMERS_VERSION
-ARG DIFFUSERS_VERSION=0.16.1
+ARG DIFFUSERS_VERSION=0.23.1
 
 # Set Debian interaction
 ARG DEBIAN_FRONTEND=noninteractive
@@ -69,8 +69,11 @@ RUN apt-get update \
     libxext6 \
     libxrender-dev \
     zlib1g-dev \
+    unattended-upgrades \
  && rm -rf /var/lib/apt/lists/* \
  && apt-get clean
+
+RUN unattended-upgrade
 
 # https://github.com/docker-library/openjdk/issues/261 https://github.com/docker-library/openjdk/pull/263/files
 RUN keytool -importkeystore -srckeystore /etc/ssl/certs/java/cacerts -destkeystore /etc/ssl/certs/java/cacerts.jks -deststoretype JKS -srcstorepass changeit -deststorepass changeit -noprompt; \
@@ -167,7 +170,7 @@ RUN pip install --no-cache-dir \
     diffusers==${DIFFUSERS_VERSION} \
     "accelerate>=0.11.0" \
     "protobuf>=3.19.5,<=3.20.2" \
-    "sagemaker-huggingface-inference-toolkit<3"
+    "sagemaker-huggingface-inference-toolkit>=2.3.0" 
 
 # Install IPEx and its dependencies
 # from source is mandatory for cutomized AWS PyTorch binaries: https://github.com/intel/intel-extension-for-pytorch/issues/317
@@ -180,7 +183,11 @@ RUN cd /opt/ && mkdir -p ipex \
 
 # IPEx installation installs the numpy==1.25.1. That causes a pip check failure due to incompatibility with numba.
 # Re-installing numpy after IPEx installation to get the appropriate numpy version and fix pip checks.
-RUN pip install --no-cache-dir  "numpy<1.25"
+RUN pip install --no-cache-dir  "numpy<1.25" \
+    # Resolve CVE
+    urllib3==1.26.18 \
+    mkl
+
 
 RUN HOME_DIR=/root \
  && curl -o ${HOME_DIR}/oss_compliance.zip https://aws-dlinfra-utilities.s3.amazonaws.com/oss_compliance.zip \
