@@ -150,16 +150,15 @@ def generate_edited_files_data(image_list, bucket=S3_BUCKET, folder="temp"):
         )
         tag_set_dict = get_tag_set_dictionary_from_response(response["TagSet"])
         upload_path = tag_set_dict.get("upload_path", "")
-        truncated_upload_path = upload_path.split("deep-learning-containers/")[-1]
         image_uri_corresponding_to_the_file = tag_set_dict.get("image_uri", "")
         if image_uri_corresponding_to_the_file not in image_list:
             continue
-        if truncated_upload_path:
+        if upload_path:
             edited_files_data.append(
                 {
                     "s3_bucket": bucket,
                     "s3_filename": s3_object.key,
-                    "github_filepath": truncated_upload_path,
+                    "github_filepath": upload_path,
                 }
             )
 
@@ -201,12 +200,12 @@ def main():
     LOGGER.info(
         f"Message body to be sent to AutoPR Queue: {json.dumps(message_body_to_be_sent_to_autopr_queue)}"
     )
-    ## TODO: only allow pr creation on mainline
-    send_message_to_queue(
-        queue_name=AUTOPR_PROD_QUEUE,
-        queue_region=QUEUE_REGION,
-        message_body_string=json.dumps(message_body_to_be_sent_to_autopr_queue),
-    )
+    if os.getenv("BUILD_CONTEXT") == "MAINLINE":
+        send_message_to_queue(
+            queue_name=AUTOPR_PROD_QUEUE,
+            queue_region=QUEUE_REGION,
+            message_body_string=json.dumps(message_body_to_be_sent_to_autopr_queue),
+        )
 
 
 if __name__ == "__main__":
