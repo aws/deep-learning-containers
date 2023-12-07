@@ -239,7 +239,12 @@ def helper_function_for_leftover_vulnerabilities_from_enhanced_scanning(
             )
         )
         upload_tag_set = [
-            {"Key": "upload_path", "Value": image_scan_allowlist_path},
+            {
+                "Key": "upload_path",
+                "Value": src_utils.remove_repo_root_folder_path_from_the_given_path(
+                    given_path=image_scan_allowlist_path
+                ),
+            },
             {"Key": "image_uri", "Value": image},
         ]
         src_utils.upload_data_to_pr_creation_s3_bucket(

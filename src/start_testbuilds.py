@@ -255,8 +255,7 @@ def main():
             ):
                 run_test_job(commit, pr_test_job, images_str)
 
-            ## TODO: Merge with the above condition
-            if test_type == "autopr":
+            if test_type == "autopr" and config.is_autopatch_build_enabled():
                 run_test_job(commit, f"dlc-pr-{test_type}", images_str)
 
             # Trigger sagemaker local test jobs when there are changes in sagemaker_tests

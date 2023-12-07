@@ -29,7 +29,7 @@ ARG TORCHAUDIO_URL=https://aws-pytorch-unified-cicd-binaries.s3.us-west-2.amazon
 
 # HF ARGS
 ARG TRANSFORMERS_VERSION
-ARG DIFFUSERS_VERSION=0.16.1
+ARG DIFFUSERS_VERSION=0.23.1
 
 # Set Debian interaction
 ARG DEBIAN_FRONTEND=noninteractive
@@ -91,9 +91,12 @@ RUN apt-get update \
     ffmpeg \
     openssh-client \
     openssh-server \
+    unattended-upgrades \
  && apt-get autoremove -y \
  && rm -rf /var/lib/apt/lists/* \
  && apt-get clean
+
+RUN unattended-upgrade
 
 # Install NCCL
 RUN cd /tmp \
@@ -200,7 +203,10 @@ RUN pip install --no-cache-dir \
     "accelerate>=0.11.0" \
 	"protobuf>=3.19.5,<=3.20.2" \
 	"numpy>=1.22.2,<1.23" \
-	"sagemaker-huggingface-inference-toolkit<3"
+	"sagemaker-huggingface-inference-toolkit>=2.3.0" \
+    # CVE
+    urllib3==1.26.18 \
+    mkl
 
 
 RUN HOME_DIR=/root \
