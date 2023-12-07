@@ -147,9 +147,10 @@ def helper_function_for_leftover_vulnerabilities_from_enhanced_scanning(
 
     :param image: str Image URI for image to be tested
     :param python_version: str, This parameter is used for extracting allowlist for canary image uris that do not have a python version in it.
+    :param remove_non_patchable_vulns: boolean, This parameter tells the method if it should remove non-patchable vulns or not. In case set to True, the non-patchable vulns will be removed.
     :param minimum_sev_threshold: str, If minimum_sev_threshold is set vulnerabilities with severity < minimum_sev_threshold will not be taken into consideration.
     :param allowlist_removal_enabled: boolean, Value of this parameter decides if we should remove allowlisted vulnearbilities from the scanner results.
-    :return: ECREnhancedScanVulnerabilityList Object with leftover vulnerability data
+    :return: remaining_vulnerabilities, ECREnhancedScanVulnerabilityList Object with leftover vulnerability data
     :return: ecr_enhanced_repo_uri, String for the image uri in the enhanced scanning repo
     """
     ecr_enhanced_repo_uri = get_target_image_uri_using_current_uri_and_target_repo(

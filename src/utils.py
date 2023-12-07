@@ -516,7 +516,9 @@ def get_dummy_boto_client():
 
 def get_folder_size_in_bytes(folder_path):
     """
-    Calculates the size of the given folder and return the size in bytes.
+    Calculates the size of the given folder and return the size in bytes. On the other hand, we could have used `du -s` command.
+    However, the `du` command calculates the disk usage (not file size) by looking at the blocks that a file consumes and allocating the complete
+    block size to the file even if it does not consume the entire block. Thus, we have used the os.path.getsize() method here.
 
     :param folder_path: str, Path of the folder
     :return: float, Size of the folder in bytes
