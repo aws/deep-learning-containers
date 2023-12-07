@@ -90,6 +90,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends --allow-unauthe
    # Install dependent library for OpenCV
    libgtk2.0-dev \
    jq \
+   apt-transport-https \
  && apt-get update \
  && apt-get install -y --no-install-recommends --allow-unauthenticated --allow-change-held-packages \
    libcublas-dev-${CUDA_DASH} \
