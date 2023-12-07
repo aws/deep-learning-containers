@@ -229,11 +229,8 @@ HuggingFace Inference Containers
 HuggingFace Text Generation Inference Containers
 ===============================
 
-Please refer to the [releases page](https://github.com/aws/deep-learning-containers/releases?q=tgi&expanded=true) to view all released versions and tags of the container. Below is one example.
+Please refer to the [releases page](https://github.com/aws/deep-learning-containers/releases?q=tgi&expanded=true) to view all released versions and tags of the container.
 
-| Framework                          | Job Type   | CPU/GPU | Python Version Options | Example URL                                                                                                              |
-|------------------------------------|------------|---------|------------------------|--------------------------------------------------------------------------------------------------------------------------|
-| PyTorch 2.0.1 with HuggingFace TGI | inference  | GPU     | 3.9 (py39)             | 763104351884.dkr.ecr.us-east-1.amazonaws.com/huggingface-pytorch-tgi-inference:2.0.1-tgi1.1.0-gpu-py39-cu118-ubuntu20.04 |
 
 HuggingFace Neuron Inference Containers
 ===============================
