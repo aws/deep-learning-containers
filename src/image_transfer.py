@@ -58,18 +58,6 @@ def is_latest_benchmark_tested_beta_image_an_autopatch_image_itself(beta_image_u
     return any(["-autopatch" in tag for tag in tag_list])
 
 
-def get_push_time_of_image_from_ecr(image_uri):
-    """
-    This method uses the ERC boto3 client to get the push time of an image.
-
-    :param image_uri: str, Image URI
-    :return: datetime.datetime Object, Time of the Push
-    """
-    image_region = test_utils.get_region_from_image_uri(image_uri=image_uri)
-    ecr_client = boto3.client("ecr", region_name=image_region)
-    return test_utils.get_image_push_time_from_ecr(ecr_client=ecr_client, image_uri=image_uri)
-
-
 def get_benchmark_tag_attached_to_the_latest_image_in_beta(autopatch_image_tag_list):
     """
     Iterates through all the tags attached to the autopatch benchmark tested image. Filters out only the benchmark
@@ -135,10 +123,7 @@ def is_image_transfer_enabled_by_override_flags(image_uri, image_transfer_overri
     """
     commit_id = os.getenv("CODEBUILD_RESOLVED_SOURCE_VERSION", "default")
     if commit_id in image_transfer_override_flags:
-        if (
-            not image_transfer_override_flags[commit_id]
-            or image_uri in image_transfer_override_flags[commit_id]
-        ):
+        if image_uri in image_transfer_override_flags[commit_id]:
             # If the list corresponding to the commit ID is empty, then return True. Otherwise, check if image uri
             # is present in the list and return True if it is present.
             LOGGER.info(f"[Override Enabled] Transfer override enabled for the image {image_uri}")
@@ -187,23 +172,18 @@ def is_image_transferable(autopatch_image_uri, beta_image_uri, image_transfer_ov
         image_uri=autopatch_image_uri, image_transfer_override_flags=image_transfer_override_flags
     ):
         return True
-    beta_image_push_time = get_push_time_of_image_from_ecr(image_uri=beta_image_uri)
+    beta_image_region = test_utils.get_region_from_image_uri(image_uri=beta_image_uri)
+    ecr_client = boto3.client("ecr", region_name=beta_image_region)
+    beta_image_push_time = test_utils.get_image_push_time_from_ecr(
+        ecr_client=ecr_client, image_uri=beta_image_uri
+    )
     current_time = datetime.now(timezone.utc)
     time_difference = current_time - beta_image_push_time
-    LOGGER.info(f"Beta image was built {time_difference} ago.")
+    LOGGER.info(
+        f"Beta image was built {time_difference} ago and its AutoPatch value is = {is_latest_benchmark_tested_beta_image_an_autopatch_image_itself(beta_image_uri=beta_image_uri)}"
+    )
     total_time_difference_in_seconds = time_difference.total_seconds()
-    if total_time_difference_in_seconds >= 5 * 24 * 60 * 60:
-        # If Beta image was built more than 5 days ago
-        return True
-    elif is_latest_benchmark_tested_beta_image_an_autopatch_image_itself(
-        beta_image_uri=beta_image_uri
-    ):
-        # If the latest benchmark tested image is autopatch image itself, transfer the image
-        LOGGER.info(
-            f"{autopatch_image_uri} is transferable since {beta_image_uri} is autopatch image itself."
-        )
-        return True
-
+    ## TODO: In future, add the logic to return True based on the conditions
     return False
 
 
