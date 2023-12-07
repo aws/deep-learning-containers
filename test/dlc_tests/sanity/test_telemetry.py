@@ -494,7 +494,7 @@ def invoke_telemetry_call(
             ec2_connection.run(
                 f"{docker_cmd} run {env_vars} -e TEST_MODE={test_mode} --name {container_name} -id {image_uri}  {inference_command}"
             )
-            time.sleep(5)
+            time.sleep(30)
             output = ec2_connection.run(
                 f"{docker_cmd} exec -i {container_name} /bin/bash -c 'cat /tmp/test_request.txt'"
             ).stdout.strip("\n")
@@ -502,7 +502,7 @@ def invoke_telemetry_call(
             ec2_connection.run(
                 f"{docker_cmd} run {env_vars} --name {container_name} -id {image_uri} {inference_command}"
             )
-            time.sleep(5)
+            time.sleep(30)
     else:
         framework_to_import = (
             framework.replace("huggingface_", "").replace("_trcomp", "").replace("stabilityai_", "")
@@ -511,19 +511,19 @@ def invoke_telemetry_call(
         ec2_connection.run(f"{docker_cmd} run --name {container_name} -id {image_uri} bash")
         if test_mode:
             ec2_connection.run(
-                f"{docker_cmd} exec -i -e TEST_MODE={test_mode} {container_name} python -c 'import {framework_to_import}; import time; time.sleep(5);'"
+                f"{docker_cmd} exec -i -e TEST_MODE={test_mode} {container_name} python -c 'import {framework_to_import}; import time; time.sleep(30);'"
             )
             output = ec2_connection.run(
                 f"{docker_cmd} exec -i {container_name} /bin/bash -c 'cat /tmp/test_request.txt'"
             ).stdout.strip("\n")
         else:
             output = ec2_connection.run(
-                f"{docker_cmd} exec -i {container_name} python -c 'import {framework_to_import}; import time; time.sleep(5)'"
+                f"{docker_cmd} exec -i {container_name} python -c 'import {framework_to_import}; import time; time.sleep(30)'"
             )
             assert (
                 output.ok
             ), f"'import {framework_to_import}' fails when credentials not configured"
-        time.sleep(1)
+        time.sleep(30)
     return output
 
 
