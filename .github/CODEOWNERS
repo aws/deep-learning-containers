@@ -49,5 +49,5 @@ dgl_tests/ @aws/dlc-dgl-reviewers
 # Any PR with a file with "smmodelparallel" in it will be assigned to the SM ModelParallel team
 *smmodelparallel* @aws/dlc-sm-model-parallel-reviewers
 
-# Any PR with a file with "triton" in it will be assigned to the SM ModelParallel team
+# Any PR with a file with "triton" in it will be assigned to the SM Triton/ModelServing team
 *triton* @aws/dlc-triton-reviewers
