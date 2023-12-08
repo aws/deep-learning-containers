@@ -1,7 +1,7 @@
 ---
 release_images:
   1:
-    framework: "huggingface_inference"
+    framework: "huggingface_tensorflow"
     version: "2.11.1"
     arch_type: "x86"
     hf_transformers: "4.26.0"
