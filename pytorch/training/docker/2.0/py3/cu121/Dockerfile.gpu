@@ -376,6 +376,17 @@ RUN /opt/conda/bin/mamba install -y \
   -c conda-forge \
   && /opt/conda/bin/mamba clean -afy
 
+# Override only sm-pytorch
+RUN /opt/conda/bin/mamba install --force-reinstall -y \
+  pytorch=2.0.1=aws_py3.10_cuda12.1_cudnn8.9.5_0 --override-channels \
+  -c https://sagemaker-distributed-model-parallel.s3.us-west-2.amazonaws.com/smp-2.0.0-pt-2.0.1/2023-12-11/smp-v2/ \
+  -c pytorch \
+  -c numba/label/dev \
+  -c pytorch-nightly \
+  -c nvidia \
+  -c conda-forge \
+  && /opt/conda/bin/mamba clean -afy
+
 # Install NCCL
 RUN cd /tmp \
  && git clone https://github.com/NVIDIA/nccl.git -b v${NCCL_VERSION}-1 \
@@ -443,6 +454,8 @@ RUN pip install --no-cache-dir -U \
     # adding this here explicitly to resolve pip check errors
     awscli \
     boto3 \
+    "transformers==4.31.0" \
+    "tensorboard==2.13.0" \
     triton==2.0.0
 
 # Install extra packages
@@ -459,14 +472,36 @@ RUN /opt/conda/bin/mamba install -y -c conda-forge \
 
 WORKDIR /
 
+RUN git clone https://github.com/HazyResearch/flash-attention \
+    && cd flash-attention && git checkout v2.0.4 \
+    && cd csrc/ft_attention && ln=$(grep -wn "\-\-threads" ./setup.py | cut -d: -f1) \
+    && sed -i "${ln} s/4/1/" ./setup.py && cd ../../ \
+    && cd csrc/fused_softmax && ln=$(grep -wn "\-\-threads" ./setup.py | cut -d: -f1) \
+    && sed -i "${ln} s/4/1/" ./setup.py && cd ../../ \
+    && cd csrc/xentropy && ln=$(grep -wn "\-\-threads" ./setup.py | cut -d: -f1) \
+    && sed -i "${ln} s/4/1/" ./setup.py && cd ../../ \
+    && cd csrc/layer_norm && ln=$(grep -wn "\-\-threads" ./setup.py | cut -d: -f1) \
+    && sed -i "${ln} s/4/1/" ./setup.py && cd ../../ \
+    && cd csrc/rotary && ln=$(grep -wn "\-\-threads" ./setup.py | cut -d: -f1) \
+    && sed -i "${ln} s/4/1/" ./setup.py && cd ../../ \
+    && cd csrc/fused_dense_lib && ln=$(grep -wn "\-\-threads" ./setup.py | cut -d: -f1) \
+    && sed -i "${ln} s/4/1/" ./setup.py && cd ../../ \
+    && cd csrc/fused_softmax && pip install . && cd ../../ \
+    && cd csrc/rotary && pip install . && cd ../../ \
+    && cd csrc/xentropy && pip install . && cd ../../ \
+    && cd csrc/layer_norm && pip install . && cd ../../ \
+    && cd csrc/fused_dense_lib && pip install . && cd ../../ \
+    && cd csrc/ft_attention && pip install . && cd ../../ \
+    && cd .. && rm -rf flash-attention
+
 # Install flash attn and NVIDIA transformer engine.
 # Optionally set NVTE_FRAMEWORK to avoid bringing in additional frameworks during TE install
 ENV NVTE_FRAMEWORK=pytorch
 # Install flash-attn using instructions from https://github.com/Dao-AILab/flash-attention#installation-and-features
 # Set MAX_JOBS=4 to avoid OOM issues in installation process
 RUN MAX_JOBS=4 pip install flash-attn==2.0.4 --no-build-isolation
-# Install TE using instructions from https://docs.nvidia.com/deeplearning/transformer-engine/user-guide/installation.html
-RUN pip install git+https://github.com/NVIDIA/TransformerEngine.git@release_v0.12
+# Install TE latest stable release
+RUN pip install git+https://github.com/NVIDIA/TransformerEngine.git@v1.0
 
 # Install SageMaker Profiler Binary
 ARG SMP_URL=https://smppy.s3.amazonaws.com/pytorch/cu121/smprof-0.3.332-cp310-cp310-linux_x86_64.whl

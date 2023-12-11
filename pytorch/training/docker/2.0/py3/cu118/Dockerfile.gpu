@@ -435,6 +435,17 @@ RUN /opt/conda/bin/mamba install -y python=${PYTHON_VERSION} pytorch=${PYTORCH_V
   -c nvidia \
   && /opt/conda/bin/mamba clean -afy
 
+# Override only sm-pytorch
+RUN /opt/conda/bin/mamba install --force-reinstall -y \
+  pytorch=2.0.1=sm_py3.10_cuda11.8_cudnn8.9.5_nccl2.18.3_0_smp_2.0.0_pt_2.0.1 --override-channels \
+  -c https://sagemaker-distributed-model-parallel.s3.us-west-2.amazonaws.com/smp-2.0.0-pt-2.0.1/2023-12-11/smp-v2/ \
+  -c pytorch \
+  -c numba/label/dev \
+  -c pytorch-nightly \
+  -c nvidia \
+  -c conda-forge \
+  && /opt/conda/bin/mamba clean -afy
+
 # Install NCCL
 RUN cd /tmp \
  && git clone https://github.com/NVIDIA/nccl.git -b v${NCCL_VERSION}-1 \
@@ -562,7 +573,7 @@ RUN chmod +x /usr/local/bin/start_with_right_hostname.sh
 WORKDIR /root
 
 RUN git clone https://github.com/HazyResearch/flash-attention \
-    && cd flash-attention && git checkout v1.0.7 \
+    && cd flash-attention && git checkout v2.0.4 \
     && cd csrc/ft_attention && ln=$(grep -wn "\-\-threads" ./setup.py | cut -d: -f1) \
     && sed -i "${ln} s/4/1/" ./setup.py && cd ../../ \
     && cd csrc/fused_softmax && ln=$(grep -wn "\-\-threads" ./setup.py | cut -d: -f1) \
@@ -588,7 +599,9 @@ RUN pip install --no-cache-dir -U \
     "sagemaker>=2,<3" \
     "sagemaker-experiments<1" \
     sagemaker-pytorch-training \
-    flash-attn==0.2.8 \
+    flash-attn==2.0.4 \
+    "transformers==4.31.0" \
+    "tensorboard==2.13.0" \
     triton==2.0.0.dev20221202
 
 # Install smdebug from source
@@ -644,9 +657,6 @@ RUN pip install --no-cache-dir -U ${ZERO_2D_URL}
 RUN apt-get update && apt-get install -y libunwind-dev && apt-get clean \
  && pip install --no-cache-dir -U ${SMP_URL}
 
-# Install SM Distributed Modelparallel binary
-RUN pip install --no-cache-dir -U ${SMD_MODEL_PARALLEL_URL}
-
 # Install SM Distributed DataParallel binary
 RUN SMDATAPARALLEL_PT=1 pip install --no-cache-dir ${SMD_DATA_PARALLEL_URL}
 
@@ -681,6 +691,9 @@ RUN wget --content-disposition ${EFA_CHECKER_DLC_SINGLE_NODE_URL} \
     && chmod 555 efa_checker_* \
     && mv efa_checker_single_node_dlc_with_mpi /usr/bin/efa_checker_single_node \
     && mv efa_checker_multi_node_dlc_with_mpi /usr/bin/efa_checker_multi_node
+
+# Install TE latest stable release
+RUN pip install git+https://github.com/NVIDIA/TransformerEngine.git@v1.0
 
 ENV LD_LIBRARY_PATH="/opt/conda/lib/python${PYTHON_SHORT_VERSION}/site-packages/smdistributed/dataparallel/lib:$LD_LIBRARY_PATH"
 
