@@ -26,7 +26,7 @@ huggingface_trcomp_mode = false
 trcomp_mode = false
 # Please only set it to True if you are preparing a Benchmark related PR
 # Do remember to revert it back to False before merging any PR (including Benchmark dedicated PR)
-benchmark_mode = false
+benchmark_mode = true
 # Set deep_canary_mode to true to simulate Deep Canary Test conditions on PR for all frameworks in the
 # build_frameworks list below. This will cause all image builds and non-deep-canary tests on the PR to be skipped,
 # regardless of whether they are enabled or disabled below.
@@ -37,11 +37,11 @@ deep_canary_mode = false
 [build]
 # Add in frameworks you would like to build. By default, builds are disabled unless you specify building an image.
 # available frameworks - ["autogluon", "huggingface_tensorflow", "huggingface_pytorch", "huggingface_tensorflow_trcomp", "huggingface_pytorch_trcomp", "pytorch_trcomp", "tensorflow", "mxnet", "pytorch", "stabilityai_pytorch"]
-build_frameworks = []
+build_frameworks = ["pytorch"]
 
 # By default we build both training and inference containers. Set true/false values to determine which to build.
 build_training = true
-build_inference = true
+build_inference = false
 
 # Set to false in order to remove datetime tag on PR builds
 datetime_tag = true
@@ -67,7 +67,7 @@ ec2_tests_on_heavy_instances = false
 
 ### SM specific tests
 ### Off by default
-sagemaker_local_tests = false
+sagemaker_local_tests = true
 
 # SM remote test valid values:
 # "off" --> do not trigger sagemaker remote tests (default)
