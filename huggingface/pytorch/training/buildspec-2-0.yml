@@ -15,7 +15,7 @@ repository_info:
     repository: &REPOSITORY !join [ *ACCOUNT_ID, .dkr.ecr., *REGION, .amazonaws.com/, *REPOSITORY_NAME ]
 
 images:
-  BuildHuggingFacePytorchGpuPy39Cu117TrainingDockerImage:
+  BuildHuggingFacePytorchGpuPy310Cu118TrainingDockerImage:
     <<: *TRAINING_REPOSITORY
     build: &HUGGINGFACE_PYTORCH_GPU_TRAINING_PY3 false
     image_size_baseline: &IMAGE_SIZE_BASELINE 20000
