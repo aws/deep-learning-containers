@@ -44,6 +44,7 @@ def test_telemetry_instance_tag_failure_graviton_cpu(
     cpu, ec2_client, ec2_instance, ec2_connection, graviton_compatible_only
 ):
     ec2_connection.run(f"sudo apt-get update -y")
+    ec2_connection.run(f"sudo apt-get install -y apt-transport-https")
     ec2_connection.run(f"sudo apt-get install -y net-tools")
     _run_tag_failure_IMDSv1_disabled(cpu, ec2_client, ec2_instance, ec2_connection)
     _run_tag_failure_IMDSv2_disabled_as_hop_limit_1(cpu, ec2_client, ec2_instance, ec2_connection)
@@ -305,6 +306,7 @@ def _run_tag_failure_IMDSv1_disabled(image_uri, ec2_client, ec2_instance, ec2_co
 
     # Disable access to EC2 instance metadata
     ec2_connection.run(f"sudo apt-get update -y")
+    ec2_connection.run(f"sudo apt-get install -y apt-transport-https")
     ec2_connection.run(f"sudo apt-get install -y net-tools")
     ec2_connection.run(f"sudo route add -host 169.254.169.254 reject")
 
@@ -494,7 +496,7 @@ def invoke_telemetry_call(
             ec2_connection.run(
                 f"{docker_cmd} run {env_vars} -e TEST_MODE={test_mode} --name {container_name} -id {image_uri}  {inference_command}"
             )
-            time.sleep(5)
+            time.sleep(30)
             output = ec2_connection.run(
                 f"{docker_cmd} exec -i {container_name} /bin/bash -c 'cat /tmp/test_request.txt'"
             ).stdout.strip("\n")
@@ -502,7 +504,7 @@ def invoke_telemetry_call(
             ec2_connection.run(
                 f"{docker_cmd} run {env_vars} --name {container_name} -id {image_uri} {inference_command}"
             )
-            time.sleep(5)
+            time.sleep(30)
     else:
         framework_to_import = (
             framework.replace("huggingface_", "").replace("_trcomp", "").replace("stabilityai_", "")
@@ -511,19 +513,19 @@ def invoke_telemetry_call(
         ec2_connection.run(f"{docker_cmd} run --name {container_name} -id {image_uri} bash")
         if test_mode:
             ec2_connection.run(
-                f"{docker_cmd} exec -i -e TEST_MODE={test_mode} {container_name} python -c 'import {framework_to_import}; import time; time.sleep(5);'"
+                f"{docker_cmd} exec -i -e TEST_MODE={test_mode} {container_name} python -c 'import {framework_to_import}; import time; time.sleep(30);'"
             )
             output = ec2_connection.run(
                 f"{docker_cmd} exec -i {container_name} /bin/bash -c 'cat /tmp/test_request.txt'"
             ).stdout.strip("\n")
         else:
             output = ec2_connection.run(
-                f"{docker_cmd} exec -i {container_name} python -c 'import {framework_to_import}; import time; time.sleep(5)'"
+                f"{docker_cmd} exec -i {container_name} python -c 'import {framework_to_import}; import time; time.sleep(30)'"
             )
             assert (
                 output.ok
             ), f"'import {framework_to_import}' fails when credentials not configured"
-        time.sleep(1)
+        time.sleep(30)
     return output
 
 

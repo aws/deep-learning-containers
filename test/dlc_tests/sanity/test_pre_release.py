@@ -48,6 +48,41 @@ from test.test_utils import (
 )
 
 
+def derive_regex_for_skipping_tensorflow_inference_tests(
+    is_eia_enabled=False, is_graviton_enabled=False
+):
+    """
+    Creates a regex pattern that would be used by the tests to check if the repo names match the pattern or not and thereafter skip the
+    tests if required. This method takes a base regex "(pr-|beta-|autopatch-|nightly-)?tensorflow-inference" and uses the input arguments
+    to derive additional pattern that needs to be appended to base regex.
+
+    :param is_eia_enabled: boolean, appends `-eia` to the base regex if set to True
+    :param is_graviton_enabled: boolean, appends `-graviton` to the base regex if set to True
+    :return: str, derived regex
+    """
+    base_regex_string = "(pr-|beta-|autopatch-|nightly-)?tensorflow-inference"
+    overall_regex_string = base_regex_string
+    regex_prefix_string_derived_via_method_arguments = ""
+    if is_eia_enabled:
+        regex_prefix_string_derived_via_method_arguments = (
+            f"{regex_prefix_string_derived_via_method_arguments}|-eia"
+            if regex_prefix_string_derived_via_method_arguments
+            else "-eia"
+        )
+    if is_graviton_enabled:
+        regex_prefix_string_derived_via_method_arguments = (
+            f"{regex_prefix_string_derived_via_method_arguments}|-graviton"
+            if regex_prefix_string_derived_via_method_arguments
+            else "-graviton"
+        )
+
+    if regex_prefix_string_derived_via_method_arguments:
+        overall_regex_string = (
+            f"{base_regex_string}({regex_prefix_string_derived_via_method_arguments})?"
+        )
+    return rf"{overall_regex_string}"
+
+
 @pytest.mark.usefixtures("sagemaker")
 @pytest.mark.model("N/A")
 @pytest.mark.canary("Run stray file test regularly on production images")
@@ -181,9 +216,9 @@ def test_tf_serving_version_cpu(tensorflow_inference):
 
     image_repo_name, _ = get_repository_and_tag_from_image_uri(image)
 
-    if re.fullmatch(r"(pr-|beta-|nightly-)?tensorflow-inference", image_repo_name) and Version(
-        tag_framework_version
-    ) == Version("2.6.3"):
+    if re.fullmatch(
+        derive_regex_for_skipping_tensorflow_inference_tests(), image_repo_name
+    ) and Version(tag_framework_version) == Version("2.6.3"):
         pytest.skip(
             "Skipping this test for TF 2.6.3 inference as the v2.6.3 version is already on production"
         )
@@ -280,7 +315,12 @@ def test_framework_version_cpu(image):
             "Neuron images will have their framework version tested in test_framework_and_neuron_sdk_version"
         )
     image_repo_name, _ = get_repository_and_tag_from_image_uri(image)
-    if re.fullmatch(r"(pr-|beta-|nightly-)?tensorflow-inference(-eia|-graviton)?", image_repo_name):
+    if re.fullmatch(
+        derive_regex_for_skipping_tensorflow_inference_tests(
+            is_eia_enabled=True, is_graviton_enabled=True
+        ),
+        image_repo_name,
+    ):
         pytest.skip(
             "Non-gpu tensorflow-inference images will be tested in test_tf_serving_version_cpu."
         )
@@ -465,16 +505,21 @@ def test_framework_and_cuda_version_gpu(gpu, ec2_connection):
 
     image_repo_name, _ = get_repository_and_tag_from_image_uri(image)
 
-    if re.fullmatch(r"(pr-|beta-|nightly-)?tensorflow-inference", image_repo_name) and Version(
-        tag_framework_version
-    ) == Version("2.6.3"):
+    if re.fullmatch(
+        derive_regex_for_skipping_tensorflow_inference_tests(), image_repo_name
+    ) and Version(tag_framework_version) == Version("2.6.3"):
         pytest.skip(
             "Skipping this test for TF 2.6.3 inference as the v2.6.3 version is already on production"
         )
 
     # Framework Version Check #
     # For tf inference containers, check TF model server version
-    if re.fullmatch(r"(pr-|beta-|nightly-)?tensorflow-inference(-eia|-graviton)?", image_repo_name):
+    if re.fullmatch(
+        derive_regex_for_skipping_tensorflow_inference_tests(
+            is_eia_enabled=True, is_graviton_enabled=True
+        ),
+        image_repo_name,
+    ):
         cmd = f"tensorflow_model_server --version"
         output = ec2.execute_ec2_training_test(ec2_connection, image, cmd, executable="bash").stdout
         assert re.match(
