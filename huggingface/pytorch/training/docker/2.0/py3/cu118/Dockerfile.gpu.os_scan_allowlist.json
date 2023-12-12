@@ -1,28 +1,238 @@
 {
-  "org.apache.ant:ant": [
-    {
-      "description": "As mitigation for CVE-2020-1945 Apache Ant 1.10.8 changed the permissions of temporary files it created so that only the current user was allowed to access them. Unfortunately the fixcrlf task deleted the temporary file and created a new one without said protection, effectively nullifying the effort. This would still allow an attacker to inject modified source files into the build process.",
-      "vulnerability_id": "CVE-2020-11979",
-      "name": "CVE-2020-11979",
-      "package_name": "org.apache.ant:ant",
-      "package_details": {
-        "file_path": "opt/conda/libnvvp/plugins/org.apache.ant_1.9.2.v201404171502/lib/ant.jar",
-        "name": "org.apache.ant:ant",
-        "package_manager": "JAR",
-        "version": "1.9.2",
-        "release": null
+   "Pillow":[
+      {
+         "description":"Heap buffer overflow in libwebp in Google Chrome prior to 116.0.5845.187 and libwebp 1.3.2 allowed a remote attacker to perform an out of bounds memory write via a crafted HTML page. (Chromium security severity: Critical)",
+         "vulnerability_id":"CVE-2023-4863",
+         "name":"CVE-2023-4863",
+         "package_name":"Pillow",
+         "package_details":{
+            "file_path":"opt/conda/lib/python3.10/site-packages/Pillow-10.0.0.dist-info/METADATA",
+            "name":"Pillow",
+            "package_manager":"PYTHONPKG",
+            "version":"10.0.0",
+            "release":null
+         },
+         "remediation":{
+            "recommendation":{
+               "text":"None Provided"
+            }
+         },
+         "cvss_v3_score":8.8,
+         "cvss_v30_score":0.0,
+         "cvss_v31_score":8.8,
+         "cvss_v2_score":0.0,
+         "cvss_v3_severity":"HIGH",
+         "source_url":"https://nvd.nist.gov/vuln/detail/CVE-2023-4863",
+         "source":"NVD",
+         "severity":"HIGH",
+         "status":"ACTIVE",
+         "title":"CVE-2023-4863 - Pillow, opencv-python"
+      }
+   ],
+   "cryptography":[
+      {
+         "description":"Issue summary: The POLY1305 MAC (message authentication code) implementation\ncontains a bug that might corrupt the internal state of applications on the\nWindows 64 platform when running on newer X86_64 processors supporting the\nAVX512-IFMA instructions.\n\nImpact summary: If in an application that uses the OpenSSL library an attacker\ncan influence whether the POLY1305 MAC algorithm is used, the application\nstate might be corrupted with various application dependent consequences.\n\nThe POLY1305 MAC (message authentication code) implementation in OpenSSL does\nnot save the contents of non-volatile XMM registers on Windows 64 platform\nwhen calculating the MAC of data larger than 64 bytes. Before returning to\nthe caller all the XMM registers are set to zero rather than restoring their\nprevious content. The vulnerable code is used only on newer x86_64 processors\nsupporting the AVX512-IFMA instructions.\n\nThe consequences of this kind of internal application state corruption can\nbe various - from no consequences, if the",
+         "vulnerability_id":"CVE-2023-4807",
+         "name":"CVE-2023-4807",
+         "package_name":"cryptography",
+         "package_details":{
+            "file_path":"opt/conda/lib/python3.10/site-packages/cryptography-41.0.2.dist-info/METADATA",
+            "name":"cryptography",
+            "package_manager":"PYTHONPKG",
+            "version":"41.0.2",
+            "release":null
+         },
+         "remediation":{
+            "recommendation":{
+               "text":"None Provided"
+            }
+         },
+         "cvss_v3_score":7.8,
+         "cvss_v30_score":0.0,
+         "cvss_v31_score":7.8,
+         "cvss_v2_score":0.0,
+         "cvss_v3_severity":"HIGH",
+         "source_url":"https://nvd.nist.gov/vuln/detail/CVE-2023-4807",
+         "source":"NVD",
+         "severity":"HIGH",
+         "status":"ACTIVE",
+         "title":"CVE-2023-4807 - cryptography"
       },
-      "remediation": { "recommendation": { "text": "None Provided" } },
-      "cvss_v3_score": 7.5,
-      "cvss_v30_score": 0.0,
-      "cvss_v31_score": 7.5,
-      "cvss_v2_score": 5.0,
-      "cvss_v3_severity": "HIGH",
-      "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2020-11979",
-      "source": "NVD",
-      "severity": "HIGH",
-      "status": "ACTIVE",
-      "title": "CVE-2020-11979 - org.apache.ant:ant"
-    }
-  ]
+      {
+         "description":"Issue summary: A bug has been identified in the processing of key and\ninitialisation vector (IV) lengths.  This can lead to potential truncation\nor overruns during the initialisation of some symmetric ciphers.\n\nImpact summary: A truncation in the IV can result in non-uniqueness,\nwhich could result in loss of confidentiality for some cipher modes.\n\nWhen calling EVP_EncryptInit_ex2(), EVP_DecryptInit_ex2() or\nEVP_CipherInit_ex2() the provided OSSL_PARAM array is processed after\nthe key and IV have been established.  Any alterations to the key length,\nvia the \"keylen\" parameter or the IV length, via the \"ivlen\" parameter,\nwithin the OSSL_PARAM array will not take effect as intended, potentially\ncausing truncation or overreading of these values.  The following ciphers\nand cipher modes are impacted: RC2, RC4, RC5, CCM, GCM and OCB.\n\nFor the CCM, GCM and OCB cipher modes, truncation of the IV can result in\nloss of confidentiality.  For example, when following NIST's SP 800-38D\nsection 8.2.1 guidance for constructin",
+         "vulnerability_id":"CVE-2023-5363",
+         "name":"CVE-2023-5363",
+         "package_name":"cryptography",
+         "package_details":{
+            "file_path":"opt/conda/lib/python3.10/site-packages/cryptography-41.0.2.dist-info/METADATA",
+            "name":"cryptography",
+            "package_manager":"PYTHONPKG",
+            "version":"41.0.2",
+            "release":null
+         },
+         "remediation":{
+            "recommendation":{
+               "text":"None Provided"
+            }
+         },
+         "cvss_v3_score":7.5,
+         "cvss_v30_score":0.0,
+         "cvss_v31_score":7.5,
+         "cvss_v2_score":0.0,
+         "cvss_v3_severity":"HIGH",
+         "source_url":"https://nvd.nist.gov/vuln/detail/CVE-2023-5363",
+         "source":"NVD",
+         "severity":"HIGH",
+         "status":"ACTIVE",
+         "title":"CVE-2023-5363 - cryptography"
+      },
+      {
+         "description":"Issue summary: Generating excessively long X9.42 DH keys or checking\nexcessively long X9.42 DH keys or parameters may be very slow.\n\nImpact summary: Applications that use the functions DH_generate_key() to\ngenerate an X9.42 DH key may experience long delays.  Likewise, applications\nthat use DH_check_pub_key(), DH_check_pub_key_ex() or EVP_PKEY_public_check()\nto check an X9.42 DH key or X9.42 DH parameters may experience long delays.\nWhere the key or parameters that are being checked have been obtained from\nan untrusted source this may lead to a Denial of Service.\n\nWhile DH_check() performs all the necessary checks (as of CVE-2023-3817),\nDH_check_pub_key() doesn't make any of these checks, and is therefore\nvulnerable for excessively large P and Q parameters.\n\nLikewise, while DH_generate_key() performs a check for an excessively large\nP, it doesn't check for an excessively large Q.\n\nAn application that calls DH_generate_key() or DH_check_pub_key() and\nsupplies a key or parameters obtained from an untrusted sour",
+         "vulnerability_id":"CVE-2023-5678",
+         "name":"CVE-2023-5678",
+         "package_name":"cryptography",
+         "package_details":{
+            "file_path":"opt/conda/lib/python3.10/site-packages/cryptography-41.0.2.dist-info/METADATA",
+            "name":"cryptography",
+            "package_manager":"PYTHONPKG",
+            "version":"41.0.2",
+            "release":null
+         },
+         "remediation":{
+            "recommendation":{
+               "text":"None Provided"
+            }
+         },
+         "cvss_v3_score":7.5,
+         "cvss_v30_score":0.0,
+         "cvss_v31_score":7.5,
+         "cvss_v2_score":0.0,
+         "cvss_v3_severity":"HIGH",
+         "source_url":"https://nvd.nist.gov/vuln/detail/CVE-2023-5678",
+         "source":"NVD",
+         "severity":"HIGH",
+         "status":"ACTIVE",
+         "title":"CVE-2023-5678 - cryptography"
+      }
+   ],
+   "opencv-python":[
+      {
+         "description":"Heap buffer overflow in libwebp in Google Chrome prior to 116.0.5845.187 and libwebp 1.3.2 allowed a remote attacker to perform an out of bounds memory write via a crafted HTML page. (Chromium security severity: Critical)",
+         "vulnerability_id":"CVE-2023-4863",
+         "name":"CVE-2023-4863",
+         "package_name":"opencv-python",
+         "package_details":{
+            "file_path":"opt/conda/lib/python3.10/site-packages/opencv_python-4.6.0.dist-info/METADATA",
+            "name":"opencv-python",
+            "package_manager":"PYTHONPKG",
+            "version":"4.6.0",
+            "release":null
+         },
+         "remediation":{
+            "recommendation":{
+               "text":"None Provided"
+            }
+         },
+         "cvss_v3_score":8.8,
+         "cvss_v30_score":0.0,
+         "cvss_v31_score":8.8,
+         "cvss_v2_score":0.0,
+         "cvss_v3_severity":"HIGH",
+         "source_url":"https://nvd.nist.gov/vuln/detail/CVE-2023-4863",
+         "source":"NVD",
+         "severity":"HIGH",
+         "status":"ACTIVE",
+         "title":"CVE-2023-4863 - Pillow, opencv-python"
+      }
+   ],
+   "org.apache.ant:ant":[
+      {
+         "description":"As mitigation for CVE-2020-1945 Apache Ant 1.10.8 changed the permissions of temporary files it created so that only the current user was allowed to access them. Unfortunately the fixcrlf task deleted the temporary file and created a new one without said protection, effectively nullifying the effort. This would still allow an attacker to inject modified source files into the build process.",
+         "vulnerability_id":"CVE-2020-11979",
+         "name":"CVE-2020-11979",
+         "package_name":"org.apache.ant:ant",
+         "package_details":{
+            "file_path":"opt/conda/libnvvp/plugins/org.apache.ant_1.9.2.v201404171502/lib/ant.jar",
+            "name":"org.apache.ant:ant",
+            "package_manager":"JAR",
+            "version":"1.9.2",
+            "release":null
+         },
+         "remediation":{
+            "recommendation":{
+               "text":"None Provided"
+            }
+         },
+         "cvss_v3_score":7.5,
+         "cvss_v30_score":0.0,
+         "cvss_v31_score":7.5,
+         "cvss_v2_score":0.0,
+         "cvss_v3_severity":"HIGH",
+         "source_url":"https://nvd.nist.gov/vuln/detail/CVE-2020-11979",
+         "source":"NVD",
+         "severity":"HIGH",
+         "status":"ACTIVE",
+         "title":"CVE-2020-11979 - org.apache.ant:ant"
+      }
+   ],
+   "urllib3":[
+      {
+         "description":"urllib3 is a user-friendly HTTP client library for Python. urllib3 doesn't treat the `Cookie` HTTP header special or provide any helpers for managing cookies over HTTP, that is the responsibility of the user. However, it is possible for a user to specify a `Cookie` header and unknowingly leak information via HTTP redirects to a different origin if that user doesn't disable redirects explicitly. This issue has been patched in urllib3 version 1.26.17 or 2.0.5.",
+         "vulnerability_id":"CVE-2023-43804",
+         "name":"CVE-2023-43804",
+         "package_name":"urllib3",
+         "package_details":{
+            "file_path":"opt/conda/lib/python3.10/site-packages/urllib3-1.26.15.dist-info/METADATA",
+            "name":"urllib3",
+            "package_manager":"PYTHONPKG",
+            "version":"1.26.15",
+            "release":null
+         },
+         "remediation":{
+            "recommendation":{
+               "text":"None Provided"
+            }
+         },
+         "cvss_v3_score":8.1,
+         "cvss_v30_score":0.0,
+         "cvss_v31_score":8.1,
+         "cvss_v2_score":0.0,
+         "cvss_v3_severity":"HIGH",
+         "source_url":"https://nvd.nist.gov/vuln/detail/CVE-2023-43804",
+         "source":"NVD",
+         "severity":"HIGH",
+         "status":"ACTIVE",
+         "title":"CVE-2023-43804 - urllib3"
+      }
+   ],
+   "pyarrow":[
+      {
+         "description":"Deserialization of untrusted data in IPC and Parquet readers in PyArrow versions 0.14.0 to 14.0.0 allows arbitrary code execution. An application is vulnerable if it reads Arrow IPC, Feather or Parquet data from untrusted sources (for example user-supplied input files).\n\nThis vulnerability only affects PyArrow, not other Apache Arrow implementations or bindings.\n\nIt is recommended that users of PyArrow upgrade to 14.0.1. Similarly, it is recommended that downstream libraries upgrade their dependency requirements to PyArrow 14.0.1 or later. PyPI packages are already available, and we hope that conda-forge packages will be available soon.\n\nIf it is not possible to upgrade, we provide a separate package `pyarrow-hotfix` that disables the vulnerability on older PyArrow versions. See  https://pypi.org/project/pyarrow-hotfix/  for instructions.\n\n",
+         "vulnerability_id":"CVE-2023-47248",
+         "name":"CVE-2023-47248",
+         "package_name":"pyarrow",
+         "package_details":{
+            "file_path":"opt/conda/lib/python3.10/site-packages/pyarrow-12.0.1.dist-info/METADATA",
+            "name":"pyarrow",
+            "package_manager":"PYTHONPKG",
+            "version":"12.0.1",
+            "release":null
+         },
+         "remediation":{
+            "recommendation":{
+               "text":"None Provided"
+            }
+         },
+         "cvss_v3_score":9.8,
+         "cvss_v30_score":0.0,
+         "cvss_v31_score":9.8,
+         "cvss_v2_score":0.0,
+         "cvss_v3_severity":"CRITICAL",
+         "source_url":"https://nvd.nist.gov/vuln/detail/CVE-2023-47248",
+         "source":"NVD",
+         "severity":"CRITICAL",
+         "status":"ACTIVE",
+         "title":"CVE-2023-47248 - pyarrow"
+      }
+   ]
 }
