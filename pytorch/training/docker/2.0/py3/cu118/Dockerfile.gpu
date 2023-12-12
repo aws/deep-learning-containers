@@ -423,6 +423,13 @@ ARG PT_TORCHDATA_URL
 ARG PYTORCH_VERSION_SM
 ARG NCCL_ASYNC_ERROR_HANDLING
 
+# Install aws-ofi-nccl, dependency of sm PyTorch
+RUN /opt/conda/bin/mamba install -y python=${PYTHON_VERSION} \
+  aws-ofi-nccl-dlc \
+  --override-channels \
+  -c https://aws-ml-conda-ec2.s3.us-west-2.amazonaws.com \
+  && /opt/conda/bin/mamba clean -afy
+
 # Install sm PyTorch
 RUN /opt/conda/bin/mamba install -y python=${PYTHON_VERSION} \
   pytorch="2.0.1=sm_py3.10_cuda11.8*" \
@@ -436,13 +443,6 @@ RUN /opt/conda/bin/mamba install -y python=${PYTHON_VERSION} \
   -c pytorch-nightly \
   -c nvidia \
   -c conda-forge \
-  && /opt/conda/bin/mamba clean -afy
-
-# Override only sm-pytorch
-RUN /opt/conda/bin/mamba install -y python=${PYTHON_VERSION} \
-  aws-ofi-nccl-dlc \
-  --override-channels \
-  -c https://aws-ml-conda-ec2.s3.us-west-2.amazonaws.com \
   && /opt/conda/bin/mamba clean -afy
 
 # Install NCCL

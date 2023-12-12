@@ -358,7 +358,14 @@ ENV SAGEMAKER_TRAINING_MODULE=sagemaker_pytorch_container.training:main
 
 WORKDIR /
 
-# Install ec2 PyTorch
+# Install aws-ofi-nccl, dependency of sm PyTorch
+RUN /opt/conda/bin/mamba install -y python=${PYTHON_VERSION} \
+  aws-ofi-nccl-dlc=1.7.3 \
+  --override-channels \
+  -c ${CONDA_CHANNEL} \
+  && /opt/conda/bin/mamba clean -afy
+
+# Install sm PyTorch
 RUN /opt/conda/bin/mamba install -y python=${PYTHON_SHORT_VERSION} \
   pytorch="2.0.1=sm_py3.10_cuda12.1*" \
   pytorch-cuda=12.1 cuda-nvcc=12.1.* torchvision torchaudio torchtext \
@@ -375,9 +382,7 @@ RUN /opt/conda/bin/mamba install -y python=${PYTHON_SHORT_VERSION} \
 # If single layer is huge in size (like 17 GB), then ECR pull can timeout on smaller EC2 instances like P3.2x.
 RUN /opt/conda/bin/mamba install -y python=${PYTHON_SHORT_VERSION} \
   cuda-libraries-dev=12.1 cuda-libraries-static=12.1 cuda-compiler=12.1 \
-  aws-ofi-nccl-dlc=1.7.3 \
   --override-channels \
-  -c ${CONDA_CHANNEL} \
   -c nvidia \
   -c conda-forge \
   && /opt/conda/bin/mamba clean -afy
