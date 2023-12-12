@@ -49,7 +49,7 @@ ENV DEBIAN_FRONTEND=noninteractive \
     LD_LIBRARY_PATH="${LD_LIBRARY_PATH}:/usr/local/lib" \
     LD_LIBRARY_PATH="/opt/conda/lib:${LD_LIBRARY_PATH}" \
     PATH=/opt/conda/bin:$PATH \
-    TEMP=/home/model-server/tmp \
+    TEMP=/tmp \
     MKL_THREADING_LAYER=GNU \
     DLC_CONTAINER_TYPE=inference \
     # See http://bugs.python.org/issue19846

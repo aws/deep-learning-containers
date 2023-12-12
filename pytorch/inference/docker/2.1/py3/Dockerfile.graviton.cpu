@@ -50,7 +50,7 @@ ENV DEBIAN_FRONTEND=noninteractive \
     LANG=C.UTF-8 \
     LD_LIBRARY_PATH=/opt/conda/lib/:$LD_LIBRARY_PATH \
     PATH=/opt/conda/bin:$PATH \
-    TEMP=/home/model-server/tmp \
+    TEMP=/tmp \
     ### Graviton Optimizaation ENV Variables
     LRU_CACHE_CAPACITY=1024 \
     THP_MEM_ALLOC_ENABLE=1 \

@@ -23,7 +23,7 @@ ENV LANG C.UTF-8
 ENV LD_LIBRARY_PATH /opt/aws/neuron/lib:/lib/x86_64-linux-gnu:/opt/conda/lib/:$LD_LIBRARY_PATH
 ENV PATH /opt/conda/bin:/opt/aws/neuron/bin:$PATH
 ENV SAGEMAKER_SERVING_MODULE sagemaker_pytorch_serving_container.serving:main
-ENV TEMP=/home/model-server/tmp
+ENV TEMP=/tmp
 
 RUN apt-get update \
  && apt-get upgrade -y \
