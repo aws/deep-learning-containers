@@ -4,6 +4,7 @@ ARG PYTHON_SHORT_VERSION=3.10
 ARG MAMBA_VERSION=23.3.1-0
 ARG PYTORCH_VERSION_EC2=2.0.1
 ARG CONDA_CHANNEL=https://aws-ml-conda-ec2.s3.us-west-2.amazonaws.com
+ARG SMD_MODEL_PARALLEL_CONDA_CHANNEL=https://sagemaker-distributed-model-parallel.s3.us-west-2.amazonaws.com/smp-2.0.0-pt-2.0.1/2023-12-11/smp-v2/
 
 FROM nvidia/cuda:12.1.0-base-ubuntu20.04 AS base_image
 
@@ -358,33 +359,25 @@ ENV SAGEMAKER_TRAINING_MODULE=sagemaker_pytorch_container.training:main
 WORKDIR /
 
 # Install ec2 PyTorch
-RUN /opt/conda/bin/mamba install -y python=${PYTHON_SHORT_VERSION} pytorch=${PYTORCH_VERSION_EC2} \
-  pytorch-cuda=12.1 cuda-nvcc=12.1.* torchvision torchaudio torchtext aws-ofi-nccl-dlc=1.7.3 \
+RUN /opt/conda/bin/mamba install -y python=${PYTHON_SHORT_VERSION} \
+  pytorch="2.0.1=sm_py3.10_cuda12.1*" \
+  pytorch-cuda=12.1 cuda-nvcc=12.1.* torchvision torchaudio torchtext \
+  cuda-libraries-dev=12.1 cuda-libraries-static=12.1 cuda-compiler=12.1 \
   --override-channels \
-  -c ${CONDA_CHANNEL} \
+  -c ${SMD_MODEL_PARALLEL_CONDA_CHANNEL} \
+  -c pytorch \
+  -c numba/label/dev \
+  -c pytorch-nightly \
   -c nvidia \
   -c conda-forge \
   && /opt/conda/bin/mamba clean -afy
 
 # CUDA libraries should be installed as a separate installation command to reduce memory size of single layer.
 # If single layer is huge in size (like 17 GB), then ECR pull can timeout on smaller EC2 instances like P3.2x.
-RUN /opt/conda/bin/mamba install -y \
-  cuda-libraries-dev=12.1 cuda-libraries-static=12.1 cuda-compiler=12.1 \
+RUN /opt/conda/bin/mamba install -y python=${PYTHON_SHORT_VERSION} \
+  aws-ofi-nccl-dlc=1.7.3 \
   --override-channels \
   -c ${CONDA_CHANNEL} \
-  -c nvidia \
-  -c conda-forge \
-  && /opt/conda/bin/mamba clean -afy
-
-# Override only sm-pytorch
-RUN /opt/conda/bin/mamba install --force-reinstall -y \
-  pytorch=2.0.1=aws_py3.10_cuda12.1_cudnn8.9.5_0 --override-channels \
-  -c https://sagemaker-distributed-model-parallel.s3.us-west-2.amazonaws.com/smp-2.0.0-pt-2.0.1/2023-12-11/smp-v2/ \
-  -c pytorch \
-  -c numba/label/dev \
-  -c pytorch-nightly \
-  -c nvidia \
-  -c conda-forge \
   && /opt/conda/bin/mamba clean -afy
 
 # Install NCCL

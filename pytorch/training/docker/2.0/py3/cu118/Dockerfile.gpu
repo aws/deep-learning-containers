@@ -7,7 +7,7 @@ ARG PYTORCH_VERSION_SM=2.0.1
 
 # SMD binaries
 ARG SMD_DATA_PARALLEL_URL=https://smdataparallel.s3.amazonaws.com/binary/pytorch/2.0.1/cu118/2023-10-23/smdistributed_dataparallel-2.0.1-cp310-cp310-linux_x86_64.whl
-ARG SMD_MODEL_PARALLEL_URL=https://sagemaker-distributed-model-parallel.s3.us-west-2.amazonaws.com/pytorch-2.0.0/build-artifacts/2023-04-14-20-14/smdistributed_modelparallel-1.15.0-cp310-cp310-linux_x86_64.whl
+ARG SMD_MODEL_PARALLEL_CONDA_CHANNEL=https://sagemaker-distributed-model-parallel.s3.us-west-2.amazonaws.com/smp-2.0.0-pt-2.0.1/2023-12-11/smp-v2/
 
 # ZeRO-2D Binary
 ARG ZERO_2D_URL=https://aws-deepspeed-zero-2d-binaries.s3.us-west-2.amazonaws.com/r2.0.0/20230407-184728/1ea3d4b6aa41fe66277daacbb78b3743a310d85a/deepspeed-0.6.1%2B1ea3d4b-py3-none-any.whl
@@ -397,7 +397,7 @@ ENV SAGEMAKER_TRAINING_MODULE=sagemaker_pytorch_container.training:main
 
 # SMD model parallel and data parallel binaries
 ARG SMD_DATA_PARALLEL_URL
-ARG SMD_MODEL_PARALLEL_URL
+ARG SMD_MODEL_PARALLEL_CONDA_CHANNEL
 
 # EFA checker binaries
 ARG EFA_CHECKER_DLC_SINGLE_NODE_URL=https://smdataparallel.s3.amazonaws.com/efa-health-checher/dlc-pytorch-2.0.1/efa_checker_single_node_dlc_with_mpi
@@ -424,26 +424,25 @@ ARG PYTORCH_VERSION_SM
 ARG NCCL_ASYNC_ERROR_HANDLING
 
 # Install sm PyTorch
-RUN /opt/conda/bin/mamba install -y python=${PYTHON_VERSION} pytorch=${PYTORCH_VERSION_SM} \
-  pytorch-cuda=11.8 cuda-nvcc=11.8.89 torchvision torchaudio torchtext aws-ofi-nccl-dlc \
+RUN /opt/conda/bin/mamba install -y python=${PYTHON_VERSION} \
+  pytorch="2.0.1=sm_py3.10_cuda11.8*" \
+  pytorch-cuda=11.8 cuda-nvcc=11.8.89 torchvision torchaudio torchtext \
   cudatoolkit=11.8 cuda-runtime=11.8 cuda-libraries=11.8 \
   cuda-compiler=11.8 cuda-cudart=11.8.89 cuda-cudart-dev=11.8.89 \
-  cuda-libraries-dev=11.8 \
   --override-channels \
-  -c https://aws-ml-conda-ec2.s3.us-west-2.amazonaws.com \
-  -c conda-forge \
-  -c nvidia \
-  && /opt/conda/bin/mamba clean -afy
-
-# Override only sm-pytorch
-RUN /opt/conda/bin/mamba install --force-reinstall -y \
-  pytorch=2.0.1=sm_py3.10_cuda11.8_cudnn8.9.5_nccl2.18.3_0_smp_2.0.0_pt_2.0.1 --override-channels \
-  -c https://sagemaker-distributed-model-parallel.s3.us-west-2.amazonaws.com/smp-2.0.0-pt-2.0.1/2023-12-11/smp-v2/ \
+  -c ${SMD_MODEL_PARALLEL_CONDA_CHANNEL} \
   -c pytorch \
   -c numba/label/dev \
   -c pytorch-nightly \
   -c nvidia \
   -c conda-forge \
+  && /opt/conda/bin/mamba clean -afy
+
+# Override only sm-pytorch
+RUN /opt/conda/bin/mamba install -y python=${PYTHON_VERSION} \
+  aws-ofi-nccl-dlc \
+  --override-channels \
+  -c https://aws-ml-conda-ec2.s3.us-west-2.amazonaws.com \
   && /opt/conda/bin/mamba clean -afy
 
 # Install NCCL
