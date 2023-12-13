@@ -696,6 +696,13 @@ RUN wget --content-disposition ${EFA_CHECKER_DLC_SINGLE_NODE_URL} \
     && mv efa_checker_single_node_dlc_with_mpi /usr/bin/efa_checker_single_node \
     && mv efa_checker_multi_node_dlc_with_mpi /usr/bin/efa_checker_multi_node
 
+#Install CUDNN for tranformer engine
+RUN wget https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2004/x86_64/libcudnn8-dev_${CUDNN_VERSION}-1+cuda11.8_amd64.deb \
+    && wget https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2004/x86_64/libcudnn8_${CUDNN_VERSION}-1+cuda11.8_amd64.deb \
+    && dpkg -i libcudnn8_${CUDNN_VERSION}-1+cuda11.8_amd64.deb \
+    && dpkg -i libcudnn8-dev_${CUDNN_VERSION}-1+cuda11.8_amd64.deb \
+    && rm libcudnn8_${CUDNN_VERSION}-1+cuda11.8_amd64.deb libcudnn8-dev_${CUDNN_VERSION}-1+cuda11.8_amd64.deb
+
 # Install TE latest stable release
 RUN pip install git+https://github.com/NVIDIA/TransformerEngine.git@v1.0
 
