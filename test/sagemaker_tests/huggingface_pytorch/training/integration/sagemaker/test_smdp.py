@@ -44,7 +44,7 @@ hyperparameters = {
     "max_steps": 10,
     "max_train_samples": 10,
     "pad_to_max_length": True,
-    "doc_stride": 64,
+    "doc_stride": 32,
     "output_dir": "/opt/ml/model",
 }
 # metric definition to extract the results

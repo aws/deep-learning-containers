@@ -92,8 +92,6 @@ if __name__ == "__main__":
         seq_length=16,
         num_of_sequences=16,
     )
-    logger.info(f" loaded train_dataset length is: {len(train_dataset)}")
-    logger.info(f" loaded eval_dataset length is: {len(eval_dataset)}")
 
     # build peft config
     peft_config = LoraConfig(
