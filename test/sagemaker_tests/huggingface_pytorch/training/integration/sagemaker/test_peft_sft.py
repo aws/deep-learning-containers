@@ -47,7 +47,7 @@ def _test_diffusers_model(
         "max_steps": 4,
         "eval_steps": 2,
         "save_steps": 2,
-        "r": 16,
+        "rank": 16,
         "lora_alpha": 32,
         "lora_dropout": 0.05,
     }

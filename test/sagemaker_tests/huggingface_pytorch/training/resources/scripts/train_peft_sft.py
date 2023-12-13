@@ -27,11 +27,11 @@ if __name__ == "__main__":
     # hyperparameters sent by the client are passed as command-line arguments to the script.
     parser.add_argument("--model_id", type=str)
     parser.add_argument("--output_dir", type=str, default="/opt/ml/model")
-    parser.add_argument("--train-batch-size", type=int, default=2)
+    parser.add_argument("--train_batch_size", type=int, default=2)
     parser.add_argument("--max_steps", type=int, default=4)
     parser.add_argument("--eval_steps", type=int, default=2)
     parser.add_argument("--save_steps", type=int, default=2)
-    parser.add_argument("--r", type=int, default=16)  # the dimension of the low-rank matrices
+    parser.add_argument("--rank", type=int, default=16)  # the dimension of the low-rank matrices
     parser.add_argument(
         "--lora_alpha", type=int, default=32
     )  # the scaling factor for the low-rank matrices
@@ -97,7 +97,7 @@ if __name__ == "__main__":
 
     # build peft config
     peft_config = LoraConfig(
-        r=args.r,
+        r=args.rank,
         lora_alpha=args.lora_alpha,
         lora_dropout=args.lora_dropout,
         bias="none",
