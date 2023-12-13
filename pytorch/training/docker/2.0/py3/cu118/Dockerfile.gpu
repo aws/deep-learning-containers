@@ -606,7 +606,7 @@ RUN pip install --no-cache-dir -U \
     triton==2.0.0.dev20221202
 
 # Set MAX_JOBS=4 to avoid OOM issues in installation process
-RUN RUN MAX_JOBS=4 pip install flash-attn==2.0.4 --no-build-isolation
+RUN MAX_JOBS=4 pip install flash-attn==2.0.4 --no-build-isolation
 
 # Install smdebug from source
 RUN cd /tmp \
