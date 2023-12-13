@@ -13,6 +13,9 @@ ARG DATASETS_VERSION
 ARG DIFFUSERS_VERSION=0.24.0
 ARG EVALUATE_VERSION=0.4.1
 ARG ACCELERATE_VERSION=0.25.0
+ARG TRL_VERSION=0.7.4
+ARG PEFT_VERSION=0.7.1
+ARG FLASH_ATTN_VERSION=2.3.6
 ARG PYTHON=python3
 
 # install Hugging Face libraries and its dependencies
@@ -23,7 +26,10 @@ RUN pip install --no-cache-dir \
 	Jinja2 \
 	tensorboard \
 	evaluate==${EVALUATE_VERSION} \
-	accelerate==${ACCELERATE_VERSION}
+	accelerate==${ACCELERATE_VERSION} \
+	trl==${TRL_VERSION} \
+	peft==${PEFT_VERSION} \
+	flash-attn==${FLASH_ATTN_VERSION}
 
 RUN apt-get update \
  # TODO: Remove upgrade statements once packages are updated in base image
