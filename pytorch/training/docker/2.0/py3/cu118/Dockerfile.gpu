@@ -424,10 +424,12 @@ ARG PYTORCH_VERSION_SM
 ARG NCCL_ASYNC_ERROR_HANDLING
 
 # Install aws-ofi-nccl, dependency of sm PyTorch
-RUN /opt/conda/bin/mamba install -y python=${PYTHON_VERSION} \
-  aws-ofi-nccl-dlc \
+RUN /opt/conda/bin/mamba install -y  \
+  "aws-ofi-nccl>=1.7.1,<2.0" \
   --override-channels \
-  -c https://aws-ml-conda-ec2.s3.us-west-2.amazonaws.com \
+  -c https://aws-ml-conda.s3.us-west-2.amazonaws.com \
+  -c nvidia \
+  -c conda-forge \
   && /opt/conda/bin/mamba clean -afy
 
 # Install sm PyTorch
@@ -599,10 +601,12 @@ RUN pip install --no-cache-dir -U \
     "sagemaker>=2,<3" \
     "sagemaker-experiments<1" \
     sagemaker-pytorch-training \
-    flash-attn==2.0.4 \
     "transformers==4.31.0" \
     "tensorboard==2.13.0" \
     triton==2.0.0.dev20221202
+
+# Set MAX_JOBS=4 to avoid OOM issues in installation process
+RUN RUN MAX_JOBS=4 pip install flash-attn==2.0.4 --no-build-isolation
 
 # Install smdebug from source
 RUN cd /tmp \
