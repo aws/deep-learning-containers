@@ -32,16 +32,17 @@ distribution = {"smdistributed": {"dataparallel": {"enabled": True}}}
 
 # hyperparameters, which are passed into the training job
 hyperparameters = {
-    "model_name_or_path": "bert-large-uncased-whole-word-masking",
+    "model_name_or_path": "distilbert-base-cased",
     "dataset_name": "squad",
     "do_train": True,
     "do_eval": True,
     "fp16": True,
-    "per_device_train_batch_size": 4,
-    "per_device_eval_batch_size": 4,
+    "per_device_train_batch_size": 2,
+    "per_device_eval_batch_size": 2,
     "num_train_epochs": 1,
     "max_seq_length": 384,
     "max_steps": 10,
+    "max_train_samples": 30,
     "pad_to_max_length": True,
     "doc_stride": 128,
     "output_dir": "/opt/ml/model",
