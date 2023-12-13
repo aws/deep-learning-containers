@@ -24,10 +24,10 @@ import sagemaker
 
 # hyperparameters, which are passed into the training job
 hyperparameters = {
-    "model_name_or_path": "roberta-base",
+    "model_name_or_path": "hf-internal-testing/tiny-random-RobertaModel",
     "task_name": "mnli",
-    "per_device_train_batch_size": 2,
-    "per_device_eval_batch_size": 2,
+    "per_device_train_batch_size": 1,
+    "per_device_eval_batch_size": 1,
     "do_train": True,
     "do_eval": True,
     "do_predict": True,

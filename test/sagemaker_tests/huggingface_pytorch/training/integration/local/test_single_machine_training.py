@@ -15,7 +15,7 @@ from __future__ import absolute_import
 import pytest
 from sagemaker.huggingface import HuggingFace
 
-from ...integration import ROLE, distrilbert_script, distrilbert_torch_compiled_script
+from ...integration import ROLE, distilbert_script, distilbert_torch_compiled_script
 
 
 @pytest.mark.model("hf_bert")

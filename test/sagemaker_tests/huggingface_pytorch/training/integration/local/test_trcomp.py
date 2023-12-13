@@ -15,7 +15,7 @@ from __future__ import absolute_import
 import pytest
 from sagemaker.huggingface import HuggingFace, TrainingCompilerConfig
 
-from ...integration import ROLE, distrilbert_script
+from ...integration import ROLE, distilbert_script
 import unittest.mock as mock
 
 

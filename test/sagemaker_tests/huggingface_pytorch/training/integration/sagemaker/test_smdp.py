@@ -32,17 +32,17 @@ distribution = {"smdistributed": {"dataparallel": {"enabled": True}}}
 
 # hyperparameters, which are passed into the training job
 hyperparameters = {
-    "model_name_or_path": "distilbert-base-cased",
+    "model_name_or_path": "hf-internal-testing/tiny-random-BertModel",
     "dataset_name": "squad",
     "do_train": True,
     "do_eval": True,
     "fp16": True,
-    "per_device_train_batch_size": 2,
-    "per_device_eval_batch_size": 2,
+    "per_device_train_batch_size": 1,
+    "per_device_eval_batch_size": 1,
     "num_train_epochs": 1,
-    "max_seq_length": 384,
+    "max_seq_length": 64,
     "max_steps": 10,
-    "max_train_samples": 30,
+    "max_train_samples": 10,
     "pad_to_max_length": True,
     "doc_stride": 128,
     "output_dir": "/opt/ml/model",
