@@ -374,6 +374,7 @@ RUN /opt/conda/bin/mamba install -y python=${PYTHON_SHORT_VERSION} \
   pytorch-cuda=12.1 cuda-nvcc=12.1.* torchvision torchaudio torchtext \
   --override-channels \
   -c ${SMD_MODEL_PARALLEL_CONDA_CHANNEL} \
+  -c https://aws-ml-conda-ec2.s3.us-west-2.amazonaws.com \
   -c pytorch \
   -c numba/label/dev \
   -c pytorch-nightly \
