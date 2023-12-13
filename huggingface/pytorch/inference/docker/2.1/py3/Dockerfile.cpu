@@ -29,6 +29,7 @@ ARG TORCHAUDIO_URL=https://framework-binaries.s3.us-west-2.amazonaws.com/pytorch
 # HF ARGS
 ARG TRANSFORMERS_VERSION
 ARG DIFFUSERS_VERSION=0.24.0
+ARG PEFT_VERSION=0.7.1
 
 # Set Debian interaction
 ARG DEBIAN_FRONTEND=noninteractive
@@ -170,6 +171,7 @@ RUN curl -o /license.txt  https://aws-dlc-licenses.s3.amazonaws.com/pytorch-2.0/
 RUN pip install --no-cache-dir \
     transformers[sentencepiece,audio,vision]==${TRANSFORMERS_VERSION} \
     diffusers==${DIFFUSERS_VERSION} \
+    peft==${PEFT_VERSION} \
     "accelerate>=0.25.0" \
     "protobuf>=3.19.5,<=3.20.2" \
     "sagemaker-huggingface-inference-toolkit==2.3"
