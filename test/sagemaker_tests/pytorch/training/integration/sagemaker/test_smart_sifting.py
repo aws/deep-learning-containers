@@ -13,12 +13,26 @@
 from __future__ import absolute_import
 
 import pytest
+from packaging.version import Version
+from packaging.specifiers import SpecifierSet
+
 from sagemaker.pytorch import PyTorch
 from sagemaker import utils
 
 from .timeout import timeout
 from ...integration import smart_sifting_path, DEFAULT_TIMEOUT
 from .... import invoke_pytorch_helper_function
+from test.test_utils import get_framework_and_version_from_tag
+
+
+def validate_or_skip_smart_sifting(ecr_image):
+    if not can_run_smart_sifting(ecr_image):
+        pytest.skip("Smart sifting is only available for use with PT 2.0.1")
+
+
+def can_run_smart_sifting(ecr_image):
+    _, image_framework_version = get_framework_and_version_from_tag(ecr_image)
+    return Version(image_framework_version) in SpecifierSet("==2.0.1")
 
 
 @pytest.mark.usefixtures("feature_smart_sifting_present")
@@ -28,6 +42,7 @@ from .... import invoke_pytorch_helper_function
 @pytest.mark.skip_gpu
 @pytest.mark.skip_py2_containers
 def test_smart_sifting_cpu(framework_version, ecr_image, sagemaker_regions, instance_type):
+    validate_or_skip_smart_sifting(ecr_image)
     instance_type = instance_type or "ml.c4.xlarge"
     function_args = {
         "framework_version": framework_version,
@@ -44,6 +59,7 @@ def test_smart_sifting_cpu(framework_version, ecr_image, sagemaker_regions, inst
 @pytest.mark.skip_cpu
 @pytest.mark.skip_py2_containers
 def test_smart_sifting_gpu(framework_version, ecr_image, sagemaker_regions, instance_type):
+    validate_or_skip_smart_sifting(ecr_image)
     instance_type = instance_type or "ml.g4dn.12xlarge"
     function_args = {
         "framework_version": framework_version,
