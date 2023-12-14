@@ -39,6 +39,8 @@ pt_ipex_script = "ipex_inference.py"
 pt_diffusers_cpu_script = "diffusers_cpu_inference.py"
 pt_diffusers_gpu_script = "diffusers_gpu_inference.py"
 pt_compile_script = "torch_compile_inference.py"
+pt_fa_script = "flash_attn_inference.py"
+pt_peft_script = "peft_trained_inference.py"
 
 
 audio_sample_file_path = os.path.join(resources_path, "audio", "sample1.wav")
