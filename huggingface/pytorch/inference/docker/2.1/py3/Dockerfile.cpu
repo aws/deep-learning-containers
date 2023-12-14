@@ -46,6 +46,7 @@ ENV DLC_CONTAINER_TYPE=inference
 RUN apt-get update \
  && apt-get -y upgrade \
  && apt-get install -y --no-install-recommends \
+    gcc \
     software-properties-common \
     ca-certificates \
     build-essential \
@@ -178,6 +179,7 @@ RUN pip install --no-cache-dir \
 
 # Install IPEx and its dependencies
 # from source is mandatory for cutomized AWS PyTorch binaries: https://github.com/intel/intel-extension-for-pytorch/issues/317
+RUN conda config --append channels conda-forge && conda install gcc gxx -y
 RUN pip install --no-cache-dir intel-openmp tbb
 RUN cd /opt/ && mkdir -p ipex \
     cd /opt/ipex && \
