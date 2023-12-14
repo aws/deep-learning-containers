@@ -156,15 +156,22 @@ def _predictor(
         sagemaker_session=sagemaker_local_session,
         model_server_workers=model_server_workers,
     )
-    predictor = None
+
     with local_mode_utils.lock():
+        predictor = None
         try:
             predictor = model.deploy(1, instance_type)
             yield predictor
+        except Exception as e:
+            if not predictor:
+                raise RuntimeError('Model not successfully deployed') from e
+            raise
         finally:
-            if predictor:
-                predictor.delete_endpoint()
-
+            # Do not try to delete endpoint if predictor is never successfully initialized
+            if not predictor:
+                pass
+            predictor.delete_endpoint()
+            
 
 def _assert_prediction_npy_json(predictor, test_loader, content_type, accept):
     predictor.serializer = CONTENT_TYPE_TO_SERIALIZER_MAP[content_type]
