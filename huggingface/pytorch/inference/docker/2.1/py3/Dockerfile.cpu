@@ -17,7 +17,7 @@ LABEL com.amazonaws.sagemaker.capabilities.multi-models=true
 
 ARG PYTHON=python3
 ARG PYTHON_VERSION=3.10.9
-ARG MAMBA_VERSION=22.11.1-4
+ARG MAMBA_VERSION=23.3.1-1
 ARG OPEN_MPI_VERSION=4.1.5
 ARG MMS_VERSION=1.1.11
 
@@ -179,7 +179,6 @@ RUN pip install --no-cache-dir \
 
 # Install IPEx and its dependencies
 # from source is mandatory for cutomized AWS PyTorch binaries: https://github.com/intel/intel-extension-for-pytorch/issues/317
-RUN conda config --append channels conda-forge && conda install gcc gxx -y
 RUN pip install --no-cache-dir intel-openmp tbb
 RUN cd /opt/ && mkdir -p ipex \
     cd /opt/ipex && \
