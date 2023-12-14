@@ -133,7 +133,7 @@ RUN curl -L -o ~/mambaforge.sh https://github.com/conda-forge/miniforge/releases
     charset-normalizer \
     # needed by fastai.distributed
     # pin accelerate to 0.22.0 as newer version gives error "0.23.0 requires huggingface-hub, which is not installed."
-    accelerate=0.22.0
+    accelerate=0.22.0 \
  # pin dgl to 0.9.1 as upstream test has not caught up, currently having accuracy error
  && /opt/conda/bin/conda install -c dglteam -y dgl=0.9.1 \
  && /opt/conda/bin/conda install -c fastai fastai \
