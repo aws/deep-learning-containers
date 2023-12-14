@@ -25,6 +25,7 @@ RUN pip install --no-cache-dir \
 	diffusers==${DIFFUSERS_VERSION} \
 	Jinja2 \
 	tensorboard \
+	bitsandbytes \
 	evaluate==${EVALUATE_VERSION} \
 	accelerate==${ACCELERATE_VERSION} \
 	trl==${TRL_VERSION} \
