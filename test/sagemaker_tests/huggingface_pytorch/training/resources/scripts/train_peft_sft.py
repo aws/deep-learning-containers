@@ -122,7 +122,6 @@ if __name__ == "__main__":
         peft_config=peft_config,
         packing=True,
     )
-    self.assertTrue(isinstance(trainer.model, PeftModel))
 
     # train model
     trainer.train()

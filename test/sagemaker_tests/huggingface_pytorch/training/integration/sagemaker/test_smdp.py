@@ -40,11 +40,11 @@ hyperparameters = {
     "per_device_train_batch_size": 1,
     "per_device_eval_batch_size": 1,
     "num_train_epochs": 1,
-    "max_seq_length": 64,
+    "max_seq_length": 384,
     "max_steps": 10,
     "max_train_samples": 10,
     "pad_to_max_length": True,
-    "doc_stride": 32,
+    "doc_stride": 128,
     "output_dir": "/opt/ml/model",
 }
 # metric definition to extract the results
