@@ -443,7 +443,6 @@ RUN /opt/conda/bin/mamba install -y python=${PYTHON_VERSION} \
   -c ${SMD_MODEL_PARALLEL_CONDA_CHANNEL} \
   -c pytorch \
   -c numba/label/dev \
-  -c pytorch-nightly \
   -c nvidia \
   -c conda-forge \
   && /opt/conda/bin/mamba clean -afy

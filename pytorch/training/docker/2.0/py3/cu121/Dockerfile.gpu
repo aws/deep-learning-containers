@@ -377,7 +377,6 @@ RUN /opt/conda/bin/mamba install -y python=${PYTHON_SHORT_VERSION} \
   -c https://aws-ml-conda-ec2.s3.us-west-2.amazonaws.com \
   -c pytorch \
   -c numba/label/dev \
-  -c pytorch-nightly \
   -c nvidia \
   -c conda-forge \
   && /opt/conda/bin/mamba clean -afy
