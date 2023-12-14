@@ -156,13 +156,14 @@ def _predictor(
         sagemaker_session=sagemaker_local_session,
         model_server_workers=model_server_workers,
     )
-
+    predictor = None
     with local_mode_utils.lock():
         try:
             predictor = model.deploy(1, instance_type)
             yield predictor
         finally:
-            predictor.delete_endpoint()
+            if predictor:
+                predictor.delete_endpoint()
 
 
 def _assert_prediction_npy_json(predictor, test_loader, content_type, accept):
