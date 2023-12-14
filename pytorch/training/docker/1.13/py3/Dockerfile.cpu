@@ -132,7 +132,8 @@ RUN curl -L -o ~/mambaforge.sh https://github.com/conda-forge/miniforge/releases
     conda-content-trust \
     charset-normalizer \
     # needed by fastai.distributed
-    accelerate \
+    # pin accelerate to 0.22.0 as newer version gives error "0.23.0 requires huggingface-hub, which is not installed."
+    accelerate=0.22.0
  # pin dgl to 0.9.1 as upstream test has not caught up, currently having accuracy error
  && /opt/conda/bin/conda install -c dglteam -y dgl=0.9.1 \
  && /opt/conda/bin/conda install -c fastai fastai \
@@ -167,6 +168,12 @@ RUN pip install --no-cache-dir --upgrade pip --trusted-host pypi.org --trusted-h
     "psutil>=5.9.4,<5.10" \
     "pyyaml>=5.4,<5.5" \
     "scipy>=1.9.3,<2"
+
+RUN /opt/conda/bin/mamba install -y -c conda-forge \
+  "requests>=2.31.0" \
+  # Install urllib3 (dependency of requests) as a separate package to force upgrade to latest secure version
+  "urllib3>=1.26.18" \
+  && /opt/conda/bin/mamba clean -afy
 
 COPY deep_learning_container.py /usr/local/bin/deep_learning_container.py
 
