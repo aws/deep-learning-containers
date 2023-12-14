@@ -26,7 +26,7 @@ huggingface_trcomp_mode = false
 trcomp_mode = false
 # Please only set it to True if you are preparing a Benchmark related PR
 # Do remember to revert it back to False before merging any PR (including Benchmark dedicated PR)
-benchmark_mode = true
+benchmark_mode = false
 # Set deep_canary_mode to true to simulate Deep Canary Test conditions on PR for all frameworks in the
 # build_frameworks list below. This will cause all image builds and non-deep-canary tests on the PR to be skipped,
 # regardless of whether they are enabled or disabled below.
