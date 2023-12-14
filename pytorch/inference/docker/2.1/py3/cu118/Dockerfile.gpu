@@ -155,7 +155,7 @@ RUN curl -L -o ~/mambaforge.sh https://github.com/conda-forge/miniforge/releases
  && chmod +x ~/mambaforge.sh \
  && ~/mambaforge.sh -b -p /opt/conda \
  && rm ~/mambaforge.sh \
- && /opt/conda/bin/conda install -c conda-forge python=${PYTHON_VERSION} \
+ && /opt/conda/bin/mamba install -c conda-forge python=${PYTHON_VERSION} \
     cython \
     "mkl>=2023.2.0" \
     mkl-include \
@@ -168,8 +168,8 @@ RUN curl -L -o ~/mambaforge.sh https://github.com/conda-forge/miniforge/releases
     # Below 2 are included in miniconda base, but not mamba so need to install
     conda-content-trust \
     charset-normalizer \
- && /opt/conda/bin/conda install -c pytorch magma-cuda118 \
- && /opt/conda/bin/conda clean -ya
+ && /opt/conda/bin/mamba install -c pytorch magma-cuda118 \
+ && /opt/conda/bin/mamba clean -afy
 
 # symlink pip for OS use
 RUN pip install --upgrade pip --trusted-host pypi.org --trusted-host files.pythonhosted.org \
@@ -188,7 +188,8 @@ RUN pip install --no-cache-dir -U \
     cryptography \
     "ipython>=8.10.0,<9.0" \
     "awscli<2" \
-    "urllib3>=1.26.18,<2"
+    "urllib3>=2" \
+ && pip cache purge
 
 # Ensure PyTorch did not get installed from Conda or pip, prior to now
 # Any Nvidia installs for the DLC will be below, removing nvidia and cuda packages from pip here
@@ -203,7 +204,8 @@ RUN pip install --no-cache-dir -U \
     ${TORCHVISION_URL} \
     ${TORCHAUDIO_URL} \
     ${TORCHTEXT_URL} \
-    ${TORCHDATA_URL}
+    ${TORCHDATA_URL} \
+ && pip cache purge
 
 # Install TorchServe pypi dependencies directly from their requirements.txt file
 # NOTE: This also brings in unnecessary cpu dependencies like nvgpu
@@ -212,7 +214,8 @@ RUN pip install --no-cache-dir -U -r https://raw.githubusercontent.com/pytorch/s
  && pip install --no-cache-dir -U \ 
     "numpy>=1.22.2,<1.23" \
     torchserve==${TORCHSERVE_VERSION} \
-    torch-model-archiver==${TORCHSERVE_VERSION}
+    torch-model-archiver==${TORCHSERVE_VERSION} \
+ && pip cache purge
 
 # add necessary certificate for aws sdk cpp download
 RUN mkdir -p /etc/pki/tls/certs && cp /etc/ssl/certs/ca-certificates.crt /etc/pki/tls/certs/ca-bundle.crt
@@ -287,7 +290,8 @@ RUN conda install -y -c conda-forge \
     scikit-learn \
     pandas
 
-RUN pip install --no-cache-dir sagemaker-pytorch-inference==${SM_TOOLKIT_VERSION}
+RUN pip install --no-cache-dir sagemaker-pytorch-inference==${SM_TOOLKIT_VERSION} awscli boto3 \
+ && pip cache purge
 
 COPY torchserve-entrypoint.py /usr/local/bin/dockerd-entrypoint.py
 
