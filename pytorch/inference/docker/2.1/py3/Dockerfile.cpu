@@ -106,7 +106,7 @@ RUN curl -L -o ~/mambaforge.sh https://github.com/conda-forge/miniforge/releases
  && chmod +x ~/mambaforge.sh \
  && ~/mambaforge.sh -b -p /opt/conda \
  && rm ~/mambaforge.sh \
- && /opt/conda/bin/mamba install -y -c conda-forge python=${PYTHON_VERSION} \
+ && /opt/conda/bin/conda install -y -c conda-forge python=${PYTHON_VERSION} \
     cython \
     "mkl>=2023.2.0" \
     mkl-include \
@@ -117,7 +117,7 @@ RUN curl -L -o ~/mambaforge.sh https://github.com/conda-forge/miniforge/releases
     # Below 2 are included in miniconda base, but not mamba so need to install
     conda-content-trust \
     charset-normalizer \
- && /opt/conda/bin/mamba clean -afy
+ && /opt/conda/bin/conda clean -afy
 
 # symlink pip for OS use
 RUN pip install --upgrade pip --trusted-host pypi.org --trusted-host files.pythonhosted.org \
