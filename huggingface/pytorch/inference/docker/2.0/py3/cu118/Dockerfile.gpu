@@ -154,7 +154,7 @@ RUN pip install --no-cache-dir -U \
     "awscli<2" \
     boto3 \
     pyopenssl \
-    "cryptography>=38.0.0" \
+    "cryptography>=41.0.6" \
     enum-compat==0.0.3 \
     "numpy>=1.22.2,<1.23" \
     opencv-python \
