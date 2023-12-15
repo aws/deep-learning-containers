@@ -34,7 +34,7 @@ RUN pip install --no-cache-dir -U \
 	certifi \ 
 	tornado \ 
 	fonttools \
-	"cryptography>=41.0.6" \
+	"cryptography>=41.0.6"
 
 # install PyYAML<5.5,>=5.4 to avoid conflict with latest awscli
 # Use --no-build-isolation to force pyyaml 6.0.0 to be installed using Cython<3 to avoid installation errors
