@@ -234,7 +234,7 @@ RUN pip install --no-cache-dir -U \
     "cryptography>41,<42" \
     ipython \
     "mpi4py>=3.1.4,<3.2" \
-    "opencv-python>=4.8.1" \
+    "opencv-python>=4.8.1.78" \
     packaging \
     Pillow \
     "psutil>=5.9.4,<5.10" \
@@ -243,8 +243,8 @@ RUN pip install --no-cache-dir -U \
 
 RUN /opt/conda/bin/mamba install -y -c conda-forge \
   "requests>=2.31.0" \
-  # Install urllib3 (dependency of requests) as a separate package to force upgrade to latest secure version
-  "urllib3>=1.26.18" \
+  # Install urllib3 (dependency of requests) as a separate package to force upgrade to latest secure version while satisfying maximum version constraint set by `botocore`
+  "urllib3<1.27" \
   && /opt/conda/bin/mamba clean -afy
 
 COPY deep_learning_container.py /usr/local/bin/deep_learning_container.py
