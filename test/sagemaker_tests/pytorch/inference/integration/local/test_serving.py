@@ -170,7 +170,8 @@ def _predictor(
             # Do not try to delete endpoint if predictor is never successfully initialized
             if not predictor:
                 pass
-            predictor.delete_endpoint()
+            else:
+                predictor.delete_endpoint()
             
 
 def _assert_prediction_npy_json(predictor, test_loader, content_type, accept):

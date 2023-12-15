@@ -171,8 +171,10 @@ def ecs_container_instance(
     def terminate_ec2_instance():
         ec2_client.terminate_instances(InstanceIds=[instance_id])
         terminate_waiter = ec2_client.get_waiter("instance_terminated")
-        terminate_waiter.wait(InstanceIds=[instance_id])
-
+        terminate_waiter.wait(
+            InstanceIds=[instance_id],
+            WaiterConfig={"Delay": 30, "MaxAttempts": 50},
+        )
     request.addfinalizer(terminate_ec2_instance)
 
     waiter = ec2_client.get_waiter("instance_running")
