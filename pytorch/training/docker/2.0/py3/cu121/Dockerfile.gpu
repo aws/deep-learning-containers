@@ -4,7 +4,6 @@ ARG PYTHON_SHORT_VERSION=3.10
 ARG MAMBA_VERSION=23.3.1-0
 ARG PYTORCH_VERSION_EC2=2.0.1
 ARG CONDA_CHANNEL=https://aws-ml-conda-ec2.s3.us-west-2.amazonaws.com
-ARG SMD_MODEL_PARALLEL_CONDA_CHANNEL=https://sagemaker-distributed-model-parallel.s3.us-west-2.amazonaws.com/smp-2.0.0-pt-2.0.1/2023-12-11/smp-v2/
 
 FROM nvidia/cuda:12.1.0-base-ubuntu20.04 AS base_image
 
@@ -357,39 +356,26 @@ ARG PYTORCH_VERSION_EC2
 ARG CONDA_CHANNEL
 ARG CUDA_HOME
 ARG TORCH_CUDA_ARCH_LIST
-ARG SMD_MODEL_PARALLEL_CONDA_CHANNEL
 
 ENV SAGEMAKER_TRAINING_MODULE=sagemaker_pytorch_container.training:main
 
 WORKDIR /
 
-# Install aws-ofi-nccl, dependency of sm PyTorch
-RUN /opt/conda/bin/mamba install -y  \
-  "aws-ofi-nccl>=1.7.1,<2.0" \
+# Install ec2 PyTorch
+RUN /opt/conda/bin/mamba install -y python=${PYTHON_SHORT_VERSION} pytorch=${PYTORCH_VERSION_EC2} \
+  pytorch-cuda=12.1 cuda-nvcc=12.1.* torchvision torchaudio torchtext aws-ofi-nccl-dlc=1.7.3 \
   --override-channels \
-  -c https://aws-ml-conda.s3.us-west-2.amazonaws.com \
-  -c nvidia \
-  -c conda-forge \
-  && /opt/conda/bin/mamba clean -afy
-
-# Install sm PyTorch
-RUN /opt/conda/bin/mamba install -y python=${PYTHON_SHORT_VERSION} \
-  pytorch="2.0.1=sm_py3.10_cuda12.1*" \
-  pytorch-cuda=12.1 cuda-nvcc=12.1.* torchvision torchaudio torchtext \
-  --override-channels \
-  -c ${SMD_MODEL_PARALLEL_CONDA_CHANNEL} \
-  -c https://aws-ml-conda-ec2.s3.us-west-2.amazonaws.com \
-  -c pytorch \
-  -c numba/label/dev \
+  -c ${CONDA_CHANNEL} \
   -c nvidia \
   -c conda-forge \
   && /opt/conda/bin/mamba clean -afy
 
 # CUDA libraries should be installed as a separate installation command to reduce memory size of single layer.
 # If single layer is huge in size (like 17 GB), then ECR pull can timeout on smaller EC2 instances like P3.2x.
-RUN /opt/conda/bin/mamba install -y python=${PYTHON_SHORT_VERSION} \
+RUN /opt/conda/bin/mamba install -y \
   cuda-libraries-dev=12.1 cuda-libraries-static=12.1 cuda-compiler=12.1 \
   --override-channels \
+  -c ${CONDA_CHANNEL} \
   -c nvidia \
   -c conda-forge \
   && /opt/conda/bin/mamba clean -afy
@@ -461,8 +447,6 @@ RUN pip install --no-cache-dir -U \
     # adding this here explicitly to resolve pip check errors
     awscli \
     boto3 \
-    "transformers==4.31.0" \
-    "tensorboard==2.13.0" \
     triton==2.0.0
 
 # Install extra packages
@@ -479,36 +463,14 @@ RUN /opt/conda/bin/mamba install -y -c conda-forge \
 
 WORKDIR /
 
-RUN git clone https://github.com/HazyResearch/flash-attention \
-    && cd flash-attention && git checkout v2.0.4 \
-    && cd csrc/ft_attention && ln=$(grep -wn "\-\-threads" ./setup.py | cut -d: -f1) \
-    && sed -i "${ln} s/4/1/" ./setup.py && cd ../../ \
-    && cd csrc/fused_softmax && ln=$(grep -wn "\-\-threads" ./setup.py | cut -d: -f1) \
-    && sed -i "${ln} s/4/1/" ./setup.py && cd ../../ \
-    && cd csrc/xentropy && ln=$(grep -wn "\-\-threads" ./setup.py | cut -d: -f1) \
-    && sed -i "${ln} s/4/1/" ./setup.py && cd ../../ \
-    && cd csrc/layer_norm && ln=$(grep -wn "\-\-threads" ./setup.py | cut -d: -f1) \
-    && sed -i "${ln} s/4/1/" ./setup.py && cd ../../ \
-    && cd csrc/rotary && ln=$(grep -wn "\-\-threads" ./setup.py | cut -d: -f1) \
-    && sed -i "${ln} s/4/1/" ./setup.py && cd ../../ \
-    && cd csrc/fused_dense_lib && ln=$(grep -wn "\-\-threads" ./setup.py | cut -d: -f1) \
-    && sed -i "${ln} s/4/1/" ./setup.py && cd ../../ \
-    && cd csrc/fused_softmax && pip install . && cd ../../ \
-    && cd csrc/rotary && pip install . && cd ../../ \
-    && cd csrc/xentropy && pip install . && cd ../../ \
-    && cd csrc/layer_norm && pip install . && cd ../../ \
-    && cd csrc/fused_dense_lib && pip install . && cd ../../ \
-    && cd csrc/ft_attention && pip install . && cd ../../ \
-    && cd .. && rm -rf flash-attention
-
 # Install flash attn and NVIDIA transformer engine.
 # Optionally set NVTE_FRAMEWORK to avoid bringing in additional frameworks during TE install
 ENV NVTE_FRAMEWORK=pytorch
 # Install flash-attn using instructions from https://github.com/Dao-AILab/flash-attention#installation-and-features
 # Set MAX_JOBS=4 to avoid OOM issues in installation process
 RUN MAX_JOBS=4 pip install flash-attn==2.0.4 --no-build-isolation
-# Install TE latest stable release
-RUN pip install git+https://github.com/NVIDIA/TransformerEngine.git@v1.0
+# Install TE using instructions from https://docs.nvidia.com/deeplearning/transformer-engine/user-guide/installation.html
+RUN pip install git+https://github.com/NVIDIA/TransformerEngine.git@release_v0.12
 
 # Install SageMaker Profiler Binary
 ARG SMP_URL=https://smppy.s3.amazonaws.com/pytorch/cu121/smprof-0.3.332-cp310-cp310-linux_x86_64.whl
