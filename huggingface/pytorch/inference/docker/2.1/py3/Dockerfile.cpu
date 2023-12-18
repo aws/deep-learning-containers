@@ -127,6 +127,7 @@ RUN pip install --upgrade pip --trusted-host pypi.org --trusted-host files.pytho
 RUN pip install --no-cache-dir --extra-index-url https://download.pytorch.org/whl/cpu -U \
     boto3 \
     scipy \
+    pyyaml \
     opencv-python \
     pyOpenSSL \
     "cryptography>=38.0.0" \
@@ -195,7 +196,7 @@ RUN cd /opt/ && mkdir -p ipex \
     wget https://raw.githubusercontent.com/intel/intel-extension-for-pytorch/v2.1.100%2Bcpu/scripts/compile_bundle.sh && \
     bash compile_bundle.sh && \
     /opt/conda/bin/conda install -y jemalloc gperftools -c conda-forge \
-    rm -rf /opt/ipex
+    rm -rf /opt/ipex && cd /opt/
 
 # IPEx installation installs the numpy==1.25.1. That causes a pip check failure due to incompatibility with numba.
 # Re-installing numpy after IPEx installation to get the appropriate numpy version and fix pip checks.
