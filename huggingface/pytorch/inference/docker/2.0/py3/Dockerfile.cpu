@@ -132,6 +132,8 @@ RUN pip install --no-cache-dir --extra-index-url https://download.pytorch.org/wh
     enum-compat==0.0.3 \
     packaging \
     "Pillow>=9.0.0" \
+    cryptography \
+    scipy \
     ${TORCH_URL} \
     ${TORCHVISION_URL} \
     ${TORCHAUDIO_URL}

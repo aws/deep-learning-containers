@@ -30,68 +30,6 @@
       "title": "CVE-2019-13132 - libzmq5"
     }
   ],
-  "cryptography":[
-      {
-        "reason_to_ignore": "Temporarily ignoring to fix CRITICALs",
-         "description":"Issue summary: Generating excessively long X9.42 DH keys or checking\nexcessively long X9.42 DH keys or parameters may be very slow.\n\nImpact summary: Applications that use the functions DH_generate_key() to\ngenerate an X9.42 DH key may experience long delays.  Likewise, applications\nthat use DH_check_pub_key(), DH_check_pub_key_ex() or EVP_PKEY_public_check()\nto check an X9.42 DH key or X9.42 DH parameters may experience long delays.\nWhere the key or parameters that are being checked have been obtained from\nan untrusted source this may lead to a Denial of Service.\n\nWhile DH_check() performs all the necessary checks (as of CVE-2023-3817),\nDH_check_pub_key() doesn't make any of these checks, and is therefore\nvulnerable for excessively large P and Q parameters.\n\nLikewise, while DH_generate_key() performs a check for an excessively large\nP, it doesn't check for an excessively large Q.\n\nAn application that calls DH_generate_key() or DH_check_pub_key() and\nsupplies a key or parameters obtained from an untrusted sour",
-         "vulnerability_id":"CVE-2023-5678",
-         "name":"CVE-2023-5678",
-         "package_name":"cryptography",
-         "package_details":{
-            "file_path":"opt/conda/lib/python3.10/site-packages/cryptography-41.0.5.dist-info/METADATA",
-            "name":"cryptography",
-            "package_manager":"PYTHONPKG",
-            "version":"41.0.5",
-            "release":null
-         },
-         "remediation":{
-            "recommendation":{
-               "text":"None Provided"
-            }
-         },
-         "cvss_v3_score":7.5,
-         "cvss_v30_score":0.0,
-         "cvss_v31_score":7.5,
-         "cvss_v2_score":0.0,
-         "cvss_v3_severity":"HIGH",
-         "source_url":"https://nvd.nist.gov/vuln/detail/CVE-2023-5678",
-         "source":"NVD",
-         "severity":"HIGH",
-         "status":"ACTIVE",
-         "title":"CVE-2023-5678 - cryptography"
-      }
-   ],
-   "scipy":[
-      {
-        "reason_to_ignore": "Temporarily ignoring to fix CRITICALs",
-         "description":"A use-after-free issue was discovered in Py_FindObjects() function in SciPy versions prior to 1.8.0. NOTE: the vendor and discoverer indicate that this is not a security issue.",
-         "vulnerability_id":"CVE-2023-29824",
-         "name":"CVE-2023-29824",
-         "package_name":"scipy",
-         "package_details":{
-            "file_path":"opt/llvm-project/libcxx/utils/google-benchmark/requirements.txt",
-            "name":"scipy",
-            "package_manager":"PIP",
-            "version":"1.5.4",
-            "release":null
-         },
-         "remediation":{
-            "recommendation":{
-               "text":"None Provided"
-            }
-         },
-         "cvss_v3_score":9.8,
-         "cvss_v30_score":0.0,
-         "cvss_v31_score":9.8,
-         "cvss_v2_score":0.0,
-         "cvss_v3_severity":"CRITICAL",
-         "source_url":"https://nvd.nist.gov/vuln/detail/CVE-2023-29824",
-         "source":"NVD",
-         "severity":"CRITICAL",
-         "status":"ACTIVE",
-         "title":"CVE-2023-29824 - scipy"
-      }
-   ],
   "transformers": [
     {
       "reason_to_ignore": "Need guidance from HF team on how to upgrade as it's breaking the image. Temporarily ignoring to patch other CVEs.",
