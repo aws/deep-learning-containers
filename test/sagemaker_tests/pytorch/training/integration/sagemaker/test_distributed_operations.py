@@ -221,8 +221,10 @@ def test_smmodelparallel_gpt2_multigpu_singlenode(
         "manual_partition": 1,
         "smp_version": smp_version,
     }
+    s3_bucket = "s3://gpt2-data-"+ sagemaker_regions[0] + "/train_synthetic_small/"
+
     train = sagemaker.session.s3_input(
-        "s3://gpt2-data/train_synthetic_small/",
+        s3_bucket,
         distribution="FullyReplicated",
         content_type="application/tfrecord",
         s3_data_type="S3Prefix",
@@ -328,8 +330,10 @@ def test_smmodelparallel_gpt2_multigpu_singlenode_flashattn(
         "query_key_layer_scaling": 0,
         "assert_flash_attn": 1,
     }
+    s3_bucket = "s3://gpt2-data-"+ sagemaker_regions[0] + "/train_synthetic_small/"
+
     train = sagemaker.session.s3_input(
-        "s3://gpt2-data/train_synthetic_small/",
+        s3_bucket,
         distribution="FullyReplicated",
         content_type="application/tfrecord",
         s3_data_type="S3Prefix",
