@@ -1,28 +1,30 @@
 ---
 release_images:
   1:
-    framework: "tensorflow"
-    version: "2.12.0"
-    customer_type: "sagemaker"
+    framework: "huggingface_pytorch"
+    version: "1.13.2"
     arch_type: "x86"
+    hf_transformers: "4.26.0"
     training:
-      device_types: ["cpu", "gpu"]
-      python_versions: ["py310"]
+      device_types: [ "gpu" ]
+      python_versions: [ "py39" ]
       os_version: "ubuntu20.04"
-      cuda_version: "cu118"
-      example: False
-      disable_sm_tag: False
-      force_release: False
+      cuda_version: "cu117"
+      example: False        # [Default: False] Set to True to denote that this image is an Example image
+      disable_sm_tag: False # [Default: False] Set to True to prevent SageMaker Abbreviated Tags from being attached
+      # to images being published.
+      force_release: False  # [Default: False] Set to True to force images to be published even if the same image
+      # has already been published. Re-released image will have minor version incremented by 1.
   2:
-    framework: "tensorflow"
-    version: "2.13.0"
-    customer_type: "sagemaker"
+    framework: "huggingface_pytorch"
+    version: "2.0.1"
+    hf_transformers: "4.28.1"
     arch_type: "x86"
     training:
-      device_types: ["cpu", "gpu"]
-      python_versions: ["py310"]
+      device_types: ["gpu"]
+      python_versions: [ "py10" ]
       os_version: "ubuntu20.04"
       cuda_version: "cu118"
       example: False
-      disable_sm_tag: False
+      disable_sm_tag: False  # [Default: False] This option is not used by Example images
       force_release: False
