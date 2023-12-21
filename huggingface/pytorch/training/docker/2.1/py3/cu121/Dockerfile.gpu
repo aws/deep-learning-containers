@@ -19,8 +19,8 @@ ARG FLASH_ATTN_VERSION=2.3.6
 ARG PYTHON=python3
 
 # TODO: Remove when the base image is updated
-RUN pip install --upgrade pip
- && pip uninstall -y transformer-engine flash-attn pyarrow cryptography
+RUN pip install --upgrade pip \
+ && pip uninstall -y transformer-engine flash-attn pyarrow cryptography \
  && pip install --no-cache-dir -U pyarrow cryptography
 
 # install Hugging Face libraries and its dependencies
