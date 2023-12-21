@@ -541,5 +541,5 @@ def is_1p_owned_ecr(image_uri: str) -> bool:
     final_ecrs = []
     for ecr in base_ecrs:
         final_ecrs.extend([ecr, f"pr-{ecr}", f"beta-{ecr}"])
-    
+
     return any(image_uri.split("/")[1].split(":")[0] == ecr for ecr in final_ecrs)
