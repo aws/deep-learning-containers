@@ -47,23 +47,23 @@ RUN apt-get update \
  && apt-get -y upgrade \
  && apt-get install -y --no-install-recommends \
     software-properties-common \
-    ca-certificates \
-    ccache \
-    numactl \
-    gcc-12 \
-    g++-12 \
-    make \
-    libjpeg-dev \
-    libpng-dev \
     build-essential \
-    openssl \
-    openjdk-17-jdk \
-    vim \
-    wget \
-    curl \
-    emacs \
-    unzip \
-    git
+    ca-certificates
+    # ccache \
+    # numactl \
+    # gcc-12 \
+    # g++-12 \
+    # make \
+    # libjpeg-dev \
+    # libpng-dev \
+    # openssl \
+    # openjdk-17-jdk \
+    # vim \
+    # wget \
+    # curl \
+    # emacs \
+    # unzip \
+    # git \
     # libsndfile1-dev \
     # ffmpeg \
     # cmake \
