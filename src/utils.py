@@ -536,7 +536,7 @@ def is_1p_owned_ecr(image_uri: str) -> bool:
         "huggingface-pytorch-inference",
         "huggingface-pytorch-training",
         "huggingface-pytorch-tgi-inference",
-        "stabilityai-pytorch-inference",       
+        "stabilityai-pytorch-inference",
     ]
     final_ecrs = []
     for ecr in base_ecrs:

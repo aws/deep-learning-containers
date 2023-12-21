@@ -8,6 +8,8 @@ from invoke import run
 from dataclasses import dataclass
 from typing import List
 
+from src import utils as src_utils
+
 from test.test_utils import is_canary_context
 
 
@@ -68,6 +70,9 @@ def test_safety_file_exists_and_is_valid(image):
 
     :param image: str, image uri
     """
+    if src_utils.is_1p_owned_ecr(image):
+        LOGGER.info(f"Not scanning image {image} because it is owned by 1P team")
+        return
     repo_name, image_tag = image.split("/")[-1].split(":")
     # Make sure this container name doesn't conflict with the safety check test container name
     container_name = f"{repo_name}-{image_tag}-safety-file"
