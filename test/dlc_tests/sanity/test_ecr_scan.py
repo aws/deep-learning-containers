@@ -271,7 +271,7 @@ def test_ecr_enhanced_scan(image, ecr_client, sts_client, region):
     :param sts_client: boto3 Client for STS
     :param region: str Name of region where test is executed
     """
-    if src_utils.is_1p_owned_image(image):
+    if src_utils.is_1p_owned_ecr(image):
         LOGGER.info(f"Not scanning image {image} because it is owned by 1P team")
         return
     LOGGER.info(f"Running test_ecr_enhanced_scan for image {image}")
