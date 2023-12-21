@@ -31,9 +31,6 @@ ARG TRANSFORMERS_VERSION
 ARG DIFFUSERS_VERSION=0.24.0
 ARG PEFT_VERSION=0.7.1
 
-# Set Debian interaction
-ARG DEBIAN_FRONTEND=noninteractive
-
 # See http://bugs.python.org/issue19846
 ENV LANG=C.UTF-8
 ENV LD_LIBRARY_PATH="/opt/conda/lib:${LD_LIBRARY_PATH}"
@@ -43,8 +40,9 @@ ENV TEMP=/home/model-server/tmp
 ENV MKL_THREADING_LAYER=GNU
 ENV DLC_CONTAINER_TYPE=inference
 
-RUN apt-get update \
- && apt-get -y upgrade
+RUN apt update && \
+    DEBIAN_FRONTEND=noninteractive apt install --no-install-recommends -y \
+    sudo \
 #  && apt-get install -y --no-install-recommends \
 #     software-properties-common \
 #     build-essential \
