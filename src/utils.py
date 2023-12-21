@@ -528,3 +528,16 @@ def get_dummy_boto_client():
     :return: BotocoreClientSTS
     """
     return boto3.client("sts", region_name=os.getenv("REGION"))
+
+
+def is_1p_owned_image(image_uri: str) -> bool:
+    for ecr in {
+        "huggingface-tensorflow-inference",
+        "huggingface-pytorch-inference",
+        "huggingface-pytorch-training",
+        "huggingface-pytorch-tgi-inference",
+        "stabilityai-pytorch-inference",
+    }:
+        if image_uri.split("/")[1].split(":")[0] == ecr:
+            return True
+    return False
