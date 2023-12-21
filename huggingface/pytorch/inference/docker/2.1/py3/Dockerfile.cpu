@@ -44,11 +44,11 @@ ENV MKL_THREADING_LAYER=GNU
 ENV DLC_CONTAINER_TYPE=inference
 
 RUN apt-get update \
- && apt-get -y upgrade \
- && apt-get install -y --no-install-recommends \
-    software-properties-common \
-    build-essential \
-    ca-certificates
+ && apt-get -y upgrade
+#  && apt-get install -y --no-install-recommends \
+#     software-properties-common \
+#     build-essential \
+#     ca-certificates \
     # ccache \
     # numactl \
     # gcc-12 \
