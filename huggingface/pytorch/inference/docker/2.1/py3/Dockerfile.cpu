@@ -75,14 +75,14 @@ RUN apt-get update \
     libssl-dev \
     libxext6 \
     libxrender-dev \
-    zlib1g-dev \
- && apt-get autoremove -y \
+    zlib1g-dev
+#  && apt-get autoremove -y \
 #  && rm -rf /var/lib/apt/lists/* \
- && update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-12 100 \
- && update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-12 100 \
- && update-alternatives --install /usr/bin/cc cc /usr/bin/gcc 100 \
- && update-alternatives --install /usr/bin/c++ c++ /usr/bin/g++ 100 \
- && apt-get clean
+#  && update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-12 100 \
+#  && update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-12 100 \
+#  && update-alternatives --install /usr/bin/cc cc /usr/bin/gcc 100 \
+#  && update-alternatives --install /usr/bin/c++ c++ /usr/bin/g++ 100 \
+#  && apt-get clean
 
 # # Install OpenMPI
 # RUN wget https://download.open-mpi.org/release/open-mpi/v4.1/openmpi-${OPEN_MPI_VERSION}.tar.gz \
