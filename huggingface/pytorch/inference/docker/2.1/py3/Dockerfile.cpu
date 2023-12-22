@@ -40,47 +40,48 @@ ENV TEMP=/home/model-server/tmp
 ENV MKL_THREADING_LAYER=GNU
 ENV DLC_CONTAINER_TYPE=inference
 
-RUN rm -vf /var/lib/apt/lists/*
-RUN apt-get update \
- && apt-get -y upgrade \
- && apt-get install -y --no-install-recommends \
-    software-properties-common \
-    ca-certificates \
-    ccache \
-    numactl \
-    gcc-12 \
-    g++-12 \
-    make \
-    libjpeg-dev \
-    libpng-dev \
-    build-essential \
-    openssl \
-    openjdk-17-jdk \
-    vim \
-    wget \
-    curl \
-    emacs \
-    unzip \
-    git \
-    libsndfile1-dev \
-    ffmpeg \
-    cmake \
-    jq \
-    libcurl4-openssl-dev \
-    libgl1-mesa-glx \
-    libglib2.0-0 \
-    libsm6 \
-    libssl-dev \
-    libxext6 \
-    libxrender-dev \
-    zlib1g-dev \
- && apt-get autoremove -y \
- && rm -rf /var/lib/apt/lists/* \
- && update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-12 100 \
- && update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-12 100 \
- && update-alternatives --install /usr/bin/cc cc /usr/bin/gcc 100 \
- && update-alternatives --install /usr/bin/c++ c++ /usr/bin/g++ 100 \
- && apt-get clean
+RUN rm -r /var/lib/apt/lists/*
+RUN apt-get update
+# RUN apt-get update \
+#  && apt-get -y upgrade \
+#  && apt-get install -y --no-install-recommends \
+#     software-properties-common \
+#     ca-certificates \
+#     ccache \
+#     numactl \
+#     gcc-12 \
+#     g++-12 \
+#     make \
+#     libjpeg-dev \
+#     libpng-dev \
+#     build-essential \
+#     openssl \
+#     openjdk-17-jdk \
+#     vim \
+#     wget \
+#     curl \
+#     emacs \
+#     unzip \
+#     git \
+#     libsndfile1-dev \
+#     ffmpeg \
+#     cmake \
+#     jq \
+#     libcurl4-openssl-dev \
+#     libgl1-mesa-glx \
+#     libglib2.0-0 \
+#     libsm6 \
+#     libssl-dev \
+#     libxext6 \
+#     libxrender-dev \
+#     zlib1g-dev \
+#  && apt-get autoremove -y \
+#  && rm -rf /var/lib/apt/lists/* \
+#  && update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-12 100 \
+#  && update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-12 100 \
+#  && update-alternatives --install /usr/bin/cc cc /usr/bin/gcc 100 \
+#  && update-alternatives --install /usr/bin/c++ c++ /usr/bin/g++ 100 \
+#  && apt-get clean
 
 # # Install OpenMPI
 # RUN wget https://download.open-mpi.org/release/open-mpi/v4.1/openmpi-${OPEN_MPI_VERSION}.tar.gz \
