@@ -40,8 +40,10 @@ ENV TEMP=/home/model-server/tmp
 ENV MKL_THREADING_LAYER=GNU
 ENV DLC_CONTAINER_TYPE=inference
 
-RUN rm -r /var/lib/apt/lists/*
-RUN apt-get update
+RUN rm -fr /var/lib/apt/lists
+RUN mkdir -pv /var/lib/apt/lists/partial
+RUN apt update
+RUN apt upgrade
 # RUN apt-get update \
 #  && apt-get -y upgrade \
 #  && apt-get install -y --no-install-recommends \
