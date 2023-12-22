@@ -51,3 +51,8 @@ dgl_tests/ @aws/dlc-dgl-reviewers
 # Files under stabilityai/ and huggingface/ directories can be directly reviewed by below teams
 stabilityai/ @aws/sagemaker-1p-algorithms
 huggingface/ @aws/sagemaker-1p-algorithms
+test/sagemaker_tests/huggingface/ @aws/sagemaker-1p-algorithms
+test/sagemaker_tests/huggingface_pytorch/ @aws/sagemaker-1p-algorithms
+test/sagemaker_tests/huggingface_tensorflow/ @aws/sagemaker-1p-algorithms
+test/sagemaker_tests/pytorch/inference/integration/sagemaker/test_stabilityai.py @aws/sagemaker-1p-algorithms
+test/sagemaker_tests/pytorch/inference/resources/stabilityai/ @aws/sagemaker-1p-algorithms
