@@ -40,180 +40,178 @@ ENV TEMP=/home/model-server/tmp
 ENV MKL_THREADING_LAYER=GNU
 ENV DLC_CONTAINER_TYPE=inference
 
-RUN RUN sed -i -e 's/^APT/# APT/' -e 's/^DPkg/# DPkg/' /etc/apt/apt.conf.d/docker-clean
-RUN apt-get update
-# RUN apt-get update \
-#  && apt-get -y upgrade \
-#  && apt-get install -y --no-install-recommends \
-#     software-properties-common \
-#     ca-certificates \
-#     ccache \
-#     numactl \
-#     gcc-12 \
-#     g++-12 \
-#     make \
-#     libjpeg-dev \
-#     libpng-dev \
-#     build-essential \
-#     openssl \
-#     openjdk-17-jdk \
-#     vim \
-#     wget \
-#     curl \
-#     emacs \
-#     unzip \
-#     git \
-#     libsndfile1-dev \
-#     ffmpeg \
-#     cmake \
-#     jq \
-#     libcurl4-openssl-dev \
-#     libgl1-mesa-glx \
-#     libglib2.0-0 \
-#     libsm6 \
-#     libssl-dev \
-#     libxext6 \
-#     libxrender-dev \
-#     zlib1g-dev \
-#  && apt-get autoremove -y \
-#  && rm -rf /var/lib/apt/lists/* \
-#  && update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-12 100 \
-#  && update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-12 100 \
-#  && update-alternatives --install /usr/bin/cc cc /usr/bin/gcc 100 \
-#  && update-alternatives --install /usr/bin/c++ c++ /usr/bin/g++ 100 \
-#  && apt-get clean
+RUN apt-get update \
+ && apt-get -y upgrade \
+ && apt-get install -y --no-install-recommends \
+    software-properties-common \
+    ca-certificates \
+    ccache \
+    numactl \
+    gcc-12 \
+    g++-12 \
+    make \
+    libjpeg-dev \
+    libpng-dev \
+    build-essential \
+    openssl \
+    openjdk-17-jdk \
+    vim \
+    wget \
+    curl \
+    emacs \
+    unzip \
+    git \
+    libsndfile1-dev \
+    ffmpeg \
+    cmake \
+    jq \
+    libcurl4-openssl-dev \
+    libgl1-mesa-glx \
+    libglib2.0-0 \
+    libsm6 \
+    libssl-dev \
+    libxext6 \
+    libxrender-dev \
+    zlib1g-dev \
+ && apt-get autoremove -y \
+ && rm -rf /var/lib/apt/lists/* \
+ && update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-12 100 \
+ && update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-12 100 \
+ && update-alternatives --install /usr/bin/cc cc /usr/bin/gcc 100 \
+ && update-alternatives --install /usr/bin/c++ c++ /usr/bin/g++ 100 \
+ && apt-get clean
 
-# # Install OpenMPI
-# RUN wget https://download.open-mpi.org/release/open-mpi/v4.1/openmpi-${OPEN_MPI_VERSION}.tar.gz \
-#  && gunzip -c openmpi-$OPEN_MPI_VERSION.tar.gz | tar xf - \
-#  && cd openmpi-$OPEN_MPI_VERSION \
-#  && ./configure --prefix=/home/.openmpi \
-#  && make all install \
-#  && cd .. \
-#  && rm openmpi-$OPEN_MPI_VERSION.tar.gz \
-#  && rm -rf openmpi-$OPEN_MPI_VERSION
+# Install OpenMPI
+RUN wget https://download.open-mpi.org/release/open-mpi/v4.1/openmpi-${OPEN_MPI_VERSION}.tar.gz \
+ && gunzip -c openmpi-$OPEN_MPI_VERSION.tar.gz | tar xf - \
+ && cd openmpi-$OPEN_MPI_VERSION \
+ && ./configure --prefix=/home/.openmpi \
+ && make all install \
+ && cd .. \
+ && rm openmpi-$OPEN_MPI_VERSION.tar.gz \
+ && rm -rf openmpi-$OPEN_MPI_VERSION
 
-# # The ENV variables declared below are changed in the previous section
-# # Grouping these ENV variables in the first section causes
-# # ompi_info to fail. This is only observed in CPU containers
-# ENV PATH="$PATH:/home/.openmpi/bin"
-# ENV LD_LIBRARY_PATH="$LD_LIBRARY_PATH:/home/.openmpi/lib/"
-# RUN ompi_info --parsable --all | grep mpi_built_with_cuda_support:value
+# The ENV variables declared below are changed in the previous section
+# Grouping these ENV variables in the first section causes
+# ompi_info to fail. This is only observed in CPU containers
+ENV PATH="$PATH:/home/.openmpi/bin"
+ENV LD_LIBRARY_PATH="$LD_LIBRARY_PATH:/home/.openmpi/lib/"
+RUN ompi_info --parsable --all | grep mpi_built_with_cuda_support:value
 
-# # Install CondaForge miniconda
-# RUN curl -L -o ~/mambaforge.sh https://github.com/conda-forge/miniforge/releases/download/${MAMBA_VERSION}/Mambaforge-${MAMBA_VERSION}-Linux-x86_64.sh \
-#  && chmod +x ~/mambaforge.sh \
-#  && ~/mambaforge.sh -b -p /opt/conda \
-#  && rm ~/mambaforge.sh \
-#  && /opt/conda/bin/conda install -c conda-forge python=${PYTHON_VERSION} \
-#     cython \
-#     "mkl>=2023.2.0" \
-#     mkl-include \
-#     parso \
-#     typing \
-#     h5py \
-#     requests \
-#     # Below 2 are included in miniconda base, but not mamba so need to install
-#     conda-content-trust \
-#     charset-normalizer \
-#  && /opt/conda/bin/conda clean -ya
+# Install CondaForge miniconda
+RUN curl -L -o ~/mambaforge.sh https://github.com/conda-forge/miniforge/releases/download/${MAMBA_VERSION}/Mambaforge-${MAMBA_VERSION}-Linux-x86_64.sh \
+ && chmod +x ~/mambaforge.sh \
+ && ~/mambaforge.sh -b -p /opt/conda \
+ && rm ~/mambaforge.sh \
+ && /opt/conda/bin/conda install -c conda-forge python=${PYTHON_VERSION} \
+    cython \
+    "mkl>=2023.2.0" \
+    mkl-include \
+    parso \
+    typing \
+    h5py \
+    requests \
+    # Below 2 are included in miniconda base, but not mamba so need to install
+    conda-content-trust \
+    charset-normalizer \
+ && /opt/conda/bin/conda clean -ya
 
-# # symlink pip for OS use
-# RUN pip install --upgrade pip --trusted-host pypi.org --trusted-host files.pythonhosted.org \
-#  && ln -s /opt/conda/bin/pip /usr/local/bin/pip3
+# symlink pip for OS use
+RUN pip install --upgrade pip --trusted-host pypi.org --trusted-host files.pythonhosted.org \
+ && ln -s /opt/conda/bin/pip /usr/local/bin/pip3
 
-# # Install Common python packages
-# RUN pip install --no-cache-dir --extra-index-url https://download.pytorch.org/whl/cpu -U \
-#     boto3 \
-#     scipy \
-#     pyyaml \
-#     opencv-python \
-#     pyOpenSSL \
-#     "cryptography>=38.0.0" \
-#     "ipython>=8.10.0,<9.0" \
-#     "awscli<2" \
-#     "urllib3>=1.26.18,<2"
+# Install Common python packages
+RUN pip install --no-cache-dir --extra-index-url https://download.pytorch.org/whl/cpu -U \
+    boto3 \
+    scipy \
+    pyyaml \
+    opencv-python \
+    pyOpenSSL \
+    "cryptography>=38.0.0" \
+    "ipython>=8.10.0,<9.0" \
+    "awscli<2" \
+    "urllib3>=1.26.18,<2"
 
-# # Ensure PyTorch did not get installed from Conda or pip, prior to now
-# # is CPU image, removing nvgpu
-# # Any Nvidia installs for the DLC will be below, removing nvidia and cuda packages from pip here
-# # Even the GPU image would not have nvidia or cuda packages in PIP.
-# RUN pip uninstall -y torch torchvision torchaudio multi-model-server
+# Ensure PyTorch did not get installed from Conda or pip, prior to now
+# is CPU image, removing nvgpu
+# Any Nvidia installs for the DLC will be below, removing nvidia and cuda packages from pip here
+# Even the GPU image would not have nvidia or cuda packages in PIP.
+RUN pip uninstall -y torch torchvision torchaudio multi-model-server
 
-# # Install AWS-PyTorch, and other torch packages
-# RUN pip install --no-cache-dir --extra-index-url https://download.pytorch.org/whl/cpu -U \
-#     enum-compat==0.0.3 \
-#     packaging \
-#     "Pillow>=9.0.0" \
-#     ${TORCH_URL} \
-#     ${TORCHVISION_URL} \
-#     ${TORCHAUDIO_URL}
+# Install AWS-PyTorch, and other torch packages
+RUN pip install --no-cache-dir --extra-index-url https://download.pytorch.org/whl/cpu -U \
+    enum-compat==0.0.3 \
+    packaging \
+    "Pillow>=9.0.0" \
+    ${TORCH_URL} \
+    ${TORCHVISION_URL} \
+    ${TORCHAUDIO_URL}
 
-# # add necessary certificate for aws sdk cpp download
-# RUN mkdir -p /etc/pki/tls/certs && cp /etc/ssl/certs/ca-certificates.crt /etc/pki/tls/certs/ca-bundle.crt
+# add necessary certificate for aws sdk cpp download
+RUN mkdir -p /etc/pki/tls/certs && cp /etc/ssl/certs/ca-certificates.crt /etc/pki/tls/certs/ca-bundle.crt
 
-# WORKDIR /
+WORKDIR /
 
-# RUN pip install --no-cache-dir \
-#     multi-model-server==$MMS_VERSION \
-#     sagemaker-inference
+RUN pip install --no-cache-dir \
+    multi-model-server==$MMS_VERSION \
+    sagemaker-inference
 
-# # create user and folders
-# RUN useradd -m model-server \
-#  && mkdir -p /home/model-server/tmp /opt/ml/model \
-#  && chown -R model-server /home/model-server /opt/ml/model
+# create user and folders
+RUN useradd -m model-server \
+ && mkdir -p /home/model-server/tmp /opt/ml/model \
+ && chown -R model-server /home/model-server /opt/ml/model
 
-# # add MMS entrypoint
-# COPY mms-entrypoint.py /usr/local/bin/dockerd-entrypoint.py
-# COPY config.properties /etc/sagemaker-mms.properties
-# RUN chmod +x /usr/local/bin/dockerd-entrypoint.py
+# add MMS entrypoint
+COPY mms-entrypoint.py /usr/local/bin/dockerd-entrypoint.py
+COPY config.properties /etc/sagemaker-mms.properties
+RUN chmod +x /usr/local/bin/dockerd-entrypoint.py
 
-# # add telemetry
-# COPY deep_learning_container.py /usr/local/bin/deep_learning_container.py
-# RUN chmod +x /usr/local/bin/deep_learning_container.py
+# add telemetry
+COPY deep_learning_container.py /usr/local/bin/deep_learning_container.py
+RUN chmod +x /usr/local/bin/deep_learning_container.py
 
-# #################################
-# # Hugging Face specific section #
-# #################################
+#################################
+# Hugging Face specific section #
+#################################
 
-# RUN curl -o /license.txt  https://aws-dlc-licenses.s3.amazonaws.com/pytorch-2.0/license.txt
+RUN curl -o /license.txt  https://aws-dlc-licenses.s3.amazonaws.com/pytorch-2.0/license.txt
 
-# # install Hugging Face libraries and its dependencies
-# RUN pip install --no-cache-dir \
-#     transformers[sentencepiece,audio,vision]==${TRANSFORMERS_VERSION} \
-#     diffusers==${DIFFUSERS_VERSION} \
-#     peft==${PEFT_VERSION} \
-#     "accelerate>=0.25.0" \
-#     "protobuf>=3.19.5,<=3.20.2" \
-#     "sagemaker-huggingface-inference-toolkit==2.3"
+# install Hugging Face libraries and its dependencies
+RUN pip install --no-cache-dir \
+    transformers[sentencepiece,audio,vision]==${TRANSFORMERS_VERSION} \
+    diffusers==${DIFFUSERS_VERSION} \
+    peft==${PEFT_VERSION} \
+    "accelerate>=0.25.0" \
+    "protobuf>=3.19.5,<=3.20.2" \
+    "sagemaker-huggingface-inference-toolkit==2.3"
 
-# # Install IPEx and its dependencies
-# # from source is mandatory for cutomized AWS PyTorch binaries: https://github.com/intel/intel-extension-for-pytorch/issues/317
-# RUN pip install --no-cache-dir intel-openmp tbb
-# RUN cd /opt/ && mkdir -p ipex \
-#     cd /opt/ipex && \
-#     wget https://raw.githubusercontent.com/intel/intel-extension-for-pytorch/v2.1.100%2Bcpu/scripts/compile_bundle.sh && \
-#     bash compile_bundle.sh && \
-#     /opt/conda/bin/conda install -y jemalloc gperftools -c conda-forge && \
-#     rm -rf /opt/ipex && cd /opt/
+# Install IPEx and its dependencies
+# from source is mandatory for cutomized AWS PyTorch binaries: https://github.com/intel/intel-extension-for-pytorch/issues/317
+RUN pip install --no-cache-dir intel-openmp tbb
+RUN cd /opt/ && mkdir -p ipex \
+    cd /opt/ipex && \
+    wget https://raw.githubusercontent.com/intel/intel-extension-for-pytorch/v2.1.100%2Bcpu/scripts/compile_bundle.sh && \
+    bash compile_bundle.sh && \
+    /opt/conda/bin/conda install -y jemalloc gperftools -c conda-forge && \
+    rm -rf /opt/ipex && cd /opt/
 
-# # IPEx installation installs the numpy==1.25.1. That causes a pip check failure due to incompatibility with numba.
-# # Re-installing numpy after IPEx installation to get the appropriate numpy version and fix pip checks.
-# RUN pip install --no-cache-dir  "numpy<1.25"
+# IPEx installation installs the numpy==1.25.1. That causes a pip check failure due to incompatibility with numba.
+# Re-installing numpy after IPEx installation to get the appropriate numpy version and fix pip checks.
+RUN pip install --no-cache-dir  "numpy<1.25"
 
-# RUN HOME_DIR=/root \
-#  && curl -o ${HOME_DIR}/oss_compliance.zip https://aws-dlinfra-utilities.s3.amazonaws.com/oss_compliance.zip \
-#  && unzip ${HOME_DIR}/oss_compliance.zip -d ${HOME_DIR}/ \
-#  && cp ${HOME_DIR}/oss_compliance/test/testOSSCompliance /usr/local/bin/testOSSCompliance \
-#  && chmod +x /usr/local/bin/testOSSCompliance \
-#  && chmod +x ${HOME_DIR}/oss_compliance/generate_oss_compliance.sh \
-#  && ${HOME_DIR}/oss_compliance/generate_oss_compliance.sh ${HOME_DIR} ${PYTHON} \
-#  && rm -rf ${HOME_DIR}/oss_compliance*
+RUN HOME_DIR=/root \
+ && curl -o ${HOME_DIR}/oss_compliance.zip https://aws-dlinfra-utilities.s3.amazonaws.com/oss_compliance.zip \
+ && unzip ${HOME_DIR}/oss_compliance.zip -d ${HOME_DIR}/ \
+ && cp ${HOME_DIR}/oss_compliance/test/testOSSCompliance /usr/local/bin/testOSSCompliance \
+ && chmod +x /usr/local/bin/testOSSCompliance \
+ && chmod +x ${HOME_DIR}/oss_compliance/generate_oss_compliance.sh \
+ && ${HOME_DIR}/oss_compliance/generate_oss_compliance.sh ${HOME_DIR} ${PYTHON} \
+ && rm -rf ${HOME_DIR}/oss_compliance*
 
-# ## Cleanup ##
-# RUN rm -rf /tmp/tmp* \
-#  &&rm -iRf /root/.cache
+## Cleanup ##
+RUN rm -rf /tmp/tmp* \
+ &&rm -iRf /root/.cache
 
-# EXPOSE 8080 8081
-# ENTRYPOINT ["python", "/usr/local/bin/dockerd-entrypoint.py"]
-# CMD ["serve"]
+EXPOSE 8080 8081
+ENTRYPOINT ["python", "/usr/local/bin/dockerd-entrypoint.py"]
+CMD ["serve"]
