@@ -40,10 +40,8 @@ ENV TEMP=/home/model-server/tmp
 ENV MKL_THREADING_LAYER=GNU
 ENV DLC_CONTAINER_TYPE=inference
 
-RUN rm -fr /var/lib/apt/lists
-RUN mkdir -pv /var/lib/apt/lists/partial
-RUN apt update
-RUN apt upgrade
+RUN RUN sed -i -e 's/^APT/# APT/' -e 's/^DPkg/# DPkg/' /etc/apt/apt.conf.d/docker-clean
+RUN apt-get update
 # RUN apt-get update \
 #  && apt-get -y upgrade \
 #  && apt-get install -y --no-install-recommends \
