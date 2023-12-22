@@ -189,8 +189,6 @@ RUN pip install --no-cache-dir  "numpy<1.25" \
     urllib3==1.26.18 \
     mkl
 
-RUN pip install --no-cache-dir -U scipy
-
 RUN HOME_DIR=/root \
  && curl -o ${HOME_DIR}/oss_compliance.zip https://aws-dlinfra-utilities.s3.amazonaws.com/oss_compliance.zip \
  && unzip ${HOME_DIR}/oss_compliance.zip -d ${HOME_DIR}/ \

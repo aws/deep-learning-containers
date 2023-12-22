@@ -44,7 +44,7 @@ RUN pip install --no-cache-dir "cython<3.0.0" \
 
 RUN apt-get update \
  # TODO: Remove upgrade statements once packages are updated in base image
- && apt-get -y upgrade --only-upgrade systemd openssl cryptsetup \
+ && apt-get -y upgrade --only-upgrade systemd openssl cryptsetup openssh-client openssh-server \
  && apt install -y git-lfs \
  && apt-get clean \
  && rm -rf /var/lib/apt/lists/*
