@@ -18,7 +18,6 @@ from test.test_utils import (
     is_mainline_context,
     is_safety_test_context,
 )
-from src import utils as src_utils
 
 
 LOGGER = logging.getLogger(__name__)
@@ -1059,9 +1058,6 @@ def test_safety(image):
     Runs safety check on a container with the capability to ignore safety issues that cannot be fixed, and only raise
     error if an issue is fixable.
     """
-    if src_utils.is_1p_owned_ecr(image):
-        LOGGER.info(f"Not scanning image {image} because it is owned by 1P team")
-        return
     from dlc.safety_check import SafetyCheck
 
     safety_check = SafetyCheck()
