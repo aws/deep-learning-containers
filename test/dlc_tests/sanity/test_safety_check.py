@@ -19,7 +19,6 @@ from test.test_utils import (
     is_safety_test_context,
 )
 
-
 LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.INFO)
 LOGGER.addHandler(logging.StreamHandler(sys.stderr))
