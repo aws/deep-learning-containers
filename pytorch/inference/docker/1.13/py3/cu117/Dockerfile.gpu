@@ -208,7 +208,6 @@ RUN pip install --no-cache-dir --extra-index-url https://download.pytorch.org/wh
     boto3 \
     enum-compat==0.0.3 \
     opencv-python \
-    "scipy>=1.11.1" \
     "cryptography>3.2" \
     "ipython>=8.10.0,<9.0" \
     "awscli<2" \
