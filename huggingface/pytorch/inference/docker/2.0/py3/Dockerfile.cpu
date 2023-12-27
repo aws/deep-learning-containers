@@ -132,6 +132,7 @@ RUN pip install --no-cache-dir --extra-index-url https://download.pytorch.org/wh
     enum-compat==0.0.3 \
     packaging \
     "Pillow>=9.0.0" \
+    cryptography \
     ${TORCH_URL} \
     ${TORCHVISION_URL} \
     ${TORCHAUDIO_URL}
@@ -187,7 +188,6 @@ RUN pip install --no-cache-dir  "numpy<1.25" \
     # Resolve CVE
     urllib3==1.26.18 \
     mkl
-
 
 RUN HOME_DIR=/root \
  && curl -o ${HOME_DIR}/oss_compliance.zip https://aws-dlinfra-utilities.s3.amazonaws.com/oss_compliance.zip \
