@@ -161,7 +161,6 @@ RUN pip install --no-cache-dir -U \
     packaging \
     "Pillow>=9.0.0" \
     "pyyaml>=5.4" \
-    cryptography \
     scipy \
     captum \
     ${TORCH_URL} \
