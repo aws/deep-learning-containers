@@ -145,6 +145,7 @@ RUN pip install --upgrade pip --trusted-host pypi.org --trusted-host files.pytho
 
 WORKDIR /root
 
+
 # Ensure PyTorch did not get installed from Conda due to magma-cuda117
 RUN pip uninstall -y torch torchvision torchaudio model-archiver multi-model-server
 
@@ -153,13 +154,14 @@ RUN pip install --no-cache-dir -U \
     "awscli<2" \
     boto3 \
     pyopenssl \
-    "cryptography>=38.0.0" \
+    "cryptography>=41.0.6" \
     enum-compat==0.0.3 \
     "numpy>=1.22.2,<1.23" \
     opencv-python \
     packaging \
     "Pillow>=9.0.0" \
     "pyyaml>=5.4" \
+    scipy \
     captum \
     ${TORCH_URL} \
     ${TORCHVISION_URL} \
