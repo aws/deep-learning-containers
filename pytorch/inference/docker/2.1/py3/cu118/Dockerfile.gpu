@@ -178,7 +178,7 @@ RUN pip install --upgrade pip --trusted-host pypi.org --trusted-host files.pytho
 # Install Common python packages
 RUN pip install --no-cache-dir -U \
     boto3 \
-    scipy \
+    "scipy>=1.11.1" \
     opencv-python \
     # "nvgpu" is a dependency of TS but is disabled in SM DLC build,
     # via ENV Variable "TS_DISABLE_SYSTEM_METRICS=true" in the SM section of this file.
@@ -188,6 +188,8 @@ RUN pip install --no-cache-dir -U \
     cryptography \
     "ipython>=8.10.0,<9.0" \
     "awscli<2" \
+    "botocore==1.34.8" \
+    "s3transfer==0.10.0" \
     "urllib3>=1.26.18,<2"
 
 # Ensure PyTorch did not get installed from Conda or pip, prior to now
