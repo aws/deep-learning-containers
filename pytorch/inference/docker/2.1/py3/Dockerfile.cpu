@@ -228,14 +228,9 @@ RUN conda install -y -c conda-forge \
     scikit-learn \
     pandas
 
-RUN pip install --no-cache-dir sagemaker-pytorch-inference==${SM_TOOLKIT_VERSION}
-
-# security patching
-RUN pip install --no-cache-dir \
-    "scipy>=1.11.1" \
-    "awscli<2" \
-    "botocore==1.34.8" \
-    "s3transfer==0.10.0"
+RUN pip install --no-cache-dir sagemaker-pytorch-inference==${SM_TOOLKIT_VERSION} \
+    # hardcoded dependency of sagemaker-pytorch-inference
+    "scipy==1.10.1"
 
 COPY torchserve-entrypoint.py /usr/local/bin/dockerd-entrypoint.py
 
