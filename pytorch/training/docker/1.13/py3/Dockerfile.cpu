@@ -285,6 +285,8 @@ RUN pip install --no-cache-dir --upgrade pip --trusted-host pypi.org --trusted-h
     # smdebug==${SMDEBUG_VERSION} \
     smclarify \
     "sagemaker>=2,<3" \
+    # sagemaker 2.202.1 requires urllib3<1.27, urllib3>=1.26.17 mitigates CVE-2023-43804
+    "urllib3<1.27,>=1.26.17" \
     sagemaker-experiments==0.* \
     sagemaker-pytorch-training
 
