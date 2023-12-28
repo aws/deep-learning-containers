@@ -303,7 +303,10 @@ RUN pip install --no-cache-dir -U \
     "plotly>=5.11,<6" \
     "seaborn>=0.12,<1" \
     "numba>=0.56.4,<0.57" \
-    "shap>=0.41,<1"
+    "shap>=0.41,<1" \
+    # requirement for accelerate
+    huggingface-hub \
+    safetensors
 
 RUN HOME_DIR=/root \
  && curl -o ${HOME_DIR}/oss_compliance.zip https://aws-dlinfra-utilities.s3.amazonaws.com/oss_compliance.zip \
