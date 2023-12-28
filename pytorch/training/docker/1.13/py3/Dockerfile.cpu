@@ -133,7 +133,10 @@ RUN curl -L -o ~/mambaforge.sh https://github.com/conda-forge/miniforge/releases
     charset-normalizer \
     # needed by fastai.distributed
     accelerate \
- # pin dgl to 0.9.1 as upstream test has not caught up, currently having accuracy error
+    # requirement for accelerate 0.25.0
+    huggingface-hub \
+    safetensors \
+# pin dgl to 0.9.1 as upstream test has not caught up, currently having accuracy error
  && /opt/conda/bin/conda install -c dglteam -y dgl=0.9.1 \
  && /opt/conda/bin/conda install -c fastai fastai \
 # fastai conda has a dependency chain of fastai -> spacy -> pathy -> dataclasses
@@ -168,7 +171,8 @@ RUN pip install --no-cache-dir --upgrade pip --trusted-host pypi.org --trusted-h
     Pillow \
     "psutil>=5.9.4,<5.10" \
     "pyyaml>=5.4,<5.5" \
-    "scipy>=1.11.1"
+    "scipy>=1.11.1" \
+    "urllib3==1.26.17,>=2.0.5"
 
 COPY deep_learning_container.py /usr/local/bin/deep_learning_container.py
 
