@@ -133,9 +133,6 @@ RUN curl -L -o ~/mambaforge.sh https://github.com/conda-forge/miniforge/releases
     charset-normalizer \
     # needed by fastai.distributed
     accelerate \
-    # requirement for accelerate 0.25.0
-    huggingface-hub \
-    safetensors \
 # pin dgl to 0.9.1 as upstream test has not caught up, currently having accuracy error
  && /opt/conda/bin/conda install -c dglteam -y dgl=0.9.1 \
  && /opt/conda/bin/conda install -c fastai fastai \
@@ -145,6 +142,8 @@ RUN curl -L -o ~/mambaforge.sh https://github.com/conda-forge/miniforge/releases
  # dataclasses package is not needed for py>=37
  # install plainly will oversize the image
  && pip uninstall -y dataclasses \
+ # requirement for accelerate
+ && pip install --no-cache-dir huggingface-hub safetensors \ 
  && /opt/conda/bin/conda clean -ya
 
 # remove the default mamba installation
