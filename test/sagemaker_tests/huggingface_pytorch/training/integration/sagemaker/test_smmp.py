@@ -24,15 +24,16 @@ import sagemaker
 
 # hyperparameters, which are passed into the training job
 hyperparameters = {
-    "model_name_or_path": "roberta-large",
+    "model_name_or_path": "hf-internal-testing/tiny-random-RobertaModel",
     "task_name": "mnli",
-    "per_device_train_batch_size": 8,
-    "per_device_eval_batch_size": 4,
+    "per_device_train_batch_size": 1,
+    "per_device_eval_batch_size": 1,
     "do_train": True,
     "do_eval": True,
     "do_predict": True,
     "output_dir": "/opt/ml/model",
-    "max_steps": 500,
+    "max_steps": 10,
+    "max_train_samples": 30,
 }
 
 # configuration for running training on smdistributed Model Parallel
