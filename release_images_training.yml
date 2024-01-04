@@ -35,7 +35,6 @@ release_images:
       device_types: [ "cpu" ]
       python_versions: [ "py39" ]
       os_version: "ubuntu20.04"
-      cuda_version: "cu117"
       example: False
       disable_sm_tag: False
       force_release: False
