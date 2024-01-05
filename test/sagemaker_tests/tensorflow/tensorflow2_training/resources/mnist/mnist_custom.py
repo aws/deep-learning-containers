@@ -147,16 +147,16 @@ def parse_args():
     parser.add_argument("--model_dir", type=str)
     parser.add_argument("--max-steps", type=int, default=200)
     parser.add_argument("--save-checkpoint-steps", type=int, default=200)
-    parser.add_argument("--throttle-secs", type=int, default=60)
+    parser.add_argument("--throttle-secs", type=int, default=120)
     parser.add_argument("--hosts", type=list, default=json.loads(os.environ["SM_HOSTS"]))
     parser.add_argument("--current-host", type=str, default=os.environ["SM_CURRENT_HOST"])
-    parser.add_argument("--batch-size", type=int, default=100)
+    parser.add_argument("--batch-size", type=int, default=50)
     parser.add_argument("--export-model-during-training", type=bool, default=False)
     return parser.parse_args()
 
 
 def main():
-    parse_args()
+    args = parse_args()
     net = LeNet()
     net.build(input_shape=(None, 28, 28, 1))
 
