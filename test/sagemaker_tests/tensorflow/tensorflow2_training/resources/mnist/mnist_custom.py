@@ -169,7 +169,7 @@ def main(args):
 
     ckpt = tf.train.Checkpoint(optimizer=optimizer, model=net)
     ckpt_manager = tf.train.CheckpointManager(
-        ckpt, args.model_dir, max_to_keep=None, checkpoint_name="model.ckpt"
+        ckpt, args.model_dir, max_to_keep=5, checkpoint_name="model.ckpt"
     )
 
     dtrain, deval = load_data(args.train)
