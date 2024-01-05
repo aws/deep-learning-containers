@@ -287,6 +287,8 @@ def get_dockerfile_path_for_image(image_uri, python_version=None):
         framework_path = framework.replace("_", os.path.sep)
     elif "habana" in image_uri:
         framework_path = os.path.join("habana", framework)
+    elif "stabilityai" in framework:
+        framework_path = framework.replace("_", os.path.sep)
     else:
         framework_path = framework
 
@@ -317,7 +319,6 @@ def get_dockerfile_path_for_image(image_uri, python_version=None):
     neuron_sdk_version = get_neuron_sdk_version_from_tag(image_uri)
 
     dockerfile_name = get_expected_dockerfile_filename(device_type, image_uri)
-
     dockerfiles_list = [
         path
         for path in glob(os.path.join(python_version_path, "**", dockerfile_name), recursive=True)
