@@ -174,10 +174,6 @@ def main(args):
 
     dtrain, deval = load_data(args.train)
     num_epochs = 10
-
-    current_host = args.current_host
-    master_host = args.hosts[0]
-
     for i in range(num_epochs):
         for x, y in dtrain:
             train_step(x, y, net, optimizer, train_loss, train_accuracy)
@@ -192,8 +188,9 @@ def main(args):
             f"Test Loss: {test_loss.result()}",
             f"Test Accuracy: {test_accuracy.result()}",
         )
-        print(f"curr: {current_host}, h0:{master_host}")
-        if current_host == master_host:
+
+        if args.current_host == args.hosts[0]:
+            print(f"saving checkpoints {ckpt_manager.checkpoint.save_counter}, latest {ckpt_manager.latest_checkpoint}")
             ckpt_manager.save()
 
 
