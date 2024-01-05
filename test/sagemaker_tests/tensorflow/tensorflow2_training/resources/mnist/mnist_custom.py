@@ -147,16 +147,15 @@ def parse_args():
     parser.add_argument("--model_dir", type=str)
     parser.add_argument("--max-steps", type=int, default=200)
     parser.add_argument("--save-checkpoint-steps", type=int, default=200)
-    parser.add_argument("--throttle-secs", type=int, default=120)
+    parser.add_argument("--throttle-secs", type=int, default=60)
     parser.add_argument("--hosts", type=list, default=json.loads(os.environ["SM_HOSTS"]))
     parser.add_argument("--current-host", type=str, default=os.environ["SM_CURRENT_HOST"])
-    parser.add_argument("--batch-size", type=int, default=50)
+    parser.add_argument("--batch-size", type=int, default=100)
     parser.add_argument("--export-model-during-training", type=bool, default=False)
     return parser.parse_args()
 
 
-def main():
-    args = parse_args()
+def main(args):
     net = LeNet()
     net.build(input_shape=(None, 28, 28, 1))
 
@@ -170,11 +169,15 @@ def main():
 
     ckpt = tf.train.Checkpoint(optimizer=optimizer, model=net)
     ckpt_manager = tf.train.CheckpointManager(
-        ckpt, args.model_dir, max_to_keep=5, checkpoint_name="model.ckpt"
+        ckpt, args.model_dir, max_to_keep=2, checkpoint_name="model.ckpt"
     )
 
     dtrain, deval = load_data(args.train)
     num_epochs = 10
+
+    current_host = args.current_host
+    master_host = args.hosts[0]
+
     for i in range(num_epochs):
         for x, y in dtrain:
             train_step(x, y, net, optimizer, train_loss, train_accuracy)
@@ -189,10 +192,10 @@ def main():
             f"Test Loss: {test_loss.result()}",
             f"Test Accuracy: {test_accuracy.result()}",
         )
-
-        if args.current_host == args.hosts[0]:
+        print(f"curr: {current_host}, h0:{master_host}")
+        if current_host == master_host:
             ckpt_manager.save()
 
 
 if __name__ == "__main__":
-    main()
+    main(parse_args())
