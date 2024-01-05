@@ -22,7 +22,7 @@ if int(tf_major) > 2 or (int(tf_major) == 2 and int(tf_minor) >= 6):
 from tensorflow.keras.layers import Conv2D, BatchNormalization, Dense, Flatten
 
 """
-This script uses custom loops to train Mnist model and saves the checkpoints using 
+This script uses custom loops to train Mnist model and saves the checkpoints using
 checkpoint manager.
 """
 
@@ -155,7 +155,8 @@ def parse_args():
     return parser.parse_args()
 
 
-def main(args):
+def main():
+    parse_args()
     net = LeNet()
     net.build(input_shape=(None, 28, 28, 1))
 
@@ -194,4 +195,4 @@ def main(args):
 
 
 if __name__ == "__main__":
-    main(parse_args())
+    main()
