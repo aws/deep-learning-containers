@@ -64,7 +64,7 @@ def assign_sagemaker_remote_job_instance_type(image):
     elif "gpu" in image:
         return "ml.p3.8xlarge"
     elif "tensorflow" in image:
-        return "ml.c5.9xlarge"
+        return "ml.c5.18xlarge"
         # return "ml.c4.4xlarge"
     else:
         return "ml.c4.8xlarge"
