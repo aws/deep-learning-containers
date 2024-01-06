@@ -264,6 +264,7 @@ def _test_distributed_mnist_custom_ps(
         key_prefix="scriptmode/mnist-distributed",
     )
     estimator.fit(inputs, job_name=unique_name_from_base("test-tf-sm-distributed-mnist"))
+    print(f"Estimator finished correctly")
     _assert_checkpoint_exists_v2(sagemaker_session.boto_region_name, estimator.model_dir, 10)
 
 
@@ -365,6 +366,7 @@ def _test_hc_s3_plugin_function(ecr_image, sagemaker_session, instance_group, fr
         key_prefix="scriptmode/mnist-distributed",
     )
     estimator.fit(inputs, job_name=unique_name_from_base("test-tf-hc-sm-s3-mnist"))
+    print(f"Estimator finished correctly")
     print("=========== Model data location ===============")
     print(estimator.model_data)
     print("=========== Model dir           ===============")

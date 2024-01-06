@@ -190,8 +190,8 @@ def main(args):
         )
 
         if args.current_host == args.hosts[0]:
-            print(f"saving checkpoints {ckpt_manager.checkpoint.save_counter}, latest {ckpt_manager.latest_checkpoint}")
             ckpt_manager.save()
+            print(f"latest {ckpt_manager.latest_checkpoint}")
 
 
 if __name__ == "__main__":
