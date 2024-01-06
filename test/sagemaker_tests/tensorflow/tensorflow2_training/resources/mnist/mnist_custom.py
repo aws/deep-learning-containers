@@ -173,7 +173,7 @@ def main(args):
     )
 
     dtrain, deval = load_data(args.train)
-    num_epochs = 10
+    num_epochs = 1
     for i in range(num_epochs):
         for x, y in dtrain:
             train_step(x, y, net, optimizer, train_loss, train_accuracy)
