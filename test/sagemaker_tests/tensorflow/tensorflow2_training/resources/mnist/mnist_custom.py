@@ -133,7 +133,7 @@ def load_data(data_dir):
 
     dtrain = tf.data.Dataset.from_tensor_slices((x, y))
     dtrain = dtrain.map(lambda x, y: (tf.reshape(x, (28, 28, 1)), y))
-    dtrain = dtrain.shuffle(10000).batch(512)
+    dtrain = dtrain.shuffle(10000).batch(100)
 
     deval = tf.data.Dataset.from_tensor_slices((vx, vy))
     deval = deval.map(lambda x, y: (tf.reshape(x, (28, 28, 1)), y))
