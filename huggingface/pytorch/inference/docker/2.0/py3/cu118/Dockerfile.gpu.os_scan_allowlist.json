@@ -98,7 +98,7 @@
       "severity": "HIGH",
       "status": "ACTIVE",
       "title": "CVE-2023-7018 - transformers",
-      "reason_to_ignore": "N/A"
+      "reason_to_ignore": "Need guidance from HF team on how to upgrade as it's breaking the image. Temporarily ignoring to patch other CVEs."
     },
     {
       "description": "Deserialization of Untrusted Data in GitHub repository huggingface/transformers prior to 4.36.",
@@ -130,7 +130,7 @@
       "severity": "HIGH",
       "status": "ACTIVE",
       "title": "CVE-2023-6730 - transformers",
-      "reason_to_ignore": "N/A"
+      "reason_to_ignore": "Need guidance from HF team on how to upgrade as it's breaking the image. Temporarily ignoring to patch other CVEs."
     }
   ]
 }
