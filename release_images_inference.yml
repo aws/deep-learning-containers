@@ -82,3 +82,17 @@ release_images:
       example: False
       disable_sm_tag: False
       force_release: False
+7:
+    framework: "huggingface_pytorch"
+    version: "2.0.0"
+    hf_transformers: "4.28.1"
+    arch_type: "x86"
+    customer_type: "sagemaker"
+    training:
+      device_types: [ "cpu", "gpu" ]
+      python_versions: [ "py310" ]
+      os_version: "ubuntu20.04"
+      cuda_version: "cu118"
+      example: False
+      disable_sm_tag: False
+      force_release: False
