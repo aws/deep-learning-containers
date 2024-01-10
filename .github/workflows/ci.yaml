@@ -31,3 +31,13 @@ jobs:
           dockerfile: Dockerfile.neuronx
           recursive: true
           failure-threshold: error
+  secrets-scanning:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: trufflesecurity/trufflehog@main
+        with:
+          extra_args: --only-verified
