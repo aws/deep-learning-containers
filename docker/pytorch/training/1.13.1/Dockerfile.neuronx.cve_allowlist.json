@@ -1,0 +1,68 @@
+{
+    "CVE-2023-5678": {
+        "vulnerability_id": "CVE-2023-5678",
+        "title": "CVE-2023-5678 - cryptography",
+        "description": "Issue summary: Generating excessively long X9.42 DH keys or checking\nexcessively long X9.42 DH keys or parameters may be very slow.\n\nImpact summary: Applications that use the functions DH_generate_key() to\ngenerate an X9.42 DH key may experience long delays.  Likewise, applications\nthat use DH_check_pub_key(), DH_check_pub_key_ex() or EVP_PKEY_public_check()\nto check an X9.42 DH key or X9.42 DH parameters may experience long delays.\nWhere the key or parameters that are being checked have been obtained from\nan untrusted source this may lead to a Denial of Service.\n\nWhile DH_check() performs all the necessary checks (as of CVE-2023-3817),\nDH_check_pub_key() doesn't make any of these checks, and is therefore\nvulnerable for excessively large P and Q parameters.\n\nLikewise, while DH_generate_key() performs a check for an excessively large\nP, it doesn't check for an excessively large Q.\n\nAn application that calls DH_generate_key() or DH_check_pub_key() and\nsupplies a key or parameters obtained from an untrusted sour",
+        "vulnerable_packages": [
+            {
+                "epoch": 0,
+                "filePath": "usr/local/lib/python3.10/site-packages/cryptography-41.0.7.dist-info/METADATA",
+                "name": "cryptography",
+                "packageManager": "PYTHONPKG",
+                "version": "41.0.7"
+            }
+        ],
+        "remediation": {
+            "recommendation": {
+                "text": "None Provided"
+            }
+        },
+        "score": 5.3,
+        "score_details": {
+            "cvss": {
+                "adjustments": [],
+                "score": 5.3,
+                "scoreSource": "NVD",
+                "scoringVector": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:L",
+                "version": "3.1"
+            }
+        },
+        "source": "NVD",
+        "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2023-5678",
+        "severity": "MEDIUM",
+        "status": "ACTIVE"
+    },
+    "SNYK-PYTHON-CRYPTOGRAPHY-6126975": {
+        "vulnerability_id": "SNYK-PYTHON-CRYPTOGRAPHY-6126975",
+        "title": "IN1-PYTHON-CRYPTOGRAPHY-6126975 - cryptography",
+        "description": "## Overview\n\nAffected versions of this package are vulnerable to Information Exposure. This issue may allow a remote attacker to decrypt captured messages in TLS servers that use RSA key exchanges, which may lead to exposure of confidential or sensitive data.\n\n**Note:**\n\n\nThis vulnerability exists due to an incomplete fix for [CVE-2020-25659](https://security.snyk.io/vuln/SNYK-PYTHON-CRYPTOGRAPHY-1022152).\n## Remediation\nThere is no fixed version for `cryptography`.\n## References\n- [GitHub Issue](https://github.com/pyca/cryptography/issues/9785#issuecomment-1856209406)",
+        "vulnerable_packages": [
+            {
+                "epoch": 0,
+                "filePath": "usr/local/lib/python3.10/site-packages/cryptography-41.0.7.dist-info/METADATA",
+                "name": "cryptography",
+                "packageManager": "PYTHONPKG",
+                "version": "41.0.7"
+            }
+        ],
+        "remediation": {
+            "recommendation": {
+                "text": "None Provided"
+            }
+        },
+        "score": 5.9,
+        "score_details": {
+            "cvss": {
+                "adjustments": [],
+                "score": 5.9,
+                "scoreSource": "SNYK",
+                "scoringVector": "CVSS:3.1/AV:N/AC:H/PR:N/UI:N/S:U/C:H/I:N/A:N/E:P",
+                "version": "3.1"
+            }
+        },
+        "source": "SNYK",
+        "source_url": "https://security.snyk.io/vuln/SNYK-PYTHON-CRYPTOGRAPHY-6126975",
+        "severity": "MEDIUM",
+        "status": "ACTIVE"
+    }
+}

@@ -1,4 +1,4 @@
-## My Project
+## Neuron Deep Learning Containers
 
 TODO: Fill this README out!
 
@@ -9,7 +9,7 @@ Be sure to:
 
 ## Security
 
-See [CONTRIBUTING](CONTRIBUTING.md#security-issue-notifications) for more information.
+See [SECURITY](SECURITY.md) for more information.
 
 ## License
 
