@@ -1,0 +1,33 @@
+name: CI
+on:
+  push:
+    branches:
+      - main
+    paths-ignore:
+      - '**.md'
+  pull_request:
+    branches:
+      - main
+    paths-ignore:
+      - '**.md'
+permissions:
+  id-token: write
+  contents: write
+
+jobs:
+  dockerfile-linter:
+    runs-on: ubuntu-latest
+    env:
+      HADOLINT_RECURSIVE: "true"
+    steps:
+      - uses: actions/checkout@v3
+      - uses: hadolint/hadolint-action@v3.1.0
+        with:
+          dockerfile: Dockerfile.neuron
+          recursive: true
+          failure-threshold: error # TODO: enable more linter rules other than error.
+      - uses: hadolint/hadolint-action@v3.1.0
+        with:
+          dockerfile: Dockerfile.neuronx
+          recursive: true
+          failure-threshold: error
