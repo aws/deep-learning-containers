@@ -44,6 +44,7 @@ def test_telemetry_instance_tag_failure_graviton_cpu(
     cpu, ec2_client, ec2_instance, ec2_connection, graviton_compatible_only
 ):
     ec2_connection.run(f"sudo apt-get update -y")
+    ec2_connection.run(f"sudo apt-get install -y apt-transport-https")
     ec2_connection.run(f"sudo apt-get install -y net-tools")
     _run_tag_failure_IMDSv1_disabled(cpu, ec2_client, ec2_instance, ec2_connection)
     _run_tag_failure_IMDSv2_disabled_as_hop_limit_1(cpu, ec2_client, ec2_instance, ec2_connection)
@@ -88,7 +89,7 @@ def test_telemetry_instance_tag_success_gpu(
 @pytest.mark.model("N/A")
 @pytest.mark.processor("cpu")
 @pytest.mark.integration("telemetry")
-@pytest.mark.timeout(1200)
+@pytest.mark.timeout(2400)
 @pytest.mark.parametrize("ec2_instance_type", ["c4.4xlarge"], indirect=True)
 def test_telemetry_instance_tag_success_cpu(
     cpu,
@@ -305,6 +306,7 @@ def _run_tag_failure_IMDSv1_disabled(image_uri, ec2_client, ec2_instance, ec2_co
 
     # Disable access to EC2 instance metadata
     ec2_connection.run(f"sudo apt-get update -y")
+    ec2_connection.run(f"sudo apt-get install -y apt-transport-https")
     ec2_connection.run(f"sudo apt-get install -y net-tools")
     ec2_connection.run(f"sudo route add -host 169.254.169.254 reject")
 

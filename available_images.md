@@ -144,7 +144,7 @@ NVIDIA Triton Inference Containers (SM support only)
 ============================
 **Note**:
 
-1. The following versions of the 23.`<XY>` container are supported: `23.01, 23.02, 23.03, 23.05, 23.06, 23.07, 23.08`.
+1. The following versions of the 23.`<XY>` container are supported: `23.01, 23.02, 23.03, 23.05, 23.06, 23.07, 23.08, 23.09 and 23.10`.
 2. SageMaker Triton Inference Container does not support Tensorflow1 as of version 23.05 onwards, as upstream Triton container does not support
 Tensorflow(v1) native backend from version 23.04 onwards.
 3. SageMaker Triton Inference Container does not ship with the FasterTransformer(FT) backend from version 23.06 onwards since the upstream FT library is undergoing re-structuring. It was previously available from versions v22.12 - v23.05, experimentally. This note will be updated after the restructuring is complete.
@@ -229,11 +229,8 @@ HuggingFace Inference Containers
 HuggingFace Text Generation Inference Containers
 ===============================
 
-Please refer to the [releases page](https://github.com/aws/deep-learning-containers/releases?q=tgi&expanded=true) to view all released versions and tags of the container. Below is one example.
+Please refer to the [releases page](https://github.com/aws/deep-learning-containers/releases?q=tgi&expanded=true) to view all released versions and tags of the container.
 
-| Framework                          | Job Type   | CPU/GPU | Python Version Options | Example URL                                                                                                              |
-|------------------------------------|------------|---------|------------------------|--------------------------------------------------------------------------------------------------------------------------|
-| PyTorch 2.0.1 with HuggingFace TGI | inference  | GPU     | 3.9 (py39)             | 763104351884.dkr.ecr.us-east-1.amazonaws.com/huggingface-pytorch-tgi-inference:2.0.1-tgi1.1.0-gpu-py39-cu118-ubuntu20.04 |
 
 HuggingFace Neuron Inference Containers
 ===============================

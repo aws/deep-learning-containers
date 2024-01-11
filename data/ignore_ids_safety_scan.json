@@ -952,7 +952,8 @@
             "py3": {
                 "52510":"Future 0.18.2 is the latest package version - no fix version is available",
                 "54718": "Fix for issue available in torch version 1.13.1",
-                "51499": "Fix for issue contained in Wheel 0.38.1"
+                "51499": "Fix for issue contained in Wheel 0.38.1",
+                "62894": "for scipy-1.10.1 which is a hardcoded dependency of sagemaker-pytorch-inference"
             }
         },
         "inference-eia": {
@@ -1347,7 +1348,8 @@
                 "60235": "Temporarily ignoring to patch CRITICAL vulnerabilties at SEV2 pace",
                 "61601": "Temporarily ignoring to patch CRITICAL vulnerabilties at SEV2 pace",
                 "61416": "Temporarily ignoring to patch CRITICAL vulnerabilties at SEV2 pace",
-                "61893": "Temporarily ignoring to patch CRITICAL vulnerabilties at SEV2 pace"
+                "61893": "Temporarily ignoring to patch CRITICAL vulnerabilties at SEV2 pace",
+                "63227": "Temporarily ignoring to patch CRITICAL vulnerabilties at SEV2 pace"
             }
         },
         "inference": {
