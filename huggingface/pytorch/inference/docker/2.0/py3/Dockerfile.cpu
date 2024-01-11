@@ -66,6 +66,7 @@ RUN apt-get update \
     libglib2.0-0 \
     libsm6 \
     libssl-dev \
+    libsqlite3-0\
     libxext6 \
     libxrender-dev \
     zlib1g-dev \
