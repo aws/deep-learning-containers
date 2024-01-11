@@ -10,9 +10,6 @@ on:
       - main
     paths-ignore:
       - '**.md'
-permissions:
-  id-token: write
-  contents: write
 
 jobs:
   dockerfile-linter:
