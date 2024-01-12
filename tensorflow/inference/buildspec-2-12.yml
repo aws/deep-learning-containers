@@ -1,4 +1,5 @@
 account_id: &ACCOUNT_ID <set-$ACCOUNT_ID-in-environment>
+prod_account_id: &PROD_ACCOUNT_ID 763104351884
 region: &REGION <set-$REGION-in-environment>
 framework: &FRAMEWORK tensorflow
 version: &VERSION 2.12.1
@@ -12,6 +13,9 @@ repository_info:
     repository_name: &REPOSITORY_NAME !join [pr, "-", *FRAMEWORK, "-", *INFERENCE_IMAGE_TYPE]
     repository: &REPOSITORY !join [ *ACCOUNT_ID, .dkr.ecr., *REGION, .amazonaws.com/,
       *REPOSITORY_NAME ]
+    release_repository_name: &RELEASE_REPOSITORY_NAME !join [*FRAMEWORK, "-", *INFERENCE_IMAGE_TYPE]
+    release_repository: &RELEASE_REPOSITORY !join [ *PROD_ACCOUNT_ID, .dkr.ecr., *REGION, .amazonaws.com/,
+      *RELEASE_REPOSITORY_NAME ]
 context:
   inference_context: &INFERENCE_CONTEXT
     sagemaker_package_name:
@@ -38,6 +42,7 @@ images:
     tag_python_version: &TAG_PYTHON_VERSION py310
     os_version: &OS_VERSION ubuntu20.04
     tag: !join [ *FRAMEWORK_VERSION, "-", *DEVICE_TYPE, "-", *TAG_PYTHON_VERSION, "-", *OS_VERSION, "-ec2" ]
+    latest_release_tag: !join [ *FRAMEWORK_VERSION, "-", *DEVICE_TYPE, "-", *TAG_PYTHON_VERSION, "-", *OS_VERSION, "-ec2" ]
     docker_file: !join [ docker/, *SHORT_VERSION, /, *DOCKER_PYTHON_VERSION, /Dockerfile., *DEVICE_TYPE ]
     target: ec2
     enable_test_promotion: true
@@ -54,6 +59,7 @@ images:
     cuda_version: &CUDA_VERSION cu118
     os_version: &OS_VERSION ubuntu20.04
     tag: !join [ *FRAMEWORK_VERSION, "-", *DEVICE_TYPE, "-", *TAG_PYTHON_VERSION, "-", *CUDA_VERSION, "-", *OS_VERSION, "-ec2" ]
+    latest_release_tag: !join [ *FRAMEWORK_VERSION, "-", *DEVICE_TYPE, "-", *TAG_PYTHON_VERSION, "-", *CUDA_VERSION, "-", *OS_VERSION, "-ec2" ]
     docker_file: !join [ docker/, *SHORT_VERSION, /, *DOCKER_PYTHON_VERSION, /, *CUDA_VERSION, /Dockerfile., *DEVICE_TYPE ]
     target: ec2
     enable_test_promotion: true
@@ -69,6 +75,7 @@ images:
     tag_python_version: &TAG_PYTHON_VERSION py310
     os_version: &OS_VERSION ubuntu20.04
     tag: !join [ *FRAMEWORK_VERSION, "-", *DEVICE_TYPE, "-", *TAG_PYTHON_VERSION, "-", *OS_VERSION, "-sagemaker" ]
+    latest_release_tag: !join [ *FRAMEWORK_VERSION, "-", *DEVICE_TYPE, "-", *TAG_PYTHON_VERSION, "-", *OS_VERSION, "-sagemaker" ]
     docker_file: !join [ docker/, *SHORT_VERSION, /, *DOCKER_PYTHON_VERSION, /Dockerfile., *DEVICE_TYPE ]
     target: sagemaker
     enable_test_promotion: true
@@ -85,6 +92,7 @@ images:
     cuda_version: &CUDA_VERSION cu118
     os_version: &OS_VERSION ubuntu20.04
     tag: !join [ *FRAMEWORK_VERSION, "-", *DEVICE_TYPE, "-", *TAG_PYTHON_VERSION, "-", *CUDA_VERSION, "-", *OS_VERSION, "-sagemaker" ]
+    latest_release_tag: !join [ *FRAMEWORK_VERSION, "-", *DEVICE_TYPE, "-", *TAG_PYTHON_VERSION, "-", *CUDA_VERSION, "-", *OS_VERSION, "-sagemaker" ]
     docker_file: !join [ docker/, *SHORT_VERSION, /, *DOCKER_PYTHON_VERSION, /, *CUDA_VERSION, /Dockerfile., *DEVICE_TYPE ]
     target: sagemaker
     enable_test_promotion: true

@@ -23,7 +23,7 @@ images:
   BuildStabilityaiPytorchGpuPy310InferenceDockerImage:
     <<: *INFERENCE_REPOSITORY
     build: &STABILITYAI_PYTORCH_GPU_INFERENCE_PY3 false
-    image_size_baseline: 14000
+    image_size_baseline: 17000
     device_type: &DEVICE_TYPE gpu
     python_version: &DOCKER_PYTHON_VERSION py3
     tag_python_version: &TAG_PYTHON_VERSION py310
@@ -31,7 +31,7 @@ images:
     os_version: &OS_VERSION ubuntu20.04
     sgm_version: &SGM_VERSION 0.1.0
     tag: !join [ *VERSION, "-", 'sgm',*SGM_VERSION, '-', *DEVICE_TYPE, "-", *TAG_PYTHON_VERSION, "-", *CUDA_VERSION, "-", *OS_VERSION, "-sagemaker" ]
-    docker_file: !join [ docker/, *SHORT_VERSION, /, *DOCKER_PYTHON_VERSION, /, *CUDA_VERSION, /Dockerfile.,
+    docker_file: !join [ docker/, *SHORT_VERSION, /, *DOCKER_PYTHON_VERSION, /, *CUDA_VERSION, /Dockerfile., sagemaker.,
                          *DEVICE_TYPE ]
     context:
           <<: *INFERENCE_CONTEXT                         

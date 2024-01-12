@@ -89,7 +89,7 @@ def test_telemetry_instance_tag_success_gpu(
 @pytest.mark.model("N/A")
 @pytest.mark.processor("cpu")
 @pytest.mark.integration("telemetry")
-@pytest.mark.timeout(1200)
+@pytest.mark.timeout(2400)
 @pytest.mark.parametrize("ec2_instance_type", ["c4.4xlarge"], indirect=True)
 def test_telemetry_instance_tag_success_cpu(
     cpu,

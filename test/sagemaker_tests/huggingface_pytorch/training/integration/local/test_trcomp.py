@@ -15,7 +15,7 @@ from __future__ import absolute_import
 import pytest
 from sagemaker.huggingface import HuggingFace, TrainingCompilerConfig
 
-from ...integration import ROLE, distrilbert_script
+from ...integration import ROLE, distilbert_script
 import unittest.mock as mock
 
 
@@ -44,7 +44,7 @@ def test_single_node_single_gpu_tcc_default(
 
     estimator = HuggingFace(
         compiler_config=TrainingCompilerConfig(),
-        entry_point=distrilbert_script,
+        entry_point=distilbert_script,
         instance_type="local_gpu",
         sagemaker_session=sagemaker_local_session,
         image_uri=docker_image,
