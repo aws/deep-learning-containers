@@ -87,7 +87,6 @@ release_images:
     version: "2.0.0"
     hf_transformers: "4.28.1"
     arch_type: "x86"
-    customer_type: "sagemaker"
     inference:
       device_types: [ "cpu", "gpu" ]
       python_versions: [ "py310" ]
