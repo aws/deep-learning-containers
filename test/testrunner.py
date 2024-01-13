@@ -383,7 +383,6 @@ def main():
         # Pull images for necessary tests
         if specific_test_type == "sanity":
             pull_dlc_images(all_image_list)
-            test_path = os.path.join(test_path, 'test_telemetry.py')
         if specific_test_type == "bai":
             build_bai_docker_container()
         if specific_test_type == "eks" and not is_all_images_list_eia:
