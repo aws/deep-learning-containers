@@ -43,7 +43,7 @@ def test_torch_compile_gpu_hosting(
     invoke_sm_endpoint_helper_function(
         ecr_image=ecr_image,
         sagemaker_regions=sagemaker_regions,
-        test_function=_test_pt_ipex,
+        test_function=_test_flash_attn_inf,
         framework_version=framework_version,
         instance_type=instance_type,
         model_dir=model_dir,

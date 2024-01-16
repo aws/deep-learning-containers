@@ -124,7 +124,6 @@ RUN pip install --upgrade pip --trusted-host pypi.org --trusted-host files.pytho
 RUN pip install --no-cache-dir --extra-index-url https://download.pytorch.org/whl/cpu -U \
     boto3 \
     scipy \
-    pyyaml \
     opencv-python \
     pyOpenSSL \
     "cryptography>=38.0.0" \
