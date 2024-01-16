@@ -210,6 +210,7 @@ NIGHTLY_FIXTURES = {
     "feature_smmp_present": {NightlyFeatureLabel.AWS_SMMP_INSTALLED.value},
     "feature_aws_framework_present": {NightlyFeatureLabel.AWS_FRAMEWORK_INSTALLED.value},
     "feature_s3_plugin_present": {NightlyFeatureLabel.AWS_S3_PLUGIN_INSTALLED.value},
+    "feature_smart_sifting_present": {NightlyFeatureLabel.AWS_SMART_SIFTING_INSTALLED.value},
 }
 
 
@@ -242,6 +243,11 @@ def feature_aws_framework_present():
 
 @pytest.fixture(scope="session")
 def feature_s3_plugin_present():
+    pass
+
+
+@pytest.fixture(scope="session")
+def feature_smart_sifting_present():
     pass
 
 

@@ -45,6 +45,13 @@ from test.test_utils import (
     UBUNTU_18_HPU_DLAMI_US_WEST_2,
     NEURON_UBUNTU_18_BASE_DLAMI_US_WEST_2,
     get_installed_python_packages_with_version,
+    login_to_ecr_registry,
+    get_account_id_from_image_uri,
+    get_region_from_image_uri,
+    DockerImagePullException,
+    get_installed_python_packages_with_version,
+    get_installed_python_packages_using_image_uri,
+    get_image_spec_from_buildspec,
 )
 
 
@@ -1073,3 +1080,69 @@ def test_core_package_version(image):
     assert (
         not violation_data
     ), f"Few packages violate the core_package specifications: {violation_data}"
+
+
+@pytest.mark.model("N/A")
+def test_package_version_regression_in_image(image):
+    """
+    This test verifies if the python package versions in the already released image are not being downgraded/deleted in the
+    new released. This test would be skipped for images whose BuildSpec does not have `latest_release_tag` or `release_repository`
+    keys in the buildspec - as these keys are used to extract the released image uri. Additionally, if the image is not already
+    released, this test would be skipped.
+    """
+    dlc_path = os.getcwd().split("/test/")[0]
+    corresponding_image_spec = get_image_spec_from_buildspec(
+        image_uri=image, dlc_folder_path=dlc_path
+    )
+
+    if any(
+        [
+            expected_key not in corresponding_image_spec
+            for expected_key in ["latest_release_tag", "release_repository"]
+        ]
+    ):
+        pytest.skip(f"Image {image} does not have `latest_release_tag` in its buildspec.")
+
+    previous_released_image_uri = f"""{corresponding_image_spec["release_repository"]}:{corresponding_image_spec["latest_release_tag"]}"""
+
+    LOGGER.info(f"Image spec for {image}: {json.dumps(corresponding_image_spec)}")
+    ctx = Context()
+
+    # Pull previous_released_image_uri
+    prod_account_id = get_account_id_from_image_uri(image_uri=previous_released_image_uri)
+    prod_image_region = get_region_from_image_uri(image_uri=previous_released_image_uri)
+    login_to_ecr_registry(context=ctx, account_id=prod_account_id, region=prod_image_region)
+    previous_released_image_uri = f"{previous_released_image_uri}"
+    run_output = ctx.run(f"docker pull {previous_released_image_uri}", warn=True, hide=True)
+    if not run_output.ok:
+        if "requested image not found" in run_output.stderr.lower():
+            pytest.skip(
+                f"Previous image: {previous_released_image_uri} for Image: {image} has not been released yet"
+            )
+        raise DockerImagePullException(
+            f"{run_output.stderr} when pulling {previous_released_image_uri}"
+        )
+
+    # Get the installed python package versions and find any regressions
+    current_image_package_version_dict = get_installed_python_packages_using_image_uri(
+        context=ctx, image_uri=image
+    )
+    released_image_package_version_dict = get_installed_python_packages_using_image_uri(
+        context=ctx, image_uri=previous_released_image_uri
+    )
+    violating_packages = {}
+    for package_name, version_in_released_image in released_image_package_version_dict.items():
+        if package_name not in current_image_package_version_dict:
+            violating_packages[
+                package_name
+            ] = "Not present in the image that is being currently built."
+            continue
+        version_in_current_image = current_image_package_version_dict[package_name]
+        if Version(version_in_released_image) > Version(version_in_current_image):
+            violating_packages[
+                package_name
+            ] = f"Version in already released image: {version_in_released_image} is greater that version in current image: {version_in_current_image}"
+
+    assert (
+        not violating_packages
+    ), f"Package regression observed between already released image: {previous_released_image_uri} and current image: {image}. Violating packages: {json.dumps(violating_packages)}"
