@@ -62,11 +62,8 @@ def main():
 
     # An INTEL dedicated builder will work if in INTEL mode and its framework has not been disabled
     intel_builder_enabled = (
-        intel_dedicated
-        and intel_build_mode
-        and "cpu" in device_types
-        and args.framework in frameworks_to_build
-        and train_or_inf_enabled
+        config.is_intel_cpu_builder_enabled_for_this_pr_build(args.framework)
+        and not config.is_deep_canary_mode_enabled()
     )
 
     # A NEURON dedicated builder will work if in NEURON mode and its framework has not been disabled

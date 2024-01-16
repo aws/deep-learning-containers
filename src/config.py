@@ -173,6 +173,7 @@ def is_pr_build_job_flavor_dedicated():
     build_job_is_neuronx_dedicated = os.getenv("NEURONX_DEDICATED", "false").lower() == "true"
     build_job_is_graviton_dedicated = os.getenv("GRAVITON_DEDICATED", "false").lower() == "true"
     build_job_is_habana_dedicated = os.getenv("HABANA_DEDICATED", "false").lower() == "true"
+    build_job_is_intel_dedicated = os.getenv("INTEL_DEDICATED", "false").lower() == "true"
     build_job_is_hf_trcomp_dedicated = (
         os.getenv("HUGGINFACE_TRCOMP_DEDICATED", "false").lower() == "true"
     )
@@ -184,6 +185,7 @@ def is_pr_build_job_flavor_dedicated():
         or build_job_is_neuronx_dedicated
         or build_job_is_graviton_dedicated
         or build_job_is_habana_dedicated
+        or build_job_is_intel_dedicated
         or build_job_is_hf_trcomp_dedicated
         or build_job_is_trcomp_dedicated
     )
@@ -199,6 +201,7 @@ def does_dev_config_enable_any_build_modes():
     dev_config_enables_neuronx_build_mode = parse_dlc_developer_configs("dev", "neuronx_mode")
     dev_config_enables_graviton_build_mode = parse_dlc_developer_configs("dev", "graviton_mode")
     dev_config_enables_habana_build_mode = parse_dlc_developer_configs("dev", "habana_mode")
+    dev_config_enables_intel_build_mode = parse_dlc_developer_configs("dev", "intel_mode")
     dev_config_enables_hf_trcomp_build_mode = parse_dlc_developer_configs("dev", "hf_trcomp_mode")
     dev_config_enables_trcomp_build_mode = parse_dlc_developer_configs("dev", "trcomp_mode")
 
@@ -208,6 +211,7 @@ def does_dev_config_enable_any_build_modes():
         or dev_config_enables_neuronx_build_mode
         or dev_config_enables_graviton_build_mode
         or dev_config_enables_habana_build_mode
+        or dev_config_enables_intel_build_mode
         or dev_config_enables_hf_trcomp_build_mode
         or dev_config_enables_trcomp_build_mode
     )
@@ -320,6 +324,22 @@ def is_habana_builder_enabled_for_this_pr_build(framework):
     return (
         build_job_is_habana_dedicated
         and dev_config_enables_habana_build_mode
+        and is_framework_enabled_for_this_pr_build(framework)
+        and is_training_or_inference_enabled_for_this_pr_build()
+    )
+
+
+def is_intel_cpu_builder_enabled_for_this_pr_build(framework):
+    """
+     Return True if this PR job should build Intel CPU optimized DLCs for the given framework name.
+    :param framework: str Framework name
+    :return: bool True/False
+    """
+    intel_dedicated = os.getenv("INTEL_DEDICATED", "false").lower() == "true"
+    intel_build_mode = parse_dlc_developer_configs("dev", "intel_mode")
+    return (
+        intel_dedicated
+        and intel_build_mode
         and is_framework_enabled_for_this_pr_build(framework)
         and is_training_or_inference_enabled_for_this_pr_build()
     )
