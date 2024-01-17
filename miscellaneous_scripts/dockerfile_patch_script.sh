@@ -1,33 +1,45 @@
 #!/bin/bash
 set -e
 
-RELEASED_IMAGE_SHA=$1
+LATEST_RELEASED_IMAGE_SHA=$1
+PATCHING_INFO_PATH=/opt/aws/dlc/patching-info
 
 # If patch-details-archive is not present, create it for the first time and add first_image_sha.txt
-if !(( $([ -d /opt/aws/dlc/patch-details-archive ]) )) ; then \
-    mkdir /opt/aws/dlc/patch-details-archive && \
-    echo $RELEASED_IMAGE_SHA >> /opt/aws/dlc/patch-details-archive/first_image_sha.txt ; \
+if [ ! -d $PATCHING_INFO_PATH/patch-details-archive ] ; then \
+    mkdir $PATCHING_INFO_PATH/patch-details-archive && \
+    echo $LATEST_RELEASED_IMAGE_SHA >> $PATCHING_INFO_PATH/patch-details-archive/first_image_sha.txt ; \
 fi
+
+## We use > instead of >> since we want to override the contents of the previous file.
+echo $LATEST_RELEASED_IMAGE_SHA > $PATCHING_INFO_PATH/patch-details-archive/last_released_image_sha.txt
 
 # If patch-details is present, move it to patch-details-archive and add image_sha to the folder
-if [ -d /opt/aws/dlc/patch-details ] ; then \
-    existing_file_count=$(ls -l /opt/aws/dlc/patch-details-archive | wc -l) && \
-    reduce_count_value=1 && \
-    patch_count=$((existing_file_count-reduce_count_value)) && \
-    mv /opt/aws/dlc/patch-details /opt/aws/dlc/patch-details-archive/patch-details-$patch_count && \
-    echo $RELEASED_IMAGE_SHA >> /opt/aws/dlc/patch-details-archive/patch-details-$patch_count/image_sha.txt ; \
+if [ -d $PATCHING_INFO_PATH/patch-details ] ; then \
+    existing_file_count=$(ls -ld $PATCHING_INFO_PATH/patch-details-archive/patch-details-*/ | wc -l) && \
+    add_count_value=1 && \
+    patch_count=$((existing_file_count+add_count_value)) && \
+    mv $PATCHING_INFO_PATH/patch-details $PATCHING_INFO_PATH/patch-details-archive/patch-details-$patch_count && \
+    echo $LATEST_RELEASED_IMAGE_SHA >> $PATCHING_INFO_PATH/patch-details-archive/patch-details-$patch_count/image_sha.txt ; \
 fi
 
-# Rename the patch-details-latest folder to patch-details
-mv /opt/aws/dlc/patch-details-latest /opt/aws/dlc/patch-details
+# Rename the patch-details-current folder to patch-details
+mv $PATCHING_INFO_PATH/patch-details-current $PATCHING_INFO_PATH/patch-details
 
 # Install packages and derive history and package diff data
-chmod +x /opt/aws/dlc/patch-details/install_script_language.sh && \
-/opt/aws/dlc/patch-details/install_script_language.sh && \
-chmod +x /opt/aws/dlc/patch-details/install_script_os.sh && \
-/opt/aws/dlc/patch-details/install_script_os.sh && \
-python /opt/aws/dlc/miscellaneous_scripts/derive_history.py && \
-python /opt/aws/dlc/miscellaneous_scripts/extract_apt_patch_data.py --save-result-path /opt/aws/dlc/patch-details/os_summary.json --mode_type modify
+chmod +x $PATCHING_INFO_PATH/patch-details/install_script_language.sh && \
+$PATCHING_INFO_PATH/patch-details/install_script_language.sh
+
+pip cache purge
+
+chmod +x $PATCHING_INFO_PATH/patch-details/install_script_os.sh && \
+$PATCHING_INFO_PATH/patch-details/install_script_os.sh
+
+rm -rf /var/lib/apt/lists/* && \
+  apt-get clean
+
+python /opt/aws/dlc/miscellaneous_scripts/derive_history.py
+
+python /opt/aws/dlc/miscellaneous_scripts/extract_apt_patch_data.py --save-result-path $PATCHING_INFO_PATH/patch-details/os_summary.json --mode_type modify
 
 HOME_DIR=/root \
     && curl -o ${HOME_DIR}/oss_compliance.zip https://aws-dlinfra-utilities.s3.amazonaws.com/oss_compliance.zip \
