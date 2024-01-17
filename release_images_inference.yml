@@ -31,7 +31,7 @@ release_images:
       # has already been published. Re-released image will have minor version incremented by 1.
   3:
     framework: "triton"
-    version: "23.10"
+    version: "23.12"
     arch_type: "x86"
     inference:
       device_types: [ "cpu", "gpu" ]
