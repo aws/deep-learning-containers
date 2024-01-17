@@ -21,7 +21,7 @@ release_images:
     arch_type: "x86"
     inference:
       device_types: [ "gpu" ]
-      python_versions: [ "py10" ]
+      python_versions: [ "py310" ]
       os_version: "ubuntu20.04"
       deepspeed_version: "0.12.6"
       cuda_version: "cu121"
