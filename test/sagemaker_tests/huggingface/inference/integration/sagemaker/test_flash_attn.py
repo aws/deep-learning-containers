@@ -39,7 +39,7 @@ def test_torch_compile_gpu_hosting(
     framework, _ = get_framework_and_version_from_tag(ecr_image)
     if "pytorch" not in framework:
         pytest.skip(f"Skipping test for non-pytorch image - {ecr_image}")
-    instance_type = instance_type or "ml.m5.xlarge"
+    instance_type = instance_type or "ml.p3.2xlarge"
     invoke_sm_endpoint_helper_function(
         ecr_image=ecr_image,
         sagemaker_regions=sagemaker_regions,
