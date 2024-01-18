@@ -27,6 +27,9 @@ def predict_fn(data, model):
     inputs = model["tokenizer"](
         data["inputs"], return_tensors="pt", max_length=128, padding="max_length", truncation=True
     )
+    print(f"mode is on {model["model"].device}")
+    try:
+        print(f"input tensor is on gpu? {tuple(inputs.values())[0].is_cuda}")
     with torch.no_grad():
         predictions = model["model"](*tuple(inputs.values()))[0]
         outputs = predictions.cpu().numpy()
