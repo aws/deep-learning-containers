@@ -13,6 +13,7 @@ def model_fn(model_dir):
     model = AutoModel.from_pretrained(
         model_dir, torch_dtype=torch.float16, attn_implementation="flash_attention_2"
     )
+    print(torch.cuda.is_available())
     model.to("cuda")
     return {"model": model, "tokenizer": tokenizer}
 
