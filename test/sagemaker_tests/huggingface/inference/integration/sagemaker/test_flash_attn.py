@@ -33,7 +33,7 @@ from ..... import invoke_sm_endpoint_helper_function
 @pytest.mark.processor("gpu")
 @pytest.mark.gpu_test
 @pytest.mark.team("sagemaker-1p-algorithms")
-def test_torch_compile_gpu_hosting(
+def test_flash_attn_gpu_hosting(
     framework_version, ecr_image, instance_type, sagemaker_regions, py_version
 ):
     framework, _ = get_framework_and_version_from_tag(ecr_image)

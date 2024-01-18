@@ -11,8 +11,9 @@ print("running flash attention test...")
 def model_fn(model_dir):
     tokenizer = AutoTokenizer.from_pretrained(model_dir)
     model = AutoModel.from_pretrained(
-        model_dir, torch_dtype=torch.float16, use_flash_attention_2=True
+        model_dir, torch_dtype=torch.float32, attn_implementation="flash_attention_2"
     )
+    model.to("cuda")
     return {"model": model, "tokenizer": tokenizer}
 
 
