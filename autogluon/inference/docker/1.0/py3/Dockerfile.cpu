@@ -29,7 +29,7 @@ RUN pip install --no-cache-dir -U --trusted-host pypi.org --trusted-host files.p
  && pip install --no-cache-dir -U numpy numba \
 # Install AutoGluon, ensuring no vulnerable dependencies are left behind
  && pip install --no-cache-dir -U autogluon==${AUTOGLUON_VERSION} \
- # Update requests to a secure version that fixes CVE-2023-32681
+# Update requests to a secure version that fixes CVE-2023-32681
  && pip install --no-cache-dir -U requests>=2.31.0 \  
  && mim install -q mmcv \
  && pip install --no-cache-dir -U mmdet>=3.0.0 \
@@ -37,6 +37,8 @@ RUN pip install --no-cache-dir -U --trusted-host pypi.org --trusted-host files.p
  && pip install --no-cache-dir -U "mmengine" \
 # Update ray to a secure version that fixes CVE-2023-6019, CVE-2023-6020, CVE-2023-6021, and CVE-2023-48023
  && pip install --no-cache-dir -U ray>=2.8.1 \
+# Update transformers to secure versions that fixes CVE-2023-7018
+ && pip install --no-cache-dir -U transformers>=4.36.0 \
  && pip install --no-cache-dir -U setuptools>=65.5.1 \  
  && pip install --no-cache-dir -U cryptography>=41.0.7
 
