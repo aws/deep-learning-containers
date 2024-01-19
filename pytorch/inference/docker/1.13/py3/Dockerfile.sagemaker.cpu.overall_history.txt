@@ -1,0 +1,4 @@
+#### First image: sha256:4e2bd083e10da23c246995551ae9f5f419ef3244c12f9883a7c207aa1d346f0e ####
+#### Current Patch contents ####
+echo N/A
+apt-get update && apt-get install -y --only-upgrade binutils-common binutils-x86-64-linux-gnu binutils libbinutils libctf-nobfd0 libctf0
