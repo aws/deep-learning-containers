@@ -226,11 +226,12 @@ HuggingFace Inference Containers
 |TensorFlow 2.11.1 with HuggingFace transformers   |inference	|CPU 		| 3.9 (py39)			|763104351884.dkr.ecr.us-east-1.amazonaws.com/huggingface-tensorflow-inference:2.11.1-transformers4.26.0-cpu-py39-ubuntu20.04		|
 |TensorFlow 2.11.1 with HuggingFace transformers   |inference	|GPU 		| 3.9 (py39)			|763104351884.dkr.ecr.us-east-1.amazonaws.com/huggingface-tensorflow-inference:2.11.1-transformers4.26.0-gpu-py39-cu112-ubuntu20.04	|
 
-HuggingFace Text Generation Inference Containers
+HuggingFace Text Generation Inference (TGI) Containers
 ===============================
 
-Please refer to the [releases page](https://github.com/aws/deep-learning-containers/releases?q=tgi&expanded=true) to view all released versions and tags of the container.
-
+Please refer to the following pages to view all available versions and tags for GPU and NeuronX containers:
+* [GPU Release Page](https://github.com/aws/deep-learning-containers/releases?q=tgi+AND+gpu&expanded=true)
+* [NeuronX Release Page](https://github.com/aws/deep-learning-containers/releases?q=tgi+AND+neuronx&expanded=true)
 
 HuggingFace Neuron Inference Containers
 ===============================
