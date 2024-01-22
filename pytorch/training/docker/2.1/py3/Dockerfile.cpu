@@ -249,6 +249,10 @@ LABEL dlc_major_version="1"
 
 ARG PYTHON
 
+# Selectively enable PyTorch Verbose Logging
+ENV PYTORCH_API_USAGE_STDERR=1
+ENV TORCH_LOGS=+dynamo,+aot,+inductor
+
 ENV SAGEMAKER_TRAINING_MODULE=sagemaker_pytorch_container.training:main
 
 ARG PYTORCH_VERSION_SM
