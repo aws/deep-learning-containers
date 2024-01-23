@@ -59,7 +59,7 @@ def _test_sm_trained_model(
         framework_version="1.9.0",
     )
 
-    with timeout_and_delete_endpoint(endpoint_name, sagemaker_session, minutes=30):
+    with timeout_and_delete_endpoint(endpoint_name, sagemaker_session, minutes=60):
         predictor = model.deploy(
             initial_instance_count=1,
             instance_type=instance_type,
