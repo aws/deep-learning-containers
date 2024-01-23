@@ -34,9 +34,9 @@ images:
     python_version: &DOCKER_PYTHON_VERSION py3
     tag_python_version: &TAG_PYTHON_VERSION py310
     os_version: &OS_VERSION ubuntu22.04
-    pt_version: &PT_VERSION 2.1.1
+    framework_version: &FRAMEWORK_VERSION 2.1.1
     transformers_version: &TRANSFORMERS_VERSION 4.37.0
-    tag: !join [ *PT_VERSION, '-', 'transformers', *TRANSFORMERS_VERSION, '-', *DEVICE_TYPE, '-', *TAG_PYTHON_VERSION, '-', *OS_VERSION ]
+    tag: !join [ *FRAMEWORK_VERSION, '-', 'transformers', *TRANSFORMERS_VERSION, '-', *DEVICE_TYPE, '-', *TAG_PYTHON_VERSION, '-', *OS_VERSION ]
     docker_file: !join [ docker/, *SHORT_VERSION, /, *DOCKER_PYTHON_VERSION, /Dockerfile., *DEVICE_TYPE ]
     context:
       <<: *INFERENCE_CONTEXT
@@ -49,9 +49,9 @@ images:
     tag_python_version: &TAG_PYTHON_VERSION py310
     cuda_version: &CUDA_VERSION cu118
     os_version: &OS_VERSION ubuntu20.04
-    pt_version: &PT_VERSION 2.1.0
+    framework_version: &FRAMEWORK_VERSION 2.1.0
     transformers_version: &TRANSFORMERS_VERSION 4.37.0
-    tag: !join [ *PT_VERSION, '-', 'transformers', *TRANSFORMERS_VERSION, '-', *DEVICE_TYPE, '-', *TAG_PYTHON_VERSION, '-',
+    tag: !join [ *FRAMEWORK_VERSION, '-', 'transformers', *TRANSFORMERS_VERSION, '-', *DEVICE_TYPE, '-', *TAG_PYTHON_VERSION, '-',
                  *CUDA_VERSION, '-', *OS_VERSION ]
     docker_file: !join [ docker/, *SHORT_VERSION, /, *DOCKER_PYTHON_VERSION, /,
                          *CUDA_VERSION, /Dockerfile., *DEVICE_TYPE ]
