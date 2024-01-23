@@ -105,3 +105,29 @@ release_images:
       example: False
       disable_sm_tag: True
       force_release: False
+  9:
+    framework: "tensorflow"
+    version: "2.12.1"
+    customer_type: "sagemaker"
+    arch_type: "x86"
+    inference:
+      device_types: ["cpu", "gpu"]
+      python_versions: ["py310"]
+      os_version: "ubuntu20.04"
+      cuda_version: "cu118"
+      example: False
+      disable_sm_tag: False
+      force_release: False
+  10:
+    framework: "tensorflow"
+    version: "2.12.1"
+    customer_type: "ec2"
+    arch_type: "x86"
+    inference:
+      device_types: ["cpu", "gpu"]
+      python_versions: ["py310"]
+      os_version: "ubuntu20.04"
+      cuda_version: "cu118"
+      example: False
+      disable_sm_tag: False
+      force_release: False
