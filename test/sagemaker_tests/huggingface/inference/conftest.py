@@ -326,7 +326,7 @@ def skip_gpu_instance_restricted_regions(region, instance_type):
         or (region not in G5_AVAILABLE_REGIONS and instance_type.startswith("ml.g5"))
     ):
         pytest.skip(
-            "Skipping GPU test in region {} with instance type".format(region, instance_type)
+            "Skipping GPU test in region {} with instance type {}".format(region, instance_type)
         )
 
 
