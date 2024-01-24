@@ -187,12 +187,22 @@ RUN pip install --no-cache-dir \
 # Install IPEx and its dependencies
 # from source is mandatory for cutomized AWS PyTorch binaries: https://github.com/intel/intel-extension-for-pytorch/issues/317
 RUN pip install --no-cache-dir intel-openmp tbb
-RUN cd /opt/ && mkdir -p ipex \
-    cd /opt/ipex && \
-    wget https://raw.githubusercontent.com/intel/intel-extension-for-pytorch/v2.1.100%2Bcpu/scripts/compile_bundle.sh && \
-    bash compile_bundle.sh && \
-    /opt/conda/bin/conda install -y jemalloc gperftools -c conda-forge && \
-    rm -rf /opt/ipex && cd /opt/
+RUN cd /opt/ \
+ && mkdir -p ipex \
+ && cd /opt/ipex \
+ && git clone https://github.com/intel/intel-extension-for-pytorch.git \
+ && cd intel-extension-for-pytorch/ \
+ && git checkout v2.1.100+cpu \
+ && git submodule sync \
+ && git submodule update --init --recursive \
+ && sed -i "s/2.1.1/2.1.0/g" dependency_version.yml \
+ && sed -i "s/0.16.1/0.16.0/g" dependency_version.yml \
+ && sed -i "s/VER_IPEX=.*/VER_IPEX=/g" scripts/compile_bundle.sh \
+ && cd .. \
+ && ln -s intel-extension-for-pytorch/scripts/compile_bundle.sh \
+ && bash compile_bundle.sh \
+ && /opt/conda/bin/conda install -y jemalloc gperftools -c conda-forge \
+ && rm -rf /opt/ipex && cd /opt/
 
 # IPEx installation installs the numpy==1.25.1. That causes a pip check failure due to incompatibility with numba.
 # Re-installing numpy after IPEx installation to get the appropriate numpy version and fix pip checks.
