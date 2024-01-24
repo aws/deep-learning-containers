@@ -256,7 +256,6 @@ def main():
             )
             LOGGER.info(f"Transferred image {autopatch_image}")
         else:
-            LOGGER.info(f"Image {autopatch_image} cannot be transferred.")
             raise ImageCannotBeTransferredException(
                 f"Image {autopatch_image} could not be transferred."
             )
