@@ -144,7 +144,7 @@ NVIDIA Triton Inference Containers (SM support only)
 ============================
 **Note**:
 
-1. The following versions of the 23.`<XY>` container are supported: `23.01, 23.02, 23.03, 23.05, 23.06, 23.07, 23.08`.
+1. The following versions of the 23.`<XY>` container are supported: `23.01, 23.02, 23.03, 23.05, 23.06, 23.07, 23.08, 23.09, 23.10 and 23.12`.
 2. SageMaker Triton Inference Container does not support Tensorflow1 as of version 23.05 onwards, as upstream Triton container does not support
 Tensorflow(v1) native backend from version 23.04 onwards.
 3. SageMaker Triton Inference Container does not ship with the FasterTransformer(FT) backend from version 23.06 onwards since the upstream FT library is undergoing re-structuring. It was previously available from versions v22.12 - v23.05, experimentally. This note will be updated after the restructuring is complete.
@@ -169,23 +169,23 @@ Large Model Inference Containers
 ===============================
 | Framework																														                                                                                       | Job Type	  | Accelerator		 | Python Version Options	 | Example URL																						                                                               |
 |-------------------------------------------------------------------------------------------------------------------------------|------------|---------------|-------------------------|-------------------------------------------------------------------------------------------------|
+| DJLServing 0.26.0 with TensorRT-LLM 0.7.1, Hugging Face Transformers 4.36.2 and Hugging Face Accelerate 0.25.0                | inference  | GPU           | 3.10 (py310)            | 763104351884.dkr.ecr.us-east-1.amazonaws.com/djl-inference:0.26.0-tensorrtllm0.7.1-cu122        |
+| DJLServing 0.26.0 with DeepSpeed 0.12.6, Hugging Face Transformers  4.36.2 and Hugging Face Accelerate 0.25.0                 | inference  | GPU           | 3.10 (py310)            | 763104351884.dkr.ecr.us-east-1.amazonaws.com/djl-inference:0.26.0-deepspeed0.12.6-cu121         |
+| DJLServing 0.26.0 with Neuron SDK 2.16.0, TransformersNeuronX 0.9.474 and Hugging Face Transformers 4.35.0                    | inference  | Neuron        | 3.9 (py39)              | 763104351884.dkr.ecr.us-east-1.amazonaws.com/djl-inference:0.26.0-neuronx-sdk2.16.0             | 
 | DJLServing 0.25.0 with TensorRT-LLM 0.5.0, HuggingFace Transformers 4.34.0 and HuggingFace Accelerate 0.23.0	                 | inference	 | GPU				       | 3.10 (py310)				        | 763104351884.dkr.ecr.us-west-2.amazonaws.com/djl-inference:0.25.0-tensorrtllm0.5.0-cu122		      |
 | DJLServing 0.25.0 with DeepSpeed 0.11.0, HuggingFace Transformers 4.34.0, Diffusers 0.16.0 and HuggingFace Accelerate 0.23.0	 | inference	 | GPU				       | 3.9 (py39)				          | 763104351884.dkr.ecr.us-west-2.amazonaws.com/djl-inference:0.25.0-deepspeed0.11.0-cu118			      |
 | DJLServing 0.25.0 with Neuron SDK 2.15.0, TransformersNeuronX 0.8.0 and HuggingFace Transformers 4.34.0						                 | inference	 | Neuron			     | 3.8 (py38)				          | 763104351884.dkr.ecr.us-west-2.amazonaws.com/djl-inference:0.25.0-neuronx-sdk2.15.0				         |
 | DJLServing 0.24.0 with FasterTransformer 5.3.0, HuggingFace Transformers 4.30.1, and HuggingFace Accelerate 0.20.3			         | inference	 | GPU				       | 3.9 (py39)				          | 763104351884.dkr.ecr.us-west-2.amazonaws.com/djl-inference:0.24.0-fastertransformer5.3.0-cu118	 |
 | DJLServing 0.24.0 with DeepSpeed 0.10.0, HuggingFace Transformers 4.30.2, Diffusers 0.16.0 and HuggingFace Accelerate 0.20.3	 | inference	 | GPU				       | 3.9 (py39)				          | 763104351884.dkr.ecr.us-west-2.amazonaws.com/djl-inference:0.24.0-deepspeed0.10.0-cu118			      |
 | DJLServing 0.24.0 with Neuron SDK 2.14.0, TransformersNeuronX 0.5.0 and HuggingFace Transformers 4.30.1						                 | inference	 | Neuron			     | 3.8 (py38)				          | 763104351884.dkr.ecr.us-west-2.amazonaws.com/djl-inference:0.24.0-neuronx-sdk2.14.1				         |
-| DJLServing 0.23.0 with FasterTransformer 5.3.0, HuggingFace Transformers 4.30.1, and HuggingFace Accelerate 0.20.3			         | inference	 | GPU				       | 3.9 (py39)				          | 763104351884.dkr.ecr.us-west-2.amazonaws.com/djl-inference:0.23.0-fastertransformer5.3.0-cu118	 |
-| DJLServing 0.23.0 with DeepSpeed 0.9.5, HuggingFace Transformers 4.30.2, Diffusers 0.16.0 and HuggingFace Accelerate 0.20.3	  | inference	 | GPU				       | 3.9 (py39)				          | 763104351884.dkr.ecr.us-west-2.amazonaws.com/djl-inference:0.23.0-deepspeed0.9.5-cu118			       |
-| DJLServing 0.23.0 with Neuron SDK 2.12.0, TransformersNeuronX 0.5.0 and HuggingFace Transformers 4.30.1						                 | inference	 | Neuron			     | 3.8 (py38)				          | 763104351884.dkr.ecr.us-west-2.amazonaws.com/djl-inference:0.23.0-neuronx-sdk2.12.0				         |
 
 DJL CPU Full Inference Containers
 ===============================
 | Framework         | Job Type	  | CPU/GPU 	 | Python Version Options	 | Example URL																	                                                |
 |-------------------|------------|-----------|-------------------------|-----------------------------------------------------------------------------|
+| DJLServing 0.26.0 | inference  | CPU       | 3.8 (py38)              | 763104351884.dkr.ecr.us-east-1.amazonaws.com/djl-inference:0.26.0-cpu-full  | 
 | DJLServing 0.25.0 | inference	 | CPU 		    | 3.8 (py38)			           | 763104351884.dkr.ecr.us-west-2.amazonaws.com/djl-inference:0.25.0-cpu-full	 |
 | DJLServing 0.24.0 | inference	 | CPU 		    | 3.8 (py38)			           | 763104351884.dkr.ecr.us-west-2.amazonaws.com/djl-inference:0.24.0-cpu-full	 |
-| DJLServing 0.23.0 | inference	 | CPU 		    | 3.8 (py38)			           | 763104351884.dkr.ecr.us-west-2.amazonaws.com/djl-inference:0.23.0-cpu-full	 |
 
 
 AutoGluon Training Containers
@@ -226,11 +226,12 @@ HuggingFace Inference Containers
 |TensorFlow 2.11.1 with HuggingFace transformers   |inference	|CPU 		| 3.9 (py39)			|763104351884.dkr.ecr.us-east-1.amazonaws.com/huggingface-tensorflow-inference:2.11.1-transformers4.26.0-cpu-py39-ubuntu20.04		|
 |TensorFlow 2.11.1 with HuggingFace transformers   |inference	|GPU 		| 3.9 (py39)			|763104351884.dkr.ecr.us-east-1.amazonaws.com/huggingface-tensorflow-inference:2.11.1-transformers4.26.0-gpu-py39-cu112-ubuntu20.04	|
 
-HuggingFace Text Generation Inference Containers
+HuggingFace Text Generation Inference (TGI) Containers
 ===============================
 
-Please refer to the [releases page](https://github.com/aws/deep-learning-containers/releases?q=tgi&expanded=true) to view all released versions and tags of the container.
-
+Please refer to the following pages to view all available versions and tags for GPU and NeuronX containers:
+* [GPU Release Page](https://github.com/aws/deep-learning-containers/releases?q=tgi+AND+gpu&expanded=true)
+* [NeuronX Release Page](https://github.com/aws/deep-learning-containers/releases?q=tgi+AND+neuronx&expanded=true)
 
 HuggingFace Neuron Inference Containers
 ===============================

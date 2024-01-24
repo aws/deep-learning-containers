@@ -1,7 +1,7 @@
 import os
 
-ARCHIVE_FOLDER_PATH = "/opt/aws/dlc/patch-details-archive"
-LATEST_PATCH_DETAILS_FOLDER_PATH = "/opt/aws/dlc/patch-details"
+ARCHIVE_FOLDER_PATH = "/opt/aws/dlc/patching-info/patch-details-archive"
+LATEST_PATCH_DETAILS_FOLDER_PATH = "/opt/aws/dlc/patching-info/patch-details"
 CONTENTS_WITHIN_ARCHIVE_FOLDER = os.listdir(ARCHIVE_FOLDER_PATH)
 OVERALL_HISTORY_DUMP_LOCATION = os.path.join(
     os.sep, LATEST_PATCH_DETAILS_FOLDER_PATH, "overall_history.txt"

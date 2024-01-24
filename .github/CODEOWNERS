@@ -17,10 +17,6 @@ release_images_training.yml @aws/dl-containers @aws/dlc-autogluon-reviewers @aws
 autogluon/ @aws/dlc-autogluon-reviewers
 test/sagemaker_tests/autogluon @aws/dlc-autogluon-reviewers
 
-# Files under stabilityai/ and huggingface/ directories can be directly reviewed by below teams
-stabilityai/ @aws/sagemaker-1p-algorithms
-huggingface/ @aws/sagemaker-1p-algorithms
-
 # Any PR with a file with "pytorch" in it will be assigned to the conda reviewer team
 *pytorch* @aws/dlc-pytorch-reviewers
 
@@ -51,3 +47,12 @@ dgl_tests/ @aws/dlc-dgl-reviewers
 
 # Any PR with a file with "triton" in it will be assigned to the SM Triton/ModelServing team
 *triton* @aws/dlc-triton-reviewers
+
+# Files under stabilityai/ and huggingface/ directories can be directly reviewed by below teams
+stabilityai/ @aws/sagemaker-1p-algorithms
+huggingface/ @aws/sagemaker-1p-algorithms
+test/sagemaker_tests/huggingface/ @aws/sagemaker-1p-algorithms
+test/sagemaker_tests/huggingface_pytorch/ @aws/sagemaker-1p-algorithms
+test/sagemaker_tests/huggingface_tensorflow/ @aws/sagemaker-1p-algorithms
+test/sagemaker_tests/pytorch/inference/integration/sagemaker/test_stabilityai.py @aws/sagemaker-1p-algorithms
+test/sagemaker_tests/pytorch/inference/resources/stabilityai/ @aws/sagemaker-1p-algorithms
