@@ -339,10 +339,16 @@ def skip_unless_tlr_supported(request, ecr_image):
     if request.node.get_closest_marker("skip_unless_tlr_supported"):
         framework, framework_version = get_framework_and_version_from_tag(ecr_image)
         transformers_version = get_transformers_version_from_image_uri(ecr_image)
-        if not (framework == "huggingface-pytorch" and \
-            Version(framework_version) in SpecifierSet(">=2.1.0") and \
-            Version(transformers_version) in SpecifierSet(">=4.36.0")):
-            pytest.skip("Skipping Transfer Reinforcement Learning (TLR) test for tag {}. TLR support was added with Transformers==4.36.0 and PyTorch==2.1.0.".format(ecr_image))
+        if not (
+            framework == "huggingface-pytorch"
+            and Version(framework_version) in SpecifierSet(">=2.1.0")
+            and Version(transformers_version) in SpecifierSet(">=4.36.0")
+        ):
+            pytest.skip(
+                "Skipping Transfer Reinforcement Learning (TLR) test for tag {}. TLR support was added with Transformers==4.36.0 and PyTorch==2.1.0.".format(
+                    ecr_image
+                )
+            )
 
 
 def _get_remote_override_flags():

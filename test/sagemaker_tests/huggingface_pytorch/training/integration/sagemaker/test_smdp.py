@@ -19,7 +19,11 @@ import sagemaker.huggingface
 from sagemaker.huggingface import HuggingFace
 
 from ..... import invoke_sm_helper_function
-from test.test_utils import get_framework_and_version_from_tag, get_cuda_version_from_tag, from test.test_utils import get_framework_and_version_from_tag, get_cuda_version_from_tag, get_transformers_version_from_image_uri
+from test.test_utils import (
+    get_framework_and_version_from_tag,
+    get_cuda_version_from_tag,
+    get_transformers_version_from_image_uri,
+)
 from packaging.version import Version
 from packaging.specifiers import SpecifierSet
 from ...integration import DEFAULT_TIMEOUT
