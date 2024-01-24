@@ -94,8 +94,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends --allow-unauthe
  && apt-get install -y --no-install-recommends --allow-unauthenticated --allow-change-held-packages \
    libcublas-dev-${CUDA_DASH} \
    libcublas-${CUDA_DASH} \
-   libnccl2=2.16.5-1+cuda11.8 \
-   libnccl-dev=2.16.5-1+cuda11.8 \
+   libnccl2=2.18.5-1+cuda11.8 \
+   libnccl-dev=2.18.5-1+cuda11.8 \
  && rm -rf /var/lib/apt/lists/* \
  && mkdir -p /var/run/sshd
 
@@ -124,6 +124,10 @@ RUN mkdir /tmp/openmpi \
  && make install \
  && ldconfig \
  && rm -rf /tmp/openmpi
+
+###########################################################################
+# Horovod & its dependencies
+###########################################################################
 
 # Create a wrapper for OpenMPI to allow running as root by default
 RUN mv $OPEN_MPI_PATH/bin/mpirun $OPEN_MPI_PATH/bin/mpirun.real \
