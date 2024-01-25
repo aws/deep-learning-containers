@@ -17,7 +17,7 @@ jobs:
     env:
       HADOLINT_RECURSIVE: "true"
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - uses: hadolint/hadolint-action@v3.1.0
         with:
           dockerfile: Dockerfile.neuron
