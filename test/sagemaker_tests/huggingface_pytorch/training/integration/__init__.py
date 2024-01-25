@@ -93,3 +93,12 @@ def get_processor_from_image_uri(image_uri):
         if match:
             return match.group(1)
     raise RuntimeError("Cannot find processor")
+
+
+def get_transformers_version_from_image_uri(image_uri):
+    transformers_version_search = re.search(r"transformers(\d+(\.\d+){1,2})", image_uri)
+    if transformers_version_search:
+        transformers_version = transformers_version_search.group(1)
+        return transformers_version
+    else:
+        raise LookupError("HF transformers version not found in image URI")
