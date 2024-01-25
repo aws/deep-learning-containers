@@ -97,16 +97,16 @@
             "name": "CVE-2023-6606",
             "package_name": "linux",
             "package_details": {
-            "file_path": null,
-            "name": "linux",
-            "package_manager": "OS",
-            "version": "5.4.0",
-            "release": "169.187"
+                "file_path": null,
+                "name": "linux",
+                "package_manager": "OS",
+                "version": "5.4.0",
+                "release": "169.187"
             },
             "remediation": {
-            "recommendation": {
-                "text": "None Provided"
-            }
+                "recommendation": {
+                    "text": "None Provided"
+                }
             },
             "cvss_v3_score": 7.1,
             "cvss_v30_score": 0,
@@ -134,7 +134,7 @@
             },
             "remediation": {
                 "recommendation": {
-                "text": "None Provided"
+                    "text": "None Provided"
                 }
             },
             "cvss_v3_score": 7.1,
@@ -163,7 +163,7 @@
             },
             "remediation": {
                 "recommendation": {
-                "text": "None Provided"
+                    "text": "None Provided"
                 }
             },
             "cvss_v3_score": 7.1,
@@ -178,5 +178,5 @@
             "title": "CVE-2023-6606 - linux",
             "reason_to_ignore": "N/A"
         }
-  ]
+    ]
 }
