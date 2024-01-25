@@ -56,7 +56,7 @@ smp_options = {
 distribution = {"smdistributed": {"modelparallel": smp_options}, "mpi": mpi_options}
 
 
-def get_transformers_version(ecr_image):
+def get_transformers_version_from_image_uri(ecr_image):
     transformers_version_search = re.search(r"transformers(\d+(\.\d+){1,2})", ecr_image)
     if transformers_version_search:
         transformers_version = transformers_version_search.group(1)
@@ -105,7 +105,7 @@ def _test_smmp_gpu_function(ecr_image, sagemaker_session, py_version, instances_
     instance_count = instances_quantity
     volume_size = 400
 
-    transformers_version = get_transformers_version(ecr_image)
+    transformers_version = get_transformers_version_from_image_uri(ecr_image)
     git_config = {
         "repo": "https://github.com/huggingface/transformers.git",
         "branch": "v" + transformers_version,

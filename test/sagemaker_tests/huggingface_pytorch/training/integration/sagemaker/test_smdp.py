@@ -19,7 +19,11 @@ import sagemaker.huggingface
 from sagemaker.huggingface import HuggingFace
 
 from ..... import invoke_sm_helper_function
-from test.test_utils import get_framework_and_version_from_tag, get_cuda_version_from_tag
+from test.test_utils import (
+    get_framework_and_version_from_tag,
+    get_cuda_version_from_tag,
+    get_transformers_version_from_image_uri,
+)
 from packaging.version import Version
 from packaging.specifiers import SpecifierSet
 from ...integration import DEFAULT_TIMEOUT
@@ -70,15 +74,6 @@ def can_run_smdataparallel(ecr_image):
     ) >= Version("110")
 
 
-def get_transformers_version(ecr_image):
-    transformers_version_search = re.search(r"transformers(\d+(\.\d+){1,2})", ecr_image)
-    if transformers_version_search:
-        transformers_version = transformers_version_search.group(1)
-        return transformers_version
-    else:
-        raise LookupError("HF transformers version not found in image URI")
-
-
 @pytest.mark.integration("smdataparallel")
 @pytest.mark.model("hf_qa_smdp")
 @pytest.mark.processor("gpu")
@@ -115,7 +110,7 @@ def test_smdp_question_answering_multinode(ecr_image, sagemaker_regions, py_vers
 def _test_smdp_question_answering_function(
     ecr_image, sagemaker_session, py_version, instances_quantity
 ):
-    transformers_version = get_transformers_version(ecr_image)
+    transformers_version = get_transformers_version_from_image_uri(ecr_image)
     git_config = {
         "repo": "https://github.com/huggingface/transformers.git",
         "branch": "v" + transformers_version,
