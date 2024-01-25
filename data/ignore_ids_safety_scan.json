@@ -1350,7 +1350,13 @@
                 "61416": "Temporarily ignoring to patch CRITICAL vulnerabilties",
                 "61893": "Temporarily ignoring to patch CRITICAL vulnerabilties",
                 "63227": "Temporarily ignoring to patch CRITICAL vulnerabilties",
-                "63408": "Temporarily ignoring to patch CRITICAL vulnerabilties"
+                "63408": "Temporarily ignoring to patch CRITICAL vulnerabilties",
+                "64438": "Temporarily ignoring to patch CRITICAL vulnerabilties",
+                "64436": "Temporarily ignoring to patch CRITICAL vulnerabilties",
+                "64437": "Temporarily ignoring to patch CRITICAL vulnerabilties",
+                "64402": "Temporarily ignoring to patch CRITICAL vulnerabilties",
+                "63406": "Temporarily ignoring to patch CRITICAL vulnerabilties",
+                "64227": "Temporarily ignoring to patch CRITICAL vulnerabilties"
             }
         },
         "inference": {
