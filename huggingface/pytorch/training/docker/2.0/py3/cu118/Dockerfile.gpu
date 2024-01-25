@@ -34,8 +34,14 @@ RUN pip install --no-cache-dir -U \
 	certifi \ 
 	tornado \ 
 	fonttools \
-	"pyYAML>=5.4,<5.5" \
+	boto3~=1.34.27 \
+	pyOpenSSL~=24.0.0 \
 	"cryptography>=41.0.6"
+
+# install PyYAML<5.5,>=5.4 to avoid conflict with latest awscli
+# Use --no-build-isolation to force pyyaml 6.0 to be installed using Cython<3 to avoid installation errors
+RUN pip install --no-cache-dir "cython<3.0.0" \
+&& pip install --no-build-isolation "pyyaml~=6.0"  
 
 RUN apt-get update \
  # TODO: Remove upgrade statements once packages are updated in base image
