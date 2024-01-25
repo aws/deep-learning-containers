@@ -204,7 +204,7 @@
       "title": "CVE-2023-5178 - linux"
     },
     {
-      "description": " An out-of-bounds read vulnerability was found in smbCalcSize in fs/smb/client/netmisc.c in the Linux Kernel. This issue could allow a local attacker to crash the system or leak internal kernel information.",
+      "description": "\n It was discovered that the CIFS network file system implementation in\n the Linux kernel did not properly validate the server frame size in\n certain situation, leading to an out-of-bounds read vulnerability. An\n attacker could use this to construct a malicious CIFS image that, when\n operated on, could cause a denial of service (system crash) or possibly\n expose sensitive information.",
       "vulnerability_id": "CVE-2023-6606",
       "name": "CVE-2023-6606",
       "package_name": "linux",
