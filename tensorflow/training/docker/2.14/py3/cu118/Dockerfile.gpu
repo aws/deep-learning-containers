@@ -97,6 +97,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends --allow-unauthe
    libnccl2=2.16.5-1+cuda11.8 \
    libnccl-dev=2.16.5-1+cuda11.8 \
  && rm -rf /var/lib/apt/lists/* \
+ && apt-get clean \
  && mkdir -p /var/run/sshd
 
 
@@ -196,7 +197,10 @@ RUN ${PIP} --no-cache-dir install --upgrade \
 RUN ln -s $(which ${PYTHON}) /usr/local/bin/python \
    && ln -s $(which ${PIP}) /usr/bin/pip
 
-RUN apt-get update && apt-get -y install protobuf-compiler
+RUN apt-get update \
+ && apt-get -y install protobuf-compiler \
+ && rm -rf /var/lib/apt/lists/* \
+ && apt-get clean
 
 RUN ${PIP} install --no-cache-dir -U \
    pybind11 \
@@ -215,19 +219,24 @@ RUN ${PIP} install --no-cache-dir -U \
    "protobuf<4"
 
 # Install AWS OFI NCCL plug-in
-RUN apt-get update && apt-get install -y autoconf
+RUN apt-get update && apt-get install -y \
+    autoconf \
+    libhwloc-dev \
+ && rm -rf /var/lib/apt/lists/* \
+ && apt-get clean
+
 RUN mkdir /tmp/efa-ofi-nccl \
-  && cd /tmp/efa-ofi-nccl \
-  && git clone https://github.com/aws/aws-ofi-nccl.git -b v$BRANCH_OFI \
-  && cd aws-ofi-nccl \
-  && ./autogen.sh \
-  && ./configure --with-libfabric=/opt/amazon/efa \
-  --with-mpi=/opt/amazon/openmpi \
-  --with-cuda=/usr/local/cuda \
-  --with-nccl=/usr/local --prefix=/usr/local \
-  && make -j $(nproc) \
-  && make install \
-  && rm -rf /tmp/efa-ofi-nccl
+ && cd /tmp/efa-ofi-nccl \
+ && git clone https://github.com/aws/aws-ofi-nccl.git -b v$BRANCH_OFI \
+ && cd aws-ofi-nccl \
+ && ./autogen.sh \
+ && ./configure --with-libfabric=/opt/amazon/efa \
+    --with-mpi=/opt/amazon/openmpi \
+    --with-cuda=/usr/local/cuda \
+    --with-nccl=/usr/local --prefix=/usr/local \
+ && make -j $(nproc) \
+ && make install \
+ && rm -rf /tmp/efa-ofi-nccl
 
 # Allow OpenSSH to talk to containers without asking for confirmation
 RUN cat /etc/ssh/ssh_config | grep -v StrictHostKeyChecking > /etc/ssh/ssh_config.new \
