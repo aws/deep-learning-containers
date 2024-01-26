@@ -20,7 +20,6 @@ from test_utils import (
     destroy_ssh_keypair,
     generate_ssh_keypair,
     get_framework_and_version_from_tag,
-    get_image_type_from_tag,
     get_job_type_from_image,
     is_pr_context,
     SAGEMAKER_EXECUTION_REGIONS,
@@ -63,12 +62,7 @@ def assign_sagemaker_remote_job_instance_type(image):
     elif "inference-neuron" in image:
         return "ml.inf1.xlarge"
     elif "gpu" in image:
-        framework, _ = get_framework_and_version_from_tag(image)
-        image_type = get_image_type_from_tag(image)
-        if framework in ["tensorflow", "pytorch"] and image_type == "inference":
-            return "ml.g5.8xlarge"
-        else:
-            return "ml.p3.8xlarge"
+        return "ml.p3.8xlarge"
     elif "tensorflow" in image:
         return "ml.c4.4xlarge"
     else:
