@@ -84,6 +84,7 @@ NO_P4_REGIONS = [
 G5_AVAILABLE_REGIONS = [
     "ca-central-1",
     "us-west-2",
+    "us-east-1",
     "us-east-2",
     "eu-west-1",
 ]
