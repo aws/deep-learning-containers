@@ -108,6 +108,7 @@ G5_AVAILABLE_REGIONS = [
     "eu-west-1",
 ]
 
+
 def pytest_addoption(parser):
     parser.addoption("--build-image", "-D", action="store_true")
     parser.addoption("--build-base-image", "-B", action="store_true")

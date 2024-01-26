@@ -89,6 +89,7 @@ G5_AVAILABLE_REGIONS = [
     "eu-west-1",
 ]
 
+
 def pytest_addoption(parser):
     parser.addoption("--region", default="us-west-2")
     parser.addoption("--registry")
