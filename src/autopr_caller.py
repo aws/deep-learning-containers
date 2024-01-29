@@ -121,6 +121,7 @@ def get_message_body_to_be_sent_to_autopr_queue(
     pr_title,
     repo_owner="dummyUser812",
     repo_name="deep-learning-containers",
+    base_owner=None,
 ):
     message_body = {
         "repo_owner": repo_owner,
@@ -130,6 +131,8 @@ def get_message_body_to_be_sent_to_autopr_queue(
         "pr_body": pr_body,
         "pr_title": pr_title,
     }
+    if base_owner:
+        message_body["base_owner"] = base_owner
     return message_body
 
 
@@ -187,14 +190,15 @@ def main():
     branch_name_prefix = generate_branch_name_prefix(common_image_specs)
     pr_title = get_pr_title(common_image_specs)
     pr_body = get_pr_body()
-    ## TODO: Change repo-owner
+
     message_body_to_be_sent_to_autopr_queue = get_message_body_to_be_sent_to_autopr_queue(
         branch_name_prefix=branch_name_prefix,
         edited_files=edited_files_data,
         pr_body=pr_body,
         pr_title=pr_title,
-        repo_owner="dummyUser812",
+        repo_owner="aws-dlinfra-bot",
         repo_name="deep-learning-containers",
+        base_owner="aws",
     )
     LOGGER.info(f"Common Image Specs: {common_image_specs}")
     LOGGER.info(

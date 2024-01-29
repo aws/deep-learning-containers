@@ -15,6 +15,12 @@ LOGGER.setLevel(logging.INFO)
 from test import test_utils
 
 
+class ImageCannotBeTransferredException(Exception):
+    """Exception for cases when image cannot be transferred."""
+
+    pass
+
+
 def get_repository_uri(image_uri):
     """
     Returns the repository URI in the format <ACCOUNT_ID>.dkr.ecr.<REGION>.amazonaws.com/<REPOSITORY_NAME>
@@ -250,7 +256,9 @@ def main():
             )
             LOGGER.info(f"Transferred image {autopatch_image}")
         else:
-            LOGGER.info(f"Image {autopatch_image} cannot be transferred.")
+            raise ImageCannotBeTransferredException(
+                f"Image {autopatch_image} could not be transferred."
+            )
 
 
 if __name__ == "__main__":
