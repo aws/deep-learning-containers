@@ -359,8 +359,8 @@ ARG NCCL_ASYNC_ERROR_HANDLING
 ARG SMP_URL
 
 # Selectively enable PyTorch Verbose Logging
-# ENV PYTORCH_API_USAGE_STDERR=1
-# ENV TORCH_LOGS=+dynamo,+aot,+inductor
+ENV PYTORCH_API_USAGE_STDERR=1
+ENV TORCH_LOGS=+dynamo,+aot,+inductor
 
 WORKDIR /
 
