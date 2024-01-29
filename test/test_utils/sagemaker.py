@@ -62,7 +62,7 @@ def assign_sagemaker_remote_job_instance_type(image):
     elif "inference-neuron" in image:
         return "ml.inf1.xlarge"
     elif all(word in image for word in ["huggingface-pytorch", "training", "gpu"]):
-        return "g5.8xlarge"
+        return "ml.g5.8xlarge"
     elif "gpu" in image:
         return "ml.p3.8xlarge"
     elif "tensorflow" in image:
