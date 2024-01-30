@@ -209,7 +209,6 @@ class TestReportGenerator:
         else:
             return markers[0].args[0]
 
-
     @staticmethod
     def generate_sm_venvs(venv_path):
         ctx.run(f"virtualenv {venv_path}")
@@ -217,7 +216,6 @@ class TestReportGenerator:
         with ctx.cd(base_path):
             with ctx.prefix(f"source {os.path.join(venv, 'bin', 'activate')}"):
                 ctx.run("pip install -r requirements.txt", warn=True)
-
 
     def generate_sagemaker_reports(self):
         """
@@ -237,13 +235,13 @@ class TestReportGenerator:
         # install venvs in parallel
         with futures.ThreadPoolExecutor() as executor:
             executor.map(self.generate_sm_venvs, venv_paths)
-        
+
         for venv in venv_paths:
             pytest_framework_path = os.path.dirname(venv)
             with ctx.cd(pytest_framework_path):
                 with ctx.prefix(f"source {os.path.join(venv, 'bin', 'activate')}"):
                     # TF inference separates remote/local conftests, and must be handled differently
-                    if framework == "tensorflow" and job_type == "inference":
+                    if "tensorflow" in venv and "inference" in venv:
                         with ctx.cd(os.path.join(pytest_framework_path, "test", "integration")):
                             # Handle local tests
                             ctx.run(
@@ -254,7 +252,6 @@ class TestReportGenerator:
                             ctx.run(f"{self.COVERAGE_DOC_COMMAND} sagemaker/", hide=True)
                     else:
                         ctx.run(f"{self.COVERAGE_DOC_COMMAND} integration/", hide=True)
-
 
     def generate_coverage_doc(self, framework=None, job_type=None):
         """
