@@ -30,7 +30,10 @@ from sagemaker.pytorch import PyTorch
 from . import get_efa_test_instance_type
 
 from .utils import get_ecr_registry, NightlyFeatureLabel, is_nightly_context
-from .integration import get_framework_and_version_from_tag, get_cuda_version_from_tag
+from .integration import (
+    get_framework_and_version_from_tag,
+    get_cuda_version_from_tag,
+)
 from .utils.image_utils import build_base_image, are_fixture_labels_enabled
 
 from packaging.version import Version
@@ -112,6 +115,11 @@ NO_P4_REGIONS = [
     "eu-south-1",
     "af-south-1",
     "il-central-1",
+]
+
+P5_AVAIL_REGIONS = [
+    "us-east-1",
+    "us-west-2",
 ]
 
 
@@ -202,6 +210,7 @@ NIGHTLY_FIXTURES = {
     "feature_smmp_present": {NightlyFeatureLabel.AWS_SMMP_INSTALLED.value},
     "feature_aws_framework_present": {NightlyFeatureLabel.AWS_FRAMEWORK_INSTALLED.value},
     "feature_s3_plugin_present": {NightlyFeatureLabel.AWS_S3_PLUGIN_INSTALLED.value},
+    "feature_smart_sifting_present": {NightlyFeatureLabel.AWS_SMART_SIFTING_INSTALLED.value},
 }
 
 
@@ -234,6 +243,11 @@ def feature_aws_framework_present():
 
 @pytest.fixture(scope="session")
 def feature_s3_plugin_present():
+    pass
+
+
+@pytest.fixture(scope="session")
+def feature_smart_sifting_present():
     pass
 
 
@@ -412,6 +426,13 @@ def skip_gpu_instance_restricted_regions(region, instance_type):
 
 
 @pytest.fixture(autouse=True)
+def skip_gpu_instance_restricted_regions_efa(region, efa_instance_type):
+    # NOTE list for P5 instances is *available* regions
+    if region not in P5_AVAIL_REGIONS and efa_instance_type.startswith("ml.p5"):
+        pytest.skip("Skipping GPU test in region {}".format(region))
+
+
+@pytest.fixture(autouse=True)
 def skip_neuron_trn1_test_in_region(request, region):
     if request.node.get_closest_marker("skip_neuron_trn1_test_in_region"):
         if region not in NEURON_TRN1_REGIONS:
@@ -465,14 +486,26 @@ def skip_s3plugin_test(request):
 
 
 @pytest.fixture(autouse=True)
-def skip_pt20_cuda121_tests(request, ecr_image):
-    if request.node.get_closest_marker("skip_pt20_cuda121_tests"):
+def skip_pt20_cuda121_tests(
+    request,
+    processor,
+    ecr_image,
+):
+    if request.node.get_closest_marker("skip_pt20_cuda121_tests") and processor == "gpu":
         _, image_framework_version = get_framework_and_version_from_tag(ecr_image)
         image_cuda_version = get_cuda_version_from_tag(ecr_image)
         if Version(image_framework_version) in SpecifierSet("==2.0.1") and Version(
             image_cuda_version.strip("cu")
         ) == Version("121"):
             pytest.skip("PyTorch 2.0 + CUDA12.1 image doesn't support current test")
+
+
+@pytest.fixture(autouse=True)
+def skip_p5_tests(instance_type, processor, ecr_image):
+    if "p5." in instance_type:
+        image_cuda_version = get_cuda_version_from_tag(ecr_image)
+        if processor != "gpu" or Version(image_cuda_version.strip("cu")) < Version("120"):
+            pytest.skip("Images using less than CUDA 12.0 doesn't support P5 EC2 instance.")
 
 
 def _get_remote_override_flags():

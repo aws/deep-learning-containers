@@ -19,7 +19,11 @@ import sagemaker.huggingface
 from sagemaker.huggingface import HuggingFace
 
 from ..... import invoke_sm_helper_function
-from test.test_utils import get_framework_and_version_from_tag, get_cuda_version_from_tag
+from test.test_utils import (
+    get_framework_and_version_from_tag,
+    get_cuda_version_from_tag,
+    get_transformers_version_from_image_uri,
+)
 from packaging.version import Version
 from packaging.specifiers import SpecifierSet
 from ...integration import DEFAULT_TIMEOUT
@@ -32,16 +36,17 @@ distribution = {"smdistributed": {"dataparallel": {"enabled": True}}}
 
 # hyperparameters, which are passed into the training job
 hyperparameters = {
-    "model_name_or_path": "bert-large-uncased-whole-word-masking",
+    "model_name_or_path": "hf-internal-testing/tiny-random-BertModel",
     "dataset_name": "squad",
     "do_train": True,
     "do_eval": True,
     "fp16": True,
-    "per_device_train_batch_size": 4,
-    "per_device_eval_batch_size": 4,
+    "per_device_train_batch_size": 1,
+    "per_device_eval_batch_size": 1,
     "num_train_epochs": 1,
     "max_seq_length": 384,
     "max_steps": 10,
+    "max_train_samples": 10,
     "pad_to_max_length": True,
     "doc_stride": 128,
     "output_dir": "/opt/ml/model",
@@ -69,21 +74,13 @@ def can_run_smdataparallel(ecr_image):
     ) >= Version("110")
 
 
-def get_transformers_version(ecr_image):
-    transformers_version_search = re.search(r"transformers(\d+(\.\d+){1,2})", ecr_image)
-    if transformers_version_search:
-        transformers_version = transformers_version_search.group(1)
-        return transformers_version
-    else:
-        raise LookupError("HF transformers version not found in image URI")
-
-
 @pytest.mark.integration("smdataparallel")
 @pytest.mark.model("hf_qa_smdp")
 @pytest.mark.processor("gpu")
 @pytest.mark.skip_cpu
 @pytest.mark.skip_py2_containers
 @pytest.mark.skip_trcomp_containers
+@pytest.mark.team("sagemaker-1p-algorithms")
 def test_smdp_question_answering(ecr_image, sagemaker_regions, py_version):
     """
     Tests SM Distributed DataParallel single-node via script mode
@@ -100,6 +97,7 @@ def test_smdp_question_answering(ecr_image, sagemaker_regions, py_version):
 @pytest.mark.skip_cpu
 @pytest.mark.skip_py2_containers
 @pytest.mark.skip_trcomp_containers
+@pytest.mark.team("sagemaker-1p-algorithms")
 def test_smdp_question_answering_multinode(ecr_image, sagemaker_regions, py_version):
     """
     Tests SM Distributed DataParallel single-node via script mode
@@ -112,7 +110,7 @@ def test_smdp_question_answering_multinode(ecr_image, sagemaker_regions, py_vers
 def _test_smdp_question_answering_function(
     ecr_image, sagemaker_session, py_version, instances_quantity
 ):
-    transformers_version = get_transformers_version(ecr_image)
+    transformers_version = get_transformers_version_from_image_uri(ecr_image)
     git_config = {
         "repo": "https://github.com/huggingface/transformers.git",
         "branch": "v" + transformers_version,

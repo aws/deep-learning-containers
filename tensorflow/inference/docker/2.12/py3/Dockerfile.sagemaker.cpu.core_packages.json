@@ -1,0 +1,21 @@
+{
+   "protobuf":{
+      "version_specifier":">=3.19.5,<3.21"
+   },
+   "cython":{
+      "version_specifier":"<3.0"
+   },
+   "awscli":{
+      "version_specifier":"<2"
+   },
+   "tensorflow-serving-api":{
+      "version_specifier":"==2.12.1",
+      "skip":"True"
+   },
+   "falcon":{
+      "version_specifier":"==3.1.0"
+   },
+   "gunicorn":{
+      "version_specifier":"==20.1.0"
+   }
+}

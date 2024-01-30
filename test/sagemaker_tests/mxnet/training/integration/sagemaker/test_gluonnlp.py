@@ -27,6 +27,7 @@ NLP_SCRIPT_PATH = os.path.join(NLP_DATA_PATH, "word_embedding.py")
 
 @pytest.mark.integration("gluonnlp")
 @pytest.mark.model("word_embeddings")
+@pytest.mark.team("frameworks")
 @pytest.mark.skip_py2_containers
 def test_nlp_training(ecr_image, sagemaker_regions, instance_type, framework_version):
     invoke_sm_helper_function(

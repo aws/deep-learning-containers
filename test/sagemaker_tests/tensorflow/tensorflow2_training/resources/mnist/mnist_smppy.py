@@ -6,7 +6,7 @@ import os
 import numpy as np
 import tensorflow as tf
 
-import smppy
+import smprof
 
 
 def _parse_args():
@@ -48,8 +48,8 @@ model = tf.keras.models.Sequential(
 )
 
 os.makedirs("/opt/ml/output/profiler/framework", exist_ok=True)
-smp = smppy.SMProfiler.instance()
-config = smppy.Config()
+smp = smprof.SMProfiler.instance()
+config = smprof.Config()
 config.profiler = {
     "EnableCuda": "1",
 }
@@ -60,9 +60,9 @@ smp.start_profiling()
 model.compile(optimizer="adam", loss="sparse_categorical_crossentropy", metrics=["accuracy"])
 x_train, y_train = _load_training_data(args.train)
 x_test, y_test = _load_testing_data(args.train)
-with smppy.annotate("Training"):
+with smprof.annotate("Training"):
     model.fit(x_train, y_train, epochs=args.epochs)
-with smppy.annotate("Evaluation"):
+with smprof.annotate("Evaluation"):
     model.evaluate(x_test, y_test)
 
 smp.stop_profiling()

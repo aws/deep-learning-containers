@@ -27,6 +27,7 @@ from ...integration.utils import unique_name_from_base
 @pytest.mark.multinode(2)
 @pytest.mark.integration("horovod")
 @pytest.mark.model("mnist")
+@pytest.mark.team("frameworks")
 def test_distributed_training_horovod(
     ecr_image, sagemaker_regions, instance_type, tmpdir, framework_version
 ):

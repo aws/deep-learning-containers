@@ -26,9 +26,16 @@ import boto3
 from botocore.exceptions import ClientError
 from sagemaker import LocalSession, Session
 from sagemaker.pytorch import PyTorch
+from packaging.version import Version
+from packaging.specifiers import SpecifierSet
 
 from .utils import image_utils, get_ecr_registry
-
+from .integration import (
+    get_framework_and_version_from_tag,
+    get_cuda_version_from_tag,
+    get_processor_from_image_uri,
+    get_transformers_version_from_image_uri,
+)
 
 logger = logging.getLogger(__name__)
 logging.getLogger("boto").setLevel(logging.INFO)
@@ -310,10 +317,38 @@ def skip_trcomp_containers(request, ecr_image):
 
 
 @pytest.fixture(autouse=True)
+def skip_p5_tests(request, ecr_image, instance_type):
+    if "p5." in instance_type:
+        framework, image_framework_version = get_framework_and_version_from_tag(ecr_image)
+
+        image_processor = get_processor_from_image_uri(ecr_image)
+        image_cuda_version = get_cuda_version_from_tag(ecr_image)
+        if image_processor != "gpu" or Version(image_cuda_version.strip("cu")) < Version("120"):
+            pytest.skip("Images using less than CUDA 12.0 doesn't support P5 EC2 instance.")
+
+
+@pytest.fixture(autouse=True)
 def skip_huggingface_containers(request, ecr_image):
     if request.node.get_closest_marker("skip_huggingface_containers"):
         if "trcomp" not in ecr_image:
             pytest.skip("Skipping huggingface container with tag {}".format(ecr_image))
+
+
+@pytest.fixture(autouse=True)
+def skip_unless_tlr_supported(request, ecr_image):
+    if request.node.get_closest_marker("skip_unless_tlr_supported"):
+        framework, framework_version = get_framework_and_version_from_tag(ecr_image)
+        transformers_version = get_transformers_version_from_image_uri(ecr_image)
+        if not (
+            framework == "huggingface-pytorch"
+            and Version(framework_version) in SpecifierSet(">=2.1.0")
+            and Version(transformers_version) in SpecifierSet(">=4.36.0")
+        ):
+            pytest.skip(
+                "Skipping Transfer Reinforcement Learning (TLR) test for tag {}. TLR support was added with Transformers==4.36.0 and PyTorch==2.1.0.".format(
+                    ecr_image
+                )
+            )
 
 
 def _get_remote_override_flags():

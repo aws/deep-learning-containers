@@ -17,6 +17,7 @@ from invoke.context import Context
 from botocore.exceptions import ClientError
 
 from src.buildspec import Buildspec
+import src.utils as src_utils
 from test.test_utils import (
     LOGGER,
     CONTAINER_TESTS_PREFIX,
@@ -43,7 +44,50 @@ from test.test_utils import (
     UL20_CPU_ARM64_US_WEST_2,
     UBUNTU_18_HPU_DLAMI_US_WEST_2,
     NEURON_UBUNTU_18_BASE_DLAMI_US_WEST_2,
+    get_installed_python_packages_with_version,
+    login_to_ecr_registry,
+    get_account_id_from_image_uri,
+    get_region_from_image_uri,
+    DockerImagePullException,
+    get_installed_python_packages_with_version,
+    get_installed_python_packages_using_image_uri,
+    get_image_spec_from_buildspec,
 )
+
+
+def derive_regex_for_skipping_tensorflow_inference_tests(
+    is_eia_enabled=False, is_graviton_enabled=False
+):
+    """
+    Creates a regex pattern that would be used by the tests to check if the repo names match the pattern or not and thereafter skip the
+    tests if required. This method takes a base regex "(pr-|beta-|autopatch-|nightly-)?tensorflow-inference" and uses the input arguments
+    to derive additional pattern that needs to be appended to base regex.
+
+    :param is_eia_enabled: boolean, appends `-eia` to the base regex if set to True
+    :param is_graviton_enabled: boolean, appends `-graviton` to the base regex if set to True
+    :return: str, derived regex
+    """
+    base_regex_string = "(pr-|beta-|autopatch-|nightly-)?tensorflow-inference"
+    overall_regex_string = base_regex_string
+    regex_prefix_string_derived_via_method_arguments = ""
+    if is_eia_enabled:
+        regex_prefix_string_derived_via_method_arguments = (
+            f"{regex_prefix_string_derived_via_method_arguments}|-eia"
+            if regex_prefix_string_derived_via_method_arguments
+            else "-eia"
+        )
+    if is_graviton_enabled:
+        regex_prefix_string_derived_via_method_arguments = (
+            f"{regex_prefix_string_derived_via_method_arguments}|-graviton"
+            if regex_prefix_string_derived_via_method_arguments
+            else "-graviton"
+        )
+
+    if regex_prefix_string_derived_via_method_arguments:
+        overall_regex_string = (
+            f"{base_regex_string}({regex_prefix_string_derived_via_method_arguments})?"
+        )
+    return rf"{overall_regex_string}"
 
 
 @pytest.mark.usefixtures("sagemaker")
@@ -179,9 +223,9 @@ def test_tf_serving_version_cpu(tensorflow_inference):
 
     image_repo_name, _ = get_repository_and_tag_from_image_uri(image)
 
-    if re.fullmatch(r"(pr-|beta-|nightly-)?tensorflow-inference", image_repo_name) and Version(
-        tag_framework_version
-    ) == Version("2.6.3"):
+    if re.fullmatch(
+        derive_regex_for_skipping_tensorflow_inference_tests(), image_repo_name
+    ) and Version(tag_framework_version) == Version("2.6.3"):
         pytest.skip(
             "Skipping this test for TF 2.6.3 inference as the v2.6.3 version is already on production"
         )
@@ -278,7 +322,12 @@ def test_framework_version_cpu(image):
             "Neuron images will have their framework version tested in test_framework_and_neuron_sdk_version"
         )
     image_repo_name, _ = get_repository_and_tag_from_image_uri(image)
-    if re.fullmatch(r"(pr-|beta-|nightly-)?tensorflow-inference(-eia|-graviton)?", image_repo_name):
+    if re.fullmatch(
+        derive_regex_for_skipping_tensorflow_inference_tests(
+            is_eia_enabled=True, is_graviton_enabled=True
+        ),
+        image_repo_name,
+    ):
         pytest.skip(
             "Non-gpu tensorflow-inference images will be tested in test_tf_serving_version_cpu."
         )
@@ -384,7 +433,13 @@ def test_framework_and_neuron_sdk_version(neuron):
 
     assert neuron_sdk_version is not None, "missing Neuron SDK version"
 
-    release_manifest = get_neuron_release_manifest(neuron_sdk_version)
+    release_manifest = None
+    if tested_framework == "tensorflow" and tag_framework_version == "1.15.5":
+        release_manifest = get_neuron_release_manifest(
+            "2.12.2"
+        )  # last release where tf 1.15 has been listed
+    else:
+        release_manifest = get_neuron_release_manifest(neuron_sdk_version)
 
     # Framework name may include huggingface
     if tested_framework.startswith("huggingface_"):
@@ -457,16 +512,21 @@ def test_framework_and_cuda_version_gpu(gpu, ec2_connection):
 
     image_repo_name, _ = get_repository_and_tag_from_image_uri(image)
 
-    if re.fullmatch(r"(pr-|beta-|nightly-)?tensorflow-inference", image_repo_name) and Version(
-        tag_framework_version
-    ) == Version("2.6.3"):
+    if re.fullmatch(
+        derive_regex_for_skipping_tensorflow_inference_tests(), image_repo_name
+    ) and Version(tag_framework_version) == Version("2.6.3"):
         pytest.skip(
             "Skipping this test for TF 2.6.3 inference as the v2.6.3 version is already on production"
         )
 
     # Framework Version Check #
     # For tf inference containers, check TF model server version
-    if re.fullmatch(r"(pr-|beta-|nightly-)?tensorflow-inference(-eia|-graviton)?", image_repo_name):
+    if re.fullmatch(
+        derive_regex_for_skipping_tensorflow_inference_tests(
+            is_eia_enabled=True, is_graviton_enabled=True
+        ),
+        image_repo_name,
+    ):
         cmd = f"tensorflow_model_server --version"
         output = ec2.execute_ec2_training_test(ec2_connection, image, cmd, executable="bash").stdout
         assert re.match(
@@ -980,3 +1040,109 @@ def test_mxnet_training_sm_env_variables(mxnet_training):
         env_vars_to_test=env_vars,
         container_name_prefix=container_name_prefix,
     )
+
+
+@pytest.mark.usefixtures("sagemaker")
+@pytest.mark.model("N/A")
+def test_core_package_version(image):
+    """
+    In this test, we ensure that if a core_packages.json file exists for an image, the packages installed in the image
+    satisfy the version constraints specified in the core_packages.json file.
+    """
+    core_packages_path = src_utils.get_core_packages_path(image)
+    if not os.path.exists(core_packages_path):
+        pytest.skip(f"Core packages file {core_packages_path} does not exist for {image}")
+    LOGGER.info(f"Core packages file {core_packages_path} for {image}")
+
+    with open(core_packages_path, "r") as f:
+        core_packages = json.load(f)
+
+    ctx = Context()
+    container_name = get_container_name("test_core_package_version", image)
+    start_container(container_name, image, ctx)
+    docker_exec_command = f"""docker exec --user root {container_name}"""
+    installed_package_version_dict = get_installed_python_packages_with_version(docker_exec_command)
+
+    violation_data = {}
+
+    for package_name, specs in core_packages.items():
+        if package_name not in installed_package_version_dict:
+            violation_data[
+                package_name
+            ] = f"Package: {package_name} not installed in {installed_package_version_dict}"
+        installed_version = Version(installed_package_version_dict[package_name])
+        if installed_version not in SpecifierSet(specs.get("version_specifier")):
+            violation_data[
+                package_name
+            ] = f"Package: {package_name} not installed in {installed_package_version_dict}"
+
+    stop_and_remove_container(container_name, ctx)
+    assert (
+        not violation_data
+    ), f"Few packages violate the core_package specifications: {violation_data}"
+
+
+@pytest.mark.model("N/A")
+def test_package_version_regression_in_image(image):
+    """
+    This test verifies if the python package versions in the already released image are not being downgraded/deleted in the
+    new released. This test would be skipped for images whose BuildSpec does not have `latest_release_tag` or `release_repository`
+    keys in the buildspec - as these keys are used to extract the released image uri. Additionally, if the image is not already
+    released, this test would be skipped.
+    """
+    dlc_path = os.getcwd().split("/test/")[0]
+    corresponding_image_spec = get_image_spec_from_buildspec(
+        image_uri=image, dlc_folder_path=dlc_path
+    )
+
+    if any(
+        [
+            expected_key not in corresponding_image_spec
+            for expected_key in ["latest_release_tag", "release_repository"]
+        ]
+    ):
+        pytest.skip(f"Image {image} does not have `latest_release_tag` in its buildspec.")
+
+    previous_released_image_uri = f"""{corresponding_image_spec["release_repository"]}:{corresponding_image_spec["latest_release_tag"]}"""
+
+    LOGGER.info(f"Image spec for {image}: {json.dumps(corresponding_image_spec)}")
+    ctx = Context()
+
+    # Pull previous_released_image_uri
+    prod_account_id = get_account_id_from_image_uri(image_uri=previous_released_image_uri)
+    prod_image_region = get_region_from_image_uri(image_uri=previous_released_image_uri)
+    login_to_ecr_registry(context=ctx, account_id=prod_account_id, region=prod_image_region)
+    previous_released_image_uri = f"{previous_released_image_uri}"
+    run_output = ctx.run(f"docker pull {previous_released_image_uri}", warn=True, hide=True)
+    if not run_output.ok:
+        if "requested image not found" in run_output.stderr.lower():
+            pytest.skip(
+                f"Previous image: {previous_released_image_uri} for Image: {image} has not been released yet"
+            )
+        raise DockerImagePullException(
+            f"{run_output.stderr} when pulling {previous_released_image_uri}"
+        )
+
+    # Get the installed python package versions and find any regressions
+    current_image_package_version_dict = get_installed_python_packages_using_image_uri(
+        context=ctx, image_uri=image
+    )
+    released_image_package_version_dict = get_installed_python_packages_using_image_uri(
+        context=ctx, image_uri=previous_released_image_uri
+    )
+    violating_packages = {}
+    for package_name, version_in_released_image in released_image_package_version_dict.items():
+        if package_name not in current_image_package_version_dict:
+            violating_packages[
+                package_name
+            ] = "Not present in the image that is being currently built."
+            continue
+        version_in_current_image = current_image_package_version_dict[package_name]
+        if Version(version_in_released_image) > Version(version_in_current_image):
+            violating_packages[
+                package_name
+            ] = f"Version in already released image: {version_in_released_image} is greater that version in current image: {version_in_current_image}"
+
+    assert (
+        not violating_packages
+    ), f"Package regression observed between already released image: {previous_released_image_uri} and current image: {image}. Violating packages: {json.dumps(violating_packages)}"

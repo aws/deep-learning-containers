@@ -24,6 +24,11 @@ from sagemaker import LocalSession, Session
 from sagemaker.tensorflow import TensorFlow
 
 from ..integration import NO_P2_REGIONS, NO_P3_REGIONS, get_ecr_registry
+from . import (
+    get_framework_and_version_from_tag,
+    get_cuda_version_from_tag,
+    get_processor_from_image_uri,
+)
 
 logger = logging.getLogger(__name__)
 logging.getLogger("boto").setLevel(logging.INFO)
@@ -191,6 +196,17 @@ def skip_huggingface_containers(request, ecr_image):
     if request.node.get_closest_marker("skip_huggingface_containers"):
         if "trcomp" not in ecr_image:
             pytest.skip("Skipping huggingface container with tag {}".format(ecr_image))
+
+
+@pytest.fixture(autouse=True)
+def skip_p5_tests(request, ecr_image, instance_type):
+    if "p5." in instance_type:
+        framework, image_framework_version = get_framework_and_version_from_tag(ecr_image)
+
+        image_processor = get_processor_from_image_uri(img_uri)
+        image_cuda_version = get_cuda_version_from_tag(ecr_image)
+        if image_processor != "gpu" or Version(image_cuda_version.strip("cu")) < Version("120"):
+            pytest.skip("Images using less than CUDA 12.0 image doesn't support P5 EC2 instance.")
 
 
 def _get_remote_override_flags():

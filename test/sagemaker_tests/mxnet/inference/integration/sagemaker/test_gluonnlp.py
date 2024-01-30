@@ -29,6 +29,7 @@ SCRIPT_PATH = os.path.join(GLUONNLP_PATH, "bert.py")
 
 @pytest.mark.integration("gluonnlp")
 @pytest.mark.model("bert_sst")
+@pytest.mark.team("frameworks")
 @pytest.mark.skip_py2_containers
 @pytest.mark.skip_eia_containers
 def test_gluonnlp(

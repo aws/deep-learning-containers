@@ -33,6 +33,7 @@ from ..... import invoke_sm_endpoint_helper_function
 @pytest.mark.model("tiny-distilbert")
 @pytest.mark.processor("neuron")
 @pytest.mark.neuron_test
+@pytest.mark.team("sagemaker-1p-algorithms")
 def test_neuron_hosting(
     sagemaker_session, framework_version, ecr_image, instance_type, sagemaker_regions, py_version
 ):

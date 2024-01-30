@@ -36,11 +36,13 @@ def _predictor(model_dir, image, framework_version, sagemaker_local_session, ins
         predictor_cls=Predictor,
     )
     with local_mode_utils.lock():
+        predictor = None
         try:
             predictor = model.deploy(1, instance_type)
             yield predictor
         finally:
-            predictor.delete_endpoint()
+            if predictor is not None:
+                predictor.delete_endpoint()
 
 
 def _assert_prediction(predictor):
@@ -56,6 +58,7 @@ def _assert_prediction(predictor):
 
 
 @pytest.mark.model("tiny-distilbert")
+@pytest.mark.team("sagemaker-1p-algorithms")
 def test_serve_json(docker_image, framework_version, sagemaker_local_session, instance_type):
     with _predictor(
         model_dir, docker_image, framework_version, sagemaker_local_session, instance_type

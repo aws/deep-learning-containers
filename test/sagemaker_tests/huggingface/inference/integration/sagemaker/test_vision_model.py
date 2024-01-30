@@ -31,6 +31,7 @@ from ..... import invoke_sm_endpoint_helper_function
 @pytest.mark.model("vit")
 @pytest.mark.processor("cpu")
 @pytest.mark.cpu_test
+@pytest.mark.team("sagemaker-1p-algorithms")
 def test_vision_model_cpu(framework_version, ecr_image, instance_type, sagemaker_regions):
     if "pytorch" in ecr_image and Version(framework_version) in SpecifierSet("==1.9.*"):
         pytest.skip("Skipping vision tests for PT1.9")
@@ -51,6 +52,7 @@ def test_vision_model_cpu(framework_version, ecr_image, instance_type, sagemaker
 @pytest.mark.model("vit")
 @pytest.mark.processor("gpu")
 @pytest.mark.gpu_test
+@pytest.mark.team("sagemaker-1p-algorithms")
 def test_vision_model_gpu(framework_version, ecr_image, instance_type, sagemaker_regions):
     if "pytorch" in ecr_image and Version(framework_version) in SpecifierSet("==1.9.*"):
         pytest.skip("Skipping vision tests for PT1.9")

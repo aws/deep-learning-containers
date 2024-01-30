@@ -32,6 +32,7 @@ from ..... import invoke_sm_endpoint_helper_function
 @pytest.mark.model("wav2vec2")
 @pytest.mark.processor("cpu")
 @pytest.mark.cpu_test
+@pytest.mark.team("sagemaker-1p-algorithms")
 def test_speech_model_cpu(framework_version, ecr_image, instance_type, sagemaker_regions):
     framework, _ = get_framework_and_version_from_tag(ecr_image)
     if "pytorch" in framework and Version(framework_version) in SpecifierSet("==1.9.*"):
@@ -55,6 +56,7 @@ def test_speech_model_cpu(framework_version, ecr_image, instance_type, sagemaker
 @pytest.mark.model("wav2vec2")
 @pytest.mark.processor("gpu")
 @pytest.mark.gpu_test
+@pytest.mark.team("sagemaker-1p-algorithms")
 def test_speech_model_gpu(framework_version, ecr_image, instance_type, sagemaker_regions):
     framework, _ = get_framework_and_version_from_tag(ecr_image)
     if "pytorch" in framework and Version(framework_version) in SpecifierSet("==1.9.*"):

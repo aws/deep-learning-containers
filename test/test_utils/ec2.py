@@ -26,6 +26,7 @@ from tenacity import (
 
 from test.test_utils import (
     get_synapseai_version_from_tag,
+    is_deep_canary_context,
     is_pr_context,
     is_mainline_context,
     are_heavy_instance_ec2_tests_enabled,
@@ -154,7 +155,7 @@ def get_ec2_instance_type(
     :return: one item list of instance type -- this is used to parametrize tests, and parameter is
     required to be a list.
     """
-    if is_pr_context():
+    if is_pr_context() or is_deep_canary_context():
         # This condition filters out instance types that use resources with low-availability, or
         # use very expensive instance types.
         if not are_heavy_instance_ec2_tests_enabled() and default in HEAVY_INSTANCE_LIST:

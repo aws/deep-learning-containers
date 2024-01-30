@@ -25,6 +25,7 @@ from ...integration.sagemaker.timeout import timeout
 @pytest.mark.model("hf-diffusers")
 @pytest.mark.gpu_test
 @pytest.mark.skip_py2_containers
+@pytest.mark.team("sagemaker-1p-algorithms")
 def test_diffusers(ecr_image, sagemaker_regions, py_version, instance_type):
     invoke_sm_helper_function(
         ecr_image, sagemaker_regions, _test_diffusers_model, py_version, instance_type, 1

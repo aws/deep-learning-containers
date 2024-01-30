@@ -24,15 +24,16 @@ import sagemaker
 
 # hyperparameters, which are passed into the training job
 hyperparameters = {
-    "model_name_or_path": "roberta-large",
+    "model_name_or_path": "hf-internal-testing/tiny-random-RobertaModel",
     "task_name": "mnli",
-    "per_device_train_batch_size": 8,
-    "per_device_eval_batch_size": 4,
+    "per_device_train_batch_size": 1,
+    "per_device_eval_batch_size": 1,
     "do_train": True,
     "do_eval": True,
     "do_predict": True,
     "output_dir": "/opt/ml/model",
-    "max_steps": 500,
+    "max_steps": 10,
+    "max_train_samples": 30,
 }
 
 # configuration for running training on smdistributed Model Parallel
@@ -55,7 +56,7 @@ smp_options = {
 distribution = {"smdistributed": {"modelparallel": smp_options}, "mpi": mpi_options}
 
 
-def get_transformers_version(ecr_image):
+def get_transformers_version_from_image_uri(ecr_image):
     transformers_version_search = re.search(r"transformers(\d+(\.\d+){1,2})", ecr_image)
     if transformers_version_search:
         transformers_version = transformers_version_search.group(1)
@@ -70,6 +71,7 @@ def get_transformers_version(ecr_image):
 @pytest.mark.skip_cpu
 @pytest.mark.skip_py2_containers
 @pytest.mark.skip_trcomp_containers
+@pytest.mark.team("sagemaker-1p-algorithms")
 def test_smmp_gpu(
     ecr_image,
     sagemaker_regions,
@@ -87,6 +89,7 @@ def test_smmp_gpu(
 @pytest.mark.skip_py2_containers
 @pytest.mark.multinode(2)
 @pytest.mark.skip_trcomp_containers
+@pytest.mark.team("sagemaker-1p-algorithms")
 def test_smmp_gpu_multinode(
     ecr_image,
     sagemaker_regions,
@@ -102,7 +105,7 @@ def _test_smmp_gpu_function(ecr_image, sagemaker_session, py_version, instances_
     instance_count = instances_quantity
     volume_size = 400
 
-    transformers_version = get_transformers_version(ecr_image)
+    transformers_version = get_transformers_version_from_image_uri(ecr_image)
     git_config = {
         "repo": "https://github.com/huggingface/transformers.git",
         "branch": "v" + transformers_version,
