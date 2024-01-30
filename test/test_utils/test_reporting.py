@@ -212,9 +212,9 @@ class TestReportGenerator:
     @staticmethod
     def generate_sm_venvs(venv_path):
         ctx.run(f"virtualenv {venv_path}")
-        base_path = os.path.dirname(venv)
+        base_path = os.path.dirname(venv_path)
         with ctx.cd(base_path):
-            with ctx.prefix(f"source {os.path.join(venv, 'bin', 'activate')}"):
+            with ctx.prefix(f"source {os.path.join(venv_path, 'bin', 'activate')}"):
                 ctx.run("pip install -r requirements.txt", warn=True)
 
     def generate_sagemaker_reports(self):
