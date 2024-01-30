@@ -1,16 +1,2 @@
 [tool.black]
 line-length = 100
-
-[tool.pytest.ini_options]
-markers = [
-    "gpu_test",
-    "integration",
-    "model",
-    "neuronx_test",
-    "processor",
-    "skip_cpu",
-    "skip_py2_containers",
-    "skip_trcomp_containers",
-    "skip_unless_tlr_supported",
-    "team"
-]
