@@ -12,7 +12,11 @@
         "version": "1.9.2",
         "release": null
       },
-      "remediation": { "recommendation": { "text": "None Provided" } },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
       "cvss_v3_score": 7.5,
       "cvss_v30_score": 0.0,
       "cvss_v31_score": 7.5,
@@ -27,29 +31,121 @@
   ],
   "torch": [
     {
-      "description": "## Overview\n[torch](https://pypi.org/project/torch) is a Tensors and Dynamic neural networks in Python with strong GPU acceleration\n\nAffected versions of this package are vulnerable to Arbitrary Code Injection through `filter-test-configs` in the `pull_request_target-triggered` workflow, allowing an attacker to use a malicious branch name to gain command execution and potentially leak secrets.\r\n\r\n**Mitigation:**\r\n\r\nUse an intermediate environment variable for potentially attacker-controlled values such as `github.event.workflow_run.head_branch`:\r\n\r\n```\r\n- name: Select all requested test configurations\r\n  shell: bash\r\n  env:\r\n    GITHUB_TOKEN: ${{ inputs.github-token }}\r\n    JOB_NAME: ${{ steps.get-job-name.outputs.job-name }}\r\n    HEAD_BRANCH: ${{ github.event.workflow_run.head_branch }}\r\n  id: filter\r\n  run: |\r\n    ...\r\n    python3 \"${GITHUB_ACTION_PATH}/../../scripts/filter_test_configs.py\" \\\r\n      ...\r\n      --branch \"$HEAD_BRANCH\"\r\n```\n## Remediation\nThere is no fixed version for `torch`.\n## References\n-", 
-      "vulnerability_id": "SNYK-PYTHON-TORCH-5876728", 
-      "name": "SNYK-PYTHON-TORCH-5876728", 
-      "package_name": "torch", 
+      "description": "## Overview\n[torch](https://pypi.org/project/torch) is a Tensors and Dynamic neural networks in Python with strong GPU acceleration\n\nAffected versions of this package are vulnerable to Arbitrary Code Injection through `filter-test-configs` in the `pull_request_target-triggered` workflow, allowing an attacker to use a malicious branch name to gain command execution and potentially leak secrets.\r\n\r\n**Mitigation:**\r\n\r\nUse an intermediate environment variable for potentially attacker-controlled values such as `github.event.workflow_run.head_branch`:\r\n\r\n```\r\n- name: Select all requested test configurations\r\n  shell: bash\r\n  env:\r\n    GITHUB_TOKEN: ${{ inputs.github-token }}\r\n    JOB_NAME: ${{ steps.get-job-name.outputs.job-name }}\r\n    HEAD_BRANCH: ${{ github.event.workflow_run.head_branch }}\r\n  id: filter\r\n  run: |\r\n    ...\r\n    python3 \"${GITHUB_ACTION_PATH}/../../scripts/filter_test_configs.py\" \\\r\n      ...\r\n      --branch \"$HEAD_BRANCH\"\r\n```\n## Remediation\nThere is no fixed version for `torch`.\n## References\n-",
+      "vulnerability_id": "SNYK-PYTHON-TORCH-5876728",
+      "name": "SNYK-PYTHON-TORCH-5876728",
+      "package_name": "torch",
       "package_details": {
-        "file_path": "opt/conda/lib/python3.10/site-packages/torch-2.0.1-py3.10.egg-info/PKG-INFO", 
-        "name": "torch", 
-        "package_manager": "PYTHONPKG", 
-        "version": "2.0.1", 
+        "file_path": "opt/conda/lib/python3.10/site-packages/torch-2.0.1-py3.10.egg-info/PKG-INFO",
+        "name": "torch",
+        "package_manager": "PYTHONPKG",
+        "version": "2.0.1",
         "release": null
-      }, 
-      "remediation": {"recommendation": {"text": "None Provided"}},
-      "cvss_v3_score": 9.8, 
-      "cvss_v30_score": 0.0, 
-      "cvss_v31_score": 9.8, 
-      "cvss_v2_score": 0.0, 
-      "cvss_v3_severity": 
-      "CRITICAL", 
-      "source_url": "https://security.snyk.io/vuln/SNYK-PYTHON-TORCH-5876728", 
-      "source": "SNYK", 
-      "severity": "CRITICAL", 
-      "status": "ACTIVE", 
+      },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
+      "cvss_v3_score": 9.8,
+      "cvss_v30_score": 0.0,
+      "cvss_v31_score": 9.8,
+      "cvss_v2_score": 0.0,
+      "cvss_v3_severity": "CRITICAL",
+      "source_url": "https://security.snyk.io/vuln/SNYK-PYTHON-TORCH-5876728",
+      "source": "SNYK",
+      "severity": "CRITICAL",
+      "status": "ACTIVE",
       "title": "IN1-PYTHON-TORCH-5876728 - torch"
+    }
+  ],
+  "linux": [
+    {
+      "description": " An out-of-bounds read vulnerability was found in smbCalcSize in fs/smb/client/netmisc.c in the Linux Kernel. This issue could allow a local attacker to crash the system or leak internal kernel information.",
+      "vulnerability_id": "CVE-2023-6606",
+      "name": "CVE-2023-6606",
+      "package_name": "linux",
+      "package_details": {
+        "file_path": null,
+        "name": "linux",
+        "package_manager": "OS",
+        "version": "5.4.0",
+        "release": "169.187"
+      },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
+      "cvss_v3_score": 7.1,
+      "cvss_v30_score": 0,
+      "cvss_v31_score": 7.1,
+      "cvss_v2_score": 0,
+      "cvss_v3_severity": "HIGH",
+      "source_url": "https://people.canonical.com/~ubuntu-security/cve/2023/CVE-2023-6606.html",
+      "source": "UBUNTU_CVE",
+      "severity": "HIGH",
+      "status": "ACTIVE",
+      "title": "CVE-2023-6606 - linux",
+      "reason_to_ignore": "N/A"
+    },
+    {
+      "description": "\n It was discovered that the CIFS network file system implementation in\n the Linux kernel did not properly validate the server frame size in\n certain situation, leading to an out-of-bounds read vulnerability. An\n attacker could use this to construct a malicious CIFS image that, when\n operated on, could cause a denial of service (system crash) or possibly\n expose sensitive information.",
+      "vulnerability_id": "CVE-2023-6606",
+      "name": "CVE-2023-6606",
+      "package_name": "linux",
+      "package_details": {
+        "file_path": null,
+        "name": "linux",
+        "package_manager": "OS",
+        "version": "5.4.0",
+        "release": "169.187"
+      },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
+      "cvss_v3_score": 7.1,
+      "cvss_v30_score": 0,
+      "cvss_v31_score": 7.1,
+      "cvss_v2_score": 0,
+      "cvss_v3_severity": "HIGH",
+      "source_url": "https://people.canonical.com/~ubuntu-security/cve/2023/CVE-2023-6606.html",
+      "source": "UBUNTU_CVE",
+      "severity": "HIGH",
+      "status": "ACTIVE",
+      "title": "CVE-2023-6606 - linux",
+      "reason_to_ignore": "N/A"
+    },
+    {
+      "description": "\n It was discovered that the CIFS network file system implementation in\n the Linux kernel did not properly validate the server frame size in\n certain situation, leading to an out-of-bounds read vulnerability. An\n attacker could use this to construct a malicious CIFS image that, when\n operated on, could cause a denial of service (system crash) or possibly\n expose sensitive information.",
+      "vulnerability_id": "CVE-2023-6606",
+      "name": "CVE-2023-6606",
+      "package_name": "linux",
+      "package_details": {
+        "file_path": null,
+        "name": "linux",
+        "package_manager": "OS",
+        "version": "5.4.0",
+        "release": "170.188"
+      },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
+      "cvss_v3_score": 7.1,
+      "cvss_v30_score": 0,
+      "cvss_v31_score": 7.1,
+      "cvss_v2_score": 0,
+      "cvss_v3_severity": "HIGH",
+      "source_url": "https://people.canonical.com/~ubuntu-security/cve/2023/CVE-2023-6606.html",
+      "source": "UBUNTU_CVE",
+      "severity": "HIGH",
+      "status": "ACTIVE",
+      "title": "CVE-2023-6606 - linux",
+      "reason_to_ignore": "N/A"
     }
   ]
 }
