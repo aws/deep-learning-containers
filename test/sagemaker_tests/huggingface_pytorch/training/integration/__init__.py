@@ -12,9 +12,16 @@
 # language governing permissions and limitations under the License.
 from __future__ import absolute_import
 
+import re
 import os
+import boto3
 
-from test.test_utils import get_framework_from_image_uri
+from test.test_utils import (
+    get_framework_from_image_uri,
+    get_region_from_image_uri,
+    get_all_the_tags_of_an_image_from_ecr,
+    CudaVersionTagNotFoundException,
+)
 
 resources_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "resources"))
 scripts_path = os.path.join(resources_path, "scripts")
