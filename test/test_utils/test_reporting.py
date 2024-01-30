@@ -245,7 +245,7 @@ class TestReportGenerator:
             with ctx.cd(pytest_framework_path):
                 with ctx.prefix(f"source {os.path.join(venv, 'bin', 'activate')}"):
                     # TF inference separates remote/local conftests, and must be handled differently
-                    if "tensorflow" in venv and "inference" in venv:
+                    if os.path.basename(venv) == ".tensorflow-inference":
                         with ctx.cd(os.path.join(pytest_framework_path, "test", "integration")):
                             # Handle local tests
                             ctx.run(
