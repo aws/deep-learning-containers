@@ -213,7 +213,7 @@ class TestReportGenerator:
     @staticmethod
     def generate_sm_venvs(venv_path):
         ctx.run(f"virtualenv {venv_path}")
-        base_path = os.path.basename(venv)
+        base_path = os.path.dirname(venv)
         with ctx.cd(base_path):
             with ctx.prefix(f"source {os.path.join(venv, 'bin', 'activate')}"):
                 ctx.run("pip install -r requirements.txt", warn=True)
@@ -239,7 +239,7 @@ class TestReportGenerator:
             executor.map(self.generate_sm_venvs, venv_paths)
         
         for venv in venv_paths:
-            pytest_framework_path = os.path.basename(venv)
+            pytest_framework_path = os.path.dirname(venv)
             with ctx.cd(pytest_framework_path):
                 with ctx.prefix(f"source {os.path.join(venv, 'bin', 'activate')}"):
                     # TF inference separates remote/local conftests, and must be handled differently
