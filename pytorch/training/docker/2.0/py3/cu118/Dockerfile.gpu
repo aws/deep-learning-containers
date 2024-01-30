@@ -13,7 +13,7 @@ ARG SMD_MODEL_PARALLEL_URL=https://sagemaker-distributed-model-parallel.s3.us-we
 ARG ZERO_2D_URL=https://aws-deepspeed-zero-2d-binaries.s3.us-west-2.amazonaws.com/r2.0.0/20230407-184728/1ea3d4b6aa41fe66277daacbb78b3743a310d85a/deepspeed-0.6.1%2B1ea3d4b-py3-none-any.whl
 
 # SageMaker Profiler Binary
-ARG SMP_URL=https://smppy.s3.amazonaws.com/pytorch/cu118/smprof-0.3.332-cp310-cp310-linux_x86_64.whl
+ARG SMP_URL=https://smppy.s3.amazonaws.com/pytorch/cu118/smprof-0.3.334-cp310-cp310-linux_x86_64.whl
 
 # SmartSifting Binary
 ARG SMART_SIFTING_URL=https://smart-sifting-release.s3.amazonaws.com/pytorch-training/smart_sifting-1.0-py3-none-any.whl
@@ -641,8 +641,7 @@ RUN  wget -nv https://github.com/rapidsai/rmm/archive/v${RMM_VERSION}.tar.gz \
 RUN pip install --no-cache-dir -U ${ZERO_2D_URL}
 
 # Install SageMaker Profiler Binary
-RUN apt-get update && apt-get install -y libunwind-dev && apt-get clean \
- && pip install --no-cache-dir -U ${SMP_URL}
+RUN pip install --no-cache-dir -U ${SMP_URL}
 
 # Install SM Distributed Modelparallel binary
 RUN pip install --no-cache-dir -U ${SMD_MODEL_PARALLEL_URL}
