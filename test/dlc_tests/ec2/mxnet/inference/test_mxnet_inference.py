@@ -59,6 +59,7 @@ def test_ec2_mxnet_inference_neuron(mxnet_inference_neuron, ec2_connection, regi
 
 
 @pytest.mark.model(SQUEEZENET_MODEL)
+@pytest.mark.team("frameworks")
 @pytest.mark.parametrize("ec2_instance_type", MX_EC2_GPU_INSTANCE_TYPE, indirect=True)
 def test_ec2_mxnet_squeezenet_inference_gpu(
     mxnet_inference, ec2_connection, region, gpu_only, ec2_instance_type
@@ -74,6 +75,7 @@ def test_ec2_mxnet_squeezenet_inference_gpu(
 
 @pytest.mark.integration("gluonnlp")
 @pytest.mark.model(BERT_MODEL)
+@pytest.mark.team("frameworks")
 @pytest.mark.parametrize("ec2_instance_type", MX_EC2_GPU_INSTANCE_TYPE, indirect=True)
 def test_ec2_mxnet_gluonnlp_inference_gpu(
     mxnet_inference, ec2_connection, region, gpu_only, py3_only, ec2_instance_type
@@ -88,6 +90,7 @@ def test_ec2_mxnet_gluonnlp_inference_gpu(
 
 
 @pytest.mark.model(SQUEEZENET_MODEL)
+@pytest.mark.team("frameworks")
 @pytest.mark.parametrize("ec2_instance_type", MX_EC2_CPU_INSTANCE_TYPE, indirect=True)
 def test_ec2_mxnet_squeezenet_inference_cpu(mxnet_inference, ec2_connection, region, cpu_only):
     run_ec2_mxnet_inference(
@@ -147,6 +150,7 @@ def test_ec2_mxnet_inference_graviton_cpu(
 
 @pytest.mark.integration("gluonnlp")
 @pytest.mark.model(BERT_MODEL)
+@pytest.mark.team("frameworks")
 @pytest.mark.parametrize("ec2_instance_type", MX_EC2_CPU_INSTANCE_TYPE, indirect=True)
 def test_ec2_mxnet_gluonnlp_inference_cpu(
     mxnet_inference, ec2_connection, region, cpu_only, py3_only
@@ -214,6 +218,7 @@ def run_ec2_mxnet_inference(
 @pytest.mark.flaky(reruns=3)
 @pytest.mark.integration("telemetry")
 @pytest.mark.model("N/A")
+@pytest.mark.team("frameworks")
 @pytest.mark.parametrize("ec2_instance_type", MX_EC2_SINGLE_GPU_INSTANCE_TYPE, indirect=True)
 def test_mxnet_inference_telemetry_gpu(
     mxnet_inference, ec2_connection, gpu_only, ec2_instance_type
@@ -229,6 +234,7 @@ def test_mxnet_inference_telemetry_gpu(
 @pytest.mark.usefixtures("sagemaker")
 @pytest.mark.integration("telemetry")
 @pytest.mark.model("N/A")
+@pytest.mark.team("frameworks")
 @pytest.mark.parametrize("ec2_instance_type", MX_EC2_CPU_INSTANCE_TYPE, indirect=True)
 def test_mxnet_inference_telemetry_cpu(mxnet_inference, ec2_connection, cpu_only):
     execute_ec2_inference_test(ec2_connection, mxnet_inference, MX_TELEMETRY_CMD)

@@ -17,6 +17,7 @@ TF_FasterRCNN_TRAINING_SCRIPT = os.path.join(CONTAINER_TESTS_PREFIX, "testFaster
 
 
 @pytest.mark.model("mnist")
+@pytest.mark.team("frameworks")
 @pytest.mark.parametrize("training_script", [TF_MNIST_TRAINING_SCRIPT], indirect=True)
 @pytest.mark.parametrize("ecs_instance_type", ["c5.4xlarge"], indirect=True)
 @pytest.mark.parametrize("ecs_ami", [ECS_AML2_CPU_USWEST2], indirect=True)
@@ -39,6 +40,7 @@ def test_ecs_tensorflow_training_mnist_cpu(
 
 
 @pytest.mark.model("mnist")
+@pytest.mark.team("frameworks")
 @pytest.mark.parametrize("training_script", [TF_MNIST_TRAINING_SCRIPT], indirect=True)
 @pytest.mark.parametrize("ecs_instance_type", ["p3.8xlarge"], indirect=True)
 @pytest.mark.parametrize("ecs_ami", [ECS_AML2_GPU_USWEST2], indirect=True)
@@ -69,6 +71,7 @@ def test_ecs_tensorflow_training_mnist_gpu(
     not is_nightly_context(), reason="Running additional model in nightly context only"
 )
 @pytest.mark.model("FasterRCNN")
+@pytest.mark.team("frameworks")
 @pytest.mark.parametrize("training_script", [TF_FasterRCNN_TRAINING_SCRIPT], indirect=True)
 @pytest.mark.parametrize("ecs_instance_type", ["g3.8xlarge"], indirect=True)
 @pytest.mark.parametrize("ecs_ami", [ECS_AML2_GPU_USWEST2], indirect=True)

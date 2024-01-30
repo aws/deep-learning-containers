@@ -19,6 +19,10 @@ def test_developer_configuration():
     assert config.parse_dlc_developer_configs("dev", "benchmark_mode") is False
     assert config.parse_dlc_developer_configs("dev", "habana_mode") is False
     assert config.parse_dlc_developer_configs("dev", "trcomp_mode") is False
+    assert config.parse_dlc_developer_configs("dev", "deep_canary_mode") is False
+
+    assert config.is_deep_canary_mode_enabled() is False
+    assert config.is_deep_canary_mode_enabled() is False
 
     # Check build settings
     assert config.parse_dlc_developer_configs("build", "build_frameworks") == []
@@ -26,6 +30,7 @@ def test_developer_configuration():
     assert config.parse_dlc_developer_configs("build", "build_inference") is True
     assert config.parse_dlc_developer_configs("build", "datetime_tag") is True
     assert config.parse_dlc_developer_configs("build", "do_build") is True
+    assert config.parse_dlc_developer_configs("build", "autopatch_build") is False
 
     # Check test settings
     assert config.parse_dlc_developer_configs("test", "sanity_tests") is True

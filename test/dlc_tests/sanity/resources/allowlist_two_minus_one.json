@@ -16,6 +16,7 @@
                 "version": "1.2"
             },
             "package_name": "package5",
+            "reason_to_ignore": "N/A",
             "remediation": {
                 "recommendation": {
                     "text": "None Provided"

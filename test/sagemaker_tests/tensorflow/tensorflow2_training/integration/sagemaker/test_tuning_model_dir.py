@@ -25,6 +25,7 @@ from ...integration.utils import processor, py_version, unique_name_from_base  #
 
 @pytest.mark.integration("hpo")
 @pytest.mark.model("N/A")
+@pytest.mark.team("frameworks")
 def test_model_dir_with_training_job_name(
     ecr_image, sagemaker_regions, instance_type, framework_version
 ):

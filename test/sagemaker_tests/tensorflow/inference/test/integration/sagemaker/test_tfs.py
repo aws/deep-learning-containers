@@ -116,6 +116,7 @@ def mme4_models(region, boto_session):
 
 
 @pytest.mark.model("unknown_model")
+@pytest.mark.team("frameworks")
 def test_tfs_model(sagemaker_regions, model_name, image_uri, instance_type, accelerator_type):
     input_data = {"instances": [1.0, 2.0, 5.0]}
     invoke_sm_endpoint_helper_function(
@@ -173,6 +174,7 @@ def test_tfs_neuronx_model(
 
 @pytest.mark.integration("batch_transform")
 @pytest.mark.model("unknown_model")
+@pytest.mark.team("frameworks")
 def test_batch_transform(sagemaker_regions, model_name, image_uri, instance_type):
     if "graviton" in image_uri:
         pytest.skip("Test not supported with Graviton test instance.")
@@ -192,6 +194,7 @@ def test_batch_transform(sagemaker_regions, model_name, image_uri, instance_type
 
 
 @pytest.mark.model("unknown_model")
+@pytest.mark.team("frameworks")
 def test_python_model_with_requirements(
     sagemaker_regions,
     model_name,
@@ -215,6 +218,7 @@ def test_python_model_with_requirements(
 
 
 @pytest.mark.model("unknown_model")
+@pytest.mark.team("frameworks")
 def test_python_model_with_lib(
     sagemaker_regions,
     model_name,
@@ -243,6 +247,7 @@ def test_python_model_with_lib(
 
 @pytest.mark.integration("mme")
 @pytest.mark.model("unknown_model")
+@pytest.mark.team("frameworks")
 @pytest.mark.skip_gpu
 def test_mme1(
     sagemaker_regions,
@@ -283,6 +288,7 @@ def test_mme1(
 
 @pytest.mark.integration("mme")
 @pytest.mark.model("unknown_model")
+@pytest.mark.team("frameworks")
 @pytest.mark.skip_gpu
 def test_mme2(
     sagemaker_regions,
@@ -324,6 +330,7 @@ def test_mme2(
 
 @pytest.mark.integration("mme")
 @pytest.mark.model("unknown_model")
+@pytest.mark.team("frameworks")
 @pytest.mark.skip_gpu
 def test_mme3(
     sagemaker_regions,
@@ -365,6 +372,7 @@ def test_mme3(
 
 @pytest.mark.integration("mme")
 @pytest.mark.model("unknown_model")
+@pytest.mark.team("frameworks")
 @pytest.mark.skip_gpu
 def test_mme4(
     sagemaker_regions,

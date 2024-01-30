@@ -24,8 +24,8 @@ from sagemaker.huggingface import HuggingFaceModel
 
 
 from .. import (
-    model_dir,
-    pt_model,
+    model_dir_decoder,
+    pt_neuronx_model,
     script_dir,
     pt_neuronx_decoder_script,
     dump_logs_from_cloudwatch,
@@ -38,9 +38,6 @@ from ..... import invoke_sm_endpoint_helper_function
 # instances in the regions corresponding to their availability.
 # In future, we would like to configure the logic to run multiple `pytest` commands that can allow
 # us to test multiple instances in multiple regions for each image.
-@pytest.mark.skip(
-    reason="transformers-neuronx does not support the serialization, test will fail without the writable access of neuronx-cc."
-)
 @pytest.mark.model("tiny-gpt2")
 @pytest.mark.processor("neuronx")
 @pytest.mark.parametrize(
@@ -48,6 +45,7 @@ from ..... import invoke_sm_endpoint_helper_function
     [("us-east-1", "ml.trn1.2xlarge"), ("us-east-2", "ml.inf2.xlarge")],
 )
 @pytest.mark.neuronx_test
+@pytest.mark.team("sagemaker-1p-algorithms")
 def test_neuronx_hosting_all_instances(
     test_region, test_instance_type, instance_type, framework_version, ecr_image, py_version
 ):
@@ -65,7 +63,7 @@ def test_neuronx_hosting_all_instances(
         test_function=_test_pt_neuronx,
         framework_version=framework_version,
         instance_type=test_instance_type,
-        model_dir=model_dir,
+        model_dir=model_dir_decoder,
         script_dir=script_dir,
         py_version=py_version,
         dump_logs_from_cloudwatch=dump_logs_from_cloudwatch,
@@ -116,12 +114,11 @@ def _test_pt_neuronx(
     )
     endpoint_name = sagemaker.utils.unique_name_from_base(endpoint_name_prefix)
 
-    # dummy pytorch model, not used for the test
     model_data = sagemaker_session.upload_data(
         path=model_dir,
         key_prefix="sagemaker-huggingface-neuronx-decoder-serving/models",
     )
-    model_file = pt_model
+    model_file = pt_neuronx_model
 
     # test script using `optimum-neuron`
     entry_point = pt_neuronx_decoder_script

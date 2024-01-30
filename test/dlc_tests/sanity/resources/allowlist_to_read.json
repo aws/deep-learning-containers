@@ -176,5 +176,36 @@
             "title": "CVE-A234 - package6",
             "vulnerability_id": "CVE-A234"
         }
+    ],
+    "package7": [
+        {
+            "cvss_v2_score": 0.0,
+            "cvss_v30_score": 0.0,
+            "cvss_v31_score": 9.8,
+            "cvss_v3_score": 9.8,
+            "cvss_v3_severity": "CRITICAL",
+            "description": "temp-description",
+            "name": "CVE-ABC123",
+            "package_details": {
+                "file_path": "usr/lib",
+                "name": "package7",
+                "package_manager": "PYTHONPKG",
+                "release": null,
+                "version": "1.781"
+            },
+            "package_name": "package7",
+            "reason_to_ignore": "Custom reason to ignore",
+            "remediation": {
+                "recommendation": {
+                    "text": "None Provided"
+                }
+            },
+            "severity": "CRITICAL",
+            "source": "SNYK",
+            "source_url": "https://temp-url",
+            "status": "ACTIVE",
+            "title": "CVE-ABC123 - package7",
+            "vulnerability_id": "CVE-ABC123"
+        }
     ]
 }

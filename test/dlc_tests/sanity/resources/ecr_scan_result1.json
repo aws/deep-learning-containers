@@ -281,5 +281,60 @@
         "title": "CVE-A234 - package6",
         "type": "PACKAGE_VULNERABILITY",
         "updatedAt": "2022-08-01T21:55:36.625000+00:00"
+    },
+    {
+        "awsAccountId": "abcd",
+        "description": "temp-description",
+        "findingArn": "arn",
+        "firstObservedAt": "2022-08-01T21:55:36.625000+00:00",
+        "lastObservedAt": "2022-08-01T21:55:36.625000+00:00",
+        "packageVulnerabilityDetails": {
+            "cvss": [
+                {
+                    "baseScore": 9.8,
+                    "scoringVector": "CVSS:3.1/AV:N/AC:H/PR:H/UI:N/S:C/C:H/I:N/A:H",
+                    "source": "SNYK",
+                    "version": "3.1"
+                }
+            ],
+            "referenceUrls": [],
+            "relatedVulnerabilities": [],
+            "source": "SNYK",
+            "sourceUrl": "https://temp-url",
+            "vendorCreatedAt": "2020-10-01T16:24:00+00:00",
+            "vendorSeverity": "critical",
+            "vulnerabilityId": "CVE-ABC123",
+            "vulnerablePackages": [
+                {
+                    "epoch": 0,
+                    "filePath": "usr/lib",
+                    "name": "package7",
+                    "packageManager": "PYTHONPKG",
+                    "sourceLayerHash": "temp",
+                    "version": "1.781"
+                }
+            ]
+        },
+        "remediation": {
+            "recommendation": {
+                "text": "None Provided"
+            }
+        },
+        "resources": [],
+        "score": 9.4,
+        "scoreDetails": {
+            "cvss": {
+                "adjustments": [],
+                "score": 9.8,
+                "scoreSource": "SNYK",
+                "scoringVector": "CVSS:3.1/AV:N/AC:H/PR:H/UI:N/S:C/C:H/I:N/A:H",
+                "version": "3.1"
+            }
+        },
+        "severity": "CRITICAL",
+        "status": "ACTIVE",
+        "title": "CVE-ABC123 - package7",
+        "type": "PACKAGE_VULNERABILITY",
+        "updatedAt": "2022-08-01T21:55:36.625000+00:00"
     }
 ]

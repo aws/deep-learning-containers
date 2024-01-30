@@ -46,9 +46,14 @@ RUN apt-get update \
     git \
     libnuma1 \
     libsndfile1-dev \
-    ffmpeg \
- && apt-get clean \
- && rm -rf /var/lib/apt/lists/*
+    ffmpeg
+    
+RUN apt-get update
+RUN apt-get install -y unattended-upgrades
+RUN unattended-upgrade
+RUN apt-get clean
+RUN rm -rf /var/lib/apt/lists/*
+
 
 # https://github.com/docker-library/openjdk/issues/261 https://github.com/docker-library/openjdk/pull/263/files
 RUN keytool -importkeystore -srckeystore /etc/ssl/certs/java/cacerts -destkeystore /etc/ssl/certs/java/cacerts.jks -deststoretype JKS -srcstorepass changeit -deststorepass changeit -noprompt; \
@@ -122,6 +127,7 @@ RUN chmod +x /usr/local/bin/deep_learning_container.py
 #################################
 
 # Install TF Binary
+RUN pip uninstall -y tensorflow-gpu
 RUN pip install --no-cache-dir -U ${TF_URL}
 
 # We need TF_FORCE_GPU_ALLOW_GROWTH=true to prevent TF from overusing GPU memory when loading models

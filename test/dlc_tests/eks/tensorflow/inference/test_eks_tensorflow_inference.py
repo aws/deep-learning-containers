@@ -10,6 +10,7 @@ import test.test_utils as test_utils
 
 
 @pytest.mark.model("mnist")
+@pytest.mark.team("neuron")
 def test_eks_tensorflow_neuron_inference(tensorflow_inference_neuron):
     num_replicas = "1"
 
@@ -67,6 +68,7 @@ def test_eks_tensorflow_neuron_inference(tensorflow_inference_neuron):
 
 @pytest.mark.skip(reason="Will be enabled once infrastructure changes are made")
 @pytest.mark.model("mnist")
+@pytest.mark.team("neuron")
 def test_eks_tensorflow_neuronx_inference(tensorflow_inference_neuronx):
     num_replicas = "1"
 
@@ -123,6 +125,7 @@ def test_eks_tensorflow_neuronx_inference(tensorflow_inference_neuronx):
 
 
 @pytest.mark.model("half_plus_two")
+@pytest.mark.team("frameworks")
 def test_eks_tensorflow_half_plus_two_inference(tensorflow_inference):
     __test_eks_tensorflow_half_plus_two_inference(tensorflow_inference)
 
@@ -186,6 +189,7 @@ def __test_eks_tensorflow_half_plus_two_inference(tensorflow_inference):
     not test_utils.is_nightly_context(), reason="Running additional model in nightly context only"
 )
 @pytest.mark.model("albert")
+@pytest.mark.team("frameworks")
 def test_eks_tensorflow_albert(tensorflow_inference):
     __test_eks_tensorflow_albert(tensorflow_inference)
 

@@ -116,7 +116,8 @@
             "source_url": "https://temp-url",
             "status": "ACTIVE",
             "title": "CVE-A234 - package6",
-            "vulnerability_id": "CVE-A234"
+            "vulnerability_id": "CVE-A234",
+            "reason_to_ignore": "Reason for ignoring package."
         }
     ]
 }

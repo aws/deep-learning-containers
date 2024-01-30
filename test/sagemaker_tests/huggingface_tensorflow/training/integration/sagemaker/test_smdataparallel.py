@@ -40,6 +40,7 @@ hyperparameters = {
 @pytest.mark.skip_cpu
 @pytest.mark.skip_py2_containers
 @pytest.mark.skip_trcomp_containers
+@pytest.mark.team("sagemaker-1p-algorithms")
 # TODO: Enable sagemaker debugger, resolve github issue after enabling.
 #  https://github.com/aws/deep-learning-containers/issues/1053
 def test_hf_smdp(ecr_image, sagemaker_regions, instance_type, framework_version, tmpdir):
@@ -65,6 +66,7 @@ def test_hf_smdp(ecr_image, sagemaker_regions, instance_type, framework_version,
 @pytest.mark.model("hf_distilbert")
 @pytest.mark.skip_py2_containers
 @pytest.mark.skip_trcomp_containers
+@pytest.mark.team("sagemaker-1p-algorithms")
 # Skipping `ml.p3dn.24xlarge` instance type due to capacity issue in us-west-2
 # TODO: Enable sagemaker debugger, resolve github issue after enabling.
 #  https://github.com/aws/deep-learning-containers/issues/1053

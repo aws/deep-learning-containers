@@ -32,6 +32,7 @@ from ..... import invoke_sm_endpoint_helper_function
 @pytest.mark.model("tiny-stable-diffusion")
 @pytest.mark.processor("cpu")
 @pytest.mark.cpu_test
+@pytest.mark.team("sagemaker-1p-algorithms")
 def test_diffusers_cpu_hosting(
     framework_version, ecr_image, instance_type, sagemaker_regions, py_version
 ):
@@ -57,6 +58,7 @@ def test_diffusers_cpu_hosting(
 @pytest.mark.model("stable-diffusion")
 @pytest.mark.processor("gpu")
 @pytest.mark.gpu_test
+@pytest.mark.team("sagemaker-1p-algorithms")
 def test_diffusers_gpu_hosting(
     framework_version, ecr_image, instance_type, sagemaker_regions, py_version
 ):

@@ -27,6 +27,7 @@ from ..... import invoke_sm_endpoint_helper_function
 @pytest.mark.model("tiny-distilbert")
 @pytest.mark.processor("cpu")
 @pytest.mark.cpu_test
+@pytest.mark.team("sagemaker-1p-algorithms")
 def test_sm_trained_model_cpu(framework_version, ecr_image, instance_type, sagemaker_regions):
     instance_type = instance_type or "ml.m5.xlarge"
     invoke_sm_endpoint_helper_function(
@@ -43,6 +44,7 @@ def test_sm_trained_model_cpu(framework_version, ecr_image, instance_type, sagem
 @pytest.mark.model("tiny-distilbert")
 @pytest.mark.processor("gpu")
 @pytest.mark.gpu_test
+@pytest.mark.team("sagemaker-1p-algorithms")
 def test_sm_trained_model_gpu(framework_version, ecr_image, instance_type, sagemaker_regions):
     instance_type = instance_type or "ml.p3.2xlarge"
     invoke_sm_endpoint_helper_function(

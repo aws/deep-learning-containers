@@ -24,6 +24,7 @@ from test.test_utils import (
 @pytest.mark.usefixtures("feature_smdebug_present")
 @pytest.mark.usefixtures("sagemaker_only", "huggingface")
 @pytest.mark.integration("smprofiler")
+@pytest.mark.team("smdebug")
 @pytest.mark.model("N/A")
 @pytest.mark.skipif(
     not is_mainline_context() and not is_rc_test_context(), reason="Mainline only test"
@@ -80,6 +81,7 @@ def test_sm_profiler_pt(pytorch_training):
 @pytest.mark.usefixtures("feature_smdebug_present")
 @pytest.mark.usefixtures("sagemaker_only", "huggingface")
 @pytest.mark.integration("smprofiler")
+@pytest.mark.team("smdebug")
 @pytest.mark.model("N/A")
 @pytest.mark.skipif(
     not is_mainline_context() and not is_rc_test_context(), reason="Mainline only test"

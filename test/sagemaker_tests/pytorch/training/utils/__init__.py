@@ -23,6 +23,7 @@ class NightlyFeatureLabel(Enum):
     AWS_SMDDP_INSTALLED = "aws_smddp_installed"
     AWS_SMMP_INSTALLED = "aws_smmp_installed"
     AWS_S3_PLUGIN_INSTALLED = "aws_s3_plugin_installed"
+    AWS_SMART_SIFTING_INSTALLED = "aws_smart_sifting_installed"
 
 
 def _botocore_resolver():

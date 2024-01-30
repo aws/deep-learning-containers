@@ -15,17 +15,19 @@ from __future__ import absolute_import
 import pytest
 from sagemaker.huggingface import HuggingFace, TrainingCompilerConfig
 
-from ...integration import ROLE, distrilbert_script
+from ...integration import ROLE, distilbert_script
 import unittest.mock as mock
 
 
 @pytest.mark.model("hf_bert")
 @pytest.mark.integration("sagemaker-training-compiler")
 @pytest.mark.processor("gpu")
+@pytest.mark.team("training-compiler")
 @pytest.mark.skip_cpu
 @pytest.mark.skip_py2_containers
 @pytest.mark.skip_huggingface_containers
 @pytest.mark.skip(reason="WIP: Currently hangs")
+@pytest.mark.team("sagemaker-1p-algorithms")
 @mock.patch("sagemaker.huggingface.TrainingCompilerConfig.validate", return_value=None)
 def test_single_node_single_gpu_tcc_default(
     patched, docker_image, processor, instance_type, sagemaker_local_session, py_version, capsys
@@ -42,7 +44,7 @@ def test_single_node_single_gpu_tcc_default(
 
     estimator = HuggingFace(
         compiler_config=TrainingCompilerConfig(),
-        entry_point=distrilbert_script,
+        entry_point=distilbert_script,
         instance_type="local_gpu",
         sagemaker_session=sagemaker_local_session,
         image_uri=docker_image,

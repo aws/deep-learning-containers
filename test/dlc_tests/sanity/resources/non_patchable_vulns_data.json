@@ -1,0 +1,64 @@
+{
+    "package6": [
+        {
+            "description": "temp-description",
+            "vulnerability_id": "CVE-A234",
+            "name": "CVE-A234",
+            "package_name": "package6",
+            "package_details": {
+                "file_path": "usr/lib",
+                "name": "package6",
+                "package_manager": "PYTHONPKG",
+                "version": "1.235",
+                "release": null
+            },
+            "remediation": {
+                "recommendation": {
+                    "text": "None Provided"
+                }
+            },
+            "cvss_v3_score": 9.4,
+            "cvss_v30_score": 0.0,
+            "cvss_v31_score": 9.4,
+            "cvss_v2_score": 0.0,
+            "cvss_v3_severity": "CRITICAL",
+            "source_url": "https://temp-url-pkg6",
+            "source": "SNYK",
+            "severity": "CRITICAL",
+            "status": "ACTIVE",
+            "title": "CVE-A234 - package6",
+            "reason_to_ignore": "Automated Reason: package6 is not upgradable"
+        }
+    ],
+    "package9": [
+        {
+            "description": "temp-description",
+            "vulnerability_id": "CVE-ABC678",
+            "name": "CVE-ABC678",
+            "package_name": "package9",
+            "package_details": {
+                "file_path": "usr/lib",
+                "name": "package9",
+                "package_manager": "PYTHONPKG",
+                "version": "1.34",
+                "release": null
+            },
+            "remediation": {
+                "recommendation": {
+                    "text": "None Provided"
+                }
+            },
+            "cvss_v3_score": 9.7,
+            "cvss_v30_score": 0.0,
+            "cvss_v31_score": 9.7,
+            "cvss_v2_score": 0.0,
+            "cvss_v3_severity": "CRITICAL",
+            "source_url": "https://temp-url",
+            "source": "SNYK",
+            "severity": "CRITICAL",
+            "status": "ACTIVE",
+            "title": "CVE-ABC678 - package9",
+            "reason_to_ignore": "Automated Reason: package9 is not upgradable"
+        }
+    ]
+}

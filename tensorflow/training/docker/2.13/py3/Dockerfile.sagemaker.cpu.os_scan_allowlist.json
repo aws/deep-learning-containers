@@ -26,5 +26,36 @@
         "severity": "HIGH",
         "status": "ACTIVE",
         "title": "CVE-2019-13132 - libzmq5"
-    }]
+    }],
+    "linux": [
+      {
+         "description": "\n Alon Zahavi discovered that the NVMe-oF/TCP subsystem in the Linux kernel\n did not properly handle queue initialization failures in certain\n situations, leading to a use-after-free vulnerability. A remote attacker\n could use this to cause a denial of service (system crash) or possibly\n execute arbitrary code.",
+         "vulnerability_id": "CVE-2023-5178",
+         "name": "CVE-2023-5178",
+         "package_name": "linux",
+         "package_details": {
+            "file_path": null,
+            "name": "linux",
+            "package_manager": "OS",
+            "version": "5.4.0",
+            "release": "167.184"
+         },
+         "remediation": {
+            "recommendation": {
+               "text": "None Provided"
+            }
+         },
+         "cvss_v3_score": 8.8,
+         "cvss_v30_score": 0,
+         "cvss_v31_score": 8.8,
+         "cvss_v2_score": 0,
+         "cvss_v3_severity": "HIGH",
+         "source_url": "https://people.canonical.com/~ubuntu-security/cve/2023/CVE-2023-5178.html",
+         "source": "UBUNTU_CVE",
+         "severity": "HIGH",
+         "status": "ACTIVE",
+         "title": "CVE-2023-5178 - linux",
+         "reason_to_ignore": "No remediation plan in place for this"
+      }
+   ]
 }

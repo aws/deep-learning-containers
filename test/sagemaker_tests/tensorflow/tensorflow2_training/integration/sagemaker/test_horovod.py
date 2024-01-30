@@ -28,6 +28,7 @@ RESOURCE_PATH = os.path.join(os.path.dirname(__file__), "..", "..", "resources")
 
 @pytest.mark.integration("horovod")
 @pytest.mark.model("mnist")
+@pytest.mark.team("frameworks")
 @pytest.mark.multinode(2)
 def test_distributed_training_horovod(
     ecr_image, sagemaker_regions, instance_type, tmpdir, framework_version, sm_below_tf213_only
@@ -74,6 +75,7 @@ def _test_distributed_training_horovod_function(
 
 @pytest.mark.integration("horovod")
 @pytest.mark.model("mnist")
+@pytest.mark.team("frameworks")
 @pytest.mark.multinode(2)
 @pytest.mark.skip_cpu
 def test_hc_distributed_training_horovod(
@@ -122,6 +124,7 @@ def _test_hc_distributed_training_horovod_function(
 
 @pytest.mark.integration("horovod")
 @pytest.mark.multinode(2)
+@pytest.mark.team("frameworks")
 @pytest.mark.model("unknown_model")
 def test_distributed_training_horovod_with_env_vars(
     ecr_image, sagemaker_regions, instance_type, tmpdir, framework_version, sm_below_tf213_only

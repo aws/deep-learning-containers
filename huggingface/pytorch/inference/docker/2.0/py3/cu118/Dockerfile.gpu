@@ -29,7 +29,7 @@ ARG TORCHAUDIO_URL=https://aws-pytorch-unified-cicd-binaries.s3.us-west-2.amazon
 
 # HF ARGS
 ARG TRANSFORMERS_VERSION
-ARG DIFFUSERS_VERSION=0.16.1
+ARG DIFFUSERS_VERSION=0.23.1
 
 # Set Debian interaction
 ARG DEBIAN_FRONTEND=noninteractive
@@ -77,6 +77,7 @@ RUN apt-get update \
     libsm6 \
     libssl1.1 \
     libssl-dev \
+    libsqlite3-0 \
     libxext6 \
     libxrender-dev \
     openjdk-17-jdk \
@@ -91,9 +92,12 @@ RUN apt-get update \
     ffmpeg \
     openssh-client \
     openssh-server \
+    unattended-upgrades \
  && apt-get autoremove -y \
  && rm -rf /var/lib/apt/lists/* \
  && apt-get clean
+
+RUN unattended-upgrade
 
 # Install NCCL
 RUN cd /tmp \
@@ -142,6 +146,7 @@ RUN pip install --upgrade pip --trusted-host pypi.org --trusted-host files.pytho
 
 WORKDIR /root
 
+
 # Ensure PyTorch did not get installed from Conda due to magma-cuda117
 RUN pip uninstall -y torch torchvision torchaudio model-archiver multi-model-server
 
@@ -150,13 +155,14 @@ RUN pip install --no-cache-dir -U \
     "awscli<2" \
     boto3 \
     pyopenssl \
-    "cryptography>=38.0.0" \
+    "cryptography>=41.0.6" \
     enum-compat==0.0.3 \
     "numpy>=1.22.2,<1.23" \
     opencv-python \
     packaging \
     "Pillow>=9.0.0" \
     "pyyaml>=5.4" \
+    scipy \
     captum \
     ${TORCH_URL} \
     ${TORCHVISION_URL} \
@@ -200,7 +206,10 @@ RUN pip install --no-cache-dir \
     "accelerate>=0.11.0" \
 	"protobuf>=3.19.5,<=3.20.2" \
 	"numpy>=1.22.2,<1.23" \
-	"sagemaker-huggingface-inference-toolkit<3"
+	"sagemaker-huggingface-inference-toolkit>=2.3.0" \
+    # CVE
+    urllib3==1.26.18 \
+    mkl
 
 
 RUN HOME_DIR=/root \
