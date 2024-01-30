@@ -1,4 +1,4 @@
-?M, FROM nvidia/cuda:11.8.0-base-ubuntu20.04 AS base_image
+FROM nvidia/cuda:11.8.0-base-ubuntu20.04 AS base_image
 
 ENV DEBIAN_FRONTEND=noninteractive \
     LD_LIBRARY_PATH="${LD_LIBRARY_PATH}:/usr/local/lib"
