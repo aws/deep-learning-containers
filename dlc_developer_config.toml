@@ -50,8 +50,8 @@ autopatch_build = false
 [test]
 ### On by default
 sanity_tests = true
-  safety_check_test = false
-  ecr_scan_allowlist_feature = false
+  safety_check_test = true
+  ecr_scan_allowlist_feature = true
 ecs_tests = true
 eks_tests = true
 ec2_tests = true
@@ -103,7 +103,7 @@ dlc-pr-autogluon-training = ""
 
 # HuggingFace Training
 dlc-pr-huggingface-tensorflow-training = ""
-dlc-pr-huggingface-pytorch-training = ""
+dlc-pr-huggingface-pytorch-training = "huggingface/pytorch/training/buildspec-2-0.yml"
 
 # Training Compiler
 dlc-pr-huggingface-pytorch-trcomp-training = ""
