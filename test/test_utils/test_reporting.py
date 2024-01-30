@@ -242,7 +242,6 @@ class TestReportGenerator:
             pytest_framework_path = os.path.basename(venv)
             with ctx.cd(pytest_framework_path):
                 with ctx.prefix(f"source {os.path.join(venv, 'bin', 'activate')}"):
-                    ctx.run("pip install -r requirements.txt", warn=True)
                     # TF inference separates remote/local conftests, and must be handled differently
                     if framework == "tensorflow" and job_type == "inference":
                         with ctx.cd(os.path.join(pytest_framework_path, "test", "integration")):
