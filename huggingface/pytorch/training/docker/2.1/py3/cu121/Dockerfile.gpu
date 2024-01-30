@@ -21,7 +21,7 @@ ARG PYTHON=python3
 # TODO: Remove when the base image is updated
 RUN pip install --upgrade pip \
  && pip uninstall -y transformer-engine flash-attn pyarrow cryptography \
- && pip install --no-cache-dir -U pyarrow cryptography
+ && pip install --no-cache-dir -U pyarrow cryptography pyopenssl Pillow
 
 # install Hugging Face libraries and its dependencies
 RUN pip install --no-cache-dir \
