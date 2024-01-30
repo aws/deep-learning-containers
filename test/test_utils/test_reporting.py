@@ -215,7 +215,11 @@ class TestReportGenerator:
         ctx = Context()
         EnvBuilder(with_pip=True).create(venv_path)
         requirements_path = os.path.join(os.path.dirname(venv_path), "requirements.txt")
-        ctx.run(f"{venv_path}/bin/pip install -r {requirements_path}", warn=True)
+        pip_path = os.path.join(venv_path, "bin", "pip")
+        ctx.run(
+            f"{pip_path} install --upgrade pip && {pip_path} install -r {requirements_path}",
+            warn=True,
+        )
 
     def generate_sagemaker_reports(self):
         """
