@@ -14,9 +14,9 @@
 
 **NOTE: If you are creating a PR for a new framework version, please ensure success of the standard, rc, and efa sagemaker remote tests by updating the dlc_developer_config.toml file:**
 
-- [ ] Revision A: `sagemaker_remote_tests = "standard"`
-- [ ] Revision B: `sagemaker_remote_tests = "rc"`
-- [ ] Revision C: `sagemaker_remote_tests = "efa"`
+- [ ] `sagemaker_remote_tests = true`
+- [ ] `sagemaker_efa_tests = true`
+- [ ] `sagemaker_rc_tests = true`
 
 **Additionally, please run the sagemaker local tests in at least one revision:**
 - [ ] `sagemaker_local_tests = true`
@@ -49,6 +49,6 @@
 
 #### Benchmark Testing Checklist
 * When creating a PR:
-- [ ] I've modified `dlc_developer_config.toml` in my PR branch by setting `benchmark_mode = true`
+- [ ] I've modified `dlc_developer_config.toml` in my PR branch by setting `ec2_benchmark_tests = true` or `sagemaker_benchmark_tests = true`
 
 By submitting this pull request, I confirm that my contribution is made under the terms of the Apache 2.0 license. I confirm that you can use, modify, copy, and redistribute this contribution, under the terms of your choice.
