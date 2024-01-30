@@ -145,6 +145,7 @@ def pytest_configure(config):
     config.addinivalue_line("markers", "neuronx_test(): mark as neuronx image test")
     config.addinivalue_line("markers", "gdrcopy(): mark as gdrcopy integration test")
 
+
 def pytest_runtest_setup(item):
     if item.config.getoption("--efa"):
         efa_tests = [mark for mark in item.iter_markers(name="efa")]
