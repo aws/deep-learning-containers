@@ -236,7 +236,7 @@ class TestReportGenerator:
 
         # install venvs in parallel
         with futures.ThreadPoolExecutor() as executor:
-            executor.map(generate_sm_venvs, venv_paths)
+            executor.map(self.generate_sm_venvs, venv_paths)
         
         for venv in venv_paths:
             pytest_framework_path = os.path.basename(venv)
