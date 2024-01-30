@@ -4,6 +4,7 @@ import os
 import re
 
 from concurrent import futures
+from venv import EnvBuilder
 
 from invoke.context import Context
 
@@ -211,11 +212,10 @@ class TestReportGenerator:
 
     @staticmethod
     def generate_sm_venvs(venv_path):
-        ctx.run(f"virtualenv {venv_path}")
-        base_path = os.path.dirname(venv_path)
-        with ctx.cd(base_path):
-            with ctx.prefix(f"source {os.path.join(venv_path, 'bin', 'activate')}"):
-                ctx.run("pip install -r requirements.txt", warn=True)
+        ctx = Context()
+        EnvBuilder(with_pip=True).create(venv_path)
+        requirements_path = os.path.join(os.path.dirname(venv_path), "requirements.txt")
+        ctx.run(f"{venv_path}/bin/pip install -r {requirements_path}", warn=True)
 
     def generate_sagemaker_reports(self):
         """
