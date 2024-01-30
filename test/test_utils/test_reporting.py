@@ -217,7 +217,7 @@ class TestReportGenerator:
         requirements_path = os.path.join(os.path.dirname(venv_path), "requirements.txt")
         pip_path = os.path.join(venv_path, "bin", "pip")
         ctx.run(
-            f"{pip_path} install --upgrade pip && {pip_path} install -r {requirements_path}",
+            f"{pip_path} install -r {requirements_path}",
             warn=True,
         )
 
@@ -237,6 +237,7 @@ class TestReportGenerator:
             venv_paths.append(os.path.join(pytest_framework_path, f".{repo.replace('/', '-')}"))
 
         # install venvs in parallel
+        ctx.run("pip install --upgrade pip")
         with futures.ThreadPoolExecutor() as executor:
             executor.map(self.generate_sm_venvs, venv_paths)
 
