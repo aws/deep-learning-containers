@@ -357,6 +357,7 @@ ARG CUDA_HOME
 ARG TORCH_CUDA_ARCH_LIST
 ARG NCCL_ASYNC_ERROR_HANDLING
 ARG SMP_URL
+ARG SMD_DATA_PARALLEL_URL
 
 # Selectively enable PyTorch Verbose Logging
 ENV PYTORCH_API_USAGE_STDERR=1
@@ -377,6 +378,9 @@ RUN /opt/conda/bin/mamba install -y python=${PYTHON_SHORT_VERSION} pytorch=${PYT
 # Install SageMaker Profiler Binary
 RUN apt-get update && apt-get install -y libunwind-dev && apt-get clean \
  && pip install --no-cache-dir -U ${SMP_URL}
+
+# Install SM Distributed DataParallel binary
+RUN SMDATAPARALLEL_PT=1 pip install --no-cache-dir ${SMD_DATA_PARALLEL_URL}
 
 # CUDA libraries should be installed after pytorch installation command to reduce memory size of single layer.
 # If single layer is huge in size (like 17 GB), then ECR pull can timeout on smaller EC2 instances like P3.2x.
