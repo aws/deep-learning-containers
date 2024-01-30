@@ -30,7 +30,7 @@
             "reason_to_ignore": "vulnerability from Linux kernel 5.4.0 in base image"
         },
         {
-            "description": "It was discovered that the CIFS network file system implementation in\n the Linux kernel did not properly validate the server frame size in\n certain situation, leading to an out-of-bounds read vulnerability. An\n attacker could use this to construct a malicious CIFS image that, when\n operated on, could cause a denial of service (system crash) or possibly\n expose sensitive information.",
+            "description": "\n It was discovered that the CIFS network file system implementation in\n the Linux kernel did not properly validate the server frame size in\n certain situation, leading to an out-of-bounds read vulnerability. An\n attacker could use this to construct a malicious CIFS image that, when\n operated on, could cause a denial of service (system crash) or possibly\n expose sensitive information.",
             "vulnerability_id": "CVE-2023-6606",
             "name": "CVE-2023-6606",
             "package_name": "linux",
