@@ -137,7 +137,7 @@ release_images:
     version: "2.1.0"
     hf_transformers: "4.37.0"
     arch_type: "x86"
-    training:
+    inference:
       device_types: ["cpu"]
       python_versions: [ "py310" ]
       os_version: "ubuntu22.04"
@@ -149,7 +149,7 @@ release_images:
     version: "2.1.0"
     hf_transformers: "4.37.0"
     arch_type: "x86"
-    training:
+    inference:
       device_types: ["gpu"]
       python_versions: [ "py310" ]
       os_version: "ubuntu20.04"
