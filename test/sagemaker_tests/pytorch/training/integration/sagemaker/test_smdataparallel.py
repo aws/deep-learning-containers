@@ -73,7 +73,6 @@ def can_run_smdataparallel_efa(ecr_image):
 @pytest.mark.skip_cpu
 @pytest.mark.skip_trcomp_containers
 @pytest.mark.efa()
-@pytest.mark.skip_pt21_test
 @pytest.mark.skip_pt20_cuda121_tests
 def test_smdataparallel_throughput(
     framework_version, ecr_image, sagemaker_regions, efa_instance_type, tmpdir
@@ -114,7 +113,6 @@ def test_smdataparallel_throughput(
 @pytest.mark.skip_cpu
 @pytest.mark.skip_py2_containers
 @pytest.mark.skip_trcomp_containers
-@pytest.mark.skip_pt21_test
 @pytest.mark.skip_pt20_cuda121_tests
 @pytest.mark.team("smdataparallel")
 def test_smdataparallel_mnist_script_mode_multigpu(
@@ -124,7 +122,7 @@ def test_smdataparallel_mnist_script_mode_multigpu(
     Tests SM Distributed DataParallel single-node via script mode
     """
     validate_or_skip_smdataparallel(ecr_image)
-    instance_type = "ml.p3.16xlarge"
+    instance_type = "ml.p4d.24xlarge"
     distribution = {"smdistributed": {"dataparallel": {"enabled": True}}}
     with timeout(minutes=DEFAULT_TIMEOUT):
         estimator_parameter = {
@@ -150,12 +148,11 @@ def test_smdataparallel_mnist_script_mode_multigpu(
 @pytest.mark.flaky(reruns=2)
 @pytest.mark.efa()
 @pytest.mark.skip_trcomp_containers
-@pytest.mark.skip_pt21_test
 @pytest.mark.skip_pt20_cuda121_tests
 @pytest.mark.team("smdataparallel")
 @pytest.mark.parametrize(
     "efa_instance_type",
-    get_efa_test_instance_type(default=["ml.p3.16xlarge", "ml.p4d.24xlarge"]),
+    get_efa_test_instance_type(default=["ml.p4d.24xlarge"]),
     indirect=True,
 )
 def test_smdataparallel_mnist(ecr_image, sagemaker_regions, efa_instance_type, tmpdir):
@@ -190,10 +187,9 @@ def test_smdataparallel_mnist(ecr_image, sagemaker_regions, efa_instance_type, t
 @pytest.mark.flaky(reruns=2)
 @pytest.mark.efa()
 @pytest.mark.skip_trcomp_containers
-@pytest.mark.skip_pt21_test
 @pytest.mark.skip_pt20_cuda121_tests
 @pytest.mark.parametrize(
-    "efa_instance_type", get_efa_test_instance_type(default=["ml.p3.16xlarge"]), indirect=True
+    "efa_instance_type", get_efa_test_instance_type(default=["ml.p4d.24xlarge"]), indirect=True
 )
 @pytest.mark.team("smdataparallel")
 def test_hc_smdataparallel_mnist(ecr_image, sagemaker_regions, efa_instance_type, tmpdir):

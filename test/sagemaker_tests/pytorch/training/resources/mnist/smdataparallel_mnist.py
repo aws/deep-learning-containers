@@ -41,7 +41,7 @@ else:
 
     # set default instance type to p3.16
     if "SAGEMAKER_INSTANCE_TYPE" not in os.environ:
-        os.environ["SAGEMAKER_INSTANCE_TYPE"] = "ml.p3.16xlarge"
+        os.environ["SAGEMAKER_INSTANCE_TYPE"] = "ml.p4d.24xlarge"
 
     dist.init_process_group(backend="smddp")
 
