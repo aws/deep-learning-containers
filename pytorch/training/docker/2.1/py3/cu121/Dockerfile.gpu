@@ -477,6 +477,8 @@ RUN /opt/conda/bin/mamba install -y -c conda-forge \
   seaborn \
  && /opt/conda/bin/mamba clean -afy
 
+ENV LD_LIBRARY_PATH="/opt/conda/lib/python${PYTHON_SHORT_VERSION}/site-packages/smdistributed/dataparallel/lib:$LD_LIBRARY_PATH"
+
 WORKDIR /
 
 RUN HOME_DIR=/root \
