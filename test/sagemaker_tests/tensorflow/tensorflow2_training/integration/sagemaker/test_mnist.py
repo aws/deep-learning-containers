@@ -81,7 +81,7 @@ def _test_mnist_function(ecr_image, sagemaker_session, instance_type, framework_
 def test_hc_mnist(ecr_image, sagemaker_regions, instance_type, framework_version):
     from sagemaker.instance_group import InstanceGroup
 
-    instance_type = instance_type or "ml.c5.2xlarge"
+    instance_type = instance_type or "ml.c5.xlarge"
     training_group = InstanceGroup("train_group", instance_type, 1)
     invoke_sm_helper_function(
         ecr_image, sagemaker_regions, _test_mnist_hc_function, [training_group], framework_version
@@ -347,9 +347,9 @@ def _test_hc_s3_plugin_function(ecr_image, sagemaker_session, instance_group, fr
             "throttle-secs": 1,
             # Without the patch training jobs would fail around 100th to
             # 150th step
-            "max-steps": 250,
+            "max-steps": 200,
             # Large batch size would result in a larger checkpoint file
-            "batch-size": 2048,
+            "batch-size": 1024,
             # This makes the training job exporting model during training.
             # Stale model garbage collection will also be performed.
             "export-model-during-training": True,
