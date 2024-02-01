@@ -81,7 +81,7 @@ def _test_mnist_function(ecr_image, sagemaker_session, instance_type, framework_
 def test_hc_mnist(ecr_image, sagemaker_regions, instance_type, framework_version):
     from sagemaker.instance_group import InstanceGroup
 
-    instance_type = instance_type or "ml.c5.xlarge"
+    instance_type = instance_type or "ml.c5.2xlarge"
     training_group = InstanceGroup("train_group", instance_type, 1)
     invoke_sm_helper_function(
         ecr_image, sagemaker_regions, _test_mnist_hc_function, [training_group], framework_version
@@ -365,10 +365,10 @@ def _test_hc_s3_plugin_function(ecr_image, sagemaker_session, instance_group, fr
         key_prefix="scriptmode/mnist-distributed",
     )
     estimator.fit(inputs, job_name=unique_name_from_base("test-tf-hc-sm-s3-mnist"))
-    print("=========== Model data location ===============")
-    print(estimator.model_data)
-    print("=========== Model dir           ===============")
-    print(estimator.model_dir)
+    # print("=========== Model data location ===============")
+    # print(estimator.model_data)
+    # print("=========== Model dir           ===============")
+    # print(estimator.model_dir)
     _assert_checkpoint_exists_v2(sagemaker_session.boto_region_name, estimator.model_dir, 10)
 
 
