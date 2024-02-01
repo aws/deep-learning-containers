@@ -31,6 +31,38 @@
       "severity": "HIGH",
       "status": "ACTIVE",
       "title": "CVE-2023-4863 - Pillow, opencv-python"
+    },
+    {
+      "description": "Pillow through 10.1.0 allows PIL.ImageMath.eval Arbitrary Code Execution via the environment parameter, a different vulnerability than CVE-2022-22817 (which was about the expression parameter).",
+      "vulnerability_id": "CVE-2023-50447",
+      "name": "CVE-2023-50447",
+      "package_name": "Pillow",
+      "package_details":
+      {
+        "file_path": "opt/conda/lib/python3.10/site-packages/Pillow-10.0.0.dist-info/METADATA",
+        "name": "Pillow",
+        "package_manager": "PYTHONPKG",
+        "version": "10.0.0",
+        "release": null
+      },
+      "remediation":
+      {
+        "recommendation":
+        {
+          "text": "None Provided"
+        }
+      },
+      "cvss_v3_score": 8.1,
+      "cvss_v30_score": 0.0,
+      "cvss_v31_score": 8.1,
+      "cvss_v2_score": 0.0,
+      "cvss_v3_severity": "HIGH",
+      "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2023-50447",
+      "source": "NVD",
+      "severity": "HIGH",
+      "status": "ACTIVE",
+      "title": "CVE-2023-50447 - Pillow",
+      "reason_to_ignore": "N/A"
     }
   ],
   "opencv-python":
@@ -215,6 +247,38 @@
         "package_manager": "OS",
         "version": "5.4.0",
         "release": "169.187"
+      },
+      "remediation":
+      {
+        "recommendation":
+        {
+          "text": "None Provided"
+        }
+      },
+      "cvss_v3_score": 7.1,
+      "cvss_v30_score": 0.0,
+      "cvss_v31_score": 7.1,
+      "cvss_v2_score": 0.0,
+      "cvss_v3_severity": "HIGH",
+      "source_url": "https://people.canonical.com/~ubuntu-security/cve/2023/CVE-2023-6606.html",
+      "source": "UBUNTU_CVE",
+      "severity": "HIGH",
+      "status": "ACTIVE",
+      "title": "CVE-2023-6606 - linux",
+      "reason_to_ignore": "N/A"
+    },
+    {
+      "description": "\n It was discovered that the CIFS network file system implementation in\n the Linux kernel did not properly validate the server frame size in\n certain situation, leading to an out-of-bounds read vulnerability. An\n attacker could use this to construct a malicious CIFS image that, when\n operated on, could cause a denial of service (system crash) or possibly\n expose sensitive information.",
+      "vulnerability_id": "CVE-2023-6606",
+      "name": "CVE-2023-6606",
+      "package_name": "linux",
+      "package_details":
+      {
+        "file_path": null,
+        "name": "linux",
+        "package_manager": "OS",
+        "version": "5.4.0",
+        "release": "170.188"
       },
       "remediation":
       {
