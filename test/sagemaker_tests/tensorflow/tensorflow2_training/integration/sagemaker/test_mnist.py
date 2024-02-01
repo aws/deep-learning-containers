@@ -347,9 +347,9 @@ def _test_hc_s3_plugin_function(ecr_image, sagemaker_session, instance_group, fr
             "throttle-secs": 1,
             # Without the patch training jobs would fail around 100th to
             # 150th step
-            "max-steps": 200,
+            "max-steps": 250,
             # Large batch size would result in a larger checkpoint file
-            "batch-size": 1024,
+            "batch-size": 2048,
             # This makes the training job exporting model during training.
             # Stale model garbage collection will also be performed.
             "export-model-during-training": True,
