@@ -257,7 +257,7 @@ RUN ${PIP} install --no-cache-dir -U \
 RUN ${PIP} uninstall -y tensorflow tensorflow-gpu
 RUN ${PIP} install --no-cache-dir -U \
     ${TF_URL} \
-    tensorflow-io \
+    "tensorflow-io==0.34.0" \
     tensorflow-datasets
 
 RUN $PYTHON -m pip install --no-cache-dir -U \
