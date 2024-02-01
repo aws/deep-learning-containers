@@ -151,6 +151,7 @@ RUN ${PIP} install --no-cache-dir -U \
     python-dateutil \
     requests \
     "awscli<2" \
+    urllib3 \
     mpi4py \
     # Let's install TensorFlow separately in the end to avoid
     # the library version to be overwritten
@@ -160,7 +161,6 @@ RUN ${PIP} install --no-cache-dir -U \
     opencv-python \
     werkzeug \
     psutil \
-    urllib3 \
     "protobuf<4"
 
 ADD https://raw.githubusercontent.com/aws/deep-learning-containers/master/src/deep_learning_container.py /usr/local/bin/deep_learning_container.py
