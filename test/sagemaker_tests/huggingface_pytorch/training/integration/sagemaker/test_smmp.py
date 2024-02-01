@@ -26,7 +26,7 @@ import sagemaker
 hyperparameters = {
     "model_name_or_path": "hf-internal-testing/tiny-random-RobertaModel",
     "task_name": "mnli",
-    "per_device_train_batch_size": 2,
+    "per_device_train_batch_size": 2,  # batch sizes must be divisible by microbatche size
     "per_device_eval_batch_size": 2,
     "do_train": True,
     "do_eval": True,
