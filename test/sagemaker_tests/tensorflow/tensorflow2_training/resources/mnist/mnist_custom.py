@@ -189,8 +189,8 @@ def main(args):
             f"Test Accuracy: {test_accuracy.result()}",
         )
         if args.current_host == args.hosts[0]:
+            print("TRYING TO SAVE HERE")
             ckpt_manager.save()
-
-
+    print("EXITING...")
 if __name__ == "__main__":
     main(parse_args())
