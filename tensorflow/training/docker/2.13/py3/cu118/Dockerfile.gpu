@@ -355,7 +355,7 @@ RUN $PYTHON -m pip install --no-cache-dir -U \
     smclarify
 
 # install sagemaker-tensorflow from source
-ARG SAGEMAKER_TENSORFLOW_TAG=v1.19.1
+ARG SAGEMAKER_TENSORFLOW_TAG=v1.19.0
 RUN git clone -b tf-2 https://github.com/aws/sagemaker-tensorflow-extensions.git \
     && cd sagemaker-tensorflow-extensions \
     && git checkout tags/$SAGEMAKER_TENSORFLOW_TAG -b $SAGEMAKER_TENSORFLOW_TAG \

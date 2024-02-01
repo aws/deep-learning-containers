@@ -47,7 +47,7 @@ build_inference = false
 datetime_tag = false
 # Note: Need to build the images at least once with datetime_tag = false
 # before disabling new builds, or tests will fail
-do_build = false
+do_build = true
 autopatch_build = false
 
 [test]
@@ -97,7 +97,7 @@ use_scheduler = false
 # Standard Framework Training
 dlc-pr-mxnet-training = ""
 dlc-pr-pytorch-training = ""
-dlc-pr-tensorflow-2-training = "tensorflow/training/buildspec-2-12.yml"
+dlc-pr-tensorflow-2-training = ""
 dlc-pr-autogluon-training = ""
 
 # HuggingFace Training
