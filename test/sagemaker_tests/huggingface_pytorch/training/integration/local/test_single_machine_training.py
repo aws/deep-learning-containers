@@ -15,7 +15,7 @@ from __future__ import absolute_import
 import pytest
 from sagemaker.huggingface import HuggingFace
 
-from ...integration import ROLE, distrilbert_script, distrilbert_torch_compiled_script
+from ...integration import ROLE, distilbert_script, distilbert_torch_compiled_script
 
 
 @pytest.mark.model("hf_bert")
@@ -35,7 +35,7 @@ def test_distilbert_base(
     }
 
     estimator = HuggingFace(
-        entry_point=distrilbert_script,
+        entry_point=distilbert_script,
         instance_type="local_gpu",
         sagemaker_session=sagemaker_local_session,
         image_uri=docker_image,
@@ -65,7 +65,7 @@ def test_distilbert_base_torch_compiled(
     }
 
     estimator = HuggingFace(
-        entry_point=distrilbert_torch_compiled_script,
+        entry_point=distilbert_torch_compiled_script,
         instance_type="local_gpu",
         sagemaker_session=sagemaker_local_session,
         image_uri=docker_image,
