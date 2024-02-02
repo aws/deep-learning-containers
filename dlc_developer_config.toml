@@ -69,7 +69,7 @@ ec2_tests_on_heavy_instances = false
 sagemaker_local_tests = false
 
 # run standard sagemaker remote tests from test/sagemaker_tests
-sagemaker_remote_tests = true
+sagemaker_remote_tests = false
 # run efa sagemaker tests
 sagemaker_efa_tests = false
 # run release_candidate_integration tests
