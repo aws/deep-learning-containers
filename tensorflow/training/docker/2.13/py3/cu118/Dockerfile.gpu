@@ -264,6 +264,8 @@ ARG TF_URL=https://framework-binaries.s3.us-west-2.amazonaws.com/tensorflow/r2.1
 
 RUN ${PIP} install --no-cache-dir -U \
    ${TF_URL} \
+   # Due to https://github.com/tensorflow/io/issues/1912, Need to Lock tensorflow-io to 0.33.0
+   # TO-DO: Remove Limit for TF IO Once Fixed
    "tensorflow-io==0.33.0" \
    tensorflow-datasets
 
@@ -332,7 +334,9 @@ RUN ${PIP} install --no-cache-dir -U \
 RUN ${PIP} uninstall -y tensorflow tensorflow-gpu \
   ; ${PIP} install --no-cache-dir -U \
     ${TF_URL} \
-    "tensorflow-io==0.33.0"\
+    # Due to https://github.com/tensorflow/io/issues/1912, Need to Lock tensorflow-io to 0.33.0
+    # TO-DO: Remove Limit for TF IO Once Fixed
+    "tensorflow-io==0.33.0" \
     tensorflow-datasets
 
 RUN $PYTHON -m pip install --no-cache-dir -U \
