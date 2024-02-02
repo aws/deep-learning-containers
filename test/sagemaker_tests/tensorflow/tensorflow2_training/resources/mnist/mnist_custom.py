@@ -190,5 +190,7 @@ def main(args):
         )
         if args.current_host == args.hosts[0]:
             ckpt_manager.save()
+
+
 if __name__ == "__main__":
     main(parse_args())
