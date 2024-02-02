@@ -16,7 +16,6 @@ retrying
 gitpython
 pytz
 toml
-lxml==4.9.4
 scrapy
 crochet
 tenacity

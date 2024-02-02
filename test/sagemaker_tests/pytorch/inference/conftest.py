@@ -99,15 +99,6 @@ NO_P4_REGIONS = [
     "il-central-1",
 ]
 
-# TODO: Expand this list
-G5_AVAILABLE_REGIONS = [
-    "ca-central-1",
-    "us-west-2",
-    "us-east-1",
-    "us-east-2",
-    "eu-west-1",
-]
-
 
 def pytest_addoption(parser):
     parser.addoption("--build-image", "-D", action="store_true")
@@ -343,11 +334,8 @@ def skip_gpu_instance_restricted_regions(region, instance_type):
         (region in NO_P2_REGIONS and instance_type.startswith("ml.p2"))
         or (region in NO_P3_REGIONS and instance_type.startswith("ml.p3"))
         or (region in NO_P4_REGIONS and instance_type.startswith("ml.p4"))
-        or (region not in G5_AVAILABLE_REGIONS and instance_type.startswith("ml.g5"))
     ):
-        pytest.skip(
-            "Skipping GPU test in region {} with instance type {}".format(region, instance_type)
-        )
+        pytest.skip("Skipping GPU test in region {}".format(region))
 
 
 @pytest.fixture(autouse=True)

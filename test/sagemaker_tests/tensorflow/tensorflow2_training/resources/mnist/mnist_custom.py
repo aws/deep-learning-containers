@@ -159,7 +159,7 @@ def main(args):
     net = LeNet()
     net.build(input_shape=(None, 28, 28, 1))
 
-    optimizer = tf.keras.optimizers.legacy.Adam()
+    optimizer = tf.keras.optimizers.Adam()
 
     train_loss = tf.keras.metrics.Mean(name="train_loss")
     train_accuracy = tf.keras.metrics.SparseCategoricalAccuracy(name="train_accuracy")
@@ -188,6 +188,7 @@ def main(args):
             f"Test Loss: {test_loss.result()}",
             f"Test Accuracy: {test_accuracy.result()}",
         )
+
         if args.current_host == args.hosts[0]:
             ckpt_manager.save()
 

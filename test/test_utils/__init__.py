@@ -23,7 +23,6 @@ from datetime import date, datetime
 from retrying import retry
 from pathlib import Path
 import dataclasses
-import uuid
 
 # from security import EnhancedJSONEncoder
 
@@ -256,14 +255,6 @@ class CudaVersionTagNotFoundException(Exception):
     pass
 
 
-class DockerImagePullException(Exception):
-    """
-    When a docker image could not be pulled from ECR
-    """
-
-    pass
-
-
 class EnhancedJSONEncoder(json.JSONEncoder):
     """
     EnhancedJSONEncoder is required to dump dataclass objects as JSON.
@@ -296,8 +287,6 @@ def get_dockerfile_path_for_image(image_uri, python_version=None):
         framework_path = framework.replace("_", os.path.sep)
     elif "habana" in image_uri:
         framework_path = os.path.join("habana", framework)
-    elif "stabilityai" in framework:
-        framework_path = framework.replace("_", os.path.sep)
     else:
         framework_path = framework
 
@@ -328,6 +317,7 @@ def get_dockerfile_path_for_image(image_uri, python_version=None):
     neuron_sdk_version = get_neuron_sdk_version_from_tag(image_uri)
 
     dockerfile_name = get_expected_dockerfile_filename(device_type, image_uri)
+
     dockerfiles_list = [
         path
         for path in glob(os.path.join(python_version_path, "**", dockerfile_name), recursive=True)
@@ -632,8 +622,13 @@ def get_allowlist_path_for_enhanced_scan_from_env_variable():
     return os.getenv("ALLOWLIST_PATH_ENHSCAN")
 
 
+def is_benchmark_dev_context():
+    return config.is_benchmark_mode_enabled()
+
+
 def is_rc_test_context():
-    return config.is_sm_rc_test_enabled()
+    sm_remote_tests_val = config.get_sagemaker_remote_tests_config_value()
+    return sm_remote_tests_val == config.AllowedSMRemoteConfigValues.RC.value
 
 
 def is_covered_by_ec2_sm_split(image_uri):
@@ -1742,26 +1737,6 @@ def get_all_the_tags_of_an_image_from_ecr(ecr_client, image_uri):
     return response["imageDetails"][0]["imageTags"]
 
 
-def get_image_push_time_from_ecr(ecr_client, image_uri):
-    """
-    Uses ecr describe to get the time when an image was pushed in the ECR.
-
-    :param ecr_client: boto3 Client for ECR
-    :param image_uri: str Image URI
-    :return: datetime.datetime Object, Returns time
-    """
-    account_id = get_account_id_from_image_uri(image_uri)
-    image_repo_name, image_tag = get_repository_and_tag_from_image_uri(image_uri)
-    response = ecr_client.describe_images(
-        registryId=account_id,
-        repositoryName=image_repo_name,
-        imageIds=[
-            {"imageTag": image_tag},
-        ],
-    )
-    return response["imageDetails"][0]["imagePushedAt"]
-
-
 def get_sha_of_an_image_from_ecr(ecr_client, image_uri):
     """
     Uses ecr describe to get SHA of an image.
@@ -2248,7 +2223,7 @@ def get_installed_python_packages_with_version(docker_exec_command: str):
         import json; \
         print(json.dumps([{'name':d.key, 'version':d.version} for d in pkg_resources.working_set]))" """
 
-    run_output = run(f"{docker_exec_command} {python_cmd_to_extract_package_set}", hide=True)
+    run_output = run(f"{docker_exec_command} {python_cmd_to_extract_package_set}")
     list_of_package_data_dicts = json.loads(run_output.stdout)
 
     for package_data_dict in list_of_package_data_dicts:
@@ -2260,57 +2235,3 @@ def get_installed_python_packages_with_version(docker_exec_command: str):
         package_version_dict[package_name] = package_data_dict["version"]
 
     return package_version_dict
-
-
-def get_installed_python_packages_using_image_uri(context, image_uri, container_name=""):
-    """
-    This method returns the python package versions that are installed within and image_uri. This method
-    handles all the overhead of creating a container for the image and then running the command on top of
-    it and then removing the container.
-
-    :param context: Invoke context object
-    :param image_uri: str, Image URI
-    :param container_name: str, Custom name for the container
-    :return: Dict, Dictionary with key=package_name and value=package_version in str
-    """
-    container_name = container_name or get_container_name(
-        f"py-version-extraction-{uuid.uuid4()}", image_uri
-    )
-    start_container(container_name, image_uri, context)
-    docker_exec_command_for_current_image = f"""docker exec --user root {container_name}"""
-    current_image_package_version_dict = get_installed_python_packages_with_version(
-        docker_exec_command=docker_exec_command_for_current_image
-    )
-    stop_and_remove_container(container_name=container_name, context=context)
-    return current_image_package_version_dict
-
-
-def get_image_spec_from_buildspec(image_uri, dlc_folder_path):
-    """
-    This method reads the BuildSpec file for the given image_uri and returns that image_spec within the BuildSpec file that corresponds
-    to the given image_uri.
-
-    :param image_uri: str, Image URI
-    :param dlc_folder_path: str, Path of the DLC folder on the current host
-    :return: dict, the image_spec dictionary corresponding to the given image
-    """
-    from src.buildspec import Buildspec
-
-    _, image_tag = get_repository_and_tag_from_image_uri(image_uri)
-    buildspec_path = get_buildspec_path(dlc_folder_path)
-    buildspec_def = Buildspec()
-    buildspec_def.load(buildspec_path)
-    corresponding_image_spec = None
-
-    for _, image_spec in buildspec_def["images"].items():
-        if image_tag.startswith(image_spec["tag"]):
-            if corresponding_image_spec:
-                raise ValueError(
-                    f"""Mutliple tags - {corresponding_image_spec["tag"]}, {image_spec["tag"]} found for the image {image_uri}"""
-                )
-            corresponding_image_spec = image_spec
-
-    if not corresponding_image_spec:
-        raise ValueError(f"No corresponding entry found for {image_uri} in {buildspec_path}")
-
-    return corresponding_image_spec

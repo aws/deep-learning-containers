@@ -158,13 +158,11 @@ def _predictor(
     )
 
     with local_mode_utils.lock():
-        predictor = None
         try:
             predictor = model.deploy(1, instance_type)
             yield predictor
         finally:
-            if predictor:
-                predictor.delete_endpoint()
+            predictor.delete_endpoint()
 
 
 def _assert_prediction_npy_json(predictor, test_loader, content_type, accept):

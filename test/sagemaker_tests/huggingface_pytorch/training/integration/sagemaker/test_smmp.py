@@ -22,19 +22,17 @@ from sagemaker.huggingface import HuggingFace
 from ...integration.sagemaker.timeout import timeout
 import sagemaker
 
-
 # hyperparameters, which are passed into the training job
 hyperparameters = {
-    "model_name_or_path": "hf-internal-testing/tiny-random-RobertaModel",
+    "model_name_or_path": "roberta-large",
     "task_name": "mnli",
-    "per_device_train_batch_size": 2,  # batch size must be divisible by the number of microbatches
-    "per_device_eval_batch_size": 2,
+    "per_device_train_batch_size": 8,
+    "per_device_eval_batch_size": 4,
     "do_train": True,
     "do_eval": True,
     "do_predict": True,
     "output_dir": "/opt/ml/model",
-    "max_steps": 10,
-    "max_train_samples": 30,
+    "max_steps": 500,
 }
 
 # configuration for running training on smdistributed Model Parallel
@@ -57,7 +55,7 @@ smp_options = {
 distribution = {"smdistributed": {"modelparallel": smp_options}, "mpi": mpi_options}
 
 
-def get_transformers_version_from_image_uri(ecr_image):
+def get_transformers_version(ecr_image):
     transformers_version_search = re.search(r"transformers(\d+(\.\d+){1,2})", ecr_image)
     if transformers_version_search:
         transformers_version = transformers_version_search.group(1)
@@ -106,7 +104,7 @@ def _test_smmp_gpu_function(ecr_image, sagemaker_session, py_version, instances_
     instance_count = instances_quantity
     volume_size = 400
 
-    transformers_version = get_transformers_version_from_image_uri(ecr_image)
+    transformers_version = get_transformers_version(ecr_image)
     git_config = {
         "repo": "https://github.com/huggingface/transformers.git",
         "branch": "v" + transformers_version,

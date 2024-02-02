@@ -89,7 +89,7 @@ def test_telemetry_instance_tag_success_gpu(
 @pytest.mark.model("N/A")
 @pytest.mark.processor("cpu")
 @pytest.mark.integration("telemetry")
-@pytest.mark.timeout(2400)
+@pytest.mark.timeout(1200)
 @pytest.mark.parametrize("ec2_instance_type", ["c4.4xlarge"], indirect=True)
 def test_telemetry_instance_tag_success_cpu(
     cpu,
@@ -305,7 +305,7 @@ def _run_tag_failure_IMDSv1_disabled(image_uri, ec2_client, ec2_instance, ec2_co
         ec2_client.delete_tags(Resources=[ec2_instance_id], Tags=[{"Key": expected_tag_key}])
 
     # Disable access to EC2 instance metadata
-    ec2_utils.kill_background_processes_and_run_apt_get_update(ec2_connection)
+    ec2_connection.run(f"sudo apt-get update -y")
     ec2_connection.run(f"sudo apt-get install -y apt-transport-https")
     ec2_connection.run(f"sudo apt-get install -y net-tools")
     ec2_connection.run(f"sudo route add -host 169.254.169.254 reject")

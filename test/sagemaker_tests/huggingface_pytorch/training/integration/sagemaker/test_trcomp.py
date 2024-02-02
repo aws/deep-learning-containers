@@ -18,10 +18,7 @@ import pytest
 import sagemaker.huggingface
 from sagemaker.huggingface import HuggingFace, TrainingCompilerConfig
 
-from test.test_utils import (
-    get_framework_and_version_from_tag,
-    get_transformers_version_from_image_uri,
-)
+from test.test_utils import get_framework_and_version_from_tag, get_cuda_version_from_tag
 from packaging.version import Version
 from packaging.specifiers import SpecifierSet
 from ...integration import DEFAULT_TIMEOUT
@@ -57,6 +54,15 @@ metric_definitions = [
     {"Name": "f1", "Regex": "f1.*=\D*(.*?)$"},
     {"Name": "exact_match", "Regex": "exact_match.*=\D*(.*?)$"},
 ]
+
+
+def get_transformers_version(ecr_image):
+    transformers_version_search = re.search(r"transformers(\d+(\.\d+){1,2})", ecr_image)
+    if transformers_version_search:
+        transformers_version = transformers_version_search.group(1)
+        return transformers_version
+    else:
+        raise LookupError("HF transformers version not found in image URI")
 
 
 @pytest.fixture
@@ -114,7 +120,7 @@ class TestSingleNodeSingleGPU:
         """
         Tests the default configuration of SM trcomp
         """
-        transformers_version = get_transformers_version_from_image_uri(ecr_image)
+        transformers_version = get_transformers_version(ecr_image)
         git_config = {
             "repo": "https://github.com/huggingface/transformers.git",
             "branch": "v" + transformers_version,
@@ -167,7 +173,7 @@ class TestSingleNodeSingleGPU:
         """
         Tests the explicit enabled configuration of SM trcomp
         """
-        transformers_version = get_transformers_version_from_image_uri(ecr_image)
+        transformers_version = get_transformers_version(ecr_image)
         git_config = {
             "repo": "https://github.com/huggingface/transformers.git",
             "branch": "v" + transformers_version,
@@ -220,7 +226,7 @@ class TestSingleNodeSingleGPU:
         """
         Tests the debug mode configuration of SM trcomp
         """
-        transformers_version = get_transformers_version_from_image_uri(ecr_image)
+        transformers_version = get_transformers_version(ecr_image)
         git_config = {
             "repo": "https://github.com/huggingface/transformers.git",
             "branch": "v" + transformers_version,
@@ -305,7 +311,7 @@ class TestSingleNodeMultiGPU:
         """
         Tests the default configuration of SM trcomp
         """
-        transformers_version = get_transformers_version_from_image_uri(ecr_image)
+        transformers_version = get_transformers_version(ecr_image)
         git_config = {
             "repo": "https://github.com/huggingface/transformers.git",
             "branch": "v" + transformers_version,
@@ -392,7 +398,7 @@ class TestMultiNodeMultiGPU:
         """
         Tests the default configuration of SM trcomp
         """
-        transformers_version = get_transformers_version_from_image_uri(ecr_image)
+        transformers_version = get_transformers_version(ecr_image)
         git_config = {
             "repo": "https://github.com/huggingface/transformers.git",
             "branch": "v" + transformers_version,
