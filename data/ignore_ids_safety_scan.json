@@ -693,7 +693,8 @@
                 "53860":"Added in order to support tensorflow 1.15.5 and 2.10",
                 "53860":"Added in order to support tensorflow 1.15.5 and 2.10",
                 "59398":"Added in order to support tensorflow 1.15.5 and 2.10",
-                "59399":"Added in order to support tensorflow 1.15.5 and 2.10"
+                "59399":"Added in order to support tensorflow 1.15.5 and 2.10",
+                "64402":"Temporarily ignoring to patch CRITICAL vulnerabilties"
             }
         }
     },
