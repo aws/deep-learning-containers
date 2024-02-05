@@ -1,0 +1,31 @@
+{
+    "linux": [{
+        "description": " An out-of-bounds read vulnerability was found in smbCalcSize in fs/smb/client/netmisc.c in the Linux Kernel. This issue could allow a local attacker to crash the system or leak internal kernel information.",
+        "vulnerability_id": "CVE-2023-6606",
+        "name": "CVE-2023-6606",
+        "package_name": "linux",
+        "package_details": {
+            "file_path": null,
+            "name": "linux",
+            "package_manager": "OS",
+            "version": "5.4.0",
+            "release": "169.187"
+        },
+        "remediation": {
+            "recommendation": {
+                "text": "None Provided"
+            }
+        },
+        "cvss_v3_score": 7.1,
+        "cvss_v30_score": 0.0,
+        "cvss_v31_score": 7.1,
+        "cvss_v2_score": 0.0,
+        "cvss_v3_severity": "HIGH",
+        "source_url": "https://people.canonical.com/~ubuntu-security/cve/2023/CVE-2023-6606.html",
+        "source": "UBUNTU_CVE",
+        "severity": "HIGH",
+        "status": "ACTIVE",
+        "title": "CVE-2023-6606 - linux",
+        "reason_to_ignore": "N/A"
+    }]
+}
