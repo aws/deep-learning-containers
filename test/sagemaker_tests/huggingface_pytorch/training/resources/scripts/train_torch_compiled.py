@@ -82,6 +82,7 @@ if __name__ == "__main__":
     # define training args
     training_args = TrainingArguments(
         output_dir=args.model_dir,
+        dataloader_drop_last=True,
         num_train_epochs=args.epochs,
         per_device_train_batch_size=args.train_batch_size,
         per_device_eval_batch_size=args.eval_batch_size,
