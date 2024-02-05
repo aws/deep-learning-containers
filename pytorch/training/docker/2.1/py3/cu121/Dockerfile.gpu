@@ -6,7 +6,7 @@ ARG PYTORCH_VERSION_EC2=2.1.0
 ARG CONDA_CHANNEL=https://aws-ml-conda-ec2.s3.us-west-2.amazonaws.com
 # SageMaker Profiler Binary
 ARG SMP_URL=https://smppy.s3.amazonaws.com/pytorch/cu121/smprof-0.3.334-cp310-cp310-linux_x86_64.whl
-ARG SMD_DATA_PARALLEL_URL=https://smdataparallel.s3.amazonaws.com/binary/pytorch/2.1.0/cu121/2024-01-24/smdistributed_dataparallel-2.1.0-cp310-cp310-linux_x86_64.whl
+ARG SMD_DATA_PARALLEL_URL=https://smdataparallel.s3.amazonaws.com/binary/pytorch/2.1.0/cu121/2024-02-04/smdistributed_dataparallel-2.1.0-cp310-cp310-linux_x86_64.whl
 
 FROM nvidia/cuda:12.1.0-base-ubuntu20.04 AS base_image
 
