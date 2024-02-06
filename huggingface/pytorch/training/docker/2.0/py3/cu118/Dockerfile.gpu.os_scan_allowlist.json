@@ -31,6 +31,99 @@
       "severity": "HIGH",
       "status": "ACTIVE",
       "title": "CVE-2023-4863 - Pillow, opencv-python"
+    },
+    {
+      "description": "Pillow through 10.1.0 allows PIL.ImageMath.eval Arbitrary Code Execution via the environment parameter, a different vulnerability than CVE-2022-22817 (which was about the expression parameter).",
+      "vulnerability_id": "CVE-2023-50447",
+      "name": "CVE-2023-50447",
+      "package_name": "Pillow",
+      "package_details":
+      {
+        "file_path": "opt/conda/lib/python3.10/site-packages/Pillow-10.0.0.dist-info/METADATA",
+        "name": "Pillow",
+        "package_manager": "PYTHONPKG",
+        "version": "10.0.0",
+        "release": null
+      },
+      "remediation":
+      {
+        "recommendation":
+        {
+          "text": "None Provided"
+        }
+      },
+      "cvss_v3_score": 8.1,
+      "cvss_v30_score": 0.0,
+      "cvss_v31_score": 8.1,
+      "cvss_v2_score": 0.0,
+      "cvss_v3_severity": "HIGH",
+      "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2023-50447",
+      "source": "NVD",
+      "severity": "HIGH",
+      "status": "ACTIVE",
+      "title": "CVE-2023-50447 - Pillow",
+      "reason_to_ignore": "N/A"
+    },
+    {
+      "description": "Pillow through 10.1.0 allows PIL.ImageMath.eval Arbitrary Code Execution via the environment parameter, a different vulnerability than CVE-2022-22817 (which was about the expression parameter).",
+      "vulnerability_id": "CVE-2023-50447",
+      "name": "CVE-2023-50447",
+      "package_name": "Pillow",
+      "package_details":
+      {
+        "file_path": "opt/conda/lib/python3.10/site-packages/Pillow-10.1.0.dist-info/METADATA",
+        "name": "Pillow",
+        "package_manager": "PYTHONPKG",
+        "version": "10.1.0",
+        "release": null
+      },
+      "remediation":
+      {
+        "recommendation":
+        {
+          "text": "None Provided"
+        }
+      },
+      "cvss_v3_score": 8.1,
+      "cvss_v30_score": 0.0,
+      "cvss_v31_score": 8.1,
+      "cvss_v2_score": 0.0,
+      "cvss_v3_severity": "HIGH",
+      "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2023-50447",
+      "source": "NVD",
+      "severity": "HIGH",
+      "status": "ACTIVE",
+      "title": "CVE-2023-50447 - Pillow",
+      "reason_to_ignore": "N/A"
+    },
+    {
+      "description": "## Overview\n\nAffected versions of this package are vulnerable to Denial of Service (DoS) when using arbitrary strings as text input and the number of characters passed into `PIL.ImageFont.ImageFont.getmask()` is over a certain limit. This can lead to a system crash.\n\n## Details\n\nDenial of Service (DoS) describes a family of attacks, all aimed at making a system inaccessible to its intended and legitimate users.\n\nUnlike other vulnerabilities, DoS attacks usually do not aim at breaching security. Rather, they are focused on making websites and services unavailable to genuine users resulting in downtime.\n\nOne popular Denial of Service vulnerability is DDoS (a Distributed Denial of Service), an attack that attempts to clog network pipes to the system by generating a large volume of traffic from many machines.\n\nWhen it comes to open source libraries, DoS vulnerabilities allow attackers to trigger such a crash or crippling of the service by using a flaw either in the application code or from the use of open source ",
+      "vulnerability_id": "SNYK-PYTHON-PILLOW-6219984",
+      "name": "SNYK-PYTHON-PILLOW-6219984",
+      "package_name": "Pillow",
+      "package_details": {
+        "file_path": "opt/conda/lib/python3.10/site-packages/Pillow-10.0.0.dist-info/METADATA",
+        "name": "Pillow",
+        "package_manager": "PYTHONPKG",
+        "version": "10.0.0",
+        "release": null
+      },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
+      "cvss_v3_score": 7.5,
+      "cvss_v30_score": 0,
+      "cvss_v31_score": 7.5,
+      "cvss_v2_score": 0,
+      "cvss_v3_severity": "HIGH",
+      "source_url": "https://security.snyk.io/vuln/SNYK-PYTHON-PILLOW-6219984",
+      "source": "SNYK",
+      "severity": "HIGH",
+      "status": "ACTIVE",
+      "title": "IN1-PYTHON-PILLOW-6219984 - Pillow",
+      "reason_to_ignore": "N/A"
     }
   ],
   "opencv-python":
@@ -65,6 +158,35 @@
       "severity": "HIGH",
       "status": "ACTIVE",
       "title": "CVE-2023-4863 - Pillow, opencv-python"
+    },
+    {
+      "description": "## Overview\n\nAffected versions of this package are vulnerable to Denial of Service (DoS) if the size of individual glyphs extends beyond the bitmap image, when using `PIL.ImageFont.ImageFont` function. Exploiting this vulnerability could lead to a system crash.\n\n## Details\n\nDenial of Service (DoS) describes a family of attacks, all aimed at making a system inaccessible to its intended and legitimate users.\n\nUnlike other vulnerabilities, DoS attacks usually do not aim at breaching security. Rather, they are focused on making websites and services unavailable to genuine users resulting in downtime.\n\nOne popular Denial of Service vulnerability is DDoS (a Distributed Denial of Service), an attack that attempts to clog network pipes to the system by generating a large volume of traffic from many machines.\n\nWhen it comes to open source libraries, DoS vulnerabilities allow attackers to trigger such a crash or crippling of the service by using a flaw either in the application code or from the use of open source libra",
+      "vulnerability_id": "SNYK-PYTHON-PILLOW-6219986",
+      "name": "SNYK-PYTHON-PILLOW-6219986",
+      "package_name": "Pillow",
+      "package_details": {
+        "file_path": "opt/conda/lib/python3.10/site-packages/Pillow-10.0.0.dist-info/METADATA",
+        "name": "Pillow",
+        "package_manager": "PYTHONPKG",
+        "version": "10.0.0",
+        "release": null
+      },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
+      "cvss_v3_score": 7.5,
+      "cvss_v30_score": 0.0,
+      "cvss_v31_score": 7.5,
+      "cvss_v2_score": 0.0,
+      "cvss_v3_severity": "HIGH",
+      "source_url": "https://security.snyk.io/vuln/SNYK-PYTHON-PILLOW-6219986",
+      "source": "SNYK",
+      "severity": "HIGH",
+      "status": "ACTIVE",
+      "title": "IN1-PYTHON-PILLOW-6219986 - Pillow",
+      "reason_to_ignore": "N/A"
     }
   ],
   "org.apache.ant:ant":
@@ -135,40 +257,6 @@
       "title": "CVE-2023-43804 - urllib3"
     }
   ],
-  "pyarrow":
-  [
-    {
-      "description": "Deserialization of untrusted data in IPC and Parquet readers in PyArrow versions 0.14.0 to 14.0.0 allows arbitrary code execution. An application is vulnerable if it reads Arrow IPC, Feather or Parquet data from untrusted sources (for example user-supplied input files).\n\nThis vulnerability only affects PyArrow, not other Apache Arrow implementations or bindings.\n\nIt is recommended that users of PyArrow upgrade to 14.0.1. Similarly, it is recommended that downstream libraries upgrade their dependency requirements to PyArrow 14.0.1 or later. PyPI packages are already available, and we hope that conda-forge packages will be available soon.\n\nIf it is not possible to upgrade, we provide a separate package `pyarrow-hotfix` that disables the vulnerability on older PyArrow versions. See  https://pypi.org/project/pyarrow-hotfix/  for instructions.\n\n",
-      "vulnerability_id": "CVE-2023-47248",
-      "name": "CVE-2023-47248",
-      "package_name": "pyarrow",
-      "package_details":
-      {
-        "file_path": "opt/conda/lib/python3.10/site-packages/pyarrow-12.0.1.dist-info/METADATA",
-        "name": "pyarrow",
-        "package_manager": "PYTHONPKG",
-        "version": "12.0.1",
-        "release": null
-      },
-      "remediation":
-      {
-        "recommendation":
-        {
-          "text": "None Provided"
-        }
-      },
-      "cvss_v3_score": 9.8,
-      "cvss_v30_score": 0.0,
-      "cvss_v31_score": 9.8,
-      "cvss_v2_score": 0.0,
-      "cvss_v3_severity": "CRITICAL",
-      "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2023-47248",
-      "source": "NVD",
-      "severity": "CRITICAL",
-      "status": "ACTIVE",
-      "title": "CVE-2023-47248 - pyarrow"
-    }
-  ],
   "linux":
   [
     {
@@ -215,6 +303,38 @@
         "package_manager": "OS",
         "version": "5.4.0",
         "release": "169.187"
+      },
+      "remediation":
+      {
+        "recommendation":
+        {
+          "text": "None Provided"
+        }
+      },
+      "cvss_v3_score": 7.1,
+      "cvss_v30_score": 0.0,
+      "cvss_v31_score": 7.1,
+      "cvss_v2_score": 0.0,
+      "cvss_v3_severity": "HIGH",
+      "source_url": "https://people.canonical.com/~ubuntu-security/cve/2023/CVE-2023-6606.html",
+      "source": "UBUNTU_CVE",
+      "severity": "HIGH",
+      "status": "ACTIVE",
+      "title": "CVE-2023-6606 - linux",
+      "reason_to_ignore": "N/A"
+    },
+    {
+      "description": "\n It was discovered that the CIFS network file system implementation in\n the Linux kernel did not properly validate the server frame size in\n certain situation, leading to an out-of-bounds read vulnerability. An\n attacker could use this to construct a malicious CIFS image that, when\n operated on, could cause a denial of service (system crash) or possibly\n expose sensitive information.",
+      "vulnerability_id": "CVE-2023-6606",
+      "name": "CVE-2023-6606",
+      "package_name": "linux",
+      "package_details":
+      {
+        "file_path": null,
+        "name": "linux",
+        "package_manager": "OS",
+        "version": "5.4.0",
+        "release": "170.188"
       },
       "remediation":
       {
