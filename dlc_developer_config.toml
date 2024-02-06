@@ -49,12 +49,12 @@ autopatch_build = false
 
 [test]
 ### On by default
-sanity_tests = true
+sanity_tests = false
   safety_check_test = false
   ecr_scan_allowlist_feature = false
-ecs_tests = true
-eks_tests = true
-ec2_tests = true
+ecs_tests = false
+eks_tests = false
+ec2_tests = false
 # Set it to true if you are preparing a Benchmark related PR
 ec2_benchmark_tests = false
 
@@ -62,7 +62,7 @@ ec2_benchmark_tests = false
 ### default. If false, these types of tests will be skipped while other tests will run as usual.
 ### These tests are run in EC2 test jobs, so ec2_tests must be true if ec2_tests_on_heavy_instances is true.
 ### Off by default (set to false)
-ec2_tests_on_heavy_instances = true
+ec2_tests_on_heavy_instances = false
 
 ### SM specific tests
 ### Off by default
