@@ -10,11 +10,11 @@ ARG NCCL_VERSION=2.16.5
 ARG NVML_VERSION=11.8.86
 
 # PyTorch Binaries and versions.
-ARG TORCH_URL=https://framework-binaries.s3.us-west-2.amazonaws.com/pytorch/v2.2.0/cuda11.8.0/torch-2.1.0%2Bcu118-cp310-cp310-linux_x86_64.whl
-ARG TORCHVISION_URL=https://framework-binaries.s3.us-west-2.amazonaws.com/pytorch/v2.2.0/cuda11.8.0/torchvision-0.16.0%2Bcu118-cp310-cp310-linux_x86_64.whl
-ARG TORCHAUDIO_URL=https://framework-binaries.s3.us-west-2.amazonaws.com/pytorch/v2.2.0/cuda11.8.0/torchaudio-2.1.0%2Bcu118-cp310-cp310-linux_x86_64.whl
-ARG TORCHTEXT_URL=https://framework-binaries.s3.us-west-2.amazonaws.com/pytorch/v2.2.0/cuda11.8.0/torchtext-0.16.0%2Bcu118-cp310-cp310-linux_x86_64.whl
-ARG TORCHDATA_URL=https://framework-binaries.s3.us-west-2.amazonaws.com/pytorch/v2.2.0/cuda11.8.0/torchdata-0.7.0%2B7c7597b-cp310-cp310-linux_x86_64.whl
+ARG TORCH_URL=https://framework-binaries.s3.us-west-2.amazonaws.com/pytorch/v2.2.0/cuda11.8.0/torch-2.2.0%2Bcu118-cp310-cp310-linux_x86_64.whl
+ARG TORCHVISION_URL=https://framework-binaries.s3.us-west-2.amazonaws.com/pytorch/v2.2.0/cuda11.8.0/torchvision-0.17.0%2Bcu118-cp310-cp310-linux_x86_64.whl
+ARG TORCHAUDIO_URL=https://framework-binaries.s3.us-west-2.amazonaws.com/pytorch/v2.2.0/cuda11.8.0/torchaudio-2.2.0%2Bcu118-cp310-cp310-linux_x86_64.whl
+ARG TORCHTEXT_URL=https://framework-binaries.s3.us-west-2.amazonaws.com/pytorch/v2.2.0/cuda11.8.0/torchtext-0.17.0%2Bcu118-cp310-cp310-linux_x86_64.whl
+ARG TORCHDATA_URL=https://framework-binaries.s3.us-west-2.amazonaws.com/pytorch/v2.2.0/cuda11.8.0/torchdata-0.7.1%2B5e6f7b7-cp310-cp310-linux_x86_64.whl
 ARG TORCHSERVE_VERSION
 ARG SM_TOOLKIT_VERSION
 

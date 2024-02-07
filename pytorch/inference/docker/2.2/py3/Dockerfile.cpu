@@ -4,11 +4,11 @@ ARG MINIFORGE3_VERSION=23.11.0-0
 ARG OPEN_MPI_VERSION=4.1.5
 
 # PyTorch Binaries
-ARG TORCH_URL=https://framework-binaries.s3.us-west-2.amazonaws.com/pytorch/v2.1.0/cpu/torch-2.1.0%2Bcpu-cp310-cp310-linux_x86_64.whl
-ARG TORCHVISION_URL=https://framework-binaries.s3.us-west-2.amazonaws.com/pytorch/v2.1.0/cpu/torchvision-0.16.0%2Bcpu-cp310-cp310-linux_x86_64.whl
-ARG TORCHAUDIO_URL=https://framework-binaries.s3.us-west-2.amazonaws.com/pytorch/v2.1.0/cpu/torchaudio-2.1.0%2Bcpu-cp310-cp310-linux_x86_64.whl
-ARG TORCHTEXT_URL=https://framework-binaries.s3.us-west-2.amazonaws.com/pytorch/v2.1.0/cpu/torchtext-0.16.0%2Bcpu-cp310-cp310-linux_x86_64.whl
-ARG TORCHDATA_URL=https://framework-binaries.s3.us-west-2.amazonaws.com/pytorch/v2.1.0/cpu/torchdata-0.7.0%2B7c7597b-cp310-cp310-linux_x86_64.whl
+ARG TORCH_URL=https://framework-binaries.s3.us-west-2.amazonaws.com/pytorch/v2.2.0/cpu/torch-2.2.0%2Bcpu-cp310-cp310-linux_x86_64.whl
+ARG TORCHVISION_URL=https://framework-binaries.s3.us-west-2.amazonaws.com/pytorch/v2.2.0/cpu/torchvision-0.17.0%2Bcpu-cp310-cp310-linux_x86_64.whl
+ARG TORCHAUDIO_URL=https://framework-binaries.s3.us-west-2.amazonaws.com/pytorch/v2.2.0/cpu/torchaudio-2.2.0%2Bcpu-cp310-cp310-linux_x86_64.whl
+ARG TORCHTEXT_URL=https://framework-binaries.s3.us-west-2.amazonaws.com/pytorch/v2.2.0/cpu/torchtext-0.17.0%2Bcpu-cp310-cp310-linux_x86_64.whl
+ARG TORCHDATA_URL=https://framework-binaries.s3.us-west-2.amazonaws.com/pytorch/v2.2.0/cpu/torchdata-0.7.1%2B5e6f7b7-cp310-cp310-linux_x86_64.whl
 ARG TORCHSERVE_VERSION
 ARG SM_TOOLKIT_VERSION
 
