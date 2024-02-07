@@ -258,10 +258,9 @@ RUN pip install "cython<3" "pyyaml<6" --no-build-isolation
 # tf-models does not respect existing installations of TF and always installs open source TF
 RUN ${PIP} install --no-cache-dir -U \
     tf-models-official==2.14.2 \
-    tensorflow-text==2.14.0
-
-RUN ${PIP} uninstall -y tensorflow tensorflow-gpu
-RUN ${PIP} install --no-cache-dir -U \
+    tensorflow-text==2.14.0 \
+ && ${PIP} uninstall -y tensorflow tensorflow-gpu \
+ && ${PIP} install --no-cache-dir -U \
     ${TF_URL} \
     "tensorflow-io>=0.33.0,<0.34.0" \
     tensorflow-datasets
