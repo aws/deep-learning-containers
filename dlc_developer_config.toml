@@ -75,7 +75,6 @@ ec2_tests_on_heavy_instances = false
 ### Off by default
 sagemaker_local_tests = false
 
-
 # run standard sagemaker remote tests from test/sagemaker_tests
 sagemaker_remote_tests = false
 # run efa sagemaker tests
