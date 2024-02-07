@@ -66,7 +66,6 @@ def pytest_runtest_setup(item):
 
 
 def pytest_collection_modifyitems(session, config, items):
-    
     for item in items:
         print(f"item {item}")
         for marker in item.iter_markers(name="team"):
@@ -74,7 +73,7 @@ def pytest_collection_modifyitems(session, config, items):
             team_name = marker.args[0]
             item.user_properties.append(("team_marker", team_name))
             print(f"item.user_properties {item.user_properties}")
-    
+
     if config.getoption("--generate-coverage-doc"):
         from test.test_utils.test_reporting import TestReportGenerator
 

@@ -52,7 +52,7 @@ autopatch_build = false
 ### Off by default
 notify_test_failures = false
   # Valid values: medium or high 
-  notification_severity = ""
+  notification_severity = "medium"
 
 [test]
 ### On by default

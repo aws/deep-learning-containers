@@ -115,6 +115,7 @@ def is_ecr_scan_allowlist_feature_enabled():
 def is_notify_test_failures_enabled():
     return parse_dlc_developer_configs("notify", "notify_test_failures")
 
+
 class AllowedNotificationSeverity(Enum):
     MEDIUM = "medium"
     HIGH = "high"

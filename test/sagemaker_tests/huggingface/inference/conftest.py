@@ -153,7 +153,6 @@ def pytest_runtest_setup(item):
 
 
 def pytest_collection_modifyitems(session, config, items):
-
     for item in items:
         print(f"item {item}")
         for marker in item.iter_markers(name="team"):

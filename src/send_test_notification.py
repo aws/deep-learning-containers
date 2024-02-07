@@ -113,14 +113,14 @@ def get_mainline_execution_details():
     return mainline_execution_details
 
 
-def get_allowlisted_test_exception():    
+def get_allowlisted_test_exception():
     test_exception_allowlist_file = os.path.join(
         os.sep, get_cloned_folder_path(), "data", "test-exception-allowlist.json"
     )
 
     with open(test_exception_allowlist_file) as f:
         allowlisted_exception = json.load(f)
-    
+
     return allowlisted_exception.get("infrastructure_exceptions", [])
 
 
@@ -130,6 +130,7 @@ def check_for_infrastructure_exceptions(fail_message):
         if exception in fail_message:
             return True
     return False
+
 
 def parse_pytest_data():
     """
@@ -165,12 +166,12 @@ def parse_pytest_data():
                     print("Infrastructure failure found in the test. Skipping test details")
                 else:
                     pytest_file_data["failed_tests"][team_name].append(test_data)
-       
+
         failed_test_for_file = pytest_file_data["failed_tests"].copy()
         for team_name in failed_test_for_file:
             if not failed_test_for_file[team_name]:
                 del pytest_file_data["failed_tests"][team_name]
-        
+
         if pytest_file_data["failed_tests"]:
             pytest_parsed_output.append(pytest_file_data)
     return pytest_parsed_output
