@@ -120,6 +120,7 @@ RUN apt-get update \
     libsubunit-dev \
     # ninja is needed for apex to speed up the build
     ninja-build \
+    libxmlsec1-dev \
  && rm -rf /var/lib/apt/lists/* \
  && apt-get clean
 
