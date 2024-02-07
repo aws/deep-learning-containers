@@ -58,6 +58,7 @@ ARG NVML_VERSION
 ARG NCCL_VERSION
 
 # Set Env Variables for the images
+ENV CUDA_HOME=/opt/conda
 ENV DEBIAN_FRONTEND=noninteractive \
     LD_LIBRARY_PATH="${LD_LIBRARY_PATH}:/usr/local/lib" \
     LD_LIBRARY_PATH="/opt/conda/lib:${LD_LIBRARY_PATH}" \
