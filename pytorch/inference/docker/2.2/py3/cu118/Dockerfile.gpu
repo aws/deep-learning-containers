@@ -6,7 +6,7 @@ ARG OPEN_MPI_VERSION=4.1.5
 # Nvidia software versions
 ARG CUBLAS_VERSION=11.11.3.6
 ARG CUDNN_VERSION=8.8.0.121
-ARG NCCL_VERSION=2.19.3
+ARG NCCL_VERSION=2.16.5
 ARG NVML_VERSION=11.8.86
 
 # PyTorch Binaries and versions.
@@ -82,6 +82,30 @@ ENV DEBIAN_FRONTEND=noninteractive \
 # Ada = 8.9+PTX
 ENV TORCH_CUDA_ARCH_LIST="3.7 5.0 7.0+PTX 7.5+PTX 8.0"
 
+# Install NCCL
+RUN cd /tmp \
+ && git clone https://github.com/NVIDIA/nccl.git -b v${NCCL_VERSION}-1 \
+ && cd nccl \
+ && make -j64 src.build BUILDDIR=/usr/local CUDA_LIB=${CUDA_HOME}/lib \
+ && rm -rf /tmp/nccl
+
+# Install OpenMPI
+RUN wget --quiet https://download.open-mpi.org/release/open-mpi/v4.1/openmpi-${OPEN_MPI_VERSION}.tar.gz \
+ && gunzip -c openmpi-${OPEN_MPI_VERSION}.tar.gz | tar xf - \
+ && cd openmpi-${OPEN_MPI_VERSION} \
+ && ./configure --prefix=/home/.openmpi --with-cuda \
+ && make all install \
+ && cd .. \
+ && rm openmpi-${OPEN_MPI_VERSION}.tar.gz \
+ && rm -rf openmpi-${OPEN_MPI_VERSION}
+
+# The ENV variables declared below are changed in the previous section
+# Grouping these ENV variables in the first section causes
+# ompi_info to fail. This is only observed in CPU containers
+ENV PATH="$PATH:/home/.openmpi/bin"
+ENV LD_LIBRARY_PATH="$LD_LIBRARY_PATH:/home/.openmpi/lib/"
+RUN ompi_info --parsable --all | grep mpi_built_with_cuda_support:value
+
 RUN apt-get update \
  && apt-get -y upgrade \
  && apt-get install -y --allow-downgrades --allow-change-held-packages --no-install-recommends \
@@ -90,10 +114,10 @@ RUN apt-get update \
     cmake \
     libcurl4-openssl-dev \
     cuda-cudart-11-8 \
-    # cuda-libraries-11-8 \
-    # cuda-libraries-dev-11-8 \
+    cuda-libraries-11-8 \
+    cuda-libraries-dev-11-8 \
     cuda-command-line-tools-11-8 \
-    # cuda-nvcc-11-8 \
+    cuda-nvcc-11-8 \
     libcublas-11-8=${CUBLAS_VERSION}-1 \
     libcublas-dev-11-8=${CUBLAS_VERSION}-1 \
     cuda-nvml-dev-11-8=${NVML_VERSION}-1 \
@@ -147,38 +171,6 @@ RUN curl -L -o ~/miniforge3.sh https://github.com/conda-forge/miniforge/releases
     charset-normalizer \
  && /opt/conda/bin/conda install -y -c pytorch magma-cuda118 \
  && /opt/conda/bin/conda clean -afy
-
-RUN /opt/conda/bin/mamba install -y -c conda-forge -c nvidia \
-    cuda-toolkit=11.8.0 \
-    cuda-nvcc=11.8.* \
-    cuda-libraries-dev=11.8 \
-    cuda-libraries-static=11.8 \
-    cuda-compiler=11.8 \
-&& /opt/conda/bin/mamba clean -afy
-
-# Install NCCL
-RUN cd /tmp \
- && git clone https://github.com/NVIDIA/nccl.git -b v${NCCL_VERSION}-1 \
- && cd nccl \
- && make -j64 src.build BUILDDIR=/usr/local CUDA_LIB=${CUDA_HOME}/lib \
- && rm -rf /tmp/nccl
-
-# Install OpenMPI
-RUN wget --quiet https://download.open-mpi.org/release/open-mpi/v4.1/openmpi-${OPEN_MPI_VERSION}.tar.gz \
- && gunzip -c openmpi-${OPEN_MPI_VERSION}.tar.gz | tar xf - \
- && cd openmpi-${OPEN_MPI_VERSION} \
- && ./configure --prefix=/home/.openmpi --with-cuda \
- && make all install \
- && cd .. \
- && rm openmpi-${OPEN_MPI_VERSION}.tar.gz \
- && rm -rf openmpi-${OPEN_MPI_VERSION}
-
-# The ENV variables declared below are changed in the previous section
-# Grouping these ENV variables in the first section causes
-# ompi_info to fail. This is only observed in CPU containers
-ENV PATH="$PATH:/home/.openmpi/bin"
-ENV LD_LIBRARY_PATH="$LD_LIBRARY_PATH:/home/.openmpi/lib/"
-RUN ompi_info --parsable --all | grep mpi_built_with_cuda_support:value
 
 # symlink pip for OS use
 RUN pip install --upgrade pip --trusted-host pypi.org --trusted-host files.pythonhosted.org \
