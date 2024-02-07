@@ -94,6 +94,8 @@ RUN apt-get update \
     cuda-libraries-dev-11-8 \
     cuda-command-line-tools-11-8 \
     cuda-nvcc-11-8 \
+    nvidia-cuda-toolkit \
+    nvidia-cuda-toolkit-gcc \
     libcublas-11-8=${CUBLAS_VERSION}-1 \
     libcublas-dev-11-8=${CUBLAS_VERSION}-1 \
     cuda-nvml-dev-11-8=${NVML_VERSION}-1 \
