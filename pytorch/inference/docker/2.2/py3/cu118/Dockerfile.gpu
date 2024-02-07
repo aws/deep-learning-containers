@@ -145,10 +145,11 @@ RUN curl -L -o ~/miniforge3.sh https://github.com/conda-forge/miniforge/releases
     # Below 2 are included in miniconda base, but not mamba so need to install
     conda-content-trust \
     charset-normalizer \
- && /opt/conda/bin/conda install -c pytorch magma-cuda118 \
+ && /opt/conda/bin/conda install -y -c pytorch magma-cuda118 \
  && /opt/conda/bin/conda clean -afy
 
 RUN /opt/conda/bin/mamba install -y -c conda-forge -c nvidia \
+    cuda-toolkit=11.8.0 \
     cuda-nvcc=11.8.* \
     cuda-libraries-dev=11.8 \
     cuda-libraries-static=11.8 \
