@@ -919,6 +919,21 @@ def skip_pt21_test(request):
                 f"PT2.1 SM DLC doesn't support Rubik and Herring for now, so skipping this container with tag {image_framework_version}"
             )
 
+@pytest.fixture(autouse=True)
+def skip_pt22_test(request):
+    if "training" in request.fixturenames:
+        img_uri = request.getfixturevalue("training")
+    elif "pytorch_training" in request.fixturenames:
+        img_uri = request.getfixturevalue("pytorch_training")
+    else:
+        return
+    _, image_framework_version = get_framework_and_version_from_tag(img_uri)
+    if request.node.get_closest_marker("skip_pt22_test"):
+        if Version(image_framework_version) in SpecifierSet("==2.2"):
+            pytest.skip(
+                f"PT2.2 doesn't support DGL binaries for now, skipping this container with tag {image_framework_version}"
+            )
+
 
 @pytest.fixture(scope="session")
 def dlc_images(request):
