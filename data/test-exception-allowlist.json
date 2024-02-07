@@ -1,0 +1,19 @@
+{
+    "infrastructure_exceptions": [
+        "SMResourceLimitExceededError",
+        "SMInstanceCapacityError",
+        "SMThrottlingError",
+        "No ami_id provided",
+        "Ec2 Key name must be provided",
+        "Failed to launch",
+        "Unable to launch",
+        "No instance id provided",
+        "The instance id seems to be incorrect",
+        "Unable to terminate instance",
+        "Failed to terminate instance",
+        "not in required state",
+        "Could not find instance",
+        "Could not find network device 0, retry operation",
+        "Failed to launch cluster"
+    ]
+}
