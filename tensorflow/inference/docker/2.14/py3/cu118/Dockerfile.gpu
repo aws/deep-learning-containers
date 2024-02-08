@@ -33,7 +33,7 @@ ARG PYTHON=python3.10
 ARG PYTHON_PIP=python3-pip
 ARG PIP=pip3
 ARG PYTHON_VERSION=3.10.13
-ARG TFS_URL=https://framework-binaries.s3.us-west-2.amazonaws.com/tensorflow_serving/r2.14_aws/gpu/2023-08-31-16-46/tensorflow_model_server
+ARG TFS_URL=https://framework-binaries.s3.us-west-2.amazonaws.com/tensorflow_serving/r2.14_aws/gpu/2024-02-08-03-40/tensorflow_model_server
 ARG TFS_SHORT_VERSION=2.14
 ARG CUDA_DASH=11-8
 
