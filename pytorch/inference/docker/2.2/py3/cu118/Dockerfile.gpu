@@ -68,7 +68,8 @@ ENV DEBIAN_FRONTEND=noninteractive \
     DLC_CONTAINER_TYPE=inference \
     # See http://bugs.python.org/issue19846
     LANG=C.UTF-8 \
-    CUDA_HOME=/opt/conda
+    # CUDA_HOME=/opt/conda
+    CUDA_HOME=/usr/local/cuda-11.8
 
 ## Cuda Arch List setting Options
 # Kepler+Tesla = 3.7 (P2 Instances "No Longer Supported")
