@@ -64,18 +64,15 @@ ENV DEBIAN_FRONTEND=noninteractive
 
 # Python won’t try to write .pyc or .pyo files on the import of source modules
 # Force stdin, stdout and stderr to be totally unbuffered. Good for logging
-ENV CUDA_HOME=/opt/conda
-ENV PYTHONDONTWRITEBYTECODE=1
-ENV PYTHONUNBUFFERED=1
 ENV LD_LIBRARY_PATH="/usr/local/lib:${LD_LIBRARY_PATH}"
 ENV LD_LIBRARY_PATH="/opt/conda/lib:${LD_LIBRARY_PATH}"
-ENV PATH=$OPEN_MPI_PATH/bin:$CONDA_PREFIX/bin:$CUDA_HOME/bin:$PATH
-ENV LD_LIBRARY_PATH=$AMAZON_EFA_PATH/lib:$OPEN_MPI_PATH/lib:$CONDA_PREFIX/lib:$CUDA_HOME/lib64:$CUDA_HOME/lib:$LD_LIBRARY_PATH
-
-ENV PYTHONIOENCODING=UTF-8
 ENV LANG=C.UTF-8
-ENV LC_ALL=C.UTF-8
 ENV PATH=/opt/conda/bin:$PATH
+# ENV CUDA_HOME=/opt/conda
+# ENV PYTHONDONTWRITEBYTECODE=1
+# ENV PYTHONUNBUFFERED=1
+# ENV PYTHONIOENCODING=UTF-8
+# ENV LC_ALL=C.UTF-8
 
 # Set Env Variables for the images
 ENV TEMP=/home/model-server/tmp
@@ -93,7 +90,6 @@ ENV MKL_THREADING_LAYER=GNU
 # Ada = 8.9+PTX
 # Hopper = 9.0 (P5 Instances)
 ENV TORCH_CUDA_ARCH_LIST="3.7 5.0 7.0+PTX 7.5+PTX 8.0 9.0"
-ENV TORCH_NVCC_FLAGS="-Xfatbin -compress-all"
 
 ENV DLC_CONTAINER_TYPE=inference
 
@@ -143,6 +139,30 @@ RUN apt-get update \
  && rm -rf /var/lib/apt/lists/* \
  && apt-get clean
 
+# Install NCCL
+RUN cd /tmp \
+ && git clone https://github.com/NVIDIA/nccl.git -b v${NCCL_VERSION}-1 \
+ && cd nccl \
+ && make -j64 src.build BUILDDIR=/usr/local \
+ && rm -rf /tmp/nccl
+
+# Install OpenMPI
+RUN wget --quiet https://download.open-mpi.org/release/open-mpi/v4.1/openmpi-${OPEN_MPI_VERSION}.tar.gz \
+ && gunzip -c openmpi-${OPEN_MPI_VERSION}.tar.gz | tar xf - \
+ && cd openmpi-${OPEN_MPI_VERSION} \
+ && ./configure --prefix=/home/.openmpi --with-cuda \
+ && make all install \
+ && cd .. \
+ && rm openmpi-${OPEN_MPI_VERSION}.tar.gz \
+ && rm -rf openmpi-${OPEN_MPI_VERSION}
+
+# The ENV variables declared below are changed in the previous section
+# Grouping these ENV variables in the first section causes
+# ompi_info to fail. This is only observed in CPU containers
+ENV PATH="$PATH:/home/.openmpi/bin"
+ENV LD_LIBRARY_PATH="$LD_LIBRARY_PATH:/home/.openmpi/lib/"
+RUN ompi_info --parsable --all | grep mpi_built_with_cuda_support:value
+
 # Install CondaForge miniconda
 RUN curl -L -o ~/miniforge3.sh https://github.com/conda-forge/miniforge/releases/download/${MINIFORGE3_VERSION}/Miniforge3-${MINIFORGE3_VERSION}-Linux-x86_64.sh \
  && chmod +x ~/miniforge3.sh \
@@ -168,45 +188,6 @@ RUN /opt/conda/bin/mamba install -c conda-forge python=${PYTHON_VERSION} \
 # symlink pip for OS use
 RUN pip install --upgrade pip --no-cache-dir --trusted-host pypi.org --trusted-host files.pythonhosted.org \
  && ln -s /opt/conda/bin/pip /usr/local/bin/pip3
-
-# Install OpenMPI
-RUN wget --quiet https://download.open-mpi.org/release/open-mpi/v4.1/openmpi-${OPEN_MPI_VERSION}.tar.gz \
- && gunzip -c openmpi-${OPEN_MPI_VERSION}.tar.gz | tar xf - \
- && cd openmpi-${OPEN_MPI_VERSION} \
- && ./configure --prefix=/home/.openmpi --with-cuda \
- && make all install \
- && cd .. \
- && rm openmpi-${OPEN_MPI_VERSION}.tar.gz \
- && rm -rf openmpi-${OPEN_MPI_VERSION}
-
-# The ENV variables declared below are changed in the previous section
-# Grouping these ENV variables in the first section causes
-# ompi_info to fail. This is only observed in CPU containers
-ENV PATH="$PATH:/home/.openmpi/bin"
-ENV LD_LIBRARY_PATH="$LD_LIBRARY_PATH:/home/.openmpi/lib/"
-RUN ompi_info --parsable --all | grep mpi_built_with_cuda_support:value
-
-# Install cuda toolkit
-RUN /opt/conda/bin/mamba install -y python=${PYTHON_SHORT_VERSION} \
-  pytorch-cuda=11.8 cuda-nvcc=11.8.* \
-  -c nvidia \
-  -c conda-forge \
-  && /opt/conda/bin/mamba clean -afy
-
-# CUDA libraries should be installed as a separate installation command to reduce memory size of single layer.
-# If single layer is huge in size (like 17 GB), then ECR pull can timeout on smaller EC2 instances like P3.2x.
-RUN /opt/conda/bin/mamba install -y python=${PYTHON_SHORT_VERSION} \
-  cuda-libraries-dev=11.8 cuda-libraries-static=11.8 cuda-compiler=11.8 cuda-toolkit=11.8.0 \
-  -c nvidia \
-  -c conda-forge \
-  && /opt/conda/bin/mamba clean -afy
-
-# Install NCCL
-RUN cd /tmp \
- && git clone https://github.com/NVIDIA/nccl.git -b v${NCCL_VERSION}-1 \
- && cd nccl \
- && make -j64 src.build BUILDDIR=/usr/local CUDA_LIB=${CUDA_HOME}/lib \
- && rm -rf /tmp/nccl
 
 # Install Common python packages
 RUN pip install --no-cache-dir -U \
