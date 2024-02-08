@@ -136,31 +136,10 @@ RUN apt-get update \
     zlib1g-dev \
     openssh-client \
     openssh-server \
+    python3-dev \
  && apt-get autoremove -y \
  && rm -rf /var/lib/apt/lists/* \
  && apt-get clean
-
-# Install CondaForge miniconda
-RUN curl -L -o ~/miniforge3.sh https://github.com/conda-forge/miniforge/releases/download/${MINIFORGE3_VERSION}/Miniforge3-${MINIFORGE3_VERSION}-Linux-x86_64.sh \
- && chmod +x ~/miniforge3.sh \
- && ~/miniforge3.sh -b -p /opt/conda \
- && rm ~/miniforge3.sh
-
-RUN /opt/conda/bin/mamba install -c conda-forge python=${PYTHON_VERSION} \
-    cython \
-    "mkl>=2023.2.0" \
-    mkl-include \
-    parso \
-    scipy \
-    typing \
-    h5py \
-    requests \
-    libgcc \
-    # Below 2 are included in miniconda base, but not mamba so need to install
-    conda-content-trust \
-    charset-normalizer \
- && /opt/conda/bin/mamba install -y -c pytorch magma-cuda118 \
- && /opt/conda/bin/mamba clean -afy
 
 # Install NCCL
 RUN cd /tmp \
@@ -185,6 +164,28 @@ RUN wget --quiet https://download.open-mpi.org/release/open-mpi/v4.1/openmpi-${O
 ENV PATH="$PATH:/home/.openmpi/bin"
 ENV LD_LIBRARY_PATH="$LD_LIBRARY_PATH:/home/.openmpi/lib/"
 RUN ompi_info --parsable --all | grep mpi_built_with_cuda_support:value
+
+# Install CondaForge miniconda
+RUN curl -L -o ~/miniforge3.sh https://github.com/conda-forge/miniforge/releases/download/${MINIFORGE3_VERSION}/Miniforge3-${MINIFORGE3_VERSION}-Linux-x86_64.sh \
+ && chmod +x ~/miniforge3.sh \
+ && ~/miniforge3.sh -b -p /opt/conda \
+ && rm ~/miniforge3.sh
+
+RUN /opt/conda/bin/mamba install -c conda-forge python=${PYTHON_VERSION} \
+    cython \
+    "mkl>=2023.2.0" \
+    mkl-include \
+    parso \
+    scipy \
+    typing \
+    h5py \
+    requests \
+    libgcc \
+    # Below 2 are included in miniconda base, but not mamba so need to install
+    conda-content-trust \
+    charset-normalizer \
+ && /opt/conda/bin/mamba install -y -c pytorch magma-cuda118 \
+ && /opt/conda/bin/mamba clean -afy
 
 # symlink pip for OS use
 RUN pip install --upgrade pip --no-cache-dir --trusted-host pypi.org --trusted-host files.pythonhosted.org \
