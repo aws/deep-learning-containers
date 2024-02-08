@@ -39,9 +39,9 @@ else:
     import torch.distributed as dist
     import smdistributed.dataparallel.torch.torch_smddp
 
-    # set default instance type to p3.16
+    # set default instance type to p4
     if "SAGEMAKER_INSTANCE_TYPE" not in os.environ:
-        os.environ["SAGEMAKER_INSTANCE_TYPE"] = "ml.p3.16xlarge"
+        os.environ["SAGEMAKER_INSTANCE_TYPE"] = "ml.p4d.24xlarge"
 
     dist.init_process_group(backend="smddp")
 
