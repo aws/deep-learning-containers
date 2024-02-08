@@ -65,12 +65,12 @@ ENV DEBIAN_FRONTEND=noninteractive
 # Force stdin, stdout and stderr to be totally unbuffered. Good for logging
 ENV LD_LIBRARY_PATH="/usr/local/lib:${LD_LIBRARY_PATH}"
 ENV LD_LIBRARY_PATH="/opt/conda/lib:${LD_LIBRARY_PATH}"
-ENV LD_LIBRARY_PATH="/usr/local/cuda-11.8/lib:${LD_LIBRARY_PATH}"
-ENV LD_LIBRARY_PATH="/usr/lib"
 ENV LANG=C.UTF-8
 ENV PATH=/opt/conda/bin:$PATH
 
 ENV CUDA_HOME=/usr/local/cuda-11.8
+# ENV LD_LIBRARY_PATH="/usr/local/cuda-11.8/lib:${LD_LIBRARY_PATH}"
+# ENV LD_LIBRARY_PATH="/usr/lib"
 # ENV CUDA_HOME=/opt/conda
 # ENV PYTHONDONTWRITEBYTECODE=1
 # ENV PYTHONUNBUFFERED=1
