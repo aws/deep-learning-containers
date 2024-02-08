@@ -81,31 +81,8 @@ ENV DEBIAN_FRONTEND=noninteractive \
 # Turing = 7.5+PTX (G4 Instances)
 # Ampere = 8.0;8.6+PTX (P4 and G5 Instances)
 # Ada = 8.9+PTX
-ENV TORCH_CUDA_ARCH_LIST="3.7 5.0 7.0+PTX 7.5+PTX 8.0"
-
-# Install NCCL
-RUN cd /tmp \
- && git clone https://github.com/NVIDIA/nccl.git -b v${NCCL_VERSION}-1 \
- && cd nccl \
- && make -j64 src.build BUILDDIR=/usr/local CUDA_LIB=${CUDA_HOME}/lib \
- && rm -rf /tmp/nccl
-
-# Install OpenMPI
-RUN wget --quiet https://download.open-mpi.org/release/open-mpi/v4.1/openmpi-${OPEN_MPI_VERSION}.tar.gz \
- && gunzip -c openmpi-${OPEN_MPI_VERSION}.tar.gz | tar xf - \
- && cd openmpi-${OPEN_MPI_VERSION} \
- && ./configure --prefix=/home/.openmpi --with-cuda \
- && make all install \
- && cd .. \
- && rm openmpi-${OPEN_MPI_VERSION}.tar.gz \
- && rm -rf openmpi-${OPEN_MPI_VERSION}
-
-# The ENV variables declared below are changed in the previous section
-# Grouping these ENV variables in the first section causes
-# ompi_info to fail. This is only observed in CPU containers
-ENV PATH="$PATH:/home/.openmpi/bin"
-ENV LD_LIBRARY_PATH="$LD_LIBRARY_PATH:/home/.openmpi/lib/"
-RUN ompi_info --parsable --all | grep mpi_built_with_cuda_support:value
+# Hopper = 9.0 (P5 Instances)
+ENV TORCH_CUDA_ARCH_LIST="3.7 5.0 7.0+PTX 7.5+PTX 8.0 9.0"
 
 RUN apt-get update \
  && apt-get -y upgrade \
@@ -176,6 +153,31 @@ RUN curl -L -o ~/miniforge3.sh https://github.com/conda-forge/miniforge/releases
 # symlink pip for OS use
 RUN pip install --upgrade pip --trusted-host pypi.org --trusted-host files.pythonhosted.org \
  && ln -s /opt/conda/bin/pip /usr/local/bin/pip3
+
+# Install NCCL
+RUN cd /tmp \
+ && git clone https://github.com/NVIDIA/nccl.git -b v${NCCL_VERSION}-1 \
+ && cd nccl \
+ && make -j64 src.build BUILDDIR=/usr/local CUDA_LIB=${CUDA_HOME}/lib \
+ && rm -rf /tmp/nccl
+
+# Install OpenMPI
+RUN wget --quiet https://download.open-mpi.org/release/open-mpi/v4.1/openmpi-${OPEN_MPI_VERSION}.tar.gz \
+ && gunzip -c openmpi-${OPEN_MPI_VERSION}.tar.gz | tar xf - \
+ && cd openmpi-${OPEN_MPI_VERSION} \
+ && ./configure --prefix=/home/.openmpi --with-cuda \
+ && make all install \
+ && cd .. \
+ && rm openmpi-${OPEN_MPI_VERSION}.tar.gz \
+ && rm -rf openmpi-${OPEN_MPI_VERSION}
+
+# The ENV variables declared below are changed in the previous section
+# Grouping these ENV variables in the first section causes
+# ompi_info to fail. This is only observed in CPU containers
+ENV PATH="$PATH:/home/.openmpi/bin"
+ENV LD_LIBRARY_PATH="$LD_LIBRARY_PATH:/home/.openmpi/lib/"
+RUN ompi_info --parsable --all | grep mpi_built_with_cuda_support:value
+
 
 # Install Common python packages
 RUN pip install --no-cache-dir -U \
