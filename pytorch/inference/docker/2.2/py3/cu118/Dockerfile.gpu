@@ -91,6 +91,7 @@ RUN apt-get update \
     cmake \
     libcurl4-openssl-dev \
     cuda-cudart-11-8 \
+    cuda-cudart-dev-11-8 \
     cuda-libraries-11-8 \
     cuda-libraries-dev-11-8 \
     cuda-command-line-tools-11-8 \
