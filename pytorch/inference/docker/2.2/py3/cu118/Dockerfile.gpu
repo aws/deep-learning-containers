@@ -68,6 +68,8 @@ ENV LD_LIBRARY_PATH="/usr/local/lib:${LD_LIBRARY_PATH}"
 ENV LD_LIBRARY_PATH="/opt/conda/lib:${LD_LIBRARY_PATH}"
 ENV LANG=C.UTF-8
 ENV PATH=/opt/conda/bin:$PATH
+
+ENV CUDA_HOME=/usr/local
 # ENV CUDA_HOME=/opt/conda
 # ENV PYTHONDONTWRITEBYTECODE=1
 # ENV PYTHONUNBUFFERED=1
@@ -143,7 +145,7 @@ RUN apt-get update \
 RUN cd /tmp \
  && git clone https://github.com/NVIDIA/nccl.git -b v${NCCL_VERSION}-1 \
  && cd nccl \
- && make -j64 src.build BUILDDIR=/usr/local \
+ && make -j64 src.build BUILDDIR=/usr/local CUDA_LIB="${CUDA_HOME}/lib:${CUDA_HOME}/lib64" \
  && rm -rf /tmp/nccl
 
 # Install OpenMPI
