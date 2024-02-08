@@ -69,6 +69,9 @@ ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
 ENV LD_LIBRARY_PATH="/usr/local/lib:${LD_LIBRARY_PATH}"
 ENV LD_LIBRARY_PATH="/opt/conda/lib:${LD_LIBRARY_PATH}"
+ENV PATH=$OPEN_MPI_PATH/bin:$CONDA_PREFIX/bin:$CUDA_HOME/bin:$PATH
+ENV LD_LIBRARY_PATH=$AMAZON_EFA_PATH/lib:$OPEN_MPI_PATH/lib:$CONDA_PREFIX/lib:$CUDA_HOME/lib64:$CUDA_HOME/lib:$LD_LIBRARY_PATH
+
 ENV PYTHONIOENCODING=UTF-8
 ENV LANG=C.UTF-8
 ENV LC_ALL=C.UTF-8
@@ -193,7 +196,7 @@ RUN /opt/conda/bin/mamba install -y python=${PYTHON_SHORT_VERSION} \
 # CUDA libraries should be installed as a separate installation command to reduce memory size of single layer.
 # If single layer is huge in size (like 17 GB), then ECR pull can timeout on smaller EC2 instances like P3.2x.
 RUN /opt/conda/bin/mamba install -y python=${PYTHON_SHORT_VERSION} \
-  cuda-libraries-dev=11.8 cuda-libraries-static=11.8 cuda-compiler=11.8 \
+  cuda-libraries-dev=11.8 cuda-libraries-static=11.8 cuda-compiler=11.8 cuda-toolkit=11.8.0 \
   -c nvidia \
   -c conda-forge \
   && /opt/conda/bin/mamba clean -afy
