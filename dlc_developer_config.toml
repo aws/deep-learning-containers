@@ -44,14 +44,14 @@ build_inference = false
 datetime_tag = false
 # Note: Need to build the images at least once with datetime_tag = false
 # before disabling new builds, or tests will fail
-do_build = true
+do_build = false
 autopatch_build = false
 
 [notify]
 ### Notify on test failures
 ### Off by default
 notify_test_failures = false
-  # Valid values: medium or high 
+  # Valid values: medium or high
   notification_severity = "medium"
 
 [test]
