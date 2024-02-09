@@ -61,7 +61,7 @@ sanity_tests = false
   ecr_scan_allowlist_feature = false
 ecs_tests = true
 eks_tests = false
-ec2_tests = false
+ec2_tests = true
 # Set it to true if you are preparing a Benchmark related PR
 ec2_benchmark_tests = false
 
