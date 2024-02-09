@@ -102,7 +102,6 @@ def test_ec2_tensorflow_inference_gpu_tensorrt(
         f" {tensorflow_inference}"
     )
 
-    tensorrt_test_failed = False
     try:
         ec2_connection.run(f"$(aws ecr get-login --no-include-email --region {region})", hide=True)
         host_setup_for_tensorflow_inference(serving_folder_path, framework_version, ec2_connection)
@@ -119,17 +118,16 @@ def test_ec2_tensorflow_inference_gpu_tensorrt(
             inference_string=f"""'{{"instances": [[{",".join([str([1]*28)]*28)}]]}}'""",
         )
         assert test_results, "TensorRt test failed!"
-    except:
-        tensorrt_test_failed = True
+    except Exception:
         remote_out = ec2_connection.run(
             f"docker logs {serving_container_name}", warn=True, hide=True
         )
         LOGGER.info(
             f"--- TF container logs ---\n--- STDOUT ---\n{remote_out.stdout}\n--- STDERR ---\n{remote_out.stderr}"
         )
+        raise
     finally:
         ec2_connection.run(f"docker rm -f {serving_container_name}", warn=True, hide=True)
-    assert not tensorrt_test_failed, "TensorRt tests have failed - please take a look at the logs."
 
 
 @pytest.mark.usefixtures("sagemaker")
@@ -291,7 +289,7 @@ def run_ec2_tensorflow_inference(
 def train_mnist_model(serving_folder_path, ec2_connection):
     ec2_connection.run(f"cd {serving_folder_path}")
     mnist_script_path = f"{serving_folder_path}/tensorflow_serving/example/mnist_saved_model.py"
-    ec2_connection.run(f"python {mnist_script_path} {serving_folder_path}/models/mnist", hide=True)
+    ec2_connection.run(f"python3 {mnist_script_path} {serving_folder_path}/models/mnist", hide=True)
 
 
 def host_setup_for_tensorflow_inference(
