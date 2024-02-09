@@ -165,7 +165,7 @@ RUN pip install --upgrade pip --no-cache-dir --trusted-host pypi.org --trusted-h
  && ln -s /opt/conda/bin/pip /usr/local/bin/pip3
 
 # makes AllToAll complete successfully. Up date will include in NCCL 2.20.*
-ENV NCCL_CUMEM_ENABLE=0
+# ENV NCCL_CUMEM_ENABLE=0
 # Install NCCL
 RUN cd /tmp \
   && git clone https://github.com/NVIDIA/nccl.git -b v${NCCL_VERSION}-1 \
