@@ -249,7 +249,7 @@ def run_ec2_tensorflow_inference(
             f"--mount type=bind,source={model_path},target=/models/mnist -e TEST_MODE=1 -e MODEL_NAME=mnist"
             f" {image_uri}"
         )
-    inference_test_failed = False
+
     try:
         host_setup_for_tensorflow_inference(
             serving_folder_path,
@@ -278,15 +278,14 @@ def run_ec2_tensorflow_inference(
             )
         if telemetry_mode:
             check_telemetry(ec2_connection, container_name)
-    except:
-        inference_test_failed = True
+    except Exception:
         remote_out = ec2_connection.run(f"docker logs {container_name}", warn=True, hide=True)
         LOGGER.info(
             f"--- TF container logs ---\n--- STDOUT ---\n{remote_out.stdout}\n--- STDERR ---\n{remote_out.stderr}"
         )
+        raise
     finally:
         ec2_connection.run(f"docker rm -f {container_name}", warn=True, hide=True)
-    assert inference_test_failed is False, "tensorflow inference test failed"
 
 
 def train_mnist_model(serving_folder_path, ec2_connection):
