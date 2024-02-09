@@ -919,6 +919,7 @@ def skip_pt21_test(request):
                 f"PT2.1 SM DLC doesn't support Rubik and Herring for now, so skipping this container with tag {image_framework_version}"
             )
 
+
 @pytest.fixture(autouse=True)
 def skip_pt22_test(request):
     if "training" in request.fixturenames:

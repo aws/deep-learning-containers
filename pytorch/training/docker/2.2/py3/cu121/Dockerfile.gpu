@@ -164,6 +164,19 @@ ENV LD_LIBRARY_PATH=$OPEN_MPI_PATH/lib/:$EFA_PATH/lib/:$LD_LIBRARY_PATH
 RUN pip install --upgrade pip --no-cache-dir --trusted-host pypi.org --trusted-host files.pythonhosted.org \
  && ln -s /opt/conda/bin/pip /usr/local/bin/pip3
 
+# makes AllToAll complete successfully. Up date will include in NCCL 2.20.*
+ENV NCCL_CUMEM_ENABLE=0
+# Install NCCL
+RUN cd /tmp \
+  && git clone https://github.com/NVIDIA/nccl.git -b v${NCCL_VERSION}-1 \
+  && cd nccl \
+  # makes AllToAll complete successfully. Up date will include in NCCL 2.20.*
+  && curl https://github.com/NVIDIA/nccl/commit/f9e6a64d7e5a128cd53febd0c7e9f73827af1472.patch | git apply --reject \
+  # fix for AllReduce regression. https://github.com/NVIDIA/nccl/pull/1112
+  && curl https://github.com/liralon/nccl/commit/505aa4b048c3824060332fe3652605e1b33108c8.patch | git apply --reject \
+  && make -j64 src.build BUILDDIR=/usr/local CUDA_LIB=${CUDA_HOME}/lib \
+  && rm -rf /tmp/nccl
+
 WORKDIR /root
 
 # Configure Open MPI and configure NCCL parameters
@@ -250,13 +263,6 @@ RUN /opt/conda/bin/mamba install -y python=${PYTHON_SHORT_VERSION} pytorch=${PYT
   -c nvidia \
   -c conda-forge \
   && /opt/conda/bin/mamba clean -afy
-
-# Install NCCL
-RUN cd /tmp \
- && git clone https://github.com/NVIDIA/nccl.git -b v${NCCL_VERSION}-1 \
- && cd nccl \
- && make -j64 src.build BUILDDIR=/usr/local CUDA_LIB=${CUDA_HOME}/lib \
- && rm -rf /tmp/nccl
 
 # install PyTorch related python packages (depends on PyTorch)
 RUN /opt/conda/bin/mamba install -y -c conda-forge \
@@ -371,13 +377,6 @@ RUN /opt/conda/bin/mamba install -y python=${PYTHON_SHORT_VERSION} pytorch=${PYT
   -c nvidia \
   -c conda-forge \
   && /opt/conda/bin/mamba clean -afy
-
-# Install NCCL
-RUN cd /tmp \
- && git clone https://github.com/NVIDIA/nccl.git -b v${NCCL_VERSION}-1 \
- && cd nccl \
- && make -j64 src.build BUILDDIR=/usr/local CUDA_LIB=${CUDA_HOME}/lib \
- && rm -rf /tmp/nccl
 
 # install PyTorch related python packages (depends on PyTorch)
 RUN /opt/conda/bin/mamba install -y -c conda-forge \
