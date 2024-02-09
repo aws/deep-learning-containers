@@ -116,6 +116,7 @@ RUN apt-get update \
     libgl1-mesa-glx \
     libglib2.0-0 \
     libgomp1 \
+    libomp-dev \
     libibverbs-dev \
     libnuma1 \
     libnuma-dev \
