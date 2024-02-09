@@ -164,19 +164,6 @@ ENV LD_LIBRARY_PATH=$OPEN_MPI_PATH/lib/:$EFA_PATH/lib/:$LD_LIBRARY_PATH
 RUN pip install --upgrade pip --no-cache-dir --trusted-host pypi.org --trusted-host files.pythonhosted.org \
  && ln -s /opt/conda/bin/pip /usr/local/bin/pip3
 
-# makes AllToAll complete successfully. Up date will include in NCCL 2.20.*
-# ENV NCCL_CUMEM_ENABLE=0
-# Install NCCL
-RUN cd /tmp \
-  && git clone https://github.com/NVIDIA/nccl.git -b v${NCCL_VERSION}-1 \
-  && cd nccl \
-  # makes AllToAll complete successfully. Up date will include in NCCL 2.20.*
-  && curl https://github.com/NVIDIA/nccl/commit/f9e6a64d7e5a128cd53febd0c7e9f73827af1472.patch | git apply --reject \
-  # fix for AllReduce regression. https://github.com/NVIDIA/nccl/pull/1112
-  && curl https://github.com/liralon/nccl/commit/505aa4b048c3824060332fe3652605e1b33108c8.patch | git apply --reject \
-  && make -j64 src.build BUILDDIR=/usr/local CUDA_LIB=${CUDA_HOME}/lib \
-  && rm -rf /tmp/nccl
-
 WORKDIR /root
 
 # Configure Open MPI and configure NCCL parameters
@@ -280,6 +267,19 @@ RUN pip install pillow opencv-python
 RUN /opt/conda/bin/mamba install -y -c conda-forge \
   "requests>=2.31.0" \
   && /opt/conda/bin/mamba clean -afy
+
+# makes AllToAll complete successfully. Up date will include in NCCL 2.20.*
+# ENV NCCL_CUMEM_ENABLE=0
+# Install NCCL
+RUN cd /tmp \
+  && git clone https://github.com/NVIDIA/nccl.git -b v${NCCL_VERSION}-1 \
+  && cd nccl \
+  # makes AllToAll complete successfully. Up date will include in NCCL 2.20.*
+  && curl https://github.com/NVIDIA/nccl/commit/f9e6a64d7e5a128cd53febd0c7e9f73827af1472.patch | git apply --reject \
+  # fix for AllReduce regression. https://github.com/NVIDIA/nccl/pull/1112
+  && curl https://github.com/liralon/nccl/commit/505aa4b048c3824060332fe3652605e1b33108c8.patch | git apply --reject \
+  && make -j64 src.build BUILDDIR=/usr/local CUDA_LIB=${CUDA_HOME}/lib \
+  && rm -rf /tmp/nccl
 
 # Install Nvidia Apex (needs pytorch)
 RUN pip install packaging \
@@ -394,6 +394,19 @@ RUN pip install pillow opencv-python
 RUN /opt/conda/bin/mamba install -y -c conda-forge \
   "requests>=2.31.0" \
   && /opt/conda/bin/mamba clean -afy
+
+# makes AllToAll complete successfully. Up date will include in NCCL 2.20.*
+# ENV NCCL_CUMEM_ENABLE=0
+# Install NCCL
+RUN cd /tmp \
+  && git clone https://github.com/NVIDIA/nccl.git -b v${NCCL_VERSION}-1 \
+  && cd nccl \
+  # makes AllToAll complete successfully. Up date will include in NCCL 2.20.*
+  && curl https://github.com/NVIDIA/nccl/commit/f9e6a64d7e5a128cd53febd0c7e9f73827af1472.patch | git apply --reject \
+  # fix for AllReduce regression. https://github.com/NVIDIA/nccl/pull/1112
+  && curl https://github.com/liralon/nccl/commit/505aa4b048c3824060332fe3652605e1b33108c8.patch | git apply --reject \
+  && make -j64 src.build BUILDDIR=/usr/local CUDA_LIB=${CUDA_HOME}/lib \
+  && rm -rf /tmp/nccl
 
 # Install GDRCopy which is a dependency of SM Distributed DataParallel binary
 # The test binaries requires cuda driver library which could be found in conda
