@@ -173,8 +173,6 @@ RUN curl -L -o ~/miniforge3.sh https://github.com/conda-forge/miniforge/releases
 
 RUN /opt/conda/bin/mamba install -c conda-forge python=${PYTHON_VERSION} \
     cython \
-    # "mkl>=2023.2.0" \
-    # mkl-include \
     parso \
     scipy \
     typing \
@@ -221,8 +219,11 @@ RUN pip install --no-cache-dir -U \
     ${TORCHTEXT_URL} \
     ${TORCHDATA_URL}
 
-# Add mkl and cuda/cudnn to path
-# ENV LD_LIBRARY_PATH="$LD_LIBRARY_PATH:/usr/loca/cuda-11.8/lib"
+# Ensure sure mkl is installed after PyTorch
+RUN /opt/conda/bin/mamba install -c conda-forge python=${PYTHON_VERSION} \
+    "mkl>=2023.2.0" \
+    mkl-include \
+ && /opt/conda/bin/mamba clean -afy
 
 # Install TorchServe pypi dependencies directly from their requirements.txt file
 # NOTE: This also brings in unnecessary cpu dependencies like nvgpu
@@ -300,7 +301,7 @@ ENV SAGEMAKER_SERVING_MODULE sagemaker_pytorch_serving_container.serving:main
 ENV TS_DISABLE_SYSTEM_METRICS=true
 
 # Install scikit-learn and pandas
-RUN conda install -y -c conda-forge \
+RUN mamba install -y -c conda-forge \
     scikit-learn \
     pandas
 
