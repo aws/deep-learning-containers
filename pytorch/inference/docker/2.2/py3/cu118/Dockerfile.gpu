@@ -90,6 +90,8 @@ ENV MKL_THREADING_LAYER=GNU
 # Hopper = 9.0 (P5 Instances)
 ENV TORCH_CUDA_ARCH_LIST="3.7 5.0 7.0+PTX 7.5+PTX 8.0 9.0"
 
+ENV CMAKE_PREFIX_PATH="$(dirname $(which conda))/../"
+
 ENV DLC_CONTAINER_TYPE=inference
 
 WORKDIR /
@@ -167,12 +169,13 @@ ENV LD_LIBRARY_PATH="$LD_LIBRARY_PATH:/home/.openmpi/lib/"
 RUN ompi_info --parsable --all | grep mpi_built_with_cuda_support:value
 
 # Install CondaForge miniconda
+ENV REQUESTS_CA_BUNDLE=/etc/ssl/certs/ca-certificates.crt
 RUN curl -L -o ~/miniforge3.sh https://github.com/conda-forge/miniforge/releases/download/${MINIFORGE3_VERSION}/Miniforge3-${MINIFORGE3_VERSION}-Linux-x86_64.sh \
  && chmod +x ~/miniforge3.sh \
  && ~/miniforge3.sh -b -p /opt/conda \
  && rm ~/miniforge3.sh
 
-RUN /opt/conda/bin/mamba install -c conda-forge python=${PYTHON_VERSION} \
+RUN /opt/conda/bin/mamba install -y -c conda-forge python=${PYTHON_VERSION} \
     cython \
     parso \
     scipy \
@@ -228,7 +231,7 @@ RUN pip install --no-cache-dir -U -r https://raw.githubusercontent.com/pytorch/s
     torch-model-archiver==${TORCHSERVE_VERSION}
 
 # Ensure sure mkl is installed after PyTorch
-RUN /opt/conda/bin/mamba install -c conda-forge python=${PYTHON_VERSION} \
+RUN /opt/conda/bin/mamba install -y -c conda-forge python=${PYTHON_VERSION} \
     "mkl>=2023.2.0" \
     mkl-include \
     llvm-openmp \
