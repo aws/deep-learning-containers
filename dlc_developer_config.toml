@@ -47,6 +47,13 @@ datetime_tag = false
 do_build = false
 autopatch_build = false
 
+[notify]
+### Notify on test failures
+### Off by default
+notify_test_failures = false
+  # Valid values: medium or high 
+  notification_severity = "medium"
+
 [test]
 ### On by default
 sanity_tests = true
