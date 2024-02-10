@@ -218,12 +218,6 @@ RUN pip install --no-cache-dir -U \
     ${TORCHTEXT_URL} \
     ${TORCHDATA_URL}
 
-# Ensure sure mkl is installed after PyTorch
-RUN /opt/conda/bin/mamba install -c conda-forge python=${PYTHON_VERSION} \
-    "mkl>=2023.2.0" \
-    mkl-include \
- && /opt/conda/bin/mamba clean -afy
-
 # Install TorchServe pypi dependencies directly from their requirements.txt file
 # NOTE: This also brings in unnecessary cpu dependencies like nvgpu
 # -> Numpy is higer version as required by torch
@@ -232,6 +226,12 @@ RUN pip install --no-cache-dir -U -r https://raw.githubusercontent.com/pytorch/s
     "numpy>=1.22.2,<1.23" \
     torchserve==${TORCHSERVE_VERSION} \
     torch-model-archiver==${TORCHSERVE_VERSION}
+
+# Ensure sure mkl is installed after PyTorch
+RUN /opt/conda/bin/mamba install -c conda-forge python=${PYTHON_VERSION} \
+    "mkl>=2023.2.0" \
+    mkl-include \
+ && /opt/conda/bin/mamba clean -afy
 
 # add necessary certificate for aws sdk cpp download
 RUN mkdir -p /etc/pki/tls/certs && cp /etc/ssl/certs/ca-certificates.crt /etc/pki/tls/certs/ca-bundle.crt
