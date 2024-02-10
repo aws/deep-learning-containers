@@ -269,13 +269,13 @@ RUN /opt/conda/bin/mamba install -y -c conda-forge \
   && /opt/conda/bin/mamba clean -afy
 
 # makes AllToAll complete successfully. Up date will include in NCCL 2.20.*
-# ENV NCCL_CUMEM_ENABLE=0
+ENV NCCL_CUMEM_ENABLE=0
 # Install NCCL
 RUN cd /tmp \
   && git clone https://github.com/NVIDIA/nccl.git -b v${NCCL_VERSION}-1 \
   && cd nccl \
   # makes AllToAll complete successfully. Up date will include in NCCL 2.20.*
-  && curl https://github.com/NVIDIA/nccl/commit/f9e6a64d7e5a128cd53febd0c7e9f73827af1472.patch | git apply --reject \
+  # && curl https://github.com/NVIDIA/nccl/commit/f9e6a64d7e5a128cd53febd0c7e9f73827af1472.patch | git apply --reject \
   # fix for AllReduce regression. https://github.com/NVIDIA/nccl/pull/1112
   && curl https://github.com/liralon/nccl/commit/505aa4b048c3824060332fe3652605e1b33108c8.patch | git apply --reject \
   && make -j64 src.build BUILDDIR=/usr/local CUDA_LIB=${CUDA_HOME}/lib \
@@ -396,13 +396,13 @@ RUN /opt/conda/bin/mamba install -y -c conda-forge \
   && /opt/conda/bin/mamba clean -afy
 
 # makes AllToAll complete successfully. Up date will include in NCCL 2.20.*
-# ENV NCCL_CUMEM_ENABLE=0
+ENV NCCL_CUMEM_ENABLE=0
 # Install NCCL
 RUN cd /tmp \
   && git clone https://github.com/NVIDIA/nccl.git -b v${NCCL_VERSION}-1 \
   && cd nccl \
   # makes AllToAll complete successfully. Up date will include in NCCL 2.20.*
-  && curl https://github.com/NVIDIA/nccl/commit/f9e6a64d7e5a128cd53febd0c7e9f73827af1472.patch | git apply --reject \
+  # && curl https://github.com/NVIDIA/nccl/commit/f9e6a64d7e5a128cd53febd0c7e9f73827af1472.patch | git apply --reject \
   # fix for AllReduce regression. https://github.com/NVIDIA/nccl/pull/1112
   && curl https://github.com/liralon/nccl/commit/505aa4b048c3824060332fe3652605e1b33108c8.patch | git apply --reject \
   && make -j64 src.build BUILDDIR=/usr/local CUDA_LIB=${CUDA_HOME}/lib \
