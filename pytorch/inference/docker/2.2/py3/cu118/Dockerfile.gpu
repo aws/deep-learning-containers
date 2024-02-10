@@ -92,6 +92,8 @@ ENV TORCH_CUDA_ARCH_LIST="3.7 5.0 7.0+PTX 7.5+PTX 8.0 9.0"
 
 ENV DLC_CONTAINER_TYPE=inference
 
+WORKDIR /
+
 RUN apt-get update \
  && apt-get -y upgrade \
  && apt-get install -y --allow-downgrades --allow-change-held-packages --no-install-recommends \
@@ -197,8 +199,6 @@ RUN pip install --no-cache-dir -U \
     # due to incompatibility with SM hosts
     nvgpu \
     pyOpenSSL \
-    mkl \
-    mkl-include \
     cryptography \
     "ipython>=8.10.0,<9.0" \
     "urllib3>=1.26.18,<2"
@@ -231,6 +231,7 @@ RUN pip install --no-cache-dir -U -r https://raw.githubusercontent.com/pytorch/s
 RUN /opt/conda/bin/mamba install -c conda-forge python=${PYTHON_VERSION} \
     "mkl>=2023.2.0" \
     mkl-include \
+    llvm-openmp \
  && /opt/conda/bin/mamba clean -afy
 
 # add necessary certificate for aws sdk cpp download
