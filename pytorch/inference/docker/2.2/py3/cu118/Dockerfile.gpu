@@ -63,7 +63,7 @@ ENV DEBIAN_FRONTEND=noninteractive
 
 # Python won’t try to write .pyc or .pyo files on the import of source modules
 # Force stdin, stdout and stderr to be totally unbuffered. Good for logging
-ENV CUDA_HOME=/usr/local/cuda
+# ENV CUDA_HOME=/usr/local/cuda
 ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
 ENV LD_LIBRARY_PATH="/usr/local/lib:${LD_LIBRARY_PATH}"
@@ -116,7 +116,7 @@ RUN apt-get update \
     libgl1-mesa-glx \
     libglib2.0-0 \
     libgomp1 \
-    libomp-dev \
+    # libomp-dev \
     libibverbs-dev \
     libnuma1 \
     libnuma-dev \
@@ -173,8 +173,8 @@ RUN curl -L -o ~/miniforge3.sh https://github.com/conda-forge/miniforge/releases
 
 RUN /opt/conda/bin/mamba install -c conda-forge python=${PYTHON_VERSION} \
     cython \
-    "mkl>=2023.2.0" \
-    mkl-include \
+    # "mkl>=2023.2.0" \
+    # mkl-include \
     parso \
     scipy \
     typing \
@@ -200,8 +200,8 @@ RUN pip install --no-cache-dir -U \
     # due to incompatibility with SM hosts
     nvgpu \
     pyOpenSSL \
-    # mkl \
-    # mkl-include \
+    mkl \
+    mkl-include \
     cryptography \
     "ipython>=8.10.0,<9.0" \
     "urllib3>=1.26.18,<2"
