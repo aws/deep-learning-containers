@@ -303,7 +303,6 @@ def host_setup_for_tensorflow_inference(
     is_graviton=False,
     model_name=None,
 ):
-
     # Attempting a pin will result in pip not finding the version. The internal repo only has a custom Tensorflow 2.6
     # which is not compatible with TF 2.9+ and this is the recommended action.
     if is_graviton:
