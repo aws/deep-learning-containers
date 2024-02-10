@@ -39,10 +39,15 @@ LABEL maintainer="Amazon AI"
 LABEL dlc_major_version="1"
 
 ARG PYTHON
-ARG PYTHON_SHORT_VERSION
 ARG PYTHON_VERSION
 ARG MINIFORGE3_VERSION
 ARG OPEN_MPI_VERSION
+
+# Nvidia passed Arguments
+ARG CUBLAS_VERSION
+ARG CUDNN_VERSION
+ARG NVML_VERSION
+ARG NCCL_VERSION
 
 # PyTorch Passed arguments (URLs and Versions)
 ARG TORCH_URL
@@ -52,25 +57,19 @@ ARG TORCHTEXT_URL
 ARG TORCHDATA_URL
 ARG TORCHSERVE_VERSION
 
-# Nvidia passed Arguments
-ARG CUBLAS_VERSION
-ARG CUDNN_VERSION
-ARG NVML_VERSION
-ARG NCCL_VERSION
-
 # This arg required to stop docker build waiting for region configuration while installing tz data from ubuntu 20
 ENV DEBIAN_FRONTEND=noninteractive
 
 # Python won’t try to write .pyc or .pyo files on the import of source modules
 # Force stdin, stdout and stderr to be totally unbuffered. Good for logging
 ENV CUDA_HOME=/usr/local/cuda
-ENV PYTHONDONTWRITEBYTECODE=1
-ENV PYTHONUNBUFFERED=1
+# ENV PYTHONDONTWRITEBYTECODE=1
+# ENV PYTHONUNBUFFERED=1
 ENV LD_LIBRARY_PATH="/usr/local/lib:${LD_LIBRARY_PATH}"
 ENV LD_LIBRARY_PATH="/opt/conda/lib:${LD_LIBRARY_PATH}"
-ENV PYTHONIOENCODING=UTF-8
+# ENV PYTHONIOENCODING=UTF-8
 ENV LANG=C.UTF-8
-ENV LC_ALL=C.UTF-8
+# ENV LC_ALL=C.UTF-8
 ENV PATH=/opt/conda/bin:$PATH
 
 # Set Env Variables for the images
@@ -96,7 +95,7 @@ WORKDIR /
 
 RUN apt-get update \
  && apt-get -y upgrade \
- && apt-get install -y --allow-downgrades --allow-change-held-packages --no-install-recommends \
+ && apt-get install -y --allow-change-held-packages --no-install-recommends \
     build-essential \
     ca-certificates \
     cmake \
@@ -182,8 +181,8 @@ RUN /opt/conda/bin/mamba install -y -c conda-forge python=${PYTHON_VERSION} \
     requests \
     libgcc \
     # Below 2 are included in miniconda base, but not mamba so need to install
-    # conda-content-trust \
-    # charset-normalizer \
+    conda-content-trust \
+    charset-normalizer \
  && /opt/conda/bin/mamba install -y -c pytorch magma-cuda118 \
  && /opt/conda/bin/mamba clean -afy
 
