@@ -168,8 +168,9 @@ RUN ompi_info --parsable --all | grep mpi_built_with_cuda_support:value
 RUN curl -L -o ~/miniforge3.sh https://github.com/conda-forge/miniforge/releases/download/${MINIFORGE3_VERSION}/Miniforge3-${MINIFORGE3_VERSION}-Linux-x86_64.sh \
  && chmod +x ~/miniforge3.sh \
  && ~/miniforge3.sh -b -p /opt/conda \
- && rm ~/miniforge3.sh \
- && /opt/conda/bin/mamba install -c conda-forge python=${PYTHON_VERSION} \
+ && rm ~/miniforge3.sh
+
+RUN /opt/conda/bin/conda install -c conda-forge python=${PYTHON_VERSION} \
     cython \
     "mkl>=2023.2.0" \
     mkl-include \
@@ -190,7 +191,7 @@ RUN curl -L -o ~/miniforge3.sh https://github.com/conda-forge/miniforge/releases
     packaging \
     conda-content-trust \
     charset-normalizer \
- && /opt/conda/bin/mamba clean -ya
+ && /opt/conda/bin/mamba clean -ayf
 
 # symlink pip for OS use
 RUN pip install --upgrade pip --no-cache-dir --trusted-host pypi.org --trusted-host files.pythonhosted.org \
