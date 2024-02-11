@@ -141,7 +141,6 @@ RUN apt-get update \
  && apt-get clean
 
 # Install NCCL
- # && make -j64 src.build BUILDDIR=/usr/local CUDA_LIB="${CUDA_HOME}/lib" \
 RUN cd /tmp \
  && git clone https://github.com/NVIDIA/nccl.git -b v${NCCL_VERSION}-1 \
  && cd nccl \
@@ -166,15 +165,14 @@ ENV LD_LIBRARY_PATH="$LD_LIBRARY_PATH:/home/.openmpi/lib/"
 RUN ompi_info --parsable --all | grep mpi_built_with_cuda_support:value
 
 # Install CondaForge miniconda
-ENV REQUESTS_CA_BUNDLE=/etc/ssl/certs/ca-certificates.crt
 RUN curl -L -o ~/miniforge3.sh https://github.com/conda-forge/miniforge/releases/download/${MINIFORGE3_VERSION}/Miniforge3-${MINIFORGE3_VERSION}-Linux-x86_64.sh \
  && chmod +x ~/miniforge3.sh \
  && ~/miniforge3.sh -b -p /opt/conda \
- && rm ~/miniforge3.sh
-
-RUN /opt/conda/bin/mamba install -y -c conda-forge \
-    python=${PYTHON_VERSION} \
+ && rm ~/miniforge3.sh \
+ && /opt/conda/bin/conda install -c conda-forge python=${PYTHON_VERSION} \
     cython \
+    "mkl>=2023.2.0" \
+    mkl-include \
     parso \
     scipy \
     typing \
@@ -192,8 +190,7 @@ RUN /opt/conda/bin/mamba install -y -c conda-forge \
     packaging \
     conda-content-trust \
     charset-normalizer \
- && /opt/conda/bin/mamba install -y -c pytorch magma-cuda118 \
- && /opt/conda/bin/mamba clean -afy
+ && /opt/conda/bin/conda clean -ya
 
 # symlink pip for OS use
 RUN pip install --upgrade pip --no-cache-dir --trusted-host pypi.org --trusted-host files.pythonhosted.org \
