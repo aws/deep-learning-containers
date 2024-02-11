@@ -170,7 +170,9 @@ RUN curl -L -o ~/miniforge3.sh https://github.com/conda-forge/miniforge/releases
  && ~/miniforge3.sh -b -p /opt/conda \
  && rm ~/miniforge3.sh
 
-RUN /opt/conda/bin/conda install -c conda-forge python=${PYTHON_VERSION} \
+# Install common conda packages
+RUN /opt/conda/bin/conda install -y -c conda-forge \
+    python=${PYTHON_VERSION} \
     cython \
     "mkl>=2023.2.0" \
     mkl-include \
@@ -191,7 +193,8 @@ RUN /opt/conda/bin/conda install -c conda-forge python=${PYTHON_VERSION} \
     packaging \
     conda-content-trust \
     charset-normalizer \
- && /opt/conda/bin/mamba clean -ayf
+ && /opt/conda/bin/conda clean -afy \
+ && rm -rf /etc/apt/sources.list.d/*
 
 # symlink pip for OS use
 RUN pip install --upgrade pip --no-cache-dir --trusted-host pypi.org --trusted-host files.pythonhosted.org \
@@ -301,7 +304,7 @@ ENV SAGEMAKER_SERVING_MODULE sagemaker_pytorch_serving_container.serving:main
 ENV TS_DISABLE_SYSTEM_METRICS=true
 
 # Install scikit-learn and pandas
-RUN mamba install -y -c conda-forge \
+RUN /opt/conda/bin/conda install -y -c conda-forge \
     scikit-learn \
     pandas
 
@@ -329,7 +332,7 @@ RUN HOME_DIR=/root \
 
 ## Cleanup ##
 RUN rm -rf /tmp/tmp* \
- &&rm -iRf /root/.cache
+ && rm -iRf /root/.cache
 
 EXPOSE 8080 8081
 ENTRYPOINT ["python", "/usr/local/bin/dockerd-entrypoint.py"]
