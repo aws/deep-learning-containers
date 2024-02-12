@@ -129,8 +129,6 @@ RUN curl -L -o ~/miniforge3.sh https://github.com/conda-forge/miniforge/releases
     libgcc \
     cmake \
     packaging \
-    awscli \
-    boto3 \
     pyyaml \
     packaging \
     conda-content-trust \
@@ -146,7 +144,8 @@ RUN pip install --upgrade pip --trusted-host pypi.org --trusted-host files.pytho
 RUN pip install --no-cache-dir --extra-index-url https://download.pytorch.org/whl/cpu -U \
     boto3 \
     opencv-python \
-    pyOpenSSL \
+    # patch CVE
+    "pyopenssl<=22.0.0" \
     cryptography \
     "ipython>=8.10.0,<9.0" \
     "awscli<2" \
