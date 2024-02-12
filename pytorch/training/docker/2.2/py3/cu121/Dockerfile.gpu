@@ -16,6 +16,20 @@ RUN apt-get update \
  && apt-get clean \
  && rm -rf /var/lib/apt/lists/*
 
+#################################################################
+#  ____
+# / ___| ___  _ __ ___  _ __ ___   ___  _ __
+#| |    / _ \| '_ ` _ \| '_ ` _ \ / _ \| '_ \
+#| |___  (_) | | | | | | | | | | | (_) | | | |
+# \____|\___/|_| |_| |_|_| |_| |_|\___/|_| |_|
+#  ___                              ____           _
+# |_ _|_ __ ___   __ _  __ _  ___  |  _ \ ___  ___(_)_ __   ___
+#  | || '_ ` _ \ / _` |/ _` |/ _ \ | |_) / _ \/ __| | '_ \ / _ \
+#  | || | | | | | (_| | (_| |  __/ |  _ <  __/ (__| | |_) |  __/
+# |___|_| |_| |_|\__,_|\__, |\___| |_| \_\___|\___|_| .__/ \___|
+#                      |___/                        |_|
+#################################################################
+
 FROM base_image AS common
 
 LABEL maintainer="Amazon AI"
@@ -197,38 +211,6 @@ RUN rm -rf /root/.ssh/ && \
  cp /root/.ssh/id_rsa.pub /root/.ssh/authorized_keys \
  && printf "Host *\n StrictHostKeyChecking no\n" >> /root/.ssh/config
 
-RUN mkdir -p /etc/pki/tls/certs && cp /etc/ssl/certs/ca-certificates.crt /etc/pki/tls/certs/ca-bundle.crt
-
-RUN curl -o /license.txt https://aws-dlc-licenses.s3.amazonaws.com/pytorch-2.1/license.txt
-
-# Removing the cache as it is needed for security verification
-RUN rm -rf /root/.cache | true
-
-########################################################
-#  _____ ____ ____    ___
-# | ____/ ___|___ \  |_ _|_ __ ___   __ _  __ _  ___
-# |  _|| |     __) |  | || '_ ` _ \ / _` |/ _` |/ _ \
-# | |__| |___ / __/   | || | | | | | (_| | (_| |  __/
-# |_____\____|_____| |___|_| |_| |_|\__,_|\__, |\___|
-#                                         |___/
-#  ____           _
-# |  _ \ ___  ___(_)_ __   ___
-# | |_) / _ \/ __| | '_ \ / _ \
-# |  _ <  __/ (__| | |_) |  __/
-# |_| \_\___|\___|_| .__/ \___|
-#                  |_|
-########################################################
-
-FROM common AS ec2
-
-ARG PYTHON
-ARG PYTHON_VERSION
-ARG PYTHON_SHORT_VERSION
-ARG PYTORCH_VERSION
-ARG CONDA_CHANNEL
-ARG CUDA_HOME
-ARG TORCH_CUDA_ARCH_LIST
-
 WORKDIR /
 
 # Install PyTorch
@@ -268,6 +250,16 @@ RUN /opt/conda/bin/mamba install -y -c conda-forge \
   "requests>=2.31.0" \
   && /opt/conda/bin/mamba clean -afy
 
+# Install GDRCopy which is a dependency of SM Distributed DataParallel binary
+# The test binaries requires cuda driver library which could be found in conda
+# So update the linker path to point to it to avoid -Lcuda not found
+RUN cd /tmp \
+ && git clone https://github.com/NVIDIA/gdrcopy.git -b v${GDRCOPY_VERSION} \
+ && cd gdrcopy \
+ && sed -ie '12s@$@ -L $(CUDA)/lib/stubs@' tests/Makefile \
+ && CUDA=${CUDA_HOME} make install \
+ && rm -rf /tmp/gdrcopy
+
 # makes AllToAll complete successfully. Update will be included in NCCL 2.20.*
 ENV NCCL_CUMEM_ENABLE=0
 # Install NCCL
@@ -278,6 +270,7 @@ RUN cd /tmp \
   && curl https://github.com/liralon/nccl/commit/505aa4b048c3824060332fe3652605e1b33108c8.patch | git apply --reject \
   && make -j64 src.build BUILDDIR=/usr/local CUDA_LIB=${CUDA_HOME}/lib \
   && rm -rf /tmp/nccl
+# preload to system nccl for PyTorch to use its statically linked NCCL
 
 # Install Nvidia Apex (needs pytorch)
 RUN pip install packaging \
@@ -296,6 +289,34 @@ ENV NVTE_FRAMEWORK=pytorch
 RUN MAX_JOBS=4 pip install flash-attn==2.0.4 --no-build-isolation
 # Install TE using instructions from https://docs.nvidia.com/deeplearning/transformer-engine/user-guide/installation.html
 RUN pip install git+https://github.com/NVIDIA/TransformerEngine.git@release_v0.12
+
+RUN mkdir -p /etc/pki/tls/certs && cp /etc/ssl/certs/ca-certificates.crt /etc/pki/tls/certs/ca-bundle.crt
+
+RUN curl -o /license.txt https://aws-dlc-licenses.s3.amazonaws.com/pytorch-2.1/license.txt
+
+# Removing the cache as it is needed for security verification
+RUN rm -rf /root/.cache | true
+
+########################################################
+#  _____ ____ ____    ___
+# | ____/ ___|___ \  |_ _|_ __ ___   __ _  __ _  ___
+# |  _|| |     __) |  | || '_ ` _ \ / _` |/ _` |/ _ \
+# | |__| |___ / __/   | || | | | | | (_| | (_| |  __/
+# |_____\____|_____| |___|_| |_| |_|\__,_|\__, |\___|
+#                                         |___/
+#  ____           _
+# |  _ \ ___  ___(_)_ __   ___
+# | |_) / _ \/ __| | '_ \ / _ \
+# |  _ <  __/ (__| | |_) |  __/
+# |_| \_\___|\___|_| .__/ \___|
+#                  |_|
+########################################################
+
+FROM common AS ec2
+
+ARG PYTHON
+
+WORKDIR /
 
 RUN HOME_DIR=/root \
  && curl -o ${HOME_DIR}/oss_compliance.zip https://aws-dlinfra-utilities.s3.amazonaws.com/oss_compliance.zip \
@@ -334,15 +355,7 @@ LABEL maintainer="Amazon AI"
 LABEL dlc_major_version="1"
 
 ENV SAGEMAKER_TRAINING_MODULE=sagemaker_pytorch_container.training:main
-
-# PyTorch Binaries
 ARG PYTHON
-ARG PYTHON_VERSION
-ARG PYTHON_SHORT_VERSION
-ARG PYTORCH_VERSION
-ARG CONDA_CHANNEL
-ARG CUDA_HOME
-ARG TORCH_CUDA_ARCH_LIST
 
 # SageMaker Profiler Binary
 ARG SMP_URL=https://smppy.s3.amazonaws.com/pytorch/cu121/smprof-0.3.334-cp310-cp310-linux_x86_64.whl
@@ -353,85 +366,8 @@ ENV TORCH_LOGS=+dynamo,+aot,+inductor
 
 WORKDIR /
 
-# Install PyTorch
-RUN /opt/conda/bin/mamba install -y python=${PYTHON_SHORT_VERSION} pytorch=${PYTORCH_VERSION} \
-  pytorch-cuda=12.1 cuda-nvcc=12.1.* torchvision torchaudio torchtext aws-ofi-nccl \
-  --override-channels \
-  -c ${CONDA_CHANNEL} \
-  -c nvidia \
-  -c conda-forge \
-  && /opt/conda/bin/mamba clean -afy
-
 # Install SageMaker Profiler Binary
 RUN pip install --no-cache-dir -U ${SMP_URL}
-
-# CUDA libraries should be installed after pytorch installation command to reduce memory size of single layer.
-# If single layer is huge in size (like 17 GB), then ECR pull can timeout on smaller EC2 instances like P3.2x.
-# Have added python and pytorch again in below command to make sure pytorch version wont be changed.
-RUN /opt/conda/bin/mamba install -y python=${PYTHON_SHORT_VERSION} pytorch=${PYTORCH_VERSION} \
-  cuda-libraries-dev=12.1 cuda-libraries-static=12.1 cuda-compiler=12.1 \
-  --override-channels \
-  -c ${CONDA_CHANNEL} \
-  -c nvidia \
-  -c conda-forge \
-  && /opt/conda/bin/mamba clean -afy
-
-# install PyTorch related python packages (depends on PyTorch)
-RUN /opt/conda/bin/mamba install -y -c conda-forge \
-  # needed by fastai.distributed
-  # pin accelerate to 0.22.0 as newer version gives error "0.23.0 requires huggingface-hub, which is not installed."
-  "accelerate=0.22.0" \
-  && /opt/conda/bin/mamba install -y -c fastai fastai \
-  # fastai conda strictly depends on dataclasses
-  && pip uninstall -y dataclasses \
-  && pip install torchnet \
-  && /opt/conda/bin/mamba clean -afy
-
-# Patches
-RUN pip install pillow opencv-python
-RUN /opt/conda/bin/mamba install -y -c conda-forge \
-  "requests>=2.31.0" \
-  && /opt/conda/bin/mamba clean -afy
-
-# makes AllToAll complete successfully. Update will be included in NCCL 2.20.*
-ENV NCCL_CUMEM_ENABLE=0
-# Install NCCL
-RUN cd /tmp \
-  && git clone https://github.com/NVIDIA/nccl.git -b v${NCCL_VERSION}-1 \
-  && cd nccl \
-  # fix for AllReduce regression. https://github.com/NVIDIA/nccl/pull/1112
-  && curl https://github.com/liralon/nccl/commit/505aa4b048c3824060332fe3652605e1b33108c8.patch | git apply --reject \
-  && make -j64 src.build BUILDDIR=/usr/local CUDA_LIB=${CUDA_HOME}/lib \
-  && rm -rf /tmp/nccl
-
-# Install GDRCopy which is a dependency of SM Distributed DataParallel binary
-# The test binaries requires cuda driver library which could be found in conda
-# So update the linker path to point to it to avoid -Lcuda not found
-# Note that starting with 11.8, cuda relate lib are moved to conda instead /usr/local/cuda
-RUN cd /tmp \
- && git clone https://github.com/NVIDIA/gdrcopy.git -b v${GDRCOPY_VERSION} \
- && cd gdrcopy \
- && sed -ie '12s@$@ -L $(CUDA)/lib/stubs@' tests/Makefile \
- && CUDA=/opt/conda make install \
- && rm -rf /tmp/gdrcopy
-
-# Install Nvidia Apex (needs pytorch)
-RUN pip install packaging \
-  && git clone https://github.com/NVIDIA/apex \
-  && cd apex \
-  && git checkout 23.08 -b apex \
-  && pip install -v --disable-pip-version-check --no-cache-dir --no-build-isolation --config-settings "--build-option=--cpp_ext" --config-settings "--build-option=--cuda_ext" ./ \
-  && cd .. \
-  && rm -rf apex
-
-# Install flash attn and NVIDIA transformer engine.
-# Optionally set NVTE_FRAMEWORK to avoid bringing in additional frameworks during TE install
-ENV NVTE_FRAMEWORK=pytorch
-# Install flash-attn using instructions from https://github.com/Dao-AILab/flash-attention#installation-and-features
-# Set MAX_JOBS=4 to avoid OOM issues in installation process
-RUN MAX_JOBS=4 pip install flash-attn==2.0.4 --no-build-isolation
-# Install TE using instructions from https://docs.nvidia.com/deeplearning/transformer-engine/user-guide/installation.html
-RUN pip install git+https://github.com/NVIDIA/TransformerEngine.git@release_v0.12
 
 # Copy workaround script for incorrect hostname
 COPY changehostname.c /
@@ -447,11 +383,7 @@ RUN pip install --no-cache-dir -U \
     "sagemaker>=2,<3" \
     "sagemaker-experiments<1" \
     sagemaker-pytorch-training \
-    sagemaker-training \
-    # as sagemaker toolkit package has pinned botocore as per commit https://github.com/aws/sagemaker-training-toolkit/pull/201/files#diff-60f61ab7a8d1910d86d9fda2261620314edcae5894d5aaa236b821c7256badd7R46
-    # adding this here explicitly to resolve pip check errors
-    awscli \
-    boto3
+    sagemaker-training
 
 # Install extra packages
 RUN /opt/conda/bin/mamba install -y -c conda-forge \
