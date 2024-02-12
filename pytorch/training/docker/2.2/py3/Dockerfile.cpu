@@ -116,7 +116,8 @@ RUN /opt/conda/bin/mamba install -y --override-channels \
     "cryptography>=41.0.4" \
     cmake \
     requests \
-    pyopenssl \
+    # patch CVE
+    "pyopenssl<22.0.0" \
     python=$PYTHON_VERSION \
     cython \
     # force conda to install h5py with openmpi build, not mpich (rubik error)
