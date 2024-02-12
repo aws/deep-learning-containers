@@ -183,9 +183,6 @@ RUN /opt/conda/bin/conda install -y -c conda-forge \
     requests \
     libgcc \
     cmake \
-    mkl \
-    mkl-include \
-    charset-normalizer \
     packaging \
     awscli \
     boto3 \

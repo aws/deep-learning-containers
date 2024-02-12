@@ -116,18 +116,27 @@ RUN curl -L -o ~/miniforge3.sh https://github.com/conda-forge/miniforge/releases
  && chmod +x ~/miniforge3.sh \
  && ~/miniforge3.sh -b -p /opt/conda \
  && rm ~/miniforge3.sh \
- && /opt/conda/bin/conda install -c conda-forge python=${PYTHON_VERSION} \
+ && /opt/conda/bin/conda install -c conda-forge \
+    python=${PYTHON_VERSION} \
     cython \
     "mkl>=2023.2.0" \
     mkl-include \
     parso \
+    scipy \
     typing \
     h5py \
     requests \
-    # Below 2 are included in miniconda base, but not mamba so need to install
+    libgcc \
+    cmake \
+    packaging \
+    awscli \
+    boto3 \
+    pyyaml \
+    packaging \
     conda-content-trust \
     charset-normalizer \
- && /opt/conda/bin/conda clean -ya
+ && /opt/conda/bin/conda clean -afy \
+ && rm -rf /etc/apt/sources.list.d/*
 
 # symlink pip for OS use
 RUN pip install --upgrade pip --trusted-host pypi.org --trusted-host files.pythonhosted.org \
@@ -236,7 +245,8 @@ ENV SAGEMAKER_SERVING_MODULE sagemaker_pytorch_serving_container.serving:main
 # Install scikit-learn and pandas
 RUN conda install -y -c conda-forge \
     scikit-learn \
-    pandas
+    pandas \
+ && conda clean -afy
 
 RUN pip install --no-cache-dir sagemaker-pytorch-inference==${SM_TOOLKIT_VERSION} \
     # hardcoded dependencies of sagemaker-pytorch-inference
@@ -262,7 +272,7 @@ RUN HOME_DIR=/root \
 
 ## Cleanup ##
 RUN rm -rf /tmp/tmp* \
- &&rm -iRf /root/.cache
+ && rm -iRf /root/.cache
 
 EXPOSE 8080 8081
 ENTRYPOINT ["python", "/usr/local/bin/dockerd-entrypoint.py"]
