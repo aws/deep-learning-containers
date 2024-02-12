@@ -151,7 +151,7 @@ RUN cd /tmp \
  && make -j64 src.build BUILDDIR=/usr/local \
  && rm -rf /tmp/nccl
 # preload to system nccl for PyTorch to use its statically linked NCCL
-ENV LD_PRELOAD="${CUDA_HOME}/lib/libnccl-net.so"
+ENV LD_PRELOAD="${CUDA_HOME}/targets/x86_64-linux/lib/libnccl-net.so"
 
 # Install OpenMPI
 RUN wget --quiet https://download.open-mpi.org/release/open-mpi/v4.1/openmpi-${OPEN_MPI_VERSION}.tar.gz \
