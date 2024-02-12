@@ -10,6 +10,7 @@ from test.test_utils import (
     get_region_from_image_uri,
     is_pr_context,
     is_efa_dedicated,
+    are_heavy_instance_ec2_tests_enabled,
     login_to_ecr_registry,
     run_cmd_on_container,
 )
@@ -53,11 +54,10 @@ EC2_EFA_GPU_ONLY_P4_INSTANCE_TYPE_AND_REGION = get_efa_ec2_instance_type(
 @pytest.mark.allow_p4de_use
 @pytest.mark.multinode(2)
 @pytest.mark.parametrize("ec2_instance_type,region", EC2_EFA_GPU_INSTANCE_TYPE_AND_REGION)
-# TODO: Revert this later
-#@pytest.mark.skipif(
-#    is_pr_context() and not is_efa_dedicated(),
-#    reason="Skip EFA test in PR context unless explicitly enabled",
-#)
+@pytest.mark.skipif(
+    is_pr_context() and not are_heavy_instance_ec2_tests_enabled(),
+    reason="Skip EFA test in PR context unless explicitly enabled",
+)
 @pytest.mark.team("conda")
 def test_pytorch_efa(
     pytorch_training, efa_ec2_instances, efa_ec2_connections, ec2_instance_type, region, gpu_only
@@ -143,11 +143,10 @@ def test_efa_tensorflow(
 @pytest.mark.usefixtures("pt201_and_above_only")
 @pytest.mark.allow_p4de_use
 @pytest.mark.parametrize("ec2_instance_type,region", EC2_EFA_GPU_ONLY_P4_INSTANCE_TYPE_AND_REGION)
-# TODO: Revert this later
-#@pytest.mark.skipif(
-#    is_pr_context() and not is_efa_dedicated(),
-#    reason="Skip EFA test in PR context unless explicitly enabled",
-#)
+@pytest.mark.skipif(
+    is_pr_context() and not are_heavy_instance_ec2_tests_enabled(),
+    reason="Skip EFA test in PR context unless explicitly enabled",
+)
 @pytest.mark.team("conda")
 @pytest.mark.skip_pt21_test
 @pytest.mark.skip_pt20_cuda121_tests
