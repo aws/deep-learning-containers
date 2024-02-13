@@ -129,6 +129,8 @@ RUN curl -L -o ~/miniforge3.sh https://github.com/conda-forge/miniforge/releases
     libgcc \
     cmake \
     packaging \
+    awscli \
+    boto3 \
     pyyaml \
     packaging \
     conda-content-trust \
@@ -142,14 +144,13 @@ RUN pip install --upgrade pip --trusted-host pypi.org --trusted-host files.pytho
 
 # Install Common python packages
 RUN pip install --no-cache-dir --extra-index-url https://download.pytorch.org/whl/cpu -U \
-    boto3 \
     opencv-python \
     # patch CVE
     "pyopenssl<=22.0.0" \
-    cryptography \
+    # patch CVE
+    "cryptography<35.0.0" \
     "ipython>=8.10.0,<9.0" \
     "urllib3>=1.26.18,<2" \
-    "awscli<1" \
     "prompt-toolkit<3.0.39"
 
 # Ensure PyTorch did not get installed from Conda or pip, prior to now
