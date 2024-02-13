@@ -270,6 +270,7 @@ def test_tensorflow_addons_cpu(tensorflow_training, ec2_connection, tf2_only, cp
     execute_ec2_training_test(ec2_connection, tensorflow_training, TF_ADDONS_CMD)
 
 
+@pytest.mark.usefixtures("sagemaker")
 @pytest.mark.model("mnist")
 @pytest.mark.integration("tensorflow_io, tensorflow_datasets")
 @pytest.mark.team("frameworks")
@@ -284,6 +285,7 @@ def test_tensorflow_io_s3_plugin_gpu(
     execute_ec2_training_test(ec2_connection, tensorflow_training, TF_IO_S3_PLUGIN_TEST_CMD)
 
 
+@pytest.mark.usefixtures("sagemaker")
 @pytest.mark.model("mnist")
 @pytest.mark.integration("tensorflow_io, tensorflow_datasets")
 @pytest.mark.team("frameworks")

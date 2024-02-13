@@ -22,10 +22,13 @@ S3_CHECKPOINT_UPLOAD_PATH="${S3_BUCKET}/testTensorflowIoS3Plugin/${DOCKER_CONTAI
 # Delete S3 paths that we expect to upload into
 aws s3 rm --recursive ${S3_CHECKPOINT_UPLOAD_PATH}/
 
-python3 testTensorflowIoS3Plugin.py \
+python3 ${BIN_DIR}/testTensorflowIoS3Plugin.py \
     --batch-size 128 \
     --model-dir="${S3_CHECKPOINT_UPLOAD_PATH}" \
-    >$TRAINING_LOG 2>&1
+    | tee ${TRAINING_LOG}
+
+# Test ${PIPESTATUS[0]} to avoid false positive from tee's return code of 0
+test ${PIPESTATUS[0]} -eq 0
 
 set +e
 
