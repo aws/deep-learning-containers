@@ -87,7 +87,6 @@ def test_safety_file_exists_and_is_valid(image):
         file_content = run(f"{docker_exec_cmd} cat {SAFETY_FILE}", warn=True, hide=True)
         raw_scan_result = json.loads(file_content.stdout)
         safety_report_object = SafetyPythonEnvironmentVulnerabilityReport(report=raw_scan_result)
-        __import__('pprint').pprint(raw_scan_result)
 
         # processing safety reports
         report_log_template = "SAFETY_REPORT ({status}) [pkg: {pkg}] [installed: {installed}] [vulnerabilities: {vulnerabilities}]"
