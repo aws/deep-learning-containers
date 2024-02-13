@@ -887,6 +887,26 @@ def skip_torchdata_test(request):
 
 
 @pytest.fixture(autouse=True)
+def skip_transformer_engine_test(request):
+    if "training" in request.fixturenames:
+        img_uri = request.getfixturevalue("training")
+    elif "pytorch_training" in request.fixturenames:
+        img_uri = request.getfixturevalue("pytorch_training")
+    else:
+        return
+    _, image_framework_version = get_framework_and_version_from_tag(img_uri)
+    if request.node.get_closest_marker("skip_torchdata_test"):
+        if Version(image_framework_version) in SpecifierSet(">=2.2"):
+            pytest.skip(
+                f"PyTorch 2.2.0 and later has deprecated NVFuser from torch script in this commit https://github.com/pytorch/pytorch/commit/e6b5e0ecc609c15bfee5b383fe5c55fbdfda68ff"
+                f"However, TransformerEngine latest version 1.2.1 still uses nvfuser."
+                f"We have raised the issue with TransformerEngine, and this test will be skipped until the issue is resolved."
+                f"For more information, see https://github.com/NVIDIA/TransformerEngine/issues/666"
+                f"Skipping this container with tag {image_framework_version}"
+            )
+
+
+@pytest.fixture(autouse=True)
 def skip_pt20_cuda121_tests(request):
     if "training" in request.fixturenames:
         img_uri = request.getfixturevalue("training")

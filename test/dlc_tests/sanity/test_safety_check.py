@@ -664,8 +664,6 @@ IGNORE_SAFETY_IDS = {
                 "42772",
                 "42814",
                 "42815",
-                # for shipping pyopenssl>=22.0.0 - no current fix
-                "65213",
             ],
         },
         "training-neuron": {
