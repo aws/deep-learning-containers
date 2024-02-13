@@ -38,7 +38,7 @@
                 "42098":"Can't upgrade TF version to 2.7.x in non 2.7 images.",
                 "42062":"Can't upgrade TF version to 2.7.x in non 2.7 images.",
                 "51159": "for cryptography until we have 39.0.0 release",
-                "44715":"False positive for numpy. Was fixed in 1.22.2",                
+                "44715":"False positive for numpy. Was fixed in 1.22.2",
                 "51516":"keras>2.10.0 does not exist yet"
             }
         },
@@ -953,7 +953,8 @@
                 "52510":"Future 0.18.2 is the latest package version - no fix version is available",
                 "54718": "Fix for issue available in torch version 1.13.1",
                 "51499": "Fix for issue contained in Wheel 0.38.1",
-                "62894": "for scipy-1.10.1 which is a hardcoded dependency of sagemaker-pytorch-inference"
+                "62894": "for scipy-1.10.1 which is a hardcoded dependency of sagemaker-pytorch-inference",
+                "65213": "for shipping pyopenssl>=22.0.0 - no current fix"
             }
         },
         "inference-eia": {
