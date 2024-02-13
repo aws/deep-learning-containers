@@ -58,6 +58,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libtemplate-perl \
     libssl1.1 \
     openssl \
+    protobuf-compiler \
     unzip \
     wget \
     vim \
@@ -137,11 +138,6 @@ RUN ${PIP} --no-cache-dir install --upgrade \
 # Some TF tools expect a "python" binary
 RUN ln -s $(which ${PYTHON}) /usr/local/bin/python \
     && ln -s $(which ${PIP}) /usr/bin/pip
-
-RUN apt-get update \
- && apt-get -y install protobuf-compiler \
- && rm -rf /var/lib/apt/lists/* \
- && apt-get clean
 
 RUN ${PIP} install --no-cache-dir -U \
     pybind11 \
@@ -242,9 +238,6 @@ RUN apt-get update  \
  && rm -rf /var/lib/apt/lists/* \
  && apt-get clean
 
-# Need to install wheel before we can fix the pyyaml issue below
-RUN pip install wheel
-
 # https://github.com/yaml/pyyaml/issues/601
 # PyYaml less than 6.0.1 failes to build with cython v3 and above.
 # tf-models-official uses older versions, breaking the install.
@@ -252,7 +245,9 @@ RUN pip install wheel
 # the sagemaker package will revert pyyaml back to 6 for its requirement
 # and this is fine since sagemaker is more important than the models and
 # the models still work on pyyaml 6 in this context.
-RUN pip install "cython<3" "pyyaml<6" --no-build-isolation
+# Need to install wheel before we can fix the pyyaml issue below
+RUN pip install wheel \
+ && pip install "cython<3" "pyyaml<6" --no-build-isolation
 
 # https://github.com/tensorflow/models/issues/9267
 # tf-models does not respect existing installations of TF and always installs open source TF
@@ -279,18 +274,11 @@ RUN $PYTHON -m pip install --no-cache-dir -U \
     sagemaker-experiments==0.* \
     sagemaker-tensorflow-training \
     sagemaker-training \
+    sagemaker-tensorflow==2.14.* \
     "sagemaker-studio-analytics-extension<1" \
     "sparkmagic<1" \
     "sagemaker-studio-sparkmagic-lib<1" \
     smclarify
-
-# install sagemaker-tensorflow from source
-ARG SAGEMAKER_TENSORFLOW_TAG=v1.20.0
-RUN git clone -b tf-2 https://github.com/aws/sagemaker-tensorflow-extensions.git \
-    && cd sagemaker-tensorflow-extensions \
-    && git checkout tags/$SAGEMAKER_TENSORFLOW_TAG -b $SAGEMAKER_TENSORFLOW_TAG \
-    && $PYTHON -m pip install . \
-    && cd .. && rm -rf sagemaker-tensorflow-extensions
 
 # Remove python kernel installed by sparkmagic
 RUN /usr/local/bin/jupyter-kernelspec remove -f python3
