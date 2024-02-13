@@ -1,3 +1,10 @@
+##################################################################################################
+#
+# NOTE: IMPORTANT
+# ./test/dlc_tests/sanity/test_safety_check.py is obsolete and no longer used.
+# To create vulnerability exception, please declare them in ./data/ecr_scan_vulnerabilities.json
+#
+##################################################################################################
 import json
 import logging
 import os
@@ -707,8 +714,6 @@ IGNORE_SAFETY_IDS = {
                 "51358",
                 # for scipy version 1.10.1 which is a hardcoded dependency of sagemaker-pytorch-inference
                 "62894",
-                # for shipping pyopenssl>=22.0.0 - no current fix
-                "65213",
             ]
         },
         "inference-eia": {"py3": []},

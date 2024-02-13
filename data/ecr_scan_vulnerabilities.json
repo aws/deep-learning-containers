@@ -18,15 +18,5 @@
          ],
          "advisory":"Issue summary: A bug has been identified in the processing of key and\ninitialisation vector (IV) lengths.  This can lead to potential truncation\nor overruns during the initialisation of some symmetric ciphers.\n\nImpact summary: A truncation in the IV can result in non-uniqueness,\nwhich could result in loss of confidentiality for some cipher modes.\n\nWhen calling EVP_EncryptInit_ex2(), EVP_DecryptInit_ex2() or\nEVP_CipherInit_ex2() the provided OSSL_PARAM array is processed after\nthe key and IV have been established.  Any alterations to the key length,\nvia the \"keylen\" parameter or the IV length, via the \"ivlen\" parameter,\nwithin the OSSL_PARAM array will not take effect as intended, potentially\ncausing truncation or overreading of these values.  The following ciphers\nand cipher modes are impacted: RC2, RC4, RC5, CCM, GCM and OCB.\n\nFor the CCM, GCM and OCB cipher modes, truncation of the IV can result in\nloss of confidentiality.  For example, when following NIST's SP 800-38D\nsection 8.2.1 guidance for constructin"
       }
-   ],
-    "pyopenssl":[
-       {
-          "cve":"CVE-2023-6129",
-          "id": "65213",
-          "specs":[
-             ">=22.0.0"
-          ],
-          "advisory":"CVE-2023-6129 affects PyOpenSSL versions starting from 22.0.0 due to a vulnerability in the POLY1305 MAC algorithm on PowerPC CPUs. This issue could lead to state corruption in applications, causing inaccurate outcomes or service disruptions. Attackers need specific conditions to exploit this flaw, including the ability to manipulate the algorithm's use and reliance on certain system registers by the application."
-       }
-    ]
+   ]
  }
