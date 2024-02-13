@@ -8,7 +8,6 @@ ARG TORCH_URL=https://framework-binaries.s3.us-west-2.amazonaws.com/pytorch/v2.2
 ARG TORCHVISION_URL=https://framework-binaries.s3.us-west-2.amazonaws.com/pytorch/v2.2.0/cpu/torchvision-0.17.0%2Bcpu-cp310-cp310-linux_x86_64.whl
 ARG TORCHAUDIO_URL=https://framework-binaries.s3.us-west-2.amazonaws.com/pytorch/v2.2.0/cpu/torchaudio-2.2.0%2Bcpu-cp310-cp310-linux_x86_64.whl
 ARG TORCHTEXT_URL=https://framework-binaries.s3.us-west-2.amazonaws.com/pytorch/v2.2.0/cpu/torchtext-0.17.0%2Bcpu-cp310-cp310-linux_x86_64.whl
-ARG TORCHDATA_URL=https://framework-binaries.s3.us-west-2.amazonaws.com/pytorch/v2.2.0/cpu/torchdata-0.7.1%2B5e6f7b7-cp310-cp310-linux_x86_64.whl
 ARG TORCHSERVE_VERSION
 ARG SM_TOOLKIT_VERSION
 
@@ -41,7 +40,6 @@ ARG TORCH_URL
 ARG TORCHVISION_URL
 ARG TORCHAUDIO_URL
 ARG TORCHTEXT_URL
-ARG TORCHDATA_URL
 ARG TORCHSERVE_VERSION
 
 # This arg required to stop docker build waiting for region configuration while installing tz data from ubuntu 20
@@ -164,8 +162,7 @@ RUN pip install --no-cache-dir -U \
     ${TORCH_URL} \
     ${TORCHVISION_URL} \
     ${TORCHAUDIO_URL} \
-    ${TORCHTEXT_URL} \
-    ${TORCHDATA_URL}
+    ${TORCHTEXT_URL}
 
 # Install TorchServe pypi dependencies directly from their requirements.txt file
 # NOTE: This also brings in unnecessary cpu dependencies like nvgpu
