@@ -707,6 +707,8 @@ IGNORE_SAFETY_IDS = {
                 "51358",
                 # for scipy version 1.10.1 which is a hardcoded dependency of sagemaker-pytorch-inference
                 "62894",
+                # for shipping pyopenssl>=22.0.0 - no current fix
+                "65213",
             ]
         },
         "inference-eia": {"py3": []},
