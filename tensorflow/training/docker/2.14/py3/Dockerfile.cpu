@@ -280,6 +280,14 @@ RUN $PYTHON -m pip install --no-cache-dir -U \
     "sagemaker-studio-sparkmagic-lib<1" \
     smclarify
 
+# install sagemaker-tensorflow from source to avoid `GLIBC_2.34' not found runtime error
+ARG SAGEMAKER_TENSORFLOW_TAG=v1.20.0
+RUN git clone -b tf-2 https://github.com/aws/sagemaker-tensorflow-extensions.git \
+    && cd sagemaker-tensorflow-extensions \
+    && git checkout tags/$SAGEMAKER_TENSORFLOW_TAG -b $SAGEMAKER_TENSORFLOW_TAG \
+    && $PYTHON -m pip install . \
+    && cd .. && rm -rf sagemaker-tensorflow-extensions
+
 # Remove python kernel installed by sparkmagic
 RUN /usr/local/bin/jupyter-kernelspec remove -f python3
 
