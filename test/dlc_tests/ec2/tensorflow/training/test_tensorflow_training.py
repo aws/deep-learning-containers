@@ -29,6 +29,7 @@ TF_DATASERVICE_TEST_CMD = os.path.join(CONTAINER_TESTS_PREFIX, "testDataservice"
 TF_DATASERVICE_DISTRIBUTE_TEST_CMD = os.path.join(
     CONTAINER_TESTS_PREFIX, "testDataserviceDistribute"
 )
+TF_IO_S3_PLUGIN_TEST_CMD = os.path.join(CONTAINER_TESTS_PREFIX, "testTensorflowIoS3Plugin")
 TF_HABANA_TEST_SUITE_CMD = os.path.join(CONTAINER_TESTS_PREFIX, "testHabanaTFSuite")
 
 TF_EC2_SINGLE_GPU_INSTANCE_TYPE = get_ec2_instance_type(
@@ -267,6 +268,28 @@ def test_tensorflow_addons_gpu(
 @pytest.mark.parametrize("ec2_instance_type", TF_EC2_CPU_INSTANCE_TYPE, indirect=True)
 def test_tensorflow_addons_cpu(tensorflow_training, ec2_connection, tf2_only, cpu_only):
     execute_ec2_training_test(ec2_connection, tensorflow_training, TF_ADDONS_CMD)
+
+
+@pytest.mark.model("mnist")
+@pytest.mark.integration("tensorflow_io, tensorflow_datasets")
+@pytest.mark.team("frameworks")
+@pytest.mark.parametrize("ec2_instance_type", TF_EC2_SINGLE_GPU_INSTANCE_TYPE, indirect=True)
+def test_tensorflow_io_s3_plugin_gpu(
+    tensorflow_training, ec2_connection, tf2_only, gpu_only, ec2_instance_type
+):
+    if test_utils.is_image_incompatible_with_instance_type(tensorflow_training, ec2_instance_type):
+        pytest.skip(
+            f"Image {tensorflow_training} is incompatible with instance type {ec2_instance_type}"
+        )
+    execute_ec2_training_test(ec2_connection, tensorflow_training, TF_IO_S3_PLUGIN_TEST_CMD)
+
+
+@pytest.mark.model("mnist")
+@pytest.mark.integration("tensorflow_io, tensorflow_datasets")
+@pytest.mark.team("frameworks")
+@pytest.mark.parametrize("ec2_instance_type", TF_EC2_CPU_INSTANCE_TYPE, indirect=True)
+def test_tensorflow_io_s3_plugin_cpu(tensorflow_training, ec2_connection, tf2_only, cpu_only):
+    execute_ec2_training_test(ec2_connection, tensorflow_training, TF_IO_S3_PLUGIN_TEST_CMD)
 
 
 # Helper function to test data service
