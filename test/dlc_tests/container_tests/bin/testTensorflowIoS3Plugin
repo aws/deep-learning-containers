@@ -11,6 +11,9 @@ if [[ ! -d $LOG_DIR ]]; then
     mkdir -p $LOG_DIR
 fi
 
+apt-get update -qq
+apt-get install -y -qq jq
+
 AWS_ACCOUNT_ID=$(aws sts get-caller-identity | jq -r ".Account")
 S3_BUCKET="s3://dlc-cicd-helper-${AWS_ACCOUNT_ID}"
 DOCKER_CONTAINER_ID=$(cat /etc/hostname)
