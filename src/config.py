@@ -6,7 +6,6 @@ from enum import Enum
 
 import toml
 
-from buildspec import Buildspec
 from codebuild_environment import get_codebuild_project_name, get_cloned_folder_path
 
 LOGGER = logging.getLogger(__name__)
@@ -50,6 +49,8 @@ def is_build_enabled():
 
 
 def is_autopatch_build_enabled_in_image_buildspec(buildspec_path=None):
+    from buildspec import Buildspec
+    
     if not buildspec_path:
         return False
     image_buildspec_object = Buildspec()

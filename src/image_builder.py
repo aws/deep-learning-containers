@@ -617,7 +617,7 @@ def modify_repository_name_for_context(image_repo_uri, build_context):
     repo_uri_values = image_repo_uri.split("/")
     repo_name = repo_uri_values[-1]
     if build_context == "MAINLINE":
-        if is_autopatch_build_enabled(buildspec_path=IMAGE_BUILDSPEC_PATH):
+        if is_autopatch_build_enabled():
             repo_uri_values[-1] = repo_name.replace(
                 constants.PR_REPO_PREFIX, constants.AUTOPATCH_REPO_PREFIX
             )
