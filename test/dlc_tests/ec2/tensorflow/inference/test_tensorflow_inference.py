@@ -4,6 +4,8 @@ import json
 from time import sleep
 import pytest
 
+from packaging.version import Version
+
 import test.test_utils.ec2 as ec2_utils
 
 from test import test_utils
@@ -90,7 +92,11 @@ def test_ec2_tensorflow_inference_gpu_tensorrt(
     model_path = os.path.join(
         serving_folder_path, "tensorflow_serving", "example", "models", model_name
     )
-    upstream_build_image_uri = f"""tensorflow/tensorflow:{"2.12.0" if framework_version=="2.12.1" else framework_version}-gpu"""
+
+    # Use helper function pull_tensorrt_build_image to get the closest matching major.minor.patch
+    # version for a particular TF inference framework version. Sometimes TF serving versions
+    # are a patch version or two ahead of the corresponding TF version.
+    upstream_build_image_uri = pull_tensorrt_build_image(ec2_connection, framework_version)
     docker_build_model_command = (
         f"nvidia-docker run --rm --name {build_container_name} "
         f"-v {model_creation_script_folder}:/script_folder/ -i {upstream_build_image_uri} "
@@ -102,7 +108,6 @@ def test_ec2_tensorflow_inference_gpu_tensorrt(
         f" {tensorflow_inference}"
     )
 
-    tensorrt_test_failed = False
     try:
         ec2_connection.run(f"$(aws ecr get-login --no-include-email --region {region})", hide=True)
         host_setup_for_tensorflow_inference(serving_folder_path, framework_version, ec2_connection)
@@ -119,17 +124,16 @@ def test_ec2_tensorflow_inference_gpu_tensorrt(
             inference_string=f"""'{{"instances": [[{",".join([str([1]*28)]*28)}]]}}'""",
         )
         assert test_results, "TensorRt test failed!"
-    except:
-        tensorrt_test_failed = True
+    except Exception:
         remote_out = ec2_connection.run(
             f"docker logs {serving_container_name}", warn=True, hide=True
         )
         LOGGER.info(
             f"--- TF container logs ---\n--- STDOUT ---\n{remote_out.stdout}\n--- STDERR ---\n{remote_out.stderr}"
         )
+        raise
     finally:
         ec2_connection.run(f"docker rm -f {serving_container_name}", warn=True, hide=True)
-    assert not tensorrt_test_failed, "TensorRt tests have failed - please take a look at the logs."
 
 
 @pytest.mark.usefixtures("sagemaker")
@@ -249,7 +253,7 @@ def run_ec2_tensorflow_inference(
             f"--mount type=bind,source={model_path},target=/models/mnist -e TEST_MODE=1 -e MODEL_NAME=mnist"
             f" {image_uri}"
         )
-    inference_test_failed = False
+
     try:
         host_setup_for_tensorflow_inference(
             serving_folder_path,
@@ -278,15 +282,14 @@ def run_ec2_tensorflow_inference(
             )
         if telemetry_mode:
             check_telemetry(ec2_connection, container_name)
-    except:
-        inference_test_failed = True
+    except Exception:
         remote_out = ec2_connection.run(f"docker logs {container_name}", warn=True, hide=True)
         LOGGER.info(
             f"--- TF container logs ---\n--- STDOUT ---\n{remote_out.stdout}\n--- STDERR ---\n{remote_out.stderr}"
         )
+        raise
     finally:
         ec2_connection.run(f"docker rm -f {container_name}", warn=True, hide=True)
-    assert inference_test_failed is False, "tensorflow inference test failed"
 
 
 def train_mnist_model(serving_folder_path, ec2_connection):
@@ -303,30 +306,32 @@ def host_setup_for_tensorflow_inference(
     is_graviton=False,
     model_name=None,
 ):
-    # Wait for any existing apt-get calls to finish before moving on
-    # TODO(Mike Schneider): Improve this by adding a check for running apt-get processes and wait for them to finish,
-    # then timeout after a given amount of time if other apt-get calls are taking too long.
-    ec2_connection.run((f"sleep 180"), hide=True)
-
-    # Install PIP so we can test
-    ec2_connection.run((f"sudo apt-get update && sudo apt-get install -y python3-pip"), hide=True)
-
     # Attempting a pin will result in pip not finding the version. The internal repo only has a custom Tensorflow 2.6
     # which is not compatible with TF 2.9+ and this is the recommended action.
     if is_graviton:
         ec2_connection.run(f"pip install --no-cache-dir -U tensorflow-cpu-aws", hide=True)
+        # Removed the protobuf version constraint because it prevents the matching version
+        # of tensorflow and tensorflow-serving-api from being installed.
+        # If we face protobuf-related version mismatch issues in the future,
+        # please add a constraint at the necessary version back to this code, such as
+        # 'protobuf>=3.20,<3.21'.
         ec2_connection.run(
             (
                 f"pip install --no-dependencies --no-cache-dir "
-                f"'tensorflow-serving-api=={framework_version}' 'protobuf>=3.20,<3.21'"
+                f"'tensorflow-serving-api=={framework_version}'"
             ),
             hide=True,
         )
     else:
+        # Removed the protobuf version constraint because it prevents the matching version
+        # of tensorflow and tensorflow-serving-api from being installed.
+        # If we face protobuf-related version mismatch issues in the future,
+        # please add a constraint at the necessary version back to this code, such as
+        # 'protobuf>=3.20,<3.21'.
         ec2_connection.run(
             (
                 f"pip install --user -qq -U 'tensorflow<={framework_version}' "
-                f" 'tensorflow-serving-api<={framework_version}' 'protobuf>=3.20,<3.21'"
+                f" 'tensorflow-serving-api<={framework_version}'"
             ),
             hide=True,
         )
@@ -374,3 +379,35 @@ def check_telemetry(ec2_connection, container_name):
     ec2_connection.run(
         f"docker exec -i {container_name} bash -c '[ -f /tmp/test_tag_request.txt ]'"
     )
+
+
+def pull_tensorrt_build_image(ec2_connection, framework_version):
+    """
+    Download tensorflow/tensorflow:<framework_version>-gpu image used for tensorrt model builds.
+    Since tensorflow/tensorflow does not always have all patch versions of a particular TF version,
+    we want to download the closest available version below the patch version of the TF DLC image.
+
+    :param ec2_connection: fabric.Connection object
+    :param framework_version: str framework version of TF image being tested
+    :return: str tensorrt build image tag
+    """
+    tf_image_version = Version(framework_version)
+    patch_version = tf_image_version.micro
+    upstream_build_image_uri = f"tensorflow/tensorflow:{framework_version}-gpu"
+    while patch_version >= 0:
+        major_version = tf_image_version.major
+        minor_version = tf_image_version.minor
+        tf_image_version = Version(f"{major_version}.{minor_version}.{patch_version}")
+        upstream_build_image_uri = f"tensorflow/tensorflow:{tf_image_version.base_version}-gpu"
+        response = ec2_connection.run(
+            f"docker pull {upstream_build_image_uri}", warn=True, hide=True
+        )
+        if response.failed:
+            patch_version -= 1
+        else:
+            break
+    if patch_version < 0:
+        raise RuntimeError(
+            f"Failed to pull an image for tensorflow/tensorflow matching {framework_version}"
+        )
+    return upstream_build_image_uri
