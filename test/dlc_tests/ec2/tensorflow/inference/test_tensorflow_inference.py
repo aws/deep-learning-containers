@@ -93,6 +93,9 @@ def test_ec2_tensorflow_inference_gpu_tensorrt(
         serving_folder_path, "tensorflow_serving", "example", "models", model_name
     )
 
+    # Use helper function pull_tensorrt_build_image to get the closest matching major.minor.patch
+    # version for a particular TF inference framework version. Sometimes TF serving versions
+    # are a patch version or two ahead of the corresponding TF version.
     upstream_build_image_uri = pull_tensorrt_build_image(ec2_connection, framework_version)
     docker_build_model_command = (
         f"nvidia-docker run --rm --name {build_container_name} "
@@ -307,6 +310,11 @@ def host_setup_for_tensorflow_inference(
     # which is not compatible with TF 2.9+ and this is the recommended action.
     if is_graviton:
         ec2_connection.run(f"pip install --no-cache-dir -U tensorflow-cpu-aws", hide=True)
+        # Removed the protobuf version constraint because it prevents the matching version
+        # of tensorflow and tensorflow-serving-api from being installed.
+        # If we face protobuf-related version mismatch issues in the future,
+        # please add a constraint at the necessary version back to this code, such as
+        # 'protobuf>=3.20,<3.21'.
         ec2_connection.run(
             (
                 f"pip install --no-dependencies --no-cache-dir "
@@ -315,6 +323,11 @@ def host_setup_for_tensorflow_inference(
             hide=True,
         )
     else:
+        # Removed the protobuf version constraint because it prevents the matching version
+        # of tensorflow and tensorflow-serving-api from being installed.
+        # If we face protobuf-related version mismatch issues in the future,
+        # please add a constraint at the necessary version back to this code, such as
+        # 'protobuf>=3.20,<3.21'.
         ec2_connection.run(
             (
                 f"pip install --user -qq -U 'tensorflow<={framework_version}' "
