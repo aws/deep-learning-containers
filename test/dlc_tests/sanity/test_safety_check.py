@@ -2,7 +2,6 @@
 #
 # NOTE: IMPORTANT
 # ./test/dlc_tests/sanity/test_safety_check.py is obsolete and no longer used.
-# To create vulnerability exception, please declare them in ./data/ecr_scan_vulnerabilities.json
 #
 ##################################################################################################
 import json
