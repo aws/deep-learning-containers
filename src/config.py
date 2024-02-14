@@ -6,6 +6,7 @@ from enum import Enum
 
 import toml
 
+from buildspec import Buildspec
 from codebuild_environment import get_codebuild_project_name, get_cloned_folder_path
 
 LOGGER = logging.getLogger(__name__)
@@ -48,8 +49,22 @@ def is_build_enabled():
     return parse_dlc_developer_configs("build", "do_build")
 
 
-def is_autopatch_build_enabled():
-    return parse_dlc_developer_configs("build", "autopatch_build") or os.getenv("AUTOPATCH")
+def is_autopatch_build_enabled_in_image_buildspec(buildspec_path=None):
+    if not buildspec_path:
+        return False
+    image_buildspec_object = Buildspec()
+    image_buildspec_object.load(buildspec_path)
+    autopatch_build_flag = image_buildspec_object.get("autopatch_build", "False").lower() == "true"
+    print(f"Here: {buildspec_path}")
+    return autopatch_build_flag
+
+
+def is_autopatch_build_enabled(buildspec_path=None):
+    return (
+        parse_dlc_developer_configs("build", "autopatch_build")
+        or os.getenv("AUTOPATCH")
+        or is_autopatch_build_enabled_in_image_buildspec(buildspec_path=buildspec_path)
+    )
 
 
 def is_ec2_test_enabled():
