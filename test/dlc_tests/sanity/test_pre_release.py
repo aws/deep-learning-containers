@@ -718,10 +718,10 @@ def test_pip_check(image):
     ) in SpecifierSet(">=2.9.1"):
         exception_strings = []
 
-        for ex_ver in ["2.9.1", "2.9.2", "2.10.0", "2.11.0", "2.12.0", "2.13.0"]:
+        for ex_ver in ["2.9.1", "2.9.2", "2.10.0", "2.11.0", "2.12.0", "2.13.0", "2.14.2"]:
             exception_strings += [f"tf-models-official {ex_ver}".replace(".", r"\.")]
 
-        for ex_ver in ["2.9.0", "2.10.0", "2.11.0", "2.12.0", "2.13.0"]:
+        for ex_ver in ["2.9.0", "2.10.0", "2.11.0", "2.12.0", "2.13.0", "2.14.0"]:
             exception_strings += [f"tensorflow-text {ex_ver}".replace(".", r"\.")]
 
         allowed_exceptions.append(
