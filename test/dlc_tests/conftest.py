@@ -878,7 +878,7 @@ def skip_torchdata_test(request):
         return
     _, image_framework_version = get_framework_and_version_from_tag(img_uri)
     if request.node.get_closest_marker("skip_torchdata_test"):
-        if Version(image_framework_version) in SpecifierSet("<2.2"):
+        if Version(image_framework_version) in SpecifierSet(">2.1.1"):
             pytest.skip(
                 f"Torchdata has paused development as of July 2023 and the latest compatible PyTorch version is 2.1.1."
                 f"For more information, see https://github.com/pytorch/data/issues/1196."
@@ -895,7 +895,7 @@ def skip_transformer_engine_test(request):
     else:
         return
     _, image_framework_version = get_framework_and_version_from_tag(img_uri)
-    if request.node.get_closest_marker("skip_torchdata_test"):
+    if request.node.get_closest_marker("skip_transformer_engine_test"):
         if Version(image_framework_version) in SpecifierSet(">=2.2"):
             pytest.skip(
                 f"PyTorch 2.2.0 and later has deprecated NVFuser from torch script in this commit https://github.com/pytorch/pytorch/commit/e6b5e0ecc609c15bfee5b383fe5c55fbdfda68ff"
