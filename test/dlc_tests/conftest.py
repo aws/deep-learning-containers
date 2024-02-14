@@ -870,9 +870,9 @@ def skip_torchdata_test(request):
     image_uri = ""
 
     for lookup_fixture in lookup_fixtures:
-          if lookup_fixture in request.fixturenames:
-                image_uri = request.getfixturevalue(lookup_fixture)
-                break
+        if lookup_fixture in request.fixturenames:
+            image_uri = request.getfixturevalue(lookup_fixture)
+            break
 
     if not image_uri:
         return
