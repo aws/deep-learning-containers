@@ -192,7 +192,7 @@ def test_ecs_pytorch_s3_plugin_training_gpu(
     """
     GPU resnet18 test for PyTorch Training using S3 plugin
 
-    Instance Type -g4dn.8xlarge
+    Instance Type - g4dn.8xlarge
 
     Given above parameters, registers a task with family named after this test, runs the task, and waits for
     the task to be stopped before doing teardown operations of instance and cluster.
