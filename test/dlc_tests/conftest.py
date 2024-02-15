@@ -865,6 +865,29 @@ def skip_inductor_test(request):
 
 
 @pytest.fixture(autouse=True)
+def skip_torchdata_test(request):
+    lookup_fixtures = ["training", "pytorch_training", "inference", "pytorch_inference"]
+    image_uri = ""
+
+    for lookup_fixture in lookup_fixtures:
+        if lookup_fixture in request.fixturenames:
+            image_uri = request.getfixturevalue(lookup_fixture)
+            break
+
+    if not image_uri:
+        return
+
+    _, image_framework_version = get_framework_and_version_from_tag(image_uri)
+    if request.node.get_closest_marker("skip_torchdata_test"):
+        if Version(image_framework_version) in SpecifierSet(">2.1.1"):
+            pytest.skip(
+                f"Torchdata has paused development as of July 2023 and the latest compatible PyTorch version is 2.1.1."
+                f"For more information, see https://github.com/pytorch/data/issues/1196."
+                f"Skipping this container with tag {image_framework_version}"
+            )
+
+
+@pytest.fixture(autouse=True)
 def skip_pt20_cuda121_tests(request):
     if "training" in request.fixturenames:
         img_uri = request.getfixturevalue("training")
