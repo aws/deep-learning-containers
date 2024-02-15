@@ -238,13 +238,14 @@ def test_pytorch_linear_regression_cpu(pytorch_training, ec2_connection, cpu_onl
     execute_ec2_training_test(ec2_connection, pytorch_training, PT_REGRESSION_CMD)
 
 
+@pytest.mark.skip_pt20_cuda121_tests
+@pytest.mark.skip_pt21_test
+@pytest.mark.skip_pt22_test
 @pytest.mark.usefixtures("sagemaker")
 @pytest.mark.integration("dgl")
 @pytest.mark.model("gcn")
-@pytest.mark.skip_pt20_cuda121_tests
 @pytest.mark.parametrize("ec2_instance_type", PT_EC2_GPU_INSTANCE_TYPE, indirect=True)
 @pytest.mark.team("dgl")
-@pytest.mark.skip_pt21_test
 def test_pytorch_train_dgl_gpu(
     pytorch_training, ec2_connection, ec2_instance_type, gpu_only, py3_only, skip_pt110
 ):
@@ -264,12 +265,13 @@ def test_pytorch_train_dgl_gpu(
     execute_ec2_training_test(ec2_connection, pytorch_training, PT_DGL_CMD)
 
 
+@pytest.mark.skip_pt21_test
+@pytest.mark.skip_pt22_test
 @pytest.mark.usefixtures("sagemaker")
 @pytest.mark.integration("dgl")
 @pytest.mark.model("gcn")
 @pytest.mark.parametrize("ec2_instance_type", PT_EC2_CPU_INSTANCE_TYPE, indirect=True)
 @pytest.mark.team("dgl")
-@pytest.mark.skip_pt21_test
 def test_pytorch_train_dgl_cpu(pytorch_training, ec2_connection, cpu_only, py3_only, skip_pt110):
     # DGL cpu ec2 test doesn't work on PT 1.10 DLC
     execute_ec2_training_test(ec2_connection, pytorch_training, PT_DGL_CMD)
@@ -619,6 +621,7 @@ def test_pytorch_training_torchaudio_cpu(
     execute_ec2_training_test(ec2_connection, pytorch_training, PT_TORCHAUDIO_CMD)
 
 
+@pytest.mark.skip_torchdata_test
 @pytest.mark.usefixtures("feature_torchdata_present")
 @pytest.mark.usefixtures("sagemaker")
 @pytest.mark.integration("pt_torchdata_gpu")
@@ -642,6 +645,7 @@ def test_pytorch_training_torchdata_gpu(
         execute_ec2_training_test(ec2_connection, pytorch_training, PT_TORCHDATA_CMD)
 
 
+@pytest.mark.skip_torchdata_test
 @pytest.mark.usefixtures("feature_torchdata_present")
 @pytest.mark.usefixtures("sagemaker")
 @pytest.mark.integration("pt_torchdata_cpu")
