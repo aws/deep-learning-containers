@@ -118,14 +118,12 @@ RUN pip install "zstandard>=0.21.0"
 RUN /opt/conda/bin/mamba install -y --override-channels \
     -c conda-forge \
     conda=23.1.0 \
-    # patch CVE
-    "cryptography>=42.0.2" \
-    # patch CVE
-    "pyopenssl>=21.0.0" \
+    "cryptography>=41.0.2" \
     # patch CVE
     "pillow>=9.4,<9.5.0" \
     cmake \
     requests \
+    pyopenssl \
     python=$PYTHON_VERSION \
     cython \
     # force conda to install h5py with openmpi build, not mpich (rubik error)
