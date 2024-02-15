@@ -111,13 +111,13 @@ def is_test_job_enabled(test_type):
     Check to see if a test job is enabled
     See if we should run the tests based on test types and config options.
     """
-    if test_type == constants.SAGEMAKER_REMOTE_TESTS and config.is_sm_remote_test_enabled:
+    if test_type == constants.SAGEMAKER_REMOTE_TESTS and config.is_sm_remote_test_enabled():
         return True
-    if test_type == constants.SAGEMAKER_EFA_TESTS and config.is_sm_efa_test_enabled:
+    if test_type == constants.SAGEMAKER_EFA_TESTS and config.is_sm_efa_test_enabled():
         return True
-    if test_type == constants.SAGEMAKER_RC_TESTS and config.is_sm_rc_test_enabled:
+    if test_type == constants.SAGEMAKER_RC_TESTS and config.is_sm_rc_test_enabled():
         return True
-    if test_type == constants.SAGEMAKER_BENCHMARK_TESTS and config.is_sm_benchmark_test_enabled:
+    if test_type == constants.SAGEMAKER_BENCHMARK_TESTS and config.is_sm_benchmark_test_enabled():
         return True
     if test_type == constants.EC2_TESTS and config.is_ec2_test_enabled():
         return True
