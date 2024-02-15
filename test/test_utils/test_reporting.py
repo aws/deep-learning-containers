@@ -64,6 +64,7 @@ class TestReportGenerator:
         "test_ecs_pytorch_training_mnist_gpu",
         "test_ecs_pytorch_s3_plugin_training_gpu",
         "test_ecs_pytorch_training_dgl_gpu",
+        "test_ecs_pytorch_inference_gpu",
     )
     SM_REPOS = (
         os.path.join("pytorch", "training"),

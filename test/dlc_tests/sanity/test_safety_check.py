@@ -1,3 +1,9 @@
+##################################################################################################
+#
+# NOTE: IMPORTANT
+# ./test/dlc_tests/sanity/test_safety_check.py is obsolete and no longer used.
+#
+##################################################################################################
 import json
 import logging
 import os
