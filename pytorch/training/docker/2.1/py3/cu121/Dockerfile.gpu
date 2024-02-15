@@ -138,7 +138,7 @@ RUN /opt/conda/bin/mamba install -y -c conda-forge \
     # Adding package for studio kernels
     ipykernel \
     # patch CVE
-    "pyopenssl>=24.0.0" \
+    "pyopenssl>=21.0.0" \
     # patch CVE
     "cryptography>=42.0.2" \
     # patch CVE

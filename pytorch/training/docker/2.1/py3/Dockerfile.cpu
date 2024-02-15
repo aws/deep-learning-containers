@@ -116,7 +116,7 @@ RUN /opt/conda/bin/mamba install -y --override-channels \
     # patch CVE
     "cryptography>=42.0.2" \
     # patch CVE
-    "pyopenssl>=24.0.0" \
+    "pyopenssl>=21.0.0" \
     cmake \
     requests \
     python=$PYTHON_VERSION \
