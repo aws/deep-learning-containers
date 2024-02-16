@@ -312,13 +312,13 @@ RUN /opt/conda/bin/conda install -y -c conda-forge \
     scikit-learn \
     pandas
 
-RUN pip install --no-cache-dir sagemaker-pytorch-inference==${SM_TOOLKIT_VERSION} 
+RUN pip install --no-cache-dir sagemaker-pytorch-inference==${SM_TOOLKIT_VERSION} \
     # "scipy==1.10.1" \
     # "boto3==1.28.60" \
     # # solve below package version again given above hardcoded dependencies
-    # awscli \
-    # botocore \
-    # s3transfer
+    awscli \
+    botocore \
+    s3transfer
 
 COPY torchserve-entrypoint.py /usr/local/bin/dockerd-entrypoint.py
 
