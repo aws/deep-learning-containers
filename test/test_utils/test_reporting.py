@@ -58,6 +58,13 @@ class TestReportGenerator:
         "test_smclarify",
         "test_ec2_pytorch_inference_gpu_inductor",
         "test_mnist_distributed_gpu_inductor",
+        "test_ecs_tensorflow_training_mnist_gpu",
+        "test_ecs_tensorflow_inference_gpu",
+        "test_ecs_tensorflow_inference_gpu_nlp",
+        "test_ecs_pytorch_training_mnist_gpu",
+        "test_ecs_pytorch_s3_plugin_training_gpu",
+        "test_ecs_pytorch_training_dgl_gpu",
+        "test_ecs_pytorch_inference_gpu",
     )
     SM_REPOS = (
         os.path.join("pytorch", "training"),
