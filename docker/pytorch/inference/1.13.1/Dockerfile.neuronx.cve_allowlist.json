@@ -1,68 +1,197 @@
 {
-    "CVE-2023-5678": {
-        "vulnerability_id": "CVE-2023-5678",
-        "title": "CVE-2023-5678 - cryptography",
-        "description": "Issue summary: Generating excessively long X9.42 DH keys or checking\nexcessively long X9.42 DH keys or parameters may be very slow.\n\nImpact summary: Applications that use the functions DH_generate_key() to\ngenerate an X9.42 DH key may experience long delays.  Likewise, applications\nthat use DH_check_pub_key(), DH_check_pub_key_ex() or EVP_PKEY_public_check()\nto check an X9.42 DH key or X9.42 DH parameters may experience long delays.\nWhere the key or parameters that are being checked have been obtained from\nan untrusted source this may lead to a Denial of Service.\n\nWhile DH_check() performs all the necessary checks (as of CVE-2023-3817),\nDH_check_pub_key() doesn't make any of these checks, and is therefore\nvulnerable for excessively large P and Q parameters.\n\nLikewise, while DH_generate_key() performs a check for an excessively large\nP, it doesn't check for an excessively large Q.\n\nAn application that calls DH_generate_key() or DH_check_pub_key() and\nsupplies a key or parameters obtained from an untrusted sour",
-        "vulnerable_packages": [
-            {
-                "epoch": 0,
-                "filePath": "opt/conda/lib/python3.10/site-packages/cryptography-41.0.7.dist-info/METADATA",
-                "name": "cryptography",
-                "packageManager": "PYTHONPKG",
-                "version": "41.0.7"
-            }
-        ],
+    "CVE-2023-51779": {
+        "description": "\n It was discovered that a race condition existed in the Bluetooth subsystem\n of the Linux kernel, leading to a use-after-free vulnerability. A local\n attacker could use this to cause a denial of service (system crash) or\n possibly execute arbitrary code.",
         "remediation": {
             "recommendation": {
                 "text": "None Provided"
             }
         },
-        "score": 5.3,
-        "score_details": {
-            "cvss": {
-                "adjustments": [],
-                "score": 5.3,
-                "scoreSource": "NVD",
-                "scoringVector": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:L",
-                "version": "3.1"
-            }
-        },
-        "source": "NVD",
-        "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2023-5678",
+        "score": 0.0,
+        "score_details": {},
         "severity": "MEDIUM",
-        "status": "ACTIVE"
+        "source": "UBUNTU_CVE",
+        "source_url": "https://people.canonical.com/~ubuntu-security/cve/2023/CVE-2023-51779.html",
+        "status": "ACTIVE",
+        "title": "CVE-2023-51779 - linux",
+        "vulnerability_id": "CVE-2023-51779",
+        "vulnerable_packages": [
+            {
+                "arch": "AMD64",
+                "epoch": 0,
+                "name": "linux",
+                "packageManager": "OS",
+                "release": "171.189",
+                "version": "5.4.0"
+            }
+        ]
     },
-    "SNYK-PYTHON-CRYPTOGRAPHY-6126975": {
-        "vulnerability_id": "SNYK-PYTHON-CRYPTOGRAPHY-6126975",
-        "title": "IN1-PYTHON-CRYPTOGRAPHY-6126975 - cryptography",
-        "description": "## Overview\n\nAffected versions of this package are vulnerable to Information Exposure. This issue may allow a remote attacker to decrypt captured messages in TLS servers that use RSA key exchanges, which may lead to exposure of confidential or sensitive data.\n\n**Note:**\n\n\nThis vulnerability exists due to an incomplete fix for [CVE-2020-25659](https://security.snyk.io/vuln/SNYK-PYTHON-CRYPTOGRAPHY-1022152).\n## Remediation\nThere is no fixed version for `cryptography`.\n## References\n- [GitHub Issue](https://github.com/pyca/cryptography/issues/9785#issuecomment-1856209406)",
-        "vulnerable_packages": [
-            {
-                "epoch": 0,
-                "filePath": "opt/conda/lib/python3.10/site-packages/cryptography-41.0.7.dist-info/METADATA",
-                "name": "cryptography",
-                "packageManager": "PYTHONPKG",
-                "version": "41.0.7"
-            }
-        ],
+    "CVE-2023-51780": {
+        "description": "\n It was discovered that a race condition existed in the ATM\n (Asynchronous Transfer Mode) subsystem of the Linux kernel, leading\n to a use-after-free vulnerability. A local attacker could use this\n to cause a denial of service (system crash) or possibly execute\n arbitrary code.",
         "remediation": {
             "recommendation": {
                 "text": "None Provided"
             }
         },
-        "score": 5.9,
+        "score": 7.0,
         "score_details": {
             "cvss": {
                 "adjustments": [],
-                "score": 5.9,
-                "scoreSource": "SNYK",
-                "scoringVector": "CVSS:3.1/AV:N/AC:H/PR:N/UI:N/S:U/C:H/I:N/A:N/E:P",
+                "score": 7.0,
+                "scoreSource": "UBUNTU_CVE",
+                "scoringVector": "CVSS:3.1/AV:L/AC:H/PR:L/UI:N/S:U/C:H/I:H/A:H",
                 "version": "3.1"
             }
         },
-        "source": "SNYK",
-        "source_url": "https://security.snyk.io/vuln/SNYK-PYTHON-CRYPTOGRAPHY-6126975",
+        "severity": "HIGH",
+        "source": "UBUNTU_CVE",
+        "source_url": "https://people.canonical.com/~ubuntu-security/cve/2023/CVE-2023-51780.html",
+        "status": "ACTIVE",
+        "title": "CVE-2023-51780 - linux",
+        "vulnerability_id": "CVE-2023-51780",
+        "vulnerable_packages": [
+            {
+                "arch": "AMD64",
+                "epoch": 0,
+                "name": "linux",
+                "packageManager": "OS",
+                "release": "171.189",
+                "version": "5.4.0"
+            }
+        ]
+    },
+    "CVE-2023-51781": {
+        "description": "\n It was discovered that a race condition existed in the AppleTalk\n networking subsystem of the Linux kernel, leading to a use-after-free\n vulnerability. A local attacker could use this to cause a denial of\n service (system crash) or possibly execute arbitrary code.",
+        "remediation": {
+            "recommendation": {
+                "text": "None Provided"
+            }
+        },
+        "score": 7.0,
+        "score_details": {
+            "cvss": {
+                "adjustments": [],
+                "score": 7.0,
+                "scoreSource": "UBUNTU_CVE",
+                "scoringVector": "CVSS:3.1/AV:L/AC:H/PR:L/UI:N/S:U/C:H/I:H/A:H",
+                "version": "3.1"
+            }
+        },
+        "severity": "HIGH",
+        "source": "UBUNTU_CVE",
+        "source_url": "https://people.canonical.com/~ubuntu-security/cve/2023/CVE-2023-51781.html",
+        "status": "ACTIVE",
+        "title": "CVE-2023-51781 - linux",
+        "vulnerability_id": "CVE-2023-51781",
+        "vulnerable_packages": [
+            {
+                "arch": "AMD64",
+                "epoch": 0,
+                "name": "linux",
+                "packageManager": "OS",
+                "release": "171.189",
+                "version": "5.4.0"
+            }
+        ]
+    },
+    "CVE-2023-51782": {
+        "description": "\n It was discovered that a race condition existed in the Rose X.25\n protocol implementation in the Linux kernel, leading to a use-after-\n free vulnerability. A local attacker could use this to cause a denial\n of service (system crash) or possibly execute arbitrary code.",
+        "remediation": {
+            "recommendation": {
+                "text": "None Provided"
+            }
+        },
+        "score": 7.0,
+        "score_details": {
+            "cvss": {
+                "adjustments": [],
+                "score": 7.0,
+                "scoreSource": "UBUNTU_CVE",
+                "scoringVector": "CVSS:3.1/AV:L/AC:H/PR:L/UI:N/S:U/C:H/I:H/A:H",
+                "version": "3.1"
+            }
+        },
+        "severity": "HIGH",
+        "source": "UBUNTU_CVE",
+        "source_url": "https://people.canonical.com/~ubuntu-security/cve/2023/CVE-2023-51782.html",
+        "status": "ACTIVE",
+        "title": "CVE-2023-51782 - linux",
+        "vulnerability_id": "CVE-2023-51782",
+        "vulnerable_packages": [
+            {
+                "arch": "AMD64",
+                "epoch": 0,
+                "name": "linux",
+                "packageManager": "OS",
+                "release": "171.189",
+                "version": "5.4.0"
+            }
+        ]
+    },
+    "CVE-2023-6129": {
+        "description": "Issue summary: The POLY1305 MAC (message authentication code) implementation\ncontains a bug that might corrupt the internal state of applications running\non PowerPC CPU based platforms if the CPU provides vector instructions.\n\nImpact summary: If an attacker can influence whether the POLY1305 MAC\nalgorithm is used, the application state might be corrupted with various\napplication dependent consequences.\n\nThe POLY1305 MAC (message authentication code) implementation in OpenSSL for\nPowerPC CPUs restores the contents of vector registers in a different order\nthan they are saved. Thus the contents of some of these vector registers\nare corrupted when returning to the caller. The vulnerable code is used only\non newer PowerPC processors supporting the PowerISA 2.07 instructions.\n\nThe consequences of this kind of internal application state corruption can\nbe various - from no consequences, if the calling application does not\ndepend on the contents of non-volatile XMM registers at all, to the worst\nconsequences, where th",
+        "remediation": {
+            "recommendation": {
+                "text": "None Provided"
+            }
+        },
+        "score": 6.5,
+        "score_details": {
+            "cvss": {
+                "adjustments": [],
+                "score": 6.5,
+                "scoreSource": "NVD",
+                "scoringVector": "CVSS:3.1/AV:N/AC:H/PR:N/UI:N/S:U/C:N/I:L/A:H",
+                "version": "3.1"
+            }
+        },
         "severity": "MEDIUM",
-        "status": "ACTIVE"
+        "source": "NVD",
+        "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2023-6129",
+        "status": "ACTIVE",
+        "title": "CVE-2023-6129 - pyOpenSSL",
+        "vulnerability_id": "CVE-2023-6129",
+        "vulnerable_packages": [
+            {
+                "epoch": 0,
+                "filePath": "opt/conda/lib/python3.10/site-packages/pyOpenSSL-24.0.0.dist-info/METADATA",
+                "name": "pyOpenSSL",
+                "packageManager": "PYTHONPKG",
+                "version": "24.0.0"
+            }
+        ]
+    },
+    "CVE-2023-6915": {
+        "description": " A Null pointer dereference problem was found in ida_free in lib/idr.c in the Linux Kernel. This issue may allow an attacker using this library to cause a denial of service problem due to a missing check at a function return.",
+        "remediation": {
+            "recommendation": {
+                "text": "None Provided"
+            }
+        },
+        "score": 5.5,
+        "score_details": {
+            "cvss": {
+                "adjustments": [],
+                "score": 5.5,
+                "scoreSource": "UBUNTU_CVE",
+                "scoringVector": "CVSS:3.1/AV:L/AC:L/PR:L/UI:N/S:U/C:N/I:N/A:H",
+                "version": "3.1"
+            }
+        },
+        "severity": "MEDIUM",
+        "source": "UBUNTU_CVE",
+        "source_url": "https://people.canonical.com/~ubuntu-security/cve/2023/CVE-2023-6915.html",
+        "status": "ACTIVE",
+        "title": "CVE-2023-6915 - linux",
+        "vulnerability_id": "CVE-2023-6915",
+        "vulnerable_packages": [
+            {
+                "arch": "AMD64",
+                "epoch": 0,
+                "name": "linux",
+                "packageManager": "OS",
+                "release": "171.189",
+                "version": "5.4.0"
+            }
+        ]
     }
 }

@@ -5,9 +5,13 @@ LABEL maintainer="Amazon AI"
 LABEL com.amazonaws.sagemaker.capabilities.accept-bind-to-port=true
 
 # Neuron SDK components version numbers
-ARG NEURON_FRAMEWORK_VERSION=1.13.1.2.9.17.0
-ARG NEURON_CC_VERSION=1.21.0.0
+ARG NEURONX_TRANSFORMERS_VERSION=0.9.474
+ARG NEURONX_FRAMEWORK_VERSION=2.1.1.2.0.1b0
+ARG NEURONX_DISTRIBUTED_VERSION=0.6.0
+ARG NEURONX_CC_VERSION=2.12.68.0
 ARG NEURONX_TOOLS_VERSION=2.17.0.0
+ARG NEURONX_COLLECTIVES_LIB_VERSION=2.20.11.0-c101c322e
+ARG NEURONX_RUNTIME_LIB_VERSION=2.20.11.0-b7d33e68b
 
 ARG PYTHON=python3.10
 ARG PYTHON_VERSION=3.10.12
@@ -17,7 +21,7 @@ ARG MAMBA_VERSION=23.1.0-4
 
 # See http://bugs.python.org/issue19846
 ENV LANG=C.UTF-8
-ENV LD_LIBRARY_PATH=/lib/x86_64-linux-gnu:/opt/conda/lib/:$LD_LIBRARY_PATH
+ENV LD_LIBRARY_PATH=/opt/aws/neuron/lib:/lib/x86_64-linux-gnu:/opt/conda/lib/:$LD_LIBRARY_PATH
 ENV PATH=/opt/conda/bin:/opt/aws/neuron/bin:$PATH
 ENV SAGEMAKER_SERVING_MODULE=sagemaker_pytorch_serving_container.serving:main
 ENV TEMP=/home/model-server/tmp
@@ -56,7 +60,10 @@ RUN echo "deb https://apt.repos.neuron.amazonaws.com focal main" > /etc/apt/sour
 RUN wget -qO - https://apt.repos.neuron.amazonaws.com/GPG-PUB-KEY-AMAZON-AWS-NEURON.PUB | apt-key add -
 
 RUN apt-get update \
- && apt-get install -y aws-neuronx-tools=$NEURONX_TOOLS_VERSION \
+ && apt-get install -y \
+    aws-neuronx-tools=$NEURONX_TOOLS_VERSION \
+    aws-neuronx-collectives=$NEURONX_COLLECTIVES_LIB_VERSION \
+    aws-neuronx-runtime-lib=$NEURONX_RUNTIME_LIB_VERSION \
  && rm -rf /var/lib/apt/lists/* \
  && rm -rf /tmp/tmp* \
  && apt-get clean
@@ -107,12 +114,15 @@ RUN pip install --no-cache-dir -U \
     boto3 \
     cryptography
 
-RUN pip install neuron-cc==$NEURON_CC_VERSION --extra-index-url https://pip.repos.neuron.amazonaws.com \
-    torch-neuron==$NEURON_FRAMEWORK_VERSION \
- && pip install -U protobuf==3.19.5 \
+RUN pip install -U --extra-index-url https://pip.repos.neuron.amazonaws.com \
+    neuronx-cc==$NEURONX_CC_VERSION \
+    torch-neuronx==$NEURONX_FRAMEWORK_VERSION \
+    transformers-neuronx==$NEURONX_TRANSFORMERS_VERSION \
+ && pip install -U "protobuf>=3.18.3,<4" \
     torchserve==${TORCHSERVE_VERSION} \
     torch-model-archiver==${TORCHSERVE_VERSION} \
- && pip install --no-deps --no-cache-dir -U torchvision==0.14.*
+ && pip install --no-deps --no-cache-dir -U torchvision==0.16.* \
+ && pip install --no-deps -U --extra-index-url https://pip.repos.neuron.amazonaws.com neuronx_distributed==$NEURONX_DISTRIBUTED_VERSION
 
 RUN useradd -m model-server \
  && mkdir -p /home/model-server/tmp /opt/ml/model \
@@ -133,6 +143,11 @@ RUN chmod +x /usr/local/bin/deep_learning_container.py
 
 RUN pip install --no-cache-dir "sagemaker-pytorch-inference==${SM_TOOLKIT_VERSION}"
 
+# patch default_pytorch_inference_handler.py to import torch_neuronx
+RUN DEST_DIR=$(python -c "import os.path, sagemaker_pytorch_serving_container; print(os.path.dirname(sagemaker_pytorch_serving_container.__file__))") \
+ && DEST_FILE=${DEST_DIR}/default_pytorch_inference_handler.py \
+ && sed -i "s/import torch/import torch, torch_neuronx/" ${DEST_FILE}
+
 RUN HOME_DIR=/root \
  && curl -o ${HOME_DIR}/oss_compliance.zip https://aws-dlinfra-utilities.s3.amazonaws.com/oss_compliance.zip \
  && unzip ${HOME_DIR}/oss_compliance.zip -d ${HOME_DIR}/ \
@@ -144,7 +159,7 @@ RUN HOME_DIR=/root \
  # conda leaves an empty /root/.cache/conda/notices.cache file which is not removed by conda clean -ya
  && rm -rf ${HOME_DIR}/.cache/conda
 
-RUN curl https://aws-dlc-licenses.s3.amazonaws.com/pytorch-1.13/license.txt -o /license.txt
+RUN curl -o /license.txt  https://aws-dlc-licenses.s3.amazonaws.com/pytorch-2.1/license.txt
 
 EXPOSE 8080 8081
 

@@ -4,7 +4,7 @@ LABEL maintainer="Amazon AI"
 LABEL dlc_major_version="1"
 
 # Neuron SDK components version numbers
-ARG NEURONX_FRAMEWORK_VERSION=1.13.1.1.13.1
+ARG NEURONX_FRAMEWORK_VERSION=2.1.1.2.0.1b0
 ARG NEURONX_DISTRIBUTED_VERSION=0.6.0
 ARG NEURONX_CC_VERSION=2.12.68.0
 ARG NEURONX_TOOLS_VERSION=2.17.0.0
@@ -190,7 +190,7 @@ RUN rm -rf /var/lib/apt/lists/* \
 # torchvision needed for MLP. since it depends on torch and torch neuron/torch
 # is already installed install it with nodeps
 RUN pip3 install --no-cache-dir --no-deps -U \
-    torchvision==0.14.*
+    torchvision==0.16.*
 
 # Needed for running bert training scripts
 RUN pip3 install --no-cache-dir -U \
@@ -216,7 +216,7 @@ RUN HOME_DIR=/root \
  && rm -rf ${HOME_DIR}/oss_compliance* \
  && rm -rf /tmp/tmp*
 
-RUN curl -o /license.txt  https://aws-dlc-licenses.s3.amazonaws.com/pytorch-1.13/license.txt
+RUN curl -o /license.txt  https://aws-dlc-licenses.s3.amazonaws.com/pytorch-2.1/license.txt
 
 # Starts framework
 ENTRYPOINT ["bash", "-m", "start_with_right_hostname.sh"]

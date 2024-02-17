@@ -5,13 +5,13 @@ LABEL maintainer="Amazon AI"
 LABEL com.amazonaws.sagemaker.capabilities.accept-bind-to-port=true
 
 # Neuron SDK components version numbers
-ARG NEURONX_RUNTIME_LIB_VERSION=2.19.*
-ARG NEURONX_COLLECTIVES_LIB_VERSION=2.19.*
-ARG NEURONX_TOOLS_VERSION=2.16.*
-ARG NEURONX_FRAMEWORK_VERSION=1.13.1.1.13.*
-ARG NEURONX_TRANSFORMERS_VERSION=0.9.*
-ARG NEURONX_CC_VERSION=2.12.*
-ARG NEURONX_DISTRIBUTED_VERSION=0.6.*
+ARG NEURONX_FRAMEWORK_VERSION=1.13.1.1.13.1
+ARG NEURONX_TRANSFORMERS_VERSION=0.9.474
+ARG NEURONX_DISTRIBUTED_VERSION=0.6.0
+ARG NEURONX_CC_VERSION=2.12.68.0
+ARG NEURONX_TOOLS_VERSION=2.17.0.0
+ARG NEURONX_COLLECTIVES_LIB_VERSION=2.20.11.0-c101c322e
+ARG NEURONX_RUNTIME_LIB_VERSION=2.20.11.0-b7d33e68b
 
 ARG PYTHON=python3.10
 ARG PYTHON_VERSION=3.10.12
@@ -116,13 +116,13 @@ RUN pip install --no-cache-dir -U \
 
 RUN pip install -U --extra-index-url https://pip.repos.neuron.amazonaws.com \
     neuronx-cc==$NEURONX_CC_VERSION \
-    neuronx_distributed==$NEURONX_DISTRIBUTED_VERSION \
     torch-neuronx==$NEURONX_FRAMEWORK_VERSION \
     transformers-neuronx==$NEURONX_TRANSFORMERS_VERSION \
  && pip install -U "protobuf>=3.18.3,<4" \
     torchserve==${TORCHSERVE_VERSION} \
     torch-model-archiver==${TORCHSERVE_VERSION} \
- && pip install --no-deps --no-cache-dir -U torchvision==0.14.*
+ && pip install --no-deps --no-cache-dir -U torchvision==0.14.* \
+ && pip install --no-deps -U --extra-index-url https://pip.repos.neuron.amazonaws.com neuronx_distributed==$NEURONX_DISTRIBUTED_VERSION
 
 RUN useradd -m model-server \
  && mkdir -p /home/model-server/tmp /opt/ml/model \
