@@ -50,7 +50,7 @@ def is_build_enabled():
 
 def is_autopatch_build_enabled_in_image_buildspec(buildspec_path=None):
     from buildspec import Buildspec
-    
+
     if not buildspec_path:
         return False
     image_buildspec_object = Buildspec()
