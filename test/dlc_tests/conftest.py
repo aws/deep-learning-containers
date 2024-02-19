@@ -975,7 +975,7 @@ def skip_pt22_test(request):
     if request.node.get_closest_marker("skip_pt22_test"):
         if Version(image_framework_version) in SpecifierSet("==2.2"):
             pytest.skip(
-                f"PT2.2 doesn't support DGL binaries for now, skipping this container with tag {image_framework_version}"
+                f"PT2.2 doesn't support DGL, Rubik, and Herring binaries for now, skipping this container with tag {image_framework_version}"
             )
 
 

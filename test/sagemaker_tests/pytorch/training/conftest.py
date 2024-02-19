@@ -620,3 +620,18 @@ def skip_pt21_test(request):
             pytest.skip(
                 f"PT2.1 SM DLC doesn't support Rubik and Herring for now, so skipping this container with tag {fw_ver}"
             )
+
+
+@pytest.fixture(autouse=True)
+def skip_pt22_test(request):
+    if "framework_version" in request.fixturenames:
+        fw_ver = request.getfixturevalue("framework_version")
+    elif "ecr_image" in request.fixturenames:
+        fw_ver = request.getfixturevalue("ecr_image")
+    else:
+        return
+    if request.node.get_closest_marker("skip_pt22_test"):
+        if Version(fw_ver) in SpecifierSet("==2.2"):
+            pytest.skip(
+                f"PT2.2 doesn't support DGL, Rubik, and Herring binaries for now, skipping this container with tag {fw_ver}"
+            )
