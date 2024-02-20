@@ -99,10 +99,10 @@ EC2 Framework Containers (Tested on EC2, ECS, and EKS only)
 
 | Framework        |Job Type	|Horovod Options|CPU/GPU 	|Python Version Options	| Example URL																						                                                                      |
 |------------------|-----------|---------------|-----------|-----------------------|--------------------------------------------------------------------------------------------------------|
-| PyTorch 2.1.0 |training	|No			|CPU 		| 3.10 (py310)			| 763104351884.dkr.ecr.us-east-1.amazonaws.com/pytorch-training:2.1.0-cpu-py310-ubuntu20.04-ec2             |
-| PyTorch 2.1.0 |training	|No			|GPU 		| 3.10 (py310)			| 763104351884.dkr.ecr.us-east-1.amazonaws.com/pytorch-training:2.1.0-gpu-py310-cu121-ubuntu20.04-ec2       |
-| PyTorch 2.1.0 |inference	|No			|CPU 		| 3.10 (py310)			| 763104351884.dkr.ecr.us-east-1.amazonaws.com/pytorch-inference:2.1.0-cpu-py310-ubuntu20.04-ec2             |
-| PyTorch 2.1.0 |inference	|No			|GPU 		| 3.10 (py310)			| 763104351884.dkr.ecr.us-east-1.amazonaws.com/pytorch-inference:2.1.0-gpu-py310-cu118-ubuntu20.04-ec2       |
+| PyTorch 2.2.0 |training	|No			|CPU 		| 3.10 (py310)			| 763104351884.dkr.ecr.us-east-1.amazonaws.com/pytorch-training:2.2.0-cpu-py310-ubuntu20.04-ec2             |
+| PyTorch 2.2.0 |training	|No			|GPU 		| 3.10 (py310)			| 763104351884.dkr.ecr.us-east-1.amazonaws.com/pytorch-training:2.2.0-gpu-py310-cu121-ubuntu20.04-ec2       |
+| PyTorch 2.2.0 |inference	|No			|CPU 		| 3.10 (py310)			| 763104351884.dkr.ecr.us-east-1.amazonaws.com/pytorch-inference:2.2.0-cpu-py310-ubuntu20.04-ec2             |
+| PyTorch 2.2.0 |inference	|No			|GPU 		| 3.10 (py310)			| 763104351884.dkr.ecr.us-east-1.amazonaws.com/pytorch-inference:2.2.0-gpu-py310-cu118-ubuntu20.04-ec2       |
 | TensorFlow 2.13.0 |training	|No			|CPU 		| 3.10 (py310)			| 763104351884.dkr.ecr.us-east-1.amazonaws.com/tensorflow-training:2.13.0-cpu-py310-ubuntu20.04-ec2		       |
 | TensorFlow 2.13.0 |training	|No			|GPU 		| 3.10 (py310)			| 763104351884.dkr.ecr.us-east-1.amazonaws.com/tensorflow-training:2.13.0-gpu-py310-cu118-ubuntu20.04-ec2	  |
 | TensorFlow 2.13.0 |inference	|No			|CPU 		| 3.10 (py310)			| 763104351884.dkr.ecr.us-east-1.amazonaws.com/tensorflow-inference:2.13.0-cpu-py310-ubuntu20.04-ec2		       |
@@ -171,7 +171,7 @@ Large Model Inference Containers
 |-------------------------------------------------------------------------------------------------------------------------------|------------|---------------|-------------------------|-------------------------------------------------------------------------------------------------|
 | DJLServing 0.26.0 with TensorRT-LLM 0.7.1, Hugging Face Transformers 4.36.2 and Hugging Face Accelerate 0.25.0                | inference  | GPU           | 3.10 (py310)            | 763104351884.dkr.ecr.us-east-1.amazonaws.com/djl-inference:0.26.0-tensorrtllm0.7.1-cu122        |
 | DJLServing 0.26.0 with DeepSpeed 0.12.6, Hugging Face Transformers  4.36.2 and Hugging Face Accelerate 0.25.0                 | inference  | GPU           | 3.10 (py310)            | 763104351884.dkr.ecr.us-east-1.amazonaws.com/djl-inference:0.26.0-deepspeed0.12.6-cu121         |
-| DJLServing 0.26.0 with Neuron SDK 2.16.0, TransformersNeuronX 0.9.474 and Hugging Face Transformers 4.35.0                    | inference  | Neuron        | 3.9 (py39)              | 763104351884.dkr.ecr.us-east-1.amazonaws.com/djl-inference:0.26.0-neuronx-sdk2.16.0             | 
+| DJLServing 0.26.0 with Neuron SDK 2.16.0, TransformersNeuronX 0.9.474 and Hugging Face Transformers 4.35.0                    | inference  | Neuron        | 3.9 (py39)              | 763104351884.dkr.ecr.us-east-1.amazonaws.com/djl-inference:0.26.0-neuronx-sdk2.16.0             |
 | DJLServing 0.25.0 with TensorRT-LLM 0.5.0, HuggingFace Transformers 4.34.0 and HuggingFace Accelerate 0.23.0	                 | inference	 | GPU				       | 3.10 (py310)				        | 763104351884.dkr.ecr.us-west-2.amazonaws.com/djl-inference:0.25.0-tensorrtllm0.5.0-cu122		      |
 | DJLServing 0.25.0 with DeepSpeed 0.11.0, HuggingFace Transformers 4.34.0, Diffusers 0.16.0 and HuggingFace Accelerate 0.23.0	 | inference	 | GPU				       | 3.9 (py39)				          | 763104351884.dkr.ecr.us-west-2.amazonaws.com/djl-inference:0.25.0-deepspeed0.11.0-cu118			      |
 | DJLServing 0.25.0 with Neuron SDK 2.15.0, TransformersNeuronX 0.8.0 and HuggingFace Transformers 4.34.0						                 | inference	 | Neuron			     | 3.8 (py38)				          | 763104351884.dkr.ecr.us-west-2.amazonaws.com/djl-inference:0.25.0-neuronx-sdk2.15.0				         |
@@ -183,7 +183,7 @@ DJL CPU Full Inference Containers
 ===============================
 | Framework         | Job Type	  | CPU/GPU 	 | Python Version Options	 | Example URL																	                                                |
 |-------------------|------------|-----------|-------------------------|-----------------------------------------------------------------------------|
-| DJLServing 0.26.0 | inference  | CPU       | 3.8 (py38)              | 763104351884.dkr.ecr.us-east-1.amazonaws.com/djl-inference:0.26.0-cpu-full  | 
+| DJLServing 0.26.0 | inference  | CPU       | 3.8 (py38)              | 763104351884.dkr.ecr.us-east-1.amazonaws.com/djl-inference:0.26.0-cpu-full  |
 | DJLServing 0.25.0 | inference	 | CPU 		    | 3.8 (py38)			           | 763104351884.dkr.ecr.us-west-2.amazonaws.com/djl-inference:0.25.0-cpu-full	 |
 | DJLServing 0.24.0 | inference	 | CPU 		    | 3.8 (py38)			           | 763104351884.dkr.ecr.us-west-2.amazonaws.com/djl-inference:0.24.0-cpu-full	 |
 
@@ -270,20 +270,34 @@ SageMaker Training Compiler Containers
 Neuron Containers
 =================
 
-|Framework          |Neuron Package     |Neuron SDK Version |Job Type   |Supported EC2 Instance Types |Python Version Options |Example URL                                                                                                          |
-|-------------------|-------------------|-------------------|-----------|-----------------------------|-----------------------|---------------------------------------------------------------------------------------------------------------------|
-|Tensorflow 2.10.1  |tensorflow-neuron  |Neuron 2.14.1      |inference  |inf1                         |3.10 (py310)           |763104351884.dkr.ecr.us-west-2.amazonaws.com/tensorflow-inference-neuron:2.10.1-neuron-py310-sdk2.14.1-ubuntu20.04   |
-|Tensorflow 2.10.1  |tensorflow-neuronx |Neuron 2.14.1      |inference  |trn1,inf2                    |3.10 (py310)           |763104351884.dkr.ecr.us-west-2.amazonaws.com/tensorflow-inference-neuronx:2.10.1-neuronx-py310-sdk2.14.1-ubuntu20.04 |
-|PyTorch 1.13.1     |torch-neuron       |Neuron 2.15.0      |inference  |inf1                         |3.10 (py310)           |763104351884.dkr.ecr.us-west-2.amazonaws.com/pytorch-inference-neuron:1.13.1-neuron-py310-sdk2.15.0-ubuntu20.04    |
-|PyTorch 1.13.1     |torch-neuronx      |Neuron 2.15.0      |inference  |trn1,inf2                    |3.10 (py310)           |763104351884.dkr.ecr.us-west-2.amazonaws.com/pytorch-inference-neuronx:1.13.1-neuronx-py310-sdk2.15.0-ubuntu20.04    |
-|Tensorflow 1.15.5  |tensorflow-neuron  |Neuron 2.8.0       |inference  |inf1                         |3.8 (py38)             |763104351884.dkr.ecr.us-west-2.amazonaws.com/tensorflow-inference-neuron:1.15.5-neuron-py38-sdk2.8.0-ubuntu20.04     |
-|MXNet 1.8.0        |mx_neuron          |Neuron 2.5.0       |inference  |inf1                         |3.8 (py38)             |763104351884.dkr.ecr.us-west-2.amazonaws.com/mxnet-inference-neuron:1.8.0-neuron-py38-sdk2.5.0-ubuntu20.04           |
-|PyTorch 1.13.1     |torch-neuronx      |Neuron 2.15.0      |training   |trn1, inf2                   |3.10 (py310)           |763104351884.dkr.ecr.us-west-2.amazonaws.com/pytorch-training-neuronx:1.13.1-neuronx-py310-sdk2.15.0-ubuntu20.04     |
+Note: Starting from Neuron SDK 2.17.0, Dockerfiles for PyTorch Neuron Containers can be accessed at https://github.com/aws-neuron/deep-learning-containers.
+
+|Framework |Neuron Package |Neuron SDK Version |Job Type   |Supported EC2 Instance Types |Python Version Options |Example URL |
+|----------|---------------|-------------------|-----------|-----------------------------|-----------------------|------------|
+|[Beta] [PyTorch 2.1.1](https://github.com/aws-neuron/deep-learning-containers/tree/main/docker/pytorch/inference/2.1.1/Dockerfile.neuronx)   |torch-neuronx, transformers-neuronx, neuronx_distributed  |Neuron 2.17.0  |inference  |trn1,inf2   |3.10 (py310)  |763104351884.dkr.ecr.us-west-2.amazonaws.com/pytorch-inference-neuronx:1.13.1-neuronx-py310-sdk2.17.0-ubuntu20.04    |
+|[Beta] [PyTorch 2.1.1](https://github.com/aws-neuron/deep-learning-containers/tree/main/docker/pytorch/training/2.1.1/Dockerfile.neuronx)    |torch-neuronx, neuronx_distributed   |Neuron 2.17.0  |training   |trn1, inf2  |3.10 (py310)  |763104351884.dkr.ecr.us-west-2.amazonaws.com/pytorch-training-neuronx:1.13.1-neuronx-py310-sdk2.17.0-ubuntu20.04     |
+|[PyTorch 1.13.1](https://github.com/aws-neuron/deep-learning-containers/tree/main/docker/pytorch/inference/1.13.1/Dockerfile.neuron)  |torch-neuron   |Neuron 2.17.0  |inference  |inf1        |3.10 (py310)  |763104351884.dkr.ecr.us-west-2.amazonaws.com/pytorch-inference-neuron:1.13.1-neuron-py310-sdk2.17.0-ubuntu20.04    |
+|[PyTorch 1.13.1](https://github.com/aws-neuron/deep-learning-containers/tree/main/docker/pytorch/inference/1.13.1/Dockerfile.neuronx) |torch-neuronx, transformers-neuronx, neuronx_distributed  |Neuron 2.17.0  |inference  |trn1,inf2   |3.10 (py310)  |763104351884.dkr.ecr.us-west-2.amazonaws.com/pytorch-inference-neuronx:1.13.1-neuronx-py310-sdk2.17.0-ubuntu20.04    |
+|[PyTorch 1.13.1](https://github.com/aws-neuron/deep-learning-containers/tree/main/docker/pytorch/training/1.13.1/Dockerfile.neuronx)  |torch-neuronx, neuronx_distributed   |Neuron 2.17.0  |training   |trn1, inf2  |3.10 (py310)  |763104351884.dkr.ecr.us-west-2.amazonaws.com/pytorch-training-neuronx:1.13.1-neuronx-py310-sdk2.17.0-ubuntu20.04     |
+|[Tensorflow 2.10.1](https://github.com/aws/deep-learning-containers/blob/master/tensorflow/inference/docker/2.10/py3/sdk2.14.1/Dockerfile.neuron)  |tensorflow-neuron  |Neuron 2.14.1  |inference  |inf1       |3.10 (py310)  |763104351884.dkr.ecr.us-west-2.amazonaws.com/tensorflow-inference-neuron:2.10.1-neuron-py310-sdk2.14.1-ubuntu20.04   |
+|[Tensorflow 2.10.1](https://github.com/aws/deep-learning-containers/blob/master/tensorflow/inference/docker/2.10/py3/sdk2.14.1/Dockerfile.neuronx) |tensorflow-neuronx |Neuron 2.14.1  |inference  |trn1,inf2  |3.10 (py310)  |763104351884.dkr.ecr.us-west-2.amazonaws.com/tensorflow-inference-neuronx:2.10.1-neuronx-py310-sdk2.14.1-ubuntu20.04 |
+
+Prior Neuron Containers
+=================
+
+|Framework |Neuron Package |Neuron SDK Version |Job Type   |Supported EC2 Instance Types |Python Version Options |Example URL |
+|----------|---------------|-------------------|-----------|-----------------------------|-----------------------|------------|
+|[Tensorflow 1.15.5](https://github.com/aws/deep-learning-containers/blob/master/tensorflow/inference/docker/1.15/py3/sdk2.8.0/Dockerfile.neuron) |tensorflow-neuron  |Neuron 2.8.0  |inference  |inf1  |3.8 (py38)  |763104351884.dkr.ecr.us-west-2.amazonaws.com/tensorflow-inference-neuron:1.15.5-neuron-py38-sdk2.8.0-ubuntu20.04     |
+|[MXNet 1.8.0](https://github.com/aws/deep-learning-containers/blob/master/mxnet/inference/docker/1.8/py3/sdk2.5.0/Dockerfile.neuron)             |mx_neuron          |Neuron 2.5.0  |inference  |inf1  |3.8 (py38)  |763104351884.dkr.ecr.us-west-2.amazonaws.com/mxnet-inference-neuron:1.8.0-neuron-py38-sdk2.5.0-ubuntu20.04           |
 
 Prior EC2 Framework Container Versions
 ==============
 | Framework 			                      |Job Type 			   |Horovod Options 			     |CPU/GPU 	  |Python Version Options 			      |Example URL 			                                                                               |
 |---------------------------------------------|------------------------|---------------------------------|------------|---------------------------------------|----------------------------------------------------------------------------------------------------|
+| PyTorch 2.1.0 |training	|No			|CPU 		| 3.10 (py310)			| 763104351884.dkr.ecr.us-east-1.amazonaws.com/pytorch-training:2.1.0-cpu-py310-ubuntu20.04-ec2             |
+| PyTorch 2.1.0 |training	|No			|GPU 		| 3.10 (py310)			| 763104351884.dkr.ecr.us-east-1.amazonaws.com/pytorch-training:2.1.0-gpu-py310-cu121-ubuntu20.04-ec2       |
+| PyTorch 2.1.0 |inference	|No			|CPU 		| 3.10 (py310)			| 763104351884.dkr.ecr.us-east-1.amazonaws.com/pytorch-inference:2.1.0-cpu-py310-ubuntu20.04-ec2             |
+| PyTorch 2.1.0 |inference	|No			|GPU 		| 3.10 (py310)			| 763104351884.dkr.ecr.us-east-1.amazonaws.com/pytorch-inference:2.1.0-gpu-py310-cu118-ubuntu20.04-ec2       |
 | PyTorch 2.0.1   |training	|Yes			|CPU 		| 3.10 (py310)			| 763104351884.dkr.ecr.us-east-1.amazonaws.com/pytorch-training:2.0.1-cpu-py310-ubuntu20.04-ec2             |
 | PyTorch 2.0.1 + CUDA11.8   |training	|Yes			|GPU 		| 3.10 (py310)			| 763104351884.dkr.ecr.us-east-1.amazonaws.com/pytorch-training:2.0.1-gpu-py310-cu118-ubuntu20.04-ec2       |      |
 | PyTorch 2.0.1 + CUDA12.1   |training	|Yes			|GPU 		| 3.10 (py310)			| 763104351884.dkr.ecr.us-east-1.amazonaws.com/pytorch-training:2.0.1-gpu-py310-cu121-ubuntu20.04-ec2       |      |
