@@ -201,6 +201,10 @@ def main():
     rank = dist.get_rank()
     local_rank = args.local_rank
 
+    # https://github.com/pytorch/pytorch/issues/67978#issuecomment-1099316185
+    torch.backends.cudnn.benchmark=False
+    torch.backends.cudnn.deterministic=True
+
     torch.cuda.set_device(local_rank)
 
     if args.verbose:
