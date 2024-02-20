@@ -179,8 +179,10 @@ def main():
 
     dlc_images = test_utils.get_dlc_images()
     image_list = dlc_images.split(" ")
-    if not image_list:
-        LOGGER.info(f"No image in image_list: {image_list}")
+    if not image_list or all(
+        ["autopatch" not in single_image_uri for single_image_uri in image_list]
+    ):
+        LOGGER.info(f"No appropriate image in image_list: {image_list}")
         return
     edited_files_data = generate_edited_files_data(
         image_list=image_list, folder=os.getenv("CODEBUILD_RESOLVED_SOURCE_VERSION", "temp")
