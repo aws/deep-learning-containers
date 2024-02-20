@@ -202,8 +202,9 @@ def main():
     local_rank = args.local_rank
 
     # https://github.com/pytorch/pytorch/issues/67978#issuecomment-1099316185
-    torch.backends.cudnn.benchmark=False
-    torch.backends.cudnn.deterministic=True
+    # torch.backends.cudnn.benchmark=False
+    # torch.backends.cudnn.deterministic=True
+    os.environ["CUDA_VISIBLE_DEVICES"] = "0,1"
 
     torch.cuda.set_device(local_rank)
 
