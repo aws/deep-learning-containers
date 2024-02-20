@@ -107,14 +107,15 @@ def test_smdataparallel_throughput(
         )
 
 
+@pytest.mark.skip_pt20_cuda121_tests
+@pytest.mark.skip_pt22_test
+@pytest.mark.skip_cpu
+@pytest.mark.skip_py2_containers
+@pytest.mark.skip_trcomp_containers
 @pytest.mark.usefixtures("feature_smddp_present")
 @pytest.mark.integration("smdataparallel")
 @pytest.mark.model("mnist")
 @pytest.mark.processor("gpu")
-@pytest.mark.skip_cpu
-@pytest.mark.skip_py2_containers
-@pytest.mark.skip_trcomp_containers
-@pytest.mark.skip_pt20_cuda121_tests
 @pytest.mark.team("smdataparallel")
 def test_smdataparallel_mnist_script_mode_multigpu(
     ecr_image, sagemaker_regions, instance_type, tmpdir
@@ -262,16 +263,17 @@ def test_hc_smdataparallel_mnist(ecr_image, sagemaker_regions, efa_instance_type
         )
 
 
+@pytest.mark.skip_pt20_cuda121_tests
+@pytest.mark.skip_pt21_test
+@pytest.mark.skip_pt22_test
+@pytest.mark.skip_cpu
+@pytest.mark.skip_trcomp_containers
 @pytest.mark.usefixtures("feature_smmp_present")
 @pytest.mark.usefixtures("feature_smddp_present")
 @pytest.mark.processor("gpu")
-@pytest.mark.skip_cpu
-@pytest.mark.skip_trcomp_containers
-@pytest.mark.skip_pt21_test
 @pytest.mark.integration("smdataparallel_smmodelparallel")
 @pytest.mark.model("mnist")
 @pytest.mark.parametrize("instance_types", ["ml.p3.16xlarge"])
-@pytest.mark.skip_pt20_cuda121_tests
 @pytest.mark.team("smdataparallel")
 def test_smmodelparallel_smdataparallel_mnist(
     instance_types, ecr_image, sagemaker_regions, py_version, tmpdir
