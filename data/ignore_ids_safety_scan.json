@@ -1386,14 +1386,16 @@
                 "44717":"for shipping numpy 1.21.5 - the last available version for py3.7",
                 "59398": "scipy bug - according to maintainer, not a vulnerability",
                 "59399": "scipy bug - no CVE attached",
-                "64402":"Temporarily ignoring to patch CRITICAL vulnerabilties"
+                "64402":"Temporarily ignoring to patch CRITICAL vulnerabilties",
+                "65213":"Temporarily ignoring to patch CRITICAL vulnerabilties"
             }
         },
         "inference-neuronx": {
             "_comment":"py2 is deprecated",
             "py2": {},
             "py3": {
-                "64402":"Temporarily ignoring to patch CRITICAL vulnerabilties"
+                "64402":"Temporarily ignoring to patch CRITICAL vulnerabilties",
+                "65213":"Temporarily ignoring to patch CRITICAL vulnerabilties"
             }
         },
         "training-neuronx": {
