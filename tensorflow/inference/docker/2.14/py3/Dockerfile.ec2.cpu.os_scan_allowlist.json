@@ -1,7 +1,7 @@
 {
     "linux": [
         {
-            "description": "\n It was discovered that a race condition existed in the ATM\n (Asynchronous Transfer Mode) subsystem of the Linux kernel, leading\n to a use-after-free vulnerability. A local attacker could use this\n to cause a denial of service (system crash) or possibly execute\n arbitrary code.",
+            "description": "\n It was discovered that a race condition existed in the ATM (Asynchronous\n Transfer Mode) subsystem of the Linux kernel, leading to a use-after-free\n vulnerability. A local attacker could use this to cause a denial of service\n (system crash) or possibly execute arbitrary code.",
             "vulnerability_id": "CVE-2023-51780",
             "name": "CVE-2023-51780",
             "package_name": "linux",
@@ -26,7 +26,7 @@
             "reason_to_ignore": "N/A"
         },
         {
-            "description": "\n It was discovered that a race condition existed in the Rose X.25\n protocol implementation in the Linux kernel, leading to a use-after-\n free vulnerability. A local attacker could use this to cause a denial\n of service (system crash) or possibly execute arbitrary code.",
+            "description": "\n It was discovered that a race condition existed in the Rose X.25 protocol\n implementation in the Linux kernel, leading to a use-after- free\n vulnerability. A local attacker could use this to cause a denial of service\n (system crash) or possibly execute arbitrary code.",
             "vulnerability_id": "CVE-2023-51782",
             "name": "CVE-2023-51782",
             "package_name": "linux",
