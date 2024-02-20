@@ -395,8 +395,6 @@ def main():
                 raise Exception(f"EKS cluster {eks_cluster_name} is not in active state")
 
         # Execute dlc_tests pytest command
-        if test_path == "ec2":
-            test_path = "ec2/tensorflow/inference/test_tensorflow_inference.py::test_ec2_tensorflow_inference_gpu_tensorrt"
         pytest_cmd = ["-s", "-rA", test_path, f"--junitxml={report}", "-n=auto"]
 
         is_habana_image = any("habana" in image_uri for image_uri in all_image_list)
