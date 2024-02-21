@@ -505,7 +505,7 @@ def skip_smdebug_test(
         if (
             Version(image_framework_version) in SpecifierSet("==2.0.1")
             and Version(image_cuda_version.strip("cu")) == Version("121")
-        ) or Version(image_framework_version) in SpecifierSet("==2.1"):
+        ) or Version(image_framework_version) in SpecifierSet(">=2.1"):
             pytest.skip(
                 f"SM Profiler v1 is on path for deprecation, skipping this container with tag {image_framework_version}"
             )
