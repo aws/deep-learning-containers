@@ -908,7 +908,7 @@ def skip_transformer_engine_test(request):
 
 
 @pytest.fixture(autouse=True)
-def skip_smprofiler_v1_test(request):
+def skip_smdebug_test(request):
     if "training" in request.fixturenames:
         img_uri = request.getfixturevalue("training")
     elif "pytorch_training" in request.fixturenames:
@@ -918,29 +918,45 @@ def skip_smprofiler_v1_test(request):
     _, image_framework_version = get_framework_and_version_from_tag(img_uri)
     image_processor = get_processor_from_image_uri(img_uri)
     image_cuda_version = get_cuda_version_from_tag(img_uri)
-    if request.node.get_closest_marker("skip_smprofiler_v1_test"):
-        if ((Version(image_framework_version) in SpecifierSet("==2.0.1") and
-                image_processor == "gpu" and
-                Version(image_cuda_version.strip("cu")) == Version("121")) or
-         Version(image_framework_version) in SpecifierSet(">=2.1")):
-                pytest.skip(f"SM Profiler v1 is on path for deprecation, skipping this container with tag {image_framework_version}")
+    if request.node.get_closest_marker("skip_smdebug_test"):
+        if (
+            Version(image_framework_version) in SpecifierSet("==2.0.1")
+            and image_processor == "gpu"
+            and Version(image_cuda_version.strip("cu")) == Version("121")
+        ) or Version(image_framework_version) in SpecifierSet(">=2.1"):
+            pytest.skip(
+                f"SM Profiler v1 is on path for deprecation, skipping this container with tag {image_framework_version}"
+            )
 
 
 @pytest.fixture(autouse=True)
-def skip_pt20_cuda121_tests(request):
+def skip_dgl_test(request):
     if "training" in request.fixturenames:
         img_uri = request.getfixturevalue("training")
     elif "pytorch_training" in request.fixturenames:
         img_uri = request.getfixturevalue("pytorch_training")
     else:
         return
-    if request.node.get_closest_marker("skip_pt20_cuda121_tests"):
-        _, image_framework_version = get_framework_and_version_from_tag(img_uri)
-        image_processor = get_processor_from_image_uri(img_uri)
-        image_cuda_version = get_cuda_version_from_tag(img_uri)
-        if Version(image_framework_version) in SpecifierSet("==2.0.1") and image_processor == "gpu":
-            if Version(image_cuda_version.strip("cu")) == Version("121"):
-                pytest.skip("PyTorch 2.0 + CUDA12.1 image doesn't support current test")
+    _, image_framework_version = get_framework_and_version_from_tag(img_uri)
+    image_processor = get_processor_from_image_uri(img_uri)
+    image_cuda_version = get_cuda_version_from_tag(img_uri)
+    if request.node.get_closest_marker("skip_dgl_test"):
+        if (
+            Version(image_framework_version) in SpecifierSet("==2.0.1")
+            and image_processor == "gpu"
+            and Version(image_cuda_version.strip("cu")) == Version("121")
+        ) or Version(image_framework_version) in SpecifierSet(">=2.1"):
+            pytest.skip(
+                f"DGL binaries are removed, skipping this container with tag {image_framework_version}"
+            )
+
+
+@pytest.fixture(autouse=True)
+def skip_efa_tests(request):
+    efa_tests = [mark for mark in request.node.iter_markers(name="efa")]
+
+    if efa_tests and are_efa_tests_disabled():
+        pytest.skip("Skipping EFA tests as EFA tests are disabled.")
 
 
 @pytest.fixture(autouse=True)
@@ -964,6 +980,23 @@ def skip_p5_tests(request, ec2_instance_type):
         image_cuda_version = get_cuda_version_from_tag(img_uri)
         if image_processor != "gpu" or Version(image_cuda_version.strip("cu")) < Version("120"):
             pytest.skip("Images using less than CUDA 12.0 doesn't support P5 EC2 instance.")
+
+
+@pytest.fixture(autouse=True)
+def skip_pt20_cuda121_tests(request):
+    if "training" in request.fixturenames:
+        img_uri = request.getfixturevalue("training")
+    elif "pytorch_training" in request.fixturenames:
+        img_uri = request.getfixturevalue("pytorch_training")
+    else:
+        return
+    if request.node.get_closest_marker("skip_pt20_cuda121_tests"):
+        _, image_framework_version = get_framework_and_version_from_tag(img_uri)
+        image_processor = get_processor_from_image_uri(img_uri)
+        image_cuda_version = get_cuda_version_from_tag(img_uri)
+        if Version(image_framework_version) in SpecifierSet("==2.0.1") and image_processor == "gpu":
+            if Version(image_cuda_version.strip("cu")) == Version("121"):
+                pytest.skip("PyTorch 2.0 + CUDA12.1 image doesn't support current test")
 
 
 @pytest.fixture(autouse=True)
@@ -1666,14 +1699,6 @@ def pytest_generate_tests(metafunc):
     # Parametrize for framework agnostic tests, i.e. sanity
     if "image" in metafunc.fixturenames:
         metafunc.parametrize("image", images)
-
-
-@pytest.fixture(autouse=True)
-def skip_efa_tests(request):
-    efa_tests = [mark for mark in request.node.iter_markers(name="efa")]
-
-    if efa_tests and are_efa_tests_disabled():
-        pytest.skip("Skipping EFA tests as EFA tests are disabled.")
 
 
 @pytest.fixture(autouse=True)
