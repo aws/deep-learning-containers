@@ -10,6 +10,7 @@ from test.test_utils import (
     get_region_from_image_uri,
     is_pr_context,
     is_efa_dedicated,
+    are_heavy_instance_ec2_tests_enabled,
     login_to_ecr_registry,
     run_cmd_on_container,
 )
