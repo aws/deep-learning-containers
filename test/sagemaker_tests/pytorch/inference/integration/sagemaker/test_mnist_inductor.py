@@ -134,7 +134,7 @@ def _test_mnist_distributed(
         sagemaker_session=sagemaker_session,
     )
 
-    with timeout_and_delete_endpoint(endpoint_name, sagemaker_session, minutes=60):
+    with timeout_and_delete_endpoint(endpoint_name, sagemaker_session, minutes=30):
         # Use accelerator type to differentiate EI vs. CPU and GPU. Don't use processor value
         if accelerator_type is not None:
             predictor = pytorch.deploy(
