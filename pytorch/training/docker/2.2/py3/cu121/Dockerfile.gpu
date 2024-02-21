@@ -471,7 +471,8 @@ RUN pip install --no-cache-dir -U \
     sagemaker \
     sagemaker-experiments \
     sagemaker-pytorch-training \
-    sagemaker-training
+    sagemaker-training \
+    smdebug
 
 # Install extra packages
 RUN /opt/conda/bin/mamba install -y -c conda-forge \
