@@ -1397,10 +1397,25 @@ def pytest_configure(config):
     )
     config.addinivalue_line("markers", "neuronx_test(): mark as neuronx integration test")
     config.addinivalue_line(
+        "markers", "skip_torchdata_test(): mark test to skip due to dlc being incompatible"
+    )
+    config.addinivalue_line(
+        "markers", "skip_transformer_engine_test(): mark test to skip due to dlc being incompatible"
+    )
+    config.addinivalue_line(
+        "markers", "skip_smdebug_test(): mark test to skip due to dlc being incompatible"
+    )
+    config.addinivalue_line(
+        "markers", "skip_dgl_test(): mark test to skip due to dlc being incompatible"
+    )
+    config.addinivalue_line(
         "markers", "skip_pt20_cuda121_tests(): mark test to skip due to dlc being incompatible"
     )
     config.addinivalue_line(
         "markers", "skip_pt21_test(): mark test to skip due to dlc being incompatible"
+    )
+    config.addinivalue_line(
+        "markers", "skip_pt22_test(): mark test to skip due to dlc being incompatible"
     )
     config.addinivalue_line(
         "markers", "skip_inductor_test(): mark test to skip due to dlc being incompatible"

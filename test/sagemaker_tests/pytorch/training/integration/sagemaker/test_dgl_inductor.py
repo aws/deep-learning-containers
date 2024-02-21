@@ -33,8 +33,7 @@ DGL_SCRIPT_PATH = os.path.join(DGL_DATA_PATH, "train.py")
 inductor_instance_types = ["ml.p3.8xlarge", "ml.g5.12xlarge", "ml.g4dn.12xlarge"]
 
 
-@pytest.mark.skip_pt21_test
-@pytest.mark.skip_pt22_test
+@pytest.mark.skip_dgl_test
 @pytest.mark.skip_gpu
 @pytest.mark.skip_py2_containers
 @pytest.mark.skip_inductor_test
@@ -50,9 +49,7 @@ def test_dgl_gcn_training_cpu(ecr_image, sagemaker_regions, instance_type):
     invoke_pytorch_helper_function(ecr_image, sagemaker_regions, _test_dgl_training, function_args)
 
 
-@pytest.mark.skip_pt20_cuda121_tests
-@pytest.mark.skip_pt21_test
-@pytest.mark.skip_pt22_test
+@pytest.mark.skip_dgl_test
 @pytest.mark.skip_cpu
 @pytest.mark.skip_py2_containers
 @pytest.mark.skip_inductor_test

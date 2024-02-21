@@ -494,6 +494,68 @@ def skip_s3plugin_test(request):
 
 
 @pytest.fixture(autouse=True)
+def skip_smdebug_test(
+    request,
+    processor,
+    ecr_image,
+):
+    _, image_framework_version = get_framework_and_version_from_tag(ecr_image)
+    image_cuda_version = get_cuda_version_from_tag(ecr_image)
+    if request.node.get_closest_marker("skip_smdebug_test") and processor == "gpu":
+        if (
+            Version(image_framework_version) in SpecifierSet("==2.0.1")
+            and Version(image_cuda_version.strip("cu")) == Version("121")
+        ) or Version(image_framework_version) in SpecifierSet(">=2.1"):
+            pytest.skip(
+                f"SM Profiler v1 is on path for deprecation, skipping this container with tag {image_framework_version}"
+            )
+
+
+@pytest.fixture(autouse=True)
+def skip_dgl_test(
+    request,
+    processor,
+    ecr_image,
+):
+    _, image_framework_version = get_framework_and_version_from_tag(ecr_image)
+    image_cuda_version = get_cuda_version_from_tag(ecr_image)
+    if request.node.get_closest_marker("skip_dgl_test") and processor == "gpu":
+        if (
+            Version(image_framework_version) in SpecifierSet("==2.0.1")
+            and Version(image_cuda_version.strip("cu")) == Version("121")
+        ) or Version(image_framework_version) in SpecifierSet(">=2.1"):
+            pytest.skip(
+                f"DGL binary is removed, skipping this container with tag {image_framework_version}"
+            )
+
+
+@pytest.fixture(autouse=True)
+def skip_smmodelparallel_test(
+    request,
+    processor,
+    ecr_image,
+):
+    _, image_framework_version = get_framework_and_version_from_tag(ecr_image)
+    image_cuda_version = get_cuda_version_from_tag(ecr_image)
+    if request.node.get_closest_marker("skip_smmodelparallel_test") and processor == "gpu":
+        if (
+            Version(image_framework_version) in SpecifierSet("==2.0.1")
+            and Version(image_cuda_version.strip("cu")) == Version("121")
+        ) or Version(image_framework_version) in SpecifierSet(">=2.1"):
+            pytest.skip(
+                f"SM Model Parallel team is maintaining their own Docker Container, skipping this container with tag {image_framework_version}"
+            )
+
+
+@pytest.fixture(autouse=True)
+def skip_p5_tests(instance_type, processor, ecr_image):
+    if "p5." in instance_type:
+        image_cuda_version = get_cuda_version_from_tag(ecr_image)
+        if processor != "gpu" or Version(image_cuda_version.strip("cu")) < Version("120"):
+            pytest.skip("Images using less than CUDA 12.0 doesn't support P5 EC2 instance.")
+
+
+@pytest.fixture(autouse=True)
 def skip_pt20_cuda121_tests(
     request,
     processor,
@@ -509,11 +571,33 @@ def skip_pt20_cuda121_tests(
 
 
 @pytest.fixture(autouse=True)
-def skip_p5_tests(instance_type, processor, ecr_image):
-    if "p5." in instance_type:
-        image_cuda_version = get_cuda_version_from_tag(ecr_image)
-        if processor != "gpu" or Version(image_cuda_version.strip("cu")) < Version("120"):
-            pytest.skip("Images using less than CUDA 12.0 doesn't support P5 EC2 instance.")
+def skip_pt21_test(request):
+    if "framework_version" in request.fixturenames:
+        fw_ver = request.getfixturevalue("framework_version")
+    elif "ecr_image" in request.fixturenames:
+        fw_ver = request.getfixturevalue("ecr_image")
+    else:
+        return
+    if request.node.get_closest_marker("skip_pt21_test"):
+        if Version(fw_ver) in SpecifierSet("==2.1"):
+            pytest.skip(
+                f"PT2.1 SM DLC doesn't support Rubik and Herring for now, so skipping this container with tag {fw_ver}"
+            )
+
+
+@pytest.fixture(autouse=True)
+def skip_pt22_test(request):
+    if "framework_version" in request.fixturenames:
+        fw_ver = request.getfixturevalue("framework_version")
+    elif "ecr_image" in request.fixturenames:
+        fw_ver = request.getfixturevalue("ecr_image")
+    else:
+        return
+    if request.node.get_closest_marker("skip_pt22_test"):
+        if Version(fw_ver) in SpecifierSet("==2.2"):
+            pytest.skip(
+                f"PT2.2 doesn't support DGL, Rubik, and Herring binaries for now, skipping this container with tag {fw_ver}"
+            )
 
 
 def _get_remote_override_flags():
@@ -605,33 +689,3 @@ def skip_test_successfully_executed_before(request):
         test_name in failed_test_name for failed_test_name in lastfailed.keys()
     ):
         pytest.skip(f"Skipping {test_name} because it was successfully executed for this commit")
-
-
-@pytest.fixture(autouse=True)
-def skip_pt21_test(request):
-    if "framework_version" in request.fixturenames:
-        fw_ver = request.getfixturevalue("framework_version")
-    elif "ecr_image" in request.fixturenames:
-        fw_ver = request.getfixturevalue("ecr_image")
-    else:
-        return
-    if request.node.get_closest_marker("skip_pt21_test"):
-        if Version(fw_ver) in SpecifierSet("==2.1"):
-            pytest.skip(
-                f"PT2.1 SM DLC doesn't support Rubik and Herring for now, so skipping this container with tag {fw_ver}"
-            )
-
-
-@pytest.fixture(autouse=True)
-def skip_pt22_test(request):
-    if "framework_version" in request.fixturenames:
-        fw_ver = request.getfixturevalue("framework_version")
-    elif "ecr_image" in request.fixturenames:
-        fw_ver = request.getfixturevalue("ecr_image")
-    else:
-        return
-    if request.node.get_closest_marker("skip_pt22_test"):
-        if Version(fw_ver) in SpecifierSet("==2.2"):
-            pytest.skip(
-                f"PT2.2 doesn't support DGL, Rubik, and Herring binaries for now, skipping this container with tag {fw_ver}"
-            )

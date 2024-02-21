@@ -170,9 +170,7 @@ def test_dist_operations_fastai_gpu(framework_version, ecr_image, sagemaker_regi
     _assert_s3_file_exists(sagemaker_session.boto_region_name, model_s3_url)
 
 
-@pytest.mark.skip_pt20_cuda121_tests
-@pytest.mark.skip_pt21_test
-@pytest.mark.skip_pt22_test
+@pytest.mark.skip_smmodelparallel_test
 @pytest.mark.skip_cpu
 @pytest.mark.skip_py2_containers
 @pytest.mark.skip_trcomp_containers
@@ -276,9 +274,7 @@ def test_smmodelparallel_gpt2_multigpu_singlenode(
         )
 
 
-@pytest.mark.skip_pt20_cuda121_tests
-@pytest.mark.skip_pt21_test
-@pytest.mark.skip_pt22_test
+@pytest.mark.skip_smmodelparallel_test
 @pytest.mark.skip_cpu
 @pytest.mark.skip_py2_containers
 @pytest.mark.skip_trcomp_containers
@@ -384,9 +380,7 @@ def test_smmodelparallel_gpt2_multigpu_singlenode_flashattn(
         )
 
 
-@pytest.mark.skip_pt20_cuda121_tests
-@pytest.mark.skip_pt21_test
-@pytest.mark.skip_pt22_test
+@pytest.mark.skip_smmodelparallel_test
 @pytest.mark.skip_cpu
 @pytest.mark.skip_py2_containers
 @pytest.mark.skip_trcomp_containers
@@ -445,9 +439,7 @@ def test_smmodelparallel_mnist_multigpu_multinode(
         )
 
 
-@pytest.mark.skip_pt20_cuda121_tests
-@pytest.mark.skip_pt21_test
-@pytest.mark.skip_pt22_test
+@pytest.mark.skip_smmodelparallel_test
 @pytest.mark.skip_cpu
 @pytest.mark.skip_py2_containers
 @pytest.mark.skip_trcomp_containers
@@ -508,9 +500,7 @@ def test_hc_smmodelparallel_mnist_multigpu_multinode(
         )
 
 
-@pytest.mark.skip_pt20_cuda121_tests
-@pytest.mark.skip_pt21_test
-@pytest.mark.skip_pt22_test
+@pytest.mark.skip_smmodelparallel_test
 @pytest.mark.skip_cpu
 @pytest.mark.skip_py2_containers
 @pytest.mark.skip_trcomp_containers
@@ -570,9 +560,7 @@ def test_smmodelparallel_mnist_multigpu_multinode_efa(
         )
 
 
-@pytest.mark.skip_pt20_cuda121_tests
-@pytest.mark.skip_pt21_test
-@pytest.mark.skip_pt22_test
+@pytest.mark.skip_smmodelparallel_test
 @pytest.mark.skip_cpu
 @pytest.mark.skip_py2_containers
 @pytest.mark.skip_trcomp_containers

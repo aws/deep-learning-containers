@@ -264,7 +264,6 @@ def test_hc_smdataparallel_mnist(ecr_image, sagemaker_regions, efa_instance_type
 
 
 @pytest.mark.skip_pt20_cuda121_tests
-@pytest.mark.skip_pt21_test
 @pytest.mark.skip_pt22_test
 @pytest.mark.skip_cpu
 @pytest.mark.skip_trcomp_containers
