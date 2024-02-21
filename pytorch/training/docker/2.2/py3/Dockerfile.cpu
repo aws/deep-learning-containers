@@ -293,8 +293,7 @@ RUN pip install --no-cache-dir --upgrade pip --trusted-host pypi.org --trusted-h
     sagemaker \
     sagemaker-experiments \
     sagemaker-pytorch-training \
-    sagemaker-training \
-    smdebug
+    sagemaker-training
 
 # Install extra packages
 RUN /opt/conda/bin/mamba install -y -c conda-forge \
