@@ -30,7 +30,7 @@
 
 ## PR Checklist 
 <details>
-<summary> Expand </summary>
+  <summary> Expand </summary>
   - [ ] I've prepended PR tag with frameworks/job this applies to : [mxnet, tensorflow, pytorch] | [ei/neuron/graviton] | [build] | [test] | [benchmark] | [ec2, ecs, eks, sagemaker]
   - [ ] If the PR changes affects SM test, I've modified dlc_developer_config.toml in my PR branch by setting sagemaker_tests = true and efa_tests = true
   - [ ] If this PR changes existing code, the change fully backward compatible with pre-existing code. (Non backward-compatible changes need special approval.)
