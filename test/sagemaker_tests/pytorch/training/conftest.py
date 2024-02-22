@@ -499,9 +499,9 @@ def skip_smdebug_test(
     processor,
     ecr_image,
 ):
-    _, image_framework_version = get_framework_and_version_from_tag(ecr_image)
-    image_cuda_version = get_cuda_version_from_tag(ecr_image)
     if request.node.get_closest_marker("skip_smdebug_test") and processor == "gpu":
+        _, image_framework_version = get_framework_and_version_from_tag(ecr_image)
+        image_cuda_version = get_cuda_version_from_tag(ecr_image)
         if (
             Version(image_framework_version) in SpecifierSet("==2.0.1")
             and Version(image_cuda_version.strip("cu")) == Version("121")
@@ -517,9 +517,9 @@ def skip_dgl_test(
     processor,
     ecr_image,
 ):
-    _, image_framework_version = get_framework_and_version_from_tag(ecr_image)
-    image_cuda_version = get_cuda_version_from_tag(ecr_image)
     if request.node.get_closest_marker("skip_dgl_test") and processor == "gpu":
+        _, image_framework_version = get_framework_and_version_from_tag(ecr_image)
+        image_cuda_version = get_cuda_version_from_tag(ecr_image)
         if (
             Version(image_framework_version) in SpecifierSet("==2.0.1")
             and Version(image_cuda_version.strip("cu")) == Version("121")
@@ -535,9 +535,9 @@ def skip_smmodelparallel_test(
     processor,
     ecr_image,
 ):
-    _, image_framework_version = get_framework_and_version_from_tag(ecr_image)
-    image_cuda_version = get_cuda_version_from_tag(ecr_image)
     if request.node.get_closest_marker("skip_smmodelparallel_test") and processor == "gpu":
+        _, image_framework_version = get_framework_and_version_from_tag(ecr_image)
+        image_cuda_version = get_cuda_version_from_tag(ecr_image)
         if (
             Version(image_framework_version) in SpecifierSet("==2.0.1")
             and Version(image_cuda_version.strip("cu")) == Version("121")
