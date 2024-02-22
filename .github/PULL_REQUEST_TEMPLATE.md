@@ -28,7 +28,7 @@
 
 ### Additional context
 
-## PR Checklist 
+### PR Checklist 
 <details>
 <summary>Expand</summary>
 
@@ -39,20 +39,25 @@
 - [ ] (If applicable) I've documented below the tests I've run on the DLC image
 - [ ] (If applicable) I've reviewed the licenses of updated and new binaries and their dependencies to make sure all licenses are on the Apache Software Foundation Third Party License Policy Category A or Category B license list.  See [https://www.apache.org/legal/resolved.html](https://www.apache.org/legal/resolved.html).
 - [ ] (If applicable) I've scanned the updated and new binaries to make sure they do not have vulnerabilities associated with them.
-</details>
 
-## Pytest Marker Checklist
-- [ ] (If applicable) I have added the marker `@pytest.mark.model("<model-type>")` to the new tests which I have added, to specify the Deep Learning model that is used in the test (use `"N/A"` if the test doesn't use a model)
-- [ ] (If applicable) I have added the marker `@pytest.mark.integration("<feature-being-tested>")` to the new tests which I have added, to specify the feature that will be tested
-- [ ] (If applicable) I have added the marker `@pytest.mark.multinode(<integer-num-nodes>)` to the new tests which I have added, to specify the number of nodes used on a multi-node test
-- [ ] (If applicable) I have added the marker `@pytest.mark.processor(<"cpu"/"gpu"/"eia"/"neuron">)` to the new tests which I have added, if a test is specifically applicable to only one processor type
-
-#### EIA/NEURON/GRAVITON Testing Checklist
+#### NEURON/GRAVITON Testing Checklist
 * When creating a PR:
-- [ ] I've modified `dlc_developer_config.toml` in my PR branch by setting `ei_mode = true`, `neuron_mode = true` or `graviton_mode = true`
+- [ ] I've modified `dlc_developer_config.toml` in my PR branch by setting `neuron_mode = true` or `graviton_mode = true`
 
 #### Benchmark Testing Checklist
 * When creating a PR:
 - [ ] I've modified `dlc_developer_config.toml` in my PR branch by setting `ec2_benchmark_tests = true` or `sagemaker_benchmark_tests = true`
+</details>
+
+### Pytest Marker Checklist
+<details>
+<summary>Expand</summary>
+
+- [ ] (If applicable) I have added the marker `@pytest.mark.model("<model-type>")` to the new tests which I have added, to specify the Deep Learning model that is used in the test (use `"N/A"` if the test doesn't use a model)
+- [ ] (If applicable) I have added the marker `@pytest.mark.integration("<feature-being-tested>")` to the new tests which I have added, to specify the feature that will be tested
+- [ ] (If applicable) I have added the marker `@pytest.mark.multinode(<integer-num-nodes>)` to the new tests which I have added, to specify the number of nodes used on a multi-node test
+- [ ] (If applicable) I have added the marker `@pytest.mark.processor(<"cpu"/"gpu"/"eia"/"neuron">)` to the new tests which I have added, if a test is specifically applicable to only one processor type
+</details>
+
 
 By submitting this pull request, I confirm that my contribution is made under the terms of the Apache 2.0 license. I confirm that you can use, modify, copy, and redistribute this contribution, under the terms of your choice.
