@@ -501,10 +501,10 @@ def skip_smdebug_v1_test(
 ):
     """Skip SM Debugger and Profiler tests due to v1 deprecation for PyTorch 2.0.1 and above frameworks."""
     skip_dict = {"==2.0.*": ["cu121"], ">=2.1": ["cpu", "cu121"]}
-    if _validate_pytorch_framework_version(request, processor, ecr_image, "skip_smdebug_v1_test", skip_dict):
-            pytest.skip(
-                f"SM Profiler v1 is on path for deprecation, skipping test"
-            )
+    if _validate_pytorch_framework_version(
+        request, processor, ecr_image, "skip_smdebug_v1_test", skip_dict
+    ):
+        pytest.skip(f"SM Profiler v1 is on path for deprecation, skipping test")
 
     # if request.node.get_closest_marker("skip_smdebug_v1_test"):
     #     _, image_framework_version = get_framework_and_version_from_tag(ecr_image)
@@ -529,10 +529,10 @@ def skip_dgl_test(
     when the binaries are added in.
     """
     skip_dict = {"==2.0.*": ["cu121"], ">=2.1": ["cpu", "cu121"]}
-    if _validate_pytorch_framework_version(request, processor, ecr_image, "skip_dgl_test", skip_dict):
-        pytest.skip(
-            f"DGL binary is removed, skipping test"
-        )
+    if _validate_pytorch_framework_version(
+        request, processor, ecr_image, "skip_dgl_test", skip_dict
+    ):
+        pytest.skip(f"DGL binary is removed, skipping test")
 
     # if request.node.get_closest_marker("skip_dgl_test"):
     #     _, image_framework_version = get_framework_and_version_from_tag(ecr_image)
@@ -553,7 +553,9 @@ def skip_smdmodelparallel_test(
     ecr_image,
 ):
     skip_dict = {"==2.0.*": ["cu121"], ">=2.1": ["cpu", "cu121"]}
-    if _validate_pytorch_framework_version(request, processor, ecr_image, "skip_smdmodelparallel_test", skip_dict):
+    if _validate_pytorch_framework_version(
+        request, processor, ecr_image, "skip_smdmodelparallel_test", skip_dict
+    ):
         pytest.skip(
             f"SM Model Parallel team is maintaining their own Docker Container, skipping test"
         )
@@ -581,10 +583,10 @@ def skip_smddataparallel_test(
     However, when the SMDDP binaries are added, be sure to fix the test logic such that the tests are not skipped.
     """
     skip_dict = {"==2.0.*": ["cu121"], ">=2.2.*": ["cpu", "cu121"]}
-    if _validate_pytorch_framework_version(request, processor, ecr_image, "skip_smddataparallel_test", skip_dict):
-        pytest.skip(
-            f"SM Data Parallel binaries do not exist in this image, skipping test"
-        )
+    if _validate_pytorch_framework_version(
+        request, processor, ecr_image, "skip_smddataparallel_test", skip_dict
+    ):
+        pytest.skip(f"SM Data Parallel binaries do not exist in this image, skipping test")
 
     # if request.node.get_closest_marker("skip_smddataparallel_test"):
     #     _, image_framework_version = get_framework_and_version_from_tag(ecr_image)
