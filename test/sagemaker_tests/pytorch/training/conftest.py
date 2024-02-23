@@ -583,7 +583,7 @@ def skip_pt21_test(request):
     if request.node.get_closest_marker("skip_pt21_test"):
         if Version(fw_ver) in SpecifierSet("==2.1.*"):
             pytest.skip(
-                f"PT2.1 SM DLC doesn't support SMDMP and SMDDP for now, so skipping this container with tag {fw_ver}"
+                f"PyTorch 2.1 image doesn't support current test, so skipping this container with tag {fw_ver}"
             )
 
 
@@ -598,7 +598,7 @@ def skip_pt22_test(request):
     if request.node.get_closest_marker("skip_pt22_test"):
         if Version(fw_ver) in SpecifierSet("==2.2.*"):
             pytest.skip(
-                f"PT2.2 doesn't support DGL, SMDMP, and SMDDP binaries for now, skipping this container with tag {fw_ver}"
+                f"PyTorch 2.2 image doesn't supprot current test, skipping this container with tag {fw_ver}"
             )
 
 
