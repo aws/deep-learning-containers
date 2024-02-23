@@ -611,9 +611,12 @@ def _validate_pytorch_framework_version(request, processor, ecr_image, test_name
         image_cuda_version = get_cuda_version_from_tag(ecr_image) if processor == "gpu" else ""
 
         for framework_condition, processor_conditions in skip_dict.items():
-            return Version(image_framework_version) in SpecifierSet(framework_condition) and (
+            if Version(image_framework_version) in SpecifierSet(framework_condition) and (
                 processor in processor_conditions or image_cuda_version in processor_conditions
-            )
+            ):
+                return True
+
+    return False
 
 
 def _get_remote_override_flags():

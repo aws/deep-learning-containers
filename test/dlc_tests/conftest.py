@@ -1093,10 +1093,13 @@ def _validate_pytorch_framework_version(request, image_uri, test_name, skip_dict
         )
 
         for framework_condition, processor_conditions in skip_dict.items():
-            return Version(image_framework_version) in SpecifierSet(framework_condition) and (
+            if Version(image_framework_version) in SpecifierSet(framework_condition) and (
                 image_processor in processor_conditions
                 or image_cuda_version in processor_conditions
-            )
+            ):
+                return True
+
+    return False
 
 
 @pytest.fixture(scope="session")
