@@ -499,8 +499,7 @@ def skip_smdebug_v1_test(
     processor,
     ecr_image,
 ):
-    """Skip SM Debugger and Profiler tests due to v1 deprecation for PyTorch 2.0.1 and above frameworks.
-    """
+    """Skip SM Debugger and Profiler tests due to v1 deprecation for PyTorch 2.0.1 and above frameworks."""
     if request.node.get_closest_marker("skip_smdebug_v1_test"):
         _, image_framework_version = get_framework_and_version_from_tag(ecr_image)
         image_cuda_version = get_cuda_version_from_tag(ecr_image) if processor == "gpu" else ""

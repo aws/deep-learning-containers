@@ -909,8 +909,7 @@ def skip_transformer_engine_test(request):
 
 @pytest.fixture(autouse=True)
 def skip_smdebug_v1_test(request):
-    """Skip SM Debugger and Profiler tests due to v1 deprecation for PyTorch 2.0.1 and above frameworks.
-    """
+    """Skip SM Debugger and Profiler tests due to v1 deprecation for PyTorch 2.0.1 and above frameworks."""
     if "training" in request.fixturenames:
         img_uri = request.getfixturevalue("training")
     elif "pytorch_training" in request.fixturenames:
