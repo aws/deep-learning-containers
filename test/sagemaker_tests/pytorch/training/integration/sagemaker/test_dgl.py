@@ -32,13 +32,13 @@ DGL_LT_09x_SCRIPT_PATH = os.path.join(DGL_DATA_PATH, "train_dgl_lt_09x.py")
 DGL_SCRIPT_PATH = os.path.join(DGL_DATA_PATH, "train.py")
 
 
+@pytest.mark.skip_dgl_test
+@pytest.mark.skip_gpu
+@pytest.mark.skip_py2_containers
 @pytest.mark.integration("dgl")
 @pytest.mark.processor("cpu")
 @pytest.mark.model("gcn")
-@pytest.mark.skip_gpu
-@pytest.mark.skip_py2_containers
 @pytest.mark.team("dgl")
-@pytest.mark.skip_pt21_test
 def test_dgl_gcn_training_cpu(ecr_image, sagemaker_regions, instance_type):
     # TODO: Remove when DGL gpu test on ecs get fixed
     _, image_framework_version = get_framework_and_version_from_tag(ecr_image)
@@ -52,14 +52,13 @@ def test_dgl_gcn_training_cpu(ecr_image, sagemaker_regions, instance_type):
     invoke_pytorch_helper_function(ecr_image, sagemaker_regions, _test_dgl_training, function_args)
 
 
+@pytest.mark.skip_dgl_test
+@pytest.mark.skip_cpu
+@pytest.mark.skip_py2_containers
 @pytest.mark.integration("dgl")
 @pytest.mark.processor("gpu")
 @pytest.mark.model("gcn")
-@pytest.mark.skip_cpu
-@pytest.mark.skip_py2_containers
 @pytest.mark.team("dgl")
-@pytest.mark.skip_pt21_test
-@pytest.mark.skip_pt20_cuda121_tests
 def test_dgl_gcn_training_gpu(ecr_image, sagemaker_regions, instance_type):
     _, image_framework_version = get_framework_and_version_from_tag(ecr_image)
     image_cuda_version = get_cuda_version_from_tag(ecr_image)

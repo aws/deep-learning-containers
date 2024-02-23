@@ -374,10 +374,6 @@ ARG GDRCOPY_VERSION
 # SageMaker Profiler Binary
 ARG SMP_URL=https://smppy.s3.amazonaws.com/pytorch/cu121/smprof-0.3.334-cp310-cp310-linux_x86_64.whl
 
-# Selectively enable PyTorch Verbose Logging
-ENV PYTORCH_API_USAGE_STDERR=1
-ENV TORCH_LOGS=+dynamo,+aot,+inductor
-
 WORKDIR /
 
 # Install SageMaker Profiler Binary
