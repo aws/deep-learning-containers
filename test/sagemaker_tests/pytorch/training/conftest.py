@@ -535,12 +535,12 @@ def skip_dgl_test(
 
 
 @pytest.fixture(autouse=True)
-def skip_smmodelparallel_test(
+def skip_smdmodelparallel_test(
     request,
     processor,
     ecr_image,
 ):
-    if request.node.get_closest_marker("skip_smmodelparallel_test"):
+    if request.node.get_closest_marker("skip_smdmodelparallel_test"):
         _, image_framework_version = get_framework_and_version_from_tag(ecr_image)
         image_cuda_version = get_cuda_version_from_tag(ecr_image) if processor == "gpu" else ""
         if (
@@ -553,56 +553,29 @@ def skip_smmodelparallel_test(
 
 
 @pytest.fixture(autouse=True)
+def skip_smddataparallel_test(
+    request,
+    processor,
+    ecr_image,
+):
+    if request.node.get_closest_marker("skip_smddataparallel_test"):
+        _, image_framework_version = get_framework_and_version_from_tag(ecr_image)
+        image_cuda_version = get_cuda_version_from_tag(ecr_image) if processor == "gpu" else ""
+        if (
+            Version(image_framework_version) in SpecifierSet("==2.0.*")
+            and Version(image_cuda_version.strip("cu")) == Version("121")
+        ) or Version(image_framework_version) in SpecifierSet(">=2.2"):
+            pytest.skip(
+                f"SM Model Parallel team is maintaining their own Docker Container, skipping this container with tag {image_framework_version}"
+            )
+
+
+@pytest.fixture(autouse=True)
 def skip_p5_tests(instance_type, processor, ecr_image):
     if "p5." in instance_type:
         image_cuda_version = get_cuda_version_from_tag(ecr_image)
         if processor != "gpu" or Version(image_cuda_version.strip("cu")) < Version("120"):
             pytest.skip("P5 EC2 instance require CUDA 12.0 or higher.")
-
-
-@pytest.fixture(autouse=True)
-def skip_pt20_cuda121_tests(
-    request,
-    processor,
-    ecr_image,
-):
-    if request.node.get_closest_marker("skip_pt20_cuda121_tests") and processor == "gpu":
-        _, image_framework_version = get_framework_and_version_from_tag(ecr_image)
-        image_cuda_version = get_cuda_version_from_tag(ecr_image)
-        if Version(image_framework_version) in SpecifierSet("==2.0.*") and Version(
-            image_cuda_version.strip("cu")
-        ) == Version("121"):
-            pytest.skip("PyTorch 2.0 + CUDA12.1 image doesn't support current test")
-
-
-@pytest.fixture(autouse=True)
-def skip_pt21_test(request):
-    if "framework_version" in request.fixturenames:
-        fw_ver = request.getfixturevalue("framework_version")
-    elif "ecr_image" in request.fixturenames:
-        fw_ver = request.getfixturevalue("ecr_image")
-    else:
-        return
-    if request.node.get_closest_marker("skip_pt21_test"):
-        if Version(fw_ver) in SpecifierSet("==2.1.*"):
-            pytest.skip(
-                f"PyTorch 2.1 image doesn't support current test, so skipping this container with tag {fw_ver}"
-            )
-
-
-@pytest.fixture(autouse=True)
-def skip_pt22_test(request):
-    if "framework_version" in request.fixturenames:
-        fw_ver = request.getfixturevalue("framework_version")
-    elif "ecr_image" in request.fixturenames:
-        fw_ver = request.getfixturevalue("ecr_image")
-    else:
-        return
-    if request.node.get_closest_marker("skip_pt22_test"):
-        if Version(fw_ver) in SpecifierSet("==2.2.*"):
-            pytest.skip(
-                f"PyTorch 2.2 image doesn't supprot current test, skipping this container with tag {fw_ver}"
-            )
 
 
 def _get_remote_override_flags():
