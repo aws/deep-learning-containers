@@ -141,7 +141,6 @@ def test_pytorch_standalone_gpu(pytorch_training, ec2_connection, gpu_only, ec2_
 @pytest.mark.usefixtures("pt201_and_above_only")
 @pytest.mark.integration("pytorch_sanity_healthcheck_test")
 @pytest.mark.model("N/A")
-@pytest.mark.skip_pt20_cuda121_tests
 @pytest.mark.team("conda")
 @pytest.mark.parametrize("ec2_instance_type", PT_EC2_GPU_INSTANCE_TYPE, indirect=True)
 @pytest.mark.skip_pt21_test
@@ -157,7 +156,6 @@ def test_pytorch_healthcheck_dcgm(pytorch_training, ec2_connection, gpu_only, ec
 @pytest.mark.usefixtures("pt201_and_above_only")
 @pytest.mark.integration("pytorch_sanity_healthcheck_test")
 @pytest.mark.model("N/A")
-@pytest.mark.skip_pt20_cuda121_tests
 @pytest.mark.team("conda")
 @pytest.mark.parametrize("ec2_instance_type", PT_EC2_MULTI_GPU_NO_G_INSTANCE_TYPE, indirect=True)
 @pytest.mark.skip_pt21_test
