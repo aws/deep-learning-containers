@@ -35,7 +35,7 @@ parser.add_argument(
 )
 parser.add_argument("--info", type=str, default="", help="Add info to test result printout")
 parser.add_argument("--fp32", dest="fp32", action="store_true", help="Data type as fp16 or fp32")
-parser.add_argument("--nccl", dest="nccl", action="store_true", help="Run nccl or herring")
+parser.add_argument("--nccl", dest="nccl", action="store_true", help="Run nccl or smddp")
 parser.set_defaults(fp32=False)
 parser.set_defaults(nccl=False)
 args = parser.parse_args()
