@@ -518,6 +518,10 @@ def skip_dgl_test(
     processor,
     ecr_image,
 ):
+    """Start from PyTorch 2.0.1 framework, DGL binaries are not installed in DLCs by default and will be added in per customer ask.
+    The test condition should be modified appropriately and `skip_dgl_test` pytest mark should be removed from dgl tests
+    when the binaries are added in.
+    """
     if request.node.get_closest_marker("skip_dgl_test"):
         _, image_framework_version = get_framework_and_version_from_tag(ecr_image)
         image_cuda_version = get_cuda_version_from_tag(ecr_image) if processor == "gpu" else ""
