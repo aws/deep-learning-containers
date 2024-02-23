@@ -933,6 +933,10 @@ def skip_smdebug_v1_test(request):
 
 @pytest.fixture(autouse=True)
 def skip_dgl_test(request):
+    """Start from PyTorch 2.0.1 framework, DGL binaries are not installed in DLCs by default and will be added in per customer ask.
+    The test condition should be modified appropriately and `skip_dgl_test` pytest mark should be removed from dgl tests
+    when the binaries are added in.
+    """
     if "training" in request.fixturenames:
         img_uri = request.getfixturevalue("training")
     elif "pytorch_training" in request.fixturenames:

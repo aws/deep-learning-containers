@@ -56,7 +56,7 @@ EC2_EFA_GPU_ONLY_P4_INSTANCE_TYPE_AND_REGION = get_efa_ec2_instance_type(
 @pytest.mark.parametrize("ec2_instance_type,region", EC2_EFA_GPU_INSTANCE_TYPE_AND_REGION)
 @pytest.mark.team("conda")
 @pytest.mark.skipif(
-    is_pr_context() and not is_efa_dedicated(),
+    is_pr_context() and not are_heavy_instance_ec2_tests_enabled(),
     reason="Skip EFA test in PR context unless explicitly enabled",
 )
 def test_pytorch_efa(
@@ -148,7 +148,7 @@ def test_efa_tensorflow(
 @pytest.mark.parametrize("ec2_instance_type,region", EC2_EFA_GPU_ONLY_P4_INSTANCE_TYPE_AND_REGION)
 @pytest.mark.team("conda")
 @pytest.mark.skipif(
-    is_pr_context() and not is_efa_dedicated(),
+    is_pr_context() and not are_heavy_instance_ec2_tests_enabled(),
     reason="Skip EFA test in PR context unless explicitly enabled",
 )
 def test_pytorch_efa_healthcheck(

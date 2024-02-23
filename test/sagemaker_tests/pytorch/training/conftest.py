@@ -541,7 +541,7 @@ def skip_smmodelparallel_test(
         _, image_framework_version = get_framework_and_version_from_tag(ecr_image)
         image_cuda_version = get_cuda_version_from_tag(ecr_image) if processor == "gpu" else ""
         if (
-            Version(image_framework_version) in SpecifierSet("==2.0.1")
+            Version(image_framework_version) in SpecifierSet("==2.0.*")
             and Version(image_cuda_version.strip("cu")) == Version("121")
         ) or Version(image_framework_version) in SpecifierSet(">=2.1"):
             pytest.skip(
