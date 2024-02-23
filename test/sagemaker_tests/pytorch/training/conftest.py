@@ -557,7 +557,7 @@ def skip_p5_tests(instance_type, processor, ecr_image):
     if "p5." in instance_type:
         image_cuda_version = get_cuda_version_from_tag(ecr_image)
         if processor != "gpu" or Version(image_cuda_version.strip("cu")) < Version("120"):
-            pytest.skip("Images using less than CUDA 12.0 doesn't support P5 EC2 instance.")
+            pytest.skip("P5 EC2 instance require CUDA 12.0 or higher.")
 
 
 @pytest.fixture(autouse=True)
