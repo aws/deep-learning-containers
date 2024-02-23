@@ -1085,6 +1085,12 @@ def skip_pt22_test(request):
 
 
 def _validate_pytorch_framework_version(request, image_uri, test_name, skip_dict):
+    """
+    Expected format of skip_dic:
+    {
+        SpecifierSet("<comparable version string">): ["cpu", "cu118", "cu121"],
+    }
+    """
     if request.node.get_closest_marker(test_name):
         _, image_framework_version = get_framework_and_version_from_tag(image_uri)
         image_processor = get_processor_from_image_uri(image_uri)

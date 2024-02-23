@@ -582,7 +582,7 @@ def skip_smddataparallel_test(
     For each currency release, we can skip SMDDP tests if the binary does not exist.
     However, when the SMDDP binaries are added, be sure to fix the test logic such that the tests are not skipped.
     """
-    skip_dict = {"==2.0.*": ["cu121"], ">=2.2.*": ["cpu", "cu121"]}
+    skip_dict = {"==2.0.*": ["cu121"], ">=2.2": ["cpu", "cu121"]}
     if _validate_pytorch_framework_version(
         request, processor, ecr_image, "skip_smddataparallel_test", skip_dict
     ):
@@ -606,6 +606,12 @@ def skip_p5_tests(instance_type, processor, ecr_image):
 
 
 def _validate_pytorch_framework_version(request, processor, ecr_image, test_name, skip_dict):
+    """
+    Expected format of skip_dic:
+    {
+        SpecifierSet("<comparable version string">): ["cpu", "cu118", "cu121"],
+    }
+    """
     if request.node.get_closest_marker(test_name):
         _, image_framework_version = get_framework_and_version_from_tag(ecr_image)
         image_cuda_version = get_cuda_version_from_tag(ecr_image) if processor == "gpu" else ""
