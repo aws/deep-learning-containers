@@ -13,6 +13,8 @@
 - [ ] I have run builds/tests on commit <INSERT COMMIT ID> for my changes.
 
 **NOTE: If you are creating a PR for a new framework version, please ensure success of the standard, rc, and efa sagemaker remote tests by updating the dlc_developer_config.toml file:**
+<details>
+<summary>Expand</summary>
 
 - [ ] `sagemaker_remote_tests = true`
 - [ ] `sagemaker_efa_tests = true`
@@ -21,10 +23,37 @@
 **Additionally, please run the sagemaker local tests in at least one revision:**
 - [ ] `sagemaker_local_tests = true`
 
+</details>
+
 ### Formatting
 - [ ] I have run `black -l 100` on my code (formatting tool: https://black.readthedocs.io/en/stable/getting_started.html)
 
 ### DLC image/dockerfile
+
+#### Pipelines
+<details>
+<summary>Expand</summary>
+
+*Note: By default, pipelines are set to "latest". Replace with major.minor framework version if you do not want "latest".*
+
+- [ ] build_pytorch_training_latest
+- [ ] build_pytorch_inference_latest
+
+- [ ] build_tensorflow_training_latest
+- [ ] build_tensorflow_inference_latest
+
+##### Partners
+<details>
+<summary>Expand</summary>
+
+- [ ] build_huggingface-tensorflow_training_latest
+- [ ] build_huggingface-tensorflow_inference_latest
+- [ ] build_huggingface-pytorch_training_latest
+- [ ] build_huggingface-pytorch_inference_latest
+- [ ] build_huggingface-pytorch_inference_latest-neuronx
+- [ ] build_stabilityai-pytorch_inference_latest
+</details>
+</details>
 
 ### Additional context
 
