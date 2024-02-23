@@ -38,13 +38,13 @@ build_frameworks = ["pytorch"]
 
 # By default we build both training and inference containers. Set true/false values to determine which to build.
 build_training = true
-build_inference = false
+build_inference = true
 
 # Set to false in order to remove datetime tag on PR builds
-datetime_tag = false
+datetime_tag = true
 # Note: Need to build the images at least once with datetime_tag = false
 # before disabling new builds, or tests will fail
-do_build = false
+do_build = true
 autopatch_build = false
 
 [notify]
@@ -59,8 +59,8 @@ notify_test_failures = false
 sanity_tests = true
   safety_check_test = false
   ecr_scan_allowlist_feature = false
-ecs_tests = false
-eks_tests = false
+ecs_tests = true
+eks_tests = true
 ec2_tests = true
 # Set it to true if you are preparing a Benchmark related PR
 ec2_benchmark_tests = false
@@ -76,7 +76,7 @@ ec2_tests_on_heavy_instances = true
 sagemaker_local_tests = false
 
 # run standard sagemaker remote tests from test/sagemaker_tests
-sagemaker_remote_tests = true
+sagemaker_remote_tests = false
 # run efa sagemaker tests
 sagemaker_efa_tests = false
 # run release_candidate_integration tests
