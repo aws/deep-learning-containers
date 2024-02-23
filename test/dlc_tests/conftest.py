@@ -1036,6 +1036,11 @@ def skip_pt22_test(request):
             )
 
 
+def _validate_pytorch_framework_version(request, test_name):
+    if request.node.get_closest_marker(test_name):
+        pytest.skip("Skip test because p4de instance usage is not allowed for this test")
+
+
 @pytest.fixture(scope="session")
 def dlc_images(request):
     return request.config.getoption("--images")
