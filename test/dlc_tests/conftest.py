@@ -944,7 +944,7 @@ def skip_dgl_test(request):
     image_cuda_version = get_cuda_version_from_tag(img_uri)
     if request.node.get_closest_marker("skip_dgl_test"):
         if (
-            Version(image_framework_version) in SpecifierSet("==2.0.1")
+            Version(image_framework_version) in SpecifierSet("==2.0.*")
             and image_processor == "gpu"
             and Version(image_cuda_version.strip("cu")) == Version("121")
         ) or Version(image_framework_version) in SpecifierSet(">=2.1"):
@@ -996,7 +996,7 @@ def skip_pt20_cuda121_tests(request):
         _, image_framework_version = get_framework_and_version_from_tag(img_uri)
         image_processor = get_processor_from_image_uri(img_uri)
         image_cuda_version = get_cuda_version_from_tag(img_uri)
-        if Version(image_framework_version) in SpecifierSet("==2.0.1") and image_processor == "gpu":
+        if Version(image_framework_version) in SpecifierSet("==2.0.*") and image_processor == "gpu":
             if Version(image_cuda_version.strip("cu")) == Version("121"):
                 pytest.skip("PyTorch 2.0 + CUDA12.1 image doesn't support current test")
 
@@ -1011,7 +1011,7 @@ def skip_pt21_test(request):
         return
     _, image_framework_version = get_framework_and_version_from_tag(img_uri)
     if request.node.get_closest_marker("skip_pt21_test"):
-        if Version(image_framework_version) in SpecifierSet("==2.1"):
+        if Version(image_framework_version) in SpecifierSet("==2.1.*"):
             pytest.skip(
                 f"PT2.1 SM DLC doesn't support SMDMP and SMDDP for now, so skipping this container with tag {image_framework_version}"
             )
@@ -1027,7 +1027,7 @@ def skip_pt22_test(request):
         return
     _, image_framework_version = get_framework_and_version_from_tag(img_uri)
     if request.node.get_closest_marker("skip_pt22_test"):
-        if Version(image_framework_version) in SpecifierSet("==2.2"):
+        if Version(image_framework_version) in SpecifierSet("==2.2.*"):
             pytest.skip(
                 f"PT2.2 doesn't support DGL, SMDMP, and SMDDP binaries for now, skipping this container with tag {image_framework_version}"
             )

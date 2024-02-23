@@ -505,7 +505,7 @@ def skip_smdebug_v1_test(
         _, image_framework_version = get_framework_and_version_from_tag(ecr_image)
         image_cuda_version = get_cuda_version_from_tag(ecr_image) if processor == "gpu" else ""
         if (
-            Version(image_framework_version) in SpecifierSet("==2.0.1")
+            Version(image_framework_version) in SpecifierSet("==2.0.*")
             and Version(image_cuda_version.strip("cu")) == Version("121")
         ) or Version(image_framework_version) in SpecifierSet(">=2.1"):
             pytest.skip(
@@ -566,7 +566,7 @@ def skip_pt20_cuda121_tests(
     if request.node.get_closest_marker("skip_pt20_cuda121_tests") and processor == "gpu":
         _, image_framework_version = get_framework_and_version_from_tag(ecr_image)
         image_cuda_version = get_cuda_version_from_tag(ecr_image)
-        if Version(image_framework_version) in SpecifierSet("==2.0.1") and Version(
+        if Version(image_framework_version) in SpecifierSet("==2.0.*") and Version(
             image_cuda_version.strip("cu")
         ) == Version("121"):
             pytest.skip("PyTorch 2.0 + CUDA12.1 image doesn't support current test")
@@ -581,7 +581,7 @@ def skip_pt21_test(request):
     else:
         return
     if request.node.get_closest_marker("skip_pt21_test"):
-        if Version(fw_ver) in SpecifierSet("==2.1"):
+        if Version(fw_ver) in SpecifierSet("==2.1.*"):
             pytest.skip(
                 f"PT2.1 SM DLC doesn't support SMDMP and SMDDP for now, so skipping this container with tag {fw_ver}"
             )
@@ -596,7 +596,7 @@ def skip_pt22_test(request):
     else:
         return
     if request.node.get_closest_marker("skip_pt22_test"):
-        if Version(fw_ver) in SpecifierSet("==2.2"):
+        if Version(fw_ver) in SpecifierSet("==2.2.*"):
             pytest.skip(
                 f"PT2.2 doesn't support DGL, SMDMP, and SMDDP binaries for now, skipping this container with tag {fw_ver}"
             )
