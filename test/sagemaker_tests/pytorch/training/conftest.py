@@ -506,17 +506,6 @@ def skip_smdebug_v1_test(
     ):
         pytest.skip(f"SM Profiler v1 is on path for deprecation, skipping test")
 
-    # if request.node.get_closest_marker("skip_smdebug_v1_test"):
-    #     _, image_framework_version = get_framework_and_version_from_tag(ecr_image)
-    #     image_cuda_version = get_cuda_version_from_tag(ecr_image) if processor == "gpu" else ""
-    #     if (
-    #         Version(image_framework_version) in SpecifierSet("==2.0.*")
-    #         and Version(image_cuda_version.strip("cu")) == Version("121")
-    #     ) or Version(image_framework_version) in SpecifierSet(">=2.1"):
-    #         pytest.skip(
-    #             f"SM Profiler v1 is on path for deprecation, skipping this container with tag {image_framework_version}"
-    #         )
-
 
 @pytest.fixture(autouse=True)
 def skip_dgl_test(
@@ -534,17 +523,6 @@ def skip_dgl_test(
     ):
         pytest.skip(f"DGL binary is removed, skipping test")
 
-    # if request.node.get_closest_marker("skip_dgl_test"):
-    #     _, image_framework_version = get_framework_and_version_from_tag(ecr_image)
-    #     image_cuda_version = get_cuda_version_from_tag(ecr_image) if processor == "gpu" else ""
-    #     if (
-    #         Version(image_framework_version) in SpecifierSet("==2.0.*")
-    #         and Version(image_cuda_version.strip("cu")) == Version("121")
-    #     ) or Version(image_framework_version) in SpecifierSet(">=2.1"):
-    #         pytest.skip(
-    #             f"DGL binary is removed, skipping this container with tag {image_framework_version}"
-    #         )
-
 
 @pytest.fixture(autouse=True)
 def skip_smdmodelparallel_test(
@@ -559,17 +537,6 @@ def skip_smdmodelparallel_test(
         pytest.skip(
             f"SM Model Parallel team is maintaining their own Docker Container, skipping test"
         )
-
-    # if request.node.get_closest_marker("skip_smdmodelparallel_test"):
-    #     _, image_framework_version = get_framework_and_version_from_tag(ecr_image)
-    #     image_cuda_version = get_cuda_version_from_tag(ecr_image) if processor == "gpu" else ""
-    #     if (
-    #         Version(image_framework_version) in SpecifierSet("==2.0.*")
-    #         and Version(image_cuda_version.strip("cu")) == Version("121")
-    #     ) or Version(image_framework_version) in SpecifierSet(">=2.1"):
-    #         pytest.skip(
-    #             f"SM Model Parallel team is maintaining their own Docker Container, skipping this container with tag {image_framework_version}"
-    #         )
 
 
 @pytest.fixture(autouse=True)
@@ -587,14 +554,6 @@ def skip_smddataparallel_test(
         request, processor, ecr_image, "skip_smddataparallel_test", skip_dict
     ):
         pytest.skip(f"SM Data Parallel binaries do not exist in this image, skipping test")
-
-    # if request.node.get_closest_marker("skip_smddataparallel_test"):
-    #     _, image_framework_version = get_framework_and_version_from_tag(ecr_image)
-    #     image_cuda_version = get_cuda_version_from_tag(ecr_image) if processor == "gpu" else ""
-    #     if (
-    #         Version(image_framework_version) in SpecifierSet("==2.0.*")
-    #         and Version(image_cuda_version.strip("cu")) == Version("121")
-    #     ) or Version(image_framework_version) in SpecifierSet(">=2.2"):
 
 
 @pytest.fixture(autouse=True)

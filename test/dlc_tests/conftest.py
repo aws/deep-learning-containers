@@ -885,15 +885,6 @@ def skip_torchdata_test(request):
             f"Skipping test"
         )
 
-    # _, image_framework_version = get_framework_and_version_from_tag(image_uri)
-    # if request.node.get_closest_marker("skip_torchdata_test"):
-    #     if Version(image_framework_version) in SpecifierSet(">2.1.1"):
-    #         pytest.skip(
-    #             f"Torchdata has paused development as of July 2023 and the latest compatible PyTorch version is 2.1.1."
-    #             f"For more information, see https://github.com/pytorch/data/issues/1196."
-    #             f"Skipping this container with tag {image_framework_version}"
-    #         )
-
 
 @pytest.fixture(autouse=True)
 def skip_transformer_engine_test(request):
@@ -916,17 +907,6 @@ def skip_transformer_engine_test(request):
             f"Skipping test"
         )
 
-    # _, image_framework_version = get_framework_and_version_from_tag(img_uri)
-    # if request.node.get_closest_marker("skip_transformer_engine_test"):
-    #     if Version(image_framework_version) in SpecifierSet(">=2.2"):
-    #         pytest.skip(
-    #             f"PyTorch 2.2.0 and later has deprecated NVFuser from torch script in this commit https://github.com/pytorch/pytorch/commit/e6b5e0ecc609c15bfee5b383fe5c55fbdfda68ff"
-    #             f"However, TransformerEngine latest version 1.2.1 still uses nvfuser."
-    #             f"We have raised the issue with TransformerEngine, and this test will be skipped until the issue is resolved."
-    #             f"For more information, see https://github.com/NVIDIA/TransformerEngine/issues/666"
-    #             f"Skipping this container with tag {image_framework_version}"
-    #         )
-
 
 @pytest.fixture(autouse=True)
 def skip_smdebug_v1_test(request):
@@ -941,19 +921,6 @@ def skip_smdebug_v1_test(request):
     skip_dict = {"==2.0.*": ["cu121"], ">=2.1": ["cpu", "cu121"]}
     if _validate_pytorch_framework_version(request, image_uri, "skip_smdebug_v1_test", skip_dict):
         pytest.skip(f"SM Profiler v1 is on path for deprecation, skipping test")
-
-    # _, image_framework_version = get_framework_and_version_from_tag(img_uri)
-    # image_processor = get_processor_from_image_uri(img_uri)
-    # image_cuda_version = get_cuda_version_from_tag(img_uri)
-    # if request.node.get_closest_marker("skip_smdebug_v1_test"):
-    #     if (
-    #         Version(image_framework_version) in SpecifierSet("==2.0.*")
-    #         and image_processor == "gpu"
-    #         and Version(image_cuda_version.strip("cu")) == Version("121")
-    #     ) or Version(image_framework_version) in SpecifierSet(">=2.1"):
-    #         pytest.skip(
-    #             f"SM Profiler v1 is on path for deprecation, skipping this container with tag {image_framework_version}"
-    #         )
 
 
 @pytest.fixture(autouse=True)
@@ -972,19 +939,6 @@ def skip_dgl_test(request):
     skip_dict = {"==2.0.*": ["cu121"], ">=2.1": ["cpu", "cu121"]}
     if _validate_pytorch_framework_version(request, image_uri, "skip_dgl_test", skip_dict):
         pytest.skip(f"DGL binaries are removed, skipping test")
-
-    # _, image_framework_version = get_framework_and_version_from_tag(img_uri)
-    # image_processor = get_processor_from_image_uri(img_uri)
-    # image_cuda_version = get_cuda_version_from_tag(img_uri)
-    # if request.node.get_closest_marker("skip_dgl_test"):
-    #     if (
-    #         Version(image_framework_version) in SpecifierSet("==2.0.*")
-    #         and image_processor == "gpu"
-    #         and Version(image_cuda_version.strip("cu")) == Version("121")
-    #     ) or Version(image_framework_version) in SpecifierSet(">=2.1"):
-    #         pytest.skip(
-    #             f"DGL binaries are removed, skipping this container with tag {image_framework_version}"
-    #         )
 
 
 @pytest.fixture(autouse=True)
@@ -1033,14 +987,6 @@ def skip_pt20_cuda121_tests(request):
     ):
         pytest.skip("PyTorch 2.0 + CUDA12.1 image doesn't support current test")
 
-    # if request.node.get_closest_marker("skip_pt20_cuda121_tests"):
-    #     _, image_framework_version = get_framework_and_version_from_tag(img_uri)
-    #     image_processor = get_processor_from_image_uri(img_uri)
-    #     image_cuda_version = get_cuda_version_from_tag(img_uri)
-    #     if Version(image_framework_version) in SpecifierSet("==2.0.*") and image_processor == "gpu":
-    #         if Version(image_cuda_version.strip("cu")) == Version("121"):
-    #             pytest.skip("PyTorch 2.0 + CUDA12.1 image doesn't support current test")
-
 
 @pytest.fixture(autouse=True)
 def skip_pt21_test(request):
@@ -1055,13 +1001,6 @@ def skip_pt21_test(request):
     if _validate_pytorch_framework_version(request, image_uri, "skip_pt21_test", skip_dict):
         pytest.skip(f"PyTorch 2.1 image doesn't support current test")
 
-    # _, image_framework_version = get_framework_and_version_from_tag(img_uri)
-    # if request.node.get_closest_marker("skip_pt21_test"):
-    #     if Version(image_framework_version) in SpecifierSet("==2.1.*"):
-    #         pytest.skip(
-    #             f"PyTorch 2.1 image doesn't support current test, so skipping this container with tag {image_framework_version}"
-    #         )
-
 
 @pytest.fixture(autouse=True)
 def skip_pt22_test(request):
@@ -1075,13 +1014,6 @@ def skip_pt22_test(request):
     skip_dict = {"==2.2.*": ["cpu", "cu121"]}
     if _validate_pytorch_framework_version(request, image_uri, "skip_pt22_test", skip_dict):
         pytest.skip(f"PyTorch 2.2 image doesn't support current test")
-
-    # _, image_framework_version = get_framework_and_version_from_tag(img_uri)
-    # if request.node.get_closest_marker("skip_pt22_test"):
-    #     if Version(image_framework_version) in SpecifierSet("==2.2.*"):
-    #         pytest.skip(
-    #             f"PyTorch 2.2 image doesn't support current test, so skipping this container with tag {image_framework_version}"
-    #         )
 
 
 def _validate_pytorch_framework_version(request, image_uri, test_name, skip_dict):
