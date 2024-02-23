@@ -468,8 +468,8 @@ WORKDIR /root
 # install SM packages
 RUN pip install --no-cache-dir -U \
     smclarify \
-    sagemaker \
-    sagemaker-experiments \
+    "sagemaker>=2,<3" \
+    "sagemaker-experiments<1" \
     sagemaker-pytorch-training \
     sagemaker-training
 
