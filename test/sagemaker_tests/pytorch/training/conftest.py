@@ -558,6 +558,10 @@ def skip_smddataparallel_test(
     processor,
     ecr_image,
 ):
+    """Start from PyTorch 2.0.1 framework, SMDDP binary releases are decoupled from DLC releases.
+    For each currency release, we can skip SMDDP tests if the binary does not exist.
+    However, when the SMDDP binaries are added, be sure to fix the test logic such that the tests are not skipped.
+    """
     if request.node.get_closest_marker("skip_smddataparallel_test"):
         _, image_framework_version = get_framework_and_version_from_tag(ecr_image)
         image_cuda_version = get_cuda_version_from_tag(ecr_image) if processor == "gpu" else ""
@@ -566,7 +570,7 @@ def skip_smddataparallel_test(
             and Version(image_cuda_version.strip("cu")) == Version("121")
         ) or Version(image_framework_version) in SpecifierSet(">=2.2"):
             pytest.skip(
-                f"SM Model Parallel team is maintaining their own Docker Container, skipping this container with tag {image_framework_version}"
+                f"SM Data Parallel binaries do not exist in this image, skipping this container with tag {image_framework_version}"
             )
 
 
