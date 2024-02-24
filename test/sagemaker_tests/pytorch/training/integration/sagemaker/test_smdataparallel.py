@@ -259,6 +259,7 @@ def test_hc_smdataparallel_mnist(ecr_image, sagemaker_regions, efa_instance_type
 
 
 @pytest.mark.skip_smddataparallel_test
+@pytest.mark.skip_smdmodelparallel_test
 @pytest.mark.skip_cpu
 @pytest.mark.skip_trcomp_containers
 @pytest.mark.usefixtures("feature_smmp_present")
