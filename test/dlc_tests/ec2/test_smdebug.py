@@ -25,6 +25,7 @@ SMDEBUG_EC2_GPU_INSTANCE_TYPE = get_ec2_instance_type(default="p3.8xlarge", proc
 SMDEBUG_EC2_CPU_INSTANCE_TYPE = get_ec2_instance_type(default="c4.8xlarge", processor="cpu")
 
 
+@pytest.mark.skip_smdebug_v1_test
 @pytest.mark.usefixtures("feature_smdebug_present")
 @pytest.mark.usefixtures("sagemaker_only")
 @pytest.mark.integration("smdebug")
@@ -32,8 +33,6 @@ SMDEBUG_EC2_CPU_INSTANCE_TYPE = get_ec2_instance_type(default="c4.8xlarge", proc
 @pytest.mark.parametrize("ec2_instance_type", SMDEBUG_EC2_GPU_INSTANCE_TYPE, indirect=True)
 @pytest.mark.team("smdebug")
 @pytest.mark.flaky(reruns=0)
-@pytest.mark.skip_pt21_test
-@pytest.mark.skip_pt20_cuda121_tests
 def test_smdebug_gpu(
     training, ec2_connection, region, ec2_instance_type, gpu_only, py3_only, below_tf213_only
 ):
@@ -67,6 +66,7 @@ def test_smdebug_gpu(
     )
 
 
+@pytest.mark.skip_smdebug_v1_test
 @pytest.mark.usefixtures("feature_smdebug_present")
 @pytest.mark.usefixtures("sagemaker_only")
 @pytest.mark.integration("smprofiler")
@@ -74,8 +74,6 @@ def test_smdebug_gpu(
 @pytest.mark.team("smdebug")
 @pytest.mark.parametrize("ec2_instance_type", SMDEBUG_EC2_GPU_INSTANCE_TYPE, indirect=True)
 @pytest.mark.flaky(reruns=0)
-@pytest.mark.skip_pt21_test
-@pytest.mark.skip_pt20_cuda121_tests
 def test_smprofiler_gpu(
     training,
     ec2_connection,
@@ -113,6 +111,7 @@ def test_smprofiler_gpu(
     )
 
 
+@pytest.mark.skip_smdebug_v1_test
 @pytest.mark.usefixtures("feature_smdebug_present")
 @pytest.mark.usefixtures("sagemaker_only")
 @pytest.mark.flaky(reruns=0)
@@ -120,13 +119,13 @@ def test_smprofiler_gpu(
 @pytest.mark.model("mnist")
 @pytest.mark.team("smdebug")
 @pytest.mark.parametrize("ec2_instance_type", SMDEBUG_EC2_CPU_INSTANCE_TYPE, indirect=True)
-@pytest.mark.skip_pt21_test
 def test_smdebug_cpu(
     training, ec2_connection, region, ec2_instance_type, cpu_only, py3_only, below_tf213_only
 ):
     run_smdebug_test(training, ec2_connection, region, ec2_instance_type)
 
 
+@pytest.mark.skip_smdebug_v1_test
 @pytest.mark.usefixtures("feature_smdebug_present")
 @pytest.mark.usefixtures("sagemaker_only")
 @pytest.mark.flaky(reruns=0)
@@ -134,7 +133,6 @@ def test_smdebug_cpu(
 @pytest.mark.model("mnist")
 @pytest.mark.team("smdebug")
 @pytest.mark.parametrize("ec2_instance_type", SMDEBUG_EC2_CPU_INSTANCE_TYPE, indirect=True)
-@pytest.mark.skip_pt21_test
 def test_smprofiler_cpu(
     training,
     ec2_connection,
