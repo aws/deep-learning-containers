@@ -44,11 +44,6 @@
       "skip":"True",
       "_comment":"torchmetrics has torchdata/Torch as a child dependency and might end up changing torch version"
    },
-   "torchtnt":{
-      "version_specifier":"==0.2.1",
-      "skip":"True",
-      "_comment":"torchtnt has Torch as a child dependency and might end up changing torch version"
-   },
    "torchvision":{
       "version_specifier":"==0.15.2",
       "skip":"True",
