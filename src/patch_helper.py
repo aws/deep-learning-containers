@@ -244,6 +244,7 @@ def conduct_autopatch_build_setup(pre_push_image_object: DockerImage, download_p
 
     info["extra_build_args"].update({"BASE_IMAGE_FOR_PATCH_BUILD": base_image_uri_for_patch_builds})
     info["extra_build_args"].update({"LATEST_RELEASED_IMAGE_SHA": latest_released_image_sha})
+    info["extra_build_args"].update({"LATEST_RELEASED_IMAGE_URI": latest_released_image_uri})
 
     autopatch_artifacts = {
         "miscellaneous_scripts": {
