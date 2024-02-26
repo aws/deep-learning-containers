@@ -34,11 +34,6 @@
       "skip":"True",
       "_comment":"torchdata has Torch as a child dependency and might end up changing torch version"
    },
-   "torchnet":{
-      "version_specifier":"==0.0.4",
-      "skip":"True",
-      "_comment":"torchdata has Torch as a child dependency and might end up changing torch version"
-   },
    "triton":{
       "version_specifier":"==2.0.0",
       "skip":"True",
