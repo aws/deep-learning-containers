@@ -170,15 +170,14 @@ def test_dist_operations_fastai_gpu(framework_version, ecr_image, sagemaker_regi
     _assert_s3_file_exists(sagemaker_session.boto_region_name, model_s3_url)
 
 
+@pytest.mark.skip_smdmodelparallel_test
+@pytest.mark.skip_cpu
+@pytest.mark.skip_py2_containers
+@pytest.mark.skip_trcomp_containers
 @pytest.mark.usefixtures("feature_smmp_present")
 @pytest.mark.integration("smmodelparallel")
 @pytest.mark.model("gpt2")
 @pytest.mark.processor("gpu")
-@pytest.mark.skip_cpu
-@pytest.mark.skip_py2_containers
-@pytest.mark.skip_trcomp_containers
-@pytest.mark.skip_pt21_test
-@pytest.mark.skip_pt20_cuda121_tests
 @pytest.mark.team("smmodelparallel")
 @pytest.mark.parametrize("test_script, num_processes", [("train_gpt_simple.py", 8)])
 def test_smmodelparallel_gpt2_multigpu_singlenode(
@@ -275,15 +274,14 @@ def test_smmodelparallel_gpt2_multigpu_singlenode(
         )
 
 
+@pytest.mark.skip_smdmodelparallel_test
+@pytest.mark.skip_cpu
+@pytest.mark.skip_py2_containers
+@pytest.mark.skip_trcomp_containers
 @pytest.mark.usefixtures("feature_smmp_present")
 @pytest.mark.integration("smmodelparallel")
 @pytest.mark.model("gpt2")
 @pytest.mark.processor("gpu")
-@pytest.mark.skip_cpu
-@pytest.mark.skip_py2_containers
-@pytest.mark.skip_trcomp_containers
-@pytest.mark.skip_pt21_test
-@pytest.mark.skip_pt20_cuda121_tests
 @pytest.mark.team("smmodelparallel")
 @pytest.mark.parametrize("test_script, num_processes", [("train_gpt_simple.py", 8)])
 def test_smmodelparallel_gpt2_multigpu_singlenode_flashattn(
@@ -382,16 +380,15 @@ def test_smmodelparallel_gpt2_multigpu_singlenode_flashattn(
         )
 
 
+@pytest.mark.skip_smdmodelparallel_test
+@pytest.mark.skip_cpu
+@pytest.mark.skip_py2_containers
+@pytest.mark.skip_trcomp_containers
 @pytest.mark.usefixtures("feature_smmp_present")
 @pytest.mark.integration("smmodelparallel")
 @pytest.mark.model("mnist")
 @pytest.mark.processor("gpu")
 @pytest.mark.multinode(2)
-@pytest.mark.skip_cpu
-@pytest.mark.skip_py2_containers
-@pytest.mark.skip_trcomp_containers
-@pytest.mark.skip_pt21_test
-@pytest.mark.skip_pt20_cuda121_tests
 @pytest.mark.team("smmodelparallel")
 @pytest.mark.parametrize("test_script, num_processes", [("smmodelparallel_pt_mnist.py", 8)])
 def test_smmodelparallel_mnist_multigpu_multinode(
@@ -442,16 +439,15 @@ def test_smmodelparallel_mnist_multigpu_multinode(
         )
 
 
+@pytest.mark.skip_smdmodelparallel_test
+@pytest.mark.skip_cpu
+@pytest.mark.skip_py2_containers
+@pytest.mark.skip_trcomp_containers
 @pytest.mark.usefixtures("feature_smmp_present")
 @pytest.mark.integration("smmodelparallel")
 @pytest.mark.model("mnist")
 @pytest.mark.processor("gpu")
 @pytest.mark.multinode(2)
-@pytest.mark.skip_cpu
-@pytest.mark.skip_py2_containers
-@pytest.mark.skip_trcomp_containers
-@pytest.mark.skip_pt21_test
-@pytest.mark.skip_pt20_cuda121_tests
 @pytest.mark.team("smmodelparallel")
 @pytest.mark.parametrize("test_script, num_processes", [("smmodelparallel_pt_mnist.py", 8)])
 def test_hc_smmodelparallel_mnist_multigpu_multinode(
@@ -504,19 +500,18 @@ def test_hc_smmodelparallel_mnist_multigpu_multinode(
         )
 
 
+@pytest.mark.skip_smdmodelparallel_test
+@pytest.mark.skip_cpu
+@pytest.mark.skip_py2_containers
+@pytest.mark.skip_trcomp_containers
 @pytest.mark.usefixtures("feature_smmp_present")
 @pytest.mark.integration("smmodelparallel")
 @pytest.mark.model("mnist")
 @pytest.mark.processor("gpu")
 @pytest.mark.multinode(2)
-@pytest.mark.skip_cpu
-@pytest.mark.skip_py2_containers
-@pytest.mark.skip_trcomp_containers
-@pytest.mark.skip_pt21_test
 @pytest.mark.team("smmodelparallel")
 @pytest.mark.parametrize("test_script, num_processes", [("smmodelparallel_pt_mnist.py", 8)])
 @pytest.mark.efa()
-@pytest.mark.skip_pt20_cuda121_tests
 def test_smmodelparallel_mnist_multigpu_multinode_efa(
     ecr_image, efa_instance_type, sagemaker_regions, test_script, num_processes
 ):
@@ -565,18 +560,17 @@ def test_smmodelparallel_mnist_multigpu_multinode_efa(
         )
 
 
+@pytest.mark.skip_smdmodelparallel_test
+@pytest.mark.skip_cpu
+@pytest.mark.skip_py2_containers
+@pytest.mark.skip_trcomp_containers
 @pytest.mark.integration("smmodelparallel")
 @pytest.mark.model("gpt2")
 @pytest.mark.processor("gpu")
 @pytest.mark.multinode(2)
-@pytest.mark.skip_cpu
-@pytest.mark.skip_py2_containers
-@pytest.mark.skip_trcomp_containers
-@pytest.mark.skip_pt21_test
 @pytest.mark.team("smmodelparallel")
 @pytest.mark.parametrize("test_script, num_processes", [("train_gpt_simple.py", 8)])
 @pytest.mark.efa()
-@pytest.mark.skip_pt20_cuda121_tests
 def test_smmodelparallel_gpt2_sdp_multinode_efa(
     ecr_image, efa_instance_type, sagemaker_regions, test_script, num_processes
 ):
