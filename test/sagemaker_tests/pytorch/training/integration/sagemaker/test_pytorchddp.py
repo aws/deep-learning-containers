@@ -52,7 +52,7 @@ def test_pytorchddp_throughput_gpu(
 ):
     with timeout(minutes=25):
         validate_or_skip_pytorchddp(ecr_image)
-        distribution = {"torch_distributed": {"enabled": True}}
+        distribution = {"pytorchddp": {"enabled": True}}
         estimator_parameter = {
             "entry_point": "pytorchddp_throughput_mnist.py",
             "role": "SageMakerRole",
