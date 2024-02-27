@@ -570,7 +570,7 @@ def skip_smdataparallel_p5_tests(instance_type, processor, ecr_image):
     skip_dict = {"==2.1.*": ["cu121"]}
     if (
         _validate_pytorch_framework_version(
-            request, processor, ecr_image, "skip_smddataparallel_test", skip_dict
+            request, processor, ecr_image, "skip_smdataparallel_p5_tests", skip_dict
         )
         and "p5." in instance_type
     ):
