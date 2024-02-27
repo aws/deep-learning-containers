@@ -38,21 +38,9 @@
 
 - [ ] build_pytorch_training_latest
 - [ ] build_pytorch_inference_latest
-
 - [ ] build_tensorflow_training_latest
 - [ ] build_tensorflow_inference_latest
 
-##### Partners
-<details>
-<summary>Expand</summary>
-
-- [ ] build_huggingface-tensorflow_training_latest
-- [ ] build_huggingface-tensorflow_inference_latest
-- [ ] build_huggingface-pytorch_training_latest
-- [ ] build_huggingface-pytorch_inference_latest
-- [ ] build_huggingface-pytorch_inference_latest-neuronx
-- [ ] build_stabilityai-pytorch_inference_latest
-</details>
 </details>
 
 ### Additional context
