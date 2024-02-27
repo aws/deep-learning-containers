@@ -575,7 +575,7 @@ def _validate_pytorch_framework_version(request, processor, ecr_image, test_name
         image_framework, image_framework_version = get_framework_and_version_from_tag(ecr_image)
         image_cuda_version = get_cuda_version_from_tag(ecr_image) if processor == "gpu" else ""
 
-        if image_framework == "pytorch" :
+        if image_framework == "pytorch":
             for framework_condition, processor_conditions in skip_dict.items():
                 if Version(image_framework_version) in SpecifierSet(framework_condition) and (
                     processor in processor_conditions or image_cuda_version in processor_conditions
