@@ -46,7 +46,6 @@ def can_run_pytorchddp(ecr_image):
 @pytest.mark.skip_cpu
 @pytest.mark.skip_py2_containers
 @pytest.mark.efa()
-@pytest.mark.skip_smdataparallel_p5_tests
 @pytest.mark.skip_inductor_test
 @pytest.mark.team("training-compiler")
 def test_pytorchddp_throughput_gpu(
