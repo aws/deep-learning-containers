@@ -45,7 +45,7 @@
       "_comment":"flash-attn has Torch as a child dependency and might end up changing torch version"
    },
    "transformer-engine":{
-      "version_specifier":"0.12.0+170797",
+      "version_specifier":"==0.12.0+170797",
       "skip":"True",
       "_comment":"transformer-engine has Torch, flash-attn as a child dependency and might end up changing torch version"
    },
