@@ -565,14 +565,14 @@ def skip_p5_tests(instance_type, processor, ecr_image):
 
 
 @pytest.fixture(autouse=True)
-def skip_smdataparallel_p5_tests(instance_type, processor, ecr_image):
+def skip_smdataparallel_p5_tests(request, processor, ecr_image,  efa_instance_type):
     """SMDDP tests are broken for PyTorch 2.1 on p5 instances, so we should skip"""
     skip_dict = {"==2.1.*": ["cu121"]}
     if (
         _validate_pytorch_framework_version(
             request, processor, ecr_image, "skip_smdataparallel_p5_tests", skip_dict
         )
-        and "p5." in instance_type
+        and "p5." in efa_instance_type
     ):
         pytest.skip("SM Data Parallel tests are not working on P5 instances, skipping test")
 
