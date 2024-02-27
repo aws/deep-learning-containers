@@ -1,0 +1,50 @@
+{
+  "captum": {
+    "version_specifier": "==0.6.0",
+    "skip": "True"
+  },
+  "torchaudio": {
+    "version_specifier": "==2.2.0+cpu",
+    "skip": "True"
+  },
+  "torchdata": {
+    "version_specifier": "==0.7.1",
+    "skip": "True"
+  },
+  "torchtext": {
+    "version_specifier": "==0.17.0+cpu",
+    "skip": "True"
+  },
+  "torchvision": {
+    "version_specifier": "==0.17.0+cpu",
+    "skip": "True"
+  },
+  "mkl": {
+    "version_specifier": ">=2023.2.0",
+    "skip": "True"
+  },
+  "awscli": {
+    "version_specifier": "<2",
+    "skip": "True"
+  },
+  "cryptography": {
+    "version_specifier": ">41.0.6",
+    "skip": "True"
+  },
+  "ipython": {
+    "version_specifier": ">=8.10.0,<9.0",
+    "skip": "True"
+  },
+  "urllib3": {
+    "version_specifier": ">=1.26.18,<2",
+    "skip": "True"
+  },
+  "prompt-toolkit": {
+    "version_specifier": "<3.0.39",
+    "skip": "True"
+  },
+  "numpy": {
+    "version_specifier": ">=1.22.2,<1.23",
+    "skip": "True"
+  }
+}
