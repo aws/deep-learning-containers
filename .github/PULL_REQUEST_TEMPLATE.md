@@ -30,9 +30,11 @@
 
 ### DLC image/dockerfile
 
-#### Pipelines
+#### Builds to Execute
 <details>
 <summary>Expand</summary>
+
+Click the checkbox to enable a build to execute upon merge.
 
 *Note: By default, pipelines are set to "latest". Replace with major.minor framework version if you do not want "latest".*
 
