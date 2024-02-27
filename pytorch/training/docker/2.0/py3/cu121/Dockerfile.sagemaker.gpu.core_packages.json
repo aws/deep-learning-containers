@@ -73,11 +73,6 @@
       "version_specifier":"==0.3.334",
       "skip":"True"
    },
-   "argparse":{
-      "version_specifier":"==1.4.0",
-      "skip":"True",
-      "_comment":"Argparse development as a separate package has stopped a long ago (https://github.com/ThomasWaldmann/argparse/). It happens in the python standard library nowadays (https://github.com/python/cpython/blob/3.11/Lib/argparse.py). Thus we do not need to include it in the installation at all."
-   },
    "pillow":{
       "version_specifier":">=9.5"
    },
