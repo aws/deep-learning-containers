@@ -69,6 +69,10 @@
    "sagemaker-experiments":{
       "version_specifier":"<1"
    },
+   "smprof":{
+      "version_specifier":"==0.3.334",
+      "skip":"True"
+   },
    "argparse":{
       "version_specifier":"1.4.0",
       "skip":"True",
