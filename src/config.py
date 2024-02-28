@@ -32,9 +32,12 @@ def get_dlc_developer_config_path():
                     if not found_stack:
                         break
                     elif line == found_stack[0]:
-                        found_stack.pop(0)
+                        char = found_stack.pop(0)
+                        LOGGER.info(char)
                     elif len(found_stack) == 1:
                         toml_path.write(line)
+                        LOGGER.info(line)
+
 
     except Exception as err:
         LOGGER.info(
