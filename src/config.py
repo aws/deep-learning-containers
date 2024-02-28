@@ -1,12 +1,14 @@
 import os
 import logging
 import sys
+import tempfile
 
 from enum import Enum
 
 import toml
 
 from codebuild_environment import get_codebuild_project_name, get_cloned_folder_path
+from dlc.github_handler import GitHubHandler
 
 LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.DEBUG)
@@ -15,18 +17,33 @@ LOGGER.addHandler(logging.StreamHandler(sys.stderr))
 
 
 def get_dlc_developer_config_path():
+    pr_number = os.getenv("PR_NUMBER")
     dev_config_parent_dir = get_cloned_folder_path()
+    toml_path = os.path.join(dev_config_parent_dir, "dlc_developer_config.toml")
+    try:
+        handler = GitHubHandler()
+
+        if pr_number:
+            pr_status = handler.get_pr_status(pr_number)
+            pr_body = pr_status.json()['body']
+            found_stack = ["```toml", "```"]
+            with open(toml_path, 'w'):
+                for line in pr_body.split('\n'):
+                    if not found_stack:
+                        break
+                    elif line == found_stack[0]:
+                        found_stack.pop(0)
+                    elif len(found_stack) == 1:
+                        toml_path.write(line)
+                    
+    except Exception as err:
+        LOGGER.info(f"UNABLE TO PARSE TOML FROM PR BODY. DEFAULTING TO TOML IN REPO. FULL ERROR: {err}")
+
     return os.path.join(dev_config_parent_dir, "dlc_developer_config.toml")
 
 
-config_data = None
-
-
 def parse_dlc_developer_configs(section, option, tomlfile=get_dlc_developer_config_path()):
-    global config_data
-
-    if config_data is None:
-        config_data = toml.load(tomlfile)
+    config_data = toml.load(tomlfile)
 
     return config_data.get(section, {}).get(option)
 
