@@ -14,7 +14,7 @@ repository_info:
     repository_name: &REPOSITORY_NAME !join [ pr, "-", *FRAMEWORK, "-", *TRAINING_IMAGE_TYPE ]
     repository: &REPOSITORY !join [ *ACCOUNT_ID, .dkr.ecr., *REGION, .amazonaws.com/, *REPOSITORY_NAME ]
     release_repository_name: &RELEASE_REPOSITORY_NAME !join [ *FRAMEWORK, "-", *TRAINING_IMAGE_TYPE ]
-    release_repository: &RELEASE_REPOSITORY !join [ *PROD_ACCOUNT_ID, .dkr.ecr., *REGION, .amazon.aws.com/, *RELEASE_REPOSITORY_NAME ]
+    release_repository: &RELEASE_REPOSITORY !join [ *PROD_ACCOUNT_ID, .dkr.ecr., *REGION, .amazonaws.com/, *RELEASE_REPOSITORY_NAME ]
 
 context:
   training_context: &TRAINING_CONTEXT
