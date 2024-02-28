@@ -25,24 +25,29 @@ def get_dlc_developer_config_path():
 
         if pr_number:
             pr_status = handler.get_pr_status(pr_number)
-            pr_body = pr_status.json()['body']
+            pr_body = pr_status.json()["body"]
             found_stack = ["```toml", "```"]
-            with open(toml_path, 'w'):
-                for line in pr_body.split('\n'):
+            with open(toml_path, "w"):
+                for line in pr_body.split("\n"):
                     if not found_stack:
                         break
                     elif line == found_stack[0]:
                         found_stack.pop(0)
                     elif len(found_stack) == 1:
                         toml_path.write(line)
-                    
+
     except Exception as err:
-        LOGGER.info(f"UNABLE TO PARSE TOML FROM PR BODY. DEFAULTING TO TOML IN REPO. FULL ERROR: {err}")
+        LOGGER.info(
+            f"UNABLE TO PARSE TOML FROM PR BODY. DEFAULTING TO TOML IN REPO. FULL ERROR: {err}"
+        )
 
     return os.path.join(dev_config_parent_dir, "dlc_developer_config.toml")
 
 
-def parse_dlc_developer_configs(section, option, tomlfile=get_dlc_developer_config_path()):
+TOML_PATH = get_dlc_developer_config_path()
+
+
+def parse_dlc_developer_configs(section, option, tomlfile=TOML_PATH):
     config_data = toml.load(tomlfile)
 
     return config_data.get(section, {}).get(option)

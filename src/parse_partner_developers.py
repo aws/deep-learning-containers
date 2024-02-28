@@ -3,7 +3,7 @@ import logging
 import os
 import sys
 
-from config import get_dlc_developer_config_path, parse_dlc_developer_configs
+from config import TOML_PATH, parse_dlc_developer_configs
 
 
 LOGGER = logging.getLogger(__name__)
@@ -19,7 +19,7 @@ def get_args():
     parser = argparse.ArgumentParser()
     parser.add_argument(
         "--partner_toml",
-        default=get_dlc_developer_config_path(),
+        default=TOML_PATH,
         help="TOML file with partner developer information",
     )
     return parser.parse_args()
