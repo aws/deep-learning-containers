@@ -109,7 +109,6 @@ def image_builder(buildspec, image_types=[], device_types=[]):
 
         extra_build_args = {}
         labels = {}
-        enable_datetime_tag = parse_dlc_developer_configs("build", "datetime_tag")
 
         prod_repo_uri = ""
         if is_autopatch_build_enabled(buildspec_path=buildspec):
@@ -141,7 +140,14 @@ def image_builder(buildspec, image_types=[], device_types=[]):
         if is_nightly_build_context():
             additional_image_tags.append(tag_image_with_date(image_tag))
 
-        if enable_datetime_tag or build_context != "PR":
+        if build_context != "PR":
+            image_tag = tag_image_with_datetime(image_tag)
+        # If build is not enabled, we don't care about the datetime tag
+        elif is_build_enabled():
+            # Order appears to matter in datetime tagging, so tag with no datetime first, then
+            # set image_tag to have datetime
+            no_datetime = image_tag
+            additional_image_tags.append(no_datetime)
             image_tag = tag_image_with_datetime(image_tag)
 
         additional_image_tags.append(image_tag)
