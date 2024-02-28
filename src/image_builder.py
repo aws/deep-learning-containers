@@ -338,7 +338,7 @@ def image_builder(buildspec, image_types=[], device_types=[]):
         PRE_PUSH_STAGE_IMAGES.append(pre_push_stage_image_object)
         FORMATTER.separator()
 
-    if is_autopatch_build_enabled(buildspec_path=buildspec):
+    if is_autopatch_build_enabled(buildspec_path=buildspec) and is_build_enabled():
         FORMATTER.banner("APATCH-PREP")
         patch_helper.initiate_multithreaded_autopatch_prep(
             PRE_PUSH_STAGE_IMAGES, make_dummy_boto_client=True
