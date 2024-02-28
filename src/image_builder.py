@@ -140,9 +140,9 @@ def image_builder(buildspec, image_types=[], device_types=[]):
         if is_nightly_build_context():
             additional_image_tags.append(tag_image_with_date(image_tag))
 
-        # If build is not enabled, we don't care about the datetime tag
         if build_context != "PR":
             image_tag = tag_image_with_datetime(image_tag)
+        # If build is not enabled, we don't care about the datetime tag
         elif is_build_enabled():
             # Order appears to matter in datetime tagging, so tag with no datetime first, then
             # set image_tag to have datetime
