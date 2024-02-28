@@ -12,6 +12,8 @@ distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF
 ANY KIND, either express or implied. See the License for the specific
 language governing permissions and limitations under the License.
 """
+import tempfile
+
 from datetime import datetime
 
 from docker import APIClient
@@ -192,6 +194,12 @@ class DockerImage:
         :return: int, Build Status
         """
         response = [f"Starting the Build Process for {self.repository}:{self.tag}"]
+
+        if build_from_existing:
+            with tempfile.NamedTemporaryFile(delete=False) as temp_file_handle:
+                temp_file_handle.write(f"FROM {os.getenv('ACCOUNT_ID')}.dkr.ecr.{os.getenv('REGION')}.amazonaws.com/{self.repository.replace("pr-", "beta-")}:")
+            self.dockerfile = 
+        
         for line in self.client.build(
             fileobj=fileobj,
             path=self.dockerfile,

@@ -42,6 +42,7 @@ build_inference = true
 
 # Note: at least one build is required to set do_build to False
 do_build = true
+build_from_beta = false
 autopatch_build = false
 
 [notify]

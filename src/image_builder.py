@@ -18,6 +18,7 @@ import datetime
 import os
 import re
 import json
+import tempfile
 
 from copy import deepcopy
 
@@ -305,10 +306,17 @@ def image_builder(buildspec, image_types=[], device_types=[]):
             "buildspec_path": buildspec,
         }
 
+        beta_tag_override = image_config.get("beta_tag_override")
+        dockerfile = image_config("docker_file")
+        if beta_tag_override and parse_dlc_developer_configs("build", "build_from_beta"):
+            with tempfile.NamedTemporaryFile(delete=False) as temp_file_handle:
+                temp_file_handle.write(f"FROM {os.getenv('ACCOUNT_ID')}.dkr.ecr.{os.getenv('REGION')}.amazonaws.com/{image_repo_uri.replace("pr-", "beta-")}:{beta_tag_override}")
+                dockerfile = temp_file_handle.name
+
         # Create pre_push stage docker object
         pre_push_stage_image_object = DockerImage(
             info=info,
-            dockerfile=image_config["docker_file"],
+            dockerfile=dockerfile,
             repository=image_repo_uri,
             tag=append_tag(image_tag, "pre-push"),
             to_build=image_config["build"],
