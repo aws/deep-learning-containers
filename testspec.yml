@@ -9,6 +9,7 @@ phases:
     commands:
       - start-dockerd
       - for i in {1..3}; do pip install -r src/requirements.txt && break || sleep 30; done
+      - python src/parse_toml_from_pr_body.py
       - python src/send_status.py --status 2
       - python src/parse_partner_developers.py
   build:

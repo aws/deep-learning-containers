@@ -3,7 +3,7 @@ import logging
 import os
 import sys
 
-from config import TOML_PATH, parse_dlc_developer_configs
+from config import get_dlc_developer_config_path
 
 
 LOGGER = logging.getLogger(__name__)
@@ -12,32 +12,31 @@ LOGGER.addHandler(logging.StreamHandler(sys.stdout))
 LOGGER.addHandler(logging.StreamHandler(sys.stderr))
 
 
-def get_args():
-    """
-    Manage arguments to this script when called directly
-    """
-    parser = argparse.ArgumentParser()
-    parser.add_argument(
-        "--partner_toml",
-        default=TOML_PATH,
-        help="TOML file with partner developer information",
-    )
-    return parser.parse_args()
-
-
 def main():
-    args = get_args()
-    partner_dev = parse_dlc_developer_configs(
-        "dev", "partner_developer", tomlfile=args.partner_toml
-    )
+    toml_path = get_dlc_developer_config_path()
+    pr_number = os.getenv("PR_NUMBER")
+    try:
+        handler = GitHubHandler()
 
-    if partner_dev:
-        LOGGER.info(f"PARTNER_DEVELOPER: {partner_dev.upper()}")
-        LOGGER.info(f"PR_NUMBER: pr-{os.getenv('PR_NUMBER', '')}")
-        LOGGER.info(f"COMMIT_ID: {os.getenv('CODEBUILD_RESOLVED_SOURCE_VERSION')}")
-        test_trigger = os.getenv("TEST_TRIGGER")
-        if test_trigger:
-            LOGGER.info(f"TEST_TRIGGER: {test_trigger}")
+        if pr_number:
+            pr_status = handler.get_pr_status(pr_number)
+            pr_body = pr_status.json()["body"]
+            found_stack = ["```toml", "```"]
+            with open(toml_path, "w"):
+                for line in pr_body.split("\n"):
+                    if not found_stack:
+                        break
+                    elif line == found_stack[0]:
+                        char = found_stack.pop(0)
+                        LOGGER.info(char)
+                    elif len(found_stack) == 1:
+                        toml_path.write(line)
+                        LOGGER.info(line)
+
+    except Exception as err:
+        LOGGER.info(
+            f"UNABLE TO PARSE TOML FROM PR BODY. DEFAULTING TO TOML IN REPO. FULL ERROR: {err}"
+        )
 
 
 if __name__ == "__main__":
