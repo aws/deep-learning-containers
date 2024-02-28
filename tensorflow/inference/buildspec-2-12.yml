@@ -17,6 +17,7 @@ repository_info:
     release_repository_name: &RELEASE_REPOSITORY_NAME !join [*FRAMEWORK, "-", *INFERENCE_IMAGE_TYPE]
     release_repository: &RELEASE_REPOSITORY !join [ *PROD_ACCOUNT_ID, .dkr.ecr., *REGION, .amazonaws.com/,
       *RELEASE_REPOSITORY_NAME ]
+
 context:
   inference_context: &INFERENCE_CONTEXT
     sagemaker_package_name:
