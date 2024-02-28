@@ -33,7 +33,7 @@ def validate_or_skip_smart_sifting(ecr_image):
 def can_run_smart_sifting(ecr_image):
     _, image_framework_version = get_framework_and_version_from_tag(ecr_image)
     image_cuda_version = get_cuda_version_from_tag(image_uri=ecr_image)
-    return Version(image_framework_version) in SpecifierSet("==2.0.1") and (
+    return Version(image_framework_version) in SpecifierSet("==2.0.*") and (
         not image_cuda_version or image_cuda_version == "cu118"
     )
 
