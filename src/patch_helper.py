@@ -112,7 +112,11 @@ def trigger_enhanced_scan_patching(image_uri, patch_details_path, python_version
     """
     impacted_packages = get_impacted_os_packages(image_uri=image_uri, python_version=python_version)
 
-    ## TODO: Make this more scalable in future
+    ## Sometimes, ECR Enhanced Scanner does not add a vulnerability to the already existing images that are being continuously scanned.
+    ## However, it adds the vulnerability to a new image as soon as it is pushed to the ECR. In such cases, the already released image
+    ## that is being continously scanned, does not show the vulnerability as a result of which we do not patch it. However, the newly built
+    ## image starts to show the vulnerability since it is freshly pushed to the ECR.
+    ## TODO: In the future, if this issue occurs frequently, we can have a solution to upgrade all the OS packages and not just the impacted ones.
     if image_uri in [
         "763104351884.dkr.ecr.us-west-2.amazonaws.com/pytorch-training:2.0.1-gpu-py310-cu121-ubuntu20.04-sagemaker",
         "763104351884.dkr.ecr.us-west-2.amazonaws.com/pytorch-training:2.0.1-gpu-py310-cu118-ubuntu20.04-sagemaker",
