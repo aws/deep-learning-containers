@@ -27,7 +27,6 @@ def test_developer_configuration():
     assert config.parse_dlc_developer_configs("build", "build_frameworks") == []
     assert config.parse_dlc_developer_configs("build", "build_training") is True
     assert config.parse_dlc_developer_configs("build", "build_inference") is True
-    assert config.parse_dlc_developer_configs("build", "datetime_tag") is True
     assert config.parse_dlc_developer_configs("build", "do_build") is True
     assert config.parse_dlc_developer_configs("build", "autopatch_build") is False
 

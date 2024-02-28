@@ -40,10 +40,8 @@ build_frameworks = ["pytorch"]
 build_training = true
 build_inference = true
 
-# Set to false in order to remove datetime tag on PR builds
-datetime_tag = false
-# Note: Need to build the images at least once with datetime_tag = false
-# before disabling new builds, or tests will fail
+# Set do_build to "false" to skip builds and test the latest image built by this PR
+# Note: at least one build is required to set do_build to "false"
 do_build = true
 autopatch_build = false
 
