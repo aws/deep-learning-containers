@@ -19,10 +19,6 @@
     "version_specifier": "==0.17.0+cpu",
     "skip": "True"
   },
-  "mkl": {
-    "version_specifier": ">=2023.2.0",
-    "skip": "True"
-  },
   "awscli": {
     "version_specifier": "<2",
     "skip": "True"
