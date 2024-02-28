@@ -142,6 +142,9 @@ def image_builder(buildspec, image_types=[], device_types=[]):
             additional_image_tags.append(tag_image_with_date(image_tag))
 
         if enable_datetime_tag or build_context != "PR":
+            # Order appears to matter in datetime tagging
+            no_datetime = image_tag
+            additional_image_tags.append(no_datetime)
             image_tag = tag_image_with_datetime(image_tag)
 
         additional_image_tags.append(image_tag)
