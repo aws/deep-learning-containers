@@ -27,6 +27,10 @@
     "version_specifier": "<2",
     "skip": "True"
   },
+  "pyopenssl": {
+    "version_specifier": ">=24.0.0",
+    "skip": "True"
+  },
   "cryptography": {
     "version_specifier": ">41.0.6",
     "skip": "True"

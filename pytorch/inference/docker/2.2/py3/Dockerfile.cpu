@@ -143,7 +143,7 @@ RUN pip install --upgrade pip --trusted-host pypi.org --trusted-host files.pytho
 # Install Common python packages
 RUN pip install --no-cache-dir --extra-index-url https://download.pytorch.org/whl/cpu -U \
     opencv-python \
-    pyopenssl \
+    "pyopenssl>=24.0.0" \
     # patch CVE
     "cryptography>41.0.6" \
     "ipython>=8.10.0,<9.0" \
