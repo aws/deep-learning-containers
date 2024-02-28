@@ -154,6 +154,7 @@ def test_pytorch_healthcheck_dcgm(pytorch_training, ec2_connection, gpu_only, ec
     execute_ec2_training_test(ec2_connection, pytorch_training, PT_DCGM_TEST_CMD)
 
 
+@pytest.mark.skip_pt20_cuda121_tests
 @pytest.mark.skip_pt21_test
 @pytest.mark.skip_pt22_test
 @pytest.mark.usefixtures("sagemaker_only")
