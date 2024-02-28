@@ -40,8 +40,9 @@ build_frameworks = ["pytorch"]
 build_training = false
 build_inference = true
 
-# Note: at least one build is required to set do_build to False
-do_build = true
+# Set do_build to "false" to skip builds and test the latest image built by this PR
+# Note: at least one build is required to set do_build to "false"
+do_build = false
 autopatch_build = false
 
 [notify]
