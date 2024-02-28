@@ -117,11 +117,11 @@ def trigger_enhanced_scan_patching(image_uri, patch_details_path, python_version
     ## that is being continously scanned, does not show the vulnerability as a result of which we do not patch it. However, the newly built
     ## image starts to show the vulnerability since it is freshly pushed to the ECR.
     ## TODO: In the future, if this issue occurs frequently, we can have a solution to upgrade all the OS packages and not just the impacted ones.
-    if image_uri in [
-        "763104351884.dkr.ecr.us-west-2.amazonaws.com/pytorch-training:2.0.1-gpu-py310-cu121-ubuntu20.04-sagemaker",
-        "763104351884.dkr.ecr.us-west-2.amazonaws.com/pytorch-training:2.0.1-gpu-py310-cu118-ubuntu20.04-sagemaker",
-    ]:
-        impacted_packages.add("libxml2")
+    # if image_uri in [
+    #     "763104351884.dkr.ecr.us-west-2.amazonaws.com/pytorch-training:2.0.1-gpu-py310-cu121-ubuntu20.04-sagemaker",
+    #     "763104351884.dkr.ecr.us-west-2.amazonaws.com/pytorch-training:2.0.1-gpu-py310-cu118-ubuntu20.04-sagemaker",
+    # ]:
+    #     impacted_packages.add("libxml2")
 
     dlc_repo_folder_mount = os.path.join(os.sep, get_cloned_folder_path())
     image_specific_patch_folder = os.path.join(
