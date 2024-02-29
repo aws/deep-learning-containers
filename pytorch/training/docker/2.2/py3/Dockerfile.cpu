@@ -112,9 +112,9 @@ RUN curl -L -o ~/miniforge3.sh https://github.com/conda-forge/miniforge/releases
 RUN /opt/conda/bin/mamba install -y --override-channels \
     -c conda-forge \
     conda \
-    cmake \
     # patch CVE
     "cryptography>=42.0.5" \
+    cmake \
     requests \
     "pyopenssl>=24.0.0" \
     python=$PYTHON_VERSION \
