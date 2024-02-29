@@ -19,6 +19,7 @@ def get_pytest_output():
     Get pytest output from file.
     """
     pytest_result_directory = os.path.join(os.getcwd(), "test")
+    print(f"pytest_result_directory {pytest_result_directory}")
     # get all xml files in test directory
     files = [
         os.path.join(pytest_result_directory, file)
@@ -27,11 +28,12 @@ def get_pytest_output():
     ]
     # parse xml files and save it to list
     pytest_output_dict = {}
+    print(f"files {files}")
     if files:
         for file in files:
             with open(file, "r") as xml_file:
                 pytest_output_dict[file] = xmltodict.parse(xml_file.read())
-
+    print(f"pytest_output_dict {pytest_output_dict}")
     return pytest_output_dict
 
 
@@ -183,6 +185,7 @@ def generate_test_execution_data(build_context):
     """
     test_execution_data = get_platform_execution_details(build_context)
     test_execution_data["pytest_output"] = parse_pytest_data()
+    print(f"parsed_data {test_execution_data["pytest_output"]}")
     return test_execution_data
 
 
