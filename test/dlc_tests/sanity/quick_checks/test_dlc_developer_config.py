@@ -38,7 +38,7 @@ def test_developer_configuration():
     assert config.parse_dlc_developer_configs("test", "sagemaker_remote_efa_instance_type") == ""
     assert config.parse_dlc_developer_configs("test", "sagemaker_local_tests") is False
     assert config.parse_dlc_developer_configs("test", "ecs_tests") is True
-    assert config.parse_dlc_developer_configs("test", "eks_tests") is True
+    assert config.parse_dlc_developer_configs("test", "eks_tests") is False
     assert config.parse_dlc_developer_configs("test", "ec2_tests") is True
     assert config.parse_dlc_developer_configs("test", "ec2_benchmark_tests") is False
     assert config.parse_dlc_developer_configs("test", "sagemaker_benchmark_tests") is False
