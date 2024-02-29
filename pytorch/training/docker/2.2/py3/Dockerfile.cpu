@@ -113,6 +113,8 @@ RUN /opt/conda/bin/mamba install -y --override-channels \
     -c conda-forge \
     conda \
     cmake \
+    # patch CVE
+    "cryptography>=42.0.5" \
     requests \
     "pyopenssl>=24.0.0" \
     python=$PYTHON_VERSION \
@@ -196,7 +198,6 @@ RUN /opt/conda/bin/mamba install -y pytorch=${PYTORCH_VERSION} \
 RUN pip install pillow "pyyaml>=6.0.1" opencv-python
 RUN /opt/conda/bin/mamba install -y -c conda-forge \
   "requests>=2.31.0" \
-  "cryptography>=42.0.5" \
   && /opt/conda/bin/mamba clean -afy
 
 # install fastai (depends on PyTorch)
@@ -275,7 +276,6 @@ RUN /opt/conda/bin/mamba install -y -c conda-forge \
 RUN pip install pillow "pyyaml>=6.0.1" opencv-python
 RUN /opt/conda/bin/mamba install -y -c conda-forge \
   "requests>=2.31.0" \
-  "cryptography>=42.0.5" \
   && /opt/conda/bin/mamba clean -afy
 
 # Copy workaround script for incorrect hostname
