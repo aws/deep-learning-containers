@@ -140,23 +140,23 @@ def test_pytorch_standalone_gpu(pytorch_training, ec2_connection, gpu_only, ec2_
 
     # pt standalone
     print("PT STANDALONE")
-    execute_ec2_training_test(ec2_connection, pytorch_training, PT_STANDALONE_CMD)
+    execute_ec2_training_test(ec2_connection, pytorch_training, PT_STANDALONE_CMD, container_name="standalone")
 
     print("MNIST")
-    execute_ec2_training_test(ec2_connection, pytorch_training, PT_MNIST_CMD)
+    execute_ec2_training_test(ec2_connection, pytorch_training, PT_MNIST_CMD, container_name="mnist")
 
     print("PT BERT")
-    execute_ec2_training_test(ec2_connection, pytorch_training, PT_BERT_INDUCTOR_CMD)
+    execute_ec2_training_test(ec2_connection, pytorch_training, PT_BERT_INDUCTOR_CMD, container_name="bert")
 
     print("PT REGRESSION")
-    execute_ec2_training_test(ec2_connection, pytorch_training, PT_REGRESSION_CMD_REVISED)
+    execute_ec2_training_test(ec2_connection, pytorch_training, PT_REGRESSION_CMD_REVISED, container_name="ptregression")
 
     print("GLOO")
     test_cmd = (
         os.path.join(CONTAINER_TESTS_PREFIX, "pytorch_tests", "testPyTorchGlooMpi") + " gloo 0"
     )  # backend, inductor flags
     execute_ec2_training_test(
-        ec2_connection, pytorch_training, test_cmd, large_shm=True, timeout=1500
+        ec2_connection, pytorch_training, test_cmd, large_shm=True, timeout=1500, container_name="gloo"
     )
 
 
