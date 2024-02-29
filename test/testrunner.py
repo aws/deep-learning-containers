@@ -358,11 +358,6 @@ def main():
         "quick_checks",
         "release_candidate_integration",
     ):
-        if specific_test_type == "eks":
-            raise SystemError(
-                "Fail EKS integration tests due to incorrect EKS worker node setup. "
-                "Issue will be resolved as soon as EKS GPU Optimized AMIs are updated."
-            )
         pytest_rerun_arg = "--reruns=1"
         pytest_rerun_delay_arg = "--reruns-delay=10"
         report = os.path.join(os.getcwd(), "test", f"{test_type}.xml")
@@ -381,6 +376,10 @@ def main():
         if specific_test_type == "bai":
             build_bai_docker_container()
         if specific_test_type == "eks" and not is_all_images_list_eia:
+            raise SystemError(
+                "Fail EKS integration tests due to incorrect EKS worker node setup. "
+                "Issue will be resolved as soon as EKS GPU Optimized AMIs are updated."
+            )
             frameworks_in_images = [
                 framework
                 for framework in ("mxnet", "pytorch", "tensorflow")
