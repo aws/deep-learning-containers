@@ -376,6 +376,10 @@ def main():
         if specific_test_type == "bai":
             build_bai_docker_container()
         if specific_test_type == "eks" and not is_all_images_list_eia:
+            raise SystemError(
+                "Fail EKS integration tests due to incorrect EKS worker node setup. "
+                "Issue will be resolved as soon as EKS GPU Optimized AMIs are updated."
+            )
             frameworks_in_images = [
                 framework
                 for framework in ("mxnet", "pytorch", "tensorflow")
