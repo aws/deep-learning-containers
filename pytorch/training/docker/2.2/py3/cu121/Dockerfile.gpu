@@ -147,7 +147,7 @@ RUN /opt/conda/bin/mamba install -y -c conda-forge \
     # Adding package for studio kernels
     ipykernel \
     # patch CVE
-    "cryptography>41.0.6" \
+    "cryptography>=42.0.5" \
     # patch CVE
     "urllib3>=1.26.18,<2" \
     pillow \

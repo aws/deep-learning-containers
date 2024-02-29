@@ -28,7 +28,7 @@
     "skip": "True"
   },
   "cryptography": {
-    "version_specifier": ">41.0.6",
+    "version_specifier": ">=42.0.5",
     "skip": "True"
   },
   "ipython": {
