@@ -68,7 +68,7 @@ def test_developer_config_wrappers_defaults():
     assert config.is_sm_rc_test_enabled() is False
     assert config.get_sagemaker_remote_efa_instance_type() == ""
     assert config.is_ecs_test_enabled() is True
-    assert config.is_eks_test_enabled() is True
+    assert config.is_eks_test_enabled() is False
     assert config.is_ec2_test_enabled() is True
     assert config.is_ec2_benchmark_test_enabled() is False
     assert config.is_sm_benchmark_test_enabled() is False
