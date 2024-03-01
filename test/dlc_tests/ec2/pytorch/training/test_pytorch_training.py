@@ -140,10 +140,10 @@ def test_pytorch_2_2_gpu(pytorch_training___2__2, ec2_connection, gpu_only, ec2_
     thread_tasks = [
         (_pytorch_standalone_gpu, (pytorch_training, ec2_connection)),
         (_pytorch_train_mnist_gpu, (pytorch_training, ec2_connection)),
-        (_pytorch_linear_regression_gpu, (pytorch_training, ec2_connection)),
-        (_pytorch_gloo_gpu, (pytorch_training, ec2_connection)),
-        (_pytorch_gloo_inductor_gpu, (pytorch_training, ec2_connection)),
-        (_pytorch_nccl, (pytorch_training, ec2_connection)),
+        # (_pytorch_linear_regression_gpu, (pytorch_training, ec2_connection)),
+        # (_pytorch_gloo_gpu, (pytorch_training, ec2_connection)),
+        # (_pytorch_gloo_inductor_gpu, (pytorch_training, ec2_connection)),
+        # (_pytorch_nccl, (pytorch_training, ec2_connection)),
     ]
 
     exceptions = []

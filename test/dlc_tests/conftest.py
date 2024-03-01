@@ -834,7 +834,7 @@ def existing_ec2_instance_connection(request, ec2_key_file_name, ec2_user_name, 
 
 
 @pytest.fixture(autouse=True)
-_s3plugin_test(request):
+def _s3plugin_test(request):
     if "training" in request.fixturenames:
         img_uri = request.getfixturevalue("training")
     elif "pytorch_training" in request.fixturenames:
