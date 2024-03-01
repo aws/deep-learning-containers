@@ -123,7 +123,9 @@ def test_pytorch_2_2_gpu(pytorch_training, ec2_connection, region, gpu_only, ec2
         except Exception as e:
             exceptions.append(f"{fn.__name__} FAILED WITH {type(e).__name__}:\n{e}")
 
-    assert not exceptions, f"Found {len(exceptions)} errors in PT 2.2 test {'\n\n'.join(exceptions)}
+    assert not exceptions, f"Found {len(exceptions)} errors in PT 2.2 test\n" + "\n\n".join(
+        exceptions
+    )
 
 
 def _pytorch_standalone_gpu(pytorch_training, ec2_connection):
@@ -185,7 +187,6 @@ def _pytorch_gloo_inductor_gpu(pytorch_training, ec2_connection):
     )
 
 
-
 def _pytorch_nccl(pytorch_training, ec2_connection):
     """
     Tests nccl backend
@@ -223,51 +224,56 @@ def _pytorch_mpi_gpu(
     execute_ec2_training_test(ec2_connection, pytorch_training, test_cmd, container_name="mpi_gloo")
 
 
-def _pytorch_mpi_inductor_gpu(
-    pytorch_training,
-    ec2_connection
-):
+def _pytorch_mpi_inductor_gpu(pytorch_training, ec2_connection):
     """
     Tests mpi backend with torch inductor
     """
     test_cmd = (
         os.path.join(CONTAINER_TESTS_PREFIX, "pytorch_tests", "testPyTorchGlooMpi") + " mpi 1"
     )  # backend, inductor flags
-    execute_ec2_training_test(ec2_connection, pytorch_training, test_cmd, container_name="mpi_gloo_inductor")
+    execute_ec2_training_test(
+        ec2_connection, pytorch_training, test_cmd, container_name="mpi_gloo_inductor"
+    )
 
 
 def _nvapex(pytorch_training, ec2_connection):
-    execute_ec2_training_test(ec2_connection, pytorch_training, PT_APEX_CMD, container_name="nvapex")
+    execute_ec2_training_test(
+        ec2_connection, pytorch_training, PT_APEX_CMD, container_name="nvapex"
+    )
 
 
-def _pytorch_amp(
-    pytorch_training, ec2_connection
-):
-    execute_ec2_training_test(ec2_connection, pytorch_training, PT_AMP_CMD, container_name="pytorch_amp", timeout=1500)
+def _pytorch_amp(pytorch_training, ec2_connection):
+    execute_ec2_training_test(
+        ec2_connection, pytorch_training, PT_AMP_CMD, container_name="pytorch_amp", timeout=1500
+    )
 
 
-def _pytorch_amp_inductor(
-    pytorch_training, ec2_connection
-):
+def _pytorch_amp_inductor(pytorch_training, ec2_connection):
     # Native AMP was introduced in PyTorch 1.6
-    execute_ec2_training_test(ec2_connection, pytorch_training, PT_AMP_INDUCTOR_CMD, container_name="pytorch_amp_inductor", timeout=1500)
+    execute_ec2_training_test(
+        ec2_connection,
+        pytorch_training,
+        PT_AMP_INDUCTOR_CMD,
+        container_name="pytorch_amp_inductor",
+        timeout=1500,
+    )
 
 
-def _pytorch_training_torchaudio_gpu(
-    pytorch_training, ec2_connection
-):
-    execute_ec2_training_test(ec2_connection, pytorch_training, PT_TORCHAUDIO_CMD, container_name="torchaudio")
+def _pytorch_training_torchaudio_gpu(pytorch_training, ec2_connection):
+    execute_ec2_training_test(
+        ec2_connection, pytorch_training, PT_TORCHAUDIO_CMD, container_name="torchaudio"
+    )
 
 
 def _pytorch_training_torchdata_gpu(
     pytorch_training, ec2_connection, gpu_only, ec2_instance_type, pt111_and_above_only
 ):
-   execute_ec2_training_test(ec2_connection, pytorch_training, PT_TORCHDATA_CMD, container_name="torchdata")
+    execute_ec2_training_test(
+        ec2_connection, pytorch_training, PT_TORCHDATA_CMD, container_name="torchdata"
+    )
 
 
-def _pytorch_cudnn_match_gpu(
-    pytorch_training, ec2_connection, region
-):
+def _pytorch_cudnn_match_gpu(pytorch_training, ec2_connection, region):
     """
     PT 2.1 reintroduces a dependency on CUDNN to support NVDA TransformerEngine. This test is to ensure that torch CUDNN matches system CUDNN in the container.
     """
