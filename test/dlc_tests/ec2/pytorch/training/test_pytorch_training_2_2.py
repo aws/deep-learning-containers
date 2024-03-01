@@ -37,7 +37,7 @@ def test_pytorch_2_2_gpu(
         (common_cases.pytorch_cudnn_match_gpu, (pytorch_training, ec2_connection, region)),
     ]
 
-    test_utils.execute_serial_test_cases(test_cases, test_description="PT 2.2 GPU")
+    test_utils.execute_serial_test_cases(test_cases, test_description="PT 2.2 GPU", bins=2)
 
 
 @pytest.mark.usefixtures("sagemaker")
@@ -58,4 +58,4 @@ def test_pytorch_standalone_cpu(pytorch_training___2_2, ec2_connection, cpu_only
         (common_cases.pytorch_telemetry_cpu, (pytorch_training, ec2_connection)),
     ]
 
-    test_utils.execute_serial_test_cases(test_cases, test_description="PT 2.2 CPU")
+    test_utils.execute_serial_test_cases(test_cases, test_description="PT 2.2 CPU", bins=3)
