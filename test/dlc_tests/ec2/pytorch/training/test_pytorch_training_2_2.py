@@ -34,9 +34,22 @@ def test_pytorch_2_2_gpu_bin1(
         (common_cases.pytorch_cudnn_match_gpu, (pytorch_training, ec2_connection, region)),
     ]
 
+    if "g3" not in ec2_instance_type:
+        test_cases += [
+            (common_cases.pytorch_gloo_inductor_gpu, (pytorch_training, ec2_connection)),
+            (common_cases.pytorch_mpi_inductor_gpu, (pytorch_training, ec2_connection)),
+            (common_cases.pytorch_nccl_inductor, (pytorch_training, ec2_connection)),
+            (common_cases.pytorch_amp_inductor, (pytorch_training, ec2_connection)),
+        ]
+
+    if "sagemaker" in pytorch_training:
+        test_cases += [
+            (smclarify_cases.smclarify_metrics_gpu, (pytorch_training, ec2_connection)),
+        ]
     test_utils.execute_serial_test_cases(test_cases, test_description="PT 2.2 GPU")
 
 
+@pytest.mark.skip(reason="Skipping bin 2 to get timing metrics on cpu/gpu in series")
 @pytest.mark.usefixtures("sagemaker")
 @pytest.mark.integration("all PT 2.2 tests")
 @pytest.mark.model("N/A")
@@ -44,9 +57,7 @@ def test_pytorch_2_2_gpu_bin1(
 @pytest.mark.parametrize(
     "ec2_instance_type", common_cases.PT_INDUCTOR_TEST_INSTANCE_TYPE, indirect=True
 )
-def test_pytorch_2_2_gpu_bin2(
-    pytorch_training___2__2, ec2_connection, gpu_only, ec2_instance_type
-):
+def test_pytorch_2_2_gpu_bin2(pytorch_training___2__2, ec2_connection, gpu_only, ec2_instance_type):
     pytorch_training = pytorch_training___2__2
     if test_utils.is_image_incompatible_with_instance_type(pytorch_training, ec2_instance_type):
         pytest.skip(
