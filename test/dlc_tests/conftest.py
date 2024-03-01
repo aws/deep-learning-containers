@@ -139,42 +139,42 @@ NIGHTLY_FIXTURES = {
 
 
 # Nightly fixtures
-@pytest.fixture(scope="function")
+@pytest.fixture(scope="session")
 def feature_smdebug_present():
     pass
 
 
-@pytest.fixture(scope="function")
+@pytest.fixture(scope="session")
 def feature_smddp_present():
     pass
 
 
-@pytest.fixture(scope="function")
+@pytest.fixture(scope="session")
 def feature_smmp_present():
     pass
 
 
-@pytest.fixture(scope="function")
+@pytest.fixture(scope="session")
 def feature_aws_framework_present():
     pass
 
 
-@pytest.fixture(scope="function")
+@pytest.fixture(scope="session")
 def feature_torchaudio_present():
     pass
 
 
-@pytest.fixture(scope="function")
+@pytest.fixture(scope="session")
 def feature_torchvision_present():
     pass
 
 
-@pytest.fixture(scope="function")
+@pytest.fixture(scope="session")
 def feature_torchdata_present():
     pass
 
 
-@pytest.fixture(scope="function")
+@pytest.fixture(scope="session")
 def feature_s3_plugin_present():
     pass
 
@@ -1045,182 +1045,193 @@ def _validate_pytorch_framework_version(request, image_uri, test_name, skip_dict
     return False
 
 
-@pytest.fixture(scope="function")
+@pytest.fixture(scope="session")
+def dlc_images(request):
+    return request.config.getoption("--images")
+
+
+@pytest.fixture(scope="session")
+def pull_images(docker_client, dlc_images):
+    for image in dlc_images:
+        docker_client.images.pull(image)
+
+
+@pytest.fixture(scope="session")
 def non_huggingface_only():
     pass
 
 
-@pytest.fixture(scope="function")
+@pytest.fixture(scope="session")
 def non_pytorch_trcomp_only():
     pass
 
 
-@pytest.fixture(scope="function")
+@pytest.fixture(scope="session")
 def training_compiler_only():
     pass
 
 
-@pytest.fixture(scope="function")
+@pytest.fixture(scope="session")
 def non_autogluon_only():
     pass
 
 
-@pytest.fixture(scope="function")
+@pytest.fixture(scope="session")
 def cpu_only():
     pass
 
 
-@pytest.fixture(scope="function")
+@pytest.fixture(scope="session")
 def gpu_only():
     pass
 
 
-@pytest.fixture(scope="function")
+@pytest.fixture(scope="session")
 def x86_compatible_only():
     pass
 
 
-@pytest.fixture(scope="function")
+@pytest.fixture(scope="session")
 def graviton_compatible_only():
     pass
 
 
-@pytest.fixture(scope="function")
+@pytest.fixture(scope="session")
 def sagemaker():
     pass
 
 
-@pytest.fixture(scope="function")
+@pytest.fixture(scope="session")
 def sagemaker_only():
     pass
 
 
-@pytest.fixture(scope="function")
+@pytest.fixture(scope="session")
 def py3_only():
     pass
 
 
-@pytest.fixture(scope="function")
+@pytest.fixture(scope="session")
 def example_only():
     pass
 
 
-@pytest.fixture(scope="function")
+@pytest.fixture(scope="session")
 def huggingface_only():
     pass
 
 
-@pytest.fixture(scope="function")
+@pytest.fixture(scope="session")
 def huggingface():
     pass
 
 
-@pytest.fixture(scope="function")
+@pytest.fixture(scope="session")
 def stabilityai():
     pass
 
 
-@pytest.fixture(scope="function")
+@pytest.fixture(scope="session")
 def tf2_only():
     pass
 
 
-@pytest.fixture(scope="function")
+@pytest.fixture(scope="session")
 def tf23_and_above_only():
     pass
 
 
-@pytest.fixture(scope="function")
+@pytest.fixture(scope="session")
 def tf24_and_above_only():
     pass
 
 
-@pytest.fixture(scope="function")
+@pytest.fixture(scope="session")
 def tf25_and_above_only():
     pass
 
 
-@pytest.fixture(scope="function")
+@pytest.fixture(scope="session")
 def tf21_and_above_only():
     pass
 
 
-@pytest.fixture(scope="function")
+@pytest.fixture(scope="session")
 def below_tf213_only():
     pass
 
 
-@pytest.fixture(scope="function")
+@pytest.fixture(scope="session")
 def mx18_and_above_only():
     pass
 
 
-@pytest.fixture(scope="function")
+@pytest.fixture(scope="session")
 def skip_pt200():
     pass
 
 
-@pytest.fixture(scope="function")
+@pytest.fixture(scope="session")
 def pt200_and_below_only():
     pass
 
 
-@pytest.fixture(scope="function")
+@pytest.fixture(scope="session")
 def pt113_and_above_only():
     pass
 
 
-@pytest.fixture(scope="function")
+@pytest.fixture(scope="session")
 def pt201_and_above_only():
     pass
 
 
-@pytest.fixture(scope="function")
+@pytest.fixture(scope="session")
 def below_pt113_only():
     pass
 
 
-@pytest.fixture(scope="function")
+@pytest.fixture(scope="session")
 def pt111_and_above_only():
     pass
 
 
-@pytest.fixture(scope="function")
+@pytest.fixture(scope="session")
 def skip_pt110():
     pass
 
 
-@pytest.fixture(scope="function")
+@pytest.fixture(scope="session")
 def pt21_and_above_only():
     pass
 
 
-@pytest.fixture(scope="function")
+@pytest.fixture(scope="session")
 def pt18_and_above_only():
     pass
 
 
-@pytest.fixture(scope="function")
+@pytest.fixture(scope="session")
 def pt17_and_above_only():
     pass
 
 
-@pytest.fixture(scope="function")
+@pytest.fixture(scope="session")
 def pt16_and_above_only():
     pass
 
 
-@pytest.fixture(scope="function")
+@pytest.fixture(scope="session")
 def pt15_and_above_only():
     pass
 
 
-@pytest.fixture(scope="function")
+@pytest.fixture(scope="session")
 def pt14_and_above_only():
     pass
 
 
-@pytest.fixture(scope="function")
+@pytest.fixture(scope="session")
 def outside_versions_skip():
     def _outside_versions_skip(img_uri, start_ver, end_ver):
         """
@@ -1237,7 +1248,7 @@ def outside_versions_skip():
     return _outside_versions_skip
 
 
-@pytest.fixture(scope="function")
+@pytest.fixture(scope="session")
 def version_skip():
     def _version_skip(img_uri, ver):
         """
