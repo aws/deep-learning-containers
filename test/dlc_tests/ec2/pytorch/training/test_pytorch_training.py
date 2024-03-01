@@ -123,13 +123,15 @@ def test_pytorch_2_2_gpu(pytorch_training, ec2_connection, region, gpu_only, ec2
         try:
             fn(*args)
             end_time = datetime.datetime.now()
-            ec2_utils.LOGGER.info(f"\nEnding {fn_name} at {end_time}\n") 
+            ec2_utils.LOGGER.info(f"\nEnding {fn_name} at {end_time}\n")
         except Exception as e:
             exceptions.append(f"{fn_name} FAILED WITH {type(e).__name__}:\n{e}")
             end_time = datetime.datetime.now()
-            ec2_utils.LOGGER.info(f"\nFailing {fn_name} at {end_time}\n") 
+            ec2_utils.LOGGER.info(f"\nFailing {fn_name} at {end_time}\n")
         finally:
-            ec2_utils.LOGGER.info(f"Total execution time for {fn_name} {end_time - start_time}\n*********")
+            ec2_utils.LOGGER.info(
+                f"Total execution time for {fn_name} {end_time - start_time}\n*********"
+            )
 
     assert not exceptions, f"Found {len(exceptions)} errors in PT 2.2 test\n" + "\n\n".join(
         exceptions
