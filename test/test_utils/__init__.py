@@ -290,15 +290,15 @@ def execute_serial_test_cases(test_cases, test_description="test"):
     for fn, args in test_cases:
         log_stack = []
         fn_name = fn.__name__
-        start_time = datetime.datetime.now()
+        start_time = datetime.now()
         log_stack.append(f"*********\nStarting {fn_name} at {start_time}\n")
         try:
             fn(*args)
-            end_time = datetime.datetime.now()
+            end_time = datetime.now()
             log_stack.append(f"\nEnding {fn_name} at {end_time}\n")
         except Exception as e:
             exceptions.append(f"{fn_name} FAILED WITH {type(e).__name__}:\n{e}")
-            end_time = datetime.datetime.now()
+            end_time = datetime.now()
             log_stack.append(f"\nFailing {fn_name} at {end_time}\n")
         finally:
             log_stack.append(
