@@ -54,6 +54,7 @@ FRAMEWORK_FIXTURES = (
     # ECR repo name fixtures
     # PyTorch
     "pytorch_training",
+    "pytorch_training___2__2",
     "pytorch_training_habana",
     "pytorch_inference",
     "pytorch_inference_eia",
@@ -833,7 +834,7 @@ def existing_ec2_instance_connection(request, ec2_key_file_name, ec2_user_name, 
 
 
 @pytest.fixture(autouse=True)
-def skip_s3plugin_test(request):
+_s3plugin_test(request):
     if "training" in request.fixturenames:
         img_uri = request.getfixturevalue("training")
     elif "pytorch_training" in request.fixturenames:
@@ -1601,7 +1602,7 @@ def pytest_generate_tests(metafunc):
     # Parametrize framework specific tests
     for fixture in FRAMEWORK_FIXTURES:
         if fixture in metafunc.fixturenames:
-            lookup = fixture.replace("_", "-")
+            lookup = fixture.replace("___", ":").replace("__", ".").replace("_", "-")
             images_to_parametrize = []
             for image in images:
                 if lookup_condition(lookup, image):
