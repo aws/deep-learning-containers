@@ -308,7 +308,7 @@ def execute_serial_test_cases(test_cases, test_description="test"):
                 f"Total execution time for {fn_name} {end_time - start_time}\n*********"
             )
             times[fn_name] = end_time - start_time
-            logging_stack.append(logging_stack)
+            logging_stack.append(log_stack)
 
     # Save logging to the end, as there may be other conccurent jobs
     for log_case in logging_stack:
