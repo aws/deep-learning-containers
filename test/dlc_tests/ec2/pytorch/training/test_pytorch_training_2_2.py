@@ -45,8 +45,8 @@ def test_pytorch_2_2_gpu(
 @pytest.mark.model("N/A")
 @pytest.mark.team("conda")
 @pytest.mark.parametrize("ec2_instance_type", common_cases.PT_EC2_CPU_INSTANCE_TYPE, indirect=True)
-def test_pytorch_standalone_cpu(pytorch_training___2_2, ec2_connection, cpu_only):
-    pytorch_training = pytorch_training___2_2
+def test_pytorch_standalone_cpu(pytorch_training___2__2, ec2_connection, cpu_only):
+    pytorch_training = pytorch_training___2__2
     test_cases = [
         (common_cases.pytorch_standalone, (pytorch_training, ec2_connection)),
         (common_cases.pytorch_train_mnist, (pytorch_training, ec2_connection)),
