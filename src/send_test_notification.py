@@ -185,7 +185,7 @@ def generate_test_execution_data(build_context):
     """
     test_execution_data = get_platform_execution_details(build_context)
     test_execution_data["pytest_output"] = parse_pytest_data()
-    print(f"parsed_data {test_execution_data["pytest_output"]}")
+    print(f"parsed_data {test_execution_data['pytest_output']}")
     return test_execution_data
 
 
