@@ -40,7 +40,7 @@ def test_pytorch_2_2_gpu_bin1(
 @pytest.mark.usefixtures("sagemaker")
 @pytest.mark.integration("all PT 2.2 tests")
 @pytest.mark.model("N/A")
-@pytest.mark.team("conda")
+@pytest.mark.team("training-compiler")
 @pytest.mark.parametrize(
     "ec2_instance_type", common_cases.PT_INDUCTOR_TEST_INSTANCE_TYPE, indirect=True
 )
