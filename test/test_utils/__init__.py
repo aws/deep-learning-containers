@@ -5,7 +5,6 @@ import re
 import subprocess
 import sys
 import time
-import heapq
 import pprint
 
 from enum import Enum
@@ -279,25 +278,7 @@ class EnhancedJSONEncoder(json.JSONEncoder):
         return super().default(o)
 
 
-def _analyze_time_bins(time_deltas, bins):
-    """
-    Load balance tests across n bins
-    """
-    output = [{} for _ in range(bins)]
-    deltas_total = [timedelta(0) for _ in range(bins)]
-    heap = [(timedelta(0), i) for i in range(bins)]
-    heapq.heapify(heap)
-    sorted_deltas = sorted(time_deltas.items(), key=lambda fn: fn[1], reverse=True)
-    for key, time_delt in sorted_deltas:
-        max_delt, bin_idx = heapq.heappop(heap)
-        output[bin_idx][key] = time_delt
-        deltas_total[bin_idx] += time_delt
-        new_max = max(max_delt, time_delt)
-        heapq.heappush(heap, (new_max, bin_idx))
-    return output, deltas_total
-
-
-def execute_serial_test_cases(test_cases, test_description="test", bins=0):
+def execute_serial_test_cases(test_cases, test_description="test"):
     """
     Helper function to execute tests in serial
 
@@ -333,17 +314,6 @@ def execute_serial_test_cases(test_cases, test_description="test", bins=0):
     for log_case in logging_stack:
         for line in log_case:
             LOGGER.info(line)
-
-    # Analyze time bins
-    if bins:
-        b, totals = _analyze_time_bins(times, bins)
-
-        LOGGER.info("Want to save time on serial jobs? Here is the analysis")
-
-        for i, (bin, total) in enumerate(zip(b, totals)):
-            LOGGER.info(
-                f"Bin {i}: {list(bin.keys())}; Total time: {total.total_seconds()/60} minutes"
-            )
 
     pretty_times = pprint.pformat(times)
     LOGGER.info(pretty_times)
