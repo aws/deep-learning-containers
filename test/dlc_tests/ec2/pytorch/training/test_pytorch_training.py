@@ -119,7 +119,7 @@ def test_pytorch_2_2_gpu(pytorch_training, ec2_connection, region, gpu_only, ec2
 
     for fn, args in test_cases:
         try:
-            fn(args)
+            fn(*args)
         except Exception as e:
             exceptions.append(f"{fn.__name__} FAILED WITH {type(e).__name__}:\n{e}")
 
@@ -265,9 +265,7 @@ def _pytorch_training_torchaudio_gpu(pytorch_training, ec2_connection):
     )
 
 
-def _pytorch_training_torchdata_gpu(
-    pytorch_training, ec2_connection, gpu_only, ec2_instance_type, pt111_and_above_only
-):
+def _pytorch_training_torchdata_gpu(pytorch_training, ec2_connection):
     execute_ec2_training_test(
         ec2_connection, pytorch_training, PT_TORCHDATA_CMD, container_name="torchdata"
     )
