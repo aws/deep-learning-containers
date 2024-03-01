@@ -40,28 +40,15 @@ release_images:
       disable_sm_tag: False
       force_release: False
   4:
-    framework: "tensorflow"
-    version: "2.14.1"
-    customer_type: "ec2"
-    arch_type: "x86"
-    training:
-      device_types: [ "cpu", "gpu" ]
-      python_versions: [ "py310" ]
-      os_version: "ubuntu20.04"
-      cuda_version: "cu118"
-      example: False
-      disable_sm_tag: False
-      force_release: False
-  5:
-    framework: "tensorflow"
-    version: "2.14.1"
+    framework: "pytorch"
+    version: "2.1.0"
     customer_type: "sagemaker"
     arch_type: "x86"
     training:
       device_types: [ "cpu", "gpu" ]
       python_versions: [ "py310" ]
       os_version: "ubuntu20.04"
-      cuda_version: "cu118"
+      cuda_version: "cu121"
       example: False
       disable_sm_tag: False
       force_release: False
