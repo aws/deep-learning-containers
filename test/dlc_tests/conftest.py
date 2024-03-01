@@ -38,7 +38,7 @@ from test.test_utils import (
     AML2_BASE_DLAMI_US_EAST_1,
     KEYS_TO_DESTROY_FILE,
     are_efa_tests_disabled,
-    get_ecr_repo_name,
+    get_repository_and_tag_from_image_uri,
     UBUNTU_HOME_DIR,
     NightlyFeatureLabel,
 )
@@ -55,6 +55,9 @@ FRAMEWORK_FIXTURES = (
     # PyTorch
     "pytorch_training",
     "pytorch_training___2__2",
+    "pytorch_training___2__1",
+    "pytorch_training___2__0",
+    "pytorch_training___1__3",
     "pytorch_training_habana",
     "pytorch_inference",
     "pytorch_inference_eia",
@@ -1567,7 +1570,13 @@ def lookup_condition(lookup, image):
     Return true if the ECR repo name ends with the lookup or lookup contains job type or device type part of the image uri.
     """
     # Extract ecr repo name from the image and check if it exactly matches the lookup (fixture name)
-    repo_name = get_ecr_repo_name(image)
+    repo_name, tag = get_repository_and_tag_from_image_uri(image)
+
+    generic_repo_tag = f"{repo}:{tag}".replace("pr-", "").replace("beta-", "")
+
+    # If lookup includes tag, check that we match beginning of string
+    if ":" in lookup and re.match(rf"^{lookup}", generic_repo_tag):
+        return True
 
     job_types = (
         "training",

@@ -1,16 +1,12 @@
 import os
-import datetime
 
 from packaging.version import Version
 from packaging.specifiers import SpecifierSet
-import pytest
 
-import test.test_utils as test_utils
 import test.test_utils.ec2 as ec2_utils
 
 from test.test_utils import (
     CONTAINER_TESTS_PREFIX,
-    UBUNTU_18_HPU_DLAMI_US_WEST_2,
     get_framework_and_version_from_tag,
     get_cuda_version_from_tag,
 )
@@ -84,73 +80,19 @@ PT_EC2_EFA_GPU_INSTANCE_TYPE_AND_REGION = get_efa_ec2_instance_type(
 )
 
 
-@pytest.mark.usefixtures("sagemaker")
-@pytest.mark.integration("all PT 2.2 tests")
-@pytest.mark.model("N/A")
-@pytest.mark.team("conda")
-@pytest.mark.parametrize("ec2_instance_type", PT_EC2_GPU_INSTANCE_TYPE, indirect=True)
-def test_pytorch_2_2_gpu(pytorch_training, ec2_connection, region, gpu_only, ec2_instance_type):
-    # pytorch_training = pytorch_training___2__2
-    if test_utils.is_image_incompatible_with_instance_type(pytorch_training, ec2_instance_type):
-        pytest.skip(
-            f"Image {pytorch_training} is incompatible with instance type {ec2_instance_type}"
-        )
-
-    test_cases = [
-        (_pytorch_standalone_gpu, (pytorch_training, ec2_connection)),
-        (_pytorch_train_mnist_gpu, (pytorch_training, ec2_connection)),
-        (_pytorch_linear_regression_gpu, (pytorch_training, ec2_connection)),
-        (_pytorch_gloo_gpu, (pytorch_training, ec2_connection)),
-        (_pytorch_gloo_inductor_gpu, (pytorch_training, ec2_connection)),
-        (_pytorch_nccl, (pytorch_training, ec2_connection)),
-        (_pytorch_nccl_inductor, (pytorch_training, ec2_connection)),
-        (_pytorch_mpi_gpu, (pytorch_training, ec2_connection)),
-        (_pytorch_mpi_inductor_gpu, (pytorch_training, ec2_connection)),
-        (_nvapex, (pytorch_training, ec2_connection)),
-        (_pytorch_amp, (pytorch_training, ec2_connection)),
-        (_pytorch_amp_inductor, (pytorch_training, ec2_connection)),
-        (_pytorch_training_torchaudio_gpu, (pytorch_training, ec2_connection)),
-        (_pytorch_training_torchdata_gpu, (pytorch_training, ec2_connection)),
-        (_pytorch_cudnn_match_gpu, (pytorch_training, ec2_connection, region)),
-    ]
-
-    exceptions = []
-
-    for fn, args in test_cases:
-        fn_name = fn.__name__
-        start_time = datetime.datetime.now()
-        ec2_utils.LOGGER.info(f"*********\nStarting {fn_name} at {start_time}\n")
-        try:
-            fn(*args)
-            end_time = datetime.datetime.now()
-            ec2_utils.LOGGER.info(f"\nEnding {fn_name} at {end_time}\n")
-        except Exception as e:
-            exceptions.append(f"{fn_name} FAILED WITH {type(e).__name__}:\n{e}")
-            end_time = datetime.datetime.now()
-            ec2_utils.LOGGER.info(f"\nFailing {fn_name} at {end_time}\n")
-        finally:
-            ec2_utils.LOGGER.info(
-                f"Total execution time for {fn_name} {end_time - start_time}\n*********"
-            )
-
-    assert not exceptions, f"Found {len(exceptions)} errors in PT 2.2 test\n" + "\n\n".join(
-        exceptions
-    )
-
-
-def _pytorch_standalone_gpu(pytorch_training, ec2_connection):
+def pytorch_standalone(pytorch_training, ec2_connection):
     execute_ec2_training_test(
         ec2_connection, pytorch_training, PT_STANDALONE_CMD, container_name="pt_standalone"
     )
 
 
-def _pytorch_train_mnist_gpu(pytorch_training, ec2_connection):
+def pytorch_train_mnist(pytorch_training, ec2_connection):
     execute_ec2_training_test(
         ec2_connection, pytorch_training, PT_MNIST_CMD, container_name="pt_mnist"
     )
 
 
-def _pytorch_linear_regression_gpu(pytorch_training, ec2_connection):
+def pytorch_linear_regression_gpu(pytorch_training, ec2_connection):
     _, image_framework_version = get_framework_and_version_from_tag(pytorch_training)
     image_cuda_version = get_cuda_version_from_tag(pytorch_training)
     if Version(image_framework_version) in SpecifierSet(">=2.0") and image_cuda_version >= "cu121":
@@ -163,7 +105,7 @@ def _pytorch_linear_regression_gpu(pytorch_training, ec2_connection):
         )
 
 
-def _pytorch_gloo_gpu(pytorch_training, ec2_connection):
+def pytorch_gloo(pytorch_training, ec2_connection):
     """
     Tests gloo backend
     """
@@ -180,7 +122,7 @@ def _pytorch_gloo_gpu(pytorch_training, ec2_connection):
     )
 
 
-def _pytorch_gloo_inductor_gpu(pytorch_training, ec2_connection):
+def pytorch_gloo_inductor_gpu(pytorch_training, ec2_connection):
     """
     Tests gloo backend with torch inductor
     """
@@ -197,7 +139,7 @@ def _pytorch_gloo_inductor_gpu(pytorch_training, ec2_connection):
     )
 
 
-def _pytorch_nccl(pytorch_training, ec2_connection):
+def pytorch_nccl(pytorch_training, ec2_connection):
     """
     Tests nccl backend
     """
@@ -209,7 +151,7 @@ def _pytorch_nccl(pytorch_training, ec2_connection):
     )
 
 
-def _pytorch_nccl_inductor(pytorch_training, ec2_connection):
+def pytorch_nccl_inductor(pytorch_training, ec2_connection):
     """
     Tests nccl backend
     """
@@ -221,7 +163,7 @@ def _pytorch_nccl_inductor(pytorch_training, ec2_connection):
     )
 
 
-def _pytorch_mpi_gpu(
+def pytorch_mpi(
     pytorch_training,
     ec2_connection,
 ):
@@ -234,7 +176,7 @@ def _pytorch_mpi_gpu(
     execute_ec2_training_test(ec2_connection, pytorch_training, test_cmd, container_name="mpi_gloo")
 
 
-def _pytorch_mpi_inductor_gpu(pytorch_training, ec2_connection):
+def pytorch_mpi_inductor_gpu(pytorch_training, ec2_connection):
     """
     Tests mpi backend with torch inductor
     """
@@ -246,19 +188,19 @@ def _pytorch_mpi_inductor_gpu(pytorch_training, ec2_connection):
     )
 
 
-def _nvapex(pytorch_training, ec2_connection):
+def nvapex(pytorch_training, ec2_connection):
     execute_ec2_training_test(
         ec2_connection, pytorch_training, PT_APEX_CMD, container_name="nvapex"
     )
 
 
-def _pytorch_amp(pytorch_training, ec2_connection):
+def pytorch_amp(pytorch_training, ec2_connection):
     execute_ec2_training_test(
         ec2_connection, pytorch_training, PT_AMP_CMD, container_name="pytorch_amp", timeout=1500
     )
 
 
-def _pytorch_amp_inductor(pytorch_training, ec2_connection):
+def pytorch_amp_inductor(pytorch_training, ec2_connection):
     # Native AMP was introduced in PyTorch 1.6
     execute_ec2_training_test(
         ec2_connection,
@@ -269,19 +211,19 @@ def _pytorch_amp_inductor(pytorch_training, ec2_connection):
     )
 
 
-def _pytorch_training_torchaudio_gpu(pytorch_training, ec2_connection):
+def pytorch_training_torchaudio(pytorch_training, ec2_connection):
     execute_ec2_training_test(
         ec2_connection, pytorch_training, PT_TORCHAUDIO_CMD, container_name="torchaudio"
     )
 
 
-def _pytorch_training_torchdata_gpu(pytorch_training, ec2_connection):
+def pytorch_training_torchdata(pytorch_training, ec2_connection):
     execute_ec2_training_test(
         ec2_connection, pytorch_training, PT_TORCHDATA_CMD, container_name="torchdata"
     )
 
 
-def _pytorch_cudnn_match_gpu(pytorch_training, ec2_connection, region):
+def pytorch_cudnn_match_gpu(pytorch_training, ec2_connection, region):
     """
     PT 2.1 reintroduces a dependency on CUDNN to support NVDA TransformerEngine. This test is to ensure that torch CUDNN matches system CUDNN in the container.
     """
@@ -316,3 +258,22 @@ def _pytorch_cudnn_match_gpu(pytorch_training, ec2_connection, region):
     assert (
         system_cudnn == cudnn_from_torch
     ), f"System CUDNN {system_cudnn} and torch cudnn {cudnn_from_torch} do not match. Please downgrade system CUDNN or recompile torch with correct CUDNN verson."
+
+
+def pytorch_linear_regression_cpu(pytorch_training, ec2_connection):
+    execute_ec2_training_test(
+        ec2_connection, pytorch_training, PT_REGRESSION_CMD, container_name="pt_reg"
+    )
+
+
+def pytorch_train_dgl_cpu(pytorch_training, ec2_connection):
+    # DGL cpu ec2 test doesn't work on PT 1.10 DLC
+    execute_ec2_training_test(
+        ec2_connection, pytorch_training, PT_DGL_CMD, container_name="dgl_cpu"
+    )
+
+
+def pytorch_telemetry_cpu(pytorch_training, ec2_connection):
+    execute_ec2_training_test(
+        ec2_connection, pytorch_training, PT_TELEMETRY_CMD, timeout=900, container_name="telemetry"
+    )
