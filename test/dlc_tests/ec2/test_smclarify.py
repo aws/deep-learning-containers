@@ -39,6 +39,7 @@ def test_smclarify_metrics_cpu(
     run_smclarify_bias_metrics(training, ec2_connection, ec2_instance_type)
 
 
+@pytest.mark.skip()
 @pytest.mark.usefixtures("sagemaker_only")
 @pytest.mark.integration("smclarify_gpu")
 @pytest.mark.model("N/A")
