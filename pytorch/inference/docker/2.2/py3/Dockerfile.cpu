@@ -8,6 +8,7 @@ ARG TORCH_URL=https://framework-binaries.s3.us-west-2.amazonaws.com/pytorch/v2.2
 ARG TORCHVISION_URL=https://framework-binaries.s3.us-west-2.amazonaws.com/pytorch/v2.2.0/cpu/torchvision-0.17.0%2Bcpu-cp310-cp310-linux_x86_64.whl
 ARG TORCHAUDIO_URL=https://framework-binaries.s3.us-west-2.amazonaws.com/pytorch/v2.2.0/cpu/torchaudio-2.2.0%2Bcpu-cp310-cp310-linux_x86_64.whl
 ARG TORCHTEXT_URL=https://framework-binaries.s3.us-west-2.amazonaws.com/pytorch/v2.2.0/cpu/torchtext-0.17.0%2Bcpu-cp310-cp310-linux_x86_64.whl
+ARG TORCHDATA_URL=https://framework-binaries.s3.us-west-2.amazonaws.com/pytorch/v2.2.0/cpu/torchdata-0.7.1%2Bcpu-cp310-cp310-linux_x86_64.whl
 ARG TORCHSERVE_VERSION
 ARG SM_TOOLKIT_VERSION
 
@@ -40,6 +41,7 @@ ARG TORCH_URL
 ARG TORCHVISION_URL
 ARG TORCHAUDIO_URL
 ARG TORCHTEXT_URL
+ARG TORCHDATA_URL
 ARG TORCHSERVE_VERSION
 
 # This arg required to stop docker build waiting for region configuration while installing tz data from ubuntu 20
@@ -47,7 +49,6 @@ ENV DEBIAN_FRONTEND=noninteractive
 
 # Python won’t try to write .pyc or .pyo files on the import of source modules
 # Force stdin, stdout and stderr to be totally unbuffered. Good for logging
-ENV CUDA_HOME=/usr/local/cuda-11.8
 ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
 ENV LD_LIBRARY_PATH="/usr/local/lib:${LD_LIBRARY_PATH}"
@@ -161,7 +162,8 @@ RUN pip install --no-cache-dir -U \
     ${TORCH_URL} \
     ${TORCHVISION_URL} \
     ${TORCHAUDIO_URL} \
-    ${TORCHTEXT_URL}
+    ${TORCHTEXT_URL} \
+    ${TORCHDATA_URL}
 
 # Install TorchServe pypi dependencies directly from their requirements.txt file
 # NOTE: This also brings in unnecessary cpu dependencies like nvgpu
@@ -246,12 +248,6 @@ RUN conda install -y -c conda-forge \
  && conda clean -afy
 
 RUN pip install --no-cache-dir sagemaker-pytorch-inference==${SM_TOOLKIT_VERSION} \
-    # hardcoded dependencies of sagemaker-pytorch-inference
-    "scipy==1.10.1" \
-    "boto3==1.28.60" \
-    # solve below package version again given above hardcoded dependencies
-    awscli \
-    botocore \
     s3transfer
 
 COPY torchserve-entrypoint.py /usr/local/bin/dockerd-entrypoint.py
