@@ -45,7 +45,7 @@ def test_pytorch_2_2_gpu_bin1(
     "ec2_instance_type", common_cases.PT_INDUCTOR_TEST_INSTANCE_TYPE, indirect=True
 )
 def test_pytorch_2_2_gpu_bin2(
-    pytorch_training___2__2, ec2_connection, region, gpu_only, ec2_instance_type
+    pytorch_training___2__2, ec2_connection, gpu_only, ec2_instance_type
 ):
     pytorch_training = pytorch_training___2__2
     if test_utils.is_image_incompatible_with_instance_type(pytorch_training, ec2_instance_type):
