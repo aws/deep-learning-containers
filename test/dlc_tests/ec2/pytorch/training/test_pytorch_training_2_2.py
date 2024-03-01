@@ -3,6 +3,7 @@ import pytest
 import test.test_utils as test_utils
 
 from test.dlc_tests.ec2.pytorch.training import common_cases
+from test.dlc_tests.ec2 import smclarify_cases
 
 
 @pytest.mark.usefixtures("sagemaker")
@@ -37,6 +38,11 @@ def test_pytorch_2_2_gpu(
         (common_cases.pytorch_cudnn_match_gpu, (pytorch_training, ec2_connection, region)),
     ]
 
+    if "sagemaker" in pytorch_training:
+        test_cases += [
+            (smclarify_cases.smclarify_metrics_gpu, (pytorch_training, ec2_connection)),
+        ]
+
     test_utils.execute_serial_test_cases(test_cases, test_description="PT 2.2 GPU")
 
 
@@ -57,5 +63,10 @@ def test_pytorch_standalone_cpu(pytorch_training___2__2, ec2_connection, cpu_onl
         (common_cases.pytorch_training_torchdata, (pytorch_training, ec2_connection)),
         (common_cases.pytorch_telemetry_cpu, (pytorch_training, ec2_connection)),
     ]
+
+    if "sagemaker" in pytorch_training:
+        test_cases += [
+            (smclarify_cases.smclarify_metrics_cpu, (pytorch_training, ec2_connection)),
+        ]
 
     test_utils.execute_serial_test_cases(test_cases, test_description="PT 2.2 CPU")
