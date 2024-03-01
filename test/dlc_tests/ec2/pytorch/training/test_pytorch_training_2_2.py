@@ -50,9 +50,8 @@ def test_pytorch_standalone_cpu(pytorch_training___2_2, ec2_connection, cpu_only
     test_cases = [
         (common_cases.pytorch_standalone, (pytorch_training, ec2_connection)),
         (common_cases.pytorch_train_mnist, (pytorch_training, ec2_connection)),
-        (common_cases.pytorch_linear_regression_cpu, (pytorch_training, ec2_connection))(
-            common_cases.pytorch_gloo, (pytorch_training, ec2_connection)
-        ),
+        (common_cases.pytorch_linear_regression_cpu, (pytorch_training, ec2_connection)),
+        (common_cases.pytorch_gloo, (pytorch_training, ec2_connection)),
         (common_cases.pytorch_mpi, (pytorch_training, ec2_connection)),
         (common_cases.pytorch_training_torchaudio, (pytorch_training, ec2_connection)),
         (common_cases.pytorch_training_torchdata, (pytorch_training, ec2_connection)),
