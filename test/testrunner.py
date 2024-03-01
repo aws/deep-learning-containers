@@ -408,7 +408,7 @@ def main():
                 context.run("git clone https://github.com/HabanaAI/gaudi-test-suite.git")
                 context.run("tar -c -f gaudi-test-suite.tar.gz gaudi-test-suite")
             else:
-                pytest_cmd += [pytest_rerun_arg, pytest_rerun_delay_arg]
+                pytest_cmd += ["--dist=worksteal", pytest_rerun_arg, pytest_rerun_delay_arg]
 
         if is_pr_context():
             if specific_test_type == "eks":
