@@ -39,5 +39,11 @@
   },
   "numpy": {
     "version_specifier": ">=1.22.2,<1.23"
+  },
+  "torchserve": {
+    "version_specifier": "==0.8.2"
+  },
+  "torch-model-archiver": {
+    "version_specifier": "==0.8.2"
   }
 }
