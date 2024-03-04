@@ -574,7 +574,9 @@ def skip_smddataparallel_p5_test(request, processor, ecr_image, efa_instance_typ
         )
         and "p5." in efa_instance_type
     ):
-        pytest.skip("SM Data Parallel tests are not working on P5 instances, skipping test")
+        pytest.skip(
+            "SM Data Parallel binaries are not supported on p5 instances and do not work with PyTorchDDP, skipping test"
+        )
 
 
 def _validate_pytorch_framework_version(request, processor, ecr_image, test_name, skip_dict):
