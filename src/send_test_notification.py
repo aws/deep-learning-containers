@@ -147,11 +147,14 @@ def parse_pytest_data():
                 # Team info of the failed test is propogated from team marker added on the test function to the properties section in the pytest xml report
                 if "properties" in test:
                     team_name = test["properties"]["property"]["@value"]
+                    print(f"Test failed for team {team_name}")
                     if team_name not in pytest_file_data["failed_tests"]:
+                        print("Team name not found for the failed test")
                         pytest_file_data["failed_tests"][team_name] = []
                     test_data = {}
                     test_name, ecr_image, instance_name = get_test_details(test["@name"])
                     test_data["test_name"] = test_name
+                    print(f"Processing information for failed test: {test_name}")
                     if ecr_image is not None:
                         test_data["ecr_image"] = ecr_image
                     if instance_name is not None:
