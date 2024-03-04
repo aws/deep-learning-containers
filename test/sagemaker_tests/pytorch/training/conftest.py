@@ -557,8 +557,8 @@ def skip_smddataparallel_test(
 
 
 @pytest.fixture(autouse=True)
-def skip_p5_tests(instance_type, processor, ecr_image):
-    if "p5." in instance_type:
+def skip_p5_tests(instance_type, efa_instance_type, processor, ecr_image):
+    if "p5." in instance_type or "p5." in efa_instance_type:
         image_cuda_version = get_cuda_version_from_tag(ecr_image)
         if processor != "gpu" or Version(image_cuda_version.strip("cu")) < Version("120"):
             pytest.skip("P5 EC2 instance require CUDA 12.0 or higher.")
@@ -567,7 +567,7 @@ def skip_p5_tests(instance_type, processor, ecr_image):
 @pytest.fixture(autouse=True)
 def skip_smddataparallel_p5_tests(request, processor, ecr_image, efa_instance_type):
     """SMDDP tests are broken for PyTorch 2.1 on p5 instances, so we should skip"""
-    skip_dict = {"2.0.1": ["cu118"], "==2.1.*": ["cu121"]}
+    skip_dict = {"==2.1.*": ["cu121"]}
     if (
         _validate_pytorch_framework_version(
             request, processor, ecr_image, "skip_smddataparallel_p5_tests", skip_dict
