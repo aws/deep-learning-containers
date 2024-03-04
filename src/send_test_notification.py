@@ -19,7 +19,6 @@ def get_pytest_output():
     Get pytest output from file.
     """
     pytest_result_directory = os.path.join(os.getcwd(), "test")
-    print(f"pytest_result_directory {pytest_result_directory}")
     # get all xml files in test directory
     files = [
         os.path.join(pytest_result_directory, file)
@@ -28,12 +27,10 @@ def get_pytest_output():
     ]
     # parse xml files and save it to list
     pytest_output_dict = {}
-    print(f"files {files}")
     if files:
         for file in files:
             with open(file, "r") as xml_file:
                 pytest_output_dict[file] = xmltodict.parse(xml_file.read())
-    print(f"pytest_output_dict {pytest_output_dict}")
     return pytest_output_dict
 
 
@@ -147,6 +144,7 @@ def parse_pytest_data():
         pytest_file_data["failed_tests"] = {}
         for test in pytest_raw_data[file]["testsuites"]["testsuite"]["testcase"]:
             if "failure" in test:
+                # Team info of the failed test is propogated from team marker added on the test function to the properties section in the pytest xml report
                 if "properties" in test:
                     team_name = test["properties"]["property"]["@value"]
                     if team_name not in pytest_file_data["failed_tests"]:
@@ -158,9 +156,9 @@ def parse_pytest_data():
                         test_data["ecr_image"] = ecr_image
                     if instance_name is not None:
                         test_data["instance_name"] = instance_name
-                    test_data[test["properties"]["property"]["@name"]] = test["properties"]["property"][
-                        "@value"
-                    ]
+                    test_data[test["properties"]["property"]["@name"]] = test["properties"][
+                        "property"
+                    ]["@value"]
                     test_data["test_path"] = test["@classname"].replace(".", "/") + "/" + test_name
                     test_data["fail_message"] = test["failure"]["@message"]
 
@@ -188,7 +186,6 @@ def generate_test_execution_data(build_context):
     """
     test_execution_data = get_platform_execution_details(build_context)
     test_execution_data["pytest_output"] = parse_pytest_data()
-    print(f"parsed_data {test_execution_data['pytest_output']}")
     return test_execution_data
 
 
