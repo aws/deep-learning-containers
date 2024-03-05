@@ -59,7 +59,7 @@ sanity_tests = false
   ecr_scan_allowlist_feature = false
 ecs_tests = false
 eks_tests = false
-ec2_tests = false
+ec2_tests = true
 # Set it to true if you are preparing a Benchmark related PR
 ec2_benchmark_tests = false
 
@@ -67,7 +67,7 @@ ec2_benchmark_tests = false
 ### default. If false, these types of tests will be skipped while other tests will run as usual.
 ### These tests are run in EC2 test jobs, so ec2_tests must be true if ec2_tests_on_heavy_instances is true.
 ### Off by default (set to false)
-ec2_tests_on_heavy_instances = false
+ec2_tests_on_heavy_instances = true
 
 ### SM specific tests
 ### Off by default
@@ -102,7 +102,7 @@ use_scheduler = false
 
 # Standard Framework Training
 dlc-pr-mxnet-training = ""
-dlc-pr-pytorch-training = ""
+dlc-pr-pytorch-training = "buildspec-2-0-sm.yml"
 dlc-pr-tensorflow-2-training = ""
 dlc-pr-autogluon-training = ""
 
