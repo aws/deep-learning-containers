@@ -1,0 +1,9 @@
+#### First image: sha256:3eecc73bc1577262d0d977c60f9763cd792fb2d3ecebe669e6b1b0b637feee56 ####
+#### Patch contents for patch-1: sha256:385c5c2338d9f6c4454cf58cf09ec612430fcb96f0c90d552d7303c1661a34d5 ####
+pip install cryptography==41.0.7 pillow==10.2.0 urllib3==1.26.18 
+python -m pip install --upgrade pip
+apt-get update && apt-get install -y --only-upgrade binutils-common binutils-x86-64-linux-gnu binutils curl libavahi-client3 libavahi-common3 libbinutils libc-bin libc6 libctf-nobfd0 libctf0 libcurl3-gnutls libcurl4-openssl-dev libcurl4 libgnutls30 libgssapi-krb5-2 libk5crypto3 libkrb5-3 libkrb5support0 libnghttp2-14 libperl5.30 libprocps8 libpython3.8-minimal libpython3.8-stdlib libpython3.8 libsqlite3-0 libssh-4 libssl-dev libssl1.1 libtiff5 linux-libc-dev openjdk-11-jdk-headless openjdk-11-jdk openjdk-11-jre-headless openjdk-11-jre openssh-client openssh-server openssl perl-base perl-modules-5.30 perl procps python3-urllib3 python3.8-minimal python3.8 vim-common vim-runtime vim xxd
+#### Current Patch contents ####
+pip install cryptography==42.0.5 pillow==10.2.0 pyopenssl==24.0.0 urllib3==1.26.18 
+python -m pip install --upgrade pip
+apt-get update && apt-get install -y --only-upgrade binutils-common binutils-x86-64-linux-gnu binutils curl libavahi-client3 libavahi-common3 libbinutils libc-bin libc6 libctf-nobfd0 libctf0 libcurl3-gnutls libcurl4-openssl-dev libcurl4 libgnutls30 libgssapi-krb5-2 libk5crypto3 libkrb5-3 libkrb5support0 libnghttp2-14 libpam-modules libperl5.30 libprocps8 libpython3.8-minimal libpython3.8-stdlib libpython3.8 libsqlite3-0 libssh-4 libssl-dev libssl1.1 libtiff5 libuv1 libxml2 linux-libc-dev login openjdk-11-jdk-headless openjdk-11-jdk openjdk-11-jre-headless openjdk-11-jre openssh-client openssh-server openssl passwd perl-base perl-modules-5.30 perl procps python3-urllib3 python3.8-minimal python3.8 vim-common vim-runtime vim xxd
