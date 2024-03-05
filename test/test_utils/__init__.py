@@ -632,13 +632,8 @@ def get_allowlist_path_for_enhanced_scan_from_env_variable():
     return os.getenv("ALLOWLIST_PATH_ENHSCAN")
 
 
-def is_benchmark_dev_context():
-    return config.is_benchmark_mode_enabled()
-
-
 def is_rc_test_context():
-    sm_remote_tests_val = config.get_sagemaker_remote_tests_config_value()
-    return sm_remote_tests_val == config.AllowedSMRemoteConfigValues.RC.value
+    return config.is_sm_rc_test_enabled()
 
 
 def is_covered_by_ec2_sm_split(image_uri):
@@ -2292,8 +2287,8 @@ def get_installed_python_packages_using_image_uri(context, image_uri, container_
 
 def get_image_spec_from_buildspec(image_uri, dlc_folder_path):
     """
-    This method reads the BuildSpec file for the given image_uri and returns that image_spec within the BuildSpec file that corresponds
-    to the given image_uri.
+    This method reads the BuildSpec file for the given image_uri and returns that image_spec within
+    the BuildSpec file that corresponds to the given image_uri.
 
     :param image_uri: str, Image URI
     :param dlc_folder_path: str, Path of the DLC folder on the current host
@@ -2305,17 +2300,18 @@ def get_image_spec_from_buildspec(image_uri, dlc_folder_path):
     buildspec_path = get_buildspec_path(dlc_folder_path)
     buildspec_def = Buildspec()
     buildspec_def.load(buildspec_path)
-    corresponding_image_spec = None
+    matched_image_spec = None
 
     for _, image_spec in buildspec_def["images"].items():
+        # If an image_spec in the buildspec matches the input image tag:
+        #   - if there is no pre-existing matched image spec, choose the image_spec
+        #   - if there is a pre-existing matched image spec, choose the image_spec that has
+        #     a larger overlap with the input image tag.
         if image_tag.startswith(image_spec["tag"]):
-            if corresponding_image_spec:
-                raise ValueError(
-                    f"""Mutliple tags - {corresponding_image_spec["tag"]}, {image_spec["tag"]} found for the image {image_uri}"""
-                )
-            corresponding_image_spec = image_spec
+            if not matched_image_spec or len(matched_image_spec["tag"]) < len(image_spec["tag"]):
+                matched_image_spec = image_spec
 
-    if not corresponding_image_spec:
+    if not matched_image_spec:
         raise ValueError(f"No corresponding entry found for {image_uri} in {buildspec_path}")
 
-    return corresponding_image_spec
+    return matched_image_spec

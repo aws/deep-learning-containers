@@ -89,7 +89,7 @@ def image_builder(buildspec, image_types=[], device_types=[]):
         or "autogluon" in str(BUILDSPEC["framework"])
         or "stabilityai" in str(BUILDSPEC["framework"])
         or "trcomp" in str(BUILDSPEC["framework"])
-        or is_autopatch_build_enabled()
+        or is_autopatch_build_enabled(buildspec_path=buildspec)
     ):
         os.system("echo login into public ECR")
         os.system(
@@ -109,10 +109,9 @@ def image_builder(buildspec, image_types=[], device_types=[]):
 
         extra_build_args = {}
         labels = {}
-        enable_datetime_tag = parse_dlc_developer_configs("build", "datetime_tag")
 
         prod_repo_uri = ""
-        if is_autopatch_build_enabled():
+        if is_autopatch_build_enabled(buildspec_path=buildspec):
             prod_repo_uri = utils.derive_prod_image_uri_using_image_config_from_buildspec(
                 image_config=image_config,
                 framework=BUILDSPEC["framework"],
@@ -134,14 +133,21 @@ def image_builder(buildspec, image_types=[], device_types=[]):
             else image_config["tag"]
         )
 
-        if is_autopatch_build_enabled():
+        if is_autopatch_build_enabled(buildspec_path=buildspec):
             image_tag = append_tag(image_tag, "autopatch")
 
         additional_image_tags = []
         if is_nightly_build_context():
             additional_image_tags.append(tag_image_with_date(image_tag))
 
-        if enable_datetime_tag or build_context != "PR":
+        if build_context != "PR":
+            image_tag = tag_image_with_datetime(image_tag)
+        # If build is not enabled, we don't care about the datetime tag
+        elif is_build_enabled():
+            # Order appears to matter in datetime tagging, so tag with no datetime first, then
+            # set image_tag to have datetime
+            no_datetime = image_tag
+            additional_image_tags.append(no_datetime)
             image_tag = tag_image_with_datetime(image_tag)
 
         additional_image_tags.append(image_tag)
@@ -296,6 +302,7 @@ def image_builder(buildspec, image_types=[], device_types=[]):
             "extra_build_args": extra_build_args,
             "cx_type": cx_type,
             "release_image_uri": prod_repo_uri,
+            "buildspec_path": buildspec,
         }
 
         # Create pre_push stage docker object
@@ -323,7 +330,7 @@ def image_builder(buildspec, image_types=[], device_types=[]):
         PRE_PUSH_STAGE_IMAGES.append(pre_push_stage_image_object)
         FORMATTER.separator()
 
-    if is_autopatch_build_enabled():
+    if is_autopatch_build_enabled(buildspec_path=buildspec) and is_build_enabled():
         FORMATTER.banner("APATCH-PREP")
         patch_helper.initiate_multithreaded_autopatch_prep(
             PRE_PUSH_STAGE_IMAGES, make_dummy_boto_client=True
@@ -339,8 +346,8 @@ def image_builder(buildspec, image_types=[], device_types=[]):
     IMAGES_TO_PUSH = [image for image in ALL_IMAGES if image.to_push and image.to_build]
 
     pushed_images = []
-    pushed_images += process_images(parent_images, "Parent/Independent")
-    pushed_images += process_images(child_images, "Child/Dependent")
+    pushed_images += process_images(parent_images, "Parent/Independent", buildspec_path=buildspec)
+    pushed_images += process_images(child_images, "Child/Dependent", buildspec_path=buildspec)
 
     assert all(
         image in pushed_images for image in IMAGES_TO_PUSH
@@ -378,7 +385,7 @@ def image_builder(buildspec, image_types=[], device_types=[]):
         )
 
 
-def process_images(pre_push_image_list, pre_push_image_type="Pre-push"):
+def process_images(pre_push_image_list, pre_push_image_type="Pre-push", buildspec_path=""):
     """
     Handles all the tasks related to a particular type of Pre Push images. It takes in the list of
     pre push images and then builds it. After the pre-push images have been built, it extracts the
@@ -409,7 +416,7 @@ def process_images(pre_push_image_list, pre_push_image_type="Pre-push"):
     all_images = pre_push_image_list + common_stage_image_list
     images_to_push = [image for image in all_images if image.to_push and image.to_build]
 
-    if is_autopatch_build_enabled():
+    if is_autopatch_build_enabled(buildspec_path=buildspec_path):
         for image in images_to_push:
             patch_helper.retrive_autopatched_image_history_and_upload_to_s3(image_uri=image.ecr_url)
 

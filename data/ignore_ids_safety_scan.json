@@ -38,7 +38,7 @@
                 "42098":"Can't upgrade TF version to 2.7.x in non 2.7 images.",
                 "42062":"Can't upgrade TF version to 2.7.x in non 2.7 images.",
                 "51159": "for cryptography until we have 39.0.0 release",
-                "44715":"False positive for numpy. Was fixed in 1.22.2",                
+                "44715":"False positive for numpy. Was fixed in 1.22.2",
                 "51516":"keras>2.10.0 does not exist yet"
             }
         },
@@ -908,7 +908,8 @@
                 "42814":"for shipping bokeh<=2.3.3 - the last available version for py3.6",
                 "42815":"for shipping bokeh<=2.3.3 - the last available version for py3.6",
                 "48298":"for shipping PT1.12 on safety check tools might report a vulnerability for the package commonmarker, which is a dependency of deepspeed. This package is only used to build the documentation pages of deepspeed and won’t be used in the package that gets installed into the DLC. This security issue can be safely ignored and an attempt to upgrade deepspeed version to remediate it might have an inadvertent negative impact on the DLC components functionality.",
-                "51159":"cryptography>38.0.1 does not exist yet"
+                "51159":"cryptography>38.0.1 does not exist yet",
+                "65213":"for shipping pyopenssl>=22.0.0 - no current fix"
             }
         },
         "training-neuron":{
@@ -953,7 +954,9 @@
                 "52510":"Future 0.18.2 is the latest package version - no fix version is available",
                 "54718": "Fix for issue available in torch version 1.13.1",
                 "51499": "Fix for issue contained in Wheel 0.38.1",
-                "62894": "for scipy-1.10.1 which is a hardcoded dependency of sagemaker-pytorch-inference"
+                "62894": "for scipy-1.10.1 which is a hardcoded dependency of sagemaker-pytorch-inference",
+                "65213": "for shipping pyopenssl>=22.0.0 - no current fix",
+                "65345": "for shipping torchserve==0.8.2, torchserve should skip 0.9.0 and wait for 0.10.0"
             }
         },
         "inference-eia": {
@@ -1383,7 +1386,17 @@
                 "44716":"for shipping numpy 1.21.5 - the last available version for py3.7",
                 "44717":"for shipping numpy 1.21.5 - the last available version for py3.7",
                 "59398": "scipy bug - according to maintainer, not a vulnerability",
-                "59399": "scipy bug - no CVE attached"
+                "59399": "scipy bug - no CVE attached",
+                "64402":"Temporarily ignoring to patch CRITICAL vulnerabilties",
+                "65213":"Temporarily ignoring to patch CRITICAL vulnerabilties"
+            }
+        },
+        "inference-neuronx": {
+            "_comment":"py2 is deprecated",
+            "py2": {},
+            "py3": {
+                "64402":"Temporarily ignoring to patch CRITICAL vulnerabilties",
+                "65213":"Temporarily ignoring to patch CRITICAL vulnerabilties"
             }
         },
         "training-neuronx": {

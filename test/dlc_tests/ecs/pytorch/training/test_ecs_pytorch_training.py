@@ -114,7 +114,7 @@ def test_ecs_pytorch_training_mnist_neuronx_inf2(
 
 @pytest.mark.model("mnist")
 @pytest.mark.parametrize("training_script", [PT_MNIST_TRAINING_SCRIPT], indirect=True)
-@pytest.mark.parametrize("ecs_instance_type", ["p3.8xlarge"], indirect=True)
+@pytest.mark.parametrize("ecs_instance_type", ["g4dn.8xlarge"], indirect=True)
 @pytest.mark.parametrize("ecs_ami", [ECS_AML2_GPU_USWEST2], indirect=True)
 @pytest.mark.parametrize("use_large_storage", [True], indirect=True)
 @pytest.mark.team("conda")
@@ -129,7 +129,7 @@ def test_ecs_pytorch_training_mnist_gpu(
     """
     GPU mnist test for PyTorch Training
 
-    Instance Type - p3.8xlarge
+    Instance Type - g4dn.8xlarge
 
     Given above parameters, registers a task with family named after this test, runs the task, and waits for
     the task to be stopped before doing teardown operations of instance and cluster.
@@ -183,7 +183,7 @@ def test_ecs_pytorch_s3_plugin_training_cpu(
 @pytest.mark.model("resnet18")
 @pytest.mark.integration("pt_s3_plugin")
 @pytest.mark.parametrize("training_script", [PT_S3_PLUGIN_CMD], indirect=True)
-@pytest.mark.parametrize("ecs_instance_type", ["p3.8xlarge"], indirect=True)
+@pytest.mark.parametrize("ecs_instance_type", ["g4dn.8xlarge"], indirect=True)
 @pytest.mark.parametrize("ecs_ami", [ECS_AML2_GPU_USWEST2], indirect=True)
 @pytest.mark.team("conda")
 def test_ecs_pytorch_s3_plugin_training_gpu(
@@ -192,7 +192,7 @@ def test_ecs_pytorch_s3_plugin_training_gpu(
     """
     GPU resnet18 test for PyTorch Training using S3 plugin
 
-    Instance Type - p3.8xlarge
+    Instance Type - g4dn.8xlarge
 
     Given above parameters, registers a task with family named after this test, runs the task, and waits for
     the task to be stopped before doing teardown operations of instance and cluster.
@@ -212,13 +212,13 @@ def test_ecs_pytorch_s3_plugin_training_gpu(
     )
 
 
+@pytest.mark.skip_dgl_test
 @pytest.mark.integration("dgl")
 @pytest.mark.model("gcn")
 @pytest.mark.parametrize("training_script", [PT_DGL_TRAINING_SCRIPT], indirect=True)
 @pytest.mark.parametrize("ecs_instance_type", ["c5.12xlarge"], indirect=True)
 @pytest.mark.parametrize("ecs_ami", [ECS_AML2_CPU_USWEST2], indirect=True)
 @pytest.mark.team("dgl")
-@pytest.mark.skip_pt21_test
 def test_ecs_pytorch_training_dgl_cpu(
     cpu_only, py3_only, ecs_container_instance, pytorch_training, training_cmd, ecs_cluster_name
 ):
@@ -244,15 +244,14 @@ def test_ecs_pytorch_training_dgl_cpu(
     )
 
 
+@pytest.mark.skip_dgl_test
 @pytest.mark.integration("dgl")
 @pytest.mark.model("gcn")
-@pytest.mark.skip_pt20_cuda121_tests
 @pytest.mark.parametrize("training_script", [PT_DGL_TRAINING_SCRIPT], indirect=True)
-@pytest.mark.parametrize("ecs_instance_type", ["p3.8xlarge"], indirect=True)
+@pytest.mark.parametrize("ecs_instance_type", ["g4dn.8xlarge"], indirect=True)
 @pytest.mark.parametrize("ecs_ami", [ECS_AML2_GPU_USWEST2], indirect=True)
 @pytest.mark.parametrize("use_large_storage", [True], indirect=True)
 @pytest.mark.team("dgl")
-@pytest.mark.skip_pt21_test
 def test_ecs_pytorch_training_dgl_gpu(
     gpu_only,
     py3_only,
@@ -265,7 +264,7 @@ def test_ecs_pytorch_training_dgl_gpu(
     """
     GPU DGL test for PyTorch Training
 
-    Instance Type - p3.8xlarge
+    Instance Type - g4dn.8xlarge
 
     DGL is only supported in py3, hence we have used the "py3_only" fixture to ensure py2 images don't run
     on this function.

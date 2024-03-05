@@ -131,7 +131,18 @@ def fetch_dlc_images_for_test_jobs(images, use_latest_additional_tag=False):
     :param images: list
     :return: dictionary
     """
-    DLC_IMAGES = {"sagemaker": [], "ecs": [], "eks": [], "ec2": [], "sanity": [], "autopr": []}
+    DLC_IMAGES = {
+        "sagemaker": [],
+        "sagemaker-efa": [],
+        "sagemaker-rc": [],
+        "sagemaker-benchmark": [],
+        "ecs": [],
+        "eks": [],
+        "ec2": [],
+        "ec2-benchmark": [],
+        "sanity": [],
+        "autopr": [],
+    }
 
     build_enabled = is_build_enabled()
 
@@ -372,13 +383,15 @@ def generate_safety_report_for_image(image_uri, image_info, storage_file_path=No
     ignore_dict = get_safety_ignore_dict(
         image_uri, image_info["framework"], image_info["python_version"], image_info["image_type"]
     )
-    safety_report_generator_object = SafetyReportGenerator(container_id, ignore_dict=ignore_dict)
+    safety_report_generator_object = SafetyReportGenerator(
+        container_id, ignore_dict=ignore_dict, image_uri=image_uri, image_info=image_info
+    )
     safety_scan_output = safety_report_generator_object.generate()
     ctx.run(f"docker rm -f {container_id}", hide=True, warn=True)
     if storage_file_path:
         with open(storage_file_path, "w", encoding="utf-8") as f:
             json.dump(safety_scan_output, f, indent=4)
-    if is_autopatch_build_enabled():
+    if is_autopatch_build_enabled(buildspec_path=image_info["buildspec_path"]):
         derive_future_safety_allowlist_and_upload_to_s3(
             safety_report_generator_object=safety_report_generator_object, image_uri=image_uri
         )

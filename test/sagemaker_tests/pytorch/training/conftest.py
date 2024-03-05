@@ -186,6 +186,14 @@ def pytest_runtest_setup(item):
 
 
 def pytest_collection_modifyitems(session, config, items):
+    for item in items:
+        print(f"item {item}")
+        for marker in item.iter_markers(name="team"):
+            print(f"item {marker}")
+            team_name = marker.args[0]
+            item.user_properties.append(("team_marker", team_name))
+            print(f"item.user_properties {item.user_properties}")
+
     if config.getoption("--generate-coverage-doc"):
         from test.test_utils.test_reporting import TestReportGenerator
 
@@ -486,18 +494,66 @@ def skip_s3plugin_test(request):
 
 
 @pytest.fixture(autouse=True)
-def skip_pt20_cuda121_tests(
+def skip_smdebug_v1_test(
     request,
     processor,
     ecr_image,
 ):
-    if request.node.get_closest_marker("skip_pt20_cuda121_tests") and processor == "gpu":
-        _, image_framework_version = get_framework_and_version_from_tag(ecr_image)
-        image_cuda_version = get_cuda_version_from_tag(ecr_image)
-        if Version(image_framework_version) in SpecifierSet("==2.0.1") and Version(
-            image_cuda_version.strip("cu")
-        ) == Version("121"):
-            pytest.skip("PyTorch 2.0 + CUDA12.1 image doesn't support current test")
+    """Skip SM Debugger and Profiler tests due to v1 deprecation for PyTorch 2.0.1 and above frameworks."""
+    skip_dict = {"==2.0.*": ["cu121"], ">=2.1": ["cpu", "cu121"]}
+    if _validate_pytorch_framework_version(
+        request, processor, ecr_image, "skip_smdebug_v1_test", skip_dict
+    ):
+        pytest.skip(f"SM Profiler v1 is on path for deprecation, skipping test")
+
+
+@pytest.fixture(autouse=True)
+def skip_dgl_test(
+    request,
+    processor,
+    ecr_image,
+):
+    """Start from PyTorch 2.0.1 framework, DGL binaries are not installed in DLCs by default and will be added in per customer ask.
+    The test condition should be modified appropriately and `skip_dgl_test` pytest mark should be removed from dgl tests
+    when the binaries are added in.
+    """
+    skip_dict = {"==2.0.*": ["cu121"], ">=2.1": ["cpu", "cu121"]}
+    if _validate_pytorch_framework_version(
+        request, processor, ecr_image, "skip_dgl_test", skip_dict
+    ):
+        pytest.skip(f"DGL binary is removed, skipping test")
+
+
+@pytest.fixture(autouse=True)
+def skip_smdmodelparallel_test(
+    request,
+    processor,
+    ecr_image,
+):
+    skip_dict = {"==2.0.*": ["cu121"], ">=2.1": ["cpu", "cu121"]}
+    if _validate_pytorch_framework_version(
+        request, processor, ecr_image, "skip_smdmodelparallel_test", skip_dict
+    ):
+        pytest.skip(
+            f"SM Model Parallel team is maintaining their own Docker Container, skipping test"
+        )
+
+
+@pytest.fixture(autouse=True)
+def skip_smddataparallel_test(
+    request,
+    processor,
+    ecr_image,
+):
+    """Start from PyTorch 2.0.1 framework, SMDDP binary releases are decoupled from DLC releases.
+    For each currency release, we can skip SMDDP tests if the binary does not exist.
+    However, when the SMDDP binaries are added, be sure to fix the test logic such that the tests are not skipped.
+    """
+    skip_dict = {"==2.0.*": ["cu121"], ">=2.2": ["cpu", "cu121"]}
+    if _validate_pytorch_framework_version(
+        request, processor, ecr_image, "skip_smddataparallel_test", skip_dict
+    ):
+        pytest.skip(f"SM Data Parallel binaries do not exist in this image, skipping test")
 
 
 @pytest.fixture(autouse=True)
@@ -505,7 +561,41 @@ def skip_p5_tests(instance_type, processor, ecr_image):
     if "p5." in instance_type:
         image_cuda_version = get_cuda_version_from_tag(ecr_image)
         if processor != "gpu" or Version(image_cuda_version.strip("cu")) < Version("120"):
-            pytest.skip("Images using less than CUDA 12.0 doesn't support P5 EC2 instance.")
+            pytest.skip("P5 EC2 instance require CUDA 12.0 or higher.")
+
+
+@pytest.fixture(autouse=True)
+def skip_smdataparallel_p5_tests(request, processor, ecr_image, efa_instance_type):
+    """SMDDP tests are broken for PyTorch 2.1 on p5 instances, so we should skip"""
+    skip_dict = {"==2.1.*": ["cu121"]}
+    if (
+        _validate_pytorch_framework_version(
+            request, processor, ecr_image, "skip_smdataparallel_p5_tests", skip_dict
+        )
+        and "p5." in efa_instance_type
+    ):
+        pytest.skip("SM Data Parallel tests are not working on P5 instances, skipping test")
+
+
+def _validate_pytorch_framework_version(request, processor, ecr_image, test_name, skip_dict):
+    """
+    Expected format of skip_dic:
+    {
+        SpecifierSet("<comparable version string">): ["cpu", "cu118", "cu121"],
+    }
+    """
+    if request.node.get_closest_marker(test_name):
+        image_framework, image_framework_version = get_framework_and_version_from_tag(ecr_image)
+        image_cuda_version = get_cuda_version_from_tag(ecr_image) if processor == "gpu" else ""
+
+        if image_framework == "pytorch":
+            for framework_condition, processor_conditions in skip_dict.items():
+                if Version(image_framework_version) in SpecifierSet(framework_condition) and (
+                    processor in processor_conditions or image_cuda_version in processor_conditions
+                ):
+                    return True
+
+    return False
 
 
 def _get_remote_override_flags():
@@ -597,18 +687,3 @@ def skip_test_successfully_executed_before(request):
         test_name in failed_test_name for failed_test_name in lastfailed.keys()
     ):
         pytest.skip(f"Skipping {test_name} because it was successfully executed for this commit")
-
-
-@pytest.fixture(autouse=True)
-def skip_pt21_test(request):
-    if "framework_version" in request.fixturenames:
-        fw_ver = request.getfixturevalue("framework_version")
-    elif "ecr_image" in request.fixturenames:
-        fw_ver = request.getfixturevalue("ecr_image")
-    else:
-        return
-    if request.node.get_closest_marker("skip_pt21_test"):
-        if Version(fw_ver) in SpecifierSet("==2.1"):
-            pytest.skip(
-                f"PT2.1 SM DLC doesn't support Rubik and Herring for now, so skipping this container with tag {fw_ver}"
-            )

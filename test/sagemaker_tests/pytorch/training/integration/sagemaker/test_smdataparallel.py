@@ -62,6 +62,9 @@ def can_run_smdataparallel_efa(ecr_image):
     ) >= Version("110")
 
 
+@pytest.mark.skip_smddataparallel_test
+@pytest.mark.skip_cpu
+@pytest.mark.skip_trcomp_containers
 @pytest.mark.processor("gpu")
 @pytest.mark.model("N/A")
 @pytest.mark.multinode(2)
@@ -70,11 +73,7 @@ def can_run_smdataparallel_efa(ecr_image):
 @pytest.mark.parametrize(
     "efa_instance_type", get_efa_test_instance_type(default=["ml.p4d.24xlarge"]), indirect=True
 )
-@pytest.mark.skip_cpu
-@pytest.mark.skip_trcomp_containers
 @pytest.mark.efa()
-@pytest.mark.skip_pt21_test
-@pytest.mark.skip_pt20_cuda121_tests
 def test_smdataparallel_throughput(
     framework_version, ecr_image, sagemaker_regions, efa_instance_type, tmpdir
 ):
@@ -107,15 +106,14 @@ def test_smdataparallel_throughput(
         )
 
 
+@pytest.mark.skip_smddataparallel_test
+@pytest.mark.skip_cpu
+@pytest.mark.skip_py2_containers
+@pytest.mark.skip_trcomp_containers
 @pytest.mark.usefixtures("feature_smddp_present")
 @pytest.mark.integration("smdataparallel")
 @pytest.mark.model("mnist")
 @pytest.mark.processor("gpu")
-@pytest.mark.skip_cpu
-@pytest.mark.skip_py2_containers
-@pytest.mark.skip_trcomp_containers
-@pytest.mark.skip_pt21_test
-@pytest.mark.skip_pt20_cuda121_tests
 @pytest.mark.team("smdataparallel")
 def test_smdataparallel_mnist_script_mode_multigpu(
     ecr_image, sagemaker_regions, instance_type, tmpdir
@@ -124,7 +122,7 @@ def test_smdataparallel_mnist_script_mode_multigpu(
     Tests SM Distributed DataParallel single-node via script mode
     """
     validate_or_skip_smdataparallel(ecr_image)
-    instance_type = "ml.p3.16xlarge"
+    instance_type = "ml.p4d.24xlarge"
     distribution = {"smdistributed": {"dataparallel": {"enabled": True}}}
     with timeout(minutes=DEFAULT_TIMEOUT):
         estimator_parameter = {
@@ -141,21 +139,20 @@ def test_smdataparallel_mnist_script_mode_multigpu(
         )
 
 
+@pytest.mark.skip_smddataparallel_test
+@pytest.mark.skip_py2_containers
+@pytest.mark.skip_trcomp_containers
 @pytest.mark.processor("gpu")
 @pytest.mark.skip_cpu
 @pytest.mark.multinode(2)
 @pytest.mark.integration("smdataparallel")
 @pytest.mark.model("mnist")
-@pytest.mark.skip_py2_containers
 @pytest.mark.flaky(reruns=2)
 @pytest.mark.efa()
-@pytest.mark.skip_trcomp_containers
-@pytest.mark.skip_pt21_test
-@pytest.mark.skip_pt20_cuda121_tests
 @pytest.mark.team("smdataparallel")
 @pytest.mark.parametrize(
     "efa_instance_type",
-    get_efa_test_instance_type(default=["ml.p3.16xlarge", "ml.p4d.24xlarge"]),
+    get_efa_test_instance_type(default=["ml.p4d.24xlarge"]),
     indirect=True,
 )
 def test_smdataparallel_mnist(ecr_image, sagemaker_regions, efa_instance_type, tmpdir):
@@ -181,19 +178,57 @@ def test_smdataparallel_mnist(ecr_image, sagemaker_regions, efa_instance_type, t
         )
 
 
+@pytest.mark.skip_smddataparallel_test
+@pytest.mark.skip_py2_containers
+@pytest.mark.skip_trcomp_containers
 @pytest.mark.processor("gpu")
 @pytest.mark.skip_cpu
 @pytest.mark.multinode(2)
 @pytest.mark.integration("smdataparallel")
 @pytest.mark.model("mnist")
-@pytest.mark.skip_py2_containers
 @pytest.mark.flaky(reruns=2)
 @pytest.mark.efa()
-@pytest.mark.skip_trcomp_containers
-@pytest.mark.skip_pt21_test
-@pytest.mark.skip_pt20_cuda121_tests
+@pytest.mark.team("smdataparallel")
 @pytest.mark.parametrize(
-    "efa_instance_type", get_efa_test_instance_type(default=["ml.p3.16xlarge"]), indirect=True
+    "efa_instance_type",
+    get_efa_test_instance_type(default=["ml.p4d.24xlarge"]),
+    indirect=True,
+)
+def test_smdataparallel_mnist_pytorchddp(ecr_image, sagemaker_regions, efa_instance_type, tmpdir):
+    """
+    Test smddp with pytorchddp distribution
+    """
+    with timeout(minutes=DEFAULT_TIMEOUT):
+        validate_or_skip_smdataparallel_efa(ecr_image)
+        skip_unsupported_instances_smdataparallel(efa_instance_type)
+        distribution = {"pytorchddp": {"enabled": True}}
+        estimator_parameter = {
+            "entry_point": "smdataparallel_mnist.py",
+            "role": "SageMakerRole",
+            "source_dir": mnist_path,
+            "instance_count": 2,
+            "instance_type": efa_instance_type,
+            "distribution": distribution,
+        }
+
+        job_name_prefix = "test-ptddp-smddp-mnist"
+        invoke_pytorch_estimator(
+            ecr_image, sagemaker_regions, estimator_parameter, job_name=job_name_prefix
+        )
+
+
+@pytest.mark.skip_smddataparallel_test
+@pytest.mark.skip_py2_containers
+@pytest.mark.skip_trcomp_containers
+@pytest.mark.processor("gpu")
+@pytest.mark.skip_cpu
+@pytest.mark.multinode(2)
+@pytest.mark.integration("smdataparallel")
+@pytest.mark.model("mnist")
+@pytest.mark.flaky(reruns=2)
+@pytest.mark.efa()
+@pytest.mark.parametrize(
+    "efa_instance_type", get_efa_test_instance_type(default=["ml.p4d.24xlarge"]), indirect=True
 )
 @pytest.mark.team("smdataparallel")
 def test_hc_smdataparallel_mnist(ecr_image, sagemaker_regions, efa_instance_type, tmpdir):
@@ -223,16 +258,16 @@ def test_hc_smdataparallel_mnist(ecr_image, sagemaker_regions, efa_instance_type
         )
 
 
+@pytest.mark.skip_smddataparallel_test
+@pytest.mark.skip_smdmodelparallel_test
+@pytest.mark.skip_cpu
+@pytest.mark.skip_trcomp_containers
 @pytest.mark.usefixtures("feature_smmp_present")
 @pytest.mark.usefixtures("feature_smddp_present")
 @pytest.mark.processor("gpu")
-@pytest.mark.skip_cpu
-@pytest.mark.skip_trcomp_containers
-@pytest.mark.skip_pt21_test
 @pytest.mark.integration("smdataparallel_smmodelparallel")
 @pytest.mark.model("mnist")
 @pytest.mark.parametrize("instance_types", ["ml.p3.16xlarge"])
-@pytest.mark.skip_pt20_cuda121_tests
 @pytest.mark.team("smdataparallel")
 def test_smmodelparallel_smdataparallel_mnist(
     instance_types, ecr_image, sagemaker_regions, py_version, tmpdir

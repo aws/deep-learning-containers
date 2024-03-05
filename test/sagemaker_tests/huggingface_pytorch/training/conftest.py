@@ -120,6 +120,30 @@ def pytest_addoption(parser):
 
 def pytest_configure(config):
     config.addinivalue_line("markers", "efa(): explicitly mark to run efa tests")
+    config.addinivalue_line("markers", "deploy_test(): mark to run deploy tests")
+    config.addinivalue_line("markers", "skip_test_in_region(): mark to skip test in some regions")
+    config.addinivalue_line("markers", "skip_py2_containers(): skip testing py2 containers")
+    config.addinivalue_line("markers", "model(): note the model being tested")
+    config.addinivalue_line("markers", "integration(): note the feature being tested")
+    config.addinivalue_line("markers", "skip_cpu(): skip cpu images on test")
+    config.addinivalue_line("markers", "skip_gpu(): skip gpu images on test")
+    config.addinivalue_line("markers", "gpu_test(): only test gpu images")
+    config.addinivalue_line("markers", "skip_unless_tlr_supported(): skip unless tlr supported")
+    config.addinivalue_line("markers", "multinode(): mark as multi-node test")
+    config.addinivalue_line("markers", "processor(): note the processor type being tested")
+    config.addinivalue_line("markers", "team(): note the team responsible for the test")
+    config.addinivalue_line("markers", "skip_trcomp_containers(): skip trcomp images on test")
+    config.addinivalue_line(
+        "markers", "skip_huggingface_containers(): skip huggingface images on test"
+    )
+    config.addinivalue_line(
+        "markers", "skip_inductor_test(): skip inductor test on incompatible images"
+    )
+    config.addinivalue_line(
+        "markers", "skip_s3plugin_test(): skip s3plugin test on incompatible images"
+    )
+    config.addinivalue_line("markers", "neuronx_test(): mark as neuronx image test")
+    config.addinivalue_line("markers", "gdrcopy(): mark as gdrcopy integration test")
 
 
 def pytest_runtest_setup(item):
@@ -130,6 +154,14 @@ def pytest_runtest_setup(item):
 
 
 def pytest_collection_modifyitems(session, config, items):
+    for item in items:
+        print(f"item {item}")
+        for marker in item.iter_markers(name="team"):
+            print(f"item {marker}")
+            team_name = marker.args[0]
+            item.user_properties.append(("team_marker", team_name))
+            print(f"item.user_properties {item.user_properties}")
+
     if config.getoption("--generate-coverage-doc"):
         from test.test_utils.test_reporting import TestReportGenerator
 
