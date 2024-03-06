@@ -955,7 +955,8 @@
                 "54718": "Fix for issue available in torch version 1.13.1",
                 "51499": "Fix for issue contained in Wheel 0.38.1",
                 "62894": "for scipy-1.10.1 which is a hardcoded dependency of sagemaker-pytorch-inference",
-                "65213": "for shipping pyopenssl>=22.0.0 - no current fix"
+                "65213": "for shipping pyopenssl>=22.0.0 - no current fix",
+                "65345": "for shipping torchserve==0.8.2, torchserve should skip 0.9.0 and wait for 0.10.0"
             }
         },
         "inference-eia": {

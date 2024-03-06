@@ -94,8 +94,13 @@ def test_mnist_distributed_graviton_inductor(
 def test_mnist_distributed_gpu_inductor(
     framework_version, ecr_image, instance_type, sagemaker_regions
 ):
-    if Version(framework_version) in SpecifierSet("<2.0"):
-        pytest.skip("skip the test as torch.compile only supported after 2.0")
+    if Version(framework_version) in SpecifierSet("<2.0") or Version(
+        framework_version
+    ) in SpecifierSet("==2.2.0"):
+        pytest.skip(
+            f"skip the test as torch.compile only supported after 2.0"
+            f"skip PyTorch 2.2.0 due to https://github.com/pytorch/pytorch/pull/119750"
+        )
     if "graviton" in ecr_image:
         pytest.skip("skip the graviton test for GPU instance types")
     model_dir = os.path.join(model_cpu_dir, "model_mnist_inductor.tar.gz")
