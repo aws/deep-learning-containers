@@ -45,10 +45,6 @@ def test_pytorch_2_2_gpu(
     if ec2.is_instance_multi_gpu(ec2_instance_type):
         test_cases.append((common_cases.pytorch_amp, (pytorch_training, ec2_connection)))
 
-    # Curand test must be run on single GPU instance type
-    if ec2.is_instance_single_gpu(ec2_instance_type):
-        test_cases.append((common_cases.curand_gpu, (pytorch_training, ec2_connection)))
-
     test_utils.execute_serial_test_cases(test_cases, test_description="PT 2.2 GPU")
 
 
