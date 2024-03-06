@@ -24,39 +24,34 @@ def test_pytorch_2_2_gpu(
             f"Image {pytorch_training} is incompatible with instance type {ec2_instance_type}"
         )
 
-    # test_cases = [
-    #     (common_cases.pytorch_standalone, (pytorch_training, ec2_connection)),
-    #     (common_cases.pytorch_train_mnist, (pytorch_training, ec2_connection)),
-    #     (common_cases.pytorch_linear_regression_gpu, (pytorch_training, ec2_connection)),
-    #     (common_cases.pytorch_gloo, (pytorch_training, ec2_connection)),
-    #     (common_cases.pytorch_nccl, (pytorch_training, ec2_connection)),
-    #     (common_cases.pytorch_mpi, (pytorch_training, ec2_connection)),
-    #     (common_cases.nvapex, (pytorch_training, ec2_connection)),
-    #     (common_cases.pytorch_training_torchaudio, (pytorch_training, ec2_connection)),
-    #     (common_cases.pytorch_cudnn_match_gpu, (pytorch_training, ec2_connection, region)),
-    # ]
+    test_cases = [
+        (common_cases.pytorch_standalone, (pytorch_training, ec2_connection)),
+        (common_cases.pytorch_train_mnist, (pytorch_training, ec2_connection)),
+        (common_cases.pytorch_linear_regression_gpu, (pytorch_training, ec2_connection)),
+        (common_cases.pytorch_gloo, (pytorch_training, ec2_connection)),
+        (common_cases.pytorch_nccl, (pytorch_training, ec2_connection)),
+        (common_cases.pytorch_mpi, (pytorch_training, ec2_connection)),
+        (common_cases.nvapex, (pytorch_training, ec2_connection)),
+        (common_cases.pytorch_training_torchaudio, (pytorch_training, ec2_connection)),
+        (common_cases.pytorch_cudnn_match_gpu, (pytorch_training, ec2_connection, region)),
+    ]
 
-    # if "sagemaker" in pytorch_training:
-    #     test_cases.append(
-    #         (smclarify_cases.smclarify_metrics_gpu, (pytorch_training, ec2_connection)),
-    #     )
+    if "sagemaker" in pytorch_training:
+        test_cases.append(
+            (smclarify_cases.smclarify_metrics_gpu, (pytorch_training, ec2_connection)),
+        )
 
-    # # AMP must be run on multi_gpu
-    # if ec2.is_instance_multi_gpu(ec2_instance_type):
-    #     test_cases.append((common_cases.pytorch_amp, (pytorch_training, ec2_connection)))
+    # AMP must be run on multi_gpu
+    if ec2.is_instance_multi_gpu(ec2_instance_type):
+        test_cases.append((common_cases.pytorch_amp, (pytorch_training, ec2_connection)))
 
-    # # Curand test must be run on single GPU instance type
-    # if ec2.is_instance_single_gpu(ec2_instance_type):
-    #     test_cases.append((common_cases.curand_gpu, (pytorch_training, ec2_connection)))
-
-    # TODO: Remove temp change to test rerun logic
-    test_cases = [(common_cases.pytorch_amp, (pytorch_training, ec2_connection))]
+    # Curand test must be run on single GPU instance type
+    if ec2.is_instance_single_gpu(ec2_instance_type):
+        test_cases.append((common_cases.curand_gpu, (pytorch_training, ec2_connection)))
 
     test_utils.execute_serial_test_cases(test_cases, test_description="PT 2.2 GPU")
 
 
-# TODO: Remove temp skip
-@pytest.mark.skip()
 @pytest.mark.usefixtures("sagemaker")
 @pytest.mark.integration("all PT 2.2 tests")
 @pytest.mark.model("N/A")
@@ -85,8 +80,6 @@ def test_pytorch_2_2_gpu_inductor(
     test_utils.execute_serial_test_cases(test_cases, test_description="PT 2.2 GPU")
 
 
-# TODO: Remove temp skip
-@pytest.mark.skip()
 @pytest.mark.usefixtures("sagemaker")
 @pytest.mark.integration("pytorch_sanity_test")
 @pytest.mark.model("N/A")
