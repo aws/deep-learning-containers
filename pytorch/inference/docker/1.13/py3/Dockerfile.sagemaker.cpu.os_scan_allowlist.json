@@ -1,0 +1,62 @@
+{
+    "linux": [
+        {
+            "description": "\n It was discovered that a race condition existed in the ATM (Asynchronous\n Transfer Mode) subsystem of the Linux kernel, leading to a use-after-free\n vulnerability. A local attacker could use this to cause a denial of service\n (system crash) or possibly execute arbitrary code.",
+            "vulnerability_id": "CVE-2023-51780",
+            "name": "CVE-2023-51780",
+            "package_name": "linux",
+            "package_details": {
+                "file_path": null,
+                "name": "linux",
+                "package_manager": "OS",
+                "version": "5.4.0",
+                "release": "172.190"
+            },
+            "remediation": {
+                "recommendation": {
+                    "text": "None Provided"
+                }
+            },
+            "cvss_v3_score": 7.0,
+            "cvss_v30_score": 0.0,
+            "cvss_v31_score": 7.0,
+            "cvss_v2_score": 0.0,
+            "cvss_v3_severity": "HIGH",
+            "source_url": "https://people.canonical.com/~ubuntu-security/cve/2023/CVE-2023-51780.html",
+            "source": "UBUNTU_CVE",
+            "severity": "HIGH",
+            "status": "ACTIVE",
+            "title": "CVE-2023-51780 - linux",
+            "reason_to_ignore": "Package and its binaries cannot be upgraded further. Packages: linux-libc-dev have been upgraded."
+        },
+        {
+            "description": "\n It was discovered that a race condition existed in the Rose X.25 protocol\n implementation in the Linux kernel, leading to a use-after- free\n vulnerability. A local attacker could use this to cause a denial of service\n (system crash) or possibly execute arbitrary code.",
+            "vulnerability_id": "CVE-2023-51782",
+            "name": "CVE-2023-51782",
+            "package_name": "linux",
+            "package_details": {
+                "file_path": null,
+                "name": "linux",
+                "package_manager": "OS",
+                "version": "5.4.0",
+                "release": "172.190"
+            },
+            "remediation": {
+                "recommendation": {
+                    "text": "None Provided"
+                }
+            },
+            "cvss_v3_score": 7.0,
+            "cvss_v30_score": 0.0,
+            "cvss_v31_score": 7.0,
+            "cvss_v2_score": 0.0,
+            "cvss_v3_severity": "HIGH",
+            "source_url": "https://people.canonical.com/~ubuntu-security/cve/2023/CVE-2023-51782.html",
+            "source": "UBUNTU_CVE",
+            "severity": "HIGH",
+            "status": "ACTIVE",
+            "title": "CVE-2023-51782 - linux",
+            "reason_to_ignore": "Package and its binaries cannot be upgraded further. Packages: linux-libc-dev have been upgraded."
+        }
+    ]
+}

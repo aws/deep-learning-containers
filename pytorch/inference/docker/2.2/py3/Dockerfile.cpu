@@ -122,6 +122,7 @@ RUN curl -L -o ~/miniforge3.sh https://github.com/conda-forge/miniforge/releases
     mkl-include \
     parso \
     scipy \
+    numpy \
     typing \
     h5py \
     requests \
@@ -170,7 +171,6 @@ RUN pip install --no-cache-dir -U \
 # -> Numpy is higer version as required by torch
 RUN pip install --no-cache-dir -U -r https://raw.githubusercontent.com/pytorch/serve/v${TORCHSERVE_VERSION}/requirements/common.txt \
  && pip install --no-cache-dir -U \
-    "numpy>=1.22.2,<1.23" \
     torchserve==${TORCHSERVE_VERSION} \
     torch-model-archiver==${TORCHSERVE_VERSION}
 
