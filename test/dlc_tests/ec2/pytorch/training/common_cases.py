@@ -16,15 +16,14 @@ from test.test_utils.ec2 import (
     get_efa_ec2_instance_type,
 )
 
-
+# Test functions
 PT_STANDALONE_CMD = os.path.join(CONTAINER_TESTS_PREFIX, "pytorch_tests", "testPyTorchStandalone")
+CURAND_CMD = os.path.join(CONTAINER_TESTS_PREFIX, "testCurand")
 PT_MNIST_CMD = os.path.join(CONTAINER_TESTS_PREFIX, "pytorch_tests", "testPyTorch")
 PT_REGRESSION_CMD = os.path.join(CONTAINER_TESTS_PREFIX, "pytorch_tests", "testPyTorchRegression")
 PT_REGRESSION_CMD_REVISED = os.path.join(
     CONTAINER_TESTS_PREFIX, "pytorch_tests", "testPyTorchRegressionRevised"
 )
-PT_DCGM_TEST_CMD = os.path.join(CONTAINER_TESTS_PREFIX, "healthcheck_tests", "dcgm_test.sh")
-PT_NCCL_LOCAL_TEST_CMD = os.path.join(CONTAINER_TESTS_PREFIX, "healthcheck_tests", "nccl_test.sh")
 PT_DGL_CMD = os.path.join(CONTAINER_TESTS_PREFIX, "dgl_tests", "testPyTorchDGL")
 PT_APEX_CMD = os.path.join(CONTAINER_TESTS_PREFIX, "pytorch_tests", "testNVApex")
 PT_AMP_CMD = os.path.join(CONTAINER_TESTS_PREFIX, "pytorch_tests", "testPyTorchAMP")
@@ -34,49 +33,18 @@ PT_AMP_INDUCTOR_CMD = os.path.join(
 PT_TELEMETRY_CMD = os.path.join(
     CONTAINER_TESTS_PREFIX, "pytorch_tests", "test_pt_dlc_telemetry_test"
 )
-PT_S3_PLUGIN_CMD = os.path.join(CONTAINER_TESTS_PREFIX, "pytorch_tests", "testPyTorchS3Plugin")
-PT_HABANA_TEST_SUITE_CMD = os.path.join(CONTAINER_TESTS_PREFIX, "testHabanaPTSuite")
 PT_TORCHAUDIO_CMD = os.path.join(CONTAINER_TESTS_PREFIX, "pytorch_tests", "testTorchaudio")
 PT_TORCHDATA_CMD = os.path.join(CONTAINER_TESTS_PREFIX, "pytorch_tests", "testTorchdata")
-PT_NEURON_ALLREDUCE_SCRIPT = os.path.join(
-    CONTAINER_TESTS_PREFIX, "pytorch_tests", "testNeuronSingleAllReduce"
-)
-PT_NEURON_MNIST_SCRIPT = os.path.join(CONTAINER_TESTS_PREFIX, "pytorch_tests", "testNeuronMlp")
-PT_NEURON_ALLREDUCE_CMD = f"torchrun --nproc_per_node=2 --nnodes=1 --node_rank=0 --master_addr=localhost --master_port=2022 {PT_NEURON_ALLREDUCE_SCRIPT}"
-PT_NEURON_MLP_CMD = f"torchrun --nproc_per_node=2 --nnodes=1 --node_rank=0 --master_addr=localhost --master_port=2022 {PT_NEURON_MNIST_SCRIPT}"
-PT_TORCHDATA_DEV_CMD = os.path.join(CONTAINER_TESTS_PREFIX, "pytorch_tests", "testTorchdataDev")
 
-PT_INDUCTOR_TEST_INSTANCE_TYPE = get_ec2_instance_type(
-    default="g4dn.12xlarge", processor="gpu", filter_function=ec2_utils.filter_non_g3_instance_type
-)
-PT_EC2_GPU_INSTANCE_TYPE = get_ec2_instance_type(default="g4dn.12xlarge", processor="gpu")
-PT_EC2_MULTI_GPU_NO_G_INSTANCE_TYPE = get_ec2_instance_type(
-    default="p3.8xlarge",
-    processor="gpu",
-    filter_function=ec2_utils.filter_only_multi_gpu_and_no_g_type,
-)
+# Instance type filters
 PT_EC2_CPU_INSTANCE_TYPE = get_ec2_instance_type(default="c5.9xlarge", processor="cpu")
-PT_EC2_SINGLE_GPU_INSTANCE_TYPE = get_ec2_instance_type(
-    default="p3.2xlarge",
-    processor="gpu",
-    filter_function=ec2_utils.filter_only_single_gpu,
-)
-PT_EC2_MULTI_GPU_INSTANCE_TYPE = get_ec2_instance_type(
-    default="g3.8xlarge",
-    processor="gpu",
-    filter_function=ec2_utils.filter_only_multi_gpu,
-)
-PT_EC2_HPU_INSTANCE_TYPE = get_ec2_instance_type(default="dl1.24xlarge", processor="hpu")
-PT_EC2_NEURON_TRN1_INSTANCE_TYPE = get_ec2_instance_type(
-    default="trn1.2xlarge", processor="neuronx", job_type="training"
-)
-PT_EC2_NEURON_INF2_INSTANCE_TYPE = get_ec2_instance_type(
-    default="inf2.xlarge", processor="neuronx", job_type="training"
+
+PT_EC2_GPU_INSTANCE_TYPE_AND_REGION = get_efa_ec2_instance_type(
+    default="p3.2xlarge", processor="gpu"
 )
 
-PT_EC2_EFA_GPU_INSTANCE_TYPE_AND_REGION = get_efa_ec2_instance_type(
-    default="p4d.24xlarge",
-    filter_function=ec2_utils.filter_efa_instance_type,
+PT_EC2_GPU_INDUCTOR_INSTANCE_TYPE_AND_REGION = get_efa_ec2_instance_type(
+    default="g4dn.12xlarge", processor="gpu", filter_function=ec2_utils.filter_non_g3_instance_type
 )
 
 
@@ -277,3 +245,7 @@ def pytorch_telemetry_cpu(pytorch_training, ec2_connection):
     execute_ec2_training_test(
         ec2_connection, pytorch_training, PT_TELEMETRY_CMD, timeout=900, container_name="telemetry"
     )
+
+
+def curand_gpu(training, ec2_connection):
+    execute_ec2_training_test(ec2_connection, training, CURAND_CMD)

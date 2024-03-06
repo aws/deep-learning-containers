@@ -39,6 +39,7 @@ from test.test_utils import (
     KEYS_TO_DESTROY_FILE,
     are_efa_tests_disabled,
     get_repository_and_tag_from_image_uri,
+    get_ecr_repo_name,
     UBUNTU_HOME_DIR,
     NightlyFeatureLabel,
 )
@@ -1569,13 +1570,14 @@ def lookup_condition(lookup, image):
     Return true if the ECR repo name ends with the lookup or lookup contains job type or device type part of the image uri.
     """
     # Extract ecr repo name from the image and check if it exactly matches the lookup (fixture name)
-    repo_name, tag = get_repository_and_tag_from_image_uri(image)
-
-    generic_repo_tag = f"{repo_name}:{tag}".replace("pr-", "").replace("beta-", "")
+    repo_name = get_ecr_repo_name(image)
 
     # If lookup includes tag, check that we match beginning of string
-    if ":" in lookup and re.match(rf"^{lookup}", generic_repo_tag):
-        return True
+    if ":" in lookup:
+        _, tag = get_repository_and_tag_from_image_uri(image)
+        generic_repo_tag = f"{repo_name}:{tag}".replace("pr-", "").replace("beta-", "")
+        if re.match(rf"^{lookup}", generic_repo_tag):
+            return True
 
     job_types = (
         "training",

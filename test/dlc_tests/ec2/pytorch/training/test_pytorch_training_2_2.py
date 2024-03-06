@@ -2,6 +2,8 @@ import pytest
 
 import test.test_utils as test_utils
 
+from test.test_utils import ec2
+
 from test.dlc_tests.ec2.pytorch.training import common_cases
 from test.dlc_tests.ec2 import smclarify_cases
 
@@ -10,7 +12,9 @@ from test.dlc_tests.ec2 import smclarify_cases
 @pytest.mark.integration("all PT 2.2 tests")
 @pytest.mark.model("N/A")
 @pytest.mark.team("conda")
-@pytest.mark.parametrize("ec2_instance_type", common_cases.PT_EC2_GPU_INSTANCE_TYPE, indirect=True)
+@pytest.mark.parametrize(
+    "ec2_instance_type, region", common_cases.PT_EC2_GPU_INSTANCE_TYPE_AND_REGION, indirect=True
+)
 def test_pytorch_2_2_gpu(
     pytorch_training___2__2, ec2_connection, region, gpu_only, ec2_instance_type
 ):
@@ -19,6 +23,9 @@ def test_pytorch_2_2_gpu(
         pytest.skip(
             f"Image {pytorch_training} is incompatible with instance type {ec2_instance_type}"
         )
+
+    # Pull the image to get accurate test times
+    ec2_connection.run(f"docker pull {pytorch_training}", hide="out")
 
     test_cases = [
         (common_cases.pytorch_standalone, (pytorch_training, ec2_connection)),
@@ -38,6 +45,11 @@ def test_pytorch_2_2_gpu(
         test_cases += [
             (smclarify_cases.smclarify_metrics_gpu, (pytorch_training, ec2_connection)),
         ]
+
+    # Curand test must be run on single GPU instance type
+    if ec2.is_instance_single_gpu(ec2_instance_type):
+        test_cases.append((common_cases.curand_gpu, (pytorch_training, ec2_connection)))
+
     test_utils.execute_serial_test_cases(test_cases, test_description="PT 2.2 GPU")
 
 
@@ -46,16 +58,21 @@ def test_pytorch_2_2_gpu(
 @pytest.mark.model("N/A")
 @pytest.mark.team("training-compiler")
 @pytest.mark.parametrize(
-    "ec2_instance_type", common_cases.PT_INDUCTOR_TEST_INSTANCE_TYPE, indirect=True
+    "ec2_instance_type, region",
+    common_cases.PT_EC2_GPU_INDUCTOR_INSTANCE_TYPE_AND_REGION,
+    indirect=True,
 )
 def test_pytorch_2_2_gpu_inductor(
-    pytorch_training___2__2, ec2_connection, gpu_only, ec2_instance_type
+    pytorch_training___2__2, ec2_connection, region, gpu_only, ec2_instance_type
 ):
     pytorch_training = pytorch_training___2__2
     if test_utils.is_image_incompatible_with_instance_type(pytorch_training, ec2_instance_type):
         pytest.skip(
             f"Image {pytorch_training} is incompatible with instance type {ec2_instance_type}"
         )
+
+    # Pull the image to get accurate test times
+    ec2_connection.run(f"docker pull {pytorch_training}", hide="out")
 
     test_cases = [
         (common_cases.pytorch_gloo_inductor_gpu, (pytorch_training, ec2_connection)),
@@ -74,6 +91,10 @@ def test_pytorch_2_2_gpu_inductor(
 @pytest.mark.parametrize("ec2_instance_type", common_cases.PT_EC2_CPU_INSTANCE_TYPE, indirect=True)
 def test_pytorch_2_2_cpu(pytorch_training___2__2, ec2_connection, cpu_only):
     pytorch_training = pytorch_training___2__2
+
+    # Pull the image to get accurate test times
+    ec2_connection.run(f"docker pull {pytorch_training}", hide="out")
+
     test_cases = [
         (common_cases.pytorch_standalone, (pytorch_training, ec2_connection)),
         (common_cases.pytorch_train_mnist, (pytorch_training, ec2_connection)),
