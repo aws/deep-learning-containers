@@ -9,7 +9,6 @@ import test.test_utils.ec2 as ec2_utils
 from test.test_utils import (
     CONTAINER_TESTS_PREFIX,
     is_pr_context,
-    is_efa_dedicated,
     get_framework_and_version_from_tag,
     get_cuda_version_from_tag,
     are_heavy_instance_ec2_tests_enabled,

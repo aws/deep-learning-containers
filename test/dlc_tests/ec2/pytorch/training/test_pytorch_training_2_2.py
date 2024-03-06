@@ -32,15 +32,18 @@ def test_pytorch_2_2_gpu(
         (common_cases.pytorch_nccl, (pytorch_training, ec2_connection)),
         (common_cases.pytorch_mpi, (pytorch_training, ec2_connection)),
         (common_cases.nvapex, (pytorch_training, ec2_connection)),
-        (common_cases.pytorch_amp, (pytorch_training, ec2_connection)),
         (common_cases.pytorch_training_torchaudio, (pytorch_training, ec2_connection)),
         (common_cases.pytorch_cudnn_match_gpu, (pytorch_training, ec2_connection, region)),
     ]
 
     if "sagemaker" in pytorch_training:
-        test_cases += [
+        test_cases.append(
             (smclarify_cases.smclarify_metrics_gpu, (pytorch_training, ec2_connection)),
-        ]
+        )
+
+    # AMP must be run on multi_gpu
+    if ec2.is_instance_multi_gpu(ec2_instance_type):
+        test_cases.append((common_cases.pytorch_amp, (pytorch_training, ec2_connection)))
 
     # Curand test must be run on single GPU instance type
     if ec2.is_instance_single_gpu(ec2_instance_type):

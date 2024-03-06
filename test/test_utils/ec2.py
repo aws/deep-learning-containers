@@ -77,6 +77,10 @@ def is_instance_single_gpu(instance_type):
     return get_instance_num_gpus(instance_type=instance_type) == 1
 
 
+def is_instance_multi_gpu(instance_type):
+    return get_instance_num_gpus(instance_type=instance_type) > 1
+
+
 def filter_not_heavy_instance_types(instance_type_list):
     filtered_list = [
         instance_type
