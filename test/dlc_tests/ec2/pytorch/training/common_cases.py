@@ -39,7 +39,7 @@ PT_TORCHDATA_CMD = os.path.join(CONTAINER_TESTS_PREFIX, "pytorch_tests", "testTo
 # Instance type filters
 PT_EC2_CPU_INSTANCE_TYPE = get_ec2_instance_type(default="c5.9xlarge", processor="cpu")
 
-PT_EC2_GPU_INSTANCE_TYPE_AND_REGION = get_efa_ec2_instance_type(default="p3.2xlarge")
+PT_EC2_GPU_INSTANCE_TYPE_AND_REGION = get_efa_ec2_instance_type(default="g4dn.8xlarge")
 
 PT_EC2_GPU_INDUCTOR_INSTANCE_TYPE_AND_REGION = get_efa_ec2_instance_type(
     default="g4dn.12xlarge", filter_function=ec2_utils.filter_non_g3_instance_type

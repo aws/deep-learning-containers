@@ -1573,7 +1573,7 @@ def lookup_condition(lookup, image):
     repo_name = get_ecr_repo_name(image)
 
     # If lookup includes tag, check that we match beginning of string
-    if ":" in lookup:
+    if ":" in lookup and ":" in image:
         _, tag = get_repository_and_tag_from_image_uri(image)
         generic_repo_tag = f"{repo_name}:{tag}".replace("pr-", "").replace("beta-", "")
         if re.match(rf"^{lookup}", generic_repo_tag):

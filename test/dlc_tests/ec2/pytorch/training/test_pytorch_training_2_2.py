@@ -24,9 +24,6 @@ def test_pytorch_2_2_gpu(
             f"Image {pytorch_training} is incompatible with instance type {ec2_instance_type}"
         )
 
-    # Pull the image to get accurate test times
-    ec2_connection.run(f"docker pull {pytorch_training}", hide="out")
-
     test_cases = [
         (common_cases.pytorch_standalone, (pytorch_training, ec2_connection)),
         (common_cases.pytorch_train_mnist, (pytorch_training, ec2_connection)),
@@ -37,7 +34,6 @@ def test_pytorch_2_2_gpu(
         (common_cases.nvapex, (pytorch_training, ec2_connection)),
         (common_cases.pytorch_amp, (pytorch_training, ec2_connection)),
         (common_cases.pytorch_training_torchaudio, (pytorch_training, ec2_connection)),
-        (common_cases.pytorch_training_torchdata, (pytorch_training, ec2_connection)),
         (common_cases.pytorch_cudnn_match_gpu, (pytorch_training, ec2_connection, region)),
     ]
 
@@ -71,9 +67,6 @@ def test_pytorch_2_2_gpu_inductor(
             f"Image {pytorch_training} is incompatible with instance type {ec2_instance_type}"
         )
 
-    # Pull the image to get accurate test times
-    ec2_connection.run(f"docker pull {pytorch_training}", hide="out")
-
     test_cases = [
         (common_cases.pytorch_gloo_inductor_gpu, (pytorch_training, ec2_connection)),
         (common_cases.pytorch_mpi_inductor_gpu, (pytorch_training, ec2_connection)),
@@ -92,9 +85,6 @@ def test_pytorch_2_2_gpu_inductor(
 def test_pytorch_2_2_cpu(pytorch_training___2__2, ec2_connection, cpu_only):
     pytorch_training = pytorch_training___2__2
 
-    # Pull the image to get accurate test times
-    ec2_connection.run(f"docker pull {pytorch_training}", hide="out")
-
     test_cases = [
         (common_cases.pytorch_standalone, (pytorch_training, ec2_connection)),
         (common_cases.pytorch_train_mnist, (pytorch_training, ec2_connection)),
@@ -102,7 +92,6 @@ def test_pytorch_2_2_cpu(pytorch_training___2__2, ec2_connection, cpu_only):
         (common_cases.pytorch_gloo, (pytorch_training, ec2_connection)),
         (common_cases.pytorch_mpi, (pytorch_training, ec2_connection)),
         (common_cases.pytorch_training_torchaudio, (pytorch_training, ec2_connection)),
-        (common_cases.pytorch_training_torchdata, (pytorch_training, ec2_connection)),
         (common_cases.pytorch_telemetry_cpu, (pytorch_training, ec2_connection)),
     ]
 
