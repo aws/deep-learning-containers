@@ -38,6 +38,7 @@ from test.test_utils import (
     AML2_BASE_DLAMI_US_EAST_1,
     KEYS_TO_DESTROY_FILE,
     are_efa_tests_disabled,
+    get_repository_and_tag_from_image_uri,
     get_ecr_repo_name,
     UBUNTU_HOME_DIR,
     NightlyFeatureLabel,
@@ -54,6 +55,10 @@ FRAMEWORK_FIXTURES = (
     # ECR repo name fixtures
     # PyTorch
     "pytorch_training",
+    "pytorch_training___2__2",
+    "pytorch_training___2__1",
+    "pytorch_training___2__0",
+    "pytorch_training___1__3",
     "pytorch_training_habana",
     "pytorch_inference",
     "pytorch_inference_eia",
@@ -1390,7 +1395,6 @@ def pytest_configure(config):
         "markers", "integration(ml_integration): mark what the test is testing."
     )
     config.addinivalue_line("markers", "model(model_name): name of the model being tested")
-    config.addinivalue_line("markers", "team(team_name): name of the model being tested")
     config.addinivalue_line(
         "markers", "multinode(num_instances): number of instances the test is run on, if not 1"
     )
@@ -1568,6 +1572,13 @@ def lookup_condition(lookup, image):
     # Extract ecr repo name from the image and check if it exactly matches the lookup (fixture name)
     repo_name = get_ecr_repo_name(image)
 
+    # If lookup includes tag, check that we match beginning of string
+    if ":" in lookup and ":" in image:
+        _, tag = get_repository_and_tag_from_image_uri(image)
+        generic_repo_tag = f"{repo_name}:{tag}".replace("pr-", "").replace("beta-", "")
+        if re.match(rf"^{lookup}", generic_repo_tag):
+            return True
+
     job_types = (
         "training",
         "inference",
@@ -1601,7 +1612,7 @@ def pytest_generate_tests(metafunc):
     # Parametrize framework specific tests
     for fixture in FRAMEWORK_FIXTURES:
         if fixture in metafunc.fixturenames:
-            lookup = fixture.replace("_", "-")
+            lookup = fixture.replace("___", ":").replace("__", ".").replace("_", "-")
             images_to_parametrize = []
             for image in images:
                 if lookup_condition(lookup, image):

@@ -5,6 +5,7 @@ import re
 import subprocess
 import sys
 import time
+import pprint
 
 from enum import Enum
 
@@ -19,7 +20,7 @@ from invoke import run
 from invoke.context import Context
 from packaging.version import InvalidVersion, Version, parse
 from packaging.specifiers import SpecifierSet
-from datetime import date, datetime
+from datetime import date, datetime, timedelta
 from retrying import retry
 from pathlib import Path
 import dataclasses
@@ -264,6 +265,14 @@ class DockerImagePullException(Exception):
     pass
 
 
+class SerialTestCaseExecutorException(Exception):
+    """
+    Raise for execute_serial_test_cases function
+    """
+
+    pass
+
+
 class EnhancedJSONEncoder(json.JSONEncoder):
     """
     EnhancedJSONEncoder is required to dump dataclass objects as JSON.
@@ -275,6 +284,52 @@ class EnhancedJSONEncoder(json.JSONEncoder):
         if isinstance(o, (datetime, date)):
             return o.isoformat()
         return super().default(o)
+
+
+def execute_serial_test_cases(test_cases, test_description="test"):
+    """
+    Helper function to execute tests in serial
+
+    Args:
+        test_cases (List): list of test cases, formatted as [(test_fn, (fn_arg1, fn_arg2 ..., fn_argN))]
+        test_description (str, optional): Describe test for custom error message. Defaults to "test".
+        bins (int, optional): If interested in optimizing the test across bins, use this feature
+    """
+    exceptions = []
+    logging_stack = []
+    times = {}
+    for fn, args in test_cases:
+        log_stack = []
+        fn_name = fn.__name__
+        start_time = datetime.now()
+        log_stack.append(f"*********\nStarting {fn_name} at {start_time}\n")
+        try:
+            fn(*args)
+            end_time = datetime.now()
+            log_stack.append(f"\nEnding {fn_name} at {end_time}\n")
+        except Exception as e:
+            exceptions.append(f"{fn_name} FAILED WITH {type(e).__name__}:\n{e}")
+            end_time = datetime.now()
+            log_stack.append(f"\nFailing {fn_name} at {end_time}\n")
+        finally:
+            log_stack.append(
+                f"Total execution time for {fn_name} {end_time - start_time}\n*********"
+            )
+            times[fn_name] = end_time - start_time
+            logging_stack.append(log_stack)
+
+    # Save logging to the end, as there may be other conccurent jobs
+    for log_case in logging_stack:
+        for line in log_case:
+            LOGGER.info(line)
+
+    pretty_times = pprint.pformat(times)
+    LOGGER.info(pretty_times)
+
+    if exceptions:
+        raise SerialTestCaseExecutorException(
+            f"Found {len(exceptions)} errors in {test_description}\n" + "\n\n".join(exceptions)
+        )
 
 
 def get_dockerfile_path_for_image(image_uri, python_version=None):
