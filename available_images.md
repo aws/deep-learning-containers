@@ -243,6 +243,7 @@ HuggingFace Neuron Inference Containers
 |------------------------------------------------------------------|-------------------|-----------|----------------------------|-----------------------|----------------------------------------------------------------------------------------------------------------------------------------------|
 |PyTorch 1.10.2 with Neuron Inference and HuggingFace transformers |Neuron 1.19.1      |inference  |inf1                        |3.7 (py37)             |763104351884.dkr.ecr.us-east-1.amazonaws.com/huggingface-pytorch-inference-neuron:1.10.2-transformers4.20.1-neuron-py37-sdk1.19.1-ubuntu18.04 |
 |PyTorch 1.13.1 with NeuronX Inference and HuggingFace transformers |Neuron 2.15.0      |inference  |inf2/trn1                        |3.10 (py310)             |763104351884.dkr.ecr.us-east-1.amazonaws.com/huggingface-pytorch-inference-neuronx:1.13.1-transformers4.34.1-neuronx-py310-sdk2.15.0-ubuntu20.04 |
+|PyTorch 1.13.1 with NeuronX Inference and HuggingFace transformers |Neuron 2.16.1      |inference  |inf2/trn1                        |3.10 (py310)             |763104351884.dkr.ecr.us-west-2.amazonaws.com/huggingface-pytorch-inference-neuronx:1.13.1-transformers4.36.2-neuronx-py310-sdk2.16.1-ubuntu20.04 |
 
 HuggingFace Neuron Training Containers
 ===============================
