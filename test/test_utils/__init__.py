@@ -265,6 +265,14 @@ class DockerImagePullException(Exception):
     pass
 
 
+class SerialTestCaseExecutorException(Exception):
+    """
+    Raise for execute_serial_test_cases function
+    """
+
+    pass
+
+
 class EnhancedJSONEncoder(json.JSONEncoder):
     """
     EnhancedJSONEncoder is required to dump dataclass objects as JSON.
@@ -318,9 +326,10 @@ def execute_serial_test_cases(test_cases, test_description="test"):
     pretty_times = pprint.pformat(times)
     LOGGER.info(pretty_times)
 
-    assert not exceptions, f"Found {len(exceptions)} errors in {test_description}\n" + "\n\n".join(
-        exceptions
-    )
+    if exceptions:
+        raise SerialTestCaseExecutorException(
+            f"Found {len(exceptions)} errors in {test_description}\n" + "\n\n".join(exceptions)
+        )
 
 
 def get_dockerfile_path_for_image(image_uri, python_version=None):
