@@ -47,7 +47,7 @@ def can_run_pytorchddp(ecr_image):
 @pytest.mark.skip_trcomp_containers
 @pytest.mark.efa()
 @pytest.mark.team("conda")
-@pytest.mark.skip_smddataparallel_p5_test
+@pytest.mark.skip_smdataparallel_p5_tests
 def test_pytorchddp_throughput_gpu(
     framework_version, ecr_image, sagemaker_regions, efa_instance_type, tmpdir
 ):
