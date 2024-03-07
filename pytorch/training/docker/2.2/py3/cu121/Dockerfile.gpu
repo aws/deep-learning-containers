@@ -373,11 +373,16 @@ ARG GDRCOPY_VERSION
 
 # SageMaker Profiler Binary
 ARG SMP_URL=https://smppy.s3.amazonaws.com/pytorch/cu121/smprof-0.3.334-cp310-cp310-linux_x86_64.whl
-
+ARG SMD_DATA_PARALLEL_URL=https://smdataparallel.s3.amazonaws.com/binary/pytorch/2.2.0/cu121/2024-03-04/smdistributed_dataparallel-2.2.0-cp310-cp310-linux_x86_64.whl
 WORKDIR /
 
 # Install SageMaker Profiler Binary
 RUN pip install --no-cache-dir -U ${SMP_URL}
+
+# Install SM Distributed DataParallel binary
+RUN SMDATAPARALLEL_PT=1 pip install --no-cache-dir ${SMD_DATA_PARALLEL_URL}
+
+ENV LD_LIBRARY_PATH="/opt/conda/lib/python${PYTHON_SHORT_VERSION}/site-packages/smdistributed/dataparallel/lib:$LD_LIBRARY_PATH"
 
 # Install PyTorch
 RUN /opt/conda/bin/mamba install -y python=${PYTHON_SHORT_VERSION} pytorch=${PYTORCH_VERSION} \
