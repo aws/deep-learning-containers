@@ -962,7 +962,7 @@ def skip_p5_tests(request, ec2_instance_type):
         "image",
         "training",
         "pytorch_training",
-        "pytorch_training___*",
+        r"pytorch_training___\S+",
     )
     image_uri = None
 
@@ -972,7 +972,8 @@ def skip_p5_tests(request, ec2_instance_type):
             fixture_name = p5_fixture_stack.pop()
             if fixture_name in request.fixturenames:
                 image_uri = request.getfixturevalue(fixture_name)
-            elif "*" in fixture_name:
+            # Handle fixture names that include tag as regex
+            elif "___" in fixture_name:
                 regex = re.compile(fixture_name)
                 matches = list(filter(regex.match, request.fixturenames))
                 image_uri = request.getfixturevalue(matches[0]) if matches else None

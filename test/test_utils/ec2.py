@@ -298,12 +298,12 @@ def launch_instance(
     return response["Instances"][0]
 
 
-def get_available_reservation(ec2_client, instance_type):
+def get_available_reservation(ec2_client, instance_type, min_availability=1):
     reservations = ec2_client.describe_capacity_reservations()
     for reservation in reservations["CapacityReservations"]:
         if (
             reservation["InstanceType"] == instance_type
-            and reservation["AvailableInstanceCount"] > 0
+            and reservation["AvailableInstanceCount"] >= min_availability
         ):
             return reservation
     return None
@@ -380,7 +380,9 @@ def launch_efa_instances_with_retry(
     response = None
     region = ec2_client.meta.region_name
     reservation = get_available_reservation(
-        ec2_client, ec2_run_instances_definition["InstanceType"]
+        ec2_client,
+        ec2_run_instances_definition["InstanceType"],
+        min_availability=ec2_run_instances_definition["MinCount"],
     )
 
     # Try launching via reservation first
