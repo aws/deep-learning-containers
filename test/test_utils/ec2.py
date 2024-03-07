@@ -298,13 +298,24 @@ def launch_instance(
     return response["Instances"][0]
 
 
+def get_available_reservation(ec2_client, instance_type):
+    reservations = ec2_client.describe_capacity_reservations()
+    for reservation in reservations["CapacityReservations"]:
+        if (
+            reservation["InstanceType"] == instance_type
+            and reservation["AvailableInstanceCount"] > 0
+        ):
+            return reservation
+    return None
+
+
 @retry(
     reraise=True,
     stop=stop_after_delay(30 * 60),  # Keep retrying for 30 minutes
     wait=wait_random_exponential(min=60, max=5 * 60),  # Retry after waiting 1-5 minutes
 )
 def launch_instances_with_retry(
-    ec2_resource, availability_zone_options, ec2_create_instances_definition
+    ec2_resource, ec2_client, availability_zone_options, ec2_create_instances_definition
 ):
     """
     Helper function to launch EC2 instances with retry capability, to allow multiple attempts
@@ -315,8 +326,22 @@ def launch_instances_with_retry(
         ec2_resource.create_instances
     :return: list of EC2 Instance Resource objects for instances launched
     """
+
     instances = None
-    if availability_zone_options:
+    reservation = get_available_reservation(
+        ec2_client, ec2_create_instances_definition["InstanceType"]
+    )
+    # Look at available CRs first; AZ not required
+    if reservation:
+        ec2_create_instances_definition["CapacityReservationSpecification"] = {
+            "CapacityReservationTarget": {
+                "CapacityReservationId": reservation["CapacityReservationId"]
+            }
+        }
+        instances = ec2_resource.create_instances(**ec2_create_instances_definition)
+        LOGGER.info(f"Launched instance via {reservation}")
+
+    elif availability_zone_options:
         error = None
         for a_zone in availability_zone_options:
             ec2_create_instances_definition["Placement"] = {"AvailabilityZone": a_zone}
@@ -354,6 +379,30 @@ def launch_efa_instances_with_retry(
     """
     response = None
     region = ec2_client.meta.region_name
+    reservation = get_available_reservation(
+        ec2_client, ec2_run_instances_definition["InstanceType"]
+    )
+
+    # Try launching via reservation first
+    if reservation:
+        ec2_run_instances_definition["CapacityReservationSpecification"] = {
+            "CapacityReservationTarget": {
+                "CapacityReservationId": reservation["CapacityReservationId"]
+            }
+        }
+        ec2_run_instances_definition.update(
+            {
+                "Placement": {"AvailabilityZone": reservation["AvailabilityZone"]},
+                "NetworkInterfaces": generate_network_interfaces(
+                    ec2_client, ec2_instance_type, reservation["AvailabilityZone"]
+                ),
+            }
+        )
+        response = ec2_client.run_instances(**ec2_run_instances_definition)
+        if response and response["Instances"]:
+            LOGGER.info(f"Launched instance via {reservation}")
+            return response
+
     for availability_zone in availability_zone_options:
         ec2_run_instances_definition.update(
             {

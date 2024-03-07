@@ -693,6 +693,7 @@ def ec2_instance(
         ec2_resource=ec2_resource,
         availability_zone_options=availability_zone_options,
         ec2_create_instances_definition=params,
+        ec2_client=ec2_client,
     )
     instance_id = instances[0].id
 
@@ -971,8 +972,8 @@ def skip_p5_tests(request, ec2_instance_type):
             fixture_name = p5_fixture_stack.pop()
             if fixture_name in request.fixturenames:
                 image_uri = request.getfixturevalue(fixture_name)
-            elif "*" in p5_fixture_stack:
-                regex = re.compile(p5_fixture_stack)
+            elif "*" in fixture_name:
+                regex = re.compile(fixture_name)
                 matches = list(filter(regex.match, request.fixturenames))
                 image_uri = request.getfixturevalue(matches[0]) if matches else None
 
