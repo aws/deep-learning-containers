@@ -379,11 +379,6 @@ WORKDIR /
 # Install SageMaker Profiler Binary
 RUN pip install --no-cache-dir -U ${SMP_URL}
 
-# Install SM Distributed DataParallel binary
-RUN SMDATAPARALLEL_PT=1 pip install --no-cache-dir ${SMD_DATA_PARALLEL_URL}
-
-ENV LD_LIBRARY_PATH="/opt/conda/lib/python${PYTHON_SHORT_VERSION}/site-packages/smdistributed/dataparallel/lib:$LD_LIBRARY_PATH"
-
 # Install PyTorch
 RUN /opt/conda/bin/mamba install -y python=${PYTHON_SHORT_VERSION} pytorch=${PYTORCH_VERSION} \
   pytorch-cuda=12.1 cuda-nvcc=12.1.* torchvision torchaudio torchtext aws-ofi-nccl \
@@ -489,6 +484,11 @@ RUN /opt/conda/bin/mamba install -y -c conda-forge \
   scikit-learn \
   seaborn \
  && /opt/conda/bin/mamba clean -afy
+
+# Install SM Distributed DataParallel binary
+RUN SMDATAPARALLEL_PT=1 pip install --no-cache-dir ${SMD_DATA_PARALLEL_URL}
+
+ENV LD_LIBRARY_PATH="/opt/conda/lib/python${PYTHON_SHORT_VERSION}/site-packages/smdistributed/dataparallel/lib:$LD_LIBRARY_PATH"
 
 WORKDIR /
 
