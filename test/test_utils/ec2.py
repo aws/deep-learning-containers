@@ -298,15 +298,33 @@ def launch_instance(
     return response["Instances"][0]
 
 
-def get_available_reservation(ec2_client, instance_type, min_availability=1):
+def get_available_reservations(ec2_client, instance_type, min_availability=1):
+    """
+    Get capacity reservations in our region that have our minimum availability
+
+    Args:
+        ec2_client (boto3.client): EC2 Boto3 client
+        instance_type (string): instance type, i.e. p3.2xlarge
+        min_availability (int, optional): Minimum number of instances to launch. Defaults to 1.
+
+    Returns:
+        list: list of dictionaries of reservations
+    """
     reservations = ec2_client.describe_capacity_reservations()
-    for reservation in reservations["CapacityReservations"]:
-        if (
-            reservation["InstanceType"] == instance_type
-            and reservation["AvailableInstanceCount"] >= min_availability
-        ):
-            return reservation
-    return None
+
+    open_tables = [
+        reservation
+        for reservation in reservations["CapacityReservations"]
+        if reservation["InstanceType"] == instance_type
+        and reservation["AvailableInstanceCount"] >= min_availability
+    ]
+
+    # Sort by ascending instance count and total instance count,
+    # so that we take minimum instances required, and leave other reservations
+    # open for larger parties
+    open_tables.sort(key=lambda res: res["TotalInstanceCount"])
+
+    return sorted(open_tables, key=lambda res: res["AvailableInstanceCount"])
 
 
 @retry(
@@ -315,7 +333,7 @@ def get_available_reservation(ec2_client, instance_type, min_availability=1):
     wait=wait_random_exponential(min=60, max=5 * 60),  # Retry after waiting 1-5 minutes
 )
 def launch_instances_with_retry(
-    ec2_resource, ec2_client, availability_zone_options, ec2_create_instances_definition
+    ec2_resource, ec2_client, availability_zone_options, ec2_create_instances_definition, fn_name=""
 ):
     """
     Helper function to launch EC2 instances with retry capability, to allow multiple attempts
@@ -325,27 +343,40 @@ def launch_instances_with_retry(
     :param availability_zone_options: list of availability zones in which to try to run instances
     :param ec2_create_instances_definition: dict of parameters to pass to
         ec2_resource.create_instances
+    :param fn_name: string - function name for ease of logging
     :return: list of EC2 Instance Resource objects for instances launched
     """
 
     instances = None
-    reservation = get_available_reservation(
+    reservations = get_available_reservations(
         ec2_client=ec2_client,
         instance_type=ec2_create_instances_definition["InstanceType"],
         min_availability=ec2_create_instances_definition["MinCount"],
     )
-    # Look at available CRs first; AZ not required
-    if reservation:
+    # Look at available CRs first
+    while reservations:
+        reservation = reservations.pop(0)
         ec2_create_instances_definition["CapacityReservationSpecification"] = {
             "CapacityReservationTarget": {
                 "CapacityReservationId": reservation["CapacityReservationId"]
             }
         }
-        instances = ec2_resource.create_instances(**ec2_create_instances_definition)
-        if is_mainline_context():
-            LOGGER.info(f"Launched instance via {reservation}")
+        try:
+            instances = ec2_resource.create_instances(**ec2_create_instances_definition)
+            LOGGER.info(
+                f"Your reservation is ready for {fn_name}, please wait to be seated. Launching..."
+            )
+            if is_mainline_context():
+                LOGGER.info(f"Launched instance for {fn_name} via {reservation}")
+            return instances
+        except ClientError as e:
+            LOGGER.error(f"Failed to launch via reservation for {fn_name} - {e}")
 
-    elif availability_zone_options:
+    LOGGER.info(
+        f"Looks like you didn't have a reservation for {fn_name}, let's see if we can seat you as a walk-in..."
+    )
+
+    if availability_zone_options:
         error = None
         for a_zone in availability_zone_options:
             ec2_create_instances_definition["Placement"] = {"AvailabilityZone": a_zone}
@@ -354,7 +385,7 @@ def launch_instances_with_retry(
                 if instances:
                     break
             except ClientError as e:
-                LOGGER.error(f"Failed to launch in {a_zone} due to {e}")
+                LOGGER.error(f"Failed to launch in {a_zone} due to {e} for {fn_name}")
                 error = e
                 continue
         if not instances:
@@ -370,7 +401,11 @@ def launch_instances_with_retry(
     wait=wait_random_exponential(min=60, max=5 * 60),  # Retry after waiting 1-10 minutes
 )
 def launch_efa_instances_with_retry(
-    ec2_client, ec2_instance_type, availability_zone_options, ec2_run_instances_definition
+    ec2_client,
+    ec2_instance_type,
+    availability_zone_options,
+    ec2_run_instances_definition,
+    fn_name="",
 ):
     """
     Helper function to launch EFA-capable EC2 instances with retry capability, to allow
@@ -379,18 +414,20 @@ def launch_efa_instances_with_retry(
     :param ec2_instance_type: str EC2 Instance Type
     :param availability_zone_options: list of availability zones in which to try to run instances
     :param ec2_run_instances_definition: dict of parameters to pass to ec2_client.run_instances
+    :param fn_name: string - function name for ease of logging
     :return: dict response from ec2_client.run_instances
     """
     response = None
     region = ec2_client.meta.region_name
-    reservation = get_available_reservation(
+    reservations = get_available_reservations(
         ec2_client=ec2_client,
         instance_type=ec2_run_instances_definition["InstanceType"],
         min_availability=ec2_run_instances_definition["MinCount"],
     )
 
     # Try launching via reservation first
-    if reservation:
+    while reservations:
+        reservation = reservations.pop(0)
         ec2_run_instances_definition["CapacityReservationSpecification"] = {
             "CapacityReservationTarget": {
                 "CapacityReservationId": reservation["CapacityReservationId"]
@@ -404,11 +441,24 @@ def launch_efa_instances_with_retry(
                 ),
             }
         )
-        response = ec2_client.run_instances(**ec2_run_instances_definition)
-        if response and response["Instances"]:
-            if is_mainline_context():
-                LOGGER.info(f"Launched EFA enabled instance via {reservation}")
-            return response
+        try:
+            response = ec2_client.run_instances(**ec2_run_instances_definition)
+            if response and response["Instances"]:
+                LOGGER.info(
+                    f"Your EFA reservation is ready for {fn_name}, please wait to be seated. Launching..."
+                )
+                if is_mainline_context():
+                    LOGGER.info(f"Launched EFA enabled instance for {fn_name} via {reservation}")
+                return response
+        except ClientError as e:
+            LOGGER.debug(
+                f"Failed to launch EFA instance for {fn_name} from reservation due to {e}\n"
+                "Checking additional open reservations..."
+            )
+
+    LOGGER.info(
+        f"Looks like you didn't have an EFA reservation for {fn_name}, let's see if we can seat you as a walk-in..."
+    )
 
     for availability_zone in availability_zone_options:
         ec2_run_instances_definition.update(
@@ -425,12 +475,14 @@ def launch_efa_instances_with_retry(
                 break
         except ClientError as e:
             LOGGER.debug(
-                f"Failed to launch in {availability_zone} due to {e}\n"
+                f"Failed to launch in {availability_zone} for {fn_name} due to {e}\n"
                 "Retrying in the next availability zone."
             )
             continue
     if not (response and response["Instances"]):
-        raise RuntimeError(f"Unable to launch {ec2_instance_type} instances in {region}")
+        raise RuntimeError(
+            f"Unable to launch {ec2_instance_type} instances in {region} for {fn_name}"
+        )
     return response
 
 
