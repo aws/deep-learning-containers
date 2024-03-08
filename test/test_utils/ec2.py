@@ -321,6 +321,7 @@ def launch_instances_with_retry(
     Helper function to launch EC2 instances with retry capability, to allow multiple attempts
     when facing instance capacity issues.
     :param ec2_resource: boto3 EC2 Service Resource object
+    :param ec2_client: boto3 EC2 Client object
     :param availability_zone_options: list of availability zones in which to try to run instances
     :param ec2_create_instances_definition: dict of parameters to pass to
         ec2_resource.create_instances
