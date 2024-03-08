@@ -693,6 +693,7 @@ def ec2_instance(
         ec2_resource=ec2_resource,
         availability_zone_options=availability_zone_options,
         ec2_create_instances_definition=params,
+        ec2_client=ec2_client,
     )
     instance_id = instances[0].id
 
@@ -956,23 +957,37 @@ def skip_efa_tests(request):
 
 @pytest.fixture(autouse=True)
 def skip_p5_tests(request, ec2_instance_type):
-    if "p5." in ec2_instance_type:
-        if "gpu" in request.fixturenames:
-            img_uri = request.getfixturevalue("gpu")
-        elif "image" in request.fixturenames:
-            img_uri = request.getfixturevalue("image")
-        elif "training" in request.fixturenames:
-            img_uri = request.getfixturevalue("training")
-        elif "pytorch_training" in request.fixturenames:
-            img_uri = request.getfixturevalue("pytorch_training")
-        else:
-            pytest.skip("Current image doesn't support P5 EC2 instance.")
+    allowed_p5_fixtures = (
+        "gpu",
+        "image",
+        "training",
+        "pytorch_training",
+        r"pytorch_training___\S+",
+    )
+    image_uri = None
 
-        framework, image_framework_version = get_framework_and_version_from_tag(img_uri)
+    if "p5." in ec2_instance_type:
+        p5_fixture_stack = list(allowed_p5_fixtures)
+        while p5_fixture_stack and not image_uri:
+            fixture_name = p5_fixture_stack.pop()
+            if fixture_name in request.fixturenames:
+                image_uri = request.getfixturevalue(fixture_name)
+            # Handle fixture names that include tag as regex
+            elif "___" in fixture_name:
+                regex = re.compile(fixture_name)
+                matches = list(filter(regex.match, request.fixturenames))
+                image_uri = request.getfixturevalue(matches[0]) if matches else None
+
+        if not image_uri:
+            pytest.skip(
+                f"Current image doesn't support P5 EC2 instance. Must be of fixture name {allowed_p5_fixtures}"
+            )
+
+        framework, image_framework_version = get_framework_and_version_from_tag(image_uri)
         if "pytorch" not in framework:
             pytest.skip("Current image doesn't support P5 EC2 instance.")
-        image_processor = get_processor_from_image_uri(img_uri)
-        image_cuda_version = get_cuda_version_from_tag(img_uri)
+        image_processor = get_processor_from_image_uri(image_uri)
+        image_cuda_version = get_cuda_version_from_tag(image_uri)
         if image_processor != "gpu" or Version(image_cuda_version.strip("cu")) < Version("120"):
             pytest.skip("Images using less than CUDA 12.0 doesn't support P5 EC2 instance.")
 
