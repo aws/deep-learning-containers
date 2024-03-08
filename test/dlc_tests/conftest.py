@@ -741,8 +741,8 @@ def _get_instance_type_base_dlami(instance_type, region):
         "g5.8xlarge",
         "g5.16xlarge",
         "g5.12xlarge",
-        "g5.24xlarge"
-        "g5.48xlarge"
+        "g5.24xlarge",
+        "g5.48xlarge",
     ]
 
     if instance_type in ubuntu_20_base_oss_dlami_instances:
