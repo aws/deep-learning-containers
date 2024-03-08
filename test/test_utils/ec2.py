@@ -329,7 +329,9 @@ def launch_instances_with_retry(
 
     instances = None
     reservation = get_available_reservation(
-        ec2_client, ec2_create_instances_definition["InstanceType"]
+        ec2_client=ec2_client,
+        instance_type=ec2_create_instances_definition["InstanceType"],
+        min_availability=ec2_create_instances_definition["MinCount"],
     )
     # Look at available CRs first; AZ not required
     if reservation:
@@ -339,7 +341,9 @@ def launch_instances_with_retry(
             }
         }
         instances = ec2_resource.create_instances(**ec2_create_instances_definition)
-        LOGGER.info(f"Launched instance via {reservation}")
+        # Do not spam sanity and sm logs
+        if os.getenv("TEST_TYPE", "") not in ("sanity", "sagemaker"):
+            LOGGER.info(f"Launched instance via {reservation}")
 
     elif availability_zone_options:
         error = None
@@ -380,8 +384,8 @@ def launch_efa_instances_with_retry(
     response = None
     region = ec2_client.meta.region_name
     reservation = get_available_reservation(
-        ec2_client,
-        ec2_run_instances_definition["InstanceType"],
+        ec2_client=ec2_client,
+        instance_type=ec2_run_instances_definition["InstanceType"],
         min_availability=ec2_run_instances_definition["MinCount"],
     )
 
@@ -402,7 +406,9 @@ def launch_efa_instances_with_retry(
         )
         response = ec2_client.run_instances(**ec2_run_instances_definition)
         if response and response["Instances"]:
-            LOGGER.info(f"Launched instance via {reservation}")
+            # Do not spam sanity and sm logs
+            if os.getenv("TEST_TYPE", "") not in ("sanity", "sagemaker"):
+                LOGGER.info(f"Launched EFA enabled instance via {reservation}")
             return response
 
     for availability_zone in availability_zone_options:

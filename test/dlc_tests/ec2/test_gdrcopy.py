@@ -12,7 +12,7 @@ from test.test_utils.ec2 import (
 
 GDRCOPY_SANITY_TEST_CMD = os.path.join(CONTAINER_TESTS_PREFIX, "gdrcopy", "test_gdrcopy.sh")
 EC2_EFA_GPU_INSTANCE_TYPE_AND_REGION = get_efa_ec2_instance_type(
-    default="p5.48xlarge",
+    default="p4d.24xlarge",
     filter_function=filter_efa_instance_type,
 )
 
@@ -31,14 +31,8 @@ EC2_EFA_GPU_INSTANCE_TYPE_AND_REGION = get_efa_ec2_instance_type(
     reason="Skip GDRCopy test in PR context unless explicitly enabled",
 )
 def test_gdrcopy(
-    pytorch_training___2__2,
-    ec2_connection,
-    ec2_instance_type,
-    region,
-    gpu_only,
-    pt113_and_above_only,
+    pytorch_training, ec2_connection, ec2_instance_type, region, gpu_only, pt113_and_above_only
 ):
-    pytorch_training = pytorch_training___2__2
     if test_utils.is_image_incompatible_with_instance_type(pytorch_training, ec2_instance_type):
         pytest.skip(
             f"Image {pytorch_training} is incompatible with instance type {ec2_instance_type}"
