@@ -78,18 +78,50 @@ def get_ami_id_ssm(region_name, parameter_path):
     return ami_id
 
 
-# The Ubuntu 20.04 AMI which adds GDRCopy is used only for GDRCopy feature that is supported on PT1.13 and PT2.0
-UBUNTU_20_BASE_DLAMI_US_WEST_2 = get_ami_id_boto3(
-    region_name="us-west-2", ami_name_pattern="Deep Learning Base GPU AMI (Ubuntu 20.04) ????????"
+# DLAMI Base is split between OSS Nvidia Driver and Propietary Nvidia Driver. sett https://docs.aws.amazon.com/dlami/latest/devguide/important-changes.html
+# UBUNTU_20_BASE_DLAMI_US_WEST_2 = get_ami_id_boto3(
+#     region_name="us-west-2", ami_name_pattern="Deep Learning Base GPU AMI (Ubuntu 20.04) ????????"
+# )
+# UBUNTU_20_BASE_DLAMI_US_EAST_1 = get_ami_id_boto3(
+#     region_name="us-east-1", ami_name_pattern="Deep Learning Base GPU AMI (Ubuntu 20.04) ????????"
+# )
+UBUNTU_20_BASE_OSS_DLAMI_US_WEST_2 = get_ami_id_boto3(
+    region_name="us-west-2",
+    ami_name_pattern="Deep Learning Base OSS Nvidia Driver GPU AMI (Ubuntu 20.04) ????????",
 )
-UBUNTU_20_BASE_DLAMI_US_EAST_1 = get_ami_id_boto3(
-    region_name="us-east-1", ami_name_pattern="Deep Learning Base GPU AMI (Ubuntu 20.04) ????????"
+UBUNTU_20_BASE_OSS_DLAMI_US_EAST_1 = get_ami_id_boto3(
+    region_name="us-east-1",
+    ami_name_pattern="Deep Learning Base OSS Nvidia Driver GPU AMI (Ubuntu 20.04) ????????",
 )
-AML2_BASE_DLAMI_US_WEST_2 = get_ami_id_boto3(
-    region_name="us-west-2", ami_name_pattern="Deep Learning Base AMI (Amazon Linux 2) Version ??.?"
+UBUNTU_20_BASE_PROPRIETARY_DLAMI_US_WEST_2 = get_ami_id_boto3(
+    region_name="us-west-2",
+    ami_name_pattern="Deep Learning Base Proprietary Nvidia Driver GPU AMI (Ubuntu 20.04) ????????",
 )
-AML2_BASE_DLAMI_US_EAST_1 = get_ami_id_boto3(
-    region_name="us-east-1", ami_name_pattern="Deep Learning Base AMI (Amazon Linux 2) Version ??.?"
+UBUNTU_20_BASE_PROPRIETARY_DLAMI_US_EAST_1 = get_ami_id_boto3(
+    region_name="us-east-1",
+    ami_name_pattern="Deep Learning Base Proprietary Nvidia Driver GPU AMI (Ubuntu 20.04) ????????",
+)
+# AML2_BASE_DLAMI_US_WEST_2 = get_ami_id_boto3(
+#     region_name="us-west-2", ami_name_pattern="Deep Learning Base AMI (Amazon Linux 2) Version ??.?"
+# )
+# AML2_BASE_DLAMI_US_EAST_1 = get_ami_id_boto3(
+#     region_name="us-east-1", ami_name_pattern="Deep Learning Base AMI (Amazon Linux 2) Version ??.?"
+# )
+AML2_BASE_OSS_DLAMI_US_WEST_2 = get_ami_id_boto3(
+    region_name="us-west-2",
+    ami_name_pattern="Deep Learning Base OSS Nvidia Driver AMI (Amazon Linux 2) Version ??.?",
+)
+AML2_BASE_OSS_DLAMI_US_EAST_1 = get_ami_id_boto3(
+    region_name="us-east-1",
+    ami_name_pattern="Deep Learning Base OSS Nvidia Driver AMI (Amazon Linux 2) Version ??.?",
+)
+AML2_BASE_PROPRIETARY_DLAMI_US_WEST_2 = get_ami_id_boto3(
+    region_name="us-west-2",
+    ami_name_pattern="Deep Learning Base Proprietary Nvidia Driver AMI (Amazon Linux 2) Version ??.?",
+)
+AML2_BASE_PROPRIETARY_DLAMI_US_EAST_1 = get_ami_id_boto3(
+    region_name="us-east-1",
+    ami_name_pattern="Deep Learning Base Proprietary Nvidia Driver AMI (Amazon Linux 2) Version ??.?",
 )
 # We use the following DLAMI for MXNet and TensorFlow tests as well, but this is ok since we use custom DLC Graviton containers on top. We just need an ARM base DLAMI.
 UL20_CPU_ARM64_US_WEST_2 = get_ami_id_boto3(
@@ -145,8 +177,12 @@ NEURON_INF1_AMI_US_WEST_2 = "ami-06a5a60d3801a57b7"
 UBUNTU_18_HPU_DLAMI_US_WEST_2 = "ami-03cdcfc91a96a8f92"
 UBUNTU_18_HPU_DLAMI_US_EAST_1 = "ami-0d83d7487f322545a"
 UL_AMI_LIST = [
-    UBUNTU_20_BASE_DLAMI_US_WEST_2,
-    UBUNTU_20_BASE_DLAMI_US_EAST_1,
+    # UBUNTU_20_BASE_DLAMI_US_WEST_2,
+    # UBUNTU_20_BASE_DLAMI_US_EAST_1,
+    UBUNTU_20_BASE_OSS_DLAMI_US_WEST_2,
+    UBUNTU_20_BASE_OSS_DLAMI_US_EAST_1,
+    UBUNTU_20_BASE_PROPRIETARY_DLAMI_US_WEST_2,
+    UBUNTU_20_BASE_PROPRIETARY_DLAMI_US_EAST_1,
     UBUNTU_18_HPU_DLAMI_US_WEST_2,
     UBUNTU_18_HPU_DLAMI_US_EAST_1,
     PT_GPU_PY3_BENCHMARK_IMAGENET_AMI_US_EAST_1,
