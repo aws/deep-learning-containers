@@ -298,15 +298,34 @@ def launch_instance(
     return response["Instances"][0]
 
 
-def get_available_reservation(ec2_client, instance_type, min_availability=1):
+def get_available_reservations(ec2_client, instance_type, min_availability=1):
+    """
+    Get capacity reservations in our region that have our minimum availability
+
+    Args:
+        ec2_client (boto3.client): EC2 Boto3 client
+        instance_type (string): instance type, i.e. p3.2xlarge
+        min_availability (int, optional): Minimum number of instances to launch. Defaults to 1.
+
+    Returns:
+        list: list of dictionaries of reservations
+    """
     reservations = ec2_client.describe_capacity_reservations()
-    for reservation in reservations["CapacityReservations"]:
-        if (
-            reservation["InstanceType"] == instance_type
-            and reservation["AvailableInstanceCount"] >= min_availability
-        ):
-            return reservation
-    return None
+
+    open_tables = [
+        reservation
+        for reservation in reservations["CapacityReservations"]
+        if reservation["InstanceType"] == instance_type
+        and reservation["AvailableInstanceCount"] >= min_availability
+    ]
+
+    # Sort by ascending instance count and total instance count,
+    # so that we take minimum instances required, and leave other reservations
+    # open for larger parties
+    open_tables.sort(key=lambda res: res["TotalInstanceCount"])
+
+    return sorted(open_tables, key=lambda res: res["AvailableInstanceCount"])
+
 
 
 @retry(
@@ -329,23 +348,31 @@ def launch_instances_with_retry(
     """
 
     instances = None
-    reservation = get_available_reservation(
+    reservations = get_available_reservations(
         ec2_client=ec2_client,
         instance_type=ec2_create_instances_definition["InstanceType"],
         min_availability=ec2_create_instances_definition["MinCount"],
     )
-    # Look at available CRs first; AZ not required
-    if reservation:
+    # Look at available CRs first
+    while reservations:
+        reservation = reservations.pop(0)
         ec2_create_instances_definition["CapacityReservationSpecification"] = {
             "CapacityReservationTarget": {
                 "CapacityReservationId": reservation["CapacityReservationId"]
             }
         }
-        instances = ec2_resource.create_instances(**ec2_create_instances_definition)
-        if is_mainline_context():
-            LOGGER.info(f"Launched instance via {reservation}")
+        try:
+            instances = ec2_resource.create_instances(**ec2_create_instances_definition)
+            LOGGER.info("Your reservation is ready, please wait to be seated. Launching...")
+            if is_mainline_context():
+                LOGGER.info(f"Launched instance via {reservation}")
+            return instances
+        except ClientError as e:
+            LOGGER.error(f"Failed to launch via reservation - {e}")
+    
+    LOGGER.info("Looks like you didn't have a reservation, let's see if we can seat you as a walk-in...")
 
-    elif availability_zone_options:
+    if availability_zone_options:
         error = None
         for a_zone in availability_zone_options:
             ec2_create_instances_definition["Placement"] = {"AvailabilityZone": a_zone}
@@ -383,14 +410,15 @@ def launch_efa_instances_with_retry(
     """
     response = None
     region = ec2_client.meta.region_name
-    reservation = get_available_reservation(
+    reservations = get_available_reservations(
         ec2_client=ec2_client,
         instance_type=ec2_run_instances_definition["InstanceType"],
         min_availability=ec2_run_instances_definition["MinCount"],
     )
 
     # Try launching via reservation first
-    if reservation:
+    while reservations:
+        reservation = reservations.pop(0)
         ec2_run_instances_definition["CapacityReservationSpecification"] = {
             "CapacityReservationTarget": {
                 "CapacityReservationId": reservation["CapacityReservationId"]
@@ -404,11 +432,19 @@ def launch_efa_instances_with_retry(
                 ),
             }
         )
-        response = ec2_client.run_instances(**ec2_run_instances_definition)
-        if response and response["Instances"]:
-            if is_mainline_context():
-                LOGGER.info(f"Launched EFA enabled instance via {reservation}")
-            return response
+        try:
+            response = ec2_client.run_instances(**ec2_run_instances_definition)
+            if response and response["Instances"]:
+                if is_mainline_context():
+                    LOGGER.info(f"Launched EFA enabled instance via {reservation}")
+                return response
+        except ClientError as e:
+            LOGGER.debug(
+                f"Failed to launch EFA instance due to {e}\n"
+                "Checking additional open reservations..."
+            )
+
+    LOGGER.info("Looks like you didn't have an EFA reservation, let's see if we can seat you as a walk-in...")
 
     for availability_zone in availability_zone_options:
         ec2_run_instances_definition.update(
