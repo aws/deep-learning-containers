@@ -284,15 +284,17 @@ def launch_instance(
         }
         try:
             response = client.run_instances(**arguments_dict)
-            LOGGER.info(f"Your reservation is ready, please wait to be seated. Launching...")
+            LOGGER.info(
+                f"Your {instance_type} reservation is ready, please wait to be seated. Launching..."
+            )
             if is_mainline_context():
                 LOGGER.info(f"Launched instance via {reservation}")
             return response["Instances"][0]
         except ClientError as e:
-            LOGGER.error(f"Failed to launch via reservation - {e}")
+            LOGGER.error(f"Failed to launch via {instance_type} reservation - {e}")
     # Clean up cap reservation if we don't find one
     arguments_dict.pop("CapacityReservationSpecification", None)
-    LOGGER.info("No capacity reservation, trying elsewhere...")
+    LOGGER.info(f"No capacity reservation available for {instance_type}, trying elsewhere...")
     response = client.run_instances(**arguments_dict)
 
     if not response or len(response["Instances"]) < 1:
