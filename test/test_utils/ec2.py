@@ -321,7 +321,6 @@ def launch_instances_with_retry(
     Helper function to launch EC2 instances with retry capability, to allow multiple attempts
     when facing instance capacity issues.
     :param ec2_resource: boto3 EC2 Service Resource object
-    :param ec2_client: boto3 EC2 Client object
     :param availability_zone_options: list of availability zones in which to try to run instances
     :param ec2_create_instances_definition: dict of parameters to pass to
         ec2_resource.create_instances
@@ -342,7 +341,6 @@ def launch_instances_with_retry(
             }
         }
         instances = ec2_resource.create_instances(**ec2_create_instances_definition)
-        LOGGER.info("Looks like you have a reservation. Right this way, launching...")
         if is_mainline_context():
             LOGGER.info(f"Launched instance via {reservation}")
 
@@ -353,7 +351,6 @@ def launch_instances_with_retry(
             try:
                 instances = ec2_resource.create_instances(**ec2_create_instances_definition)
                 if instances:
-                    LOGGER.info("Tough to get a reservation at this time, but capacity. Launching...")
                     break
             except ClientError as e:
                 LOGGER.error(f"Failed to launch in {a_zone} due to {e}")
@@ -362,7 +359,6 @@ def launch_instances_with_retry(
         if not instances:
             raise error
     else:
-        LOGGER.info("Tough to get a reservation at this time, but capacity. Launching without AZ options...")
         instances = ec2_resource.create_instances(**ec2_create_instances_definition)
     return instances
 
@@ -409,7 +405,6 @@ def launch_efa_instances_with_retry(
         )
         response = ec2_client.run_instances(**ec2_run_instances_definition)
         if response and response["Instances"]:
-            LOGGER.info("Looks like you have a reservation. Right this way, launching...")
             if is_mainline_context():
                 LOGGER.info(f"Launched EFA enabled instance via {reservation}")
             return response
