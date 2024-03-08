@@ -341,8 +341,7 @@ def launch_instances_with_retry(
             }
         }
         instances = ec2_resource.create_instances(**ec2_create_instances_definition)
-        # Do not spam sanity and sm logs
-        if os.getenv("TEST_TYPE", "") not in ("sanity", "sagemaker"):
+        if is_mainline_context():
             LOGGER.info(f"Launched instance via {reservation}")
 
     elif availability_zone_options:
@@ -406,8 +405,7 @@ def launch_efa_instances_with_retry(
         )
         response = ec2_client.run_instances(**ec2_run_instances_definition)
         if response and response["Instances"]:
-            # Do not spam sanity and sm logs
-            if os.getenv("TEST_TYPE", "") not in ("sanity", "sagemaker"):
+            if is_mainline_context():
                 LOGGER.info(f"Launched EFA enabled instance via {reservation}")
             return response
 
