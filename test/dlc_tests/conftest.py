@@ -402,7 +402,11 @@ def efa_ec2_instances(
         ],
     }
     response = ec2_utils.launch_efa_instances_with_retry(
-        ec2_client, ec2_instance_type, availability_zone_options, ec2_run_instances_definition
+        ec2_client,
+        ec2_instance_type,
+        availability_zone_options,
+        ec2_run_instances_definition,
+        fn_name=request.node.name,
     )
 
     instances = response["Instances"]
@@ -694,6 +698,7 @@ def ec2_instance(
         availability_zone_options=availability_zone_options,
         ec2_create_instances_definition=params,
         ec2_client=ec2_client,
+        fn_name=request.node.name,
     )
     instance_id = instances[0].id
 
