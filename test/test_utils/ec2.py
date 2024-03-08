@@ -327,7 +327,6 @@ def get_available_reservations(ec2_client, instance_type, min_availability=1):
     return sorted(open_tables, key=lambda res: res["AvailableInstanceCount"])
 
 
-
 @retry(
     reraise=True,
     stop=stop_after_delay(30 * 60),  # Keep retrying for 30 minutes
@@ -369,8 +368,10 @@ def launch_instances_with_retry(
             return instances
         except ClientError as e:
             LOGGER.error(f"Failed to launch via reservation - {e}")
-    
-    LOGGER.info("Looks like you didn't have a reservation, let's see if we can seat you as a walk-in...")
+
+    LOGGER.info(
+        "Looks like you didn't have a reservation, let's see if we can seat you as a walk-in..."
+    )
 
     if availability_zone_options:
         error = None
@@ -444,7 +445,9 @@ def launch_efa_instances_with_retry(
                 "Checking additional open reservations..."
             )
 
-    LOGGER.info("Looks like you didn't have an EFA reservation, let's see if we can seat you as a walk-in...")
+    LOGGER.info(
+        "Looks like you didn't have an EFA reservation, let's see if we can seat you as a walk-in..."
+    )
 
     for availability_zone in availability_zone_options:
         ec2_run_instances_definition.update(
