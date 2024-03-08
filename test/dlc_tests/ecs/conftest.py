@@ -108,6 +108,7 @@ def ecs_container_instance(
     ecs_instance_type,
     ecs_ami,
     region,
+    ei_accelerator_type,
     use_large_storage,
 ):
     """
