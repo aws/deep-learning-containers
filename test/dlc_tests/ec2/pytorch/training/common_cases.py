@@ -34,6 +34,8 @@ PT_TELEMETRY_CMD = os.path.join(
     CONTAINER_TESTS_PREFIX, "pytorch_tests", "test_pt_dlc_telemetry_test"
 )
 PT_TORCHAUDIO_CMD = os.path.join(CONTAINER_TESTS_PREFIX, "pytorch_tests", "testTorchaudio")
+PT_TORCHDATA_DEV_CMD = os.path.join(CONTAINER_TESTS_PREFIX, "pytorch_tests", "testTorchdataDev")
+PT_TORCHDATA_CMD = os.path.join(CONTAINER_TESTS_PREFIX, "pytorch_tests", "testTorchdata")
 
 # Instance type filters
 PT_EC2_CPU_INSTANCE_TYPE = get_ec2_instance_type(default="c5.9xlarge", processor="cpu")
@@ -240,3 +242,12 @@ def pytorch_telemetry_cpu(pytorch_training, ec2_connection):
 
 def curand_gpu(training, ec2_connection):
     execute_ec2_training_test(ec2_connection, training, CURAND_CMD)
+
+
+def pytorch_training_torchdata(pytorch_training, ec2_connection):
+    _, image_framework_version = get_framework_and_version_from_tag(pytorch_training)
+    # HACK including PT 1.13 in this condition because the Torchdata 0.5.0 tag includes old tests data
+    if Version(image_framework_version) in SpecifierSet(">=1.11,<=1.13.1"):
+        execute_ec2_training_test(ec2_connection, pytorch_training, PT_TORCHDATA_DEV_CMD)
+    else:
+        execute_ec2_training_test(ec2_connection, pytorch_training, PT_TORCHDATA_CMD)
