@@ -209,23 +209,27 @@ def image_builder(buildspec, image_types=[], device_types=[]):
         if inference_toolkit_version:
             extra_build_args["SM_TOOLKIT_VERSION"] = inference_toolkit_version
 
-        beta_tag_override = image_config.get("beta_tag_override")
+        tag_override = image_config.get("build_tag_override")
         dockerfile = image_config["docker_file"]
         target = image_config.get("target")
-        if beta_tag_override and build_context == "PR":
+        tag_override_regex = r"^(beta|pr):\S+$"
+        if tag_override and build_context == "PR":
             if is_autopatch_build_enabled(buildspec_path=buildspec):
                 FORMATTER.print(
-                    "AUTOPATCH ENABLED IN BUILDSPEC, CANNOT OVERRIDE WITH BETA TAG, SORRY!"
+                    "AUTOPATCH ENABLED IN BUILDSPEC, CANNOT OVERRIDE WITH TAG, SORRY!"
                 )
+            elif not re.match(tag_override_regex, tag_override):
+                FORMATTER.print(f"TAG OVERRIDE MUST BE OF FORMAT {tag_override_regex}, but got {tag_override}. Proceeding with regular build.")
             else:
-                FORMATTER.print("USING BETA TAG OVERRIDE")
+                repo_override, t_override = tag_override.split(":")
                 with tempfile.NamedTemporaryFile(mode="w", delete=False) as temp_file_handle:
-                    source_uri = f"{image_repo_uri.replace('pr-', 'beta-')}:{beta_tag_override}"
+                    source_uri = f"{image_repo_uri.replace('pr-', f'{repo_override}-')}:{t_override}"
                     temp_file_handle.write(
                         f"FROM {source_uri}\nLABEL dlc.dev.source_uri={source_uri}"
                     )
                     dockerfile = temp_file_handle.name
                     target = None
+                FORMATTER.print(f"USING TAG OVERRIDE {source_uri}")
 
         ARTIFACTS.update(
             {

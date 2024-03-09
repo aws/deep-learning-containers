@@ -47,25 +47,25 @@ def _assert_single_image_type_no_tag_override_buildspec(
 ):
     """
     Isolate condition for checking whether an buildspec is consistent with its image type (training or inference).
-    Also check to make sure we don't have any beta tag overrides in there.
+    Also check to make sure we don't have any build tag overrides in there.
     Require that images are nested under training or inference, if not, raise error.
     """
-    beta_tag_override_regex = re.compile(r"\s*beta_tag_override:\s\S*")
+    build_tag_override_regex = re.compile(r"^\s*build_tag_override:\s\S*")
     if "training" in buildspec_path:
         with open(buildspec_path) as trn_buildspec_handle:
             for line in trn_buildspec_handle:
-                assert not beta_tag_override_regex.search(
+                assert not build_tag_override_regex.search(
                     line
-                ), f"Found valid beta_tag_overrides in {buildspec_path} - please remove before merge."
+                ), f"Found valid build_tag_overrides in {buildspec_path} - please remove before merge."
                 assert not inference_pattern.search(
                     line
                 ), f"Found inference reference in training buildspec {buildspec_path}. Please check the file and remove them."
     elif "inference" in buildspec_path:
         with open(buildspec_path) as inf_buildspec_handle:
             for line in inf_buildspec_handle:
-                assert not beta_tag_override_regex.search(
+                assert not build_tag_override_regex.search(
                     line
-                ), f"Found valid beta_tag_overrides in {buildspec_path} - please remove before merge."
+                ), f"Found valid build_tag_overrides in {buildspec_path} - please remove before merge."
                 assert not training_pattern.search(
                     line
                 ), f"Found training reference in inference buildspec {buildspec_path}. Please check the file and remove them."
