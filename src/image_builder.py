@@ -311,9 +311,13 @@ def image_builder(buildspec, image_types=[], device_types=[]):
                     f"FROM {os.getenv('ACCOUNT_ID')}.dkr.ecr.{os.getenv('REGION')}.amazonaws.com/{image_repo_uri.replace('pr-', 'beta-')}:{beta_tag_override}"
                 )
                 dockerfile = temp_file_handle.name
-                raise RuntimeError(dockerfile)
 
         # Create pre_push stage docker object
+        with open(dockerfile, 'r') as df:
+            df_lines = ""
+            for line in df:
+                df_lines += f"{line}\n"
+            raise RuntimeError(df_lines)
         pre_push_stage_image_object = DockerImage(
             info=info,
             dockerfile=dockerfile,
