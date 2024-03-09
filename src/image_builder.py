@@ -307,8 +307,9 @@ def image_builder(buildspec, image_types=[], device_types=[]):
         dockerfile = image_config["docker_file"]
         if beta_tag_override and build_context == "PR":
             with tempfile.NamedTemporaryFile(mode="w", delete=False) as temp_file_handle:
+                source_uri = f"{image_repo_uri.replace('pr-', 'beta-')}:{beta_tag_override}"
                 temp_file_handle.write(
-                    f"FROM {os.getenv('ACCOUNT_ID')}.dkr.ecr.{os.getenv('REGION')}.amazonaws.com/{image_repo_uri.replace('pr-', 'beta-')}:{beta_tag_override}"
+                    f"FROM {source_uri}\nLABEL dlc.dev.source_uri={source_uri}"
                 )
                 dockerfile = temp_file_handle.name
 
