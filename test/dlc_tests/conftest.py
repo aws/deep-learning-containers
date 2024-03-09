@@ -38,6 +38,7 @@ from test.test_utils import (
     AML2_BASE_DLAMI_US_EAST_1,
     KEYS_TO_DESTROY_FILE,
     are_efa_tests_disabled,
+    get_repository_and_tag_from_image_uri,
     get_ecr_repo_name,
     UBUNTU_HOME_DIR,
     NightlyFeatureLabel,
@@ -54,6 +55,10 @@ FRAMEWORK_FIXTURES = (
     # ECR repo name fixtures
     # PyTorch
     "pytorch_training",
+    "pytorch_training___2__2",
+    "pytorch_training___2__1",
+    "pytorch_training___2__0",
+    "pytorch_training___1__3",
     "pytorch_training_habana",
     "pytorch_inference",
     "pytorch_inference_eia",
@@ -397,7 +402,11 @@ def efa_ec2_instances(
         ],
     }
     response = ec2_utils.launch_efa_instances_with_retry(
-        ec2_client, ec2_instance_type, availability_zone_options, ec2_run_instances_definition
+        ec2_client,
+        ec2_instance_type,
+        availability_zone_options,
+        ec2_run_instances_definition,
+        fn_name=request.node.name,
     )
 
     instances = response["Instances"]
@@ -688,6 +697,8 @@ def ec2_instance(
         ec2_resource=ec2_resource,
         availability_zone_options=availability_zone_options,
         ec2_create_instances_definition=params,
+        ec2_client=ec2_client,
+        fn_name=request.node.name,
     )
     instance_id = instances[0].id
 
@@ -951,23 +962,37 @@ def skip_efa_tests(request):
 
 @pytest.fixture(autouse=True)
 def skip_p5_tests(request, ec2_instance_type):
-    if "p5." in ec2_instance_type:
-        if "gpu" in request.fixturenames:
-            img_uri = request.getfixturevalue("gpu")
-        elif "image" in request.fixturenames:
-            img_uri = request.getfixturevalue("image")
-        elif "training" in request.fixturenames:
-            img_uri = request.getfixturevalue("training")
-        elif "pytorch_training" in request.fixturenames:
-            img_uri = request.getfixturevalue("pytorch_training")
-        else:
-            pytest.skip("Current image doesn't support P5 EC2 instance.")
+    allowed_p5_fixtures = (
+        "gpu",
+        "image",
+        "training",
+        "pytorch_training",
+        r"pytorch_training___\S+",
+    )
+    image_uri = None
 
-        framework, image_framework_version = get_framework_and_version_from_tag(img_uri)
+    if "p5." in ec2_instance_type:
+        p5_fixture_stack = list(allowed_p5_fixtures)
+        while p5_fixture_stack and not image_uri:
+            fixture_name = p5_fixture_stack.pop()
+            if fixture_name in request.fixturenames:
+                image_uri = request.getfixturevalue(fixture_name)
+            # Handle fixture names that include tag as regex
+            elif "___" in fixture_name:
+                regex = re.compile(fixture_name)
+                matches = list(filter(regex.match, request.fixturenames))
+                image_uri = request.getfixturevalue(matches[0]) if matches else None
+
+        if not image_uri:
+            pytest.skip(
+                f"Current image doesn't support P5 EC2 instance. Must be of fixture name {allowed_p5_fixtures}"
+            )
+
+        framework, image_framework_version = get_framework_and_version_from_tag(image_uri)
         if "pytorch" not in framework:
             pytest.skip("Current image doesn't support P5 EC2 instance.")
-        image_processor = get_processor_from_image_uri(img_uri)
-        image_cuda_version = get_cuda_version_from_tag(img_uri)
+        image_processor = get_processor_from_image_uri(image_uri)
+        image_cuda_version = get_cuda_version_from_tag(image_uri)
         if image_processor != "gpu" or Version(image_cuda_version.strip("cu")) < Version("120"):
             pytest.skip("Images using less than CUDA 12.0 doesn't support P5 EC2 instance.")
 
@@ -1390,7 +1415,6 @@ def pytest_configure(config):
         "markers", "integration(ml_integration): mark what the test is testing."
     )
     config.addinivalue_line("markers", "model(model_name): name of the model being tested")
-    config.addinivalue_line("markers", "team(team_name): name of the model being tested")
     config.addinivalue_line(
         "markers", "multinode(num_instances): number of instances the test is run on, if not 1"
     )
@@ -1568,6 +1592,13 @@ def lookup_condition(lookup, image):
     # Extract ecr repo name from the image and check if it exactly matches the lookup (fixture name)
     repo_name = get_ecr_repo_name(image)
 
+    # If lookup includes tag, check that we match beginning of string
+    if ":" in lookup and ":" in image:
+        _, tag = get_repository_and_tag_from_image_uri(image)
+        generic_repo_tag = f"{repo_name}:{tag}".replace("pr-", "").replace("beta-", "")
+        if re.match(rf"^{lookup}", generic_repo_tag):
+            return True
+
     job_types = (
         "training",
         "inference",
@@ -1601,7 +1632,7 @@ def pytest_generate_tests(metafunc):
     # Parametrize framework specific tests
     for fixture in FRAMEWORK_FIXTURES:
         if fixture in metafunc.fixturenames:
-            lookup = fixture.replace("_", "-")
+            lookup = fixture.replace("___", ":").replace("__", ".").replace("_", "-")
             images_to_parametrize = []
             for image in images:
                 if lookup_condition(lookup, image):
