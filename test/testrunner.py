@@ -271,17 +271,6 @@ def delete_key_pairs(keyfile):
                 LOGGER.info(f"Deleted {keyname}")
 
 
-def build_bai_docker_container():
-    """
-    Builds docker container with necessary script requirements (bash 5.0+,conda)
-    """
-    # Assuming we are in dlc_tests directory
-    docker_dir = os.path.join("benchmark", "bai", "docker")
-    ctx = Context()
-    with ctx.cd(docker_dir):
-        ctx.run("docker build -t bai_env_container -f Dockerfile .")
-
-
 def main():
     # Define constants
     start_time = datetime.now()
@@ -299,6 +288,11 @@ def main():
     is_all_images_list_eia = all("eia" in image_uri for image_uri in all_image_list)
     eks_cluster_name = None
     benchmark_mode = "benchmark" in test_type
+    if benchmark_mode:
+        LOGGER.info("Legacy benchmark mode is currently retired. Returning.")
+        report = os.path.join(os.getcwd(), "test", f"{test_type}.xml")
+        sm_utils.generate_empty_report(report, test_type, "benchmark-mode")
+        return
     specific_test_type = (
         re.sub("benchmark-", "", test_type) if "benchmark" in test_type else test_type
     )
@@ -331,11 +325,11 @@ def main():
     is_hf_trcomp_image_present = is_hf_image_present and is_trcomp_image_present
     if (
         (is_hf_image_present or is_ag_image_present)
-        and specific_test_type in ("ecs", "ec2", "eks", "bai")
+        and specific_test_type in ("ecs", "ec2", "eks")
     ) or (
         is_hf_trcomp_image_present
         and (
-            specific_test_type in ("ecs", "eks", "bai", "release_candidate_integration")
+            specific_test_type in ("ecs", "eks", "release_candidate_integration")
             or benchmark_mode
         )
     ):
@@ -354,18 +348,12 @@ def main():
         "eks",
         "canary",
         "deep-canary",
-        "bai",
         "quick_checks",
         "release_candidate_integration",
     ):
         pytest_rerun_arg = "--reruns=1"
         pytest_rerun_delay_arg = "--reruns-delay=10"
         report = os.path.join(os.getcwd(), "test", f"{test_type}.xml")
-        # The following two report files will only be used by EKS tests, as eks_train.xml and eks_infer.xml.
-        # This is to sequence the tests and prevent one set of tests from waiting too long to be scheduled.
-        report_train = os.path.join(os.getcwd(), "test", f"{test_type}_train.xml")
-        report_infer = os.path.join(os.getcwd(), "test", f"{test_type}_infer.xml")
-        report_multinode_train = os.path.join(os.getcwd(), "test", f"eks_multinode_train.xml")
 
         # PyTest must be run in this directory to avoid conflicting w/ sagemaker_tests conftests
         os.chdir(os.path.join("test", "dlc_tests"))
@@ -373,8 +361,6 @@ def main():
         # Pull images for necessary tests
         if specific_test_type == "sanity":
             pull_dlc_images(all_image_list)
-        if specific_test_type == "bai":
-            build_bai_docker_container()
         if specific_test_type == "eks" and not is_all_images_list_eia:
             frameworks_in_images = [
                 framework
@@ -461,9 +447,6 @@ def main():
                         LOGGER.warning(
                             f'"{pytest_cmds[index]}" tests failed. Status code: {status}'
                         )
-                sys.exit(0)
-            elif benchmark_mode and all([status == 5 for status in cmd_exit_statuses]):
-                LOGGER.info("Benchmark mode is deprecated.")
                 sys.exit(0)
             else:
                 raise RuntimeError(pytest_cmds)
