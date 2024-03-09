@@ -306,12 +306,12 @@ def image_builder(buildspec, image_types=[], device_types=[]):
         beta_tag_override = image_config.get("beta_tag_override")
         dockerfile = image_config["docker_file"]
         if beta_tag_override and build_context == "PR":
-            raise RuntimeError("OVERRIDE FOUND")
             with tempfile.NamedTemporaryFile(mode="w", delete=False) as temp_file_handle:
                 temp_file_handle.write(
                     f"FROM {os.getenv('ACCOUNT_ID')}.dkr.ecr.{os.getenv('REGION')}.amazonaws.com/{image_repo_uri.replace('pr-', 'beta-')}:{beta_tag_override}"
                 )
                 dockerfile = temp_file_handle.name
+                raise RuntimeError(dockerfile)
 
         # Create pre_push stage docker object
         pre_push_stage_image_object = DockerImage(
