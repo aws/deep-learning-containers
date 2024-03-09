@@ -209,10 +209,18 @@ def image_builder(buildspec, image_types=[], device_types=[]):
         if inference_toolkit_version:
             extra_build_args["SM_TOOLKIT_VERSION"] = inference_toolkit_version
 
+        beta_tag_override = image_config.get("beta_tag_override")
+        dockerfile = image_config["docker_file"]
+        if beta_tag_override and build_context == "PR":
+            with tempfile.NamedTemporaryFile(mode="w", delete=False) as temp_file_handle:
+                source_uri = f"{image_repo_uri.replace('pr-', 'beta-')}:{beta_tag_override}"
+                temp_file_handle.write(f"FROM {source_uri}\nLABEL dlc.dev.source_uri={source_uri}")
+                dockerfile = temp_file_handle.name
+
         ARTIFACTS.update(
             {
                 "dockerfile": {
-                    "source": image_config["docker_file"],
+                    "source": dockerfile,
                     "target": "Dockerfile",
                 }
             }
@@ -302,14 +310,6 @@ def image_builder(buildspec, image_types=[], device_types=[]):
             "release_image_uri": prod_repo_uri,
             "buildspec_path": buildspec,
         }
-
-        beta_tag_override = image_config.get("beta_tag_override")
-        dockerfile = image_config["docker_file"]
-        if beta_tag_override and build_context == "PR":
-            with tempfile.NamedTemporaryFile(mode="w", delete=False) as temp_file_handle:
-                source_uri = f"{image_repo_uri.replace('pr-', 'beta-')}:{beta_tag_override}"
-                temp_file_handle.write(f"FROM {source_uri}\nLABEL dlc.dev.source_uri={source_uri}")
-                dockerfile = temp_file_handle.name
 
         # Create pre_push stage docker object
         pre_push_stage_image_object = DockerImage(
