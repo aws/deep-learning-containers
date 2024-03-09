@@ -195,6 +195,10 @@ class DockerImage:
 
         start = datetime.now()
 
+        if "tmp" in self.dockerfile:
+            fileobj = None
+            custom_context = False
+
         for line in self.client.build(
             fileobj=fileobj,
             path=self.dockerfile,
