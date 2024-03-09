@@ -211,11 +211,13 @@ def image_builder(buildspec, image_types=[], device_types=[]):
 
         beta_tag_override = image_config.get("beta_tag_override")
         dockerfile = image_config["docker_file"]
+        target = image_config.get("target")
         if beta_tag_override and build_context == "PR":
             with tempfile.NamedTemporaryFile(mode="w", delete=False) as temp_file_handle:
                 source_uri = f"{image_repo_uri.replace('pr-', 'beta-')}:{beta_tag_override}"
                 temp_file_handle.write(f"FROM {source_uri}\nLABEL dlc.dev.source_uri={source_uri}")
                 dockerfile = temp_file_handle.name
+                target = None
 
         ARTIFACTS.update(
             {
@@ -321,7 +323,7 @@ def image_builder(buildspec, image_types=[], device_types=[]):
             stage=constants.PRE_PUSH_STAGE,
             context=context,
             additional_tags=additional_image_tags,
-            target=image_config.get("target"),
+            target=target,
         )
 
         ##### Create Common stage docker object #####
