@@ -193,11 +193,7 @@ class DockerImage:
         """
         response = [f"Starting the Build Process for {self.repository}:{self.tag}"]
 
-        with open(self.dockerfile, "r") as df:
-            df_lines = ""
-            for line in df:
-                df_lines += f"{line}\n"
-            raise RuntimeError(df_lines)
+        start = datetime.now()
 
         for line in self.client.build(
             fileobj=fileobj,
@@ -238,6 +234,8 @@ class DockerImage:
         LOGGER.info(f"Completed Build for {self.repository}:{self.tag}")
 
         self.build_status = constants.SUCCESS
+        end = datetime.now()
+        raise RuntimeError(f"Build Complete in {end-start}")
         return self.build_status
 
     def image_size_check(self):
