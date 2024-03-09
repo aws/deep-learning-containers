@@ -462,6 +462,9 @@ def main():
                             f'"{pytest_cmds[index]}" tests failed. Status code: {status}'
                         )
                 sys.exit(0)
+            elif benchmark_mode and all([status == 5 for status in cmd_exit_statuses]):
+                LOGGER.info("Benchmark mode is deprecated.")
+                sys.exit(0)
             else:
                 raise RuntimeError(pytest_cmds)
         finally:
