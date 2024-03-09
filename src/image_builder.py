@@ -305,7 +305,7 @@ def image_builder(buildspec, image_types=[], device_types=[]):
 
         beta_tag_override = image_config.get("beta_tag_override")
         dockerfile = image_config["docker_file"]
-        if beta_tag_override and not is_autopatch_build_enabled(buildspec_path=buildspec):
+        if beta_tag_override and build_context == "PR":
             raise RuntimeError("OVERRIDE FOUND")
             with tempfile.NamedTemporaryFile(mode="w", delete=False) as temp_file_handle:
                 temp_file_handle.write(
