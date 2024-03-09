@@ -206,7 +206,6 @@ class DockerImage:
             labels=self.labels,
             target=self.target,
         ):
-            raise RuntimeError(line)
             if line.get("error") is not None:
                 response.append(line["error"])
                 self.log.append(response)
