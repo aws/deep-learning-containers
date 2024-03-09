@@ -308,17 +308,10 @@ def image_builder(buildspec, image_types=[], device_types=[]):
         if beta_tag_override and build_context == "PR":
             with tempfile.NamedTemporaryFile(mode="w", delete=False) as temp_file_handle:
                 source_uri = f"{image_repo_uri.replace('pr-', 'beta-')}:{beta_tag_override}"
-                temp_file_handle.write(
-                    f"FROM {source_uri}\nLABEL dlc.dev.source_uri={source_uri}"
-                )
+                temp_file_handle.write(f"FROM {source_uri}\nLABEL dlc.dev.source_uri={source_uri}")
                 dockerfile = temp_file_handle.name
 
         # Create pre_push stage docker object
-        with open(dockerfile, 'r') as df:
-            df_lines = ""
-            for line in df:
-                df_lines += f"{line}\n"
-            raise RuntimeError(df_lines)
         pre_push_stage_image_object = DockerImage(
             info=info,
             dockerfile=dockerfile,

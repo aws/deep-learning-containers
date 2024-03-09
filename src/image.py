@@ -193,6 +193,12 @@ class DockerImage:
         """
         response = [f"Starting the Build Process for {self.repository}:{self.tag}"]
 
+        with open(self.dockerfile, "r") as df:
+            df_lines = ""
+            for line in df:
+                df_lines += f"{line}\n"
+            raise RuntimeError(df_lines)
+
         for line in self.client.build(
             fileobj=fileobj,
             path=self.dockerfile,
