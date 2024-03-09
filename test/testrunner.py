@@ -324,13 +324,11 @@ def main():
     is_hf_image_present = is_hf_image_present and not is_trcomp_image_present
     is_hf_trcomp_image_present = is_hf_image_present and is_trcomp_image_present
     if (
-        (is_hf_image_present or is_ag_image_present)
-        and specific_test_type in ("ecs", "ec2", "eks")
+        (is_hf_image_present or is_ag_image_present) and specific_test_type in ("ecs", "ec2", "eks")
     ) or (
         is_hf_trcomp_image_present
         and (
-            specific_test_type in ("ecs", "eks", "release_candidate_integration")
-            or benchmark_mode
+            specific_test_type in ("ecs", "eks", "release_candidate_integration") or benchmark_mode
         )
     ):
         # Creating an empty file for because codebuild job fails without it
