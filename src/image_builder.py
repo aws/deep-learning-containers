@@ -215,15 +215,17 @@ def image_builder(buildspec, image_types=[], device_types=[]):
         tag_override_regex = r"^(beta|pr):\S+$"
         if tag_override and build_context == "PR":
             if is_autopatch_build_enabled(buildspec_path=buildspec):
-                FORMATTER.print(
-                    "AUTOPATCH ENABLED IN BUILDSPEC, CANNOT OVERRIDE WITH TAG, SORRY!"
-                )
+                FORMATTER.print("AUTOPATCH ENABLED IN BUILDSPEC, CANNOT OVERRIDE WITH TAG, SORRY!")
             elif not re.match(tag_override_regex, tag_override):
-                FORMATTER.print(f"TAG OVERRIDE MUST BE OF FORMAT {tag_override_regex}, but got {tag_override}. Proceeding with regular build.")
+                FORMATTER.print(
+                    f"TAG OVERRIDE MUST BE OF FORMAT {tag_override_regex}, but got {tag_override}. Proceeding with regular build."
+                )
             else:
                 repo_override, t_override = tag_override.split(":")
                 with tempfile.NamedTemporaryFile(mode="w", delete=False) as temp_file_handle:
-                    source_uri = f"{image_repo_uri.replace('pr-', f'{repo_override}-')}:{t_override}"
+                    source_uri = (
+                        f"{image_repo_uri.replace('pr-', f'{repo_override}-')}:{t_override}"
+                    )
                     temp_file_handle.write(
                         f"FROM {source_uri}\nLABEL dlc.dev.source_uri={source_uri}"
                     )
