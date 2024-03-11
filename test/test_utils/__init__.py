@@ -78,7 +78,7 @@ def get_ami_id_ssm(region_name, parameter_path):
     return ami_id
 
 
-# DLAMI Base is split between OSS Nvidia Driver and Propietary Nvidia Driver. sett https://docs.aws.amazon.com/dlami/latest/devguide/important-changes.html
+# DLAMI Base is split between OSS Nvidia Driver and Propietary Nvidia Driver. see https://docs.aws.amazon.com/dlami/latest/devguide/important-changes.html
 # UBUNTU_20_BASE_DLAMI_US_WEST_2 = get_ami_id_boto3(
 #     region_name="us-west-2", ami_name_pattern="Deep Learning Base GPU AMI (Ubuntu 20.04) ????????"
 # )
@@ -304,14 +304,6 @@ class DockerImagePullException(Exception):
 class SerialTestCaseExecutorException(Exception):
     """
     Raise for execute_serial_test_cases function
-    """
-
-    pass
-
-
-class UnsupportedInstanceTypeBaseDLAMI(Exception):
-    """
-    Raise for get_instance_type_base_dlami function for supported Base DLAMI instance types
     """
 
     pass
@@ -2416,70 +2408,79 @@ def get_image_spec_from_buildspec(image_uri, dlc_folder_path):
     return matched_image_spec
 
 
-def get_instance_type_base_dlami(instance_type, region):
-    base_oss_dlami_instances = ["p4d.24xlarge", "p4de.24xlarge", "p5.48xlarge"]
-    base_proprietary_dlami_instances = [
-        "p3.2xlarge",
-        "p3.8xlarge",
-        "p3.16xlarge",
-        "p3dn.24xlarge",
-        "g3s.xlarge",
-        "g3.4xlarge",
-        "g3.8xlarge",
-        "g3.16xlarge",
-        "g4dn.xlarge",
-        "g4dn.2xlarge",
-        "g4dn.4xlarge",
-        "g4dn.8xlarge",
-        "g4dn.16xlarge",
-        "g4dn.12xlarge",
-        "g4dn.metal",
-        "g4dn.xlarge",
-        "g5.xlarge",
-        "g5.2xlarge",
-        "g5.4xlarge",
-        "g5.8xlarge",
-        "g5.16xlarge",
-        "g5.12xlarge",
-        "g5.24xlarge",
-        "g5.48xlarge",
-    ]
+def get_instance_type_base_dlami(instance_type, region, linux_dist="UBUNTU_20"):
+    """
+    Get Instance types based on EC2 instance, see https://docs.aws.amazon.com/dlami/latest/devguide/important-changes.html
+    OSS Nvidia Driver DLAMI supports the following: ["p4d.24xlarge", "p4de.24xlarge", "p5.48xlarge"]
+    Proprietary Nvidia Driver DLAMI supports the following: ["p3.2xlarge",
+                                                             "p3.8xlarge",
+                                                             "p3.16xlarge",
+                                                             "p3dn.24xlarge",
+                                                             "g3s.xlarge",
+                                                             "g3.4xlarge",
+                                                             "g3.8xlarge",
+                                                             "g3.16xlarge",
+                                                             "g4dn.xlarge",
+                                                             "g4dn.2xlarge",
+                                                             "g4dn.4xlarge",
+                                                             "g4dn.8xlarge",
+                                                             "g4dn.16xlarge",
+                                                             "g4dn.12xlarge",
+                                                             "g4dn.metal",
+                                                             "g4dn.xlarge",
+                                                             "g5.xlarge",
+                                                             "g5.2xlarge",
+                                                             "g5.4xlarge",
+                                                             "g5.8xlarge",
+                                                             "g5.16xlarge",
+                                                             "g5.12xlarge",
+                                                             "g5.24xlarge",
+                                                             "g5.48xlarge"]
 
-    if instance_type in base_oss_dlami_instances:
-        return (
-            UBUNTU_20_BASE_OSS_DLAMI_US_EAST_1
-            if region == "us-east-1"
-            else UBUNTU_20_BASE_OSS_DLAMI_US_WEST_2
-            if region == "us-west-2"
-            else get_ami_id_boto3(
-                region_name=region,
-                ami_name_pattern="Deep Learning Base OSS Nvidia Driver GPU AMI (Ubuntu 20.04) ????????",
-            )
+    Other instances will default to Proprietary Nvidia Driver DLAMI
+    """
+
+    base_oss_dlami_instances = ["p4d.24xlarge", "p4de.24xlarge", "p5.48xlarge"]
+
+    # set defaults
+    if linux_dist == "AML2":
+        oss_dlami_us_east_1 = AML2_BASE_OSS_DLAMI_US_EAST_1
+        oss_dlami_us_west_2 = AML2_BASE_OSS_DLAMI_US_WEST_2
+        oss_dlami_name_pattern = (
+            "Deep Learning Base OSS Nvidia Driver AMI (Amazon Linux 2) Version ??.?"
         )
-    elif instance_type in base_proprietary_dlami_instances:
-        return (
-            UBUNTU_20_BASE_PROPRIETARY_DLAMI_US_EAST_1
-            if region == "us-east-1"
-            else UBUNTU_20_BASE_PROPRIETARY_DLAMI_US_WEST_2
-            if region == "us-west-2"
-            else get_ami_id_boto3(
-                region_name=region,
-                ami_name_pattern="Deep Learning Base Proprietary Nvidia Driver GPU AMI (Ubuntu 20.04) ????????",
-            )
+
+        proprietary_dlami_us_east_1 = AML2_BASE_PROPRIETARY_DLAMI_US_EAST_1
+        proprietary_dlami_us_west_2 = AML2_BASE_PROPRIETARY_DLAMI_US_WEST_2
+        proprietary_dlami_name_pattern = (
+            "Deep Learning Base Proprietary Nvidia Driver AMI (Amazon Linux 2) Version ??.?"
         )
     else:
-        return (
-            UBUNTU_20_BASE_PROPRIETARY_DLAMI_US_EAST_1
-            if region == "us-east-1"
-            else UBUNTU_20_BASE_PROPRIETARY_DLAMI_US_WEST_2
-            if region == "us-west-2"
-            else get_ami_id_boto3(
-                region_name=region,
-                ami_name_pattern="Deep Learning Base Proprietary Nvidia Driver GPU AMI (Ubuntu 20.04) ????????",
-            )
+        oss_dlami_us_east_1 = UBUNTU_20_BASE_OSS_DLAMI_US_EAST_1
+        oss_dlami_us_west_2 = UBUNTU_20_BASE_OSS_DLAMI_US_WEST_2
+        oss_dlami_name_pattern = (
+            "Deep Learning Base OSS Nvidia Driver GPU AMI (Ubuntu 20.04) ????????"
         )
-        # raise UnsupportedInstanceTypeBaseDLAMI(
-        #     f"Base DLAMI does not support selected instance type {instance_type}.\n"
-        #     f"Currently supported instance type for OSS Nvidia Driver Base DLAMI: {base_oss_dlami_instances}.\n"
-        #     f"Currently supported instance type for Proprietary Nvidia Driver Base DLAMI: {base_proprietary_dlami_instances}."
-        # )
+
+        proprietary_dlami_us_east_1 = UBUNTU_20_BASE_OSS_DLAMI_US_EAST_1
+        proprietary_dlami_us_west_2 = UBUNTU_20_BASE_OSS_DLAMI_US_WEST_2
+        proprietary_dlami_name_pattern = (
+            "Deep Learning Base Proprietary Nvidia Driver GPU AMI (Ubuntu 20.04) ????????"
+        )
+
+    return (
+        oss_dlami_us_east_1
+        if region == "us-east-1" and instance_type in base_oss_dlami_instances
+        else oss_dlami_us_west_2
+        if region == "us-west-2" and instance_type in base_oss_dlami_instances
+        else get_ami_id_boto3(
+            region_name=region,
+            ami_name_pattern=oss_dlami_name_pattern,
+        )
+        if instance_type in base_oss_dlami_instances
+        else proprietary_dlami_us_east_1
+        if region == "us-east-1"
+        else proprietary_dlami_us_west_2
+        if region == "us-west-2"
+        else get_ami_id_boto3(region_name=region, ami_name_pattern=proprietary_dlami_name_pattern)
+    )

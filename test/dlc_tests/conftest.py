@@ -565,9 +565,14 @@ def ec2_instance(
         )
         if ec2_instance_ami != PT_GPU_PY3_BENCHMARK_IMAGENET_AMI_US_EAST_1:
             ec2_instance_ami = (
-                AML2_BASE_DLAMI_US_EAST_1
-                if ec2_instance_ami == AML2_BASE_DLAMI_US_WEST_2
-                else UBUNTU_20_BASE_DLAMI_US_EAST_1
+                test_utils.get_instance_type_base_dlami(
+                    ec2_instance_type, "us-east-1", linux_dist="AML2"
+                )
+                if ec2_instance_ami
+                == test_utils.get_instance_type_base_dlami(
+                    ec2_instance_type, "us-west-2", linux_dist="AML2"
+                )
+                else test_utils.get_instance_type_base_dlami(ec2_instance_type, "us-east-1")
             )
 
     ec2_key_name = f"{ec2_key_name}-{str(uuid.uuid4())}"
