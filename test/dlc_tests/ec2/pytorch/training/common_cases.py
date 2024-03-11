@@ -219,6 +219,10 @@ def pytorch_cudnn_match_gpu(pytorch_training, ec2_connection, region):
     ), f"System CUDNN {system_cudnn} and torch cudnn {cudnn_from_torch} do not match. Please downgrade system CUDNN or recompile torch with correct CUDNN verson."
 
 
+def pytorch_curand_gpu(pytorch_training, ec2_connection):
+    execute_ec2_training_test(ec2_connection, pytorch_training, CURAND_CMD)
+
+
 def pytorch_linear_regression_cpu(pytorch_training, ec2_connection):
     execute_ec2_training_test(
         ec2_connection, pytorch_training, PT_REGRESSION_CMD, container_name="pt_reg"
@@ -236,7 +240,3 @@ def pytorch_telemetry_cpu(pytorch_training, ec2_connection):
     execute_ec2_training_test(
         ec2_connection, pytorch_training, PT_TELEMETRY_CMD, timeout=900, container_name="telemetry"
     )
-
-
-def curand_gpu(training, ec2_connection):
-    execute_ec2_training_test(ec2_connection, training, CURAND_CMD)
