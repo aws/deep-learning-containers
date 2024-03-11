@@ -25,8 +25,12 @@ from test_utils import (
     SAGEMAKER_EXECUTION_REGIONS,
     SAGEMAKER_NEURON_EXECUTION_REGIONS,
     SAGEMAKER_NEURONX_EXECUTION_REGIONS,
-    UBUNTU_20_BASE_DLAMI_US_EAST_1,
-    UBUNTU_20_BASE_DLAMI_US_WEST_2,
+    # UBUNTU_20_BASE_DLAMI_US_EAST_1,
+    # UBUNTU_20_BASE_DLAMI_US_WEST_2,
+    UBUNTU_20_BASE_OSS_DLAMI_US_EAST_1,
+    UBUNTU_20_BASE_OSS_DLAMI_US_WEST_2,
+    UBUNTU_20_BASE_PROPRIETARY_DLAMI_US_EAST_1,
+    UBUNTU_20_BASE_PROPRIETARY_DLAMI_US_WEST_2,
     UL20_CPU_ARM64_US_EAST_1,
     UL20_CPU_ARM64_US_WEST_2,
     SAGEMAKER_LOCAL_TEST_TYPE,
@@ -34,6 +38,7 @@ from test_utils import (
     UBUNTU_HOME_DIR,
     DEFAULT_REGION,
     is_nightly_context,
+    get_instance_type_base_dlami,
 )
 from test_utils.pytest_cache import PytestCache
 
@@ -85,7 +90,7 @@ def assign_sagemaker_local_job_instance_type(image):
     return "p3.8xlarge" if "gpu" in image else "c5.18xlarge"
 
 
-def assign_sagemaker_local_test_ami(image, region):
+def assign_sagemaker_local_test_ami(image, region, instance_type):
     """
     Helper function to get the needed AMI for launching the image.
     Needed to support Graviton(ARM) images
@@ -96,13 +101,10 @@ def assign_sagemaker_local_test_ami(image, region):
         else:
             return UL20_CPU_ARM64_US_WEST_2
     else:
-        if region == "us-east-1":
-            return UBUNTU_20_BASE_DLAMI_US_EAST_1
-        else:
-            return UBUNTU_20_BASE_DLAMI_US_WEST_2
+        return get_instance_type_base_dlami(instance_type, region)
 
 
-def launch_sagemaker_local_ec2_instance(image, ami_id, ec2_key_name, region):
+def launch_sagemaker_local_ec2_instance(image, ec2_key_name, region):
     """
     Launch Ec2 instance for running sagemaker local tests
     :param image: str
@@ -112,6 +114,7 @@ def launch_sagemaker_local_ec2_instance(image, ami_id, ec2_key_name, region):
     :return: str, str
     """
     instance_type = assign_sagemaker_local_job_instance_type(image)
+    ami_id = assign_sagemaker_local_test_ami(image, region, instance_type)
     instance_name = image.split("/")[-1]
     instance = ec2_utils.launch_instance(
         ami_id,
@@ -300,7 +303,6 @@ def execute_local_tests(image, pytest_cache_params):
     random.seed(f"{datetime.datetime.now().strftime('%Y%m%d%H%M%S%f')}")
     ec2_key_name = f"{job_type}_{tag}_sagemaker_{random.randint(1, 1000)}"
     region = os.getenv("AWS_REGION", DEFAULT_REGION)
-    ec2_ami_id = assign_sagemaker_local_test_ami(image, region)
     sm_tests_tar_name = "sagemaker_tests.tar.gz"
     ec2_test_report_path = os.path.join(UBUNTU_HOME_DIR, "test", f"{job_type}_{tag}_sm_local.xml")
     instance_id = ""
@@ -310,7 +312,6 @@ def execute_local_tests(image, pytest_cache_params):
         print(f"Launching new Instance for image: {image}")
         instance_id, ip_address = launch_sagemaker_local_ec2_instance(
             image,
-            ec2_ami_id,
             ec2_key_name,
             region,
         )

@@ -309,6 +309,13 @@ class SerialTestCaseExecutorException(Exception):
     pass
 
 
+class UnsupportedInstanceTypeBaseDLAMI(Exception):
+    """
+    Raise for get_instance_type_base_dlami function for supported Base DLAMI instance types
+    """
+    pass
+
+
 class EnhancedJSONEncoder(json.JSONEncoder):
     """
     EnhancedJSONEncoder is required to dump dataclass objects as JSON.
@@ -2406,3 +2413,58 @@ def get_image_spec_from_buildspec(image_uri, dlc_folder_path):
         raise ValueError(f"No corresponding entry found for {image_uri} in {buildspec_path}")
 
     return matched_image_spec
+
+
+def get_instance_type_base_dlami(instance_type, region):
+    base_oss_dlami_instances = ["p4d.24xlarge", "p4de.24xlarge", "p5.48xlarge"]
+    base_proprietary_dlami_instances = [
+        "p3.2xlarge",
+        "p3.8xlarge",
+        "p3.16xlarge",
+        "p3dn.24xlarge",
+        "g3s.xlarge",
+        "g3.4xlarge",
+        "g3.8xlarge",
+        "g3.16xlarge",
+        "g4dn.xlarge",
+        "g4dn.2xlarge",
+        "g4dn.4xlarge",
+        "g4dn.8xlarge",
+        "g4dn.16xlarge",
+        "g4dn.12xlarge",
+        "g4dn.metal",
+        "g4dn.xlarge",
+        "g5.xlarge",
+        "g5.2xlarge",
+        "g5.4xlarge",
+        "g5.8xlarge",
+        "g5.16xlarge",
+        "g5.12xlarge",
+        "g5.24xlarge",
+        "g5.48xlarge",
+    ]
+
+    if instance_type in base_oss_dlami_instances:
+        return (
+            UBUNTU_20_BASE_OSS_DLAMI_US_EAST_1
+            if region == "us-east-1"
+            else UBUNTU_20_BASE_OSS_DLAMI_US_WEST_2
+            if region == "us-west-2"
+            else get_ami_id_boto3(
+                region_name=region,
+                ami_name_pattern="Deep Learning Base OSS Nvidia Driver GPU AMI (Ubuntu 20.04) ????????",
+            )
+        )
+    elif instance_type in base_proprietary_dlami_instances:
+        return (
+            UBUNTU_20_BASE_PROPRIETARY_DLAMI_US_EAST_1
+            if region == "us-east-1"
+            else UBUNTU_20_BASE_PROPRIETARY_DLAMI_US_WEST_2
+            if region == "us-west-2"
+            else get_ami_id_boto3(
+                region_name=region,
+                ami_name_pattern="Deep Learning Base Proprietary Nvidia Driver GPU AMI (Ubuntu 20.04) ????????",
+            )
+        )
+    else:
+        raise UnsupportedInstanceTypeBaseDLAMI(f"Base DLAMI does not support selected instance type {instance_type}")

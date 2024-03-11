@@ -342,7 +342,7 @@ def ec2_instance_ami(request, region, ec2_instance_type):
     return (
         request.param
         if hasattr(request, "param")
-        else _get_instance_type_base_dlami(ec2_instance_type, region)
+        else test_utils.get_instance_type_base_dlami(ec2_instance_type, region)
     )
 
 
@@ -714,59 +714,6 @@ def ec2_instance(
         instance_id, system_status="ok", instance_status="ok", region=region
     )
     return instance_id, key_filename
-
-
-def _get_instance_type_base_dlami(instance_type, region):
-    ubuntu_20_base_oss_dlami_instances = ["p4d.24xlarge", "p4de.24xlarge", "p5.48xlarge"]
-    ubuntu_20_base_proprietary_dlami_instances = [
-        "p3.2xlarge",
-        "p3.8xlarge",
-        "p3.16xlarge",
-        "p3dn.24xlarge",
-        "g3s.xlarge",
-        "g3.4xlarge",
-        "g3.8xlarge",
-        "g3.16xlarge",
-        "g4dn.xlarge",
-        "g4dn.2xlarge",
-        "g4dn.4xlarge",
-        "g4dn.8xlarge",
-        "g4dn.16xlarge",
-        "g4dn.12xlarge",
-        "g4dn.metal",
-        "g4dn.xlarge",
-        "g5.xlarge",
-        "g5.2xlarge",
-        "g5.4xlarge",
-        "g5.8xlarge",
-        "g5.16xlarge",
-        "g5.12xlarge",
-        "g5.24xlarge",
-        "g5.48xlarge",
-    ]
-
-    if instance_type in ubuntu_20_base_oss_dlami_instances:
-        return (
-            UBUNTU_20_BASE_OSS_DLAMI_US_EAST_1
-            if region == "us-east-1"
-            else UBUNTU_20_BASE_OSS_DLAMI_US_WEST_2
-            if region == "us-west-2"
-            else test_utils.get_ami_id_boto3(
-                region_name=region,
-                ami_name_pattern="Deep Learning Base OSS Nvidia Driver GPU AMI (Ubuntu 20.04) ????????",
-            )
-        )
-    elif instance_type in ubuntu_20_base_proprietary_dlami_instances:
-        return (
-            UBUNTU_20_BASE_PROPRIETARY_DLAMI_US_EAST_1
-            if region == "us-east-1"
-            else UBUNTU_20_BASE_PROPRIETARY_DLAMI_US_WEST_2
-            if region == "us-west-2"
-            else test_utils.get_ami_id_boto3(
-                region_name=region,
-                ami_name_pattern="Deep Learning Base Proprietary Nvidia Driver GPU AMI (Ubuntu 20.04) ????????",
-            )
-        )
 
 
 def is_neuron_image(fixtures):
