@@ -2411,7 +2411,26 @@ def get_image_spec_from_buildspec(image_uri, dlc_folder_path):
 def get_instance_type_base_dlami(instance_type, region, linux_dist="UBUNTU_20"):
     """
     Get Instance types based on EC2 instance, see https://docs.aws.amazon.com/dlami/latest/devguide/important-changes.html
-    OSS Nvidia Driver DLAMI supports the following: ["p4d.24xlarge", "p4de.24xlarge", "p5.48xlarge"]
+    OSS Nvidia Driver DLAMI supports the following: ["g4dn.xlarge",
+                                                     "g4dn.2xlarge",
+                                                     "g4dn.4xlarge",
+                                                     "g4dn.8xlarge",
+                                                     "g4dn.16xlarge",
+                                                     "g4dn.12xlarge",
+                                                     "g4dn.metal",
+                                                     "g4dn.xlarge",
+                                                     "g5.xlarge",
+                                                     "g5.2xlarge",
+                                                     "g5.4xlarge",
+                                                     "g5.8xlarge",
+                                                     "g5.16xlarge",
+                                                     "g5.12xlarge",
+                                                     "g5.24xlarge",
+                                                     "g5.48xlarge",
+                                                     "p4d.24xlarge",
+                                                     "p4de.24xlarge",
+                                                     "p5.48xlarge",]
+
     Proprietary Nvidia Driver DLAMI supports the following: ["p3.2xlarge",
                                                              "p3.8xlarge",
                                                              "p3.16xlarge",
@@ -2419,28 +2438,21 @@ def get_instance_type_base_dlami(instance_type, region, linux_dist="UBUNTU_20"):
                                                              "g3s.xlarge",
                                                              "g3.4xlarge",
                                                              "g3.8xlarge",
-                                                             "g3.16xlarge",
-                                                             "g4dn.xlarge",
-                                                             "g4dn.2xlarge",
-                                                             "g4dn.4xlarge",
-                                                             "g4dn.8xlarge",
-                                                             "g4dn.16xlarge",
-                                                             "g4dn.12xlarge",
-                                                             "g4dn.metal",
-                                                             "g4dn.xlarge",
-                                                             "g5.xlarge",
-                                                             "g5.2xlarge",
-                                                             "g5.4xlarge",
-                                                             "g5.8xlarge",
-                                                             "g5.16xlarge",
-                                                             "g5.12xlarge",
-                                                             "g5.24xlarge",
-                                                             "g5.48xlarge"]
+                                                             "g3.16xlarge",]
 
     Other instances will default to Proprietary Nvidia Driver DLAMI
     """
 
-    base_oss_dlami_instances = ["p4d.24xlarge", "p4de.24xlarge", "p5.48xlarge"]
+    base_proprietary_dlami_instances = [
+        "p3.2xlarge",
+        "p3.8xlarge",
+        "p3.16xlarge",
+        "p3dn.24xlarge",
+        "g3s.xlarge",
+        "g3.4xlarge",
+        "g3.8xlarge",
+        "g3.16xlarge",
+    ]
 
     # set defaults
     if linux_dist == "AML2":
@@ -2469,18 +2481,18 @@ def get_instance_type_base_dlami(instance_type, region, linux_dist="UBUNTU_20"):
         )
 
     return (
-        oss_dlami_us_east_1
-        if region == "us-east-1" and instance_type in base_oss_dlami_instances
-        else oss_dlami_us_west_2
-        if region == "us-west-2" and instance_type in base_oss_dlami_instances
+        proprietary_dlami_us_east_1
+        if region == "us-east-1" and instance_type in base_proprietary_dlami_instances
+        else proprietary_dlami_us_west_2
+        if region == "us-west-2" and instance_type in base_proprietary_dlami_instances
         else get_ami_id_boto3(
             region_name=region,
-            ami_name_pattern=oss_dlami_name_pattern,
+            ami_name_pattern=proprietary_dlami_name_pattern,
         )
-        if instance_type in base_oss_dlami_instances
-        else proprietary_dlami_us_east_1
+        if instance_type in base_proprietary_dlami_instances
+        else oss_dlami_us_east_1
         if region == "us-east-1"
-        else proprietary_dlami_us_west_2
+        else oss_dlami_us_west_2
         if region == "us-west-2"
-        else get_ami_id_boto3(region_name=region, ami_name_pattern=proprietary_dlami_name_pattern)
+        else get_ami_id_boto3(region_name=region, ami_name_pattern=oss_dlami_name_pattern)
     )
