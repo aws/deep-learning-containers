@@ -313,6 +313,7 @@ class UnsupportedInstanceTypeBaseDLAMI(Exception):
     """
     Raise for get_instance_type_base_dlami function for supported Base DLAMI instance types
     """
+
     pass
 
 
@@ -2467,4 +2468,18 @@ def get_instance_type_base_dlami(instance_type, region):
             )
         )
     else:
-        raise UnsupportedInstanceTypeBaseDLAMI(f"Base DLAMI does not support selected instance type {instance_type}")
+        return (
+            UBUNTU_20_BASE_PROPRIETARY_DLAMI_US_EAST_1
+            if region == "us-east-1"
+            else UBUNTU_20_BASE_PROPRIETARY_DLAMI_US_WEST_2
+            if region == "us-west-2"
+            else get_ami_id_boto3(
+                region_name=region,
+                ami_name_pattern="Deep Learning Base Proprietary Nvidia Driver GPU AMI (Ubuntu 20.04) ????????",
+            )
+        )
+        # raise UnsupportedInstanceTypeBaseDLAMI(
+        #     f"Base DLAMI does not support selected instance type {instance_type}.\n"
+        #     f"Currently supported instance type for OSS Nvidia Driver Base DLAMI: {base_oss_dlami_instances}.\n"
+        #     f"Currently supported instance type for Proprietary Nvidia Driver Base DLAMI: {base_proprietary_dlami_instances}."
+        # )
