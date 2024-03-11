@@ -557,8 +557,15 @@ def skip_smddataparallel_test(
 
 
 @pytest.fixture(autouse=True)
-def skip_p5_tests(instance_type, processor, ecr_image):
-    if "p5." in instance_type:
+def skip_p5_tests(request, processor, ecr_image):
+    if "efa_instance_type" in request.fixturenames:
+        test_instance_type = request.getfixturevalue("efa_instance_type")
+    elif "instance_type" in request.fixturenames:
+        test_instance_type = request.getfixturevalue("instance_type")
+    else:
+        return
+
+    if "p5." in test_instance_type:
         image_cuda_version = get_cuda_version_from_tag(ecr_image)
         if processor != "gpu" or Version(image_cuda_version.strip("cu")) < Version("120"):
             pytest.skip("P5 EC2 instance require CUDA 12.0 or higher.")
