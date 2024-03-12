@@ -10,6 +10,7 @@ from test.test_utils import (
     DEFAULT_REGION,
     get_framework_and_version_from_tag,
     is_pr_context,
+    get_instance_type_base_dlami,
 )
 from test.test_utils.ec2 import (
     execute_ec2_training_performance_test,
@@ -54,6 +55,7 @@ PT_EC2_GPU_INSTANCE_TYPE = get_ec2_instance_type(default="g3.8xlarge", processor
 
 @pytest.mark.model("resnet50")
 @pytest.mark.parametrize("ec2_instance_type", [PT_EC2_GPU_SYNTHETIC_INSTANCE_TYPE], indirect=True)
+@pytest.mark.usefixtures("ec2_instance_ami")
 @pytest.mark.team("conda")
 def test_performance_pytorch_gpu_synthetic(
     pytorch_training, ec2_connection, gpu_only, py3_only, ec2_instance_type
