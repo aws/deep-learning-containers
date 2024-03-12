@@ -187,9 +187,6 @@ def helper_function_for_leftover_vulnerabilities_from_enhanced_scanning(
     scan_results = ecr_utils.get_all_ecr_enhanced_scan_findings(
         ecr_client=ecr_client_for_enhanced_scanning_repo, image_uri=ecr_enhanced_repo_uri
     )
-
-    LOGGER.info(f"SCAN RESULTS TRSHANTA {scan_results}")
-
     scan_results = json.loads(json.dumps(scan_results, cls=EnhancedJSONEncoder))
 
     minimum_sev_threshold = minimum_sev_threshold or get_minimum_sev_threshold_level(image)
@@ -197,8 +194,6 @@ def helper_function_for_leftover_vulnerabilities_from_enhanced_scanning(
         minimum_severity=CVESeverity[minimum_sev_threshold]
     )
     ecr_image_vulnerability_list.construct_allowlist_from_ecr_scan_result(scan_results)
-
-    LOGGER.info(f"ecr_image_vulnerability_list {json.dumps(ecr_image_vulnerability_list.vulnerability_list, cls= test_utils.EnhancedJSONEncoder)}")
 
     image_scan_allowlist = ECREnhancedScanVulnerabilityList(
         minimum_severity=CVESeverity[minimum_sev_threshold]
@@ -266,7 +261,10 @@ def helper_function_for_leftover_vulnerabilities_from_enhanced_scanning(
             s3_filepath=future_allowlist_upload_path,
             tag_set=upload_tag_set,
         )
-        remaining_vulnerabilities = remaining_vulnerabilities - non_patchable_vulnerabilities
+
+        if remaining_vulnerabilities:
+            remaining_vulnerabilities = remaining_vulnerabilities - non_patchable_vulnerabilities
+
         LOGGER.info(
             f"[FutureAllowlist][image_uri:{ecr_enhanced_repo_uri}] {json.dumps(future_allowlist.vulnerability_list, cls= test_utils.EnhancedJSONEncoder)}"
         )
