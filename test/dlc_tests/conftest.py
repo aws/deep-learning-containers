@@ -338,7 +338,7 @@ def ec2_instance_role_name(request):
 
 
 @pytest.fixture(scope="function")
-def ec2_instance_ami(request, region, ec2_instance_type):
+def ec2_instance_ami(ec2_instance_type, request, region):
     return (
         request.param
         if hasattr(request, "param")
