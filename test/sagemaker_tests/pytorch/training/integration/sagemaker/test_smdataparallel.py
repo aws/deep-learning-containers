@@ -62,7 +62,6 @@ def can_run_smdataparallel_efa(ecr_image):
     ) >= Version("110")
 
 
-@pytest.mark.skip_smddataparallel_test
 @pytest.mark.skip_cpu
 @pytest.mark.skip_trcomp_containers
 @pytest.mark.processor("gpu")
@@ -106,7 +105,6 @@ def test_smdataparallel_throughput(
         )
 
 
-@pytest.mark.skip_smddataparallel_test
 @pytest.mark.skip_cpu
 @pytest.mark.skip_py2_containers
 @pytest.mark.skip_trcomp_containers
@@ -139,7 +137,6 @@ def test_smdataparallel_mnist_script_mode_multigpu(
         )
 
 
-@pytest.mark.skip_smddataparallel_test
 @pytest.mark.skip_py2_containers
 @pytest.mark.skip_trcomp_containers
 @pytest.mark.processor("gpu")
@@ -178,7 +175,6 @@ def test_smdataparallel_mnist(ecr_image, sagemaker_regions, efa_instance_type, t
         )
 
 
-@pytest.mark.skip_smddataparallel_test
 @pytest.mark.skip_py2_containers
 @pytest.mark.skip_trcomp_containers
 @pytest.mark.processor("gpu")
