@@ -338,11 +338,16 @@ def ec2_instance_role_name(request):
 
 
 @pytest.fixture(scope="function")
-def ec2_instance_ami(ec2_instance_type, request, region):
+def ec2_instance_ami(request, region):
+    if "ec2_instance_type" in request.fixturenames:
+        local_instance_type = request.getfixturevalue("ec2_instance_type")
+    else:
+        return
+
     return (
         request.param
         if hasattr(request, "param")
-        else test_utils.get_instance_type_base_dlami(ec2_instance_type, region)
+        else test_utils.get_instance_type_base_dlami(local_instance_type, region)
     )
 
 
