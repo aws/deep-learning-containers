@@ -7,6 +7,7 @@ import test.test_utils.ec2 as ec2_utils
 
 from test.test_utils import (
     CONTAINER_TESTS_PREFIX,
+    UBUNTU_20_BASE_OSS_DLAMI_US_WEST_2,
     get_framework_and_version_from_tag,
     get_cuda_version_from_tag,
 )
@@ -14,6 +15,7 @@ from test.test_utils.ec2 import (
     execute_ec2_training_test,
     get_ec2_instance_type,
     get_efa_ec2_instance_type,
+    get_efa_ec2_instance_ami,
 )
 
 # Test functions
@@ -42,6 +44,15 @@ PT_EC2_GPU_INSTANCE_TYPE_AND_REGION = get_efa_ec2_instance_type(default="g4dn.12
 
 PT_EC2_GPU_INDUCTOR_INSTANCE_TYPE_AND_REGION = get_efa_ec2_instance_type(
     default="g4dn.12xlarge", filter_function=ec2_utils.filter_non_g3_instance_type
+)
+
+# Instance AMI filters
+PT_EC2_CPU_INSTANCE_AMI = UBUNTU_20_BASE_OSS_DLAMI_US_WEST_2
+
+PT_EC2_GPU_INSTANCE_AMI = get_efa_ec2_instance_ami(PT_EC2_GPU_INSTANCE_TYPE_AND_REGION)
+
+PT_EC2_GPU_INDUCTOR_INSTANCE_AMI = get_efa_ec2_instance_ami(
+    PT_EC2_GPU_INDUCTOR_INSTANCE_TYPE_AND_REGION
 )
 
 

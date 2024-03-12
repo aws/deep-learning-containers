@@ -30,6 +30,7 @@ from test.test_utils import (
     is_pr_context,
     is_mainline_context,
     are_heavy_instance_ec2_tests_enabled,
+    get_instance_type_base_dlami,
 )
 from . import DEFAULT_REGION, P3DN_REGION, P4DE_REGION, UL_AMI_LIST, BENCHMARK_RESULTS_S3_BUCKET
 
@@ -126,6 +127,14 @@ def get_cicd_instance_reserved_region(instance_type):
     )
 
 
+def get_efa_ec2_instance_ami(instance_region_list):
+    instance_amis = [
+        get_instance_type_base_dlami(instance_type, region)
+        for instance_type, region in instance_region_list
+    ]
+    return instance_amis
+
+
 def get_efa_ec2_instance_type(default, filter_function=lambda x: x, job_type=""):
     """
     Helper function wrapping around get_ec2_instance_type to parametrize both ec2_instance_type
@@ -139,11 +148,11 @@ def get_efa_ec2_instance_type(default, filter_function=lambda x: x, job_type="")
     a list.
     """
     instance_list = get_ec2_instance_type(default, "gpu", filter_function, job_type=job_type)
-    instance_list = [
+    instance_region_list = [
         (instance_type, get_cicd_instance_reserved_region(instance_type))
         for instance_type in instance_list
     ]
-    return instance_list
+    return instance_region_list
 
 
 def get_ec2_instance_type(
