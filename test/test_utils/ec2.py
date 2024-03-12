@@ -217,7 +217,6 @@ def get_ec2_accelerator_type(default, processor):
 def launch_instance(
     ami_id,
     instance_type,
-    ei_accelerator_type,
     ec2_key_name=None,
     region=DEFAULT_REGION,
     user_data=None,
@@ -271,23 +270,32 @@ def launch_instance(
         arguments_dict["UserData"] = user_data
     if iam_instance_profile_name:
         arguments_dict["IamInstanceProfile"] = {"Name": iam_instance_profile_name}
-    if ei_accelerator_type:
-        arguments_dict["ElasticInferenceAccelerators"] = ei_accelerator_type
-        availability_zones = {
-            "us-west": ["us-west-2a", "us-west-2b", "us-west-2c"],
-            "us-east": ["us-east-1a", "us-east-1b", "us-east-1c"],
+
+    reservations = get_available_reservations(
+        ec2_client=client, instance_type=instance_type, min_availability=arguments_dict["MinCount"]
+    )
+
+    while reservations:
+        reservation = reservations.pop(0)
+        arguments_dict["CapacityReservationSpecification"] = {
+            "CapacityReservationTarget": {
+                "CapacityReservationId": reservation["CapacityReservationId"]
+            }
         }
-        for a_zone in availability_zones[region]:
-            arguments_dict["Placement"] = {"AvailabilityZone": a_zone}
-            try:
-                response = client.run_instances(**arguments_dict)
-                if response and len(response["Instances"]) >= 1:
-                    break
-            except ClientError as e:
-                print(f"Failed to launch in {a_zone} with Error: {e}")
-                continue
-    else:
-        response = client.run_instances(**arguments_dict)
+        try:
+            response = client.run_instances(**arguments_dict)
+            LOGGER.info(
+                f"Your {instance_type} reservation is ready, please wait to be seated. Launching..."
+            )
+            if is_mainline_context():
+                LOGGER.info(f"Launched instance via {reservation}")
+            return response["Instances"][0]
+        except ClientError as e:
+            LOGGER.error(f"Failed to launch via {instance_type} reservation - {e}")
+    # Clean up cap reservation if we don't find one
+    arguments_dict.pop("CapacityReservationSpecification", None)
+    LOGGER.info(f"No capacity reservation available for {instance_type}, trying elsewhere...")
+    response = client.run_instances(**arguments_dict)
 
     if not response or len(response["Instances"]) < 1:
         raise Exception(
@@ -371,6 +379,9 @@ def launch_instances_with_retry(
             return instances
         except ClientError as e:
             LOGGER.error(f"Failed to launch via reservation for {fn_name} - {e}")
+
+    # Clean up capacity reservation if it failed
+    ec2_create_instances_definition.pop("CapacityReservationSpecification", None)
 
     LOGGER.info(
         f"Looks like you didn't have a reservation for {fn_name}, let's see if we can seat you as a walk-in..."
@@ -456,6 +467,8 @@ def launch_efa_instances_with_retry(
                 "Checking additional open reservations..."
             )
 
+    # Clean up capacity reservation if it failed
+    ec2_run_instances_definition.pop("CapacityReservationSpecification", None)
     LOGGER.info(
         f"Looks like you didn't have an EFA reservation for {fn_name}, let's see if we can seat you as a walk-in..."
     )
