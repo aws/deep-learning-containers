@@ -13,7 +13,9 @@ from test.dlc_tests.ec2 import smclarify_cases
 @pytest.mark.model("N/A")
 @pytest.mark.team("conda")
 @pytest.mark.parametrize(
-    "ec2_instance_type, region", common_cases.PT_EC2_GPU_INSTANCE_TYPE_AND_REGION, indirect=True
+    "ec2_instance_type, region, ec2_instance_ami",
+    common_cases.PT_EC2_GPU_INSTANCE_TYPE_AND_REGION,
+    indirect=True,
 )
 def test_pytorch_2_2_gpu(
     pytorch_training___2__2, ec2_connection, region, gpu_only, ec2_instance_type
@@ -54,7 +56,7 @@ def test_pytorch_2_2_gpu(
 @pytest.mark.model("N/A")
 @pytest.mark.team("training-compiler")
 @pytest.mark.parametrize(
-    "ec2_instance_type, region",
+    "ec2_instance_type, region, ec2_instance_ami",
     common_cases.PT_EC2_GPU_INDUCTOR_INSTANCE_TYPE_AND_REGION,
     indirect=True,
 )
@@ -81,7 +83,9 @@ def test_pytorch_2_2_gpu_inductor(
 @pytest.mark.integration("pytorch_sanity_test")
 @pytest.mark.model("N/A")
 @pytest.mark.team("conda")
-@pytest.mark.parametrize("ec2_instance_type", common_cases.PT_EC2_CPU_INSTANCE_TYPE, indirect=True)
+@pytest.mark.parametrize(
+    "ec2_instance_type, ec2_instance_ami", common_cases.PT_EC2_CPU_INSTANCE_TYPE, indirect=True
+)
 def test_pytorch_2_2_cpu(pytorch_training___2__2, ec2_connection, cpu_only):
     pytorch_training = pytorch_training___2__2
 
