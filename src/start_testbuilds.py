@@ -121,7 +121,7 @@ def is_test_job_enabled(test_type):
         return True
     if test_type == constants.EC2_TESTS and config.is_ec2_test_enabled():
         return True
-    if test_type == constants.EC2_BENCHMARK_TESTS and config.is_ec2_benchmark_test_enabled:
+    if test_type == constants.EC2_BENCHMARK_TESTS and config.is_ec2_benchmark_test_enabled():
         return True
     if test_type == constants.ECS_TESTS and config.is_ecs_test_enabled():
         return True

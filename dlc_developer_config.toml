@@ -60,8 +60,6 @@ sanity_tests = true
 ecs_tests = true
 eks_tests = true
 ec2_tests = true
-# Set it to true if you are preparing a Benchmark related PR
-ec2_benchmark_tests = false
 
 ### Set ec2_tests_on_heavy_instances = true to be able to run any EC2 tests that use large/expensive instance types by
 ### default. If false, these types of tests will be skipped while other tests will run as usual.
@@ -79,16 +77,14 @@ sagemaker_remote_tests = false
 sagemaker_efa_tests = false
 # run release_candidate_integration tests
 sagemaker_rc_tests = false
-# run sagemaker benchmark tests
-sagemaker_benchmark_tests = false
 
 # SM remote EFA test instance type
 sagemaker_remote_efa_instance_type = ""
 
-# Run CI tests for nightly images
-# false by default
+### DEPRECATED OPTIONS ###
+ec2_benchmark_tests = false
+sagemaker_benchmark_tests = false
 nightly_pr_test_mode = false
-
 use_scheduler = false
 
 [buildspec_override]
