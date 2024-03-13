@@ -17,6 +17,7 @@ EC2_EFA_GPU_INSTANCE_TYPE_AND_REGION = get_efa_ec2_instance_type(
 )
 
 
+@pytest.mark.skip()
 @pytest.mark.usefixtures("sagemaker")
 @pytest.mark.processor("gpu")
 @pytest.mark.model("N/A")

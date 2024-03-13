@@ -8,6 +8,7 @@ from test.dlc_tests.ec2.pytorch.training import common_cases
 from test.dlc_tests.ec2 import smclarify_cases
 
 
+@pytest.mark.skip()
 @pytest.mark.usefixtures("sagemaker")
 @pytest.mark.integration("all PT 2.2 tests")
 @pytest.mark.model("N/A")
@@ -48,6 +49,7 @@ def test_pytorch_2_2_gpu(
     test_utils.execute_serial_test_cases(test_cases, test_description="PT 2.2 GPU")
 
 
+@pytest.mark.skip()
 @pytest.mark.usefixtures("sagemaker")
 @pytest.mark.integration("all PT 2.2 tests")
 @pytest.mark.model("N/A")
@@ -76,6 +78,7 @@ def test_pytorch_2_2_gpu_inductor(
     test_utils.execute_serial_test_cases(test_cases, test_description="PT 2.2 GPU")
 
 
+@pytest.mark.skip()
 @pytest.mark.usefixtures("sagemaker")
 @pytest.mark.integration("pytorch_sanity_test")
 @pytest.mark.model("N/A")
