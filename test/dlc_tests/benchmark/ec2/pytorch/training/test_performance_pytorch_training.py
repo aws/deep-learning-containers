@@ -11,7 +11,6 @@ from test.test_utils import (
     DEFAULT_REGION,
     get_framework_and_version_from_tag,
     is_pr_context,
-    get_instance_type_base_dlami,
 )
 from test.test_utils.ec2 import (
     execute_ec2_training_performance_test,
