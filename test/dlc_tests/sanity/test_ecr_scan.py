@@ -221,10 +221,18 @@ def helper_function_for_leftover_vulnerabilities_from_enhanced_scanning(
     remaining_vulnerabilities = ecr_image_vulnerability_list - image_scan_allowlist
     LOGGER.info(f"ECR Enhanced Scanning test completed for image: {image}")
 
-    if remove_non_patchable_vulns and remaining_vulnerabilities:
-        non_patchable_vulnerabilities = extract_non_patchable_vulnerabilities(
-            remaining_vulnerabilities, ecr_enhanced_repo_uri
+    if remove_non_patchable_vulns:
+        non_patchable_vulnerabilities = ECREnhancedScanVulnerabilityList(
+            minimum_severity=CVESeverity[minimum_sev_threshold]
         )
+
+        ## non_patchable_vulnerabilities is a subset of remaining_vulnerabilities that cannot be patched.
+        ## Thus, if remaining_vulnerabilities exists, we need to find the non_patchable_vulnerabilities from it.
+        if remaining_vulnerabilities:
+            non_patchable_vulnerabilities = extract_non_patchable_vulnerabilities(
+                remaining_vulnerabilities, ecr_enhanced_repo_uri
+            )
+
         future_allowlist = generate_future_allowlist(
             ecr_image_vulnerability_list=ecr_image_vulnerability_list,
             image_scan_allowlist=image_scan_allowlist,
@@ -254,7 +262,10 @@ def helper_function_for_leftover_vulnerabilities_from_enhanced_scanning(
             s3_filepath=future_allowlist_upload_path,
             tag_set=upload_tag_set,
         )
-        remaining_vulnerabilities = remaining_vulnerabilities - non_patchable_vulnerabilities
+
+        if remaining_vulnerabilities:
+            remaining_vulnerabilities = remaining_vulnerabilities - non_patchable_vulnerabilities
+
         LOGGER.info(
             f"[FutureAllowlist][image_uri:{ecr_enhanced_repo_uri}] {json.dumps(future_allowlist.vulnerability_list, cls= test_utils.EnhancedJSONEncoder)}"
         )
