@@ -5,6 +5,8 @@ import logging
 import sys
 import uuid
 
+from collections import Counter
+
 from inspect import signature
 
 import boto3
@@ -406,6 +408,150 @@ def launch_instances_with_retry(
     return instances
 
 
+def launch_efa(ec2_client, ec2_instance_type, ec2_run_instances_definition, availability_zone):
+    ec2_run_instances_definition.update(
+        {
+            "Placement": {"AvailabilityZone": availability_zone},
+            "NetworkInterfaces": generate_network_interfaces(
+                ec2_client, ec2_instance_type, availability_zone
+            ),
+        }
+    )
+    response = ec2_client.run_instances(**ec2_run_instances_definition) or {}
+    return response.get("Instances")
+
+
+def launch_efa_with_reservations(
+    ec2_client, ec2_instance_type, reservations, ec2_run_instances_definition, fn_name=""
+):
+    while reservations:
+        reservation = reservations.pop(0)
+        ec2_run_instances_definition["CapacityReservationSpecification"] = {
+            "CapacityReservationTarget": {
+                "CapacityReservationId": reservation["CapacityReservationId"]
+            }
+        }
+        try:
+            instances = launch_efa(
+                ec2_client,
+                ec2_instance_type,
+                ec2_run_instances_definition,
+                reservation["AvailabilityZone"],
+            )
+            if instances:
+                LOGGER.info(
+                    f"Your EFA reservation is ready for {fn_name}, please wait to be seated. Launching..."
+                )
+                if is_mainline_context():
+                    LOGGER.info(f"Launched EFA enabled instance for {fn_name} via {reservation}")
+                return instances
+        except ClientError as e:
+            LOGGER.debug(
+                f"Failed to launch EFA instance for {fn_name} from reservation due to {e}\n"
+                "Checking additional open reservations..."
+            )
+    return []
+
+
+def validate_efa_instance_conditions(instances, minimum_number_of_instances):
+    if len(instances) == minimum_number_of_instances:
+        return True
+    if len(instances) > minimum_number_of_instances:
+        raise RuntimeError(
+            f"Launched too many instances somehow, raising and cleaning up - {instances}; min/max_allowed = {minimum_number_of_instances}"
+        )
+    return False
+
+
+class HeterogenousReservationError(Exception):
+    pass
+
+
+def launch_efa_with_heterogenous_reservations(
+    ec2_client, ec2_instance_type, ec2_run_instances_definition, fn_name=""
+):
+    minimum_number_of_instances = ec2_run_instances_definition["MinCount"]
+    # Reset max and min count to 1
+    ec2_run_instances_definition["MaxCount"] = 1
+    ec2_run_instances_definition["MinCount"] = 1
+
+    tmp_reservations = get_available_reservations(
+        ec2_client=ec2_client,
+        instance_type=ec2_run_instances_definition["InstanceType"],
+        min_availability=ec2_run_instances_definition["MinCount"],
+    )
+
+    az_counter = Counter(reservation["AvailabilityZone"] for reservation in tmp_reservations)
+    most_common_azs = [c[0] for c in az_counter.most_common()]
+
+    for most_common_az in most_common_azs:
+        reservations = [
+            reservation
+            for reservation in tmp_reservations
+            if reservation["AvailabilityZone"] == most_common_az
+        ]
+
+        available_instances = sum(
+            [reservation["AvailableInstanceCount"] for reservation in reservations]
+        )
+
+        instances = []
+        try:
+            while available_instances and len(instances) < minimum_number_of_instances:
+                instance = launch_efa_with_reservations(
+                    ec2_client=ec2_client,
+                    ec2_instance_type=ec2_instance_type,
+                    reservations=reservations,
+                    ec2_run_instances_definition=ec2_run_instances_definition,
+                    fn_name=fn_name,
+                )
+                instances += instance
+                available_instances -= 1
+            if validate_efa_instance_conditions(instances, minimum_number_of_instances):
+                LOGGER.info("Strung together some reservations, let's go")
+                return instances
+
+            # If we have remaining instances, try launching from public pool
+            remaining_instances = minimum_number_of_instances - len(instances)
+            LOGGER.info(
+                f"Have {remaining_instances} remaining_instances instances in {most_common_az}. Trying from public pool."
+            )
+            ec2_run_instances_definition["MaxCount"] = remaining_instances
+            ec2_run_instances_definition["MinCount"] = remaining_instances
+            instances += launch_efa(
+                ec2_client, ec2_instance_type, ec2_run_instances_definition, most_common_az
+            )
+
+            if validate_efa_instance_conditions(instances, minimum_number_of_instances):
+                LOGGER.info("Strung together some reservations and some walk-ins, let's go")
+                return instances
+
+            # Clean up instances if this workflow did not succeed
+            if instances:
+                ec2_client.terminate_instances(
+                    InstanceIds=[instance_info["InstanceId"] for instance_info in instances]
+                )
+
+        except ClientError as e:
+            # Clean up any remaining instances
+            LOGGER.debug(
+                f"Failed to launch EFA instance for {fn_name} from reservation due to {e}\n"
+                "Checking additional open reservations and cleaning up stray resources"
+            )
+            if instances:
+                ec2_client.terminate_instances(
+                    InstanceIds=[instance_info["InstanceId"] for instance_info in instances]
+                )
+
+        except Exception as e:
+            if instances:
+                ec2_client.terminate_instances(
+                    InstanceIds=[instance_info["InstanceId"] for instance_info in instances]
+                )
+            raise HeterogenousReservationError("Failed to launch via heterogenous approach") from e
+    return []
+
+
 @retry(
     reraise=True,
     stop=stop_after_delay(30 * 60),  # Keep retrying for 30 minutes
@@ -437,54 +583,42 @@ def launch_efa_instances_with_retry(
     )
 
     # Try launching via reservation first
-    while reservations:
-        reservation = reservations.pop(0)
-        ec2_run_instances_definition["CapacityReservationSpecification"] = {
-            "CapacityReservationTarget": {
-                "CapacityReservationId": reservation["CapacityReservationId"]
-            }
-        }
-        ec2_run_instances_definition.update(
-            {
-                "Placement": {"AvailabilityZone": reservation["AvailabilityZone"]},
-                "NetworkInterfaces": generate_network_interfaces(
-                    ec2_client, ec2_instance_type, reservation["AvailabilityZone"]
-                ),
-            }
-        )
-        try:
-            response = ec2_client.run_instances(**ec2_run_instances_definition)
-            if response and response["Instances"]:
-                LOGGER.info(
-                    f"Your EFA reservation is ready for {fn_name}, please wait to be seated. Launching..."
-                )
-                if is_mainline_context():
-                    LOGGER.info(f"Launched EFA enabled instance for {fn_name} via {reservation}")
-                return response
-        except ClientError as e:
-            LOGGER.debug(
-                f"Failed to launch EFA instance for {fn_name} from reservation due to {e}\n"
-                "Checking additional open reservations..."
-            )
+    reservation_launch_instances = launch_efa_with_reservations(
+        ec2_client=ec2_client,
+        ec2_instance_type=ec2_instance_type,
+        reservations=reservations,
+        ec2_run_instances_definition=ec2_run_instances_definition,
+        fn_name=fn_name,
+    )
 
-    # Clean up capacity reservation if it failed
-    ec2_run_instances_definition.pop("CapacityReservationSpecification", None)
+    if reservation_launch_instances:
+        return reservation_launch_instances
+
+    LOGGER.info(
+        f"Looks like you didn't have an EFA reservation for {fn_name}, let's see if we can seat you with a mix and match approach..."
+    )
+
+    heterogenous_reservation_launch = launch_efa_with_heterogenous_reservations(
+        ec2_client=ec2_client,
+        ec2_instance_type=ec2_instance_type,
+        ec2_run_instances_definition=ec2_run_instances_definition,
+        fn_name=fn_name,
+    )
+
+    if heterogenous_reservation_launch:
+        return heterogenous_reservation_launch
+
     LOGGER.info(
         f"Looks like you didn't have an EFA reservation for {fn_name}, let's see if we can seat you as a walk-in..."
     )
 
+    instances = []
     for availability_zone in availability_zone_options:
-        ec2_run_instances_definition.update(
-            {
-                "Placement": {"AvailabilityZone": availability_zone},
-                "NetworkInterfaces": generate_network_interfaces(
-                    ec2_client, ec2_instance_type, availability_zone
-                ),
-            }
-        )
         try:
-            response = ec2_client.run_instances(**ec2_run_instances_definition)
-            if response and response["Instances"]:
+            instances = launch_efa(
+                ec2_client, ec2_instance_type, ec2_run_instances_definition, availability_zone
+            )
+            if instances:
                 break
         except ClientError as e:
             LOGGER.debug(
@@ -492,11 +626,11 @@ def launch_efa_instances_with_retry(
                 "Retrying in the next availability zone."
             )
             continue
-    if not (response and response["Instances"]):
+    if not instances:
         raise RuntimeError(
             f"Unable to launch {ec2_instance_type} instances in {region} for {fn_name}"
         )
-    return response
+    return response["Instances"]
 
 
 def get_ec2_client(region):

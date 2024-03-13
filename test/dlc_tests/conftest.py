@@ -355,7 +355,6 @@ def ei_accelerator_type(request):
 def efa_ec2_instances(
     request,
     ec2_client,
-    ec2_resource,
     ec2_instance_type,
     ec2_instance_role_name,
     ec2_key_name,
@@ -401,15 +400,13 @@ def efa_ec2_instances(
             {"ResourceType": "instance", "Tags": [{"Key": "Name", "Value": instance_name_prefix}]}
         ],
     }
-    response = ec2_utils.launch_efa_instances_with_retry(
+    instances = ec2_utils.launch_efa_instances_with_retry(
         ec2_client,
         ec2_instance_type,
         availability_zone_options,
         ec2_run_instances_definition,
         fn_name=request.node.name,
     )
-
-    instances = response["Instances"]
 
     def terminate_efa_instances():
         ec2_client.terminate_instances(

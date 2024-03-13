@@ -12,6 +12,8 @@
 # language governing permissions and limitations under the License.
 from __future__ import absolute_import
 
+import os
+
 import pytest
 
 from packaging.version import Version
@@ -35,7 +37,10 @@ def can_run_pytorchddp(ecr_image):
     return Version(image_framework_version) in SpecifierSet(">=1.10")
 
 
-# Skip due to known issue: https://github.com/pytorch/pytorch/issues/99074
+@pytest.mark.skipif(
+    os.getenv("SM_EFA_TEST_INSTANCE_TYPE") == "p5.48xlarge",
+    reason="Low availability of instance type; Must ensure test works on new instances.",
+)
 @pytest.mark.processor("gpu")
 @pytest.mark.model("N/A")
 @pytest.mark.multinode(2)
