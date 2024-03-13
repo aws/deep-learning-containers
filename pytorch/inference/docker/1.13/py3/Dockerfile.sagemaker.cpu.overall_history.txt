@@ -10,4 +10,4 @@ pip install cryptography==42.0.5 pyopenssl==24.0.0
 apt-get update && apt-get install -y --only-upgrade binutils-common binutils-x86-64-linux-gnu binutils libbinutils libctf-nobfd0 libctf0 libgnutls30 libpam-modules libssh-4 libssl1.1 libtiff5 libuv1 libxml2 linux-libc-dev login openjdk-11-jdk-headless openjdk-11-jdk openjdk-11-jre-headless openjdk-11-jre passwd
 #### Current Patch contents ####
 pip install cryptography==42.0.5 pyopenssl==24.1.0
-apt-get update && apt-get install -y --only-upgrade binutils-common binutils-x86-64-linux-gnu binutils libbinutils libctf-nobfd0 libctf0 libgnutls30 libpam-modules libssh-4 libssl1.1 libtiff5 libuv1 libxml2 linux-libc-dev login openjdk-11-jdk-headless openjdk-11-jdk openjdk-11-jre-headless openjdk-11-jre passwd
+apt-get update && apt-get install -y --only-upgrade binutils-common binutils-x86-64-linux-gnu binutils libbinutils libctf-nobfd0 libctf0 libgnutls30 libpam-modules libssh-4 libssl-dev libssl1.1 libtiff5 libuv1 libxml2 linux-libc-dev login openjdk-11-jdk-headless openjdk-11-jdk openjdk-11-jre-headless openjdk-11-jre openssl passwd
