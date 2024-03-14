@@ -2440,6 +2440,26 @@ def get_instance_type_base_dlami(instance_type, region, linux_dist="UBUNTU_20"):
         "g3.16xlarge",
     ]
 
+    base_oss_dlami_instances = ["g4dn.xlarge",
+                                                     "g4dn.2xlarge",
+                                                     "g4dn.4xlarge",
+                                                     "g4dn.8xlarge",
+                                                     "g4dn.16xlarge",
+                                                     "g4dn.12xlarge",
+                                                     "g4dn.metal",
+                                                     "g4dn.xlarge",
+                                                     "g5.xlarge",
+                                                     "g5.2xlarge",
+                                                     "g5.4xlarge",
+                                                     "g5.8xlarge",
+                                                     "g5.16xlarge",
+                                                     "g5.12xlarge",
+                                                     "g5.24xlarge",
+                                                     "g5.48xlarge",
+                                                     "p4d.24xlarge",
+                                                     "p4de.24xlarge",
+                                                     "p5.48xlarge",]
+
     # set defaults
     if linux_dist == "AML2":
         oss_dlami_us_east_1 = AML2_BASE_OSS_DLAMI_US_EAST_1
@@ -2468,19 +2488,35 @@ def get_instance_type_base_dlami(instance_type, region, linux_dist="UBUNTU_20"):
 
     LOGGER.info(f"Instance Type: {instance_type}")
 
+    # return (
+    #     proprietary_dlami_us_east_1
+    #     if region == "us-east-1" and instance_type in base_proprietary_dlami_instances
+    #     else proprietary_dlami_us_west_2
+    #     if region == "us-west-2" and instance_type in base_proprietary_dlami_instances
+    #     else get_ami_id_boto3(
+    #         region_name=region,
+    #         ami_name_pattern=proprietary_dlami_name_pattern,
+    #     )
+    #     if instance_type in base_proprietary_dlami_instances
+    #     else oss_dlami_us_east_1
+    #     if region == "us-east-1"
+    #     else oss_dlami_us_west_2
+    #     if region == "us-west-2"
+    #     else get_ami_id_boto3(region_name=region, ami_name_pattern=oss_dlami_name_pattern)
+    # )
     return (
-        proprietary_dlami_us_east_1
-        if region == "us-east-1" and instance_type in base_proprietary_dlami_instances
-        else proprietary_dlami_us_west_2
-        if region == "us-west-2" and instance_type in base_proprietary_dlami_instances
+        oss_dlami_us_east_1
+        if region == "us-east-1" and instance_type in base_oss_dlami_instances
+        else oss_dlami_us_west_2
+        if region == "us-west-2" and instance_type in base_oss_dlami_instances
         else get_ami_id_boto3(
             region_name=region,
-            ami_name_pattern=proprietary_dlami_name_pattern,
+            ami_name_pattern=oss_dlami_name_pattern,
         )
-        if instance_type in base_proprietary_dlami_instances
-        else oss_dlami_us_east_1
+        if instance_type in base_oss_dlami_instances
+        else proprietary_dlami_us_east_1
         if region == "us-east-1"
-        else oss_dlami_us_west_2
+        else proprietary_dlami_us_west_2
         if region == "us-west-2"
-        else get_ami_id_boto3(region_name=region, ami_name_pattern=oss_dlami_name_pattern)
+        else get_ami_id_boto3(region_name=region, ami_name_pattern=proprietary_dlami_name_pattern)
     )
