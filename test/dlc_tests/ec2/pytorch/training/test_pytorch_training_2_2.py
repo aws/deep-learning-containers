@@ -15,7 +15,7 @@ from test.dlc_tests.ec2 import smclarify_cases
 @pytest.mark.parametrize(
     "ec2_instance_type, region", common_cases.PT_EC2_GPU_INSTANCE_TYPE_AND_REGION, indirect=True
 )
-@pytest.mark.parametrize("ec2_instance_ami", common_cases.PT_EC2_GPU_INSTANCE_AMI, indirect=True)
+# @pytest.mark.parametrize("ec2_instance_ami", common_cases.PT_EC2_GPU_INSTANCE_AMI, indirect=True)
 def test_pytorch_2_2_gpu(
     pytorch_training___2__2, ec2_connection, region, gpu_only, ec2_instance_type
 ):

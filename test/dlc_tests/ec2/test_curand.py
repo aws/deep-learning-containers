@@ -20,9 +20,9 @@ CURAND_EC2_SINGLE_GPU_INSTANCE_TYPE = get_ec2_instance_type(
 @pytest.mark.model("N/A")
 @pytest.mark.team("frameworks")
 @pytest.mark.parametrize("ec2_instance_type", CURAND_EC2_SINGLE_GPU_INSTANCE_TYPE, indirect=True)
-@pytest.mark.parametrize(
-    "ec2_instance_ami", [test_utils.UBUNTU_20_BASE_PROPRIETARY_DLAMI_US_WEST_2], indirect=True
-)
+# @pytest.mark.parametrize(
+#     "ec2_instance_ami", [test_utils.UBUNTU_20_BASE_PROPRIETARY_DLAMI_US_WEST_2], indirect=True
+# )
 def test_curand_gpu(training, ec2_connection, gpu_only, ec2_instance_type):
     if test_utils.is_image_incompatible_with_instance_type(training, ec2_instance_type):
         pytest.skip(f"Image {training} is incompatible with instance type {ec2_instance_type}")
