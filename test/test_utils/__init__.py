@@ -2440,25 +2440,27 @@ def get_instance_type_base_dlami(instance_type, region, linux_dist="UBUNTU_20"):
         "g3.16xlarge",
     ]
 
-    base_oss_dlami_instances = ["g4dn.xlarge",
-                                                     "g4dn.2xlarge",
-                                                     "g4dn.4xlarge",
-                                                     "g4dn.8xlarge",
-                                                     "g4dn.16xlarge",
-                                                     "g4dn.12xlarge",
-                                                     "g4dn.metal",
-                                                     "g4dn.xlarge",
-                                                     "g5.xlarge",
-                                                     "g5.2xlarge",
-                                                     "g5.4xlarge",
-                                                     "g5.8xlarge",
-                                                     "g5.16xlarge",
-                                                     "g5.12xlarge",
-                                                     "g5.24xlarge",
-                                                     "g5.48xlarge",
-                                                     "p4d.24xlarge",
-                                                     "p4de.24xlarge",
-                                                     "p5.48xlarge",]
+    base_oss_dlami_instances = [
+        "g4dn.xlarge",
+        "g4dn.2xlarge",
+        "g4dn.4xlarge",
+        "g4dn.8xlarge",
+        "g4dn.16xlarge",
+        "g4dn.12xlarge",
+        "g4dn.metal",
+        "g4dn.xlarge",
+        "g5.xlarge",
+        "g5.2xlarge",
+        "g5.4xlarge",
+        "g5.8xlarge",
+        "g5.16xlarge",
+        "g5.12xlarge",
+        "g5.24xlarge",
+        "g5.48xlarge",
+        "p4d.24xlarge",
+        "p4de.24xlarge",
+        "p5.48xlarge",
+    ]
 
     # set defaults
     if linux_dist == "AML2":
