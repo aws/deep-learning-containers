@@ -30,7 +30,6 @@ from test.test_utils import (
     is_pr_context,
     is_mainline_context,
     are_heavy_instance_ec2_tests_enabled,
-    get_instance_type_base_dlami,
 )
 from . import DEFAULT_REGION, P3DN_REGION, P4DE_REGION, UL_AMI_LIST, BENCHMARK_RESULTS_S3_BUCKET
 
@@ -125,14 +124,6 @@ def get_cicd_instance_reserved_region(instance_type):
         if instance_type in ["p3dn.24xlarge"]
         else DEFAULT_REGION
     )
-
-
-def get_efa_ec2_instance_ami(instance_region_list):
-    instance_amis = [
-        get_instance_type_base_dlami(instance_type, region)
-        for instance_type, region in instance_region_list
-    ]
-    return instance_amis
 
 
 def get_efa_ec2_instance_type(default, filter_function=lambda x: x, job_type=""):
