@@ -2482,45 +2482,44 @@ def get_instance_type_base_dlami(instance_type, region, linux_dist="UBUNTU_20"):
             "Deep Learning Base OSS Nvidia Driver GPU AMI (Ubuntu 20.04) ????????"
         )
 
-        proprietary_dlami_us_east_1 = UBUNTU_20_BASE_OSS_DLAMI_US_EAST_1
-        proprietary_dlami_us_west_2 = UBUNTU_20_BASE_OSS_DLAMI_US_WEST_2
+        proprietary_dlami_us_east_1 = UBUNTU_20_BASE_PROPRIETARY_DLAMI_US_EAST_1
+        proprietary_dlami_us_west_2 = UBUNTU_20_BASE_PROPRIETARY_DLAMI_US_WEST_2
         proprietary_dlami_name_pattern = (
             "Deep Learning Base Proprietary Nvidia Driver GPU AMI (Ubuntu 20.04) ????????"
         )
 
-    # return (
-    #     proprietary_dlami_us_east_1
-    #     if region == "us-east-1" and instance_type in base_proprietary_dlami_instances
-    #     else proprietary_dlami_us_west_2
-    #     if region == "us-west-2" and instance_type in base_proprietary_dlami_instances
-    #     else get_ami_id_boto3(
-    #         region_name=region,
-    #         ami_name_pattern=proprietary_dlami_name_pattern,
-    #     )
-    #     if instance_type in base_proprietary_dlami_instances
-    #     else oss_dlami_us_east_1
-    #     if region == "us-east-1"
-    #     else oss_dlami_us_west_2
-    #     if region == "us-west-2"
-    #     else get_ami_id_boto3(region_name=region, ami_name_pattern=oss_dlami_name_pattern)
-    # )
     instance_ami = (
-        oss_dlami_us_east_1
-        if region == "us-east-1" and instance_type in base_oss_dlami_instances
-        else oss_dlami_us_west_2
-        if region == "us-west-2" and instance_type in base_oss_dlami_instances
+        proprietary_dlami_us_east_1
+        if region == "us-east-1" and instance_type in base_proprietary_dlami_instances
+        else proprietary_dlami_us_west_2
+        if region == "us-west-2" and instance_type in base_proprietary_dlami_instances
         else get_ami_id_boto3(
             region_name=region,
-            ami_name_pattern=oss_dlami_name_pattern,
+            ami_name_pattern=proprietary_dlami_name_pattern,
         )
-        if instance_type in base_oss_dlami_instances
-        else proprietary_dlami_us_east_1
+        if instance_type in base_proprietary_dlami_instances
+        else oss_dlami_us_east_1
         if region == "us-east-1"
-        else proprietary_dlami_us_west_2
+        else oss_dlami_us_west_2
         if region == "us-west-2"
-        else get_ami_id_boto3(region_name=region, ami_name_pattern=proprietary_dlami_name_pattern)
+        else get_ami_id_boto3(region_name=region, ami_name_pattern=oss_dlami_name_pattern)
     )
+    # instance_ami = (
+    #     oss_dlami_us_east_1
+    #     if region == "us-east-1" and instance_type in base_oss_dlami_instances
+    #     else oss_dlami_us_west_2
+    #     if region == "us-west-2" and instance_type in base_oss_dlami_instances
+    #     else get_ami_id_boto3(
+    #         region_name=region,
+    #         ami_name_pattern=oss_dlami_name_pattern,
+    #     )
+    #     if instance_type in base_oss_dlami_instances
+    #     else proprietary_dlami_us_east_1
+    #     if region == "us-east-1"
+    #     else proprietary_dlami_us_west_2
+    #     if region == "us-west-2"
+    #     else get_ami_id_boto3(region_name=region, ami_name_pattern=proprietary_dlami_name_pattern)
+    # )
     LOGGER.info(f"Instance Type: {instance_type}, Instance AMI: {instance_ami}")
-
 
     return instance_ami
