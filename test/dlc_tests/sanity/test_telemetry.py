@@ -15,9 +15,24 @@ from packaging.specifiers import SpecifierSet
 @pytest.mark.integration("telemetry")
 @pytest.mark.parametrize("ec2_instance_type", ["p3.2xlarge"], indirect=True)
 @pytest.mark.timeout(1200)
-def test_telemetry_instance_tag_failure_gpu(gpu, ec2_client, ec2_instance, ec2_connection):
-    _run_tag_failure_IMDSv1_disabled(gpu, ec2_client, ec2_instance, ec2_connection)
-    _run_tag_failure_IMDSv2_disabled_as_hop_limit_1(gpu, ec2_client, ec2_instance, ec2_connection)
+def test_telemetry_gpu(gpu, ec2_client, ec2_instance, ec2_connection):
+    test_cases = [
+        (telemetry_instance_tag_failure, (gpu, ec2_client, ec2_instance, ec2_connection)),
+    ]
+
+    if "huggingface" not in gpu and "autogluon" not in gpu:
+        if "trcomp" not in gpu:
+            test_cases.append(
+                (
+                    telemetry_instance_tag_success,
+                    (gpu, ec2_client, ec2_instance, ec2_connection),
+                )
+            )
+        test_cases.append(
+            (telemetry_s3_query_bucket_success, (gpu, ec2_client, ec2_instance, ec2_connection))
+        )
+
+    test_utils.execute_serial_test_cases(test_cases, test_description="GPU telemetry")
 
 
 @pytest.mark.usefixtures("sagemaker", "huggingface")
@@ -26,11 +41,26 @@ def test_telemetry_instance_tag_failure_gpu(gpu, ec2_client, ec2_instance, ec2_c
 @pytest.mark.integration("telemetry")
 @pytest.mark.parametrize("ec2_instance_type", ["c4.4xlarge"], indirect=True)
 @pytest.mark.timeout(1200)
-def test_telemetry_instance_tag_failure_cpu(
+def test_telemetry_cpu(
     cpu, ec2_client, ec2_instance, ec2_connection, cpu_only, x86_compatible_only
 ):
-    _run_tag_failure_IMDSv1_disabled(cpu, ec2_client, ec2_instance, ec2_connection)
-    _run_tag_failure_IMDSv2_disabled_as_hop_limit_1(cpu, ec2_client, ec2_instance, ec2_connection)
+    test_cases = [
+        (telemetry_instance_tag_failure, (cpu, ec2_client, ec2_instance, ec2_connection)),
+    ]
+
+    if "huggingface" not in cpu and "autogluon" not in cpu:
+        if "trcomp" not in cpu:
+            test_cases.append(
+                (
+                    telemetry_instance_tag_success,
+                    (cpu, ec2_client, ec2_instance, ec2_connection),
+                )
+            )
+        test_cases.append(
+            (telemetry_s3_query_bucket_success, (cpu, ec2_client, ec2_instance, ec2_connection))
+        )
+
+    test_utils.execute_serial_test_cases(test_cases, test_description="CPU telemetry")
 
 
 @pytest.mark.usefixtures("sagemaker")
@@ -40,14 +70,19 @@ def test_telemetry_instance_tag_failure_cpu(
 @pytest.mark.parametrize("ec2_instance_type", ["c6g.4xlarge"], indirect=True)
 @pytest.mark.parametrize("ec2_instance_ami", [test_utils.UL20_CPU_ARM64_US_WEST_2], indirect=True)
 @pytest.mark.timeout(1200)
-def test_telemetry_instance_tag_failure_graviton_cpu(
+def test_telemetry_graviton_cpu(
     cpu, ec2_client, ec2_instance, ec2_connection, graviton_compatible_only
 ):
-    ec2_connection.run(f"sudo apt-get update -y")
-    ec2_connection.run(f"sudo apt-get install -y apt-transport-https")
-    ec2_connection.run(f"sudo apt-get install -y net-tools")
-    _run_tag_failure_IMDSv1_disabled(cpu, ec2_client, ec2_instance, ec2_connection)
-    _run_tag_failure_IMDSv2_disabled_as_hop_limit_1(cpu, ec2_client, ec2_instance, ec2_connection)
+    test_cases = [
+        (
+            telemetry_instance_tag_failure_graviton_cpu,
+            (cpu, ec2_client, ec2_instance, ec2_connection),
+        ),
+        (telemetry_instance_tag_success, (cpu, ec2_client, ec2_instance, ec2_connection)),
+        (telemetry_s3_query_bucket_success, (cpu, ec2_client, ec2_instance, ec2_connection)),
+    ]
+
+    test_utils.execute_serial_test_cases(test_cases, test_description="Graviton CPU telemetry")
 
 
 @pytest.mark.usefixtures("sagemaker")
@@ -64,61 +99,6 @@ def test_telemetry_instance_tag_failure_neuron(neuron, ec2_client, ec2_instance,
     )
 
 
-@pytest.mark.usefixtures("feature_aws_framework_present")
-@pytest.mark.usefixtures("sagemaker")
-@pytest.mark.model("N/A")
-@pytest.mark.processor("gpu")
-@pytest.mark.integration("telemetry")
-@pytest.mark.parametrize("ec2_instance_type", ["p3.2xlarge"], indirect=True)
-@pytest.mark.timeout(1200)
-def test_telemetry_instance_tag_success_gpu(
-    gpu,
-    ec2_client,
-    ec2_instance,
-    ec2_connection,
-    non_huggingface_only,
-    non_autogluon_only,
-    non_pytorch_trcomp_only,
-):
-    _run_tag_success_IMDSv1(gpu, ec2_client, ec2_instance, ec2_connection)
-    _run_tag_success_IMDSv2_hop_limit_2(gpu, ec2_client, ec2_instance, ec2_connection)
-
-
-@pytest.mark.usefixtures("feature_aws_framework_present")
-@pytest.mark.usefixtures("sagemaker")
-@pytest.mark.model("N/A")
-@pytest.mark.processor("cpu")
-@pytest.mark.integration("telemetry")
-@pytest.mark.timeout(2400)
-@pytest.mark.parametrize("ec2_instance_type", ["c4.4xlarge"], indirect=True)
-def test_telemetry_instance_tag_success_cpu(
-    cpu,
-    ec2_client,
-    ec2_instance,
-    ec2_connection,
-    cpu_only,
-    non_huggingface_only,
-    non_autogluon_only,
-    x86_compatible_only,
-):
-    _run_tag_success_IMDSv1(cpu, ec2_client, ec2_instance, ec2_connection)
-    _run_tag_success_IMDSv2_hop_limit_2(cpu, ec2_client, ec2_instance, ec2_connection)
-
-
-@pytest.mark.usefixtures("sagemaker")
-@pytest.mark.model("N/A")
-@pytest.mark.processor("cpu")
-@pytest.mark.integration("telemetry")
-@pytest.mark.parametrize("ec2_instance_type", ["c6g.4xlarge"], indirect=True)
-@pytest.mark.parametrize("ec2_instance_ami", [test_utils.UL20_CPU_ARM64_US_WEST_2], indirect=True)
-@pytest.mark.timeout(1200)
-def test_telemetry_instance_tag_success_graviton_cpu(
-    cpu, ec2_client, ec2_instance, ec2_connection, graviton_compatible_only
-):
-    _run_tag_success_IMDSv1(cpu, ec2_client, ec2_instance, ec2_connection)
-    _run_tag_success_IMDSv2_hop_limit_2(cpu, ec2_client, ec2_instance, ec2_connection)
-
-
 @pytest.mark.usefixtures("sagemaker")
 @pytest.mark.model("N/A")
 @pytest.mark.processor("neuron")
@@ -131,52 +111,6 @@ def test_telemetry_instance_tag_success_neuron(
 ):
     _run_tag_success_IMDSv1(neuron, ec2_client, ec2_instance, ec2_connection)
     _run_tag_success_IMDSv2_hop_limit_2(neuron, ec2_client, ec2_instance, ec2_connection)
-
-
-@pytest.mark.usefixtures("feature_aws_framework_present")
-@pytest.mark.usefixtures("sagemaker")
-@pytest.mark.model("N/A")
-@pytest.mark.processor("gpu")
-@pytest.mark.integration("telemetry")
-@pytest.mark.parametrize("ec2_instance_type", ["p3.2xlarge"], indirect=True)
-@pytest.mark.timeout(1200)
-def test_telemetry_s3_query_bucket_success_gpu(
-    gpu, ec2_client, ec2_instance, ec2_connection, non_huggingface_only, non_autogluon_only
-):
-    _run_s3_query_bucket_success(gpu, ec2_client, ec2_instance, ec2_connection)
-
-
-@pytest.mark.usefixtures("feature_aws_framework_present")
-@pytest.mark.usefixtures("sagemaker")
-@pytest.mark.model("N/A")
-@pytest.mark.processor("cpu")
-@pytest.mark.integration("telemetry")
-@pytest.mark.parametrize("ec2_instance_type", ["c4.4xlarge"], indirect=True)
-@pytest.mark.timeout(1200)
-def test_telemetry_s3_query_bucket_success_cpu(
-    cpu,
-    ec2_client,
-    ec2_instance,
-    ec2_connection,
-    cpu_only,
-    non_huggingface_only,
-    non_autogluon_only,
-    x86_compatible_only,
-):
-    _run_s3_query_bucket_success(cpu, ec2_client, ec2_instance, ec2_connection)
-
-
-@pytest.mark.usefixtures("sagemaker")
-@pytest.mark.model("N/A")
-@pytest.mark.processor("cpu")
-@pytest.mark.integration("telemetry")
-@pytest.mark.parametrize("ec2_instance_type", ["c6g.4xlarge"], indirect=True)
-@pytest.mark.parametrize("ec2_instance_ami", [test_utils.UL20_CPU_ARM64_US_WEST_2], indirect=True)
-@pytest.mark.timeout(1200)
-def test_telemetry_s3_query_bucket_success_graviton_cpu(
-    cpu, ec2_client, ec2_instance, ec2_connection, graviton_compatible_only
-):
-    _run_s3_query_bucket_success(cpu, ec2_client, ec2_instance, ec2_connection)
 
 
 @pytest.mark.usefixtures("sagemaker")
@@ -220,6 +154,36 @@ def test_pytorch_inference_job_type_env_var(pytorch_inference):
         env_vars_to_test=env_vars,
         container_name_prefix=container_name_prefix,
     )
+
+
+# Serial telemetry test cases
+def telemetry_instance_tag_failure(image_uri, ec2_client, ec2_instance, ec2_connection):
+    _run_tag_failure_IMDSv1_disabled(image_uri, ec2_client, ec2_instance, ec2_connection)
+    _run_tag_failure_IMDSv2_disabled_as_hop_limit_1(
+        image_uri, ec2_client, ec2_instance, ec2_connection
+    )
+
+
+def telemetry_instance_tag_failure_graviton_cpu(cpu, ec2_client, ec2_instance, ec2_connection):
+    ec2_connection.run("sudo apt-get update -y")
+    ec2_connection.run("sudo apt-get install -y apt-transport-https")
+    ec2_connection.run("sudo apt-get install -y net-tools")
+    _run_tag_failure_IMDSv1_disabled(cpu, ec2_client, ec2_instance, ec2_connection)
+    _run_tag_failure_IMDSv2_disabled_as_hop_limit_1(cpu, ec2_client, ec2_instance, ec2_connection)
+
+
+def telemetry_s3_query_bucket_success(gpu, ec2_client, ec2_instance, ec2_connection):
+    _run_s3_query_bucket_success(gpu, ec2_client, ec2_instance, ec2_connection)
+
+
+def telemetry_instance_tag_success(
+    gpu,
+    ec2_client,
+    ec2_instance,
+    ec2_connection,
+):
+    _run_tag_success_IMDSv1(gpu, ec2_client, ec2_instance, ec2_connection)
+    _run_tag_success_IMDSv2_hop_limit_2(gpu, ec2_client, ec2_instance, ec2_connection)
 
 
 def _run_s3_query_bucket_success(image_uri, ec2_client, ec2_instance, ec2_connection):
