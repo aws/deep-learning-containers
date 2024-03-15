@@ -123,6 +123,7 @@ def test_pytorch_train_mlp_neuronx_inf2(pytorch_training_neuronx, ec2_connection
     execute_ec2_training_test(ec2_connection, pytorch_training_neuronx, PT_NEURON_MLP_CMD)
 
 
+@pytest.mark.skip_pt21_test
 @pytest.mark.skip_pt22_test
 @pytest.mark.usefixtures("sagemaker")
 @pytest.mark.integration("pytorch_sanity_test")
@@ -171,6 +172,7 @@ def test_pytorch_healthcheck_nccl(pytorch_training, ec2_connection, gpu_only, ec
     execute_ec2_training_test(ec2_connection, pytorch_training, PT_NCCL_LOCAL_TEST_CMD)
 
 
+@pytest.mark.skip_pt21_test
 @pytest.mark.skip_pt22_test
 @pytest.mark.usefixtures("sagemaker")
 @pytest.mark.integration("pytorch_sanity_test")
@@ -181,6 +183,7 @@ def test_pytorch_standalone_cpu(pytorch_training, ec2_connection, cpu_only):
     execute_ec2_training_test(ec2_connection, pytorch_training, PT_STANDALONE_CMD)
 
 
+@pytest.mark.skip_pt21_test
 @pytest.mark.skip_pt22_test
 @pytest.mark.usefixtures("sagemaker")
 @pytest.mark.model("mnist")
@@ -194,6 +197,7 @@ def test_pytorch_train_mnist_gpu(pytorch_training, ec2_connection, gpu_only, ec2
     execute_ec2_training_test(ec2_connection, pytorch_training, PT_MNIST_CMD)
 
 
+@pytest.mark.skip_pt21_test
 @pytest.mark.skip_pt22_test
 @pytest.mark.usefixtures("sagemaker")
 @pytest.mark.model("mnist")
@@ -203,6 +207,7 @@ def test_pytorch_train_mnist_cpu(pytorch_training, ec2_connection, cpu_only):
     execute_ec2_training_test(ec2_connection, pytorch_training, PT_MNIST_CMD)
 
 
+@pytest.mark.skip_pt21_test
 @pytest.mark.skip_pt22_test
 @pytest.mark.usefixtures("sagemaker")
 @pytest.mark.model("linear_regression")
@@ -223,6 +228,7 @@ def test_pytorch_linear_regression_gpu(
         execute_ec2_training_test(ec2_connection, pytorch_training, PT_REGRESSION_CMD)
 
 
+@pytest.mark.skip_pt21_test
 @pytest.mark.skip_pt22_test
 @pytest.mark.usefixtures("sagemaker")
 @pytest.mark.model("linear_regression")
@@ -232,6 +238,7 @@ def test_pytorch_linear_regression_cpu(pytorch_training, ec2_connection, cpu_onl
     execute_ec2_training_test(ec2_connection, pytorch_training, PT_REGRESSION_CMD)
 
 
+@pytest.mark.skip_pt21_test
 @pytest.mark.skip_pt22_test
 @pytest.mark.skip_dgl_test
 @pytest.mark.usefixtures("sagemaker")
@@ -258,6 +265,7 @@ def test_pytorch_train_dgl_gpu(
     execute_ec2_training_test(ec2_connection, pytorch_training, PT_DGL_CMD)
 
 
+@pytest.mark.skip_pt21_test
 @pytest.mark.skip_pt22_test
 @pytest.mark.skip_dgl_test
 @pytest.mark.usefixtures("sagemaker")
@@ -270,6 +278,7 @@ def test_pytorch_train_dgl_cpu(pytorch_training, ec2_connection, cpu_only, py3_o
     execute_ec2_training_test(ec2_connection, pytorch_training, PT_DGL_CMD)
 
 
+@pytest.mark.skip_pt21_test
 @pytest.mark.skip_pt22_test
 @pytest.mark.usefixtures("sagemaker")
 @pytest.mark.integration("gloo")
@@ -292,6 +301,7 @@ def test_pytorch_gloo_gpu(pytorch_training, ec2_connection, gpu_only, py3_only, 
     )
 
 
+@pytest.mark.skip_pt21_test
 @pytest.mark.skip_pt22_test
 @pytest.mark.usefixtures("sagemaker")
 @pytest.mark.integration("gloo")
@@ -318,6 +328,7 @@ def test_pytorch_gloo_inductor_gpu(
     )
 
 
+@pytest.mark.skip_pt21_test
 @pytest.mark.skip_pt22_test
 @pytest.mark.usefixtures("sagemaker")
 @pytest.mark.integration("gloo")
@@ -336,6 +347,7 @@ def test_pytorch_gloo_cpu(pytorch_training, ec2_connection, cpu_only, py3_only, 
     )
 
 
+@pytest.mark.skip_pt21_test
 @pytest.mark.skip_pt22_test
 @pytest.mark.usefixtures("sagemaker")
 @pytest.mark.integration("nccl")
@@ -356,6 +368,7 @@ def test_pytorch_nccl(pytorch_training, ec2_connection, gpu_only, py3_only, ec2_
     execute_ec2_training_test(ec2_connection, pytorch_training, test_cmd, large_shm=True)
 
 
+@pytest.mark.skip_pt21_test
 @pytest.mark.skip_pt22_test
 @pytest.mark.usefixtures("sagemaker")
 @pytest.mark.integration("nccl")
@@ -378,6 +391,7 @@ def test_pytorch_nccl_inductor(
     execute_ec2_training_test(ec2_connection, pytorch_training, test_cmd, large_shm=True)
 
 
+@pytest.mark.skip_pt21_test
 @pytest.mark.skip_pt22_test
 @pytest.mark.usefixtures("sagemaker")
 @pytest.mark.integration("nccl")
@@ -409,6 +423,7 @@ def test_pytorch_nccl_version(
     execute_ec2_training_test(ec2_connection, pytorch_training, test_cmd)
 
 
+@pytest.mark.skip_pt21_test
 @pytest.mark.skip_pt22_test
 @pytest.mark.usefixtures("sagemaker")
 @pytest.mark.integration("mpi")
@@ -439,6 +454,7 @@ def test_pytorch_mpi_gpu(
     execute_ec2_training_test(ec2_connection, pytorch_training, test_cmd)
 
 
+@pytest.mark.skip_pt21_test
 @pytest.mark.skip_pt22_test
 @pytest.mark.usefixtures("sagemaker")
 @pytest.mark.integration("mpi")
@@ -471,6 +487,7 @@ def test_pytorch_mpi_inductor_gpu(
     execute_ec2_training_test(ec2_connection, pytorch_training, test_cmd)
 
 
+@pytest.mark.skip_pt21_test
 @pytest.mark.skip_pt22_test
 @pytest.mark.usefixtures("sagemaker")
 @pytest.mark.integration("mpi")
@@ -497,6 +514,7 @@ def test_pytorch_mpi_cpu(
     execute_ec2_training_test(ec2_connection, pytorch_training, test_cmd)
 
 
+@pytest.mark.skip_pt21_test
 @pytest.mark.skip_pt22_test
 @pytest.mark.usefixtures("sagemaker")
 @pytest.mark.integration("nvidia_apex")
@@ -511,6 +529,7 @@ def test_nvapex(pytorch_training, ec2_connection, gpu_only, ec2_instance_type):
     execute_ec2_training_test(ec2_connection, pytorch_training, PT_APEX_CMD)
 
 
+@pytest.mark.skip_pt21_test
 @pytest.mark.skip_pt22_test
 @pytest.mark.usefixtures("sagemaker")
 @pytest.mark.integration("amp")
@@ -528,6 +547,7 @@ def test_pytorch_amp(
     execute_ec2_training_test(ec2_connection, pytorch_training, PT_AMP_CMD, timeout=1500)
 
 
+@pytest.mark.skip_pt21_test
 @pytest.mark.skip_pt22_test
 @pytest.mark.usefixtures("sagemaker")
 @pytest.mark.integration("amp")
@@ -547,6 +567,7 @@ def test_pytorch_amp_inductor(
     execute_ec2_training_test(ec2_connection, pytorch_training, PT_AMP_INDUCTOR_CMD, timeout=1500)
 
 
+@pytest.mark.skip_pt21_test
 @pytest.mark.skip_pt22_test
 @pytest.mark.usefixtures("feature_s3_plugin_present")
 @pytest.mark.usefixtures("sagemaker")
@@ -573,6 +594,7 @@ def test_pytorch_s3_plugin_gpu(
     execute_ec2_training_test(ec2_connection, pytorch_training, PT_S3_PLUGIN_CMD)
 
 
+@pytest.mark.skip_pt21_test
 @pytest.mark.skip_pt22_test
 @pytest.mark.usefixtures("feature_s3_plugin_present")
 @pytest.mark.usefixtures("sagemaker")
@@ -596,6 +618,7 @@ def test_pytorch_s3_plugin_cpu(
     execute_ec2_training_test(ec2_connection, pytorch_training, PT_S3_PLUGIN_CMD)
 
 
+@pytest.mark.skip_pt21_test
 @pytest.mark.skip_pt22_test
 @pytest.mark.usefixtures("feature_torchaudio_present")
 @pytest.mark.usefixtures("sagemaker")
@@ -613,6 +636,7 @@ def test_pytorch_training_torchaudio_gpu(
     execute_ec2_training_test(ec2_connection, pytorch_training, PT_TORCHAUDIO_CMD)
 
 
+@pytest.mark.skip_pt21_test
 @pytest.mark.skip_pt22_test
 @pytest.mark.usefixtures("feature_torchaudio_present")
 @pytest.mark.usefixtures("sagemaker")
@@ -630,6 +654,7 @@ def test_pytorch_training_torchaudio_cpu(
     execute_ec2_training_test(ec2_connection, pytorch_training, PT_TORCHAUDIO_CMD)
 
 
+@pytest.mark.skip_pt21_test
 @pytest.mark.skip_pt22_test
 @pytest.mark.skip_torchdata_test
 @pytest.mark.usefixtures("feature_torchdata_present")
@@ -655,6 +680,7 @@ def test_pytorch_training_torchdata_gpu(
         execute_ec2_training_test(ec2_connection, pytorch_training, PT_TORCHDATA_CMD)
 
 
+@pytest.mark.skip_pt21_test
 @pytest.mark.skip_pt22_test
 @pytest.mark.skip_torchdata_test
 @pytest.mark.usefixtures("feature_torchdata_present")
@@ -678,6 +704,7 @@ def test_pytorch_training_torchdata_cpu(
         execute_ec2_training_test(ec2_connection, pytorch_training, PT_TORCHDATA_CMD)
 
 
+@pytest.mark.skip_pt21_test
 @pytest.mark.skip_pt22_test
 @pytest.mark.usefixtures("feature_aws_framework_present")
 @pytest.mark.usefixtures("sagemaker")
@@ -705,6 +732,7 @@ def test_pytorch_standalone_hpu(
     )
 
 
+@pytest.mark.skip_pt21_test
 @pytest.mark.skip_pt22_test
 @pytest.mark.usefixtures("feature_aws_framework_present")
 @pytest.mark.usefixtures("sagemaker")
