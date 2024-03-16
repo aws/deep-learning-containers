@@ -531,9 +531,9 @@ def launch_efa_with_heterogenous_reservations(ec2_client, ec2_run_instances_defi
         if reserved_az not in az_priorities:
             az_priorities.append(reserved_az)
     
-    raise RuntimeError(reserved_azs)
+    raise RuntimeError(az_priorities)
 
-    for az in reserved_azs:
+    for az in az_priorities:
         LOGGER.info(f"Checking AZ {az}")
         # Refresh reservations for each AZ
         reservations, available_instances = referesh_capacity_reservations(
