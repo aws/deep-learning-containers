@@ -531,8 +531,6 @@ def launch_efa_with_heterogenous_reservations(ec2_client, ec2_run_instances_defi
         if reserved_az not in az_priorities:
             az_priorities.append(reserved_az)
 
-    raise RuntimeError(f"AZ priorities {az_priorities}")
-
     for az in az_priorities:
         LOGGER.info(f"Checking AZ {az}")
         # Refresh reservations for each AZ
@@ -653,7 +651,6 @@ def launch_efa_instances_with_retry(
 
     heterogenous_reservation_launch = launch_efa_with_heterogenous_reservations(
         ec2_client=ec2_client,
-        ec2_instance_type=ec2_instance_type,
         ec2_run_instances_definition=ec2_run_instances_definition,
         fn_name=fn_name,
     )
