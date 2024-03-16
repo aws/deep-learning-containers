@@ -530,8 +530,8 @@ def launch_efa_with_heterogenous_reservations(ec2_client, ec2_run_instances_defi
     for reserved_az in reserved_azs:
         if reserved_az not in az_priorities:
             az_priorities.append(reserved_az)
-    
-    raise RuntimeError(az_priorities)
+
+    raise RuntimeError(f"AZ priorities {az_priorities}")
 
     for az in az_priorities:
         LOGGER.info(f"Checking AZ {az}")
@@ -605,11 +605,11 @@ def launch_efa_with_heterogenous_reservations(ec2_client, ec2_run_instances_defi
     return []
 
 
-@retry(
-    reraise=True,
-    stop=stop_after_delay(30 * 60),  # Keep retrying for 30 minutes
-    wait=wait_random_exponential(min=60, max=5 * 60),  # Retry after waiting 1-10 minutes
-)
+# @retry(
+    # reraise=True,
+    # stop=stop_after_delay(30 * 60),  # Keep retrying for 30 minutes
+    # wait=wait_random_exponential(min=60, max=5 * 60),  # Retry after waiting 1-10 minutes
+# )
 def launch_efa_instances_with_retry(
     ec2_client,
     ec2_instance_type,
