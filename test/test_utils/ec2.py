@@ -532,10 +532,12 @@ def launch_efa_with_heterogenous_reservations(ec2_client, ec2_run_instances_defi
             az_priorities.append(reserved_az)
 
     for az in az_priorities:
+        LOGGER.info(f"Checking AZ {az}")
         # Refresh reservations for each AZ
         reservations, available_instances = referesh_capacity_reservations(
             ec2_client, ec2_instance_type, az
         )
+        raise RuntimeError(reservations + available_instances)
         instances = []
         try:
             while available_instances and len(instances) < minimum_number_of_instances:
