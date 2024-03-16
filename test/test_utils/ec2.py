@@ -578,24 +578,36 @@ def launch_efa_with_heterogenous_reservations(ec2_client, ec2_run_instances_defi
                     return instances
 
                 # Clean up instances if this workflow did not succeed
+                LOGGER.info(
+                    f"Failed to launch enough instances from public and reservations for {fn_name}."
+                )
                 if instances:
+                    LOGGER.info(
+                        f"Cleaning up instances {(instance['InstanceId'] for instance in instances)}..."
+                    )
                     ec2_client.terminate_instances(
                         InstanceIds=[instance_info["InstanceId"] for instance_info in instances]
                     )
 
         except ClientError as e:
             # Clean up any remaining instances
-            LOGGER.debug(
+            LOGGER.info(
                 f"Failed to launch EFA instance for {fn_name} from reservation due to {e}\n"
                 "Checking additional open reservations and cleaning up stray resources"
             )
             if instances:
+                LOGGER.info(
+                    f"Cleaning up instances {(instance['InstanceId'] for instance in instances)}..."
+                )
                 ec2_client.terminate_instances(
                     InstanceIds=[instance_info["InstanceId"] for instance_info in instances]
                 )
 
         except Exception as e:
             if instances:
+                LOGGER.info(
+                    f"Cleaning up instances {(instance['InstanceId'] for instance in instances)}..."
+                )
                 ec2_client.terminate_instances(
                     InstanceIds=[instance_info["InstanceId"] for instance_info in instances]
                 )
