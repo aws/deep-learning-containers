@@ -539,6 +539,7 @@ def launch_efa_with_heterogenous_reservations(ec2_client, ec2_run_instances_defi
         instances = []
         try:
             while available_instances and len(instances) < minimum_number_of_instances:
+                LOGGER.info(f"trying to launch {ec2_instance_type} in {az}")
                 instance = launch_efa_with_reservations(
                     ec2_client=ec2_client,
                     ec2_instance_type=ec2_instance_type,
