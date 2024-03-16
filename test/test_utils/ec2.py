@@ -603,11 +603,11 @@ def launch_efa_with_heterogenous_reservations(ec2_client, ec2_run_instances_defi
     return []
 
 
-# @retry(
-    # reraise=True,
-    # stop=stop_after_delay(30 * 60),  # Keep retrying for 30 minutes
-    # wait=wait_random_exponential(min=60, max=5 * 60),  # Retry after waiting 1-10 minutes
-# )
+@retry(
+    reraise=True,
+    stop=stop_after_delay(30 * 60),  # Keep retrying for 30 minutes
+    wait=wait_random_exponential(min=60, max=5 * 60),  # Retry after waiting 1-10 minutes
+)
 def launch_efa_instances_with_retry(
     ec2_client,
     ec2_instance_type,
@@ -627,27 +627,7 @@ def launch_efa_instances_with_retry(
     """
     response = None
     region = ec2_client.meta.region_name
-    # reservations = get_available_reservations(
-    #     ec2_client=ec2_client,
-    #     instance_type=ec2_run_instances_definition["InstanceType"],
-    #     min_availability=ec2_run_instances_definition["MinCount"],
-    # )
-
-    # Try launching via reservation first
-    # reservation_launch_instances = launch_efa_with_reservations(
-    #     ec2_client=ec2_client,
-    #     ec2_instance_type=ec2_instance_type,
-    #     reservations=reservations,
-    #     ec2_run_instances_definition=ec2_run_instances_definition,
-    #     fn_name=fn_name,
-    # )
-
-    # if reservation_launch_instances:
-    #     return reservation_launch_instances
-
-    LOGGER.info(
-        f"Looks like you didn't have an EFA reservation for {fn_name}, let's see if we can seat you with a mix and match approach..."
-    )
+    LOGGER.info(f"Trying to launch {ec2_instance_type} for {fn_name} via capacity reservation...")
 
     heterogenous_reservation_launch = launch_efa_with_heterogenous_reservations(
         ec2_client=ec2_client,
