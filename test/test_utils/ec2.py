@@ -672,7 +672,7 @@ def launch_efa_instances_with_retry(
         raise RuntimeError(
             f"Unable to launch {ec2_instance_type} instances in {region} for {fn_name}"
         )
-    return response["Instances"]
+    return instances
 
 
 def get_ec2_client(region):
