@@ -46,8 +46,8 @@ images:
     docker_file: !join [ docker/, *SHORT_VERSION, /, *DOCKER_PYTHON_VERSION, /, *CUDA_VERSION, /Dockerfile.,
                          *DEVICE_TYPE ]
     target: sagemaker
-    context:
     build_tag_override: "beta:2.0.1-gpu-py310-cu118-ubuntu20.04-sagemaker-benchmark-tested"
+    context:
       <<: *TRAINING_CONTEXT
   # BuildSageMakerCPUPTTrainPy3DockerImage:
   #   <<: *TRAINING_REPOSITORY
