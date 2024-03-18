@@ -1029,7 +1029,7 @@ def execute_ec2_training_test(
     # Make sure we are logged into ECR so we can pull the image
     account_id = boto3.client("sts").get_caller_identity()["Account"]
     connection.run(
-        f"$(aws ecr get-login-password --region {region} | docker login --username AWS --password-stdin {account_id}.dkr.ecr.{region}.amazonaws.com)",
+        f"aws ecr get-login-password --region {region} | docker login --username AWS --password-stdin {account_id}.dkr.ecr.{region}.amazonaws.com",
         hide=True,
     )
 
@@ -1115,7 +1115,7 @@ def execute_ec2_inference_test(connection, ecr_uri, test_cmd, region=DEFAULT_REG
     # Make sure we are logged into ECR so we can pull the image
     account_id = boto3.client("sts").get_caller_identity()["Account"]
     connection.run(
-        f"$(aws ecr get-login-password --region {region} | docker login --username AWS --password-stdin {account_id}.dkr.ecr.{region}.amazonaws.com)",
+        f"aws ecr get-login-password --region {region} | docker login --username AWS --password-stdin {account_id}.dkr.ecr.{region}.amazonaws.com",
         hide=True,
     )
 
@@ -1153,7 +1153,7 @@ def execute_ec2_training_performance_test(
     # Make sure we are logged into ECR so we can pull the image
     account_id = boto3.client("sts").get_caller_identity()["Account"]
     connection.run(
-        f"$(aws ecr get-login-password --region {region} | docker login --username AWS --password-stdin {account_id}.dkr.ecr.{region}.amazonaws.com)",
+        f"aws ecr get-login-password --region {region} | docker login --username AWS --password-stdin {account_id}.dkr.ecr.{region}.amazonaws.com",
         hide=True,
     )
 
@@ -1198,7 +1198,7 @@ def execute_ec2_habana_training_performance_test(
     # Make sure we are logged into ECR so we can pull the image
     account_id = boto3.client("sts").get_caller_identity()["Account"]
     connection.run(
-        f"$(aws ecr get-login-password --region {region} | docker login --username AWS --password-stdin {account_id}.dkr.ecr.{region}.amazonaws.com)",
+        f"aws ecr get-login-password --region {region} | docker login --username AWS --password-stdin {account_id}.dkr.ecr.{region}.amazonaws.com",
         hide=True,
     )
 
@@ -1267,7 +1267,7 @@ def execute_ec2_inference_performance_test(
     # Make sure we are logged into ECR so we can pull the image
     account_id = boto3.client("sts").get_caller_identity()["Account"]
     connection.run(
-        f"$(aws ecr get-login-password --region {region} | docker login --username AWS --password-stdin {account_id}.dkr.ecr.{region}.amazonaws.com)",
+        f"aws ecr get-login-password --region {region} | docker login --username AWS --password-stdin {account_id}.dkr.ecr.{region}.amazonaws.com",
         hide=True,
     )
     connection.run(f"{docker_cmd} pull -q {ecr_uri}")

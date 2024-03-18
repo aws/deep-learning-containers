@@ -80,7 +80,7 @@ def ec2_pytorch_inference(image_uri, processor, ec2_connection, region):
     try:
         account_id = boto3.client("sts").get_caller_identity()["Account"]
         ec2_connection.run(
-            f"$(aws ecr get-login-password --region {region} | docker login --username AWS --password-stdin {account_id}.dkr.ecr.{region}.amazonaws.com)",
+            f"aws ecr get-login-password --region {region} | docker login --username AWS --password-stdin {account_id}.dkr.ecr.{region}.amazonaws.com",
             hide=True,
         )
         LOGGER.info(docker_run_cmd)

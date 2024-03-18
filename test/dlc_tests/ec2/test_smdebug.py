@@ -172,7 +172,7 @@ def run_smdebug_test(
     container_test_local_dir = os.path.join("$HOME", "container_tests")
     account_id = boto3.client("sts").get_caller_identity()["Account"]
     ec2_connection.run(
-        f"$(aws ecr get-login-password --region {region} | docker login --username AWS --password-stdin {account_id}.dkr.ecr.{region}.amazonaws.com)",
+        f"aws ecr get-login-password --region {region} | docker login --username AWS --password-stdin {account_id}.dkr.ecr.{region}.amazonaws.com",
         hide=True,
     )
     # Do not add -q to docker pull as it leads to a hang for huge images like trcomp
@@ -215,7 +215,7 @@ def run_smprofiler_test(
     container_test_local_dir = os.path.join("$HOME", "container_tests")
     account_id = boto3.client("sts").get_caller_identity()["Account"]
     ec2_connection.run(
-        f"$(aws ecr get-login-password --region {region} | docker login --username AWS --password-stdin {account_id}.dkr.ecr.{region}.amazonaws.com)",
+        f"aws ecr get-login-password --region {region} | docker login --username AWS --password-stdin {account_id}.dkr.ecr.{region}.amazonaws.com",
         hide=True,
     )
     # Do not add -q to docker pull as it leads to a hang for huge images like trcomp

@@ -192,7 +192,7 @@ def pytorch_cudnn_match_gpu(pytorch_training, ec2_connection, region):
     container_name = "pt_cudnn_test"
     account_id = boto3.client("sts").get_caller_identity()["Account"]
     ec2_connection.run(
-        f"$(aws ecr get-login-password --region {region} | docker login --username AWS --password-stdin {account_id}.dkr.ecr.{region}.amazonaws.com)",
+        f"aws ecr get-login-password --region {region} | docker login --username AWS --password-stdin {account_id}.dkr.ecr.{region}.amazonaws.com",
         hide=True,
     )
     ec2_connection.run(f"docker pull -q {pytorch_training}", hide=True)

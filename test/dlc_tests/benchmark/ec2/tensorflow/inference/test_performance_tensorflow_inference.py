@@ -86,7 +86,7 @@ def ec2_performance_tensorflow_inference(
     # Make sure we are logged into ECR so we can pull the image
     account_id = boto3.client("sts").get_caller_identity()["Account"]
     ec2_connection.run(
-        f"$(aws ecr get-login-password --region {region} | docker login --username AWS --password-stdin {account_id}.dkr.ecr.{region}.amazonaws.com)",
+        f"aws ecr get-login-password --region {region} | docker login --username AWS --password-stdin {account_id}.dkr.ecr.{region}.amazonaws.com",
         hide=True,
     )
     ec2_connection.run(f"{docker_cmd} pull -q {image_uri} ")

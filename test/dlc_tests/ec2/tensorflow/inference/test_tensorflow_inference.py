@@ -113,7 +113,7 @@ def test_ec2_tensorflow_inference_gpu_tensorrt(
     try:
         account_id = boto3.client("sts").get_caller_identity()["Account"]
         ec2_connection.run(
-            f"$(aws ecr get-login-password --region {region} | docker login --username AWS --password-stdin {account_id}.dkr.ecr.{region}.amazonaws.com)",
+            f"aws ecr get-login-password --region {region} | docker login --username AWS --password-stdin {account_id}.dkr.ecr.{region}.amazonaws.com",
             hide=True,
         )
         host_setup_for_tensorflow_inference(serving_folder_path, framework_version, ec2_connection)
@@ -275,7 +275,7 @@ def run_ec2_tensorflow_inference(
             sleep(10)
         account_id = boto3.client("sts").get_caller_identity()["Account"]
         ec2_connection.run(
-            f"$(aws ecr get-login-password --region {region} | docker login --username AWS --password-stdin {account_id}.dkr.ecr.{region}.amazonaws.com)",
+            f"aws ecr get-login-password --region {region} | docker login --username AWS --password-stdin {account_id}.dkr.ecr.{region}.amazonaws.com",
             hide=True,
         )
         ec2_connection.run(docker_run_cmd, hide=True)

@@ -311,7 +311,7 @@ def execute_local_tests(image, pytest_cache_params):
         ec2_conn.put(sm_tests_tar_name, f"{UBUNTU_HOME_DIR}")
         ec2_utils.install_python_in_instance(ec2_conn, python_version="3.9")
         ec2_conn.run(
-            f"$(aws ecr get-login-password --region {region} | docker login --username AWS --password-stdin {account_id}.dkr.ecr.{region}.amazonaws.com)",
+            f"aws ecr get-login-password --region {region} | docker login --username AWS --password-stdin {account_id}.dkr.ecr.{region}.amazonaws.com",
             hide=True,
         )
         try:
