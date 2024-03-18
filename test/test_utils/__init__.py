@@ -2397,6 +2397,7 @@ def get_image_spec_from_buildspec(image_uri, dlc_folder_path):
 def get_instance_type_base_dlami(instance_type, region, linux_dist="UBUNTU_20"):
     """
     Get Instance types based on EC2 instance, see https://docs.aws.amazon.com/dlami/latest/devguide/important-changes.html
+    For all instance names, see https://aws.amazon.com/ec2/instance-types/#Accelerated_Computing
     OSS Nvidia Driver DLAMI supports the following: ["g4dn.xlarge",
                                                      "g4dn.2xlarge",
                                                      "g4dn.4xlarge",
@@ -2440,47 +2441,39 @@ def get_instance_type_base_dlami(instance_type, region, linux_dist="UBUNTU_20"):
         "g3.16xlarge",
     ]
 
-    # set defaults
-    if linux_dist == "AML2":
-        oss_dlami_us_east_1 = AML2_BASE_OSS_DLAMI_US_EAST_1
-        oss_dlami_us_west_2 = AML2_BASE_OSS_DLAMI_US_WEST_2
-        oss_dlami_name_pattern = (
-            "Deep Learning Base OSS Nvidia Driver AMI (Amazon Linux 2) Version ??.?"
-        )
+    ami_patterns = {
+        "AML2": {
+            "oss": {
+                "name_pattern": "Deep Learning Base OSS Nvidia Driver AMI (Amazon Linux 2) Version ??.?",
+                "us-east-1": AML2_BASE_OSS_DLAMI_US_EAST_1,
+                "us-west-2": AML2_BASE_OSS_DLAMI_US_WEST_2,
+            },
+            "proprietary": {
+                "name_pattern": "Deep Learning Base Proprietary Nvidia Driver AMI (Amazon Linux 2) Version ??.?",
+                "us-east-1": AML2_BASE_PROPRIETARY_DLAMI_US_EAST_1,
+                "us-west-2": AML2_BASE_PROPRIETARY_DLAMI_US_WEST_2,
+            },
+        },
+        "UBUNTU_20": {
+            "oss": {
+                "name_pattern": "Deep Learning Base OSS Nvidia Driver GPU AMI (Ubuntu 20.04) ????????",
+                "us-east-1": UBUNTU_20_BASE_OSS_DLAMI_US_EAST_1,
+                "us-west-2": UBUNTU_20_BASE_OSS_DLAMI_US_WEST_2,
+            },
+            "proprietary": {
+                "name_pattern": "Deep Learning Base Proprietary Nvidia Driver GPU AMI (Ubuntu 20.04) ????????",
+                "us-east-1": UBUNTU_20_BASE_PROPRIETARY_DLAMI_US_EAST_1,
+                "us-west-2": UBUNTU_20_BASE_PROPRIETARY_DLAMI_US_WEST_2,
+            },
+        },
+    }
 
-        proprietary_dlami_us_east_1 = AML2_BASE_PROPRIETARY_DLAMI_US_EAST_1
-        proprietary_dlami_us_west_2 = AML2_BASE_PROPRIETARY_DLAMI_US_WEST_2
-        proprietary_dlami_name_pattern = (
-            "Deep Learning Base Proprietary Nvidia Driver AMI (Amazon Linux 2) Version ??.?"
-        )
-    else:
-        oss_dlami_us_east_1 = UBUNTU_20_BASE_OSS_DLAMI_US_EAST_1
-        oss_dlami_us_west_2 = UBUNTU_20_BASE_OSS_DLAMI_US_WEST_2
-        oss_dlami_name_pattern = (
-            "Deep Learning Base OSS Nvidia Driver GPU AMI (Ubuntu 20.04) ????????"
-        )
-
-        proprietary_dlami_us_east_1 = UBUNTU_20_BASE_PROPRIETARY_DLAMI_US_EAST_1
-        proprietary_dlami_us_west_2 = UBUNTU_20_BASE_PROPRIETARY_DLAMI_US_WEST_2
-        proprietary_dlami_name_pattern = (
-            "Deep Learning Base Proprietary Nvidia Driver GPU AMI (Ubuntu 20.04) ????????"
-        )
-
-    instance_ami = (
-        proprietary_dlami_us_east_1
-        if region == "us-east-1" and instance_type in base_proprietary_dlami_instances
-        else proprietary_dlami_us_west_2
-        if region == "us-west-2" and instance_type in base_proprietary_dlami_instances
-        else get_ami_id_boto3(
-            region_name=region,
-            ami_name_pattern=proprietary_dlami_name_pattern,
-        )
-        if instance_type in base_proprietary_dlami_instances
-        else oss_dlami_us_east_1
-        if region == "us-east-1"
-        else oss_dlami_us_west_2
-        if region == "us-west-2"
-        else get_ami_id_boto3(region_name=region, ami_name_pattern=oss_dlami_name_pattern)
+    ami_type = "proprietary" if instance_type in base_proprietary_dlami_instances else "oss"
+    instance_ami = ami_patterns[linux_dist][ami_type].get(
+        region,
+        get_ami_id_boto3(
+            region_name=region, ami_name_pattern=ami_patterns[linux_dist][ami_type]["name_pattern"]
+        ),
     )
 
     return instance_ami
