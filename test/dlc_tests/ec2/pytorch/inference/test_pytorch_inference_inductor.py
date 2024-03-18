@@ -9,6 +9,7 @@ from test.test_utils import (
     get_framework_and_version_from_tag,
     get_inference_server_type,
     UL20_CPU_ARM64_US_WEST_2,
+    login_to_ecr_registry,
 )
 from test.test_utils.ec2 import (
     get_ec2_instance_type,
@@ -79,10 +80,7 @@ def ec2_pytorch_inference(image_uri, processor, ec2_connection, region):
     )
     try:
         account_id = boto3.client("sts").get_caller_identity()["Account"]
-        ec2_connection.run(
-            f"aws ecr get-login-password --region {region} | docker login --username AWS --password-stdin {account_id}.dkr.ecr.{region}.amazonaws.com",
-            hide=True,
-        )
+        login_to_ecr_registry(ec2_connection, account_id, region)
         LOGGER.info(docker_run_cmd)
         ec2_connection.run(docker_run_cmd, hide=True)
         server_type = get_inference_server_type(image_uri)

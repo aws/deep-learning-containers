@@ -5,7 +5,11 @@ import boto3
 import test.test_utils.ec2 as ec2_utils
 
 from test import test_utils
-from test.test_utils import CONTAINER_TESTS_PREFIX, get_framework_and_version_from_tag
+from test.test_utils import (
+    CONTAINER_TESTS_PREFIX,
+    get_framework_and_version_from_tag,
+    login_to_ecr_registry,
+)
 from test.test_utils.ec2 import (
     get_ec2_instance_type,
     execute_ec2_inference_test,
@@ -190,10 +194,7 @@ def run_ec2_mxnet_inference(
         )
     try:
         account_id = boto3.client("sts").get_caller_identity()["Account"]
-        ec2_connection.run(
-            f"aws ecr get-login-password --region {region} | docker login --username AWS --password-stdin {account_id}.dkr.ecr.{region}.amazonaws.com",
-            hide=True,
-        )
+        login_to_ecr_registry(ec2_connection, account_id, region)
         LOGGER.info(docker_run_cmd)
         ec2_connection.run(docker_run_cmd, hide=True)
         if model_name == SQUEEZENET_MODEL:

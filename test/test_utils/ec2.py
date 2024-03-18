@@ -30,6 +30,7 @@ from test.test_utils import (
     is_pr_context,
     is_mainline_context,
     are_heavy_instance_ec2_tests_enabled,
+    login_to_ecr_registry,
 )
 from . import DEFAULT_REGION, P3DN_REGION, P4DE_REGION, UL_AMI_LIST, BENCHMARK_RESULTS_S3_BUCKET
 
@@ -1028,10 +1029,7 @@ def execute_ec2_training_test(
     synapseai_version = get_synapseai_version_from_tag(ecr_uri)
     # Make sure we are logged into ECR so we can pull the image
     account_id = boto3.client("sts").get_caller_identity()["Account"]
-    connection.run(
-        f"aws ecr get-login-password --region {region} | docker login --username AWS --password-stdin {account_id}.dkr.ecr.{region}.amazonaws.com",
-        hide=True,
-    )
+    login_to_ecr_registry(connection, account_id, region)
 
     # Run training command
     shm_setting = '--shm-size="1g"' if large_shm else ""
@@ -1114,10 +1112,7 @@ def execute_ec2_inference_test(connection, ecr_uri, test_cmd, region=DEFAULT_REG
 
     # Make sure we are logged into ECR so we can pull the image
     account_id = boto3.client("sts").get_caller_identity()["Account"]
-    connection.run(
-        f"aws ecr get-login-password --region {region} | docker login --username AWS --password-stdin {account_id}.dkr.ecr.{region}.amazonaws.com",
-        hide=True,
-    )
+    login_to_ecr_registry(connection, account_id, region)
 
     # Run training command
     connection.run(
@@ -1152,10 +1147,7 @@ def execute_ec2_training_performance_test(
 
     # Make sure we are logged into ECR so we can pull the image
     account_id = boto3.client("sts").get_caller_identity()["Account"]
-    connection.run(
-        f"aws ecr get-login-password --region {region} | docker login --username AWS --password-stdin {account_id}.dkr.ecr.{region}.amazonaws.com",
-        hide=True,
-    )
+    login_to_ecr_registry(connection, account_id, region)
 
     connection.run(f"{docker_cmd} pull {ecr_uri}", hide=True)
 
@@ -1197,10 +1189,7 @@ def execute_ec2_habana_training_performance_test(
     synapseai_version = get_synapseai_version_from_tag(ecr_uri)
     # Make sure we are logged into ECR so we can pull the image
     account_id = boto3.client("sts").get_caller_identity()["Account"]
-    connection.run(
-        f"aws ecr get-login-password --region {region} | docker login --username AWS --password-stdin {account_id}.dkr.ecr.{region}.amazonaws.com",
-        hide=True,
-    )
+    login_to_ecr_registry(connection, account_id, region)
 
     connection.run(f"{docker_cmd} pull -q {ecr_uri}")
 
@@ -1222,9 +1211,7 @@ def execute_ec2_habana_training_performance_test(
     framework = (
         "tensorflow" if "tensorflow" in ecr_uri else "pytorch" if "pytorch" in ecr_uri else None
     )
-    account_id_prefix = os.getenv(
-        "ACCOUNT_ID", boto3.client("sts").get_caller_identity()["Account"]
-    )[:3]
+    account_id_prefix = os.getenv("ACCOUNT_ID", account_id)[:3]
     s3_bucket_for_permanent_logs = f"dlinfra-habana-tests-{account_id_prefix}"
     test_type = "benchmark"
     custom_filename = test_cmd.split(f"{os.sep}")[-1]
@@ -1266,10 +1253,7 @@ def execute_ec2_inference_performance_test(
     )
     # Make sure we are logged into ECR so we can pull the image
     account_id = boto3.client("sts").get_caller_identity()["Account"]
-    connection.run(
-        f"aws ecr get-login-password --region {region} | docker login --username AWS --password-stdin {account_id}.dkr.ecr.{region}.amazonaws.com",
-        hide=True,
-    )
+    login_to_ecr_registry(connection, account_id, region)
     connection.run(f"{docker_cmd} pull -q {ecr_uri}")
 
     # Run training command, display benchmark results to console

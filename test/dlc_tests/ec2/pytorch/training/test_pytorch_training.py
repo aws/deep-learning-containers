@@ -13,6 +13,7 @@ from test.test_utils import (
     UBUNTU_18_HPU_DLAMI_US_WEST_2,
     get_framework_and_version_from_tag,
     get_cuda_version_from_tag,
+    login_to_ecr_registry,
 )
 from test.test_utils.ec2 import (
     execute_ec2_training_test,
@@ -749,10 +750,7 @@ def test_pytorch_cudnn_match_gpu(
     """
     container_name = "pt_cudnn_test"
     account_id = boto3.client("sts").get_caller_identity()["Account"]
-    ec2_connection.run(
-        f"aws ecr get-login-password --region {region} | docker login --username AWS --password-stdin {account_id}.dkr.ecr.{region}.amazonaws.com",
-        hide=True,
-    )
+    login_to_ecr_registry(ec2_connection, account_id, region)
     ec2_connection.run(f"docker pull -q {pytorch_training}", hide=True)
     ec2_connection.run(
         f"nvidia-docker run --name {container_name} -itd {pytorch_training}", hide=True

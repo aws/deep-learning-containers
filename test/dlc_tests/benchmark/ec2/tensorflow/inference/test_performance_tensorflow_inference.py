@@ -15,6 +15,7 @@ from test.test_utils import (
     is_pr_context,
     is_tf_version,
     UL20_BENCHMARK_CPU_ARM64_US_WEST_2,
+    login_to_ecr_registry,
 )
 from test.test_utils.ec2 import (
     ec2_performance_upload_result_to_s3_and_validate,
@@ -85,10 +86,7 @@ def ec2_performance_tensorflow_inference(
 
     # Make sure we are logged into ECR so we can pull the image
     account_id = boto3.client("sts").get_caller_identity()["Account"]
-    ec2_connection.run(
-        f"aws ecr get-login-password --region {region} | docker login --username AWS --password-stdin {account_id}.dkr.ecr.{region}.amazonaws.com",
-        hide=True,
-    )
+    login_to_ecr_registry(ec2_connection, account_id, region)
     ec2_connection.run(f"{docker_cmd} pull -q {image_uri} ")
     if is_graviton:
         # TF training binary is used that is compatible for graviton instance type

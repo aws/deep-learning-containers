@@ -33,6 +33,7 @@ from test_utils import (
     DEFAULT_REGION,
     is_nightly_context,
     get_instance_type_base_dlami,
+    login_to_ecr_registry,
 )
 from test_utils.pytest_cache import PytestCache
 
@@ -310,10 +311,7 @@ def execute_local_tests(image, pytest_cache_params):
         ec2_conn = ec2_utils.get_ec2_fabric_connection(instance_id, key_file, region)
         ec2_conn.put(sm_tests_tar_name, f"{UBUNTU_HOME_DIR}")
         ec2_utils.install_python_in_instance(ec2_conn, python_version="3.9")
-        ec2_conn.run(
-            f"aws ecr get-login-password --region {region} | docker login --username AWS --password-stdin {account_id}.dkr.ecr.{region}.amazonaws.com",
-            hide=True,
-        )
+        login_to_ecr_registry(ec2_conn, account_id, region)
         try:
             ec2_conn.run(f"docker pull {image}", timeout=600)
         except invoke.exceptions.CommandTimedOut as e:
