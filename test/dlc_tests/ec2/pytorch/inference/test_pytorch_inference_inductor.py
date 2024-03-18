@@ -53,7 +53,7 @@ def test_ec2_pytorch_inference_cpu_compilation(pytorch_inference, ec2_connection
 @pytest.mark.parametrize("ec2_instance_type", PT_EC2_GRAVITON_INSTANCE_TYPES, indirect=True)
 @pytest.mark.parametrize("ec2_instance_ami", [UL20_CPU_ARM64_US_WEST_2], indirect=True)
 @pytest.mark.team("training-compiler")
-def test_ec2_pytorch_inference_cpu_compilation(
+def test_ec2_pytorch_inference_graviton_compilation(
     pytorch_inference_graviton, ec2_connection, region, cpu_only
 ):
     _, image_framework_version = get_framework_and_version_from_tag(pytorch_inference_graviton)

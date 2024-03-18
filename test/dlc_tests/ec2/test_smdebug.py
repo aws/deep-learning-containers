@@ -1,6 +1,5 @@
 import os
 import pytest
-import boto3
 
 import test.test_utils as test_utils
 
