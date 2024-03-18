@@ -428,7 +428,6 @@ def launch_efa_instances_with_retry(
     :param fn_name: string - function name for ease of logging
     :return: dict response from ec2_client.run_instances
     """
-    response = None
     region = ec2_client.meta.region_name
     reservations = get_available_reservations(
         ec2_client=ec2_client,
@@ -487,7 +486,7 @@ def launch_efa_instances_with_retry(
             if response and response["Instances"]:
                 break
         except ClientError as e:
-            LOGGER.debug(
+            LOGGER.info(
                 f"Failed to launch in {availability_zone} for {fn_name} due to {e}\n"
                 "Retrying in the next availability zone."
             )
