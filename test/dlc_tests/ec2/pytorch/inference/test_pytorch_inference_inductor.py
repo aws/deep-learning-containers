@@ -1,6 +1,7 @@
 from packaging.version import Version
 from packaging.specifiers import SpecifierSet
 import pytest
+import boto3
 
 from test import test_utils
 from test.test_utils import (
@@ -77,7 +78,11 @@ def ec2_pytorch_inference(image_uri, processor, ec2_connection, region):
         f" {image_uri} {inference_cmd}"
     )
     try:
-        ec2_connection.run(f"$(aws ecr get-login --no-include-email --region {region})", hide=True)
+        account_id = boto3.client("sts").get_caller_identity()["Account"]
+        ec2_connection.run(
+            f"$(aws ecr get-login-password --region {region} | docker login --username AWS --password-stdin {account_id}.dkr.ecr.{region}.amazonaws.com)",
+            hide=True,
+        )
         LOGGER.info(docker_run_cmd)
         ec2_connection.run(docker_run_cmd, hide=True)
         server_type = get_inference_server_type(image_uri)

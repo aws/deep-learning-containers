@@ -1,4 +1,5 @@
 import os
+import boto3
 
 from packaging.version import Version
 from packaging.specifiers import SpecifierSet
@@ -747,7 +748,11 @@ def test_pytorch_cudnn_match_gpu(
     PT 2.1 reintroduces a dependency on CUDNN to support NVDA TransformerEngine. This test is to ensure that torch CUDNN matches system CUDNN in the container.
     """
     container_name = "pt_cudnn_test"
-    ec2_connection.run(f"$(aws ecr get-login --no-include-email --region {region})", hide=True)
+    account_id = boto3.client("sts").get_caller_identity()["Account"]
+    ec2_connection.run(
+        f"$(aws ecr get-login-password --region {region} | docker login --username AWS --password-stdin {account_id}.dkr.ecr.{region}.amazonaws.com)",
+        hide=True,
+    )
     ec2_connection.run(f"docker pull -q {pytorch_training}", hide=True)
     ec2_connection.run(
         f"nvidia-docker run --name {container_name} -itd {pytorch_training}", hide=True

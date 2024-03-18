@@ -1027,7 +1027,11 @@ def execute_ec2_training_test(
     container_test_local_dir = os.path.join("$HOME", "container_tests")
     synapseai_version = get_synapseai_version_from_tag(ecr_uri)
     # Make sure we are logged into ECR so we can pull the image
-    connection.run(f"$(aws ecr get-login --no-include-email --region {region})", hide=True)
+    account_id = boto3.client("sts").get_caller_identity()["Account"]
+    connection.run(
+        f"$(aws ecr get-login-password --region {region} | docker login --username AWS --password-stdin {account_id}.dkr.ecr.{region}.amazonaws.com)",
+        hide=True,
+    )
 
     # Run training command
     shm_setting = '--shm-size="1g"' if large_shm else ""
@@ -1063,9 +1067,7 @@ def execute_ec2_training_test(
             "tensorflow" if "tensorflow" in ecr_uri else "pytorch" if "pytorch" in ecr_uri else None
         )
         test_type = "ec2"
-        account_id_prefix = os.getenv(
-            "ACCOUNT_ID", boto3.client("sts").get_caller_identity()["Account"]
-        )[:3]
+        account_id_prefix = os.getenv("ACCOUNT_ID", account_id)[:3]
         s3_bucket_for_permanent_logs = f"dlinfra-habana-tests-{account_id_prefix}"
         s3_uri_permanent_logs = get_s3_uri_for_saving_permanent_logs(
             framework, s3_bucket=s3_bucket_for_permanent_logs, test_type=test_type
@@ -1111,7 +1113,11 @@ def execute_ec2_inference_test(connection, ecr_uri, test_cmd, region=DEFAULT_REG
     container_test_local_dir = os.path.join("$HOME", "container_tests")
 
     # Make sure we are logged into ECR so we can pull the image
-    connection.run(f"$(aws ecr get-login --no-include-email --region {region})", hide=True)
+    account_id = boto3.client("sts").get_caller_identity()["Account"]
+    connection.run(
+        f"$(aws ecr get-login-password --region {region} | docker login --username AWS --password-stdin {account_id}.dkr.ecr.{region}.amazonaws.com)",
+        hide=True,
+    )
 
     # Run training command
     connection.run(
@@ -1145,7 +1151,11 @@ def execute_ec2_training_performance_test(
     log_location = os.path.join(container_test_local_dir, "benchmark", "logs", log_name)
 
     # Make sure we are logged into ECR so we can pull the image
-    connection.run(f"$(aws ecr get-login --no-include-email --region {region})", hide=True)
+    account_id = boto3.client("sts").get_caller_identity()["Account"]
+    connection.run(
+        f"$(aws ecr get-login-password --region {region} | docker login --username AWS --password-stdin {account_id}.dkr.ecr.{region}.amazonaws.com)",
+        hide=True,
+    )
 
     connection.run(f"{docker_cmd} pull {ecr_uri}", hide=True)
 
@@ -1186,7 +1196,11 @@ def execute_ec2_habana_training_performance_test(
     )
     synapseai_version = get_synapseai_version_from_tag(ecr_uri)
     # Make sure we are logged into ECR so we can pull the image
-    connection.run(f"$(aws ecr get-login --no-include-email --region {region})", hide=True)
+    account_id = boto3.client("sts").get_caller_identity()["Account"]
+    connection.run(
+        f"$(aws ecr get-login-password --region {region} | docker login --username AWS --password-stdin {account_id}.dkr.ecr.{region}.amazonaws.com)",
+        hide=True,
+    )
 
     connection.run(f"{docker_cmd} pull -q {ecr_uri}")
 
@@ -1251,7 +1265,11 @@ def execute_ec2_inference_performance_test(
         f"{data_source}_results_{os.getenv('CODEBUILD_RESOLVED_SOURCE_VERSION')}_{timestamp}.txt"
     )
     # Make sure we are logged into ECR so we can pull the image
-    connection.run(f"$(aws ecr get-login --no-include-email --region {region})", hide=True)
+    account_id = boto3.client("sts").get_caller_identity()["Account"]
+    connection.run(
+        f"$(aws ecr get-login-password --region {region} | docker login --username AWS --password-stdin {account_id}.dkr.ecr.{region}.amazonaws.com)",
+        hide=True,
+    )
     connection.run(f"{docker_cmd} pull -q {ecr_uri}")
 
     # Run training command, display benchmark results to console

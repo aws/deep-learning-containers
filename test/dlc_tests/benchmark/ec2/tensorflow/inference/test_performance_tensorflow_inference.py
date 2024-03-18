@@ -1,6 +1,7 @@
 import os
 import time
 import pytest
+import boto3
 
 from packaging.version import Version
 
@@ -83,7 +84,11 @@ def ec2_performance_tensorflow_inference(
     num_iterations = 500 if is_pr_context() or is_graviton else 1000
 
     # Make sure we are logged into ECR so we can pull the image
-    ec2_connection.run(f"$(aws ecr get-login --no-include-email --region {region})", hide=True)
+    account_id = boto3.client("sts").get_caller_identity()["Account"]
+    ec2_connection.run(
+        f"$(aws ecr get-login-password --region {region} | docker login --username AWS --password-stdin {account_id}.dkr.ecr.{region}.amazonaws.com)",
+        hide=True,
+    )
     ec2_connection.run(f"{docker_cmd} pull -q {image_uri} ")
     if is_graviton:
         # TF training binary is used that is compatible for graviton instance type

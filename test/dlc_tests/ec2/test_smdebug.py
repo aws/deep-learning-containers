@@ -1,6 +1,6 @@
 import os
-
 import pytest
+import boto3
 
 import test.test_utils as test_utils
 
@@ -170,7 +170,11 @@ def run_smdebug_test(
     shm_setting = " --shm-size=1g " if ec2_instance_type in large_shm_instance_types else " "
     framework = get_framework_from_image_uri(image_uri)
     container_test_local_dir = os.path.join("$HOME", "container_tests")
-    ec2_connection.run(f"$(aws ecr get-login --no-include-email --region {region})", hide=True)
+    account_id = boto3.client("sts").get_caller_identity()["Account"]
+    ec2_connection.run(
+        f"$(aws ecr get-login-password --region {region} | docker login --username AWS --password-stdin {account_id}.dkr.ecr.{region}.amazonaws.com)",
+        hide=True,
+    )
     # Do not add -q to docker pull as it leads to a hang for huge images like trcomp
     ec2_connection.run(f"docker pull {image_uri}")
 
@@ -209,7 +213,11 @@ def run_smprofiler_test(
     shm_setting = " --shm-size=1g " if ec2_instance_type in large_shm_instance_types else " "
     framework = get_framework_from_image_uri(image_uri)
     container_test_local_dir = os.path.join("$HOME", "container_tests")
-    ec2_connection.run(f"$(aws ecr get-login --no-include-email --region {region})", hide=True)
+    account_id = boto3.client("sts").get_caller_identity()["Account"]
+    ec2_connection.run(
+        f"$(aws ecr get-login-password --region {region} | docker login --username AWS --password-stdin {account_id}.dkr.ecr.{region}.amazonaws.com)",
+        hide=True,
+    )
     # Do not add -q to docker pull as it leads to a hang for huge images like trcomp
     ec2_connection.run(f"docker pull {image_uri}")
 

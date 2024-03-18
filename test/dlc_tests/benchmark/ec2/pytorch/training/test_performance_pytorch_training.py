@@ -2,6 +2,7 @@ import os
 import time
 import pytest
 import re
+import boto3
 
 from test.test_utils import (
     CONTAINER_TESTS_PREFIX,
@@ -142,7 +143,11 @@ def execute_pytorch_gpu_py3_imagenet_ec2_training_performance_test(
     container_name = f"{repo_name}-performance-{image_tag}-ec2"
 
     # Make sure we are logged into ECR so we can pull the image
-    connection.run(f"$(aws ecr get-login --no-include-email --region {region})", hide=True)
+    account_id = boto3.client("sts").get_caller_identity()["Account"]
+    connection.run(
+        f"$(aws ecr get-login-password --region {region} | docker login --username AWS --password-stdin {account_id}.dkr.ecr.{region}.amazonaws.com)",
+        hide=True,
+    )
     # Do not add -q to docker pull as it leads to a hang for huge images like trcomp
     connection.run(f"nvidia-docker pull {ecr_uri}")
     timestamp = time.strftime("%Y-%m-%d-%H-%M-%S")
