@@ -68,7 +68,7 @@ def assign_sagemaker_remote_job_instance_type(image):
     elif "tensorflow" in image:
         return "ml.c5.4xlarge"
     else:
-        return "ml.c4.8xlarge"
+        return "ml.c5.9xlarge"
 
 
 def assign_sagemaker_local_job_instance_type(image):

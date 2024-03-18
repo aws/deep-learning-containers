@@ -323,7 +323,7 @@ def _test_s3_plugin_function(ecr_image, sagemaker_session, instance_type, framew
 def test_hc_s3_plugin(ecr_image, sagemaker_regions, instance_type, framework_version):
     from sagemaker.instance_group import InstanceGroup
 
-    instance_type = instance_type or "ml.c4.xlarge"
+    instance_type = instance_type or "ml.c5.xlarge"
     training_group = InstanceGroup("train_group", instance_type, 1)
     invoke_sm_helper_function(
         ecr_image,
