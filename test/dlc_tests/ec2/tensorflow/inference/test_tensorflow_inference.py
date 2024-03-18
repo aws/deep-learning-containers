@@ -1,9 +1,7 @@
 import os
 import re
-import json
 from time import sleep
 import pytest
-import boto3
 
 from packaging.version import Version
 from packaging.specifiers import SpecifierSet
@@ -111,7 +109,7 @@ def test_ec2_tensorflow_inference_gpu_tensorrt(
     )
 
     try:
-        account_id = boto3.client("sts").get_caller_identity()["Account"]
+        account_id = test_utils.get_account_id_from_image_uri(tensorflow_inference)
         test_utils.login_to_ecr_registry(ec2_connection, account_id, region)
         host_setup_for_tensorflow_inference(serving_folder_path, framework_version, ec2_connection)
         sleep(2)
@@ -270,7 +268,7 @@ def run_ec2_tensorflow_inference(
         if not is_neuron:
             train_mnist_model(serving_folder_path, ec2_connection)
             sleep(10)
-        account_id = boto3.client("sts").get_caller_identity()["Account"]
+        account_id = test_utils.get_account_id_from_image_uri(image_uri)
         test_utils.login_to_ecr_registry(ec2_connection, account_id, region)
         ec2_connection.run(docker_run_cmd, hide=True)
         sleep(20)

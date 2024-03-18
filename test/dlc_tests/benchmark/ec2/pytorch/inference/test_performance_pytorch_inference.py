@@ -1,7 +1,6 @@
 import os
 import time
 import pytest
-import boto3
 
 from src.benchmark_metrics import (
     PYTORCH_INFERENCE_GPU_THRESHOLD,
@@ -12,8 +11,9 @@ from test.test_utils import (
     CONTAINER_TESTS_PREFIX,
     get_framework_and_version_from_tag,
     UL20_CPU_ARM64_US_WEST_2,
-    LOGGER,
     login_to_ecr_registry,
+    get_account_id_from_image_uri,
+    LOGGER,
 )
 from test.test_utils.ec2 import (
     ec2_performance_upload_result_to_s3_and_validate,
@@ -88,7 +88,7 @@ def ec2_performance_pytorch_inference(
     repo_name, image_tag = image_uri.split("/")[-1].split(":")
 
     # Make sure we are logged into ECR so we can pull the image
-    account_id = boto3.client("sts").get_caller_identity()["Account"]
+    account_id = get_account_id_from_image_uri(image_uri)
     login_to_ecr_registry(ec2_connection, account_id, region)
 
     ec2_connection.run(f"{docker_cmd} pull -q {image_uri} ")
