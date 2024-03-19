@@ -76,12 +76,14 @@ def ecs_ami(request):
 
 @pytest.fixture(scope="session")
 def ecs_instance_type(request):
-    return "c4.4xlarge"
+    instance_type = request.param if hasattr(request, "param") else "g4dn.xlarge"
+    _restrict_instance_usage(instance_type)
+    return instance_type
 
 
-def _restrict_c4_usage(instance_type):
+def _restrict_instance_usage(instance_type):
     if "c4." in instance_type:
-        raise Exception("Please use C5 or any other C series EC2 instance as C4 is restricted to be used.")
+        raise RuntimeError("C4-family instances are no longer supported in our system. Please use a different instance type (i.e. C5, or another C series instance type).") 
     return
 
 
@@ -128,7 +130,6 @@ def ecs_container_instance(
     :return:
     """
     # Get these from params on the test
-    _restrict_c4_usage(ecs_instance_type)
     instance_type = ecs_instance_type
     image_id = ecs_ami
     cluster_name = ecs_utils.get_ecs_cluster_name(ecs_cluster)
