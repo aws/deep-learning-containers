@@ -1,8 +1,6 @@
 import os
 import sys
-import time
 import logging
-from datetime import date, timedelta, datetime
 
 import pytest
 from packaging.version import Version
@@ -14,7 +12,8 @@ from test.test_utils import (
     CONTAINER_TESTS_PREFIX,
     get_framework_and_version_from_tag,
     get_inference_server_type,
-    get_cuda_version_from_tag,
+    login_to_ecr_registry,
+    get_account_id_from_image_uri,
 )
 from test.test_utils.ec2 import (
     get_ec2_instance_type,
@@ -22,7 +21,6 @@ from test.test_utils.ec2 import (
     get_ec2_accelerator_type,
 )
 from test.dlc_tests.conftest import LOGGER
-import boto3
 
 LOGGER = logging.getLogger(__name__)
 LOGGER.addHandler(logging.StreamHandler(sys.stdout))
@@ -238,7 +236,8 @@ def ec2_pytorch_inference(image_uri, processor, ec2_connection, region):
             f" {image_uri} {inference_cmd}"
         )
     try:
-        ec2_connection.run(f"$(aws ecr get-login --no-include-email --region {region})", hide=True)
+        account_id = get_account_id_from_image_uri(image_uri)
+        login_to_ecr_registry(ec2_connection, account_id, region)
         LOGGER.info(docker_run_cmd)
         ec2_connection.run(docker_run_cmd, hide=True)
         server_type = get_inference_server_type(image_uri)
