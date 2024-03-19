@@ -316,7 +316,9 @@ def _validate_p4de_usage(request, instance_type):
 
 def _restrict_instance_usage(instance_type):
     if "c4." in instance_type:
-        raise RuntimeError("C4-family instances are no longer supported in our system. Please use a different instance type (i.e. C5, or another C series instance type).") 
+        raise RuntimeError(
+            "C4-family instances are no longer supported in our system. Please use a different instance type (i.e. C5, or another C series instance type)."
+        )
     return
 
 
