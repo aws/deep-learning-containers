@@ -409,7 +409,8 @@ def launch_instances_with_retry(
 
 
 def launch_efa(ec2_client, ec2_instance_type, ec2_run_instances_definition, availability_zone):
-    ec2_run_instances_definition.update(
+    ec2_efa_run_instances_definition = ec2_run_instances_definition.deepcopy()
+    ec2_efa_run_instances_definition.update(
         {
             "Placement": {"AvailabilityZone": availability_zone},
             "NetworkInterfaces": generate_network_interfaces(
@@ -417,16 +418,17 @@ def launch_efa(ec2_client, ec2_instance_type, ec2_run_instances_definition, avai
             ),
         }
     )
-    response = ec2_client.run_instances(**ec2_run_instances_definition) or {}
+    response = ec2_client.run_instances(**ec2_efa_run_instances_definition) or {}
     return response.get("Instances")
 
 
 def launch_efa_with_reservations(
     ec2_client, ec2_instance_type, reservations, ec2_run_instances_definition, fn_name=""
 ):
+    ec2_run_instances_reserved_definition = ec2_run_instances_definition.deepcopy()
     while reservations:
         reservation = reservations.pop(0)
-        ec2_run_instances_definition["CapacityReservationSpecification"] = {
+        ec2_run_instances_reserved_definition["CapacityReservationSpecification"] = {
             "CapacityReservationTarget": {
                 "CapacityReservationId": reservation["CapacityReservationId"]
             }
@@ -435,7 +437,7 @@ def launch_efa_with_reservations(
             instances = launch_efa(
                 ec2_client,
                 ec2_instance_type,
-                ec2_run_instances_definition,
+                ec2_run_instances_reserved_definition,
                 reservation["AvailabilityZone"],
             )
             if instances:
@@ -504,12 +506,13 @@ def launch_efa_with_heterogenous_reservations(ec2_client, ec2_run_instances_defi
     Returns:
         list: launched instances
     """
-    ec2_instance_type = ec2_run_instances_definition["InstanceType"]
-    minimum_number_of_instances = ec2_run_instances_definition["MinCount"]
+    ec2_heterogenous_run_instances_definition = ec2_run_instances_definition.deepcopy()
+    ec2_instance_type = ec2_heterogenous_run_instances_definition["InstanceType"]
+    minimum_number_of_instances = ec2_heterogenous_run_instances_definition["MinCount"]
 
     # Reset max and min count to 1; We will
-    ec2_run_instances_definition["MaxCount"] = 1
-    ec2_run_instances_definition["MinCount"] = 1
+    ec2_heterogenous_run_instances_definition["MaxCount"] = 1
+    ec2_heterogenous_run_instances_definition["MinCount"] = 1
 
     reserved_azs = [
         reservation["AvailabilityZone"]
@@ -520,7 +523,7 @@ def launch_efa_with_heterogenous_reservations(ec2_client, ec2_run_instances_defi
     tmp_reservations = get_available_reservations(
         ec2_client=ec2_client,
         instance_type=ec2_instance_type,
-        min_availability=ec2_run_instances_definition["MinCount"],
+        min_availability=ec2_heterogenous_run_instances_definition["MinCount"],
     )
 
     az_counter = Counter(reservation["AvailabilityZone"] for reservation in tmp_reservations)
@@ -537,6 +540,8 @@ def launch_efa_with_heterogenous_reservations(ec2_client, ec2_run_instances_defi
         reservations, available_instances = referesh_capacity_reservations(
             ec2_client, ec2_instance_type, az
         )
+        ec2_heterogenous_run_instances_definition["MaxCount"] = 1
+        ec2_heterogenous_run_instances_definition["MinCount"] = 1
         instances = []
         try:
             while available_instances and len(instances) < minimum_number_of_instances:
@@ -545,7 +550,7 @@ def launch_efa_with_heterogenous_reservations(ec2_client, ec2_run_instances_defi
                     ec2_client=ec2_client,
                     ec2_instance_type=ec2_instance_type,
                     reservations=reservations,
-                    ec2_run_instances_definition=ec2_run_instances_definition,
+                    ec2_run_instances_definition=ec2_heterogenous_run_instances_definition,
                     fn_name=fn_name,
                 )
                 instances += instance
@@ -567,10 +572,10 @@ def launch_efa_with_heterogenous_reservations(ec2_client, ec2_run_instances_defi
                 LOGGER.info(
                     f"Have {remaining_instances} remaining_instances instances in {az}. Trying from public pool."
                 )
-                ec2_run_instances_definition["MaxCount"] = remaining_instances
-                ec2_run_instances_definition["MinCount"] = remaining_instances
+                ec2_heterogenous_run_instances_definition["MaxCount"] = remaining_instances
+                ec2_heterogenous_run_instances_definition["MinCount"] = remaining_instances
                 instances += launch_efa(
-                    ec2_client, ec2_instance_type, ec2_run_instances_definition, az
+                    ec2_client, ec2_instance_type, ec2_heterogenous_run_instances_definition, az
                 )
 
                 if validate_efa_instance_conditions(instances, minimum_number_of_instances):
@@ -637,7 +642,6 @@ def launch_efa_instances_with_retry(
     :param fn_name: string - function name for ease of logging
     :return: dict response from ec2_client.run_instances
     """
-    response = None
     region = ec2_client.meta.region_name
     LOGGER.info(f"Trying to launch {ec2_instance_type} for {fn_name} via capacity reservation...")
 
@@ -663,7 +667,7 @@ def launch_efa_instances_with_retry(
             if instances:
                 break
         except ClientError as e:
-            LOGGER.debug(
+            LOGGER.info(
                 f"Failed to launch in {availability_zone} for {fn_name} due to {e}\n"
                 "Retrying in the next availability zone."
             )
