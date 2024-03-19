@@ -9,6 +9,8 @@ from test.test_utils import (
     CONTAINER_TESTS_PREFIX,
     get_framework_and_version_from_tag,
     get_cuda_version_from_tag,
+    login_to_ecr_registry,
+    get_account_id_from_image_uri,
 )
 from test.test_utils.ec2 import (
     execute_ec2_training_test,
@@ -189,7 +191,8 @@ def pytorch_cudnn_match_gpu(pytorch_training, ec2_connection, region):
     PT 2.1 reintroduces a dependency on CUDNN to support NVDA TransformerEngine. This test is to ensure that torch CUDNN matches system CUDNN in the container.
     """
     container_name = "pt_cudnn_test"
-    ec2_connection.run(f"$(aws ecr get-login --no-include-email --region {region})", hide=True)
+    account_id = get_account_id_from_image_uri(pytorch_training)
+    login_to_ecr_registry(ec2_connection, account_id, region)
     ec2_connection.run(f"docker pull -q {pytorch_training}", hide=True)
     ec2_connection.run(
         f"nvidia-docker run --name {container_name} -itd {pytorch_training}", hide=True
@@ -221,6 +224,10 @@ def pytorch_cudnn_match_gpu(pytorch_training, ec2_connection, region):
     ), f"System CUDNN {system_cudnn} and torch cudnn {cudnn_from_torch} do not match. Please downgrade system CUDNN or recompile torch with correct CUDNN verson."
 
 
+def pytorch_curand_gpu(pytorch_training, ec2_connection):
+    execute_ec2_training_test(ec2_connection, pytorch_training, CURAND_CMD)
+
+
 def pytorch_linear_regression_cpu(pytorch_training, ec2_connection):
     execute_ec2_training_test(
         ec2_connection, pytorch_training, PT_REGRESSION_CMD, container_name="pt_reg"
@@ -238,10 +245,6 @@ def pytorch_telemetry_cpu(pytorch_training, ec2_connection):
     execute_ec2_training_test(
         ec2_connection, pytorch_training, PT_TELEMETRY_CMD, timeout=900, container_name="telemetry"
     )
-
-
-def curand_gpu(training, ec2_connection):
-    execute_ec2_training_test(ec2_connection, training, CURAND_CMD)
 
 
 def pytorch_training_torchdata(pytorch_training, ec2_connection):

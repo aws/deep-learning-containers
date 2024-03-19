@@ -10,6 +10,8 @@ from test.test_utils import (
     DEFAULT_REGION,
     get_framework_and_version_from_tag,
     is_pr_context,
+    login_to_ecr_registry,
+    get_account_id_from_image_uri,
 )
 from test.test_utils.ec2 import (
     execute_ec2_training_performance_test,
@@ -142,7 +144,8 @@ def execute_pytorch_gpu_py3_imagenet_ec2_training_performance_test(
     container_name = f"{repo_name}-performance-{image_tag}-ec2"
 
     # Make sure we are logged into ECR so we can pull the image
-    connection.run(f"$(aws ecr get-login --no-include-email --region {region})", hide=True)
+    account_id = get_account_id_from_image_uri(ecr_uri)
+    login_to_ecr_registry(connection, account_id, region)
     # Do not add -q to docker pull as it leads to a hang for huge images like trcomp
     connection.run(f"nvidia-docker pull {ecr_uri}")
     timestamp = time.strftime("%Y-%m-%d-%H-%M-%S")

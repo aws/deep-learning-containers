@@ -74,7 +74,7 @@ release_images:
       device_types: [ "gpu" ]
       python_versions: [ "py310" ]
       os_version: "ubuntu20.04"
-      cuda_version: "cu121"
+      cuda_version: "cu118"
       example: False
-      disable_sm_tag: True
+      disable_sm_tag: False
       force_release: False

@@ -24,4 +24,4 @@ lsmod | grep ib_uverbs
 ibv_devinfo
 
 # check if gdr device is loaded
-grep -e '^1$' /sys/class/infiniband/**/device/gdr
+cat /sys/class/infiniband/**/device/p2p | grep 'NVIDIA'

@@ -31,11 +31,7 @@ from test.test_utils import (
     is_nightly_context,
     DEFAULT_REGION,
     P3DN_REGION,
-    UBUNTU_20_BASE_DLAMI_US_EAST_1,
-    UBUNTU_20_BASE_DLAMI_US_WEST_2,
     PT_GPU_PY3_BENCHMARK_IMAGENET_AMI_US_EAST_1,
-    AML2_BASE_DLAMI_US_WEST_2,
-    AML2_BASE_DLAMI_US_EAST_1,
     KEYS_TO_DESTROY_FILE,
     are_efa_tests_disabled,
     get_repository_and_tag_from_image_uri,
@@ -340,18 +336,11 @@ def ec2_instance_role_name(request):
 
 
 @pytest.fixture(scope="function")
-def ec2_instance_ami(request, region):
+def ec2_instance_ami(request, region, ec2_instance_type):
     return (
         request.param
         if hasattr(request, "param")
-        else UBUNTU_20_BASE_DLAMI_US_EAST_1
-        if region == "us-east-1"
-        else UBUNTU_20_BASE_DLAMI_US_WEST_2
-        if region == "us-west-2"
-        else test_utils.get_ami_id_boto3(
-            region_name=region,
-            ami_name_pattern="Deep Learning Base GPU AMI (Ubuntu 20.04) ????????",
-        )
+        else test_utils.get_instance_type_base_dlami(ec2_instance_type, region)
     )
 
 
@@ -565,6 +554,8 @@ def ec2_instance(
 ):
     _validate_p4de_usage(request, ec2_instance_type)
     if ec2_instance_type == "p3dn.24xlarge":
+        # Keep track of initial region to get information about previous AMI
+        initial_region = region
         region = P3DN_REGION
         ec2_client = boto3.client(
             "ec2", region_name=region, config=Config(retries={"max_attempts": 10})
@@ -573,10 +564,16 @@ def ec2_instance(
             "ec2", region_name=region, config=Config(retries={"max_attempts": 10})
         )
         if ec2_instance_ami != PT_GPU_PY3_BENCHMARK_IMAGENET_AMI_US_EAST_1:
+            # Assign as AML2 if initial AMI is AML2, else use default
             ec2_instance_ami = (
-                AML2_BASE_DLAMI_US_EAST_1
-                if ec2_instance_ami == AML2_BASE_DLAMI_US_WEST_2
-                else UBUNTU_20_BASE_DLAMI_US_EAST_1
+                test_utils.get_instance_type_base_dlami(
+                    ec2_instance_type, region, linux_dist="AML2"
+                )
+                if ec2_instance_ami
+                == test_utils.get_instance_type_base_dlami(
+                    ec2_instance_type, initial_region, linux_dist="AML2"
+                )
+                else test_utils.get_instance_type_base_dlami(ec2_instance_type, region)
             )
 
     ec2_key_name = f"{ec2_key_name}-{str(uuid.uuid4())}"

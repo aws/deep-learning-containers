@@ -78,18 +78,38 @@ def get_ami_id_ssm(region_name, parameter_path):
     return ami_id
 
 
-# The Ubuntu 20.04 AMI which adds GDRCopy is used only for GDRCopy feature that is supported on PT1.13 and PT2.0
-UBUNTU_20_BASE_DLAMI_US_WEST_2 = get_ami_id_boto3(
-    region_name="us-west-2", ami_name_pattern="Deep Learning Base GPU AMI (Ubuntu 20.04) ????????"
+# DLAMI Base is split between OSS Nvidia Driver and Propietary Nvidia Driver. see https://docs.aws.amazon.com/dlami/latest/devguide/important-changes.html
+UBUNTU_20_BASE_OSS_DLAMI_US_WEST_2 = get_ami_id_boto3(
+    region_name="us-west-2",
+    ami_name_pattern="Deep Learning Base OSS Nvidia Driver GPU AMI (Ubuntu 20.04) ????????",
 )
-UBUNTU_20_BASE_DLAMI_US_EAST_1 = get_ami_id_boto3(
-    region_name="us-east-1", ami_name_pattern="Deep Learning Base GPU AMI (Ubuntu 20.04) ????????"
+UBUNTU_20_BASE_OSS_DLAMI_US_EAST_1 = get_ami_id_boto3(
+    region_name="us-east-1",
+    ami_name_pattern="Deep Learning Base OSS Nvidia Driver GPU AMI (Ubuntu 20.04) ????????",
 )
-AML2_BASE_DLAMI_US_WEST_2 = get_ami_id_boto3(
-    region_name="us-west-2", ami_name_pattern="Deep Learning Base AMI (Amazon Linux 2) Version ??.?"
+UBUNTU_20_BASE_PROPRIETARY_DLAMI_US_WEST_2 = get_ami_id_boto3(
+    region_name="us-west-2",
+    ami_name_pattern="Deep Learning Base Proprietary Nvidia Driver GPU AMI (Ubuntu 20.04) ????????",
 )
-AML2_BASE_DLAMI_US_EAST_1 = get_ami_id_boto3(
-    region_name="us-east-1", ami_name_pattern="Deep Learning Base AMI (Amazon Linux 2) Version ??.?"
+UBUNTU_20_BASE_PROPRIETARY_DLAMI_US_EAST_1 = get_ami_id_boto3(
+    region_name="us-east-1",
+    ami_name_pattern="Deep Learning Base Proprietary Nvidia Driver GPU AMI (Ubuntu 20.04) ????????",
+)
+AML2_BASE_OSS_DLAMI_US_WEST_2 = get_ami_id_boto3(
+    region_name="us-west-2",
+    ami_name_pattern="Deep Learning Base OSS Nvidia Driver AMI (Amazon Linux 2) Version ??.?",
+)
+AML2_BASE_OSS_DLAMI_US_EAST_1 = get_ami_id_boto3(
+    region_name="us-east-1",
+    ami_name_pattern="Deep Learning Base OSS Nvidia Driver AMI (Amazon Linux 2) Version ??.?",
+)
+AML2_BASE_PROPRIETARY_DLAMI_US_WEST_2 = get_ami_id_boto3(
+    region_name="us-west-2",
+    ami_name_pattern="Deep Learning Base Proprietary Nvidia Driver AMI (Amazon Linux 2) Version ??.?",
+)
+AML2_BASE_PROPRIETARY_DLAMI_US_EAST_1 = get_ami_id_boto3(
+    region_name="us-east-1",
+    ami_name_pattern="Deep Learning Base Proprietary Nvidia Driver AMI (Amazon Linux 2) Version ??.?",
 )
 # We use the following DLAMI for MXNet and TensorFlow tests as well, but this is ok since we use custom DLC Graviton containers on top. We just need an ARM base DLAMI.
 UL20_CPU_ARM64_US_WEST_2 = get_ami_id_boto3(
@@ -145,8 +165,10 @@ NEURON_INF1_AMI_US_WEST_2 = "ami-06a5a60d3801a57b7"
 UBUNTU_18_HPU_DLAMI_US_WEST_2 = "ami-03cdcfc91a96a8f92"
 UBUNTU_18_HPU_DLAMI_US_EAST_1 = "ami-0d83d7487f322545a"
 UL_AMI_LIST = [
-    UBUNTU_20_BASE_DLAMI_US_WEST_2,
-    UBUNTU_20_BASE_DLAMI_US_EAST_1,
+    UBUNTU_20_BASE_OSS_DLAMI_US_WEST_2,
+    UBUNTU_20_BASE_OSS_DLAMI_US_EAST_1,
+    UBUNTU_20_BASE_PROPRIETARY_DLAMI_US_WEST_2,
+    UBUNTU_20_BASE_PROPRIETARY_DLAMI_US_EAST_1,
     UBUNTU_18_HPU_DLAMI_US_WEST_2,
     UBUNTU_18_HPU_DLAMI_US_EAST_1,
     PT_GPU_PY3_BENCHMARK_IMAGENET_AMI_US_EAST_1,
@@ -2370,3 +2392,88 @@ def get_image_spec_from_buildspec(image_uri, dlc_folder_path):
         raise ValueError(f"No corresponding entry found for {image_uri} in {buildspec_path}")
 
     return matched_image_spec
+
+
+def get_instance_type_base_dlami(instance_type, region, linux_dist="UBUNTU_20"):
+    """
+    Get Instance types based on EC2 instance, see https://docs.aws.amazon.com/dlami/latest/devguide/important-changes.html
+    For all instance names, see https://aws.amazon.com/ec2/instance-types/#Accelerated_Computing
+    OSS Nvidia Driver DLAMI supports the following: ["g4dn.xlarge",
+                                                     "g4dn.2xlarge",
+                                                     "g4dn.4xlarge",
+                                                     "g4dn.8xlarge",
+                                                     "g4dn.16xlarge",
+                                                     "g4dn.12xlarge",
+                                                     "g4dn.metal",
+                                                     "g4dn.xlarge",
+                                                     "g5.xlarge",
+                                                     "g5.2xlarge",
+                                                     "g5.4xlarge",
+                                                     "g5.8xlarge",
+                                                     "g5.16xlarge",
+                                                     "g5.12xlarge",
+                                                     "g5.24xlarge",
+                                                     "g5.48xlarge",
+                                                     "p4d.24xlarge",
+                                                     "p4de.24xlarge",
+                                                     "p5.48xlarge",]
+
+    Proprietary Nvidia Driver DLAMI supports the following: ["p3.2xlarge",
+                                                             "p3.8xlarge",
+                                                             "p3.16xlarge",
+                                                             "p3dn.24xlarge",
+                                                             "g3s.xlarge",
+                                                             "g3.4xlarge",
+                                                             "g3.8xlarge",
+                                                             "g3.16xlarge",]
+
+    Other instances will default to Proprietary Nvidia Driver DLAMI
+    """
+
+    base_proprietary_dlami_instances = [
+        "p3.2xlarge",
+        "p3.8xlarge",
+        "p3.16xlarge",
+        "p3dn.24xlarge",
+        "g3s.xlarge",
+        "g3.4xlarge",
+        "g3.8xlarge",
+        "g3.16xlarge",
+    ]
+
+    ami_patterns = {
+        "AML2": {
+            "oss": {
+                "name_pattern": "Deep Learning Base OSS Nvidia Driver AMI (Amazon Linux 2) Version ??.?",
+                "us-east-1": AML2_BASE_OSS_DLAMI_US_EAST_1,
+                "us-west-2": AML2_BASE_OSS_DLAMI_US_WEST_2,
+            },
+            "proprietary": {
+                "name_pattern": "Deep Learning Base Proprietary Nvidia Driver AMI (Amazon Linux 2) Version ??.?",
+                "us-east-1": AML2_BASE_PROPRIETARY_DLAMI_US_EAST_1,
+                "us-west-2": AML2_BASE_PROPRIETARY_DLAMI_US_WEST_2,
+            },
+        },
+        "UBUNTU_20": {
+            "oss": {
+                "name_pattern": "Deep Learning Base OSS Nvidia Driver GPU AMI (Ubuntu 20.04) ????????",
+                "us-east-1": UBUNTU_20_BASE_OSS_DLAMI_US_EAST_1,
+                "us-west-2": UBUNTU_20_BASE_OSS_DLAMI_US_WEST_2,
+            },
+            "proprietary": {
+                "name_pattern": "Deep Learning Base Proprietary Nvidia Driver GPU AMI (Ubuntu 20.04) ????????",
+                "us-east-1": UBUNTU_20_BASE_PROPRIETARY_DLAMI_US_EAST_1,
+                "us-west-2": UBUNTU_20_BASE_PROPRIETARY_DLAMI_US_WEST_2,
+            },
+        },
+    }
+
+    ami_type = "proprietary" if instance_type in base_proprietary_dlami_instances else "oss"
+    instance_ami = ami_patterns[linux_dist][ami_type].get(
+        region,
+        get_ami_id_boto3(
+            region_name=region, ami_name_pattern=ami_patterns[linux_dist][ami_type]["name_pattern"]
+        ),
+    )
+
+    return instance_ami

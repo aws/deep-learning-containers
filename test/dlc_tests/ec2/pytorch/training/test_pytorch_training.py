@@ -12,6 +12,8 @@ from test.test_utils import (
     UBUNTU_18_HPU_DLAMI_US_WEST_2,
     get_framework_and_version_from_tag,
     get_cuda_version_from_tag,
+    login_to_ecr_registry,
+    get_account_id_from_image_uri,
 )
 from test.test_utils.ec2 import (
     execute_ec2_training_test,
@@ -747,7 +749,8 @@ def test_pytorch_cudnn_match_gpu(
     PT 2.1 reintroduces a dependency on CUDNN to support NVDA TransformerEngine. This test is to ensure that torch CUDNN matches system CUDNN in the container.
     """
     container_name = "pt_cudnn_test"
-    ec2_connection.run(f"$(aws ecr get-login --no-include-email --region {region})", hide=True)
+    account_id = get_account_id_from_image_uri(pytorch_training)
+    login_to_ecr_registry(ec2_connection, account_id, region)
     ec2_connection.run(f"docker pull -q {pytorch_training}", hide=True)
     ec2_connection.run(
         f"nvidia-docker run --name {container_name} -itd {pytorch_training}", hide=True
