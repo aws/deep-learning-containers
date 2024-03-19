@@ -1,5 +1,4 @@
 import os
-
 import pytest
 
 import test.test_utils as test_utils
@@ -13,6 +12,8 @@ from test.test_utils import (
     is_tf_version,
     get_framework_and_version_from_tag,
     is_nightly_context,
+    login_to_ecr_registry,
+    get_account_id_from_image_uri,
 )
 from test.test_utils.ec2 import get_ec2_instance_type
 
@@ -170,7 +171,8 @@ def run_smdebug_test(
     shm_setting = " --shm-size=1g " if ec2_instance_type in large_shm_instance_types else " "
     framework = get_framework_from_image_uri(image_uri)
     container_test_local_dir = os.path.join("$HOME", "container_tests")
-    ec2_connection.run(f"$(aws ecr get-login --no-include-email --region {region})", hide=True)
+    account_id = get_account_id_from_image_uri(image_uri)
+    login_to_ecr_registry(ec2_connection, account_id, region)
     # Do not add -q to docker pull as it leads to a hang for huge images like trcomp
     ec2_connection.run(f"docker pull {image_uri}")
 
@@ -209,7 +211,8 @@ def run_smprofiler_test(
     shm_setting = " --shm-size=1g " if ec2_instance_type in large_shm_instance_types else " "
     framework = get_framework_from_image_uri(image_uri)
     container_test_local_dir = os.path.join("$HOME", "container_tests")
-    ec2_connection.run(f"$(aws ecr get-login --no-include-email --region {region})", hide=True)
+    account_id = get_account_id_from_image_uri(image_uri)
+    login_to_ecr_registry(ec2_connection, account_id, region)
     # Do not add -q to docker pull as it leads to a hang for huge images like trcomp
     ec2_connection.run(f"docker pull {image_uri}")
 

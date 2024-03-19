@@ -1,6 +1,5 @@
 import os
 import re
-import json
 from time import sleep
 import pytest
 
@@ -110,7 +109,8 @@ def test_ec2_tensorflow_inference_gpu_tensorrt(
     )
 
     try:
-        ec2_connection.run(f"$(aws ecr get-login --no-include-email --region {region})", hide=True)
+        account_id = test_utils.get_account_id_from_image_uri(tensorflow_inference)
+        test_utils.login_to_ecr_registry(ec2_connection, account_id, region)
         host_setup_for_tensorflow_inference(serving_folder_path, framework_version, ec2_connection)
         sleep(2)
 
@@ -268,7 +268,8 @@ def run_ec2_tensorflow_inference(
         if not is_neuron:
             train_mnist_model(serving_folder_path, ec2_connection)
             sleep(10)
-        ec2_connection.run(f"$(aws ecr get-login --no-include-email --region {region})", hide=True)
+        account_id = test_utils.get_account_id_from_image_uri(image_uri)
+        test_utils.login_to_ecr_registry(ec2_connection, account_id, region)
         ec2_connection.run(docker_run_cmd, hide=True)
         sleep(20)
         if is_neuron and str(framework_version).startswith(TENSORFLOW2_VERSION):
