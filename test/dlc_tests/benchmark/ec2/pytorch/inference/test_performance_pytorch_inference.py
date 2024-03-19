@@ -1,6 +1,7 @@
 import os
 import time
 import pytest
+
 from src.benchmark_metrics import (
     PYTORCH_INFERENCE_GPU_THRESHOLD,
     PYTORCH_INFERENCE_CPU_THRESHOLD,
@@ -10,6 +11,8 @@ from test.test_utils import (
     CONTAINER_TESTS_PREFIX,
     get_framework_and_version_from_tag,
     UL20_CPU_ARM64_US_WEST_2,
+    login_to_ecr_registry,
+    get_account_id_from_image_uri,
     LOGGER,
 )
 from test.test_utils.ec2 import (
@@ -85,7 +88,8 @@ def ec2_performance_pytorch_inference(
     repo_name, image_tag = image_uri.split("/")[-1].split(":")
 
     # Make sure we are logged into ECR so we can pull the image
-    ec2_connection.run(f"$(aws ecr get-login --no-include-email --region {region})", hide=True)
+    account_id = get_account_id_from_image_uri(image_uri)
+    login_to_ecr_registry(ec2_connection, account_id, region)
 
     ec2_connection.run(f"{docker_cmd} pull -q {image_uri} ")
 

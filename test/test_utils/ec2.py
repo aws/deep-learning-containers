@@ -8,7 +8,6 @@ import uuid
 from inspect import signature
 
 import boto3
-import pytest
 
 from fabric import Connection
 from botocore.config import Config
@@ -30,6 +29,8 @@ from test.test_utils import (
     is_pr_context,
     is_mainline_context,
     are_heavy_instance_ec2_tests_enabled,
+    login_to_ecr_registry,
+    get_account_id_from_image_uri,
 )
 from . import DEFAULT_REGION, P3DN_REGION, P4DE_REGION, UL_AMI_LIST, BENCHMARK_RESULTS_S3_BUCKET
 
@@ -139,11 +140,11 @@ def get_efa_ec2_instance_type(default, filter_function=lambda x: x, job_type="")
     a list.
     """
     instance_list = get_ec2_instance_type(default, "gpu", filter_function, job_type=job_type)
-    instance_list = [
+    instance_region_list = [
         (instance_type, get_cicd_instance_reserved_region(instance_type))
         for instance_type in instance_list
     ]
-    return instance_list
+    return instance_region_list
 
 
 def get_ec2_instance_type(
@@ -1027,7 +1028,8 @@ def execute_ec2_training_test(
     container_test_local_dir = os.path.join("$HOME", "container_tests")
     synapseai_version = get_synapseai_version_from_tag(ecr_uri)
     # Make sure we are logged into ECR so we can pull the image
-    connection.run(f"$(aws ecr get-login --no-include-email --region {region})", hide=True)
+    account_id = get_account_id_from_image_uri(ecr_uri)
+    login_to_ecr_registry(connection, account_id, region)
 
     # Run training command
     shm_setting = '--shm-size="1g"' if large_shm else ""
@@ -1111,7 +1113,8 @@ def execute_ec2_inference_test(connection, ecr_uri, test_cmd, region=DEFAULT_REG
     container_test_local_dir = os.path.join("$HOME", "container_tests")
 
     # Make sure we are logged into ECR so we can pull the image
-    connection.run(f"$(aws ecr get-login --no-include-email --region {region})", hide=True)
+    account_id = get_account_id_from_image_uri(ecr_uri)
+    login_to_ecr_registry(connection, account_id, region)
 
     # Run training command
     connection.run(
@@ -1145,7 +1148,8 @@ def execute_ec2_training_performance_test(
     log_location = os.path.join(container_test_local_dir, "benchmark", "logs", log_name)
 
     # Make sure we are logged into ECR so we can pull the image
-    connection.run(f"$(aws ecr get-login --no-include-email --region {region})", hide=True)
+    account_id = get_account_id_from_image_uri(ecr_uri)
+    login_to_ecr_registry(connection, account_id, region)
 
     connection.run(f"{docker_cmd} pull {ecr_uri}", hide=True)
 
@@ -1186,7 +1190,8 @@ def execute_ec2_habana_training_performance_test(
     )
     synapseai_version = get_synapseai_version_from_tag(ecr_uri)
     # Make sure we are logged into ECR so we can pull the image
-    connection.run(f"$(aws ecr get-login --no-include-email --region {region})", hide=True)
+    account_id = get_account_id_from_image_uri(ecr_uri)
+    login_to_ecr_registry(connection, account_id, region)
 
     connection.run(f"{docker_cmd} pull -q {ecr_uri}")
 
@@ -1251,7 +1256,8 @@ def execute_ec2_inference_performance_test(
         f"{data_source}_results_{os.getenv('CODEBUILD_RESOLVED_SOURCE_VERSION')}_{timestamp}.txt"
     )
     # Make sure we are logged into ECR so we can pull the image
-    connection.run(f"$(aws ecr get-login --no-include-email --region {region})", hide=True)
+    account_id = get_account_id_from_image_uri(ecr_uri)
+    login_to_ecr_registry(connection, account_id, region)
     connection.run(f"{docker_cmd} pull -q {ecr_uri}")
 
     # Run training command, display benchmark results to console
