@@ -84,7 +84,7 @@ def get_impacted_os_packages(image_uri, python_version=None):
     ) = helper_function_for_leftover_vulnerabilities_from_enhanced_scanning(
         image_uri,
         python_version=python_version,
-        minimum_sev_threshold="LOW",
+        minimum_sev_threshold="UNDEFINED",
         allowlist_removal_enabled=False,
     )
     impacted_packages = set()

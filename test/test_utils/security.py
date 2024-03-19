@@ -382,7 +382,7 @@ class ScanVulnerabilityList:
         if not self.vulnerability_list:
             return None
         if not other or not other.vulnerability_list:
-            return self
+            return copy.deepcopy(self)
 
         missing_vulnerabilities = [
             vulnerability
@@ -407,7 +407,9 @@ class ScanVulnerabilityList:
         :return: Union of vulnerabilites exisiting in self and other
         """
         flattened_vulnerability_list_self = self.get_flattened_vulnerability_list()
-        flattened_vulnerability_list_other = other.get_flattened_vulnerability_list()
+        flattened_vulnerability_list_other = (
+            other.get_flattened_vulnerability_list() if other else []
+        )
         all_vulnerabilities = flattened_vulnerability_list_self + flattened_vulnerability_list_other
         if not all_vulnerabilities:
             return None
