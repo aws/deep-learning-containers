@@ -8,7 +8,7 @@
     "awscli": {
         "version_specifier": "<2"
     },
-    "tensorflow-serving-api": {
+    "tensorflow-serving-api-gpu": {
         "version_specifier": "==2.14.1",
         "skip": "True"
     }
