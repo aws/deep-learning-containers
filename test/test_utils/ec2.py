@@ -4,6 +4,7 @@ import re
 import logging
 import sys
 import uuid
+import copy
 
 from collections import Counter
 
@@ -409,7 +410,7 @@ def launch_instances_with_retry(
 
 
 def launch_efa(ec2_client, ec2_instance_type, ec2_run_instances_definition, availability_zone):
-    ec2_efa_run_instances_definition = ec2_run_instances_definition.deepcopy()
+    ec2_efa_run_instances_definition = copy.deepcopy(ec2_run_instances_definition)
     ec2_efa_run_instances_definition.update(
         {
             "Placement": {"AvailabilityZone": availability_zone},
@@ -425,7 +426,7 @@ def launch_efa(ec2_client, ec2_instance_type, ec2_run_instances_definition, avai
 def launch_efa_with_reservations(
     ec2_client, ec2_instance_type, reservations, ec2_run_instances_definition, fn_name=""
 ):
-    ec2_run_instances_reserved_definition = ec2_run_instances_definition.deepcopy()
+    ec2_run_instances_reserved_definition = copy.deepcopy(ec2_run_instances_definition)
     while reservations:
         reservation = reservations.pop(0)
         ec2_run_instances_reserved_definition["CapacityReservationSpecification"] = {
@@ -506,7 +507,7 @@ def launch_efa_with_heterogenous_reservations(ec2_client, ec2_run_instances_defi
     Returns:
         list: launched instances
     """
-    ec2_heterogenous_run_instances_definition = ec2_run_instances_definition.deepcopy()
+    ec2_heterogenous_run_instances_definition = copy.deepcopy(ec2_run_instances_definition)
     ec2_instance_type = ec2_heterogenous_run_instances_definition["InstanceType"]
     minimum_number_of_instances = ec2_heterogenous_run_instances_definition["MinCount"]
 
