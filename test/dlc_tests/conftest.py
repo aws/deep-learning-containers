@@ -314,9 +314,15 @@ def _validate_p4de_usage(request, instance_type):
     return
 
 
+def _restrict_c4_usage(instance_type):
+    if "c4." in instance_type:
+        raise Exception("Please use C5 or any other C series EC2 instance as C4 is restricted to be used.")
+    return
+
+
 @pytest.fixture(scope="function")
 def ec2_instance_type(request):
-    return request.param if hasattr(request, "param") else "g4dn.xlarge"
+    return "c4.4xlarge"
 
 
 @pytest.fixture(scope="function")
@@ -363,6 +369,7 @@ def efa_ec2_instances(
     region,
     availability_zone_options,
 ):
+    _restrict_c4_usage(ec2_instance_type)
     _validate_p4de_usage(request, ec2_instance_type)
     ec2_key_name = f"{ec2_key_name}-{str(uuid.uuid4())}"
     print(f"Creating instance: CI-CD {ec2_key_name}")
@@ -553,6 +560,7 @@ def ec2_instance(
     region,
     ei_accelerator_type,
 ):
+    _restrict_c4_usage(ec2_instance_type)
     _validate_p4de_usage(request, ec2_instance_type)
     if ec2_instance_type == "p3dn.24xlarge":
         region = P3DN_REGION
