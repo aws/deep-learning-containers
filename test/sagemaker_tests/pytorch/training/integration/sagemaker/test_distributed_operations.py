@@ -84,7 +84,7 @@ def can_run_smmodelparallel_efa(ecr_image):
 def test_dist_operations_cpu(
     framework_version, ecr_image, sagemaker_regions, instance_type, dist_cpu_backend
 ):
-    instance_type = instance_type or "ml.c4.xlarge"
+    instance_type = instance_type or "ml.c5.xlarge"
     function_args = {
         "framework_version": framework_version,
         "instance_type": instance_type,
