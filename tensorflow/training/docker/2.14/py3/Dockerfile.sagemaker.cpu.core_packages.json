@@ -14,13 +14,13 @@
   "sagemaker": {
     "version_specifier": ">=2.207.1,<3"
   },
-  "sagemaker_tensorflow": {
+  "sagemaker-tensorflow": {
     "version_specifier": "==2.14.*"
   },
-  "sagemaker_tensorflow_training": {
+  "sagemaker-tensorflow-training": {
     "version_specifier": ">=20.4.1,<21"
   },
-  "sagemaker_training": {
+  "sagemaker-training": {
     "version_specifier": ">=4.7.4,<5"
   },
   "tensorboard": {

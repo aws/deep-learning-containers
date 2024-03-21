@@ -2,9 +2,6 @@
   "awscli": {
     "version_specifier": "<2"
   },
-  "cython": {
-    "version_specifier": "<3.0"
-  },
   "protobuf": {
     "version_specifier": ">=3.20.3,<4"
   },
