@@ -18,7 +18,7 @@ RUN pip install --no-cache-dir \
 	evaluate \
 	transformers[sklearn,sentencepiece,audio,vision]==${TRANSFORMERS_VERSION} \
 	datasets==${DATASETS_VERSION} \
-	optimum-neuron[neuronx]==${OPTIMUM_NEURON_VERSION}
+	optimum-neuron==${OPTIMUM_NEURON_VERSION}
 
 # Pin numpy to version required by neuronx-cc
 # Update Pillow and urllib version to fix high and critical vulnerabilities
