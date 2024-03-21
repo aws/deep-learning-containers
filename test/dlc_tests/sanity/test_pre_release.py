@@ -1068,6 +1068,7 @@ def test_core_package_version(image):
     violation_data = {}
 
     for package_name, specs in core_packages.items():
+        package_name = package_name.lower()
         if package_name not in installed_package_version_dict:
             violation_data[
                 package_name

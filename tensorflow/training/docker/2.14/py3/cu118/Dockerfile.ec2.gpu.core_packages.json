@@ -8,7 +8,7 @@
   "protobuf": {
     "version_specifier": ">=3.20.3,<4"
   },
-  "PyYAML": {
+  "pyyaml": {
     "version_specifier": ">=6.0,<6.1"
   },
   "tensorboard": {
