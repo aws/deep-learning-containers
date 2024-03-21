@@ -1,0 +1,4 @@
+#### First image: sha256:b9df2dc3318aa4daaf8a0a83183115f9fe9a66eb0776c49b135909226cae1b2d ####
+#### Current Patch contents ####
+pip install cryptography==42.0.5 jinja2==3.1.3 paramiko==3.4.0 pillow==10.2.0 pyarrow==15.0.0 pyopenssl==24.0.0
+apt-get update && apt-get install -y --only-upgrade binutils-common binutils-x86-64-linux-gnu binutils curl libavahi-client3 libavahi-common3 libbinutils libc-bin libc6 libctf-nobfd0 libctf0 libcurl3-gnutls libcurl4-openssl-dev libcurl4 libgnutls30 libgssapi-krb5-2 libk5crypto3 libkrb5-3 libkrb5support0 libnghttp2-14 libpam-modules libperl5.30 libprocps8 libpython3.8-dev libpython3.8-minimal libpython3.8-stdlib libpython3.8 libsqlite3-0 libssh-4 libssl1.1 libtiff5 libuv1 libxml2 linux-libc-dev login openssh-client openssh-server passwd perl-base perl-modules-5.30 perl procps python3.8-dev python3.8-minimal python3.8 vim-common vim-runtime vim xxd
