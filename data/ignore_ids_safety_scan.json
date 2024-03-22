@@ -1406,7 +1406,16 @@
                 "51668":"Derived from the base container. Installed as a dependency of another package that does not allow the upgrade of SqlAlchemy to 2.",
                 "44715": "Neuronx Dependency wants version to be <=1.21.6",
                 "44716": "Neuronx Dependency wants version to be <=1.21.6",
-                "44717": "Neuronx Dependency wants version to be <=1.21.6"
+                "44717": "Neuronx Dependency wants version to be <=1.21.6",
+                "64227": "Covered elsewhere",
+                "64437": "Covered elsewhere",
+                "66704": "Covered elsewhere",
+                "66777": "Covered elsewhere",
+                "65278": "Covered elsewhere",
+                "65401": "Covered elsewhere",
+                "65193": "Covered elsewhere",
+                "65398": "Covered elsewhere"
+
             }
         }
     },
