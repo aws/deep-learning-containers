@@ -1359,7 +1359,15 @@
                 "64437": "Temporarily ignoring to patch CRITICAL vulnerabilties",
                 "64402": "Temporarily ignoring to patch CRITICAL vulnerabilties",
                 "63406": "Temporarily ignoring to patch CRITICAL vulnerabilties",
-                "64227": "Temporarily ignoring to patch CRITICAL vulnerabilties"
+                "64227": "Temporarily ignoring to patch CRITICAL vulnerabilties",
+                "65213": "Covered elsewhere",
+                "65215": "Covered elsewhere",
+                "65398": "Covered elsewhere",
+                "64402": "Covered elsewhere",
+                "65213": "Covered elsewhere",
+                "65215": "Covered elsewhere",
+                "65398": "Covered elsewhere",
+                "64402": "Covered elsewhere"
             }
         },
         "inference": {
@@ -1375,7 +1383,15 @@
                 "51159":"cryptography>38.0.1 does not exist yet",
                 "51450": "This bug is in Jax/Flax backend that would need Transformers 4.23 for fix.",
                 "51396": "Protobuf is only a runtime dependency of transformers. Current version of Protobuf installed in the image is not vulnerable.",
-                "60235": "Temporarily ignoring to patch CRITICAL vulnerabilties at SEV2 pace"
+                "60235": "Temporarily ignoring to patch CRITICAL vulnerabilties at SEV2 pace",
+                "65213": "Covered elsewhere",
+                "65215": "Covered elsewhere",
+                "65398": "Covered elsewhere",
+                "64402": "Covered elsewhere",
+                "65213": "Covered elsewhere",
+                "65215": "Covered elsewhere",
+                "65398": "Covered elsewhere",
+                "64402": "Covered elsewhere"
             }
         },
         "inference-neuron": {
