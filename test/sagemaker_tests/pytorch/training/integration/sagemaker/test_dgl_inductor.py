@@ -42,7 +42,7 @@ inductor_instance_types = ["ml.p3.8xlarge", "ml.g5.12xlarge", "ml.g4dn.12xlarge"
 @pytest.mark.model("gcn")
 @pytest.mark.team("dgl")
 def test_dgl_gcn_training_cpu(ecr_image, sagemaker_regions, instance_type):
-    instance_type = instance_type or "ml.c4.xlarge"
+    instance_type = instance_type or "ml.c5.xlarge"
     function_args = {
         "instance_type": instance_type,
     }

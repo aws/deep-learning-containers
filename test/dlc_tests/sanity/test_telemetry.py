@@ -24,7 +24,7 @@ def test_telemetry_instance_tag_failure_gpu(gpu, ec2_client, ec2_instance, ec2_c
 @pytest.mark.model("N/A")
 @pytest.mark.processor("cpu")
 @pytest.mark.integration("telemetry")
-@pytest.mark.parametrize("ec2_instance_type", ["c4.4xlarge"], indirect=True)
+@pytest.mark.parametrize("ec2_instance_type", ["c5.4xlarge"], indirect=True)
 @pytest.mark.timeout(1200)
 def test_telemetry_instance_tag_failure_cpu(
     cpu, ec2_client, ec2_instance, ec2_connection, cpu_only, x86_compatible_only
@@ -90,7 +90,7 @@ def test_telemetry_instance_tag_success_gpu(
 @pytest.mark.processor("cpu")
 @pytest.mark.integration("telemetry")
 @pytest.mark.timeout(2400)
-@pytest.mark.parametrize("ec2_instance_type", ["c4.4xlarge"], indirect=True)
+@pytest.mark.parametrize("ec2_instance_type", ["c5.4xlarge"], indirect=True)
 def test_telemetry_instance_tag_success_cpu(
     cpu,
     ec2_client,
@@ -151,7 +151,7 @@ def test_telemetry_s3_query_bucket_success_gpu(
 @pytest.mark.model("N/A")
 @pytest.mark.processor("cpu")
 @pytest.mark.integration("telemetry")
-@pytest.mark.parametrize("ec2_instance_type", ["c4.4xlarge"], indirect=True)
+@pytest.mark.parametrize("ec2_instance_type", ["c5.4xlarge"], indirect=True)
 @pytest.mark.timeout(1200)
 def test_telemetry_s3_query_bucket_success_cpu(
     cpu,

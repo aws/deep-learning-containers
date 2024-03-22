@@ -114,9 +114,9 @@ class JobRequester:
         :return: <string> type of instance used by the image
         """
         if "tensorflow" in image:
-            return "ml.p3.8xlarge" if "gpu" in image else "ml.c4.4xlarge"
+            return "ml.p3.8xlarge" if "gpu" in image else "ml.c5.4xlarge"
         else:
-            return "ml.p2.8xlarge" if "gpu" in image else "ml.c4.8xlarge"
+            return "ml.p2.8xlarge" if "gpu" in image else "ml.c5.9xlarge"
 
     def extract_timestamp(self, ticket_key):
         """
