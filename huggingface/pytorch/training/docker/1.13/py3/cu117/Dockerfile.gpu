@@ -19,7 +19,9 @@ ARG PT_TORCHAUDIO_URL=https://download.pytorch.org/whl/cu117/torchaudio-0.13.1%2
 RUN pip install --no-cache-dir \
 	transformers[sklearn,sentencepiece,audio,vision]==${TRANSFORMERS_VERSION} \
 	datasets==${DATASETS_VERSION} \
-	$PT_TORCHAUDIO_URL
+	$PT_TORCHAUDIO_URL \
+	multiprocess~=0.70.15 \
+	dill~=0.3.7
 
 RUN apt-get update \
  # TODO: Remove upgrade statements once packages are updated in base image
