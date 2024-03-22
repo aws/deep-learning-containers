@@ -20,8 +20,9 @@ RUN pip install --no-cache-dir \
     transformers[sklearn,sentencepiece,audio,vision]==${TRANSFORMERS_VERSION} \
     datasets==${DATASETS_VERSION} \
     $PT_TORCHAUDIO_URL \
-    multiprocess~=0.70.15 \
-    dill~=0.3.7
+    multiprocess==0.70.14 \
+    dill==0.3.6 \
+    sagemaker==2.132.0
 
 RUN apt-get update \
  # TODO: Remove upgrade statements once packages are updated in base image
