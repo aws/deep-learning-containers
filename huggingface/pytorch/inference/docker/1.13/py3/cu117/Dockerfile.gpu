@@ -227,7 +227,7 @@ RUN pip install --no-cache-dir \
     numpy>=1.21.5 \
     "sagemaker-huggingface-inference-toolkit<3" \
     "pyOpenSSL~=24.1.0" \
-    "cryptography~=41"
+    "cryptography~=41.0"
 
 
 RUN HOME_DIR=/root \
