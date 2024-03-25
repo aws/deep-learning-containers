@@ -1068,15 +1068,21 @@ def test_core_package_version(image):
     violation_data = {}
 
     for package_name, specs in core_packages.items():
+        package_name = package_name.lower()
+        installed_version = None
         if package_name not in installed_package_version_dict:
             violation_data[
                 package_name
             ] = f"Package: {package_name} not installed in {installed_package_version_dict}"
-        installed_version = Version(installed_package_version_dict[package_name])
-        if installed_version not in SpecifierSet(specs.get("version_specifier")):
-            violation_data[
-                package_name
-            ] = f"Package: {package_name} not installed in {installed_package_version_dict}"
+        else:
+            installed_version = Version(installed_package_version_dict[package_name])
+        if installed_version and installed_version not in SpecifierSet(
+            specs.get("version_specifier")
+        ):
+            violation_data[package_name] = (
+                f"Package: {package_name} version {installed_version} does not match "
+                f"requirement {specs.get('version_specifier')}"
+            )
 
     stop_and_remove_container(container_name, ctx)
     assert (
