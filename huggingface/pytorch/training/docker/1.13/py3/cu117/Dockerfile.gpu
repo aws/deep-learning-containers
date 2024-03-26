@@ -18,6 +18,7 @@ ARG PT_TORCHAUDIO_URL=https://download.pytorch.org/whl/cu117/torchaudio-0.13.1%2
 
 # install Hugging Face libraries and its dependencies
 RUN pip install --no-cache-dir \
+    kenlm==0.1 \
     transformers[sklearn,sentencepiece,audio,vision]==${TRANSFORMERS_VERSION} \
     datasets==${DATASETS_VERSION} \
     diffusers==${DIFFUSERS_VERSION} \
