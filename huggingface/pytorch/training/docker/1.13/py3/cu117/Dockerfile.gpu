@@ -10,6 +10,7 @@ LABEL dlc_major_version="1"
 # version args
 ARG TRANSFORMERS_VERSION
 ARG DATASETS_VERSION
+ARG DIFFUSERS_VERSION=0.16.1
 ARG PYTHON=python3
 
 # AWS packages
@@ -19,6 +20,7 @@ ARG PT_TORCHAUDIO_URL=https://download.pytorch.org/whl/cu117/torchaudio-0.13.1%2
 RUN pip install --no-cache-dir \
     transformers[sklearn,sentencepiece,audio,vision]==${TRANSFORMERS_VERSION} \
     datasets==${DATASETS_VERSION} \
+    diffusers==${DIFFUSERS_VERSION} \
     $PT_TORCHAUDIO_URL \
     multiprocess==0.70.14 \
     dill==0.3.6 \
