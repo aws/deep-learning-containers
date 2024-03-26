@@ -46,7 +46,7 @@ def can_run_smart_sifting(ecr_image):
 @pytest.mark.skip_py2_containers
 def test_smart_sifting_cpu(framework_version, ecr_image, sagemaker_regions, instance_type):
     validate_or_skip_smart_sifting(ecr_image)
-    instance_type = instance_type or "ml.c4.xlarge"
+    instance_type = instance_type or "ml.c5.xlarge"
     function_args = {
         "framework_version": framework_version,
         "instance_type": instance_type,

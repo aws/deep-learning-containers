@@ -310,9 +310,19 @@ def _validate_p4de_usage(request, instance_type):
     return
 
 
+def _restrict_instance_usage(instance_type):
+    if "c4." in instance_type:
+        raise RuntimeError(
+            "C4-family instances are no longer supported in our system. Please use a different instance type (i.e. C5, or another C series instance type)."
+        )
+    return
+
+
 @pytest.fixture(scope="function")
 def ec2_instance_type(request):
-    return request.param if hasattr(request, "param") else "g4dn.xlarge"
+    instance_type = request.param if hasattr(request, "param") else "g4dn.xlarge"
+    _restrict_instance_usage(instance_type)
+    return instance_type
 
 
 @pytest.fixture(scope="function")
