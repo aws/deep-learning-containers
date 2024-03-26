@@ -60,6 +60,12 @@ def main():
         and not config.is_deep_canary_mode_enabled()
     )
 
+    # An INTEL dedicated builder will work if in INTEL mode and its framework has not been disabled
+    intel_builder_enabled = (
+        config.is_intel_cpu_builder_enabled_for_this_pr_build(args.framework)
+        and not config.is_deep_canary_mode_enabled()
+    )
+
     # A NEURON dedicated builder will work if in NEURON mode and its framework has not been disabled
     neuron_builder_enabled = (
         config.is_neuron_builder_enabled_for_this_pr_build(args.framework)
@@ -111,6 +117,7 @@ def main():
     if (
         general_builder_enabled
         or ei_builder_enabled
+        or intel_builder_enabled
         or neuron_builder_enabled
         or neuronx_builder_enabled
         or graviton_builder_enabled
