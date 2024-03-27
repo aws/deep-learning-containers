@@ -38,7 +38,7 @@ def can_run_pytorchddp(ecr_image):
 
 
 @pytest.mark.skipif(
-    os.getenv("SM_EFA_TEST_INSTANCE_TYPE") == "p5.48xlarge",
+    os.getenv("SM_EFA_TEST_INSTANCE_TYPE") == "ml.p5.48xlarge",
     reason="Low availability of instance type; Must ensure test works on new instances.",
 )
 @pytest.mark.processor("gpu")
