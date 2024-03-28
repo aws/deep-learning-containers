@@ -25,7 +25,8 @@ RUN pip install --no-cache-dir \
     $PT_TORCHAUDIO_URL \
     multiprocess==0.70.14 \
     dill==0.3.6 \
-    sagemaker==2.132.0
+    sagemaker==2.132.0 \
+    evaluate
 
 RUN apt-get update \
  # TODO: Remove upgrade statements once packages are updated in base image
