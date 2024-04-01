@@ -264,6 +264,38 @@
   "Pillow":
   [
     {
+      "description": "## Overview\n\nAffected versions of this package are vulnerable to Buffer Overflow via the `strcpy` function in `_imagingcms.c`, due to two calls that were able to copy too much data into fixed length strings.\n## Remediation\nA fix was pushed into the `master` branch but not yet published.\n## References\n- [GitHub Commit](https://github.com/python-pillow/Pillow/commit/2776126aa9af322b416eaca247f4f8ebefd08128)\n- [GitHub PR](https://github.com/python-pillow/Pillow/pull/7928)",
+      "vulnerability_id": "SNYK-PYTHON-PILLOW-6514866",
+      "name": "SNYK-PYTHON-PILLOW-6514866",
+      "package_name": "Pillow",
+      "package_details":
+      {
+        "file_path": "opt/conda/lib/python3.9/site-packages/Pillow-10.0.0.dist-info/METADATA",
+        "name": "Pillow",
+        "package_manager": "PYTHONPKG",
+        "version": "10.0.0",
+        "release": null
+      },
+      "remediation":
+      {
+        "recommendation":
+        {
+          "text": "None Provided"
+        }
+      },
+      "cvss_v3_score": 7.3,
+      "cvss_v30_score": 0.0,
+      "cvss_v31_score": 7.3,
+      "cvss_v2_score": 0.0,
+      "cvss_v3_severity": "HIGH",
+      "source_url": "https://security.snyk.io/vuln/SNYK-PYTHON-PILLOW-6514866",
+      "source": "SNYK",
+      "severity": "HIGH",
+      "status": "ACTIVE",
+      "title": "IN1-PYTHON-PILLOW-6514866 - Pillow",
+      "reason_to_ignore": "N/A"
+    },
+    {
       "description": "## Overview\n\nAffected versions of this package are vulnerable to Denial of Service (DoS) when using arbitrary strings as text input and the number of characters passed into `PIL.ImageFont.ImageFont.getmask()` is over a certain limit. This can lead to a system crash.\n\n## Details\n\nDenial of Service (DoS) describes a family of attacks, all aimed at making a system inaccessible to its intended and legitimate users.\n\nUnlike other vulnerabilities, DoS attacks usually do not aim at breaching security. Rather, they are focused on making websites and services unavailable to genuine users resulting in downtime.\n\nOne popular Denial of Service vulnerability is DDoS (a Distributed Denial of Service), an attack that attempts to clog network pipes to the system by generating a large volume of traffic from many machines.\n\nWhen it comes to open source libraries, DoS vulnerabilities allow attackers to trigger such a crash or crippling of the service by using a flaw either in the application code or from the use of open source ",
       "vulnerability_id": "SNYK-PYTHON-PILLOW-6219984",
       "name": "SNYK-PYTHON-PILLOW-6219984",
