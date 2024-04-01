@@ -145,7 +145,7 @@ RUN pip install --no-cache-dir -U \
     ${TORCH_URL} \
     ${TORCHVISION_URL} \
     ${TORCHAUDIO_URL} \
-    ${TORCHTEXT_URL} \
+    ${TORCHTEXT_URL}
 
 # Install TorchServe pypi dependencies directly from their requirements.txt file
 # NOTE: This also brings in unnecessary cpu dependencies like nvgpu
