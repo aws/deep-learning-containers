@@ -143,7 +143,7 @@ dlc-pr-tensorflow-2-neuron-inference = ""
 
 # HuggingFace Inference
 dlc-pr-huggingface-tensorflow-inference = ""
-dlc-pr-huggingface-pytorch-inference = ""
+dlc-pr-huggingface-pytorch-inference = "huggingface/pytorch/inference/buildspec-4-34-1-neuronx.yml"
 dlc-pr-huggingface-pytorch-neuron-inference = ""
 
 # Stability AI Inference
