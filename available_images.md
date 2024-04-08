@@ -64,7 +64,7 @@ previously, insert the region in the repository URL following this
 example:
 
 
-     763104351884.dkr.ecr.<region>.amazonaws.com/tensorflow-training:2.9.1-gpu-py39-cu112-ubuntu20.04-ec2
+    763104351884.dkr.ecr.<region>.amazonaws.com/tensorflow-training:2.9.1-gpu-py39-cu112-ubuntu20.04-ec2
 
 **Important**
 
