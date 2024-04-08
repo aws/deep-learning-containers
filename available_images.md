@@ -75,7 +75,7 @@ the image. Ensure your CLI is up to date using the steps in [Installing the curr
 
 
 
-        aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin 763104351884.dkr.ecr.us-east-1.amazonaws.com
+    aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin 763104351884.dkr.ecr.us-east-1.amazonaws.com
 
 You can then pull these Docker images from ECR by running:
 
