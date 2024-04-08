@@ -92,7 +92,7 @@ either ``py37``, ``py38``, ``py39``, or ``py310`` depending on availability. Plu
 
 You can pin your version by adding the version tag to your URL as follows:
 
-     763104351884.dkr.ecr.us-east-1.amazonaws.com/tensorflow-training:2.4.1-cpu-py37-ubuntu18.04-v1.0
+    763104351884.dkr.ecr.us-east-1.amazonaws.com/tensorflow-training:2.4.1-cpu-py37-ubuntu18.04-v1.0
 
 EC2 Framework Containers (Tested on EC2, ECS, and EKS only)
 ============================
