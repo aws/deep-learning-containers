@@ -1,6 +1,6 @@
 ARG PYTHON=python3
-ARG PYTHON_VERSION=3.10.9
-ARG MAMBA_VERSION=22.11.1-4
+ARG PYTHON_VERSION=3.10.13
+ARG MAMBA_VERSION=23.11.0-0
 ARG OPEN_MPI_VERSION=4.1.5
 
 # PyTorch Graviton Binaries
@@ -109,10 +109,10 @@ ENV LD_LIBRARY_PATH="$LD_LIBRARY_PATH:/home/.openmpi/lib/"
 RUN ompi_info --parsable --all | grep mpi_built_with_cuda_support:value
 
 # Install CondaForge miniconda
-RUN curl -L -o ~/mambaforge.sh https://github.com/conda-forge/miniforge/releases/download/${MAMBA_VERSION}/Mambaforge-${MAMBA_VERSION}-Linux-aarch64.sh \
- && chmod +x ~/mambaforge.sh \
- && ~/mambaforge.sh -b -p /opt/conda \
- && rm ~/mambaforge.sh \
+RUN curl -L -o ~/miniforge3.sh https://github.com/conda-forge/miniforge/releases/download/${MAMBA_VERSION}/Miniforge3-${MAMBA_VERSION}-Linux-aarch64.sh \
+ && chmod +x ~/miniforge3.sh \
+ && ~/miniforge3.sh -b -p /opt/conda \
+ && rm ~/miniforge3.sh \
  && /opt/conda/bin/conda install -c conda-forge -y python=$PYTHON_VERSION \
     ruamel_yaml \
     cython \
@@ -130,6 +130,7 @@ RUN ln -s /opt/conda/bin/pip /usr/local/bin/pip3 \
  && pip install \
     boto3 \
     scipy \
+    numpy \
     opencv-python \
     "pyOpenSSL>=24.0.0" \
     "cryptography>=41.0.2" \
@@ -149,10 +150,8 @@ RUN pip install --no-cache-dir -U \
 
 # Install TorchServe pypi dependencies directly from their requirements.txt file
 # NOTE: This also brings in unnecessary cpu dependencies like nvgpu
-# -> Numpy is higer version as required by torch
 RUN pip install --no-cache-dir -U -r https://raw.githubusercontent.com/pytorch/serve/v${TORCHSERVE_VERSION}/requirements/common.txt \
  && pip install --no-cache-dir -U \
-    "numpy>=1.22.2,<1.23" \
     torchserve==${TORCHSERVE_VERSION} \
     torch-model-archiver==${TORCHSERVE_VERSION}
 
