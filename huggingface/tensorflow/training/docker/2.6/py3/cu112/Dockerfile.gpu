@@ -11,34 +11,134 @@ LABEL dlc_major_version="1"
 ARG TRANSFORMERS_VERSION
 ARG DATASETS_VERSION
 ARG PYTHON=python3
+ARG PYTHON_VERSION=3.8.10
+ARG PIP=pip3
+ARG TF_URL=https://framework-binaries.s3.us-west-2.amazonaws.com/tensorflow/r2.6_aws/gpu/2022-02-26-23-00/tensorflow_gpu-2.6.3-cp38-cp38-manylinux2010_x86_64.whl
+
+RUN apt-get update \
+    # TODO: Remove upgrade statements once packages are updated in base image
+    && apt-get -y upgrade --only-upgrade systemd openssl cryptsetup \
+    && apt-get -y install --no-install-recommends \
+    curl \
+    libcurl4 \
+    libcurl3-gnutls \
+    git \
+    libgssapi3-heimdal \
+    libhx509-5-heimdal \
+    libkrb5-26-heimdal \
+    libasn1-8-heimdal \
+    libpam-modules \
+    libaom0 \
+    libksba8 \
+    sqlite3 \
+    xxd \
+    vim \
+    zlib1g \
+    libfreetype6 \
+    libpcre2-32-0 \
+    libpcre2-16-0 \
+    libpcre2-posix2 \
+    libpcre2-8-0 \
+    openssl \
+    openssh-client \
+    && apt install -y git-lfs \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
+
+apt-get update 
+    && apt-get install -y --only-upgrade \
+    bind9-host \
+    bind9-libs \
+    binutils-common \
+    binutils-x86-64-linux-gnu \
+    binutils \
+    bsdutils \
+    ca-certificates \
+    curl \
+    dbus-user-session \
+    dbus \
+    fdisk \
+    git-man \
+    git \
+    imagemagick-6-common \
+    krb5-user \
+    less \
+    libaom0 \
+    libasn1-8-heimdal \
+    libavahi-client3 \
+    libavahi-common3 \
+    libbinutils \
+    libblkid-dev \
+    libblkid1 \
+    libc-bin \
+    libc6 \
+    libcap2-bin \
+    libcap2 \
+    libctf-nobfd0 \
+    libctf0 \
+    libcups2 \
+    libcurl3-gnutls \
+    libcurl4 \
+    libdbus-1-3 \
+    libelf1 \
+    libexpat1-dev \
+    libexpat1 libfdisk1 libflac8 libfreetype6 libgdk-pixbuf2.0-0 libglib2.0-0 libglib2.0-bin libgmp10 libgnutls30 libgssapi-krb5-2 libgssapi3-heimdal libgssrpc4 libharfbuzz0b libhx509-5-heimdal libjbig0 libjpeg-turbo8 libk5crypto3 libkadm5clnt-mit11 libkadm5srv-mit11 libkdb5-9 libkrb5-26-heimdal libkrb5-3 libkrb5support0 libksba8 libmagickcore-6.q16-6 libmagickwand-6.q16-6 libmount-dev libmount1 libncurses6 libncursesw6 libnghttp2-14 libpam-cap libpam-modules libpam-systemd libpcre2-16-0 libpcre2-32-0 libpcre2-8-0 libpcre2-posix2 libperl5.30 libpixman-1-0 libprocps8 libprotobuf-lite17 libprotoc17 libpython3.8-minimal libpython3.8-stdlib libpython3.8 librsvg2-2 libsmartcols1 libsndfile1 libsqlite3-0 libsqlite3-dev libssh-4 libssl-dev libssl1.1 libsystemd0 libtiff5 libtinfo6 libudev1 libuuid1 libuv1 libvpx6 libwayland-client0 libwayland-egl1 libwebp6 libwebpmux3 libwind0-heimdal libx11-6 libxml2-utils libxml2 libxpm4 linux-libc-dev login mount ncurses-bin openssh-client openssh-server openssl passwd perl-base perl-modules-5.30 perl procps protobuf-compiler python3.8-minimal python3.8 systemd-sysv systemd-timesyncd systemd tar udev unzip util-linux uuid-dev vim-common vim-runtime vim xxd zlib1g
+
+# Install Python
+RUN wget https://www.python.org/ftp/python/$PYTHON_VERSION/Python-$PYTHON_VERSION.tgz \
+    && tar -xvf Python-$PYTHON_VERSION.tgz \
+    && cd Python-$PYTHON_VERSION \
+    && ./configure \
+    && make \
+    && make install \
+    && rm -rf ../Python-$PYTHON_VERSION*
+
+WORKDIR /
+
+RUN ${PIP} install --no-cache-dir --upgrade \
+    pip \
+    setuptools
 
 # uninstall ipython jupyter utils due to incompatibility with typing-extensions==3.7.4.3
 # https://github.com/huggingface/huggingface_hub/blob/main/setup.py:19
-RUN pip uninstall -y IPython sparkmagic jupyter-console ipywidgets ipykernel hdijupyterutils jupyter sagemaker-studio-analytics-extension qtconsole notebook autovizwidget widgetsnbextension
+RUN ${PIP} uninstall -y IPython sparkmagic jupyter-console ipywidgets ipykernel hdijupyterutils jupyter sagemaker-studio-analytics-extension qtconsole notebook autovizwidget widgetsnbextension
+
+ADD https://raw.githubusercontent.com/aws/deep-learning-containers/master/src/deep_learning_container.py /usr/local/bin/deep_learning_container.py
+
+RUN chmod +x /usr/local/bin/deep_learning_container.py
+
+#################################
+# Hugging Face specific section #
+#################################
+
+RUN curl https://aws-dlc-licenses.s3.amazonaws.com/tensorflow-2.6/license.txt -o /license.txt
+
+# Install TF Binary
+RUN pip install --no-cache-dir -U $TF_URL
+
+# We need TF_FORCE_GPU_ALLOW_GROWTH=true to prevent TF from overusing GPU memory when loading models
+ENV TF_FORCE_GPU_ALLOW_GROWTH=true
 
 # install Hugging Face libraries and its dependencies
-RUN pip install --no-cache-dir \
+RUN ${PIP} install --no-cache-dir --upgrade \
     transformers[sklearn,sentencepiece,audio,vision]==${TRANSFORMERS_VERSION} \
     datasets==${DATASETS_VERSION} \
     tensorflow-addons==0.12.0 \
     psutil \
     "typing-extensions==3.7.4.3" \
     # bokeh 2.3.3 is the latest compatible version for typing-extensions 3.7.4.3
-    "bokeh==2.3.3"
-
-
-RUN apt-get update \
- # TODO: Remove upgrade statements once packages are updated in base image
- && apt-get -y upgrade --only-upgrade systemd openssl cryptsetup\
- && apt install -y git-lfs \
- && apt-get clean \  
- && rm -rf /var/lib/apt/lists/*
+    "bokeh==2.3.3" \
+    certifi>=2023.07.22 \
+    pyarrow>=14.0.1 \
+    gevent>=23.9.0 \
+    joblib>=1.2.0 \
+    "Pillow>=9.1.1"
 
 RUN HOME_DIR=/root \
- && curl -o ${HOME_DIR}/oss_compliance.zip https://aws-dlinfra-utilities.s3.amazonaws.com/oss_compliance.zip \
- && unzip ${HOME_DIR}/oss_compliance.zip -d ${HOME_DIR}/ \
- && cp ${HOME_DIR}/oss_compliance/test/testOSSCompliance /usr/local/bin/testOSSCompliance \
- && chmod +x /usr/local/bin/testOSSCompliance \
- && chmod +x ${HOME_DIR}/oss_compliance/generate_oss_compliance.sh \
- && ${HOME_DIR}/oss_compliance/generate_oss_compliance.sh ${HOME_DIR} ${PYTHON} \
- && rm -rf ${HOME_DIR}/oss_compliance*
+    && curl -o ${HOME_DIR}/oss_compliance.zip https://aws-dlinfra-utilities.s3.amazonaws.com/oss_compliance.zip \
+    && unzip ${HOME_DIR}/oss_compliance.zip -d ${HOME_DIR}/ \
+    && cp ${HOME_DIR}/oss_compliance/test/testOSSCompliance /usr/local/bin/testOSSCompliance \
+    && chmod +x /usr/local/bin/testOSSCompliance \
+    && chmod +x ${HOME_DIR}/oss_compliance/generate_oss_compliance.sh \
+    && ${HOME_DIR}/oss_compliance/generate_oss_compliance.sh ${HOME_DIR} ${PYTHON} \
+    && rm -rf ${HOME_DIR}/oss_compliance*
