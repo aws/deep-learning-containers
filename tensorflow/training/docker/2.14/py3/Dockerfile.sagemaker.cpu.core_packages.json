@@ -54,9 +54,11 @@
     "version_specifier": ">=0.4.1"
   },
   "tf-models-official": {
-    "version_specifier": "==2.14.2"
+    "version_specifier": "==2.14.2",
+    "skip": "True"
   },
   "tensorflow-text": {
-    "version_specifier": "==2.14.0"
+    "version_specifier": "==2.14.0",
+    "skip": "True"
   }
 }
