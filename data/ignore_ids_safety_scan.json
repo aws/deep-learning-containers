@@ -960,7 +960,8 @@
                 "51499": "Fix for issue contained in Wheel 0.38.1",
                 "62894": "for scipy-1.10.1 which is a hardcoded dependency of sagemaker-pytorch-inference",
                 "65213": "for shipping pyopenssl>=22.0.0 - no current fix",
-                "65345": "for shipping torchserve==0.8.2, torchserve should skip 0.9.0 and wait for 0.10.0"
+                "65345": "for shipping torchserve==0.8.2, torchserve should skip 0.9.0 and wait for 0.10.0",
+                "67599":"** DISPUTED ** An issue was discovered in pip (all versions) because it installs the version with the highest version number, even if the user had intended to obtain a private package from a private index. This only affects use of the --extra-index-url option, and exploitation requires that the package does not already exist in the public index (and thus the attacker can put the package there with an arbitrary version number). NOTE: it has been reported that this is intended functionality and the user is responsible for using --extra-index-url securely."
             }
         },
         "inference-eia": {
