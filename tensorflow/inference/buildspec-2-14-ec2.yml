@@ -33,7 +33,7 @@ context:
       target: deep_learning_container.py
 
 images:
-  BuildSageMakerTensorflowCPUInferencePy3DockerImage:
+  BuildEC2TensorflowCPUInferencePy3DockerImage:
     <<: *INFERENCE_REPOSITORY
     build: &TENSORFLOW_CPU_INFERENCE_PY3 false
     image_size_baseline: &IMAGE_SIZE_BASELINE 4899
@@ -42,15 +42,15 @@ images:
     python_version: &DOCKER_PYTHON_VERSION py3
     tag_python_version: &TAG_PYTHON_VERSION py310
     os_version: &OS_VERSION ubuntu20.04
-    tag: !join [ *FRAMEWORK_VERSION, "-", *DEVICE_TYPE, "-", *TAG_PYTHON_VERSION, "-", *OS_VERSION, "-sagemaker" ]
+    tag: !join [ *FRAMEWORK_VERSION, "-", *DEVICE_TYPE, "-", *TAG_PYTHON_VERSION, "-", *OS_VERSION, "-ec2" ]
     latest_release_tag: !join [ *FRAMEWORK_VERSION, "-", *DEVICE_TYPE, "-", *TAG_PYTHON_VERSION, "-", *OS_VERSION,
-                                "-sagemaker" ]
+                                "-ec2" ]
     docker_file: !join [ docker/, *SHORT_VERSION, /, *DOCKER_PYTHON_VERSION, /Dockerfile., *DEVICE_TYPE ]
-    target: sagemaker
+    target: ec2
     enable_test_promotion: true
     context:
       <<: *INFERENCE_CONTEXT
-  BuildSageMakerTensorflowGPUInferencePy3DockerImage:
+  BuildEC2TensorflowGPUInferencePy3DockerImage:
     <<: *INFERENCE_REPOSITORY
     build: &TENSORFLOW_GPU_INFERENCE_PY3 false
     image_size_baseline: &IMAGE_SIZE_BASELINE 13100
@@ -61,12 +61,12 @@ images:
     cuda_version: &CUDA_VERSION cu118
     os_version: &OS_VERSION ubuntu20.04
     tag: !join [ *FRAMEWORK_VERSION, "-", *DEVICE_TYPE, "-", *TAG_PYTHON_VERSION, "-", *CUDA_VERSION, "-", *OS_VERSION,
-                 "-sagemaker" ]
+                 "-ec2" ]
     latest_release_tag: !join [ *FRAMEWORK_VERSION, "-", *DEVICE_TYPE, "-", *TAG_PYTHON_VERSION, "-", *CUDA_VERSION,
-                                "-", *OS_VERSION, "-sagemaker" ]
+                                "-", *OS_VERSION, "-ec2" ]
     docker_file: !join [ docker/, *SHORT_VERSION, /, *DOCKER_PYTHON_VERSION, /, *CUDA_VERSION, /Dockerfile.,
                          *DEVICE_TYPE ]
-    target: sagemaker
+    target: ec2
     enable_test_promotion: true
     context:
       <<: *INFERENCE_CONTEXT
