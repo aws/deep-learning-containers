@@ -11,6 +11,12 @@ apt-get update && apt-get install -y --only-upgrade binutils-common binutils-x86
 #### Patch contents for patch-4: sha256:d5b1aa96f2056fd65e7aafc34f414371e959fa023b9b1edf0aba924e7a8c2478 ####
 pip install cryptography==42.0.5 pyopenssl==24.1.0
 apt-get update && apt-get install -y --only-upgrade binutils-common binutils-x86-64-linux-gnu binutils libbinutils libctf-nobfd0 libctf0 libgnutls30 libpam-modules libssh-4 libssl-dev libssl1.1 libtiff5 libuv1 libxml2 linux-libc-dev login openjdk-11-jdk-headless openjdk-11-jdk openjdk-11-jre-headless openjdk-11-jre openssl passwd
-#### Current Patch contents ####
+#### Patch contents for patch-5: sha256:a29e0eed6c7d60fc5f799cd4165f38c516471e91bf66c67ad8003a69f9a2a600 ####
 pip install cryptography==42.0.5 pyopenssl==24.1.0
 apt-get update && apt-get install -y --only-upgrade binutils-common binutils-x86-64-linux-gnu binutils libbinutils libctf-nobfd0 libctf0 libgnutls30 libpam-modules libssh-4 libssl-dev libssl1.1 libtiff5 libuv1 libxml2 linux-libc-dev login openjdk-11-jdk-headless openjdk-11-jdk openjdk-11-jre-headless openjdk-11-jre openssl passwd vim-common vim-runtime vim xxd
+#### Patch contents for patch-6: sha256:1f896000a86ab3266037095d2ae8c7637b697d7857b206910a0dee44a7ed0bc4 ####
+pip install cryptography==42.0.5 pillow==10.3.0 pyopenssl==24.1.0
+apt-get update && apt-get install -y --only-upgrade binutils-common binutils-x86-64-linux-gnu binutils bsdutils curl fdisk libbinutils libblkid1 libctf-nobfd0 libctf0 libcurl3-gnutls libcurl4-openssl-dev libcurl4 libfdisk1 libgnutls30 libmount1 libpam-modules libsmartcols1 libssh-4 libssl-dev libssl1.1 libtiff5 libuuid1 libuv1 libxml2 linux-libc-dev login mount openjdk-11-jdk-headless openjdk-11-jdk openjdk-11-jre-headless openjdk-11-jre openssl passwd util-linux vim-common vim-runtime vim xxd
+#### Current Patch contents ####
+pip install cryptography==42.0.5 pillow==10.3.0 pyopenssl==24.1.0
+apt-get update && apt-get install -y --only-upgrade binutils-common binutils-x86-64-linux-gnu binutils bsdutils curl fdisk libbinutils libblkid1 libctf-nobfd0 libctf0 libcurl3-gnutls libcurl4-openssl-dev libcurl4 libfdisk1 libgnutls30 libmount1 libpam-modules libsmartcols1 libssh-4 libssl-dev libssl1.1 libtiff5 libuuid1 libuv1 libxml2 linux-libc-dev login mount openjdk-11-jdk-headless openjdk-11-jdk openjdk-11-jre-headless openjdk-11-jre openssl passwd util-linux vim-common vim-runtime vim xxd
