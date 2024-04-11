@@ -45,45 +45,6 @@ RUN apt-get update \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
-apt-get update 
-    && apt-get install -y --only-upgrade \
-    bind9-host \
-    bind9-libs \
-    binutils-common \
-    binutils-x86-64-linux-gnu \
-    binutils \
-    bsdutils \
-    ca-certificates \
-    curl \
-    dbus-user-session \
-    dbus \
-    fdisk \
-    git-man \
-    git \
-    imagemagick-6-common \
-    krb5-user \
-    less \
-    libaom0 \
-    libasn1-8-heimdal \
-    libavahi-client3 \
-    libavahi-common3 \
-    libbinutils \
-    libblkid-dev \
-    libblkid1 \
-    libc-bin \
-    libc6 \
-    libcap2-bin \
-    libcap2 \
-    libctf-nobfd0 \
-    libctf0 \
-    libcups2 \
-    libcurl3-gnutls \
-    libcurl4 \
-    libdbus-1-3 \
-    libelf1 \
-    libexpat1-dev \
-    libexpat1 libfdisk1 libflac8 libfreetype6 libgdk-pixbuf2.0-0 libglib2.0-0 libglib2.0-bin libgmp10 libgnutls30 libgssapi-krb5-2 libgssapi3-heimdal libgssrpc4 libharfbuzz0b libhx509-5-heimdal libjbig0 libjpeg-turbo8 libk5crypto3 libkadm5clnt-mit11 libkadm5srv-mit11 libkdb5-9 libkrb5-26-heimdal libkrb5-3 libkrb5support0 libksba8 libmagickcore-6.q16-6 libmagickwand-6.q16-6 libmount-dev libmount1 libncurses6 libncursesw6 libnghttp2-14 libpam-cap libpam-modules libpam-systemd libpcre2-16-0 libpcre2-32-0 libpcre2-8-0 libpcre2-posix2 libperl5.30 libpixman-1-0 libprocps8 libprotobuf-lite17 libprotoc17 libpython3.8-minimal libpython3.8-stdlib libpython3.8 librsvg2-2 libsmartcols1 libsndfile1 libsqlite3-0 libsqlite3-dev libssh-4 libssl-dev libssl1.1 libsystemd0 libtiff5 libtinfo6 libudev1 libuuid1 libuv1 libvpx6 libwayland-client0 libwayland-egl1 libwebp6 libwebpmux3 libwind0-heimdal libx11-6 libxml2-utils libxml2 libxpm4 linux-libc-dev login mount ncurses-bin openssh-client openssh-server openssl passwd perl-base perl-modules-5.30 perl procps protobuf-compiler python3.8-minimal python3.8 systemd-sysv systemd-timesyncd systemd tar udev unzip util-linux uuid-dev vim-common vim-runtime vim xxd zlib1g
-
 # Install Python
 RUN wget https://www.python.org/ftp/python/$PYTHON_VERSION/Python-$PYTHON_VERSION.tgz \
     && tar -xvf Python-$PYTHON_VERSION.tgz \
