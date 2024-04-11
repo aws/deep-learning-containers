@@ -47,37 +47,51 @@ def tensorflow_standalone(tensorflow_training, ec2_connection):
     test_script = (
         TF1_STANDALONE_CMD if is_tf_version("1", tensorflow_training) else TF2_STANDALONE_CMD
     )
-    execute_ec2_training_test(ec2_connection, tensorflow_training, test_script)
+    execute_ec2_training_test(
+        ec2_connection, tensorflow_training, test_script, container_name="tf_standalone"
+    )
 
 
 def tensorflow_mnist(tensorflow_training, ec2_connection, gpu_only, ec2_instance_type):
-    execute_ec2_training_test(ec2_connection, tensorflow_training, TF_MNIST_CMD)
+    execute_ec2_training_test(
+        ec2_connection, tensorflow_training, TF_MNIST_CMD, container_name="mnist"
+    )
 
 
 def tensorflow_opencv(tensorflow_training, ec2_connection):
-    execute_ec2_training_test(ec2_connection, tensorflow_training, TF_OPENCV_CMD)
+    execute_ec2_training_test(
+        ec2_connection, tensorflow_training, TF_OPENCV_CMD, container_name="opencv"
+    )
 
 
 def tensorflow_telemetry(tensorflow_training, ec2_connection):
-    execute_ec2_training_test(ec2_connection, tensorflow_training, TF_TELEMETRY_CMD)
+    execute_ec2_training_test(
+        ec2_connection, tensorflow_training, TF_TELEMETRY_CMD, container_name="telemetry"
+    )
 
 
 def tensorflow_tensorboard(tensorflow_training, ec2_connection):
-    execute_ec2_training_test(ec2_connection, tensorflow_training, TF_TENSORBOARD_CMD)
+    execute_ec2_training_test(
+        ec2_connection, tensorflow_training, TF_TENSORBOARD_CMD, container_name="tensorboard"
+    )
 
 
 # TensorFlow Addons is actively working towards forward compatibility with TensorFlow 2.x
 # https://github.com/tensorflow/addons#python-op-compatility
 def tensorflow_addons(tensorflow_training, ec2_connection):
-    execute_ec2_training_test(ec2_connection, tensorflow_training, TF_ADDONS_CMD)
+    execute_ec2_training_test(
+        ec2_connection, tensorflow_training, TF_ADDONS_CMD, container_name="addons"
+    )
 
 
 def tensorflow_io_s3_plugin(tensorflow_training, ec2_connection):
-    execute_ec2_training_test(ec2_connection, tensorflow_training, TF_IO_S3_PLUGIN_TEST_CMD)
+    execute_ec2_training_test(
+        ec2_connection, tensorflow_training, TF_IO_S3_PLUGIN_TEST_CMD, container_name="s3plugin"
+    )
 
 
 # Helper function to test data service
-def run_data_service_test(ec2_connection, tensorflow_training, cmd):
+def run_data_service_test(ec2_connection, tensorflow_training, cmd, container_name="dataservice"):
     _, tensorflow_version = test_utils.get_framework_and_version_from_tag(tensorflow_training)
     ec2_connection.run("python -m pip install --upgrade pip")
     ec2_connection.run(f"python -m pip install tensorflow=={tensorflow_version}")
@@ -86,12 +100,21 @@ def run_data_service_test(ec2_connection, tensorflow_training, cmd):
     ec2_connection.run(
         f"cd {container_test_local_dir}/bin && screen -d -m python start_dataservice.py"
     )
-    execute_ec2_training_test(ec2_connection, tensorflow_training, cmd, host_network=True)
+    execute_ec2_training_test(
+        ec2_connection, tensorflow_training, cmd, host_network=True, container_name=container_name
+    )
 
 
 def tensorflow_dataservice(tensorflow_training, ec2_connection):
-    run_data_service_test(ec2_connection, tensorflow_training, TF_DATASERVICE_TEST_CMD)
+    run_data_service_test(
+        ec2_connection, tensorflow_training, TF_DATASERVICE_TEST_CMD, container_name="dataservice"
+    )
 
 
 def tensorflow_distribute_dataservice(tensorflow_training, ec2_connection):
-    run_data_service_test(ec2_connection, tensorflow_training, TF_DATASERVICE_DISTRIBUTE_TEST_CMD)
+    run_data_service_test(
+        ec2_connection,
+        tensorflow_training,
+        TF_DATASERVICE_DISTRIBUTE_TEST_CMD,
+        container_name="dataservice_dist",
+    )
