@@ -24,7 +24,7 @@ SMCLARIFY_EC2_CPU_INSTANCE_TYPE = get_ec2_instance_type(default="c5.2xlarge", pr
 @pytest.mark.team("smclarify")
 @pytest.mark.parametrize("ec2_instance_type", SMCLARIFY_EC2_CPU_INSTANCE_TYPE, indirect=True)
 def test_smclarify_metrics_cpu(
-    training,
+    pytorch_training,
     ec2_connection,
     ec2_instance_type,
     cpu_only,
@@ -33,7 +33,7 @@ def test_smclarify_metrics_cpu(
     mx18_and_above_only,
     pt16_and_above_only,
 ):
-    smclarify_cases.run_smclarify_bias_metrics(training, ec2_connection)
+    smclarify_cases.run_smclarify_bias_metrics(pytorch_training, ec2_connection)
 
 
 @pytest.mark.skip_pt21_test
@@ -44,7 +44,7 @@ def test_smclarify_metrics_cpu(
 @pytest.mark.team("smclarify")
 @pytest.mark.parametrize("ec2_instance_type", SMCLARIFY_EC2_GPU_INSTANCE_TYPE, indirect=True)
 def test_smclarify_metrics_gpu(
-    training,
+    pytorch_training,
     ec2_connection,
     ec2_instance_type,
     gpu_only,
@@ -53,9 +53,9 @@ def test_smclarify_metrics_gpu(
     mx18_and_above_only,
     pt16_and_above_only,
 ):
-    image_cuda_version = get_cuda_version_from_tag(training)
+    image_cuda_version = get_cuda_version_from_tag(pytorch_training)
     if Version(image_cuda_version.strip("cu")) < Version("110"):
         pytest.skip("SmClarify is currently installed in cuda 11 gpu images and above")
     smclarify_cases.run_smclarify_bias_metrics(
-        training, ec2_connection, docker_executable="nvidia-docker"
+        pytorch_training, ec2_connection, docker_executable="nvidia-docker"
     )
