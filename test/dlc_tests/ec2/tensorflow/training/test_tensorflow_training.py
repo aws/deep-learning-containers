@@ -13,7 +13,7 @@ from test.dlc_tests.ec2 import smclarify_cases
 @pytest.mark.model("N/A")
 @pytest.mark.team("frameworks")
 @pytest.mark.parametrize("ec2_instance_type", common_cases.TF_EC2_GPU_INSTANCE_TYPE, indirect=True)
-def test_tf_gpu(tensorflow_training, ec2_connection, region, gpu_only, ec2_instance_type):
+def test_tf_gpu(tensorflow_training, ec2_connection, gpu_only, ec2_instance_type):
     if test_utils.is_image_incompatible_with_instance_type(tensorflow_training, ec2_instance_type):
         pytest.skip(
             f"Image {tensorflow_training} is incompatible with instance type {ec2_instance_type}"
