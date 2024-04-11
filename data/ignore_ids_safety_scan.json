@@ -1359,7 +1359,29 @@
                 "64437": "Temporarily ignoring to patch CRITICAL vulnerabilties",
                 "64402": "Temporarily ignoring to patch CRITICAL vulnerabilties",
                 "63406": "Temporarily ignoring to patch CRITICAL vulnerabilties",
-                "64227": "Temporarily ignoring to patch CRITICAL vulnerabilties"
+                "64227": "Temporarily ignoring to patch CRITICAL vulnerabilties",
+                "65213": "Covered elsewhere",
+                "65215": "Covered elsewhere",
+                "65398": "Covered elsewhere",
+                "64402": "Covered elsewhere",
+                "65213": "Covered elsewhere",
+                "65215": "Covered elsewhere",
+                "65398": "Covered elsewhere",
+                "64402": "Covered elsewhere",
+                "66777": "Covered elsewhere",
+                "65212": "Covered elsewhere",
+                "62556": "Covered elsewhere",
+                "65647": "Covered elsewhere",
+                "66704": "Covered elsewhere",
+                "65278": "Covered elsewhere",
+                "62044": "Covered elsewhere",
+                "65501": "Covered elsewhere",
+                "61949": "Covered elsewhere", 
+                "65581": "Covered elsewhere",
+                "65095": "Covered elsewhere",
+                "61503": "Covered elsewhere",
+                "65193": "Covered elsewhere",
+                "62019": "Covered elsehwere"
             }
         },
         "inference": {
@@ -1375,7 +1397,20 @@
                 "51159":"cryptography>38.0.1 does not exist yet",
                 "51450": "This bug is in Jax/Flax backend that would need Transformers 4.23 for fix.",
                 "51396": "Protobuf is only a runtime dependency of transformers. Current version of Protobuf installed in the image is not vulnerable.",
-                "60235": "Temporarily ignoring to patch CRITICAL vulnerabilties at SEV2 pace"
+                "60235": "Temporarily ignoring to patch CRITICAL vulnerabilties at SEV2 pace",
+                "65213": "Covered elsewhere",
+                "65215": "Covered elsewhere",
+                "65398": "Covered elsewhere",
+                "64402": "Covered elsewhere",
+                "65213": "Covered elsewhere",
+                "65215": "Covered elsewhere",
+                "65398": "Covered elsewhere",
+                "64402": "Covered elsewhere",
+                "65278": "Covered elsewhere",
+                "66704": "Covered elsewhere",
+                "66777": "Covered elsewhere",
+                "65212": "Covered elsewhere",
+                "65647": "Covered elsewhere"
             }
         },
         "inference-neuron": {
@@ -1406,7 +1441,23 @@
                 "51668":"Derived from the base container. Installed as a dependency of another package that does not allow the upgrade of SqlAlchemy to 2.",
                 "44715": "Neuronx Dependency wants version to be <=1.21.6",
                 "44716": "Neuronx Dependency wants version to be <=1.21.6",
-                "44717": "Neuronx Dependency wants version to be <=1.21.6"
+                "44717": "Neuronx Dependency wants version to be <=1.21.6",
+                "64227": "Covered elsewhere",
+                "64437": "Covered elsewhere",
+                "66704": "Covered elsewhere",
+                "66777": "Covered elsewhere",
+                "65278": "Covered elsewhere",
+                "65401": "Covered elsewhere",
+                "65193": "Covered elsewhere",
+                "65398": "Covered elsewhere",
+                "64436": "Covered elsewhere",
+                "62556": "Covered elsewhere",
+                "66710": "Covered elsewhere",
+                "65215": "Covered elsewhere",
+                "65212": "Covered elsewhere",
+                "64402": "Covered elsewhere",
+                "65647": "Covered elsewhere"
+
             }
         }
     },
