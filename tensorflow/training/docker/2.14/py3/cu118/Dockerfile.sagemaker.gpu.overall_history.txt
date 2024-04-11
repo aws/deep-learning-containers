@@ -1,0 +1,5 @@
+#### First image: sha256:1e50cb38cf6fada1ad433cc3971a777bd467c0099f17d3ad47f597a132e5be88 ####
+#### Current Patch contents ####
+pip install cryptography==42.0.5 pillow==10.3.0 
+python -m pip install --upgrade pip
+apt-get update && apt-get install -y --only-upgrade binutils-common binutils-x86-64-linux-gnu binutils bsdutils curl fdisk less libbinutils libblkid-dev libblkid1 libctf-nobfd0 libctf0 libcurl3-gnutls libcurl4-openssl-dev libcurl4 libfdisk1 libmount-dev libmount1 libsmartcols1 libssl-dev libssl1.1 libtiff5 libuuid1 libxml2-utils libxml2 login mount openssl passwd util-linux uuid-dev vim-common vim-runtime vim xxd
