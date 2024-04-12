@@ -61,8 +61,8 @@ ENV PATH=/opt/conda/bin:$PATH
 ENV TORCH_CUDA_ARCH_LIST="5.2;7.0+PTX;7.5;8.0;8.6;9.0"
 ENV TORCH_NVCC_FLAGS="-Xfatbin -compress-all"
 ENV CUDNN_VERSION=8.9.2.26
-ENV NCCL_VERSION=2.19.4
-ENV EFA_VERSION=1.30.0
+ENV NCCL_VERSION=2.21.5
+ENV EFA_VERSION=1.31.0
 ENV GDRCOPY_VERSION=2.4.1
 
 ENV CMAKE_PREFIX_PATH="$(dirname $(which conda))/../"
@@ -293,8 +293,6 @@ RUN cd /tmp \
  && CUDA=${CUDA_HOME} make install \
  && rm -rf /tmp/gdrcopy
 
-# makes AllToAll complete successfully. Update will be included in NCCL 2.20.*
-ENV NCCL_CUMEM_ENABLE=0
 # Install NCCL
 RUN cd /tmp \
   && git clone https://github.com/NVIDIA/nccl.git -b v${NCCL_VERSION}-1 \
