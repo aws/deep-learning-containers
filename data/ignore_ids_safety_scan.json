@@ -23,7 +23,8 @@
                 "48551": "tensorflow-estimator and tensorflow versions must match. For all TF versions below TF 2.9.0, we cannot upgrade tf-estimator to 2.9.0",
                 "51159":"cryptography>38.0.1 does not exist yet",
                 "51516":"keras>2.10.0 does not exist yet",
-                "51499":"wheel>0.37.1 does not exist yet"
+                "51499":"wheel>0.37.1 does not exist yet",
+                "67599":"** DISPUTED ** An issue was discovered in pip (all versions) because it installs the version with the highest version number, even if the user had intended to obtain a private package from a private index. This only affects use of the --extra-index-url option, and exploitation requires that the package does not already exist in the public index (and thus the attacker can put the package there with an arbitrary version number). NOTE: it has been reported that this is intended functionality and the user is responsible for using --extra-index-url securely."
             }
         },
         "inference":{
@@ -39,7 +40,8 @@
                 "42062":"Can't upgrade TF version to 2.7.x in non 2.7 images.",
                 "51159": "for cryptography until we have 39.0.0 release",
                 "44715":"False positive for numpy. Was fixed in 1.22.2",
-                "51516":"keras>2.10.0 does not exist yet"
+                "51516":"keras>2.10.0 does not exist yet",
+                "67599":"** DISPUTED ** An issue was discovered in pip (all versions) because it installs the version with the highest version number, even if the user had intended to obtain a private package from a private index. This only affects use of the --extra-index-url option, and exploitation requires that the package does not already exist in the public index (and thus the attacker can put the package there with an arbitrary version number). NOTE: it has been reported that this is intended functionality and the user is responsible for using --extra-index-url securely."
             }
         },
         "inference-eia": {
@@ -901,7 +903,8 @@
                 "38449":"for shipping pillow<=6.2.2 - the last available version for py2",
                 "38450":"for shipping pillow<=6.2.2 - the last available version for py2",
                 "38451":"for shipping pillow<=6.2.2 - the last available version for py2",
-                "38452":"for shipping pillow<=6.2.2 - the last available version for py2"
+                "38452":"for shipping pillow<=6.2.2 - the last available version for py2",
+                "67599":"** DISPUTED ** An issue was discovered in pip (all versions) because it installs the version with the highest version number, even if the user had intended to obtain a private package from a private index. This only affects use of the --extra-index-url option, and exploitation requires that the package does not already exist in the public index (and thus the attacker can put the package there with an arbitrary version number). NOTE: it has been reported that this is intended functionality and the user is responsible for using --extra-index-url securely."
             },
             "py3": {
                 "42772":"for shipping bokeh<=2.3.3 - the last available version for py3.6",
@@ -909,7 +912,8 @@
                 "42815":"for shipping bokeh<=2.3.3 - the last available version for py3.6",
                 "48298":"for shipping PT1.12 on safety check tools might report a vulnerability for the package commonmarker, which is a dependency of deepspeed. This package is only used to build the documentation pages of deepspeed and won’t be used in the package that gets installed into the DLC. This security issue can be safely ignored and an attempt to upgrade deepspeed version to remediate it might have an inadvertent negative impact on the DLC components functionality.",
                 "51159":"cryptography>38.0.1 does not exist yet",
-                "65213":"for shipping pyopenssl>=22.0.0 - no current fix"
+                "65213":"for shipping pyopenssl>=22.0.0 - no current fix",
+                "67599":"** DISPUTED ** An issue was discovered in pip (all versions) because it installs the version with the highest version number, even if the user had intended to obtain a private package from a private index. This only affects use of the --extra-index-url option, and exploitation requires that the package does not already exist in the public index (and thus the attacker can put the package there with an arbitrary version number). NOTE: it has been reported that this is intended functionality and the user is responsible for using --extra-index-url securely."
             }
         },
         "training-neuron":{
@@ -956,7 +960,8 @@
                 "51499": "Fix for issue contained in Wheel 0.38.1",
                 "62894": "for scipy-1.10.1 which is a hardcoded dependency of sagemaker-pytorch-inference",
                 "65213": "for shipping pyopenssl>=22.0.0 - no current fix",
-                "65345": "for shipping torchserve==0.8.2, torchserve should skip 0.9.0 and wait for 0.10.0"
+                "65345": "for shipping torchserve==0.8.2, torchserve should skip 0.9.0 and wait for 0.10.0",
+                "67599":"** DISPUTED ** An issue was discovered in pip (all versions) because it installs the version with the highest version number, even if the user had intended to obtain a private package from a private index. This only affects use of the --extra-index-url option, and exploitation requires that the package does not already exist in the public index (and thus the attacker can put the package there with an arbitrary version number). NOTE: it has been reported that this is intended functionality and the user is responsible for using --extra-index-url securely."
             }
         },
         "inference-eia": {
