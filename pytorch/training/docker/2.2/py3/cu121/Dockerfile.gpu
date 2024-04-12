@@ -297,8 +297,6 @@ RUN cd /tmp \
 RUN cd /tmp \
   && git clone https://github.com/NVIDIA/nccl.git -b v${NCCL_VERSION}-1 \
   && cd nccl \
-  # fix for AllReduce regression. https://github.com/NVIDIA/nccl/pull/1112
-  && curl https://github.com/liralon/nccl/commit/505aa4b048c3824060332fe3652605e1b33108c8.patch | git apply --reject \
   && make -j64 src.build BUILDDIR=/usr/local CUDA_LIB=${CUDA_HOME}/lib \
   && rm -rf /tmp/nccl
 # preload to system nccl for PyTorch to use its statically linked NCCL
