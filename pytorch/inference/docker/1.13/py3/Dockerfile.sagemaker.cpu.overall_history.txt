@@ -17,6 +17,10 @@ apt-get update && apt-get install -y --only-upgrade binutils-common binutils-x86
 #### Patch contents for patch-6: sha256:1f896000a86ab3266037095d2ae8c7637b697d7857b206910a0dee44a7ed0bc4 ####
 pip install cryptography==42.0.5 pillow==10.3.0 pyopenssl==24.1.0
 apt-get update && apt-get install -y --only-upgrade binutils-common binutils-x86-64-linux-gnu binutils bsdutils curl fdisk libbinutils libblkid1 libctf-nobfd0 libctf0 libcurl3-gnutls libcurl4-openssl-dev libcurl4 libfdisk1 libgnutls30 libmount1 libpam-modules libsmartcols1 libssh-4 libssl-dev libssl1.1 libtiff5 libuuid1 libuv1 libxml2 linux-libc-dev login mount openjdk-11-jdk-headless openjdk-11-jdk openjdk-11-jre-headless openjdk-11-jre openssl passwd util-linux vim-common vim-runtime vim xxd
-#### Current Patch contents ####
+#### Patch contents for patch-7: sha256:c40a8f2e588ab9d377c72f329d6a762f1ab701642f30ed6eea2f277c78e53aa5 ####
 pip install cryptography==42.0.5 pillow==10.3.0 pyopenssl==24.1.0
 apt-get update && apt-get install -y --only-upgrade binutils-common binutils-x86-64-linux-gnu binutils bsdutils curl fdisk libbinutils libblkid1 libctf-nobfd0 libctf0 libcurl3-gnutls libcurl4-openssl-dev libcurl4 libfdisk1 libgnutls30 libmount1 libpam-modules libsmartcols1 libssh-4 libssl-dev libssl1.1 libtiff5 libuuid1 libuv1 libxml2 linux-libc-dev login mount openjdk-11-jdk-headless openjdk-11-jdk openjdk-11-jre-headless openjdk-11-jre openssl passwd util-linux vim-common vim-runtime vim xxd
+#### Current Patch contents ####
+pip install cryptography==42.0.5 pillow==10.3.0 pyopenssl==24.1.0 
+python -m pip install --upgrade pip
+apt-get update && apt-get install -y --only-upgrade binutils-common binutils-x86-64-linux-gnu binutils bsdutils curl fdisk libbinutils libblkid1 libctf-nobfd0 libctf0 libcurl3-gnutls libcurl4-openssl-dev libcurl4 libfdisk1 libgnutls30 libmount1 libnss3 libpam-modules libsmartcols1 libssh-4 libssl-dev libssl1.1 libtiff5 libuuid1 libuv1 libxml2 linux-libc-dev login mount openjdk-11-jdk-headless openjdk-11-jdk openjdk-11-jre-headless openjdk-11-jre openssl passwd util-linux vim-common vim-runtime vim xxd
