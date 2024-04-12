@@ -1,5 +1,5 @@
-#### First image: sha256:c19f65922892c22e6ee9a20edacd6cf1bdda558a1aecb4cf6653efd9e292a65a ####
+#### First image: sha256:0a325c0132cc3cfdbda4073cab69dd8b19b4a2031e029cc36a8eff71b96fbb7c ####
 #### Current Patch contents ####
 echo N/A 
 python -m pip install --upgrade pip
-apt-get update && apt-get install -y --only-upgrade binutils-common binutils-x86-64-linux-gnu binutils bsdutils curl fdisk libbinutils libblkid1 libctf-nobfd0 libctf0 libcurl3-gnutls libcurl4 libfdisk1 libmount1 libsmartcols1 libssl-dev libssl1.1 libuuid1 libxml2 mount openssl util-linux uuid-dev vim-common vim-runtime vim xxd
+apt-get update && apt-get install -y --only-upgrade bsdutils curl fdisk libblkid1 libcurl3-gnutls libcurl4 libfdisk1 libmount1 libsmartcols1 libuuid1 mount util-linux uuid-dev vim-common vim-runtime vim xxd
