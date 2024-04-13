@@ -1,11 +1,11 @@
 account_id: &ACCOUNT_ID <set-$ACCOUNT_ID-in-environment>
-prod_account_id: &PROD_ACCOUNT_ID 763104351884
+# prod_account_id: &PROD_ACCOUNT_ID 763104351884
 region: &REGION <set-$REGION-in-environment>
 framework: &FRAMEWORK pytorch
 version: &VERSION 2.2.0
 short_version: &SHORT_VERSION "2.2"
 arch_type: x86
-autopatch_build: "False"
+# autopatch_build: "False"
 
 repository_info:
   training_repository: &TRAINING_REPOSITORY
@@ -13,8 +13,8 @@ repository_info:
     root: !join [ *FRAMEWORK, "/", *TRAINING_IMAGE_TYPE ]
     repository_name: &REPOSITORY_NAME !join [ pr, "-", *FRAMEWORK, "-", *TRAINING_IMAGE_TYPE ]
     repository: &REPOSITORY !join [ *ACCOUNT_ID, .dkr.ecr., *REGION, .amazonaws.com/, *REPOSITORY_NAME ]
-    release_repository_name: &RELEASE_REPOSITORY_NAME !join [ *FRAMEWORK, "-", *TRAINING_IMAGE_TYPE ]
-    release_repository: &RELEASE_REPOSITORY !join [ *PROD_ACCOUNT_ID, .dkr.ecr., *REGION, .amazonaws.com/, *RELEASE_REPOSITORY_NAME ]
+    # release_repository_name: &RELEASE_REPOSITORY_NAME !join [ *FRAMEWORK, "-", *TRAINING_IMAGE_TYPE ]
+    # release_repository: &RELEASE_REPOSITORY !join [ *PROD_ACCOUNT_ID, .dkr.ecr., *REGION, .amazonaws.com/, *RELEASE_REPOSITORY_NAME ]
 
 context:
   training_context: &TRAINING_CONTEXT
