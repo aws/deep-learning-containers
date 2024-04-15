@@ -49,5 +49,8 @@
   },
   "requests": {
     "version_specifier": ">=2.31.0"
+  },
+  "idna": {
+    "version_specifier": ">=3.7"
   }
 }

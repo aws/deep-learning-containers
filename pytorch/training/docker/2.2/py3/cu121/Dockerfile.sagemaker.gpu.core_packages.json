@@ -55,5 +55,8 @@
   },
   "sagemaker-experiments": {
     "version_specifier": "<1"
+  },
+  "idna": {
+    "version_specifier": ">=3.7"
   }
 }
