@@ -195,7 +195,7 @@ RUN /opt/conda/bin/mamba install -y pytorch=${PYTORCH_VERSION} \
   && /opt/conda/bin/mamba clean -afy
 
 # Patches
-RUN pip install pillow "pyyaml>=6.0.1" opencv-python
+RUN pip install pillow "pyyaml>=6.0.1" opencv-python idna
 RUN /opt/conda/bin/mamba install -y -c conda-forge \
   "requests>=2.31.0" \
   && /opt/conda/bin/mamba clean -afy
@@ -273,7 +273,7 @@ RUN /opt/conda/bin/mamba install -y -c conda-forge \
   && /opt/conda/bin/mamba clean -afy
 
 # Patches
-RUN pip install pillow "pyyaml>=6.0.1" opencv-python
+RUN pip install pillow "pyyaml>=6.0.1" opencv-python idna
 RUN /opt/conda/bin/mamba install -y -c conda-forge \
   "requests>=2.31.0" \
   && /opt/conda/bin/mamba clean -afy
