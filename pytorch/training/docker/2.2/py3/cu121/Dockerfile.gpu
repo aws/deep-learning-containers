@@ -299,7 +299,7 @@ RUN cd /tmp \
   && cd nccl \
   && make -j64 src.build BUILDDIR=/usr/local CUDA_LIB=${CUDA_HOME}/lib \
   && rm -rf /tmp/nccl
-# preload to system nccl for PyTorch to use its statically linked NCCL
+# preload to system nccl for PyTorch to use instead of its statically linked NCCL
 ENV LD_PRELOAD="/usr/local/lib/libnccl.so"
 
 # Install Nvidia Apex (needs pytorch)
@@ -428,7 +428,7 @@ RUN cd /tmp \
   && cd nccl \
   && make -j64 src.build BUILDDIR=/usr/local CUDA_LIB=${CUDA_HOME}/lib \
   && rm -rf /tmp/nccl
-# preload to system nccl for PyTorch to use its statically linked NCCL
+# preload to system nccl for PyTorch to use instead of its statically linked NCCL
 ENV LD_PRELOAD="/usr/local/lib/libnccl.so"
 
 # Install Nvidia Apex (needs pytorch)
