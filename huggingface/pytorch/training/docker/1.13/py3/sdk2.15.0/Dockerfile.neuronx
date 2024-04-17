@@ -18,8 +18,7 @@ RUN pip install --no-cache-dir \
     evaluate \
     transformers[sklearn,sentencepiece,audio,vision]==${TRANSFORMERS_VERSION} \
     datasets==${DATASETS_VERSION} \
-    optimum-neuron[neuronx]==${OPTIMUM_NEURON_VERSION} \
-    idna>=3.7  # Ensure idna package is updated to version >= 3.7 to patch CVE-2024-3651
+    optimum-neuron[neuronx]==${OPTIMUM_NEURON_VERSION}
 
 # Pin numpy to version required by neuronx-cc
 # Update Pillow and urllib version to fix high and critical vulnerabilities
@@ -27,7 +26,9 @@ RUN pip install -U \
     "numpy>=1.22.2,<1.24" \
     "Pillow==10.0.1" \
     "urllib3>=1.26.17,<1.27" \
-    "pyarrow~=14.0.1"
+    "pyarrow~=14.0.1" \
+	"idna>=3.7"
+	
 
 RUN apt-get update \
  && apt install -y git-lfs \
