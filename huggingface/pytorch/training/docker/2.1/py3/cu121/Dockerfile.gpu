@@ -35,7 +35,8 @@ RUN pip install --no-cache-dir \
 	accelerate==${ACCELERATE_VERSION} \
 	trl==${TRL_VERSION} \
 	peft==${PEFT_VERSION} \
-	flash-attn==${FLASH_ATTN_VERSION}
+	flash-attn==${FLASH_ATTN_VERSION} \
+	idna>=3.7
 
 RUN apt-get update \
  # TODO: Remove upgrade statements once packages are updated in base image
