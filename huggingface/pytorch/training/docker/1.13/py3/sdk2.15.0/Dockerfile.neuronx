@@ -26,10 +26,8 @@ RUN pip install -U \
     "numpy>=1.22.2,<1.24" \
     "Pillow==10.0.1" \
     "urllib3>=1.26.17,<1.27" \
-    "pyarrow~=14.0.1" \
-	"idna>=3.7"
+    "pyarrow~=14.0.1"
 	
-
 RUN apt-get update \
  && apt install -y git-lfs \
  && apt-get clean \
