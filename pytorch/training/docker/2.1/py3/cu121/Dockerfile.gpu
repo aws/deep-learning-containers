@@ -52,7 +52,7 @@ ENV TORCH_NVCC_FLAGS="-Xfatbin -compress-all"
 ENV CUDNN_VERSION=8.9.2.26
 ENV NCCL_VERSION=2.18.5
 ENV EFA_VERSION=1.27.0
-ENV GDRCOPY_VERSION=2.4.1
+ENV GDRCOPY_VERSION=2.3.1
 
 ENV CMAKE_PREFIX_PATH="$(dirname $(which conda))/../"
 ENV OPEN_MPI_PATH=/opt/amazon/openmpi
@@ -291,7 +291,6 @@ RUN cd /tmp \
  && cd gdrcopy \
  && sed -ie '12s@$@ -L $(CUDA)/lib/stubs@' tests/Makefile \
  && CUDA=${CUDA_HOME} make install \
- && sudo ./insmod.sh \
  && rm -rf /tmp/gdrcopy
 
 # Install Nvidia Apex (needs pytorch)
@@ -423,8 +422,7 @@ RUN cd /tmp \
  && git clone https://github.com/NVIDIA/gdrcopy.git -b v${GDRCOPY_VERSION} \
  && cd gdrcopy \
  && sed -ie '12s@$@ -L $(CUDA)/lib/stubs@' tests/Makefile \
- && CUDA=${CUDA_HOME} make install \
- && sudo ./insmod.sh
+ && CUDA=/opt/conda make install \
  && rm -rf /tmp/gdrcopy
 
 # Install Nvidia Apex (needs pytorch)
