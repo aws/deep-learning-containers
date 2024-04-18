@@ -24,10 +24,10 @@
     "skip": "True"
   },
   "cryptography": {
-    "version_specifier": ">=42.0.2"
+    "version_specifier": ">=42.0.5"
   },
   "pyopenssl": {
-    "version_specifier": ">=21.0.0"
+    "version_specifier": ">=24.0.0"
   },
   "mpi4py": {
     "version_specifier": ">=3.1.4,<3.2"
