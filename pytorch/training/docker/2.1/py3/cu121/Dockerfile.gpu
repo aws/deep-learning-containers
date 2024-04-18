@@ -291,6 +291,7 @@ RUN cd /tmp \
  && cd gdrcopy \
  && sed -ie '12s@$@ -L $(CUDA)/lib/stubs@' tests/Makefile \
  && CUDA=${CUDA_HOME} make install \
+ && sudo ./insmod.sh \
  && rm -rf /tmp/gdrcopy
 
 # Install Nvidia Apex (needs pytorch)
@@ -422,7 +423,8 @@ RUN cd /tmp \
  && git clone https://github.com/NVIDIA/gdrcopy.git -b v${GDRCOPY_VERSION} \
  && cd gdrcopy \
  && sed -ie '12s@$@ -L $(CUDA)/lib/stubs@' tests/Makefile \
- && CUDA=/opt/conda make install \
+ && CUDA=${CUDA_HOME} make install \
+ && sudo ./insmod.sh
  && rm -rf /tmp/gdrcopy
 
 # Install Nvidia Apex (needs pytorch)
