@@ -4,29 +4,23 @@
     "skip": "True"
   },
   "torchaudio": {
-    "version_specifier": "==2.2.0+cu118",
+    "version_specifier": "==2.1.0+cu118",
     "skip": "True"
   },
   "torchdata": {
-    "version_specifier": "==0.7.1",
+    "version_specifier": "==0.7.0+7c7597b",
     "skip": "True"
   },
   "torchtext": {
-    "version_specifier": "==0.17.0+cu118",
+    "version_specifier": "==0.16.0+cu118",
     "skip": "True"
   },
   "torchvision": {
-    "version_specifier": "==0.17.0+cu118",
+    "version_specifier": "==0.16.0+cu118",
     "skip": "True"
   },
-  "awscli": {
-    "version_specifier": "<2"
-  },
-  "pyopenssl": {
-    "version_specifier": ">=24.0.0"
-  },
-  "cryptography": {
-    "version_specifier": ">=42.0.5"
+  "mkl": {
+    "version_specifier": ">=23.2.0"
   },
   "ipython": {
     "version_specifier": ">=8.10.0,<9.0"
@@ -34,8 +28,8 @@
   "urllib3": {
     "version_specifier": ">=1.26.18,<2"
   },
-  "prompt-toolkit": {
-    "version_specifier": "<3.0.39"
+  "numpy": {
+    "version_specifier": ">=1.22.2,<1.23"
   },
   "torchserve": {
     "version_specifier": "==0.8.2"
@@ -44,6 +38,12 @@
     "version_specifier": "==0.8.2"
   },
   "sagemaker-pytorch-inference": {
-    "version_specifier": "==2.0.22"
+    "version_specifier": "==2.0.21"
+  },
+  "scipy": {
+    "version_specifier": "==1.10.1"
+  },
+  "boto3": {
+    "version_specifier": "==1.28.60"
   }
 }
