@@ -12,7 +12,6 @@
 # language governing permissions and limitations under the License.
 
 #!/usr/bin/env bash
-# sanity | grep 'Failed: 0' &> /dev/null
 sanity
 if [ $? != 0 ]; then
     echo "GDRCopy Sanity check failed!"
