@@ -182,11 +182,11 @@ Large Model Inference Containers
 
 DJL CPU Full Inference Containers
 ===============================
-| Framework         | Job Type	  | CPU/GPU 	 | Python Version Options	 | Example URL																	                                                |
-|-------------------|------------|-----------|-------------------------|-----------------------------------------------------------------------------|
-| DJLServing 0.26.0 | inference  | CPU       | 3.8 (py38)              | 763104351884.dkr.ecr.us-east-1.amazonaws.com/djl-inference:0.26.0-cpu-full  |
-| DJLServing 0.25.0 | inference	 | CPU 		    | 3.8 (py38)			           | 763104351884.dkr.ecr.us-west-2.amazonaws.com/djl-inference:0.25.0-cpu-full	 |
-| DJLServing 0.24.0 | inference	 | CPU 		    | 3.8 (py38)			           | 763104351884.dkr.ecr.us-west-2.amazonaws.com/djl-inference:0.24.0-cpu-full	 |
+| Framework         | Job Type  | CPU/GPU | Python Version Options | Example URL                                                                | 
+|-------------------|-----------|---------|------------------------|----------------------------------------------------------------------------| 
+| DJLServing 0.27.0 | inference | CPU     | 3.10 (py310)           | 763104351884.dkr.ecr.us-west-2.amazonaws.com/djl-inference:0.27.0-cpu-full | 
+| DJLServing 0.26.0 | inference | CPU     | 3.10 (py310)           | 763104351884.dkr.ecr.us-west-2.amazonaws.com/djl-inference:0.26.0-cpu-full | 
+| DJLServing 0.25.0 | inference | CPU     | 3.8 (py38)             | 763104351884.dkr.ecr.us-west-2.amazonaws.com/djl-inference:0.25.0-cpu-full | 
 
 
 AutoGluon Training Containers
