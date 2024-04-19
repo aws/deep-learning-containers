@@ -4,7 +4,7 @@
     "skip": "True"
   },
   "fastai": {
-    "version_specifier": "==2.7.13",
+    "version_specifier": "==2.7.14",
     "skip": "True"
   },
   "torchaudio": {
