@@ -5,13 +5,17 @@ from packaging.version import Version
 from packaging.specifiers import SpecifierSet
 
 import test.test_utils as test_utils
-from test.test_utils import CONTAINER_TESTS_PREFIX, is_pr_context, is_efa_dedicated
+from test.test_utils import (
+    CONTAINER_TESTS_PREFIX,
+    is_pr_context,
+    get_framework_and_version_from_tag,
+)
+
 from test.test_utils.ec2 import (
     get_efa_ec2_instance_type,
     filter_efa_instance_type,
     execute_ec2_training_test,
     are_heavy_instance_ec2_tests_enabled,
-    get_framework_and_version_from_tag,
 )
 
 GDRCOPY_SANITY_TEST_CMD = os.path.join(CONTAINER_TESTS_PREFIX, "gdrcopy", "test_gdrcopy.sh")
