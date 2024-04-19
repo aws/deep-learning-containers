@@ -12,7 +12,9 @@
 # language governing permissions and limitations under the License.
 
 #!/usr/bin/env bash
-gdrcopy_sanity
+# NOTE: This test script is used for GDRCopy v2.3 and below.
+# For GDRCopy v2.4 and above, use `test_gdrcopy.sh`
+sanity | grep 'Failures: 0, Error: 0' &> /dev/null
 if [ $? != 0 ]; then
     echo "GDRCopy Sanity check failed!"
     exit 1
