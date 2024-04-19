@@ -64,7 +64,7 @@ previously, insert the region in the repository URL following this
 example:
 
 
-    763104351884.dkr.ecr.<region>.amazonaws.com/tensorflow-training:2.9.1-gpu-py39-cu112-ubuntu20.04-ec2
+     763104351884.dkr.ecr.<region>.amazonaws.com/tensorflow-training:2.9.1-gpu-py39-cu112-ubuntu20.04-ec2
 
 **Important**
 
@@ -75,7 +75,7 @@ the image. Ensure your CLI is up to date using the steps in [Installing the curr
 
 
 
-    aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin 763104351884.dkr.ecr.us-east-1.amazonaws.com
+        aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin 763104351884.dkr.ecr.us-east-1.amazonaws.com
 
 You can then pull these Docker images from ECR by running:
 
@@ -92,7 +92,7 @@ either ``py37``, ``py38``, ``py39``, or ``py310`` depending on availability. Plu
 
 You can pin your version by adding the version tag to your URL as follows:
 
-    763104351884.dkr.ecr.us-east-1.amazonaws.com/tensorflow-training:2.4.1-cpu-py37-ubuntu18.04-v1.0
+     763104351884.dkr.ecr.us-east-1.amazonaws.com/tensorflow-training:2.4.1-cpu-py37-ubuntu18.04-v1.0
 
 EC2 Framework Containers (Tested on EC2, ECS, and EKS only)
 ============================
