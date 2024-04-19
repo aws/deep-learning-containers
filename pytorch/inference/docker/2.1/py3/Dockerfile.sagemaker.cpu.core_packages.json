@@ -41,6 +41,6 @@
     "version_specifier": "==0.8.2"
   },
   "sagemaker-pytorch-inference": {
-    "version_specifier": "==2.0.22"
+    "version_specifier": "==2.0.21"
   }
 }
