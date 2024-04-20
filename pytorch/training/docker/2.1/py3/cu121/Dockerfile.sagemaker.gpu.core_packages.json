@@ -24,7 +24,7 @@
     "skip": "True"
   },
   "torchtnt": {
-    "version_specifier": "==0.2.1",
+    "version_specifier": "==0.0.4",
     "skip": "True"
   },
   "torchvision": {
