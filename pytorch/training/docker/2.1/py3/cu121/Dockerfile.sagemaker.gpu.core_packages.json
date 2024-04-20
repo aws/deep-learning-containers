@@ -23,7 +23,7 @@
     "version_specifier": "==0.16.0",
     "skip": "True"
   },
-  "torchtnt": {
+  "torchnet": {
     "version_specifier": "==0.0.4",
     "skip": "True"
   },
