@@ -161,13 +161,13 @@ RUN pip install --no-cache-dir --upgrade pip --trusted-host pypi.org --trusted-h
     "s3transfer>=0.10.0" \
     boto3 \
     "click>=8.1.2,<9" \
-    "cryptography>41,<42" \
+    "cryptography>=42.0.5" \
     ipython \
-    "opencv-python>=4.6.0,<4.7" \
+    opencv-python \
     packaging \
     Pillow \
     "psutil>=5.9.4,<5.10" \
-    "pyyaml>=5.4,<5.5" \
+    "pyyaml>=6.0.1" \
     "scipy>=1.11.1"
 
 COPY deep_learning_container.py /usr/local/bin/deep_learning_container.py

@@ -35,19 +35,19 @@
     "version_specifier": ">=8.1.2,<9"
   },
   "cryptography": {
-    "version_specifier": ">41,<42"
+    "version_specifier": ">=42.0.5"
   },
   "psutil": {
     "version_specifier": ">=5.9.4,<5.10"
   },
   "pyyaml": {
-    "version_specifier": ">=5.4,<5.5"
+    "version_specifier": ">=6.0.1"
   },
   "scipy": {
     "version_specifier": ">=1.11.1"
   },
   "sagemaker": {
-    "version_specifier": ">=2,<3"
+    "version_specifier": ">=2.203.0,<3"
   },
   "urllib3": {
     "version_specifier": ">=1.26.17,<1.27"
@@ -61,9 +61,6 @@
   "imageio": {
     "version_specifier": ">=2.22,<3"
   },
-  "opencv-python": {
-    "version_specifier": ">=4.6.0,<5"
-  },
   "plotly": {
     "version_specifier": ">=5.11,<6"
   },
@@ -75,5 +72,14 @@
   },
   "shap": {
     "version_specifier": ">=0.41,<1"
+  },
+  "attrs": {
+    "version_specifier": ">=23.2.0"
+  },
+  "importlib-metadata": {
+    "version_specifier": ">=6.11.0"
+  },
+  "tblib": {
+    "version_specifier": ">=2.0.0"
   }
 }

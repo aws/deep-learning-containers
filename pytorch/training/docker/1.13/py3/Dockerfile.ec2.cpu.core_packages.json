@@ -35,10 +35,7 @@
     "version_specifier": ">=8.1.2,<9"
   },
   "cryptography": {
-    "version_specifier": ">41,<42"
-  },
-  "opencv-python": {
-    "version_specifier": ">=4.6.0,<4.7"
+    "version_specifier": ">=42.0.5"
   },
   "psutil": {
     "version_specifier": ">=5.9.4,<5.10"

@@ -230,10 +230,10 @@ RUN pip install --no-cache-dir -U \
     boto3 \
     "click>=8.1.2,<9" \
     "cmake>=3.24.3,<3.25" \
-    "cryptography>41,<42" \
+    "cryptography42.0.5" \
     ipython \
     "mpi4py>=3.1.4,<3.2" \
-    "opencv-python>=4.6.0,<4.7" \
+    opencv-python \
     packaging \
     Pillow \
     "psutil>=5.9.4,<5.10" \

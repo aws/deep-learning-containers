@@ -36,13 +36,10 @@
     "version_specifier": ">=3.24.3,<3.25"
   },
   "cryptography": {
-    "version_specifier": ">41,<42"
+    "version_specifier": ">=42.0.5"
   },
   "mpi4py": {
     "version_specifier": ">=3.1.4,<3.2"
-  },
-  "opencv-python": {
-    "version_specifier": ">=4.6.0,<4.7"
   },
   "psutil": {
     "version_specifier": ">=5.9.4,<5.10"
