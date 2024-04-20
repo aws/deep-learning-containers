@@ -228,7 +228,7 @@ WORKDIR /root
 RUN pip install --no-cache-dir -U \
     "awscli>1.27,<2" \
     boto3 \
-    "click==8.1.2,<9" \
+    "click>=8.1.2,<9" \
     "cmake>=3.24.3,<3.25" \
     "cryptography>41,<42" \
     ipython \
@@ -513,7 +513,7 @@ RUN pip install --no-cache-dir -U \
     # smdebug==${SMDEBUG_VERSION} \
     smclarify \
     "sagemaker>=2,<3" \
-    sagemaker-experiments==0.* \
+    "sagemaker-experiments<1" \
     sagemaker-pytorch-training \
     flash-attn==$FLASH_ATTN_VERSION \
     triton==$TRITON_VERSION
