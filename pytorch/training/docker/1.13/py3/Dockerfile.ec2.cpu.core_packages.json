@@ -19,6 +19,9 @@
     "version_specifier": "==0.14.1+cpu",
     "skip": "True"
   },
+  "pyopenssl": {
+    "version_specifier": ">=24.0.0"
+  },
   "awscli": {
     "version_specifier": ">1.27,<2"
   },
