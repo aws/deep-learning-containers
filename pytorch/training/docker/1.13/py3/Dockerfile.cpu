@@ -157,10 +157,10 @@ RUN pip install --no-cache-dir --upgrade pip --trusted-host pypi.org --trusted-h
  && ln -s /opt/conda/bin/pip /usr/local/bin/pip3 \
  && pip install --no-cache-dir -U \
     "awscli>1.27,<2" \
-    "botocore==1.34.8" \
-    "s3transfer==0.10.0" \
+    "botocore>=1.34.8" \
+    "s3transfer>=0.10.0" \
     boto3 \
-    "click==8.1.2,<9" \
+    "click>=8.1.2,<9" \
     "cryptography>41,<42" \
     ipython \
     "opencv-python>=4.6.0,<4.7" \
@@ -286,8 +286,8 @@ RUN pip install --no-cache-dir --upgrade pip --trusted-host pypi.org --trusted-h
     smclarify \
     "sagemaker>=2,<3" \
     # sagemaker 2.202.1 requires urllib3<1.27, urllib3>=1.26.17 mitigates CVE-2023-43804
-    "urllib3<1.27,>=1.26.17" \
-    sagemaker-experiments==0.* \
+    "urllib3>=1.26.17,<1.27" \
+    "sagemaker-experiments<1" \
     sagemaker-pytorch-training
 
 # Install smdebug from souce
