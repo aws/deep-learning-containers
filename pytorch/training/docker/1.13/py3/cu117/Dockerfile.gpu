@@ -237,8 +237,9 @@ RUN pip install --no-cache-dir -U \
     packaging \
     Pillow \
     "psutil>=5.9.4,<5.10" \
-    "pyyaml>=5.4,<5.5" \
+    "pyyaml>=6.0.1" \
     "scipy>=1.9.3,<2" \
+    pybind11
 
 COPY deep_learning_container.py /usr/local/bin/deep_learning_container.py
 

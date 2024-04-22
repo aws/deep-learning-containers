@@ -57,13 +57,13 @@
     "version_specifier": ">=5.9.4,<5.10"
   },
   "pyyaml": {
-    "version_specifier": ">=5.4,<5.5"
+    "version_specifier": ">=6.0.1"
   },
   "scipy": {
     "version_specifier": ">=1.9.3,<2"
   },
   "sagemaker": {
-    "version_specifier": ">=2,<3"
+    "version_specifier": ">=2.173.0,<3"
   },
   "sagemaker-experiments": {
     "version_specifier": "<1"
@@ -85,5 +85,11 @@
   },
   "shap": {
     "version_specifier": ">=0.41,<1"
+  },
+  "attrs": {
+    "version_specifier": ">=23.1.0"
+  },
+  "importlib-metadata": {
+    "version_specifier": ">=6.8.0"
   }
 }
