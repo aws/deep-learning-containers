@@ -267,7 +267,7 @@ Example:
      --docker-base-name ${aws_account_id}.dkr.ecr.us-west-2.amazonaws.com/tensorflow-inference \
      --tag 1.15.2-cpu-py36-ubuntu16.04 --framework-version 1.15.2 --processor cpu
      ```
-8. To run SageMaker remote tests on your account please setup following pre-requisites
+8. To run SageMaker remote tests on your account please set up the following pre-requisites
 
     * Create an IAM role with name “SageMakerRole” in the above account and add the below AWS Manged policies
        ```
