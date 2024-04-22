@@ -27,6 +27,8 @@ from . import invoke_pytorch_estimator
 from ....training import get_efa_test_instance_type
 
 RESOURCE_PATH = os.path.join(os.path.dirname(__file__), "..", "..", "resources")
+GDRCOPY_SANITY_TEST_CMD = os.path.join(RESOURCE_PATH, "gdrcopy", "test_gdrcopy.sh")
+GDRCOPY_SANITY_DEV_TEST_CMD = os.path.join(RESOURCE_PATH, "gdrcopy", "test_gdrcopy_dev.sh")
 
 
 def validate_or_skip_gdrcopy(ecr_image):
@@ -43,6 +45,17 @@ def can_run_gdrcopy(ecr_image):
     ) >= Version("117")
 
 
+def get_gdrcopy_sanity_test_cmd(ecr_image):
+    # GDRCopy v2.4 and above uses `test_gdrcopy.sh` which is currently available in PT 2.2
+    # GDRCopy v2.3 and below uses `test_gdrcopy_dev.sh` which is currently available in PT 1.13, 2.1
+    _, image_framework_version = get_framework_and_version_from_tag(ecr_image)
+    return (
+        GDRCOPY_SANITY_TEST_CMD
+        if Version(image_framework_version) in SpecifierSet(">=2.2")
+        else GDRCOPY_SANITY_DEV_TEST_CMD
+    )
+
+
 @pytest.mark.integration("smdataparallel")
 @pytest.mark.model("N/A")
 @pytest.mark.processor("gpu")
@@ -56,7 +69,7 @@ def can_run_gdrcopy(ecr_image):
 @pytest.mark.team("conda")
 def test_sanity_gdrcopy(ecr_image, efa_instance_type, sagemaker_regions):
     validate_or_skip_gdrcopy(ecr_image)
-    gdrcopy_test_path = os.path.join(RESOURCE_PATH, "gdrcopy", "test_gdrcopy.sh")
+    gdrcopy_test_path = get_gdrcopy_sanity_test_cmd(ecr_image)
     with timeout(minutes=DEFAULT_TIMEOUT):
         estimator_parameter = {
             "entry_point": gdrcopy_test_path,
