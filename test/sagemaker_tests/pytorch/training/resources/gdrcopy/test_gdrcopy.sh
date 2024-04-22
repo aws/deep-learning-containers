@@ -12,9 +12,21 @@
 # language governing permissions and limitations under the License.
 
 #!/usr/bin/env bash
-sanity | grep 'Failed: 0' &> /dev/null
+sanity
 if [ $? != 0 ]; then
     echo "GDRCopy Sanity check failed!"
     exit 1
 fi
+
+# NOTE: A grep guard clause is added because the old GDRCopy test (which is now moved to `test_gdrcopy_dev.sh`)
+# was checking an exit status of grep instead of the sanity test itself.
+# We are now moving towards checking the exit status of the sanity test,
+# but as a safety check we will continue to check the test output as well.
+cat tmp_out | grep 'Failed: 0' &> /dev/null
+if [ $? != 0 ]; then
+    echo "GDRCopy Sanity check passed but failed at grep output check!"
+    echo "Please examine the gdrcopy_sanity output to ensure the tests are passing properly"
+    exit 1
+fi
+
 echo "GDRCopy Sanity check succeed!"

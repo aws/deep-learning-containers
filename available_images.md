@@ -64,7 +64,7 @@ previously, insert the region in the repository URL following this
 example:
 
 
-     763104351884.dkr.ecr.<region>.amazonaws.com/tensorflow-training:2.9.1-gpu-py39-cu112-ubuntu20.04-ec2
+    763104351884.dkr.ecr.<region>.amazonaws.com/tensorflow-training:2.9.1-gpu-py39-cu112-ubuntu20.04-ec2
 
 **Important**
 
@@ -75,7 +75,7 @@ the image. Ensure your CLI is up to date using the steps in [Installing the curr
 
 
 
-        aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin 763104351884.dkr.ecr.us-east-1.amazonaws.com
+    aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin 763104351884.dkr.ecr.us-east-1.amazonaws.com
 
 You can then pull these Docker images from ECR by running:
 
@@ -92,7 +92,7 @@ either ``py37``, ``py38``, ``py39``, or ``py310`` depending on availability. Plu
 
 You can pin your version by adding the version tag to your URL as follows:
 
-     763104351884.dkr.ecr.us-east-1.amazonaws.com/tensorflow-training:2.4.1-cpu-py37-ubuntu18.04-v1.0
+    763104351884.dkr.ecr.us-east-1.amazonaws.com/tensorflow-training:2.4.1-cpu-py37-ubuntu18.04-v1.0
 
 EC2 Framework Containers (Tested on EC2, ECS, and EKS only)
 ============================
@@ -182,11 +182,11 @@ Large Model Inference Containers
 
 DJL CPU Full Inference Containers
 ===============================
-| Framework         | Job Type  | CPU/GPU | Python Version Options | Example URL                                                                | 
-|-------------------|-----------|---------|------------------------|----------------------------------------------------------------------------| 
-| DJLServing 0.27.0 | inference | CPU     | 3.10 (py310)           | 763104351884.dkr.ecr.us-west-2.amazonaws.com/djl-inference:0.27.0-cpu-full | 
-| DJLServing 0.26.0 | inference | CPU     | 3.10 (py310)           | 763104351884.dkr.ecr.us-west-2.amazonaws.com/djl-inference:0.26.0-cpu-full | 
-| DJLServing 0.25.0 | inference | CPU     | 3.8 (py38)             | 763104351884.dkr.ecr.us-west-2.amazonaws.com/djl-inference:0.25.0-cpu-full | 
+| Framework         | Job Type  | CPU/GPU | Python Version Options | Example URL                                                                |
+|-------------------|-----------|---------|------------------------|----------------------------------------------------------------------------|
+| DJLServing 0.27.0 | inference | CPU     | 3.10 (py310)           | 763104351884.dkr.ecr.us-west-2.amazonaws.com/djl-inference:0.27.0-cpu-full |
+| DJLServing 0.26.0 | inference | CPU     | 3.10 (py310)           | 763104351884.dkr.ecr.us-west-2.amazonaws.com/djl-inference:0.26.0-cpu-full |
+| DJLServing 0.25.0 | inference | CPU     | 3.8 (py38)             | 763104351884.dkr.ecr.us-west-2.amazonaws.com/djl-inference:0.25.0-cpu-full |
 
 
 AutoGluon Training Containers
@@ -348,7 +348,7 @@ Prior EC2 Framework Graviton Containers
 
 | Framework         |Job Type	|Horovod Options|CPU/GPU 	|Python Version Options	|Example URL																						|
 |-------------------|-----------|---------------|-----------|-----------------------|---------------------------------------------------------------------------------------------------|
-| PyTorch 2.1.0     |inference	|No			|CPU 		| 3.10 (py310)			| 763104351884.dkr.ecr.us-east-1.amazonaws.com/pytorch-inference-graviton:2.1.0-cpu-py310-ubuntu20.04-ec2	
+| PyTorch 2.1.0     |inference	|No			|CPU 		| 3.10 (py310)			| 763104351884.dkr.ecr.us-east-1.amazonaws.com/pytorch-inference-graviton:2.1.0-cpu-py310-ubuntu20.04-ec2
 |PyTorch 2.0.1     |inference	|No			|CPU 		| 3.10 (py310)			|763104351884.dkr.ecr.us-east-1.amazonaws.com/pytorch-inference-graviton:2.0.1-cpu-py310-ubuntu20.04-ec2		|
 |PyTorch 1.12.1     |inference	|No			|CPU 		| 3.8 (py38)			|763104351884.dkr.ecr.us-east-1.amazonaws.com/pytorch-inference-graviton:1.12.1-cpu-py38-ubuntu20.04-ec2		|
 | TensorFlow 2.13.0 |inference	|No			|CPU 		| 3.10 (py310)			| 763104351884.dkr.ecr.us-east-1.amazonaws.com/tensorflow-inference-graviton:2.13.0-cpu-py310-ubuntu20.04-ec2	|
