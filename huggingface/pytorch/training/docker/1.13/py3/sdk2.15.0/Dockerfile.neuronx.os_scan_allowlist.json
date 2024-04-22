@@ -328,6 +328,41 @@
       "reason_to_ignore": "N/A"
     }
   ],
+  "idna":
+  [
+    {
+      "description": "An issue was found in the idna library that allows an attacker to trigger a heap-buffer overflow vulnerability by passing a crafted argument to the idna.encode() function. This flaw could lead to a denial-of-service (DoS) attack.",
+      "vulnerability_id": "CVE-2024-3651",
+      "name": "CVE-2024-3651",
+      "package_name": "idna",
+      "package_details":
+      {
+        "file_path": null,
+        "name": "idna",
+        "package_manager": "pip",
+        "version": "3.4",
+        "release": null
+      },
+      "remediation":
+      {
+        "recommendation":
+        {
+          "text": "Upgrade to version 3.7 or later of the idna library, as it includes a fix for this vulnerability."
+        }
+      },
+      "cvss_v3_score": 7.5,
+      "cvss_v30_score": 0.0,
+      "cvss_v31_score": 7.5,
+      "cvss_v2_score": 0.0,
+      "cvss_v3_severity": "HIGH",
+      "source_url": "https://www.tenable.com/cve/CVE-2024-3651",
+      "source": "EXTERNAL",
+      "severity": "HIGH",
+      "status": "ACTIVE",
+      "title": "CVE-2024-3651 - idna",
+      "reason_to_ignore": "N/A"
+    }
+  ],
   "libc-bin":
   [
     {
