@@ -57,19 +57,6 @@ release_images:
       disable_sm_tag: False
       force_release: False
   5:
-    framework: "pytorch"
-    version: "2.1.0"
-    arch_type: "x86"
-    customer_type: "sagemaker"
-    inference:
-      device_types: [ "cpu", "gpu" ]
-      python_versions: [ "py310" ]
-      os_version: "ubuntu20.04"
-      cuda_version: "cu118"
-      example: False
-      disable_sm_tag: False
-      force_release: False
-  6:
     framework: "huggingface_pytorch"
     version: "2.0.0"
     hf_transformers: "4.28.1"
@@ -82,7 +69,7 @@ release_images:
       example: False
       disable_sm_tag: False
       force_release: False
-  7:
+  6:
     framework: "tensorflow"
     version: "2.12.1"
     customer_type: "sagemaker"
@@ -95,7 +82,7 @@ release_images:
       example: False
       disable_sm_tag: False
       force_release: False
-  8:
+  7:
     framework: "tensorflow"
     version: "2.12.1"
     customer_type: "ec2"
@@ -108,7 +95,7 @@ release_images:
       example: False
       disable_sm_tag: False
       force_release: False
-  9:
+  8:
     framework: "pytorch"
     version: "1.13.1"
     arch_type: "x86"
@@ -121,7 +108,7 @@ release_images:
       example: False
       disable_sm_tag: False
       force_release: False
-  10:
+  9:
     framework: "djl"
     version: "0.27.0"
     arch_type: "x86"
@@ -132,7 +119,7 @@ release_images:
       example: False
       disable_sm_tag: True
       force_release: False
-  11:
+  10:
     framework: "huggingface_pytorch"
     version: "2.1.0"
     hf_transformers: "4.37.0"
@@ -144,7 +131,7 @@ release_images:
       example: False
       disable_sm_tag: False
       force_release: False
-  12:
+  11:
     framework: "huggingface_pytorch"
     version: "2.1.0"
     hf_transformers: "4.37.0"
@@ -157,7 +144,7 @@ release_images:
       example: False
       disable_sm_tag: False
       force_release: False
-  13:
+  12:
     framework: "pytorch"
     version: "2.2.0"
     arch_type: "x86"
@@ -170,7 +157,7 @@ release_images:
       example: False
       disable_sm_tag: False
       force_release: False
-  14:
+  13:
     framework: "huggingface_pytorch"
     version: "1.13.1"
     arch_type: "x86"
@@ -183,7 +170,7 @@ release_images:
       example: False
       disable_sm_tag: True
       force_release: False
-  15:
+  14:
     framework: "tensorflow"
     version: "2.14.1"
     arch_type: "x86"
@@ -196,7 +183,7 @@ release_images:
       example: False
       disable_sm_tag: False
       force_release: False
-  16:
+  15:
     framework: "tensorflow"
     version: "2.14.1"
     arch_type: "x86"
@@ -209,7 +196,7 @@ release_images:
       example: False
       disable_sm_tag: False
       force_release: False
-  17:
+  16:
     framework: "pytorch"
     version: "2.2.0"
     arch_type: "x86"
@@ -222,7 +209,7 @@ release_images:
       example: False
       disable_sm_tag: False
       force_release: False
-  18:
+  17:
     framework: "huggingface_pytorch"
     version: "1.13.1"
     arch_type: "x86"
@@ -235,11 +222,24 @@ release_images:
       example: False
       disable_sm_tag: False
       force_release: False
-  19:
+  18:
     framework: "tensorflow"
     version: "2.14.1"
     arch_type: "graviton"
     customer_type: "ec2"
+    inference:
+      device_types: [ "cpu" ]
+      python_versions: [ "py310" ]
+      os_version: "ubuntu20.04"
+      cuda_version: "cu118"
+      example: False
+      disable_sm_tag: False
+      force_release: False
+  19:
+    framework: "tensorflow"
+    version: "2.14.1"
+    arch_type: "graviton"
+    customer_type: "sagemaker"
     inference:
       device_types: [ "cpu" ]
       python_versions: [ "py310" ]
@@ -249,19 +249,6 @@ release_images:
       disable_sm_tag: False
       force_release: False
   20:
-    framework: "tensorflow"
-    version: "2.14.1"
-    arch_type: "graviton"
-    customer_type: "sagemaker"
-    inference:
-      device_types: [ "cpu" ]
-      python_versions: [ "py310" ]
-      os_version: "ubuntu20.04"
-      cuda_version: "cu118"
-      example: False
-      disable_sm_tag: False
-      force_release: False
-  21:
     framework: "pytorch"
     version: "2.2.1"
     arch_type: "graviton"
@@ -273,7 +260,7 @@ release_images:
       example: False
       disable_sm_tag: False
       force_release: False
-  22:
+  21:
     framework: "pytorch"
     version: "2.2.1"
     arch_type: "graviton"
@@ -282,6 +269,32 @@ release_images:
       device_types: [ "cpu" ]
       python_versions: [ "py310" ]
       os_version: "ubuntu20.04"
+      example: False
+      disable_sm_tag: False
+      force_release: False
+  22:
+    framework: "pytorch"
+    version: "2.1.0"
+    arch_type: "x86"
+    customer_type: "ec2"
+    inference:
+      device_types: [ "cpu", "gpu" ]
+      python_versions: [ "py310" ]
+      os_version: "ubuntu20.04"
+      cuda_version: "cu118"
+      example: False
+      disable_sm_tag: False
+      force_release: False
+  23:
+    framework: "pytorch"
+    version: "2.1.0"
+    arch_type: "x86"
+    customer_type: "sagemaker"
+    inference:
+      device_types: [ "cpu", "gpu" ]
+      python_versions: [ "py310" ]
+      os_version: "ubuntu20.04"
+      cuda_version: "cu118"
       example: False
       disable_sm_tag: False
       force_release: False
