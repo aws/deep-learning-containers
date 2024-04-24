@@ -212,8 +212,7 @@ def test_ecs_pytorch_s3_plugin_training_gpu(
     )
 
 
-@pytest.mark.skip_pt21_test
-@pytest.mark.skip_pt22_test
+@pytest.mark.skip_dgl_test
 @pytest.mark.integration("dgl")
 @pytest.mark.model("gcn")
 @pytest.mark.parametrize("training_script", [PT_DGL_TRAINING_SCRIPT], indirect=True)
@@ -245,9 +244,7 @@ def test_ecs_pytorch_training_dgl_cpu(
     )
 
 
-@pytest.mark.skip_pt20_cuda121_tests
-@pytest.mark.skip_pt21_test
-@pytest.mark.skip_pt22_test
+@pytest.mark.skip_dgl_test
 @pytest.mark.integration("dgl")
 @pytest.mark.model("gcn")
 @pytest.mark.parametrize("training_script", [PT_DGL_TRAINING_SCRIPT], indirect=True)

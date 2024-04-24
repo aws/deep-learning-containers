@@ -1,5 +1,4 @@
 import os
-
 import pytest
 
 import test.test_utils as test_utils
@@ -13,6 +12,8 @@ from test.test_utils import (
     is_tf_version,
     get_framework_and_version_from_tag,
     is_nightly_context,
+    login_to_ecr_registry,
+    get_account_id_from_image_uri,
 )
 from test.test_utils.ec2 import get_ec2_instance_type
 
@@ -22,9 +23,10 @@ SMPROFILER_SCRIPT = os.path.join(CONTAINER_TESTS_PREFIX, "testSmprofiler")
 
 
 SMDEBUG_EC2_GPU_INSTANCE_TYPE = get_ec2_instance_type(default="p3.8xlarge", processor="gpu")
-SMDEBUG_EC2_CPU_INSTANCE_TYPE = get_ec2_instance_type(default="c4.8xlarge", processor="cpu")
+SMDEBUG_EC2_CPU_INSTANCE_TYPE = get_ec2_instance_type(default="c5.9xlarge", processor="cpu")
 
 
+@pytest.mark.skip_smdebug_v1_test
 @pytest.mark.usefixtures("feature_smdebug_present")
 @pytest.mark.usefixtures("sagemaker_only")
 @pytest.mark.integration("smdebug")
@@ -32,8 +34,6 @@ SMDEBUG_EC2_CPU_INSTANCE_TYPE = get_ec2_instance_type(default="c4.8xlarge", proc
 @pytest.mark.parametrize("ec2_instance_type", SMDEBUG_EC2_GPU_INSTANCE_TYPE, indirect=True)
 @pytest.mark.team("smdebug")
 @pytest.mark.flaky(reruns=0)
-@pytest.mark.skip_pt21_test
-@pytest.mark.skip_pt20_cuda121_tests
 def test_smdebug_gpu(
     training, ec2_connection, region, ec2_instance_type, gpu_only, py3_only, below_tf213_only
 ):
@@ -67,6 +67,7 @@ def test_smdebug_gpu(
     )
 
 
+@pytest.mark.skip_smdebug_v1_test
 @pytest.mark.usefixtures("feature_smdebug_present")
 @pytest.mark.usefixtures("sagemaker_only")
 @pytest.mark.integration("smprofiler")
@@ -74,8 +75,6 @@ def test_smdebug_gpu(
 @pytest.mark.team("smdebug")
 @pytest.mark.parametrize("ec2_instance_type", SMDEBUG_EC2_GPU_INSTANCE_TYPE, indirect=True)
 @pytest.mark.flaky(reruns=0)
-@pytest.mark.skip_pt21_test
-@pytest.mark.skip_pt20_cuda121_tests
 def test_smprofiler_gpu(
     training,
     ec2_connection,
@@ -113,6 +112,7 @@ def test_smprofiler_gpu(
     )
 
 
+@pytest.mark.skip_smdebug_v1_test
 @pytest.mark.usefixtures("feature_smdebug_present")
 @pytest.mark.usefixtures("sagemaker_only")
 @pytest.mark.flaky(reruns=0)
@@ -120,13 +120,13 @@ def test_smprofiler_gpu(
 @pytest.mark.model("mnist")
 @pytest.mark.team("smdebug")
 @pytest.mark.parametrize("ec2_instance_type", SMDEBUG_EC2_CPU_INSTANCE_TYPE, indirect=True)
-@pytest.mark.skip_pt21_test
 def test_smdebug_cpu(
     training, ec2_connection, region, ec2_instance_type, cpu_only, py3_only, below_tf213_only
 ):
     run_smdebug_test(training, ec2_connection, region, ec2_instance_type)
 
 
+@pytest.mark.skip_smdebug_v1_test
 @pytest.mark.usefixtures("feature_smdebug_present")
 @pytest.mark.usefixtures("sagemaker_only")
 @pytest.mark.flaky(reruns=0)
@@ -134,7 +134,6 @@ def test_smdebug_cpu(
 @pytest.mark.model("mnist")
 @pytest.mark.team("smdebug")
 @pytest.mark.parametrize("ec2_instance_type", SMDEBUG_EC2_CPU_INSTANCE_TYPE, indirect=True)
-@pytest.mark.skip_pt21_test
 def test_smprofiler_cpu(
     training,
     ec2_connection,
@@ -172,7 +171,8 @@ def run_smdebug_test(
     shm_setting = " --shm-size=1g " if ec2_instance_type in large_shm_instance_types else " "
     framework = get_framework_from_image_uri(image_uri)
     container_test_local_dir = os.path.join("$HOME", "container_tests")
-    ec2_connection.run(f"$(aws ecr get-login --no-include-email --region {region})", hide=True)
+    account_id = get_account_id_from_image_uri(image_uri)
+    login_to_ecr_registry(ec2_connection, account_id, region)
     # Do not add -q to docker pull as it leads to a hang for huge images like trcomp
     ec2_connection.run(f"docker pull {image_uri}")
 
@@ -211,7 +211,8 @@ def run_smprofiler_test(
     shm_setting = " --shm-size=1g " if ec2_instance_type in large_shm_instance_types else " "
     framework = get_framework_from_image_uri(image_uri)
     container_test_local_dir = os.path.join("$HOME", "container_tests")
-    ec2_connection.run(f"$(aws ecr get-login --no-include-email --region {region})", hide=True)
+    account_id = get_account_id_from_image_uri(image_uri)
+    login_to_ecr_registry(ec2_connection, account_id, region)
     # Do not add -q to docker pull as it leads to a hang for huge images like trcomp
     ec2_connection.run(f"docker pull {image_uri}")
 

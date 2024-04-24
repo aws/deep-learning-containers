@@ -1,10 +1,10 @@
 import os
 import re
-import json
 from time import sleep
 import pytest
 
 from packaging.version import Version
+from packaging.specifiers import SpecifierSet
 
 import test.test_utils.ec2 as ec2_utils
 
@@ -109,7 +109,8 @@ def test_ec2_tensorflow_inference_gpu_tensorrt(
     )
 
     try:
-        ec2_connection.run(f"$(aws ecr get-login --no-include-email --region {region})", hide=True)
+        account_id = test_utils.get_account_id_from_image_uri(tensorflow_inference)
+        test_utils.login_to_ecr_registry(ec2_connection, account_id, region)
         host_setup_for_tensorflow_inference(serving_folder_path, framework_version, ec2_connection)
         sleep(2)
 
@@ -267,7 +268,8 @@ def run_ec2_tensorflow_inference(
         if not is_neuron:
             train_mnist_model(serving_folder_path, ec2_connection)
             sleep(10)
-        ec2_connection.run(f"$(aws ecr get-login --no-include-email --region {region})", hide=True)
+        account_id = test_utils.get_account_id_from_image_uri(image_uri)
+        test_utils.login_to_ecr_registry(ec2_connection, account_id, region)
         ec2_connection.run(docker_run_cmd, hide=True)
         sleep(20)
         if is_neuron and str(framework_version).startswith(TENSORFLOW2_VERSION):
@@ -392,6 +394,12 @@ def pull_tensorrt_build_image(ec2_connection, framework_version):
     :return: str tensorrt build image tag
     """
     tf_image_version = Version(framework_version)
+    if tf_image_version in SpecifierSet("==2.14.*"):
+        # Add a special case for TF 2.14 to account for mismatch in TensorRT version between
+        # tensorflow/tensorflow:2.14 (8.6.1) and tensorflow/serving:2.14 (8.4.3).
+        # Do not change the range of versions covered by the SpecifierSet in the if-condition
+        # unless it is confirmed that TF images for the newer framework version have the same issue.
+        return "tensorflow/tensorflow:2.13.0-gpu"
     patch_version = tf_image_version.micro
     upstream_build_image_uri = f"tensorflow/tensorflow:{framework_version}-gpu"
     while patch_version >= 0:

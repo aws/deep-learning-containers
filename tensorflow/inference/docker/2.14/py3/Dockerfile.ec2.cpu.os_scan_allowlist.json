@@ -10,7 +10,7 @@
                 "name": "linux",
                 "package_manager": "OS",
                 "version": "5.4.0",
-                "release": "171.189"
+                "release": "172.190"
             },
             "remediation": {"recommendation": {"text": "None Provided"}},
             "cvss_v3_score": 7.0,
@@ -35,7 +35,7 @@
                 "name": "linux",
                 "package_manager": "OS",
                 "version": "5.4.0",
-                "release": "171.189"
+                "release": "172.190"
             },
             "remediation": {"recommendation": {"text": "None Provided"}},
             "cvss_v3_score": 7.0,

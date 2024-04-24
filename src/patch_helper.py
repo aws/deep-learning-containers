@@ -84,7 +84,7 @@ def get_impacted_os_packages(image_uri, python_version=None):
     ) = helper_function_for_leftover_vulnerabilities_from_enhanced_scanning(
         image_uri,
         python_version=python_version,
-        minimum_sev_threshold="LOW",
+        minimum_sev_threshold="UNDEFINED",
         allowlist_removal_enabled=False,
     )
     impacted_packages = set()
@@ -111,6 +111,7 @@ def trigger_enhanced_scan_patching(image_uri, patch_details_path, python_version
     :return: str, Returns constants.SUCCESS to allow the multi-threaded caller to know that the method has succeeded.
     """
     impacted_packages = get_impacted_os_packages(image_uri=image_uri, python_version=python_version)
+
     dlc_repo_folder_mount = os.path.join(os.sep, get_cloned_folder_path())
     image_specific_patch_folder = os.path.join(
         os.sep, patch_details_path
@@ -244,6 +245,7 @@ def conduct_autopatch_build_setup(pre_push_image_object: DockerImage, download_p
 
     info["extra_build_args"].update({"BASE_IMAGE_FOR_PATCH_BUILD": base_image_uri_for_patch_builds})
     info["extra_build_args"].update({"LATEST_RELEASED_IMAGE_SHA": latest_released_image_sha})
+    info["extra_build_args"].update({"LATEST_RELEASED_IMAGE_URI": latest_released_image_uri})
 
     autopatch_artifacts = {
         "miscellaneous_scripts": {

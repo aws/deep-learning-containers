@@ -113,10 +113,10 @@ RUN /opt/conda/bin/mamba install -y --override-channels \
     -c conda-forge \
     conda \
     # patch CVE
-    "cryptography>41.0.6" \
+    "cryptography>=42.0.5" \
     cmake \
     requests \
-    pyopenssl \
+    "pyopenssl>=24.0.0" \
     python=$PYTHON_VERSION \
     cython \
     # force conda to install h5py with openmpi build, not mpich (rubik error)
@@ -195,7 +195,7 @@ RUN /opt/conda/bin/mamba install -y pytorch=${PYTORCH_VERSION} \
   && /opt/conda/bin/mamba clean -afy
 
 # Patches
-RUN pip install pillow "pyyaml>=6.0.1" opencv-python
+RUN pip install pillow "pyyaml>=6.0.1" opencv-python "idna>=3.7"
 RUN /opt/conda/bin/mamba install -y -c conda-forge \
   "requests>=2.31.0" \
   && /opt/conda/bin/mamba clean -afy
@@ -250,10 +250,6 @@ ARG PYTHON
 ARG PYTORCH_VERSION
 ARG CONDA_CHANNEL
 
-# Selectively enable PyTorch Verbose Logging
-ENV PYTORCH_API_USAGE_STDERR=1
-ENV TORCH_LOGS=+dynamo,+aot,+inductor
-
 ENV SAGEMAKER_TRAINING_MODULE=sagemaker_pytorch_container.training:main
 
 WORKDIR /
@@ -277,7 +273,7 @@ RUN /opt/conda/bin/mamba install -y -c conda-forge \
   && /opt/conda/bin/mamba clean -afy
 
 # Patches
-RUN pip install pillow "pyyaml>=6.0.1" opencv-python
+RUN pip install pillow "pyyaml>=6.0.1" opencv-python "idna>=3.7"
 RUN /opt/conda/bin/mamba install -y -c conda-forge \
   "requests>=2.31.0" \
   && /opt/conda/bin/mamba clean -afy

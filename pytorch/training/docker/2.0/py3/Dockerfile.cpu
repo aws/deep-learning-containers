@@ -197,7 +197,7 @@ ARG PT_TORCHDATA_URL
 RUN /opt/conda/bin/mamba install -y pytorch=${PYTORCH_VERSION_EC2} \
   torchvision torchaudio torchtext cpuonly \
   --override-channels \
-  -c https://aws-ml-conda-ec2.s3.us-west-2.amazonaws.com \
+  -c https://aws-ml-conda.s3.us-west-2.amazonaws.com \
   -c conda-forge \
   && /opt/conda/bin/mamba clean -afy
 
@@ -279,7 +279,7 @@ ARG PYTORCH_VERSION_SM
 RUN /opt/conda/bin/mamba install -y pytorch=${PYTORCH_VERSION_SM} \
   torchvision torchaudio torchtext cpuonly \
   --override-channels \
-  -c https://aws-ml-conda-ec2.s3.us-west-2.amazonaws.com \
+  -c https://aws-ml-conda.s3.us-west-2.amazonaws.com \
   -c conda-forge \
   && /opt/conda/bin/mamba clean -afy
 

@@ -22,7 +22,7 @@ from sagemaker import utils
 from .timeout import timeout
 from ...integration import smart_sifting_path, DEFAULT_TIMEOUT
 from .... import invoke_pytorch_helper_function
-from test.test_utils import get_framework_and_version_from_tag
+from test.test_utils import get_framework_and_version_from_tag, get_cuda_version_from_tag
 
 
 def validate_or_skip_smart_sifting(ecr_image):
@@ -32,7 +32,10 @@ def validate_or_skip_smart_sifting(ecr_image):
 
 def can_run_smart_sifting(ecr_image):
     _, image_framework_version = get_framework_and_version_from_tag(ecr_image)
-    return Version(image_framework_version) in SpecifierSet("==2.0.1")
+    image_cuda_version = get_cuda_version_from_tag(image_uri=ecr_image)
+    return Version(image_framework_version) in SpecifierSet("==2.0.*") and (
+        not image_cuda_version or image_cuda_version == "cu118"
+    )
 
 
 @pytest.mark.usefixtures("feature_smart_sifting_present")
@@ -43,7 +46,7 @@ def can_run_smart_sifting(ecr_image):
 @pytest.mark.skip_py2_containers
 def test_smart_sifting_cpu(framework_version, ecr_image, sagemaker_regions, instance_type):
     validate_or_skip_smart_sifting(ecr_image)
-    instance_type = instance_type or "ml.c4.xlarge"
+    instance_type = instance_type or "ml.c5.xlarge"
     function_args = {
         "framework_version": framework_version,
         "instance_type": instance_type,

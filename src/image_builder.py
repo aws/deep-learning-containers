@@ -18,6 +18,7 @@ import datetime
 import os
 import re
 import json
+import tempfile
 
 from copy import deepcopy
 
@@ -109,7 +110,6 @@ def image_builder(buildspec, image_types=[], device_types=[]):
 
         extra_build_args = {}
         labels = {}
-        enable_datetime_tag = parse_dlc_developer_configs("build", "datetime_tag")
 
         prod_repo_uri = ""
         if is_autopatch_build_enabled(buildspec_path=buildspec):
@@ -141,7 +141,11 @@ def image_builder(buildspec, image_types=[], device_types=[]):
         if is_nightly_build_context():
             additional_image_tags.append(tag_image_with_date(image_tag))
 
-        if enable_datetime_tag or build_context != "PR":
+        if is_build_enabled() or build_context != "PR":
+            # Order appears to matter in datetime tagging, so tag with no datetime first, then
+            # set image_tag to have datetime
+            no_datetime = image_tag
+            additional_image_tags.append(no_datetime)
             image_tag = tag_image_with_datetime(image_tag)
 
         additional_image_tags.append(image_tag)
@@ -205,10 +209,34 @@ def image_builder(buildspec, image_types=[], device_types=[]):
         if inference_toolkit_version:
             extra_build_args["SM_TOOLKIT_VERSION"] = inference_toolkit_version
 
+        tag_override = image_config.get("build_tag_override")
+        dockerfile = image_config["docker_file"]
+        target = image_config.get("target")
+        tag_override_regex = r"^(beta|pr):\S+$"
+        if tag_override and build_context == "PR":
+            if is_autopatch_build_enabled(buildspec_path=buildspec):
+                FORMATTER.print("AUTOPATCH ENABLED IN BUILDSPEC, CANNOT OVERRIDE WITH TAG, SORRY!")
+            elif not re.match(tag_override_regex, tag_override):
+                FORMATTER.print(
+                    f"TAG OVERRIDE MUST BE OF FORMAT {tag_override_regex}, but got {tag_override}. Proceeding with regular build."
+                )
+            else:
+                repo_override, t_override = tag_override.split(":")
+                with tempfile.NamedTemporaryFile(mode="w", delete=False) as temp_file_handle:
+                    source_uri = (
+                        f"{image_repo_uri.replace('pr-', f'{repo_override}-')}:{t_override}"
+                    )
+                    temp_file_handle.write(
+                        f"FROM {source_uri}\nLABEL dlc.dev.source_uri={source_uri}"
+                    )
+                    dockerfile = temp_file_handle.name
+                    target = None
+                FORMATTER.print(f"USING TAG OVERRIDE {source_uri}")
+
         ARTIFACTS.update(
             {
                 "dockerfile": {
-                    "source": image_config["docker_file"],
+                    "source": dockerfile,
                     "target": "Dockerfile",
                 }
             }
@@ -302,14 +330,14 @@ def image_builder(buildspec, image_types=[], device_types=[]):
         # Create pre_push stage docker object
         pre_push_stage_image_object = DockerImage(
             info=info,
-            dockerfile=image_config["docker_file"],
+            dockerfile=dockerfile,
             repository=image_repo_uri,
             tag=append_tag(image_tag, "pre-push"),
             to_build=image_config["build"],
             stage=constants.PRE_PUSH_STAGE,
             context=context,
             additional_tags=additional_image_tags,
-            target=image_config.get("target"),
+            target=target,
         )
 
         ##### Create Common stage docker object #####
@@ -324,7 +352,7 @@ def image_builder(buildspec, image_types=[], device_types=[]):
         PRE_PUSH_STAGE_IMAGES.append(pre_push_stage_image_object)
         FORMATTER.separator()
 
-    if is_autopatch_build_enabled(buildspec_path=buildspec):
+    if is_autopatch_build_enabled(buildspec_path=buildspec) and is_build_enabled():
         FORMATTER.banner("APATCH-PREP")
         patch_helper.initiate_multithreaded_autopatch_prep(
             PRE_PUSH_STAGE_IMAGES, make_dummy_boto_client=True

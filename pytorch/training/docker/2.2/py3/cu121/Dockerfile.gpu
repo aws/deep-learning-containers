@@ -61,9 +61,9 @@ ENV PATH=/opt/conda/bin:$PATH
 ENV TORCH_CUDA_ARCH_LIST="5.2;7.0+PTX;7.5;8.0;8.6;9.0"
 ENV TORCH_NVCC_FLAGS="-Xfatbin -compress-all"
 ENV CUDNN_VERSION=8.9.2.26
-ENV NCCL_VERSION=2.19.4
-ENV EFA_VERSION=1.30.0
-ENV GDRCOPY_VERSION=2.3.1
+ENV NCCL_VERSION=2.21.5
+ENV EFA_VERSION=1.31.0
+ENV GDRCOPY_VERSION=2.4.1
 
 ENV CMAKE_PREFIX_PATH="$(dirname $(which conda))/../"
 ENV OPEN_MPI_PATH=/opt/amazon/openmpi
@@ -124,7 +124,7 @@ RUN curl -L -o ~/miniforge3.sh https://github.com/conda-forge/miniforge/releases
 
 # Install common conda packages
 RUN /opt/conda/bin/mamba install -y -c conda-forge \
-    pyopenssl \
+    "pyopenssl>=24.0.0" \
     requests \
     libgcc \
     pybind11 \
@@ -147,7 +147,7 @@ RUN /opt/conda/bin/mamba install -y -c conda-forge \
     # Adding package for studio kernels
     ipykernel \
     # patch CVE
-    "cryptography>41.0.6" \
+    "cryptography>=42.0.5" \
     # patch CVE
     "urllib3>=1.26.18,<2" \
     pillow \
@@ -278,7 +278,7 @@ RUN /opt/conda/bin/mamba install -y -c conda-forge \
   && /opt/conda/bin/mamba clean -afy
 
 # Patches
-RUN pip install pillow opencv-python
+RUN pip install pillow opencv-python "idna>=3.7"
 RUN /opt/conda/bin/mamba install -y -c conda-forge \
   "requests>=2.31.0" \
   && /opt/conda/bin/mamba clean -afy
@@ -293,18 +293,14 @@ RUN cd /tmp \
  && CUDA=${CUDA_HOME} make install \
  && rm -rf /tmp/gdrcopy
 
-# makes AllToAll complete successfully. Update will be included in NCCL 2.20.*
-ENV NCCL_CUMEM_ENABLE=0
 # Install NCCL
 RUN cd /tmp \
   && git clone https://github.com/NVIDIA/nccl.git -b v${NCCL_VERSION}-1 \
   && cd nccl \
-  # fix for AllReduce regression. https://github.com/NVIDIA/nccl/pull/1112
-  && curl https://github.com/liralon/nccl/commit/505aa4b048c3824060332fe3652605e1b33108c8.patch | git apply --reject \
   && make -j64 src.build BUILDDIR=/usr/local CUDA_LIB=${CUDA_HOME}/lib \
   && rm -rf /tmp/nccl
-# preload to system nccl for PyTorch to use its statically linked NCCL
-ENV LD_PRELOAD="${CUDA_HOME}/lib/libnccl-net.so"
+# preload to system nccl for PyTorch to use instead of its statically linked NCCL
+ENV LD_PRELOAD="/usr/local/lib/libnccl.so"
 
 # Install Nvidia Apex (needs pytorch)
 RUN pip install packaging \
@@ -374,10 +370,6 @@ ARG GDRCOPY_VERSION
 # SageMaker Profiler Binary
 ARG SMP_URL=https://smppy.s3.amazonaws.com/pytorch/cu121/smprof-0.3.334-cp310-cp310-linux_x86_64.whl
 
-# Selectively enable PyTorch Verbose Logging
-ENV PYTORCH_API_USAGE_STDERR=1
-ENV TORCH_LOGS=+dynamo,+aot,+inductor
-
 WORKDIR /
 
 # Install SageMaker Profiler Binary
@@ -415,7 +407,7 @@ RUN /opt/conda/bin/mamba install -y -c conda-forge \
   && /opt/conda/bin/mamba clean -afy
 
 # Patches
-RUN pip install pillow opencv-python
+RUN pip install pillow opencv-python "idna>=3.7"
 RUN /opt/conda/bin/mamba install -y -c conda-forge \
   "requests>=2.31.0" \
   && /opt/conda/bin/mamba clean -afy
@@ -430,18 +422,14 @@ RUN cd /tmp \
  && CUDA=${CUDA_HOME} make install \
  && rm -rf /tmp/gdrcopy
 
-# makes AllToAll complete successfully. Update will be included in NCCL 2.20.*
-ENV NCCL_CUMEM_ENABLE=0
 # Install NCCL
 RUN cd /tmp \
   && git clone https://github.com/NVIDIA/nccl.git -b v${NCCL_VERSION}-1 \
   && cd nccl \
-  # fix for AllReduce regression. https://github.com/NVIDIA/nccl/pull/1112
-  && curl https://github.com/liralon/nccl/commit/505aa4b048c3824060332fe3652605e1b33108c8.patch | git apply --reject \
   && make -j64 src.build BUILDDIR=/usr/local CUDA_LIB=${CUDA_HOME}/lib \
   && rm -rf /tmp/nccl
-# preload to system nccl for PyTorch to use its statically linked NCCL
-ENV LD_PRELOAD="${CUDA_HOME}/lib/libnccl-net.so"
+# preload to system nccl for PyTorch to use instead of its statically linked NCCL
+ENV LD_PRELOAD="/usr/local/lib/libnccl.so"
 
 # Install Nvidia Apex (needs pytorch)
 RUN pip install packaging \

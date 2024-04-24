@@ -12,6 +12,8 @@
 # language governing permissions and limitations under the License.
 from __future__ import absolute_import
 
+import os
+
 import pytest
 
 from packaging.version import Version
@@ -35,6 +37,10 @@ def can_run_pytorchddp(ecr_image):
     return Version(image_framework_version) in SpecifierSet(">=1.10")
 
 
+@pytest.mark.skipif(
+    os.getenv("SM_EFA_TEST_INSTANCE_TYPE") == "ml.p5.48xlarge",
+    reason="Low availability of instance type; Must ensure test works on new instances.",
+)
 @pytest.mark.processor("gpu")
 @pytest.mark.model("N/A")
 @pytest.mark.multinode(2)
@@ -47,6 +53,7 @@ def can_run_pytorchddp(ecr_image):
 @pytest.mark.skip_trcomp_containers
 @pytest.mark.efa()
 @pytest.mark.team("conda")
+@pytest.mark.skip_smdataparallel_p5_tests
 def test_pytorchddp_throughput_gpu(
     framework_version, ecr_image, sagemaker_regions, efa_instance_type, tmpdir
 ):
