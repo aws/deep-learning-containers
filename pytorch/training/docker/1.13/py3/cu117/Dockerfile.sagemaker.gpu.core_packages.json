@@ -35,6 +35,9 @@
     "version_specifier": "==2.0.0.dev20221202",
     "skip": "True"
   },
+  "mkl": {
+    "version_specifier": "<2024.1"
+  },
   "pyopenssl": {
     "version_specifier": ">=24.0.0"
   },

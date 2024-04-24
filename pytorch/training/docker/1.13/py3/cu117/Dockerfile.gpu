@@ -186,7 +186,7 @@ RUN ompi_info --parsable --all | grep mpi_built_with_cuda_support:value \
  && /opt/conda/bin/conda install -y -c conda-forge \
     python=$PYTHON_VERSION \
     cython \
-    mkl \
+    "mkl<2024.1" \
     mkl-include \
     parso \
     typing \

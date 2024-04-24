@@ -121,7 +121,7 @@ RUN curl -L -o ~/mambaforge.sh https://github.com/conda-forge/miniforge/releases
  && /opt/conda/bin/conda install -y -c conda-forge \
     python=$PYTHON_VERSION \
     cython \
-    mkl \
+    "mkl<2024.1" \
     mkl-include \
     parso \
     typing \

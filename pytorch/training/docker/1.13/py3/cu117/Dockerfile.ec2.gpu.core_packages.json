@@ -23,6 +23,9 @@
     "version_specifier": "==0.14.1+cu117",
     "skip": "True"
   },
+  "mkl": {
+    "version_specifier": "<2024.1"
+  },
   "pyopenssl": {
     "version_specifier": ">=24.0.0"
   },
