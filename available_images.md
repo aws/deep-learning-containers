@@ -166,8 +166,7 @@ https://github.com/aws/amazon-sagemaker-examples/blob/main/sagemaker-triton/resn
 |NVIDIA Triton Inference Server 23.`<XY>`    |inference	|No			|CPU 		| 3.8 (py38)			|007439368137.dkr.ecr.us-east-2.amazonaws.com/sagemaker-tritonserver:23.`<XY>`-py3-cpu		|
 
 **Note**:
-1. SageMaker Triton Inference Container does not support Tensorflow1 as of version 23.05 onwards, as upstream Triton container does not support
-Tensorflow(v1) native backend from version 23.04 onwards.
+1. SageMaker Triton Inference Container does not support Tensorflow1 as of version 23.05 onwards, as upstream Triton container does not support Tensorflow(v1) native backend from version 23.04 onwards.
 2. SageMaker Triton Inference Container does not ship with the FasterTransformer(FT) backend from version 23.06 onwards since the upstream FT library is undergoing re-structuring. It was previously available from versions v22.12 - v23.05, experimentally. 
 
 
