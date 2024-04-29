@@ -147,9 +147,14 @@ NVIDIA Triton Inference Containers (SM support only)
 2. They can now be obtained programmatically from the sagemaker python sdk as:
 ```
 from sagemaker import image_uris
+
+triton_framework = "sagemaker-tritonserver"
+region="us-west-2"
+version="24.01"
+instance_type="ml.g5.12xlarge"
+
 uri = image_uris.retrieve(framework=triton_framework, region=region, version=version, instance_type=instance_type)
 ```
-where, for example `framework="sagemaker-tritonserver"`, and `region="us-west-2"`, `version="23.12"`, `instance_type="ml.g5.12xlarge"`.
 3. Unavailable versions: `24.02`.
 
 **Versions prior to 23.12**:
