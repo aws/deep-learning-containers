@@ -1461,8 +1461,9 @@
                 "65215": "Covered elsewhere",
                 "65212": "Covered elsewhere",
                 "64402": "Covered elsewhere",
-                "65647": "Covered elsewhere"
-
+                "65647": "Covered elsewhere",
+                "67599": "** DISPUTED ** An issue was discovered in pip (all versions) because it installs the version with the highest version number, even if the user had intended to obtain a private package from a private index. This only affects use of the --extra-index-url option, and exploitation requires that the package does not already exist in the public index (and thus the attacker can put the package there with an arbitrary version number). NOTE: it has been reported that this is intended functionality and the user is responsible for using --extra-index-url securely.",
+                "67136": "Pillow 10.3.0 introduces a security update addressing CVE-2024-28219 by replacing certain functions with strncpy to prevent buffer overflow issues."
             }
         }
     },
