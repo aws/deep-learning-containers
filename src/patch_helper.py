@@ -23,7 +23,7 @@ from utils import (
 from codebuild_environment import get_cloned_folder_path
 from context import Context
 
-from src.constants import PATCHING_INFO_PATH_WITHIN_DLC
+from constants import PATCHING_INFO_PATH_WITHIN_DLC
 
 FORMATTER = OutputFormatter(constants.PADDING)
 
