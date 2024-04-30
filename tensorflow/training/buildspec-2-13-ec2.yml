@@ -17,6 +17,9 @@ repository_info:
     release_repository_name: &RELEASE_REPOSITORY_NAME !join [ *FRAMEWORK, "-", *TRAINING_IMAGE_TYPE ]
     release_repository: &RELEASE_REPOSITORY !join [ *PROD_ACCOUNT_ID, .dkr.ecr., *REGION, .amazonaws.com/,
                                                     *RELEASE_REPOSITORY_NAME ]
+    example_release_repository_name: &EXAMPLE_RELEASE_REPOSITORY_NAME !join [ "aws-samples-", *FRAMEWORK, "-", *TRAINING_IMAGE_TYPE ]
+    example_release_repository: &EXAMPLE_RELEASE_REPOSITORY !join [ *PROD_ACCOUNT_ID, .dkr.ecr., *REGION, .amazonaws.com/,
+                                                    *EXAMPLE_RELEASE_REPOSITORY_NAME ]
 
 context:
   training_context: &TRAINING_CONTEXT
