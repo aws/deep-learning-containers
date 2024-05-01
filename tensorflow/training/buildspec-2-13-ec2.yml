@@ -48,7 +48,7 @@ images:
     docker_file: !join [ docker/, *SHORT_VERSION, /, *DOCKER_PYTHON_VERSION, /, *CUDA_VERSION,
       /Dockerfile., *DEVICE_TYPE ]
     target: ec2
-    build_tag_override: "beta:2.13.0-gpu-py310-cu118-ubuntu20.04-ec2-2023-08-03-19-37-01-multistage-common"
+    build_tag_override: "beta:2.13.0-gpu-py310-cu118-ubuntu20.04-ec2-benchmark-tested-2024-04-30-21-13-19"
     enable_test_promotion: true
     context:
       <<: *TRAINING_CONTEXT
