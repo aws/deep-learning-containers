@@ -35,7 +35,7 @@ RUN apt-get update \
  && rm -rf /var/lib/apt/lists/*
 
 RUN apt-get update && \
-    apt-get install -y --only-upgrade openssh-client openssh-server
+    apt-get install -y --only-upgrade openssh-client openssh-server libtemplate-perl perl
 
 RUN HOME_DIR=/root \
  && curl -o ${HOME_DIR}/oss_compliance.zip https://aws-dlinfra-utilities.s3.amazonaws.com/oss_compliance.zip \
