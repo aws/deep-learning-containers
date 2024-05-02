@@ -48,7 +48,9 @@ RUN pip install --no-cache-dir -U --trusted-host pypi.org --trusted-host files.p
  # Update aiohttp to a secure version that fixes vulnerability id 64642
  && pip install --no-cache-dir -U aiohttp>=3.9.2 \
  # update paramiko to a secure version that fixes vulnerability id 65193
- && pip install --no-cache-dir -U --no-cache-dir -U paramiko>=3.4.0
+ && pip install --no-cache-dir -U --no-cache-dir -U paramiko>=3.4.0 \
+ # update idna to a secure version that fixes vulnerability id 67895
+ && pip install --no-cache-dir -U idna>=3.7.0
 
 
 RUN HOME_DIR=/root \
