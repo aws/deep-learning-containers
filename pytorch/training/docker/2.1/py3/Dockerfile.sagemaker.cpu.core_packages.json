@@ -8,19 +8,19 @@
     "skip": "True"
   },
   "torchaudio": {
-    "version_specifier": "==2.2.0",
+    "version_specifier": "==2.1.0",
     "skip": "True"
   },
   "torchdata": {
-    "version_specifier": "==0.7.1",
+    "version_specifier": "==0.7.0",
     "skip": "True"
   },
   "torchtext": {
-    "version_specifier": "==0.17.0",
+    "version_specifier": "==0.16.0",
     "skip": "True"
   },
   "torchvision": {
-    "version_specifier": "==0.17.0",
+    "version_specifier": "==0.16.0",
     "skip": "True"
   },
   "cryptography": {
@@ -46,8 +46,5 @@
   },
   "sagemaker-experiments": {
     "version_specifier": "<1"
-  },
-  "idna": {
-    "version_specifier": ">=3.7"
   }
 }

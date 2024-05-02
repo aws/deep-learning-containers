@@ -1,16 +1,20 @@
 account_id: &ACCOUNT_ID <set-$ACCOUNT_ID-in-environment>
+prod_account_id: &PROD_ACCOUNT_ID 763104351884
 region: &REGION <set-$REGION-in-environment>
 framework: &FRAMEWORK pytorch
 version: &VERSION 2.1.0
 short_version: &SHORT_VERSION "2.1"
 arch_type: graviton
+autopatch_build: "True"
 
 repository_info:
   inference_repository: &INFERENCE_REPOSITORY
-      image_type: &INFERENCE_IMAGE_TYPE inference
-      root: !join [ *FRAMEWORK, "/", *INFERENCE_IMAGE_TYPE ]
-      repository_name: &REPOSITORY_NAME !join [pr, "-", *FRAMEWORK, "-", *INFERENCE_IMAGE_TYPE, "-", graviton]
-      repository: &REPOSITORY !join [ *ACCOUNT_ID, .dkr.ecr., *REGION, .amazonaws.com/, *REPOSITORY_NAME ]
+    image_type: &INFERENCE_IMAGE_TYPE inference
+    root: !join [ *FRAMEWORK, "/", *INFERENCE_IMAGE_TYPE ]
+    repository_name: &REPOSITORY_NAME !join [ pr, "-", *FRAMEWORK, "-", *INFERENCE_IMAGE_TYPE, "-", graviton ]
+    repository: &REPOSITORY !join [ *ACCOUNT_ID, .dkr.ecr., *REGION, .amazonaws.com/, *REPOSITORY_NAME ]
+    release_repository_name: &RELEASE_REPOSITORY_NAME !join [ *FRAMEWORK, "-", *INFERENCE_IMAGE_TYPE, "-", graviton]
+    release_repository: &RELEASE_REPOSITORY !join [ *PROD_ACCOUNT_ID, .dkr.ecr., *REGION, .amazonaws.com/, *RELEASE_REPOSITORY_NAME ]
 
 context:
   inference_context: &INFERENCE_CONTEXT
@@ -38,6 +42,7 @@ images:
     python_version: &DOCKER_PYTHON_VERSION py3
     tag_python_version: &TAG_PYTHON_VERSION py310
     tag: !join [ *VERSION, "-", *DEVICE_TYPE, "-", *TAG_PYTHON_VERSION, "-", *OS_VERSION , "-ec2"]
+    latest_release_tag: !join [ *VERSION, "-", *DEVICE_TYPE, "-", *TAG_PYTHON_VERSION, "-", *OS_VERSION, "-ec2" ]
     docker_file: !join [ docker/, *SHORT_VERSION, /, *DOCKER_PYTHON_VERSION, /Dockerfile.graviton., *DEVICE_TYPE ]
     target: ec2
     context:
@@ -53,6 +58,7 @@ images:
     python_version: &DOCKER_PYTHON_VERSION py3
     tag_python_version: &TAG_PYTHON_VERSION py310
     tag: !join [ *VERSION, "-", *DEVICE_TYPE, "-", *TAG_PYTHON_VERSION, "-", *OS_VERSION , "-sagemaker"]
+    latest_release_tag: !join [ *VERSION, "-", *DEVICE_TYPE, "-", *TAG_PYTHON_VERSION, "-", *OS_VERSION, "-sagemaker" ]
     docker_file: !join [ docker/, *SHORT_VERSION, /, *DOCKER_PYTHON_VERSION, /Dockerfile.graviton., *DEVICE_TYPE ]
     target: sagemaker
     context:

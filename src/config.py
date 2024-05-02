@@ -48,7 +48,7 @@ def is_build_enabled():
     return parse_dlc_developer_configs("build", "do_build")
 
 
-def is_autopatch_build_enabled_in_image_buildspec(buildspec_path=None):
+def is_autopatch_build_enabled(buildspec_path=None):
     from buildspec import Buildspec
 
     if not buildspec_path:
@@ -57,12 +57,6 @@ def is_autopatch_build_enabled_in_image_buildspec(buildspec_path=None):
     image_buildspec_object.load(buildspec_path)
     autopatch_build_flag = image_buildspec_object.get("autopatch_build", "False").lower() == "true"
     return autopatch_build_flag
-
-
-def is_autopatch_build_enabled(buildspec_path=None):
-    return parse_dlc_developer_configs(
-        "build", "autopatch_build"
-    ) or is_autopatch_build_enabled_in_image_buildspec(buildspec_path=buildspec_path)
 
 
 def is_ec2_test_enabled():
