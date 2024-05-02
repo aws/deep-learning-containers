@@ -48,9 +48,9 @@ RUN pip install --no-cache-dir -U --trusted-host pypi.org --trusted-host files.p
  # Update aiohttp to a secure version that fixes vulnerability id 64642
  && pip install --no-cache-dir -U aiohttp>=3.9.2 \
  # below adjustments are done to be consistent with the training container
- && pip install --no-cache-dir -U scikit-learn==1.3.2 \
- && pip install --no-cache-dir -U scipy==1.11.4 \
- && pip install --no-cache-dir -U joblib==1.3.2
+ && pip install --no-cache-dir -U scikit-learn==1.4.0 \
+ && pip install --no-cache-dir -U scipy==1.12.0 \
+ && pip install --no-cache-dir -U joblib==1.4.2
 
 
 # add TS entrypoint
