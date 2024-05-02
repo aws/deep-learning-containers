@@ -6,12 +6,12 @@
       "version_specifier":">=6.0,<6.1"
    },
    "protobuf":{
-      "version_specifier":">=3.20.3,<4"
+      "version_specifier":"<4"
    },
    "tensorflow-io":{
       "version_specifier":"==0.33.0"
    },
-   "tensorflow-cpu":{
+   "tensorflow-gpu":{
       "version_specifier":"==2.13.0"
    },
    "cython":{
@@ -20,7 +20,7 @@
    "tf-models-official":{
       "version_specifier":"==2.13.0",
       "skip":"True",
-      "_comment":"Needs pyyaml <6 and can cause issues with the SM requirements which need PyYAML >6"
+      "_comment":"Needs pyyaml <6 and can cause issues with the SM requirements which need PyYAML >6. Will also complain about tensorflow not installed even when tensorflow-gpu is installed."
    },
    "tensorflow-model-optimization":{
       "version_specifier":">=0.4.1"
@@ -28,10 +28,13 @@
    "tensorflow-text":{
       "version_specifier":"==2.13.0",
       "skip":"True",
-      "_comment":"Will complain about tensorflow not installed even when tensorflow-cpu is installed."
+      "_comment":"Will complain about tensorflow not installed even when tensorflow-gpu is installed."
    },
    "tensorflow-hub":{
       "version_specifier":">=0.16.1"
+   },
+   "smprof":{
+      "version_specifier":"==0.3.332"
    },
    "sagemaker":{
       "version_specifier":"<3"
