@@ -38,7 +38,7 @@ RUN pip install --no-cache-dir -U --trusted-host pypi.org --trusted-host files.p
  && pip install --no-cache-dir -U "mmengine" \
 # Update requests to a secure version that fixes CVE-2023-32681
  && pip install --no-cache-dir -U requests>=2.31.0 \
- # Update ray to a secure version that fixes CVE-2023-6019, CVE-2023-6020, CVE-2023-6021, and CVE-2023-48023
+ # Update ray to a secure version that fixes CVE-2023-48022
  && pip install --no-cache-dir -U ray>=2.10.0 \
  # Update transformers to secure versions that fixes CVE-2023-7018
 #  && pip install --no-cache-dir -U transformers>=4.36.0 \
