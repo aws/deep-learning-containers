@@ -62,7 +62,7 @@ ENV TORCH_CUDA_ARCH_LIST="5.2;7.0+PTX;7.5;8.0;8.6;9.0"
 ENV TORCH_NVCC_FLAGS="-Xfatbin -compress-all"
 ENV CUDNN_VERSION=8.9.2.26
 ENV NCCL_VERSION=2.21.5
-ENV EFA_VERSION=1.31.0
+ENV EFA_VERSION=1.32.0
 ENV GDRCOPY_VERSION=2.4.1
 
 ENV CMAKE_PREFIX_PATH="$(dirname $(which conda))/../"
@@ -124,7 +124,7 @@ RUN curl -L -o ~/miniforge3.sh https://github.com/conda-forge/miniforge/releases
 
 # Install common conda packages
 RUN /opt/conda/bin/mamba install -y -c conda-forge \
-    "pyopenssl>=24.0.0" \
+    pyopenssl \
     requests \
     libgcc \
     pybind11 \
@@ -144,15 +144,14 @@ RUN /opt/conda/bin/mamba install -y -c conda-forge \
     click \
     psutil \
     ipython \
-    # Adding package for studio kernels
     ipykernel \
-    # patch CVE
-    "cryptography>=42.0.5" \
-    # patch CVE
-    "urllib3>=1.26.18,<2" \
+    cryptography \
+    "urllib3<2" \
     pillow \
-    "mpi4py>=3.1.4,<3.2" \
+    mpi4py \
     h5py \
+    pillow \
+    opencv-python \
   && /opt/conda/bin/mamba clean -afy \
   && rm -rf /etc/apt/sources.list.d/*
 
@@ -269,18 +268,11 @@ RUN /opt/conda/bin/mamba install -y python=${PYTHON_SHORT_VERSION} pytorch=${PYT
 # install PyTorch related python packages (depends on PyTorch)
 RUN /opt/conda/bin/mamba install -y -c conda-forge \
   # needed by fastai.distributed
-  # pin accelerate to 0.22.0 as newer version gives error "0.23.0 requires huggingface-hub, which is not installed."
-  "accelerate=0.22.0" \
+  accelerate \
   && /opt/conda/bin/mamba install -y -c fastai fastai \
   # fastai conda strictly depends on dataclasses
   && pip uninstall -y dataclasses \
   && pip install torchtnt \
-  && /opt/conda/bin/mamba clean -afy
-
-# Patches
-RUN pip install pillow opencv-python "idna>=3.7"
-RUN /opt/conda/bin/mamba install -y -c conda-forge \
-  "requests>=2.31.0" \
   && /opt/conda/bin/mamba clean -afy
 
 # Install GDRCopy which is a dependency of SM Distributed DataParallel binary
@@ -398,18 +390,11 @@ RUN /opt/conda/bin/mamba install -y python=${PYTHON_SHORT_VERSION} pytorch=${PYT
 # install PyTorch related python packages (depends on PyTorch)
 RUN /opt/conda/bin/mamba install -y -c conda-forge \
   # needed by fastai.distributed
-  # pin accelerate to 0.22.0 as newer version gives error "0.23.0 requires huggingface-hub, which is not installed."
-  "accelerate=0.22.0" \
+  accelerate \
   && /opt/conda/bin/mamba install -y -c fastai fastai \
   # fastai conda strictly depends on dataclasses
   && pip uninstall -y dataclasses \
   && pip install torchtnt \
-  && /opt/conda/bin/mamba clean -afy
-
-# Patches
-RUN pip install pillow opencv-python "idna>=3.7"
-RUN /opt/conda/bin/mamba install -y -c conda-forge \
-  "requests>=2.31.0" \
   && /opt/conda/bin/mamba clean -afy
 
 # Install GDRCopy which is a dependency of SM Distributed DataParallel binary
