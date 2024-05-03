@@ -155,7 +155,7 @@ RUN /opt/conda/bin/mamba install -y -c conda-forge \
   && rm -rf /etc/apt/sources.list.d/*
 
 # Install commond pip packages (in case of conda package is not available)
-RUN pip install --no-cache-dir opencv-python \
+RUN pip install --no-cache-dir opencv-python
 
 # For EFA, below flags are needed to install EFA on docker image
 #  -n, --no-verify	Skip EFA device verification and test

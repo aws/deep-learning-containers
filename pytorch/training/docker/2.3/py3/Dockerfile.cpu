@@ -144,9 +144,7 @@ RUN /opt/conda/bin/mamba install -y --override-channels \
   && /opt/conda/bin/mamba clean -afy
 
 # Install commond pip packages (in case of conda package is not available)
-RUN pip install --no-cache-dir opencv-python \
-
-RUN curl -o /license.txt https://aws-dlc-licenses.s3.amazonaws.com/pytorch-2.3/license.txt
+RUN pip install --no-cache-dir opencv-python
 
 # The ENV variables declared below are changed in the previous section
 # Grouping these ENV variables in the first section causes
@@ -157,6 +155,8 @@ RUN ompi_info --parsable --all | grep mpi_built_with_cuda_support:value
 
 # needed by torchdata
 RUN mkdir -p /etc/pki/tls/certs && cp /etc/ssl/certs/ca-certificates.crt /etc/pki/tls/certs/ca-bundle.crt
+
+RUN curl -o /license.txt https://aws-dlc-licenses.s3.amazonaws.com/pytorch-2.3/license.txt
 
 # Removing the cache as it is needed for security verification
 RUN rm -rf /root/.cache | true
