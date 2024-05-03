@@ -39,7 +39,7 @@ if [ $LATEST_RELEASED_IMAGE_URI == "763104351884.dkr.ecr.us-west-2.amazonaws.com
    [ $LATEST_RELEASED_IMAGE_URI == "763104351884.dkr.ecr.us-west-2.amazonaws.com/pytorch-training:2.2.0-gpu-py310-cu121-ubuntu20.04-sagemaker" ] || \
    [ $LATEST_RELEASED_IMAGE_URI == "763104351884.dkr.ecr.us-west-2.amazonaws.com/pytorch-inference:2.2.0-cpu-py310-ubuntu20.04-sagemaker" ] || \
    [ $LATEST_RELEASED_IMAGE_URI == "763104351884.dkr.ecr.us-west-2.amazonaws.com/pytorch-inference:2.2.0-gpu-py310-cu118-ubuntu20.04-sagemaker" ]; then
-    RUN curl -o /license.txt  https://aws-dlc-licenses.s3.amazonaws.com/pytorch-2.2/license.txt
+    curl -o /license.txt  https://aws-dlc-licenses.s3.amazonaws.com/pytorch-2.2/license.txt
 fi
 
 pip cache purge
