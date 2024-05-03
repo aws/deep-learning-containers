@@ -113,17 +113,23 @@ RUN curl -L -o ~/miniforge3.sh https://github.com/conda-forge/miniforge/releases
 RUN /opt/conda/bin/mamba install -y --override-channels \
     -c conda-forge \
     conda \
+    # patch CVE
+    "cryptography>=42.0.5" \
     cmake \
     requests \
-    pyopenssl \
-    python=${PYTHON_VERSION} \
+    "pyopenssl>=24.0.0" \
+    python=$PYTHON_VERSION \
     cython \
+    # force conda to install h5py with openmpi build, not mpich (rubik error)
+    # https://anaconda.org/conda-forge/h5py/files?page=2
+    "mpi4py>=3.1.4,<3.2" \
     mpi4py \
     h5py \
     mkl \
     mkl-include \
     parso \
     typing \
+    # Below 2 are included in miniconda base, but not mamba so need to install
     charset-normalizer \
     packaging \
     awscli \
@@ -134,15 +140,10 @@ RUN /opt/conda/bin/mamba install -y --override-channels \
     psutil \
     ipython \
     fsspec \
+    # patch CVE
+    "urllib3>=1.26.18,<2" \
+    # Adding package for studio kernels
     ipykernel \
-    pillow \
-    opencv \
-    "urllib3<2" \
-    "requests>=2.31.0" \
-    "cryptography>=42.0.5" \
-    "pyopenssl>=24.0.0" \
-    "mpi4py>3.1.4" \
-    "pyyaml>=6.0.1 \
   && /opt/conda/bin/mamba clean -afy
 
 RUN pip install --no-cache-dir --upgrade pip --no-cache-dir --trusted-host pypi.org --trusted-host files.pythonhosted.org \
@@ -195,10 +196,17 @@ RUN /opt/conda/bin/mamba install -y python=${PYTHON_SHORT_VERSION} pytorch=${PYT
   -c conda-forge \
   && /opt/conda/bin/mamba clean -afy
 
+# Patches
+RUN pip install pillow "pyyaml>=6.0.1" opencv-python "idna>=3.7"
+RUN /opt/conda/bin/mamba install -y -c conda-forge \
+  "requests>=2.31.0" \
+  && /opt/conda/bin/mamba clean -afy
+
 # install fastai (depends on PyTorch)
 RUN /opt/conda/bin/mamba install -y -c conda-forge \
   # needed by fastai.distributed
-  accelerate \
+  # pin accelerate to 0.22.0 as newer version gives error "0.23.0 requires huggingface-hub, which is not installed."
+  "accelerate=0.22.0" \
   && /opt/conda/bin/mamba install -y -c fastai fastai \
   # fastai conda strictly depends on dataclasses
   && pip uninstall -y dataclasses \
@@ -245,13 +253,12 @@ ARG PYTHON_SHORT_VERSION
 ARG PYTORCH_VERSION
 ARG CONDA_CHANNEL
 
-
 ENV SAGEMAKER_TRAINING_MODULE=sagemaker_pytorch_container.training:main
 
 WORKDIR /
 
 # Install AWS-PyTorch
-RUN /opt/conda/bin/mamba install -y python=${PYTHON_SHORT_VERSION} pytorch=${PYTORCH_VERSION} \
+RUN /opt/conda/bin/mamba install -y pytorch=${PYTORCH_VERSION} \
   torchvision torchaudio torchtext cpuonly \
   --override-channels \
   -c ${CONDA_CHANNEL} \
@@ -261,10 +268,17 @@ RUN /opt/conda/bin/mamba install -y python=${PYTHON_SHORT_VERSION} pytorch=${PYT
 # install fastai (depends on PyTorch)
 RUN /opt/conda/bin/mamba install -y -c conda-forge \
   # needed by fastai.distributed
-  accelerate \
+  # pin accelerate to 0.22.0 as newer version gives error "0.23.0 requires huggingface-hub, which is not installed."
+  "accelerate=0.22.0" \
   && /opt/conda/bin/mamba install -y -c fastai fastai \
   # fastai conda strictly depends on dataclasses
   && pip uninstall -y dataclasses \
+  && /opt/conda/bin/mamba clean -afy
+
+# Patches
+RUN pip install pillow "pyyaml>=6.0.1" opencv-python "idna>=3.7"
+RUN /opt/conda/bin/mamba install -y -c conda-forge \
+  "requests>=2.31.0" \
   && /opt/conda/bin/mamba clean -afy
 
 # Copy workaround script for incorrect hostname
