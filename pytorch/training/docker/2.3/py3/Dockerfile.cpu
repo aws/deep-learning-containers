@@ -144,9 +144,6 @@ RUN /opt/conda/bin/mamba install -y --override-channels \
     "urllib3<2" \
   && /opt/conda/bin/mamba clean -afy
 
-# Install common pip packages (in cases where package is not available in conda)
-RUN pip install --no-cache-dir opencv-python
-
 RUN curl -o /license.txt https://aws-dlc-licenses.s3.amazonaws.com/pytorch-2.1/license.txt
 
 # The ENV variables declared below are changed in the previous section
@@ -195,7 +192,8 @@ RUN /opt/conda/bin/mamba install -y python=${PYTHON_SHORT_VERSION} pytorch=${PYT
   && /opt/conda/bin/mamba clean -afy
 
 # Install PyTorch related python packages (depends on PyTorch)
-RUN /opt/conda/bin/mamba install -y -c conda-forge -c fastai \
+RUN pip install --no-cache-dir opencv-python \
+  && /opt/conda/bin/mamba install -y -c conda-forge -c fastai \
   accelerate \
   fastai \
   # fastai conda strictly depends on dataclasses
@@ -256,7 +254,8 @@ RUN /opt/conda/bin/mamba install -y python=${PYTHON_SHORT_VERSION} pytorch=${PYT
   && /opt/conda/bin/mamba clean -afy
 
 # Install PyTorch related python packages (depends on PyTorch)
-RUN /opt/conda/bin/mamba install -y -c conda-forge -c fastai \
+RUN pip install --no-cache-dir opencv-python \
+  && /opt/conda/bin/mamba install -y -c conda-forge -c fastai \
   accelerate \
   fastai \
   # fastai conda strictly depends on dataclasses

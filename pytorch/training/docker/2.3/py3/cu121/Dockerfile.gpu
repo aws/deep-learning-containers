@@ -156,9 +156,6 @@ RUN /opt/conda/bin/mamba install -y -c conda-forge \
   && /opt/conda/bin/mamba clean -afy \
   && rm -rf /etc/apt/sources.list.d/*
 
-# Install common pip packages (in cases where package is not available in conda)
-RUN pip install --no-cache-dir opencv-python
-
 # For EFA, below flags are needed to install EFA on docker image
 #  -n, --no-verify	Skip EFA device verification and test
 #  -l, --skip-limit-conf	Skip EFA limit configuration
@@ -267,7 +264,8 @@ RUN /opt/conda/bin/mamba install -y python=${PYTHON_SHORT_VERSION} pytorch=${PYT
   && /opt/conda/bin/mamba clean -afy
 
 # Install PyTorch related python packages (depends on PyTorch)
-RUN /opt/conda/bin/mamba install -y -c conda-forge -c fastai \
+RUN pip install --no-cache-dir opencv-python \
+  && /opt/conda/bin/mamba install -y -c conda-forge -c fastai \
   accelerate \
   fastai \
   # fastai conda strictly depends on dataclasses
@@ -388,7 +386,8 @@ RUN /opt/conda/bin/mamba install -y python=${PYTHON_SHORT_VERSION} pytorch=${PYT
   && /opt/conda/bin/mamba clean -afy
 
 # Install PyTorch related python packages (depends on PyTorch)
-RUN /opt/conda/bin/mamba install -y -c conda-forge -c fastai \
+RUN pip install --no-cache-dir opencv-python \
+  && /opt/conda/bin/mamba install -y -c conda-forge -c fastai \
   accelerate \
   fastai \
   # fastai conda strictly depends on dataclasses
