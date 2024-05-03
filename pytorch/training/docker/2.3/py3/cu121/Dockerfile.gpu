@@ -73,7 +73,6 @@ ENV MANUAL_BUILD=0
 ENV DLC_CONTAINER_TYPE=training
 
 RUN apt-get update \
- # TODO: Remove systemd upgrade once it is updated in base image
  && apt-get -y upgrade --only-upgrade systemd \
  && apt-get install -y --allow-change-held-packages --no-install-recommends \
     build-essential \
@@ -155,6 +154,9 @@ RUN /opt/conda/bin/mamba install -y -c conda-forge \
   && /opt/conda/bin/mamba clean -afy \
   && rm -rf /etc/apt/sources.list.d/*
 
+# Install commond pip packages (in case of conda package is not available)
+RUN pip install --no-cache-dir opencv-python \
+
 # For EFA, below flags are needed to install EFA on docker image
 #  -n, --no-verify	Skip EFA device verification and test
 #  -l, --skip-limit-conf	Skip EFA limit configuration
@@ -209,7 +211,7 @@ RUN rm -rf /root/.ssh/ && \
 
 RUN mkdir -p /etc/pki/tls/certs && cp /etc/ssl/certs/ca-certificates.crt /etc/pki/tls/certs/ca-bundle.crt
 
-RUN curl -o /license.txt https://aws-dlc-licenses.s3.amazonaws.com/pytorch-2.1/license.txt
+RUN curl -o /license.txt https://aws-dlc-licenses.s3.amazonaws.com/pytorch-2.3/license.txt
 
 # Removing the cache as it is needed for security verification
 RUN rm -rf /root/.cache | true
@@ -263,8 +265,7 @@ RUN /opt/conda/bin/mamba install -y python=${PYTHON_SHORT_VERSION} pytorch=${PYT
   && /opt/conda/bin/mamba clean -afy
 
 # Install PyTorch related python packages (depends on PyTorch)
-RUN pip install --no-cache-dir opencv-python \
-  && /opt/conda/bin/mamba install -y -c conda-forge -c fastai \
+RUN /opt/conda/bin/mamba install -y -c conda-forge -c fastai \
   accelerate \
   fastai \
   # fastai conda strictly depends on dataclasses
@@ -385,8 +386,7 @@ RUN /opt/conda/bin/mamba install -y python=${PYTHON_SHORT_VERSION} pytorch=${PYT
   && /opt/conda/bin/mamba clean -afy
 
 # Install PyTorch related python packages (depends on PyTorch)
-RUN pip install --no-cache-dir opencv-python \
-  && /opt/conda/bin/mamba install -y -c conda-forge -c fastai \
+RUN /opt/conda/bin/mamba install -y -c conda-forge -c fastai \
   accelerate \
   fastai \
   # fastai conda strictly depends on dataclasses
