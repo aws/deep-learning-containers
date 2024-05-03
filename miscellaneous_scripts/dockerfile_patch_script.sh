@@ -38,6 +38,13 @@ if [ $LATEST_RELEASED_IMAGE_URI == "763104351884.dkr.ecr.us-west-2.amazonaws.com
     echo "Installed mkl"
 fi
 
+if [ $LATEST_RELEASED_IMAGE_URI == "763104351884.dkr.ecr.us-west-2.amazonaws.com/pytorch-training:1.13.1-gpu-py39-cu117-ubuntu20.04-sagemaker" ]; then
+    pip install --no-cache-dir -U pybind11
+    echo "Installed pybind11"
+    conda install -c conda-forge "mkl<2024.1.0"
+    echo "Installed mkl"
+fi
+
 pip cache purge
 
 chmod +x $PATCHING_INFO_PATH/patch-details/install_script_os.sh && \
