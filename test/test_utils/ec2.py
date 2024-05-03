@@ -1238,9 +1238,7 @@ def execute_ec2_training_test(
     )
 
     if "habana" in ecr_uri:
-        execution_command = (
-            f"docker exec --user root {container_name} {executable} -c '{test_cmd}'"
-        )
+        execution_command = f"docker exec --user root {container_name} {executable} -c '{test_cmd}'"
         required_log_ending = "Kudos!! Habana tests executed successfully"
         framework = (
             "tensorflow" if "tensorflow" in ecr_uri else "pytorch" if "pytorch" in ecr_uri else None

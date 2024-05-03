@@ -752,9 +752,7 @@ def test_pytorch_cudnn_match_gpu(
     account_id = get_account_id_from_image_uri(pytorch_training)
     login_to_ecr_registry(ec2_connection, account_id, region)
     ec2_connection.run(f"docker pull -q {pytorch_training}", hide=True)
-    ec2_connection.run(
-        f"docker run --name {container_name} -itd {pytorch_training}", hide=True
-    )
+    ec2_connection.run(f"docker run --name {container_name} -itd {pytorch_training}", hide=True)
     major_cmd = 'cat /usr/include/cudnn_version.h | grep "#define CUDNN_MAJOR"'
     minor_cmd = 'cat /usr/include/cudnn_version.h | grep "#define CUDNN_MINOR"'
     patch_cmd = 'cat /usr/include/cudnn_version.h | grep "#define CUDNN_PATCHLEVEL"'

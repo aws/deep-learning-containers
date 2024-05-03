@@ -305,9 +305,7 @@ def _run_tag_failure_IMDSv1_disabled(image_uri, ec2_client, ec2_instance, ec2_co
     ec2_connection.run(f"sudo apt-get install -y net-tools")
     ec2_connection.run(f"sudo route add -host 169.254.169.254 reject")
 
-    invoke_telemetry_call(
-        image_uri, container_name, framework, job_type, ec2_connection
-    )
+    invoke_telemetry_call(image_uri, container_name, framework, job_type, ec2_connection)
 
     LOGGER.info(f"_run_tag_failure_IMDSv1_disabled, {image_uri} starting get_ec2_instance_tags")
     ec2_instance_tags = ec2_utils.get_ec2_instance_tags(ec2_instance_id, ec2_client=ec2_client)
@@ -351,9 +349,7 @@ def _run_tag_success_IMDSv1(image_uri, ec2_client, ec2_instance, ec2_connection)
 
     ec2_utils.enforce_IMDSv1(ec2_instance_id)
 
-    invoke_telemetry_call(
-        image_uri, container_name, framework, job_type, ec2_connection
-    )
+    invoke_telemetry_call(image_uri, container_name, framework, job_type, ec2_connection)
 
     LOGGER.info(f"_run_tag_success_IMDSv1, {image_uri} starting get_ec2_instance_tags")
     ec2_instance_tags = ec2_utils.get_ec2_instance_tags(ec2_instance_id, ec2_client=ec2_client)
@@ -404,9 +400,7 @@ def _run_tag_failure_IMDSv2_disabled_as_hop_limit_1(
 
     if expected_tag_key in preexisting_ec2_instance_tags:
         ec2_client.delete_tags(Resources=[ec2_instance_id], Tags=[{"Key": expected_tag_key}])
-    invoke_telemetry_call(
-        image_uri, container_name, framework, job_type, ec2_connection
-    )
+    invoke_telemetry_call(image_uri, container_name, framework, job_type, ec2_connection)
 
     LOGGER.info(
         f"_run_tag_failure_IMDSv2_disabled_as_hop_limit_1, {image_uri} starting get_ec2_instance_tags"
@@ -452,9 +446,7 @@ def _run_tag_success_IMDSv2_hop_limit_2(image_uri, ec2_client, ec2_instance, ec2
     if expected_tag_key in preexisting_ec2_instance_tags:
         ec2_client.delete_tags(Resources=[ec2_instance_id], Tags=[{"Key": expected_tag_key}])
 
-    invoke_telemetry_call(
-        image_uri, container_name, framework, job_type, ec2_connection
-    )
+    invoke_telemetry_call(image_uri, container_name, framework, job_type, ec2_connection)
 
     ec2_instance_tags = ec2_utils.get_ec2_instance_tags(ec2_instance_id, ec2_client=ec2_client)
     LOGGER.info(f"ec2_instance_tags: {ec2_instance_tags}")
@@ -498,7 +490,9 @@ def invoke_telemetry_call(
             framework.replace("huggingface_", "").replace("_trcomp", "").replace("stabilityai_", "")
         )
         framework_to_import = "torch" if framework_to_import == "pytorch" else framework_to_import
-        ec2_connection.run(f"docker run {docker_runtime} --name {container_name} -id {image_uri} bash")
+        ec2_connection.run(
+            f"docker run {docker_runtime} --name {container_name} -id {image_uri} bash"
+        )
         if test_mode:
             ec2_connection.run(
                 f"docker exec -i -e TEST_MODE={test_mode} {container_name} python -c 'import {framework_to_import}; import time; time.sleep(30);'"
