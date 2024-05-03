@@ -58,15 +58,17 @@ def get_ami_id_boto3(region_name, ami_name_pattern, IncludeDeprecated=False):
         Owners=["amazon"],
         IncludeDeprecated=IncludeDeprecated,
     )
-    #### TODO: remove/comment this when the 3881 is merged ####
-    # Date pinning AMI IDs due to nvidia-docker deprecation
-    filtered_images = [
-        element
-        for element in ami_list["Images"]
-        if datetime.strptime(element["CreationDate"], "%Y-%m-%dT%H:%M:%S.%fZ")
-        < datetime.strptime("2024-05-02", "%Y-%m-%d")
-    ]
-    ami = max(filtered_images, key=lambda x: x["CreationDate"])
+
+    # NOTE: Hotfix for fetching latest DLAMI before certain creation date.
+    # replace `ami_list["Images"]` with `filtered_images` in max() if needed.
+    # filtered_images = [
+    #     element
+    #     for element in ami_list["Images"]
+    #     if datetime.strptime(element["CreationDate"], "%Y-%m-%dT%H:%M:%S.%fZ")
+    #     < datetime.strptime("2024-05-02", "%Y-%m-%d")
+    # ]
+
+    ami = max(ami_list["Images"], key=lambda x: x["CreationDate"])
     return ami["ImageId"]
 
 
