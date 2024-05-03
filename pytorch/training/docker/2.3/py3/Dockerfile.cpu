@@ -113,9 +113,13 @@ RUN curl -L -o ~/miniforge3.sh https://github.com/conda-forge/miniforge/releases
 RUN /opt/conda/bin/mamba install -y --override-channels \
     -c conda-forge \
     conda \
+    cryptography \
     cmake \
-    python=${PYTHON_VERSION} \
+    requests \
+    pyopenssl \
+    python=$PYTHON_VERSION \
     cython \
+    mpi4py \
     h5py \
     mkl \
     mkl-include \
@@ -132,13 +136,6 @@ RUN /opt/conda/bin/mamba install -y --override-channels \
     ipython \
     fsspec \
     ipykernel \
-    pillow \
-    opencv \
-    requests \
-    cryptography \
-    pyopenssl \
-    mpi4py \
-    pyyaml \
     "urllib3<2" \
   && /opt/conda/bin/mamba clean -afy
 
@@ -192,7 +189,13 @@ RUN /opt/conda/bin/mamba install -y python=${PYTHON_SHORT_VERSION} pytorch=${PYT
   -c conda-forge \
   && /opt/conda/bin/mamba clean -afy
 
-# install fastai (depends on PyTorch)
+# Patches
+RUN pip install pillow pyyaml opencv-python
+RUN /opt/conda/bin/mamba install -y -c conda-forge \
+  requests \
+  && /opt/conda/bin/mamba clean -afy
+
+# Install fastai (depends on PyTorch)
 RUN /opt/conda/bin/mamba install -y -c conda-forge -c fastai \
   accelerate \
   fastai \
@@ -241,7 +244,6 @@ ARG PYTHON_SHORT_VERSION
 ARG PYTORCH_VERSION
 ARG CONDA_CHANNEL
 
-
 ENV SAGEMAKER_TRAINING_MODULE=sagemaker_pytorch_container.training:main
 
 WORKDIR /
@@ -252,6 +254,12 @@ RUN /opt/conda/bin/mamba install -y python=${PYTHON_SHORT_VERSION} pytorch=${PYT
   --override-channels \
   -c ${CONDA_CHANNEL} \
   -c conda-forge \
+  && /opt/conda/bin/mamba clean -afy
+
+# Patches
+RUN pip install pillow pyyaml opencv-python
+RUN /opt/conda/bin/mamba install -y -c conda-forge \
+  requests \
   && /opt/conda/bin/mamba clean -afy
 
 # Install fastai (depends on PyTorch)
