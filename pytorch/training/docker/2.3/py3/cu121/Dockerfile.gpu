@@ -121,9 +121,12 @@ RUN curl -L -o ~/miniforge3.sh https://github.com/conda-forge/miniforge/releases
  && ~/miniforge3.sh -b -p /opt/conda \
  && rm ~/miniforge3.sh
 
+RUN pip install --upgrade pip --no-cache-dir --trusted-host pypi.org --trusted-host files.pythonhosted.org \
+ && ln -s /opt/conda/bin/pip /usr/local/bin/pip3
+
 # Install common conda packages
 RUN /opt/conda/bin/mamba install -y -c conda-forge \
-    "pyopenssl>=24.0.0" \
+    pyopenssl \
     requests \
     libgcc \
     pybind11 \
@@ -143,17 +146,18 @@ RUN /opt/conda/bin/mamba install -y -c conda-forge \
     click \
     psutil \
     ipython \
-    # Adding package for studio kernels
     ipykernel \
-    # patch CVE
-    "cryptography>=42.0.5" \
-    # patch CVE
-    "urllib3>=1.26.18,<2" \
+    cryptography \
     pillow \
-    "mpi4py>=3.1.4,<3.2" \
     h5py \
+    mpi4py \
+    py-opencv \
+    "urllib3<2" \
   && /opt/conda/bin/mamba clean -afy \
   && rm -rf /etc/apt/sources.list.d/*
+
+# Install common pip packages (in cases where package is not available in conda)
+RUN pip install --no-cache-dir opencv-python
 
 # For EFA, below flags are needed to install EFA on docker image
 #  -n, --no-verify	Skip EFA device verification and test
@@ -173,9 +177,6 @@ RUN mkdir /tmp/efa \
 
 ENV PATH="${OPEN_MPI_PATH}/bin:${EFA_PATH}/bin:${PATH}"
 ENV LD_LIBRARY_PATH=${OPEN_MPI_PATH}/lib/:${EFA_PATH}/lib/:${LD_LIBRARY_PATH}
-
-RUN pip install --upgrade pip --no-cache-dir --trusted-host pypi.org --trusted-host files.pythonhosted.org \
- && ln -s /opt/conda/bin/pip /usr/local/bin/pip3
 
 WORKDIR /root
 
@@ -265,21 +266,13 @@ RUN /opt/conda/bin/mamba install -y python=${PYTHON_SHORT_VERSION} pytorch=${PYT
   -c conda-forge \
   && /opt/conda/bin/mamba clean -afy
 
-# install PyTorch related python packages (depends on PyTorch)
-RUN /opt/conda/bin/mamba install -y -c conda-forge \
-  # needed by fastai.distributed
-  # pin accelerate to 0.22.0 as newer version gives error "0.23.0 requires huggingface-hub, which is not installed."
-  "accelerate=0.22.0" \
-  && /opt/conda/bin/mamba install -y -c fastai fastai \
+# Install PyTorch related python packages (depends on PyTorch)
+RUN /opt/conda/bin/mamba install -y -c conda-forge -c fastai \
+  accelerate \
+  fastai \
   # fastai conda strictly depends on dataclasses
   && pip uninstall -y dataclasses \
-  && pip install torchtnt \
-  && /opt/conda/bin/mamba clean -afy
-
-# Patches
-RUN pip install pillow opencv-python "idna>=3.7"
-RUN /opt/conda/bin/mamba install -y -c conda-forge \
-  "requests>=2.31.0" \
+  && pip install --no-cache-dir torchtnt \
   && /opt/conda/bin/mamba clean -afy
 
 # Install GDRCopy which is a dependency of SM Distributed DataParallel binary
@@ -302,7 +295,7 @@ RUN cd /tmp \
 ENV LD_PRELOAD="/usr/local/lib/libnccl.so"
 
 # Install Nvidia Apex (needs pytorch)
-RUN pip install packaging \
+RUN pip install --no-cache-dir packaging \
   && git clone https://github.com/NVIDIA/apex \
   && cd apex \
   && git checkout 23.08 -b apex \
@@ -315,9 +308,9 @@ RUN pip install packaging \
 ENV NVTE_FRAMEWORK=pytorch
 # Install flash-attn using instructions from https://github.com/Dao-AILab/flash-attention#installation-and-features
 # Set MAX_JOBS=4 to avoid OOM issues in installation process
-RUN MAX_JOBS=4 pip install flash-attn==2.0.4 --no-build-isolation
+RUN MAX_JOBS=4 pip install --no-cache-dir flash-attn==2.0.4 --no-build-isolation
 # Install TE using instructions from https://docs.nvidia.com/deeplearning/transformer-engine/user-guide/installation.html
-RUN pip install git+https://github.com/NVIDIA/TransformerEngine.git@release_v0.12
+RUN pip install --no-cache-dir git+https://github.com/NVIDIA/TransformerEngine.git@release_v0.12
 
 RUN HOME_DIR=/root \
  && curl -o ${HOME_DIR}/oss_compliance.zip https://aws-dlinfra-utilities.s3.amazonaws.com/oss_compliance.zip \
@@ -394,21 +387,13 @@ RUN /opt/conda/bin/mamba install -y python=${PYTHON_SHORT_VERSION} pytorch=${PYT
   -c conda-forge \
   && /opt/conda/bin/mamba clean -afy
 
-# install PyTorch related python packages (depends on PyTorch)
-RUN /opt/conda/bin/mamba install -y -c conda-forge \
-  # needed by fastai.distributed
-  # pin accelerate to 0.22.0 as newer version gives error "0.23.0 requires huggingface-hub, which is not installed."
-  "accelerate=0.22.0" \
-  && /opt/conda/bin/mamba install -y -c fastai fastai \
+# Install PyTorch related python packages (depends on PyTorch)
+RUN /opt/conda/bin/mamba install -y -c conda-forge -c fastai \
+  accelerate \
+  fastai \
   # fastai conda strictly depends on dataclasses
   && pip uninstall -y dataclasses \
-  && pip install torchtnt \
-  && /opt/conda/bin/mamba clean -afy
-
-# Patches
-RUN pip install pillow opencv-python "idna>=3.7"
-RUN /opt/conda/bin/mamba install -y -c conda-forge \
-  "requests>=2.31.0" \
+  && pip install --no-cache-dir torchtnt \
   && /opt/conda/bin/mamba clean -afy
 
 # Install GDRCopy which is a dependency of SM Distributed DataParallel binary
@@ -431,7 +416,7 @@ RUN cd /tmp \
 ENV LD_PRELOAD="/usr/local/lib/libnccl.so"
 
 # Install Nvidia Apex (needs pytorch)
-RUN pip install packaging \
+RUN pip install --no-cache-dir packaging \
   && git clone https://github.com/NVIDIA/apex \
   && cd apex \
   && git checkout 23.08 -b apex \
@@ -444,9 +429,9 @@ RUN pip install packaging \
 ENV NVTE_FRAMEWORK=pytorch
 # Install flash-attn using instructions from https://github.com/Dao-AILab/flash-attention#installation-and-features
 # Set MAX_JOBS=4 to avoid OOM issues in installation process
-RUN MAX_JOBS=4 pip install flash-attn==2.0.4 --no-build-isolation
+RUN MAX_JOBS=4 pip install --no-cache-dir flash-attn==2.0.4 --no-build-isolation
 # Install TE using instructions from https://docs.nvidia.com/deeplearning/transformer-engine/user-guide/installation.html
-RUN pip install git+https://github.com/NVIDIA/TransformerEngine.git@release_v0.12
+RUN pip install --no-cache-dir git+https://github.com/NVIDIA/TransformerEngine.git@release_v0.12
 
 # Copy workaround script for incorrect hostname
 COPY changehostname.c /

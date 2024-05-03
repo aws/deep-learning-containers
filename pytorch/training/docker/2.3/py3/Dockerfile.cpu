@@ -109,6 +109,9 @@ RUN curl -L -o ~/miniforge3.sh https://github.com/conda-forge/miniforge/releases
  && ~/miniforge3.sh -b -p /opt/conda \
  && rm ~/miniforge3.sh
 
+RUN pip install --no-cache-dir --upgrade pip --no-cache-dir --trusted-host pypi.org --trusted-host files.pythonhosted.org \
+ && ln -s /opt/conda/bin/pip /usr/local/bin/pip3
+
 # install core conda dependency packages (and pin essential packages)
 RUN /opt/conda/bin/mamba install -y --override-channels \
     -c conda-forge \
@@ -138,12 +141,11 @@ RUN /opt/conda/bin/mamba install -y --override-channels \
     ipykernel \
     pyyaml \
     pillow \
-    py-opencv \
     "urllib3<2" \
   && /opt/conda/bin/mamba clean -afy
 
-RUN pip install --no-cache-dir --upgrade pip --no-cache-dir --trusted-host pypi.org --trusted-host files.pythonhosted.org \
- && ln -s /opt/conda/bin/pip /usr/local/bin/pip3
+# Install common pip packages (in cases where package is not available in conda)
+RUN pip install --no-cache-dir opencv-python
 
 RUN curl -o /license.txt https://aws-dlc-licenses.s3.amazonaws.com/pytorch-2.1/license.txt
 
@@ -192,7 +194,7 @@ RUN /opt/conda/bin/mamba install -y python=${PYTHON_SHORT_VERSION} pytorch=${PYT
   -c conda-forge \
   && /opt/conda/bin/mamba clean -afy
 
-# Install fastai (depends on PyTorch)
+# Install PyTorch related python packages (depends on PyTorch)
 RUN /opt/conda/bin/mamba install -y -c conda-forge -c fastai \
   accelerate \
   fastai \
@@ -253,7 +255,7 @@ RUN /opt/conda/bin/mamba install -y python=${PYTHON_SHORT_VERSION} pytorch=${PYT
   -c conda-forge \
   && /opt/conda/bin/mamba clean -afy
 
-# Install fastai (depends on PyTorch)
+# Install PyTorch related python packages (depends on PyTorch)
 RUN /opt/conda/bin/mamba install -y -c conda-forge -c fastai \
   accelerate \
   fastai \
@@ -270,8 +272,7 @@ RUN chmod +x /usr/local/bin/start_with_right_hostname.sh
 WORKDIR /root
 
 # install SM packages
-RUN pip install --no-cache-dir --upgrade pip --trusted-host pypi.org --trusted-host files.pythonhosted.org \
- && pip install --no-cache-dir -U \
+RUN pip install --no-cache-dir -U \
     smclarify \
     "sagemaker>=2,<3" \
     "sagemaker-experiments<1" \
