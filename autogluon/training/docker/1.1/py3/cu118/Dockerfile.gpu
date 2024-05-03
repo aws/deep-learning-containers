@@ -39,7 +39,7 @@ RUN pip install --no-cache-dir -U --trusted-host pypi.org --trusted-host files.p
  && pip install --no-cache-dir -U ray>=2.10.0 \
  # Update transformers to secure versions that fixes CVE-2023-7018
 #  && pip install --no-cache-dir -U transformers>=4.36.0 \
-#  && pip install --no-cache-dir -U setuptools>=65.5.1 \
+ && pip install --no-cache-dir -U setuptools>=65.5.1 \
 #  && pip install --no-cache-dir -U cryptography>=41.0.7 \
  # Update pillow to a secure version that fixes CVE-2023-50447
  && pip install --no-cache-dir -U pillow>=10.2.0 \ 
