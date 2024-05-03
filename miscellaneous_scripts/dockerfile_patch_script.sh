@@ -31,16 +31,15 @@ mv $PATCHING_INFO_PATH/patch-details-current $PATCHING_INFO_PATH/patch-details
 chmod +x $PATCHING_INFO_PATH/patch-details/install_script_language.sh && \
 $PATCHING_INFO_PATH/patch-details/install_script_language.sh
 
-if [ $LATEST_RELEASED_IMAGE_URI == "763104351884.dkr.ecr.us-west-2.amazonaws.com/pytorch-training:2.0.1-gpu-py310-cu121-ubuntu20.04-sagemaker" ]; then
-    SMP_URL=https://smppy.s3.amazonaws.com/pytorch/cu121/smprof-0.3.334-cp310-cp310-linux_x86_64.whl
-    pip install --no-cache-dir -U ${SMP_URL}
-    echo "Installed SMP";
-fi
-
-if [ $LATEST_RELEASED_IMAGE_URI == "763104351884.dkr.ecr.us-west-2.amazonaws.com/pytorch-training:2.0.1-gpu-py310-cu118-ubuntu20.04-sagemaker" ]; then
-    SMP_URL=https://smppy.s3.amazonaws.com/pytorch/cu118/smprof-0.3.334-cp310-cp310-linux_x86_64.whl
-    pip install --no-cache-dir -U ${SMP_URL}
-    echo "Installed SMP";
+if [ $LATEST_RELEASED_IMAGE_URI == "763104351884.dkr.ecr.us-west-2.amazonaws.com/pytorch-training:2.2.0-cpu-py310-ubuntu20.04-ec2" ] || \
+   [ $LATEST_RELEASED_IMAGE_URI == "763104351884.dkr.ecr.us-west-2.amazonaws.com/pytorch-training:2.2.0-gpu-py310-cu121-ubuntu20.04-ec2" ] || \
+   [ $LATEST_RELEASED_IMAGE_URI == "763104351884.dkr.ecr.us-west-2.amazonaws.com/pytorch-inference:2.2.0-cpu-py310-ubuntu20.04-ec2" ] || \
+   [ $LATEST_RELEASED_IMAGE_URI == "763104351884.dkr.ecr.us-west-2.amazonaws.com/pytorch-inference:2.2.0-gpu-py310-cu118-ubuntu20.04-ec2" ] || \
+   [ $LATEST_RELEASED_IMAGE_URI == "763104351884.dkr.ecr.us-west-2.amazonaws.com/pytorch-training:2.2.0-cpu-py310-ubuntu20.04-sagemaker" ] || \
+   [ $LATEST_RELEASED_IMAGE_URI == "763104351884.dkr.ecr.us-west-2.amazonaws.com/pytorch-training:2.2.0-gpu-py310-cu121-ubuntu20.04-sagemaker" ] || \
+   [ $LATEST_RELEASED_IMAGE_URI == "763104351884.dkr.ecr.us-west-2.amazonaws.com/pytorch-inference:2.2.0-cpu-py310-ubuntu20.04-sagemaker" ] || \
+   [ $LATEST_RELEASED_IMAGE_URI == "763104351884.dkr.ecr.us-west-2.amazonaws.com/pytorch-inference:2.2.0-gpu-py310-cu118-ubuntu20.04-sagemaker" ]; then
+    RUN curl -o /license.txt  https://aws-dlc-licenses.s3.amazonaws.com/pytorch-2.2/license.txt
 fi
 
 pip cache purge
