@@ -231,23 +231,21 @@ def _run_s3_query_bucket_success(image_uri, ec2_client, ec2_instance, ec2_connec
     framework = framework.replace("stabilityai_", "")
     framework = framework.replace("_trcomp", "")
     job_type = test_utils.get_job_type_from_image(image_uri)
-    processor = test_utils.get_processor_from_image_uri(image_uri)
     container_type = test_utils.get_job_type_from_image(image_uri)
     container_name = f"{repo_name}-telemetry_s3_query_success-ec2"
 
-    docker_cmd = "nvidia-docker" if processor == "gpu" else "docker"
     test_utils.login_to_ecr_registry(ec2_connection, account_id, image_region)
     ## For big images like trcomp, the ec2_connection.run command stops listening and the code hangs here.
     ## Hence, avoiding the use of -q to let the connection remain active.
-    ec2_connection.run(f"{docker_cmd} pull {image_uri}", hide="out")
+    ec2_connection.run(f"docker pull {image_uri}", hide="out")
 
     actual_output = invoke_telemetry_call(
-        image_uri, container_name, docker_cmd, framework, job_type, ec2_connection, test_mode=1
+        image_uri, container_name, framework, job_type, ec2_connection, test_mode=1
     )
 
     py_version = (
         ec2_connection.run(
-            f"{docker_cmd} exec -i {container_name} /bin/bash -c 'python --version'", warn=True
+            f"docker exec -i {container_name} /bin/bash -c 'python --version'", warn=True
         )
         .stdout.strip("\n")
         .split(" ")[1]
@@ -285,17 +283,14 @@ def _run_tag_failure_IMDSv1_disabled(image_uri, ec2_client, ec2_instance, ec2_co
     repo_name, image_tag = test_utils.get_repository_and_tag_from_image_uri(image_uri)
     framework, _ = test_utils.get_framework_and_version_from_tag(image_uri)
     job_type = test_utils.get_job_type_from_image(image_uri)
-    processor = test_utils.get_processor_from_image_uri(image_uri)
 
     container_name = f"{repo_name}-telemetry_instance_tag_failure-ec2"
-
-    docker_cmd = "nvidia-docker" if processor == "gpu" else "docker"
 
     LOGGER.info(f"_run_tag_failure_IMDSv1_disabled pulling: {image_uri}")
     test_utils.login_to_ecr_registry(ec2_connection, account_id, image_region)
     ## For big images like trcomp, the ec2_connection.run command stops listening and the code hangs here.
     ## Hence, avoiding the use of -q to let the connection remain active.
-    ec2_connection.run(f"{docker_cmd} pull {image_uri}", hide="out")
+    ec2_connection.run(f"docker pull {image_uri}", hide="out")
 
     LOGGER.info(f"_run_tag_failure_IMDSv1_disabled, {image_uri} get_ec2_instance_tags")
     preexisting_ec2_instance_tags = ec2_utils.get_ec2_instance_tags(
@@ -311,7 +306,7 @@ def _run_tag_failure_IMDSv1_disabled(image_uri, ec2_client, ec2_instance, ec2_co
     ec2_connection.run(f"sudo route add -host 169.254.169.254 reject")
 
     invoke_telemetry_call(
-        image_uri, container_name, docker_cmd, framework, job_type, ec2_connection
+        image_uri, container_name, framework, job_type, ec2_connection
     )
 
     LOGGER.info(f"_run_tag_failure_IMDSv1_disabled, {image_uri} starting get_ec2_instance_tags")
@@ -337,15 +332,12 @@ def _run_tag_success_IMDSv1(image_uri, ec2_client, ec2_instance, ec2_connection)
     repo_name, image_tag = test_utils.get_repository_and_tag_from_image_uri(image_uri)
     framework, _ = test_utils.get_framework_and_version_from_tag(image_uri)
     job_type = test_utils.get_job_type_from_image(image_uri)
-    processor = test_utils.get_processor_from_image_uri(image_uri)
 
     container_name = f"{repo_name}-telemetry_tag_instance_success-ec2-IMDSv1"
 
-    docker_cmd = "nvidia-docker" if processor == "gpu" else "docker"
-
     LOGGER.info(f"_run_tag_success_IMDSv1 pulling: {image_uri}")
     test_utils.login_to_ecr_registry(ec2_connection, account_id, image_region)
-    ec2_connection.run(f"{docker_cmd} pull {image_uri}", hide="out")
+    ec2_connection.run(f"docker pull {image_uri}", hide="out")
 
     LOGGER.info(f"_run_tag_success_IMDSv1, {image_uri} starting get_ec2_instance_tags")
     preexisting_ec2_instance_tags = ec2_utils.get_ec2_instance_tags(
@@ -360,7 +352,7 @@ def _run_tag_success_IMDSv1(image_uri, ec2_client, ec2_instance, ec2_connection)
     ec2_utils.enforce_IMDSv1(ec2_instance_id)
 
     invoke_telemetry_call(
-        image_uri, container_name, docker_cmd, framework, job_type, ec2_connection
+        image_uri, container_name, framework, job_type, ec2_connection
     )
 
     LOGGER.info(f"_run_tag_success_IMDSv1, {image_uri} starting get_ec2_instance_tags")
@@ -389,15 +381,12 @@ def _run_tag_failure_IMDSv2_disabled_as_hop_limit_1(
     repo_name, image_tag = test_utils.get_repository_and_tag_from_image_uri(image_uri)
     framework, _ = test_utils.get_framework_and_version_from_tag(image_uri)
     job_type = test_utils.get_job_type_from_image(image_uri)
-    processor = test_utils.get_processor_from_image_uri(image_uri)
 
     container_name = f"{repo_name}-telemetry_tag_instance_failure-ec2-IMDSv2"
 
-    docker_cmd = "nvidia-docker" if processor == "gpu" else "docker"
-
     LOGGER.info(f"_run_tag_failure_IMDSv2_disabled_as_hop_limit_1 pulling: {image_uri}")
     test_utils.login_to_ecr_registry(ec2_connection, account_id, image_region)
-    ec2_connection.run(f"{docker_cmd} pull {image_uri}", hide="out")
+    ec2_connection.run(f"docker pull {image_uri}", hide="out")
 
     LOGGER.info(
         f"_run_tag_failure_IMDSv2_disabled_as_hop_limit_1, {image_uri} starting get_ec2_instance_tags"
@@ -416,7 +405,7 @@ def _run_tag_failure_IMDSv2_disabled_as_hop_limit_1(
     if expected_tag_key in preexisting_ec2_instance_tags:
         ec2_client.delete_tags(Resources=[ec2_instance_id], Tags=[{"Key": expected_tag_key}])
     invoke_telemetry_call(
-        image_uri, container_name, docker_cmd, framework, job_type, ec2_connection
+        image_uri, container_name, framework, job_type, ec2_connection
     )
 
     LOGGER.info(
@@ -446,15 +435,12 @@ def _run_tag_success_IMDSv2_hop_limit_2(image_uri, ec2_client, ec2_instance, ec2
     repo_name, image_tag = test_utils.get_repository_and_tag_from_image_uri(image_uri)
     framework, _ = test_utils.get_framework_and_version_from_tag(image_uri)
     job_type = test_utils.get_job_type_from_image(image_uri)
-    processor = test_utils.get_processor_from_image_uri(image_uri)
 
     container_name = f"{repo_name}-telemetry_tag_instance_success-ec2-IMDSv2"
 
-    docker_cmd = "nvidia-docker" if processor == "gpu" else "docker"
-
     LOGGER.info(f"_run_tag_success_IMDSv2_hop_limit_2 pulling: {image_uri}")
     test_utils.login_to_ecr_registry(ec2_connection, account_id, image_region)
-    ec2_connection.run(f"{docker_cmd} pull {image_uri}", hide="out")
+    ec2_connection.run(f"docker pull {image_uri}", hide="out")
 
     LOGGER.info(f"_run_tag_success_IMDSv2_hop_limit_2, {image_uri} starting get_ec2_instance_tags")
     preexisting_ec2_instance_tags = ec2_utils.get_ec2_instance_tags(
@@ -467,7 +453,7 @@ def _run_tag_success_IMDSv2_hop_limit_2(image_uri, ec2_client, ec2_instance, ec2
         ec2_client.delete_tags(Resources=[ec2_instance_id], Tags=[{"Key": expected_tag_key}])
 
     invoke_telemetry_call(
-        image_uri, container_name, docker_cmd, framework, job_type, ec2_connection
+        image_uri, container_name, framework, job_type, ec2_connection
     )
 
     ec2_instance_tags = ec2_utils.get_ec2_instance_tags(ec2_instance_id, ec2_client=ec2_client)
@@ -478,12 +464,14 @@ def _run_tag_success_IMDSv2_hop_limit_2(image_uri, ec2_client, ec2_instance, ec2
 
 
 def invoke_telemetry_call(
-    image_uri, container_name, docker_cmd, framework, job_type, ec2_connection, test_mode=None
+    image_uri, container_name, framework, job_type, ec2_connection, test_mode=None
 ):
     """
     Run import framework command inside docker container
     """
     output = None
+    processor = test_utils.get_processor_from_image_uri(image_uri)
+    docker_runtime = "--runtime=nvidia --gpus all" if processor == "gpu" else ""
     if "tensorflow" in framework and job_type == "inference":
         model_name = "saved_model_half_plus_two"
         model_base_path = test_utils.get_tensorflow_model_base_path(image_uri)
@@ -494,15 +482,15 @@ def invoke_telemetry_call(
         inference_command = get_tensorflow_inference_command_tf27_above(image_uri, model_name)
         if test_mode:
             ec2_connection.run(
-                f"{docker_cmd} run {env_vars} -e TEST_MODE={test_mode} --name {container_name} -id {image_uri}  {inference_command}"
+                f"docker run {docker_runtime} {env_vars} -e TEST_MODE={test_mode} --name {container_name} -id {image_uri}  {inference_command}"
             )
             time.sleep(30)
             output = ec2_connection.run(
-                f"{docker_cmd} exec -i {container_name} /bin/bash -c 'cat /tmp/test_request.txt'"
+                f"docker exec -i {container_name} /bin/bash -c 'cat /tmp/test_request.txt'"
             ).stdout.strip("\n")
         else:
             ec2_connection.run(
-                f"{docker_cmd} run {env_vars} --name {container_name} -id {image_uri} {inference_command}"
+                f"docker run {docker_runtime} {env_vars} --name {container_name} -id {image_uri} {inference_command}"
             )
             time.sleep(30)
     else:
@@ -510,17 +498,17 @@ def invoke_telemetry_call(
             framework.replace("huggingface_", "").replace("_trcomp", "").replace("stabilityai_", "")
         )
         framework_to_import = "torch" if framework_to_import == "pytorch" else framework_to_import
-        ec2_connection.run(f"{docker_cmd} run --name {container_name} -id {image_uri} bash")
+        ec2_connection.run(f"docker run {docker_runtime} --name {container_name} -id {image_uri} bash")
         if test_mode:
             ec2_connection.run(
-                f"{docker_cmd} exec -i -e TEST_MODE={test_mode} {container_name} python -c 'import {framework_to_import}; import time; time.sleep(30);'"
+                f"docker exec -i -e TEST_MODE={test_mode} {container_name} python -c 'import {framework_to_import}; import time; time.sleep(30);'"
             )
             output = ec2_connection.run(
-                f"{docker_cmd} exec -i {container_name} /bin/bash -c 'cat /tmp/test_request.txt'"
+                f"docker exec -i {container_name} /bin/bash -c 'cat /tmp/test_request.txt'"
             ).stdout.strip("\n")
         else:
             output = ec2_connection.run(
-                f"{docker_cmd} exec -i {container_name} python -c 'import {framework_to_import}; import time; time.sleep(30)'"
+                f"docker exec -i {container_name} python -c 'import {framework_to_import}; import time; time.sleep(30)'"
             )
             assert (
                 output.ok

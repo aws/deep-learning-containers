@@ -16,7 +16,7 @@ def smclarify_metrics_cpu(training, ec2_connection):
 
 
 def smclarify_metrics_gpu(training, ec2_connection):
-    run_smclarify_bias_metrics(training, ec2_connection, docker_executable="nvidia-docker")
+    run_smclarify_bias_metrics(training, ec2_connection, docker_runtime="--runtime=nvidia --gpus all")
 
 
 class SMClarifyTestFailure(Exception):
@@ -26,7 +26,7 @@ class SMClarifyTestFailure(Exception):
 def run_smclarify_bias_metrics(
     image_uri,
     ec2_connection,
-    docker_executable="docker",
+    docker_runtime="",
     container_name="smclarify",
     test_script=SMCLARIFY_SCRIPT,
 ):
@@ -40,7 +40,7 @@ def run_smclarify_bias_metrics(
 
     try:
         ec2_connection.run(
-            f"{docker_executable} run --name {container_name} -v "
+            f"docker run {docker_runtime} --name {container_name} -v "
             f"{container_test_local_dir}:{os.path.join(os.sep, 'test')} {image_uri} "
             f"python {test_script}",
             hide=True,

@@ -68,7 +68,6 @@ def test_performance_ec2_tensorflow_inference_graviton_cpu(
 def ec2_performance_tensorflow_inference(
     image_uri, processor, ec2_connection, ec2_instance_ami, region, threshold
 ):
-    docker_cmd = "nvidia-docker" if processor == "gpu" else "docker"
     is_graviton = "graviton" in image_uri
 
     # active python env location used with graviton AMI is different than x86_64 AMI
@@ -87,7 +86,7 @@ def ec2_performance_tensorflow_inference(
     # Make sure we are logged into ECR so we can pull the image
     account_id = get_account_id_from_image_uri(image_uri)
     login_to_ecr_registry(ec2_connection, account_id, region)
-    ec2_connection.run(f"{docker_cmd} pull -q {image_uri} ")
+    ec2_connection.run(f"docker pull -q {image_uri} ")
     if is_graviton:
         # TF training binary is used that is compatible for graviton instance type
         ec2_connection.run(

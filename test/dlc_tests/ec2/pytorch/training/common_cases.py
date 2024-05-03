@@ -195,23 +195,23 @@ def pytorch_cudnn_match_gpu(pytorch_training, ec2_connection, region):
     login_to_ecr_registry(ec2_connection, account_id, region)
     ec2_connection.run(f"docker pull -q {pytorch_training}", hide=True)
     ec2_connection.run(
-        f"nvidia-docker run --name {container_name} -itd {pytorch_training}", hide=True
+        f"docker run --runtime=nvidia --gpus all --name {container_name} -itd {pytorch_training}", hide=True
     )
     major_cmd = 'cat /usr/include/cudnn_version.h | grep "#define CUDNN_MAJOR"'
     minor_cmd = 'cat /usr/include/cudnn_version.h | grep "#define CUDNN_MINOR"'
     patch_cmd = 'cat /usr/include/cudnn_version.h | grep "#define CUDNN_PATCHLEVEL"'
     major = ec2_connection.run(
-        f"nvidia-docker exec --user root {container_name} bash -c '{major_cmd}'", hide=True
+        f"docker exec --user root {container_name} bash -c '{major_cmd}'", hide=True
     ).stdout.split()[-1]
     minor = ec2_connection.run(
-        f"nvidia-docker exec --user root {container_name} bash -c '{minor_cmd}'", hide=True
+        f"docker exec --user root {container_name} bash -c '{minor_cmd}'", hide=True
     ).stdout.split()[-1]
     patch = ec2_connection.run(
-        f"nvidia-docker exec --user root {container_name} bash -c '{patch_cmd}'", hide=True
+        f"docker exec --user root {container_name} bash -c '{patch_cmd}'", hide=True
     ).stdout.split()[-1]
 
     cudnn_from_torch = ec2_connection.run(
-        f"nvidia-docker exec --user root {container_name} python -c 'from torch.backends import cudnn; print(cudnn.version())'",
+        f"docker exec --user root {container_name} python -c 'from torch.backends import cudnn; print(cudnn.version())'",
         hide=True,
     ).stdout.strip()
 
