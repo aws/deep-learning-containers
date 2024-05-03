@@ -138,7 +138,7 @@ RUN /opt/conda/bin/mamba install -y --override-channels \
     ipykernel \
     pillow \
     pyyaml \
-    opencv-python \
+    opencv \
   && /opt/conda/bin/mamba clean -afy
 
 RUN pip install --no-cache-dir --upgrade pip --no-cache-dir --trusted-host pypi.org --trusted-host files.pythonhosted.org \
