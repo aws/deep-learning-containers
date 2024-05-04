@@ -8,7 +8,7 @@ LABEL dlc_major_version="1"
 
 # Uninstall the existing version
 RUN mamba remove pytorch --force -y
-# Install Torch 2.1.0
+# Install PyTorch 2.1.0
 RUN mamba install pytorch=2.1.0 --strict-channel-priority --override-channels -c https://aws-ml-conda.s3.us-west-2.amazonaws.com -c nvidia/label/cuda-11.8.0 -c conda-forge -y
 
 RUN apt-get update \
@@ -29,21 +29,18 @@ ARG AUTOGLUON_VERSION=1.1.0
 # Upgrading pip and installing/updating Python dependencies
 # Comments are added to explain the reason behind each update
 RUN pip install --no-cache-dir -U --trusted-host pypi.org --trusted-host files.pythonhosted.org pip \
- && pip install --no-cache-dir -U setuptools wheel \
+ && pip install --no-cache-dir -U wheel \
  && pip install --no-cache-dir -U numpy numba \
  && pip install --no-cache-dir -U autogluon==${AUTOGLUON_VERSION} \
  && mim install -q mmcv==2.1.0 --timeout 600 \
  && pip install --no-cache-dir -U mmdet>=3.0.0 \
-#  && pip install --no-cache-dir -U "pymupdf" \
  && pip install --no-cache-dir -U "mmengine" \
 # Update requests to a secure version that fixes CVE-2023-32681
  && pip install --no-cache-dir -U requests>=2.31.0 \
  # Update ray to a secure version that fixes CVE-2023-48022
  && pip install --no-cache-dir -U ray>=2.10.0 \
  # Update transformers to secure versions that fixes CVE-2023-7018
-#  && pip install --no-cache-dir -U transformers>=4.36.0 \
  && pip install --no-cache-dir -U setuptools>=65.5.1 \
-#  && pip install --no-cache-dir -U cryptography>=41.0.7 \
  # Update pillow to a secure version that fixes CVE-2023-50447
  && pip install --no-cache-dir -U pillow>=10.2.0 \ 
  # Update Jinja2 to a secure version that fixes vulnerability id 64227
@@ -51,7 +48,7 @@ RUN pip install --no-cache-dir -U --trusted-host pypi.org --trusted-host files.p
  # Update aiohttp to a secure version that fixes vulnerability id 64642
  && pip install --no-cache-dir -U aiohttp>=3.9.2 \
  # update paramiko to a secure version that fixes vulnerability id 65193
- && pip install --no-cache-dir -U --no-cache-dir -U paramiko>=3.4.0 \
+ && pip install --no-cache-dir -U paramiko>=3.4.0 \
  # update idna to a secure version that fixes vulnerability id 67895
  && pip install --no-cache-dir -U idna>=3.7.0 \
  # update tqdm to a secure version that fixes CVE-2024-34062
