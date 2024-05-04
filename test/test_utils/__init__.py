@@ -2434,8 +2434,7 @@ def get_instance_type_base_dlami(instance_type, region, linux_dist="UBUNTU_20"):
                                                              "p3dn.24xlarge",
                                                              "g3s.xlarge",
                                                              "g3.4xlarge",
-                                                             "g3.8xlarge",
-                                                             "g3.16xlarge",]
+                                                             "g3.8xlarge",]
 
     Other instances will default to Proprietary Nvidia Driver DLAMI
     """
@@ -2448,7 +2447,6 @@ def get_instance_type_base_dlami(instance_type, region, linux_dist="UBUNTU_20"):
         "g3s.xlarge",
         "g3.4xlarge",
         "g3.8xlarge",
-        "g3.16xlarge",
     ]
 
     ami_patterns = {
