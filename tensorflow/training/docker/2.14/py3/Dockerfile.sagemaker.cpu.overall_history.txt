@@ -1,5 +1,13 @@
 #### First image: sha256:ab86c1a52886df4b3f16c320e2115e6da188ac6278ce43dbfd21f2a7b41176d0 ####
-#### Current Patch contents ####
+#### Patch contents for patch-1: sha256:23837fef09853c512277d2eb1c71397d972c80f50c64fa1576a8e9fcae194c31 ####
 pip install cryptography==42.0.5 pillow==10.3.0 
 python -m pip install --upgrade pip
 apt-get update && apt-get install -y --only-upgrade bind9-host bind9-libs binutils-common binutils-x86-64-linux-gnu binutils bsdutils curl fdisk libbinutils libblkid-dev libblkid1 libctf-nobfd0 libctf0 libcurl3-gnutls libcurl4-openssl-dev libcurl4 libfdisk1 libmount-dev libmount1 libsmartcols1 libssl-dev libssl1.1 libtiff5 libuuid1 libuv1 libxml2-utils libxml2 login mount openssl passwd util-linux uuid-dev vim-common vim-runtime vim xxd
+#### Patch contents for patch-2: sha256:207af543d74038ae8af4988c8f378c4462c79ffd18db9f48ec3e87c79deeca0d ####
+pip install cryptography==42.0.5 idna==3.7 pillow==10.3.0 
+python -m pip install --upgrade pip
+apt-get update && apt-get install -y --only-upgrade bind9-host bind9-libs binutils-common binutils-x86-64-linux-gnu binutils bsdutils curl fdisk libbinutils libblkid-dev libblkid1 libctf-nobfd0 libctf0 libcurl3-gnutls libcurl4-openssl-dev libcurl4 libfdisk1 libgnutls30 libmount-dev libmount1 libsmartcols1 libssl-dev libssl1.1 libtiff5 libuuid1 libuv1 libxml2-utils libxml2 login mount openssl passwd util-linux uuid-dev vim-common vim-runtime vim xxd
+#### Current Patch contents ####
+pip install cryptography==42.0.5 idna==3.7 pillow==10.3.0 
+python -m pip install --upgrade pip
+apt-get update && apt-get install -y --only-upgrade bind9-host bind9-libs binutils-common binutils-x86-64-linux-gnu binutils bsdutils curl fdisk libbinutils libblkid-dev libblkid1 libc6 libctf-nobfd0 libctf0 libcurl3-gnutls libcurl4-openssl-dev libcurl4 libfdisk1 libgnutls30 libmount-dev libmount1 libnghttp2-14 libsmartcols1 libssl-dev libssl1.1 libtiff5 libuuid1 libuv1 libxml2-utils libxml2 linux-libc-dev login mount openssl passwd util-linux uuid-dev vim-common vim-runtime vim xxd
