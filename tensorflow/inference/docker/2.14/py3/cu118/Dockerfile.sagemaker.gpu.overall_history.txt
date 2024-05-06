@@ -1,5 +1,13 @@
 #### First image: sha256:abc182842031dbed33c1530c3a18475f6b1f60e5909054284466d5c60316c134 ####
-#### Current Patch contents ####
+#### Patch contents for patch-1: sha256:1cf0a63962711c1a9ef1cd5d2ec4750c1b7ac4e37bd705d7fc778b85805fad14 ####
 echo N/A 
 python -m pip install --upgrade pip
 apt-get update && apt-get install -y --only-upgrade bsdutils curl fdisk libblkid1 libcurl3-gnutls libcurl4 libfdisk1 libmount1 libsmartcols1 libuuid1 mount util-linux uuid-dev vim-common vim-runtime vim xxd
+#### Patch contents for patch-2: sha256:58ca56c53880f60a9124a272027f6baa93fb2b6e3e86eadf7599fa2da81719b2 ####
+pip install idna==3.7 
+python -m pip install --upgrade pip
+apt-get update && apt-get install -y --only-upgrade bsdutils curl fdisk libblkid1 libc6 libcurl3-gnutls libcurl4 libfdisk1 libgnutls30 libmount1 libsmartcols1 libuuid1 mount util-linux uuid-dev vim-common vim-runtime vim xxd
+#### Current Patch contents ####
+pip install idna==3.7 
+python -m pip install --upgrade pip
+apt-get update && apt-get install -y --only-upgrade bsdutils curl fdisk libblkid1 libc6 libcurl3-gnutls libcurl4 libfdisk1 libgnutls30 libmount1 libnghttp2-14 libsmartcols1 libuuid1 mount util-linux uuid-dev vim-common vim-runtime vim xxd
