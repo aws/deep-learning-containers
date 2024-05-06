@@ -1,5 +1,13 @@
 #### First image: sha256:d5d4c4a388e11d7609710cff51ba2987ceffcb5e9a9b0e7c4801414e9d7d7f16 ####
-#### Current Patch contents ####
+#### Patch contents for patch-1: sha256:f0033c759eeeacfe8ab5cdd4867dfbb995ef787ac6b729a951109204266e88e9 ####
 pip install pillow==10.3.0 
 python -m pip install --upgrade pip
 apt-get update && apt-get install -y --only-upgrade binutils-common binutils-x86-64-linux-gnu binutils bsdutils curl fdisk less libbinutils libblkid-dev libblkid1 libctf-nobfd0 libctf0 libcurl3-gnutls libcurl4-openssl-dev libcurl4 libfdisk1 libmount-dev libmount1 libsmartcols1 libssl-dev libssl1.1 libtiff5 libuuid1 libxml2-utils libxml2 login mount openssl passwd util-linux uuid-dev vim-common vim-runtime vim xxd
+#### Patch contents for patch-2: sha256:b3ca74145d5ca45ada69347d5105d64a756d20a69c29982178172e9962b1176c ####
+pip install idna==3.7 pillow==10.3.0 
+python -m pip install --upgrade pip
+apt-get update && apt-get install -y --only-upgrade binutils-common binutils-x86-64-linux-gnu binutils bsdutils curl fdisk less libbinutils libblkid-dev libblkid1 libc6 libctf-nobfd0 libctf0 libcurl3-gnutls libcurl4-openssl-dev libcurl4 libfdisk1 libgnutls30 libmount-dev libmount1 libsmartcols1 libssl-dev libssl1.1 libtiff5 libuuid1 libxml2-utils libxml2 login mount openssl passwd util-linux uuid-dev vim-common vim-runtime vim xxd
+#### Current Patch contents ####
+pip install idna==3.7 pillow==10.3.0 
+python -m pip install --upgrade pip
+apt-get update && apt-get install -y --only-upgrade binutils-common binutils-x86-64-linux-gnu binutils bsdutils curl fdisk less libbinutils libblkid-dev libblkid1 libc6 libctf-nobfd0 libctf0 libcurl3-gnutls libcurl4-openssl-dev libcurl4 libfdisk1 libgnutls30 libmount-dev libmount1 libnghttp2-14 libsmartcols1 libssl-dev libssl1.1 libtiff5 libuuid1 libxml2-utils libxml2 linux-libc-dev login mount openssl passwd util-linux uuid-dev vim-common vim-runtime vim xxd
