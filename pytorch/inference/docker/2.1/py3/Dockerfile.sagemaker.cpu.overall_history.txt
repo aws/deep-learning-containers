@@ -3,10 +3,6 @@
 pip install cryptography==42.0.5 idna==3.7 jinja2==3.1.3 pillow==10.3.0 pyopenssl==24.1.0 
 python -m pip install --upgrade pip
 apt-get update && apt-get install -y --only-upgrade binutils-common binutils-x86-64-linux-gnu binutils bsdutils curl fdisk libbinutils libblkid1 libc6 libctf-nobfd0 libctf0 libcurl3-gnutls libcurl4-openssl-dev libcurl4 libfdisk1 libgnutls30 libmount1 libnss3 libpam-modules libsmartcols1 libssh-4 libssl-dev libssl1.1 libtiff5 libuuid1 libuv1 libxml2 linux-libc-dev login mount openjdk-17-jdk-headless openjdk-17-jdk openjdk-17-jre-headless openjdk-17-jre openssl passwd util-linux vim-common vim-runtime vim xxd
-#### Patch contents for patch-2: sha256:6ebbcfd96844c5d480e27e5b9e3d955d109990e49d0f812d449cdfe36844632c ####
-pip install cryptography==42.0.5 idna==3.7 jinja2==3.1.3 pillow==10.3.0 pyopenssl==24.1.0 
-python -m pip install --upgrade pip
-apt-get update && apt-get install -y --only-upgrade binutils-common binutils-x86-64-linux-gnu binutils bsdutils curl fdisk libbinutils libblkid1 libc6 libctf-nobfd0 libctf0 libcurl3-gnutls libcurl4-openssl-dev libcurl4 libfdisk1 libgnutls30 libmount1 libnghttp2-14 libnss3 libpam-modules libsmartcols1 libssh-4 libssl-dev libssl1.1 libtiff5 libuuid1 libuv1 libxml2 linux-libc-dev login mount openjdk-17-jdk-headless openjdk-17-jdk openjdk-17-jre-headless openjdk-17-jre openssl passwd util-linux vim-common vim-runtime vim xxd
 #### Current Patch contents ####
 pip install cryptography==42.0.5 idna==3.7 jinja2==3.1.3 pillow==10.3.0 pyopenssl==24.1.0 
 python -m pip install --upgrade pip
