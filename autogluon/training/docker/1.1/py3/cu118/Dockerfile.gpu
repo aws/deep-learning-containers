@@ -6,8 +6,8 @@ FROM 763104351884.dkr.ecr.us-west-2.amazonaws.com/pytorch-training:2.0.1-gpu-py3
 LABEL maintainer="Amazon AI"
 LABEL dlc_major_version="1"
 
-# # Uninstall the existing version
-# RUN mamba remove pytorch --force -y
+# Uninstall the existing version
+RUN mamba remove pytorch --force -y
 # Install PyTorch 2.1.0
 RUN mamba install pytorch=2.1.0 pytorch-cuda=11.8 torchvision torchaudio --strict-channel-priority --override-channels -c https://aws-ml-conda.s3.us-west-2.amazonaws.com -c nvidia/label/cuda-11.8.0 -c conda-forge -y
 
