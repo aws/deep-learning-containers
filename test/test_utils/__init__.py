@@ -58,15 +58,17 @@ def get_ami_id_boto3(region_name, ami_name_pattern, IncludeDeprecated=False):
         Owners=["amazon"],
         IncludeDeprecated=IncludeDeprecated,
     )
-    #### TODO: remove/comment this when the 3881 is merged ####
-    # Date pinning AMI IDs due to nvidia-docker deprecation
-    filtered_images = [
-        element
-        for element in ami_list["Images"]
-        if datetime.strptime(element["CreationDate"], "%Y-%m-%dT%H:%M:%S.%fZ")
-        < datetime.strptime("2024-05-02", "%Y-%m-%d")
-    ]
-    ami = max(filtered_images, key=lambda x: x["CreationDate"])
+
+    # NOTE: Hotfix for fetching latest DLAMI before certain creation date.
+    # replace `ami_list["Images"]` with `filtered_images` in max() if needed.
+    # filtered_images = [
+    #     element
+    #     for element in ami_list["Images"]
+    #     if datetime.strptime(element["CreationDate"], "%Y-%m-%dT%H:%M:%S.%fZ")
+    #     < datetime.strptime("2024-05-02", "%Y-%m-%d")
+    # ]
+
+    ami = max(ami_list["Images"], key=lambda x: x["CreationDate"])
     return ami["ImageId"]
 
 
@@ -2432,8 +2434,7 @@ def get_instance_type_base_dlami(instance_type, region, linux_dist="UBUNTU_20"):
                                                              "p3dn.24xlarge",
                                                              "g3s.xlarge",
                                                              "g3.4xlarge",
-                                                             "g3.8xlarge",
-                                                             "g3.16xlarge",]
+                                                             "g3.8xlarge",]
 
     Other instances will default to Proprietary Nvidia Driver DLAMI
     """
@@ -2446,7 +2447,6 @@ def get_instance_type_base_dlami(instance_type, region, linux_dist="UBUNTU_20"):
         "g3s.xlarge",
         "g3.4xlarge",
         "g3.8xlarge",
-        "g3.16xlarge",
     ]
 
     ami_patterns = {
