@@ -9,7 +9,7 @@ echo testPyTorchNCCL: USE_INDUCTOR, $USE_INDUCTOR
 # may encounter cuda OOM if used too many processes. The benchmark repo hardcodes the batchsize for now.
 export WORLD_SIZE=$(($NUM_GPUS < 4 ? $NUM_GPUS : 4))
 # run NCCL benchmarking with 2 GPUS and 1 local node (resnet will use torchvision)
-python userbenchmark/ddp_experiments/__init__.py \
+python userbenchmark/ddp_experiments/run.py \
     --ngpus $WORLD_SIZE \
     --distributed ddp \
     --nodes 1 \
@@ -34,7 +34,7 @@ echo testPyTorchNCCL: AWS-PyTorch test results && cat $AWS_LOG_DIR/aws_res.csv
 bash ${BIN_DIR}/pytorch_tests/installOSSPyTorch
 
 # run NCCL benchmarking with 2 GPUS and 1 local node (resnet will use torchvision)
-python userbenchmark/ddp_experiments/__init__.py \
+python userbenchmark/ddp_experiments/run.py \
     --ngpus $WORLD_SIZE \
     --distributed ddp \
     --nodes 1 \
