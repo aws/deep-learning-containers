@@ -151,8 +151,8 @@ RUN /opt/conda/bin/mamba install -y -c conda-forge \
     h5py \
     mpi4py \
     "urllib3<2" \
-    "idna>3.7"\
-    "tqdm>4.66.3" \
+    "idna>=3.7"\
+    "tqdm>=4.66.3" \
   && /opt/conda/bin/mamba clean -afy \
   && rm -rf /etc/apt/sources.list.d/*
 
