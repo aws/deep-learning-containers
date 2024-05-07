@@ -46,7 +46,7 @@ class PytestCache:
 
         if custom_cache_directory:
             current_dir = os.path.join(current_dir, custom_cache_directory)
-        local_file_dir = os.path.join(current_dir, ".pytest_cache", "v", "cache")
+        local_file_dir = os.path.join(current_dir, ".pytest_cache", "cache")
         local_file_path = os.path.join(local_file_dir, "lastfailed")
         s3_file_dir = self.__make_s3_path(
             codebuild_project_name, commit_id, framework, version, build_context, test_type

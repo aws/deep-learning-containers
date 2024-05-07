@@ -396,7 +396,6 @@ def main():
 
         # Execute dlc_tests pytest command
         pytest_cmd = [
-            "--cache-show",
             "-s",
             "-rA",
             test_path,
@@ -497,7 +496,6 @@ def main():
 
             setup_sm_benchmark_env(dlc_images, test_path)
             pytest_cmd = [
-                "--cache-show",
                 "-s",
                 "-rA",
                 test_path,
