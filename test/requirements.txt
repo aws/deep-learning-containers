@@ -4,7 +4,7 @@ fabric
 invoke<2.1.0
 junit-xml==1.9
 packaging
-pytest
+pytest==8.1.2
 pytest-rerunfailures
 pytest-timeout
 pytest-json-report

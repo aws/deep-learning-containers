@@ -51,6 +51,7 @@ FRAMEWORK_FIXTURES = (
     # ECR repo name fixtures
     # PyTorch
     "pytorch_training",
+    "pytorch_training___2__3",
     "pytorch_training___2__2",
     "pytorch_training___2__1",
     "pytorch_training___2__0",
@@ -864,6 +865,18 @@ def skip_s3plugin_test(request):
 
 
 @pytest.fixture(autouse=True)
+def skip_trcomp_containers(request):
+    if "training" in request.fixturenames:
+        img_uri = request.getfixturevalue("training")
+    elif "pytorch_training" in request.fixturenames:
+        img_uri = request.getfixturevalue("pytorch_training")
+    else:
+        return
+    if "trcomp" in img_uri:
+        pytest.skip("Skipping training compiler integrated container with tag {}".format(img_uri))
+
+
+@pytest.fixture(autouse=True)
 def skip_inductor_test(request):
     if "training" in request.fixturenames:
         img_uri = request.getfixturevalue("training")
@@ -1042,6 +1055,24 @@ def skip_pt22_test(request):
 
     skip_dict = {"==2.2.*": ["cpu", "cu121"]}
     if _validate_pytorch_framework_version(request, image_uri, "skip_pt22_test", skip_dict):
+        pytest.skip(f"PyTorch 2.2 image doesn't support current test")
+
+
+@pytest.fixture(autouse=True)
+def skip_release_pt_test(request):
+    if "training" in request.fixturenames:
+        image_uri = request.getfixturevalue("training")
+    elif "pytorch_training" in request.fixturenames:
+        image_uri = request.getfixturevalue("pytorch_training")
+    else:
+        return
+
+    skip_dict = {
+        "==2.1.*": ["cpu", "cu121"],
+        "==2.2.*": ["cpu", "cu121"],
+        "==2.3.*": ["cpu", "cu121"],
+    }
+    if _validate_pytorch_framework_version(request, image_uri, "skip_release_pt_test", skip_dict):
         pytest.skip(f"PyTorch 2.2 image doesn't support current test")
 
 
