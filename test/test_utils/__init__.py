@@ -132,9 +132,12 @@ UL20_CPU_ARM64_US_EAST_1 = get_ami_id_boto3(
     ami_name_pattern="Deep Learning ARM64 AMI OSS Nvidia Driver GPU PyTorch 2.2.? (Ubuntu 20.04) ????????",
     IncludeDeprecated=True,
 )
+
+# Using latest ARM64 AMI (pytorch) - however, this will fail for TF benchmarks, so TF benchmarks are currently
+# disabled for Graviton.
 UL20_BENCHMARK_CPU_ARM64_US_WEST_2 = get_ami_id_boto3(
     region_name="us-west-2",
-    ami_name_pattern="Deep Learning AMI Graviton GPU TensorFlow 2.7.0 (Ubuntu 20.04) ????????",
+    ami_name_pattern="Deep Learning ARM64 AMI OSS Nvidia Driver GPU PyTorch 2.2.? (Ubuntu 20.04) ????????",
     IncludeDeprecated=True,
 )
 AML2_CPU_ARM64_US_EAST_1 = get_ami_id_boto3(
