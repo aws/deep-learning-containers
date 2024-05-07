@@ -124,12 +124,12 @@ AML2_BASE_PROPRIETARY_DLAMI_US_EAST_1 = get_ami_id_boto3(
 # We use the following DLAMI for MXNet and TensorFlow tests as well, but this is ok since we use custom DLC Graviton containers on top. We just need an ARM base DLAMI.
 UL20_CPU_ARM64_US_WEST_2 = get_ami_id_boto3(
     region_name="us-west-2",
-    ami_name_pattern="Deep Learning AMI Graviton GPU CUDA 11.4.2 (Ubuntu 20.04) ????????",
+    ami_name_pattern="Deep Learning ARM64 AMI OSS Nvidia Driver GPU PyTorch 2.2.? (Ubuntu 20.04) ????????",
     IncludeDeprecated=True,
 )
 UL20_CPU_ARM64_US_EAST_1 = get_ami_id_boto3(
     region_name="us-east-1",
-    ami_name_pattern="Deep Learning AMI Graviton GPU CUDA 11.4.2 (Ubuntu 20.04) ????????",
+    ami_name_pattern="Deep Learning ARM64 AMI OSS Nvidia Driver GPU PyTorch 2.2.? (Ubuntu 20.04) ????????",
     IncludeDeprecated=True,
 )
 UL20_BENCHMARK_CPU_ARM64_US_WEST_2 = get_ami_id_boto3(
