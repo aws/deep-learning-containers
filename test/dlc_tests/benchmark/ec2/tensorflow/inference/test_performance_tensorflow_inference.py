@@ -101,7 +101,7 @@ def ec2_performance_tensorflow_inference(
         )
         ec2_connection.run(
             (
-                f"/usr/bin/pip3 install --user --no-dependencies tensorflow-serving-api=={tf_api_version}"
+                f"/usr/bin/pip3 install -U pip && /usr/bin/pip3 install --user --no-dependencies tensorflow-serving-api=={tf_api_version}"
             ),
             hide=True,
         )
