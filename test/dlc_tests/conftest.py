@@ -865,7 +865,7 @@ def skip_s3plugin_test(request):
 
 
 @pytest.fixture(autouse=True)
-def skip_trcomp_containers(request, ecr_image):
+def skip_trcomp_containers(request):
     if "training" in request.fixturenames:
         img_uri = request.getfixturevalue("training")
     elif "pytorch_training" in request.fixturenames:
@@ -873,9 +873,7 @@ def skip_trcomp_containers(request, ecr_image):
     else:
         return
     if "trcomp" in img_uri:
-        pytest.skip(
-            "Skipping training compiler integrated container with tag {}".format(ecr_image)
-        )
+        pytest.skip("Skipping training compiler integrated container with tag {}".format(img_uri))
 
 
 @pytest.fixture(autouse=True)
@@ -1069,9 +1067,11 @@ def skip_release_pt_test(request):
     else:
         return
 
-    skip_dict = {"==2.1.*": ["cpu", "cu121"],
-                 "==2.2.*": ["cpu", "cu121"],
-                 "==2.3.*": ["cpu", "cu121"]}
+    skip_dict = {
+        "==2.1.*": ["cpu", "cu121"],
+        "==2.2.*": ["cpu", "cu121"],
+        "==2.3.*": ["cpu", "cu121"],
+    }
     if _validate_pytorch_framework_version(request, image_uri, "skip_release_pt_test", skip_dict):
         pytest.skip(f"PyTorch 2.2 image doesn't support current test")
 
