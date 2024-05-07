@@ -396,12 +396,12 @@ def main():
 
         # Execute dlc_tests pytest command
         pytest_cmd = [
+            "--cache-show",
             "-s",
             "-rA",
             test_path,
             f"--junitxml={report}",
             "-n=auto",
-            "--cache-show",
         ]
 
         is_habana_image = any("habana" in image_uri for image_uri in all_image_list)
@@ -431,6 +431,7 @@ def main():
         if specific_test_type in ["canary", "deep-canary", "quick_checks"]:
             pytest_cmds = [
                 [
+                    "--cache-show",
                     "-s",
                     "-rA",
                     f"--junitxml={report}",
