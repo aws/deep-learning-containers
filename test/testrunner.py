@@ -310,6 +310,12 @@ def main():
     except:
         framework, version = "general_test", "none"
 
+    print(f"CODEBUILD PROJECT NAME {get_codebuild_project_name()}")
+    print(f"COMMIT IT {commit_id}")
+    print(f"FRAMEWORK {generate_unique_dlc_name(all_image_list[0])}")
+    print(f"VERSION {version}")
+    print(f"BUILD CONTEXT {build_context}")
+    print(f"TEST TYPE {test_type}")
     pytest_cache_params = {
         "codebuild_project_name": get_codebuild_project_name(),
         "commit_id": commit_id,
