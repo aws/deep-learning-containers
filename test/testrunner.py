@@ -490,6 +490,7 @@ def main():
 
             setup_sm_benchmark_env(dlc_images, test_path)
             pytest_cmd = [
+                "--cache-show",
                 "-s",
                 "-rA",
                 test_path,
@@ -497,6 +498,7 @@ def main():
                 "-n=auto",
                 "-o",
                 "norecursedirs=resources",
+                # "cache_dir=.pytest_cache",
             ]
 
             pytest_cmd += ["--efa"] if efa_dedicated else ["-m", "not efa"]
