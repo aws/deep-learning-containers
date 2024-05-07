@@ -27,7 +27,7 @@ conda init
 source ~/.bashrc
 
 # setup benchmark repo
-git clone https://github.com/pytorch/benchmark
+git clone https://github.com/pytorch/benchmark.git
 cd benchmark
 git checkout 350bb04
 # git reset --hard 78e54615
