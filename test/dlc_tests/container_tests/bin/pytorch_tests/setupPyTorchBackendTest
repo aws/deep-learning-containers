@@ -33,3 +33,4 @@ git checkout 350bb04
 # git reset --hard 78e54615
 # git am -3 ${BIN_DIR}/pytorch_tests/0001-test-adapt-BERT_pytorch-training-with-gloo-mpi-backend.patch
 pip install -r requirements.txt
+pip install numba
