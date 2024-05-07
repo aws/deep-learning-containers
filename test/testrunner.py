@@ -431,7 +431,6 @@ def main():
         if specific_test_type in ["canary", "deep-canary", "quick_checks"]:
             pytest_cmds = [
                 [
-                    "--cache-show",
                     "-s",
                     "-rA",
                     f"--junitxml={report}",
