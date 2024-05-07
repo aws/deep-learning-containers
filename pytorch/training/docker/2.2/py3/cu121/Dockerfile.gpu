@@ -152,6 +152,7 @@ RUN /opt/conda/bin/mamba install -y -c conda-forge \
     pillow \
     "mpi4py>=3.1.4,<3.2" \
     h5py \
+    "tqdn>=4.66.3" \
   && /opt/conda/bin/mamba clean -afy \
   && rm -rf /etc/apt/sources.list.d/*
 
