@@ -46,7 +46,7 @@ def test_pytorch_2_3_gpu(
     if ec2.is_instance_multi_gpu(ec2_instance_type):
         test_cases.append((common_cases.pytorch_amp, (pytorch_training, ec2_connection)))
 
-    test_utils.execute_serial_test_cases(test_cases, test_description="PT 2.2 GPU")
+    test_utils.execute_serial_test_cases(test_cases, test_description="PT 2.3 GPU")
 
 
 @pytest.mark.usefixtures("sagemaker")
@@ -74,7 +74,7 @@ def test_pytorch_2_3_gpu_inductor(
         (common_cases.pytorch_amp_inductor, (pytorch_training, ec2_connection)),
     ]
 
-    test_utils.execute_serial_test_cases(test_cases, test_description="PT 2.2 GPU Inductor")
+    test_utils.execute_serial_test_cases(test_cases, test_description="PT 2.3 GPU Inductor")
 
 
 @pytest.mark.usefixtures("sagemaker")
@@ -100,4 +100,4 @@ def test_pytorch_2_3_cpu(pytorch_training___2__3, ec2_connection, cpu_only):
             (smclarify_cases.smclarify_metrics_cpu, (pytorch_training, ec2_connection)),
         ]
 
-    test_utils.execute_serial_test_cases(test_cases, test_description="PT 2.2 CPU")
+    test_utils.execute_serial_test_cases(test_cases, test_description="PT 2.3 CPU")
