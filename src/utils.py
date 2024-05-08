@@ -479,9 +479,12 @@ def derive_prod_image_uri_using_image_config_from_buildspec(
     :param new_account_id: str, Account ID of the prod repo
     :return: str, image_uri
     """
-    prod_repo = image_config.get(
-        "release_repository"
-    ) or derive_prod_repository_using_image_config_from_buildspec(
+    prod_repo = (
+        image_config.get("example_release_repository")
+        if image_config.get("tag").endswith("-example")
+        else image_config.get("release_repository")
+    )
+    prod_repo = prod_repo or derive_prod_repository_using_image_config_from_buildspec(
         image_config=image_config, framework=framework, new_account_id=new_account_id
     )
     prod_tag = image_config.get("latest_release_tag") or image_config.get("tag")
@@ -517,6 +520,8 @@ def derive_prod_repository_using_image_config_from_buildspec(
         # We retrive the prod repo name using the buildspec and get rid of the additional prefix i.e. "abcd".
         image_type = image_config.get("image_type")
         desired_prod_repo_name = f"{framework}-{image_type}"
+        if image_config.get("tag").endswith("-example"):
+            desired_prod_repo_name = f"aws-samples-{desired_prod_repo_name}"
         current_repo_name = release_repository.split("/")[-1]
         release_repository = release_repository.replace(current_repo_name, desired_prod_repo_name)
     else:
