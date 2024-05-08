@@ -78,8 +78,8 @@ RUN apt-get update \
     build-essential \
     ca-certificates \
     cmake \
-    libcudnn9=${CUDNN_VERSION}-1+cuda12.1 \
-    libcudnn9-dev=${CUDNN_VERSION}-1+cuda12.1 \
+    libcudnn9-cuda-12=${CUDNN_VERSION}-1 \
+    libcudnn9-dev-cuda-12=${CUDNN_VERSION}-1 \
     curl \
     emacs \
     git \
