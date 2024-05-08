@@ -4,7 +4,7 @@ fabric
 invoke<2.1.0
 junit-xml==1.9
 packaging
-# Pin pytest to test cache behavior changes
+# Pin pytest to preserve pytest cache behavior
 pytest<8.1
 pytest-rerunfailures
 pytest-timeout
