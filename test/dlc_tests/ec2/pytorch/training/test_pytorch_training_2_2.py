@@ -13,6 +13,6 @@ from test.dlc_tests.ec2 import smclarify_cases
 @pytest.mark.model("N/A")
 @pytest.mark.team("conda")
 def test_pytorch_2_2_gpu(
-    pytorch_training___2__2, ec2_connection, region, gpu_only
+    pytorch_training___2__2, gpu_only
 ):
     raise RuntimeError("hi")
