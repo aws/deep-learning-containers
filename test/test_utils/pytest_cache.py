@@ -162,6 +162,9 @@ class PytestCache:
 
         """
         local_file_dir = os.path.join(current_dir, ".pytest_cache", "v", "cache")
+        dir_list = os.listdir(os.path.join(current_dir, ".pytest_cache"))
+        print("Files and directories in '", os.path.join(current_dir, ".pytest_cache"), "' :")
+        print(dir_list)
         local_file_path = os.path.join(local_file_dir, "lastfailed")
         s3_file_dir = self.__make_s3_path(
             codebuild_project_name, framework, commit_id, version, build_context, test_type
