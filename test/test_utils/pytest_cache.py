@@ -84,9 +84,6 @@ class PytestCache:
         :param test_type
         """
         local_file_dir = os.path.join(path, ".pytest_cache", "v", "cache")
-        dir_list = os.listdir(os.path.join(path, ".pytest_cache"))
-        print("Files and directories in '", os.path.join(path, ".pytest_cache"), "' :")
-        print(dir_list)
         local_file_path = os.path.join(local_file_dir, "lastfailed")
         s3_file_dir = self.__make_s3_path(
             codebuild_project_name, framework, commit_id, version, build_context, test_type
@@ -123,6 +120,9 @@ class PytestCache:
 
         """
         ec2_dir = os.path.join(path, ".pytest_cache", "v", "cache")
+        dir_list = os.listdir(os.path.join(path, ".pytest_cache"))
+        print("Files and directories in '", os.path.join(path, ".pytest_cache"), "' :")
+        print(dir_list)
         ec2_file_path = os.path.join(ec2_dir, "lastfailed")
         s3_file_dir = self.__make_s3_path(
             codebuild_project_name, framework, commit_id, version, build_context, test_type
