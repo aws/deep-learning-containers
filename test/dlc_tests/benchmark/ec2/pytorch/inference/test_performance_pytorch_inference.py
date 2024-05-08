@@ -59,6 +59,27 @@ def test_performance_ec2_pytorch_inference_cpu(pytorch_inference, ec2_connection
     )
 
 
+@pytest.mark.skip(
+    reason="PT graviton benchmarks are still in development due to latency and timeouts"
+)
+@pytest.mark.model("resnet18, VGG13, MobileNetV2, GoogleNet, DenseNet121, InceptionV3")
+@pytest.mark.parametrize("ec2_instance_type", ["c6g.4xlarge"], indirect=True)
+@pytest.mark.parametrize("ec2_instance_ami", [UL20_CPU_ARM64_US_WEST_2], indirect=True)
+def test_performance_ec2_pytorch_inference_graviton_cpu(
+    pytorch_inference_graviton, ec2_connection, region, cpu_only
+):
+    _, framework_version = get_framework_and_version_from_tag(pytorch_inference_graviton)
+    threshold = get_threshold_for_image(framework_version, PYTORCH_INFERENCE_CPU_THRESHOLD)
+    ec2_performance_pytorch_inference(
+        pytorch_inference_graviton,
+        "cpu",
+        ec2_connection,
+        region,
+        PT_PERFORMANCE_INFERENCE_CPU_CMD,
+        threshold,
+    )
+
+
 def ec2_performance_pytorch_inference(
     image_uri, processor, ec2_connection, region, test_cmd, threshold
 ):
