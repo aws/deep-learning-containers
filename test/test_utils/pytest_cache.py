@@ -49,7 +49,7 @@ class PytestCache:
         local_file_dir = os.path.join(current_dir, ".pytest_cache", "v", "cache")
         local_file_path = os.path.join(local_file_dir, "lastfailed")
         s3_file_dir = self.__make_s3_path(
-            codebuild_project_name, framework, commit_id, version, build_context, test_type
+            codebuild_project_name, commit_id, framework, version, build_context, test_type
         )
         s3_file_path = os.path.join(s3_file_dir, "lastfailed")
 
@@ -86,7 +86,7 @@ class PytestCache:
         local_file_dir = os.path.join(path, ".pytest_cache", "v", "cache")
         local_file_path = os.path.join(local_file_dir, "lastfailed")
         s3_file_dir = self.__make_s3_path(
-            codebuild_project_name, framework, commit_id, version, build_context, test_type
+            codebuild_project_name, commit_id, framework, version, build_context, test_type
         )
         s3_file_path = os.path.join(s3_file_dir, "lastfailed")
         self.__delete_file_on_ec2(ec2_connection, local_file_path)
@@ -122,7 +122,7 @@ class PytestCache:
         ec2_dir = os.path.join(path, ".pytest_cache", "v", "cache")
         ec2_file_path = os.path.join(ec2_dir, "lastfailed")
         s3_file_dir = self.__make_s3_path(
-            codebuild_project_name, framework, commit_id, version, build_context, test_type
+            codebuild_project_name, commit_id, framework, version, build_context, test_type
         )
         s3_file_path = os.path.join(s3_file_dir, "lastfailed")
 
@@ -159,12 +159,9 @@ class PytestCache:
 
         """
         local_file_dir = os.path.join(current_dir, ".pytest_cache", "v", "cache")
-        dir_list = os.listdir(os.path.join(current_dir, ".pytest_cache", "v", "cache"))
-        print("Files and directories in '", os.path.join(current_dir, ".pytest_cache", "v", "cache"), "' :")
-        print(dir_list)
         local_file_path = os.path.join(local_file_dir, "lastfailed")
         s3_file_dir = self.__make_s3_path(
-            codebuild_project_name, framework, commit_id, version, build_context, test_type
+            codebuild_project_name, commit_id, framework, version, build_context, test_type
         )
         s3_file_path = os.path.join(s3_file_dir, "lastfailed")
         self.__upload_cache_to_s3(local_file_path, s3_file_path)
@@ -195,7 +192,7 @@ class PytestCache:
             LOGGER.info("No cache was generated. Skip uploading.")
             return
         s3_file_dir = self.__make_s3_path(
-            codebuild_project_name, framework, commit_id, version, build_context, test_type
+            codebuild_project_name, commit_id, framework, version, build_context, test_type
         )
         s3_file_path = os.path.join(s3_file_dir, "lastfailed")
         tmp_file_for_cache_json = "tmp_file_for_cache_json"
@@ -211,10 +208,10 @@ class PytestCache:
         return self.get_json_from_file(local_file_path)
 
     def __make_s3_path(
-        self, codebuild_project_name, framework, commit_id, version, build_context, test_type
+        self, codebuild_project_name, commit_id, framework, version, build_context, test_type
     ):
         return os.path.join(
-            codebuild_project_name, framework, commit_id, version, build_context, test_type
+            codebuild_project_name, commit_id, framework, version, build_context, test_type
         )
 
     def __upload_cache_to_s3(self, local_file, s3_file):
