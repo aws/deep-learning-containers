@@ -121,7 +121,7 @@ class PytestCache:
         """
         ec2_dir = os.path.join(path, ".pytest_cache", "v", "cache")
         dir_list = os.listdir(os.path.join(path, ".pytest_cache"))
-        print("Files and directories in '", os.path.join(path, ".pytest_cache"), "' :")
+        print("Files and directories in '", os.path.join(path, ".pytest_cache", "v"), "' :")
         print(dir_list)
         ec2_file_path = os.path.join(ec2_dir, "lastfailed")
         s3_file_dir = self.__make_s3_path(
@@ -162,8 +162,8 @@ class PytestCache:
 
         """
         local_file_dir = os.path.join(current_dir, ".pytest_cache", "v", "cache")
-        dir_list = os.listdir(os.path.join(current_dir, ".pytest_cache"))
-        print("Files and directories in '", os.path.join(current_dir, ".pytest_cache"), "' :")
+        dir_list = os.listdir(os.path.join(current_dir, ".pytest_cache", "v"))
+        print("Files and directories in '", os.path.join(current_dir, ".pytest_cache", "v"), "' :")
         print(dir_list)
         local_file_path = os.path.join(local_file_dir, "lastfailed")
         s3_file_dir = self.__make_s3_path(
