@@ -10,5 +10,7 @@ cd TransformerEngine/tests/pytorch
 pip install pytest==6.2.5 onnxruntime==1.13.1 onnx
 pytest -v -s test_sanity.py
 PYTORCH_JIT=0 NVTE_ALLOW_NONDETERMINISTIC_ALGO=0 pytest -v -s test_numerics.py
-NVTE_TORCH_COMPILE=0 pytest -v -s test_onnx_export.py
+# NOTE: Disable onnx_export test due to following issue. TE acknowledges issue and confirm we can skip.
+# https://github.com/NVIDIA/TransformerEngine/issues/666
+# NVTE_TORCH_COMPILE=0 pytest -v -s test_onnx_export.py
 pytest -v -s test_jit.py

@@ -923,7 +923,7 @@ def skip_transformer_engine_test(request):
     else:
         return
 
-    skip_dict = {">=2.2": ["cpu", "cu121"]}
+    skip_dict = {"==2.2.*": ["cpu", "cu121"]}
     if _validate_pytorch_framework_version(
         request, image_uri, "skip_transformer_engine_test", skip_dict
     ):
