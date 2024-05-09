@@ -12,21 +12,32 @@
 # language governing permissions and limitations under the License.
 
 #!/usr/bin/env bash
-gdrcopy_sanity > tmp_out
-if [ $? != 0 ]; then
-    echo "GDRCopy Sanity check failed!"
-    exit 1
-fi
 
-# NOTE: A grep guard clause is added because the old GDRCopy test (which is now moved to `test_gdrcopy_dev.sh`)
-# was checking an exit status of grep instead of the sanity test itself.
-# We are now moving towards checking the exit status of the sanity test,
-# but as a safety check we will continue to check the test output as well.
-cat tmp_out | grep 'Failed: 0' &> /dev/null
-if [ $? != 0 ]; then
-    echo "GDRCopy Sanity check passed but failed at grep output check!"
-    echo "Please examine the gdrcopy_sanity output to ensure the tests are passing properly"
-    exit 1
-fi
+GDRCOPY_VERSION="$(awk '$2 == "GDR_API_MAJOR_VERSION" {printf "%s.", $3}$2 == "GDR_API_MINOR_VERSION" {printf "%s\n", $3}' /usr/local/include/gdrapi.h)"
 
+function version { echo "$@" | awk -F. '{ printf("%d%03d%03d%03d\n", $1,$2,$3,$4); }'; }
+
+if [ $(version $GDRCOPY_VERSION) -ge $(version "2.4") ]; then
+  # Test GDRCopy version 2.4 and above
+  gdrcopy_sanity > tmp_out
+  if [ $? != 0 ]; then
+      echo "GDRCopy Sanity check failed!"
+      exit 1
+  fi
+
+  cat tmp_out | grep 'Failed: 0' &> /dev/null
+  if [ $? != 0 ]; then
+      echo "GDRCopy Sanity check passed but failed at grep output check!"
+      echo "Please examine the gdrcopy_sanity output to ensure the tests are passing properly"
+      exit 1
+  fi
+else
+  # Test GDRCopy version below 2.4
+  gdrcopy_sanity > tmp_out
+  sanity | grep 'Failures: 0, Errors: 0' &> /dev/null
+  if [ $? != 0 ]; then
+      echo "GDRCopy Sanity check failed!"
+      exit 1
+  fi
+fi
 echo "GDRCopy Sanity check succeed!"

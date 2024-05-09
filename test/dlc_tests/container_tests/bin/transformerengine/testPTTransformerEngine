@@ -10,6 +10,7 @@ cd TransformerEngine/tests/pytorch
 function version { echo "$@" | awk -F. '{ printf("%d%03d%03d%03d\n", $1,$2,$3,$4); }'; }
 
 if [ $(version $TE_VERSION) -ge $(version "1.0") ]; then
+  # Test TransformerEngine 1.0 and above
   # https://github.com/microsoft/onnxruntime/issues/17166
   SYSTEM_VERSION_COMPAT=0 pip install pytest==7.2 onnx==1.13.1
   pytest -v -s test_sanity.py
@@ -25,6 +26,7 @@ if [ $(version $TE_VERSION) -ge $(version "1.0") ]; then
   # NVTE_TORCH_COMPILE=0 pytest -v -s $TE_PATH/tests/pytorch/test_onnx_export.py
   pytest -v -s $TE_PATH/tests/pytorch/test_float8tensor.py
 else
+  # Test TransformerEngine below 1.0
   # https://github.com/microsoft/onnxruntime/issues/17166
   SYSTEM_VERSION_COMPAT=0 pip install pytest==6.2.5 onnxruntime==1.13.1 onnx
   pytest -v -s test_sanity.py
