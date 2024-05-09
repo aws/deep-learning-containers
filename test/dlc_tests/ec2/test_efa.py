@@ -277,13 +277,12 @@ def _setup_container(connection, docker_image, container_name):
     # Remove pre-existing containers if reusing an instance
     connection.run(f"docker rm -f {container_name}", hide=True)
 
-    # Run docker container with nvidia-docker to give access to all GPUs
     # Use network mode host, rather than the default "bridge" to allow direct access to container
     # using SSH on a pre-defined port (as decided by sshd_config on server-side).
     # Allow instance to share all memory with container using memlock=-1:-1.
     # Share all EFA devices with container using --device <device_location> for all EFA devices.
     connection.run(
-        f"nvidia-docker run -id --name {container_name} --network host --ulimit memlock=-1:-1 "
+        f"docker run --runtime=nvidia --gpus all -id --name {container_name} --network host --ulimit memlock=-1:-1 "
         f"{docker_all_devices_arg} -v $HOME/container_tests:/test {docker_image} bash"
     )
 

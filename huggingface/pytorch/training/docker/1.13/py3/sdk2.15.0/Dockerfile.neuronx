@@ -26,7 +26,8 @@ RUN pip install -U \
 	"numpy>=1.22.2,<1.24" \
 	"Pillow==10.0.1" \
 	"urllib3>=1.26.17,<1.27" \
-	"pyarrow~=14.0.1"
+	"pyarrow~=14.0.1" \
+    "idna>=3.7"
 
 RUN apt-get update \
  && apt install -y git-lfs \
@@ -34,7 +35,7 @@ RUN apt-get update \
  && rm -rf /var/lib/apt/lists/*
 
 RUN apt-get update && \
-    apt-get install -y --only-upgrade openssh-client openssh-server
+    apt-get install -y --only-upgrade openssh-client openssh-server libtemplate-perl perl
 
 RUN HOME_DIR=/root \
  && curl -o ${HOME_DIR}/oss_compliance.zip https://aws-dlinfra-utilities.s3.amazonaws.com/oss_compliance.zip \
