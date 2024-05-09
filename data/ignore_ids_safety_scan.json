@@ -1415,7 +1415,9 @@
                 "66704": "Covered elsewhere",
                 "66777": "Covered elsewhere",
                 "65212": "Covered elsewhere",
-                "65647": "Covered elsewhere"
+                "65647": "Covered elsewhere",
+                "67895": "Temporarily ignoring to patch CRITICAL vulnerabilties",
+                "67599": "only affects the use of --extra-index-url which is not the case"
             }
         },
         "inference-neuron": {
