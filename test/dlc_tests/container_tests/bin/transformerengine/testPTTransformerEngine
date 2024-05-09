@@ -10,6 +10,8 @@ cd TransformerEngine/tests/pytorch
 function version { echo "$@" | awk -F. '{ printf("%d%03d%03d%03d\n", $1,$2,$3,$4); }'; }
 
 if [ $(version $TE_VERSION) -ge $(version "1.0") ]; then
+  # https://github.com/microsoft/onnxruntime/issues/17166
+  SYSTEM_VERSION_COMPAT=0 pip install pytest==7.2 onnx==1.13.1
   pip install pytest==7.2 onnxruntime==1.13.1
   pytest -v -s test_sanity.py
   pytest -v -s test_recipe.py
@@ -24,7 +26,8 @@ if [ $(version $TE_VERSION) -ge $(version "1.0") ]; then
   # NVTE_TORCH_COMPILE=0 pytest -v -s $TE_PATH/tests/pytorch/test_onnx_export.py
   pytest -v -s $TE_PATH/tests/pytorch/test_float8tensor.py
 else
-  pip install pytest==6.2.5 onnxruntime==1.13.1 onnx
+  # https://github.com/microsoft/onnxruntime/issues/17166
+  SYSTEM_VERSION_COMPAT=0 pip install pytest==6.2.5 onnx==1.13.1
   pytest -v -s test_sanity.py
   PYTORCH_JIT=0 NVTE_ALLOW_NONDETERMINISTIC_ALGO=0 pytest -v -s test_numerics.py
   # NOTE: Disable onnx_export test due to following issue. TE acknowledges issue and confirm we can skip.
