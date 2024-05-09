@@ -37,20 +37,10 @@ if [ $LATEST_RELEASED_IMAGE_URI == "763104351884.dkr.ecr.us-west-2.amazonaws.com
     echo "Installed SMP";
 fi
 
-if [ $LATEST_RELEASED_IMAGE_URI == "763104351884.dkr.ecr.us-west-2.amazonaws.com/pytorch-training:1.13.1-gpu-py39-cu117-ubuntu20.04-ec2" ]; then
-    pip install --no-cache-dir -U pybind11
-    echo "Installed pybind11";
-fi
-
 if [ $LATEST_RELEASED_IMAGE_URI == "763104351884.dkr.ecr.us-west-2.amazonaws.com/pytorch-training:2.0.1-gpu-py310-cu118-ubuntu20.04-sagemaker" ]; then
     SMP_URL=https://smppy.s3.amazonaws.com/pytorch/cu118/smprof-0.3.334-cp310-cp310-linux_x86_64.whl
     pip install --no-cache-dir -U ${SMP_URL}
     echo "Installed SMP";
-fi
-
-if [ $LATEST_RELEASED_IMAGE_URI == "763104351884.dkr.ecr.us-west-2.amazonaws.com/pytorch-training:1.13.1-gpu-py39-cu117-ubuntu20.04-sagemaker" ]; then
-    pip install --no-cache-dir -U pybind11
-    echo "Installed pybind11";
 fi
 
 pip cache purge
