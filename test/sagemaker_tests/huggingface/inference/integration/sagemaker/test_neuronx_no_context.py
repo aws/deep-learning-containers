@@ -46,6 +46,32 @@ def test_neuronx_no_context(framework_version, ecr_image, instance_type, sagemak
     )
 
 
+def _get_endpoint_prefix_name(custom_prefix, region_name, image_uri):
+    """
+    Creates an endpoint prefix name that has first 10 chars of image sha and the
+    CODEBUILD_RESOLVED_SOURCE_VERSION to allow tracking of SM Endpoint Logs.
+
+    custom_prefix: str, Initial prefix that the user wants to have in the endpoint name
+    region_name: str, region_name where image is located
+    image_uri: str, URI of the image
+    """
+    endpoint_name_prefix = custom_prefix
+    try:
+        image_sha = get_sha_of_an_image_from_ecr(
+            ecr_client=boto3.Session(region_name=region_name).client("ecr"), image_uri=image_uri
+        )
+        ## Image SHA returned looks like sha256:1abc.....
+        ## We extract ID from that
+        image_sha_id = image_sha.split(":")[-1]
+        endpoint_name_prefix = f"{endpoint_name_prefix}-{image_sha_id[:10]}"
+    except:
+        pass
+
+    resolved_src_version = os.getenv("CODEBUILD_RESOLVED_SOURCE_VERSION", "temp")
+    endpoint_name_prefix = f"{endpoint_name_prefix}-{resolved_src_version}"
+    return endpoint_name_prefix
+
+
 def _test_sentence_transformers(
     sagemaker_session,
     framework_version,
@@ -55,9 +81,12 @@ def _test_sentence_transformers(
     accelerator_type=None,
     **kwargs,
 ):
-    endpoint_name = sagemaker.utils.unique_name_from_base(
-        "sagemaker-huggingface-serving-sentence-transformers"
+    endpoint_name_prefix = _get_endpoint_prefix_name(
+        custom_prefix="sm-hf-neuronx-strfrs-serving",
+        region_name=sagemaker_session.boto_region_name,
+        image_uri=image_uri,
     )
+    endpoint_name = sagemaker.utils.unique_name_from_base(endpoint_name_prefix)
 
     env = {
         "HF_MODEL_ID": "sentence-transformers/all-MiniLM-L6-v2",
