@@ -227,7 +227,7 @@ def image_builder(buildspec, image_types=[], device_types=[]):
                         f"{image_repo_uri.replace('pr-', f'{repo_override}-')}:{t_override}"
                     )
                     temp_file_handle.write(
-                        f"FROM {source_uri}\nLABEL dlc.dev.source_uri={source_uri}"
+                        f"FROM {source_uri}\nLABEL dlc.dev.source_img={source_uri}"
                     )
                     dockerfile = temp_file_handle.name
                     target = None

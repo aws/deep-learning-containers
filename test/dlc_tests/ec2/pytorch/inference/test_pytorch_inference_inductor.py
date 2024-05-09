@@ -70,10 +70,10 @@ def ec2_pytorch_inference(image_uri, processor, ec2_connection, region):
     model_name = "pytorch-densenet-inductor"
 
     inference_cmd = test_utils.get_inference_run_command(image_uri, model_name, processor)
-    docker_cmd = "nvidia-docker" if "gpu" in image_uri else "docker"
+    docker_runtime = "--runtime=nvidia --gpus all" if "gpu" in image_uri else ""
 
     docker_run_cmd = (
-        f"{docker_cmd} run -itd --name {container_name}"
+        f"docker run {docker_runtime} -itd --name {container_name}"
         f" -p 80:8080 -p 8081:8081"
         f" {image_uri} {inference_cmd}"
     )
