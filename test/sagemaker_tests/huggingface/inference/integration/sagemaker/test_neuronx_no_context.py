@@ -11,6 +11,7 @@
 # ANY KIND, either express or implied. See the License for the specific
 # language governing permissions and limitations under the License.
 from __future__ import absolute_import
+
 import os
 import pytest
 import sagemaker
@@ -101,8 +102,8 @@ def _test_sentence_transformers(
     env = {
         "HF_MODEL_ID": "sentence-transformers/all-MiniLM-L6-v2",
         "HF_TASK": "feature-extraction",
-        "HF_OPTIMUM_BATCH_SIZE": 1,
-        "HF_OPTIMUM_SEQUENCE_LENGTH": 64,
+        "HF_OPTIMUM_BATCH_SIZE": "1",
+        "HF_OPTIMUM_SEQUENCE_LENGTH": "64",
     }
 
     hf_model = HuggingFaceModel(
