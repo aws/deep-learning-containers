@@ -7,10 +7,26 @@ TE_VERSION=$(pip show transformer_engine | awk '/^Version:/ {split($2, v, "."); 
 git clone --branch release_v$TE_VERSION https://github.com/NVIDIA/TransformerEngine.git
 cd TransformerEngine/tests/pytorch
 
-pip install pytest==6.2.5 onnxruntime==1.13.1 onnx
-pytest -v -s test_sanity.py
-PYTORCH_JIT=0 NVTE_ALLOW_NONDETERMINISTIC_ALGO=0 pytest -v -s test_numerics.py
-# NOTE: Disable onnx_export test due to following issue. TE acknowledges issue and confirm we can skip.
-# https://github.com/NVIDIA/TransformerEngine/issues/666
-# NVTE_TORCH_COMPILE=0 pytest -v -s test_onnx_export.py
-pytest -v -s test_jit.py
+if [ "$( echo "$TE_VERSION >= 1.0" | bc -l)" -eq 1 ]; then
+  pip install pytest==7.2 onnxruntime==1.13.1
+  pytest -v -s test_sanity.py
+  pytest -v -s test_recipe.py
+  pytest -v -s test_deferred_init.py
+  PYTORCH_JIT=0 NVTE_TORCH_COMPILE=0 NVTE_ALLOW_NONDETERMINISTIC_ALGO=0 pytest -v -s test_numerics.py
+  PYTORCH_JIT=0 NVTE_TORCH_COMPILE=0 NVTE_ALLOW_NONDETERMINISTIC_ALGO=0 pytest -v -s test_cuda_graphs.py
+  pytest -v -s test_jit.py
+  NVTE_TORCH_COMPILE=0 pytest -v -s fused_attn/test_fused_attn.py
+  pytest -v -s test_fused_rope.py
+  # NOTE: Disable onnx_export test due to following issue. TE acknowledges issue and confirm we can skip.
+  # https://github.com/NVIDIA/TransformerEngine/issues/666
+  # NVTE_TORCH_COMPILE=0 pytest -v -s $TE_PATH/tests/pytorch/test_onnx_export.py
+  pytest -v -s $TE_PATH/tests/pytorch/test_float8tensor.py
+else
+  pip install pytest==6.2.5 onnxruntime==1.13.1 onnx
+  pytest -v -s test_sanity.py
+  PYTORCH_JIT=0 NVTE_ALLOW_NONDETERMINISTIC_ALGO=0 pytest -v -s test_numerics.py
+  # NOTE: Disable onnx_export test due to following issue. TE acknowledges issue and confirm we can skip.
+  # https://github.com/NVIDIA/TransformerEngine/issues/666
+  # NVTE_TORCH_COMPILE=0 pytest -v -s test_onnx_export.py
+  pytest -v -s test_jit.py
+fi
