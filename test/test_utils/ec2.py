@@ -1205,7 +1205,7 @@ def execute_ec2_training_test(
         )
     if executable == "bash":
         executable = os.path.join(os.sep, "bin", "bash")
-    docker_cmd = "nvidia-docker" if "gpu" in ecr_uri else "docker"
+    docker_runtime = "--runtime=nvidia --gpus all" if "gpu" in ecr_uri else ""
     container_test_local_dir = os.path.join("$HOME", "container_tests")
     synapseai_version = get_synapseai_version_from_tag(ecr_uri)
     # Make sure we are logged into ECR so we can pull the image
@@ -1230,7 +1230,7 @@ def execute_ec2_training_test(
     LOGGER.info(f"execute_ec2_training_test pulling {ecr_uri}, with cmd {test_cmd}")
     connection.run(f"docker pull {ecr_uri}", hide="out")
     connection.run(
-        f"{docker_cmd} run --name {container_name} "
+        f"docker run {docker_runtime} --name {container_name} "
         f"{container_runtime} {ompi_mca_btl} {cap_add} {hpu_env_vars} "
         f"{ipc} {network}-v {container_test_local_dir}:{os.path.join(os.sep, 'test')} "
         f"{habana_container_test_repo} {shm_setting} {neuron_device} {gdr_device} -itd {bin_bash_cmd}{ecr_uri}",
@@ -1238,9 +1238,7 @@ def execute_ec2_training_test(
     )
 
     if "habana" in ecr_uri:
-        execution_command = (
-            f"{docker_cmd} exec --user root {container_name} {executable} -c '{test_cmd}'"
-        )
+        execution_command = f"docker exec --user root {container_name} {executable} -c '{test_cmd}'"
         required_log_ending = "Kudos!! Habana tests executed successfully"
         framework = (
             "tensorflow" if "tensorflow" in ecr_uri else "pytorch" if "pytorch" in ecr_uri else None
@@ -1281,7 +1279,7 @@ def execute_ec2_training_test(
 
     LOGGER.info(f"execute_ec2_training_test running {ecr_uri}, with cmd {test_cmd}")
     ec2_res = connection.run(
-        f"{docker_cmd} exec --user root {container_name} {executable} -c '{test_cmd}'",
+        f"docker exec --user root {container_name} {executable} -c '{test_cmd}'",
         hide=True,
         timeout=timeout,
     )
@@ -1290,7 +1288,7 @@ def execute_ec2_training_test(
 
 
 def execute_ec2_inference_test(connection, ecr_uri, test_cmd, region=DEFAULT_REGION):
-    docker_cmd = "nvidia-docker" if "gpu" in ecr_uri else "docker"
+    docker_runtime = "--runtime=nvidia --gpus all" if "gpu" in ecr_uri else ""
     container_test_local_dir = os.path.join("$HOME", "container_tests")
 
     # Make sure we are logged into ECR so we can pull the image
@@ -1299,12 +1297,12 @@ def execute_ec2_inference_test(connection, ecr_uri, test_cmd, region=DEFAULT_REG
 
     # Run training command
     connection.run(
-        f"{docker_cmd} run --name ec2_inference_container -v {container_test_local_dir}:{os.path.join(os.sep, 'test')}"
+        f"docker run {docker_runtime} --name ec2_inference_container -v {container_test_local_dir}:{os.path.join(os.sep, 'test')}"
         f" -itd {ecr_uri} bash",
         hide=True,
     )
     connection.run(
-        f"{docker_cmd} exec --user root ec2_inference_container {os.path.join(os.sep, 'bin', 'bash')} -c '{test_cmd}'",
+        f"docker exec --user root ec2_inference_container {os.path.join(os.sep, 'bin', 'bash')} -c '{test_cmd}'",
         hide=True,
         timeout=3000,
     )
@@ -1319,7 +1317,7 @@ def execute_ec2_training_performance_test(
     data_source="",
     threshold=None,
 ):
-    docker_cmd = "nvidia-docker" if "gpu" in ecr_uri else "docker"
+    docker_runtime = "--runtime=nvidia --gpus all" if "gpu" in ecr_uri else ""
     container_test_local_dir = os.path.join("$HOME", "container_tests")
 
     timestamp = time.strftime("%Y-%m-%d-%H-%M-%S")
@@ -1332,11 +1330,11 @@ def execute_ec2_training_performance_test(
     account_id = get_account_id_from_image_uri(ecr_uri)
     login_to_ecr_registry(connection, account_id, region)
 
-    connection.run(f"{docker_cmd} pull {ecr_uri}", hide=True)
+    connection.run(f"docker pull {ecr_uri}", hide=True)
 
     # Run training command, display benchmark results to console
     connection.run(
-        f"{docker_cmd} run --user root "
+        f"docker run {docker_runtime} --user root "
         f"-e LOG_FILE={os.path.join(os.sep, 'test', 'benchmark', 'logs', log_name)} "
         f"-e PR_CONTEXT={1 if is_pr_context() else 0} "
         f"-v {container_test_local_dir}:{os.path.join(os.sep, 'test')} {ecr_uri} "
@@ -1362,7 +1360,6 @@ def execute_ec2_habana_training_performance_test(
     cards_num=None,
     timeout=18000,
 ):
-    docker_cmd = "docker"
     container_test_local_dir = os.path.join("$HOME", "container_tests")
 
     timestamp = time.strftime("%Y-%m-%d-%H-%M-%S")
@@ -1374,7 +1371,7 @@ def execute_ec2_habana_training_performance_test(
     account_id = get_account_id_from_image_uri(ecr_uri)
     login_to_ecr_registry(connection, account_id, region)
 
-    connection.run(f"{docker_cmd} pull -q {ecr_uri}")
+    connection.run(f"docker pull -q {ecr_uri}")
 
     container_runtime = "--runtime=habana -e HABANA_VISIBLE_DEVICES=all"
     hpu_env_vars = f"-e CARDS_NUM={cards_num} -e GIT_BRANCH={synapseai_version}"
@@ -1383,7 +1380,7 @@ def execute_ec2_habana_training_performance_test(
     ipc = "--ipc=host" if "pytorch" in ecr_uri else ""
     habana_container_test_repo = "${HOME}/gaudi-test-suite:/gaudi-test-suite"
     execution_command = (
-        f"{docker_cmd} run --user root "
+        f"docker run --user root "
         f"-e LOG_FILE={os.path.join(os.sep, 'test', 'benchmark', 'logs', log_name)} "
         f"-e PR_CONTEXT={1 if is_pr_context() else 0} "
         f"{container_runtime} {ompi_mca_btl} {hpu_env_vars} {cap_add} {ipc} "
@@ -1430,7 +1427,7 @@ def execute_ec2_inference_performance_test(
     data_source="",
     threshold=None,
 ):
-    docker_cmd = "nvidia-docker" if "gpu" in ecr_uri else "docker"
+    docker_runtime = "--runtime=nvidia --gpus all" if "gpu" in ecr_uri else ""
     container_test_local_dir = os.path.join("$HOME", "container_tests")
     timestamp = time.strftime("%Y-%m-%d-%H-%M-%S")
     log_name = (
@@ -1439,19 +1436,19 @@ def execute_ec2_inference_performance_test(
     # Make sure we are logged into ECR so we can pull the image
     account_id = get_account_id_from_image_uri(ecr_uri)
     login_to_ecr_registry(connection, account_id, region)
-    connection.run(f"{docker_cmd} pull -q {ecr_uri}")
+    connection.run(f"docker pull -q {ecr_uri}")
 
     # Run training command, display benchmark results to console
     repo_name, image_tag = ecr_uri.split("/")[-1].split(":")
     container_name = f"{repo_name}-performance-{image_tag}-ec2"
     connection.run(
-        f"{docker_cmd} run -d --name {container_name} "
+        f"docker run {docker_runtime} -d --name {container_name} "
         f"-e LOG_FILE={os.path.join(os.sep, 'test', 'benchmark', 'logs', log_name)} "
         f"-v {container_test_local_dir}:{os.path.join(os.sep, 'test')} {ecr_uri}"
     )
     try:
         connection.run(
-            f"{docker_cmd} exec --user root {container_name} "
+            f"docker exec --user root {container_name} "
             f"{os.path.join(os.sep, 'bin', 'bash')} -c {test_cmd}"
         )
     except Exception as e:
