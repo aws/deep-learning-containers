@@ -310,6 +310,7 @@ def main():
     except:
         framework, version = "general_test", "none"
 
+    # Add pipeline execution as additional differentiator for shared project names on different pipelines
     pipeline_execution = os.getenv("CODEPIPELINE_EXECUTION_ID", "test")
 
     pytest_cache_params = {
