@@ -32,16 +32,25 @@ from ..... import invoke_sm_endpoint_helper_function
 )
 @pytest.mark.neuronx_test
 @pytest.mark.team("sagemaker-1p-algorithms")
-def test_neuronx_no_context(framework_version, ecr_image, instance_type, sagemaker_regions):
+def test_neuronx_no_context(
+    test_region, test_instance_type, instance_type, framework_version, ecr_image, py_version
+):
     framework, _ = get_framework_and_version_from_tag(ecr_image)
-    instance_type = instance_type or "ml.inf2.xlarge"
+    if "pytorch" not in framework:
+        pytest.skip(f"Skipping test for non-pytorch image - {ecr_image}")
+    valid_instance_types_for_this_test = ["ml.trn1.2xlarge", "ml.inf2.xlarge"]
+    assert not instance_type or instance_type in valid_instance_types_for_this_test, (
+        f"Instance type value passed by pytest is {instance_type}. "
+        f"This method will only test instance types in {valid_instance_types_for_this_test}"
+    )
     invoke_sm_endpoint_helper_function(
         ecr_image=ecr_image,
-        sagemaker_regions=sagemaker_regions,
+        sagemaker_regions=[test_region],
         test_function=_test_sentence_transformers,
         framework_version=framework_version,
-        instance_type=instance_type,
+        instance_type=test_instance_type,
         model_dir=model_dir,
+        py_version=py_version,
         dump_logs_from_cloudwatch=dump_logs_from_cloudwatch,
     )
 
@@ -78,6 +87,7 @@ def _test_sentence_transformers(
     image_uri,
     instance_type,
     model_dir,
+    py_version,
     accelerator_type=None,
     **kwargs,
 ):
