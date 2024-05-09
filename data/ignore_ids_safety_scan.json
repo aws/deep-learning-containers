@@ -1386,8 +1386,7 @@
                 "65095": "Covered elsewhere",
                 "61503": "Covered elsewhere",
                 "65193": "Covered elsewhere",
-                "62019": "Covered elsehwere",
-                "67599": "only affects the use of --extra-index-url which is not the case"
+                "62019": "Covered elsehwere"
             }
         },
         "inference": {
