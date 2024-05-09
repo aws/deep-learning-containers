@@ -310,9 +310,11 @@ def main():
     except:
         framework, version = "general_test", "none"
 
+    pipeline_execution = os.getenv("CODEPIPELINE_EXECUTION_ID", "test")
+
     pytest_cache_params = {
         "codebuild_project_name": get_codebuild_project_name(),
-        "commit_id": commit_id,
+        "commit_id": commit_id if not pipeline_execution else f"{commit_id}_{pipeline_execution}",
         "framework": generate_unique_dlc_name(all_image_list[0]),
         "version": version,
         "build_context": build_context,
