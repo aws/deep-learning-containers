@@ -12,9 +12,6 @@ from test.dlc_tests.ec2 import smclarify_cases
 @pytest.mark.integration("PT22_general")
 @pytest.mark.model("N/A")
 @pytest.mark.team("conda")
-@pytest.mark.parametrize(
-    "ec2_instance_type, region", common_cases.PT_EC2_GPU_INSTANCE_TYPE_AND_REGION, indirect=True
-)
 def test_pytorch_2_2_gpu(
     pytorch_training___2__2
 ):
@@ -25,11 +22,6 @@ def test_pytorch_2_2_gpu(
 @pytest.mark.integration("inductor")
 @pytest.mark.model("N/A")
 @pytest.mark.team("training-compiler")
-@pytest.mark.parametrize(
-    "ec2_instance_type, region",
-    common_cases.PT_EC2_GPU_INDUCTOR_INSTANCE_TYPE_AND_REGION,
-    indirect=True,
-)
 def test_pytorch_2_2_gpu_inductor(
     pytorch_training___2__2
 ):
