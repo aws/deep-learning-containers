@@ -36,7 +36,7 @@ distribution = {"smdistributed": {"dataparallel": {"enabled": True}}}
 
 # hyperparameters, which are passed into the training job
 hyperparameters = {
-    "model_name_or_path": "distilbert/distilbert-base-uncased",
+    "model_name_or_path": "hf-internal-testing/tiny-random-BertModel",
     "dataset_name": "squad",
     "do_train": True,
     "do_eval": True,

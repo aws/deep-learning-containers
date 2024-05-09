@@ -25,8 +25,8 @@ import sagemaker
 
 # hyperparameters, which are passed into the training job
 hyperparameters = {
-    "model_name_or_path": "distilbert/distilbert-base-uncased",
-    "task_name": "mrpc",
+    "model_name_or_path": "hf-internal-testing/tiny-random-RobertaModel",
+    "task_name": "mnli",
     "per_device_train_batch_size": 2,  # batch size must be divisible by the number of microbatches
     "per_device_eval_batch_size": 2,
     "do_train": True,
@@ -68,7 +68,7 @@ def get_transformers_version_from_image_uri(ecr_image):
 
 @pytest.mark.processor("gpu")
 @pytest.mark.integration("smmp")
-@pytest.mark.model("hf_text_classif_smmp")
+@pytest.mark.model("hf_qa_smmp")
 @pytest.mark.skip_cpu
 @pytest.mark.skip_py2_containers
 @pytest.mark.skip_trcomp_containers
@@ -85,7 +85,7 @@ def test_smmp_gpu(
 
 @pytest.mark.processor("gpu")
 @pytest.mark.integration("smmp")
-@pytest.mark.model("hf_text_classif_smmp_multi")
+@pytest.mark.model("hf_qa_smmp_multi")
 @pytest.mark.skip_cpu
 @pytest.mark.skip_py2_containers
 @pytest.mark.multinode(2)
@@ -126,6 +126,4 @@ def _test_smmp_gpu_function(ecr_image, sagemaker_session, py_version, instances_
         hyperparameters=hyperparameters,
         sagemaker_session=sagemaker_session,
     )
-    huggingface_estimator.fit(
-        job_name=sagemaker.utils.unique_name_from_base("test-hf-pt-text-classif-smmp")
-    )
+    huggingface_estimator.fit(job_name=sagemaker.utils.unique_name_from_base("test-hf-pt-qa-smmp"))
