@@ -192,7 +192,7 @@ RUN ompi_info --parsable --all | grep mpi_built_with_cuda_support:value \
     typing \
     h5py \
     requests \
-    pyopenssl \
+    "pyopenssl>=24.0.0" \
     libgcc \
     conda-content-trust \
     charset-normalizer \
@@ -228,17 +228,18 @@ WORKDIR /root
 RUN pip install --no-cache-dir -U \
     "awscli>1.27,<2" \
     boto3 \
-    "click==8.1.2,<9" \
+    "click>=8.1.2,<9" \
     "cmake>=3.24.3,<3.25" \
-    "cryptography>41,<42" \
+    "cryptography>=42.0.5" \
     ipython \
     "mpi4py>=3.1.4,<3.2" \
-    "opencv-python>=4.6.0,<4.7" \
+    opencv-python \
     packaging \
     Pillow \
     "psutil>=5.9.4,<5.10" \
-    "pyyaml>=5.4,<5.5" \
-    "scipy>=1.9.3,<2"
+    "pyyaml>=6.0.1" \
+    "scipy>=1.9.3,<2" \
+    pybind11
 
 COPY deep_learning_container.py /usr/local/bin/deep_learning_container.py
 
@@ -513,7 +514,7 @@ RUN pip install --no-cache-dir -U \
     # smdebug==${SMDEBUG_VERSION} \
     smclarify \
     "sagemaker>=2,<3" \
-    sagemaker-experiments==0.* \
+    "sagemaker-experiments<1" \
     sagemaker-pytorch-training \
     flash-attn==$FLASH_ATTN_VERSION \
     triton==$TRITON_VERSION
