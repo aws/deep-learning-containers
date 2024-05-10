@@ -123,9 +123,10 @@ def _test_sentence_transformers(
             instance_type=instance_type,
             endpoint_name=endpoint_name,
         )
+        
+        predictor.serializer = IdentitySerializer(content_type="application/json")
+        predictor.deserializer = JSONDeserializer()
 
         inputs = {"inputs": "Suffs is considered to be the best musical after Hamilton."}
-        serializer = IdentitySerializer(content_type="application/json")
-        predictor.deserializer = JSONDeserializer()
-        data = json.dumps(inputs)
-        predictor.predict(data.encode())
+        
+        predictor.predict(json.dumps(inputs).encode("utf-8"))
