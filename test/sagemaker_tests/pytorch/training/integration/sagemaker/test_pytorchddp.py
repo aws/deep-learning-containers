@@ -41,6 +41,10 @@ def can_run_pytorchddp(ecr_image):
     os.getenv("SM_EFA_TEST_INSTANCE_TYPE") == "ml.p5.48xlarge",
     reason="Low availability of instance type; Must ensure test works on new instances.",
 )
+@pytest.mark.skip_smdataparallel_p5_tests
+@pytest.mark.skip_cpu
+@pytest.mark.skip_py2_containers
+@pytest.mark.skip_trcomp_containers
 @pytest.mark.processor("gpu")
 @pytest.mark.model("N/A")
 @pytest.mark.multinode(2)
@@ -48,15 +52,16 @@ def can_run_pytorchddp(ecr_image):
 @pytest.mark.parametrize(
     "efa_instance_type", get_efa_test_instance_type(default=["ml.p4d.24xlarge"]), indirect=True
 )
-@pytest.mark.skip_cpu
-@pytest.mark.skip_py2_containers
-@pytest.mark.skip_trcomp_containers
 @pytest.mark.efa()
 @pytest.mark.team("conda")
-@pytest.mark.skip_smdataparallel_p5_tests
 def test_pytorchddp_throughput_gpu(
     framework_version, ecr_image, sagemaker_regions, efa_instance_type, tmpdir
 ):
+
+    # TEMP SKIP FOR PT 1.13.1 AUTOPATCH
+    if Version(framework_version) == Version("1.13.1"):
+        pytest.skip(f"Image {ecr_image} does not support GDR Copy")
+
     with timeout(minutes=25):
         validate_or_skip_pytorchddp(ecr_image)
         distribution = {"pytorchddp": {"enabled": True}}
