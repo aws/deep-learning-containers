@@ -999,8 +999,7 @@ def skip_efa_healthcheck_test(request):
         request, image_uri, "skip_efa_healthcheck_test", skip_dict
     ):
         pytest.skip(
-            f"EFA healthcheck binaries are not present in current PyTorch DLC"
-            f"Skipping test"
+            f"EFA healthcheck binaries are not present in current {image_uri}, skipping test"
         )
 
 
