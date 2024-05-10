@@ -4,7 +4,7 @@
     "skip": "True"
   },
   "fastai": {
-    "version_specifier": "==2.7.14",
+    "version_specifier": "==2.7.15",
     "skip": "True"
   },
   "torchaudio": {
@@ -49,5 +49,8 @@
   },
   "idna": {
     "version_specifier": ">=3.7"
+  },
+  "tqdm": {
+    "version_specifier": ">=4.66.3"
   }
 }

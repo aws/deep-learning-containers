@@ -22,6 +22,12 @@
   "awscli": {
     "version_specifier": "<2"
   },
+  "idna": {
+    "version_specifier": ">=3.7"
+  },
+  "tqdm": {
+    "version_specifier": ">=4.66.3"
+  },
   "pyopenssl": {
     "version_specifier": ">=24.0.0"
   },
