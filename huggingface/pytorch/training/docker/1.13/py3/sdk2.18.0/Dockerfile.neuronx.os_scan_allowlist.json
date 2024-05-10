@@ -1,0 +1,617 @@
+{
+    "libnghttp2-14": [
+        {
+            "description": " Some HTTP/2 implementations are vulnerable to resource loops, potentially leading to a denial of service. The attacker creates multiple request streams and continually shuffles the priority of the streams in a way that causes substantial churn to the priority tree. This can consume excess CPU.",
+            "vulnerability_id": "CVE-2019-9513",
+            "name": "CVE-2019-9513",
+            "package_name": "libnghttp2-14",
+            "package_details": {
+                "file_path": null,
+                "name": "libnghttp2-14",
+                "package_manager": "OS",
+                "version": "1.40.0",
+                "release": "1ubuntu0.2"
+            },
+            "remediation": {
+                "recommendation": {
+                    "text": "None Provided"
+                }
+            },
+            "cvss_v3_score": 7.5,
+            "cvss_v30_score": 0.0,
+            "cvss_v31_score": 7.5,
+            "cvss_v2_score": 0.0,
+            "cvss_v3_severity": "HIGH",
+            "source_url": "https://people.canonical.com/~ubuntu-security/cve/2019/CVE-2019-9513.html",
+            "source": "UBUNTU_CVE",
+            "severity": "HIGH",
+            "status": "ACTIVE",
+            "title": "CVE-2019-9513 - libnghttp2-14, nghttp2",
+            "reason_to_ignore": "N/A"
+        },
+        {
+            "description": " Some HTTP/2 implementations are vulnerable to window size manipulation and stream prioritization manipulation, potentially leading to a denial of service. The attacker requests a large amount of data from a specified resource over multiple streams. They manipulate window size and stream priority to force the server to queue the data in 1-byte chunks. Depending on how efficiently this data is queued, this can consume excess CPU, memory, or both.",
+            "vulnerability_id": "CVE-2019-9511",
+            "name": "CVE-2019-9511",
+            "package_name": "libnghttp2-14",
+            "package_details": {
+                "file_path": null,
+                "name": "libnghttp2-14",
+                "package_manager": "OS",
+                "version": "1.40.0",
+                "release": "1ubuntu0.2"
+            },
+            "remediation": {
+                "recommendation": {
+                    "text": "None Provided"
+                }
+            },
+            "cvss_v3_score": 7.5,
+            "cvss_v30_score": 0.0,
+            "cvss_v31_score": 7.5,
+            "cvss_v2_score": 0.0,
+            "cvss_v3_severity": "HIGH",
+            "source_url": "https://people.canonical.com/~ubuntu-security/cve/2019/CVE-2019-9511.html",
+            "source": "UBUNTU_CVE",
+            "severity": "HIGH",
+            "status": "ACTIVE",
+            "title": "CVE-2019-9511 - libnghttp2-14, nghttp2",
+            "reason_to_ignore": "N/A"
+        },
+        {
+            "description": " The HTTP/2 protocol allows a denial of service (server resource consumption) because request cancellation can reset many streams quickly, as exploited in the wild in August through October 2023.",
+            "vulnerability_id": "CVE-2023-44487",
+            "name": "CVE-2023-44487",
+            "package_name": "libnghttp2-14",
+            "package_details": {
+                "file_path": null,
+                "name": "libnghttp2-14",
+                "package_manager": "OS",
+                "version": "1.40.0",
+                "release": "1ubuntu0.2"
+            },
+            "remediation": {
+                "recommendation": {
+                    "text": "None Provided"
+                }
+            },
+            "cvss_v3_score": 7.5,
+            "cvss_v30_score": 0.0,
+            "cvss_v31_score": 7.5,
+            "cvss_v2_score": 0.0,
+            "cvss_v3_severity": "HIGH",
+            "source_url": "https://people.canonical.com/~ubuntu-security/cve/2023/CVE-2023-44487.html",
+            "source": "UBUNTU_CVE",
+            "severity": "HIGH",
+            "status": "ACTIVE",
+            "title": "CVE-2023-44487 - libnghttp2-14, nghttp2",
+            "reason_to_ignore": "N/A"
+        }
+    ],
+    "linux-libc-dev": [
+        {
+            "description": " In the Linux kernel, the following vulnerability has been resolved: netfilter: nft_set_rbtree: skip end interval element from gc rbtree lazy gc on insert might collect an end interval element that has been just added in this transactions, skip end interval elements that are not yet active.",
+            "vulnerability_id": "CVE-2024-26581",
+            "name": "CVE-2024-26581",
+            "package_name": "linux-libc-dev",
+            "package_details": {
+                "file_path": null,
+                "name": "linux-libc-dev",
+                "package_manager": "OS",
+                "version": "5.4.0",
+                "release": "174.193"
+            },
+            "remediation": {
+                "recommendation": {
+                    "text": "None Provided"
+                }
+            },
+            "cvss_v3_score": 7.8,
+            "cvss_v30_score": 0.0,
+            "cvss_v31_score": 7.8,
+            "cvss_v2_score": 0.0,
+            "cvss_v3_severity": "HIGH",
+            "source_url": "https://people.canonical.com/~ubuntu-security/cve/2024/CVE-2024-26581.html",
+            "source": "UBUNTU_CVE",
+            "severity": "HIGH",
+            "status": "ACTIVE",
+            "title": "CVE-2024-26581 - linux-libc-dev",
+            "reason_to_ignore": "N/A"
+        },
+        {
+            "description": " In the Linux kernel, the following vulnerability has been resolved: powerpc/pseries/memhp: Fix access beyond end of drmem array dlpar_memory_remove_by_index() may access beyond the bounds of the drmem lmb array when the LMB lookup fails to match an entry with the given DRC index. When the search fails, the cursor is left pointing to &drmem_info->lmbs[drmem_info->n_lmbs], which is one element past the last valid entry in the array. The debug message at the end of the function then dereferences this pointer: pr_debug(\"Failed to hot-remove memory at %llx\\n\", lmb->base_addr); This was found by inspection and confirmed with KASAN: pseries-hotplug-mem: Attempting to hot-remove LMB, drc index 1234 ================================================================== BUG: KASAN: slab-out-of-bounds in dlpar_memory+0x298/0x1658 Read of size 8 at addr c000000364e97fd0 by task bash/949 dump_stack_lvl+0xa4/0xfc (unreliable) print_report+0x214/0x63c kasan_report+0x140/0x2e0 __asan_load8+0xa8/0xe0 dlpar_memory+0x298/0x1658 ha",
+            "vulnerability_id": "CVE-2023-52451",
+            "name": "CVE-2023-52451",
+            "package_name": "linux-libc-dev",
+            "package_details": {
+                "file_path": null,
+                "name": "linux-libc-dev",
+                "package_manager": "OS",
+                "version": "5.4.0",
+                "release": "174.193"
+            },
+            "remediation": {
+                "recommendation": {
+                    "text": "None Provided"
+                }
+            },
+            "cvss_v3_score": 7.8,
+            "cvss_v30_score": 0.0,
+            "cvss_v31_score": 7.8,
+            "cvss_v2_score": 0.0,
+            "cvss_v3_severity": "HIGH",
+            "source_url": "https://people.canonical.com/~ubuntu-security/cve/2023/CVE-2023-52451.html",
+            "source": "UBUNTU_CVE",
+            "severity": "HIGH",
+            "status": "ACTIVE",
+            "title": "CVE-2023-52451 - linux-libc-dev",
+            "reason_to_ignore": "N/A"
+        },
+        {
+            "description": " In the Linux kernel, the following vulnerability has been resolved: binder: fix use-after-free in shinker's callback The mmap read lock is used during the shrinker's callback, which means that using alloc->vma pointer isn't safe as it can race with munmap(). As of commit dd2283f2605e (\"mm: mmap: zap pages with read mmap_sem in munmap\") the mmap lock is downgraded after the vma has been isolated. I was able to reproduce this issue by manually adding some delays and triggering page reclaiming through the shrinker's debug sysfs. The following KASAN report confirms the UAF: ================================================================== BUG: KASAN: slab-use-after-free in zap_page_range_single+0x470/0x4b8 Read of size 8 at addr ffff356ed50e50f0 by task bash/478 CPU: 1 PID: 478 Comm: bash Not tainted 6.6.0-rc5-00055-g1c8b86a3799f-dirty #70 Hardware name: linux,dummy-virt (DT) Call trace: zap_page_range_single+0x470/0x4b8 binder_alloc_free_page+0x608/0xadc __list_lru_walk_one+0x130/0x3b0 list_lru_walk_node+0xc4/",
+            "vulnerability_id": "CVE-2023-52438",
+            "name": "CVE-2023-52438",
+            "package_name": "linux-libc-dev",
+            "package_details": {
+                "file_path": null,
+                "name": "linux-libc-dev",
+                "package_manager": "OS",
+                "version": "5.4.0",
+                "release": "174.193"
+            },
+            "remediation": {
+                "recommendation": {
+                    "text": "None Provided"
+                }
+            },
+            "cvss_v3_score": 7.8,
+            "cvss_v30_score": 0.0,
+            "cvss_v31_score": 7.8,
+            "cvss_v2_score": 0.0,
+            "cvss_v3_severity": "HIGH",
+            "source_url": "https://people.canonical.com/~ubuntu-security/cve/2023/CVE-2023-52438.html",
+            "source": "UBUNTU_CVE",
+            "severity": "HIGH",
+            "status": "ACTIVE",
+            "title": "CVE-2023-52438 - linux-libc-dev",
+            "reason_to_ignore": "N/A"
+        },
+        {
+            "description": "\n Pratyush Yadav discovered that the Xen network backend implementation in\n the Linux kernel did not properly handle zero length data request, leading\n to a null pointer dereference vulnerability. An attacker in a guest VM\n could possibly use this to cause a denial of service (host domain crash).",
+            "vulnerability_id": "CVE-2023-46838",
+            "name": "CVE-2023-46838",
+            "package_name": "linux-libc-dev",
+            "package_details": {
+                "file_path": null,
+                "name": "linux-libc-dev",
+                "package_manager": "OS",
+                "version": "5.4.0",
+                "release": "174.193"
+            },
+            "remediation": {
+                "recommendation": {
+                    "text": "None Provided"
+                }
+            },
+            "cvss_v3_score": 7.5,
+            "cvss_v30_score": 0.0,
+            "cvss_v31_score": 7.5,
+            "cvss_v2_score": 0.0,
+            "cvss_v3_severity": "HIGH",
+            "source_url": "https://people.canonical.com/~ubuntu-security/cve/2023/CVE-2023-46838.html",
+            "source": "UBUNTU_CVE",
+            "severity": "HIGH",
+            "status": "ACTIVE",
+            "title": "CVE-2023-46838 - linux-libc-dev",
+            "reason_to_ignore": "N/A"
+        },
+        {
+            "description": " In the Linux kernel, the following vulnerability has been resolved: net: qualcomm: rmnet: fix global oob in rmnet_policy The variable rmnet_link_ops assign a *bigger* maxtype which leads to a global out-of-bounds read when parsing the netlink attributes. See bug trace below: ================================================================== BUG: KASAN: global-out-of-bounds in validate_nla lib/nlattr.c:386 [inline] BUG: KASAN: global-out-of-bounds in __nla_validate_parse+0x24af/0x2750 lib/nlattr.c:600 Read of size 1 at addr ffffffff92c438d0 by task syz-executor.6/84207 CPU: 0 PID: 84207 Comm: syz-executor.6 Tainted: G N 6.1.0 #3 Hardware name: QEMU Standard PC (i440FX + PIIX, 1996), BIOS 1.13.0-1ubuntu1.1 04/01/2014 Call Trace: <TASK> __dump_stack lib/dump_stack.c:88 [inline] dump_stack_lvl+0x8b/0xb3 lib/dump_stack.c:106 print_address_description mm/kasan/report.c:284 [inline] print_report+0x172/0x475 mm/kasan/report.c:395 kasan_report+0xbb/0x1c0 mm/kasan/report.c:495 validate_nla lib/nlattr.c:386 [inline] __",
+            "vulnerability_id": "CVE-2024-26597",
+            "name": "CVE-2024-26597",
+            "package_name": "linux-libc-dev",
+            "package_details": {
+                "file_path": null,
+                "name": "linux-libc-dev",
+                "package_manager": "OS",
+                "version": "5.4.0",
+                "release": "174.193"
+            },
+            "remediation": {
+                "recommendation": {
+                    "text": "None Provided"
+                }
+            },
+            "cvss_v3_score": 7.1,
+            "cvss_v30_score": 0.0,
+            "cvss_v31_score": 7.1,
+            "cvss_v2_score": 0.0,
+            "cvss_v3_severity": "HIGH",
+            "source_url": "https://people.canonical.com/~ubuntu-security/cve/2024/CVE-2024-26597.html",
+            "source": "UBUNTU_CVE",
+            "severity": "HIGH",
+            "status": "ACTIVE",
+            "title": "CVE-2024-26597 - linux-libc-dev",
+            "reason_to_ignore": "N/A"
+        },
+        {
+            "description": " In the Linux kernel, the following vulnerability has been resolved: serial: 8250: omap: Don't skip resource freeing if pm_runtime_resume_and_get() failed Returning an error code from .remove() makes the driver core emit the little helpful error message: remove callback returned a non-zero value. This will be ignored. and then remove the device anyhow. So all resources that were not freed are leaked in this case. Skipping serial8250_unregister_port() has the potential to keep enough of the UART around to trigger a use-after-free. So replace the error return (and with it the little helpful error message) by a more useful error message and continue to cleanup.",
+            "vulnerability_id": "CVE-2023-52457",
+            "name": "CVE-2023-52457",
+            "package_name": "linux-libc-dev",
+            "package_details": {
+                "file_path": null,
+                "name": "linux-libc-dev",
+                "package_manager": "OS",
+                "version": "5.4.0",
+                "release": "174.193"
+            },
+            "remediation": {
+                "recommendation": {
+                    "text": "None Provided"
+                }
+            },
+            "cvss_v3_score": 7.8,
+            "cvss_v30_score": 0.0,
+            "cvss_v31_score": 7.8,
+            "cvss_v2_score": 0.0,
+            "cvss_v3_severity": "HIGH",
+            "source_url": "https://people.canonical.com/~ubuntu-security/cve/2023/CVE-2023-52457.html",
+            "source": "UBUNTU_CVE",
+            "severity": "HIGH",
+            "status": "ACTIVE",
+            "title": "CVE-2023-52457 - linux-libc-dev",
+            "reason_to_ignore": "N/A"
+        },
+        {
+            "description": " In the Linux kernel, the following vulnerability has been resolved: KVM: arm64: vgic-its: Avoid potential UAF in LPI translation cache There is a potential UAF scenario in the case of an LPI translation cache hit racing with an operation that invalidates the cache, such as a DISCARD ITS command. The root of the problem is that vgic_its_check_cache() does not elevate the refcount on the vgic_irq before dropping the lock that serializes refcount changes. Have vgic_its_check_cache() raise the refcount on the returned vgic_irq and add the corresponding decrement after queueing the interrupt.",
+            "vulnerability_id": "CVE-2024-26598",
+            "name": "CVE-2024-26598",
+            "package_name": "linux-libc-dev",
+            "package_details": {
+                "file_path": null,
+                "name": "linux-libc-dev",
+                "package_manager": "OS",
+                "version": "5.4.0",
+                "release": "174.193"
+            },
+            "remediation": {
+                "recommendation": {
+                    "text": "None Provided"
+                }
+            },
+            "cvss_v3_score": 7.8,
+            "cvss_v30_score": 0.0,
+            "cvss_v31_score": 7.8,
+            "cvss_v2_score": 0.0,
+            "cvss_v3_severity": "HIGH",
+            "source_url": "https://people.canonical.com/~ubuntu-security/cve/2024/CVE-2024-26598.html",
+            "source": "UBUNTU_CVE",
+            "severity": "HIGH",
+            "status": "ACTIVE",
+            "title": "CVE-2024-26598 - linux-libc-dev",
+            "reason_to_ignore": "N/A"
+        },
+        {
+            "description": " In the Linux kernel, the following vulnerability has been resolved: drivers/amd/pm: fix a use-after-free in kv_parse_power_table When ps allocated by kzalloc equals to NULL, kv_parse_power_table frees adev->pm.dpm.ps that allocated before. However, after the control flow goes through the following call chains: kv_parse_power_table |-> kv_dpm_init |-> kv_dpm_sw_init |-> kv_dpm_fini The adev->pm.dpm.ps is used in the for loop of kv_dpm_fini after its first free in kv_parse_power_table and causes a use-after-free bug.",
+            "vulnerability_id": "CVE-2023-52469",
+            "name": "CVE-2023-52469",
+            "package_name": "linux-libc-dev",
+            "package_details": {
+                "file_path": null,
+                "name": "linux-libc-dev",
+                "package_manager": "OS",
+                "version": "5.4.0",
+                "release": "174.193"
+            },
+            "remediation": {
+                "recommendation": {
+                    "text": "None Provided"
+                }
+            },
+            "cvss_v3_score": 7.8,
+            "cvss_v30_score": 0.0,
+            "cvss_v31_score": 7.8,
+            "cvss_v2_score": 0.0,
+            "cvss_v3_severity": "HIGH",
+            "source_url": "https://people.canonical.com/~ubuntu-security/cve/2023/CVE-2023-52469.html",
+            "source": "UBUNTU_CVE",
+            "severity": "HIGH",
+            "status": "ACTIVE",
+            "title": "CVE-2023-52469 - linux-libc-dev",
+            "reason_to_ignore": "N/A"
+        },
+        {
+            "description": " In the Linux kernel, the following vulnerability has been resolved: f2fs: fix to avoid dirent corruption As Al reported in link[1]: f2fs_rename() ... if (old_dir != new_dir && !whiteout) f2fs_set_link(old_inode, old_dir_entry, old_dir_page, new_dir); else f2fs_put_page(old_dir_page, 0); You want correct inumber in the \"..\" link. And cross-directory rename does move the source to new parent, even if you'd been asked to leave a whiteout in the old place. [1] https://lore.kernel.org/all/20231017055040.GN800259@ZenIV/ With below testcase, it may cause dirent corruption, due to it missed to call f2fs_set_link() to update \"..\" link to new directory. - mkdir -p dir/foo - renameat2 -w dir/foo bar [ASSERT] (__chk_dots_dentries:1421) --> Bad inode number[0x4] for '..', parent parent ino is [0x3] [FSCK] other corrupted bugs [Fail]",
+            "vulnerability_id": "CVE-2023-52444",
+            "name": "CVE-2023-52444",
+            "package_name": "linux-libc-dev",
+            "package_details": {
+                "file_path": null,
+                "name": "linux-libc-dev",
+                "package_manager": "OS",
+                "version": "5.4.0",
+                "release": "174.193"
+            },
+            "remediation": {
+                "recommendation": {
+                    "text": "None Provided"
+                }
+            },
+            "cvss_v3_score": 7.8,
+            "cvss_v30_score": 0.0,
+            "cvss_v31_score": 7.8,
+            "cvss_v2_score": 0.0,
+            "cvss_v3_severity": "HIGH",
+            "source_url": "https://people.canonical.com/~ubuntu-security/cve/2023/CVE-2023-52444.html",
+            "source": "UBUNTU_CVE",
+            "severity": "HIGH",
+            "status": "ACTIVE",
+            "title": "CVE-2023-52444 - linux-libc-dev",
+            "reason_to_ignore": "N/A"
+        },
+        {
+            "description": " In the Linux kernel, the following vulnerability has been resolved: i2c: i801: Fix block process call transactions According to the Intel datasheets, software must reset the block buffer index twice for block process call transactions: once before writing the outgoing data to the buffer, and once again before reading the incoming data from the buffer. The driver is currently missing the second reset, causing the wrong portion of the block buffer to be read.",
+            "vulnerability_id": "CVE-2024-26593",
+            "name": "CVE-2024-26593",
+            "package_name": "linux-libc-dev",
+            "package_details": {
+                "file_path": null,
+                "name": "linux-libc-dev",
+                "package_manager": "OS",
+                "version": "5.4.0",
+                "release": "174.193"
+            },
+            "remediation": {
+                "recommendation": {
+                    "text": "None Provided"
+                }
+            },
+            "cvss_v3_score": 7.1,
+            "cvss_v30_score": 0.0,
+            "cvss_v31_score": 7.1,
+            "cvss_v2_score": 0.0,
+            "cvss_v3_severity": "HIGH",
+            "source_url": "https://people.canonical.com/~ubuntu-security/cve/2024/CVE-2024-26593.html",
+            "source": "UBUNTU_CVE",
+            "severity": "HIGH",
+            "status": "ACTIVE",
+            "title": "CVE-2024-26593 - linux-libc-dev",
+            "reason_to_ignore": "N/A"
+        },
+        {
+            "description": " In the Linux kernel, the following vulnerability has been resolved: uio: Fix use-after-free in uio_open core-1 core-2 ------------------------------------------------------- uio_unregister_device uio_open idev = idr_find() device_unregister(&idev->dev) put_device(&idev->dev) uio_device_release get_device(&idev->dev) kfree(idev) uio_free_minor(minor) uio_release put_device(&idev->dev) kfree(idev) ------------------------------------------------------- In the core-1 uio_unregister_device(), the device_unregister will kfree idev when the idev->dev kobject ref is 1. But after core-1 device_unregister, put_device and before doing kfree, the core-2 may get_device. Then: 1. After core-1 kfree idev, the core-2 will do use-after-free for idev. 2. When core-2 do uio_release and put_device, the idev will be double freed. To address this issue, we can get idev atomic & inc idev reference with minor_lock.",
+            "vulnerability_id": "CVE-2023-52439",
+            "name": "CVE-2023-52439",
+            "package_name": "linux-libc-dev",
+            "package_details": {
+                "file_path": null,
+                "name": "linux-libc-dev",
+                "package_manager": "OS",
+                "version": "5.4.0",
+                "release": "174.193"
+            },
+            "remediation": {
+                "recommendation": {
+                    "text": "None Provided"
+                }
+            },
+            "cvss_v3_score": 7.8,
+            "cvss_v30_score": 0.0,
+            "cvss_v31_score": 7.8,
+            "cvss_v2_score": 0.0,
+            "cvss_v3_severity": "HIGH",
+            "source_url": "https://people.canonical.com/~ubuntu-security/cve/2023/CVE-2023-52439.html",
+            "source": "UBUNTU_CVE",
+            "severity": "HIGH",
+            "status": "ACTIVE",
+            "title": "CVE-2023-52439 - linux-libc-dev",
+            "reason_to_ignore": "N/A"
+        },
+        {
+            "description": " In the Linux kernel, the following vulnerability has been resolved: bpf: Reject variable offset alu on PTR_TO_FLOW_KEYS For PTR_TO_FLOW_KEYS, check_flow_keys_access() only uses fixed off for validation. However, variable offset ptr alu is not prohibited for this ptr kind. So the variable offset is not checked. The following prog is accepted: func#0 @0 0: R1=ctx() R10=fp0 0: (bf) r6 = r1 ; R1=ctx() R6_w=ctx() 1: (79) r7 = *(u64 *)(r6 +144) ; R6_w=ctx() R7_w=flow_keys() 2: (b7) r8 = 1024 ; R8_w=1024 3: (37) r8 /= 1 ; R8_w=scalar() 4: (57) r8 &= 1024 ; R8_w=scalar(smin=smin32=0, smax=umax=smax32=umax32=1024,var_off=(0x0; 0x400)) 5: (0f) r7 += r8 mark_precise: frame0: last_idx 5 first_idx 0 subseq_idx -1 mark_precise: frame0: regs=r8 stack= before 4: (57) r8 &= 1024 mark_precise: frame0: regs=r8 stack= before 3: (37) r8 /= 1 mark_precise: frame0: regs=r8 stack= before 2: (b7) r8 = 1024 6: R7_w=flow_keys(smin=smin32=0,smax=umax=smax32=umax32=1024,var_off =(0x0; 0x400)) R8_w=scalar(smin=smin32=0,smax=umax=smax32=u",
+            "vulnerability_id": "CVE-2024-26589",
+            "name": "CVE-2024-26589",
+            "package_name": "linux-libc-dev",
+            "package_details": {
+                "file_path": null,
+                "name": "linux-libc-dev",
+                "package_manager": "OS",
+                "version": "5.4.0",
+                "release": "174.193"
+            },
+            "remediation": {
+                "recommendation": {
+                    "text": "None Provided"
+                }
+            },
+            "cvss_v3_score": 7.8,
+            "cvss_v30_score": 0.0,
+            "cvss_v31_score": 7.8,
+            "cvss_v2_score": 0.0,
+            "cvss_v3_severity": "HIGH",
+            "source_url": "https://people.canonical.com/~ubuntu-security/cve/2024/CVE-2024-26589.html",
+            "source": "UBUNTU_CVE",
+            "severity": "HIGH",
+            "status": "ACTIVE",
+            "title": "CVE-2024-26589 - linux-libc-dev",
+            "reason_to_ignore": "N/A"
+        },
+        {
+            "description": " In the Linux kernel, the following vulnerability has been resolved: EDAC/thunderx: Fix possible out-of-bounds string access Enabling -Wstringop-overflow globally exposes a warning for a common bug in the usage of strncat(): drivers/edac/thunderx_edac.c: In function 'thunderx_ocx_com_threaded_isr': drivers/edac/thunderx_edac.c:1136:17: error: 'strncat' specified bound 1024 equals destination size [-Werror=stringop-overflow=] 1136 | strncat(msg, other, OCX_MESSAGE_SIZE); | ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ... 1145 | strncat(msg, other, OCX_MESSAGE_SIZE); ... 1150 | strncat(msg, other, OCX_MESSAGE_SIZE); ... Apparently the author of this driver expected strncat() to behave the way that strlcat() does, which uses the size of the destination buffer as its third argument rather than the length of the source buffer. The result is that there is no check on the size of the allocated buffer. Change it to strlcat(). [ bp: Trim compiler output, fixup commit message. ]",
+            "vulnerability_id": "CVE-2023-52464",
+            "name": "CVE-2023-52464",
+            "package_name": "linux-libc-dev",
+            "package_details": {
+                "file_path": null,
+                "name": "linux-libc-dev",
+                "package_manager": "OS",
+                "version": "5.4.0",
+                "release": "174.193"
+            },
+            "remediation": {
+                "recommendation": {
+                    "text": "None Provided"
+                }
+            },
+            "cvss_v3_score": 7.8,
+            "cvss_v30_score": 0.0,
+            "cvss_v31_score": 7.8,
+            "cvss_v2_score": 0.0,
+            "cvss_v3_severity": "HIGH",
+            "source_url": "https://people.canonical.com/~ubuntu-security/cve/2023/CVE-2023-52464.html",
+            "source": "UBUNTU_CVE",
+            "severity": "HIGH",
+            "status": "ACTIVE",
+            "title": "CVE-2023-52464 - linux-libc-dev",
+            "reason_to_ignore": "N/A"
+        },
+        {
+            "description": " In the Linux kernel, the following vulnerability has been resolved: f2fs: explicitly null-terminate the xattr list When setting an xattr, explicitly null-terminate the xattr list. This eliminates the fragile assumption that the unused xattr space is always zeroed.",
+            "vulnerability_id": "CVE-2023-52436",
+            "name": "CVE-2023-52436",
+            "package_name": "linux-libc-dev",
+            "package_details": {
+                "file_path": null,
+                "name": "linux-libc-dev",
+                "package_manager": "OS",
+                "version": "5.4.0",
+                "release": "174.193"
+            },
+            "remediation": {
+                "recommendation": {
+                    "text": "None Provided"
+                }
+            },
+            "cvss_v3_score": 7.8,
+            "cvss_v30_score": 0.0,
+            "cvss_v31_score": 7.8,
+            "cvss_v2_score": 0.0,
+            "cvss_v3_severity": "HIGH",
+            "source_url": "https://people.canonical.com/~ubuntu-security/cve/2023/CVE-2023-52436.html",
+            "source": "UBUNTU_CVE",
+            "severity": "HIGH",
+            "status": "ACTIVE",
+            "title": "CVE-2023-52436 - linux-libc-dev",
+            "reason_to_ignore": "N/A"
+        },
+        {
+            "description": " In the Linux kernel, the following vulnerability has been resolved: media: pvrusb2: fix use after free on context disconnection Upon module load, a kthread is created targeting the pvr2_context_thread_func function, which may call pvr2_context_destroy and thus call kfree() on the context object. However, that might happen before the usb hub_event handler is able to notify the driver. This patch adds a sanity check before the invalid read reported by syzbot, within the context disconnection call stack.",
+            "vulnerability_id": "CVE-2023-52445",
+            "name": "CVE-2023-52445",
+            "package_name": "linux-libc-dev",
+            "package_details": {
+                "file_path": null,
+                "name": "linux-libc-dev",
+                "package_manager": "OS",
+                "version": "5.4.0",
+                "release": "174.193"
+            },
+            "remediation": {
+                "recommendation": {
+                    "text": "None Provided"
+                }
+            },
+            "cvss_v3_score": 7.8,
+            "cvss_v30_score": 0.0,
+            "cvss_v31_score": 7.8,
+            "cvss_v2_score": 0.0,
+            "cvss_v3_severity": "HIGH",
+            "source_url": "https://people.canonical.com/~ubuntu-security/cve/2023/CVE-2023-52445.html",
+            "source": "UBUNTU_CVE",
+            "severity": "HIGH",
+            "status": "ACTIVE",
+            "title": "CVE-2023-52445 - linux-libc-dev",
+            "reason_to_ignore": "N/A"
+        }
+    ],
+    "nghttp2": [
+        {
+            "description": " Some HTTP/2 implementations are vulnerable to resource loops, potentially leading to a denial of service. The attacker creates multiple request streams and continually shuffles the priority of the streams in a way that causes substantial churn to the priority tree. This can consume excess CPU.",
+            "vulnerability_id": "CVE-2019-9513",
+            "name": "CVE-2019-9513",
+            "package_name": "nghttp2",
+            "package_details": {
+                "file_path": null,
+                "name": "nghttp2",
+                "package_manager": "OS",
+                "version": "1.40.0",
+                "release": "1ubuntu0.2"
+            },
+            "remediation": {
+                "recommendation": {
+                    "text": "None Provided"
+                }
+            },
+            "cvss_v3_score": 7.5,
+            "cvss_v30_score": 0.0,
+            "cvss_v31_score": 7.5,
+            "cvss_v2_score": 0.0,
+            "cvss_v3_severity": "HIGH",
+            "source_url": "https://people.canonical.com/~ubuntu-security/cve/2019/CVE-2019-9513.html",
+            "source": "UBUNTU_CVE",
+            "severity": "HIGH",
+            "status": "ACTIVE",
+            "title": "CVE-2019-9513 - libnghttp2-14, nghttp2",
+            "reason_to_ignore": "N/A"
+        },
+        {
+            "description": " Some HTTP/2 implementations are vulnerable to window size manipulation and stream prioritization manipulation, potentially leading to a denial of service. The attacker requests a large amount of data from a specified resource over multiple streams. They manipulate window size and stream priority to force the server to queue the data in 1-byte chunks. Depending on how efficiently this data is queued, this can consume excess CPU, memory, or both.",
+            "vulnerability_id": "CVE-2019-9511",
+            "name": "CVE-2019-9511",
+            "package_name": "nghttp2",
+            "package_details": {
+                "file_path": null,
+                "name": "nghttp2",
+                "package_manager": "OS",
+                "version": "1.40.0",
+                "release": "1ubuntu0.2"
+            },
+            "remediation": {
+                "recommendation": {
+                    "text": "None Provided"
+                }
+            },
+            "cvss_v3_score": 7.5,
+            "cvss_v30_score": 0.0,
+            "cvss_v31_score": 7.5,
+            "cvss_v2_score": 0.0,
+            "cvss_v3_severity": "HIGH",
+            "source_url": "https://people.canonical.com/~ubuntu-security/cve/2019/CVE-2019-9511.html",
+            "source": "UBUNTU_CVE",
+            "severity": "HIGH",
+            "status": "ACTIVE",
+            "title": "CVE-2019-9511 - libnghttp2-14, nghttp2",
+            "reason_to_ignore": "N/A"
+        },
+        {
+            "description": " The HTTP/2 protocol allows a denial of service (server resource consumption) because request cancellation can reset many streams quickly, as exploited in the wild in August through October 2023.",
+            "vulnerability_id": "CVE-2023-44487",
+            "name": "CVE-2023-44487",
+            "package_name": "nghttp2",
+            "package_details": {
+                "file_path": null,
+                "name": "nghttp2",
+                "package_manager": "OS",
+                "version": "1.40.0",
+                "release": "1ubuntu0.2"
+            },
+            "remediation": {
+                "recommendation": {
+                    "text": "None Provided"
+                }
+            },
+            "cvss_v3_score": 7.5,
+            "cvss_v30_score": 0.0,
+            "cvss_v31_score": 7.5,
+            "cvss_v2_score": 0.0,
+            "cvss_v3_severity": "HIGH",
+            "source_url": "https://people.canonical.com/~ubuntu-security/cve/2023/CVE-2023-44487.html",
+            "source": "UBUNTU_CVE",
+            "severity": "HIGH",
+            "status": "ACTIVE",
+            "title": "CVE-2023-44487 - libnghttp2-14, nghttp2",
+            "reason_to_ignore": "N/A"
+        }
+    ]
+}
