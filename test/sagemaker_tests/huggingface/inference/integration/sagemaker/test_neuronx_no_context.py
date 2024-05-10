@@ -18,6 +18,8 @@ import sagemaker
 
 from sagemaker.huggingface import HuggingFaceModel
 from sagemaker.predictor import Predictor
+from sagemaker.serializers import IdentitySerializer
+from sagemaker.deserializers import JSONDeserializer
 
 from test.test_utils import get_framework_and_version_from_tag
 from ...integration import model_dir, dump_logs_from_cloudwatch
@@ -121,5 +123,8 @@ def _test_sentence_transformers(
             endpoint_name=endpoint_name,
         )
 
-        data = {"inputs": "Suffs is considered to be the best musical after Hamilton."}
-        predictor.predict(data)
+        inputs = {"inputs": "Suffs is considered to be the best musical after Hamilton."}
+        serializer = IdentitySerializer(content_type="application/json")
+        predictor.deserializer = JSONDeserializer()
+        data = json.dumps(inputs)
+        predictor.predict(data.encode())
