@@ -156,3 +156,16 @@ release_images:
       example: False
       disable_sm_tag: False
       force_release: False
+  6:
+    framework: "huggingface_pytorch"
+    version: "1.13.1"
+    arch_type: "x86"
+    hf_transformers: "4.36.2"
+    training:
+      device_types: [ "neuronx" ]
+      python_versions: [ "py310" ]
+      os_version: "ubuntu20.04"
+      neuron_sdk_version: "sdk2.18.0"
+      example: False
+      disable_sm_tag: True
+      force_release: False
