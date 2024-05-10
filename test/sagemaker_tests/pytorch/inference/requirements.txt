@@ -12,7 +12,8 @@ mock
 numpy
 Pillow
 packaging
-pytest
+# Preserve pytest caching behavior in earlier versions
+pytest<8.1
 pytest-cov
 pytest-rerunfailures
 pytest-xdist
