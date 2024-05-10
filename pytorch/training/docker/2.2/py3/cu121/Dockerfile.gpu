@@ -130,7 +130,7 @@ RUN /opt/conda/bin/mamba install -y -c conda-forge \
     cmake \
     python=$PYTHON_VERSION \
     cython \
-    mkl \
+    "mkl<2024.1.0" \
     mkl-include \
     parso \
     typing \

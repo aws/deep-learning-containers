@@ -124,7 +124,7 @@ RUN /opt/conda/bin/mamba install -y --override-channels \
     "mpi4py>=3.1.4,<3.2" \
     mpi4py \
     h5py \
-    mkl \
+    "mkl<2024.1.0" \
     mkl-include \
     parso \
     typing \
