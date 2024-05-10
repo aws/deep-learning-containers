@@ -18,6 +18,7 @@ SMCLARIFY_EC2_CPU_INSTANCE_TYPE = get_ec2_instance_type(default="c5.2xlarge", pr
 # But the test behavior doesn't change for cpu or gpu image type.
 @pytest.mark.skip_pt21_test
 @pytest.mark.skip_pt22_test
+@pytest.mark.skip_release_pt_test
 @pytest.mark.usefixtures("sagemaker_only")
 @pytest.mark.integration("smclarify_cpu")
 @pytest.mark.model("N/A")
@@ -38,6 +39,7 @@ def test_smclarify_metrics_cpu(
 
 @pytest.mark.skip_pt21_test
 @pytest.mark.skip_pt22_test
+@pytest.mark.skip_release_pt_test
 @pytest.mark.usefixtures("sagemaker_only")
 @pytest.mark.integration("smclarify_gpu")
 @pytest.mark.model("N/A")

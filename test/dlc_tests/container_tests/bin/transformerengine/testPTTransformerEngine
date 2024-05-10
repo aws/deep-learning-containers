@@ -14,7 +14,7 @@ if [ $(version $TE_VERSION) -ge $(version "1.0") ]; then
   # https://github.com/microsoft/onnxruntime/issues/17166
   SYSTEM_VERSION_COMPAT=0 pip install pytest==7.2 onnx==1.13.1
   pytest -v -s test_sanity.py
-  # pytest -v -s test_deferred_init.py
+  pytest -v -s test_deferred_init.py
   # PYTORCH_JIT=0 NVTE_TORCH_COMPILE=0 NVTE_ALLOW_NONDETERMINISTIC_ALGO=0 pytest -v -s test_numerics.py
   # PYTORCH_JIT=0 NVTE_TORCH_COMPILE=0 NVTE_ALLOW_NONDETERMINISTIC_ALGO=0 pytest -v -s test_cuda_graphs.py
   # pytest -v -s test_jit.py

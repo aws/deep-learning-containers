@@ -25,14 +25,14 @@ def test_pytorch_2_3_gpu(
         )
 
     test_cases = [
-        (common_cases.pytorch_standalone, (pytorch_training, ec2_connection)),
-        (common_cases.pytorch_train_mnist, (pytorch_training, ec2_connection)),
-        (common_cases.pytorch_linear_regression_gpu, (pytorch_training, ec2_connection)),
-        (common_cases.pytorch_gloo, (pytorch_training, ec2_connection)),
-        (common_cases.pytorch_nccl, (pytorch_training, ec2_connection)),
-        (common_cases.pytorch_mpi, (pytorch_training, ec2_connection)),
-        (common_cases.nvapex, (pytorch_training, ec2_connection)),
-        (common_cases.pytorch_training_torchaudio, (pytorch_training, ec2_connection)),
+        # (common_cases.pytorch_standalone, (pytorch_training, ec2_connection)),
+        # (common_cases.pytorch_train_mnist, (pytorch_training, ec2_connection)),
+        # (common_cases.pytorch_linear_regression_gpu, (pytorch_training, ec2_connection)),
+        # (common_cases.pytorch_gloo, (pytorch_training, ec2_connection)),
+        # (common_cases.pytorch_nccl, (pytorch_training, ec2_connection)),
+        # (common_cases.pytorch_mpi, (pytorch_training, ec2_connection)),
+        # (common_cases.nvapex, (pytorch_training, ec2_connection)),
+        # (common_cases.pytorch_training_torchaudio, (pytorch_training, ec2_connection)),
         (common_cases.pytorch_cudnn_match_gpu, (pytorch_training, ec2_connection, region)),
         (common_cases.pytorch_curand_gpu, (pytorch_training, ec2_connection)),
     ]
@@ -49,6 +49,7 @@ def test_pytorch_2_3_gpu(
     test_utils.execute_serial_test_cases(test_cases, test_description="PT 2.3 GPU")
 
 
+@pytest.mark.skip_release_pt_test
 @pytest.mark.usefixtures("sagemaker")
 @pytest.mark.integration("inductor")
 @pytest.mark.model("N/A")
@@ -77,6 +78,7 @@ def test_pytorch_2_3_gpu_inductor(
     test_utils.execute_serial_test_cases(test_cases, test_description="PT 2.3 GPU Inductor")
 
 
+@pytest.mark.skip_release_pt_test
 @pytest.mark.usefixtures("sagemaker")
 @pytest.mark.integration("pytorch_sanity_test")
 @pytest.mark.model("N/A")

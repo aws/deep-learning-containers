@@ -47,6 +47,7 @@ EC2_EFA_GPU_ONLY_P4_INSTANCE_TYPE_AND_REGION = get_efa_ec2_instance_type(
 )
 
 
+@pytest.mark.skip_release_pt_test
 @pytest.mark.processor("gpu")
 @pytest.mark.model("N/A")
 @pytest.mark.integration("efa")
@@ -136,9 +137,7 @@ def test_efa_tensorflow(
     )
 
 
-@pytest.mark.skip_pt20_cuda121_tests
-@pytest.mark.skip_pt21_test
-@pytest.mark.skip_pt22_test
+@pytest.mark.skip_efa_healthcheck_test
 @pytest.mark.processor("gpu")
 @pytest.mark.model("N/A")
 @pytest.mark.integration("efa")

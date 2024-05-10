@@ -978,6 +978,33 @@ def skip_efa_tests(request):
 
 
 @pytest.fixture(autouse=True)
+def skip_efa_healthcheck_test(request):
+    """EFA healthcheck tests will be skipped unless binary is present.
+    Addition of healthcheck binaries should be followed by modification of `skip_dict` to skip only DLCs without said binaries.
+    """
+    if "training" in request.fixturenames:
+        image_uri = request.getfixturevalue("training")
+    elif "pytorch_training" in request.fixturenames:
+        image_uri = request.getfixturevalue("pytorch_training")
+    else:
+        return
+
+    skip_dict = {
+        "==2.0.*": ["cu121"],
+        "==2.1.*": ["cpu", "cu121"],
+        "==2.2.*": ["cpu", "cu121"],
+        "==2.3.*": ["cpu", "cu121"],
+    }
+    if _validate_pytorch_framework_version(
+        request, image_uri, "skip_efa_healthcheck_test", skip_dict
+    ):
+        pytest.skip(
+            f"EFA healthcheck binaries are not present in current PyTorch DLC"
+            f"Skipping test"
+        )
+
+
+@pytest.fixture(autouse=True)
 def skip_p5_tests(request, ec2_instance_type):
     allowed_p5_fixtures = (
         "gpu",
