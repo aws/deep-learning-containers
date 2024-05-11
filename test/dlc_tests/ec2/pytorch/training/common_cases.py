@@ -39,7 +39,9 @@ PT_TORCHAUDIO_CMD = os.path.join(CONTAINER_TESTS_PREFIX, "pytorch_tests", "testT
 PT_TORCHDATA_DEV_CMD = os.path.join(CONTAINER_TESTS_PREFIX, "pytorch_tests", "testTorchdataDev")
 PT_TORCHDATA_CMD = os.path.join(CONTAINER_TESTS_PREFIX, "pytorch_tests", "testTorchdata")
 PT_GDRCOPY_CMD = os.path.join(CONTAINER_TESTS_PREFIX, "gdrcopy", "test_gdrcopy.sh")
-PT_TRANSFORMER_ENGINE_CMD = os.path.join(CONTAINER_TESTS_PREFIX, "transformerengine", "testPTTransformerEngine")
+PT_TRANSFORMER_ENGINE_CMD = os.path.join(
+    CONTAINER_TESTS_PREFIX, "transformerengine", "testPTTransformerEngine"
+)
 
 # Instance type filters
 PT_EC2_CPU_INSTANCE_TYPE = get_ec2_instance_type(default="c5.9xlarge", processor="cpu")
@@ -54,6 +56,7 @@ PT_EC2_HEAVY_GPU_INSTANCE_TYPE_AND_REGION = get_efa_ec2_instance_type(
     default="p4d.24xlarge",
     filter_function=ec2_utils.filter_efa_instance_type,
 )
+
 
 def pytorch_standalone(pytorch_training, ec2_connection):
     execute_ec2_training_test(
