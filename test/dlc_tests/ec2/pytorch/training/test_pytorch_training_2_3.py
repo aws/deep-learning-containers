@@ -9,7 +9,7 @@ from test.dlc_tests.ec2 import smclarify_cases
 
 
 @pytest.mark.usefixtures("sagemaker")
-@pytest.mark.integration("PT23_general")
+@pytest.mark.integration("pytorch_gpu_tests")
 @pytest.mark.model("N/A")
 @pytest.mark.team("conda")
 @pytest.mark.parametrize(
@@ -78,7 +78,7 @@ def test_pytorch_2_3_gpu_inductor(
 
 
 @pytest.mark.usefixtures("sagemaker")
-@pytest.mark.integration("pytorch_sanity_test")
+@pytest.mark.integration("pytorch_cpu_tests")
 @pytest.mark.model("N/A")
 @pytest.mark.team("conda")
 @pytest.mark.parametrize("ec2_instance_type", common_cases.PT_EC2_CPU_INSTANCE_TYPE, indirect=True)
