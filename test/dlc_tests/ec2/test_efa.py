@@ -15,7 +15,6 @@ from test.test_utils import (
     run_cmd_on_container,
     is_ec2_image,
     get_framework_and_version_from_tag,
-
 )
 from packaging.version import Version
 from packaging.specifiers import SpecifierSet

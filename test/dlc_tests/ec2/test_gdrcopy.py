@@ -57,7 +57,9 @@ def test_gdrcopy(
 
     # NOTE: Skip PT1.13 until re-release
     _, framework_version = test_utils.get_framework_and_version_from_tag(pytorch_training)
-    if test_utils.is_ec2_image(pytorch_training) and Version(framework_version) == Version("1.13.1"):
+    if test_utils.is_ec2_image(pytorch_training) and Version(framework_version) == Version(
+        "1.13.1"
+    ):
         pytest.skip(f"Image {pytorch_training} does not support GDR Copy")
 
     gdrcopy_test_path = get_gdrcopy_sanity_test_cmd(pytorch_training)
