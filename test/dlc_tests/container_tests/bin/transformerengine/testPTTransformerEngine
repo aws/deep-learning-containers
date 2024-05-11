@@ -13,7 +13,7 @@ function version { echo "$@" | awk -F. '{ printf("%d%03d%03d%03d\n", $1,$2,$3,$4
 if [ $(version ${TE_VERSION}) -ge $(version "1.0") ] || [ $(version ${PT_VERSION}) -ge $(version "2.2") ]; then
   # Test TransformerEngine 1.0 and above or PyTorch 2.2 and above
   # https://github.com/microsoft/onnxruntime/issues/17166
-  SYSTEM_VERSION_COMPAT=0 pip install pytest==7.2 onnxruntime==1.13.1
+  SYSTEM_VERSION_COMPAT=0 pip install pytest==7.2 onnxruntime==1.17.3
 
   # NOTE: Disable few tests due to following issue. TE acknowledges issue and confirm we can skip.
   # https://github.com/NVIDIA/TransformerEngine/issues/666
@@ -30,7 +30,7 @@ if [ $(version ${TE_VERSION}) -ge $(version "1.0") ] || [ $(version ${PT_VERSION
 else
   # Test TransformerEngine below 1.0 or PyTorch below 2.2
   # https://github.com/microsoft/onnxruntime/issues/17166
-  SYSTEM_VERSION_COMPAT=0 pip install pytest==6.2.5 onnxruntime==1.13.1 onnx
+  SYSTEM_VERSION_COMPAT=0 pip install pytest==6.2.5 onnxruntime==1.17.3 onnx
 
   # NOTE: Disable few test due to following issue. TE acknowledges issue and confirm we can skip.
   # https://github.com/NVIDIA/TransformerEngine/issues/666
