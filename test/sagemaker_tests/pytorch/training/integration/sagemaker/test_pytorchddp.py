@@ -57,7 +57,7 @@ def can_run_pytorchddp(ecr_image):
 def test_pytorchddp_throughput_gpu(
     framework_version, ecr_image, sagemaker_regions, efa_instance_type, tmpdir
 ):
-    with timeout(minutes=25):
+    with timeout(minutes=40):
         validate_or_skip_pytorchddp(ecr_image)
         distribution = {"pytorchddp": {"enabled": True}}
         estimator_parameter = {

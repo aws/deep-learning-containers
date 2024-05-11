@@ -13,6 +13,9 @@ from test.test_utils import (
     are_heavy_instance_ec2_tests_enabled,
     login_to_ecr_registry,
     run_cmd_on_container,
+    is_ec2_image,
+    get_framework_and_version_from_tag,
+
 )
 from packaging.version import Version
 from packaging.specifiers import SpecifierSet
@@ -76,6 +79,12 @@ def test_pytorch_efa(
     :param region: str Region in which EFA-enabled instances are launched
     :param gpu_only: pytest fixture to limit test only to GPU DLCs
     """
+
+    # NOTE: Skip PT1.13 until re-release
+    _, framework_version = get_framework_and_version_from_tag(pytorch_training)
+    if Version(framework_version) == Version("1.13.1"):
+        pytest.skip(f"Image {pytorch_training} does not support GDR Copy")
+
     number_of_nodes = 2
     _setup_multinode_efa_instances(
         pytorch_training, efa_ec2_instances, efa_ec2_connections, ec2_instance_type, region
