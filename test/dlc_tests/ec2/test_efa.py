@@ -79,7 +79,7 @@ def test_pytorch_efa(
     :param gpu_only: pytest fixture to limit test only to GPU DLCs
     """
 
-    # NOTE: Skip PT1.13 until re-release
+    # NOTE: Skip PT1.13 autopatching
     _, framework_version = get_framework_and_version_from_tag(pytorch_training)
     if Version(framework_version) == Version("1.13.1"):
         pytest.skip(f"Image {pytorch_training} does not support GDR Copy")
