@@ -49,6 +49,8 @@ EC2_EFA_GPU_ONLY_P4_INSTANCE_TYPE_AND_REGION = get_efa_ec2_instance_type(
 )
 
 
+# NOTE: Skip PT1.13 autopatching
+@pytest.mark.usefixtures("pt201_and_above_only")
 @pytest.mark.processor("gpu")
 @pytest.mark.model("N/A")
 @pytest.mark.integration("efa")
@@ -78,11 +80,6 @@ def test_pytorch_efa(
     :param region: str Region in which EFA-enabled instances are launched
     :param gpu_only: pytest fixture to limit test only to GPU DLCs
     """
-
-    # NOTE: Skip PT1.13 autopatching
-    _, framework_version = get_framework_and_version_from_tag(pytorch_training)
-    if Version(framework_version) == Version("1.13.1"):
-        pytest.skip(f"Image {pytorch_training} does not support GDR Copy")
 
     number_of_nodes = 2
     _setup_multinode_efa_instances(
