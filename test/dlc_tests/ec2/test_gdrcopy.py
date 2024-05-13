@@ -54,13 +54,11 @@ def test_gdrcopy(
         pytest.skip(
             f"Image {pytorch_training} is incompatible with instance type {ec2_instance_type}"
         )
-
     # NOTE: Skip PT1.13 autopatching
     _, framework_version = test_utils.get_framework_and_version_from_tag(pytorch_training)
     framework_version = Version(framework_version)
     if test_utils.is_ec2_image(pytorch_training) and framework_version == Version("1.13.1"):
         pytest.skip(f"Image {pytorch_training} does not support GDR Copy")
-
     gdrcopy_test_path = get_gdrcopy_sanity_test_cmd(pytorch_training)
     execute_ec2_training_test(
         ec2_connection, pytorch_training, gdrcopy_test_path, enable_gdrcopy=True
