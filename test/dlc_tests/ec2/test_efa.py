@@ -47,7 +47,7 @@ EC2_EFA_GPU_ONLY_P4_INSTANCE_TYPE_AND_REGION = get_efa_ec2_instance_type(
 )
 
 
-# NOTE: Skip PT1.13 autopatching
+# NOTE: Skip EFA for PT1.13 since it is not currently supported
 @pytest.mark.usefixtures("pt201_and_above_only")
 @pytest.mark.processor("gpu")
 @pytest.mark.model("N/A")
