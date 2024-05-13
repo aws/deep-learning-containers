@@ -13,8 +13,6 @@ from test.test_utils import (
     are_heavy_instance_ec2_tests_enabled,
     login_to_ecr_registry,
     run_cmd_on_container,
-    is_ec2_image,
-    get_framework_and_version_from_tag,
 )
 from packaging.version import Version
 from packaging.specifiers import SpecifierSet
