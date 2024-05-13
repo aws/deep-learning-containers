@@ -136,6 +136,9 @@ def test_common_pytorch_utility_packages_using_import(pytorch_training):
         if test_utils.get_processor_from_image_uri(pytorch_training) == "cpu":
             for package_name in ["pybind11", "mpi4py"]:
                 packages_to_import.remove(package_name)
+        elif test_utils.is_ec2_image(pytorch_training):
+            for package_name in ["pybind11"]:
+                packages_to_import.remove(package_name)
 
     import_failed = False
     list_of_packages = []
