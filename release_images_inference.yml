@@ -6,8 +6,8 @@ release_images:
   1:
     framework: "pytorch"
     version: "1.13.1"
-    arch_type: "x86"
     customer_type: "ec2"
+    arch_type: "x86"
     inference:
       device_types: [ "cpu", "gpu" ]
       python_versions: [ "py39" ]
@@ -19,8 +19,8 @@ release_images:
   2:
     framework: "pytorch"
     version: "1.13.1"
-    arch_type: "x86"
     customer_type: "sagemaker"
+    arch_type: "x86"
     inference:
       device_types: [ "cpu", "gpu" ]
       python_versions: [ "py39" ]
@@ -32,8 +32,8 @@ release_images:
   3:
     framework: "pytorch"
     version: "2.1.0"
-    arch_type: "x86"
     customer_type: "ec2"
+    arch_type: "x86"
     inference:
       device_types: [ "cpu", "gpu" ]
       python_versions: [ "py310" ]
@@ -45,8 +45,8 @@ release_images:
   4:
     framework: "pytorch"
     version: "2.1.0"
-    arch_type: "x86"
     customer_type: "sagemaker"
+    arch_type: "x86"
     inference:
       device_types: [ "cpu", "gpu" ]
       python_versions: [ "py310" ]
@@ -58,8 +58,8 @@ release_images:
   5:
     framework: "pytorch"
     version: "2.1.0"
-    arch_type: "graviton"
     customer_type: "ec2"
+    arch_type: "graviton"
     inference:
       device_types: [ "cpu" ]
       python_versions: [ "py310" ]
@@ -70,8 +70,8 @@ release_images:
   6:
     framework: "pytorch"
     version: "2.1.0"
-    arch_type: "graviton"
     customer_type: "sagemaker"
+    arch_type: "graviton"
     inference:
       device_types: [ "cpu" ]
       python_versions: [ "py310" ]
@@ -82,8 +82,8 @@ release_images:
   7:
     framework: "pytorch"
     version: "2.2.0"
-    arch_type: "x86"
     customer_type: "ec2"
+    arch_type: "x86"
     inference:
       device_types: [ "cpu", "gpu" ]
       python_versions: [ "py310" ]
@@ -95,8 +95,8 @@ release_images:
   8:
     framework: "pytorch"
     version: "2.2.0"
-    arch_type: "x86"
     customer_type: "sagemaker"
+    arch_type: "x86"
     inference:
       device_types: [ "cpu", "gpu" ]
       python_versions: [ "py310" ]
@@ -108,8 +108,8 @@ release_images:
   9:
     framework: "pytorch"
     version: "2.2.1"
-    arch_type: "graviton"
     customer_type: "ec2"
+    arch_type: "graviton"
     inference:
       device_types: [ "cpu" ]
       python_versions: [ "py310" ]
@@ -120,8 +120,8 @@ release_images:
   10:
     framework: "pytorch"
     version: "2.2.1"
-    arch_type: "graviton"
     customer_type: "sagemaker"
+    arch_type: "graviton"
     inference:
       device_types: [ "cpu" ]
       python_versions: [ "py310" ]
@@ -132,8 +132,8 @@ release_images:
   11:
     framework: "tensorflow"
     version: "2.13.0"
-    arch_type: "x86"
     customer_type: "ec2"
+    arch_type: "x86"
     inference:
       device_types: [ "cpu", "gpu" ]
       python_versions: [ "py310" ]
@@ -145,8 +145,8 @@ release_images:
   12:
     framework: "tensorflow"
     version: "2.13.0"
-    arch_type: "x86"
     customer_type: "sagemaker"
+    arch_type: "x86"
     inference:
       device_types: [ "cpu", "gpu" ]
       python_versions: [ "py310" ]
@@ -158,8 +158,8 @@ release_images:
   13:
     framework: "tensorflow"
     version: "2.13.0"
-    arch_type: "graviton"
     customer_type: "ec2"
+    arch_type: "graviton"
     inference:
       device_types: [ "cpu" ]
       python_versions: [ "py310" ]
@@ -171,8 +171,8 @@ release_images:
   14:
     framework: "tensorflow"
     version: "2.13.0"
-    arch_type: "graviton"
     customer_type: "sagemaker"
+    arch_type: "graviton"
     inference:
       device_types: [ "cpu" ]
       python_versions: [ "py310" ]
@@ -184,8 +184,8 @@ release_images:
   15:
     framework: "tensorflow"
     version: "2.14.1"
-    arch_type: "x86"
     customer_type: "ec2"
+    arch_type: "x86"
     inference:
       device_types: [ "cpu", "gpu" ]
       python_versions: [ "py310" ]
@@ -197,8 +197,8 @@ release_images:
   16:
     framework: "tensorflow"
     version: "2.14.1"
-    arch_type: "x86"
     customer_type: "sagemaker"
+    arch_type: "x86"
     inference:
       device_types: [ "cpu", "gpu" ]
       python_versions: [ "py310" ]
@@ -210,8 +210,8 @@ release_images:
   17:
     framework: "tensorflow"
     version: "2.14.1"
-    arch_type: "graviton"
     customer_type: "ec2"
+    arch_type: "graviton"
     inference:
       device_types: [ "cpu" ]
       python_versions: [ "py310" ]
@@ -223,8 +223,8 @@ release_images:
   18:
     framework: "tensorflow"
     version: "2.14.1"
-    arch_type: "graviton"
     customer_type: "sagemaker"
+    arch_type: "graviton"
     inference:
       device_types: [ "cpu" ]
       python_versions: [ "py310" ]
