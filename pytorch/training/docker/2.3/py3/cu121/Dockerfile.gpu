@@ -60,7 +60,6 @@ ENV PATH="/opt/conda/bin:${PATH}"
 # 5.2 is G3 EC2 instance, 7.5 is G4*, 7.0 is p3*, 8.0 is P4*, 8.6 is G5* and 9.0 is P5*
 ENV TORCH_CUDA_ARCH_LIST="5.2;7.0+PTX;7.5;8.0;8.6;9.0"
 ENV TORCH_NVCC_FLAGS="-Xfatbin -compress-all"
-# ENV CUDNN_VERSION=9.1.1.17
 ENV CUDNN_VERSION=8.9.2.26
 ENV NCCL_VERSION=2.21.5
 ENV EFA_VERSION=1.32.0
@@ -81,8 +80,6 @@ RUN apt-get update \
     cmake \
     libcudnn8=$CUDNN_VERSION-1+cuda12.1 \
     libcudnn8-dev=$CUDNN_VERSION-1+cuda12.1 \
-    # libcudnn9-cuda-12=${CUDNN_VERSION}-1 \
-    # libcudnn9-dev-cuda-12=${CUDNN_VERSION}-1 \
     curl \
     emacs \
     git \
@@ -113,8 +110,9 @@ RUN apt-get update \
     libsubunit-dev \
     # ninja is needed for apex to speed up the build
     ninja-build \
- && rm -rf /var/lib/apt/lists/* \
- && apt-get clean
+ && apt-get autoremove -y \
+ && apt-get clean \
+ && rm -rf /var/lib/apt/lists/*
 
 # for conda ssl verification
 ENV REQUESTS_CA_BUNDLE=/etc/ssl/certs/ca-certificates.crt
@@ -175,8 +173,9 @@ RUN mkdir /tmp/efa \
  && ./efa_installer.sh -y --skip-kmod --skip-limit-conf --no-verify \
  && rm -rf /tmp/efa \
  && rm -rf /tmp/aws-efa-installer-${EFA_VERSION}.tar.gz \
- && rm -rf /var/lib/apt/lists/* \
- && apt-get clean
+ && apt-get autoremove -y \
+ && apt-get clean \
+ && rm -rf /var/lib/apt/lists/*
 
 ENV PATH="${OPEN_MPI_PATH}/bin:${EFA_PATH}/bin:${PATH}"
 ENV LD_LIBRARY_PATH=${OPEN_MPI_PATH}/lib/:${EFA_PATH}/lib/:${LD_LIBRARY_PATH}
@@ -201,8 +200,9 @@ RUN apt-get update \
  && cat /etc/ssh/ssh_config | grep -v StrictHostKeyChecking > /etc/ssh/ssh_config.new \
  && echo "    StrictHostKeyChecking no" >> /etc/ssh/ssh_config.new \
  && mv /etc/ssh/ssh_config.new /etc/ssh/ssh_config \
- && rm -rf /var/lib/apt/lists/* \
- && apt-get clean
+ && apt-get autoremove -y \
+ && apt-get clean \
+ && rm -rf /var/lib/apt/lists/*
 
 # Configure OpenSSH so that nodes can communicate with each other
 RUN mkdir -p /var/run/sshd && \
@@ -294,8 +294,6 @@ RUN cd /tmp \
   && cd nccl \
   && make -j64 src.build BUILDDIR=/usr/local CUDA_LIB=${CUDA_HOME}/lib \
   && rm -rf /tmp/nccl
-# preload to system nccl for PyTorch to use instead of its statically linked NCCL
-ENV LD_PRELOAD="/usr/local/lib/libnccl.so"
 
 # Install Nvidia Apex (needs pytorch)
 RUN pip install --no-cache-dir packaging \
@@ -311,9 +309,9 @@ RUN pip install --no-cache-dir packaging \
 ENV NVTE_FRAMEWORK=pytorch
 # Install flash-attn using instructions from https://github.com/Dao-AILab/flash-attention#installation-and-features
 # Set MAX_JOBS=4 to avoid OOM issues in installation process
-RUN MAX_JOBS=4 pip install --no-cache-dir flash-attn==2.4.2 --no-build-isolation
+RUN MAX_JOBS=4 pip install --no-cache-dir flash-attn==2.0.4 --no-build-isolation
 # Install TE using instructions from https://docs.nvidia.com/deeplearning/transformer-engine/user-guide/installation.html
-RUN pip install --no-cache-dir git+https://github.com/NVIDIA/TransformerEngine.git@release_v1.6
+RUN pip install --no-cache-dir git+https://github.com/NVIDIA/TransformerEngine.git@release_v0.12
 
 RUN HOME_DIR=/root \
  && curl -o ${HOME_DIR}/oss_compliance.zip https://aws-dlinfra-utilities.s3.amazonaws.com/oss_compliance.zip \

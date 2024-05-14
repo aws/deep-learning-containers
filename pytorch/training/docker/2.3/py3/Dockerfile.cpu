@@ -16,6 +16,20 @@ RUN apt-get update \
  && apt-get clean \
  && rm -rf /var/lib/apt/lists/*
 
+#################################################################
+#   ____
+#  / ___| ___  _ __ ___  _ __ ___   ___  _ __
+# | |    / _ \| '_ ` _ \| '_ ` _ \ / _ \| '_ \
+# | |___  (_) | | | | | | | | | | | (_) | | | |
+#  \____|\___/|_| |_| |_|_| |_| |_|\___/|_| |_|
+#  ___                              ____           _
+# |_ _|_ __ ___   __ _  __ _  ___  |  _ \ ___  ___(_)_ __   ___
+#  | || '_ ` _ \ / _` |/ _` |/ _ \ | |_) / _ \/ __| | '_ \ / _ \
+#  | || | | | | | (_| | (_| |  __/ |  _ <  __/ (__| | |_) |  __/
+# |___|_| |_| |_|\__,_|\__, |\___| |_| \_\___|\___|_| .__/ \___|
+#                      |___/                        |_|
+#################################################################
+
 FROM base_image AS common
 
 LABEL maintainer="Amazon AI"
@@ -67,8 +81,9 @@ RUN apt-get update \
     vim \
     wget \
     zlib1g-dev \
- && rm -rf /var/lib/apt/lists/* \
- && apt-get clean
+ && apt-get autoremove -y \
+ && apt-get clean \
+ && rm -rf /var/lib/apt/lists/*
 
 # Install Open MPI
 RUN wget https://www.open-mpi.org/software/ompi/v4.1/downloads/openmpi-${OPEN_MPI_VERSION}.tar.gz \
@@ -88,8 +103,9 @@ RUN apt-get update \
  && cat /etc/ssh/ssh_config | grep -v StrictHostKeyChecking > /etc/ssh/ssh_config.new \
  && echo "    StrictHostKeyChecking no" >> /etc/ssh/ssh_config.new \
  && mv /etc/ssh/ssh_config.new /etc/ssh/ssh_config \
- && rm -rf /var/lib/apt/lists/* \
- && apt-get clean
+ && apt-get autoremove -y \
+ && apt-get clean \
+ && rm -rf /var/lib/apt/lists/*
 
 # Configure OpenSSH so that nodes can communicate with each other
 RUN mkdir -p /var/run/sshd \
