@@ -141,7 +141,7 @@ release_images:
       example: False
       disable_sm_tag: False
       force_release: False
-  15:
+  12:
     framework: "pytorch"
     version: "1.13.1"
     customer_type: "ec2"
@@ -154,7 +154,7 @@ release_images:
       example: False
       disable_sm_tag: False
       force_release: False
-  16:
+  13:
     framework: "pytorch"
     version: "1.13.1"
     customer_type: "sagemaker"
