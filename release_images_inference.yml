@@ -145,19 +145,6 @@ release_images:
       disable_sm_tag: False
       force_release: False
   12:
-    framework: "pytorch"
-    version: "2.2.0"
-    arch_type: "x86"
-    customer_type: "sagemaker"
-    inference:
-      device_types: [ "cpu", "gpu" ]
-      python_versions: [ "py310" ]
-      os_version: "ubuntu20.04"
-      cuda_version: "cu118"
-      example: False
-      disable_sm_tag: False
-      force_release: False
-  13:
     framework: "huggingface_pytorch"
     version: "1.13.1"
     arch_type: "x86"
@@ -170,7 +157,7 @@ release_images:
       example: False
       disable_sm_tag: True
       force_release: False
-  14:
+  13:
     framework: "tensorflow"
     version: "2.14.1"
     arch_type: "x86"
@@ -183,7 +170,7 @@ release_images:
       example: False
       disable_sm_tag: False
       force_release: False
-  15:
+  14:
     framework: "tensorflow"
     version: "2.14.1"
     arch_type: "x86"
@@ -196,20 +183,7 @@ release_images:
       example: False
       disable_sm_tag: False
       force_release: False
-  16:
-    framework: "pytorch"
-    version: "2.2.0"
-    arch_type: "x86"
-    customer_type: "ec2"
-    inference:
-      device_types: [ "cpu", "gpu" ]
-      python_versions: [ "py310" ]
-      os_version: "ubuntu20.04"
-      cuda_version: "cu118"
-      example: False
-      disable_sm_tag: False
-      force_release: False
-  17:
+  15:
     framework: "huggingface_pytorch"
     version: "1.13.1"
     arch_type: "x86"
@@ -222,7 +196,7 @@ release_images:
       example: False
       disable_sm_tag: False
       force_release: False
-  18:
+  16:
     framework: "tensorflow"
     version: "2.14.1"
     arch_type: "graviton"
@@ -235,7 +209,7 @@ release_images:
       example: False
       disable_sm_tag: False
       force_release: False
-  19:
+  17:
     framework: "tensorflow"
     version: "2.14.1"
     arch_type: "graviton"
@@ -248,9 +222,35 @@ release_images:
       example: False
       disable_sm_tag: False
       force_release: False
+  18:
+    framework: "pytorch"
+    version: "2.1.0"
+    arch_type: "x86"
+    customer_type: "ec2"
+    inference:
+      device_types: [ "cpu", "gpu" ]
+      python_versions: [ "py310" ]
+      os_version: "ubuntu20.04"
+      cuda_version: "cu118"
+      example: False
+      disable_sm_tag: False
+      force_release: False
+  19:
+    framework: "pytorch"
+    version: "2.1.0"
+    arch_type: "x86"
+    customer_type: "sagemaker"
+    inference:
+      device_types: [ "cpu", "gpu" ]
+      python_versions: [ "py310" ]
+      os_version: "ubuntu20.04"
+      cuda_version: "cu118"
+      example: False
+      disable_sm_tag: False
+      force_release: False
   20:
     framework: "pytorch"
-    version: "2.2.1"
+    version: "2.1.0"
     arch_type: "graviton"
     customer_type: "ec2"
     inference:
@@ -262,7 +262,7 @@ release_images:
       force_release: False
   21:
     framework: "pytorch"
-    version: "2.2.1"
+    version: "2.1.0"
     arch_type: "graviton"
     customer_type: "sagemaker"
     inference:
@@ -273,8 +273,8 @@ release_images:
       disable_sm_tag: False
       force_release: False
   22:
-    framework: "pytorch"
-    version: "2.1.0"
+    framework: "tensorflow"
+    version: "2.13.0"
     arch_type: "x86"
     customer_type: "ec2"
     inference:
@@ -286,8 +286,8 @@ release_images:
       disable_sm_tag: False
       force_release: False
   23:
-    framework: "pytorch"
-    version: "2.1.0"
+    framework: "tensorflow"
+    version: "2.13.0"
     arch_type: "x86"
     customer_type: "sagemaker"
     inference:
@@ -299,82 +299,32 @@ release_images:
       disable_sm_tag: False
       force_release: False
   24:
-    framework: "pytorch"
-    version: "2.1.0"
+    framework: "tensorflow"
+    version: "2.13.0"
     arch_type: "graviton"
     customer_type: "ec2"
     inference:
       device_types: [ "cpu" ]
       python_versions: [ "py310" ]
       os_version: "ubuntu20.04"
+      cuda_version: "cu118"
       example: False
       disable_sm_tag: False
       force_release: False
   25:
-    framework: "pytorch"
-    version: "2.1.0"
+    framework: "tensorflow"
+    version: "2.13.0"
     arch_type: "graviton"
     customer_type: "sagemaker"
     inference:
       device_types: [ "cpu" ]
       python_versions: [ "py310" ]
       os_version: "ubuntu20.04"
+      cuda_version: "cu118"
       example: False
       disable_sm_tag: False
       force_release: False
   26:
-    framework: "tensorflow"
-    version: "2.13.0"
-    arch_type: "x86"
-    customer_type: "ec2"
-    inference:
-      device_types: [ "cpu", "gpu" ]
-      python_versions: [ "py310" ]
-      os_version: "ubuntu20.04"
-      cuda_version: "cu118"
-      example: False
-      disable_sm_tag: False
-      force_release: False
-  27:
-    framework: "tensorflow"
-    version: "2.13.0"
-    arch_type: "x86"
-    customer_type: "sagemaker"
-    inference:
-      device_types: [ "cpu", "gpu" ]
-      python_versions: [ "py310" ]
-      os_version: "ubuntu20.04"
-      cuda_version: "cu118"
-      example: False
-      disable_sm_tag: False
-      force_release: False
-  28:
-    framework: "tensorflow"
-    version: "2.13.0"
-    arch_type: "graviton"
-    customer_type: "ec2"
-    inference:
-      device_types: [ "cpu" ]
-      python_versions: [ "py310" ]
-      os_version: "ubuntu20.04"
-      cuda_version: "cu118"
-      example: False
-      disable_sm_tag: False
-      force_release: False
-  29:
-    framework: "tensorflow"
-    version: "2.13.0"
-    arch_type: "graviton"
-    customer_type: "sagemaker"
-    inference:
-      device_types: [ "cpu" ]
-      python_versions: [ "py310" ]
-      os_version: "ubuntu20.04"
-      cuda_version: "cu118"
-      example: False
-      disable_sm_tag: False
-      force_release: False
-  30:
     framework: "huggingface_pytorch"
     version: "2.1.2"
     arch_type: "x86"
@@ -387,7 +337,7 @@ release_images:
       example: False
       disable_sm_tag: True
       force_release: False
-  31:
+  27:
     framework: "autogluon"
     version: "1.0.0"
     arch_type: "x86"
@@ -399,7 +349,7 @@ release_images:
       example: False
       disable_sm_tag: False
       force_release: False
-  32:
+  28:
     framework: "autogluon"
     version: "1.1.0"
     arch_type: "x86"

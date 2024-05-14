@@ -29,6 +29,25 @@ def test_release_images_inference_yml():
     _release_images_yml_verifier(image_type="inference", excluded_image_type="training")
 
 
+@pytest.mark.quick_checks
+@pytest.mark.model("N/A")
+@pytest.mark.integration("release_images_patches.yml")
+@pytest.mark.skipif(
+    not is_pr_context(),
+    reason="This test is only needed to validate release_images configs in PRs.",
+)
+def test_release_images_patches_yml():
+    dlc_base_dir = get_repository_local_path()
+
+    release_images_yml_file = os.path.join(dlc_base_dir, "release_images_patches.yml")
+
+    with open(release_images_yml_file, "r") as release_imgs_handle:
+        for line in release_imgs_handle:
+            assert (
+                "force_release: True" not in line
+            ), f"Force release is not permitted in patch file {release_images_yml_file}."
+
+
 def _release_images_yml_verifier(image_type, excluded_image_type):
     """
     Simple test to ensure release images yml file is loadable
