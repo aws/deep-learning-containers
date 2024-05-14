@@ -154,7 +154,7 @@ RUN /opt/conda/bin/mamba install -y -c conda-forge \
     "urllib3<2" \
     "idna>=3.7"\
     "tqdm>=4.66.3" \
-  && /opt/conda/bin/mamba clean -afy \
+  && /opt/conda/bin/mamba clean -acftly \
   && rm -rf /etc/apt/sources.list.d/*
 
 # Install commond pip packages (in case of conda package is not available)
@@ -256,7 +256,7 @@ RUN /opt/conda/bin/mamba install -y python=${PYTHON_SHORT_VERSION} pytorch=${PYT
   -c ${CONDA_CHANNEL} \
   -c nvidia \
   -c conda-forge \
-  && /opt/conda/bin/mamba clean -afy
+  && /opt/conda/bin/mamba clean -acftly
 
 # CUDA libraries should be installed as a separate installation command to reduce memory size of single layer.
 # If single layer is huge in size (like 17 GB), then ECR pull can timeout on smaller EC2 instances like P3.2x.
@@ -267,7 +267,7 @@ RUN /opt/conda/bin/mamba install -y python=${PYTHON_SHORT_VERSION} pytorch=${PYT
   -c ${CONDA_CHANNEL} \
   -c nvidia \
   -c conda-forge \
-  && /opt/conda/bin/mamba clean -afy
+  && /opt/conda/bin/mamba clean -acftly
 
 # Install PyTorch related python packages (depends on PyTorch)
 RUN /opt/conda/bin/mamba install -y -c conda-forge -c fastai \
@@ -276,7 +276,7 @@ RUN /opt/conda/bin/mamba install -y -c conda-forge -c fastai \
   # fastai conda strictly depends on dataclasses
   && pip uninstall -y dataclasses \
   && pip install --no-cache-dir torchtnt \
-  && /opt/conda/bin/mamba clean -afy
+  && /opt/conda/bin/mamba clean -acftly
 
 # Install GDRCopy which is a dependency of SM Distributed DataParallel binary
 # The test binaries requires cuda driver library which could be found in conda
@@ -375,7 +375,7 @@ RUN /opt/conda/bin/mamba install -y python=${PYTHON_SHORT_VERSION} pytorch=${PYT
   -c ${CONDA_CHANNEL} \
   -c nvidia \
   -c conda-forge \
-  && /opt/conda/bin/mamba clean -afy
+  && /opt/conda/bin/mamba clean -acftly
 
 # CUDA libraries should be installed as a separate installation command to reduce memory size of single layer.
 # If single layer is huge in size (like 17 GB), then ECR pull can timeout on smaller EC2 instances like P3.2x.
@@ -386,7 +386,7 @@ RUN /opt/conda/bin/mamba install -y python=${PYTHON_SHORT_VERSION} pytorch=${PYT
   -c ${CONDA_CHANNEL} \
   -c nvidia \
   -c conda-forge \
-  && /opt/conda/bin/mamba clean -afy
+  && /opt/conda/bin/mamba clean -acftly
 
 # Install PyTorch related python packages (depends on PyTorch)
 RUN /opt/conda/bin/mamba install -y -c conda-forge -c fastai \
@@ -395,7 +395,7 @@ RUN /opt/conda/bin/mamba install -y -c conda-forge -c fastai \
   # fastai conda strictly depends on dataclasses
   && pip uninstall -y dataclasses \
   && pip install --no-cache-dir torchtnt \
-  && /opt/conda/bin/mamba clean -afy
+  && /opt/conda/bin/mamba clean -acftly
 
 # Install GDRCopy which is a dependency of SM Distributed DataParallel binary
 # The test binaries requires cuda driver library which could be found in conda
@@ -460,7 +460,7 @@ RUN /opt/conda/bin/mamba install -y -c conda-forge \
   shap \
   scikit-learn \
   seaborn \
- && /opt/conda/bin/mamba clean -afy
+  && /opt/conda/bin/mamba clean -acftly
 
 WORKDIR /
 
