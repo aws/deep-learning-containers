@@ -43,6 +43,7 @@ def test_gdrcopy(
             f"Image {pytorch_training} is incompatible with instance type {ec2_instance_type}"
         )
 
+    # NOTE: Skip PT 1.13 EC2 GDRCopy tests until it is installed.
     _, framework_version = test_utils.get_framework_and_version_from_tag(pytorch_training)
     framework_version = Version(framework_version)
     if test_utils.is_ec2_image(pytorch_training) and framework_version == Version("1.13.1"):
