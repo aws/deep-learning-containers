@@ -1,7 +1,7 @@
 ---
 release_images:
   # #############################
-  # Autopatch Onboarded
+  # Autopatch Releases
   # #############################
   1:
     framework: "pytorch"
@@ -134,7 +134,7 @@ release_images:
       disable_sm_tag: False
       force_release: False
   # #############################
-  # Release Images
+  # Regular Releases
   # #############################
   11:
     framework: "huggingface_pytorch"
