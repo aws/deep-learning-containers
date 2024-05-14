@@ -53,7 +53,7 @@ release_images:
       cuda_version: "cu118"
       example: False
       disable_sm_tag: False
-      force_release: True
+      force_release: False
   5:
     framework: "pytorch"
     version: "2.2.1"
