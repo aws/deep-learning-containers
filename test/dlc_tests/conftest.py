@@ -923,7 +923,7 @@ def skip_transformer_engine_test(request):
     else:
         return
 
-    skip_dict = {"==2.2.*": ["cpu", "cu121"]}
+    skip_dict = {">=2.2": ["cpu", "cu121"]}
     if _validate_pytorch_framework_version(
         request, image_uri, "skip_transformer_engine_test", skip_dict
     ):
@@ -991,9 +991,7 @@ def skip_efa_healthcheck_test(request):
 
     skip_dict = {
         "==2.0.*": ["cu121"],
-        "==2.1.*": ["cpu", "cu121"],
-        "==2.2.*": ["cpu", "cu121"],
-        "==2.3.*": ["cpu", "cu121"],
+        ">=2.1.*,<2.4": ["cpu", "cu121"],
     }
     if _validate_pytorch_framework_version(
         request, image_uri, "skip_efa_healthcheck_test", skip_dict
@@ -1094,9 +1092,7 @@ def skip_release_pt_test(request):
         return
 
     skip_dict = {
-        "==2.1.*": ["cpu", "cu121"],
-        "==2.2.*": ["cpu", "cu121"],
-        "==2.3.*": ["cpu", "cu121"],
+        ">=2.1.*,<2.4": ["cpu", "cu121"],
     }
     if _validate_pytorch_framework_version(request, image_uri, "skip_release_pt_test", skip_dict):
         pytest.skip(f"PyTorch 2.2 image doesn't support current test")

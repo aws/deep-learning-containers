@@ -35,6 +35,8 @@ def test_pytorch_2_3_gpu(
         (common_cases.pytorch_training_torchaudio, (pytorch_training, ec2_connection)),
         (common_cases.pytorch_cudnn_match_gpu, (pytorch_training, ec2_connection, region)),
         (common_cases.pytorch_curand_gpu, (pytorch_training, ec2_connection)),
+        (common_cases.pytorch_gdrcopy(pytorch_training, ec2_connection)),
+        (common_cases.pytorch_transformer_engine(pytorch_training, ec2_connection)),
     ]
 
     if "sagemaker" in pytorch_training:
