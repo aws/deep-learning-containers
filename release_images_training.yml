@@ -10,9 +10,9 @@ release_images:
     arch_type: "x86"
     training:
       device_types: [ "cpu", "gpu" ]
-      python_versions: [ "py3999999999" ]
+      python_versions: [ "py39" ]
       os_version: "ubuntu20.04"
-      cuda_version: "cu121"
+      cuda_version: "cu117"
       example: False
       disable_sm_tag: False
       force_release: False
@@ -87,8 +87,8 @@ release_images:
     customer_type: "ec2"
     arch_type: "x86"
     training:
-      device_types: ["cpu", "gpu"]
-      python_versions: ["py310"]
+      device_types: [ "cpu", "gpu" ]
+      python_versions: [ "py310" ]
       os_version: "ubuntu20.04"
       cuda_version: "cu118"
       example: False
@@ -100,8 +100,8 @@ release_images:
     customer_type: "sagemaker"
     arch_type: "x86"
     training:
-      device_types: ["cpu", "gpu"]
-      python_versions: ["py310"]
+      device_types: [ "cpu", "gpu" ]
+      python_versions: [ "py310" ]
       os_version: "ubuntu20.04"
       cuda_version: "cu118"
       example: False
@@ -167,8 +167,8 @@ release_images:
     version: "1.1.0"
     arch_type: "x86"
     training:
-      device_types: ["cpu", "gpu"]
-      python_versions: ["py310"]
+      device_types: [ "cpu", "gpu" ]
+      python_versions: [ "py310" ]
       os_version: "ubuntu20.04"
       cuda_version: "cu118"
       example: False
