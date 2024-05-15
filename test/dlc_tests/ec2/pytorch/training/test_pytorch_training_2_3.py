@@ -35,8 +35,6 @@ def test_pytorch_2_3_gpu(
         (common_cases.pytorch_training_torchaudio, (pytorch_training, ec2_connection)),
         (common_cases.pytorch_cudnn_match_gpu, (pytorch_training, ec2_connection, region)),
         (common_cases.pytorch_curand_gpu, (pytorch_training, ec2_connection)),
-        (common_cases.pytorch_gdrcopy, (pytorch_training, ec2_connection)),
-        (common_cases.pytorch_transformer_engine, (pytorch_training, ec2_connection)),
     ]
 
     if "sagemaker" in pytorch_training:
@@ -59,6 +57,10 @@ def test_pytorch_2_3_gpu(
     "ec2_instance_type, region",
     common_cases.PT_EC2_HEAVY_GPU_INSTANCE_TYPE_AND_REGION,
     indirect=True,
+)
+@pytest.mark.skipif(
+    test_utils.is_pr_context() and not ec2.are_heavy_instance_ec2_tests_enabled(),
+    reason="Skip GPU Heavy tests in PR context unless explicitly enabled",
 )
 def test_pytorch_2_3_gpu_heavy(
     pytorch_training___2__3, ec2_connection, region, gpu_only, ec2_instance_type
