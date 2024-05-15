@@ -93,7 +93,10 @@ def pytorch_linear_regression_gpu(pytorch_training, ec2_connection):
         )
     else:
         execute_ec2_training_test(
-            ec2_connection, pytorch_training, PT_REGRESSION_CMD, container_name="pytorch_regression_gpu"
+            ec2_connection,
+            pytorch_training,
+            PT_REGRESSION_CMD,
+            container_name="pytorch_regression_gpu",
         )
 
 
@@ -123,7 +126,10 @@ def pytorch_training_torchdata(pytorch_training, ec2_connection):
     # HACK including PT 1.13 in this condition because the Torchdata 0.5.0 tag includes old tests data
     if Version(image_framework_version) in SpecifierSet(">=1.11,<=1.13.1"):
         execute_ec2_training_test(
-            ec2_connection, pytorch_training, PT_TORCHDATA_DEV_CMD, container_name="pytorch_torchdata"
+            ec2_connection,
+            pytorch_training,
+            PT_TORCHDATA_DEV_CMD,
+            container_name="pytorch_torchdata",
         )
     else:
         execute_ec2_training_test(
@@ -146,7 +152,11 @@ def pytorch_telemetry_cpu(pytorch_training, ec2_connection):
     Test Telemetry
     """
     execute_ec2_training_test(
-        ec2_connection, pytorch_training, PT_TELEMETRY_CMD, timeout=900, container_name="pytorch_telemetry"
+        ec2_connection,
+        pytorch_training,
+        PT_TELEMETRY_CMD,
+        timeout=900,
+        container_name="pytorch_telemetry",
     )
 
 
@@ -154,7 +164,7 @@ def pytorch_gloo(pytorch_training, ec2_connection):
     """
     Test GLOO Backend
     """
-    test_cmd = f"{PT_COMMON_GLOO_MPI_CMD} gloo 0"   # input: backend, inductor flags
+    test_cmd = f"{PT_COMMON_GLOO_MPI_CMD} gloo 0"  # input: backend, inductor flags
     execute_ec2_training_test(
         ec2_connection,
         pytorch_training,
@@ -169,7 +179,7 @@ def pytorch_gloo_inductor_gpu(pytorch_training, ec2_connection):
     """
     Test GLOO Backend with PyTorch Inductor
     """
-    test_cmd = f"{PT_COMMON_GLOO_MPI_CMD} gloo 1"   # input: backend, inductor flags
+    test_cmd = f"{PT_COMMON_GLOO_MPI_CMD} gloo 1"  # input: backend, inductor flags
     execute_ec2_training_test(
         ec2_connection,
         pytorch_training,
@@ -187,15 +197,17 @@ def pytorch_mpi(
     """
     Test MPI Backend
     """
-    test_cmd = f"{PT_COMMON_GLOO_MPI_CMD} mpi 0"   # input: backend, inductor flags
-    execute_ec2_training_test(ec2_connection, pytorch_training, test_cmd, container_name="pytorch_mpi_gloo")
+    test_cmd = f"{PT_COMMON_GLOO_MPI_CMD} mpi 0"  # input: backend, inductor flags
+    execute_ec2_training_test(
+        ec2_connection, pytorch_training, test_cmd, container_name="pytorch_mpi_gloo"
+    )
 
 
 def pytorch_mpi_inductor_gpu(pytorch_training, ec2_connection):
     """
     Test MPI Backend with PyTorch Inductor
     """
-    test_cmd = f"{PT_COMMON_GLOO_MPI_CMD} mpi 1"   # input: backend, inductor flags
+    test_cmd = f"{PT_COMMON_GLOO_MPI_CMD} mpi 1"  # input: backend, inductor flags
     execute_ec2_training_test(
         ec2_connection, pytorch_training, test_cmd, container_name="pytorch_mpi_gloo_inductor"
     )
@@ -205,7 +217,7 @@ def pytorch_nccl(pytorch_training, ec2_connection):
     """
     Test NCCL Backend
     """
-    test_cmd = f"{PT_COMMON_NCCL_CMD} 0"   # input: inductor flags
+    test_cmd = f"{PT_COMMON_NCCL_CMD} 0"  # input: inductor flags
     execute_ec2_training_test(
         ec2_connection, pytorch_training, test_cmd, container_name="pytorch_nccl", large_shm=True
     )
@@ -215,9 +227,13 @@ def pytorch_nccl_inductor(pytorch_training, ec2_connection):
     """
     Test NCCL Backend with PyTorch Inductor
     """
-    test_cmd = f"{PT_COMMON_NCCL_CMD} 1"   # input: inductor flags
+    test_cmd = f"{PT_COMMON_NCCL_CMD} 1"  # input: inductor flags
     execute_ec2_training_test(
-        ec2_connection, pytorch_training, test_cmd, container_name="pytorch_nccl_inductor", large_shm=True
+        ec2_connection,
+        pytorch_training,
+        test_cmd,
+        container_name="pytorch_nccl_inductor",
+        large_shm=True,
     )
 
 
@@ -288,7 +304,9 @@ def pytorch_curand_gpu(pytorch_training, ec2_connection):
     """
     Test cuRAND Package
     """
-    execute_ec2_training_test(ec2_connection, pytorch_training, PT_CURAND_CMD, container_name="pytorch_curand")
+    execute_ec2_training_test(
+        ec2_connection, pytorch_training, PT_CURAND_CMD, container_name="pytorch_curand"
+    )
 
 
 def pytorch_nvapex(pytorch_training, ec2_connection):
