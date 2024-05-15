@@ -1052,7 +1052,9 @@ def skip_release_pt_test(request):
         ">=2.1,<2.4": ["cpu", "cu121"],
     }
     if _validate_pytorch_framework_version(request, image_uri, "skip_release_pt_test", skip_dict):
-        pytest.skip(f"Skip test for {image_uri} given that the image is being tested in serial execution.")
+        pytest.skip(
+            f"Skip test for {image_uri} given that the image is being tested in serial execution."
+        )
 
 
 def _validate_pytorch_framework_version(request, image_uri, test_name, skip_dict):
