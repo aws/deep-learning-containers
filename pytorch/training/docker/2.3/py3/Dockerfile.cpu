@@ -93,8 +93,7 @@ RUN wget https://www.open-mpi.org/software/ompi/v4.1/downloads/openmpi-${OPEN_MP
  && make all install \
  && cd .. \
  && rm openmpi-${OPEN_MPI_VERSION}.tar.gz \
- && rm -rf openmpi-{OPEN_MPI_VERSION}$
-
+ && rm -rf openmpi-${OPEN_MPI_VERSION}
 
 # Install OpenSSH for MPI to communicate between containers, allow OpenSSH to talk to containers without asking for confirmation
 RUN apt-get update \
@@ -159,8 +158,8 @@ RUN /opt/conda/bin/mamba install -y --override-channels \
     "urllib3<2" \
     "idna>=3.7"\
     "tqdm>=4.66.3" \
-  && /opt/conda/bin/mamba clean -afy \
-  && rm -rf /etc/apt/sources.list.d/*
+ && /opt/conda/bin/mamba clean -afy \
+ && rm -rf /etc/apt/sources.list.d/*
 
 # Install commond pip packages (in case of conda package is not available)
 RUN pip install --no-cache-dir opencv-python
@@ -179,6 +178,10 @@ RUN curl -o /license.txt https://aws-dlc-licenses.s3.amazonaws.com/pytorch-2.3/l
 
 # Removing the cache as it is needed for security verification
 RUN rm -rf /root/.cache | true
+
+RUN /opt/conda/bin/mamba clean -afy \
+ && find /opt/conda/ -follow -type f -name '*.a' -delete \
+ && find /opt/conda/ -follow -type f -name '*.pyc' -delete
 
 ########################################################
 #  _____ ____ ____    ___
@@ -204,21 +207,21 @@ ARG PYTHON_SHORT_VERSION
 ARG PYTORCH_VERSION
 ARG CONDA_CHANNEL
 
-# Install AWS-PyTorch
+# Install PyTorch
 RUN /opt/conda/bin/mamba install -y python=${PYTHON_SHORT_VERSION} pytorch=${PYTORCH_VERSION} \
-  torchvision torchaudio torchtext cpuonly \
-  --override-channels \
-  -c ${CONDA_CHANNEL} \
-  -c conda-forge \
-  && /opt/conda/bin/mamba clean -afy
+    torchvision torchaudio torchtext cpuonly \
+    --override-channels \
+    -c ${CONDA_CHANNEL} \
+    -c conda-forge \
+ && /opt/conda/bin/mamba clean -afy
 
 # Install PyTorch related python packages (depends on PyTorch)
 RUN /opt/conda/bin/mamba install -y -c conda-forge -c fastai \
-  accelerate \
-  fastai \
-  # fastai conda strictly depends on dataclasses
-  && pip uninstall -y dataclasses \
-  && /opt/conda/bin/mamba clean -afy
+    accelerate \
+    fastai \
+    # fastai conda strictly depends on dataclasses
+ && pip uninstall -y dataclasses \
+ && /opt/conda/bin/mamba clean -afy
 
 RUN HOME_DIR=/root \
  && curl -o ${HOME_DIR}/oss_compliance.zip https://aws-dlinfra-utilities.s3.amazonaws.com/oss_compliance.zip \
@@ -232,6 +235,10 @@ RUN HOME_DIR=/root \
 
 # Removing the cache as it is needed for security verification
 RUN rm -rf /root/.cache | true
+
+RUN /opt/conda/bin/mamba clean -afy \
+ && find /opt/conda/ -follow -type f -name '*.a' -delete \
+ && find /opt/conda/ -follow -type f -name '*.pyc' -delete
 
 # Starts framework
 CMD ["/bin/bash"]
@@ -265,21 +272,21 @@ ENV SAGEMAKER_TRAINING_MODULE=sagemaker_pytorch_container.training:main
 
 WORKDIR /
 
-# Install AWS-PyTorch
+# Install PyTorch
 RUN /opt/conda/bin/mamba install -y python=${PYTHON_SHORT_VERSION} pytorch=${PYTORCH_VERSION} \
-  torchvision torchaudio torchtext cpuonly \
-  --override-channels \
-  -c ${CONDA_CHANNEL} \
-  -c conda-forge \
-  && /opt/conda/bin/mamba clean -afy
+    torchvision torchaudio torchtext cpuonly \
+    --override-channels \
+    -c ${CONDA_CHANNEL} \
+    -c conda-forge \
+ && /opt/conda/bin/mamba clean -afy
 
 # Install PyTorch related python packages (depends on PyTorch)
 RUN /opt/conda/bin/mamba install -y -c conda-forge -c fastai \
-  accelerate \
-  fastai \
-  # fastai conda strictly depends on dataclasses
-  && pip uninstall -y dataclasses \
-  && /opt/conda/bin/mamba clean -afy
+    accelerate \
+    fastai \
+    # fastai conda strictly depends on dataclasses
+ && pip uninstall -y dataclasses \
+ && /opt/conda/bin/mamba clean -afy
 
 # Copy workaround script for incorrect hostname
 COPY changehostname.c /
@@ -299,17 +306,17 @@ RUN pip install --no-cache-dir -U \
 
 # Install extra packages
 RUN /opt/conda/bin/mamba install -y -c conda-forge \
-  bokeh \
-  imageio \
-  numba \
-  pandas \
-  plotly \
-  scikit-learn \
-  seaborn \
-  shap \
-  && /opt/conda/bin/mamba clean -afy
+    bokeh \
+    imageio \
+    numba \
+    pandas \
+    plotly \
+    scikit-learn \
+    seaborn \
+    shap \
+ && /opt/conda/bin/mamba clean -afy
 
- WORKDIR /
+WORKDIR /
 
 RUN HOME_DIR=/root \
  && curl -o ${HOME_DIR}/oss_compliance.zip https://aws-dlinfra-utilities.s3.amazonaws.com/oss_compliance.zip \
@@ -323,6 +330,12 @@ RUN HOME_DIR=/root \
 
 # Removing the cache as it is needed for security verification
 RUN rm -rf /root/.cache | true
+
+RUN /opt/conda/bin/mamba clean -afy \
+ && find /opt/conda/ -follow -type f -name '*.a' -delete \
+ && find /opt/conda/ -follow -type f -name '*.pyc' -delete \
+ && find /opt/conda/ -follow -type f -name '*.js.map' -delete \
+ && find /opt/conda/lib/python*/site-packages/bokeh/server/static -follow -type f -name '*.js' ! -name '*.min.js' -delete
 
 ENTRYPOINT ["bash", "-m", "start_with_right_hostname.sh"]
 CMD ["/bin/bash"]

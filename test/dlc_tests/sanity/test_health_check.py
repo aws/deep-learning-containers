@@ -24,9 +24,6 @@ PT_EC2_MULTI_GPU_INSTANCE_TYPE = ec2_utils.get_ec2_instance_type(
 )
 
 
-@pytest.mark.skip_pt20_cuda121_tests
-@pytest.mark.skip_pt21_test
-@pytest.mark.skip_pt22_test
 @pytest.mark.usefixtures("sagemaker_only")
 @pytest.mark.usefixtures("pt201_and_above_only")
 @pytest.mark.processor("gpu")

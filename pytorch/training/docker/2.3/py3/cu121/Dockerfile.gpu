@@ -154,15 +154,15 @@ RUN /opt/conda/bin/mamba install -y -c conda-forge \
     "urllib3<2" \
     "idna>=3.7"\
     "tqdm>=4.66.3" \
-  && /opt/conda/bin/mamba clean -afy \
-  && rm -rf /etc/apt/sources.list.d/*
+ && /opt/conda/bin/mamba clean -afy \
+ && rm -rf /etc/apt/sources.list.d/*
 
 # Install commond pip packages (in case of conda package is not available)
 RUN pip install --no-cache-dir opencv-python
 
 # For EFA, below flags are needed to install EFA on docker image
 #  -n, --no-verify	Skip EFA device verification and test
-#  -l, --skip-limit-conf	Skip EFA limit configuration
+#  -l, --skip-limit-conf Skip EFA limit configuration
 #  -k, --skip-kmod	Skip EFA kmod installation
 RUN mkdir /tmp/efa \
  && cd /tmp/efa \
@@ -221,6 +221,10 @@ RUN curl -o /license.txt https://aws-dlc-licenses.s3.amazonaws.com/pytorch-2.3/l
 # Removing the cache as it is needed for security verification
 RUN rm -rf /root/.cache | true
 
+RUN /opt/conda/bin/mamba clean -afy \
+ && find /opt/conda/ -follow -type f -name '*.a' -delete \
+ && find /opt/conda/ -follow -type f -name '*.pyc' -delete
+
 ########################################################
 #  _____ ____ ____    ___
 # | ____/ ___|___ \  |_ _|_ __ ___   __ _  __ _  ___
@@ -249,34 +253,45 @@ ARG GDRCOPY_VERSION
 
 WORKDIR /
 
+# PyTorch, CUDA compiler, and CUDA libraries should be installed as a separate layer to reduce layer size.
+# ECR pull can timeout on smaller EC2 instances like P3.2x if layer is too big.
+# Each installation layer pin python and pytorch to ensure no overrides.
+
 # Install PyTorch
 RUN /opt/conda/bin/mamba install -y python=${PYTHON_SHORT_VERSION} pytorch=${PYTORCH_VERSION} \
-  pytorch-cuda=12.1 cuda-nvcc=12.1.* torchvision torchaudio torchtext aws-ofi-nccl \
-  --override-channels \
-  -c ${CONDA_CHANNEL} \
-  -c nvidia \
-  -c conda-forge \
-  && /opt/conda/bin/mamba clean -afy
+    pytorch-cuda=12.1 cuda-nvcc=12.1.* torchvision torchaudio torchtext aws-ofi-nccl \
+    --override-channels \
+    -c ${CONDA_CHANNEL} \
+    -c nvidia \
+    -c conda-forge \
+ && /opt/conda/bin/mamba clean -afy
 
-# CUDA libraries should be installed as a separate installation command to reduce memory size of single layer.
-# If single layer is huge in size (like 17 GB), then ECR pull can timeout on smaller EC2 instances like P3.2x.
-# Have added python and pytorch again in below command to make sure pytorch version wont be changed.
+# Install CUDA Compiler
 RUN /opt/conda/bin/mamba install -y python=${PYTHON_SHORT_VERSION} pytorch=${PYTORCH_VERSION} \
-  cuda-libraries-dev=12.1 cuda-libraries-static=12.1 cuda-compiler=12.1 \
-  --override-channels \
-  -c ${CONDA_CHANNEL} \
-  -c nvidia \
-  -c conda-forge \
-  && /opt/conda/bin/mamba clean -afy
+    cuda-nvcc=12.1.* \
+    --override-channels \
+    -c ${CONDA_CHANNEL} \
+    -c nvidia \
+    -c conda-forge \
+ && /opt/conda/bin/mamba clean -afy
+
+# Install CUDA libraries
+RUN /opt/conda/bin/mamba install -y python=${PYTHON_SHORT_VERSION} pytorch=${PYTORCH_VERSION} \
+    cuda-libraries-dev=12.1 cuda-libraries-static=12.1 cuda-compiler=12.1 \
+    --override-channels \
+    -c ${CONDA_CHANNEL} \
+    -c nvidia \
+    -c conda-forge \
+ && /opt/conda/bin/mamba clean -afy
 
 # Install PyTorch related python packages (depends on PyTorch)
 RUN /opt/conda/bin/mamba install -y -c conda-forge -c fastai \
-  accelerate \
-  fastai \
-  # fastai conda strictly depends on dataclasses
-  && pip uninstall -y dataclasses \
-  && pip install --no-cache-dir torchtnt \
-  && /opt/conda/bin/mamba clean -afy
+    accelerate \
+    fastai \
+    # fastai conda strictly depends on dataclasses
+ && pip uninstall -y dataclasses \
+ && pip install --no-cache-dir torchtnt \
+ && /opt/conda/bin/mamba clean -afy
 
 # Install GDRCopy which is a dependency of SM Distributed DataParallel binary
 # The test binaries requires cuda driver library which could be found in conda
@@ -290,19 +305,19 @@ RUN cd /tmp \
 
 # Install NCCL
 RUN cd /tmp \
-  && git clone https://github.com/NVIDIA/nccl.git -b v${NCCL_VERSION}-1 \
-  && cd nccl \
-  && make -j64 src.build BUILDDIR=/usr/local CUDA_LIB=${CUDA_HOME}/lib \
-  && rm -rf /tmp/nccl
+ && git clone https://github.com/NVIDIA/nccl.git -b v${NCCL_VERSION}-1 \
+ && cd nccl \
+ && make -j64 src.build BUILDDIR=/usr/local CUDA_LIB=${CUDA_HOME}/lib \
+ && rm -rf /tmp/nccl
 
 # Install Nvidia Apex (needs pytorch)
 RUN pip install --no-cache-dir packaging \
-  && git clone https://github.com/NVIDIA/apex \
-  && cd apex \
-  && git checkout 23.08 -b apex \
-  && pip install -v --disable-pip-version-check --no-cache-dir --no-build-isolation --config-settings "--build-option=--cpp_ext" --config-settings "--build-option=--cuda_ext" ./ \
-  && cd .. \
-  && rm -rf apex
+ && git clone https://github.com/NVIDIA/apex \
+ && cd apex \
+ && git checkout 23.08 -b apex \
+ && pip install -v --disable-pip-version-check --no-cache-dir --no-build-isolation --config-settings "--build-option=--cpp_ext" --config-settings "--build-option=--cuda_ext" ./ \
+ && cd .. \
+ && rm -rf apex
 
 # Install flash attn and NVIDIA transformer engine.
 # Optionally set NVTE_FRAMEWORK to avoid bringing in additional frameworks during TE install
@@ -325,6 +340,10 @@ RUN HOME_DIR=/root \
 
 # Removing the cache as it is needed for security verification
 RUN rm -rf /root/.cache | true
+
+RUN /opt/conda/bin/mamba clean -afy \
+ && find /opt/conda/ -follow -type f -name '*.a' -delete \
+ && find /opt/conda/ -follow -type f -name '*.pyc' -delete
 
 # Starts framework
 CMD ["/bin/bash"]
@@ -370,32 +389,39 @@ RUN pip install --no-cache-dir -U ${SMP_URL}
 
 # Install PyTorch
 RUN /opt/conda/bin/mamba install -y python=${PYTHON_SHORT_VERSION} pytorch=${PYTORCH_VERSION} \
-  pytorch-cuda=12.1 cuda-nvcc=12.1.* torchvision torchaudio torchtext aws-ofi-nccl \
-  --override-channels \
-  -c ${CONDA_CHANNEL} \
-  -c nvidia \
-  -c conda-forge \
-  && /opt/conda/bin/mamba clean -afy
+    pytorch-cuda=12.1 cuda-nvcc=12.1.* torchvision torchaudio torchtext aws-ofi-nccl \
+    --override-channels \
+    -c ${CONDA_CHANNEL} \
+    -c nvidia \
+    -c conda-forge \
+ && /opt/conda/bin/mamba clean -afy
 
-# CUDA libraries should be installed as a separate installation command to reduce memory size of single layer.
-# If single layer is huge in size (like 17 GB), then ECR pull can timeout on smaller EC2 instances like P3.2x.
-# Have added python and pytorch again in below command to make sure pytorch version wont be changed.
+# Install CUDA Compiler
 RUN /opt/conda/bin/mamba install -y python=${PYTHON_SHORT_VERSION} pytorch=${PYTORCH_VERSION} \
-  cuda-libraries-dev=12.1 cuda-libraries-static=12.1 cuda-compiler=12.1 \
-  --override-channels \
-  -c ${CONDA_CHANNEL} \
-  -c nvidia \
-  -c conda-forge \
-  && /opt/conda/bin/mamba clean -afy
+    cuda-nvcc=12.1.* \
+    --override-channels \
+    -c ${CONDA_CHANNEL} \
+    -c nvidia \
+    -c conda-forge \
+ && /opt/conda/bin/mamba clean -afy
+
+# Install CUDA libraries
+RUN /opt/conda/bin/mamba install -y python=${PYTHON_SHORT_VERSION} pytorch=${PYTORCH_VERSION} \
+    cuda-libraries-dev=12.1 cuda-libraries-static=12.1 cuda-compiler=12.1 \
+    --override-channels \
+    -c ${CONDA_CHANNEL} \
+    -c nvidia \
+    -c conda-forge \
+ && /opt/conda/bin/mamba clean -afy
 
 # Install PyTorch related python packages (depends on PyTorch)
 RUN /opt/conda/bin/mamba install -y -c conda-forge -c fastai \
-  accelerate \
-  fastai \
-  # fastai conda strictly depends on dataclasses
-  && pip uninstall -y dataclasses \
-  && pip install --no-cache-dir torchtnt \
-  && /opt/conda/bin/mamba clean -afy
+    accelerate \
+    fastai \
+    # fastai conda strictly depends on dataclasses
+ && pip uninstall -y dataclasses \
+ && pip install --no-cache-dir torchtnt \
+ && /opt/conda/bin/mamba clean -afy
 
 # Install GDRCopy which is a dependency of SM Distributed DataParallel binary
 # The test binaries requires cuda driver library which could be found in conda
@@ -409,21 +435,21 @@ RUN cd /tmp \
 
 # Install NCCL
 RUN cd /tmp \
-  && git clone https://github.com/NVIDIA/nccl.git -b v${NCCL_VERSION}-1 \
-  && cd nccl \
-  && make -j64 src.build BUILDDIR=/usr/local CUDA_LIB=${CUDA_HOME}/lib \
-  && rm -rf /tmp/nccl
+ && git clone https://github.com/NVIDIA/nccl.git -b v${NCCL_VERSION}-1 \
+ && cd nccl \
+ && make -j64 src.build BUILDDIR=/usr/local CUDA_LIB=${CUDA_HOME}/lib \
+ && rm -rf /tmp/nccl
 # preload to system nccl for PyTorch to use instead of its statically linked NCCL
 ENV LD_PRELOAD="/usr/local/lib/libnccl.so"
 
 # Install Nvidia Apex (needs pytorch)
 RUN pip install --no-cache-dir packaging \
-  && git clone https://github.com/NVIDIA/apex \
-  && cd apex \
-  && git checkout 23.08 -b apex \
-  && pip install -v --disable-pip-version-check --no-cache-dir --no-build-isolation --config-settings "--build-option=--cpp_ext" --config-settings "--build-option=--cuda_ext" ./ \
-  && cd .. \
-  && rm -rf apex
+ && git clone https://github.com/NVIDIA/apex \
+ && cd apex \
+ && git checkout 23.08 -b apex \
+ && pip install -v --disable-pip-version-check --no-cache-dir --no-build-isolation --config-settings "--build-option=--cpp_ext" --config-settings "--build-option=--cuda_ext" ./ \
+ && cd .. \
+ && rm -rf apex
 
 # Install flash attn and NVIDIA transformer engine.
 # Optionally set NVTE_FRAMEWORK to avoid bringing in additional frameworks during TE install
@@ -452,15 +478,15 @@ RUN pip install --no-cache-dir -U \
 
 # Install extra packages
 RUN /opt/conda/bin/mamba install -y -c conda-forge \
-  bokeh \
-  imageio \
-  numba \
-  pandas \
-  plotly \
-  shap \
-  scikit-learn \
-  seaborn \
-  && /opt/conda/bin/mamba clean -afy
+    bokeh \
+    imageio \
+    numba \
+    pandas \
+    plotly \
+    shap \
+    scikit-learn \
+    seaborn \
+ && /opt/conda/bin/mamba clean -afy
 
 WORKDIR /
 
@@ -476,6 +502,12 @@ RUN HOME_DIR=/root \
 
 # Removing the cache as it is needed for security verification
 RUN rm -rf /root/.cache | true
+
+RUN /opt/conda/bin/mamba clean -afy \
+ && find /opt/conda/ -follow -type f -name '*.a' -delete \
+ && find /opt/conda/ -follow -type f -name '*.pyc' -delete \
+ && find /opt/conda/ -follow -type f -name '*.js.map' -delete \
+ && find /opt/conda/lib/python*/site-packages/bokeh/server/static -follow -type f -name '*.js' ! -name '*.min.js' -delete
 
 ENTRYPOINT ["bash", "-m", "start_with_right_hostname.sh"]
 CMD ["/bin/bash"]

@@ -139,7 +139,6 @@ def test_pytorch_standalone_gpu(pytorch_training, ec2_connection, gpu_only, ec2_
     execute_ec2_training_test(ec2_connection, pytorch_training, PT_STANDALONE_CMD)
 
 
-@pytest.mark.skip_pt20_cuda121_tests
 @pytest.mark.skip_release_pt_test
 @pytest.mark.usefixtures("sagemaker_only")
 @pytest.mark.usefixtures("pt201_and_above_only")
@@ -155,7 +154,6 @@ def test_pytorch_healthcheck_dcgm(pytorch_training, ec2_connection, gpu_only, ec
     execute_ec2_training_test(ec2_connection, pytorch_training, PT_DCGM_TEST_CMD)
 
 
-@pytest.mark.skip_pt20_cuda121_tests
 @pytest.mark.skip_release_pt_test
 @pytest.mark.usefixtures("sagemaker_only")
 @pytest.mark.usefixtures("pt201_and_above_only")

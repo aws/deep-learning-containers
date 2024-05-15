@@ -1039,50 +1039,6 @@ def skip_p5_tests(request, ec2_instance_type):
 
 
 @pytest.fixture(autouse=True)
-def skip_pt20_cuda121_tests(request):
-    if "training" in request.fixturenames:
-        image_uri = request.getfixturevalue("training")
-    elif "pytorch_training" in request.fixturenames:
-        image_uri = request.getfixturevalue("pytorch_training")
-    else:
-        return
-
-    skip_dict = {"==2.0.*": ["cu121"]}
-    if _validate_pytorch_framework_version(
-        request, image_uri, "skip_pt20_cuda121_tests", skip_dict
-    ):
-        pytest.skip("PyTorch 2.0 + CUDA12.1 image doesn't support current test")
-
-
-@pytest.fixture(autouse=True)
-def skip_pt21_test(request):
-    if "training" in request.fixturenames:
-        image_uri = request.getfixturevalue("training")
-    elif "pytorch_training" in request.fixturenames:
-        image_uri = request.getfixturevalue("pytorch_training")
-    else:
-        return
-
-    skip_dict = {"==2.1.*": ["cpu", "cu121"]}
-    if _validate_pytorch_framework_version(request, image_uri, "skip_pt21_test", skip_dict):
-        pytest.skip(f"PyTorch 2.1 image doesn't support current test")
-
-
-@pytest.fixture(autouse=True)
-def skip_pt22_test(request):
-    if "training" in request.fixturenames:
-        image_uri = request.getfixturevalue("training")
-    elif "pytorch_training" in request.fixturenames:
-        image_uri = request.getfixturevalue("pytorch_training")
-    else:
-        return
-
-    skip_dict = {"==2.2.*": ["cpu", "cu121"]}
-    if _validate_pytorch_framework_version(request, image_uri, "skip_pt22_test", skip_dict):
-        pytest.skip(f"PyTorch 2.2 image doesn't support current test")
-
-
-@pytest.fixture(autouse=True)
 def skip_release_pt_test(request):
     if "training" in request.fixturenames:
         image_uri = request.getfixturevalue("training")
@@ -1092,10 +1048,11 @@ def skip_release_pt_test(request):
         return
 
     skip_dict = {
+        "==2.0.1": ["cu121"],
         ">=2.1,<2.4": ["cpu", "cu121"],
     }
     if _validate_pytorch_framework_version(request, image_uri, "skip_release_pt_test", skip_dict):
-        pytest.skip(f"PyTorch 2.2 image doesn't support current test")
+        pytest.skip(f"Skip test for {image_uri} given that the image is being tested in serial execution.")
 
 
 def _validate_pytorch_framework_version(request, image_uri, test_name, skip_dict):
@@ -1498,15 +1455,6 @@ def pytest_configure(config):
     )
     config.addinivalue_line(
         "markers", "skip_dgl_test(): mark test to skip due to dlc being incompatible"
-    )
-    config.addinivalue_line(
-        "markers", "skip_pt20_cuda121_tests(): mark test to skip due to dlc being incompatible"
-    )
-    config.addinivalue_line(
-        "markers", "skip_pt21_test(): mark test to skip due to dlc being incompatible"
-    )
-    config.addinivalue_line(
-        "markers", "skip_pt22_test(): mark test to skip due to dlc being incompatible"
     )
     config.addinivalue_line(
         "markers", "skip_inductor_test(): mark test to skip due to dlc being incompatible"
