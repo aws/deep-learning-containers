@@ -1,4 +1,8 @@
 #### First image: sha256:3093fc8670f953e149f550cff3fd13199ee3a7b4a17d0f360f98bc02151524ec ####
+#### Patch contents for patch-1: sha256:d9f54f527c6382712f3ce17c9f91e35fb531e6a2ac6a9185472442d7d2831fc4 ####
+pip install idna==3.7 pillow==10.3.0 tqdm==4.66.4 
+python -m pip install --upgrade pip
+apt-get update && apt-get install -y --only-upgrade bsdutils curl fdisk less libblkid-dev libblkid1 libc-bin libc-dev-bin libc6-dev libc6 libcurl3-gnutls libcurl4-openssl-dev libcurl4 libfdisk1 libgnutls30 libmount-dev libmount1 libnghttp2-14 libsmartcols1 libuuid1 linux-libc-dev mount util-linux uuid-dev vim-common vim-runtime vim xxd
 #### Current Patch contents ####
 pip install idna==3.7 pillow==10.3.0 tqdm==4.66.4 
 python -m pip install --upgrade pip
