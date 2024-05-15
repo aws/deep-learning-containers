@@ -13,7 +13,7 @@
 
 #!/usr/bin/env bash
 
-GDRCOPY_VERSION="$(awk '$2 == "GDR_API_MAJOR_VERSION" {printf "%s.", $3}$2 == "GDR_API_MINOR_VERSION" {printf "%s\n", $3}' /usr/local/include/gdrapi.h)"
+GDRCOPY_VERSION="$(awk '$1=="#define"&&$2=="GDR_API_MAJOR_VERSION" {printf "%s.", $3} $1=="#define"&&$2=="GDR_API_MINOR_VERSION" {printf "%s\n", $3}' /usr/local/include/gdrapi.h)"
 
 function version { echo "$@" | awk -F. '{ printf("%d%03d%03d%03d\n", $1,$2,$3,$4); }'; }
 

@@ -161,9 +161,9 @@ RUN /opt/conda/bin/mamba install -y -c conda-forge \
 RUN pip install --no-cache-dir opencv-python
 
 # For EFA, below flags are needed to install EFA on docker image
-#  -n, --no-verify	Skip EFA device verification and test
+#  -n, --no-verify       Skip EFA device verification and test
 #  -l, --skip-limit-conf Skip EFA limit configuration
-#  -k, --skip-kmod	Skip EFA kmod installation
+#  -k, --skip-kmod       Skip EFA kmod installation
 RUN mkdir /tmp/efa \
  && cd /tmp/efa \
  && curl -O https://s3-us-west-2.amazonaws.com/aws-efa-installer/aws-efa-installer-${EFA_VERSION}.tar.gz \
