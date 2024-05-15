@@ -56,7 +56,9 @@ def test_pytorch_2_3_gpu(
 @pytest.mark.model("N/A")
 @pytest.mark.team("conda")
 @pytest.mark.parametrize(
-    "ec2_instance_type, region", common_cases.PT_EC2_HEAVY_GPU_INSTANCE_TYPE_AND_REGION, indirect=True
+    "ec2_instance_type, region",
+    common_cases.PT_EC2_HEAVY_GPU_INSTANCE_TYPE_AND_REGION,
+    indirect=True,
 )
 def test_pytorch_2_3_gpu_heavy(
     pytorch_training___2__3, ec2_connection, region, gpu_only, ec2_instance_type
@@ -72,7 +74,7 @@ def test_pytorch_2_3_gpu_heavy(
         (common_cases.pytorch_transformer_engine, (pytorch_training, ec2_connection)),
     ]
 
-    test_utils.execute_serial_test_cases(test_cases, test_description="PT 2.3 GPU")
+    test_utils.execute_serial_test_cases(test_cases, test_description="PT 2.3 GPU Heavy")
 
 
 @pytest.mark.usefixtures("sagemaker")

@@ -159,7 +159,8 @@ RUN /opt/conda/bin/mamba install -y --override-channels \
     "urllib3<2" \
     "idna>=3.7"\
     "tqdm>=4.66.3" \
-  && /opt/conda/bin/mamba clean -acftly
+  && /opt/conda/bin/mamba clean -afy \
+  && rm -rf /etc/apt/sources.list.d/*
 
 # Install commond pip packages (in case of conda package is not available)
 RUN pip install --no-cache-dir opencv-python
@@ -209,7 +210,7 @@ RUN /opt/conda/bin/mamba install -y python=${PYTHON_SHORT_VERSION} pytorch=${PYT
   --override-channels \
   -c ${CONDA_CHANNEL} \
   -c conda-forge \
-  && /opt/conda/bin/mamba clean -acftly
+  && /opt/conda/bin/mamba clean -afy
 
 # Install PyTorch related python packages (depends on PyTorch)
 RUN /opt/conda/bin/mamba install -y -c conda-forge -c fastai \
@@ -217,7 +218,7 @@ RUN /opt/conda/bin/mamba install -y -c conda-forge -c fastai \
   fastai \
   # fastai conda strictly depends on dataclasses
   && pip uninstall -y dataclasses \
-  && /opt/conda/bin/mamba clean -acftly
+  && /opt/conda/bin/mamba clean -afy
 
 RUN HOME_DIR=/root \
  && curl -o ${HOME_DIR}/oss_compliance.zip https://aws-dlinfra-utilities.s3.amazonaws.com/oss_compliance.zip \
@@ -270,7 +271,7 @@ RUN /opt/conda/bin/mamba install -y python=${PYTHON_SHORT_VERSION} pytorch=${PYT
   --override-channels \
   -c ${CONDA_CHANNEL} \
   -c conda-forge \
-  && /opt/conda/bin/mamba clean -acftly
+  && /opt/conda/bin/mamba clean -afy
 
 # Install PyTorch related python packages (depends on PyTorch)
 RUN /opt/conda/bin/mamba install -y -c conda-forge -c fastai \
@@ -278,7 +279,7 @@ RUN /opt/conda/bin/mamba install -y -c conda-forge -c fastai \
   fastai \
   # fastai conda strictly depends on dataclasses
   && pip uninstall -y dataclasses \
-  && /opt/conda/bin/mamba clean -acftly
+  && /opt/conda/bin/mamba clean -afy
 
 # Copy workaround script for incorrect hostname
 COPY changehostname.c /
@@ -306,7 +307,7 @@ RUN /opt/conda/bin/mamba install -y -c conda-forge \
   scikit-learn \
   seaborn \
   shap \
-  && /opt/conda/bin/mamba clean -acftly
+  && /opt/conda/bin/mamba clean -afy
 
  WORKDIR /
 

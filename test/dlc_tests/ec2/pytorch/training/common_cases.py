@@ -263,7 +263,9 @@ def pytorch_training_torchdata(pytorch_training, ec2_connection):
     if Version(image_framework_version) in SpecifierSet(">=1.11,<=1.13.1"):
         execute_ec2_training_test(ec2_connection, pytorch_training, PT_TORCHDATA_DEV_CMD)
     else:
-        execute_ec2_training_test(ec2_connection, pytorch_training, PT_TORCHDATA_CMD)
+        execute_ec2_training_test(
+            ec2_connection, pytorch_training, PT_TORCHDATA_CMD, container_name="gdrcopy"
+        )
 
 
 def pytorch_gdrcopy(pytorch_training, ec2_connection):
@@ -271,4 +273,9 @@ def pytorch_gdrcopy(pytorch_training, ec2_connection):
 
 
 def pytorch_transformer_engine(pytorch_training, ec2_connection):
-    execute_ec2_training_test(ec2_connection, pytorch_training, PT_TRANSFORMER_ENGINE_CMD)
+    execute_ec2_training_test(
+        ec2_connection,
+        pytorch_training,
+        PT_TRANSFORMER_ENGINE_CMD,
+        container_name="transformer_engine",
+    )
