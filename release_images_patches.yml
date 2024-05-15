@@ -78,3 +78,83 @@ release_images:
       example: False
       disable_sm_tag: False
       force_release: False
+
+  # TF 2.14 images
+  7:
+    framework: "tensorflow"
+    version: "2.14.1"
+    customer_type: "ec2"
+    arch_type: "x86"
+    training:
+      device_types: [ "cpu", "gpu" ]
+      python_versions: [ "py310" ]
+      os_version: "ubuntu20.04"
+      cuda_version: "cu118"
+      example: False
+      disable_sm_tag: False
+      force_release: False
+  8:
+    framework: "tensorflow"
+    version: "2.14.1"
+    customer_type: "sagemaker"
+    arch_type: "x86"
+    training:
+      device_types: [ "cpu", "gpu" ]
+      python_versions: [ "py310" ]
+      os_version: "ubuntu20.04"
+      cuda_version: "cu118"
+      example: False
+      disable_sm_tag: False
+      force_release: False
+  9:
+    framework: "tensorflow"
+    version: "2.14.1"
+    arch_type: "x86"
+    customer_type: "ec2"
+    inference:
+      device_types: [ "cpu", "gpu" ]
+      python_versions: [ "py310" ]
+      os_version: "ubuntu20.04"
+      cuda_version: "cu118"
+      example: False
+      disable_sm_tag: False
+      force_release: False
+  10:
+    framework: "tensorflow"
+    version: "2.14.1"
+    arch_type: "x86"
+    customer_type: "sagemaker"
+    inference:
+      device_types: [ "cpu", "gpu" ]
+      python_versions: [ "py310" ]
+      os_version: "ubuntu20.04"
+      cuda_version: "cu118"
+      example: False
+      disable_sm_tag: False
+      force_release: False
+  11:
+    framework: "tensorflow"
+    version: "2.14.1"
+    arch_type: "graviton"
+    customer_type: "ec2"
+    inference:
+      device_types: [ "cpu" ]
+      python_versions: [ "py310" ]
+      os_version: "ubuntu20.04"
+      cuda_version: "cu118"
+      example: False
+      disable_sm_tag: False
+      force_release: False
+  12:
+    framework: "tensorflow"
+    version: "2.14.1"
+    arch_type: "graviton"
+    customer_type: "sagemaker"
+    inference:
+      device_types: [ "cpu" ]
+      python_versions: [ "py310" ]
+      os_version: "ubuntu20.04"
+      cuda_version: "cu118"
+      example: False
+      disable_sm_tag: False
+      force_release: False
