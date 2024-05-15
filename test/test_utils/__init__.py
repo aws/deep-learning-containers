@@ -1399,7 +1399,11 @@ def parse_canary_images(framework, region, image_type, customer_type=None):
             ## Trcomp tags like v1.0-trcomp-hf-4.21.1-pt-1.11.0-tr-gpu-py38 cause incorrect image URIs to be processed
             ## durign HF PT canary runs. The `if` condition below will prevent any trcomp images to be picked during canary runs of
             ## huggingface_pytorch and huggingface_tensorflow images.
-            if "trcomp" in tag_str and "trcomp" not in canary_type and "huggingface" in canary_type:
+            if (
+                ("trcomp" in tag_str or "hf" in tag_str)
+                and "trcomp" not in canary_type
+                and "huggingface" in canary_type
+            ):
                 continue
             version = match.group(2)
             if not versions_counter.get(version):

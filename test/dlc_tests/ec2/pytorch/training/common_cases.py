@@ -60,13 +60,13 @@ PT_EC2_HEAVY_GPU_INSTANCE_TYPE_AND_REGION = get_efa_ec2_instance_type(
 
 def pytorch_standalone(pytorch_training, ec2_connection):
     execute_ec2_training_test(
-        ec2_connection, pytorch_training, PT_STANDALONE_CMD, container_name="pt_standalone"
+        ec2_connection, pytorch_training, PT_STANDALONE_CMD, container_name="pytorch_standalone"
     )
 
 
 def pytorch_train_mnist(pytorch_training, ec2_connection):
     execute_ec2_training_test(
-        ec2_connection, pytorch_training, PT_MNIST_CMD, container_name="pt_mnist"
+        ec2_connection, pytorch_training, PT_MNIST_CMD, container_name="pytorch_mnist"
     )
 
 
@@ -75,11 +75,14 @@ def pytorch_linear_regression_gpu(pytorch_training, ec2_connection):
     image_cuda_version = get_cuda_version_from_tag(pytorch_training)
     if Version(image_framework_version) in SpecifierSet(">=2.0") and image_cuda_version >= "cu121":
         execute_ec2_training_test(
-            ec2_connection, pytorch_training, PT_REGRESSION_CMD_REVISED, container_name="pt_reg"
+            ec2_connection,
+            pytorch_training,
+            PT_REGRESSION_CMD_REVISED,
+            container_name="pytorch_regression",
         )
     else:
         execute_ec2_training_test(
-            ec2_connection, pytorch_training, PT_REGRESSION_CMD, container_name="pt_reg"
+            ec2_connection, pytorch_training, PT_REGRESSION_CMD, container_name="pytorch_regression"
         )
 
 
@@ -235,12 +238,12 @@ def pytorch_cudnn_match_gpu(pytorch_training, ec2_connection, region):
 
 
 def pytorch_curand_gpu(pytorch_training, ec2_connection):
-    execute_ec2_training_test(ec2_connection, pytorch_training, CURAND_CMD)
+    execute_ec2_training_test(ec2_connection, pytorch_training, CURAND_CMD, container_name="curand")
 
 
 def pytorch_linear_regression_cpu(pytorch_training, ec2_connection):
     execute_ec2_training_test(
-        ec2_connection, pytorch_training, PT_REGRESSION_CMD, container_name="pt_reg"
+        ec2_connection, pytorch_training, PT_REGRESSION_CMD, container_name="pytorch_regression"
     )
 
 
@@ -261,15 +264,23 @@ def pytorch_training_torchdata(pytorch_training, ec2_connection):
     _, image_framework_version = get_framework_and_version_from_tag(pytorch_training)
     # HACK including PT 1.13 in this condition because the Torchdata 0.5.0 tag includes old tests data
     if Version(image_framework_version) in SpecifierSet(">=1.11,<=1.13.1"):
-        execute_ec2_training_test(ec2_connection, pytorch_training, PT_TORCHDATA_DEV_CMD)
+        execute_ec2_training_test(
+            ec2_connection, pytorch_training, PT_TORCHDATA_DEV_CMD, container_name="torchdata"
+        )
     else:
         execute_ec2_training_test(
-            ec2_connection, pytorch_training, PT_TORCHDATA_CMD, container_name="gdrcopy"
+            ec2_connection, pytorch_training, PT_TORCHDATA_CMD, container_name="torchdata"
         )
 
 
 def pytorch_gdrcopy(pytorch_training, ec2_connection):
-    execute_ec2_training_test(ec2_connection, pytorch_training, PT_GDRCOPY_CMD, enable_gdrcopy=True)
+    execute_ec2_training_test(
+        ec2_connection,
+        pytorch_training,
+        PT_GDRCOPY_CMD,
+        container_nam="gdrcopy",
+        enable_gdrcopy=True,
+    )
 
 
 def pytorch_transformer_engine(pytorch_training, ec2_connection):
