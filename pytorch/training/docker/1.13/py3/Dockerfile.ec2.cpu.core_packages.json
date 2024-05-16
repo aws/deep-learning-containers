@@ -45,5 +45,8 @@
   },
   "scipy": {
     "version_specifier": ">=1.11.1"
+  },
+  "jinja2": {
+    "version_specifier": ">=3.1.4"
   }
 }
