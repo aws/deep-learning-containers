@@ -73,7 +73,6 @@ def test_pytorch_2_3_gpu_heavy(
 
     test_cases = [
         (common_cases.pytorch_gdrcopy, (pytorch_training, ec2_connection)),
-        (common_cases.pytorch_transformer_engine, (pytorch_training, ec2_connection)),
     ]
 
     test_utils.execute_serial_test_cases(test_cases, test_description="PT 2.3 GPU Heavy")

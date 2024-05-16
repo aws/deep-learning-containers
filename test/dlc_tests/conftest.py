@@ -915,28 +915,6 @@ def skip_torchdata_test(request):
 
 
 @pytest.fixture(autouse=True)
-def skip_transformer_engine_test(request):
-    if "training" in request.fixturenames:
-        image_uri = request.getfixturevalue("training")
-    elif "pytorch_training" in request.fixturenames:
-        image_uri = request.getfixturevalue("pytorch_training")
-    else:
-        return
-
-    skip_dict = {">=2.2,<2.4": ["cpu", "cu121"]}
-    if _validate_pytorch_framework_version(
-        request, image_uri, "skip_transformer_engine_test", skip_dict
-    ):
-        pytest.skip(
-            f"PyTorch 2.2.0 and later has deprecated NVFuser from torch script in this commit https://github.com/pytorch/pytorch/commit/e6b5e0ecc609c15bfee5b383fe5c55fbdfda68ff"
-            f"However, TransformerEngine latest version 1.2.1 still uses nvfuser."
-            f"We have raised the issue with TransformerEngine, and this test will be skipped until the issue is resolved."
-            f"For more information, see https://github.com/NVIDIA/TransformerEngine/issues/666"
-            f"Skipping test"
-        )
-
-
-@pytest.fixture(autouse=True)
 def skip_smdebug_v1_test(request):
     """Skip SM Debugger and Profiler tests due to v1 deprecation for PyTorch 2.0.1 and above frameworks."""
     if "training" in request.fixturenames:
@@ -975,81 +953,6 @@ def skip_efa_tests(request):
 
     if efa_tests and are_efa_tests_disabled():
         pytest.skip("Skipping EFA tests as EFA tests are disabled.")
-
-
-@pytest.fixture(autouse=True)
-def skip_efa_healthcheck_test(request):
-    """EFA healthcheck tests will be skipped unless binary is present.
-    EFA healthcheck binaries are not mainted by DLC, we will skip these tests moving foward unless binaries are added otherwise.
-    Addition of healthcheck binaries should be followed by modification of `skip_dict` to skip only DLCs without said binaries.
-    """
-    if "training" in request.fixturenames:
-        image_uri = request.getfixturevalue("training")
-    elif "pytorch_training" in request.fixturenames:
-        image_uri = request.getfixturevalue("pytorch_training")
-    else:
-        return
-
-    skip_dict = {
-        "==2.0.*": ["cu121"],
-        ">=2.1": ["cpu", "cu121"],
-    }
-    if _validate_pytorch_framework_version(
-        request, image_uri, "skip_efa_healthcheck_test", skip_dict
-    ):
-        pytest.skip(
-            f"EFA healthcheck binaries are not present in current {image_uri}, skipping test"
-        )
-
-
-@pytest.fixture(autouse=True)
-def skip_dcgm_healthcheck_test(request):
-    """DCGM healthcheck tests will be skipped unless binary is present.
-    DCGM healthcheck binaries are not mainted by DLC, we will skip these tests moving foward unless binaries are added otherwise.
-    Addition of healthcheck binaries should be followed by modification of `skip_dict` to skip only DLCs without said binaries.
-    """
-    if "training" in request.fixturenames:
-        image_uri = request.getfixturevalue("training")
-    elif "pytorch_training" in request.fixturenames:
-        image_uri = request.getfixturevalue("pytorch_training")
-    else:
-        return
-
-    skip_dict = {
-        "==2.0.*": ["cu121"],
-        ">=2.1": ["cpu", "cu121"],
-    }
-    if _validate_pytorch_framework_version(
-        request, image_uri, "skip_dcgm_healthcheck_test", skip_dict
-    ):
-        pytest.skip(
-            f"DCGM healthcheck binaries are not present in current {image_uri}, skipping test"
-        )
-
-
-@pytest.fixture(autouse=True)
-def skip_nccl_healthcheck_test(request):
-    """NCCL healthcheck tests will be skipped unless binary is present.
-    NCCL healthcheck binaries are not mainted by DLC, we will skip these tests moving foward unless binaries are added otherwise.
-    Addition of healthcheck binaries should be followed by modification of `skip_dict` to skip only DLCs without said binaries.
-    """
-    if "training" in request.fixturenames:
-        image_uri = request.getfixturevalue("training")
-    elif "pytorch_training" in request.fixturenames:
-        image_uri = request.getfixturevalue("pytorch_training")
-    else:
-        return
-
-    skip_dict = {
-        "==2.0.*": ["cu121"],
-        ">=2.1": ["cpu", "cu121"],
-    }
-    if _validate_pytorch_framework_version(
-        request, image_uri, "skip_nccl_healthcheck_test", skip_dict
-    ):
-        pytest.skip(
-            f"NCCL healthcheck binaries are not present in current {image_uri}, skipping test"
-        )
 
 
 @pytest.fixture(autouse=True)
@@ -1500,9 +1403,6 @@ def pytest_configure(config):
     config.addinivalue_line("markers", "neuronx_test(): mark as neuronx integration test")
     config.addinivalue_line(
         "markers", "skip_torchdata_test(): mark test to skip due to dlc being incompatible"
-    )
-    config.addinivalue_line(
-        "markers", "skip_transformer_engine_test(): mark test to skip due to dlc being incompatible"
     )
     config.addinivalue_line(
         "markers", "skip_smdebug_v1_test(): mark test to skip due to dlc being incompatible"

@@ -50,6 +50,35 @@ def test_pytorch_2_2_gpu(
 
 
 @pytest.mark.usefixtures("sagemaker")
+@pytest.mark.integration("pytorch_gpu_heavy_tests")
+@pytest.mark.model("N/A")
+@pytest.mark.team("conda")
+@pytest.mark.parametrize(
+    "ec2_instance_type, region",
+    common_cases.PT_EC2_HEAVY_GPU_INSTANCE_TYPE_AND_REGION,
+    indirect=True,
+)
+@pytest.mark.skipif(
+    test_utils.is_pr_context() and not ec2.are_heavy_instance_ec2_tests_enabled(),
+    reason="Skip GPU Heavy tests in PR context unless explicitly enabled",
+)
+def test_pytorch_2_2_gpu_heavy(
+    pytorch_training___2__2, ec2_connection, region, gpu_only, ec2_instance_type
+):
+    pytorch_training = pytorch_training___2__2
+    if test_utils.is_image_incompatible_with_instance_type(pytorch_training, ec2_instance_type):
+        pytest.skip(
+            f"Image {pytorch_training} is incompatible with instance type {ec2_instance_type}"
+        )
+
+    test_cases = [
+        (common_cases.pytorch_gdrcopy, (pytorch_training, ec2_connection)),
+    ]
+
+    test_utils.execute_serial_test_cases(test_cases, test_description="PT 2.2 GPU Heavy")
+
+
+@pytest.mark.usefixtures("sagemaker")
 @pytest.mark.integration("inductor")
 @pytest.mark.model("N/A")
 @pytest.mark.team("training-compiler")
