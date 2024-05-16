@@ -126,15 +126,16 @@ RUN pip install --upgrade pip --no-cache-dir --trusted-host pypi.org --trusted-h
 
 # Install common conda packages
 RUN /opt/conda/bin/mamba install -y -c conda-forge \
-    curl \
-    libcurl
+    python=$PYTHON_VERSION \
+    cython \
+    cryptography \
     pyopenssl \
     requests \
     libgcc \
     pybind11 \
     cmake \
-    python=$PYTHON_VERSION \
-    cython \
+    curl \
+    libcurl \
     mkl \
     mkl-include \
     parso \
@@ -149,7 +150,7 @@ RUN /opt/conda/bin/mamba install -y -c conda-forge \
     psutil \
     ipython \
     ipykernel \
-    cryptography \
+    fsspec \
     pillow \
     h5py \
     mpi4py \
@@ -261,41 +262,6 @@ WORKDIR /
 
 # Install PyTorch
 RUN /opt/conda/bin/mamba install -y python=${PYTHON_SHORT_VERSION} pytorch=${PYTORCH_VERSION} \
-    pytorch-cuda=12.1 torchvision torchaudio torchtext aws-ofi-nccl \
-    --override-channels \
-    -c ${CONDA_CHANNEL} \
-    -c nvidia \
-    -c conda-forge \
- && /opt/conda/bin/mamba clean -afy
-
-# Install CUDA Compiler
-RUN /opt/conda/bin/mamba install -y python=${PYTHON_SHORT_VERSION} pytorch=${PYTORCH_VERSION} \
-    cuda-nvcc=12.1.* \
-    --override-channels \
-    -c ${CONDA_CHANNEL} \
-    -c nvidia \
-    -c conda-forge \
- && /opt/conda/bin/mamba clean -afy
-
-# Install CUDA libraries
-RUN /opt/conda/bin/mamba install -y python=${PYTHON_SHORT_VERSION} pytorch=${PYTORCH_VERSION} \
-    cuda-libraries-dev=12.1 cuda-libraries-static=12.1 cuda-compiler=12.1 \
-    --override-channels \
-    -c ${CONDA_CHANNEL} \
-    -c nvidia \
-    -c conda-forge \
- && /opt/conda/bin/mamba clean -afy
-
-# Install PyTorch related python packages (depends on PyTorch)
-RUN /opt/conda/bin/mamba install -y -c conda-forge -c fastai \
-    accelerate \
-    fastai \
-    # fastai conda strictly depends on dataclasses
- && pip uninstall -y dataclasses \
- && pip install --no-cache-dir torchtnt \
- && /opt/conda/bin/mamba clean -afy
-
-# Install GDRCopy which is a dependency of SM Distributed DataParallel binary
 # The test binaries requires cuda driver library which could be found in conda
 # So update the linker path to point to it to avoid -Lcuda not found
 RUN cd /tmp \

@@ -126,18 +126,17 @@ RUN curl -L -o ~/miniforge3.sh https://github.com/conda-forge/miniforge/releases
 RUN pip install --no-cache-dir --upgrade pip --no-cache-dir --trusted-host pypi.org --trusted-host files.pythonhosted.org \
  && ln -s /opt/conda/bin/pip /usr/local/bin/pip3
 
-# install core conda dependency packages (and pin essential packages)
-RUN /opt/conda/bin/mamba install -y --override-channels \
-    -c conda-forge \
-    conda \
-    cryptography \
-    cmake \
-    requests \
-    pyopenssl \
+# Install common conda packages
+RUN /opt/conda/bin/mamba install -y -c conda-forge \
     python=$PYTHON_VERSION \
     cython \
-    mpi4py \
-    h5py \
+    cryptography \
+    pyopenssl \
+    requests \
+    pybind11 \
+    cmake \
+    curl \
+    libcurl \
     mkl \
     mkl-include \
     parso \
@@ -146,15 +145,16 @@ RUN /opt/conda/bin/mamba install -y --override-channels \
     packaging \
     awscli \
     boto3 \
-    pybind11 \
+    pyyaml \
     scipy \
     click \
     psutil \
     ipython \
-    fsspec \
     ipykernel \
-    pyyaml \
+    fsspec \
     pillow \
+    h5py \
+    mpi4py \
     "urllib3<2" \
     "idna>=3.7"\
     "tqdm>=4.66.3" \
