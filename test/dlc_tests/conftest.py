@@ -923,7 +923,7 @@ def skip_transformer_engine_test(request):
     else:
         return
 
-    skip_dict = {">=2.2": ["cpu", "cu121"]}
+    skip_dict = {">=2.2,<2.4": ["cpu", "cu121"]}
     if _validate_pytorch_framework_version(
         request, image_uri, "skip_transformer_engine_test", skip_dict
     ):
@@ -980,6 +980,7 @@ def skip_efa_tests(request):
 @pytest.fixture(autouse=True)
 def skip_efa_healthcheck_test(request):
     """EFA healthcheck tests will be skipped unless binary is present.
+    EFA healthcheck binaries are not mainted by DLC, we will skip these tests moving foward unless binaries are added otherwise.
     Addition of healthcheck binaries should be followed by modification of `skip_dict` to skip only DLCs without said binaries.
     """
     if "training" in request.fixturenames:
@@ -991,13 +992,63 @@ def skip_efa_healthcheck_test(request):
 
     skip_dict = {
         "==2.0.*": ["cu121"],
-        ">=2.1,<2.4": ["cpu", "cu121"],
+        ">=2.1": ["cpu", "cu121"],
     }
     if _validate_pytorch_framework_version(
         request, image_uri, "skip_efa_healthcheck_test", skip_dict
     ):
         pytest.skip(
             f"EFA healthcheck binaries are not present in current {image_uri}, skipping test"
+        )
+
+
+@pytest.fixture(autouse=True)
+def skip_dcgm_healthcheck_test(request):
+    """DCGM healthcheck tests will be skipped unless binary is present.
+    DCGM healthcheck binaries are not mainted by DLC, we will skip these tests moving foward unless binaries are added otherwise.
+    Addition of healthcheck binaries should be followed by modification of `skip_dict` to skip only DLCs without said binaries.
+    """
+    if "training" in request.fixturenames:
+        image_uri = request.getfixturevalue("training")
+    elif "pytorch_training" in request.fixturenames:
+        image_uri = request.getfixturevalue("pytorch_training")
+    else:
+        return
+
+    skip_dict = {
+        "==2.0.*": ["cu121"],
+        ">=2.1": ["cpu", "cu121"],
+    }
+    if _validate_pytorch_framework_version(
+        request, image_uri, "skip_dcgm_healthcheck_test", skip_dict
+    ):
+        pytest.skip(
+            f"DCGM healthcheck binaries are not present in current {image_uri}, skipping test"
+        )
+
+
+@pytest.fixture(autouse=True)
+def skip_nccl_healthcheck_test(request):
+    """NCCL healthcheck tests will be skipped unless binary is present.
+    NCCL healthcheck binaries are not mainted by DLC, we will skip these tests moving foward unless binaries are added otherwise.
+    Addition of healthcheck binaries should be followed by modification of `skip_dict` to skip only DLCs without said binaries.
+    """
+    if "training" in request.fixturenames:
+        image_uri = request.getfixturevalue("training")
+    elif "pytorch_training" in request.fixturenames:
+        image_uri = request.getfixturevalue("pytorch_training")
+    else:
+        return
+
+    skip_dict = {
+        "==2.0.*": ["cu121"],
+        ">=2.1": ["cpu", "cu121"],
+    }
+    if _validate_pytorch_framework_version(
+        request, image_uri, "skip_nccl_healthcheck_test", skip_dict
+    ):
+        pytest.skip(
+            f"NCCL healthcheck binaries are not present in current {image_uri}, skipping test"
         )
 
 
@@ -1039,7 +1090,7 @@ def skip_p5_tests(request, ec2_instance_type):
 
 
 @pytest.fixture(autouse=True)
-def skip_release_pt_test(request):
+def skip_serialized_release_pt_test(request):
     if "training" in request.fixturenames:
         image_uri = request.getfixturevalue("training")
     elif "pytorch_training" in request.fixturenames:
@@ -1048,10 +1099,9 @@ def skip_release_pt_test(request):
         return
 
     skip_dict = {
-        "==2.0.1": ["cu121"],
         ">=2.1,<2.4": ["cpu", "cu121"],
     }
-    if _validate_pytorch_framework_version(request, image_uri, "skip_release_pt_test", skip_dict):
+    if _validate_pytorch_framework_version(request, image_uri, "skip_serialized_release_pt_test", skip_dict):
         pytest.skip(
             f"Skip test for {image_uri} given that the image is being tested in serial execution."
         )
