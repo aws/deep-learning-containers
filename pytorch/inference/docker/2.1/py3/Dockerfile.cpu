@@ -142,6 +142,8 @@ RUN pip uninstall -y torch torchvision torchaudio torchdata model-archiver multi
 # install pytorch wheels
 RUN pip install --no-cache-dir -U \
     ${TORCH_URL} \
+    # jinja2 - dependency of torch
+    "jinja2>=3.1.4,<4" \
     ${TORCHVISION_URL} \
     ${TORCHAUDIO_URL} \
     ${TORCHTEXT_URL} \
