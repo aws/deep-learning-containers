@@ -151,7 +151,6 @@ RUN /opt/conda/bin/mamba install -y -c conda-forge \
     psutil \
     ipython \
     ipykernel \
-    fsspec \
     pillow \
     h5py \
     mpi4py \
