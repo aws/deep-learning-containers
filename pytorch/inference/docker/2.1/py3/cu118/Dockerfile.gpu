@@ -198,6 +198,8 @@ RUN pip install --no-cache-dir -U \
     # triton required for torch inductor
     triton \
     ${TORCH_URL} \
+    # jinja2 - dependency of torch
+    "jinja2>=3.1.4,<4" \
     ${TORCHVISION_URL} \
     ${TORCHAUDIO_URL} \
     ${TORCHTEXT_URL} \
