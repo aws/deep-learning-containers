@@ -55,7 +55,7 @@ ARG DEBIAN_FRONTEND=noninteractive
 ENV LANG=C.UTF-8
 ENV LD_LIBRARY_PATH="/opt/conda/lib:${LD_LIBRARY_PATH}"
 ENV PATH=/opt/conda/bin:$PATH
-ENV TEMP=/home/model-server/tmp
+ENV TEMP=/tmp
 # Set MKL_THREADING_LAYER=GNU to prevent issues between torch and numpy/mkl
 ENV MKL_THREADING_LAYER=GNU
 ENV DLC_CONTAINER_TYPE=inference
@@ -170,7 +170,7 @@ RUN pip install --no-cache-dir -U -r https://raw.githubusercontent.com/pytorch/s
 RUN mkdir -p /etc/pki/tls/certs && cp /etc/ssl/certs/ca-certificates.crt /etc/pki/tls/certs/ca-bundle.crt
 
 RUN useradd -m model-server \
- && mkdir -p /home/model-server/tmp /opt/ml/model \
+ && mkdir -p /tmp /opt/ml/model \
  && chown -R model-server /home/model-server /opt/ml/model
 
 COPY torchserve-ec2-entrypoint.py /usr/local/bin/dockerd-entrypoint.py
