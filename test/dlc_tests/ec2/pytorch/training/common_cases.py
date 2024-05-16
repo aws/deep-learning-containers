@@ -89,7 +89,7 @@ def pytorch_linear_regression_gpu(pytorch_training, ec2_connection):
             ec2_connection,
             pytorch_training,
             PT_REGRESSION_CMD_REVISED,
-            container_name="pytorch_regression",
+            container_name="pytorch_regression_gpu",
         )
     else:
         execute_ec2_training_test(

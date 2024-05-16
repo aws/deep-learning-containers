@@ -1,3 +1,5 @@
+#!/usr/bin/env bash
+
 # Copyright 2018-2020 Amazon.com, Inc. or its affiliates. All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License"). You
@@ -10,8 +12,6 @@
 # distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF
 # ANY KIND, either express or implied. See the License for the specific
 # language governing permissions and limitations under the License.
-
-#!/usr/bin/env bash
 
 GDRCOPY_VERSION="$(awk '$1=="#define"&&$2=="GDR_API_MAJOR_VERSION" {printf "%s.", $3} $1=="#define"&&$2=="GDR_API_MINOR_VERSION" {printf "%s\n", $3}' /usr/local/include/gdrapi.h)"
 
