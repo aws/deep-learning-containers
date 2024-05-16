@@ -50,7 +50,7 @@ ENV DEBIAN_FRONTEND=noninteractive \
     LANG=C.UTF-8 \
     LD_LIBRARY_PATH=/opt/conda/lib/:$LD_LIBRARY_PATH \
     PATH=/opt/conda/bin:$PATH \
-    TEMP=/home/model-server/tmp \
+    TEMP=/tmp \
     ### Graviton Optimizaation ENV Variables
     LRU_CACHE_CAPACITY=1024 \
     THP_MEM_ALLOC_ENABLE=1 \
@@ -164,7 +164,7 @@ RUN mkdir -p /etc/pki/tls/certs && cp /etc/ssl/certs/ca-certificates.crt /etc/pk
 
 # create user and folders
 RUN useradd -m model-server \
- && mkdir -p /home/model-server/tmp /opt/ml/model \
+ && mkdir -p /tmp /opt/ml/model \
  && chown -R model-server /home/model-server /opt/ml/model
 
 # add TS entrypoint
