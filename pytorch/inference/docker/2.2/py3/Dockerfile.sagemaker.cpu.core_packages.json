@@ -38,12 +38,12 @@
     "version_specifier": "<3.0.39"
   },
   "torchserve": {
-    "version_specifier": "==0.8.2"
+    "version_specifier": "==0.11.0"
   },
   "torch-model-archiver": {
-    "version_specifier": "==0.8.2"
+    "version_specifier": "==0.11.0"
   },
   "sagemaker-pytorch-inference": {
-    "version_specifier": "==2.0.22"
+    "version_specifier": "==2.0.23"
   }
 }

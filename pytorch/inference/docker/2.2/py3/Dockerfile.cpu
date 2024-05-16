@@ -59,7 +59,7 @@ ENV LC_ALL=C.UTF-8
 ENV PATH=/opt/conda/bin:$PATH
 
 # Set Env Variables for the images
-ENV TEMP=/home/model-server/tmp
+ENV TEMP=/tmp
 ENV MKL_THREADING_LAYER=GNU
 
 ENV DLC_CONTAINER_TYPE=inference
@@ -181,7 +181,7 @@ RUN mkdir -p /etc/pki/tls/certs && cp /etc/ssl/certs/ca-certificates.crt /etc/pk
 
 # create user and folders
 RUN useradd -m model-server \
- && mkdir -p /home/model-server/tmp /opt/ml/model \
+ && mkdir -p ${TEMP} /opt/ml/model \
  && chown -R model-server /home/model-server /opt/ml/model
 
 # add TS entrypoint
