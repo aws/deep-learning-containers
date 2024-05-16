@@ -1,9 +1,5 @@
 #### First image: sha256:e589b6fd00b2f0f1b4f77b46bc10ed82325eae85f46b23b27cb4fabe2bb88a7f ####
-#### Patch contents for patch-1: sha256:749052cd16e3bea5d1a29b1e5f05d720279e8ee4366596c43d9a7ea97025b036 ####
-pip install idna==3.7 pillow==10.3.0 tqdm==4.66.4 
-python -m pip install --upgrade pip
-apt-get update && apt-get install -y --only-upgrade bsdutils curl fdisk libblkid1 libc-bin libc-dev-bin libc6-dev libc6 libcurl3-gnutls libcurl4-openssl-dev libcurl4 libfdisk1 libgnutls30 libmount1 libnghttp2-14 libsmartcols1 libuuid1 linux-libc-dev mount util-linux vim-common vim-runtime vim xxd
 #### Current Patch contents ####
 pip install idna==3.7 pillow==10.3.0 tqdm==4.66.4 
 python -m pip install --upgrade pip
-apt-get update && apt-get install -y --only-upgrade bsdutils curl fdisk libblkid1 libc-bin libc-dev-bin libc6-dev libc6 libcurl3-gnutls libcurl4-openssl-dev libcurl4 libfdisk1 libglib2.0-0 libglib2.0-bin libgnutls30 libmount1 libnghttp2-14 libsmartcols1 libuuid1 linux-libc-dev mount util-linux vim-common vim-runtime vim xxd
+apt-get update && apt-get install -y --only-upgrade bsdutils curl fdisk libblkid1 libc-bin libc-dev-bin libc6-dev libc6 libcurl3-gnutls libcurl4-openssl-dev libcurl4 libfdisk1 libgnutls30 libmount1 libnghttp2-14 libsmartcols1 libuuid1 linux-libc-dev mount util-linux vim-common vim-runtime vim xxd
