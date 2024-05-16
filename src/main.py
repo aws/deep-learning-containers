@@ -101,7 +101,7 @@ def main():
 
     buildspec_file = config.get_buildspec_override() or args.buildspec
 
-    # Ensure that buildspec_file starts with buildspec and ends with yml
+    # Ensure that buildspec_file starts with 'buildspec' and ends with 'yml'
     buildspec_pattern = re.compile(r"buildspec\S*\.yml")
     assert buildspec_pattern.match(
         os.path.basename(buildspec_file)
