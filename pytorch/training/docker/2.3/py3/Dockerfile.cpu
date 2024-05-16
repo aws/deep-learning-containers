@@ -154,6 +154,7 @@ RUN /opt/conda/bin/mamba install -y -c conda-forge \
     pillow \
     h5py \
     mpi4py \
+    fsspec \
     "urllib3<2" \
     "idna>=3.7"\
     "tqdm>=4.66.3" \

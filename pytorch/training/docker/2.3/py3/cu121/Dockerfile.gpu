@@ -153,6 +153,7 @@ RUN /opt/conda/bin/mamba install -y -c conda-forge \
     pillow \
     h5py \
     mpi4py \
+    fsspec \
     "urllib3<2" \
     "idna>=3.7"\
     "tqdm>=4.66.3" \
@@ -258,9 +259,43 @@ WORKDIR /
 # PyTorch, CUDA compiler, and CUDA libraries should be installed as a separate layer to reduce layer size.
 # ECR pull can timeout on smaller EC2 instances like P3.2x if layer is too big.
 # Each installation layer pin python and pytorch to ensure no overrides.
-
 # Install PyTorch
 RUN /opt/conda/bin/mamba install -y python=${PYTHON_SHORT_VERSION} pytorch=${PYTORCH_VERSION} \
+    pytorch-cuda=12.1 torchvision torchaudio torchtext aws-ofi-nccl \
+    --override-channels \
+    -c ${CONDA_CHANNEL} \
+    -c nvidia \
+    -c conda-forge \
+ && /opt/conda/bin/mamba clean -afy
+
+# Install CUDA Compiler
+RUN /opt/conda/bin/mamba install -y python=${PYTHON_SHORT_VERSION} pytorch=${PYTORCH_VERSION} \
+    cuda-nvcc=12.1.* \
+    --override-channels \
+    -c ${CONDA_CHANNEL} \
+    -c nvidia \
+    -c conda-forge \
+ && /opt/conda/bin/mamba clean -afy
+
+# Install CUDA libraries
+RUN /opt/conda/bin/mamba install -y python=${PYTHON_SHORT_VERSION} pytorch=${PYTORCH_VERSION} \
+    cuda-libraries-dev=12.1 cuda-libraries-static=12.1 cuda-compiler=12.1 \
+    --override-channels \
+    -c ${CONDA_CHANNEL} \
+    -c nvidia \
+    -c conda-forge \
+ && /opt/conda/bin/mamba clean -afy
+
+# Install PyTorch related python packages (depends on PyTorch)
+RUN /opt/conda/bin/mamba install -y -c conda-forge -c fastai \
+    accelerate \
+    fastai \
+    # fastai conda strictly depends on dataclasses
+ && pip uninstall -y dataclasses \
+ && pip install --no-cache-dir torchtnt \
+ && /opt/conda/bin/mamba clean -afy
+
+# Install GDRCopy which is a dependency of SM Distributed DataParallel binary
 # The test binaries requires cuda driver library which could be found in conda
 # So update the linker path to point to it to avoid -Lcuda not found
 RUN cd /tmp \
@@ -354,6 +389,9 @@ WORKDIR /
 # Install SageMaker Profiler Binary
 RUN pip install --no-cache-dir -U ${SMP_URL}
 
+# PyTorch, CUDA compiler, and CUDA libraries should be installed as a separate layer to reduce layer size.
+# ECR pull can timeout on smaller EC2 instances like P3.2x if layer is too big.
+# Each installation layer pin python and pytorch to ensure no overrides.
 # Install PyTorch
 RUN /opt/conda/bin/mamba install -y python=${PYTHON_SHORT_VERSION} pytorch=${PYTORCH_VERSION} \
     pytorch-cuda=12.1 torchvision torchaudio torchtext aws-ofi-nccl \
