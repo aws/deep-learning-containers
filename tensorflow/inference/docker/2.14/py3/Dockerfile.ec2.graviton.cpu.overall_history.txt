@@ -3,10 +3,6 @@
 pip install idna==3.7 
 python -m pip install --upgrade pip
 apt-get update && apt-get install -y --only-upgrade bsdutils fdisk libblkid1 libc-bin libc-dev-bin libc6-dev libc6 libfdisk1 libgnutls30 libmount1 libnghttp2-14 libsmartcols1 libuuid1 linux-libc-dev mount util-linux uuid-dev
-#### Patch contents for patch-2: sha256:c0525175a8df250c24db0787e7b98c7e570c76d12402f507d524a53f104bc9e7 ####
-pip install idna==3.7 
-python -m pip install --upgrade pip
-apt-get update && apt-get install -y --only-upgrade bsdutils fdisk libblkid1 libc-bin libc-dev-bin libc6-dev libc6 libfdisk1 libglib2.0-0 libgnutls30 libmount1 libnghttp2-14 libsmartcols1 libuuid1 linux-libc-dev mount util-linux uuid-dev
 #### Current Patch contents ####
 pip install idna==3.7 
 python -m pip install --upgrade pip
