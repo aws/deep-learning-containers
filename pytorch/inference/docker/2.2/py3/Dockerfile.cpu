@@ -137,6 +137,7 @@ RUN curl -L -o ~/miniforge3.sh https://github.com/conda-forge/miniforge/releases
     charset-normalizer \
     "idna>=3.7"\
     "tqdm>=4.66.3" \
+    "zstandard>=0.22.0" \
  && /opt/conda/bin/conda clean -afy \
  && rm -rf /etc/apt/sources.list.d/*
 

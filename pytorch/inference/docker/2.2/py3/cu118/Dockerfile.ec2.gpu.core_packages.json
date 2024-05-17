@@ -40,6 +40,9 @@
   "urllib3": {
     "version_specifier": ">=1.26.18,<2"
   },
+  "zstandard": {
+    "version_specifier": ">=0.22.0"
+  },
   "prompt-toolkit": {
     "version_specifier": "<3.0.39"
   },

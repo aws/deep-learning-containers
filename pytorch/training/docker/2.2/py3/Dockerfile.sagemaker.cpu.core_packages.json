@@ -52,5 +52,8 @@
   },
   "tqdm": {
     "version_specifier": ">=4.66.3"
+  },
+  "zstandard": {
+    "version_specifier": ">=0.22.0"
   }
 }
