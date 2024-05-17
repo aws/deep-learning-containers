@@ -236,6 +236,8 @@ RUN conda install -y -c conda-forge \
     scikit-learn \
     pandas
 
+## Latest SM Toolkit needs numpy>=1.24.4 hence the latest version of numpy is installed in SM containers
+## Latest SM Toolkit does not install sagemaker-inference as its dependency
 RUN pip install --no-cache-dir sagemaker-pytorch-inference==${SM_TOOLKIT_VERSION}
 
 COPY torchserve-entrypoint.py /usr/local/bin/dockerd-entrypoint.py
