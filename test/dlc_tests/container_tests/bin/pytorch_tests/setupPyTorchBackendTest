@@ -29,6 +29,6 @@ source ~/.bashrc
 # setup benchmark repo
 git clone https://github.com/pytorch/benchmark.git
 cd benchmark
-git checkout 350bb04
+git checkout 350bb04  # pin commit for Python 3.11 support
 pip install -r requirements.txt
 pip install numba
