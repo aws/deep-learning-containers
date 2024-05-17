@@ -256,21 +256,12 @@ ARG GDRCOPY_VERSION
 
 WORKDIR /
 
-# PyTorch, CUDA compiler, and CUDA libraries should be installed as a separate layer to reduce layer size.
+# PyTorch and CUDA libraries should be installed as a separate layer to reduce layer size.
 # ECR pull can timeout on smaller EC2 instances like P3.2x if layer is too big.
 # Each installation layer pin python and pytorch to ensure no overrides.
 # Install PyTorch
 RUN /opt/conda/bin/mamba install -y python=${PYTHON_SHORT_VERSION} pytorch=${PYTORCH_VERSION} \
-    pytorch-cuda=12.1 torchvision torchaudio torchtext aws-ofi-nccl \
-    --override-channels \
-    -c ${CONDA_CHANNEL} \
-    -c nvidia \
-    -c conda-forge \
- && /opt/conda/bin/mamba clean -afy
-
-# Install CUDA Compiler
-RUN /opt/conda/bin/mamba install -y python=${PYTHON_SHORT_VERSION} pytorch=${PYTORCH_VERSION} \
-    cuda-nvcc=12.1.* \
+    pytorch-cuda=12.1 cuda-nvcc=12.1.* torchvision torchaudio torchtext aws-ofi-nccl \
     --override-channels \
     -c ${CONDA_CHANNEL} \
     -c nvidia \
@@ -389,21 +380,12 @@ WORKDIR /
 # Install SageMaker Profiler Binary
 RUN pip install --no-cache-dir -U ${SMP_URL}
 
-# PyTorch, CUDA compiler, and CUDA libraries should be installed as a separate layer to reduce layer size.
+# PyTorch and CUDA libraries should be installed as a separate layer to reduce layer size.
 # ECR pull can timeout on smaller EC2 instances like P3.2x if layer is too big.
 # Each installation layer pin python and pytorch to ensure no overrides.
 # Install PyTorch
 RUN /opt/conda/bin/mamba install -y python=${PYTHON_SHORT_VERSION} pytorch=${PYTORCH_VERSION} \
-    pytorch-cuda=12.1 torchvision torchaudio torchtext aws-ofi-nccl \
-    --override-channels \
-    -c ${CONDA_CHANNEL} \
-    -c nvidia \
-    -c conda-forge \
- && /opt/conda/bin/mamba clean -afy
-
-# Install CUDA Compiler
-RUN /opt/conda/bin/mamba install -y python=${PYTHON_SHORT_VERSION} pytorch=${PYTORCH_VERSION} \
-    cuda-nvcc=12.1.* \
+    pytorch-cuda=12.1 cuda-nvcc=12.1.* torchvision torchaudio torchtext aws-ofi-nccl \
     --override-channels \
     -c ${CONDA_CHANNEL} \
     -c nvidia \
