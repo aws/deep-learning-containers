@@ -83,7 +83,7 @@ release_images:
   7:
     framework: "pytorch"
     version: "2.3.0"
-    customer_type: "sagemaker"
+    customer_type: "ec2"
     arch_type: "x86"
     training:
       device_types: [ "cpu", "gpu" ]
