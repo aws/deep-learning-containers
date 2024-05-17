@@ -913,7 +913,8 @@
                 "48298":"for shipping PT1.12 on safety check tools might report a vulnerability for the package commonmarker, which is a dependency of deepspeed. This package is only used to build the documentation pages of deepspeed and won’t be used in the package that gets installed into the DLC. This security issue can be safely ignored and an attempt to upgrade deepspeed version to remediate it might have an inadvertent negative impact on the DLC components functionality.",
                 "51159":"cryptography>38.0.1 does not exist yet",
                 "65213":"for shipping pyopenssl>=22.0.0 - no current fix",
-                "67599":"** DISPUTED ** An issue was discovered in pip (all versions) because it installs the version with the highest version number, even if the user had intended to obtain a private package from a private index. This only affects use of the --extra-index-url option, and exploitation requires that the package does not already exist in the public index (and thus the attacker can put the package there with an arbitrary version number). NOTE: it has been reported that this is intended functionality and the user is responsible for using --extra-index-url securely."
+                "67599":"** DISPUTED ** An issue was discovered in pip (all versions) because it installs the version with the highest version number, even if the user had intended to obtain a private package from a private index. This only affects use of the --extra-index-url option, and exploitation requires that the package does not already exist in the public index (and thus the attacker can put the package there with an arbitrary version number). NOTE: it has been reported that this is intended functionality and the user is responsible for using --extra-index-url securely.",
+                "70612": "In Jinja2, the from_string function is prone to Server Side Template Injection (SSTI) where it takes the \"source\" parameter as a template object, renders it, and then returns it. The attacker can exploit it with {{INJECTION COMMANDS}} in a URI. \r\nNOTE: The maintainer and multiple third parties believe that this vulnerability isn't valid because users shouldn't use untrusted templates without sandboxing."
             }
         },
         "training-neuron":{
@@ -961,7 +962,8 @@
                 "62894": "for scipy-1.10.1 which is a hardcoded dependency of sagemaker-pytorch-inference",
                 "65213": "for shipping pyopenssl>=22.0.0 - no current fix",
                 "65345": "for shipping torchserve==0.8.2, torchserve should skip 0.9.0 and wait for 0.10.0",
-                "67599":"** DISPUTED ** An issue was discovered in pip (all versions) because it installs the version with the highest version number, even if the user had intended to obtain a private package from a private index. This only affects use of the --extra-index-url option, and exploitation requires that the package does not already exist in the public index (and thus the attacker can put the package there with an arbitrary version number). NOTE: it has been reported that this is intended functionality and the user is responsible for using --extra-index-url securely."
+                "67599":"** DISPUTED ** An issue was discovered in pip (all versions) because it installs the version with the highest version number, even if the user had intended to obtain a private package from a private index. This only affects use of the --extra-index-url option, and exploitation requires that the package does not already exist in the public index (and thus the attacker can put the package there with an arbitrary version number). NOTE: it has been reported that this is intended functionality and the user is responsible for using --extra-index-url securely.",
+                "70612": "In Jinja2, the from_string function is prone to Server Side Template Injection (SSTI) where it takes the \"source\" parameter as a template object, renders it, and then returns it. The attacker can exploit it with {{INJECTION COMMANDS}} in a URI. \r\nNOTE: The maintainer and multiple third parties believe that this vulnerability isn't valid because users shouldn't use untrusted templates without sandboxing."
             }
         },
         "inference-eia": {
@@ -1381,7 +1383,7 @@
                 "65278": "Covered elsewhere",
                 "62044": "Covered elsewhere",
                 "65501": "Covered elsewhere",
-                "61949": "Covered elsewhere", 
+                "61949": "Covered elsewhere",
                 "65581": "Covered elsewhere",
                 "65095": "Covered elsewhere",
                 "61503": "Covered elsewhere",
