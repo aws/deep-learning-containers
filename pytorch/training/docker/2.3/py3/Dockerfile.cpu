@@ -179,6 +179,7 @@ RUN curl -o /license.txt https://aws-dlc-licenses.s3.amazonaws.com/pytorch-2.3/l
 # Removing the cache as it is needed for security verification
 RUN rm -rf /root/.cache | true
 
+# Clean redundant python bycode and static archive
 RUN /opt/conda/bin/mamba clean -afy \
  && find /opt/conda/ -follow -type f -name '*.a' -delete \
  && find /opt/conda/ -follow -type f -name '*.pyc' -delete
@@ -236,6 +237,7 @@ RUN HOME_DIR=/root \
 # Removing the cache as it is needed for security verification
 RUN rm -rf /root/.cache | true
 
+# Clean redundant python bycode and static archive
 RUN /opt/conda/bin/mamba clean -afy \
  && find /opt/conda/ -follow -type f -name '*.a' -delete \
  && find /opt/conda/ -follow -type f -name '*.pyc' -delete
@@ -331,11 +333,10 @@ RUN HOME_DIR=/root \
 # Removing the cache as it is needed for security verification
 RUN rm -rf /root/.cache | true
 
+# Clean redundant python bycode and static archive
 RUN /opt/conda/bin/mamba clean -afy \
  && find /opt/conda/ -follow -type f -name '*.a' -delete \
- && find /opt/conda/ -follow -type f -name '*.pyc' -delete \
- && find /opt/conda/ -follow -type f -name '*.js.map' -delete \
- && find /opt/conda/lib/python*/site-packages/bokeh/server/static -follow -type f -name '*.js' ! -name '*.min.js' -delete
+ && find /opt/conda/ -follow -type f -name '*.pyc' -delete
 
 ENTRYPOINT ["bash", "-m", "start_with_right_hostname.sh"]
 CMD ["/bin/bash"]
