@@ -1386,7 +1386,8 @@
                 "65095": "Covered elsewhere",
                 "61503": "Covered elsewhere",
                 "65193": "Covered elsewhere",
-                "62019": "Covered elsehwere"
+                "62019": "Covered elsehwere",
+                "70612": "The maintainer and multiple third parties believe that this vulnerability isn't valid because users shouldn't use untrusted templates without sandboxing."
             }
         },
         "inference": {
@@ -1415,7 +1416,8 @@
                 "66704": "Covered elsewhere",
                 "66777": "Covered elsewhere",
                 "65212": "Covered elsewhere",
-                "65647": "Covered elsewhere"
+                "65647": "Covered elsewhere",
+                "70612": "The maintainer and multiple third parties believe that this vulnerability isn't valid because users shouldn't use untrusted templates without sandboxing."
             }
         },
         "inference-neuron": {
@@ -1438,7 +1440,8 @@
             "py3": {
                 "64402":"Temporarily ignoring to patch CRITICAL vulnerabilties",
                 "65213":"Temporarily ignoring to patch CRITICAL vulnerabilties",
-                "67599": "** DISPUTED ** An issue was discovered in pip (all versions) because it installs the version with the highest version number, even if the user had intended to obtain a private package from a private index. This only affects use of the --extra-index-url option, and exploitation requires that the package does not already exist in the public index (and thus the attacker can put the package there with an arbitrary version number). NOTE: it has been reported that this is intended functionality and the user is responsible for using --extra-index-url securely."
+                "67599": "** DISPUTED ** An issue was discovered in pip (all versions) because it installs the version with the highest version number, even if the user had intended to obtain a private package from a private index. This only affects use of the --extra-index-url option, and exploitation requires that the package does not already exist in the public index (and thus the attacker can put the package there with an arbitrary version number). NOTE: it has been reported that this is intended functionality and the user is responsible for using --extra-index-url securely.",
+                "70612": "The maintainer and multiple third parties believe that this vulnerability isn't valid because users shouldn't use untrusted templates without sandboxing."
             }
         },
         "training-neuronx": {
