@@ -179,11 +179,6 @@ RUN curl -o /license.txt https://aws-dlc-licenses.s3.amazonaws.com/pytorch-2.3/l
 # Removing the cache as it is needed for security verification
 RUN rm -rf /root/.cache | true
 
-# Clean redundant python bycode and static archive
-RUN /opt/conda/bin/mamba clean -afy \
- && find /opt/conda/ -follow -type f -name '*.a' -delete \
- && find /opt/conda/ -follow -type f -name '*.pyc' -delete
-
 ########################################################
 #  _____ ____ ____    ___
 # | ____/ ___|___ \  |_ _|_ __ ___   __ _  __ _  ___
@@ -236,11 +231,6 @@ RUN HOME_DIR=/root \
 
 # Removing the cache as it is needed for security verification
 RUN rm -rf /root/.cache | true
-
-# Clean redundant python bycode and static archive
-RUN /opt/conda/bin/mamba clean -afy \
- && find /opt/conda/ -follow -type f -name '*.a' -delete \
- && find /opt/conda/ -follow -type f -name '*.pyc' -delete
 
 # Starts framework
 CMD ["/bin/bash"]
@@ -332,11 +322,6 @@ RUN HOME_DIR=/root \
 
 # Removing the cache as it is needed for security verification
 RUN rm -rf /root/.cache | true
-
-# Clean redundant python bycode and static archive
-RUN /opt/conda/bin/mamba clean -afy \
- && find /opt/conda/ -follow -type f -name '*.a' -delete \
- && find /opt/conda/ -follow -type f -name '*.pyc' -delete
 
 ENTRYPOINT ["bash", "-m", "start_with_right_hostname.sh"]
 CMD ["/bin/bash"]
