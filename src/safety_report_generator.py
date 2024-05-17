@@ -215,7 +215,7 @@ class SafetyReportGenerator:
             self.safety_check_output = self.run_safety_check_in_cb_context()
         # In case of errors, json.loads command will fail. We want the failure to occur to ensure that
         # build process fails in case the safety report cannot be generated properly.
-        print(f"TEST: {self.safety_check_output}")
+        print(f"TEST: {self.safety_check_output}", flush=True)
         scanned_vulnerabilities = json.loads(self.safety_check_output)
         self.insert_vulnerabilites_into_report(scanned_vulnerabilities)
         packages = self.get_package_set_from_container()
