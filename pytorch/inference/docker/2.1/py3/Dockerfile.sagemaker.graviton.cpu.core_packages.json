@@ -34,6 +34,12 @@
   "urllib3": {
     "version_specifier": ">=1.26.18,<2"
   },
+  "idna": {
+    "version_specifier": ">=3.7"
+  },
+  "tqdm": {
+    "version_specifier": ">=4.66.3"
+  },
   "torchserve": {
     "version_specifier": "==0.11.0"
   },
