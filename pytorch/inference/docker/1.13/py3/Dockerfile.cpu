@@ -127,7 +127,6 @@ RUN curl -L -o ~/mambaforge.sh https://github.com/conda-forge/miniforge/releases
     typing \
     h5py \
     requests \
-    "pyopenssl>=24.1.0" \
     "zstandard>=0.21.0" \
     # Below 2 are included in miniconda base, but not mamba so need to install
     conda-content-trust \
@@ -153,6 +152,7 @@ RUN pip install --no-cache-dir --extra-index-url https://download.pytorch.org/wh
     "botocore==1.34.8" \
     "s3transfer==0.10.0" \
     "pillow>=10.0.1" \
+    "pyopenssl>=24.1.0" \
     ${TORCH_URL} \
     torchaudio==${TORCHAUDIO_VERSION} \
     torchvision==${TORCHVISION_VERSION} \
