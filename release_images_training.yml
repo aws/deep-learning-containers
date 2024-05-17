@@ -38,7 +38,7 @@ release_images:
       neuron_sdk_version: "sdk2.18.0"
       example: False
       disable_sm_tag: True
-      force_release: False
+      force_release: True
   4:
     framework: "huggingface_pytorch"
     version: "1.13.1"
