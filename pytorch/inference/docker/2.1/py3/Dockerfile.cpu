@@ -152,8 +152,6 @@ RUN pip install --no-cache-dir -U \
 # -> Numpy is higer version as required by torch
 RUN pip install --no-cache-dir -U -r https://raw.githubusercontent.com/pytorch/serve/v${TORCHSERVE_VERSION}/requirements/common.txt \
  && pip install --no-cache-dir -U \
-    # jinja2 - dependency of torch
-    "jinja2>=3.1.4,<4" \
     numpy \
     torchserve==${TORCHSERVE_VERSION} \
     torch-model-archiver==${TORCHSERVE_VERSION}
