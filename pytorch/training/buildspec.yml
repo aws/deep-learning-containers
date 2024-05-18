@@ -2,8 +2,8 @@ account_id: &ACCOUNT_ID <set-$ACCOUNT_ID-in-environment>
 prod_account_id: &PROD_ACCOUNT_ID 763104351884
 region: &REGION <set-$REGION-in-environment>
 framework: &FRAMEWORK pytorch
-version: &VERSION 2.2.0
-short_version: &SHORT_VERSION "2.2"
+version: &VERSION 2.3.0
+short_version: &SHORT_VERSION "2.3"
 arch_type: x86
 autopatch_build: "False"
 
@@ -32,35 +32,63 @@ context:
       target: deep_learning_container.py
 
 images:
-  BuildSageMakerCPUPTTrainPy3DockerImage:
+  BuildEC2CPUPTTrainPy3DockerImage:
     <<: *TRAINING_REPOSITORY
     build: &PYTORCH_CPU_TRAINING_PY3 false
-    image_size_baseline: 6200
+    image_size_baseline: 6500
     device_type: &DEVICE_TYPE cpu
     python_version: &DOCKER_PYTHON_VERSION py3
-    tag_python_version: &TAG_PYTHON_VERSION py310
+    tag_python_version: &TAG_PYTHON_VERSION py311
     os_version: &OS_VERSION ubuntu20.04
-    tag: !join [ *VERSION, "-", *DEVICE_TYPE, "-", *TAG_PYTHON_VERSION, "-", *OS_VERSION, "-sagemaker" ]
-    # latest_release_tag: !join [ *VERSION, "-", *DEVICE_TYPE, "-", *TAG_PYTHON_VERSION, "-", *OS_VERSION, "-sagemaker" ]
+    tag: !join [ *VERSION, "-", *DEVICE_TYPE, "-", *TAG_PYTHON_VERSION, "-", *OS_VERSION, "-ec2" ]
+    latest_release_tag: !join [ *VERSION, "-", *DEVICE_TYPE, "-", *TAG_PYTHON_VERSION, "-", *OS_VERSION, "-ec2" ]
     docker_file: !join [ docker/, *SHORT_VERSION, /, *DOCKER_PYTHON_VERSION, /Dockerfile., *DEVICE_TYPE ]
-    target: sagemaker
-    # build_tag_override: "beta:2.2.0-cpu-py310-ubuntu20.04-sagemaker"
+    target: ec2
     context:
       <<: *TRAINING_CONTEXT
-  BuildSageMakerGPUPTTrainPy3DockerImage:
+  BuildEC2GPUPTTrainPy3cu121DockerImage:
     <<: *TRAINING_REPOSITORY
     build: &PYTORCH_GPU_TRAINING_PY3 false
-    image_size_baseline: 21500
+    image_size_baseline: 19700
     device_type: &DEVICE_TYPE gpu
     python_version: &DOCKER_PYTHON_VERSION py3
-    tag_python_version: &TAG_PYTHON_VERSION py310
+    tag_python_version: &TAG_PYTHON_VERSION py311
     cuda_version: &CUDA_VERSION cu121
     os_version: &OS_VERSION ubuntu20.04
-    tag: !join [ *VERSION, "-", *DEVICE_TYPE, "-", *TAG_PYTHON_VERSION, "-", *CUDA_VERSION, "-", *OS_VERSION, "-sagemaker" ]
-    # latest_release_tag: !join [ *VERSION, "-", *DEVICE_TYPE, "-", *TAG_PYTHON_VERSION, "-", *CUDA_VERSION, "-", *OS_VERSION, "-sagemaker" ]
+    tag: !join [ *VERSION, "-", *DEVICE_TYPE, "-", *TAG_PYTHON_VERSION, "-", *CUDA_VERSION, "-", *OS_VERSION, "-ec2" ]
+    latest_release_tag: !join [ *VERSION, "-", *DEVICE_TYPE, "-", *TAG_PYTHON_VERSION, "-", *CUDA_VERSION, "-", *OS_VERSION, "-ec2" ]
     docker_file: !join [ docker/, *SHORT_VERSION, /, *DOCKER_PYTHON_VERSION, /, *CUDA_VERSION, /Dockerfile.,
                          *DEVICE_TYPE ]
-    target: sagemaker
-    # build_tag_override: "beta:2.2.0-gpu-py310-cu121-ubuntu20.04-sagemaker"
+    target: ec2
     context:
       <<: *TRAINING_CONTEXT
+  # BuildSageMakerCPUPTTrainPy3DockerImage:
+  #   <<: *TRAINING_REPOSITORY
+  #   build: &PYTORCH_CPU_TRAINING_PY3 false
+  #   image_size_baseline: 6200
+  #   device_type: &DEVICE_TYPE cpu
+  #   python_version: &DOCKER_PYTHON_VERSION py3
+  #   tag_python_version: &TAG_PYTHON_VERSION py311
+  #   os_version: &OS_VERSION ubuntu20.04
+  #   tag: !join [ *VERSION, "-", *DEVICE_TYPE, "-", *TAG_PYTHON_VERSION, "-", *OS_VERSION, "-sagemaker" ]
+  #   latest_release_tag: !join [ *VERSION, "-", *DEVICE_TYPE, "-", *TAG_PYTHON_VERSION, "-", *OS_VERSION, "-sagemaker" ]
+  #   docker_file: !join [ docker/, *SHORT_VERSION, /, *DOCKER_PYTHON_VERSION, /Dockerfile., *DEVICE_TYPE ]
+  #   target: sagemaker
+  #   context:
+  #     <<: *TRAINING_CONTEXT
+  # BuildSageMakerGPUPTTrainPy3DockerImage:
+  #   <<: *TRAINING_REPOSITORY
+  #   build: &PYTORCH_GPU_TRAINING_PY3 false
+  #   image_size_baseline: 21500
+  #   device_type: &DEVICE_TYPE gpu
+  #   python_version: &DOCKER_PYTHON_VERSION py3
+  #   tag_python_version: &TAG_PYTHON_VERSION py311
+  #   cuda_version: &CUDA_VERSION cu121
+  #   os_version: &OS_VERSION ubuntu20.04
+  #   tag: !join [ *VERSION, "-", *DEVICE_TYPE, "-", *TAG_PYTHON_VERSION, "-", *CUDA_VERSION, "-", *OS_VERSION, "-sagemaker" ]
+  #   latest_release_tag: !join [ *VERSION, "-", *DEVICE_TYPE, "-", *TAG_PYTHON_VERSION, "-", *CUDA_VERSION, "-", *OS_VERSION, "-sagemaker" ]
+  #   docker_file: !join [ docker/, *SHORT_VERSION, /, *DOCKER_PYTHON_VERSION, /, *CUDA_VERSION, /Dockerfile.,
+  #                        *DEVICE_TYPE ]
+  #   target: sagemaker
+  #   context:
+  #     <<: *TRAINING_CONTEXT
