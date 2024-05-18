@@ -113,7 +113,7 @@ RUN apt-get update \
  && rm -rf /var/lib/apt/lists/* \
  && apt-get clean
 
-# for conda ssl verification
+# For conda ssl verification
 ENV REQUESTS_CA_BUNDLE=/etc/ssl/certs/ca-certificates.crt
 RUN curl -L -o ~/miniforge3.sh https://github.com/conda-forge/miniforge/releases/download/${MINIFORGE3_VERSION}/Miniforge3-${MINIFORGE3_VERSION}-Linux-x86_64.sh \
  && chmod +x ~/miniforge3.sh \
@@ -428,15 +428,7 @@ RUN MAX_JOBS=4 pip install --no-cache-dir flash-attn==2.0.4 --no-build-isolation
 # Install TE using instructions from https://docs.nvidia.com/deeplearning/transformer-engine/user-guide/installation.html
 RUN pip install --no-cache-dir git+https://github.com/NVIDIA/TransformerEngine.git@release_v0.12
 
-# Copy workaround script for incorrect hostname
-COPY changehostname.c /
-COPY start_with_right_hostname.sh /usr/local/bin/start_with_right_hostname.sh
-
-RUN chmod +x /usr/local/bin/start_with_right_hostname.sh
-
-WORKDIR /root
-
-# install SM packages
+# Install SM packages
 RUN pip install --no-cache-dir -U \
     smclarify \
     "sagemaker>=2,<3" \
@@ -456,7 +448,11 @@ RUN /opt/conda/bin/mamba install -y -c conda-forge \
     seaborn \
  && /opt/conda/bin/mamba clean -afy
 
-WORKDIR /
+# Copy workaround script for incorrect hostname
+COPY changehostname.c /
+COPY start_with_right_hostname.sh /usr/local/bin/start_with_right_hostname.sh
+
+RUN chmod +x /usr/local/bin/start_with_right_hostname.sh
 
 RUN HOME_DIR=/root \
  && curl -o ${HOME_DIR}/oss_compliance.zip https://aws-dlinfra-utilities.s3.amazonaws.com/oss_compliance.zip \
