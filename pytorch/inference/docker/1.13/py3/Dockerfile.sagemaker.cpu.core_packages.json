@@ -47,5 +47,8 @@
    },
    "pyopenssl": {
       "version_specifier": ">=24.1.0"
+   },
+   "zstandard": {
+      "version_specifier": ">=0.21.0"
    }
 }
