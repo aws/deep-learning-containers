@@ -361,13 +361,7 @@ ARG TORCH_CUDA_ARCH_LIST
 ARG NCCL_VERSION
 ARG GDRCOPY_VERSION
 
-# SageMaker Profiler Binary
-ARG SMP_URL=https://smppy.s3.amazonaws.com/pytorch/cu121/smprof-0.3.334-cp310-cp310-linux_x86_64.whl
-
 WORKDIR /
-
-# Install SageMaker Profiler Binary
-RUN pip install --no-cache-dir -U ${SMP_URL}
 
 # PyTorch and CUDA libraries should be installed as a separate layer to reduce layer size.
 # ECR pull can timeout on smaller EC2 instances like P3.2x if layer is too big.
