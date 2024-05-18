@@ -90,7 +90,7 @@ folder structure as per above and modify the buildspec.yml file to specify the v
                        --device_types cpu \
                        --py_versions py3
     ```
-3. The arguments —image_types, —device_types and —py_versions are all comma separated list who’s possible values are as follows:
+3. The arguments —image_types, —device_types and —py_versions are all comma separated list whose possible values are as follows:
     ```shell script
     --image_types <training/inference>
     --device_types <cpu/gpu>
