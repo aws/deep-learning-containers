@@ -525,6 +525,24 @@ def skip_dgl_test(
 
 
 @pytest.fixture(autouse=True)
+def skip_smppy311_test(
+    request,
+    processor,
+    ecr_image,
+):
+    """Starting from PyTorch 2.3.0, we will upgrade python version from 3.10 to 3.11.
+    This test will skip images without a compatible SMPPY Python 3.11.
+    The test condition should be modified appropriately and `skip_smppy311_test` pytest mark should be removed from smppy tests
+    when the binaries are added in.
+    """
+    skip_dict = {">=2.3": ["cpu", "cu121"]}
+    if _validate_pytorch_framework_version(
+        request, processor, ecr_image, "skip_smppy311_test", skip_dict
+    ):
+        pytest.skip(f"SMPPY Python 3.11 binary is not available, skipping test")
+
+
+@pytest.fixture(autouse=True)
 def skip_smdmodelparallel_test(
     request,
     processor,
