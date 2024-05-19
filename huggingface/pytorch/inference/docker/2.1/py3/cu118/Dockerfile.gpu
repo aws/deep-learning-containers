@@ -127,7 +127,7 @@ RUN curl -L -o ~/mambaforge.sh https://github.com/conda-forge/miniforge/releases
  && rm ~/mambaforge.sh \
  && /opt/conda/bin/conda install -c conda-forge python=${PYTHON_VERSION} \
     cython \
-    "mkl>=2023.2.0" \
+    "mkl>=2024.0" \
     mkl-include \
     parso \
     scipy \
@@ -217,7 +217,7 @@ RUN pip install --no-cache-dir \
     peft==${PEFT_VERSION} \
     "accelerate>=0.25.0" \
 	"protobuf>=3.19.5,<=3.20.2" \
-	"numpy>=1.22.2,<1.23" \
+	"numpy>=1.22.2,<1.24" \
 	"sagemaker-huggingface-inference-toolkit==2.3"
 
 RUN HOME_DIR=/root \
