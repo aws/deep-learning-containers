@@ -41,7 +41,7 @@ def _skip_if_image_is_not_compatible_with_smppy(image_uri):
         pytest.skip(f"This test only works for PT versions in {compatible_versions}")
 
 
-@pytest.mark.skip_smppy311_test
+@pytest.mark.skip_python311_test
 @pytest.mark.skip_cpu
 @pytest.mark.skip_py2_containers
 @pytest.mark.usefixtures("feature_smppy_present")
@@ -73,7 +73,7 @@ def test_training_smppy(framework_version, ecr_image, sagemaker_regions):
         _check_and_cleanup_s3_output(pytorch, 40)
 
 
-@pytest.mark.skip_smppy311_test
+@pytest.mark.skip_python311_test
 @pytest.mark.skip_cpu
 @pytest.mark.skip_py2_containers
 @pytest.mark.usefixtures("feature_smppy_present")
