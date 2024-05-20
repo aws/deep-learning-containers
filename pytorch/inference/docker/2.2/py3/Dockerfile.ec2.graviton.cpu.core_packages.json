@@ -23,7 +23,7 @@
     "version_specifier": "<2"
   },
   "pyopenssl": {
-    "version_specifier": ">=24.0.0"
+    "version_specifier": ">=24.1.0"
   },
   "cryptography": {
     "version_specifier": ">=41.0.2"
