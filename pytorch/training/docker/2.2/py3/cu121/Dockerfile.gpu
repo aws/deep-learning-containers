@@ -130,7 +130,7 @@ RUN /opt/conda/bin/mamba install -y -c conda-forge \
     cmake \
     python=$PYTHON_VERSION \
     cython \
-    mkl \
+    "mkl<2024.1.0" \
     mkl-include \
     parso \
     typing \
@@ -152,6 +152,8 @@ RUN /opt/conda/bin/mamba install -y -c conda-forge \
     pillow \
     "mpi4py>=3.1.4,<3.2" \
     h5py \
+    "tqdm>=4.66.3" \
+    "zstandard>=0.22.0" \
   && /opt/conda/bin/mamba clean -afy \
   && rm -rf /etc/apt/sources.list.d/*
 
@@ -212,7 +214,7 @@ RUN rm -rf /root/.ssh/ && \
 
 RUN mkdir -p /etc/pki/tls/certs && cp /etc/ssl/certs/ca-certificates.crt /etc/pki/tls/certs/ca-bundle.crt
 
-RUN curl -o /license.txt https://aws-dlc-licenses.s3.amazonaws.com/pytorch-2.1/license.txt
+RUN curl -o /license.txt https://aws-dlc-licenses.s3.amazonaws.com/pytorch-2.2/license.txt
 
 # Removing the cache as it is needed for security verification
 RUN rm -rf /root/.cache | true
