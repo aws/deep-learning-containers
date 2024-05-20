@@ -461,7 +461,7 @@ def skip_py311_containers(request, tag):
     The test condition should be modified appropriately and `skip_py311_containers` pytest mark should be removed from such tests
     when the compatible binaries are added in.
     """
-    if request.node.get_closest_marker("skip_py2_containers"):
+    if request.node.get_closest_marker("skip_py311_containers"):
         if "py311" in tag:
             pytest.skip("Skipping python311 container with tag {}".format(tag))
 
