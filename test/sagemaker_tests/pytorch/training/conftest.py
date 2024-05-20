@@ -455,29 +455,15 @@ def skip_py2_containers(request, tag):
 
 
 @pytest.fixture(autouse=True)
-def skip_py311_containers(
-    request,
-    processor,
-):
+def skip_py311_containers(request, tag):
     """Starting from PyTorch 2.3.0, we will upgrade python version from 3.10 to 3.11.
     This will skip tests with packages incompatible with python 3.11
-    The test condition should be modified appropriately and `skip_python311_test` pytest mark should be removed from such tests
+    The test condition should be modified appropriately and `skip_py311_containers` pytest mark should be removed from such tests
     when the compatible binaries are added in.
     """
-    if "docker_image" in request.fixturenames:
-        image_uri = request.getfixturevalue("docker_image")
-    elif "ecr_image" in request.fixturenames:
-        image_uri = request.getfixturevalue("ecr_image")
-    else:
-        return
-
-    skip_dict = {">=2.3": ["cpu", "cu121"]}
-    if _validate_pytorch_framework_version(
-        request, processor, image_uri, "skip_py311_containers", skip_dict
-    ):
-        pytest.skip(f"Compatible Python 3.11 binary is not available for current test, skipping.")
-
-
+    if request.node.get_closest_marker("skip_py2_containers"):
+        if "py311" in tag:
+            pytest.skip("Skipping python311 container with tag {}".format(tag))
 
 
 @pytest.fixture(autouse=True)
