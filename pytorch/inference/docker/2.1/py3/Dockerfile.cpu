@@ -111,6 +111,7 @@ RUN curl -L -o ~/mambaforge.sh https://github.com/conda-forge/miniforge/releases
     "mkl>=2023.2.0,<2024" \
     "mkl-include>=2023.2.0,<2024" \
     parso \
+    scipy \
     typing \
     h5py \
     requests \

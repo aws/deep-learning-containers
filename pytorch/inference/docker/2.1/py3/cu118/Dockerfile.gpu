@@ -187,6 +187,7 @@ RUN pip install --no-cache-dir -U \
     "pyOpenSSL>=24.0.0" \
     "cryptography>=42.0.5" \
     "ipython>=8.10.0,<9.0" \
+    "awscli<2" \
     "urllib3>=1.26.18,<2" \
     "idna>=3.7" \
     "tqdm>=4.66.3"
