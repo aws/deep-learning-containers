@@ -260,7 +260,6 @@ HuggingFace Neuron Training Containers
 ===============================
 |Framework                                                         |Neuron SDK Version |Job Type   |Supported EC2 Instance Type |Python Version Options |Example URL                                                                                                                                   |
 |------------------------------------------------------------------|-------------------|-----------|----------------------------|-----------------------|----------------------------------------------------------------------------------------------------------------------------------------------|
-|PyTorch 1.13.1 with NeuronX Training and HuggingFace transformers |Neuron 2.15.0      |training  |trn1                        |3.10 (py310)             |763104351884.dkr.ecr.us-east-1.amazonaws.com/huggingface-pytorch-training-neuronx:1.13.1-transformers4.34.1-neuronx-py310-sdk2.15.0-ubuntu20.04 |
 |PyTorch 1.13.1 with NeuronX Training and HuggingFace transformers |Neuron 2.18.0      |training  |trn1                        |3.10 (py310)             |763104351884.dkr.ecr.us-east-1.amazonaws.com/huggingface-pytorch-training-neuronx:1.13.1-transformers4.36.2-neuronx-py310-sdk2.18.0-ubuntu20.04 |
 
 StabilityAI Inference Containers
