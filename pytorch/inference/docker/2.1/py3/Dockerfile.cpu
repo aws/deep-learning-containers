@@ -115,7 +115,8 @@ RUN curl -L -o ~/mambaforge.sh https://github.com/conda-forge/miniforge/releases
     h5py \
     requests \
     # Below 2 are included in miniconda base, but not mamba so need to install
-    conda-content-trust \
+    "conda-content-trust>=0.2.0" \
+    "zstandard>=0.21.0" \
     charset-normalizer \
  && /opt/conda/bin/conda clean -ya
 
