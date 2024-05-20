@@ -1362,13 +1362,8 @@
                 "64438": "Temporarily ignoring to patch CRITICAL vulnerabilties",
                 "64436": "Temporarily ignoring to patch CRITICAL vulnerabilties",
                 "64437": "Temporarily ignoring to patch CRITICAL vulnerabilties",
-                "64402": "Temporarily ignoring to patch CRITICAL vulnerabilties",
                 "63406": "Temporarily ignoring to patch CRITICAL vulnerabilties",
                 "64227": "Temporarily ignoring to patch CRITICAL vulnerabilties",
-                "65213": "Covered elsewhere",
-                "65215": "Covered elsewhere",
-                "65398": "Covered elsewhere",
-                "64402": "Covered elsewhere",
                 "65213": "Covered elsewhere",
                 "65215": "Covered elsewhere",
                 "65398": "Covered elsewhere",
@@ -1386,7 +1381,11 @@
                 "65095": "Covered elsewhere",
                 "61503": "Covered elsewhere",
                 "65193": "Covered elsewhere",
-                "62019": "Covered elsehwere"
+                "62019": "Covered elsehwere",
+                "70612": "The maintainer and multiple third parties believe that this vulnerability isn't valid because users shouldn't use untrusted templates without sandboxing.",
+                "67599": "** DISPUTED ** An issue was discovered in pip (all versions) because it installs the version with the highest version number, even if the user had intended to obtain a private package from a private index. This only affects use of the --extra-index-url option, and exploitation requires that the package does not already exist in the public index (and thus the attacker can put the package there with an arbitrary version number). NOTE: it has been reported that this is intended functionality and the user is responsible for using --extra-index-url securely.",
+                "70790": "Tqdm version 4.66.3 addresses CVE-2024-34062",
+                "67895": "CVE-2024-3651 impacts the idna.encode() function"
             }
         },
         "inference": {
@@ -1404,18 +1403,18 @@
                 "51396": "Protobuf is only a runtime dependency of transformers. Current version of Protobuf installed in the image is not vulnerable.",
                 "60235": "Temporarily ignoring to patch CRITICAL vulnerabilties at SEV2 pace",
                 "65213": "Covered elsewhere",
-                "65215": "Covered elsewhere",
                 "65398": "Covered elsewhere",
                 "64402": "Covered elsewhere",
-                "65213": "Covered elsewhere",
                 "65215": "Covered elsewhere",
-                "65398": "Covered elsewhere",
-                "64402": "Covered elsewhere",
                 "65278": "Covered elsewhere",
                 "66704": "Covered elsewhere",
                 "66777": "Covered elsewhere",
                 "65212": "Covered elsewhere",
-                "65647": "Covered elsewhere"
+                "65647": "Covered elsewhere",
+                "70612": "The maintainer and multiple third parties believe that this vulnerability isn't valid because users shouldn't use untrusted templates without sandboxing.",
+                "67599": "** DISPUTED ** An issue was discovered in pip (all versions) because it installs the version with the highest version number, even if the user had intended to obtain a private package from a private index. This only affects use of the --extra-index-url option, and exploitation requires that the package does not already exist in the public index (and thus the attacker can put the package there with an arbitrary version number). NOTE: it has been reported that this is intended functionality and the user is responsible for using --extra-index-url securely.",
+                "70790": "Tqdm version 4.66.3 addresses CVE-2024-34062",
+                "67895": "CVE-2024-3651 impacts the idna.encode() function"
             }
         },
         "inference-neuron": {
@@ -1438,7 +1437,8 @@
             "py3": {
                 "64402":"Temporarily ignoring to patch CRITICAL vulnerabilties",
                 "65213":"Temporarily ignoring to patch CRITICAL vulnerabilties",
-                "67599": "** DISPUTED ** An issue was discovered in pip (all versions) because it installs the version with the highest version number, even if the user had intended to obtain a private package from a private index. This only affects use of the --extra-index-url option, and exploitation requires that the package does not already exist in the public index (and thus the attacker can put the package there with an arbitrary version number). NOTE: it has been reported that this is intended functionality and the user is responsible for using --extra-index-url securely."
+                "67599": "** DISPUTED ** An issue was discovered in pip (all versions) because it installs the version with the highest version number, even if the user had intended to obtain a private package from a private index. This only affects use of the --extra-index-url option, and exploitation requires that the package does not already exist in the public index (and thus the attacker can put the package there with an arbitrary version number). NOTE: it has been reported that this is intended functionality and the user is responsible for using --extra-index-url securely.",
+                "70612": "The maintainer and multiple third parties believe that this vulnerability isn't valid because users shouldn't use untrusted templates without sandboxing."
             }
         },
         "training-neuronx": {
