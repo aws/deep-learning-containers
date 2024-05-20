@@ -34,9 +34,9 @@ def _skip_if_image_is_not_compatible_with_smppy(image_uri):
         pytest.skip(f"This test only works for PT versions in {compatible_versions}")
 
 
-@pytest.mark.skip_python311_test
 @pytest.mark.skip_cpu
 @pytest.mark.skip_py2_containers
+@pytest.mark.skip_py311_containers
 @pytest.mark.usefixtures("feature_smppy_present")
 @pytest.mark.processor("gpu")
 @pytest.mark.integration("smppy")

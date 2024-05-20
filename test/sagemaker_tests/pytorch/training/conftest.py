@@ -133,7 +133,7 @@ def pytest_addoption(parser):
     parser.addoption("--framework-version", default="")
     parser.addoption(
         "--py-version",
-        choices=["2", "3", "37", "38", "39", "310"],
+        choices=["2", "3", "37", "38", "39", "310", "311"],
         default=str(sys.version_info.major),
     )
     parser.addoption("--processor", choices=["gpu", "cpu", "neuron", "neuronx"], default="cpu")
@@ -455,6 +455,32 @@ def skip_py2_containers(request, tag):
 
 
 @pytest.fixture(autouse=True)
+def skip_py311_containers(
+    request,
+    processor,
+):
+    """Starting from PyTorch 2.3.0, we will upgrade python version from 3.10 to 3.11.
+    This will skip tests with packages incompatible with python 3.11
+    The test condition should be modified appropriately and `skip_python311_test` pytest mark should be removed from such tests
+    when the compatible binaries are added in.
+    """
+    if "docker_image" in request.fixturenames:
+        image_uri = request.getfixturevalue("docker_image")
+    elif "ecr_image" in request.fixturenames:
+        image_uri = request.getfixturevalue("ecr_image")
+    else:
+        return
+
+    skip_dict = {">=2.3": ["cpu", "cu121"]}
+    if _validate_pytorch_framework_version(
+        request, processor, image_uri, "skip_py311_containers", skip_dict
+    ):
+        pytest.skip(f"Compatible Python 3.11 binary is not available for current test, skipping.")
+
+
+
+
+@pytest.fixture(autouse=True)
 def skip_trcomp_containers(request, ecr_image):
     if request.node.get_closest_marker("skip_trcomp_containers"):
         if "trcomp" in ecr_image:
@@ -522,30 +548,6 @@ def skip_dgl_test(
         request, processor, ecr_image, "skip_dgl_test", skip_dict
     ):
         pytest.skip(f"DGL binary is removed, skipping test")
-
-
-@pytest.fixture(autouse=True)
-def skip_python311_test(
-    request,
-    processor,
-):
-    """Starting from PyTorch 2.3.0, we will upgrade python version from 3.10 to 3.11.
-    This will skip tests with packages incompatible with python 3.11
-    The test condition should be modified appropriately and `skip_python311_test` pytest mark should be removed from such tests
-    when the compatible binaries are added in.
-    """
-    if "ecr_image" in request.fixturenames:
-        image_uri = request.getfixturevalue("ecr_image")
-    elif "docker_image" in request.fixturenames:
-        image_uri = request.getfixturevalue("docker_image")
-    else:
-        return
-
-    skip_dict = {">=2.3": ["cpu", "cu121"]}
-    if _validate_pytorch_framework_version(
-        request, processor, image_uri, "skip_python311_test", skip_dict
-    ):
-        pytest.skip(f"Compatible Python 3.11 binary is not available for current test, skipping.")
 
 
 @pytest.fixture(autouse=True)
