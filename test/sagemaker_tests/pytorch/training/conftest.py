@@ -543,7 +543,7 @@ def skip_python311_test(
 
     skip_dict = {">=2.3": ["cpu", "cu121"]}
     if _validate_pytorch_framework_version(
-        request, processor, image_uri, "skip_python311", skip_dict
+        request, processor, image_uri, "skip_python311_test", skip_dict
     ):
         pytest.skip(f"Compatible Python 3.11 binary is not available for current test, skipping.")
 
