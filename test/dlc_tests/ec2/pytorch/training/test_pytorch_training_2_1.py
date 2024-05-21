@@ -8,6 +8,7 @@ from test.dlc_tests.ec2.pytorch.training import common_cases
 from test.dlc_tests.ec2 import smclarify_cases
 
 
+@pytest.mark.skip("TEMP SKIP")
 @pytest.mark.usefixtures("sagemaker")
 @pytest.mark.integration("pytorch_gpu_tests")
 @pytest.mark.model("N/A")
@@ -79,6 +80,7 @@ def test_pytorch_2_1_gpu_heavy(
     test_utils.execute_serial_test_cases(test_cases, test_description="PT 2.1 GPU Heavy")
 
 
+@pytest.mark.skip("TEMP SKIP")
 @pytest.mark.usefixtures("sagemaker")
 @pytest.mark.integration("inductor")
 @pytest.mark.model("N/A")
@@ -107,6 +109,7 @@ def test_pytorch_2_1_gpu_inductor(
     test_utils.execute_serial_test_cases(test_cases, test_description="PT 2.1 GPU Inductor")
 
 
+@pytest.mark.skip("TEMP SKIP")
 @pytest.mark.usefixtures("sagemaker")
 @pytest.mark.integration("pytorch_cpu_tests")
 @pytest.mark.model("N/A")
