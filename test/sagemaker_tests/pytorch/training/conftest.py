@@ -455,18 +455,6 @@ def skip_py2_containers(request, tag):
 
 
 @pytest.fixture(autouse=True)
-def skip_py311_containers(request, tag):
-    """Starting from PyTorch 2.3.0, we will upgrade python version from 3.10 to 3.11.
-    This will skip tests with packages incompatible with python 3.11
-    The test condition should be modified appropriately and `skip_py311_containers` pytest mark should be removed from such tests
-    when the compatible binaries are added in.
-    """
-    if request.node.get_closest_marker("skip_py311_containers"):
-        if "py311" in tag:
-            pytest.skip("Skipping python311 container with tag {}".format(tag))
-
-
-@pytest.fixture(autouse=True)
 def skip_trcomp_containers(request, ecr_image):
     if request.node.get_closest_marker("skip_trcomp_containers"):
         if "trcomp" in ecr_image:
