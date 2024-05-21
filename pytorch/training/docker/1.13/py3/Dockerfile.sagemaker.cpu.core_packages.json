@@ -81,5 +81,8 @@
   },
   "tblib": {
     "version_specifier": ">=2.0.0"
+  },
+  "jinja2": {
+    "version_specifier": ">=3.1.4"
   }
 }

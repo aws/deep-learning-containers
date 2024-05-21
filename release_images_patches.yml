@@ -79,24 +79,26 @@ release_images:
       disable_sm_tag: False
       force_release: False
 
-  # TF 2.14 images
+  # PT 2.3 images
   7:
-    framework: "tensorflow"
-    version: "2.14.1"
+    framework: "pytorch"
+    version: "2.3.0"
     customer_type: "ec2"
     arch_type: "x86"
     training:
       device_types: [ "cpu", "gpu" ]
-      python_versions: [ "py310" ]
+      python_versions: [ "py311" ]
       os_version: "ubuntu20.04"
-      cuda_version: "cu118"
+      cuda_version: "cu121"
       example: False
       disable_sm_tag: False
       force_release: False
+
+  # TF 2.14 images
   8:
     framework: "tensorflow"
     version: "2.14.1"
-    customer_type: "sagemaker"
+    customer_type: "ec2"
     arch_type: "x86"
     training:
       device_types: [ "cpu", "gpu" ]
@@ -109,6 +111,19 @@ release_images:
   9:
     framework: "tensorflow"
     version: "2.14.1"
+    customer_type: "sagemaker"
+    arch_type: "x86"
+    training:
+      device_types: [ "cpu", "gpu" ]
+      python_versions: [ "py310" ]
+      os_version: "ubuntu20.04"
+      cuda_version: "cu118"
+      example: False
+      disable_sm_tag: False
+      force_release: False
+  10:
+    framework: "tensorflow"
+    version: "2.14.1"
     arch_type: "x86"
     customer_type: "ec2"
     inference:
@@ -119,7 +134,7 @@ release_images:
       example: False
       disable_sm_tag: False
       force_release: False
-  10:
+  11:
     framework: "tensorflow"
     version: "2.14.1"
     arch_type: "x86"
@@ -132,7 +147,7 @@ release_images:
       example: False
       disable_sm_tag: False
       force_release: False
-  11:
+  12:
     framework: "tensorflow"
     version: "2.14.1"
     arch_type: "graviton"
@@ -145,7 +160,7 @@ release_images:
       example: False
       disable_sm_tag: False
       force_release: False
-  12:
+  13:
     framework: "tensorflow"
     version: "2.14.1"
     arch_type: "graviton"
