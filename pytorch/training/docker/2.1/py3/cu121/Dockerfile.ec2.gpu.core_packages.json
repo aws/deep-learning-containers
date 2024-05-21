@@ -49,5 +49,8 @@
   },
   "requests": {
     "version_specifier": ">=2.31.0"
+  },
+  "jinja2": {
+    "version_specifier": ">=3.1.4"
   }
 }
