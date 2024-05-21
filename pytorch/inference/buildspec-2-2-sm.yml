@@ -18,6 +18,9 @@ repository_info:
 
 context:
   inference_context: &INFERENCE_CONTEXT
+    torchserve-ec2-entrypoint:
+      source: docker/build_artifacts/torchserve-ec2-entrypoint.py
+      target: torchserve-ec2-entrypoint.py
     torchserve-entrypoint:
       source: docker/build_artifacts/torchserve-entrypoint.py
       target: torchserve-entrypoint.py

@@ -21,6 +21,9 @@ context:
     torchserve-ec2-entrypoint:
       source: docker/build_artifacts/torchserve-ec2-entrypoint.py
       target: torchserve-ec2-entrypoint.py
+    torchserve-entrypoint:
+      source: docker/build_artifacts/torchserve-entrypoint.py
+      target: torchserve-entrypoint.py
     config:
       source: docker/build_artifacts/config.properties
       target: config.properties
