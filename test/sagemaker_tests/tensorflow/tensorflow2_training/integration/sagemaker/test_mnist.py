@@ -194,7 +194,7 @@ def test_hc_distributed_mnist_ps(ecr_image, sagemaker_regions, instance_type, fr
 
     validate_or_skip_test(ecr_image=ecr_image)
     print("ecr image used for training", ecr_image)
-    instance_type = instance_type or "ml.p2.xlarge"
+    instance_type = instance_type or "ml.p3.xlarge"
     training_group = InstanceGroup("train_group", instance_type, 2)
     invoke_sm_helper_function(
         ecr_image,
