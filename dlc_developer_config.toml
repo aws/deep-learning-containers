@@ -150,7 +150,7 @@ dlc-pr-stabilityai-pytorch-inference = ""
 
 # Graviton Inference
 dlc-pr-mxnet-graviton-inference = ""
-dlc-pr-pytorch-graviton-inference = "pytorch/inference/buildspec-graviton-2-1.yml"
+dlc-pr-pytorch-graviton-inference = ""
 dlc-pr-tensorflow-2-graviton-inference = ""
 
 # EIA Inference
