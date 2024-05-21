@@ -19,6 +19,7 @@ import os
 import re
 import json
 import tempfile
+import yaml
 
 from copy import deepcopy
 
@@ -80,6 +81,14 @@ def image_builder(buildspec, image_types=[], device_types=[]):
     :param image_types: <list> list of image types
     :param device_types: <list> list of image device type
     """
+    with open(buildspec, "r") as bf:
+        pointer_check = yaml.safe_load(bf)
+        pointer = pointer_check.get("buildspec_pointer")
+        if pointer:
+            FORMATTER.print(f"Buildspec {buildspec} points to another buildspec file {pointer}")
+            buildspec = os.path.join(os.path.dirname(buildspec), pointer)
+            FORMATTER.print(f"Inferring buildspec path to be {buildspec}")
+
     BUILDSPEC = Buildspec()
     BUILDSPEC.load(buildspec)
     PRE_PUSH_STAGE_IMAGES = []
