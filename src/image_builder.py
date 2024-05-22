@@ -143,7 +143,8 @@ def image_builder(buildspec, image_types=[], device_types=[]):
             # set image_tag to have datetime
             no_datetime = image_tag
             additional_image_tags.append(no_datetime)
-            additional_image_tags.append(tag_image_with_initiator(no_datetime))
+            if build_context == "MAINLINE":
+                additional_image_tags.append(tag_image_with_initiator(no_datetime))
             image_tag = tag_image_with_datetime(image_tag)
 
         additional_image_tags.append(image_tag)
