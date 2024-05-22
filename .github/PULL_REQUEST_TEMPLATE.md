@@ -30,7 +30,7 @@
 
 ### DLC image/dockerfile
 
-#### Standard Framework Builds to Execute
+#### Builds to Execute
 <details>
 <summary>Expand</summary>
 
