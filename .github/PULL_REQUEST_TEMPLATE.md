@@ -53,22 +53,6 @@ Fill out the template and click the checkbox of the builds you'd like to execute
 - [ ] build_tensorflow_inference_<X.Y>_graviton
 </details>
 
-#### Special Framework (AutoGluon/HuggingFace) Builds to Execute
-<details>
-<summary>Expand</summary>
-
-*Note: By default, these pipelines are set to "latest". Replace with major.minor framework version if you do not want "latest".*
-
-- [ ] build_autogluon_training_latest
-- [ ] build_autogluon_inference_latest
-
-- [ ] build_huggingface-pytorch_training_latest
-- [ ] build_huggingface-pytorch_inference_latest
-
-- [ ] build_huggingface-pytorch_training_latest_neuronx
-- [ ] build_huggingface-pytorch_inference_latest_neuronx
-</details>
-
 ### Additional context
 
 ### PR Checklist 
