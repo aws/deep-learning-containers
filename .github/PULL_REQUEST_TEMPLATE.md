@@ -30,19 +30,43 @@
 
 ### DLC image/dockerfile
 
-#### Builds to Execute
+#### Standard Framework Builds to Execute
 <details>
 <summary>Expand</summary>
 
-Click the checkbox to enable a build to execute upon merge.
+Fill out the template and click the checkbox of the builds you'd like to execute
 
-*Note: By default, pipelines are set to "latest". Replace with major.minor framework version if you do not want "latest".*
+*Note: Replace with <X.Y> with the major.minor framework version (i.e. 2.2) you would like to start.*
 
-- [ ] build_pytorch_training_latest
-- [ ] build_pytorch_inference_latest
-- [ ] build_tensorflow_training_latest
-- [ ] build_tensorflow_inference_latest
+- [ ] build_pytorch_training_<X.Y>_sm
+- [ ] build_pytorch_training_<X.Y>_ec2
 
+- [ ] build_pytorch_inference_<X.Y>_sm
+- [ ] build_pytorch_inference_<X.Y>_ec2
+- [ ] build_pytorch_inference_<X.Y>_graviton
+
+- [ ] build_tensorflow_training_<X.Y>_sm
+- [ ] build_tensorflow_training_<X.Y>_ec2
+
+- [ ] build_tensorflow_inference_<X.Y>_sm
+- [ ] build_tensorflow_inference_<X.Y>_ec2
+- [ ] build_tensorflow_inference_<X.Y>_graviton
+</details>
+
+#### Special Framework (AutoGluon/HuggingFace) Builds to Execute
+<details>
+<summary>Expand</summary>
+
+*Note: By default, these pipelines are set to "latest". Replace with major.minor framework version if you do not want "latest".*
+
+- [ ] build_autogluon_training_latest
+- [ ] build_autogluon_inference_latest
+
+- [ ] build_huggingface-pytorch_training_latest
+- [ ] build_huggingface-pytorch_inference_latest
+
+- [ ] build_huggingface-pytorch_training_latest_neuronx
+- [ ] build_huggingface-pytorch_inference_latest_neuronx
 </details>
 
 ### Additional context
