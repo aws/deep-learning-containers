@@ -232,7 +232,7 @@
             "severity": "CRITICAL",
             "status": "ACTIVE",
             "title": "CVE-2023-48022 - ray",
-            "reason_to_ignore": "N/A"
+            "reason_to_ignore": "fix not available yet"
         }
     ]
 }
