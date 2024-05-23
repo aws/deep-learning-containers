@@ -147,6 +147,8 @@ RUN cd /tmp \
  && rm -rf /tmp/nccl
 # preload to system nccl for PyTorch to use its statically linked NCCL
 ENV LD_PRELOAD="/usr/local/lib/libnccl.so"
+# fix for https://stackoverflow.com/questions/74003230/runtimeerror-nccl-error-2-unhandled-system-error
+ENV NCCL_SHM_DISABLE=1
 
 # Install OpenMPI
 RUN wget --quiet https://download.open-mpi.org/release/open-mpi/v4.1/openmpi-${OPEN_MPI_VERSION}.tar.gz \
